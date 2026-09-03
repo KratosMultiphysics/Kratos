@@ -166,22 +166,9 @@ void AddAdjointInterfaceToPython(pybind11::module_& rModule) {
             "ClearCache",
             &ResponseFunction::ClearCache)
         .def(
-            "ComputeInnerValue",
-            pybind11::overload_cast<const Element&,const ProcessInfo&,int>(&ResponseFunction::ComputeInnerValue, pybind11::const_),
-            pybind11::arg("rElement"),
-            pybind11::arg("rProcessInfo"),
-            pybind11::arg("iBuffer"))
-        .def(
-            "ComputeInnerValue",
-            pybind11::overload_cast<const Condition&,const ProcessInfo&,int>(&ResponseFunction::ComputeInnerValue, pybind11::const_),
-            pybind11::arg("rCondition"),
-            pybind11::arg("rProcessInfo"),
-            pybind11::arg("iBuffer"))
-        .def(
             "ComputeValue",
-            &ResponseFunction::ComputeValue,
-            pybind11::arg("InnerSum"),
-            pybind11::arg("rProcessInfo"),
+            pybind11::overload_cast<const ModelPart&,int>(&ResponseFunction::ComputeValue, pybind11::const_),
+            pybind11::arg("rModelPart"),
             pybind11::arg("iBuffer"))
         .def(
             "GetStateVariables",
@@ -232,7 +219,7 @@ void AddAdjointInterfaceToPython(pybind11::module_& rModule) {
             pybind11::arg("rElement"),
             pybind11::arg("rProcessInfo"))
         .def(
-            "ComputeInnerDerivative",
+            "ComputeDerivative",
             [] (
                 const ResponseFunction& rThis,
                 const Element& rElement,
@@ -240,7 +227,7 @@ void AddAdjointInterfaceToPython(pybind11::module_& rModule) {
                 const ProcessInfo& rProcessInfo,
                 int iBuffer) -> Vector {
                     Vector output;
-                    rThis.ComputeInnerDerivative(
+                    rThis.ComputeDerivative(
                         output,
                         rElement,
                         rVariables,
@@ -253,7 +240,7 @@ void AddAdjointInterfaceToPython(pybind11::module_& rModule) {
             pybind11::arg("rProcessInfo"),
             pybind11::arg("iBuffer"))
         .def(
-            "ComputeInnerDerivative",
+            "ComputeDerivative",
             [] (
                 const ResponseFunction& rThis,
                 const Condition& rCondition,
@@ -261,7 +248,7 @@ void AddAdjointInterfaceToPython(pybind11::module_& rModule) {
                 const ProcessInfo& rProcessInfo,
                 int iBuffer) -> Vector {
                     Vector output;
-                    rThis.ComputeInnerDerivative(
+                    rThis.ComputeDerivative(
                         output,
                         rCondition,
                         rVariables,
@@ -273,21 +260,6 @@ void AddAdjointInterfaceToPython(pybind11::module_& rModule) {
             pybind11::arg("rVariables"),
             pybind11::arg("rProcessInfo"),
             pybind11::arg("iBuffer"))
-        .def(
-            "ComputeDerivative",
-            [] (const ResponseFunction& rThis,
-                const Vector& rDerivative,
-                const std::vector<IAdjoint::DynamicVariable>& rVariables,
-                const ProcessInfo& rProcessInfo,
-                int iBuffer) -> Vector {
-                    Vector output = rDerivative;
-                    rThis.ComputeDerivative(
-                        output,
-                        rVariables,
-                        rProcessInfo,
-                        iBuffer);
-                    return output;
-                })
         .def(
             "SetDesignVariableTypes",
             [] (ResponseFunction& rThis, const std::vector<const Variable<double>*>& rVariableTypes) -> void {
