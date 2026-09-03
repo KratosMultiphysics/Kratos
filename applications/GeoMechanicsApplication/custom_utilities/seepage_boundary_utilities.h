@@ -7,6 +7,8 @@
 //
 //  License:         geo_mechanics_application/license.txt
 //
+//  Main authors:    Richard Faasse,
+//                   Wijtze Pieter Kikstra
 
 #pragma once
 
@@ -29,9 +31,7 @@ using NodalFlowMap = std::unordered_map<std::size_t, double>;
 // Adds the entries of an element's right-hand side that belong to WATER_PRESSURE degrees of freedom
 // onto their nodes.
 //
-// rDofs must be the element's own degrees of freedom, in the same order as rRightHandSide. For a
-// U-Pw element the displacement and pressure entries are interleaved, so the entries cannot be
-// matched to nodes positionally; the degrees of freedom are what makes the mapping correct.
+// rDofs must be the element's own degrees of freedom, in the same order as rRightHandSide.
 void KRATOS_API(GEO_MECHANICS_APPLICATION)
     AccumulateWaterPressureEntries(const std::vector<Dof<double>*>& rDofs,
                                    const Vector&                    rRightHandSide,
@@ -65,6 +65,6 @@ std::vector<Node*> KRATOS_API(GEO_MECHANICS_APPLICATION) CollectSeepageNodes(Mod
 // outflow is released. Fixing takes precedence over releasing, and ties are broken by the lowest
 // node id so the result is reproducible.
 bool KRATOS_API(GEO_MECHANICS_APPLICATION)
-    SwitchOneSeepageNode(const std::vector<Node*>& rSeepageNodes, const NodalFlowMap& rNodalFlows);
+    SwitchOneSeepageNodeIfNeeded(const std::vector<Node*>& rSeepageNodes, const NodalFlowMap& rNodalFlows);
 
 } // namespace Kratos::Geo::SeepageBoundaryUtilities

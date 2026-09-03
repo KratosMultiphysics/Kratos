@@ -300,7 +300,7 @@ private:
         const auto nodal_flows = Geo::SeepageBoundaryUtilities::CalculateNodalWaterFlows(
             BaseType::GetModelPart(), BaseType::GetModelPart().GetProcessInfo());
 
-        return Geo::SeepageBoundaryUtilities::SwitchOneSeepageNode(mSeepageNodes, nodal_flows);
+        return Geo::SeepageBoundaryUtilities::SwitchOneSeepageNodeIfNeeded(mSeepageNodes, nodal_flows);
     }
 
     // Cached once in Initialize. The conditions of a model part do not change during a solve, so

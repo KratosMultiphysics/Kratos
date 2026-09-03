@@ -164,7 +164,7 @@ KRATOS_TEST_CASE_IN_SUITE(SwitchOneSeepageNodeDoesNothingWhenNoNodeViolatesItsCo
     const auto nodes       = AllNodesOf(r_model_part);
     const auto nodal_flows = Geo::SeepageBoundaryUtilities::NodalFlowMap{{1, 1.0}, {2, 0.0}};
 
-    KRATOS_EXPECT_FALSE(Geo::SeepageBoundaryUtilities::SwitchOneSeepageNode(nodes, nodal_flows))
+    KRATOS_EXPECT_FALSE(Geo::SeepageBoundaryUtilities::SwitchOneSeepageNodeIfNeeded(nodes, nodal_flows))
     KRATOS_EXPECT_TRUE(r_model_part.pGetNode(1)->IsFixed(WATER_PRESSURE))
     KRATOS_EXPECT_FALSE(r_model_part.pGetNode(2)->IsFixed(WATER_PRESSURE))
 }
@@ -182,7 +182,7 @@ KRATOS_TEST_CASE_IN_SUITE(SwitchOneSeepageNodeFixesTheHighestPressureFreeNode, K
 
     const auto nodes = AllNodesOf(r_model_part);
 
-    KRATOS_EXPECT_TRUE(Geo::SeepageBoundaryUtilities::SwitchOneSeepageNode(
+    KRATOS_EXPECT_TRUE(Geo::SeepageBoundaryUtilities::SwitchOneSeepageNodeIfNeeded(
         nodes, Geo::SeepageBoundaryUtilities::NodalFlowMap{}))
 
     // Only node 2 switches, and it is prescribed at zero pressure.
@@ -203,7 +203,7 @@ KRATOS_TEST_CASE_IN_SUITE(SwitchOneSeepageNodeReleasesTheLargestInflowFixedNode,
     const auto nodes = AllNodesOf(r_model_part);
     const auto nodal_flows = Geo::SeepageBoundaryUtilities::NodalFlowMap{{1, -4.0}, {2, -11.0}, {3, 2.0}};
 
-    KRATOS_EXPECT_TRUE(Geo::SeepageBoundaryUtilities::SwitchOneSeepageNode(nodes, nodal_flows))
+    KRATOS_EXPECT_TRUE(Geo::SeepageBoundaryUtilities::SwitchOneSeepageNodeIfNeeded(nodes, nodal_flows))
 
     // Only node 2, which has the largest outflow, is released.
     KRATOS_EXPECT_TRUE(r_model_part.pGetNode(1)->IsFixed(WATER_PRESSURE))
@@ -223,7 +223,7 @@ KRATOS_TEST_CASE_IN_SUITE(SwitchOneSeepageNodePrefersFixingOverReleasing, Kratos
     const auto nodes       = AllNodesOf(r_model_part);
     const auto nodal_flows = Geo::SeepageBoundaryUtilities::NodalFlowMap{{1, -100.0}};
 
-    KRATOS_EXPECT_TRUE(Geo::SeepageBoundaryUtilities::SwitchOneSeepageNode(nodes, nodal_flows))
+    KRATOS_EXPECT_TRUE(Geo::SeepageBoundaryUtilities::SwitchOneSeepageNodeIfNeeded(nodes, nodal_flows))
 
     // The Neumann to Dirichlet switch wins, and node 1 is left alone this iteration.
     KRATOS_EXPECT_TRUE(r_model_part.pGetNode(2)->IsFixed(WATER_PRESSURE))
@@ -241,7 +241,7 @@ KRATOS_TEST_CASE_IN_SUITE(SwitchOneSeepageNodeBreaksTiesByLowestNodeId, KratosGe
     const auto nodes       = AllNodesOf(r_model_part);
     const auto nodal_flows = Geo::SeepageBoundaryUtilities::NodalFlowMap{{1, -5.0}, {2, -5.0}};
 
-    KRATOS_EXPECT_TRUE(Geo::SeepageBoundaryUtilities::SwitchOneSeepageNode(nodes, nodal_flows))
+    KRATOS_EXPECT_TRUE(Geo::SeepageBoundaryUtilities::SwitchOneSeepageNodeIfNeeded(nodes, nodal_flows))
 
     KRATOS_EXPECT_FALSE(r_model_part.pGetNode(1)->IsFixed(WATER_PRESSURE))
     KRATOS_EXPECT_TRUE(r_model_part.pGetNode(2)->IsFixed(WATER_PRESSURE))

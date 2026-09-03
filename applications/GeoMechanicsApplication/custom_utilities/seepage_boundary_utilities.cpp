@@ -110,7 +110,7 @@ Node* SelectBestCandidate(const std::vector<Node*>& rNodes, PredicateType IsCand
 
 } // namespace
 
-bool SwitchOneSeepageNode(const std::vector<Node*>& rSeepageNodes, const NodalFlowMap& rNodalFlows)
+bool SwitchOneSeepageNodeIfNeeded(const std::vector<Node*>& rSeepageNodes, const NodalFlowMap& rNodalFlows)
 {
     KRATOS_TRY
 
