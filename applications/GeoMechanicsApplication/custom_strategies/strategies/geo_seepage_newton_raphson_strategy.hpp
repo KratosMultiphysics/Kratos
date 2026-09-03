@@ -7,20 +7,18 @@
 //
 //  License:         geo_mechanics_application/license.txt
 //
+//  Main authors:    Richard Faasse,
+//                   Wijtze Pieter Kikstra
 
 #pragma once
 
 #include <string>
 #include <vector>
 
-// Project includes
+#include "custom_utilities/seepage_boundary_utilities.h"
 #include "includes/define.h"
 #include "includes/model_part.h"
 #include "solving_strategies/strategies/residualbased_newton_raphson_strategy.h"
-
-// Application includes
-#include "custom_utilities/seepage_boundary_utilities.h"
-#include "geo_mechanics_application_variables.h"
 
 namespace Kratos
 {
@@ -28,11 +26,8 @@ namespace Kratos
 // A Newton-Raphson strategy that can switch seepage boundary conditions between Dirichlet and
 // Neumann while iterating.
 //
-// Applying a switch is the condition's job: the scheme calls
-// Condition::InitializeNonLinearIteration on every non-linear iteration, and GeoSeepageCondition
-// fixes or frees its nodes there. This strategy owns the two things the condition cannot do:
-// deciding when to switch, and making sure the solver does not declare convergence on an iteration
-// whose boundary configuration has just changed underneath it.
+// This strategy makes sure that the solver does not declare convergence on an iteration whose
+// boundary configuration has just changed underneath it.
 template <class TSparseSpace, class TDenseSpace, class TLinearSolver>
 class GeoSeepageNewtonRaphsonStrategy
     : public ResidualBasedNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>
@@ -77,19 +72,20 @@ public:
 
     void Initialize() override
     {
-        KRATOS_TRY
-
         MotherType::Initialize();
+
         mSeepageNodes = Geo::SeepageBoundaryUtilities::CollectSeepageNodes(BaseType::GetModelPart());
-        KRATOS_INFO_IF("GeoSeepageNewtonRaphsonStrategy", this->GetEchoLevel() > 0)
-            << "Found " << mSeepageNodes.size() << " seepage nodes" << std::endl;
-        for (auto* p_node : mSeepageNodes) {
-            KRATOS_INFO("Node") << p_node->Id()
-                                << " pressure = " << p_node->FastGetSolutionStepValue(WATER_PRESSURE)
-                                << "\n";
-            KRATOS_INFO("Node") << p_node->Id() << " fixed = " << p_node->IsFixed(WATER_PRESSURE) << "\n";
+
+        if (this->GetEchoLevel() > 0) {
+            KRATOS_INFO("GeoSeepageNewtonRaphsonStrategy::Initialize")
+                << "Found " << mSeepageNodes.size() << " seepage nodes" << std::endl;
+            for (auto* p_node : mSeepageNodes) {
+                KRATOS_INFO("GeoSeepageNewtonRaphsonStrategy::Initialize")
+                    << "Node " << p_node->Id()
+                    << " pressure = " << p_node->FastGetSolutionStepValue(WATER_PRESSURE)
+                    << ", fixed = " << p_node->IsFixed(WATER_PRESSURE) << "\n";
+            }
         }
-        KRATOS_CATCH("")
     }
 
     // NOTE: This is a deliberate copy of
@@ -97,12 +93,12 @@ public:
     // (kratos/solving_strategies/strategies/residualbased_newton_raphson_strategy.h, lines
     // 919-1105). The ONLY intended differences are the blocks marked "SEEPAGE SEAM". Please keep it
     // that way: a diff against the core method should show nothing else. It is copied rather than
-    // hooked because seam 3 has to run after PostCriteria, and no existing virtual method of the
-    // base class sits at that point.
+    // hooked because both seams have to run after PostCriteria, and no existing virtual method of
+    // the base class sits at that point.
     bool SolveSolutionStep() override
     {
-        ModelPart& r_model_part = BaseType::GetModelPart();
         // Pointers needed in the solution
+        ModelPart&                              r_model_part         = BaseType::GetModelPart();
         typename TSchemeType::Pointer           p_scheme             = this->GetScheme();
         typename TBuilderAndSolverType::Pointer p_builder_and_solver = this->GetBuilderAndSolver();
         auto&                                   r_dof_set = p_builder_and_solver->GetDofSet();
@@ -121,12 +117,6 @@ public:
         // initializing the parameters of the Newton-Raphson cycle
         unsigned int iteration_number                      = 1;
         r_model_part.GetProcessInfo()[NL_ITERATION_NUMBER] = iteration_number;
-
-        // ---- SEEPAGE SEAM 0 ------------------------------------------------------------------
-        // Declared once here, and only re-assigned at the seams below. Declaring it inside both
-        // the first-iteration block and the loop body would shadow one with the other.
-        bool any_switched = false;
-        // --------------------------------------------------------------------------------------
 
         p_scheme->InitializeNonLinIteration(r_model_part, rA, rDx, rb);
         mpConvergenceCriteria->InitializeNonLinearIteration(r_model_part, r_dof_set, rA, rDx, rb);
@@ -176,16 +166,18 @@ public:
             is_converged = mpConvergenceCriteria->PostCriteria(r_model_part, r_dof_set, rA, rDx, rb);
         }
 
-        // ---- SEEPAGE SEAM 1: decide the switch, then force a stiffness rebuild ------------
-        any_switched = UpdateSeepageBoundaryConditions();
-        if (any_switched) this->SetStiffnessMatrixIsBuilt(false);
-        // ----------------------------------------------------------------------------------
-        // ---- SEEPAGE SEAM 3 ------------------------------------------------------------------
-        // A switch was just applied and solved for. The settled solution might itself warrant a
-        // further switch, so convergence may only be declared on an iteration that switches
-        // nothing. Force at least one more iteration here.
-        if (any_switched) is_converged = false;
+        // ---- SEEPAGE SEAM 1: decide the switch, then force a stiffness rebuild if needed ----
+        // Declared once here, and only re-assigned at the seam below. Declaring it inside both
+        // the first-iteration block and the loop body would shadow one with the other.
+        auto any_switched = UpdateSeepageBoundaryConditions();
+        if (any_switched) {
+            this->SetStiffnessMatrixIsBuilt(false);
+
+            // Since a water pressure fixity has been changed, at least one more iteration is required
+            is_converged = false;
+        }
         // --------------------------------------------------------------------------------------
+
         // Iteration Cycle... performed only for NonLinearProblems
         while (is_converged == false && iteration_number++ < mMaxIterationNumber) {
             // setting the number of iteration
@@ -207,7 +199,6 @@ public:
                         TSparseSpace::SetToZero(rb);
 
                         p_builder_and_solver->BuildAndSolve(p_scheme, r_model_part, rA, rDx, rb);
-                        KRATOS_INFO("Re-building") << "\n";
                     } else {
                         TSparseSpace::SetToZero(rDx);
                         TSparseSpace::SetToZero(rb);
@@ -249,12 +240,10 @@ public:
                 is_converged = mpConvergenceCriteria->PostCriteria(r_model_part, r_dof_set, rA, rDx, rb);
             }
 
-            // ---- SEEPAGE SEAM 1: decide the switch, then force a stiffness rebuild ------------
+            // ---- SEEPAGE SEAM 2: decide the switch, then force a stiffness rebuild if needed ----
             any_switched = UpdateSeepageBoundaryConditions();
-            if (any_switched) this->SetStiffnessMatrixIsBuilt(false);
-            // ----------------------------------------------------------------------------------
-            // ---- SEEPAGE SEAM 3 --------------------------------------------------------------
             if (any_switched) {
+                this->SetStiffnessMatrixIsBuilt(false);
                 is_converged = false;
             }
             // ----------------------------------------------------------------------------------
@@ -286,14 +275,11 @@ public:
         return is_converged;
     }
 
-protected:
     // After the step converges, store the assembled nodal water flow on the nodes so it can be
     // visualised. This is exactly the map that drives the boundary switching, which is what makes
     // it useful for verifying the sign convention in ShouldReleaseToNeumann.
     void FinalizeSolutionStep() override
     {
-        KRATOS_TRY
-
         MotherType::FinalizeSolutionStep();
 
         auto&       r_model_part   = BaseType::GetModelPart();
@@ -301,28 +287,22 @@ protected:
         const auto  nodal_flows =
             Geo::SeepageBoundaryUtilities::CalculateNodalWaterFlows(r_model_part, r_process_info);
         Geo::SeepageBoundaryUtilities::AssignNodalWaterFlows(r_model_part, nodal_flows);
-
-        KRATOS_CATCH("")
     }
 
+private:
     // Decides whether one seepage node must change between a Dirichlet and a zero-flux Neumann
     // boundary, applies that change, and reports whether anything changed. At most one node
     // switches per non-linear iteration, across the whole model.
-    virtual bool UpdateSeepageBoundaryConditions()
+    bool UpdateSeepageBoundaryConditions()
     {
-        KRATOS_TRY
-
         if (mSeepageNodes.empty()) return false;
 
         const auto nodal_flows = Geo::SeepageBoundaryUtilities::CalculateNodalWaterFlows(
             BaseType::GetModelPart(), BaseType::GetModelPart().GetProcessInfo());
 
         return Geo::SeepageBoundaryUtilities::SwitchOneSeepageNode(mSeepageNodes, nodal_flows);
-
-        KRATOS_CATCH("")
     }
 
-private:
     // Cached once in Initialize. The conditions of a model part do not change during a solve, so
     // there is no need to rediscover the seepage nodes every iteration.
     std::vector<Node*> mSeepageNodes;
