@@ -121,7 +121,6 @@ public:
         // initializing the parameters of the Newton-Raphson cycle
         unsigned int iteration_number                      = 1;
         r_model_part.GetProcessInfo()[NL_ITERATION_NUMBER] = iteration_number;
-        bool residual_is_updated                           = false;
 
         // ---- SEEPAGE SEAM 0 ------------------------------------------------------------------
         // Declared once here, and only re-assigned at the seams below. Declaring it inside both
@@ -240,14 +239,11 @@ public:
                 NonconvergedSolutions.push_back(ith);
             }
 
-            residual_is_updated = false;
-
             if (is_converged == true) {
                 if (mpConvergenceCriteria->GetActualizeRHSflag() == true) {
                     TSparseSpace::SetToZero(rb);
 
                     p_builder_and_solver->BuildRHS(p_scheme, r_model_part, rb);
-                    residual_is_updated = true;
                 }
 
                 is_converged = mpConvergenceCriteria->PostCriteria(r_model_part, r_dof_set, rA, rDx, rb);
