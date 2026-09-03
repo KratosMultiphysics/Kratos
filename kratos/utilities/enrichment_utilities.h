@@ -2497,9 +2497,9 @@ private:
     }
 
     //2d
-    template<class TCoordinatesType>
+    template<class TCoordinateContainerType>
     static inline void CalculateGeometryData(
-        const TCoordinatesType& coordinates,
+        const TCoordinateContainerType& coordinates,
         BoundedMatrix<double,3,2>& DN_DX,
         array_1d<double,3>& N,
         double& Area)
@@ -2534,9 +2534,9 @@ private:
     }
 
     //template<class TMatrixType, class TVectorType, class TGradientType>
-    template<class TCoordinatesType>
+    template<class TCoordinateContainerType>
     static inline double CalculateVolume2D(
-        const TCoordinatesType& coordinates)
+        const TCoordinateContainerType& coordinates)
     {
         double x10 = coordinates(1,0) - coordinates(0,0);
         double y10 = coordinates(1,1) - coordinates(0,1);
@@ -2547,8 +2547,8 @@ private:
         return 0.5*detJ;
     }
 
-    template<class TCoordinatesType>
-    static inline bool CalculatePosition(const TCoordinatesType& coordinates,
+    template<class TCoordinateContainerType>
+    static inline bool CalculatePosition(const TCoordinateContainerType& coordinates,
                                          const double xc, const double yc, const double zc,
                                          array_1d<double, 3 > & N
                                         )
@@ -2591,9 +2591,9 @@ private:
         return 0.5 * ((x1 - x0)*(y2 - y0)- (y1 - y0)*(x2 - x0));
     }
 
-    template<class TCoordinatesType>
+    template<class TCoordinateContainerType>
     static inline void CalculateGeometryData(
-        const TCoordinatesType& coordinates,
+        const TCoordinateContainerType& coordinates,
         BoundedMatrix<double,3,2>& DN_DX,
         double& Area)
     {
