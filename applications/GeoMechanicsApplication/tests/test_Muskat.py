@@ -271,6 +271,9 @@ class KratosGeoMechanicsMuskatTests(KratosUnittest.TestCase):
             "WATER_PRESSURE": [
             ],
             "EFFECTIVE_SATURATION": [
+                ExpectedResult(node_id=273, value=1.0),
+                ExpectedResult(node_id=890, value=1.0),
+                ExpectedResult(node_id=1440, value=1.0),
             ],
         }
         self._assert_muskat_results(
