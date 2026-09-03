@@ -119,9 +119,9 @@ namespace Kratos
       // Check that input parameters are reasonable and sufficient.
       this->Check();
 
-      bool CalculateNormDxFlag = true;
+      const bool CalculateNormDxFlag = true;
 
-      bool ReformDofAtEachIteration = false; // DofSet modifiaction is managed by the fractional step strategy, auxiliary strategies should not modify the DofSet directly.
+      const bool ReformDofAtEachIteration = false; // DofSet modifiaction is managed by the fractional step strategy, auxiliary strategies should not modify the DofSet directly.
 
       // Additional Typedefs
       typedef typename BuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver>::Pointer BuilderSolverTypePointer;
