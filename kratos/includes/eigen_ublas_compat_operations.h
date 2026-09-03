@@ -14,6 +14,7 @@
 
 // System includes
 #include <cstddef>
+#include <type_traits>
 
 // External includes
 #include <Eigen/Core>
@@ -508,7 +509,12 @@ inline auto noalias(boost::numeric::ublas::matrix<T>& rTarget)
 /// The result stays an eager uBLAS container (see the design note above), but
 /// when the uBLAS operand is a concrete dense vector the computation runs on
 /// Eigen's vectorized product kernels over zero-copy maps.
-template<class TDerived, class TExpression>
+// TShield (never specified by callers): absorbs the explicit template argument
+// of the pinned-result form prod<TResult>(A, B) so that TDerived is only ever
+// deduced, never named as Eigen::MatrixBase<dense Kratos wrapper type>, see the
+// prod overloads in eigen_compat_operations.h.
+template<class TShield = void, class TDerived, class TExpression>
+    requires std::is_void_v<TShield>
 inline auto prod(const Eigen::MatrixBase<TDerived>& rA, const boost::numeric::ublas::vector_expression<TExpression>& rX)
 {
     using scalar_t = typename TDerived::Scalar;
@@ -535,7 +541,8 @@ inline auto prod(const Eigen::MatrixBase<TDerived>& rA, const boost::numeric::ub
 /// dispatching on the compile-time shape of the Eigen side (both shapes
 /// deduce as Eigen::MatrixBase, so two separate templates would collide):
 /// vector RHS -> uBLAS dense vector, matrix RHS -> uBLAS dense matrix.
-template<class TExpression, class TDerived>
+template<class TShield = void, class TExpression, class TDerived>
+    requires std::is_void_v<TShield>
 inline auto prod(const boost::numeric::ublas::matrix_expression<TExpression>& rA, const Eigen::MatrixBase<TDerived>& rB)
 {
     using scalar_t = typename TDerived::Scalar;
@@ -581,7 +588,8 @@ inline auto prod(const boost::numeric::ublas::matrix_expression<TExpression>& rA
 /// compile-time shape of the Eigen side: a (column) vector v gives the ublas
 /// prod(v, M) semantics (v^T M -> uBLAS dense vector), a matrix gives the
 /// matrix product (-> uBLAS dense matrix).
-template<class TDerived, class TExpression>
+template<class TShield = void, class TDerived, class TExpression>
+    requires std::is_void_v<TShield>
 inline auto prod(const Eigen::MatrixBase<TDerived>& rA, const boost::numeric::ublas::matrix_expression<TExpression>& rB)
 {
     using scalar_t = typename TDerived::Scalar;
