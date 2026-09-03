@@ -357,14 +357,14 @@ class FEASTEigensystemSolver
         // copy eigenvalues to result vector
         rEigenvalues.swap(tmp_eigenvalues);
 
-        // copy eigenvectors to result matrix
-        if( rEigenvectors.size1() != tmp_eigenvectors.size1() || rEigenvectors.size2() != tmp_eigenvectors.size2() )
-            rEigenvectors.resize(tmp_eigenvectors.size1(), tmp_eigenvectors.size2(), false);
-
-        noalias(rEigenvectors) = tmp_eigenvectors;
+        // copy eigenvectors to result matrix: the eigensolver strategy expects an eigenvector
+        // matrix of shape [n_eigenvalues, n_dofs], so FEAST's [n_dofs, n_eigenvalues] matrix is
+        // copied transposed (in one step, so the result never aliases its own transpose)
+        if( rEigenvectors.size1() != tmp_eigenvectors.size2() || rEigenvectors.size2() != tmp_eigenvectors.size1() )
+            rEigenvectors.resize(tmp_eigenvectors.size2(), tmp_eigenvectors.size1(), false);
 
         // the eigensolver strategy expects an eigenvector matrix of shape [n_eigenvalues, n_dofs], so FEAST's eigenvector matrix has to be transposed
-        rEigenvectors = trans(rEigenvectors);
+        noalias(rEigenvectors) = trans(tmp_eigenvectors);
     }
     /**
      * Print information about this object.
