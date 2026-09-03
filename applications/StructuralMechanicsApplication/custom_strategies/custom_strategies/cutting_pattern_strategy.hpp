@@ -177,12 +177,13 @@ private:
 
     void PrintResults()
     {
+        ++mOutputCounter;
         if (mPrintingFormat=="all"){
-            PrintVtkFiles(mIterationNumber);
-            PrintGiDFiles(mIterationNumber);
+            PrintVtkFiles(mOutputCounter);
+            PrintGiDFiles(mOutputCounter);
         }
-        else if (mPrintingFormat=="vtk") PrintVtkFiles(mIterationNumber);
-        else if (mPrintingFormat=="gid") PrintGiDFiles(mIterationNumber);
+        else if (mPrintingFormat=="vtk") PrintVtkFiles(mOutputCounter);
+        else if (mPrintingFormat=="gid") PrintGiDFiles(mOutputCounter);
         else;
     }
 
@@ -256,6 +257,7 @@ private:
     ModelPart& mrCuttingPatternModelPart;
     std::string mPrintingFormat;
     int mIterationNumber = 0;
+    int mOutputCounter = 0;
     bool mWriteCuttingPatternGeometryFile = true;
     bool mUseRelaxation = false;
     bool mRelaxationPerformed = false;
