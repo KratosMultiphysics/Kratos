@@ -275,7 +275,6 @@ class KratosGeoMechanicsPartialSaturation(KratosUnittest.TestCase):
                 output_data,
                 plot_times=expected_results_at_times.keys(),
                 test_name="B6",
-                time_strings=["3600", "7200", "10,80*10\\^3", "14,40*10\\^3"],
             )
             plot_retention_law_characteristics(
                 simulation.model.GetModelPart("PorousDomain.sandfine").Properties[1],
@@ -343,7 +342,6 @@ class KratosGeoMechanicsPartialSaturation(KratosUnittest.TestCase):
                 output_data,
                 plot_times=expected_results_at_times.keys(),
                 test_name="B10",
-                time_strings=["3617", "7231", "10,81*10\\^3", "14,40*10\\^3"],
             )
             plot_retention_law_characteristics(
                 simulation.model.GetModelPart("PorousDomain.sandfine").Properties[1],
@@ -407,7 +405,6 @@ class KratosGeoMechanicsPartialSaturation(KratosUnittest.TestCase):
                 output_data,
                 plot_times=expected_results_at_times.keys(),
                 test_name="O4",
-                time_strings=["3792", "7295", "10,88*10\\^3", "14,40*10\\^3"],
             )
             plot_retention_law_characteristics(
                 simulation.model.GetModelPart("PorousDomain.sandfine").Properties[1],
@@ -477,7 +474,6 @@ class KratosGeoMechanicsPartialSaturation(KratosUnittest.TestCase):
                 output_data,
                 plot_times=expected_results_at_times.keys(),
                 test_name="O6",
-                time_strings=["3622", "7235", "10,81*10\\^3", "14,40*10\\^3"],
             )
             plot_retention_law_characteristics(
                 simulation.model.GetModelPart("PorousDomain.sandfine").Properties[1],
@@ -507,7 +503,6 @@ class KratosGeoMechanicsPartialSaturation(KratosUnittest.TestCase):
         output_data,
         plot_times,
         test_name=None,
-        time_strings=None,
     ):
         data_series_collection = []
         colors = [
@@ -540,7 +535,7 @@ class KratosGeoMechanicsPartialSaturation(KratosUnittest.TestCase):
             data_series_collection.append(
                 plot_utils.DataSeries(
                     data,
-                    label=f"Time = {int(time)}s",
+                    label=f"Kratos t = {time}s",
                     line_style="-",
                     marker="",
                     color=color,
@@ -563,7 +558,7 @@ class KratosGeoMechanicsPartialSaturation(KratosUnittest.TestCase):
                     data_series_collection.append(
                         plot_utils.DataSeries(
                             data_points,
-                            label=f"DG-Flow Reference t = {time}",
+                            label=f"DG-Flow Reference t = {time}s",
                             line_style="--",
                         )
                     )
@@ -584,7 +579,7 @@ class KratosGeoMechanicsPartialSaturation(KratosUnittest.TestCase):
                     data_series_collection.append(
                         plot_utils.DataSeries(
                             data_points,
-                            label=f"Hydrus Reference t = {time}",
+                            label=f"Hydrus Reference t = {time}s",
                             line_style=":",
                             color=color,
                         )
@@ -594,9 +589,9 @@ class KratosGeoMechanicsPartialSaturation(KratosUnittest.TestCase):
             file_path, "..", "common", "expected_water_pressures.csv"
         )
 
-        time_strings=["3600", "7200", "10,80*10\\^3", "14,40*10\\^3"],
+        time_strings=["3600", "7200", "10,80*10\\^3", "14,40*10\\^3"]
         if os.path.exists(expected_water_pressures) and test_name:
-            for time, color in zip(time_strings, colors[1:]):
+            for time_string, time, color in zip(time_strings, [0.0, 3600.0, 7200.0, 10800.0, 14400.0], colors[1:]):
                 with open(
                     expected_water_pressures,
                     newline="",
@@ -604,15 +599,16 @@ class KratosGeoMechanicsPartialSaturation(KratosUnittest.TestCase):
                     reader = csv.DictReader(csv_file, skipinitialspace=True)
                     data_points = [
                         (
-                            float(row[f"{test_name}_{time}s"]),
+                            float(row[f"{test_name}_{time_string}s"]),
                             -1.0 * float(row["Y coordinate [m]"]),
                         )
                         for row in reader
+                        if row[f"{test_name}_{time_string}s"].strip()
                     ]
                     data_series_collection.append(
                         plot_utils.DataSeries(
                             data_points,
-                            label=f"External Reference t = {time}",
+                            label=f"External Reference t = {time}s",
                             line_style="-.",
                             color=color,
                         )
