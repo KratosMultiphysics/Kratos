@@ -372,7 +372,12 @@ public:
     template< class TOtherMatrixType >
     static void TransposeMult(const TOtherMatrixType& rA, const VectorType& rX, VectorType& rY)
     {
-        boost::numeric::ublas::axpy_prod(rX, rA, rY, true);
+        // Unqualified on purpose: the uBLAS overload is still found (through
+        // the using-directive in ublas_interface.h and through ADL on the
+        // uBLAS operands), while ADL also reaches the Eigen-backed overload
+        // when this space is instantiated on Kratos::Matrix/Vector under
+        // KRATOS_USE_EIGEN_BACKEND.
+        axpy_prod(rX, rA, rY, true);
     } // rY = rAT * rX
 
     static inline SizeType GraphDegree(IndexType i, TMatrixType& A)
