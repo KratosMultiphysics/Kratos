@@ -243,6 +243,31 @@ KRATOS_TEST_CASE_IN_SUITE(DenseBackendAliasSafeAssignment, KratosCoreFastSuite)
     M = -trans(M);
     KRATOS_EXPECT_EQ(M(1, 0), -3.0);
 
+    // the same contract on the dynamic types, with a rectangular matrix so the
+    // self-transpose also changes the shape (e.g. the FEAST eigenvector matrix)
+    Matrix D(2, 3);
+    for (std::size_t i = 0; i < 2; ++i)
+        for (std::size_t j = 0; j < 3; ++j)
+            D(i, j) = static_cast<double>(3 * i + j);
+
+    D = trans(D);
+    KRATOS_EXPECT_EQ(D.size1(), 3);
+    KRATOS_EXPECT_EQ(D.size2(), 2);
+    for (std::size_t i = 0; i < 2; ++i)
+        for (std::size_t j = 0; j < 3; ++j)
+            KRATOS_EXPECT_EQ(D(j, i), static_cast<double>(3 * i + j));
+
+    D = -trans(D);
+    KRATOS_EXPECT_EQ(D.size1(), 2);
+    KRATOS_EXPECT_EQ(D(1, 2), -5.0);
+
+    Vector v(3);
+    v[0] = 1.0; v[1] = 2.0; v[2] = 3.0;
+    v = v + v;
+    KRATOS_EXPECT_EQ(v[2], 6.0);
+    v = -v;
+    KRATOS_EXPECT_EQ(v[0], -2.0);
+
     // self-referencing vector assignments
     array_1d<double, 3> a{1.0, 2.0, 3.0};
     a = a + a;
