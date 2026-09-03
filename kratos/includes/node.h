@@ -1066,6 +1066,8 @@ public:
         return it_dof - mDofs.begin();
     }
 
+
+
     /**
      * @brief Get dof with a given position. If not found it is search
      * @param rDofVariable Name of the variable
@@ -1074,7 +1076,7 @@ public:
      * @return The DoF associated to the given variable
      */
     template<class TVariableType>
-    inline const DofType& GetDof(TVariableType const& rDofVariable, int pos) const
+    const DofType& GetDof(TVariableType const& rDofVariable, int pos) const
     {
         auto it_begin = mDofs.begin();
         auto it_end = mDofs.end();
@@ -1097,15 +1099,7 @@ public:
         KRATOS_ERROR <<  "Non-existent DOF in node #" << Id() << " for variable : " << rDofVariable.Name() << std::endl;
     }
 
-    /**
-     * @brief Get DoF for a given variable
-     * @param rDofVariable Name of the variable
-     * @tparam TVariableType The variable type template argument
-     * @return The DoF associated to the given variable
-     */
-    template<class TVariableType>
-    inline const DofType& GetDof(TVariableType const& rDofVariable) const
-    {
+    const DofType& GetDof(const VariableData& rDofVariable) const {
         for(auto it_dof = mDofs.begin() ; it_dof != mDofs.end() ; it_dof++){
             if((*it_dof)->GetVariable() == rDofVariable){
                 return **it_dof;
@@ -1113,7 +1107,17 @@ public:
         }
 
         KRATOS_ERROR <<  "Non-existent DOF in node #" << Id() << " for variable : " << rDofVariable.Name() << std::endl;
+    }
 
+    /**
+     * @brief Get DoF for a given variable
+     * @param rDofVariable Name of the variable
+     * @tparam TVariableType The variable type template argument
+     * @return The DoF associated to the given variable
+     */
+    template<class TVariableType>
+    const DofType& GetDof(TVariableType const& rDofVariable) const {
+        return this->GetDof(static_cast<const VariableData&>(rDofVariable));
     }
 
     /**
