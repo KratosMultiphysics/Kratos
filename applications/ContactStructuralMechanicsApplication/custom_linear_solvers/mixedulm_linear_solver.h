@@ -26,6 +26,7 @@
 #include "linear_solvers/reorderer.h"
 #include "linear_solvers/iterative_solver.h"
 #include "utilities/parallel_utilities.h"
+#include "utilities/reduction_utilities.h"
 #include "contact_structural_mechanics_application_variables.h"
 #include "utilities/sparse_matrix_multiplication_utility.h"
 #include "custom_utilities/logging_settings.hpp"
@@ -90,6 +91,9 @@ public:
 
     /// The flag that indicates if the solution is initialized
     KRATOS_DEFINE_LOCAL_FLAG( IS_INITIALIZED );
+
+    /// The flag that indicates if the dual LM condensation is valid (i.e. the mortar operator D is block-diagonal by node)
+    KRATOS_DEFINE_LOCAL_FLAG( DUAL_LM_IS_VALID );
 
     /// Pointer definition of MixedULMLinearSolver
     KRATOS_CLASS_POINTER_DEFINITION (MixedULMLinearSolver);
@@ -162,6 +166,7 @@ public:
         // Initializing the remaining variables
         mOptions.Set(BLOCKS_ARE_ALLOCATED, false);
         mOptions.Set(IS_INITIALIZED, false);
+        mOptions.Set(DUAL_LM_IS_VALID, true);
     }
 
     /**
@@ -187,8 +192,12 @@ public:
         this->SetTolerance( ThisParameters["tolerance"].GetDouble() );
         this->SetMaxIterationsNumber( ThisParameters["max_iteration_number"].GetInt() );
         mEchoLevel = ThisParameters["echo_level"].GetInt();
+        mCheckDualLMCondensation = ThisParameters["check_dual_lm_condensation"].GetBool();
+        mDualLMZeroRowTolerance = ThisParameters["dual_lm_zero_row_tolerance"].GetDouble();
+        mDualLMOffNodeTolerance = ThisParameters["dual_lm_off_node_tolerance"].GetDouble();
         mOptions.Set(BLOCKS_ARE_ALLOCATED, false);
         mOptions.Set(IS_INITIALIZED, false);
+        mOptions.Set(DUAL_LM_IS_VALID, true);
 
         KRATOS_CATCH("")
     }
@@ -224,7 +233,10 @@ public:
           mLMInactive(rOther.mLMInactive),
           mDisp(rOther.mDisp),
           mEchoLevel(rOther.mEchoLevel),
-          mFileCreated(rOther.mFileCreated)
+          mFileCreated(rOther.mFileCreated),
+          mCheckDualLMCondensation(rOther.mCheckDualLMCondensation),
+          mDualLMZeroRowTolerance(rOther.mDualLMZeroRowTolerance),
+          mDualLMOffNodeTolerance(rOther.mDualLMOffNodeTolerance)
     {
     }
 
@@ -315,7 +327,7 @@ public:
         // Solve u block
         if (static_cast<SizeType>(mDisp.size()) != total_disp_size)
             mDisp.resize(total_disp_size, false);
-        mpSolverDispBlock->Solve (mKDispModified, mDisp, mResidualDisp);
+        const bool disp_solved = mpSolverDispBlock->Solve (mKDispModified, mDisp, mResidualDisp);
 
         // Write back solution
         SetUPart(rX, mDisp);
@@ -347,7 +359,7 @@ public:
             SetLMIPart(rX, mLMInactive);
         }
 
-        return false;
+        return disp_solved && mOptions.Is(DUAL_LM_IS_VALID);
     }
 
     /**
@@ -404,6 +416,7 @@ public:
         mDisp.clear();       /// The solution of the displacement
 
         mOptions.Set(IS_INITIALIZED, false);
+        mOptions.Set(DUAL_LM_IS_VALID, true);
     }
 
     /**
@@ -438,7 +451,16 @@ public:
 
         this->InitializeSolutionStep (rA,rX,rB);
 
-        this->PerformSolutionStep (rA,rX,rB);
+        // FillBlockMatrices (called above) decides whether the condensation is legitimate. If it is not, we must
+        // not write the resulting garbage into rX: we report the failure so that a FallbackLinearSolver wrapping
+        // this solver can re-solve the full, non-condensed system instead
+        if (mOptions.IsNot(DUAL_LM_IS_VALID)) {
+            // The displacement block solver already had its solution step initialized, close it to keep it balanced
+            this->FinalizeSolutionStep (rA,rX,rB);
+            return false;
+        }
+
+        const bool solved = this->PerformSolutionStep (rA,rX,rB);
 
         this->FinalizeSolutionStep (rA,rX,rB);
 
@@ -459,7 +481,7 @@ public:
             mFileCreated++;
         }
 
-        return false;
+        return solved;
     }
 
     /**
@@ -578,6 +600,12 @@ public:
             mLMInactiveIndices.resize (n_lm_inactive_dofs,false);
         if (mLMActiveIndices.size() != n_lm_active_dofs)
             mLMActiveIndices.resize (n_lm_active_dofs,false);
+        if (mSlaveActiveNodeIds.size() != n_slave_active_dofs)
+            mSlaveActiveNodeIds.resize (n_slave_active_dofs,false);
+        if (mLMActiveNodeIds.size() != n_lm_active_dofs)
+            mLMActiveNodeIds.resize (n_lm_active_dofs,false);
+        if (mLMInactiveNodeIds.size() != n_lm_inactive_dofs)
+            mLMInactiveNodeIds.resize (n_lm_inactive_dofs,false);
 
         const SizeType n_other_dofs = tot_active_dofs - n_lm_inactive_dofs - n_lm_active_dofs - n_master_dofs - n_slave_inactive_dofs - n_slave_active_dofs;
         if (mOtherIndices.size() != n_other_dofs)
@@ -614,11 +642,13 @@ public:
                             mLMActiveIndices[lm_active_counter] = global_pos;
                             mGlobalToLocalIndexing[global_pos] = lm_active_counter;
                             mWhichBlockType[global_pos] = BlockType::LM_ACTIVE;
+                            mLMActiveNodeIds[lm_active_counter] = node_id;
                             ++lm_active_counter;
                         } else {
                             mLMInactiveIndices[lm_inactive_counter] = global_pos;
                             mGlobalToLocalIndexing[global_pos] = lm_inactive_counter;
                             mWhichBlockType[global_pos] = BlockType::LM_INACTIVE;
+                            mLMInactiveNodeIds[lm_inactive_counter] = node_id;
                             ++lm_inactive_counter;
                         }
                     } else if ( r_node.Is(INTERFACE) && IsDisplacementDof(i_dof)) {
@@ -632,6 +662,7 @@ public:
                                 mSlaveActiveIndices[slave_active_counter] = global_pos;
                                 mGlobalToLocalIndexing[global_pos] = slave_active_counter;
                                 mWhichBlockType[global_pos] = BlockType::SLAVE_ACTIVE;
+                                mSlaveActiveNodeIds[slave_active_counter] = node_id;
                                 ++slave_active_counter;
                             } else {
                                 mSlaveInactiveIndices[slave_inactive_counter] = global_pos;
@@ -664,11 +695,13 @@ public:
                         mLMActiveIndices[lm_active_counter] = global_pos;
                         mGlobalToLocalIndexing[global_pos] = lm_active_counter;
                         mWhichBlockType[global_pos] = BlockType::LM_ACTIVE;
+                        mLMActiveNodeIds[lm_active_counter] = node_id;
                         ++lm_active_counter;
                     } else {
                         mLMInactiveIndices[lm_inactive_counter] = global_pos;
                         mGlobalToLocalIndexing[global_pos] = lm_inactive_counter;
                         mWhichBlockType[global_pos] = BlockType::LM_INACTIVE;
+                        mLMInactiveNodeIds[lm_inactive_counter] = node_id;
                         ++lm_inactive_counter;
                     }
                 } else if ( r_node.Is(INTERFACE) && IsDisplacementDof(i_dof)) {
@@ -682,6 +715,7 @@ public:
                             mSlaveActiveIndices[slave_active_counter] = global_pos;
                             mGlobalToLocalIndexing[global_pos] = slave_active_counter;
                             mWhichBlockType[global_pos] = BlockType::SLAVE_ACTIVE;
+                            mSlaveActiveNodeIds[slave_active_counter] = node_id;
                             ++slave_active_counter;
                         } else {
                             mSlaveInactiveIndices[slave_inactive_counter] = global_pos;
@@ -776,6 +810,17 @@ public:
         return mDisplacementDofs;
     }
 
+    /**
+     * @brief Returns whether the dual LM condensation was valid on the last solve
+     * @details It is false when the mortar operator D was found not to be diagonal, i.e. the mortar cut was too
+     * distorted for the dual shape functions to be built and the condensation performed by this solver does not hold.
+     * @return True if the condensation is valid, false otherwise
+     */
+    bool IsDualLMValid() const
+    {
+        return mOptions.Is(DUAL_LM_IS_VALID);
+    }
+
     ///@}
     ///@name Inquiry
     ///@{
@@ -799,6 +844,30 @@ public:
     /// Print object's data.
     void PrintData (std::ostream& rOStream) const override
     {
+        rOStream << "Displacement block solver: " << mpSolverDispBlock->Info() << "\n";
+
+        // The block structure the system has been split into
+        rOStream << "Block sizes:"
+                 << "\n\tOther (not interface) DoFs : " << mOtherIndices.size()
+                 << "\n\tMaster DoFs               : " << mMasterIndices.size()
+                 << "\n\tSlave inactive DoFs       : " << mSlaveInactiveIndices.size()
+                 << "\n\tSlave active DoFs         : " << mSlaveActiveIndices.size()
+                 << "\n\tLM inactive DoFs          : " << mLMInactiveIndices.size()
+                 << "\n\tLM active DoFs            : " << mLMActiveIndices.size() << "\n";
+
+        // State of the solver
+        rOStream << "Blocks are allocated: " << (mOptions.Is(BLOCKS_ARE_ALLOCATED) ? "yes" : "no") << "\n"
+                 << "Is initialized: " << (mOptions.Is(IS_INITIALIZED) ? "yes" : "no") << "\n";
+
+        // Validity of the condensation, which is the whole point of this solver
+        rOStream << "Dual LM condensation is checked: " << (mCheckDualLMCondensation ? "yes" : "no") << "\n"
+                 << "Dual LM condensation is valid: " << (mOptions.Is(DUAL_LM_IS_VALID) ? "yes" : "no") << "\n";
+        if (mCheckDualLMCondensation) {
+            rOStream << "\tZero row tolerance: " << mDualLMZeroRowTolerance << "\n"
+                     << "\tOff-diagonal tolerance: " << mDualLMOffNodeTolerance << "\n";
+        }
+
+        rOStream << "Echo level: " << mEchoLevel << std::endl;
     }
 
     ///@}
@@ -1099,18 +1168,26 @@ protected:
         CreateMatrix(KLMILMI, lm_inactive_size, lm_inactive_size, KLMILMI_ptr, aux_index2_KLMILMI, aux_val_KLMILMI);
         CreateMatrix(KLMALMA, lm_active_size, lm_active_size, KLMALMA_ptr, aux_index2_KLMALMA, aux_val_KLMALMA);
 
+        // The condensation performed below is only legitimate while the mortar operator D is diagonal, which is
+        // exactly what the dual LM formulation buys us. A distorted cut breaks it, so we check it here
+        mOptions.Set(DUAL_LM_IS_VALID, true);
+
         // We compute directly the inverse of the KSALMA matrix
         // KSALMA it is supposed to be a diagonal matrix (in fact it is the key point of this formulation)
         // (NOTE: technically it is not a stiffness matrix, we give that name)
         if (lm_active_size > 0) {
-            ComputeDiagonalByLumping(KSALMA, mKLMAModified, ZeroTolerance);
+            double max_off_node_ratio = 0.0;
+            const SizeType offending_rows = ComputeDiagonalByLumping(KSALMA, mKLMAModified, mSlaveActiveNodeIds, mLMActiveNodeIds, max_off_node_ratio);
+            CheckDualLMCondensation("KSALMA (active LM)", offending_rows, lm_active_size, max_off_node_ratio);
         }
 
         // We compute directly the inverse of the KLMILMI matrix
         // KLMILMI it is supposed to be a diagonal matrix (in fact it is the key point of this formulation)
         // (NOTE: technically it is not a stiffness matrix, we give that name)
         if (lm_inactive_size > 0) {
-            ComputeDiagonalByLumping(KLMILMI, mKLMIModified, ZeroTolerance);
+            double max_off_node_ratio = 0.0;
+            const SizeType offending_rows = ComputeDiagonalByLumping(KLMILMI, mKLMIModified, mLMInactiveNodeIds, mLMInactiveNodeIds, max_off_node_ratio);
+            CheckDualLMCondensation("KLMILMI (inactive LM)", offending_rows, lm_inactive_size, max_off_node_ratio);
         }
 
         // Compute the P and C operators
@@ -1363,6 +1440,14 @@ private:
 
     IndexType mEchoLevel = 0;       /// The echo level of the solver
     IndexType mFileCreated = 0;     /// The index used to identify the file created
+
+    IndexVectorType mSlaveActiveNodeIds;  /// The id of the node each active slave DoF belongs to (local ordering)
+    IndexVectorType mLMActiveNodeIds;     /// The id of the node each active LM DoF belongs to (local ordering)
+    IndexVectorType mLMInactiveNodeIds;   /// The id of the node each inactive LM DoF belongs to (local ordering)
+
+    bool mCheckDualLMCondensation = true;        /// If the validity of the dual LM condensation is checked on each solve
+    double mDualLMZeroRowTolerance = 1.0e-12;    /// Fraction of the block scale below which a row of D is considered structurally empty
+    double mDualLMOffNodeTolerance = 1.0e-6; /// Maximum fraction of a row mass of D allowed to couple a different node
 
     ///@}
     ///@name Private Operators
@@ -1927,57 +2012,126 @@ private:
     }
 
     /**
-     * @brief This method is intended to lump an existing matrix
-     * @param rA The matrix to be lumped
-     * @param rdiagA The resulting matrix
-     * @param Tolerance The tolerance considered to check if the values are almost 0
-     * @todo Improve the lumping in case of not pure diagonal matrix
+     * @brief Evaluates the outcome of a diagonal inversion and invalidates the condensation if needed
+     * @details Logs a warning naming the block, since nothing upstream reports a degenerate mortar cut today.
+     * @param BlockName The name of the block checked, for the log message
+     * @param OffendingRows The number of rows violating the dual LM assumption
+     * @param TotalRows The total number of rows of the block
+     * @param MaxOffNodeRatio The largest fraction of a row mass found on a different node
      */
-    void ComputeDiagonalByLumping (
+    void CheckDualLMCondensation(
+        const std::string& rBlockName,
+        const SizeType OffendingRows,
+        const SizeType TotalRows,
+        const double MaxOffNodeRatio
+        )
+    {
+        if (!mCheckDualLMCondensation || OffendingRows == 0) return;
+
+        mOptions.Set(DUAL_LM_IS_VALID, false);
+
+        KRATOS_WARNING("MixedULMLinearSolver") << "The dual LM condensation is not valid: " << OffendingRows
+            << " of " << TotalRows << " rows of the " << rBlockName << " block couple different nodes (worst off-node ratio: "
+            << MaxOffNodeRatio << ", tolerance: " << mDualLMOffNodeTolerance << "). This usually means the mortar "
+            << "cut is too distorted to build the dual shape functions. The condensed solution would be wrong, so this "
+            << "solver reports failure; wrap it in a FallbackLinearSolver to solve the full system instead." << std::endl;
+    }
+
+    /**
+     * @brief This method inverts the diagonal of an existing matrix, checking that the dual LM assumption holds
+     * @details The condensation performed by this solver is only legitimate while the mortar operator D is
+     * block-diagonal by node, which is exactly what the dual LM formulation buys us: the biorthogonality of the
+     * dual shape functions makes D couple a slave node with its own Lagrange multiplier and with no other node.
+     * When the mortar cut is too distorted the dual shape functions cannot be built
+     * (DualLagrangeMultiplierOperators::CalculateAe falls back to Ae = Identity), the conditions integrate
+     * standard shape functions instead, and D picks up couplings between neighbouring nodes of the slave
+     * element. Condensing regardless would silently produce a wrong solution, so those rows are counted and
+     * reported to the caller.
+     * @note What is measured is the mass coupling DIFFERENT nodes, not the off-diagonal mass of the row. Within
+     * a node the block is only diagonal in the frictionless, axis-aligned case: a frictional formulation writes
+     * the contact contribution in the local normal/tangent basis, which populates the whole nodal sub-block
+     * without breaking duality at all.
+     * @note Structurally empty rows are legitimate and are NOT reported: in a frictionless formulation only the
+     * normal direction is constrained, so the rows of the remaining LM components are empty by construction. For
+     * those the inverse is set to the auxiliary value 1.0, as it has always been done.
+     * @param rA The matrix to be inverted
+     * @param rdiagA The resulting inverted diagonal matrix
+     * @param rRowNodeIds The id of the node each row of rA belongs to
+     * @param rColNodeIds The id of the node each column of rA belongs to
+     * @param rMaxOffNodeRatio Output, the largest fraction of a row mass found on a different node
+     * @return The number of rows violating the dual LM assumption (0 if the condensation is valid)
+     */
+    SizeType ComputeDiagonalByLumping (
         const SparseMatrixType& rA,
         SparseMatrixType& rdiagA,
-        const double Tolerance = ZeroTolerance
+        const IndexVectorType& rRowNodeIds,
+        const IndexVectorType& rColNodeIds,
+        double& rMaxOffNodeRatio
         )
     {
         // Aux values
         const std::size_t size_A = rA.size1();
-//         VectorType diagA_vector(size_A);
-//
-//         // In case of not pure lumped matrix
-//         if (rA.nnz() > size_A) {
-//             // Get access to A data
-//             const std::size_t* index1 = rA.index1_data().begin();
-//             const double* values = rA.value_data().begin();
-//
-//             IndexPartition<std::size_t>(size_A).for_each([&](std::size_t i) {
-//                 const std::size_t row_begin = index1[i];
-//                 const std::size_t row_end   = index1[i+1];
-//                 double temp = 0.0;
-//                 for (std::size_t j=row_begin; j<row_end; j++)
-//                     temp += values[j]*values[j];
-//
-//                 diagA_vector[i] = std::sqrt(temp);
-//             });
-//         } else { // Otherwise
-//             IndexPartition<std::size_t>(size_A).for_each([&](std::size_t i) {
-//                 diagA_vector[i] = rA(i, i);
-//             });
-//         }
+
+        // Get access to A data
+        const std::size_t* index1 = rA.index1_data().begin();
+        const std::size_t* index2 = rA.index2_data().begin();
+        const double* values = rA.value_data().begin();
 
         IndexType* ptr = new IndexType[size_A + 1];
         ptr[0] = 0;
         IndexType* aux_index2 = new IndexType[size_A];
         double* aux_val = new double[size_A];
 
-        IndexPartition<std::size_t>(size_A).for_each([&](std::size_t i) {
+        // The scale of the block, used to tell a structurally empty row from a populated one
+        const double max_row_sum = IndexPartition<std::size_t>(size_A).for_each<MaxReduction<double>>([&](std::size_t i) {
+            double row_sum = 0.0;
+            for (std::size_t j = index1[i]; j < index1[i+1]; ++j) {
+                row_sum += std::abs(values[j]);
+            }
+            return row_sum;
+        });
+        const double empty_row_tolerance = mDualLMZeroRowTolerance * max_row_sum;
+
+        // The diagonal is inverted while, at the same time, every row is checked against the dual LM assumption
+        SizeType number_of_offending_rows = 0;
+        double max_off_node_ratio = 0.0;
+        using TwoReduction = CombinedReduction<SumReduction<SizeType>, MaxReduction<double>>;
+        std::tie(number_of_offending_rows, max_off_node_ratio) = IndexPartition<std::size_t>(size_A).for_each<TwoReduction>([&](std::size_t i) {
             ptr[i+1] = i+1;
             aux_index2[i] = i;
-            const double value = rA(i, i);
-//             const double value = diagA_vector[i];
-            if (std::abs(value) > Tolerance)
-                aux_val[i] = 1.0/value;
-            else // Auxiliary value
+
+            // Accumulate the mass of the row, splitting what belongs to this very node from what does not
+            const IndexType row_node_id = rRowNodeIds[i];
+            double diagonal_value = 0.0;
+            double row_sum = 0.0;
+            double off_node_sum = 0.0;
+            for (std::size_t j = index1[i]; j < index1[i+1]; ++j) {
+                const std::size_t column = index2[j];
+                const double abs_value = std::abs(values[j]);
+                row_sum += abs_value;
+                if (column == i) diagonal_value = values[j];
+                if (rColNodeIds[column] != row_node_id) off_node_sum += abs_value;
+            }
+            const double abs_diagonal_value = std::abs(diagonal_value);
+
+            // Invert the diagonal (the auxiliary value keeps the legacy behaviour for degenerate entries)
+            if (abs_diagonal_value > ZeroTolerance) {
+                aux_val[i] = 1.0/diagonal_value;
+            } else { // Auxiliary value
                 aux_val[i] = 1.0;
+            }
+
+            // An empty row carries no constraint at all, so there is nothing to condense and nothing to check
+            if (row_sum <= empty_row_tolerance) {
+                return std::make_tuple(static_cast<SizeType>(0), 0.0);
+            }
+
+            // The fraction of the row mass coupling a different node. It is zero for a truly dual LM formulation
+            // and grows as the mortar cut degenerates
+            const double off_node_ratio = off_node_sum/row_sum;
+            const SizeType is_offending = (off_node_ratio > mDualLMOffNodeTolerance) ? 1 : 0;
+
+            return std::make_tuple(is_offending, off_node_ratio);
         });
 
         SparseMatrixMultiplicationUtility::CreateSolutionMatrix(rdiagA, size_A, size_A, ptr, aux_index2, aux_val);
@@ -1985,6 +2139,9 @@ private:
         delete[] ptr;
         delete[] aux_index2;
         delete[] aux_val;
+
+        rMaxOffNodeRatio = max_off_node_ratio;
+        return number_of_offending_rows;
     }
 
     /**
@@ -2030,10 +2187,13 @@ private:
     {
         Parameters default_parameters( R"(
         {
-            "solver_type"          : "mixed_ulm_linear_solver",
-            "tolerance"            : 1.0e-6,
-            "max_iteration_number" : 200,
-            "echo_level"           : 0
+            "solver_type"                    : "mixed_ulm_linear_solver",
+            "tolerance"                      : 1.0e-6,
+            "max_iteration_number"           : 200,
+            "check_dual_lm_condensation"     : true,
+            "dual_lm_zero_row_tolerance"     : 1.0e-12,
+            "dual_lm_off_node_tolerance" : 1.0e-6,
+            "echo_level"                     : 0
         }  )" );
 
         return default_parameters;
@@ -2059,6 +2219,8 @@ template<class TSparseSpaceType, class TDenseSpaceType, class TPreconditionerTyp
 const Kratos::Flags MixedULMLinearSolver<TSparseSpaceType, TDenseSpaceType,TPreconditionerType, TReordererType>::BLOCKS_ARE_ALLOCATED(Kratos::Flags::Create(0));
 template<class TSparseSpaceType, class TDenseSpaceType, class TPreconditionerType, class TReordererType>
 const Kratos::Flags MixedULMLinearSolver<TSparseSpaceType, TDenseSpaceType,TPreconditionerType, TReordererType>::IS_INITIALIZED(Kratos::Flags::Create(1));
+template<class TSparseSpaceType, class TDenseSpaceType, class TPreconditionerType, class TReordererType>
+const Kratos::Flags MixedULMLinearSolver<TSparseSpaceType, TDenseSpaceType,TPreconditionerType, TReordererType>::DUAL_LM_IS_VALID(Kratos::Flags::Create(2));
 
 ///@}
 ///@name Input and output
