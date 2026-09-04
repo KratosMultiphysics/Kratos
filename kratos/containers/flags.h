@@ -141,15 +141,6 @@ public:
     Flags& operator=(Flags&&) noexcept = default;
 
     /**
-     * @brief Conversion operator to bool.
-     * @return true if any flag is set, false otherwise.
-     */
-    operator bool() const
-    {
-        return mFlags;
-    }
-
-    /**
      * @brief Bitwise NOT operator.
      * @return Flags with each bit inverted.
      */
@@ -157,7 +148,7 @@ public:
     {
         Flags results(*this);
         results.mFlags = ~mFlags;
-        return  results;
+        return results;
     }
 
     /**
@@ -168,7 +159,7 @@ public:
     {
         Flags results(*this);
         results.mFlags = !mFlags;
-        return  results;
+        return static_cast<bool>(results.mFlags);
     }
 
     /**
@@ -197,6 +188,15 @@ public:
      * @param Value The value to set the flag to.
      */
     void Set(const Flags ThisFlag, bool Value);
+
+    /**
+     * @brief Get the raw value of the flags.
+     * @return The raw value of the flags.
+     */
+    BlockType GetRaw() const
+    {
+        return mFlags;
+    }
 
     /**
      * @brief Reset the specified flag.
