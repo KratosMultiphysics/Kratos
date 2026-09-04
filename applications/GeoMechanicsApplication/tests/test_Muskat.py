@@ -181,7 +181,7 @@ class KratosGeoMechanicsMuskatTests(KratosGeoUnittest.TestCase):
         plot_utils._make_plot(
             data_series_collection,
             os.path.join(file_path, "fluxes_for_x_1_52.svg"),
-            xlabel="Flux [m/d]",
+            xlabel="|Flux| [m/d]",
             ylabel="Y [m]",
             yaxis_inverted=False,
         )
