@@ -914,12 +914,45 @@ public:
         }
     }
 
+    /// Projects a global point onto the level-0 NURBS surface and returns its
+    /// parametric coordinates.
+    /// Inactive level-0 CPs are reconstructed from CoordsSnapshot.
     int ProjectionPointGlobalToLocalSpace(
         const CoordinatesArrayType& rPointGlobalCoordinates,
         CoordinatesArrayType& rProjectedPointLocalCoordinates,
         const double Tolerance = std::numeric_limits<double>::epsilon()) const override
     {
-        KRATOS_ERROR << "THBSurfaceGeometry::ProjectionPointGlobalToLocalSpace: not yet implemented." << std::endl;
+        using TempSurfType = NurbsSurfaceGeometry<TWorkingSpaceDimension, PointerVector<NodeType>>;
+
+        const auto& level_0 = mLevels[0];
+        const SizeType num_cps_u = NumberOfControlPointsU(0);
+        const SizeType num_cps_v = NumberOfControlPointsV(0);
+        const bool is_rational = (level_0.Weights.size() > 0);
+
+        PointerVector<NodeType> full_points(num_cps_u * num_cps_v);
+        for (SizeType flat = 0; flat < num_cps_u * num_cps_v; ++flat) {
+            if (mActiveFunctions[0][flat]) {
+                const SizeType packed = PackedControlPointIndex(0, flat);
+                const auto& pt = *this->pGetPoint(packed);
+                full_points(flat) = Kratos::make_intrusive<NodeType>(0, pt.X(), pt.Y(), pt.Z());
+            } else {
+                const auto& c = level_0.CoordsSnapshot[flat];
+                full_points(flat) = Kratos::make_intrusive<NodeType>(0, c[0], c[1], c[2]);
+            }
+        }
+
+        if (is_rational) {
+            TempSurfType level_0_surface(
+                full_points, level_0.DegreeU, level_0.DegreeV,
+                level_0.KnotsU, level_0.KnotsV, level_0.Weights);
+            return level_0_surface.ProjectionPointGlobalToLocalSpace(
+                rPointGlobalCoordinates, rProjectedPointLocalCoordinates, Tolerance);
+        }
+        TempSurfType level_0_surface(
+            full_points, level_0.DegreeU, level_0.DegreeV,
+            level_0.KnotsU, level_0.KnotsV);
+        return level_0_surface.ProjectionPointGlobalToLocalSpace(
+            rPointGlobalCoordinates, rProjectedPointLocalCoordinates, Tolerance);
     }
 
     CoordinatesArrayType& GlobalCoordinates(
