@@ -277,7 +277,7 @@ public:
     static Vector EvaluateDeterminantsOfJacobiansAtIntegrationPoints(const Geo::IntegrationPointVectorType& rIntegrationPoints,
                                                                      const Geometry<Node>& rGeometry);
 
-template <typename MatrixType1, typename MatrixType2>
+    template <typename MatrixType1, typename MatrixType2>
     static void AddMatrixAtPosition(const MatrixType1& rSourceMatrix,
                                     MatrixType2&       rDestinationMatrix,
                                     const std::size_t  RowOffset,
