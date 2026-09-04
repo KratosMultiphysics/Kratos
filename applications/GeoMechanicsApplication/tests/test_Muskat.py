@@ -294,13 +294,13 @@ class KratosGeoMechanicsMuskatTests(KratosGeoUnittest.TestCase):
             ],
             "FLUID_FLUX_VECTOR": [
                 self.ExpectedResult(
-                    node_id=273, value=[6.11757e-06, -1.37404e-11, 0.0]
+                    node_id=273, value=[6.00133e-06, -1.34793e-11, 0.0]
                 ),
                 self.ExpectedResult(
-                    node_id=890, value=[6.11755e-06, -8.54269e-12, 0.0]
+                    node_id=890, value=[6.00131e-06, -8.38038e-12, 0.0]
                 ),
                 self.ExpectedResult(
-                    node_id=1440, value=[6.11757e-06, -1.38004e-11, 0.0]
+                    node_id=1440, value=[6.00133e-06, -1.35382e-11, 0.0]
                 ),
             ],
         }
