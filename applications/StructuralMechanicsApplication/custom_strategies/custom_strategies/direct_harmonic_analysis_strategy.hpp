@@ -279,7 +279,7 @@ public:
 
             const std::size_t system_size = SparseSpaceType::Size1(*p_stiffness_matrix);
 
-            if (static_cast<std::size_t>(mpRealLoadVector->size()) != system_size) {
+            if (static_cast<IndexType>(mpRealLoadVector->size()) != system_size) {
                 SparseSpaceType::Resize(*mpRealLoadVector, system_size);
             }
             SparseSpaceType::Set(*mpRealLoadVector, 0.0);
