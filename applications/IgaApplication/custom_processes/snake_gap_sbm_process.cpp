@@ -301,7 +301,7 @@ SnakeGapSbmProcess::CreateSkinNodesPerKnotSpanMatrix(
         const std::size_t span_index_y = compute_span_index(r_node.Y(), min_v, max_v, span_size_y, number_of_spans_y);
 
         const std::size_t non_zero_index = FindNnzIndex(r_occupancy_matrix, span_index_x, span_index_y);
-        KRATOS_ERROR_IF(non_zero_index == static_cast<std::size_t>(-1))
+        KRATOS_DEBUG_ERROR_IF(non_zero_index == static_cast<std::size_t>(-1))
             << "[SnakeGapSbmProcess::CreateSkinNodesPerKnotSpanMatrix] nonzero (ix,iy) not found in CSR pattern.\n";
 
         node_ids_per_non_zero[non_zero_index].push_back(r_node.Id());
