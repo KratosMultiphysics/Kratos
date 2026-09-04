@@ -15,6 +15,7 @@
 // System includes
 #include <algorithm>
 #include <cmath>
+#include <limits>
 #include <vector>
 
 // Project includes
@@ -477,6 +478,28 @@ public:
         return result;
     }
 
+    /// Evaluates THB shape function values at a single (u, v) point.
+    /// rResult is sized to the number of nonzero active basis functions at (u, v)
+    /// (varies per point in the hierarchy, differs from NURBS's fixed (p+1)*(q+1)).
+    Vector& ShapeFunctionsValues(
+        Vector& rResult,
+        const CoordinatesArrayType& rCoordinates) const override
+    {
+        THBSurfaceShapeFunction shape_function_container(
+            mLevels.back().DegreeU, mLevels.back().DegreeV, 0);
+        shape_function_container.ComputeShapeFunctionValues(
+            *this, rCoordinates[0], rCoordinates[1]);
+
+        const SizeType num_nonzero = shape_function_container.NumberOfNonzeroControlPoints();
+        if (rResult.size() != num_nonzero)
+            rResult.resize(num_nonzero, false);
+
+        for (SizeType j = 0; j < num_nonzero; ++j)
+            rResult[j] = shape_function_container(j, 0);
+
+        return rResult;
+    }
+
     /// Evaluates THB shape functions at a single (u, v) point, returning node IDs
     /// and values for the nonzero active basis functions.
     void ShapeFunctionsValuesAndCPIndices(
@@ -889,6 +912,14 @@ public:
             rResultGeometries(i) = CreateQuadraturePointsUtility<NodeType>::CreateQuadraturePoint(
                 this->WorkingSpaceDimension(), 2, data_container, nonzero_control_points, this);
         }
+    }
+
+    int ProjectionPointGlobalToLocalSpace(
+        const CoordinatesArrayType& rPointGlobalCoordinates,
+        CoordinatesArrayType& rProjectedPointLocalCoordinates,
+        const double Tolerance = std::numeric_limits<double>::epsilon()) const override
+    {
+        KRATOS_ERROR << "THBSurfaceGeometry::ProjectionPointGlobalToLocalSpace: not yet implemented." << std::endl;
     }
 
     CoordinatesArrayType& GlobalCoordinates(
