@@ -92,8 +92,8 @@ void SPHElementUtilities::ComputeVelocityJump(
     const auto& r_particle_node = rThisParticle.GetGeometry()[0];
     const auto& r_neighbour_node = rThisNeighbour.GetGeometry()[0];
 
-    MatrixType velocity_gradient_particle = ZeroMatrix(dimension, dimension);
-    MatrixType velocity_gradient_neighbour = ZeroMatrix(dimension, dimension);
+    MatrixType velocity_gradient_particle(dimension, dimension), velocity_gradient_neighbour(dimension, dimension); 
+    velocity_gradient_particle.clear(); velocity_gradient_neighbour.clear();
 
     velocity_gradient_particle(0, 0) = r_particle_node.FastGetSolutionStepValue(DEFORMATION_GRADIENT_DOT_XX, Step);
     velocity_gradient_particle(1, 1) = r_particle_node.FastGetSolutionStepValue(DEFORMATION_GRADIENT_DOT_YY, Step);
@@ -119,17 +119,17 @@ void SPHElementUtilities::ComputeVelocityJump(
         velocity_gradient_neighbour(2, 1) = r_neighbour_node.FastGetSolutionStepValue(DEFORMATION_GRADIENT_DOT_ZY, Step);
     }
 
-    VectorType particle_velocity(dimension);
-    VectorType neighbour_velocity(dimension);
+    VectorType particle_velocity(dimension), neighbour_velocity(dimension);
     const auto& r_particle_velocity = r_particle_node.FastGetSolutionStepValue(VELOCITY, Step);
     const auto& r_neighbour_velocity = r_neighbour_node.FastGetSolutionStepValue(VELOCITY, Step);
+    
     for (IndexType d = 0; d < dimension; ++d) {
         particle_velocity[d] = r_particle_velocity[d];
         neighbour_velocity[d] = r_neighbour_velocity[d];
     }
 
-    const VectorType particle_interface_velocity = particle_velocity - 0.5 * prod(velocity_gradient_particle, rInitialDistance);
-    const VectorType neighbour_interface_velocity = neighbour_velocity + 0.5 * prod(velocity_gradient_neighbour, rInitialDistance);
+    const VectorType particle_interface_velocity = particle_velocity + 0.5 * prod(velocity_gradient_particle, rInitialDistance);
+    const VectorType neighbour_interface_velocity = neighbour_velocity - 0.5 * prod(velocity_gradient_neighbour, rInitialDistance);
 
     noalias(rJumpVector) = neighbour_interface_velocity - particle_interface_velocity;
 }

@@ -51,13 +51,10 @@ public:
     static void ComputeLinearElasticAcousticTensor(MatrixType& rAcousticTensor, const VectorType& rNormal, const Properties& rProperties);
 
     /**
-    * @brief Computes the linear reconstructed displacement jump between two neighboring particles in the current configuration.
+    * @brief Computes the linear reconstructed displacement or velocity jump between two neighboring particles in the current configuration.
     */
     static void ComputeParticleJump(VectorType& rJumpVector, Element& rThisParticle, Element& rThisNeighbour, VectorType& rInitialDistance, const ProcessInfo& rProcessInfo);
-
-    /**
-    * @brief Computes the linear reconstructed velocity jump between two neighboring particles.
-    */
+    
     static void ComputeVelocityJump(VectorType& rJumpVector, Element& rThisParticle, Element& rThisNeighbour, VectorType& rInitialDistance, const int Step = 0);
 
     /**

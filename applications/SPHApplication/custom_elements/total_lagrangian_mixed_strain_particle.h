@@ -205,6 +205,7 @@ public:
      */
     virtual void CalculateAndAddUpwindStabilizationTangent(
         MatrixType& rK11,
+        MatrixType& rK12,
         KinematicVariables& rThisKinematicVariables,
         const ProcessInfo& rProcessInfo
     );
