@@ -1197,7 +1197,8 @@ KRATOS_TEST_CASE_IN_SUITE(MixedULMLinearSolverDetectsBrokenDualLM, KratosContact
         KRATOS_EXPECT_FALSE(solved);
 
         // No solution may have been written, otherwise a wrong result would silently be used
-        KRATOS_EXPECT_VECTOR_NEAR(Dx, ZeroVector(system_size), std::numeric_limits<double>::epsilon());
+        const Vector zero_reference = ZeroVector(system_size);
+        KRATOS_EXPECT_VECTOR_NEAR(Dx, zero_reference, std::numeric_limits<double>::epsilon());
     }
 }
 
