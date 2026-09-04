@@ -26,6 +26,7 @@ class TestIgaVTKHDFOutputProcess(KratosUnittest.TestCase):
             "reference_output.vtkhdf"
         )
         cls.out_file = os.path.join(cls.work_folder, "test_output.vtkhdf")
+        cls.single_step_out_file = os.path.join(cls.work_folder, "test_single_step_output.vtkhdf")
 
         # Create model and model part
         cls.model = KM.Model()
@@ -57,6 +58,46 @@ class TestIgaVTKHDFOutputProcess(KratosUnittest.TestCase):
         # Clean up generated output file
         if os.path.exists(cls.out_file):
             os.remove(cls.out_file)
+        if os.path.exists(cls.single_step_out_file):
+            os.remove(cls.single_step_out_file)
+
+    def test_native_single_output_against_reference(self):
+        """The native writer must reproduce the first block of the Python reference."""
+        self.model_part.ProcessInfo[KM.TIME] = 0.0
+        settings = KM.Parameters(f"""
+        {{
+            "model_part_name" : "ModelPart",
+            "output_file_name" : "{self.single_step_out_file}",
+            "brep_surface_ids" : [{self.brep_id}],
+            "nodal_solution_step_data_variables" : ["DISPLACEMENT"],
+            "output_refinement_surface" : [3,3],
+            "output_control_type" : "step",
+            "output_frequency" : 1
+        }}
+        """)
+
+        process = KratosMultiphysics.IgaApplication.IgaVtkOutputProcess(self.model, settings)
+        process.ExecuteInitialize()
+        process.ExecuteBeforeSolutionLoop()
+        process.PrintOutput()
+
+        with h5py.File(self.ref_file, "r") as f_ref, \
+             h5py.File(self.single_step_out_file, "r") as f_out:
+            ref = f_ref["VTKHDF"]
+            out = f_out["VTKHDF"]
+
+            for name in ("Points", "Connectivity", "Offsets", "Types",
+                         "NumberOfPoints", "NumberOfCells", "NumberOfConnectivityIds"):
+                np.testing.assert_allclose(ref[name][()], out[name][()])
+                self.assertEqual(ref[name].dtype, out[name].dtype)
+
+            n_points = int(out["NumberOfPoints"][0])
+            np.testing.assert_allclose(
+                ref["PointData/DISPLACEMENT"][:n_points],
+                out["PointData/DISPLACEMENT"][:])
+            self.assertEqual(out["PointData/DISPLACEMENT"].maxshape, (None, 3))
+            self.assertEqual(out["Steps"].attrs["NSteps"], 1)
+            np.testing.assert_array_equal(out["Steps/Values"][:], [0.0])
 
     def test_output_against_reference(self):
         # Ensure reference exists before comparing
@@ -78,9 +119,12 @@ class TestIgaVTKHDFOutputProcess(KratosUnittest.TestCase):
         }}
         """)
 
-        # Create process
-        from KratosMultiphysics.IgaApplication.iga_vtk_output_process import IgaVTKOutputProcess
-        process = IgaVTKOutputProcess(self.model, settings)
+        # Create process through the public Python factory. The returned process
+        # is the native C++ IgaVtkOutputProcess exposed through pybind11.
+        from KratosMultiphysics.IgaApplication import iga_vtk_output_process
+        factory_settings = KM.Parameters("{}")
+        factory_settings.AddValue("Parameters", settings)
+        process = iga_vtk_output_process.Factory(factory_settings, self.model)
 
         # Standard Kratos process lifecycle
         process.ExecuteInitialize()

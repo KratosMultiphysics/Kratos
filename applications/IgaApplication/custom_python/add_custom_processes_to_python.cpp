@@ -20,6 +20,7 @@
 #include "custom_processes/map_nurbs_volume_results_to_embedded_geometry_process.h"
 #include "custom_processes/assign_integration_points_to_background_elements_process.h"
 #include "custom_processes/assign_iga_external_conditions_process.h"
+#include "custom_processes/iga_vtk_output_process.h"
 
 #include "iga_application_variables.h"
 
@@ -55,6 +56,10 @@ void AddCustomProcessesToPython(
 
     py::class_<AssignIgaExternalConditionsProcess, AssignIgaExternalConditionsProcess::Pointer, Process>(m, "AssignIgaExternalConditionsProcess")
         .def(py::init<Model&, Parameters >())
+        ;
+
+    py::class_<IgaVtkOutputProcess, IgaVtkOutputProcess::Pointer, OutputProcess>(m, "IgaVtkOutputProcess")
+        .def(py::init<Model&, Parameters>())
         ;
 
 }
