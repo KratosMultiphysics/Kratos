@@ -247,14 +247,14 @@ class KratosGeoMechanicsMuskatTests(KratosUnittest.TestCase):
 
         expected_results_for_variables = {
             "WATER_PRESSURE": [
-                # ExpectedResult(node_id=198, value=8325.15),
-                # ExpectedResult(node_id=244, value=-3031.34),
-                # ExpectedResult(node_id=183, value=-20243.4),
+                ExpectedResult(node_id=198, value=7939.92),
+                ExpectedResult(node_id=244, value=-2753.0),
+                ExpectedResult(node_id=183, value=-20549.3),
             ],
             "EFFECTIVE_SATURATION": [
-                # ExpectedResult(node_id=273, value=1.0),
-                # ExpectedResult(node_id=890, value=0.462247),
-                # ExpectedResult(node_id=1440, value=0.924914),
+                ExpectedResult(node_id=273, value=1.0),
+                ExpectedResult(node_id=890, value=0.485245),
+                ExpectedResult(node_id=1440, value=0.991294),
             ],
         }
         self._assert_muskat_results(
@@ -269,6 +269,9 @@ class KratosGeoMechanicsMuskatTests(KratosUnittest.TestCase):
 
         expected_results_for_variables = {
             "WATER_PRESSURE": [
+                ExpectedResult(node_id=198, value=14346.4),
+                ExpectedResult(node_id=244, value=-37.4452),
+                ExpectedResult(node_id=183, value=-20335.1),
             ],
             "EFFECTIVE_SATURATION": [
                 ExpectedResult(node_id=273, value=1.0),
