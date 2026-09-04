@@ -42,10 +42,13 @@ jobs:
         compiler: [gcc, clang]
         la-backend: [ublas]
         include:
-          # One job with the Eigen sparse linear-algebra backend
+          # One job with the Eigen sparse linear-algebra backend. The unoptimized
+          # Custom build (-O0, Eigen assertions on) runs the tests noticeably slower
+          # than the uBLAS one, so this job gets a larger per-application time limit.
           - build-type: Custom
             compiler: gcc
             la-backend: eigen
+            py-test-timer: 1800
     env:
       KRATOS_BUILD_TYPE: ${{ matrix.build-type }}
       KRATOS_LINEAR_ALGEBRA_BACKEND: ${{ matrix.la-backend }}
@@ -178,7 +181,7 @@ jobs:
         fi
         export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}
         export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}/libs
-        python3 kratos/python_scripts/testing/run_python_tests.py -v 2 -l nightly -c python3
+        python3 kratos/python_scripts/testing/run_python_tests.py -v 2 -l nightly -c python3 -t ${{ matrix.py-test-timer || 900 }}
 
     - name: Prepare Parallel Env
       shell: bash
