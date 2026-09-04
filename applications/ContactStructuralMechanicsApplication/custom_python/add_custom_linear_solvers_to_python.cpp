@@ -17,7 +17,7 @@
 // Project includes
 #include "includes/define.h"
 #include "includes/define_python.h"
-#include "spaces/ublas_space.h"
+#include "spaces/default_spaces.h"
 #include "custom_linear_solvers/mixedulm_linear_solver.h"
 
 namespace Kratos::Python
@@ -26,8 +26,8 @@ namespace py = pybind11;
 
 void  AddCustomLinearSolversToPython(pybind11::module& m)
 {
-    using SpaceType = UblasSpace<double, CompressedMatrix, Vector>;
-    using LocalSpaceType = UblasSpace<double, Matrix, Vector>;
+    using SpaceType = TDefaultSparseSpace<double>;
+    using LocalSpaceType = TDefaultDenseSpace<double>;
     using LinearSolverType = LinearSolver<SpaceType, LocalSpaceType>;
     using IterativeSolverType = IterativeSolver<SpaceType, LocalSpaceType>;
     using MixedULMLinearSolverType = MixedULMLinearSolver<SpaceType, LocalSpaceType>;

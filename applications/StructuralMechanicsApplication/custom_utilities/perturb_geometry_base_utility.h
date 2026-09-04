@@ -17,7 +17,7 @@
 
 // Project includes
 #include "includes/model_part.h"
-#include "spaces/ublas_space.h"
+#include "spaces/default_spaces.h"
 
 
 namespace Kratos {
@@ -40,8 +40,9 @@ public:
     ///@name Type Definitions
     ///@{
 
-    typedef TUblasSparseSpace<double> TSparseSpaceType;
-    typedef TUblasDenseSpace<double> TDenseSpaceType;
+    // The real system space follows the configure-time selected linear-algebra backend
+    typedef TDefaultSparseSpace<double> TSparseSpaceType;
+    typedef TDefaultDenseSpace<double> TDenseSpaceType;
 
     typedef TDenseSpaceType::MatrixPointerType DenseMatrixPointerType;
 

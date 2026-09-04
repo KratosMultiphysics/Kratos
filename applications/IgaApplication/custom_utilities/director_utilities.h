@@ -16,7 +16,7 @@
 #include "includes/define.h"
 
 // External includes
-#include "spaces/ublas_space.h"
+#include "spaces/default_spaces.h"
 
 // Project includes
 #include "includes/model_part.h"
@@ -33,8 +33,8 @@ namespace Kratos
         typedef std::size_t SizeType;
         typedef std::size_t IndexType;
 
-        typedef UblasSpace<double, CompressedMatrix, boost::numeric::ublas::vector<double>> SparseSpaceType;
-        typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
+        typedef TDefaultSparseSpace<double> SparseSpaceType;
+        typedef TDefaultDenseSpace<double> LocalSpaceType;
 
         typedef typename SparseSpaceType::MatrixType SparseMatrixType;
         typedef typename LocalSpaceType::MatrixType DenseMatrixType;

@@ -11,15 +11,15 @@
 //
 
 #include "custom_strategies/schemes/newmark_dynamic_U_Pw_scheme.hpp"
-#include "spaces/ublas_space.h"
+#include "spaces/default_spaces.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
 
 namespace Kratos::Testing
 {
 
 using namespace Kratos;
-using SparseSpaceType = UblasSpace<double, CompressedMatrix, Vector>;
-using LocalSpaceType  = UblasSpace<double, Matrix, Vector>;
+using SparseSpaceType = TDefaultSparseSpace<double>;
+using LocalSpaceType  = TDefaultDenseSpace<double>;
 
 class NewmarkDynamicUPwSchemeTester
 {
@@ -83,9 +83,9 @@ KRATOS_TEST_CASE_IN_SUITE(NewmarkDynamicUPwSchemePredictWithFixedAccelerations_U
     NewmarkDynamicUPwSchemeTester tester;
 
     ModelPart::DofsArrayType dof_set;
-    CompressedMatrix         A;
-    Vector                   Dx;
-    Vector                   b;
+    SparseSpaceType::MatrixType         A;
+    SparseSpaceType::VectorType                   Dx;
+    SparseSpaceType::VectorType                   b;
 
     tester.mScheme.InitializeSolutionStep(tester.GetModelPart(), A, Dx, b); // This is needed to set the time factors
 
@@ -108,9 +108,9 @@ KRATOS_TEST_CASE_IN_SUITE(NewmarkDynamicUPwSchemePredictWithFixedVelocities_Upda
     NewmarkDynamicUPwSchemeTester tester;
 
     ModelPart::DofsArrayType dof_set;
-    CompressedMatrix         A;
-    Vector                   Dx;
-    Vector                   b;
+    SparseSpaceType::MatrixType         A;
+    SparseSpaceType::VectorType                   Dx;
+    SparseSpaceType::VectorType                   b;
 
     tester.mScheme.InitializeSolutionStep(tester.GetModelPart(), A, Dx, b); // This is needed to set the time factors
 
@@ -133,9 +133,9 @@ KRATOS_TEST_CASE_IN_SUITE(NewmarkDynamicUPwSchemePredictWithNoFixedVariables_Upd
     NewmarkDynamicUPwSchemeTester tester;
 
     ModelPart::DofsArrayType dof_set;
-    CompressedMatrix         A;
-    Vector                   Dx;
-    Vector                   b;
+    SparseSpaceType::MatrixType         A;
+    SparseSpaceType::VectorType                   Dx;
+    SparseSpaceType::VectorType                   b;
 
     tester.mScheme.InitializeSolutionStep(tester.GetModelPart(), A, Dx, b); // This is needed to set the time factors
 
@@ -154,9 +154,9 @@ KRATOS_TEST_CASE_IN_SUITE(NewmarkDynamicUPwSchemePredictFixedDisplacements_DoesN
     NewmarkDynamicUPwSchemeTester tester;
 
     ModelPart::DofsArrayType dof_set;
-    CompressedMatrix         A;
-    Vector                   Dx;
-    Vector                   b;
+    SparseSpaceType::MatrixType         A;
+    SparseSpaceType::VectorType                   Dx;
+    SparseSpaceType::VectorType                   b;
 
     tester.mScheme.InitializeSolutionStep(tester.GetModelPart(), A, Dx, b); // This is needed to set the time factors
 
@@ -180,9 +180,9 @@ KRATOS_TEST_CASE_IN_SUITE(NewmarkDynamicUPwSchemePredictWithout3DDofs_DoesNotUpd
     NewmarkDynamicUPwSchemeTester tester(three_d_case);
 
     ModelPart::DofsArrayType dof_set;
-    CompressedMatrix         A;
-    Vector                   Dx;
-    Vector                   b;
+    SparseSpaceType::MatrixType         A;
+    SparseSpaceType::VectorType                   Dx;
+    SparseSpaceType::VectorType                   b;
 
     tester.mScheme.InitializeSolutionStep(tester.GetModelPart(), A, Dx, b); // This is needed to set the time factors
 
@@ -200,9 +200,9 @@ KRATOS_TEST_CASE_IN_SUITE(NewmarkDynamicUPwSchemePredict_UpdatesVariablesDerivat
     NewmarkDynamicUPwSchemeTester tester;
 
     ModelPart::DofsArrayType dof_set;
-    CompressedMatrix         A;
-    Vector                   Dx;
-    Vector                   b;
+    SparseSpaceType::MatrixType         A;
+    SparseSpaceType::VectorType                   Dx;
+    SparseSpaceType::VectorType                   b;
 
     tester.mScheme.InitializeSolutionStep(tester.GetModelPart(), A, Dx, b); // This is needed to set the time factors
 
@@ -230,9 +230,9 @@ KRATOS_TEST_CASE_IN_SUITE(NewmarkDynamicUPwSchemeUpdate_DoesNotUpdateFixedSecond
     NewmarkDynamicUPwSchemeTester tester;
 
     ModelPart::DofsArrayType dof_set;
-    CompressedMatrix         A;
-    Vector                   Dx;
-    Vector                   b;
+    SparseSpaceType::MatrixType         A;
+    SparseSpaceType::VectorType                   Dx;
+    SparseSpaceType::VectorType                   b;
 
     tester.mScheme.InitializeSolutionStep(tester.GetModelPart(), A, Dx, b); // This is needed to set the time factors
 
@@ -255,9 +255,9 @@ KRATOS_TEST_CASE_IN_SUITE(NewmarkDynamicUPwSchemeUpdate_DoesNotUpdateFixedFirstD
     NewmarkDynamicUPwSchemeTester tester;
 
     ModelPart::DofsArrayType dof_set;
-    CompressedMatrix         A;
-    Vector                   Dx;
-    Vector                   b;
+    SparseSpaceType::MatrixType         A;
+    SparseSpaceType::VectorType                   Dx;
+    SparseSpaceType::VectorType                   b;
 
     tester.mScheme.InitializeSolutionStep(tester.GetModelPart(), A, Dx, b); // This is needed to set the time factors
 
@@ -278,9 +278,9 @@ KRATOS_TEST_CASE_IN_SUITE(NewmarkDynamicUPwSchemeUpdate_DoesNotUpdateFixedScalar
     NewmarkDynamicUPwSchemeTester tester;
 
     ModelPart::DofsArrayType dof_set;
-    CompressedMatrix         A;
-    Vector                   Dx;
-    Vector                   b;
+    SparseSpaceType::MatrixType         A;
+    SparseSpaceType::VectorType                   Dx;
+    SparseSpaceType::VectorType                   b;
 
     tester.mScheme.InitializeSolutionStep(tester.GetModelPart(), A, Dx, b); // This is needed to set the time factors
 

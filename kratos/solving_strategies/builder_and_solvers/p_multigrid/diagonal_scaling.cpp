@@ -15,7 +15,8 @@
 
 // Project includes
 #include "solving_strategies/builder_and_solvers/p_multigrid/diagonal_scaling.hpp" // DiagonalScaling, ParseDiagonalScaling, GetDiagonalScaleFactor
-#include "spaces/ublas_space.h" // TUblasSparseSpace
+#include "spaces/ublas_space.h" // TDefaultSparseSpace
+#include "spaces/default_spaces.h"
 #include "utilities/reduction_utilities.h" // MaxReduction, AbsMaxReduction
 #include "utilities/profiler.h" // KRATOS_PROFILE_SCOPE
 
@@ -129,7 +130,7 @@ void NormalizeRows(typename TSparse::MatrixType& rLhs,
             const auto i_entry_begin = rLhs.index1_data()[i_row];
             const auto i_entry_end = rLhs.index1_data()[i_row + 1];
             for (auto i_entry=i_entry_begin; i_entry<i_entry_end; ++i_entry) {
-                const auto i_column = rLhs.index2_data()[i_entry];
+                const auto i_column = static_cast<std::size_t>(rLhs.index2_data()[i_entry]);
                 const auto value = rLhs.value_data()[i_entry];
                 KRATOS_ERROR_IF(i_column != i_row && value) << "the diagonal of row " << i_row << " vanishes, but has off-diagonal components";
                 //if (i_column == i_row) rLhs.value_data()[i_entry] = static_cast<typename TSparse::DataType>(1);
@@ -164,9 +165,9 @@ void NormalizeSystem(typename TSparse::MatrixType& rLhs,
                                                 typename TSparseSpace::DataType)
 
 
-KRATOS_DEFINE_DIAGONAL_SCALE_FUNCTIONS(TUblasSparseSpace<double>);
+KRATOS_DEFINE_DIAGONAL_SCALE_FUNCTIONS(TDefaultSparseSpace<double>);
 
-KRATOS_DEFINE_DIAGONAL_SCALE_FUNCTIONS(TUblasSparseSpace<float>);
+KRATOS_DEFINE_DIAGONAL_SCALE_FUNCTIONS(TDefaultSparseSpace<float>);
 
 #undef KRATOS_DEFINE_DIAGONAL_SCALE_FUNCTIONS
 

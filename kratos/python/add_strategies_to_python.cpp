@@ -18,7 +18,7 @@
 #include "includes/define_python.h"
 #include "python/add_strategies_to_python.h"
 #include "includes/model_part.h"
-#include "spaces/ublas_space.h"
+#include "spaces/default_spaces.h"
 #include "includes/ublas_complex_interface.h"
 #include "utilities/variable_utils.h"
 
@@ -75,15 +75,16 @@ namespace Kratos:: Python
 {
     namespace py = pybind11;
 
-    typedef UblasSpace<double, CompressedMatrix, boost::numeric::ublas::vector<double>> SparseSpaceType;
-    typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
+    typedef DefaultSparseSpaceType SparseSpaceType;
+    typedef DefaultLocalSpaceType LocalSpaceType;
 
-    typedef UblasSpace<std::complex<double>, ComplexCompressedMatrix, boost::numeric::ublas::vector<std::complex<double>>> ComplexSparseSpaceType;
-    typedef UblasSpace<std::complex<double>, ComplexMatrix, ComplexVector> ComplexLocalSpaceType;
+    typedef DefaultComplexSparseSpaceType ComplexSparseSpaceType;
+    typedef DefaultComplexLocalSpaceType ComplexLocalSpaceType;
 
     //ADDED BY PAOLO (next two)
 
-    double Dot(SparseSpaceType& dummy, SparseSpaceType::VectorType& rX, SparseSpaceType::VectorType& rY)
+    template< typename TSpaceType >
+    double Dot(TSpaceType& dummy, typename TSpaceType::VectorType& rX, typename TSpaceType::VectorType& rY)
     {
         return dummy.Dot(rX, rY);
     }
@@ -102,7 +103,8 @@ namespace Kratos:: Python
         dummy.Mult(rA, rX, rY);
     }
 
-    void TransposeMult(SparseSpaceType& dummy, SparseSpaceType::MatrixType& rA, SparseSpaceType::VectorType& rX, SparseSpaceType::VectorType& rY)
+    template< typename TSpaceType >
+    void TransposeMult(TSpaceType& dummy, typename TSpaceType::MatrixType& rA, typename TSpaceType::VectorType& rX, typename TSpaceType::VectorType& rY)
     //rY=A*rX (the product is stored inside the rY)
     {
         dummy.TransposeMult(rA, rX, rY);
@@ -162,7 +164,8 @@ namespace Kratos:: Python
         dummy.Clear(x);
     }
 
-    double TwoNorm(SparseSpaceType& dummy, SparseSpaceType::VectorType& x)
+    template< typename TSpaceType >
+    double TwoNorm(TSpaceType& dummy, typename TSpaceType::VectorType& x)
     {
         return dummy.TwoNorm(x);
     }
@@ -515,6 +518,10 @@ namespace Kratos:: Python
         .def(py::init< LinearSolverType::Pointer, Parameters > ())
         ;
 
+#ifndef KRATOS_USE_EIGEN_BACKEND
+        // PMultigridBuilderAndSolver is explicitly instantiated for the uBLAS
+        // spaces only (its implementation lives in a source file), so it is
+        // not yet available with the Eigen sparse backend.
         typedef PMultigridBuilderAndSolver<SparseSpaceType,LocalSpaceType> PMultigridBuilderAndSolverType;
         py::class_<PMultigridBuilderAndSolverType,PMultigridBuilderAndSolverType::Pointer,BuilderAndSolverType>(m, "PMultigridBuilderAndSolver")
             .def(py::init<>())
@@ -525,6 +532,7 @@ namespace Kratos:: Python
                  py::arg("LinearSolver"),
                  py::arg("Settings"))
             ;
+#endif
 
         //********************************************************************
         //********************************************************************
@@ -533,18 +541,50 @@ namespace Kratos:: Python
         //********************************************************************
         //********************************************************************
 
-        auto sparse_space_binder = CreateSpaceInterface< SparseSpaceType >(m,"UblasSparseSpace");
-        sparse_space_binder.def("TwoNorm", TwoNorm);
+#ifndef KRATOS_USE_EIGEN_BACKEND
+        // The uBLAS-real space interface exists only under the ublas backend:
+        // the two linear-algebra backends are mutually exclusive. Scripts
+        // should use the backend-agnostic SparseSpace alias below.
+        using UblasSparseSpaceInterfaceType = TUblasSparseSpace<double>;
+        auto sparse_space_binder = CreateSpaceInterface< UblasSparseSpaceInterfaceType >(m,"UblasSparseSpace");
+        sparse_space_binder.def("TwoNorm", TwoNorm<UblasSparseSpaceInterfaceType>);
         // The dot product of two vectors
-        sparse_space_binder.def("Dot", Dot);
-        sparse_space_binder.def("TransposeMult", TransposeMult);
+        sparse_space_binder.def("Dot", Dot<UblasSparseSpaceInterfaceType>);
+        sparse_space_binder.def("TransposeMult", TransposeMult<UblasSparseSpaceInterfaceType>);
         // Size functions
-        sparse_space_binder.def("Size", &SparseSpaceType::Size);
-        sparse_space_binder.def("Size1", &SparseSpaceType::Size1);
-        sparse_space_binder.def("Size2", &SparseSpaceType::Size2);
+        sparse_space_binder.def("Size", &UblasSparseSpaceInterfaceType::Size);
+        sparse_space_binder.def("Size1", &UblasSparseSpaceInterfaceType::Size1);
+        sparse_space_binder.def("Size2", &UblasSparseSpaceInterfaceType::Size2);
         // Information functions
-        sparse_space_binder.def("IsDistributed", &SparseSpaceType::IsDistributed);
-        sparse_space_binder.def("FastestDirectSolverList", &SparseSpaceType::FastestDirectSolverList);
+        sparse_space_binder.def("IsDistributed", &UblasSparseSpaceInterfaceType::IsDistributed);
+        sparse_space_binder.def("FastestDirectSolverList", &UblasSparseSpaceInterfaceType::FastestDirectSolverList);
+#endif // !KRATOS_USE_EIGEN_BACKEND
+
+#ifdef KRATOS_USE_EIGEN_BACKEND
+        // The default (Eigen) sparse space used by the strategies
+        auto eigen_sparse_space_binder = CreateSpaceInterface< SparseSpaceType >(m,"EigenSparseSpace");
+        eigen_sparse_space_binder.def("TwoNorm", TwoNorm<SparseSpaceType>);
+        eigen_sparse_space_binder.def("Dot", Dot<SparseSpaceType>);
+        eigen_sparse_space_binder.def("TransposeMult", TransposeMult<SparseSpaceType>);
+        eigen_sparse_space_binder.def("Size", &SparseSpaceType::Size);
+        eigen_sparse_space_binder.def("Size1", &SparseSpaceType::Size1);
+        eigen_sparse_space_binder.def("Size2", &SparseSpaceType::Size2);
+        eigen_sparse_space_binder.def("IsDistributed", &SparseSpaceType::IsDistributed);
+        eigen_sparse_space_binder.def("FastestDirectSolverList", &SparseSpaceType::FastestDirectSolverList);
+
+        // Backend-agnostic aliases: scripts that build system matrices/vectors
+        // to feed directly into a linear solver (bypassing the C++
+        // builder-and-solver) should use these instead of hardcoding
+        // UblasSparseSpace/CompressedMatrix/Vector, so no uBLAS<->Eigen
+        // conversion is needed when the Eigen backend is active.
+        m.attr("SparseSpace") = m.attr("EigenSparseSpace");
+        m.attr("SparseMatrix") = m.attr("EigenCompressedMatrix");
+        m.attr("SparseVector") = m.attr("EigenVector");
+#else
+        m.attr("SparseSpace") = m.attr("UblasSparseSpace");
+        m.attr("SparseMatrix") = m.attr("CompressedMatrix");
+        m.attr("SparseVector") = m.attr("Vector");
+#endif
 
         auto cplx_sparse_space_binder = CreateSpaceInterface< ComplexSparseSpaceType >(m,"UblasComplexSparseSpace");
 
