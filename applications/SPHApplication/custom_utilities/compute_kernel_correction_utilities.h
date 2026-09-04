@@ -42,13 +42,6 @@ public:
      * @details J. Bonet and T.S.L. Lok "Variational and momentum preservation aspects of Smooth Particle Hydrodynamic formulations"
      */
     static void ComputeGradientCorrection(ModelPart& rThisModelPart);
-    
-    /**
-     * @brief This function computes the integration correction which ensures first-order consistency at the boundaries of the domain.
-     * @details J. Bonet and S. Kulasegaram:
-     * "Correction and stabilization of smooth particle hydrodynamics methods with applications in metal forming simulations".
-     */
-    static void ComputeIntegrationCorrection(ModelPart& rThisModelPart);
 
     /**
      * @brief This functions applies the gradient and the kernel corrections
@@ -59,14 +52,10 @@ public:
 
     static void ApplyKernelGradientCorrectionInverted(Element& rNeighbouringParticle, double& kernel_target, Vector& dkernel_target);
 
-    static void ApplyIntegrationCorrection(Element& IP, double& kernel_target, Vector& dkernel_target, bool IsParticleItself);
-
     /**
      * @brief These functions check the effectiveness of the kernel corrections
      */
     static bool VerifyKernelCorrection(ModelPart& rThisModelPart, Parameters& rThisParameters);
-
-    static bool VerifyIntegrationCorrection(ModelPart& rThisModelPart, Parameters& rThisParameters);
 
 };
 

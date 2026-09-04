@@ -143,8 +143,6 @@ void TrussElementLinear3D2N::CalculateOnIntegrationPoints(
             prestress = GetProperties()[TRUSS_PRESTRESS_PK2];
         }
 
-        array_1d<double, msDimension> temp_internal_stresses = ZeroVector(msDimension);
-
         const auto stress = CalculateStressFromLinearStrain(rCurrentProcessInfo);
         truss_forces[0] = (stress + prestress) * A;
 

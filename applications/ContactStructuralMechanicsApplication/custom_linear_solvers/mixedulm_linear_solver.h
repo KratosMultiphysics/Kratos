@@ -313,7 +313,7 @@ public:
         GetUPart (rB, mResidualDisp);
 
         // Solve u block
-        if (mDisp.size() != total_disp_size)
+        if (static_cast<SizeType>(mDisp.size()) != total_disp_size)
             mDisp.resize(total_disp_size, false);
         mpSolverDispBlock->Solve (mKDispModified, mDisp, mResidualDisp);
 
@@ -326,7 +326,7 @@ public:
             GetLMAPart (rB, mResidualLMActive);
 
             // LM = D⁻1*rLM
-            if (mLMActive.size() != lm_active_size)
+            if (static_cast<SizeType>(mLMActive.size()) != lm_active_size)
                 mLMActive.resize(lm_active_size, false);
             TSparseSpaceType::Mult (mKLMAModified, mResidualLMActive, mLMActive);
 
@@ -339,7 +339,7 @@ public:
             GetLMIPart (rB, mResidualLMInactive);
 
             // LM = D⁻1*rLM
-            if (mLMInactive.size() != lm_inactive_size)
+            if (static_cast<SizeType>(mLMInactive.size()) != lm_inactive_size)
                 mLMInactive.resize(lm_inactive_size, false);
             TSparseSpaceType::Mult (mKLMIModified, mResidualLMInactive, mLMInactive);
 
@@ -1662,7 +1662,7 @@ private:
         const SizeType total_size = other_dof_size + master_size + slave_inactive_size + slave_active_size;
 
         // Resize in case the size is not correct
-        if (ResidualU.size() != total_size )
+        if (static_cast<SizeType>(ResidualU.size()) != total_size )
             ResidualU.resize (total_size, false);
 
         IndexPartition<std::size_t>(other_dof_size).for_each([&](std::size_t i) {
@@ -1728,7 +1728,7 @@ private:
         if (slave_active_size > 0) {
 
             // We get the displacement residual of the active slave nodes
-            if (rResidualLMA.size() != slave_active_size )
+            if (static_cast<SizeType>(rResidualLMA.size()) != slave_active_size )
                 rResidualLMA.resize (slave_active_size, false);
 
             IndexPartition<std::size_t>(rResidualLMA.size()).for_each([&](std::size_t i) {
@@ -1785,7 +1785,7 @@ private:
         const SizeType lm_inactive_size = mLMInactiveIndices.size();
 
         // We get the displacement residual of the active slave nodes
-        if (rResidualLMI.size() != lm_inactive_size )
+        if (static_cast<SizeType>(rResidualLMI.size()) != lm_inactive_size )
             rResidualLMI.resize (lm_inactive_size, false);
 
         IndexPartition<std::size_t>(lm_inactive_size).for_each([&](std::size_t i) {
