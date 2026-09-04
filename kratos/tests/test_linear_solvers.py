@@ -18,7 +18,7 @@ class TestLinearSolvers(KratosUnittest.TestCase):
             else:
                 self._auxiliary_test_function(settings, matrix_name, rhs_scaling)
 
-    def _auxiliary_test_function(self, settings, matrix_name="auxiliar_files_for_python_unittest/sparse_matrix_files/A.mm"):
+    def _auxiliary_test_function(self, settings, matrix_name="auxiliar_files_for_python_unittest/sparse_matrix_files/A.mm", rhs_scaling=1.0):
         space = KratosMultiphysics.UblasSparseSpace()
 
         #read the matrices
@@ -33,7 +33,7 @@ class TestLinearSolvers(KratosUnittest.TestCase):
         space.SetToZeroVector(b)
 
         for i in range(len(b)):
-            b[i] = i/len(b)
+            b[i] = rhs_scaling * i/len(b)
 
         x = KratosMultiphysics.Vector(n)
         #KratosMultiphysics.ReadMatrixMarketVector("b.mm",b)
