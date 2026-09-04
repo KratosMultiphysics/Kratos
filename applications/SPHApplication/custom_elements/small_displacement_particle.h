@@ -129,6 +129,18 @@ public:
      * @brief It creates a new element pointer and clones the previous element data
      */
     Element::Pointer Clone( IndexType NewId, NodesArrayType const& rThisNodes) const override;
+
+    /**
+     * @brief This function tells the position of the particle in the list of neighbours
+     */
+    int GetNeighbourPosition(const std::vector<Element::Pointer>& rNeighbours) const
+    {
+        int i = 0; 
+        
+        while (i<rNeighbours.size() && this->Id() != rNeighbours[i]->Id()) i++;
+
+        return i;
+    }
     
     /**
      * @brief Called to initialize the element

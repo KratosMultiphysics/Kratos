@@ -1,5 +1,3 @@
-#pragma once
-
 #include "custom_processes/compute_volume_process.h"
 
 
@@ -21,8 +19,6 @@ void ComputeVolumeProcess::Execute()
     for (auto& node : rNodes){
         node.SetValue(VOLUME, 0.0);
         node.SetValue(BOUNDARY_NORMAL_AREA, ZeroVector(domain_size));
-        node.SetValue(INTEGRATION_CORRECTION_VARIABLE, ZeroVector(domain_size));
-        node.SetValue(INTEGRATION_CORRECTION_VARIABLE_OLD, ZeroVector(domain_size));
     }
 
     for (auto& r_geom : rGeoms){
