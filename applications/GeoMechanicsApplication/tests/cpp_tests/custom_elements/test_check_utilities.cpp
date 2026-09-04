@@ -12,6 +12,7 @@
 //
 
 #include "custom_utilities/check_utilities.hpp"
+#include "custom_utilities/ublas_utilities.h"
 #include "geo_mechanics_application_variables.h"
 #include "includes/checks.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
@@ -300,4 +301,59 @@ KRATOS_TEST_CASE_IN_SUITE(CheckUtilities_CheckAvailabilityAndSpecified, KratosGe
     properties.SetValue(CONSTITUTIVE_LAW, std::make_shared<StubConstitutiveLaw>());
     EXPECT_NO_THROW(check_properties.CheckAvailabilityAndSpecified(CONSTITUTIVE_LAW));
 }
+
+KRATOS_TEST_CASE_IN_SUITE(CheckValuesAreAscending_ValidNonDecreasingSequence, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    const auto values = UblasUtilities::CreateVector({1.0, 2.5, 2.5, 5.0, 10.0, 10.0, 15.5});
+
+    // Act & Assert - should not throw when AllowEqual=true
+    EXPECT_NO_THROW(CheckUtilities::CheckValuesAreAscending(values, "test_values", true));
+}
+
+KRATOS_TEST_CASE_IN_SUITE(CheckValuesAreAscending_InvalidSequenceWithDuplicatesWhenNotAllowed,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    const auto values = UblasUtilities::CreateVector({1.0, 2.5, 2.5, 5.0, 10.0});
+
+    // Act & Assert - should throw when AllowEqual=false and there are duplicates
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(CheckUtilities::CheckValuesAreAscending(values, "test_values", false), "Invalid sequence in 'test_values': values must be strictly increasing. Found 2.5 at index 3, which is not greater than the previous value 2.5 at index 2.");
+}
+
+KRATOS_TEST_CASE_IN_SUITE(CheckValuesAreAscending_InvalidSequenceDecreasing, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    const auto values = UblasUtilities::CreateVector({1.0, 5.0, 3.0, 10.0});
+
+    // Act & Assert when duplicates are not allowed
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(CheckUtilities::CheckValuesAreAscending(values, "test_values", false), "Invalid sequence in 'test_values': values must be strictly increasing. Found 3 at index 3, which is not greater than the previous value 5 at index 2.");
+
+    // Act & Assert when duplicates are allowed
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(CheckUtilities::CheckValuesAreAscending(values, "test_values", true), "Invalid sequence in 'test_values': values must be non-decreasing (duplicates allowed). Found 3 at index 3, which is less than the previous value 5 at index 2.");
+}
+
+KRATOS_TEST_CASE_IN_SUITE(CheckValuesAreAscending_SingleElement, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    const auto values = UblasUtilities::CreateVector({5.0});
+
+    // Act & Assert - single element should always pass
+    EXPECT_NO_THROW(CheckUtilities::CheckValuesAreAscending(values, "test_values", false));
+    EXPECT_NO_THROW(CheckUtilities::CheckValuesAreAscending(values, "test_values", true));
+}
+
+KRATOS_TEST_CASE_IN_SUITE(CheckValuesAreAscending_AscendingSequence, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange - create a large ascending sequence
+    Vector values(1000);
+    for (int i = 0; i < 1000; ++i) {
+        values[i] = static_cast<double>(i) * 0.1 - 50.0;
+    }
+
+    // Act & Assert
+    EXPECT_NO_THROW(CheckUtilities::CheckValuesAreAscending(values, "test_values", false));
+    EXPECT_NO_THROW(CheckUtilities::CheckValuesAreAscending(values, "test_values", true));
+}
+
 } // namespace Kratos::Testing

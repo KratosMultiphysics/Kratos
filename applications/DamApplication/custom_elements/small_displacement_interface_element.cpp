@@ -167,7 +167,6 @@ void SmallDisplacementInterfaceElement<TDim,TNumNodes>::CalculateMassMatrix(Matr
     //Defining necessary variables
     double IntegrationCoefficient;
     const double Density = Prop[DENSITY];
-    BoundedMatrix<double,TDim, TNumNodes*TDim> Nut = ZeroMatrix(TDim, TNumNodes*TDim);
     array_1d<double,TNumNodes*TDim> DisplacementVector;
     PoroElementUtilities::GetNodalVariableVector(DisplacementVector,Geom,DISPLACEMENT);
     BoundedMatrix<double,TDim, TDim> RotationMatrix;

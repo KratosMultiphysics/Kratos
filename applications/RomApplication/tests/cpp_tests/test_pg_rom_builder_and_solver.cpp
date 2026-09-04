@@ -153,7 +153,7 @@ ModelPart& FillModel(Model& model)
 
         left_basis(0,0) = phi_1(r_node);
         left_basis(0,1) = phi_2(r_node);
-        left_basis(0,2) = phi_3(r_node);
+        left_basis(0,2) = phi_3(0, r_node.Id() - 1);
         r_node.SetValue(ROM_LEFT_BASIS, left_basis);
     }
 

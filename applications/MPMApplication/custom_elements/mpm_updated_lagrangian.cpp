@@ -994,7 +994,6 @@ void MPMUpdatedLagrangian::UpdateGaussPoint( GeneralVariables & rVariables, cons
 
     array_1d<double,3> delta_xg = ZeroVector(3);
     array_1d<double,3> MP_acceleration = ZeroVector(3);
-    array_1d<double,3> MP_velocity = ZeroVector(3);
     const double delta_time = rCurrentProcessInfo[DELTA_TIME];
 
     const Matrix& r_N = GetGeometry().ShapeFunctionsValues();

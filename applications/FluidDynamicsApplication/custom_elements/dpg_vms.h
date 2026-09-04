@@ -574,7 +574,6 @@ public:
 //         Vector enrichment_terms_horizontal = ZeroVector(LocalSize);
 //         double enrichment_diagonal = 0.0;
 //         double enriched_rhs = 0.0;
-        array_1d<double,3> bf = ZeroVector(3);
 
         //double positive_volume = 0.0;
         //double negative_volume = 0.0;
