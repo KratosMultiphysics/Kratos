@@ -147,15 +147,15 @@ class KratosGeoMechanicsMuskatTests(KratosGeoUnittest.TestCase):
             output_data,
             y_coord_by_id_for_right_boundary_nodes.keys(),
         )
-        fluxes = [
-            math.sqrt(flux[0] * flux[0] + flux[1] * flux[1] + flux[2] * flux[2]) * 86400
+        flux_length = [
+            math.sqrt(flux[0] ** 2 + flux[1] ** 2 + flux[2]**2) * 86400
             for flux in fluxes
         ]
         sorted_depth, sorted_data = zip(
             *sorted(
                 zip(
                     y_coord_by_id_for_right_boundary_nodes.values(),
-                    fluxes,
+                    flux_length,
                 )
             )
         )
