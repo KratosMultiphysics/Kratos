@@ -33,6 +33,7 @@ void SmallDisplacementInterfaceElement<TDim,TNumNodes>::Initialize(const Process
 
     const PropertiesType& Prop = this->GetProperties();
     const GeometryType& Geom = this->GetGeometry();
+    GeometryType::Pointer p_reference_geometry = this->CreateReferenceGeometry(Geom);
     const unsigned int NumGPoints = Geom.IntegrationPointsNumber( mThisIntegrationMethod );
 
     if ( mConstitutiveLawVector.size() != NumGPoints )
@@ -43,7 +44,8 @@ void SmallDisplacementInterfaceElement<TDim,TNumNodes>::Initialize(const Process
         for ( unsigned int i = 0; i < mConstitutiveLawVector.size(); i++ )
         {
             mConstitutiveLawVector[i] = Prop[CONSTITUTIVE_LAW]->Clone();
-            mConstitutiveLawVector[i]->InitializeMaterial( Prop, Geom,row( Geom.ShapeFunctionsValues( mThisIntegrationMethod ), i ) );
+            mConstitutiveLawVector[i]->InitializeMaterial(
+                Prop, *p_reference_geometry, row(Geom.ShapeFunctionsValues(mThisIntegrationMethod), i));
         }
     }
     else
@@ -168,7 +170,7 @@ void SmallDisplacementInterfaceElement<TDim,TNumNodes>::CalculateMassMatrix(Matr
     array_1d<double,TNumNodes*TDim> DisplacementVector;
     PoroElementUtilities::GetNodalVariableVector(DisplacementVector,Geom,DISPLACEMENT);
     BoundedMatrix<double,TDim, TDim> RotationMatrix;
-    this->CalculateRotationMatrix(RotationMatrix,Geom);
+    this->CalculateCurrentRotationMatrix(RotationMatrix,Geom);
     BoundedMatrix<double,TDim, TNumNodes*TDim> Nu = ZeroMatrix(TDim, TNumNodes*TDim);
     array_1d<double,TDim> LocalRelDispVector;
     array_1d<double,TDim> RelDispVector;
@@ -236,11 +238,12 @@ void SmallDisplacementInterfaceElement<TDim,TNumNodes>::FinalizeSolutionStep(con
     //Defining necessary variables
     const PropertiesType& Prop = this->GetProperties();
     const GeometryType& Geom = this->GetGeometry();
+    GeometryType::Pointer p_reference_geometry = this->CreateReferenceGeometry(Geom);
     const Matrix& NContainer = Geom.ShapeFunctionsValues( mThisIntegrationMethod );
     array_1d<double,TNumNodes*TDim> DisplacementVector;
     PoroElementUtilities::GetNodalVariableVector(DisplacementVector,Geom,DISPLACEMENT);
     BoundedMatrix<double,TDim, TDim> RotationMatrix;
-    this->CalculateRotationMatrix(RotationMatrix,Geom);
+    this->CalculateReferenceRotationMatrix(RotationMatrix,Geom);
     BoundedMatrix<double,TDim, TNumNodes*TDim> Nu = ZeroMatrix(TDim, TNumNodes*TDim);
     array_1d<double,TDim> RelDispVector;
     const double& InitialJointWidth = Prop[INITIAL_JOINT_WIDTH];
@@ -254,7 +257,7 @@ void SmallDisplacementInterfaceElement<TDim,TNumNodes>::FinalizeSolutionStep(con
     Matrix GradNpT(TNumNodes,TDim);
     Matrix F = identity_matrix<double>(TDim);
     double detF = 1.0;
-    ConstitutiveLaw::Parameters ConstitutiveParameters(Geom, Prop, rCurrentProcessInfo);
+    ConstitutiveLaw::Parameters ConstitutiveParameters(*p_reference_geometry, Prop, rCurrentProcessInfo);
     ConstitutiveParameters.SetConstitutiveMatrix(ConstitutiveMatrix);
     ConstitutiveParameters.SetStressVector(StressVector);
     ConstitutiveParameters.SetStrainVector(StrainVector);
@@ -296,7 +299,7 @@ template< >
 void SmallDisplacementInterfaceElement<2,4>::ExtrapolateGPJointWidth (const std::vector<double>& JointWidthContainer)
 {
     auto& rGeom = this->GetGeometry();
-    const double& Area = rGeom.Area();
+    const double Area = this->CreateReferenceGeometry(rGeom)->Area();
 
     array_1d<double,4> NodalJointWidth;
     NodalJointWidth[0] = JointWidthContainer[0]*Area;
@@ -317,7 +320,7 @@ template< >
 void SmallDisplacementInterfaceElement<3,6>::ExtrapolateGPJointWidth (const std::vector<double>& JointWidthContainer)
 {
     auto& rGeom = this->GetGeometry();
-    const double& Area = rGeom.Area();
+    const double Area = this->CreateReferenceGeometry(rGeom)->Area();
 
     array_1d<double,6> NodalJointWidth;
     NodalJointWidth[0] = JointWidthContainer[0]*Area;
@@ -340,7 +343,7 @@ template< >
 void SmallDisplacementInterfaceElement<3,8>::ExtrapolateGPJointWidth (const std::vector<double>& JointWidthContainer)
 {
     auto& rGeom = this->GetGeometry();
-    const double& Area = rGeom.Area();
+    const double Area = this->CreateReferenceGeometry(rGeom)->Area();
 
     array_1d<double,8> NodalJointWidth;
     NodalJointWidth[0] = JointWidthContainer[0]*Area;
@@ -580,6 +583,7 @@ void SmallDisplacementInterfaceElement<TDim,TNumNodes>::CalculateOnIntegrationPo
     {
         //Variables computed on Lobatto points
         const GeometryType& Geom = this->GetGeometry();
+        GeometryType::Pointer p_reference_geometry = this->CreateReferenceGeometry(Geom);
         std::vector<array_1d<double,3>> GPValues(Geom.IntegrationPointsNumber( mThisIntegrationMethod ));
 
             if(rVariable == CONTACT_STRESS_VECTOR)
@@ -590,7 +594,7 @@ void SmallDisplacementInterfaceElement<TDim,TNumNodes>::CalculateOnIntegrationPo
                 array_1d<double,TNumNodes*TDim> DisplacementVector;
                 PoroElementUtilities::GetNodalVariableVector(DisplacementVector,Geom,DISPLACEMENT);
                 BoundedMatrix<double,TDim, TDim> RotationMatrix;
-                this->CalculateRotationMatrix(RotationMatrix,Geom);
+                this->CalculateReferenceRotationMatrix(RotationMatrix,Geom);
                 BoundedMatrix<double,TDim, TNumNodes*TDim> Nu = ZeroMatrix(TDim, TNumNodes*TDim);
                 array_1d<double,TDim> RelDispVector;
                 const double& InitialJointWidth = Prop[INITIAL_JOINT_WIDTH];
@@ -606,7 +610,8 @@ void SmallDisplacementInterfaceElement<TDim,TNumNodes>::CalculateOnIntegrationPo
                 Matrix GradNpT(TNumNodes,TDim);
                 Matrix F = identity_matrix<double>(TDim);
                 double detF = 1.0;
-                ConstitutiveLaw::Parameters ConstitutiveParameters(Geom,Prop,rCurrentProcessInfo);
+                ConstitutiveLaw::Parameters ConstitutiveParameters(
+                    *p_reference_geometry, Prop, rCurrentProcessInfo);
                 ConstitutiveParameters.Set(ConstitutiveLaw::COMPUTE_STRESS);
                 ConstitutiveParameters.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
                 ConstitutiveParameters.SetConstitutiveMatrix(ConstitutiveMatrix);
@@ -648,7 +653,7 @@ void SmallDisplacementInterfaceElement<TDim,TNumNodes>::CalculateOnIntegrationPo
                 array_1d<double,TNumNodes*TDim> DisplacementVector;
                 PoroElementUtilities::GetNodalVariableVector(DisplacementVector,Geom,DISPLACEMENT);
                 BoundedMatrix<double,TDim, TDim> RotationMatrix;
-                this->CalculateRotationMatrix(RotationMatrix,Geom);
+                this->CalculateReferenceRotationMatrix(RotationMatrix,Geom);
                 BoundedMatrix<double,TDim, TNumNodes*TDim> Nu = ZeroMatrix(TDim, TNumNodes*TDim);
                 array_1d<double,TDim> RelDispVector;
                 const double& InitialJointWidth = Prop[INITIAL_JOINT_WIDTH];
@@ -663,7 +668,8 @@ void SmallDisplacementInterfaceElement<TDim,TNumNodes>::CalculateOnIntegrationPo
                 Matrix GradNpT(TNumNodes,TDim);
                 Matrix F = identity_matrix<double>(TDim);
                 double detF = 1.0;
-                ConstitutiveLaw::Parameters ConstitutiveParameters(Geom,Prop,rCurrentProcessInfo);
+                ConstitutiveLaw::Parameters ConstitutiveParameters(
+                    *p_reference_geometry, Prop, rCurrentProcessInfo);
                 ConstitutiveParameters.Set(ConstitutiveLaw::COMPUTE_STRESS);
                 ConstitutiveParameters.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
                 ConstitutiveParameters.SetConstitutiveMatrix(ConstitutiveMatrix);
@@ -702,7 +708,7 @@ void SmallDisplacementInterfaceElement<TDim,TNumNodes>::CalculateOnIntegrationPo
                 array_1d<double,TNumNodes*TDim> DisplacementVector;
                 PoroElementUtilities::GetNodalVariableVector(DisplacementVector,Geom,DISPLACEMENT);
                 BoundedMatrix<double,TDim, TDim> RotationMatrix;
-                this->CalculateRotationMatrix(RotationMatrix,Geom);
+                this->CalculateReferenceRotationMatrix(RotationMatrix,Geom);
                 BoundedMatrix<double,TDim, TNumNodes*TDim> Nu = ZeroMatrix(TDim, TNumNodes*TDim);
                 array_1d<double,TDim> LocalRelDispVector;
                 array_1d<double,TDim> RelDispVector;
@@ -753,7 +759,7 @@ void SmallDisplacementInterfaceElement<2,4>::CalculateInitialGap(const GeometryT
     mInitialGap.resize(2);
 
     array_1d<double,3> Vx;
-    noalias(Vx) = Geom.GetPoint( 3 ) - Geom.GetPoint( 0 );
+    noalias(Vx) = Geom[3].GetInitialPosition().Coordinates() - Geom[0].GetInitialPosition().Coordinates();
     mInitialGap[0] = norm_2(Vx);
     if (mInitialGap[0] <= (InitialJointWidth+Tolerance)) {
         mInitialGap[0] = InitialJointWidth;
@@ -761,7 +767,7 @@ void SmallDisplacementInterfaceElement<2,4>::CalculateInitialGap(const GeometryT
         KRATOS_THROW_ERROR( std::invalid_argument, "The value of INITIAL_JOINT_WIDTH is smaller than the geometrical width.", "" )
     }
 
-    noalias(Vx) = Geom.GetPoint( 2 ) - Geom.GetPoint( 1 );
+    noalias(Vx) = Geom[2].GetInitialPosition().Coordinates() - Geom[1].GetInitialPosition().Coordinates();
     mInitialGap[1] = norm_2(Vx);
     if (mInitialGap[1] <= (InitialJointWidth+Tolerance)) {
         mInitialGap[1] = InitialJointWidth;
@@ -780,7 +786,7 @@ void SmallDisplacementInterfaceElement<3,6>::CalculateInitialGap(const GeometryT
     mInitialGap.resize(3);
 
     array_1d<double,3> Vx;
-    noalias(Vx) = Geom.GetPoint( 3 ) - Geom.GetPoint( 0 );
+    noalias(Vx) = Geom[3].GetInitialPosition().Coordinates() - Geom[0].GetInitialPosition().Coordinates();
     mInitialGap[0] = norm_2(Vx);
     if (mInitialGap[0] <= (InitialJointWidth+Tolerance)) {
         mInitialGap[0] = InitialJointWidth;
@@ -788,7 +794,7 @@ void SmallDisplacementInterfaceElement<3,6>::CalculateInitialGap(const GeometryT
         KRATOS_THROW_ERROR( std::invalid_argument, "The value of INITIAL_JOINT_WIDTH is smaller than the geometrical width.", "" )
     }
 
-    noalias(Vx) = Geom.GetPoint( 4 ) - Geom.GetPoint( 1 );
+    noalias(Vx) = Geom[4].GetInitialPosition().Coordinates() - Geom[1].GetInitialPosition().Coordinates();
     mInitialGap[1] = norm_2(Vx);
     if (mInitialGap[1] <= (InitialJointWidth+Tolerance)) {
         mInitialGap[1] = InitialJointWidth;
@@ -796,7 +802,7 @@ void SmallDisplacementInterfaceElement<3,6>::CalculateInitialGap(const GeometryT
         KRATOS_THROW_ERROR( std::invalid_argument, "The value of INITIAL_JOINT_WIDTH is smaller than the geometrical width.", "" )
     }
 
-    noalias(Vx) = Geom.GetPoint( 5 ) - Geom.GetPoint( 2 );
+    noalias(Vx) = Geom[5].GetInitialPosition().Coordinates() - Geom[2].GetInitialPosition().Coordinates();
     mInitialGap[2] = norm_2(Vx);
     if (mInitialGap[2] <= (InitialJointWidth+Tolerance)) {
         mInitialGap[2] = InitialJointWidth;
@@ -815,7 +821,7 @@ void SmallDisplacementInterfaceElement<3,8>::CalculateInitialGap(const GeometryT
     mInitialGap.resize(4);
 
     array_1d<double,3> Vx;
-    noalias(Vx) = Geom.GetPoint( 4 ) - Geom.GetPoint( 0 );
+    noalias(Vx) = Geom[4].GetInitialPosition().Coordinates() - Geom[0].GetInitialPosition().Coordinates();
     mInitialGap[0] = norm_2(Vx);
     if (mInitialGap[0] <= (InitialJointWidth+Tolerance)) {
         mInitialGap[0] = InitialJointWidth;
@@ -823,7 +829,7 @@ void SmallDisplacementInterfaceElement<3,8>::CalculateInitialGap(const GeometryT
         KRATOS_THROW_ERROR( std::invalid_argument, "The value of INITIAL_JOINT_WIDTH is smaller than the geometrical width.", "" )
     }
 
-    noalias(Vx) = Geom.GetPoint( 5 ) - Geom.GetPoint( 1 );
+    noalias(Vx) = Geom[5].GetInitialPosition().Coordinates() - Geom[1].GetInitialPosition().Coordinates();
     mInitialGap[1] = norm_2(Vx);
     if (mInitialGap[1] <= (InitialJointWidth+Tolerance)) {
         mInitialGap[1] = InitialJointWidth;
@@ -831,7 +837,7 @@ void SmallDisplacementInterfaceElement<3,8>::CalculateInitialGap(const GeometryT
         KRATOS_THROW_ERROR( std::invalid_argument, "The value of INITIAL_JOINT_WIDTH is smaller than the geometrical width.", "" )
     }
 
-    noalias(Vx) = Geom.GetPoint( 6 ) - Geom.GetPoint( 2 );
+    noalias(Vx) = Geom[6].GetInitialPosition().Coordinates() - Geom[2].GetInitialPosition().Coordinates();
     mInitialGap[2] = norm_2(Vx);
     if (mInitialGap[2] <= (InitialJointWidth+Tolerance)) {
         mInitialGap[2] = InitialJointWidth;
@@ -839,7 +845,7 @@ void SmallDisplacementInterfaceElement<3,8>::CalculateInitialGap(const GeometryT
         KRATOS_THROW_ERROR( std::invalid_argument, "The value of INITIAL_JOINT_WIDTH is smaller than the geometrical width.", "" )
     }
 
-    noalias(Vx) = Geom.GetPoint( 7 ) - Geom.GetPoint( 3 );
+    noalias(Vx) = Geom[7].GetInitialPosition().Coordinates() - Geom[3].GetInitialPosition().Coordinates();
     mInitialGap[3] = norm_2(Vx);
     if (mInitialGap[3] <= (InitialJointWidth+Tolerance)) {
         mInitialGap[3] = InitialJointWidth;
@@ -865,18 +871,18 @@ void SmallDisplacementInterfaceElement<TDim,TNumNodes>::CalculateStiffnessMatrix
     //Previous definitions
     const PropertiesType& Prop = this->GetProperties();
     const GeometryType& Geom = this->GetGeometry();
+    GeometryType::Pointer p_reference_geometry = this->CreateReferenceGeometry(Geom);
     const GeometryType::IntegrationPointsArrayType& integration_points = Geom.IntegrationPoints( mThisIntegrationMethod );
     const unsigned int NumGPoints = integration_points.size();
 
     //Containers of variables at all integration points
     const Matrix& NContainer = Geom.ShapeFunctionsValues( mThisIntegrationMethod );
-    GeometryType::JacobiansType JContainer(NumGPoints);
-    Geom.Jacobian( JContainer, mThisIntegrationMethod );
     Vector detJContainer(NumGPoints);
-    Geom.DeterminantOfJacobian(detJContainer,mThisIntegrationMethod);
+    this->CalculateReferenceJacobianDeterminants(detJContainer, Geom);
 
     //Constitutive Law parameters
-    ConstitutiveLaw::Parameters ConstitutiveParameters(Geom, Prop, CurrentProcessInfo);
+    ConstitutiveLaw::Parameters ConstitutiveParameters(
+        *p_reference_geometry, Prop, CurrentProcessInfo);
     ConstitutiveParameters.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
 
     //Element variables
@@ -922,18 +928,18 @@ void SmallDisplacementInterfaceElement<TDim,TNumNodes>::CalculateAll( MatrixType
     //Previous definitions
     const PropertiesType& Prop = this->GetProperties();
     const GeometryType& Geom = this->GetGeometry();
+    GeometryType::Pointer p_reference_geometry = this->CreateReferenceGeometry(Geom);
     const GeometryType::IntegrationPointsArrayType& integration_points = Geom.IntegrationPoints( mThisIntegrationMethod );
     const unsigned int NumGPoints = integration_points.size();
 
     //Containers of variables at all integration points
     const Matrix& NContainer = Geom.ShapeFunctionsValues( mThisIntegrationMethod );
-    GeometryType::JacobiansType JContainer(NumGPoints);
-    Geom.Jacobian( JContainer, mThisIntegrationMethod );
     Vector detJContainer(NumGPoints);
-    Geom.DeterminantOfJacobian(detJContainer,mThisIntegrationMethod);
+    this->CalculateReferenceJacobianDeterminants(detJContainer, Geom);
 
     //Constitutive Law parameters
-    ConstitutiveLaw::Parameters ConstitutiveParameters(Geom, Prop, rCurrentProcessInfo);
+    ConstitutiveLaw::Parameters ConstitutiveParameters(
+        *p_reference_geometry, Prop, rCurrentProcessInfo);
     ConstitutiveParameters.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
     ConstitutiveParameters.Set(ConstitutiveLaw::COMPUTE_STRESS);
     ConstitutiveParameters.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
@@ -988,18 +994,18 @@ void SmallDisplacementInterfaceElement<TDim,TNumNodes>::CalculateRHS(VectorType&
     //Previous definitions
     const PropertiesType& Prop = this->GetProperties();
     const GeometryType& Geom = this->GetGeometry();
+    GeometryType::Pointer p_reference_geometry = this->CreateReferenceGeometry(Geom);
     const GeometryType::IntegrationPointsArrayType& integration_points = Geom.IntegrationPoints( mThisIntegrationMethod );
     const unsigned int NumGPoints = integration_points.size();
 
     //Containers of variables at all integration points
     const Matrix& NContainer = Geom.ShapeFunctionsValues( mThisIntegrationMethod );
-    GeometryType::JacobiansType JContainer(NumGPoints);
-    Geom.Jacobian( JContainer, mThisIntegrationMethod );
     Vector detJContainer(NumGPoints);
-    Geom.DeterminantOfJacobian(detJContainer,mThisIntegrationMethod);
+    this->CalculateReferenceJacobianDeterminants(detJContainer, Geom);
 
     //Constitutive Law parameters
-    ConstitutiveLaw::Parameters ConstitutiveParameters(Geom, Prop, rCurrentProcessInfo);
+    ConstitutiveLaw::Parameters ConstitutiveParameters(
+        *p_reference_geometry, Prop, rCurrentProcessInfo);
     ConstitutiveParameters.Set(ConstitutiveLaw::COMPUTE_STRESS);
     ConstitutiveParameters.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
 
@@ -1056,7 +1062,7 @@ void SmallDisplacementInterfaceElement<TDim,TNumNodes>::InitializeElementVariabl
     PoroElementUtilities::GetNodalVariableVector(rVariables.VolumeAcceleration,Geom,VOLUME_ACCELERATION);
 
     //General Variables
-    this->CalculateRotationMatrix(rVariables.RotationMatrix,Geom);
+    this->CalculateReferenceRotationMatrix(rVariables.RotationMatrix,Geom);
     InterfaceElementUtilities::CalculateVoigtVector(rVariables.VoigtVector);
 
     //Variables computed at each GP
@@ -1083,146 +1089,123 @@ void SmallDisplacementInterfaceElement<TDim,TNumNodes>::InitializeElementVariabl
 
 //----------------------------------------------------------------------------------------
 
-template<>
-void SmallDisplacementInterfaceElement<2,4>::CalculateRotationMatrix(BoundedMatrix<double,2,2>& rRotationMatrix, const GeometryType& Geom)
+template< unsigned int TDim, unsigned int TNumNodes >
+void SmallDisplacementInterfaceElement<TDim,TNumNodes>::CalculateReferenceJacobianDeterminants(
+    Vector& rDetJContainer,
+    const GeometryType& Geom)
 {
-    KRATOS_TRY
+    const unsigned int number_of_integration_points = Geom.IntegrationPointsNumber(mThisIntegrationMethod);
+    GeometryType::JacobiansType reference_jacobians(number_of_integration_points);
+    Matrix delta_position(TNumNodes, TDim);
 
-    //Define mid-plane points for quadrilateral_interface_2d_4
-    array_1d<double, 3> pmid0;
-    array_1d<double, 3> pmid1;
-    noalias(pmid0) = 0.5 * (Geom.GetPoint( 0 ) + Geom.GetPoint( 3 ));
-    noalias(pmid1) = 0.5 * (Geom.GetPoint( 1 ) + Geom.GetPoint( 2 ));
+    for (unsigned int i = 0; i < TNumNodes; ++i) {
+        const auto& r_current_position = Geom[i].Coordinates();
+        const auto& r_initial_position = Geom[i].GetInitialPosition();
+        for (unsigned int j = 0; j < TDim; ++j) {
+            delta_position(i,j) = r_current_position[j] - r_initial_position[j];
+        }
+    }
 
-    //Unitary vector in local x direction
-    array_1d<double, 3> Vx;
-    noalias(Vx) = pmid1 - pmid0;
-    double inv_norm_x = 1.0/norm_2(Vx);
-    Vx[0] *= inv_norm_x;
-    Vx[1] *= inv_norm_x;
-
-    //Rotation Matrix
-    // We need to determine the unitary vector in local y direction pointing towards the TOP face of the joint
-    rRotationMatrix(0,0) = Vx[0];
-    rRotationMatrix(0,1) = Vx[1];
-
-    // NOTE. Assuming that the nodes in quadrilateral_interface_2d_4 are
-    // ordered counter-clockwise (GiD does so now), the rotation matrix is build like follows:
-    rRotationMatrix(1,0) = -Vx[1];
-    rRotationMatrix(1,1) = Vx[0];
-    // NOTE. Assuming that the nodes in quadrilateral_interface_2d_4 are
-    // ordered clockwise, the rotation matrix is build like follows:
-    // rRotationMatrix(1,0) = Vx[1];
-    // rRotationMatrix(1,1) = -Vx[0];
-
-    // NOTE. In zero-thickness quadrilateral_interface_2d_4 elements we are not able to know
-    // whether the nodes are ordered clockwise or counter-clockwise.
-
-    KRATOS_CATCH( "" )
+    Geom.Jacobian(reference_jacobians, mThisIntegrationMethod, delta_position);
+    if (rDetJContainer.size() != number_of_integration_points) {
+        rDetJContainer.resize(number_of_integration_points, false);
+    }
+    for (unsigned int i = 0; i < number_of_integration_points; ++i) {
+        rDetJContainer[i] = MathUtils<double>::GeneralizedDet(reference_jacobians[i]);
+    }
 }
 
 //----------------------------------------------------------------------------------------
 
-template<>
-void SmallDisplacementInterfaceElement<3,6>::CalculateRotationMatrix(BoundedMatrix<double,3,3>& rRotationMatrix, const GeometryType& Geom)
+template< unsigned int TDim, unsigned int TNumNodes >
+typename SmallDisplacementInterfaceElement<TDim,TNumNodes>::GeometryType::Pointer
+SmallDisplacementInterfaceElement<TDim,TNumNodes>::CreateReferenceGeometry(
+    const GeometryType& Geom) const
 {
-    KRATOS_TRY
-
-    //Define mid-plane points for prism_interface_3d_6
-    array_1d<double, 3> pmid0;
-    array_1d<double, 3> pmid1;
-    array_1d<double, 3> pmid2;
-    noalias(pmid0) = 0.5 * (Geom.GetPoint( 0 ) + Geom.GetPoint( 3 ));
-    noalias(pmid1) = 0.5 * (Geom.GetPoint( 1 ) + Geom.GetPoint( 4 ));
-    noalias(pmid2) = 0.5 * (Geom.GetPoint( 2 ) + Geom.GetPoint( 5 ));
-
-    //Unitary vector in local x direction
-    array_1d<double, 3> Vx;
-    noalias(Vx) = pmid1 - pmid0;
-    double inv_norm_x = 1.0/norm_2(Vx);
-    Vx[0] *= inv_norm_x;
-    Vx[1] *= inv_norm_x;
-    Vx[2] *= inv_norm_x;
-
-    //Unitary vector in local z direction
-    array_1d<double, 3> Vy;
-    noalias(Vy) = pmid2 - pmid0;
-    array_1d<double, 3> Vz;
-    MathUtils<double>::CrossProduct(Vz, Vx, Vy);
-    double inv_norm_z = 1.0/norm_2(Vz);
-    Vz[0] *= inv_norm_z;
-    Vz[1] *= inv_norm_z;
-    Vz[2] *= inv_norm_z;
-
-    //Unitary vector in local y direction
-    MathUtils<double>::CrossProduct( Vy, Vz, Vx);
-
-    //Rotation Matrix
-    rRotationMatrix(0,0) = Vx[0];
-    rRotationMatrix(0,1) = Vx[1];
-    rRotationMatrix(0,2) = Vx[2];
-
-    rRotationMatrix(1,0) = Vy[0];
-    rRotationMatrix(1,1) = Vy[1];
-    rRotationMatrix(1,2) = Vy[2];
-
-    rRotationMatrix(2,0) = Vz[0];
-    rRotationMatrix(2,1) = Vz[1];
-    rRotationMatrix(2,2) = Vz[2];
-
-    KRATOS_CATCH( "" )
+    // Interface laws use their parameter geometry to rotate nodal initial
+    // stresses. Give them a side-effect-free reference-configuration view.
+    typename GeometryType::PointsArrayType reference_points;
+    reference_points.reserve(TNumNodes);
+    for (unsigned int i = 0; i < TNumNodes; ++i) {
+        auto p_reference_node = Kratos::make_intrusive<typename GeometryType::PointType>(Geom[i]);
+        p_reference_node->Coordinates() = Geom[i].GetInitialPosition().Coordinates();
+        reference_points.push_back(p_reference_node);
+    }
+    return Geom.Create(reference_points);
 }
 
 //----------------------------------------------------------------------------------------
 
-template<>
-void SmallDisplacementInterfaceElement<3,8>::CalculateRotationMatrix(BoundedMatrix<double,3,3>& rRotationMatrix, const GeometryType& Geom)
+namespace
 {
-    KRATOS_TRY
+template<unsigned int TDim, unsigned int TNumNodes, class TCoordinateGetter>
+void CalculateInterfaceRotationMatrix(
+    BoundedMatrix<double,TDim,TDim>& rRotationMatrix,
+    TCoordinateGetter CoordinateGetter)
+{
+    array_1d<double, 3> mid_point_0;
+    array_1d<double, 3> mid_point_1;
+    array_1d<double, 3> mid_point_2;
 
-    //Define mid-plane points for hexahedra_interface_3d_8
-    array_1d<double, 3> pmid0;
-    array_1d<double, 3> pmid1;
-    array_1d<double, 3> pmid2;
-    noalias(pmid0) = 0.5 * (Geom.GetPoint( 0 ) + Geom.GetPoint( 4 ));
-    noalias(pmid1) = 0.5 * (Geom.GetPoint( 1 ) + Geom.GetPoint( 5 ));
-    noalias(pmid2) = 0.5 * (Geom.GetPoint( 2 ) + Geom.GetPoint( 6 ));
+    if constexpr (TDim == 2) {
+        noalias(mid_point_0) = 0.5 * (CoordinateGetter(0) + CoordinateGetter(3));
+        noalias(mid_point_1) = 0.5 * (CoordinateGetter(1) + CoordinateGetter(2));
+    } else {
+        constexpr unsigned int opposite_face_offset = TNumNodes / 2;
+        noalias(mid_point_0) = 0.5 * (CoordinateGetter(0) + CoordinateGetter(opposite_face_offset));
+        noalias(mid_point_1) = 0.5 * (CoordinateGetter(1) + CoordinateGetter(1 + opposite_face_offset));
+        noalias(mid_point_2) = 0.5 * (CoordinateGetter(2) + CoordinateGetter(2 + opposite_face_offset));
+    }
 
-    //Unitary vector in local x direction
-    array_1d<double, 3> Vx;
-    noalias(Vx) = pmid1 - pmid0;
-    double inv_norm_x = 1.0/norm_2(Vx);
-    Vx[0] *= inv_norm_x;
-    Vx[1] *= inv_norm_x;
-    Vx[2] *= inv_norm_x;
+    array_1d<double, 3> local_x = mid_point_1 - mid_point_0;
+    local_x /= norm_2(local_x);
 
-    //Unitary vector in local z direction
-    array_1d<double, 3> Vy;
-    noalias(Vy) = pmid2 - pmid0;
-    array_1d<double, 3> Vz;
-    MathUtils<double>::CrossProduct(Vz, Vx, Vy);
-    double inv_norm_z = 1.0/norm_2(Vz);
-    Vz[0] *= inv_norm_z;
-    Vz[1] *= inv_norm_z;
-    Vz[2] *= inv_norm_z;
+    if constexpr (TDim == 2) {
+        rRotationMatrix(0,0) = local_x[0];
+        rRotationMatrix(0,1) = local_x[1];
+        rRotationMatrix(1,0) = -local_x[1];
+        rRotationMatrix(1,1) = local_x[0];
+    } else {
+        const array_1d<double, 3> auxiliary_y = mid_point_2 - mid_point_0;
+        array_1d<double, 3> local_z;
+        MathUtils<double>::CrossProduct(local_z, local_x, auxiliary_y);
+        local_z /= norm_2(local_z);
 
-    //Unitary vector in local y direction
-    MathUtils<double>::CrossProduct( Vy, Vz, Vx);
+        array_1d<double, 3> local_y;
+        MathUtils<double>::CrossProduct(local_y, local_z, local_x);
+        for (unsigned int j = 0; j < 3; ++j) {
+            rRotationMatrix(0,j) = local_x[j];
+            rRotationMatrix(1,j) = local_y[j];
+            rRotationMatrix(2,j) = local_z[j];
+        }
+    }
+}
+}
 
-    //Rotation Matrix
-    rRotationMatrix(0,0) = Vx[0];
-    rRotationMatrix(0,1) = Vx[1];
-    rRotationMatrix(0,2) = Vx[2];
+template< unsigned int TDim, unsigned int TNumNodes >
+void SmallDisplacementInterfaceElement<TDim,TNumNodes>::CalculateCurrentRotationMatrix(
+    BoundedMatrix<double,TDim,TDim>& rRotationMatrix,
+    const GeometryType& Geom)
+{
+    CalculateInterfaceRotationMatrix<TDim,TNumNodes>(rRotationMatrix,
+        [&Geom](const unsigned int Index) -> const array_1d<double, 3>& {
+            return Geom[Index].Coordinates();
+        });
+}
 
-    rRotationMatrix(1,0) = Vy[0];
-    rRotationMatrix(1,1) = Vy[1];
-    rRotationMatrix(1,2) = Vy[2];
+//----------------------------------------------------------------------------------------
 
-    rRotationMatrix(2,0) = Vz[0];
-    rRotationMatrix(2,1) = Vz[1];
-    rRotationMatrix(2,2) = Vz[2];
-
-    KRATOS_CATCH( "" )
+template< unsigned int TDim, unsigned int TNumNodes >
+void SmallDisplacementInterfaceElement<TDim,TNumNodes>::CalculateReferenceRotationMatrix(
+    BoundedMatrix<double,TDim,TDim>& rRotationMatrix,
+    const GeometryType& Geom)
+{
+    // This is a small-displacement formulation: using the reference frame avoids
+    // unaccounted displacement derivatives of the interface orientation.
+    CalculateInterfaceRotationMatrix<TDim,TNumNodes>(rRotationMatrix,
+        [&Geom](const unsigned int Index) -> const array_1d<double, 3>& {
+            return Geom[Index].GetInitialPosition().Coordinates();
+        });
 }
 
 //----------------------------------------------------------------------------------------

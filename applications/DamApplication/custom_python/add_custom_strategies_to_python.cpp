@@ -71,8 +71,8 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
     py::class_< DamPSchemeType, typename DamPSchemeType::Pointer, BaseSchemeType >
     (m, "DamPScheme")
     .def(py::init< double, double >());
+
 }
 
 }  // namespace Python.
 } // Namespace Kratos
-
