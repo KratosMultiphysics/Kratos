@@ -110,7 +110,7 @@ std::optional<int> MKLUtilities::ComputeMKLThreadCount(const int NumberOfMKLThre
 {
     // Check first if it is needed to set the number of threads
     if (!CheckThreadNumber(NumberOfMKLThreads)) {
-        int number_of_threads_used;
+        int number_of_threads_used = 0;
         if (NumberOfMKLThreads > 0) {
             number_of_threads_used = NumberOfMKLThreads;
         } else if (static_cast<int>(MKLThreadSetting::Minimal) == NumberOfMKLThreads) {
