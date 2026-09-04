@@ -17,12 +17,11 @@
 #include "includes/ublas_interface.h"
 #include "sph_application_variables.h"
 #include "custom_utilities/custom_kernels/kernel_factory.h"
-#include "linear_solvers/linear_solver.h"
-#include "linear_solvers/skyline_lu_factorization_solver.h"
 
 /**
  * @class ComputeKernelCorrectionUtilities
- * @brief 
+ * @brief This class provides utility functions to compute the kernel correction 
+ * and respective checks for the SPH method
  * @details The methods are static, so it can be called without constructing the class
  */
 
@@ -39,41 +38,24 @@ public:
     static void ComputeWeightedSums(ModelPart& rThisModelPart);
 
     /**
-     * @brief This function computes the integration correction which ensure fisrt-order consistency in the boundaries of the domain.
+     * @brief This function computes the corrections which ensure zeroth and first-order consistency.
      * @details J. Bonet and T.S.L. Lok "Variational and momentum preservation aspects of Smooth Particle Hydrodynamic formulations"
      */
     static void ComputeGradientCorrection(ModelPart& rThisModelPart);
-    
-    /**
-     * @brief This function computes the integration correction which ensure fisrt-order consistency in the boundaries of the domain.
-     * @details J. Bonet and S. Kulasegaram "Correction and stabilization of smooth particle 
-     * hydrodynamics methods with applications  in metal forming simulations"
-     */
-    //static void ComputeIntegrationCorrection(ModelPart& rThisModelPart, Parameters& rThisParameters, unsigned int& iter);
 
     /**
-     * @brief This function applies the kernel correction
+     * @brief This functions applies the gradient and the kernel corrections
      */
     static void ApplyKernelCorrection(Element& IP, double& kernel_target);
     
-    /**
-     * @brief This function applies the gradient and the kernel corrections
-     */
-    static void ApplyKernelGradientCorrection(Element& IP, double& kernel_target, Vector& dkernel_target);
+    static void ApplyKernelGradientCorrection(Element& rIntegrationParticle, double& rKernel, Vector& rKernelGradient);
 
-    static void ApplyKernelGradientCorrectionInverted(Element& JP, double& kernel_target, Vector& dkernel_target);
-
-    /**
-     * @brief This function applies the integration correction
-     */
-    static void ApplyIntegrationCorrection(Element& IP, double& kernel_target, Vector& dkernel_target, bool IsParticleItself);
+    static void ApplyKernelGradientCorrectionInverted(Element& rNeighbouringParticle, double& kernel_target, Vector& dkernel_target);
 
     /**
      * @brief These functions check the effectiveness of the kernel corrections
      */
     static bool VerifyKernelCorrection(ModelPart& rThisModelPart, Parameters& rThisParameters);
-
-    //static bool VerifyIntegrationCorrection(ModelPart& rThisModelPart, Parameters& rThisParameters);
 
 };
 

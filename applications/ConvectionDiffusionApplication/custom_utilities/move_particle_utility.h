@@ -1363,7 +1363,6 @@ namespace Kratos
 		//bool have_water_node;
 
 		array_1d<double,3> vel;
-		array_1d<double,3> vel_without_other_phase_nodes=ZeroVector(3);
 		array_1d<double,3> position;
 		array_1d<double,3> mid_position;
 		array_1d<double,TDim+1> N;
