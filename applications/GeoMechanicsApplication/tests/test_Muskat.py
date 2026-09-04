@@ -45,7 +45,16 @@ class KratosGeoMechanicsMuskatTests(KratosUnittest.TestCase):
                 [result.node_id for result in expected_results],
             )
             for idx, expected_result in enumerate(expected_results):
-                self.assertAlmostEqual(expected_result.value, actual_results[idx], 6)
+                # A relative band rather than `places=6`: the expected values are quoted to
+                # 6 significant digits and are read back from a GiD output file that carries
+                # no more than that, so an absolute 5e-7 tolerance on a value of order 1e4 is
+                # an exact-printed-value comparison that any change of floating point
+                # summation order flips.
+                self.assertAlmostEqual(
+                    expected_result.value,
+                    actual_results[idx],
+                    delta=max(abs(expected_result.value) * 1.0e-5, 1.0e-6),
+                )
 
     def _create_effective_saturation_plot(
         self, expected_results_for_variable, file_path, output_data, simulation
