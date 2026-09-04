@@ -321,10 +321,10 @@ void MonolithicWallCondition<TDim,TNumNodes>::ApplyNeumannCondition(MatrixType &
                 const double W = Weight*Density*Proj;
                 for (unsigned int i = 0; i < TNumNodes; i++)
                 {
-                    double row = i*LocalSize;
+                    unsigned int row = i*LocalSize;
                     for (unsigned int j = 0; j < TNumNodes; j++)
                     {
-                        double col = j*LocalSize;
+                        unsigned int col = j*LocalSize;
                         const array_1d<double,3>& rVel = this->GetGeometry()[j].FastGetSolutionStepValue(VELOCITY);
                         for (unsigned int d = 0; d < TDim; d++)
                         {

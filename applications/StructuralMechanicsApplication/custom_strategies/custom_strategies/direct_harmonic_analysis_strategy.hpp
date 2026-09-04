@@ -279,7 +279,7 @@ public:
 
             const std::size_t system_size = SparseSpaceType::Size1(*p_stiffness_matrix);
 
-            if (static_cast<std::size_t>(mpRealLoadVector->size()) != system_size) {
+            if (static_cast<IndexType>(mpRealLoadVector->size()) != system_size) {
                 SparseSpaceType::Resize(*mpRealLoadVector, system_size);
             }
             SparseSpaceType::Set(*mpRealLoadVector, 0.0);
@@ -616,11 +616,15 @@ private:
         const SparseMatrixType& rB,
         const ComplexType Coeff)
     {
-        for (typename SparseMatrixType::const_iterator1 it1 = rB.begin1(); it1 != rB.end1(); ++it1) {
-            for (typename SparseMatrixType::const_iterator2 it2 = it1.begin(); it2 != it1.end(); ++it2) {
-                const std::size_t I = it2.index1();
-                const std::size_t J = it2.index2();
-                rA(I, J) += Coeff * (*it2);
+        // Iterate the real system matrix through its CSR arrays: valid for both
+        // the uBLAS and the Eigen backend matrix (uBLAS iterator1/iterator2 is
+        // a uBLAS-only concept). The complex target stays uBLAS in every backend.
+        const auto& row_ptr = rB.index1_data();
+        const auto& col_idx = rB.index2_data();
+        const auto& values = rB.value_data();
+        for (std::size_t i = 0; i < rB.size1(); ++i) {
+            for (auto k = row_ptr[i]; k < row_ptr[i + 1]; ++k) {
+                rA(i, col_idx[k]) += Coeff * values[k];
             }
         }
     }
