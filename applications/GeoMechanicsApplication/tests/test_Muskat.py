@@ -4,6 +4,7 @@ import math
 
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import test_helper
+import KratosGeoUnittest
 
 if test_helper.want_test_plots():
     import KratosMultiphysics.GeoMechanicsApplication.geo_plot_utilities as plot_utils
@@ -13,10 +14,12 @@ from dataclasses import dataclass
 from KratosMultiphysics.GeoMechanicsApplication.gid_output_file_reader import (
     GiDOutputFileReader,
 )
-from KratosMultiphysics.GeoMechanicsApplication.unit_conversions import fraction_to_percentage
+from KratosMultiphysics.GeoMechanicsApplication.unit_conversions import (
+    fraction_to_percentage,
+)
 
 
-class KratosGeoMechanicsMuskatTests(KratosUnittest.TestCase):
+class KratosGeoMechanicsMuskatTests(KratosGeoUnittest.TestCase):
     """
     A test suite representing (semi)-Muskat test cases. Instead of a seepage boundary, a fixed head is used on the
     right boundary. For more information on the test case, see the README.md file in the corresponding test folder.
@@ -37,7 +40,9 @@ class KratosGeoMechanicsMuskatTests(KratosUnittest.TestCase):
                 expected_results_for_variable, file_path, output_data, simulation
             )
             self._create_phreatic_line_plot(file_path, output_data, simulation)
-            self._create_fluid_flux_plot(expected_results_for_variable, file_path, output_data, simulation)
+            self._create_fluid_flux_plot(
+                expected_results_for_variable, file_path, output_data, simulation
+            )
 
         for variable_name, expected_results in expected_results_for_variable.items():
             actual_results = GiDOutputFileReader.nodal_values_at_time(
@@ -46,8 +51,13 @@ class KratosGeoMechanicsMuskatTests(KratosUnittest.TestCase):
                 output_data,
                 [result.node_id for result in expected_results],
             )
-            for idx, expected_result in enumerate(expected_results):
-                self.assertAlmostEqual(expected_result.value, actual_results[idx], 6)
+            self.assert_nodal_values_at_time(
+                output_data,
+                variable_name,
+                [result.node_id for result in expected_results],
+                [expected.value for expected in expected_results],
+                1.0,
+            )
 
     def _create_effective_saturation_plot(
         self, expected_results_for_variable, file_path, output_data, simulation
@@ -122,12 +132,12 @@ class KratosGeoMechanicsMuskatTests(KratosUnittest.TestCase):
         )
 
     def _create_fluid_flux_plot(
-            self, expected_results_for_variable, file_path, output_data, simulation
+        self, expected_results_for_variable, file_path, output_data, simulation
     ):
         data_series_collection = []
         y_coord_by_id_for_right_boundary_nodes = {}
         for node in simulation.model.GetModelPart(
-                "PorousDomain.porous_computational_model_part"
+            "PorousDomain.porous_computational_model_part"
         ).Nodes:
             if abs(node.X - 1.52) < 0.01:
                 y_coord_by_id_for_right_boundary_nodes[node.Id] = node.Y
@@ -137,7 +147,10 @@ class KratosGeoMechanicsMuskatTests(KratosUnittest.TestCase):
             output_data,
             y_coord_by_id_for_right_boundary_nodes.keys(),
         )
-        fluxes = [math.sqrt(flux[0] * flux[0] + flux[1] * flux[1] +  flux[2] * flux[2]) * 86400 for flux in fluxes]
+        fluxes = [
+            math.sqrt(flux[0] * flux[0] + flux[1] * flux[1] + flux[2] * flux[2]) * 86400
+            for flux in fluxes
+        ]
         sorted_depth, sorted_data = zip(
             *sorted(
                 zip(
@@ -153,13 +166,11 @@ class KratosGeoMechanicsMuskatTests(KratosUnittest.TestCase):
 
         data_points = []
         with open(
-                os.path.join(file_path, "expected_flux_at_x_1_52.csv"),
-                newline="",
+            os.path.join(file_path, "expected_flux_at_x_1_52.csv"),
+            newline="",
         ) as csv_file:
             reader = csv.DictReader(csv_file, skipinitialspace=True)
-            data_points = [
-                (float(row["Flux"]), float(row["Y"])) for row in reader
-            ]
+            data_points = [(float(row["Flux"]), float(row["Y"])) for row in reader]
         data_series_collection.append(
             plot_utils.DataSeries(
                 data_points,
@@ -194,7 +205,7 @@ class KratosGeoMechanicsMuskatTests(KratosUnittest.TestCase):
         )
 
         # Although this triangulation (Delaunay triangulation) is not identical to
-        # the mesh used in the simulation, it was decided, it is sufficient for 
+        # the mesh used in the simulation, it was decided, it is sufficient for
         # visualizing the p = 0 line.
         tri = Triangulation(xs, ys)
         plt.figure(figsize=(10, 8))
@@ -239,22 +250,30 @@ class KratosGeoMechanicsMuskatTests(KratosUnittest.TestCase):
             yaxis_inverted=False,
         )
 
+    @dataclass
+    class ExpectedResult:
+        node_id: int
+        value: float | list[float]
+
     def test_muskat_van_genuchten_hydrostatic(self):
-        @dataclass
-        class ExpectedResult:
-            node_id: int
-            value: float
 
         expected_results_for_variables = {
             "WATER_PRESSURE": [
-                ExpectedResult(node_id=198, value=7939.92),
-                ExpectedResult(node_id=244, value=-2753.0),
-                ExpectedResult(node_id=183, value=-20549.3),
+                self.ExpectedResult(node_id=198, value=7939.92),
+                self.ExpectedResult(node_id=244, value=-2753.0),
+                self.ExpectedResult(node_id=183, value=-20549.3),
             ],
             "EFFECTIVE_SATURATION": [
-                ExpectedResult(node_id=273, value=1.0),
-                ExpectedResult(node_id=890, value=0.485245),
-                ExpectedResult(node_id=1440, value=0.991294),
+                self.ExpectedResult(node_id=273, value=1.0),
+                self.ExpectedResult(node_id=890, value=0.485245),
+                self.ExpectedResult(node_id=1440, value=0.991294),
+            ],
+            "FLUID_FLUX_VECTOR": [
+                self.ExpectedResult(node_id=273, value=[8.1665e-06, -1.08412e-06, 0.0]),
+                self.ExpectedResult(node_id=890, value=[4.6101e-09, 4.7292e-11, 0.0]),
+                self.ExpectedResult(
+                    node_id=1440, value=[2.37856e-06, -1.57026e-06, 0.0]
+                ),
             ],
         }
         self._assert_muskat_results(
@@ -262,21 +281,27 @@ class KratosGeoMechanicsMuskatTests(KratosUnittest.TestCase):
         )
 
     def test_muskat_saturated_hydrostatic(self):
-        @dataclass
-        class ExpectedResult:
-            node_id: int
-            value: float
-
         expected_results_for_variables = {
             "WATER_PRESSURE": [
-                ExpectedResult(node_id=198, value=14346.4),
-                ExpectedResult(node_id=244, value=-37.4452),
-                ExpectedResult(node_id=183, value=-20335.1),
+                self.ExpectedResult(node_id=198, value=14346.4),
+                self.ExpectedResult(node_id=244, value=-37.4452),
+                self.ExpectedResult(node_id=183, value=-20335.1),
             ],
             "EFFECTIVE_SATURATION": [
-                ExpectedResult(node_id=273, value=1.0),
-                ExpectedResult(node_id=890, value=1.0),
-                ExpectedResult(node_id=1440, value=1.0),
+                self.ExpectedResult(node_id=273, value=1.0),
+                self.ExpectedResult(node_id=890, value=1.0),
+                self.ExpectedResult(node_id=1440, value=1.0),
+            ],
+            "FLUID_FLUX_VECTOR": [
+                self.ExpectedResult(
+                    node_id=273, value=[6.11757e-06, -1.37404e-11, 0.0]
+                ),
+                self.ExpectedResult(
+                    node_id=890, value=[6.11755e-06, -8.54269e-12, 0.0]
+                ),
+                self.ExpectedResult(
+                    node_id=1440, value=[6.11757e-06, -1.38004e-11, 0.0]
+                ),
             ],
         }
         self._assert_muskat_results(
