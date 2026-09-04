@@ -40,11 +40,8 @@
         "reduction_factor": 1.0,
         "increase_factor": 1.0,
         "linear_solver_settings": {
-            "solver_type": "bicgstab",
-            "tolerance": 1.0e-06,
-            "max_iteration": 1000,
-            "scaling": true,
-            "preconditioner_type": "ilu0"
+            "solver_type": "LinearSolversApplication.sparse_lu",
+            "scaling": true
         },
         "problem_domain_sub_model_part_list": ["porous"],
         "body_domain_sub_model_part_list": ["porous"]
@@ -72,12 +69,7 @@
                             "body_output": true,
                             "node_output": false,
                             "skin_output": false,
-                            "nodal_results": [
-                                "WATER_PRESSURE",
-                                "EFFECTIVE_SATURATION",
-                                "NODAL_WATER_FLOW",
-                                "FLUID_FLUX_VECTOR"
-                            ]
+                            "nodal_results": ["WATER_PRESSURE", "NODAL_WATER_FLOW"]
                         }
                     }
                 }
@@ -85,20 +77,6 @@
         ]
     },
     "processes": {
-        "constraints_process_list": [
-            {
-                "python_module": "apply_scalar_constraint_table_process",
-                "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
-                "process_name": "ApplyScalarConstraintTableProcess",
-                "Parameters": {
-                    "model_part_name": "PorousDomain.porous",
-                    "variable_name": "WATER_PRESSURE",
-                    "is_fixed": false,
-                    "table": 0,
-                    "value": 0.0
-                }
-            }
-        ],
         "loads_process_list": [
             {
                 "python_module": "apply_scalar_constraint_table_process",
@@ -137,17 +115,6 @@
                     "active": [false, true, false],
                     "value": [0.0, -9.81, 0.0],
                     "table": [0, 0, 0]
-                }
-            }
-        ],
-        "auxiliary_process_list": [
-            {
-                "python_module": "geo_extrapolate_integration_point_values_to_nodes_process",
-                "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
-                "process_name": "GeoExtrapolateIntegrationPointValuesToNodesProcess",
-                "Parameters": {
-                    "model_part_name": "PorousDomain.porous",
-                    "list_of_variables": ["EFFECTIVE_SATURATION", "FLUID_FLUX_VECTOR"]
                 }
             }
         ]
