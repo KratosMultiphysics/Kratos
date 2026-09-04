@@ -13,7 +13,7 @@
         "domain_size": 2,
         "model_import_settings": {
             "input_type": "mdpa",
-            "input_filename": "three_elements_column"
+            "input_filename": "../common/three_elements_column"
         },
         "material_import_settings": {
             "materials_filename": "MaterialParameters.json"
