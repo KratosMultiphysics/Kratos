@@ -7,19 +7,33 @@ import functools
 
 # tri-state cache for the cupy probe: None => not yet probed, False => unusable, module => usable
 _cupy_module = None
+# human-readable reason for the last failed probe (None if cupy is usable or not yet probed);
+# surfaced in the "cupy" fallback warning so a broken CUDA install does not degrade silently
+_cupy_failure_reason = None
 
 def _ResolveCupy():
     """Imports cupy and checks that a CUDA device is visible. The result is cached, this
-    function never raises (any failure is treated as "cupy is not usable").
+    function never raises (any failure is treated as "cupy is not usable", with the reason
+    cached in "_cupy_failure_reason" for diagnostics).
     """
-    global _cupy_module
+    global _cupy_module, _cupy_failure_reason
     if _cupy_module is None:
         try:
             import cupy
-            _cupy_module = cupy if cupy.cuda.runtime.getDeviceCount() > 0 else False
-        except Exception:
+            if cupy.cuda.runtime.getDeviceCount() > 0:
+                _cupy_module = cupy
+            else:
+                _cupy_module = False
+                _cupy_failure_reason = "no CUDA device visible (cupy.cuda.runtime.getDeviceCount() == 0)"
+        except Exception as err:
             _cupy_module = False
+            _cupy_failure_reason = "{}: {}".format(type(err).__name__, err)
     return _cupy_module or None
+
+def GetCupyFailureReason():
+    """Returns the cached reason why cupy is not usable (None if usable or not yet probed)."""
+    _ResolveCupy()
+    return _cupy_failure_reason
 
 def IsCupyAvailable():
     """Returns whether cupy is importable and at least one CUDA device is visible.
@@ -63,8 +77,11 @@ class ArrayBackend:
                 return spla.gmres(operator, rhs, atol=atol, tol=rtol)
         else:
             import cupyx.scipy.sparse.linalg as cpla
-            # cupyx never adopted the scipy "rtol" rename, it still expects "tol"
-            return cpla.gmres(operator, rhs, atol=atol, tol=rtol)
+            # current cupyx is keyword-only "rtol" (no "tol"); keep a "tol" fallback for older cupyx
+            try:
+                return cpla.gmres(operator, rhs, atol=atol, rtol=rtol)
+            except TypeError:
+                return cpla.gmres(operator, rhs, atol=atol, tol=rtol)
 
     def SolveTriangular(self, r_matrix, rhs):
         if self.name == "numpy":
@@ -72,8 +89,8 @@ class ArrayBackend:
             return sla.solve_triangular(r_matrix, rhs, check_finite=False)
         else:
             import cupyx.scipy.linalg as csla
-            # cupyx.scipy.linalg.solve_triangular has no "check_finite" keyword
-            return csla.solve_triangular(r_matrix, rhs)
+            # cupyx accepts "check_finite" as well (default False), pass it explicitly for parity
+            return csla.solve_triangular(r_matrix, rhs, check_finite=False)
 
 
 _backend_cache = {}
@@ -95,7 +112,9 @@ def GetArrayBackend(name, context="", echo_level=0):
     if name == "cupy":
         if IsCupyAvailable():
             return _GetOrCreateBackend("cupy")
-        cs_tools.cs_print_warning(context, 'Backend "cupy" was requested but is not available (cupy is not installed, or no CUDA device was found); falling back to "numpy".')
+        reason = GetCupyFailureReason()
+        detail = " ({})".format(reason) if reason else " (cupy is not installed, or no CUDA device was found)"
+        cs_tools.cs_print_warning(context, 'Backend "cupy" was requested but is not available{}; falling back to "numpy".'.format(detail))
         return _GetOrCreateBackend("numpy")
 
     if name == "auto":
