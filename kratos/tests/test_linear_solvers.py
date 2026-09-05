@@ -18,7 +18,7 @@ class TestLinearSolvers(KratosUnittest.TestCase):
             else:
                 self._auxiliary_test_function(settings, matrix_name, rhs_scaling)
 
-    def _auxiliary_test_function(self, settings, matrix_name="auxiliar_files_for_python_unittest/sparse_matrix_files/A.mm"):
+    def _auxiliary_test_function(self, settings, matrix_name="auxiliar_files_for_python_unittest/sparse_matrix_files/A.mm", rhs_scaling=1.0):
         # SparseSpace/SparseMatrix/SparseVector are backend-agnostic aliases
         # resolving to the active linear-algebra backend's system types; the
         # vector arithmetic goes through the space interface because the eigen
@@ -37,7 +37,7 @@ class TestLinearSolvers(KratosUnittest.TestCase):
         space.SetToZeroVector(b)
 
         for i in range(n):
-            b[i] = i/n
+            b[i] = (i/n) * rhs_scaling
 
         x = KratosMultiphysics.SparseVector(n)
         #KratosMultiphysics.ReadMatrixMarketVector("b.mm",b)
