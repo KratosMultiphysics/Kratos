@@ -2173,9 +2173,6 @@ SnakeGapSbmProcess::CreateCoonsPatchGaussPoints(
         w[i] = integration_points[i].Weight();
     }
 
-    // --- build a reference normal to define the positive orientation ----
-    array_1d<double,3> a = rP10 - rP00;
-    array_1d<double,3> b = rP01 - rP00;
     // --- reference normal from Coons derivatives at center --------------
     const double xi_c  = 0.5, eta_c = 0.5;
     const array_1d<double,3> dXi_c  = CoonsDerivative(xi_c, eta_c, true ,
@@ -2210,11 +2207,6 @@ SnakeGapSbmProcess::CreateCoonsPatchGaussPoints(
         // --- Global coordinates -----------------------------------------
         const array_1d<double,3> X =
             CoonsPoint(xi_i, eta_j, rB0,rL0,rL1,rB1, rP00,rP01,rP10,rP11);
-
-        
-        array_1d<double,3> e1 = rP10 - rP00;
-        array_1d<double,3> e2 = X - rP00;
-
 
         // Store global coords + signed weight
         gp_list.emplace_back( IntegrationPoint<3>( X[0], X[1], X[2],

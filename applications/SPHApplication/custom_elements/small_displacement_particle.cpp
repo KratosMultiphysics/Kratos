@@ -1,0 +1,648 @@
+#include "custom_elements/small_displacement_particle.h"
+
+namespace Kratos
+{
+
+template<class TKernelType, std::size_t TDim>
+void SmallDisplacementParticle<TKernelType, TDim>::Initialize(const ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_TRY
+
+    InitializeMaterial();
+
+    KRATOS_CATCH("")
+}
+
+template<class TKernelType, std::size_t TDim>
+void SmallDisplacementParticle<TKernelType, TDim>::InitializeMaterial()
+{
+    KRATOS_TRY
+
+    if (GetProperties()[CONSTITUTIVE_LAW] != nullptr){
+        const auto& r_geom = GetGeometry();
+        const auto& r_prop = GetProperties();
+
+        mThisConstitutiveLaw = r_prop[CONSTITUTIVE_LAW]->Clone();
+        mThisConstitutiveLaw->InitializeMaterial(r_prop, r_geom, Vector());
+
+    } else {
+        KRATOS_ERROR << "A constitutive law needs to be specified for the element with ID" << this->Id() << std::endl;
+    }
+
+    KRATOS_CATCH("")
+}
+
+template<class TKernelType, std::size_t TDim>
+Element::Pointer SmallDisplacementParticle<TKernelType, TDim>::Clone( 
+    IndexType NewId, 
+    NodesArrayType const& rThisNodes
+    ) const
+{
+    KRATOS_TRY
+
+    SmallDisplacementParticle<TKernelType, TDim>::Pointer p_new_elem = Kratos::make_intrusive<SmallDisplacementParticle<TKernelType, TDim>>
+        (NewId, GetGeometry().Create(rThisNodes), pGetProperties());
+    p_new_elem->SetData(this->GetData());
+    p_new_elem->Set(Flags(*this));
+
+    p_new_elem->SetConstitutiveLaw(mThisConstitutiveLaw);
+
+    return p_new_elem;
+
+    KRATOS_CATCH("");
+}
+
+template<class TKernelType, std::size_t TDim>
+void SmallDisplacementParticle<TKernelType, TDim>::GetNodalValuesVector(VectorType& rNodalValues) const
+{
+
+    const auto& r_neighbours = GetValue(NEIGHBOURS);
+    const SizeType number_of_neighbours = r_neighbours.size();
+
+    if (rNodalValues.size() != TDim * number_of_neighbours){
+        rNodalValues.resize(TDim * number_of_neighbours, false);
+    }
+
+    IndexType index = 0;
+
+    for (IndexType i = 0; i < number_of_neighbours; ++i){
+
+        const auto& r_geom = r_neighbours[i]->GetGeometry();
+        const auto& r_displ = r_geom[0].FastGetSolutionStepValue(DISPLACEMENT);
+        rNodalValues[index++] = r_displ[0];
+        rNodalValues[index++] = r_displ[1];
+        if constexpr (TDim == 3){
+            rNodalValues[index++] = r_displ[2];
+        }
+    }
+}
+
+template<class TKernelType, std::size_t TDim>
+void SmallDisplacementParticle<TKernelType, TDim>::EquationIdVector(
+    EquationIdVectorType& rResult,
+    const ProcessInfo& rCurrentProcessInfo
+    ) const
+{
+    KRATOS_TRY
+    const auto& r_neighbours = GetValue(NEIGHBOURS);
+    const SizeType number_of_neighbours = r_neighbours.size();
+
+    IndexType local_index = 0;
+
+    if (rResult.size() != TDim * number_of_neighbours)
+        rResult.resize(TDim * number_of_neighbours, false);
+
+    for (IndexType i = 0; i < number_of_neighbours; ++i){
+        const auto& r_geom = r_neighbours[i]->GetGeometry();
+
+        const IndexType xpos = r_geom[0].GetDofPosition(DISPLACEMENT_X);
+        
+        rResult[local_index++] = r_geom[0].GetDof(DISPLACEMENT_X, xpos).EquationId();
+        rResult[local_index++] = r_geom[0].GetDof(DISPLACEMENT_Y, xpos + 1).EquationId();
+        if constexpr (TDim == 3){
+            rResult[local_index++] = r_geom[0].GetDof(DISPLACEMENT_Z, xpos + 2).EquationId();
+        }
+    }
+    KRATOS_CATCH("")
+}
+
+template<class TKernelType, std::size_t TDim>
+void SmallDisplacementParticle<TKernelType, TDim>::GetDofList(
+    DofsVectorType& rElementalDofList,
+    const ProcessInfo& rCurrentProcessInfo
+    ) const
+{
+    KRATOS_TRY
+
+    const auto& r_neighbours = GetValue(NEIGHBOURS);
+    const SizeType number_of_neighbours = r_neighbours.size();
+
+    IndexType index = 0;
+
+    if(rElementalDofList.size() != TDim * number_of_neighbours)
+        rElementalDofList.resize(TDim * number_of_neighbours);
+
+    for (IndexType i = 0; i < number_of_neighbours; ++i){
+        const auto& r_geom = r_neighbours[i]->GetGeometry();
+
+        rElementalDofList[index++] = r_geom[0].pGetDof(DISPLACEMENT_X);
+        rElementalDofList[index++] = r_geom[0].pGetDof(DISPLACEMENT_Y);
+        if constexpr (TDim == 3){
+            rElementalDofList[index++] = r_geom[0].pGetDof(DISPLACEMENT_Z);
+        }
+    }
+    KRATOS_CATCH("")
+}
+
+template<class TKernelType, std::size_t TDim>
+void SmallDisplacementParticle<TKernelType, TDim>::GetValuesVector(VectorType& rValues, int step) const
+{
+    KRATOS_TRY
+    const auto& r_neighbours = GetValue(NEIGHBOURS);
+    const SizeType number_of_neighbours = r_neighbours.size();
+    const SizeType mat_size = TDim * number_of_neighbours;
+
+    if (rValues.size() != mat_size) rValues.resize(mat_size, false);
+
+    for (IndexType i = 0; i < number_of_neighbours; ++i){
+        
+        const auto& r_geom = r_neighbours[i]->GetGeometry();
+
+        const array_1d<double, 3>& displacement = r_geom[0].FastGetSolutionStepValue(DISPLACEMENT, step);
+        const SizeType index = i * TDim;
+        for (unsigned int k = 0; k < TDim; ++k){
+            rValues[index + k] = displacement[k];
+        }
+    }
+    KRATOS_CATCH("")
+}
+    
+
+template<class TKernelType, std::size_t TDim>
+void SmallDisplacementParticle<TKernelType, TDim>::GetFirstDerivativesVector(VectorType& rValues, int step) const
+{
+    KRATOS_TRY
+    const auto& r_neighbours = GetValue(NEIGHBOURS);
+    const SizeType number_of_neighbours = r_neighbours.size();
+    const SizeType mat_size = TDim * number_of_neighbours;
+
+    if (rValues.size() != mat_size) rValues.resize(mat_size, false);
+
+    for (IndexType i = 0; i < number_of_neighbours; ++i){
+        
+        const auto& r_geom = r_neighbours[i]->GetGeometry();
+
+        const array_1d<double, 3>& velocity = r_geom[0].FastGetSolutionStepValue(VELOCITY, step);
+        const SizeType index = i * TDim;
+        for (unsigned int k = 0; k < TDim; ++k){
+            rValues[index + k] = velocity[k];
+        }
+    }
+    KRATOS_CATCH("")
+}
+
+template<class TKernelType, std::size_t TDim>
+void SmallDisplacementParticle<TKernelType, TDim>::GetSecondDerivativesVector(VectorType& rValues, int step) const
+{
+    KRATOS_TRY
+    const auto& r_neighbours = GetValue(NEIGHBOURS);
+    const SizeType number_of_neighbours = r_neighbours.size();
+    const SizeType mat_size = TDim * number_of_neighbours;
+
+    if (rValues.size() != mat_size) rValues.resize(mat_size, false);
+
+    for (IndexType i = 0; i < number_of_neighbours; ++i){
+        
+        const auto& r_geom = r_neighbours[i]->GetGeometry();
+
+        const array_1d<double, 3>& acceleration = r_geom[0].FastGetSolutionStepValue(ACCELERATION, step);
+        const SizeType index = i * TDim;
+        for (unsigned int k = 0; k < TDim; ++k){
+            rValues[index + k] = acceleration[k];
+        }
+    }
+    KRATOS_CATCH("")
+}
+
+template<class TKernelType, std::size_t TDim>
+void SmallDisplacementParticle<TKernelType, TDim>::CalculateLocalSystem(
+    MatrixType& rLHS,
+    VectorType& rRHS,
+    const ProcessInfo& rProcessInfo
+)
+{
+    KRATOS_TRY
+    const bool CalculateStiffnessMatrixFlag = true;
+    const bool CalculateResidualVectorFlag = true;
+    
+    CalculateAll(rLHS, rRHS, rProcessInfo, CalculateStiffnessMatrixFlag, CalculateResidualVectorFlag);
+    
+    KRATOS_CATCH("")
+}
+
+template<class TKernelType, std::size_t TDim>
+void SmallDisplacementParticle<TKernelType, TDim>::CalculateLeftHandSide(
+    MatrixType& rLHS,
+    const ProcessInfo& rProcessInfo
+)
+{
+    KRATOS_TRY
+    
+    const bool CalculateStiffnessMatrixFlag = true;
+    const bool CalculateResidualVectorFlag = false;
+    VectorType RHS;
+    
+    CalculateAll(rLHS, RHS, rProcessInfo, CalculateStiffnessMatrixFlag, CalculateResidualVectorFlag);
+    
+    KRATOS_CATCH("")
+}
+
+template<class TKernelType, std::size_t TDim>
+void SmallDisplacementParticle<TKernelType, TDim>::CalculateRightHandSide(
+    VectorType& rRHS,
+    const ProcessInfo& rProcessInfo
+)
+{
+    KRATOS_TRY
+    const bool CalculateStiffnessMatrixFlag = false;
+    const bool CalculateResidualVectorFlag = true;
+    MatrixType temp = Matrix();
+     
+    CalculateAll(temp, rRHS, rProcessInfo, CalculateStiffnessMatrixFlag, CalculateResidualVectorFlag);
+    
+    KRATOS_CATCH("")
+}
+
+template<class TKernelType, std::size_t TDim>
+void SmallDisplacementParticle<TKernelType, TDim>::CalculateAll(
+    MatrixType& rLHS, 
+    VectorType& rRHS,
+    const ProcessInfo& rProcessInfo,
+    const bool CalculateStiffnessMatrixFlag,
+    const bool CalculateResidualVectorFlag
+    )
+{
+    KRATOS_TRY
+    const auto&  r_geom = GetGeometry();
+    const auto& r_props = GetProperties();
+    const SizeType strain_size = mThisConstitutiveLaw->GetStrainSize();
+    const double h = rProcessInfo.GetValue(SMOOTHING_LENGTH);
+
+    // The neighbours of the particle are like the nodes belonging to the element in standard FEM
+    const auto& r_neighbours = GetValue(NEIGHBOURS);
+    const SizeType number_of_neigh = r_neighbours.size();
+    const SizeType mat_size = TDim * number_of_neigh;
+
+    KinematicVariables this_kinematic_variables(strain_size, TDim, number_of_neigh);
+    ConstitutiveVariables this_constitutive_variables(strain_size);
+    
+    if (CalculateStiffnessMatrixFlag){
+        if (rLHS.size1() != mat_size || rLHS.size2() != mat_size) rLHS.resize(mat_size, mat_size, false);
+        noalias(rLHS) = ZeroMatrix(mat_size, mat_size);
+    }
+
+    if (CalculateResidualVectorFlag){
+        if (rRHS.size() != mat_size) rRHS.resize(mat_size, false);
+        noalias(rRHS) = ZeroVector(mat_size);
+    }
+
+    VectorType nodal_values(mat_size), dkernel(TDim), X_AB_target(TDim), body_force(TDim);
+    double kernel;
+    GetNodalValuesVector(nodal_values);
+
+    // Constitutive law 
+    ConstitutiveLaw::Parameters cl_values(r_geom, r_props, rProcessInfo);
+    auto& r_cl_options = cl_values.GetOptions();
+    r_cl_options.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true); //To compute the strain outside the CL
+    r_cl_options.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
+    if (CalculateStiffnessMatrixFlag){
+        r_cl_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
+    } else {
+        r_cl_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
+    }
+    cl_values.SetStrainVector(this_constitutive_variables.StrainVector);
+
+    double gauss_weight = r_geom[0].GetValue(VOLUME);
+    SPHElementUtilities::GetLocalBodyForces(*this, body_force);
+
+    CalculateKinematicVariables(this_kinematic_variables, rProcessInfo);
+    CalculateConstitutiveVariables(this_constitutive_variables, this_kinematic_variables, cl_values, ConstitutiveLaw::StressMeasure_Cauchy);
+
+    if (CalculateStiffnessMatrixFlag){
+        MatrixType temp = prod(this_constitutive_variables.C, this_kinematic_variables.B);
+        noalias(rLHS) = gauss_weight * prod(trans(this_kinematic_variables.B), temp);
+    }
+
+    if (CalculateResidualVectorFlag){
+        CalculateAndAddExternalForcesContribution(this_kinematic_variables.W, rProcessInfo, body_force, rRHS, gauss_weight);
+        noalias(rRHS) -= gauss_weight * prod(trans(this_kinematic_variables.B), this_constitutive_variables.StressVector);
+    }
+
+    KRATOS_CATCH("")
+}
+
+
+template<class TKernelType, std::size_t TDim>
+void SmallDisplacementParticle<TKernelType, TDim>::CalculateKinematicVariables(KinematicVariables& rThisKinematicVariables, const ProcessInfo& rProcessInfo, int Step)
+{
+    KRATOS_TRY
+    auto& rW = rThisKinematicVariables.W;
+    auto& rDW_DX = rThisKinematicVariables.DW_DX;
+
+    // Initialization of variables
+    const auto& r_neighbours = this->GetValue(NEIGHBOURS);
+    const double h = rProcessInfo.GetValue(SMOOTHING_LENGTH);
+
+    const auto& IPcoords = GetGeometry()[0].GetInitialPosition();
+
+    // Initialization of variables
+    double kernel;
+    VectorType dkernel(TDim), X_AB_target(TDim);
+
+    for (IndexType i = 0; i < r_neighbours.size(); ++i){
+        const auto& JPcoords = r_neighbours[i]->GetGeometry()[0].GetInitialPosition();
+        const double weight = r_neighbours[i]->GetGeometry()[0].GetValue(VOLUME);
+
+        for (IndexType d = 0; d < TDim; d++) X_AB_target[d] = IPcoords[d] - JPcoords[d];
+
+        TKernelType::ComputeKernelValue(kernel, h, X_AB_target);
+        TKernelType::ComputeKernelGradientValue(dkernel, h, X_AB_target);
+        ComputeKernelCorrectionUtilities::ApplyKernelGradientCorrection(*this, kernel, dkernel);
+
+        rW[i] = weight * kernel;
+        for (IndexType d = 0; d < TDim; d++){ 
+            rDW_DX(i, d) = weight * dkernel[d];
+        }
+    }
+
+    if constexpr (TDim == 2){
+        Calculate2DB(rThisKinematicVariables.B, rThisKinematicVariables.DW_DX);
+    } else {
+        Calculate3DB(rThisKinematicVariables.B, rThisKinematicVariables.DW_DX);
+    }
+
+    KRATOS_CATCH("")
+}
+
+template<class TKernelType, std::size_t TDim>
+void SmallDisplacementParticle<TKernelType, TDim>::Calculate2DB(MatrixType& rB, const MatrixType& rDW_DX)
+{
+    const SizeType number_of_neigh = GetValue(NEIGHBOURS).size();
+
+    rB.clear();
+
+    for (IndexType i =0; i < number_of_neigh; ++i){
+        const IndexType index = i * TDim;
+        rB(0, index + 0) = rDW_DX(i, 0);
+        rB(1, index + 1) = rDW_DX(i, 1);
+        rB(2, index + 0) = rDW_DX(i, 1);
+        rB(2, index + 1) = rDW_DX(i, 0);
+    }
+}
+
+template<class TKernelType, std::size_t TDim>
+void SmallDisplacementParticle<TKernelType, TDim>::Calculate3DB(MatrixType& rB, const MatrixType& rDW_DX)
+{
+    const SizeType number_of_neigh = GetValue(NEIGHBOURS).size();
+
+    rB.clear();
+
+    for (IndexType i =0; i < number_of_neigh; ++i){
+        const IndexType index = i * TDim;
+        rB(0, index + 0) = rDW_DX(i, 0);
+        rB(1, index + 1) = rDW_DX(i, 1);
+        rB(2, index + 2) = rDW_DX(i, 2);
+        rB(3,index+0) = rDW_DX(i, 1);
+        rB(3,index+1) = rDW_DX(i, 0);
+        rB(4,index+1) = rDW_DX(i, 2);
+        rB(4,index+2) = rDW_DX(i, 1);
+        rB(5,index+0) = rDW_DX(i, 2);
+        rB(5,index+2) = rDW_DX(i, 0);
+    }
+}
+
+template<class TKernelType, std::size_t TDim>
+void SmallDisplacementParticle<TKernelType, TDim>::CalculateAndAddExternalForcesContribution(
+    const VectorType& rW,
+    const ProcessInfo& rProcessInfo,
+    const VectorType& rBodyForce,
+    VectorType& rRHS,
+    const double weight
+) const 
+{
+    const SizeType number_of_neigh = GetValue(NEIGHBOURS).size();
+
+    for (IndexType i = 0; i < number_of_neigh; ++i){
+        const SizeType index = i * TDim;
+
+        for (IndexType d = 0; d < TDim; ++d){
+            rRHS[index + d] += weight * rW[i] * rBodyForce[d];
+        }
+    }
+}
+
+template<class TKernelType, std::size_t TDim>
+void SmallDisplacementParticle<TKernelType, TDim>::CalculateConstitutiveVariables(
+    ConstitutiveVariables& rThisConstitutiveVariables,
+    KinematicVariables& rThisKinematicVariables,
+    ConstitutiveLaw::Parameters& rValues,
+    const ConstitutiveLaw::StressMeasure ThisStressMeasure
+)
+{
+    const SizeType number_of_neigh = GetValue(NEIGHBOURS).size();
+    const SizeType strain_size = mThisConstitutiveLaw->GetStrainSize();
+
+    GetNodalValuesVector(rThisKinematicVariables.Displacement);
+
+    rValues.SetDeterminantF(1.0); 
+    rValues.SetDeformationGradientF(IdentityMatrix(TDim));
+    rValues.SetConstitutiveMatrix(rThisConstitutiveVariables.C);
+    rValues.SetStressVector(rThisConstitutiveVariables.StressVector);
+
+    if constexpr (TDim == 2){
+        for (IndexType i = 0; i < number_of_neigh; ++i){
+            rThisConstitutiveVariables.StrainVector[0] += rThisKinematicVariables.Displacement[TDim * i] * rThisKinematicVariables.DW_DX(i, 0);
+            rThisConstitutiveVariables.StrainVector[1] += rThisKinematicVariables.Displacement[TDim * i + 1] * rThisKinematicVariables.DW_DX(i, 1);
+            rThisConstitutiveVariables.StrainVector[2] += rThisKinematicVariables.Displacement[TDim * i] * rThisKinematicVariables.DW_DX(i, 1) 
+                + rThisKinematicVariables.Displacement[TDim * i + 1] * rThisKinematicVariables.DW_DX(i, 0);
+        }
+    } else {
+        for (IndexType i = 0; i < number_of_neigh; ++i){
+            rThisConstitutiveVariables.StrainVector[0] += rThisKinematicVariables.Displacement[TDim * i] * rThisKinematicVariables.DW_DX(i, 0);
+            rThisConstitutiveVariables.StrainVector[1] += rThisKinematicVariables.Displacement[TDim * i + 1] * rThisKinematicVariables.DW_DX(i, 1);
+            rThisConstitutiveVariables.StrainVector[2] += rThisKinematicVariables.Displacement[TDim * i + 2] * rThisKinematicVariables.DW_DX(i, 2);
+            rThisConstitutiveVariables.StrainVector[3] += rThisKinematicVariables.Displacement[TDim * i] * rThisKinematicVariables.DW_DX(i, 1)
+                + rThisKinematicVariables.Displacement[TDim * i + 1] * rThisKinematicVariables.DW_DX(i, 0);
+            rThisConstitutiveVariables.StrainVector[4] += rThisKinematicVariables.Displacement[TDim * i + 1] * rThisKinematicVariables.DW_DX(i, 2)
+                + rThisKinematicVariables.Displacement[TDim * i + 2] * rThisKinematicVariables.DW_DX(i, 1);
+            rThisConstitutiveVariables.StrainVector[5] += rThisKinematicVariables.Displacement[TDim * i] * rThisKinematicVariables.DW_DX(i, 2)
+                + rThisKinematicVariables.Displacement[TDim * i + 2] * rThisKinematicVariables.DW_DX(i, 0);
+        }
+    }
+
+    
+    
+    mThisConstitutiveLaw->CalculateMaterialResponse(rValues, ThisStressMeasure);
+}
+
+template<class TKernelType, std::size_t TDim>
+void SmallDisplacementParticle<TKernelType, TDim>::CalculateMassMatrix(MatrixType& rMassMatrix, const ProcessInfo& rProcessInfo)
+{
+    KRATOS_TRY
+    const auto& r_geom = GetGeometry();
+    const auto& r_prop = GetProperties();
+    const auto& r_neighbours = GetValue(NEIGHBOURS);
+    const SizeType number_of_neigh = r_neighbours.size();
+    
+    const SizeType mat_size = TDim * number_of_neigh;
+    const double h = rProcessInfo.GetValue(SMOOTHING_LENGTH);
+
+    if (rMassMatrix.size1() != mat_size || rMassMatrix.size2() != mat_size) rMassMatrix.resize(mat_size, mat_size, false);
+    noalias(rMassMatrix) = ZeroMatrix(mat_size, mat_size);
+
+    KRATOS_ERROR_IF_NOT(r_prop.Has(DENSITY)) << "DENSITY has to be provided for the calculation of the Mass Matrix"<<std::endl;
+    
+    const double density = r_prop[DENSITY];
+    double thickness = 1.0;
+    if constexpr (TDim == 2) {
+        thickness = r_prop.Has(THICKNESS) ? r_prop[THICKNESS] : 1.0;
+    }
+    const auto& GPcoords = r_geom[0].GetInitialPosition();
+    const double gauss_weight = r_geom[0].GetValue(VOLUME);
+
+    double factor = gauss_weight * density * thickness;
+    bool compute_lumped_mass_matrix = SPHElementUtilities::ComputeLumpedMassMatrix(r_prop, rProcessInfo);
+
+    if (compute_lumped_mass_matrix){
+        int this_id = this->Id();
+        for (IndexType i = 0; i < number_of_neigh; ++i){
+            if (this_id == r_neighbours[i]->Id()){
+                for (IndexType d = 0; d < TDim; ++d){
+                    rMassMatrix(TDim * i + d, TDim * i + d) = factor;
+                }
+                break;
+            }
+        }
+    } else { // Consistent mass matrix
+        
+        MatrixType MassMatrix(mat_size, TDim);
+        noalias(MassMatrix) = ZeroMatrix(mat_size, TDim);
+        
+        VectorType X_AB_target(TDim);
+        double kernel, temp;
+
+        for (IndexType i = 0; i < number_of_neigh; ++i){
+
+            const auto& IPcoords = r_neighbours[i]->GetGeometry()[0].GetInitialPosition();
+            const double volume = r_neighbours[i]->GetGeometry()[0].GetValue(VOLUME);
+
+            for (IndexType d = 0; d < TDim; ++d){
+                X_AB_target[d] = GPcoords[d] - IPcoords[d];
+            }
+
+            TKernelType::ComputeKernelValue(kernel, h, X_AB_target);
+            ComputeKernelCorrectionUtilities::ApplyKernelCorrection(*this, kernel);
+
+            MassMatrix(TDim * i, 0) = kernel * volume;
+            MassMatrix(TDim * i + 1, 1) = kernel * volume;
+            if constexpr (TDim == 3){
+                MassMatrix(TDim * i + 2, 2) = kernel * volume;
+            }
+        }
+
+        noalias(rMassMatrix) = prod(MassMatrix, trans(MassMatrix));
+        rMassMatrix *= factor;
+    }
+
+    KRATOS_CATCH("")
+}
+
+template<class TKernelType, std::size_t TDim>
+void SmallDisplacementParticle<TKernelType, TDim>::CalculateDampingMatrix(MatrixType& rDampingMatrix, const ProcessInfo& rProcessInfo)
+{
+    const auto& r_neighbours = GetValue(NEIGHBOURS);
+    const SizeType mat_size = TDim * r_neighbours.size();
+
+    StructuralMechanicsElementUtilities::CalculateRayleighDampingMatrix(*this, rDampingMatrix, rProcessInfo, mat_size);
+}
+
+template<class TKernelType, std::size_t TDim>
+void SmallDisplacementParticle<TKernelType, TDim>::CalculateOnIntegrationPoints(const Variable<Vector>& rVariable, std::vector<Vector>& rOutput, const ProcessInfo& rProcessInfo)
+{
+    if (rVariable == SPH_KERNEL_GRADIENT){
+        const auto& r_neighbours = this->GetValue(NEIGHBOURS);
+        const double h = rProcessInfo.GetValue(SMOOTHING_LENGTH);
+
+        const auto& IPcoords = GetGeometry()[0].GetInitialPosition();
+
+        IndexType index = 0;
+        rOutput.resize(r_neighbours.size());
+
+        for (auto& JP : r_neighbours){
+            const auto& JPcoords = JP->GetGeometry()[0].GetInitialPosition();
+
+            VectorType X_AB_target(TDim);
+            for (IndexType d = 0; d < TDim; d++){
+                X_AB_target[d] = IPcoords[d] - JPcoords[d];
+            }
+
+            VectorType dkernel(TDim);
+            TKernelType::ComputeKernelGradientValue(dkernel, h, X_AB_target);
+            rOutput[index] = dkernel;
+            ++index;
+        }
+    } else if (mThisConstitutiveLaw->Has(rVariable)){  // At the moment this funtion is never called because the Point2D/Point3D geometries does not have an integration point
+        const SizeType strain_size = mThisConstitutiveLaw->GetStrainSize();
+        rOutput.resize(1, ZeroVector(strain_size));
+        mThisConstitutiveLaw->GetValue(rVariable, rOutput[0]);
+    }
+}
+
+template<class TKernelType, std::size_t TDim>
+void SmallDisplacementParticle<TKernelType, TDim>::CalculateOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rOutput, const ProcessInfo& rProcessInfo)
+{
+    if (rVariable == SPH_KERNEL){
+        const auto& r_neighbours = this->GetValue(NEIGHBOURS);
+        const double h = rProcessInfo.GetValue(SMOOTHING_LENGTH);
+
+        const auto& IPcoords = GetGeometry()[0].GetInitialPosition();
+
+        IndexType index = 0;
+        rOutput.resize(r_neighbours.size());
+
+        for (auto& JP : r_neighbours){
+            const auto& JPcoords = JP->GetGeometry()[0].GetInitialPosition();
+
+            VectorType X_AB_target(TDim);
+            for (IndexType d = 0; d < TDim; d++){
+                X_AB_target[d] = IPcoords[d] - JPcoords[d];
+            }
+
+            double kernel;
+            TKernelType::ComputeKernelValue(kernel, h, X_AB_target);
+            rOutput[index] = kernel;
+            ++index;
+        }
+    }
+}
+
+template<class TKernelType, std::size_t TDim>
+int SmallDisplacementParticle<TKernelType, TDim>::Check(const ProcessInfo& rCurrentProcessInfo) const
+{
+    KRATOS_TRY
+
+    KRATOS_ERROR_IF(this->Id() < 1)<<"Particle element with invalid Id"<< this->Id() << std::endl;
+    KRATOS_ERROR_IF(GetGeometry().size() != 1) << "Particle element" << this->Id() << "must have exactly 1 node, found " << GetGeometry().size() << std::endl;
+    KRATOS_ERROR_IF(GetGeometry().WorkingSpaceDimension() != TDim)
+        << "Particle element " << this->Id() << " was instantiated for " << TDim
+        << "D but received a " << GetGeometry().WorkingSpaceDimension() << "D geometry." << std::endl;
+
+    const auto& r_prop = GetProperties();
+
+    if (r_prop[CONSTITUTIVE_LAW] != nullptr) mThisConstitutiveLaw->Check( r_prop, GetGeometry(), rCurrentProcessInfo );
+
+    /** These checks ensure that the NEIGHBOURS variable is properly set. 
+     * In Total Lagrangian SPH these check are performed once at the beginning of the simulation, while in case 
+     * of non-TL SPH they should be moved to the InitializeSolutionStep method
+    */
+    KRATOS_ERROR_IF_NOT(this->Has(NEIGHBOURS)) 
+        << "NEIGHBOURS variable is not defined for element with ID: " << this->Id() << std::endl;
+
+    const auto& r_neighbours = GetValue(NEIGHBOURS);
+    
+    KRATOS_ERROR_IF(r_neighbours.size() == 0) 
+        << "Element with ID " << this->Id() << " has no neighbours assigned." << std::endl;
+    
+    for (IndexType i = 0; i < r_neighbours.size(); ++i) {
+        KRATOS_ERROR_IF(r_neighbours[i] == nullptr) 
+            << "Neighbour pointer at index " << i << " is null for element ID: " << this->Id() << std::endl;
+    }
+
+    return 0; 
+    KRATOS_CATCH("")
+}
+
+template class SmallDisplacementParticle<CubicKernel2D, 2>;
+template class SmallDisplacementParticle<CubicKernel3D, 3>;
+
+}
