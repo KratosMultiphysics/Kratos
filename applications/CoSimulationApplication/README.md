@@ -10,6 +10,7 @@ The CoSimulation Application contains the core developments in coupling black-bo
   - [Overview](#overview)
   - [List of features](#list-of-features)
   - [Dependencies](#dependencies)
+  - [GPU acceleration (experimental)](#gpu-acceleration-experimental)
   - [Examples](#examples)
   - [User Guide](#user-guide)
     - [Setting up a coupled simulation](#setting-up-a-coupled-simulation)
@@ -53,6 +54,34 @@ The CoSimulation Application itself doesn't have any dependencies (except the `K
 For running coupled simulations the solvers to be used have to be available. Those dependencies are python-only.
 
 The [MappingApplication](https://github.com/KratosMultiphysics/Kratos/blob/master/applications/MappingApplication) is required when mapping is used.
+
+Optionally, [CuPy](https://cupy.dev/) can be installed to run the [convergence accelerators](https://github.com/KratosMultiphysics/Kratos/blob/master/applications/CoSimulationApplication/python_scripts/convergence_accelerators) on the GPU, see below.
+
+
+<a name="gpu-acceleration-experimental"></a>
+
+
+## GPU acceleration (experimental)
+
+The [convergence accelerators](https://github.com/KratosMultiphysics/Kratos/blob/master/applications/CoSimulationApplication/python_scripts/convergence_accelerators) (`mvqn`, `aitken`, `iqnils`, `anderson`, `block_mvqn`, `block_ibqnls`) can optionally run their linear algebra on the GPU via [CuPy](https://cupy.dev/) instead of numpy. This is configured with the `"backend"` setting, which accepts:
+
+- `"numpy"` (default): the existing, unchanged behavior.
+- `"cupy"`: uses CuPy. If CuPy is not installed, or no CUDA device is found, a warning is printed and the accelerator falls back to `"numpy"`.
+- `"auto"`: uses CuPy if it is usable, otherwise silently falls back to `"numpy"`.
+
+```json
+{
+    "type"    : "mvqn",
+    "backend" : "cupy"
+}
+```
+
+Notes:
+- CuPy is a purely optional dependency; it is never imported unless a `"cupy"`/`"auto"` backend is requested. Install it separately, matching your CUDA toolkit version (see the [CuPy installation guide](https://docs.cupy.dev/en/stable/install.html)).
+- The main beneficiaries are `mvqn` and `block_mvqn`, which hold a dense Jacobian of size (number of interface DOFs)². The Jacobian and the stored iteration history stay GPU-resident across iterations and time steps; only the residual and solution vectors are transferred each call.
+- GPU acceleration only pays off for larger interfaces (roughly thousands of DOFs and up); for small interfaces the host&lt;-&gt;device transfer and kernel-launch overhead makes it slower than numpy. It is opt-in for this reason.
+- Double-precision (float64) throughput on consumer GPUs is typically much lower than on server/datacenter GPUs; keep this in mind before switching a production run.
+- `mvqn`'s dense Jacobian peaks near `5 * n^2 * 8` bytes of GPU memory for `n` interface DOFs (`J` and `J_hat` persist across iterations, plus the transient `b = identity(row)`, least-squares result and `J_tilde` inside `UpdateSolution`); make sure this fits in the available GPU memory for large interfaces.
 
 
 <a name="examples"></a>

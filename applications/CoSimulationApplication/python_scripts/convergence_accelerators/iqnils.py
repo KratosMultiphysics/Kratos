@@ -12,6 +12,7 @@ from KratosMultiphysics.CoSimulationApplication.base_classes.co_simulation_conve
 # CoSimulation imports
 from KratosMultiphysics.CoSimulationApplication.co_simulation_tools import cs_print_info, cs_print_warning, SettingsTypeCheck
 import KratosMultiphysics.CoSimulationApplication.colors as colors
+from KratosMultiphysics.CoSimulationApplication.utilities.array_backend import HostArrayBoundary
 
 # Other imports
 import numpy as np
@@ -51,7 +52,9 @@ class IQNILSConvergenceAccelerator(CoSimulationConvergenceAccelerator):
     # @param r residual r_k
     # @param x solution x_k
     # Computes the approximated update in each iteration.
+    @HostArrayBoundary
     def UpdateSolution( self, r, x ):
+        xp = self.xp
         self.R.appendleft( deepcopy(r) )
         self.X.appendleft(    x + r    )  # r = x~ - x
         row = len(r)
@@ -69,7 +72,7 @@ class IQNILSConvergenceAccelerator(CoSimulationConvergenceAccelerator):
                 if self.echo_level > 3:
                     cs_print_info(self._ClassName(), "Doing multi-vector extrapolation")
                     cs_print_info(self._ClassName(), "Number of new modes: ", col)
-                self.V_new = np.empty( shape = (col, row) ) # will be transposed later
+                self.V_new = xp.empty( shape = (col, row) ) # will be transposed later
                 for i in range(0, col):
                     self.V_new[i] = self.R[i] - self.R[i + 1]
                 self.V_new = self.V_new.T
@@ -80,7 +83,7 @@ class IQNILSConvergenceAccelerator(CoSimulationConvergenceAccelerator):
                     cs_print_warning(self._ClassName(), ": "+ colors.red("WARNING: column number larger than row number!"))
 
                 ## Construct matrix W(differences of predictions)
-                self.W_new = np.empty( shape = (col, row) ) # will be transposed later
+                self.W_new = xp.empty( shape = (col, row) ) # will be transposed later
                 for i in range(0, col):
                     self.W_new[i] = self.X[i] - self.X[i + 1]
                 self.W_new = self.W_new.T
@@ -88,10 +91,10 @@ class IQNILSConvergenceAccelerator(CoSimulationConvergenceAccelerator):
 
                 ## Solve least-squares problem
                 delta_r = -self.R[0]
-                c = np.linalg.lstsq(V, delta_r)[0]
+                c = xp.linalg.lstsq(V, delta_r)[0]
 
                 ## Compute the update
-                delta_x = np.dot(W, c) - delta_r
+                delta_x = xp.dot(W, c) - delta_r
 
                 return delta_x
         else:  # previous vectors can be reused
@@ -103,10 +106,10 @@ class IQNILSConvergenceAccelerator(CoSimulationConvergenceAccelerator):
                 W = self.W_old
                 ## Solve least-squares problem
                 delta_r = -self.R[0]
-                c = np.linalg.lstsq(V, delta_r)[0]
+                c = xp.linalg.lstsq(V, delta_r)[0]
 
                 ## Compute the update
-                delta_x = np.dot(W, c) - delta_r
+                delta_x = xp.dot(W, c) - delta_r
                 return delta_x
             else:
                 ## For other iterations, construct new V and W matrices and combine them with old ones
@@ -115,28 +118,28 @@ class IQNILSConvergenceAccelerator(CoSimulationConvergenceAccelerator):
                     cs_print_info(self._ClassName(), "Number of new modes: ", col)
                     cs_print_info(self._ClassName(), "Number of previous matrices: ", num_old_matrices)
                 ## Construct matrix V (differences of residuals)
-                self.V_new = np.empty( shape = (col, row) ) # will be transposed later
+                self.V_new = xp.empty( shape = (col, row) ) # will be transposed later
                 for i in range(0, col):
                     self.V_new[i] = self.R[i] - self.R[i + 1]
                 self.V_new = self.V_new.T
-                V = np.hstack( (self.V_new, self.V_old) )
+                V = xp.hstack( (self.V_new, self.V_old) )
                 ## Check the dimension of the newly constructed matrix
                 if ( V.shape[0] < V.shape[1] ) and self.echo_level > 0:
                     cs_print_warning(self._ClassName(), ": "+ colors.red("WARNING: column number larger than row number!"))
 
                 ## Construct matrix W(differences of predictions)
-                self.W_new = np.empty( shape = (col, row) ) # will be transposed later
+                self.W_new = xp.empty( shape = (col, row) ) # will be transposed later
                 for i in range(0, col):
                     self.W_new[i] = self.X[i] - self.X[i + 1]
                 self.W_new = self.W_new.T
-                W = np.hstack( (self.W_new, self.W_old) )
+                W = xp.hstack( (self.W_new, self.W_old) )
 
                 ## Solve least-squares problem
                 delta_r = -self.R[0]
-                c = np.linalg.lstsq(V, delta_r)[0]
+                c = xp.linalg.lstsq(V, delta_r)[0]
 
                 ## Compute the update
-                delta_x = np.dot(W, c) - delta_r
+                delta_x = xp.dot(W, c) - delta_r
 
                 return delta_x
 
@@ -147,8 +150,8 @@ class IQNILSConvergenceAccelerator(CoSimulationConvergenceAccelerator):
             self.v_old_matrices.appendleft( self.V_new )
             self.w_old_matrices.appendleft( self.W_new )
         if self.v_old_matrices and self.w_old_matrices:
-            self.V_old = np.concatenate( self.v_old_matrices, 1 )
-            self.W_old = np.concatenate( self.w_old_matrices, 1 )
+            self.V_old = self.xp.concatenate( self.v_old_matrices, 1 )
+            self.W_old = self.xp.concatenate( self.w_old_matrices, 1 )
         ## Clear the buffer
         if self.R and self.X:
             if self.echo_level > 3:
