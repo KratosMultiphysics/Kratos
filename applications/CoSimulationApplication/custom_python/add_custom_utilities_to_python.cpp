@@ -19,6 +19,7 @@
 #include "processes/process.h"
 #include "custom_python/add_custom_utilities_to_python.h"
 #include "spaces/ublas_space.h"
+#include "spaces/default_spaces.h"
 #include "custom_utilities/feti_dynamic_coupling_utilities.h"
 #include "custom_utilities/conversion_utilities.h"
 
@@ -26,8 +27,8 @@ namespace Kratos::Python {
 
     void  AddCustomUtilitiesToPython(pybind11::module& m)
     {
-        typedef UblasSpace<double, CompressedMatrix, boost::numeric::ublas::vector<double>> SparseSpaceType;
-        typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
+        typedef TDefaultSparseSpace<double> SparseSpaceType;
+        typedef TDefaultDenseSpace<double> LocalSpaceType;
 
         typedef FetiDynamicCouplingUtilities<SparseSpaceType, LocalSpaceType> FetiDynamicCouplingUtilitiesType;
         typedef FetiDynamicCouplingUtilitiesType::SolverIndex FetiSolverIndexType;

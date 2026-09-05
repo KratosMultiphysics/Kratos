@@ -20,6 +20,7 @@
 #include "custom_python/add_custom_strategies_to_python.h"
 
 #include "spaces/ublas_space.h"
+#include "spaces/default_spaces.h"
 
 //strategies
 #include "solving_strategies/strategies/residualbased_newton_raphson_strategy.h"
@@ -41,8 +42,8 @@ namespace Python
 
     void  AddCustomStrategiesToPython(pybind11::module& m)
     {
-        typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
-        typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
+        typedef TDefaultSparseSpace<double> SparseSpaceType;
+        typedef TDefaultDenseSpace<double> LocalSpaceType;
         typedef Scheme< SparseSpaceType, LocalSpaceType > BaseSchemeType;
         typedef FemDemResidualCriteria< SparseSpaceType,  LocalSpaceType > FemDemResidualCriteriaType;
         typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;

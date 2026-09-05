@@ -21,6 +21,9 @@
 #include <memory>
 #include <amgcl/backend/builtin.hpp>
 #include <amgcl/adapter/zero_copy.hpp>
+
+// Project includes
+#include "linear_solvers/amgcl_zero_copy_adapter.h"
 #include <amgcl/value_type/complex.hpp>
 #include <amgcl/solver/skyline_lu.hpp>
 
@@ -76,7 +79,7 @@ public:
     {
         Clear();
 
-        pBuiltinMatrix = amgcl::adapter::zero_copy(
+        pBuiltinMatrix = MakeAmgclZeroCopyAdapter(
                 rA.size1(),
                 rA.index1_data().begin(),
                 rA.index2_data().begin(),

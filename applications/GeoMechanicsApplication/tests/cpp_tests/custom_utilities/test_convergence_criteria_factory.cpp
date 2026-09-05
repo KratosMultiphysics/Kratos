@@ -12,13 +12,14 @@
 
 #include "custom_utilities/convergence_criteria_factory.hpp"
 #include "spaces/ublas_space.h"
+#include "spaces/default_spaces.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
 
 #include <string>
 
 using namespace Kratos;
-using SparseSpaceType                = UblasSpace<double, CompressedMatrix, Vector>;
-using LocalSpaceType                 = UblasSpace<double, Matrix, Vector>;
+using SparseSpaceType                = TDefaultSparseSpace<double>;
+using LocalSpaceType                 = TDefaultDenseSpace<double>;
 using ConvergenceCriteriaFactoryType = ConvergenceCriteriaFactory<SparseSpaceType, LocalSpaceType>;
 using DisplacementCriterionType      = ConvergenceCriteriaFactoryType::DisplacementCriterionType;
 using ResidualCriterionType          = ConvergenceCriteriaFactoryType::ResidualCriterionType;

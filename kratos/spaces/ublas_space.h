@@ -86,9 +86,12 @@ class UblasSpace;
 template <class TDataType>
 using TUblasSparseSpace =
     UblasSpace<TDataType, boost::numeric::ublas::compressed_matrix<TDataType>, boost::numeric::ublas::vector<TDataType>>;
+// Spelled with the boost types directly (not the DenseMatrix/DenseVector
+// aliases) so this space names the uBLAS containers unambiguously in every
+// backend.
 template <class TDataType>
 using TUblasDenseSpace =
-    UblasSpace<TDataType, DenseMatrix<TDataType>, DenseVector<TDataType>>;
+    UblasSpace<TDataType, boost::numeric::ublas::matrix<TDataType>, boost::numeric::ublas::vector<TDataType>>;
 
 ///@}
 ///@name  Enum's
@@ -220,9 +223,9 @@ public:
     /// rXi = rMij
 	// This version is needed in order to take one column of multi column solve from AMatrix matrix and pass it to an ublas vector
 	template<typename TColumnType>
-	static void GetColumn(unsigned int j, Matrix& rM, TColumnType& rX)
+	static void GetColumn(unsigned int j, MatrixType& rM, TColumnType& rX)
 	{
-		if (rX.size() != rM.size1())
+		if (static_cast<std::size_t>(rX.size()) != rM.size1())
 			rX.resize(rM.size1(), false);
 
 		for (std::size_t i = 0; i < rM.size1(); i++) {
@@ -232,7 +235,7 @@ public:
 
 	// This version is needed in order to take one column of multi column solve from AMatrix matrix and pass it to an ublas vector
 	template<typename TColumnType>
-	static void SetColumn(unsigned int j, Matrix& rM, TColumnType& rX)
+	static void SetColumn(unsigned int j, MatrixType& rM, TColumnType& rX)
 	{
 		for (std::size_t i = 0; i < rM.size1(); i++) {
 			rM(i,j) = rX[i];
@@ -291,7 +294,7 @@ public:
         return std::sqrt(Dot(rX, rX));
     }
 
-    static TDataType TwoNorm(const Matrix& rA) // Frobenious norm
+    static TDataType TwoNorm(const boost::numeric::ublas::matrix<TDataType>& rA) // Frobenious norm
     {
         TDataType aux_sum = TDataType();
         #pragma omp parallel for reduction(+:aux_sum)
@@ -321,7 +324,7 @@ public:
      * @param rA The matrix to compute the Jacobi norm
      * @return aux_sum: The Jacobi norm
      */
-    static TDataType JacobiNorm(const Matrix& rA)
+    static TDataType JacobiNorm(const boost::numeric::ublas::matrix<TDataType>& rA)
     {
         TDataType aux_sum = TDataType();
         #pragma omp parallel for reduction(+:aux_sum)
@@ -369,7 +372,12 @@ public:
     template< class TOtherMatrixType >
     static void TransposeMult(const TOtherMatrixType& rA, const VectorType& rX, VectorType& rY)
     {
-        boost::numeric::ublas::axpy_prod(rX, rA, rY, true);
+        // Unqualified on purpose: the uBLAS overload is still found (through
+        // the using-directive in ublas_interface.h and through ADL on the
+        // uBLAS operands), while ADL also reaches the Eigen-backed overload
+        // when this space is instantiated on Kratos::Matrix/Vector under
+        // KRATOS_USE_EIGEN_BACKEND.
+        axpy_prod(rX, rA, rY, true);
     } // rY = rAT * rX
 
     static inline SizeType GraphDegree(IndexType i, TMatrixType& A)

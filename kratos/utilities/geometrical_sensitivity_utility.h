@@ -83,19 +83,19 @@ public:
 
     KRATOS_CLASS_POINTER_DEFINITION(GeometricalSensitivityUtility);
 
-    typedef DenseMatrix<double> MatrixType;
+    // The interface types follow the (backend-selected) Kratos::Matrix so the
+    // utility works directly on the matrices the geometries and elements
+    // produce; the minor extraction is done by explicit gathering (see the
+    // implementation) instead of uBLAS indirect proxies.
+    typedef Matrix MatrixType;
 
     typedef MatrixType JacobianType;
 
     typedef MatrixType ShapeFunctionsLocalGradientType;
 
     typedef MatrixType ShapeFunctionsGradientType;
-    
+
     typedef unsigned IndexType;
-
-	typedef boost::numeric::ublas::indirect_array<DenseVector<std::size_t>> IndirectArrayType;
-
-    typedef boost::numeric::ublas::matrix_indirect<const MatrixType, IndirectArrayType> SubMatrixType;
 
     template <class T>
     using matrix_row = boost::numeric::ublas::matrix_row<T>;

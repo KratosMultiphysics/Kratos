@@ -19,6 +19,7 @@
 // Project includes
 #include "solving_strategies/convergence_accelerators/convergence_accelerator.h"
 #include "spaces/ublas_space.h"
+#include "spaces/default_spaces.h"
 #include "trilinos_space.h"
 
 // Application includes
@@ -29,7 +30,7 @@
 
 namespace Kratos::Python {
 
-typedef UblasSpace<double, Matrix, Vector> TrilinosLocalSpaceType;
+typedef TDefaultDenseSpace<double> TrilinosLocalSpaceType;
 typedef TrilinosSpace<Epetra_FECrsMatrix, Epetra_FEVector> TrilinosSparseSpaceType;
 
 void AuxiliarUpdateSolution(
@@ -45,7 +46,7 @@ void AddTrilinosConvergenceAcceleratorsToPython(pybind11::module &m)
     namespace py = pybind11;
 
     using TrilinosSparseSpaceType = TrilinosSpace<Epetra_FECrsMatrix, Epetra_FEVector>;
-    using TrilinosLocalSpaceType  = UblasSpace<double, Matrix, Vector>;
+    using TrilinosLocalSpaceType  = TDefaultDenseSpace<double>;
 
     // Convergence accelerator base class
     using TrilinosBaseConvergenceAcceleratorType = ConvergenceAccelerator<TrilinosSparseSpaceType, TrilinosLocalSpaceType>;

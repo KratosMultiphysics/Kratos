@@ -287,6 +287,10 @@ SnakeGapSbmProcess::CreateSkinNodesPerKnotSpanMatrix(
             r_occupancy_matrix.push_back(span_index_x, span_index_y, 0.0);  // keep strictly increasing (i,j)
         }
     }
+    // FindNnzIndex/CellIds read index1_data()/index2_data()/value_data() as packed CSR
+    // arrays; element-wise insertion leaves the Eigen-backed matrix uncompressed
+    // (its arrays then span the allocated capacity), so finalize the storage first.
+    r_occupancy_matrix.complete_index1_data();
 
     // Temporary per-nnz buckets for node ids
     std::vector<std::vector<IndexType>> node_ids_per_non_zero(number_of_non_zero_entries);
@@ -297,7 +301,7 @@ SnakeGapSbmProcess::CreateSkinNodesPerKnotSpanMatrix(
         const std::size_t span_index_y = compute_span_index(r_node.Y(), min_v, max_v, span_size_y, number_of_spans_y);
 
         const std::size_t non_zero_index = FindNnzIndex(r_occupancy_matrix, span_index_x, span_index_y);
-        KRATOS_DEBUG_ERROR_IF(non_zero_index == static_cast<std::size_t>(-1))
+        KRATOS_ERROR_IF(non_zero_index == static_cast<std::size_t>(-1))
             << "[SnakeGapSbmProcess::CreateSkinNodesPerKnotSpanMatrix] nonzero (ix,iy) not found in CSR pattern.\n";
 
         node_ids_per_non_zero[non_zero_index].push_back(r_node.Id());
@@ -407,6 +411,10 @@ SnakeGapSbmProcess::CreateSkinConditionsPerKnotSpanMatrix(
             occupancy_index_lookup[span_index_x].emplace(span_index_y, nnz_counter++);
         }
     }
+    // FindNnzIndex/CellIds read index1_data()/index2_data()/value_data() as packed CSR
+    // arrays; element-wise insertion leaves the Eigen-backed matrix uncompressed
+    // (its arrays then span the allocated capacity), so finalize the storage first.
+    r_occupancy_matrix.complete_index1_data();
 
     // Fill
     std::vector<std::vector<IndexType>> condition_ids_per_non_zero(number_of_non_zero_entries);

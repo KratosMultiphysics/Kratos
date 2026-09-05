@@ -21,6 +21,7 @@
 #include "snake_sbm_process.h"
 #include "custom_utilities/create_breps_sbm_utilities.h"
 #include "spaces/ublas_space.h"
+#include "spaces/default_spaces.h"
 
 namespace Kratos
 {
@@ -56,7 +57,7 @@ public:
     using NurbsSurfaceType = NurbsSurfaceGeometry<3, PointerVector<NodeType>>;
     using NodePointerVector = GlobalPointersVector<NodeType>;
 
-    using SparseSpaceType  = UblasSpace<double, CompressedMatrix, Vector>;
+    using SparseSpaceType  = TDefaultSparseSpace<double>;
     using SparseMatrixType = SparseSpaceType::MatrixType;
 
     /**
@@ -115,7 +116,7 @@ public:
         const auto first = ci.begin() + b;
         const auto last  = ci.begin() + e;
         const auto it = std::lower_bound(first, last, j);
-        if (it != last && *it == j) return static_cast<std::size_t>(it - ci.begin());
+        if (it != last && static_cast<std::size_t>(*it) == j) return static_cast<std::size_t>(it - ci.begin());
         return static_cast<std::size_t>(-1);
     }
 

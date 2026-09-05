@@ -7,6 +7,7 @@
 
 // External includes
 #include "spaces/ublas_space.h"
+#include "spaces/default_spaces.h"
 
 // Project includes
 #include "custom_python/add_custom_strategies_to_python.h"
@@ -38,8 +39,8 @@ namespace py = pybind11;
 
 void  AddCustomStrategiesToPython(pybind11::module& m)
 {
-    typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
-    typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
+    typedef TDefaultSparseSpace<double> SparseSpaceType;
+    typedef TDefaultDenseSpace<double> LocalSpaceType;
     typedef Scheme< SparseSpaceType, LocalSpaceType > BaseSchemeType;
 
     //custom scheme types

@@ -53,7 +53,7 @@ using NodalScalarData = typename FluidElementData<TDim,TNumNodes, false>::NodalS
 using NodalVectorData = typename FluidElementData<TDim,TNumNodes, false>::NodalVectorData;
 using NodalTensorData = typename FluidElementData<TDim,TNumNodes, false>::NodalTensorData;
 using ShapeFunctionsSecondDerivativesType = DenseVector<Matrix>;
-using MatrixRowType = MatrixRow<Matrix>;
+using MatrixRowType = typename FluidElementData<TDim,TNumNodes, false>::MatrixRowType;
 using ShapeDerivativesType = BoundedMatrix<double,TNumNodes,TDim>;
 
 ///@}

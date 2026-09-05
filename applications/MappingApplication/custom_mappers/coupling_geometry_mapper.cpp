@@ -196,13 +196,18 @@ void CouplingGeometryMapper<TSparseSpace, TDenseSpace>::InitializeInterface(Krat
 
     // get total interface mapping matrix
     if (dual_mortar) {
-        typedef typename MappingMatrixType::iterator1 t_it_1;
-        typedef typename MappingMatrixType::iterator2 t_it_2;
-
-        for (t_it_1 it_1 = mpMappingMatrixSlave->begin1(); it_1 != mpMappingMatrixSlave->end1(); ++it_1) {
-            for (t_it_2 it_2 = it_1.begin(); it_2 != it_1.end(); ++it_2) {
-                if (it_2.index1() == it_2.index2()) {
-                    double& val = *it_2;
+        // invert the diagonal entries through the CSR arrays (backend-generic).
+        // auto&&/const auto& are required: uBLAS returns references to the
+        // storage arrays (plain auto would deep-copy and drop the writes),
+        // Eigen returns proxy views by value.
+        auto& r_slave_matrix = *mpMappingMatrixSlave;
+        const auto& row_indices = r_slave_matrix.index1_data();
+        const auto& col_indices = r_slave_matrix.index2_data();
+        auto&& values = r_slave_matrix.value_data();
+        for (IndexType i = 0; i < r_slave_matrix.size1(); ++i) {
+            for (auto k = row_indices[i]; k < row_indices[i + 1]; ++k) {
+                if (static_cast<IndexType>(col_indices[k]) == i) {
+                    double& val = values[k];
                     if (val > std::numeric_limits<double>::epsilon()) {
                         val = 1.0 / val;
                     } else {
@@ -331,17 +336,19 @@ void CouplingGeometryMapper<TSparseSpace, TDenseSpace>::EnforceConsistencyWithSc
     SparseSpaceType::VectorType projected_row_sums_vector(SparseSpaceType::Size1(rInterfaceMatrixProjected));
     SparseSpaceType::Mult(rInterfaceMatrixProjected, unit_vector, projected_row_sums_vector);
 
-    // Loop over sparse rows of projected matrix and correct entries if needed
-    IndexType row_counter = 0;
-    for (auto row_it = rInterfaceMatrixProjected.begin1(); row_it != rInterfaceMatrixProjected.end1(); ++row_it)
+    // Loop over sparse rows of projected matrix and correct entries if
+    // needed, through the CSR arrays (backend-generic; auto&& binds the
+    // uBLAS storage reference as well as the Eigen proxy view)
+    const auto& row_indices = rInterfaceMatrixProjected.index1_data();
+    auto&& values = rInterfaceMatrixProjected.value_data();
+    for (IndexType row_counter = 0; row_counter < rInterfaceMatrixProjected.size1(); ++row_counter)
     {
         if (std::abs(slave_row_sums_vector[row_counter]/ projected_row_sums_vector[row_counter] - 1.0) > 1e-15) {
             // Correct entries
             const double alpha = (slave_row_sums_vector[row_counter] / projected_row_sums_vector[row_counter] < scalingLimit)
                 ? slave_row_sums_vector[row_counter] / projected_row_sums_vector[row_counter] : scalingLimit;
-            for (auto col_it = row_it.begin(); col_it != row_it.end(); ++col_it) (*col_it) *= alpha;
+            for (auto k = row_indices[row_counter]; k < row_indices[row_counter + 1]; ++k) values[k] *= alpha;
         }
-        ++row_counter;
     }
 }
 
@@ -349,19 +356,35 @@ template<class TSparseSpace, class TDenseSpace>
 void CouplingGeometryMapper<TSparseSpace, TDenseSpace>::CalculateMappingMatrixWithSolver(
     MappingMatrixType& rConsistentInterfaceMatrix, MappingMatrixType& rProjectedInterfaceMatrix)
 {
-    mpMappingMatrix = Kratos::make_unique<typename SparseSpaceType::MatrixType>(
-        rConsistentInterfaceMatrix.size1(),
-        rProjectedInterfaceMatrix.size2());
+    // the solver-based mapping matrix is dense by construction, so the
+    // compressed storage is allocated and structured up front (insert_element
+    // is a uBLAS-only slow path)
+    const size_t n_mm_rows = rConsistentInterfaceMatrix.size1();
+    const size_t n_mm_cols = rProjectedInterfaceMatrix.size2();
+    mpMappingMatrix = Kratos::make_unique<typename SparseSpaceType::MatrixType>(n_mm_rows, n_mm_cols, n_mm_rows * n_mm_cols);
+    {
+        auto&& row_indices = mpMappingMatrix->index1_data();
+        auto&& col_indices = mpMappingMatrix->index2_data();
+        row_indices[0] = 0;
+        for (size_t j = 0; j < n_mm_rows; ++j) {
+            for (size_t i = 0; i < n_mm_cols; ++i) col_indices[j * n_mm_cols + i] = i;
+            row_indices[j + 1] = (j + 1) * n_mm_cols;
+        }
+        mpMappingMatrix->set_filled(n_mm_rows + 1, n_mm_rows * n_mm_cols);
+    }
 
     const size_t n_rows = mpMappingMatrix->size1();
-    Vector solution(n_rows);
-    Vector projector_column(n_rows);
+    const size_t n_cols = mpMappingMatrix->size2();
+    typename TSparseSpace::VectorType solution(n_rows);
+    typename TSparseSpace::VectorType projector_column(n_rows);
+    auto&& values = mpMappingMatrix->value_data();
 
-    for (size_t i = 0; i < mpMappingMatrix->size2(); ++i)
+    for (size_t i = 0; i < n_cols; ++i)
     {
         for (size_t j = 0; j < n_rows; ++j) projector_column[j] = rProjectedInterfaceMatrix(j, i); // TODO try boost slice or project
         mpLinearSolver->Solve(rConsistentInterfaceMatrix, solution, projector_column);
-        for (size_t j = 0; j < n_rows; ++j) (*mpMappingMatrix).insert_element(j, i,solution[j]);
+        // the compressed storage was structured dense up front
+        for (size_t j = 0; j < n_rows; ++j) values[j * n_cols + i] = solution[j];
     }
 }
 

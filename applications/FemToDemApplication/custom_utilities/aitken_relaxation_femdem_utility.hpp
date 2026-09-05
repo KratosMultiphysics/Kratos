@@ -19,6 +19,7 @@
 // External includes
 #include "utilities/math_utils.h"
 #include "spaces/ublas_space.h"
+#include "spaces/default_spaces.h"
 #include "fem_to_dem_application_variables.h"
 
 namespace Kratos
@@ -52,7 +53,7 @@ public:
     ///@{
     KRATOS_CLASS_POINTER_DEFINITION(AitkenRelaxationFEMDEMUtility);
 
-    typedef UblasSpace<double, Matrix, Vector> TSpace;
+    typedef TDefaultDenseSpace<double> TSpace;
 
     typedef typename TSpace::VectorType VectorType;
 

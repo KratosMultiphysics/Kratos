@@ -42,8 +42,16 @@ public:
 
 KRATOS_CLASS_POINTER_DEFINITION(StatisticsSampler);
 
+#ifdef KRATOS_USE_EIGEN_BACKEND
+// The Eigen-backed Matrix has no uBLAS iterators. Its storage is row-major,
+// so an integration point's data (one matrix row) is a contiguous block: the
+// view is the Eigen row expression and the element iterator a plain pointer.
+typedef Matrix::RowXpr IntegrationPointDataView;
+typedef const double* IntegrationPointDataViewIterator;
+#else
 typedef Matrix::iterator1 IntegrationPointDataView;
 typedef Matrix::const_iterator2 IntegrationPointDataViewIterator;
+#endif
 
 /// Define a new StatisticsSampler instance.
 /** Note that this is the base class, unless you are implementing a new statistic,

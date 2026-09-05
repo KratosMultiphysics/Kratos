@@ -14,6 +14,7 @@
 
 #include "custom_strategies/schemes/newmark_quasistatic_U_Pw_scheme.hpp"
 #include "spaces/ublas_space.h"
+#include "spaces/default_spaces.h"
 #include "tests/cpp_tests/test_utilities/spy_condition.h"
 #include "tests/cpp_tests/test_utilities/spy_element.h"
 
@@ -21,8 +22,8 @@ namespace Kratos::Testing
 {
 
 using namespace Kratos;
-using SparseSpaceType = UblasSpace<double, CompressedMatrix, Vector>;
-using LocalSpaceType  = UblasSpace<double, Matrix, Vector>;
+using SparseSpaceType = TDefaultSparseSpace<double>;
+using LocalSpaceType  = TDefaultDenseSpace<double>;
 
 class NewmarkQuasistaticUPwSchemeTester
 {
@@ -75,9 +76,9 @@ KRATOS_TEST_CASE_IN_SUITE(InitializeNewmarkUPwScheme_SetsTimeFactors, KratosGeoM
 {
     NewmarkQuasistaticUPwSchemeTester tester;
 
-    CompressedMatrix A;
-    Vector           Dx;
-    Vector           b;
+    SparseSpaceType::MatrixType A;
+    SparseSpaceType::VectorType           Dx;
+    SparseSpaceType::VectorType           b;
 
     tester.mScheme.Initialize(tester.GetModelPart());
 
@@ -99,9 +100,9 @@ KRATOS_TEST_CASE_IN_SUITE(NewmarkUPwSchemePredict_UpdatesVariablesDerivatives, K
     NewmarkQuasistaticUPwSchemeTester tester;
 
     ModelPart::DofsArrayType dof_set;
-    CompressedMatrix         A;
-    Vector                   Dx;
-    Vector                   b;
+    SparseSpaceType::MatrixType         A;
+    SparseSpaceType::VectorType                   Dx;
+    SparseSpaceType::VectorType                   b;
 
     tester.mScheme.InitializeSolutionStep(tester.GetModelPart(), A, Dx, b); // This is needed to set the time factors
 

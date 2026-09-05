@@ -22,6 +22,7 @@
 #include "processes/process.h"
 #include "solving_strategies/schemes/scheme.h"
 #include "spaces/ublas_space.h"
+#include "spaces/default_spaces.h"
 
 // TrilinosApplication dependencies
 #include "trilinos_space.h"
@@ -39,7 +40,7 @@ void AddTrilinosSchemesToPython(pybind11::module& m)
     namespace py = pybind11;
 
     using TrilinosSparseSpace = TrilinosSpace<Epetra_FECrsMatrix, Epetra_FEVector>;
-    using UblasLocalSpace = UblasSpace<double, Matrix, Vector>;
+    using UblasLocalSpace = TDefaultDenseSpace<double>;
 
     using TrilinosBaseScheme = Scheme< TrilinosSparseSpace, UblasLocalSpace >;
 

@@ -514,6 +514,24 @@ public:
             load("E", rObject[i]);
     }
 
+#ifdef KRATOS_USE_EIGEN_BACKEND
+    /// Same on-disk format as the uBLAS DenseVector overload above, for the
+    /// Eigen-backed dynamic Vector alias of the Eigen backend.
+    template<class TDataType>
+    void load(std::string const & rTag, EigenVector<TDataType>& rObject)
+    {
+        load_trace_point(rTag);
+        SizeType size;
+
+        load("size", size);
+
+        rObject.resize(size,false);
+
+        for(SizeType i = 0 ; i < size ; i++)
+            load("E", rObject[i]);
+    }
+#endif
+
 
     template<class TKeyType, class TDataType>
     void load(std::string const & rTag, std::map<TKeyType, TDataType>& rObject)
@@ -584,6 +602,12 @@ public:
     KRATOS_SERIALIZATION_DIRECT_LOAD(unsigned int)
     KRATOS_SERIALIZATION_DIRECT_LOAD(std::string)
     KRATOS_SERIALIZATION_DIRECT_LOAD(Matrix)
+#ifdef KRATOS_USE_EIGEN_BACKEND
+    // Under the Eigen backend Matrix is the Eigen wrapper; the uBLAS dynamic
+    // matrix keeps its own direct serialization (it remains in use for the
+    // complex spaces and for Variables spelled on the uBLAS types).
+    KRATOS_SERIALIZATION_DIRECT_LOAD(DenseMatrix<double>)
+#endif
     KRATOS_SERIALIZATION_DIRECT_LOAD(long long)
 //#ifdef  _WIN32 // work around for windows int64_t error
 //    KRATOS_SERIALIZATION_DIRECT_LOAD(__int64)
@@ -635,6 +659,21 @@ public:
         for(SizeType i = 0 ; i < size ; i++)
             save("E", rObject[i]);
     }
+
+#ifdef KRATOS_USE_EIGEN_BACKEND
+    /// Same on-disk format as the uBLAS DenseVector overload above.
+    template<class TDataType>
+    void save(std::string const & rTag, EigenVector<TDataType> const& rObject)
+    {
+        save_trace_point(rTag);
+        SizeType size = rObject.size();
+
+        save("size", size);
+
+        for(SizeType i = 0 ; i < size ; i++)
+            save("E", rObject[i]);
+    }
+#endif
 
     template<class TDataType, std::size_t TDimension>
     void save(std::string const & rTag, array_1d<TDataType, TDimension> const& rObject)
@@ -833,6 +872,10 @@ public:
     KRATOS_SERIALIZATION_DIRECT_SAVE(unsigned int)
     KRATOS_SERIALIZATION_DIRECT_SAVE(std::string)
     KRATOS_SERIALIZATION_DIRECT_SAVE(Matrix)
+#ifdef KRATOS_USE_EIGEN_BACKEND
+    // See the matching KRATOS_SERIALIZATION_DIRECT_LOAD note.
+    KRATOS_SERIALIZATION_DIRECT_SAVE(DenseMatrix<double>)
+#endif
     KRATOS_SERIALIZATION_DIRECT_SAVE(long long)
 //#ifdef  _WIN32 // work around for windows int64_t error
 //    KRATOS_SERIALIZATION_DIRECT_SAVE(__int64)
@@ -866,6 +909,15 @@ public:
         load(rTag, rObject);
     }
 
+#ifdef KRATOS_USE_EIGEN_BACKEND
+    template<class TDataType>
+    void load_base(std::string const & rTag, EigenVector<TDataType>& rObject)
+    {
+        load_trace_point(rTag);
+        load(rTag, rObject);
+    }
+#endif
+
     template<class TDataType, std::size_t TDimension>
     void load_base(std::string const & rTag, array_1d<TDataType, TDimension>& rObject)
     {
@@ -886,6 +938,15 @@ public:
         save_trace_point(rTag);
         save(rTag, rObject);
     }
+
+#ifdef KRATOS_USE_EIGEN_BACKEND
+    template<class TDataType>
+    void save_base(std::string const & rTag, EigenVector<TDataType> const& rObject)
+    {
+        save_trace_point(rTag);
+        save(rTag, rObject);
+    }
+#endif
 
     template<class TDataType, std::size_t TDimension>
     void save_base(std::string const & rTag, array_1d<TDataType, TDimension> const& rObject)
@@ -1300,6 +1361,68 @@ private:
 
         KRATOS_SERIALIZER_MODE_END
     }
+
+#ifdef KRATOS_USE_EIGEN_BACKEND
+    /// Same on-disk format as the uBLAS DenseMatrix overload below (both are
+    /// row-major), for the Eigen-backed dynamic Matrix alias.
+    template<class TDataType>
+    void read(EigenMatrix<TDataType>& rData)
+    {
+        KRATOS_SERIALIZER_MODE_BINARY
+
+        SizeType size1;
+        SizeType size2;
+
+        mpBuffer->read((char *)(&size1),sizeof(SizeType));
+        mpBuffer->read((char *)(&size2),sizeof(SizeType));
+
+        rData.resize(size1,size2,false);
+
+        read(rData.data(), rData.data() + size1 * size2, sizeof(TDataType));
+
+        KRATOS_SERIALIZER_MODE_ASCII
+
+        SizeType size1;
+        SizeType size2;
+
+        *mpBuffer >> size1;
+        mNumberOfLines++;
+        *mpBuffer >> size2;
+        mNumberOfLines++;
+
+        rData.resize(size1,size2,false);
+
+        read(rData.data(), rData.data() + size1 * size2, 0);
+
+        KRATOS_SERIALIZER_MODE_END
+    }
+
+    template<class TDataType>
+    void write(EigenMatrix<TDataType> const& rData)
+    {
+        KRATOS_SERIALIZER_MODE_BINARY
+
+        SizeType rData_size1 = rData.size1();
+        SizeType rData_size2 = rData.size2();
+
+        const char * data1 = reinterpret_cast<const char *>(&rData_size1);
+        const char * data2 = reinterpret_cast<const char *>(&rData_size2);
+
+        mpBuffer->write(data1,sizeof(SizeType));
+        mpBuffer->write(data2,sizeof(SizeType));
+
+        write(rData.data(), rData.data() + rData.size1() * rData.size2(), sizeof(TDataType));
+
+        KRATOS_SERIALIZER_MODE_ASCII
+
+        *mpBuffer << rData.size1() << std::endl;
+        *mpBuffer << rData.size2() << std::endl;
+
+        write(rData.data(), rData.data() + rData.size1() * rData.size2(), 0);
+
+        KRATOS_SERIALIZER_MODE_END
+    }
+#endif
 
     template<class TDataType>
     void read(DenseMatrix<TDataType>& rData)

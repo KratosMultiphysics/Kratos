@@ -60,6 +60,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // Project includes
 #include "includes/define.h"
 #include "spaces/ublas_space.h"
+#include "spaces/default_spaces.h"
 #include "custom_python/add_custom_strategies_to_python.h"
 
 //strategies
@@ -85,8 +86,8 @@ namespace Kratos
 
 		void  AddCustomStrategiesToPython(pybind11::module& m)
 		{
-			typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
-			typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
+			typedef TDefaultSparseSpace<double> SparseSpaceType;
+			typedef TDefaultDenseSpace<double> LocalSpaceType;
 
 			typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
 			typedef ImplicitSolvingStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > BaseSolvingStrategyType;

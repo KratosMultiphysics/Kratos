@@ -30,8 +30,14 @@ template <
     typename TEigenSparseMatrix = Kratos::EigenSparseMatrix<TScalar>>
 class UblasWrapper
 {
-    std::vector<int> m_index1;
-    std::vector<int> m_index2;
+    // The index buffers follow the target map's StorageIndex so the copy always
+    // produces the exact index type the wrapped Eigen solver expects. This is
+    // int for the uBLAS backend (and for MKL/Pardiso), and matches the system
+    // matrix index for the Eigen backend.
+    using StorageIndex = typename TEigenSparseMatrix::StorageIndex;
+
+    std::vector<StorageIndex> m_index1;
+    std::vector<StorageIndex> m_index2;
     Eigen::Map<const TEigenSparseMatrix> m_map;
 
 public:

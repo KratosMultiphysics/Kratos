@@ -29,6 +29,7 @@
 #include "custom_utilities/embedded_mls_constraint_process.h"
 
 #include "spaces/ublas_space.h"
+#include "spaces/default_spaces.h"
 #include "linear_solvers/linear_solver.h"
 //#include "custom_utilities/convection_diffusion_settings.h"
 
@@ -73,8 +74,8 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
     .def("GenerateModelPart",GenerateModelPart)
     ;
 
-    typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
-    typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
+    typedef TDefaultSparseSpace<double> SparseSpaceType;
+    typedef TDefaultDenseSpace<double> LocalSpaceType;
     typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
 
     py::class_< PureConvectionUtilities< 2, SparseSpaceType, LinearSolverType >>(m,"PureConvectionUtilities2D").def(py::init<	>() )

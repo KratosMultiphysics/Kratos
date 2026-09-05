@@ -16,6 +16,7 @@
 #include "custom_strategies/strategies/geo_mechanics_newton_raphson_erosion_process_strategy.hpp"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
 #include "tests/cpp_tests/test_utilities.h"
+#include "spaces/default_spaces.h"
 
 #include <geo_mechanics_application.h>
 #include <linear_solvers/skyline_lu_factorization_solver.h>
@@ -110,8 +111,8 @@ Geometry<Node>::Pointer CreateLine2D2N(ModelPart&              rModelPart,
 
 auto SetupPipingStrategy(Model& rModel)
 {
-    using SparseSpaceType             = UblasSpace<double, CompressedMatrix, Vector>;
-    using LocalSpaceType              = UblasSpace<double, Matrix, Vector>;
+    using SparseSpaceType             = TDefaultSparseSpace<double>;
+    using LocalSpaceType              = TDefaultDenseSpace<double>;
     using LinearSolverType            = LinearSolver<SparseSpaceType, LocalSpaceType>;
     using ConvergenceCriteriaType     = ConvergenceCriteria<SparseSpaceType, LocalSpaceType>;
     using MixedGenericCriteriaType    = MixedGenericCriteria<SparseSpaceType, LocalSpaceType>;

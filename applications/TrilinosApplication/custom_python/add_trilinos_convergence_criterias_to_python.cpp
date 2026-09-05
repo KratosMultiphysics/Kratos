@@ -19,6 +19,7 @@
 // Project includes
 #include "trilinos_space.h"
 #include "spaces/ublas_space.h"
+#include "spaces/default_spaces.h"
 #include "solving_strategies/convergencecriterias/residual_criteria.h"
 #include "solving_strategies/convergencecriterias/and_criteria.h"
 #include "solving_strategies/convergencecriterias/or_criteria.h"
@@ -37,7 +38,7 @@ namespace py = pybind11;
 void  AddConvergenceCriterias(pybind11::module& m)
 {
     using TrilinosSparseSpaceType = TrilinosSpace<Epetra_FECrsMatrix, Epetra_FEVector>;
-    using TrilinosLocalSpaceType = UblasSpace<double, Matrix, Vector>;
+    using TrilinosLocalSpaceType = TDefaultDenseSpace<double>;
 
     //********************************************************************
     //********************************************************************

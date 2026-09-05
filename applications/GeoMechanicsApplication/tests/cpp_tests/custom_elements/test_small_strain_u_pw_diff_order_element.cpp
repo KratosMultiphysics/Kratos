@@ -197,7 +197,7 @@ KRATOS_TEST_CASE_IN_SUITE(SmallStrainUPwDiffOrderElement_CalculateLHS, KratosGeo
     auto actual_lhs_values = Matrix{};
     p_element->CalculateLeftHandSide(actual_lhs_values, dummy_process_info);
 
-    KRATOS_EXPECT_MATRIX_NEAR(ExpectedLeftHandSide(), actual_lhs_values, Defaults::absolute_tolerance);
+    KRATOS_EXPECT_MATRIX_RELATIVE_NEAR(ExpectedLeftHandSide(), actual_lhs_values, Defaults::relative_tolerance);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(SmallStrainUPwDiffOrderElement_CalculateLHS_WithSaveAndLoad, KratosGeoMechanicsFastSuite)
@@ -223,7 +223,7 @@ KRATOS_TEST_CASE_IN_SUITE(SmallStrainUPwDiffOrderElement_CalculateLHS_WithSaveAn
     auto actual_lhs_values = Matrix{};
     p_loaded_element->CalculateLeftHandSide(actual_lhs_values, dummy_process_info);
 
-    KRATOS_EXPECT_MATRIX_NEAR(ExpectedLeftHandSide(), actual_lhs_values, Defaults::absolute_tolerance);
+    KRATOS_EXPECT_MATRIX_RELATIVE_NEAR(ExpectedLeftHandSide(), actual_lhs_values, Defaults::relative_tolerance);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(SmallStrainUPwDiffOrderElement_CalculateRHS, KratosGeoMechanicsFastSuiteWithoutKernel)
@@ -281,7 +281,7 @@ KRATOS_TEST_CASE_IN_SUITE(SmallStrainUPwDiffOrderElement_RHSEqualsUnbalanceVecto
     auto external_forces = Vector{};
     p_element->Calculate(EXTERNAL_FORCES_VECTOR, external_forces, dummy_process_info);
 
-    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(actual_rhs_values, (external_forces - internal_forces), 1e-5);
+    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(actual_rhs_values, Vector(external_forces - internal_forces), 1e-5);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(SmallStrainUPwDiffOrderElement_CalculateThrowsDebugErrorForUnknownVectorVariable,
@@ -745,7 +745,7 @@ KRATOS_TEST_CASE_IN_SUITE(SmallStrainUPwDiffOrderElement_CalculateDampingMatrix,
         {0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0},
         {0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0}});
     // clang-format on
-    KRATOS_EXPECT_MATRIX_NEAR(damping_matrix, expected_damping_matrix, Defaults::absolute_tolerance);
+    KRATOS_EXPECT_MATRIX_RELATIVE_NEAR(damping_matrix, expected_damping_matrix, Defaults::relative_tolerance);
 }
 
 struct DiffOrderElementTestParam {

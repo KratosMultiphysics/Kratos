@@ -106,7 +106,7 @@ public:
         }
 
         // Compute the Bidiagonal Divide and Conquer Singular Value Decomposition (BDCSVD)
-        Eigen::Map<EigenMatrix> eigen_input_matrix_map(rInputMatrix.data().begin(), rInputMatrix.size1(), rInputMatrix.size2());
+        Eigen::Map<EigenMatrix> eigen_input_matrix_map(&rInputMatrix.data()[0], rInputMatrix.size1(), rInputMatrix.size2());
         mBDCSVD.compute(eigen_input_matrix_map, decomposition_options);
     }
 
@@ -134,7 +134,7 @@ public:
             rMatrixU.resize(m,n);
         }
 
-        Eigen::Map<EigenMatrix> matrix_u_map(rMatrixU.data().begin(), rMatrixU.size1(), rMatrixU.size2());
+        Eigen::Map<EigenMatrix> matrix_u_map(&rMatrixU.data()[0], rMatrixU.size1(), rMatrixU.size2());
         matrix_u_map = r_matrix_U;
     }
 
@@ -149,7 +149,7 @@ public:
             rMatrixV.resize(m,n);
         }
 
-        Eigen::Map<EigenMatrix> matrix_v_map(rMatrixV.data().begin(), rMatrixV.size1(), rMatrixV.size2());
+        Eigen::Map<EigenMatrix> matrix_v_map(&rMatrixV.data()[0], rMatrixV.size1(), rMatrixV.size2());
         matrix_v_map = r_matrix_V;
     }
 
@@ -161,7 +161,7 @@ public:
             rVectorS.resize(m);
         }
 
-        Eigen::Map<EigenVector> vector_s_map(rVectorS.data().begin(), rVectorS.size());
+        Eigen::Map<EigenVector> vector_s_map(&rVectorS.data()[0], rVectorS.size());
         vector_s_map = r_vector_S;
     }
 

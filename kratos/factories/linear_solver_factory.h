@@ -24,6 +24,7 @@
 #include "includes/kratos_components.h"
 #include "linear_solvers/linear_solver.h"
 #include "spaces/ublas_space.h"
+#include "spaces/default_spaces.h"
 
 namespace Kratos
 {
@@ -151,15 +152,20 @@ inline std::ostream& operator << (std::ostream& rOStream,
 }
 ///@}
 
-typedef TUblasSparseSpace<double> SparseSpaceType;
-typedef TUblasDenseSpace<double> LocalSparseSpaceType;
+// The registration typedefs follow the default (configure-time selected)
+// linear-algebra backend, so the KRATOS_REGISTER_* macros register into the
+// component map the python-exposed strategies look up.
+typedef DefaultSparseSpaceType SparseSpaceType;
+typedef DefaultLocalSpaceType LocalSparseSpaceType;
 
 typedef LinearSolverFactory<SparseSpaceType,  LocalSparseSpaceType> LinearSolverFactoryType;
 
+// Only the default (backend-selected) spaces are instantiated: the two
+// linear-algebra backends are mutually exclusive for the real sparse spaces.
 KRATOS_API_EXTERN template class KRATOS_API(KRATOS_CORE) KratosComponents<LinearSolverFactoryType>;
 KRATOS_API_EXTERN template class KRATOS_API(KRATOS_CORE) KratosComponents<LinearSolverFactory<
-    TUblasSparseSpace<float>,
-    TUblasDenseSpace<double>
+    TDefaultSparseSpace<float>,
+    TDefaultDenseSpace<double>
 >>;
 
 #ifdef KRATOS_REGISTER_LINEAR_SOLVER

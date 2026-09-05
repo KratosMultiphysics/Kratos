@@ -19,6 +19,7 @@
 // Project includes
 #include "includes/global_variables.h"
 #include "spaces/ublas_space.h"
+#include "spaces/default_spaces.h"
 #include "utilities/dense_householder_qr_decomposition.h"
 #include "mls_shape_functions_utility.h"
 
@@ -27,7 +28,7 @@ namespace Kratos
 
 namespace
 {
-    using DenseSpace = UblasSpace<double, Matrix, Vector>;
+    using DenseSpace = TDefaultDenseSpace<double>;
 }
 
     double MLSShapeFunctionsUtility::CalculateKernel(
@@ -171,7 +172,8 @@ namespace
         array_1d<double,3> rad_vect;
         for (std::size_t i_pt = 0; i_pt < n_points; ++i_pt) {
             // Set current point data
-            const array_1d<double,3>& r_i_pt_coords = row(rPoints, i_pt);
+            array_1d<double,3> r_i_pt_coords;
+            for (std::size_t i_dim = 0; i_dim < 3; ++i_dim) r_i_pt_coords[i_dim] = rPoints(i_pt, i_dim);
             noalias(rad_vect) = rX - r_i_pt_coords;
 
             // Calculate kernel values
@@ -244,7 +246,8 @@ namespace
         BoundedMatrix<double,2,3> Dp_Dx;
         for (std::size_t i_pt = 0; i_pt < n_points; ++i_pt) {
             // Set current point data
-            const array_1d<double,3>& r_i_pt_coords = row(rPoints, i_pt);
+            array_1d<double,3> r_i_pt_coords;
+            for (std::size_t i_dim = 0; i_dim < 3; ++i_dim) r_i_pt_coords[i_dim] = rPoints(i_pt, i_dim);
             noalias(rad_vect) = rX - r_i_pt_coords;
 
             // Calculate kernel values
@@ -350,7 +353,8 @@ namespace
         BoundedMatrix<double,2,6> Dp_Dx;
         for (std::size_t i_pt = 0; i_pt < n_points; ++i_pt) {
             // Set current point data
-            const array_1d<double,3>& r_i_pt_coords = row(rPoints, i_pt);
+            array_1d<double,3> r_i_pt_coords;
+            for (std::size_t i_dim = 0; i_dim < 3; ++i_dim) r_i_pt_coords[i_dim] = rPoints(i_pt, i_dim);
             noalias(rad_vect) = rX - r_i_pt_coords;
 
             // Calculate kernel values
@@ -458,7 +462,8 @@ namespace
         BoundedMatrix<double,3,4> Dp_Dx;
         for (std::size_t i_pt = 0; i_pt < n_points; ++i_pt) {
             // Set current point data
-            const array_1d<double,3>& r_i_pt_coords = row(rPoints, i_pt);
+            array_1d<double,3> r_i_pt_coords;
+            for (std::size_t i_dim = 0; i_dim < 3; ++i_dim) r_i_pt_coords[i_dim] = rPoints(i_pt, i_dim);
             noalias(rad_vect) = rX - r_i_pt_coords;
 
             // Calculate kernel values
@@ -580,7 +585,8 @@ namespace
         BoundedMatrix<double,3,10> Dp_Dx;
         for (std::size_t i_pt = 0; i_pt < n_points; ++i_pt) {
             // Set current point data
-            const array_1d<double,3>& r_i_pt_coords = row(rPoints, i_pt);
+            array_1d<double,3> r_i_pt_coords;
+            for (std::size_t i_dim = 0; i_dim < 3; ++i_dim) r_i_pt_coords[i_dim] = rPoints(i_pt, i_dim);
             noalias(rad_vect) = rX - r_i_pt_coords;
 
             // Calculate kernel values

@@ -19,6 +19,7 @@
 #include "includes/define_python.h"
 #include "custom_python/add_custom_strategies_to_python.h"
 #include "spaces/ublas_space.h"
+#include "spaces/default_spaces.h"
 
 //schemes
 #include "solving_strategies/schemes/scheme.h"
@@ -36,8 +37,8 @@ namespace Python
 void AddCustomStrategiesToPython(pybind11::module &m)
 {
     namespace py = pybind11;
-    typedef UblasSpace<double, CompressedMatrix, boost::numeric::ublas::vector<double>> SparseSpaceType;
-    typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
+    typedef TDefaultSparseSpace<double> SparseSpaceType;
+    typedef TDefaultDenseSpace<double> LocalSpaceType;
     typedef ResidualBasedIncrementalUpdateStaticScheme< SparseSpaceType, LocalSpaceType > ResidualBasedIncrementalUpdateStaticSchemeType;
 
     //********************************************************************

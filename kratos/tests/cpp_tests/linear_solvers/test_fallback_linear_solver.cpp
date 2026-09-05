@@ -18,6 +18,7 @@
 // Project includes
 #include "testing/testing.h"
 #include "spaces/ublas_space.h"
+#include "spaces/default_spaces.h"
 #include "linear_solvers/fallback_linear_solver.h"
 
 namespace Kratos::Testing
@@ -87,9 +88,26 @@ public:
 
 }; // Class DummyLinearSolver
 
-// Define the types of spaces
-using SpaceType = UblasSpace<double, boost::numeric::ublas::compressed_matrix<double>, boost::numeric::ublas::vector<double>>;
-using LocalSpaceType = UblasSpace<double, DenseMatrix<double>, DenseVector<double>>;
+// Define the types of spaces (the sparse one follows the configured backend)
+using SpaceType = TDefaultSparseSpace<double>;
+using LocalSpaceType = TDefaultDenseSpace<double>;
+
+// Builds a small identity by writing the CSR arrays directly (valid for both backends)
+SpaceType::MatrixType MakeIdentityMatrix(const std::size_t Size)
+{
+    SpaceType::MatrixType identity(Size, Size, Size);
+    auto row_ptr = identity.index1_data().begin();
+    auto col_ptr = identity.index2_data().begin();
+    auto val_ptr = identity.value_data().begin();
+    row_ptr[0] = 0;
+    for (std::size_t i = 0; i < Size; ++i) {
+        col_ptr[i] = i;
+        val_ptr[i] = 1.0;
+        row_ptr[i + 1] = i + 1;
+    }
+    identity.set_filled(Size + 1, Size);
+    return identity;
+}
 
 // Define the vector and matrix types
 using SparseMatrixType = typename SpaceType::MatrixType;
@@ -115,14 +133,11 @@ KRATOS_TEST_CASE_IN_SUITE(FallbackLinearSolverConstructorSolvers, KratosCoreFast
 
     // Create the matrix and vectors
     const std::size_t size = 3;
-    SparseMatrixType A(size, size);
-    // Push back 1.0 in the diagonal
-    for (std::size_t i = 0; i < size; ++i) {
-        A.push_back(i, i, 1.0);
-    }
-    A.set_filled(size + 1, size);
-    VectorType b = ZeroVector(size);
-    VectorType x = ZeroVector(size);
+    SparseMatrixType A = MakeIdentityMatrix(size);
+    VectorType b(size);
+    SpaceType::SetToZero(b);
+    VectorType x(size);
+    SpaceType::SetToZero(x);
 
     // Create a simple fallback solver
     std::vector<LinearSolverType::Pointer> solvers = {p_solver1, p_solver2};
@@ -142,14 +157,11 @@ KRATOS_TEST_CASE_IN_SUITE(FallbackLinearSolverConstructorParameters, KratosCoreF
 {
     // Create the matrix and vectors
     const std::size_t size = 3;
-    SparseMatrixType A(size, size);
-    // Push back 1.0 in the diagonal
-    for (std::size_t i = 0; i < size; ++i) {
-        A.push_back(i, i, 1.0);
-    }
-    A.set_filled(size + 1, size);
-    VectorType b = ZeroVector(size);
-    VectorType x = ZeroVector(size);
+    SparseMatrixType A = MakeIdentityMatrix(size);
+    VectorType b(size);
+    SpaceType::SetToZero(b);
+    VectorType x(size);
+    SpaceType::SetToZero(x);
 
     // Create a simple fallback solver
     Parameters parameters = Parameters(R"({

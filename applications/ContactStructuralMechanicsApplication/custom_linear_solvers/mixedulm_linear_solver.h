@@ -862,8 +862,8 @@ protected:
             AllocateBlocks();
 
         // Get access to A data
-        const IndexType* index1 = rA.index1_data().begin();
-        const IndexType* index2 = rA.index2_data().begin();
+        const auto* index1 = rA.index1_data().begin();
+        const auto* index2 = rA.index2_data().begin();
         const double* values = rA.value_data().begin();
 
         // Allocate the auxiliary blocks by push_back
@@ -1381,9 +1381,10 @@ private:
      * @param InitialIndex The index corresponding to the current row in the global contribution
      * @param Ptr The nonzero terms of each column
      */
+    template<class TIndexType> // the CSR index type differs between the backends
     inline void ComputeNonZeroColumnsDispDoFs(
-        const IndexType* Index1,
-        const IndexType* Index2,
+        const TIndexType* Index1,
+        const TIndexType* Index2,
         const double* Values,
         const int CurrentRow,
         const IndexType InitialIndex,
@@ -1421,9 +1422,10 @@ private:
      * @param InitialIndex The index corresponding to the current row in the global contribution
      * @param Ptr The nonzero terms of each column
      */
+    template<class TIndexType> // the CSR index type differs between the backends
     inline void ComputeNonZeroColumnsPartialDispDoFs(
-        const IndexType* Index1,
-        const IndexType* Index2,
+        const TIndexType* Index1,
+        const TIndexType* Index2,
         const double* Values,
         const int CurrentRow,
         const IndexType InitialIndex,
@@ -1460,9 +1462,10 @@ private:
      * @param AuxIndex2 The indexes of the non zero columns
      * @param AuxVals The values of the final matrix
      */
+    template<class TIndexType> // the CSR index type differs between the backends
     inline void ComputeAuxiliaryValuesDispDoFs(
-        const IndexType* Index1,
-        const IndexType* Index2,
+        const TIndexType* Index1,
+        const TIndexType* Index2,
         const double* Values,
         const int CurrentRow,
         const IndexType InitialIndex,
@@ -1527,9 +1530,10 @@ private:
      * @param AuxIndex2 The indexes of the non zero columns
      * @param AuxVals The values of the final matrix
      */
+    template<class TIndexType> // the CSR index type differs between the backends
     inline void ComputeAuxiliaryValuesPartialDispDoFs(
-        const IndexType* Index1,
-        const IndexType* Index2,
+        const TIndexType* Index1,
+        const TIndexType* Index2,
         const double* Values,
         const int CurrentRow,
         const IndexType InitialIndex,
@@ -1876,8 +1880,10 @@ private:
     double CheckMatrix (const SparseMatrixType& rA)
     {
         // Get access to A data
-        const std::size_t* index1 = rA.index1_data().begin();
-        const std::size_t* index2 = rA.index2_data().begin();
+        // auto: the index type differs between the backends (std::size_t
+        // for uBLAS, a signed index for the Eigen CSR wrapper)
+        const auto* index1 = rA.index1_data().begin();
+        const auto* index2 = rA.index2_data().begin();
         const double* values = rA.value_data().begin();
         double norm = 0.0;
         for (std::size_t i=0; i<rA.size1(); ++i) {
@@ -1887,7 +1893,7 @@ private:
                 KRATOS_WARNING("Checking sparse matrix") << "Line " << i << " has no elements" << std::endl;
 
             for (std::size_t j=row_begin; j<row_end; j++) {
-                KRATOS_ERROR_IF( index2[j] > rA.size2() ) << "Array above size of A" << std::endl;
+                KRATOS_ERROR_IF( static_cast<std::size_t>(index2[j]) > static_cast<std::size_t>(rA.size2()) ) << "Array above size of A" << std::endl;
                 norm += values[j]*values[j];
             }
         }

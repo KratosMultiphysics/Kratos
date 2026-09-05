@@ -74,6 +74,7 @@
 #include "processes/calculate_nodal_distance_to_skin_process.h"
 
 #include "spaces/ublas_space.h"
+#include "spaces/default_spaces.h"
 #include "linear_solvers/linear_solver.h"
 
 namespace Kratos::Python
@@ -117,8 +118,8 @@ void CalculateEmbeddedVariableFromSkinArray(
     rDistProcess.CalculateEmbeddedVariableFromSkin(rVariable, rEmbeddedVariable);
 }
 
-using SparseSpaceType = UblasSpace<double, CompressedMatrix, Vector>;
-using LocalSpaceType = UblasSpace<double, Matrix, Vector>;
+using SparseSpaceType = DefaultSparseSpaceType;
+using LocalSpaceType = DefaultLocalSpaceType;
 using LinearSolverType = LinearSolver<SparseSpaceType, LocalSpaceType>;
 
 template <std::size_t TDim, std::size_t TNumNodes, class TVariableType, const SizeType TNumNodesMaster = TNumNodes>
@@ -130,10 +131,10 @@ void DefineSimpleMortarMapperProcess(pybind11::module& m, const std::string& cla
     .def(pybind11::init<ModelPart&, ModelPart&, TVariableType&>())
     .def(pybind11::init<ModelPart&, ModelPart&, Parameters>())
     .def(pybind11::init<ModelPart&, ModelPart&, TVariableType&, Parameters>())
-    .def(pybind11::init<ModelPart&, ModelPart&, TVariableType&, Parameters, LinearSolverType::Pointer>())
+    .def(pybind11::init<ModelPart&, ModelPart&, TVariableType&, Parameters, typename ProcessType::LinearSolverType::Pointer>())
     .def(pybind11::init<ModelPart&, ModelPart&, TVariableType&, TVariableType&>())
     .def(pybind11::init<ModelPart&, ModelPart&, TVariableType&, TVariableType&, Parameters>())
-    .def(pybind11::init<ModelPart&, ModelPart&, TVariableType&, TVariableType&, Parameters, LinearSolverType::Pointer>())
+    .def(pybind11::init<ModelPart&, ModelPart&, TVariableType&, TVariableType&, Parameters, typename ProcessType::LinearSolverType::Pointer>())
     .def("Map", &ProcessType::Map)
     ;
 }
@@ -604,7 +605,7 @@ void  AddProcessesToPython(pybind11::module& m)
     // Wrapper
     py::class_<SimpleMortarMapperProcessWrapper, SimpleMortarMapperProcessWrapper::Pointer, Process>(m, "SimpleMortarMapperProcess")
     .def(py::init<ModelPart&, ModelPart&, Parameters>())
-    .def(py::init<ModelPart&, ModelPart&, Parameters, LinearSolverType::Pointer>())
+    .def(py::init<ModelPart&, ModelPart&, Parameters, SimpleMortarMapperProcessWrapper::LinearSolverType::Pointer>())
     ;
 
     // 2D

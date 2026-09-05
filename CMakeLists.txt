@@ -506,6 +506,57 @@ else()
   message(FATAL_ERROR "Invalid option chosen for \"KRATOS_SHARED_MEMORY_PARALLELIZATION\"! Available options are: \"OpenMP\", \"C++11\", \"None\"")
 endif ()
 
+# Linear algebra backend for the sparse system types ("ublas" default | "eigen").
+# The definition is set globally (as for KRATOS_SMP_*) because it changes the
+# meaning of the default space aliases and hence the mangled names of everything
+# instantiated with them: the core and every application in one build must agree.
+if(NOT DEFINED KRATOS_LINEAR_ALGEBRA_BACKEND)
+  message(STATUS "\"KRATOS_LINEAR_ALGEBRA_BACKEND\" not defined, defaulting to \"ublas\"")
+  set(KRATOS_LINEAR_ALGEBRA_BACKEND "ublas")
+endif(NOT DEFINED KRATOS_LINEAR_ALGEBRA_BACKEND)
+
+if (KRATOS_LINEAR_ALGEBRA_BACKEND STREQUAL "ublas")
+  message(STATUS "Using uBLAS as sparse linear algebra backend")
+elseif (KRATOS_LINEAR_ALGEBRA_BACKEND STREQUAL "eigen")
+  message(STATUS "Using Eigen as sparse linear algebra backend")
+  add_definitions( -DKRATOS_USE_EIGEN_BACKEND )
+  # Inject the Kratos conversions (Eigen expression -> uBLAS dense containers)
+  # into Eigen::MatrixBase in every translation unit; this keeps the uBLAS
+  # idioms (Vector v = prod(...), Matrix m = trans(...), ...) compiling when
+  # the fixed-size dense types are Eigen-backed. Set globally for the same
+  # reason as the backend define itself: every Eigen inclusion must see it.
+  add_compile_definitions("EIGEN_MATRIXBASE_PLUGIN=\"${CMAKE_CURRENT_SOURCE_DIR}/kratos/includes/kratos_eigen_matrixbase_plugin.h\"")
+  # The Eigen sparse index type defaults to a 32-bit int (lower memory traffic
+  # in the bandwidth-bound sparse kernels); this option restores 64-bit
+  # indices for systems beyond 2^31 - 1 nonzeros per matrix.
+  option(KRATOS_EIGEN_64BIT_INDICES "Use 64-bit indices for the Eigen sparse matrices (default: 32-bit)" OFF)
+  if(KRATOS_EIGEN_64BIT_INDICES)
+    message(STATUS "Using 64-bit indices for the Eigen sparse matrices")
+    add_definitions( -DKRATOS_EIGEN_64BIT_INDICES )
+  endif()
+else()
+  message(FATAL_ERROR "Invalid option chosen for \"KRATOS_LINEAR_ALGEBRA_BACKEND\"! Available options are: \"ublas\", \"eigen\"")
+endif ()
+
+# Optional CPU-architecture tuning: OFF by default to keep binaries portable
+# across machines; "native" unlocks the vector ISA of the build host (AVX2/FMA
+# and wider where available), which the Eigen kernels in particular benefit
+# from. Applies to the whole build (both linear-algebra backends).
+if(NOT DEFINED KRATOS_ARCH_OPTIMIZATIONS)
+  set(KRATOS_ARCH_OPTIMIZATIONS "generic")
+endif()
+if(KRATOS_ARCH_OPTIMIZATIONS STREQUAL "native")
+  if(MSVC)
+    message(STATUS "Building with /arch:AVX2 (KRATOS_ARCH_OPTIMIZATIONS=native)")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /arch:AVX2")
+  else()
+    message(STATUS "Building with -march=native (KRATOS_ARCH_OPTIMIZATIONS=native)")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=native")
+  endif()
+elseif(NOT KRATOS_ARCH_OPTIMIZATIONS STREQUAL "generic")
+  message(FATAL_ERROR "Invalid option chosen for \"KRATOS_ARCH_OPTIMIZATIONS\"! Available options are: \"generic\", \"native\"")
+endif()
+
 option(KRATOS_USE_TBB "Enable Intel Threading Building Blocks (TBB) support" OFF)
 
 if(KRATOS_USE_TBB)

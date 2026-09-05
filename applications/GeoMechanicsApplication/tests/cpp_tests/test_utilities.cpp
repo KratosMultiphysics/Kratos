@@ -45,7 +45,7 @@ void AssertUUBlockMatrixIsNear(const Matrix& rActualLHSMatrix,
     ASSERT_EQ(rExpectedUUBlockMatrix.size1(), NumberOfUDofs);
     ASSERT_EQ(rExpectedUUBlockMatrix.size2(), NumberOfUDofs);
 
-    KRATOS_EXPECT_MATRIX_NEAR(subrange(rActualLHSMatrix, 0, 0 + NumberOfUDofs, 0, 0 + NumberOfUDofs),
+    KRATOS_EXPECT_MATRIX_NEAR(Matrix(subrange(rActualLHSMatrix, 0, 0 + NumberOfUDofs, 0, 0 + NumberOfUDofs)),
                               rExpectedUUBlockMatrix, AbsoluteTolerance)
 }
 
@@ -59,7 +59,7 @@ void AssertUPBlockMatrixIsNear(const Matrix& rActualLHSMatrix,
     ASSERT_EQ(rExpectedUPBlockMatrix.size2(), NumberOfPwDofs);
 
     KRATOS_EXPECT_MATRIX_NEAR(
-        subrange(rActualLHSMatrix, 0, 0 + NumberOfUDofs, NumberOfUDofs, NumberOfUDofs + NumberOfPwDofs),
+        Matrix(subrange(rActualLHSMatrix, 0, 0 + NumberOfUDofs, NumberOfUDofs, NumberOfUDofs + NumberOfPwDofs)),
         rExpectedUPBlockMatrix, AbsoluteTolerance)
 }
 
@@ -73,7 +73,7 @@ void AssertPUBlockMatrixIsNear(const Matrix& rActualLHSMatrix,
     ASSERT_EQ(rExpectedPUBlockMatrix.size2(), NumberOfUDofs);
 
     KRATOS_EXPECT_MATRIX_NEAR(
-        subrange(rActualLHSMatrix, NumberOfUDofs, NumberOfUDofs + NumberOfPwDofs, 0, 0 + NumberOfUDofs),
+        Matrix(subrange(rActualLHSMatrix, NumberOfUDofs, NumberOfUDofs + NumberOfPwDofs, 0, 0 + NumberOfUDofs)),
         rExpectedPUBlockMatrix, AbsoluteTolerance)
 }
 
@@ -86,8 +86,8 @@ void AssertPPBlockMatrixIsNear(const Matrix& rActualLHSMatrix,
     ASSERT_EQ(rExpectedPPBlockMatrix.size1(), NumberOfPwDofs);
     ASSERT_EQ(rExpectedPPBlockMatrix.size2(), NumberOfPwDofs);
 
-    KRATOS_EXPECT_MATRIX_NEAR(subrange(rActualLHSMatrix, NumberOfUDofs, NumberOfUDofs + NumberOfPwDofs,
-                                       NumberOfUDofs, NumberOfUDofs + NumberOfPwDofs),
+    KRATOS_EXPECT_MATRIX_NEAR(Matrix(subrange(rActualLHSMatrix, NumberOfUDofs, NumberOfUDofs + NumberOfPwDofs,
+                                       NumberOfUDofs, NumberOfUDofs + NumberOfPwDofs)),
                               rExpectedPPBlockMatrix, AbsoluteTolerance)
 }
 
@@ -112,7 +112,7 @@ void AssertUBlockVectorIsNear(const Vector& rActualRHSVector,
 {
     ASSERT_EQ(rExpectedUBlockVector.size(), NumberOfUDofs);
 
-    KRATOS_EXPECT_VECTOR_NEAR(subrange(rActualRHSVector, 0, 0 + NumberOfUDofs), rExpectedUBlockVector, AbsoluteTolerance)
+    KRATOS_EXPECT_VECTOR_NEAR(Vector(subrange(rActualRHSVector, 0, 0 + NumberOfUDofs)), rExpectedUBlockVector, AbsoluteTolerance)
 }
 
 void AssertPBlockVectorIsNear(const Vector& rActualRHSVector,
@@ -123,7 +123,7 @@ void AssertPBlockVectorIsNear(const Vector& rActualRHSVector,
 {
     ASSERT_EQ(rExpectedPBlockVector.size(), NumberOfPwDofs);
 
-    KRATOS_EXPECT_VECTOR_NEAR(subrange(rActualRHSVector, NumberOfUDofs, NumberOfUDofs + NumberOfPwDofs),
+    KRATOS_EXPECT_VECTOR_NEAR(Vector(subrange(rActualRHSVector, NumberOfUDofs, NumberOfUDofs + NumberOfPwDofs)),
                               rExpectedPBlockVector, AbsoluteTolerance)
 }
 

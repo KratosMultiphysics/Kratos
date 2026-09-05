@@ -7,8 +7,7 @@
 //  Authors: Armin Geiser
 */
 
-#if !defined(KRATOS_SPECTRA_SYM_G_EIGS_SHIFT_SOLVER_H_INCLUDED)
-#define KRATOS_SPECTRA_SYM_G_EIGS_SHIFT_SOLVER_H_INCLUDED
+#pragma once
 
 // External includes
 #include <Eigen/Core>
@@ -18,19 +17,19 @@
 #endif // defined EIGEN_USE_MKL_ALL
 
 // Project includes
-#include "includes/define.h"
 #include "linear_solvers_define.h"
 #include "includes/kratos_parameters.h"
 #include "linear_solvers/iterative_solver.h"
 #include "custom_utilities/ublas_wrapper.h"
+#include "spaces/default_spaces.h"
 #include "utilities/builtin_timer.h"
 
 namespace Kratos
 {
 
 template<
-    class TSparseSpaceType = UblasSpace<double, CompressedMatrix, Vector>,
-    class TDenseSpaceType = UblasSpace<double, Matrix, Vector>,
+    class TSparseSpaceType = TDefaultSparseSpace<double>,
+    class TDenseSpaceType = TDefaultDenseSpace<double>,
     class TPreconditionerType = Preconditioner<TSparseSpaceType, TDenseSpaceType>,
     class TReordererType = Reorderer<TSparseSpaceType, TDenseSpaceType>>
 class SpectraSymGEigsShiftSolver
@@ -41,13 +40,15 @@ class SpectraSymGEigsShiftSolver
   public:
     KRATOS_CLASS_POINTER_DEFINITION(SpectraSymGEigsShiftSolver);
 
-    typedef IterativeSolver<TSparseSpaceType, TDenseSpaceType, TPreconditionerType, TReordererType> BaseType;
+    using BaseType = IterativeSolver<TSparseSpaceType, TDenseSpaceType, TPreconditionerType, TReordererType>;
 
-    typedef typename TSparseSpaceType::MatrixType SparseMatrixType;
+    using SparseMatrixType = typename TSparseSpaceType::MatrixType;
 
-    typedef typename TSparseSpaceType::VectorType VectorType;
+    using VectorType = typename TSparseSpaceType::VectorType;
 
-    typedef typename TDenseSpaceType::MatrixType DenseMatrixType;
+    using DenseMatrixType = typename TDenseSpaceType::MatrixType;
+
+    using DenseVectorType = typename TDenseSpaceType::VectorType;
 
     SpectraSymGEigsShiftSolver(
         Parameters param
@@ -76,7 +77,7 @@ class SpectraSymGEigsShiftSolver
     void Solve(
         SparseMatrixType& rK,
         SparseMatrixType& rM,
-        VectorType& rEigenvalues,
+        DenseVectorType& rEigenvalues,
         DenseMatrixType& rEigenvectors) override
     {
         using scalar_t = double;
@@ -131,8 +132,8 @@ class SpectraSymGEigsShiftSolver
             rEigenvectors.resize(nroot, rK.size1());
         }
 
-        Eigen::Map<vector_t> eigvals (rEigenvalues.data().begin(), rEigenvalues.size());
-        Eigen::Map<matrix_t> eigvecs (rEigenvectors.data().begin(), rEigenvectors.size1(), rEigenvectors.size2());
+        Eigen::Map<vector_t> eigvals (&rEigenvalues.data()[0], rEigenvalues.size());
+        Eigen::Map<matrix_t> eigvecs (&rEigenvectors.data()[0], rEigenvectors.size1(), rEigenvectors.size2());
 
         // Spectra::SortRule::LargestAlge results in values being in descending order
         eigvals = eigs.eigenvalues().reverse();
@@ -398,5 +399,3 @@ inline std::ostream& operator <<(
 }
 
 } // namespace Kratos
-
-#endif // defined(KRATOS_SPECTRA_SYM_G_EIGS_SHIFT_SOLVER_H_INCLUDED)

@@ -123,25 +123,21 @@ void KratosLinearSolversApplication::Register()
     static auto ComplexPardisoLLTFactory = ComplexPardisoLLTType::Factory();
     KRATOS_REGISTER_COMPLEX_LINEAR_SOLVER("pardiso_llt_complex", ComplexPardisoLLTFactory);
 
-    // ILU0 smoother.
+    // MKL ILU smoothers: registered against the default (backend-selected)
+    // space only — the linear-algebra backends are mutually exclusive.
     static auto mkl_ilu0_factory = StandardLinearSolverFactory<
-        TUblasSparseSpace<double>,
-        TUblasDenseSpace<double>,
-        MKLILU0Smoother<TUblasSparseSpace<double>,TUblasDenseSpace<double>>
+        TDefaultSparseSpace<double>,
+        TDefaultDenseSpace<double>,
+        MKLILU0Smoother<TDefaultSparseSpace<double>,TDefaultDenseSpace<double>>
     >();
-    KratosComponents<LinearSolverFactory<
-        TUblasSparseSpace<double>,
-        TUblasDenseSpace<double>>>::Add("mkl_ilu0", mkl_ilu0_factory);
+    KRATOS_REGISTER_LINEAR_SOLVER("mkl_ilu0", mkl_ilu0_factory);
 
-    // ILUT smoother.
     static auto mkl_ilut_factory = StandardLinearSolverFactory<
-        TUblasSparseSpace<double>,
-        TUblasDenseSpace<double>,
-        MKLILUTSmoother<TUblasSparseSpace<double>,TUblasDenseSpace<double>>
+        TDefaultSparseSpace<double>,
+        TDefaultDenseSpace<double>,
+        MKLILUTSmoother<TDefaultSparseSpace<double>,TDefaultDenseSpace<double>>
     >();
-    KratosComponents<LinearSolverFactory<
-        TUblasSparseSpace<double>,
-        TUblasDenseSpace<double>>>::Add("mkl_ilut", mkl_ilut_factory);
+    KRATOS_REGISTER_LINEAR_SOLVER("mkl_ilut", mkl_ilut_factory);
 
 #endif // defined USE_EIGEN_MKL
 

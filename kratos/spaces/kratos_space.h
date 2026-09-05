@@ -213,7 +213,7 @@ public:
         return std::sqrt(rX.inner_prod(rX));
     }
 
-    static TDataType TwoNorm(const Matrix& rA) // Frobenious norm
+    static TDataType TwoNorm(const DenseMatrix<TDataType>& rA) // Frobenious norm
     {
         return norm_frobenius(rA);
     }
@@ -235,7 +235,7 @@ public:
      * @param rA The matrix to compute the Jacobi norm
      * @return aux_sum: The Jacobi norm
      */
-    static TDataType JacobiNorm(const Matrix& rA)
+    static TDataType JacobiNorm(const DenseMatrix<TDataType>& rA)
     {
         TDataType aux_sum = IndexPartition<IndexType>(rA.size1())
                             .for_each<SumReduction<TDataType>>( [&](IndexType i)

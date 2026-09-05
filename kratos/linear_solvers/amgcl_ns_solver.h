@@ -33,9 +33,14 @@
 
 #include <boost/property_tree/json_parser.hpp>
 
+#include <boost/range/iterator_range.hpp>
+
 #include <amgcl/adapter/crs_tuple.hpp>
 #include <amgcl/adapter/ublas.hpp>
 #include <amgcl/adapter/zero_copy.hpp>
+
+// Project includes
+#include "linear_solvers/amgcl_zero_copy_adapter.h"
 #include <amgcl/backend/builtin.hpp>
 #include <amgcl/value_type/static_matrix.hpp>
 #include <amgcl/make_solver.hpp>
@@ -220,7 +225,7 @@ public:
             amgcl::runtime::solver::wrapper<sBackend>
             > Solver;
 
-        auto pA = amgcl::adapter::zero_copy(
+        auto pA = MakeAmgclZeroCopyAdapter(
                 rA.size1(),
                 rA.index1_data().begin(),
                 rA.index2_data().begin(),
@@ -229,7 +234,13 @@ public:
 
         Solver solve(*pA, mprm);
         KRATOS_INFO_IF("AMGCL NS Solver", mVerbosity > 1) << "AMGCL-NS Memory Occupation : " << amgcl::human_readable_memory(amgcl::backend::bytes(solve)) << std::endl;
-        return solve(*pA, rB, rX);
+        // The vectors are passed as iterator ranges over their raw buffers so
+        // that any system-vector backend (uBLAS, Eigen, ...) works
+        auto* x_begin = &*rX.begin();
+        const auto* b_begin = &*rB.begin();
+        return solve(*pA,
+                     boost::make_iterator_range(b_begin, b_begin + rB.size()),
+                     boost::make_iterator_range(x_begin, x_begin + rX.size()));
     }
 
     template <int UBlockSize>
@@ -256,7 +267,7 @@ public:
             amgcl::runtime::solver::wrapper<sBackend>
             > Solver;
 
-        auto pA = amgcl::adapter::zero_copy(
+        auto pA = MakeAmgclZeroCopyAdapter(
                 rA.size1(),
                 rA.index1_data().begin(),
                 rA.index2_data().begin(),
@@ -265,7 +276,13 @@ public:
 
         Solver solve(*pA, mprm);
         KRATOS_INFO_IF("AMGCL NS Solver", mVerbosity > 1) << "AMGCL-NS Memory Occupation : " << amgcl::human_readable_memory(amgcl::backend::bytes(solve)) << std::endl;
-        return solve(*pA, rB, rX);
+        // The vectors are passed as iterator ranges over their raw buffers so
+        // that any system-vector backend (uBLAS, Eigen, ...) works
+        auto* x_begin = &*rX.begin();
+        const auto* b_begin = &*rB.begin();
+        return solve(*pA,
+                     boost::make_iterator_range(b_begin, b_begin + rB.size()),
+                     boost::make_iterator_range(x_begin, x_begin + rX.size()));
     }
 
     /**

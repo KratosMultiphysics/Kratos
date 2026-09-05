@@ -189,8 +189,12 @@ public:
             << "Can't assign submatrix: last column index (" << ColumnOffset + rSourceMatrix.size2()
             << ") exceeds the column size of the destination matrix (" << rDestinationMatrix.size2() << ")\n";
 
-        subrange(rDestinationMatrix, RowOffset, RowOffset + rSourceMatrix.size1(), ColumnOffset,
-                 ColumnOffset + rSourceMatrix.size2()) = rSourceMatrix;
+        // noalias(...) rather than a bare assignment: boost's matrix_range::operator= only
+        // accepts uBLAS expression types, so under the Eigen backend (where MatrixType2 may be
+        // an Eigen-derived BoundedMatrix) it does not match; noalias() routes through the
+        // Kratos-provided proxy that accepts both uBLAS and Eigen right-hand sides.
+        noalias(subrange(rDestinationMatrix, RowOffset, RowOffset + rSourceMatrix.size1(), ColumnOffset,
+                 ColumnOffset + rSourceMatrix.size2())) = rSourceMatrix;
     }
 
     template <typename MatrixType1, typename MatrixType2>
@@ -233,7 +237,9 @@ public:
             << "Can't assign subvector: last index (" << Offset + rSourceVector.size()
             << ") exceeds the size of the destination vector (" << rDestinationVector.size() << ")\n";
 
-        subrange(rDestinationVector, Offset, Offset + rSourceVector.size()) = rSourceVector;
+        // noalias(...): see AssignMatrixAtPosition above for why a bare subrange assignment
+        // does not compile under the Eigen backend.
+        noalias(subrange(rDestinationVector, Offset, Offset + rSourceVector.size())) = rSourceVector;
     }
 
     template <typename VectorType1, typename VectorType2>

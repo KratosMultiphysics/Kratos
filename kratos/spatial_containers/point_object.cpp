@@ -52,12 +52,15 @@ PointObject<TObject>::PointObject(typename TObject::Pointer pObject):
 template<class TObject>
 void PointObject<TObject>::UpdatePoint()
 {
+    // plain assignment: the copies cannot alias, and inside a Point-derived
+    // class an unqualified noalias() would find the Eigen member of the base
+    // instead of the Kratos free function under the Eigen backend
     if constexpr (std::is_same<TObject, Node>::value) {
-        noalias(this->Coordinates()) = mpObject->Coordinates();
+        this->Coordinates() = mpObject->Coordinates();
     } else if constexpr (std::is_same<TObject, GeometricalObject>::value || std::is_same<TObject, Condition>::value || std::is_same<TObject, Element>::value) {
-        noalias(this->Coordinates()) = mpObject->GetGeometry().Center().Coordinates();
+        this->Coordinates() = mpObject->GetGeometry().Center().Coordinates();
     } else if constexpr (std::is_same<TObject, Geometry<Node>>::value || std::is_same<TObject, Condition>::value || std::is_same<TObject, Element>::value) {
-        noalias(this->Coordinates()) = mpObject->Center().Coordinates();
+        this->Coordinates() = mpObject->Center().Coordinates();
     } else {
         static_assert((std::is_same<TObject, Node>::value || std::is_same<TObject, GeometricalObject>::value || std::is_same<TObject, Condition>::value || std::is_same<TObject, Element>::value), "PointObject is implemented for Node, GeometricalObject, Condition and Element");
     }

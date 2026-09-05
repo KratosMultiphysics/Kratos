@@ -287,31 +287,46 @@ public:
             const std::size_t id = rDof.EquationId();
             dofs_values[id] = rDof.GetSolutionStepValue();
         });
-        double *values_vector = rA.value_data().begin();
-        std::size_t *index1_vector = rA.index1_data().begin();
-        std::size_t *index2_vector = rA.index2_data().begin();
+        // The CSR storage index type differs between the backends (std::size_t
+        // for uBLAS, signed for the Eigen wrapper); name it from the matrix's
+        // own array typedefs instead of hardcoding one or the other.
+        using ValueType = typename TSystemMatrixType::value_array_type::value_type;
+        using IndexType = typename TSystemMatrixType::index_array_type::value_type;
+        ValueType *values_vector = rA.value_data().begin();
+        IndexType *index1_vector = rA.index1_data().begin();
+        IndexType *index2_vector = rA.index2_data().begin();
+
+        // Reference to an existing entry: ublas sparse element access returns a
+        // proxy requiring .ref(), other backends return a plain reference
+        auto entry_reference = [](TSystemMatrixType& rMatrix, const std::size_t I, const std::size_t J) -> double& {
+            if constexpr (requires { rMatrix(I, J).ref(); }) {
+                return rMatrix(I, J).ref();
+            } else {
+                return rMatrix(I, J);
+            }
+        };
 
         IndexPartition<std::size_t>(rA.size1()).for_each(
             [&](std::size_t i)
             {
-                for (std::size_t k = index1_vector[i]; k < index1_vector[i + 1]; k++) {
+                for (std::size_t k = index1_vector[i]; k < static_cast<std::size_t>(index1_vector[i + 1]); k++) {
                     const double value = values_vector[k];
                     if (value > 0.0) {
-                        const auto j = index2_vector[k];
+                        const std::size_t j = static_cast<std::size_t>(index2_vector[k]);
                         if (j > i) {
                             // TODO: Partition in blocks to gain efficiency by avoiding thread locks.
                             // Values conflicting with other threads
-                            auto& r_aij = rA(i,j).ref();
+                            double& r_aij = entry_reference(rA, i, j);
                             AtomicAdd(r_aij, -value);
-                            auto& r_aji = rA(j,i).ref();
+                            double& r_aji = entry_reference(rA, j, i);
                             AtomicAdd(r_aji, -value);
-                            auto& r_aii = rA(i,i).ref();
+                            double& r_aii = entry_reference(rA, i, i);
                             AtomicAdd(r_aii, value);
-                            auto& r_ajj = rA(j,j).ref();
+                            double& r_ajj = entry_reference(rA, j, j);
                             AtomicAdd(r_ajj, value);
-                            auto& r_bi = rB[i];
+                            double& r_bi = rB[i];
                             AtomicAdd(r_bi, value*dofs_values[j] - value*dofs_values[i]);
-                            auto& r_bj = rB[j];
+                            double& r_bj = rB[j];
                             AtomicAdd(r_bj, value*dofs_values[i] - value*dofs_values[j]);
                         }
                     }
@@ -766,8 +781,8 @@ protected:
 
         auto a_wrapper = UblasWrapper<double>(rA);
         const auto& eigen_rA = a_wrapper.matrix();
-        Eigen::Map<EigenDynamicVector> eigen_rb(rb.data().begin(), rb.size());
-        Eigen::Map<EigenDynamicMatrix> eigen_mPhiGlobal(mPhiGlobal.data().begin(), mPhiGlobal.size1(), mPhiGlobal.size2());
+        Eigen::Map<EigenDynamicVector> eigen_rb(&rb.data()[0], rb.size());
+        Eigen::Map<EigenDynamicMatrix> eigen_mPhiGlobal(&mPhiGlobal.data()[0], mPhiGlobal.size1(), mPhiGlobal.size2());
 
         EigenDynamicMatrix eigen_rA_times_mPhiGlobal = eigen_rA * eigen_mPhiGlobal; //TODO: Make it in parallel.
 
@@ -794,7 +809,7 @@ protected:
         const auto solving_timer = BuiltinTimer();
 
         using EigenDynamicVector = Eigen::Matrix<double, Eigen::Dynamic, 1>;
-        Eigen::Map<EigenDynamicVector> dxrom_eigen(dxrom.data().begin(), dxrom.size());
+        Eigen::Map<EigenDynamicVector> dxrom_eigen(&dxrom.data()[0], dxrom.size());
         dxrom_eigen = rEigenRomA.colPivHouseholderQr().solve(rEigenRomB);
 
         double time = solving_timer.ElapsedSeconds();

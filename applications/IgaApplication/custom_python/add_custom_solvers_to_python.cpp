@@ -16,6 +16,7 @@
 // Project includes
 #include "includes/define.h"
 #include "spaces/ublas_space.h"
+#include "spaces/default_spaces.h"
 #include "custom_python/add_custom_solvers_to_python.h"
 #include "custom_solvers/additive_schwarz_preconditioner.h"
 #include "factories/standard_preconditioner_factory.h"
@@ -31,8 +32,8 @@ void AddCustomSolversToPython(
 {
     namespace py = pybind11;
 
-    typedef UblasSpace<double, CompressedMatrix, boost::numeric::ublas::vector<double>> SpaceType;
-    typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
+    typedef DefaultSparseSpaceType SpaceType;
+    typedef DefaultLocalSpaceType LocalSpaceType;
 
     typedef Preconditioner<SpaceType,  LocalSpaceType> PreconditionerType;
     typedef AdditiveSchwarzPreconditioner<SpaceType,  LocalSpaceType> AdditiveSchwarzPreconditionerType;

@@ -198,8 +198,8 @@ public:
             }
         }
 
-        // Store results for next iteration
-        boost::numeric::ublas::noalias(mPreviousDx) = Dx;
+        // Store results for next iteration (space API: valid for both backends)
+        TSparseSpace::Copy(Dx, mPreviousDx);
         mOldOmega = Omega;
     }
 

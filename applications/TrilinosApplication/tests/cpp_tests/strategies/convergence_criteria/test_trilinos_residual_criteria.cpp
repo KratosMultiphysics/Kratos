@@ -25,13 +25,14 @@
 #include "mpi/utilities/parallel_fill_communicator.h"
 #include "mpi/utilities/model_part_communicator_utilities.h"
 #include "spaces/ublas_space.h"
+#include "spaces/default_spaces.h"
 #include "trilinos_space.h"
 
 namespace Kratos::Testing
 {
 using GeometryType = Geometry<Node>;
 using TrilinosSparseSpaceType = TrilinosSpace<Epetra_FECrsMatrix, Epetra_FEVector>;
-using TrilinosLocalSpaceType = UblasSpace<double, Matrix, Vector>;
+using TrilinosLocalSpaceType = TDefaultDenseSpace<double>;
 
 using DofsArrayType = ModelPart::DofsArrayType;
 

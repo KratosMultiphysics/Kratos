@@ -17,6 +17,7 @@
 
 // Project includes
 #include "spaces/ublas_space.h"
+#include "spaces/default_spaces.h"
 #include "utilities/dense_householder_qr_decomposition.h"
 #include "testing/testing.h"
 
@@ -40,7 +41,7 @@ KRATOS_TEST_CASE_IN_SUITE(DenseHouseholderQRDecomposition, KratosCoreFastSuite)
     Matrix A_copy = A_matrix; // Note that A will be modified. We keep a copy for the testing.
 
     // Calculate the QR decomposition
-    using DenseSpace = UblasSpace<double, Matrix, Vector>;
+    using DenseSpace = TDefaultDenseSpace<double>;
     DenseHouseholderQRDecomposition<DenseSpace> qr_decomposition;
     qr_decomposition.Compute(A_matrix, Q_matrix, R_matrix);
 
@@ -86,7 +87,7 @@ KRATOS_TEST_CASE_IN_SUITE(DenseHouseholderQRSolveVector, KratosCoreFastSuite)
     b_vector[3] = 3.0;
 
     // Calculate the QR decomposition
-    using DenseSpace = UblasSpace<double, Matrix, Vector>;
+    using DenseSpace = TDefaultDenseSpace<double>;
     DenseHouseholderQRDecomposition<DenseSpace> qr_decomposition;
     qr_decomposition.Compute(A_matrix);
     qr_decomposition.Solve(b_vector, x_vector);
@@ -136,7 +137,7 @@ KRATOS_TEST_CASE_IN_SUITE(DenseHouseholderQRSolveMatrix, KratosCoreFastSuite)
     B_matrix(3,1) = 3.0;
 
     // Calculate the QR decomposition
-    using DenseSpace = UblasSpace<double, Matrix, Vector>;
+    using DenseSpace = TDefaultDenseSpace<double>;
     DenseHouseholderQRDecomposition<DenseSpace> qr_decomposition;
     qr_decomposition.Compute(A_matrix);
     qr_decomposition.Solve(B_matrix, X_matrix);

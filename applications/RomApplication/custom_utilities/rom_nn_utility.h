@@ -63,13 +63,13 @@ public:
         Vector& rReferenceSnapshot
     )
     {
-        Eigen::Map<EigenDynamicMatrix> eigen_phi_inf(rSVDPhiMatrices[0].data().begin(), rSVDPhiMatrices[0].size1(), rSVDPhiMatrices[0].size2());
-        Eigen::Map<EigenDynamicMatrix> eigen_phisig_sup(rSVDPhiMatrices[1].data().begin(), rSVDPhiMatrices[1].size1(), rSVDPhiMatrices[1].size2());
-        Eigen::Map<EigenDynamicMatrix> eigen_sig_inv_inf(rSVDPhiMatrices[2].data().begin(), rSVDPhiMatrices[2].size1(), rSVDPhiMatrices[2].size2());
+        Eigen::Map<EigenDynamicMatrix> eigen_phi_inf(&rSVDPhiMatrices[0].data()[0], rSVDPhiMatrices[0].size1(), rSVDPhiMatrices[0].size2());
+        Eigen::Map<EigenDynamicMatrix> eigen_phisig_sup(&rSVDPhiMatrices[1].data()[0], rSVDPhiMatrices[1].size1(), rSVDPhiMatrices[1].size2());
+        Eigen::Map<EigenDynamicMatrix> eigen_sig_inv_inf(&rSVDPhiMatrices[2].data()[0], rSVDPhiMatrices[2].size1(), rSVDPhiMatrices[2].size2());
 
-        Eigen::Map<EigenDynamicVector> eigen_rom_unknowns(rRomUnknowns.data().begin(), rRomUnknowns.size());
-        Eigen::Map<EigenDynamicMatrix> eigen_phi_global(rPhiGlobal.data().begin(), rPhiGlobal.size1(), rPhiGlobal.size2());
-        Eigen::Map<EigenDynamicVector> eigen_rx(rx.data().begin(), rx.size());
+        Eigen::Map<EigenDynamicVector> eigen_rom_unknowns(&rRomUnknowns.data()[0], rRomUnknowns.size());
+        Eigen::Map<EigenDynamicMatrix> eigen_phi_global(&rPhiGlobal.data()[0], rPhiGlobal.size1(), rPhiGlobal.size2());
+        Eigen::Map<EigenDynamicVector> eigen_rx(&rx.data()[0], rx.size());
 
         vector<EigenDynamicMatrix> mGradientLayers(rNNLayers.size());
         
@@ -79,7 +79,7 @@ public:
         SizeType i=0;
         for(auto& layers_item : rNNLayers)
         {   
-            Eigen::Map<EigenDynamicMatrix> eigen_layer_item(layers_item.data().begin(), layers_item.size1(), layers_item.size2());
+            Eigen::Map<EigenDynamicMatrix> eigen_layer_item(&layers_item.data()[0], layers_item.size1(), layers_item.size2());
             layerOutTemp = eigen_layer_item.transpose()*layerOut;
             layerOut = layerOutTemp;
 
@@ -108,7 +108,7 @@ public:
 
         eigen_phi_global=eigen_phi_inf+eigen_phisig_sup*intermediateGradients.transpose()*eigen_sig_inv_inf;
 
-        Eigen::Map<EigenDynamicVector> eigen_ref_snapshot(rReferenceSnapshot.data().begin(), rReferenceSnapshot.size());
+        Eigen::Map<EigenDynamicVector> eigen_ref_snapshot(&rReferenceSnapshot.data()[0], rReferenceSnapshot.size());
         eigen_rx = eigen_ref_snapshot + eigen_phi_inf*eigen_rom_unknowns + eigen_phisig_sup*layerOut;
     }
 
@@ -128,12 +128,12 @@ public:
         Vector& rReferenceSnapshot
         )
     {
-        Eigen::Map<EigenDynamicMatrix> eigen_phi_inf(rSVDPhiMatrices[0].data().begin(), rSVDPhiMatrices[0].size1(), rSVDPhiMatrices[0].size2());
-        Eigen::Map<EigenDynamicMatrix> eigen_phisig_sup(rSVDPhiMatrices[1].data().begin(), rSVDPhiMatrices[1].size1(), rSVDPhiMatrices[1].size2());
-        Eigen::Map<EigenDynamicMatrix> eigen_sig_inv_inf(rSVDPhiMatrices[2].data().begin(), rSVDPhiMatrices[2].size1(), rSVDPhiMatrices[2].size2());
+        Eigen::Map<EigenDynamicMatrix> eigen_phi_inf(&rSVDPhiMatrices[0].data()[0], rSVDPhiMatrices[0].size1(), rSVDPhiMatrices[0].size2());
+        Eigen::Map<EigenDynamicMatrix> eigen_phisig_sup(&rSVDPhiMatrices[1].data()[0], rSVDPhiMatrices[1].size1(), rSVDPhiMatrices[1].size2());
+        Eigen::Map<EigenDynamicMatrix> eigen_sig_inv_inf(&rSVDPhiMatrices[2].data()[0], rSVDPhiMatrices[2].size1(), rSVDPhiMatrices[2].size2());
 
-        Eigen::Map<EigenDynamicVector> eigen_rom_unknowns(rRomUnknowns.data().begin(), rRomUnknowns.size());
-        Eigen::Map<EigenDynamicVector> eigen_rx(rx.data().begin(), rx.size());
+        Eigen::Map<EigenDynamicVector> eigen_rom_unknowns(&rRomUnknowns.data()[0], rRomUnknowns.size());
+        Eigen::Map<EigenDynamicVector> eigen_rx(&rx.data()[0], rx.size());
         
         EigenDynamicVector layerOutTemp = eigen_sig_inv_inf*eigen_rom_unknowns;
         EigenDynamicVector layerOut = layerOutTemp;
@@ -141,7 +141,7 @@ public:
         SizeType i=0;
         for(auto& layers_item : rNNLayers)
         {   
-            Eigen::Map<EigenDynamicMatrix> eigen_layer_item(layers_item.data().begin(), layers_item.size1(), layers_item.size2());
+            Eigen::Map<EigenDynamicMatrix> eigen_layer_item(&layers_item.data()[0], layers_item.size1(), layers_item.size2());
             layerOutTemp = eigen_layer_item.transpose()*layerOut;
             layerOut = layerOutTemp;
 
@@ -156,7 +156,7 @@ public:
             i++;
         }
 
-        Eigen::Map<EigenDynamicVector> eigen_ref_snapshot(rReferenceSnapshot.data().begin(), rReferenceSnapshot.size());
+        Eigen::Map<EigenDynamicVector> eigen_ref_snapshot(&rReferenceSnapshot.data()[0], rReferenceSnapshot.size());
         eigen_rx = eigen_ref_snapshot + eigen_phi_inf*eigen_rom_unknowns + eigen_phisig_sup*layerOut;
     }
 
@@ -175,12 +175,12 @@ public:
         vector<Matrix>& rNNLayers
     )
     {
-        Eigen::Map<EigenDynamicMatrix> eigen_phi_inf(rSVDPhiMatrices[0].data().begin(), rSVDPhiMatrices[0].size1(), rSVDPhiMatrices[0].size2());
-        Eigen::Map<EigenDynamicMatrix> eigen_phisig_sup(rSVDPhiMatrices[1].data().begin(), rSVDPhiMatrices[1].size1(), rSVDPhiMatrices[1].size2());
-        Eigen::Map<EigenDynamicMatrix> eigen_sig_inv_inf(rSVDPhiMatrices[2].data().begin(), rSVDPhiMatrices[2].size1(), rSVDPhiMatrices[2].size2());
+        Eigen::Map<EigenDynamicMatrix> eigen_phi_inf(&rSVDPhiMatrices[0].data()[0], rSVDPhiMatrices[0].size1(), rSVDPhiMatrices[0].size2());
+        Eigen::Map<EigenDynamicMatrix> eigen_phisig_sup(&rSVDPhiMatrices[1].data()[0], rSVDPhiMatrices[1].size1(), rSVDPhiMatrices[1].size2());
+        Eigen::Map<EigenDynamicMatrix> eigen_sig_inv_inf(&rSVDPhiMatrices[2].data()[0], rSVDPhiMatrices[2].size1(), rSVDPhiMatrices[2].size2());
 
-        Eigen::Map<EigenDynamicVector> eigen_rom_unknowns(rRomUnknowns.data().begin(), rRomUnknowns.size());
-        Eigen::Map<EigenDynamicMatrix> eigen_phi_global(rPhiGlobal.data().begin(), rPhiGlobal.size1(), rPhiGlobal.size2());
+        Eigen::Map<EigenDynamicVector> eigen_rom_unknowns(&rRomUnknowns.data()[0], rRomUnknowns.size());
+        Eigen::Map<EigenDynamicMatrix> eigen_phi_global(&rPhiGlobal.data()[0], rPhiGlobal.size1(), rPhiGlobal.size2());
 
         vector<EigenDynamicMatrix> mGradientLayers(rNNLayers.size());
         
@@ -190,7 +190,7 @@ public:
         SizeType i=0;
         for(auto& layers_item : rNNLayers)
         {   
-            Eigen::Map<EigenDynamicMatrix> eigen_layer_item(layers_item.data().begin(), layers_item.size1(), layers_item.size2());
+            Eigen::Map<EigenDynamicMatrix> eigen_layer_item(&layers_item.data()[0], layers_item.size1(), layers_item.size2());
             layerOutTemp = eigen_layer_item.transpose()*layerOut;
             layerOut = layerOutTemp;
 

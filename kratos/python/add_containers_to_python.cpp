@@ -213,8 +213,8 @@ void  AddContainersToPython(pybind11::module& m)
     .def("__str__", PrintObject<Array1DVariable9>)
     ;
 
-    py::class_<Variable<DenseMatrix<double> >,VariableData>(m, "MatrixVariable")
-    .def("__str__", PrintObject<Variable<DenseMatrix<double> >>)
+    py::class_<Variable<Matrix>,VariableData>(m, "MatrixVariable")
+    .def("__str__", PrintObject<Variable<Matrix>>)
     ;
 
     py::class_<Variable<ConstitutiveLaw::Pointer>,VariableData>(m, "ConstitutuveLawVariable")

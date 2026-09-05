@@ -78,7 +78,7 @@ class CustomScipyBaseSolver(MechanicalSolver):
                                                               False )
 
     def _MassMatrixComputation(self):
-        space = KratosMultiphysics.UblasSparseSpace()
+        space = KratosMultiphysics.SparseSpace() # backend-agnostic alias: operates on the strategy's system matrix
         self.GetComputingModelPart().ProcessInfo.SetValue(StructuralMechanicsApplication.BUILD_LEVEL,1) #Mass Matrix
         scheme = self._GetSolutionStrategy().GetScheme()
 
@@ -107,7 +107,7 @@ class CustomScipyBaseSolver(MechanicalSolver):
         return M
 
     def _StiffnessMatrixComputation(self):
-        space = KratosMultiphysics.UblasSparseSpace()
+        space = KratosMultiphysics.SparseSpace() # backend-agnostic alias: operates on the strategy's system matrix
         self.GetComputingModelPart().ProcessInfo.SetValue(StructuralMechanicsApplication.BUILD_LEVEL,2) #Stiffness Matrix
         scheme = self._GetSolutionStrategy().GetScheme()
 

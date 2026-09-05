@@ -19,6 +19,7 @@
 
 // Project includes
 #include "spaces/ublas_space.h"
+#include "spaces/default_spaces.h"
 #include "custom_python/add_custom_strategies_to_python.h"
 
 // strategies
@@ -33,8 +34,8 @@ namespace Python {
 void AddCustomStrategiesToPython(pybind11::module& m) {
     namespace py = pybind11;
 
-    typedef UblasSpace<double, CompressedMatrix, boost::numeric::ublas::vector<double>> SparseSpaceType;
-    typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
+    typedef TDefaultSparseSpace<double> SparseSpaceType;
+    typedef TDefaultDenseSpace<double> LocalSpaceType;
 
     typedef LinearSolver<SparseSpaceType, LocalSpaceType> LinearSolverType;
     typedef ImplicitSolvingStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType> BaseSolvingStrategyType;

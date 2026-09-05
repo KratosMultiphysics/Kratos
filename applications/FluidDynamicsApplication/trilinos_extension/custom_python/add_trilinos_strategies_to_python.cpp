@@ -22,6 +22,7 @@
 #include "linear_solvers/linear_solver.h"
 #include "solving_strategies/strategies/implicit_solving_strategy.h"
 #include "spaces/ublas_space.h"
+#include "spaces/default_spaces.h"
 
 // TrilinosApplication dependencies
 #include "trilinos_space.h"
@@ -46,7 +47,7 @@ void AddTrilinosStrategiesToPython(pybind11::module& m)
     namespace py = pybind11;
 
     using TrilinosSparseSpace = TrilinosSpace<Epetra_FECrsMatrix, Epetra_FEVector>;
-    using UblasLocalSpace = UblasSpace<double, Matrix, Vector>;
+    using UblasLocalSpace = TDefaultDenseSpace<double>;
     using TrilinosLinearSolver = LinearSolver<TrilinosSparseSpace, UblasLocalSpace>;
 
     using TrilinosBaseSolvingStrategy = ImplicitSolvingStrategy< TrilinosSparseSpace, UblasLocalSpace, TrilinosLinearSolver >;

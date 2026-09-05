@@ -18,7 +18,8 @@
 #include "solving_strategies/builder_and_solvers/p_multigrid/constraint_utilities.hpp" // ProcessMasterSlaveConstraint, ProcessMultifreedomConstraint, detail::MakeRelationTopology
 #include "factories/linear_solver_factory.h" // LinearSolver, LinearSolverFactory
 #include "includes/define.h" // KRATOS_TRY, KRATOS_CATCH
-#include "spaces/ublas_space.h" // TUblasSparseSpace
+#include "spaces/ublas_space.h" // TDefaultSparseSpace
+#include "spaces/default_spaces.h"
 #include "utilities/sparse_matrix_multiplication_utility.h" // SparseMatrixMultiplicationUtility
 
 
@@ -263,7 +264,7 @@ void MasterSlaveConstraintAssembler<TSparse,TDense>::AllocateConstraints(Pointer
                                                                    + 1;
         }
     } // for i_row in range(dependent_system_size)
-    KRATOS_ERROR_IF_NOT(mpImpl->mMasterSlaveRelations.index1_data()[dependent_system_size] == master_slave_entry_count)
+    KRATOS_ERROR_IF_NOT(static_cast<std::size_t>(mpImpl->mMasterSlaveRelations.index1_data()[dependent_system_size]) == static_cast<std::size_t>(master_slave_entry_count))
         << "internal size mismatch: "
         << mpImpl-> mMasterSlaveRelations.index1_data()[dependent_system_size]
         << " != "
@@ -281,13 +282,13 @@ void MasterSlaveConstraintAssembler<TSparse,TDense>::AllocateConstraints(Pointer
             // Dof is a slave.
             const auto i_slave = it_constraint_equation_info->first;
             const auto i_constraint = it_constraint_equation_info->second.first;
-            const auto i_relation_entry_begin = this->GetRelationMatrix().index1_data()[i_constraint];
-            const auto i_relation_entry_end = this->GetRelationMatrix().index1_data()[i_constraint + 1];
-            const auto i_master_slave_entry_begin = mpImpl->mMasterSlaveRelations.index1_data()[i_slave];
+            const auto i_relation_entry_begin = static_cast<typename TSparse::IndexType>(this->GetRelationMatrix().index1_data()[i_constraint]);
+            const auto i_relation_entry_end = static_cast<typename TSparse::IndexType>(this->GetRelationMatrix().index1_data()[i_constraint + 1]);
+            const auto i_master_slave_entry_begin = static_cast<typename TSparse::IndexType>(mpImpl->mMasterSlaveRelations.index1_data()[i_slave]);
 
             typename TSparse::IndexType i_master_slave_entry = i_master_slave_entry_begin;
             for (typename TSparse::IndexType i_relation_entry=i_relation_entry_begin; i_relation_entry<i_relation_entry_end; ++i_relation_entry) {
-                const auto i_relation_column = this->GetRelationMatrix().index2_data()[i_relation_entry];
+                const auto i_relation_column = static_cast<typename TSparse::IndexType>(this->GetRelationMatrix().index2_data()[i_relation_entry]);
                 if (i_relation_column != i_slave) {
                     mpImpl->mMasterSlaveRelations.index2_data()[i_master_slave_entry] = mpImpl->mIndependentMap[i_relation_column].value();
                     ++i_master_slave_entry;
@@ -331,9 +332,9 @@ void MasterSlaveConstraintAssembler<TSparse,TDense>::Assemble(const typename Bas
     for (const auto& r_constraint_equation_info : mpImpl->mConstraintIdMap) {
         const auto i_slave = r_constraint_equation_info.first;
         const auto i_constraint = r_constraint_equation_info.second.first;
-        const auto i_relation_entry_begin = this->GetRelationMatrix().index1_data()[i_constraint];
-        const auto i_relation_entry_end = this->GetRelationMatrix().index1_data()[i_constraint + 1];
-        const auto i_master_slave_entry_begin = mpImpl->mMasterSlaveRelations.index1_data()[i_slave];
+        const auto i_relation_entry_begin = static_cast<typename TSparse::IndexType>(this->GetRelationMatrix().index1_data()[i_constraint]);
+        const auto i_relation_entry_end = static_cast<typename TSparse::IndexType>(this->GetRelationMatrix().index1_data()[i_constraint + 1]);
+        const auto i_master_slave_entry_begin = static_cast<typename TSparse::IndexType>(mpImpl->mMasterSlaveRelations.index1_data()[i_slave]);
 
         // Find the slave coefficient.
         auto it_slave = std::lower_bound(
@@ -341,7 +342,7 @@ void MasterSlaveConstraintAssembler<TSparse,TDense>::Assemble(const typename Bas
             this->GetRelationMatrix().index2_data().begin() + i_relation_entry_end,
             i_slave);
         KRATOS_ERROR_IF(it_slave == this->GetRelationMatrix().index2_data().begin() + i_relation_entry_end
-                     || *it_slave != i_slave)
+                     || static_cast<std::size_t>(*it_slave) != static_cast<std::size_t>(i_slave))
             << "no entry in relation matrix for slave DoF " << i_slave << " "
             << "of constraint equation " << i_constraint;
         const typename TSparse::IndexType i_slave_in_master_slave = std::distance(
@@ -355,7 +356,7 @@ void MasterSlaveConstraintAssembler<TSparse,TDense>::Assemble(const typename Bas
         // Assemble entries from the relation matrix to the master-slave relation matrix.
         typename TSparse::IndexType i_master_slave_entry = i_master_slave_entry_begin;
         for (typename TSparse::IndexType i_relation_entry=i_relation_entry_begin; i_relation_entry<i_relation_entry_end; ++i_relation_entry) {
-            const auto i_relation_column = this->GetRelationMatrix().index2_data()[i_relation_entry];
+            const auto i_relation_column = static_cast<typename TSparse::IndexType>(this->GetRelationMatrix().index2_data()[i_relation_entry]);
             if (i_relation_column != i_slave) {
                 mpImpl->mMasterSlaveRelations.value_data()[i_master_slave_entry] = coefficient_scale * this->GetRelationMatrix().value_data()[i_relation_entry];
                 ++i_master_slave_entry;
@@ -620,9 +621,9 @@ Parameters MasterSlaveConstraintAssembler<TSparse,TDense>::GetDefaultParameters(
 }
 
 
-template class MasterSlaveConstraintAssembler<TUblasSparseSpace<double>,TUblasDenseSpace<double>>;
+template class MasterSlaveConstraintAssembler<TDefaultSparseSpace<double>,TDefaultDenseSpace<double>>;
 
-template class MasterSlaveConstraintAssembler<TUblasSparseSpace<float>,TUblasDenseSpace<double>>;
+template class MasterSlaveConstraintAssembler<TDefaultSparseSpace<float>,TDefaultDenseSpace<double>>;
 
 
 } // namespace Kratos

@@ -24,6 +24,7 @@
 #include "processes/variational_distance_calculation_process.h"
 #include "trilinos_space.h"
 #include "spaces/ublas_space.h"
+#include "spaces/default_spaces.h"
 #include "custom_python/add_trilinos_processes_to_python.h"
 #include "custom_processes/trilinos_levelset_convection_process.h"
 #include "custom_strategies/builder_and_solvers/trilinos_block_builder_and_solver.h"
@@ -33,7 +34,7 @@ namespace Kratos::Python
 namespace py = pybind11;
 
 typedef TrilinosSpace<Epetra_FECrsMatrix, Epetra_FEVector> TrilinosSparseSpaceType;
-typedef UblasSpace<double, Matrix, Vector> TrilinosLocalSpaceType;
+typedef TDefaultDenseSpace<double> TrilinosLocalSpaceType;
 typedef LinearSolver<TrilinosSparseSpaceType, TrilinosLocalSpaceType > TrilinosLinearSolverType;
 
 // Helpers to define Trilinos VariationalDistanceCalculatorProcess

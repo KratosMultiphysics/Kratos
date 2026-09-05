@@ -18,6 +18,7 @@
 // Project includes
 #include "includes/define_python.h"
 #include "spaces/ublas_space.h"
+#include "spaces/default_spaces.h"
 #include "add_amgcl_solver_to_python.h"
 #include "linear_solvers/amgcl_solver.h"
 #include "linear_solvers/amgcl_ns_solver.h"
@@ -28,8 +29,8 @@ namespace Kratos::Python {
 
 void  AddAMGCLSolverToPython(pybind11::module& m)
 {
-    using SpaceType = UblasSpace<double, CompressedMatrix, boost::numeric::ublas::vector<double>>;
-    using LocalSpaceType = UblasSpace<double, Matrix, Vector>;
+    using SpaceType = DefaultSparseSpaceType;
+    using LocalSpaceType = DefaultLocalSpaceType;
     using LinearSolverType = LinearSolver<SpaceType, LocalSpaceType>;
 
     namespace py = pybind11;

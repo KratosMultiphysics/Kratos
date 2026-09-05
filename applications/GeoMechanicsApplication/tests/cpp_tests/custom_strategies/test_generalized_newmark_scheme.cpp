@@ -12,11 +12,12 @@
 
 #include "custom_strategies/schemes/generalized_newmark_scheme.hpp"
 #include "spaces/ublas_space.h"
+#include "spaces/default_spaces.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
 
 using namespace Kratos;
-using SparseSpaceType = UblasSpace<double, CompressedMatrix, Vector>;
-using LocalSpaceType  = UblasSpace<double, Matrix, Vector>;
+using SparseSpaceType = TDefaultSparseSpace<double>;
+using LocalSpaceType  = TDefaultDenseSpace<double>;
 
 namespace Kratos::Testing
 {

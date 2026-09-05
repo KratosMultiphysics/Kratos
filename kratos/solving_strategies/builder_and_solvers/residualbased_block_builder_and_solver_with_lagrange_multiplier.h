@@ -646,10 +646,20 @@ public:
                 const double auxiliar_constraint_scale_factor = has_auxiliar_constraint_scale_factor ? r_current_process_info.GetValue(AUXILIAR_CONSTRAINT_SCALE_FACTOR) : mAuxiliarConstraintFactorConsidered == AUXILIAR_CONSTRAINT_FACTOR::CONSIDER_NORM_DIAGONAL_CONSTRAINT_FACTOR ? TSparseSpace::GetDiagonalNorm(copy_of_A) : TSparseSpace::GetAveragevalueDiagonal(copy_of_A);
                 mAuxiliarConstraintFactor = auxiliar_constraint_scale_factor;
 
-                // Create auxiliar identity matrix
-                TSystemMatrixType identity_matrix(number_of_slave_dofs, number_of_slave_dofs);
-                for (IndexType i = 0; i < number_of_slave_dofs; ++i) {
-                    identity_matrix.push_back(i, i, 1.0);
+                // Create auxiliar identity matrix by writing the CSR arrays
+                // directly (valid for both the uBLAS and the Eigen backend matrix)
+                TSystemMatrixType identity_matrix(number_of_slave_dofs, number_of_slave_dofs, number_of_slave_dofs);
+                {
+                    auto row_ptr = identity_matrix.index1_data().begin();
+                    auto col_ptr = identity_matrix.index2_data().begin();
+                    auto val_ptr = identity_matrix.value_data().begin();
+                    row_ptr[0] = 0;
+                    for (IndexType i = 0; i < number_of_slave_dofs; ++i) {
+                        col_ptr[i] = i;
+                        val_ptr[i] = 1.0;
+                        row_ptr[i + 1] = i + 1;
+                    }
+                    identity_matrix.set_filled(number_of_slave_dofs + 1, number_of_slave_dofs);
                 }
 
                 KRATOS_ERROR_IF_NOT(identity_matrix.nnz() == number_of_slave_dofs) << "Inconsistent number of non-zero values in the identity matrix: " << number_of_slave_dofs << " vs " << identity_matrix.nnz() << std::endl;

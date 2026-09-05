@@ -202,7 +202,7 @@ void WeaklyCompressibleNavierStokes<TElementData>::AddBoundaryTraction(
 
     // Compute some Gauss pt. auxiliar matrices
     const BoundedMatrix<double, Dim, StrainSize> aux_matrix_AC = prod(voigt_normal_projection_matrix, rData.C);
-    const BoundedMatrix<double, StrainSize, LocalSize> aux_matrix_ACB = prod(aux_matrix_AC, B_matrix);
+    const BoundedMatrix<double, Dim, LocalSize> aux_matrix_ACB = prod(aux_matrix_AC, B_matrix);
 
     // Fill the pressure to Voigt notation operator matrix
     BoundedMatrix<double, StrainSize, LocalSize> pres_to_voigt_matrix_op = ZeroMatrix(StrainSize, LocalSize);
@@ -252,7 +252,7 @@ void WeaklyCompressibleNavierStokes< WeaklyCompressibleNavierStokesData<2,3> >::
 
     const double dyn_tau = rData.DynamicTau;
 
-    const BoundedMatrix<double,2,3> vconv = rData.Velocity - rData.MeshVelocity;
+    const BoundedMatrix<double,3,2> vconv = rData.Velocity - rData.MeshVelocity;
 
     // Get constitutive matrix
     const BoundedMatrix<double,3,3>& C = rData.C;
@@ -498,7 +498,7 @@ void WeaklyCompressibleNavierStokes<WeaklyCompressibleNavierStokesData<3,4>>::Co
 
     const double dyn_tau = rData.DynamicTau;
 
-    const BoundedMatrix<double,3,4> vconv = rData.Velocity - rData.MeshVelocity;
+    const BoundedMatrix<double,4,3> vconv = rData.Velocity - rData.MeshVelocity;
 
     // Get constitutive matrix
     const BoundedMatrix<double,6,6>& C = rData.C;
@@ -1135,13 +1135,13 @@ void WeaklyCompressibleNavierStokes<WeaklyCompressibleNavierStokesData<2,3>>::Co
 
     const double dyn_tau = rData.DynamicTau;
 
-    const BoundedMatrix<double,2,3>& v = rData.Velocity;
-    const BoundedMatrix<double,2,3>& vn = rData.Velocity_OldStep1;
-    const BoundedMatrix<double,2,3>& vnn = rData.Velocity_OldStep2;
-    const BoundedMatrix<double,2,3>& vmesh = rData.MeshVelocity;
-    const BoundedMatrix<double,2,3> vconv = v - vmesh;
-    const BoundedMatrix<double,2,3>& f = rData.BodyForce;
-    const BoundedMatrix<double,2,3>& r_v_sol_frac = rData.SolidFractionVelocity;
+    const auto& v = rData.Velocity;
+    const auto& vn = rData.Velocity_OldStep1;
+    const auto& vnn = rData.Velocity_OldStep2;
+    const auto& vmesh = rData.MeshVelocity;
+    const BoundedMatrix<double,3,2> vconv = v - vmesh;
+    const auto& f = rData.BodyForce;
+    const auto& r_v_sol_frac = rData.SolidFractionVelocity;
     const array_1d<double,3>& p = rData.Pressure;
     const array_1d<double,3>& pn = rData.Pressure_OldStep1;
     const array_1d<double,3>& pnn = rData.Pressure_OldStep2;
@@ -1236,13 +1236,13 @@ void WeaklyCompressibleNavierStokes<WeaklyCompressibleNavierStokesData<3,4>>::Co
 
     const double dyn_tau = rData.DynamicTau;
 
-    const BoundedMatrix<double,3,4>& v = rData.Velocity;
-    const BoundedMatrix<double,3,4>& vn = rData.Velocity_OldStep1;
-    const BoundedMatrix<double,3,4>& vnn = rData.Velocity_OldStep2;
-    const BoundedMatrix<double,3,4>& vmesh = rData.MeshVelocity;
-    const BoundedMatrix<double,3,4> vconv = v - vmesh;
-    const BoundedMatrix<double,3,4>& f = rData.BodyForce;
-    const BoundedMatrix<double,3,4>& r_v_sol_frac = rData.SolidFractionVelocity;
+    const auto& v = rData.Velocity;
+    const auto& vn = rData.Velocity_OldStep1;
+    const auto& vnn = rData.Velocity_OldStep2;
+    const auto& vmesh = rData.MeshVelocity;
+    const BoundedMatrix<double,4,3> vconv = v - vmesh;
+    const auto& f = rData.BodyForce;
+    const auto& r_v_sol_frac = rData.SolidFractionVelocity;
     const array_1d<double,4>& p = rData.Pressure;
     const array_1d<double,4>& pn = rData.Pressure_OldStep1;
     const array_1d<double,4>& pnn = rData.Pressure_OldStep2;

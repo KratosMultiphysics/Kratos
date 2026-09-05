@@ -18,6 +18,7 @@
 #include "structural_mechanics_fast_suite.h"
 #include "containers/model.h"
 #include "spaces/ublas_space.h"
+#include "spaces/default_spaces.h"
 #include "structural_mechanics_application_variables.h"
 #include "utilities/variable_utils.h"
 #include "linear_solvers/skyline_lu_factorization_solver.h"
@@ -28,8 +29,8 @@
 namespace Kratos {
 namespace Testing {
 
-typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
-typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
+typedef TDefaultSparseSpace<double> SparseSpaceType;
+typedef TDefaultDenseSpace<double> LocalSpaceType;
 typedef LinearSolver<SparseSpaceType,LocalSpaceType> LinearSolverType;
 typedef SkylineLUFactorizationSolver<SparseSpaceType,  LocalSpaceType > SkylineLUFactorizationSolverType;
 typedef BuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType > BuilderAndSolverType;

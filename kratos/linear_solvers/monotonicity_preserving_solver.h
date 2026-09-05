@@ -212,24 +212,34 @@ public:
             const std::size_t id = rDof.EquationId();
             dofs_values[id] = rDof.GetSolutionStepValue();
         });
-        typename SparseMatrixType::value_type *values_vector = rA.value_data().begin();
-        std::size_t *index1_vector = rA.index1_data().begin();
-        std::size_t *index2_vector = rA.index2_data().begin();
+        auto* values_vector = rA.value_data().begin();
+        auto* index1_vector = rA.index1_data().begin();
+        auto* index2_vector = rA.index2_data().begin();
+
+        // Reference to an existing entry: ublas sparse element access returns a
+        // proxy requiring .ref(), other backends return a plain reference
+        auto entry_reference = [](SparseMatrixType& rMatrix, const std::size_t I, const std::size_t J) -> typename SparseMatrixType::value_type& {
+            if constexpr (requires { rMatrix(I, J).ref(); }) {
+                return rMatrix(I, J).ref();
+            } else {
+                return rMatrix(I, J);
+            }
+        };
 
         IndexPartition<std::size_t>(rA.size1()).for_each(
             [&](std::size_t i)
             {
-                for (std::size_t k = index1_vector[i]; k < index1_vector[i + 1]; k++) {
+                for (auto k = index1_vector[i]; k < index1_vector[i + 1]; k++) {
                     const typename SparseMatrixType::value_type value = values_vector[k];
                     if (value > 0.0) {
-                        const auto j = index2_vector[k];
+                        const std::size_t j = index2_vector[k];
                         if (j > i) {
                             rA(i,j) -= value;
                             rA(j,i) -= value;
                             // Values conflicting with other threads
-                            auto& r_aii = rA(i,i).ref();
+                            auto& r_aii = entry_reference(rA, i, i);
                             AtomicAdd(r_aii, value);
-                            auto& r_ajj = rA(j,j).ref();
+                            auto& r_ajj = entry_reference(rA, j, j);
                             AtomicAdd(r_ajj, value);
                             auto& r_bi = rB[i];
                             AtomicAdd(r_bi, value*dofs_values[j] - value*dofs_values[i]);

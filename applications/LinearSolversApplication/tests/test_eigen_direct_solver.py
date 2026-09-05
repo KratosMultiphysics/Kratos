@@ -10,13 +10,20 @@ class TestEigenDirectSolver(KratosUnittest.TestCase):
     def __ExecuteEigenDirectSolverTest(self,
                                        class_name: str,
                                        solver_type: str) -> None:
-        space = KratosMultiphysics.UblasSparseSpace()
+        # SparseSpace/SparseMatrix/SparseVector are backend-agnostic aliases:
+        # they resolve to UblasSparseSpace/CompressedMatrix/Vector when Kratos
+        # is built with KRATOS_LINEAR_ALGEBRA_BACKEND=ublas, and to
+        # EigenSparseSpace/EigenCompressedMatrix/EigenVector with the eigen
+        # backend, so the direct solvers (which operate on the active
+        # backend's system types) can be exercised without a uBLAS<->Eigen
+        # conversion.
+        space = KratosMultiphysics.SparseSpace()
 
         settings = KratosMultiphysics.Parameters('{ "solver_type" : "LinearSolversApplication.' + solver_type + '" }')
 
         solver = ConstructSolver(settings)
 
-        a = KratosMultiphysics.CompressedMatrix()
+        a = KratosMultiphysics.SparseMatrix()
 
         base_dir = Path(__file__).resolve().parents[3]
 
@@ -36,31 +43,33 @@ class TestEigenDirectSolver(KratosUnittest.TestCase):
 
         self.assertEqual(dimension, 900)
 
-        b_exp = KratosMultiphysics.Vector(dimension) # [1, 2, ..., dimension-1, dimension]
+        b_exp = KratosMultiphysics.SparseVector(dimension) # [1, 2, ..., dimension-1, dimension]
 
         for i in range(dimension):
             b_exp[i] = i + 1
 
-        x = KratosMultiphysics.Vector(dimension)
+        x = KratosMultiphysics.SparseVector(dimension)
 
         solver.Solve(a, x, b_exp)
 
-        b_act = KratosMultiphysics.Vector(dimension)
+        b_act = KratosMultiphysics.SparseVector(dimension)
         space.Mult(a, x, b_act)
 
         for i in range(dimension):
             self.assertAlmostEqual(b_act[i], b_exp[i], 7)
 
     def __ExecuteEigenDirectSolverMatrixRHSTest(self, solver_type: str) -> None:
-        space = KratosMultiphysics.UblasSparseSpace()
-    
+        # See the comment in __ExecuteEigenDirectSolverTest about the
+        # backend-agnostic SparseSpace/SparseMatrix/SparseVector aliases.
+        space = KratosMultiphysics.SparseSpace()
+
         settings = KratosMultiphysics.Parameters(
             '{ "solver_type" : "LinearSolversApplication.' + solver_type + '" }'
         )
         solver = ConstructSolver(settings)
-    
-        a = KratosMultiphysics.CompressedMatrix()
-    
+
+        a = KratosMultiphysics.SparseMatrix()
+
         this_file_dir = os.path.dirname(os.path.realpath(__file__))
         base_dir = os.path.dirname(os.path.dirname(os.path.dirname(this_file_dir)))
         matrix_file_path = os.path.join(
@@ -93,8 +102,8 @@ class TestEigenDirectSolver(KratosUnittest.TestCase):
         b_act = KratosMultiphysics.Matrix(dimension, num_rhs)
 
         for j in range(num_rhs):
-            x_col = KratosMultiphysics.Vector(dimension)
-            b_col = KratosMultiphysics.Vector(dimension)
+            x_col = KratosMultiphysics.SparseVector(dimension)
+            b_col = KratosMultiphysics.SparseVector(dimension)
 
             for i in range(dimension):
                 x_col[i] = x[i, j]
@@ -156,6 +165,9 @@ class TestEigenDirectSolver(KratosUnittest.TestCase):
     def test_EigenSparseCG(self):
         self.__ExecuteEigenDirectSolverTest('SparseCGSolver', 'sparse_cg')
 
+    def test_EigenSparseCG_MatrixRHS(self):
+        self.__ExecuteEigenDirectSolverMatrixRHSTest('sparse_cg')
+
     def test_EigenSparseQR(self):
         self.__ExecuteEigenDirectSolverTest('SparseQRSolver', 'sparse_qr')
 
@@ -181,6 +193,10 @@ class TestEigenDirectSolver(KratosUnittest.TestCase):
     @KratosUnittest.skipIf(not LinearSolversApplication.HasMKL(), "Kratos was compiled without MKL support.")
     def test_EigenPardisoLLT(self):
         self.__ExecuteEigenDirectSolverTest('PardisoLLTSolver', 'pardiso_llt')
+
+    @KratosUnittest.skipIf(not LinearSolversApplication.HasMKL(), "Kratos was compiled without MKL support.")
+    def test_EigenPardisoLLT_MatrixRHS(self):
+        self.__ExecuteEigenDirectSolverMatrixRHSTest('pardiso_llt')
 
     def test_EigenComplexSparseLU(self):
         self.__ExecuteEigenDirectComplexSolverTest('ComplexSparseLUSolver', 'sparse_lu_complex')
