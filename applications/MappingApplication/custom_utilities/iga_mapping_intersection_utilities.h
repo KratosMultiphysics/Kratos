@@ -187,6 +187,34 @@ namespace IgaMappingIntersectionUtilities
 
 
     /**
+     * @brief THB-surface counterpart of @ref CreateIgaFEMCouplingGeometriesOnSurface.
+     *
+     * Same contract as the NURBS version but expects the IGA-side patches to be
+     * @ref LocalRefinedBrepSurface (wrapping @ref THBSurfaceGeometry).
+     */
+    void KRATOS_API(MAPPING_APPLICATION) CreateThbFEMCouplingGeometriesOnSurface(
+        ModelPart& rModelPartDomainA,
+        ModelPart& rModelPartDomainB,
+        ModelPart& rModelPartResult,
+        bool is_origin_iga,
+        const double search_radius,
+        PatchCacheMap& rPatchCache);
+
+
+    /**
+     * @brief THB-surface counterpart of @ref CreateIgaFEMQuadraturePointsOnSurface.
+     *
+     * Same contract as the NURBS version but consumes coupling geometries whose
+     * master is a @ref LocalRefinedBrepSurface (THB).
+     */
+    void KRATOS_API(MAPPING_APPLICATION) CreateThbFEMQuadraturePointsOnSurface(
+        ModelPart& rModelPartCoupling,
+        bool origin_is_iga,
+        const PatchCacheMap& rPatchCache,
+        const double search_radius);
+
+
+    /**
      * @brief Filters the set of candidate IGA patches for a given FEM entity location.
      *
      * Given a list of patch IDs and a query point (typically the FEM element/condition center), this function

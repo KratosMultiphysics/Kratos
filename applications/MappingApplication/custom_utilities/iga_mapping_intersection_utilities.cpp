@@ -793,6 +793,36 @@ void IgaMappingIntersectionUtilities::CreateIgaFEMQuadraturePointsOnSurface(
     }
 }
 
+void IgaMappingIntersectionUtilities::CreateThbFEMCouplingGeometriesOnSurface(
+    ModelPart& rModelPartDomainA,
+    ModelPart& rModelPartDomainB,
+    ModelPart& rModelPartResult,
+    bool is_origin_iga,
+    const double search_radius,
+    PatchCacheMap& rPatchCache)
+{
+    KRATOS_ERROR
+        << "IgaMappingIntersectionUtilities::CreateThbFEMCouplingGeometriesOnSurface: "
+           "THB mortar mapper is not yet implemented. This entry point is reached "
+           "when the IGA-side interface uses LocalRefinedBrepSurface (THB) patches."
+        << std::endl;
+}
+
+
+void IgaMappingIntersectionUtilities::CreateThbFEMQuadraturePointsOnSurface(
+    ModelPart& rModelPartCoupling,
+    bool origin_is_iga,
+    const PatchCacheMap& rPatchCache,
+    const double search_radius)
+{
+    KRATOS_ERROR
+        << "IgaMappingIntersectionUtilities::CreateThbFEMQuadraturePointsOnSurface: "
+           "THB mortar mapper is not yet implemented. This entry point is reached "
+           "when the IGA-side interface uses LocalRefinedBrepSurface (THB) patches."
+        << std::endl;
+}
+
+
 bool IgaMappingIntersectionUtilities::FindInitialGuessNewtonRaphsonProjection(
     const CoordinatesArrayType& slave_xyz,
     const GeometryType& r_master_geometry,

@@ -116,23 +116,42 @@ namespace Kratos
             IgaMappingIntersectionUtilities::CreateIgaFEMQuadraturePointsOnCurve(
                 coupling_model_part, 1e-6);
         } else {
+            const bool is_thb_surface =
+                coupling_interface_origin.ConditionsBegin()->GetGeometry()
+                    .GetGeometryParent(0).GetGeometryType()
+                == GeometryData::KratosGeometryType::Kratos_Local_Refined_Brep_Surface;
+
             IgaMappingIntersectionUtilities::PatchCacheMap patch_cache;
 
-            // Create coupling geometries connecting each finite element with the IGA surface 
-            IgaMappingIntersectionUtilities::CreateIgaFEMCouplingGeometriesOnSurface(
-                coupling_interface_origin,
-                coupling_interface_destination,
-                coupling_model_part, 
-                is_origin_iga,
-                search_radius,
-                patch_cache);
-            
-             // Create quadrature point geometries in the origin and destination domain
-            IgaMappingIntersectionUtilities::CreateIgaFEMQuadraturePointsOnSurface(
-                coupling_model_part, 
-                is_origin_iga,
-                patch_cache,
-                search_radius);
+            if (is_thb_surface) {
+                // THB  BrepSurface path
+                IgaMappingIntersectionUtilities::CreateThbFEMCouplingGeometriesOnSurface(
+                    coupling_interface_origin,
+                    coupling_interface_destination,
+                    coupling_model_part,
+                    is_origin_iga,
+                    search_radius,
+                    patch_cache);
+                IgaMappingIntersectionUtilities::CreateThbFEMQuadraturePointsOnSurface(
+                    coupling_model_part,
+                    is_origin_iga,
+                    patch_cache,
+                    search_radius);
+            } else {
+                // Plain-NURBS BrepSurface path
+                IgaMappingIntersectionUtilities::CreateIgaFEMCouplingGeometriesOnSurface(
+                    coupling_interface_origin,
+                    coupling_interface_destination,
+                    coupling_model_part,
+                    is_origin_iga,
+                    search_radius,
+                    patch_cache);
+                IgaMappingIntersectionUtilities::CreateIgaFEMQuadraturePointsOnSurface(
+                    coupling_model_part,
+                    is_origin_iga,
+                    patch_cache,
+                    search_radius);
+            }
         }
     }
 
