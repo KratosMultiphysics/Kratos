@@ -15,7 +15,7 @@ class TestArrayBackendResolution(KratosUnittest.TestCase):
         self.assertIs(backend.xp, np)
 
     def test_unknown_backend_raises(self):
-        with self.assertRaises(Exception):
+        with self.assertRaisesRegex(Exception, 'Unknown array backend'):
             GetArrayBackend("not_a_backend")
 
     def test_cupy_backend_falls_back_to_numpy_if_unavailable(self):
@@ -68,6 +68,91 @@ class TestHostArrayBoundaryDecorator(KratosUnittest.TestCase):
         # the decorator must download the result back to host numpy
         self.assertIsInstance(result, np.ndarray)
         np.testing.assert_array_equal(result, r * 2.0)
+
+
+class TestCupyShimsWithMocks(KratosUnittest.TestCase):
+    """Verifies the cupyx shim signatures without a GPU by stubbing the cupyx modules.
+
+    Guards the review blocker: cupyx gmres is keyword-only "rtol" (no "tol"), and
+    cupyx solve_triangular accepts "check_finite".
+    """
+    def _InstallFakeCupyx(self, sparse_linalg, linalg=None):
+        import sys, types
+        cupyx = types.ModuleType("cupyx")
+        scipy = types.ModuleType("cupyx.scipy")
+        sparse = types.ModuleType("cupyx.scipy.sparse")
+        sparse_linalg_mod = types.ModuleType("cupyx.scipy.sparse.linalg")
+        sparse_linalg_mod.gmres = sparse_linalg
+        linalg_mod = types.ModuleType("cupyx.scipy.linalg")
+        if linalg is not None:
+            linalg_mod.solve_triangular = linalg
+        saved = {k: sys.modules.get(k) for k in ["cupyx", "cupyx.scipy", "cupyx.scipy.sparse", "cupyx.scipy.sparse.linalg", "cupyx.scipy.linalg"]}
+        sys.modules["cupyx"] = cupyx
+        sys.modules["cupyx.scipy"] = scipy
+        sys.modules["cupyx.scipy.sparse"] = sparse
+        sys.modules["cupyx.scipy.sparse.linalg"] = sparse_linalg_mod
+        sys.modules["cupyx.scipy.linalg"] = linalg_mod
+        return saved
+
+    def _RestoreModules(self, saved):
+        import sys
+        for key, mod in saved.items():
+            if mod is None:
+                sys.modules.pop(key, None)
+            else:
+                sys.modules[key] = mod
+
+    def test_gmres_cupy_uses_rtol(self):
+        from KratosMultiphysics.CoSimulationApplication.utilities.array_backend import ArrayBackend
+        calls = {}
+        def fake_gmres(op, rhs, **kwargs):
+            calls.update(kwargs)
+            return ("ok", 0)
+        saved = self._InstallFakeCupyx(fake_gmres)
+        try:
+            backend = ArrayBackend(xp=None, name="cupy")
+            result, info = backend.Gmres(object(), np.ones(2), atol=1e-14, rtol=1e-5)
+            self.assertEqual(result, "ok")
+            self.assertIn("rtol", calls)
+            self.assertNotIn("tol", calls)
+            self.assertAlmostEqual(calls["rtol"], 1e-5)
+        finally:
+            self._RestoreModules(saved)
+
+    def test_gmres_cupy_falls_back_to_tol_for_old_cupyx(self):
+        from KratosMultiphysics.CoSimulationApplication.utilities.array_backend import ArrayBackend
+        calls = []
+        def fake_gmres(op, rhs, **kwargs):
+            calls.append(dict(kwargs))
+            if "rtol" in kwargs:
+                raise TypeError("unexpected keyword 'rtol'")
+            return ("ok-old", 0)
+        saved = self._InstallFakeCupyx(fake_gmres)
+        try:
+            backend = ArrayBackend(xp=None, name="cupy")
+            result, _ = backend.Gmres(object(), np.ones(2), atol=1e-14, rtol=1e-5)
+            self.assertEqual(result, "ok-old")
+            self.assertEqual(len(calls), 2)
+            self.assertIn("rtol", calls[0])
+            self.assertIn("tol", calls[1])
+        finally:
+            self._RestoreModules(saved)
+
+    def test_solve_triangular_cupy_passes_check_finite(self):
+        from KratosMultiphysics.CoSimulationApplication.utilities.array_backend import ArrayBackend
+        calls = {}
+        def fake_solve_triangular(a, b, **kwargs):
+            calls.update(kwargs)
+            return "ok-tri"
+        saved = self._InstallFakeCupyx(lambda *a, **k: (None, None), linalg=fake_solve_triangular)
+        try:
+            backend = ArrayBackend(xp=None, name="cupy")
+            result = backend.SolveTriangular(np.eye(2), np.ones(2))
+            self.assertEqual(result, "ok-tri")
+            self.assertIn("check_finite", calls)
+            self.assertFalse(calls["check_finite"])
+        finally:
+            self._RestoreModules(saved)
 
 
 class TestConvergenceAcceleratorsWithBackendSetting(KratosUnittest.TestCase):
@@ -162,6 +247,44 @@ class TestConvergenceAcceleratorsWithBackendSetting(KratosUnittest.TestCase):
         actual = self._RunBlockAccelerator("block_ibqnls", "cupy")
         for exp, act in zip(expected, actual):
             np.testing.assert_allclose(act, exp, atol=1e-10)
+
+    def test_iqnils_cupy_matches_numpy(self):
+        self._SkipIfNoCupy()
+        expected = self._RunSimpleAccelerator("iqnils", "numpy")
+        actual = self._RunSimpleAccelerator("iqnils", "cupy")
+        for exp, act in zip(expected, actual):
+            np.testing.assert_allclose(act, exp, atol=1e-10)
+
+    def test_anderson_cupy_matches_numpy(self):
+        self._SkipIfNoCupy()
+        expected = self._RunSimpleAccelerator("anderson", "numpy")
+        actual = self._RunSimpleAccelerator("anderson", "cupy")
+        for exp, act in zip(expected, actual):
+            np.testing.assert_allclose(act, exp, atol=1e-10)
+
+    def test_block_mvqn_cupy_matches_numpy(self):
+        self._SkipIfNoCupy()
+        expected = self._RunBlockAccelerator("block_mvqn", "numpy")
+        actual = self._RunBlockAccelerator("block_mvqn", "cupy")
+        for exp, act in zip(expected, actual):
+            np.testing.assert_allclose(act, exp, atol=1e-10)
+
+    def test_aitken_identical_residuals_does_not_raise(self):
+        # regression: two bit-identical residuals give a zero denominator; the old
+        # np.float64 division produced nan/inf and continued, it must not raise
+        # ZeroDivisionError (see review on float() placement in aitken.py)
+        settings = KM.Parameters('{ "type" : "aitken", "backend" : "numpy" }')
+        acc = CreateConvergenceAccelerator(settings)
+        acc.InitializeSolutionStep()
+        r = np.array([1.0, 2.0, 3.0])
+        x = np.array([0.1, 0.2, 0.3])
+        acc.UpdateSolution(r, x)
+        with np.errstate(invalid="ignore"): # 0/0 -> nan is the expected numpy semantic here
+            delta = acc.UpdateSolution(r.copy(), x.copy()) # r_diff == 0
+        self.assertIsInstance(delta, np.ndarray)
+        self.assertEqual(delta.shape, r.shape)
+        self.assertTrue(np.all(np.isnan(delta))) # nan propagates, run continues (no exception)
+        acc.FinalizeSolutionStep()
 
 
 if __name__ == '__main__':
