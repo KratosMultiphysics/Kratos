@@ -61,9 +61,10 @@ class AitkenConvergenceAccelerator(CoSimulationConvergenceAccelerator):
             r_diff = self.R[0] - self.R[1]
             numerator = self.xp.inner( self.R[1], r_diff )
             denominator = self.xp.inner( r_diff, r_diff )
-            # casting to plain python floats here: on the cupy backend "numerator"/"denominator" are
-            # 0-d device arrays, and "alpha" is subsequently compared/formatted as a scalar
-            alpha = -self.alpha_old * float(numerator) / float(denominator)
+            # Single float() after the division: keeps numpy nan/inf semantics for a zero
+            # denominator (bit-identical consecutive residuals) instead of raising
+            # ZeroDivisionError, while still doing only one device->host sync on cupy.
+            alpha = float(-self.alpha_old * numerator / denominator)
             if self.echo_level > 3:
                 cs_tools.cs_print_info(self._ClassName(), ": Doing relaxation with factor = {}".format(alpha))
             if alpha > self.alpha_max:
