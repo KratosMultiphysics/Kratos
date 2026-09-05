@@ -38,8 +38,9 @@ class MVQNConvergenceAccelerator(CoSimulationConvergenceAccelerator):
 
         self.R = deque( maxlen = horizon )
         self.X = deque( maxlen = horizon )
-        self.J: typing.Optional[np.ndarray] = None # size will be determined when first time get the input vector
-        self.J_hat: typing.Optional[np.ndarray] = None
+        # arrays live in the "self.xp" domain (numpy or cupy), hence "Any" and not "np.ndarray"
+        self.J: typing.Optional[typing.Any] = None # size will be determined when first time get the input vector
+        self.J_hat: typing.Optional[typing.Any] = None
 
     ## UpdateSolution(r, x)
     # @param r residual r_k
