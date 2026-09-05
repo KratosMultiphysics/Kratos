@@ -81,7 +81,7 @@ Notes:
 - The main beneficiaries are `mvqn` and `block_mvqn`, which hold a dense Jacobian of size (number of interface DOFs)². The Jacobian and the stored iteration history stay GPU-resident across iterations and time steps; only the residual and solution vectors are transferred each call.
 - GPU acceleration only pays off for larger interfaces (roughly thousands of DOFs and up); for small interfaces the host&lt;-&gt;device transfer and kernel-launch overhead makes it slower than numpy. It is opt-in for this reason.
 - Double-precision (float64) throughput on consumer GPUs is typically much lower than on server/datacenter GPUs; keep this in mind before switching a production run.
-- `mvqn`'s dense Jacobian uses `2 * n^2 * 8` bytes of GPU memory for `n` interface DOFs (`J` and `J_hat`); make sure this fits in the available GPU memory for large interfaces.
+- `mvqn`'s dense Jacobian peaks near `5 * n^2 * 8` bytes of GPU memory for `n` interface DOFs (`J` and `J_hat` persist across iterations, plus the transient `b = identity(row)`, least-squares result and `J_tilde` inside `UpdateSolution`); make sure this fits in the available GPU memory for large interfaces.
 
 
 <a name="examples"></a>
