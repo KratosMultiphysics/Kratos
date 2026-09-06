@@ -1,7 +1,4 @@
-#pragma once
-
 #include "custom_utilities/compute_kernel_correction_utilities.h"
-
 
 namespace Kratos
 {
@@ -9,7 +6,6 @@ namespace Kratos
 void ComputeKernelCorrectionUtilities::ComputeWeightedSums(ModelPart& rThisModelPart)
 {
     auto& rElem = rThisModelPart.Elements();
-    const double h = rThisModelPart.GetProcessInfo()[SMOOTHING_LENGTH];
     const SizeType domain_size = rThisModelPart.GetProcessInfo()[DOMAIN_SIZE];
 
     for (auto IP = rElem.begin(); IP != rElem.end(); ++IP){
@@ -43,7 +39,6 @@ void ComputeKernelCorrectionUtilities::ComputeWeightedSums(ModelPart& rThisModel
 void ComputeKernelCorrectionUtilities::ComputeGradientCorrection(ModelPart& rThisModelPart)
 {   
     auto& rElem = rThisModelPart.Elements();
-    const double h = rThisModelPart.GetProcessInfo()[SMOOTHING_LENGTH];
     const SizeType domain_size = rThisModelPart.GetProcessInfo()[DOMAIN_SIZE];
 
     for (auto IP = rElem.begin(); IP != rElem.end(); ++IP){
@@ -83,7 +78,7 @@ void ComputeKernelCorrectionUtilities::ComputeGradientCorrection(ModelPart& rThi
         }
 
         Matrix inv_gradient_L(domain_size, domain_size);
-        double det_L = 0.0;
+        double det_L = MathUtils<double>::Det(gradient_L_aux); 
 
         MathUtils<double>::InvertMatrix(gradient_L_aux, inv_gradient_L, det_L);
         IP->SetValue(GRADIENT_CORRECTION, inv_gradient_L);
@@ -93,26 +88,34 @@ void ComputeKernelCorrectionUtilities::ComputeGradientCorrection(ModelPart& rThi
 
 void ComputeKernelCorrectionUtilities::ApplyKernelCorrection(Element& IP, double& kernel_target)
 {
-    // kernel becomes corrected kernel
     kernel_target /= IP.GetValue(VW_KERNEL);
 } 
 
-void ComputeKernelCorrectionUtilities::ApplyKernelGradientCorrection(Element& IP, double& kernel_target, VectorType& dkernel_target)
+void ComputeKernelCorrectionUtilities::ApplyKernelGradientCorrection(
+    Element& rIntegrationParticle,
+    double& rKernel,
+    VectorType& rKernelGradient)
 {
-    // kernel becomes corrected kernel 
-    kernel_target /= IP.GetValue(VW_KERNEL);
-    
-    // kernel gradient becomes corrected kernel gradient
-    VectorType dckernel = dkernel_target / IP.GetValue(VW_KERNEL) - kernel_target * IP.GetValue(VW_DKERNEL) / IP.GetValue(VW_KERNEL);
-    noalias(dkernel_target) = prod(IP.GetValue(GRADIENT_CORRECTION), dckernel);
-} 
+    rKernel /= rIntegrationParticle.GetValue(VW_KERNEL);
+
+    const Vector corrected_kernel_gradient = rKernelGradient / rIntegrationParticle.GetValue(VW_KERNEL) - rKernel * rIntegrationParticle.GetValue(VW_DKERNEL) / rIntegrationParticle.GetValue(VW_KERNEL);
+    noalias(rKernelGradient) = prod(rIntegrationParticle.GetValue(GRADIENT_CORRECTION), corrected_kernel_gradient);
+}
+
+void ComputeKernelCorrectionUtilities::ApplyKernelGradientCorrectionInverted(
+    Element& rNeighbouringParticle,
+    double& rKernel,
+    VectorType& rKernelGradient)
+{
+    rKernelGradient *= -1.0;
+    ApplyKernelGradientCorrection(rNeighbouringParticle, rKernel, rKernelGradient); 
+}
 
 bool ComputeKernelCorrectionUtilities::VerifyKernelCorrection(ModelPart& rThisModelPart, Parameters& rThisParameters)
 {
     KRATOS_TRY 
 
     auto& rElem = rThisModelPart.Elements();
-    const double h = rThisModelPart.GetProcessInfo()[SMOOTHING_LENGTH];
     const SizeType domain_size = rThisModelPart.GetProcessInfo()[DOMAIN_SIZE];
     
     const double tol = rThisParameters["tol"].GetDouble();
@@ -149,7 +152,7 @@ bool ComputeKernelCorrectionUtilities::VerifyKernelCorrection(ModelPart& rThisMo
                 X_AB_target[d] = IPcoords[d] - JPcoords[d];
             }
 
-            ComputeKernelCorrectionUtilities::ApplyKernelGradientCorrection(IP, kernel[index], dkernel[index]);
+            ApplyKernelGradientCorrection(IP, kernel[index], dkernel[index]);
 
             const double volume = JP->GetGeometry()[0].GetValue(VOLUME);
 
@@ -180,49 +183,5 @@ bool ComputeKernelCorrectionUtilities::VerifyKernelCorrection(ModelPart& rThisMo
 
     KRATOS_CATCH("")
 }
-/*
-bool ComputeKernelCorrectionUtilities::VerifyIntegrationCorrection(ModelPart& rThisModelPart, Parameters& rThisParameters)
-{
-    KRATOS_TRY
-    auto& rElem = rThisModelPart.Elements();
-    const double h = rThisModelPart.GetProcessInfo()[SMOOTHING_LENGTH];
-    const SizeType domain_size = rThisModelPart.GetProcessInfo()[DOMAIN_SIZE];
-
-    for (auto IP = rElem.begin(); IP != rElem.end(); ++IP){
-
-        const auto& r_neighbours = IP->GetValue(NEIGHBOURS);
-        const auto& r_geom = IP->GetGeometry();
-
-        std::vector<double> kernel;
-        std::vector<Vector> dkernel;
-        IP->CalculateOnIntegrationPoints(SPH_KERNEL, kernel, rThisModelPart.GetProcessInfo());
-        IP->CalculateOnIntegrationPoints(SPH_KERNEL_GRADIENT, dkernel, rThisModelPart.GetProcessInfo());
-
-        const auto& IPcoords = r_geom[0].Coordinates();
-
-        Vector control = ZeroVector(domain_size);
-
-        for (IndexType index = 0; index < r_neighbours.size(); index++){
-
-            const auto& JP = r_neighbours[index];
-            const auto& r_geom_neigh = JP->GetGeometry();
-
-            Vector X_AB_target(domain_size);
-            const auto& JPcoords = r_geom_neigh[0].Coordinates();
-            for (IndexType d = 0; d < domain_size; d++){
-                X_AB_target[d] = IPcoords[d] - JPcoords[d];
-            }
-            
-            const double volume = r_geom_neigh[0].GetValue(VOLUME);
-            ComputeKernelCorrectionUtilities::ApplyKernelGradientCorrection(*IP, kernel[index], dkernel[index]);
-
-            control += volume * dkernel[index] - r_geom_neigh[0].GetValue(BOUNDARY_NORMAL_AREA) * kernel[index];
-        }
-
-        KRATOS_WATCH(control);
-    }
-    KRATOS_CATCH("")
-    return false;
-}*/
 
 }

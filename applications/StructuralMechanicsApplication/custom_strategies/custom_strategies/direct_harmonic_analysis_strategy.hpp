@@ -279,11 +279,11 @@ public:
 
             const std::size_t system_size = SparseSpaceType::Size1(*p_stiffness_matrix);
 
-            if (mpRealLoadVector->size() != system_size) {
+            if (static_cast<std::size_t>(mpRealLoadVector->size()) != system_size) {
                 SparseSpaceType::Resize(*mpRealLoadVector, system_size);
             }
             SparseSpaceType::Set(*mpRealLoadVector, 0.0);
-            if (mpImaginaryLoadVector->size() != system_size) {
+            if (static_cast<std::size_t>(mpImaginaryLoadVector->size()) != system_size) {
                 SparseSpaceType::Resize(*mpImaginaryLoadVector, system_size);
             }
             SparseSpaceType::Set(*mpImaginaryLoadVector, 0.0);
@@ -786,7 +786,7 @@ private:
 
                 for (IndexType i = 0; i < r_equation_id.size(); ++i) {
                     const auto eq_id = r_equation_id[i];
-                    if (eq_id < rRHS.size()) {
+                    if (eq_id < static_cast<std::size_t>(rRHS.size())) {
                         AtomicAdd(rRHS[eq_id], r_local_rhs[i]);
                     }
                 }
