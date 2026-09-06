@@ -58,6 +58,16 @@ public:
     int Check(const ProcessInfo& rCurrentProcessInfo
     ) const override;
 
+    void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
+
+    // runs once per load step
+    void InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
+
+    // runs once per Newton iteration
+    void InitializeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo) override;
+
+    void FinalizeNonLinearIteration(const ProcessInfo& CurrentProcessInfo) override;
+
     void CalculateLocalSystem(
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
@@ -75,6 +85,13 @@ public:
     ) override;
 
 private:
+
+    // EAS enhanced strain parameters (element-internal parameters), statically condensed out at element level
+    Vector mAlphaEas;
+    Vector mPreviousNodalDofs;
+    Matrix mDtildInv;
+    Matrix mLt;
+    Vector mRtild;
 
     enum class ConstitutiveLawType {
         gStVenantKirchhoff,
@@ -100,7 +117,7 @@ private:
 
     void CalculateGreenLagrangeStrain(array_1d<double,6>& GL_strain_vector, const Matrix& amkovr, const Matrix& amkovc, 
     const array_1d<Vector,3> akovr,  const array_1d<Vector,3> akovc, const array_1d<Vector,2>& a3kvpr, const array_1d<Vector,2>& a3kvpc, const double& Theta3, const SizeType& ansq, 
-    const array_1d<double,2>& N13_ansq, const array_1d<double,2>& N23_ansq, const array_1d<Matrix,4>& amkovr_ansq, const array_1d<Matrix,4>& amkovc_ansq) const;
+    const array_1d<double,2>& N13_ansq, const array_1d<double,2>& N23_ansq, const array_1d<Matrix,4>& amkovr_ansq, const array_1d<Matrix,4>& amkovc_ansq, const Vector& eas_enhancement) const;
 
     void ContraVariantBaseVectors(array_1d<Vector,3>& rBaseVectors,const Matrix& rContraVariantMetric,
     const array_1d<Vector,3> rCovariantBaseVectors) const;
@@ -112,7 +129,7 @@ private:
     void CovariantBaseVectorsShellBody(array_1d<Vector,3>& gkovr, const Matrix& rShapeFunctionGradientValues, 
     const Vector& rNshape, const ConfigurationType& rConfiguration, const double& Theta3, const double& thickness) const;
 
-    void CalculateMaterialLaw(BoundedMatrix<double, 12, 12>& CL, const Matrix& gmkonr, const double& thickness,
+    void CalculateMaterialLaw(BoundedMatrix<double, 12, 12>& D, const Matrix& gmkonr, const double& thickness,
     const ConstitutiveLawType& option, const double& Theta3, const double& fact, array_1d<double,6>& PK2_stress, array_1d<double,6>& GL_strain, array_1d<double,12>& stress_resultants, const double& f_s) const;
 
     void StressPreintegration(const BoundedMatrix<double, 6, 6>& CC, array_1d<double,6>& PK2_stress, array_1d<double,6>& GL_strain, array_1d<double,12>& stress_resultants, 
@@ -135,6 +152,8 @@ private:
 
     void BasisTransformationEASShapeFunctions(Matrix& T, const Matrix& M0_eas, Matrix& M_eas,
     const array_1d<Vector,3>& akonr0_eas, const array_1d<Vector,3>& akovr, const double detJ0_surface, const double detJ_surface) const;
+
+    void GetEASModeConfiguration(array_1d<SizeType,3>& rEasModesPerKinematicVariableSet, SizeType& rNumEasModes) const;
 
     void CalculateMassMatrix(MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo) override;
 

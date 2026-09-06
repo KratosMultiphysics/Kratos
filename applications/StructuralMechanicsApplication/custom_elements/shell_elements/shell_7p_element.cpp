@@ -118,14 +118,76 @@ const double numerical_limit = std::numeric_limits<double>::epsilon();
 
 if (GetProperties().Has(THICKNESS) == false ||
         GetProperties()[THICKNESS] <= numerical_limit) {
-    KRATOS_ERROR << "THICKNESS not provided for element " << Id()
-                    << std::endl;
+    KRATOS_ERROR << "THICKNESS not provided for element " << Id() << std::endl;
 }
 
 return 0;
 
 KRATOS_CATCH("");
 }
+
+void Shell7pElement::Initialize(const ProcessInfo& rCurrentProcessInfo)
+{
+
+    const auto& r_geom = GetGeometry();
+    const SizeType number_of_nodes = r_geom.size();
+
+    array_1d<SizeType,3> eas_modes_per_kinematic_variable_set;
+    SizeType num_eas_modes = 0;
+    GetEASModeConfiguration(eas_modes_per_kinematic_variable_set, num_eas_modes);
+
+    mAlphaEas = ZeroVector(num_eas_modes);
+    GetValuesVector(mPreviousNodalDofs);
+
+}
+
+void Shell7pElement::InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_TRY;
+
+    // mPreviousNodalDofs.clear();
+    // mDtildInv = ZeroMatrix(0, 0);
+    // mLt = ZeroMatrix(0, 0);
+    // mRtild = ZeroVector(0);
+
+    KRATOS_CATCH("");
+}
+
+void Shell7pElement::InitializeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_TRY;
+
+    const auto& r_geom = GetGeometry();
+    const SizeType number_of_nodes = r_geom.size();
+    const SizeType number_dofs = 6*number_of_nodes;
+
+    Vector current_nodal_dofs = ZeroVector(6*number_of_nodes);
+    GetValuesVector(current_nodal_dofs);
+
+        const Vector delta_u = current_nodal_dofs - mPreviousNodalDofs;
+        Vector residual = mRtild + prod(mLt, delta_u);
+        Vector delta_alpha = ZeroVector(mAlphaEas.size());
+        noalias(delta_alpha) = prod(mDtildInv, residual);
+
+
+    KRATOS_CATCH( "" )
+}
+
+void Shell7pElement::FinalizeNonLinearIteration(const ProcessInfo& CurrentProcessInfo)
+{
+
+}
+
+void Shell7pElement::GetEASModeConfiguration(array_1d<SizeType,3>& rEasModesPerKinematicVariableSet, SizeType& rNumEasModes) const
+{
+    // number of EAS modes for the set of kinematic varables: [ [konstant a11,a12,a22, linear b11,b12,b22] Modes, [konstant a13,a23, linear b13,b23] Modes, [b33 linear] Modes ]
+    rEasModesPerKinematicVariableSet[0] = 4;   // for membrane and bending kinematic variables (alpha11, alpha22, alpha12, betta11, betta22, betta12)
+    rEasModesPerKinematicVariableSet[1] = 0;   // for shear related kinematic variables (alpha13, alpha23, betta13, betta23)
+    rEasModesPerKinematicVariableSet[2] = 4;   // for thickness related kinematic variable (betta33)
+    // total number of EAS modes from the sum over all kinematic variables. faktor 2 is due to the fact that we have two sets of EAS modes: konstant and linear
+    rNumEasModes = rEasModesPerKinematicVariableSet[0] * 2 + rEasModesPerKinematicVariableSet[1] * 2 + rEasModesPerKinematicVariableSet[2];
+}
+
 
 //***********************************************************************************
 //***********************************************************************************
@@ -298,14 +360,10 @@ void Shell7pElement::CalculateInternalForces(VectorType& rInternalForceVector, c
 
     ////////////////////////////////////////////////////////////////BEGIN EAS STUFF////////////////////////////////////////////////////////////////
 
-    array_1d<SizeType,3> eas_modes_per_kinematic_variable_set; // number of EAS modes for the set of kinematic varables: [ [konstant a11,a12,a22, linear b11,b12,b22] Modes, [konstant a13,a23, linear b13,b23] Modes, [b33 linear] Modes ]
-    eas_modes_per_kinematic_variable_set[0] = 4;   // for membrane and bending kinematic variables (alpha11, alpha22, alpha12, betta11, betta22, betta12)
-    eas_modes_per_kinematic_variable_set[1] = 0;   // for shear related kinematic variables (alpha13, alpha23, betta13, betta23)
-    eas_modes_per_kinematic_variable_set[2] = 4;   // for thickness related kinematic variable (betta33)
+    array_1d<SizeType,3> eas_modes_per_kinematic_variable_set;
     SizeType num_eas_modes = 0;
-    num_eas_modes = eas_modes_per_kinematic_variable_set[0] * 2 + eas_modes_per_kinematic_variable_set[1] * 2 + eas_modes_per_kinematic_variable_set[2]; // total number of EAS modes from the sum over all kinematic variables. faktor 2 is due to the fact that we have two sets of EAS modes: konstant and linear
-    
-    //SizeType num_eas_modes = 4;
+    GetEASModeConfiguration(eas_modes_per_kinematic_variable_set, num_eas_modes);
+
     Matrix M0_eas = ZeroMatrix(12, num_eas_modes);              // Shape function matrix for EAS modes (incomatible strains) formulated at the center of the element. rows: 12 kinamatic variables. columns: num_eas_modes EAS modes.
     Matrix M_eas = ZeroMatrix(12, num_eas_modes);               // Shape function matrix for EAS modes transformed to the current GP via basis transformation from coordinate system of midpoint to coordinate system of GP
     Matrix T = ZeroMatrix(12, 12);                              // Transformation matrix from EAS modes formulated at the center of the element to EAS modes formulated at the current GP
@@ -382,6 +440,11 @@ void Shell7pElement::CalculateInternalForces(VectorType& rInternalForceVector, c
         // BOperatorANSCurvatureThicknessModification(Bop,akovr_ct_ans,N_ct_ans,r,s,Np_ct,number_of_nodes);
         ////////////////////////////////////////////////////////////////END ANS CURVATURE THICKNESS  ELIMINATION STUFF////////////////////////////////////////////////////////////////
 
+        // shape functions for (incompatible strains) EAS strains formulated at the center of the element, basis-transformed to the current GP
+        CalculateEASShapeFunctions(M0_eas,r,s,eas_modes_per_kinematic_variable_set,num_eas_modes);
+        BasisTransformationEASShapeFunctions(T, M0_eas, M_eas, akonr0_eas, akovr, detJ0_surface, detJ_surface);
+        const Vector eas_enhancement = prod(M_eas, mAlphaEas);
+
         Dmatrix = ZeroMatrix(12,12);
         stress_resultants = ZeroVector(12);
         //-------------------------------------- loop over GP in thickness direction for preintegration of constitutive law
@@ -391,7 +454,7 @@ void Shell7pElement::CalculateInternalForces(VectorType& rInternalForceVector, c
             CovariantBaseVectorsShellBody(gkovr,shape_functions_gradients_i,Nshape,ConfigurationType::Reference,Theta3,thickness);
             CovariantMetric(gmkovr,gkovr);
 
-            CalculateGreenLagrangeStrain(GL_strain,amkovr,amkovc,akovr,akovc,a3kvpr,a3kvpc,Theta3,ansq,N13_ansq,N23_ansq,amkovr_ansq,amkovc_ansq);
+            CalculateGreenLagrangeStrain(GL_strain,amkovr,amkovc,akovr,akovc,a3kvpr,a3kvpc,Theta3,ansq,N13_ansq,N23_ansq,amkovr_ansq,amkovc_ansq,eas_enhancement);
             ContravariantMetric(gmkonr,gmkovr,gmdet_body);
 
             double scalefactor= std::sqrt(gmdet_body)/detJ_surface * tweight;
@@ -422,11 +485,6 @@ void Shell7pElement::CalculateInternalForces(VectorType& rInternalForceVector, c
         noalias(DB) = prod(Dmatrix, Bop);
 
         ////////////////////////////////////////////////////////////////BEGIN EAS STUFF////////////////////////////////////////////////////////////////
-        
-        // shape functions for (incompatible strains) EAS strains formulated at the center of the element
-        CalculateEASShapeFunctions(M0_eas,r,s,eas_modes_per_kinematic_variable_set,num_eas_modes);
-        // basis transformation of EAS strains formulated in midpoint to the current GP
-        BasisTransformationEASShapeFunctions(T, M0_eas, M_eas, akonr0_eas, akovr, detJ0_surface, detJ_surface);
         //==============================================================
         //       L^T (num_eas_modes,nd) = M^T (num_eas_modes,12) * D(12,12) * B(12,nd)
         // here:   "Lt"            "transP"         "D"       "bop"   
@@ -435,7 +493,6 @@ void Shell7pElement::CalculateInternalForces(VectorType& rInternalForceVector, c
         //         D (num_eas_modes,num_eas_modes) = M^T(num_eas_modes,12) * D(12,12) * M(12,num_eas_modes)
         // here: "Dtild"           "transP"         "D"      "transP"    
         //=============================================================
-        Matrix DM = ZeroMatrix(12,num_eas_modes);
         noalias(DM) = prod(Dmatrix, M_eas);   
         noalias(Dtild) += prod(trans(M_eas), DM) * weight; // * thickness*0.5; check whether weight 2D Jacobian insted of 3D one    
         
@@ -458,8 +515,7 @@ void Shell7pElement::CalculateInternalForces(VectorType& rInternalForceVector, c
     //===================================================================//
     Vector temp = ZeroVector(num_eas_modes);
     noalias(temp) = prod(Dtild_inv, Rtild);
-    // rInternalForceVector -= prod(trans(Lt), temp);
-
+    rInternalForceVector -= prod(trans(Lt), temp);
     /////////////////////////////////////////////////////////END EAS STUFF////////////////////////////////////////////////////////////////
 
 }
@@ -606,14 +662,10 @@ void Shell7pElement::CalculateLeftHandSide(
 
     ////////////////////////////////////////////////////////////////BEGIN EAS STUFF////////////////////////////////////////////////////////////////
 
-    array_1d<SizeType,3> eas_modes_per_kinematic_variable_set; // number of EAS modes for the set of kinematic varables: [ [konstant a11,a12,a22, linear b11,b12,b22] Modes, [konstant a13,a23, linear b13,b23] Modes, [b33 linear] Modes ]
-    eas_modes_per_kinematic_variable_set[0] = 4;   // for membrane and bending kinematic variables (alpha11, alpha22, alpha12, betta11, betta22, betta12)
-    eas_modes_per_kinematic_variable_set[1] = 0;   // for shear related kinematic variables (alpha13, alpha23, betta13, betta23)
-    eas_modes_per_kinematic_variable_set[2] = 4;   // for thickness related kinematic variable (betta33)
+    array_1d<SizeType,3> eas_modes_per_kinematic_variable_set;
     SizeType num_eas_modes = 0;
-    num_eas_modes = eas_modes_per_kinematic_variable_set[0] * 2 + eas_modes_per_kinematic_variable_set[1] * 2 + eas_modes_per_kinematic_variable_set[2]; // total number of EAS modes from the sum over all kinematic variables. faktor 2 is due to the fact that we have two sets of EAS modes: konstant and linear
-    
-    //SizeType num_eas_modes = 4;
+    GetEASModeConfiguration(eas_modes_per_kinematic_variable_set, num_eas_modes);
+
     Matrix M0_eas = ZeroMatrix(12, num_eas_modes);              // Shape function matrix for EAS modes (incomatible strains) formulated at the center of the element. rows: 12 kinamatic variables. columns: num_eas_modes EAS modes.
     Matrix M_eas = ZeroMatrix(12, num_eas_modes);               // Shape function matrix for EAS modes transformed to the current GP via basis transformation from coordinate system of midpoint to coordinate system of GP
     Matrix T = ZeroMatrix(12, 12);                              // Transformation matrix from EAS modes formulated at the center of the element to EAS modes formulated at the current GP
@@ -694,9 +746,14 @@ void Shell7pElement::CalculateLeftHandSide(
 
         ////////////////////////////////////////////////////////////////END ANS CURVATURE THICKNESS  ELIMINATION STUFF////////////////////////////////////////////////////////////////
 
+        // shape functions for (incompatible strains) EAS strains formulated at the center of the element, basis-transformed to the current GP
+        CalculateEASShapeFunctions(M0_eas,r,s,eas_modes_per_kinematic_variable_set,num_eas_modes);
+        BasisTransformationEASShapeFunctions(T, M0_eas, M_eas, akonr0_eas, akovr, detJ0_surface, detJ_surface);
+        const Vector eas_enhancement = prod(M_eas, mAlphaEas);
+
         Dmatrix = ZeroMatrix(12,12);
         stress_resultants = ZeroVector(12);
-        //-------------------------------------- loop over GP in thickness direction for preintegration of constitutive law
+        //-------------------------------------- loop over GP in thickness direction for preintegration of constitutive law and stresses
         for (SizeType k=0; k<2; ++k){           // separate function PreintegrateThroughThicknessConstitutive() ?
             double Theta3 = gpcoord_t[k];
             double tweight = gpweight_t[k];
@@ -704,7 +761,7 @@ void Shell7pElement::CalculateLeftHandSide(
             CovariantMetric(gmkovr,gkovr);
 
             // change to consistent current metric for stress/strain calculation
-            CalculateGreenLagrangeStrain(GL_strain,amkovr,amkovc,akovr,akovc,a3kvpr,a3kvpc,Theta3,ansq,N13_ansq,N23_ansq,amkovr_ansq,amkovc_ansq);
+            CalculateGreenLagrangeStrain(GL_strain,amkovr,amkovc,akovr,akovc,a3kvpr,a3kvpc,Theta3,ansq,N13_ansq,N23_ansq,amkovr_ansq,amkovc_ansq,eas_enhancement);
             ContravariantMetric(gmkonr,gmkovr,gmdet_body);
 
             double scalefactor= std::sqrt(gmdet_body)/detJ_surface * tweight;
@@ -737,22 +794,20 @@ void Shell7pElement::CalculateLeftHandSide(
 
         ComputeGeometricStiffnessMatrix(rLeftHandSideMatrix, stress_resultants,shape_functions_gradients_i,Nshape,weight,ansq,N13_ansq,N23_ansq,N_ans,DN_ans);
         ////////////////////////////////////////////////////////////////BEGIN EAS STUFF////////////////////////////////////////////////////////////////
-        
-        // shape functions for (incompatible strains) EAS strains formulated at the center of the element
-        CalculateEASShapeFunctions(M0_eas,r,s,eas_modes_per_kinematic_variable_set,num_eas_modes);
-        // basis transformation of EAS strains formulated in midpoint to the current GP
-        BasisTransformationEASShapeFunctions(T, M0_eas, M_eas, akonr0_eas, akovr, detJ0_surface, detJ_surface);
         //==============================================================
         //       L^T (num_eas_modes,nd) = M^T (num_eas_modes,12) * D(12,12) * B(12,nd)
-        // here:   "Lt"            "transP"         "D"       "bop"   
         //==============================================================
         noalias(Lt) += prod(trans(M_eas), DB) * weight; // * thickness*0.5; check whether weight 2D Jacobian insted of 3D one
         //         D (num_eas_modes,num_eas_modes) = M^T(num_eas_modes,12) * D(12,12) * M(12,num_eas_modes)
-        // here: "Dtild"           "transP"         "D"      "transP"    
         //=============================================================
         noalias(DM) = prod(Dmatrix, M_eas);   
         noalias(Dtild) += prod(trans(M_eas), DM) * weight; // * thickness*0.5; check whether weight 2D Jacobian insted of 3D one    
-        
+            
+        //==========================================================//
+         //  Rtilde(nhyb) = Mtrans(nhyb,12) * Forces(12)             //
+         //==========================================================//
+         //---------------------- eas part of internal forces Rtilde //
+         noalias(Rtild) += prod(trans(M_eas), stress_resultants) * weight; //
         /////////////////////////////////////////////////////////END EAS STUFF////////////////////////////////////////////////////////////////
     }
 
@@ -769,7 +824,12 @@ void Shell7pElement::CalculateLeftHandSide(
     //===================================================================//
     Matrix temp = ZeroMatrix(num_eas_modes, number_dofs);
     noalias(temp) = prod(Dtild_inv, Lt);                    // check order of multiplication
-    // rLeftHandSideMatrix -= prod(trans(Lt), temp);
+    rLeftHandSideMatrix -= prod(trans(Lt), temp);
+
+    // cache this call's state so the next call can form du and apply the linearized EAS update
+    mRtild = Rtild;
+    mDtildInv = Dtild_inv;
+    mLt = Lt;
 }
 
 void Shell7pElement::GetValuesVector(Vector& rValues, int Step) const
@@ -874,7 +934,8 @@ void Shell7pElement::CovariantMetric(Matrix& rMetric,const array_1d<Vector,3>& r
     }
 }
 
-void Shell7pElement::CalculateGreenLagrangeStrain(array_1d<double,6>& GL_strain_vector, const Matrix& amkovr, const Matrix& amkovc, const array_1d<Vector,3> akovr,  const array_1d<Vector,3> akovc, const array_1d<Vector,2>& a3kvpr, const array_1d<Vector,2>& a3kvpc, const double& Theta3, const SizeType& ansq, const array_1d<double,2>& N13_ansq, const array_1d<double,2>& N23_ansq, const array_1d<Matrix,4>& amkovr_ansq, const array_1d<Matrix,4>& amkovc_ansq) const
+void Shell7pElement::CalculateGreenLagrangeStrain(array_1d<double,6>& GL_strain_vector, const Matrix& amkovr, const Matrix& amkovc, const array_1d<Vector,3> akovr,  const array_1d<Vector,3> akovc, const array_1d<Vector,2>& a3kvpr, 
+    const array_1d<Vector,2>& a3kvpc, const double& Theta3, const SizeType& ansq, const array_1d<double,2>& N13_ansq, const array_1d<double,2>& N23_ansq, const array_1d<Matrix,4>& amkovr_ansq, const array_1d<Matrix,4>& amkovc_ansq, const Vector& eas_enhancement) const
 {
     Matrix GL_strain_tensor = ZeroMatrix(3);
 
@@ -892,12 +953,12 @@ void Shell7pElement::CalculateGreenLagrangeStrain(array_1d<double,6>& GL_strain_
     double b31r = inner_prod(akovr[2],a3kvpr[0]);
     double b32r = inner_prod(akovr[2],a3kvpr[1]);
 
-    GL_strain_tensor(0,0) = 0.5 * ((amkovc(0,0)-amkovr(0,0)) + 2.0*Theta3 * (b11c-b11r));
-    GL_strain_tensor(0,1) = 0.5 * ((amkovc(0,1)-amkovr(0,1)) + Theta3 * (b21c+b12c-b21r-b12r));
-    GL_strain_tensor(0,2) = 0.5 * Theta3 * (b31c-b31r);
-    GL_strain_tensor(1,1) = 0.5 * ((amkovc(1,1)-amkovr(1,1)) + 2.0*Theta3 * (b22c-b22r));
-    GL_strain_tensor(1,2) = 0.5 * Theta3 * (b32c-b32r);
-    GL_strain_tensor(2,2) = 0.5 * (amkovc(2,2)-amkovr(2,2));
+    GL_strain_tensor(0,0) = 0.5 * ((amkovc(0,0)-amkovr(0,0)) + 2.0*Theta3 * (b11c-b11r))       + eas_enhancement[0] + Theta3 * eas_enhancement[6];
+    GL_strain_tensor(0,1) = 0.5 * ((amkovc(0,1)-amkovr(0,1)) + Theta3 * (b21c+b12c-b21r-b12r)) + eas_enhancement[1] + Theta3 * eas_enhancement[7];
+    GL_strain_tensor(0,2) = 0.5 * Theta3 * (b31c-b31r)                                         + eas_enhancement[2] + Theta3 * eas_enhancement[8];
+    GL_strain_tensor(1,1) = 0.5 * ((amkovc(1,1)-amkovr(1,1)) + 2.0*Theta3 * (b22c-b22r))       + eas_enhancement[3] + Theta3 * eas_enhancement[9];
+    GL_strain_tensor(1,2) = 0.5 * Theta3 * (b32c-b32r)                                         + eas_enhancement[4] + Theta3 * eas_enhancement[10];
+    GL_strain_tensor(2,2) = 0.5 * (amkovc(2,2)-amkovr(2,2))                                    + eas_enhancement[5] + Theta3 * eas_enhancement[11];
 
     if (!ansq)
     {
@@ -996,7 +1057,7 @@ void Shell7pElement::CovariantBaseVectorsShellBody(array_1d<Vector,3>& gkovr,
     gkovr[2] = g3;
 }
 
-void Shell7pElement::CalculateMaterialLaw(BoundedMatrix<double, 12, 12>& CL, const Matrix& gmkonr, const double& thickness,
+void Shell7pElement::CalculateMaterialLaw(BoundedMatrix<double, 12, 12>& D, const Matrix& gmkonr, const double& thickness,
 const ConstitutiveLawType& option, const double& Theta3, const double& fact, array_1d<double,6>& PK2_stress, array_1d<double,6>& GL_strain, array_1d<double,12>& stress_resultants, const double& f_s) const
 {
     const auto& r_properties = GetProperties();
@@ -1068,10 +1129,10 @@ const ConstitutiveLawType& option, const double& Theta3, const double& fact, arr
             const SizeType i6 = i + 6;
             for (SizeType j=0; j<6; ++j){
                 const SizeType j6 = j + 6;
-                CL(i,j) += CC(i,j)*fact;
-                CL(i6,j) += CC(i,j)*Theta3*fact;
-                CL(j,i6) += CC(j,i)*Theta3*fact; 
-                CL(i6,j6) += CC(i,j)*Theta3*Theta3*fact;
+                D(i,j) += CC(i,j)*fact;
+                D(i6,j) += CC(i,j)*Theta3*fact;
+                D(j,i6) += CC(j,i)*Theta3*fact; 
+                D(i6,j6) += CC(i,j)*Theta3*Theta3*fact;
              }
         }
 
@@ -1087,44 +1148,44 @@ const ConstitutiveLawType& option, const double& Theta3, const double& fact, arr
 
     }
 
-       //CL(2,2) *= 5.0/6.0;    // shear correction factor alpha=5/6 for n13,n23
-       //CL(2,4) *= 5.0/6.0;
-       //CL(4,2) *= 5.0/6.0;
-       //CL(4,4) *= 5.0/6.0;
-       //CL(8,8) *= 0.7;        // shear correction factor betta=0.7 for m13,m23
-       //CL(8,10) *= 0.7;
-       //CL(10,8) *= 0.7;
-       //CL(10,10) *= 0.7;
+       //D(2,2) *= 5.0/6.0;    // shear correction factor alpha=5/6 for n13,n23
+       //D(2,4) *= 5.0/6.0;
+       //D(4,2) *= 5.0/6.0;
+       //D(4,4) *= 5.0/6.0;
+       //D(8,8) *= 0.7;        // shear correction factor betta=0.7 for m13,m23
+       //D(8,10) *= 0.7;
+       //D(10,8) *= 0.7;
+       //D(10,10) *= 0.7;
  else {
     const double Ebar = E*(1.0-nu)/((1.0+nu)*(1.0-2.0*nu));
     const double hbar = thickness*thickness*thickness/12.0;
     const double hq = thickness*5.0/6.0;
     const double hq_bar = 0.7*hbar;
-        CL = ZeroMatrix(12);
-        CL(0,0) = Ebar*thickness;
-        CL(1,1) = Ebar*thickness;
-        CL(2,2) = Ebar*thickness;
-        CL(0,1) = lambda*thickness;
-        CL(0,2) = lambda*thickness;
-        CL(1,0) = lambda*thickness;
-        CL(1,2) = lambda*thickness;             // if we use this, then we need to reorder this cartesian consitutive or B-matrix
-        CL(2,0) = lambda*thickness;
-        CL(2,1) = lambda*thickness;
-        CL(3,3) = G*thickness;
-        CL(4,4) = G*hq;
-        CL(5,5) = G*hq;
-        CL(6,6) = Ebar*hbar;
-        CL(7,7) = Ebar*hbar;
-        CL(8,8) = Ebar*hbar;
-        CL(6,7) = lambda*hbar;
-        CL(6,8) = lambda*hbar;
-        CL(7,6) = lambda*hbar;
-        CL(7,8) = lambda*hbar;
-        CL(8,6) = lambda*hbar;
-        CL(8,7) = lambda*hbar;
-        CL(9,9) = G*hbar;
-        CL(10,10) = G*hq_bar;
-        CL(11,11) = G*hq_bar;
+        D = ZeroMatrix(12);
+        D(0,0) = Ebar*thickness;
+        D(1,1) = Ebar*thickness;
+        D(2,2) = Ebar*thickness;
+        D(0,1) = lambda*thickness;
+        D(0,2) = lambda*thickness;
+        D(1,0) = lambda*thickness;
+        D(1,2) = lambda*thickness;             // if we use this, then we need to reorder this cartesian consitutive or B-matrix
+        D(2,0) = lambda*thickness;
+        D(2,1) = lambda*thickness;
+        D(3,3) = G*thickness;
+        D(4,4) = G*hq;
+        D(5,5) = G*hq;
+        D(6,6) = Ebar*hbar;
+        D(7,7) = Ebar*hbar;
+        D(8,8) = Ebar*hbar;
+        D(6,7) = lambda*hbar;
+        D(6,8) = lambda*hbar;
+        D(7,6) = lambda*hbar;
+        D(7,8) = lambda*hbar;
+        D(8,6) = lambda*hbar;
+        D(8,7) = lambda*hbar;
+        D(9,9) = G*hbar;
+        D(10,10) = G*hq_bar;
+        D(11,11) = G*hq_bar;
     }
 
 }
