@@ -1,13 +1,16 @@
-
-import os
+# --- Kratos Imports ---
 import KratosMultiphysics
-
+import KratosMultiphysics.LinearSolversApplication
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 from KratosMultiphysics import eigen_solver_factory
 
+# --- STD Imports ---
+import os
+
+
 class TestEigensystemSolver(KratosUnittest.TestCase):
 
-    def _run_test(self, settings):
+    def Run(self, settings: KratosMultiphysics.Parameters) -> None:
         space = KratosMultiphysics.UblasSparseSpace()
 
         K = KratosMultiphysics.CompressedMatrix()
@@ -34,7 +37,7 @@ class TestEigensystemSolver(KratosUnittest.TestCase):
         eigenvectors = KratosMultiphysics.Matrix(n, 1)
 
         # Construct the solver
-        eigen_solver = eigen_solver_factory.ConstructSolver(settings)
+        eigen_solver: KratosMultiphysics.LinearSolver = eigen_solver_factory.ConstructSolver(settings)
 
         # Solve
         eigen_solver.Solve(K, M, eigenvalues, eigenvectors)
@@ -59,7 +62,7 @@ class TestEigensystemSolver(KratosUnittest.TestCase):
 
             self.assertAlmostEqual(value, 1.0, 7)
 
-    def test_eigen_eigensystem_solver(self):
+    def test_eigen_eigensystem_solver(self) -> None:
         settings = KratosMultiphysics.Parameters('''{
             "solver_type": "eigen_eigensystem",
             "number_of_eigenvalues": 3,
@@ -68,10 +71,9 @@ class TestEigensystemSolver(KratosUnittest.TestCase):
             "normalize_eigenvectors": true,
             "echo_level": 0
         }''')
+        self.Run(settings)
 
-        self._run_test(settings)
-
-    def test_spectra_sym_g_eigs_shift_solver(self):
+    def test_spectra_sym_g_eigs_shift_solver(self) -> None:
         settings = KratosMultiphysics.Parameters('''{
             "solver_type": "spectra_sym_g_eigs_shift",
             "number_of_eigenvalues": 3,
@@ -79,9 +81,35 @@ class TestEigensystemSolver(KratosUnittest.TestCase):
             "shift": 0.0,
             "echo_level": 1
         }''')
+        self.Run(settings)
 
-        self._run_test(settings)
+    @KratosUnittest.skipIf(not KratosMultiphysics.LinearSolversApplication.HasMKL(), "Kratos was compiled without MKL support.")
+    def test_spectra_sym_g_eigs_shift_solver_pardiso(self) -> None:
+        settings = KratosMultiphysics.Parameters('''{
+            "solver_type": "spectra_sym_g_eigs_shift",
+            "number_of_eigenvalues": 3,
+            "normalize_eigenvectors": true,
+            "shift": 0.0,
+            "echo_level": 1,
+            "linear_solver_settings" : {
+                "solver_type" : "pardiso_ldlt"
+            }
+        }''')
+        self.Run(settings)
 
+    @KratosUnittest.skipIf(not KratosMultiphysics.LinearSolversApplication.HasSuiteSparse(), "Kratos was compiled without SuiteSparse support.")
+    def test_spectra_sym_g_eigs_shift_solver_cholmod(self) -> None:
+        settings = KratosMultiphysics.Parameters('''{
+            "solver_type": "spectra_sym_g_eigs_shift",
+            "number_of_eigenvalues": 3,
+            "normalize_eigenvectors": true,
+            "shift": 0.0,
+            "echo_level": 1,
+            "linear_solver_settings" : {
+                "solver_type" : "cholmod"
+            }
+        }''')
+        self.Run(settings)
 
 if __name__ == '__main__':
     KratosUnittest.main()
