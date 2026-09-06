@@ -138,10 +138,8 @@ class MechanicalSolver(PythonSolver):
 
     def AddVariables(self):
         # this can safely be called also for restarts, it is internally checked if the variables exist already
-        # Add displacements.
         MechanicalSolver.AddVariablesToModelPart(self.main_model_part, self.settings)
         KratosMultiphysics.Logger.PrintInfo("::[MechanicalSolver]:: ", "Variables ADDED")
-        
 
     @staticmethod
     def AddVariablesToModelPart(main_model_part, settings):
