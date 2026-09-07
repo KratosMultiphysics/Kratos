@@ -39,6 +39,9 @@ namespace Kratos
         // create coupling conditions on interface depending on the formulation
         const bool is_origin_iga = mParameters["is_origin_iga"].GetBool();
         const bool is_surface_mapping = mParameters["is_surface_mapping"].GetBool();
+        const bool write_triangles_to_file = mParameters.Has("write_triangles_to_file")
+                ? mParameters["write_triangles_to_file"].GetBool()
+                : false;
 
         KRATOS_ERROR_IF(is_surface_mapping && !is_origin_iga)
             << "Surface mapping with this modeler requires the origin ModelPart to be IGA.\n"
@@ -125,6 +128,7 @@ namespace Kratos
 
             if (is_thb_surface) {
                 // THB  BrepSurface path
+                // Create coupling geometries connecting each finite element with the IGA surface
                 IgaMappingIntersectionUtilities::CreateThbFEMCouplingGeometriesOnSurface(
                     coupling_interface_origin,
                     coupling_interface_destination,
@@ -132,6 +136,7 @@ namespace Kratos
                     is_origin_iga,
                     search_radius,
                     patch_cache);
+                 // Create quadrature point geometries in the origin and destination domain
                 IgaMappingIntersectionUtilities::CreateThbFEMQuadraturePointsOnSurface(
                     coupling_model_part,
                     is_origin_iga,
@@ -139,6 +144,7 @@ namespace Kratos
                     search_radius);
             } else {
                 // Plain-NURBS BrepSurface path
+                // Create coupling geometries connecting each finite element with the IGA surface
                 IgaMappingIntersectionUtilities::CreateIgaFEMCouplingGeometriesOnSurface(
                     coupling_interface_origin,
                     coupling_interface_destination,
@@ -146,6 +152,7 @@ namespace Kratos
                     is_origin_iga,
                     search_radius,
                     patch_cache);
+                 // Create quadrature point geometries in the origin and destination domain
                 IgaMappingIntersectionUtilities::CreateIgaFEMQuadraturePointsOnSurface(
                     coupling_model_part,
                     is_origin_iga,

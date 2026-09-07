@@ -1034,10 +1034,6 @@ void EmbeddedAusasNavierStokes<3>::ComputeGaussPointRHSContribution(
     const array_1d<double,nnodes>& N = data.N;
     const BoundedMatrix<double,nnodes,dim>& DN = data.DN_DX;
 
-    // Auxiliary variables used in the calculation of the RHS
-    const array_1d<double,dim> f_gauss = prod(trans(f), N);
-    const array_1d<double,dim> grad_p = prod(trans(DN), p);
-
     // Stabilization parameters
     constexpr double stab_c1 = 4.0;
     constexpr double stab_c2 = 2.0;
@@ -1138,10 +1134,6 @@ void EmbeddedAusasNavierStokes<2>::ComputeGaussPointRHSContribution(
     // Get shape function values
     const array_1d<double,nnodes>& N = data.N;
     const BoundedMatrix<double,nnodes,dim>& DN = data.DN_DX;
-
-    // Auxiliary variables used in the calculation of the RHS
-    const array_1d<double,dim> f_gauss = prod(trans(f), N);
-    const array_1d<double,dim> grad_p = prod(trans(DN), p);
 
     // Stabilization parameters
     constexpr double stab_c1 = 4.0;
