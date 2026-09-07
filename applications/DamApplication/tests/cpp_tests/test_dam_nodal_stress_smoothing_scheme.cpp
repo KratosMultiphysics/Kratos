@@ -315,6 +315,8 @@ KRATOS_TEST_CASE_IN_SUITE(DamSmoothingScheme_UnsupportedGeometryNotFatal, Kratos
     r_mp.AddNodalSolutionStepVariable(NODAL_REFERENCE_TEMPERATURE);
     r_mp.AddNodalSolutionStepVariable(NODAL_CAUCHY_STRESS_TENSOR);
     r_mp.AddNodalSolutionStepVariable(NODAL_AREA);
+    r_mp.AddNodalSolutionStepVariable(NODAL_JOINT_AREA);
+    r_mp.AddNodalSolutionStepVariable(NODAL_JOINT_WIDTH);
     r_mp.AddNodalSolutionStepVariable(INITIAL_STRESS_TENSOR);
     const Element& r_proto = KratosComponents<Element>::Get("SmallDisplacementElement3D20N");
     const auto& r_geom = r_proto.GetGeometry();

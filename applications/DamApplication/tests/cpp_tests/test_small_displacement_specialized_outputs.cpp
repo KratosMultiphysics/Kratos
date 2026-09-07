@@ -177,12 +177,17 @@ double InterpolateScalarAtGP(
 /// engineering shear gamma) and a uniform temperature increment.
 void ApplyState(ModelPart& rModelPart, const Vector& rEpsVoigt, const double rDeltaTemperature)
 {
+    // The total-strain Voigt vector is 6-component in 3D and 3-component in 2D;
+    // the out-of-plane shear components only exist in the 3D case.
+    const double shear_xy = (rEpsVoigt.size() > 3) ? rEpsVoigt[3] : 0.0;
+    const double shear_yz = (rEpsVoigt.size() > 4) ? rEpsVoigt[4] : 0.0;
+    const double shear_xz = (rEpsVoigt.size() > 5) ? rEpsVoigt[5] : 0.0;
     for (auto& n : rModelPart.Nodes()) {
         const auto& x0 = n.GetInitialPosition();
         auto& u = n.FastGetSolutionStepValue(DISPLACEMENT);
-        u[0] = rEpsVoigt[0] * x0[0] + 0.5 * rEpsVoigt[3] * x0[1] + 0.5 * rEpsVoigt[5] * x0[2];
-        u[1] = 0.5 * rEpsVoigt[3] * x0[0] + rEpsVoigt[1] * x0[1] + 0.5 * rEpsVoigt[4] * x0[2];
-        u[2] = 0.5 * rEpsVoigt[5] * x0[0] + 0.5 * rEpsVoigt[4] * x0[1] + rEpsVoigt[2] * x0[2];
+        u[0] = rEpsVoigt[0] * x0[0] + 0.5 * shear_xy * x0[1] + 0.5 * shear_xz * x0[2];
+        u[1] = 0.5 * shear_xy * x0[0] + rEpsVoigt[1] * x0[1] + 0.5 * shear_yz * x0[2];
+        u[2] = 0.5 * shear_xz * x0[0] + 0.5 * shear_yz * x0[1] + rEpsVoigt[2] * x0[2];
         n.X() = x0[0] + u[0]; n.Y() = x0[1] + u[1]; n.Z() = x0[2] + u[2];
         n.FastGetSolutionStepValue(TEMPERATURE) = sdso_test_reference_temperature + rDeltaTemperature;
     }

@@ -416,6 +416,8 @@ KRATOS_TEST_CASE_IN_SUITE(ThermalNonlocalOrchestration_NewtonStrategy, KratosDam
     r_mp.AddNodalSolutionStepVariable(NODAL_REFERENCE_TEMPERATURE);
     r_mp.AddNodalSolutionStepVariable(NODAL_CAUCHY_STRESS_TENSOR);
     r_mp.AddNodalSolutionStepVariable(NODAL_AREA);
+    r_mp.AddNodalSolutionStepVariable(NODAL_JOINT_AREA);
+    r_mp.AddNodalSolutionStepVariable(NODAL_JOINT_WIDTH);
     r_mp.AddNodalSolutionStepVariable(INITIAL_STRESS_TENSOR);
 
     const double coords[12][3] = {
