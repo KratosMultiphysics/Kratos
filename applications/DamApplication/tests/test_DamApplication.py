@@ -12,6 +12,8 @@ from test_dam_nonlocal_ownership import DamNonlocalOwnershipTest
 from test_dam_process_lifecycle import TestDamProcessLifetime
 from test_global_tangent_consistency import TestGlobalTangentConsistency
 from test_interface_tangent_consistency import TestSmallDisplacementInterfaceTangent
+from test_initial_gp_output_before_solve import TestInitialGaussPointOutputBeforeSolve
+from test_process_based_nodal_smoothing import DamProcessBasedNodalSmoothingTest
 
 
 def AssembleTestSuites():
@@ -64,7 +66,6 @@ def AssembleTestSuites():
     smallSuite.addTests(
         KratosUnittest.TestLoader().loadTestsFromTestCases(
             [
-                TestApplyLoadVectorDamProcesses,
                 TestInitialGaussPointOutputBeforeSolve,
                 DamProcessBasedNodalSmoothingTest,
                 DamNonlocalOwnershipTest,
@@ -93,6 +94,8 @@ def AssembleTestSuites():
                 TestGlobalTangentConsistency,
                 TestImposeNodalYoungModulusProcess,
                 TestInitialGaussPointOutputBeforeSolve,
+                DamNonlocalOwnershipTest,
+                DamProcessBasedNodalSmoothingTest,
                 TestDamProcessLifetime,
                 TestSmallDisplacementInterfaceTangent,
             ]
