@@ -154,7 +154,6 @@ namespace Kratos
               rigidNodes++;
             }
             nodesCoordinates[i] = r_geometry[i].Coordinates();
-            //ElementWeakPtrVectorType &neighb_elems = r_geometry[i].GetValue(NEIGHBOUR_ELEMENTS);
             const ElementWeakPtrVectorType& neighb_elems =  r_geometry[i].GetValue(NEIGHBOUR_ELEMENTS);
             if (neighb_elems.size() == 1)
             {
