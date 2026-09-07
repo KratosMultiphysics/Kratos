@@ -190,7 +190,8 @@ KRATOS_TEST_CASE_IN_SUITE(HistoricalSmallDisplacementAliasesCreateSMAElements, K
         KRATOS_EXPECT_EQ(expected_nodes,
                          KratosComponents<Element>::Get(name).GetGeometry().PointsNumber());
         KRATOS_EXPECT_EQ(p_elem->GetProperties()[YOUNG_MODULUS], sdr_test_young_modulus);
-        std::cout << "[registration] " << name << " -> runtime=" << typeid(*p_elem).name()
+        Element& r_elem_ref = *p_elem;
+        std::cout << "[registration] " << name << " -> runtime=" << typeid(r_elem_ref).name()
                   << " npoints=" << expected_nodes << std::endl;
     }
     std::cout << "[registration] All 22 historical registrations create SMA runtime elements." << std::endl;

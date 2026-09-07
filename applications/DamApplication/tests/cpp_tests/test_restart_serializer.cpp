@@ -124,7 +124,8 @@ KRATOS_TEST_CASE_IN_SUITE(LegacyBinaryRestartLoadsIntoSMAElement, KratosDamFastS
         LoadHolderFromString(archive, loaded);
         KRATOS_EXPECT_EQ(loaded.elements.size(), 1u);
         Element::Pointer p_loaded = loaded.elements[0];
-        const std::string runtime = typeid(*p_loaded).name();
+        Element& r_loaded = *p_loaded;
+        const std::string runtime = typeid(r_loaded).name();
         std::cout << "[restart] frozen legacy restart loaded runtime_type = " << runtime << std::endl;
         KRATOS_EXPECT_TRUE(runtime.find("SmallDisplacement") != std::string::npos);
         KRATOS_EXPECT_TRUE(runtime.find("ThermoMechanic") == std::string::npos);
