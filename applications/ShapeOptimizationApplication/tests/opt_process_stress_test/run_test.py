@@ -3,7 +3,6 @@ import KratosMultiphysics as KM
 import KratosMultiphysics.ShapeOptimizationApplication as KSO
 
 # Additional imports
-from KratosMultiphysics.json_output_process import JsonOutputProcess
 from KratosMultiphysics.from_json_check_result_process import FromJsonCheckResultProcess
 from KratosMultiphysics.ShapeOptimizationApplication import optimizer_factory
 from KratosMultiphysics.KratosUnittest import TestCase
@@ -22,7 +21,7 @@ def RunJsonOutputProcess(model):
         "time_frequency"   : 0.0
     }
     """)
-    process = JsonOutputProcess(model, parameters)
+    process = KM.JsonOutputProcess(model, parameters)
     process.ExecuteInitialize()
     process.ExecuteBeforeSolutionLoop()
     process.ExecuteFinalizeSolutionStep()

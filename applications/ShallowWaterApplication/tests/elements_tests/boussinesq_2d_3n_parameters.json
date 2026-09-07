@@ -107,8 +107,7 @@
                 "time_frequency"   : 0.05,
                 "tolerance"        : 1e-6
             }
-            // "kratos_module"   : "KratosMultiphysics",
-            // "python_module"   : "json_output_process",
+            // "name" : "Processes.KratosMultiphysics.JsonOutputProcess",
             // "Parameters"      : {
             //     "model_part_name"  : "main_model_part",
             //     "output_variables" : ["HEIGHT"],

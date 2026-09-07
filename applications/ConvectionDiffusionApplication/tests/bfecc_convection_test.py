@@ -2,7 +2,6 @@ import KratosMultiphysics
 import KratosMultiphysics.KratosUnittest as UnitTest
 import KratosMultiphysics.ConvectionDiffusionApplication as ConvectionDiffusionApplication
 
-from KratosMultiphysics.json_output_process import JsonOutputProcess
 from KratosMultiphysics.from_json_check_result_process import FromJsonCheckResultProcess
 from KratosMultiphysics.compare_two_files_check_process import CompareTwoFilesCheckProcess
 
@@ -135,7 +134,7 @@ class BFECCConvectionTest(UnitTest.TestCase):
                         "time_frequency": 0.0
                 }''')
                 json_output_settings["output_file_name"].SetString(GetFilePath("BFECCConvectionTest/" + self.reference_file + "_results.json"))
-                json_output_process = JsonOutputProcess(self.model, json_output_settings)
+                json_output_process = KratosMultiphysics.JsonOutputProcess(self.model, json_output_settings)
                 json_output_process.ExecuteInitialize()
                 json_output_process.ExecuteBeforeSolutionLoop()
                 json_output_process.ExecuteFinalizeSolutionStep()

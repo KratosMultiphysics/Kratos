@@ -75,10 +75,7 @@
         }]
     },
     "print_output_process" : [{
-        "python_module"   : "json_output_process",
-        "kratos_module"   : "KratosMultiphysics",
-        "help"                  : "",
-        "process_name"          : "JsonOutputProcess",
+        "name" : "Processes.KratosMultiphysics.JsonOutputProcess",
         "Parameters"            : {
             "output_variables"  : ["DISPLACEMENT"],
             "output_file_name"  : "mpm_fem_beam/cosim_mpm_fem_beam_structure_results.json",
