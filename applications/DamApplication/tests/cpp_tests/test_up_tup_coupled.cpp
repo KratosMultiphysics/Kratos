@@ -101,7 +101,7 @@ ModelPart& CreateUPModel(
 
     for (auto& v : std::vector<const VariableData*>{&DISPLACEMENT, &VELOCITY, &ACCELERATION,
                     &VOLUME_ACCELERATION, &PRESSURE, &TEMPERATURE, &NODAL_REFERENCE_TEMPERATURE,
-                    &INITIAL_STRESS_TENSOR}) {
+                    &INITIAL_STRESS_TENSOR, &REACTION}) {
         r_model_part.AddNodalSolutionStepVariable(*v);
     }
 
