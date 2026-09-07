@@ -334,7 +334,9 @@ void ShiftedBoundaryWallCondition<TDim>::AddNitscheImposition(
 
     // Compute the Nitsche slip tangential penalty coefficients
     auto [pen_coeff_tang_1, pen_coeff_tang_2] = this->ComputeSlipTangentialPenaltyCoefficients(
-        slip_length, gamma_penalty, gamma_penalty_shear, parent_size, effective_viscosity);
+        r_N, delta_time,
+        slip_length, gamma_penalty, gamma_penalty_shear, parent_size, charact_length,
+        effective_viscosity);
     const double pen_tang_w_1 = pen_coeff_tang_1 * weight;
     const double pen_tang_w_2 = pen_coeff_tang_2 * weight;
 
@@ -353,7 +355,8 @@ void ShiftedBoundaryWallCondition<TDim>::AddNitscheImposition(
 
     // Compute the stabilization coefficients
     auto [nitsche_coeff_tang_1, nitsche_coeff_tang_2] = this->ComputeSlipTangentialNitscheCoefficients(
-        slip_length, gamma_penalty_shear, charact_length, effective_viscosity);
+        slip_length, gamma_penalty_shear, parent_size,
+        charact_length, effective_viscosity);
     const double nitsche_tang_w_1 = nitsche_coeff_tang_1 * weight * adjoint_consistency * 2.0;
     const double nitsche_tang_w_2 = nitsche_coeff_tang_2 * weight * adjoint_consistency * 2.0;
 
@@ -443,10 +446,10 @@ double ShiftedBoundaryWallCondition<TDim>::ComputeSlipNormalPenaltyCoefficient(
     }
     const double int_pt_v_norm = norm_2(int_pt_v);
 
-    // Compute the velocity stabilization constant of the Schott et al. (doi: 10.1002/fld.4218)
+    // Compute the velocity stabilization constant of Schott et al. (doi: 10.1002/fld.4218)
     const double stab_constant_u = EffectiveViscosity + int_pt_rho*int_pt_v_norm*ParentSize / 6.0 + int_pt_rho*ParentSize*ParentSize/DeltaTime / 12.0;
 
-    // Compute the Nitsche coefficient (including the Schott et al. (doi: 10.1002/fld.4218) stabilization term)
+    // Compute the Nitsche coefficient (including the stabilization term from Schott et al. (doi: 10.1002/fld.4218))
     const double coeff = (EffectiveViscosity + stab_constant_u) / (Gamma * ParentSize);
 
     return coeff;
@@ -454,24 +457,27 @@ double ShiftedBoundaryWallCondition<TDim>::ComputeSlipNormalPenaltyCoefficient(
 
 template<std::size_t TDim>
 std::pair<const double, const double> ShiftedBoundaryWallCondition<TDim>::ComputeSlipTangentialPenaltyCoefficients(
+    const Vector& rN,
+    const double DeltaTime,
     const double SlipLength,
     const double Gamma,
     const double GammaShear,
     const double ParentSize,
+    const double CharactLength,
     const double EffectiveViscosity) const
 {
-    // // Get the velocity and density for the integration point
-    // const auto& r_geometry = this->GetGeometry();
-    // const std::size_t n_nodes = r_geometry.PointsNumber();
-    // double int_pt_rho = rN(0) * r_geometry[0].FastGetSolutionStepValue(DENSITY);
-    // array_1d<double,3> int_pt_v = rN(0) * r_geometry[0].FastGetSolutionStepValue(VELOCITY);
-    // for (std::size_t i_node = 1;  i_node < n_nodes; ++i_node) {
-    //     int_pt_rho += rN(i_node) * r_geometry[i_node].FastGetSolutionStepValue(DENSITY);
-    //     int_pt_v += rN(i_node) * r_geometry[i_node].FastGetSolutionStepValue(VELOCITY);
-    // }
-    // const double int_pt_v_norm = norm_2(int_pt_v);
+    // Get the velocity and density for the integration point
+    const auto& r_geometry = this->GetGeometry();
+    const std::size_t n_nodes = r_geometry.PointsNumber();
+    double int_pt_rho = rN(0) * r_geometry[0].FastGetSolutionStepValue(DENSITY);
+    array_1d<double,3> int_pt_v = rN(0) * r_geometry[0].FastGetSolutionStepValue(VELOCITY);
+    for (std::size_t i_node = 1;  i_node < n_nodes; ++i_node) {
+        int_pt_rho += rN(i_node) * r_geometry[i_node].FastGetSolutionStepValue(DENSITY);
+        int_pt_v += rN(i_node) * r_geometry[i_node].FastGetSolutionStepValue(VELOCITY);
+    }
+    const double int_pt_v_norm = norm_2(int_pt_v);
 
-    // const double stab_constant_u = EffectiveViscosity + int_pt_rho*int_pt_v_norm*ParentSize / 6.0 + int_pt_rho*ParentSize*ParentSize/DeltaTime / 12.0;
+    const double stab_constant_u = EffectiveViscosity + int_pt_rho*int_pt_v_norm*ParentSize / 6.0 + int_pt_rho*ParentSize*ParentSize/DeltaTime / 12.0;
 
     // const double penalty_coeff = 1.0 / (SlipLength + Gamma*ParentSize);
 
@@ -491,9 +497,14 @@ std::pair<const double, const double> ShiftedBoundaryWallCondition<TDim>::Comput
     // const double coeff_1 = penalty_coeff * SlipLength * 1.0/GammaShear * int_pt_v_norm*DeltaTime/ParentSize;
 
     // Development version 6.2e
-    const double penalty_coeff = 1.0 / ( GammaShear * (SlipLength + Gamma*ParentSize/GammaShear) );
+    // const double penalty_coeff = 1.0 / ( GammaShear * (SlipLength + Gamma*ParentSize/GammaShear) );
+
+    //TODO paper
+    //const double penalty_coeff = 1.0 / ( GammaShear * SlipLength + Gamma * ParentSize );
+
+    const double penalty_coeff = 1.0 / ( GammaShear * SlipLength * CharactLength / ParentSize + Gamma * ParentSize );
     const double coeff_1 = penalty_coeff * SlipLength;
-    const double coeff_2 = penalty_coeff * EffectiveViscosity;  // + stab_constant_u);  // Winter et al. (2018): * EffectiveViscosity;
+    const double coeff_2 = penalty_coeff * (EffectiveViscosity);  // + stab_constant_u);  // Winter et al. (2018): * EffectiveViscosity;
 
     std::pair<const double, const double> coefficients(coeff_1, coeff_2);
     return coefficients;
@@ -503,6 +514,7 @@ template<std::size_t TDim>
 std::pair<const double, const double> ShiftedBoundaryWallCondition<TDim>::ComputeSlipTangentialNitscheCoefficients(
     const double SlipLength,
     const double GammaShear,
+    const double ParentSize,
     const double CharactLength,
     const double EffectiveViscosity) const
 {
@@ -540,7 +552,14 @@ std::pair<const double, const double> ShiftedBoundaryWallCondition<TDim>::Comput
     // KRATOS_WATCH(grad_coeff);
 
     // Development version 6.2e
-    const double stab_coeff = CharactLength / ( GammaShear * (SlipLength + CharactLength/GammaShear) );
+    // const double stab_coeff = CharactLength / ( GammaShear * (SlipLength + CharactLength/GammaShear) );
+
+    //TODO paper
+    //const double stab_coeff = CharactLength / ( GammaShear * SlipLength + CharactLength );
+
+    //const double stab_coeff = CharactLength / ( SlipLength + CharactLength );
+
+    const double stab_coeff = ParentSize / ( SlipLength + ParentSize );
     const double coeff_1 = stab_coeff * SlipLength;
     const double coeff_2 = stab_coeff * EffectiveViscosity;
 
