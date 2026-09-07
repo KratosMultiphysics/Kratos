@@ -285,10 +285,19 @@ void ShellThickShiftedBoundaryElement3D3N<TKinematics>::CalculateLocalSystem(
                     const array_1d<double,2> shift_dir = grad_distance / grad_distance_norm;
 
                     Matrix aux_N_taylor = ZeroMatrix(6, 18);
+                    std::size_t raw_slot_of[3];
+                    for (std::size_t slot = 0; slot < 3; ++slot) {
+                        raw_slot_of[sur_bd_local_ids[slot]] = slot;
+                    }
+
                     array_1d<double,3> r_sur_bd_N_taylor = ZeroVector(3);
-                    r_sur_bd_N_taylor[0] = 0.0 + distance * (DN_DX_parent(0,0)*shift_dir[0] + DN_DX_parent(0,1)*shift_dir[1]);
-                    r_sur_bd_N_taylor[1] = r_sur_bd_N(0,0) + distance * (DN_DX_parent(1,0)*shift_dir[0] + DN_DX_parent(1,1)*shift_dir[1]);
-                    r_sur_bd_N_taylor[2] = r_sur_bd_N(0,1) + distance * (DN_DX_parent(2,0)*shift_dir[0] + DN_DX_parent(2,1)*shift_dir[1]);
+                    {
+                        const double N_true_by_slot[3] = {0.0, r_sur_bd_N(0,0), r_sur_bd_N(0,1)};
+                        for (std::size_t i = 0; i < 3; ++i) {
+                            r_sur_bd_N_taylor[i] = N_true_by_slot[raw_slot_of[i]]
+                                + distance * (DN_DX_parent(i,0)*shift_dir[0] + DN_DX_parent(i,1)*shift_dir[1]);
+                        }
+                    }
 
                     // j_e := |e^ext|/|e~| 
                     const std::size_t je_n1 = sur_bd_local_ids[1];
@@ -298,14 +307,16 @@ void ShellThickShiftedBoundaryElement3D3N<TKinematics>::CalculateLocalSystem(
 
                     // Exact per-endpoint shape vectors for the penalty (shape x shape) term.
                     array_1d<double,3> r_sur_bd_N_taylor_a = ZeroVector(3);
-                    r_sur_bd_N_taylor_a[0] = 0.0 + je_dist_n1 * (DN_DX_parent(0,0)*shift_dir[0] + DN_DX_parent(0,1)*shift_dir[1]);
-                    r_sur_bd_N_taylor_a[1] = 1.0 + je_dist_n1 * (DN_DX_parent(1,0)*shift_dir[0] + DN_DX_parent(1,1)*shift_dir[1]);
-                    r_sur_bd_N_taylor_a[2] = 0.0 + je_dist_n1 * (DN_DX_parent(2,0)*shift_dir[0] + DN_DX_parent(2,1)*shift_dir[1]);
-
                     array_1d<double,3> r_sur_bd_N_taylor_b = ZeroVector(3);
-                    r_sur_bd_N_taylor_b[0] = 0.0 + je_dist_n2 * (DN_DX_parent(0,0)*shift_dir[0] + DN_DX_parent(0,1)*shift_dir[1]);
-                    r_sur_bd_N_taylor_b[1] = 0.0 + je_dist_n2 * (DN_DX_parent(1,0)*shift_dir[0] + DN_DX_parent(1,1)*shift_dir[1]);
-                    r_sur_bd_N_taylor_b[2] = 1.0 + je_dist_n2 * (DN_DX_parent(2,0)*shift_dir[0] + DN_DX_parent(2,1)*shift_dir[1]);
+                    {
+                        const double N_true_a_by_slot[3] = {0.0, 1.0, 0.0};
+                        const double N_true_b_by_slot[3] = {0.0, 0.0, 1.0};
+                        for (std::size_t i = 0; i < 3; ++i) {
+                            const double dir_grad = DN_DX_parent(i,0)*shift_dir[0] + DN_DX_parent(i,1)*shift_dir[1];
+                            r_sur_bd_N_taylor_a[i] = N_true_a_by_slot[raw_slot_of[i]] + je_dist_n1 * dir_grad;
+                            r_sur_bd_N_taylor_b[i] = N_true_b_by_slot[raw_slot_of[i]] + je_dist_n2 * dir_grad;
+                        }
+                    }
 
                     const array_1d<double,3> je_shift_3d_dir = shift_dir[0]*local_e1 + shift_dir[1]*local_e2;
                     const array_1d<double,3> je_p1 = r_geom[je_n1].Coordinates();
@@ -321,7 +332,7 @@ void ShellThickShiftedBoundaryElement3D3N<TKinematics>::CalculateLocalSystem(
                     for (std::size_t i_node = 0; i_node < 3; ++i_node) {
                         aux_val = aux_w * r_sur_bd_N_taylor[i_node];
                         const double aux_val_gap = aux_w_taylor * r_sur_bd_N_taylor[i_node];
-                        i_loc_id = sur_bd_local_ids[i_node];
+                        i_loc_id = i_node;
                         for (std::size_t d = 0; d < 6; ++d) {
                             if (constrained_dofs[d] == 0.0) {
                                 continue;
