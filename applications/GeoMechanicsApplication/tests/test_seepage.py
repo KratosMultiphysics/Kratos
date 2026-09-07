@@ -31,20 +31,30 @@ class KratosGeoMechanicsSeepageTests(KratosUnittest.TestCase):
             os.path.join(file_path, "three_element_seepage_test.post.res")
         )
 
+        end_time = 1.0
+
         # Verify that top boundary nodes (y=3.0) have seepage condition applied
         top_boundary = simulation.model.GetModelPart("PorousDomain.top_boundary")
         top_node_ids = [node.Id for node in top_boundary.Nodes]
         water_pressures = GiDOutputFileReader.nodal_values_at_time(
-            "WATER_PRESSURE", 1.0, output_data, top_node_ids
+            "WATER_PRESSURE", end_time, output_data, top_node_ids
+        )
+        nodal_water_flows = GiDOutputFileReader.nodal_values_at_time(
+            "NODAL_WATER_FLOW", end_time, output_data, top_node_ids
         )
 
         # Since the bottom boundary is fixed to a high number, leading to outflow, the
         # seepage nodes should have pressure = 0
-        for node_id, pressure in zip(top_node_ids, water_pressures):
+        expected_water_pressure = 0.0
+        expected_nodal_out_flow = ((7.08e-13 * 1.0e04) / 3.0e-03) / 2
+        for node_id, pressure, flow in zip(
+            top_node_ids, water_pressures, nodal_water_flows
+        ):
             self.assertAlmostEqual(
                 pressure,
-                0.0,
+                expected_water_pressure,
             )
+            self.assertAlmostEqual(flow, expected_nodal_out_flow)
 
     def test_three_element_seepage_fixed_bottom_boundary_stop_inflow(self):
         """
