@@ -51,16 +51,16 @@ namespace
 {
 
 /// Material data.
-constexpr double test_young_modulus = 2.0e7;
-constexpr double test_poisson_ratio = 0.2;
-constexpr double test_density = 2400.0;
-constexpr double test_reference_temperature = 20.0;
+constexpr double rar_test_young_modulus = 2.0e7;
+constexpr double rar_test_poisson_ratio = 0.2;
+constexpr double rar_test_density = 2400.0;
+constexpr double rar_test_reference_temperature = 20.0;
 
 /// Relative comparison tolerance for the restart-vs-reference match.
 constexpr double restart_tolerance = 1.0e-8;
 
 /// A serializable holder for a single element.
-struct ElementHolder
+struct rar_ElementHolder
 {
     std::vector<Element::Pointer> elements;
     void save(Serializer& rSerializer) const { rSerializer.save("Elements", elements); }
@@ -106,15 +106,15 @@ Element::Pointer BuildDamageModel(
         const double* c = rIs3d ? c3[i] : c2[i];
         Node::Pointer p = r_mp.CreateNewNode(i + 1, c[0], c[1], c[2]);
         p->AddDof(DISPLACEMENT_X); p->AddDof(DISPLACEMENT_Y); p->AddDof(DISPLACEMENT_Z);
-        p->FastGetSolutionStepValue(TEMPERATURE) = test_reference_temperature;
-        p->FastGetSolutionStepValue(NODAL_REFERENCE_TEMPERATURE) = test_reference_temperature;
+        p->FastGetSolutionStepValue(TEMPERATURE) = rar_test_reference_temperature;
+        p->FastGetSolutionStepValue(NODAL_REFERENCE_TEMPERATURE) = rar_test_reference_temperature;
         Matrix z3(3, 3); noalias(z3) = ZeroMatrix(3, 3);
         p->FastGetSolutionStepValue(INITIAL_STRESS_TENSOR) = z3;
     }
     auto p_props = r_mp.CreateNewProperties(1);
-    (*p_props)[YOUNG_MODULUS] = test_young_modulus;
-    (*p_props)[POISSON_RATIO] = test_poisson_ratio;
-    (*p_props)[DENSITY] = test_density;
+    (*p_props)[YOUNG_MODULUS] = rar_test_young_modulus;
+    (*p_props)[POISSON_RATIO] = rar_test_poisson_ratio;
+    (*p_props)[DENSITY] = rar_test_density;
     (*p_props)[THERMAL_EXPANSION] = 1.0e-5;
     (*p_props)[DAMAGE_THRESHOLD] = 5.0e-3;
     (*p_props)[STRENGTH_RATIO] = 10.0;
@@ -143,10 +143,10 @@ void ApplyAndRecord(Element& rElement, ModelPart& rMp, const double rEps, const 
         const auto& x0 = n.GetInitialPosition();
         auto& u = n.FastGetSolutionStepValue(DISPLACEMENT);
         u[0] = rEps * x0[0];
-        u[1] = -test_poisson_ratio * rEps * x0[1];
-        u[2] = (is3d ? -test_poisson_ratio * rEps * x0[2] : 0.0);
+        u[1] = -rar_test_poisson_ratio * rEps * x0[1];
+        u[2] = (is3d ? -rar_test_poisson_ratio * rEps * x0[2] : 0.0);
         n.X() = x0[0] + u[0]; n.Y() = x0[1] + u[1]; n.Z() = x0[2] + u[2];
-        n.FastGetSolutionStepValue(TEMPERATURE) = test_reference_temperature + rDeltaT;
+        n.FastGetSolutionStepValue(TEMPERATURE) = rar_test_reference_temperature + rDeltaT;
     }
 
     // Trial response for the CURRENT committed state.
@@ -173,7 +173,7 @@ void ApplyAndRecord(Element& rElement, ModelPart& rMp, const double rEps, const 
 std::string SerializeElement(Element& rElement)
 {
     StreamSerializer serializer;
-    serializer.save("Holder", ElementHolder{{&rElement}});
+    serializer.save("Holder", rar_ElementHolder{{&rElement}});
     return serializer.GetStringRepresentation();
 }
 
@@ -182,7 +182,7 @@ Element::Pointer LoadElement(const std::string& rArchive, ProcessInfo& rPi)
 {
     StreamSerializer loader(rArchive);
     loader.SetLoadState();
-    ElementHolder loaded;
+    rar_ElementHolder loaded;
     loader.load("Holder", loaded);
     Element::Pointer p = loaded.elements[0];
     for (auto& n : p->GetGeometry()) {

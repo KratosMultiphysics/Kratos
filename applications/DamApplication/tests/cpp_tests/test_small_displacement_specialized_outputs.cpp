@@ -61,30 +61,30 @@ namespace
 {
 
 /// Comparison tolerance (relative agreement with an absolute floor).
-constexpr double comparison_relative_tolerance = 1.0e-6;
+constexpr double sdso_comparison_relative_tolerance = 1.0e-6;
 constexpr double comparison_absolute_floor = 1.0e-10;
 
 /// Material data.
-constexpr double test_poisson_ratio = 0.2;
-constexpr double test_thermal_expansion = 1.0e-5;
-constexpr double test_reference_temperature = 20.0;
-constexpr double test_damage_threshold = 5.0e-3;
+constexpr double sdso_test_poisson_ratio = 0.2;
+constexpr double sdso_test_thermal_expansion = 1.0e-5;
+constexpr double sdso_test_reference_temperature = 20.0;
+constexpr double sdso_test_damage_threshold = 5.0e-3;
 
 /// Comparison helper: relative tolerance with absolute floor.
 bool Near(const double rValue, const double rReference)
 {
     return std::abs(rValue - rReference) <=
-           std::max(comparison_relative_tolerance * std::abs(rReference),
+           std::max(sdso_comparison_relative_tolerance * std::abs(rReference),
                     comparison_absolute_floor);
 }
 
 /// Test-only element subclass exposing the constitutive-law vector.
-class TestSmallDisplacementElement : public SmallDisplacement
+class sdso_TestSmallDisplacementElement : public SmallDisplacement
 {
 public:
-    KRATOS_CLASS_POINTER_DEFINITION(TestSmallDisplacementElement);
+    KRATOS_CLASS_POINTER_DEFINITION(sdso_TestSmallDisplacementElement);
     using BaseType = SmallDisplacement;
-    TestSmallDisplacementElement(IndexType NewId, GeometryType::Pointer pGeometry,
+    sdso_TestSmallDisplacementElement(IndexType NewId, GeometryType::Pointer pGeometry,
                                  PropertiesType::Pointer pProperties)
         : BaseType(NewId, pGeometry, pProperties) {}
     ConstitutiveLaw& GetConstitutiveLaw(std::size_t i) { return *mConstitutiveLawVector[i]; }
@@ -126,17 +126,17 @@ ModelPart& CreateOutputModelPart(
         const double* c = is_3d ? coords_3d[i] : coords_2d[i];
         Node::Pointer n = r_model_part.CreateNewNode(i + 1, c[0], c[1], c[2]);
         n->AddDof(DISPLACEMENT_X); n->AddDof(DISPLACEMENT_Y); n->AddDof(DISPLACEMENT_Z);
-        n->FastGetSolutionStepValue(NODAL_REFERENCE_TEMPERATURE) = test_reference_temperature;
-        n->FastGetSolutionStepValue(TEMPERATURE) = test_reference_temperature;
+        n->FastGetSolutionStepValue(NODAL_REFERENCE_TEMPERATURE) = sdso_test_reference_temperature;
+        n->FastGetSolutionStepValue(TEMPERATURE) = sdso_test_reference_temperature;
         n->FastGetSolutionStepValue(NODAL_YOUNG_MODULUS) = 2.0e7;
         Matrix z3(3, 3); noalias(z3) = ZeroMatrix(3, 3);
         n->FastGetSolutionStepValue(INITIAL_STRESS_TENSOR) = z3;
     }
     auto p_prop = r_model_part.CreateNewProperties(1);
     (*p_prop)[YOUNG_MODULUS] = 2.0e7;
-    (*p_prop)[POISSON_RATIO] = test_poisson_ratio;
-    (*p_prop)[THERMAL_EXPANSION] = test_thermal_expansion;
-    (*p_prop)[DAMAGE_THRESHOLD] = test_damage_threshold;
+    (*p_prop)[POISSON_RATIO] = sdso_test_poisson_ratio;
+    (*p_prop)[THERMAL_EXPANSION] = sdso_test_thermal_expansion;
+    (*p_prop)[DAMAGE_THRESHOLD] = sdso_test_damage_threshold;
     (*p_prop)[STRENGTH_RATIO] = 10.0;
     (*p_prop)[FRACTURE_ENERGY] = 5000.0;
     p_prop->SetValue(CONSTITUTIVE_LAW, pLaw);
@@ -184,7 +184,7 @@ void ApplyState(ModelPart& rModelPart, const Vector& rEpsVoigt, const double rDe
         u[1] = 0.5 * rEpsVoigt[3] * x0[0] + rEpsVoigt[1] * x0[1] + 0.5 * rEpsVoigt[4] * x0[2];
         u[2] = 0.5 * rEpsVoigt[5] * x0[0] + 0.5 * rEpsVoigt[4] * x0[1] + rEpsVoigt[2] * x0[2];
         n.X() = x0[0] + u[0]; n.Y() = x0[1] + u[1]; n.Z() = x0[2] + u[2];
-        n.FastGetSolutionStepValue(TEMPERATURE) = test_reference_temperature + rDeltaTemperature;
+        n.FastGetSolutionStepValue(TEMPERATURE) = sdso_test_reference_temperature + rDeltaTemperature;
     }
 }
 
@@ -234,19 +234,19 @@ Vector UniaxialTotalStrain(const bool rIs3d, const double rEps)
 {
     if (rIs3d) {
         Vector e(6);
-        e[0] = rEps; e[1] = -test_poisson_ratio * rEps; e[2] = -test_poisson_ratio * rEps;
+        e[0] = rEps; e[1] = -sdso_test_poisson_ratio * rEps; e[2] = -sdso_test_poisson_ratio * rEps;
         e[3] = 0.0; e[4] = 0.0; e[5] = 0.0;
         return e;
     }
     Vector e(3);
-    e[0] = rEps; e[1] = -test_poisson_ratio * rEps; e[2] = 0.0;
+    e[0] = rEps; e[1] = -sdso_test_poisson_ratio * rEps; e[2] = 0.0;
     return e;
 }
 
 /// Analytical thermal strain base (before the plane-strain (1+nu) factor).
 Vector ThermalStrainBase(const GeometryKind rGeo, const double rDeltaTemperature)
 {
-    const double alpha_dT = test_thermal_expansion * rDeltaTemperature;
+    const double alpha_dT = sdso_test_thermal_expansion * rDeltaTemperature;
     if (rGeo == GeometryKind::Hexa3D) {
         Vector e(6);
         e[0] = alpha_dT; e[1] = alpha_dT; e[2] = alpha_dT;
@@ -400,8 +400,8 @@ void VerifyNodalLinear(
     const double rPlaneFactor)   // (1+nu) for plane strain, 1.0 otherwise
 {
     Model model;
-    TestSmallDisplacementElement* p_elem = nullptr;
-    ModelPart& r_mp = CreateOutputModelPart<TestSmallDisplacementElement>(
+    sdso_TestSmallDisplacementElement* p_elem = nullptr;
+    ModelPart& r_mp = CreateOutputModelPart<sdso_TestSmallDisplacementElement>(
         model, rLabel, p_elem, pLaw, rGeo, true);
     p_elem->Initialize(r_mp.GetProcessInfo());
 
@@ -414,8 +414,8 @@ void VerifyNodalLinear(
     for (auto& n : r_mp.Nodes()) {
         const auto& x0 = n.GetInitialPosition();
         n.FastGetSolutionStepValue(NODAL_YOUNG_MODULUS) = 2.0e7 + 1.0e6 * (x0[0] + x0[1]);
-        n.FastGetSolutionStepValue(TEMPERATURE) = test_reference_temperature + 10.0 + 2.0 * x0[0];
-        n.FastGetSolutionStepValue(NODAL_REFERENCE_TEMPERATURE) = test_reference_temperature - 5.0 + x0[1];
+        n.FastGetSolutionStepValue(TEMPERATURE) = sdso_test_reference_temperature + 10.0 + 2.0 * x0[0];
+        n.FastGetSolutionStepValue(NODAL_REFERENCE_TEMPERATURE) = sdso_test_reference_temperature - 5.0 + x0[1];
     }
 
     const GeometryData::IntegrationMethod integration_method = p_elem->GetIntegrationMethod();
@@ -425,9 +425,9 @@ void VerifyNodalLinear(
     const double tref_interp = InterpolateScalarAtGP(r_geometry, NODAL_REFERENCE_TEMPERATURE, 0, integration_method);
     const double delta_temperature = t_interp - tref_interp;
 
-    const Matrix C = (rGeo == GeometryKind::Hexa3D) ? C3D(e_interp, test_poisson_ratio)
-                     : (rPlaneFactor > 1.0) ? CPlaneStrain(e_interp, test_poisson_ratio)
-                                            : CPlaneStress(e_interp, test_poisson_ratio);
+    const Matrix C = (rGeo == GeometryKind::Hexa3D) ? C3D(e_interp, sdso_test_poisson_ratio)
+                     : (rPlaneFactor > 1.0) ? CPlaneStrain(e_interp, sdso_test_poisson_ratio)
+                                            : CPlaneStress(e_interp, sdso_test_poisson_ratio);
 
     Vector e_th = ThermalStrainBase(rGeo, delta_temperature);
     if (rPlaneFactor > 1.0) { e_th[0] *= rPlaneFactor; e_th[1] *= rPlaneFactor; }
@@ -485,9 +485,9 @@ void VerifyLocalDamageSequence(
     ProcessInfo& r_pi = r_mp.GetProcessInfo();
 
     const bool is_3d = (rGeo == GeometryKind::Hexa3D);
-    const Matrix C = (rGeo == GeometryKind::Hexa3D) ? C3D(2.0e7, test_poisson_ratio)
-                     : (rPlaneFactor > 1.0) ? CPlaneStrain(2.0e7, test_poisson_ratio)
-                                            : CPlaneStress(2.0e7, test_poisson_ratio);
+    const Matrix C = (rGeo == GeometryKind::Hexa3D) ? C3D(2.0e7, sdso_test_poisson_ratio)
+                     : (rPlaneFactor > 1.0) ? CPlaneStrain(2.0e7, sdso_test_poisson_ratio)
+                                            : CPlaneStress(2.0e7, sdso_test_poisson_ratio);
 
     // State sequences: {eps_x, dT}.
     const std::vector<std::pair<double, double>> states = {
@@ -546,7 +546,7 @@ void VerifyLocalDamageSequence(
 
 KRATOS_TEST_CASE_IN_SUITE(LocalDamageOutputsFollowStateSequence3D, KratosDamFastSuite)
 {
-    VerifyLocalDamageSequence<TestSmallDisplacementElement>(
+    VerifyLocalDamageSequence<sdso_TestSmallDisplacementElement>(
         "LocalSeq3D", GeometryKind::Hexa3D,
         ConstitutiveLaw::Pointer(new ThermalSimoJuLocalDamage3DLaw()), 1.0);
 }
@@ -572,9 +572,9 @@ void VerifyNonlocalDamage(
     ProcessInfo& r_pi = r_mp.GetProcessInfo();
 
     const bool is_3d = (rGeo == GeometryKind::Hexa3D);
-    const Matrix C = (rGeo == GeometryKind::Hexa3D) ? C3D(2.0e7, test_poisson_ratio)
-                     : (rPlaneFactor > 1.0) ? CPlaneStrain(2.0e7, test_poisson_ratio)
-                                            : CPlaneStress(2.0e7, test_poisson_ratio);
+    const Matrix C = (rGeo == GeometryKind::Hexa3D) ? C3D(2.0e7, sdso_test_poisson_ratio)
+                     : (rPlaneFactor > 1.0) ? CPlaneStrain(2.0e7, sdso_test_poisson_ratio)
+                                            : CPlaneStress(2.0e7, sdso_test_poisson_ratio);
 
     const double eps = 2.0e-5, dT = 40.0;
     ApplyState(r_mp, UniaxialTotalStrain(is_3d, eps), dT);
@@ -626,7 +626,7 @@ void VerifyNonlocalDamage(
 
 KRATOS_TEST_CASE_IN_SUITE(NonlocalDamageOutputsSimoJu3D, KratosDamFastSuite)
 {
-    VerifyNonlocalDamage<TestSmallDisplacementElement>(
+    VerifyNonlocalDamage<sdso_TestSmallDisplacementElement>(
         "NonlocalSJ3D", GeometryKind::Hexa3D,
         ConstitutiveLaw::Pointer(new ThermalSimoJuNonlocalDamage3DLaw()), 1.0, 1.2e-2);
 }
@@ -639,12 +639,12 @@ KRATOS_TEST_CASE_IN_SUITE(SpecializedOutputsShearConvention, KratosDamFastSuite)
 {
     for (bool is_3d : {true, false}) {
         Model model;
-        TestSmallDisplacementElement* p_elem = nullptr;
+        sdso_TestSmallDisplacementElement* p_elem = nullptr;
         const GeometryKind geo = is_3d ? GeometryKind::Hexa3D : GeometryKind::Quadrilateral2D;
         ConstitutiveLaw::Pointer p_law = is_3d
             ? ConstitutiveLaw::Pointer(new ThermalLinearElastic3DLaw())
             : ConstitutiveLaw::Pointer(new ThermalLinearElastic2DPlaneStressNodal());
-        ModelPart& r_mp = CreateOutputModelPart<TestSmallDisplacementElement>(
+        ModelPart& r_mp = CreateOutputModelPart<sdso_TestSmallDisplacementElement>(
             model, is_3d ? "Shear3D" : "Shear2D", p_elem, p_law, geo, false);
         p_elem->Initialize(r_mp.GetProcessInfo());
 
@@ -684,8 +684,8 @@ KRATOS_TEST_CASE_IN_SUITE(SpecializedOutputsShearConvention, KratosDamFastSuite)
 KRATOS_TEST_CASE_IN_SUITE(SpecializedOutputs_LinearReference, KratosDamFastSuite)
 {
     Model model;
-    TestSmallDisplacementElement* p_elem = nullptr;
-    ModelPart& r_mp = CreateOutputModelPart<TestSmallDisplacementElement>(
+    sdso_TestSmallDisplacementElement* p_elem = nullptr;
+    ModelPart& r_mp = CreateOutputModelPart<sdso_TestSmallDisplacementElement>(
         model, "RefLinear", p_elem,
         ConstitutiveLaw::Pointer(new ThermalLinearElastic3DLaw()), GeometryKind::Hexa3D, false);
     p_elem->Initialize(r_mp.GetProcessInfo());
@@ -693,9 +693,9 @@ KRATOS_TEST_CASE_IN_SUITE(SpecializedOutputs_LinearReference, KratosDamFastSuite
     ApplyState(r_mp, UniaxialTotalStrain(true, eps), dT);
 
     const double E = 2.0e7;
-    const Matrix C = C3D(E, test_poisson_ratio);
+    const Matrix C = C3D(E, sdso_test_poisson_ratio);
     const Vector e_total = UniaxialTotalStrain(true, eps);
-    const double alpha_dT = test_thermal_expansion * dT;
+    const double alpha_dT = sdso_test_thermal_expansion * dT;
     Vector e_th(6);
     e_th[0] = alpha_dT; e_th[1] = alpha_dT; e_th[2] = alpha_dT; e_th[3] = 0; e_th[4] = 0; e_th[5] = 0;
     const Vector mech_stress = prod(C, e_total);

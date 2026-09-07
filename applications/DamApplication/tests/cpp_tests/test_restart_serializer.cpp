@@ -45,7 +45,7 @@ namespace
 {
 
 /// Material data.
-constexpr double test_young_modulus = 2.0e7;
+constexpr double rs_test_young_modulus = 2.0e7;
 
 /// Serializer trace used for saving/loading the ROUND TRIP experiments. The
 /// production restart format is binary (SERIALIZER_NO_TRACE, see
@@ -65,7 +65,7 @@ double ElementDamage(Element& rElement, const ProcessInfo& rPi)
 }
 
 /// A serializable holder for element pointers.
-struct ElementHolder
+struct rs_ElementHolder
 {
     std::vector<Element::Pointer> elements;
     void save(Serializer& rSerializer) const { rSerializer.save("Elements", elements); }
@@ -73,7 +73,7 @@ struct ElementHolder
 };
 
 /// Loads the holder from a string (binary mode).
-void LoadHolderFromString(const std::string& rArchive, ElementHolder& rHolder)
+void LoadHolderFromString(const std::string& rArchive, rs_ElementHolder& rHolder)
 {
     StreamSerializer serializer(rArchive, round_trip_trace);
     serializer.SetLoadState();
@@ -120,7 +120,7 @@ KRATOS_TEST_CASE_IN_SUITE(LegacyBinaryRestartLoadsIntoSMAElement, KratosDamFastS
 
     std::string outcome = "unknown";
     try {
-        ElementHolder loaded;
+        rs_ElementHolder loaded;
         LoadHolderFromString(archive, loaded);
         KRATOS_EXPECT_EQ(loaded.elements.size(), 1u);
         Element::Pointer p_loaded = loaded.elements[0];
@@ -129,7 +129,7 @@ KRATOS_TEST_CASE_IN_SUITE(LegacyBinaryRestartLoadsIntoSMAElement, KratosDamFastS
         KRATOS_EXPECT_TRUE(runtime.find("SmallDisplacement") != std::string::npos);
         KRATOS_EXPECT_TRUE(runtime.find("ThermoMechanic") == std::string::npos);
         KRATOS_EXPECT_EQ(p_loaded->GetGeometry().size(), 8u);
-        KRATOS_EXPECT_EQ(p_loaded->GetProperties()[YOUNG_MODULUS], test_young_modulus);
+        KRATOS_EXPECT_EQ(p_loaded->GetProperties()[YOUNG_MODULUS], rs_test_young_modulus);
         for (auto& n : p_loaded->GetGeometry()) {
             n.AddDof(DISPLACEMENT_X);
             n.AddDof(DISPLACEMENT_Y);

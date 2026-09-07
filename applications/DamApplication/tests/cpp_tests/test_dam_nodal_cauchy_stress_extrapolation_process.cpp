@@ -48,20 +48,20 @@ namespace
 {
 
 /// Comparison tolerances.
-constexpr double comparison_absolute_tolerance = 1.0e-12;
-constexpr double comparison_relative_tolerance = 1.0e-10;
-constexpr double machine_precision_allowance = 1.0e-15;
+constexpr double dncs_comparison_absolute_tolerance = 1.0e-12;
+constexpr double dncs_comparison_relative_tolerance = 1.0e-10;
+constexpr double dncs_machine_precision_allowance = 1.0e-15;
 
 /// Material data shared by all model parts.
-constexpr double test_young_modulus = 2.0e7;
-constexpr double test_poisson_ratio = 0.2;
-constexpr double test_density = 2400.0;
-constexpr double test_thermal_expansion = 1.0e-5;
-constexpr double test_reference_temperature = 20.0;
-constexpr double test_thickness = 0.15;
+constexpr double dncs_test_young_modulus = 2.0e7;
+constexpr double dncs_test_poisson_ratio = 0.2;
+constexpr double dncs_test_density = 2400.0;
+constexpr double dncs_test_thermal_expansion = 1.0e-5;
+constexpr double dncs_test_reference_temperature = 20.0;
+constexpr double dncs_test_thickness = 0.15;
 
 /// Creates the constitutive law for the given configuration.
-ConstitutiveLaw::Pointer CreateThermalLaw(const std::string& rLawName)
+ConstitutiveLaw::Pointer dncs_CreateThermalLaw(const std::string& rLawName)
 {
     if (rLawName == "ThermalLinearElastic2DPlaneStrain") {
         return ThermalLinearElastic2DPlaneStrain().Clone();
@@ -116,14 +116,14 @@ ModelPart& CreateProcessModelPart(
     }
 
     auto p_prop = r_model_part.CreateNewProperties(1);
-    (*p_prop)[YOUNG_MODULUS] = test_young_modulus;
-    (*p_prop)[POISSON_RATIO] = test_poisson_ratio;
-    (*p_prop)[DENSITY] = test_density;
-    (*p_prop)[THERMAL_EXPANSION] = test_thermal_expansion;
+    (*p_prop)[YOUNG_MODULUS] = dncs_test_young_modulus;
+    (*p_prop)[POISSON_RATIO] = dncs_test_poisson_ratio;
+    (*p_prop)[DENSITY] = dncs_test_density;
+    (*p_prop)[THERMAL_EXPANSION] = dncs_test_thermal_expansion;
     if (rDimension == 2) {
-        (*p_prop)[THICKNESS] = test_thickness;
+        (*p_prop)[THICKNESS] = dncs_test_thickness;
     }
-    p_prop->SetValue(CONSTITUTIVE_LAW, CreateThermalLaw(rLawName));
+    p_prop->SetValue(CONSTITUTIVE_LAW, dncs_CreateThermalLaw(rLawName));
 
     std::vector<ModelPart::IndexType> element_nodes(number_of_nodes);
     for (std::size_t i = 0; i < number_of_nodes; ++i) {
@@ -135,7 +135,7 @@ ModelPart& CreateProcessModelPart(
         r_node.AddDof(DISPLACEMENT_X);
         r_node.AddDof(DISPLACEMENT_Y);
         r_node.AddDof(DISPLACEMENT_Z);
-        r_node.FastGetSolutionStepValue(NODAL_REFERENCE_TEMPERATURE) = test_reference_temperature;
+        r_node.FastGetSolutionStepValue(NODAL_REFERENCE_TEMPERATURE) = dncs_test_reference_temperature;
         r_node.FastGetSolutionStepValue(NODAL_AREA) = 0.0;
         Matrix zero_stress_tensor(rDimension, rDimension);
         noalias(zero_stress_tensor) = ZeroMatrix(rDimension, rDimension);
@@ -166,7 +166,7 @@ void PrescribeVaryingState(ModelPart& rModelPart, const std::size_t rDimension)
         r_node.Y() = r_x0[1] + r_displacement[1];
         r_node.Z() = r_x0[2] + r_displacement[2];
         r_node.FastGetSolutionStepValue(TEMPERATURE) =
-            test_reference_temperature + 5.0 * static_cast<double>(node_index);
+            dncs_test_reference_temperature + 5.0 * static_cast<double>(node_index);
         ++node_index;
     }
 
@@ -270,14 +270,14 @@ void VerifyProcessAgainstAnalyticRaw(ModelPart& rModelPart, const std::string& r
     for (auto& r_node : rModelPart.Nodes()) {
         const ModelPart::IndexType nid = r_node.Id();
         KRATOS_EXPECT_NEAR(r_node.FastGetSolutionStepValue(NODAL_AREA), expected_area[nid],
-                           std::max(comparison_absolute_tolerance,
-                                    comparison_relative_tolerance * std::abs(expected_area[nid])));
+                           std::max(dncs_comparison_absolute_tolerance,
+                                    dncs_comparison_relative_tolerance * std::abs(expected_area[nid])));
         const Matrix& stored = r_node.FastGetSolutionStepValue(NODAL_CAUCHY_STRESS_TENSOR);
         for (std::size_t i = 0; i < dim; ++i) {
             for (std::size_t j = 0; j < dim; ++j) {
                 KRATOS_EXPECT_NEAR(stored(i, j), expected_stress[nid](i, j),
-                                   std::max(comparison_absolute_tolerance,
-                                            comparison_relative_tolerance * std::abs(expected_stress[nid](i, j))));
+                                   std::max(dncs_comparison_absolute_tolerance,
+                                            dncs_comparison_relative_tolerance * std::abs(expected_stress[nid](i, j))));
             }
         }
     }
@@ -362,18 +362,18 @@ KRATOS_TEST_CASE_IN_SUITE(DamNodalStressExtrapolation_SharedNode_UnequalAreas, K
             r_node.AddDof(DISPLACEMENT_X);
             r_node.AddDof(DISPLACEMENT_Y);
             r_node.AddDof(DISPLACEMENT_Z);
-            r_node.FastGetSolutionStepValue(NODAL_REFERENCE_TEMPERATURE) = test_reference_temperature;
+            r_node.FastGetSolutionStepValue(NODAL_REFERENCE_TEMPERATURE) = dncs_test_reference_temperature;
             r_node.FastGetSolutionStepValue(NODAL_AREA) = 0.0;
             Matrix zero_stress_tensor(2, 2);
             noalias(zero_stress_tensor) = ZeroMatrix(2, 2);
             r_node.FastGetSolutionStepValue(NODAL_CAUCHY_STRESS_TENSOR) = zero_stress_tensor;
         }
         auto p_prop = r_model_part.CreateNewProperties(1);
-        (*p_prop)[YOUNG_MODULUS] = test_young_modulus;
-        (*p_prop)[POISSON_RATIO] = test_poisson_ratio;
-        (*p_prop)[DENSITY] = test_density;
-        (*p_prop)[THERMAL_EXPANSION] = test_thermal_expansion;
-        (*p_prop)[THICKNESS] = test_thickness;
+        (*p_prop)[YOUNG_MODULUS] = dncs_test_young_modulus;
+        (*p_prop)[POISSON_RATIO] = dncs_test_poisson_ratio;
+        (*p_prop)[DENSITY] = dncs_test_density;
+        (*p_prop)[THERMAL_EXPANSION] = dncs_test_thermal_expansion;
+        (*p_prop)[THICKNESS] = dncs_test_thickness;
         p_prop->SetValue(CONSTITUTIVE_LAW, ThermalLinearElastic2DPlaneStrain().Clone());
         r_model_part.CreateNewElement(r_element_name, 1, {1, 2, 3, 4}, p_prop);
         r_model_part.CreateNewElement(r_element_name, 2, {2, 5, 6, 3}, p_prop);
@@ -385,7 +385,7 @@ KRATOS_TEST_CASE_IN_SUITE(DamNodalStressExtrapolation_SharedNode_UnequalAreas, K
             r_node.X() = r_x0[0] + r_disp[0];
             r_node.Y() = r_x0[1] + r_disp[1];
             r_node.FastGetSolutionStepValue(TEMPERATURE) =
-                test_reference_temperature + 3.0 * r_x0[0] + 2.0 * r_x0[1];
+                dncs_test_reference_temperature + 3.0 * r_x0[0] + 2.0 * r_x0[1];
         }
         for (auto& r_element : r_model_part.Elements()) {
             KRATOS_EXPECT_EQ(r_element.Check(r_pi), 0);
@@ -450,14 +450,14 @@ KRATOS_TEST_CASE_IN_SUITE(DamNodalStressExtrapolation_MultiStep, KratosDamFastSu
         p_element->CalculateOnIntegrationPoints(GREEN_LAGRANGE_STRAIN_VECTOR, strain_after, r_pi);
         for (std::size_t i = 0; i < lhs_before.size1(); ++i)
             for (std::size_t j = 0; j < lhs_before.size2(); ++j)
-                KRATOS_EXPECT_NEAR(lhs_after(i, j), lhs_before(i, j), comparison_absolute_tolerance);
+                KRATOS_EXPECT_NEAR(lhs_after(i, j), lhs_before(i, j), dncs_comparison_absolute_tolerance);
         for (std::size_t i = 0; i < rhs_before.size(); ++i)
-            KRATOS_EXPECT_NEAR(rhs_after(i), rhs_before(i), comparison_absolute_tolerance);
+            KRATOS_EXPECT_NEAR(rhs_after(i), rhs_before(i), dncs_comparison_absolute_tolerance);
         for (std::size_t gp = 0; gp < cauchy_before.size(); ++gp)
             for (std::size_t c = 0; c < cauchy_before[gp].size(); ++c) {
-                KRATOS_EXPECT_NEAR(cauchy_after[gp](c), cauchy_before[gp](c), comparison_absolute_tolerance);
-                KRATOS_EXPECT_NEAR(pk2_after[gp](c), pk2_before[gp](c), comparison_absolute_tolerance);
-                KRATOS_EXPECT_NEAR(strain_after[gp](c), strain_before[gp](c), comparison_absolute_tolerance);
+                KRATOS_EXPECT_NEAR(cauchy_after[gp](c), cauchy_before[gp](c), dncs_comparison_absolute_tolerance);
+                KRATOS_EXPECT_NEAR(pk2_after[gp](c), pk2_before[gp](c), dncs_comparison_absolute_tolerance);
+                KRATOS_EXPECT_NEAR(strain_after[gp](c), strain_before[gp](c), dncs_comparison_absolute_tolerance);
             }
     }
 }

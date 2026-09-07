@@ -54,10 +54,10 @@ namespace
 constexpr double exact_tolerance = 1.0e-12;
 
 /// Material data.
-constexpr double test_density = 2400.0;
-constexpr double test_thickness = 0.15;
-constexpr double test_young_modulus = 2.0e7;
-constexpr double test_poisson_ratio = 0.2;
+constexpr double sdm_test_density = 2400.0;
+constexpr double sdm_test_thickness = 0.15;
+constexpr double sdm_test_young_modulus = 2.0e7;
+constexpr double sdm_test_poisson_ratio = 0.2;
 
 /// Constructs the constitutive law directly.
 ConstitutiveLaw::Pointer CreateLaw(const std::string& rName)
@@ -116,8 +116,8 @@ Element::Pointer CreateElement(
     }
 
     auto p_props = r_model_part.CreateNewProperties(1);
-    (*p_props)[YOUNG_MODULUS] = test_young_modulus;
-    (*p_props)[POISSON_RATIO] = test_poisson_ratio;
+    (*p_props)[YOUNG_MODULUS] = sdm_test_young_modulus;
+    (*p_props)[POISSON_RATIO] = sdm_test_poisson_ratio;
     (*p_props)[DENSITY] = rDensity;
     if (rSetThickness)
         (*p_props)[THICKNESS] = rThickness;
@@ -158,7 +158,7 @@ double TotalDirectionalMass(const Matrix& rMassMatrix, const std::size_t rDimens
 }
 
 /// Max absolute entry difference between two matrices.
-double MaxAbsDiff(const Matrix& rA, const Matrix& rB)
+double sdm_MaxAbsDiff(const Matrix& rA, const Matrix& rB)
 {
     double max_diff = 0.0;
     for (std::size_t i = 0; i < rA.size1(); ++i)
@@ -231,7 +231,7 @@ void PrintMassMetrics(
     const Matrix& rSma,
     const std::size_t rDimension)
 {
-    std::cout << "[mass] " << rWhat << ": max_abs_diff=" << MaxAbsDiff(rDam, rSma)
+    std::cout << "[mass] " << rWhat << ": max_abs_diff=" << sdm_MaxAbsDiff(rDam, rSma)
               << " frob_rel_diff=" << FrobeniusRelDiff(rDam, rSma)
               << " total_mass_dam=" << TotalDirectionalMass(rDam, rDimension)
               << " total_mass_sma=" << TotalDirectionalMass(rSma, rDimension) << std::endl;
@@ -252,13 +252,13 @@ KRATOS_TEST_CASE_IN_SUITE(HistoricalTriangleAliasUsesConsistentMass, KratosDamFa
     const ElementNamePair names{"SmallDisplacementSolidElement2D3N", "SmallDisplacementElement2D3N"};
     const std::vector<std::vector<double>> coords = {{0,0,0},{2.0,0,0},{0,1.0,0}};
     const double area = 1.0;         // right triangle
-    const double physical_mass = test_density * test_thickness * area;
+    const double physical_mass = sdm_test_density * sdm_test_thickness * area;
 
     Model model;
     ModelPart* p_dam_mp = nullptr;
     ModelPart* p_sma_mp = nullptr;
-    Element::Pointer p_dam = CreateElement(model, "T3Dam", names.dam, coords, true, test_density, true, test_thickness, false, p_dam_mp);
-    Element::Pointer p_sma = CreateElement(model, "T3Sma", names.sma, coords, true, test_density, true, test_thickness, false, p_sma_mp);
+    Element::Pointer p_dam = CreateElement(model, "T3Dam", names.dam, coords, true, sdm_test_density, true, sdm_test_thickness, false, p_dam_mp);
+    Element::Pointer p_sma = CreateElement(model, "T3Sma", names.sma, coords, true, sdm_test_density, true, sdm_test_thickness, false, p_sma_mp);
     const Matrix M_dam_default = ElementMass(*p_dam, p_dam_mp->GetProcessInfo());
     const Matrix M_sma_default = ElementMass(*p_sma, p_sma_mp->GetProcessInfo());
 
@@ -273,10 +273,10 @@ KRATOS_TEST_CASE_IN_SUITE(HistoricalTriangleAliasUsesConsistentMass, KratosDamFa
         }
 
     // SMA default (3-point) == analytical exact.
-    KRATOS_EXPECT_NEAR(MaxAbsDiff(M_sma_default, M_exact), 0.0, exact_tolerance);
+    KRATOS_EXPECT_NEAR(sdm_MaxAbsDiff(M_sma_default, M_exact), 0.0, exact_tolerance);
     // Historical Dam alias -> SMA consistent mass (analytical simplex).
-    KRATOS_EXPECT_NEAR(MaxAbsDiff(M_dam_default, M_sma_default), 0.0, exact_tolerance);
-    KRATOS_EXPECT_NEAR(MaxAbsDiff(M_dam_default, M_exact), 0.0, exact_tolerance);
+    KRATOS_EXPECT_NEAR(sdm_MaxAbsDiff(M_dam_default, M_sma_default), 0.0, exact_tolerance);
+    KRATOS_EXPECT_NEAR(sdm_MaxAbsDiff(M_dam_default, M_exact), 0.0, exact_tolerance);
 
     // Total mass conserved in both.
     KRATOS_EXPECT_NEAR(TotalDirectionalMass(M_dam_default, 2), physical_mass, exact_tolerance);
@@ -285,11 +285,11 @@ KRATOS_TEST_CASE_IN_SUITE(HistoricalTriangleAliasUsesConsistentMass, KratosDamFa
     // Lumped: Dam == SMA (both use geometry LumpingFactors * total mass).
     ModelPart* p_dl_mp = nullptr;
     ModelPart* p_sl_mp = nullptr;
-    Element::Pointer p_dam_lump = CreateElement(model, "T3DamLump", names.dam, coords, true, test_density, true, test_thickness, true, p_dl_mp);
-    Element::Pointer p_sma_lump = CreateElement(model, "T3SmaLump", names.sma, coords, true, test_density, true, test_thickness, true, p_sl_mp);
+    Element::Pointer p_dam_lump = CreateElement(model, "T3DamLump", names.dam, coords, true, sdm_test_density, true, sdm_test_thickness, true, p_dl_mp);
+    Element::Pointer p_sma_lump = CreateElement(model, "T3SmaLump", names.sma, coords, true, sdm_test_density, true, sdm_test_thickness, true, p_sl_mp);
     const Matrix M_dam_lumped = ElementMass(*p_dam_lump, p_dl_mp->GetProcessInfo());
     const Matrix M_sma_lumped = ElementMass(*p_sma_lump, p_sl_mp->GetProcessInfo());
-    KRATOS_EXPECT_NEAR(MaxAbsDiff(M_dam_lumped, M_sma_lumped), 0.0, exact_tolerance);
+    KRATOS_EXPECT_NEAR(sdm_MaxAbsDiff(M_dam_lumped, M_sma_lumped), 0.0, exact_tolerance);
     KRATOS_EXPECT_NEAR(TotalDirectionalMass(M_dam_lumped, 2), physical_mass, exact_tolerance);
     // Lumped is diagonal.
     for (std::size_t i = 0; i < 6; ++i)
@@ -311,13 +311,13 @@ KRATOS_TEST_CASE_IN_SUITE(HistoricalTetrahedronAliasUsesConsistentMass, KratosDa
     const ElementNamePair names{"SmallDisplacementSolidElement3D4N", "SmallDisplacementElement3D4N"};
     const std::vector<std::vector<double>> coords = {{0,0,0},{2.0,0,0},{0,1.0,0},{0,0,1.0}};
     const double volume = 1.0 / 3.0;
-    const double physical_mass = test_density * volume;
+    const double physical_mass = sdm_test_density * volume;
 
     Model model;
     ModelPart* p_dam_mp = nullptr;
     ModelPart* p_sma_mp = nullptr;
-    Element::Pointer p_dam = CreateElement(model, "T4Dam", names.dam, coords, false, test_density, false, 0.0, false, p_dam_mp);
-    Element::Pointer p_sma = CreateElement(model, "T4Sma", names.sma, coords, false, test_density, false, 0.0, false, p_sma_mp);
+    Element::Pointer p_dam = CreateElement(model, "T4Dam", names.dam, coords, false, sdm_test_density, false, 0.0, false, p_dam_mp);
+    Element::Pointer p_sma = CreateElement(model, "T4Sma", names.sma, coords, false, sdm_test_density, false, 0.0, false, p_sma_mp);
     const Matrix M_dam_default = ElementMass(*p_dam, p_dam_mp->GetProcessInfo());
     const Matrix M_sma_default = ElementMass(*p_sma, p_sma_mp->GetProcessInfo());
 
@@ -336,13 +336,13 @@ KRATOS_TEST_CASE_IN_SUITE(HistoricalTetrahedronAliasUsesConsistentMass, KratosDa
     // stores truncated barycentric coordinates).
     const auto& r_geom_sma = p_sma->GetGeometry();
     const auto elevated_t4 = IntegrationUtilities::GetIntegrationMethodForExactMassMatrixEvaluation(r_geom_sma);
-    const Matrix M_ind_t4 = IndependentConsistentMass(r_geom_sma, test_density, 0.0, elevated_t4, false);
-    KRATOS_EXPECT_NEAR(MaxAbsDiff(M_sma_default, M_ind_t4), 0.0, exact_tolerance);
-    KRATOS_EXPECT_NEAR(MaxAbsDiff(M_sma_default, M_exact), 0.0, 1.0e-5);
+    const Matrix M_ind_t4 = IndependentConsistentMass(r_geom_sma, sdm_test_density, 0.0, elevated_t4, false);
+    KRATOS_EXPECT_NEAR(sdm_MaxAbsDiff(M_sma_default, M_ind_t4), 0.0, exact_tolerance);
+    KRATOS_EXPECT_NEAR(sdm_MaxAbsDiff(M_sma_default, M_exact), 0.0, 1.0e-5);
 
     // Historical Dam alias -> SMA consistent mass (analytical tetrahedron).
-    KRATOS_EXPECT_NEAR(MaxAbsDiff(M_dam_default, M_sma_default), 0.0, exact_tolerance);
-    KRATOS_EXPECT_NEAR(MaxAbsDiff(M_dam_default, M_exact), 0.0, 1.0e-5);
+    KRATOS_EXPECT_NEAR(sdm_MaxAbsDiff(M_dam_default, M_sma_default), 0.0, exact_tolerance);
+    KRATOS_EXPECT_NEAR(sdm_MaxAbsDiff(M_dam_default, M_exact), 0.0, 1.0e-5);
 
     KRATOS_EXPECT_NEAR(TotalDirectionalMass(M_dam_default, 3), physical_mass, exact_tolerance);
     KRATOS_EXPECT_NEAR(TotalDirectionalMass(M_sma_default, 3), physical_mass, exact_tolerance);
@@ -350,11 +350,11 @@ KRATOS_TEST_CASE_IN_SUITE(HistoricalTetrahedronAliasUsesConsistentMass, KratosDa
     // Lumped Dam == SMA.
     ModelPart* p_dl_mp = nullptr;
     ModelPart* p_sl_mp = nullptr;
-    Element::Pointer p_dam_lump = CreateElement(model, "T4DamLump", names.dam, coords, false, test_density, false, 0.0, true, p_dl_mp);
-    Element::Pointer p_sma_lump = CreateElement(model, "T4SmaLump", names.sma, coords, false, test_density, false, 0.0, true, p_sl_mp);
+    Element::Pointer p_dam_lump = CreateElement(model, "T4DamLump", names.dam, coords, false, sdm_test_density, false, 0.0, true, p_dl_mp);
+    Element::Pointer p_sma_lump = CreateElement(model, "T4SmaLump", names.sma, coords, false, sdm_test_density, false, 0.0, true, p_sl_mp);
     const Matrix M_dam_lumped = ElementMass(*p_dam_lump, p_dl_mp->GetProcessInfo());
     const Matrix M_sma_lumped = ElementMass(*p_sma_lump, p_sl_mp->GetProcessInfo());
-    KRATOS_EXPECT_NEAR(MaxAbsDiff(M_dam_lumped, M_sma_lumped), 0.0, exact_tolerance);
+    KRATOS_EXPECT_NEAR(sdm_MaxAbsDiff(M_dam_lumped, M_sma_lumped), 0.0, exact_tolerance);
     KRATOS_EXPECT_NEAR(TotalDirectionalMass(M_dam_lumped, 3), physical_mass, exact_tolerance);
 
     PrintMassMetrics("T4 default", M_dam_default, M_sma_default, 3);

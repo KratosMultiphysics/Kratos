@@ -48,10 +48,10 @@ namespace
 {
 
 /// Material data.
-constexpr double test_young_modulus = 2.0e7;
-constexpr double test_poisson_ratio = 0.2;
-constexpr double test_density = 2400.0;
-constexpr double test_thickness = 0.15;
+constexpr double sdr_test_young_modulus = 2.0e7;
+constexpr double sdr_test_poisson_ratio = 0.2;
+constexpr double sdr_test_density = 2400.0;
+constexpr double sdr_test_thickness = 0.15;
 
 /// Builds a model part with one element of the given registered name, created
 /// from the registered prototype geometry (scaled/translated).
@@ -103,11 +103,11 @@ Element::Pointer CreateRegisteredElement(
     }
 
     auto p_props = r_model_part.CreateNewProperties(1);
-    (*p_props)[YOUNG_MODULUS] = test_young_modulus;
-    (*p_props)[POISSON_RATIO] = test_poisson_ratio;
-    (*p_props)[DENSITY] = test_density;
+    (*p_props)[YOUNG_MODULUS] = sdr_test_young_modulus;
+    (*p_props)[POISSON_RATIO] = sdr_test_poisson_ratio;
+    (*p_props)[DENSITY] = sdr_test_density;
     if (rIs2d)
-        (*p_props)[THICKNESS] = test_thickness;
+        (*p_props)[THICKNESS] = sdr_test_thickness;
     if (rLawName == "ThermalLinearElastic3DLaw")
         p_props->SetValue(CONSTITUTIVE_LAW, ConstitutiveLaw::Pointer(new ThermalLinearElastic3DLaw()));
     else
@@ -189,7 +189,7 @@ KRATOS_TEST_CASE_IN_SUITE(HistoricalSmallDisplacementAliasesCreateSMAElements, K
         KRATOS_EXPECT_FALSE(IsLegacyRuntime(*p_elem));
         KRATOS_EXPECT_EQ(expected_nodes,
                          KratosComponents<Element>::Get(name).GetGeometry().PointsNumber());
-        KRATOS_EXPECT_EQ(p_elem->GetProperties()[YOUNG_MODULUS], test_young_modulus);
+        KRATOS_EXPECT_EQ(p_elem->GetProperties()[YOUNG_MODULUS], sdr_test_young_modulus);
         std::cout << "[registration] " << name << " -> runtime=" << typeid(*p_elem).name()
                   << " npoints=" << expected_nodes << std::endl;
     }

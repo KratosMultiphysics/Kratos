@@ -50,11 +50,11 @@ namespace
 {
 
 /// Material data.
-constexpr double test_young_modulus = 2.0e7;
-constexpr double test_poisson_ratio = 0.2;
-constexpr double test_density = 2400.0;
-constexpr double test_thickness = 0.15;
-constexpr double test_reference_temperature = 20.0;
+constexpr double uptc_test_young_modulus = 2.0e7;
+constexpr double uptc_test_poisson_ratio = 0.2;
+constexpr double uptc_test_density = 2400.0;
+constexpr double uptc_test_thickness = 0.15;
+constexpr double uptc_test_reference_temperature = 20.0;
 constexpr double test_beta = 0.25;
 constexpr double test_gamma = 0.5;
 
@@ -63,7 +63,7 @@ using SparseSpaceType = UblasSpace<double, CompressedMatrix, Vector>;
 using LocalSpaceType = UblasSpace<double, Matrix, Vector>;
 
 /// Max absolute entry difference between two matrices.
-double MaxAbsDiff(const Matrix& rA, const Matrix& rB)
+double uptc_MaxAbsDiff(const Matrix& rA, const Matrix& rB)
 {
     double max_diff = 0.0;
     for (std::size_t i = 0; i < rA.size1(); ++i)
@@ -73,7 +73,7 @@ double MaxAbsDiff(const Matrix& rA, const Matrix& rB)
 }
 
 /// Max absolute entry difference between two vectors.
-double MaxAbsDiff(const Vector& rA, const Vector& rB)
+double uptc_MaxAbsDiff(const Vector& rA, const Vector& rB)
 {
     double max_diff = 0.0;
     for (std::size_t i = 0; i < rA.size(); ++i)
@@ -115,8 +115,8 @@ ModelPart& CreateUPModel(
         p_node->AddDof(DISPLACEMENT_X, REACTION_X);
         p_node->AddDof(DISPLACEMENT_Y, REACTION_Y);
         p_node->AddDof(PRESSURE);
-        p_node->FastGetSolutionStepValue(TEMPERATURE) = test_reference_temperature;
-        p_node->FastGetSolutionStepValue(NODAL_REFERENCE_TEMPERATURE) = test_reference_temperature;
+        p_node->FastGetSolutionStepValue(TEMPERATURE) = uptc_test_reference_temperature;
+        p_node->FastGetSolutionStepValue(NODAL_REFERENCE_TEMPERATURE) = uptc_test_reference_temperature;
         Matrix z3(3, 3);
         noalias(z3) = ZeroMatrix(3, 3);
         p_node->FastGetSolutionStepValue(INITIAL_STRESS_TENSOR) = z3;
@@ -130,10 +130,10 @@ ModelPart& CreateUPModel(
     }
 
     auto p_props = r_model_part.CreateNewProperties(1);
-    (*p_props)[YOUNG_MODULUS] = test_young_modulus;
-    (*p_props)[POISSON_RATIO] = test_poisson_ratio;
-    (*p_props)[DENSITY] = test_density;
-    (*p_props)[THICKNESS] = test_thickness;
+    (*p_props)[YOUNG_MODULUS] = uptc_test_young_modulus;
+    (*p_props)[POISSON_RATIO] = uptc_test_poisson_ratio;
+    (*p_props)[DENSITY] = uptc_test_density;
+    (*p_props)[THICKNESS] = uptc_test_thickness;
     (*p_props)[THERMAL_EXPANSION] = 1.0e-5;
     if (rLawName == "ThermalLinearElastic2DPlaneStrain") {
         p_props->SetValue(CONSTITUTIVE_LAW, ConstitutiveLaw::Pointer(new ThermalLinearElastic2DPlaneStrain()));
@@ -155,7 +155,7 @@ ModelPart& CreateUPModel(
 void ApplyTemperature(ModelPart& rModelPart, const double rDeltaTemperature)
 {
     for (auto& n : rModelPart.Nodes()) {
-        n.FastGetSolutionStepValue(TEMPERATURE) = test_reference_temperature + rDeltaTemperature;
+        n.FastGetSolutionStepValue(TEMPERATURE) = uptc_test_reference_temperature + rDeltaTemperature;
     }
 }
 
@@ -207,8 +207,8 @@ KRATOS_TEST_CASE_IN_SUITE(UPCouplingPreservesExpectedSign, KratosDamFastSuite)
 
     // The coupling contributions are identical for the historical alias and the
     // direct SMA solid (the condition never touches the solid element).
-    KRATOS_EXPECT_NEAR(MaxAbsDiff(rhs_hist_alias, rhs_direct_sma), 0.0, 1.0e-12);
-    KRATOS_EXPECT_NEAR(MaxAbsDiff(lhs_hist_alias, lhs_direct_sma), 0.0, 1.0e-12);
+    KRATOS_EXPECT_NEAR(uptc_MaxAbsDiff(rhs_hist_alias, rhs_direct_sma), 0.0, 1.0e-12);
+    KRATOS_EXPECT_NEAR(uptc_MaxAbsDiff(lhs_hist_alias, lhs_direct_sma), 0.0, 1.0e-12);
 
     // Sign convention preserved: positive P -> solid traction +P*L/2 along the
     // coupling (tangent) direction; P-block RHS = -P*L/2 (per node).
@@ -270,10 +270,10 @@ KRATOS_TEST_CASE_IN_SUITE(TUPCouplingWithThermalSolid, KratosDamFastSuite)
     scheme.CalculateSystemContributions(*p_hist_alias_mp->pGetElement(1), lhs_hist_alias, rhs_hist_alias, eq_hist_alias, p_hist_alias_mp->GetProcessInfo());
     scheme.CalculateSystemContributions(*p_direct_sma_mp->pGetElement(1), lhs_direct_sma, rhs_direct_sma, eq_direct_sma, p_direct_sma_mp->GetProcessInfo());
 
-    KRATOS_EXPECT_NEAR(MaxAbsDiff(lhs_hist_alias, lhs_direct_sma), 0.0, 1.0e-8);
-    KRATOS_EXPECT_NEAR(MaxAbsDiff(rhs_hist_alias, rhs_direct_sma), 0.0, 1.0e-8);
+    KRATOS_EXPECT_NEAR(uptc_MaxAbsDiff(lhs_hist_alias, lhs_direct_sma), 0.0, 1.0e-8);
+    KRATOS_EXPECT_NEAR(uptc_MaxAbsDiff(rhs_hist_alias, rhs_direct_sma), 0.0, 1.0e-8);
     // The thermal expansion must produce a non-trivial internal force.
-    KRATOS_EXPECT_GT(MaxAbsDiff(rhs_hist_alias, ZeroVector(rhs_hist_alias.size())), 1.0);
+    KRATOS_EXPECT_GT(uptc_MaxAbsDiff(rhs_hist_alias, ZeroVector(rhs_hist_alias.size())), 1.0);
 
     // Coupling condition remains identical.
     Vector rhs_c_l, rhs_c_s;
@@ -281,11 +281,11 @@ KRATOS_TEST_CASE_IN_SUITE(TUPCouplingWithThermalSolid, KratosDamFastSuite)
     Matrix lhs_c_l, lhs_c_s;
     scheme.CalculateSystemContributions(*p_hist_alias_mp->pGetCondition(1), lhs_c_l, rhs_c_l, eq_c_l, p_hist_alias_mp->GetProcessInfo());
     scheme.CalculateSystemContributions(*p_direct_sma_mp->pGetCondition(1), lhs_c_s, rhs_c_s, eq_c_s, p_direct_sma_mp->GetProcessInfo());
-    KRATOS_EXPECT_NEAR(MaxAbsDiff(rhs_c_l, rhs_c_s), 0.0, 1.0e-12);
+    KRATOS_EXPECT_NEAR(uptc_MaxAbsDiff(rhs_c_l, rhs_c_s), 0.0, 1.0e-12);
 
     std::cout << "[coupled] T-U-P: thermal force == alias thermo force "
-              << "(solid RHS diff=" << MaxAbsDiff(rhs_hist_alias, rhs_direct_sma)
-              << ", coupling diff=" << MaxAbsDiff(rhs_c_l, rhs_c_s) << ")" << std::endl;
+              << "(solid RHS diff=" << uptc_MaxAbsDiff(rhs_hist_alias, rhs_direct_sma)
+              << ", coupling diff=" << uptc_MaxAbsDiff(rhs_c_l, rhs_c_s) << ")" << std::endl;
 }
 
 

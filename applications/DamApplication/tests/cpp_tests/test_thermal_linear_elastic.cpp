@@ -45,21 +45,21 @@ namespace
 {
 
 /// Comparison tolerances.
-constexpr double comparison_absolute_tolerance = 1.0e-12;
-constexpr double comparison_relative_tolerance = 1.0e-10;
-constexpr double machine_precision_allowance = 1.0e-15;
+constexpr double tle_comparison_absolute_tolerance = 1.0e-12;
+constexpr double tle_comparison_relative_tolerance = 1.0e-10;
+constexpr double tle_machine_precision_allowance = 1.0e-15;
 
 /// Material data shared by all model parts.
-constexpr double test_young_modulus = 2.0e7;
-constexpr double test_poisson_ratio = 0.2;
-constexpr double test_density = 2400.0;
-constexpr double test_thermal_expansion = 1.0e-5;
-constexpr double test_reference_temperature = 20.0;
-constexpr double test_thickness = 0.15;
+constexpr double tle_test_young_modulus = 2.0e7;
+constexpr double tle_test_poisson_ratio = 0.2;
+constexpr double tle_test_density = 2400.0;
+constexpr double tle_test_thermal_expansion = 1.0e-5;
+constexpr double tle_test_reference_temperature = 20.0;
+constexpr double tle_test_thickness = 0.15;
 constexpr double test_delta_temperature = 25.0;
 
 /// Creates the constitutive law for the given configuration.
-ConstitutiveLaw::Pointer CreateThermalLaw(const std::string& rLawName)
+ConstitutiveLaw::Pointer tle_CreateThermalLaw(const std::string& rLawName)
 {
     if (rLawName == "ThermalLinearElastic2DPlaneStrain") {
         return ThermalLinearElastic2DPlaneStrain().Clone();
@@ -131,14 +131,14 @@ ModelPart& CreateFamilyModelPart(
     }
 
     auto p_prop = r_model_part.CreateNewProperties(1);
-    (*p_prop)[YOUNG_MODULUS] = test_young_modulus;
-    (*p_prop)[POISSON_RATIO] = test_poisson_ratio;
-    (*p_prop)[DENSITY] = test_density;
-    (*p_prop)[THERMAL_EXPANSION] = test_thermal_expansion;
+    (*p_prop)[YOUNG_MODULUS] = tle_test_young_modulus;
+    (*p_prop)[POISSON_RATIO] = tle_test_poisson_ratio;
+    (*p_prop)[DENSITY] = tle_test_density;
+    (*p_prop)[THERMAL_EXPANSION] = tle_test_thermal_expansion;
     if (rDimension == 2) {
-        (*p_prop)[THICKNESS] = test_thickness;
+        (*p_prop)[THICKNESS] = tle_test_thickness;
     }
-    p_prop->SetValue(CONSTITUTIVE_LAW, CreateThermalLaw(rLawName));
+    p_prop->SetValue(CONSTITUTIVE_LAW, tle_CreateThermalLaw(rLawName));
 
     std::vector<ModelPart::IndexType> element_nodes(number_of_nodes);
     for (std::size_t i = 0; i < number_of_nodes; ++i) {
@@ -150,8 +150,8 @@ ModelPart& CreateFamilyModelPart(
         r_node.AddDof(DISPLACEMENT_X);
         r_node.AddDof(DISPLACEMENT_Y);
         r_node.AddDof(DISPLACEMENT_Z);
-        r_node.FastGetSolutionStepValue(NODAL_REFERENCE_TEMPERATURE) = test_reference_temperature;
-        r_node.FastGetSolutionStepValue(TEMPERATURE) = test_reference_temperature;
+        r_node.FastGetSolutionStepValue(NODAL_REFERENCE_TEMPERATURE) = tle_test_reference_temperature;
+        r_node.FastGetSolutionStepValue(TEMPERATURE) = tle_test_reference_temperature;
         r_node.FastGetSolutionStepValue(NODAL_AREA) = 0.0;
         Matrix zero_stress_tensor(3, 3);
         noalias(zero_stress_tensor) = ZeroMatrix(3, 3);
@@ -215,11 +215,11 @@ void PrescribeFamilyScenario(ModelPart& rModelPart, const std::size_t rScenarioI
             r_node.Z() = r_node.Z0();
         }
 
-        double nodal_temperature = test_reference_temperature;
+        double nodal_temperature = tle_test_reference_temperature;
         if (rScenarioIndex == 1) {
-            nodal_temperature = test_reference_temperature + test_delta_temperature;
+            nodal_temperature = tle_test_reference_temperature + test_delta_temperature;
         } else if (rScenarioIndex == 2) {
-            nodal_temperature = test_reference_temperature + 5.0 * static_cast<double>(node_index);
+            nodal_temperature = tle_test_reference_temperature + 5.0 * static_cast<double>(node_index);
         }
         r_node.FastGetSolutionStepValue(TEMPERATURE) = nodal_temperature;
 
@@ -239,10 +239,10 @@ void PrescribeFamilyScenario(ModelPart& rModelPart, const std::size_t rScenarioI
 /// Tolerance associated with a reference value (same philosophy as before).
 double ComponentTolerance(const double rReferenceValue, const double rReferenceScale)
 {
-    double tolerance = std::max(comparison_absolute_tolerance,
-                                comparison_relative_tolerance * std::abs(rReferenceValue));
+    double tolerance = std::max(tle_comparison_absolute_tolerance,
+                                tle_comparison_relative_tolerance * std::abs(rReferenceValue));
     if (rReferenceValue == 0.0) {
-        tolerance = std::max(tolerance, machine_precision_allowance * rReferenceScale);
+        tolerance = std::max(tolerance, tle_machine_precision_allowance * rReferenceScale);
     }
     return tolerance;
 }
@@ -425,7 +425,7 @@ KRATOS_TEST_CASE_IN_SUITE(ThermalFamily_Analytical_PlaneStrainRestrained, Kratos
     // (1+nu)*alpha*delta_T*[1,1,0], which must give the 3D-consistent in-plane
     // restrained stress sigma_xx = sigma_yy = -E*alpha*delta_T/(1-2*nu).
     const double expected_stress =
-        -test_young_modulus * test_thermal_expansion * test_delta_temperature / (1.0 - 2.0 * test_poisson_ratio);
+        -tle_test_young_modulus * tle_test_thermal_expansion * test_delta_temperature / (1.0 - 2.0 * tle_test_poisson_ratio);
     Vector expected(3);
     expected[0] = expected_stress;
     expected[1] = expected_stress;
@@ -457,7 +457,7 @@ KRATOS_TEST_CASE_IN_SUITE(ThermalFamily_Analytical_PlaneStressRestrained, Kratos
     // delta_T = 25. The plane-stress law applies epsilon_th = alpha*delta_T*[1,1,0]
     // giving sigma_xx = sigma_yy = -E*alpha*delta_T/(1-nu).
     const double expected_stress =
-        -test_young_modulus * test_thermal_expansion * test_delta_temperature / (1.0 - test_poisson_ratio);
+        -tle_test_young_modulus * tle_test_thermal_expansion * test_delta_temperature / (1.0 - tle_test_poisson_ratio);
     Vector expected(3);
     expected[0] = expected_stress;
     expected[1] = expected_stress;

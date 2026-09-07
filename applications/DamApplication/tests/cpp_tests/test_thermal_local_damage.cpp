@@ -49,18 +49,18 @@ namespace
 {
 
 /// Comparison tolerances (same philosophy as the previous characterization).
-constexpr double comparison_absolute_tolerance = 1.0e-12;
-constexpr double comparison_relative_tolerance = 1.0e-10;
+constexpr double tld_comparison_absolute_tolerance = 1.0e-12;
+constexpr double tld_comparison_relative_tolerance = 1.0e-10;
 
 /// Material data shared by all model parts.
-constexpr double test_young_modulus = 2.0e7;
-constexpr double test_poisson_ratio = 0.2;
-constexpr double test_density = 2400.0;
-constexpr double test_thermal_expansion = 1.0e-5;
-constexpr double test_reference_temperature = 20.0;
-constexpr double test_damage_threshold = 5.0e-3;
-constexpr double test_strength_ratio = 10.0;
-constexpr double test_fracture_energy = 5000.0;
+constexpr double tld_test_young_modulus = 2.0e7;
+constexpr double tld_test_poisson_ratio = 0.2;
+constexpr double tld_test_density = 2400.0;
+constexpr double tld_test_thermal_expansion = 1.0e-5;
+constexpr double tld_test_reference_temperature = 20.0;
+constexpr double tld_test_damage_threshold = 5.0e-3;
+constexpr double tld_test_strength_ratio = 10.0;
+constexpr double tld_test_fracture_energy = 5000.0;
 
 /// Test-only diagnostic subclass exposing the internal damage state.
 class DiagnosticSimoJuLocalDamage3DLaw : public ThermalSimoJuLocalDamage3DLaw
@@ -176,13 +176,13 @@ ModelPart& CreateElementModelPart(
     Geometry<Node>::Pointer p_geometry = CreateGeometry(r_model_part, rPrototypeElementName, rDimension);
 
     auto p_prop = r_model_part.CreateNewProperties(1);
-    (*p_prop)[YOUNG_MODULUS] = test_young_modulus;
-    (*p_prop)[POISSON_RATIO] = test_poisson_ratio;
-    (*p_prop)[DENSITY] = test_density;
-    (*p_prop)[THERMAL_EXPANSION] = test_thermal_expansion;
-    (*p_prop)[DAMAGE_THRESHOLD] = test_damage_threshold;
-    (*p_prop)[STRENGTH_RATIO] = test_strength_ratio;
-    (*p_prop)[FRACTURE_ENERGY] = test_fracture_energy;
+    (*p_prop)[YOUNG_MODULUS] = tld_test_young_modulus;
+    (*p_prop)[POISSON_RATIO] = tld_test_poisson_ratio;
+    (*p_prop)[DENSITY] = tld_test_density;
+    (*p_prop)[THERMAL_EXPANSION] = tld_test_thermal_expansion;
+    (*p_prop)[DAMAGE_THRESHOLD] = tld_test_damage_threshold;
+    (*p_prop)[STRENGTH_RATIO] = tld_test_strength_ratio;
+    (*p_prop)[FRACTURE_ENERGY] = tld_test_fracture_energy;
     p_prop->SetValue(CONSTITUTIVE_LAW, DiagnosticSimoJuLocalDamage3DLaw().Clone());
 
     auto p_element = Kratos::make_intrusive<TTestElement>(1, p_geometry, p_prop);
@@ -193,8 +193,8 @@ ModelPart& CreateElementModelPart(
         r_node.AddDof(DISPLACEMENT_X);
         r_node.AddDof(DISPLACEMENT_Y);
         r_node.AddDof(DISPLACEMENT_Z);
-        r_node.FastGetSolutionStepValue(NODAL_REFERENCE_TEMPERATURE) = test_reference_temperature;
-        r_node.FastGetSolutionStepValue(TEMPERATURE) = test_reference_temperature;
+        r_node.FastGetSolutionStepValue(NODAL_REFERENCE_TEMPERATURE) = tld_test_reference_temperature;
+        r_node.FastGetSolutionStepValue(TEMPERATURE) = tld_test_reference_temperature;
         Matrix zero_initial_stress(rDimension, rDimension);
         noalias(zero_initial_stress) = ZeroMatrix(rDimension, rDimension);
         r_node.FastGetSolutionStepValue(INITIAL_STRESS_TENSOR) = zero_initial_stress;
@@ -213,8 +213,8 @@ void ApplyUniaxialState(ModelPart& rModelPart, const double rEpsilonX)
         const array_1d<double, 3>& r_x0 = r_node.GetInitialPosition();
         array_1d<double, 3>& r_displacement = r_node.FastGetSolutionStepValue(DISPLACEMENT);
         r_displacement[0] = rEpsilonX * r_x0[0];
-        r_displacement[1] = -test_poisson_ratio * rEpsilonX * r_x0[1];
-        r_displacement[2] = -test_poisson_ratio * rEpsilonX * r_x0[2];
+        r_displacement[1] = -tld_test_poisson_ratio * rEpsilonX * r_x0[1];
+        r_displacement[2] = -tld_test_poisson_ratio * rEpsilonX * r_x0[2];
         r_node.X() = r_x0[0] + r_displacement[0];
         r_node.Y() = r_x0[1] + r_displacement[1];
         r_node.Z() = r_x0[2] + r_displacement[2];
@@ -225,7 +225,7 @@ void ApplyUniaxialState(ModelPart& rModelPart, const double rEpsilonX)
 /// temperature change.
 void ApplyFreeThermalExpansion(ModelPart& rModelPart, const double rDeltaTemperature)
 {
-    const double thermal_strain = test_thermal_expansion * rDeltaTemperature;
+    const double thermal_strain = tld_test_thermal_expansion * rDeltaTemperature;
     for (auto& r_node : rModelPart.Nodes()) {
         const array_1d<double, 3>& r_x0 = r_node.GetInitialPosition();
         array_1d<double, 3>& r_displacement = r_node.FastGetSolutionStepValue(DISPLACEMENT);
@@ -235,7 +235,7 @@ void ApplyFreeThermalExpansion(ModelPart& rModelPart, const double rDeltaTempera
         r_node.X() = r_x0[0] + r_displacement[0];
         r_node.Y() = r_x0[1] + r_displacement[1];
         r_node.Z() = r_x0[2] + r_displacement[2];
-        r_node.FastGetSolutionStepValue(TEMPERATURE) = test_reference_temperature + rDeltaTemperature;
+        r_node.FastGetSolutionStepValue(TEMPERATURE) = tld_test_reference_temperature + rDeltaTemperature;
     }
 }
 
@@ -244,7 +244,7 @@ void ApplyTemperatureChange(ModelPart& rModelPart, const double rDeltaTemperatur
 {
     for (auto& r_node : rModelPart.Nodes()) {
         r_node.FastGetSolutionStepValue(TEMPERATURE) =
-            test_reference_temperature + rDeltaTemperature;
+            tld_test_reference_temperature + rDeltaTemperature;
     }
 }
 
@@ -254,7 +254,7 @@ void ApplyNonUniformTemperature(ModelPart& rModelPart)
     std::size_t index = 0;
     for (auto& r_node : rModelPart.Nodes()) {
         r_node.FastGetSolutionStepValue(TEMPERATURE) =
-            test_reference_temperature + 10.0 + 5.0 * static_cast<double>(index % 4);
+            tld_test_reference_temperature + 10.0 + 5.0 * static_cast<double>(index % 4);
         ++index;
     }
 }
@@ -272,13 +272,13 @@ void CompareElementSystems(Element& rHistAlias, Element& rDirectSma,
     for (std::size_t i = 0; i < rhs_hist_alias.size(); ++i) {
         KRATOS_EXPECT_NEAR(rhs_direct_sma[i], rhs_hist_alias[i],
                            std::max(1.0e-9,
-                                    comparison_relative_tolerance * std::abs(rhs_hist_alias[i])));
+                                    tld_comparison_relative_tolerance * std::abs(rhs_hist_alias[i])));
     }
     for (std::size_t i = 0; i < lhs_hist_alias.size1(); ++i) {
         for (std::size_t j = 0; j < lhs_hist_alias.size2(); ++j) {
             KRATOS_EXPECT_NEAR(lhs_direct_sma(i, j), lhs_hist_alias(i, j),
-                               std::max(comparison_absolute_tolerance,
-                                        comparison_relative_tolerance * std::abs(lhs_hist_alias(i, j))));
+                               std::max(tld_comparison_absolute_tolerance,
+                                        tld_comparison_relative_tolerance * std::abs(lhs_hist_alias(i, j))));
         }
     }
 }
@@ -308,7 +308,7 @@ KRATOS_TEST_CASE_IN_SUITE(ThermalLocalDamage3DLifecycle, KratosDamFastSuite)
 
     double hist_alias_threshold = 0.0, hist_alias_damage = 0.0;
     double direct_sma_threshold = 0.0, direct_sma_damage = 0.0;
-    double last_hist_alias_threshold = test_damage_threshold;
+    double last_hist_alias_threshold = tld_test_damage_threshold;
     double last_hist_alias_damage = 0.0;
 
     // The element-level driving quantity for the applied uniaxial-STRESS field
@@ -342,19 +342,19 @@ KRATOS_TEST_CASE_IN_SUITE(ThermalLocalDamage3DLifecycle, KratosDamFastSuite)
         ReadDamageState(r_direct_sma_element, direct_sma_threshold, direct_sma_damage);
 
         KRATOS_EXPECT_NEAR(direct_sma_threshold, hist_alias_threshold,
-                           std::max(comparison_absolute_tolerance,
-                                    comparison_relative_tolerance * std::abs(hist_alias_threshold)));
+                           std::max(tld_comparison_absolute_tolerance,
+                                    tld_comparison_relative_tolerance * std::abs(hist_alias_threshold)));
         KRATOS_EXPECT_NEAR(direct_sma_damage, hist_alias_damage,
-                           std::max(comparison_absolute_tolerance,
-                                    comparison_relative_tolerance * std::abs(hist_alias_damage)));
+                           std::max(tld_comparison_absolute_tolerance,
+                                    tld_comparison_relative_tolerance * std::abs(hist_alias_damage)));
 
         if (step == 0) {
             // A: elastic, no damage.
-            KRATOS_EXPECT_NEAR(hist_alias_threshold, test_damage_threshold, 1.0e-12);
+            KRATOS_EXPECT_NEAR(hist_alias_threshold, tld_test_damage_threshold, 1.0e-12);
             KRATOS_EXPECT_NEAR(hist_alias_damage, 0.0, 1.0e-12);
         } else if (step == 1) {
             // B: damage initiation.
-            KRATOS_EXPECT_TRUE(hist_alias_threshold > test_damage_threshold);
+            KRATOS_EXPECT_TRUE(hist_alias_threshold > tld_test_damage_threshold);
             KRATOS_EXPECT_TRUE(hist_alias_damage > 0.0);
         } else if (step >= 2 && step <= 4) {
             // C: progressive damage growth.
@@ -399,8 +399,8 @@ KRATOS_TEST_CASE_IN_SUITE(ThermalLocalDamage3DLifecycle, KratosDamFastSuite)
     ReadDamageState(r_direct_sma_element, direct_sma_threshold, direct_sma_damage);
     KRATOS_EXPECT_TRUE(hist_alias_threshold > committed_alias_threshold);
     KRATOS_EXPECT_NEAR(direct_sma_threshold, hist_alias_threshold,
-                       std::max(comparison_absolute_tolerance,
-                                comparison_relative_tolerance * std::abs(hist_alias_threshold)));
+                       std::max(tld_comparison_absolute_tolerance,
+                                tld_comparison_relative_tolerance * std::abs(hist_alias_threshold)));
 
     std::cout << "[damage] 3D lifecycle: alias damage=" << hist_alias_damage
               << " direct damage=" << direct_sma_damage
@@ -457,10 +457,10 @@ KRATOS_TEST_CASE_IN_SUITE(ThermalLocalDamageThermalCoupling, KratosDamFastSuite)
     r_direct_sma_element.FinalizeSolutionStep(r_direct_sma_mp.GetProcessInfo());
     ReadDamageState(r_hist_alias_element, lt, ld);
     ReadDamageState(r_direct_sma_element, ct, cd);
-    KRATOS_EXPECT_NEAR(ct, lt, std::max(comparison_absolute_tolerance,
-                                        comparison_relative_tolerance * std::abs(lt)));
-    KRATOS_EXPECT_NEAR(cd, ld, std::max(comparison_absolute_tolerance,
-                                        comparison_relative_tolerance * std::abs(ld)));
+    KRATOS_EXPECT_NEAR(ct, lt, std::max(tld_comparison_absolute_tolerance,
+                                        tld_comparison_relative_tolerance * std::abs(lt)));
+    KRATOS_EXPECT_NEAR(cd, ld, std::max(tld_comparison_absolute_tolerance,
+                                        tld_comparison_relative_tolerance * std::abs(ld)));
 
     // Case 3: combined mechanical + thermal loading.
     ApplyUniaxialState(r_hist_alias_mp, 2.0e-6);
@@ -472,10 +472,10 @@ KRATOS_TEST_CASE_IN_SUITE(ThermalLocalDamageThermalCoupling, KratosDamFastSuite)
     r_direct_sma_element.FinalizeSolutionStep(r_direct_sma_mp.GetProcessInfo());
     ReadDamageState(r_hist_alias_element, lt, ld);
     ReadDamageState(r_direct_sma_element, ct, cd);
-    KRATOS_EXPECT_NEAR(ct, lt, std::max(comparison_absolute_tolerance,
-                                        comparison_relative_tolerance * std::abs(lt)));
-    KRATOS_EXPECT_NEAR(cd, ld, std::max(comparison_absolute_tolerance,
-                                        comparison_relative_tolerance * std::abs(ld)));
+    KRATOS_EXPECT_NEAR(ct, lt, std::max(tld_comparison_absolute_tolerance,
+                                        tld_comparison_relative_tolerance * std::abs(lt)));
+    KRATOS_EXPECT_NEAR(cd, ld, std::max(tld_comparison_absolute_tolerance,
+                                        tld_comparison_relative_tolerance * std::abs(ld)));
 
     // Case 4: spatially non-uniform temperature.
     ApplyUniaxialState(r_hist_alias_mp, 2.0e-6);
@@ -487,10 +487,10 @@ KRATOS_TEST_CASE_IN_SUITE(ThermalLocalDamageThermalCoupling, KratosDamFastSuite)
     r_direct_sma_element.FinalizeSolutionStep(r_direct_sma_mp.GetProcessInfo());
     ReadDamageState(r_hist_alias_element, lt, ld);
     ReadDamageState(r_direct_sma_element, ct, cd);
-    KRATOS_EXPECT_NEAR(ct, lt, std::max(comparison_absolute_tolerance,
-                                        comparison_relative_tolerance * std::abs(lt)));
-    KRATOS_EXPECT_NEAR(cd, ld, std::max(comparison_absolute_tolerance,
-                                        comparison_relative_tolerance * std::abs(ld)));
+    KRATOS_EXPECT_NEAR(ct, lt, std::max(tld_comparison_absolute_tolerance,
+                                        tld_comparison_relative_tolerance * std::abs(lt)));
+    KRATOS_EXPECT_NEAR(cd, ld, std::max(tld_comparison_absolute_tolerance,
+                                        tld_comparison_relative_tolerance * std::abs(ld)));
 
     std::cout << "[damage] thermal coupling: alias damage = " << ld
               << ", direct damage = " << cd << std::endl;

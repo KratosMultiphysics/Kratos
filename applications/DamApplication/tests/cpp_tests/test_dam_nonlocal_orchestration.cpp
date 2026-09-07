@@ -60,18 +60,18 @@ namespace
 {
 
 /// Comparison tolerances.
-constexpr double comparison_absolute_tolerance = 1.0e-12;
-constexpr double comparison_relative_tolerance = 1.0e-10;
+constexpr double dnlo_comparison_absolute_tolerance = 1.0e-12;
+constexpr double dnlo_comparison_relative_tolerance = 1.0e-10;
 
 /// Material data.
-constexpr double test_young_modulus = 2.0e7;
-constexpr double test_poisson_ratio = 0.2;
-constexpr double test_density = 2400.0;
-constexpr double test_thermal_expansion = 1.0e-5;
-constexpr double test_reference_temperature = 20.0;
-constexpr double test_damage_threshold = 5.0e-3;
-constexpr double test_strength_ratio = 10.0;
-constexpr double test_fracture_energy = 5000.0;
+constexpr double dnlo_test_young_modulus = 2.0e7;
+constexpr double dnlo_test_poisson_ratio = 0.2;
+constexpr double dnlo_test_density = 2400.0;
+constexpr double dnlo_test_thermal_expansion = 1.0e-5;
+constexpr double dnlo_test_reference_temperature = 20.0;
+constexpr double dnlo_test_damage_threshold = 5.0e-3;
+constexpr double dnlo_test_strength_ratio = 10.0;
+constexpr double dnlo_test_fracture_energy = 5000.0;
 constexpr double test_characteristic_length = 4.0;
 
 using SparseSpaceType = UblasSpace<double, CompressedMatrix, Vector>;
@@ -144,12 +144,12 @@ public:
 };
 
 /// Test-only element subclasses exposing the constitutive-law vector.
-class TestSmallDisplacementElement : public SmallDisplacement
+class dnlo_TestSmallDisplacementElement : public SmallDisplacement
 {
 public:
-    KRATOS_CLASS_POINTER_DEFINITION(TestSmallDisplacementElement);
+    KRATOS_CLASS_POINTER_DEFINITION(dnlo_TestSmallDisplacementElement);
     using BaseType = SmallDisplacement;
-    TestSmallDisplacementElement(IndexType NewId, GeometryType::Pointer pGeometry,
+    dnlo_TestSmallDisplacementElement(IndexType NewId, GeometryType::Pointer pGeometry,
                                  PropertiesType::Pointer pProperties)
         : BaseType(NewId, pGeometry, pProperties) {}
     ConstitutiveLaw& GetConstitutiveLaw(std::size_t i) { return *mConstitutiveLawVector[i]; }
@@ -226,13 +226,13 @@ ModelPart& CreateOneElementModelPart(
     }
     Geometry<Node>::Pointer p_geometry = r_geometry.Create(points);
     auto p_prop = r_model_part.CreateNewProperties(1);
-    (*p_prop)[YOUNG_MODULUS] = test_young_modulus;
-    (*p_prop)[POISSON_RATIO] = test_poisson_ratio;
-    (*p_prop)[DENSITY] = test_density;
-    (*p_prop)[THERMAL_EXPANSION] = test_thermal_expansion;
-    (*p_prop)[DAMAGE_THRESHOLD] = test_damage_threshold;
-    (*p_prop)[STRENGTH_RATIO] = test_strength_ratio;
-    (*p_prop)[FRACTURE_ENERGY] = test_fracture_energy;
+    (*p_prop)[YOUNG_MODULUS] = dnlo_test_young_modulus;
+    (*p_prop)[POISSON_RATIO] = dnlo_test_poisson_ratio;
+    (*p_prop)[DENSITY] = dnlo_test_density;
+    (*p_prop)[THERMAL_EXPANSION] = dnlo_test_thermal_expansion;
+    (*p_prop)[DAMAGE_THRESHOLD] = dnlo_test_damage_threshold;
+    (*p_prop)[STRENGTH_RATIO] = dnlo_test_strength_ratio;
+    (*p_prop)[FRACTURE_ENERGY] = dnlo_test_fracture_energy;
     p_prop->SetValue(CONSTITUTIVE_LAW, Kratos::make_shared<TLaw>()->Clone());
     auto p_element = Kratos::make_intrusive<TTestElement>(1, p_geometry, p_prop);
     r_model_part.AddElement(p_element);
@@ -241,8 +241,8 @@ ModelPart& CreateOneElementModelPart(
         r_node.AddDof(DISPLACEMENT_X);
         r_node.AddDof(DISPLACEMENT_Y);
         r_node.AddDof(DISPLACEMENT_Z);
-        r_node.FastGetSolutionStepValue(NODAL_REFERENCE_TEMPERATURE) = test_reference_temperature;
-        r_node.FastGetSolutionStepValue(TEMPERATURE) = test_reference_temperature;
+        r_node.FastGetSolutionStepValue(NODAL_REFERENCE_TEMPERATURE) = dnlo_test_reference_temperature;
+        r_node.FastGetSolutionStepValue(TEMPERATURE) = dnlo_test_reference_temperature;
         Matrix zero_initial_stress(rDimension, rDimension);
         noalias(zero_initial_stress) = ZeroMatrix(rDimension, rDimension);
         r_node.FastGetSolutionStepValue(INITIAL_STRESS_TENSOR) = zero_initial_stress;
@@ -306,19 +306,19 @@ KRATOS_TEST_CASE_IN_SUITE(ThermalNonlocalOrchestration_TwoElementAveraging, Krat
     for (std::size_t i = 0; i < 12; ++i) {
         Node::Pointer n = r_mp.CreateNewNode(i + 1, coords[i][0], coords[i][1], coords[i][2]);
         n->AddDof(DISPLACEMENT_X); n->AddDof(DISPLACEMENT_Y); n->AddDof(DISPLACEMENT_Z);
-        n->FastGetSolutionStepValue(NODAL_REFERENCE_TEMPERATURE) = test_reference_temperature;
-        n->FastGetSolutionStepValue(TEMPERATURE) = test_reference_temperature;
+        n->FastGetSolutionStepValue(NODAL_REFERENCE_TEMPERATURE) = dnlo_test_reference_temperature;
+        n->FastGetSolutionStepValue(TEMPERATURE) = dnlo_test_reference_temperature;
         Matrix z3(3, 3); noalias(z3) = ZeroMatrix(3, 3);
         n->FastGetSolutionStepValue(INITIAL_STRESS_TENSOR) = z3;
     }
     auto p_prop = r_mp.CreateNewProperties(1);
-    (*p_prop)[YOUNG_MODULUS] = test_young_modulus;
-    (*p_prop)[POISSON_RATIO] = test_poisson_ratio;
-    (*p_prop)[DENSITY] = test_density;
-    (*p_prop)[THERMAL_EXPANSION] = test_thermal_expansion;
-    (*p_prop)[DAMAGE_THRESHOLD] = test_damage_threshold;
-    (*p_prop)[STRENGTH_RATIO] = test_strength_ratio;
-    (*p_prop)[FRACTURE_ENERGY] = test_fracture_energy;
+    (*p_prop)[YOUNG_MODULUS] = dnlo_test_young_modulus;
+    (*p_prop)[POISSON_RATIO] = dnlo_test_poisson_ratio;
+    (*p_prop)[DENSITY] = dnlo_test_density;
+    (*p_prop)[THERMAL_EXPANSION] = dnlo_test_thermal_expansion;
+    (*p_prop)[DAMAGE_THRESHOLD] = dnlo_test_damage_threshold;
+    (*p_prop)[STRENGTH_RATIO] = dnlo_test_strength_ratio;
+    (*p_prop)[FRACTURE_ENERGY] = dnlo_test_fracture_energy;
     p_prop->SetValue(CONSTITUTIVE_LAW, DiagnosticSimoJuNonlocalDamage3DLaw().Clone());
 
     Geometry<Node>::PointsArrayType pa, pb;
@@ -326,9 +326,9 @@ KRATOS_TEST_CASE_IN_SUITE(ThermalNonlocalOrchestration_TwoElementAveraging, Krat
     for (std::size_t i : {2u,9u,10u,3u,6u,11u,12u,7u}) pb.push_back(r_mp.pGetNode(i));
 
     // SMA-only model.
-    auto p_sma_a = Kratos::make_intrusive<TestSmallDisplacementElement>(
+    auto p_sma_a = Kratos::make_intrusive<dnlo_TestSmallDisplacementElement>(
         1, Geometry<Node>::Pointer(new Hexahedra3D8<Node>(pa)), p_prop);
-    auto p_sma_b = Kratos::make_intrusive<TestSmallDisplacementElement>(
+    auto p_sma_b = Kratos::make_intrusive<dnlo_TestSmallDisplacementElement>(
         2, Geometry<Node>::Pointer(new Hexahedra3D8<Node>(pb)), p_prop);
     r_mp.AddElement(p_sma_a);
     r_mp.AddElement(p_sma_b);
@@ -342,8 +342,8 @@ KRATOS_TEST_CASE_IN_SUITE(ThermalNonlocalOrchestration_TwoElementAveraging, Krat
         const double eps = (x0[0] <= 2.0) ? 2.0e-6 : 4.0e-6;
         const double uface = 2.0e-6 * 2.0;
         u[0] = (x0[0] <= 2.0) ? 2.0e-6 * x0[0] : uface + 4.0e-6 * (x0[0] - 2.0);
-        u[1] = -test_poisson_ratio * eps * x0[1];
-        u[2] = -test_poisson_ratio * eps * x0[2];
+        u[1] = -dnlo_test_poisson_ratio * eps * x0[1];
+        u[2] = -dnlo_test_poisson_ratio * eps * x0[2];
         n.X() = x0[0] + u[0]; n.Y() = x0[1] + u[1]; n.Z() = x0[2] + u[2];
     }
 
@@ -374,8 +374,8 @@ KRATOS_TEST_CASE_IN_SUITE(ThermalNonlocalOrchestration_TwoElementAveraging, Krat
     utility.CalculateNonlocalEquivalentStrain(&parameters, r_pi);
 
     double la, na, ta, da, lb, nb, tb, db;
-    ReadNonlocalState<TestSmallDisplacementElement>(*p_sma_a, la, na, ta, da);
-    ReadNonlocalState<TestSmallDisplacementElement>(*p_sma_b, lb, nb, tb, db);
+    ReadNonlocalState<dnlo_TestSmallDisplacementElement>(*p_sma_a, la, na, ta, da);
+    ReadNonlocalState<dnlo_TestSmallDisplacementElement>(*p_sma_b, lb, nb, tb, db);
     std::cout << "[orchestration] averaging: LOCAL A=" << la << " B=" << lb
               << " NONLOCAL A=" << na << " B=" << nb << std::endl;
     KRATOS_EXPECT_TRUE(la > 0.0 && lb > 0.0);
@@ -427,27 +427,27 @@ KRATOS_TEST_CASE_IN_SUITE(ThermalNonlocalOrchestration_NewtonStrategy, KratosDam
         n->AddDof(DISPLACEMENT_X);
         n->AddDof(DISPLACEMENT_Y);
         n->AddDof(DISPLACEMENT_Z);
-        n->FastGetSolutionStepValue(NODAL_REFERENCE_TEMPERATURE) = test_reference_temperature;
-        n->FastGetSolutionStepValue(TEMPERATURE) = test_reference_temperature;
+        n->FastGetSolutionStepValue(NODAL_REFERENCE_TEMPERATURE) = dnlo_test_reference_temperature;
+        n->FastGetSolutionStepValue(TEMPERATURE) = dnlo_test_reference_temperature;
         Matrix z3(3, 3); noalias(z3) = ZeroMatrix(3, 3);
         n->FastGetSolutionStepValue(INITIAL_STRESS_TENSOR) = z3;
     }
     auto p_prop = r_mp.CreateNewProperties(1);
-    (*p_prop)[YOUNG_MODULUS] = test_young_modulus;
-    (*p_prop)[POISSON_RATIO] = test_poisson_ratio;
-    (*p_prop)[DENSITY] = test_density;
-    (*p_prop)[THERMAL_EXPANSION] = test_thermal_expansion;
-    (*p_prop)[DAMAGE_THRESHOLD] = test_damage_threshold;
-    (*p_prop)[STRENGTH_RATIO] = test_strength_ratio;
-    (*p_prop)[FRACTURE_ENERGY] = test_fracture_energy;
+    (*p_prop)[YOUNG_MODULUS] = dnlo_test_young_modulus;
+    (*p_prop)[POISSON_RATIO] = dnlo_test_poisson_ratio;
+    (*p_prop)[DENSITY] = dnlo_test_density;
+    (*p_prop)[THERMAL_EXPANSION] = dnlo_test_thermal_expansion;
+    (*p_prop)[DAMAGE_THRESHOLD] = dnlo_test_damage_threshold;
+    (*p_prop)[STRENGTH_RATIO] = dnlo_test_strength_ratio;
+    (*p_prop)[FRACTURE_ENERGY] = dnlo_test_fracture_energy;
     p_prop->SetValue(CONSTITUTIVE_LAW, DiagnosticSimoJuNonlocalDamage3DLaw().Clone());
 
     Geometry<Node>::PointsArrayType pa, pb;
     for (std::size_t i : {1u,2u,3u,4u,5u,6u,7u,8u}) pa.push_back(r_mp.pGetNode(i));
     for (std::size_t i : {2u,9u,10u,3u,6u,11u,12u,7u}) pb.push_back(r_mp.pGetNode(i));
-    auto p_elem_a = Kratos::make_intrusive<TestSmallDisplacementElement>(
+    auto p_elem_a = Kratos::make_intrusive<dnlo_TestSmallDisplacementElement>(
         1, Geometry<Node>::Pointer(new Hexahedra3D8<Node>(pa)), p_prop);
-    auto p_elem_b = Kratos::make_intrusive<TestSmallDisplacementElement>(
+    auto p_elem_b = Kratos::make_intrusive<dnlo_TestSmallDisplacementElement>(
         2, Geometry<Node>::Pointer(new Hexahedra3D8<Node>(pb)), p_prop);
     r_mp.AddElement(p_elem_a);
     r_mp.AddElement(p_elem_b);
@@ -497,8 +497,8 @@ KRATOS_TEST_CASE_IN_SUITE(ThermalNonlocalOrchestration_NewtonStrategy, KratosDam
     // Verify LOCAL is current (produced by the scheme), NONLOCAL was averaged by
     // Poro, and damage/history evolved.
     double la, na, ta, da, lb, nb, tb, db;
-    ReadNonlocalState<TestSmallDisplacementElement>(*p_elem_a, la, na, ta, da);
-    ReadNonlocalState<TestSmallDisplacementElement>(*p_elem_b, lb, nb, tb, db);
+    ReadNonlocalState<dnlo_TestSmallDisplacementElement>(*p_elem_a, la, na, ta, da);
+    ReadNonlocalState<dnlo_TestSmallDisplacementElement>(*p_elem_b, lb, nb, tb, db);
     std::cout << "[orchestration] Newton strategy: converged=" << converged
               << " LOCAL A=" << la << " B=" << lb
               << " NONLOCAL A=" << na << " B=" << nb << std::endl;
