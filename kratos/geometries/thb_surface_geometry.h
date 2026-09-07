@@ -1337,15 +1337,21 @@ private:
                 ref_mat_u[l] = ComputeRefinementMatrix1D(
                     mLevels[l].KnotsU, mLevels[l + 1].KnotsU, mLevels[l].DegreeU);
             } else {
-                ref_mat_u[l] = ComputeDegreeElevationMatrix1D(
-                    mLevels[l].KnotsU, mLevels[l].DegreeU).second;
+                const auto [elevated_knots_u, M_p_u] = ComputeDegreeElevationMatrix1D(
+                    mLevels[l].KnotsU, mLevels[l].DegreeU);
+                const Matrix M_h_u = ComputeRefinementMatrix1D(
+                    elevated_knots_u, mLevels[l + 1].KnotsU, mLevels[l + 1].DegreeU);
+                ref_mat_u[l] = prod(M_h_u, M_p_u);
             }
             if (mLevels[l + 1].DegreeV == mLevels[l].DegreeV) {
                 ref_mat_v[l] = ComputeRefinementMatrix1D(
                     mLevels[l].KnotsV, mLevels[l + 1].KnotsV, mLevels[l].DegreeV);
             } else {
-                ref_mat_v[l] = ComputeDegreeElevationMatrix1D(
-                    mLevels[l].KnotsV, mLevels[l].DegreeV).second;
+                const auto [elevated_knots_v, M_p_v] = ComputeDegreeElevationMatrix1D(
+                    mLevels[l].KnotsV, mLevels[l].DegreeV);
+                const Matrix M_h_v = ComputeRefinementMatrix1D(
+                    elevated_knots_v, mLevels[l + 1].KnotsV, mLevels[l + 1].DegreeV);
+                ref_mat_v[l] = prod(M_h_v, M_p_v);
             }
         }
 
