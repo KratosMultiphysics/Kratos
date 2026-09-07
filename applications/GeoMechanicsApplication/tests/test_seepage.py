@@ -31,11 +31,6 @@ class KratosGeoMechanicsSeepageTests(KratosUnittest.TestCase):
             os.path.join(file_path, "three_element_seepage_test.post.res")
         )
 
-        # Get model part
-        model_part = simulation.model.GetModelPart(
-            "PorousDomain.porous_computational_model_part"
-        )
-
         # Verify that top boundary nodes (y=3.0) have seepage condition applied
         # Nodes 7 and 8 are at y=3.0
         top_node_ids = [7, 8]
@@ -69,11 +64,6 @@ class KratosGeoMechanicsSeepageTests(KratosUnittest.TestCase):
             os.path.join(file_path, "three_element_seepage_test.post.res")
         )
 
-        # Get model part
-        model_part = simulation.model.GetModelPart(
-            "PorousDomain.porous_computational_model_part"
-        )
-
         # Verify that top boundary nodes (y=3.0) have seepage condition applied
         # Nodes 7 and 8 are at y=3.0
         top_node_ids = [7, 8]
@@ -103,11 +93,6 @@ class KratosGeoMechanicsSeepageTests(KratosUnittest.TestCase):
         reader = GiDOutputFileReader()
         output_data = reader.read_output_from(
             os.path.join(file_path, "three_element_seepage_test.post.res")
-        )
-
-        # Get model part
-        model_part = simulation.model.GetModelPart(
-            "PorousDomain.porous_computational_model_part"
         )
 
         # Verify that top boundary nodes (y=3.0) have seepage condition applied
