@@ -38,6 +38,9 @@
 #include "structural_mechanics_application_variables.h"
 #include "custom_constitutive/thermal_linear_elastic_3D_law.hpp"
 #include "custom_constitutive/thermal_linear_elastic_2D_plane_strain.hpp"
+// StructuralMechanics small-displacement element (the runtime type behind the
+// historical names).
+#include "custom_elements/solid_elements/small_displacement.h"
 
 namespace Kratos
 {
@@ -129,17 +132,21 @@ Element::Pointer CreateRegisteredElement(
 /// (mangled "N6Kratos17SmallDisplacementE").
 bool IsSmaRuntime(const Element& rElement)
 {
-    const std::string name = typeid(rElement).name();
-    return name.find("17SmallDisplacementE") != std::string::npos;
+    // Runtime identity is checked against the StructuralMechanicsApplication
+    // SmallDisplacement class directly (typeid identity is ABI-portable),
+    // instead of matching a compiler-specific mangled-name substring.
+    return typeid(rElement) == typeid(SmallDisplacement);
 }
 
 /// True if the runtime type is one of the removed Dam legacy classes (must
-/// never appear in production runs).
+/// never appear in production runs). The removed classes are identified by
+/// their declared names, which appear in both Itanium and MSVC typeid strings.
 bool IsLegacyRuntime(const Element& rElement)
 {
     const std::string name = typeid(rElement).name();
-    return name.find("ThermoMechanic") != std::string::npos ||
-           name.find("25SmallDisplacementElementE") != std::string::npos;
+    return name.find("SmallDisplacementThermoMechanicElement") != std::string::npos ||
+           name.find("SmallDisplacementElement") != std::string::npos ||
+           name.find("SolidElement") != std::string::npos;
 }
 
 } // namespace
