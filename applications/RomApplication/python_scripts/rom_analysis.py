@@ -164,6 +164,11 @@ def CreateRomAnalysisInstance(cls, global_model, parameters, nn_rom_interface=No
                         list_of_processes.remove(process)
                 self.rom_basis_process_list_check = False
 
+            # Automatically inject the Python solver into any custom process that needs it
+            for process in list_of_processes:
+                if hasattr(process, "SetDependencies"):
+                    process.SetDependencies(self._GetSolver(), self.rom_parameters)
+
             return list_of_processes
 
         def _GetListOfOutputProcesses(self):
@@ -392,14 +397,14 @@ def CreateRomAnalysisInstance(cls, global_model, parameters, nn_rom_interface=No
             # This calls the physics Finalize
             super().Finalize()
 
-            # Once simulation is completed, calculate and save the HROM weights
-            if self.train_hrom and not self.rom_manager:
-                self.__hrom_training_utility.CalculateAndSaveHRomWeights()
-                self.__hrom_training_utility.CreateHRomModelParts()
+            # # Once simulation is completed, calculate and save the HROM weights
+            # if self.train_hrom and not self.rom_manager:
+            #     self.__hrom_training_utility.CalculateAndSaveHRomWeights()
+            #     self.__hrom_training_utility.CreateHRomModelParts()
 
-            # Once simulation is completed, calculate and save the Petrov Galerkin ROM basis
-            if self.train_petrov_galerkin and not self.rom_manager:
-                self.__petrov_galerkin_training_utility.CalculateAndSaveBasis()
+            # # Once simulation is completed, calculate and save the Petrov Galerkin ROM basis
+            # if self.train_petrov_galerkin and not self.rom_manager:
+            #     self.__petrov_galerkin_training_utility.CalculateAndSaveBasis()
 
     return RomAnalysis(global_model, parameters)
 
