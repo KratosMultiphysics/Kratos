@@ -265,6 +265,18 @@ void AssembleRelationMatrix(const typename ConstraintAssembler<TSparse,TDense>::
             // DataValueConstainer of the constraint object (constraints with identical CONSTRAINT_LABELS
             // belong to the same constraint equation).
             if (r_tls.slave_ids.empty()) {
+                // Mixing MasterSlaveConstraints and MultifreedomConstraints carries the risk of
+                // unintentionally merging constraint equations. To prevent this, MultifreedomConstraints
+                // are forbidden from referring to the same constraint equation, and to make that
+                // checkable, no entry in CONSTRAINT_LABELS can be lower than the number of DoFs.
+                const auto& r_constraint_equation_ids = r_constraint.GetValue(CONSTRAINT_LABELS);
+                for (const std::size_t id_constraint_equation : r_constraint_equation_ids) {
+                    KRATOS_ERROR_IF_NOT(rRelationMatrix.size2() <= id_constraint_equation)
+                        << "Constraint equation identifier " << id_constraint_equation << ' '
+                        << "does not exceed the number of DoFs in the system (" << rRelationMatrix.size2() << "), "
+                        << "which is forbidden";
+                }
+
                 // The constraint is a MultifreedomConstraint.
                 detail::ProcessMultifreedomConstraint(r_tls.constraint_indices,
                                                       r_tls.dof_equation_ids,
