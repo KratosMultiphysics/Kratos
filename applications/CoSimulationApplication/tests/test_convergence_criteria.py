@@ -95,16 +95,24 @@ class TestConvergenceCriteria(KratosUnittest.TestCase):
         self.model = KM.Model()
         self.model_part = self.model.CreateModelPart("default")
         self.model_part.AddNodalSolutionStepVariable(KM.PRESSURE)
+        self.model_part.AddNodalSolutionStepVariable(KM.TEMPERATURE)
 
         for i in range(10): # using 10 nodes gives suitable values in the tests
             node = self.model_part.CreateNewNode(i+1, 0.0, 0.0, 0.0) # position of nodes does not matter for this test
             node.SetSolutionStepValue(KM.PRESSURE, 1.0)
+            node.SetSolutionStepValue(KM.TEMPERATURE, 1.0)
 
         data_settings = KM.Parameters("""{
             "model_part_name" : "default",
             "variable_name"   : "PRESSURE"
         }""")
         self.interface_data = CouplingInterfaceData(data_settings, self.model)
+
+        imaginary_data_settings = KM.Parameters("""{
+            "model_part_name" : "default",
+            "variable_name"   : "TEMPERATURE"
+        }""")
+        self.imaginary_interface_data = CouplingInterfaceData(imaginary_data_settings, self.model)
 
         self.dummy_solver_wrapper = DummySolverWrapper({"data_4_testing" : self.interface_data})
 
@@ -157,6 +165,32 @@ class TestConvergenceCriteria(KratosUnittest.TestCase):
         ]
 
         self.__ExecuteTest(conv_crit, sol_values)
+
+    def test_RelativeNormInitialResidual_complex_data(self):
+        conv_crit_settings = KM.Parameters("""{
+            "type"             : "relative_norm_initial_residual",
+            "data_name"        : ["real_data", "imaginary_data"],
+            "data_combination" : "complex",
+            "abs_tolerance"    : 1e-12,
+            "rel_tolerance"    : 1e-5,
+            "echo_level"       : 0
+        }""")
+        conv_crit = ConvergenceCriteriaWrapper(
+            conv_crit_settings,
+            [self.interface_data, self.imaginary_interface_data],
+            KM.Testing.GetDefaultDataCommunicator())
+
+        conv_crit.InitializeSolutionStep()
+
+        conv_crit.InitializeNonLinearIteration()
+        KM.VariableUtils().SetScalarVar(KM.PRESSURE, 1.2, self.model_part.Nodes)
+        KM.VariableUtils().SetScalarVar(KM.TEMPERATURE, 1.4, self.model_part.Nodes)
+        self.assertFalse(conv_crit.IsConverged())
+
+        conv_crit.InitializeNonLinearIteration()
+        KM.VariableUtils().SetScalarVar(KM.PRESSURE, 1.2000002, self.model_part.Nodes)
+        KM.VariableUtils().SetScalarVar(KM.TEMPERATURE, 1.4000004, self.model_part.Nodes)
+        self.assertTrue(conv_crit.IsConverged())
 
     def test_RelativeNormPreviousResidual_abs_tol(self):
         conv_crit_settings = KM.Parameters("""{

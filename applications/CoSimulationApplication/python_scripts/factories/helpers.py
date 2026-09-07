@@ -64,7 +64,11 @@ def CreateConvergenceCriteria(convergence_criterion_settings_list: KM.Parameters
             convergence_criteria.append(CreateConvergenceCriterion(conv_crit_settings, solvers))
         else:
             solver = solvers[conv_crit_settings["solver"].GetString()]
-            interface_data = solver.GetInterfaceData(conv_crit_settings["data_name"].GetString())
+            data_name_settings = conv_crit_settings["data_name"]
+            if data_name_settings.IsArray():
+                interface_data = [solver.GetInterfaceData(data_name.GetString()) for data_name in data_name_settings.values()]
+            else:
+                interface_data = solver.GetInterfaceData(data_name_settings.GetString())
             convergence_criteria.append(ConvergenceCriteriaWrapper(conv_crit_settings,
                                                                    interface_data,
                                                                    parent_data_communicator))

@@ -269,6 +269,21 @@ The available ```"type"``` are listed below:
 - [relative_norm_initial_residual](../Convergence_Criteria/relative_norm_initial_residual.html)
 - [relative_norm_previous_residual](../Convergence_Criteria/relative_norm_previous_residual.html)
 
+For complex-valued interface data stored as separate real and imaginary data, both
+parts can be checked with one complex norm. List the real part first:
+```json
+        "convergence_criteria" : [
+            {
+                "type"             : "relative_norm_initial_residual",
+                "solver"           : "structure",
+                "data_name"        : ["load_real", "load_imaginary"],
+                "data_combination" : "complex",
+                "abs_tolerance"    : 1e-6,
+                "rel_tolerance"    : 5e-4
+            }
+        ],
+```
+
 ### Convergence Accelerators
 The convergence of the coupling strategy such as the strong coupling can be improved by using convergence accelerator.
 ```json
@@ -360,4 +375,3 @@ The available coupling operations are listed below:
 - [print_iteration_number](../Coupling_Operations/Print_Iteration_Number.html)
 - [reset_pfem_kinematics](../Coupling_Operations/Reset_PFEM_Kinematics.html)
 - [scaling](../Coupling_Operations/Scaling.html)
-
