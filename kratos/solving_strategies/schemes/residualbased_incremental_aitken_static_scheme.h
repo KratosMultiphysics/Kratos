@@ -198,7 +198,7 @@ public:
             }
         }
 
-        // Store results for next iteration (space API: valid for both backends)
+        // Store results for next iteration
         TSparseSpace::Copy(Dx, mPreviousDx);
         mOldOmega = Omega;
     }
