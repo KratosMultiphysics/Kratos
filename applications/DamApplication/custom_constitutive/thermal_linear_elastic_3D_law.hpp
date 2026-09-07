@@ -24,6 +24,9 @@ public:
 
     KRATOS_CLASS_POINTER_DEFINITION(ThermalLinearElastic3DLaw);
 
+    // Bring base-class overloads of CalculateValue into scope to avoid hiding warnings
+    using LinearElastic3DLaw::CalculateValue;
+
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     // Default Constructor

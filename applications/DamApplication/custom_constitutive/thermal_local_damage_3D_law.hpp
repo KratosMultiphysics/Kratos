@@ -25,6 +25,11 @@ public:
 
     KRATOS_CLASS_POINTER_DEFINITION(ThermalLocalDamage3DLaw);
 
+    // Bring base-class overloads of CalculateValue into scope to avoid hiding warnings
+    // The immediate base is LocalDamage3DLaw; also bring up the linear-elastic/plastic overloads
+    using LocalDamage3DLaw::CalculateValue;
+    using LinearElasticPlastic3DLaw::CalculateValue; // required if the overloads live in the grandparent
+
     typedef FlowRule::Pointer FlowRulePointer;
     typedef YieldCriterion::Pointer YieldCriterionPointer;
     typedef HardeningLaw::Pointer HardeningLawPointer;
