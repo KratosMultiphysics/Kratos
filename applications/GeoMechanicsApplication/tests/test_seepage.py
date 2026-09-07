@@ -32,8 +32,8 @@ class KratosGeoMechanicsSeepageTests(KratosUnittest.TestCase):
         )
 
         # Verify that top boundary nodes (y=3.0) have seepage condition applied
-        # Nodes 7 and 8 are at y=3.0
-        top_node_ids = [7, 8]
+        top_boundary = simulation.model.GetModelPart("PorousDomain.top_boundary")
+        top_node_ids = [node.Id for node in top_boundary.Nodes]
         water_pressures = GiDOutputFileReader.nodal_values_at_time(
             "WATER_PRESSURE", 1.0, output_data, top_node_ids
         )
@@ -65,8 +65,8 @@ class KratosGeoMechanicsSeepageTests(KratosUnittest.TestCase):
         )
 
         # Verify that top boundary nodes (y=3.0) have seepage condition applied
-        # Nodes 7 and 8 are at y=3.0
-        top_node_ids = [7, 8]
+        top_boundary = simulation.model.GetModelPart("PorousDomain.top_boundary")
+        top_node_ids = [node.Id for node in top_boundary.Nodes]
         nodal_flows = GiDOutputFileReader.nodal_values_at_time(
             "NODAL_WATER_FLOW", 1.0, output_data, top_node_ids
         )
@@ -96,8 +96,8 @@ class KratosGeoMechanicsSeepageTests(KratosUnittest.TestCase):
         )
 
         # Verify that top boundary nodes (y=3.0) have seepage condition applied
-        # Nodes 7 and 8 are at y=3.0
-        top_node_ids = [7, 8]
+        top_boundary = simulation.model.GetModelPart("PorousDomain.top_boundary")
+        top_node_ids = [node.Id for node in top_boundary.Nodes]
         nodal_flows = GiDOutputFileReader.nodal_values_at_time(
             "NODAL_WATER_FLOW", 1.0, output_data, top_node_ids
         )
