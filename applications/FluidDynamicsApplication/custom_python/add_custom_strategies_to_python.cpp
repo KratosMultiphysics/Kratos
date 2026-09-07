@@ -21,7 +21,6 @@
 #include "custom_utilities/solver_settings.h"
 #include "custom_utilities/compute_div_sigma_utility.h"
 
-#include "spaces/ublas_space.h"
 #include "spaces/default_spaces.h"
 
 // builder_and_solvers

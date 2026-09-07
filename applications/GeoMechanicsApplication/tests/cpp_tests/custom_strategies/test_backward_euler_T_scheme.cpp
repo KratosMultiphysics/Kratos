@@ -11,7 +11,6 @@
 //
 
 #include "custom_strategies/schemes/backward_euler_T_scheme.hpp"
-#include "spaces/ublas_space.h"
 #include "spaces/default_spaces.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
 

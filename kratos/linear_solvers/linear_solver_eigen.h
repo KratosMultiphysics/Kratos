@@ -18,8 +18,6 @@
 
 // Project includes
 #include "linear_solvers/linear_solver.h"
-#include "spaces/eigen_space.h"
-#include "spaces/ublas_space.h"
 #include "spaces/default_spaces.h"
 
 namespace Kratos {

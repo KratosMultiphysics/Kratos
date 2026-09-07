@@ -27,7 +27,6 @@
 #include "linear_solvers/fallback_linear_solver.h"
 #include "linear_solvers/monotonicity_preserving_solver.h"
 #include "linear_solvers/skyline_lu_custom_scalar_solver.h"
-#include "spaces/ublas_space.h"
 #include "spaces/default_spaces.h"
 
 namespace Kratos {

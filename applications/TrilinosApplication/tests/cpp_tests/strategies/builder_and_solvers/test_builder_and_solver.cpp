@@ -21,7 +21,6 @@
 
 // Project includes
 #include "tests/cpp_tests/trilinos_fast_suite.h"
-#include "spaces/ublas_space.h"
 #include "spaces/default_spaces.h"
 #include "../../trilinos_cpp_test_utilities.h"
 #include "containers/model.h"

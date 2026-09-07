@@ -22,7 +22,6 @@
 #include "includes/kratos_parameters.h"
 #include "includes/model_part.h"
 #include "includes/mortar_classes.h"
-#include "spaces/ublas_space.h"
 #include "spaces/default_spaces.h"
 #include "linear_solvers/linear_solver.h"
 #include "utilities/atomic_utilities.h"

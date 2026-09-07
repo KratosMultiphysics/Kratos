@@ -11,7 +11,6 @@
 //
 
 #include "custom_utilities/convergence_criteria_factory.hpp"
-#include "spaces/ublas_space.h"
 #include "spaces/default_spaces.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
 

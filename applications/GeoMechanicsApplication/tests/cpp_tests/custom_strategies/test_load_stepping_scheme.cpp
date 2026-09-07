@@ -14,7 +14,6 @@
 #include "custom_utilities/ublas_utilities.h"
 #include "includes/condition.h"
 #include "includes/element.h"
-#include "spaces/ublas_space.h"
 #include "spaces/default_spaces.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
 #include "tests/cpp_tests/test_utilities.h"

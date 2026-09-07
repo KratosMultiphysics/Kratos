@@ -16,7 +16,6 @@
 // External includes
 
 // Project includes
-#include "spaces/ublas_space.h"
 #include "spaces/default_spaces.h"
 #include "utilities/dense_householder_qr_decomposition.h"
 #include "testing/testing.h"

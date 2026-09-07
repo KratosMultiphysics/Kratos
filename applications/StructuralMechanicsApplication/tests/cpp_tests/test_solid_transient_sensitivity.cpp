@@ -27,7 +27,6 @@
 #include "solving_strategies/schemes/residual_based_bossak_displacement_scheme.hpp"
 #include "solving_strategies/strategies/residualbased_linear_strategy.h"
 #include "solving_strategies/strategies/residualbased_newton_raphson_strategy.h"
-#include "spaces/ublas_space.h"
 #include "spaces/default_spaces.h"
 #include "structural_mechanics_fast_suite.h"
 #include "utilities/sensitivity_builder.h"

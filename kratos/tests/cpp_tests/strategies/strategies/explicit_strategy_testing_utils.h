@@ -25,7 +25,6 @@
 #include "geometries/point_3d.h"
 #include "includes/define.h"
 #include "includes/model_part.h"
-#include "spaces/ublas_space.h"
 #include "spaces/default_spaces.h"
 #include "tests/test_utilities/test_element.h"
 #include "solving_strategies/builder_and_solvers/residualbased_block_builder_and_solver.h"

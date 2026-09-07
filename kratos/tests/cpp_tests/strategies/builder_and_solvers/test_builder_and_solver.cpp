@@ -21,7 +21,6 @@
 
 /* Utility includes */
 #include "containers/model.h"
-#include "spaces/ublas_space.h"
 #include "spaces/default_spaces.h"
 #include "utilities/condition_number_utility.h"
 

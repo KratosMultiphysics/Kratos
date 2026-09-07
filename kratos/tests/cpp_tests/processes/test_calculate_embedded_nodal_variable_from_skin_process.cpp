@@ -20,7 +20,6 @@
 #include "processes/calculate_distance_to_skin_process.h"
 #include "processes/calculate_discontinuous_distance_to_skin_process.h"
 #include "processes/calculate_embedded_nodal_variable_from_skin_process.h"
-#include "spaces/ublas_space.h"
 #include "spaces/default_spaces.h"
 #include "testing/testing.h"
 

@@ -19,7 +19,6 @@
 #include "includes/model_part.h"
 #include "includes/matrix_market_interface.h"
 #include "includes/kratos_filesystem.h"
-#include "spaces/ublas_space.h"
 #include "spaces/default_spaces.h"
 #include "containers/model.h"
 

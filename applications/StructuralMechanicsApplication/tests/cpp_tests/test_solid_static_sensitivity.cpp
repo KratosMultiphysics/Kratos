@@ -25,7 +25,6 @@
 #include "solving_strategies/schemes/residualbased_incrementalupdate_static_scheme.h"
 #include "solving_strategies/strategies/residualbased_linear_strategy.h"
 #include "solving_strategies/strategies/residualbased_newton_raphson_strategy.h"
-#include "spaces/ublas_space.h"
 #include "spaces/default_spaces.h"
 #include "structural_mechanics_fast_suite.h"
 #include "utilities/sensitivity_builder.h"

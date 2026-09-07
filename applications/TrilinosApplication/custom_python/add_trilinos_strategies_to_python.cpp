@@ -22,7 +22,6 @@
 
 // Project includes
 #include "trilinos_space.h"
-#include "spaces/ublas_space.h"
 #include "spaces/default_spaces.h"
 
 //strategies

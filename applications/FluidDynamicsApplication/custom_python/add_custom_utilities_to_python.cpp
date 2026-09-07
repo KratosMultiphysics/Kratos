@@ -21,7 +21,6 @@
 #include "processes/process.h"
 #include "includes/model_part.h"
 
-#include "spaces/ublas_space.h"
 #include "spaces/default_spaces.h"
 #include "linear_solvers/linear_solver.h"
 

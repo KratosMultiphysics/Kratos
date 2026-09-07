@@ -18,7 +18,6 @@
 #include "includes/define_python.h"
 #include "python/add_strategies_to_python.h"
 #include "includes/model_part.h"
-#include "spaces/ublas_space.h"
 #include "spaces/default_spaces.h"
 #include "includes/ublas_complex_interface.h"
 #include "utilities/variable_utils.h"

@@ -23,7 +23,6 @@
 #include "processes/process.h"
 #include "processes/variational_distance_calculation_process.h"
 #include "trilinos_space.h"
-#include "spaces/ublas_space.h"
 #include "spaces/default_spaces.h"
 #include "custom_python/add_trilinos_processes_to_python.h"
 #include "custom_processes/trilinos_levelset_convection_process.h"

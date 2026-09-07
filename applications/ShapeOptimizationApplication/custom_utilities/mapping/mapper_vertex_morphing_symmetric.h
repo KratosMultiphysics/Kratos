@@ -19,7 +19,6 @@
 #include "includes/define.h"
 #include "includes/model_part.h"
 #include "spatial_containers/spatial_containers.h"
-#include "spaces/ublas_space.h"
 #include "spaces/default_spaces.h"
 #include "mapper_base.h"
 #include "custom_utilities/filter_function.h"

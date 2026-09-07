@@ -21,7 +21,6 @@
 // Project includes
 #include "containers/array_1d.h"
 #include "includes/define.h"
-#include "spaces/ublas_space.h"
 #include "spaces/default_spaces.h"
 #include "utilities/dense_householder_qr_decomposition.h"
 

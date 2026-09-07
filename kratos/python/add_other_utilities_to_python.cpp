@@ -18,7 +18,6 @@
 
 // Project includes
 #include "python/add_other_utilities_to_python.h"
-#include "spaces/ublas_space.h"
 #include "spaces/default_spaces.h"
 #include "linear_solvers/linear_solver_ublas.h" // exported LinearSolver instantiations (ublas backend)
 #include "linear_solvers/linear_solver_eigen.h" // exported LinearSolver instantiations (eigen backend)

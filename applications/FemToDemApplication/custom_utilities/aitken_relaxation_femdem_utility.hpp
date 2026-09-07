@@ -18,7 +18,6 @@
 
 // External includes
 #include "utilities/math_utils.h"
-#include "spaces/ublas_space.h"
 #include "spaces/default_spaces.h"
 #include "fem_to_dem_application_variables.h"
 

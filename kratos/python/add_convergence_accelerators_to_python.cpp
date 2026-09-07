@@ -19,7 +19,6 @@
 // Project includes
 #include "add_convergence_accelerators_to_python.h"
 #include "solving_strategies/convergence_accelerators/convergence_accelerator.h"
-#include "spaces/ublas_space.h"
 #include "spaces/default_spaces.h"
 
 namespace Kratos::Python {

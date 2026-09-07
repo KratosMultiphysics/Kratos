@@ -21,7 +21,6 @@
 #include "includes/model_part.h"
 #include "linear_solvers/linear_solver.h"
 #include "solving_strategies/strategies/implicit_solving_strategy.h"
-#include "spaces/ublas_space.h"
 #include "spaces/default_spaces.h"
 
 // TrilinosApplication dependencies

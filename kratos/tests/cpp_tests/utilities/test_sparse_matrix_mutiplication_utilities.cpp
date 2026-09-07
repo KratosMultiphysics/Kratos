@@ -13,7 +13,6 @@
 
 // Project includes
 #include "testing/testing.h"
-#include "spaces/ublas_space.h"
 #include "spaces/default_spaces.h"
 #include "utilities/sparse_matrix_multiplication_utility.h"
 

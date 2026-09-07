@@ -23,7 +23,6 @@
 #include "custom_python/add_custom_strategies_to_python.h"
 
 
-#include "spaces/ublas_space.h"
 #include "spaces/default_spaces.h"
 
 // Strategies

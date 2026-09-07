@@ -17,7 +17,6 @@
 
 // Project includes
 #include "includes/define_python.h"
-#include "spaces/ublas_space.h"
 #include "spaces/default_spaces.h"
 #include "add_amgcl_solver_to_python.h"
 #include "linear_solvers/amgcl_solver.h"

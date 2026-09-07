@@ -17,7 +17,6 @@
 // Project includes
 #include "includes/define.h"
 #include "includes/define_python.h"
-#include "spaces/ublas_space.h"
 #include "spaces/default_spaces.h"
 #include "custom_linear_solvers/mixedulm_linear_solver.h"
 

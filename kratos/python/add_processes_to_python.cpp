@@ -73,7 +73,6 @@
 #include "processes/check_same_modelpart_using_skin_distance_process.h"
 #include "processes/calculate_nodal_distance_to_skin_process.h"
 
-#include "spaces/ublas_space.h"
 #include "spaces/default_spaces.h"
 #include "linear_solvers/linear_solver.h"
 

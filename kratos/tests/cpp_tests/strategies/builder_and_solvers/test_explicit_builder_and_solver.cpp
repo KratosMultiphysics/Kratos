@@ -21,7 +21,6 @@
 #include "includes/define.h"
 #include "containers/model.h"
 #include "includes/model_part.h"
-#include "spaces/ublas_space.h"
 #include "spaces/default_spaces.h"
 #include "geometries/line_2d_2.h"
 #include "tests/test_utilities/test_bar_element.h"

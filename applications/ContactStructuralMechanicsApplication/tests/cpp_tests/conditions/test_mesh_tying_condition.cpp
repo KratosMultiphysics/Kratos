@@ -30,7 +30,6 @@
 #include "geometries/quadrilateral_2d_4.h"
 
 /* Linear solvers */
-#include "spaces/ublas_space.h"
 #include "spaces/default_spaces.h"
 #include "linear_solvers/reorderer.h"
 #include "linear_solvers/direct_solver.h"

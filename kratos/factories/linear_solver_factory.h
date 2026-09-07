@@ -23,7 +23,6 @@
 #include "includes/kratos_parameters.h"
 #include "includes/kratos_components.h"
 #include "linear_solvers/linear_solver.h"
-#include "spaces/ublas_space.h"
 #include "spaces/default_spaces.h"
 
 namespace Kratos

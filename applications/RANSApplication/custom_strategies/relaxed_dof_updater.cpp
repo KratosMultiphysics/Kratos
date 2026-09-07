@@ -11,7 +11,6 @@
 //
 
 // Project includes
-#include "spaces/ublas_space.h"
 #include "spaces/default_spaces.h"
 #include "utilities/parallel_utilities.h"
 

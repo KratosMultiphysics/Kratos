@@ -28,7 +28,6 @@
 #include "utilities/integration_utilities.h"
 #include "utilities/geometry_utilities.h"
 #include "utilities/variable_utils.h"
-#include "spaces/ublas_space.h"
 #include "spaces/default_spaces.h"
 #include "linear_solvers/linear_solver.h"
 #include "solving_strategies/strategies/residualbased_linear_strategy.h"

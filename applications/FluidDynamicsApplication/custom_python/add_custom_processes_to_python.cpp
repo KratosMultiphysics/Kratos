@@ -43,7 +43,6 @@
 #include "custom_processes/compute_y_plus_process.h"
 #include "custom_processes/two_fluid_navier_stokes_fractional_convection_process.h"
 
-#include "spaces/ublas_space.h"
 #include "spaces/default_spaces.h"
 
 #include "linear_solvers/linear_solver.h"

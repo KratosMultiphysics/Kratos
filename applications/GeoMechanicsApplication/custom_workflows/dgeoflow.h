@@ -19,7 +19,6 @@
 #include "includes/kernel.h"
 
 /* Utility includes */
-#include "spaces/ublas_space.h"
 #include "spaces/default_spaces.h"
 
 #include "linear_solvers/linear_solver.h"

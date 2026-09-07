@@ -19,7 +19,6 @@
 // Project includes
 #include "includes/define_python.h"
 #include "trilinos_space.h"
-#include "spaces/ublas_space.h"
 #include "spaces/default_spaces.h"
 #include "includes/model_part.h"
 

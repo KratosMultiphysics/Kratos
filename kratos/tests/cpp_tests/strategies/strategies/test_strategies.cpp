@@ -23,7 +23,6 @@
 #include "includes/define.h"
 #include "containers/model.h"
 #include "includes/model_part.h"
-#include "spaces/ublas_space.h"
 #include "spaces/default_spaces.h"
 
 /* Element include */

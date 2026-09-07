@@ -18,7 +18,6 @@
 
 // Project includes
 #include "solving_strategies/convergence_accelerators/convergence_accelerator.h"
-#include "spaces/ublas_space.h"
 #include "spaces/default_spaces.h"
 #include "trilinos_space.h"
 

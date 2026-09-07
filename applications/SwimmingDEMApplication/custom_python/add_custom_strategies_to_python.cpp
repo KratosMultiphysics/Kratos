@@ -56,7 +56,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_python/add_custom_strategies_to_python.h"
 
 // External includes
-#include "spaces/ublas_space.h"
 #include "spaces/default_spaces.h"
 
 //strategies

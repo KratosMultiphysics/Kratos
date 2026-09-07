@@ -20,7 +20,6 @@
 #include "includes/define.h"
 #include "custom_python/add_custom_strategies_to_python.h"
 #include "containers/flags.h"
-#include "spaces/ublas_space.h"
 #include "spaces/default_spaces.h"
 #include "boost/numeric/ublas/matrix.hpp"
 

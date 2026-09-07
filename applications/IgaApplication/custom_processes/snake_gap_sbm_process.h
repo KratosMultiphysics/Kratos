@@ -20,7 +20,6 @@
 #include "spatial_containers/bins_dynamic.h"
 #include "snake_sbm_process.h"
 #include "custom_utilities/create_breps_sbm_utilities.h"
-#include "spaces/ublas_space.h"
 #include "spaces/default_spaces.h"
 
 namespace Kratos

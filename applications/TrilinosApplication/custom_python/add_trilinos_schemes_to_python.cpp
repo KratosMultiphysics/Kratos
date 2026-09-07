@@ -20,7 +20,6 @@
 #include "includes/define_python.h"
 #include "custom_python/add_trilinos_schemes_to_python.h"
 #include "trilinos_space.h"
-#include "spaces/ublas_space.h"
 #include "spaces/default_spaces.h"
 #include "includes/kratos_parameters.h"
 

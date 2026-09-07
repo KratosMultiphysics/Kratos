@@ -22,7 +22,6 @@
 #include "includes/define.h"
 #include "includes/model_part.h"
 #include "solving_strategies/convergencecriterias/mixed_generic_criteria.h"
-#include "spaces/ublas_space.h"
 #include "spaces/default_spaces.h"
 
 namespace Kratos::Testing

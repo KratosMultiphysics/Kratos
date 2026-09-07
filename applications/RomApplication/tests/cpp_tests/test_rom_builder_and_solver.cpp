@@ -19,7 +19,6 @@
 #include "geometries/triangle_2d_3.h"
 #include "includes/kratos_parameters.h"
 #include "testing/testing.h"
-#include "spaces/ublas_space.h"
 #include "spaces/default_spaces.h"
 #include "solving_strategies/strategies/implicit_solving_strategy.h"
 #include "linear_solvers/linear_solver.h"

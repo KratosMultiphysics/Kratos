@@ -12,7 +12,6 @@
 
 #include "custom_utilities/builder_and_solver_factory.hpp"
 #include "linear_solvers/linear_solver.h"
-#include "spaces/ublas_space.h"
 #include "spaces/default_spaces.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
 

@@ -15,7 +15,6 @@
 
 // Project includes
 #include "includes/define.h"
-#include "spaces/ublas_space.h"
 #include "spaces/default_spaces.h"
 #include "custom_python/add_custom_solvers_to_python.h"
 #include "custom_solvers/additive_schwarz_preconditioner.h"

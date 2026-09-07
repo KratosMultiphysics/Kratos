@@ -16,7 +16,6 @@
 
 // Project includes
 #include "linear_solvers/linear_solver.h"
-#include "spaces/ublas_space.h"
 #include "spaces/default_spaces.h"
 
 // Application includes

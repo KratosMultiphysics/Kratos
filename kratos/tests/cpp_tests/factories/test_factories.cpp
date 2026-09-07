@@ -24,8 +24,7 @@
 // #include "factories/factory.h"
 // #include "solving_strategies/strategies/explicit_solving_strategy.h"
 // #include "solving_strategies/builder_and_solvers/explicit_builder.h"
-// #include "spaces/ublas_space.h"
-#include "spaces/default_spaces.h"
+// #include "spaces/default_spaces.h"
 
 namespace Kratos
 {

@@ -18,7 +18,6 @@
 #include "includes/define.h"
 #include "processes/process.h"
 #include "custom_python/add_custom_utilities_to_python.h"
-#include "spaces/ublas_space.h"
 #include "spaces/default_spaces.h"
 #include "custom_utilities/feti_dynamic_coupling_utilities.h"
 #include "custom_utilities/conversion_utilities.h"

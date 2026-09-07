@@ -59,7 +59,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 // Project includes
 #include "includes/define.h"
-#include "spaces/ublas_space.h"
 #include "spaces/default_spaces.h"
 #include "custom_python/add_custom_strategies_to_python.h"
 

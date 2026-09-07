@@ -19,7 +19,6 @@
 #include "includes/define.h"
 #include "processes/process.h"
 #include "solving_strategies/convergence_accelerators/convergence_accelerator.h"
-#include "spaces/ublas_space.h"
 #include "spaces/default_spaces.h"
 #include "utilities/dense_qr_decomposition.h"
 #include "utilities/dense_svd_decomposition.h"

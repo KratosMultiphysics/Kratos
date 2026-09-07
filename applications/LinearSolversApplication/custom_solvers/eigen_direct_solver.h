@@ -22,7 +22,6 @@
 #include "includes/ublas_complex_interface.h"
 #include "includes/ublas_interface.h"
 #include "linear_solvers/direct_solver.h"
-#include "spaces/ublas_space.h"
 #include "spaces/default_spaces.h"
 
 namespace Kratos {

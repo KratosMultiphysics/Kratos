@@ -16,7 +16,6 @@
 
 // Project includes
 #include "includes/define_python.h"
-#include "spaces/ublas_space.h"
 #include "spaces/default_spaces.h"
 #include "utilities/dense_qr_decomposition.h"
 #include "utilities/dense_svd_decomposition.h"

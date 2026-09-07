@@ -22,7 +22,6 @@
 #include "factories/linear_solver_factory.h"
 #include "containers/model.h"
 #include "includes/variables.h"
-#include "spaces/ublas_space.h"
 #include "spaces/default_spaces.h"
 #include "utilities/parallel_utilities.h"
 #include "utilities/sparse_matrix_multiplication_utility.h"
