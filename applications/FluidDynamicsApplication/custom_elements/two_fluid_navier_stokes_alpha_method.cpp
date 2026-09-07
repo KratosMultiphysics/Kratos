@@ -150,7 +150,7 @@ double TwoFluidNavierStokesAlphaMethod<TwoFluidNavierStokesAlphaMethodData<2, 3>
     const auto &f = rData.BodyForce;
     const auto &fn = rData.BodyForce_OldStep1;
     const auto &p = rData.Pressure;
-    const auto vconv = (vn - vmeshn) + alpha_f * ((v - vmesh) - (vn - vmeshn));
+    const BoundedMatrix<double, 3, 2> vconv = (vn - vmeshn) + alpha_f * ((v - vmesh) - (vn - vmeshn));
     const auto &N = rData.N;
     const auto &DN = rData.DN_DX;
     const double art_dyn_visc_coeff = 0.8;
@@ -188,7 +188,7 @@ double TwoFluidNavierStokesAlphaMethod<TwoFluidNavierStokesAlphaMethodData<3, 4>
     const auto &f = rData.BodyForce;
     const auto &fn = rData.BodyForce_OldStep1;
     const auto &p = rData.Pressure;
-    const auto vconv = (vn - vmeshn) + alpha_f * ((v - vmesh) - (vn - vmeshn));
+    const BoundedMatrix<double, 4, 3> vconv = (vn - vmeshn) + alpha_f * ((v - vmesh) - (vn - vmeshn));
     const auto &N = rData.N;
     const auto &DN = rData.DN_DX;
     const double art_dyn_visc_coeff = 0.8;
@@ -212,7 +212,7 @@ template <>
 void TwoFluidNavierStokesAlphaMethod<TwoFluidNavierStokesAlphaMethodData<2, 3>>::CalculateStrainRate(TwoFluidNavierStokesAlphaMethodData<2, 3>& rData) const
 {
     const double alpha_f = 1/(1+rData.MaxSpectralRadius);
-    const auto velocity_alpha = rData.Velocity_OldStep1+ alpha_f*(rData.Velocity-rData.Velocity_OldStep1);
+    const BoundedMatrix<double,3,2> velocity_alpha = rData.Velocity_OldStep1+ alpha_f*(rData.Velocity-rData.Velocity_OldStep1);
     auto& rDNDX = rData.DN_DX;
     auto& r_strain_rate = rData.StrainRate;
     noalias(r_strain_rate) = ZeroVector(3);
@@ -227,7 +227,7 @@ template <>
 void TwoFluidNavierStokesAlphaMethod<TwoFluidNavierStokesAlphaMethodData<3, 4>>::CalculateStrainRate(TwoFluidNavierStokesAlphaMethodData<3, 4>& rData) const
 {
     const double alpha_f = 1/(1+rData.MaxSpectralRadius);
-    const auto velocity_alpha = rData.Velocity_OldStep1+ alpha_f*(rData.Velocity-rData.Velocity_OldStep1);
+    const BoundedMatrix<double,4,3> velocity_alpha = rData.Velocity_OldStep1+ alpha_f*(rData.Velocity-rData.Velocity_OldStep1);
     auto& rDNDX = rData.DN_DX;
     auto& r_strain_rate = rData.StrainRate;
     noalias(r_strain_rate) = ZeroVector(6);
@@ -521,7 +521,7 @@ void TwoFluidNavierStokesAlphaMethod<TwoFluidNavierStokesAlphaMethodData<3, 4>>:
     const auto &vmesh = rData.MeshVelocity;
     const auto &vmeshn = rData.MeshVelocityOldStep;
 
-    const auto vconv = (vn-vmeshn)+ alpha_f*((v-vmesh)-(vn-vmeshn));
+    const BoundedMatrix<double,4,3> vconv = (vn-vmeshn)+ alpha_f*((v-vmesh)-(vn-vmeshn));
 
     // Get constitutive matrix
     const Matrix &C = rData.C;
@@ -1189,7 +1189,7 @@ void TwoFluidNavierStokesAlphaMethod<TwoFluidNavierStokesAlphaMethodData<2, 3>>:
     const auto &p = rData.Pressure;
     const auto &stress = rData.ShearStress;
 
-    const auto vconv = (vn-vmeshn)+ alpha_f*((v-vmesh)-(vn-vmeshn));
+    const BoundedMatrix<double,3,2> vconv = (vn-vmeshn)+ alpha_f*((v-vmesh)-(vn-vmeshn));
 
     // Get shape function values
     const auto &N = rData.N;
@@ -1300,7 +1300,7 @@ void TwoFluidNavierStokesAlphaMethod<TwoFluidNavierStokesAlphaMethodData<3, 4>>:
     const auto &p = rData.Pressure;
     const auto &stress = rData.ShearStress;
 
-    const auto vconv = (vn-vmeshn)+ alpha_f*((v-vmesh)-(vn-vmeshn));
+    const BoundedMatrix<double,4,3> vconv = (vn-vmeshn)+ alpha_f*((v-vmesh)-(vn-vmeshn));
 
     // Get shape function values
     const auto &N = rData.N;
@@ -1448,7 +1448,7 @@ void TwoFluidNavierStokesAlphaMethod<TwoFluidNavierStokesAlphaMethodData<2, 3>>:
     const auto &fn = rData.BodyForce_OldStep1;
     const auto &p=rData.Pressure;
 
-    const auto vconv = (vn-vmeshn)+ alpha_f*((v-vmesh)-(vn-vmeshn));
+    const BoundedMatrix<double,3,2> vconv = (vn-vmeshn)+ alpha_f*((v-vmesh)-(vn-vmeshn));
 
     // Get shape function values
     const auto &N = rData.N;
@@ -1627,7 +1627,7 @@ void TwoFluidNavierStokesAlphaMethod<TwoFluidNavierStokesAlphaMethodData<3, 4>>:
     const auto &fn = rData.BodyForce_OldStep1;
     const auto &p = rData.Pressure;
 
-    const auto vconv = (vn-vmeshn)+ alpha_f*((v-vmesh)-(vn-vmeshn));
+    const BoundedMatrix<double,4,3> vconv = (vn-vmeshn)+ alpha_f*((v-vmesh)-(vn-vmeshn));
 
     // Get shape function values
     const auto &N = rData.N;

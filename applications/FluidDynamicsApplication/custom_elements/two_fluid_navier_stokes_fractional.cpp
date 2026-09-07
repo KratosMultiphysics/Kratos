@@ -2047,7 +2047,7 @@ double TwoFluidNavierStokesFractional<TwoFluidNavierStokesFractionalData<2, 3>>:
     const auto &vmesh = rData.MeshVelocity;
     const auto &f = rData.BodyForce;
     const auto &p = rData.Pressure;
-    const auto vconv = vn - vmesh;
+    const BoundedMatrix<double, 3, 2> vconv = vn - vmesh;
     const auto vfrac = rData.FractionalVelocity;
     const auto &N = rData.N;
     const auto &DN = rData.DN_DX;
