@@ -24,6 +24,9 @@
 #include "spatial_containers/specialized_spatial_search_factory.h"
 #include "spatial_containers/geometrical_objects_bins.h"
 #include "spatial_containers/spatial_search_result.h"
+#include "spatial_containers/spatial_search_result_container.h"
+#include "spatial_containers/spatial_search_result_container_vector.h"
+#include "spatial_containers/parallel_spatial_search.h"
 
 namespace Kratos::Python
 {
@@ -97,6 +100,152 @@ void BindSpatialSearchResult(pybind11::module& m, const std::string& rClassName)
 }
 
 /**
+ * @brief Binds a SpatialSearchResultContainer class to Python using pybind11.
+ * @tparam TObjectType The type of object stored in the container.
+ * @tparam TObjectType The type of the object.
+ * @tparam TSpatialSearchCommunication The type of spatial search communication considered.
+ * @param rClassName The name of the class.
+ */
+template<class TObjectType, SpatialSearchCommunication TSpatialSearchCommunication = SpatialSearchCommunication::SYNCHRONOUS>
+void BindSpatialSearchResultContainer(pybind11::module& m, const std::string& rClassName) {
+    using ContainerType = SpatialSearchResultContainer<TObjectType, TSpatialSearchCommunication>;
+    auto cls = pybind11::class_<ContainerType, typename ContainerType::Pointer>(m, rClassName.c_str())
+    .def(pybind11::init<>())
+    .def("IsObjectFound", &ContainerType::IsObjectFound)
+    .def("NumberOfLocalResults", &ContainerType::NumberOfLocalResults)
+    .def("NumberOfGlobalResults", &ContainerType::NumberOfGlobalResults)
+    .def("Reserve", &ContainerType::Reserve)
+    .def("AddResult", [](ContainerType& self, TObjectType* pObject) {
+        self.AddResult(pObject);
+    })
+    .def("AddResult", [](ContainerType& self, TObjectType* pObject, const double Distance) {
+        self.AddResult(pObject, Distance);
+    })
+    .def("Clear", &ContainerType::Clear)
+    .def("GetGlobalIndex", &ContainerType::GetGlobalIndex)
+    .def("SetGlobalIndex", &ContainerType::SetGlobalIndex)
+    .def("GetLocalIndex", &ContainerType::GetLocalIndex)
+    .def("SetLocalIndex", &ContainerType::SetLocalIndex)
+    .def("GetLocalResults", &ContainerType::GetLocalResults)
+    .def("GetGlobalResults", &ContainerType::GetGlobalResults)
+    .def("__getitem__", [](ContainerType& self, const std::size_t Index) {
+        return self.GetLocalResults()[Index];
+    })
+    .def("__call__", [](ContainerType& self, const std::size_t Index) {
+        // Check if the communicator has been created
+        KRATOS_ERROR_IF_NOT(self.IsSynchronized()) << "The data has not been synchronized" << std::endl;
+        return *(self.GetGlobalResults().GetContainer().begin() + Index);
+    })
+    .def("__str__", PrintObject<ContainerType>)
+    .def("__iter__", [](ContainerType& self) {
+        return pybind11::make_iterator(self.begin(), self.end());
+    }, pybind11::keep_alive<0, 1>()); /* Keep object alive while iterator is used */
+
+    // Add the specific methods for the GeometricalObject
+    if constexpr (std::is_same<TObjectType, GeometricalObject>::value) {
+        cls.def("AddResult", [](ContainerType& self, SpatialSearchResult<TObjectType>& rObject) {
+            self.AddResult(rObject);
+        });
+    }
+}
+
+/**
+ * @brief Binds a SpatialSearchResultContainerVector to a Python module.
+ * @tparam TObjectType The type of the object.
+ * @tparam TSpatialSearchCommunication The type of spatial search communication considered.
+ * @param m The Python module to bind the class to.
+ * @param rClassName The name of the class in Python.
+ */
+template<class TObjectType, SpatialSearchCommunication TSpatialSearchCommunication = SpatialSearchCommunication::SYNCHRONOUS>
+void BindSpatialSearchResultContainerVector(pybind11::module& m, const std::string& rClassName) {
+    using ContainerVectorType = SpatialSearchResultContainerVector<TObjectType, TSpatialSearchCommunication>;
+    pybind11::class_<ContainerVectorType, typename ContainerVectorType::Pointer>(m, rClassName.c_str())
+    .def(pybind11::init<>())
+    .def("NumberOfSearchResults", &ContainerVectorType::NumberOfSearchResults)
+    .def("InitializeResult", &ContainerVectorType::InitializeResult)
+    .def("HasResult",  &ContainerVectorType::HasResult)
+    .def("Clear", &ContainerVectorType::Clear)
+    .def("SynchronizeAll", &ContainerVectorType::SynchronizeAll)
+    .def("GetDistances", [](ContainerVectorType& self) {
+        std::vector<std::vector<double>> results;
+        self.GetDistances(results);
+        return results;
+    })
+    .def("GetResultIsLocal", [](
+        ContainerVectorType& self,
+        const DataCommunicator& rDataCommunicator
+        ) {
+        std::vector<std::vector<bool>> results;
+        self.GetResultIsLocal(results, rDataCommunicator);
+        return results;
+    })
+    .def("GetResultRank", [](ContainerVectorType& self) {
+        std::vector<std::vector<int>> results;
+        self.GetResultRank(results);
+        return results;
+    })
+    .def("GetResultIsActive", [](
+        ContainerVectorType& self,
+        const DataCommunicator& rDataCommunicator
+        ) {
+        std::vector<std::vector<bool>> results;
+        self.GetResultIsActive(results, rDataCommunicator);
+        return results;
+    })
+    .def("GetResultIsInside", [](
+        ContainerVectorType& self,
+        ModelPart::NodesContainerType& rPoints,
+        const DataCommunicator& rDataCommunicator,
+        const double Tolerance = std::numeric_limits<double>::epsilon()
+        ) {
+        std::vector<std::vector<bool>> results;
+        self.GetResultIsInside(results, rPoints, rDataCommunicator, Tolerance);
+        return results;
+    })
+    .def("GetResultShapeFunctions", [](
+        ContainerVectorType& self,
+        ModelPart::NodesContainerType& rPoints,
+        const DataCommunicator& rDataCommunicator
+        ) {
+        std::vector<std::vector<Vector>> results;
+        self.GetResultShapeFunctions(results, rPoints, rDataCommunicator);
+        return results;
+    })
+    .def("GetResultIndices", [](ContainerVectorType& self) {
+        std::vector<std::vector<std::size_t>> results;
+        self.GetResultIndices(results);
+        return results;
+    })
+    .def("GetResultNodeIndices", [](ContainerVectorType& self) {
+        std::vector<std::vector<std::vector<std::size_t>>> results;
+        self.GetResultNodeIndices(results);
+        return results;
+    })
+    .def("GetResultPartitionIndices", [](ContainerVectorType& self) {
+        std::vector<std::vector<std::vector<int>>> results;
+        self.GetResultPartitionIndices(results);
+        return results;
+    })
+    .def("GetResultCoordinates", [](ContainerVectorType& self) {
+        std::vector<std::vector<std::vector<array_1d<double, 3>>>> results;
+        self.GetResultCoordinates(results);
+        return results;
+    })
+    .def("GetGlobalPointerCommunicator", &ContainerVectorType::GetGlobalPointerCommunicator)
+    .def("GetContainer", &ContainerVectorType::GetContainer)
+    .def("__getitem__", [](ContainerVectorType& self, const std::size_t Index) {
+        return self[Index];
+    })
+    .def("__call__", [](ContainerVectorType& self, const std::size_t Index) {
+        return self(Index);
+    })
+    .def("__str__", PrintObject<ContainerVectorType>)
+    .def("__iter__", [](ContainerVectorType& self) {
+        return pybind11::make_iterator(self.begin(), self.end());
+    }, pybind11::keep_alive<0, 1>()); /* Keep object alive while iterator is used */
+}
+
+/**
  * @brief Copies a Python list of radius to a C++ radius array.
  * @param rListOfRadius list of radius to copy
  * @return Radius array with copied radius
@@ -144,6 +293,69 @@ void DefineSpecializedSpatialSearch(pybind11::module& m, const std::string& rCla
     .def(pybind11::init<>())
     .def(pybind11::init<Parameters>())
     ;
+}
+
+/**
+ * @brief Defines a search wrapper module in Pybind11.
+ * @param m The Pybind11 module to define the search wrapper search in.
+ * @param rClassName The name of the search wrapper search class.
+ * @tparam TSearchObject The seach object considered
+ * @tparam TSpatialSearchCommunication The type of spatial search communication considered.
+ */
+template<class TSearchObject, SpatialSearchCommunication TSpatialSearchCommunication>
+void DefineParallelSpatialSearch(pybind11::module& m, const std::string& rClassName)
+{
+    using NodesContainerType = ModelPart::NodesContainerType;
+    using ElementsContainerType = ModelPart::ElementsContainerType;
+    using ConditionsContainerType = ModelPart::ConditionsContainerType;
+    using ObjectType = typename TSearchObject::ObjectType;
+    using ResultTypeContainerVector = SpatialSearchResultContainerVector<ObjectType, TSpatialSearchCommunication>;
+    using ParallelSpatialSearchType = ParallelSpatialSearch<TSearchObject, TSpatialSearchCommunication>;
+    using ParallelSpatialSearchPointerType = typename ParallelSpatialSearch<TSearchObject, TSpatialSearchCommunication>::Pointer;
+
+    /// Some constexpr flags
+    static constexpr bool IsGeometricalObjectBins = std::is_same_v<TSearchObject, GeometricalObjectsBins>;
+
+    auto parallel_spatial_search = pybind11::class_<ParallelSpatialSearchType, ParallelSpatialSearchPointerType>(m, rClassName.c_str());
+    if constexpr (std::is_same<ObjectType, Node>::value) {
+        parallel_spatial_search.def(pybind11::init<NodesContainerType&, const DataCommunicator&>());
+        parallel_spatial_search.def(pybind11::init<NodesContainerType&, const DataCommunicator&, Parameters>());
+    }
+    if constexpr (std::is_same<ObjectType, Element>::value || std::is_same<ObjectType, GeometricalObject>::value) {
+        parallel_spatial_search.def(pybind11::init<ElementsContainerType&, const DataCommunicator&>());
+        parallel_spatial_search.def(pybind11::init<ElementsContainerType&, const DataCommunicator&, Parameters>());
+    }
+    if constexpr (std::is_same<ObjectType, Condition>::value || std::is_same<ObjectType, GeometricalObject>::value) {
+        parallel_spatial_search.def(pybind11::init<ConditionsContainerType&, const DataCommunicator&>());
+        parallel_spatial_search.def(pybind11::init<ConditionsContainerType&, const DataCommunicator&, Parameters>());
+    }
+    parallel_spatial_search.def("GetGlobalBoundingBox", &ParallelSpatialSearchType::GetGlobalBoundingBox);
+    parallel_spatial_search.def("SearchInRadius", [&](ParallelSpatialSearchType& self, const NodesContainerType& rNodes, const double Radius) {
+        // Perform the search
+        auto p_results = Kratos::make_shared<ResultTypeContainerVector>();
+        self.SearchInRadius(rNodes.begin(), rNodes.end(), Radius, *p_results);
+        return p_results;
+    });
+    parallel_spatial_search.def("SearchNearestInRadius", [&](ParallelSpatialSearchType& self, const NodesContainerType& rNodes, const double Radius) {
+        // Perform the search
+        auto p_results = Kratos::make_shared<ResultTypeContainerVector>();
+        self.SearchNearestInRadius(rNodes.begin(), rNodes.end(), Radius, *p_results);
+        return p_results;
+    });
+    parallel_spatial_search.def("SearchNearest", [&](ParallelSpatialSearchType& self, const NodesContainerType& rNodes) {
+        // Perform the search
+        auto p_results = Kratos::make_shared<ResultTypeContainerVector>();
+        self.SearchNearest(rNodes.begin(), rNodes.end(), *p_results);
+        return p_results;
+    });
+    if constexpr (IsGeometricalObjectBins) {
+        parallel_spatial_search.def("SearchIsInside", [&](ParallelSpatialSearchType& self, const NodesContainerType& rNodes) {
+            // Perform the search
+            auto p_results = Kratos::make_shared<ResultTypeContainerVector>();
+            self.SearchIsInside(rNodes.begin(), rNodes.end(), *p_results);
+            return p_results;
+        });
+    }
 }
 
 void AddSearchStrategiesToPython(pybind11::module& m)
@@ -517,6 +729,18 @@ void AddSearchStrategiesToPython(pybind11::module& m)
     BindSpatialSearchResult<Element>(m, "SpatialSearchResultElement");
     BindSpatialSearchResult<Condition>(m, "SpatialSearchResultCondition");
 
+    // Containers
+    BindSpatialSearchResultContainer<Node, SpatialSearchCommunication::SYNCHRONOUS>(m, "SpatialSearchResultContainerNode");
+    BindSpatialSearchResultContainer<GeometricalObject, SpatialSearchCommunication::SYNCHRONOUS>(m, "SpatialSearchResultContainerGeometricalObject");
+    BindSpatialSearchResultContainer<Element, SpatialSearchCommunication::SYNCHRONOUS>(m, "SpatialSearchResultContainerElement");
+    BindSpatialSearchResultContainer<Condition, SpatialSearchCommunication::SYNCHRONOUS>(m, "SpatialSearchResultContainerCondition");
+
+    // Containers vector
+    BindSpatialSearchResultContainerVector<Node, SpatialSearchCommunication::SYNCHRONOUS>(m, "SpatialSearchResultContainerVectorNode");
+    BindSpatialSearchResultContainerVector<GeometricalObject, SpatialSearchCommunication::SYNCHRONOUS>(m, "SpatialSearchResultContainerVectorGeometricalObject");
+    BindSpatialSearchResultContainerVector<Element, SpatialSearchCommunication::SYNCHRONOUS>(m, "SpatialSearchResultContainerVectorElement");
+    BindSpatialSearchResultContainerVector<Condition, SpatialSearchCommunication::SYNCHRONOUS>(m, "SpatialSearchResultContainerVectorCondition");
+
     // GeometricalObjectsBins
     using ResultTypeGeometricalObject = SpatialSearchResult<GeometricalObject>;
     using NodesContainerType = ModelPart::NodesContainerType;
@@ -606,6 +830,30 @@ void AddSearchStrategiesToPython(pybind11::module& m)
         return list_results;
     })
     ;
+
+    /* Define the search wrappers */
+    // GeometricalObjectsBins
+    DefineParallelSpatialSearch<GeometricalObjectsBins, SpatialSearchCommunication::SYNCHRONOUS>(m, "ParallelSpatialSearchGeometricalObjectBins");
+
+    // KDTree
+    DefineParallelSpatialSearch<Tree<KDTreePartition<Bucket<3ul, PointObject<Node>, std::vector<PointObject<Node>::Pointer>>>>, SpatialSearchCommunication::SYNCHRONOUS>(m, "ParallelSpatialSearchKDTreeNode");
+    DefineParallelSpatialSearch<Tree<KDTreePartition<Bucket<3ul, PointObject<Element>, std::vector<PointObject<Element>::Pointer>>>>, SpatialSearchCommunication::SYNCHRONOUS>(m, "ParallelSpatialSearchKDTreeElement");
+    DefineParallelSpatialSearch<Tree<KDTreePartition<Bucket<3ul, PointObject<Condition>, std::vector<PointObject<Condition>::Pointer>>>>, SpatialSearchCommunication::SYNCHRONOUS>(m, "ParallelSpatialSearchKDTreeCondition");
+
+    // OCTree
+    DefineParallelSpatialSearch<Tree<OCTreePartition<Bucket<3ul, PointObject<Node>, std::vector<PointObject<Node>::Pointer>>>>, SpatialSearchCommunication::SYNCHRONOUS>(m, "ParallelSpatialSearchOCTreeNode");
+    DefineParallelSpatialSearch<Tree<OCTreePartition<Bucket<3ul, PointObject<Element>, std::vector<PointObject<Element>::Pointer>>>>, SpatialSearchCommunication::SYNCHRONOUS>(m, "ParallelSpatialSearchOCTreeElement");
+    DefineParallelSpatialSearch<Tree<OCTreePartition<Bucket<3ul, PointObject<Condition>, std::vector<PointObject<Condition>::Pointer>>>>, SpatialSearchCommunication::SYNCHRONOUS>(m, "ParallelSpatialSearchOCTreeCondition");
+
+    // StaticBinsTree
+    DefineParallelSpatialSearch<Tree<Bins<3ul, PointObject<Node>, std::vector<PointObject<Node>::Pointer>>>, SpatialSearchCommunication::SYNCHRONOUS>(m, "ParallelSpatialSearchStaticBinsTreeNode");
+    DefineParallelSpatialSearch<Tree<Bins<3ul, PointObject<Element>, std::vector<PointObject<Element>::Pointer>>>, SpatialSearchCommunication::SYNCHRONOUS>(m, "ParallelSpatialSearchStaticBinsTreeElement");
+    DefineParallelSpatialSearch<Tree<Bins<3ul, PointObject<Condition>, std::vector<PointObject<Condition>::Pointer>>>, SpatialSearchCommunication::SYNCHRONOUS>(m, "ParallelSpatialSearchStaticBinsTreeCondition");
+
+    // DynamicBins
+    DefineParallelSpatialSearch<BinsDynamic<3ul, PointObject<Node>, std::vector<PointObject<Node>::Pointer>>, SpatialSearchCommunication::SYNCHRONOUS>(m, "ParallelSpatialSearchDynamicBinsNode");
+    DefineParallelSpatialSearch<BinsDynamic<3ul, PointObject<Element>, std::vector<PointObject<Element>::Pointer>>, SpatialSearchCommunication::SYNCHRONOUS>(m, "ParallelSpatialSearchDynamicBinsElement");
+    DefineParallelSpatialSearch<BinsDynamic<3ul, PointObject<Condition>, std::vector<PointObject<Condition>::Pointer>>, SpatialSearchCommunication::SYNCHRONOUS>(m, "ParallelSpatialSearchDynamicBinsCondition");
 }
 
 }  // namespace Kratos::Python.
