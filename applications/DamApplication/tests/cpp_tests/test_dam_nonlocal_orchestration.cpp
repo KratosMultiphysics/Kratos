@@ -494,6 +494,10 @@ KRATOS_TEST_CASE_IN_SUITE(ThermalNonlocalOrchestration_NewtonStrategy, KratosDam
 
     StrategyType strategy(r_mp, p_scheme, p_criteria, p_builder, parameters, 20, false, false, false);
     strategy.Initialize();
+    // Size the system (DofSet + RHS/LHS vectors) before the first solve, as the
+    // standard Dam solution loop does per step; the nonlocal strategy override
+    // builds the system directly inside SolveSolutionStep.
+    strategy.InitializeSolutionStep();
     const bool converged = strategy.SolveSolutionStep();
 
     // Verify LOCAL is current (produced by the scheme), NONLOCAL was averaged by
