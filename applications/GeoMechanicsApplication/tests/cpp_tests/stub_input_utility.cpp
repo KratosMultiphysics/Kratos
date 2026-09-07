@@ -15,8 +15,8 @@
 namespace Kratos
 {
 
-StubInputUtility::StubInputUtility(const std::string& rParameterJsonString)
-    : mParameterJsonString{rParameterJsonString}
+StubInputUtility::StubInputUtility(std::string ParameterJsonString)
+    : mParameterJsonString{std::move(ParameterJsonString)}
 {
 }
 

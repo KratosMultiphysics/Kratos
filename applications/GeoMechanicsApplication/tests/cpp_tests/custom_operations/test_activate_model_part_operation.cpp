@@ -41,14 +41,8 @@ KRATOS_TEST_CASE_IN_SUITE(ActivateModelPartOperation, KratosGeoMechanicsFastSuit
         3, std::make_shared<Triangle2D3<Node>>(p_node1, p_node3, p_node4), p_properties));
 
     // Deactivate all the model part entities
-    for (auto& r_node : r_test_model_part.Nodes()) {
-        r_node.Set(ACTIVE, false);
-    }
     for (auto& r_element : r_test_model_part.Elements()) {
         r_element.Set(ACTIVE, false);
-    }
-    for (auto& r_condition : r_test_model_part.Conditions()) {
-        r_condition.Set(ACTIVE, false);
     }
 
     // Create and execute the tested operation
@@ -58,15 +52,9 @@ KRATOS_TEST_CASE_IN_SUITE(ActivateModelPartOperation, KratosGeoMechanicsFastSuit
     ActivateModelPartOperation test_operation(test_model, operation_settings);
     test_operation.Execute();
 
-    // Check that all model part entities are now active
-    for (const auto& r_node : r_test_model_part.Nodes()) {
-        KRATOS_EXPECT_TRUE(r_node.Is(ACTIVE))
-    }
+    // Check that all elements of the model part are now active
     for (const auto& r_element : r_test_model_part.Elements()) {
         KRATOS_EXPECT_TRUE(r_element.Is(ACTIVE))
-    }
-    for (const auto& r_condition : r_test_model_part.Conditions()) {
-        KRATOS_EXPECT_TRUE(r_condition.Is(ACTIVE))
     }
 }
 

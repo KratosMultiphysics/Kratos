@@ -22,6 +22,7 @@
 #include "modeler/modeler.h"
 
 #include "geometries/nurbs_shape_function_utilities/nurbs_surface_refinement_utilities.h"
+#include "geometries/nurbs_shape_function_utilities/nurbs_curve_refinement_utilities.h"
 #include "geometries/nurbs_surface_geometry.h"
 #include "utilities/variable_utils.h"
 

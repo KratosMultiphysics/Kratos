@@ -5,8 +5,13 @@ add_app () {
     export KRATOS_APPLICATIONS="${KRATOS_APPLICATIONS}$1;"
 }
 
-export MPI_HOME=/usr/lib64/mpich/bin
+# Temporal fix until gcc 14 comdad group regression is fixed
+dnf install -y gcc-toolset-15-gcc gcc-toolset-15-gcc-c++ gcc-toolset-15-gcc-gfortran
+source /opt/rh/gcc-toolset-15/enable
+
+export MPI_HOME=/usr/local/mpich-4.2/bin
 export PATH=${PATH}:${MPI_HOME}
+export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${MPI_HOME}
 
 export MPI_C=`which mpicc`
 export MPI_CXX=`which mpicxx`
@@ -31,21 +36,20 @@ add_app ${KRATOS_APP_DIR}/ConvectionDiffusionApplication;
 add_app ${KRATOS_APP_DIR}/DamApplication;
 add_app ${KRATOS_APP_DIR}/PoromechanicsApplication;
 add_app ${KRATOS_APP_DIR}/FSIApplication;
-add_app ${KRATOS_APP_DIR}/SwimmingDEMApplication;
+# add_app ${KRATOS_APP_DIR}/SwimmingDEMApplication;
 add_app ${KRATOS_APP_DIR}/LinearSolversApplication;
 add_app ${KRATOS_APP_DIR}/ConstitutiveLawsApplication;
 add_app ${KRATOS_APP_DIR}/MeshingApplication;
 add_app ${KRATOS_APP_DIR}/MetisApplication;
 add_app ${KRATOS_APP_DIR}/DemStructuresCouplingApplication;
 add_app ${KRATOS_APP_DIR}/MeshMovingApplication;
-add_app ${KRATOS_APP_DIR}/CSharpWrapperApplication;
 add_app ${KRATOS_APP_DIR}/ShapeOptimizationApplication;
 add_app ${KRATOS_APP_DIR}/CoSimulationApplication;
 add_app ${KRATOS_APP_DIR}/CableNetApplication;
 add_app ${KRATOS_APP_DIR}/RANSApplication;
 add_app ${KRATOS_APP_DIR}/MappingApplication;
 add_app ${KRATOS_APP_DIR}/CompressiblePotentialFlowApplication;
-# add_app ${KRATOS_APP_DIR}/HDF5Application;
+add_app ${KRATOS_APP_DIR}/HDF5Application;
 add_app ${KRATOS_APP_DIR}/MedApplication;
 add_app ${KRATOS_APP_DIR}/IgaApplication;
 add_app ${KRATOS_APP_DIR}/ChimeraApplication;
@@ -72,9 +76,10 @@ cmake -H"${KRATOS_SOURCE}" -B"${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}"    \
 -DMAKE_TRILINOS_OPTIONAL=ON                                            \
 -DCMAKE_C_COMPILER=gcc                                                 \
 -DCMAKE_CXX_COMPILER=g++                                               \
--DCMAKE_CXX_FLAGS="-msse3 -std=c++11 "                                 \
--DCMAKE_C_FLAGS="-msse3"                                               \
+-DCMAKE_CXX_FLAGS="-msse3 -std=c++20 "                                 \
+-DCMAKE_C_FLAGS="-msse3 -std=gnu99"                                    \
 -DBOOST_ROOT="/workspace/boost/boost_1_87_0"                           \
+-DINSTALL_TPL_LIBRARIES=ON                                             \
 -DINCLUDE_MMG=ON                                                       \
 -DMMG_ROOT="/workspace/external_libraries/mmg/mmg_5_5_1"               \
 -DHDF5_ROOT="/workspace/hdf5/bin"                                      \

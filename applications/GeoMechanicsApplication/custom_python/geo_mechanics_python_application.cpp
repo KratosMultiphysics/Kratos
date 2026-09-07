@@ -25,6 +25,7 @@
 #include "custom_python/add_custom_processes_to_python.h"
 #include "custom_python/add_custom_strategies_to_python.h"
 #include "custom_python/add_custom_utilities_to_python.h"
+#include "custom_python/add_retention_laws_to_python.h"
 #include "geo_mechanics_application.h"
 #include "geo_mechanics_application_variables.h"
 
@@ -42,6 +43,7 @@ PYBIND11_MODULE(KratosGeoMechanicsApplication, m)
     AddCustomStrategiesToPython(m);
     AddCustomUtilitiesToPython(m);
     AddCustomProcessesToPython(m);
+    AddRetentionLawsToPython(m);
 
     // Registering variables in python
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, VELOCITY_COEFFICIENT)
@@ -96,8 +98,6 @@ PYBIND11_MODULE(KratosGeoMechanicsApplication, m)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, BIOT_COEFFICIENT)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, PLATE_SHAPE_CORRECTION_FACTOR)
 
-    /* Reset displacement "flag" needed for GeoMechanicalApplication*/
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, RESET_DISPLACEMENTS)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, IGNORE_UNDRAINED)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, USE_HENCKY_STRAIN)
 
@@ -121,6 +121,10 @@ PYBIND11_MODULE(KratosGeoMechanicsApplication, m)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, OCR)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, POISSON_UNLOADING_RELOADING)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, POP)
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, GEO_POISSON_UNDRAINED)
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, GEO_SKEMPTON_B)
+
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, GEO_DRAINAGE_TYPE)
 
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, PERMEABILITY_CHANGE_INVERSE_FACTOR)
 
@@ -142,6 +146,12 @@ PYBIND11_MODULE(KratosGeoMechanicsApplication, m)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, DT_TEMPERATURE_COEFFICIENT)
 
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, FILTER_LENGTH)
+
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, GEO_PLASTICITY_STATUS)
+
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, GEO_MAX_NUMBER_OF_SUB_STEPS)
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, GEO_MAX_RELATIVE_OVERSHOOT)
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, RETENTION_LAW)
 }
 
 } // namespace Kratos::Python.

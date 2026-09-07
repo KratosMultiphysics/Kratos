@@ -8,7 +8,7 @@
           "name": "GeoLinearElasticPlaneStrain2DLaw"
         },
         "Variables": {
-          "IGNORE_UNDRAINED": false,
+          "GEO_DRAINAGE_TYPE": "FULLY_COUPLED",
           "YOUNG_MODULUS": 150000,
           "POISSON_RATIO": 0.3,
           "DENSITY_SOLID": 2.0e3,
@@ -19,10 +19,8 @@
           "PERMEABILITY_XX": 1.0E-10,
           "PERMEABILITY_YY": 1.0E-10,
           "PERMEABILITY_XY": 0.0,
-          "DYNAMIC_VISCOSITY": 1.0e-6,
-          "THICKNESS": 1.0
-        },
-        "Tables": {}
+          "DYNAMIC_VISCOSITY": 1.0e-6
+        }
       }
     }
   ]

@@ -3,8 +3,6 @@ import KratosMultiphysics.SystemIdentificationApplication as KratosSI
 
 from KratosMultiphysics.SystemIdentificationApplication.sensor_sensitivity_solvers.response_sensitivity_analysis import ResponseSensitivityAnalysis
 from KratosMultiphysics.SystemIdentificationApplication.sensor_sensitivity_solvers.sensor_sensitivity_adjoint_static_solver import SensorSensitivityAdjointStaticSolver
-from KratosMultiphysics.OptimizationApplication.utilities.union_utilities import ContainerExpressionTypes
-from KratosMultiphysics.OptimizationApplication.utilities.union_utilities import SupportedSensitivityFieldVariableTypes
 
 def Factory(model: Kratos.Model, parameters: Kratos.Parameters, _):
     return SystemIdentificationStaticAnalysis(model, parameters["settings"])

@@ -7,7 +7,7 @@
               "name"             :  "GeoLinearElasticPlaneStrain2DLaw" 
           },
           "Variables": {
-              "IGNORE_UNDRAINED"         :  true,
+              "GEO_DRAINAGE_TYPE"        :  "CONSTANT_PW_FIELD",
               "YOUNG_MODULUS"            :  10000,
               "POISSON_RATIO"            :  0.2,
               "DENSITY_SOLID"            :  2.65,
@@ -19,17 +19,10 @@
               "PERMEABILITY_YY"          :  4.5e-30,
               "PERMEABILITY_XY"          :  0.0,
               "DYNAMIC_VISCOSITY"        :  8.90e-7,
-              "THICKNESS"                :  1.0,
               "BIOT_COEFFICIENT"         :  1.0,
               "RETENTION_LAW"                    : "SaturatedLaw",
-              "SATURATED_SATURATION"             :  1.0,
-              "RESIDUAL_SATURATION"              :  0.06203,
-              "VAN_GENUCHTEN_AIR_ENTRY_PRESSURE" :  2.561,
-              "VAN_GENUCHTEN_GN"                 :  1.377,
-              "VAN_GENUCHTEN_GL"                 :  1.25,
-              "MINIMUM_RELATIVE_PERMEABILITY"    :  0.0001
-         },
-         "Tables": {}
+              "SATURATED_SATURATION"             :  1.0
+         }
       }
    },{
       "model_part_name":         "PorousDomain.Beam",
@@ -45,8 +38,7 @@
               "CROSS_AREA"        :  1.0,
               "AREA_EFFECTIVE_Y" :   1.0,
               "I33"               :  0.083333333
-         },
-         "Tables": {}
+         }
       }
    }]
 }

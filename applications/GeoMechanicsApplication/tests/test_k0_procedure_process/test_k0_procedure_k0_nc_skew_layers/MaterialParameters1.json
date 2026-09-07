@@ -7,7 +7,7 @@
               "name"             :  "GeoLinearElasticPlaneStrain2DLaw"
           },
           "Variables": {
-              "IGNORE_UNDRAINED"         :  true,
+              "GEO_DRAINAGE_TYPE"        :  "CONSTANT_PW_FIELD",
               "YOUNG_MODULUS"            :  10000,
               "POISSON_RATIO"            :  0.2,
               "DENSITY_SOLID"            :  2.65,
@@ -19,7 +19,6 @@
               "PERMEABILITY_YY"          :  1.0e-30,
               "PERMEABILITY_XY"          :  0.0,
               "DYNAMIC_VISCOSITY"        :  1.0e-3,
-              "THICKNESS"                :  1.0,
               "K0_MAIN_DIRECTION"        :  1,
               "K0_NC"                    :  0.8,
               "BIOT_COEFFICIENT"         :  1.0,
@@ -27,8 +26,7 @@
               "SATURATED_SATURATION"             :  1.0,
               "RESIDUAL_SATURATION"              :  1e-10,
               "MINIMUM_RELATIVE_PERMEABILITY"    :  0.0001
-         },
-         "Tables": {}
+         }
       }
    },{
       "model_part_name":         "PorousDomain.Clay",
@@ -38,7 +36,7 @@
               "name"             :  "GeoLinearElasticPlaneStrain2DLaw"
           },
           "Variables": {
-              "IGNORE_UNDRAINED"         :  true,
+              "GEO_DRAINAGE_TYPE"        :  "CONSTANT_PW_FIELD",
               "YOUNG_MODULUS"            :  10000,
               "POISSON_RATIO"            :  0.2,
               "DENSITY_SOLID"            :  2.0,
@@ -50,7 +48,6 @@
               "PERMEABILITY_YY"          :  1.0e-30,
               "PERMEABILITY_XY"          :  0.0,
               "DYNAMIC_VISCOSITY"        :  1.0e-3,
-              "THICKNESS"                :  1.0,
               "K0_MAIN_DIRECTION"        :  1,
               "K0_NC"                    :  0.7,
               "BIOT_COEFFICIENT"         :  1.0,
@@ -58,8 +55,7 @@
               "SATURATED_SATURATION"             :  1.0,
               "RESIDUAL_SATURATION"              :  1e-10,
               "MINIMUM_RELATIVE_PERMEABILITY"    :  0.0001
-         },
-         "Tables": {}
+         }
       }
    },{
       "model_part_name":         "PorousDomain.Peat",
@@ -69,7 +65,7 @@
               "name"             :  "GeoLinearElasticPlaneStrain2DLaw"
           },
           "Variables": {
-              "IGNORE_UNDRAINED"         :  true,
+              "GEO_DRAINAGE_TYPE"        :  "CONSTANT_PW_FIELD",
               "YOUNG_MODULUS"            :  10000,
               "POISSON_RATIO"            :  0.2,
               "DENSITY_SOLID"            :  1.6,
@@ -81,7 +77,6 @@
               "PERMEABILITY_YY"          :  1.0e-30,
               "PERMEABILITY_XY"          :  0.0,
               "DYNAMIC_VISCOSITY"        :  1.0e-3,
-              "THICKNESS"                :  1.0,
               "K0_MAIN_DIRECTION"        :  1,
               "K0_NC"                    :  0.6,
               "BIOT_COEFFICIENT"         :  1.0,
@@ -89,8 +84,7 @@
               "SATURATED_SATURATION"             :  1.0,
               "RESIDUAL_SATURATION"              :  1e-10,
               "MINIMUM_RELATIVE_PERMEABILITY"    :  0.0001
-         },
-         "Tables": {}
+         }
       }
    }]
 }

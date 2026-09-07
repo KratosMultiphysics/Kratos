@@ -4,10 +4,16 @@ about: Bringing updates in an external library
 
 ---
 
-**Description**
+## **Description**
+
 Main changes in the external library compared from the previous version version
 
-**Changelog**
+### **Key changes**
+
+Detail of the key changes.
+
+## **Changelog**
+
 Please summarize the changes in one a list to generate the changelog:
 E.g.
 - Version changed from X to Y (#XXXX)

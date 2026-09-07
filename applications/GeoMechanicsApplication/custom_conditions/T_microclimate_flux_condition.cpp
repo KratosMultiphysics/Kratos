@@ -100,9 +100,8 @@ void GeoTMicroClimateFluxCondition<TDim, TNumNodes>::CalculateLocalSystem(Matrix
     r_geom.Jacobian(jacobians, this->GetIntegrationMethod());
 
     const auto& r_N_container = this->GetGeometry().ShapeFunctionsValues(this->GetIntegrationMethod());
-
-    auto nodal_temperatures = array_1d<double, TNumNodes>{};
-    VariablesUtilities::GetNodalValues(this->GetGeometry(), TEMPERATURE, nodal_temperatures.begin());
+    const auto nodal_temperatures =
+        VariablesUtilities::GetNodalValues<TNumNodes>(this->GetGeometry(), TEMPERATURE);
 
     const auto time_step_size = rCurrentProcessInfo.GetValue(DELTA_TIME);
 

@@ -12,7 +12,8 @@
               "UMAT_PARAMETERS"          :  [30000000.0,
                                              0.0,
                                              1e10],
-              "STATE_VARIABLES"         :  [0.0]
+              "STATE_VARIABLES"         :  [0.0],
+              "GEO_DRAINAGE_TYPE": "FULLY_COUPLED"
          }
       }
    }]

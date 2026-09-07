@@ -28,7 +28,8 @@ UpdatedLagrangianUPwDiffOrderElement::UpdatedLagrangianUPwDiffOrderElement(
     GeometryType::Pointer                           pGeometry,
     std::unique_ptr<StressStatePolicy>              pStressStatePolicy,
     std::unique_ptr<IntegrationCoefficientModifier> pCoefficientModifier)
-    : SmallStrainUPwDiffOrderElement(NewId, pGeometry, std::move(pStressStatePolicy), std::move(pCoefficientModifier))
+    : SmallStrainUPwDiffOrderElement{NewId, std::move(pGeometry), std::move(pStressStatePolicy),
+                                     std::move(pCoefficientModifier)}
 {
 }
 
@@ -38,8 +39,8 @@ UpdatedLagrangianUPwDiffOrderElement::UpdatedLagrangianUPwDiffOrderElement(
     PropertiesType::Pointer                         pProperties,
     std::unique_ptr<StressStatePolicy>              pStressStatePolicy,
     std::unique_ptr<IntegrationCoefficientModifier> pCoefficientModifier)
-    : SmallStrainUPwDiffOrderElement(
-          NewId, pGeometry, pProperties, std::move(pStressStatePolicy), std::move(pCoefficientModifier))
+    : SmallStrainUPwDiffOrderElement{NewId, std::move(pGeometry), std::move(pProperties),
+                                     std::move(pStressStatePolicy), std::move(pCoefficientModifier)}
 {
 }
 

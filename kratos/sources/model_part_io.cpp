@@ -2190,11 +2190,11 @@ void ModelPartIO::ReadGeometriesBlock(ModelPart& rModelPart)
         KRATOS_ERROR << buffer.str() << std::endl;
         return;
     }
-
     GeometryType const& r_clone_geometry = KratosComponents<GeometryType>::Get(geometry_name);
     SizeType number_of_nodes = r_clone_geometry.size();
     Element::NodesArrayType temp_geometry_nodes;
-    ModelPart::GeometryContainerType aux_geometries;
+    std::vector<GeometryType::Pointer> aux_geometries;
+    aux_geometries.reserve(1024);
 
     while(!mpStream->eof()) {
         ReadWord(word); // Reading the geometry id or End
@@ -2203,16 +2203,17 @@ void ModelPartIO::ReadGeometriesBlock(ModelPart& rModelPart)
 
         ExtractValue(word,id);
         temp_geometry_nodes.clear();
-        for(SizeType i = 0 ; i < number_of_nodes ; i++) {
+        for(SizeType i = 0; i < number_of_nodes; ++i) {
             ReadWord(word); // Reading the node id;
             ExtractValue(word, node_id);
-            temp_geometry_nodes.push_back( *(FindKey(rModelPart.Nodes(), ReorderedNodeId(node_id), "Node").base()));
+            temp_geometry_nodes.push_back(*(FindKey(rModelPart.Nodes(), ReorderedNodeId(node_id), "Node").base()));
         }
 
-        rModelPart.AddGeometry(r_clone_geometry.Create(ReorderedGeometryId(id), temp_geometry_nodes));
-        number_of_read_geometries++;
-
+        aux_geometries.push_back(r_clone_geometry.Create(ReorderedGeometryId(id), temp_geometry_nodes));
+        ++number_of_read_geometries;
     }
+    
+    rModelPart.AddGeometries(aux_geometries.begin(), aux_geometries.end());
     KRATOS_INFO("") << number_of_read_geometries << " geometries read] [Type: " <<geometry_name << "]" << std::endl;
 
     KRATOS_CATCH("")

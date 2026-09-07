@@ -12,23 +12,22 @@
 
 
 // System includes
-#include <omp.h>
-#include <sstream>
 
 // External includes
 
 // Project includes
 #include "includes/define.h"
-#include "custom_elements/mpm_updated_lagrangian_PQ.hpp"
 #include "utilities/math_utils.h"
+#include "utilities/atomic_utilities.h"
 #include "includes/constitutive_law.h"
-#include "mpm_application_variables.h"
 #include "includes/checks.h"
 
-
+// Application includes
+#include "mpm_application_variables.h"
 #include "custom_utilities/mpm_explicit_utilities.h"
 #include "custom_utilities/mpm_math_utilities.h"
 #include "custom_utilities/mpm_energy_calculation_utility.h"
+#include "custom_elements/mpm_updated_lagrangian_PQ.hpp"
 
 
 namespace Kratos
@@ -44,7 +43,7 @@ MPMUpdatedLagrangianPQ::MPMUpdatedLagrangianPQ( IndexType NewId, GeometryType::P
 
 MPMUpdatedLagrangianPQ::MPMUpdatedLagrangianPQ( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties )
     : MPMUpdatedLagrangian( NewId, pGeometry, pProperties )
-{ mFinalizedStep = true; }
+{ }
 
 MPMUpdatedLagrangianPQ::MPMUpdatedLagrangianPQ(MPMUpdatedLagrangianPQ const& rOther)
     :MPMUpdatedLagrangian(rOther)
@@ -106,8 +105,6 @@ void MPMUpdatedLagrangianPQ::AddExplicitContribution(const ProcessInfo& rCurrent
     const unsigned int dimension = r_geometry.WorkingSpaceDimension();
     const unsigned int number_of_nodes = r_geometry.PointsNumber();
 
-    mFinalizedStep = false;
-
     // Calculating shape functions
     array_1d<double, 3> nodal_momentum = ZeroVector(3);
     array_1d<double, 3>  nodal_inertia = ZeroVector(3);
@@ -140,12 +137,9 @@ void MPMUpdatedLagrangianPQ::AddExplicitContribution(const ProcessInfo& rCurrent
                     }
                 }
 
-                r_geometry[i].SetLock();
-                r_geometry[i].FastGetSolutionStepValue(NODAL_MOMENTUM, 0) += nodal_momentum;
-                r_geometry[i].FastGetSolutionStepValue(NODAL_INERTIA, 0) += nodal_inertia;
-                r_geometry[i].FastGetSolutionStepValue(NODAL_MASS, 0) += r_geometry.ShapeFunctionValue(int_p, i)
-                    * mMP.mass * weight;
-                r_geometry[i].UnSetLock();
+                AtomicAdd(r_geometry[i].FastGetSolutionStepValue(NODAL_MOMENTUM, 0), nodal_momentum);
+                AtomicAdd(r_geometry[i].FastGetSolutionStepValue(NODAL_INERTIA, 0), nodal_inertia);
+                AtomicAdd(r_geometry[i].FastGetSolutionStepValue(NODAL_MASS, 0), r_geometry.ShapeFunctionValue(int_p, i) * mMP.mass * weight);
             }
         }
     }

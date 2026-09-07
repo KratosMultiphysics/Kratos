@@ -4,14 +4,15 @@
       "properties_id":           1,
       "Material": {
           "constitutive_law": {
-              "name"             :  "KratosMultiphysics.StructuralMechanicsApplication.BeamConstitutiveLaw" 
+              "name"             :  "KratosMultiphysics.StructuralMechanicsApplication.TimoshenkoBeamElasticConstitutiveLaw"
           },
           "Variables": {
               "YOUNG_MODULUS"    :  1.0E+06,
               "POISSON_RATIO"    :  0.0,
               "DENSITY"          :  7850.0,
               "CROSS_AREA"       :  0.01,
-              "I33"              :  8.33333E-08
+              "I33"              :  8.33333E-08,
+              "AREA_EFFECTIVE_Y" :  10000.0
          },
          "Tables": {}
       }

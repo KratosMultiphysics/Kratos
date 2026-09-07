@@ -58,7 +58,7 @@
 namespace Kratos::Python
 {
 
-void AddCustomProcessesToPython(pybind11::module& m)
+void AddCustomProcessesToPython(const pybind11::module& m)
 {
     namespace py = pybind11;
 
@@ -164,7 +164,7 @@ void AddCustomProcessesToPython(pybind11::module& m)
 
     py::class_<ApplyScalarConstraintTableProcess, ApplyScalarConstraintTableProcess::Pointer, Process>(
         m, "ApplyScalarConstraintTableProcess")
-        .def(py::init<ModelPart&, const Parameters&>());
+        .def(py::init<Model&, const Parameters&>());
 
     py::class_<ApplyNormalLoadTableProcess, ApplyNormalLoadTableProcess::Pointer, Process>(
         m, "ApplyNormalLoadTableProcess")

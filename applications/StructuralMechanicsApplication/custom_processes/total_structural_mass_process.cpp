@@ -21,7 +21,7 @@
 namespace Kratos
 {
 
-double GetFromProperty(const Properties& rThisProperties, Variable<double>& rVariable)
+double GetFromProperty(const Properties& rThisProperties, const Variable<double>& rVariable)
 {
     // The purpose of this function is to avoid silent allocation of memory in case
     // the requested variable does not exist in the Properties!

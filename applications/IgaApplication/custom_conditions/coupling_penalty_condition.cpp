@@ -102,8 +102,13 @@ namespace Kratos
             const double penalty_integration = penalty * integration_points[point_number].Weight() * determinant_jacobian_vector[point_number];
 
             // Rotation coupling
-            if (Is(IgaFlags::FIX_ROTATION_X))
+            if (Is(IgaFlags::FIX_ROTATION_X) || Is(IgaFlags::FIX_ROTATION_Y) || Is(IgaFlags::FIX_ROTATION_Z))
             {
+                const double penalty_rotation = GetProperties().Has(PENALTY_ROTATION_FACTOR)
+                    ? GetProperties()[PENALTY_ROTATION_FACTOR]
+                    : penalty;
+                const double penalty_rotation_integration = penalty_rotation * integration_points[point_number].Weight() * determinant_jacobian_vector[point_number];
+
                 Vector phi_r = ZeroVector(mat_size);
                 Matrix phi_rs = ZeroMatrix(mat_size, mat_size);
                 array_1d<double, 2> diff_phi;
@@ -115,7 +120,7 @@ namespace Kratos
                     {
                         for (IndexType j = 0; j < mat_size; ++j)
                         {
-                            rLeftHandSideMatrix(i, j) = (phi_r(i) * phi_r(j) + diff_phi(0) * phi_rs(i, j)) * penalty_integration;
+                            rLeftHandSideMatrix(i, j) = (phi_r(i) * phi_r(j) + diff_phi(0) * phi_rs(i, j)) * penalty_rotation_integration;
                         }
                     }
                 }
@@ -123,7 +128,7 @@ namespace Kratos
                 if (CalculateResidualVectorFlag) {
                     for (IndexType i = 0; i < mat_size; ++i)
                     {
-                        rRightHandSideVector[i] = (diff_phi(0) * phi_r(i)) * penalty_integration;
+                        rRightHandSideVector[i] = (diff_phi(0) * phi_r(i)) * penalty_rotation_integration; 
                     }
                 }
             }

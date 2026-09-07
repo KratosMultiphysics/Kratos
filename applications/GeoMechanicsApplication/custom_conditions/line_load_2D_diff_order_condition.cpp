@@ -15,6 +15,7 @@
 // Project includes
 #include "custom_conditions/line_load_2D_diff_order_condition.h"
 #include "custom_utilities/condition_utilities.hpp"
+#include "custom_utilities/variables_utilities.hpp"
 
 namespace Kratos
 {
@@ -51,13 +52,13 @@ void LineLoad2DDiffOrderCondition::CalculateConditionVector(ConditionVariables& 
 {
     KRATOS_TRY
 
-    const GeometryType& r_geometry = GetGeometry();
+    const auto line_load_vectors = VariablesUtilities::GetNodalValues(GetGeometry(), LINE_LOAD);
+
     rVariables.ConditionVector.resize(2, false);
     noalias(rVariables.ConditionVector) = ZeroVector(2);
-    for (SizeType i = 0; i < r_geometry.PointsNumber(); ++i) {
-        auto line_load = r_geometry[i].FastGetSolutionStepValue(LINE_LOAD);
-        rVariables.ConditionVector[0] += rVariables.Nu[i] * line_load[0];
-        rVariables.ConditionVector[1] += rVariables.Nu[i] * line_load[1];
+    for (SizeType i = 0; i < line_load_vectors.size(); ++i) {
+        rVariables.ConditionVector[0] += rVariables.Nu[i] * line_load_vectors[i][0];
+        rVariables.ConditionVector[1] += rVariables.Nu[i] * line_load_vectors[i][1];
     }
 
     KRATOS_CATCH("")

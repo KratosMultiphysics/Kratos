@@ -92,7 +92,7 @@ std::size_t ApplyVectorConstraintTableProcess::ComponentToIndex(char component)
 }
 
 ApplyVectorConstraintTableProcess::ProcessUniquePointer ApplyVectorConstraintTableProcess::MakeProcessFor(
-    ModelPart& rModelPart, const Parameters& rParameters) const
+    ModelPart& rModelPart, const Parameters& rParameters)
 {
     if (rParameters.Has("table")) {
         return std::make_unique<ApplyComponentTableProcess>(rModelPart, rParameters);

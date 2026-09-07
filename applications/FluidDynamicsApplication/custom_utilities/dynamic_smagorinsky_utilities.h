@@ -303,7 +303,7 @@ public:
      Possible values for the variable: 1.0 inlet, 2.0 bridge surface, 3.0 outlet, 0.0 otherwise
      @param rThisVariable The Kratos variable used to identify the boundary
      */
-    void CorrectFlagValues(Variable<double>& rThisVariable = FLAG_VARIABLE)
+    void CorrectFlagValues(const Variable<double>& rThisVariable = FLAG_VARIABLE)
     {
         // Loop over coarse mesh to evaluate all terms that do not involve the fine mesh
         const int NumThreads = ParallelUtilities::GetNumThreads();

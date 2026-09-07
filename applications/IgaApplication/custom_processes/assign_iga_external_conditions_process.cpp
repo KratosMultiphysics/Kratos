@@ -345,6 +345,8 @@ void AssignIgaExternalConditionsProcess::SetVariableValueToCondition(
         p_condition->SetValue(VELOCITY_Y, value);
     } else if (rVariableName == "VELOCITY_Z") {
         p_condition->SetValue(VELOCITY_Z, value);
+    } else if (rVariableName == "PRESSURE") {
+        p_condition->SetValue(PRESSURE, value);
     } else if (rVariableName == "DISPLACEMENT_X") {
         p_condition->SetValue(DISPLACEMENT_X, value);
     } else if (rVariableName == "DISPLACEMENT_Y") {
@@ -357,6 +359,12 @@ void AssignIgaExternalConditionsProcess::SetVariableValueToCondition(
         p_condition->SetValue(FORCE_Y, value);
     } else if (rVariableName == "FORCE_Z") {
         p_condition->SetValue(FORCE_Z, value);
+    } else if (rVariableName == "NORMAL_STRESS_X") {
+        SetNormalStressComponent(0, value, p_condition);
+    } else if (rVariableName == "NORMAL_STRESS_Y") {
+        SetNormalStressComponent(1, value, p_condition);
+    } else if (rVariableName == "NORMAL_STRESS_Z") {
+        SetNormalStressComponent(2, value, p_condition);
     } else {
         KRATOS_ERROR << "No name found" ;
     }

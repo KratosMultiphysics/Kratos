@@ -20,6 +20,9 @@ class TestLinkConstraint(KratosMultiphysics.KratosUnittest.TestCase):
     def test_LinkConstraint2DWithMovedMesh(self) -> None:
         self.__Run2D(True)
 
+    def test_LinkConstraint2DChainedWithoutMovedMesh(self) -> None:
+        self.__Run2DChained(False)
+
     def test_LinkConstraint3DWithoutMovedMesh(self) -> None:
         self.__Run3D(False)
 
@@ -162,9 +165,64 @@ class TestLinkConstraint(KratosMultiphysics.KratosUnittest.TestCase):
             self.assertAlmostEqual(distance, initial_distance, places = 3)
 
 
-    def __Run(self,
-              analysis_stage: StructuralMechanicsAnalysis) -> None:
-        analysis_stage.Run()
+    def __Run2DChained(self, move_mesh_flag: bool) -> None:
+        with WorkFolderScope("constraints", pathlib.Path(__file__).absolute()):
+            # Load config.
+            with open("link_constraint_2d_chained.json") as project_parameters_file:
+                parameters = KratosMultiphysics.Parameters(project_parameters_file.read())
+
+            parameters["solver_settings"]["move_mesh_flag"].SetBool(move_mesh_flag)
+            parameters["processes"]["constraints_process_list"][1]["Parameters"]["move_mesh_flag"].SetBool(move_mesh_flag)
+
+            # The test is set up such that 2 pseudo time steps are taken.
+            #
+            # At the end of the first one, the constraint is supposed to
+            # be active so distance between the constrained nodes is supposed
+            # to remain constant.
+            #
+            # At the end of the second step, the constraint is supposed to be
+            # inactive, allowing the distance between the constrained nodes to
+            # change.
+
+            # Run the analysis until the first step and check whether constraints are satisfied.
+            parameters["problem_data"]["end_time"].SetDouble(0.5)
+            model = KratosMultiphysics.Model()
+            analysis = StructuralMechanicsAnalysis(model, parameters)
+            self.__ReadMDPA(model, "link_constraint_2d_chained")
+
+            root_model_part = model.GetModelPart("root")
+            constrained_node_ids: list[tuple[int,int]] = [(2, 3), (2, 5)]
+            initial_distances: list[float] = []
+
+            for pair in constrained_node_ids:
+                first: KratosMultiphysics.Node = root_model_part.GetNode(pair[0])
+                second: KratosMultiphysics.Node = root_model_part.GetNode(pair[1])
+                initial_distances.append(self.__GetNodeDistance(first, second, initial_configuration = True))
+
+            analysis.Run()
+            for pair, initial_distance in zip(constrained_node_ids, initial_distances):
+                distance: float = self.__GetNodeDistance(root_model_part.GetNode(pair[0]), root_model_part.GetNode(pair[1]))
+                self.assertAlmostEqual(distance, initial_distance, places = 3)
+
+            # Run the analysis until the first step and check whether constraints are not satisfied anymore.
+            parameters["problem_data"]["end_time"].SetDouble(1.0)
+            model = KratosMultiphysics.Model()
+            analysis = StructuralMechanicsAnalysis(model, parameters)
+            self.__ReadMDPA(model, "link_constraint_2d_chained")
+
+            root_model_part = model.GetModelPart("root")
+            constrained_node_ids: list[tuple[int,int]] = [(2, 3), (2, 5)]
+            initial_distances: list[float] = []
+
+            for pair in constrained_node_ids:
+                first: KratosMultiphysics.Node = root_model_part.GetNode(pair[0])
+                second: KratosMultiphysics.Node = root_model_part.GetNode(pair[1])
+                initial_distances.append(self.__GetNodeDistance(first, second, initial_configuration = True))
+
+            analysis.Run()
+            for pair, initial_distance in zip(constrained_node_ids, initial_distances):
+                distance: float = self.__GetNodeDistance(root_model_part.GetNode(pair[0]), root_model_part.GetNode(pair[1]))
+                self.assertNotAlmostEqual(distance, initial_distance, places = 1)
 
 
     @staticmethod

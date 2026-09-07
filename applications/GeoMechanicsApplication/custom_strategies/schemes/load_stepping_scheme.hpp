@@ -121,7 +121,7 @@ private:
     }
 
     std::map<std::size_t, TLocalSystemVectorType> CalculateElementForces(ModelPart& rModelPart,
-                                                                         Variable<Vector>& rForces)
+                                                                         const Variable<Vector>& rForces)
     {
         std::map<std::size_t, TLocalSystemVectorType> result;
         std::ranges::transform(rModelPart.Elements(), std::inserter(result, result.end()),

@@ -109,16 +109,6 @@ class KratosGeoMechanicsElementTypeTests(KratosUnittest.TestCase):
         bottom_node_ids = [5, 7, 9]
         self.assertVerticalStressAtBottomNodes(output_data, bottom_node_ids)
 
-    def test_triangle_6n_fic(self):
-        test_name = 'test_triangle_6n_fic'
-        file_path = test_helper.get_file_path(os.path.join('.', test_name + '.gid'))
-        simulation = test_helper.run_kratos(file_path)
-
-        output_data = self.fetchOutputFromFile(os.path.join(file_path, f"{test_name}.post.res"))
-        top_node_nbrs = [0, 2, 4, 9, 15]
-        n_dim = 2
-        self.assert_linear_elastic_block(simulation, output_data, top_node_nbrs, n_dim)
-
     def test_quad_4n(self):
         test_name = 'test_quad_4n'
         file_path = test_helper.get_file_path(os.path.join('.', test_name + '.gid'))

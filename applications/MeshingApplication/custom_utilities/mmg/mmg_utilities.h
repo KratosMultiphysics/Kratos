@@ -158,34 +158,32 @@ public:
     /// Pointer definition of MmgUtilities
     KRATOS_CLASS_POINTER_DEFINITION(MmgUtilities);
 
-    /// Node definition
-    typedef Node                                                   NodeType;
     // Geometry definition
-    typedef Geometry<NodeType>                                     GeometryType;
+    using GeometryType = Geometry<NodeType>;
 
     /// Spatial dimension
     static constexpr SizeType Dimension = (TMMGLibrary == MMGLibrary::MMG2D) ? 2 : 3;
 
     /// The type of array considered for the tensor
-    typedef typename std::conditional<Dimension == 2, array_1d<double, 3>, array_1d<double, 6>>::type TensorArrayType;
+    using TensorArrayType = typename std::conditional<Dimension == 2, array_1d<double, 3>, array_1d<double, 6>>::type;
 
     /// Double vector
-    typedef std::vector<double> DoubleVectorType;
+    using DoubleVectorType = std::vector<double>;
 
     /// Double vector map
-    typedef std::unordered_map<DoubleVectorType, IndexType, KeyHasherRange<DoubleVectorType>, KeyComparorRange<DoubleVectorType> > DoubleVectorMapType;
+    using DoubleVectorMapType = std::unordered_map<DoubleVectorType, IndexType, KeyHasherRange<DoubleVectorType>, KeyComparorRange<DoubleVectorType>>;
 
     /// Index vector map
-    typedef std::unordered_map<IndexVectorType, IndexType, KeyHasherRange<IndexVectorType>, KeyComparorRange<IndexVectorType> > IndexVectorMapType;
+    using IndexVectorMapType = std::unordered_map<IndexVectorType, IndexType, KeyHasherRange<IndexVectorType>, KeyComparorRange<IndexVectorType>>;
 
     /// Colors map
-    typedef std::unordered_map<IndexType,IndexType> ColorsMapType;
+    using ColorsMapType = std::unordered_map<IndexType, IndexType>;
 
     /// Index pair
-    typedef std::pair<IndexType,IndexType> IndexPairType;
+    using IndexPairType = std::pair<IndexType, IndexType>;
 
     /// Index and string vector pair
-    typedef std::pair<IndexType, std::vector<std::string>> IndexStringVectorPairType;
+    using IndexStringVectorPairType = std::pair<IndexType, std::vector<std::string>>;
 
     /// Definition of the zero tolerance
     static constexpr double ZeroTolerance = std::numeric_limits<double>::epsilon();
@@ -197,6 +195,9 @@ public:
     ///@}
     ///@name Life Cycle
     ///@{
+
+    /// Virtual destructor
+    virtual ~MmgUtilities() = default;
 
     ///@}
     ///@name Access
@@ -226,7 +227,7 @@ public:
      * @brief This method retrieves the current Mmg version
      * @return The current version of Mmg (as a string)
      */
-    std::string GetMmgVersion();
+    static std::string GetMmgVersion();
 
     /**
      * @brief This method sets the echo level
@@ -327,7 +328,7 @@ public:
      * @param[out] IsRequired MMG required entity (0 or 1)
      * @return pNode The pointer to the new node created
      */
-    virtual NodeType::Pointer CreateNode(
+    virtual Node::Pointer CreateNode(
         ModelPart& rModelPart,
         IndexType iNode,
         int& Ref,
@@ -704,7 +705,7 @@ public:
     void WriteMeshDataToModelPart(
         ModelPart& rModelPart,
         const std::unordered_map<IndexType,std::vector<std::string>>& rColors,
-        const NodeType::DofsContainerType& rDofs,
+        const Node::DofsContainerType& rDofs,
         const MMGMeshInfo<TMMGLibrary>& rMMGMeshInfo,
         std::unordered_map<IndexType,Condition::Pointer>& rMapPointersRefCondition,
         std::unordered_map<IndexType,Element::Pointer>& rMapPointersRefElement

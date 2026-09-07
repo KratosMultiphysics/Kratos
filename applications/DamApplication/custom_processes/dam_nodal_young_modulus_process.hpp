@@ -67,7 +67,6 @@ class DamNodalYoungModulusProcess : public Process
         rParameters.ValidateAndAssignDefaults(default_parameters);
 
         mVariableName = rParameters["variable_name"].GetString();
-        mIsFixed = rParameters["constrained"].GetBool();
         mYoung1 = rParameters["Young_Modulus_1"].GetDouble();
         mYoung2 = rParameters["Young_Modulus_2"].GetDouble();
         mYoung3 = rParameters["Young_Modulus_3"].GetDouble();
@@ -106,11 +105,6 @@ class DamNodalYoungModulusProcess : public Process
             {
                 ModelPart::NodesContainerType::iterator it = it_begin + i;
 
-                if (mIsFixed)
-                {
-                    it->Fix(var);
-                }
-
                 double Young = mYoung1 + (mYoung2 * it->X()) + (mYoung3 * it->Y()) + (mYoung4 * it->Z());
 
                 if (Young <= 0.0)
@@ -143,11 +137,6 @@ class DamNodalYoungModulusProcess : public Process
             for (int i = 0; i < nnodes; i++)
             {
                 ModelPart::NodesContainerType::iterator it = it_begin + i;
-
-                if (mIsFixed)
-                {
-                    it->Fix(var);
-                }
 
                 double Young = mYoung1 + (mYoung2 * it->X()) + (mYoung3 * it->Y()) + (mYoung4 * it->Z());
 
@@ -187,7 +176,6 @@ class DamNodalYoungModulusProcess : public Process
 
     ModelPart &mrModelPart;
     std::string mVariableName;
-    bool mIsFixed;
     double mYoung1;
     double mYoung2;
     double mYoung3;

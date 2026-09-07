@@ -29,7 +29,7 @@
         "reform_dofs_at_each_step":           false,
         "block_builder":                      true,
         "solution_type":                      "static",
-        "reset_displacements":                true,
+        "reset_totals":                       true,
         "strategy_type":                      "newton_raphson",
         "convergence_criterion":              "displacement_criterion",
         "displacement_relative_tolerance":    1.0E-9,
@@ -39,7 +39,6 @@
         "number_cycles":                      100,
         "reduction_factor":                   1.0,
         "increase_factor":                    1.0,
-        "calculate_reactions":                true,
         "rotation_dofs":                      true,
         "linear_solver_settings":             {
             "solver_type":   "LinearSolversApplication.sparse_lu",

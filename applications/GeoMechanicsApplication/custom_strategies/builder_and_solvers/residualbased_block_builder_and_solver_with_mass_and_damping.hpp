@@ -465,7 +465,7 @@ protected:
                 GetDerivativesForVariable(DISPLACEMENT_X, rNode, rFirstDerivativeVector, rSecondDerivativeVector);
                 GetDerivativesForVariable(DISPLACEMENT_Y, rNode, rFirstDerivativeVector, rSecondDerivativeVector);
 
-                const std::vector<const Variable<double>*> optional_variables = {
+                const auto optional_variables = std::vector<const Variable<double>*>{
                     &ROTATION_X, &ROTATION_Y, &ROTATION_Z, &DISPLACEMENT_Z};
 
                 for (const auto p_variable : optional_variables) {

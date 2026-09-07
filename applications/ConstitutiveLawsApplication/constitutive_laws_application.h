@@ -133,6 +133,7 @@
 
 // structural elements CL
 #include "custom_constitutive/structural_elements_constitutive_laws/thickness_integrated_isotropic_constitutive_law.h"
+#include "custom_constitutive/structural_elements_constitutive_laws/thickness_integrated_composite_constitutive_law.h"
 
 namespace Kratos {
 
@@ -701,9 +702,9 @@ private:
     const GenericSmallStrainThermalIsotropicDamagePlaneStress <GenericConstitutiveLawIntegratorDamage<ThermalSimoJuYieldSurface<VonMisesPlasticPotential<3>>>> mSmallStrainThermalIsotropicDamagePlaneStressSimoJu;
     const GenericSmallStrainThermalIsotropicDamagePlaneStress <GenericConstitutiveLawIntegratorDamage<ThermalMohrCoulombYieldSurface<VonMisesPlasticPotential<3>>>> mSmallStrainThermalIsotropicDamagePlaneStressMohrCoulomb;
 
-
     // Structural elements CLs
     const ThicknessIntegratedIsotropicConstitutiveLaw mThicknessIntegratedIsotropicConstitutiveLaw;
+    const ThicknessIntegratedCompositeConstitutiveLaw mThicknessIntegratedCompositeConstitutiveLaw;
 
     ///@}
     ///@name Private Operators

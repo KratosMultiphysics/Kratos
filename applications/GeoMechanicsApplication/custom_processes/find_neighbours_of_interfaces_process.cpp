@@ -21,6 +21,20 @@ using namespace std::string_literals;
 
 namespace Kratos
 {
+namespace
+{
+GlobalPointersVector<Element> ExtractElementsWithHigherLocalDimension(const GlobalPointersVector<Element>& rElements,
+                                                                      std::size_t LocalSpaceDimension)
+{
+    GlobalPointersVector<Element> result;
+    std::copy_if(rElements.ptr_begin(), rElements.ptr_end(), std::back_inserter(result),
+                 [LocalSpaceDimension](auto pElement) {
+        return pElement->GetGeometry().LocalSpaceDimension() > LocalSpaceDimension;
+    });
+    return result;
+}
+} // namespace
+
 FindNeighboursOfInterfacesProcess::FindNeighboursOfInterfacesProcess(Model& rModel, const Parameters& rProcessSettings)
     : mrInterfaceModelParts{ProcessUtilities::GetModelPartsFromSettings(
           rModel, rProcessSettings, FindNeighboursOfInterfacesProcess::Info())},
@@ -54,17 +68,11 @@ void FindNeighboursOfInterfacesProcess::RemoveNeighboursWithoutHigherLocalDimens
 {
     for (const auto& r_interface_model_part : mrInterfaceModelParts) {
         for (auto& r_interface_element : r_interface_model_part.get().Elements()) {
-            auto&      r_neighbour_elements = r_interface_element.GetValue(NEIGHBOUR_ELEMENTS);
-            const auto interface_element_local_dimension =
-                r_interface_element.GetGeometry().LocalSpaceDimension();
-            auto is_neighbour_without_higher_local_dimension =
-                [interface_element_local_dimension](const Element& rNeighbourElement) {
-                return rNeighbourElement.GetGeometry().LocalSpaceDimension() <= interface_element_local_dimension;
-            };
-            r_neighbour_elements.erase(
-                std::remove_if(r_neighbour_elements.begin(), r_neighbour_elements.end(),
-                               is_neighbour_without_higher_local_dimension),
-                r_neighbour_elements.end());
+            auto& r_neighbour_elements = r_interface_element.GetValue(NEIGHBOUR_ELEMENTS);
+            // WORKAROUND: std::erase-remove on GlobalPointersVector corrupts adjacent memory.
+            // Instead of erasing in-place, construct a filtered container and assign.
+            r_neighbour_elements = ExtractElementsWithHigherLocalDimension(
+                r_neighbour_elements, r_interface_element.GetGeometry().LocalSpaceDimension());
         }
     }
 }

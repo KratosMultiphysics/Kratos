@@ -15,6 +15,7 @@
 // System includes
 #include <cmath>
 #include <complex>
+#include <utility>
 
 // External includes
 
@@ -84,17 +85,21 @@ public:
     /// The index type definition to be consistent
     using IndexType = typename TSparseSpaceType::IndexType;
 
+    // NOTE: the iterator types over the CSR storage arrays are deduced from
+    // the sparse space matrix type so that any backend exposing the
+    // compressed_matrix member surface (uBLAS, Eigen, ...) works
+
     /// Definition of the index iterator type
-    using IndexIteratorType = typename boost::numeric::ublas::compressed_matrix<typename TSparseSpaceType::DataType>::index_array_type::iterator;
+    using IndexIteratorType = decltype(std::declval<SparseMatrixType&>().index1_data().begin());
 
     /// Definition of the const index iterator type
-    using ConstIndexIteratorType = typename boost::numeric::ublas::compressed_matrix<typename TSparseSpaceType::DataType>::index_array_type::const_iterator;
+    using ConstIndexIteratorType = decltype(std::declval<const SparseMatrixType&>().index1_data().begin());
 
     /// Definition of the value iterator type
-    using ValueIteratorType = typename boost::numeric::ublas::compressed_matrix<typename TSparseSpaceType::DataType>::value_array_type::iterator;
+    using ValueIteratorType = decltype(std::declval<SparseMatrixType&>().value_data().begin());
 
     /// Definition of the const value iterator type
-    using ConstValueIteratorType = typename boost::numeric::ublas::compressed_matrix<typename TSparseSpaceType::DataType>::value_array_type::const_iterator;
+    using ConstValueIteratorType = decltype(std::declval<const SparseMatrixType&>().value_data().begin());
 
     ///@}
     ///@name Life Cycle

@@ -40,7 +40,7 @@ public:
     void ExecuteInitializeSolutionStep() override;
     void ExecuteFinalize() override;
 
-    std::string Info() const override;
+    [[nodiscard]] std::string Info() const override;
 
 private:
     static std::vector<Parameters> CreateParametersForActiveComponents(const ModelPart&  rModelPart,
@@ -50,7 +50,7 @@ private:
                                                                 const Parameters& rSettings,
                                                                 char              Component);
     static std::size_t             ComponentToIndex(char component);
-    ProcessUniquePointer MakeProcessFor(ModelPart& rModelPart, const Parameters& rParameters) const;
+    static ProcessUniquePointer MakeProcessFor(ModelPart& rModelPart, const Parameters& rParameters);
 
     std::vector<std::reference_wrapper<ModelPart>> mrModelParts;
     std::vector<ProcessUniquePointer>              mProcesses;
