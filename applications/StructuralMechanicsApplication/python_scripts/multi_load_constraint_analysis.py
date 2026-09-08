@@ -123,10 +123,10 @@ class MultiLoadConstraintAnalysis(AnalysisStage):
         self.__RestoreReferenceValues()
         reference_rhs = self.__GetRHS(load_ids[0])
         scheme, strategy_data = self.__PrepareEffectiveLinearSystem(reference_rhs)
-        solve = self.__FactorizeEffectiveLHS(strategy_data)
+        factorization_solve = self.__FactorizeEffectiveLHS(strategy_data)
         for id in load_ids:
             self.__RestoreReferenceValues()
-            self.__SolveLoad(id, scheme, strategy_data, solve)
+            self.__SolveLoad(id, scheme, strategy_data, factorization_solve)
 
     def __StoreLoadSolution(self, id, strategy_data):
         dx = strategy_data.GetLinearSystem().GetVector(KratosMultiphysics.Future.DenseVectorTag.Dx)
@@ -256,10 +256,10 @@ class MultiLoadConstraintAnalysis(AnalysisStage):
         lhs_eff = effective_system.GetMatrix(KratosMultiphysics.Future.SparseMatrixTag.LHS)
 
         lhs_eff_scipy = KratosMultiphysics.scipy_conversion_tools.to_csr(lhs_eff)
-        solve = scipy.sparse.linalg.factorized(lhs_eff_scipy.tocsc())
-        return solve
+        factorization_solve = scipy.sparse.linalg.factorized(lhs_eff_scipy.tocsc())
+        return factorization_solve
 
-    def __SolveLoad(self, load_id, scheme, strategy_data, solve):
+    def __SolveLoad(self, load_id, scheme, strategy_data, factorization_solve):
         rhs = self.__GetRHS(load_id)
         KratosMultiphysics.Logger.PrintInfo("::[MultiLoadConstraintAnalysis]::", "Solve Load")
         effective_system = strategy_data.GetEffectiveLinearSystem()
@@ -273,7 +273,7 @@ class MultiLoadConstraintAnalysis(AnalysisStage):
         T = strategy_data.GetEffectiveT()
         T.TransposeSpMV(rhs, rhs_eff)
 
-        dx_eff_numpy = solve(np.array(rhs_eff))
+        dx_eff_numpy = factorization_solve(np.array(rhs_eff))
 
         for i, value in enumerate(dx_eff_numpy):
             dx_eff[i] = value
