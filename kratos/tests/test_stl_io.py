@@ -92,6 +92,20 @@ class TestStlIO(KratosUnittest.TestCase):
 
     # TODO: Add Read test, this test is added mainly to test Write STL files in MPI
 
+    def test_ReadBinaryStlIO(self):
+        """
+        Test reading a binary STL file with StlIO
+        """
+        stl_file = GetFilePath("auxiliar_files_for_python_unittest/stl_files/Bunny-LowPoly.stl")
+        model = KratosMultiphysics.Model()
+        model_part = model.CreateModelPart("Bunny")
+        read_settings = KratosMultiphysics.Parameters("""{"open_mode" : "read", "new_entity_type" : "element"}""")
+        stl_io = KratosMultiphysics.StlIO(stl_file, read_settings)
+        stl_io.ReadModelPart(model_part)
+
+        self.assertEqual(model_part.NumberOfNodes(), 876)
+        self.assertEqual(model_part.NumberOfElements(), 292)
+
     def test_WriteStlIO(self):
         """
         Test the WriteModelPart function form StlIO
