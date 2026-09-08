@@ -11,8 +11,12 @@
 //
 
 // System includes
+#include <algorithm>
+#include <numeric>
+#include <vector>
 
 // External includes
+#include <mpi.h>
 #include <Teuchos_RCP.hpp>
 
 // Project includes
@@ -1389,6 +1393,133 @@ KRATOS_TEST_CASE_IN_SUITE(TrilinosGetAveragevalueDiagonal, KratosTrilinosApplica
     auto matrix = TrilinosCPPTestUtilities::GenerateDummySparseMatrix(r_comm, size, 1.0);
     const double expected_avg = 0.5 * (1.0 + 12.0);
     KRATOS_EXPECT_DOUBLE_EQ(expected_avg, TrilinosSparseSpaceType::GetAveragevalueDiagonal(matrix));
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// New space-method tests (GetMpiComm, CreateSerialMap, GatherToBuffer,
+// ScatterFromBuffer, GetRawValuesPtr, GetNumLocalRows, GetLocalCOO)
+// ─────────────────────────────────────────────────────────────────────────────
+
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(TrilinosGetMpiComm, KratosTrilinosApplicationMPITestSuite)
+{
+    const auto& r_comm = Testing::GetDefaultDataCommunicator();
+    const int size = 4 * r_comm.Size();
+    auto A = TrilinosCPPTestUtilities::GenerateDummySparseMatrix(r_comm, size, 1.0);
+
+    const auto& epetra_comm = TrilinosSparseSpaceType::GetCommunicator(A);
+    MPI_Comm mpi_comm = TrilinosSparseSpaceType::GetMpiComm(epetra_comm);
+
+    int mpi_rank;
+    MPI_Comm_rank(mpi_comm, &mpi_rank);
+    KRATOS_EXPECT_EQ(mpi_rank, TrilinosSparseSpaceType::GetRank(epetra_comm));
+}
+
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(TrilinosCreateSerialMap, KratosTrilinosApplicationMPITestSuite)
+{
+    const auto& r_comm = Testing::GetDefaultDataCommunicator();
+    auto b = TrilinosCPPTestUtilities::GenerateDummySparseVector(r_comm, 8);
+    const auto& epetra_comm = TrilinosSparseSpaceType::GetCommunicator(b);
+
+    auto p_serial_map = TrilinosSparseSpaceType::CreateSerialMap(epetra_comm, 8);
+
+    // Rank 0 owns all 8 elements; others own none
+    const bool is_root = (TrilinosSparseSpaceType::GetRank(epetra_comm) == 0);
+    KRATOS_EXPECT_EQ(p_serial_map->NumMyElements(), is_root ? 8 : 0);
+    KRATOS_EXPECT_EQ(p_serial_map->NumGlobalElements(), 8);
+}
+
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(TrilinosGatherToBufferScatterFromBuffer,
+                                       KratosTrilinosApplicationMPITestSuite)
+{
+    // Build a vector b[i] = i+1 (global 0-based) and gather/scatter it
+    const auto& r_comm = Testing::GetDefaultDataCommunicator();
+    const int size = 4 * r_comm.Size();
+    auto b = TrilinosCPPTestUtilities::GenerateDummySparseVector(r_comm, size, 1.0);
+    auto x = TrilinosCPPTestUtilities::GenerateDummySparseVector(r_comm, size, 0.0);
+    const auto& epetra_comm = TrilinosSparseSpaceType::GetCommunicator(b);
+
+    std::vector<double> buf;
+    TrilinosSparseSpaceType::GatherToBuffer(b, epetra_comm, buf);
+
+    // Only rank 0 has data; scatter it to x
+    TrilinosSparseSpaceType::ScatterFromBuffer(epetra_comm, buf, x);
+
+    // x must equal b on every rank
+    const int n_local = x.Map().NumMyElements();
+    for (int i = 0; i < n_local; ++i) {
+        const double expected = 1.0 + static_cast<double>(x.Map().GID(i));
+        KRATOS_EXPECT_NEAR(x[0][i], expected, 1e-15);
+    }
+}
+
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(TrilinosGetRawValuesPtr, KratosTrilinosApplicationMPITestSuite)
+{
+    const auto& r_comm = Testing::GetDefaultDataCommunicator();
+    const int size = 4 * r_comm.Size();
+    auto b = TrilinosCPPTestUtilities::GenerateDummySparseVector(r_comm, size, 1.0);
+
+    double* ptr = TrilinosSparseSpaceType::GetRawValuesPtr(b);
+    KRATOS_EXPECT_NE(ptr, nullptr);
+
+    // Value at local index 0 must equal b[0][0]
+    KRATOS_EXPECT_DOUBLE_EQ(*ptr, b[0][0]);
+}
+
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(TrilinosGetNumLocalRows, KratosTrilinosApplicationMPITestSuite)
+{
+    const auto& r_comm = Testing::GetDefaultDataCommunicator();
+    const int size = 4 * r_comm.Size();
+    auto A = TrilinosCPPTestUtilities::GenerateDummySparseMatrix(r_comm, size, 1.0);
+
+    const auto n_local = TrilinosSparseSpaceType::GetNumLocalRows(A);
+    // With a balanced map each rank should own exactly 4 rows
+    KRATOS_EXPECT_EQ(n_local, static_cast<std::size_t>(4));
+
+    // Sum across ranks must equal global size
+    int n_local_int = static_cast<int>(n_local);
+    int n_global_sum = 0;
+    MPI_Allreduce(&n_local_int, &n_global_sum, 1, MPI_INT, MPI_SUM,
+                  TrilinosSparseSpaceType::GetMpiComm(TrilinosSparseSpaceType::GetCommunicator(A)));
+    KRATOS_EXPECT_EQ(n_global_sum, size);
+}
+
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(TrilinosGetLocalCOODiagonal, KratosTrilinosApplicationMPITestSuite)
+{
+    // Diagonal matrix A(i,i) = i+1. COO should contain exactly one entry per local row.
+    const auto& r_comm = Testing::GetDefaultDataCommunicator();
+    const int size = 4 * r_comm.Size();
+    auto A = TrilinosCPPTestUtilities::GenerateDummySparseMatrix(r_comm, size, 1.0);
+
+    std::vector<std::size_t> rows, cols;
+    std::vector<double> vals;
+    TrilinosSparseSpaceType::GetLocalCOO(A, rows, cols, vals);
+
+    KRATOS_EXPECT_EQ(rows.size(), static_cast<std::size_t>(4)); // 4 local rows
+
+    // Every entry must be on the diagonal and equal to global_row + 1
+    for (std::size_t k = 0; k < rows.size(); ++k) {
+        KRATOS_EXPECT_EQ(rows[k], cols[k]);
+        KRATOS_EXPECT_NEAR(vals[k], static_cast<double>(rows[k]) + 1.0, 1e-15);
+    }
+}
+
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(TrilinosGetLocalCOOLowerTriangular, KratosTrilinosApplicationMPITestSuite)
+{
+    // Diagonal matrix is symmetric; lower-triangular COO must equal full COO
+    const auto& r_comm = Testing::GetDefaultDataCommunicator();
+    const int size = 4 * r_comm.Size();
+    auto A = TrilinosCPPTestUtilities::GenerateDummySparseMatrix(r_comm, size, 1.0);
+
+    std::vector<std::size_t> rows_full, cols_full, rows_lt, cols_lt;
+    std::vector<double> vals_full, vals_lt;
+    TrilinosSparseSpaceType::GetLocalCOO(A, rows_full, cols_full, vals_full);
+    TrilinosSparseSpaceType::GetLocalCOO(A, rows_lt, cols_lt, vals_lt, /*LowerTriangularOnly=*/true);
+
+    // Diagonal-only matrix: full == lower-triangular
+    KRATOS_EXPECT_EQ(rows_full.size(), rows_lt.size());
+    for (std::size_t k = 0; k < rows_lt.size(); ++k) {
+        KRATOS_EXPECT_TRUE(rows_lt[k] >= cols_lt[k]);
+    }
 }
 
 } // namespace Kratos::Testing
