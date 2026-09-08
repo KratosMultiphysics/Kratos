@@ -1,6 +1,9 @@
 import KratosMultiphysics
 from KratosMultiphysics.analysis_stage import AnalysisStage
 from KratosMultiphysics.process_factory import KratosProcessFactory
+import numpy as np
+import scipy.sparse.linalg
+import KratosMultiphysics.scipy_conversion_tools
 #-------------------------------------------------------------------
 
 
@@ -56,7 +59,7 @@ class MultiLoadConstraintAnalysis(AnalysisStage):
 
         load_ids = self.__GetPrimaryLoads()
         self.__ApplyFixities()
-        self.__SolvePrimaryLoads(load_ids)
+        self.__RunSolutionLoop(load_ids)
         self.__SolveCombinations()
         KratosMultiphysics.Logger.PrintInfo("::[MultiLoadConstraintAnalysis]::", "Finished constraint-state solve")
 
@@ -114,21 +117,16 @@ class MultiLoadConstraintAnalysis(AnalysisStage):
             self.combination_solutions[combination_id] = combination_Dx.copy()
 
     
-    def __SolvePrimaryLoads(self, load_ids):
+    def __RunSolutionLoop(self, load_ids):
         KratosMultiphysics.Logger.PrintInfo("::[MultiLoadConstraintAnalysis]::", f"Primitive loads to solve: {load_ids}")
+        #-----------Changes---------------
+        self.__RestoreReferenceValues()
+        reference_rhs = self.__GetRHS(load_ids[0])
+        scheme, strategy_data = self.__PrepareEffectiveLinearSystem(reference_rhs)
+        solve = self.__FactorizeEffectiveLHS(strategy_data)
         for id in load_ids:
             self.__RestoreReferenceValues()
-            rhs = self.__GetRHS(id)
-            lhs = self.__GetRawLHS()
-            dx = KratosMultiphysics.SystemVector(rhs.Size())
-            linear_system = self.__CreateLinearSystem(lhs, rhs, dx)
-            strategy_data = self.__CreateStrategyData()
-            scheme = self.__InitializeScheme(strategy_data)
-            self.__InitializeStrategyData(strategy_data, linear_system)
-            self.__BuildEffectiveSystem(scheme, strategy_data)
-            self.__SolveLinearSystem(strategy_data)
-            scheme.Update(strategy_data)
-            self.__StorePrimarySolution(id, strategy_data)
+            self.__SolveLoad(id, scheme, strategy_data, solve)
 
     def __StorePrimarySolution(self, id, strategy_data):
         dx = strategy_data.GetLinearSystem().GetVector(KratosMultiphysics.Future.DenseVectorTag.Dx)
@@ -136,18 +134,6 @@ class MultiLoadConstraintAnalysis(AnalysisStage):
 
     def GetFinalData(self):
         return self.combination_solutions
-
-    def __SolveLinearSystem(self, strategy_data):
-        effective_system = strategy_data.GetEffectiveLinearSystem()
-        solver = self.__GetLinearSolver()
-        solver.Initialize(effective_system)
-        solver.InitializeSolutionStep(effective_system)
-        solver.PerformSolutionStep(effective_system)
-        solver.FinalizeSolutionStep(effective_system)
-        solver.Clear()
-
-    def __GetLinearSolver(self):
-        return KratosMultiphysics.Future.SkylineLUFactorizationSolver()
         
     def __ApplyFixities(self):
         KratosMultiphysics.Logger.PrintInfo("::[MultiLoadConstraintAnalysis]::", "Applying fixities")
@@ -178,7 +164,6 @@ class MultiLoadConstraintAnalysis(AnalysisStage):
         scheme = KratosMultiphysics.Future.StaticScheme(self.main_model_part, self.scheme_settings)
         scheme.Initialize(strategy_data) #initialize the scheme (will reset lhs, rhs and dx...)
         return scheme
-
 
     def __CreateProcess(self, process_definition):
 
@@ -248,3 +233,49 @@ class MultiLoadConstraintAnalysis(AnalysisStage):
     def __ReleaseFixities(self):
         for dof in self.dofset:
             dof.Free()
+
+    def __PrepareEffectiveLinearSystem(self, reference_rhs):
+        lhs = self.__GetRawLHS()
+        rhs = reference_rhs.copy()
+        rhs.SetValue(0.0) #not sure if really necessary
+
+        dx = KratosMultiphysics.SystemVector(rhs.Size())
+        linear_system = self.__CreateLinearSystem(lhs, rhs, dx)
+
+        strategy_data = self.__CreateStrategyData()
+        scheme = self.__InitializeScheme(strategy_data)
+        self.__InitializeStrategyData(strategy_data, linear_system)
+
+        self.__BuildEffectiveSystem(scheme, strategy_data)
+
+        return scheme, strategy_data
+
+    def __FactorizeEffectiveLHS(self, strategy_data):
+        effective_system = strategy_data.GetEffectiveLinearSystem()
+
+        lhs_eff = effective_system.GetMatrix(KratosMultiphysics.Future.SparseMatrixTag.LHS)
+
+        lhs_eff_scipy = KratosMultiphysics.scipy_conversion_tools.to_csr(lhs_eff)
+        factors = scipy.sparse.linalg.factorized(lhs_eff_scipy.tocsc())
+        return factors
+
+    def __SolveLoad(self, load_id, scheme, strategy_data, solve):
+        rhs = self.__GetRHS(load_id)
+
+        effective_system = strategy_data.GetEffectiveLinearSystem()
+        rhs_eff = effective_system.GetVector(KratosMultiphysics.Future.DenseVectorTag.RHS)
+        dx_eff = effective_system.GetVector(KratosMultiphysics.Future.DenseVectorTag.Dx)
+
+        rhs_eff.SetValue(0.0)
+        dx_eff.SetValue(0.0)
+
+        T = strategy_data.GetEffectiveT()
+        T.TransposeSpMV(rhs, rhs_eff)
+
+        x_eff = solve(np.array(rhs_eff))
+
+        for i, value in enumerate(x_eff):
+            dx_eff[i] = value
+
+        scheme.CalculateUpdateVector(strategy_data)
+        self.__StorePrimarySolution(load_id, strategy_data)
