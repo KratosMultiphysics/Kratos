@@ -11,13 +11,13 @@ Follow Kratos conventions as used throughout `kratos/` and `applications/`.
 
 | Symbol | Convention | Example |
 |--------|-----------|---------|
-| Classes / types | `PascalCase` | `TotalLagrangianElement` |
+| Classes / types | `PascalCase` | `MyCustomElement` |
 | Kratos interface methods | `PascalCase` | `CalculateLocalSystem`, `GetDofList` |
 | Free functions / local vars | `snake_case` | `compute_volume` |
 | Member variables | `m` prefix | `mThickness`, `mConstitutiveLaw` |
 | Reference parameters | `r` prefix | `rModelPart`, `rCurrentProcessInfo` |
 | Pointer parameters | `p` prefix | `pElement`, `pNode` |
-| Constants / Kratos variables | follow existing project style | `DISPLACEMENT`, `TEMPERATURE` |
+| Constants / Kratos variables | follow existing project style | matches the name of the physical/state field it represents |
 
 ## File Layout
 
@@ -59,7 +59,7 @@ void MyProcess::Execute() {
 
 - **Never** use raw `new` / `delete`.
 - Use `Kratos::shared_ptr`, `Kratos::unique_ptr`, and Kratos pointer macros/type aliases.
-- Use Kratos type aliases instead of raw STL/primitive types where available: `IndexType`, `SizeType`, `MatrixType`, `VectorType`, etc.
+- Prefer Kratos's own type aliases over raw STL/primitive types where one is already defined for the purpose.
 - Do **not** use `using namespace std;` globally.
 
 ## Elements and Conditions

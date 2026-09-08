@@ -1,20 +1,22 @@
 ---
-description: "Use when building the project, running tests, or working with VS Code tasks in Kratos Multiphysics. Covers configure scripts, environment variables, and available VS Code task shortcuts."
+name: build
+description: "Use when building Kratos or running its compiled tests. The configure scripts are the required entry point for compiling this repository."
 ---
 
-# Build System and VS Code Tasks — Kratos Multiphysics
+# Building Kratos Multiphysics
 
-## Primary Build Entrypoints
-
-**Never** use ad-hoc `cmake` commands as the default path. Always use the wrapper scripts:
+**Never** use ad-hoc `cmake` commands. Always go through the configure scripts:
 
 | Platform | Template script | Personalized copy |
 |----------|----------------|-------------------|
 | Linux    | `scripts/standard_configure.sh` | `build/configure.sh` |
 | Windows  | `scripts/standard_configure.bat` | `build/configure.bat` |
 
-The personalized copy (`build/configure.*`) is what the VS Code `Build` task invokes.
-Copy the template, set your compilers and desired applications, and use that copy locally.
+Copy the template once into `build/configure.*`, set compilers/applications there, then always
+build through that personalized copy.
+
+That's sufficient for almost every task. The rest of this file is only needed when a task
+requires changing the compilation mode, applications built, or another configure option.
 
 ## What the Configure Scripts Do
 
@@ -46,30 +48,6 @@ Key CMake flags passed inside the configure scripts:
 | `KRATOS_BUILD_BENCHMARK=ON` | Compile Google Benchmark binaries |
 | `USE_MPI=ON` | Enable MPI-parallel builds |
 | `USE_EIGEN_MKL=ON` | Link Eigen against Intel MKL |
-
-## VS Code Tasks
-
-Prefer existing tasks from `.vscode/tasks.json` over custom commands.
-
-### Build
-
-| Task | Purpose |
-|------|---------|
-| `Build` | Configure + compile (build type and generator selectable) |
-| `MPI Build` | Build with `USE_MPI=ON` |
-
-### Run / Test
-
-| Task | Purpose |
-|------|---------|
-| `Run Tests` | Run the full Python test suite |
-| `Run CurrentFile` | Run the currently open Python file with correct env |
-| `Run C++ Tests` | Run all C++ GTest suites via `run_cpp_tests.py` |
-| `Run C++ Test Suite` | Run a specific GTest executable (e.g. `KratosCoreTest`) |
-| `Run C++ Test Suite Filtered` | Run with `--gtest_filter=*<pattern>*` |
-| `Run Current Benchmark file to JSON` | Run a benchmark and write JSON output |
-
-If a suitable task exists, use it instead of inventing custom command flows.
 
 ## Generated / Versioned Artifacts — Do Not Edit
 

@@ -20,11 +20,12 @@ full API to Python via **pybind11**.
 ├── AGENTS.md                          # This file — project overview and global rules
 ├── .github/
 │   ├── copilot-instructions.md        # Thin pointer to /AGENTS.md
-│   ├── instructions/                  # Path-scoped convention files (see index below)
-│   ├── prompts/                       # Reusable task prompts
-│   ├── agents/                        # Custom agent personas
-│   ├── skills/                        # On-demand multi-step workflow skills
 │   └── workflows/                     # GitHub Actions CI definitions
+├── agents/                            # Harness-agnostic agent instructions (see index below)
+│   ├── instructions/                  # Always-relevant convention files
+│   ├── skills/                        # On-demand workflows (build, ci-cd, scaffold-application)
+│   ├── prompts/                       # Reusable task prompts
+│   └── reviewers/                     # Custom agent personas
 ├── kratos/                            # Core framework (C++ & Python)
 │   ├── includes/                      # Public headers (checks.h, expect.h, define.h, …)
 │   ├── sources/                       # Core C++ implementation
@@ -111,7 +112,7 @@ full API to Python via **pybind11**.
 | `Element`          | Finite element — implements `CalculateLocalSystem`, etc.                    |
 | `Condition`        | Boundary condition entity                                                   |
 | `Process`          | Encapsulates an operation on a `ModelPart`                                  |
-| `Variable`         | Typed data field (e.g., `DISPLACEMENT`, `TEMPERATURE`)                      |
+| `Variable`         | Typed data field for a physical or state quantity                          |
 | `ConstitutiveLaw`  | Material law abstraction                                                    |
 | `ProcessInfo`      | Stores solver-level metadata (time step, iteration count, etc.)             |
 | `Parameters`       | JSON-backed configuration object used for data-driven design                |
@@ -137,7 +138,7 @@ full API to Python via **pybind11**.
 When instructions conflict, use this order:
 
 1. **Direct user request**
-2. **`AGENTS.md` and `.github/instructions/` files**
+2. **`AGENTS.md` and `agents/instructions/` files**
 3. **Repository code and scripts (ground truth)**
 4. Generic conventions
 
@@ -229,14 +230,13 @@ Before finalizing a change:
 
 ## Detailed Conventions
 
-Topic-specific rules live in `.github/instructions/`. **Read the matching file before editing
-files of that kind.** GitHub Copilot loads these automatically from their `applyTo` globs; other
-agents should open them on demand using this index.
+Topic-specific rules live in `agents/instructions/`. **Read the matching file before editing
+files of that kind.** These aren't auto-loaded by any specific tool — open the matching file on
+demand using this index (a harness with its own auto-load mechanism may pick them up on its own
+if configured to scan this path).
 
 | File | Read when working on |
 |------|----------------------|
-| `build.instructions.md` | Building, running tests, configure scripts, VS Code tasks |
-| `ci-cd.instructions.md` | `.github/workflows/*.yml` |
 | `cmake.instructions.md` | `**/CMakeLists.txt` |
 | `cpp-conventions.instructions.md` | `**/*.cpp`, `**/*.h`, `**/*.hpp` |
 | `python-conventions.instructions.md` | `**/*.py`, `**/custom_python/**/*.cpp` |
@@ -246,13 +246,13 @@ agents should open them on demand using this index.
 
 ## Tool-Specific Extras
 
-Optional helpers, written in the GitHub Copilot file formats:
+Optional helpers, kept out of `.github/` so they're usable by any harness:
 
 | Path | Contents |
 |------|----------|
-| `.github/agents/` | Custom agent personas (e.g. `kratos-reviewer` — read-only convention reviewer) |
-| `.github/prompts/` | Reusable task prompts (scaffold a `Process`, scaffold a test) |
-| `.github/skills/` | Multi-step workflows (e.g. `scaffold-application`) |
+| `agents/reviewers/` | Custom agent personas (e.g. `kratos-reviewer` — read-only convention reviewer) |
+| `agents/prompts/` | Reusable task prompts (scaffold a `Process`, scaffold a test) |
+| `agents/skills/` | On-demand workflows: `build` (configure/compile), `ci-cd` (`.github/workflows/` changes), `scaffold-application` (new application skeleton) |
 
-Agents that don't understand these formats can still read the files as plain Markdown and ignore
-the YAML frontmatter — the instructions inside are tool-neutral.
+Agents that don't understand the YAML frontmatter used in some of these files can still read them
+as plain Markdown and ignore it — the instructions inside are tool-neutral.

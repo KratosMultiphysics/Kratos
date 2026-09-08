@@ -110,18 +110,11 @@ BENCHMARK_MAIN();
 
 ## MPI Tests
 
-- Use the dedicated VS Code tasks `Run C++ Tests` / `Run Tests` with MPI variants.
-- Keep `OMP_NUM_THREADS=1` consistent with existing tasks and CI configuration.
-- MPI test runner scripts are present under `bin/<BuildType>/KratosMultiphysics/testing/`.
+- Run `bin/<BuildType>/KratosMultiphysics/testing/run_cpp_mpi_tests.py` (the serial equivalent is `run_cpp_tests.py` in the same folder).
+- Keep `OMP_NUM_THREADS=1` consistent with the CI configuration.
 
 ## Running Tests Locally
 
-Prefer the VS Code tasks rather than ad-hoc commands:
-
-| Task | Purpose |
-|------|---------|
-| `Run Tests` | All Python test suites |
-| `Run C++ Tests` | All C++ GTest suites |
-| `Run C++ Test Suite` | Specific GTest executable |
-| `Run C++ Test Suite Filtered` | Filtered GTest run |
-| `Run Current Benchmark file to JSON` | Single benchmark executable |
+- Python: `python3 bin/<BuildType>/KratosMultiphysics/run_tests.py` (see `build.instructions.md`/`build` skill for the required `PYTHONPATH`/`LD_LIBRARY_PATH` environment).
+- C++: run the built GTest binary directly, e.g. `bin/<BuildType>/KratosCoreTest --gtest_filter=*<pattern>*`, or via `run_cpp_tests.py` for the full serial suite.
+- Prefer the most specific test/filter available before running a full suite.
