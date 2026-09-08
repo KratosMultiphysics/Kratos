@@ -83,8 +83,7 @@ namespace Kratos:: Python
 
     //ADDED BY PAOLO (next two)
 
-    template< typename TSpaceType >
-    double Dot(TSpaceType& dummy, typename TSpaceType::VectorType& rX, typename TSpaceType::VectorType& rY)
+    double Dot(SparseSpaceType& dummy, SparseSpaceType::VectorType& rX, SparseSpaceType::VectorType& rY)
     {
         return dummy.Dot(rX, rY);
     }
@@ -103,8 +102,7 @@ namespace Kratos:: Python
         dummy.Mult(rA, rX, rY);
     }
 
-    template< typename TSpaceType >
-    void TransposeMult(TSpaceType& dummy, typename TSpaceType::MatrixType& rA, typename TSpaceType::VectorType& rX, typename TSpaceType::VectorType& rY)
+    void TransposeMult(SparseSpaceType& dummy, SparseSpaceType::MatrixType& rA, SparseSpaceType::VectorType& rX, SparseSpaceType::VectorType& rY)
     //rY=A*rX (the product is stored inside the rY)
     {
         dummy.TransposeMult(rA, rX, rY);
@@ -164,8 +162,7 @@ namespace Kratos:: Python
         dummy.Clear(x);
     }
 
-    template< typename TSpaceType >
-    double TwoNorm(TSpaceType& dummy, typename TSpaceType::VectorType& x)
+    double TwoNorm(SparseSpaceType& dummy, SparseSpaceType::VectorType& x)
     {
         return dummy.TwoNorm(x);
     }
