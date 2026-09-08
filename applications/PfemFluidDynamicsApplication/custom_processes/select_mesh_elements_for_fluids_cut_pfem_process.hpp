@@ -321,7 +321,7 @@ namespace Kratos
                     if (dimension == 3 && accepted && numrigid < 3 &&
                         (previouslyIsolatedNodes == 4 || previouslyFreeSurfaceNodes == 4 || sumIsolatedFreeSurf == 4 || numfreesurf == 4 || numisolated == 4 || (numrigid == 2 && isolatedNodesInTheElement > 1)))
                     {
-                        this->ControlSliverElements(accepted, vertices, nodesCoordinates, CriticalVolume);
+                        this->ControlSliverElements(accepted, nodesCoordinates, CriticalVolume);
                     }
 
                     if (accepted)

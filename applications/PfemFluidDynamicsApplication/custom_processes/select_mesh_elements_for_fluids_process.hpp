@@ -340,7 +340,7 @@ namespace Kratos
                     if (dimension == 3 && accepted && numrigid < 3 &&
                         (previouslyIsolatedNodes == 4 || previouslyFreeSurfaceNodes == 4 || sumIsolatedFreeSurf == 4 || numfreesurf == 4 || numisolated == 4 || (numrigid == 2 && isolatedNodesInTheElement > 1)))
                     {
-                        ControlSliverElements(accepted, vertices, nodesCoordinates, CriticalVolume);
+                        ControlSliverElements(accepted, nodesCoordinates, CriticalVolume);
                     }
 
                     if (accepted)
@@ -701,7 +701,6 @@ namespace Kratos
         }
 
         void ControlSliverElements(bool &accepted,
-                                   const Geometry<Node> vertices,
                                    const std::array<array_1d<double, 3>, 4> nodesCoordinates,
                                    const double CriticalVolume)
         {
