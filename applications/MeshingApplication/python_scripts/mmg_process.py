@@ -356,7 +356,8 @@ class MmgProcess(KratosMultiphysics.Process):
         else:
             self.initialize_metric = MeshingApplication.MetricFastInit3D(self.main_model_part)
 
-        self.initialize_metric.Execute()
+        if not self.strategy == "custom": # In a custom strategy the metric is initialized outside this process
+            self.initialize_metric.Execute()
 
         self._CreateMetricsProcess()
 
@@ -400,10 +401,16 @@ class MmgProcess(KratosMultiphysics.Process):
         self.step = 0
         self.time = 0.0
 
-        # We compute initial remeshing is desired
+        #TODO refine mesh if initial remeshing is desired and the simulation was restarted
+        if self.main_model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED]:
+            self.main_model_part.Set(KratosMultiphysics.MODIFIED, False)
+
+        # We refine mesh if initial remeshing is desired
         if self.initial_remeshing:
             if not self.main_model_part.Is(KratosMultiphysics.MODIFIED):
+                KratosMultiphysics.ModelPartIO("before_remeshing", KratosMultiphysics.IO.WRITE | KratosMultiphysics.IO.MESH_ONLY).WriteModelPart(self.main_model_part)
                 self._ExecuteRefinement()
+                KratosMultiphysics.ModelPartIO("after_remeshing", KratosMultiphysics.IO.WRITE | KratosMultiphysics.IO.MESH_ONLY).WriteModelPart(self.main_model_part)
             else:
                 self.main_model_part.Set(KratosMultiphysics.MODIFIED, False)
 
@@ -936,7 +943,8 @@ def _check_strategy(strategy):
         "levelset",
         "optimization",
         "superconvergent_patch_recovery",
-        "spr"
+        "spr",
+        "custom"
     ]
     if strategy in strategies_list:
         return strategy
