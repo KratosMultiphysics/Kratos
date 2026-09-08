@@ -15,8 +15,7 @@
 #include "solving_strategies/builder_and_solvers/p_multigrid/noop_constraint_assembler.hpp" // NoOpConstraintAssembler
 #include "solving_strategies/builder_and_solvers/p_multigrid/master_slave_constraint_assembler.hpp" // MasterSlaveConstraintAssembler
 #include "solving_strategies/builder_and_solvers/p_multigrid/augmented_lagrange_constraint_assembler.hpp" // AugmentedLagrangeConstraintAssembler
-#include "spaces/ublas_space.h" // TDefaultSparseSpace, TDefaultDenseSpace
-#include "spaces/default_spaces.h"
+#include "spaces/ublas_space.h" // TUblasSparseSpace, TUblasDenseSpace
 
 
 namespace Kratos {
@@ -50,9 +49,9 @@ ConstraintAssemblerFactory(Parameters Settings,
 #define KRATOS_INSTANTIATE_CONSTRAINT_ASSEMBLER_FACTORY(TSparse, TDense)                                                        \
     template ConstraintAssembler<TSparse,TDense>::Pointer ConstraintAssemblerFactory<TSparse,TDense>(Parameters, std::string&&)
 
-KRATOS_INSTANTIATE_CONSTRAINT_ASSEMBLER_FACTORY(TDefaultSparseSpace<double>, TDefaultDenseSpace<double>);
+KRATOS_INSTANTIATE_CONSTRAINT_ASSEMBLER_FACTORY(TUblasSparseSpace<double>, TUblasDenseSpace<double>);
 
-KRATOS_INSTANTIATE_CONSTRAINT_ASSEMBLER_FACTORY(TDefaultSparseSpace<float>, TDefaultDenseSpace<double>);
+KRATOS_INSTANTIATE_CONSTRAINT_ASSEMBLER_FACTORY(TUblasSparseSpace<float>, TUblasDenseSpace<double>);
 
 #undef KRATOS_INSTANTIATE_CONSTRAINT_ASSEMBLER_FACTORY
 

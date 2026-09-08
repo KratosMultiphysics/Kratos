@@ -16,8 +16,7 @@
 #include "solving_strategies/builder_and_solvers/p_multigrid/sparse_utilities.hpp" // CSRHashMap, CSRHashSet
 #include "geometries/geometry_data.h" // GeometryData
 #include "geometries/geometry.h" // Geometry
-#include "spaces/ublas_space.h" // TDefaultSparseSpace
-#include "spaces/default_spaces.h"
+#include "spaces/ublas_space.h" // TUblasSparseSpace
 #include "includes/lock_object.h" // LockObject
 
 // System includes
@@ -306,7 +305,7 @@ template <unsigned OrderReduction, class TValue>
 void MakePRestrictionOperator(ModelPart& rModelPart,
                               const std::size_t FineSystemSize,
                               const PointerVectorSet<Dof<double>>& rParentIndirectDofSet,
-                              typename TDefaultSparseSpace<TValue>::MatrixType& rRestrictionOperator,
+                              typename TUblasSparseSpace<TValue>::MatrixType& rRestrictionOperator,
                               const VariablesList::Pointer& rpVariableList,
                               std::vector<detail::DofData>& rDofSet,
                               PointerVectorSet<Dof<double>>& rIndirectDofSet,
@@ -317,7 +316,7 @@ void MakePRestrictionOperator(ModelPart& rModelPart,
 
     KRATOS_TRY
 
-    using GlobalIndex = typename TDefaultSparseSpace<TValue>::MatrixType::size_type;
+    using GlobalIndex = typename TUblasSparseSpace<TValue>::MatrixType::size_type;
     using LocalIndex = std::uint8_t;
 
     // Construct an extended representation of the restriction operator.
@@ -484,7 +483,7 @@ void MakePRestrictionOperator(ModelPart& rModelPart,
     KRATOS_ERROR_IF_NOT(rows.size() == i_coarse_dof);
 
     // Resize the restriction operator.
-    rRestrictionOperator = typename TDefaultSparseSpace<TValue>::MatrixType(i_coarse_dof, FineSystemSize, entry_count);
+    rRestrictionOperator = typename TUblasSparseSpace<TValue>::MatrixType(i_coarse_dof, FineSystemSize, entry_count);
     KRATOS_CATCH("")
 
     // todo

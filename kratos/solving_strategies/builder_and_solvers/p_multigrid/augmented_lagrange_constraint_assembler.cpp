@@ -15,8 +15,7 @@
 #include "solving_strategies/builder_and_solvers/p_multigrid/sparse_utilities.hpp" // MapRowContribution, BalancedProduct
 #include "solving_strategies/builder_and_solvers/p_multigrid/constraint_utilities.hpp" // ProcessMasterSlaveConstraint, ProcessMultifreedomConstraint, detail::MakeRelationTopology
 #include "solving_strategies/builder_and_solvers/p_multigrid/diagonal_scaling.hpp" // Scaling
-#include "spaces/ublas_space.h" // TDefaultSparseSpace, TDefaultDenseSpace
-#include "spaces/default_spaces.h"
+#include "spaces/ublas_space.h" // TUblasSparseSpace, TUblasDenseSpace
 #include "utilities/sparse_matrix_multiplication_utility.h" // SparseMatrixMultiplicationUtility
 
 // STL includes
@@ -510,9 +509,9 @@ AugmentedLagrangeConstraintAssembler<TSparse,TDense>::GetTransposeRelationMatrix
 }
 
 
-template class AugmentedLagrangeConstraintAssembler<TDefaultSparseSpace<double>,TDefaultDenseSpace<double>>;
+template class AugmentedLagrangeConstraintAssembler<TUblasSparseSpace<double>,TUblasDenseSpace<double>>;
 
-template class AugmentedLagrangeConstraintAssembler<TDefaultSparseSpace<float>,TDefaultDenseSpace<double>>;
+template class AugmentedLagrangeConstraintAssembler<TUblasSparseSpace<float>,TUblasDenseSpace<double>>;
 
 
 } // namespace Kratos
