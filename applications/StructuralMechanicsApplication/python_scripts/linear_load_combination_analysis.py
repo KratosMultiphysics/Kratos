@@ -253,6 +253,7 @@ class LinearLoadCombinationAnalysis(AnalysisStage):
     def __FactorizeEffectiveLHS(self, strategy_data):
         effective_system = strategy_data.GetEffectiveLinearSystem()
 
+        #TODO: Change back to Kratos solver in the future
         lhs_eff = effective_system.GetMatrix(KratosMultiphysics.Future.SparseMatrixTag.LHS)
 
         lhs_eff_scipy = KratosMultiphysics.scipy_conversion_tools.to_csr(lhs_eff)
