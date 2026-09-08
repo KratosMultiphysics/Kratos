@@ -7,6 +7,8 @@ from KratosMultiphysics.GeoMechanicsApplication.gid_output_file_reader import (
     GiDOutputFileReader,
 )
 
+end_time = 1.0
+
 
 def nodes_of_model_part(model, model_part_name):
     return [node.Id for node in model.GetModelPart(model_part_name).Nodes]
@@ -45,8 +47,6 @@ class KratosGeoMechanicsSeepageTests(KratosUnittest.TestCase):
         output_data = reader.read_output_from(
             os.path.join(file_path, "three_element_seepage_test.post.res")
         )
-
-        end_time = 1.0
 
         # Verify that top boundary nodes have seepage condition applied
         top_node_ids = nodes_of_model_part(model, "PorousDomain.top_boundary")
