@@ -45,6 +45,7 @@ class HRomTrainingUtility(object):
         self.projection_strategy = settings["projection_strategy"].GetString()
         self.hrom_output_format = settings["hrom_format"].GetString()
         self.include_minimum_condition = settings["include_minimum_condition"].GetBool()
+        self.include_element_children = settings["include_element_children"].GetBool()
         self.include_condition_parents = settings["include_condition_parents"].GetBool()
         self.num_of_right_rom_dofs = self.rom_settings["number_of_rom_dofs"].GetInt()
         self.constraint_sum_weights =  settings["constraint_sum_weights"].GetBool()
@@ -293,6 +294,7 @@ class HRomTrainingUtility(object):
             "include_nodal_neighbouring_elements_model_parts_list":[],
             "include_minimum_condition": false,
             "include_condition_parents": false,
+            "include_element_children": true,
             "constraint_sum_weights": true,
             "svd_type": "numpy_rsvd"
         }""")
@@ -421,6 +423,19 @@ class HRomTrainingUtility(object):
             for parent_id in missing_condition_parents:
                 hrom_weights["Elements"][parent_id] = 0.0
             weights, indexes = self.__AddSelectedElementsWithZeroWeights(weights,indexes, missing_condition_parents)
+
+        if self.include_element_children:
+            KratosMultiphysics.Logger.PrintWarning("HRomTrainingUtility", 'Make sure you set "assign_neighbour_elements_to_conditions": true in the solver_settings to have a parent element for each condition.')
+
+            # Get the HROM condition parents from the current HROM weights
+            missing_element_children = KratosROM.RomAuxiliaryUtilities.GetHRomElementChildrenIds(
+                self.solver.GetComputingModelPart().GetRootModelPart(), #TODO: I think this one should be the root
+                hrom_weights)
+
+            # Add the missing children to the elements dict with a null weight
+            for parent_id in missing_condition_parents:
+                hrom_weights["Elements"][parent_id] = 0.0
+            weights, indexes = self.__AddSelectedConditionsWithZeroWeights(weights, indexes, missing_element_children, number_of_elements)
 
         if self.hrom_output_format=="numpy":
             element_indexes = np.where(indexes < number_of_elements)[0]
