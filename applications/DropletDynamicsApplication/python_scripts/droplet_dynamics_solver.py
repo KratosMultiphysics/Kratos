@@ -883,7 +883,7 @@ class DropletDynamicsSolver(PythonSolver):  # Before, it was derived from Navier
         return self._consistent_nodal_pressure_gradient_process
 
     def _CreateConsistentNodalPressureGradientProcess(self):
-        consistent_nodal_pressure_gradient_process = KratosCFD.CalulateLevelsetConsistentNodalGradientProcess(
+        consistent_nodal_pressure_gradient_process = KratosCFD.CalculateLevelsetConsistentNodalGradientProcess(
                 self.main_model_part)
 
         return consistent_nodal_pressure_gradient_process

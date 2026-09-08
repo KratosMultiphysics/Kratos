@@ -1,0 +1,34 @@
+{
+  "element_condition_list": [
+    {
+      "brep_ids": [ 2 ],
+      "geometry_type": "GeometrySurface",
+      "iga_model_part": "StructuralAnalysis_1",
+      "parameters": {
+        "type": "element",
+        "name": "Shell3pElement",
+        "shape_function_derivatives_order": 3
+      }
+    },
+    {
+      "brep_ids": [ 4 ],
+      "geometry_type": "SurfaceEdge",
+      "iga_model_part": "Load_4",
+      "parameters": {
+        "type": "condition",
+        "name": "LoadCondition",
+        "shape_function_derivatives_order": 2
+      }
+    },
+    {
+      "brep_ids": [ 6 ],
+      "geometry_type": "SurfaceEdge",
+      "iga_model_part": "Support_3",
+      "parameters": {
+        "type": "condition",
+        "name": "SupportPenaltyCondition",
+        "shape_function_derivatives_order": 2
+      }
+    }
+  ]
+}

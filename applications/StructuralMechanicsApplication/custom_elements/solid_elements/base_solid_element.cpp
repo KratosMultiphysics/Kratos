@@ -1606,7 +1606,10 @@ void BaseSolidElement::RotateToLocalAxes(
             rValues.GetStrainVector() = prod(voigt_rotation_matrix, rValues.GetStrainVector());
         } else if (strain_size == 3) {
             BoundedMatrix<double, 3, 3> voigt_rotation_matrix;
-            ConstitutiveLawUtilities<3>::CalculateRotationOperatorVoigt(rotation_matrix, voigt_rotation_matrix);
+            // the 2D Voigt operator is built from the in-plane 2x2 block of
+            // the rotation system (the utility expects a 2x2 matrix)
+            const BoundedMatrix<double, 2, 2> rotation_matrix_2d = subrange(rotation_matrix, 0, 2, 0, 2);
+            ConstitutiveLawUtilities<3>::CalculateRotationOperatorVoigt(rotation_matrix_2d, voigt_rotation_matrix);
             rValues.GetStrainVector() = prod(voigt_rotation_matrix, rValues.GetStrainVector());
         }
     } else { // Rotate F
@@ -1650,7 +1653,10 @@ void BaseSolidElement::RotateToGlobalAxes(
         }
     } else if (strain_size == 3) {
         BoundedMatrix<double, 3, 3> voigt_rotation_matrix;
-        ConstitutiveLawUtilities<3>::CalculateRotationOperatorVoigt(rotation_matrix, voigt_rotation_matrix);
+        // the 2D Voigt operator is built from the in-plane 2x2 block of the
+        // rotation system (the utility expects a 2x2 matrix)
+        const BoundedMatrix<double, 2, 2> rotation_matrix_2d = subrange(rotation_matrix, 0, 2, 0, 2);
+        ConstitutiveLawUtilities<3>::CalculateRotationOperatorVoigt(rotation_matrix_2d, voigt_rotation_matrix);
         rValues.GetStrainVector() = prod(trans(voigt_rotation_matrix), rValues.GetStrainVector());
         if (stress_option)
             rValues.GetStressVector() = prod(trans(voigt_rotation_matrix), rValues.GetStressVector());

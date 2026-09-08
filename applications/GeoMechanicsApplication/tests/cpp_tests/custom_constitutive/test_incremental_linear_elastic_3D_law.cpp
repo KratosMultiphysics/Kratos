@@ -13,16 +13,26 @@
 
 #include "custom_constitutive/incremental_linear_elastic_law.h"
 #include "custom_constitutive/three_dimensional.h"
+#include "custom_utilities/ublas_utilities.h"
+#include "geo_mechanics_application_variables.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
-
-#include <boost/numeric/ublas/assignment.hpp>
 
 namespace
 {
 
 using namespace Kratos;
+using namespace std::string_literals;
 
-Vector Calculate3DStress(GeoIncrementalLinearElasticLaw& rConstitutiveLaw)
+Properties SetBasicPropertiesFor3D()
+{
+    Properties properties;
+    properties.SetValue(YOUNG_MODULUS, 1.0e7);
+    properties.SetValue(POISSON_RATIO, 0.3);
+    properties.SetValue(GEO_DRAINAGE_TYPE, "FULLY_COUPLED"s);
+    return properties;
+}
+
+Vector Calculate3DStress(GeoIncrementalLinearElasticLaw& rConstitutiveLaw, const Properties& rProperties)
 {
     ConstitutiveLaw::Parameters parameters;
     parameters.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
@@ -37,10 +47,7 @@ Vector Calculate3DStress(GeoIncrementalLinearElasticLaw& rConstitutiveLaw)
     Matrix constitutive_matrix;
     parameters.SetConstitutiveMatrix(constitutive_matrix);
 
-    Properties properties;
-    properties.SetValue(YOUNG_MODULUS, 1.0e7);
-    properties.SetValue(POISSON_RATIO, 0.3);
-    parameters.SetMaterialProperties(properties);
+    parameters.SetMaterialProperties(rProperties);
 
     rConstitutiveLaw.CalculateMaterialResponsePK2(parameters);
 
@@ -92,14 +99,59 @@ KRATOS_TEST_CASE_IN_SUITE(GeoIncrementalLinearElastic3DLawReturnsExpectedWorking
     KRATOS_EXPECT_EQ(law.WorkingSpaceDimension(), 3);
 }
 
+KRATOS_TEST_CASE_IN_SUITE(GeoIncrementalLinearElastic3DLaw_ReturnsTrueForStenbergShearStabilizationSuitability,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    auto law         = CreateIncrementalLinearElastic3DLaw();
+    auto is_suitable = false;
+
+    // Act
+    auto& r_value = law.GetValue(STENBERG_SHEAR_STABILIZATION_SUITABLE, is_suitable);
+
+    // Assert
+    KRATOS_EXPECT_EQ(&r_value, &is_suitable);
+    KRATOS_EXPECT_TRUE(is_suitable)
+}
+
+KRATOS_TEST_CASE_IN_SUITE(GeoIncrementalLinearElastic3DLaw_CopyAssignmentCopiesInternalState,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Act
+    auto       law        = CreateIncrementalLinearElastic3DLaw();
+    const auto properties = SetBasicPropertiesFor3D();
+    auto       stress     = Calculate3DStress(law, properties);
+
+    auto assigned_law = law;
+
+    auto initial_parameters = ConstitutiveLaw::Parameters{};
+    auto initial_strain     = Vector{ScalarVector{6, 0.5}};
+    initial_parameters.SetStrainVector(initial_strain);
+    auto initial_stress = Vector{ScalarVector{6, 1e6}};
+    initial_parameters.SetStressVector(initial_stress);
+    initial_parameters.SetMaterialProperties(properties);
+    law.InitializeMaterialResponseCauchy(initial_parameters);
+    const auto stress_after_initialization = Calculate3DStress(law, properties);
+
+    // Act
+    const auto stress_assigned_law = Calculate3DStress(assigned_law, properties);
+
+    // Assert
+    constexpr auto tolerance = 1.0e-4;
+    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(stress, stress_assigned_law, tolerance)
+    KRATOS_EXPECT_FALSE((std::abs((stress_after_initialization[0] - stress[0]) / stress[0]) <= tolerance))
+}
+
 KRATOS_TEST_CASE_IN_SUITE(GeoIncrementalLinearElastic3DLawReturnsExpectedStress, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     auto law = CreateIncrementalLinearElastic3DLaw();
 
-    const auto stress = Calculate3DStress(law);
+    const auto properties = SetBasicPropertiesFor3D();
 
-    Vector expected_stress{6};
-    expected_stress <<= 2.5e+07, 2.5e+07, 2.5e+07, 3.84615e+06, 3.84615e+06, 3.84615e+06;
+    const auto stress = Calculate3DStress(law, properties);
+
+    const auto expected_stress =
+        UblasUtilities::CreateVector({2.5e+07, 2.5e+07, 2.5e+07, 3.84615e+06, 3.84615e+06, 3.84615e+06});
     KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(expected_stress, stress, 1e-3);
 }
 
@@ -109,10 +161,12 @@ KRATOS_TEST_CASE_IN_SUITE(GeoIncrementalLinearElastic3DLawReturnsExpectedStress_
     auto law = CreateIncrementalLinearElastic3DLaw();
     law.SetConsiderDiagonalEntriesOnlyAndNoShear(true);
 
-    const auto stress = Calculate3DStress(law);
+    const auto properties = SetBasicPropertiesFor3D();
 
-    Vector expected_stress{6};
-    expected_stress <<= 1.34615e+07, 1.34615e+07, 1.34615e+07, 0, 0, 0;
+    const auto stress = Calculate3DStress(law, properties);
+
+    const auto expected_stress =
+        UblasUtilities::CreateVector({1.34615e+07, 1.34615e+07, 1.34615e+07, 0, 0, 0});
     KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(expected_stress, stress, 1e-3);
 }
 
@@ -126,12 +180,16 @@ KRATOS_TEST_CASE_IN_SUITE(GeoIncrementalLinearElastic3DLawReturnsExpectedStress_
     parameters.SetStrainVector(initial_strain);
     auto initial_stress = Vector{ScalarVector{6, 1e6}};
     parameters.SetStressVector(initial_stress);
+
+    const auto properties = SetBasicPropertiesFor3D();
+    parameters.SetMaterialProperties(properties);
+
     law.InitializeMaterialResponseCauchy(parameters);
 
-    const auto stress = Calculate3DStress(law);
+    const auto stress = Calculate3DStress(law, properties);
 
-    Vector expected_stress{6};
-    expected_stress <<= 1.35e+07, 1.35e+07, 1.35e+07, 2.92308e+06, 2.92308e+06, 2.92308e+06;
+    const auto expected_stress =
+        UblasUtilities::CreateVector({1.35e+07, 1.35e+07, 1.35e+07, 2.92308e+06, 2.92308e+06, 2.92308e+06});
     KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(expected_stress, stress, 1e-3);
 }
 
@@ -145,18 +203,21 @@ KRATOS_TEST_CASE_IN_SUITE(GeoIncrementalLinearElastic3DLawReturnsExpectedStress_
     initial_parameters.SetStrainVector(initial_strain);
     auto initial_stress = Vector{ScalarVector{6, 1e6}};
     initial_parameters.SetStressVector(initial_stress);
+    const auto properties = SetBasicPropertiesFor3D();
+    initial_parameters.SetMaterialProperties(properties);
+
     law.InitializeMaterialResponseCauchy(initial_parameters);
 
-    auto stress = Calculate3DStress(law);
+    auto stress = Calculate3DStress(law, properties);
 
     ConstitutiveLaw::Parameters final_parameters;
     auto                        final_strain = Vector{ScalarVector{6, 1.3}};
     final_parameters.SetStrainVector(final_strain);
-    law.FinalizeMaterialResponseCauchy(final_parameters);
-    stress = Calculate3DStress(law);
+    law.FinalizeMaterialResponsePK2(final_parameters);
+    stress = Calculate3DStress(law, properties);
 
-    Vector expected_stress{6};
-    expected_stress <<= 6e+06, 6e+06, 6e+06, 1.76923e+06, 1.76923e+06, 1.76923e+06;
+    const auto expected_stress =
+        UblasUtilities::CreateVector({6e+06, 6e+06, 6e+06, 1.76923e+06, 1.76923e+06, 1.76923e+06});
     KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(expected_stress, stress, 1e-3);
 }
 
@@ -170,25 +231,30 @@ KRATOS_TEST_CASE_IN_SUITE(GeoIncrementalLinearElastic3DLawReturnsExpectedStress_
     initial_parameters.SetStrainVector(initial_strain);
     auto initial_stress = Vector{ScalarVector{6, 1e6}};
     initial_parameters.SetStressVector(initial_stress);
+    const auto properties = SetBasicPropertiesFor3D();
+    initial_parameters.SetMaterialProperties(properties);
+
     law.InitializeMaterialResponseCauchy(initial_parameters);
 
-    const Properties     properties;
     const Geometry<Node> geometry;
     const Vector         shape_functions_values;
 
     law.ResetMaterial(properties, geometry, shape_functions_values);
 
-    auto stress = Calculate3DStress(law);
+    auto stress = Calculate3DStress(law, properties);
 
-    Vector expected_stress{6};
-    expected_stress <<= 2.5e+07, 2.5e+07, 2.5e+07, 3.84615e+06, 3.84615e+06, 3.84615e+06;
+    const auto expected_stress =
+        UblasUtilities::CreateVector({2.5e+07, 2.5e+07, 2.5e+07, 3.84615e+06, 3.84615e+06, 3.84615e+06});
     KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(expected_stress, stress, 1e-3);
 }
 
-#ifdef KRATOS_DEBUG
-KRATOS_TEST_CASE_IN_SUITE(GeoIncrementalLinearElastic3DLawThrows_WhenElementProvidedStrainIsSetToFalse,
+KRATOS_TEST_CASE_IN_SUITE(GeoIncrementalLinearElastic3DLawRaisesADebugError_WhenElementProvidedStrainIsSetToFalse,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
+#ifndef KRATOS_DEBUG
+    GTEST_SKIP() << "This test requires a debug build";
+#endif
+
     auto law = CreateIncrementalLinearElastic3DLaw();
 
     ConstitutiveLaw::Parameters parameters;
@@ -197,6 +263,5 @@ KRATOS_TEST_CASE_IN_SUITE(GeoIncrementalLinearElastic3DLawThrows_WhenElementProv
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(law.CalculateMaterialResponsePK2(parameters),
                                       "The GeoLinearElasticLaw needs an element provided strain");
 }
-#endif
 
 } // namespace Kratos::Testing

@@ -55,10 +55,12 @@ void CreateEntitiesFromGeometries(
     // Loop geometries to create the corresponding entities from them
     // Note that we retrieve the corresponding prototype entity from the entities idenfifier
     // This makes possible to loop and create entities from different type geometries
-    for (auto& r_geom : rModelPart.Geometries()) {
-        if (rEntityIdentifier.HasPrototypeEntity(r_geom)) {
-            const auto& r_ref_entity = rEntityIdentifier.GetPrototypeEntity(r_geom);
-            auto p_entity = r_ref_entity.Create(++max_id, r_geom, nullptr);
+    for (auto it = rModelPart.GeometriesBegin();
+        it != rModelPart.GeometriesEnd(); ++it) {
+        auto p_geom = *(it.base());
+        if (rEntityIdentifier.HasPrototypeEntity(*p_geom)) {
+            const auto& r_ref_entity = rEntityIdentifier.GetPrototypeEntity(*p_geom);
+            auto p_entity = r_ref_entity.Create(++max_id, p_geom, nullptr);
             entities_to_add.push_back(p_entity);
         }
     }

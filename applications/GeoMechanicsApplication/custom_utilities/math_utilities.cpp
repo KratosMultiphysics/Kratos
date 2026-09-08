@@ -12,7 +12,7 @@
 
 #include <algorithm>
 
-#include "math_utilities.h"
+#include "math_utilities.hpp"
 #include "utilities/math_utils.h"
 
 namespace Kratos

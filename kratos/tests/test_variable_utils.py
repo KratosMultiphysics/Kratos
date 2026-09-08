@@ -356,6 +356,31 @@ class TestVariableUtils(KratosUnittest.TestCase):
             self.assertFalse(cond.Has(KratosMultiphysics.DISPLACEMENT))
             self.assertFalse(cond.Has(KratosMultiphysics.VISCOSITY))
 
+    def test_clear_historical_values(self):
+        ## Set the model part
+        current_model = KratosMultiphysics.Model()
+        model_part = current_model.CreateModelPart("Main")
+        model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VISCOSITY)
+        model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
+        model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY)
+        model_part_io = KratosMultiphysics.ModelPartIO(GetFilePath("auxiliar_files_for_python_unittest/mdpa_files/test_model_part_io_read"))
+        model_part_io.ReadModelPart(model_part)
+
+        ## Initialize the variable values
+        for node in model_part.Nodes:
+            node.SetSolutionStepValue(KratosMultiphysics.VISCOSITY, node.Id)
+            node.SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT, [node.Id, 2.0 * node.Id, 3.0 * node.Id])
+
+        # Clear the nodes historical data
+        KratosMultiphysics.VariableUtils().ClearHistoricalData(model_part)
+
+        ## Verify the result
+        for node in model_part.Nodes:
+            self.assertEqual(node.GetSolutionStepValue(KratosMultiphysics.VISCOSITY), 0.0)
+            self.assertEqual(node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X), 0.0)
+            self.assertEqual(node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y), 0.0)
+            self.assertEqual(node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Z), 0.0)
+
     def test_set_flag(self):
         current_model = KratosMultiphysics.Model()
 

@@ -125,6 +125,12 @@ public:
     ///@name Operations
     ///@{
 
+    /// @copydoc Process::Create
+    Process::Pointer Create(
+        Model& rModel,
+        Parameters ThisParameters
+        ) override;
+
     /**
      * @brief Initialize method
      * This method calls the base discontinuous distance process initialize method

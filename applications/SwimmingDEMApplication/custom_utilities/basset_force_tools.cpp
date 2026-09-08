@@ -146,7 +146,7 @@ void BassetForceTools::FillDaitcheVectors(const int N, const int order, const in
 //**************************************************************************************************************************************************
 //**************************************************************************************************************************************************
 // This method precalculates values needed for the implementation of the method described by van Hinsberg et al. (2011)
-// The method requires the determination of m numbers ai and m other numbers ti which determine m exponentials.The sum of these exponentials is unsed as an approximation to the tail of the Basset kernel
+// The method requires the determination of m numbers ai and m other numbers ti which determine m exponentials.The sum of these exponentials is used as an approximation to the tail of the Basset kernel
 // In the following particular values of these numbers are presented up to m = 10. These numbers were obtained by Casas and Ferrer (2016)
 void BassetForceTools::FillHinsbergVectors(ModelPart& r_model_part, const int m, const int n_quad_delta_times_window)
 {
@@ -464,7 +464,7 @@ void BassetForceTools::FillHinsbergVectors(ModelPart& r_model_part, const int m,
     const double e = std::exp(1);
 
     for (int i = 0; i < m; i++){
-        Ts[i] *= mTimeWindow;  // here we recover the dimensional tis from the non-dimensional tis (which are idependent of the time_window)
+        Ts[i] *= mTimeWindow;  // here we recover the dimensional tis from the non-dimensional tis (which are independent of the time_window)
         Alphas[i] = std::sqrt(e / Ts[i]);
         Betas[i] = - 0.5 / Ts[i];
     }

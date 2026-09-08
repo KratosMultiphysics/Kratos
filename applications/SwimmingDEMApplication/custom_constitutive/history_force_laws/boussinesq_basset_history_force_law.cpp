@@ -516,7 +516,7 @@ namespace Kratos {
             }
         }
 
-        else { // intermediate step: the time assigned to the tail has not changed (only an exponential factor is needed to correct fot the changing current time, which affects the approximate kernel)
+        else { // intermediate step: the time assigned to the tail has not changed (only an exponential factor is needed to correct for the changing current time, which affects the approximate kernel)
 
             for (int i = 0; i < m; ++i){
                 const double ti = Ts[i];
@@ -543,7 +543,7 @@ namespace Kratos {
     }
 
 
-    // Definition os static variables ( this probably neds to me moved to the .h file )
+    // Definition of static variables ( this probably needs to be moved to the .h file )
     std::vector<double> BoussinesqBassetHistoryForceLaw::mAjs;
     std::vector<double> BoussinesqBassetHistoryForceLaw::mBns;
     std::vector<double> BoussinesqBassetHistoryForceLaw::mCns;

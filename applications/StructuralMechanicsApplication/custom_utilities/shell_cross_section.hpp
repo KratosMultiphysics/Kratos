@@ -478,7 +478,7 @@ public:
             const double offset = GetOffset(rProps);
 
             for (int i=0; i<mPlyIndex+1; ++i) {
-                double ply_thickness = GetThickness(rProps);
+                double ply_thickness = ShellUtilities::GetThickness(rProps, i);
                 my_location = current_location - ply_thickness*0.5 - offset;
                 current_location -= ply_thickness;
             }

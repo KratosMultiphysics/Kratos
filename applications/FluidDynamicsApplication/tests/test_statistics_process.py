@@ -64,4 +64,5 @@ class IntegrationPointStatisticsTest(UnitTest.TestCase):
         analysis.Run()
 
 if __name__ == '__main__':
+    km.Logger.GetDefaultOutput().SetSeverity(km.Logger.Severity.WARNING)
     UnitTest.main()

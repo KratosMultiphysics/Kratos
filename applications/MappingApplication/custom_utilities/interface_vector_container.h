@@ -49,12 +49,28 @@ public:
 
     typedef Kratos::unique_ptr<TSystemVectorType> TSystemVectorUniquePointerType;
 
+    enum class InterfaceEntityType {
+        NODES,
+        ELEMENTS,
+        CONDITIONS,
+        GEOMETRIES
+    };
+
     ///@}
     ///@name Life Cycle
     ///@{
 
+
     /// Default constructor.
-    explicit InterfaceVectorContainer(ModelPart& rModelPart) : mrModelPart(rModelPart) {}
+    explicit InterfaceVectorContainer(ModelPart& rModelPart)
+        : InterfaceVectorContainer(rModelPart, InterfaceEntityType::NODES)
+    {}
+
+    /// Constructor with entity type
+    InterfaceVectorContainer(ModelPart& rModelPart, InterfaceEntityType EntityType)
+        : mrModelPart(rModelPart)
+        , mInterfaceEntityType(EntityType)
+    {}
 
     /// Destructor.
     virtual ~InterfaceVectorContainer() = default;
@@ -99,8 +115,8 @@ public:
 private:
     ///@name Member Variables
     ///@{
-
     ModelPart& mrModelPart;
+    InterfaceEntityType mInterfaceEntityType = InterfaceEntityType::NODES;
     TSystemVectorUniquePointerType mpInterfaceVector = nullptr;
 
     ///@}

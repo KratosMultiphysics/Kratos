@@ -20,6 +20,12 @@ The application provides the following direct sparse solvers:
 | ComplexPardisoLLTSolver  | `pardiso_llt_complex`  | SPD*        | Complex  | Intel® MKL   |
 | ComplexPardisoLDLTSolver | `pardiso_ldlt_complex` | SPD*        | Complex  | Intel® MKL   |
 | ComplexPardisoLUSolver   | `pardiso_lu_complex`   | Square      | Complex  | Intel® MKL   |
+| CholmodSolver            | `cholmod`              | SPD*        | Real     | SuiteSparse  |
+| UmfPackSolver            | `umfpack`              | Square      | Real     | SuiteSparse  |
+| ComplexUmfPackSolver     | `umfpack_complex`      | Square      | Complex  | SuiteSparse  |
+| SPQRSolver               | `spqr`                 | Rectangular | Real     | SuiteSparse  |
+| ComplexSPQRSolver        | `spqr_complex`         | Rectangular | Complex  | SuiteSparse  |
+
 
 *SPD = Symmetric Positive Definite
 
@@ -205,3 +211,35 @@ To enable the MKL environment (needs to be done before build/run) use
 ```console
 source /opt/intel/oneapi/setvars.sh intel64
 ```
+
+## Enable *SuiteSparse* (optional)
+
+[*SuiteSparse*](https://github.com/DrTimothyAldenDavis/SuiteSparse) is a collection of open-source sparse matrix algorithms, including efficient implementations of various factorizations. *Kratos* currently provides wrappers for *CHOLMOD*, *UMFPACK*, and *SPQR*.
+
+Install the *SuiteSparse* package on your system, and set the `USE_EIGEN_SUITESPARSE` flag in your *CMake* configuration to `ON`. One way of doing this is appending the list of arguments you pass to *CMake* in your configure script with:
+```bash
+-DUSE_EIGEN_SUITESPARSE:BOOL=ON
+```
+
+### Installing *SuiteSparse*
+
+- Arch Linux
+   -  *SuiteSparse* is [available](https://archlinux.org/packages/extra/x86_64/suitesparse/) through your package manager.
+   - `sudo pacman -S suitesparse`
+
+- Debian (and derivatives, including Ubuntu)
+   - *SuiteSparse* is [available](https://packages.debian.org/sid/libsuitesparse-dev) through your package manager.
+   - `sudo apt install libsuitesparse-dev`
+
+- Fedora (and derivatives, including RHEL)
+   - *SuiteSparse* is [available](https://packages.fedoraproject.org/pkgs/suitesparse/suitesparse-devel/) through your package manager.
+   - `sudo dnf install suitesparse-devel`
+
+- MacOS
+    - *SuiteSparse* is [available](https://formulae.brew.sh/formula/suite-sparse) on *Homebrew* for both Intel and Apple Silicon machines.
+    - `brew install suite-sparse`
+
+- Windows
+  - *SuiteSparse* is available through [*vcpkg*](https://vcpkg.io/en/package/suitesparse) and [*MSYS2*](https://packages.msys2.org/packages/mingw-w64-x86_64-suitesparse) package managers.
+  - `vcpkg install suitesparse suitesparse-spqr suitesparse-umfpack` (remember to add to build script `-DCMAKE_TOOLCHAIN_FILE="vcpkg_path\vcpkg\scripts\buildsystems\vcpkg.cmake"`)
+  - `pacman -S mingw-w64-x86_64-suitesparse`

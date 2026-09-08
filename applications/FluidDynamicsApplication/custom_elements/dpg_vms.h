@@ -450,16 +450,17 @@ public:
 	    ElementBaseType::CalculateLocalVelocityContribution(rDampingMatrix, rRightHandSideVector, rCurrentProcessInfo);
 
 	    //compute boundary term
-	    int boundary_nodes = 0;
+	    // int boundary_nodes = 0;
 	    //unsigned int inside_index = -1;
-	    for (unsigned int i = 0; i < TNumNodes; i++)
-	    {
-	      double nd_flag = this->GetGeometry()[i].FastGetSolutionStepValue(FLAG_VARIABLE);
-	      if (nd_flag == 5.0)
-		boundary_nodes++;
-	      //else
-		//inside_index = i;
-	    }
+        
+	    // for (unsigned int i = 0; i < TNumNodes; i++)
+	    // {
+	    //   double nd_flag = this->GetGeometry()[i].FastGetSolutionStepValue(FLAG_VARIABLE);
+	    //   if (nd_flag == 5.0)
+		// boundary_nodes++;
+	    //   //else
+		// //inside_index = i;
+	    // }
 
 
 	/*  if(boundary_nodes == TDim)
@@ -573,7 +574,6 @@ public:
 //         Vector enrichment_terms_horizontal = ZeroVector(LocalSize);
 //         double enrichment_diagonal = 0.0;
 //         double enriched_rhs = 0.0;
-        array_1d<double,3> bf = ZeroVector(3);
 
         //double positive_volume = 0.0;
         //double negative_volume = 0.0;

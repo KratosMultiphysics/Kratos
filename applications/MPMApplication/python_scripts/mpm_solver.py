@@ -84,7 +84,6 @@ class MPMSolver(PythonSolver):
                 "verbosity" : 0,
                 "tolerance": 1e-7,
                 "scaling": false,
-                "block_size": 3,
                 "use_block_matrices_if_possible" : true,
                 "coarse_enough" : 50
             }
@@ -141,6 +140,7 @@ class MPMSolver(PythonSolver):
 
         # Generate material points
         self._GenerateMaterialPoint()
+        self._GetSolutionStrategy().Initialize()
 
         KratosMultiphysics.Logger.PrintInfo("::[MPMSolver]:: ","Solver is initialized correctly.")
 
@@ -153,13 +153,12 @@ class MPMSolver(PythonSolver):
         return new_time
 
     def InitializeSolutionStep(self):
-        self._SearchElement()
-        self._GetSolutionStrategy().Initialize()
-
-        #clean nodal values and map from MPs to nodes
+        
         self._GetSolutionStrategy().InitializeSolutionStep()
 
     def Predict(self):
+        self._SearchElement()
+        #clean nodal values and map from MPs to nodes
         self._GetSolutionStrategy().Predict()
 
     def SolveSolutionStep(self):
@@ -313,19 +312,17 @@ class MPMSolver(PythonSolver):
 
     def _ModelPartReading(self):
         # reading the model part of the background grid
-        if(self.settings["grid_model_import_settings"]["input_type"].GetString() == "mdpa"):
-            self._ImportModelPart(self.grid_model_part, self.settings["grid_model_import_settings"])
+        if (self.settings["grid_model_import_settings"]["input_type"].GetString() == "rest"):
+            raise Exception("\"input_type\" cannot be equal to \"rest\" for background grid model part")
         else:
-            raise Exception("Other input options are not implemented yet.")
+            self._ImportModelPart(self.grid_model_part, self.settings["grid_model_import_settings"])
 
         # reading the model part of the material point
-        if(self.settings["model_import_settings"]["input_type"].GetString() == "mdpa"):
-            self._ImportModelPart(self.initial_mesh_model_part, self.settings["model_import_settings"])
-        elif(self.settings["model_import_settings"]["input_type"].GetString() == "rest"):
+        if (self.settings["model_import_settings"]["input_type"].GetString() == "rest"):
             self.settings["model_import_settings"]["input_filename"].SetString("MPM_Material")
             self._ImportModelPart(self.material_point_model_part, self.settings["model_import_settings"])
         else:
-            raise Exception("Other input options are not implemented yet.")
+            self._ImportModelPart(self.initial_mesh_model_part, self.settings["model_import_settings"])
 
     def _AddDofsToModelPart(self, model_part):
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_X, KratosMultiphysics.REACTION_X, model_part)
@@ -520,7 +517,7 @@ class MPMSolver(PythonSolver):
         # this function avoids the long call to ProcessInfo and is also safer
         # in case the detection of a restart is changed later
         return self.material_point_model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED]
-    
+
 # TODO: Remove this temporary fix once PR #13376 is merged
 def _SetProcessInfo(target_model_part: KratosMultiphysics.ModelPart,
                     process_info: KratosMultiphysics.ProcessInfo) -> None:

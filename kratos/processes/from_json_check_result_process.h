@@ -10,8 +10,7 @@
 //  Main authors:    Vicente Mataix Ferrandiz
 //
 
-#if !defined(KRATOS_FROM_JSON_CHECK_RESULT_PROCESS_H_INCLUDED )
-#define  KRATOS_FROM_JSON_CHECK_RESULT_PROCESS_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -72,21 +71,26 @@ public:
     KRATOS_DEFINE_LOCAL_FLAG( ELEMENTS_DATABASE_INITIALIZED );  /// This flag is used in order to check that elements database are initialized
 
     /// Containers definition
-    typedef ModelPart::NodesContainerType              NodesArrayType;
-    typedef ModelPart::ElementsContainerType        ElementsArrayType;
+    using NodesArrayType = ModelPart::NodesContainerType;
+    using ElementsArrayType = ModelPart::ElementsContainerType;
 
-    /// The node type definiton
-    typedef Node NodeType;
+    /// The node type definition
+    using NodeType = Node;
 
     /// The definition of the index type
-    typedef std::size_t IndexType;
+    using IndexType = std::size_t;
 
-    /// The definition of the sizetype
-    typedef std::size_t SizeType;
+    /// The definition of the size type
+    using SizeType = std::size_t;
 
     ///@}
     ///@name Life Cycle
     ///@{
+
+    /**
+     * @brief Default constructor.
+     */
+    FromJSONCheckResultProcess() = default;
 
     /**
      * @brief Default constructor.
@@ -123,6 +127,20 @@ public:
     ///@}
     ///@name Operations
     ///@{
+
+    /**
+     * @brief This method creates an pointer of the process
+     * @details We consider as input a Model and a set of Parameters for the sake of generality
+     * @param rModel The model to be consider
+     * @param ThisParameters The configuration parameters
+     */
+    Process::Pointer Create(
+        Model& rModel,
+        Parameters ThisParameters
+        ) override
+    {
+        return Kratos::make_shared<FromJSONCheckResultProcess>(rModel, ThisParameters);
+    }
 
     /**
      * @brief This function is designed for being called at the beginning of the computations right after reading the model and the groups
@@ -354,23 +372,30 @@ protected:
     FromJSONCheckResultProcess(ModelPart& rModelPart, Parameters Settings, Parameters DefaultSettings);
 
     ///@}
-
 private:
+    ///@name Static Member Variables
+    ///@{
+
+    /// Registry current operation
+    KRATOS_REGISTRY_ADD_PROTOTYPE("Processes.KratosMultiphysics", Process, FromJSONCheckResultProcess)
+    KRATOS_REGISTRY_ADD_PROTOTYPE("Processes.All", Process, FromJSONCheckResultProcess)
+
+    ///@}
     ///@name Member Variables
     ///@{
 
     /* Model part and different settings */
-    ModelPart& mrModelPart;         /// The main model part
-    Parameters mThisParameters;     /// The parameters (can be used for general pourposes)
+    ModelPart* mpModelPart = nullptr; /// The main model part pointer
+    Parameters mThisParameters;       /// The parameters (can be used for general pourposes)
 
     /* Additional values */
-    double mFrequency;              /// The check frequency
-    double mRelativeTolerance;      /// The relative tolerance
-    double mAbsoluteTolerance;      /// The absolute tolerance
-    SizeType mRelevantDigits;       /// This is the number of relevant digits
+    double mFrequency;                /// The check frequency
+    double mRelativeTolerance;        /// The relative tolerance
+    double mAbsoluteTolerance;        /// The absolute tolerance
+    SizeType mRelevantDigits;         /// This is the number of relevant digits
 
     /* Counters */
-    double mTimeCounter = 0.0;      /// A time counter
+    double mTimeCounter = 0.0;        /// A time counter
 
     /* The entities of the containers */
     NodesArrayType mNodesArray;       /// The nodes of study
@@ -432,7 +457,4 @@ inline std::ostream& operator << (std::ostream& rOStream,
 }
 ///@}
 
-
 }  // namespace Kratos.
-
-#endif // KRATOS_FROM_JSON_CHECK_RESULT_PROCESS_H_INCLUDED  defined

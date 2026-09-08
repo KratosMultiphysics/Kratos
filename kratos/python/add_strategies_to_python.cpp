@@ -501,10 +501,12 @@ namespace Kratos:: Python
         .def(py::init< LinearSolverType::Pointer, Parameters > ())
         ;
 
-        typedef ResidualBasedBlockBuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType > ResidualBasedBlockBuilderAndSolverType;
+        using ResidualBasedBlockBuilderAndSolverType = ResidualBasedBlockBuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType >;
         py::class_< ResidualBasedBlockBuilderAndSolverType, ResidualBasedBlockBuilderAndSolverType::Pointer,BuilderAndSolverType>(m,"ResidualBasedBlockBuilderAndSolver")
         .def(py::init< LinearSolverType::Pointer > ())
         .def(py::init< LinearSolverType::Pointer, Parameters > ())
+        .def("IsConstantConstraints", &ResidualBasedBlockBuilderAndSolverType::IsConstantConstraints)
+        .def("SetConstantConstraints", &ResidualBasedBlockBuilderAndSolverType::SetConstantConstraints)
         ;
 
         typedef ResidualBasedBlockBuilderAndSolverWithLagrangeMultiplier< SparseSpaceType, LocalSpaceType, LinearSolverType > ResidualBasedBlockBuilderAndSolverWithLagrangeMultiplierType;

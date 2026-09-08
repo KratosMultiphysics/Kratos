@@ -331,11 +331,16 @@ void BuildElementSizeRotationMatrixFor3D3NTruss(
     BoundedMatrix<double, 9, 9>& rElementSizeRotationMatrix);
 
 /**
- * @brief This function computes the inclination angle of a 2 noded beam
+ * @brief This function computes the reference inclination angle of a 2 noded beam
  * @param rGeometry The geometry of the beam
- * It assumes 3 dofs per node: u,v,theta
  */
 double GetReferenceRotationAngle2D2NBeam(const GeometryType &rGeometry);
+
+/**
+ * @brief This function computes the current inclination angle of a 2 noded beam
+ * @param rGeometry The geometry of the beam
+ */
+double GetCurrentRotationAngle2D2NBeam(const GeometryType& rGeometry);
 
 /**
  * @brief This function computes the inclination angle of a 3 noded beam
@@ -357,11 +362,11 @@ void InitializeConstitutiveLawValuesForStressCalculation(ConstitutiveLaw::Parame
     Vector& rStrainVector, Vector& rStressVector);
 
 /**
- * @brief This function builds a Frenet-Serret rotation matrix from local to global in 3D
+ * @brief This function builds a Frenet-Serret rotation matrix from global to local in 3D
  * This is valid for STRAIGHT lines
  * @param rGeometry: The geometry of the line element
  */
-BoundedMatrix<double, 3, 3> GetFrenetSerretMatrix3D(const GeometryType& rGeometry);
+BoundedMatrix<double, 3, 3> GetFrenetSerretMatrix3D(const GeometryType& rGeometry, const bool UseCurrentConfiguration = false);
 
 } // namespace StructuralMechanicsElementUtilities.
 }  // namespace Kratos.

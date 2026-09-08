@@ -12,7 +12,7 @@
 
 /** @file hdf5_data_set_partition_utility.h
  *  @brief Methods for setting and retrieving information about a partition table.
- *   
+ *
  *   The partition table describes how a data set is divided across partitions.
  */
 
@@ -42,22 +42,16 @@ namespace HDF5
 /// Write the start and end indices of data blocks (by process rank).
 /**
  * Performs collective write.
- * 
+ *
  * @param[in] rInfo Information returned by file after writing a data set.
  */
-void WritePartitionTable(File& rFile, std::string const& rPath, WriteInfo const& rInfo);
-
-/// Write a user-defined partition table of start and end indices (by process rank).
-/**
- * Performs independent write.
- */
-void WritePartitionTableIndependent(File& rFile, std::string const& rPath, Vector<int> const& rPartition);
+void KRATOS_API(HDF5_APPLICATION) WritePartitionTable(File& rFile, std::string const& rPath, WriteInfo const& rInfo);
 
 // Check if a path has a data set partition.
-bool HasPartitionTable(File& rFile, std::string const& rPath);
+bool KRATOS_API(HDF5_APPLICATION) HasPartitionTable(File& rFile, std::string const& rPath);
 
 // Get the start index and block size from an existing partition for this PID.
-std::tuple<unsigned, unsigned> StartIndexAndBlockSize(File& rFile, std::string const& rPath);
+std::tuple<unsigned, unsigned> KRATOS_API(HDF5_APPLICATION) StartIndexAndBlockSize(File& rFile, std::string const& rPath);
 
 ///@} addtogroup
 } // namespace HDF5.

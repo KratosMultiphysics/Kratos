@@ -19,6 +19,7 @@
 
 /* Project includes */
 #include "includes/table_accessor.h"
+#include "includes/database_accessor.h"
 #include "includes/properties.h"
 #include "includes/kratos_parameters.h"
 

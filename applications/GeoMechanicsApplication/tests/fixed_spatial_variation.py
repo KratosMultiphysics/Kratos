@@ -1,6 +1,7 @@
 import os
 
 import KratosMultiphysics.KratosUnittest as KratosUnittest
+from KratosMultiphysics.GeoMechanicsApplication.gid_output_file_reader import GiDOutputFileReader
 import test_helper
 
 
@@ -19,7 +20,7 @@ class KratosGeoMechanicsFixedSpatialVariationTests(KratosUnittest.TestCase):
         file_path = test_helper.get_file_path(test_name)
         test_helper.run_kratos(file_path)
         result_file_name = os.path.join(file_path, test_name + '.post.res')
-        reader = test_helper.GiDOutputFileReader()
+        reader = GiDOutputFileReader()
         actual_data = reader.read_output_from(result_file_name)
 
         top_nodes = [3, 4, 7]

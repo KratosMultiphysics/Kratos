@@ -84,7 +84,6 @@ void RegisterTrilinosLinearSolvers()
     KRATOS_REGISTER_TRILINOS_LINEAR_SOLVER("amesos2",        Amesos2SolverFactory);
     KRATOS_REGISTER_TRILINOS_LINEAR_SOLVER("klu2",           Amesos2SolverFactory);
     KRATOS_REGISTER_TRILINOS_LINEAR_SOLVER("mumps2",         Amesos2SolverFactory);
-    KRATOS_REGISTER_TRILINOS_LINEAR_SOLVER("mumsps2",        Amesos2SolverFactory); // NOTE: This is a typo, to be removed, keep it for retrocompatibility
     KRATOS_REGISTER_TRILINOS_LINEAR_SOLVER("super_lu_dist2", Amesos2SolverFactory);
     KRATOS_REGISTER_TRILINOS_LINEAR_SOLVER("basker",         Amesos2SolverFactory);
 #endif

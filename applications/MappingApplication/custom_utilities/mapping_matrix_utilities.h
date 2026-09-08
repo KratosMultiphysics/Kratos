@@ -42,6 +42,18 @@ static void BuildMappingMatrix(
     std::vector<Kratos::unique_ptr<MapperLocalSystem>>& rMapperLocalSystems,
     const int EchoLevel);
 
+static void BuildMappingMatrixRBFMapper(
+    Kratos::unique_ptr<typename TSparseSpace::MatrixType>& rpMappingMatrix,
+    Kratos::unique_ptr<typename TSparseSpace::VectorType>& rpInterfaceVectorOrigin,
+    Kratos::unique_ptr<typename TSparseSpace::VectorType>& rpInterfaceVectorDestination,
+    const ModelPart& rModelPartOrigin,
+    const ModelPart& rModelPartDestination,
+    std::vector<Kratos::unique_ptr<MapperLocalSystem>>& rMapperLocalSystems,
+    const IndexType NumberOfPolynomialTerms,
+    const bool BuildOriginInterpolationMatrix,
+    const bool OriginIsIga,
+    const int EchoLevel);
+
 static void CheckRowSum(
     const typename TSparseSpace::MatrixType& rM,
     const std::string& rBaseFileName,

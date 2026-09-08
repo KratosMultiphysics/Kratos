@@ -273,8 +273,8 @@ void LinearTimoshenkoBeamElement3D2N::RotateLHS(
     noalias(T) = GetConsistentFrenetSerretMatrix3D(rGeometry);
     AssembleGlobalRotationMatrix(T, global_size_T);
 
-    noalias(aux_product) = prod(rLHS, trans(global_size_T));
-    noalias(rLHS) = prod(global_size_T, aux_product);
+    noalias(aux_product) = prod(rLHS, global_size_T);
+    noalias(rLHS) = prod(trans(global_size_T), aux_product);
 }
 
 /***********************************************************************************/
@@ -291,7 +291,7 @@ void LinearTimoshenkoBeamElement3D2N::RotateRHS(
     noalias(local_rhs) = rRHS;
     noalias(T) = GetConsistentFrenetSerretMatrix3D(rGeometry);
     AssembleGlobalRotationMatrix(T, global_size_T);
-    noalias(rRHS) = prod(global_size_T, local_rhs);
+    noalias(rRHS) = prod(trans(global_size_T), local_rhs);
 }
 
 /***********************************************************************************/
@@ -310,10 +310,10 @@ void LinearTimoshenkoBeamElement3D2N::RotateAll(
 
     BoundedVector<double, 12> local_rhs;
     noalias(local_rhs) = rRHS;
-    noalias(rRHS) = prod(global_size_T, local_rhs);
+    noalias(rRHS) = prod(trans(global_size_T), local_rhs);
 
-    noalias(aux_product) = prod(rLHS, trans(global_size_T));
-    noalias(rLHS) = prod(global_size_T, aux_product);
+    noalias(aux_product) = prod(rLHS, global_size_T);
+    noalias(rLHS) = prod(trans(global_size_T), aux_product);
 }
 
 /***********************************************************************************/

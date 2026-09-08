@@ -2,6 +2,8 @@ import argparse
 import atexit
 import sys
 
+import KratosMultiphysics.GeoMechanicsApplication.context_managers as context_managers
+
 
 def _clean_up_api_object(api_object):
     del api_object
@@ -20,18 +22,19 @@ def run_stages(working_dir, project_parameters_filenames) -> int:
     )
     atexit.register(_clean_up_api_object, settlement_api)
 
-    for filename in project_parameters_filenames:
-        status = settlement_api.RunStage(
-            working_dir,
-            filename,
-            no_logging,
-            no_progress_reporting,
-            no_progress_message,
-            do_not_cancel,
-        )
-        if status != 0:
-            print(f"Running analysis stage failed: status = {status}")
-            return status
+    with context_managers.set_cwd_to(working_dir):
+        for filename in project_parameters_filenames:
+            status = settlement_api.RunStage(
+                working_dir,
+                filename,
+                no_logging,
+                no_progress_reporting,
+                no_progress_message,
+                do_not_cancel,
+            )
+            if status != 0:
+                print(f"Running analysis stage failed: status = {status}")
+                return status
 
     return 0
 

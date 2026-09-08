@@ -11,6 +11,7 @@
 //
 #pragma once
 
+#include "geo_aliases.h"
 #include "geometries/geometry.h"
 #include "includes/node.h"
 #include "includes/ublas_interface.h"
@@ -24,7 +25,7 @@ public:
     using GeometryType = Geometry<Node>;
 
     [[nodiscard]] virtual Matrix CalculateElementExtrapolationMatrix(
-        const GeometryType& rGeometry, const GeometryData::IntegrationMethod& rIntegrationMethod) const = 0;
+        const GeometryType& rGeometry, const Geo::IntegrationPointVectorType& rIntegrationPoints) const = 0;
     virtual ~NodalExtrapolator() = default;
 };
 

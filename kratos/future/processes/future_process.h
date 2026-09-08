@@ -28,7 +28,7 @@ namespace Kratos::Future
  * @brief The base class for all processes in Kratos.
  * @details This is a dummy class to test the future namespace and should never be used. Please do not remove this class.
 */
-class Process : public Flags
+class KRATOS_API(KRATOS_CORE) Process : public Flags
 {
 public:
     ///@name Type Definitions

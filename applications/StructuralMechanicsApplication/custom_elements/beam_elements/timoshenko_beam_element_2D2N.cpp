@@ -1061,4 +1061,36 @@ double LinearTimoshenkoBeamElement2D2N::GetCrossArea()
     return (strain_size == 3) ? r_props[CROSS_AREA] : r_props[THICKNESS];
 }
 
+void LinearTimoshenkoBeamElement2D2N::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_TRY
+
+    if (mConstitutiveLawVector.empty()) return;
+
+    const auto& r_geometry = GetGeometry();
+    const auto& r_properties = GetProperties();
+    const auto  length = CalculateLength();
+    const auto  phi= StructuralMechanicsElementUtilities::CalculatePhi(r_properties, length);
+    const auto& r_integration_points = IntegrationPoints(GetIntegrationMethod());
+    const auto  strain_size = mConstitutiveLawVector[0]->GetStrainSize();
+
+    VectorType nodal_values(GetDoFsPerNode() * r_geometry.size());
+    GetNodalValuesVector(nodal_values);
+
+    VectorType strain_vector(strain_size);
+    VectorType stress_vector(strain_size);
+    ConstitutiveLaw::Parameters cl_values(r_geometry, r_properties, rCurrentProcessInfo);
+    cl_values.GetOptions().Set(ConstitutiveLaw::COMPUTE_STRESS, true);
+    cl_values.SetStrainVector(strain_vector);
+    cl_values.SetStressVector(stress_vector);
+
+    for (auto integration_point = std::size_t{0}; integration_point < r_integration_points.size(); ++integration_point) {
+        if (!mConstitutiveLawVector[integration_point]->RequiresFinalizeMaterialResponse()) continue;
+        CalculateGeneralizedStrainsVector(strain_vector, length, phi, r_integration_points[integration_point].X(), nodal_values);
+        mConstitutiveLawVector[integration_point]->FinalizeMaterialResponse(cl_values, mConstitutiveLawVector[integration_point]->GetStressMeasure());
+    }
+
+    KRATOS_CATCH("")
+}
+
 } // Namespace Kratos

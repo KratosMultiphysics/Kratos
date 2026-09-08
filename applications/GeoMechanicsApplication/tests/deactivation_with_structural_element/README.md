@@ -1,6 +1,6 @@
 # Deactivation workflow test with a structural element
 
-This test consists of a single square UPwSmallStrainElement2D4N element with a LinearTrussElement2D2N from the StructuralMechanicsApplication directly attached to the right nodes of the square (no interfaces). It checks the deactivation/activation workflow of the structural element, combined with the `"input_type" : "rest"` option in the second stage.
+This test consists of a single square UPwSmallStrainElement2D4N element with a LinearTrussElement2D2N from the StructuralMechanicsApplication directly attached to the right nodes of the square (no interfaces). It checks the deactivation/activation workflow of the structural element, combined with the `"input_type" : "use_input_model_part"` option in the second stage.
 
 ## Setup
 

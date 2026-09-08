@@ -50,7 +50,7 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/** 
+/**
  * @ingroup ShallowWaterApplication
  * @class ApplyPerturbationFunctionProcess
  * @brief This process assigns a default value or a perturbation if the node is close to an influence area
@@ -79,14 +79,14 @@ public:
     ApplyPerturbationFunctionProcess(
         ModelPart& rThisModelPart,
         NodePointerType pNode,
-        TVarType& rThisVariable,
+        const TVarType& rThisVariable,
         Parameters& rThisParameters);
 
     /// Constructor with an array of nodes
     ApplyPerturbationFunctionProcess(
         ModelPart& rThisModelPart,
         NodesArrayType& rSourcePoints,
-        TVarType& rThisVariable,
+        const TVarType& rThisVariable,
         Parameters& rThisParameters);
 
     /// Destructor.
@@ -208,7 +208,7 @@ private:
 
     ModelPart& mrModelPart;
     NodesArrayType mSourcePoints;
-    TVarType& mrVariable;
+    const TVarType& mrVariable;
     double mDefaultValue;
     double mInfluenceDistance;
     double mPerturbation;

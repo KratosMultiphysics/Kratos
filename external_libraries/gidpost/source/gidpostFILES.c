@@ -148,7 +148,7 @@ static GP_CONST char * strElementType[]= {
   "Pyramid",
   "Sphere",
   "Circle",
-  "Cluster"
+  "Point" // <-- This stands for the cluster element type
 };
 
 GP_CONST char * GetElementTypeName( GiD_ElementType type )

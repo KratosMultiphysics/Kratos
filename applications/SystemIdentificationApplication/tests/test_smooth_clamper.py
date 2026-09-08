@@ -13,39 +13,42 @@ class TestSmoothClamper(UnitTest.TestCase):
         cls.max = 150
 
         for i in range(101):
-            node = cls.model_part.CreateNewNode(i + 1, i + 1, i + 2, i + 3)
+            node: Kratos.Node = cls.model_part.CreateNewNode(i + 1, i + 1, i + 2, i + 3)
             v = cls.min + float(i) * (cls.max - cls.min)  / 100.0
             node.SetValue(Kratos.PRESSURE, v)
 
-        cls.x_exp = Kratos.Expression.NodalExpression(cls.model_part)
-        Kratos.Expression.VariableExpressionIO.Read(cls.x_exp, Kratos.PRESSURE, False)
-        cls.x = cls.x_exp.Evaluate()
-        cls.clamper = KratosSI.NodeSmoothClamper(-10, 10)
+        cls.x_ta = Kratos.TensorAdaptors.VariableTensorAdaptor(cls.model_part.Nodes, Kratos.PRESSURE)
+        cls.x_ta.Check()
+        cls.x_ta.CollectData()
+        cls.clamper = KratosSI.SmoothClamper(-10, 10)
 
     def test_Clamp(self) -> None:
-        y = self.clamper.ProjectForward(self.x_exp).Evaluate()
-        for i, y_i in enumerate(y):
-            if self.x[i] < -10.0:
+        y = self.clamper.ProjectForward(self.x_ta)
+        for i, y_i in enumerate(y.data):
+            if self.x_ta.data[i] < -10.0:
                 self.assertEqual(y_i, -10.0)
-            elif self.x[i] > 10.0:
+            elif self.x_ta.data[i] > 10.0:
                 self.assertEqual(y_i, 10.0)
-        self.assertAlmostEqual(np.linalg.norm(y), 98.78158380993898)
+        self.assertAlmostEqual(np.linalg.norm(y.data), 98.78158380993898)
 
     def test_InverseClamp(self) -> None:
-        y = self.clamper.ProjectForward(self.x_exp)
-        x = self.clamper.ProjectBackward(y).Evaluate()
+        y = self.clamper.ProjectForward(self.x_ta)
+        x = self.clamper.ProjectBackward(y)
 
-        x_clamped = np.clip(self.x_exp.Evaluate(), -10, 10)
-        self.assertAlmostEqual(np.linalg.norm(x - x_clamped), 0.0)
+        x_clamped = np.clip(self.x_ta.data, -10, 10)
+        self.assertAlmostEqual(np.linalg.norm(x.data - x_clamped), 0.0)
 
     def test_ClampDerivative(self) -> None:
         delta = 1e-8
-        y_ref = self.clamper.ProjectForward(self.x_exp).Evaluate()
-        y = self.clamper.ProjectForward(self.x_exp + delta).Evaluate()
-        dy_dx = self.clamper.CalculateForwardProjectionGradient(self.x_exp).Evaluate()
+        y_ref = self.clamper.ProjectForward(self.x_ta)
 
-        for i, dy_dx in enumerate(dy_dx):
-            self.assertAlmostEqual(dy_dx, (y[i] - y_ref[i]) / delta, 5)
+        perturbed_x_ta = self.x_ta.Clone()
+        perturbed_x_ta.data[:] += delta
+        y = self.clamper.ProjectForward(perturbed_x_ta)
+        dy_dx = self.clamper.CalculateForwardProjectionGradient(self.x_ta)
+
+        for i, dy_dx in enumerate(dy_dx.data):
+            self.assertAlmostEqual(dy_dx, (y.data[i] - y_ref.data[i]) / delta, 5)
 
 if __name__ == '__main__':
     UnitTest.main()

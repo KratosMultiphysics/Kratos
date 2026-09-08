@@ -61,7 +61,7 @@ namespace Kratos
         //make a parallel clone of all the nodes
         IndexPartition<std::size_t>(mrModelPart.Nodes().size()).for_each([&](std::size_t Index){
             Node::Pointer& pnode = *(mrModelPart.Nodes().ptr_begin() + Index);
-            pnode = pnode->Clone();
+            pnode = pnode->Clone(pnode->Id());
         });
 
         IndexPartition<std::size_t>(mrModelPart.Elements().size()).for_each([&](std::size_t Index){

@@ -39,6 +39,7 @@ namespace Kratos
       virtual double GetSearchDistance                    (const ProcessInfo& r_process_info, ThermalSphericParticle* particle);
       virtual double ComputeHeatFlux                      (const ProcessInfo& r_process_info, ThermalSphericParticle* particle);
       virtual double FinalizeHeatFlux                     (const ProcessInfo& r_process_info, ThermalSphericParticle* particle);
+      virtual double ComputeEffectiveThermalConductivity  (const ProcessInfo& r_process_info, ThermalSphericParticle* particle);
 
       // Clone
       virtual HeatExchangeMechanism* CloneRaw() const {

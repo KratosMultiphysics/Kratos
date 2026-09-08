@@ -59,7 +59,7 @@ public:
   ///@name Type Definitions
   ///@{
 
-  enum { Dimension = TConfigure::Dimension };
+  constexpr static std::size_t Dimension = TConfigure::Dimension;
 
   typedef TConfigure                                    Configure;
   typedef typename TConfigure::PointType                PointType;
@@ -73,11 +73,10 @@ public:
   typedef TreeNode<Dimension, PointType, PointerType, IteratorType,  typename TConfigure::DistanceIteratorType> TreeNodeType;
 
   typedef typename TreeNodeType::CoordinateType         CoordinateType;  // double
-  typedef typename TreeNodeType::SizeType               SizeType;        // std::size_t
   typedef typename TreeNodeType::IndexType              IndexType;       // std::size_t
 
   typedef Tvector<CoordinateType,Dimension>             CoordinateArray;
-  typedef Tvector<SizeType,Dimension>                   SizeArray;
+  typedef Tvector<std::size_t,Dimension>                SizeArray;
   typedef Tvector<IndexType,Dimension>                  IndexArray;
 
   ///typedef TreeNodeType LeafType;
@@ -151,7 +150,7 @@ public:
   BinsObjectDynamic (const PointType& MinPoint, const PointType& MaxPoint, CoordinateType CellSize)
       : mObjectsSize(0), mObjectsBegin(0), mObjectsEnd(0) {
 
-    for(SizeType i = 0; i < Dimension; i++) {
+    for(std::size_t i = 0; i < Dimension; i++) {
       mMinPoint[i] = MinPoint[i];
       mMaxPoint[i] = MaxPoint[i];
     }
@@ -170,10 +169,10 @@ public:
    * @param MaxPoint Max point of the boundingbox containing the bins
    * @param NumPoints Expected number of elements in the bins
    */
-  BinsObjectDynamic (const PointType& MinPoint, const PointType& MaxPoint, SizeType NumPoints)
+  BinsObjectDynamic (const PointType& MinPoint, const PointType& MaxPoint, std::size_t NumPoints)
       : mObjectsSize(0), mObjectsBegin(0), mObjectsEnd(0) {
 
-    for(SizeType i = 0; i < Dimension; i++) {
+    for(std::size_t i = 0; i < Dimension; i++) {
       mMinPoint[i] = MinPoint[i];
       mMaxPoint[i] = MaxPoint[i];
     }
@@ -193,7 +192,7 @@ public:
    * @param  Result     [description]
    * @return            [description]
    */
-  SizeType SearchObjects(PointerType& ThisObject, ResultContainerType& Result) {
+  std::size_t SearchObjects(PointerType& ThisObject, ResultContainerType& Result) {
     PointType Low, High;
     SearchStructureType Box;
 
@@ -211,10 +210,10 @@ public:
    * @param  MaxNumberOfResults [description]
    * @return                    [description]
    */
-  SizeType SearchObjects(PointerType& ThisObject, ResultIteratorType& Result, const SizeType& MaxNumberOfResults) {
+  std::size_t SearchObjects(PointerType& ThisObject, ResultIteratorType& Result, const std::size_t& MaxNumberOfResults) {
     PointType Low, High;
     SearchStructureType Box;
-    SizeType NumberOfResults = 0;
+    std::size_t NumberOfResults = 0;
 
     TConfigure::CalculateBoundingBox(ThisObject, Low, High);
     Box.Set( CalculateCell(Low), CalculateCell(High), mN );
@@ -229,7 +228,7 @@ public:
    * @param  Result             [description]
    * @return                    [description]
    */
-  SizeType SearchObjectsInCell(const PointType& ThisPoint, ResultIteratorType Result) {
+  std::size_t SearchObjectsInCell(const PointType& ThisPoint, ResultIteratorType Result) {
     /// Missing API for 'SearchObjectsInCell' without 'MaxNumberOfResults'
     KRATOS_ERROR << "Missing implementation of SearchObjectsInCell(PointerType, ResultIteratorType)" << std::endl;
   }
@@ -241,7 +240,7 @@ public:
    * @param  MaxNumberOfResults [description]
    * @return                    [description]
    */
-  SizeType SearchObjectsInCell(const PointType& ThisPoint, ResultIteratorType Result, const SizeType& MaxNumberOfResults) {
+  std::size_t SearchObjectsInCell(const PointType& ThisPoint, ResultIteratorType Result, const std::size_t& MaxNumberOfResults) {
     IndexType icell = CalculateIndex(ThisPoint);
 
     if(mCells[icell].Size() < MaxNumberOfResults) {
@@ -250,7 +249,7 @@ public:
       }
       return mCells[icell].Size();
     } else {
-      return std::numeric_limits<SizeType>::max();
+      return std::numeric_limits<std::size_t>::max();
     }
   }
 
@@ -261,7 +260,7 @@ public:
    * @param  MaxNumberOfResults [description]
    * @return                    [description]
    */
-  SizeType SearchObjectsExclusive(PointerType& ThisObject, ResultIteratorType& Result) {
+  std::size_t SearchObjectsExclusive(PointerType& ThisObject, ResultIteratorType& Result) {
     PointType Low, High;
     SearchStructureType Box;
 
@@ -279,10 +278,10 @@ public:
    * @param  MaxNumberOfResults [description]
    * @return                    [description]
    */
-  SizeType SearchObjectsExclusive(PointerType& ThisObject, ResultIteratorType& Result, const SizeType& MaxNumberOfResults) {
+  std::size_t SearchObjectsExclusive(PointerType& ThisObject, ResultIteratorType& Result, const std::size_t& MaxNumberOfResults) {
     PointType Low, High;
     SearchStructureType Box;
-    SizeType NumberOfResults = 0;
+    std::size_t NumberOfResults = 0;
 
     TConfigure::CalculateBoundingBox(ThisObject, Low, High);
     Box.Set( CalculateCell(Low), CalculateCell(High), mN );
@@ -298,7 +297,7 @@ public:
    * @param  Results    [description]
    * @return            [description]
    */
-  SizeType SearchObjectsInRadius(PointerType& ThisObject, const double& Radius, ResultIteratorType& Results) {
+  std::size_t SearchObjectsInRadius(PointerType& ThisObject, const double& Radius, ResultIteratorType& Results) {
     /// Missing API for 'SearchObjectsInRadius' without 'MaxNumberOfResults'
     KRATOS_ERROR << "Missing implementation of SearchObjectsInRadius(PointerType, const double, ResultIteratorType)" << std::endl;
   }
@@ -311,10 +310,10 @@ public:
    * @param  MaxNumberOfResults [description]
    * @return                    [description]
    */
-  SizeType SearchObjectsInRadius(PointerType& ThisObject, const double& Radius, ResultIteratorType& Results, const SizeType& MaxNumberOfResults) {
+  std::size_t SearchObjectsInRadius(PointerType& ThisObject, const double& Radius, ResultIteratorType& Results, const std::size_t& MaxNumberOfResults) {
     PointType Low, High;
     SearchStructureType Box;
-    SizeType NumberOfResults = 0;
+    std::size_t NumberOfResults = 0;
 
     TConfigure::CalculateBoundingBox(ThisObject, Low, High, Radius);
     Box.Set( CalculateCell(Low), CalculateCell(High), mN );
@@ -331,7 +330,7 @@ public:
    * @param  ResultDistances [description]
    * @return                 [description]
    */
-  SizeType SearchObjectsInRadius(PointerType& ThisObject, const double& Radius, ResultIteratorType& Results, DistanceIteratorType ResultDistances) {
+  std::size_t SearchObjectsInRadius(PointerType& ThisObject, const double& Radius, ResultIteratorType& Results, DistanceIteratorType ResultDistances) {
     /// Missing API for 'SearchObjectsInRadius' without 'MaxNumberOfResults'
     KRATOS_ERROR << "Missing implementation of SearchObjectsInRadius(PointerType, const double, ResultIteratorType, DistanceIteratorType)" << std::endl;
   }
@@ -345,10 +344,10 @@ public:
    * @param  MaxNumberOfResults [description]
    * @return                    [description]
    */
-  SizeType SearchObjectsInRadius(PointerType& ThisObject, const double& Radius, ResultIteratorType& Results, DistanceIteratorType ResultDistances, const SizeType& MaxNumberOfResults) {
+  std::size_t SearchObjectsInRadius(PointerType& ThisObject, const double& Radius, ResultIteratorType& Results, DistanceIteratorType ResultDistances, const std::size_t& MaxNumberOfResults) {
     PointType Low, High;
     SearchStructureType Box;
-    SizeType NumberOfResults = 0;
+    std::size_t NumberOfResults = 0;
 
     TConfigure::CalculateBoundingBox(ThisObject, Low, High, Radius);
     Box.Set( CalculateCell(Low), CalculateCell(High), mN );
@@ -365,7 +364,7 @@ public:
    * @param  MaxNumberOfResults [description]
    * @return                    [description]
    */
-  virtual SizeType SearchObjectsInRadiusExclusive(PointerType& ThisObject, const double& Radius, ResultIteratorType& Results) {
+  virtual std::size_t SearchObjectsInRadiusExclusive(PointerType& ThisObject, const double& Radius, ResultIteratorType& Results) {
     /// Missing API for 'SearchObjectsInRadiusExclusive' without 'MaxNumberOfResults'
     KRATOS_ERROR << "Missing implementation of SearchObjectsInRadiusExclusive(PointerType, const double, ResultIteratorType)" << std::endl;
   }
@@ -378,10 +377,10 @@ public:
    * @param  MaxNumberOfResults [description]
    * @return                    [description]
    */
-  virtual SizeType SearchObjectsInRadiusExclusive(PointerType& ThisObject, const double& Radius, ResultIteratorType& Results, const SizeType& MaxNumberOfResults) {
+  virtual std::size_t SearchObjectsInRadiusExclusive(PointerType& ThisObject, const double& Radius, ResultIteratorType& Results, const std::size_t& MaxNumberOfResults) {
     PointType Low, High;
     SearchStructureType Box;
-    SizeType NumberOfResults = 0;
+    std::size_t NumberOfResults = 0;
 
     TConfigure::CalculateBoundingBox(ThisObject, Low, High, Radius);
     Box.Set( CalculateCell(Low), CalculateCell(High), mN );
@@ -398,7 +397,7 @@ public:
    * @param  ResultDistances [description]
    * @return                 [description]
    */
-  virtual SizeType SearchObjectsInRadiusExclusive(PointerType& ThisObject, const double& Radius, ResultIteratorType& Results, DistanceIteratorType ResultDistances) {
+  virtual std::size_t SearchObjectsInRadiusExclusive(PointerType& ThisObject, const double& Radius, ResultIteratorType& Results, DistanceIteratorType ResultDistances) {
     /// Missing API for 'SearchObjectsInRadiusExclusive' without 'MaxNumberOfResults'
     KRATOS_ERROR << "Missing implementation of SearchObjectsInRadiusExclusive(PointerType, const double, ResultIteratorType, DistanceIteratorType)" << std::endl;
   }
@@ -412,10 +411,10 @@ public:
    * @param  MaxNumberOfResults [description]
    * @return                    [description]
    */
-  virtual SizeType SearchObjectsInRadiusExclusive(PointerType& ThisObject, const double& Radius, ResultIteratorType& Results, DistanceIteratorType ResultDistances, const SizeType& MaxNumberOfResults) {
+  virtual std::size_t SearchObjectsInRadiusExclusive(PointerType& ThisObject, const double& Radius, ResultIteratorType& Results, DistanceIteratorType ResultDistances, const std::size_t& MaxNumberOfResults) {
     PointType Low, High;
     SearchStructureType Box;
-    SizeType NumberOfResults = 0;
+    std::size_t NumberOfResults = 0;
 
     TConfigure::CalculateBoundingBox(ThisObject, Low, High, Radius);
     Box.Set( CalculateCell(Low), CalculateCell(High), mN );
@@ -435,7 +434,7 @@ public:
    * @param NumberOfResults    [description]
    * @param MaxNumberOfResults [description]
    */
-  void SearchObjectsInRadius(IteratorType const& ThisObjects, SizeType const& NumberOfObjects, const std::vector<double>& Radius, std::vector<std::vector<PointerType> >& Results, std::vector<SizeType>& NumberOfResults, SizeType const& MaxNumberOfResults) {
+  void SearchObjectsInRadius(IteratorType const& ThisObjects, std::size_t const& NumberOfObjects, const std::vector<double>& Radius, std::vector<std::vector<PointerType> >& Results, std::vector<std::size_t>& NumberOfResults, std::size_t const& MaxNumberOfResults) {
 
     struct tls_type
     {
@@ -465,7 +464,7 @@ public:
    * @param NumberOfResults    [description]
    * @param MaxNumberOfResults [description]
    */
-  void SearchObjectsInRadius(IteratorType const& ThisObjects, SizeType const& NumberOfObjects, const std::vector<double>& Radius, std::vector<std::vector<PointerType> >& Results, std::vector<std::vector<double> >& ResultsDistances, std::vector<SizeType>& NumberOfResults, SizeType const& MaxNumberOfResults) {
+  void SearchObjectsInRadius(IteratorType const& ThisObjects, std::size_t const& NumberOfObjects, const std::vector<double>& Radius, std::vector<std::vector<PointerType> >& Results, std::vector<std::vector<double> >& ResultsDistances, std::vector<std::size_t>& NumberOfResults, std::size_t const& MaxNumberOfResults) {
     PointType Low, High;
     SearchStructureType Box;
 
@@ -492,7 +491,7 @@ public:
    * @param NumberOfResults    [description]
    * @param MaxNumberOfResults [description]
    */
-virtual void SearchObjectsInRadiusExclusive(IteratorType const& ThisObjects, SizeType const& NumberOfObjects, const std::vector<double>& Radius, std::vector<std::vector<PointerType> >& Results, std::vector<SizeType>& NumberOfResults, SizeType const& MaxNumberOfResults) {
+virtual void SearchObjectsInRadiusExclusive(IteratorType const& ThisObjects, std::size_t const& NumberOfObjects, const std::vector<double>& Radius, std::vector<std::vector<PointerType> >& Results, std::vector<std::size_t>& NumberOfResults, std::size_t const& MaxNumberOfResults) {
     PointType Low, High;
     SearchStructureType Box;
 
@@ -519,7 +518,7 @@ virtual void SearchObjectsInRadiusExclusive(IteratorType const& ThisObjects, Siz
    * @param NumberOfResults    [description]
    * @param MaxNumberOfResults [description]
    */
-virtual void SearchObjectsInRadiusExclusive(IteratorType const& ThisObjects, SizeType const& NumberOfObjects, const std::vector<double>& Radius, std::vector<std::vector<PointerType> >& Results, std::vector<std::vector<double> >& ResultsDistances, std::vector<SizeType>& NumberOfResults, SizeType const& MaxNumberOfResults) {
+virtual void SearchObjectsInRadiusExclusive(IteratorType const& ThisObjects, std::size_t const& NumberOfObjects, const std::vector<double>& Radius, std::vector<std::vector<PointerType> >& Results, std::vector<std::vector<double> >& ResultsDistances, std::vector<std::size_t>& NumberOfResults, std::size_t const& MaxNumberOfResults) {
     PointType Low, High;
     SearchStructureType Box;
 
@@ -588,7 +587,7 @@ virtual void SearchObjectsInRadiusExclusive(IteratorType const& ThisObjects, Siz
   IndexArray CalculateCell(const GenericCoordType& ThisObject) {
     IndexArray IndexCell;
 
-    for(SizeType i = 0 ; i < Dimension ; i++) {
+    for(std::size_t i = 0 ; i < Dimension ; i++) {
       IndexCell[i] = CalculatePosition(ThisObject[i],i);
     }
 
@@ -605,7 +604,7 @@ virtual void SearchObjectsInRadiusExclusive(IteratorType const& ThisObjects, Siz
   IndexType CalculateIndex(const GenericCoordType& ThisObject) {
     IndexType Index = 0;
 
-    for(SizeType iDim = Dimension-1 ; iDim > 0 ; iDim--) {
+    for(std::size_t iDim = Dimension-1 ; iDim > 0 ; iDim--) {
       Index += CalculatePosition(ThisObject[iDim],iDim);
       Index *= mN[iDim-1];
     }
@@ -621,7 +620,7 @@ virtual void SearchObjectsInRadiusExclusive(IteratorType const& ThisObjects, Siz
    * @param  ThisDimension [description]
    * @return               [description]
    */
-  virtual IndexType CalculatePosition(CoordinateType const& ThisCoord, const SizeType& ThisDimension) {
+  virtual IndexType CalculatePosition(CoordinateType const& ThisCoord, const std::size_t& ThisDimension) {
     CoordinateType d_index = (ThisCoord - mMinPoint[ThisDimension]) * mInvCellSize[ThisDimension];
     IndexType index = static_cast<IndexType>( (d_index < 0.00) ? 0.00 : d_index );
 
@@ -706,17 +705,17 @@ virtual void SearchObjectsInRadiusExclusive(IteratorType const& ThisObjects, Siz
    */
   virtual void PrintData(std::ostream& rOStream, std::string const& Perfix = std::string()) const {
     rOStream << " BinsSize: ";
-    for(SizeType i = 0 ; i < Dimension ; i++) {
+    for(std::size_t i = 0 ; i < Dimension ; i++) {
         rOStream << "[" << mN[i] << "]";
     }
     rOStream << std::endl;
     rOStream << "  CellSize: ";
-    for(SizeType i = 0 ; i < Dimension ; i++) {
+    for(std::size_t i = 0 ; i < Dimension ; i++) {
         rOStream << "[" << mCellSize[i] << "]";
     }
     rOStream << std::endl;
-    SizeType nn = 0;
-    for(SizeType i = 0 ; i < mCells.size(); i++) {
+    std::size_t nn = 0;
+    for(std::size_t i = 0 ; i < mCells.size(); i++) {
         nn += mCells[i].Size();
     }
     rOStream << "NumPointers: " << nn << std::endl;
@@ -728,7 +727,7 @@ virtual void SearchObjectsInRadiusExclusive(IteratorType const& ThisObjects, Siz
    */
   void PrintSize(std::ostream& rout) {
     rout << " BinsSize: ";
-    for(SizeType i = 0 ; i < Dimension ; i++) {
+    for(std::size_t i = 0 ; i < Dimension ; i++) {
       rout << "[" << mN[i] << "]";
     }
     rout << std::endl;
@@ -777,18 +776,18 @@ protected:
         TConfigure::CalculateBoundingBox(*mObjectsBegin,mMinPoint,mMaxPoint);
 
 #ifdef _OPENMP
-        SizeType number_of_threads = omp_get_max_threads();
+        std::size_t number_of_threads = omp_get_max_threads();
 #else
-        SizeType number_of_threads = 1;
+        std::size_t number_of_threads = 1;
 #endif
 
-        std::vector<SizeType> node_partition;
+        std::vector<std::size_t> node_partition;
         CreatePartition(number_of_threads, mObjectsSize, node_partition);
 
         std::vector<PointType> Max(number_of_threads);
         std::vector<PointType> Min(number_of_threads);
 
-        for(SizeType k=0; k<number_of_threads; k++ )
+        for(std::size_t k=0; k<number_of_threads; k++ )
         {
             Max[k] = mMaxPoint;
             Min[k] = mMinPoint;
@@ -800,7 +799,7 @@ protected:
         for (IteratorType i_object = i_begin ; i_object != i_end ; i_object++ )
         {
             TConfigure::CalculateBoundingBox(*i_object, Low, High);
-            for(SizeType i = 0 ; i < Dimension ; i++)
+            for(std::size_t i = 0 ; i < Dimension ; i++)
             {
                 mMaxPoint[i] = (mMaxPoint[i] < High[i]) ? High[i] : mMaxPoint[i];
                 mMinPoint[i] = (mMinPoint[i] > Low[i])  ? Low[i]  : mMinPoint[i];
@@ -809,7 +808,7 @@ protected:
 
         auto Epsilon = PointType{mMaxPoint - mMinPoint};
 
-        for(SizeType i = 0 ; i < Dimension ; i++)
+        for(std::size_t i = 0 ; i < Dimension ; i++)
         {
             mMaxPoint[i] += Epsilon[i] * 0.01;
             mMinPoint[i] -= Epsilon[i] * 0.01;
@@ -830,20 +829,20 @@ protected:
         std::array<double, 3> lengths;
         double average_length = 0.00;
 
-        for (int i = 0; i < Dimension; i++) {
+        for (std::size_t i = 0; i < Dimension; i++) {
             lengths[i] = mMaxPoint[i] - mMinPoint[i];
             average_length += lengths[i];
         }
         average_length *= 1.00 / 3.00;
 
         if (average_length < std::numeric_limits<double>::epsilon()) {
-            for(int i = 0; i < Dimension; i++) {
+            for(std::size_t i = 0; i < Dimension; i++) {
                 mN[i] = 1;
             }
             return;
         }
 
-        for (int i = 0; i < Dimension; i++) {
+        for (std::size_t i = 0; i < Dimension; i++) {
              mN[i] = static_cast<std::size_t>(lengths[i] / average_length * (double)average_number_of_cells) + 1;
 
             if (mN[i] > 1) {
@@ -865,11 +864,11 @@ protected:
      */
     void AssignCellSize(CoordinateType CellSize)
     {
-        for(SizeType i = 0 ; i < Dimension ; i++)
+        for(std::size_t i = 0 ; i < Dimension ; i++)
         {
             mCellSize[i] = CellSize;
             mInvCellSize[i] = 1.00 / mCellSize[i];
-            mN[i] = static_cast<SizeType>( (mMaxPoint[i]-mMinPoint[i]) / mCellSize[i]) + 1;
+            mN[i] = static_cast<std::size_t>( (mMaxPoint[i]-mMinPoint[i]) / mCellSize[i]) + 1;
         }
     }
 
@@ -888,8 +887,8 @@ protected:
 
     // **** THREAD SAFE
     // Dimension = 1
-    void SearchInBoxLocal(PointerType& ThisObject, ResultIteratorType& Result, SizeType& NumberOfResults, const SizeType& MaxNumberOfResults,
-                          SearchStructure<IndexType,SizeType,CoordinateType,IteratorType,IteratorIteratorType,1>& Box )
+    void SearchInBoxLocal(PointerType& ThisObject, ResultIteratorType& Result, std::size_t& NumberOfResults, const std::size_t& MaxNumberOfResults,
+                          SearchStructure<IndexType,std::size_t,CoordinateType,IteratorType,IteratorIteratorType,1>& Box )
     {
         PointType  MinCell, MaxCell;
         PointType  MinBox, MaxBox;
@@ -901,13 +900,13 @@ protected:
     }
 
     // Dimension = 2
-    void SearchInBoxLocal(PointerType& ThisObject, ResultIteratorType& Result, SizeType& NumberOfResults, const SizeType& MaxNumberOfResults,
-                          SearchStructure<IndexType,SizeType,CoordinateType,IteratorType,IteratorIteratorType,2>& Box )
+    void SearchInBoxLocal(PointerType& ThisObject, ResultIteratorType& Result, std::size_t& NumberOfResults, const std::size_t& MaxNumberOfResults,
+                          SearchStructure<IndexType,std::size_t,CoordinateType,IteratorType,IteratorIteratorType,2>& Box )
     {
         PointType  MinCell, MaxCell;
         PointType  MinBox, MaxBox;
 
-        for(SizeType i = 0; i < 2; i++)
+        for(std::size_t i = 0; i < 2; i++)
         {
             MinBox[i] = static_cast<CoordinateType>(Box.Axis[i].Min) * mCellSize[i] + mMinPoint[i];
             MaxBox[i] = MinBox[i] + mCellSize[i];
@@ -929,14 +928,14 @@ protected:
 
     // Dimension = 3
     void SearchInBoxLocal(PointerType& ThisObject, ResultIteratorType& Result,
-                          SizeType& NumberOfResults, const SizeType& MaxNumberOfResults,
-                          SearchStructure<IndexType,SizeType,CoordinateType,IteratorType,IteratorIteratorType,3>& Box )
+                          std::size_t& NumberOfResults, const std::size_t& MaxNumberOfResults,
+                          SearchStructure<IndexType,std::size_t,CoordinateType,IteratorType,IteratorIteratorType,3>& Box )
     {
 
         PointType  MinCell, MaxCell;
         PointType  MinBox, MaxBox;
 
-        for(SizeType i = 0; i < 3; i++)
+        for(std::size_t i = 0; i < 3; i++)
         {
             MinBox[i] = static_cast<CoordinateType>(Box.Axis[i].Min) * mCellSize[i] + mMinPoint[i];  //
             MaxBox[i] = MinBox[i] + mCellSize[i];
@@ -967,7 +966,7 @@ protected:
 
     // Dimension = 1
     void SearchInBoxLocal(PointerType& ThisObject, ResultContainerType& Result,
-                          SearchStructure<IndexType,SizeType,CoordinateType,IteratorType,IteratorIteratorType,1>& Box )
+                          SearchStructure<IndexType,std::size_t,CoordinateType,IteratorType,IteratorIteratorType,1>& Box )
     {
 
         PointType  MinCell, MaxCell;
@@ -983,12 +982,12 @@ protected:
 
     // Dimension = 2
     void SearchInBoxLocal(PointerType& ThisObject, ResultContainerType& Result,
-                          SearchStructure<IndexType,SizeType,CoordinateType,IteratorType,IteratorIteratorType,2>& Box )
+                          SearchStructure<IndexType,std::size_t,CoordinateType,IteratorType,IteratorIteratorType,2>& Box )
     {
         PointType  MinCell, MaxCell;
         PointType  MinBox, MaxBox;
 
-        for(SizeType i = 0; i < 2; i++)
+        for(std::size_t i = 0; i < 2; i++)
         {
             MinBox[i] = static_cast<CoordinateType>(Box.Axis[i].Min) * mCellSize[i] + mMinPoint[i];
             MaxBox[i] = MinBox[i] + mCellSize[i];
@@ -1011,12 +1010,12 @@ protected:
 
     // Dimension = 3
     void SearchInBoxLocal(PointerType& ThisObject, ResultContainerType& Result,
-                          SearchStructure<IndexType,SizeType,CoordinateType,IteratorType,IteratorIteratorType,3>& Box )
+                          SearchStructure<IndexType,std::size_t,CoordinateType,IteratorType,IteratorIteratorType,3>& Box )
     {
         PointType  MinCell, MaxCell;
         PointType  MinBox, MaxBox;
 
-        for(SizeType i = 0; i < 3; i++)
+        for(std::size_t i = 0; i < 3; i++)
         {
             MinBox[i] = static_cast<CoordinateType>(Box.Axis[i].Min) * mCellSize[i] + mMinPoint[i];  //
             MaxBox[i] = MinBox[i] + mCellSize[i];
@@ -1047,8 +1046,8 @@ protected:
     // **** THREAD SAFE
 
     // Dimension = 1
-    void SearchObjectLocalExclusive(PointerType& ThisObject, ResultIteratorType& Result, SizeType& NumberOfResults, const SizeType& MaxNumberOfResults,
-                                SearchStructure<IndexType,SizeType,CoordinateType,IteratorType,IteratorIteratorType,1>& Box )
+    void SearchObjectLocalExclusive(PointerType& ThisObject, ResultIteratorType& Result, std::size_t& NumberOfResults, const std::size_t& MaxNumberOfResults,
+                                SearchStructure<IndexType,std::size_t,CoordinateType,IteratorType,IteratorIteratorType,1>& Box )
     {
         PointType  MinCell, MaxCell;
         PointType  MinBox, MaxBox;
@@ -1060,13 +1059,13 @@ protected:
     }
 
     // Dimension = 2
-    void SearchObjectLocalExclusive(PointerType& ThisObject, ResultIteratorType& Result, SizeType& NumberOfResults, const SizeType& MaxNumberOfResults,
-                                SearchStructure<IndexType,SizeType,CoordinateType,IteratorType,IteratorIteratorType,2>& Box )
+    void SearchObjectLocalExclusive(PointerType& ThisObject, ResultIteratorType& Result, std::size_t& NumberOfResults, const std::size_t& MaxNumberOfResults,
+                                SearchStructure<IndexType,std::size_t,CoordinateType,IteratorType,IteratorIteratorType,2>& Box )
     {
         PointType  MinCell, MaxCell;
         PointType  MinBox, MaxBox;
 
-        for(SizeType i = 0; i < 2; i++)
+        for(std::size_t i = 0; i < 2; i++)
         {
             MinBox[i] = static_cast<CoordinateType>(Box.Axis[i].Min) * mCellSize[i] + mMinPoint[i];
             MaxBox[i] = MinBox[i] + mCellSize[i];
@@ -1088,14 +1087,14 @@ protected:
 
     // Dimension = 3
     void SearchObjectLocalExclusive(PointerType& ThisObject, ResultIteratorType& Result,
-                                SizeType& NumberOfResults, const SizeType& MaxNumberOfResults,
-                                SearchStructure<IndexType,SizeType,CoordinateType,IteratorType,IteratorIteratorType,3>& Box )
+                                std::size_t& NumberOfResults, const std::size_t& MaxNumberOfResults,
+                                SearchStructure<IndexType,std::size_t,CoordinateType,IteratorType,IteratorIteratorType,3>& Box )
     {
 
         PointType  MinCell, MaxCell;
         PointType  MinBox, MaxBox;
 
-        for(SizeType i = 0; i < 3; i++)
+        for(std::size_t i = 0; i < 3; i++)
         {
             MinBox[i] = static_cast<CoordinateType>(Box.Axis[i].Min) * mCellSize[i] + mMinPoint[i];  //
             MaxBox[i] = MinBox[i] + mCellSize[i];
@@ -1126,7 +1125,7 @@ protected:
 
     // Dimension = 1
     void SearchObjectLocalExclusive(PointerType& ThisObject, ResultContainerType& Result,
-                                SearchStructure<IndexType,SizeType,CoordinateType,IteratorType,IteratorIteratorType,1>& Box )
+                                SearchStructure<IndexType,std::size_t,CoordinateType,IteratorType,IteratorIteratorType,1>& Box )
     {
         PointType  MinCell, MaxCell;
         PointType  MinBox, MaxBox;
@@ -1140,12 +1139,12 @@ protected:
 
     // Dimension = 2
     void SearchObjectLocalExclusive(PointerType& ThisObject, ResultContainerType& Result,
-                                SearchStructure<IndexType,SizeType,CoordinateType,IteratorType,IteratorIteratorType,2>& Box )
+                                SearchStructure<IndexType,std::size_t,CoordinateType,IteratorType,IteratorIteratorType,2>& Box )
     {
         PointType  MinCell, MaxCell;
         PointType  MinBox, MaxBox;
 
-        for(SizeType i = 0; i < 2; i++)
+        for(std::size_t i = 0; i < 2; i++)
         {
             MinBox[i] = static_cast<CoordinateType>(Box.Axis[i].Min) * mCellSize[i] + mMinPoint[i];
             MaxBox[i] = MinBox[i] + mCellSize[i];
@@ -1168,12 +1167,12 @@ protected:
 
     // Dimension = 3
     void SearchObjectLocalExclusive(PointerType& ThisObject, ResultContainerType& Result,
-                                SearchStructure<IndexType,SizeType,CoordinateType,IteratorType,IteratorIteratorType,3>& Box )
+                                SearchStructure<IndexType,std::size_t,CoordinateType,IteratorType,IteratorIteratorType,3>& Box )
     {
         PointType  MinCell, MaxCell;
         PointType  MinBox, MaxBox;
 
-        for(SizeType i = 0; i < 3; i++)
+        for(std::size_t i = 0; i < 3; i++)
         {
             MinBox[i] = static_cast<CoordinateType>(Box.Axis[i].Min) * mCellSize[i] + mMinPoint[i];  //
             MaxBox[i] = MinBox[i] + mCellSize[i];
@@ -1204,8 +1203,8 @@ protected:
     // **** THREAD SAFE
 
     // Dimension = 1
-    void SearchInRadius(PointerType& ThisObject, CoordinateType const& Radius, ResultIteratorType& Result, SizeType& NumberOfResults, const SizeType& MaxNumberOfResults,
-                        SearchStructure<IndexType,SizeType,CoordinateType,IteratorType,IteratorIteratorType,1>& Box )
+    void SearchInRadius(PointerType& ThisObject, CoordinateType const& Radius, ResultIteratorType& Result, std::size_t& NumberOfResults, const std::size_t& MaxNumberOfResults,
+                        SearchStructure<IndexType,std::size_t,CoordinateType,IteratorType,IteratorIteratorType,1>& Box )
     {
         PointType  MinCell, MaxCell;
         PointType  MinBox, MaxBox;
@@ -1219,13 +1218,13 @@ protected:
     }
 
     // Dimension = 2
-    void SearchInRadius(PointerType& ThisObject, CoordinateType const& Radius, ResultIteratorType& Result, SizeType& NumberOfResults, const SizeType& MaxNumberOfResults,
-                        SearchStructure<IndexType,SizeType,CoordinateType,IteratorType,IteratorIteratorType,2>& Box )
+    void SearchInRadius(PointerType& ThisObject, CoordinateType const& Radius, ResultIteratorType& Result, std::size_t& NumberOfResults, const std::size_t& MaxNumberOfResults,
+                        SearchStructure<IndexType,std::size_t,CoordinateType,IteratorType,IteratorIteratorType,2>& Box )
     {
         PointType  MinCell, MaxCell;
         PointType  MinBox, MaxBox;
 
-        for(SizeType i = 0; i < 2; i++)
+        for(std::size_t i = 0; i < 2; i++)
         {
             MinBox[i] = static_cast<CoordinateType>(Box.Axis[i].Min) * mCellSize[i] + mMinPoint[i];
             MaxBox[i] = MinBox[i] + mCellSize[i];
@@ -1246,14 +1245,14 @@ protected:
     }
 
     // Dimension = 3
-    void SearchInRadius(PointerType& ThisObject, CoordinateType const& Radius, ResultIteratorType& Result, SizeType& NumberOfResults, const SizeType& MaxNumberOfResults,
-                        SearchStructure<IndexType,SizeType,CoordinateType,IteratorType,IteratorIteratorType,3>& Box )
+    void SearchInRadius(PointerType& ThisObject, CoordinateType const& Radius, ResultIteratorType& Result, std::size_t& NumberOfResults, const std::size_t& MaxNumberOfResults,
+                        SearchStructure<IndexType,std::size_t,CoordinateType,IteratorType,IteratorIteratorType,3>& Box )
     {
 
         PointType  MinCell, MaxCell;
         PointType  MinBox, MaxBox;
 
-        for(SizeType i = 0; i < 3; i++)
+        for(std::size_t i = 0; i < 3; i++)
         {
             MinBox[i] = static_cast<CoordinateType>(Box.Axis[i].Min) * mCellSize[i] + mMinPoint[i];  //
             MaxBox[i] = MinBox[i] + mCellSize[i];
@@ -1283,8 +1282,8 @@ protected:
     // **** THREAD SAFE
 
     // Dimension = 1
-    void SearchInRadius(PointerType& ThisObject, CoordinateType const& Radius, ResultIteratorType& Result, DistanceIteratorType ResultDistances, SizeType& NumberOfResults, const SizeType& MaxNumberOfResults,
-                        SearchStructure<IndexType,SizeType,CoordinateType,IteratorType,IteratorIteratorType,1>& Box )
+    void SearchInRadius(PointerType& ThisObject, CoordinateType const& Radius, ResultIteratorType& Result, DistanceIteratorType ResultDistances, std::size_t& NumberOfResults, const std::size_t& MaxNumberOfResults,
+                        SearchStructure<IndexType,std::size_t,CoordinateType,IteratorType,IteratorIteratorType,1>& Box )
     {
         PointType  MinCell, MaxCell;
         PointType  MinBox, MaxBox;
@@ -1298,13 +1297,13 @@ protected:
     }
 
     // Dimension = 2
-    void SearchInRadius(PointerType& ThisObject, CoordinateType const& Radius, ResultIteratorType& Result, DistanceIteratorType ResultDistances, SizeType& NumberOfResults, const SizeType& MaxNumberOfResults,
-                        SearchStructure<IndexType,SizeType,CoordinateType,IteratorType,IteratorIteratorType,2>& Box )
+    void SearchInRadius(PointerType& ThisObject, CoordinateType const& Radius, ResultIteratorType& Result, DistanceIteratorType ResultDistances, std::size_t& NumberOfResults, const std::size_t& MaxNumberOfResults,
+                        SearchStructure<IndexType,std::size_t,CoordinateType,IteratorType,IteratorIteratorType,2>& Box )
     {
         PointType  MinCell, MaxCell;
         PointType  MinBox, MaxBox;
 
-        for(SizeType i = 0; i < 2; i++)
+        for(std::size_t i = 0; i < 2; i++)
         {
             MinBox[i] = static_cast<CoordinateType>(Box.Axis[i].Min) * mCellSize[i] + mMinPoint[i];
             MaxBox[i] = MinBox[i] + mCellSize[i];
@@ -1325,14 +1324,14 @@ protected:
     }
 
     // Dimension = 3
-    void SearchInRadius(PointerType& ThisObject, CoordinateType const& Radius, ResultIteratorType& Result, DistanceIteratorType ResultDistances, SizeType& NumberOfResults, const SizeType& MaxNumberOfResults,
-                        SearchStructure<IndexType,SizeType,CoordinateType,IteratorType,IteratorIteratorType,3>& Box )
+    void SearchInRadius(PointerType& ThisObject, CoordinateType const& Radius, ResultIteratorType& Result, DistanceIteratorType ResultDistances, std::size_t& NumberOfResults, const std::size_t& MaxNumberOfResults,
+                        SearchStructure<IndexType,std::size_t,CoordinateType,IteratorType,IteratorIteratorType,3>& Box )
     {
 
         PointType  MinCell, MaxCell;
         PointType  MinBox, MaxBox;
 
-        for(SizeType i = 0; i < 3; i++)
+        for(std::size_t i = 0; i < 3; i++)
         {
             MinBox[i] = static_cast<CoordinateType>(Box.Axis[i].Min) * mCellSize[i] + mMinPoint[i];  //
             MaxBox[i] = MinBox[i] + mCellSize[i];
@@ -1362,8 +1361,8 @@ protected:
     // **** THREAD SAFE
 
     // Dimension = 1
-    virtual void SearchInRadiusExclusive(PointerType& ThisObject, CoordinateType const& Radius, ResultIteratorType& Result, SizeType& NumberOfResults, const SizeType& MaxNumberOfResults,
-                        SearchStructure<IndexType,SizeType,CoordinateType,IteratorType,IteratorIteratorType,1>& Box )
+    virtual void SearchInRadiusExclusive(PointerType& ThisObject, CoordinateType const& Radius, ResultIteratorType& Result, std::size_t& NumberOfResults, const std::size_t& MaxNumberOfResults,
+                        SearchStructure<IndexType,std::size_t,CoordinateType,IteratorType,IteratorIteratorType,1>& Box )
     {
         PointType  MinCell, MaxCell;
         PointType  MinBox, MaxBox;
@@ -1377,13 +1376,13 @@ protected:
     }
 
     // Dimension = 2
-    virtual void SearchInRadiusExclusive(PointerType& ThisObject, CoordinateType const& Radius, ResultIteratorType& Result, SizeType& NumberOfResults, const SizeType& MaxNumberOfResults,
-                        SearchStructure<IndexType,SizeType,CoordinateType,IteratorType,IteratorIteratorType,2>& Box )
+    virtual void SearchInRadiusExclusive(PointerType& ThisObject, CoordinateType const& Radius, ResultIteratorType& Result, std::size_t& NumberOfResults, const std::size_t& MaxNumberOfResults,
+                        SearchStructure<IndexType,std::size_t,CoordinateType,IteratorType,IteratorIteratorType,2>& Box )
     {
         PointType  MinCell, MaxCell;
         PointType  MinBox, MaxBox;
 
-        for(SizeType i = 0; i < 2; i++)
+        for(std::size_t i = 0; i < 2; i++)
         {
             MinBox[i] = static_cast<CoordinateType>(Box.Axis[i].Min) * mCellSize[i] + mMinPoint[i];
             MaxBox[i] = MinBox[i] + mCellSize[i];
@@ -1404,14 +1403,14 @@ protected:
     }
 
     // Dimension = 3
-    virtual void SearchInRadiusExclusive(PointerType& ThisObject, CoordinateType const& Radius, ResultIteratorType& Result, SizeType& NumberOfResults, const SizeType& MaxNumberOfResults,
-                        SearchStructure<IndexType,SizeType,CoordinateType,IteratorType,IteratorIteratorType,3>& Box )
+    virtual void SearchInRadiusExclusive(PointerType& ThisObject, CoordinateType const& Radius, ResultIteratorType& Result, std::size_t& NumberOfResults, const std::size_t& MaxNumberOfResults,
+                        SearchStructure<IndexType,std::size_t,CoordinateType,IteratorType,IteratorIteratorType,3>& Box )
     {
 
         PointType  MinCell, MaxCell;
         PointType  MinBox, MaxBox;
 
-        for(SizeType i = 0; i < 3; i++)
+        for(std::size_t i = 0; i < 3; i++)
         {
             MinBox[i] = static_cast<CoordinateType>(Box.Axis[i].Min) * mCellSize[i] + mMinPoint[i];  //
             MaxBox[i] = MinBox[i] + mCellSize[i];
@@ -1441,8 +1440,8 @@ protected:
     // **** THREAD SAFE
 
     // Dimension = 1
-    virtual void SearchInRadiusExclusive(PointerType& ThisObject, CoordinateType const& Radius, ResultIteratorType& Result, DistanceIteratorType ResultDistances, SizeType& NumberOfResults, const SizeType& MaxNumberOfResults,
-                        SearchStructure<IndexType,SizeType,CoordinateType,IteratorType,IteratorIteratorType,1>& Box )
+    virtual void SearchInRadiusExclusive(PointerType& ThisObject, CoordinateType const& Radius, ResultIteratorType& Result, DistanceIteratorType ResultDistances, std::size_t& NumberOfResults, const std::size_t& MaxNumberOfResults,
+                        SearchStructure<IndexType,std::size_t,CoordinateType,IteratorType,IteratorIteratorType,1>& Box )
     {
         PointType  MinCell, MaxCell;
         PointType  MinBox, MaxBox;
@@ -1456,13 +1455,13 @@ protected:
     }
 
     // Dimension = 2
-    virtual void SearchInRadiusExclusive(PointerType& ThisObject, CoordinateType const& Radius, ResultIteratorType& Result, DistanceIteratorType ResultDistances, SizeType& NumberOfResults, const SizeType& MaxNumberOfResults,
-                        SearchStructure<IndexType,SizeType,CoordinateType,IteratorType,IteratorIteratorType,2>& Box )
+    virtual void SearchInRadiusExclusive(PointerType& ThisObject, CoordinateType const& Radius, ResultIteratorType& Result, DistanceIteratorType ResultDistances, std::size_t& NumberOfResults, const std::size_t& MaxNumberOfResults,
+                        SearchStructure<IndexType,std::size_t,CoordinateType,IteratorType,IteratorIteratorType,2>& Box )
     {
         PointType  MinCell, MaxCell;
         PointType  MinBox, MaxBox;
 
-        for(SizeType i = 0; i < 2; i++)
+        for(std::size_t i = 0; i < 2; i++)
         {
             MinBox[i] = static_cast<CoordinateType>(Box.Axis[i].Min) * mCellSize[i] + mMinPoint[i];
             MaxBox[i] = MinBox[i] + mCellSize[i];
@@ -1483,14 +1482,14 @@ protected:
     }
 
     // Dimension = 3
-    virtual void SearchInRadiusExclusive(PointerType& ThisObject, CoordinateType const& Radius, ResultIteratorType& Result, DistanceIteratorType ResultDistances, SizeType& NumberOfResults, const SizeType& MaxNumberOfResults,
-                        SearchStructure<IndexType,SizeType,CoordinateType,IteratorType,IteratorIteratorType,3>& Box )
+    virtual void SearchInRadiusExclusive(PointerType& ThisObject, CoordinateType const& Radius, ResultIteratorType& Result, DistanceIteratorType ResultDistances, std::size_t& NumberOfResults, const std::size_t& MaxNumberOfResults,
+                        SearchStructure<IndexType,std::size_t,CoordinateType,IteratorType,IteratorIteratorType,3>& Box )
     {
 
         PointType  MinCell, MaxCell;
         PointType  MinBox, MaxBox;
 
-        for(SizeType i = 0; i < 3; i++)
+        for(std::size_t i = 0; i < 3; i++)
         {
             MinBox[i] = static_cast<CoordinateType>(Box.Axis[i].Min) * mCellSize[i] + mMinPoint[i];  //
             MaxBox[i] = MinBox[i] + mCellSize[i];
@@ -1518,7 +1517,7 @@ protected:
     }
 
     // Dimension = 1
-    void FillObject( SearchStructure<IndexType,SizeType,CoordinateType,IteratorType,IteratorIteratorType,1>& Box, const PointerType& i_object)
+    void FillObject( SearchStructure<IndexType,std::size_t,CoordinateType,IteratorType,IteratorIteratorType,1>& Box, const PointerType& i_object)
     {
         PointType  MinCell, MaxCell;
 
@@ -1532,12 +1531,12 @@ protected:
     }
 
     // Dimension = 2
-    void FillObject( SearchStructure<IndexType,SizeType,CoordinateType,IteratorType,IteratorIteratorType,2>& Box, const PointerType& i_object)
+    void FillObject( SearchStructure<IndexType,std::size_t,CoordinateType,IteratorType,IteratorIteratorType,2>& Box, const PointerType& i_object)
     {
         PointType  MinCell, MaxCell;
         PointType  MinBox, MaxBox;
 
-        for(SizeType i = 0; i < 2; i++)
+        for(std::size_t i = 0; i < 2; i++)
         {
             MinBox[i] = static_cast<CoordinateType>(Box.Axis[i].Min) * mCellSize[i] + mMinPoint[i];
             MaxBox[i] = MinBox[i] + mCellSize[i];
@@ -1558,12 +1557,12 @@ protected:
     }
 
     // Dimension = 3
-    virtual void FillObject( SearchStructure<IndexType,SizeType,CoordinateType,IteratorType,IteratorIteratorType,3>& Box, const PointerType& i_object)
+    virtual void FillObject( SearchStructure<IndexType,std::size_t,CoordinateType,IteratorType,IteratorIteratorType,3>& Box, const PointerType& i_object)
     {
         PointType  MinCell, MaxCell;
         PointType  MinBox, MaxBox;
 
-        for(SizeType i = 0; i < 3; i++)
+        for(std::size_t i = 0; i < 3; i++)
         {
             MinBox[i] = static_cast<CoordinateType>(Box.Axis[i].Min) * mCellSize[i] + mMinPoint[i];  //
             MaxBox[i] = MinBox[i] + mCellSize[i];
@@ -1589,7 +1588,7 @@ protected:
     }
 
     // Dimension = 1
-    void RemoveObjectLocal( SearchStructure<IndexType,SizeType,CoordinateType,IteratorType,IteratorIteratorType,1>& Box, const PointerType& i_object)
+    void RemoveObjectLocal( SearchStructure<IndexType,std::size_t,CoordinateType,IteratorType,IteratorIteratorType,1>& Box, const PointerType& i_object)
     {
         PointType  MinCell, MaxCell;
 
@@ -1603,12 +1602,12 @@ protected:
     }
 
     // Dimension = 2
-    void RemoveObjectLocal( SearchStructure<IndexType,SizeType,CoordinateType,IteratorType,IteratorIteratorType,2>& Box, const PointerType& i_object)
+    void RemoveObjectLocal( SearchStructure<IndexType,std::size_t,CoordinateType,IteratorType,IteratorIteratorType,2>& Box, const PointerType& i_object)
     {
         PointType  MinCell, MaxCell;
         PointType  MinBox, MaxBox;
 
-        for(SizeType i = 0; i < 2; i++)
+        for(std::size_t i = 0; i < 2; i++)
         {
             MinBox[i] = static_cast<CoordinateType>(Box.Axis[i].Min) * mCellSize[i] + mMinPoint[i];
             MaxBox[i] = MinBox[i] + mCellSize[i];
@@ -1629,12 +1628,12 @@ protected:
     }
 
     // Dimension = 3
-    void RemoveObjectLocal( SearchStructure<IndexType,SizeType,CoordinateType,IteratorType,IteratorIteratorType,3>& Box, const PointerType& i_object)
+    void RemoveObjectLocal( SearchStructure<IndexType,std::size_t,CoordinateType,IteratorType,IteratorIteratorType,3>& Box, const PointerType& i_object)
     {
         PointType  MinCell, MaxCell;
         PointType  MinBox, MaxBox;
 
-        for(SizeType i = 0; i < 3; i++)
+        for(std::size_t i = 0; i < 3; i++)
         {
             MinBox[i] = static_cast<CoordinateType>(Box.Axis[i].Min) * mCellSize[i] + mMinPoint[i];  //
             MaxBox[i] = MinBox[i] + mCellSize[i];
@@ -1661,19 +1660,19 @@ protected:
 
     void AllocateContainer()
     {
-        SizeType Size = mN[0];
-        for(SizeType i = 1 ; i < Dimension ; i++)
+        std::size_t Size = mN[0];
+        for(std::size_t i = 1 ; i < Dimension ; i++)
             Size *= mN[i];
         mCells.resize(Size);
     }
 
-    inline void CreatePartition(SizeType number_of_threads, const SizeType number_of_rows, std::vector<SizeType>& partitions)
+    inline void CreatePartition(std::size_t number_of_threads, const std::size_t number_of_rows, std::vector<std::size_t>& partitions)
     {
         partitions.resize(number_of_threads+1);
-        SizeType partition_size = number_of_rows / number_of_threads;
+        std::size_t partition_size = number_of_rows / number_of_threads;
         partitions[0] = 0;
         partitions[number_of_threads] = number_of_rows;
-        for(SizeType i = 1; i<number_of_threads; i++)
+        for(std::size_t i = 1; i<number_of_threads; i++)
             partitions[i] = partitions[i-1] + partition_size ;
     }
 
@@ -1710,7 +1709,7 @@ protected:
     PointType    mMinPoint;
     PointType    mMaxPoint;
 
-    SizeType     mObjectsSize;
+    std::size_t     mObjectsSize;
     IteratorType mObjectsBegin;
     IteratorType mObjectsEnd;
 

@@ -112,21 +112,21 @@ def SetupModelPart3D(model_part):
     model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PRESSURE)
 
     # Create nodes
-    model_part.CreateNewNode(1, 0.0 , 1.0 , 1.0)
-    model_part.CreateNewNode(2, 0.0 , 1.0 , 0.0)
-    model_part.CreateNewNode(3, 0.0 , 0.0 , 1.0)
-    model_part.CreateNewNode(4, 1.0 , 1.0 , 1.0)
-    model_part.CreateNewNode(5, 0.0 , 0.0 , 0.0)
-    model_part.CreateNewNode(6, 1.0 , 1.0 , 0.0)
-    model_part.CreateNewNode(7, 1.0 , 0.0 , 1.0)
-    model_part.CreateNewNode(8, 1.0 , 0.0 , 0.0)
-    model_part.CreateNewNode(9, 2.0 , 1.0 , 1.0)
-    model_part.CreateNewNode(10, 2.0 , 1.0 , 0.0)
-    model_part.CreateNewNode(11, 2.0 , 0.0 , 1.0)
-    model_part.CreateNewNode(12, 2.0 , 0.0 , 0.0)
-    model_part.CreateNewNode(13, 0.0 , 0.0 , 2.0)
-    model_part.CreateNewNode(14, 1.0 , 0.0 , 2.0)
-    model_part.CreateNewNode(15, 1.0 , 1.0 , 2.0)
+    node1  = model_part.CreateNewNode(1, 0.0 , 1.0 , 1.0)
+    node2  = model_part.CreateNewNode(2, 0.0 , 1.0 , 0.0)
+    node3  = model_part.CreateNewNode(3, 0.0 , 0.0 , 1.0)
+    node4  = model_part.CreateNewNode(4, 1.0 , 1.0 , 1.0)
+    node5  = model_part.CreateNewNode(5, 0.0 , 0.0 , 0.0)
+    node6  = model_part.CreateNewNode(6, 1.0 , 1.0 , 0.0)
+    node7  = model_part.CreateNewNode(7, 1.0 , 0.0 , 1.0)
+    node8  = model_part.CreateNewNode(8, 1.0 , 0.0 , 0.0)
+    node9  = model_part.CreateNewNode(9, 2.0 , 1.0 , 1.0)
+    node10 = model_part.CreateNewNode(10, 2.0 , 1.0 , 0.0)
+    node11 = model_part.CreateNewNode(11, 2.0 , 0.0 , 1.0)
+    node12 = model_part.CreateNewNode(12, 2.0 , 0.0 , 0.0)
+    node13 = model_part.CreateNewNode(13, 0.0 , 0.0 , 2.0)
+    node14 = model_part.CreateNewNode(14, 1.0 , 0.0 , 2.0)
+    node15 = model_part.CreateNewNode(15, 1.0 , 1.0 , 2.0)
 
     # Create elements
     model_part.CreateNewElement("Element3D4N", 1, [12, 10, 8, 9], model_part.GetProperties()[1])
@@ -142,6 +142,42 @@ def SetupModelPart3D(model_part):
     model_part.CreateNewElement("Element3D4N", 11, [9, 12, 11, 8], model_part.GetProperties()[1])
     model_part.CreateNewElement("Element3D4N", 12, [3, 2, 1, 6], model_part.GetProperties()[1])
     model_part.CreateNewElement("Element3D6N", 13, [3, 7, 4, 13, 14, 15], model_part.GetProperties()[1])
+
+    # Generate NURBS element that will be ignored
+
+    # Nodes vectors
+    nodes = KratosMultiphysics.NodesVector()
+    nodes.append(node1)
+    nodes.append(node2)
+    nodes.append(node3)
+    nodes.append(node4)
+    nodes.append(node5)
+    nodes.append(node6)
+    nodes.append(node7)
+    nodes.append(node8)
+
+    order_u = 1
+    order_v_w = 1
+
+    knots_u = KratosMultiphysics.Vector(2*order_u)
+    for i in range(2*order_u):
+        if( i < order_u):
+            knots_u[i] = 0.0
+        else:
+            knots_u[i] = 1.0
+
+    knots_v = KratosMultiphysics.Vector(2*order_v_w)
+    knots_w = KratosMultiphysics.Vector(2*order_v_w)
+    for i in range(2*order_v_w):
+        if( i < order_v_w):
+            knots_v[i] = 0.0
+            knots_w[i] = 0.0
+        else:
+            knots_v[i] = 1.0
+            knots_w[i] = 1.0
+
+    volume = KratosMultiphysics.NurbsVolumeGeometry(nodes, order_u, order_v_w, order_v_w, knots_u, knots_v, knots_w)
+    model_part.CreateNewElement("GenericElement", 14, volume, model_part.GetProperties()[1])
 
     # Create conditions
     model_part.CreateNewCondition("SurfaceCondition3D3N", 1, [1,2,3], model_part.GetProperties()[1])

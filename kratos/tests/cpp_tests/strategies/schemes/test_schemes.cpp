@@ -268,7 +268,10 @@ namespace Kratos
             // Check Predict (displacement)
             if (TestPredict) {
                 pnode->pGetDof(DISPLACEMENT_X)->FixDof();
-                time = 0;
+                time = -DeltaTime;
+                r_model_part.CloneTimeStep(time);
+                time = 0.0;
+                r_model_part.CloneTimeStep(time);
 
                 pnode->FastGetSolutionStepValue(DISPLACEMENT_X) = std::cos(time);
                 pnode->FastGetSolutionStepValue(DISPLACEMENT_X, 1) = std::cos(time - DeltaTime);
@@ -304,7 +307,10 @@ namespace Kratos
                 // Check Predict (velocity)
                 pnode->pGetDof(DISPLACEMENT_X)->FreeDof();
                 pnode->pGetDof(VELOCITY_X)->FixDof();
+                time = -DeltaTime;
+                r_model_part.CloneTimeStep(time);
                 time = 0.0;
+                r_model_part.CloneTimeStep(time);
 
                 pnode->FastGetSolutionStepValue(DISPLACEMENT_X) = std::cos(time);
                 pnode->FastGetSolutionStepValue(DISPLACEMENT_X, 1) = std::cos(time - DeltaTime);
@@ -340,7 +346,10 @@ namespace Kratos
                 // Check Predict (acceleration)
                 pnode->pGetDof(VELOCITY_X)->FreeDof();
                 pnode->pGetDof(ACCELERATION_X)->FixDof();
-                time = 0;
+                time = -DeltaTime;
+                r_model_part.CloneTimeStep(time);
+                time = 0.0;
+                r_model_part.CloneTimeStep(time);
 
                 pnode->FastGetSolutionStepValue(DISPLACEMENT_X) = std::cos(time);
                 pnode->FastGetSolutionStepValue(DISPLACEMENT_X, 1) = std::cos(time - DeltaTime);

@@ -25,10 +25,10 @@ Matrix PlaneStrainStressState::CalculateBMatrix(const Matrix& rDN_DX, const Vect
     for (unsigned int i = 0; i < number_of_nodes; ++i) {
         const auto offset = dimension * i;
 
-        result(INDEX_2D_PLANE_STRAIN_XX, offset + INDEX_X) = rDN_DX(i, INDEX_X);
-        result(INDEX_2D_PLANE_STRAIN_YY, offset + INDEX_Y) = rDN_DX(i, INDEX_Y);
-        result(INDEX_2D_PLANE_STRAIN_XY, offset + INDEX_X) = rDN_DX(i, INDEX_Y);
-        result(INDEX_2D_PLANE_STRAIN_XY, offset + INDEX_Y) = rDN_DX(i, INDEX_X);
+        result(0, offset + 0) = rDN_DX(i, 0);
+        result(1, offset + 1) = rDN_DX(i, 1);
+        result(3, offset + 0) = rDN_DX(i, 1);
+        result(3, offset + 1) = rDN_DX(i, 0);
     }
 
     return result;
@@ -46,12 +46,12 @@ std::unique_ptr<StressStatePolicy> PlaneStrainStressState::Clone() const
 
 Vector PlaneStrainStressState::ConvertStrainTensorToVector(const Matrix& rStrainTensor)
 {
-    const auto strain_vector         = MathUtils<double>::StrainTensorToVector(rStrainTensor);
-    Vector     result                = ZeroVector(VOIGT_SIZE_2D_PLANE_STRAIN);
-    result[INDEX_2D_PLANE_STRAIN_XX] = strain_vector[0];
-    result[INDEX_2D_PLANE_STRAIN_YY] = strain_vector[1];
-    result[INDEX_2D_PLANE_STRAIN_ZZ] = 0.0;
-    result[INDEX_2D_PLANE_STRAIN_XY] = strain_vector[2];
+    const auto strain_vector = MathUtils<double>::StrainTensorToVector(rStrainTensor);
+    Vector     result        = ZeroVector(VOIGT_SIZE_2D_PLANE_STRAIN);
+    result[0]                = strain_vector[0];
+    result[1]                = strain_vector[1];
+    result[2]                = 0.0;
+    result[3]                = strain_vector[2];
     return result;
 }
 

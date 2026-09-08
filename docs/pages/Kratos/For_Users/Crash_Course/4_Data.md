@@ -268,9 +268,9 @@ import KratosMultiphysics
 model = KratosMultiphysics.Model()
 model_part = model.CreateModelPart("ModelPart")
 
-model_part.AddNodalSolutionStepVariable(KratosMultiphyscis.PRESSURE)
-model_part.AddNodalSolutionStepVariable(KratosMultiphyscis.DISPLACEMENT)
-model_part.AddNodalSolutionStepVariable(KratosMultiphyscis.REACTION)
+model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PRESSURE)
+model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
+model_part.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION)
 model_part.SetBufferSize(2)
 ```
 {: data-lang="Python"}

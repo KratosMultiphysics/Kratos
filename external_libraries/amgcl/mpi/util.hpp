@@ -97,6 +97,7 @@ struct datatype_impl<unsigned long long> {
     static MPI_Datatype get() { return MPI_UNSIGNED_LONG_LONG; }
 };
 
+#if (MPI_VERSION > 2) || (MPI_VERSION == 2 && MPI_SUBVERSION >= 2)
 template <>
 struct datatype_impl< std::complex<double> > {
     static MPI_Datatype get() { return MPI_CXX_DOUBLE_COMPLEX; }
@@ -106,6 +107,7 @@ template <>
 struct datatype_impl< std::complex<float> > {
     static MPI_Datatype get() { return MPI_CXX_FLOAT_COMPLEX; }
 };
+#endif
 
 template <typename T>
 struct datatype_impl<T,

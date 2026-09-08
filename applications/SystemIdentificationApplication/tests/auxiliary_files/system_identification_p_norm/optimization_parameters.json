@@ -112,7 +112,6 @@
                 "gradient_scaling": "inf_norm"
             },
             "conv_settings": {
-                "type": "max_iter",
                 "max_iter": 5
             }
         },
@@ -139,7 +138,11 @@
                         "write_initial_values": false,
                         "list_of_output_components": [
                             "response_function.damage_response"
-                        ]
+                        ],
+                        "format_info": {
+                            "float_precision": 16
+                            
+                        }
                     }
                 }
             ]

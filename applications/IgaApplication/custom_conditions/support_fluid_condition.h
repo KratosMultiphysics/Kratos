@@ -34,7 +34,6 @@ namespace Kratos
         KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(SupportFluidCondition);
 
         /// Size types
-        typedef std::size_t SizeType;
         typedef std::size_t IndexType;
 
         /// Type for shape function derivatives container
@@ -281,6 +280,15 @@ namespace Kratos
             const Matrix& rB, 
             ConstitutiveLaw::Parameters& rValues,
             ConstitutiveVariables& rConstitutiveVariables) const;
+
+        void BuildStressMatrixFromVoigt(
+            Matrix& rStressMatrix,
+            const Vector& rVoigtVector) const;
+
+        void BuildStressMatrixFromVoigt(
+            Matrix& rStressMatrix,
+            const Matrix& rVoigtMatrix,
+            const IndexType Column) const;
 
         // member variables
         unsigned int mDim;

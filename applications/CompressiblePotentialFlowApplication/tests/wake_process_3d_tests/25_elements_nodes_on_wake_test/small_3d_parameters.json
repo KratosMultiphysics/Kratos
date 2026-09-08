@@ -23,31 +23,25 @@
     },
     "processes"        : {
         "boundary_conditions_process_list" : [{
-            "python_module" : "apply_far_field_process",
+            "python_module" : "apply_far_field_and_wake_process",
             "kratos_module" : "KratosMultiphysics.CompressiblePotentialFlowApplication",
             "Parameters"    : {
                 "model_part_name" : "FluidModelPart.PotentialWallCondition3D_Far_field_Auto1",
                 "angle_of_attack" : 0.0,
                 "mach_infinity"   : 0.03,
-                "speed_of_sound"  : 340.0
-            }
-        },{
-            "python_module" : "define_wake_process_3d",
-            "kratos_module" : "KratosMultiphysics.CompressiblePotentialFlowApplication",
-            "Parameters"    : {
-                "model_part_name" : "FluidModelPart.Wake3D_Wake_Auto1",
-                "body_model_part_name": "FluidModelPart.Body3D_Body_Auto1",
-                "wake_stl_file_name" : "wake_stl.stl",
-                "output_wake": false,
-                "wake_process_cpp_parameters":    {
-                    "tolerance"                     : 1e-6,
+                "speed_of_sound"  : 340.0,
+                "define_wake": true,
+                "wake_type"  : "Operations.KratosMultiphysics.CompressiblePotentialFlowApplication.Define3DWakeOperation",
+                "wake_parameters"    : {
+                    "trailing_edge_model_part_name" : "FluidModelPart.Wake3D_Wake_Auto1",
+                    "body_model_part_name"          : "FluidModelPart.Body3D_Body_Auto1",
+                    "wake_distance_tolerance"       : 1e-6,
                     "wake_normal"                   : [0.0,0.0,1.0],
-                    "switch_wake_normal"            : false,
-                    "count_elements_number"         : false,
-                    "write_elements_ids_to_file"    : false,
+                    "wake_stl_file_name"            : "wake_stl.stl",
+                    "wake_translation_direction"    : [0.0,0.0,-0.0001], 
                     "shed_wake_from_trailing_edge"  : false,
-                    "shedded_wake_distance"         : 12.5,
-                    "shedded_wake_element_size"     : 0.2,
+                    "shed_wake_length"              : 5.0,
+                    "shed_wake_element_size"        : 10,
                     "echo_level"                    : 0
                 }
             }

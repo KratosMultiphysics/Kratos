@@ -109,7 +109,7 @@ void ConnectivitiesData<TContainerType>::Write(
 {
     KRATOS_TRY;
 
-    if (mpFile->GetDataCommunicator().SumAll(rEntities.size()) == 0) {
+    if (mpFile->GetDataCommunicator().SumAll(static_cast<unsigned int>(rEntities.size())) == 0) {
         // do nothing if the all the ranks have no entities.
         return;
     }
@@ -200,7 +200,6 @@ void ConnectivitiesData<TContainerType>::Write(
     mpFile->WriteAttribute(entity_group_path, "Name", entity_name);
     mpFile->WriteAttribute(entity_group_path, "WorkingSpaceDimension", ws_dim);
     mpFile->WriteAttribute(entity_group_path, "NumberOfNodes", num_nodes);
-    mpFile->WriteAttribute(entity_group_path, "Size", static_cast<int>(info.TotalSize));
 
     WritePartitionTable(*mpFile, entity_group_path, info);
 

@@ -114,15 +114,13 @@ public:
     ///@{
 
     /// Default constructor.
-    Flags() : mIsDefined(BlockType()), mFlags(BlockType()) {}
+    Flags() = default;
 
     /// Copy constructor.
-    Flags(Flags const& rOther) : mIsDefined(rOther.mIsDefined), mFlags(rOther.mFlags)
-    {
-    }
+    Flags(Flags const&) = default;
 
     /// Destructor.
-    virtual ~Flags() {}
+    virtual ~Flags() = default;
 
     static Flags Create(IndexType ThisPosition, bool Value=true)
     {
@@ -136,21 +134,11 @@ public:
     ///@{
 
     /// Assignment operator.
-    Flags& operator=(Flags const& rOther)
-    {
-        mIsDefined = rOther.mIsDefined;
-        mFlags = rOther.mFlags;
-        return *this;
-    }
+    Flags& operator=(Flags const&) = default;
 
-    /**
-     * @brief Conversion operator to bool.
-     * @return true if any flag is set, false otherwise.
-     */
-    operator bool() const
-    {
-        return mFlags;
-    }
+    /// Move operations.
+    Flags(Flags&&) noexcept = default;
+    Flags& operator=(Flags&&) noexcept = default;
 
     /**
      * @brief Bitwise NOT operator.
@@ -160,7 +148,7 @@ public:
     {
         Flags results(*this);
         results.mFlags = ~mFlags;
-        return  results;
+        return results;
     }
 
     /**
@@ -171,7 +159,7 @@ public:
     {
         Flags results(*this);
         results.mFlags = !mFlags;
-        return  results;
+        return static_cast<bool>(results.mFlags);
     }
 
     /**
@@ -200,6 +188,15 @@ public:
      * @param Value The value to set the flag to.
      */
     void Set(const Flags ThisFlag, bool Value);
+
+    /**
+     * @brief Get the raw value of the flags.
+     * @return The raw value of the flags.
+     */
+    BlockType GetRaw() const
+    {
+        return mFlags;
+    }
 
     /**
      * @brief Reset the specified flag.
@@ -463,8 +460,8 @@ private:
     ///@name Member Variables
     ///@{
 
-    BlockType mIsDefined; /// Bitmask representing defined flags.
-    BlockType mFlags; /// Bitmask representing flag values.
+    BlockType mIsDefined = {}; /// Bitmask representing defined flags.
+    BlockType mFlags = {}; /// Bitmask representing flag values.
 
     ///@}
     ///@name Private Operators

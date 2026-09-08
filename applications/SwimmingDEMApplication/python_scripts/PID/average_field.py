@@ -62,7 +62,7 @@ class Rotator:
             node.SetSolutionStepValue(Kratos.DISPLACEMENT, Vector(list(Displacement)))
             node.SetSolutionStepValue(Kratos.MESH_VELOCITY, Vector(list(Velocity)))
 
-        Say('Mesh movement finshed.')
+        Say('Mesh movement finished.')
 
     def UndoRotationOfVectors(self, time, list_of_vectors):
         R = self.GetRotationMatrices(time)[0]

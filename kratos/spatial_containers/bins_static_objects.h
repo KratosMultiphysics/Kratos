@@ -62,7 +62,7 @@ public:
     ///@name Type Definitions
     ///@{
 
-    enum { Dimension = TConfigure::Dimension };
+    constexpr static std::size_t Dimension = TConfigure::Dimension;
 
     typedef TConfigure                                  Configure;
     typedef typename TConfigure::PointType              PointType;
@@ -75,11 +75,10 @@ public:
     typedef TreeNode<Dimension, PointType, PointerType, IteratorType,  typename TConfigure::DistanceIteratorType> TreeNodeType;
     
     typedef typename TreeNodeType::CoordinateType       CoordinateType;  // double
-    typedef typename TreeNodeType::SizeType             SizeType;        // std::size_t
     typedef typename TreeNodeType::IndexType            IndexType;       // std::size_t
 
     typedef Tvector<CoordinateType,Dimension>           CoordinateArray;
-    typedef Tvector<SizeType,Dimension>                 SizeArray;
+    typedef Tvector<std::size_t,Dimension>              SizeArray;
     typedef Tvector<IndexType,Dimension>                IndexArray;
 
     typedef typename TreeNodeType::IteratorIteratorType IteratorIteratorType;
@@ -124,7 +123,7 @@ public:
         GenerateBins();
     }
 
-    BinsObjectStatic (IteratorType const& ObjectsBegin, IteratorType const& ObjectsEnd, const SizeType Nx, const SizeType Ny, const SizeType Nz )
+    BinsObjectStatic (IteratorType const& ObjectsBegin, IteratorType const& ObjectsEnd, const std::size_t Nx, const std::size_t Ny, const std::size_t Nz )
         : mObjectsBegin(ObjectsBegin), mObjectsEnd(ObjectsEnd)
     {
         CalculateBoundingBox();
@@ -135,8 +134,8 @@ public:
 
         double delta[Dimension];
 //         double mult_delta = 1.00;
-        SizeType index = 0;
-        for(SizeType i = 0 ; i < Dimension ; i++)
+        std::size_t index = 0;
+        for(std::size_t i = 0 ; i < Dimension ; i++)
         {
             delta[i] = mMaxPoint[i] - mMinPoint[i];
             if ( delta[i] > delta[index] )
@@ -144,7 +143,7 @@ public:
             delta[i] = (delta[i] == 0.00) ? 1.00 : delta[i];
         }
 
-        for(SizeType i = 0 ; i < Dimension ; i++)
+        for(std::size_t i = 0 ; i < Dimension ; i++)
         {
             mCellSize[i] = delta[i] / mN[i];
             mInvCellSize[i] = 1.00 / mCellSize[i];
@@ -199,12 +198,12 @@ public:
     {
         // Container Size
         rOStream << "   Container Size: ";
-        for(SizeType i = 0 ; i < Dimension ; i++)
+        for(std::size_t i = 0 ; i < Dimension ; i++)
             rOStream << "[" << mN[i] << "]";
         rOStream << std::endl;
         // CellSize
         rOStream << "   Cell Size: ";
-        for(SizeType i = 0 ; i < Dimension ; i++)
+        for(std::size_t i = 0 ; i < Dimension ; i++)
             rOStream << "[" << mCellSize[i] << "]";
         rOStream << std::endl;
         rOStream << "   Contained Objects: " << SearchUtils::PointerDistance(mObjectsBegin,mObjectsEnd) << std::endl;
@@ -215,7 +214,7 @@ public:
     void PrintSize( std::ostream& rout )
     {
         rout << "  Container Size: ";
-        for(SizeType i = 0 ; i < Dimension ; i++)
+        for(std::size_t i = 0 ; i < Dimension ; i++)
             rout << "[" << this->mN[i] << "]";
         rout << std::endl;
     }
@@ -409,12 +408,12 @@ public:
         PointType Low, High;
         SearchStructureType Box;
 
-//      SizeType n_objects = SearchUtils::PointerDistance(mObjectsBegin,mObjectsEnd); /// WARNING
+//      std::size_t n_objects = SearchUtils::PointerDistance(mObjectsBegin,mObjectsEnd); /// WARNING
 
         // Allocate CellAcess
 
-        SizeType Size = 1;
-        for(SizeType i = 0 ; i < Dimension ; i++)
+        std::size_t Size = 1;
+        for(std::size_t i = 0 ; i < Dimension ; i++)
             Size *= mN[i];
         mObjectsAccess.resize(Size+1,0);
 
@@ -461,7 +460,7 @@ public:
 //************************************************************************
 
     // Dimension = 1
-    void CountObject( SearchStructure<IndexType,SizeType,CoordinateType,IteratorType,IteratorIteratorType,1>& Box, PointerType object)
+    void CountObject( SearchStructure<IndexType,std::size_t,CoordinateType,IteratorType,IteratorIteratorType,1>& Box, PointerType object)
     {
         PointType  MinCell, MaxCell;
 
@@ -477,12 +476,12 @@ public:
 //************************************************************************
 
     // Dimension = 2
-    void CountObject( SearchStructure<IndexType,SizeType,CoordinateType,IteratorType,IteratorIteratorType,2>& Box, PointerType object )
+    void CountObject( SearchStructure<IndexType,std::size_t,CoordinateType,IteratorType,IteratorIteratorType,2>& Box, PointerType object )
     {
         PointType  MinCell, MaxCell;
         PointType  MinBox, MaxBox;
 
-        for(SizeType i = 0; i < 2; i++)
+        for(std::size_t i = 0; i < 2; i++)
         {
             MinBox[i] = static_cast<CoordinateType>(Box.Axis[i].Min) * mCellSize[i] + mMinPoint[i];  //
             MaxBox[i] = MinBox[i] + mCellSize[i];
@@ -504,12 +503,12 @@ public:
 //************************************************************************
 
     // Dimension = 3
-    void CountObject( SearchStructure<IndexType,SizeType,CoordinateType,IteratorType,IteratorIteratorType,3>& Box, PointerType object )
+    void CountObject( SearchStructure<IndexType,std::size_t,CoordinateType,IteratorType,IteratorIteratorType,3>& Box, PointerType object )
     {
         PointType  MinCell, MaxCell;
         PointType  MinBox, MaxBox;
 
-        for(SizeType i = 0; i < 3; i++)
+        for(std::size_t i = 0; i < 3; i++)
         {
             MinBox[i] = static_cast<CoordinateType>(Box.Axis[i].Min) * mCellSize[i] + mMinPoint[i];  //
             MaxBox[i] = MinBox[i] + mCellSize[i];
@@ -535,11 +534,11 @@ public:
 //************************************************************************
 //************************************************************************
 
-    SizeType SearchObjects(PointerType& ThisObject, ResultIteratorType& Result,  const SizeType& MaxNumberOfResults )
+    std::size_t SearchObjects(PointerType& ThisObject, ResultIteratorType& Result,  const std::size_t& MaxNumberOfResults )
     {
         PointType Low, High;
         SearchStructureType Box;
-        SizeType NumberOfResults = 0;
+        std::size_t NumberOfResults = 0;
         TConfigure::CalculateBoundingBox(ThisObject, Low, High);
         Box.Set( CalculateCell(Low), CalculateCell(High), mN );
         SearchInBoxLocal(ThisObject, Result, NumberOfResults, MaxNumberOfResults, Box );
@@ -550,7 +549,7 @@ public:
 //************************************************************************
 //************************************************************************
 
-    SizeType SearchObjects(PointerType& ThisObject, ResultContainerType& Result)
+    std::size_t SearchObjects(PointerType& ThisObject, ResultContainerType& Result)
     {
         PointType Low, High;
         SearchStructureType Box;
@@ -573,9 +572,9 @@ public:
 //************************************************************************
 //************************************************************************
     /*
-        SizeType SearchContact(IteratorContactType& Result, const SizeType& MaxNumberOfResults )
+        std::size_t SearchContact(IteratorContactType& Result, const std::size_t& MaxNumberOfResults )
         {
-          SizeType NumberOfResults = 0;
+          std::size_t NumberOfResults = 0;
           for (CellContainerIterator icell = mCells.begin() ; icell!= mCells.end(); icell++)
             if(icell->Size()>1)
               icell->SearchContact(Result, NumberOfResults, MaxNumberOfResults);
@@ -585,7 +584,7 @@ public:
 //************************************************************************
 //************************************************************************
 
-    void SearchObjectRow(PointerType& ThisObject, LocalIteratorType RowBegin, LocalIteratorType RowEnd, ResultIteratorType& Result, SizeType& NumberOfResults, const SizeType& MaxNumberOfResults)
+    void SearchObjectRow(PointerType& ThisObject, LocalIteratorType RowBegin, LocalIteratorType RowEnd, ResultIteratorType& Result, std::size_t& NumberOfResults, const std::size_t& MaxNumberOfResults)
     {
         for(LocalIteratorType iter = RowBegin ; iter != RowEnd && NumberOfResults < MaxNumberOfResults ; iter++)
         {
@@ -604,23 +603,23 @@ public:
     // **** THREAD SAFE
 
     // Dimension = 1
-    void SearchInBoxLocal(PointerType& ThisObject, ResultIteratorType& Result, SizeType& NumberOfResults, const SizeType& MaxNumberOfResults,
-                          SearchStructure<IndexType,SizeType,CoordinateType,IteratorType,IteratorIteratorType,1>& Box )
+    void SearchInBoxLocal(PointerType& ThisObject, ResultIteratorType& Result, std::size_t& NumberOfResults, const std::size_t& MaxNumberOfResults,
+                          SearchStructure<IndexType,std::size_t,CoordinateType,IteratorType,IteratorIteratorType,1>& Box )
     {
         SearchObjectRow(ThisObject,mObjectList.begin()+mObjectsAccess[Box.Axis[0].Begin()],mObjectList.begin()+mObjectsAccess[Box.Axis[0].End()+1],Result,NumberOfResults,MaxNumberOfResults);
     }
 
     // Dimension = 2
-    void SearchInBoxLocal(PointerType& ThisObject, ResultIteratorType& Result, SizeType& NumberOfResults, const SizeType& MaxNumberOfResults,
-                          SearchStructure<IndexType,SizeType,CoordinateType,IteratorType,IteratorIteratorType,2>& Box )
+    void SearchInBoxLocal(PointerType& ThisObject, ResultIteratorType& Result, std::size_t& NumberOfResults, const std::size_t& MaxNumberOfResults,
+                          SearchStructure<IndexType,std::size_t,CoordinateType,IteratorType,IteratorIteratorType,2>& Box )
     {
         for(IndexType I = Box.Axis[1].Begin() ; I <= Box.Axis[1].End() ; I += Box.Axis[1].Block )
             SearchObjectRow(ThisObject,mObjectList.begin()+mObjectsAccess[I+Box.Axis[0].Begin()],mObjectList.begin()+mObjectsAccess[I+Box.Axis[0].End()+1],Result,NumberOfResults,MaxNumberOfResults);
     }
 
     // Dimension = 3
-    void SearchInBoxLocal(PointerType& ThisObject, ResultIteratorType& Result, SizeType& NumberOfResults, const SizeType& MaxNumberOfResults,
-                          SearchStructure<IndexType,SizeType,CoordinateType,IteratorType,IteratorIteratorType,3>& Box )
+    void SearchInBoxLocal(PointerType& ThisObject, ResultIteratorType& Result, std::size_t& NumberOfResults, const std::size_t& MaxNumberOfResults,
+                          SearchStructure<IndexType,std::size_t,CoordinateType,IteratorType,IteratorIteratorType,3>& Box )
     {
         for(IndexType II = Box.Axis[2].Begin() ; II <= Box.Axis[2].End() ; II += Box.Axis[2].Block )
             for(IndexType I = II + Box.Axis[1].Begin() ; I <= II + Box.Axis[1].End() ; I += Box.Axis[1].Block )
@@ -628,14 +627,14 @@ public:
     }
 
     // Dimension = 3
-    void SearchInBoxLocal_(PointerType& ThisObject, ResultIteratorType& Result, SizeType& NumberOfResults, const SizeType& MaxNumberOfResults,
-                           SearchStructure<IndexType,SizeType,CoordinateType,IteratorType,IteratorIteratorType,3>& Box )
+    void SearchInBoxLocal_(PointerType& ThisObject, ResultIteratorType& Result, std::size_t& NumberOfResults, const std::size_t& MaxNumberOfResults,
+                           SearchStructure<IndexType,std::size_t,CoordinateType,IteratorType,IteratorIteratorType,3>& Box )
     {
         PointType  MinCell, MaxCell;
         PointType  MinBox, MaxBox;
         IndexType  objects_begin, objects_end;
 
-        for(SizeType i = 0; i < 3; i++)
+        for(std::size_t i = 0; i < 3; i++)
         {
             MinBox[i] = static_cast<CoordinateType>(Box.Axis[i].Min) * mCellSize[i] + mMinPoint[i];  //
             MaxBox[i] = MinBox[i] + mCellSize[i];
@@ -694,14 +693,14 @@ public:
 
     // Dimension = 1
     void SearchInBoxLocal(PointerType& ThisObject, ResultContainerType& Results,
-                          SearchStructure<IndexType,SizeType,CoordinateType,IteratorType,IteratorIteratorType,1>& Box )
+                          SearchStructure<IndexType,std::size_t,CoordinateType,IteratorType,IteratorIteratorType,1>& Box )
     {
         SearchObjectRow(ThisObject,mObjectList.begin()+mObjectsAccess[Box.Axis[0].Begin()],mObjectList.begin()+mObjectsAccess[Box.Axis[0].End()+1],Results);
     }
 
     // Dimension = 2
     void SearchInBoxLocal(PointerType& ThisObject, ResultContainerType& Results,
-                          SearchStructure<IndexType,SizeType,CoordinateType,IteratorType,IteratorIteratorType,2>& Box )
+                          SearchStructure<IndexType,std::size_t,CoordinateType,IteratorType,IteratorIteratorType,2>& Box )
     {
         for(IndexType I = Box.Axis[1].Begin() ; I <= Box.Axis[1].End() ; I += Box.Axis[1].Block )
             SearchObjectRow(ThisObject,mObjectList.begin()+mObjectsAccess[I+Box.Axis[0].Begin()],mObjectList.begin()+mObjectsAccess[I+Box.Axis[0].End()+1],Results);
@@ -709,7 +708,7 @@ public:
 
     // Dimension = 3
     void SearchInBoxLocal(PointerType& ThisObject, ResultContainerType& Results,
-                          SearchStructure<IndexType,SizeType,CoordinateType,IteratorType,IteratorIteratorType,3>& Box )
+                          SearchStructure<IndexType,std::size_t,CoordinateType,IteratorType,IteratorIteratorType,3>& Box )
     {
         for(IndexType II = Box.Axis[2].Begin() ; II <= Box.Axis[2].End() ; II += Box.Axis[2].Block )
             for(IndexType I = II + Box.Axis[1].Begin() ; I <= II + Box.Axis[1].End() ; I += Box.Axis[1].Block )
@@ -724,7 +723,7 @@ public:
     Tvector<IndexType,Dimension>  CalculateCell( const PointType& ThisPoint )
     {
         Tvector<IndexType,Dimension>  Cell;
-        for(SizeType i = 0 ; i < Dimension ; i++)
+        for(std::size_t i = 0 ; i < Dimension ; i++)
             Cell[i] = CalculatePosition(ThisPoint[i],i);
         return Cell;
     }
@@ -734,7 +733,7 @@ public:
 //************************************************************************
 
     // Dimension = 1
-    void FillObject( SearchStructure<IndexType,SizeType,CoordinateType,IteratorType,IteratorIteratorType,1>& Box, const PointerType& object)
+    void FillObject( SearchStructure<IndexType,std::size_t,CoordinateType,IteratorType,IteratorIteratorType,1>& Box, const PointerType& object)
     {
         PointType  MinCell, MaxCell;
 
@@ -747,12 +746,12 @@ public:
 
 
     // Dimension = 2
-    void FillObject( SearchStructure<IndexType,SizeType,CoordinateType,IteratorType,IteratorIteratorType,2>& Box, const PointerType& object)
+    void FillObject( SearchStructure<IndexType,std::size_t,CoordinateType,IteratorType,IteratorIteratorType,2>& Box, const PointerType& object)
     {
         PointType  MinCell, MaxCell;
         PointType  MinBox, MaxBox;
 
-        for(SizeType i = 0; i < 2; i++)
+        for(std::size_t i = 0; i < 2; i++)
         {
             MinBox[i] = static_cast<CoordinateType>(Box.Axis[i].Min) * mCellSize[i] + mMinPoint[i];  //
             MaxBox[i] = MinBox[i] + mCellSize[i];
@@ -772,12 +771,12 @@ public:
 
 
     // Dimension = 3
-    void FillObject( SearchStructure<IndexType,SizeType,CoordinateType,IteratorType,IteratorIteratorType,3>& Box, const PointerType&  object)
+    void FillObject( SearchStructure<IndexType,std::size_t,CoordinateType,IteratorType,IteratorIteratorType,3>& Box, const PointerType&  object)
     {
         PointType  MinCell, MaxCell;
         PointType  MinBox, MaxBox;
 
-        for(SizeType i = 0; i < 3; i++)
+        for(std::size_t i = 0; i < 3; i++)
         {
             MinBox[i] = static_cast<CoordinateType>(Box.Axis[i].Min) * mCellSize[i] + mMinPoint[i];  //
             MaxBox[i] = MinBox[i] + mCellSize[i];
@@ -804,7 +803,7 @@ public:
 //************************************************************************
 
 
-    IndexType CalculatePosition( CoordinateType const& ThisCoord, SizeType& ThisDimension )
+    IndexType CalculatePosition( CoordinateType const& ThisCoord, std::size_t& ThisDimension )
     {
         CoordinateType d_index = (ThisCoord - mMinPoint[ThisDimension]) * mInvCellSize[ThisDimension];
         IndexType index = static_cast<IndexType>( (d_index < 0.00) ? 0.00 : d_index );

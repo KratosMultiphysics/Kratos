@@ -116,5 +116,11 @@ class TwoPatchCantileverCouplingPenaltyTest(IgaTestFactory):
 class TwoPatchCantileverRefinedCouplingPenaltyTest(IgaTestFactory):
     file_name = "coupling_condition_tests/two_patch_cantilever_refined_test/two_patch_cantilever_refined_test_penalty"
 
+class TwoPatchCantileverRefinedCouplingPenalty6pTest(IgaTestFactory):
+    file_name = "coupling_condition_tests/two_patch_cantilever_refined_test/two_patch_cantilever_refined_test_penalty_6p"
+
+class TwoPatchScordelisRoofTest(IgaTestFactory):
+    file_name = "coupling_condition_tests/two_patch_scordelis_roof_test/two_patch_scordelis_roof_test"
+
 if __name__ == '__main__':
     KratosUnittest.main()

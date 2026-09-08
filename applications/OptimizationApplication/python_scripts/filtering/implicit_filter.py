@@ -3,7 +3,6 @@ import typing
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.OptimizationApplication as KratosOA
 from KratosMultiphysics.OptimizationApplication.filtering.filter import Filter
-from KratosMultiphysics.OptimizationApplication.utilities.union_utilities import ContainerExpressionTypes
 from KratosMultiphysics.OptimizationApplication.utilities.union_utilities import SupportedSensitivityFieldVariableTypes
 from KratosMultiphysics.OptimizationApplication.filtering.helmholtz_analysis import HelmholtzAnalysis
 
@@ -94,32 +93,34 @@ class ImplicitFilter(Filter):
     def Finalize(self) -> None:
         self.filter_analysis.Finalize()
 
-    def ForwardFilterField(self, control_field: ContainerExpressionTypes) -> ContainerExpressionTypes:
+    def ForwardFilterField(self, control_field: Kratos.TensorAdaptors.DoubleTensorAdaptor) -> Kratos.TensorAdaptors.DoubleTensorAdaptor:
         if self.filter_analysis._GetSolver().GetOriginModelPart()[KratosOA.NUMBER_OF_SOLVERS_USING_NODES] > 1:
             self.__ReInitializeFilteringModelPart()
         return self.filter_analysis.FilterField(control_field)
 
-    def BackwardFilterField(self, physical_mesh_independent_gradient_field: ContainerExpressionTypes) -> ContainerExpressionTypes:
+    def BackwardFilterField(self, physical_mesh_independent_gradient_field: Kratos.TensorAdaptors.DoubleTensorAdaptor) -> Kratos.TensorAdaptors.DoubleTensorAdaptor:
         if self.filter_analysis._GetSolver().GetOriginModelPart()[KratosOA.NUMBER_OF_SOLVERS_USING_NODES] > 1:
             self.__ReInitializeFilteringModelPart()
         return self.filter_analysis.FilterField(physical_mesh_independent_gradient_field)
 
-    def BackwardFilterIntegratedField(self, physical_mesh_dependent_gradient_field: ContainerExpressionTypes) -> ContainerExpressionTypes:
+    def BackwardFilterIntegratedField(self, physical_mesh_dependent_gradient_field: Kratos.TensorAdaptors.DoubleTensorAdaptor) -> Kratos.TensorAdaptors.DoubleTensorAdaptor:
         if self.filter_analysis._GetSolver().GetOriginModelPart()[KratosOA.NUMBER_OF_SOLVERS_USING_NODES] > 1:
             self.__ReInitializeFilteringModelPart()
         return self.filter_analysis.FilterIntegratedField(physical_mesh_dependent_gradient_field)
 
-    def UnfilterField(self, physical_field: ContainerExpressionTypes) -> ContainerExpressionTypes:
+    def UnfilterField(self, physical_field: Kratos.TensorAdaptors.DoubleTensorAdaptor) -> Kratos.TensorAdaptors.DoubleTensorAdaptor:
         if self.filter_analysis._GetSolver().GetOriginModelPart()[KratosOA.NUMBER_OF_SOLVERS_USING_NODES] > 1:
             self.__ReInitializeFilteringModelPart()
         # now we get the current values
-        current_values = Kratos.Expression.NodalExpression(self.filter_analysis._GetComputingModelPart())
-        Kratos.Expression.VariableExpressionIO.Read(current_values, self.filter_analysis._GetSolver().GetSolvingVariable(), True)
+        current_values_ta = Kratos.TensorAdaptors.HistoricalVariableTensorAdaptor(self.filter_analysis._GetComputingModelPart().Nodes, self.filter_analysis._GetSolver().GetSolvingVariable())
+        current_values_ta.CollectData()
+
         # now apply the physical field
-        self.filter_analysis.AssignExpressionDataToNodalSolution(physical_field)
+        self.filter_analysis.AssignTensorDataToNodalSolution(physical_field)
         unfiltered_field = self.filter_analysis.UnFilterField(physical_field)
+
         # now apply back the original BCs
-        Kratos.Expression.VariableExpressionIO.Write(current_values, self.filter_analysis._GetSolver().GetSolvingVariable(), True)
+        current_values_ta.StoreData()
         return unfiltered_field
 
     def GetBoundaryConditions(self) -> 'list[list[Kratos.ModelPart]]':
@@ -181,10 +182,10 @@ class ImplicitFilter(Filter):
 
         # make all the boundaries to zero
         for model_part in list_of_boundary_model_parts:
-            zero_field =  Kratos.Expression.NodalExpression(model_part)
-            Kratos.Expression.LiteralExpressionIO.SetData(zero_field, 0.0)
             for filter_variable in self.filter_variables:
-                Kratos.Expression.VariableExpressionIO.Write(zero_field, filter_variable, True)
+                zero_field = Kratos.TensorAdaptors.HistoricalVariableTensorAdaptor(model_part.Nodes, filter_variable)
+                zero_field.data[:] = 0.0
+                zero_field.StoreData()
 
         Kratos.Logger.PrintInfo(self.__class__.__name__, f"Applied filter boundary conditions used in \"{self.GetComponentDataView().GetComponentName()}\".")
 

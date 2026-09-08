@@ -54,7 +54,7 @@ void ComputeCenterOfGravityProcess::Execute()
     KRATOS_INFO("Hint")  << "Check variable CENTER_OF_GRAVITY in the process info in "
                          << "order to access to it at any moment" << std::endl;
 
-    mrThisModelPart.GetProcessInfo()[CENTER_OF_GRAVITY] = center_of_gravity;
+    mrThisModelPart.SetValue(CENTER_OF_GRAVITY, center_of_gravity);
 
     KRATOS_CATCH("")
 } // class ComputeCenterOfGravityProcess

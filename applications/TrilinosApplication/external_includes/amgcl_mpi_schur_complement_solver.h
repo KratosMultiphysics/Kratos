@@ -1,19 +1,17 @@
-//    |  /           |
-//    ' /   __| _` | __|  _ \   __|
-//    . \  |   (   | |   (   |\__ `
-//   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics
+//  KRATOS  _____     _ _ _
+//         |_   _| __(_) (_)_ __   ___  ___
+//           | || '__| | | | '_ \ / _ \/ __|
+//           | || |  | | | | | | | (_) \__
+//           |_||_|  |_|_|_|_| |_|\___/|___/ APPLICATION
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Denis Demidov
 //                   Riccardo Rossi
 //
 
-#if !defined (KRATOS_AMGCL_MPI_SCHUR_COMPLEMENT_SOLVER_H_INCLUDED)
-#define KRATOS_AMGCL_MPI_SCHUR_COMPLEMENT_SOLVER_H_INCLUDED
-
+#pragma once
 
 #ifndef AMGCL_PARAM_UNKNOWN
 #include "input_output/logger.h"
@@ -24,7 +22,6 @@
 // External includes
 
 // Project includes
-#include "includes/define.h"
 #include "includes/kratos_parameters.h"
 #include "linear_solvers/linear_solver.h"
 #include "external_includes/amgcl_mpi_solver.h"
@@ -62,13 +59,13 @@ public:
      */
     KRATOS_CLASS_POINTER_DEFINITION ( AmgclMPISchurComplementSolver );
 
-    typedef LinearSolver<TSparseSpaceType, TDenseSpaceType, TReordererType> BaseType;
+    using BaseType = LinearSolver<TSparseSpaceType, TDenseSpaceType, TReordererType>;
 
-    typedef typename TSparseSpaceType::MatrixType SparseMatrixType;
+    using SparseMatrixType = typename TSparseSpaceType::MatrixType;
 
-    typedef typename TSparseSpaceType::VectorType VectorType;
+    using VectorType = typename TSparseSpaceType::VectorType;
 
-    typedef typename TDenseSpaceType::MatrixType DenseMatrixType;
+    using DenseMatrixType = typename TDenseSpaceType::MatrixType;
 
 
     AmgclMPISchurComplementSolver ( Parameters rParameters )
@@ -381,5 +378,3 @@ inline std::ostream& operator << ( std::ostream& rOStream,
 }
 
 }  // namespace Kratos.
-
-#endif // KRATOS_AMGCL_MPI_SCHUR_COMPLEMENT_SOLVER_H_INCLUDED defined

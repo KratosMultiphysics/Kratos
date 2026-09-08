@@ -11,7 +11,7 @@
 //                   Anne van de Graaf
 //
 
-#include "custom_utilities/process_factory.hpp"
+#include "custom_utilities/process_factory.h"
 #include "includes/kratos_parameters.h"
 
 namespace Kratos

@@ -13,7 +13,7 @@
 //
 
 #include "custom_conditions/T_condition.h"
-#include "custom_utilities/dof_utilities.h"
+#include "custom_utilities/dof_utilities.hpp"
 
 namespace Kratos
 {
@@ -35,6 +35,14 @@ GeoTCondition<TDim, TNumNodes>::GeoTCondition(IndexType               NewId,
                                               PropertiesType::Pointer pProperties)
     : Condition(NewId, pGeometry, pProperties)
 {
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+Condition::Pointer GeoTCondition<TDim, TNumNodes>::Create(IndexType               NewId,
+                                                          NodesArrayType const&   rThisNodes,
+                                                          PropertiesType::Pointer pProperties) const
+{
+    return Kratos::make_intrusive<GeoTCondition>(NewId, GetGeometry().Create(rThisNodes), pProperties);
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
@@ -94,6 +102,18 @@ template <unsigned int TDim, unsigned int TNumNodes>
 std::string GeoTCondition<TDim, TNumNodes>::Info() const
 {
     return "GeoTCondition";
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+void GeoTCondition<TDim, TNumNodes>::save(Serializer& rSerializer) const
+{
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Condition)
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+void GeoTCondition<TDim, TNumNodes>::load(Serializer& rSerializer)
+{
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Condition)
 }
 
 template class GeoTCondition<2, 1>;

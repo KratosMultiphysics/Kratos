@@ -145,6 +145,17 @@ ApplyConstantScalarValueProcess::ApplyConstantScalarValueProcess(
 /***********************************************************************************/
 /***********************************************************************************/
 
+Process::Pointer ApplyConstantScalarValueProcess::Create(
+    Model& rModel,
+    Parameters ThisParameters
+    )
+{
+    return Kratos::make_shared<ApplyConstantScalarValueProcess>(rModel, ThisParameters);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 void ApplyConstantScalarValueProcess::ExecuteInitialize()
 {
     KRATOS_TRY;

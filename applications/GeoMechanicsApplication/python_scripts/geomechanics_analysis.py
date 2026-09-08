@@ -1,6 +1,7 @@
 import time as timer
 import os
 import sys
+from pathlib import Path
 
 sys.path.append(os.path.join('..','..','..'))
 
@@ -10,6 +11,14 @@ import KratosMultiphysics.GeoMechanicsApplication as KratosGeo
 
 from KratosMultiphysics.analysis_stage import AnalysisStage
 from KratosMultiphysics.GeoMechanicsApplication import geomechanics_solvers_wrapper
+from KratosMultiphysics.GeoMechanicsApplication import validation_helpers
+
+def copy_nodal_solution_step_values(model_part, variable, source_index, destination_index):
+    if not model_part.HasNodalSolutionStepVariable(variable):
+        return
+
+    for node in model_part.Nodes:
+        node.SetSolutionStepValue(variable, destination_index, node.GetSolutionStepValue(variable, source_index))
 
 
 class GeoMechanicsAnalysis(AnalysisStage):
@@ -44,7 +53,7 @@ class GeoMechanicsAnalysis(AnalysisStage):
         self.number_cycles       = solver_settings["number_cycles"].GetInt()
         self.max_iterations      = solver_settings["max_iterations"].GetInt()
         self.solution_type       = solver_settings["solution_type"].GetString()
-        self.reset_displacements = solver_settings["reset_displacements"].GetBool()
+        self.reset_totals        = solver_settings["reset_totals"].GetBool()
         self.rebuild_level       = solver_settings["rebuild_level"].GetInt()
 
     def Initialize(self):
@@ -55,8 +64,7 @@ class GeoMechanicsAnalysis(AnalysisStage):
         self.ResetIfHasNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
         self.ResetIfHasNodalSolutionStepVariable(KratosMultiphysics.ROTATION)
 
-        self._GetSolver().main_model_part.ProcessInfo[KratosGeo.RESET_DISPLACEMENTS] = self.reset_displacements
-        if self.reset_displacements:
+        if self.reset_totals:
             self.ResetIfHasNodalSolutionStepVariable(KratosGeo.TOTAL_DISPLACEMENT)
             self.ResetIfHasNodalSolutionStepVariable(KratosGeo.TOTAL_ROTATION)
 
@@ -87,10 +95,19 @@ class GeoMechanicsAnalysis(AnalysisStage):
             KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "Please check settings in Project Parameters and Materials files.")
             raise RuntimeError('The time step is too small!')
 
+    def _RevertStateToStartOfStep(self):
+        KratosMultiphysics.VariableUtils().UpdateCurrentPosition(self._GetSolver().GetComputingModelPart().Nodes, KratosMultiphysics.DISPLACEMENT,1)
+        copy_nodal_solution_step_values(self._GetSolver().GetComputingModelPart(), KratosMultiphysics.DISPLACEMENT, 1, 0)
+        copy_nodal_solution_step_values(self._GetSolver().GetComputingModelPart(), KratosMultiphysics.ROTATION, 1, 0)
+        copy_nodal_solution_step_values(self._GetSolver().GetComputingModelPart(), KratosMultiphysics.WATER_PRESSURE, 1, 0)
+
     def RunSolutionLoop(self):
         """This function executes the solution loop of the AnalysisStage
         It can be overridden by derived classes
         """
+        self._GetSolver().GetComputingModelPart().ProcessInfo[KratosMultiphysics.START_TIME] = self.start_time
+        self._GetSolver().GetComputingModelPart().ProcessInfo[KratosMultiphysics.END_TIME]   = self.end_time
+
         self._GetSolver().solving_strategy.SetRebuildLevel(self.rebuild_level)
 
         while self.KeepAdvancingSolutionLoop():
@@ -133,7 +150,6 @@ class GeoMechanicsAnalysis(AnalysisStage):
 
                 # do the nonlinear solver iterations
                 self.InitializeSolutionStep()
-                self._GetSolver().Predict()
                 converged = self._GetSolver().SolveSolutionStep()
                 self._GetSolver().solving_strategy.SetStiffnessMatrixIsBuilt(True)
 
@@ -157,11 +173,7 @@ class GeoMechanicsAnalysis(AnalysisStage):
                     KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "Down-scaling with factor: ", self.reduction_factor)
                     self.delta_time *= self.reduction_factor
                     self._CheckDeltaTimeSize()
-                    # Reset displacements to the initial
-                    KratosMultiphysics.VariableUtils().UpdateCurrentPosition(self._GetSolver().GetComputingModelPart().Nodes, KratosMultiphysics.DISPLACEMENT,1)
-                    for node in self._GetSolver().GetComputingModelPart().Nodes:
-                        dold = node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT,1)
-                        node.SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT, 0, dold)
+                    self._RevertStateToStartOfStep()
 
             if not converged:
                 raise RuntimeError('The maximum number of cycles is reached without convergence!')
@@ -194,9 +206,9 @@ class GeoMechanicsAnalysis(AnalysisStage):
     def ResetIfHasNodalSolutionStepVariable(self, variable):
         if self._GetSolver().main_model_part.HasNodalSolutionStepVariable(variable):
             zero_vector = Kratos.Array3([0.0, 0.0, 0.0])
-            KratosGeo.NodeUtilities.AssignUpdatedVectorVariableToNonFixedComponentsOfNodes(
+            KratosGeo.NodeUtilities.AssignUpdatedVectorVariableToNodes(
                 self._GetSolver().GetComputingModelPart().Nodes, variable, zero_vector, 0)
-            KratosGeo.NodeUtilities.AssignUpdatedVectorVariableToNonFixedComponentsOfNodes(
+            KratosGeo.NodeUtilities.AssignUpdatedVectorVariableToNodes(
                 self._GetSolver().GetComputingModelPart().Nodes, variable, zero_vector, 1)
 
     def PrintAnalysisStageProgressInformation(self):
@@ -236,7 +248,9 @@ if __name__ == '__main__':
     else: # using default name
         parameter_file_name = "ProjectParameters.json"
 
-    with open(parameter_file_name,'r') as parameter_file:
+    path_to_parameter_file = validation_helpers.validated_parameter_path(parameter_file_name)
+
+    with open(path_to_parameter_file,'r') as parameter_file:
         parameters = Kratos.Parameters(parameter_file.read())
 
     model = Kratos.Model()

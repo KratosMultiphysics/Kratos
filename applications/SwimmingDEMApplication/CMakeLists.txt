@@ -9,7 +9,7 @@ include(pybind11Tools)
 
 include_directories( ${KRATOS_SOURCE_DIR}/kratos )
 
-## Dependecies on other applications
+## Dependencies on other applications
 include_directories( ${KRATOS_SOURCE_DIR}/applications/DEMApplication )
 include_directories( ${KRATOS_SOURCE_DIR}/applications/FluidDynamicsApplication )
 include_directories( ${KRATOS_SOURCE_DIR}/applications/SwimmingDEMApplication )

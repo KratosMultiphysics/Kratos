@@ -17,9 +17,9 @@ class TestMokFSI(co_simulation_test_case.CoSimulationTestCase):
 
     def setUp(self):
         self.err_tol = "1e-6"
+        self.relative_err_tol = "1e-9"
         if not have_fsi_dependencies:
             self.skipTest("FSI dependencies are not available!")
-
 
     def test_mok_fsi_mvqn(self):
         self.accelerator_type = "mvqn"
@@ -53,7 +53,6 @@ class TestMokFSI(co_simulation_test_case.CoSimulationTestCase):
             self.__AddTestingToCFD()
             self.__DumpUpdatedCFDSettings()
             self._runTest()
-
 
     def test_mok_fsi_block_ibqnls(self):
         self.accelerator_type = "block_ibqnls"
@@ -112,7 +111,6 @@ class TestMokFSI(co_simulation_test_case.CoSimulationTestCase):
             num_procs = KM.Testing.GetDefaultDataCommunicator().Size()
             self._runTestWithExternal(["mpiexec", "-np", str(num_procs), GetPython3Command(), "testing_structural_mechanics_analysis_with_co_sim_io.py", "--using-mpi", ext_parameter_file_name])
 
-
     def __ManipulateCFDSettings(self):
         self.cosim_parameters["solver_settings"]["convergence_accelerators"][0]["type"].SetString(self.accelerator_type)
         self.cosim_parameters["solver_settings"]["solvers"]["fluid"]["solver_wrapper_settings"]["input_file"].SetString(self.cfd_tes_file_name)
@@ -161,14 +159,15 @@ class TestMokFSI(co_simulation_test_case.CoSimulationTestCase):
                     "MESH_VELOCITY_Y"]
                 }
             },{
-            "python_module"   : "compare_two_files_check_process",
-            "kratos_module"   : "KratosMultiphysics",
-            "process_name"    : "CompareTwoFilesCheckProcess",
-            "Parameters" :{
-                "output_file_name"    : "fsi_mok/fsi_mok_cfd_results_disp.dat",
-                "reference_file_name" : \""""+disp_ref_file_name.replace("\\", "\\\\")+"""\",
-                "comparison_type"     : "dat_file_variables_time_history",
-                "tolerance"      : """+self.err_tol+"""
+                "python_module"   : "compare_two_files_check_process",
+                "kratos_module"   : "KratosMultiphysics",
+                "process_name"    : "CompareTwoFilesCheckProcess",
+                "Parameters" :{
+                    "output_file_name"    : "fsi_mok/fsi_mok_cfd_results_disp.dat",
+                    "reference_file_name" : \""""+disp_ref_file_name.replace("\\", "\\\\")+"""\",
+                    "comparison_type"     : "dat_file_variables_time_history",
+                    "relative_tolerance"  : """+self.relative_err_tol+""",
+                    "tolerance"           : """+self.err_tol+"""
                 }
             },{
             "kratos_module"   : "KratosMultiphysics",
@@ -191,16 +190,17 @@ class TestMokFSI(co_simulation_test_case.CoSimulationTestCase):
                     "MESH_VELOCITY_Y"]
                 }
             },{
-            "python_module"   : "compare_two_files_check_process",
-            "kratos_module"   : "KratosMultiphysics",
-            "process_name"    : "CompareTwoFilesCheckProcess",
-            "Parameters" :{
-                "output_file_name"    : "fsi_mok/fsi_mok_cfd_results_fluid.dat",
-                "reference_file_name" : \""""+fluid_ref_file_name.replace("\\", "\\\\")+"""\",
-                "comparison_type"     : "dat_file_variables_time_history",
-                "tolerance"      : """+self.err_tol+"""
+                "python_module"   : "compare_two_files_check_process",
+                "kratos_module"   : "KratosMultiphysics",
+                "process_name"    : "CompareTwoFilesCheckProcess",
+                "Parameters" :{
+                    "output_file_name"    : "fsi_mok/fsi_mok_cfd_results_fluid.dat",
+                    "reference_file_name" : \""""+fluid_ref_file_name.replace("\\", "\\\\")+"""\",
+                    "comparison_type"     : "dat_file_variables_time_history",
+                    "tolerance"           : """+self.err_tol+"""
                 }
-            }]"""))
+            }
+            ]"""))
 
     def __DumpUpdatedCFDSettings(self):
         with open(self.cfd_tes_file_name, 'w') as parameter_output_file:
@@ -216,6 +216,6 @@ class TestMokFSI(co_simulation_test_case.CoSimulationTestCase):
         super(TestMokFSI,cls).tearDownClass()
         kratos_utils.DeleteFileIfExisting(GetFilePath(cls.cfd_tes_file_name))
 
-
 if __name__ == '__main__':
+    KM.Logger.GetDefaultOutput().SetSeverity(KM.Logger.Severity.WARNING)
     KratosUnittest.main()

@@ -16,9 +16,7 @@
 // System includes
 #include <stdexcept>
 #include <string>
-#include <iostream>
 #include <sstream>
-#include <vector>
 
 // External includes
 
@@ -66,7 +64,6 @@ public:
 
     /// Destructor.
     ~Exception() noexcept override;
-
 
     ///@}
     ///@name Operators

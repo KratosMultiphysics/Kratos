@@ -261,6 +261,18 @@ public:
         );
 
     /**
+     * @brief Compute the bounding boxes of the given bounding boxes from a given tolerance
+     * @param rBoundingBoxes The bounding boxes
+     * @param Tolerance The tolerance
+     * @param rBoundingBoxesWithTolerance The resulting bounding boxes with the applied tolerance
+     */
+    static void ComputeBoundingBoxesWithTolerance(
+        const std::vector<BoundingBox<Point>>& rBoundingBoxes,
+        const double Tolerance,
+        std::vector<BoundingBox<Point>>& rBoundingBoxesWithTolerance
+        );
+
+    /**
      * @brief Compute the bounding boxes of the given bounding boxes from a given tolerance, additionally checking if the bounding boxes are initialized
      * @details This method is used when the bounding boxes are not initialized
      * @param rBoundingBoxes The bounding boxes
@@ -271,6 +283,19 @@ public:
         const std::vector<double>& rBoundingBoxes,
         const double Tolerance,
         std::vector<double>& rBoundingBoxesWithTolerance
+        );
+
+    /**
+     * @brief Compute the bounding boxes of the given bounding boxes from a given tolerance, additionally checking if the bounding boxes are initialized
+     * @details This method is used when the bounding boxes are not initialized
+     * @param rBoundingBoxes The bounding boxes
+     * @param Tolerance The tolerance
+     * @param rBoundingBoxesWithTolerance The resulting bounding boxes with the applied tolerance
+     */
+    static void ComputeBoundingBoxesWithToleranceCheckingNullBB(
+        const std::vector<BoundingBox<Point>>& rBoundingBoxes,
+        const double Tolerance,
+        std::vector<BoundingBox<Point>>& rBoundingBoxesWithTolerance
         );
 
     /**
@@ -567,7 +592,7 @@ private:
     ///@{
 
     /**
-     * @details Synchronizes points between different processes. 
+     * @details Synchronizes points between different processes.
      * @details Synchonously
      * @param itPointBegin Iterator pointing to the beginning of the range of points
      * @param itPointEnd Iterator pointing to the end of the range of points

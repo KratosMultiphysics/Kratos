@@ -1,0 +1,151 @@
+{
+    "analysis_stage": "KratosMultiphysics.ConvectionDiffusionApplication.convection_diffusion_analysis",
+
+    "problem_data": {
+        "problem_name": "codina_test1",
+        "parallel_type": "OpenMP",
+        "start_time": 0.0,
+        "end_time": 0.5,
+        "echo_level": 1
+    },
+    "modelers"         : [{
+        "name"       : "Modelers.KratosMultiphysics.ImportMDPAModeler",
+        "parameters" : {
+            "input_filename"  : "square20x20",
+            "model_part_name" : "ThermalModelPart"
+        }
+    },{
+        "name"       : "Modelers.KratosMultiphysics.CreateEntitiesFromGeometriesModeler",
+        "parameters" : {
+            "elements_list"   : [{
+                "model_part_name" : "ThermalModelPart.Body",
+                "element_name"    : "Element2D3N"
+            }],
+            "conditions_list" : [{
+                "model_part_name" : "ThermalModelPart.Top_Wall",
+                "condition_name"  : "LineCondition2D2N"
+            },{
+                "model_part_name" : "ThermalModelPart.Bottom_Wall",
+                "condition_name"  : "LineCondition2D2N"
+            },{
+                "model_part_name" : "ThermalModelPart.Left_Wall",
+                "condition_name"  : "LineCondition2D2N"
+            },{
+                "model_part_name" : "ThermalModelPart.Right_Wall",
+                "condition_name"  : "LineCondition2D2N"
+            }]
+        }
+    }],
+    "solver_settings": {
+        "solver_type": "transient",
+        "analysis_type": "linear",
+        "model_part_name": "ThermalModelPart",
+        "domain_size": 2,
+        "model_import_settings": {
+            "input_type": "use_input_model_part"
+        },
+        "material_import_settings": {
+            "materials_filename": "ConvectionDiffusionMaterials.json"
+        },
+        "time_stepping": {
+            "time_step": 0.01 // reduce dt for sharper resolution (0.0001)
+        },            
+        "transient_parameters" : {
+                "dynamic_tau": 1.0,
+                "theta"    : 0.5,
+                // "cross_wind_stabilization_factor" : 0.0
+                "cross_wind_stabilization_factor" : 0.7
+        },
+        "convection_diffusion_variables": {
+            "unknown_variable": "TEMPERATURE",
+            "velocity_variable": "VELOCITY",
+            "diffusion_variable": "CONDUCTIVITY",
+            "specific_heat_variable": "SPECIFIC_HEAT",
+            "density_variable": "DENSITY",
+            "volume_source_variable": "HEAT_FLUX"
+        }
+    },
+    "processes": {
+        "initial_conditions_process_list": [
+            {
+                "python_module": "assign_scalar_variable_process",
+                "kratos_module": "KratosMultiphysics",
+                "process_name": "AssignScalarVariableProcess",
+                "Parameters": {
+                    "model_part_name": "ThermalModelPart.Body",
+                    "variable_name": "TEMPERATURE",
+                    "interval": [0.0, 0.0],
+                    "value": 0.0
+                }
+            }
+        ],
+        "boundary_conditions_process_list": [],
+        "auxiliar_process_list": [
+            {
+                "python_module": "assign_vector_variable_process",
+                "kratos_module": "KratosMultiphysics",
+                "process_name": "AssignVectorVariableProcess",
+                "Parameters": {
+                    "model_part_name": "ThermalModelPart.Body",
+                    "variable_name": "VELOCITY",
+                    "interval": [0.0, "End"],
+                    "constrained": false,
+                    "value": [1.0, -2.0, 0.0]
+                }
+            }
+        ]
+    },
+    "output_processes": {
+        // "gid_output" : [{
+        //     "python_module" : "gid_output_process",
+        //     "kratos_module" : "KratosMultiphysics",
+        //     "process_name"  : "GiDOutputProcess",
+        //     "Parameters"    : {
+        //         "model_part_name"        : "ThermalModelPart",
+        //         "postprocess_parameters" : {
+        //             "result_file_configuration" : {
+        //                 "gidpost_flags"               : {
+        //                     "GiDPostMode"           : "GiD_PostBinary",
+        //                     "WriteDeformedMeshFlag" : "WriteDeformed",
+        //                     "WriteConditionsFlag"   : "WriteConditions",
+        //                     "MultiFileFlag"         : "SingleFile"
+        //                 },
+        //                 "file_label"                  : "time",
+        //                 "output_control_type"         : "step",
+        //                 "output_interval"             : 1,
+        //                 "body_output"                 : true,
+        //                 "node_output"                 : false,
+        //                 "skin_output"                 : false,
+        //                 "plane_output"                : [],
+        //                 "nodal_results"               : ["TEMPERATURE","VELOCITY"],
+        //                 "nodal_nonhistorical_results" : [],
+        //                 "gauss_point_results"         : []
+        //             },
+        //             "point_data_configuration"  : []
+        //         },
+        //         "output_name"            : "gid_output/crosswind"
+        //     }
+        // }]
+        // ,
+        // "vtk_output" : [{
+        //     "python_module" : "vtk_output_process",
+        //     "kratos_module" : "KratosMultiphysics",
+        //     "process_name"  : "VtkOutputProcess",
+        //     "Parameters"    : {
+        //         "model_part_name"                             : "ThermalModelPart",
+        //         "output_control_type"                         : "step",
+        //         "output_interval"                             : 100,
+        //         "file_format"                                 : "ascii",
+        //         "output_precision"                            : 7,
+        //         "output_sub_model_parts"                      : false,
+        //         "output_path"                                 : "crosswind",
+        //         "save_output_files_in_folder"                 : true,
+        //         "nodal_solution_step_data_variables"          : ["TEMPERATURE"],
+        //         "nodal_data_value_variables"                  : [],
+        //         "element_data_value_variables"                : [],
+        //         "condition_data_value_variables"              : [],
+        //         "gauss_point_variables_extrapolated_to_nodes" : []
+        //     }
+        // }]
+    }
+}

@@ -1,0 +1,142 @@
+Begin Table 1 TIME DISPLACEMENT_X
+  0.0  0.0
+  1.0  -4.4466666666666666e-5
+  2.0  -8.8933333333333332e-5
+  3.0  -1.0e-4
+  4.0  -2.0e-4
+End Table
+
+Begin Table 2 TIME DISPLACEMENT_Y
+  0.0  0.0
+  1.0  -1.11e-5
+  2.0  -2.22e-5
+  3.0  -3.33e-5
+  4.0  -4.44e-5
+End Table
+
+Begin Table 3 TIME DISPLACEMENT_Z
+  0.0  0.0
+  1.0  -4.4466666666666666e-5
+  2.0  -8.8933333333333332e-5
+  3.0  -1.0e-4
+  4.0  -2.0e-4
+End Table
+
+
+Begin Properties 1
+End Properties
+
+
+Begin Nodes
+  1  2.0000000000 0.0000000000 0.0000000000
+  2  4.5000000000 0.0000000000 0.0000000000
+  3  7.0000000000 0.0000000000 0.0000000000
+  4  2.0000000000 0.0000000000 2.0000000000
+  5  4.5000000000 0.0000000000 2.0000000000
+  6  7.0000000000 0.0000000000 2.0000000000
+  7  2.0000000000 0.0000000000 4.0000000000
+  8  4.5000000000 0.0000000000 4.0000000000
+  9  7.0000000000 0.0000000000 4.0000000000
+ 11  2.0000000000 0.0000000000 0.0000000000
+ 12  4.5000000000 0.0000000000 0.0000000000
+ 13  7.0000000000 0.0000000000 0.0000000000
+ 14  2.0000000000 0.0000000000 2.0000000000
+ 15  4.5000000000 0.0000000000 2.0000000000
+ 16  7.0000000000 0.0000000000 2.0000000000
+ 17  2.0000000000 0.0000000000 4.0000000000
+ 18  4.5000000000 0.0000000000 4.0000000000
+ 19  7.0000000000 0.0000000000 4.0000000000
+End Nodes
+
+
+Begin Elements Geo_USurfaceInterfaceElement6Plus6N
+  1  1   1  7  3  4  5  2  11  17  13  14  15  12
+  2  1   7  9  3  8  6  5  17  19  13  18  16  15
+End Elements
+
+
+Begin SubModelPart Interfaces
+  Begin SubModelPartNodes
+      1
+      2
+      3
+      4
+      5
+      6
+      7
+      8
+      9
+     11
+     12
+     13
+     14
+     15
+     16
+     17
+     18
+     19
+  End SubModelPartNodes
+  Begin SubModelPartElements
+      1
+      2
+  End SubModelPartElements
+End SubModelPart
+
+
+Begin SubModelPart FixedNodes
+  Begin SubModelPartNodes
+      1
+      2
+      3
+      4
+      5
+      6
+      7
+      8
+      9
+  End SubModelPartNodes
+End SubModelPart
+
+
+Begin SubModelPart SideZX
+  Begin SubModelPartNodes
+     11
+     12
+     13
+     14
+     15
+     16
+     17
+     18
+     19
+  End SubModelPartNodes
+  Begin SubModelPartTables
+      1
+      2
+      3
+  End SubModelPartTables  
+End SubModelPart
+
+
+Begin SubModelPart AllNodes
+  Begin SubModelPartNodes
+      1
+      2
+      3
+      4
+      5
+      6
+      7
+      8
+      9
+     11
+     12
+     13
+     14
+     15
+     16
+     17
+     18
+     19
+  End SubModelPartNodes
+End SubModelPart

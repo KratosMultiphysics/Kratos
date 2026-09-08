@@ -613,7 +613,6 @@ void DVMSDEMCoupled<TElementData>::InitializeNonLinearIteration(const ProcessInf
 
     TElementData data;
     data.Initialize(*this,rCurrentProcessInfo);
-    array_1d<double,NumNodes> nodal_reaction_term = ZeroVector(NumNodes);
     for (unsigned int g = 0; g < number_of_integration_points; g++) {
         this->UpdateIntegrationPointDataSecondDerivatives(data, g, gauss_weights[g],row(shape_functions,g),shape_function_derivatives[g],shape_function_second_derivatives[g]);
         mPorosity[g] = this->GetAtCoordinate(data.FluidFraction,row(shape_functions,g));
@@ -1598,7 +1597,17 @@ void DVMSDEMCoupled<TElementData>::UpdateSubscaleVelocityPrediction(
 
     // Store new subscale values or discard the calculation
     // If not converged, we will not use the subscale in the convective term.
-    noalias(mPredictedSubscaleVelocity[rData.IntegrationPointIndex]) = converged ? u : ZeroVector(Dim);
+    if (converged) {
+        mPredictedSubscaleVelocity[rData.IntegrationPointIndex][0] = u[0];
+        mPredictedSubscaleVelocity[rData.IntegrationPointIndex][1] = u[1];
+        if constexpr (Dim == 3) {
+            mPredictedSubscaleVelocity[rData.IntegrationPointIndex][2] = u[2];
+        } else {
+            mPredictedSubscaleVelocity[rData.IntegrationPointIndex][2] = 0.0;   
+        }
+    } else {
+        noalias(mPredictedSubscaleVelocity[rData.IntegrationPointIndex]) = ZeroVector(Dim);
+    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////

@@ -37,14 +37,8 @@ private:
 
     friend class Serializer;
 
-    void save(Serializer& rSerializer) const override
-    {
-        rSerializer.save("NumberOfDimensions", mNumberOfDimensions);
-    }
+    void save(Serializer& rSerializer) const override;
 
-    void load(Serializer& rSerializer) override
-    {
-        rSerializer.load("NumberOfDimensions", mNumberOfDimensions);
-    }
+    void load(Serializer& rSerializer) override;
 };
 } // namespace Kratos.

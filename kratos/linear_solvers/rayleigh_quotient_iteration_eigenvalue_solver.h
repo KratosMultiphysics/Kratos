@@ -248,8 +248,11 @@ public:
         SizeType max_iteration = BaseType::GetMaxIterationsNumber();
         double tolerance = BaseType::GetTolerance();
 
-        VectorType x = boost::numeric::ublas::zero_vector<double>(size);
-        VectorType y = boost::numeric::ublas::zero_vector<double>(size);
+        VectorType x(size);
+
+        TSparseSpaceType::SetToZero(x);
+        VectorType y(size);
+        TSparseSpaceType::SetToZero(y);
 
         InitializeSystem(y,M);
 

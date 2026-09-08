@@ -1,168 +1,169 @@
-<VTKFile type="UnstructuredGrid" version="0.1" byte_order="LittleEndian">
+<?xml version="1.0"?>
+<VTKFile byte_order="LittleEndian" type="UnstructuredGrid" version="0.1">
    <UnstructuredGrid>
-      <Piece NumberOfPoints="3" NumberOfCells="1">
+      <Piece NumberOfCells="1" NumberOfPoints="3">
          <Points>
-            <DataArray type="Float64" Name="Position" NumberOfComponents="3" format="binary">
-              SAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAPA/AAAAAAAAAAAAAAAAAAAAAAAAAAAAAPA/AAAAAAAA8D8AAAAAAAAAAA==
+            <DataArray Name="Position" NumberOfComponents="3" format="ascii" type="Float64">
+              0.0000000e+00  0.0000000e+00  0.0000000e+00  1.0000000e+00  0.0000000e+00  0.0000000e+00  1.0000000e+00  1.0000000e+00  0.0000000e+00
             </DataArray>
          </Points>
          <Cells>
-            <DataArray type="Int32" Name="connectivity" NumberOfComponents="1" format="binary">
-              DAAAAAAAAAABAAAAAgAAAA==
+            <DataArray Name="connectivity" NumberOfComponents="1" format="ascii" type="Int32">
+              0  1  2
             </DataArray>
-            <DataArray type="Int32" Name="offsets" NumberOfComponents="1" format="binary">
-              BAAAAAMAAAA=
+            <DataArray Name="offsets" NumberOfComponents="1" format="ascii" type="Int32">
+              3
             </DataArray>
-            <DataArray type="UInt8" Name="types" NumberOfComponents="1" format="binary">
-              AQAAAAU=
+            <DataArray Name="types" NumberOfComponents="1" format="ascii" type="UInt8">
+              5
             </DataArray>
          </Cells>
          <PointData>
-            <DataArray type="Float64" Name="control_1_collective_element_False" NumberOfComponents="3" format="binary">
-              SAAAAGZmZmZmZiJAmZmZmZmZK0BmZmZmZmYyQJmZmZmZmStAZmZmZmZmMkAAAAAAAAA3QGZmZmZmZjJAAAAAAAAAN0CZmZmZmZk7QA==
+            <DataArray Name="control_1_combined_element_False" NumberOfComponents="3" format="ascii" type="Float64">
+              9.2000000e+00  1.3800000e+01  1.8400000e+01  1.3800000e+01  1.8400000e+01  2.3000000e+01  1.8400000e+01  2.3000000e+01  2.7600000e+01
             </DataArray>
-            <DataArray type="Float64" Name="control_1_collective_element_True" NumberOfComponents="3" format="binary">
-              SAAAAAAAAAAAAFdAAAAAAABAYUAAAAAAAABnQAAAAAAAQGFAAAAAAAAAZ0D//////79sQAAAAAAAAGdA//////+/bEAAAAAAAEBxQA==
+            <DataArray Name="control_1_combined_element_True" NumberOfComponents="3" format="ascii" type="Float64">
+              9.2000000e+01  1.3800000e+02  1.8400000e+02  1.3800000e+02  1.8400000e+02  2.3000000e+02  1.8400000e+02  2.3000000e+02  2.7600000e+02
             </DataArray>
-            <DataArray type="Float64" Name="control_1_data_nodal_vel__False" NumberOfComponents="3" format="binary">
-              SAAAAGZmZmZmZhJAmZmZmZmZG0BmZmZmZmYiQJmZmZmZmRtAZmZmZmZmIkAAAAAAAAAnQGZmZmZmZiJAAAAAAAAAJ0CZmZmZmZkrQA==
+            <DataArray Name="control_1_data_nodal_vel__False" NumberOfComponents="3" format="ascii" type="Float64">
+              4.6000000e+00  6.9000000e+00  9.2000000e+00  6.9000000e+00  9.2000000e+00  1.1500000e+01  9.2000000e+00  1.1500000e+01  1.3800000e+01
             </DataArray>
-            <DataArray type="Float64" Name="control_1_data_nodal_vel__True" NumberOfComponents="3" format="binary">
-              SAAAAAAAAAAAAEdAAAAAAABAUUAAAAAAAABXQAAAAAAAQFFAAAAAAAAAV0D//////79cQAAAAAAAAFdA//////+/XEAAAAAAAEBhQA==
+            <DataArray Name="control_1_data_nodal_vel__True" NumberOfComponents="3" format="ascii" type="Float64">
+              4.6000000e+01  6.9000000e+01  9.2000000e+01  6.9000000e+01  9.2000000e+01  1.1500000e+02  9.2000000e+01  1.1500000e+02  1.3800000e+02
             </DataArray>
-            <DataArray type="Float64" Name="control_3_collective_element_False" NumberOfComponents="3" format="binary">
-              SAAAAGZmZmZmZiJAmZmZmZmZK0BmZmZmZmYyQJmZmZmZmStAZmZmZmZmMkAAAAAAAAA3QGZmZmZmZjJAAAAAAAAAN0CZmZmZmZk7QA==
+            <DataArray Name="control_3_combined_element_False" NumberOfComponents="3" format="ascii" type="Float64">
+              9.2000000e+00  1.3800000e+01  1.8400000e+01  1.3800000e+01  1.8400000e+01  2.3000000e+01  1.8400000e+01  2.3000000e+01  2.7600000e+01
             </DataArray>
-            <DataArray type="Float64" Name="control_3_collective_element_True" NumberOfComponents="3" format="binary">
-              SAAAAAAAAAAAAFdAAAAAAABAYUAAAAAAAABnQAAAAAAAQGFAAAAAAAAAZ0D//////79sQAAAAAAAAGdA//////+/bEAAAAAAAEBxQA==
+            <DataArray Name="control_3_combined_element_True" NumberOfComponents="3" format="ascii" type="Float64">
+              9.2000000e+01  1.3800000e+02  1.8400000e+02  1.3800000e+02  1.8400000e+02  2.3000000e+02  1.8400000e+02  2.3000000e+02  2.7600000e+02
             </DataArray>
-            <DataArray type="Float64" Name="control_3_data_nodal_vel__False" NumberOfComponents="3" format="binary">
-              SAAAAGZmZmZmZhJAmZmZmZmZG0BmZmZmZmYiQJmZmZmZmRtAZmZmZmZmIkAAAAAAAAAnQGZmZmZmZiJAAAAAAAAAJ0CZmZmZmZkrQA==
+            <DataArray Name="control_3_data_nodal_vel__False" NumberOfComponents="3" format="ascii" type="Float64">
+              4.6000000e+00  6.9000000e+00  9.2000000e+00  6.9000000e+00  9.2000000e+00  1.1500000e+01  9.2000000e+00  1.1500000e+01  1.3800000e+01
             </DataArray>
-            <DataArray type="Float64" Name="control_3_data_nodal_vel__True" NumberOfComponents="3" format="binary">
-              SAAAAAAAAAAAAEdAAAAAAABAUUAAAAAAAABXQAAAAAAAQFFAAAAAAAAAV0D//////79cQAAAAAAAAFdA//////+/XEAAAAAAAEBhQA==
+            <DataArray Name="control_3_data_nodal_vel__True" NumberOfComponents="3" format="ascii" type="Float64">
+              4.6000000e+01  6.9000000e+01  9.2000000e+01  6.9000000e+01  9.2000000e+01  1.1500000e+02  9.2000000e+01  1.1500000e+02  1.3800000e+02
             </DataArray>
-            <DataArray type="Float64" Name="policy_1_collective_element_False" NumberOfComponents="3" format="binary">
-              SAAAAGZmZmZmZiJAmZmZmZmZK0BmZmZmZmYyQJmZmZmZmStAZmZmZmZmMkAAAAAAAAA3QGZmZmZmZjJAAAAAAAAAN0CZmZmZmZk7QA==
+            <DataArray Name="policy_1_combined_element_False" NumberOfComponents="3" format="ascii" type="Float64">
+              9.2000000e+00  1.3800000e+01  1.8400000e+01  1.3800000e+01  1.8400000e+01  2.3000000e+01  1.8400000e+01  2.3000000e+01  2.7600000e+01
             </DataArray>
-            <DataArray type="Float64" Name="policy_1_collective_element_True" NumberOfComponents="3" format="binary">
-              SAAAAAAAAAAAAFdAAAAAAABAYUAAAAAAAABnQAAAAAAAQGFAAAAAAAAAZ0D//////79sQAAAAAAAAGdA//////+/bEAAAAAAAEBxQA==
+            <DataArray Name="policy_1_combined_element_True" NumberOfComponents="3" format="ascii" type="Float64">
+              9.2000000e+01  1.3800000e+02  1.8400000e+02  1.3800000e+02  1.8400000e+02  2.3000000e+02  1.8400000e+02  2.3000000e+02  2.7600000e+02
             </DataArray>
-            <DataArray type="Float64" Name="policy_1_data_nodal_vel__False" NumberOfComponents="3" format="binary">
-              SAAAAGZmZmZmZhJAmZmZmZmZG0BmZmZmZmYiQJmZmZmZmRtAZmZmZmZmIkAAAAAAAAAnQGZmZmZmZiJAAAAAAAAAJ0CZmZmZmZkrQA==
+            <DataArray Name="policy_1_data_nodal_vel__False" NumberOfComponents="3" format="ascii" type="Float64">
+              4.6000000e+00  6.9000000e+00  9.2000000e+00  6.9000000e+00  9.2000000e+00  1.1500000e+01  9.2000000e+00  1.1500000e+01  1.3800000e+01
             </DataArray>
-            <DataArray type="Float64" Name="policy_1_data_nodal_vel__True" NumberOfComponents="3" format="binary">
-              SAAAAAAAAAAAAEdAAAAAAABAUUAAAAAAAABXQAAAAAAAQFFAAAAAAAAAV0D//////79cQAAAAAAAAFdA//////+/XEAAAAAAAEBhQA==
+            <DataArray Name="policy_1_data_nodal_vel__True" NumberOfComponents="3" format="ascii" type="Float64">
+              4.6000000e+01  6.9000000e+01  9.2000000e+01  6.9000000e+01  9.2000000e+01  1.1500000e+02  9.2000000e+01  1.1500000e+02  1.3800000e+02
             </DataArray>
-            <DataArray type="Float64" Name="policy_3_collective_element_False" NumberOfComponents="3" format="binary">
-              SAAAAGZmZmZmZiJAmZmZmZmZK0BmZmZmZmYyQJmZmZmZmStAZmZmZmZmMkAAAAAAAAA3QGZmZmZmZjJAAAAAAAAAN0CZmZmZmZk7QA==
+            <DataArray Name="policy_3_combined_element_False" NumberOfComponents="3" format="ascii" type="Float64">
+              9.2000000e+00  1.3800000e+01  1.8400000e+01  1.3800000e+01  1.8400000e+01  2.3000000e+01  1.8400000e+01  2.3000000e+01  2.7600000e+01
             </DataArray>
-            <DataArray type="Float64" Name="policy_3_collective_element_True" NumberOfComponents="3" format="binary">
-              SAAAAAAAAAAAAFdAAAAAAABAYUAAAAAAAABnQAAAAAAAQGFAAAAAAAAAZ0D//////79sQAAAAAAAAGdA//////+/bEAAAAAAAEBxQA==
+            <DataArray Name="policy_3_combined_element_True" NumberOfComponents="3" format="ascii" type="Float64">
+              9.2000000e+01  1.3800000e+02  1.8400000e+02  1.3800000e+02  1.8400000e+02  2.3000000e+02  1.8400000e+02  2.3000000e+02  2.7600000e+02
             </DataArray>
-            <DataArray type="Float64" Name="policy_3_data_nodal_vel__False" NumberOfComponents="3" format="binary">
-              SAAAAGZmZmZmZhJAmZmZmZmZG0BmZmZmZmYiQJmZmZmZmRtAZmZmZmZmIkAAAAAAAAAnQGZmZmZmZiJAAAAAAAAAJ0CZmZmZmZkrQA==
+            <DataArray Name="policy_3_data_nodal_vel__False" NumberOfComponents="3" format="ascii" type="Float64">
+              4.6000000e+00  6.9000000e+00  9.2000000e+00  6.9000000e+00  9.2000000e+00  1.1500000e+01  9.2000000e+00  1.1500000e+01  1.3800000e+01
             </DataArray>
-            <DataArray type="Float64" Name="policy_3_data_nodal_vel__True" NumberOfComponents="3" format="binary">
-              SAAAAAAAAAAAAEdAAAAAAABAUUAAAAAAAABXQAAAAAAAQFFAAAAAAAAAV0D//////79cQAAAAAAAAFdA//////+/XEAAAAAAAEBhQA==
+            <DataArray Name="policy_3_data_nodal_vel__True" NumberOfComponents="3" format="ascii" type="Float64">
+              4.6000000e+01  6.9000000e+01  9.2000000e+01  6.9000000e+01  9.2000000e+01  1.1500000e+02  9.2000000e+01  1.1500000e+02  1.3800000e+02
             </DataArray>
-            <DataArray type="Float64" Name="resp_1_collective_element_False" NumberOfComponents="3" format="binary">
-              SAAAAGZmZmZmZiJAmZmZmZmZK0BmZmZmZmYyQJmZmZmZmStAZmZmZmZmMkAAAAAAAAA3QGZmZmZmZjJAAAAAAAAAN0CZmZmZmZk7QA==
+            <DataArray Name="resp_1_combined_element_False" NumberOfComponents="3" format="ascii" type="Float64">
+              9.2000000e+00  1.3800000e+01  1.8400000e+01  1.3800000e+01  1.8400000e+01  2.3000000e+01  1.8400000e+01  2.3000000e+01  2.7600000e+01
             </DataArray>
-            <DataArray type="Float64" Name="resp_1_collective_element_True" NumberOfComponents="3" format="binary">
-              SAAAAAAAAAAAAFdAAAAAAABAYUAAAAAAAABnQAAAAAAAQGFAAAAAAAAAZ0D//////79sQAAAAAAAAGdA//////+/bEAAAAAAAEBxQA==
+            <DataArray Name="resp_1_combined_element_True" NumberOfComponents="3" format="ascii" type="Float64">
+              9.2000000e+01  1.3800000e+02  1.8400000e+02  1.3800000e+02  1.8400000e+02  2.3000000e+02  1.8400000e+02  2.3000000e+02  2.7600000e+02
             </DataArray>
-            <DataArray type="Float64" Name="resp_1_data_nodal_vel__False" NumberOfComponents="3" format="binary">
-              SAAAAGZmZmZmZhJAmZmZmZmZG0BmZmZmZmYiQJmZmZmZmRtAZmZmZmZmIkAAAAAAAAAnQGZmZmZmZiJAAAAAAAAAJ0CZmZmZmZkrQA==
+            <DataArray Name="resp_1_data_nodal_vel__False" NumberOfComponents="3" format="ascii" type="Float64">
+              4.6000000e+00  6.9000000e+00  9.2000000e+00  6.9000000e+00  9.2000000e+00  1.1500000e+01  9.2000000e+00  1.1500000e+01  1.3800000e+01
             </DataArray>
-            <DataArray type="Float64" Name="resp_1_data_nodal_vel__True" NumberOfComponents="3" format="binary">
-              SAAAAAAAAAAAAEdAAAAAAABAUUAAAAAAAABXQAAAAAAAQFFAAAAAAAAAV0D//////79cQAAAAAAAAFdA//////+/XEAAAAAAAEBhQA==
+            <DataArray Name="resp_1_data_nodal_vel__True" NumberOfComponents="3" format="ascii" type="Float64">
+              4.6000000e+01  6.9000000e+01  9.2000000e+01  6.9000000e+01  9.2000000e+01  1.1500000e+02  9.2000000e+01  1.1500000e+02  1.3800000e+02
             </DataArray>
-            <DataArray type="Float64" Name="resp_3_collective_element_False" NumberOfComponents="3" format="binary">
-              SAAAAGZmZmZmZiJAmZmZmZmZK0BmZmZmZmYyQJmZmZmZmStAZmZmZmZmMkAAAAAAAAA3QGZmZmZmZjJAAAAAAAAAN0CZmZmZmZk7QA==
+            <DataArray Name="resp_3_combined_element_False" NumberOfComponents="3" format="ascii" type="Float64">
+              9.2000000e+00  1.3800000e+01  1.8400000e+01  1.3800000e+01  1.8400000e+01  2.3000000e+01  1.8400000e+01  2.3000000e+01  2.7600000e+01
             </DataArray>
-            <DataArray type="Float64" Name="resp_3_collective_element_True" NumberOfComponents="3" format="binary">
-              SAAAAAAAAAAAAFdAAAAAAABAYUAAAAAAAABnQAAAAAAAQGFAAAAAAAAAZ0D//////79sQAAAAAAAAGdA//////+/bEAAAAAAAEBxQA==
+            <DataArray Name="resp_3_combined_element_True" NumberOfComponents="3" format="ascii" type="Float64">
+              9.2000000e+01  1.3800000e+02  1.8400000e+02  1.3800000e+02  1.8400000e+02  2.3000000e+02  1.8400000e+02  2.3000000e+02  2.7600000e+02
             </DataArray>
-            <DataArray type="Float64" Name="resp_3_data_nodal_vel__False" NumberOfComponents="3" format="binary">
-              SAAAAGZmZmZmZhJAmZmZmZmZG0BmZmZmZmYiQJmZmZmZmRtAZmZmZmZmIkAAAAAAAAAnQGZmZmZmZiJAAAAAAAAAJ0CZmZmZmZkrQA==
+            <DataArray Name="resp_3_data_nodal_vel__False" NumberOfComponents="3" format="ascii" type="Float64">
+              4.6000000e+00  6.9000000e+00  9.2000000e+00  6.9000000e+00  9.2000000e+00  1.1500000e+01  9.2000000e+00  1.1500000e+01  1.3800000e+01
             </DataArray>
-            <DataArray type="Float64" Name="resp_3_data_nodal_vel__True" NumberOfComponents="3" format="binary">
-              SAAAAAAAAAAAAEdAAAAAAABAUUAAAAAAAABXQAAAAAAAQFFAAAAAAAAAV0D//////79cQAAAAAAAAFdA//////+/XEAAAAAAAEBhQA==
+            <DataArray Name="resp_3_data_nodal_vel__True" NumberOfComponents="3" format="ascii" type="Float64">
+              4.6000000e+01  6.9000000e+01  9.2000000e+01  6.9000000e+01  9.2000000e+01  1.1500000e+02  9.2000000e+01  1.1500000e+02  1.3800000e+02
             </DataArray>
          </PointData>
          <CellData>
-            <DataArray type="Float64" Name="control_1_collective_element_False" NumberOfComponents="3" format="binary">
-              GAAAAAAAAAAAADdAmZmZmZmZO0CZmZmZmRlAQA==
+            <DataArray Name="control_1_combined_element_False" NumberOfComponents="3" format="ascii" type="Float64">
+              2.3000000e+01  2.7600000e+01  3.2200000e+01
             </DataArray>
-            <DataArray type="Float64" Name="control_1_collective_element_True" NumberOfComponents="3" format="binary">
-              GAAAAP//////v2xAAAAAAABAcUAAAAAAACB0QA==
+            <DataArray Name="control_1_combined_element_True" NumberOfComponents="3" format="ascii" type="Float64">
+              2.3000000e+02  2.7600000e+02  3.2200000e+02
             </DataArray>
-            <DataArray type="Float64" Name="control_1_data_element_acc_False" NumberOfComponents="3" format="binary">
-              GAAAAAAAAAAAACdAmZmZmZmZK0CZmZmZmRkwQA==
+            <DataArray Name="control_1_data_element_acc_False" NumberOfComponents="3" format="ascii" type="Float64">
+              1.1500000e+01  1.3800000e+01  1.6100000e+01
             </DataArray>
-            <DataArray type="Float64" Name="control_1_data_element_acc_True" NumberOfComponents="3" format="binary">
-              GAAAAP//////v1xAAAAAAABAYUAAAAAAACBkQA==
+            <DataArray Name="control_1_data_element_acc_True" NumberOfComponents="3" format="ascii" type="Float64">
+              1.1500000e+02  1.3800000e+02  1.6100000e+02
             </DataArray>
-            <DataArray type="Float64" Name="control_3_collective_element_False" NumberOfComponents="3" format="binary">
-              GAAAAAAAAAAAADdAmZmZmZmZO0CZmZmZmRlAQA==
+            <DataArray Name="control_3_combined_element_False" NumberOfComponents="3" format="ascii" type="Float64">
+              2.3000000e+01  2.7600000e+01  3.2200000e+01
             </DataArray>
-            <DataArray type="Float64" Name="control_3_collective_element_True" NumberOfComponents="3" format="binary">
-              GAAAAP//////v2xAAAAAAABAcUAAAAAAACB0QA==
+            <DataArray Name="control_3_combined_element_True" NumberOfComponents="3" format="ascii" type="Float64">
+              2.3000000e+02  2.7600000e+02  3.2200000e+02
             </DataArray>
-            <DataArray type="Float64" Name="control_3_data_element_acc_False" NumberOfComponents="3" format="binary">
-              GAAAAAAAAAAAACdAmZmZmZmZK0CZmZmZmRkwQA==
+            <DataArray Name="control_3_data_element_acc_False" NumberOfComponents="3" format="ascii" type="Float64">
+              1.1500000e+01  1.3800000e+01  1.6100000e+01
             </DataArray>
-            <DataArray type="Float64" Name="control_3_data_element_acc_True" NumberOfComponents="3" format="binary">
-              GAAAAP//////v1xAAAAAAABAYUAAAAAAACBkQA==
+            <DataArray Name="control_3_data_element_acc_True" NumberOfComponents="3" format="ascii" type="Float64">
+              1.1500000e+02  1.3800000e+02  1.6100000e+02
             </DataArray>
-            <DataArray type="Float64" Name="policy_1_collective_element_False" NumberOfComponents="3" format="binary">
-              GAAAAAAAAAAAADdAmZmZmZmZO0CZmZmZmRlAQA==
+            <DataArray Name="policy_1_combined_element_False" NumberOfComponents="3" format="ascii" type="Float64">
+              2.3000000e+01  2.7600000e+01  3.2200000e+01
             </DataArray>
-            <DataArray type="Float64" Name="policy_1_collective_element_True" NumberOfComponents="3" format="binary">
-              GAAAAP//////v2xAAAAAAABAcUAAAAAAACB0QA==
+            <DataArray Name="policy_1_combined_element_True" NumberOfComponents="3" format="ascii" type="Float64">
+              2.3000000e+02  2.7600000e+02  3.2200000e+02
             </DataArray>
-            <DataArray type="Float64" Name="policy_1_data_element_acc_False" NumberOfComponents="3" format="binary">
-              GAAAAAAAAAAAACdAmZmZmZmZK0CZmZmZmRkwQA==
+            <DataArray Name="policy_1_data_element_acc_False" NumberOfComponents="3" format="ascii" type="Float64">
+              1.1500000e+01  1.3800000e+01  1.6100000e+01
             </DataArray>
-            <DataArray type="Float64" Name="policy_1_data_element_acc_True" NumberOfComponents="3" format="binary">
-              GAAAAP//////v1xAAAAAAABAYUAAAAAAACBkQA==
+            <DataArray Name="policy_1_data_element_acc_True" NumberOfComponents="3" format="ascii" type="Float64">
+              1.1500000e+02  1.3800000e+02  1.6100000e+02
             </DataArray>
-            <DataArray type="Float64" Name="policy_3_collective_element_False" NumberOfComponents="3" format="binary">
-              GAAAAAAAAAAAADdAmZmZmZmZO0CZmZmZmRlAQA==
+            <DataArray Name="policy_3_combined_element_False" NumberOfComponents="3" format="ascii" type="Float64">
+              2.3000000e+01  2.7600000e+01  3.2200000e+01
             </DataArray>
-            <DataArray type="Float64" Name="policy_3_collective_element_True" NumberOfComponents="3" format="binary">
-              GAAAAP//////v2xAAAAAAABAcUAAAAAAACB0QA==
+            <DataArray Name="policy_3_combined_element_True" NumberOfComponents="3" format="ascii" type="Float64">
+              2.3000000e+02  2.7600000e+02  3.2200000e+02
             </DataArray>
-            <DataArray type="Float64" Name="policy_3_data_element_acc_False" NumberOfComponents="3" format="binary">
-              GAAAAAAAAAAAACdAmZmZmZmZK0CZmZmZmRkwQA==
+            <DataArray Name="policy_3_data_element_acc_False" NumberOfComponents="3" format="ascii" type="Float64">
+              1.1500000e+01  1.3800000e+01  1.6100000e+01
             </DataArray>
-            <DataArray type="Float64" Name="policy_3_data_element_acc_True" NumberOfComponents="3" format="binary">
-              GAAAAP//////v1xAAAAAAABAYUAAAAAAACBkQA==
+            <DataArray Name="policy_3_data_element_acc_True" NumberOfComponents="3" format="ascii" type="Float64">
+              1.1500000e+02  1.3800000e+02  1.6100000e+02
             </DataArray>
-            <DataArray type="Float64" Name="resp_1_collective_element_False" NumberOfComponents="3" format="binary">
-              GAAAAAAAAAAAADdAmZmZmZmZO0CZmZmZmRlAQA==
+            <DataArray Name="resp_1_combined_element_False" NumberOfComponents="3" format="ascii" type="Float64">
+              2.3000000e+01  2.7600000e+01  3.2200000e+01
             </DataArray>
-            <DataArray type="Float64" Name="resp_1_collective_element_True" NumberOfComponents="3" format="binary">
-              GAAAAP//////v2xAAAAAAABAcUAAAAAAACB0QA==
+            <DataArray Name="resp_1_combined_element_True" NumberOfComponents="3" format="ascii" type="Float64">
+              2.3000000e+02  2.7600000e+02  3.2200000e+02
             </DataArray>
-            <DataArray type="Float64" Name="resp_1_data_element_acc_False" NumberOfComponents="3" format="binary">
-              GAAAAAAAAAAAACdAmZmZmZmZK0CZmZmZmRkwQA==
+            <DataArray Name="resp_1_data_element_acc_False" NumberOfComponents="3" format="ascii" type="Float64">
+              1.1500000e+01  1.3800000e+01  1.6100000e+01
             </DataArray>
-            <DataArray type="Float64" Name="resp_1_data_element_acc_True" NumberOfComponents="3" format="binary">
-              GAAAAP//////v1xAAAAAAABAYUAAAAAAACBkQA==
+            <DataArray Name="resp_1_data_element_acc_True" NumberOfComponents="3" format="ascii" type="Float64">
+              1.1500000e+02  1.3800000e+02  1.6100000e+02
             </DataArray>
-            <DataArray type="Float64" Name="resp_3_collective_element_False" NumberOfComponents="3" format="binary">
-              GAAAAAAAAAAAADdAmZmZmZmZO0CZmZmZmRlAQA==
+            <DataArray Name="resp_3_combined_element_False" NumberOfComponents="3" format="ascii" type="Float64">
+              2.3000000e+01  2.7600000e+01  3.2200000e+01
             </DataArray>
-            <DataArray type="Float64" Name="resp_3_collective_element_True" NumberOfComponents="3" format="binary">
-              GAAAAP//////v2xAAAAAAABAcUAAAAAAACB0QA==
+            <DataArray Name="resp_3_combined_element_True" NumberOfComponents="3" format="ascii" type="Float64">
+              2.3000000e+02  2.7600000e+02  3.2200000e+02
             </DataArray>
-            <DataArray type="Float64" Name="resp_3_data_element_acc_False" NumberOfComponents="3" format="binary">
-              GAAAAAAAAAAAACdAmZmZmZmZK0CZmZmZmRkwQA==
+            <DataArray Name="resp_3_data_element_acc_False" NumberOfComponents="3" format="ascii" type="Float64">
+              1.1500000e+01  1.3800000e+01  1.6100000e+01
             </DataArray>
-            <DataArray type="Float64" Name="resp_3_data_element_acc_True" NumberOfComponents="3" format="binary">
-              GAAAAP//////v1xAAAAAAABAYUAAAAAAACBkQA==
+            <DataArray Name="resp_3_data_element_acc_True" NumberOfComponents="3" format="ascii" type="Float64">
+              1.1500000e+02  1.3800000e+02  1.6100000e+02
             </DataArray>
          </CellData>
       </Piece>

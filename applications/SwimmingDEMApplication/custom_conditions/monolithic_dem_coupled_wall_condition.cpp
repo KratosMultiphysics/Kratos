@@ -173,7 +173,7 @@ void MonolithicDEMCoupledWallCondition<3,3>::GetDofList(DofsVectorType& rElement
     }
 }
 
-// protected funcions
+// protected functions
 
 template class MonolithicDEMCoupledWallCondition<2,2>;
 template class MonolithicDEMCoupledWallCondition<3,3>;

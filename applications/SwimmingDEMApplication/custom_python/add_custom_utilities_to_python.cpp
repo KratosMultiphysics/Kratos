@@ -386,7 +386,7 @@ void  AddCustomUtilitiesToPython(pybind11::module& m){
         ;
 
     //**********************************************************************************************************************************************
-    // WARNING!!: function RecoverSuperconvergentGradient uses an algorithm under a GPL 3.0 licence which CANNOT be included in comercial products.
+    // WARNING!!: function RecoverSuperconvergentGradient uses an algorithm under a GPL 3.0 licence which CANNOT be included in commercial products.
 
 //    typedef void (DerivativeRecovery<3>::*RecoverGradientScalar)(ModelPart&, Variable<double>&, Variable<array_1d<double, 3> >&);
 //    typedef void (DerivativeRecovery<3>::*RecoverGradientComponent)(ModelPart&, Variable<double>&, Variable<double>&);

@@ -333,6 +333,7 @@ void CreateTrussModel2N_and_CheckPK2Stress(std::string TrussElementName)
 
         p_bottom_node->FastGetSolutionStepValue(DISPLACEMENT) = array_1d<double, 3>{0.0, 0.0, 0.0};
         p_top_node->FastGetSolutionStepValue(DISPLACEMENT) = array_1d<double, 3>{0.0, 0.0, elongation};
+        p_top_node->Coordinates()[2] += elongation; // to account for Green-Lagrange strain
 
         auto p_truss_element = dynamic_cast<TrussElement3D2N*>(p_element.get());
         KRATOS_EXPECT_NE(p_truss_element, nullptr);
@@ -360,6 +361,7 @@ void CreateTrussModel2N_and_CheckPK2Stress(std::string TrussElementName)
 
         p_bottom_node->FastGetSolutionStepValue(DISPLACEMENT) = array_1d<double, 3>{0.0, 0.0, 0.0};
         p_top_node->FastGetSolutionStepValue(DISPLACEMENT) = array_1d<double, 3>{0.0, 0.0, elongation};
+        p_top_node->Coordinates()[2] += elongation;
 
         auto p_truss_element = dynamic_cast<TrussElement3D2N*>(p_element.get());
         KRATOS_EXPECT_NE(p_truss_element, nullptr);

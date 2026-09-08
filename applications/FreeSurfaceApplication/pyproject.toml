@@ -1,0 +1,61 @@
+[build-system]
+    requires = ["hatchling"]
+    build-backend = "hatchling.build"
+
+[project]
+    name = "KratosFreeSurfaceApplication"
+    description = """
+        KRATOS Multiphysics ("Kratos") is a framework for building parallel,
+        multi-disciplinary simulation software, aiming at modularity,
+        extensibility, and high performance. Kratos is written in C++,
+        and counts with an extensive Python interface.
+    """
+    
+    readme = {"file" = "README.md", "content-type" = "text/markdown"}
+    license = {text = "BSD-4-Clause"}
+    authors = [
+        {name="Kratos Team", email="kratos@listas.cimne.upc.edu"}
+    ]
+    requires-python = ">=3.8"
+    dependencies = [
+        "KratosMultiphysics=={env:KRATOS_VERSION}"
+    ]
+    classifiers = [
+        "Programming Language :: Python :: 3",
+        "Programming Language :: C++",
+        "Topic :: Scientific/Engineering"
+    ]
+    dynamic = ["version"]
+
+# List of binaries for this application 
+# (This is a Kratos build script extension and will not work with python build)
+[kratos]
+    libs = ["KratosFreeSurfaceApplication.*", "KratosFreeSurfaceCore.*", "libKratosFreeSurfaceCore.*"]
+
+# Wheel (py and stubs)
+[tool.hatch.build.targets.wheel]
+    include = [
+        "KratosMultiphysics/FreeSurfaceApplication/**/*.py*"
+    ]
+
+# # Hook to Build Properties
+[tool.hatch.build.targets.wheel.hooks.custom]
+    path = "hatch_build.py"
+
+# Wheel (dll, so, binary dependencies)
+[tool.hatch.build.targets.wheel.force-include]
+    libs = "KratosMultiphysics/.libs"
+
+# Editable (py and stubs)
+[tool.hatch.build.targets.editable]
+    include = [
+        "KratosMultiphysics/FreeSurfaceApplication/**/*.py*"
+    ]
+
+# Editable (dll, so, binary dependencies)
+[tool.hatch.build.targets.editable.force-include]
+    libs = "KratosMultiphysics/.libs"
+
+# Hook to Metadata
+[tool.hatch.metadata.hooks.custom]
+    path = "hatch_build.py"

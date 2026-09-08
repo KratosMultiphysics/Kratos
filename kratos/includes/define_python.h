@@ -16,18 +16,15 @@
 
 // External includes
 #include <pybind11/pybind11.h>
+#include <pybind11/stl.h>
+#include <pybind11/stl/filesystem.h>
 
 // Project includes
+#include "includes/define.h"
 #include "intrusive_ptr/intrusive_ptr.hpp"
 
 // Always needed for custom holder types
 PYBIND11_DECLARE_HOLDER_TYPE(T, Kratos::intrusive_ptr<T>);
-
-#include <pybind11/stl.h>
-#include <pybind11/stl/filesystem.h>
-
-#include "includes/define.h"
-
 
 #ifdef KRATOS_REGISTER_IN_PYTHON_VARIABLE
 #undef KRATOS_REGISTER_IN_PYTHON_VARIABLE

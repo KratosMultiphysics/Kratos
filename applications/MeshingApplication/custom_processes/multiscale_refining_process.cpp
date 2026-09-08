@@ -375,7 +375,7 @@ void MultiscaleRefiningProcess::CloneNodesToRefine(IndexType& rNodeId)
             if (coarse_node->IsNot(MeshingFlags::REFINED))
             {
                 coarse_node->Set(NEW_ENTITY, true);
-                NodeType::Pointer new_node = coarse_node->Clone();
+                NodeType::Pointer new_node = coarse_node->Clone(coarse_node->Id());
                 new_node->SetId(++rNodeId);
                 mrRefinedModelPart.AddNode(new_node);
                 new_node->Set(TO_REFINE, false);

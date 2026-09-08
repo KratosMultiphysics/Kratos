@@ -55,7 +55,7 @@ void ChimeraHoleCuttingUtility::RemoveOutOfDomainElements(
         for (auto& node : geom) {
             double nodal_distance = node.FastGetSolutionStepValue(CHIMERA_DISTANCE);
 
-            nodal_distance = nodal_distance * DomainType;
+            nodal_distance = nodal_distance * static_cast<double>(DomainType);
             if (nodal_distance < -1 * OverLapDistance) {
                 ++num_nodes_outside;
                 is_elem_outside = is_elem_outside && true;

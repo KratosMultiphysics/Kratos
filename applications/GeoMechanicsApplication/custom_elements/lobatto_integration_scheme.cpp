@@ -11,6 +11,11 @@
 //
 
 #include "lobatto_integration_scheme.h"
+#include "includes/serializer.h"
+
+#include <string>
+
+using namespace std::string_literals;
 
 namespace Kratos
 {
@@ -45,6 +50,16 @@ Geo::IntegrationPointVectorType LobattoIntegrationScheme::CreateIntegrationPoint
         KRATOS_ERROR << "Can't construct Lobatto integration scheme: no support for "
                      << NumberOfPoints << " point(s)" << std::endl;
     }
+}
+
+void LobattoIntegrationScheme::save(Serializer& rSerializer) const
+{
+    rSerializer.save("IntegrationPoints"s, mIntegrationPoints);
+}
+
+void LobattoIntegrationScheme::load(Serializer& rSerializer)
+{
+    rSerializer.load("IntegrationPoints"s, mIntegrationPoints);
 }
 
 } // namespace Kratos

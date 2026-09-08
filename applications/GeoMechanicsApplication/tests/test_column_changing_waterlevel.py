@@ -1,5 +1,6 @@
 import os
 import KratosMultiphysics.KratosUnittest as KratosUnittest
+from KratosMultiphysics.GeoMechanicsApplication.gid_output_file_reader import GiDOutputFileReader
 import test_helper
 
 
@@ -194,7 +195,7 @@ class KratosGeoMechanicsChangingWaterLevelTests(KratosUnittest.TestCase):
         # run simulation
         simulation = test_helper.run_kratos(file_path)
         # read results
-        reader = test_helper.GiDOutputFileReader()
+        reader = GiDOutputFileReader()
         simulation_output = reader.read_output_from(os.path.join(file_path, "test_phreatic.post.res"))
         # compare results
         self.parameters()

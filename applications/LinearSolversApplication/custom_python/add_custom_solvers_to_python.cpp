@@ -12,7 +12,6 @@
 // External includes
 
 // Project includes
-#include "includes/define.h"
 #include "includes/define_python.h"
 #include "custom_python/add_custom_solvers_to_python.h"
 #include "linear_solvers/linear_solver.h"
@@ -27,11 +26,15 @@
 #include "custom_solvers/eigen_dense_direct_solver.h"
 #include "custom_solvers/eigen_dense_eigenvalue_solver.h"
 #include "custom_solvers/eigensystem_solver.h"
+#include "custom_solvers/eigen_cholmod_solver.hpp" // EigenCholmodSolver
+#include "custom_solvers/eigen_spqr_solver.hpp" // EigenSPQRSolver
+#include "custom_solvers/eigen_umfpack_solver.hpp" // EigenUmfPackSolver
 
 #if defined USE_EIGEN_MKL
 #include "custom_solvers/eigen_pardiso_lu_solver.h"
 #include "custom_solvers/eigen_pardiso_llt_solver.h"
 #include "custom_solvers/eigen_pardiso_ldlt_solver.h"
+#include "custom_solvers/mkl_ilu.hpp" // MKLILU0Smoother, MKLILUTSmoother
 #endif
 
 #if defined USE_EIGEN_FEAST
@@ -45,8 +48,7 @@
 /* Utilities */
 #include "custom_utilities/feast_condition_number_utility.h"
 
-namespace Kratos {
-namespace Python {
+namespace Kratos::Python {
 
 template <typename SolverType>
 void register_solver(pybind11::module& m, const std::string& name)
@@ -231,7 +233,30 @@ void AddCustomSolversToPython(pybind11::module& m)
     register_solver<EigenPardisoLUSolver<complex>>(m, "ComplexPardisoLUSolver");
     register_solver<EigenPardisoLDLTSolver<complex>>(m, "ComplexPardisoLDLTSolver");
     register_solver<EigenPardisoLLTSolver<complex>>(m, "ComplexPardisoLLTSolver");
+
+    pybind11::class_<MKLILU0Smoother<TUblasSparseSpace<double>,TUblasDenseSpace<double>>,
+                     MKLILU0Smoother<TUblasSparseSpace<double>,TUblasDenseSpace<double>>::Pointer,
+                     LinearSolver<TUblasSparseSpace<double>,TUblasDenseSpace<double>>>(m, "MKLILU0Smoother")
+        .def(pybind11::init<>())
+        .def(pybind11::init<Parameters>())
+        ;
+
+    pybind11::class_<MKLILUTSmoother<TUblasSparseSpace<double>,TUblasDenseSpace<double>>,
+                     MKLILUTSmoother<TUblasSparseSpace<double>,TUblasDenseSpace<double>>::Pointer,
+                     LinearSolver<TUblasSparseSpace<double>,TUblasDenseSpace<double>>>(m, "MKLILUTSmoother")
+        .def(pybind11::init<>())
+        .def(pybind11::init<Parameters>())
+        ;
 #endif // defined USE_EIGEN_MKL
+
+#ifdef KRATOS_USE_EIGEN_SUITESPARSE
+    register_solver<EigenCholmodSolver<double>>(m, "CholmodSolver");
+    register_solver<EigenSPQRSolver<double>>(m, "SPQRSolver");
+    register_solver<EigenSPQRSolver<complex>>(m, "ComplexSPQRSolver");
+
+    register_solver<EigenUmfPackSolver<double>>(m, "UmfPackSolver");
+    register_solver<EigenUmfPackSolver<complex>>(m, "ComplexUmfPackSolver");
+#endif // KRATOS_USE_EIGEN_SUITESPARSE
 
     register_base_dense_solver(m);
 
@@ -270,6 +295,4 @@ void AddCustomSolversToPython(pybind11::module& m)
         ;
 }
 
-} // namespace Python
-
-} // namespace Kratos
+} // namespace Kratos::Python

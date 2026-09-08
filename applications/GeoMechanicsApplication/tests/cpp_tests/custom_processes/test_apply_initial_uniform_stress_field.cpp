@@ -14,13 +14,12 @@
 #include "custom_constitutive/plane_strain.h"
 #include "custom_constitutive/three_dimensional.h"
 #include "custom_processes/apply_initial_uniform_stress_field.h"
+#include "test_setup_utilities/model_setup_utilities.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
 #include "tests/cpp_tests/test_utilities.h"
-#include "tests/cpp_tests/test_utilities/model_setup_utilities.h"
 
 namespace Kratos::Testing
 {
-
 KRATOS_TEST_CASE_IN_SUITE(ApplyInitialUniformStressFieldProcessAppliesStressesToPlaneStrainElementsInModelPart,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
@@ -43,7 +42,7 @@ KRATOS_TEST_CASE_IN_SUITE(ApplyInitialUniformStressFieldProcessAppliesStressesTo
                                                             r_model_part.GetProcessInfo());
     KRATOS_EXPECT_EQ(actual_stresses.size(), 3);
 
-    const std::vector<double> expected_stress = {1.0, 2.0, 3.0, 4.0};
+    const auto expected_stress = std::vector{1.0, 2.0, 3.0, 4.0};
     for (const auto& stress : actual_stresses) {
         KRATOS_EXPECT_VECTOR_NEAR(stress, expected_stress, Defaults::absolute_tolerance);
     }
@@ -69,7 +68,7 @@ KRATOS_TEST_CASE_IN_SUITE(ApplyInitialUniformStressFieldProcessAppliesStressesTo
                                                             r_model_part.GetProcessInfo());
     KRATOS_EXPECT_EQ(actual_stresses.size(), 4);
 
-    const std::vector<double> expected_stress = {1.0, 2.0, 3.0, 4.0, 5.0, 6.0};
+    const auto expected_stress = std::vector{1.0, 2.0, 3.0, 4.0, 5.0, 6.0};
     for (const auto& stress : actual_stresses) {
         KRATOS_EXPECT_VECTOR_NEAR(stress, expected_stress, Defaults::absolute_tolerance);
     }
@@ -95,7 +94,7 @@ KRATOS_TEST_CASE_IN_SUITE(ApplyInitialUniformStressFieldProcessAppliesStressesTo
                                                             r_model_part.GetProcessInfo());
     KRATOS_EXPECT_EQ(actual_stresses.size(), 3);
 
-    const std::vector<double> expected_stress = {1.0, 2.0, 3.0, 4.0};
+    const auto expected_stress = std::vector{1.0, 2.0, 3.0, 4.0};
     for (const auto& stress : actual_stresses) {
         KRATOS_EXPECT_VECTOR_NEAR(stress, expected_stress, Defaults::absolute_tolerance);
     }
@@ -129,6 +128,17 @@ KRATOS_TEST_CASE_IN_SUITE(ApplyInitialUniformStressFieldThrowsUponConstructionWh
         "match the strain size of the constitutive law, which is 4, but is 3 for element 1 in "
         "model part "
         "'Main'. Please check the process parameters.");
+}
+
+KRATOS_TEST_CASE_IN_SUITE(CheckInfoApplyInitialUniformStressField, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    Model model;
+    auto& r_empty_model_part = model.CreateModelPart("foo");
+    const ApplyInitialUniformStressField process(r_empty_model_part, {R"({"value": [1.0, 2.0, 3.0, 4.0]})"});
+
+    // Act & assert
+    KRATOS_EXPECT_EQ(process.Info(), "ApplyInitialUniformStressField");
 }
 
 } // namespace Kratos::Testing

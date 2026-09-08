@@ -503,7 +503,7 @@ if __name__ == "__main__":
             ##residual = new_residual
 
         #if best_residual < tol_residual:
-            #print("The residual has become small enogh, quitting iterations")
+            #print("The residual has become small enough, quitting iterations")
             #break
         #still_changing = np.linalg.norm(a - a_old) > tol
         #print("Change: ", np.linalg.norm(a - a_old))

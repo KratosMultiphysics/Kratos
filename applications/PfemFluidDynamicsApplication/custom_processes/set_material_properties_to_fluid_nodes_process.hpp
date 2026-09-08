@@ -96,119 +96,230 @@ namespace Kratos
     ///@name Operations
     ///@{
 
-    void Execute() override{
-        KRATOS_TRY
 
-#pragma omp parallel
-        {
+   void Execute() override
+{
+    KRATOS_TRY
 
-            ModelPart::ElementIterator ElemBegin;
-    ModelPart::ElementIterator ElemEnd;
-    OpenMPUtils::PartitionedIterators(mrModelPart.Elements(), ElemBegin, ElemEnd);
-    for (ModelPart::ElementIterator itElem = ElemBegin; itElem != ElemEnd; ++itElem)
+    const int NoPropertyId = std::numeric_limits<int>::max();
+
+    const auto& rNodalVariables =
+        mrModelPart.GetNodalSolutionStepVariablesList();
+
+    // =========================================================================
+    // Check that PROPERTY_ID is available
+    // =========================================================================
+
+    KRATOS_ERROR_IF_NOT(rNodalVariables.Has(PROPERTY_ID))
+        << "PROPERTY_ID must be included in the "
+        << "NodalSolutionStepVariablesList."
+        << std::endl;
+
+
+    // =========================================================================
+    // 1. Initialise PROPERTY_ID for all nodes
+    // =========================================================================
+
+    for (ModelPart::NodeIterator itNode = mrModelPart.NodesBegin();
+         itNode != mrModelPart.NodesEnd();
+         ++itNode)
     {
-      ModelPart::PropertiesType &elemProperties = itElem->GetProperties();
-
-      double flow_index = 1;
-      double yield_shear = 0;
-      double adaptive_exponent = 0;
-      double static_friction = 0;
-      double dynamic_friction = 0;
-      double inertial_number_zero = 0;
-      double grain_diameter = 0;
-      double grain_density = 0;
-      double regularization_coefficient = 0;
-      double friction_angle = 0;
-      double cohesion = 0;
-
-      double density = elemProperties[DENSITY];
-      double bulk_modulus = elemProperties[BULK_MODULUS];
-      double viscosity = elemProperties[DYNAMIC_VISCOSITY];
-      unsigned int elem_property_id = elemProperties.Id();
-
-      if (elemProperties.Has(YIELD_SHEAR)) // Bingham model
-      {
-        flow_index = elemProperties[FLOW_INDEX];
-        yield_shear = elemProperties[YIELD_SHEAR];
-        adaptive_exponent = elemProperties[ADAPTIVE_EXPONENT];
-      }
-      else if (elemProperties.Has(INTERNAL_FRICTION_ANGLE)) // Frictional Viscoplastic model
-      {
-        friction_angle = elemProperties[INTERNAL_FRICTION_ANGLE];
-        cohesion = elemProperties[COHESION];
-        adaptive_exponent = elemProperties[ADAPTIVE_EXPONENT];
-      }
-      else if (elemProperties.Has(STATIC_FRICTION)) // Mu(I)-rheology
-      {
-        static_friction = elemProperties[STATIC_FRICTION];
-        dynamic_friction = elemProperties[DYNAMIC_FRICTION];
-        inertial_number_zero = elemProperties[INERTIAL_NUMBER_ZERO];
-        grain_diameter = elemProperties[GRAIN_DIAMETER];
-        grain_density = elemProperties[GRAIN_DENSITY];
-        regularization_coefficient = elemProperties[REGULARIZATION_COEFFICIENT];
-      }
-
-      Geometry<Node> &rGeom = itElem->GetGeometry();
-      const SizeType NumNodes = rGeom.PointsNumber();
-      for (SizeType i = 0; i < NumNodes; ++i)
-      {
-
-        if (mrModelPart.GetNodalSolutionStepVariablesList().Has(PROPERTY_ID))
-        {
-          rGeom[i].FastGetSolutionStepValue(PROPERTY_ID) = elem_property_id;
-        }
-
-        if (mrModelPart.GetNodalSolutionStepVariablesList().Has(BULK_MODULUS))
-          rGeom[i].FastGetSolutionStepValue(BULK_MODULUS) = bulk_modulus;
-
-        if (mrModelPart.GetNodalSolutionStepVariablesList().Has(DENSITY))
-          rGeom[i].FastGetSolutionStepValue(DENSITY) = density;
-
-        if (mrModelPart.GetNodalSolutionStepVariablesList().Has(DYNAMIC_VISCOSITY))
-          rGeom[i].FastGetSolutionStepValue(DYNAMIC_VISCOSITY) = viscosity;
-
-        if (mrModelPart.GetNodalSolutionStepVariablesList().Has(YIELD_SHEAR))
-          rGeom[i].FastGetSolutionStepValue(YIELD_SHEAR) = yield_shear;
-
-        if (mrModelPart.GetNodalSolutionStepVariablesList().Has(FLOW_INDEX))
-          rGeom[i].FastGetSolutionStepValue(FLOW_INDEX) = flow_index;
-
-        if (mrModelPart.GetNodalSolutionStepVariablesList().Has(ADAPTIVE_EXPONENT))
-          rGeom[i].FastGetSolutionStepValue(ADAPTIVE_EXPONENT) = adaptive_exponent;
-
-        if (mrModelPart.GetNodalSolutionStepVariablesList().Has(INTERNAL_FRICTION_ANGLE))
-          rGeom[i].FastGetSolutionStepValue(INTERNAL_FRICTION_ANGLE) = friction_angle;
-
-        if (mrModelPart.GetNodalSolutionStepVariablesList().Has(COHESION))
-          rGeom[i].FastGetSolutionStepValue(COHESION) = cohesion;
-
-        if (mrModelPart.GetNodalSolutionStepVariablesList().Has(ADAPTIVE_EXPONENT))
-          rGeom[i].FastGetSolutionStepValue(ADAPTIVE_EXPONENT) = adaptive_exponent;
-
-        if (mrModelPart.GetNodalSolutionStepVariablesList().Has(STATIC_FRICTION))
-          rGeom[i].FastGetSolutionStepValue(STATIC_FRICTION) = static_friction;
-
-        if (mrModelPart.GetNodalSolutionStepVariablesList().Has(DYNAMIC_FRICTION))
-          rGeom[i].FastGetSolutionStepValue(DYNAMIC_FRICTION) = dynamic_friction;
-
-        if (mrModelPart.GetNodalSolutionStepVariablesList().Has(INERTIAL_NUMBER_ZERO))
-          rGeom[i].FastGetSolutionStepValue(INERTIAL_NUMBER_ZERO) = inertial_number_zero;
-
-        if (mrModelPart.GetNodalSolutionStepVariablesList().Has(GRAIN_DIAMETER))
-          rGeom[i].FastGetSolutionStepValue(GRAIN_DIAMETER) = grain_diameter;
-
-        if (mrModelPart.GetNodalSolutionStepVariablesList().Has(GRAIN_DENSITY))
-          rGeom[i].FastGetSolutionStepValue(GRAIN_DENSITY) = grain_density;
-
-        if (mrModelPart.GetNodalSolutionStepVariablesList().Has(REGULARIZATION_COEFFICIENT))
-          rGeom[i].FastGetSolutionStepValue(REGULARIZATION_COEFFICIENT) = regularization_coefficient;
-      }
+        itNode->FastGetSolutionStepValue(PROPERTY_ID) = NoPropertyId;
     }
 
-  }
 
-  KRATOS_CATCH(" ")
-}; // namespace Kratos
+    // =========================================================================
+    // 2. Determine the material associated with every node
+    //
+    // IMPORTANT:
+    //
+    // If a node belongs to several fluid elements with different materials,
+    // the material with the smallest Properties ID is selected.
+    //
+    // This part is intentionally SERIAL to guarantee deterministic results.
+    // =========================================================================
+
+    for (ModelPart::ElementIterator itElem = mrModelPart.ElementsBegin();
+         itElem != mrModelPart.ElementsEnd();
+         ++itElem)
+    {
+        const int ElemPropertyId =
+            static_cast<int>(itElem->GetProperties().Id());
+
+        Geometry<Node>& rGeometry =
+            itElem->GetGeometry();
+
+        const SizeType NumNodes =
+            rGeometry.PointsNumber();
+
+        for (SizeType i = 0; i < NumNodes; ++i)
+        {
+            Node& rNode = rGeometry[i];
+
+            int& rNodePropertyId =
+                rNode.FastGetSolutionStepValue(PROPERTY_ID);
+
+            if (ElemPropertyId < rNodePropertyId)
+            {
+                rNodePropertyId = ElemPropertyId;
+            }
+        }
+    }
+
+    // =========================================================================
+    // 3. Copy the selected material properties to the nodes
+    // =========================================================================
+
+#pragma omp parallel
+    {
+        ModelPart::NodeIterator NodeBegin;
+        ModelPart::NodeIterator NodeEnd;
+
+        OpenMPUtils::PartitionedIterators(
+            mrModelPart.Nodes(),
+            NodeBegin,
+            NodeEnd);
+
+        for (ModelPart::NodeIterator itNode = NodeBegin;
+             itNode != NodeEnd;
+             ++itNode)
+        {
+            Node& rNode = *itNode;
+
+            const int PropertyId =
+                rNode.FastGetSolutionStepValue(PROPERTY_ID);
+
+            if (PropertyId == NoPropertyId)
+            {
+                continue;
+            }
+
+            Properties& rProperties =
+                mrModelPart.GetProperties(
+                    static_cast<unsigned int>(PropertyId));
+
+
+            // =============================================================
+            // GENERAL MATERIAL PROPERTIES
+            // =============================================================
+
+            if (rNodalVariables.Has(DENSITY) &&
+                rProperties.Has(DENSITY))
+            {
+                rNode.FastGetSolutionStepValue(DENSITY) =
+                    rProperties[DENSITY];
+            }
+
+            if (rNodalVariables.Has(BULK_MODULUS) &&
+                rProperties.Has(BULK_MODULUS))
+            {
+                rNode.FastGetSolutionStepValue(BULK_MODULUS) =
+                    rProperties[BULK_MODULUS];
+            }
+
+            if (rNodalVariables.Has(DYNAMIC_VISCOSITY) &&
+                rProperties.Has(DYNAMIC_VISCOSITY))
+            {
+                rNode.FastGetSolutionStepValue(DYNAMIC_VISCOSITY) =
+                    rProperties[DYNAMIC_VISCOSITY];
+            }
+
+
+            // =============================================================
+            // BINGHAM / HERSCHEL-BULKLEY VARIABLES
+            // =============================================================
+
+            if (rNodalVariables.Has(YIELD_SHEAR) &&
+                rProperties.Has(YIELD_SHEAR))
+            {
+                rNode.FastGetSolutionStepValue(YIELD_SHEAR) =
+                    rProperties[YIELD_SHEAR];
+            }
+
+            if (rNodalVariables.Has(FLOW_INDEX) &&
+                rProperties.Has(FLOW_INDEX))
+            {
+                rNode.FastGetSolutionStepValue(FLOW_INDEX) =
+                    rProperties[FLOW_INDEX];
+            }
+
+            if (rNodalVariables.Has(ADAPTIVE_EXPONENT) &&
+                rProperties.Has(ADAPTIVE_EXPONENT))
+            {
+                rNode.FastGetSolutionStepValue(ADAPTIVE_EXPONENT) =
+                    rProperties[ADAPTIVE_EXPONENT];
+            }
+
+
+            // =============================================================
+            // FRICTIONAL VISCOPLASTIC MODEL
+            // =============================================================
+
+            if (rNodalVariables.Has(INTERNAL_FRICTION_ANGLE) &&
+                rProperties.Has(INTERNAL_FRICTION_ANGLE))
+            {
+                rNode.FastGetSolutionStepValue(INTERNAL_FRICTION_ANGLE) =
+                    rProperties[INTERNAL_FRICTION_ANGLE];
+            }
+
+            if (rNodalVariables.Has(COHESION) &&
+                rProperties.Has(COHESION))
+            {
+                rNode.FastGetSolutionStepValue(COHESION) =
+                    rProperties[COHESION];
+            }
+
+
+            // =============================================================
+            // MU(I) RHEOLOGY
+            // =============================================================
+
+            if (rNodalVariables.Has(STATIC_FRICTION) &&
+                rProperties.Has(STATIC_FRICTION))
+            {
+                rNode.FastGetSolutionStepValue(STATIC_FRICTION) =
+                    rProperties[STATIC_FRICTION];
+            }
+
+            if (rNodalVariables.Has(DYNAMIC_FRICTION) &&
+                rProperties.Has(DYNAMIC_FRICTION))
+            {
+                rNode.FastGetSolutionStepValue(DYNAMIC_FRICTION) =
+                    rProperties[DYNAMIC_FRICTION];
+            }
+
+            if (rNodalVariables.Has(INERTIAL_NUMBER_ZERO) &&
+                rProperties.Has(INERTIAL_NUMBER_ZERO))
+            {
+                rNode.FastGetSolutionStepValue(INERTIAL_NUMBER_ZERO) =
+                    rProperties[INERTIAL_NUMBER_ZERO];
+            }
+
+            if (rNodalVariables.Has(GRAIN_DIAMETER) &&
+                rProperties.Has(GRAIN_DIAMETER))
+            {
+                rNode.FastGetSolutionStepValue(GRAIN_DIAMETER) =
+                    rProperties[GRAIN_DIAMETER];
+            }
+
+            if (rNodalVariables.Has(GRAIN_DENSITY) &&
+                rProperties.Has(GRAIN_DENSITY))
+            {
+                rNode.FastGetSolutionStepValue(GRAIN_DENSITY) =
+                    rProperties[GRAIN_DENSITY];
+            }
+
+            if (rNodalVariables.Has(REGULARIZATION_COEFFICIENT) &&
+                rProperties.Has(REGULARIZATION_COEFFICIENT))
+            {
+                rNode.FastGetSolutionStepValue(REGULARIZATION_COEFFICIENT) =
+                    rProperties[REGULARIZATION_COEFFICIENT];
+            }
+        }
+    }
+
+    KRATOS_CATCH("")
+}
 
 ///@}
 ///@name Operators

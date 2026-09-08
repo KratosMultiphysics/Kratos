@@ -39,5 +39,5 @@ void AddProcessesToPython(py::module& m)
     ;
 }
 
-}  // namespace Kratos::Python.
+}  // namespace Kratos::Future::Python.
 

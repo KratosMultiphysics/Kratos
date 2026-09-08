@@ -21,6 +21,9 @@ from test_sdof_static_solver import TestSdofStaticSolver
 from test_convergence_criteria import TestConvergenceCriteria
 from test_convergence_criteria import TestConvergenceCriteriaWrapper
 from test_convergence_accelerators import TestConvergenceAcceleratorWrapper
+from test_array_backend import TestArrayBackendResolution
+from test_array_backend import TestHostArrayBoundaryDecorator
+from test_array_backend import TestConvergenceAcceleratorsWithBackendSetting
 from test_co_simulation_coupled_solver import TestCoupledSolverGetSolver
 from test_co_simulation_coupled_solver import TestCoupledSolverModelAccess
 from test_co_simulation_coupled_solver import TestCoupledSolverPassingModel
@@ -74,6 +77,9 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestModelPartUtiliites]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestPingPong]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestConvergenceAcceleratorWrapper]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestArrayBackendResolution]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestHostArrayBoundaryDecorator]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestConvergenceAcceleratorsWithBackendSetting]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestTinyFetiCoSimulationCases]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestThermalRomCoSim]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([Test3D1DDataTransferProcessBlock]))

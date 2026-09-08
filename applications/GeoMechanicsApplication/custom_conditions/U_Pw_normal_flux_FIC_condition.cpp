@@ -13,7 +13,7 @@
 //
 
 // Application includes
-#include "custom_conditions/U_Pw_normal_flux_FIC_condition.hpp"
+#include "custom_conditions/U_Pw_normal_flux_FIC_condition.h"
 #include "custom_utilities/condition_utilities.hpp"
 #include "custom_utilities/transport_equation_utilities.hpp"
 #include "custom_utilities/variables_utilities.hpp"
@@ -22,6 +22,26 @@
 
 namespace Kratos
 {
+
+template <unsigned int TDim, unsigned int TNumNodes>
+UPwNormalFluxFICCondition<TDim, TNumNodes>::UPwNormalFluxFICCondition()
+    : UPwNormalFluxFICCondition(0, nullptr, nullptr)
+{
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+UPwNormalFluxFICCondition<TDim, TNumNodes>::UPwNormalFluxFICCondition(IndexType NewId, GeometryType::Pointer pGeometry)
+    : UPwNormalFluxFICCondition(NewId, pGeometry, nullptr)
+{
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+UPwNormalFluxFICCondition<TDim, TNumNodes>::UPwNormalFluxFICCondition(IndexType NewId,
+                                                                      GeometryType::Pointer pGeometry,
+                                                                      PropertiesType::Pointer pProperties)
+    : UPwNormalFluxCondition<TDim, TNumNodes>(NewId, pGeometry, pProperties)
+{
+}
 
 template <unsigned int TDim, unsigned int TNumNodes>
 Condition::Pointer UPwNormalFluxFICCondition<TDim, TNumNodes>::Create(IndexType NewId,
@@ -57,9 +77,8 @@ void UPwNormalFluxFICCondition<TDim, TNumNodes>::CalculateAll(Matrix& rLeftHandS
     r_geom.Jacobian(j_container, this->GetIntegrationMethod());
 
     // Condition variables
-    array_1d<double, TNumNodes> normal_flux_vector;
-    NormalFluxVariables         Variables;
-    NormalFluxFICVariables      FICVariables;
+    NormalFluxVariables    Variables;
+    NormalFluxFICVariables FICVariables;
     FICVariables.DtPressureCoefficient = CurrentProcessInfo[DT_PRESSURE_COEFFICIENT];
     this->CalculateElementLength(FICVariables.ElementLength, r_geom);
     const double BulkModulusSolid = r_prop[BULK_MODULUS_SOLID];
@@ -69,7 +88,7 @@ void UPwNormalFluxFICCondition<TDim, TNumNodes>::CalculateAll(Matrix& rLeftHandS
     FICVariables.BiotModulusInverse =
         (BiotCoefficient - Porosity) / BulkModulusSolid + Porosity / r_prop[BULK_MODULUS_FLUID];
 
-    VariablesUtilities::GetNodalValues(r_geom, NORMAL_FLUID_FLUX, normal_flux_vector.begin());
+    const auto normal_flux_vector = VariablesUtilities::GetNodalValues<TNumNodes>(r_geom, NORMAL_FLUID_FLUX);
     VariablesUtilities::GetNodalValues(r_geom, DT_WATER_PRESSURE, FICVariables.DtPressureVector.begin());
 
     // Loop over integration points
@@ -113,9 +132,8 @@ void UPwNormalFluxFICCondition<TDim, TNumNodes>::CalculateRHS(Vector& rRightHand
     r_geom.Jacobian(j_container, this->GetIntegrationMethod());
 
     // Condition variables
-    array_1d<double, TNumNodes> normal_flux_vector;
-    NormalFluxVariables         Variables;
-    NormalFluxFICVariables      FICVariables;
+    NormalFluxVariables    Variables;
+    NormalFluxFICVariables FICVariables;
     FICVariables.DtPressureCoefficient = CurrentProcessInfo[DT_PRESSURE_COEFFICIENT];
     this->CalculateElementLength(FICVariables.ElementLength, r_geom);
     const double BulkModulusSolid = r_prop[BULK_MODULUS_SOLID];
@@ -124,7 +142,7 @@ void UPwNormalFluxFICCondition<TDim, TNumNodes>::CalculateRHS(Vector& rRightHand
     const double BiotCoefficient = 1.0 - BulkModulus / BulkModulusSolid;
     FICVariables.BiotModulusInverse =
         (BiotCoefficient - Porosity) / BulkModulusSolid + Porosity / r_prop[BULK_MODULUS_FLUID];
-    VariablesUtilities::GetNodalValues(r_geom, NORMAL_FLUID_FLUX, normal_flux_vector.begin());
+    const auto normal_flux_vector = VariablesUtilities::GetNodalValues<TNumNodes>(r_geom, NORMAL_FLUID_FLUX);
     VariablesUtilities::GetNodalValues(r_geom, DT_WATER_PRESSURE, FICVariables.DtPressureVector.begin());
 
     for (unsigned int integration_point = 0; integration_point < number_of_integration_points;
@@ -212,6 +230,17 @@ std::string UPwNormalFluxFICCondition<TDim, TNumNodes>::Info() const
     return "UPwNormalFluxFICCondition";
 }
 
+template <unsigned int TDim, unsigned int TNumNodes>
+void UPwNormalFluxFICCondition<TDim, TNumNodes>::save(Serializer& rSerializer) const
+{
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Condition)
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+void UPwNormalFluxFICCondition<TDim, TNumNodes>::load(Serializer& rSerializer)
+{
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Condition)
+}
 template class UPwNormalFluxFICCondition<2, 2>;
 template class UPwNormalFluxFICCondition<3, 3>;
 template class UPwNormalFluxFICCondition<3, 4>;

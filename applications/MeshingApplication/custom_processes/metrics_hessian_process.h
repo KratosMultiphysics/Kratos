@@ -153,7 +153,7 @@ public:
      */
     ComputeHessianSolMetricProcess(
         ModelPart& rThisModelPart,
-        Variable<double>& rVariable,
+        const Variable<double>& rVariable,
         Parameters ThisParameters = Parameters(R"({})")
         );
 

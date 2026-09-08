@@ -56,7 +56,7 @@ public:
     ///@{
 
     /// Default constructor.
-    DeactivateModelPartOperation() : Operation() {}
+    DeactivateModelPartOperation() = default;
 
     /// @brief Model-parameters constructor.
     /// @param rModel Reference to the model container
@@ -90,7 +90,7 @@ private:
     ///@name Member Variables
     ///@{
 
-    const ModelPart* mpModelPart = nullptr; // Reference to the model part to which the operation is applied
+    std::vector<std::reference_wrapper<ModelPart>> mrModelParts;
 
     ///@}
 }; // Class DeactivateModelPartOperation

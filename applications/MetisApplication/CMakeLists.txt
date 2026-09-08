@@ -9,7 +9,6 @@ include_directories( ${KRATOS_SOURCE_DIR}/kratos )
 find_package(METIS REQUIRED)
 include_directories(${METIS_INCLUDE_DIR})
 link_directories(${METIS_LIBRARIES})
-install(FILES ${METIS_LIBRARIES} DESTINATION libs)
 
 ## Metis Core sources
 file( GLOB KRATOS_METIS_APPLICATION_CORE
@@ -75,6 +74,20 @@ endif(${INSTALL_TESTING_FILES} MATCHES ON)
 # Install targets
 install(TARGETS KratosMetisCore DESTINATION libs )
 install(TARGETS KratosMetisApplication DESTINATION libs )
+
+# Install Metis with libs with sonames
+foreach(LIB_FILE ${METIS_LIBRARIES})
+    get_filename_component(LIB_NAME "${LIB_FILE}" NAME)
+    get_filename_component(LIB_REAL "${LIB_FILE}" REALPATH)
+    get_filename_component(LIB_DIR  "${LIB_FILE}" DIRECTORY)
+    file(GLOB SYMLINKS "${LIB_DIR}/${LIB_NAME}*")
+    
+    install(FILES "${LIB_REAL}" DESTINATION libs)
+    install(FILES ${SYMLINKS} DESTINATION libs)
+endforeach()
+
+# Clean up any potential duplicates
+list(REMOVE_DUPLICATES TRILINOS_LIBRARIES_AND_LINKS)
 
 # Define custom targets
 set(KRATOS_KERNEL "${KRATOS_KERNEL};KratosMetisCore" PARENT_SCOPE)

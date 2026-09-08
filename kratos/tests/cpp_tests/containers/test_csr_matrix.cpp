@@ -293,4 +293,31 @@ KRATOS_TEST_CASE_IN_SUITE(CSRMatrixDiagonalValues, KratosCoreFastSuite)
     KRATOS_CHECK_NEAR(A.NormDiagonal(), 22.135943621179, 1.0e-12);
 }
 
+KRATOS_TEST_CASE_IN_SUITE(CSRMatrixFindValueIndex, KratosCoreFastSuite)
+{
+    // matrix A
+    //[[1,0,0,7,2],
+    // [0,3,0,0,0],
+    // [0,0,0,7,7]]
+    SparseContiguousRowGraph<> Agraph(3);
+    Agraph.AddEntry(0,0); Agraph.AddEntry(0,3); Agraph.AddEntry(0,4);
+    Agraph.AddEntry(1,1);
+    Agraph.AddEntry(2,3); Agraph.AddEntry(2,4);
+    Agraph.Finalize();
+
+    CsrMatrix<double> A(Agraph);
+    A.BeginAssemble();
+    A.AssembleEntry(1.0,0,0); A.AssembleEntry(7.0,0,3); A.AssembleEntry(2.0,0,4);
+    A.AssembleEntry(3.0,1,1);
+    A.AssembleEntry(7.0,2,3); A.AssembleEntry(7.0,2,4);
+    A.FinalizeAssemble();
+
+    KRATOS_CHECK_EQUAL(A.FindValueIndex(0,0), 0);
+    KRATOS_CHECK_EQUAL(A.FindValueIndex(0,3), 1);
+    KRATOS_CHECK_EQUAL(A.FindValueIndex(0,4), 2);
+    KRATOS_CHECK_EQUAL(A.FindValueIndex(1,1), 3);
+    KRATOS_CHECK_EQUAL(A.FindValueIndex(2,3), 4);
+    KRATOS_CHECK_EQUAL(A.FindValueIndex(2,4), 5);
+}
+
 } // namespace Kratos::Testing

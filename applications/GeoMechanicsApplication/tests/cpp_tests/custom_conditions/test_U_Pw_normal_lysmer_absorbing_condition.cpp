@@ -13,8 +13,9 @@
 #include <string>
 
 // Project includes
-#include "custom_elements/U_Pw_small_strain_element.hpp"
+#include "custom_elements/U_Pw_small_strain_element.h"
 #include "custom_elements/plane_strain_stress_state.h"
+#include "geo_mechanics_application_variables.h"
 
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
 
@@ -42,9 +43,8 @@ public:
 
         if (geometry_family == GeometryData::KratosGeometryFamily::Kratos_Triangle) {
             number_of_integration_points = 3;
-        } else if (geometry_family == GeometryData::KratosGeometryFamily::Kratos_Quadrilateral) {
-            number_of_integration_points = 4;
-        } else if (geometry_family == GeometryData::KratosGeometryFamily::Kratos_Tetrahedra) {
+        } else if (geometry_family == GeometryData::KratosGeometryFamily::Kratos_Quadrilateral ||
+                   geometry_family == GeometryData::KratosGeometryFamily::Kratos_Tetrahedra) {
             number_of_integration_points = 4;
         } else if (geometry_family == GeometryData::KratosGeometryFamily::Kratos_Hexahedra) {
             number_of_integration_points = 8;
@@ -179,16 +179,16 @@ static Element::GeometryType::Pointer CreateMockGeometry3D20N(Kratos::PointerVec
 /// <summary>
 /// Sets properties of the condition and the neighbour element. And initializes the condition.
 /// </summary>
-static void SetPropertiesAndInitialize(ModelPart::ConditionType::Pointer pCondition,
-                                       Element::GeometryType::Pointer    pNeighbourGeometry,
-                                       ModelPart&                        rModelPart)
+static void SetPropertiesAndInitialize(const ModelPart::ConditionType::Pointer& rpCondition,
+                                       const Element::GeometryType::Pointer&    rpNeighbourGeometry,
+                                       ModelPart&                               rModelPart)
 {
     // set properties of the condition
     Vector absorbing_factors = ZeroVector(2);
     absorbing_factors[0]     = 1.0;
     absorbing_factors[1]     = 1.0;
-    pCondition->SetValue(ABSORBING_FACTORS, absorbing_factors);
-    pCondition->SetValue(VIRTUAL_THICKNESS, 100.0);
+    rpCondition->SetValue(ABSORBING_FACTORS, absorbing_factors);
+    rpCondition->SetValue(VIRTUAL_THICKNESS, 100.0);
     // add neighbour element to condition
 
     auto p_neighbour_prop = rModelPart.CreateNewProperties(1);
@@ -197,12 +197,12 @@ static void SetPropertiesAndInitialize(ModelPart::ConditionType::Pointer pCondit
     p_neighbour_prop->SetValue(DENSITY_SOLID, 2000);
 
     const auto p_neighbour_element =
-        Kratos::make_intrusive<MockElement>(1, pNeighbourGeometry, p_neighbour_prop);
+        Kratos::make_intrusive<MockElement>(1, rpNeighbourGeometry, p_neighbour_prop);
     rModelPart.AddElement(p_neighbour_element);
 
     GlobalPointersVector<Element> vector_of_neighbours;
     vector_of_neighbours.push_back(Kratos::GlobalPointer<Kratos::Element>(p_neighbour_element.get()));
-    pCondition->SetValue(NEIGHBOUR_ELEMENTS, vector_of_neighbours);
+    rpCondition->SetValue(NEIGHBOUR_ELEMENTS, vector_of_neighbours);
 
     p_neighbour_element->SetValue(POROSITY, 0.0);
     p_neighbour_element->SetValue(DENSITY_WATER, 1000);
@@ -210,7 +210,7 @@ static void SetPropertiesAndInitialize(ModelPart::ConditionType::Pointer pCondit
 
     // Initialize the element
     const auto& r_process_info = rModelPart.GetProcessInfo();
-    pCondition->Initialize(r_process_info);
+    rpCondition->Initialize(r_process_info);
 }
 
 /// <summary>
@@ -471,8 +471,8 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateLocalSystemUPwNormalLysmerAbsorbingCondition2
 
     // set expected_results
 
-    const double shear_stiffness_over_virt_thickness    = 5.0 / 100;
-    const double confined_stiffness_over_virt_thickness = 4.0 / 100;
+    constexpr auto shear_stiffness_over_virt_thickness    = 5.0 / 100;
+    constexpr auto confined_stiffness_over_virt_thickness = 4.0 / 100;
 
     Matrix expected_matrix = ZeroMatrix(condition_size, condition_size);
     expected_matrix(0, 0)  = shear_stiffness_over_virt_thickness / 9;
@@ -618,8 +618,8 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateLocalSystemUPwNormalLysmerAbsorbingCondition3
 
     // set expected_results
 
-    const double shear_stiffness_over_virt_thickness    = 5.0 / 100;
-    const double confined_stiffness_over_virt_thickness = 4.0 / 100;
+    constexpr auto shear_stiffness_over_virt_thickness    = 5.0 / 100;
+    constexpr auto confined_stiffness_over_virt_thickness = 4.0 / 100;
 
     Matrix expected_matrix = ZeroMatrix(condition_size, condition_size);
     expected_matrix(0, 0)  = shear_stiffness_over_virt_thickness / 81;
@@ -937,8 +937,8 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateLocalSystemUPwNormalLysmerAbsorbingCondition3
     p_cond->CalculateLocalSystem(rLeftHandSideMatrix, right_hand_side_vector, r_process_info);
 
     // set expected_results
-    const double shear_stiffness_over_virt_thickness    = 5.0 / 100;
-    const double confined_stiffness_over_virt_thickness = 4.0 / 100;
+    constexpr auto shear_stiffness_over_virt_thickness    = 5.0 / 100;
+    constexpr auto confined_stiffness_over_virt_thickness = 4.0 / 100;
 
     Matrix expected_matrix = ZeroMatrix(condition_size, condition_size);
     expected_matrix(0, 0)  = shear_stiffness_over_virt_thickness / 30;

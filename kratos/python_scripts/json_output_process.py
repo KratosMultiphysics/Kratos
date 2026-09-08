@@ -2,6 +2,9 @@
 import KratosMultiphysics
 from KratosMultiphysics.json_utilities import read_external_json, write_external_json
 
+# Adding operator add
+from operator import add
+
 def Factory(settings, Model):
     if not isinstance(settings, KratosMultiphysics.Parameters):
         raise Exception("Expected input shall be a Parameters object, encapsulating a json string")
@@ -285,24 +288,24 @@ class JsonOutputProcess(KratosMultiphysics.Process):
                                             data["RESULTANT"][variable_name + "_Z"][-1] += value[2]
                                 else:
                                     if not self.resultant_solution:
-                                        list = self.__kratos_vector_to__python_list(value)
-                                        data[node_identifier][variable_name ].append(list)
+                                        lst = self.__kratos_vector_to_python_list(value)
+                                        data[node_identifier][variable_name ].append(lst)
                                     else:
                                         aux = 0.0
                                         for index in range(len(value)):
                                             aux += value[index]
                                         if count == 0:
-                                            data["RESULTANT"][variable_name ].append(aux)
+                                            data["RESULTANT"][variable_name].append(aux)
                                         else:
-                                            data["RESULTANT"][variable_name ][-1] += aux
+                                            data["RESULTANT"][variable_name][-1] += aux
                             elif variable_type == "Vector":
                                 if not self.resultant_solution:
-                                    data[node_identifier][variable_name].append(value)
+                                    data[node_identifier][variable_name].append(self.__kratos_vector_to_python_list(value))
                                 else:
                                     if count == 0:
-                                        data["RESULTANT"][variable_name].append(value)
+                                        data["RESULTANT"][variable_name].append(self.__kratos_vector_to_python_list(value))
                                     else:
-                                        data["RESULTANT"][variable_name][-1] += value
+                                        data["RESULTANT"][variable_name][-1] = list(map(add, data["RESULTANT"][variable_name][-1], self.__kratos_vector_to_python_list(value)))
 
                             # TODO: Add pending classes
                         count += 1
@@ -352,9 +355,9 @@ class JsonOutputProcess(KratosMultiphysics.Process):
                                                 data["RESULTANT"][variable_name + "_Z"][str(gp)][-1] += value[gp][2]
                                 else:
                                     if not self.resultant_solution:
-                                        list = self.__kratos_vector_to__python_list(value)
+                                        lst = self.__kratos_vector_to_python_list(value)
                                         for gp in range(gauss_point_number):
-                                            data["ELEMENT_" + str(elem.Id)][variable_name][str(gp)].append(list)
+                                            data["ELEMENT_" + str(elem.Id)][variable_name][str(gp)].append(lst)
                                     else:
                                         if count == 0:
                                             for gp in range(gauss_point_number):
@@ -371,20 +374,20 @@ class JsonOutputProcess(KratosMultiphysics.Process):
                             elif variable_type == "Vector":
                                 if not self.resultant_solution:
                                     for gp in range(gauss_point_number):
-                                        list = self.__kratos_vector_to__python_list(value[gp])
-                                        data["ELEMENT_" + str(elem.Id)][variable_name][str(gp)].append(list)
+                                        lst = self.__kratos_vector_to_python_list(value[gp])
+                                        data["ELEMENT_" + str(elem.Id)][variable_name][str(gp)].append(lst)
                                 else:
                                     if count == 0:
                                         for gp in range(gauss_point_number):
-                                            list = self.__kratos_vector_to__python_list(value[gp])
-                                            data["RESULTANT"][variable_name][str(gp)][-1] += list
+                                            lst = self.__kratos_vector_to_python_list(value[gp])
+                                            data["RESULTANT"][variable_name][str(gp)][-1] += lst
 
                                 # TODO: Add pending classes
                     count += 1
 
             write_external_json(self.output_file_name, data)
 
-    def __kratos_vector_to__python_list(self, value):
+    def __kratos_vector_to_python_list(self, value):
         """ This method is executed in order to finalize the current computation
 
         Keyword arguments:
@@ -392,10 +395,10 @@ class JsonOutputProcess(KratosMultiphysics.Process):
         value -- The Kratos vector to transform
         """
 
-        list = []
+        lst = []
         for index in range(len(value)):
-            list.append(value[index])
-        return list
+            lst.append(value[index])
+        return lst
 
     def __generate_variable_list_from_input(self, param):
         """ Parse a list of variables from input.

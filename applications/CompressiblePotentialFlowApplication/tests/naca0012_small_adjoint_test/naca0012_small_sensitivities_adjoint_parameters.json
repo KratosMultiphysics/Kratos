@@ -12,7 +12,7 @@
                 "input_type"     : "mdpa",
                 "input_filename" : "../naca0012_small_mdpa/naca0012_small"
             },
-        "model_part_name" : "MainModelPart",
+        "model_part_name" : "FluidModelPart",
         "volume_model_part_name" : "Parts_Parts_Auto1",
         "skin_parts"             : ["PotentialWallCondition2D_Far_field_Auto1","Body2D_Body"],
         "domain_size"     : 2,
@@ -37,21 +37,19 @@
     "processes" : {
         "boundary_conditions_process_list" : [
         {
-            "python_module" : "apply_far_field_process",
+            "python_module" : "apply_far_field_and_wake_process",
             "kratos_module" : "KratosMultiphysics.CompressiblePotentialFlowApplication",
             "Parameters"    : {
-                "model_part_name"   : "MainModelPart.PotentialWallCondition2D_Far_field_Auto1",
+                "model_part_name"   : "FluidModelPart.PotentialWallCondition2D_Far_field_Auto1",
                 "angle_of_attack": 0.0,
                 "mach_infinity": 0.02941176471,
-                "inlet_potential"         : 1.0
-            }
-        },{
-            "python_module" : "define_wake_process_2d",
-            "kratos_module" : "KratosMultiphysics.CompressiblePotentialFlowApplication",
-            "process_name"  : "DefineWakeProcess",
-            "Parameters"    : {
-                "model_part_name" : "MainModelPart.Body2D_Body",
-                "epsilon"         : 1e-9
+                "inlet_potential"         : 1.0,
+                "define_wake": true,
+                "wake_type"  : "Operations.KratosMultiphysics.CompressiblePotentialFlowApplication.Define2DWakeOperation",
+                "wake_parameters"    : {
+                    "body_model_part_name"    : "FluidModelPart.Body2D_Body",
+                    "wake_distance_tolerance" : 1e-9
+                }
             }
         }],
         "list_other_processes" :[{
@@ -60,7 +58,7 @@
             "help"          : "",
             "process_name"  : "",
             "Parameters" : {
-                "model_part_name" : "MainModelPart",
+                "model_part_name" : "FluidModelPart",
                 "file_settings" : {
                     "file_access_mode" : "read_only"
                 },
@@ -76,7 +74,7 @@
             "Parameters"            : {
                 "check_variables" : ["SHAPE_SENSITIVITY"],
                 "input_file_name" : "shape_sensitivity_test_results.json",
-                "model_part_name"  : "MainModelPart.Body2D_Body",
+                "model_part_name"  : "FluidModelPart.Body2D_Body",
                 "time_frequency"   : -2
             }
         }],

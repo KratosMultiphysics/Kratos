@@ -962,7 +962,7 @@ private:
         rShapeFunctionValues(Volume2Id, i) -= delta2;
     }
 
-    static double ComputeSubTetraVolumeAndCenter(const BoundedMatrix<double, 3, 8 > & rAuxCoordinates,
+    static double ComputeSubTetraVolumeAndCenter(const BoundedMatrix<double, 8, 3 > & rAuxCoordinates,
                                                  array_1d<double, 3 > & rCenterPosition,
                                                  const int i0, const int i1, const int i2, const int i3)
     {

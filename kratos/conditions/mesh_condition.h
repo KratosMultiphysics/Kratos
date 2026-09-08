@@ -219,6 +219,114 @@ public:
         const ProcessInfo& rCurrentProcessInfo
         ) override;
 
+    /**
+     * @brief Calculate a boolean Variable on the Element integration points
+     * @param rVariable The variable we want to get
+     * @param rOutput The values obtained in the integration points
+     * @param rCurrentProcessInfo the current process info instance
+     */
+     void CalculateOnIntegrationPoints(
+        const Variable<bool>& rVariable,
+        std::vector<bool>& rOutput,
+        const ProcessInfo& rCurrentProcessInfo
+        ) override;
+
+    /**
+     * @brief Calculate a boolean Variable on the Element integration points
+     * @param rVariable The variable we want to get
+     * @param rOutput The values obtained in the integration points
+     * @param rCurrentProcessInfo the current process info instance
+     */
+    void CalculateOnIntegrationPoints(
+        const Variable<int>& rVariable,
+        std::vector<int>& rOutput,
+        const ProcessInfo& rCurrentProcessInfo
+        ) override;
+
+    /**
+     * @brief Calculate a boolean Variable on the Element integration points
+     * @param rVariable The variable we want to get
+     * @param rOutput The values obtained in the integration points
+     * @param rCurrentProcessInfo the current process info instance
+     */
+    void CalculateOnIntegrationPoints(
+        const Variable<double>& rVariable,
+        std::vector<double>& rOutput,
+        const ProcessInfo& rCurrentProcessInfo
+        ) override;
+
+    /**
+     * @brief Calculate a boolean Variable on the Element integration points
+     * @param rVariable The variable we want to get
+     * @param rOutput The values obtained in the integration points
+     * @param rCurrentProcessInfo the current process info instance
+     */
+    void CalculateOnIntegrationPoints(
+        const Variable<array_1d<double, 3 > >& rVariable,
+        std::vector< array_1d<double, 3 > >& rOutput,
+        const ProcessInfo& rCurrentProcessInfo
+        ) override;
+
+    /**
+     * @brief Calculate a boolean Variable on the Element integration points
+     * @param rVariable The variable we want to get
+     * @param rOutput The values obtained in the integration points
+     * @param rCurrentProcessInfo the current process info instance
+     */
+    void CalculateOnIntegrationPoints(
+        const Variable<array_1d<double, 4 > >& rVariable,
+        std::vector< array_1d<double, 4 > >& rOutput,
+        const ProcessInfo& rCurrentProcessInfo
+        ) override;
+
+    /**
+     * @brief Calculate a boolean Variable on the Element integration points
+     * @param rVariable The variable we want to get
+     * @param rOutput The values obtained in the integration points
+     * @param rCurrentProcessInfo the current process info instance
+     */
+    void CalculateOnIntegrationPoints(
+        const Variable<array_1d<double, 6 > >& rVariable,
+        std::vector< array_1d<double, 6 > >& rOutput,
+        const ProcessInfo& rCurrentProcessInfo
+        ) override;
+
+    /**
+     * @brief Calculate a boolean Variable on the Element integration points
+     * @param rVariable The variable we want to get
+     * @param rOutput The values obtained in the integration points
+     * @param rCurrentProcessInfo the current process info instance
+     */
+    void CalculateOnIntegrationPoints(
+        const Variable<array_1d<double, 9 > >& rVariable,
+        std::vector< array_1d<double, 9 > >& rOutput,
+        const ProcessInfo& rCurrentProcessInfo
+        ) override;
+
+    /**
+     * @brief Calculate a boolean Variable on the Element integration points
+     * @param rVariable The variable we want to get
+     * @param rOutput The values obtained in the integration points
+     * @param rCurrentProcessInfo the current process info instance
+     */
+    void CalculateOnIntegrationPoints(
+        const Variable<Vector >& rVariable,
+        std::vector< Vector >& rOutput,
+        const ProcessInfo& rCurrentProcessInfo
+        ) override;
+
+    /**
+     * @brief Calculate a boolean Variable on the Element integration points
+     * @param rVariable The variable we want to get
+     * @param rOutput The values obtained in the integration points
+     * @param rCurrentProcessInfo the current process info instance
+     */
+    void CalculateOnIntegrationPoints(
+        const Variable<Matrix >& rVariable,
+        std::vector< Matrix >& rOutput,
+        const ProcessInfo& rCurrentProcessInfo
+        ) override;
+
     ///@}
     ///@name Input and output
     ///@{
