@@ -131,13 +131,9 @@ namespace Kratos
             else
                 KRATOS_ERROR << "Case not implemented" << std::endl;
 
-            // System containers in the backend-selected space types (the
-            // schemes only pass them through; the matrix stays empty)
-            SparseSpaceType::MatrixType A(3, 3);
-            SparseSpaceType::VectorType Dx(3);
-            SparseSpaceType::SetToZero(Dx);
-            SparseSpaceType::VectorType b(3);
-            SparseSpaceType::SetToZero(b);
+            CompressedMatrix A = ZeroMatrix(3, 3);
+            Vector Dx = ZeroVector(3);
+            Vector b = ZeroVector(3);
 
             // Check InitializeSolutionStep and Update
             double time = 0;
