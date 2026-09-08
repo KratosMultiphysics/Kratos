@@ -85,7 +85,7 @@ class KratosGeoMechanicsSeepageTests(KratosUnittest.TestCase):
         file_path = test_helper.get_file_path(
             os.path.join(".", test_name, "fixed_bottom_boundary_stop_inflow")
         )
-        simulation = test_helper.run_kratos(file_path)
+        model = test_helper.run_kratos(file_path).model
 
         # Read output file
         reader = GiDOutputFileReader()
@@ -93,9 +93,8 @@ class KratosGeoMechanicsSeepageTests(KratosUnittest.TestCase):
             os.path.join(file_path, "three_element_seepage_test.post.res")
         )
 
-        # Verify that top boundary nodes (y=3.0) have seepage condition applied
-        top_boundary = simulation.model.GetModelPart("PorousDomain.top_boundary")
-        top_node_ids = [node.Id for node in top_boundary.Nodes]
+        # Verify that top boundary nodes have seepage condition applied
+        top_node_ids = nodes_of_model_part(model, "PorousDomain.top_boundary")
         nodal_flows = GiDOutputFileReader.nodal_values_at_time(
             "NODAL_WATER_FLOW", 1.0, output_data, top_node_ids
         )
