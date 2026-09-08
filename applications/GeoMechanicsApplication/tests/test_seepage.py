@@ -7,6 +7,8 @@ from KratosMultiphysics.GeoMechanicsApplication.gid_output_file_reader import (
     GiDOutputFileReader,
 )
 
+height = 3.0  # m
+unit_weight_of_water = 1.0e04  # N/m^3
 end_time = 1.0
 
 
@@ -27,7 +29,13 @@ class KratosGeoMechanicsSeepageTests(KratosUnittest.TestCase):
         )
         for node_id, value in zip(node_ids, actual_values):
             self.assertAlmostEqual(
-                value, expected_value, msg=f'"{output_item_name}" at node {node_id}'
+                value,
+                expected_value,
+                places=None,
+                delta=test_helper.calculate_delta(
+                    expected_value, relative_tolerance=1.0e-04
+                ),
+                msg=f'"{output_item_name}" at node {node_id}',
             )
 
     def test_three_element_seepage_fixed_bottom_boundary(self):
@@ -65,7 +73,7 @@ class KratosGeoMechanicsSeepageTests(KratosUnittest.TestCase):
             expected_nodal_out_flow,
         )
 
-        # Verify the in-flow at the bottom boundary
+        # Verify the in-flow at the bottom boundary. There's no need to check the water pressure since it's fixed.
         bottom_node_ids = nodes_of_model_part(model, "PorousDomain.bottom_boundary")
         self.assert_uniform_nodal_values(
             bottom_node_ids,
@@ -95,16 +103,37 @@ class KratosGeoMechanicsSeepageTests(KratosUnittest.TestCase):
 
         # Verify that top boundary nodes have seepage condition applied
         top_node_ids = nodes_of_model_part(model, "PorousDomain.top_boundary")
-        nodal_flows = GiDOutputFileReader.nodal_values_at_time(
-            "NODAL_WATER_FLOW", 1.0, output_data, top_node_ids
+
+        # On the seepage face, there should be no flow
+        self.assert_uniform_nodal_values(
+            top_node_ids,
+            "NODAL_WATER_FLOW",
+            output_data,
+            end_time,
+            0.0,
+        )
+        # Since there is no flow, the water pressure field should be hydrostatic, with suction at the top boundary
+        fixed_water_pressure_at_bottom = -2.0e04
+        expected_water_pressure_at_top = (
+            fixed_water_pressure_at_bottom + height * unit_weight_of_water
+        )
+        self.assert_uniform_nodal_values(
+            top_node_ids,
+            "WATER_PRESSURE",
+            output_data,
+            end_time,
+            expected_water_pressure_at_top,
         )
 
-        # On the seepage face, the nodal flow should be very small
-        for node_id, flow in zip(top_node_ids, nodal_flows):
-            self.assertLessEqual(
-                abs(flow),
-                1.0e-18,
-            )
+        # Also at the bottom boundary, there shouldn't be any flow. There's no need to check the water pressure since it's fixed.
+        bottom_node_ids = nodes_of_model_part(model, "PorousDomain.bottom_boundary")
+        self.assert_uniform_nodal_values(
+            bottom_node_ids,
+            "NODAL_WATER_FLOW",
+            output_data,
+            end_time,
+            0.0,
+        )
 
     def test_three_element_seepage_flux_bottom_boundary(self):
         """
