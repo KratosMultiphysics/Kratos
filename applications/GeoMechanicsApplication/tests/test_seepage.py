@@ -144,7 +144,7 @@ class KratosGeoMechanicsSeepageTests(KratosUnittest.TestCase):
         file_path = test_helper.get_file_path(
             os.path.join(".", test_name, "flux_bottom_boundary")
         )
-        simulation = test_helper.run_kratos(file_path)
+        model = test_helper.run_kratos(file_path).model
 
         # Read output file
         reader = GiDOutputFileReader()
@@ -153,29 +153,27 @@ class KratosGeoMechanicsSeepageTests(KratosUnittest.TestCase):
         )
 
         # Verify that top boundary nodes (y=3.0) have seepage condition applied
-        top_boundary = simulation.model.GetModelPart("PorousDomain.top_boundary")
-        top_node_ids = [node.Id for node in top_boundary.Nodes]
-        nodal_flows = GiDOutputFileReader.nodal_values_at_time(
-            "NODAL_WATER_FLOW", 1.0, output_data, top_node_ids
-        )
+        top_node_ids = nodes_of_model_part(model, "PorousDomain.top_boundary")
+
         # On the seepage face, the nodal flow should be 2.5, due to the forces outflux
-        for node_id, flow in zip(top_node_ids, nodal_flows):
-            self.assertLessEqual(
-                flow,
-                2.5,
-            )
-
-        water_pressures = GiDOutputFileReader.nodal_values_at_time(
-            "WATER_PRESSURE", 1.0, output_data, top_node_ids
+        expected_nodal_out_flow = 2.5
+        self.assert_uniform_nodal_values(
+            top_node_ids,
+            "NODAL_WATER_FLOW",
+            output_data,
+            end_time,
+            expected_nodal_out_flow,
         )
 
-        # Since the bottom boundary is fixed to a high number, leading to outflow, the
+        # Since the bottom boundary has a fixed in-flux, leading to outflow at the seepage boundary, the
         # seepage nodes should have pressure = 0
-        for node_id, pressure in zip(top_node_ids, water_pressures):
-            self.assertAlmostEqual(
-                pressure,
-                0.0,
-            )
+        self.assert_uniform_nodal_values(
+            top_node_ids,
+            "WATER_PRESSURE",
+            output_data,
+            end_time,
+            0.0,
+        )
 
 
 if __name__ == "__main__":
