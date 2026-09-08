@@ -19,10 +19,6 @@ class TestMKLSmoothers(KratosUnittest.TestCase):
         base_dir: pathlib.Path = this_file_dir.parent.parent.parent
         matrix_file_path: pathlib.Path = base_dir / "kratos" / "tests" / "auxiliar_files_for_python_unittest" / "sparse_matrix_files" / "A.mm"
 
-        # SparseSpace/SparseMatrix/SparseVector are backend-agnostic aliases for
-        # the active backend's system types, so the smoothers (registered
-        # against the default space) are exercised on the matrix type they
-        # receive in production under either backend.
         space = KratosMultiphysics.SparseSpace()
 
         lhs = KratosMultiphysics.SparseMatrix()

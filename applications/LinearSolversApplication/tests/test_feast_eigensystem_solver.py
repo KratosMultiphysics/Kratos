@@ -11,7 +11,6 @@ from math import sqrt
 class TestFeastEigensystemSolver(KratosUnittest.TestCase):
     def test_real_symmetric_gev(self):
 
-        # Backend-agnostic alias: the real FEAST solver follows the active backend
         space = KratosMultiphysics.SparseSpace()
 
         settings = KratosMultiphysics.Parameters('''{

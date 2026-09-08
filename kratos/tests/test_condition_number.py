@@ -1,4 +1,4 @@
-﻿import KratosMultiphysics
+import KratosMultiphysics
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 from KratosMultiphysics import eigen_solver_factory
 import os
@@ -11,8 +11,7 @@ class TestConditionNumber(KratosUnittest.TestCase):
 
     @KratosUnittest.skipIfApplicationsNotAvailable("LinearSolversApplication")
     def test_condition_number(self):
-        # Read the matrices (backend-agnostic alias: the utility operates on
-        # the active backend's system matrix)
+        # Read the matrices
         K = KratosMultiphysics.SparseMatrix()
         KratosMultiphysics.ReadMatrixMarketMatrix(GetFilePath("auxiliar_files_for_python_unittest/sparse_matrix_files/A.mm"),K)
 

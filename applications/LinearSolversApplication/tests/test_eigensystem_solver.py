@@ -8,8 +8,6 @@ from KratosMultiphysics import eigen_solver_factory
 class TestEigensystemSolver(KratosUnittest.TestCase):
 
     def _run_test(self, settings):
-        # SparseSpace/SparseMatrix are the backend-agnostic aliases: the
-        # eigensystem solvers operate on the active backend's system types.
         space = KratosMultiphysics.SparseSpace()
 
         K = KratosMultiphysics.SparseMatrix()
