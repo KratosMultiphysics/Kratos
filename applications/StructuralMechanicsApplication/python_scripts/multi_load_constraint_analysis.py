@@ -17,7 +17,7 @@ class MultiLoadConstraintAnalysis(AnalysisStage):
         self.fixity_ids = project_parameters["process_combinations"]["fixity_ids"]
         self.model_part_name = self.solver_settings["model_part_name"].GetString()
         self.combination_solutions = {}
-        self.primitive_solutions = {}
+        self.load_solutions = {}
 
         #TODO: Change the input format so all of these are accessible via their ids?
         if self.project_parameters.Has("process_combinations"):
@@ -57,7 +57,7 @@ class MultiLoadConstraintAnalysis(AnalysisStage):
 
     def __SolveConstraintState(self):
 
-        load_ids = self.__GetPrimaryLoads()
+        load_ids = self.__GetLoads()
         self.__ApplyFixities()
         self.__RunSolutionLoop(load_ids)
         self.__SolveCombinations()
@@ -90,7 +90,7 @@ class MultiLoadConstraintAnalysis(AnalysisStage):
                     process.PrintOutput()
 
 
-    def __GetPrimaryLoads(self):
+    def __GetLoads(self):
         load_ids = set()
 
         for combination in self.combination_list.values():
@@ -108,7 +108,7 @@ class MultiLoadConstraintAnalysis(AnalysisStage):
             for load in combination["loads"].values():
                 load_factor = load["load_factor"].GetDouble()
                 load_id = load["load_process_id"].GetString()
-                dx = self.primitive_solutions[load_id]
+                dx = self.load_solutions[load_id]
                 if combination_Dx is None:
                     combination_Dx = dx.copy()
                     combination_Dx.SetValue(0.0)
@@ -118,7 +118,7 @@ class MultiLoadConstraintAnalysis(AnalysisStage):
 
     
     def __RunSolutionLoop(self, load_ids):
-        KratosMultiphysics.Logger.PrintInfo("::[MultiLoadConstraintAnalysis]::", f"Primitive loads to solve: {load_ids}")
+        KratosMultiphysics.Logger.PrintInfo("::[MultiLoadConstraintAnalysis]::", f"Loads to solve: {load_ids}")
         #-----------Changes---------------
         self.__RestoreReferenceValues()
         reference_rhs = self.__GetRHS(load_ids[0])
@@ -128,9 +128,9 @@ class MultiLoadConstraintAnalysis(AnalysisStage):
             self.__RestoreReferenceValues()
             self.__SolveLoad(id, scheme, strategy_data, solve)
 
-    def __StorePrimarySolution(self, id, strategy_data):
+    def __StoreLoadSolution(self, id, strategy_data):
         dx = strategy_data.GetLinearSystem().GetVector(KratosMultiphysics.Future.DenseVectorTag.Dx)
-        self.primitive_solutions[id] = dx.copy()
+        self.load_solutions[id] = dx.copy()
 
     def GetFinalData(self):
         return self.combination_solutions
@@ -256,12 +256,12 @@ class MultiLoadConstraintAnalysis(AnalysisStage):
         lhs_eff = effective_system.GetMatrix(KratosMultiphysics.Future.SparseMatrixTag.LHS)
 
         lhs_eff_scipy = KratosMultiphysics.scipy_conversion_tools.to_csr(lhs_eff)
-        factors = scipy.sparse.linalg.factorized(lhs_eff_scipy.tocsc())
-        return factors
+        solve = scipy.sparse.linalg.factorized(lhs_eff_scipy.tocsc())
+        return solve
 
     def __SolveLoad(self, load_id, scheme, strategy_data, solve):
         rhs = self.__GetRHS(load_id)
-
+        KratosMultiphysics.Logger.PrintInfo("::[MultiLoadConstraintAnalysis]::", "Solve Load")
         effective_system = strategy_data.GetEffectiveLinearSystem()
         rhs_eff = effective_system.GetVector(KratosMultiphysics.Future.DenseVectorTag.RHS)
         dx_eff = effective_system.GetVector(KratosMultiphysics.Future.DenseVectorTag.Dx)
@@ -278,4 +278,4 @@ class MultiLoadConstraintAnalysis(AnalysisStage):
             dx_eff[i] = value
 
         scheme.CalculateUpdateVector(strategy_data)
-        self.__StorePrimarySolution(load_id, strategy_data)
+        self.__StoreLoadSolution(load_id, strategy_data)
