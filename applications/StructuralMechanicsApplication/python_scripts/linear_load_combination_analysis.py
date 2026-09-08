@@ -7,7 +7,7 @@ import KratosMultiphysics.scipy_conversion_tools
 #-------------------------------------------------------------------
 
 
-class MultiLoadConstraintAnalysis(AnalysisStage):
+class LinearLoadCombinationAnalysis(AnalysisStage):
     def __init__(self, model, project_parameters):
         super().__init__(model, project_parameters)
         self.model = model
@@ -61,7 +61,7 @@ class MultiLoadConstraintAnalysis(AnalysisStage):
         self.__ApplyFixities()
         self.__RunSolutionLoop(load_ids)
         self.__SolveCombinations()
-        KratosMultiphysics.Logger.PrintInfo("::[MultiLoadConstraintAnalysis]::", "Finished constraint-state solve")
+        KratosMultiphysics.Logger.PrintInfo("::[LinearLoadCombinationAnalysis]::", "Finished constraint-state solve")
 
     def __OutputSolutionStep(self):
 
@@ -100,7 +100,7 @@ class MultiLoadConstraintAnalysis(AnalysisStage):
         return list(load_ids)
     
     def __SolveCombinations(self):
-        KratosMultiphysics.Logger.PrintInfo("::[MultiLoadConstraintAnalysis]::", "Solving combinations")
+        KratosMultiphysics.Logger.PrintInfo("::[LinearLoadCombinationAnalysis]::", "Solving combinations")
         for combination in self.combination_list.values():
             combination_factor = combination["combination_factor"].GetDouble()
             combination_id = combination["combination_id"].GetInt()
@@ -118,7 +118,7 @@ class MultiLoadConstraintAnalysis(AnalysisStage):
 
     
     def __RunSolutionLoop(self, load_ids):
-        KratosMultiphysics.Logger.PrintInfo("::[MultiLoadConstraintAnalysis]::", f"Loads to solve: {load_ids}")
+        KratosMultiphysics.Logger.PrintInfo("::[LinearLoadCombinationAnalysis]::", f"Loads to solve: {load_ids}")
         #-----------Changes---------------
         self.__RestoreReferenceValues()
         reference_rhs = self.__GetRHS(load_ids[0])
@@ -136,7 +136,7 @@ class MultiLoadConstraintAnalysis(AnalysisStage):
         return self.combination_solutions
         
     def __ApplyFixities(self):
-        KratosMultiphysics.Logger.PrintInfo("::[MultiLoadConstraintAnalysis]::", "Applying fixities")
+        KratosMultiphysics.Logger.PrintInfo("::[LinearLoadCombinationAnalysis]::", "Applying fixities")
         for id in self.fixity_ids.values():
             id = id.GetString()
             definition = self.__GetFixity(id)
@@ -261,7 +261,7 @@ class MultiLoadConstraintAnalysis(AnalysisStage):
 
     def __SolveLoad(self, load_id, scheme, strategy_data, factorization_solve):
         rhs = self.__GetRHS(load_id)
-        KratosMultiphysics.Logger.PrintInfo("::[MultiLoadConstraintAnalysis]::", "Solve Load")
+        KratosMultiphysics.Logger.PrintInfo("::[LinearLoadCombinationAnalysis]::", "Solve Load")
         effective_system = strategy_data.GetEffectiveLinearSystem()
         rhs_eff = effective_system.GetVector(KratosMultiphysics.Future.DenseVectorTag.RHS)
         dx_eff = effective_system.GetVector(KratosMultiphysics.Future.DenseVectorTag.Dx)

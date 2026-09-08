@@ -4,19 +4,19 @@ import KratosMultiphysics
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 from KratosMultiphysics.modelers.import_mdpa_modeler import ImportMDPAModeler
-from KratosMultiphysics.StructuralMechanicsApplication.multi_load_constraint_preparation import MultiLoadConstraintPreparation
-from KratosMultiphysics.StructuralMechanicsApplication.multi_load_constraint_analysis import MultiLoadConstraintAnalysis
+from KratosMultiphysics.StructuralMechanicsApplication.multi_load_constraint_preparation import LinearLoadCombinationPreparation
+from KratosMultiphysics.StructuralMechanicsApplication.multi_load_constraint_analysis import LinearLoadCombinationAnalysis
 from KratosMultiphysics.project import Project
 from KratosMultiphysics.StructuralMechanicsApplication.structural_sequential_orchestrator import StructuralSequentialOrchestrator
 
-class TestMultiLoadConstraintStages(KratosUnittest.TestCase):
+class TestLinearLoadCombinationStages(KratosUnittest.TestCase):
 
     _PREPARATION_STAGE_NAME = "prepare_lhs_and_rhss"
     _FIRST_ANALYSIS_STAGE_NAME = "solve_fixity_set_1"
     _SECOND_ANALYSIS_STAGE_NAME = "solve_fixity_set_2"
 
     def test_preparation_stage(self):
-        with KratosUnittest.WorkFolderScope("multi_load_constraint_test", __file__):
+        with KratosUnittest.WorkFolderScope("linear_load_combination_test", __file__):
             _, _, preparation_data = self._RunPreparation()
 
             lhs = preparation_data["lhs"]
@@ -202,7 +202,7 @@ class TestMultiLoadConstraintStages(KratosUnittest.TestCase):
             project_parameters,
             self._PREPARATION_STAGE_NAME,
         )
-        preparation = MultiLoadConstraintPreparation(model, preparation_parameters)
+        preparation = LinearLoadCombinationPreparation(model, preparation_parameters)
 
         # The stage must add its nodal variables before nodes are imported.
         self._ImportModelPart(model)
@@ -232,7 +232,7 @@ class TestMultiLoadConstraintStages(KratosUnittest.TestCase):
             stage_name,
         )
 
-        analysis = MultiLoadConstraintAnalysis(
+        analysis = LinearLoadCombinationAnalysis(
             model,
             analysis_parameters,
         )

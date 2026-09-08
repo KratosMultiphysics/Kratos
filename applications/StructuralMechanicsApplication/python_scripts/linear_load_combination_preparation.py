@@ -5,7 +5,7 @@ import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsA
 import KratosMultiphysics.scipy_conversion_tools #just for debugging
 from KratosMultiphysics.StructuralMechanicsApplication.structural_mechanics_solver import MechanicalSolver
 
-class MultiLoadConstraintPreparation(AnalysisStage):
+class LinearLoadCombinationPreparation(AnalysisStage):
     """This stage prepares the LHS of the model and the right hand sides (one for each load process defined in the parameters)"""
     def __init__(self, model, project_parameters):
         self.model = model
@@ -68,7 +68,7 @@ class MultiLoadConstraintPreparation(AnalysisStage):
 
             rhs = self.__BuildRHS()
             self.rhss[process_id] = rhs.copy()
-        KratosMultiphysics.Logger.PrintInfo("::[PrepareSubcases]:: ", "RHSs built")
+        KratosMultiphysics.Logger.PrintInfo("::[LinearLoadCombinationPreparation]:: ", "RHSs built")
 
     def __ResetLoadVariables(self):
         variable_utils = KratosMultiphysics.VariableUtils()
@@ -152,7 +152,7 @@ class MultiLoadConstraintPreparation(AnalysisStage):
         self.main_model_part.ProcessInfo[KratosMultiphysics.COMPUTE_LUMPED_MASS_MATRIX] = False
         mass_matrix.SetValue(0.0)
         self.scheme.BuildMassMatrix(mass_matrix)
-        KratosMultiphysics.Logger.PrintInfo("::[PrepareSubcases]:: ", "Consistent Massmatrix built")
+        KratosMultiphysics.Logger.PrintInfo("::[LinearLoadCombinationPreparation]:: ", "Consistent Massmatrix built")
     
     def __BuildLumpedMassMatrix(self):
         self.main_model_part.ProcessInfo[KratosMultiphysics.COMPUTE_LUMPED_MASS_MATRIX] = True
@@ -161,7 +161,7 @@ class MultiLoadConstraintPreparation(AnalysisStage):
 
         mass_matrix.SetValue(0.0)
         self.scheme.BuildMassMatrix(mass_matrix)
-        KratosMultiphysics.Logger.PrintInfo("::[PrepareSubcases]:: ", "Lumped Massmatrix built")
+        KratosMultiphysics.Logger.PrintInfo("::[LinearLoadCombinationPreparation]:: ", "Lumped Massmatrix built")
 
 
     def __BuildLHS(self):
@@ -173,7 +173,7 @@ class MultiLoadConstraintPreparation(AnalysisStage):
         lhs.SetValue(0.0)
         self.scheme.Build(lhs)
         self.lhs = lhs
-        KratosMultiphysics.Logger.PrintInfo("::[PrepareSubcases]:: ", "LHS built")
+        KratosMultiphysics.Logger.PrintInfo("::[LinearLoadCombinationPreparation]:: ", "LHS built")
 
     def _InitializeInternals(self):
         self.__InitializeScheme()
@@ -198,11 +198,11 @@ class MultiLoadConstraintPreparation(AnalysisStage):
             dofs_and_reactions_to_add.append(["ROTATION_Z", "REACTION_MOMENT_Z"])
 
         KratosMultiphysics.VariableUtils.AddDofsList(dofs_and_reactions_to_add, self.main_model_part)
-        KratosMultiphysics.Logger.PrintInfo("::[PrepareSubcases]:: ", "DOF's ADDED")
+        KratosMultiphysics.Logger.PrintInfo("::[LinearLoadCombinationPreparation]:: ", "DOF's ADDED")
 
     def _AddVariables(self):
         MechanicalSolver.AddVariablesToModelPart(self.main_model_part, self.settings)
-        KratosMultiphysics.Logger.PrintInfo("::[PrepareSubcases]:: ", "Variables ADDED")
+        KratosMultiphysics.Logger.PrintInfo("::[LinearLoadCombinationPreparation]:: ", "Variables ADDED")
 
     def _PrepareModelPart(self):
         self.__ReadMaterials()
@@ -214,7 +214,7 @@ class MultiLoadConstraintPreparation(AnalysisStage):
             material_settings = KratosMultiphysics.Parameters("""{"Parameters": {"materials_filename": ""}}""")
             material_settings["Parameters"]["materials_filename"].SetString(materials_filename)
             KratosMultiphysics.ReadMaterialsUtility(material_settings, self.model)
-            KratosMultiphysics.Logger.PrintInfo("::[PrepareSubcases]:: ", "Materials successfully imported")
+            KratosMultiphysics.Logger.PrintInfo("::[LinearLoadCombinationPreparation]:: ", "Materials successfully imported")
         else:
             raise Exception("Please specify a 'materials_filename'!")
         
@@ -265,5 +265,5 @@ if __name__ == "__main__":
         parameters = KratosMultiphysics.Parameters(parameter_file.read())
 
     model = KratosMultiphysics.Model()
-    simulation = MultiLoadConstraintPreparation(model, parameters)
+    simulation = LinearLoadCombinationPreparation(model, parameters)
     simulation.Run()
