@@ -56,6 +56,15 @@ class KratosGeoMechanicsSeepageTests(KratosUnittest.TestCase):
             )
             self.assertAlmostEqual(flow, expected_nodal_out_flow)
 
+        bottom_boundary = simulation.model.GetModelPart("PorousDomain.bottom_boundary")
+        bottom_node_ids = [node.Id for node in bottom_boundary.Nodes]
+        nodal_water_flows = GiDOutputFileReader.nodal_values_at_time(
+            "NODAL_WATER_FLOW", end_time, output_data, bottom_node_ids
+        )
+        expected_nodal_out_flow = -1.0 * expected_nodal_out_flow
+        for node_id, flow in zip(top_node_ids, nodal_water_flows):
+            self.assertAlmostEqual(flow, expected_nodal_out_flow)
+
     def test_three_element_seepage_fixed_bottom_boundary_stop_inflow(self):
         """
         Test with a fixed bottom pressure which is lower than a hydrostatic pressure
