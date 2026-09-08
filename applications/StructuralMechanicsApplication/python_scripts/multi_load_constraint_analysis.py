@@ -266,15 +266,16 @@ class MultiLoadConstraintAnalysis(AnalysisStage):
         rhs_eff = effective_system.GetVector(KratosMultiphysics.Future.DenseVectorTag.RHS)
         dx_eff = effective_system.GetVector(KratosMultiphysics.Future.DenseVectorTag.Dx)
 
+        # Clear previous load's data
         rhs_eff.SetValue(0.0)
         dx_eff.SetValue(0.0)
 
         T = strategy_data.GetEffectiveT()
         T.TransposeSpMV(rhs, rhs_eff)
 
-        x_eff = solve(np.array(rhs_eff))
+        dx_eff_numpy = solve(np.array(rhs_eff))
 
-        for i, value in enumerate(x_eff):
+        for i, value in enumerate(dx_eff_numpy):
             dx_eff[i] = value
 
         scheme.CalculateUpdateVector(strategy_data)
