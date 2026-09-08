@@ -8,10 +8,25 @@ from KratosMultiphysics.GeoMechanicsApplication.gid_output_file_reader import (
 )
 
 
+def nodes_of_model_part(model, model_part_name):
+    return [node.Id for node in model.GetModelPart(model_part_name).Nodes]
+
+
 class KratosGeoMechanicsSeepageTests(KratosUnittest.TestCase):
     """
     Test suite for seepage conditions on steady state groundwater flow problems.
     """
+
+    def assert_uniform_nodal_values(
+        self, node_ids, output_item_name, output_data, time, expected_value
+    ):
+        actual_values = GiDOutputFileReader.nodal_values_at_time(
+            output_item_name, time, output_data, node_ids
+        )
+        for node_id, value in zip(node_ids, actual_values):
+            self.assertAlmostEqual(
+                value, expected_value, msg=f'"{output_item_name}" at node {node_id}'
+            )
 
     def test_three_element_seepage_fixed_bottom_boundary(self):
         """
@@ -23,7 +38,7 @@ class KratosGeoMechanicsSeepageTests(KratosUnittest.TestCase):
         file_path = test_helper.get_file_path(
             os.path.join(".", test_name, "fixed_bottom_boundary")
         )
-        simulation = test_helper.run_kratos(file_path)
+        model = test_helper.run_kratos(file_path).model
 
         # Read output file
         reader = GiDOutputFileReader()
@@ -33,37 +48,32 @@ class KratosGeoMechanicsSeepageTests(KratosUnittest.TestCase):
 
         end_time = 1.0
 
-        # Verify that top boundary nodes (y=3.0) have seepage condition applied
-        top_boundary = simulation.model.GetModelPart("PorousDomain.top_boundary")
-        top_node_ids = [node.Id for node in top_boundary.Nodes]
-        water_pressures = GiDOutputFileReader.nodal_values_at_time(
-            "WATER_PRESSURE", end_time, output_data, top_node_ids
-        )
-        nodal_water_flows = GiDOutputFileReader.nodal_values_at_time(
-            "NODAL_WATER_FLOW", end_time, output_data, top_node_ids
-        )
+        # Verify that top boundary nodes have seepage condition applied
+        top_node_ids = nodes_of_model_part(model, "PorousDomain.top_boundary")
 
         # Since the bottom boundary is fixed to a high number, leading to outflow, the
         # seepage nodes should have pressure = 0
-        expected_water_pressure = 0.0
-        expected_nodal_out_flow = ((7.08e-13 * 1.0e04) / 3.0e-03) / 2
-        for node_id, pressure, flow in zip(
-            top_node_ids, water_pressures, nodal_water_flows
-        ):
-            self.assertAlmostEqual(
-                pressure,
-                expected_water_pressure,
-            )
-            self.assertAlmostEqual(flow, expected_nodal_out_flow)
-
-        bottom_boundary = simulation.model.GetModelPart("PorousDomain.bottom_boundary")
-        bottom_node_ids = [node.Id for node in bottom_boundary.Nodes]
-        nodal_water_flows = GiDOutputFileReader.nodal_values_at_time(
-            "NODAL_WATER_FLOW", end_time, output_data, bottom_node_ids
+        self.assert_uniform_nodal_values(
+            top_node_ids, "WATER_PRESSURE", output_data, end_time, 0.0
         )
-        expected_nodal_out_flow = -1.0 * expected_nodal_out_flow
-        for node_id, flow in zip(top_node_ids, nodal_water_flows):
-            self.assertAlmostEqual(flow, expected_nodal_out_flow)
+        expected_nodal_out_flow = ((7.08e-13 * 1.0e04) / 3.0e-03) / 2
+        self.assert_uniform_nodal_values(
+            top_node_ids,
+            "NODAL_WATER_FLOW",
+            output_data,
+            end_time,
+            expected_nodal_out_flow,
+        )
+
+        # Verify the in-flow at the bottom boundary
+        bottom_node_ids = nodes_of_model_part(model, "PorousDomain.bottom_boundary")
+        self.assert_uniform_nodal_values(
+            bottom_node_ids,
+            "NODAL_WATER_FLOW",
+            output_data,
+            end_time,
+            -1.0 * expected_nodal_out_flow,
+        )
 
     def test_three_element_seepage_fixed_bottom_boundary_stop_inflow(self):
         """
