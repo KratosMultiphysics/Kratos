@@ -174,7 +174,6 @@ class MultiLoadConstraintPreparation(AnalysisStage):
         self.scheme.Build(lhs)
         self.lhs = lhs
         KratosMultiphysics.Logger.PrintInfo("::[PrepareSubcases]:: ", "LHS built")
-        print(KratosMultiphysics.scipy_conversion_tools.to_csr(lhs).todense())
 
     def _InitializeInternals(self):
         self.__InitializeScheme()
