@@ -360,7 +360,6 @@ void FractionalStep<TDim>::CalculateOnIntegrationPoints(
 
         double Density = 0.0;
         array_1d<double,3> PresProj = ZeroVector(3);
-        array_1d<double,3> BodyForce = ZeroVector(3);
 
         // Loop on integration points
         for (unsigned int g = 0; g < NumGauss; g++)

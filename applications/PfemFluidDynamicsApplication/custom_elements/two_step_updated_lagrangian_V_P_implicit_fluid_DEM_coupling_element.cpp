@@ -45,52 +45,39 @@ namespace Kratos
       return ierr;
 
     // Check that all required variables have been registered
-    if (VELOCITY.Key() == 0)
-      KRATOS_THROW_ERROR(std::invalid_argument, "VELOCITY Key is 0. Check that the application was correctly registered.", "");
-    if (ACCELERATION.Key() == 0)
-      KRATOS_THROW_ERROR(std::invalid_argument, "ACCELERATION Key is 0. Check that the application was correctly registered.", "");
-    if (PRESSURE.Key() == 0)
-      KRATOS_THROW_ERROR(std::invalid_argument, "PRESSURE Key is 0. Check that the application was correctly registered.", "");
-    if (BODY_FORCE.Key() == 0)
-      KRATOS_THROW_ERROR(std::invalid_argument, "BODY_FORCE Key is 0. Check that the application was correctly registered.", "");
-    if (DENSITY.Key() == 0)
-      KRATOS_THROW_ERROR(std::invalid_argument, "DENSITY Key is 0. Check that the application was correctly registered.", "");
-    if (DYNAMIC_VISCOSITY.Key() == 0)
-      KRATOS_THROW_ERROR(std::invalid_argument, "DYNAMIC_VISCOSITY Key is 0. Check that the application was correctly registered.", "");
-    if (DELTA_TIME.Key() == 0)
-      KRATOS_THROW_ERROR(std::invalid_argument, "DELTA_TIME Key is 0. Check that the application was correctly registered.", "");
+    KRATOS_ERROR_IF(VELOCITY.Key() == 0) << "VELOCITY Key is 0. Check that the application was correctly registered.";
+    KRATOS_ERROR_IF(ACCELERATION.Key() == 0) << "ACCELERATION Key is 0. Check that the application was correctly registered.";
+    KRATOS_ERROR_IF(PRESSURE.Key() == 0) << "PRESSURE Key is 0. Check that the application was correctly registered.";
+    KRATOS_ERROR_IF(DENSITY.Key() == 0) << "DENSITY Key is 0. Check that the application was correctly registered.";
+    KRATOS_ERROR_IF(BODY_FORCE.Key() == 0) << "BODY_FORCE Key is 0. Check that the application was correctly registered.";
+    KRATOS_ERROR_IF(DYNAMIC_VISCOSITY.Key() == 0) << "DYNAMIC_VISCOSITY Key is 0. Check that the application was correctly registered.";
+    KRATOS_ERROR_IF(DELTA_TIME.Key() == 0) << "DELTA_TIME Key is 0. Check that the application was correctly registered.";
 
+    const GeometryType &r_geom = this->GetGeometry();
     // Check that the element's nodes contain all required SolutionStepData and Degrees of freedom
-    for (unsigned int i = 0; i < this->GetGeometry().size(); ++i)
+    for (unsigned int i = 0; i < r_geom.size(); ++i)
     {
-      if (this->GetGeometry()[i].SolutionStepsDataHas(VELOCITY) == false)
-        KRATOS_THROW_ERROR(std::invalid_argument, "missing VELOCITY variable on solution step data for node ", this->GetGeometry()[i].Id());
-      if (this->GetGeometry()[i].SolutionStepsDataHas(PRESSURE) == false)
-        KRATOS_THROW_ERROR(std::invalid_argument, "missing PRESSURE variable on solution step data for node ", this->GetGeometry()[i].Id());
-      if (this->GetGeometry()[i].SolutionStepsDataHas(BODY_FORCE) == false)
-        KRATOS_THROW_ERROR(std::invalid_argument, "missing BODY_FORCE variable on solution step data for node ", this->GetGeometry()[i].Id());
-      if (this->GetGeometry()[i].SolutionStepsDataHas(DENSITY) == false)
-        KRATOS_THROW_ERROR(std::invalid_argument, "missing DENSITY variable on solution step data for node ", this->GetGeometry()[i].Id());
-      if (this->GetGeometry()[i].SolutionStepsDataHas(DYNAMIC_VISCOSITY) == false)
-        KRATOS_THROW_ERROR(std::invalid_argument, "missing DYNAMIC_VISCOSITY variable on solution step data for node ", this->GetGeometry()[i].Id());
-      if (this->GetGeometry()[i].HasDofFor(VELOCITY_X) == false ||
-          this->GetGeometry()[i].HasDofFor(VELOCITY_Y) == false ||
-          this->GetGeometry()[i].HasDofFor(VELOCITY_Z) == false)
-        KRATOS_THROW_ERROR(std::invalid_argument, "missing VELOCITY component degree of freedom on node ", this->GetGeometry()[i].Id());
-      if (this->GetGeometry()[i].HasDofFor(PRESSURE) == false)
-        KRATOS_THROW_ERROR(std::invalid_argument, "missing PRESSURE component degree of freedom on node ", this->GetGeometry()[i].Id());
+      KRATOS_ERROR_IF_NOT(r_geom[i].SolutionStepsDataHas(VELOCITY)) << "missing VELOCITY variable on solution step data for node ", r_geom[i].Id();
+      KRATOS_ERROR_IF_NOT(r_geom[i].SolutionStepsDataHas(PRESSURE)) << "missing PRESSURE variable on solution step data for node ", r_geom[i].Id();
+      KRATOS_ERROR_IF_NOT(r_geom[i].SolutionStepsDataHas(BODY_FORCE)) << "missing BODY_FORCE variable on solution step data for node ", r_geom[i].Id();
+      KRATOS_ERROR_IF_NOT(r_geom[i].SolutionStepsDataHas(DENSITY)) << "missing DENSITY variable on solution step data for node ", r_geom[i].Id();
+      KRATOS_ERROR_IF_NOT(r_geom[i].SolutionStepsDataHas(DYNAMIC_VISCOSITY)) << "missing DYNAMIC_VISCOSITY variable on solution step data for node ", r_geom[i].Id();
+      KRATOS_ERROR_IF_NOT(r_geom[i].HasDofFor(VELOCITY_X) || r_geom[i].HasDofFor(VELOCITY_Y)) << "missing VELOCITY component DOF in node ", r_geom[i].Id();
+      if constexpr (TDim == 3)
+      {
+        KRATOS_ERROR_IF_NOT(r_geom[i].HasDofFor(VELOCITY_Z)) << "Missing VELOCITY_Z component DOF in node ", this->GetGeometry()[i].Id();
+      }
+      KRATOS_ERROR_IF_NOT(r_geom[i].HasDofFor(PRESSURE)) << "missing PRESSURE DOF in node ", r_geom[i].Id();
     }
-
     // If this is a 2D problem, check that nodes are in XY plane
-    if (this->GetGeometry().WorkingSpaceDimension() == 2)
+    if (r_geom.WorkingSpaceDimension() == 2)
     {
       for (unsigned int i = 0; i < this->GetGeometry().size(); ++i)
       {
-        if (this->GetGeometry()[i].Z() != 0.0)
-          KRATOS_THROW_ERROR(std::invalid_argument, "Node with non-zero Z coordinate found. Id: ", this->GetGeometry()[i].Id());
+        if (r_geom[i].Z() != 0.0)
+          KRATOS_THROW_ERROR(std::invalid_argument, "Node with non-zero Z coordinate found. Id: ", r_geom[i].Id());
       }
     }
-
     return ierr;
 
     KRATOS_CATCH("");
@@ -548,7 +535,7 @@ namespace Kratos
       totalVolume += GaussWeight;
       const ShapeFunctionsType &N = row(NContainer, g);
       const ShapeFunctionDerivativesType &rDN_DX = DN_DX[g];
-      computeElement = this->CalcCompleteStrainRate(rElementalVariables, rCurrentProcessInfo, rDN_DX, theta);
+      computeElement = this->CalcStrainRateMeasures(rElementalVariables, rCurrentProcessInfo, rDN_DX, theta);
       bool wallElement = false;
       if (computeElement == true)
       {
