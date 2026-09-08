@@ -105,21 +105,18 @@ namespace Kratos
                 std::cout << "MODEL PART OutNumberOfPoints " << mrRemesh.OutMesh.GetNumberOfPoints() << std::endl;
             }
             const int &OutNumberOfElements = mrRemesh.OutMesh.GetNumberOfElements();
-            mrRemesh.PreservedElements.clear();
-            mrRemesh.PreservedElements.resize(OutNumberOfElements, false);
-            std::fill(mrRemesh.PreservedElements.begin(), mrRemesh.PreservedElements.end(), 0);
+            mrRemesh.PreservedElements.assign(OutNumberOfElements, 0);
             mrRemesh.MeshElementsSelectedFlag = true;
 
             MesherUtilities MesherUtils;
-            double ModelPartVolume = MesherUtils.ComputeModelPartVolume(mrModelPart);
-            double CriticalVolume = 0.05 * ModelPartVolume / double(mrModelPart.Elements().size());
+            const double ModelPartVolume = MesherUtils.ComputeModelPartVolume(mrModelPart);
+            const double InitialCriticalVolume = 0.05 * ModelPartVolume / double(mrModelPart.Elements().size());
 
             mrRemesh.Info->NumberOfElements = 0;
 
             const ProcessInfo &rCurrentProcessInfo = mrModelPart.GetProcessInfo();
-            double currentTime = rCurrentProcessInfo[TIME];
-            double deltaTime = rCurrentProcessInfo[DELTA_TIME];
-            int number_of_slivers = 0;
+            const double currentTime = rCurrentProcessInfo[TIME];
+            const double deltaTime = rCurrentProcessInfo[DELTA_TIME];
 
             bool refiningBox = false;
             for (SizeType index = 0; index < mrRemesh.UseRefiningBox.size(); index++)
@@ -135,8 +132,8 @@ namespace Kratos
                 for (int el = 0; el < OutNumberOfElements; el++)
                 {
                     mrRemesh.PreservedElements[el] = 1;
-                    mrRemesh.Info->NumberOfElements += 1;
                 }
+                mrRemesh.Info->NumberOfElements = OutNumberOfElements;
             }
             else
             {
@@ -157,29 +154,26 @@ namespace Kratos
                 {
                     Geometry<Node> vertices;
                     double meanMeshSize = mrRemesh.Refine->CriticalRadius; // this must be inside because if there is a refined zone, each element has a different critical radius
+                    bool noremesh = false;
+                    bool increaseAlfa = false;
+                    std::array<double, 4> normVelocityP;
+                    std::array<array_1d<double, 3>, 4> nodesVelocities;
+                    std::array<array_1d<double, 3>, 4> nodesCoordinates;
                     SizeType numfreesurf = 0;
                     SizeType numboundary = 0;
                     SizeType numrigid = 0;
                     SizeType numInletNodes = 0;
                     SizeType numisolated = 0;
-                    bool noremesh = false;
-                    std::vector<double> normVelocityP;
-                    normVelocityP.resize(nds, false);
                     SizeType checkedNodes = 0;
                     SizeType countIsolatedWallNodes = 0;
-                    bool increaseAlfa = false;
                     SizeType previouslyFreeSurfaceNodes = 0;
                     SizeType previouslyIsolatedNodes = 0;
                     SizeType sumPreviouslyIsolatedFreeSurf = 0;
                     SizeType sumIsolatedFreeSurf = 0;
-                    std::vector<array_1d<double, 3>> nodesCoordinates;
-                    nodesCoordinates.resize(nds);
-                    std::vector<array_1d<double, 3>> nodesVelocities;
-                    nodesVelocities.resize(nds);
                     SizeType isolatedNodesInTheElement = 0;
                     double rigidNodeLocalMeshSize = 0;
                     double rigidNodeMeshCounter = 0;
-
+                    double CriticalVolume = InitialCriticalVolume;
                     for (SizeType pn = 0; pn < nds; pn++)
                     {
                         if (OutElementList[el * nds + pn] <= 0)
@@ -191,44 +185,45 @@ namespace Kratos
                             break;
                         }
                         vertices.push_back(rNodes(OutElementList[el * nds + pn]));
+                        Node &rNode = vertices.back();
 
-                        if (vertices.back().IsNot(RIGID) && vertices.back().IsNot(SOLID))
+                        if (rNode.IsNot(RIGID) && rNode.IsNot(SOLID))
                         {
-                            isolatedNodesInTheElement += vertices.back().FastGetSolutionStepValue(ISOLATED_NODE);
+                            isolatedNodesInTheElement += rNode.FastGetSolutionStepValue(ISOLATED_NODE);
                         }
                         // check flags on nodes
-                        if (vertices.back().Is(ISOLATED))
+                        if (rNode.Is(ISOLATED))
                         {
-                            numisolated++;
+                            ++numisolated;
                         }
-                        if (vertices.back().Is(PFEMFlags::PREVIOUS_FREESURFACE))
+                        if (rNode.Is(PFEMFlags::PREVIOUS_FREESURFACE))
                         {
-                            previouslyFreeSurfaceNodes++;
+                            ++previouslyFreeSurfaceNodes;
                         }
-                        if (vertices.back().Is(PFEMFlags::PREVIOUS_ISOLATED))
+                        if (rNode.Is(PFEMFlags::PREVIOUS_ISOLATED))
                         {
-                            previouslyIsolatedNodes++;
+                            ++previouslyIsolatedNodes;
                         }
-                        if (vertices.back().Is(BOUNDARY))
+                        if (rNode.Is(BOUNDARY))
                         {
-                            numboundary++;
+                            ++numboundary;
                         }
-                        if (vertices.back().GetValue(NO_MESH))
+                        if (rNode.GetValue(NO_MESH))
                         {
                             noremesh = true;
                         }
 
-                        if (vertices.back().Is(RIGID) || vertices.back().Is(SOLID))
+                        if (rNode.Is(RIGID) || rNode.Is(SOLID))
                         {
-                            if (vertices.back().Is(RIGID))
+                            if (rNode.Is(RIGID))
                             {
-                                rigidNodeLocalMeshSize += vertices.back().FastGetSolutionStepValue(NODAL_H_WALL);
+                                rigidNodeLocalMeshSize += rNode.FastGetSolutionStepValue(NODAL_H_WALL);
                                 rigidNodeMeshCounter += 1.0;
                             }
 
                             numrigid++;
 
-                            NodeWeakPtrVectorType &rN = vertices.back().GetValue(NEIGHBOUR_NODES);
+                            NodeWeakPtrVectorType &rN = rNode.GetValue(NEIGHBOUR_NODES);
                             bool localIsolatedWallNode = true;
                             for (SizeType i = 0; i < rN.size(); i++)
                             {
@@ -243,42 +238,42 @@ namespace Kratos
                             }
                         }
 
-                        if (vertices.back().IsNot(RIGID) && vertices.back().Is(BOUNDARY))
+                        if (rNode.IsNot(RIGID) && rNode.Is(BOUNDARY))
                         {
                             numfreesurf++;
-                            const array_1d<double, 3> &velocityP0 = vertices.back().FastGetSolutionStepValue(VELOCITY, 0);
+                            const array_1d<double, 3> &velocityP0 = rNode.FastGetSolutionStepValue(VELOCITY, 0);
                             normVelocityP[pn] = norm_2(velocityP0);
                             nodesVelocities[pn] = velocityP0;
                             checkedNodes++;
                         }
-                        else if (vertices.back().Is(ISOLATED))
+                        else if (rNode.Is(ISOLATED))
                         {
-                            const array_1d<double, 3> &velocityP0 = vertices.back().FastGetSolutionStepValue(VELOCITY, 0);
+                            const array_1d<double, 3> &velocityP0 = rNode.FastGetSolutionStepValue(VELOCITY, 0);
                             normVelocityP[pn] = norm_2(velocityP0);
                             nodesVelocities[pn] = velocityP0;
                             checkedNodes++;
                         }
-                        if (vertices.back().Is(INLET))
+                        if (rNode.Is(INLET))
                         {
                             numInletNodes++;
                         }
 
-                        if (refiningBox == true && vertices.back().IsNot(RIGID))
+                        if (refiningBox == true && rNode.IsNot(RIGID))
                         {
                             if (dimension == 2)
                             {
-                                MesherUtils.DefineMeshSizeInTransitionZones2D(mrRemesh, currentTime, vertices.back().Coordinates(), meanMeshSize, increaseAlfa);
+                                MesherUtils.DefineMeshSizeInTransitionZones2D(mrRemesh, currentTime, rNode.Coordinates(), meanMeshSize, increaseAlfa);
                             }
                             else if (dimension == 3)
                             {
-                                MesherUtils.DefineMeshSizeInTransitionZones3D(mrRemesh, currentTime, vertices.back().Coordinates(), meanMeshSize, increaseAlfa);
+                                MesherUtils.DefineMeshSizeInTransitionZones3D(mrRemesh, currentTime, rNode.Coordinates(), meanMeshSize, increaseAlfa);
                             }
                             CriticalVolume = 0.05 * (std::pow(meanMeshSize, 3) / (6.0 * std::sqrt(2)));
                         }
 
                         if (dimension == 3)
                         {
-                            nodesCoordinates[pn] = vertices.back().Coordinates();
+                            nodesCoordinates[pn] = rNode.Coordinates();
                         }
                     }
 
@@ -289,9 +284,9 @@ namespace Kratos
                         SetMeshSizeInBoundaryZones(meanMeshSize, previouslyFreeSurfaceNodes, numfreesurf, currentTime, deltaTime, rigidNodeLocalMeshSize, rigidNodeMeshCounter);
                     }
 
-                    if (refiningBox == true)
+                    if (refiningBox && increaseAlfa)
                     {
-                        IncreaseAlphaForRefininedZones(Alpha, increaseAlfa, nds, numfreesurf, numrigid, numisolated);
+                        IncreaseAlphaForRefininedZones(Alpha, nds, numfreesurf, numrigid, numisolated);
                     }
 
                     sumIsolatedFreeSurf = numisolated + numfreesurf;
@@ -345,7 +340,7 @@ namespace Kratos
                     if (dimension == 3 && accepted && numrigid < 3 &&
                         (previouslyIsolatedNodes == 4 || previouslyFreeSurfaceNodes == 4 || sumIsolatedFreeSurf == 4 || numfreesurf == 4 || numisolated == 4 || (numrigid == 2 && isolatedNodesInTheElement > 1)))
                     {
-                        ControlSliverElements(accepted, number_of_slivers, vertices, nodesCoordinates, CriticalVolume);
+                        ControlSliverElements(accepted, vertices, nodesCoordinates, CriticalVolume);
                     }
 
                     if (accepted)
@@ -359,7 +354,7 @@ namespace Kratos
 
             if (mEchoLevel > 1)
             {
-                std::cout << "Number of Preserved Fluid Elements " << mrRemesh.Info->NumberOfElements << " (slivers detected: " << number_of_slivers << ") " << std::endl;
+                std::cout << "Number of Preserved Fluid Elements " << mrRemesh.Info->NumberOfElements << std::endl;
                 std::cout << "TOTAL removed nodes " << mrRemesh.Info->RemovedNodes << std::endl;
             }
             if (mrRemesh.ExecutionOptions.IsNot(MesherUtilities::KEEP_ISOLATED_NODES))
@@ -500,12 +495,12 @@ namespace Kratos
         ///@{
 
         void SetMeshSizeInBoundaryZones(double &meanMeshSize,
-                                        bool previouslyFreeSurfaceNodes,
-                                        bool numfreesurf,
-                                        double currentTime,
-                                        double deltaTime,
-                                        SizeType rigidNodeLocalMeshSize,
-                                        SizeType rigidNodeMeshCounter)
+                                        const bool previouslyFreeSurfaceNodes,
+                                        const bool numfreesurf,
+                                        const double currentTime,
+                                        const double deltaTime,
+                                        const SizeType rigidNodeLocalMeshSize,
+                                        const SizeType rigidNodeMeshCounter)
         {
             KRATOS_TRY
             const double rigidWallMeshSize = rigidNodeLocalMeshSize / rigidNodeMeshCounter;
@@ -525,31 +520,28 @@ namespace Kratos
         }
 
         void IncreaseAlphaForRefininedZones(double &Alpha,
-                                            bool increaseAlfa,
-                                            SizeType nds,
-                                            SizeType numfreesurf,
-                                            SizeType numrigid,
-                                            SizeType numisolated)
+                                            const SizeType nds,
+                                            const SizeType numfreesurf,
+                                            const SizeType numrigid,
+                                            const SizeType numisolated)
         {
             KRATOS_TRY
-            if (increaseAlfa == true)
+
+            if (numfreesurf < nds && numisolated == 0)
             {
-                if (numfreesurf < nds && numisolated == 0)
-                {
-                    Alpha *= 1.2;
-                }
-                else if (numfreesurf == 0 && numrigid == 0 && numisolated == 0)
-                {
-                    Alpha *= 1.4;
-                }
-                else if (numfreesurf == 0 && numrigid > (0.5 * nds) && numisolated == 0)
-                {
-                    Alpha *= 5.0;
-                }
-                else if (numfreesurf == 0 && numrigid > 0 && numisolated == 0)
-                {
-                    Alpha *= 1.8;
-                }
+                Alpha *= 1.2;
+            }
+            else if (numfreesurf == 0 && numrigid == 0 && numisolated == 0)
+            {
+                Alpha *= 1.4;
+            }
+            else if (numfreesurf == 0 && numrigid > (0.5 * nds) && numisolated == 0)
+            {
+                Alpha *= 5.0;
+            }
+            else if (numfreesurf == 0 && numrigid > 0 && numisolated == 0)
+            {
+                Alpha *= 1.8;
             }
 
             KRATOS_CATCH("")
@@ -557,13 +549,13 @@ namespace Kratos
 
         void ModifyAlpha(double &Alpha,
                          const SizeType dimension,
-                         SizeType nds,
-                         SizeType numfreesurf,
-                         SizeType numrigid,
-                         SizeType numisolated,
-                         SizeType numInletNodes,
-                         SizeType previouslyIsolatedNodes,
-                         SizeType previouslyFreeSurfaceNodes)
+                         const SizeType nds,
+                         const SizeType numfreesurf,
+                         const SizeType numrigid,
+                         const SizeType numisolated,
+                         const SizeType numInletNodes,
+                         const SizeType previouslyIsolatedNodes,
+                         const SizeType previouslyFreeSurfaceNodes)
         {
             KRATOS_TRY
             if (dimension == 2)
@@ -630,8 +622,8 @@ namespace Kratos
         }
 
         void ControlSkewedElements2D(bool &accepted,
-                                     std::vector<double> &normVelocityP,
-                                     std::vector<array_1d<double, 3>> &nodesVelocities)
+                                     const std::array<double, 4> &normVelocityP,
+                                     const std::array<array_1d<double, 3>, 4> &nodesVelocities)
         {
             KRATOS_TRY
 
@@ -642,30 +634,30 @@ namespace Kratos
                 normVelocityP[1] / normVelocityP[2] > maxValue || normVelocityP[1] / normVelocityP[2] < minValue)
             {
                 accepted = false;
+                return;
             }
-            else
-            {
-                const double cosAngle01 = (nodesVelocities[0][0] * nodesVelocities[1][0] + nodesVelocities[0][1] * nodesVelocities[1][1]) /
-                                          (std::sqrt(std::pow(nodesVelocities[0][0], 2) + std::pow(nodesVelocities[0][1], 2)) *
-                                           std::sqrt(std::pow(nodesVelocities[1][0], 2) + std::pow(nodesVelocities[1][1], 2)));
-                const double cosAngle02 = (nodesVelocities[0][0] * nodesVelocities[2][0] + nodesVelocities[0][1] * nodesVelocities[2][1]) /
-                                          (std::sqrt(std::pow(nodesVelocities[0][0], 2) + std::pow(nodesVelocities[0][1], 2)) *
-                                           std::sqrt(std::pow(nodesVelocities[2][0], 2) + std::pow(nodesVelocities[2][1], 2)));
-                const double cosAngle12 = (nodesVelocities[1][0] * nodesVelocities[2][0] + nodesVelocities[1][1] * nodesVelocities[2][1]) /
-                                          (std::sqrt(std::pow(nodesVelocities[1][0], 2) + std::pow(nodesVelocities[1][1], 2)) *
-                                           std::sqrt(std::pow(nodesVelocities[2][0], 2) + std::pow(nodesVelocities[2][1], 2)));
 
-                if (std::abs(cosAngle01) < 0.95 || std::abs(cosAngle02) < 0.95 || std::abs(cosAngle12) < 0.95)
-                {
-                    accepted = false;
-                }
+            const double norm0 = norm_2(nodesVelocities[0]);
+            const double norm1 = norm_2(nodesVelocities[1]);
+            const double norm2 = norm_2(nodesVelocities[2]);
+
+            const double cosAngle01 = (nodesVelocities[0][0] * nodesVelocities[1][0] + nodesVelocities[0][1] * nodesVelocities[1][1]) /
+                                      (norm0 * norm1);
+            const double cosAngle02 = (nodesVelocities[0][0] * nodesVelocities[2][0] + nodesVelocities[0][1] * nodesVelocities[2][1]) /
+                                      (norm0 * norm2);
+            const double cosAngle12 = (nodesVelocities[1][0] * nodesVelocities[2][0] + nodesVelocities[1][1] * nodesVelocities[2][1]) /
+                                      (norm1 * norm2);
+
+            if (std::abs(cosAngle01) < 0.95 || std::abs(cosAngle02) < 0.95 || std::abs(cosAngle12) < 0.95)
+            {
+                accepted = false;
             }
             KRATOS_CATCH("")
         }
 
         void ControlSkewedElements3D(bool &accepted,
-                                     std::vector<double> &normVelocityP,
-                                     std::vector<array_1d<double, 3>> &nodesVelocities)
+                                     const std::array<double, 4> &normVelocityP,
+                                     const std::array<array_1d<double, 3>, 4> &nodesVelocities)
         {
             KRATOS_TRY
             const double maxValue = 2.5;
@@ -678,46 +670,60 @@ namespace Kratos
                 normVelocityP[2] / normVelocityP[3] > maxValue)
             {
                 accepted = false;
+                return;
             }
-            else
-            {
-                const double cosAngle01 = (nodesVelocities[0][0] * nodesVelocities[1][0] + nodesVelocities[0][1] * nodesVelocities[1][1] + nodesVelocities[0][1] * nodesVelocities[1][2]) /
-                                          (std::sqrt(std::pow(nodesVelocities[0][0], 2) + std::pow(nodesVelocities[0][1], 2) + std::pow(nodesVelocities[0][2], 2)) *
-                                           std::sqrt(std::pow(nodesVelocities[1][0], 2) + std::pow(nodesVelocities[1][1], 2) + std::pow(nodesVelocities[1][2], 2)));
-                const double cosAngle02 = (nodesVelocities[0][0] * nodesVelocities[2][0] + nodesVelocities[0][1] * nodesVelocities[2][1] + nodesVelocities[0][1] * nodesVelocities[2][2]) /
-                                          (std::sqrt(std::pow(nodesVelocities[0][0], 2) + std::pow(nodesVelocities[0][1], 2) + std::pow(nodesVelocities[0][2], 2)) *
-                                           std::sqrt(std::pow(nodesVelocities[2][0], 2) + std::pow(nodesVelocities[2][1], 2) + std::pow(nodesVelocities[2][2], 2)));
-                const double cosAngle03 = (nodesVelocities[0][0] * nodesVelocities[3][0] + nodesVelocities[0][1] * nodesVelocities[3][1] + nodesVelocities[0][1] * nodesVelocities[3][2]) /
-                                          (std::sqrt(std::pow(nodesVelocities[0][0], 2) + std::pow(nodesVelocities[0][1], 2) + std::pow(nodesVelocities[0][2], 2)) *
-                                           std::sqrt(std::pow(nodesVelocities[3][0], 2) + std::pow(nodesVelocities[3][1], 2) + std::pow(nodesVelocities[3][2], 2)));
-                const double cosAngle12 = (nodesVelocities[1][0] * nodesVelocities[2][0] + nodesVelocities[1][1] * nodesVelocities[2][1] + nodesVelocities[1][1] * nodesVelocities[2][2]) /
-                                          (std::sqrt(std::pow(nodesVelocities[1][0], 2) + std::pow(nodesVelocities[1][1], 2) + std::pow(nodesVelocities[1][2], 2)) *
-                                           std::sqrt(std::pow(nodesVelocities[2][0], 2) + std::pow(nodesVelocities[2][1], 2) + std::pow(nodesVelocities[2][2], 2)));
-                const double cosAngle13 = (nodesVelocities[1][0] * nodesVelocities[3][0] + nodesVelocities[1][1] * nodesVelocities[3][1] + nodesVelocities[1][1] * nodesVelocities[3][2]) /
-                                          (std::sqrt(std::pow(nodesVelocities[1][0], 2) + std::pow(nodesVelocities[1][1], 2) + std::pow(nodesVelocities[1][2], 2)) *
-                                           std::sqrt(std::pow(nodesVelocities[3][0], 2) + std::pow(nodesVelocities[3][1], 2) + std::pow(nodesVelocities[3][2], 2)));
-                const double cosAngle23 = (nodesVelocities[2][0] * nodesVelocities[3][0] + nodesVelocities[2][1] * nodesVelocities[3][1] + nodesVelocities[2][1] * nodesVelocities[3][2]) /
-                                          (std::sqrt(std::pow(nodesVelocities[2][0], 2) + std::pow(nodesVelocities[2][1], 2) + std::pow(nodesVelocities[2][2], 2)) *
-                                           std::sqrt(std::pow(nodesVelocities[3][0], 2) + std::pow(nodesVelocities[3][1], 2) + std::pow(nodesVelocities[3][2], 2)));
 
-                if (std::abs(cosAngle01) < 0.85 || std::abs(cosAngle02) < 0.85 || std::abs(cosAngle03) < 0.85 || std::abs(cosAngle12) < 0.85 || std::abs(cosAngle13) < 0.85 || std::abs(cosAngle23) < 0.85)
-                {
-                    accepted = false;
-                    // std::cout << "The angle between the velocity vectors is too big" << std::endl;
-                }
+            const double norm0 = norm_2(nodesVelocities[0]);
+            const double norm1 = norm_2(nodesVelocities[1]);
+            const double norm2 = norm_2(nodesVelocities[2]);
+            const double norm3 = norm_2(nodesVelocities[3]);
+
+            const double cosAngle01 = (nodesVelocities[0][0] * nodesVelocities[1][0] + nodesVelocities[0][1] * nodesVelocities[1][1] + nodesVelocities[0][2] * nodesVelocities[1][2]) /
+                                      (norm0 * norm1);
+            const double cosAngle02 = (nodesVelocities[0][0] * nodesVelocities[2][0] + nodesVelocities[0][1] * nodesVelocities[2][1] + nodesVelocities[0][2] * nodesVelocities[2][2]) /
+                                      (norm0 * norm2);
+            const double cosAngle03 = (nodesVelocities[0][0] * nodesVelocities[3][0] + nodesVelocities[0][1] * nodesVelocities[3][1] + nodesVelocities[0][2] * nodesVelocities[3][2]) /
+                                      (norm0 * norm3);
+            const double cosAngle12 = (nodesVelocities[1][0] * nodesVelocities[2][0] + nodesVelocities[1][1] * nodesVelocities[2][1] + nodesVelocities[1][2] * nodesVelocities[2][2]) /
+                                      (norm1 * norm2);
+            const double cosAngle13 = (nodesVelocities[1][0] * nodesVelocities[3][0] + nodesVelocities[1][1] * nodesVelocities[3][1] + nodesVelocities[1][2] * nodesVelocities[3][2]) /
+                                      (norm1 * norm3);
+            const double cosAngle23 = (nodesVelocities[2][0] * nodesVelocities[3][0] + nodesVelocities[2][1] * nodesVelocities[3][1] + nodesVelocities[2][2] * nodesVelocities[3][2]) /
+                                      (norm2 * norm3);
+
+            if (std::abs(cosAngle01) < 0.85 || std::abs(cosAngle02) < 0.85 || std::abs(cosAngle03) < 0.85 || std::abs(cosAngle12) < 0.85 || std::abs(cosAngle13) < 0.85 || std::abs(cosAngle23) < 0.85)
+            {
+                accepted = false;
+                // std::cout << "The angle between the velocity vectors is too big" << std::endl;
             }
+
             KRATOS_CATCH("")
         }
 
         void ControlSliverElements(bool &accepted,
-                                   int &number_of_slivers,
-                                   Geometry<Node> vertices,
-                                   std::vector<array_1d<double, 3>> nodesCoordinates,
-                                   double CriticalVolume)
+                                   const Geometry<Node> vertices,
+                                   const std::array<array_1d<double, 3>, 4> nodesCoordinates,
+                                   const double CriticalVolume)
         {
             KRATOS_TRY
-            Geometry<Node> *tetrahedron = new Tetrahedra3D4<Node>(vertices);
-            double Volume = tetrahedron->Volume();
+
+            const double x10 = nodesCoordinates[1][0] - nodesCoordinates[0][0];
+            const double y10 = nodesCoordinates[1][1] - nodesCoordinates[0][1];
+            const double z10 = nodesCoordinates[1][2] - nodesCoordinates[0][2];
+            const double x20 = nodesCoordinates[2][0] - nodesCoordinates[0][0];
+            const double y20 = nodesCoordinates[2][1] - nodesCoordinates[0][1];
+            const double z20 = nodesCoordinates[2][2] - nodesCoordinates[0][2];
+            const double x30 = nodesCoordinates[3][0] - nodesCoordinates[0][0];
+            const double y30 = nodesCoordinates[3][1] - nodesCoordinates[0][1];
+            const double z30 = nodesCoordinates[3][2] - nodesCoordinates[0][2];
+
+            const double cross_x = y20 * z30 - z20 * y30;
+            const double cross_y = z20 * x30 - x20 * z30;
+            const double cross_z = x20 * y30 - y20 * x30;
+
+            const double determinant = x10 * cross_x + y10 * cross_y + z10 * cross_z;
+
+            const double Volume = std::abs(determinant) / 6.0;
 
             // a1 slope x for plane on the first triangular face of the tetrahedra (nodes A,B,C)
             // b1 slope y for plane on the first triangular face of the tetrahedra (nodes A,B,C)
@@ -754,14 +760,11 @@ namespace Kratos
             if (std::abs(cosAngle12) > 0.999 || std::abs(cosAngle13) > 0.999 || std::abs(cosAngle14) > 0.999 || std::abs(cosAngle23) > 0.999 || std::abs(cosAngle24) > 0.999 || std::abs(cosAngle34) > 0.999) // if two faces are coplanar, I will erase the element (which is probably a sliver)
             {
                 accepted = false;
-                number_of_slivers++;
             }
             else if (Volume <= CriticalVolume)
             {
                 accepted = false;
-                number_of_slivers++;
             }
-            delete tetrahedron;
             KRATOS_CATCH("")
         }
 
