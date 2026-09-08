@@ -368,10 +368,19 @@ def CreateRomAnalysisInstance(cls, global_model, parameters, nn_rom_interface=No
                 for to_erase_file in files_to_delete_list:
                     remove(to_erase_file)
 
+
             # Call the HROM training utility to append the current step residuals
             # Note that this needs to be done prior to the other processes to avoid unfixing the BCs
             if self.train_hrom:
                 self.__hrom_training_utility.AppendCurrentStepResiduals()
+
+
+            # Fetch residuals before clearing. Done always as its cheap. No
+            for process in self._GetListOfOutputProcesses():
+                if hasattr(process, "CaptureResiduals"):
+                    process.CaptureResiduals()
+
+
 
             # #FIXME: Make this optional. This must be a process
             # # Project the ROM solution onto the visualization modelparts
@@ -397,10 +406,10 @@ def CreateRomAnalysisInstance(cls, global_model, parameters, nn_rom_interface=No
             # This calls the physics Finalize
             super().Finalize()
 
-            # # Once simulation is completed, calculate and save the HROM weights
-            # if self.train_hrom and not self.rom_manager:
-            #     self.__hrom_training_utility.CalculateAndSaveHRomWeights()
-            #     self.__hrom_training_utility.CreateHRomModelParts()
+            # Once simulation is completed, calculate and save the HROM weights
+            if self.train_hrom and not self.rom_manager:
+                self.__hrom_training_utility.CalculateAndSaveHRomWeights()
+                self.__hrom_training_utility.CreateHRomModelParts()
 
             # # Once simulation is completed, calculate and save the Petrov Galerkin ROM basis
             # if self.train_petrov_galerkin and not self.rom_manager:
