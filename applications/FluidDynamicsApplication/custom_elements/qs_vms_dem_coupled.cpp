@@ -375,7 +375,6 @@ void QSVMSDEMCoupled<TElementData>::InitializeNonLinearIteration(const ProcessIn
 
     TElementData data;
     data.Initialize(*this,rCurrentProcessInfo);
-    array_1d<double,NumNodes> nodal_reaction_term = ZeroVector(NumNodes);
     for (unsigned int g = 0; g < number_of_integration_points; g++) {
         this->UpdateIntegrationPointDataSecondDerivatives(data, g, gauss_weights[g],row(shape_functions,g),shape_function_derivatives[g],shape_function_second_derivatives[g]);
         mPorosity[g] = this->GetAtCoordinate(data.FluidFraction,row(shape_functions,g));
@@ -490,7 +489,6 @@ void QSVMSDEMCoupled<TElementData>::MomentumProjTerm(
 
     const auto r_velocities = rData.Velocity;
     const auto r_pressures = rData.Pressure;
-    const auto velocity = this->GetAtCoordinate(rData.Velocity,rData.N);
     Vector grad_div_u, div_sym_grad_u;
 
     for (unsigned int i = 0; i < NumNodes; i++) {
