@@ -21,6 +21,8 @@
 #include "custom_processes/assign_integration_points_to_background_elements_process.h"
 #include "custom_processes/compute_beam_vectors_process.h"
 #include "geometries/nurbs_curve_on_surface_geometry.h"
+#include "custom_processes/assign_iga_external_conditions_process.h"
+
 #include "iga_application_variables.h"
 
 
@@ -58,6 +60,10 @@ void AddCustomProcessesToPython(
         .def(py::init<ModelPart&, const NurbsCurveGeometry<3, PointerVector<Node>>&>())
         .def(py::init<ModelPart&, const NurbsCurveOnSurfaceGeometry<3, PointerVector<Node>, PointerVector<Node>>&>())
         ;
+    py::class_<AssignIgaExternalConditionsProcess, AssignIgaExternalConditionsProcess::Pointer, Process>(m, "AssignIgaExternalConditionsProcess")
+        .def(py::init<Model&, Parameters >())
+        ;
+
 }
 
 } // namespace Python
