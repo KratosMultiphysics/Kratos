@@ -499,7 +499,7 @@ namespace Kratos
                                         const bool numfreesurf,
                                         const double currentTime,
                                         const double deltaTime,
-                                        const SizeType rigidNodeLocalMeshSize,
+                                        const double rigidNodeLocalMeshSize,
                                         const SizeType rigidNodeMeshCounter)
         {
             KRATOS_TRY
@@ -629,9 +629,14 @@ namespace Kratos
 
             const double maxValue = 1.5;
             const double minValue = 1.0 / maxValue;
-            if (normVelocityP[0] / normVelocityP[1] > maxValue || normVelocityP[0] / normVelocityP[1] < minValue ||
-                normVelocityP[0] / normVelocityP[2] > maxValue || normVelocityP[0] / normVelocityP[2] < minValue ||
-                normVelocityP[1] / normVelocityP[2] > maxValue || normVelocityP[1] / normVelocityP[2] < minValue)
+
+            const double ratio01 = normVelocityP[0] / normVelocityP[1];
+            const double ratio02 = normVelocityP[0] / normVelocityP[2];
+            const double ratio12 = normVelocityP[1] / normVelocityP[2];
+
+            if (ratio01 > maxValue || ratio01 < minValue ||
+                ratio02 > maxValue || ratio02 < minValue ||
+                ratio12 > maxValue || ratio12 < minValue)
             {
                 accepted = false;
                 return;
@@ -655,19 +660,29 @@ namespace Kratos
             KRATOS_CATCH("")
         }
 
-        void ControlSkewedElements3D(bool &accepted,
-                                     const std::array<double, 4> &normVelocityP,
-                                     const std::array<array_1d<double, 3>, 4> &nodesVelocities)
+        void
+        ControlSkewedElements3D(bool &accepted,
+                                const std::array<double, 4> &normVelocityP,
+                                const std::array<array_1d<double, 3>, 4> &nodesVelocities)
         {
             KRATOS_TRY
+
             const double maxValue = 2.5;
             const double minValue = 1.0 / maxValue;
-            if (normVelocityP[0] / normVelocityP[1] < minValue || normVelocityP[0] / normVelocityP[2] < minValue || normVelocityP[0] / normVelocityP[3] < minValue ||
-                normVelocityP[0] / normVelocityP[1] > maxValue || normVelocityP[0] / normVelocityP[2] > maxValue || normVelocityP[0] / normVelocityP[3] > maxValue ||
-                normVelocityP[1] / normVelocityP[2] < minValue || normVelocityP[1] / normVelocityP[3] < minValue ||
-                normVelocityP[1] / normVelocityP[2] > maxValue || normVelocityP[1] / normVelocityP[3] > maxValue ||
-                normVelocityP[2] / normVelocityP[3] < minValue ||
-                normVelocityP[2] / normVelocityP[3] > maxValue)
+
+            const double ratio01 = normVelocityP[0] / normVelocityP[1];
+            const double ratio02 = normVelocityP[0] / normVelocityP[2];
+            const double ratio03 = normVelocityP[0] / normVelocityP[3];
+            const double ratio12 = normVelocityP[1] / normVelocityP[2];
+            const double ratio13 = normVelocityP[1] / normVelocityP[3];
+            const double ratio23 = normVelocityP[2] / normVelocityP[3];
+
+            if (ratio01 < minValue || ratio01 > maxValue ||
+                ratio02 < minValue || ratio02 > maxValue ||
+                ratio03 < minValue || ratio03 > maxValue ||
+                ratio12 < minValue || ratio12 > maxValue ||
+                ratio13 < minValue || ratio13 > maxValue ||
+                ratio23 < minValue || ratio23 > maxValue)
             {
                 accepted = false;
                 return;
@@ -724,39 +739,84 @@ namespace Kratos
 
             const double Volume = std::abs(determinant) / 6.0;
 
-            // a1 slope x for plane on the first triangular face of the tetrahedra (nodes A,B,C)
-            // b1 slope y for plane on the first triangular face of the tetrahedra (nodes A,B,C)
-            // c1 slope z for plane on the first triangular face of the tetrahedra (nodes A,B,C)
-            const double a1 = (nodesCoordinates[1][1] - nodesCoordinates[0][1]) * (nodesCoordinates[2][2] - nodesCoordinates[0][2]) - (nodesCoordinates[2][1] - nodesCoordinates[0][1]) * (nodesCoordinates[1][2] - nodesCoordinates[0][2]);
-            const double b1 = (nodesCoordinates[1][2] - nodesCoordinates[0][2]) * (nodesCoordinates[2][0] - nodesCoordinates[0][0]) - (nodesCoordinates[2][2] - nodesCoordinates[0][2]) * (nodesCoordinates[1][0] - nodesCoordinates[0][0]);
-            const double c1 = (nodesCoordinates[1][0] - nodesCoordinates[0][0]) * (nodesCoordinates[2][1] - nodesCoordinates[0][1]) - (nodesCoordinates[2][0] - nodesCoordinates[0][0]) * (nodesCoordinates[1][1] - nodesCoordinates[0][1]);
-            // a2 slope x for plane on the second triangular face of the tetrahedra (nodes A,B,D)
-            // b2 slope y for plane on the second triangular face of the tetrahedra (nodes A,B,D)
-            // c2 slope z for plane on the second triangular face of the tetrahedra (nodes A,B,D)
-            const double a2 = (nodesCoordinates[1][1] - nodesCoordinates[0][1]) * (nodesCoordinates[3][2] - nodesCoordinates[0][2]) - (nodesCoordinates[3][1] - nodesCoordinates[0][1]) * (nodesCoordinates[1][2] - nodesCoordinates[0][2]);
-            const double b2 = (nodesCoordinates[1][2] - nodesCoordinates[0][2]) * (nodesCoordinates[3][0] - nodesCoordinates[0][0]) - (nodesCoordinates[3][2] - nodesCoordinates[0][2]) * (nodesCoordinates[1][0] - nodesCoordinates[0][0]);
-            const double c2 = (nodesCoordinates[1][0] - nodesCoordinates[0][0]) * (nodesCoordinates[3][1] - nodesCoordinates[0][1]) - (nodesCoordinates[3][0] - nodesCoordinates[0][0]) * (nodesCoordinates[1][1] - nodesCoordinates[0][1]);
-            // a3 slope x for plane on the third triangular face of the tetrahedra (nodes B,C,D)
-            // b3 slope y for plane on the third triangular face of the tetrahedra (nodes B,C,D)
-            // c3 slope z for plane on the third triangular face of the tetrahedra (nodes B,C,D)
-            const double a3 = (nodesCoordinates[1][1] - nodesCoordinates[2][1]) * (nodesCoordinates[3][2] - nodesCoordinates[2][2]) - (nodesCoordinates[3][1] - nodesCoordinates[2][1]) * (nodesCoordinates[1][2] - nodesCoordinates[2][2]);
-            const double b3 = (nodesCoordinates[1][2] - nodesCoordinates[2][2]) * (nodesCoordinates[3][0] - nodesCoordinates[2][0]) - (nodesCoordinates[3][2] - nodesCoordinates[2][2]) * (nodesCoordinates[1][0] - nodesCoordinates[2][0]);
-            const double c3 = (nodesCoordinates[1][0] - nodesCoordinates[2][0]) * (nodesCoordinates[3][1] - nodesCoordinates[2][1]) - (nodesCoordinates[3][0] - nodesCoordinates[2][0]) * (nodesCoordinates[1][1] - nodesCoordinates[2][1]);
-            // a4 slope x for plane on the fourth triangular face of the tetrahedra (nodes A,C,D)
-            // b4 slope y for plane on the fourth triangular face of the tetrahedra (nodes A,C,D)
-            // c4 slope z for plane on the fourth triangular face of the tetrahedra (nodes A,C,D)
-            const double a4 = (nodesCoordinates[0][1] - nodesCoordinates[2][1]) * (nodesCoordinates[3][2] - nodesCoordinates[2][2]) - (nodesCoordinates[3][1] - nodesCoordinates[2][1]) * (nodesCoordinates[0][2] - nodesCoordinates[2][2]);
-            const double b4 = (nodesCoordinates[0][2] - nodesCoordinates[2][2]) * (nodesCoordinates[3][0] - nodesCoordinates[2][0]) - (nodesCoordinates[3][2] - nodesCoordinates[2][2]) * (nodesCoordinates[0][0] - nodesCoordinates[2][0]);
-            const double c4 = (nodesCoordinates[0][0] - nodesCoordinates[2][0]) * (nodesCoordinates[3][1] - nodesCoordinates[2][1]) - (nodesCoordinates[3][0] - nodesCoordinates[2][0]) * (nodesCoordinates[0][1] - nodesCoordinates[2][1]);
+            // Face ABC
+            const double a1 = y10 * z20 - y20 * z10;
+            const double b1 = z10 * x20 - z20 * x10;
+            const double c1 = x10 * y20 - x20 * y10;
 
-            const double cosAngle12 = (a1 * a2 + b1 * b2 + c1 * c2) / (std::sqrt(std::pow(a1, 2) + std::pow(b1, 2) + std::pow(c1, 2)) * std::sqrt(std::pow(a2, 2) + std::pow(b2, 2) + std::pow(c2, 2)));
-            const double cosAngle13 = (a1 * a3 + b1 * b3 + c1 * c3) / (std::sqrt(std::pow(a1, 2) + std::pow(b1, 2) + std::pow(c1, 2)) * std::sqrt(std::pow(a3, 2) + std::pow(b3, 2) + std::pow(c3, 2)));
-            const double cosAngle14 = (a1 * a4 + b1 * b4 + c1 * c4) / (std::sqrt(std::pow(a1, 2) + std::pow(b1, 2) + std::pow(c1, 2)) * std::sqrt(std::pow(a4, 2) + std::pow(b4, 2) + std::pow(c4, 2)));
-            const double cosAngle23 = (a3 * a2 + b3 * b2 + c3 * c2) / (std::sqrt(std::pow(a3, 2) + std::pow(b3, 2) + std::pow(c3, 2)) * std::sqrt(std::pow(a2, 2) + std::pow(b2, 2) + std::pow(c2, 2)));
-            const double cosAngle24 = (a4 * a2 + b4 * b2 + c4 * c2) / (std::sqrt(std::pow(a4, 2) + std::pow(b4, 2) + std::pow(c4, 2)) * std::sqrt(std::pow(a2, 2) + std::pow(b2, 2) + std::pow(c2, 2)));
-            const double cosAngle34 = (a4 * a3 + b4 * b3 + c4 * c3) / (std::sqrt(std::pow(a4, 2) + std::pow(b4, 2) + std::pow(c4, 2)) * std::sqrt(std::pow(a3, 2) + std::pow(b3, 2) + std::pow(c3, 2)));
+            // Face ABD
+            const double a2 = y10 * z30 - y30 * z10;
+            const double b2 = z10 * x30 - z30 * x10;
+            const double c2 = x10 * y30 - x30 * y10;
 
-            if (std::abs(cosAngle12) > 0.999 || std::abs(cosAngle13) > 0.999 || std::abs(cosAngle14) > 0.999 || std::abs(cosAngle23) > 0.999 || std::abs(cosAngle24) > 0.999 || std::abs(cosAngle34) > 0.999) // if two faces are coplanar, I will erase the element (which is probably a sliver)
+            // Face BCD
+            const double a3 =
+                (nodesCoordinates[1][1] - nodesCoordinates[2][1]) *
+                    (nodesCoordinates[3][2] - nodesCoordinates[2][2]) -
+                (nodesCoordinates[3][1] - nodesCoordinates[2][1]) *
+                    (nodesCoordinates[1][2] - nodesCoordinates[2][2]);
+
+            const double b3 =
+                (nodesCoordinates[1][2] - nodesCoordinates[2][2]) *
+                    (nodesCoordinates[3][0] - nodesCoordinates[2][0]) -
+                (nodesCoordinates[3][2] - nodesCoordinates[2][2]) *
+                    (nodesCoordinates[1][0] - nodesCoordinates[2][0]);
+
+            const double c3 =
+                (nodesCoordinates[1][0] - nodesCoordinates[2][0]) *
+                    (nodesCoordinates[3][1] - nodesCoordinates[2][1]) -
+                (nodesCoordinates[3][0] - nodesCoordinates[2][0]) *
+                    (nodesCoordinates[1][1] - nodesCoordinates[2][1]);
+
+            // Face ACD
+            const double a4 =
+                (nodesCoordinates[0][1] - nodesCoordinates[2][1]) *
+                    (nodesCoordinates[3][2] - nodesCoordinates[2][2]) -
+                (nodesCoordinates[3][1] - nodesCoordinates[2][1]) *
+                    (nodesCoordinates[0][2] - nodesCoordinates[2][2]);
+
+            const double b4 =
+                (nodesCoordinates[0][2] - nodesCoordinates[2][2]) *
+                    (nodesCoordinates[3][0] - nodesCoordinates[2][0]) -
+                (nodesCoordinates[3][2] - nodesCoordinates[2][2]) *
+                    (nodesCoordinates[0][0] - nodesCoordinates[2][0]);
+
+            const double c4 =
+                (nodesCoordinates[0][0] - nodesCoordinates[2][0]) *
+                    (nodesCoordinates[3][1] - nodesCoordinates[2][1]) -
+                (nodesCoordinates[3][0] - nodesCoordinates[2][0]) *
+                    (nodesCoordinates[0][1] - nodesCoordinates[2][1]);
+
+            // Norms of the four face normals.
+            const double norm1 = std::sqrt(a1 * a1 + b1 * b1 + c1 * c1);
+            const double norm2 = std::sqrt(a2 * a2 + b2 * b2 + c2 * c2);
+            const double norm3 = std::sqrt(a3 * a3 + b3 * b3 + c3 * c3);
+            const double norm4 = std::sqrt(a4 * a4 + b4 * b4 + c4 * c4);
+
+            const double cosAngle12 =
+                (a1 * a2 + b1 * b2 + c1 * c2) / (norm1 * norm2);
+
+            const double cosAngle13 =
+                (a1 * a3 + b1 * b3 + c1 * c3) / (norm1 * norm3);
+
+            const double cosAngle14 =
+                (a1 * a4 + b1 * b4 + c1 * c4) / (norm1 * norm4);
+
+            const double cosAngle23 =
+                (a3 * a2 + b3 * b2 + c3 * c2) / (norm3 * norm2);
+
+            const double cosAngle24 =
+                (a4 * a2 + b4 * b2 + c4 * c2) / (norm4 * norm2);
+
+            const double cosAngle34 =
+                (a4 * a3 + b4 * b3 + c4 * c3) / (norm4 * norm3);
+
+            if (std::abs(cosAngle12) > 0.999 ||
+                std::abs(cosAngle13) > 0.999 ||
+                std::abs(cosAngle14) > 0.999 ||
+                std::abs(cosAngle23) > 0.999 ||
+                std::abs(cosAngle24) > 0.999 ||
+                std::abs(cosAngle34) > 0.999)
             {
                 accepted = false;
             }
@@ -764,6 +824,7 @@ namespace Kratos
             {
                 accepted = false;
             }
+
             KRATOS_CATCH("")
         }
 
