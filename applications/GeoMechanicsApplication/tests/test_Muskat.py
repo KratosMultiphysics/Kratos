@@ -1,22 +1,21 @@
 import csv
-import os
 import math
+import os
 
+import KratosGeoUnittest
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import test_helper
-import KratosGeoUnittest
 
 if test_helper.want_test_plots():
     import KratosMultiphysics.GeoMechanicsApplication.geo_plot_utilities as plot_utils
 
 from dataclasses import dataclass
+from typing import Union
 
-from KratosMultiphysics.GeoMechanicsApplication.gid_output_file_reader import (
-    GiDOutputFileReader,
-)
-from KratosMultiphysics.GeoMechanicsApplication.unit_conversions import (
-    fraction_to_percentage,
-)
+from KratosMultiphysics.GeoMechanicsApplication.gid_output_file_reader import \
+    GiDOutputFileReader
+from KratosMultiphysics.GeoMechanicsApplication.unit_conversions import \
+    fraction_to_percentage
 
 
 class KratosGeoMechanicsMuskatTests(KratosGeoUnittest.TestCase):
@@ -148,7 +147,7 @@ class KratosGeoMechanicsMuskatTests(KratosGeoUnittest.TestCase):
             y_coord_by_id_for_right_boundary_nodes.keys(),
         )
         flux_length = [
-            math.sqrt(flux[0] ** 2 + flux[1] ** 2 + flux[2]**2) * 86400
+            math.sqrt(flux[0] ** 2 + flux[1] ** 2 + flux[2] ** 2) * 86400
             for flux in fluxes
         ]
         sorted_depth, sorted_data = zip(
@@ -253,7 +252,7 @@ class KratosGeoMechanicsMuskatTests(KratosGeoUnittest.TestCase):
     @dataclass
     class ExpectedResult:
         node_id: int
-        value: float | list[float]
+        value: Union[float, list[float]]
 
     def test_muskat_van_genuchten_hydrostatic(self):
 
