@@ -264,6 +264,9 @@ void KratosGeoMechanicsApplication::Register()
     KRATOS_REGISTER_CONDITION("PwPointFluxCondition2D1N", mPwPointFluxCondition2D1N)
     KRATOS_REGISTER_CONDITION("PwPointFluxCondition3D1N", mPwPointFluxCondition3D1N)
 
+    KRATOS_REGISTER_CONDITION("GeoSeepageCondition2D2N", mGeoSeepageCondition2D2N)
+    KRATOS_REGISTER_CONDITION("GeoSeepageCondition2D3N", mGeoSeepageCondition2D3N)
+
     KRATOS_REGISTER_CONDITION("UPwFaceLoadInterfaceCondition2D2N", mUPwFaceLoadInterfaceCondition2D2N)
     KRATOS_REGISTER_CONDITION("UPwFaceLoadInterfaceCondition3D4N", mUPwFaceLoadInterfaceCondition3D4N)
     KRATOS_REGISTER_CONDITION("UPwNormalFluxInterfaceCondition2D2N", mUPwNormalFluxInterfaceCondition2D2N)
@@ -381,6 +384,7 @@ void KratosGeoMechanicsApplication::Register()
     KRATOS_REGISTER_VARIABLE(HYDRAULIC_HEAD)
 
     KRATOS_REGISTER_VARIABLE(HYDRAULIC_DISCHARGE)
+    KRATOS_REGISTER_VARIABLE(NODAL_WATER_FLOW)
 
     KRATOS_REGISTER_VARIABLE(DENSITY_SOLID)
     KRATOS_REGISTER_VARIABLE(BULK_MODULUS_SOLID)
