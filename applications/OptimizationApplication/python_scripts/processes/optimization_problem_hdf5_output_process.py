@@ -81,4 +81,4 @@ class OptimizationProblemHDF5OutputProcess(OptimizationProblemFieldOutputProcess
         )
 
     def _CreateTensorAdaptorOutput(self, tensor_adaptor_data: TensorAdaptorData) -> TensorAdaptorOutput:
-        return TensorAdaptorHDF5Output(self._GetModelPart(tensor_adaptor_data.GetContainer()), self.parameters.Clone(), self.optimization_problem)
+        return TensorAdaptorHDF5Output(Kratos.ModelPartUtils.GetModelPart(self.model, tensor_adaptor_data.GetContainer()), self.parameters.Clone(), self.optimization_problem)
