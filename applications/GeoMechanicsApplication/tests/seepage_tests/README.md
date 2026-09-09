@@ -20,6 +20,8 @@ For the material properties, the following table lists the adopted values.
 | Dynamic viscosity $`\mu`$                    | $`1.0 \times 10^{-3}\ \mathrm{Pa \cdot s}`$ |
 | Unit weight of water $`\gamma_{\mathrm{w}}`$ | $`1.0 \times 10^4\ \mathrm{N/m^3}`$         |
 
+Note that $`\gamma_{\mathrm{w}}`$ equals $`\rho_{\mathrm{w}} \cdot g`$, where $`\rho_{\mathrm{w}}`$ is water density and $`g`$ is gravity acceleration.
+
 To check the numerical solutions, we can calculate the volumetric flow rate $`Q`$ through a porous medium using Darcy's law:
 
 ```math
@@ -38,7 +40,7 @@ This test case asserts the following at the seepage boundary:
 At the bottom, the water in-flow per node is asserted to be equal to the negated water out-flow per top node, i.e. $`Q = -1.18 \times 10^{-6}\ \mathrm{m^3/s}`$.  Since the water pressure at the bottom is prescribed, those values are not asserted.
 
 ### Test case 2: Prescribed underpressure at the bottom
-In this test case, the water pressure at the bottom of the domain is fixed at $`20\ \mathrm{kPa}`$, which is **smaller than** the hydrostatic pressure of the initial field (which equals $`30\ \mathrm{kPa}`$ at the bottom).  Consequently, the seepage boundary will prevent in-flow.
+In this test case, the water pressure at the bottom of the domain is fixed at $`20\ \mathrm{kPa}`$, which is **smaller than** the hydrostatic pressure of the initial field (which equals $`30\ \mathrm{kPa}`$ at the bottom).  Consequently, the seepage boundary will prevent any groundwater flow.
 
 This test case asserts the following at the seepage boundary:
 - The nodal water flow equals $`0\ \mathrm{m^3/s}`$.
