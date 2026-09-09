@@ -204,10 +204,6 @@ namespace Kratos
                         {
                             ++previouslyIsolatedNodes;
                         }
-                        if (rNode.Is(BOUNDARY))
-                        {
-                            ++numboundary;
-                        }
                         if (rNode.GetValue(NO_MESH))
                         {
                             noremesh = true;
@@ -221,41 +217,28 @@ namespace Kratos
                                 rigidNodeMeshCounter += 1.0;
                             }
 
-                            numrigid++;
-
+                            ++numrigid;
                             NodeWeakPtrVectorType &rN = rNode.GetValue(NEIGHBOUR_NODES);
-                            bool localIsolatedWallNode = true;
-                            for (SizeType i = 0; i < rN.size(); i++)
-                            {
-                                if (rN[i].IsNot(RIGID))
-                                {
-                                    localIsolatedWallNode = false;
-                                }
-                            }
-                            if (localIsolatedWallNode == true)
-                            {
-                                countIsolatedWallNodes++;
-                            }
                         }
 
                         if (rNode.IsNot(RIGID) && rNode.Is(BOUNDARY))
                         {
-                            numfreesurf++;
+                            ++numfreesurf;
                             const array_1d<double, 3> &velocityP0 = rNode.FastGetSolutionStepValue(VELOCITY, 0);
                             normVelocityP[pn] = norm_2(velocityP0);
                             nodesVelocities[pn] = velocityP0;
-                            checkedNodes++;
+                            ++checkedNodes;
                         }
                         else if (rNode.Is(ISOLATED))
                         {
                             const array_1d<double, 3> &velocityP0 = rNode.FastGetSolutionStepValue(VELOCITY, 0);
                             normVelocityP[pn] = norm_2(velocityP0);
                             nodesVelocities[pn] = velocityP0;
-                            checkedNodes++;
+                            ++checkedNodes;
                         }
                         if (rNode.Is(INLET))
                         {
-                            numInletNodes++;
+                            ++numInletNodes;
                         }
 
                         if (refiningBox == true && rNode.IsNot(RIGID))
@@ -298,12 +281,12 @@ namespace Kratos
 
                     accepted = MesherUtils.AlphaShape(Alpha, vertices, dimension, meanMeshSize);
 
-                    if (numrigid == nds || noremesh == true)
+                    if (numrigid == nds || noremesh)
                     {
                         accepted = false;
                     }
 
-                    if (accepted == true && (numfreesurf == nds || sumIsolatedFreeSurf == nds || sumPreviouslyIsolatedFreeSurf == nds))
+                    if (accepted && (numfreesurf == nds || sumIsolatedFreeSurf == nds || sumPreviouslyIsolatedFreeSurf == nds))
                     {
                         if (dimension == 2)
                         {
@@ -716,7 +699,7 @@ namespace Kratos
         }
 
         void ControlSliverElements(bool &accepted,
-                                   const std::array<array_1d<double, 3>, 4> nodesCoordinates,
+                                   const std::array<array_1d<double, 3>, 4> &nodesCoordinates,
                                    const double CriticalVolume)
         {
             KRATOS_TRY
