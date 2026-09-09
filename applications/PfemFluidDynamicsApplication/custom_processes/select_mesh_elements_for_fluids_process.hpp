@@ -160,12 +160,10 @@ namespace Kratos
                     std::array<array_1d<double, 3>, 4> nodesVelocities;
                     std::array<array_1d<double, 3>, 4> nodesCoordinates;
                     SizeType numfreesurf = 0;
-                    SizeType numboundary = 0;
                     SizeType numrigid = 0;
                     SizeType numInletNodes = 0;
                     SizeType numisolated = 0;
                     SizeType checkedNodes = 0;
-                    SizeType countIsolatedWallNodes = 0;
                     SizeType previouslyFreeSurfaceNodes = 0;
                     SizeType previouslyIsolatedNodes = 0;
                     SizeType sumPreviouslyIsolatedFreeSurf = 0;
