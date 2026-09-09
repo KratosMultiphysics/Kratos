@@ -9,24 +9,20 @@ def Factory(settings, model):
     return RomResidualsOutputProcess(model, settings["Parameters"])
 
 class RomResidualsOutputProcess(KratosMultiphysics.OutputProcess):
-    """Outputs HROM projected residuals directly using the RomResidualsUtility."""
-
     def __init__(self, model, settings):
         super().__init__()
         settings.ValidateAndAssignDefaults(self.GetDefaultParameters())
         self.settings = settings
         self.model_part = model[settings["model_part_name"].GetString()]
-
         self.output_path = Path(self.settings["output_path"].GetString())
         self.output_path.mkdir(parents=True, exist_ok=True)
-
         controller_settings = KratosMultiphysics.Parameters("""{}""")
         controller_settings.AddString("model_part_name", self.model_part.FullName())
         controller_settings.AddValue("output_control_type", settings["output_control_type"])
         controller_settings.AddValue("output_interval", settings["output_interval"])
         self.controller = KratosMultiphysics.OutputController(self.model_part.GetModel(), controller_settings)
-
         self.solver = None
+
 
     @classmethod
     def GetDefaultParameters(cls):
@@ -36,10 +32,9 @@ class RomResidualsOutputProcess(KratosMultiphysics.OutputProcess):
             "output_interval": 1,
             "output_path": "rom_data/Residuals",
             "sub_solver_name": "",
-            "rom_basis_output_name": "RomParameters",
-            "rom_basis_output_folder": "rom_data",
-            "range_of_elements_to_export": [0, -1]
+            "range_of_entities_to_fetch_residual_projected": ["0","end"]
         }""")
+
 
     def SetDependencies(self, main_solver, rom_parameters):
         """Inject the Python solver object and extract required projection settings."""
@@ -70,7 +65,6 @@ class RomResidualsOutputProcess(KratosMultiphysics.OutputProcess):
         return jacobian_scipy_format @ right_rom_basis
 
     def _GetCurrentResidualsProjected(self):
-        """Calculates the projected residuals using the C++ RomResidualsUtility."""
         computing_model_part = self.solver.GetComputingModelPart()
 
         if not hasattr(self, '__rom_residuals_utility'):
@@ -96,8 +90,6 @@ class RomResidualsOutputProcess(KratosMultiphysics.OutputProcess):
 
 
     def CaptureResiduals(self):
-        """Called manually by RomAnalysis before the solver clears the database."""
-        # Only perform the heavy matrix math if we are actually going to output this step
         if self.IsOutputStep():
             self._buffered_res_mat = self._GetCurrentResidualsProjected()
 
@@ -106,26 +98,28 @@ class RomResidualsOutputProcess(KratosMultiphysics.OutputProcess):
         if self.solver is None:
             return
 
-        if hasattr(self, "_buffered_res_mat") and self._buffered_res_mat is not None:
-            # 1. Slice based on JSON settings
-            export_range = self.settings["range_of_elements_to_export"].GetVector()
-            start = int(export_range[0])
-            end = int(export_range[1]) if int(export_range[1]) >= 0 else None
-            sliced_res_mat = self._buffered_res_mat[start:end, :]
+        res_mat = self._GetCurrentResidualsProjected()
 
-            # 2. Label formatting
-            if self.settings["output_control_type"].GetString() == "time":
-                time = self.model_part.ProcessInfo[KratosMultiphysics.TIME]
-                file_label = f"{time:.7f}"
-            else:
-                step = self.model_part.ProcessInfo[KratosMultiphysics.STEP]
-                file_label = f"{step}"
+        entities_range = self.settings["range_of_entities_to_fetch_residual_projected"].GetStringArray()
 
-            # 3. Perform I/O
-            file_path = self.output_path / f"Residual_{file_label}.npy"
-            np.save(file_path, sliced_res_mat)
+        start = int(entities_range[0])
+        end_string = entities_range[1].strip().lower()
 
-            # 4. Clear the memory buffer immediately
-            self._buffered_res_mat = None
+        if end_string in ["end", "all"]:
+            end = None
+        else:
+            end = int(end_string)
+
+        sliced_res_mat = res_mat[start:end, :]
+
+        if self.settings["output_control_type"].GetString() == "time":
+            time = self.model_part.ProcessInfo[KratosMultiphysics.TIME]
+            file_label = f"{time:.7f}"
+        else:
+            step = self.model_part.ProcessInfo[KratosMultiphysics.STEP]
+            file_label = f"{step}"
+
+        file_path = self.output_path / f"Residual_{file_label}.npy"
+        np.save(file_path, sliced_res_mat)
 
         self.controller.Update()
