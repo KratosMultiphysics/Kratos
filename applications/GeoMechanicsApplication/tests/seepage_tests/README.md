@@ -2,14 +2,23 @@
 This directory contains several tests related to seepage.
 
 ## Common setup
-For each test case, the domain consists of a column of three linear steady-state Pw elements.  Each element is quadrilateral in shape and has dimensions of $`1\ {\mathrm{m}} \times 1\ {\mathrm{m}}`$.  At the top of the domain, a seepage boundary condition is applied.  At the left and right sides of the domain, no explicit boundary conditions are applied, which means that groundwater cannot freely flow out (or in).  Per test case, the applied boundary condition at the bottom of the domain varies.  For the water pressure, an initial field is applied that corresponds to a hydrostatic pressure with the phreatic surface located at the top of the domain.
+For each test case, the domain consists of a column of three linear steady-state Pw elements.  Each element is quadrilateral in shape and has dimensions of $`1\ {\mathrm{m}} \times 1\ {\mathrm{m}}`$.  At the top of the domain, a seepage boundary condition is applied.  At the left and right sides of the domain, no explicit boundary conditions are applied, which means that groundwater cannot freely flow out (or in).  Per test case, the applied boundary condition at the bottom of the domain varies.  The first two test cases apply a fixed water pressure at the bottom, as shown below.
+
+![Seepage test setup with a fixed water pressure at the bottom](model_with_fixed_pressure.svg)
+
+The third test case applies a fixed water in-flux at the bottom as shown below.
+
+![Seepage test setup with a fixed in-flux at the bottom](model_with_fixed_flux.svg)
+
+For the water pressure, an initial field is applied that corresponds to a hydrostatic pressure with the phreatic surface located at the top of the domain.
 
 For the material properties, the following table lists the adopted values.
 
-| Property                          | Value                                       |
-|-----------------------------------|---------------------------------------------|
-| Intrinsic permeability $`\kappa`$ | $`7.08 \times 10^{-13}\ \mathrm{m^2}`$      |
-| Dynamic viscosity $`\mu`$         | $`1.0 \times 10^{-3}\ \mathrm{Pa \cdot s}`$ |
+| Property                                     | Value                                       |
+|----------------------------------------------|---------------------------------------------|
+| Intrinsic permeability $`\kappa`$            | $`7.08 \times 10^{-13}\ \mathrm{m^2}`$      |
+| Dynamic viscosity $`\mu`$                    | $`1.0 \times 10^{-3}\ \mathrm{Pa \cdot s}`$ |
+| Unit weight of water $`\gamma_{\mathrm{w}}`$ | $`1.0 \times 10^4\ \mathrm{N/m^3}`$         |
 
 To check the numerical solutions, we can calculate the volumetric flow rate $`Q`$ through a porous medium using Darcy's law:
 
