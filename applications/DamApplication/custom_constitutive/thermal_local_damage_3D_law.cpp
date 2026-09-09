@@ -33,12 +33,6 @@ ThermalLocalDamage3DLaw::~ThermalLocalDamage3DLaw() {}
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-int ThermalLocalDamage3DLaw::Check(const Properties& rMaterialProperties, const GeometryType& rElementGeometry, const ProcessInfo& rCurrentProcessInfo) const
-{
-    int ierr = LocalDamage3DLaw::Check(rMaterialProperties, rElementGeometry, rCurrentProcessInfo);
-
-    return ierr;
-}
 
 //----------------------------------------------------------------------------------------
 

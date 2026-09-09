@@ -10,22 +10,42 @@
 
 // Project includes
 #include "includes/serializer.h"
-#include "custom_constitutive/continuum_laws/linear_elastic_3D_law.hpp"
+
+// ConstitutiveLawsApplication standard thermal elastic 3D law (base).
+#include "custom_constitutive/thermal/small_strains/elastic/thermal_elastic_isotropic_3d.h"
 
 #include "dam_application_variables.h"
 
 namespace Kratos
 {
 
-class KRATOS_API(DAM_APPLICATION) ThermalLinearElastic3DLaw : public LinearElastic3DLaw
+/**
+ * @brief Thin Dam compatibility adapter over ConstitutiveLawsApplication
+ *        ThermalElasticIsotropic3D.
+ *
+ * The generic small-strain thermoelastic kernel (constitutive matrix, stress,
+ * thermal strain, material response for every stress measure, stateless
+ * lifecycle) is inherited from the ConstitutiveLawsApplication law. This class
+ * only retains the Dam-specific behavior:
+ *   - the spatial reference temperature read from the interpolated
+ *     NODAL_REFERENCE_TEMPERATURE (shape-function evaluation) instead of the
+ *     generic scalar REFERENCE_TEMPERATURE;
+ *   - the historical Dam material coefficient THERMAL_EXPANSION;
+ *   - the specialized Dam thermo-mechanical outputs resolved through the
+ *     parameter-aware CalculateValue path (Has() == false).
+ */
+class KRATOS_API(DAM_APPLICATION) ThermalLinearElastic3DLaw : public ThermalElasticIsotropic3D
 {
 
 public:
 
+    /// The ConstitutiveLawsApplication base law.
+    using BaseType = ThermalElasticIsotropic3D;
+
     KRATOS_CLASS_POINTER_DEFINITION(ThermalLinearElastic3DLaw);
 
-    // Bring base-class overloads of CalculateValue into scope to avoid hiding warnings
-    using LinearElastic3DLaw::CalculateValue;
+    // Bring base-class overloads of CalculateValue into scope to avoid hiding warnings.
+    using BaseType::CalculateValue;
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -36,7 +56,7 @@ public:
     ThermalLinearElastic3DLaw (const ThermalLinearElastic3DLaw& rOther);
 
     // Destructor
-    virtual ~ThermalLinearElastic3DLaw();
+    ~ThermalLinearElastic3DLaw() override;
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -45,40 +65,29 @@ public:
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     /**
-     * Computes the material response:
-     * PK2 stresses and algorithmic ConstitutiveMatrix
-     * @param rValues
-     * @see   Parameters
+     * @brief Dam thermal-strain subtraction for the inherited response kernel.
+     * @details The generic ConstitutiveLawsApplication response applies the
+     * thermal strain using the scalar REFERENCE_TEMPERATURE and
+     * THERMAL_EXPANSION_COEFFICIENT. Dam uses instead the shape-function
+     * interpolated NODAL_REFERENCE_TEMPERATURE and the historical
+     * THERMAL_EXPANSION coefficient. Only this Dam-specific thermal strain is
+     * overridden; the inherited C/stress/response machinery is reused.
      */
-    void CalculateMaterialResponsePK2 (Parameters & rValues) override;
+    void SubstractThermalStrain(
+        ConstitutiveLaw::StrainVectorType& rStrainVector,
+        const double ReferenceTemperature,
+        ConstitutiveLaw::Parameters& rValues,
+        const bool IsPlaneStrain = false) override;
 
     /**
-     * Computes the material response:
-     * Kirchhoff stresses and algorithmic ConstitutiveMatrix
-     * @param rValues
-     * @see   Parameters
+     * @brief Performs the checks of the law with the Dam material contract
+     * (TEMPERATURE available, THERMAL_EXPANSION set), in addition to the
+     * standard elastic material checks.
      */
-    void CalculateMaterialResponseKirchhoff (Parameters & rValues) override;
-
-    /**
-     * Computes the material response:
-     * Cauchy stresses and algorithmic ConstitutiveMatrix
-     * @param rValues
-     * @see   Parameters
-     */
-    void CalculateMaterialResponseCauchy (Parameters & rValues) override;
-
-    /**
-     * This law has no evolving internal state, so the material-response
-     * initialization and finalization callbacks are not required.
-     */
-    bool RequiresInitializeMaterialResponse() override;
-
-    /**
-     * This law has no evolving internal state, so the material-response
-     * initialization and finalization callbacks are not required.
-     */
-    bool RequiresFinalizeMaterialResponse() override;
+    int Check(
+        const Properties& rMaterialProperties,
+        const GeometryType& rElementGeometry,
+        const ProcessInfo& rCurrentProcessInfo) const override;
 
     /**
      * Computes the specialized thermo-mechanical vector outputs from the current
@@ -88,17 +97,15 @@ public:
      *   MECHANICAL_STRESS_VECTOR = C * epsilon
      * so that the total constitutive stress satisfies
      *   stress = MECHANICAL_STRESS_VECTOR - THERMAL_STRESS_VECTOR.
-     * The output is read-only with respect to the constitutive state.
+     * The output is read-only with respect to the constitutive state. The
+     * constitutive matrix is reused from the inherited CLA law.
      */
     Vector& CalculateValue(Parameters& rParameterValues, const Variable<Vector>& rThisVariable, Vector& rValue) override;
 
     /**
      * Computes the specialized thermo-mechanical tensor outputs
      * (THERMAL_STRAIN_TENSOR, THERMAL_STRESS_TENSOR, MECHANICAL_STRESS_TENSOR)
-     * as the tensor representations of the corresponding vector outputs,
-     * obtained by reusing CalculateValue(const Variable<Vector>&, ...) and the
-     * standard MathUtils Voigt-to-tensor conversions. The output is read-only
-     * with respect to the constitutive state.
+     * as the tensor representations of the corresponding vector outputs.
      */
     Matrix& CalculateValue(Parameters& rParameterValues, const Variable<Matrix>& rThisVariable, Matrix& rValue) override;
 
@@ -106,24 +113,12 @@ public:
 
 protected:
 
-    // Member Variables
-
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
     /**
-     * Common infinitesimal thermo-elastic response shared by the PK2, Kirchhoff
-     * and Cauchy stress measures:
-     *     epsilon_th = alpha * (T - T_ref) * [1,1,1,0,0,0]
-     *     stress     = C * (epsilon - epsilon_th)
-     * @param rValues
+     * @brief Dam thermal strain (3D): epsilon_th = alpha*(T - T_ref)*[1,1,1,0,0,0]
+     * with alpha = THERMAL_EXPANSION and T_ref from the shape-function
+     * interpolated NODAL_REFERENCE_TEMPERATURE.
      */
-    void CalculateThermoElasticResponse(Parameters& rValues);
-
-    double& CalculateDomainTemperature ( const MaterialResponseVariables & rElasticVariables, double & rTemperature) override;
-    
-    double& CalculateNodalReferenceTemperature ( const MaterialResponseVariables & rElasticVariables, double & rNodalReferenceTemperature);
-
-    virtual void CalculateThermalStrain( Vector& rThermalStrainVector, const MaterialResponseVariables & rElasticVariables, double & rTemperature, double & rNodalReferenceTemperature);
+    void CalculateDamThermalStrain(Vector& rThermalStrain, Parameters& rValues) const;
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -135,14 +130,16 @@ private:
 
     void save(Serializer& rSerializer) const override
     {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, LinearElastic3DLaw )
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, BaseType )
     }
 
     void load(Serializer& rSerializer) override
     {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, LinearElastic3DLaw )
+        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, BaseType )
     }
 
-}; // Class ThermalLinearElastic3DLaw
-}  // namespace Kratos.
-#endif // KRATOS_THERMAL_LINEAR_ELASTIC_3D_LAW_H_INCLUDED  defined
+};
+
+} // namespace Kratos
+
+#endif // KRATOS_THERMAL_LINEAR_ELASTIC_3D_LAW_H_INCLUDED defined

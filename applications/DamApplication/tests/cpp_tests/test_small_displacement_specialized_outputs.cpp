@@ -438,7 +438,14 @@ void VerifyNodalLinear(
     if (rPlaneFactor > 1.0) { e_th[0] *= rPlaneFactor; e_th[1] *= rPlaneFactor; }
 
     const ProcessInfo& r_pi = r_mp.GetProcessInfo();
-    const Vector r_epsilon_total = ElementTotalStrain(*p_elem, r_pi);
+    // The SmallDisplacement element (with UseElementProvidedStrain == false)
+    // evaluates the constitutive response on the infinitesimal strain derived
+    // from the applied displacement field; that is the strain the specialized
+    // outputs must be consistent with. ElementTotalStrain (Green-Lagrange) is
+    // intentionally not used here: the legacy Poro shell left a Green-Lagrange
+    // residue in the response parameters that no longer exists with the
+    // standard small-strain kernel (intentional bug fix).
+    const Vector r_epsilon_total = UniaxialTotalStrain(is_3d, eps);
     const Vector thermal_strain = ElementVectorOutput(*p_elem, THERMAL_STRAIN_VECTOR, r_pi);
     const Vector thermal_stress = ElementVectorOutput(*p_elem, THERMAL_STRESS_VECTOR, r_pi);
     const Vector mechanical_stress = ElementVectorOutput(*p_elem, MECHANICAL_STRESS_VECTOR, r_pi);

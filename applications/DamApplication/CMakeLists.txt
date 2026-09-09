@@ -5,6 +5,7 @@ message("**** configuring KratosDamApplication ****")
 kratos_add_dependency(${KRATOS_SOURCE_DIR}/applications/ConvectionDiffusionApplication)
 kratos_add_dependency(${KRATOS_SOURCE_DIR}/applications/PoromechanicsApplication)
 kratos_add_dependency(${KRATOS_SOURCE_DIR}/applications/StructuralMechanicsApplication)
+kratos_add_dependency(${KRATOS_SOURCE_DIR}/applications/ConstitutiveLawsApplication)
 
 ################### PYBIND11
 include(pybind11Tools)
@@ -13,6 +14,7 @@ include_directories( ${KRATOS_SOURCE_DIR}/kratos )
 include_directories( ${KRATOS_SOURCE_DIR}/applications/StructuralMechanicsApplication )
 include_directories( ${KRATOS_SOURCE_DIR}/applications/PoromechanicsApplication )
 include_directories( ${KRATOS_SOURCE_DIR}/applications/DamApplication )
+include_directories( ${KRATOS_SOURCE_DIR}/applications/ConstitutiveLawsApplication )
 
 ## Define application core sources (pure C++ parts)
 set( KRATOS_DAM_APPLICATION_CORE_SOURCES
@@ -86,7 +88,7 @@ if(${USE_DAM_MPI} MATCHES ON)
 
     ## DamApplication core library (C++ parts)
     add_library(KratosDamCore SHARED ${KRATOS_DAM_APPLICATION_CORE_SOURCES})
-    target_link_libraries(KratosDamCore PUBLIC KratosCore KratosTrilinosApplication KratosStructuralMechanicsCore KratosPoromechanicsCore)
+    target_link_libraries(KratosDamCore PUBLIC KratosCore KratosTrilinosApplication KratosStructuralMechanicsCore KratosPoromechanicsCore KratosConstitutiveLawsCore)
 
 else()
 
@@ -102,7 +104,7 @@ else()
 
     ## DamApplication core library (C++ parts)
     add_library(KratosDamCore SHARED ${KRATOS_DAM_APPLICATION_CORE_SOURCES})
-    target_link_libraries(KratosDamCore PUBLIC KratosCore KratosStructuralMechanicsCore KratosPoromechanicsCore)
+    target_link_libraries(KratosDamCore PUBLIC KratosCore KratosStructuralMechanicsCore KratosPoromechanicsCore KratosConstitutiveLawsCore)
 
 endif()
 
@@ -112,7 +114,7 @@ endif()
 ###############################################################################
 ## DamApplication core library (C++ parts)
 #add_library(KratosDamCore SHARED ${KRATOS_DAM_APPLICATION_CORE_SOURCES})
-#target_link_libraries(KratosDamCore PRIVATE KratosCore KratosStructuralMechanicsCore KratosPoromechanicsCore)
+#target_link_libraries(KratosDamCore PRIVATE KratosCore KratosStructuralMechanicsCore KratosPoromechanicsCore KratosConstitutiveLawsCore)
 set_target_properties(KratosDamCore PROPERTIES COMPILE_DEFINITIONS "DAM_APPLICATION=EXPORT,API")
 
 ## DamApplication python module
