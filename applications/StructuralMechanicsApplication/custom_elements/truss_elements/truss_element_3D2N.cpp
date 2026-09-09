@@ -457,7 +457,6 @@ void TrussElement3D2N::CalculateOnIntegrationPoints(
     if ((rVariable == CAUCHY_STRESS_VECTOR) || (rVariable == PK2_STRESS_VECTOR)) {
 
         array_1d<double, 3 > truss_stresses;
-        array_1d<double, msDimension> temp_internal_stresses = ZeroVector(msDimension);
 
         double prestress = 0.00;
         if (GetProperties().Has(TRUSS_PRESTRESS_PK2)) {
