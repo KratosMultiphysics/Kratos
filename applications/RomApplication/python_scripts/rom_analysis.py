@@ -368,19 +368,15 @@ def CreateRomAnalysisInstance(cls, global_model, parameters, nn_rom_interface=No
                 for to_erase_file in files_to_delete_list:
                     remove(to_erase_file)
 
-
             # Call the HROM training utility to append the current step residuals
             # Note that this needs to be done prior to the other processes to avoid unfixing the BCs
             if self.train_hrom:
                 self.__hrom_training_utility.AppendCurrentStepResiduals()
 
-
-            # Fetch residuals before clearing. Done always as its cheap. No
+            # If the residuals process is present, fetch residuals before clearing.
             for process in self._GetListOfOutputProcesses():
                 if hasattr(process, "CaptureResiduals"):
                     process.CaptureResiduals()
-
-
 
             # #FIXME: Make this optional. This must be a process
             # # Project the ROM solution onto the visualization modelparts
