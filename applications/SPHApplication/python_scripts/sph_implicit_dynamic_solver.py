@@ -48,10 +48,6 @@ class ImplicitSPHSolver(SPHSolver):
         if process_info[KratosMultiphysics.STEP] == 1 and process_info[StructuralMechanicsApplication.RESET_EQUATION_IDS]:
             # Resetting the global equations ids
             self._GetBuilderAndSolver().SetUpSystem(self.GetComputingModelPart())
-    
-    def FinalizeSolutionStep(self):
-        super().FinalizeSolutionStep()
-        self.ExposeSystemMatrix()
 
     def _CreateScheme(self):
         scheme_type = self.settings["scheme_type"].GetString()
@@ -76,27 +72,3 @@ class ImplicitSPHSolver(SPHSolver):
             err_msg += "Available options are: \"newmark\", \"bossak\", \"pseudo_static\", \"backward_euler\", \"bdf1\", \"bdf2\", \"bdf3\", \"bdf4\", \"bdf5\", \"relaxation\""
             raise Exception(err_msg)
         return sph_scheme
-    
-    ## DEBUG METHODS
-    
-    def ExposeSystemMatrix(self):
-        A = self._GetSolutionStrategy().GetSystemMatrix() 
-        vec = self._GetSolutionStrategy().GetSystemVector() 
-        sol = self._GetSolutionStrategy().GetSolutionVector()
-
-        n = A.Size1()
-        m = A.Size2()
-        B = np.zeros((n,m))
-        vec1 = np.zeros(n)
-        sol1 = np.zeros(n)
-
-        for i in range(n):
-            vec1[i] = vec[i]
-            sol1[i] = sol[i]
-            for j in range(m):
-                B[i ,j] = A[i, j]
-        
-        self.system_matrix = A
-        self.right_hand_side = vec
-        self.solution = sol
-

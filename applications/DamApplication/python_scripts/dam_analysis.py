@@ -77,7 +77,6 @@ class DamAnalysis(AnalysisStage):
         self.add_temperature = self.project_parameters["transfer_results_process"]["add_temperature"].GetBool()
         self.add_reference_temperature = self.project_parameters["transfer_results_process"]["add_reference_temperature"].GetBool()
 
-
         # Time Units Converter
         if(self.time_scale=="Weeks"):               # Factor to pass from weeks to seconds
             self.time_unit_converter = 604800.0

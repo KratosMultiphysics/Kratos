@@ -138,55 +138,59 @@ class MechanicalSolver(PythonSolver):
 
     def AddVariables(self):
         # this can safely be called also for restarts, it is internally checked if the variables exist already
-        # Add displacements.
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION)
+        MechanicalSolver.AddVariablesToModelPart(self.main_model_part, self.settings)
+        KratosMultiphysics.Logger.PrintInfo("::[MechanicalSolver]:: ", "Variables ADDED")
+
+    @staticmethod
+    def AddVariablesToModelPart(main_model_part, settings):
+        main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
+        main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION)
         # Add specific variables for the problem conditions.
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.POSITIVE_FACE_PRESSURE)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NEGATIVE_FACE_PRESSURE)
-        self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.POINT_LOAD)
-        self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.LINE_LOAD)
-        self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.SURFACE_LOAD)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VOLUME_ACCELERATION)
-        if self.settings["rotation_dofs"].GetBool():
+        main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.POSITIVE_FACE_PRESSURE)
+        main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NEGATIVE_FACE_PRESSURE)
+        main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.POINT_LOAD)
+        main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.LINE_LOAD)
+        main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.SURFACE_LOAD)
+        main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VOLUME_ACCELERATION)
+        if settings["rotation_dofs"].GetBool():
             # Add specific variables for the problem (rotation dofs).
-            self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ROTATION)
-            self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION_MOMENT)
-            self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.POINT_MOMENT)
-        if self.settings["volumetric_strain_dofs"].GetBool():
+            main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ROTATION)
+            main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION_MOMENT)
+            main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.POINT_MOMENT)
+        if settings["volumetric_strain_dofs"].GetBool():
             # Add specific variables for the problem (volumetric strain dofs).
-            self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VOLUMETRIC_STRAIN)
-            self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.REACTION_STRAIN)
+            main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VOLUMETRIC_STRAIN)
+            main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.REACTION_STRAIN)
             #TODO: These are not required in the standard ASGS case
             #TODO: We can get rid of this overhead once we move to the specification-based variables and DOFs addition
-            self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT_PROJECTION)
-            self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VOLUMETRIC_STRAIN_PROJECTION)
-            self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT_PROJECTION_REACTION)
-            self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VOLUMETRIC_STRAIN_PROJECTION_REACTION)
-        if self.settings["strain_dofs"].GetBool():
+            main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT_PROJECTION)
+            main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VOLUMETRIC_STRAIN_PROJECTION)
+            main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT_PROJECTION_REACTION)
+            main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VOLUMETRIC_STRAIN_PROJECTION_REACTION)
+        if settings["strain_dofs"].GetBool():
             # Add specific variables for the problem (strain Voigt notation components dofs).
-            dim = self.settings["domain_size"].GetInt()
-            self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.STRAIN_VECTOR_XX)
-            self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.REACTION_STRAIN_VECTOR_XX)
-            self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.STRAIN_VECTOR_YY)
-            self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.REACTION_STRAIN_VECTOR_YY)
+            dim = settings["domain_size"].GetInt()
+            main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.STRAIN_VECTOR_XX)
+            main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.REACTION_STRAIN_VECTOR_XX)
+            main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.STRAIN_VECTOR_YY)
+            main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.REACTION_STRAIN_VECTOR_YY)
             if dim == 3:
-                self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.STRAIN_VECTOR_ZZ)
-                self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.REACTION_STRAIN_VECTOR_ZZ)
-            self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.STRAIN_VECTOR_XY)
-            self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.REACTION_STRAIN_VECTOR_XY)
+                main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.STRAIN_VECTOR_ZZ)
+                main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.REACTION_STRAIN_VECTOR_ZZ)
+            main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.STRAIN_VECTOR_XY)
+            main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.REACTION_STRAIN_VECTOR_XY)
             if dim == 3:
-                self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.STRAIN_VECTOR_YZ)
-                self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.REACTION_STRAIN_VECTOR_YZ)
-                self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.STRAIN_VECTOR_XZ)
-                self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.REACTION_STRAIN_VECTOR_XZ)
-        if self.settings["displacement_control"].GetBool():
+                main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.STRAIN_VECTOR_YZ)
+                main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.REACTION_STRAIN_VECTOR_YZ)
+                main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.STRAIN_VECTOR_XZ)
+                main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.REACTION_STRAIN_VECTOR_XZ)
+        if settings["displacement_control"].GetBool():
             # Add displacement-control variables
-            self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.LOAD_FACTOR)
-            self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.PRESCRIBED_DISPLACEMENT)
+            main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.LOAD_FACTOR)
+            main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.PRESCRIBED_DISPLACEMENT)
         # Add variables that the user defined in the ProjectParameters
-        auxiliary_solver_utilities.AddVariables(self.main_model_part, self.settings["auxiliary_variables_list"])
-        KratosMultiphysics.Logger.PrintInfo("::[MechanicalSolver]:: ", "Variables ADDED")
+        if settings.Has("auxiliary_variables_list"):
+            auxiliary_solver_utilities.AddVariables(main_model_part, settings["auxiliary_variables_list"])
 
     def GetMinimumBufferSize(self):
         return 2
