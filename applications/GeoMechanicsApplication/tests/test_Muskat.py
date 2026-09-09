@@ -10,12 +10,14 @@ if test_helper.want_test_plots():
     import KratosMultiphysics.GeoMechanicsApplication.geo_plot_utilities as plot_utils
 
 from dataclasses import dataclass
-from typing import Union
+from typing import List, Union
 
-from KratosMultiphysics.GeoMechanicsApplication.gid_output_file_reader import \
-    GiDOutputFileReader
-from KratosMultiphysics.GeoMechanicsApplication.unit_conversions import \
-    fraction_to_percentage
+from KratosMultiphysics.GeoMechanicsApplication.gid_output_file_reader import (
+    GiDOutputFileReader,
+)
+from KratosMultiphysics.GeoMechanicsApplication.unit_conversions import (
+    fraction_to_percentage,
+)
 
 
 class KratosGeoMechanicsMuskatTests(KratosGeoUnittest.TestCase):
@@ -252,7 +254,7 @@ class KratosGeoMechanicsMuskatTests(KratosGeoUnittest.TestCase):
     @dataclass
     class ExpectedResult:
         node_id: int
-        value: Union[float, list[float]]
+        value: Union[float, List[float]]
 
     def test_muskat_van_genuchten_hydrostatic(self):
 
