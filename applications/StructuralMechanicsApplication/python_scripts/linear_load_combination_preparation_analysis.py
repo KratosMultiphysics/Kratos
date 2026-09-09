@@ -35,12 +35,11 @@ class LinearLoadCombinationPreparationAnalysis(AnalysisStage):
                 self.__PrepareFixityDataBase()
 
         self.lumped_mass_matrix = False
-        self.consistent_mass_matrix = False
+        #self.consistent_mass_matrix = False
         if self.project_parameters.Has("mass_matrix"):
-            if self.project_parameters["mass_matrix"].Has("lumped"):
-                self.lumped_mass_matrix = self.project_parameters["mass_matrix"]["lumped"].GetBool()
-            if self.project_parameters["mass_matrix"].Has("consistent"):
-                self.consistent_mass_matrix = self.project_parameters["mass_matrix"]["consistent"].GetBool()
+            self.compute_mass_matrix = True
+            if self.project_parameters["mass_matrix"].GetString().lower() == "lumped":
+                self.lumped_mass_matrix = True
 
     def Initialize(self):
         super().Initialize()
@@ -95,33 +94,19 @@ class LinearLoadCombinationPreparationAnalysis(AnalysisStage):
     def RunSolutionLoop(self):
         """Changed it because only matrix generation is done"""
         self.InitializeSolutionStep()
-        if self.lumped_mass_matrix:
-            self.__BuildLumpedMassMatrix()
-        if self.consistent_mass_matrix:
-            self.__BuildConsistentMassMatrix()
+        if self.compute_mass_matrix:
+            self.__BuildMassMatrix(self.lumped_mass_matrix)
         self.__BuildLHS()
         self.__BuildRHSsFromModelPart()
     
-    def Check(self):
-        pass
-    
-    def __BuildConsistentMassMatrix(self):
+    def __BuildMassMatrix(self, lumped=False):
         linear_system = self.strategy_data.GetLinearSystem()
         mass_matrix = linear_system.GetMatrix(KratosMultiphysics.Future.SparseMatrixTag.LHS)
-        self.main_model_part.ProcessInfo[KratosMultiphysics.COMPUTE_LUMPED_MASS_MATRIX] = False
+        self.main_model_part.ProcessInfo[KratosMultiphysics.COMPUTE_LUMPED_MASS_MATRIX] = lumped
         mass_matrix.SetValue(0.0)
         self.scheme.BuildMassMatrix(mass_matrix)
-        KratosMultiphysics.Logger.PrintInfo("::[LinearLoadCombinationPreparationAnalysis]:: ", "Consistent Massmatrix built")
-    
-    def __BuildLumpedMassMatrix(self):
-        self.main_model_part.ProcessInfo[KratosMultiphysics.COMPUTE_LUMPED_MASS_MATRIX] = True
-        linear_system = self.strategy_data.GetLinearSystem()
-        mass_matrix = linear_system.GetMatrix(KratosMultiphysics.Future.SparseMatrixTag.LHS)
-
-        mass_matrix.SetValue(0.0)
-        self.scheme.BuildMassMatrix(mass_matrix)
-        KratosMultiphysics.Logger.PrintInfo("::[LinearLoadCombinationPreparationAnalysis]:: ", "Lumped Massmatrix built")
-
+        print(mass_matrix)
+        KratosMultiphysics.Logger.PrintInfo("::[LinearLoadCombinationPreparationAnalysis]:: ", "Lumped mass matrix built" if lumped else "Consistent mass matrix built")
 
     def __BuildLHS(self):
         """Construct the lhs"""
