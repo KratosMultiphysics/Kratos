@@ -2,7 +2,7 @@
 This directory contains several tests related to seepage.
 
 ## Common setup
-For each test case, the domain consists of a column of three linear steady-state Pw elements.  Each element is quadrilateral in shape and has dimensions of $`1\ {\mathrm{m}} \times 1\ {\mathrm{m}}`$.  At the top of the domain, a seepage boundary condition is applied.  At the left and right sides of the domain, no explicit boundary conditions are applied, which means that groundwater cannot freely flow out (or in).  Per test case, the applied boundary condition at the bottom of the domain varies.  For the water pressure, an initial field is applied that matches a hydrostatic pressure with the phreatic surface located at the top of the domain.
+For each test case, the domain consists of a column of three linear steady-state Pw elements.  Each element is quadrilateral in shape and has dimensions of $`1\ {\mathrm{m}} \times 1\ {\mathrm{m}}`$.  At the top of the domain, a seepage boundary condition is applied.  At the left and right sides of the domain, no explicit boundary conditions are applied, which means that groundwater cannot freely flow out (or in).  Per test case, the applied boundary condition at the bottom of the domain varies.  For the water pressure, an initial field is applied that corresponds to a hydrostatic pressure with the phreatic surface located at the top of the domain.
 
 For the material properties, the following table lists the adopted values.
 
@@ -14,7 +14,7 @@ For the material properties, the following table lists the adopted values.
 To check the numerical solutions, we can calculate the volumetric flow rate $`Q`$ through a porous medium using Darcy's law:
 
 ```math
-Q = \frac{\kappa \cdot A \cdot \rho_{\mathrm{w}} \cdot g \Delta h}{\mu \cdot L}
+Q = \frac{\kappa \cdot A \cdot \rho_{\mathrm{w}} \cdot g \cdot \Delta h}{\mu \cdot L}
 ```
 where $`\kappa`$ is intrinsic permeability, $`A`$ is cross-sectional area, $`\rho_{\mathrm{w}}`$ is water density, $`g`$ is gravity acceleration, $`\Delta h`$ is hydraulic head difference, and $`L`$ is length.
 
@@ -47,11 +47,11 @@ This test case asserts the following at the seepage boundary:
 At the bottom, the expected water pressure can be calculated from the pressure drop $`\Delta P`$ (using the above formula for the volumetric flow rate $`Q`$):
 
 ```math
-\Delta P = \rho \cdot g \cdot \Delta h = \frac{Q \cdot \mu \cdot L}{\kappa \cdot A} = \frac{5\ \mathrm{m/s} \cdot 1.0 \times 10^{-3}\ \mathrm{Pa \cdot s} \cdot 3.0\ \mathrm{m}}{7.08 \times 10^{-13}\ \mathrm{m^2} \cdot 1.0\ \mathrm{m^2}} = 2.119 \times 10^{10}\ \mathrm{Pa} = 2.119 \times 10^{10}\ \mathrm{Pa}
+\Delta P = \frac{Q \cdot \mu \cdot L}{\kappa \cdot A} = \frac{5\ \mathrm{m/s} \cdot 1.0 \times 10^{-3}\ \mathrm{Pa \cdot s} \cdot 3.0\ \mathrm{m}}{7.08 \times 10^{-13}\ \mathrm{m^2} \cdot 1.0\ \mathrm{m^2}} = 2.119 \times 10^{10}\ \mathrm{Pa}
 ```
 
-and the fluid body flow:
+and correcting for the fluid body flow:
 
 ```math
-p_{bottom} = -(\Delta P - \rho \cdot g \cdot \Delta h)} = -(2.119 \times 10^{10}\ \mathrm{Pa} - 1.0 \times 10^4\ \mathrm{N/m^3} \cdot 3.0\ \mathrm{m}) = -2.119 \times 10^{10}\ \mathrm{Pa} \cdot 3.0\ \mathrm{m} = -2.119 \times 10^{10}\ \mathrm{Pa} = -2.119 \times 10^{10}\ \mathrm{Pa}
+p_{\mathrm{bottom}} = -(\Delta P - \rho_{\mathrm{w}} \cdot g \cdot \Delta h) = -(2.119 \times 10^{10}\ \mathrm{Pa} - 1.0 \times 10^4\ \mathrm{N/m^3} \cdot 3.0\ \mathrm{m}) = -2.119 \times 10^{10}\ \mathrm{Pa}
 ```
