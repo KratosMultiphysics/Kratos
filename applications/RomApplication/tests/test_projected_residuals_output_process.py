@@ -43,7 +43,7 @@ class TestProjectedResidualsOutputProcess(KratosUnittest.TestCase):
                     "output_interval": 1,
                     "output_path": "rom_data/ResidualsFluid",
                     "sub_solver_name": "fluid_solver",
-                    "range_of_entities_to_fetch_residual_projected": ["0", "50"]
+                    "range_of_entity_ids_to_fetch_residuals_projected": ["1", "50"]
                 }
             }"""
             residuals_from_thermal_solver = """{
@@ -56,7 +56,7 @@ class TestProjectedResidualsOutputProcess(KratosUnittest.TestCase):
                     "output_interval": 1,
                     "output_path": "rom_data/ResidualsThermal",
                     "sub_solver_name": "thermal_solver",
-                    "range_of_entities_to_fetch_residual_projected": ["0", "End"]
+                    "range_of_entity_ids_to_fetch_residuals_projected": ["1", "End"]
                 }
             }"""
             parameters["output_processes"]["rom_output"].Append(KratosMultiphysics.Parameters(residuals_from_fluid_solver))

@@ -32,7 +32,7 @@ class RomResidualsOutputProcess(KratosMultiphysics.OutputProcess):
             "output_interval": 1,
             "output_path": "rom_data/Residuals",
             "sub_solver_name": "",
-            "range_of_entities_to_fetch_residual_projected": ["0","end"]
+            "range_of_entity_ids_to_fetch_residuals_projected": ["1","end"]
         }""")
 
 
@@ -98,28 +98,29 @@ class RomResidualsOutputProcess(KratosMultiphysics.OutputProcess):
         if self.solver is None:
             return
 
-        res_mat = self._GetCurrentResidualsProjected()
+        if hasattr(self, "_buffered_res_mat") and self._buffered_res_mat is not None:
 
-        entities_range = self.settings["range_of_entities_to_fetch_residual_projected"].GetStringArray()
+            entities_range = self.settings["range_of_entity_ids_to_fetch_residuals_projected"].GetStringArray()
+            start = max(0, int(entities_range[0]) - 1)
+            end_string = entities_range[1].strip().lower()
 
-        start = int(entities_range[0])
-        end_string = entities_range[1].strip().lower()
+            if end_string in ["end", "all"]:
+                end = None
+            else:
+                end = int(end_string)
 
-        if end_string in ["end", "all"]:
-            end = None
-        else:
-            end = int(end_string)
+            sliced_res_mat = self._buffered_res_mat[start:end, :]
 
-        sliced_res_mat = res_mat[start:end, :]
+            if self.settings["output_control_type"].GetString() == "time":
+                time = self.model_part.ProcessInfo[KratosMultiphysics.TIME]
+                file_label = f"{time:.7f}"
+            else:
+                step = self.model_part.ProcessInfo[KratosMultiphysics.STEP]
+                file_label = f"{step}"
 
-        if self.settings["output_control_type"].GetString() == "time":
-            time = self.model_part.ProcessInfo[KratosMultiphysics.TIME]
-            file_label = f"{time:.7f}"
-        else:
-            step = self.model_part.ProcessInfo[KratosMultiphysics.STEP]
-            file_label = f"{step}"
+            file_path = self.output_path / f"Residual_{file_label}.npy"
+            np.save(file_path, sliced_res_mat)
 
-        file_path = self.output_path / f"Residual_{file_label}.npy"
-        np.save(file_path, sliced_res_mat)
+            self._buffered_res_mat = None
 
         self.controller.Update()
