@@ -4,8 +4,8 @@ import KratosMultiphysics
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 from KratosMultiphysics.modelers.import_mdpa_modeler import ImportMDPAModeler
-from KratosMultiphysics.StructuralMechanicsApplication.multi_load_constraint_preparation import LinearLoadCombinationPreparation
-from KratosMultiphysics.StructuralMechanicsApplication.multi_load_constraint_analysis import LinearLoadCombinationAnalysis
+from KratosMultiphysics.StructuralMechanicsApplication.linear_load_combination_preparation_analysis import LinearLoadCombinationPreparationAnalysis
+from KratosMultiphysics.StructuralMechanicsApplication.linear_load_combination_solution_analysis import LinearLoadCombinationSolutionAnalysis
 from KratosMultiphysics.project import Project
 from KratosMultiphysics.StructuralMechanicsApplication.structural_sequential_orchestrator import StructuralSequentialOrchestrator
 
@@ -202,7 +202,7 @@ class TestLinearLoadCombinationStages(KratosUnittest.TestCase):
             project_parameters,
             self._PREPARATION_STAGE_NAME,
         )
-        preparation = LinearLoadCombinationPreparation(model, preparation_parameters)
+        preparation = LinearLoadCombinationPreparationAnalysis(model, preparation_parameters)
 
         # The stage must add its nodal variables before nodes are imported.
         self._ImportModelPart(model)
@@ -232,7 +232,7 @@ class TestLinearLoadCombinationStages(KratosUnittest.TestCase):
             stage_name,
         )
 
-        analysis = LinearLoadCombinationAnalysis(
+        analysis = LinearLoadCombinationSolutionAnalysis(
             model,
             analysis_parameters,
         )
