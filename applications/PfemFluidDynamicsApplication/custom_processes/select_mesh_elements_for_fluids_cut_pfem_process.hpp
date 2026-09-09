@@ -182,7 +182,7 @@ namespace Kratos
                         vertices.push_back(rNodes(OutElementList[el * nds + pn]));
                         Node &rNode = vertices.back();
 
-                        if (rNode.IsNot(RIGID) && rNode.IsNot(SOLID))
+                        if (rNode.IsNot(RIGID) && rNode.IsNot(SOLID) && vertices.back().GetSolutionStepValue(DISTANCE) > distance_tolerance)
                         {
                             isolatedNodesInTheElement += rNode.FastGetSolutionStepValue(ISOLATED_NODE);
                         }
