@@ -7,11 +7,14 @@ from KratosMultiphysics.GeoMechanicsApplication.gid_output_file_reader import (
     GiDOutputFileReader,
 )
 
-height = 3.0  # m
 unit_weight_of_water = 1.0e04  # N/m^3
+intrinsic_permeability = 7.08e-13  # m^2
+dynamic_viscosity = 1.0e-03  # Pa*s
 
-in_flux = 5.0  # m^3/(m^2 * s)
-nodal_area = 0.5
+height = 3.0  # m
+area = 1.0  # m^2 (for the whole column)
+nodal_area = area / 2  # m^2 (for each top and bottom node)
+
 end_time = 1.0
 
 
@@ -67,7 +70,10 @@ class KratosGeoMechanicsSeepageTests(KratosUnittest.TestCase):
         self.assert_uniform_nodal_values(
             top_node_ids, "WATER_PRESSURE", output_data, end_time, 0.0
         )
-        expected_nodal_out_flow = ((7.08e-13 * 1.0e04) / 3.0e-03) / 2
+        overpressure = 1.0e04  # N/m^2
+        expected_nodal_out_flow = (
+            intrinsic_permeability * nodal_area * overpressure
+        ) / (dynamic_viscosity * height)
         self.assert_uniform_nodal_values(
             top_node_ids,
             "NODAL_WATER_FLOW",
@@ -159,6 +165,7 @@ class KratosGeoMechanicsSeepageTests(KratosUnittest.TestCase):
         top_node_ids = nodes_of_model_part(model, "PorousDomain.top_boundary")
 
         # On the seepage face, the nodal out-flow should equal the nodal in-flow at the bottom
+        in_flux = 5.0  # m^3/(m^2 * s)
         expected_nodal_out_flow = in_flux * nodal_area
         self.assert_uniform_nodal_values(
             top_node_ids,
@@ -180,7 +187,12 @@ class KratosGeoMechanicsSeepageTests(KratosUnittest.TestCase):
 
         # At the bottom boundary, the expected water pressure can be calculated using Darcy's law
         bottom_node_ids = nodes_of_model_part(model, "PorousDomain.bottom_boundary")
-        expected_water_pressure_at_bottom = -2.11864e10
+        pressure_drop = (in_flux * dynamic_viscosity * height) / (
+            intrinsic_permeability * area
+        )
+        expected_water_pressure_at_bottom = -1.0 * (
+            pressure_drop - unit_weight_of_water * height
+        )
         self.assert_uniform_nodal_values(
             bottom_node_ids,
             "WATER_PRESSURE",
