@@ -24,7 +24,7 @@ class _AssembledTangentCheck:
     def __init__(self, model_part):
         self.model_part = model_part
         self.scheme = DamApplication.IncrementalUpdateStaticSmoothingScheme()
-        self.space = Kratos.UblasSparseSpace()
+        self.space = Kratos.SparseSpace()
         self.builder = Kratos.ResidualBasedBlockBuilderAndSolver(
             Kratos.SkylineLUFactorizationSolver())
         self.A = self.space.CreateEmptyMatrixPointer()
