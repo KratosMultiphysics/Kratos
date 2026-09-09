@@ -232,10 +232,11 @@ class MechanicalSolver(PythonSolver):
             dofs_and_reactions_to_add.append(["LOAD_FACTOR", "PRESCRIBED_DISPLACEMENT"])
 
         # Append user-defined DOFs and reactions in the ProjectParameters
-        auxiliary_solver_utilities.AddAuxiliaryDofsToDofsWithReactionsList(
-            settings["auxiliary_dofs_list"],
-            settings["auxiliary_reaction_list"],
-            dofs_and_reactions_to_add)
+        if settings.Has("auxiliary_dofs_list") and settings.Has("auxiliary_reaction_list"):
+            auxiliary_solver_utilities.AddAuxiliaryDofsToDofsWithReactionsList(
+                settings["auxiliary_dofs_list"],
+                settings["auxiliary_reaction_list"],
+                dofs_and_reactions_to_add)
 
         KratosMultiphysics.VariableUtils.AddDofsList(dofs_and_reactions_to_add, main_model_part)
 
