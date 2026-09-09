@@ -2150,9 +2150,9 @@ namespace Kratos
     KRATOS_CATCH("")
   }
 
-  void MesherUtilities::DefineMeshSizeInTransitionZones2D(MeshingParameters &rMeshingVariables,
-                                                          double currentTime,
-                                                          array_1d<double, 3> NodeCoordinates,
+  void MesherUtilities::DefineMeshSizeInTransitionZones2D(const MeshingParameters &rMeshingVariables,
+                                                          const double currentTime,
+                                                          const array_1d<double, 3> NodeCoordinates,
                                                           double &meshSize,
                                                           bool &insideTransitionZone)
   {
@@ -2164,7 +2164,7 @@ namespace Kratos
 
     for (unsigned int index = 0; index < numberOfRefiningBoxes; index++)
     {
-      if (rMeshingVariables.UseRefiningBox[index] == true && currentTime > rMeshingVariables.RefiningBoxInitialTime[index] && currentTime < rMeshingVariables.RefiningBoxFinalTime[index])
+      if (rMeshingVariables.UseRefiningBox[index] && currentTime > rMeshingVariables.RefiningBoxInitialTime[index] && currentTime < rMeshingVariables.RefiningBoxFinalTime[index])
       {
         const array_1d<double, 3> RefiningBoxMinimumPoint = rMeshingVariables.RefiningBoxMinimumPoint[index];
         const array_1d<double, 3> RefiningBoxMaximumPoint = rMeshingVariables.RefiningBoxMaximumPoint[index];
@@ -2308,9 +2308,9 @@ namespace Kratos
     KRATOS_CATCH("")
   }
 
-  void MesherUtilities::DefineMeshSizeInTransitionZones3D(MeshingParameters &rMeshingVariables,
-                                                          double currentTime,
-                                                          array_1d<double, 3> NodeCoordinates,
+  void MesherUtilities::DefineMeshSizeInTransitionZones3D(const MeshingParameters &rMeshingVariables,
+                                                          const double currentTime,
+                                                          const array_1d<double, 3> NodeCoordinates,
                                                           double &meshSize,
                                                           bool &insideTransitionZone)
   {
