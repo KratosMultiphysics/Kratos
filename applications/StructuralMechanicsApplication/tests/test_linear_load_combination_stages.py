@@ -85,7 +85,7 @@ class TestLinearLoadCombinationStages(KratosUnittest.TestCase):
                 )
 
     def test_two_consecutive_analysis_stages(self):
-        with KratosUnittest.WorkFolderScope("multi_load_constraint_test", __file__):
+        with KratosUnittest.WorkFolderScope("linear_load_combination_test", __file__):
             project_parameters, model, preparation_data = self._RunPreparation()
 
             first_solution = self._RunAnalysisStage(model, 
@@ -156,7 +156,7 @@ class TestLinearLoadCombinationStages(KratosUnittest.TestCase):
                 )
 
     def test_full_project_parameters_with_structural_orchestrator(self):
-        with KratosUnittest.WorkFolderScope("multi_load_constraint_test", __file__):
+        with KratosUnittest.WorkFolderScope("linear_load_combination_test", __file__):
             project_parameters = self._ReadParameters("ProjectParameters.json")
 
             project = Project(project_parameters)

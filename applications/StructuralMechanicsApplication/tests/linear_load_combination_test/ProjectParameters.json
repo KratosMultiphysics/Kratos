@@ -20,7 +20,7 @@
             }]
         },
         "stage_settings" : {
-            "analysis_stage": "KratosMultiphysics.StructuralMechanicsApplication.multi_load_constraint_preparation",
+            "analysis_stage": "KratosMultiphysics.StructuralMechanicsApplication.linear_load_combination_preparation_analysis",
             "problem_data"     : {
                 "echo_level" : 0,
                 "parallel_type" : "OpenMP",
@@ -161,7 +161,7 @@
             "get_output_data" : "prepare_lhs_and_rhss"
         },
         "stage_settings" : {
-            "analysis_stage": "KratosMultiphysics.StructuralMechanicsApplication.multi_load_constraint_analysis",
+            "analysis_stage": "KratosMultiphysics.StructuralMechanicsApplication.linear_load_combination_solution_analysis",
             "problem_data": {
                 "echo_level" : 0,
                 "parallel_type" : "OpenMP",
@@ -209,7 +209,7 @@
             "get_output_data" : "prepare_lhs_and_rhss"
         },
         "stage_settings" : {
-            "analysis_stage": "KratosMultiphysics.StructuralMechanicsApplication.multi_load_constraint_analysis",
+            "analysis_stage": "KratosMultiphysics.StructuralMechanicsApplication.linear_load_combination_solution_analysis",
             "problem_data": {
                 "echo_level" : 0,
                 "parallel_type" : "OpenMP",
