@@ -6,7 +6,7 @@ import KratosMultiphysics.scipy_conversion_tools #just for debugging
 from KratosMultiphysics.StructuralMechanicsApplication.structural_mechanics_solver import MechanicalSolver
 
 class LinearLoadCombinationPreparationAnalysis(AnalysisStage):
-    """This stage prepares the LHS of the model and the right hand sides (one for each load process defined in the parameters)"""
+    """This stage prepares a reusable unconstrained LHS once and assembles one RHS for each load process defined, as well as a fixity database. The resulting data is passed to subsequent 'LinearLoadCombinationSolutionAnalysis' stages, where the fixities are applied and the stored RHS vectors can be combined linearly."""
     def __init__(self, model, project_parameters):
         self.model = model
         self.settings = project_parameters["solver_settings"]
@@ -32,7 +32,7 @@ class LinearLoadCombinationPreparationAnalysis(AnalysisStage):
                 self.load_processes = self.project_parameters["process_combinations"]["load_processes"]
                 self.load_variables = self.__GetLoadVariables()
             if self.project_parameters["process_combinations"].Has("fixity_processes"):
-                self.__PrepareFixityDB()
+                self.__PrepareFixityDataBase()
 
         self.lumped_mass_matrix = False
         self.consistent_mass_matrix = False
@@ -46,7 +46,7 @@ class LinearLoadCombinationPreparationAnalysis(AnalysisStage):
         super().Initialize()
         
 
-    def __PrepareFixityDB(self):
+    def __PrepareFixityDataBase(self):
         self.fixities = {}
         for fixity_definition in self.project_parameters["process_combinations"]["fixity_processes"].values():
             process_id = fixity_definition["process_id"].GetString()
@@ -75,47 +75,6 @@ class LinearLoadCombinationPreparationAnalysis(AnalysisStage):
 
         for variable in self.load_variables:
             variable_utils.SetNonHistoricalVariableToZero(variable, self.main_model_part.Conditions)
-
-    def __ResetRHS(self):
-        """Bug was: 
-                [6](0,0,0,0,0,30000)
-                [6](0,0,0,0,0,30000)
-                lc3: SystemVector
-
-
-                [6](40000,0,0,0,0,30000)
-                [6](40000,0,0,0,0,30000)
-                lc4: SystemVector
-                
-                instead of
-                [6](0,0,0,0,0,30000)
-                [6](0,0,0,0,0,30000)
-                lc3: SystemVector
-
-
-                [6](40000,0,0,0,0,0)
-                [6](40000,0,0,0,0,0)
-                lc4: SystemVector
-
-                So reset of conditions is needed. Maybe there is a better way (i.e. Kratos already has that functionality)?
-                """
-        variables = [
-            StructuralMechanicsApplication.POINT_LOAD,
-            StructuralMechanicsApplication.LINE_LOAD,
-            StructuralMechanicsApplication.SURFACE_LOAD,
-            StructuralMechanicsApplication.POINT_MOMENT,
-            KratosMultiphysics.POSITIVE_FACE_PRESSURE,
-            KratosMultiphysics.NEGATIVE_FACE_PRESSURE,
-        ]
-        zero_vector = KratosMultiphysics.Vector(3)
-        zero_vector[0] = 0.0
-        zero_vector[1] = 0.0
-        zero_vector[2] = 0.0
-
-        for condition in self.main_model_part.Conditions:
-            for variable in variables:
-                if condition.Has(variable):
-                    condition.SetValue(variable, zero_vector)
 
     def __BuildRHS(self):
         linear_system = self.strategy_data.GetLinearSystem()
