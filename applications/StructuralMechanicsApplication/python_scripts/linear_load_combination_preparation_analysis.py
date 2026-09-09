@@ -35,7 +35,7 @@ class LinearLoadCombinationPreparationAnalysis(AnalysisStage):
                 self.__PrepareFixityDataBase()
 
         self.lumped_mass_matrix = False
-        #self.consistent_mass_matrix = False
+        self.compute_mass_matrix = False
         if self.project_parameters.Has("mass_matrix"):
             self.compute_mass_matrix = True
             if self.project_parameters["mass_matrix"].GetString().lower() == "lumped":
@@ -105,7 +105,6 @@ class LinearLoadCombinationPreparationAnalysis(AnalysisStage):
         self.main_model_part.ProcessInfo[KratosMultiphysics.COMPUTE_LUMPED_MASS_MATRIX] = lumped
         mass_matrix.SetValue(0.0)
         self.scheme.BuildMassMatrix(mass_matrix)
-        print(mass_matrix)
         KratosMultiphysics.Logger.PrintInfo("::[LinearLoadCombinationPreparationAnalysis]:: ", "Lumped mass matrix built" if lumped else "Consistent mass matrix built")
 
     def __BuildLHS(self):
