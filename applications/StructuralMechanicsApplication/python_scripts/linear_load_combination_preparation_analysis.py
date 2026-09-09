@@ -35,12 +35,12 @@ class LinearLoadCombinationPreparationAnalysis(AnalysisStage):
                 self.__PrepareFixityDB()
 
         self.lumped_mass_matrix = False
-        self.consistens_mass_matrix = False
+        self.consistent_mass_matrix = False
         if self.project_parameters.Has("mass_matrix"):
             if self.project_parameters["mass_matrix"].Has("lumped"):
                 self.lumped_mass_matrix = self.project_parameters["mass_matrix"]["lumped"].GetBool()
             if self.project_parameters["mass_matrix"].Has("consistent"):
-                self.consistens_mass_matrix = self.project_parameters["mass_matrix"]["consistent"].GetBool()
+                self.consistent_mass_matrix = self.project_parameters["mass_matrix"]["consistent"].GetBool()
 
     def Initialize(self):
         super().Initialize()
@@ -138,7 +138,7 @@ class LinearLoadCombinationPreparationAnalysis(AnalysisStage):
         self.InitializeSolutionStep()
         if self.lumped_mass_matrix:
             self.__BuildLumpedMassMatrix()
-        if self.consistens_mass_matrix:
+        if self.consistent_mass_matrix:
             self.__BuildConsistentMassMatrix()
         self.__BuildLHS()
         self.__BuildRHSsFromModelPart()
