@@ -9,6 +9,9 @@ from KratosMultiphysics.GeoMechanicsApplication.gid_output_file_reader import (
 
 height = 3.0  # m
 unit_weight_of_water = 1.0e04  # N/m^3
+
+in_flux = 5.0  # m^3/(m^2 * s)
+nodal_area = 0.5
 end_time = 1.0
 
 
@@ -155,8 +158,8 @@ class KratosGeoMechanicsSeepageTests(KratosUnittest.TestCase):
         # Verify that top boundary nodes (y=3.0) have seepage condition applied
         top_node_ids = nodes_of_model_part(model, "PorousDomain.top_boundary")
 
-        # On the seepage face, the nodal flow should be 2.5, due to the forces outflux
-        expected_nodal_out_flow = 2.5
+        # On the seepage face, the nodal out-flow should equal the nodal in-flow at the bottom
+        expected_nodal_out_flow = in_flux * nodal_area
         self.assert_uniform_nodal_values(
             top_node_ids,
             "NODAL_WATER_FLOW",
@@ -173,6 +176,17 @@ class KratosGeoMechanicsSeepageTests(KratosUnittest.TestCase):
             output_data,
             end_time,
             0.0,
+        )
+
+        # At the bottom boundary, the expected water pressure can be calculated using Darcy's law
+        bottom_node_ids = nodes_of_model_part(model, "PorousDomain.bottom_boundary")
+        expected_water_pressure_at_bottom = -2.11864e10
+        self.assert_uniform_nodal_values(
+            bottom_node_ids,
+            "WATER_PRESSURE",
+            output_data,
+            end_time,
+            expected_water_pressure_at_bottom,
         )
 
 
