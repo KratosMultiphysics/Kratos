@@ -7,7 +7,7 @@ This test is based on the Muskat problem, but instead of a seepage boundary on t
 ## Setup
 
 The test is performed in a single stage, with the following constraints and condition:
-- The initial condition for the water pressure is a phreatic line with the profile as depicted in the schematic below. The coordinates of the phreatic line are (-0.05, 3.22), (0.25, 3.22), (1.6, 0.48), (1.7, 0.48).
+- The initial condition for the water pressure is a phreatic line with the profile as depicted in the schematic below. The coordinates of the phreatic line are (-0.05, 3.22), (0.25, 3.22), (1.6, 0.48), (1.7, 0.48). Due to the linear nature of the saturated variant, it does **not** require this initial phreatic line.
 - For the left boundary, the water pressure is prescribed using a hydrostatic profile with reference coordinate of 3.0m
 - For the right boundary, the water pressure is prescribed using a hydrostatic profile with reference coordinate of 1.62m. Using this fixed boundary instead of a seepage boundary is the main difference with the traditional Muskat problem.
 
