@@ -277,29 +277,6 @@ class HRomTrainingUtility(object):
             if self.echo_level > 0:
                 KratosMultiphysics.Logger.PrintInfo("HRomTrainingUtility","HROM visualization mesh written in \'{}.mdpa\'".format(hrom_vis_output_name))
 
-
-    def GetCurrentResidualsProjected(self):
-        computing_model_part = self.solver.GetComputingModelPart()
-
-        if not hasattr(self, '__rom_residuals_utility'):
-            self.__rom_residuals_utility = KratosROM.RomResidualsUtility(
-                computing_model_part,
-                self.rom_settings,
-                self.solver._GetScheme())
-
-        if self.projection_strategy == "galerkin":
-            res_mat = self.__rom_residuals_utility.GetProjectedResidualsOntoPhi()
-        elif self.projection_strategy == "lspg":
-            jacobian_phi_product = self.GetJacobianPhiMultiplication(computing_model_part)
-            res_mat = self.__rom_residuals_utility.GetProjectedResidualsOntoJPhi(jacobian_phi_product)
-        elif self.projection_strategy == "petrov_galerkin":
-            res_mat = self.__rom_residuals_utility.GetProjectedResidualsOntoPsi()
-        else:
-            raise Exception(f"Projection strategy '{self.projection_strategy}' for HROM is not supported.")
-
-        return np.asarray(res_mat)
-
-
     @classmethod
     def __GetHRomTrainingDefaultSettings(cls):
         default_settings = KratosMultiphysics.Parameters("""{
