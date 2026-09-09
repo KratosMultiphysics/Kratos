@@ -20,7 +20,9 @@ A schematic of this  can be found in the figure below:
 The following outputs are used as first-reference results for this test, computed using a commercial FEM package:
 - Phreatic line evolution (reference: `expected_phreatic_line.csv`).
 - Hydrostatic response values (reference: `expected_saturation_at_x_1_52.csv`).
-- The length of the fluid flux vector (reference: `expected_fluxes_at_x_1_52.csv`).
+- The magnitude of the fluid flux vector (reference: `expected_fluxes_at_x_1_52.csv`).
+
+The results in this section depict the results of the variant with Van Genuchten retention behavior. The graphs of the fully saturated results are available as .svg files in the respective [test folder](saturated_hydrostatic).
 
 The phreatic line profile is visualized below. The profile is an estimation of the p=0 line. For the commercial package, the nodes with the lowest absolute pressures (close to zero) are plotted. For the Kratos result, Delaunay triangulation is used to find the p=0 isoline.
 

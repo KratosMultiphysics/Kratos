@@ -40,11 +40,8 @@
         "reduction_factor": 1.0,
         "increase_factor": 1.0,
         "linear_solver_settings": {
-            "solver_type": "bicgstab",
-            "tolerance": 1.0e-06,
-            "max_iteration": 1000,
-            "scaling": true,
-            "preconditioner_type": "ilu0"
+            "solver_type": "LinearSolversApplication.sparse_lu",
+            "scaling": true
         },
         "problem_domain_sub_model_part_list": ["porous"],
         "body_domain_sub_model_part_list": ["porous"]

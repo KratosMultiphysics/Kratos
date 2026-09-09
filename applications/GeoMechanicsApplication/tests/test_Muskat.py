@@ -41,9 +41,7 @@ class KratosGeoMechanicsMuskatTests(KratosGeoUnittest.TestCase):
                 expected_results_for_variable, file_path, output_data, simulation
             )
             self._create_phreatic_line_plot(file_path, output_data, simulation)
-            self._create_fluid_flux_plot(
-                expected_results_for_variable, file_path, output_data, simulation
-            )
+            self._create_fluid_flux_plot(file_path, output_data, simulation)
 
         for variable_name, expected_results in expected_results_for_variable.items():
             actual_results = GiDOutputFileReader.nodal_values_at_time(
@@ -132,9 +130,7 @@ class KratosGeoMechanicsMuskatTests(KratosGeoUnittest.TestCase):
             yaxis_inverted=False,
         )
 
-    def _create_fluid_flux_plot(
-        self, expected_results_for_variable, file_path, output_data, simulation
-    ):
+    def _create_fluid_flux_plot(self, file_path, output_data, simulation):
         data_series_collection = []
         y_coord_by_id_for_right_boundary_nodes = {}
         for node in simulation.model.GetModelPart(
@@ -148,15 +144,16 @@ class KratosGeoMechanicsMuskatTests(KratosGeoUnittest.TestCase):
             output_data,
             y_coord_by_id_for_right_boundary_nodes.keys(),
         )
-        flux_length = [
-            math.sqrt(flux[0] ** 2 + flux[1] ** 2 + flux[2] ** 2) * 86400
+        flux_magnitude = [
+            # Rounding to two decimals, since reference data has the same precision
+            round(math.sqrt(flux[0] ** 2 + flux[1] ** 2 + flux[2] ** 2) * 86400, 3)
             for flux in fluxes
         ]
         sorted_depth, sorted_data = zip(
             *sorted(
                 zip(
                     y_coord_by_id_for_right_boundary_nodes.values(),
-                    flux_length,
+                    flux_magnitude,
                 )
             )
         )
