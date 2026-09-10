@@ -259,6 +259,7 @@ void AddTensorAdaptorsToPython(pybind11::module& m)
      py::enum_<GeometriesTensorAdaptorType::DatumType>(geometries_tensor_adaptor,"DatumType")
           .value("ShapeFunctions", GeometriesTensorAdaptorType::DatumType::ShapeFunctions)
           .value("ShapeFunctionDerivatives", GeometriesTensorAdaptorType::DatumType::ShapeFunctionDerivatives)
+          .value("Normals", GeometriesTensorAdaptorType::DatumType::Normals)
           .value("Jacobians", GeometriesTensorAdaptorType::DatumType::Jacobians)
           .value("IntegrationWeights", GeometriesTensorAdaptorType::DatumType::IntegrationWeights)
           .export_values();
