@@ -17,6 +17,31 @@ def run_modelers(current_model, modelers_list):
         modeler.SetupModelPart()
 
 class TestImportNurbsModeler(KratosUnittest.TestCase):
+    def testSurface3D(self):
+        current_model = KratosMultiphysics.Model()
+        modelers_list = KratosMultiphysics.Parameters(r'''[{
+            "modeler_name" : "ImportNurbsSbmModeler",
+            "Parameters" : {
+                "input_filename" : "import_nurbs_test/square_surface_nurbs.json",
+                "model_part_name" : "surface_model_part",
+                "geometry_type" : "Surfaces",
+                "link_layer_to_condition_name" : [{
+                    "layer_name" : "surface",
+                    "condition_name" : "SBMSolid3DCondition"
+                }]
+            }
+        }]''')
+
+        run_modelers(current_model, modelers_list)
+
+        model_part = current_model.GetModelPart("surface_model_part")
+        self.assertEqual(model_part.NumberOfGeometries(), 1)
+        surface = model_part.GetGeometry(0)
+        self.assertEqual(surface.LocalSpaceDimension(), 2)
+        self.assertEqual(surface.WorkingSpaceDimension(), 3)
+        self.assertEqual(surface.PointsNumber(), 4)
+        self.assertEqual(surface.Weights().Size(), 4)
+
     def testRectangleCurve2D(self):
         current_model = KratosMultiphysics.Model()
         

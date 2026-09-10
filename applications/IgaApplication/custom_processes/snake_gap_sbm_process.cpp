@@ -33,7 +33,7 @@ SnakeGapSbmProcess::SnakeGapSbmProcess(
     mpGapConditionsSubModelPart = &(mpIgaModelPart->CreateSubModelPart("GapConditions"));
     mpGapInterfaceSubModelPart = &(mpIgaModelPart->CreateSubModelPart("GapInterfaces"));
     mGapElementName = ThisParameters["gap_element_name"].GetString();
-    mGapConditionName = "GapSbmSolidCondition";//ThisParameters["gap_condition_name"].GetString();
+    mGapConditionName = "GapSbmEnhancedSolidCondition";
     mGapInterfaceConditionName = ThisParameters["gap_interface_condition_name"].GetString();
     mGapSbmType = ThisParameters["gap_sbm_type"].GetString(); 
 
@@ -121,7 +121,7 @@ const Parameters SnakeGapSbmProcess::GetDefaultParameters() const
         "moment_fitting_residual_tolerance": 1e-8,
         "moment_fitting_maximum_absolute_weight_ratio": 100.0,
         "moment_fitting_maximum_selected_point_multiplier": 2,
-        "gap_condition_name": "GapSbmSolidCondition"
+        "gap_condition_name": "GapSbmEnhancedSolidCondition"
     })");
 }
 
@@ -172,7 +172,7 @@ const Parameters SnakeGapSbmProcess::GetValidParameters() const
         "skin_model_part_inner_initial_name": "initial_skin_model_part_in",           
         "skin_model_part_name": "skin_model_part",
         "gap_element_name": "CutSbmSolidElement",
-        "gap_condition_name": "GapSbmSolidCondition",
+        "gap_condition_name": "GapSbmEnhancedSolidCondition",
         "gap_interface_condition_name": "CutSbmSolidInterfaceCondition"
     })");
 }

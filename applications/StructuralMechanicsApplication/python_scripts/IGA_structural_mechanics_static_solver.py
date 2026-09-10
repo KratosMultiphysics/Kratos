@@ -50,8 +50,9 @@ class IgaStructuralMechanicsStaticSolver(MechanicalSolver):
     
     def InitializeSolutionStep(self):
         super().InitializeSolutionStep()
+        # self.printDofsAndCPs()
         # self.printDofsAndCPsPatch1()
-        self.printDofsAndCPs3D()
+        # self.printDofsAndCPs3D()
         
         
     def _GetScheme(self):

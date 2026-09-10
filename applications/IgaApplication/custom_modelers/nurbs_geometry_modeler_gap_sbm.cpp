@@ -11,6 +11,8 @@
 //
 
 // Project includes
+#include <chrono>
+
 #include "nurbs_geometry_modeler_gap_sbm.h"
 #include "custom_utilities/create_breps_sbm_utilities.h"
 #include "custom_processes/snake_gap_sbm_process.h"
@@ -230,7 +232,11 @@ void NurbsGeometryModelerGapSbm::CreateAndAddRegularGrid2D(
     // Create the surrogate_sub_model_part for inner and outer
 
     SnakeGapSbmProcess snake_gap_sbm_process(*mpModel, snake_parameters);
+    const auto snake_initialization_start_time = std::chrono::steady_clock::now();
     snake_gap_sbm_process.ExecuteInitialize();
+    r_iga_model_part.SetValue(
+        SNAKE_GAP_SBM_INITIALIZATION_TIME,
+        std::chrono::duration<double>(std::chrono::steady_clock::now() - snake_initialization_start_time).count());
 
     // Create the breps for the outer sbm boundary
     CreateBrepsSbmUtilities<Node, Point, true> breps_sbm_utilities(mEchoLevel);
@@ -242,7 +248,11 @@ void NurbsGeometryModelerGapSbm::CreateAndAddRegularGrid2D(
         rPointBUvw,
         r_iga_model_part);
 
+    const auto snake_execution_start_time = std::chrono::steady_clock::now();
     snake_gap_sbm_process.Execute();
+    r_iga_model_part.SetValue(
+        SNAKE_GAP_SBM_EXECUTION_TIME,
+        std::chrono::duration<double>(std::chrono::steady_clock::now() - snake_execution_start_time).count());
 }
 
 // 3D 
@@ -453,7 +463,11 @@ void NurbsGeometryModelerGapSbm::CreateAndAddRegularGrid3D(
         
     // Create the surrogate_sub_model_part for inner and outer
     SnakeGapSbmProcess snake_gap_sbm_process(*mpModel, snake_parameters);
+    const auto snake_initialization_start_time = std::chrono::steady_clock::now();
     snake_gap_sbm_process.ExecuteInitialize();
+    r_iga_model_part.SetValue(
+        SNAKE_GAP_SBM_INITIALIZATION_TIME,
+        std::chrono::duration<double>(std::chrono::steady_clock::now() - snake_initialization_start_time).count());
 
     // Create the breps for the outer sbm boundary
     CreateBrepsSbmUtilities<Node, Point, true> breps_sbm_utilities(mEchoLevel);
@@ -465,7 +479,11 @@ void NurbsGeometryModelerGapSbm::CreateAndAddRegularGrid3D(
         rPointBUvw,
         r_iga_model_part);
 
+    const auto snake_execution_start_time = std::chrono::steady_clock::now();
     snake_gap_sbm_process.Execute();
+    r_iga_model_part.SetValue(
+        SNAKE_GAP_SBM_EXECUTION_TIME,
+        std::chrono::duration<double>(std::chrono::steady_clock::now() - snake_execution_start_time).count());
 }
 
 

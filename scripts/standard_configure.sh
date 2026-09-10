@@ -49,7 +49,8 @@ cmake -H"${KRATOS_SOURCE}" -B"${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" \
 -DUSE_MPI=OFF                                                       \
 -DCMAKE_POLICY_VERSION_MINIMUM=3.5                                  \
 -DUSE_EIGEN_MKL=OFF                                                 \
--DKRATOS_GENERATE_PYTHON_STUBS=ON
+-DKRATOS_GENERATE_PYTHON_STUBS=ON                                   \
+-DCMAKE_EXPORT_COMPILE_COMMANDS=ON
 
 # Build
 cmake --build "${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" --target install -- -j5

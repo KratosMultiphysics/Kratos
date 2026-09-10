@@ -17293,8 +17293,8 @@ void SnakeGapSbmProcess::CreateSbmExtendedGeometries3D(
                 p_projection_node);
             ++number_of_open_lateral_projection_nodes;
 
-            // if (projected_point[2] > 1.0) {
-            if (projected_point[2] > 0.35) {
+            if (projected_point[2] > 1.0) {
+            // if (projected_point[2] > 0.35) {
                 // current_gap_condition_name = "GapSbmLoadSolidCondition";
                 current_gap_condition_name =
                     "GapSbmEnhancedLoadSolidCondition";

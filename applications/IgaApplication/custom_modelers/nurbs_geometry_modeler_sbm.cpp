@@ -12,6 +12,8 @@
 //
 
 // Project includes
+#include <chrono>
+
 #include "nurbs_geometry_modeler_sbm.h"
 #include "custom_utilities/create_breps_sbm_utilities.h"
 #include "custom_processes/snake_sbm_process.h"
@@ -143,7 +145,11 @@ void NurbsGeometryModelerSbm::CreateAndAddRegularGrid2D(
 
     // Create the surrogate_sub_model_part for inner and outer
     SnakeSbmProcess snake_sbm_process(*mpModel, snake_parameters);
+    const auto snake_start_time = std::chrono::steady_clock::now();
     snake_sbm_process.Execute();
+    r_iga_model_part.SetValue(
+        SNAKE_SBM_EXECUTION_TIME,
+        std::chrono::duration<double>(std::chrono::steady_clock::now() - snake_start_time).count());
 
     // Create the breps for the outer sbm boundary
     CreateBrepsSbmUtilities<Node, Point, true> CreateBrepsSbmUtilities(mEchoLevel);
@@ -278,7 +284,11 @@ void NurbsGeometryModelerSbm::CreateAndAddRegularGrid3D(
     
     // Create the surrogate_sub_model_part for inner and outer
     SnakeSbmProcess snake_sbm_process(*mpModel, snake_parameters);
+    const auto snake_start_time = std::chrono::steady_clock::now();
     snake_sbm_process.Execute();
+    r_iga_model_part.SetValue(
+        SNAKE_SBM_EXECUTION_TIME,
+        std::chrono::duration<double>(std::chrono::steady_clock::now() - snake_start_time).count());
 
     // Create the breps for the outer sbm boundary
     CreateBrepsSbmUtilities<Node, Point> CreateBrepsSbmUtilities(mEchoLevel);
