@@ -330,7 +330,7 @@ public:
     {
         BaseType::BuildRightROMBasis();
     }
-    
+
     /**
      * Projects the reduced system of equations
      */
@@ -774,4 +774,3 @@ private:
 ///@}
 
 } /* namespace Kratos.*/
-
