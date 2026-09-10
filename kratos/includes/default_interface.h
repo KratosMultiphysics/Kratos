@@ -26,8 +26,10 @@
 // globally by the root CMakeLists.txt; never mix binaries compiled with
 // different KRATOS_LINEAR_ALGEBRA_BACKEND values.
 
-#ifdef KRATOS_USE_EIGEN_BACKEND
-#include "includes/eigen_interface.h"
-#else
+// WIP: TODO
+
+//#ifdef KRATOS_USE_EIGEN_BACKEND
+//#include "includes/eigen_interface.h"
+//#else
 #include "includes/ublas_interface.h"
-#endif
+//#endif
