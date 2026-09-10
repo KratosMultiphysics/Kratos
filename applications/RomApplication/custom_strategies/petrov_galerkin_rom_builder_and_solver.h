@@ -223,7 +223,9 @@ public:
             "name" : "petrov_galerkin_rom_builder_and_solver",
             "nodal_unknowns" : [],
             "number_of_rom_dofs" : 10,
-            "petrov_galerkin_number_of_rom_dofs" : 10
+            "petrov_galerkin_number_of_rom_dofs" : 10,
+            "weight_vector_index": 0,
+            "number_of_hrom_sets": 1
         })");
         default_parameters.AddMissingParameters(BaseType::GetDefaultParameters());
 

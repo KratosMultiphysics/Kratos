@@ -487,7 +487,9 @@ public:
                 "solving_technique" : "normal_equations",
                 "basis_strategy" : "residuals",
                 "monotonicity_preserving" : false
-            }
+            },
+            "weight_vector_index": 0,
+            "number_of_hrom_sets": 1
         })");
         default_parameters.AddMissingParameters(BaseType::GetDefaultParameters());
 
