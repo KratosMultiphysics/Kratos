@@ -90,7 +90,7 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
         ;
 
     typedef AnnPromGlobalROMBuilderAndSolver<SparseSpaceType, LocalSpaceType, LinearSolverType> AnnPromGlobalROMBuilderAndSolverType;
-    
+
     py::class_<AnnPromGlobalROMBuilderAndSolverType, typename AnnPromGlobalROMBuilderAndSolverType::Pointer, ResidualBasedBlockBuilderAndSolverType>(m, "AnnPromGlobalROMBuilderAndSolver")
     .def(py::init< LinearSolverType::Pointer, Parameters>() )
     .def("SetNumberOfROMModes", &AnnPromGlobalROMBuilderAndSolverType::SetNumberOfROMModes)
@@ -100,7 +100,7 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
     ;
 
     typedef AnnPromLeastSquaresPetrovGalerkinROMBuilderAndSolver<SparseSpaceType, LocalSpaceType, LinearSolverType> AnnPromLeastSquaresPetrovGalerkinROMBuilderAndSolverType;
-    
+
     py::class_<AnnPromLeastSquaresPetrovGalerkinROMBuilderAndSolverType, typename AnnPromLeastSquaresPetrovGalerkinROMBuilderAndSolverType::Pointer, ResidualBasedBlockBuilderAndSolverType>(m, "AnnPromLeastSquaresPetrovGalerkinROMBuilderAndSolver")
     .def(py::init< LinearSolverType::Pointer, Parameters>() )
     .def("SetNumberOfROMModes", &AnnPromLeastSquaresPetrovGalerkinROMBuilderAndSolverType::SetNumberOfROMModes)
