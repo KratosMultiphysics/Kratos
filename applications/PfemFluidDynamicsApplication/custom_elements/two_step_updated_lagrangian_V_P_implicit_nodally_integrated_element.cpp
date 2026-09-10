@@ -67,53 +67,9 @@ namespace Kratos
     {
       for (unsigned int i = 0; i < NumNodes; i++)
       {
-        // if(rGeom[i].FastGetSolutionStepValue(INTERFACE_NODE)==false){
-        //   VectorType solidNodalSFDneighbours=rGeom[i].FastGetSolutionStepValue(NODAL_SFD_NEIGHBOURS_ORDER);
-        //   unsigned int solidNodalSFDneighboursSize=solidNodalSFDneighbours.size();
-        //   // std::cout<<"SOLID_NODAL_SFD_NEIGHBOURS_ORDER) "<<rGeom[i].FastGetSolutionStepValue(SOLID_NODAL_SFD_NEIGHBOURS_ORDER)<<std::endl;
-
-        //   if(solidNodalSFDneighboursSize>1)
-        //   {
-        //     double& solidMeshSize = rGeom[i].FastGetSolutionStepValue(NODAL_MEAN_MESH_SIZE);
-        //     ElementWeakPtrVectorType& neighb_elems = rGeom[i].GetValue(NEIGHBOUR_ELEMENTS);
-        //     double numberOfNeighElems=double(neighb_elems.size());
-        //     solidMeshSize+=meanElementEdgesLength/numberOfNeighElems;
-
-        //     double solidNodalVolume=rGeom[i].FastGetSolutionStepValue(NODAL_VOLUME);
-
-        //     for (unsigned int j = 0; j< NumNodes; j++)
-        //     {
-        //         unsigned int idNodeOfConsideredElement=rGeom[j].Id();
-        //         unsigned int solidSFDposition=0;
-        //         for (unsigned int k = 0; k< solidNodalSFDneighboursSize; k++)
-        //         {
-        //           if(idNodeOfConsideredElement==solidNodalSFDneighbours[k])
-        //           {
-        //             rGeom[i].FastGetSolutionStepValue(NODAL_SFD_NEIGHBOURS)[solidSFDposition]   += rDN_DX(j,0)*elementVolume/solidNodalVolume;
-        //             rGeom[i].FastGetSolutionStepValue(NODAL_SFD_NEIGHBOURS)[solidSFDposition+1] += rDN_DX(j,1)*elementVolume/solidNodalVolume;
-        //             if constexpr (TDim==3){
-        //               rGeom[i].FastGetSolutionStepValue(NODAL_SFD_NEIGHBOURS)[solidSFDposition+2] += rDN_DX(j,2)*elementVolume/solidNodalVolume;
-        //             }
-        //             break;
-        //           }
-        //           solidSFDposition+=TDim;
-        //         }
-        //     }
-        //   }
-        //   else
-        //   {
-        //       std::cout<<rGeom[i].Id()<<"  this solid node is isolated!!! "<<std::endl;
-        //       for (unsigned int k = 0; k< TDim; k++)
-        //       {
-        //         rGeom[i].FastGetSolutionStepValue(SOLID_NODAL_DEFORMATION_GRAD)(k,k)=1.0;
-        //       }
-        //   }
-        // }
-        // else
-        // {
+        
         VectorType solidNodalSFDneighbours = rGeom[i].FastGetSolutionStepValue(SOLID_NODAL_SFD_NEIGHBOURS_ORDER);
         unsigned int solidNodalSFDneighboursSize = solidNodalSFDneighbours.size();
-        // std::cout<<"SOLID_NODAL_SFD_NEIGHBOURS_ORDER) "<<rGeom[i].FastGetSolutionStepValue(SOLID_NODAL_SFD_NEIGHBOURS_ORDER)<<std::endl;
 
         if (solidNodalSFDneighboursSize > 1)
         {
