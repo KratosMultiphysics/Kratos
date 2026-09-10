@@ -25,10 +25,10 @@
      inkscape:document-units="mm"
      inkscape:zoom="0.71891835"
      inkscape:cx="272.63179"
-     inkscape:cy="266.37239"
+     inkscape:cy="264.98141"
      inkscape:window-width="1920"
      inkscape:window-height="1009"
-     inkscape:window-x="-8"
+     inkscape:window-x="1912"
      inkscape:window-y="-8"
      inkscape:window-maximized="1"
      inkscape:current-layer="layer1" />
@@ -37,8 +37,8 @@
     <rect
        x="66.766968"
        y="325.48898"
-       width="143.27078"
-       height="50.07523"
+       width="48.490877"
+       height="16.750937"
        id="rect2" />
     <marker
        style="overflow:visible"
@@ -183,8 +183,8 @@
     <rect
        x="66.766968"
        y="325.48898"
-       width="143.27078"
-       height="50.07523"
+       width="77.026762"
+       height="15.837943"
        id="rect2-5" />
   </defs>
   <g
@@ -306,20 +306,24 @@
     </g>
     <text
        xml:space="preserve"
-       transform="matrix(0.72223678,0,0,0.8062038,33.532622,-186.0362)"
+       transform="matrix(0.72223678,0,0,0.8062038,35.7408,-185.82931)"
        id="text1"
-       style="text-align:start;writing-mode:lr-tb;direction:ltr;white-space:pre;shape-inside:url(#rect2);fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.944882;stroke-dasharray:none;stroke-opacity:1"><tspan
-         x="66.767578"
-         y="336.43625"
-         id="tspan3">Seepage</tspan></text>
+       style="font-size:11.0956px;text-align:start;writing-mode:lr-tb;direction:ltr;white-space:pre;shape-inside:url(#rect2);shape-padding:1.52871;display:inline;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.944882;stroke-dasharray:none;stroke-opacity:1"><tspan
+         x="68.296875"
+         y="337.14043"
+         id="tspan2"><tspan
+           style="font-family:Arial;-inkscape-font-specification:Arial"
+           id="tspan1">Seepage</tspan></tspan></text>
     <text
        xml:space="preserve"
        transform="matrix(0.72223678,0,0,0.8062038,82.285149,-13.900203)"
        id="text1-3"
-       style="text-align:start;writing-mode:lr-tb;direction:ltr;white-space:pre;shape-inside:url(#rect2-5);fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.944882;stroke-dasharray:none;stroke-opacity:1"><tspan
+       style="font-size:11.0956px;text-align:start;writing-mode:lr-tb;direction:ltr;white-space:pre;shape-inside:url(#rect2-5);display:inline;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.944882;stroke-dasharray:none;stroke-opacity:1"><tspan
          x="66.767578"
-         y="336.43625"
-         id="tspan4">Fixed pressure</tspan></text>
+         y="335.61113"
+         id="tspan6"><tspan
+           style="font-family:Arial;-inkscape-font-specification:Arial"
+           id="tspan3">Fixed pressure</tspan></tspan></text>
     <g
        id="g7">
       <path
@@ -342,17 +346,17 @@
        xml:space="preserve"
        style="font-size:9.80779px;font-family:Arial;-inkscape-font-specification:'Arial, Normal';text-align:start;writing-mode:lr-tb;direction:ltr;text-anchor:start;fill:#000000;fill-opacity:1;stroke:#000000;stroke-width:1.71342;stroke-dasharray:none;stroke-opacity:1"
        x="93.408089"
-       y="277.31555"
+       y="276.2572"
        id="text5-7"><tspan
          sodipodi:role="line"
          id="tspan5-8"
          style="stroke:none;stroke-width:1.71342"
          x="93.408089"
-         y="277.31555">1m</tspan><tspan
+         y="276.2572">1m</tspan><tspan
          sodipodi:role="line"
          style="stroke:none;stroke-width:1.71342"
          x="93.408089"
-         y="289.57529"
+         y="288.51694"
          id="tspan7" /></text>
     <path
        style="fill:none;fill-opacity:1;stroke:#000000;stroke-width:0.859457;stroke-dasharray:none;stroke-opacity:1;marker-start:url(#Triangle-18);marker-end:url(#Triangle-18)"

@@ -24,8 +24,8 @@
      inkscape:deskcolor="#d1d1d1"
      inkscape:document-units="mm"
      inkscape:zoom="0.71891835"
-     inkscape:cx="273.32728"
-     inkscape:cy="264.98141"
+     inkscape:cx="274.02277"
+     inkscape:cy="263.59043"
      inkscape:window-width="1920"
      inkscape:window-height="1009"
      inkscape:window-x="1912"
@@ -37,8 +37,8 @@
     <rect
        x="66.766968"
        y="325.48898"
-       width="143.27078"
-       height="50.07523"
+       width="47.991326"
+       height="16.184688"
        id="rect2" />
     <marker
        style="overflow:visible"
@@ -183,8 +183,8 @@
     <rect
        x="66.766968"
        y="325.48898"
-       width="143.27078"
-       height="50.07523"
+       width="49.510016"
+       height="14.468452"
        id="rect2-5" />
     <marker
        style="overflow:visible"
@@ -358,18 +358,22 @@
        xml:space="preserve"
        transform="matrix(0.72223678,0,0,0.8062038,33.532622,-186.0362)"
        id="text1"
-       style="text-align:start;writing-mode:lr-tb;direction:ltr;white-space:pre;shape-inside:url(#rect2);display:inline;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.944882;stroke-dasharray:none;stroke-opacity:1"><tspan
-         x="66.767578"
-         y="336.43625"
-         id="tspan1">Seepage</tspan></text>
+       style="font-size:11.0956px;text-align:start;writing-mode:lr-tb;direction:ltr;white-space:pre;shape-inside:url(#rect2);shape-padding:1.01914;display:inline;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.944882;stroke-dasharray:none;stroke-opacity:1"><tspan
+         x="67.787109"
+         y="336.63066"
+         id="tspan4"><tspan
+           style="font-family:Arial;-inkscape-font-specification:Arial"
+           id="tspan3">Seepage</tspan></tspan></text>
     <text
        xml:space="preserve"
        transform="matrix(0.72223678,0,0,0.8062038,82.285149,-13.900203)"
        id="text1-3"
-       style="text-align:start;writing-mode:lr-tb;direction:ltr;white-space:pre;shape-inside:url(#rect2-5);display:inline;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.944882;stroke-dasharray:none;stroke-opacity:1"><tspan
+       style="font-size:11.0956px;text-align:start;writing-mode:lr-tb;direction:ltr;white-space:pre;shape-inside:url(#rect2-5);display:inline;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.944882;stroke-dasharray:none;stroke-opacity:1"><tspan
          x="66.767578"
-         y="336.43625"
-         id="tspan2">Fixed flux</tspan></text>
+         y="335.61113"
+         id="tspan8"><tspan
+           style="font-family:Arial;-inkscape-font-specification:Arial"
+           id="tspan6">Fixed flux</tspan></tspan></text>
     <g
        id="g7">
       <path
@@ -392,17 +396,17 @@
        xml:space="preserve"
        style="font-size:9.80779px;font-family:Arial;-inkscape-font-specification:'Arial, Normal';text-align:start;writing-mode:lr-tb;direction:ltr;text-anchor:start;fill:#000000;fill-opacity:1;stroke:#000000;stroke-width:1.71342;stroke-dasharray:none;stroke-opacity:1"
        x="93.408089"
-       y="279.96143"
+       y="278.90308"
        id="text5-7"><tspan
          sodipodi:role="line"
          id="tspan5-8"
          style="stroke:none;stroke-width:1.71342"
          x="93.408089"
-         y="279.96143">1m</tspan><tspan
+         y="278.90308">1m</tspan><tspan
          sodipodi:role="line"
          style="stroke:none;stroke-width:1.71342"
          x="93.408089"
-         y="292.22116"
+         y="291.16281"
          id="tspan7" /></text>
     <path
        style="fill:none;fill-opacity:1;stroke:#000000;stroke-width:0.859457;stroke-dasharray:none;stroke-opacity:1;marker-start:url(#Triangle-18);marker-end:url(#Triangle-18)"
