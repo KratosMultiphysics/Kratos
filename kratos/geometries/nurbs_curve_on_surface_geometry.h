@@ -420,7 +420,7 @@ public:
             }
         } else rSpans = tempSpans;
         
-        KRATOS_ERROR_IF(rSpans.size()<2) << "ComputeAxisIntersectionSBM :: Wrong number of intersection found (<2)" << std::endl;
+        // KRATOS_ERROR_IF(rSpans.size()<2) << "ComputeAxisIntersectionSBM :: Wrong number of intersection found (<2)" << std::endl;
     }
 
     /* @brief Provides the nurbs boundaries of the NURBS/B-Spline curve.

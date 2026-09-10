@@ -113,6 +113,100 @@ namespace Kratos
         using BrepCurveType = BrepCurve<PointerVector<NodeType>, PointerVector<Point>>;
         using DeformedCurveGeometryType = NurbsCurveGeometry<3, PointerVector<NodeType>>;
 
+        const auto project_point_along_normal = [](
+            const CoordinatesArrayType& r_source_point,
+            const CoordinatesArrayType& r_source_normal,
+            const BrepCurveType& r_target_curve,
+            CoordinatesArrayType& r_projection_local,
+            CoordinatesArrayType& r_projection_global,
+            double& r_projection_distance_sq) {
+            const double direction_norm_sq = r_source_normal[0] * r_source_normal[0]
+                                           + r_source_normal[1] * r_source_normal[1];
+            if (direction_norm_sq <= std::numeric_limits<double>::epsilon()) {
+                return false;
+            }
+
+            GeometryPointerType p_parameter_curve = r_target_curve.pGetGeometryPart(
+                GeometryType::BACKGROUND_GEOMETRY_INDEX);
+
+            std::vector<double> spans;
+            if (p_parameter_curve) {
+                p_parameter_curve->SpansLocalSpace(spans);
+            } else {
+                r_target_curve.SpansLocalSpace(spans);
+            }
+            if (spans.size() < 2) {
+                return false;
+            }
+
+            constexpr double intersection_tolerance = 1.0e-10;
+            bool projection_found = false;
+            r_projection_distance_sq = std::numeric_limits<double>::max();
+
+            for (IndexType i_span = 0; i_span + 1 < spans.size(); ++i_span) {
+                const double t_0 = spans[i_span];
+                const double t_1 = spans[i_span + 1];
+                if (std::abs(t_1 - t_0) <= intersection_tolerance) {
+                    continue;
+                }
+
+                CoordinatesArrayType local_0 = ZeroVector(3);
+                CoordinatesArrayType local_1 = ZeroVector(3);
+                local_0[0] = t_0;
+                local_1[0] = t_1;
+
+                CoordinatesArrayType point_0 = ZeroVector(3);
+                CoordinatesArrayType point_1 = ZeroVector(3);
+                r_target_curve.GlobalCoordinates(point_0, local_0);
+                r_target_curve.GlobalCoordinates(point_1, local_1);
+
+                const CoordinatesArrayType segment = point_1 - point_0;
+                const CoordinatesArrayType offset = point_0 - r_source_point;
+                const double denominator = segment[0] * r_source_normal[1]
+                                         - segment[1] * r_source_normal[0];
+                const double line_residual = offset[0] * r_source_normal[1]
+                                           - offset[1] * r_source_normal[0];
+
+                double segment_coordinate = 0.0;
+                if (std::abs(denominator) <= intersection_tolerance) {
+                    if (std::abs(line_residual) > intersection_tolerance) {
+                        continue;
+                    }
+                    const double segment_norm_sq = segment[0] * segment[0]
+                                                 + segment[1] * segment[1];
+                    if (segment_norm_sq <= std::numeric_limits<double>::epsilon()) {
+                        continue;
+                    }
+                    segment_coordinate = -(
+                        offset[0] * segment[0] + offset[1] * segment[1]) / segment_norm_sq;
+                    segment_coordinate = std::max(0.0, std::min(1.0, segment_coordinate));
+                } else {
+                    segment_coordinate = -line_residual / denominator;
+                    if (segment_coordinate < -intersection_tolerance ||
+                        segment_coordinate > 1.0 + intersection_tolerance) {
+                        continue;
+                    }
+                    segment_coordinate = std::max(0.0, std::min(1.0, segment_coordinate));
+                }
+
+                CoordinatesArrayType local = ZeroVector(3);
+                local[0] = t_0 + segment_coordinate * (t_1 - t_0);
+                CoordinatesArrayType projection = ZeroVector(3);
+                r_target_curve.GlobalCoordinates(projection, local);
+
+                const CoordinatesArrayType distance = projection - r_source_point;
+                const double distance_sq = inner_prod(distance, distance);
+                if (distance_sq < r_projection_distance_sq) {
+                    projection_found = true;
+                    r_projection_distance_sq = distance_sq;
+                    r_projection_local = local;
+                    r_projection_global = projection;
+                }
+            }
+
+            return projection_found;
+        };
+
         ModelPart& r_slave_contact = mrSlaveModelPart->GetSubModelPart("contact");
 
         // Build bins for slave contact geometries based on deformed brep centers.
@@ -222,9 +316,7 @@ namespace Kratos
 
         const Vector master_knot_step_uv = mrMasterModelPart->GetParentModelPart().GetValue(KNOT_SPAN_SIZES);
         const double projection_distance_limit = master_knot_step_uv[0] * 2.0;
-        const double projection_distance_fallback = master_knot_step_uv[0] / 2.0;
         const double projection_distance_limit_sq = projection_distance_limit * projection_distance_limit;
-        const double projection_distance_fallback_sq = projection_distance_fallback * projection_distance_fallback;
 
         array_1d<double, 3> slave_min_coords;
         array_1d<double, 3> slave_max_coords;
@@ -268,6 +360,52 @@ namespace Kratos
             master_query_coordinates[2] = center.Z();
 
             IgaSbmUtilities::GetDeformedPosition(r_master_condition, master_query_coordinates);
+
+            CoordinatesArrayType master_normal_reference =
+                r_master_condition.GetGeometry().Normal(
+                    0, r_master_condition.GetIntegrationMethod());
+            const double master_normal_reference_norm = norm_2(master_normal_reference);
+            if (master_normal_reference_norm <= std::numeric_limits<double>::epsilon()) {
+                continue;
+            }
+            master_normal_reference /= master_normal_reference_norm;
+
+            CoordinatesArrayType master_tangent_reference = ZeroVector(3);
+            master_tangent_reference[0] = -master_normal_reference[1];
+            master_tangent_reference[1] = master_normal_reference[0];
+
+            const double tangent_probe_distance = std::max(
+                1.0e-8, projection_distance_limit * 1.0e-6);
+            const CoordinatesArrayType master_point_reference = center.Coordinates();
+            const CoordinatesArrayType master_point_minus_reference =
+                master_point_reference - tangent_probe_distance * master_tangent_reference;
+            const CoordinatesArrayType master_point_plus_reference =
+                master_point_reference + tangent_probe_distance * master_tangent_reference;
+            CoordinatesArrayType master_point_minus_deformed = ZeroVector(3);
+            CoordinatesArrayType master_point_plus_deformed = ZeroVector(3);
+            IgaSbmUtilities::GetDeformedPosition(
+                r_master_condition,
+                master_point_minus_reference,
+                master_point_minus_deformed);
+            IgaSbmUtilities::GetDeformedPosition(
+                r_master_condition,
+                master_point_plus_reference,
+                master_point_plus_deformed);
+
+            CoordinatesArrayType master_tangent_deformed =
+                master_point_plus_deformed - master_point_minus_deformed;
+            const double master_tangent_deformed_norm = norm_2(master_tangent_deformed);
+            if (master_tangent_deformed_norm <= std::numeric_limits<double>::epsilon()) {
+                continue;
+            }
+            master_tangent_deformed /= master_tangent_deformed_norm;
+
+            CoordinatesArrayType master_normal_deformed = ZeroVector(3);
+            master_normal_deformed[0] = master_tangent_deformed[1];
+            master_normal_deformed[1] = -master_tangent_deformed[0];
+            if (inner_prod(master_normal_reference, master_normal_deformed) < 0.0) {
+                master_normal_deformed *= -1.0;
+            }
             
             PointType master_query_point(
                 0,
@@ -358,32 +496,18 @@ namespace Kratos
                     << " is not a BrepCurve." << std::endl;
 
                 CoordinatesArrayType projection_local = ZeroVector(3);
-                if (const auto p_background_curve = p_slave_brep_curve->pGetGeometryPart(GeometryType::BACKGROUND_GEOMETRY_INDEX)) {
-                    std::vector<double> curve_spans;
-                    p_background_curve->SpansLocalSpace(curve_spans);
-                    if (!curve_spans.empty()) {
-                        projection_local[0] = 0.5 * (curve_spans.front() + curve_spans.back());
-                    }
-                }
-
-                const int is_projected = p_slave_brep_curve->ProjectionPointGlobalToLocalSpace(
-                    r_master_coords, projection_local);
                 CoordinatesArrayType projection_global = ZeroVector(3);
-                p_slave_brep_curve->GlobalCoordinates(projection_global, projection_local);
-                const double dx = projection_global[0] - r_master_coords[0];
-                const double dy = projection_global[1] - r_master_coords[1];
-                const double dz = projection_global[2] - r_master_coords[2];
-                const double projection_distance_sq = dx*dx + dy*dy + dz*dz;
-
-                // if (is_projected == 0) {
-                //     if (projection_distance_sq >= projection_distance_fallback_sq) {
-                //         continue;
-                //     }
-                // } else {
-                    if (projection_distance_sq > projection_distance_limit_sq) {
-                        continue;
-                    }
-                // }
+                double projection_distance_sq = std::numeric_limits<double>::max();
+                const bool is_projected = project_point_along_normal(
+                    r_master_coords,
+                    master_normal_deformed,
+                    *p_slave_brep_curve,
+                    projection_local,
+                    projection_global,
+                    projection_distance_sq);
+                if (!is_projected || projection_distance_sq > projection_distance_limit_sq) {
+                    continue;
+                }
 
                 if (projection_distance_sq < best_projection_distance_sq) {
                     best_projection_distance_sq = projection_distance_sq;
@@ -405,13 +529,13 @@ namespace Kratos
                 best_projection_reference_global[1],
                 best_projection_reference_global[2]);
 
-            if (p_best_slave_brep_curve) {
+            if (p_best_reference_slave_brep_curve) {
                 Matrix jacobian = ZeroMatrix(3, 1);
                 if (const auto p_background_curve =
-                        p_best_slave_brep_curve->pGetGeometryPart(GeometryType::BACKGROUND_GEOMETRY_INDEX)) {
+                        p_best_reference_slave_brep_curve->pGetGeometryPart(GeometryType::BACKGROUND_GEOMETRY_INDEX)) {
                     p_background_curve->Jacobian(jacobian, best_projection_local);
                 } else {
-                    p_best_slave_brep_curve->Jacobian(jacobian, best_projection_local);
+                    p_best_reference_slave_brep_curve->Jacobian(jacobian, best_projection_local);
                 }
 
                 const double tx = jacobian(0, 0);
@@ -426,7 +550,7 @@ namespace Kratos
                     KRATOS_WARNING("IgaContactProcessGapSbm")
                         << "Zero tangential norm when computing normal at projection local "
                         << best_projection_local << " on brep geometry id "
-                        << p_best_slave_brep_curve->Id() << std::endl;
+                        << p_best_reference_slave_brep_curve->Id() << std::endl;
                 }
 
                 p_slave_projection_node->SetValue(NORMAL, normal);

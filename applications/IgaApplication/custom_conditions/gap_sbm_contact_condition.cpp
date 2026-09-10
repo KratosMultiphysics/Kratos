@@ -54,6 +54,24 @@ void GapSbmContactCondition::InitializeMaterial()
             N_sum_vec);
         mpConstitutiveLaw = GetProperties()[CONSTITUTIVE_LAW]->Clone();
         mpConstitutiveLaw->InitializeMaterial( r_properties, r_geometry, N_sum_vec);
+
+        const auto& r_slave_properties = GetSlaveMaterialProperties();
+        KRATOS_ERROR_IF_NOT(r_slave_properties.Has(CONSTITUTIVE_LAW))
+            << "\"GapSbmContactCondition\" #" << Id()
+            << " missing CONSTITUTIVE_LAW in the slave properties." << std::endl;
+
+        const auto& r_skin_node_slave = *pGetProjectionNode();
+        const auto& r_surrogate_geometry_slave =
+            *r_skin_node_slave.GetValue(NEIGHBOUR_GEOMETRIES)[0];
+        Vector N_sum_vec_slave = ZeroVector(r_surrogate_geometry_slave.size());
+        ComputeTaylorExpansionContribution(
+            r_surrogate_geometry_slave,
+            mDistanceVectorSkinReferenceSlave,
+            mBasisFunctionsOrderSlave,
+            N_sum_vec_slave);
+        mpSlaveConstitutiveLaw = r_slave_properties[CONSTITUTIVE_LAW]->Clone();
+        mpSlaveConstitutiveLaw->InitializeMaterial(
+            r_slave_properties, r_surrogate_geometry_slave, N_sum_vec_slave);
     } else
         KRATOS_ERROR << "A constitutive law needs to be specified for the element with ID " << this->Id() << std::endl;
 
@@ -1132,7 +1150,14 @@ void GapSbmContactCondition::InitializeSolutionStep(const ProcessInfo& rCurrentP
         GetSurrogateGeometry(), GetProperties(), rCurrentProcessInfo);
 
     mpConstitutiveLaw->InitializeMaterialResponse(constitutive_law_parameters, ConstitutiveLaw::StressMeasure_Cauchy);
-    SetValue(ACTIVATION_LEVEL, 0);  
+
+    const auto& r_skin_node_slave = *pGetProjectionNode();
+    const auto& r_surrogate_geometry_slave = *r_skin_node_slave.GetValue(NEIGHBOUR_GEOMETRIES)[0];
+    ConstitutiveLaw::Parameters slave_constitutive_law_parameters(
+        r_surrogate_geometry_slave, GetSlaveMaterialProperties(), rCurrentProcessInfo);
+    mpSlaveConstitutiveLaw->InitializeMaterialResponse(
+        slave_constitutive_law_parameters, ConstitutiveLaw::StressMeasure_Cauchy);
+    SetValue(ACTIVATION_LEVEL, 0);
 
 
     // //FIXME: REMOVE
@@ -1248,13 +1273,63 @@ void GapSbmContactCondition::InitializeNonLinearIteration(const ProcessInfo& rCu
     Vector strain_vector_slave = prod(B_sum_slave, coefficient_slave);
     this->SetValue(STRAIN_SLAVE, strain_vector_slave);
 
-    ConstitutiveLaw::Parameters values_slave(r_surrogate_geometry_slave, GetProperties(), rCurrentProcessInfo);
-    ConstitutiveVariables constitutive_variables_slave(mpConstitutiveLaw->GetStrainSize());
-    ApplyConstitutiveLaw(dim * number_of_nodes_slave, strain_vector_slave, values_slave, constitutive_variables_slave);
+    const auto& r_slave_properties = GetSlaveMaterialProperties();
+    ConstitutiveLaw::Parameters values_slave(
+        r_surrogate_geometry_slave, r_slave_properties, rCurrentProcessInfo);
+    ConstitutiveVariables constitutive_variables_slave(mpSlaveConstitutiveLaw->GetStrainSize());
+    Flags& r_slave_options = values_slave.GetOptions();
+    r_slave_options.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
+    r_slave_options.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
+    r_slave_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
+    values_slave.SetStrainVector(strain_vector_slave);
+    values_slave.SetStressVector(constitutive_variables_slave.StressVector);
+    values_slave.SetConstitutiveMatrix(constitutive_variables_slave.D);
+    mpSlaveConstitutiveLaw->CalculateMaterialResponse(
+        values_slave, ConstitutiveLaw::StressMeasure_Cauchy);
     this->SetValue(STRESS_SLAVE, values_slave.GetStressVector());
+    
 
     SetGap();
     UpdateContactPressure(values_master.GetStressVector());
+
+    // const auto calculate_normal_stress = [](
+    //     const Vector& rStress,
+    //     const array_1d<double, 3>& rNormal) {
+    //     return rStress[0] * rNormal[0] * rNormal[0]
+    //          + 2.0 * rStress[2] * rNormal[0] * rNormal[1]
+    //          + rStress[1] * rNormal[1] * rNormal[1];
+    // };
+
+    // const double sigma_nn_master = calculate_normal_stress(
+    //     values_master.GetStressVector(), mNormalPhysicalSpaceMaster);
+    // const double sigma_nn_slave = calculate_normal_stress(
+    //     values_slave.GetStressVector(), mNormalPhysicalSpaceSlave);
+    // const double normal_gap = -inner_prod(
+    //     GetValue(GAP), mNormalPhysicalSpaceMaster);
+    // const double gamma_gap =
+    //     GetValue(NITSCHE_STABILIZATION_FACTOR) * normal_gap;
+
+    // KRATOS_INFO_IF(
+    //     "GapSbmContactCondition",
+    //     GetValue(ACTIVATION_LEVEL) > 0)
+    //     << "Condition #" << Id()
+    //     << ", activation_level_before_criteria=" << GetValue(ACTIVATION_LEVEL)
+    //     << "\n  skin_master=" << GetValue(SKIN_MASTER_COORDINATES)
+    //     << ", skin_slave=" << GetValue(SKIN_SLAVE_COORDINATES)
+    //     << "\n  gap=" << GetValue(GAP)
+    //     << "\n  normal_master=" << mNormalPhysicalSpaceMaster
+    //     << ", normal_slave=" << mNormalPhysicalSpaceSlave
+    //     << "\n  strain_master=" << strain_vector_master
+    //     << ", stress_master=" << values_master.GetStressVector()
+    //     << "\n  strain_slave=" << strain_vector_slave
+    //     << ", stress_slave=" << values_slave.GetStressVector()
+    //     << "\n  sigma_nn_master=" << sigma_nn_master
+    //     << ", sigma_nn_slave=" << sigma_nn_slave
+    //     << ", normal_gap=" << normal_gap
+    //     << ", gamma=" << GetValue(NITSCHE_STABILIZATION_FACTOR)
+    //     << ", gamma_gap=" << gamma_gap
+    //     << ", contact_pressure=" << GetValue(CONTACT_PRESSURE)
+    //     << std::endl;
 }
 
 void GapSbmContactCondition::FinalizeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo)

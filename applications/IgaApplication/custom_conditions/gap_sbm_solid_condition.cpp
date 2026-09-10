@@ -537,11 +537,6 @@ void GapSbmSolidCondition::CalculateRightHandSide(
 
     void GapSbmSolidCondition::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
     {
-        ConstitutiveLaw::Parameters constitutive_law_parameters(
-            GetGeometry(), GetProperties(), rCurrentProcessInfo);
-
-        mpConstitutiveLaw->FinalizeMaterialResponse(constitutive_law_parameters, ConstitutiveLaw::StressMeasure_Cauchy);
-
         //---------- SET STRESS VECTOR VALUE ----------------------------------------------------------------
         //TODO: build a CalculateOnIntegrationPoints method
         //--------------------------------------------------------------------------------------------
@@ -570,6 +565,7 @@ void GapSbmSolidCondition::CalculateRightHandSide(
         const std::size_t strain_size_true = mpConstitutiveLaw->GetStrainSize();
         ConstitutiveVariables this_constitutive_variables_true(strain_size_true);
         ApplyConstitutiveLaw(mat_size, old_strain_on_true, values_true, this_constitutive_variables_true);
+        mpConstitutiveLaw->FinalizeMaterialResponse(values_true, ConstitutiveLaw::StressMeasure_Cauchy);
 
         const Vector sigma = values_true.GetStressVector();
         Vector sigma_n(2);

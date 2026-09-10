@@ -361,11 +361,6 @@ Element::IntegrationMethod SolidElement::GetIntegrationMethod() const
 
 void SolidElement::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
 {
-    ConstitutiveLaw::Parameters constitutive_law_parameters(
-        GetGeometry(), GetProperties(), rCurrentProcessInfo);
-
-    mpConstitutiveLaw->FinalizeMaterialResponse(constitutive_law_parameters, ConstitutiveLaw::StressMeasure_Cauchy);
-
     // compute and set stress solution at the integration point
     const auto& r_geometry = GetGeometry();
     const SizeType number_of_control_points = r_geometry.size();
@@ -421,12 +416,20 @@ void SolidElement::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
     Values.SetStressVector(this_constitutive_variables.StressVector);
     Values.SetConstitutiveMatrix(this_constitutive_variables.D);
     mpConstitutiveLaw->CalculateMaterialResponse(Values, ConstitutiveLaw::StressMeasure_Cauchy);
+    mpConstitutiveLaw->FinalizeMaterialResponse(Values, ConstitutiveLaw::StressMeasure_Cauchy);
 
     const Vector sigma = Values.GetStressVector();
 
     SetValue(CAUCHY_STRESS_XX, sigma[0]);
     SetValue(CAUCHY_STRESS_YY, sigma[1]);
     SetValue(CAUCHY_STRESS_XY, sigma[2]);
+
+    Matrix green_lagrange_strain_tensor = ZeroMatrix(2, 2);
+    green_lagrange_strain_tensor(0, 0) = old_strain[0];
+    green_lagrange_strain_tensor(1, 1) = old_strain[1];
+    green_lagrange_strain_tensor(0, 1) = 0.5 * old_strain[2];
+    green_lagrange_strain_tensor(1, 0) = 0.5 * old_strain[2];
+    SetValue(GREEN_LAGRANGE_STRAIN_TENSOR, green_lagrange_strain_tensor);
     // //---------------------
 }
 
@@ -453,12 +456,29 @@ void SolidElement::CalculateOnIntegrationPoints(
         rOutput.resize(r_integration_points.size());
     }
 
-    if (mpConstitutiveLaw->Has(rVariable)) {
-        mpConstitutiveLaw->GetValue(rVariable, rOutput[0]);
-    } else {
-        KRATOS_WATCH(rVariable);
-        KRATOS_WARNING("VARIABLE PRINT STILL NOT IMPLEMENTED N THE IGA FRAMEWORK");
-    }
+    ConstitutiveLaw::Parameters values(r_geometry, GetProperties(), rCurrentProcessInfo);
+    Flags& r_options = values.GetOptions();
+    r_options.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
+    r_options.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
+    r_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
+
+    const Matrix& r_strain_tensor = GetValue(GREEN_LAGRANGE_STRAIN_TENSOR);
+    Vector strain_vector(3);
+    strain_vector[0] = r_strain_tensor(0, 0);
+    strain_vector[1] = r_strain_tensor(1, 1);
+    strain_vector[2] = 2.0 * r_strain_tensor(0, 1);
+
+    Vector stress_vector(3);
+    stress_vector[0] = GetValue(CAUCHY_STRESS_XX);
+    stress_vector[1] = GetValue(CAUCHY_STRESS_YY);
+    stress_vector[2] = GetValue(CAUCHY_STRESS_XY);
+    Matrix constitutive_matrix = ZeroMatrix(3, 3);
+
+    values.SetStrainVector(strain_vector);
+    values.SetStressVector(stress_vector);
+    values.SetConstitutiveMatrix(constitutive_matrix);
+    ConstitutiveLaw::Pointer p_output_constitutive_law = mpConstitutiveLaw->Clone();
+    p_output_constitutive_law->CalculateValue(values, rVariable, rOutput[0]);
 }
 void SolidElement::CalculateOnIntegrationPoints(
         const Variable<array_1d<double, 3 >>& rVariable,

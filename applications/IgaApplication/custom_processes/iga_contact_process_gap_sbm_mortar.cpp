@@ -24,7 +24,6 @@
 #include "includes/define.h"
 #include "integration/integration_point_utilities.h"
 #include "spatial_containers/bins_dynamic.h"
-#include "utilities/intersection_utilities.h"
 #include "utilities/entities_utilities.h"
 
 namespace Kratos
@@ -139,7 +138,6 @@ struct MortarDebugStats
     std::size_t SlaveProjectionSucceeded = 0;
 
     std::size_t SlaveCurvesVisited = 0;
-    std::size_t SlaveCurvesRejectedByEndpointNormal = 0;
     std::size_t SlaveCurvesRejectedByEndpointProjection = 0;
 
     std::size_t MissingIntervalsVisited = 0;
@@ -290,136 +288,99 @@ std::vector<double> BuildClippedCurveSpans(
     const double IntervalBegin,
     const double IntervalEnd);
 
-bool ProjectPointOntoCurveAlongNormal(
-    const CoordinatesArrayType& rSlavePointDeformed,
-    const array_1d<double, 3>& rSlaveNormal,
-    const CurveData& rMasterCurve,
+bool ProjectPointOntoCurveAlongDirection(
+    const CoordinatesArrayType& rSourcePoint,
+    const array_1d<double, 3>& rSourceDirection,
+    const GeometryType& rTargetCurve,
     const double ProjectionDistanceLimitSquared,
-    EndpointProjectionData& rBestProjection)
+    double& rProjectedParameter,
+    CoordinatesArrayType& rProjectedPoint,
+    double& rDistanceSquared)
 {
-    rBestProjection = EndpointProjectionData();
-
-    if (norm_2(rSlaveNormal) <= normal_tolerance) {
+    const double direction_norm = norm_2(rSourceDirection);
+    if (direction_norm <= normal_tolerance) {
         return false;
     }
+    const array_1d<double, 3> direction = rSourceDirection / direction_norm;
 
-    double master_domain_begin = 0.0;
-    double master_domain_end = 0.0;
-    KRATOS_ERROR_IF_NOT(GetCurveDomain(*rMasterCurve.pDeformedCurve, master_domain_begin, master_domain_end))
-        << "::[IgaContactProcessGapSbmMortar]:: Could not retrieve master deformed domain."
+    double target_domain_begin = 0.0;
+    double target_domain_end = 0.0;
+    KRATOS_ERROR_IF_NOT(GetCurveDomain(rTargetCurve, target_domain_begin, target_domain_end))
+        << "::[IgaContactProcessGapSbmMortar]:: Could not retrieve target curve domain."
         << std::endl;
 
-    const auto master_spans = BuildClippedCurveSpans(
-        *rMasterCurve.pDeformedCurve,
-        master_domain_begin,
-        master_domain_end);
-
-    if (master_spans.size() < 2) {
+    const auto target_spans = BuildClippedCurveSpans(
+        rTargetCurve,
+        target_domain_begin,
+        target_domain_end);
+    if (target_spans.size() < 2) {
         return false;
     }
 
-    CoordinatesArrayType ray_direction = rSlaveNormal;
-    const auto master_center = rMasterCurve.pDeformedCurve->Center().Coordinates();
-    if (inner_prod(master_center - rSlavePointDeformed, ray_direction) < 0.0) {
-        ray_direction *= -1.0;
+    constexpr double line_tolerance = 1.0e-10;
+    constexpr int max_iterations = 50;
+    bool projection_found = false;
+    rDistanceSquared = std::numeric_limits<double>::max();
+
+    for (std::size_t i_span = 0; i_span + 1 < target_spans.size(); ++i_span) {
+        const double span_begin = target_spans[i_span];
+        const double span_end = target_spans[i_span + 1];
+
+        for (int i_guess = 0; i_guess < 3; ++i_guess) {
+            double parameter = span_begin + (span_end - span_begin) * 0.5 * i_guess;
+            CoordinatesArrayType target_point = ZeroVector(3);
+            bool converged = false;
+
+            for (int iteration = 0; iteration < max_iterations; ++iteration) {
+                target_point = EvaluateCurvePoint(rTargetCurve, parameter);
+                const auto offset = target_point - rSourcePoint;
+                const double residual = offset[0] * direction[1] - offset[1] * direction[0];
+                if (std::abs(residual) <= line_tolerance) {
+                    converged = true;
+                    break;
+                }
+
+                Matrix jacobian = ZeroMatrix(3, 1);
+                const auto local_coordinates = MakeLocalCoordinate(parameter);
+                if (rTargetCurve.HasGeometryPart(GeometryType::BACKGROUND_GEOMETRY_INDEX)) {
+                    rTargetCurve.pGetGeometryPart(GeometryType::BACKGROUND_GEOMETRY_INDEX)->Jacobian(
+                        jacobian, local_coordinates);
+                } else {
+                    rTargetCurve.Jacobian(jacobian, local_coordinates);
+                }
+
+                const double derivative =
+                    jacobian(0, 0) * direction[1] - jacobian(1, 0) * direction[0];
+                if (std::abs(derivative) <= normal_tolerance) {
+                    break;
+                }
+
+                parameter -= residual / derivative;
+                if (parameter < span_begin - parameter_tolerance ||
+                    parameter > span_end + parameter_tolerance) {
+                    break;
+                }
+                parameter = std::max(span_begin, std::min(span_end, parameter));
+            }
+
+            if (!converged) {
+                continue;
+            }
+
+            target_point = EvaluateCurvePoint(rTargetCurve, parameter);
+            const auto distance = target_point - rSourcePoint;
+            const double distance_squared = inner_prod(distance, distance);
+            if (distance_squared <= ProjectionDistanceLimitSquared &&
+                distance_squared < rDistanceSquared) {
+                projection_found = true;
+                rProjectedParameter = parameter;
+                rProjectedPoint = target_point;
+                rDistanceSquared = distance_squared;
+            }
+        }
     }
 
-    const double ray_length = norm_2(master_center - rSlavePointDeformed) + 2.0 * std::sqrt(ProjectionDistanceLimitSquared) + 1.0e-8;
-    const CoordinatesArrayType ray_end = rSlavePointDeformed + ray_direction * ray_length;
-
-    const auto try_accept_intersection = [
-        &rSlavePointDeformed,
-        &ray_direction,
-        ProjectionDistanceLimitSquared,
-        &rMasterCurve,
-        &rBestProjection](
-            const CoordinatesArrayType& rIntersectionPoint,
-            const double MasterDeformedParameter,
-            const double DistanceSquared) {
-        if (DistanceSquared >= rBestProjection.DistanceSquared) {
-            return;
-        }
-
-        const auto ray_vector = rIntersectionPoint - rSlavePointDeformed;
-        const double distance_along_ray = inner_prod(ray_vector, ray_direction);
-        if (distance_along_ray < -parameter_tolerance) {
-            return;
-        }
-
-        double master_reference_parameter = 0.0;
-        CoordinatesArrayType master_reference_point = ZeroVector(3);
-        double consistency_distance_sq = 0.0;
-        MapDeformedPointToReferenceCurve(
-            *rMasterCurve.pReferenceCurve,
-            rMasterCurve.ReferenceGeometries,
-            MasterDeformedParameter,
-            rIntersectionPoint,
-            master_reference_parameter,
-            master_reference_point,
-            consistency_distance_sq);
-
-        if (consistency_distance_sq > ProjectionDistanceLimitSquared) {
-            return;
-        }
-
-        rBestProjection.IsValid = true;
-        rBestProjection.pMasterCurve = &rMasterCurve;
-        rBestProjection.MasterDeformedParameter = MasterDeformedParameter;
-        rBestProjection.MasterReferenceParameter = master_reference_parameter;
-        rBestProjection.MasterDeformedPoint = rIntersectionPoint;
-        rBestProjection.MasterReferencePoint = master_reference_point;
-        rBestProjection.DistanceSquared = DistanceSquared;
-    };
-
-    for (std::size_t i_span = 0; i_span + 1 < master_spans.size(); ++i_span) {
-        const double span_begin = master_spans[i_span];
-        const double span_end = master_spans[i_span + 1];
-
-        const CoordinatesArrayType segment_begin = EvaluateCurvePoint(*rMasterCurve.pDeformedCurve, span_begin);
-        const CoordinatesArrayType segment_end = EvaluateCurvePoint(*rMasterCurve.pDeformedCurve, span_end);
-
-        CoordinatesArrayType intersection_point = ZeroVector(3);
-        const int intersection_type = IntersectionUtilities::ComputeLineLineIntersection(
-            rSlavePointDeformed,
-            ray_end,
-            segment_begin,
-            segment_end,
-            intersection_point);
-
-        if (intersection_type == 0) {
-            continue;
-        }
-
-        if (intersection_type == 2) {
-            try_accept_intersection(
-                segment_begin,
-                span_begin,
-                inner_prod(segment_begin - rSlavePointDeformed, segment_begin - rSlavePointDeformed));
-            try_accept_intersection(
-                segment_end,
-                span_end,
-                inner_prod(segment_end - rSlavePointDeformed, segment_end - rSlavePointDeformed));
-            continue;
-        }
-
-        const auto segment_vector = segment_end - segment_begin;
-        const double segment_length_sq = inner_prod(segment_vector, segment_vector);
-        if (segment_length_sq <= normal_tolerance) {
-            continue;
-        }
-
-        double segment_alpha = inner_prod(intersection_point - segment_begin, segment_vector) / segment_length_sq;
-        segment_alpha = std::max(0.0, std::min(1.0, segment_alpha));
-
-        const double master_deformed_parameter = span_begin + segment_alpha * (span_end - span_begin);
-        const double distance_squared = inner_prod(
-            intersection_point - rSlavePointDeformed,
-            intersection_point - rSlavePointDeformed);
-
-        try_accept_intersection(intersection_point, master_deformed_parameter, distance_squared);
-    }
-
-    return rBestProjection.IsValid;
+    return projection_found;
 }
 
 bool ComputeCurveNormal(
@@ -566,7 +527,6 @@ void SearchNearestCurveCenterCandidates(
 
 bool FindBestMasterProjectionForSlavePoint(
     const CoordinatesArrayType& rSlavePointDeformed,
-    const array_1d<double, 3>& rSlaveNormal,
     const CurveData& rSlaveCurve,
     const std::vector<CurveData>& rMasterCurveData,
     DynamicBins& rMasterBins,
@@ -614,27 +574,66 @@ bool FindBestMasterProjectionForSlavePoint(
             continue;
         }
 
-        EndpointProjectionData candidate_projection;
-        if (!ProjectPointOntoCurveAlongNormal(
-                rSlavePointDeformed,
-                rSlaveNormal,
-                r_master_curve,
-                ProjectionDistanceLimitSquared,
-                candidate_projection)) {
+        double master_domain_begin = 0.0;
+        double master_domain_end = 0.0;
+        KRATOS_ERROR_IF_NOT(GetCurveDomain(
+            *r_master_curve.pDeformedCurve,
+            master_domain_begin,
+            master_domain_end));
+
+        double master_parameter = 0.5 * (master_domain_begin + master_domain_end);
+        CoordinatesArrayType master_projection = ZeroVector(3);
+        double distance_squared = 0.0;
+        int is_inside = 0;
+        ProjectPointOntoCurve(
+            *r_master_curve.pDeformedCurve,
+            rSlavePointDeformed,
+            master_parameter,
+            master_parameter,
+            master_projection,
+            distance_squared,
+            is_inside);
+
+        if (is_inside == 0 || distance_squared > ProjectionDistanceLimitSquared) {
             if (pDebugStats != nullptr) {
                 ++pDebugStats->MasterProjectionRejectedByProjection;
             }
             continue;
         }
 
-        if (candidate_projection.DistanceSquared >= rBestProjection.DistanceSquared) {
+        double master_reference_parameter = 0.0;
+        CoordinatesArrayType master_reference_point = ZeroVector(3);
+        double consistency_distance_sq = 0.0;
+        MapDeformedPointToReferenceCurve(
+            *r_master_curve.pReferenceCurve,
+            r_master_curve.ReferenceGeometries,
+            master_parameter,
+            master_projection,
+            master_reference_parameter,
+            master_reference_point,
+            consistency_distance_sq);
+
+        if (consistency_distance_sq > ProjectionDistanceLimitSquared) {
+            if (pDebugStats != nullptr) {
+                ++pDebugStats->MasterProjectionRejectedByProjection;
+            }
+            continue;
+        }
+
+        if (distance_squared >= rBestProjection.DistanceSquared) {
             if (pDebugStats != nullptr) {
                 ++pDebugStats->MasterProjectionRejectedByDistanceOrdering;
             }
             continue;
         }
 
-        rBestProjection = candidate_projection;
+        rBestProjection.IsValid = true;
+        rBestProjection.pMasterCurve = &r_master_curve;
+        rBestProjection.MasterDeformedParameter = master_parameter;
+        rBestProjection.MasterReferenceParameter = master_reference_parameter;
+        rBestProjection.MasterDeformedPoint = master_projection;
+        rBestProjection.MasterReferencePoint = master_reference_point;
+        rBestProjection.DistanceSquared = distance_squared;
     }
 
     if (pDebugStats != nullptr && rBestProjection.IsValid) {
@@ -646,6 +645,7 @@ bool FindBestMasterProjectionForSlavePoint(
 
 bool FindBestSlaveProjectionForMasterPoint(
     const CoordinatesArrayType& rMasterPointDeformed,
+    const array_1d<double, 3>& rMasterNormalDeformed,
     const CurveData& rMasterCurve,
     const std::vector<CurveData>& rSlaveCurveData,
     DynamicBins& rSlaveBins,
@@ -693,27 +693,19 @@ bool FindBestSlaveProjectionForMasterPoint(
             continue;
         }
 
-        double slave_domain_begin = 0.0;
-        double slave_domain_end = 0.0;
-        KRATOS_ERROR_IF_NOT(GetCurveDomain(*r_slave_curve.pDeformedCurve, slave_domain_begin, slave_domain_end))
-            << "::[IgaContactProcessGapSbmMortar]:: Could not retrieve slave deformed domain."
-            << std::endl;
-
-        double slave_parameter = 0.5 * (slave_domain_begin + slave_domain_end);
+        double slave_parameter = 0.0;
         CoordinatesArrayType slave_projection = ZeroVector(3);
         double distance_squared = 0.0;
-        int is_inside = 0;
-        ProjectPointOntoCurve(
-            *r_slave_curve.pDeformedCurve,
+        const bool is_projected = ProjectPointOntoCurveAlongDirection(
             rMasterPointDeformed,
-            slave_parameter,
+            rMasterNormalDeformed,
+            *r_slave_curve.pDeformedCurve,
+            ProjectionDistanceLimitSquared,
             slave_parameter,
             slave_projection,
-            distance_squared,
-            is_inside);
+            distance_squared);
 
-        if (is_inside == 0 || distance_squared > ProjectionDistanceLimitSquared ||
-            distance_squared >= rBestProjection.DistanceSquared) {
+        if (!is_projected || distance_squared >= rBestProjection.DistanceSquared) {
             if (pDebugStats != nullptr) {
                 ++pDebugStats->SlaveProjectionRejectedByProjection;
             }
@@ -1109,47 +1101,43 @@ bool BuildOverlapDataFromMasterSegment(
         return false;
     }
 
-    double slave_domain_begin = 0.0;
-    double slave_domain_end = 0.0;
-    KRATOS_ERROR_IF_NOT(GetCurveDomain(rSlaveDeformedCurve, slave_domain_begin, slave_domain_end))
-        << "::[IgaContactProcessGapSbmMortar]:: Could not retrieve slave deformed domain." << std::endl;
-
     const CoordinatesArrayType master_overlap_deformed_point_begin =
         EvaluateCurvePoint(rMasterDeformedCurve, MasterSegmentBegin);
     const CoordinatesArrayType master_overlap_deformed_point_end =
         EvaluateCurvePoint(rMasterDeformedCurve, MasterSegmentEnd);
 
-    double slave_overlap_begin = 0.5 * (slave_domain_begin + slave_domain_end);
-    double slave_overlap_end = slave_overlap_begin;
+    double slave_overlap_begin = 0.0;
+    double slave_overlap_end = 0.0;
     CoordinatesArrayType slave_projection_begin = ZeroVector(3);
     CoordinatesArrayType slave_projection_end = ZeroVector(3);
     double slave_distance_begin_sq = 0.0;
     double slave_distance_end_sq = 0.0;
-    int slave_inside_begin = 0;
-    int slave_inside_end = 0;
 
-    ProjectPointOntoCurve(
-        rSlaveDeformedCurve,
-        master_overlap_deformed_point_begin,
-        slave_overlap_begin,
-        slave_overlap_begin,
-        slave_projection_begin,
-        slave_distance_begin_sq,
-        slave_inside_begin);
-    ProjectPointOntoCurve(
-        rSlaveDeformedCurve,
-        master_overlap_deformed_point_end,
-        slave_overlap_end,
-        slave_overlap_end,
-        slave_projection_end,
-        slave_distance_end_sq,
-        slave_inside_end);
-
-    if (slave_inside_begin == 0 || slave_inside_end == 0) {
+    array_1d<double, 3> master_normal_begin = ZeroVector(3);
+    array_1d<double, 3> master_normal_end = ZeroVector(3);
+    if (!ComputeCurveNormal(rMasterDeformedCurve, MasterSegmentBegin, master_normal_begin) ||
+        !ComputeCurveNormal(rMasterDeformedCurve, MasterSegmentEnd, master_normal_end)) {
         return false;
     }
-    if (slave_distance_begin_sq > ProjectionDistanceLimitSquared ||
-        slave_distance_end_sq > ProjectionDistanceLimitSquared) {
+
+    const bool projected_begin = ProjectPointOntoCurveAlongDirection(
+        master_overlap_deformed_point_begin,
+        master_normal_begin,
+        rSlaveDeformedCurve,
+        ProjectionDistanceLimitSquared,
+        slave_overlap_begin,
+        slave_projection_begin,
+        slave_distance_begin_sq);
+    const bool projected_end = ProjectPointOntoCurveAlongDirection(
+        master_overlap_deformed_point_end,
+        master_normal_end,
+        rSlaveDeformedCurve,
+        ProjectionDistanceLimitSquared,
+        slave_overlap_end,
+        slave_projection_end,
+        slave_distance_end_sq);
+
+    if (!projected_begin || !projected_end) {
         return false;
     }
     if (std::abs(slave_overlap_end - slave_overlap_begin) <= parameter_tolerance) {
@@ -1594,19 +1582,8 @@ void IgaContactProcessGapSbmMortar::Execute()
         EndpointProjectionData endpoint_projection_begin;
         EndpointProjectionData endpoint_projection_end;
 
-        array_1d<double, 3> slave_normal_begin = ZeroVector(3);
-        array_1d<double, 3> slave_normal_end = ZeroVector(3);
-        const bool has_slave_normal_begin = ComputeCurveNormal(*r_slave_curve.pDeformedCurve, slave_domain_begin, slave_normal_begin);
-        const bool has_slave_normal_end = ComputeCurveNormal(*r_slave_curve.pDeformedCurve, slave_domain_end, slave_normal_end);
-
-        if (!has_slave_normal_begin || !has_slave_normal_end) {
-            ++debug_stats.SlaveCurvesRejectedByEndpointNormal;
-            continue;
-        }
-
         const bool has_begin_projection = FindBestMasterProjectionForSlavePoint(
             slave_deformed_point_begin,
-            slave_normal_begin,
             r_slave_curve,
             master_curve_data,
             master_bins,
@@ -1621,7 +1598,6 @@ void IgaContactProcessGapSbmMortar::Execute()
             &debug_stats);
         const bool has_end_projection = FindBestMasterProjectionForSlavePoint(
             slave_deformed_point_end,
-            slave_normal_end,
             r_slave_curve,
             master_curve_data,
             master_bins,
@@ -1765,42 +1741,132 @@ void IgaContactProcessGapSbmMortar::Execute()
 
             ++debug_stats.MissingIntervalsVisited;
 
-            const double master_reference_midpoint = 0.5 * (r_missing_interval.first + r_missing_interval.second);
-            const CoordinatesArrayType master_midpoint_deformed = EvaluateDeformedReferenceCurvePoint(
-                *r_master_curve.pReferenceCurve,
-                r_master_curve.ReferenceGeometries,
-                master_reference_midpoint);
+            // Build a common refinement also for recovered master intervals.
+            // Without these breakpoints, one quadrature interval may cross a
+            // change of slave BREP even though each Gauss point is projected
+            // independently later on.
+            std::vector<double> recovery_breakpoints{
+                r_missing_interval.first,
+                r_missing_interval.second};
 
-            SlaveProjectionData slave_projection;
-            const bool has_slave_projection = FindBestSlaveProjectionForMasterPoint(
-                master_midpoint_deformed,
-                r_master_curve,
-                slave_curve_data,
-                slave_bins,
-                max_considered_slave_neighbours,
-                projection_distance_limit,
-                max_slave_bins_search_radius,
-                projection_distance_limit_sq,
-                slave_bins_results,
-                slave_bins_distances,
-                candidate_points,
-                slave_projection,
-                &debug_stats);
+            for (const auto& r_slave_curve : slave_curve_data) {
+                if (!HaveCompatibleNormals(
+                        *r_master_curve.pDeformedCurve,
+                        *r_slave_curve.pDeformedCurve)) {
+                    continue;
+                }
 
-            if (!has_slave_projection) {
-                ++debug_stats.MissingIntervalsRejectedBySlaveProjection;
-                continue;
+                double slave_domain_begin = 0.0;
+                double slave_domain_end = 0.0;
+                KRATOS_ERROR_IF_NOT(GetCurveDomain(
+                    *r_slave_curve.pDeformedCurve,
+                    slave_domain_begin,
+                    slave_domain_end));
+
+                for (const double slave_parameter : {slave_domain_begin, slave_domain_end}) {
+                    const CoordinatesArrayType slave_endpoint = EvaluateCurvePoint(
+                        *r_slave_curve.pDeformedCurve,
+                        slave_parameter);
+
+                    double master_parameter = 0.5 * (master_domain_begin + master_domain_end);
+                    CoordinatesArrayType master_projection = ZeroVector(3);
+                    double projection_distance_sq = 0.0;
+                    int is_inside = 0;
+                    ProjectPointOntoCurve(
+                        *r_master_curve.pDeformedCurve,
+                        slave_endpoint,
+                        master_parameter,
+                        master_parameter,
+                        master_projection,
+                        projection_distance_sq,
+                        is_inside);
+
+                    if (is_inside == 0 || projection_distance_sq > projection_distance_limit_sq) {
+                        continue;
+                    }
+
+                    double master_reference_parameter = 0.0;
+                    CoordinatesArrayType master_reference_point = ZeroVector(3);
+                    double consistency_distance_sq = 0.0;
+                    MapDeformedPointToReferenceCurve(
+                        *r_master_curve.pReferenceCurve,
+                        r_master_curve.ReferenceGeometries,
+                        master_parameter,
+                        master_projection,
+                        master_reference_parameter,
+                        master_reference_point,
+                        consistency_distance_sq);
+
+                    if (consistency_distance_sq <= projection_distance_limit_sq &&
+                        master_reference_parameter > r_missing_interval.first + parameter_tolerance &&
+                        master_reference_parameter < r_missing_interval.second - parameter_tolerance) {
+                        PushUniqueParameter(recovery_breakpoints, master_reference_parameter);
+                    }
+                }
             }
 
-            ++debug_stats.MissingIntervalsRecovered;
+            std::sort(recovery_breakpoints.begin(), recovery_breakpoints.end());
+            bool recovered_any_subinterval = false;
 
-            append_coupling_entity(
-                slave_projection.pSlaveCurve,
-                &r_master_curve,
-                r_missing_interval.first,
-                r_missing_interval.second,
-                r_missing_interval.first,
-                r_missing_interval.second);
+            for (std::size_t i_breakpoint = 0;
+                 i_breakpoint + 1 < recovery_breakpoints.size();
+                 ++i_breakpoint) {
+                const double subinterval_begin = recovery_breakpoints[i_breakpoint];
+                const double subinterval_end = recovery_breakpoints[i_breakpoint + 1];
+                if (subinterval_end <= subinterval_begin + parameter_tolerance) {
+                    continue;
+                }
+
+                const double master_reference_midpoint = 0.5 * (subinterval_begin + subinterval_end);
+                const CoordinatesArrayType master_midpoint_deformed = EvaluateDeformedReferenceCurvePoint(
+                    *r_master_curve.pReferenceCurve,
+                    r_master_curve.ReferenceGeometries,
+                    master_reference_midpoint);
+
+                array_1d<double, 3> master_normal_deformed = ZeroVector(3);
+                if (!ComputeCurveNormal(
+                        *r_master_curve.pDeformedCurve,
+                        master_reference_midpoint,
+                        master_normal_deformed)) {
+                    ++debug_stats.MissingIntervalsRejectedBySlaveProjection;
+                    continue;
+                }
+
+                SlaveProjectionData slave_projection;
+                const bool has_slave_projection = FindBestSlaveProjectionForMasterPoint(
+                    master_midpoint_deformed,
+                    master_normal_deformed,
+                    r_master_curve,
+                    slave_curve_data,
+                    slave_bins,
+                    max_considered_slave_neighbours,
+                    projection_distance_limit,
+                    max_slave_bins_search_radius,
+                    projection_distance_limit_sq,
+                    slave_bins_results,
+                    slave_bins_distances,
+                    candidate_points,
+                    slave_projection,
+                    &debug_stats);
+
+                if (!has_slave_projection) {
+                    ++debug_stats.MissingIntervalsRejectedBySlaveProjection;
+                    continue;
+                }
+
+                append_coupling_entity(
+                    slave_projection.pSlaveCurve,
+                    &r_master_curve,
+                    subinterval_begin,
+                    subinterval_end,
+                    subinterval_begin,
+                    subinterval_end);
+                recovered_any_subinterval = true;
+            }
+
+            if (recovered_any_subinterval) {
+                ++debug_stats.MissingIntervalsRecovered;
+            }
         }
     }
 
@@ -1855,9 +1921,19 @@ void IgaContactProcessGapSbmMortar::Execute()
             CoordinatesArrayType master_gp_deformed = p_master_qp_geometry->Center().Coordinates();
             IgaSbmUtilities::GetDeformedPosition(*p_master_gp_node, master_gp_deformed);
 
+            array_1d<double, 3> master_normal_deformed = ZeroVector(3);
+            if (!ComputeCurveNormal(
+                    *r_master_curve.pDeformedCurve,
+                    master_integration_points[i_gp].X(),
+                    master_normal_deformed)) {
+                ++debug_stats.MasterGaussPointsRejectedBySlaveProjection;
+                continue;
+            }
+
             SlaveProjectionData slave_projection;
             const bool has_slave_projection = FindBestSlaveProjectionForMasterPoint(
                 master_gp_deformed,
+                master_normal_deformed,
                 r_master_curve,
                 slave_curve_data,
                 slave_bins,
@@ -1957,7 +2033,6 @@ void IgaContactProcessGapSbmMortar::Execute()
     KRATOS_INFO_IF("IgaContactProcessGapSbmMortar", mEchoLevel > 0)
         << "Summary:"
         << "\n  Slave curves visited: " << debug_stats.SlaveCurvesVisited
-        << "\n  Slave curves rejected by endpoint normals: " << debug_stats.SlaveCurvesRejectedByEndpointNormal
         << "\n  Slave curves rejected by endpoint projections: " << debug_stats.SlaveCurvesRejectedByEndpointProjection
         << "\n  Coupling entities built: " << coupling_entities.size()
         << "\n  Missing intervals visited: " << debug_stats.MissingIntervalsVisited

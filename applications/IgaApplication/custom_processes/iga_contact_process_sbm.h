@@ -33,6 +33,7 @@
 #include <cmath>
 #include <vector>
 #include <string>
+#include <unordered_map>
 
 #include "spaces/ublas_space.h"
 
@@ -201,6 +202,25 @@ private:
     SparseMatrixType mSparseBrepMatrixSlave;
     SparseMatrixType mSparseBrepMatrixMaster;
 
+    struct DeformationEvaluationData {
+        GeometryPointerType p_quadrature_geometry;
+        Vector displacement_coefficients;
+        std::vector<Matrix> shape_function_derivatives;
+        int basis_functions_order = 0;
+    };
+
+    std::unordered_map<const GeometryType*, DeformationEvaluationData> mDeformationEvaluationCache;
+
+    struct SkinCurveSearchData {
+        NurbsCurveGeometryType::Pointer p_curve;
+        CoordinatesArrayType lower_bound = ZeroVector(3);
+        CoordinatesArrayType upper_bound = ZeroVector(3);
+        std::string layer_name;
+        bool has_convex_hull_property = false;
+    };
+
+    std::unordered_map<const ModelPart*, std::vector<SkinCurveSearchData>> mSkinCurveSearchCache;
+
 
     Properties::Pointer mpPropMaster;
     Properties::Pointer mpPropSlave;
@@ -237,35 +257,49 @@ private:
         Vector& rValues);
 
     
-    static void GetDeformedPosition(
+    void GetDeformedPosition(
         const CoordinatesArrayType& rPointGlobalCoordinates, 
         const ModelPart& rModelPart,
         const SparseMatrixType& rSparseBrepMatrix,
         CoordinatesArrayType& rPointDeformedCoordinates);
 
-    static void GetDeformedGradient(
+    void GetDeformedGradient(
         const CoordinatesArrayType& rPointGlobalCoordinates, 
         const ModelPart& rModelPart,
         const SparseMatrixType& SparseBrepMatrix,
         Matrix& rPointGradientDeformation,
         Matrix& rPointHessianDeformation);
 
+    void EvaluateDeformation(
+        const CoordinatesArrayType& rPointGlobalCoordinates,
+        const ModelPart& rModelPart,
+        const SparseMatrixType& rSparseBrepMatrix,
+        CoordinatesArrayType* pPointDeformedCoordinates,
+        Matrix* pPointGradientDeformation,
+        Matrix* pPointHessianDeformation);
+
+    bool CalculateDeformedPointAndNormal(
+        const CoordinatesArrayType& rPointReference,
+        const CoordinatesArrayType& rTangentReference,
+        const ModelPart& rModelPart,
+        const SparseMatrixType& rSparseBrepMatrix,
+        CoordinatesArrayType& rPointDeformed,
+        CoordinatesArrayType& rNormalDeformed);
+
     
-    bool NewtonRaphsonCurveOnDeformed(
+    bool ProjectPointToCurveAlongTargetNormalDeformed(
         CoordinatesArrayType& rProjectedPointLocalCoordinates,
-        const CoordinatesArrayType& rPointGlobalCoordinates, 
+        const CoordinatesArrayType& rSourcePointDeformed,
         CoordinatesArrayType& rProjectedPointGlobalCoordinates,
-        const NurbsCurveGeometryType& rPairedGeometry, 
+        const NurbsCurveGeometryType& rTargetCurve,
+        const ModelPart& rTargetModelPart,
+        const SparseMatrixType& rTargetSparseBrepMatrix,
         double& distance,
         const int rNumberOfInitialGuesses,
         const int MaxIterations = 20,
         const double Accuracy = 1e-6
         );
     
-    static double ComputeTaylorTerm(double derivative, double dx, int n_k, double dy, int k);
-
-    static unsigned long long Factorial(int n); 
-
     static std::vector<IndexType> FindClosestBrepId(
         const CoordinatesArrayType& rPointGlobalCoordinates, 
         const ModelPart& rModelPart,
@@ -274,12 +308,12 @@ private:
 
 
     
-    bool ProjectPointViaRayTracingToMasterCurveDeformed(
-        const CoordinatesArrayType& point_slave_deformed,
-        const Vector& normal_slave_deformed,
-        const NurbsCurveGeometryType& master_curve,
-        const ModelPart& master_model_part,
-        const SparseMatrixType& sparse_matrix_master,
+    bool ProjectPointAlongNormalToCurveDeformed(
+        const CoordinatesArrayType& rSourcePointDeformed,
+        const Vector& rSourceNormalDeformed,
+        const NurbsCurveGeometryType& rTargetCurve,
+        const ModelPart& rTargetModelPart,
+        const SparseMatrixType& rTargetSparseBrepMatrix,
         CoordinatesArrayType& rBestProjectedPoint,
         CoordinatesArrayType& rBestProjectedPointLocalCoords,
         double& rBestDistance,
@@ -288,7 +322,7 @@ private:
         int n_initial_guesses = 5);
 
     
-    static bool ProjectToSkinBoundary(
+    bool ProjectToSkinBoundary(
         const ModelPart* ModelPart,
         std::string &rLayerName,
         const CoordinatesArrayType& rPoint,
@@ -303,7 +337,8 @@ private:
         const SparseMatrixType& rSparseBrepMatrix,
         const Vector & rSkinNormal,
         IndexType& rBrepId,
-        double& rSurrogateProjection
+        double& rSurrogateProjection,
+        const bool UseClosestPointFallback = false
     );
 
     struct MasterSegmentData {
@@ -340,6 +375,10 @@ private:
         BrepCurveOnSurfaceType& rBrep,
         GeometriesArrayType& rGeometries,
         const std::vector<double>* pCustomSpans = nullptr);
+
+    static void CreateReferenceQuadratureGeometries(
+        BrepCurveOnSurfaceType& rBrep,
+        GeometriesArrayType& rGeometries);
 
     void CollectUniqueSlaveVertices(
         std::vector<CoordinatesArrayType>& rVertices,

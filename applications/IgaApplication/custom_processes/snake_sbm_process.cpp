@@ -2204,7 +2204,7 @@ std::vector<std::vector<int>> SnakeSbmProcess::GenerateOuterSurrogateFromInnerKn
         }
     }
 
-    constexpr int refinement_patch_size = 10;
+    constexpr int refinement_patch_size = 3;
     std::vector<std::vector<int>> outer_knot_spans(row_count, std::vector<int>(column_count, 0));
 
     auto set_one = [&outer_knot_spans](const std::size_t row, const std::size_t column) {
@@ -2311,7 +2311,7 @@ std::vector<std::vector<int>> SnakeSbmProcess::GenerateInnerSurrogateFromOuterKn
         << " cols=" << column_count << std::endl;
     std::vector<std::vector<int>> merged_outer = rOuterKnotSpansAvailable.front();
 
-    constexpr int refinement_patch_size = 10 ; //FIXME:
+    constexpr int refinement_patch_size = 3 ; //FIXME:
     std::vector<std::vector<int>> inner_knot_spans(row_count, std::vector<int>(column_count, 0));
 
     auto in_bounds = [row_count, column_count](const int row, const int column) {

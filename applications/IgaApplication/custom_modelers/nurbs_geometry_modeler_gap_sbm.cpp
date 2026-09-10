@@ -966,7 +966,8 @@ void RebuildSkinLoopsForLocalRefinement(
     ModelPart& rSkinModelPart,
     const std::string& rSkinModelPartName,
     const bool RebuildInnerLoop,
-    const bool RebuildOuterLoop)
+    const bool RebuildOuterLoop,
+    const bool ReplaceClosureWithEnhancedConditions)
 {
     const auto refinement_skin_names = CollectRefinementSkinModelPartNames(rModel, rSkinModelPartName);
     Vector aggregated_refinement_knot_span_sizes;
@@ -1259,7 +1260,7 @@ void RebuildSkinLoopsForLocalRefinement(
                 const std::string brep_model_part_full_name = r_condition.Has(BREP_MODEL_PART_FULL_NAME)
                     ? r_condition.GetValue(BREP_MODEL_PART_FULL_NAME)
                     : r_refinement_patch_model_part.FullName();
-                GetBrepGeometryById(
+                auto p_source_brep_geometry = GetBrepGeometryById(
                     r_refinement_patch_model_part,
                     static_cast<IndexType>(brep_id));
 
@@ -1311,6 +1312,19 @@ void RebuildSkinLoopsForLocalRefinement(
                 p_new_condition->SetValue(LAYER_NAME, "COUPLING_SIDE");
                 p_new_condition->SetValue(CONDITION_NAME, coupling_condition_name);
                 SetBrepMetadata(*p_new_condition, brep_id, brep_model_part_full_name);
+
+                auto refinement_reference_geometries =
+                    r_condition.GetValue(NEIGHBOUR_GEOMETRIES);
+                if (refinement_reference_geometries.empty() &&
+                    p_source_brep_geometry->Has(NEIGHBOUR_GEOMETRIES)) {
+                    refinement_reference_geometries =
+                        p_source_brep_geometry->GetValue(NEIGHBOUR_GEOMETRIES);
+                }
+                if (!refinement_reference_geometries.empty()) {
+                    p_new_condition->SetValue(
+                        NEIGHBOUR_GEOMETRIES,
+                        refinement_reference_geometries);
+                }
 
                 r_target_loop.AddCondition(p_new_condition);
                 r_layer_model_part.AddCondition(p_new_condition);
@@ -1418,6 +1432,17 @@ void RebuildSkinLoopsForLocalRefinement(
                 p_new_condition->SetValue(LAYER_NAME, "COUPLING_SIDE");
                 p_new_condition->SetValue(CONDITION_NAME, coupling_condition_name);
                 SetBrepMetadata(*p_new_condition, connector_brep_id, r_refinement_patch_model_part.FullName());
+                if (ReplaceClosureWithEnhancedConditions) {
+                    p_new_condition->SetValue(IS_LOCAL_REFINEMENT_FAKE_COUPLING, true);
+                    KRATOS_ERROR_IF_NOT(r_target_loop.Has(ORIGINAL_SKIN_MODEL_PART_FULL_NAME))
+                        << "NurbsGeometryModelerGapSbm: rebuilt loop '"
+                        << r_target_loop.FullName()
+                        << "' has no ORIGINAL_SKIN_MODEL_PART_FULL_NAME for fake coupling condition #"
+                        << p_new_condition->Id() << "." << std::endl;
+                    p_new_condition->SetValue(
+                        ORIGINAL_SKIN_MODEL_PART_FULL_NAME,
+                        r_target_loop.GetValue(ORIGINAL_SKIN_MODEL_PART_FULL_NAME));
+                }
                 
                 auto it_source_node = patch_component_source_nodes.find(p_open_endpoint->Id());
                 KRATOS_ERROR_IF(it_source_node == patch_component_source_nodes.end())
@@ -1530,6 +1555,17 @@ void NurbsGeometryModelerGapSbm::CreateAndAddRegularGrid2D(
                                 ? mpModel->GetModelPart(iga_model_part_name)
                                 : mpModel->CreateModelPart(iga_model_part_name);
 
+    // The regular-grid creation above deliberately does not register its
+    // surface.  Keep that surface in the patch model part nevertheless: the
+    // Snake process must use this exact refinement-patch surface, rather than
+    // resolving geometry #1 from the root model part (which is the base patch).
+    // A named geometry avoids collisions with the numerical IDs inherited
+    // through the nested model-part hierarchy.
+    const std::string patch_surface_geometry_name =
+        iga_model_part_name + "_snake_background_surface";
+    mpSurface->SetId(patch_surface_geometry_name);
+    r_iga_model_part.AddGeometry(mpSurface);
+
     // compute unique_knot_vector_u
     Vector unique_knot_vector_u(2+(NumKnotSpansU-1));
     unique_knot_vector_u[0] = mKnotVectorU[0]; 
@@ -1625,6 +1661,34 @@ void NurbsGeometryModelerGapSbm::CreateAndAddRegularGrid2D(
     EnsurePropertiesAvailable(r_skin_model_part.GetSubModelPart("inner"));
     EnsurePropertiesAvailable(r_skin_model_part.GetSubModelPart("outer"));
 
+    auto propagate_original_skin_reference = [&](const ModelPart& rInitialSkin,
+                                                   ModelPart& rTargetLoop) {
+        if (!rInitialSkin.Has(ORIGINAL_SKIN_MODEL_PART_FULL_NAME)) {
+            return;
+        }
+
+        const std::string& r_original_skin_model_part_full_name =
+            rInitialSkin.GetValue(ORIGINAL_SKIN_MODEL_PART_FULL_NAME);
+        KRATOS_ERROR_IF(r_original_skin_model_part_full_name.empty())
+            << "NurbsGeometryModelerGapSbm: initial skin model part '"
+            << rInitialSkin.FullName()
+            << "' has an empty ORIGINAL_SKIN_MODEL_PART_FULL_NAME." << std::endl;
+        rTargetLoop.SetValue(
+            ORIGINAL_SKIN_MODEL_PART_FULL_NAME,
+            r_original_skin_model_part_full_name);
+    };
+
+    if (mParameters.Has("skin_model_part_inner_initial_name")) {
+        propagate_original_skin_reference(
+            skin_inner_initial,
+            r_skin_model_part.GetSubModelPart("inner"));
+    }
+    if (mParameters.Has("skin_model_part_outer_initial_name")) {
+        propagate_original_skin_reference(
+            skin_outer_initial,
+            r_skin_model_part.GetSubModelPart("outer"));
+    }
+
     const auto& r_inner_sizes = skin_inner_initial.GetValue(KNOT_SPAN_SIZES);
     const auto& r_outer_sizes = skin_outer_initial.GetValue(KNOT_SPAN_SIZES);
     const bool inner_has_sizes = r_inner_sizes.size() >= 2;
@@ -1638,6 +1702,9 @@ void NurbsGeometryModelerGapSbm::CreateAndAddRegularGrid2D(
     // Create the parameters for the SnakeSbmProcess
     Kratos::Parameters snake_parameters;
     snake_parameters.AddString("model_part_name", iga_model_part_name);
+    snake_parameters.AddString(
+        "background_surface_geometry_name",
+        patch_surface_geometry_name);
     snake_parameters.AddString("skin_model_part_name", skin_model_part_name);
     snake_parameters.AddDouble("echo_level", mEchoLevel); //FIXME:
     snake_parameters.AddString("skin_model_part_inner_initial_name", skin_model_part_inner_initial_name);
@@ -1695,7 +1762,8 @@ void NurbsGeometryModelerGapSbm::CreateAndAddRegularGrid2D(
             r_skin_model_part,
             skin_model_part_name,
             skin_inner_initial.NumberOfNodes() > 0 || skin_inner_initial.NumberOfGeometries() > 0,
-            skin_outer_initial.NumberOfNodes() > 0 || skin_outer_initial.NumberOfGeometries() > 0);
+            skin_outer_initial.NumberOfNodes() > 0 || skin_outer_initial.NumberOfGeometries() > 0,
+            mParameters["replace_local_refinement_closures_with_enhanced_conditions"].GetBool());
     }
 
     // if (mParameters.Has("use_for_local_refinement") &&
@@ -1877,7 +1945,8 @@ const Parameters NurbsGeometryModelerGapSbm::GetDefaultParameters() const
         "create_surr_outer_from_surr_inner": false,
         "create_surr_inner_from_surr_outer": false,
         "use_for_multipatch": false,
-        "use_for_local_refinement": false
+        "use_for_local_refinement": false,
+        "replace_local_refinement_closures_with_enhanced_conditions": false
     })");
 }
 
@@ -1910,7 +1979,8 @@ const Parameters NurbsGeometryModelerGapSbm::GetValidParameters() const
         "create_surr_outer_from_surr_inner": false,
         "create_surr_inner_from_surr_outer": false,
         "use_for_multipatch": false,
-        "use_for_local_refinement": false
+        "use_for_local_refinement": false,
+        "replace_local_refinement_closures_with_enhanced_conditions": false
     })");
 }
 

@@ -350,7 +350,8 @@ double ComputeTaylorTerm3D(
 
 ///@name Protected member Variables
 ///@{
-    ConstitutiveLaw::Pointer mpConstitutiveLaw; /// The pointer containing the constitutive laws
+    ConstitutiveLaw::Pointer mpConstitutiveLaw;      /// Master constitutive law
+    ConstitutiveLaw::Pointer mpSlaveConstitutiveLaw; /// Slave law used for contact post-processing
     // sbm variables
     array_1d<double, 3> mNormalParameterSpace;
     array_1d<double, 3> mNormalPhysicalSpaceMaster;

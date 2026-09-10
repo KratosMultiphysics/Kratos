@@ -533,6 +533,7 @@ private:
     ModelPart* mpGapInterfaceSubModelPart = nullptr; 
     std::string mGapElementName;
     std::string mGapInterfaceConditionName;
+    std::string mBackgroundSurfaceGeometryName = "IgaModelPart_snake_background_surface";
     std::size_t mInternalDivisions;
     double mGapRelativeToleranceForSubdivisions = 0.1;
     std::size_t mNumberOfInterpolationLevels = 3; // number of additional levels of interpolation for the gap elements (in addition to the corner nodes)

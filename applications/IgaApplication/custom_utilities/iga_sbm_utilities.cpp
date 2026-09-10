@@ -137,6 +137,26 @@ void IgaSbmUtilities::GetDeformedPosition(
 }
 
 void IgaSbmUtilities::GetDeformedPosition(
+    const Condition& rCondition,
+    const array_1d<double, 3>& rPointReferenceCoordinates,
+    array_1d<double, 3>& rPointDeformedCoordinates)
+{
+    KRATOS_ERROR_IF_NOT(rCondition.Has(NEIGHBOUR_GEOMETRIES))
+        << "::[IgaSbmUtilities]:: Condition #" << rCondition.Id()
+        << " missing NEIGHBOUR_GEOMETRIES." << std::endl;
+    const auto& r_neighbour_geometries = rCondition.GetValue(NEIGHBOUR_GEOMETRIES);
+    KRATOS_ERROR_IF(r_neighbour_geometries.empty())
+        << "::[IgaSbmUtilities]:: Condition #" << rCondition.Id()
+        << " has empty NEIGHBOUR_GEOMETRIES." << std::endl;
+
+    ComputeDeformedPosition(
+        *r_neighbour_geometries[0],
+        rCondition.GetGeometry(),
+        rPointReferenceCoordinates,
+        rPointDeformedCoordinates);
+}
+
+void IgaSbmUtilities::GetDeformedPosition(
     const NodeType& rNode,
     array_1d<double, 3>& rPointDeformedCoordinates)
 {

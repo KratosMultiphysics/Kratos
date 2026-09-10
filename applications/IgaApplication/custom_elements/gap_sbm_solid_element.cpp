@@ -326,11 +326,6 @@ Element::IntegrationMethod GapSbmSolidElement::GetIntegrationMethod() const
 
 void GapSbmSolidElement::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
 {
-    ConstitutiveLaw::Parameters constitutive_law_parameters(
-        GetSurrogateGeometry(), GetProperties(), rCurrentProcessInfo);
-
-    mpConstitutiveLaw->FinalizeMaterialResponse(constitutive_law_parameters, ConstitutiveLaw::StressMeasure_Cauchy);
-
     //---------- SET STRESS VECTOR VALUE ----------------------------------------------------------------
         //TODO: build a CalculateOnIntegrationPoints method
         //--------------------------------------------------------------------------------------------
@@ -359,12 +354,20 @@ void GapSbmSolidElement::FinalizeSolutionStep(const ProcessInfo& rCurrentProcess
         const std::size_t strain_size_true = mpConstitutiveLaw->GetStrainSize();
         ConstitutiveVariables this_constitutive_variables_true(strain_size_true);
         ApplyConstitutiveLaw(mat_size, old_strain_on_true, values_true, this_constitutive_variables_true);
+        mpConstitutiveLaw->FinalizeMaterialResponse(values_true, ConstitutiveLaw::StressMeasure_Cauchy);
 
         const Vector sigma = values_true.GetStressVector();
         
         SetValue(CAUCHY_STRESS_XX, sigma[0]);
         SetValue(CAUCHY_STRESS_YY, sigma[1]);
         SetValue(CAUCHY_STRESS_XY, sigma[2]);
+
+        Matrix green_lagrange_strain_tensor = ZeroMatrix(2, 2);
+        green_lagrange_strain_tensor(0, 0) = old_strain_on_true[0];
+        green_lagrange_strain_tensor(1, 1) = old_strain_on_true[1];
+        green_lagrange_strain_tensor(0, 1) = 0.5 * old_strain_on_true[2];
+        green_lagrange_strain_tensor(1, 0) = 0.5 * old_strain_on_true[2];
+        SetValue(GREEN_LAGRANGE_STRAIN_TENSOR, green_lagrange_strain_tensor);
         // //---------------------
 
         Vector N_sum_vec = ZeroVector(number_of_control_points);
@@ -401,12 +404,29 @@ void GapSbmSolidElement::CalculateOnIntegrationPoints(
         rOutput.resize(r_integration_points.size());
     }
 
-    if (mpConstitutiveLaw->Has(rVariable)) {
-        mpConstitutiveLaw->GetValue(rVariable, rOutput[0]);
-    } else {
-        KRATOS_WATCH(rVariable);
-        KRATOS_WARNING("VARIABLE PRINT STILL NOT IMPLEMENTED IN THE IGA FRAMEWORK");
-    }
+    ConstitutiveLaw::Parameters values(GetSurrogateGeometry(), GetProperties(), rCurrentProcessInfo);
+    Flags& r_options = values.GetOptions();
+    r_options.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
+    r_options.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
+    r_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
+
+    const Matrix& r_strain_tensor = GetValue(GREEN_LAGRANGE_STRAIN_TENSOR);
+    Vector strain_vector(3);
+    strain_vector[0] = r_strain_tensor(0, 0);
+    strain_vector[1] = r_strain_tensor(1, 1);
+    strain_vector[2] = 2.0 * r_strain_tensor(0, 1);
+
+    Vector stress_vector(3);
+    stress_vector[0] = GetValue(CAUCHY_STRESS_XX);
+    stress_vector[1] = GetValue(CAUCHY_STRESS_YY);
+    stress_vector[2] = GetValue(CAUCHY_STRESS_XY);
+    Matrix constitutive_matrix = ZeroMatrix(3, 3);
+
+    values.SetStrainVector(strain_vector);
+    values.SetStressVector(stress_vector);
+    values.SetConstitutiveMatrix(constitutive_matrix);
+    ConstitutiveLaw::Pointer p_output_constitutive_law = mpConstitutiveLaw->Clone();
+    p_output_constitutive_law->CalculateValue(values, rVariable, rOutput[0]);
 }
 
 void GapSbmSolidElement::CalculateOnIntegrationPoints(

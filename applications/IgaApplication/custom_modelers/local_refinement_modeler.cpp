@@ -20,6 +20,7 @@
 #include "custom_modelers/local_refinement_modeler.h"
 #include "custom_modelers/iga_modeler_sbm.h"
 #include "custom_modelers/nurbs_geometry_modeler_gap_sbm.h"
+#include "custom_modelers/nurbs_geometry_modeler_sbm.h"
 #include "containers/pointer_vector.h"
 #include "geometries/nurbs_curve_geometry.h"
 #include "iga_application_variables.h"
@@ -992,13 +993,6 @@ Point2D PointFromBoundaryCoordinate(
         : PointFromBoundaryCoordinateCCW(Coordinate, rRect);
 }
 
-Orientation OppositeOrientation(const Orientation BoundaryOrientation)
-{
-    return BoundaryOrientation == Orientation::Clockwise
-        ? Orientation::CounterClockwise
-        : Orientation::Clockwise;
-}
-
 std::vector<CurvePiece> BuildBoundaryConnectorPieces(
     const Point2D& rStartPoint,
     const Point2D& rEndPoint,
@@ -1229,7 +1223,7 @@ std::vector<CurvePiece> RebuildLoop(
             current_end_point,
             first_start_point,
             rRect,
-            OppositeOrientation(BetweenPieceOrientation),
+            BetweenPieceOrientation,
             rBoundaryConnectorMetadata);
 
         KRATOS_ERROR_IF(closing_pieces.empty())
@@ -1290,6 +1284,11 @@ void LocalRefinementModeler::SetupModelPart()
         << "LocalRefinementModeler: missing 'geometry_parameters' block." << std::endl;
     KRATOS_ERROR_IF(mParameters["geometry_modeler_type"].GetString() != "gap-sbm")
         << "LocalRefinementModeler: only 'gap-sbm' is supported." << std::endl;
+
+    const std::string refinement_type = mParameters["refinement_type"].GetString();
+    KRATOS_ERROR_IF(refinement_type != "sbm" && refinement_type != "gap_sbm")
+        << "LocalRefinementModeler: 'refinement_type' must be explicitly set to either "
+        << "'sbm' or 'gap_sbm', got '" << refinement_type << "'." << std::endl;
 
     mEchoLevel = static_cast<SizeType>(mParameters["echo_level"].GetInt());
     GenerateRefinementRegions();
@@ -1376,9 +1375,11 @@ void LocalRefinementModeler::RunGapSbmPatchModelers()
             mpModel->GetModelPart(mParameters["model_part_name"].GetString()).GetSubModelPart(patch_suffix);
         ModelPart& r_refinement_patch_skin_model_part =
             mpModel->GetModelPart(patch_skin_model_part_name);
-        MarkSurrogateConditionLayerNames(
-            r_refinement_patch_model_part,
-            r_refinement_patch_skin_model_part);
+        if (mParameters["refinement_type"].GetString() == "gap_sbm") {
+            MarkSurrogateConditionLayerNames(
+                r_refinement_patch_model_part,
+                r_refinement_patch_skin_model_part);
+        }
     }
 
     std::string base_inner_initial_name;
@@ -1436,6 +1437,7 @@ const Parameters LocalRefinementModeler::GetDefaultParameters() const
         "analysis_parameters" : {},
         "skin_coupling_model_part_name": "skin_coupling_model_part",
         "coupling_conditions_name": "",
+        "refinement_type": "",
         "geometry_modeler_type": "gap-sbm",
         "echo_level" : 0
     })");
@@ -1506,6 +1508,26 @@ void LocalRefinementModeler::ProcessSkinModelPart(
             : r_skin_model_part;
 
     const auto ordered_curves = OrderConnectedCurves(r_source_model_part);
+
+    // Keep an immutable view of the imported true boundary.  Subsequent
+    // refinement regions operate on the progressively rebuilt skin, while the
+    // fake coupling closures must always project onto the original CAD skin.
+    constexpr const char* p_original_skin_sub_model_part_name = "original_true_boundary";
+    ModelPart& r_original_skin_model_part =
+        r_skin_model_part.HasSubModelPart(p_original_skin_sub_model_part_name)
+            ? r_skin_model_part.GetSubModelPart(p_original_skin_sub_model_part_name)
+            : r_skin_model_part.CreateSubModelPart(p_original_skin_sub_model_part_name);
+    if (r_original_skin_model_part.NumberOfGeometries() == 0) {
+        for (const auto& p_curve : ordered_curves) {
+            r_original_skin_model_part.AddGeometry(p_curve);
+        }
+    }
+    const std::string original_skin_model_part_full_name =
+        r_original_skin_model_part.FullName();
+    r_skin_model_part.SetValue(
+        ORIGINAL_SKIN_MODEL_PART_FULL_NAME,
+        original_skin_model_part_full_name);
+
     std::vector<CurvePiece> in_pieces;
     std::vector<CurvePiece> out_pieces;
     const int number_of_sample_points = GetSamplingPointsPerCurve(mParameters);
@@ -1536,7 +1558,7 @@ void LocalRefinementModeler::ProcessSkinModelPart(
         << std::endl;
 
     const Orientation in_orientation = ReverseBorderOrientation
-        ? Orientation::CounterClockwise
+        ? Orientation::Clockwise
         : Orientation::CounterClockwise;
     const Orientation out_orientation = ReverseBorderOrientation
         ? Orientation::CounterClockwise
@@ -1590,6 +1612,12 @@ void LocalRefinementModeler::ProcessSkinModelPart(
 
     FillSubModelPartWithCurves(r_refinement_sub_model_part, rebuilt_in_pieces);
     FillSubModelPartWithCurves(r_updated_sub_model_part, rebuilt_out_pieces);
+    r_refinement_sub_model_part.SetValue(
+        ORIGINAL_SKIN_MODEL_PART_FULL_NAME,
+        original_skin_model_part_full_name);
+    r_updated_sub_model_part.SetValue(
+        ORIGINAL_SKIN_MODEL_PART_FULL_NAME,
+        original_skin_model_part_full_name);
 
     // if (r_source_model_part.Has(KNOT_SPAN_SIZES)) { //FIXME: probaly useless
     //     r_refinement_sub_model_part.SetValue(KNOT_SPAN_SIZES, r_source_model_part.GetValue(KNOT_SPAN_SIZES));
@@ -1622,10 +1650,19 @@ void LocalRefinementModeler::RunGapSbmPatch(
     const std::string patch_full_name = r_patch_model_part.FullName();
 
     Parameters patch_geometry = r_geometry_parameters.Clone();
+    const bool is_refinement_patch = pRegionParameters != nullptr;
+    const bool use_sbm_refinement =
+        is_refinement_patch && mParameters["refinement_type"].GetString() == "sbm";
     SetOrAddStringValue(patch_geometry, "model_part_name", patch_full_name);
     SetOrAddStringValue(patch_geometry, "skin_model_part_name", rPatchSkinModelPartName);
     SetOrAddBoolValue(patch_geometry, "use_for_multipatch", false);
-    SetOrAddBoolValue(patch_geometry, "use_for_local_refinement", pRegionParameters == nullptr);
+    SetOrAddBoolValue(
+        patch_geometry,
+        "use_for_local_refinement",
+        !is_refinement_patch || use_sbm_refinement);
+    if (use_sbm_refinement) {
+        SetOrAddDoubleValue(patch_geometry, "lambda_outer", 0.99);
+    }
 
     if (patch_geometry.Has("skin_model_part_inner_initial_name")) {
         patch_geometry.RemoveValue("skin_model_part_inner_initial_name");
@@ -1748,14 +1785,46 @@ void LocalRefinementModeler::RunGapSbmPatch(
     patch_parameter_corners_matrix(1, 1) = rRect[V_MAX];
     r_patch_model_part.SetValue(PATCH_PARAMETER_SPACE_CORNERS, patch_parameter_corners_matrix);
 
-    KRATOS_INFO_IF("LocalRefinementModeler", mEchoLevel > 1)
-        << "Running NurbsGeometryModelerGapSbm for patch '" << patch_full_name
-        << "' | skin='" << rPatchSkinModelPartName << "'" << std::endl;
+    if (use_sbm_refinement) {
+        const std::array<const char*, 8> gap_only_keys = {
+            "gap_approximation_order",
+            "number_internal_divisions",
+            "gap_relative_tolerance_for_subdivisions",
+            "number_of_interpolation_levels",
+            "gap_sbm_type",
+            "gap_element_name",
+            "gap_interface_condition_name",
+            "use_for_multipatch"
+        };
+        for (const char* p_key : gap_only_keys) {
+            if (patch_geometry.Has(p_key)) {
+                patch_geometry.RemoveValue(p_key);
+            }
+        }
 
-    NurbsGeometryModelerGapSbm geometry_modeler(*mpModel, patch_geometry);
-    geometry_modeler.SetupGeometryModel();
-    geometry_modeler.PrepareGeometryModel();
-    geometry_modeler.SetupModelPart();
+        KRATOS_INFO_IF("LocalRefinementModeler", mEchoLevel > 1)
+            << "Running NurbsGeometryModelerSbm for refinement patch '" << patch_full_name
+            << "' | skin='" << rPatchSkinModelPartName << "'" << std::endl;
+
+        NurbsGeometryModelerSbm geometry_modeler(*mpModel, patch_geometry);
+        geometry_modeler.SetupGeometryModel();
+        geometry_modeler.PrepareGeometryModel();
+        geometry_modeler.SetupModelPart();
+    } else {
+        SetOrAddBoolValue(
+            patch_geometry,
+            "replace_local_refinement_closures_with_enhanced_conditions",
+            !is_refinement_patch &&
+                mParameters["refinement_type"].GetString() == "sbm");
+        KRATOS_INFO_IF("LocalRefinementModeler", mEchoLevel > 1)
+            << "Running NurbsGeometryModelerGapSbm for patch '" << patch_full_name
+            << "' | skin='" << rPatchSkinModelPartName << "'" << std::endl;
+
+        NurbsGeometryModelerGapSbm geometry_modeler(*mpModel, patch_geometry);
+        geometry_modeler.SetupGeometryModel();
+        geometry_modeler.PrepareGeometryModel();
+        geometry_modeler.SetupModelPart();
+    }
 
     KRATOS_ERROR_IF_NOT(mParameters.Has("analysis_parameters"))
         << "LocalRefinementModeler: missing 'analysis_parameters' block." << std::endl;

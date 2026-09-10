@@ -297,14 +297,17 @@ public:
             if (r_contact_sub_model_part.NumberOfConditions() == 0) return true;
 
             
-            // double toll_tangent_distance = 1e-2;
-            double toll_gap = -1e-2;
+            // Keep a physical opening tolerance while no point is active.
+            // The criterion below is scaled by gamma, hence the threshold must
+            // be scaled as well to represent a gap tolerance of 1e-3.
+            constexpr double gap_tolerance = 1e-3;
+            bool has_active_condition = false;
             for (auto i_cond(r_contact_sub_model_part.Conditions().begin());
                  i_cond != r_contact_sub_model_part.Conditions().end(); ++i_cond)
             {
                 if (i_cond->GetValue(ACTIVATION_LEVEL) > 0)
                 {
-                    toll_gap = 0.0;
+                    has_active_condition = true;
                     break;
                 }
             }
@@ -370,7 +373,10 @@ public:
 
                 const double young_modulus_master = i_cond->GetValue(YOUNG_MODULUS_MASTER);
                 const double young_modulus_slave  = i_cond->GetValue(YOUNG_MODULUS_SLAVE);
-                const double gamma = 2e5;//i_cond->GetValue(NITSCHE_STABILIZATION_FACTOR);
+                // UpdateActiveSetCriterionData() stores the scaled Nitsche factor
+                // on every contact condition; it was validated above.
+                const double gamma = i_cond->GetValue(NITSCHE_STABILIZATION_FACTOR);
+                const double toll_gap = has_active_condition ? 0.0 : -gamma * gap_tolerance;
                 double check_value_master = normal_gap_master*gamma - sigma_nn_master;///young_modulus_master;
                 double check_value_slave = normal_gap_slave; //*gamma - sigma_nn_slave;///young_modulus_slave;
 
@@ -606,7 +612,10 @@ public:
             if (n_active == 0) 
                 KRATOS_WATCH("[Warning]:: zero active contact conditions")
                                                                                 
-            double min_percentage_change = 0.05; //8/n_cond;
+            // The active set is a discrete state: accepting a percentage of
+            // pending changes leaves isolated active quadrature points on fine
+            // meshes. Require the classification to be unchanged.
+            double min_percentage_change = 0.0;
             double rel_change = (double) n_changes/n_active; //n_changes/n_cond;
             if (n_active == 0) rel_change = 0;
             if (rel_change <= min_percentage_change){

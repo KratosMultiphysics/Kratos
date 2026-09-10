@@ -25,6 +25,7 @@
 // #include <limits>
 // #include <vector>
 
+
 // namespace Kratos
 // {
 
@@ -33,6 +34,7 @@
 //     InitializeMaterial();
 //     InitializeMemberVariables();
 //     InitializeSbmMemberVariables();
+//     UpdateActiveSetCriterionData();
 
 //     if (mpProjectionNodeMaster != nullptr) {
 //         const auto& r_geometry_master = GetMasterGeometry();
@@ -200,10 +202,10 @@
 //     mMasterTrueDotSurrogateNormal = inner_prod(mNormalMaster, mTrueNormalMaster);
 //     mSlaveTrueDotSurrogateNormal = inner_prod(mNormalSlave, mTrueNormalSlave);
 
-//     KRATOS_ERROR_IF(mMasterTrueDotSurrogateNormal <= 0.0) << ":::[SbmContact2DCondition]::: Error. Master: Negative n_ntilde_master"
-//                                                           << " (condition Id " << this->Id() << ")." << std::endl;
-//     KRATOS_ERROR_IF(mSlaveTrueDotSurrogateNormal <= 0.0) << ":::[SbmContact2DCondition]::: Error. Slave: Negative n_ntilde_slave"
-//                                                          << " (condition Id " << this->Id() << ")." << std::endl;
+//     // KRATOS_ERROR_IF(mMasterTrueDotSurrogateNormal <= 0.0) << ":::[SbmContact2DCondition]::: Error. Master: Negative n_ntilde_master"
+//     //                                                       << " (condition Id " << this->Id() << ")." << std::endl;
+//     // KRATOS_ERROR_IF(mSlaveTrueDotSurrogateNormal <= 0.0) << ":::[SbmContact2DCondition]::: Error. Slave: Negative n_ntilde_slave"
+//     //                                                      << " (condition Id " << this->Id() << ")." << std::endl;
 
 //     //FIXME: debug contact
 //     this->SetValue(PROJECTION_NODE_COORDINATES, mpProjectionNodeMaster->Coordinates());
@@ -256,10 +258,98 @@
 //         det_J_surrogate_skin_slave = 1.0;
 //     }
 
-//     mIntegrationWeightSlave = r_geometry_master.IntegrationPoints()[0].Weight() * det_J_surrogate_skin_master * det_J_skin_master_skin_slave/det_J_surrogate_skin_slave * thickness_slave;
+//     mIntegrationWeightSlave = mIntegrationWeightMaster
+//                             * det_J_surrogate_skin_master
+//                             * det_J_skin_master_skin_slave
+//                             / det_J_surrogate_skin_slave;
     
 
-//     this->SetValue(INTEGRATION_WEIGHT, mIntegrationWeightMaster); 
+//     this->SetValue(INTEGRATION_WEIGHT, mIntegrationWeightMaster);
+// }
+
+// void SbmContact2DCondition::UpdateActiveSetCriterionData()
+// {
+//     KRATOS_ERROR_IF(mpPropMaster == nullptr || mpPropSlave == nullptr)
+//         << "\"SbmContact2DCondition\" #" << Id()
+//         << " requires both master and slave properties to update the active set data." << std::endl;
+
+//     KRATOS_ERROR_IF_NOT((*mpPropMaster).Has(YOUNG_MODULUS))
+//         << "\"SbmContact2DCondition\" #" << Id()
+//         << " missing YOUNG_MODULUS in the master properties." << std::endl;
+//     KRATOS_ERROR_IF_NOT((*mpPropSlave).Has(YOUNG_MODULUS))
+//         << "\"SbmContact2DCondition\" #" << Id()
+//         << " missing YOUNG_MODULUS in the slave properties." << std::endl;
+// #if SBM_CONTACT_FORMULATION == SBM_CONTACT_PENALTY_FORMULATION
+//     KRATOS_ERROR_IF_NOT((*mpPropMaster).Has(PENALTY_FACTOR))
+//         << "\"SbmContact2DCondition\" #" << Id()
+//         << " missing PENALTY_FACTOR in the master properties." << std::endl;
+//     KRATOS_ERROR_IF_NOT((*mpPropSlave).Has(PENALTY_FACTOR))
+//         << "\"SbmContact2DCondition\" #" << Id()
+//         << " missing PENALTY_FACTOR in the slave properties." << std::endl;
+
+// #elif SBM_CONTACT_FORMULATION == SBM_CONTACT_NITSCHE_FORMULATION
+//     KRATOS_ERROR_IF_NOT((*mpPropMaster).Has(NITSCHE_STABILIZATION_FACTOR))
+//         << "\"SbmContact2DCondition\" #" << Id()
+//         << " missing NITSCHE_STABILIZATION_FACTOR in the master properties." << std::endl;
+// #else
+// #error "Unknown SBM contact formulation"
+// #endif
+
+//     SetValue(YOUNG_MODULUS_MASTER, (*mpPropMaster)[YOUNG_MODULUS]);
+//     SetValue(YOUNG_MODULUS_SLAVE, (*mpPropSlave)[YOUNG_MODULUS]);
+// #if SBM_CONTACT_FORMULATION == SBM_CONTACT_PENALTY_FORMULATION
+//     SetValue(PENALTY_FACTOR, CalculateScaledPenalty());
+// #elif SBM_CONTACT_FORMULATION == SBM_CONTACT_NITSCHE_FORMULATION
+//     SetValue(NITSCHE_STABILIZATION_FACTOR, CalculateScaledNitscheStabilization());
+// #endif
+// }
+
+// double SbmContact2DCondition::CalculateScaledPenalty() const
+// {
+//     KRATOS_ERROR_IF(mpPropMaster == nullptr)
+//         << "\"SbmContact2DCondition\" #" << Id()
+//         << " requires master properties to compute the scaled penalty." << std::endl;
+//     KRATOS_ERROR_IF_NOT((*mpPropMaster).Has(PENALTY_FACTOR))
+//         << "\"SbmContact2DCondition\" #" << Id()
+//         << " missing PENALTY_FACTOR in the master properties." << std::endl;
+
+//     const double h = std::min(mMasterCharacteristicLength, mSlaveCharacteristicLength);
+//     KRATOS_ERROR_IF(h <= 0.0)
+//         << "\"SbmContact2DCondition\" #" << Id()
+//         << " has non-positive characteristic length, so the scaled penalty cannot be computed." << std::endl;
+
+//     const double basis_order = static_cast<double>(std::max<SizeType>(1, mMasterBasisFunctionsOrder));
+//     return (*mpPropMaster)[PENALTY_FACTOR] / h * basis_order * basis_order;
+// }
+
+// double SbmContact2DCondition::CalculateScaledNitscheStabilization() const
+// {
+//     KRATOS_ERROR_IF(mpPropMaster == nullptr)
+//         << "\"SbmContact2DCondition\" #" << Id()
+//         << " requires master properties to compute the Nitsche stabilization." << std::endl;
+//     KRATOS_ERROR_IF_NOT((*mpPropMaster).Has(NITSCHE_STABILIZATION_FACTOR))
+//         << "\"SbmContact2DCondition\" #" << Id()
+//         << " missing NITSCHE_STABILIZATION_FACTOR in the master properties." << std::endl;
+
+//     const double h = std::min(mMasterCharacteristicLength, mSlaveCharacteristicLength);
+//     KRATOS_ERROR_IF(h <= 0.0)
+//         << "\"SbmContact2DCondition\" #" << Id()
+//         << " has non-positive characteristic length, so the Nitsche stabilization cannot be computed." << std::endl;
+
+//     const double basis_order = static_cast<double>(std::max<SizeType>(1, mMasterBasisFunctionsOrder));
+//     return (*mpPropMaster)[NITSCHE_STABILIZATION_FACTOR] / h * basis_order * basis_order;
+// }
+
+// double SbmContact2DCondition::CalculateShiftedNormalTractionOperator(
+//     const Matrix& rDBSum,
+//     const IndexType DofIndex,
+//     const Vector& rNormal) const
+// {
+//     const double sigma_basis_n_0 = rDBSum(0, DofIndex) * rNormal[0]
+//                                  + rDBSum(2, DofIndex) * rNormal[1];
+//     const double sigma_basis_n_1 = rDBSum(2, DofIndex) * rNormal[0]
+//                                  + rDBSum(1, DofIndex) * rNormal[1];
+//     return sigma_basis_n_0 * rNormal[0] + sigma_basis_n_1 * rNormal[1];
 // }
 
 // void SbmContact2DCondition::ComputeGradientTaylorExpansionContribution(
@@ -411,6 +501,7 @@
 
 //         // INITIALIZE AND RESIZE 
 
+//  #if SBM_CONTACT_FORMULATION == SBM_CONTACT_PENALTY_FORMULATION
 //         double penalty_master = (*mpPropMaster)[PENALTY_FACTOR];
 //         double penalty_slave  = (*mpPropSlave)[PENALTY_FACTOR];
 
@@ -418,6 +509,7 @@
 //         penalty_vector[0] = penalty_master; penalty_vector[1] = penalty_slave;
 
 //         this->SetValue(PENALTY, penalty_vector);
+//  #endif
 //         const SizeType dim = 2;
 
 //         const auto& r_geometry_master = GetMasterGeometry();
@@ -514,16 +606,16 @@
 //         //  ----------------------------------------------------------------------------
 
 
-//         KRATOS_ERROR_IF(mMasterTrueDotSurrogateNormal <= 0.0) << ":::[SbmContact2DCondition]::: Error. Master: Negative n_ntilde_master"
-//                     << " (condition Id " << this->Id() << ")." << std::endl;
-//         KRATOS_ERROR_IF(mSlaveTrueDotSurrogateNormal <= 0.0) << ":::[SbmContact2DCondition]::: Error. Slave: Negative n_ntilde_slave"
-//                     << " (condition Id " << this->Id() << ")." << std::endl;
+//         // KRATOS_ERROR_IF(mMasterTrueDotSurrogateNormal <= 0.0) << ":::[SbmContact2DCondition]::: Error. Master: Negative n_ntilde_master"
+//         //             << " (condition Id " << this->Id() << ")." << std::endl;
+//         // KRATOS_ERROR_IF(mSlaveTrueDotSurrogateNormal <= 0.0) << ":::[SbmContact2DCondition]::: Error. Slave: Negative n_ntilde_slave"
+//         //             << " (condition Id " << this->Id() << ")." << std::endl;
 
 
 //         Matrix H_sum_master;
 //         Matrix H_sum_slave;
-//         ComputeTaylorSumContribution(r_geometry_master, mDistanceMaster, mMasterBasisFunctionsOrder, H_sum_master);
-//         ComputeTaylorSumContribution(r_geometry_slave, mDistanceSlave, mSlaveBasisFunctionsOrder, H_sum_slave);
+//         ComputeTaylorSumContribution(r_geometry_master, mDistanceMaster, 2*mMasterBasisFunctionsOrder, H_sum_master);
+//         ComputeTaylorSumContribution(r_geometry_slave, mDistanceSlave, 2*mSlaveBasisFunctionsOrder, H_sum_slave);
 
 //         Matrix grad_H_sum_master_transposed;
 //         ComputeGradientTaylorExpansionContribution(r_geometry_master, mDistanceMaster, mMasterBasisFunctionsOrder, grad_H_sum_master_transposed);
@@ -540,11 +632,13 @@
 //         Matrix B_sum_slave = ZeroMatrix(3, number_of_nodes_slave);
 //         CalculateB(B_sum_slave, grad_H_sum_slave, number_of_nodes_slave);
 
+//  #if SBM_CONTACT_FORMULATION == SBM_CONTACT_PENALTY_FORMULATION
 //         const double h = std::min(mMasterCharacteristicLength, mSlaveCharacteristicLength);
 
 //         // Modify the penalty factor: p^2 * penalty / h (NITSCHE APPROACH)
 //         penalty_master = penalty_master / h * mMasterBasisFunctionsOrder *mMasterBasisFunctionsOrder;
 //         penalty_slave = penalty_slave / h * mSlaveBasisFunctionsOrder *mSlaveBasisFunctionsOrder;
+//  #endif
 
 //         // //-----------
     
@@ -570,7 +664,7 @@
 //                     {
 //                         const int jglob = 2*j+jdim;
 
-//                         // FLUX STANDARD T<ERM
+//                         // // FLUX STANDARD TERM
 //                         Vector sigma_u_n(2);
 //                         sigma_u_n[0] = (DB_master(0, jglob)* mNormalMaster[0] + DB_master(2, jglob)* mNormalMaster[1]);
 //                         sigma_u_n[1] = (DB_master(2, jglob)* mNormalMaster[0] + DB_master(1, jglob)* mNormalMaster[1]);
@@ -603,7 +697,7 @@
 //                         const int j_index = 2*j+jdim;
 //                         const int jglob = 2*j+jdim + shift_dof;
 
-//                         // // FLUX STANDARD TERM
+//                         // // // FLUX STANDARD TERM
 //                         Vector sigma_u_n(2);
 //                         sigma_u_n[0] = (DB_slave(0, j_index)* mNormalSlave[0] + DB_slave(2, j_index)* mNormalSlave[1]);
 //                         sigma_u_n[1] = (DB_slave(2, j_index)* mNormalSlave[0] + DB_slave(1, j_index)* mNormalSlave[1]);
@@ -658,12 +752,106 @@
 //             det_J_surrogate_skin_slave = 1.0;
 //         }
         
-//         if (activation_level == 1 || activation_level == 3)
+//         if (activation_level == 1 || activation_level == 3 ||
+//             SBM_CONTACT_FORMULATION == SBM_CONTACT_NITSCHE_FORMULATION)
 //         {
-        
+//             // // -E(sigma_1(u_1))*n_1*n_1 * (n1*n_1_tilde) * (n_1 * v_1)
+//             // for (IndexType i = 0; i < number_of_nodes_master; i++)
+//             // {
+//             //     for (IndexType idim = 0; idim < 2; idim++) {
+//             //         const int iglob = 2*i+idim;
+//             //         for (IndexType j = 0; j < number_of_nodes_master; j++)
+//             //         {
+//             //             for (IndexType jdim = 0; jdim < 2; jdim++) 
+//             //             {
+//             //                 const int jglob = 2*j+jdim;
+    
+//             //                 // // FLUX EXTENSION TERM
+//             //                 Vector extension_sigma_u_n(2);
+//             //                 extension_sigma_u_n[0] = (DB_sum_master(0, jglob)* mTrueNormalMaster[0] + DB_sum_master(2, jglob)* mTrueNormalMaster[1]);
+//             //                 extension_sigma_u_n[1] = (DB_sum_master(2, jglob)* mTrueNormalMaster[0] + DB_sum_master(1, jglob)* mTrueNormalMaster[1]);
+
+//             //                 const double extension_sigma_u_n_dot_n = extension_sigma_u_n[0]*mTrueNormalMaster[0] + extension_sigma_u_n[1]*mTrueNormalMaster[1];
+    
+//             //                 rLeftHandSideMatrix(iglob, jglob) -= 0.5*extension_sigma_u_n_dot_n * mMasterTrueDotSurrogateNormal * mTrueNormalMaster[idim]
+//             //                                                     * r_N_master(0,i) * mIntegrationWeightMaster;
+                            
+//             //             }
+//             //         }
+
+//             //         for (IndexType j = 0; j < number_of_nodes_slave; j++)
+//             //         {
+//             //             for (IndexType jdim = 0; jdim < 2; jdim++) 
+//             //             {
+//             //                 const int jglob = 2*j+jdim + shift_dof;
+//             //                 const int j_index =  2*j+jdim;
+    
+//             //                 // // FLUX EXTENSION TERM
+//             //                 Vector extension_sigma_u_n(2);
+//             //                 extension_sigma_u_n[0] = (DB_sum_slave(0, j_index)* mTrueNormalSlave[0] + DB_sum_slave(2, j_index)* mTrueNormalSlave[1]);
+//             //                 extension_sigma_u_n[1] = (DB_sum_slave(2, j_index)* mTrueNormalSlave[0] + DB_sum_slave(1, j_index)* mTrueNormalSlave[1]);
+
+//             //                 const double extension_sigma_u_n_dot_n = extension_sigma_u_n[0]*mTrueNormalMaster[0] + extension_sigma_u_n[1]*mTrueNormalMaster[1];
+    
+//             //                 rLeftHandSideMatrix(iglob, jglob) += 0.5*extension_sigma_u_n_dot_n * mMasterTrueDotSurrogateNormal * mTrueNormalMaster[idim]
+//             //                                                     * r_N_master(0,i) * mIntegrationWeightMaster;
+                            
+//             //             }
+//             //         }
+//             //     }
+//             // }
+
+//             // // +E(sigma_1(u_1))*n_1*n_1 * (n2*n_2_tilde) * (n_1 * v_2)
+//             // for (IndexType i = 0; i < number_of_nodes_slave; i++)
+//             // {
+//             //     for (IndexType idim = 0; idim < 2; idim++) {
+//             //         const int iglob = 2*i+idim + shift_dof;
+//             //         for (IndexType j = 0; j < number_of_nodes_master; j++)
+//             //         {
+//             //             for (IndexType jdim = 0; jdim < 2; jdim++) 
+//             //             {
+//             //                 const int jglob = 2*j+jdim;
+    
+//             //                 // // FLUX EXTENSION TERM
+//             //                 Vector extension_sigma_u_n(2);
+//             //                 extension_sigma_u_n[0] = (DB_sum_master(0, jglob)* mTrueNormalMaster[0] + DB_sum_master(2, jglob)* mTrueNormalMaster[1]);
+//             //                 extension_sigma_u_n[1] = (DB_sum_master(2, jglob)* mTrueNormalMaster[0] + DB_sum_master(1, jglob)* mTrueNormalMaster[1]);
+
+//             //                 const double extension_sigma_u_n_dot_n = extension_sigma_u_n[0]*mTrueNormalMaster[0] + extension_sigma_u_n[1]*mTrueNormalMaster[1];
+    
+//             //                 rLeftHandSideMatrix(iglob, jglob) += 0.5*extension_sigma_u_n_dot_n * mSlaveTrueDotSurrogateNormal * mTrueNormalMaster[idim]
+//             //                                                     * r_N_slave(0,i) * mIntegrationWeightMaster *det_J_surrogate_skin_master/det_J_surrogate_skin_slave;
+                            
+                            
+//             //             }
+//             //         }
+
+//             //         for (IndexType j = 0; j < number_of_nodes_slave; j++)
+//             //         {
+//             //             for (IndexType jdim = 0; jdim < 2; jdim++) 
+//             //             {
+//             //                 const int jglob = 2*j+jdim + shift_dof;
+//             //                 const int j_index =  2*j+jdim;
+    
+//             //                 // // FLUX EXTENSION TERM
+//             //                 Vector extension_sigma_u_n(2);
+//             //                 extension_sigma_u_n[0] = (DB_sum_slave(0, j_index)* mTrueNormalSlave[0] + DB_sum_slave(2, j_index)* mTrueNormalSlave[1]);
+//             //                 extension_sigma_u_n[1] = (DB_sum_slave(2, j_index)* mTrueNormalSlave[0] + DB_sum_slave(1, j_index)* mTrueNormalSlave[1]);
+
+//             //                 const double extension_sigma_u_n_dot_n = extension_sigma_u_n[0]*mTrueNormalMaster[0] + extension_sigma_u_n[1]*mTrueNormalMaster[1];
+    
+//             //                 rLeftHandSideMatrix(iglob, jglob) -= 0.5*extension_sigma_u_n_dot_n * mSlaveTrueDotSurrogateNormal * mTrueNormalMaster[idim]
+//             //                                                     * r_N_slave(0,i) * mIntegrationWeightMaster *det_J_surrogate_skin_master/det_J_surrogate_skin_slave;
+                        
+                      
+//             //             }
+//             //         }
+//             //     }
+//             // }
 //             // DISPLACEMENT CONTINUITY (penalty only)
 //             // penalty*(u_1 - u_2)(v_1 - v_2)
 
+// #if SBM_CONTACT_FORMULATION == SBM_CONTACT_PENALTY_FORMULATION
 //             for (IndexType i = 0; i < number_of_nodes_master; i++)
 //             {
 //                 for (IndexType idim = 0; idim < 2; idim++) {
@@ -714,24 +902,66 @@
 //                     }
 //                 }
 //             }
+// #elif SBM_CONTACT_FORMULATION == SBM_CONTACT_NITSCHE_FORMULATION
+//             // Biased one-pass Nitsche contact: master quadrature, normal and flux.
+//             constexpr double nitsche_theta = 1.0;
+//             const double gamma = CalculateScaledNitscheStabilization();
+//             const double contact_weight = mMasterTrueDotSurrogateNormal * mIntegrationWeightMaster;
+//             Vector displacement_master(number_of_nodes_master * dim);
+//             GetValuesVector(displacement_master, QuadraturePointCouplingGeometry2D<Point>::Master);
+//             double traction_master_true_normal = 0.0;
+//             for (IndexType jglob = 0; jglob < displacement_master.size(); ++jglob) {
+//                 traction_master_true_normal += CalculateShiftedNormalTractionOperator(
+//                     DB_sum_master, jglob, mTrueNormalMaster) * displacement_master[jglob];
+//             }
+//             double gap_normal_master = 0.0;
+//             if (this->Has(GAP)) {
+//                 gap_normal_master = -inner_prod(GetValue(GAP), mTrueNormalMaster);
+//             }
+//             const double p_gamma = traction_master_true_normal - gamma * gap_normal_master;
+//             const double active_projector = p_gamma < 0.0 ? 1.0 : 0.0;
+
+//             for (IndexType i = 0; i < number_of_nodes_master + number_of_nodes_slave; ++i) {
+//                 const bool is_master_row = i < number_of_nodes_master;
+//                 const IndexType local_i = is_master_row ? i : i - number_of_nodes_master;
+//                 const Matrix& r_N_row = is_master_row ? r_N_master : r_N_slave;
+//                 const double row_sign = is_master_row ? 1.0 : -1.0;
+
+//                 for (IndexType idim = 0; idim < dim; ++idim) {
+//                     const IndexType iglob = is_master_row ? dim * local_i + idim : shift_dof + dim * local_i + idim;
+//                     const double J_i = row_sign * r_N_row(0, local_i) * mTrueNormalMaster[idim];
+//                     const double T_i = is_master_row
+//                         ? CalculateShiftedNormalTractionOperator(DB_sum_master, dim * local_i + idim, mTrueNormalMaster)
+//                         : 0.0;
+
+//                     for (IndexType j = 0; j < number_of_nodes_master + number_of_nodes_slave; ++j) {
+//                         const bool is_master_column = j < number_of_nodes_master;
+//                         const IndexType local_j = is_master_column ? j : j - number_of_nodes_master;
+//                         const Matrix& r_H_column = is_master_column ? H_sum_master : H_sum_slave;
+//                         const double column_sign = is_master_column ? 1.0 : -1.0;
+
+//                         for (IndexType jdim = 0; jdim < dim; ++jdim) {
+//                             const IndexType jglob = is_master_column ? dim * local_j + jdim : shift_dof + dim * local_j + jdim;
+//                             const double G_j = column_sign * r_H_column(0, local_j) * mTrueNormalMaster[jdim];
+//                             const double T_j = is_master_column
+//                                 ? CalculateShiftedNormalTractionOperator(DB_sum_master, dim * local_j + jdim, mTrueNormalMaster)
+//                                 : 0.0;
+
+//                             // Kratos assembles b = -R_internal into the RHS; therefore the
+//                             // local matrix is -d(b_contact)/d(u), not d(b_contact)/d(u).
+//                             rLeftHandSideMatrix(iglob, jglob) -= contact_weight *
+//                                 (active_projector * J_i * (T_j - gamma * G_j)
+//                                  + nitsche_theta / gamma * T_i *
+//                                     ((1.0 - active_projector) * T_j + active_projector * gamma * G_j));
+//                         }
+//                     }
+//                 }
+//             }
+// #else
+// #error "Unknown SBM contact formulation"
+// #endif
 //         }
-        
-
-//         for (unsigned int i = 0; i < number_of_nodes_slave; i++) {
-
-//             std::ofstream outputFile("txt_files/Id_active_control_points_condition.txt", std::ios::app);
-//             outputFile << r_geometry_slave[i].GetId() << "  " <<r_geometry_slave[i].GetDof(DISPLACEMENT_X).EquationId() <<"\n";
-            
-//             outputFile.close();
-//         }
-
-//         for (unsigned int i = 0; i < number_of_nodes_master; i++) {
-
-//             std::ofstream outputFile("txt_files/Id_active_control_points_condition.txt", std::ios::app);
-//             outputFile << r_geometry_master[i].GetId() << "  " <<r_geometry_master[i].GetDof(DISPLACEMENT_X).EquationId() <<"\n";
-
-//             outputFile.close();
-//         }
+    
 
 //     //     // /////////////////////////////////////////////////////////////////////////////////////////
      
@@ -766,12 +996,14 @@
 //         const Matrix& r_N_master = r_geometry_master.ShapeFunctionsValues(this->GetIntegrationMethod());
 //         const Matrix& r_N_slave = r_geometry_slave.ShapeFunctionsValues(this->GetIntegrationMethod());
 
+//  #if SBM_CONTACT_FORMULATION == SBM_CONTACT_PENALTY_FORMULATION
 //         double penalty_master = (*mpPropMaster)[PENALTY_FACTOR];
 //         double penalty_slave =  (*mpPropSlave)[PENALTY_FACTOR];
 
 //         const double h = std::min(mMasterCharacteristicLength, mSlaveCharacteristicLength);
 //         penalty_master = penalty_master / h * mMasterBasisFunctionsOrder *mMasterBasisFunctionsOrder;
 //         penalty_slave = penalty_slave / h * mSlaveBasisFunctionsOrder *mSlaveBasisFunctionsOrder;
+//  #endif
 
 //         const SizeType shift_dof = dim * number_of_nodes_master;
 
@@ -798,6 +1030,21 @@
 //         CalculateB(B_master, DN_DX_master, number_of_nodes_master);
 
 //         CalculateB(B_slave, DN_DX_slave, number_of_nodes_slave);
+
+// #if SBM_CONTACT_FORMULATION == SBM_CONTACT_NITSCHE_FORMULATION
+//         Matrix grad_H_sum_master_transposed;
+//         ComputeGradientTaylorExpansionContribution(
+//             r_geometry_master, mDistanceMaster, mMasterBasisFunctionsOrder, grad_H_sum_master_transposed);
+//         Matrix grad_H_sum_master = trans(grad_H_sum_master_transposed);
+//         Matrix B_sum_master = ZeroMatrix(3, number_of_nodes_master);
+//         CalculateB(B_sum_master, grad_H_sum_master, number_of_nodes_master);
+//         const Matrix DB_sum_master = prod(GetValue(CONSTITUTIVE_MATRIX_MASTER), B_sum_master);
+//         const double gamma = CalculateScaledNitscheStabilization();
+//         constexpr double nitsche_theta = 1.0;
+//         const double contact_weight = mMasterTrueDotSurrogateNormal * mIntegrationWeightMaster;
+// #elif SBM_CONTACT_FORMULATION != SBM_CONTACT_PENALTY_FORMULATION
+// #error "Unknown SBM contact formulation"
+// #endif
 
 //         // //---------- GET CONSTITUTIVE MATRICES  
 
@@ -876,6 +1123,14 @@
     
 //         const double traction_master_true_normal = inner_prod(traction_master_true, mTrueNormalMaster);
 //         const double traction_slave_true_normal = inner_prod(traction_slave_true, mTrueNormalMaster);
+
+// #if SBM_CONTACT_FORMULATION == SBM_CONTACT_NITSCHE_FORMULATION
+//         double nitsche_traction_master_true_normal = 0.0;
+//         for (IndexType jglob = 0; jglob < old_displacement_coefficient_vector_master.size(); ++jglob) {
+//             nitsche_traction_master_true_normal += CalculateShiftedNormalTractionOperator(
+//                 DB_sum_master, jglob, mTrueNormalMaster) * old_displacement_coefficient_vector_master[jglob];
+//         }
+// #endif
     
 //         double gap_normal_master = 0.0;
 //         if (this->Has(GAP)) {
@@ -884,6 +1139,22 @@
 //                 gap_normal_master = r_gap[0] * mTrueNormalMaster[0] + r_gap[1] * mTrueNormalMaster[1];
 //             }
 //         }
+
+// #if SBM_CONTACT_FORMULATION == SBM_CONTACT_NITSCHE_FORMULATION
+//         const double nitsche_p_gamma = nitsche_traction_master_true_normal - gamma * gap_normal_master;
+//         const double projected_nitsche_p_gamma = std::min(nitsche_p_gamma, 0.0);
+// #endif
+
+// #if SBM_CONTACT_FORMULATION == SBM_CONTACT_NITSCHE_FORMULATION && defined(SBM_CONTACT_NITSCHE_DEBUG)
+//         KRATOS_INFO("SbmContactNitsche")
+//             << "condition=" << Id()
+//             << ", gap_normal_master=" << gap_normal_master
+//             << ", traction_master_true_normal=" << nitsche_traction_master_true_normal
+//             << ", gamma=" << gamma
+//             << ", P_gamma=" << nitsche_p_gamma << std::endl;
+//         KRATOS_INFO_IF("SbmContactNitsche", norm_2(mDistanceMaster) < 1.0e-12 && norm_2(mDistanceSlave) < 1.0e-12)
+//             << "Zero-shift Nitsche check: using unshifted H=N and B_sum=B." << std::endl;
+// #endif
 
 //         // weight on the master skin
 //         const double curvature_master = mpProjectionNodeMaster->GetValue(CURVATURE);
@@ -927,11 +1198,27 @@
 
 //                 check_right_side_vector[iglob] += contribution;
     
-//                 if (activation_level == 1 || activation_level == 3) {
+//         if (activation_level == 1 || activation_level == 3 ||
+//             SBM_CONTACT_FORMULATION == SBM_CONTACT_NITSCHE_FORMULATION) {
+// #if SBM_CONTACT_FORMULATION == SBM_CONTACT_PENALTY_FORMULATION
+//                     // contribution += r_N_master(0, i) * 0.5 *
+//                     //                 (traction_master_true_normal - traction_slave_true_normal)
+//                     //                 * mTrueNormalMaster[idim] * mMasterTrueDotSurrogateNormal * mIntegrationWeightMaster;
                 
 //                     contribution -= penalty_master * r_N_master(0, i) * mTrueNormalMaster[idim]
 //                         * gap_normal_master * mIntegrationWeightMaster;
-
+// #elif SBM_CONTACT_FORMULATION == SBM_CONTACT_NITSCHE_FORMULATION
+//                     const double J_i = r_N_master(0, i) * mTrueNormalMaster[idim];
+//                     const double T_i = CalculateShiftedNormalTractionOperator(
+//                         DB_sum_master, dim * i + idim, mTrueNormalMaster);
+//                     contribution += contact_weight *
+//                         (projected_nitsche_p_gamma * J_i
+//                          + nitsche_theta / gamma *
+//                             (nitsche_traction_master_true_normal -
+//                              projected_nitsche_p_gamma) * T_i);
+// #else
+// #error "Unknown SBM contact formulation"
+// #endif
 //                 }
     
 //                 rRightHandSideVector[iglob] += contribution;
@@ -948,10 +1235,22 @@
 
 //                 check_right_side_vector[iglob] += contribution;
     
-//                 if (activation_level == 1 || activation_level == 3) {
+//         if (activation_level == 1 || activation_level == 3 ||
+//             SBM_CONTACT_FORMULATION == SBM_CONTACT_NITSCHE_FORMULATION) {
+// #if SBM_CONTACT_FORMULATION == SBM_CONTACT_PENALTY_FORMULATION
+//                     // contribution -= r_N_slave(0, i) * 0.5 *
+//                     //                 (traction_master_true_normal - traction_slave_true_normal) * det_J_surrogate_skin_master/det_J_surrogate_skin_slave
+//                     //                 * mTrueNormalMaster[idim] * mSlaveTrueDotSurrogateNormal * mIntegrationWeightMaster;
+       
 //                     contribution += penalty_slave * r_N_slave(0, i) * mTrueNormalMaster[idim]
 //                         * gap_normal_master * mIntegrationWeightSlave;
-
+// #elif SBM_CONTACT_FORMULATION == SBM_CONTACT_NITSCHE_FORMULATION
+//                     const double J_i = -r_N_slave(0, i) * mTrueNormalMaster[idim];
+//                     contribution += contact_weight *
+//                         projected_nitsche_p_gamma * J_i;
+// #else
+// #error "Unknown SBM contact formulation"
+// #endif
 //                 }
     
 //                 rRightHandSideVector[iglob] += contribution;
@@ -963,8 +1262,15 @@
 
 //     int SbmContact2DCondition::Check(const ProcessInfo& rCurrentProcessInfo) const
 //     {
+// #if SBM_CONTACT_FORMULATION == SBM_CONTACT_PENALTY_FORMULATION
 //         KRATOS_ERROR_IF_NOT((*mpPropMaster).Has(PENALTY_FACTOR))
 //             << "No penalty factor (PENALTY_FACTOR) defined in property of SupportPenaltyLaplacianCondition" << std::endl;
+// #elif SBM_CONTACT_FORMULATION == SBM_CONTACT_NITSCHE_FORMULATION
+//         KRATOS_ERROR_IF_NOT((*mpPropMaster).Has(NITSCHE_STABILIZATION_FACTOR))
+//             << "No Nitsche stabilization factor (NITSCHE_STABILIZATION_FACTOR) defined in master properties." << std::endl;
+// #else
+// #error "Unknown SBM contact formulation"
+// #endif
 //         return 0;
 //     }
 
@@ -1364,7 +1670,7 @@
 //                 const double h = std::min(mMasterCharacteristicLength, mSlaveCharacteristicLength);
 
 //                 // Modify the penalty factor: p^2 * penalty / h (NITSCHE APPROACH)
-//                 // penalty_master = penalty_master / h * mMasterBasisFunctionsOrder *mMasterBasisFunctionsOrder /20;
+//                 // penalty_master = penalty_master / h * mMasterBasisFunctionsOrder *mMasterBasisFunctionsOrder;
 //                 // if (normal_gap < 0.0) {
 //                 //     normal_stress = penalty_master * normal_gap;
 //                 // } else {
@@ -1425,7 +1731,7 @@
 //                 const double h = std::min(mMasterCharacteristicLength, mSlaveCharacteristicLength);
 
 //                 // Modify the penalty factor: p^2 * penalty / h (NITSCHE APPROACH)
-//                 // penalty_master = penalty_master / h * mMasterBasisFunctionsOrder *mMasterBasisFunctionsOrder /20;
+//                 // penalty_master = penalty_master / h * mMasterBasisFunctionsOrder *mMasterBasisFunctionsOrder;
 //                 // if (normal_gap < 0.0) {
 //                 //     normal_stress = penalty_master * normal_gap;
 //                 // } else {
@@ -1462,9 +1768,8 @@
 //         this->InitializeNonLinearIteration(rCurrentProcessInfo);
 
 //         // #############################################################
-//         SetValue(ACTIVATION_LEVEL, 0);  
-//         SetValue(YOUNG_MODULUS_MASTER, (*mpPropMaster)[YOUNG_MODULUS]);
-//         SetValue(YOUNG_MODULUS_SLAVE, (*mpPropSlave)[YOUNG_MODULUS]);
+//         SetValue(ACTIVATION_LEVEL, 0);
+//         UpdateActiveSetCriterionData();
 //     }
 
 //     /**
@@ -1489,8 +1794,8 @@
 
 //         Matrix H_sum_master;
 //         Matrix H_sum_slave;
-//         ComputeTaylorSumContribution(r_geometry_master, mDistanceMaster, mMasterBasisFunctionsOrder, H_sum_master);
-//         ComputeTaylorSumContribution(r_geometry_slave, mDistanceSlave, mSlaveBasisFunctionsOrder, H_sum_slave);
+//         ComputeTaylorSumContribution(r_geometry_master, mDistanceMaster, 2*mMasterBasisFunctionsOrder, H_sum_master);
+//         ComputeTaylorSumContribution(r_geometry_slave, mDistanceSlave, 2*mSlaveBasisFunctionsOrder, H_sum_slave);
 
 //         Matrix H_master_true = ZeroMatrix(dim, dim * number_of_nodes_master);
 //         for (IndexType i = 0; i < number_of_nodes_master; ++i) {
@@ -1540,6 +1845,7 @@
 //         this->SetConstitutiveVariables(strain_vector_slave, 1, rCurrentProcessInfo);
 
 //         SetGap();
+//         UpdateActiveSetCriterionData();
 //     }
 
 //     /**

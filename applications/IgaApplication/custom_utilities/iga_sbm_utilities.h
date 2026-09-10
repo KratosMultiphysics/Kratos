@@ -38,6 +38,11 @@ public:
         array_1d<double, 3>& rPointDeformedCoordinates);
 
     static void GetDeformedPosition(
+        const Condition& rCondition,
+        const array_1d<double, 3>& rPointReferenceCoordinates,
+        array_1d<double, 3>& rPointDeformedCoordinates);
+
+    static void GetDeformedPosition(
         const NodeType& rNode,
         array_1d<double, 3>& rPointDeformedCoordinates);
 

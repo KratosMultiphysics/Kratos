@@ -739,10 +739,29 @@ void GapSbmSolidInterfaceCondition::ApplyConstitutiveLaw(std::size_t matSize, Ve
 
 void GapSbmSolidInterfaceCondition::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
 {
-    ConstitutiveLaw::Parameters constitutive_law_parameters(
-        GetGeometry(), GetProperties(), rCurrentProcessInfo);
+    // The interface uses one constitutive-law instance and evaluates the minus
+    // side last during assembly. Reconstruct that same material response before
+    // finalizing it; an empty Parameters object is not valid for plastic laws.
+    const auto& r_surrogate_geometry_minus = GetGeometryMinus();
+    const std::size_t number_of_control_points_minus = r_surrogate_geometry_minus.size();
+    const std::size_t mat_size_minus = number_of_control_points_minus * mDim;
 
-    mpConstitutiveLaw->FinalizeMaterialResponse(constitutive_law_parameters, ConstitutiveLaw::StressMeasure_Cauchy);
+    Matrix grad_N_sum_transposed_minus = ZeroMatrix(3, number_of_control_points_minus);
+    ComputeGradientTaylorExpansionContribution(
+        r_surrogate_geometry_minus, mDistanceVectorMinus, grad_N_sum_transposed_minus);
+    Matrix grad_N_sum_minus = trans(grad_N_sum_transposed_minus);
+
+    Matrix B_sum_minus = ZeroMatrix(mDim, mat_size_minus);
+    CalculateB(r_surrogate_geometry_minus, B_sum_minus, grad_N_sum_minus);
+
+    Vector displacement_minus(mat_size_minus);
+    GetSolutionCoefficientVectorMinus(displacement_minus);
+    Vector strain_minus = prod(B_sum_minus, displacement_minus);
+
+    ConstitutiveLaw::Parameters values_minus(GetGeometry(), GetProperties(), rCurrentProcessInfo);
+    ConstitutiveVariables constitutive_variables_minus(mpConstitutiveLaw->GetStrainSize());
+    ApplyConstitutiveLaw(mat_size_minus, strain_minus, values_minus, constitutive_variables_minus);
+    mpConstitutiveLaw->FinalizeMaterialResponse(values_minus, ConstitutiveLaw::StressMeasure_Cauchy);
 }
 
 void GapSbmSolidInterfaceCondition::InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo){

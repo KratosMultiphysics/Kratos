@@ -299,6 +299,7 @@ void SbmContact2DCondition::UpdateActiveSetCriterionData()
     SetValue(YOUNG_MODULUS_SLAVE, (*mpPropSlave)[YOUNG_MODULUS]);
 #if SBM_CONTACT_FORMULATION == SBM_CONTACT_PENALTY_FORMULATION
     SetValue(PENALTY_FACTOR, CalculateScaledPenalty());
+    SetValue(NITSCHE_STABILIZATION_FACTOR, GetValue(PENALTY_FACTOR)); // For backward compatibility, set NITSCHE_STABILIZATION_FACTOR to the same value as PENALTY_FACTOR
 #elif SBM_CONTACT_FORMULATION == SBM_CONTACT_NITSCHE_FORMULATION
     SetValue(NITSCHE_STABILIZATION_FACTOR, CalculateScaledNitscheStabilization());
 #endif
@@ -907,19 +908,10 @@ void SbmContact2DCondition::CalculateLocalSystem(
             constexpr double nitsche_theta = 1.0;
             const double gamma = CalculateScaledNitscheStabilization();
             const double contact_weight = mMasterTrueDotSurrogateNormal * mIntegrationWeightMaster;
-            Vector displacement_master(number_of_nodes_master * dim);
-            GetValuesVector(displacement_master, QuadraturePointCouplingGeometry2D<Point>::Master);
-            double traction_master_true_normal = 0.0;
-            for (IndexType jglob = 0; jglob < displacement_master.size(); ++jglob) {
-                traction_master_true_normal += CalculateShiftedNormalTractionOperator(
-                    DB_sum_master, jglob, mTrueNormalMaster) * displacement_master[jglob];
-            }
-            double gap_normal_master = 0.0;
-            if (this->Has(GAP)) {
-                gap_normal_master = -inner_prod(GetValue(GAP), mTrueNormalMaster);
-            }
-            const double p_gamma = traction_master_true_normal - gamma * gap_normal_master;
-            const double active_projector = p_gamma < 0.0 ? 1.0 : 0.0;
+            // The active-set criterion is the single source of truth for the
+            // contact state in both penalty and Nitsche formulations.
+            const double active_projector =
+                (activation_level == 1 || activation_level == 3) ? 1.0 : 0.0;
 
             for (IndexType i = 0; i < number_of_nodes_master + number_of_nodes_slave; ++i) {
                 const bool is_master_row = i < number_of_nodes_master;
@@ -1142,7 +1134,9 @@ void SbmContact2DCondition::CalculateLocalSystem(
 
 #if SBM_CONTACT_FORMULATION == SBM_CONTACT_NITSCHE_FORMULATION
         const double nitsche_p_gamma = nitsche_traction_master_true_normal - gamma * gap_normal_master;
-        const double projected_nitsche_p_gamma = std::min(nitsche_p_gamma, 0.0);
+        const bool is_contact_active = activation_level == 1 || activation_level == 3;
+        const double projected_nitsche_p_gamma = is_contact_active ? nitsche_p_gamma : 0.0;
+        SetValue(NITSCHE_CONTACT_PRESSURE, projected_nitsche_p_gamma);
 #endif
 
 #if SBM_CONTACT_FORMULATION == SBM_CONTACT_NITSCHE_FORMULATION && defined(SBM_CONTACT_NITSCHE_DEBUG)

@@ -145,6 +145,9 @@ void SbmLoadSolidCondition::InitializeSbmMemberVariables()
     }
 
     // Retrieve projection
+    KRATOS_ERROR_IF(this->GetValue(NEIGHBOUR_CONDITIONS).size() == 0)
+        << "SbmLoadSolidCondition #" << this->Id()
+        << " has neither NEIGHBOUR_NODES nor NEIGHBOUR_CONDITIONS." << std::endl;
     Condition candidate_closest_skin_segment_1 = this->GetValue(NEIGHBOUR_CONDITIONS)[0] ;
     // Find the closest node in condition
     int closestNodeId;
@@ -168,6 +171,10 @@ void SbmLoadSolidCondition::InitializeSbmMemberVariables()
     // loopIdentifier is inner or outer
     if (mDim == 2) {
         // Need also the second closest condition in 2D
+        KRATOS_ERROR_IF(this->GetValue(NEIGHBOUR_CONDITIONS).size() < 2)
+            << "SbmLoadSolidCondition #" << this->Id()
+            << " requires two NEIGHBOUR_CONDITIONS in 2D, but has "
+            << this->GetValue(NEIGHBOUR_CONDITIONS).size() << "." << std::endl;
         Condition candidate_closest_skin_segment_2 = this->GetValue(NEIGHBOUR_CONDITIONS)[1] ;
         array_1d<double,3> vector_skin_segment_1 = candidate_closest_skin_segment_1.GetGeometry()[1] - candidate_closest_skin_segment_1.GetGeometry()[0];
         array_1d<double,3> vector_skin_segment_2 = candidate_closest_skin_segment_2.GetGeometry()[1] - candidate_closest_skin_segment_2.GetGeometry()[0];
