@@ -2040,6 +2040,12 @@ public:
             << *this << std::endl;
     }
 
+    virtual void DomainInterval(Vector& rInterval) const
+    {
+        KRATOS_ERROR << "Calling DomainInterval of geometry base class. Please check derived definitions. "
+                     << *this << std::endl;
+    }
+
     ///@}
     ///@name Inquiry
     ///@{

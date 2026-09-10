@@ -224,9 +224,10 @@ namespace Kratos
                 WeightsRefined);
         }
 
+        ModelPart& r_root_model_part = r_model_part.GetRootModelPart();
         IndexType node_id = 1;
-        if( r_model_part.NumberOfNodes() > 0 ){
-            node_id = (r_model_part.NodesEnd() - 1)->Id() + 1;
+        if (r_root_model_part.NumberOfNodes() > 0) {
+            node_id = (r_root_model_part.NodesEnd() - 1)->Id() + 1;
         }
 
         for (IndexType i = 0; i < PointsRefined.size(); ++i) {
@@ -394,10 +395,12 @@ namespace Kratos
                 p_volume_geometry->KnotsU(), p_volume_geometry->KnotsV(), KnotsWRefined);
         }
 
-        // Add nodes to model part
+        // Add nodes to model part. IDs are global to the root model part,
+        // while this geometry may be built in a sibling submodel part.
+        ModelPart& r_root_model_part = r_model_part.GetRootModelPart();
         IndexType node_id = 1;
-        if( r_model_part.NumberOfNodes() > 0 ){
-            node_id = (r_model_part.NodesEnd() - 1)->Id() + 1;
+        if (r_root_model_part.NumberOfNodes() > 0) {
+            node_id = (r_root_model_part.NodesEnd() - 1)->Id() + 1;
         }
         for (IndexType i = 0; i < PointsRefined.size(); ++i) {
             if (PointsRefined(i)->Id() == 0) {

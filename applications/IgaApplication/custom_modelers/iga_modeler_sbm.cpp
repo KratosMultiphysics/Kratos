@@ -16,6 +16,8 @@
 #include "iga_modeler_sbm.h"
 #include "integration/integration_point_utilities.h"
 #include "iga_application_variables.h"
+#include "utilities/parallel_utilities.h"
+#include "utilities/variable_utils.h"
 
 
 namespace Kratos
@@ -38,6 +40,16 @@ void IgaModelerSbm::SetupModelPart()
         analysis_model_part,
         iga_physics_parameters);
     
+    if (mpModel->HasModelPart("skin_model_part")) { // // TODO: change this for multi patch
+        if (mParameters.Has("integrate_on_true_boundary")) {
+            if (mParameters["integrate_on_true_boundary"].GetBool()) {
+                // method for computing the integral of the solution along the true boundary
+                PrepareIntegrationOnTrueBoundary(analysis_model_part);
+            } 
+        }
+    }
+
+    // // TODO: reduce the computational cost of this operation
     ActivateNodesInElementsAndCleanRoot(analysis_model_part);
 }
 
@@ -57,6 +69,28 @@ void IgaModelerSbm::CreateIntegrationDomain(
             rModelPart,
             rPhysicsParameters[i]);
     }
+}
+
+void IgaModelerSbm::ActivateNodesInElementsAndCleanRoot(ModelPart& rAnalysisModelPart) const
+{
+    auto& r_analysis_nodes = rAnalysisModelPart.Nodes();
+    VariableUtils().SetFlag(ACTIVE, false, r_analysis_nodes);
+    VariableUtils().SetFlag(TO_ERASE, false, r_analysis_nodes);
+
+    for (auto& r_elem : rAnalysisModelPart.Elements()) {
+        auto& r_geom = r_elem.GetGeometry();
+        for (auto& r_node : r_geom) {
+            r_node.Set(ACTIVE, true);
+        }
+    }
+
+    block_for_each(r_analysis_nodes, [](NodeType& rNode) {
+        if (rNode.IsNot(ACTIVE)) {
+            rNode.Set(TO_ERASE, true);
+        }
+    });
+
+    rAnalysisModelPart.RemoveNodesFromAllLevels(TO_ERASE);
 }
 
 void IgaModelerSbm::CreateIntegrationDomainPerUnit(
@@ -177,8 +211,7 @@ void IgaModelerSbm::GetGeometryList(
             } else // outer loop
             {
                 int outer_brep_id = 2;
-                // OUTER
-                ModelPart& surrogate_model_part_outer = rModelPart.GetSubModelPart("surrogate_outer");
+                const ModelPart& surrogate_model_part_outer = rModelPart.GetSubModelPart("surrogate_outer");
                 
                 if (surrogate_model_part_outer.NumberOfConditions() > 0) {
                     // both for 2D and 3D
@@ -312,9 +345,20 @@ void IgaModelerSbm::CreateQuadraturePointGeometries(
             SizeType id = 1;
             if (rModelPart.GetRootModelPart().Conditions().size() > 0)
                 id = rModelPart.GetRootModelPart().Conditions().back().Id() + 1;
-            this->CreateConditions(
-                geometries.ptr_begin(), geometries.ptr_end(),
-                rModelPart, name, id, PropertiesPointerType(), knot_span_sizes);
+            if (!rParameters.Has("additional_data")) {
+                this->CreateConditions(
+                    geometries.ptr_begin(), geometries.ptr_end(),
+                    rModelPart, name, id, PropertiesPointerType(), knot_span_sizes);
+            } else {
+                this->CreateConditionsWithAdditionalData(
+                    geometries,
+                    rModelPart,
+                    rParameters["additional_data"],
+                    name,
+                    id,
+                    PropertiesPointerType(),
+                    knot_span_sizes);
+            }
         }
         else {
             KRATOS_ERROR << "\"type\" does not exist: " << type
@@ -420,9 +464,9 @@ void IgaModelerSbm::CreateQuadraturePointGeometriesSbmByProjectionLayer(
     const int domain_size = rModelPart.GetProcessInfo()[DOMAIN_SIZE];
     double search_radius;
     if (domain_size == 2) {
-        search_radius = std::sqrt(2.0) * knot_span_reference_size;
+        search_radius = std::sqrt(2.0) * knot_span_reference_size*2;
     } else {
-        search_radius = std::sqrt(3.0) * knot_span_reference_size;
+        search_radius = 3* std::sqrt(3.0) * knot_span_reference_size; // TODO:
     }
 
     DynamicBins testBins(points.begin(), points.end());
@@ -537,6 +581,99 @@ void IgaModelerSbm::CreateQuadraturePointGeometriesSbmByProjectionLayer(
     }
 }
 
+void IgaModelerSbm::CreateConditionsWithAdditionalData(
+    GeometriesArrayType& rGeometries,
+    ModelPart& rModelPart,
+    const Parameters rAdditionalData,
+    std::string& rDefaultConditionName,
+    SizeType& rIdCounter,
+    PropertiesPointerType pProperties,
+    const Vector KnotSpanSizes) const
+{
+    GeometriesArrayType remaining_geometries;
+    for (auto it = rGeometries.ptr_begin(); it != rGeometries.ptr_end(); ++it) {
+        remaining_geometries.push_back((*it));
+    }
+
+    auto matches_apply_to = [](const GeometryType& rGeom, const std::string& rExpr) -> bool {
+        std::string expr;
+        expr.reserve(rExpr.size());
+        for (char c : rExpr) if (c != ' ') expr.push_back(c);
+        if (expr.empty()) return false;
+
+        const char axis = static_cast<char>(std::tolower(expr[0]));
+        std::size_t eq_pos = expr.find('=');
+        if (eq_pos == std::string::npos) {
+            eq_pos = expr.find("==");
+            if (eq_pos == std::string::npos) return false;
+        }
+        const std::string value_str = expr.substr(eq_pos + (expr[eq_pos]=='=' && eq_pos+1 < expr.size() && expr[eq_pos+1]=='=' ? 2 : 1));
+        char* endptr = nullptr;
+        const double value = std::strtod(value_str.c_str(), &endptr);
+        if (endptr == value_str.c_str()) return false;
+
+        const auto center = rGeom.Center();
+        const double eps = 1e-12;
+        if (axis == 'x') return std::abs(center.X() - value) < eps;
+        if (axis == 'y') return std::abs(center.Y() - value) < eps;
+        if (axis == 'z') return std::abs(center.Z() - value) < eps;
+        return false;
+    };
+
+    for (IndexType i_rule = 0; i_rule < rAdditionalData.size(); ++i_rule) {
+        const Parameters rule = rAdditionalData[i_rule];
+        if (!rule.Has("apply_to") || !rule.Has("iga_model_part") || !rule.Has("name")) {
+            KRATOS_INFO("IgaModelerSbm") << "Skipping additional_data[" << i_rule
+                << "]: missing one of {apply_to, iga_model_part, name}." << std::endl;
+            continue;
+        }
+
+        const std::string apply_to = rule["apply_to"].GetString();
+        const std::string target_mp_name = rule["iga_model_part"].GetString();
+        const std::string target_cond_name = rule["name"].GetString();
+
+        GeometriesArrayType geometries_match;
+        GeometriesArrayType geometries_non_match;
+        for (auto it = remaining_geometries.ptr_begin(); it != remaining_geometries.ptr_end(); ++it) {
+            const auto& r_geom = *(*it);
+            if (matches_apply_to(r_geom, apply_to)) {
+                geometries_match.push_back((*it));
+            } else {
+                geometries_non_match.push_back((*it));
+            }
+        }
+
+        if (geometries_match.size() > 0) {
+            ModelPart* p_target_mp = nullptr;
+            if (mpModel != nullptr && mpModel->HasModelPart(target_mp_name)) {
+                p_target_mp = &mpModel->GetModelPart(target_mp_name);
+            } else {
+                // Create/get the submodel part at the same level as rModelPart (under its parent/patch)
+                ModelPart& r_owner_mp = rModelPart.GetParentModelPart();
+                ModelPart* p_owner = (&r_owner_mp == &rModelPart) ? &rModelPart : &r_owner_mp;
+                p_target_mp = p_owner->HasSubModelPart(target_mp_name)
+                    ? &p_owner->GetSubModelPart(target_mp_name)
+                    : &p_owner->CreateSubModelPart(target_mp_name);
+            }
+            std::string cond_name_copy = target_cond_name;
+            this->CreateConditions(
+                geometries_match.ptr_begin(), geometries_match.ptr_end(),
+                *p_target_mp, cond_name_copy, rIdCounter, pProperties, KnotSpanSizes);
+        }
+
+        remaining_geometries = GeometriesArrayType();
+        for (auto it = geometries_non_match.ptr_begin(); it != geometries_non_match.ptr_end(); ++it) {
+            remaining_geometries.push_back((*it));
+        }
+    }
+
+    if (remaining_geometries.size() > 0) {
+        this->CreateConditions(
+            remaining_geometries.ptr_begin(), remaining_geometries.ptr_end(),
+            rModelPart, rDefaultConditionName, rIdCounter, pProperties, KnotSpanSizes);
+    }
+}
+
 void IgaModelerSbm::CreateQuadraturePointGeometriesSbmByFixedConditionName(
     GeometriesArrayType& rGeometryList,
     ModelPart& rModelPart,
@@ -618,7 +755,7 @@ void IgaModelerSbm::CreateQuadraturePointGeometriesSbmByFixedConditionName(
     if (domain_size == 2) {
         search_radius = 2*std::sqrt(2.0) * knot_span_reference_size;
     } else {
-        search_radius = 3*std::sqrt(3.0) * knot_span_reference_size;
+        search_radius = 3*std::sqrt(3.0) * knot_span_reference_size; // TODO: with 10 it works...
     }
 
     DynamicBins testBins(points.begin(), points.end());
@@ -673,19 +810,19 @@ void IgaModelerSbm::CreateQuadraturePointGeometriesSbmByFixedConditionName(
             double minimum_distance = 1e14;
 
             // Find the nearest node
-            IndexType nearest_node_id;
+            IndexType nearest_result_id;
             for (IndexType k = 0; k < obtained_results; k++) {
                 double current_distance = list_of_distances[k];   
                 if (current_distance < minimum_distance) { 
                     minimum_distance = current_distance;
-                    nearest_node_id = k;
+                    nearest_result_id = k;
                 }
             }
             KRATOS_ERROR_IF(obtained_results == 0) << "::[IgaModelerSbm]:: Zero points found in serch for projection of point: " <<
                 integration_point << std::endl;
             
             // store id closest condition
-            list_id_closest_condition[j] = results[nearest_node_id]->Id();
+            list_id_closest_condition[j] = results[nearest_result_id]->Id();
         }
 
         if (is_inner) {
@@ -733,7 +870,9 @@ void IgaModelerSbm::CreateElements(
     {
         new_element_list.push_back(
             rReferenceElement.Create(rIdCounter, (*it), pProperties));
-
+        // for (SizeType i = 0; i < (*it)->size(); ++i) {
+        //     rModelPart.Nodes().push_back((*it)->pGetPoint(i));
+        // }
 
         // Set knot span sizes to the condition
         new_element_list.GetContainer()[count]->SetValue(KNOT_SPAN_SIZES, KnotSpanSizes);
@@ -771,6 +910,9 @@ void IgaModelerSbm::CreateConditions(
         // Set knot span sizes to the condition
         new_condition_list.GetContainer()[count_list_closest_condition]->SetValue(KNOT_SPAN_SIZES, KnotSpanSizes);
 
+        // for (SizeType i = 0; i < (*it)->size(); ++i) {
+        //     rModelPart.Nodes().push_back((*it)->pGetPoint(i));
+        // }
         rIdCounter++;
         count_list_closest_condition++;
     }
@@ -825,6 +967,10 @@ void IgaModelerSbm::CreateConditions(
             }
             new_condition_list.GetContainer()[count_list_closest_condition]->SetValue(KNOT_SPAN_SIZES, KnotSpanSizes);
                         
+            // for (SizeType i = 0; i < (*it)->size(); ++i) {
+            //     // These are the control points associated with the basis functions involved in the condition we are creating
+            //     rModelPart.Nodes().push_back((*it)->pGetPoint(i));
+            // }
             rIdCounter++;
             count_list_closest_condition++;
         }
@@ -863,9 +1009,6 @@ void IgaModelerSbm::CreateConditions(
     const bool IsInner,
     const Vector KnotSpanSizes) const
 {
-
-    ModelPart::ConditionsContainerType new_condition_list;
-
     int count_list_closest_condition = 0;
 
     // count how many conditions for each layer
@@ -957,87 +1100,263 @@ void IgaModelerSbm::CreateConditions(
         count_list_closest_condition++;
     }
 
-    KRATOS_ERROR_IF(!KratosComponents<Condition>::Has(max_condition_name))
-            << max_condition_name << " not registered." << std::endl;
-
-    const Condition& rReferenceCondition = KratosComponents<Condition>::Get(max_condition_name);
-    count_list_closest_condition = 0;
-
-    ModelPart& r_layer_model_part = rModelPart.HasSubModelPart(layer_name) ? 
-                                    rModelPart.GetSubModelPart(layer_name) : 
-                                    rModelPart.CreateSubModelPart(layer_name);
-    // 2D case
-    if (rSkinModelPart.ConditionsBegin()->GetGeometry().size() == 2) {
-
-        for (auto it = rGeometriesBegin; it != rGeometriesEnd; ++it) {
-            new_condition_list.push_back(
-                rReferenceCondition.Create(rIdCounter, (*it), pProperties));
-
-            IndexType condId = rListIdClosestCondition[count_list_closest_condition];
-
-            Condition::Pointer cond1 = &rSkinModelPart.GetCondition(condId);
-            IndexType condId2;  
-            if (condId == rSkinModelPart.ConditionsBegin()->Id()) {
-                condId2 = (rSkinModelPart.ConditionsEnd()-1)->Id();
+    const std::string and_token = "_AND_";
+    std::vector<std::string> condition_names;
+    const bool has_and_token = max_condition_name.find(and_token) != std::string::npos;
+    if (has_and_token) {
+        size_t start_pos = 0;
+        while (true) {
+            const size_t end_pos = max_condition_name.find(and_token, start_pos);
+            const std::string name = max_condition_name.substr(start_pos, end_pos - start_pos);
+            KRATOS_ERROR_IF(name.empty()) << "Empty condition name token in " << max_condition_name << std::endl;
+            condition_names.push_back(name);
+            if (end_pos == std::string::npos) {
+                break;
             }
-            else condId2 = condId-1;
-            Condition::Pointer cond2 = &rSkinModelPart.GetCondition(condId2);
-
-            // Add closest projection node
-            NodePointerVector empty_vector;
-            PointTypePointer projection_node = cond1->GetGeometry()(0);
-            if (norm_2(projection_node->GetValue(NORMAL)) > 1e-13)
-            {
-                empty_vector.push_back(cond1->GetGeometry()(0)); // Just it_node-plane neighbours
-                (*it)->SetValue(NEIGHBOUR_NODES, empty_vector);
-            }
-            
-            new_condition_list.GetContainer()[count_list_closest_condition]->SetValue(NEIGHBOUR_CONDITIONS, GlobalPointersVector<Condition>({cond1,cond2}));
-            if (IsInner) {
-                new_condition_list.GetContainer()[count_list_closest_condition]->SetValue(IDENTIFIER, "inner");
-            } else {
-                new_condition_list.GetContainer()[count_list_closest_condition]->SetValue(IDENTIFIER, "outer");
-            }
-            new_condition_list.GetContainer()[count_list_closest_condition]->SetValue(KNOT_SPAN_SIZES, KnotSpanSizes);                            
-
-            rIdCounter++;
-            count_list_closest_condition++;
+            start_pos = end_pos + and_token.size();
         }
     } else {
-        // TODO: 3D case
-        KRATOS_ERROR << "CreateConditions: 3D case not implemented yet." << std::endl;
+        condition_names.push_back(max_condition_name);
     }
-    
-    r_layer_model_part.AddConditions(new_condition_list.begin(), new_condition_list.end());
+
+    if (mEchoLevel > 1) {
+        std::stringstream names_msg;
+        names_msg << "CreateConditions split condition names: ";
+        for (size_t i = 0; i < condition_names.size(); ++i) {
+            names_msg << condition_names[i];
+            if (i + 1 < condition_names.size()) {
+                names_msg << ", ";
+            }
+        }
+        KRATOS_INFO("CreateConditions") << names_msg.str() << std::endl;
+    }
+
+    for (const auto& condition_name : condition_names) {
+        if (has_and_token && condition_name == "SbmContact2DCondition") {
+            KRATOS_ERROR << "SbmContact2DCondition not supported when using " << and_token
+                         << " in condition name." << std::endl;
+        }
+        KRATOS_ERROR_IF(!KratosComponents<Condition>::Has(condition_name))
+                << condition_name << " not registered." << std::endl;
+
+        if (condition_name == "SbmContact2DCondition") {
+            ModelPart& analysis_model_part = rModelPart.GetParentModelPart();
+            // KRATOS_WATCH(analysis_model_part)
+            count_list_closest_condition = 0;
+            for (auto it = rGeometriesBegin; it != rGeometriesEnd; ++it) {
+                int condId = rListIdClosestCondition[count_list_closest_condition];
+                Condition::Pointer cond = rSkinModelPart.pGetCondition(condId);
+
+                NodePointerVector empty_vector;
+                empty_vector.push_back(cond->GetGeometry()(0)); // Just it_node-plane neighbours
+                (*it)->SetValue(NEIGHBOUR_NODES, empty_vector);
+
+                count_list_closest_condition++;
+            }
+            
+            ModelPart& layerModelPart = analysis_model_part.HasSubModelPart(layer_name) ? 
+                            analysis_model_part.GetSubModelPart(layer_name) : 
+                            analysis_model_part.CreateSubModelPart(layer_name);
+
+            // retrieve the id of the brep
+            IndexType id = (*rGeometriesBegin)->GetGeometryParent(0).Id();
+
+            // add the brep to the SubModelPart
+            layerModelPart.AddGeometry(analysis_model_part.pGetGeometry(id));
+
+            if (condition_names.size() == 1) {
+                return;
+            }
+            continue;
+        }
+
+        //--------------------------
+
+        ModelPart::ConditionsContainerType new_condition_list;
+        const Condition& rReferenceCondition = KratosComponents<Condition>::Get(condition_name);
+        count_list_closest_condition = 0;
+
+        ModelPart& r_layer_model_part = rModelPart.HasSubModelPart(layer_name) ? 
+                                        rModelPart.GetSubModelPart(layer_name) : 
+                                        rModelPart.CreateSubModelPart(layer_name);
+        // 2D case
+        if (rSkinModelPart.ConditionsBegin()->GetGeometry().size() == 2) {
+
+            for (auto it = rGeometriesBegin; it != rGeometriesEnd; ++it) {
+                new_condition_list.push_back(
+                    rReferenceCondition.Create(rIdCounter, (*it), pProperties));
+
+                IndexType condId = rListIdClosestCondition[count_list_closest_condition];
+
+                Condition::Pointer cond1 = &rSkinModelPart.GetCondition(condId);
+                IndexType condId2;  
+                if (condId == rSkinModelPart.ConditionsBegin()->Id()) {
+                    condId2 = (rSkinModelPart.ConditionsEnd()-1)->Id();
+                }
+                else condId2 = condId-1;
+                Condition::Pointer cond2 = &rSkinModelPart.GetCondition(condId2);
+
+                // Add closest projection node
+                NodePointerVector empty_vector;
+                PointTypePointer projection_node = cond1->GetGeometry()(0);
+
+                bool found_projection_node = false;
+                for (SizeType i = 0; i < cond1->GetGeometry().size(); ++i) {
+                    projection_node = cond1->GetGeometry()(i);
+                    auto projection_node_connected_layers = projection_node->GetValue(CONNECTED_LAYERS);
+                    if (projection_node_connected_layers.size() == 1 && projection_node_connected_layers[0] == layer_name) {
+                        found_projection_node = true;
+                        break;
+                    }
+                }
+                if (!found_projection_node) {
+                    for (SizeType i = 0; i < cond2->GetGeometry().size(); ++i) {
+                        projection_node = cond2->GetGeometry()(i);
+                        auto projection_node_connected_layers = projection_node->GetValue(CONNECTED_LAYERS);
+                        if (projection_node_connected_layers.size() == 1 && projection_node_connected_layers[0] == layer_name) {
+                            found_projection_node = true;
+                            break;
+                        }
+                    }            
+                }
+                KRATOS_ERROR_IF(!found_projection_node) << "No projection node found for condition " << cond1->Id() << " or " << cond2->Id() << std::endl;
+                if (rSkinModelPart.HasSubModelPart("interface_vertices")) {
+                    ModelPart& r_interface_model_part = rSkinModelPart.GetSubModelPart("interface_vertices");
+                    bool is_interface_projection_node = false;
+                    for (const auto& r_interface_node : r_interface_model_part.Nodes()) {
+                        if (norm_2(projection_node->Coordinates() - r_interface_node.Coordinates()) < 1e-13) {
+                            is_interface_projection_node = true;
+                            break;
+                        }
+                    }
+                    if (is_interface_projection_node) {
+                        projection_node = cond1->GetGeometry()(0)->Id() == projection_node->Id()
+                            ? cond1->GetGeometry()(1)
+                            : cond1->GetGeometry()(0);
+                    }
+                }
+
+                if (norm_2(projection_node->GetValue(NORMAL)) > 1e-13)
+                {
+                    empty_vector.push_back(projection_node); // Just it_node-plane neighbours
+                    (*it)->SetValue(NEIGHBOUR_NODES, empty_vector);
+                }
+                
+                new_condition_list.GetContainer()[count_list_closest_condition]->SetValue(NEIGHBOUR_CONDITIONS, GlobalPointersVector<Condition>({cond1,cond2}));
+                if (IsInner) {
+                    new_condition_list.GetContainer()[count_list_closest_condition]->SetValue(IDENTIFIER, "inner");
+                } else {
+                    new_condition_list.GetContainer()[count_list_closest_condition]->SetValue(IDENTIFIER, "outer");
+                }
+                new_condition_list.GetContainer()[count_list_closest_condition]->SetValue(KNOT_SPAN_SIZES, KnotSpanSizes);                            
+
+                rIdCounter++;
+                count_list_closest_condition++;
+            }
+        } else {
+            // TODO: 3D case
+            KRATOS_ERROR << "CreateConditions: 3D case not implemented yet." << std::endl;
+        }
+        
+        r_layer_model_part.AddConditions(new_condition_list.begin(), new_condition_list.end());
+    }
 }
 
-void IgaModelerSbm::ActivateNodesInElementsAndCleanRoot(ModelPart& rAnalysisModelPart) const
+void IgaModelerSbm::PrepareIntegrationOnTrueBoundary(ModelPart& analysis_model_part) const 
 {
-    for (auto& r_node : rAnalysisModelPart.Nodes()) {
-        r_node.Set(ACTIVE, false);
+    // create the test bins containing all the boundary integration point (ALL!)
+    PointVector points;
+    std::string skin_model_part_name;
+    if (!mParameters.Has("skin_model_part_name")) skin_model_part_name = "skin_model_part";
+    else {
+        skin_model_part_name = mParameters["skin_model_part_name"].GetString();
+    }
+    ModelPart& skin_model_part_in  = mpModel->GetModelPart(skin_model_part_name + ".inner");
+    ModelPart& skin_model_part_out = mpModel->GetModelPart(skin_model_part_name + ".outer");
+
+    if (!(skin_model_part_in.Nodes().size() > 0 || skin_model_part_out.Nodes().size() > 0) ) {
+        KRATOS_ERROR << "Trying to integrate on true boundary when no skin boundary is defined" << std::endl;
     }
 
-    for (auto& r_elem : rAnalysisModelPart.Elements()) {
-        auto& r_geom = r_elem.GetGeometry();
-        for (auto& r_node : r_geom) {
-            r_node.Set(ACTIVE, true);
+    for (auto i_cond : analysis_model_part.GetSubModelPart("SBM_Support_outer").Conditions()) { //FIXME:
+        points.push_back(PointTypePointer(new PointType(i_cond.Id(), i_cond.GetGeometry().Center().X(), i_cond.GetGeometry().Center().Y(), i_cond.GetGeometry().Center().Z())));
+    }
+
+    int order = 5;
+    if (mParameters.Has("precision_order_on_integration")) {
+        order = mParameters["precision_order_on_integration"].GetInt();
+    } 
+    int num_points = order+1;
+
+    DynamicBins testBins(points.begin(), points.end());
+
+    Vector knot_span_sizes = analysis_model_part.GetValue(KNOT_SPAN_SIZES);
+
+    const double meshSize= std::max(knot_span_sizes[0], knot_span_sizes[1]);
+    const double radius = sqrt(2)*(meshSize);
+
+    const int numberOfResults = 1e6; 
+    ModelPart::NodesContainerType::ContainerType Results(numberOfResults);
+    std::vector<double> list_of_distances(numberOfResults);
+
+    if (skin_model_part_out.Nodes().size() > 0) {
+
+        const std::vector<std::array<double, 2>>& integration_point_list_u = IntegrationPointUtilities::s_gauss_legendre[num_points - 1];
+
+        for (auto &i_cond : skin_model_part_out.Conditions()) {
+                // First and second point of the condition
+                const CoordinateVector U_0 = i_cond.GetGeometry()[0]; 
+                const CoordinateVector U_1 = i_cond.GetGeometry()[1];
+                
+                CoordinateVector distance_u = U_1 - U_0;
+                const double length_u = norm_2(distance_u);
+                // Compue the integration points on this true segment
+                for (SizeType u = 0; u < num_points; ++u)
+                {
+                    const CoordinateVector curr_integration_point = U_0 + distance_u * integration_point_list_u[u][0];
+                    
+                    const double curr_integration_weight = integration_point_list_u[u][1] * length_u;
+
+                    PointerType pointToSearch = PointerType(new PointType(10000, curr_integration_point));
+
+                    int obtainedResults = testBins.SearchInRadius(*pointToSearch, radius, Results.begin(), list_of_distances.begin(), numberOfResults);
+                
+                
+                    double minimum_distance=1e10;
+                    int nearestNodeId;
+                    for (int i_distance = 0; i_distance < obtainedResults; i_distance++) {
+                        double new_distance = list_of_distances[i_distance];   
+                        if (new_distance < minimum_distance) { 
+                            minimum_distance = new_distance;
+                            nearestNodeId = i_distance;
+                            }
+                    }
+                    if (obtainedResults == 0) {
+                            KRATOS_WATCH("0 POINTS FOUND: EXIT")
+                            KRATOS_WATCH(pointToSearch)
+                            continue;
+                            // exit(0);
+                        }
+
+                    
+                    IndexType idCond = Results[nearestNodeId]->Id();
+                    
+                    Matrix integration_points = analysis_model_part.GetCondition(idCond).GetValue(INTEGRATION_POINTS);
+                    const SizeType previous_number_of_points = integration_points.size1();
+                    integration_points.resize(previous_number_of_points + 1, 3, true);
+                    for (SizeType i = 0; i < 3; ++i) {
+                        integration_points(previous_number_of_points, i) = curr_integration_point[i];
+                    }
+                    analysis_model_part.GetCondition(idCond).SetValue(INTEGRATION_POINTS, integration_points);
+
+                    Vector integration_weights = analysis_model_part.GetCondition(idCond).GetValue(INTEGRATION_WEIGHTS);
+                    const SizeType previous_number_of_weights = integration_weights.size();
+                    integration_weights.resize(previous_number_of_weights + 1, true);
+                    integration_weights[previous_number_of_weights] = curr_integration_weight;
+                    analysis_model_part.GetCondition(idCond).SetValue(INTEGRATION_WEIGHTS, integration_weights);
+                }
         }
-    }
-
-    ModelPart& r_root = rAnalysisModelPart.GetRootModelPart();
-    std::vector<ModelPart::IndexType> node_ids_to_remove;
-    node_ids_to_remove.reserve(r_root.NumberOfNodes());
-
-    for (auto& r_node : r_root.Nodes()) {
-        if (r_node.IsDefined(ACTIVE) && r_node.IsNot(ACTIVE)) {
-            node_ids_to_remove.push_back(r_node.Id());
-        }
-    }
-
-    for (const auto node_id : node_ids_to_remove) {
-        r_root.RemoveNode(node_id);
     }
 }
-
 ///@}
 }

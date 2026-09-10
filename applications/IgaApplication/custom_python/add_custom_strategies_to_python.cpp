@@ -23,6 +23,8 @@
 #include "custom_strategies/custom_strategies/eigensolver_nitsche_stabilization_strategy.hpp"
 // Schemes
 #include "custom_strategies/custom_schemes/eigensolver_nitsche_stabilization_scheme.hpp"
+#include "custom_strategies/custom_schemes/iga_contact_scheme.hpp"
+#include "custom_strategies/custom_convergence_criteria/active_set_criteria.h"
 
 // Linear solvers
 #include "linear_solvers/linear_solver.h"
@@ -49,6 +51,8 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
 
     // Custom scheme types
     typedef EigensolverNitscheStabilizationScheme< SparseSpaceType, LocalSpaceType > EigensolverNitscheStabilizationSchemeType;
+    typedef IgaContactScheme< SparseSpaceType, LocalSpaceType > IgaContactSchemeType;
+    typedef ActiveSetCriteria< SparseSpaceType, LocalSpaceType > ActiveSetCriteriaType;
 
     // Eigensolver Strategy
     py::class_< EigensolverNitscheStabilizationStrategyType, typename EigensolverNitscheStabilizationStrategyType::Pointer,BaseImplicitSolvingStrategyType >(m,"EigensolverNitscheStabilizationStrategy")
@@ -64,9 +68,19 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
     py::class_< EigensolverNitscheStabilizationSchemeType,typename EigensolverNitscheStabilizationSchemeType::Pointer, BaseSchemeType>(m,"EigensolverNitscheStabilizationScheme")
         .def(py::init<>() )
         ;
+
+    py::class_< IgaContactSchemeType,typename IgaContactSchemeType::Pointer, BaseSchemeType>(m,"IgaContactScheme")
+        .def(py::init<>() )
+        ;
+
+    py::class_< ActiveSetCriteriaType, typename ActiveSetCriteriaType::Pointer,
+        ConvergenceCriteria<SparseSpaceType, LocalSpaceType> >
+        (m, "ActiveSetCriteria")
+        .def(py::init<>())
+        .def(py::init<Parameters>())
+        ;
 }
 
 }  // namespace Python.
 } // Namespace Kratos
-
 

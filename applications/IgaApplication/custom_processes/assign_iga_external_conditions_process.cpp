@@ -359,6 +359,12 @@ void AssignIgaExternalConditionsProcess::SetVariableValueToCondition(
         p_condition->SetValue(FORCE_Y, value);
     } else if (rVariableName == "FORCE_Z") {
         p_condition->SetValue(FORCE_Z, value);
+    } else if (rVariableName == "DIRECTION_X") {
+        p_condition->SetValue(DIRECTION_X, value);
+    } else if (rVariableName == "DIRECTION_Y") {
+        p_condition->SetValue(DIRECTION_Y, value);
+    } else if (rVariableName == "DIRECTION_Z") {
+        p_condition->SetValue(DIRECTION_Z, value);
     } else if (rVariableName == "NORMAL_STRESS_X") {
         SetNormalStressComponent(0, value, p_condition);
     } else if (rVariableName == "NORMAL_STRESS_Y") {

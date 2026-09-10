@@ -220,6 +220,36 @@ public:
         mpNurbsCurve->SpansLocalSpace(rSpans, LocalDirectionIndex);
     }
 
+    void DomainInterval(Vector& rInterval) const override
+    {
+        if (rInterval.size() != 2) rInterval.resize(2);
+        rInterval[0] = mpNurbsCurve->DomainInterval().MinParameter();
+        rInterval[1] = mpNurbsCurve->DomainInterval().MaxParameter();
+    }
+
+    ///@}
+    ///@name IsInside
+    ///@{
+
+    int IsInsideLocalSpace(
+        const CoordinatesArrayType& rPointLocalCoordinates,
+        const double Tolerance = std::numeric_limits<double>::epsilon()
+    ) const override
+    {
+        const double min_parameter = mpNurbsCurve->DomainInterval().MinParameter();
+        const double max_parameter = mpNurbsCurve->DomainInterval().MaxParameter();
+        const double parameter = rPointLocalCoordinates[0];
+
+        if (parameter < min_parameter - Tolerance || parameter > max_parameter + Tolerance) {
+            return 0;
+        }
+        if (std::abs(parameter - min_parameter) <= Tolerance ||
+            std::abs(parameter - max_parameter) <= Tolerance) {
+            return 2;
+        }
+        return 1;
+    }
+
     ///@}
     ///@name Information
     ///@{

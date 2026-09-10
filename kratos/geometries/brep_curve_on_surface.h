@@ -285,6 +285,13 @@ public:
         return mCurveNurbsInterval;
     }
 
+    void DomainInterval(Vector& rInterval) const override
+    {
+        if (rInterval.size() != 2) rInterval.resize(2);
+        rInterval[0] = mCurveNurbsInterval.MinParameter();
+        rInterval[1] = mCurveNurbsInterval.MaxParameter();
+    }
+
     /*
     * @brief Indicates if the NURBS-curve is pointing in the same direction
     *        as the B-Rep curve.

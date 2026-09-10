@@ -42,6 +42,8 @@ KratosIgaApplication::KratosIgaApplication()
         new Geometry<Node>(Element::GeometryType::PointsArrayType(1))))
     , mNavierStokesElement(0, Element::GeometryType::Pointer(
         new Geometry<Node>(Element::GeometryType::PointsArrayType(1))))
+    , mGapSbmSolidElement(0, Element::GeometryType::Pointer(
+        new Geometry<Node>(Element::GeometryType::PointsArrayType(1))))
     , mOutputCondition(0, Condition::GeometryType::Pointer(
         new Geometry<Node>(Condition::GeometryType::PointsArrayType(1))))
     , mLoadCondition(0, Condition::GeometryType::Pointer(
@@ -80,6 +82,14 @@ KratosIgaApplication::KratosIgaApplication()
         new Geometry<Node>(Condition::GeometryType::PointsArrayType(1))))
     , mLoadSolidCondition(0, Condition::GeometryType::Pointer(
         new Geometry<Node>(Condition::GeometryType::PointsArrayType(1))))
+    , mGapSbmContactCondition(0, Condition::GeometryType::Pointer(
+        new Geometry<Node>(Condition::GeometryType::PointsArrayType(1))))
+    , mGapSbmSolidCondition(0, Condition::GeometryType::Pointer(
+        new Geometry<Node>(Condition::GeometryType::PointsArrayType(1))))
+    , mGapSbmLoadSolidCondition(0, Condition::GeometryType::Pointer(
+        new Geometry<Node>(Condition::GeometryType::PointsArrayType(1))))
+    , mGapSbmSolidInterfaceCondition(0, Condition::GeometryType::Pointer(
+        new Geometry<Node>(Condition::GeometryType::PointsArrayType(1))))
 {
 }
 
@@ -107,6 +117,7 @@ KRATOS_INFO("") << "    KRATOS  _____ _____\n"
     KRATOS_REGISTER_ELEMENT("SolidElement", mSolidElement)
     KRATOS_REGISTER_ELEMENT("StokesElement", mStokesElement)
     KRATOS_REGISTER_ELEMENT("NavierStokesElement", mNavierStokesElement)
+    KRATOS_REGISTER_ELEMENT("GapSbmSolidElement", mGapSbmSolidElement)
 
     // CONDITIONS
     KRATOS_REGISTER_CONDITION("OutputCondition", mOutputCondition)
@@ -130,6 +141,10 @@ KRATOS_INFO("") << "    KRATOS  _____ _____\n"
     KRATOS_REGISTER_CONDITION("LoadSolidCondition", mLoadSolidCondition)
     KRATOS_REGISTER_CONDITION("SbmSolidCondition", mSbmSolidCondition)
     KRATOS_REGISTER_CONDITION("SbmLoadSolidCondition", mSbmLoadSolidCondition)
+    KRATOS_REGISTER_CONDITION("GapSbmContactCondition", mGapSbmContactCondition)
+    KRATOS_REGISTER_CONDITION("GapSbmSolidCondition", mGapSbmSolidCondition)
+    KRATOS_REGISTER_CONDITION("GapSbmLoadSolidCondition", mGapSbmLoadSolidCondition)
+    KRATOS_REGISTER_CONDITION("GapSbmSolidInterfaceCondition", mGapSbmSolidInterfaceCondition)
 
 
     KRATOS_REGISTER_MODELER("IgaModeler", mIgaModeler);
@@ -229,6 +244,28 @@ KRATOS_INFO("") << "    KRATOS  _____ _____\n"
     KRATOS_REGISTER_VARIABLE(CONNECTED_CONDITIONS)
     KRATOS_REGISTER_VARIABLE(INTERPOLATION_NODES_ID)
     KRATOS_REGISTER_VARIABLE(BREP_ID)
+    KRATOS_REGISTER_VARIABLE(PATCH_PARAMETER_SPACE_CORNERS)
+    KRATOS_REGISTER_VARIABLE(BREP_MODEL_PART_FULL_NAME)
+    KRATOS_REGISTER_VARIABLE(ORIGINAL_SKIN_MODEL_PART_FULL_NAME)
+    KRATOS_REGISTER_VARIABLE(IS_LOCAL_REFINEMENT_FAKE_COUPLING)
+    KRATOS_REGISTER_VARIABLE(GAP)
+    KRATOS_REGISTER_VARIABLE(NORMAL_MASTER)
+    KRATOS_REGISTER_VARIABLE(NORMAL_SLAVE)
+    KRATOS_REGISTER_VARIABLE(NORMAL_SKIN_MASTER)
+    KRATOS_REGISTER_VARIABLE(NORMAL_SKIN_SLAVE)
+    KRATOS_REGISTER_VARIABLE(STRESS_MASTER)
+    KRATOS_REGISTER_VARIABLE(STRESS_SLAVE)
+    KRATOS_REGISTER_VARIABLE(STRAIN_MASTER)
+    KRATOS_REGISTER_VARIABLE(STRAIN_SLAVE)
+    KRATOS_REGISTER_VARIABLE(DISPLACEMENT_MASTER)
+    KRATOS_REGISTER_VARIABLE(DISPLACEMENT_SLAVE)
+    KRATOS_REGISTER_VARIABLE(SKIN_MASTER_COORDINATES)
+    KRATOS_REGISTER_VARIABLE(SKIN_SLAVE_COORDINATES)
+    KRATOS_REGISTER_VARIABLE(SURROGATE_MASTER_COORDINATES)
+    KRATOS_REGISTER_VARIABLE(SURROGATE_SLAVE_COORDINATES)
+    KRATOS_REGISTER_VARIABLE(PROJECTION_NODE_COORDINATES)
+    KRATOS_REGISTER_VARIABLE(YOUNG_MODULUS_MASTER)
+    KRATOS_REGISTER_VARIABLE(YOUNG_MODULUS_SLAVE)
 }
 
 }  // namespace Kratos
