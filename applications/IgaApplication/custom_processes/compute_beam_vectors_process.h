@@ -21,6 +21,7 @@
 #include "geometries/nurbs_curve_geometry.h"
 #include "geometries/nurbs_curve_on_surface_geometry.h"
 #include "geometries/nurbs_surface_geometry.h"
+#include "geometries/brep_curve.h"
 #include "includes/model_part.h"
 #include "includes/kratos_parameters.h"
 #include "iga_application_variables.h"
@@ -110,7 +111,6 @@ private:
     ///@{
     ModelPart& mrThisModelPart; 
     const Geometry<Node>* mpParentCurve; 
-    const NurbsSurfaceGeometry<3, PointerVector<Node>>* mpParentSurface;
     ///@}
 }; // Class ComputeBeamVectorsProcess
 }  // namespace Kratos.

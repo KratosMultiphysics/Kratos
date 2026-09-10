@@ -63,7 +63,7 @@ void ComputeBeamVectorsProcess::ComputeT0AndN0(
     array_1d<double, 3> local_coordinates = ZeroVector(3);
     std::vector<array_1d<double, 3>> global_space_derivatives;
     
-    mpParentCurve->GlobalSpaceDerivatives(global_space_derivatives, local_coordinates, 1);
+    rCurve.GlobalSpaceDerivatives(global_space_derivatives, local_coordinates, 1);
 
 
     // Tangent vector (normalized)
@@ -93,7 +93,7 @@ void ComputeBeamVectorsProcess::ComputeT0AndN0(
     // Evaluate at the start of the beam (parameter = 0)
     array_1d<double, 3> local_coordinates = ZeroVector(3);
     std::vector<array_1d<double, 3>> global_space_derivatives;
-    mpParentCurve->GlobalSpaceDerivatives(global_space_derivatives, local_coordinates, 1);
+    rCurve.GlobalSpaceDerivatives(global_space_derivatives, local_coordinates, 1);
 
     // Compute tangent vector (normalized)
     rT0 = global_space_derivatives[1];
@@ -118,24 +118,29 @@ void ComputeBeamVectorsProcess::ComputeT0AndN0(
 void ComputeBeamVectorsProcess::ExecuteInitialize()
 {
     const auto* curve_on_surface = dynamic_cast<const NurbsCurveOnSurfaceGeometry<3, PointerVector<Node>, PointerVector<Node>>*>(mpParentCurve);
-    const auto* nurbs_curve = dynamic_cast<const NurbsCurveGeometry<3, PointerVector<Node>>*>(mpParentCurve);
+    auto* nurbs_curve = dynamic_cast<const NurbsCurveGeometry<3, PointerVector<Node>>*>(mpParentCurve);
+    const auto* brep_curve = dynamic_cast<const BrepCurve<PointerVector<Node>, PointerVector<Point>>*>(mpParentCurve);
+
+    if (brep_curve != nullptr) {
+        nurbs_curve = dynamic_cast<const NurbsCurveGeometry<3, PointerVector<Node>>*>(
+            &brep_curve->GetGeometryPart(Geometry<Node>::BACKGROUND_GEOMETRY_INDEX));
+    }
 
     array_1d<double, 3> T;
     array_1d<double, 3> N;
 
     if (curve_on_surface != nullptr) {
-        if (mpParentSurface != nullptr) {
-            ComputeT0AndN0(*curve_on_surface, T, N);
-        } else {
-            ComputeT0AndN0(*nurbs_curve, T, N);
-        }
-        } else {
-            KRATOS_ERROR << "Unknown geometry type in ComputeBeamVectorsProcess";
+        ComputeT0AndN0(*curve_on_surface, T, N);
+    } else if (nurbs_curve != nullptr) {
+        ComputeT0AndN0(*nurbs_curve, T, N);
+    } else {
+        KRATOS_ERROR << "Unknown geometry type in ComputeBeamVectorsProcess";
     }
 
-    auto& properties = mrThisModelPart.GetProperties(0);
-    properties.SetValue(T_0, T);
-    properties.SetValue(N_0, N);
+    for (auto& r_element : mrThisModelPart.Elements()) {
+        r_element.GetProperties().SetValue(T_0, T);
+        r_element.GetProperties().SetValue(N_0, N);
+    }
 }
 
 
