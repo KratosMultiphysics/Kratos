@@ -112,7 +112,7 @@ void BernoulliBeamElasticConstitutiveLaw::CalculateMaterialResponseCauchy(Consti
 
         // Compute stresses according to 5x5 diagonal constitutive matrix with beam properties
         r_stress_vector[0] = E * A * r_strain_vector[0];    // N = E*A*ε (normal force)
-        r_stress_vector[1] = E * I_n * r_strain_vector[1];  // M_y = E*I_y*κ_y (bending about y-axis)
+        r_stress_vector[1] = E * I_v * r_strain_vector[1];  // M_y = E*I_y*κ_y (bending about y-axis)
         r_stress_vector[2] = E * I_n * r_strain_vector[2];  // M_z = E*I_z*κ_z (bending about z-axis)
         r_stress_vector[3] = G * I_t * r_strain_vector[3];  // T = G*I_t*γ_t1 (torsion)
         r_stress_vector[4] = G * I_t * r_strain_vector[4];  // T = G*I_t*γ_t2 (torsion)
