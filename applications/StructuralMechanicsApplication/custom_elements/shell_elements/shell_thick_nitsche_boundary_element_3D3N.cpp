@@ -86,12 +86,24 @@ void ShellThickNitscheBoundaryElement3D3N<TKinematics>::CalculateLocalSystem(
             BaseType::CalculateSectionResponse(data);
 
             // Get the parent geometry data
-            double dom_size_parent;
+            const double dom_size_parent = data.TotalArea;
             const auto& r_geom = this->GetGeometry();
 
+            const double lcs_x12 = data.LCS0.X1() - data.LCS0.X2();
+            const double lcs_x23 = data.LCS0.X2() - data.LCS0.X3();
+            const double lcs_x31 = data.LCS0.X3() - data.LCS0.X1();
+            const double lcs_y12 = data.LCS0.Y1() - data.LCS0.Y2();
+            const double lcs_y23 = data.LCS0.Y2() - data.LCS0.Y3();
+            const double lcs_y31 = data.LCS0.Y3() - data.LCS0.Y1();
+            const double lcs_A2 = 2.0 * data.TotalArea;
+
             array_1d<double, NumNodes> N_parent;
+            N_parent[0] = N_parent[1] = N_parent[2] = 1.0 / 3.0;
+            // Standard area-coordinate/CST gradient: dN_i/dx = y_jk/A2, dN_i/dy = -x_jk/A2
             BoundedMatrix<double, NumNodes, 2> DN_DX_parent;
-            GeometryUtils::CalculateGeometryData(r_geom, DN_DX_parent, N_parent, dom_size_parent);
+            DN_DX_parent(0,0) =  lcs_y23 / lcs_A2;  DN_DX_parent(0,1) = -lcs_x23 / lcs_A2;
+            DN_DX_parent(1,0) =  lcs_y31 / lcs_A2;  DN_DX_parent(1,1) = -lcs_x31 / lcs_A2;
+            DN_DX_parent(2,0) =  lcs_y12 / lcs_A2;  DN_DX_parent(2,1) = -lcs_x12 / lcs_A2;
             const auto &r_boundaries = r_geom.GenerateBoundariesEntities();
             DenseMatrix<unsigned int> nodes_in_faces;
             r_geom.NodesInFaces(nodes_in_faces);
@@ -187,15 +199,10 @@ void ShellThickNitscheBoundaryElement3D3N<TKinematics>::CalculateLocalSystem(
                 data.LCS.ComputeTotalRotationMatrix(T);
                 B_temp = prod(data.B, T);
 
-                Matrix R(8, 8);
-                this->mSections[0]->GetRotationMatrixForGeneralizedStrains(-(this->mSections[0]->GetOrientationAngle()), R);
-                R(6,7) = -1.0*R(6,7);
-                R(7,6) = -1.0*R(7,6);
-                B_parent = prod(R, B_temp);
+                B_parent = B_temp;
 
-                // Smearing basis: -Vx(),-Vy()
-                const array_1d<double,3> local_e1 = -data.LCS.Vx();
-                const array_1d<double,3> local_e2 = -data.LCS.Vy();
+                const array_1d<double,3> local_e1 = data.LCS.Vx();
+                const array_1d<double,3> local_e2 = data.LCS.Vy();
                 const array_1d<double,3> local_e3 = data.LCS.Vz();
                 CalculateCBProjectionLinearisation(D, B_parent, n_sur_bd, local_e1, local_e2, local_e3, aux_CB_projection);
                 CalculateCauchyTractionVector(r_stress, n_sur_bd, local_e1, local_e2, local_e3, cauchy_traction);
@@ -219,7 +226,7 @@ void ShellThickNitscheBoundaryElement3D3N<TKinematics>::CalculateLocalSystem(
                             left_hand_side(i_loc_id*BlockSize+d, j_node) -= aux_val * aux_CB_projection(d,j_node);
                             // Term C (adjoint consistency)
                             left_hand_side(j_node, i_loc_id*BlockSize+d) -= aux_val * aux_CB_projection(d,j_node);
-                            // Term C forcing 
+                            // Term C forcing
                             right_hand_side(j_node) -= aux_val * aux_CB_projection(d,j_node) * bc_values[d];
                         }
                     }
@@ -316,9 +323,11 @@ void ShellThickNitscheBoundaryElement3D3N<TKinematics>::CalculateCauchyTractionV
     const double m2 = rVoigtStress[5]*rUnitNormal[0] + rVoigtStress[4]*rUnitNormal[1];
     const double q  = rVoigtStress[6]*rUnitNormal[0] + rVoigtStress[7]*rUnitNormal[1];
 
+    // The rotation channel pairs with (m1,m2) via a reflection, not index-for-index
+    // like the translation channel above
     for (std::size_t k = 0; k < 3; ++k) {
         rCauchyTraction[k]     = t1*rLocalE1[k] + t2*rLocalE2[k] + q*rLocalE3[k];
-        rCauchyTraction[3 + k] = m2*rLocalE1[k] + m1*rLocalE2[k];
+        rCauchyTraction[3 + k] = -m2*rLocalE1[k] + m1*rLocalE2[k];
     }
 }
 
@@ -345,7 +354,7 @@ void ShellThickNitscheBoundaryElement3D3N<TKinematics>::CalculateCBProjectionLin
 
         for (std::size_t k = 0; k < 3; ++k) {
             rAuxMat(k, j)     = t1*rLocalE1[k] + t2*rLocalE2[k] + q*rLocalE3[k];
-            rAuxMat(3 + k, j) = m2*rLocalE1[k] + m1*rLocalE2[k];
+            rAuxMat(3 + k, j) = -m2*rLocalE1[k] + m1*rLocalE2[k];
         }
     }
 }

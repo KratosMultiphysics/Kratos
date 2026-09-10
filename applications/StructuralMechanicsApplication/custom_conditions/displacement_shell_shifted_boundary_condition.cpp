@@ -457,9 +457,11 @@ void DisplacementShellShiftedBoundaryCondition::CalculateBtransCProjectionLinear
         const double m2 = normal_e1*aux_transBC(j,5) + normal_e2*aux_transBC(j,4); // moment, e1-rotation-conjugate
         const double q  = normal_e1*aux_transBC(j,6) + normal_e2*aux_transBC(j,7); // shear traction along e3
 
+        // The rotation channel pairs with (m1,m2) via a reflection, not index-for-index
+        // like the translation channel above
         for (std::size_t k = 0; k < 3; ++k) {
             rAuxMat(j, k)     = t1*rLocalE1[k] + t2*rLocalE2[k] + q*rLocalE3[k];
-            rAuxMat(j, 3 + k) = m2*rLocalE1[k] + m1*rLocalE2[k];
+            rAuxMat(j, 3 + k) = -m2*rLocalE1[k] + m1*rLocalE2[k];
         }
     }
 }
