@@ -589,9 +589,11 @@ class KratosGeoMechanicsPartialSaturation(KratosUnittest.TestCase):
             file_path, "..", "common", "expected_water_pressures.csv"
         )
 
-        time_strings=["3600", "7200", "10,80*10\\^3", "14,40*10\\^3"]
+        time_strings = ["3600", "7200", "10,80*10\\^3", "14,40*10\\^3"]
         if os.path.exists(expected_water_pressures) and test_name:
-            for time_string, time, color in zip(time_strings, [0.0, 3600.0, 7200.0, 10800.0, 14400.0], colors[1:]):
+            for time_string, time, color in zip(
+                time_strings, [3600.0, 7200.0, 10800.0, 14400.0], colors[1:]
+            ):
                 with open(
                     expected_water_pressures,
                     newline="",
