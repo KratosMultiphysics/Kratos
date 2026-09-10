@@ -120,10 +120,7 @@ namespace Kratos
 			KRATOS_TRY
 
 			bool success = false;
-
-			// double begin_time = OpenMPUtils::GetCurrentTime();
-
-			unsigned int NumberOfSubModelParts = mrModelPart.NumberOfSubModelParts();
+			const unsigned int NumberOfSubModelParts = mrModelPart.NumberOfSubModelParts();
 
 			this->ResetNodesBoundaryFlag(mrModelPart);
 
@@ -167,7 +164,6 @@ namespace Kratos
 				SetComputingModelPart();
 			}
 
-			// ComputeBoundaryNormals BoundUtils;
 			BoundaryNormalsCalculationUtilities BoundaryComputation;
 			if (mModelPartName == mrModelPart.Name())
 			{
@@ -303,7 +299,7 @@ namespace Kratos
 			KRATOS_TRY
 
 			// properties to be used in the generation
-			int number_properties = rModelPart.GetParentModelPart().NumberOfProperties();
+			const int number_properties = rModelPart.GetParentModelPart().NumberOfProperties();
 			Properties::Pointer properties = rModelPart.GetParentModelPart().pGetProperties(number_properties - 1);
 
 			ModelPart::ElementsContainerType::iterator elements_begin = rModelPart.ElementsBegin();
@@ -359,7 +355,7 @@ namespace Kratos
 									freeSurfaceFace = true;
 								}
 							}
-							if (freeSurfaceFace == true)
+							if (freeSurfaceFace)
 							{
 								for (unsigned int j = 1; j <= NumberNodesInFace; j++)
 								{
@@ -388,7 +384,7 @@ namespace Kratos
 			this->ClearMasterEntities(rModelPart, rTemporaryConditions);
 
 			// properties to be used in the generation
-			int number_properties = rModelPart.GetParentModelPart().NumberOfProperties();
+			const int number_properties = rModelPart.GetParentModelPart().NumberOfProperties();
 			Properties::Pointer properties = rModelPart.GetParentModelPart().pGetProperties(number_properties - 1);
 
 			ModelPart::ElementsContainerType::iterator elements_begin = rModelPart.ElementsBegin();
@@ -452,7 +448,6 @@ namespace Kratos
 							for (unsigned int j = 1; j <= NumberNodesInFace; ++j)
 							{
 								rElementGeometry[lpofa(j, iface)].Set(BOUNDARY);
-								// std::cout<<" node ["<<j<<"]"<<rElementGeometry[lpofa(j,iface)].Id()<<std::endl;
 							}
 
 							// 1.- create geometry: points array and geometry type
@@ -636,7 +631,6 @@ namespace Kratos
 						rConditionId += 1;
 
 						Condition::Pointer p_cond = i_cond->Clone(rConditionId, FaceNodes);
-						// p_cond->Data() = i_cond->Data();
 
 						this->AddConditionToModelPart(rModelPart, p_cond);
 
@@ -645,7 +639,6 @@ namespace Kratos
 				}
 			}
 
-			// std::cout<<"   recovered conditions "<<counter<<std::endl;
 
 			// control if all previous conditions have been added:
 			bool all_assigned = true;
@@ -664,7 +657,7 @@ namespace Kratos
 
 				std::cout << "   Final Conditions   : " << rModelPart.NumberOfConditions() << std::endl;
 
-				if (all_assigned == true)
+				if (all_assigned)
 					std::cout << "   ALL_PREVIOUS_CONDITIONS_RELOCATED " << std::endl;
 				else
 					std::cout << "   SOME_PREVIOUS_CONDITIONS_ARE_LOST [lost_conditions:" << lost_conditions << "]" << std::endl;
@@ -697,7 +690,6 @@ namespace Kratos
 			KRATOS_TRY
 
 			rModelPart.AddCondition(pCondition);
-			// rModelPart.Conditions().push_back(pCondition);
 
 			KRATOS_CATCH("")
 		}

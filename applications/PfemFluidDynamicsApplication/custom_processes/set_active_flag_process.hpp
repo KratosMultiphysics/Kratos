@@ -130,7 +130,7 @@ public:
               break;
             }
           }
-          if (doNotSetNullPressure == false)
+          if (!doNotSetNullPressure)
             itElem->GetGeometry()[i].FastGetSolutionStepValue(PRESSURE) = 0;
         }
       }
@@ -220,7 +220,7 @@ void SetPressureToIsolatedWallNodes(Geometry<Node> &wallElementNodes)
         break;
       }
     }
-    if (localIsolatedWallNode == true)
+    if (localIsolatedWallNode)
     {
       isolatedWallID = i;
       foundedIsolatedWall = true;
@@ -237,7 +237,7 @@ void SetPressureToIsolatedWallNodes(Geometry<Node> &wallElementNodes)
       }
     }
   }
-  if (foundedIsolatedWall == true)
+  if (foundedIsolatedWall)
   {
     wallElementNodes[isolatedWallID].FastGetSolutionStepValue(PRESSURE, 0) = currentPressureForIsolatedWall;
     wallElementNodes[isolatedWallID].FastGetSolutionStepValue(PRESSURE, 1) = previousPressureForIsolatedWall;

@@ -1056,7 +1056,7 @@ namespace Kratos
 
     computeElement = true;
 
-    if (computeElement == true)
+    if (computeElement)
     {
 
       VectorType PressureValues = ZeroVector(NumNodes);

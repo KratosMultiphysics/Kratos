@@ -207,7 +207,7 @@ namespace Kratos
 			unsigned int maxNonLinearIterations = mMaxPressureIter;
 			std::cout << "\n                   Solve with nodally_integrated_two_step_vp strategy at t=" << currentTime << "s" << std::endl;
 
-			if (timeIntervalChanged == true && currentTime > 10 * timeInterval)
+			if (timeIntervalChanged && currentTime > 10 * timeInterval)
 			{
 				maxNonLinearIterations *= 2;
 			}
@@ -250,7 +250,7 @@ namespace Kratos
 				this->InitializeNonLinearIterations();
 				CalcNodalStrains();
 
-				if (fixedTimeStep == false)
+				if (!fixedTimeStep)
 				{
 					continuityConverged = this->SolveContinuityIteration(it, maxNonLinearIterations, pressureNorm);
 				}
@@ -281,7 +281,7 @@ namespace Kratos
 					// myfile.close();
 				}
 				bool hybridMethod = false;
-				if (hybridMethod == true)
+				if (hybridMethod)
 				{
 					if (it == maxNonLinearIterations - 1 || ((continuityConverged && momentumConverged) && it > 0))
 					{
@@ -297,7 +297,7 @@ namespace Kratos
 					std::cout << "nodal V-P strategy converged in " << it + 1 << " iterations." << std::endl;
 					break;
 				}
-				if (fixedTimeStep == true)
+				if (fixedTimeStep)
 				{
 					break;
 				}
@@ -716,7 +716,7 @@ namespace Kratos
 				for (unsigned int i = 0; i < numNodes; i++)
 				{
 
-					if ((geometry(i)->Is(FLUID) && geometry(i)->IsNot(SOLID)) || (geometry(i)->Is(FLUID) && geometry(i)->FastGetSolutionStepValue(INTERFACE_NODE) == true))
+					if ((geometry(i)->Is(FLUID) && geometry(i)->IsNot(SOLID)) || (geometry(i)->Is(FLUID) && geometry(i)->FastGetSolutionStepValue(INTERFACE_NODE)))
 					{
 						fluidNodes += 1;
 					}
@@ -724,7 +724,7 @@ namespace Kratos
 					{
 						solidNodes += 1;
 					}
-					if (geometry(i)->FastGetSolutionStepValue(INTERFACE_NODE) == true)
+					if (geometry(i)->FastGetSolutionStepValue(INTERFACE_NODE))
 					{
 						interfaceNodes += 1;
 					}
@@ -798,7 +798,7 @@ namespace Kratos
 			{
 				for (unsigned int k = 0; k < neighbourNodes - 1; k++)
 				{
-					if (neighb_nodes[k].IsNot(SOLID) || neighb_nodes[k].FastGetSolutionStepValue(INTERFACE_NODE) == true)
+					if (neighb_nodes[k].IsNot(SOLID) || neighb_nodes[k].FastGetSolutionStepValue(INTERFACE_NODE))
 					{
 						fluidCounter += 1;
 					}
@@ -831,7 +831,7 @@ namespace Kratos
 			{
 				for (unsigned int k = 0; k < neighbourNodes - 1; k++)
 				{
-					if (neighb_nodes[k].IsNot(SOLID) || neighb_nodes[k].FastGetSolutionStepValue(INTERFACE_NODE) == true)
+					if (neighb_nodes[k].IsNot(SOLID) || neighb_nodes[k].FastGetSolutionStepValue(INTERFACE_NODE))
 					{
 						fluidCounter += 1;
 						rFluidNodeOrderedNeighbours[fluidCounter] = neighb_nodes[k].Id();
@@ -947,7 +947,7 @@ namespace Kratos
 
 				double theta = 0.5;
 
-				if (itNode->FastGetSolutionStepValue(INTERFACE_NODE) == true)
+				if (itNode->FastGetSolutionStepValue(INTERFACE_NODE))
 				{
 
 					if (nodalVolume > 0)
@@ -1530,7 +1530,7 @@ namespace Kratos
 
 				double theta = 1.0;
 
-				if (itNode->FastGetSolutionStepValue(INTERFACE_NODE) == true)
+				if (itNode->FastGetSolutionStepValue(INTERFACE_NODE))
 				{
 
 					if (nodalVolume > 0)
@@ -2068,7 +2068,7 @@ namespace Kratos
 
 				InitializeNodalVariablesForSolidRemeshedDomain(itNode);
 
-				if (itNode->FastGetSolutionStepValue(INTERFACE_NODE) == false)
+				if (!itNode->FastGetSolutionStepValue(INTERFACE_NODE))
 				{
 					this->SetNeighboursOrderToNode(itNode); // it assigns neighbours to inner nodes, filling NODAL_SFD_NEIGHBOURS_ORDER
 					if (itNode->Is(SOLID))

@@ -102,7 +102,7 @@ namespace Kratos
 			bool refiningBox = false;
 			for (SizeType index = 0; index < mrRemesh.UseRefiningBox.size(); index++)
 			{
-				if (mrRemesh.UseRefiningBox[index] == true && currentTime > mrRemesh.RefiningBoxInitialTime[index] && currentTime < mrRemesh.RefiningBoxFinalTime[index])
+				if (mrRemesh.UseRefiningBox[index] && currentTime > mrRemesh.RefiningBoxInitialTime[index] && currentTime < mrRemesh.RefiningBoxFinalTime[index])
 				{
 					refiningBox = true;
 				}
@@ -128,7 +128,7 @@ namespace Kratos
 
 			if (mrRemesh.ExecutionOptions.Is(MesherUtilities::REFINE_WALL_CORNER))
 			{
-				if ((ElementsToRefine - extraNodes) > toleredExtraNodes && refiningBox == false)
+				if ((ElementsToRefine - extraNodes) > toleredExtraNodes && !refiningBox)
 				{
 					ElementsToRefine = toleredExtraNodes + extraNodes;
 					if (ElementsToRefine < 0)
@@ -141,7 +141,7 @@ namespace Kratos
 			KRATOS_INFO_IF("GenerateNewNodesBeforeMeshingCutPfemProcess", ElementsToRefine > 0 && mEchoLevel > 1)
 				<< " I will look for " << ElementsToRefine << " new nodes" << std::endl;
 
-			if (refiningBox == false)
+			if (!refiningBox)
 			{
 
 				if (ElementsToRefine > 0 || eulerianInletNodes > 0)
@@ -373,7 +373,7 @@ namespace Kratos
 			bool dangerousElement = false;
 			this->DetectDangerousElements2D(Element, WallCharacteristicDistance, Edges, FirstEdgeNode, SecondEdgeNode, rigidNodes, penalization, dangerousElement);
 
-			if (dangerousElement == false && toEraseNodeFound == false)
+			if (!dangerousElement && !toEraseNodeFound)
 			{
 				this->ManageDangerousElements2D(Element,
 												new_positions,
@@ -492,7 +492,7 @@ namespace Kratos
 			this->DetectDangerousElements3D(Element, WallCharacteristicDistance, Edges, FirstEdgeNode, SecondEdgeNode, rigidNodes, penalization, dangerousElement);
 
 			// just to fill the vector
-			if (dangerousElement == false && toEraseNodeFound == false)
+			if (!dangerousElement && !toEraseNodeFound)
 			{
 				this->ManageDangerousElements3D(Element,
 												new_positions,
@@ -595,7 +595,7 @@ namespace Kratos
 			const double limitEdgeLength = 1.9 * meanMeshSize * penalization;
 			const double extraLimitEdgeLength = 2.5 * meanMeshSize * penalization;
 
-			if (dangerousElement == false && toEraseNodeFound == false)
+			if (!dangerousElement && !toEraseNodeFound)
 			{
 				SizeType maxCount = 3;
 				double LargestEdge = 0;
@@ -609,7 +609,7 @@ namespace Kratos
 					}
 				}
 
-				if (((CountNodes < (ElementsToRefine + nodesInTransitionZone) || insideTransitionZone == true) && LargestEdge > limitEdgeLength) || LargestEdge > extraLimitEdgeLength)
+				if (((CountNodes < (ElementsToRefine + nodesInTransitionZone) || insideTransitionZone) && LargestEdge > limitEdgeLength) || LargestEdge > extraLimitEdgeLength)
 				{
 					bool newNode = true;
 					for (SizeType i = 0; i < unsigned(CountNodes); i++)
@@ -620,7 +620,7 @@ namespace Kratos
 							newNode = false;
 						}
 					}
-					if (newNode == true)
+					if (newNode)
 					{
 						new_positions.resize(CountNodes + 1);
 						nodes_id_to_interpolate.resize(CountNodes + 1);
@@ -727,7 +727,7 @@ namespace Kratos
 			const double extraLimitEdgeLength = 2.5 * meanMeshSize * penalization;
 
 			// just to fill the vector
-			if (dangerousElement == false && toEraseNodeFound == false)
+			if (!dangerousElement && !toEraseNodeFound)
 			{
 				SizeType maxCount = 6;
 				double LargestEdge = 0;
@@ -740,7 +740,7 @@ namespace Kratos
 					}
 				}
 
-				if (((CountNodes < (ElementsToRefine + nodesInTransitionZone) || insideTransitionZone == true) && LargestEdge > limitEdgeLength) || LargestEdge > extraLimitEdgeLength)
+				if (((CountNodes < (ElementsToRefine + nodesInTransitionZone) || insideTransitionZone) && LargestEdge > limitEdgeLength) || LargestEdge > extraLimitEdgeLength)
 				{
 					bool newNode = true;
 					for (SizeType i = 0; i < unsigned(CountNodes); i++)
@@ -751,7 +751,7 @@ namespace Kratos
 							newNode = false;
 						}
 					}
-					if (newNode == true)
+					if (newNode)
 					{
 						new_positions.resize(CountNodes + 1);
 						nodes_id_to_interpolate.resize(CountNodes + 1);
