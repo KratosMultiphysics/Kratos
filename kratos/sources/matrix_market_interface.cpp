@@ -15,7 +15,7 @@
 // External includes
 
 // Project includes
-#include "includes/ublas_interface.h"
+#include "includes/default_interface.h"
 #include "includes/ublas_complex_interface.h"
 #include "spaces/ublas_space.h"
 #ifdef KRATOS_USE_EIGEN_BACKEND

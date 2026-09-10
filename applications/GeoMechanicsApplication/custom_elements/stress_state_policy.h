@@ -15,7 +15,7 @@
 #include "geo_mechanics_application_constants.h"
 #include "geometries/geometry.h"
 #include "includes/node.h"
-#include "includes/ublas_interface.h"
+#include "includes/default_interface.h"
 
 namespace Kratos
 {

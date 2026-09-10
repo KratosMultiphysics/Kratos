@@ -21,10 +21,9 @@
 // Project includes
 #include "containers/model.h"
 #include "geometries/geometry_data.h"
-#include "includes/define.h"
 #include "includes/kratos_parameters.h"
 #include "includes/model_part.h"
-#include "includes/ublas_interface.h"
+#include "includes/default_interface.h"
 #include "response_functions/adjoint_response_function.h"
 #include "utilities/element_size_calculator.h"
 #include "utilities/parallel_utilities.h"

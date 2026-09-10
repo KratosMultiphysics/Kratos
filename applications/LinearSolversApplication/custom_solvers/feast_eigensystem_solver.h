@@ -14,7 +14,7 @@
 // Project includes
 #include "includes/kratos_parameters.h"
 #include "linear_solvers/linear_solver.h"
-#include "includes/ublas_interface.h"
+#include "includes/default_interface.h"
 #include "includes/ublas_complex_interface.h"
 #include "spaces/default_spaces.h"
 

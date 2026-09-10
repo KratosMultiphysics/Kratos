@@ -17,7 +17,7 @@
 
 // Project includes
 #include "includes/define_python.h"
-#include "includes/ublas_interface.h"
+#include "includes/default_interface.h"
 #include "includes/ublas_complex_interface.h"
 #ifdef KRATOS_USE_EIGEN_BACKEND
 #include "includes/kratos_eigen_interface.h"

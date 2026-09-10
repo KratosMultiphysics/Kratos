@@ -17,7 +17,7 @@
 
 // Project includes
 #include "includes/define_python.h"
-#include "includes/ublas_interface.h"
+#include "includes/default_interface.h"
 #include "python/add_sparse_matrices_to_python.h"
 #include "python/numpy_utils.h"
 #include "containers/nd_data.h"
