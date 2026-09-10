@@ -613,7 +613,6 @@ void DVMSDEMCoupled<TElementData>::InitializeNonLinearIteration(const ProcessInf
 
     TElementData data;
     data.Initialize(*this,rCurrentProcessInfo);
-    array_1d<double,NumNodes> nodal_reaction_term = ZeroVector(NumNodes);
     for (unsigned int g = 0; g < number_of_integration_points; g++) {
         this->UpdateIntegrationPointDataSecondDerivatives(data, g, gauss_weights[g],row(shape_functions,g),shape_function_derivatives[g],shape_function_second_derivatives[g]);
         mPorosity[g] = this->GetAtCoordinate(data.FluidFraction,row(shape_functions,g));
