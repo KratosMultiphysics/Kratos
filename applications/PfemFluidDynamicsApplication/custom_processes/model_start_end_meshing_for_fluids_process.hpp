@@ -163,7 +163,6 @@ namespace Kratos
             std::cout << "    [ SUBMODEL PART [" << i_mp->Name() << "] [Elems=" << i_mp->NumberOfElements() << "|Nodes=" << i_mp->NumberOfNodes() << "|Conds=" << i_mp->NumberOfConditions() << "] ] " << std::endl;
 
           //Clean Nodes when redefining the main model part:
-          const array_1d<double, 3> ZeroNormal(3, 0.0);
           ModelPart::NodesContainerType temporal_nodes;
           temporal_nodes.reserve(i_mp->Nodes().size());
           temporal_nodes.swap(i_mp->Nodes());

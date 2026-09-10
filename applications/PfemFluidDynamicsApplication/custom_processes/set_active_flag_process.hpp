@@ -203,7 +203,7 @@ bool mUnactiveSliverElements;
 void SetPressureToIsolatedWallNodes(Geometry<Node> &wallElementNodes)
 {
   KRATOS_TRY
-  unsigned int numNodes = wallElementNodes.size();
+  const unsigned int numNodes = wallElementNodes.size();
   double currentPressureForIsolatedWall = 0;
   double previousPressureForIsolatedWall = 0;
   unsigned int isolatedWallID = 0;
