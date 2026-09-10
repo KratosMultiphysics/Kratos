@@ -17,7 +17,7 @@
 #include "custom_constitutive/principal_stresses.hpp"
 #include "includes/kratos_export_api.h"
 #include "includes/smart_pointers.h"
-#include "includes/ublas_interface.h"
+#include "includes/default_interface.h"
 
 namespace Kratos
 {

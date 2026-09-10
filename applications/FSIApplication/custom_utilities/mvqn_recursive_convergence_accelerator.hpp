@@ -16,7 +16,7 @@
 /* External includes */
 
 /* Project includes */
-#include "includes/ublas_interface.h"
+#include "includes/default_interface.h"
 #include "solving_strategies/convergence_accelerators/convergence_accelerator.h"
 #include "utilities/dense_householder_qr_decomposition.h"
 #include "utilities/svd_utils.h"

@@ -20,7 +20,7 @@
 #include "geometries/geometry_data.h"
 #include "includes/node.h"
 #include "includes/process_info.h"
-#include "includes/ublas_interface.h"
+#include "includes/default_interface.h"
 
 // Application includes
 #include "custom_elements/convection_diffusion_reaction_element_data.h"
