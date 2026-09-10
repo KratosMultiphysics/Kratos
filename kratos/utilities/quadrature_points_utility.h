@@ -24,6 +24,7 @@
 #include "geometries/quadrature_point_curve_geometry.h"
 #include "geometries/quadrature_point_curve_on_surface_geometry.h"
 #include "geometries/quadrature_point_surface_in_volume_geometry.h"
+#include "geometries/quadrature_point_coupling_geometry_2d.h"
 
 namespace Kratos
 {
@@ -130,6 +131,34 @@ namespace Kratos
                     rShapeFunctionContainer,
                     LocalTangentU,
                     LocalTangentV);
+        }
+
+        static GeometryPointerType CreateQuadraturePointCouplingGeometry2D(
+            GeometryShapeFunctionContainer<GeometryData::IntegrationMethod>& rShapeFunctionContainerMaster,
+            GeometryShapeFunctionContainer<GeometryData::IntegrationMethod>& rShapeFunctionContainerSlave,
+            PointsArrayType rPointsMaster,
+            PointsArrayType rPointsSlave,
+            double LocalTangentMasterU,
+            double LocalTangentMasterV,
+            double LocalTangentSlaveU,
+            double LocalTangentSlaveV,
+            GeometryType* pGeometryParentMaster,
+            GeometryType* pGeometryParentSlave)
+        {
+            auto p_quadrature_point_master = Kratos::make_shared<QuadraturePointCurveOnSurfaceGeometry<TPointType>>(
+                rPointsMaster, rShapeFunctionContainerMaster, LocalTangentMasterU, LocalTangentMasterV, pGeometryParentMaster);
+            auto p_quadrature_point_slave = Kratos::make_shared<QuadraturePointCurveOnSurfaceGeometry<TPointType>>(
+                rPointsSlave, rShapeFunctionContainerSlave, LocalTangentSlaveU, LocalTangentSlaveV, pGeometryParentSlave);
+            return Kratos::make_shared<QuadraturePointCouplingGeometry2D<TPointType>>(
+                p_quadrature_point_master, p_quadrature_point_slave);
+        }
+
+        static GeometryPointerType CreateQuadraturePointCouplingGeometry2D(
+            const typename GeometryType::Pointer& rpQuadraturePointMaster,
+            const typename GeometryType::Pointer& rpQuadraturePointSlave)
+        {
+            return Kratos::make_shared<QuadraturePointCouplingGeometry2D<TPointType>>(
+                rpQuadraturePointMaster, rpQuadraturePointSlave);
         }
 
         static GeometryPointerType CreateQuadraturePointSurfaceInVolume(

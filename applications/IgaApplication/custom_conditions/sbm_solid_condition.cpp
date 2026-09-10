@@ -18,6 +18,7 @@
 
 // Project includes
 #include "custom_conditions/sbm_solid_condition.h"
+#include "includes/global_pointer_variables.h"
 
 namespace Kratos
 {
@@ -133,11 +134,26 @@ void SbmSolidCondition::InitializeMemberVariables()
 
 void SbmSolidCondition::InitializeSbmMemberVariables()
 {
-    const auto& r_geometry = this->GetGeometry();
-    // Retrieve projection
-    Condition candidate_closest_skin_segment_1 = this->GetValue(NEIGHBOUR_CONDITIONS)[0] ;
+    auto& r_geometry = this->GetGeometry();
+
+    // The SBM modeler can provide the selected skin projection directly.  It
+    // is the authoritative path for imported NURBS skins and avoids selecting
+    // an unrelated endpoint from a neighbouring condition.
+    if (r_geometry.Has(NEIGHBOUR_NODES) && r_geometry.GetValue(NEIGHBOUR_NODES).size() > 0) {
+        mpProjectionNode = &r_geometry.GetValue(NEIGHBOUR_NODES)[0];
+        mDistanceVector.resize(3);
+        noalias(mDistanceVector) = mpProjectionNode->Coordinates() - r_geometry.Center().Coordinates();
+        this->SetValue(PROJECTION_NODE_ID, mpProjectionNode->Id());
+        this->SetValue(PROJECTION_NODE_COORDINATES, mpProjectionNode->Coordinates());
+        return;
+    }
+
+    KRATOS_ERROR_IF_NOT(this->Has(NEIGHBOUR_CONDITIONS) && this->GetValue(NEIGHBOUR_CONDITIONS).size() > 0)
+        << "SbmSolidCondition " << Id() << " has neither NEIGHBOUR_NODES nor NEIGHBOUR_CONDITIONS." << std::endl;
+
+    Condition candidate_closest_skin_segment_1 = this->GetValue(NEIGHBOUR_CONDITIONS)[0];
     // Find the closest node in condition
-    int closestNodeId;
+    int closestNodeId = 0;
     if (mDim > 2) {
         double incumbent_dist = 1e16;
         // Loop over the three nodes of the closest skin element
@@ -154,6 +170,7 @@ void SbmSolidCondition::InitializeSbmMemberVariables()
 
     mDistanceVector.resize(3);
     noalias(mDistanceVector) = mpProjectionNode->Coordinates() - r_geometry.Center().Coordinates();
+    this->SetValue(PROJECTION_NODE_COORDINATES, mpProjectionNode->Coordinates());
 }
 
 void SbmSolidCondition::CalculateLocalSystem(

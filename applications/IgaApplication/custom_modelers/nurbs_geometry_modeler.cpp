@@ -231,7 +231,11 @@ namespace Kratos
         }
 
         for (IndexType i = 0; i < PointsRefined.size(); ++i) {
-            if (PointsRefined(i)->Id() == 0) {
+            // Knot refinement can preserve an ID from an intermediate
+            // geometry although its node was never added to this root model
+            // part.  Such a control point has no solution-step storage and
+            // later breaks SBM contact assembly.
+            if (PointsRefined(i)->Id() == 0 || !r_root_model_part.HasNode(PointsRefined(i)->Id())) {
                 PointsRefined(i) = r_model_part.CreateNewNode(node_id, PointsRefined[i][0], PointsRefined[i][1], PointsRefined[i][2]);
                 node_id++;
             }

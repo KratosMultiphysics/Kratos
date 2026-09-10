@@ -601,6 +601,37 @@ public:
         for (IndexType i = 0; i < rResultGeometries.size(); ++i) {
             rResultGeometries(i)->SetGeometryParent(this);
         }
+
+        mQuadraturePointGeometries = rResultGeometries;
+    }
+
+    void CreateQuadraturePointGeometries(
+        GeometriesArrayType& rResultGeometries,
+        IndexType NumberOfShapeFunctionDerivatives,
+        const IntegrationPointsArrayType& rIntegrationPoints,
+        IntegrationInfo& rIntegrationInfo,
+        bool SaveResultGeometries)
+    {
+        if constexpr (TShiftedBoundary) {
+            mpCurveOnSurface->CreateQuadraturePointGeometriesSBM(
+                rResultGeometries, NumberOfShapeFunctionDerivatives, rIntegrationPoints, rIntegrationInfo);
+        } else {
+            mpCurveOnSurface->CreateQuadraturePointGeometries(
+                rResultGeometries, NumberOfShapeFunctionDerivatives, rIntegrationPoints, rIntegrationInfo);
+        }
+        for (IndexType i = 0; i < rResultGeometries.size(); ++i) {
+            rResultGeometries(i)->SetGeometryParent(this);
+        }
+        if (SaveResultGeometries) {
+            mQuadraturePointGeometries = rResultGeometries;
+        }
+    }
+
+    void GetQuadraturePointGeometries(GeometriesArrayType& rResultGeometries)
+    {
+        KRATOS_ERROR_IF(mQuadraturePointGeometries.size() == 0)
+            << ":::[BrepCurveOnSurface]::: quadrature point geometries have not been created." << std::endl;
+        rResultGeometries = mQuadraturePointGeometries;
     }
 
     ///@}
@@ -690,6 +721,8 @@ private:
     /** true-> brep curve and nurbs curve point in same direction.
     *  false-> brep curve and nurbs curve point in opposite directions. */
     bool mSameCurveDirection;
+
+    GeometriesArrayType mQuadraturePointGeometries;
 
     ///@}
     ///@name Serialization
