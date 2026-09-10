@@ -65,7 +65,6 @@ void OutputQuadratureDomainProcess::ExecuteBeforeSolutionLoop()
     {
         contents += ",\n\"geometry_coupling_integration_points\":[\n";
         for (auto condition : r_model_part.Conditions()) {
-            KRATOS_WATCH(condition.GetGeometry().NumberOfGeometryParts())
             if (condition.GetGeometry().NumberOfGeometryParts() > 1) {
                 const auto p_master = condition.GetGeometry().pGetGeometryPart(CouplingGeometry<Node>::Master);
                 const auto p_slave = condition.GetGeometry().pGetGeometryPart(CouplingGeometry<Node>::Slave);

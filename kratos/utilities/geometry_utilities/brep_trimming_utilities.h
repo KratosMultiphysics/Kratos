@@ -20,10 +20,16 @@
 
 // Project includes
 #include "geometries/geometry.h"
+#include "geometries/point.h"
 #include "geometries/brep_curve_on_surface.h"
+#include "geometries/nurbs_curve_geometry.h"
+#include "geometries/nurbs_surface_geometry.h"
+#include "geometries/nurbs_shape_function_utilities/nurbs_curve_refinement_utilities.h"
 
 #include "utilities/tessellation_utilities/curve_tessellation.h"
 #include "includes/node.h"
+#include "utilities/nnls.h"
+#include "utilities/polynomial_fitting_utilities.h"
 
 namespace Kratos
 {
@@ -349,6 +355,135 @@ namespace Kratos
 
             return point;
         }
+
+        //Computes constant terms of moment fitting equation via area integration points.
+        static void ComputeConstantTerms(
+            Vector& rConstantTerms, IntegrationPointsArrayType& rElementIntegrationPoints,
+            double U0, double U1, double V0, double V1,
+            IntegrationInfo& rIntegrationInfo);
+
+        //Start point elimination algorihtm. Final quadrature rule is stored in rElement.
+        static double PointElimination(
+            Vector& rConstantTerms, IntegrationPointsArrayType& rElementIntegrationPoints,
+            IntegrationPointsArrayType& rElementNewIntegrationPoints,
+            double U0, double U1, double V0, double V1,
+            IntegrationInfo& rIntegrationInfo,
+            const double clip_area);
+
+        //Set-Up and solve moment fitting equation. Solve the moment fitting equation for the weights of the integration points.
+        static double MomentFitting(
+            Vector& rConstantTerms, IntegrationPointsArrayType& rElementIntegrationPoints,
+            double U0, double U1, double V0, double V1,
+            IntegrationInfo& rIntegrationInfo,
+            const double clip_area);
+
+        /////// AGIP
+        enum orientation {od_none,od_north,od_east,od_south,od_west};
+
+        //Computes all trimmed ranges and the max inclianation; evaluation points must have correct order
+        static bool comp_heights_and_correction(std::list<c_vector<double,2> >& _polygon,
+                              std::vector<c_vector<double,2> >& _eval_point_corr_range,
+                              std::vector<double>& _equal_height);
+
+        //check_polygon if it is suited for DIP integration and extend it appropriatly
+        static bool check_polygon(std::list<c_vector<double,2> >& _polygon, c_vector<double,4> Borders, orientation& _replaced_bourder, 
+                            std::list<c_vector<double,2> >::iterator& _iter);
+
+        //create trimmed domains from a trimming polygon if possible
+        static bool create_trimmed_domain(std::list<c_vector<double,2> >& _polygon, c_vector<double,4> Borders, orientation Replaced_border);
+
+        //computes all quadrature points of the subdomain
+        static void compute_bounding_box(std::list<c_vector<double,2> >& _polygon, c_vector<double,4>& _bounding_box);
+
+        //transform polygon to Gaussian Space
+        static void map_polygon(std::list<c_vector<double,2> >& _polygon, c_matrix<double,2,2> _rot, c_vector<double,2> _shifts, c_vector<double,2> _scales);
+
+        //transform quadrature points from Gaussian Space
+        static void map_quadrature_points(std::vector<std::vector<c_vector<double,2> > >& _quadpoints, 
+                             c_matrix<double,2,2> _rot, c_vector<double,2> _shifts, c_vector<double,2> _scales);
+
+        //checks whether point is on the left or right of the line a-b
+        static bool is_on_Left(c_vector<double,2> a, c_vector<double,2> b, c_vector<double,2> c);
+
+        /////// NURBS trimmed reparametrization
+        enum Element_Face {NORTH,EAST,SOUTH,WEST,NONE};
+
+        struct TrimCurveSegment {
+            BrepCurveOnSurfacePointerType pCurve;
+            double LocalParameterStart;
+            double LocalParameterEnd;
+        };
+
+        static bool CollectTrimCurveSegmentsForSpan(
+            const DenseVector<DenseVector<BrepCurveOnSurfacePointerType>>& rOuterLoops,
+            const DenseVector<DenseVector<BrepCurveOnSurfacePointerType>>& rInnerLoops,
+            const double u0,
+            const double u1,
+            const double v0,
+            const double v1,
+            std::vector<TrimCurveSegment>& rTrimCurves);
+
+        struct RawTrimCurve {
+            SizeType Degree = 0;
+            std::vector<array_1d<double, 2>> Points;
+            Vector Weights;
+            Vector Knots;
+        };
+
+        using ParametrizationPatchType = NurbsSurfaceGeometry<2, PointerVector<Point>>;
+        using ParametrizationPatchPointerType = typename ParametrizationPatchType::Pointer;
+
+        struct RuledSurfacePatch {
+            ParametrizationPatchPointerType Surface;
+            array_1d<double, 2> OppositeStart;
+            array_1d<double, 2> OppositeEnd;
+            RawTrimCurve TrimCurve; // original (unrefined) trim curve, for exact derivatives
+        };
+
+        static RawTrimCurve ExtractRawCurve(const TrimCurveSegment& rSegment);
+
+        static RawTrimCurve RestrictCurveToRange(const RawTrimCurve& rCurve, const double TStart, const double TEnd);
+
+        static RawTrimCurve DegreeElevateCurve(const RawTrimCurve& rCurve, const SizeType DegreeIncrease);
+
+        static RawTrimCurve ReverseCurve(const RawTrimCurve& rCurve);
+
+        static bool MergeCurves(RawTrimCurve& rMasterCurve, RawTrimCurve CurveToAdd, const double Tolerance);
+
+        static RawTrimCurve BuildStraightLineCurve(
+            const array_1d<double, 2>& rPointA, const array_1d<double, 2>& rPointB,
+            const double TStart, const double TEnd);
+
+        static RuledSurfacePatch BuildRuledSurfacePatch(
+            const array_1d<double, 2>& rOppositeStart, const array_1d<double, 2>& rOppositeEnd,
+            const RawTrimCurve& rTrimCurve);
+
+        static void EvaluateRuledSurface(
+            const RuledSurfacePatch& rPatch,
+            const double U, const double V,
+            array_1d<double, 2>& rPosition,
+            double& rDetJacobian);
+
+        static Element_Face ClassifyFace(
+            array_1d<double, 2>& rPoint,
+            const double u0, const double u1, const double v0, const double v1,
+            const double Tolerance);
+
+        static bool calc_nurbs_patch(
+            const std::vector<array_1d<double, 2>>& rCornerPoints, // SW, SE, NW, NE
+            const double u0, const double u1, const double v0, const double v1,
+            RawTrimCurve TrimCurve, Element_Face FaceStart, Element_Face FaceEnd,
+            const double Tolerance,
+            std::vector<RuledSurfacePatch>& rPatches);
+
+        static bool parametrize_local_trimmed_domain(
+            const DenseVector<DenseVector<BrepCurveOnSurfacePointerType>>& rOuterLoops,
+            const DenseVector<DenseVector<BrepCurveOnSurfacePointerType>>& rInnerLoops,
+            const double u0,
+            const double u1,
+            const double v0,
+            const double v1,
+            std::vector<RuledSurfacePatch>& rPatches);
 
         ///@}
     };

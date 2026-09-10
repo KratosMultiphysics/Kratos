@@ -45,6 +45,7 @@ protected:
     {
         // covariant metric
         array_1d<double, 3> a_ab_covariant;
+        array_1d<double, 3> b_ab_covariant;
 
         //base vector 1
         array_1d<double, 3> a1;
@@ -63,7 +64,9 @@ protected:
         //the normal to the surface boundary vector
         array_1d<double, 3> n;
         //the normal to the surface boundary vector in contravariant basis
-        array_1d<double, 2> n_contravariant;
+        array_1d<double, 2> n_covariant; //n_alpha
+        array_1d<double, 2> t_covariant; //t_alpha
+        array_1d<double, 2> t_contravariant; //t^alpha
 
         /**
         * The default constructor
@@ -72,6 +75,7 @@ protected:
         KinematicVariables(SizeType Dimension)
         {
             noalias(a_ab_covariant) = ZeroVector(Dimension);
+            noalias(b_ab_covariant) = ZeroVector(Dimension);
 
             noalias(a1) = ZeroVector(Dimension);
             noalias(a2) = ZeroVector(Dimension);
@@ -80,7 +84,7 @@ protected:
             noalias(a3_tilde) = ZeroVector(Dimension);
 
             noalias(n) = ZeroVector(Dimension);
-            noalias(n_contravariant) = ZeroVector(2);
+            noalias(n_covariant) = ZeroVector(2);
             noalias(t) = ZeroVector(Dimension);
 
             dA = 1.0;
@@ -225,6 +229,11 @@ public:
             CalculateNitscheStabilizationMatrix(rLeftHandSideMatrix, rRightHandSideVector,
                 rCurrentProcessInfo);
         }
+        else if (rCurrentProcessInfo[BUILD_LEVEL] == 3)
+        {
+            CalculateNitscheStabilizationRotationMatrix(rLeftHandSideMatrix, rRightHandSideVector,
+                rCurrentProcessInfo);
+        }
         else
         {
             CalculateAll(rLeftHandSideMatrix, rRightHandSideVector,
@@ -253,6 +262,18 @@ public:
         const ProcessInfo& rCurrentProcessInfo
     ) const override;
 
+    /**
+    * @brief Calculate a double Variable on the Element Constitutive Law
+    * @param rVariable The variable we want to get
+    * @param rValues The values obtained int the integration points
+    * @param rCurrentProcessInfo the current process info instance
+    */
+    void CalculateOnIntegrationPoints(
+        const Variable<double>& rVariable,
+        std::vector<double>& rOutput,
+        const ProcessInfo& rCurrentProcessInfo
+    ) override;
+
     /// Calculates left (K) and right (u) hand sides
     void CalculateAll(
         MatrixType& rLeftHandSideMatrix,
@@ -263,6 +284,12 @@ public:
     );
 
     void CalculateNitscheStabilizationMatrix(
+        MatrixType& rLeftHandSideMatrix,
+        VectorType& rRightHandSideVector,
+        const ProcessInfo& rCurrentProcessInfo
+    );
+
+    void CalculateNitscheStabilizationRotationMatrix(
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
         const ProcessInfo& rCurrentProcessInfo
@@ -323,6 +350,9 @@ private:
     // Components of the metric coefficient tensor on the contravariant basis
     std::vector<array_1d<double, 3>> m_A_ab_covariant_vector_master;
     std::vector<array_1d<double, 3>> m_A_ab_covariant_vector_slave;
+    // Components of the curvature coefficient tensor on the contravariant basis
+    std::vector<array_1d<double, 3>> m_B_ab_covariant_vector_master;
+    std::vector<array_1d<double, 3>> m_B_ab_covariant_vector_slave;
 
     // Determinant of the geometrical Jacobian.
     Vector m_dA_vector_master;
@@ -343,8 +373,14 @@ private:
     std::vector<array_1d< array_1d<double, 3>,2>> m_reference_contravariant_base_slave;
 
     // The normal to the boundary vector
-    std::vector<array_1d<double, 2>> m_n_contravariant_vector_master;
-    std::vector<array_1d<double, 2>> m_n_contravariant_vector_slave;
+    std::vector<array_1d<double, 2>> m_n_covariant_vector_master;
+    std::vector<array_1d<double, 2>> m_n_covariant_vector_slave;
+
+    std::vector<array_1d<double, 2>> m_t_covariant_vector_master;
+    std::vector<array_1d<double, 2>> m_t_covariant_vector_slave;
+
+    std::vector<array_1d<double, 2>> m_t_contravariant_vector_master;
+    std::vector<array_1d<double, 2>> m_t_contravariant_vector_slave;
 
     void CalculateKinematics(
         IndexType IntegrationPointIndex,
@@ -356,12 +392,46 @@ private:
         const KinematicVariables& rKinematicVariables,
         Matrix& rT, Matrix& rT_hat, array_1d<array_1d<double, 3>,2>& rReferenceContraVariantBase); 
 
+    // Computes derivative transformation
+    void CalculateVariationTransformation(
+        IndexType IntegrationPointIndex,
+        const KinematicVariables& rKinematicVariables,
+        array_1d<Matrix, 2>& rT, array_1d<Matrix, 2>& rT_hat, 
+        const PatchType& rPatch); 
+
+    void CalculateFirstVariationT1(
+        IndexType IntegrationPointIndex,
+        Matrix& rFirstVariationT1,
+        const array_1d<double, 3> rT1,
+        const KinematicVariables& rKinematicVariables,
+        const PatchType& rPatch);
+
+    void CalculateSecondVariationT1(
+        IndexType IntegrationPointIndex,
+        std::vector<std::vector<array_1d<double, 3> > >& rSecondVariationT1,
+        const Matrix& rFirstVariationT1,
+        const array_1d<double, 3> rT1,  
+        const KinematicVariables& rKinematicVariables,  
+        const PatchType& rPatch);
+
+    // Calculate Derivatives Tangent and Normal Vector
+    void CalculateDerivativesTangentNormal(
+        IndexType IntegrationPointIndex,
+        array_1d<double, 2>& rDerivativeTangent,
+        array_1d<double, 2>& rDerivativeNormal,
+        const KinematicVariables& rReferenceKinematic,
+        const PatchType& rPatch);
+
     // Traction-related functions
     void CalculateTraction(
         IndexType IntegrationPointIndex,
         array_1d<double, 3>& rTraction,
+        array_1d<double, 2> rShear,
+        const double TwistingMomentGradient,
+        array_1d<double, 4>& rMixedCurvature,
         const KinematicVariables& rActualKinematic,
-        ConstitutiveVariables& rThisConstitutiveVariablesMembrane, 
+        ConstitutiveVariables& rThisConstitutiveVariablesMembrane,
+        ConstitutiveVariables& rThisConstitutiveVariablesCurvature,
         const PatchType& rPatch);
 
     void CalculateFirstVariationStressCovariant(
@@ -375,8 +445,13 @@ private:
         IndexType IntegrationPointIndex,
         Matrix& rFirstVariationTraction,
         Matrix& rFirstVariationStressCovariant,
+        std::vector<array_1d<double, 2>>& rFirstVariationShear,
+        const Vector& rFirstVariationTwistingMomentGradient,
+        const array_1d<double, 4>& rMixedCurvature,
+        const std::vector<array_1d<double, 4>>& rFirstVariationMixedCurvature,
         const KinematicVariables& rActualKinematic,
-        ConstitutiveVariables& rThisConstitutiveVariablesMembrane, 
+        ConstitutiveVariables& rThisConstitutiveVariablesMembrane,
+        ConstitutiveVariables& rThisConstitutiveVariablesCurvature,
         const PatchType& rPatch);
 
     void CalculateSecondVariationTractionProduct(
@@ -389,12 +464,151 @@ private:
     void CalculateSecondVariationTraction(
         IndexType IntegrationPointIndex,
         Matrix& rSecondVariationTraction,
+        std::vector<std::vector<array_1d<double, 2>>>& rSecondVariationShear,
+        const Matrix& rSecondVariationTwistingMomentGradient,
+        const array_1d<double, 4>& rMixedCurvature,
+        const std::vector<array_1d<double, 4>>& rFirstVariationMixedCurvature,
+        const std::vector<std::vector<array_1d<double, 4>>>& rSecondVariationMixedCurvature,
         const KinematicVariables& rActualKinematic,
-        Matrix& rFirstVariationStressCovariant, 
+        Matrix& rFirstVariationStressCovariant,
+        ConstitutiveVariables& rThisConstitutiveVariablesCurvature,
         array_1d<double, 3>& rDisplacementMaster,
         array_1d<double, 3>& rDisplacementSlave,
         array_1d<double, 3>& rSecondVariationTractionProduct,
         array_1d<double, 3>& rSecondVariationTractionProductMasterSlave,
+        const PatchType& rPatch);
+
+    void CalculateSecondVariationMomentCovariant(
+        IndexType IntegrationPointIndex,
+        std::vector<std::vector<array_1d<double, 3>>>& rSecondVariationMomentCovariant,
+        const KinematicVariables& rActualKinematic,
+        ConstitutiveVariables& rThisConstitutiveVariablesCurvature,
+        const PatchType& rPatch);
+
+    // Shear-related functions
+    void CalculateVariationShearPK2(
+        IndexType IntegrationPointIndex,
+        array_1d<double, 2>& rShear,
+        std::vector<array_1d<double, 2>>& rFirstVariationShear,
+        std::vector<std::vector<array_1d<double, 2>>>& rSecondVariationShear,
+        double& rTwistingMomentGradient,
+        Vector& rFirstVariationTwistingMomentGradient,
+        Matrix& rSecondVariationTwistingMomentGradient,
+        const KinematicVariables& rReferenceKinematic,
+        const KinematicVariables& rActualKinematic,
+        ConstitutiveVariables& rThisConstitutiveVariablesCurvature,
+        const PatchType& rPatch);
+    
+    // Testing the new format
+    void CalculateVariationDerivativeCurvature(
+        IndexType IntegrationPointIndex,
+        array_1d<array_1d<double, 3>, 2>& rDerivativeCurvatureCurvilinear,
+        array_1d<std::vector<array_1d<double, 3>>, 2>& rFirstVariationDerivativeCurvatureCurvilinear,
+        array_1d<std::vector<std::vector<array_1d<double, 3>>>, 2>& rSecondVariationDerivativeCurvatureCurvilinear,
+        const KinematicVariables& rReferenceKinematic,
+        const KinematicVariables& rActualKinematic,
+        ConstitutiveVariables& rThisConstitutiveVariablesCurvature, 
+        const PatchType& rPatch);
+
+    void CalculateVariationDerivativeMoment(
+        IndexType IntegrationPointIndex,
+        array_1d<array_1d<double, 3>,2>& rDerivativeMoment,
+        array_1d<std::vector<array_1d<double, 3>>,2>& rFirstVariationDerivativeMoment,
+        array_1d<std::vector<std::vector<array_1d<double, 3>>>,2>& rSecondVariationDerivativeMoment,
+        const array_1d<double, 3>& rMomentCartesian,
+        const std::vector<array_1d<double, 3>>& rFirstVariationMomentCartesian,
+        const std::vector<std::vector<array_1d<double, 3>>>& rSecondVariationMomentCartesian,
+        const KinematicVariables& rReferenceKinematic,
+        const KinematicVariables& rActualKinematic,
+        ConstitutiveVariables& rThisConstitutiveVariablesCurvature, 
+        const PatchType& rPatch);
+
+    void CalculateVariationCurvature(
+        IndexType IntegrationPointIndex,
+        array_1d<double, 3>& rCurvatureCurvilinear,
+        std::vector<array_1d<double, 3>>& rFirstVariationCurvatureCurvilinear,
+        std::vector<std::vector<array_1d<double, 3>>>& rSecondVariationCurvatureCurvilinear,
+        const KinematicVariables& rActualKinematic,
+        ConstitutiveVariables& rThisConstitutiveVariablesCurvature, 
+        const PatchType& rPatch);
+
+    void CalculateVariationMixedCurvature(
+        IndexType IntegrationPointIndex,
+        array_1d<double, 4>& rMixedCurvature,
+        std::vector<array_1d<double, 4>>& rFirstVariationMixedCurvature,
+        std::vector<std::vector<array_1d<double, 4>>>& rSecondVariationMixedCurvature,
+        const KinematicVariables& rActualKinematic,
+        ConstitutiveVariables& rThisConstitutiveVariablesCurvature, 
+        const PatchType& rPatch);
+
+    void CalculateVariationMoment(
+        IndexType IntegrationPointIndex,
+        array_1d<double, 3>& rMomentCurvilinear,
+        array_1d<double, 3>& rMomentCartesian,
+        std::vector<array_1d<double, 3>>& rFirstVariationMomentCurvilinear,
+        std::vector<array_1d<double, 3>>& rFirstVariationMomentCartesian,
+        std::vector<std::vector<array_1d<double, 3>>>& rSecondVariationMomentCurvilinear,
+        std::vector<std::vector<array_1d<double, 3>>>& rSecondVariationMomentCartesian,
+        const KinematicVariables& rActualKinematic,
+        ConstitutiveVariables& rThisConstitutiveVariablesCurvature, 
+        const PatchType& rPatch);
+
+    // Moment-related functions
+    void CalculateMoment(
+        IndexType IntegrationPointIndex,
+        array_1d<double, 3>& rMoment,
+        const KinematicVariables& rActualKinematic,
+        ConstitutiveVariables& rThisConstitutiveVariablesCurvature, 
+        const PatchType& rPatch);
+
+    void CalculateFirstVariationMomentCovariant(
+        IndexType IntegrationPointIndex,
+        Matrix& rFirstVariationMomentCovariant,
+        const KinematicVariables& rActualKinematic,
+        ConstitutiveVariables& rThisConstitutiveVariablesCurvature, 
+        const PatchType& rPatch);
+
+    void CalculateFirstVariationMomentT2(
+        IndexType IntegrationPointIndex,
+        Vector& rFirstVariationMomentT2,
+        const Matrix& rFirstVariationMomentCovariant,
+        const Matrix& rFirstVariationT2,
+        const array_1d<double, 3>& rT2,
+        const KinematicVariables& rActualKinematic,
+        ConstitutiveVariables& rThisConstitutiveVariablesCurvature, 
+        const PatchType& rPatch);
+
+    void CalculateSecondVariationMomentProduct(
+        IndexType IntegrationPointIndex,
+        Matrix& rPi,
+        const KinematicVariables& rActualKinematic,
+        ConstitutiveVariables& rThisConstitutiveVariablesCurvature,
+        const PatchType& rPatch);
+
+    void CalculateSecondVariationMomentT2(
+        IndexType IntegrationPointIndex,
+        Matrix& rSecondVariationMoment,
+        const KinematicVariables& rActualKinematic,
+        Matrix& rFirstVariationMomentCovariant, 
+        const Matrix& rFirstVariationT2,
+        array_1d<double, 3>& T2Master,
+        array_1d<double, 3>& T2Slave,
+        array_1d<double, 3>& rSecondVariationMomentProduct,
+        array_1d<double, 3>& rSecondVariationMomentProductMasterSlave,
+        const PatchType& rPatch);
+    
+    void CalculateAdditionalSecondVariationMomentT2(
+        IndexType IntegrationPointIndex,
+        Matrix& rSecondVariationMoment,
+        const KinematicVariables& rActualKinematic,
+        Matrix& rFirstVariationMomentCovariant, 
+        const Matrix& rFirstVariationT2,
+        const std::vector<std::vector<array_1d<double, 3> > >& rSecondVariationT2,
+        array_1d<double, 3>& T2Master,
+        array_1d<double, 3>& T2Slave,
+        array_1d<double, 3>& rSecondVariationMomentProduct,
+        array_1d<double, 3>& rSecondVariationMomentProductMasterSlave,
+        ConstitutiveVariables& rThisConstitutiveVariablesCurvature,
         const PatchType& rPatch);
     
     /**
@@ -408,6 +622,7 @@ private:
         IndexType IntegrationPointIndex,
         KinematicVariables& rActualMetric,
         ConstitutiveVariables& rThisConstitutiveVariablesMembrane,
+        ConstitutiveVariables& rThisConstitutiveVariablesCurvature,
         ConstitutiveLaw::Parameters& rValues,
         const ConstitutiveLaw::StressMeasure ThisStressMeasure,
         const PatchType& rPatch
@@ -428,6 +643,34 @@ private:
     //     PrestresstransVariables& rPrestresstransVariables
     //     );
 
+    // Compute rotational shape functions
+    void CalculateRotationalShapeFunctions(
+        IndexType IntegrationPointIndex,
+        Vector& phi_r,
+        Matrix& phi_rs,
+        array_1d<double, 2>& diff_phi);
+
+    // Compute rotation
+    void CalculateRotation(
+        IndexType IntegrationPointIndex,
+        const Matrix &rShapeFunctionGradientValues,
+        Vector &phi_r,
+        Matrix &phi_rs,
+        array_1d<double, 2> &phi,
+        array_1d<double, 3> &trim_tangent,
+        const Vector &local_tangent,
+        const bool master);
+
+    ///@}
+    ///@name Geometrical Functions
+    ///@{
+
+    void CalculateHessian(
+        Matrix& Hessian,
+        const Matrix& rDDN_DDe,
+        const ConfigurationType& rConfiguration,
+        const PatchType& rPatch) const;
+
     ///@}
     ///@name Serialization
     ///@{
@@ -439,6 +682,8 @@ private:
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Condition);
         rSerializer.save("A_ab_covariant_vector_master", m_A_ab_covariant_vector_master);
         rSerializer.save("A_ab_covariant_vector_slave", m_A_ab_covariant_vector_slave);
+        rSerializer.save("B_ab_covariant_vector_master", m_B_ab_covariant_vector_master);
+        rSerializer.save("B_ab_covariant_vector_slave", m_B_ab_covariant_vector_slave);
         rSerializer.save("dA_vector_master", m_dA_vector_master);
         rSerializer.save("dA_vector_slave", m_dA_vector_slave);
         rSerializer.save("T_vector_master", m_T_vector_master);
@@ -452,6 +697,8 @@ private:
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Condition);
         rSerializer.load("A_ab_covariant_vector_master", m_A_ab_covariant_vector_master);
         rSerializer.load("A_ab_covariant_vector_slave", m_A_ab_covariant_vector_slave);
+        rSerializer.load("B_ab_covariant_vector_master", m_B_ab_covariant_vector_master);
+        rSerializer.load("B_ab_covariant_vector_slave", m_B_ab_covariant_vector_slave);
         rSerializer.load("dA_vector_master", m_dA_vector_master);
         rSerializer.load("dA_vector_slave", m_dA_vector_slave);
         rSerializer.load("T_vector_master", m_T_vector_master);
