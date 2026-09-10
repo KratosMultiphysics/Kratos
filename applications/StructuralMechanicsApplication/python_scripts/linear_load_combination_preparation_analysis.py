@@ -131,16 +131,17 @@ class LinearLoadCombinationPreparationAnalysis(AnalysisStage):
         return self.main_model_part
 
     def _AddDofs(self):
-        dofs_and_reactions_to_add = []
-        dofs_and_reactions_to_add.append(["DISPLACEMENT_X", "REACTION_X"])
-        dofs_and_reactions_to_add.append(["DISPLACEMENT_Y", "REACTION_Y"])
-        dofs_and_reactions_to_add.append(["DISPLACEMENT_Z", "REACTION_Z"])
-        if self.settings["rotation_dofs"].GetBool():
-            dofs_and_reactions_to_add.append(["ROTATION_X", "REACTION_MOMENT_X"])
-            dofs_and_reactions_to_add.append(["ROTATION_Y", "REACTION_MOMENT_Y"])
-            dofs_and_reactions_to_add.append(["ROTATION_Z", "REACTION_MOMENT_Z"])
-
-        KratosMultiphysics.VariableUtils.AddDofsList(dofs_and_reactions_to_add, self.main_model_part)
+        MechanicalSolver.AddDofsToModelPart(self.main_model_part, self.settings)
+        #dofs_and_reactions_to_add = []
+        #dofs_and_reactions_to_add.append(["DISPLACEMENT_X", "REACTION_X"])
+        #dofs_and_reactions_to_add.append(["DISPLACEMENT_Y", "REACTION_Y"])
+        #dofs_and_reactions_to_add.append(["DISPLACEMENT_Z", "REACTION_Z"])
+        #if self.settings["rotation_dofs"].GetBool():
+        #    dofs_and_reactions_to_add.append(["ROTATION_X", "REACTION_MOMENT_X"])
+        #    dofs_and_reactions_to_add.append(["ROTATION_Y", "REACTION_MOMENT_Y"])
+        #    dofs_and_reactions_to_add.append(["ROTATION_Z", "REACTION_MOMENT_Z"])
+#
+        #KratosMultiphysics.VariableUtils.AddDofsList(dofs_and_reactions_to_add, self.main_model_part)
         KratosMultiphysics.Logger.PrintInfo("::[LinearLoadCombinationPreparationAnalysis]:: ", "DOF's ADDED")
 
     def _AddVariables(self):
