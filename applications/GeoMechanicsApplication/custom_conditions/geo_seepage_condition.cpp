@@ -12,9 +12,10 @@
 
 #include "custom_conditions/geo_seepage_condition.h"
 #include "custom_utilities/dof_utilities.hpp"
-#include "geo_mechanics_application_variables.h"
 #include "includes/serializer.h"
 #include "includes/variables.h"
+
+using namespace std::string_literals;
 
 namespace Kratos
 {
@@ -39,7 +40,7 @@ Condition::Pointer GeoSeepageCondition::Create(IndexType               Condition
                                                const NodesArrayType&   rNodes,
                                                PropertiesType::Pointer pProperties) const
 {
-    return Create(ConditionId, GetGeometry().Create(rNodes), pProperties);
+    return Create(ConditionId, GetGeometry().Create(rNodes), std::move(pProperties));
 }
 
 Condition::Pointer GeoSeepageCondition::Create(IndexType               ConditionId,
@@ -90,8 +91,6 @@ Condition::DofsVectorType GeoSeepageCondition::GetDofs() const
 
 int GeoSeepageCondition::Check(const ProcessInfo& rCurrentProcessInfo) const
 {
-    KRATOS_TRY
-
     const auto base_check_result = Condition::Check(rCurrentProcessInfo);
 
     KRATOS_ERROR_IF(GetGeometry().PointsNumber() < 2)
@@ -106,11 +105,9 @@ int GeoSeepageCondition::Check(const ProcessInfo& rCurrentProcessInfo) const
     }
 
     return base_check_result;
-
-    KRATOS_CATCH("")
 }
 
-std::string GeoSeepageCondition::Info() const { return "GeoSeepageCondition"; }
+std::string GeoSeepageCondition::Info() const { return "GeoSeepageCondition"s; }
 
 void GeoSeepageCondition::save(Serializer& rSerializer) const
 {
