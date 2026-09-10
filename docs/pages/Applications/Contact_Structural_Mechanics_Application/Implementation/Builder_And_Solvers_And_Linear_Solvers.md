@@ -6,9 +6,9 @@ sidebar: contact_structural_mechanics_application
 summary: The three contact builder-and-solvers (block, elimination, elimination with constraints), why they exist, how the Python solvers pick them, and the MixedULMLinearSolver that statically condenses the dual Lagrange multipliers into a displacement-only system before calling an inner solver.
 ---
 
-> **Sources.** Thesis §4.3.3.4.4 (pp. 110–111, eqs. 4.37–4.40); code: `custom_strategies/custom_builder_and_solvers/contact_residualbased_block_builder_and_solver.h`, `contact_residualbased_elimination_builder_and_solver.h`, `contact_residualbased_elimination_builder_and_solver_with_constraints.h`, `custom_linear_solvers/mixedulm_linear_solver.h`, `custom_python/add_custom_strategies_to_python.cpp`, `custom_python/add_custom_linear_solvers_to_python.cpp`, `python_scripts/auxiliary_methods_solvers.py` (`AuxiliaryCreateLinearSolver`), `python_scripts/contact_structural_mechanics_static_solver.py` (`_CreateBuilderAndSolver`), `tests/cpp_tests/linear_solvers/test_mixedulm_linear_solver.cpp`.
+> **Sources.** Thesis §4.3.3.4.4 (pp. 110–111, eqs. 4.37–4.40); code: `custom_strategies/custom_builder_and_solvers/contact_residualbased_block_builder_and_solver.h`, `contact_residualbased_elimination_builder_and_solver.h`, `contact_residualbased_elimination_builder_and_solver_with_constraints.h`, `custom_linear_solvers/mixedulm_linear_solver.h`, `custom_python/add_custom_strategies_to_python.cpp`, `custom_python/add_custom_linear_solvers_to_python.cpp`, `python_scripts/auxiliary_methods_solvers.py` (`AuxiliaryCreateLinearSolver`), `python_scripts/contact_structural_mechanics_static_solver.py` (`_CreateBuilderAndSolver`), `kratos/linear_solvers/fallback_linear_solver.h`, `tests/cpp_tests/linear_solvers/test_mixedulm_linear_solver.cpp`.
 
-A mortar contact problem with Lagrange multipliers produces a **saddle-point system**: the multiplier DoFs have a zero diagonal in the stiffness matrix, inactive slave nodes carry multipliers that must be forced to zero, and the set of active constraints changes from one iteration to the next. The application handles this at two levels. The **builder-and-solvers** (header-only classes in `custom_strategies/custom_builder_and_solvers/`) fix the DoF bookkeeping so that the assembled matrix is never singular for a trivial reason (isolated slave nodes, fixed slave displacements, multi-point constraints on interface nodes). The **`MixedULMLinearSolver`** (`custom_linear_solvers/mixedulm_linear_solver.h`) then exploits the diagonal structure that the dual Lagrange multipliers give to the multiplier block to condense it out and hand a displacement-only, better-conditioned matrix to a standard inner solver. Both are exposed to Python through the bindings in `custom_python/` and selected automatically by the contact solvers described in the [Solver settings reference](../Usage/Solver_Settings_Reference.html). The convergence loop that calls them is described in [Strategies and convergence criteria](Strategies_And_Convergence_Criteria.html).
+A mortar contact problem with Lagrange multipliers produces a **saddle-point system**: the multiplier DoFs have a zero diagonal in the stiffness matrix, inactive slave nodes carry multipliers that must be forced to zero, and the set of active constraints changes from one iteration to the next. The application handles this at two levels. The **builder-and-solvers** (header-only classes in `custom_strategies/custom_builder_and_solvers/`) fix the DoF bookkeeping so that the assembled matrix is never singular for a trivial reason (isolated slave nodes, fixed slave displacements, multi-point constraints on interface nodes). The **`MixedULMLinearSolver`** (`custom_linear_solvers/mixedulm_linear_solver.h`) then exploits the node-local multiplier structure supplied by dual Lagrange multipliers to condense it out and hand a displacement-only, better-conditioned matrix to a standard inner solver. Both are exposed to Python through the bindings in `custom_python/` and selected automatically by the contact solvers described in the [Solver settings reference](../Usage/Solver_Settings_Reference.html). The convergence loop that calls them is described in [Strategies and convergence criteria](Strategies_And_Convergence_Criteria.html).
 
 ## Builder and solvers
 
@@ -76,14 +76,17 @@ Three constructors are exposed to Python as `MixedULMLinearSolver`: `(LinearSolv
 
 ```json
 {
-    "solver_type"          : "mixed_ulm_linear_solver",
-    "tolerance"            : 1.0e-6,
-    "max_iteration_number" : 200,
-    "echo_level"           : 0
+    "solver_type"                    : "mixed_ulm_linear_solver",
+    "tolerance"                      : 1.0e-6,
+    "max_iteration_number"           : 200,
+    "check_dual_lm_condensation"     : true,
+    "dual_lm_zero_row_tolerance"     : 1.0e-12,
+    "dual_lm_off_node_tolerance"     : 1.0e-6,
+    "echo_level"                     : 0
 }
 ```
 
-`tolerance` and `max_iteration_number` are forwarded to the `IterativeSolver` base and are not used by the condensation itself (the outer problem is solved exactly, the iterations belong to the inner solver). `echo_level` controls debugging output in `Solve`: 2 prints the RHS before condensation and the condensed solution and residual, 3 also prints the matrices, 4 or more writes Matrix Market files `before_condensation_A_<n>.mm` / `before_condensation_b_<n>.mm.rhs` and `A_<n>.mm` / `b_<n>.mm.rhs` (the condensed system) with a running counter `mFileCreated`. Two local flags track the state: `BLOCKS_ARE_ALLOCATED` and `IS_INITIALIZED`.
+`tolerance` and `max_iteration_number` are forwarded to the `IterativeSolver` base and are not used by the condensation itself (the outer problem is solved exactly, the iterations belong to the inner solver). The three dual-LM parameters control the validity check described below; they default to enabled. `echo_level` controls debugging output in `Solve`: 2 prints the RHS before condensation and the condensed solution and residual, 3 also prints the matrices, 4 or more writes Matrix Market files `before_condensation_A_<n>.mm` / `before_condensation_b_<n>.mm.rhs` and `A_<n>.mm` / `b_<n>.mm.rhs` (the condensed system) with a running counter `mFileCreated`. Three local flags track the state: `BLOCKS_ARE_ALLOCATED`, `IS_INITIALIZED` and `DUAL_LM_IS_VALID`.
 
 ### DoF classification: the `BlockType` enum
 
@@ -123,7 +126,7 @@ where, in terms of the mortar operators, $$\mathbf{K}_{M\lambda_A} = -k\mathbf{M
 | `mCOperator` | $$\mathbf{C} = \mathbf{K}_{\lambda_A\lambda_A}\,\mathbf{K}_{S_A\lambda_A}^{-1}$$ | active LM × active slave |
 | `mKDispModified` | the condensed displacement matrix | (other + master + inactive slave + active slave)² |
 
-`ComputeDiagonalByLumping` (lines 1936-1985) builds a diagonal matrix with the reciprocal of the diagonal entry `rA(i, i)` of each row (entries whose absolute value is below `ZeroTolerance` are left as zero); a row-norm variant is present but commented out. This is exact for the diagonal block produced by dual shape functions and only an approximation if standard multipliers leave off-diagonal entries. The products are computed with `SparseMatrixMultiplicationUtility::MatrixMultiplication`, and the final matrix is assembled in two passes (`ComputeNonZeroColumnsDispDoFs` / `ComputeAuxiliaryValuesDispDoFs` for the rows that are copied, `...PartialDispDoFs` for the $$\lambda_A$$ rows that replace the $$\mathcal{S}_A$$ rows), added with `MatrixAdd(mKDispModified, K_disp_modified_aux2, -1.0)`, symmetrized in structure (`EnsureStructuralSymmetryMatrix`, so that the sparsity pattern is symmetric even if the values are not) and checked (`CheckMatrix`). Allocation (`AllocateBlocks`) happens only the first time or after `Clear()`.
+`ComputeDiagonalByLumping` builds a diagonal matrix with the reciprocal of each diagonal entry (an entry below `ZeroTolerance` receives the legacy auxiliary inverse `1.0`). Before using that inverse, it also checks the dual-LM premise for `K_{S_A\lambda_A}` and `K_{\lambda_I\lambda_I}`: for each non-empty row it measures the fraction of its absolute mass coupled to a **different node**. Couplings among components of the *same* node are valid (and occur in local normal/tangent frictional bases); couplings to another node indicate that the mortar cut was too distorted to construct the dual shape functions. Rows with a sum below `dual_lm_zero_row_tolerance` times the block's largest row sum are intentionally ignored, since unconstrained tangential components in frictionless contact are structurally empty. If an off-node fraction exceeds `dual_lm_off_node_tolerance`, `DUAL_LM_IS_VALID` becomes false and the solver warns instead of producing an approximate condensed solution. Set `check_dual_lm_condensation` to `false` only to retain the pre-check behavior. The products are computed with `SparseMatrixMultiplicationUtility::MatrixMultiplication`, and the final matrix is assembled in two passes (`ComputeNonZeroColumnsDispDoFs` / `ComputeAuxiliaryValuesDispDoFs` for the rows that are copied, `...PartialDispDoFs` for the $$\lambda_A$$ rows that replace the $$\mathcal{S}_A$$ rows), added with `MatrixAdd(mKDispModified, K_disp_modified_aux2, -1.0)`, symmetrized in structure (`EnsureStructuralSymmetryMatrix`, so that the sparsity pattern is symmetric even if the values are not) and checked (`CheckMatrix`). Allocation (`AllocateBlocks`) happens only the first time or after `Clear()`.
 
 ### The condensed system
 
@@ -141,7 +144,7 @@ The thesis writes the combination with a plus sign and $$\mathbf{P} = (\mathbf{K
 
 ### `PerformSolutionStep`: solve, then recover the multipliers
 
-`Solve(rA, rX, rB)` (lines 416-467) calls `Initialize` (if not `IS_INITIALIZED`), `InitializeSolutionStep`, `PerformSolutionStep` and `FinalizeSolutionStep`. `InitializeSolutionStep` runs `FillBlockMatrices` (allocating the first time) and initializes the inner solver with `mKDispModified`; `PerformSolutionStep` (lines 300-349) then:
+`Solve(rA, rX, rB)` calls `Initialize` (if not `IS_INITIALIZED`), `InitializeSolutionStep`, `PerformSolutionStep` and `FinalizeSolutionStep`. `InitializeSolutionStep` runs `FillBlockMatrices` (allocating the first time) and initializes the inner solver with `mKDispModified`. If that setup detects an invalid dual-LM condensation, `Solve` finalizes the inner solution step, returns `false`, and leaves `rX` untouched so a `FallbackLinearSolver` can solve the original mixed system. Otherwise, `PerformSolutionStep` then:
 
 1. extracts the condensed residual with `GetUPart(rB, mResidualDisp)`;
 2. solves the displacement block with the inner solver: `mpSolverDispBlock->Solve(mKDispModified, mDisp, mResidualDisp)`, and scatters `mDisp` back into `rX` (`SetUPart`);
@@ -154,7 +157,7 @@ The thesis writes the combination with a plus sign and $$\mathbf{P} = (\mathbf{K
 
 Since $$\mathbf{K}_{S_A\lambda_A}$$ is diagonal, step 3 is a sparse matrix-vector product and the multiplier recovery is essentially free; the whole cost of the linear solve is the inner solve of step 2. `FinalizeSolutionStep` and `Clear` forward to the inner solver and, in the case of `Clear`, release all blocks and reset the flags. The multi-right-hand-side `Solve(rA, DenseMatrix& rX, DenseMatrix& rB)` overload returns `false` without solving (not implemented).
 
-### When it is inserted and the AMGCL fallback
+### When it is inserted and the invalid-dual-LM fallback
 
 `auxiliary_methods_solvers.AuxiliaryCreateLinearSolver(main_model_part, settings, contact_settings, linear_solver_settings, linear_solver)` ([source](https://github.com/KratosMultiphysics/Kratos/blob/master/applications/ContactStructuralMechanicsApplication/python_scripts/auxiliary_methods_solvers.py)) is called by `_CreateLinearSolver` of the contact solvers with the linear solver already created from `linear_solver_settings` by the structural base class, and decides what the builder-and-solver receives:
 
@@ -187,18 +190,18 @@ Since $$\mathbf{K}_{S_A\lambda_A}$$ is diagonal, step 3 is a sparse matrix-vecto
 ```
 
    - for any other `solver_type` (a direct solver, for instance) the user's solver is used as inner solver unchanged;
-   - the returned object is `CSMA.MixedULMLinearSolver(linear_solver, contact_settings["mixed_ulm_solver_parameters"])`.
+   - `CSMA.MixedULMLinearSolver(linear_solver, contact_settings["mixed_ulm_solver_parameters"])` is created. By default, it is the first solver in `KM.FallbackLinearSolver`: if the dual-LM check fails, a fresh instance of the user's configured solver resolves the original, non-condensed system. The fallback receives the same scaling wrapper when `rescale_linear_solver` is enabled.
 4. If `mixed_ulm_solver_parameters.solver_type` is anything else, the log prints "Mixed solver not available: ... Using not mixed linear solver" and the plain solver is returned; the same happens when `use_mixed_ulm_solver` is `false` or when `settings` has no `linear_solver_settings`.
 
-The defaults of `contact_settings.mixed_ulm_solver_parameters` in `AuxiliaryContactSettings` are identical to the C++ defaults quoted above. Because the condensation needs the `ACTIVE`, `SLAVE`, `MASTER` and `INTERFACE` node flags and the vector multiplier DoFs, the solver is not usable outside a contact model part prepared by `SearchBaseProcess` and the contact solvers (`ProvideAdditionalData` throws if the DoF count does not match the matrix).
+`contact_settings.fallback_if_dual_lm_not_valid` defaults to `true`. The fallback is only constructed when `linear_solver_settings.solver_type` is available; otherwise a warning is issued and the mixed solver is returned alone. Its `reset_solver_each_try = true` setting is important: the active set and mortar cut can change at every Newton iteration, so the condensation is retried before falling back again. The defaults of `contact_settings.mixed_ulm_solver_parameters` in `AuxiliaryContactSettings` are identical to the C++ defaults quoted above. Because the condensation needs the `ACTIVE`, `SLAVE`, `MASTER` and `INTERFACE` node flags and the vector multiplier DoFs, the solver is not usable outside a contact model part prepared by `SearchBaseProcess` and the contact solvers (`ProvideAdditionalData` throws if the DoF count does not match the matrix).
 
 ### Relation to the thesis
 
-Thesis §4.3.3.4.4 ("Static condensation of the system in considering of the DLMM") introduces exactly this procedure for the dual Lagrange multiplier method: the global system (eq. 4.37) is partitioned in the six blocks above; since $$\mathbf{K}_{S_I\lambda_A} = \mathbf{0}$$, $$\mathbf{K}_{S_A\lambda_I} = \mathbf{0}$$ and $$\Delta\boldsymbol{\lambda}_I = \mathbf{0}$$, the system is condensed into a pure displacement system (eq. 4.38) with the operators of eq. 4.39, and the active multipliers are recovered a posteriori from the equilibrium of the active slave nodes (eqs. 4.40a–4.40b) "after computing the displacement DoF, from which it depends". The thesis remarks that the construction "can be applied in any LHS where the LM considered is decomposed in Cartesian components, both frictionless and frictional formulation", which is precisely the `ALMContactFrictionlessComponents` / `ALMContactFrictional*` restriction of the Python wrapper. The diagonality of $$\mathbf{K}_{S_A\lambda_A}$$ ("as is the result of the global assemble of the mortar operators D") is the property that `ComputeDiagonalByLumping` relies on; with standard (non-dual) multipliers the block is not diagonal and the lumped inverse would only be an approximation, which is one of the reasons why the application uses dual shape functions by default (see [Mortar integration and dual Lagrange multipliers](../Theory/Mortar_Integration_And_Dual_Lagrange_Multipliers.html)).
+Thesis §4.3.3.4.4 ("Static condensation of the system in considering of the DLMM") introduces exactly this procedure for the dual Lagrange multiplier method: the global system (eq. 4.37) is partitioned in the six blocks above; since $$\mathbf{K}_{S_I\lambda_A} = \mathbf{0}$$, $$\mathbf{K}_{S_A\lambda_I} = \mathbf{0}$$ and $$\Delta\boldsymbol{\lambda}_I = \mathbf{0}$$, the system is condensed into a pure displacement system (eq. 4.38) with the operators of eq. 4.39, and the active multipliers are recovered a posteriori from the equilibrium of the active slave nodes (eqs. 4.40a–4.40b) "after computing the displacement DoF, from which it depends". The thesis remarks that the construction "can be applied in any LHS where the LM considered is decomposed in Cartesian components, both frictionless and frictional formulation", which is precisely the `ALMContactFrictionlessComponents` / `ALMContactFrictional*` restriction of the Python wrapper. The dual property is block-diagonality **by node**, rather than scalar diagonality: normal/tangent components of one node may couple, but a coupling to a different node means the dual construction has failed. The validity check and full-system fallback therefore preserve the exact-condensation assumption instead of silently applying a lumped approximation (see [Mortar integration and dual Lagrange multipliers](../Theory/Mortar_Integration_And_Dual_Lagrange_Multipliers.html)).
 
 ### Tests
 
-[`tests/cpp_tests/linear_solvers/test_mixedulm_linear_solver.cpp`](https://github.com/KratosMultiphysics/Kratos/blob/master/applications/ContactStructuralMechanicsApplication/tests/cpp_tests/linear_solvers/test_mixedulm_linear_solver.cpp) contains eight cases in `KratosContactStructuralMechanicsFastSuite`, all with a `SkylineLUFactorizationSolver` as inner solver (an AMGCL alternative is left commented out) and all comparing the `MixedULMLinearSolver` result with the direct solution of the full mixed system through `KRATOS_EXPECT_VECTOR_NEAR`:
+[`tests/cpp_tests/linear_solvers/test_mixedulm_linear_solver.cpp`](https://github.com/KratosMultiphysics/Kratos/blob/master/applications/ContactStructuralMechanicsApplication/tests/cpp_tests/linear_solvers/test_mixedulm_linear_solver.cpp) contains the original eight condensation cases, all with a `SkylineLUFactorizationSolver` as inner solver (an AMGCL alternative is left commented out) and all comparing the `MixedULMLinearSolver` result with the direct solution of the full mixed system through `KRATOS_EXPECT_VECTOR_NEAR`:
 
 | Test | System |
 |---|---|
@@ -208,6 +211,8 @@ Thesis §4.3.3.4.4 ("Static condensation of the system in considering of the DLM
 | `MixedULMLinearSolverTwoDoFSystem`, `MixedULMLinearSolverTwoDoFUnorderedSystem` | Two-dimensional nodes, ordered and unordered |
 | `MixedULMLinearSolverThreeDoFSystem`, `MixedULMLinearSolverThreeDoFUnorderedSystem` | Three-dimensional nodes, ordered and unordered |
 | `MixedULMLinearSolverRealSystem` | A 16 × 16 matrix and its right-hand side extracted from a real 2D contact step, written by `CreateAuxiliaryFiles()` to `A_testing_condensation.mm` / `b_testing_condensation.rhs`, read back with `ReadMatrixMarketMatrix` / `ReadMatrixMarketVector`, solved with both solvers and deleted |
+
+Four additional cases cover the validity safeguard: `MixedULMLinearSolverValidDualLM` confirms the real system is accepted; `MixedULMLinearSolverDetectsBrokenDualLM` injects an inter-node coupling into the mortar operator and verifies that the mixed solver returns `false` without changing the solution; `MixedULMLinearSolverBrokenDualLMCheckDisabled` preserves the opt-out behavior; and `MixedULMLinearSolverFallback` verifies that `FallbackLinearSolver` then selects an independent direct solver and obtains the full-system reference solution.
 
 The Python tests of the application (`ALM_frictional_contact_test_*`, `ALM_frictionless_components_*`, see the [Test suite reference](../Validation/Test_Suite_Reference.html)) run the solver in its production configuration through `AuxiliaryCreateLinearSolver`.
 
@@ -239,14 +244,16 @@ ResidualBasedNewtonRaphsonContactStrategy::BaseSolveSolutionStep
    └─ SystemSolveWithPhysics(...)
       ├─ MixedULMLinearSolver::ProvideAdditionalData   classify DoFs (BlockType), build mDisplacementDofs
       │  └─ AMGCLSolver::ProvideAdditionalData          receives the reordered displacement DoFs
-      └─ MixedULMLinearSolver::Solve
-         ├─ InitializeSolutionStep → FillBlockMatrices  sub-blocks, D⁻¹, P, C, mKDispModified
-         ├─ PerformSolutionStep
-         │  ├─ GetUPart                                  condensed residual
-         │  ├─ AMGCLSolver::Solve(mKDispModified, ...)   displacement increment
-         │  ├─ GetLMAPart / Mult(mKLMAModified)           Δλ_A = D⁻¹(r_SA − K_SA· Δu)
-         │  └─ GetLMIPart / Mult(mKLMIModified)           Δλ_I = K_λIλI⁻¹ r_λI
-         └─ FinalizeSolutionStep
+      └─ FallbackLinearSolver::Solve
+         ├─ MixedULMLinearSolver::Solve
+         │  ├─ InitializeSolutionStep → FillBlockMatrices  sub-blocks, D⁻¹, P, C, mKDispModified
+         │  ├─ validate nodewise dual-LM blocks
+         │  └─ if valid: PerformSolutionStep
+         │     ├─ GetUPart                                  condensed residual
+         │     ├─ AMGCLSolver::Solve(mKDispModified, ...)   displacement increment
+         │     ├─ GetLMAPart / Mult(mKLMAModified)           Δλ_A = D⁻¹(r_SA − K_SA· Δu)
+         │     └─ GetLMIPart / Mult(mKLMIModified)           Δλ_I = K_λIλI⁻¹ r_λI
+         └─ on invalid dual LM: configured fallback solver solves the original mixed system
 ```
 
 `BuildRHS` (called before `PostCriteria` when the RHS must be refreshed, and by the line-search strategy) goes through the same `FixIsolatedNodes` / `FreeIsolatedNodes` bracket, so the residual of an isolated multiplier is always zero and cannot pollute the residual-based convergence criteria.
@@ -268,11 +275,15 @@ The default contact configuration needs no explicit choice: with `contact_settin
         "mortar_type"           : "ALMContactFrictionlessComponents",
         "use_mixed_ulm_solver"  : true,
         "rescale_linear_solver" : false,
+        "fallback_if_dual_lm_not_valid" : true,
         "mixed_ulm_solver_parameters" : {
-            "solver_type"          : "mixed_ulm_linear_solver",
-            "tolerance"            : 1.0e-6,
-            "max_iteration_number" : 200,
-            "echo_level"           : 0
+            "solver_type"                    : "mixed_ulm_linear_solver",
+            "tolerance"                      : 1.0e-6,
+            "max_iteration_number"           : 200,
+            "check_dual_lm_condensation"     : true,
+            "dual_lm_zero_row_tolerance"     : 1.0e-12,
+            "dual_lm_off_node_tolerance"     : 1.0e-6,
+            "echo_level"                     : 0
         }
     }
 }
@@ -316,5 +327,6 @@ With this last configuration `ContactResidualBasedEliminationBuilderAndSolverWit
 
 - With `builder_and_solver_settings.type = "block"` and a scalar ALM (`ALMContactFrictionless`) the full saddle-point system reaches the linear solver; a direct solver or `amgcl` with a suitable smoother is needed. Switching to `ALMContactFrictionlessComponents` enables the condensation at the price of $$d$$ multipliers per node instead of one.
 - `rescale_linear_solver` and `use_mixed_ulm_solver` can be combined: the scaling wrapper is applied to the inner solver, that is to the condensed displacement system.
+- `fallback_if_dual_lm_not_valid` is enabled by default. Keep it enabled for production cases: a distorted mortar cut that breaks nodewise duality is solved with the configured full-system solver for that iteration. Disable it only when the `MixedULMLinearSolver` failure itself must be exposed to the caller.
 - The elimination builder-and-solvers are the ones to use when slave nodes have prescribed displacements in the direction of the contact normal (symmetry planes crossing the interface); with the block builder-and-solver the corresponding multiplier is left free and the interface may not converge.
 - `echo_level >= 4` in `mixed_ulm_solver_parameters` is the easiest way to export the matrices before and after condensation for offline analysis.
