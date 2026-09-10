@@ -185,6 +185,11 @@ namespace Kratos {
         KRATOS_TRY
         const auto& r_geometry = GetGeometry();
         const auto& r_integration_points = r_geometry.IntegrationPoints();
+        const int build_level = rCurrentProcessInfo.Has(BUILD_LEVEL)
+            ? rCurrentProcessInfo[BUILD_LEVEL]
+            : 0;
+        const bool calculate_material_stiffness = build_level != 2;
+        const bool calculate_geometric_stiffness = build_level != 1;
         
         Vector stress_axial = ZeroVector(5);
         Vector stress_bending1 = ZeroVector(5);
@@ -226,19 +231,24 @@ namespace Kratos {
             const double inv_A4 = inv_A2 * inv_A2;
             if (CalculateStiffnessMatrixFlag == true)
             {   
-                //Material Stiffness
+                if (calculate_material_stiffness) {
+                    // Material stiffness
                 rLeftHandSideMatrix +=  inv_A4 * integration_weight * prod(trans(B_axial), Matrix(prod(constitutive_variables.ConstitutiveMatrix, B_axial)));
                 rLeftHandSideMatrix +=  inv_A4 * integration_weight * prod(trans(B_bending1), Matrix(prod(constitutive_variables.ConstitutiveMatrix, B_bending1)));
                 rLeftHandSideMatrix +=  inv_A4 * integration_weight * prod(trans(B_bending2), Matrix(prod(constitutive_variables.ConstitutiveMatrix, B_bending2)));
                 rLeftHandSideMatrix +=  inv_A2 * integration_weight * prod(trans(B_torsion1), Matrix(prod(constitutive_variables.ConstitutiveMatrix, B_torsion1)));
                 rLeftHandSideMatrix +=  inv_A2 * integration_weight * prod(trans(B_torsion2), Matrix(prod(constitutive_variables.ConstitutiveMatrix, B_torsion2)));
                 
-                //Geometrical Stiffness
+                }
+
+                if (calculate_geometric_stiffness) {
+                    // Geometric stiffness
                 rLeftHandSideMatrix += inv_A4 * integration_weight * G_axial * constitutive_variables.StressVector[0];
                 rLeftHandSideMatrix += inv_A4 * integration_weight * G_bending1 * constitutive_variables.StressVector[1];
                 rLeftHandSideMatrix += inv_A4 * integration_weight * G_bending2 * constitutive_variables.StressVector[2];
                 rLeftHandSideMatrix += inv_A2 * integration_weight * G_torsion1 * constitutive_variables.StressVector[3];
                 rLeftHandSideMatrix += inv_A2 * integration_weight * G_torsion2 * constitutive_variables.StressVector[4];
+                }
 
             }
             if (CalculateResidualVectorFlag == true)
@@ -284,7 +294,6 @@ namespace Kratos {
     
     int IsogeometricBeamElement::Check(const ProcessInfo& rCurrentProcessInfo) const
     {
-        KRATOS_WATCH("IsogeometricBeamElement::Check");
         KRATOS_TRY
             const double numerical_limit = std::numeric_limits<double>::epsilon();
 
@@ -3796,8 +3805,30 @@ namespace Kratos {
             {
                 for (size_t  s  = 0;s < mNumberOfDofs;s++)
                 {
-                    cur_var_n_2(r, s) += 0;
-                    cur_var_n_2(r, s) += 0;
+                    const double r1_var_r = t == r % mDofsPerNode
+                        ? dR_vec[r / mDofsPerNode]
+                        : 0.0;
+                    const double r1_var_s = t == s % mDofsPerNode
+                        ? dR_vec[s / mDofsPerNode]
+                        : 0.0;
+
+                    cur_var_n_2(r, s) +=
+                        mat_rodlamRodLam_der_var_var(
+                            t * mNumberOfDofs + r, k * mNumberOfDofs + s) *
+                            N0(k) * r1(t)
+                        + mSMatRodLamRodLamDerVar(
+                            t * mNumberOfDofs + r, k) * N0(k) * r1_var_s
+                        + mSMatRodLamRodLamDerVar(
+                            t * mNumberOfDofs + s, k) * N0(k) * r1_var_r;
+
+                    cur_var_v_2(r, s) +=
+                        mat_rodlamRodLam_der_var_var(
+                            t * mNumberOfDofs + r, k * mNumberOfDofs + s) *
+                            V0(k) * r1(t)
+                        + mSMatRodLamRodLamDerVar(
+                            t * mNumberOfDofs + r, k) * V0(k) * r1_var_s
+                        + mSMatRodLamRodLamDerVar(
+                            t * mNumberOfDofs + s, k) * V0(k) * r1_var_r;
 
                     tor_var_n_2(r, s) += mat_rodlamRodLam_der_var_var(t * mNumberOfDofs + r, k * mNumberOfDofs + s) * V0(k) * vec_n(t)
                         + mSMatRodLamRodLamDerVar(t * mNumberOfDofs + r, k) * V0(k) * vec_n_var(t * mNumberOfDofs + s)
@@ -3829,7 +3860,7 @@ namespace Kratos {
     noalias(rGBending1) = cur_var_n_2;
     noalias(rGBending2) = cur_var_v_2;  
     noalias(rGTorsion1) = tor_var_n_2;   
-    noalias(rGTorsion1) = tor_var_v_2;   
+    noalias(rGTorsion2) = tor_var_v_2;
         
     KRATOS_CATCH("")
     }
