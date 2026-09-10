@@ -112,7 +112,7 @@ void NearestEntityExplicitDamping<TContainerType>::Update()
     const auto radius_view = mpDampingRadius->ViewData();
 
     mDampingCoefficients.resize(radius_view.size(), stride);
-    auto& damping_coefficient_data = mDampingCoefficients.data();
+    auto damping_coefficient_data = GetContiguousDataPointer(mDampingCoefficients);
 
     for (IndexType i_comp = 0; i_comp < stride; ++i_comp) {
         auto& r_damped_model_parts = mComponentWiseDampedModelParts[i_comp];
@@ -120,7 +120,7 @@ void NearestEntityExplicitDamping<TContainerType>::Update()
         PositionAdapter adapter(r_damped_model_parts);
 
         if (adapter.kdtree_get_point_count() == 0) {
-            std::fill(damping_coefficient_data.begin(), damping_coefficient_data.end(), 1.0);
+            std::fill(damping_coefficient_data, damping_coefficient_data + radius_view.size() * stride, 1.0);
         } else {
             // now construct the kd tree
             KDTreeIndexType kd_tree_index(
@@ -139,7 +139,7 @@ void NearestEntityExplicitDamping<TContainerType>::Update()
                 unsigned int global_index;
                 kd_tree_index.knnSearch(&OptimizationUtils::GetEntityPosition(*(r_container.begin() + Index))[0], 1, &global_index, &squared_distance);
 
-                double& value = *(damping_coefficient_data.begin() + data_begin_index + i_comp);
+                double& value = *(damping_coefficient_data + data_begin_index + i_comp);
                 value = 1.0 - kernel_function.ComputeWeight(radius, std::sqrt(squared_distance));
             });
         }
@@ -194,7 +194,7 @@ void NearestEntityExplicitDamping<TContainerType>::NearestEntityExplicitDamping:
     rOutput.clear();
 
     IndexPartition<IndexType>(number_of_entities).for_each([this, &rOutput, ComponentIndex, number_of_entities](const auto Index) {
-        *(rOutput.data().begin() + Index * number_of_entities + Index) = this->mDampingCoefficients(Index, ComponentIndex);
+        *(GetContiguousDataPointer(rOutput) + Index * number_of_entities + Index) = this->mDampingCoefficients(Index, ComponentIndex);
     });
 
     KRATOS_CATCH("");

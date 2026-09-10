@@ -659,7 +659,7 @@ void ExplicitFilterUtils<TContainerType>::CalculateMatrix(Matrix& rOutput) const
                 OptimizationUtils::GetEntityPosition(*(r_container.begin() + Index)),
                 Index, this->mNodalDomainSizes, this->mrModelPart.Nodes());
 
-        double* data_begin = (rOutput.data().begin() + Index * number_of_entities);
+        double* data_begin = (GetContiguousDataPointer(rOutput) + Index * number_of_entities);
 
         for (IndexType neighbour_index = 0; neighbour_index < rTLS.mNeighbourIndicesAndSquaredDistances.size(); ++neighbour_index) {
             const IndexType neighbour_id = rTLS.mNeighbourIndicesAndSquaredDistances[neighbour_index].first;

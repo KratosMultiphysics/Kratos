@@ -660,7 +660,8 @@ void UPwInterfaceElement::ApplyRotationToBMatrix(Matrix& rBMatrix, const Matrix&
     const auto dim = GetDisplacementGeometry().WorkingSpaceDimension();
     for (auto i = std::size_t{0}; i + dim <= rBMatrix.size2(); i += dim) {
         auto sub_matrix = subrange(rBMatrix, 0, rBMatrix.size1(), i, i + dim);
-        sub_matrix.assign(Matrix{prod(sub_matrix, trans(rRotationMatrix))});
+        const Matrix rotated_sub_matrix{prod(sub_matrix, trans(rRotationMatrix))};
+        noalias(sub_matrix) = rotated_sub_matrix;
     }
 }
 

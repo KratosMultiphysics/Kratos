@@ -19,7 +19,7 @@
 #include "structural_mechanics_fast_suite.h"
 // #include "includes/gid_io.h"
 #include "utilities/variable_utils.h"
-#include "spaces/ublas_space.h"
+#include "spaces/default_spaces.h"
 
 // Linear solvers
 #include "linear_solvers/reorderer.h"
@@ -42,8 +42,8 @@ namespace Kratos
     {
         typedef Node NodeType;
 
-        typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
-        typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
+        typedef TDefaultSparseSpace<double> SparseSpaceType;
+        typedef TDefaultDenseSpace<double> LocalSpaceType;
 
         // The direct solver
         typedef Reorderer<SparseSpaceType,  LocalSpaceType > ReordererType;

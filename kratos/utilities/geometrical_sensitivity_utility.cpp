@@ -77,10 +77,6 @@ GeometricalSensitivityUtility::MatrixType GeometricalSensitivityUtility::Calcula
     KRATOS_TRY;
     MatrixType result(mrJ.size1(), mrJ.size2());
 
-    IndirectArrayType ia3(mrDN_De.size1());
-    for (std::size_t k = 0; k < ia3.size(); ++k)
-        ia3[k] = k;
-
     for (unsigned i = 0; i < mrJ.size1(); ++i)
     {
         if (i == Deriv.Direction)
@@ -95,25 +91,35 @@ GeometricalSensitivityUtility::MatrixType GeometricalSensitivityUtility::Calcula
             IndexType i_coord_sub = (Deriv.Direction > i) ? Deriv.Direction - 1 : Deriv.Direction;
             for (unsigned j = 0; j < mrJ.size2(); ++j)
             {
-				IndirectArrayType ia1(mrJ.size1() - 1), ia2(mrJ.size2() - 1);
-
-                // Construct the Jacobian submatrix structure for the first minor.
+                // Gather the first-minor submatrices explicitly (backend-generic:
+                // works on the uBLAS and the Eigen-backed Matrix alike, without
+                // uBLAS indirect proxies).
+                MatrixType sub_jacobian(mrJ.size1() - 1, mrJ.size2() - 1);
                 unsigned i_sub = 0;
-                for (unsigned k = 0; k < mrJ.size1(); ++k)
-                    if (k != i)
-                        ia1(i_sub++) = k;
+                for (unsigned k = 0; k < mrJ.size1(); ++k) {
+                    if (k == i) continue;
+                    unsigned j_sub = 0;
+                    for (unsigned l = 0; l < mrJ.size2(); ++l) {
+                        if (l == j) continue;
+                        sub_jacobian(i_sub, j_sub) = mrJ(k, l);
+                        ++j_sub;
+                    }
+                    ++i_sub;
+                }
 
-                unsigned j_sub = 0;
-                for (unsigned k = 0; k < mrJ.size2(); ++k)
-                    if (k != j)
-                        ia2(j_sub++) = k;
+                const MatrixType cofactor_sub_jacobian = MathUtils<double>::CofactorMatrix(sub_jacobian);
 
-                const MatrixType& sub_jacobian = SubMatrixType(mrJ, ia1, ia2);
-                const MatrixType& cofactor_sub_jacobian = MathUtils<double>::CofactorMatrix(sub_jacobian);
-
-                // Construct the corresponding shape function local gradients
-                // submatrix.
-                const MatrixType& sub_DN_De = SubMatrixType(mrDN_De, ia3, ia2);
+                // The corresponding shape function local gradients submatrix
+                // (all rows, column j removed).
+                MatrixType sub_DN_De(mrDN_De.size1(), mrDN_De.size2() - 1);
+                for (unsigned k = 0; k < mrDN_De.size1(); ++k) {
+                    unsigned j_sub = 0;
+                    for (unsigned l = 0; l < mrDN_De.size2(); ++l) {
+                        if (l == j) continue;
+                        sub_DN_De(k, j_sub) = mrDN_De(k, l);
+                        ++j_sub;
+                    }
+                }
 
                 const double first_minor_deriv = inner_prod(
                     row(cofactor_sub_jacobian, i_coord_sub),

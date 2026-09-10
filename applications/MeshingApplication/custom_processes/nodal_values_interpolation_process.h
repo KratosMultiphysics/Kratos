@@ -190,7 +190,7 @@ public:
      */
     void UpdatePoint()
     {
-        noalias(this->Coordinates()) = mpOriginCond->GetGeometry().Center().Coordinates();
+        this->Coordinates() = mpOriginCond->GetGeometry().Center().Coordinates();
     }
 
 private:

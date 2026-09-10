@@ -63,7 +63,13 @@ void  AddPointsToPython(pybind11::module& m)
 
     py::class_<Point, Point::Pointer, array_1d<double,3> >(m,"Point") //WARNING: this was previously called Point3D
         .def(py::init<double, double, double>())
+#ifdef KRATOS_USE_EIGEN_BACKEND
+        // The Eigen-backed Vector is not a uBLAS vector_expression; the
+        // conversion goes through the array_1d coordinates instead.
+        .def(py::init<Vector>())
+#else
         .def(py::init<vector_expression<Vector> >())
+#endif
         .def(py::init<array_1d<double,3>>())
         .def_property("X", PointGetX<Point >, PointSetX<Point >)
         .def_property("Y", PointGetY<Point >, PointSetY<Point >)

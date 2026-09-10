@@ -10,6 +10,8 @@ from KratosMultiphysics.StructuralMechanicsApplication.structural_mechanics_anal
 import pathlib
 
 
+@UnitTest.skipUnless(hasattr(KratosMultiphysics, "PMultigridBuilderAndSolver"),
+                     "PMultigridBuilderAndSolver is not available with the configured linear-algebra backend (uBLAS-only).")
 class PMGBuilderAndSolverSingleGridTest(UnitTest.TestCase):
 
     @staticmethod

@@ -20,7 +20,7 @@
 #include "linear_solvers_define.h"
 #include "linear_solvers/direct_solver.h"
 #include "spaces/ublas_space.h"
-#include "includes/ublas_interface.h"
+#include "includes/default_interface.h"
 #include "includes/ublas_complex_interface.h"
 #include "custom_utilities/mkl_utilities.h"
 

@@ -747,7 +747,7 @@ BoundedMatrix<double, 4, 4> TransonicPerturbationPotentialFlowElement<3, 4>::Cal
         rCurrentProcessInfo[FREE_STREAM_VELOCITY_DIRECTION];
     const BoundedVector<double, 4> DNv = prod(rData.DN_DX, free_stream_velocity_direction);
     const BoundedMatrix<double, 4, 4> pressure_equality_lhs =
-        outer_prod(DNv, trans(DNv));
+        outer_prod(DNv, DNv);
 
     // Computing wake normal condition lhs
     // Attention: this only works for straight trailing edges
@@ -755,7 +755,7 @@ BoundedMatrix<double, 4, 4> TransonicPerturbationPotentialFlowElement<3, 4>::Cal
     // the local normal vector of the skin in the element.
     const array_1d<double, 3>& wake_normal = rCurrentProcessInfo[WAKE_NORMAL];
     const BoundedVector<double, 4> DNn = prod(rData.DN_DX, wake_normal);
-    const BoundedMatrix<double, 4, 4> normal_condition_lhs = outer_prod(DNn, trans(DNn));
+    const BoundedMatrix<double, 4, 4> normal_condition_lhs = outer_prod(DNn, DNn);
 
     // Adding contributions
     return rData.vol * (pressure_equality_lhs + normal_condition_lhs);
@@ -889,7 +889,7 @@ void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::CalculateLeftHa
 
     const double max_velocity_squared = PotentialFlowUtilities::ComputeMaximumVelocitySquared<TDim, TNumNodes>(rCurrentProcessInfo);
     if (local_velocity_squared < max_velocity_squared){
-        rLhs_total += rData.vol * 2 * DrhoDu2 * outer_prod(DNV, trans(DNV));
+        rLhs_total += rData.vol * 2 * DrhoDu2 * outer_prod(DNV, DNV);
     }
 }
 
@@ -958,7 +958,7 @@ void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::CalculateLeftHa
         {
             noalias(lhs_positive) += Volumes[i] * upper_density * prod(data.DN_DX, trans(data.DN_DX));
             if(upper_local_velocity_squared < max_velocity_squared) {
-                noalias(lhs_positive) += Volumes[i] * 2 * upper_DrhoDu2 * outer_prod(upper_DNV, trans(upper_DNV));
+                noalias(lhs_positive) += Volumes[i] * 2 * upper_DrhoDu2 * outer_prod(upper_DNV, upper_DNV);
             }
 
         }
@@ -966,7 +966,7 @@ void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::CalculateLeftHa
         {
             noalias(lhs_negative) += Volumes[i] * lower_density * prod(data.DN_DX, trans(data.DN_DX));
             if(lower_local_velocity_squared < max_velocity_squared) {
-                noalias(lhs_negative) += Volumes[i] * 2 * lower_DrhoDu2 * outer_prod(lower_DNV, trans(lower_DNV));
+                noalias(lhs_negative) += Volumes[i] * 2 * lower_DrhoDu2 * outer_prod(lower_DNV, lower_DNV);
             }
         }
     }
@@ -1148,7 +1148,7 @@ void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::AssembleSuperso
 
     BoundedMatrix<double, TNumNodes, TNumNodes> linear_term = data.vol * density * prod(data.DN_DX, trans(data.DN_DX));
 
-    rLeftHandSideMatrix = data.vol * 2.0 * outer_prod(DNV_extended, trans(DNV_assembly));
+    rLeftHandSideMatrix = data.vol * 2.0 * outer_prod(DNV_extended, DNV_assembly);
 
     for (int i = 0; i < TNumNodes; i++)
     {

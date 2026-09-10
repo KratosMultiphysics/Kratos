@@ -206,7 +206,7 @@ void IntegratedNearestEntityExplicitDamping<TContainerType>::IntegratedNearestEn
         // kd tree is not constructed. then there are no damped model parts
         // hence returning a Identity matrix.
         IndexPartition<IndexType>(number_of_entities).for_each([&rOutput, number_of_entities](const auto Index) {
-            *(rOutput.data().begin() + Index * number_of_entities + Index) = 1.0;
+            *(GetContiguousDataPointer(rOutput) + Index * number_of_entities + Index) = 1.0;
         });
     } else {
 
@@ -245,7 +245,7 @@ void IntegratedNearestEntityExplicitDamping<TContainerType>::IntegratedNearestEn
 
                 const double weight = kernel_function.ComputeWeight(radius, std::sqrt(squared_distance));
 
-                *(rOutput.data().begin() + Index * number_of_entities + rTLS.mNeighbourIndicesAndSquaredDistances[i_neighbour].first) = weight;
+                *(GetContiguousDataPointer(rOutput) + Index * number_of_entities + rTLS.mNeighbourIndicesAndSquaredDistances[i_neighbour].first) = weight;
             }
 
         });

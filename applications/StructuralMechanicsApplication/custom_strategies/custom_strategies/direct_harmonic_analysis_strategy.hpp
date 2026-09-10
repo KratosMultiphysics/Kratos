@@ -6,14 +6,11 @@
 #include <vector>
 
 // External includes
-#include <boost/numeric/ublas/matrix_sparse.hpp>
-#include <boost/numeric/ublas/vector.hpp>
-#include <boost/numeric/ublas/matrix.hpp>
 
 // Project includes
 #include "solving_strategies/strategies/implicit_solving_strategy.h"
 #include "linear_solvers/linear_solver.h"
-#include "spaces/ublas_space.h"
+#include "spaces/default_spaces.h"
 #include "utilities/builtin_timer.h"
 #include "utilities/atomic_utilities.h"
 #include "utilities/entities_utilities.h"

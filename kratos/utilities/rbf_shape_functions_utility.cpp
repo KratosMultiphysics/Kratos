@@ -62,7 +62,9 @@ namespace Kratos
                 const double norm_xij = norm_2(row(rPoints,i_pt)-row(rPoints,j_pt));
                 A(i_pt,j_pt) = EvaluateRBF(norm_xij,h);
             }
-            const double norm_X =  norm_2(rX-row(rPoints,i_pt));
+            array_1d<double,3> aux_diff;
+            for (std::size_t i_dim = 0; i_dim < 3; ++i_dim) aux_diff[i_dim] = rX[i_dim] - rPoints(i_pt, i_dim);
+            const double norm_X =  norm_2(aux_diff);
             Phi[i_pt] = EvaluateRBF(norm_X,h);
         }
 
@@ -133,7 +135,9 @@ namespace Kratos
 
         // Interpolate solution
         for (std::size_t i_pt = 0; i_pt < n_points; ++i_pt) {
-            const double norm_xi = norm_2(rX-row(rPoints,i_pt));
+            array_1d<double,3> aux_diff;
+            for (std::size_t i_dim = 0; i_dim < 3; ++i_dim) aux_diff[i_dim] = rX[i_dim] - rPoints(i_pt, i_dim);
+            const double norm_xi = norm_2(aux_diff);
             const double Phi = EvaluateRBF(norm_xi,h);
             interpolation += Phi*rN[i_pt];
         }

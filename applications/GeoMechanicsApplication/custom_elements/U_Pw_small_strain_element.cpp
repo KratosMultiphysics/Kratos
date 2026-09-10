@@ -997,9 +997,14 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateAndAddCouplingMatrix(Matri
         const auto p_coupling_matrix = GeoTransportEquationUtilities::CalculateCouplingMatrix<TDim, TNumNodes>(
             rVariables.B, GetStressStatePolicy().GetVoigtVector(), rVariables.Np,
             rVariables.BiotCoefficient, rVariables.DegreeOfSaturation, rVariables.IntegrationCoefficient);
-        GeoElementUtilities::AssemblePUBlockMatrix(
-            rLeftHandSideMatrix,
-            PORE_PRESSURE_SIGN_FACTOR * rVariables.VelocityCoefficient * trans(p_coupling_matrix));
+        // Materialized into a plain (always-uBLAS) Matrix rather than passed as the lazy
+        // scalar*trans(...) expression directly: AssemblePUBlockMatrix calls .size1()/.size2()
+        // on its argument, which an unevaluated Eigen expression (as trans() produces when
+        // BoundedMatrix is Eigen-backed) does not provide.
+        Matrix p_coupling_matrix_transposed(p_coupling_matrix.size2(), p_coupling_matrix.size1());
+        noalias(p_coupling_matrix_transposed) =
+            PORE_PRESSURE_SIGN_FACTOR * rVariables.VelocityCoefficient * trans(p_coupling_matrix);
+        GeoElementUtilities::AssemblePUBlockMatrix(rLeftHandSideMatrix, p_coupling_matrix_transposed);
     }
 
     KRATOS_CATCH("")

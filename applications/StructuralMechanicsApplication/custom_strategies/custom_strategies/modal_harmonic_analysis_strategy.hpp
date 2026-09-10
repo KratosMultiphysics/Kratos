@@ -246,7 +246,7 @@ public:
             BuiltinTimer force_vector_build_time;
             if (r_force_vector.size() != system_size)
                 r_force_vector.resize(system_size, false);
-            r_force_vector = ZeroVector( system_size );
+            TSparseSpace::SetToZero(r_force_vector);
 
             KRATOS_INFO_IF("Force Vector Build Time", BaseType::GetEchoLevel() > 0 && rank == 0)
                 << force_vector_build_time << std::endl;
@@ -349,8 +349,15 @@ public:
                         //build stiffness matrix for submodelpart material
                         p_builder_and_solver->BuildLHS(p_scheme, sub_model_part, *temp_stiffness_matrix);
 
-                        //compute strain energy of the submodelpart and the effective damping ratio
-                        double strain_energy = 0.5 * inner_prod( prod(modal_vector, *temp_stiffness_matrix), modal_vector );
+                        //compute strain energy of the submodelpart and the effective damping ratio:
+                        //0.5 * phi^T * K * phi through the space API (K is symmetric), so it works
+                        //on both the uBLAS and the Eigen backend system matrix
+                        const std::size_t system_size = SparseSpaceType::Size1(*temp_stiffness_matrix);
+                        typename SparseSpaceType::VectorType phi(system_size), k_phi(system_size);
+                        for (std::size_t k = 0; k < system_size; ++k)
+                            phi[k] = modal_vector[k];
+                        SparseSpaceType::Mult(*temp_stiffness_matrix, phi, k_phi);
+                        const double strain_energy = 0.5 * SparseSpaceType::Dot(phi, k_phi);
                         down += strain_energy;
                         up += damping_coefficient * strain_energy;
                     }
@@ -439,7 +446,13 @@ public:
 
             ComplexType factor( eigenvalues[i] - std::pow( excitation_frequency, 2.0 ), 2 * modal_damping * std::sqrt(eigenvalues[i]) * excitation_frequency );
             KRATOS_ERROR_IF( std::abs(factor) < std::numeric_limits<double>::epsilon() ) << "No valid modal weight" << std::endl;
-            mode_weight = inner_prod( modal_vector, f ) / factor;
+            // Explicit dot product: modal_vector is a dense (uBLAS) vector while
+            // f is the backend-selected system vector, so no mixed-type
+            // inner_prod overload exists
+            double modal_projection = 0.0;
+            for (std::size_t k = 0; k < n_dofs; ++k)
+                modal_projection += modal_vector[k] * f[k];
+            mode_weight = modal_projection / factor;
 
             // compute the modal displacement as a superposition of modal_weight * eigenvector
             for( auto& node : r_model_part.Nodes() )

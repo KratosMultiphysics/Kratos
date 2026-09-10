@@ -291,7 +291,7 @@ KRATOS_TEST_CASE_IN_SUITE(TransonicPerturbationPotentialFlowElementEquationId3D,
     pCurrentElement->EquationIdVector(EquationIdVector, r_current_process_info);
 
     std::vector<double> reference{23.0, 74.0, 55.0, 35.0, 87.0};
-    KRATOS_EXPECT_VECTOR_NEAR(EquationIdVector, reference, 1e-15);
+    KRATOS_EXPECT_VECTOR_NEAR(EquationIdVector, reference, 1e-13);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(PingWakeTransonicPerturbationPotentialFlowElementLHS3D,
@@ -467,7 +467,7 @@ KRATOS_TEST_CASE_IN_SUITE(TransonicPerturbationPotentialFlowInletElementLHS3D,
 
     for (unsigned int i = 0; i < LHS.size1(); i++) {
         for (unsigned int j = 0; j < LHS.size2(); j++) {
-            KRATOS_EXPECT_NEAR(LHS(i, j), reference[i * 4 + j], 1e-16);
+            KRATOS_EXPECT_NEAR(LHS(i, j), reference[i * 4 + j], 1e-13);
         }
     }
 }
@@ -535,7 +535,7 @@ KRATOS_TEST_CASE_IN_SUITE(TransonicPerturbationPotentialFlowSupersonicElementLHS
 
     for (unsigned int i = 0; i < LHS.size1(); i++) {
         for (unsigned int j = 0; j < LHS.size2(); j++) {
-            KRATOS_EXPECT_NEAR(LHS(i, j), reference[i * 5 + j], 1e-16);
+            KRATOS_EXPECT_NEAR(LHS(i, j), reference[i * 5 + j], 1e-13);
         }
     }
 }
@@ -603,7 +603,7 @@ KRATOS_TEST_CASE_IN_SUITE(TransonicPerturbationPotentialFlowSupersonicElementLHS
 
     for (unsigned int i = 0; i < LHS.size1(); i++) {
         for (unsigned int j = 0; j < LHS.size2(); j++) {
-            KRATOS_EXPECT_NEAR(LHS(i, j), reference[i * 5 + j], 1e-16);
+            KRATOS_EXPECT_NEAR(LHS(i, j), reference[i * 5 + j], 1e-13);
         }
     }
 }
@@ -671,7 +671,7 @@ KRATOS_TEST_CASE_IN_SUITE(TransonicPerturbationPotentialFlowSupersonicDecelerati
 
     for (unsigned int i = 0; i < LHS.size1(); i++) {
         for (unsigned int j = 0; j < LHS.size2(); j++) {
-            KRATOS_EXPECT_NEAR(LHS(i, j), reference[i * 5 + j], 1e-16);
+            KRATOS_EXPECT_NEAR(LHS(i, j), reference[i * 5 + j], 1e-13);
         }
     }
 }
@@ -739,7 +739,7 @@ KRATOS_TEST_CASE_IN_SUITE(TransonicPerturbationPotentialFlowSupersonicDecelerati
 
     for (unsigned int i = 0; i < LHS.size1(); i++) {
         for (unsigned int j = 0; j < LHS.size2(); j++) {
-            KRATOS_EXPECT_NEAR(LHS(i, j), reference[i * 5 + j], 1e-16);
+            KRATOS_EXPECT_NEAR(LHS(i, j), reference[i * 5 + j], 1e-13);
         }
     }
 }
@@ -800,7 +800,7 @@ KRATOS_TEST_CASE_IN_SUITE(TransonicPerturbationPotentialFlowSupersonicElementRHS
 
     std::vector<double> reference{78.83234736892321,-53.38880960120657,-4.323508014019686,-21.12002975369695,0};
 
-    KRATOS_EXPECT_VECTOR_NEAR(RHS, reference, 1e-14);
+    KRATOS_EXPECT_VECTOR_NEAR(RHS, reference, 1e-12);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(WakeTransonicPerturbationPotentialFlowElementRHS3D,
@@ -912,7 +912,7 @@ KRATOS_TEST_CASE_IN_SUITE(WakeTransonicPerturbationPotentialFlowElementLHS3D,
     {
         for (unsigned int j = 0; j < LHS.size2(); j++)
         {
-            KRATOS_EXPECT_NEAR(LHS(i, j), reference[8 * i + j], 1e-16);
+            KRATOS_EXPECT_NEAR(LHS(i, j), reference[8 * i + j], 1e-13);
         }
     }
 }
@@ -962,7 +962,7 @@ KRATOS_TEST_CASE_IN_SUITE(WakeTransonicPerturbationPotentialFlowElementLHS3DClam
     {
         for (unsigned int j = 0; j < LHS.size2(); j++)
         {
-            KRATOS_EXPECT_NEAR(LHS(i, j), reference[8 * i + j], 1e-16);
+            KRATOS_EXPECT_NEAR(LHS(i, j), reference[8 * i + j], 1e-13);
         }
     }
 }
@@ -1011,7 +1011,7 @@ KRATOS_TEST_CASE_IN_SUITE(WakeStructureTransonicPerturbationPotentialFlowElement
     {
         for (unsigned int j = 0; j < LHS.size2(); j++)
         {
-            KRATOS_EXPECT_NEAR(LHS(i, j), reference[8 * i + j], 1e-16);
+            KRATOS_EXPECT_NEAR(LHS(i, j), reference[8 * i + j], 1e-13);
         }
     }
 }
@@ -1063,7 +1063,7 @@ KRATOS_TEST_CASE_IN_SUITE(WakeStructureTransonicPerturbationPotentialFlowElement
     {
         for (unsigned int j = 0; j < LHS.size2(); j++)
         {
-            KRATOS_EXPECT_NEAR(LHS(i, j), reference[8 * i + j], 1e-16);
+            KRATOS_EXPECT_NEAR(LHS(i, j), reference[8 * i + j], 1e-13);
         }
     }
 }

@@ -72,6 +72,18 @@ Enables(Default) or Disables the compilation of the C++ unitary tests for *Krato
 `-DKRATOS_NO_TRY_CATCH=ON/OFF`
 Enables or Disables(Default) the prevention of code generation in `KRATOS_TRY` and `KRATOS_CATCH` macros to allow direct debug of the code through gdb without having to break at `__cxa_throw`.
 
+`-DKRATOS_LINEAR_ALGEBRA_BACKEND=String`
+Selects the linear-algebra backend used for the **sparse** system types (system matrix, RHS vector, builder-and-solvers and linear solvers). Options are:
+- `ublas`(Default): Boost uBLAS, the traditional Kratos backend.
+- `eigen`: [Eigen](https://eigen.tuxfamily.org), using the copy vendored in `external_libraries/eigen3`.
+
+Notes:
+- Only the real sparse *system* space switches backend. The dense/local element algebra (`Kratos::Matrix`/`Vector`, `array_1d`, `BoundedMatrix`) stays uBLAS in both modes, because the Element/Condition virtual interfaces are defined in terms of those types. The complex spaces also stay uBLAS.
+- The flag is applied globally (like `KRATOS_SHARED_MEMORY_PARALLELIZATION`): the core and **all** applications of one build must be configured with the same value. Never mix binaries built with different values.
+- `UblasSpace` remains fully functional in both modes: applications that hardcode it keep compiling and running unchanged. To opt in to the configurable backend, use the `TDefaultSparseSpace`/`DefaultSparseSpaceType` aliases from `spaces/default_spaces.h` instead of hardcoding `UblasSpace`.
+- The index type of the Eigen sparse matrices defaults to `std::ptrdiff_t` and can be overridden with `-DKRATOS_EIGEN_INDEX_TYPE=<signed type>` (as a compile definition).
+- Solvers registered only for the uBLAS backend (e.g. `deflated_cg`) are not available for the default space when the Eigen backend is active. The same applies to `PMultigridBuilderAndSolver` and `ResidualBasedBlockBuilderAndSolverWithLagrangeMultiplier`, which rely on uBLAS-only sparse construction.
+
 ## Unitary Builds
 `-DCMAKE_UNITY_BUILD=ON/OFF`
 Enables or Disables(default) the use of [cmake unity build](https://cmake.org/cmake/help/latest/prop_tgt/UNITY_BUILD.html) to speedup compilation by using unitary builds.

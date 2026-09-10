@@ -1167,7 +1167,7 @@ public:
       Matrix A(input);
       pmatrix pm(A.size1());
       int singular = lu_factorize(A,pm);
-      inverse.assign( IdentityMatrix(A.size1()));
+      inverse = IdentityMatrix(A.size1());
       lu_substitute(A, pm, inverse);
       return singular;
     }

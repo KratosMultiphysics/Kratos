@@ -92,7 +92,13 @@ public:
     typedef PointerVectorSet<Dof<double>, IndexedObject> DofsArrayType;
 
     /// Type for shape function values container
+#ifdef KRATOS_USE_EIGEN_BACKEND
+    // No uBLAS matrix_row over the Eigen-backed Matrix: shape function rows
+    // are materialized into a dense vector (all uses are const references).
+    typedef Vector ShapeFunctionsType;
+#else
     typedef MatrixRow< Matrix > ShapeFunctionsType;
+#endif
 
     /// Type for a matrix containing the shape function gradients
     typedef Kratos::Matrix ShapeFunctionDerivativesType;

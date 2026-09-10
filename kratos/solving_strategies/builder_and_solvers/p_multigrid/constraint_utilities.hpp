@@ -272,10 +272,7 @@ void AssembleRelationMatrix(const typename ConstraintAssembler<TSparse,TDense>::
                                                       r_tls.master_ids,
                                                       rConstraintIdMap);
                 const auto& r_hessian = r_constraint.GetData().GetValue(GEOMETRIC_STIFFNESS_MATRIX);
-                r_tls.hessian.resize(r_hessian.size1(), r_hessian.size2());
-                std::copy(r_hessian.data().begin(),
-                          r_hessian.data().end(),
-                          r_tls.hessian.data().begin());
+                r_tls.hessian = r_hessian;
             } /*if r_tls.slave_ids.empty()*/ else {
                 // The constraint is a MasterSlaveConstraint.
                 detail::ProcessMasterSlaveConstraint(r_tls.constraint_indices,
@@ -346,9 +343,9 @@ void AssembleRelationMatrix(const typename ConstraintAssembler<TSparse,TDense>::
                                    [&r_tls, i_row](const std::size_t i_column){
                                         return r_tls.relation_matrix(i_row, i_column);
                                    });
-                    std::copy(r_tls.matrix_row.begin(),
-                              r_tls.matrix_row.end(),
-                              (r_tls.relation_matrix.begin1() + i_row).begin());
+                    for (std::size_t i_column = 0; i_column < r_tls.matrix_row.size(); ++i_column) {
+                        r_tls.relation_matrix(i_row, i_column) = r_tls.matrix_row[i_column];
+                    }
                 }
 
                 {
@@ -378,9 +375,9 @@ void AssembleRelationMatrix(const typename ConstraintAssembler<TSparse,TDense>::
                                        return r_tls.hessian(i_reordered_row, i_column);
                                    });
 
-                    std::copy(r_tls.matrix_row.begin(),
-                              r_tls.matrix_row.end(),
-                              (r_tls.hessian.begin1() + i_reordered_row).begin());
+                    for (std::size_t i_column = 0; i_column < r_tls.matrix_row.size(); ++i_column) {
+                        r_tls.hessian(i_reordered_row, i_column) = r_tls.matrix_row[i_column];
+                    }
 
                     std::scoped_lock<LockObject> lock(dof_mutexes[i_row_dof]);
                     MapRowContribution<TSparse,TDense>(rHessian,

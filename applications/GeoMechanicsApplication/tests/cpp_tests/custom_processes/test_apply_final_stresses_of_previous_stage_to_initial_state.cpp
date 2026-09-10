@@ -21,8 +21,7 @@
 #include "includes/model_part.h"
 #include "includes/node.h"
 #include "includes/process_info.h"
-#include "includes/ublas_interface.h"
-#include "includes/variables.h"
+#include "includes/default_interface.h"
 #include "tests/cpp_tests/custom_constitutive/mock_constitutive_law.hpp"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
 

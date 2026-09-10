@@ -12,15 +12,15 @@
 
 #include "containers/model.h"
 #include "custom_strategies/schemes/backward_euler_quasistatic_U_Pw_scheme.hpp"
-#include "spaces/ublas_space.h"
+#include "spaces/default_spaces.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
 
 namespace Kratos::Testing
 {
 
 using namespace Kratos;
-using SparseSpaceType = UblasSpace<double, CompressedMatrix, Vector>;
-using LocalSpaceType  = UblasSpace<double, Matrix, Vector>;
+using SparseSpaceType = TDefaultSparseSpace<double>;
+using LocalSpaceType  = TDefaultDenseSpace<double>;
 
 class BackwardEulerQuasiStaticUPwSchemeTester
 {
@@ -75,9 +75,9 @@ KRATOS_TEST_CASE_IN_SUITE(InitializeBackwardEulerUPwScheme_SetsTimeFactors, Krat
     constexpr double expected_velocity_coefficient    = 1.0 / 4.0;
     KRATOS_EXPECT_TRUE(tester.mScheme.SchemeIsInitialized())
 
-    CompressedMatrix A;
-    Vector           Dx;
-    Vector           b;
+    SparseSpaceType::MatrixType A;
+    SparseSpaceType::VectorType           Dx;
+    SparseSpaceType::VectorType           b;
     tester.mScheme.InitializeSolutionStep(tester.GetModelPart(), A, Dx, b); // This is needed to set the time factors
 
     KRATOS_EXPECT_DOUBLE_EQ(tester.GetModelPart().GetProcessInfo()[DT_PRESSURE_COEFFICIENT],
@@ -91,9 +91,9 @@ KRATOS_TEST_CASE_IN_SUITE(BackwardEulerUPwSchemePredict_UpdatesVariablesDerivati
     BackwardEulerQuasiStaticUPwSchemeTester tester;
 
     ModelPart::DofsArrayType dof_set;
-    CompressedMatrix         A;
-    Vector                   Dx;
-    Vector                   b;
+    SparseSpaceType::MatrixType         A;
+    SparseSpaceType::VectorType                   Dx;
+    SparseSpaceType::VectorType                   b;
 
     tester.mScheme.InitializeSolutionStep(tester.GetModelPart(), A, Dx, b); // This is needed to set the time factors
 
@@ -110,9 +110,9 @@ KRATOS_TEST_CASE_IN_SUITE(BackwardEulerUPwSchemePredict_UpdatesVariablesDerivati
     BackwardEulerQuasiStaticUPwSchemeTester tester;
 
     ModelPart::DofsArrayType dof_set;
-    CompressedMatrix         A;
-    Vector                   Dx;
-    Vector                   b;
+    SparseSpaceType::MatrixType         A;
+    SparseSpaceType::VectorType                   Dx;
+    SparseSpaceType::VectorType                   b;
 
     tester.mScheme.InitializeSolutionStep(tester.GetModelPart(), A, Dx, b); // This is needed to set the time factors
 
@@ -136,9 +136,9 @@ KRATOS_TEST_CASE_IN_SUITE(BackwardEulerUPwSchemeUpdate_DoesNotUpdateFixedScalarV
     BackwardEulerQuasiStaticUPwSchemeTester tester;
 
     ModelPart::DofsArrayType dof_set;
-    CompressedMatrix         A;
-    Vector                   Dx;
-    Vector                   b;
+    SparseSpaceType::MatrixType         A;
+    SparseSpaceType::VectorType                   Dx;
+    SparseSpaceType::VectorType                   b;
 
     tester.mScheme.InitializeSolutionStep(tester.GetModelPart(), A, Dx, b); // This is needed to set the time factors
 

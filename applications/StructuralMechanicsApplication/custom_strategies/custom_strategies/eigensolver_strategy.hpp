@@ -667,8 +667,9 @@ private:
         const std::size_t num_modes = rEigenvectors.size1();
         const std::size_t num_dofs  = rEigenvectors.size2();
 
-        DenseVectorType phi(num_dofs);
-        DenseVectorType tmp(num_dofs);
+        // System-space vectors so TSparseSpace::Mult works on both backends
+        SparseVectorType phi(num_dofs);
+        SparseVectorType tmp(num_dofs);
 
         for (std::size_t j = 0; j < num_modes; ++j) {
              // copy row j -> phi
@@ -726,9 +727,11 @@ private:
             ScalingFactors[k] = (dof_iterator->IsFixed()) ? 0.0 : 1.0;
         });
 
-        double* AValues = std::begin(rA.value_data());
-        std::size_t* ARowIndices = std::begin(rA.index1_data());
-        std::size_t* AColIndices = std::begin(rA.index2_data());
+        // The CSR array accessors work for both the uBLAS and the Eigen backend
+        // matrix (the index value type follows the matrix type)
+        auto* AValues = rA.value_data().begin();
+        auto* ARowIndices = rA.index1_data().begin();
+        auto* AColIndices = rA.index2_data().begin();
 
         // if there is a line of all zeros, put one on the diagonal
         // #pragma omp parallel for firstprivate(SystemSize)
@@ -825,17 +828,37 @@ private:
      */
     void ComputeModalDecomposition(const DenseMatrixType& rEigenvectors)
     {
-        const SparseMatrixType& rMassMatrix = this->GetMassMatrix();
-        SparseMatrixType m_temp = ZeroMatrix(rEigenvectors.size1(),rEigenvectors.size2());
-        boost::numeric::ublas::axpy_prod(rEigenvectors,rMassMatrix,m_temp,true);
-        Matrix modal_mass_matrix = ZeroMatrix(m_temp.size1(),m_temp.size1());
-        boost::numeric::ublas::axpy_prod(m_temp,trans(rEigenvectors),modal_mass_matrix);
+        const std::size_t n_modes = rEigenvectors.size1();
+        const std::size_t n_dofs = rEigenvectors.size2();
 
-        const SparseMatrixType& rStiffnessMatrix = this->GetStiffnessMatrix();
-        SparseMatrixType k_temp = ZeroMatrix(rEigenvectors.size1(),rEigenvectors.size2());
-        boost::numeric::ublas::axpy_prod(rEigenvectors,rStiffnessMatrix,k_temp,true);
-        Matrix modal_stiffness_matrix = ZeroMatrix(k_temp.size1(),k_temp.size1());
-        boost::numeric::ublas::axpy_prod(k_temp,trans(rEigenvectors),modal_stiffness_matrix);
+        // Projection Phi * A * Phi^T computed through the space API (one sparse
+        // Mult per mode plus dense contractions), so it works on both the uBLAS
+        // and the Eigen backend system matrix. A (mass/stiffness) is symmetric,
+        // hence row_i(Phi * A) == A * phi_i.
+        const auto project = [&](SparseMatrixType& rA) -> Matrix {
+            Matrix a_by_modes(n_modes, n_dofs);
+            SparseVectorType x(n_dofs), y(n_dofs);
+            for (std::size_t i = 0; i < n_modes; ++i) {
+                for (std::size_t k = 0; k < n_dofs; ++k)
+                    x[k] = rEigenvectors(i, k);
+                TSparseSpace::Mult(rA, x, y);
+                for (std::size_t k = 0; k < n_dofs; ++k)
+                    a_by_modes(i, k) = y[k];
+            }
+            Matrix projection(n_modes, n_modes);
+            for (std::size_t i = 0; i < n_modes; ++i) {
+                for (std::size_t j = 0; j < n_modes; ++j) {
+                    double sum = 0.0;
+                    for (std::size_t k = 0; k < n_dofs; ++k)
+                        sum += a_by_modes(i, k) * rEigenvectors(j, k);
+                    projection(i, j) = sum;
+                }
+            }
+            return projection;
+        };
+
+        const Matrix modal_mass_matrix = project(this->GetMassMatrix());
+        const Matrix modal_stiffness_matrix = project(this->GetStiffnessMatrix());
 
         ModelPart& rModelPart = BaseType::GetModelPart();
         rModelPart.GetProcessInfo()[MODAL_MASS_MATRIX] = modal_mass_matrix;

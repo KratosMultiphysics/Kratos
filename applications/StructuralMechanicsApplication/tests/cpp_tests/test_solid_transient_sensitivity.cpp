@@ -27,7 +27,7 @@
 #include "solving_strategies/schemes/residual_based_bossak_displacement_scheme.hpp"
 #include "solving_strategies/strategies/residualbased_linear_strategy.h"
 #include "solving_strategies/strategies/residualbased_newton_raphson_strategy.h"
-#include "spaces/ublas_space.h"
+#include "spaces/default_spaces.h"
 #include "structural_mechanics_fast_suite.h"
 #include "utilities/sensitivity_builder.h"
 
@@ -169,8 +169,8 @@ namespace // cpp internals
 {
 namespace test_solid_transient_sensitivity_cpp
 { // unity build unity guard
-typedef TUblasSparseSpace<double> SparseSpaceType;
-typedef TUblasDenseSpace<double> LocalSpaceType;
+typedef TDefaultSparseSpace<double> SparseSpaceType;
+typedef TDefaultDenseSpace<double> LocalSpaceType;
 typedef LinearSolver<SparseSpaceType, LocalSpaceType> LinearSolverType;
 typedef Scheme<SparseSpaceType, LocalSpaceType> SchemeType;
 typedef ConvergenceCriteria<SparseSpaceType, LocalSpaceType> ConvergenceCriteriaType;

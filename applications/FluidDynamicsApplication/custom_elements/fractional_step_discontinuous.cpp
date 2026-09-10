@@ -273,7 +273,13 @@ void FractionalStepDiscontinuous<TDim>::CalculateLocalPressureSystem(MatrixType&
         array_1d<double, 4 > Ncontinuous;
         GeometryUtils::CalculateGeometryData(this->GetGeometry(), DN_DXcontinuous, Ncontinuous, Volume_tot);
 
-        array_1d<double, TDim> grad_d = prod(trans(DN_DXcontinuous), distances);
+        // The full gradient has 3 components (DN_DX is 4x3); only the first
+        // TDim enter the projection below.
+        const array_1d<double, 3> grad_d_full = prod(trans(DN_DXcontinuous), distances);
+        array_1d<double, TDim> grad_d;
+        for (unsigned int i = 0; i < TDim; i++) {
+            grad_d[i] = grad_d_full[i];
+        }
         grad_d /= norm_2(grad_d);
 
         double vn = grad_d[0] * vel[0];
@@ -662,7 +668,12 @@ void FractionalStepDiscontinuous<TDim>::CalculateLocalSystem(MatrixType& rLeftHa
 
 
 
-            array_1d<double, TDim> normal = prod(trans(DN_DXcontinuous), distances);
+            // the geometry data is computed with the (tetrahedra) 3D sizes;
+            // only the first TDim components are used below
+            const array_1d<double, 3> normal_full = prod(trans(DN_DXcontinuous), distances);
+            array_1d<double, TDim> normal;
+            for (unsigned int d = 0; d < TDim; ++d)
+                normal[d] = normal_full[d];
             normal /= norm_2(normal);
             //KRATOS_WATCH(normal)
             //compute the block diagonal parallel projection
@@ -673,7 +684,14 @@ void FractionalStepDiscontinuous<TDim>::CalculateLocalSystem(MatrixType& rLeftHa
             noalias(block) -= nn_matrix;
             //KRATOS_WATCH(block)
 
-            array_1d<double, 3 > tangent_vel_dirichlet = prod(block, embedded_vel);
+            const auto tangential_projection = [&block](const array_1d<double, 3>& rVector) {
+                array_1d<double, 3> result = ZeroVector(3);
+                for (unsigned int d = 0; d < TDim; ++d)
+                    for (unsigned int e = 0; e < TDim; ++e)
+                        result[d] += block(d, e) * rVector[e];
+                return result;
+            };
+            array_1d<double, 3 > tangent_vel_dirichlet = tangential_projection(embedded_vel);
             //          KRATOS_WATCH(tangent_vel_dirichlet)
 
             //add tangential component
@@ -687,7 +705,7 @@ void FractionalStepDiscontinuous<TDim>::CalculateLocalSystem(MatrixType& rLeftHa
                 {
                     unsigned int base_i = i * (TDim);
 
-                    const array_1d<double, 3 > tangent_vi = prod(block, this->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY));
+                    const array_1d<double, 3 > tangent_vi = tangential_projection(this->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY));
 
                     const double di = std::max(min_dist_in_viscous_term, fabs(distances[i])); //avoid divisions by zero
 
@@ -695,7 +713,7 @@ void FractionalStepDiscontinuous<TDim>::CalculateLocalSystem(MatrixType& rLeftHa
 
                     for (unsigned int j = i + 1; j < TDim + 1; j++)
                     {
-                        array_1d<double, 3 > tangent_vj = prod(block, this->GetGeometry()[j].FastGetSolutionStepValue(VELOCITY));
+                        array_1d<double, 3 > tangent_vj = tangential_projection(this->GetGeometry()[j].FastGetSolutionStepValue(VELOCITY));
 
                         const double dj = std::max(min_dist_in_viscous_term, fabs(distances[j])); //avoid divisions by zero
                         const double coeff_j = Viscosity / dj;

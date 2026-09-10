@@ -548,7 +548,7 @@ private:
         Matrix constitutive_matrix(StrainSize, StrainSize);
         for (IndexType i = 0; i < StrainSize; ++i) {
             for (IndexType j = 0; j < StrainSize; ++j) {
-                constitutive_matrix(i, j) = rCLConstitutiveMatrix(r_permutation_vector[i], r_permutation_vector[j]);
+                constitutive_matrix(i, j) = rCLConstitutiveMatrix(static_cast<IndexType>(r_permutation_vector[i]), static_cast<IndexType>(r_permutation_vector[j]));
             }
         }
         return constitutive_matrix;

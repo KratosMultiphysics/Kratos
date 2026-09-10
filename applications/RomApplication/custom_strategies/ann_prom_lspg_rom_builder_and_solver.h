@@ -213,7 +213,7 @@ public:
 
         BuildAndApplyDirichletConditions(pScheme, rModelPart, rA, rb, rDx);
 
-        TSystemMatrixType r_a_comp = ZeroMatrix(0,0);
+        TSystemMatrixType r_a_comp(ZeroMatrix(0,0));
         TSystemVectorType r_b_comp = ZeroVector(0);
         if (BaseType::mHromSimulation) {
             BuildWithComplementaryMeshAndApplyDirichletConditions(pScheme, rModelPart, r_a_comp, r_b_comp, rDx);
@@ -315,10 +315,20 @@ public:
     void ZeroOutUnselectedComplementaryMeshRows(
         TSystemMatrixType& rA)
     {
+        // The CSR storage index type differs between the backends (std::size_t
+        // for uBLAS, signed for the Eigen wrapper); name it from the matrix's
+        // own array typedefs instead of hardcoding one or the other.
+        using ValueType = typename TSystemMatrixType::value_array_type::value_type;
+        using IndexType = typename TSystemMatrixType::index_array_type::value_type;
+        ValueType *values_vector = rA.value_data().begin();
+        IndexType *index1_vector = rA.index1_data().begin();
+
         // Use parallel utilities to zero out the rows of the system matrix that are not part of the selected DOFs.
         IndexPartition<std::size_t>(rA.size1()).for_each([&](std::size_t i) {
             if (mSelectedDofs.find(i) == mSelectedDofs.end()) {
-                row(rA, i) = zero_vector<double>(rA.size2());
+                for (std::size_t k = index1_vector[i]; k < static_cast<std::size_t>(index1_vector[i + 1]); k++) {
+                    values_vector[k] = 0.0;
+                }
             }
         });
     }
@@ -366,8 +376,8 @@ public:
 
         auto a_wrapper = UblasWrapper<double>(rA);
         const auto& eigen_rA = a_wrapper.matrix();
-        Eigen::Map<EigenDynamicVector> eigen_rb(rb.data().begin(), rb.size());
-        Eigen::Map<EigenDynamicMatrix> eigen_mPhiGlobal(BaseType::mPhiGlobal.data().begin(), BaseType::mPhiGlobal.size1(), BaseType::mPhiGlobal.size2());
+        Eigen::Map<EigenDynamicVector> eigen_rb(&rb.data()[0], rb.size());
+        Eigen::Map<EigenDynamicMatrix> eigen_mPhiGlobal(&BaseType::mPhiGlobal.data()[0], BaseType::mPhiGlobal.size1(), BaseType::mPhiGlobal.size2());
 
         EigenDynamicMatrix eigen_rA_times_mPhiGlobal = eigen_rA * eigen_mPhiGlobal; //TODO: Make it in parallel.
 

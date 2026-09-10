@@ -36,7 +36,13 @@ public:
 
     typedef Matrix MatrixType;
 
+    #ifdef KRATOS_USE_EIGEN_BACKEND
+    // No uBLAS matrix_row over the Eigen-backed Matrix: the direction
+    // accessors return a materialized 3-component vector instead.
+    typedef Vector3Type ConstMatrixRowType;
+#else
     typedef matrix_row< const MatrixType > ConstMatrixRowType;
+#endif
 
 private:
 

@@ -88,18 +88,18 @@ void Create2DBeamModel_and_CheckPK2Stress(const std::string & TimoshenkoBeamElem
     constexpr auto expected_stress = induced_strain * youngs_modulus;
     constexpr auto tolerance = 1.0e-5;
     Vector expected_stress_vector(3);
-    expected_stress_vector <<= expected_stress, rExpectedBendingMoment[0], rExpectedShearStress[0];
+    expected_stress_vector[0] = expected_stress; expected_stress_vector[1] = rExpectedBendingMoment[0]; expected_stress_vector[2] = rExpectedShearStress[0];
     KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(expected_stress_vector, stress_vectors[0], tolerance);
-    expected_stress_vector <<= expected_stress, rExpectedBendingMoment[1], rExpectedShearStress[1];
+    expected_stress_vector[0] = expected_stress; expected_stress_vector[1] = rExpectedBendingMoment[1]; expected_stress_vector[2] = rExpectedShearStress[1];
     KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(expected_stress_vector, stress_vectors[1], tolerance);
     if (stress_vectors.size()>2) {
-        expected_stress_vector <<= expected_stress, rExpectedBendingMoment[2], rExpectedShearStress[2];
+        expected_stress_vector[0] = expected_stress; expected_stress_vector[1] = rExpectedBendingMoment[2]; expected_stress_vector[2] = rExpectedShearStress[2];
         KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(expected_stress_vector, stress_vectors[2], tolerance);
     }
 
-    expected_stress_vector <<= expected_stress, rExpectedBendingMoment[0], rExpectedShearStress[0];
+    expected_stress_vector[0] = expected_stress; expected_stress_vector[1] = rExpectedBendingMoment[0]; expected_stress_vector[2] = rExpectedShearStress[0];
     Vector pre_stress(3);
-    pre_stress <<= 1.0e5, 1.0e4, 1.0e3;
+    pre_stress[0] = 1.0e5; pre_stress[1] = 1.0e4; pre_stress[2] = 1.0e3;
     p_element->GetProperties().SetValue(BEAM_PRESTRESS_PK2, pre_stress);
     p_element->CalculateOnIntegrationPoints(PK2_STRESS_VECTOR, stress_vectors, r_process_info);
     expected_stress_vector += pre_stress;
@@ -138,13 +138,13 @@ void Create2DPlaneStrainBeamModel_and_CheckPK2Stress(const std::string& Timoshen
     constexpr auto transverse_bending_displacement = induced_rotation * directional_length / 2.0;
     constexpr auto shear_displacement = 0.03;
     Vector end_displacement(3);
-    end_displacement <<= induced_strain * directional_length, transverse_bending_displacement + shear_displacement, 0.0;
+    end_displacement[0] = induced_strain * directional_length; end_displacement[1] = transverse_bending_displacement + shear_displacement; end_displacement[2] = 0.0;
     p_element->GetGeometry()[1].FastGetSolutionStepValue(DISPLACEMENT) += end_displacement;
     p_element->GetGeometry()[1].FastGetSolutionStepValue(ROTATION_Z) += induced_rotation;
     constexpr auto mid_induced_rotation = induced_rotation / 2.0;
     constexpr auto mid_transverse_bending_displacement = mid_induced_rotation * directional_length / 4.0;
     Vector mid_displacement(3);
-    mid_displacement <<= induced_strain * directional_length / 2.0, mid_transverse_bending_displacement + shear_displacement / 2.0, 0.0;
+    mid_displacement[0] = induced_strain * directional_length / 2.0; mid_displacement[1] = mid_transverse_bending_displacement + shear_displacement / 2.0; mid_displacement[2] = 0.0;
     p_element->GetGeometry()[2].FastGetSolutionStepValue(DISPLACEMENT) += mid_displacement;
     p_element->GetGeometry()[2].FastGetSolutionStepValue(ROTATION_Z) += mid_induced_rotation;
 
@@ -157,12 +157,12 @@ void Create2DPlaneStrainBeamModel_and_CheckPK2Stress(const std::string& Timoshen
     constexpr auto expected_distributed_shear_force = -(youngs_modulus * effective_shear_thickness / (2.0 * (1.0 + poissons_ratio) )) * (shear_displacement / directional_length);
     constexpr auto tolerance = 1.0e-5;
     Vector expected_stress_vector(5);
-    expected_stress_vector <<= expected_distributed_normal_force, expected_distributed_moment, expected_distributed_shear_force, poissons_ratio*expected_distributed_normal_force, poissons_ratio*expected_distributed_moment;
+    expected_stress_vector[0] = expected_distributed_normal_force; expected_stress_vector[1] = expected_distributed_moment; expected_stress_vector[2] = expected_distributed_shear_force; expected_stress_vector[3] = poissons_ratio*expected_distributed_normal_force; expected_stress_vector[4] = poissons_ratio*expected_distributed_moment;
     KRATOS_EXPECT_VECTOR_NEAR(expected_stress_vector, stress_vectors[0], tolerance);
     KRATOS_EXPECT_VECTOR_NEAR(expected_stress_vector, stress_vectors[1], tolerance);
 
     Vector pre_stress(5);
-    pre_stress <<= 1.0e5, 1.0e4, 1.0e3, 2.e4, 2.e3;
+    pre_stress[0] = 1.0e5; pre_stress[1] = 1.0e4; pre_stress[2] = 1.0e3; pre_stress[3] = 2.e4; pre_stress[4] = 2.e3;
     p_element->GetProperties().SetValue(BEAM_PRESTRESS_PK2, pre_stress);
     p_element->CalculateOnIntegrationPoints(PK2_STRESS_VECTOR, stress_vectors, r_process_info);
     expected_stress_vector += pre_stress;
