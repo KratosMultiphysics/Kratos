@@ -1,6 +1,8 @@
 import csv
+import math
 import os
 
+import KratosGeoUnittest
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import test_helper
 
@@ -8,14 +10,17 @@ if test_helper.want_test_plots():
     import KratosMultiphysics.GeoMechanicsApplication.geo_plot_utilities as plot_utils
 
 from dataclasses import dataclass
+from typing import List, Union
 
 from KratosMultiphysics.GeoMechanicsApplication.gid_output_file_reader import (
     GiDOutputFileReader,
 )
-from KratosMultiphysics.GeoMechanicsApplication.unit_conversions import fraction_to_percentage
+from KratosMultiphysics.GeoMechanicsApplication.unit_conversions import (
+    fraction_to_percentage,
+)
 
 
-class KratosGeoMechanicsMuskatTests(KratosUnittest.TestCase):
+class KratosGeoMechanicsMuskatTests(KratosGeoUnittest.TestCase):
     """
     A test suite representing (semi)-Muskat test cases. Instead of a seepage boundary, a fixed head is used on the
     right boundary. For more information on the test case, see the README.md file in the corresponding test folder.
@@ -36,6 +41,7 @@ class KratosGeoMechanicsMuskatTests(KratosUnittest.TestCase):
                 expected_results_for_variable, file_path, output_data, simulation
             )
             self._create_phreatic_line_plot(file_path, output_data, simulation)
+            self._create_fluid_flux_plot(file_path, output_data, simulation)
 
         for variable_name, expected_results in expected_results_for_variable.items():
             actual_results = GiDOutputFileReader.nodal_values_at_time(
@@ -44,17 +50,13 @@ class KratosGeoMechanicsMuskatTests(KratosUnittest.TestCase):
                 output_data,
                 [result.node_id for result in expected_results],
             )
-            for idx, expected_result in enumerate(expected_results):
-                # A relative band rather than `places=6`: the expected values are quoted to
-                # 6 significant digits and are read back from a GiD output file that carries
-                # no more than that, so an absolute 5e-7 tolerance on a value of order 1e4 is
-                # an exact-printed-value comparison that any change of floating point
-                # summation order flips.
-                self.assertAlmostEqual(
-                    expected_result.value,
-                    actual_results[idx],
-                    delta=max(abs(expected_result.value) * 1.0e-5, 1.0e-6),
-                )
+            self.assert_nodal_values_at_time(
+                output_data,
+                variable_name,
+                [result.node_id for result in expected_results],
+                [expected.value for expected in expected_results],
+                1.0,
+            )
 
     def _create_effective_saturation_plot(
         self, expected_results_for_variable, file_path, output_data, simulation
@@ -128,6 +130,60 @@ class KratosGeoMechanicsMuskatTests(KratosUnittest.TestCase):
             yaxis_inverted=False,
         )
 
+    def _create_fluid_flux_plot(self, file_path, output_data, simulation):
+        data_series_collection = []
+        y_coord_by_id_for_right_boundary_nodes = {}
+        for node in simulation.model.GetModelPart(
+            "PorousDomain.porous_computational_model_part"
+        ).Nodes:
+            if abs(node.X - 1.52) < 0.01:
+                y_coord_by_id_for_right_boundary_nodes[node.Id] = node.Y
+        fluxes = GiDOutputFileReader.nodal_values_at_time(
+            "FLUID_FLUX_VECTOR",
+            1.0,
+            output_data,
+            y_coord_by_id_for_right_boundary_nodes.keys(),
+        )
+        flux_magnitude = [
+            # Rounding to two decimals, since reference data has the same precision
+            round(math.sqrt(flux[0] ** 2 + flux[1] ** 2 + flux[2] ** 2) * 86400, 3)
+            for flux in fluxes
+        ]
+        sorted_depth, sorted_data = zip(
+            *sorted(
+                zip(
+                    y_coord_by_id_for_right_boundary_nodes.values(),
+                    flux_magnitude,
+                )
+            )
+        )
+        data = zip(sorted_data, sorted_depth)
+        data_series_collection.append(
+            plot_utils.DataSeries(data, label="Kratos", line_style="-", marker="")
+        )
+
+        data_points = []
+        with open(
+            os.path.join(file_path, "expected_flux_at_x_1_52.csv"),
+            newline="",
+        ) as csv_file:
+            reader = csv.DictReader(csv_file, skipinitialspace=True)
+            data_points = [(float(row["Flux"]), float(row["Y"])) for row in reader]
+        data_series_collection.append(
+            plot_utils.DataSeries(
+                data_points,
+                label="Commercial FE package",
+            )
+        )
+
+        plot_utils._make_plot(
+            data_series_collection,
+            os.path.join(file_path, "fluxes_for_x_1_52.svg"),
+            xlabel="|Flux| [m/d]",
+            ylabel="Y [m]",
+            yaxis_inverted=False,
+        )
+
     def _create_phreatic_line_plot(self, file_path, output_data, simulation):
         import matplotlib.pyplot as plt
         from matplotlib.tri import Triangulation
@@ -147,7 +203,7 @@ class KratosGeoMechanicsMuskatTests(KratosUnittest.TestCase):
         )
 
         # Although this triangulation (Delaunay triangulation) is not identical to
-        # the mesh used in the simulation, it was decided, it is sufficient for 
+        # the mesh used in the simulation, it was decided, it is sufficient for
         # visualizing the p = 0 line.
         tri = Triangulation(xs, ys)
         plt.figure(figsize=(10, 8))
@@ -192,26 +248,62 @@ class KratosGeoMechanicsMuskatTests(KratosUnittest.TestCase):
             yaxis_inverted=False,
         )
 
+    @dataclass
+    class ExpectedResult:
+        node_id: int
+        value: Union[float, List[float]]
+
     def test_muskat_van_genuchten_hydrostatic(self):
-        @dataclass
-        class ExpectedResult:
-            node_id: int
-            value: float
 
         expected_results_for_variables = {
             "WATER_PRESSURE": [
-                ExpectedResult(node_id=198, value=8325.15),
-                ExpectedResult(node_id=244, value=-3031.34),
-                ExpectedResult(node_id=183, value=-20243.4),
+                self.ExpectedResult(node_id=198, value=7939.92),
+                self.ExpectedResult(node_id=244, value=-2753.0),
+                self.ExpectedResult(node_id=183, value=-20549.3),
             ],
             "EFFECTIVE_SATURATION": [
-                ExpectedResult(node_id=273, value=1.0),
-                ExpectedResult(node_id=890, value=0.462247),
-                ExpectedResult(node_id=1440, value=0.924914),
+                self.ExpectedResult(node_id=273, value=1.0),
+                self.ExpectedResult(node_id=890, value=0.485245),
+                self.ExpectedResult(node_id=1440, value=0.991294),
+            ],
+            "FLUID_FLUX_VECTOR": [
+                self.ExpectedResult(node_id=273, value=[8.1665e-06, -1.08412e-06, 0.0]),
+                self.ExpectedResult(node_id=890, value=[4.6101e-09, 4.7292e-11, 0.0]),
+                self.ExpectedResult(
+                    node_id=1440, value=[2.37856e-06, -1.57026e-06, 0.0]
+                ),
             ],
         }
         self._assert_muskat_results(
             "Muskat", "van_genuchten_hydrostatic", expected_results_for_variables
+        )
+
+    def test_muskat_saturated_hydrostatic(self):
+        expected_results_for_variables = {
+            "WATER_PRESSURE": [
+                self.ExpectedResult(node_id=198, value=14346.4),
+                self.ExpectedResult(node_id=244, value=-37.4452),
+                self.ExpectedResult(node_id=183, value=-20335.1),
+            ],
+            "EFFECTIVE_SATURATION": [
+                self.ExpectedResult(node_id=273, value=1.0),
+                self.ExpectedResult(node_id=890, value=1.0),
+                self.ExpectedResult(node_id=1440, value=1.0),
+            ],
+            "FLUID_FLUX_VECTOR": [
+                self.ExpectedResult(
+                    node_id=273, value=[6.00133e-06, -1.34793e-11, 0.0]
+                ),
+                self.ExpectedResult(
+                    node_id=890, value=[6.00131e-06, -8.38038e-12, 0.0]
+                ),
+                self.ExpectedResult(
+                    node_id=1440, value=[6.00133e-06, -1.35382e-11, 0.0]
+                ),
+            ],
+        }
+        self._assert_muskat_results(
+            "Muskat", "saturated_hydrostatic", expected_results_for_variables
         )
 
 
