@@ -12,7 +12,7 @@ from iga_test_factory import SinglePatchTest as SinglePatchTest
 from truss_element_tests import TrussElementTests as TTrussElementTests
 # Beam Elements tests - python based
 from test_beam_IGA_element import BeamIGAElementTests as TBeamIGAElementTests
-from beam_element_test import TestBeam4pElement
+from isogeometric_non_linear_bernoulli_beam_element_test import TestBeam4pElement
 # Structural Elements test - python based
 from test_solid_IGA_element import SolidIGAElementTests as TSolidIGAElementTests
 # Sbm Structural Elements test

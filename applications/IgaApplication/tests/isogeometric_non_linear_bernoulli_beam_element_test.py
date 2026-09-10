@@ -6,17 +6,16 @@ import KratosMultiphysics.python_linear_solver_factory as linear_solver_factory
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import numpy as np
 
-
 class TestBeam4pElement(KratosUnittest.TestCase):
 
     def analytical_solution_bending(x, F, E, I, L):
         return F / (6 * E * I) * (3 * L * x**2 - x**3)
-    
-    def analytical_solution_torsion(x,M,E, It, nu = 0):
+
+    def analytical_solution_torsion(x, M, E, It, nu = 0):
         G = 1 / (2 * (1 + nu)) * E
         return M / (G * It) * x
-    
-    def analytical_solution_normalforce(x,F,E,A):
+
+    def analytical_solution_normalforce(x, F, E, A):
         return (F / (E * A)) * x
 
     def solve_linear_examples(last_node_force, last_node_moment):
@@ -29,7 +28,6 @@ class TestBeam4pElement(KratosUnittest.TestCase):
         model_part.AddNodalSolutionStepVariable(KM.REACTION_MOMENT)
         model_part.AddNodalSolutionStepVariable(SMA.POINT_LOAD)
 
-        # create property for truss elements
         w = 2.5
         h = 5
         beam_properties = model_part.GetProperties()[0]
@@ -58,7 +56,6 @@ class TestBeam4pElement(KratosUnittest.TestCase):
 
         curve = KM.NurbsCurveGeometry3D(nodes, 4, knots)
 
-        # create quadrature_point_geometries
         quadrature_point_geometries = KM.GeometriesVector()
         curve.CreateQuadraturePointGeometries(quadrature_point_geometries,3)
 
@@ -67,10 +64,8 @@ class TestBeam4pElement(KratosUnittest.TestCase):
             model_part.CreateNewElement('IsogeometricBeamElement', element_id, quadrature_point_geometries[i], beam_properties)
             element_id += 1
 
-        #Compute T0 and N0 vectors automatically using parent curve
         IGA.ComputeBeamVectorsProcess(model_part, curve).ExecuteInitialize()
 
-        # add dofs
         KM.VariableUtils().AddDof(KM.DISPLACEMENT_X, KM.REACTION_X, model_part)
         KM.VariableUtils().AddDof(KM.DISPLACEMENT_Y, KM.REACTION_Y, model_part)
         KM.VariableUtils().AddDof(KM.DISPLACEMENT_Z, KM.REACTION_Z, model_part)
@@ -78,7 +73,6 @@ class TestBeam4pElement(KratosUnittest.TestCase):
         KM.VariableUtils().AddDof(KM.ROTATION_Y, KM.REACTION_MOMENT_Y, model_part)
         KM.VariableUtils().AddDof(KM.ROTATION_Z, KM.REACTION_MOMENT_Z, model_part)
 
-        # apply dirichlet conditions
         nodes[0].Fix(KM.DISPLACEMENT_X)
         nodes[0].Fix(KM.DISPLACEMENT_Y)
         nodes[0].Fix(KM.DISPLACEMENT_Z)
@@ -86,14 +80,12 @@ class TestBeam4pElement(KratosUnittest.TestCase):
         nodes[1].Fix(KM.DISPLACEMENT_Y)
         nodes[1].Fix(KM.DISPLACEMENT_Z)
 
-        # apply neumann conditions
         prop = model_part.GetProperties()[2]
         force_condition= model_part.CreateNewCondition('PointLoadCondition3D1N', 1, [nodes[len(controllpoints)-1].Id], prop)
         force_condition.SetValue(SMA.POINT_LOAD, last_node_force)
         moment_condition = model_part.CreateNewCondition('PointMomentCondition3D1N', 2, [nodes[len(controllpoints)-1].Id], prop)
         moment_condition.SetValue(SMA.POINT_MOMENT, last_node_moment )
 
-        # setup solver
         model_part.SetBufferSize(1)
 
         time_scheme = KM.ResidualBasedIncrementalUpdateStaticScheme()
@@ -126,7 +118,7 @@ class TestBeam4pElement(KratosUnittest.TestCase):
         solver.SetEchoLevel(0)
         model_part.CloneTimeStep(1)
         solver.Solve()
-        
+
         return nodes, curve
 
     def solve_nonlinear_example1():
@@ -170,7 +162,6 @@ class TestBeam4pElement(KratosUnittest.TestCase):
 
         curve = KM.NurbsCurveGeometry3D(nodes, 4, knots)
 
-        # create quadrature_point_geometries
         quadrature_point_geometries = KM.GeometriesVector()
         curve.CreateQuadraturePointGeometries(quadrature_point_geometries,3)
 
@@ -179,10 +170,8 @@ class TestBeam4pElement(KratosUnittest.TestCase):
             model_part.CreateNewElement('IsogeometricBeamElement', element_id, quadrature_point_geometries[i], beam_properties)
             element_id += 1
 
-        #Compute T0 and N0 vectors automatically using parent curve
         IGA.ComputeBeamVectorsProcess(model_part, curve).ExecuteInitialize()
 
-        # add dofs
         KM.VariableUtils().AddDof(KM.DISPLACEMENT_X, KM.REACTION_X, model_part)
         KM.VariableUtils().AddDof(KM.DISPLACEMENT_Y, KM.REACTION_Y, model_part)
         KM.VariableUtils().AddDof(KM.DISPLACEMENT_Z, KM.REACTION_Z, model_part)
@@ -190,7 +179,6 @@ class TestBeam4pElement(KratosUnittest.TestCase):
         KM.VariableUtils().AddDof(KM.ROTATION_Y, KM.REACTION_MOMENT_Y, model_part)
         KM.VariableUtils().AddDof(KM.ROTATION_Z, KM.REACTION_MOMENT_Z, model_part)
 
-        # apply dirichlet conditions
         nodes[0].Fix(KM.DISPLACEMENT_X)
         nodes[0].Fix(KM.DISPLACEMENT_Y)
         nodes[0].Fix(KM.DISPLACEMENT_Z)
@@ -200,13 +188,10 @@ class TestBeam4pElement(KratosUnittest.TestCase):
         nodes[1].Fix(KM.DISPLACEMENT_Z)
 
         prop = model_part.GetProperties()[2]
-        #force_condition= model_part.CreateNewCondition('PointLoadCondition3D1N', 1, [nodes[len(controllpoints)-1].Id], prop)
-        #force_condition.SetValue(SMA.POINT_LOAD,  KM.Array3([0,  0, 1]))
 
         force_condition= model_part.CreateNewCondition('PointLoadCondition3D1N', 1, [nodes[2].Id], prop)
         force_condition.SetValue(SMA.POINT_LOAD,  KM.Array3([0,  0, load]))
 
-        # setup solver
         model_part.SetBufferSize(1)
         time_scheme = KM.ResidualBasedIncrementalUpdateStaticScheme()
         linear_solver = linear_solver_factory.ConstructSolver(
@@ -237,9 +222,9 @@ class TestBeam4pElement(KratosUnittest.TestCase):
         solver.SetEchoLevel(1)
         model_part.CloneTimeStep(1)
         solver.Solve()
-        
+
         return last_node
-    
+
     def solve_nonlinear_example2():
         k  = 0.6
         load = k * 25000
@@ -280,7 +265,6 @@ class TestBeam4pElement(KratosUnittest.TestCase):
 
         curve = KM.NurbsCurveGeometry3D(nodes, 4, knots)
 
-        # create quadrature_point_geometries
         quadrature_point_geometries = KM.GeometriesVector()
         curve.CreateQuadraturePointGeometries(quadrature_point_geometries,3)
 
@@ -289,13 +273,8 @@ class TestBeam4pElement(KratosUnittest.TestCase):
             model_part.CreateNewElement('IsogeometricBeamElement', element_id, quadrature_point_geometries[i], beam_properties)
             element_id += 1
 
-        #Compute T0 and N0 vectors automatically using parent curve
         IGA.ComputeBeamVectorsProcess(model_part, curve).ExecuteInitialize()
-        #beam_properties.SetValue(IGA.T_0,  KM.Array3([-1,  0, 0])) #[-0.95281728851577396, 0.020230986128019116, 0.30286947998393016]
-        #beam_properties.SetValue(IGA.N_0, KM.Array3([0,  0, -1])) #[-0.30286947998393016, -0, -0.95281728851577396]
 
-        
-        # add dofs
         KM.VariableUtils().AddDof(KM.DISPLACEMENT_X, KM.REACTION_X, model_part)
         KM.VariableUtils().AddDof(KM.DISPLACEMENT_Y, KM.REACTION_Y, model_part)
         KM.VariableUtils().AddDof(KM.DISPLACEMENT_Z, KM.REACTION_Z, model_part)
@@ -303,7 +282,6 @@ class TestBeam4pElement(KratosUnittest.TestCase):
         KM.VariableUtils().AddDof(KM.ROTATION_Y, KM.REACTION_MOMENT_Y, model_part)
         KM.VariableUtils().AddDof(KM.ROTATION_Z, KM.REACTION_MOMENT_Z, model_part)
 
-        # apply dirichlet conditions
         nodes[0].Fix(KM.DISPLACEMENT_X)
         nodes[0].Fix(KM.DISPLACEMENT_Y)
         nodes[0].Fix(KM.DISPLACEMENT_Z)
@@ -316,7 +294,6 @@ class TestBeam4pElement(KratosUnittest.TestCase):
         force_condition= model_part.CreateNewCondition('PointLoadCondition3D1N', 1, [nodes[2].Id], prop)
         force_condition.SetValue(SMA.POINT_LOAD,  KM.Array3([0,  0, -load]))
 
-        # setup solver
         model_part.SetBufferSize(1)
 
         time_scheme = KM.ResidualBasedIncrementalUpdateStaticScheme()
@@ -349,9 +326,9 @@ class TestBeam4pElement(KratosUnittest.TestCase):
         solver.SetEchoLevel(1)
         model_part.CloneTimeStep(1)
         solver.Solve()
-        
+
         return last_node
-    
+
     def testClampedFXLinear(self):
         last_node_force = KM.Array3([1,  0, 0])
         last_node_moment = KM.Array3([0,  0, 0])
@@ -360,7 +337,7 @@ class TestBeam4pElement(KratosUnittest.TestCase):
         self.assertAlmostEqual(nodes[0].X, 0.0               )
         self.assertAlmostEqual(nodes[0].Y, 0.0               )
         self.assertAlmostEqual(nodes[0].Z, 0.0               )
-        
+
         self.assertAlmostEqual(np.array(nodes[4].GetSolutionStepValue(KM.DISPLACEMENT))[0], TestBeam4pElement.analytical_solution_normalforce(nodes[4].X, 1, 70000, 2.5*5))
         self.assertAlmostEqual(np.array(nodes[4].GetSolutionStepValue(KM.DISPLACEMENT))[1], 0.0               )
         self.assertAlmostEqual(np.array(nodes[4].GetSolutionStepValue(KM.DISPLACEMENT))[2], 0.0               )
@@ -399,7 +376,6 @@ class TestBeam4pElement(KratosUnittest.TestCase):
         self.assertAlmostEqual(np.array(nodes[4].GetSolutionStepValue(KM.DISPLACEMENT))[1], 0.0               )
         self.assertAlmostEqual(np.array(nodes[4].GetSolutionStepValue(KM.DISPLACEMENT))[2], TestBeam4pElement.analytical_solution_bending(nodes[4].X,-1, 70000,2.5**3*5/12,4))
 
-
     def testClampedMXLinear(self):
         last_node_force = KM.Array3([0,  0, 0])
         last_node_moment = KM.Array3([1,  0, 0])
@@ -413,14 +389,309 @@ class TestBeam4pElement(KratosUnittest.TestCase):
         self.assertAlmostEqual(np.array(nodes[4].GetSolutionStepValue(KM.ROTATION))[1], 0.0               )
         self.assertAlmostEqual(np.array(nodes[4].GetSolutionStepValue(KM.ROTATION))[2], 0.0               )
 
-    # def testClampedFzNonlinear(self):
-    #     last_node= TestBeam4pElement.solve_nonlinear_example2()
+E_MOD = 70000.0
+NU = 0.0
+WIDTH = 2.5
+HEIGHT = 5.0
+LENGTH = 4.0
+I_N_ = WIDTH * HEIGHT ** 3 / 12.0
+I_V_ = HEIGHT * WIDTH ** 3 / 12.0
+I_T_ = WIDTH * HEIGHT ** 3 / 3.0
+G_MOD = E_MOD / (2.0 * (1.0 + NU))
+DOFS = (KM.DISPLACEMENT_X, KM.DISPLACEMENT_Y, KM.DISPLACEMENT_Z, KM.ROTATION_X)
 
-    #     disp = np.array(last_node.GetSolutionStepValue(KM.DISPLACEMENT)) #[np.float64(-0.13288290406702538), np.float64(-0.29808295882441466), np.float64(-1.1774740489689273)]
-    #     print(disp)
-        
-    #     #[np.float64(0.17825970462633664), np.float64(-0.34291686617111106), np.float64(-1.3504451938802777)]
-    #     pass 
+class TestBeam4pElementNonlinear(KratosUnittest.TestCase):
+
+    @staticmethod
+    def build_cantilever(n_cp=5, degree=4):
+
+        model = KM.Model()
+        mp = model.CreateModelPart('IgaModelPart')
+        for var in (KM.DISPLACEMENT, KM.ROTATION, KM.REACTION,
+                    KM.REACTION_MOMENT, SMA.POINT_LOAD):
+            mp.AddNodalSolutionStepVariable(var)
+
+        props = mp.GetProperties()[0]
+        props.SetValue(IGA.CROSS_AREA, WIDTH * HEIGHT)
+        props.SetValue(IGA.HEIGHT, HEIGHT)
+        props.SetValue(IGA.WIDTH, WIDTH)
+        props.SetValue(IGA.I_T, I_T_)
+        props.SetValue(IGA.I_N, I_N_)
+        props.SetValue(IGA.I_V, I_V_)
+        props.SetValue(KM.YOUNG_MODULUS, E_MOD)
+        props.SetValue(KM.POISSON_RATIO, NU)
+        props.SetValue(KM.DENSITY, 7856)
+        props.SetValue(IGA.LOCAL_AXIS_ORIENTATION,
+                       np.array([[0, 0, 0, 1], [0.25, 0, 0, 1], [0.5, 0, 0, 1],
+                                 [0.75, 0, 0, 1], [1, 0, 0, 1]]))
+        props.SetValue(KM.CONSTITUTIVE_LAW, IGA.BernoulliBeamElasticConstitutiveLaw())
+
+        nodes = KM.NodesVector()
+        for i in range(n_cp):
+            nodes.append(mp.CreateNewNode(i + 1, LENGTH * i / (n_cp - 1), 0.0, 0.0))
+
+        kv = ([0.0] * degree
+              + [float(i) / (n_cp - degree) for i in range(1, n_cp - degree)]
+              + [1.0] * degree)
+        knots = KM.Vector(len(kv))
+        for i, k in enumerate(kv):
+            knots[i] = k
+
+        curve = KM.NurbsCurveGeometry3D(nodes, degree, knots)
+        curve.SetId(2)
+        mp.AddGeometry(curve)
+
+        from KratosMultiphysics.modeler_factory import KratosModelerFactory
+        modeler_parameters = KM.Parameters(r'''[{
+            "modeler_name": "RefinementModeler",
+            "Parameters": {
+                "echo_level": 0,
+                "refinements_file_name": "modeler_tests/curve_h_refinements.iga.json"
+            }
+        }]''')
+        refinement_modeler = KratosModelerFactory().ConstructListOfModelers(
+            model, modeler_parameters)[0]
+        refinement_modeler.PrepareGeometryModel()
+
+        curve = mp.GetGeometry(2)
+        vtk_curve = KM.BrepCurve(curve)
+        vtk_curve.SetId(3)
+        mp.AddGeometry(vtk_curve)
+        nodes = KM.NodesVector()
+        for node in mp.Nodes:
+            nodes.append(node)
+
+        qpg = KM.GeometriesVector()
+        curve.CreateQuadraturePointGeometries(qpg, 3)
+        for eid in range(len(qpg)):
+            mp.CreateNewElement('IsogeometricBeamElement', eid + 1, qpg[eid], props)
+
+        IGA.ComputeBeamVectorsProcess(mp, curve).ExecuteInitialize()
+
+        for dof, reaction in zip(DOFS, (KM.REACTION_X, KM.REACTION_Y,
+                                        KM.REACTION_Z, KM.REACTION_MOMENT_X)):
+            KM.VariableUtils().AddDof(dof, reaction, mp)
+
+        for var in DOFS:
+            nodes[0].Fix(var)
+        nodes[1].Fix(KM.DISPLACEMENT_Y)
+        nodes[1].Fix(KM.DISPLACEMENT_Z)
+
+        mp.SetBufferSize(1)
+        mp.CloneTimeStep(1)
+        for element in mp.Elements:
+            element.Initialize(mp.ProcessInfo)
+        return model, mp, nodes
+
+    @staticmethod
+    def free_dofs(nodes):
+        fixed = {4 * i + j
+                 for i in range(len(nodes))
+                 for j, var in enumerate(DOFS) if nodes[i].IsFixed(var)}
+        return [i for i in range(4 * len(nodes)) if i not in fixed]
+
+    @staticmethod
+    def element_dof_index(element):
+        idx = []
+        for node in element.GetGeometry():
+            base = 4 * (node.Id - 1)
+            idx += [base, base + 1, base + 2, base + 3]
+        return np.array(idx)
+
+    @classmethod
+    def apply_state(cls, nodes, u):
+        for i in range(len(nodes)):
+            nodes[i].SetSolutionStepValue(
+                KM.DISPLACEMENT, KM.Array3([u[4 * i], u[4 * i + 1], u[4 * i + 2]]))
+            nodes[i].SetSolutionStepValue(KM.ROTATION_X, float(u[4 * i + 3]))
 
 
+    @staticmethod
+    def write_vtk_output(model, mp, output_file_name="beam_deformation"):
+        from KratosMultiphysics.IgaApplication.iga_vtk_output_process import IgaVTKOutputProcess
 
+        settings = KM.Parameters(r'''{
+            "model_part_name": "IgaModelPart",
+            "output_file_name": "beam_deformation",
+            "brep_curve_ids": [3],
+            "nodal_solution_step_data_variables": ["DISPLACEMENT", "ROTATION"],
+            "output_refinement_curve": [10],
+            "output_control_type": "step",
+            "output_frequency": 1
+        }''')
+        settings["output_file_name"].SetString(output_file_name)
+
+        output_process = IgaVTKOutputProcess(model, settings)
+        output_process.ExecuteInitialize()
+        output_process.ExecuteBeforeSolutionLoop()
+        mp.ProcessInfo[KM.TIME] = 1.0
+        if output_process.IsOutputStep():
+            output_process.PrintOutput()
+
+    @classmethod
+    def assemble(cls, mp, nodes, u, build_level=0):
+
+        cls.apply_state(nodes, u)
+        mp.ProcessInfo[IGA.BUILD_LEVEL] = build_level
+        ndof = 4 * len(nodes)
+        K = np.zeros((ndof, ndof))
+        R = np.zeros(ndof)
+        for element in mp.Elements:
+            lhs, rhs = KM.Matrix(), KM.Vector()
+            element.CalculateLocalSystem(lhs, rhs, mp.ProcessInfo)
+            idx = cls.element_dof_index(element)
+            K[np.ix_(idx, idx)] += np.array(lhs, copy=True)
+            R[idx] += np.array(rhs, copy=True)
+        return K, R
+
+    @classmethod
+    def newton(cls, mp, nodes, f_ext, n_steps=8, tol=1e-10, max_it=40):
+
+        free = cls.free_dofs(nodes)
+        u = np.zeros(4 * len(nodes))
+        norms = []
+        for step in range(1, n_steps + 1):
+            f = f_ext * step / n_steps
+            scale = max(1.0, np.linalg.norm(f[free]))
+            norms = []
+            for _ in range(max_it):
+                K, R = cls.assemble(mp, nodes, u)
+                residual = R + f
+                norm = np.linalg.norm(residual[free])
+                norms.append(norm)
+                if norm < tol * scale:
+                    break
+                u[free] += np.linalg.solve(K[np.ix_(free, free)], residual[free])
+        return u, norms
+
+    def testTangentMatchesFiniteDifferences(self):
+        model, mp, nodes = TestBeam4pElementNonlinear.build_cantilever()
+        n_cp = len(nodes)
+        ndof = 4 * n_cp
+
+        u0 = np.zeros(ndof)
+        for i in range(n_cp):
+            x = nodes[i].X0
+            u0[4 * i] = 0.004 * x
+            u0[4 * i + 1] = 0.010 * x ** 2
+            u0[4 * i + 2] = -0.006 * x ** 2
+            u0[4 * i + 3] = 0.003 * x
+
+        K, _ = TestBeam4pElementNonlinear.assemble(mp, nodes, u0)
+
+        h = 1e-7
+        K_fd = np.zeros_like(K)
+        for j in range(ndof):
+            up = u0.copy(); up[j] += h
+            um = u0.copy(); um[j] -= h
+            _, rp = TestBeam4pElementNonlinear.assemble(mp, nodes, up)
+            _, rm = TestBeam4pElementNonlinear.assemble(mp, nodes, um)
+            K_fd[:, j] = -(rp - rm) / (2.0 * h)
+
+        error = np.abs(K - K_fd).max() / np.abs(K).max()
+        self.assertLess(error, 1e-5,
+                        'tangent stiffness is not the derivative of the internal '
+                        'force (relative error %.3e) -- a missing or wrong '
+                        'geometric-stiffness term' % error)
+
+    def testQuadraticNewtonConvergence(self):
+        model, mp, nodes = TestBeam4pElementNonlinear.build_cantilever()
+        n_cp = len(nodes)
+        load = 0.5 * E_MOD * I_N_ / LENGTH ** 2
+        f_ext = np.zeros(4 * n_cp)
+        f_ext[4 * (n_cp - 1) + 1] = -load
+
+        _, norms = TestBeam4pElementNonlinear.newton(mp, nodes, f_ext, n_steps=4)
+
+        self.assertGreaterEqual(len(norms), 3)
+        self.assertLess(norms[-1], 1e-6, 'Newton did not converge')
+
+        self.assertLess(norms[-1], norms[-2] ** 1.5,
+                        'convergence is not quadratic: %s'
+                        % ' '.join('%.2e' % n for n in norms))
+
+    def testLargeDeflectionElastica(self):
+        EI = E_MOD * I_N_
+        alpha = 0.5
+        load = alpha * EI / LENGTH ** 2
+        ux_exact, uy_exact = -0.0636758499, -0.6485743026
+
+        model, mp, nodes = TestBeam4pElementNonlinear.build_cantilever()
+        n_cp = len(nodes)
+        f_ext = np.zeros(4 * n_cp)
+        f_ext[4 * (n_cp - 1) + 1] = -load
+        u, _ = TestBeam4pElementNonlinear.newton(mp, nodes, f_ext, n_steps=8)
+        TestBeam4pElementNonlinear.write_vtk_output(model, mp)
+
+        uy = u[4 * (n_cp - 1) + 1]
+        ux = u[4 * (n_cp - 1)]
+
+        self.assertLess(abs(uy), abs(-load * LENGTH ** 3 / (3 * EI)) * 1.02)
+        self.assertLess(abs(uy - uy_exact) / abs(uy_exact), 0.06)
+        self.assertLess(abs(ux - ux_exact) / abs(ux_exact), 0.15)
+
+    @classmethod
+    def buckling_loads(cls, mp, nodes, load_vector, p_ref):
+        n_cp = len(nodes)
+        f_ext = np.zeros(4 * n_cp)
+        for j, value in enumerate(load_vector):
+            f_ext[4 * (n_cp - 1) + j] = value
+
+        u, _ = cls.newton(mp, nodes, f_ext, n_steps=1)
+
+        cls.apply_state(nodes, u)
+        k_mat, _ = cls.assemble(mp, nodes, u, build_level=1)
+        k_geo, _ = cls.assemble(mp, nodes, u, build_level=2)
+
+        free = cls.free_dofs(nodes)
+        A = k_mat[np.ix_(free, free)]
+        B = k_geo[np.ix_(free, free)]
+
+        mu = np.linalg.eigvals(-np.linalg.solve(A, B))
+        mu = mu[np.abs(mu.imag) < 1e-8 * (1.0 + np.abs(mu.real))].real
+        lam = np.sort(1.0 / mu[np.abs(mu) > 1e-12])
+        return np.sort(lam[lam > 1e-8]) * p_ref
+
+    def testEulerBucklingWeakAxis(self):
+        p_ref = 1000.0
+        model, mp, nodes = TestBeam4pElementNonlinear.build_cantilever()
+        loads = TestBeam4pElementNonlinear.buckling_loads(
+            mp, nodes, [-p_ref, 0.0, 0.0], p_ref)
+        euler = np.pi ** 2 * E_MOD * I_V_ / (4.0 * LENGTH ** 2)
+        self.assertAlmostEqual(loads[0] / euler, 1.0, delta=0.005)
+
+    def testEulerBucklingStrongAxis(self):
+        p_ref = 1000.0
+        model, mp, nodes = TestBeam4pElementNonlinear.build_cantilever()
+        loads = TestBeam4pElementNonlinear.buckling_loads(
+            mp, nodes, [-p_ref, 0.0, 0.0], p_ref)
+        euler = np.pi ** 2 * E_MOD * I_N_ / (4.0 * LENGTH ** 2)
+        self.assertAlmostEqual(loads[1] / euler, 1.0, delta=0.005)
+
+    def testLateralTorsionalBuckling(self):
+        p_ref = 1000.0
+        model, mp, nodes = TestBeam4pElementNonlinear.build_cantilever()
+        loads = TestBeam4pElementNonlinear.buckling_loads(
+            mp, nodes, [0.0, -p_ref, 0.0], p_ref)
+        timoshenko = 4.013 * np.sqrt(E_MOD * I_V_ * G_MOD * I_T_) / LENGTH ** 2
+
+        self.assertAlmostEqual(loads[0] / timoshenko, 1.0, delta=0.05)
+
+    @KratosUnittest.expectedFailure
+    def testLinearBendingIsMeshIndependent(self):
+        EI = E_MOD * I_N_
+        load = 1e-4 * EI / LENGTH ** 2
+        reference = -load * LENGTH ** 3 / (3.0 * EI)
+        for n_cp in (5, 7, 9, 13):
+            model, mp, nodes = TestBeam4pElementNonlinear.build_cantilever(n_cp)
+            f_ext = np.zeros(4 * n_cp)
+            f_ext[4 * (n_cp - 1) + 1] = -load
+            u, _ = TestBeam4pElementNonlinear.newton(mp, nodes, f_ext, n_steps=1)
+            uy = u[4 * (n_cp - 1) + 1]
+            self.assertLess(abs(uy - reference) / abs(reference), 1e-6,
+                            'n_cp=%d (%d knot spans) is off by %.3e'
+                            % (n_cp, mp.NumberOfElements() // 5,
+                               abs(uy - reference) / abs(reference)))
+
+if __name__ == "__main__":
+    KratosUnittest.main()
