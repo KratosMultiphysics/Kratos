@@ -11,12 +11,12 @@
 //
 
 #include "custom_strategies/schemes/backward_euler_quasistatic_Pw_scheme.hpp"
-#include "spaces/ublas_space.h"
+#include "spaces/default_spaces.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
 
 using namespace Kratos;
-using SparseSpaceType = UblasSpace<double, CompressedMatrix, Vector>;
-using LocalSpaceType  = UblasSpace<double, Matrix, Vector>;
+using SparseSpaceType = TDefaultSparseSpace<double>;
+using LocalSpaceType  = TDefaultDenseSpace<double>;
 
 namespace Kratos::Testing
 {
@@ -45,9 +45,9 @@ KRATOS_TEST_CASE_IN_SUITE(BackwardEulerPwScheme_UpdatesVariablesDerivatives_When
     KRATOS_EXPECT_DOUBLE_EQ(p_node->FastGetSolutionStepValue(DT_WATER_PRESSURE, 0), 0.0);
 
     ModelPart::DofsArrayType dof_set;
-    CompressedMatrix         A;
-    Vector                   Dx;
-    Vector                   b;
+    SparseSpaceType::MatrixType         A;
+    SparseSpaceType::VectorType                   Dx;
+    SparseSpaceType::VectorType                   b;
 
     scheme.InitializeSolutionStep(model_part, A, Dx, b); // This is needed to set the time factors
 
@@ -74,9 +74,9 @@ KRATOS_TEST_CASE_IN_SUITE(InitializeBackwardEulerPwScheme_SetsTimeFactors, Krato
 
     KRATOS_EXPECT_TRUE(scheme.SchemeIsInitialized())
 
-    CompressedMatrix A;
-    Vector           Dx;
-    Vector           b;
+    SparseSpaceType::MatrixType A;
+    SparseSpaceType::VectorType           Dx;
+    SparseSpaceType::VectorType           b;
     scheme.InitializeSolutionStep(model_part, A, Dx, b); // This is needed to set the time factors
 
     KRATOS_EXPECT_DOUBLE_EQ(model_part.GetProcessInfo()[DT_PRESSURE_COEFFICIENT], 1.0 / delta_time);

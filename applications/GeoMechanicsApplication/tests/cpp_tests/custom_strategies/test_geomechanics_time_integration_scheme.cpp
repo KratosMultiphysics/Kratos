@@ -15,13 +15,13 @@
 #include "containers/model.h"
 #include "custom_strategies/schemes/geomechanics_time_integration_scheme.hpp"
 #include "includes/expect.h"
-#include "spaces/ublas_space.h"
+#include "spaces/default_spaces.h"
 #include "tests/cpp_tests/test_utilities/spy_condition.h"
 #include "tests/cpp_tests/test_utilities/spy_element.h"
 
 using namespace Kratos;
-using SparseSpaceType = UblasSpace<double, CompressedMatrix, Vector>;
-using LocalSpaceType  = UblasSpace<double, Matrix, Vector>;
+using SparseSpaceType = TDefaultSparseSpace<double>;
+using LocalSpaceType  = TDefaultDenseSpace<double>;
 
 namespace Kratos::Testing
 {
@@ -99,9 +99,9 @@ public:
     template <class T>
     void TestFunctionCallOnAllComponents_AreOnlyCalledForActiveComponents()
     {
-        CompressedMatrix A;
-        Vector           Dx;
-        Vector           b;
+        SparseSpaceType::MatrixType A;
+        SparseSpaceType::VectorType           Dx;
+        SparseSpaceType::VectorType           b;
 
         auto functions_and_checks = CreateFunctionsAndChecksCalledOnAllComponents<T>(A, Dx, b);
 
@@ -127,7 +127,7 @@ public:
 
     template <class T>
     std::vector<std::pair<std::function<void()>, std::function<bool(const Kratos::intrusive_ptr<T> rElement)>>> CreateFunctionsAndChecksCalledOnAllComponents(
-        CompressedMatrix& A, Vector& Dx, Vector& b)
+        SparseSpaceType::MatrixType& A, SparseSpaceType::VectorType& Dx, SparseSpaceType::VectorType& b)
     {
         std::vector<std::pair<std::function<void()>, std::function<bool(const Kratos::intrusive_ptr<T> rElement)>>> functions_and_checks;
 
@@ -242,9 +242,9 @@ void TestUpdateForNumberOfThreads(int NumberOfThreads)
 {
     GeoMechanicsSchemeTester tester;
     tester.Setup();
-    CompressedMatrix         A;
-    Vector                   Dx = ZeroVector(3);
-    Vector                   b;
+    SparseSpaceType::MatrixType         A;
+    SparseSpaceType::VectorType                   Dx = ZeroVector(3);
+    SparseSpaceType::VectorType                   b;
     ModelPart::DofsArrayType dofs_array;
 
     ParallelUtilities::SetNumThreads(NumberOfThreads);

@@ -18,6 +18,7 @@
 
 // Project includes
 #include "processes/simple_mortar_mapper_process.h"
+#include "spaces/default_spaces.h"
 
 namespace Kratos
 {
@@ -60,10 +61,10 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION(SimpleMortarMapperProcessWrapper);
 
     /// Type definition for sparse space type
-    using SparseSpaceType = UblasSpace<double, CompressedMatrix, Vector>;
+    using SparseSpaceType = TDefaultSparseSpace<double>;
 
     /// Type definition for local space type
-    using LocalSpaceType = UblasSpace<double, Matrix, Vector>;
+    using LocalSpaceType = TDefaultDenseSpace<double>;
 
     /// Type definition for matrix
     using MatrixType = typename SparseSpaceType::MatrixType;
