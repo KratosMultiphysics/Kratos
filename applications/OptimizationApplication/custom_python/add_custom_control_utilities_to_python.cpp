@@ -22,6 +22,7 @@
 
 // Application includes
 #include "custom_utilities/control/sigmoidal_projection_utils.h"
+#include "custom_utilities/control/smooth_clamper.h"
 
 // Include base h
 #include "add_custom_control_utilities_to_python.h"
@@ -37,6 +38,13 @@ void  AddCustomControlUtilitiesToPython(pybind11::module& m)
     module.def("ProjectForward", &SigmoidalProjectionUtils::ProjectForward, py::arg("input_tensor_adaptor"), py::arg("x_values"), py::arg("y_values"), py::arg("beta"), py::arg("penalty_factor"));
     module.def("ProjectBackward", &SigmoidalProjectionUtils::ProjectBackward, py::arg("input_tensor_adaptor"), py::arg("x_values"), py::arg("y_values"), py::arg("beta"), py::arg("penalty_factor"));
     module.def("CalculateForwardProjectionGradient", &SigmoidalProjectionUtils::CalculateForwardProjectionGradient, py::arg("input_tensor_adaptor"), py::arg("x_values"), py::arg("y_values"), py::arg("beta"), py::arg("penalty_factor"));
+
+    py::class_<SmoothClamper, typename SmoothClamper::Pointer>(m, "SmoothClamper")
+        .def(py::init<const double, const double>(), py::arg("min"), py::arg("max"))
+        .def("ProjectForward", py::overload_cast<const TensorAdaptor<double>&>(&SmoothClamper::ProjectForward, py::const_), py::arg("x_tensor_adaptor"))
+        .def("CalculateForwardProjectionGradient", py::overload_cast<const TensorAdaptor<double>&>(&SmoothClamper::CalculateForwardProjectionGradient, py::const_), py::arg("x_tensor_adaptor"))
+        .def("ProjectBackward", py::overload_cast<const TensorAdaptor<double>&>(&SmoothClamper::ProjectBackward, py::const_), py::arg("y_tensor_adaptor"))
+        ;
 }
 
 }  // namespace Python.
