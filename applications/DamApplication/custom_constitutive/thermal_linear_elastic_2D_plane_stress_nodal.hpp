@@ -10,15 +10,27 @@
 
 // Project includes
 #include "includes/serializer.h"
-#include "custom_constitutive/thermal_linear_elastic_2D_plane_strain_nodal.hpp"
+
+// Dam thin thermal-elastic adapter over CLA::ThermalLinearPlaneStress (base).
+#include "custom_constitutive/thermal_linear_elastic_2D_plane_stress.hpp"
+
+#include "dam_application_variables.h"
 
 namespace Kratos
 {
 
-class KRATOS_API(DAM_APPLICATION) ThermalLinearElastic2DPlaneStressNodal : public ThermalLinearElastic2DPlaneStrainNodal
+/**
+ * @brief Thin Dam compatibility adapter over Dam::ThermalLinearElastic2DPlaneStress
+ * (CLA::ThermalLinearPlaneStress) for the historical nodal-Young-modulus
+ * behavior (plane stress).
+ */
+class KRATOS_API(DAM_APPLICATION) ThermalLinearElastic2DPlaneStressNodal : public ThermalLinearElastic2DPlaneStress
 {
 
 public:
+
+    /// The Dam plane-stress thermal-elastic adapter base.
+    using BaseType = ThermalLinearElastic2DPlaneStress;
 
     KRATOS_CLASS_POINTER_DEFINITION(ThermalLinearElastic2DPlaneStressNodal);
 
@@ -31,25 +43,26 @@ public:
     ThermalLinearElastic2DPlaneStressNodal (const ThermalLinearElastic2DPlaneStressNodal& rOther);
 
     // Destructor
-    virtual ~ThermalLinearElastic2DPlaneStressNodal();
+    ~ThermalLinearElastic2DPlaneStressNodal() override;
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     ConstitutiveLaw::Pointer Clone() const override;
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    /**
+     * @brief Plane-stress constitutive matrix with NODAL_YOUNG_MODULUS.
+     */
+    void CalculateElasticMatrix(
+        ConstitutiveLaw::VoigtSizeMatrixType& rConstitutiveMatrix,
+        ConstitutiveLaw::Parameters& rValues) override;
 
-protected:
-
-    // Member Variables
-
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-    void GetLawFeatures(Features& rFeatures) override;
-
-    void CalculateLinearElasticMatrix( Matrix& rConstitutiveMatrix, const double &rYoungModulus, const double &rPoissonCoefficient ) override;
-
-    void CalculateThermalStrain( Vector& rThermalStrainVector, const MaterialResponseVariables & rElasticVariables, double & rTemperature, double & rNodalReferenceTemperature) override;
+    /**
+     * @brief Plane-stress stress vector with NODAL_YOUNG_MODULUS.
+     */
+    void CalculatePK2Stress(
+        const ConstitutiveLaw::StrainVectorType& rStrainVector,
+        ConstitutiveLaw::StressVectorType& rStressVector,
+        ConstitutiveLaw::Parameters& rValues) override;
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -61,12 +74,12 @@ private:
 
     void save(Serializer& rSerializer) const override
     {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, ThermalLinearElastic2DPlaneStrainNodal)
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, BaseType )
     }
 
     void load(Serializer& rSerializer) override
     {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, ThermalLinearElastic2DPlaneStrainNodal)
+        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, BaseType )
     }
 
 }; // Class ThermalLinearElastic2DPlaneStressNodal

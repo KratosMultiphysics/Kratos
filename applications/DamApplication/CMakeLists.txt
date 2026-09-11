@@ -5,6 +5,7 @@ message("**** configuring KratosDamApplication ****")
 kratos_add_dependency(${KRATOS_SOURCE_DIR}/applications/ConvectionDiffusionApplication)
 kratos_add_dependency(${KRATOS_SOURCE_DIR}/applications/PoromechanicsApplication)
 kratos_add_dependency(${KRATOS_SOURCE_DIR}/applications/StructuralMechanicsApplication)
+kratos_add_dependency(${KRATOS_SOURCE_DIR}/applications/ConstitutiveLawsApplication)
 
 ################### PYBIND11
 include(pybind11Tools)
@@ -13,6 +14,7 @@ include_directories( ${KRATOS_SOURCE_DIR}/kratos )
 include_directories( ${KRATOS_SOURCE_DIR}/applications/StructuralMechanicsApplication )
 include_directories( ${KRATOS_SOURCE_DIR}/applications/PoromechanicsApplication )
 include_directories( ${KRATOS_SOURCE_DIR}/applications/DamApplication )
+include_directories( ${KRATOS_SOURCE_DIR}/applications/ConstitutiveLawsApplication )
 
 ## Define application core sources (pure C++ parts)
 set( KRATOS_DAM_APPLICATION_CORE_SOURCES
@@ -52,11 +54,8 @@ set( KRATOS_DAM_APPLICATION_CORE_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/thermal_modified_mises_nonlocal_damage_plane_stress_2D_law.cpp
 
     # Elements
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/small_displacement_thermo_mechanic_element.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/small_displacement_interface_element.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/wave_equation_element.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/solid_element.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/small_displacement_element.cpp
 
     # Conditions
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/UP_condition.cpp
@@ -64,6 +63,12 @@ set( KRATOS_DAM_APPLICATION_CORE_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/infinite_domain_condition.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/added_mass_condition.cpp
 )
+
+# DamApplication testing sources
+if(${KRATOS_BUILD_TESTING} MATCHES ON)
+    file(GLOB_RECURSE KRATOS_DAM_APPLICATION_TESTING_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/tests/cpp_tests/*.cpp)
+    kratos_add_gtests(TARGET KratosDamCore SOURCES "${KRATOS_DAM_APPLICATION_TESTING_SOURCES}")
+endif(${KRATOS_BUILD_TESTING} MATCHES ON)
 
 if(${USE_DAM_MPI} MATCHES ON)
 
@@ -83,7 +88,7 @@ if(${USE_DAM_MPI} MATCHES ON)
 
     ## DamApplication core library (C++ parts)
     add_library(KratosDamCore SHARED ${KRATOS_DAM_APPLICATION_CORE_SOURCES})
-    target_link_libraries(KratosDamCore PUBLIC KratosCore KratosTrilinosApplication KratosStructuralMechanicsCore KratosPoromechanicsCore)
+    target_link_libraries(KratosDamCore PUBLIC KratosCore KratosTrilinosApplication KratosStructuralMechanicsCore KratosPoromechanicsCore KratosConstitutiveLawsCore)
 
 else()
 
@@ -99,7 +104,7 @@ else()
 
     ## DamApplication core library (C++ parts)
     add_library(KratosDamCore SHARED ${KRATOS_DAM_APPLICATION_CORE_SOURCES})
-    target_link_libraries(KratosDamCore PUBLIC KratosCore KratosStructuralMechanicsCore KratosPoromechanicsCore)
+    target_link_libraries(KratosDamCore PUBLIC KratosCore KratosStructuralMechanicsCore KratosPoromechanicsCore KratosConstitutiveLawsCore)
 
 endif()
 
@@ -109,7 +114,7 @@ endif()
 ###############################################################################
 ## DamApplication core library (C++ parts)
 #add_library(KratosDamCore SHARED ${KRATOS_DAM_APPLICATION_CORE_SOURCES})
-#target_link_libraries(KratosDamCore PRIVATE KratosCore KratosStructuralMechanicsCore KratosPoromechanicsCore)
+#target_link_libraries(KratosDamCore PRIVATE KratosCore KratosStructuralMechanicsCore KratosPoromechanicsCore KratosConstitutiveLawsCore)
 set_target_properties(KratosDamCore PROPERTIES COMPILE_DEFINITIONS "DAM_APPLICATION=EXPORT,API")
 
 ## DamApplication python module

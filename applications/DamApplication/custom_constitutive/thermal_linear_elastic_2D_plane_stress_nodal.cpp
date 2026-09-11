@@ -7,17 +7,19 @@
 
 /* Project includes */
 #include "custom_constitutive/thermal_linear_elastic_2D_plane_stress_nodal.hpp"
+#include "custom_utilities/constitutive_law_utilities.h"
+#include "custom_utilities/nodal_young_modulus_utilities.h"
 
 namespace Kratos
 {
 
 //Default Constructor
-ThermalLinearElastic2DPlaneStressNodal::ThermalLinearElastic2DPlaneStressNodal() : ThermalLinearElastic2DPlaneStrainNodal() {}
+ThermalLinearElastic2DPlaneStressNodal::ThermalLinearElastic2DPlaneStressNodal() : BaseType() {}
 
 //----------------------------------------------------------------------------------------
 
 //Copy Constructor
-ThermalLinearElastic2DPlaneStressNodal::ThermalLinearElastic2DPlaneStressNodal(const ThermalLinearElastic2DPlaneStressNodal& rOther) : ThermalLinearElastic2DPlaneStrainNodal(rOther) {}
+ThermalLinearElastic2DPlaneStressNodal::ThermalLinearElastic2DPlaneStressNodal(const ThermalLinearElastic2DPlaneStressNodal& rOther) : BaseType(rOther) {}
 
 //----------------------------------------------------------------------------------------
 
@@ -31,67 +33,34 @@ ConstitutiveLaw::Pointer ThermalLinearElastic2DPlaneStressNodal::Clone() const
     ThermalLinearElastic2DPlaneStressNodal::Pointer p_clone(new ThermalLinearElastic2DPlaneStressNodal(*this));
     return p_clone;
 }
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-void  ThermalLinearElastic2DPlaneStressNodal::CalculateLinearElasticMatrix( Matrix& rConstitutiveMatrix,
-        const double &rYoungModulus,
-        const double &rPoissonCoefficient )
-{
-    rConstitutiveMatrix.clear();
-
-    //plane stress constitutive matrix:
-    rConstitutiveMatrix ( 0 , 0 ) = (rYoungModulus)/(1.0-rPoissonCoefficient*rPoissonCoefficient);
-    rConstitutiveMatrix ( 1 , 1 ) = rConstitutiveMatrix ( 0 , 0 );
-
-    rConstitutiveMatrix ( 2 , 2 ) = rConstitutiveMatrix ( 0 , 0 )*(1.0-rPoissonCoefficient)*0.5;
-
-    rConstitutiveMatrix ( 0 , 1 ) = rConstitutiveMatrix ( 0 , 0 )*rPoissonCoefficient;
-    rConstitutiveMatrix ( 1 , 0 ) = rConstitutiveMatrix ( 0 , 1 );
-}
-
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-void ThermalLinearElastic2DPlaneStressNodal::GetLawFeatures(Features& rFeatures)
+void ThermalLinearElastic2DPlaneStressNodal::CalculateElasticMatrix(
+    ConstitutiveLaw::VoigtSizeMatrixType& rConstitutiveMatrix,
+    ConstitutiveLaw::Parameters& rValues)
 {
-        //Set the type of law
-    rFeatures.mOptions.Set( PLANE_STRESS_LAW );
-    rFeatures.mOptions.Set( INFINITESIMAL_STRAINS );
-    rFeatures.mOptions.Set( ISOTROPIC );
-
-    //Set strain measure required by the consitutive law
-    rFeatures.mStrainMeasures.push_back(StrainMeasure_Infinitesimal);
-    rFeatures.mStrainMeasures.push_back(StrainMeasure_Deformation_Gradient);
-
-    //Set the strain size
-    rFeatures.mStrainSize = GetStrainSize();
-
-    //Set the spacedimension
-    rFeatures.mSpaceDimension = WorkingSpaceDimension();
-
+    const Properties& r_material_properties = rValues.GetMaterialProperties();
+    const double E = NodalYoungModulusUtilities::InterpolatedYoungModulus(
+        rValues.GetElementGeometry(), rValues.GetShapeFunctionsValues());
+    const double NU = r_material_properties.GetValue(POISSON_RATIO,
+        rValues.GetElementGeometry(), rValues.GetShapeFunctionsValues(), rValues.GetProcessInfo());
+    ConstitutiveLawUtilities<3>::CalculateElasticMatrixPlaneStress(rConstitutiveMatrix, E, NU);
 }
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-void ThermalLinearElastic2DPlaneStressNodal::CalculateThermalStrain( Vector& rThermalStrainVector, const MaterialResponseVariables& rElasticVariables, double & rTemperature, double & rNodalReferenceTemperature)
+void ThermalLinearElastic2DPlaneStressNodal::CalculatePK2Stress(
+    const ConstitutiveLaw::StrainVectorType& rStrainVector,
+    ConstitutiveLaw::StressVectorType& rStressVector,
+    ConstitutiveLaw::Parameters& rValues)
 {
-    KRATOS_TRY
-
-
-    //Identity vector
-    rThermalStrainVector.resize(3,false);
-    rThermalStrainVector[0] = 1.0;
-    rThermalStrainVector[1] = 1.0;
-    rThermalStrainVector[2] = 0.0;
-
-    // Delta T
-    double DeltaTemperature = rTemperature - rNodalReferenceTemperature;
-
-    //Thermal strain vector
-    for(unsigned int i = 0; i < 3; i++)
-        rThermalStrainVector[i] *= rElasticVariables.ThermalExpansionCoefficient * DeltaTemperature;
-
-    KRATOS_CATCH( "" )
+    const Properties& r_material_properties = rValues.GetMaterialProperties();
+    const double E = NodalYoungModulusUtilities::InterpolatedYoungModulus(
+        rValues.GetElementGeometry(), rValues.GetShapeFunctionsValues());
+    const double NU = r_material_properties.GetValue(POISSON_RATIO,
+        rValues.GetElementGeometry(), rValues.GetShapeFunctionsValues(), rValues.GetProcessInfo());
+    ConstitutiveLawUtilities<3>::CalculatePK2StressFromStrainPlaneStress(rStressVector, rStrainVector, E, NU);
 }
 
 } // Namespace Kratos

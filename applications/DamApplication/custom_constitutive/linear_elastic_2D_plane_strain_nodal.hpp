@@ -10,15 +10,26 @@
 
 // Project includes
 #include "includes/serializer.h"
-#include "custom_constitutive/linear_elastic_3D_law_nodal.hpp"
+
+// StructuralMechanicsApplication standard small-strain plane-strain elastic law (base).
+#include "custom_constitutive/linear_plane_strain.h"
+
+#include "dam_application_variables.h"
 
 namespace Kratos
 {
 
-class KRATOS_API(DAM_APPLICATION) LinearElastic2DPlaneStrainNodal : public LinearElastic3DLawNodal
+/**
+ * @brief Thin Dam compatibility adapter over SMA::LinearPlaneStrain for the
+ * historical nodal-Young-modulus behavior (plane strain).
+ */
+class KRATOS_API(DAM_APPLICATION) LinearElastic2DPlaneStrainNodal : public LinearPlaneStrain
 {
 
 public:
+
+    /// The StructuralMechanicsApplication base law.
+    using BaseType = LinearPlaneStrain;
 
     KRATOS_CLASS_POINTER_DEFINITION(LinearElastic2DPlaneStrainNodal);
 
@@ -31,41 +42,26 @@ public:
     LinearElastic2DPlaneStrainNodal (const LinearElastic2DPlaneStrainNodal& rOther);
 
     // Destructor
-    virtual ~LinearElastic2DPlaneStrainNodal();
+    ~LinearElastic2DPlaneStrainNodal() override;
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     ConstitutiveLaw::Pointer Clone() const override;
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    /**
+     * @brief Plane-strain constitutive matrix with NODAL_YOUNG_MODULUS.
+     */
+    void CalculateElasticMatrix(
+        ConstitutiveLaw::VoigtSizeMatrixType& rConstitutiveMatrix,
+        ConstitutiveLaw::Parameters& rValues) override;
 
     /**
-     * Dimension of the law:
+     * @brief Plane-strain stress vector with NODAL_YOUNG_MODULUS.
      */
-    SizeType WorkingSpaceDimension() override
-    {
-        return 2;
-    };
-
-    /**
-     * Voigt tensor size:
-     */
-    SizeType GetStrainSize() const override
-    {
-        return 3;
-    };
-
-protected:
-
-    // Member Variables
-
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-    void CalculateAlmansiStrain( const Matrix & rLeftCauchyGreen,Vector& rStrainVector ) override;
-
-    void CalculateLinearElasticMatrix( Matrix& rConstitutiveMatrix, const double &rYoungModulus, const double &rPoissonCoefficient ) override;
-
-    void GetLawFeatures(Features& rFeatures) override;
+    void CalculatePK2Stress(
+        const ConstitutiveLaw::StrainVectorType& rStrainVector,
+        ConstitutiveLaw::StressVectorType& rStressVector,
+        ConstitutiveLaw::Parameters& rValues) override;
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -77,12 +73,12 @@ private:
 
     void save(Serializer& rSerializer) const override
     {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, LinearElastic3DLawNodal)
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, BaseType )
     }
 
     void load(Serializer& rSerializer) override
     {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, LinearElastic3DLawNodal)
+        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, BaseType )
     }
 
 }; // Class LinearElastic2DPlaneStrainNodal
