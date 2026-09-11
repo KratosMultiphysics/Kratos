@@ -5,7 +5,6 @@ import numpy as np
 class PanelGeometryInterpreter:
 
     def Interpret(self, sub_model_part) -> PanelGeometry:
-        self._ValidateSubModelPart(sub_model_part)
         points = self._GetPoints(sub_model_part)
         self.centered_points = self._GetCenteredPoints(points)
         panel_base_vectors = self._CalculatePanelCoordinateSystem(self.centered_points)
@@ -98,7 +97,7 @@ class PanelGeometryInterpreter:
         The check compares each element normal with the PCA-based panel normal direction. A large maximum angle indivates that the panel is curved or otherwise not well represented by a single flat local coordinate system.
 
         Args:
-            sub_model_part (_type_): Panel submodelpart containing the shell elements.
+            sub_model_part: Panel submodelpart containing the shell elements.
             ez (np.ndarray): PCA-based average panel normal direction.
         """
         #TODO: Just gives a warning right now. Curved panels should eventually be handled by a dedicated geometry interpretation algorithm.
@@ -116,20 +115,3 @@ class PanelGeometryInterpreter:
             f"Maximum element-normal deviation from the average panel normal is "
             f"{max_angle_degrees:.2f} degrees."
         )
-    
-    def _ValidateSubModelPart(self, sub_model_part):
-        if sub_model_part.NumberOfNodes() == 0:
-            raise RuntimeError(
-                f"Panel submodelpart '{sub_model_part.Name}' contains no nodes."
-            )
-
-        if sub_model_part.NumberOfElements() == 0:
-            raise RuntimeError(
-                f"Panel submodelpart '{sub_model_part.Name}' contains no elements."
-            )
-
-        if sub_model_part.NumberOfNodes() < 3:
-            raise RuntimeError(
-                f"Panel submodelpart '{sub_model_part.Name}' needs at least 3 nodes "
-                f"to define a panel plane, but has {sub_model_part.NumberOfNodes()}."
-            )
