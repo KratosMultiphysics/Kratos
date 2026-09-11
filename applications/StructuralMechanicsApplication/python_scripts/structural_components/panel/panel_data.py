@@ -3,7 +3,6 @@ from dataclasses import dataclass
 
 @dataclass
 class PanelGeometry:
-    centroid: np.ndarray
     x_axis: np.ndarray
     y_axis: np.ndarray
     z_axis: np.ndarray
