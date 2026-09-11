@@ -288,10 +288,10 @@ def CreateRomAnalysisInstance(cls, global_model, parameters, nn_rom_interface=No
                     condition_weights = np.load(f"{self.rom_basis_output_folder}/HROM_ConditionWeights.npy")
 
                     for i in range(np.size(element_ids)):
-                        computing_model_part.GetElement(int(element_ids[i])).SetValue(KratosROM.HROM_WEIGHT, float(element_weights[i]))
+                        computing_model_part.GetElement(int(element_ids[i])).SetValue(KratosROM.HROM_WEIGHT, element_weights[i,:])
 
                     for i in range(np.size(condition_ids)):
-                        computing_model_part.GetCondition(int(condition_ids[i])).SetValue(KratosROM.HROM_WEIGHT, float(condition_weights[i]))
+                        computing_model_part.GetCondition(int(condition_ids[i])).SetValue(KratosROM.HROM_WEIGHT,condition_weights[i,:])
 
 
 

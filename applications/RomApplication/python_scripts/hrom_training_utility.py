@@ -418,8 +418,8 @@ class HRomTrainingUtility(object):
             weights, indexes = self.__AddSelectedElementsWithZeroWeights(weights,indexes, missing_condition_parents)
 
         if self.hrom_output_format == "numpy":
-            np.save(self.rom_basis_output_folder / "HROM_ElementWeights.npy", weights[element_mask])
-            np.save(self.rom_basis_output_folder / "HROM_ConditionWeights.npy", weights[condition_mask])
+            np.save(self.rom_basis_output_folder / "HROM_ElementWeights.npy", (weights[element_mask]).reshape(-1,1))
+            np.save(self.rom_basis_output_folder / "HROM_ConditionWeights.npy", weights[condition_mask].reshape(-1,1))
             np.save(self.rom_basis_output_folder / "HROM_ElementIds.npy", element_ids)
             np.save(self.rom_basis_output_folder / "HROM_ConditionIds.npy", condition_ids)
 
