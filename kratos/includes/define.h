@@ -142,6 +142,10 @@ catch(...) { Block KRATOS_THROW_ERROR(std::runtime_error, "Unknown error", MoreI
 #define KRATOS_DEFINE_VARIABLE(type, name) \
     inline constexpr Variable<type> name = Variable<type>(#name);
 
+#undef KRATOS_DEFINE_VARIABLE_WITH_ADJOINT
+#define KRATOS_DEFINE_VARIABLE_WITH_ADJOINT(type, name, adjoint_name) \
+    inline constexpr Variable<type> name = Variable<type>(#name, nullptr, 0, nullptr, &adjoint_name);
+
 #undef KRATOS_DEFINE_APPLICATION_VARIABLE
 #define KRATOS_DEFINE_APPLICATION_VARIABLE(application, type, name) \
     KRATOS_DEFINE_VARIABLE(type, name)
@@ -152,6 +156,13 @@ catch(...) { Block KRATOS_THROW_ERROR(std::runtime_error, "Unknown error", MoreI
     inline constexpr Variable<double> KRATOS_CAT_(name, X) = Variable<double>(KRATOS_CAT_STR(name, X), &name, 0); \
     inline constexpr Variable<double> KRATOS_CAT_(name, Y) = Variable<double>(KRATOS_CAT_STR(name, Y), &name, 1); \
     inline constexpr Variable<double> KRATOS_CAT_(name, Z) = Variable<double>(KRATOS_CAT_STR(name, Z), &name, 2);
+
+#undef KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS_WITH_ADJOINTS
+#define KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS_WITH_ADJOINTS(name, adjoint_name)                                                                          \
+    inline constexpr Variable<Kratos::array_1d<double, 3>> name = Variable<Kratos::array_1d<double, 3>>(#name, nullptr, 0, nullptr, &adjoint_name);          \
+    inline constexpr Variable<double> KRATOS_CAT_(name, X) = Variable<double>(KRATOS_CAT_STR(name, X), &name, 0, nullptr, &KRATOS_CAT_(adjoint_name, X)); \
+    inline constexpr Variable<double> KRATOS_CAT_(name, Y) = Variable<double>(KRATOS_CAT_STR(name, Y), &name, 1, nullptr, &KRATOS_CAT_(adjoint_name, Y)); \
+    inline constexpr Variable<double> KRATOS_CAT_(name, Z) = Variable<double>(KRATOS_CAT_STR(name, Z), &name, 2, nullptr, &KRATOS_CAT_(adjoint_name, Z));
 
 #undef KRATOS_DEFINE_3D_APPLICATION_VARIABLE_WITH_COMPONENTS
 #define KRATOS_DEFINE_3D_APPLICATION_VARIABLE_WITH_COMPONENTS(application, name) \
@@ -332,6 +343,13 @@ catch(...) { Block KRATOS_THROW_ERROR(std::runtime_error, "Unknown error", MoreI
     inline constexpr Variable<double> KRATOS_CAT_(name, X) = Variable<double>(KRATOS_CAT_STR(name, X), &name, 0, &KRATOS_CAT_(variable_derivative, X)); \
     inline constexpr Variable<double> KRATOS_CAT_(name, Y) = Variable<double>(KRATOS_CAT_STR(name, Y), &name, 1, &KRATOS_CAT_(variable_derivative, Y)); \
     inline constexpr Variable<double> KRATOS_CAT_(name, Z) = Variable<double>(KRATOS_CAT_STR(name, Z), &name, 2, &KRATOS_CAT_(variable_derivative, Z));
+
+#undef KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS_WITH_TIME_DERIVATIVE_WITH_ADJOINTS
+#define KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS_WITH_TIME_DERIVATIVE_WITH_ADJOINTS(name, derivative, adjoint_name, adjoint_derivative) \
+    inline constexpr Variable<Kratos::array_1d<double, 3>> name = Variable<Kratos::array_1d<double, 3>>(#name, nullptr, 0, &derivative, &adjoint_derivative); \
+    inline constexpr Variable<double> KRATOS_CAT_(name, X) = Variable<double>(KRATOS_CAT_STR(name, X), &name, 0, &KRATOS_CAT_(derivative, X), &KRATOS_CAT_(adjoint_derivative, X)); \
+    inline constexpr Variable<double> KRATOS_CAT_(name, Y) = Variable<double>(KRATOS_CAT_STR(name, Y), &name, 1, &KRATOS_CAT_(derivative, Y), &KRATOS_CAT_(adjoint_derivative, Y)); \
+    inline constexpr Variable<double> KRATOS_CAT_(name, Z) = Variable<double>(KRATOS_CAT_STR(name, Z), &name, 2, &KRATOS_CAT_(derivative, Z), &KRATOS_CAT_(adjoint_derivative, Z));
 
 #undef KRATOS_DEFINE_3D_APPLICATION_VARIABLE_WITH_COMPONENTS_WITH_TIME_DERIVATIVE
 #define KRATOS_DEFINE_3D_APPLICATION_VARIABLE_WITH_COMPONENTS_WITH_TIME_DERIVATIVE(application, name, variable_derivative) \

@@ -82,11 +82,15 @@ public:
      * @param NewName The name to be assigned to the new variable
      * @param pTimeDerivativeVariable Pointer to the time derivative variable
      */
-    constexpr explicit Variable(
+    constexpr Variable(
         const std::string_view& NewName,
         const VariableType* pTimeDerivativeVariable = nullptr)
-        : VariableData(NewName, sizeof(TDataType)),
-          mpTimeDerivativeVariable(pTimeDerivativeVariable)
+            :   Variable(
+                    NewName,
+                    nullptr,
+                    0,
+                    pTimeDerivativeVariable,
+                    nullptr)
     {}
 
     /**
@@ -94,41 +98,40 @@ public:
      * @param rNewName The name to be assigned to the compoenent
      */
     template <typename TSourceVariableType>
-    constexpr explicit Variable(
+    constexpr Variable(
         const std::string_view& NewName,
         const TSourceVariableType* pSourceVariable,
         char ComponentIndex)
-        : VariableData(NewName, sizeof(TDataType), pSourceVariable, ComponentIndex)
+            :   Variable(
+                    NewName,
+                    pSourceVariable,
+                    ComponentIndex,
+                    nullptr,
+                    nullptr)
     {}
 
     /**
      * @brief Constructor for creating a component of other variable
      * @param rNewName The name to be assigned to the compoenent
      * @param pTimeDerivativeVariable Pointer to the time derivative variable
-     * @param Zero The value to be assigned to the variable as zero. In case of not definition will take the value given by the constructor of the time
+     * @param pAdjointVariable Pointer to the variable's adjont counterpart.
      */
-    template <typename TSourceVariableType>
-    constexpr explicit Variable(
+    constexpr Variable(
         const std::string_view& NewName,
-        TSourceVariableType* pSourceVariable,
+        const VariableData* pSourceVariable,
         char ComponentIndex,
-        const VariableType* pTimeDerivativeVariable)
-        : VariableData(NewName, sizeof(TDataType), pSourceVariable, ComponentIndex),
-          mpTimeDerivativeVariable(pTimeDerivativeVariable)
+        const VariableType* pTimeDerivativeVariable,
+        const VariableType* pAdjointVariable = nullptr)
+            :   VariableData(
+                    NewName,
+                    sizeof(TDataType),
+                    pSourceVariable,
+                    ComponentIndex),
+                mpTimeDerivativeVariable(pTimeDerivativeVariable),
+                mpAdjointVariable(pAdjointVariable)
     {}
 
-    /**
-     * Copy constructor.
-     * @brief Copy constructor.
-     * @param rOtherVariable The old variable to be copied
-     */
-    constexpr explicit Variable(
-        const VariableType& rOtherVariable)
-        : VariableData(rOtherVariable),
-          mpTimeDerivativeVariable(rOtherVariable.mpTimeDerivativeVariable)
-    {
-        // Here we don't register as we asume that the origin is already registered
-    }
+    constexpr Variable(const VariableType&) noexcept = default;
 
     /// Destructor.
     constexpr ~Variable() override {}
@@ -316,6 +319,15 @@ public:
         return *mpTimeDerivativeVariable;
     }
 
+    constexpr bool HasAdjointVariable() const noexcept {
+        return mpAdjointVariable;
+    }
+
+    const VariableType& GetAdjoint() const {
+        KRATOS_ERROR_IF_NOT(mpAdjointVariable) << "\"" << this->Name() << "\" has no adjoint counterpart.";
+        return *mpAdjointVariable;
+    }
+
     /**
      * @brief This method returns the zero value of the variable type
      * @return The zero value of the corresponding variable
@@ -420,7 +432,9 @@ private:
     ///@name Member Variables
     ///@{
 
-    const VariableType* mpTimeDerivativeVariable = nullptr; /// Definition of the pointer to the variable for the time derivative
+    const VariableType* mpTimeDerivativeVariable = nullptr;
+
+    const VariableType* mpAdjointVariable = nullptr;
 
     ///@}
     ///@name Private Operators

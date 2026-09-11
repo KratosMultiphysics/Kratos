@@ -64,22 +64,16 @@ public:
 
     VariableData() noexcept = default;
 
-    constexpr VariableData(const VariableData& rOtherVariable)
-        : mName(rOtherVariable.mName),
-          mKey(rOtherVariable.mKey),
-          mSize(rOtherVariable.mSize),
-          mpSourceVariable(rOtherVariable.mpSourceVariable) ,
-          mIsComponent(rOtherVariable.mIsComponent)
-    {}
+    constexpr VariableData(const VariableData& rOtherVariable) = default;
 
     constexpr VariableData(
         const std::string_view& NewName,
         const std::size_t NewSize)
-        : mName(NewName),
-          mKey(GenerateKey(mName, NewSize, false, 0)),
-          mSize(NewSize),
-          mpSourceVariable(this),
-          mIsComponent(false)
+            :   VariableData(
+                    NewName,
+                    NewSize,
+                    nullptr,
+                    0)
     {}
 
     constexpr VariableData(
@@ -87,11 +81,15 @@ public:
         const std::size_t NewSize,
         const VariableData* pSourceVariable,
         const char ComponentIndex)
-        : mName(NewName),
-          mKey(GenerateKey(pSourceVariable->mName, NewSize, true, ComponentIndex)),
-          mSize(NewSize),
-          mpSourceVariable(pSourceVariable),
-          mIsComponent(true)
+            :   mName(NewName),
+                mKey(GenerateKey(
+                    pSourceVariable ? pSourceVariable->mName : NewName,
+                    NewSize,
+                    pSourceVariable != nullptr,
+                    ComponentIndex)),
+                mSize(NewSize),
+                mpSourceVariable(pSourceVariable ? pSourceVariable : this),
+                mIsComponent(pSourceVariable != nullptr)
     {}
 
     constexpr virtual ~VariableData() = default;
