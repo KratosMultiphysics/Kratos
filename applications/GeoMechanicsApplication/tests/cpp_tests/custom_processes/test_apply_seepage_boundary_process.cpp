@@ -33,4 +33,14 @@ KRATOS_TEST_CASE_IN_SUITE(ApplySeepageBoundaryProcess_ConstructorThrowsWhenNoMod
         "ApplySeepageBoundaryProcess: \"model_part_name\" is required in the process settings");
 }
 
+KRATOS_TEST_CASE_IN_SUITE(ApplySeepageBoundaryProcess_ConstructorThrowsWhenModelPartNameDoesNotCorrespondToAnyModelPart,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    auto       model         = Model{};
+    const auto test_settings = Parameters{R"({"model_part_name" : "Foo"})"};
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        (ApplySeepageBoundaryProcess{model, test_settings}),
+        "ApplySeepageBoundaryProcess: \"Foo\" does not correspond to any model part in the model");
+}
+
 } // namespace Kratos::Testing
