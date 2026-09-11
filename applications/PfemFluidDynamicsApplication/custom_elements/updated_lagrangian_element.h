@@ -411,19 +411,13 @@ namespace Kratos
     void GetDisplacementValues(Vector &rValues,
                                const int Step = 0);
 
-    void GetPositions(Vector &rValues,
-                      const ProcessInfo &rCurrentProcessInfo,
-                      const double theta);
+    void GetPositions(Vector &rValues);
 
     void GetAccelerationValues(Vector &rValues,
                                const int Step = 0);
 
     void GetPressureVelocityValues(Vector &rValues,
                                    const int Step);
-
-    void GetElementalAcceleration(Vector &rValues,
-                                  const int Step,
-                                  const double TimeStep);
 
     /// Determine integration point weights and shape function derivatives from the element's geometry.
     virtual void CalculateGeometryData(ShapeFunctionDerivativesArrayType &rDN_DX,
@@ -483,12 +477,7 @@ namespace Kratos
                               const ProcessInfo &rCurrentProcessInfo,
                               const ShapeFunctionDerivativesType &rDN_DX);
 
-    bool CalcStrainRate(ElementalVariables &rElementalVariables,
-                        const ProcessInfo &rCurrentProcessInfo,
-                        const ShapeFunctionDerivativesType &rDN_DX,
-                        const double theta);
-
-    bool CalcCompleteStrainRate(ElementalVariables &rElementalVariables,
+    bool CalcStrainRateMeasures(ElementalVariables &rElementalVariables,
                                 const ProcessInfo &rCurrentProcessInfo,
                                 const ShapeFunctionDerivativesType &rDN_DX,
                                 const double theta);
@@ -510,46 +499,31 @@ namespace Kratos
                    const ProcessInfo &rCurrentProcessInfo,
                    const double theta);
 
-    void CalcVolumetricDefRate(const ShapeFunctionDerivativesType &rDN_DX,
-                               double &volumetricDefRate,
-                               MatrixType &invGradDef,
-                               const double theta);
-
     void CalcVolDefRateFromSpatialVelGrad(double &volumetricDefRate,
-                                          MatrixType &SpatialVelocityGrad);
+                                          const MatrixType &SpatialVelocityGrad);
 
-    void CalcSpatialVelocityGrad(MatrixType &invFgrad,
-                                 MatrixType &VelDefgrad,
+    void CalcSpatialVelocityGrad(const MatrixType &invFgrad,
+                                 const MatrixType &VelDefgrad,
                                  MatrixType &SpatialVelocityGrad);
 
-    void CalcMDGreenLagrangeMaterial(MatrixType &Fgrad,
-                                     MatrixType &VelDefgrad,
+    void CalcMDGreenLagrangeMaterial(const MatrixType &Fgrad,
+                                     const MatrixType &VelDefgrad,
                                      VectorType &MDGreenLagrangeMaterial);
 
-    void CalcSpatialDefRate(VectorType &MDGreenLagrangeMaterial,
-                            MatrixType &invFgrad,
+    void CalcSpatialDefRate(const VectorType &MDGreenLagrangeMaterial,
+                            const MatrixType &invFgrad,
                             VectorType &SpatialDefRate);
 
-    void CalcDeviatoricInvariant(VectorType &SpatialDefRate,
+    void CalcDeviatoricInvariant(const VectorType &SpatialDefRate,
                                  double &DeviatoricInvariant);
 
-    void CalcEquivalentStrainRate(VectorType &SpatialDefRate,
+    void CalcEquivalentStrainRate(const VectorType &SpatialDefRate,
                                   double &EquivalentStrainRate);
 
     double CalcNormalProjectionDefRate(const VectorType &SpatialDefRate,
                                        const array_1d<double, 3> NormalVector);
 
-    double CalcNormalProjectionDefRate(VectorType &SpatialDefRate);
-
-    void CheckStrain1(double &VolumetricDefRate,
-                      MatrixType &SpatialVelocityGrad);
-
-    void CheckStrain2(MatrixType &SpatialVelocityGrad,
-                      MatrixType &Fgrad,
-                      MatrixType &VelDefgrad);
-
-    bool CheckStrain3(VectorType &SpatialDefRate,
-                      MatrixType &SpatialVelocityGrad);
+    double CalcNormalProjectionDefRate(const VectorType &SpatialDefRate);
 
     virtual void CalcElasticPlasticCauchySplitted(
         ElementalVariables &rElementalVariables,
@@ -640,7 +614,7 @@ namespace Kratos
                                    const Kratos::Variable<TVariableType> &Var,
                                    const ShapeFunctionsType &rShapeFunc)
     {
-      GeometryType &rGeom = this->GetGeometry();
+      const GeometryType &rGeom = this->GetGeometry();
       const SizeType NumNodes = rGeom.PointsNumber();
 
       rResult = rShapeFunc[0] * (rGeom[0].FastGetSolutionStepValue(Var, 0) - rGeom[0].FastGetSolutionStepValue(Var, 1));
@@ -655,7 +629,7 @@ namespace Kratos
                                  const Kratos::Variable<double> &Var,
                                  const ShapeFunctionDerivativesType &rDN_DX)
     {
-      GeometryType &rGeom = this->GetGeometry();
+      const GeometryType &rGeom = this->GetGeometry();
       const SizeType NumNodes = rGeom.PointsNumber();
 
       const double &var = rGeom[0].FastGetSolutionStepValue(Var);
@@ -675,7 +649,7 @@ namespace Kratos
                                  const ShapeFunctionDerivativesType &rDN_DX,
                                  const IndexType Step)
     {
-      GeometryType &rGeom = this->GetGeometry();
+      const GeometryType &rGeom = this->GetGeometry();
       const SizeType NumNodes = rGeom.PointsNumber();
 
       const double &var = rGeom[0].FastGetSolutionStepValue(Var, Step);
@@ -694,7 +668,7 @@ namespace Kratos
                                            const Kratos::Variable<double> &Var,
                                            const ShapeFunctionDerivativesType &rDN_DX)
     {
-      GeometryType &rGeom = this->GetGeometry();
+      const GeometryType &rGeom = this->GetGeometry();
       const SizeType NumNodes = rGeom.PointsNumber();
 
       const double &var = rGeom[0].FastGetSolutionStepValue(Var, 0) - rGeom[0].FastGetSolutionStepValue(Var, 1);
@@ -714,7 +688,7 @@ namespace Kratos
                                            const ShapeFunctionDerivativesType &rDN_DX,
                                            const double weight)
     {
-      GeometryType &rGeom = this->GetGeometry();
+      const GeometryType &rGeom = this->GetGeometry();
       const SizeType NumNodes = rGeom.PointsNumber();
 
       const double &var = (1.0 + weight) * rGeom[0].FastGetSolutionStepValue(Var, 0) - rGeom[0].FastGetSolutionStepValue(Var, 1);
@@ -733,7 +707,7 @@ namespace Kratos
                                    const Kratos::Variable<array_1d<double, 3>> &Var,
                                    const ShapeFunctionDerivativesType &rDN_DX)
     {
-      GeometryType &rGeom = this->GetGeometry();
+      const GeometryType &rGeom = this->GetGeometry();
       const SizeType NumNodes = rGeom.PointsNumber();
 
       rResult = 0.0;
@@ -859,10 +833,10 @@ namespace Kratos
       double normNormal = NormalVector[0] * NormalVector[0] + NormalVector[1] * NormalVector[1] + NormalVector[2] * NormalVector[2];
       NormalVector *= 1.0 / sqrt(normNormal);
 
-      //to determine if the computed normal outwards or inwards
-      double deltaX = rGeom[idB].X() - rGeom[idA].X();
-      double deltaY = rGeom[idB].Y() - rGeom[idA].Y();
-      double deltaZ = rGeom[idB].Z() - rGeom[idA].Z();
+      // to determine if the computed normal outwards or inwards
+      const double deltaX = TangentXi[0];
+      const double deltaY = TangentXi[1];
+      const double deltaZ = TangentXi[2];
       double elementSize = sqrt(deltaX * deltaX + deltaY * deltaY + deltaZ * deltaZ); // this is just to have an idea of the size of the element
       const array_1d<double, 3> MeanPoint = (rGeom[idC].Coordinates() + rGeom[idB].Coordinates() + rGeom[idA].Coordinates()) / 3.0;
       const array_1d<double, 3> DistanceA = rGeom[otherId].Coordinates() - (MeanPoint + NormalVector * elementSize);
@@ -890,10 +864,10 @@ namespace Kratos
       double normNormal = NormalVector[0] * NormalVector[0] + NormalVector[1] * NormalVector[1] + NormalVector[2] * NormalVector[2];
       NormalVector *= 1.0 / sqrt(normNormal);
 
-      //to determine if the computed normal outwards or inwards
-      double deltaX = rGeom[idB].X() - rGeom[idA].X();
-      double deltaY = rGeom[idB].Y() - rGeom[idA].Y();
-      double deltaZ = rGeom[idB].Z() - rGeom[idA].Z();
+      // to determine if the computed normal outwards or inwards
+      const double deltaX = TangentXi[0];
+      const double deltaY = TangentXi[1];
+      const double deltaZ = TangentXi[2];
 
       const double a = MathUtils<double>::Norm3(rGeom.GetPoint(idA) - rGeom.GetPoint(idB));
       const double b = MathUtils<double>::Norm3(rGeom.GetPoint(idB) - rGeom.GetPoint(idC));

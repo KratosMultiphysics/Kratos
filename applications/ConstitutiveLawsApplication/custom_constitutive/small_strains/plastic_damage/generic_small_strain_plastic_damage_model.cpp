@@ -668,7 +668,6 @@ CalculateDamageParameters(
 )
 {
     array_1d<double, VoigtSize> deviator = ZeroVector(6);
-    array_1d<double, VoigtSize> h_capa = ZeroVector(6);
     double J2, tensile_indicator_factor, compression_indicator_factor, suma = 0.0;
     array_1d<double, Dimension> principal_stresses;
 

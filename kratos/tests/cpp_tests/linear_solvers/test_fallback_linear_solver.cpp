@@ -177,4 +177,32 @@ KRATOS_TEST_CASE_IN_SUITE(FallbackLinearSolverConstructorParameters, KratosCoreF
     KRATOS_EXPECT_EQ(simple_fallback_solver.GetCurrentSolverIndex(), 0);
 }
 
+KRATOS_TEST_CASE_IN_SUITE(FallbackLinearSolverAllSolversFail, KratosCoreFastSuite)
+{
+    // Create the solvers, none of which can solve anything
+    auto p_solver1 = Kratos::make_shared<DummyLinearSolverType>();
+    auto p_solver2 = Kratos::make_shared<DummyLinearSolverType>();
+
+    // Create the matrix and vectors
+    const std::size_t size = 3;
+    SparseMatrixType A(size, size);
+    // Push back 1.0 in the diagonal
+    for (std::size_t i = 0; i < size; ++i) {
+        A.push_back(i, i, 1.0);
+    }
+    A.set_filled(size + 1, size);
+    VectorType b = ZeroVector(size);
+    VectorType x = ZeroVector(size);
+
+    // Create a simple fallback solver
+    std::vector<LinearSolverType::Pointer> solvers = {p_solver1, p_solver2};
+    FallbackLinearSolverType simple_fallback_solver(solvers);
+
+    // Exhausting the list must be reported as a failure, not throw
+    const auto solved = simple_fallback_solver.Solve(A, x, b);
+
+    // Check that the system was not solved
+    KRATOS_EXPECT_FALSE(solved);
+}
+
 } // namespace Kratos::Testing

@@ -93,6 +93,11 @@ void AddKratosComponent(const std::string& rName, const Variable<std::string>& r
     KratosComponents<Variable<std::string>>::Add(rName, rComponent);
 }
 
+void AddKratosComponent(const std::string& rName, const Variable<std::vector<Vector>>& rComponent)
+{
+    KratosComponents<Variable<std::vector<Vector>>>::Add(rName, rComponent);
+}
+
 void AddKratosComponent(const std::string& rName, const Variable<Flags>& rComponent)
 {
     KratosComponents<Variable<Flags>>::Add(rName, rComponent);
@@ -140,6 +145,7 @@ template class KratosComponents<Variable<Quaternion<double>>>;
 template class KratosComponents<Variable<Vector>>;
 template class KratosComponents<Variable<Matrix>>;
 template class KratosComponents<Variable<std::string>>;
+template class KratosComponents<Variable<std::vector<Vector>>>;
 template class KratosComponents<Variable<Flags>>;
 template class KratosComponents<Flags>;
 template class KratosComponents<DataCommunicator>;
