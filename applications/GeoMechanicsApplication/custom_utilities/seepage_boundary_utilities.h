@@ -64,7 +64,8 @@ std::vector<Node*> KRATOS_API(GEO_MECHANICS_APPLICATION) CollectSeepageNodes(Mod
 // highest-pressure such node is fixed at zero pressure. Otherwise the fixed node with the largest
 // outflow is released. Fixing takes precedence over releasing, and ties are broken by the lowest
 // node id so the result is reproducible.
-bool KRATOS_API(GEO_MECHANICS_APPLICATION)
-    SwitchOneSeepageNodeIfNeeded(const std::vector<Node*>& rSeepageNodes, const NodalFlowMap& rNodalFlows);
+bool KRATOS_API(GEO_MECHANICS_APPLICATION) SwitchOneSeepageNodeIfNeeded(const std::vector<Node*>& rSeepageNodes,
+                                                                        const NodalFlowMap& rNodalFlows,
+                                                                        int EchoLevel = 0);
 
 } // namespace Kratos::Geo::SeepageBoundaryUtilities

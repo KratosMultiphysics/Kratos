@@ -95,8 +95,8 @@ class KratosGeoMechanicsSeepageTests(KratosUnittest.TestCase):
     def test_three_element_seepage_fixed_bottom_boundary_stop_inflow(self):
         """
         Test with a fixed bottom pressure which is lower than a hydrostatic pressure
-        would be when the column is filled. This would induce inflow, but the seepage
-        boundary prevents that
+        would be when the column is filled. As the top of the column will have positive water pressures ( suction )
+        the seepage boundary has the state of a closed ( Neumann, with q = 0 ) boundary.
         """
         test_name = "seepage_tests"
         file_path = test_helper.get_file_path(

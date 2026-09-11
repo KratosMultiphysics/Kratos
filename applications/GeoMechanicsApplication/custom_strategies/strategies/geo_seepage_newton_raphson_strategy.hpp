@@ -76,9 +76,9 @@ public:
 
         mSeepageNodes = Geo::SeepageBoundaryUtilities::CollectSeepageNodes(BaseType::GetModelPart());
 
-        if (this->GetEchoLevel() > 0) {
-            KRATOS_INFO("GeoSeepageNewtonRaphsonStrategy::Initialize")
-                << "Found " << mSeepageNodes.size() << " seepage nodes" << std::endl;
+        KRATOS_INFO_IF("GeoSeepageNewtonRaphsonStrategy::Initialize", this->GetEchoLevel() > 0)
+            << "Found " << mSeepageNodes.size() << " seepage nodes" << std::endl;
+        if (this->GetEchoLevel() > 1) {
             for (auto* p_node : mSeepageNodes) {
                 KRATOS_INFO("GeoSeepageNewtonRaphsonStrategy::Initialize")
                     << "Node " << p_node->Id()
@@ -252,6 +252,12 @@ public:
         // plots a warning if the maximum number of iterations is exceeded
         if (iteration_number >= mMaxIterationNumber) {
             this->MaxIterationsExceeded();
+
+            // ---- SEEPAGE SEAM 3: report that switching seepage node states requires more iterations ----
+            KRATOS_INFO_IF("GeoSeepageNewtonRaphsonStrategy", any_switched)
+                << "The state of a seepage node was switched during the last iteration. "
+                << "Please increase the maximum number of iterations to let seepage converge." << std::endl;
+            // ----------------------------------------------------------------------------------
         } else {
             KRATOS_INFO_IF("GeoSeepageNewtonRaphsonStrategy", this->GetEchoLevel() > 0)
                 << "Convergence achieved after " << iteration_number << " / " << mMaxIterationNumber
@@ -300,7 +306,8 @@ private:
         const auto nodal_flows = Geo::SeepageBoundaryUtilities::CalculateNodalWaterFlows(
             BaseType::GetModelPart(), BaseType::GetModelPart().GetProcessInfo());
 
-        return Geo::SeepageBoundaryUtilities::SwitchOneSeepageNodeIfNeeded(mSeepageNodes, nodal_flows);
+        return Geo::SeepageBoundaryUtilities::SwitchOneSeepageNodeIfNeeded(
+            mSeepageNodes, nodal_flows, this->GetEchoLevel());
     }
 
     // Cached once in Initialize. The conditions of a model part do not change during a solve, so
