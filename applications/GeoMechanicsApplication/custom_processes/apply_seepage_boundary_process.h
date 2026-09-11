@@ -22,6 +22,8 @@ class KRATOS_API(GEO_MECHANICS_APPLICATION) ApplySeepageBoundaryProcess : public
 public:
     ApplySeepageBoundaryProcess();
     ~ApplySeepageBoundaryProcess() override;
+
+    [[nodiscard]] std::string Info() const override;
 };
 
 } // namespace Kratos

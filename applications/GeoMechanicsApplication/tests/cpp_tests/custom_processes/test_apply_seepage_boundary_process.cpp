@@ -12,12 +12,14 @@
 #include "custom_processes/apply_seepage_boundary_process.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
 
+using namespace std::string_literals;
+
 namespace Kratos::Testing
 {
 
-KRATOS_TEST_CASE_IN_SUITE(ApplySeepageBoundaryProcess_CanBeDefaultConstructed, KratosGeoMechanicsFastSuiteWithoutKernel)
+KRATOS_TEST_CASE_IN_SUITE(ApplySeepageBoundaryProcess_InfoReturnsClassName, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    ApplySeepageBoundaryProcess process;
+    KRATOS_EXPECT_EQ(ApplySeepageBoundaryProcess{}.Info(), "ApplySeepageBoundaryProcess"s);
 }
 
 } // namespace Kratos::Testing
