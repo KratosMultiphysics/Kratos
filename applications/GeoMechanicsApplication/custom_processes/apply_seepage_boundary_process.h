@@ -17,9 +17,15 @@
 namespace Kratos
 {
 
+class Model;
+class Parameters;
+
 class KRATOS_API(GEO_MECHANICS_APPLICATION) ApplySeepageBoundaryProcess : public Process
 {
 public:
+    ApplySeepageBoundaryProcess() = default;
+    ApplySeepageBoundaryProcess(Model& rModel, const Parameters& rProcessSettings);
+
     [[nodiscard]] std::string Info() const override;
 };
 
