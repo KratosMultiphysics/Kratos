@@ -39,6 +39,7 @@
 #include "custom_conditions/coupling_penalty_6p_condition.h"
 #include "custom_conditions/coupling_lagrange_condition.h"
 #include "custom_conditions/coupling_nitsche_condition.h"
+#include "custom_conditions/coupling_nitsche_6p_condition.h"
 #include "custom_conditions/support_penalty_condition.h"
 #include "custom_conditions/support_penalty_6p_condition.h"
 #include "custom_conditions/support_lagrange_condition.h"
@@ -158,6 +159,7 @@ private:
     const CouplingPenalty6pCondition mCouplingPenalty6pCondition;
     const CouplingLagrangeCondition mCouplingLagrangeCondition;
     const CouplingNitscheCondition mCouplingNitscheCondition;
+    const CouplingNitsche6pCondition mCouplingNitsche6pCondition;
     const SupportPenaltyCondition mSupportPenaltyCondition;
     const SupportPenalty6pCondition mSupportPenalty6pCondition;
     const SupportLagrangeCondition mSupportLagrangeCondition;
