@@ -8,6 +8,9 @@ from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem_u
 from KratosMultiphysics.OptimizationApplication.utilities.helper_utilities import CallOnAll
 from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem import OptimizationProblem
 from KratosMultiphysics.OptimizationApplication.utilities.logger_utilities import OptimizationAnalysisTimeLogger
+from KratosMultiphysics.OptimizationApplication.execution_policies.execution_policy import ExecutionPolicy
+from KratosMultiphysics.OptimizationApplication.controls.control import Control
+from KratosMultiphysics.OptimizationApplication.algorithms.algorithm import Algorithm
 
 class OptimizationAnalysis:
     @classmethod
@@ -89,7 +92,7 @@ class OptimizationAnalysis:
         }""")
         for analyses_settings in self.project_parameters["analyses"].values():
             analyses_settings.AddMissingParameters(default_settings)
-            execution_policy = OptimizationComponentFactory(self.model, analyses_settings, self.optimization_problem)
+            execution_policy: ExecutionPolicy = OptimizationComponentFactory(self.model, analyses_settings, self.optimization_problem)
             self.optimization_problem.AddComponent(execution_policy)
 
     def _CreateResponses(self):
@@ -107,7 +110,7 @@ class OptimizationAnalysis:
         }""")
         for control_settings in self.project_parameters["controls"].values():
             control_settings.AddMissingParameters(default_settings)
-            control = OptimizationComponentFactory(self.model, control_settings, self.optimization_problem)
+            control: Control = OptimizationComponentFactory(self.model, control_settings, self.optimization_problem)
             self.optimization_problem.AddComponent(control)
 
     def _CreateProcesses(self):
@@ -131,7 +134,7 @@ class OptimizationAnalysis:
             if optimization_data_processes.Has(process_type):
                 for process_settings in optimization_data_processes[process_type].values():
                     process_settings.AddMissingParameters(optimization_data_process_default_settings)
-                    process = OptimizationComponentFactory(self.model, process_settings, self.optimization_problem)
+                    process: Kratos.Process = OptimizationComponentFactory(self.model, process_settings, self.optimization_problem)
                     self.optimization_problem.AddProcess(process_type, process)
 
     def _CreateAlgorithm(self):
@@ -140,7 +143,7 @@ class OptimizationAnalysis:
         }""")
         algorithm_settings = self.project_parameters["algorithm_settings"]
         algorithm_settings.AddMissingParameters(default_settings)
-        self.__algorithm = OptimizationComponentFactory(self.model, algorithm_settings, self.optimization_problem)
+        self.__algorithm: Algorithm = OptimizationComponentFactory(self.model, algorithm_settings, self.optimization_problem)
 
     def GetAlgorithm(self):
         return self.__algorithm

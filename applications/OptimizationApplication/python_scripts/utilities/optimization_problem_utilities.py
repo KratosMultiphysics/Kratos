@@ -8,27 +8,37 @@ from KratosMultiphysics.OptimizationApplication.utilities.component_data_view im
 from KratosMultiphysics.OptimizationApplication.responses.response_function import ResponseFunction
 from KratosMultiphysics.OptimizationApplication.controls.control import Control
 from KratosMultiphysics.OptimizationApplication.execution_policies.execution_policy import ExecutionPolicy
+from KratosMultiphysics.OptimizationApplication.model_part_controllers.model_part_controller import ModelPartController
+from KratosMultiphysics.OptimizationApplication.responses.response_function import ResponseFunction
+from KratosMultiphysics.OptimizationApplication.controls.control import Control
+from KratosMultiphysics.OptimizationApplication.algorithms.algorithm import Algorithm
 
-def OptimizationComponentFactory(model: Kratos.Model, parameters: Kratos.Parameters, optimization_problem: OptimizationProblem):
-    if not parameters.Has("type"):
-        raise RuntimeError(f"Components created from OptimizationComponentFactory require the \"type\" [ provided parameters = {parameters}].")
+def OptimizationComponentFactory(
+    model: Kratos.Model,
+    parameters: Kratos.Parameters,
+    optimization_problem: OptimizationProblem) -> Union[ModelPartController,ExecutionPolicy,ResponseFunction,Control,Kratos.Process,Algorithm]:
+        if not parameters.Has("type"):
+            raise RuntimeError(f"Components created from OptimizationComponentFactory require the \"type\" [ provided parameters = {parameters}].")
 
-    python_type = parameters["type"].GetString()
+        python_type = parameters["type"].GetString()
 
-    if not parameters.Has("module") or parameters["module"].GetString() == "":
-        # in the case python type comes without a module
-        # as in the case python_type is in the sys path or the current working directory.
-        full_module_name = python_type
-    else:
-        # in the case python type comes with a module.
-        module = parameters["module"].GetString()
-        full_module_name = f"{module}.{python_type}"
+        if not parameters.Has("module") or parameters["module"].GetString() == "":
+            # in the case python type comes without a module
+            # as in the case python_type is in the sys path or the current working directory.
+            full_module_name = python_type
+        else:
+            # in the case python type comes with a module.
+            module = parameters["module"].GetString()
+            full_module_name = f"{module}.{python_type}"
 
-    module = import_module(full_module_name)
-    if not hasattr(module, "Factory"):
-        raise RuntimeError(f"Python module {full_module_name} does not have a Factory method.")
+        module = import_module(full_module_name)
+        if not hasattr(module, "Factory"):
+            raise RuntimeError(f"Python module {full_module_name} does not have a Factory method.")
 
-    return getattr(module, "Factory")(model, parameters, optimization_problem)
+        instance = getattr(module, "Factory")(model, parameters, optimization_problem)
+        if not isinstance(instance, (ModelPartController,ExecutionPolicy,ResponseFunction,Control,Kratos.Process,Algorithm)):
+            raise RuntimeError(f"{full_module_name}.Factory produced an instance of unsupported type \"{type(instance).__name__}\"")
+        return instance
 
 def GetAllComponentFullNamesWithData(optimization_problem: OptimizationProblem) -> 'list[str]':
     data_container = optimization_problem.GetProblemDataContainer()
