@@ -164,6 +164,11 @@ def CreateRomAnalysisInstance(cls, global_model, parameters, nn_rom_interface=No
                         list_of_processes.remove(process)
                 self.rom_basis_process_list_check = False
 
+            # Automatically inject the Python solver into any custom process that needs it
+            for process in list_of_processes:
+                if hasattr(process, "SetDependencies"):
+                    process.SetDependencies(self._GetSolver(), self.rom_parameters)
+
             return list_of_processes
 
         def _GetListOfOutputProcesses(self):
@@ -373,6 +378,11 @@ def CreateRomAnalysisInstance(cls, global_model, parameters, nn_rom_interface=No
             # Note that this needs to be done prior to the other processes to avoid unfixing the BCs
             if self.train_hrom:
                 self.__hrom_training_utility.AppendCurrentStepResiduals()
+
+            # If the residuals process is present, fetch residuals before clearing.
+            for process in self._GetListOfOutputProcesses():
+                if hasattr(process, "CaptureResiduals"):
+                    process.CaptureResiduals()
 
             # #FIXME: Make this optional. This must be a process
             # # Project the ROM solution onto the visualization modelparts
