@@ -64,6 +64,8 @@ class TestOptimizationProblemAsciiOutputProcess(kratos_unittest.TestCase):
             return None
         def Execute(self) -> None:
             pass
+        def GetPath(self) -> str:
+            return "."
 
     @classmethod
     def setUpClass(cls) -> None:
