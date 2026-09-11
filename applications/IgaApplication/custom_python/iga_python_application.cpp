@@ -105,6 +105,9 @@ PYBIND11_MODULE(KratosIgaApplication, m)
 
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, KNOT_SPAN_SIZES)
 
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, INTEGRATION_WEIGHTS)
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, UNIT_NORMAL)
+
     AddCustomUtilitiesToPython(m);
     AddCustomProcessesToPython(m);
     AddCustomStrategiesToPython(m);
