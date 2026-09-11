@@ -107,6 +107,14 @@
                 }
             },
             {
+                "python_module": "apply_seepage_boundary_process",
+                "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
+                "process_name": "ApplySeepageBoundaryProcess",
+                "Parameters": {
+                    "model_part_name": "PorousDomain.top_boundary"
+                }
+            },
+            {
                 "python_module": "apply_vector_constraint_table_process",
                 "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
                 "process_name": "ApplyVectorConstraintTableProcess",

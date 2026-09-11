@@ -23,6 +23,8 @@ class Parameters;
 class KRATOS_API(GEO_MECHANICS_APPLICATION) ApplySeepageBoundaryProcess : public Process
 {
 public:
+    KRATOS_CLASS_POINTER_DEFINITION(ApplySeepageBoundaryProcess);
+
     ApplySeepageBoundaryProcess() = default;
     ApplySeepageBoundaryProcess(Model& rModel, const Parameters& rProcessSettings);
 

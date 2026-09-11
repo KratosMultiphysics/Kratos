@@ -42,9 +42,6 @@ Begin SubModelPart porous
     2
     3
   End SubModelPartElements
-  Begin SubModelPartConditions
-    1
-  End SubModelPartConditions
 End SubModelPart
 
 Begin SubModelPart bottom_boundary
