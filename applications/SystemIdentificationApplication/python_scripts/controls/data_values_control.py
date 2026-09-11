@@ -42,7 +42,12 @@ class DataValuesControl(Control):
                     "primal_model_part_name" : "PLEASE_PROVIDE_MODEL_PART_NAME",
                     "adjoint_model_part_name": "PLEASE_PROVIDE_MODEL_PART_NAME"
                 }
-            ]
+            ],
+            "control_initialization_settings": {
+                "initialize_from_file" : false,
+                "filetype" : "csv",
+                "file_name" : ""
+            }
         }""")
 
         parameters.ValidateAndAssignDefaults(default_settings)
@@ -103,9 +108,32 @@ class DataValuesControl(Control):
         self.interval_bounder = TensorAdaptorBoundingManager(control_variable_bounds)
         self.clamper = KratosSI.SmoothClamper(0, 1)
 
+        # Control initialization settings
+        self.initialization_settings = parameters["control_initialization_settings"]
+        self.initialize_from_file = self.initialization_settings["initialize_from_file"].GetBool()
+        if self.initialize_from_file:
+            if self.initialization_settings["filetype"].GetString() != "csv":
+                raise RuntimeError(f"Only csv file type is supported for control initialization. [ control name = \"{self.GetName()}\"]")
+            self.initialization_file_name = self.initialization_settings["file_name"].GetString()
+
     def Initialize(self) -> None:
         self.primal_model_part = self.primal_model_part_operation.GetModelPart()
         self.adjoint_model_part = self.adjoint_model_part_operation.GetModelPart()
+
+        # initialize the control field if required from a file
+        if self.initialize_from_file:
+            df = numpy.loadtxt(self.initialization_file_name, delimiter=',', skiprows=1)
+                            
+            # check sizes
+            if df.shape[1] != 2:
+                raise RuntimeError(f"Initialization file for control \"{self.GetName()}\" should have 2 columns (Node/Element/ConditionID, {self.controlled_physical_variable.Name()}) with first row for header. [ provided file: {self.initialization_file_name} ]")
+            if len(df) != self.GetEmptyField().Shape()[0]:
+                raise RuntimeError(f"Control initialization file does not have the required number of entries. [ control name = \"{self.GetName()}\", required = {self.GetEmptyField().Shape()[0]}, provided = {len(df)}]")
+
+            # Assign to the specific field
+            ta = GetTensorAdaptor(self.primal_model_part, self.container_type, self.controlled_physical_variable)
+            ta.data[:] = df[:, 1].flatten()
+            ta.StoreData()
 
         # initialize the filter
         self.filter.SetComponentDataView(ComponentDataView(self, self.optimization_problem))
