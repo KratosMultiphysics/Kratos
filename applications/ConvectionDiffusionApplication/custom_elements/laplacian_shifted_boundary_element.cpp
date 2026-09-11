@@ -15,9 +15,8 @@
 
 // Project includes
 #include "includes/checks.h"
-#include "includes/define.h"
 #include "includes/kratos_flags.h"
-#include "includes/ublas_interface.h"
+#include "includes/default_interface.h"
 #include "includes/variables.h"
 #include "includes/convection_diffusion_settings.h"
 #include "utilities/geometry_utilities.h"

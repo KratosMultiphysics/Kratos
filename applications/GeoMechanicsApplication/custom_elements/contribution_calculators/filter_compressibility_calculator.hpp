@@ -17,7 +17,7 @@
 #include "geo_aliases.h"
 #include "geo_mechanics_application_variables.h"
 #include "includes/properties.h"
-#include "includes/ublas_interface.h"
+#include "includes/default_interface.h"
 
 #include <utility>
 #include <vector>
