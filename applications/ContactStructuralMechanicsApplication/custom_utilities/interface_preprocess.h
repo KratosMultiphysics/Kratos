@@ -210,7 +210,7 @@ private:
      * @param ConditionId The Id of the condition
      * @param rCondition The base condition
      */
-    void CreateNewCondition(
+    Condition::Pointer CreateNewCondition(
         Properties::Pointer prThisProperties,
         const GeometryType& rGeometry,
         const IndexType ConditionId,

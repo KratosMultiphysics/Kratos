@@ -48,7 +48,7 @@ bool ExactMortarIntegrationUtility<2, 2, false>::GetExactIntegration(
     for (IndexType i_slave = 0; i_slave < 2; ++i_slave) {
         const array_1d<double, 3>& r_normal = rOriginalSlaveGeometry[i_slave].FastGetSolutionStepValue(NORMAL);
 
-        const double distance = GeometricalProjectionUtilities::FastProjectDirection(rOriginalMasterGeometry, rOriginalSlaveGeometry[i_slave], projected_gp_global, rMasterNormal, -r_normal ); // The opposite direction
+        const double distance = GeometricalProjectionUtilities::FastProjectDirection(rOriginalMasterGeometry, rOriginalSlaveGeometry[i_slave], projected_gp_global, r_normal, rMasterNormal ); // The opposite direction
 
         if (distance > mDistanceThreshold) {
             rConditionsPointsSlave.clear();
@@ -520,7 +520,7 @@ bool ExactMortarIntegrationUtility<2, 2, true>::GetExactIntegration(
     for (unsigned int i_slave = 0; i_slave < 2; ++i_slave) {
         const array_1d<double, 3>& r_normal = rOriginalSlaveGeometry[i_slave].FastGetSolutionStepValue(NORMAL);
 
-        const double distance = GeometricalProjectionUtilities::FastProjectDirection(rOriginalMasterGeometry, rOriginalSlaveGeometry[i_slave], projected_gp_global, rMasterNormal, -r_normal ); // The opposite direction
+        const double distance = GeometricalProjectionUtilities::FastProjectDirection(rOriginalMasterGeometry, rOriginalSlaveGeometry[i_slave], projected_gp_global, r_normal, rMasterNormal ); // The opposite direction
 
         if (distance > mDistanceThreshold) {
             rConditionsPointsSlave.clear();
