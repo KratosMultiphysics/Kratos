@@ -1,0 +1,318 @@
+// KRATOS___
+//     //   ) )
+//    //         ___      ___
+//   //  ____  //___) ) //   ) )
+//  //    / / //       //   / /
+// ((____/ / ((____   ((___/ /  MECHANICS
+//
+//  License:         geo_mechanics_application/license.txt
+//
+//  Main authors:    Richard Faasse,
+//                   Wijtze Pieter Kikstra
+
+#pragma once
+
+#include <string>
+#include <vector>
+
+#include "custom_utilities/seepage_boundary_utilities.h"
+#include "includes/define.h"
+#include "includes/model_part.h"
+#include "solving_strategies/strategies/residualbased_newton_raphson_strategy.h"
+
+namespace Kratos
+{
+
+// A Newton-Raphson strategy that can switch seepage boundary conditions between Dirichlet and
+// Neumann while iterating.
+//
+// This strategy makes sure that the solver does not declare convergence on an iteration whose
+// boundary configuration has just changed underneath it.
+template <class TSparseSpace, class TDenseSpace, class TLinearSolver>
+class GeoSeepageNewtonRaphsonStrategy
+    : public ResidualBasedNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>
+{
+public:
+    KRATOS_CLASS_POINTER_DEFINITION(GeoSeepageNewtonRaphsonStrategy);
+
+    using BaseType   = ImplicitSolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>;
+    using MotherType = ResidualBasedNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>;
+    using TConvergenceCriteriaType = ConvergenceCriteria<TSparseSpace, TDenseSpace>;
+    using TBuilderAndSolverType    = typename BaseType::TBuilderAndSolverType;
+    using TSchemeType              = typename BaseType::TSchemeType;
+    using DofsArrayType            = typename BaseType::DofsArrayType;
+    using TSystemMatrixType        = typename BaseType::TSystemMatrixType;
+    using TSystemVectorType        = typename BaseType::TSystemVectorType;
+
+    // The base class is a dependent template base, so every inherited data member used by the
+    // copied SolveSolutionStep must be pulled into scope explicitly.
+    using MotherType::mCalculateReactionsFlag;
+    using MotherType::mMaxIterationNumber;
+    using MotherType::mNonconvergedSolutionsMatrix;
+    using MotherType::mpA; // Tangent matrix
+    using MotherType::mpb; // Residual vector of iteration i
+    using MotherType::mpConvergenceCriteria;
+    using MotherType::mpDx; // Delta x of iteration i
+    using MotherType::mStoreNonconvergedSolutionsFlag;
+    using MotherType::mUseOldStiffnessInFirstIteration;
+
+    GeoSeepageNewtonRaphsonStrategy(ModelPart&                    rModelPart,
+                                    typename TSchemeType::Pointer pScheme,
+                                    typename TConvergenceCriteriaType::Pointer pNewConvergenceCriteria,
+                                    typename TBuilderAndSolverType::Pointer pNewBuilderAndSolver,
+                                    int                                     MaxIterations = 30,
+                                    bool CalculateReactions                               = false,
+                                    bool ReformDofSetAtEachStep                           = false,
+                                    bool MoveMeshFlag                                     = false)
+        : MotherType(rModelPart, pScheme, pNewConvergenceCriteria, pNewBuilderAndSolver, MaxIterations, CalculateReactions, ReformDofSetAtEachStep, MoveMeshFlag)
+    {
+    }
+
+    [[nodiscard]] std::string Info() const override { return "GeoSeepageNewtonRaphsonStrategy"; }
+
+    void Initialize() override
+    {
+        MotherType::Initialize();
+
+        mSeepageNodes = Geo::SeepageBoundaryUtilities::CollectSeepageNodes(BaseType::GetModelPart());
+
+        KRATOS_INFO_IF("GeoSeepageNewtonRaphsonStrategy::Initialize", this->GetEchoLevel() > 0)
+            << "Found " << mSeepageNodes.size() << " seepage nodes" << std::endl;
+        if (this->GetEchoLevel() > 1) {
+            for (auto* p_node : mSeepageNodes) {
+                KRATOS_INFO("GeoSeepageNewtonRaphsonStrategy::Initialize")
+                    << "Node " << p_node->Id()
+                    << " pressure = " << p_node->FastGetSolutionStepValue(WATER_PRESSURE)
+                    << ", fixed = " << p_node->IsFixed(WATER_PRESSURE) << "\n";
+            }
+        }
+    }
+
+    // NOTE: This is a deliberate copy of
+    // ResidualBasedNewtonRaphsonStrategy::SolveSolutionStep
+    // (kratos/solving_strategies/strategies/residualbased_newton_raphson_strategy.h, lines
+    // 919-1105). The ONLY intended differences are the blocks marked "SEEPAGE SEAM". Please keep it
+    // that way: a diff against the core method should show nothing else. It is copied rather than
+    // hooked because both seams have to run after PostCriteria, and no existing virtual method of
+    // the base class sits at that point.
+    bool SolveSolutionStep() override
+    {
+        // Pointers needed in the solution
+        ModelPart&                              r_model_part         = BaseType::GetModelPart();
+        typename TSchemeType::Pointer           p_scheme             = this->GetScheme();
+        typename TBuilderAndSolverType::Pointer p_builder_and_solver = this->GetBuilderAndSolver();
+        auto&                                   r_dof_set = p_builder_and_solver->GetDofSet();
+        std::vector<Vector>                     NonconvergedSolutions;
+
+        if (mStoreNonconvergedSolutionsFlag) {
+            Vector initial;
+            this->GetCurrentSolution(r_dof_set, initial);
+            NonconvergedSolutions.push_back(initial);
+        }
+
+        TSystemMatrixType& rA  = *mpA;
+        TSystemVectorType& rDx = *mpDx;
+        TSystemVectorType& rb  = *mpb;
+
+        // initializing the parameters of the Newton-Raphson cycle
+        unsigned int iteration_number                      = 1;
+        r_model_part.GetProcessInfo()[NL_ITERATION_NUMBER] = iteration_number;
+
+        p_scheme->InitializeNonLinIteration(r_model_part, rA, rDx, rb);
+        mpConvergenceCriteria->InitializeNonLinearIteration(r_model_part, r_dof_set, rA, rDx, rb);
+        bool is_converged = mpConvergenceCriteria->PreCriteria(r_model_part, r_dof_set, rA, rDx, rb);
+
+        // Function to perform the building and the solving phase.
+        if (BaseType::mRebuildLevel > 0 || BaseType::mStiffnessMatrixIsBuilt == false) {
+            TSparseSpace::SetToZero(rA);
+            TSparseSpace::SetToZero(rDx);
+            TSparseSpace::SetToZero(rb);
+
+            if (mUseOldStiffnessInFirstIteration) {
+                p_builder_and_solver->BuildAndSolveLinearizedOnPreviousIteration(
+                    p_scheme, r_model_part, rA, rDx, rb, BaseType::MoveMeshFlag());
+            } else {
+                p_builder_and_solver->BuildAndSolve(p_scheme, r_model_part, rA, rDx, rb);
+            }
+        } else {
+            TSparseSpace::SetToZero(rDx); // Dx = 0.00;
+            TSparseSpace::SetToZero(rb);
+
+            p_builder_and_solver->BuildRHSAndSolve(p_scheme, r_model_part, rA, rDx, rb);
+        }
+
+        // Debugging info
+        this->EchoInfo(iteration_number);
+
+        // Updating the results stored in the database
+        this->UpdateDatabase(rA, rDx, rb, BaseType::MoveMeshFlag());
+
+        p_scheme->FinalizeNonLinIteration(r_model_part, rA, rDx, rb);
+        mpConvergenceCriteria->FinalizeNonLinearIteration(r_model_part, r_dof_set, rA, rDx, rb);
+
+        if (mStoreNonconvergedSolutionsFlag) {
+            Vector first;
+            this->GetCurrentSolution(r_dof_set, first);
+            NonconvergedSolutions.push_back(first);
+        }
+
+        if (is_converged) {
+            if (mpConvergenceCriteria->GetActualizeRHSflag()) {
+                TSparseSpace::SetToZero(rb);
+
+                p_builder_and_solver->BuildRHS(p_scheme, r_model_part, rb);
+            }
+
+            is_converged = mpConvergenceCriteria->PostCriteria(r_model_part, r_dof_set, rA, rDx, rb);
+        }
+
+        // ---- SEEPAGE SEAM 1: decide the switch, then force a stiffness rebuild if needed ----
+        // Declared once here, and only re-assigned at the seam below. Declaring it inside both
+        // the first-iteration block and the loop body would shadow one with the other.
+        auto any_switched = UpdateSeepageBoundaryConditions();
+        if (any_switched) {
+            this->SetStiffnessMatrixIsBuilt(false);
+
+            // Since a water pressure fixity has been changed, at least one more iteration is required
+            is_converged = false;
+        }
+        // --------------------------------------------------------------------------------------
+
+        // Iteration Cycle... performed only for NonLinearProblems
+        while (is_converged == false && iteration_number++ < mMaxIterationNumber) {
+            // setting the number of iteration
+            r_model_part.GetProcessInfo()[NL_ITERATION_NUMBER] = iteration_number;
+
+            p_scheme->InitializeNonLinIteration(r_model_part, rA, rDx, rb);
+            mpConvergenceCriteria->InitializeNonLinearIteration(r_model_part, r_dof_set, rA, rDx, rb);
+
+            is_converged = mpConvergenceCriteria->PreCriteria(r_model_part, r_dof_set, rA, rDx, rb);
+
+            // call the linear system solver to find the correction mDx for the
+            // it is not called if there is no system to solve
+            if (TSparseSpace::Size(rDx) != 0) {
+                if (BaseType::mRebuildLevel > 1 || BaseType::mStiffnessMatrixIsBuilt == false) {
+                    if (this->GetKeepSystemConstantDuringIterations() == false) {
+                        // A = 0.00;
+                        TSparseSpace::SetToZero(rA);
+                        TSparseSpace::SetToZero(rDx);
+                        TSparseSpace::SetToZero(rb);
+
+                        p_builder_and_solver->BuildAndSolve(p_scheme, r_model_part, rA, rDx, rb);
+                    } else {
+                        TSparseSpace::SetToZero(rDx);
+                        TSparseSpace::SetToZero(rb);
+
+                        p_builder_and_solver->BuildRHSAndSolve(p_scheme, r_model_part, rA, rDx, rb);
+                    }
+                } else {
+                    TSparseSpace::SetToZero(rDx);
+                    TSparseSpace::SetToZero(rb);
+
+                    p_builder_and_solver->BuildRHSAndSolve(p_scheme, r_model_part, rA, rDx, rb);
+                }
+            } else {
+                KRATOS_WARNING("NO DOFS") << "ATTENTION: no free DOFs!! " << std::endl;
+            }
+
+            // Debugging info
+            this->EchoInfo(iteration_number);
+
+            // Updating the results stored in the database
+            this->UpdateDatabase(rA, rDx, rb, BaseType::MoveMeshFlag());
+
+            p_scheme->FinalizeNonLinIteration(r_model_part, rA, rDx, rb);
+            mpConvergenceCriteria->FinalizeNonLinearIteration(r_model_part, r_dof_set, rA, rDx, rb);
+
+            if (mStoreNonconvergedSolutionsFlag == true) {
+                Vector ith;
+                this->GetCurrentSolution(r_dof_set, ith);
+                NonconvergedSolutions.push_back(ith);
+            }
+
+            if (is_converged == true) {
+                if (mpConvergenceCriteria->GetActualizeRHSflag() == true) {
+                    TSparseSpace::SetToZero(rb);
+
+                    p_builder_and_solver->BuildRHS(p_scheme, r_model_part, rb);
+                }
+
+                is_converged = mpConvergenceCriteria->PostCriteria(r_model_part, r_dof_set, rA, rDx, rb);
+            }
+
+            // ---- SEEPAGE SEAM 2: decide the switch, then force a stiffness rebuild if needed ----
+            any_switched = UpdateSeepageBoundaryConditions();
+            if (any_switched) {
+                this->SetStiffnessMatrixIsBuilt(false);
+                is_converged = false;
+            }
+            // ----------------------------------------------------------------------------------
+        }
+
+        // plots a warning if the maximum number of iterations is exceeded
+        if (iteration_number >= mMaxIterationNumber) {
+            this->MaxIterationsExceeded();
+
+            // ---- SEEPAGE SEAM 3: report that switching seepage node states requires more iterations ----
+            KRATOS_INFO_IF("GeoSeepageNewtonRaphsonStrategy", any_switched)
+                << "The state of a seepage node was switched during the last iteration. "
+                << "Please increase the maximum number of iterations to let seepage converge." << std::endl;
+            // ----------------------------------------------------------------------------------
+        } else {
+            KRATOS_INFO_IF("GeoSeepageNewtonRaphsonStrategy", this->GetEchoLevel() > 0)
+                << "Convergence achieved after " << iteration_number << " / " << mMaxIterationNumber
+                << " iterations" << std::endl;
+        }
+
+        // calculate reactions if required
+        if (mCalculateReactionsFlag == true)
+            p_builder_and_solver->CalculateReactions(p_scheme, r_model_part, rA, rDx, rb);
+
+        if (mStoreNonconvergedSolutionsFlag) {
+            mNonconvergedSolutionsMatrix = Matrix(r_dof_set.size(), NonconvergedSolutions.size());
+            for (std::size_t i = 0; i < NonconvergedSolutions.size(); ++i) {
+                block_for_each(r_dof_set, [&](const auto& r_dof) {
+                    mNonconvergedSolutionsMatrix(r_dof.EquationId(), i) =
+                        NonconvergedSolutions[i](r_dof.EquationId());
+                });
+            }
+        }
+
+        return is_converged;
+    }
+
+    // After the step converges, store the assembled nodal water flow on the nodes so it can be
+    // visualised. This is exactly the map that drives the boundary switching, which is what makes
+    // it useful for verifying the sign convention in ShouldReleaseToNeumann.
+    void FinalizeSolutionStep() override
+    {
+        MotherType::FinalizeSolutionStep();
+
+        auto&       r_model_part   = BaseType::GetModelPart();
+        const auto& r_process_info = r_model_part.GetProcessInfo();
+        const auto  nodal_flows =
+            Geo::SeepageBoundaryUtilities::CalculateNodalWaterFlows(r_model_part, r_process_info);
+        Geo::SeepageBoundaryUtilities::AssignNodalWaterFlows(r_model_part, nodal_flows);
+    }
+
+private:
+    // Decides whether one seepage node must change between a Dirichlet and a zero-flux Neumann
+    // boundary, applies that change, and reports whether anything changed. At most one node
+    // switches per non-linear iteration, across the whole model.
+    bool UpdateSeepageBoundaryConditions()
+    {
+        if (mSeepageNodes.empty()) return false;
+
+        const auto nodal_flows = Geo::SeepageBoundaryUtilities::CalculateNodalWaterFlows(
+            BaseType::GetModelPart(), BaseType::GetModelPart().GetProcessInfo());
+
+        return Geo::SeepageBoundaryUtilities::SwitchOneSeepageNodeIfNeeded(
+            mSeepageNodes, nodal_flows, this->GetEchoLevel());
+    }
+
+    // Cached once in Initialize. The conditions of a model part do not change during a solve, so
+    // there is no need to rediscover the seepage nodes every iteration.
+    std::vector<Node*> mSeepageNodes;
+}; // Class GeoSeepageNewtonRaphsonStrategy
+
+} // namespace Kratos

@@ -1,0 +1,206 @@
+import os
+
+import KratosMultiphysics.KratosUnittest as KratosUnittest
+import test_helper
+
+from KratosMultiphysics.GeoMechanicsApplication.gid_output_file_reader import (
+    GiDOutputFileReader,
+)
+
+unit_weight_of_water = 1.0e04  # N/m^3
+intrinsic_permeability = 7.08e-13  # m^2
+dynamic_viscosity = 1.0e-03  # Pa*s
+
+height = 3.0  # m
+area = 1.0  # m^2 (for the whole column)
+nodal_area = area / 2  # m^2 (for each top and bottom node)
+
+end_time = 1.0
+
+
+def nodes_of_model_part(model, model_part_name):
+    return [node.Id for node in model.GetModelPart(model_part_name).Nodes]
+
+
+class KratosGeoMechanicsSeepageTests(KratosUnittest.TestCase):
+    """
+    Test suite for seepage conditions on steady state groundwater flow problems.
+    """
+
+    def assert_uniform_nodal_values(
+        self, node_ids, output_item_name, output_data, time, expected_value
+    ):
+        actual_values = GiDOutputFileReader.nodal_values_at_time(
+            output_item_name, time, output_data, node_ids
+        )
+        for node_id, value in zip(node_ids, actual_values):
+            self.assertAlmostEqual(
+                value,
+                expected_value,
+                places=None,
+                delta=test_helper.calculate_delta(
+                    expected_value, relative_tolerance=1.0e-04
+                ),
+                msg=f'"{output_item_name}" at node {node_id}',
+            )
+
+    def test_three_element_seepage_fixed_bottom_boundary(self):
+        """
+        This test has a high fixed water pressure at the bottom (higher than a hydrostatic
+        profile if the reference coordinate was the top of the column). This forces outflow
+        which, due to the seepage boundary, leads to a 0.0 pressure at the seepage boundary
+        """
+        test_name = "seepage_tests"
+        file_path = test_helper.get_file_path(
+            os.path.join(".", test_name, "fixed_bottom_boundary")
+        )
+        model = test_helper.run_kratos(file_path).model
+
+        # Read output file
+        reader = GiDOutputFileReader()
+        output_data = reader.read_output_from(
+            os.path.join(file_path, "three_element_seepage_test.post.res")
+        )
+
+        # Verify that top boundary nodes have seepage condition applied
+        top_node_ids = nodes_of_model_part(model, "PorousDomain.top_boundary")
+
+        # Since the bottom boundary is fixed to a high number, leading to outflow, the
+        # seepage nodes should have pressure = 0
+        self.assert_uniform_nodal_values(
+            top_node_ids, "WATER_PRESSURE", output_data, end_time, 0.0
+        )
+        overpressure = 1.0e04  # N/m^2
+        expected_nodal_out_flow = (
+            intrinsic_permeability * nodal_area * overpressure
+        ) / (dynamic_viscosity * height)
+        self.assert_uniform_nodal_values(
+            top_node_ids,
+            "NODAL_WATER_FLOW",
+            output_data,
+            end_time,
+            expected_nodal_out_flow,
+        )
+
+        # Verify the in-flow at the bottom boundary. There's no need to check the water pressure since it's fixed.
+        bottom_node_ids = nodes_of_model_part(model, "PorousDomain.bottom_boundary")
+        self.assert_uniform_nodal_values(
+            bottom_node_ids,
+            "NODAL_WATER_FLOW",
+            output_data,
+            end_time,
+            -1.0 * expected_nodal_out_flow,
+        )
+
+    def test_three_element_seepage_fixed_bottom_boundary_stop_inflow(self):
+        """
+        Test with a fixed bottom pressure which is lower than a hydrostatic pressure
+        would be when the column is filled. As the top of the column will have positive water pressures ( suction )
+        the seepage boundary has the state of a closed ( Neumann, with q = 0 ) boundary.
+        """
+        test_name = "seepage_tests"
+        file_path = test_helper.get_file_path(
+            os.path.join(".", test_name, "fixed_bottom_boundary_stop_inflow")
+        )
+        model = test_helper.run_kratos(file_path).model
+
+        # Read output file
+        reader = GiDOutputFileReader()
+        output_data = reader.read_output_from(
+            os.path.join(file_path, "three_element_seepage_test.post.res")
+        )
+
+        # Verify that top boundary nodes have seepage condition applied
+        top_node_ids = nodes_of_model_part(model, "PorousDomain.top_boundary")
+
+        # On the seepage face, there should be no flow
+        self.assert_uniform_nodal_values(
+            top_node_ids,
+            "NODAL_WATER_FLOW",
+            output_data,
+            end_time,
+            0.0,
+        )
+        # Since there is no flow, the water pressure field should be hydrostatic, with suction at the top boundary
+        fixed_water_pressure_at_bottom = -2.0e04
+        expected_water_pressure_at_top = (
+            fixed_water_pressure_at_bottom + height * unit_weight_of_water
+        )
+        self.assert_uniform_nodal_values(
+            top_node_ids,
+            "WATER_PRESSURE",
+            output_data,
+            end_time,
+            expected_water_pressure_at_top,
+        )
+
+        # Also at the bottom boundary, there shouldn't be any flow. There's no need to check the water pressure since it's fixed.
+        bottom_node_ids = nodes_of_model_part(model, "PorousDomain.bottom_boundary")
+        self.assert_uniform_nodal_values(
+            bottom_node_ids,
+            "NODAL_WATER_FLOW",
+            output_data,
+            end_time,
+            0.0,
+        )
+
+    def test_three_element_seepage_flux_bottom_boundary(self):
+        """
+        Test with forced flux. The nodal outflow is therefore known (the seepage boundary
+        allows it) and the pressure should be forces to 0.0 by the seepage boundary
+        """
+        test_name = "seepage_tests"
+        file_path = test_helper.get_file_path(
+            os.path.join(".", test_name, "flux_bottom_boundary")
+        )
+        model = test_helper.run_kratos(file_path).model
+
+        # Read output file
+        reader = GiDOutputFileReader()
+        output_data = reader.read_output_from(
+            os.path.join(file_path, "three_element_seepage_test.post.res")
+        )
+
+        # Verify that top boundary nodes (y=3.0) have seepage condition applied
+        top_node_ids = nodes_of_model_part(model, "PorousDomain.top_boundary")
+
+        # On the seepage face, the nodal out-flow should equal the nodal in-flow at the bottom
+        in_flux = 5.0  # m^3/(m^2 * s)
+        expected_nodal_out_flow = in_flux * nodal_area
+        self.assert_uniform_nodal_values(
+            top_node_ids,
+            "NODAL_WATER_FLOW",
+            output_data,
+            end_time,
+            expected_nodal_out_flow,
+        )
+
+        # Since the bottom boundary has a fixed in-flux, leading to outflow at the seepage boundary, the
+        # seepage nodes should have pressure = 0
+        self.assert_uniform_nodal_values(
+            top_node_ids,
+            "WATER_PRESSURE",
+            output_data,
+            end_time,
+            0.0,
+        )
+
+        # At the bottom boundary, the expected water pressure can be calculated using Darcy's law
+        bottom_node_ids = nodes_of_model_part(model, "PorousDomain.bottom_boundary")
+        pressure_drop = (in_flux * dynamic_viscosity * height) / (
+            intrinsic_permeability * area
+        )
+        expected_water_pressure_at_bottom = -1.0 * (
+            pressure_drop - unit_weight_of_water * height
+        )
+        self.assert_uniform_nodal_values(
+            bottom_node_ids,
+            "WATER_PRESSURE",
+            output_data,
+            end_time,
+            expected_water_pressure_at_bottom,
+        )
+
+
+if __name__ == "__main__":
+    KratosUnittest.main()
