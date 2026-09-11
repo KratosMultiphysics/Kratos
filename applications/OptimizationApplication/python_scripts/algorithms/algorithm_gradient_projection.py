@@ -7,6 +7,7 @@ from KratosMultiphysics.OptimizationApplication.algorithms.algorithm import Algo
 from KratosMultiphysics.OptimizationApplication.utilities.component_data_view import ComponentDataView
 from KratosMultiphysics.OptimizationApplication.utilities.opt_line_search import CreateLineSearch
 from KratosMultiphysics.OptimizationApplication.algorithms.standardized_constraint import StandardizedConstraint
+from KratosMultiphysics.OptimizationApplication.algorithms.algorithm_data_manager import AlgorithmDataManager
 from KratosMultiphysics.LinearSolversApplication.dense_linear_solver_factory import ConstructSolver
 from KratosMultiphysics.OptimizationApplication.utilities.helper_utilities import CallOnAll
 from KratosMultiphysics.OptimizationApplication.utilities.logger_utilities import time_decorator
@@ -18,7 +19,6 @@ from KratosMultiphysics.OptimizationApplication.convergence_criteria.combined_co
 from KratosMultiphysics.OptimizationApplication.convergence_criteria.max_iter_conv_criterion import MaxIterConvCriterion
 from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem_utilities import OptimizationComponentFactory
 from KratosMultiphysics.OptimizationApplication.utilities.logger_utilities import ListLogger
-
 
 def Factory(model: Kratos.Model, parameters: Kratos.Parameters, optimization_problem: OptimizationProblem):
     return AlgorithmGradientProjection(model, parameters, optimization_problem)
@@ -59,13 +59,15 @@ class AlgorithmGradientProjection(Algorithm):
             control = optimization_problem.GetControl(control_name)
             self.master_control.AddControl(control)
 
-
         settings = parameters["settings"]
         settings.ValidateAndAssignDefaults(self.GetDefaultParameters()["settings"])
 
         self.echo_level = settings["echo_level"].GetInt()
 
         ComponentDataView("algorithm", self._optimization_problem).SetDataBuffer(self.GetMinimumBufferSize())
+        algorithm_data = ComponentDataView("algorithm", self._optimization_problem)
+        algorithm_data.GetUnBufferedData().SetValue("controls", ",".join([control.GetName() for control in self.master_control.GetListOfControls()]))
+        self.algorithm_data_manager = AlgorithmDataManager(self._optimization_problem)
 
         self.__line_search_method = CreateLineSearch(settings["line_search"], self._optimization_problem)
 
@@ -104,7 +106,6 @@ class AlgorithmGradientProjection(Algorithm):
         self._objective.Initialize()
         CallOnAll(self._constraints_list, StandardizedConstraint.Initialize)
         self._control_field = self.master_control.GetControlField()
-        self.algorithm_data = ComponentDataView("algorithm", self._optimization_problem)
 
         self._convergence_criteria.Initialize()
 
@@ -160,21 +161,21 @@ class AlgorithmGradientProjection(Algorithm):
         search_direction.StoreData()
         correction.StoreData()
 
-        self.algorithm_data.GetBufferedData()["search_direction"] = search_direction
-        self.algorithm_data.GetBufferedData()["correction"] = correction
+        self.algorithm_data_manager.SetValue("search_direction", search_direction)
+        self.algorithm_data_manager.SetValue("correction", correction)
 
     @time_decorator()
     def ComputeControlUpdate(self, alpha: Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor) -> Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor:
-        search_direction: Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor = self.algorithm_data.GetBufferedData()["search_direction"]
+        search_direction: Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor = self.algorithm_data_manager.GetValue("search_direction")
         update = Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor(search_direction, perform_collect_data_recursively=False, perform_store_data_recursively=False)
-        update.data[:] = search_direction.data * alpha.data + self.algorithm_data.GetBufferedData()["correction"].data
+        update.data[:] = search_direction.data * alpha.data + self.algorithm_data_manager.GetValue("correction").data
         Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor(update, perform_store_data_recursively=False, copy=False).StoreData()
-        self.algorithm_data.GetBufferedData()["control_field_update"] = update
+        self.algorithm_data_manager.SetValue("control_field_update", update)
         return update
 
     @time_decorator()
     def UpdateControl(self) -> Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor:
-        update: Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor = self.algorithm_data.GetBufferedData()["control_field_update"]
+        update: Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor = self.algorithm_data_manager.GetValue("control_field_update")
         self._control_field.data[:] += update.data
         Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor(self._control_field, perform_store_data_recursively=False, copy=False).StoreData()
 
@@ -188,7 +189,7 @@ class AlgorithmGradientProjection(Algorithm):
 
     @time_decorator()
     def Output(self) -> Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor:
-        self.algorithm_data.GetBufferedData()["control_field"] = Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor(self._control_field)
+        self.algorithm_data_manager.SetValue("control_field", Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor(self._control_field))
         OutputGradientFields(self._objective, self._optimization_problem, True)
         for constraint in self._constraints_list:
             OutputGradientFields(constraint, self._optimization_problem, constraint.IsActive())
@@ -204,10 +205,10 @@ class AlgorithmGradientProjection(Algorithm):
 
                 self._obj_val = self._objective.CalculateStandardizedValue(self._control_field)
                 obj_info = self._objective.GetInfo()
-                self.algorithm_data.GetBufferedData()["std_obj_value"] = obj_info["std_value"]
-                self.algorithm_data.GetBufferedData()["rel_change[%]"] = obj_info["rel_change [%]"]
+                self.algorithm_data_manager.SetValue("std_obj_value", obj_info["std_value"])
+                self.algorithm_data_manager.SetValue("rel_change[%]", obj_info["rel_change [%]"])
                 if "abs_change [%]" in obj_info:
-                    self.algorithm_data.GetBufferedData()["abs_change[%]"] = obj_info["abs_change [%]"]
+                    self.algorithm_data_manager.SetValue("abs_change[%]", obj_info["abs_change [%]"])
 
                 obj_grad = self._objective.CalculateStandardizedGradient()
 
@@ -217,7 +218,7 @@ class AlgorithmGradientProjection(Algorithm):
                     value = constraint.CalculateStandardizedValue(self._control_field)
                     self.__constr_value.append(value)
                     constr_name = constraint.GetResponseName()
-                    self.algorithm_data.GetBufferedData()[f"std_constr_{constr_name}_value"] = value
+                    self.algorithm_data_manager.SetValue(f"std_constr_{constr_name}_value", value)
                     if value >= 0.0:
                         active_constr_grad.append(constraint.CalculateStandardizedGradient())
 

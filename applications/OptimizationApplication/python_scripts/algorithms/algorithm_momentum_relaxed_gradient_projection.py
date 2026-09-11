@@ -44,7 +44,7 @@ class AlgorithmMomentumRelaxedGradientProjection(AlgorithmRelaxedGradientProject
     @time_decorator()
     def ComputeControlUpdate(self, alpha: Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor):
         # compute the correction part from momentum point
-        search_direction: Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor = self.algorithm_data.GetBufferedData()["search_direction"]
+        search_direction: Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor = self.algorithm_data_manager.GetValue("search_direction")
         update = Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor(search_direction, perform_store_data_recursively=False)
         update.data[:] *= alpha.data
         update.StoreData()
@@ -64,7 +64,7 @@ class AlgorithmMomentumRelaxedGradientProjection(AlgorithmRelaxedGradientProject
             full_update.StoreData()
             self.prev_update = update
 
-        self.algorithm_data.GetBufferedData().SetValue("control_field_update", full_update, overwrite=True)
+        self.algorithm_data_manager.SetValue("control_field_update", full_update, overwrite=True)
 
 
         return full_update
