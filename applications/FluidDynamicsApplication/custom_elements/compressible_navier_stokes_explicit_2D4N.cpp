@@ -338,7 +338,7 @@ void CompressibleNavierStokesExplicit<2,4>::CalculateDensityProjection(const Pro
         r_geometry.ShapeFunctionsLocalGradients(DN_De, gauss_point.Coordinates());
         GeometryUtils::ShapeFunctionsGradients(DN_De, Jinv, DN_DX);
 
-        BoundedVector<double, DofSize> rho_proj_gauss(DofSize);
+        BoundedVector<double, NumNodes> rho_proj_gauss;
 
         const double crho_proj_gauss0 = DN_DX(0,0)*data.U(0,1) + DN_DX(0,1)*data.U(0,2) + DN_DX(1,0)*data.U(1,1) + DN_DX(1,1)*data.U(1,2) + DN_DX(2,0)*data.U(2,1) + DN_DX(2,1)*data.U(2,2) + DN_DX(3,0)*data.U(3,1) + DN_DX(3,1)*data.U(3,2) + N(0)*data.dUdt(0,0) - N(0)*data.m_ext(0) + N(1)*data.dUdt(1,0) - N(1)*data.m_ext(1) + N(2)*data.dUdt(2,0) - N(2)*data.m_ext(2) + N(3)*data.dUdt(3,0) - N(3)*data.m_ext(3);
         rho_proj_gauss[0] = -N(0)*crho_proj_gauss0;
@@ -392,7 +392,7 @@ void CompressibleNavierStokesExplicit<2,4>::CalculateTotalEnergyProjection(const
         r_geometry.ShapeFunctionsLocalGradients(DN_De, gauss_point.Coordinates());
         GeometryUtils::ShapeFunctionsGradients(DN_De, Jinv, DN_DX);
 
-        BoundedVector<double, DofSize> tot_ener_proj_gauss(DofSize);
+        BoundedVector<double, NumNodes> tot_ener_proj_gauss;
 
         const double ctot_ener_proj_gauss0 = N(0)*data.U(0,0) + N(1)*data.U(1,0) + N(2)*data.U(2,0) + N(3)*data.U(3,0);
         const double ctot_ener_proj_gauss1 = N(0)*data.U(0,1) + N(1)*data.U(1,1) + N(2)*data.U(2,1) + N(3)*data.U(3,1);
@@ -1057,7 +1057,7 @@ void CompressibleNavierStokesExplicit<2,4>::CalculateMassMatrix(
     Matrix J;
     Matrix Jinv;
 
-    c_matrix<double, NumNodes, NumNodes> M = ZeroMatrix(NumNodes, NumNodes);
+    BoundedMatrix<double, NumNodes, NumNodes> M = ZeroMatrix(NumNodes, NumNodes);
     for(const auto& gauss_point: gauss_points)
     {
         const double w = gauss_point.Weight();
