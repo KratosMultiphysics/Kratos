@@ -16,9 +16,6 @@ using namespace std::string_literals;
 namespace Kratos
 {
 
-ApplySeepageBoundaryProcess::ApplySeepageBoundaryProcess()  = default;
-ApplySeepageBoundaryProcess::~ApplySeepageBoundaryProcess() = default;
-
 std::string ApplySeepageBoundaryProcess::Info() const { return "ApplySeepageBoundaryProcess"s; }
 
 } // namespace Kratos
