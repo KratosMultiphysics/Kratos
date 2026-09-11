@@ -172,7 +172,7 @@ namespace Kratos
       const ShapeFunctionDerivativesType &rDN_DX = DN_DX[g];
       computeElement = this->CalcStrainRateMeasures(rElementalVariables, rCurrentProcessInfo, rDN_DX, theta);
       computeElement = true;
-      if (computeElement == true && this->IsNot(BLOCKED) && this->IsNot(ISOLATED))
+      if (computeElement && this->IsNot(BLOCKED) && this->IsNot(ISOLATED))
       {
 
         double StabilizedWeight = Tau * GaussWeight;
@@ -215,7 +215,7 @@ namespace Kratos
       }
     }
 
-    if (computeElement == true && this->IsNot(BLOCKED) && this->IsNot(ISOLATED))
+    if (computeElement && this->IsNot(BLOCKED) && this->IsNot(ISOLATED))
     {
 
       VectorType PressureValues = ZeroVector(NumNodes);

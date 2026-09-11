@@ -130,7 +130,7 @@ public:
               break;
             }
           }
-          if (doNotSetNullPressure == false)
+          if (!doNotSetNullPressure)
             itElem->GetGeometry()[i].FastGetSolutionStepValue(PRESSURE) = 0;
         }
       }
@@ -203,7 +203,7 @@ bool mUnactiveSliverElements;
 void SetPressureToIsolatedWallNodes(Geometry<Node> &wallElementNodes)
 {
   KRATOS_TRY
-  unsigned int numNodes = wallElementNodes.size();
+  const unsigned int numNodes = wallElementNodes.size();
   double currentPressureForIsolatedWall = 0;
   double previousPressureForIsolatedWall = 0;
   unsigned int isolatedWallID = 0;
@@ -220,7 +220,7 @@ void SetPressureToIsolatedWallNodes(Geometry<Node> &wallElementNodes)
         break;
       }
     }
-    if (localIsolatedWallNode == true)
+    if (localIsolatedWallNode)
     {
       isolatedWallID = i;
       foundedIsolatedWall = true;
@@ -237,7 +237,7 @@ void SetPressureToIsolatedWallNodes(Geometry<Node> &wallElementNodes)
       }
     }
   }
-  if (foundedIsolatedWall == true)
+  if (foundedIsolatedWall)
   {
     wallElementNodes[isolatedWallID].FastGetSolutionStepValue(PRESSURE, 0) = currentPressureForIsolatedWall;
     wallElementNodes[isolatedWallID].FastGetSolutionStepValue(PRESSURE, 1) = previousPressureForIsolatedWall;

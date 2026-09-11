@@ -114,7 +114,7 @@ namespace Kratos
             bool refiningBox = false;
             for (SizeType index = 0; index < mrRemesh.UseRefiningBox.size(); index++)
             {
-                if (mrRemesh.UseRefiningBox[index] == true && currentTime > mrRemesh.RefiningBoxInitialTime[index] && currentTime < mrRemesh.RefiningBoxFinalTime[index])
+                if (mrRemesh.UseRefiningBox[index] && currentTime > mrRemesh.RefiningBoxInitialTime[index] && currentTime < mrRemesh.RefiningBoxFinalTime[index])
                 {
                     refiningBox = true;
                 }
@@ -239,7 +239,7 @@ namespace Kratos
                             numInletNodes++;
                         }
 
-                        if (refiningBox == true && vertices.back().IsNot(RIGID) && vertices.back().GetSolutionStepValue(DISTANCE) > distance_tolerance)
+                        if (refiningBox && vertices.back().IsNot(RIGID) && vertices.back().GetSolutionStepValue(DISTANCE) > distance_tolerance)
                         {
                             if (dimension == 2)
                             {
@@ -279,12 +279,12 @@ namespace Kratos
 
                     accepted = MesherUtils.AlphaShape(Alpha, vertices, dimension, meanMeshSize);
 
-                    if (numrigid == nds || noremesh == true)
+                    if (numrigid == nds || noremesh)
                     {
                         accepted = false;
                     }
 
-                    if (accepted == true && (numfreesurf == nds || sumIsolatedFreeSurf == nds || sumPreviouslyIsolatedFreeSurf == nds))
+                    if (accepted && (numfreesurf == nds || sumIsolatedFreeSurf == nds || sumPreviouslyIsolatedFreeSurf == nds))
                     {
                         if (dimension == 2)
                         {
