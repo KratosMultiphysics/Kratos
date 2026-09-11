@@ -1,0 +1,9 @@
+{
+    "custom_entries": [
+        "Solver_Settings_Reference.md",
+        "Contact_Process_Settings_Reference.md",
+        "Tutorial_Hertz_2D.md",
+        "Output_And_Postprocessing.md",
+        "Tips_Troubleshooting_And_Limitations.md"
+    ]
+}

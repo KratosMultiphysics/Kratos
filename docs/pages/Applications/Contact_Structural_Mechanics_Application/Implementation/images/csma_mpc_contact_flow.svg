@@ -1,0 +1,121 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 980" width="1600" height="980">
+<style>text{font-family:Helvetica,Arial,sans-serif;fill:#1f2937}.title{font-size:30px;font-weight:bold}.sub{font-size:17px;fill:#6b7280}
+.h{font-size:18px;font-weight:bold}.b{font-size:13.5px}.s{font-size:13px;fill:#6b7280}.foot{font-size:13px;fill:#6b7280}.lab{font-size:13px;fill:#6b7280;font-style:italic}</style>
+<defs><marker id="ar" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#6b7280"/></marker></defs>
+<rect width="1600" height="980" fill="#ffffff"/>
+<text x="30" y="44" class="title">The MPC contact route: mortar weights turned into multipoint constraints</text>
+<text x="30" y="72" class="sub">mpc_contact_process.py → MPCMortarContactCondition + ContactMasterSlaveConstraint → MPC strategy + MPCContactCriteria (thesis App. D.5, master–slave elimination)</text>
+<rect x="30" y="100" width="490" height="230" rx="10" fill="#eff6ff" stroke="#2563eb" stroke-width="2"/>
+<text x="44" y="126" class="h" fill="#2563eb">1 · Set-up (Python)</text>
+<text x="44" y="150" class="b">solver_settings.mpc_contact_settings → mpc_contact_*_solver.py</text>
+<text x="44" y="169" class="b">  contact_type Frictionless | Frictional,</text>
+<text x="44" y="188" class="b">   inner_loop_iterations 10,</text>
+<text x="44" y="207" class="b">  simplified_semi_smooth_newton, update_each_nl_iteration,</text>
+<text x="44" y="226" class="b">   enforce_ntn (not implemented)</text>
+<text x="44" y="245" class="b">processes.contact_process_list → mpc_contact_process.py</text>
+<text x="44" y="264" class="b">   (MPCContactProcess)</text>
+<text x="44" y="283" class="b">  same pairing dictionaries as ALM;</text>
+<text x="44" y="302" class="b">   reaction_check_stiffness_factor 1e-10,</text>
+<text x="44" y="321" class="b">  tangent_factor 0.1, zero_tolerance_factor 1e2,</text>
+<text x="44" y="340" class="b">   update_condition_relation_step</text>
+<text x="44" y="359" class="s">SearchBaseProcess builds Contact / ContactSubN / Master- &amp;</text>
+<text x="44" y="378" class="s">   SlaveSubModelPartN</text>
+<rect x="560" y="100" width="490" height="230" rx="10" fill="#f0fdfa" stroke="#0d9488" stroke-width="2"/>
+<text x="574" y="126" class="h" fill="#0d9488">2 · Search (C++)</text>
+<text x="574" y="150" class="b">MPCContactSearchWrapperProcess →</text>
+<text x="574" y="169" class="b">   MPCContactSearchProcess&lt;dim,nodes&gt;</text>
+<text x="574" y="188" class="b">same KD-tree / OBB pipeline as the ALM search, but for every</text>
+<text x="574" y="207" class="b">   pair it creates</text>
+<text x="574" y="226" class="b">  • an MPCMortarContactCondition{2D2N,3D3N,3D4N,3D3N4N,3D4N3N}</text>
+<text x="574" y="245" class="b">   in ComputingContact</text>
+<text x="574" y="264" class="b">  • a ContactMasterSlaveConstraint linked through</text>
+<text x="574" y="283" class="b">   CONSTRAINT_POINTER</text>
+<text x="574" y="302" class="b">ALMFastInit initialises WEIGHTED_GAP, NORMAL, INITIAL_PENALTY,</text>
+<text x="574" y="321" class="b">   flags</text>
+<text x="574" y="340" class="s">ResetContactOperators / CleanModelPart remove stale</text>
+<text x="574" y="359" class="s">   constraints</text>
+<rect x="1090" y="100" width="480" height="230" rx="10" fill="#f5f3ff" stroke="#7c3aed" stroke-width="2"/>
+<text x="1104" y="126" class="h" fill="#7c3aed">3 · Condition: zero LHS/RHS, live constraint</text>
+<text x="1104" y="150" class="b">MPCMortarContactCondition::InitializeNonLinearIteration (only</text>
+<text x="1104" y="169" class="b">   if INTERACTION):</text>
+<text x="1104" y="188" class="b">  ComputePreviousMortarOperators → D, M (dual LM ⇒ D</text>
+<text x="1104" y="207" class="b">   diagonal)</text>
+<text x="1104" y="226" class="b">  Is(SLIP)  → UpdateConstraintFrictional</text>
+<text x="1104" y="245" class="b">  Is(RIGID) → UpdateConstraintTying (tying with tension</text>
+<text x="1104" y="264" class="b">   check)</text>
+<text x="1104" y="283" class="b">  else      → UpdateConstraintFrictionless</text>
+<text x="1104" y="302" class="b">  relation T = D⁻¹M, constant = gap →</text>
+<text x="1104" y="321" class="b">   ConstraintDofDatabaseUpdate (prunes ~0 entries)</text>
+<text x="1104" y="340" class="s">p_const-&gt;SetLocalSystem(T, g): slave DoFs u_S = T u_M + g</text>
+<text x="1104" y="359" class="s">   (thesis eq. D.12b)</text>
+<rect x="30" y="390" width="490" height="230" rx="10" fill="#fffbeb" stroke="#d97706" stroke-width="2"/>
+<text x="44" y="416" class="h" fill="#d97706">4 · Strategy</text>
+<text x="44" y="440" class="b">ResidualBasedNewtonRaphsonMPCContactStrategy</text>
+<text x="44" y="459" class="b">Predict(): base predict + one BuildAndSolve so the active set</text>
+<text x="44" y="478" class="b">   is checked once</text>
+<text x="44" y="497" class="b">ComputeNodalWeights() each iteration (nodal weights for the</text>
+<text x="44" y="516" class="b">   constraints)</text>
+<text x="44" y="535" class="b">inner loop (simplified semi-smooth Newton) up to</text>
+<text x="44" y="554" class="b">   inner_loop_iterations</text>
+<text x="44" y="573" class="b">update_each_nl_iteration: INTERACTION on ComputingContact;</text>
+<text x="44" y="592" class="b">   SetUpDofSet /</text>
+<text x="44" y="611" class="b">  SetUpSystem / ResizeAndInitializeVectors redone every</text>
+<text x="44" y="630" class="b">   iteration</text>
+<text x="44" y="649" class="s">the user convergence criterion + an internal</text>
+<text x="44" y="668" class="s">   MPCContactCriteria</text>
+<rect x="560" y="390" width="490" height="230" rx="10" fill="#fef2f2" stroke="#dc2626" stroke-width="2"/>
+<text x="574" y="416" class="h" fill="#dc2626">5 · Builder &amp; solver with constraints</text>
+<text x="574" y="440" class="b">ContactResidualBasedEliminationBuilderAndSolverWithConstraints</text>
+<text x="574" y="459" class="b">SetUpSystemWithConstraints when</text>
+<text x="574" y="478" class="b">   MasterSlaveConstraints().size() &gt; 0</text>
+<text x="574" y="497" class="b">eliminated system  Ā = Tᵀ A T,  b̄ = Tᵀ (b − A g)   (thesis</text>
+<text x="574" y="516" class="b">   eq. D.12e)</text>
+<text x="574" y="535" class="b">pure displacement DoFs: no Lagrange multipliers, no saddle</text>
+<text x="574" y="554" class="b">   point</text>
+<text x="574" y="573" class="b">any linear solver can be used (no MixedULM needed)</text>
+<text x="574" y="592" class="s">selected through builder_and_solver_settings /</text>
+<text x="574" y="611" class="s">   multi_point_constraints_used</text>
+<rect x="1090" y="390" width="480" height="230" rx="10" fill="#f0fdfa" stroke="#0d9488" stroke-width="2"/>
+<text x="1104" y="416" class="h" fill="#0d9488">6 · Active set: MPCContactCriteria</text>
+<text x="1104" y="440" class="b">PreCriteria: reset CONTACT_FORCE, store WEIGHTED_GAP history,</text>
+<text x="1104" y="459" class="b">   NODAL_AREA = 0</text>
+<text x="1104" y="478" class="b">PostCriteria: recompute weighted gap; map REACTION master →</text>
+<text x="1104" y="497" class="b">   slave with</text>
+<text x="1104" y="516" class="b">  SimpleMortarMapperProcessWrapper (mapping_coefficient −1)</text>
+<text x="1104" y="535" class="b">   per ContactSubN</text>
+<text x="1104" y="554" class="b">  CONTACT_FORCE = mapped reaction / NODAL_PAUX · n</text>
+<text x="1104" y="573" class="b">  node ACTIVE if compression, released if tension larger than</text>
+<text x="1104" y="592" class="b">  reaction_check_stiffness_factor · YOUNG_MODULUS</text>
+<text x="1104" y="611" class="b">   (ACTIVE_SET_CONVERGED)</text>
+<text x="1104" y="630" class="s">no LM DoFs ⇒ pressure recovered from reactions</text>
+<line x1="520" y1="215" x2="558" y2="215" stroke="#6b7280" stroke-width="2" marker-end="url(#ar)"/>
+<line x1="1050" y1="215" x2="1088" y2="215" stroke="#6b7280" stroke-width="2" marker-end="url(#ar)"/>
+<line x1="1330" y1="330" x2="1330" y2="388" stroke="#6b7280" stroke-width="2" marker-end="url(#ar)"/>
+<text x="1336.0" y="353.0" class="lab">each NL iteration</text>
+<line x1="1090" y1="505" x2="1052" y2="505" stroke="#6b7280" stroke-width="2" marker-end="url(#ar)"/>
+<line x1="560" y1="505" x2="522" y2="505" stroke="#6b7280" stroke-width="2" marker-end="url(#ar)"/>
+<path d="M 275 620 C 275 690, 1330 690, 1330 620" fill="none" stroke="#6b7280" stroke-width="2" stroke-dasharray="6 4" marker-end="url(#ar)"/>
+<text x="620" y="690" class="lab">active set changed → next iteration (INTERACTION set: constraints re-evaluated)</text>
+<rect x="30" y="720" width="760" height="200" rx="10" fill="#f8fafc" stroke="#6b7280" stroke-width="2"/>
+<text x="44" y="746" class="h" fill="#6b7280">Why MPC instead of ALM? (thesis §4.2.3, D.5, D.6)</text>
+<text x="44" y="770" class="b">+ no extra DoFs, displacement-only system, exact constraint enforcement (no penalty)</text>
+<text x="44" y="789" class="b">+ simplified NTN / NTS behaviour with mortar-consistent weights (D⁻¹M)</text>
+<text x="44" y="808" class="b">− constraint set changes with the active set ⇒ DoF set rebuilt (update_each_nl_iteration)</text>
+<text x="44" y="827" class="b">− frictional MPC uses the SLIP flag and tangent_factor; no augmented pressure available</text>
+<text x="44" y="846" class="b">− patch tests on non-matching meshes are less accurate than mortar ALM (thesis Fig. D.5)</text>
+<text x="44" y="865" class="s">Registered names: MPCMortarContactCondition{2D2N,3D3N,3D4N,3D3N4N,3D4N3N},</text>
+<text x="44" y="884" class="s">   ContactMasterSlaveConstraint</text>
+<rect x="820" y="720" width="750" height="200" rx="10" fill="#eff6ff" stroke="#2563eb" stroke-width="2"/>
+<text x="834" y="746" class="h" fill="#2563eb">Where it is tested</text>
+<text x="834" y="770" class="b">tests/mpc_contact_tests/: 2D/3D simplest patch (frictionless &amp; with friction), slope,</text>
+<text x="834" y="789" class="b">  matching / not matching, beam axil (hexa / tetra), beam contact / tying / friction, plate,</text>
+<text x="834" y="808" class="b">  multi-layer (validation, commented out)</text>
+<text x="834" y="827" class="b">SmallTests: TwoDSimplestPatchMatchingTestContact, ThreeDSimplestPatch…,</text>
+<text x="834" y="846" class="b">   ThreeDPatch(Not)MatchingTestContact</text>
+<text x="834" y="865" class="b">NightlyTests: BeamAxilSimpleContactTest, BeamContactTest, BeamContactWithTyingTest,</text>
+<text x="834" y="884" class="b">   BeamContactWithFrictionTest</text>
+<text x="834" y="903" class="b">ValidationTests: BeamAxilContactTest, BeamAxilTetraContactTest, PlateTest</text>
+<text x="834" y="922" class="s">Python names: MPCContactSearchProcess (wrapper), MPCContactSearchProcess&lt;suffix&gt;,</text>
+<text x="834" y="941" class="s">   MPCContactCriteria</text>
+<text x="30" y="962" class="foot">ContactStructuralMechanicsApplication · Kratos Multiphysics</text>
+</svg>

@@ -1,0 +1,214 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 1620" width="1600" height="1620">
+<style>
+text{font-family:Helvetica,Arial,sans-serif;fill:#1f2937}
+.title{font-size:30px;font-weight:700}
+.sub{font-size:17px;fill:#6b7280}
+.sec{font-size:20px;font-weight:700}
+.hd{font-size:17px;font-weight:700}
+.b{font-size:15px;font-weight:700}
+.t{font-size:15px}
+.s{font-size:13px}
+.sb{font-size:13px;font-weight:700}
+.m{fill:#6b7280}
+.c{text-anchor:middle}
+.e{text-anchor:end}
+.foot{font-size:13px;fill:#6b7280}
+.box{stroke-width:1.5}
+.blue{stroke:#2563eb;fill:#eff6ff}.tblue{fill:#2563eb}
+.teal{stroke:#0d9488;fill:#f0fdfa}.tteal{fill:#0d9488}
+.amber{stroke:#d97706;fill:#fffbeb}.tamber{fill:#d97706}
+.red{stroke:#dc2626;fill:#fef2f2}.tred{fill:#dc2626}
+.purple{stroke:#7c3aed;fill:#f5f3ff}.tpurple{fill:#7c3aed}
+.gray{stroke:#cbd5e1;fill:#f8fafc}
+.white{stroke:#cbd5e1;fill:#ffffff}
+.ink{stroke:#1f2937;fill:#ffffff}
+.dash{stroke-dasharray:6 4}
+.ln{stroke:#6b7280;stroke-width:1.6;fill:none}
+.lnb{stroke:#2563eb;stroke-width:1.8;fill:none}
+.lnt{stroke:#0d9488;stroke-width:1.8;fill:none}
+.lna{stroke:#d97706;stroke-width:1.8;fill:none}
+.lnr{stroke:#dc2626;stroke-width:1.8;fill:none}
+.lnp{stroke:#7c3aed;stroke-width:1.8;fill:none}
+.thin{stroke:#cbd5e1;stroke-width:1;fill:none}
+.mono{font-family:Menlo,Consolas,monospace}
+</style>
+<defs>
+<marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#6b7280"/></marker>
+<marker id="arrb" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#2563eb"/></marker>
+<marker id="arrt" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#0d9488"/></marker>
+<marker id="arra" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#d97706"/></marker>
+<marker id="arrr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#dc2626"/></marker>
+<marker id="arrp" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#7c3aed"/></marker>
+</defs>
+<rect width="1600" height="1620" fill="#ffffff"/>
+<text x="40" y="50" class="title">One time step of the contact solution loop</text>
+<text x="40" y="78" class="sub">Order of operations: contact process → ResidualBasedNewtonRaphsonContactStrategy → conditions, builder-and-solver, linear solver, mortar convergence criteria. JSON keys in monospace.</text>
+<rect x="40" y="104" width="990" height="36" rx="8" class="box gray" />
+<text x="54" y="128" class="hd">Start of the time step</text>
+<text x="280" y="128" class="t">t ← t + Δt · STEP += 1 · AnalysisStage → solver.InitializeSolutionStep() and the process list</text>
+<line x1="110" y1="140" x2="110" y2="162" class="ln" marker-end="url(#arr)"/>
+<rect x="40" y="162" width="990" height="148" rx="8" class="box teal" />
+<text x="54" y="183" class="hd" style="fill:#0d9488">1 · Contact search — ALMContactProcess.ExecuteInitializeSolutionStep() → ContactSearchProcess</text>
+<text x="54" y="204" class="t" style="fill:#6b7280">•</text>
+<text x="68" y="204" class="t">Runs when the step counter reaches database_step_update (default 1) or at step 1, otherwise the previous pairs are kept.</text>
+<text x="68" y="223" class="t">UpdateMortarConditions(): tree + OBB search → PairedCondition pairs created in the sub-model-part ComputingContact.</text>
+<text x="54" y="242" class="t" style="fill:#6b7280">•</text>
+<text x="68" y="242" class="t">ACTIVE prediction of slave nodes (gap below active_check_factor · NODAL_H); AdvancedContactSearchProcess (default;</text>
+<text x="68" y="261" class="t">SimpleContactSearchProcess with simple_search) may predict/correct the LM (predict_correct_lagrange_multiplier).</text>
+<text x="54" y="284" class="sb mono" style="fill:#6b7280">search_parameters: database_step_update · type_search · check_gap · active_check_factor · simple_search (see</text>
+<text x="54" y="301" class="sb mono" style="fill:#6b7280">csma_search_pipeline)</text>
+<line x1="110" y1="310" x2="110" y2="332" class="ln" marker-end="url(#arr)"/>
+<rect x="40" y="332" width="990" height="148" rx="8" class="box amber" />
+<text x="54" y="353" class="hd" style="fill:#d97706">2 · Prediction — ResidualBasedNewtonRaphsonContactStrategy::Predict()</text>
+<text x="54" y="374" class="t" style="fill:#6b7280">•</text>
+<text x="68" y="374" class="t">WEIGHTED_GAP := 0 (and WEIGHTED_SLIP for SLIP nodes) on Contact;</text>
+<text x="68" y="393" class="t">ContactUtilities::ComputeExplicitContributionConditions("ComputingContact") recomputes the weighted gap g̃n = n·(D x¹ − M x²)</text>
+<text x="68" y="412" class="t">from the residual-only path of the conditions.</text>
+<text x="54" y="431" class="t" style="fill:#6b7280">•</text>
+<text x="68" y="431" class="t">Nodal coordinates advanced by the displacement increment (step 1: DISPLACEMENT, later DISPLACEMENT − DISPLACEMENT(1)).</text>
+<text x="54" y="454" class="sb mono" style="fill:#6b7280">strategy: newton_raphson_contact_strategy | line_search_contact_strategy ·</text>
+<text x="54" y="471" class="sb mono" style="fill:#6b7280">residualbased_newton_raphson_contact_strategy.h</text>
+<line x1="110" y1="480" x2="110" y2="502" class="ln" marker-end="url(#arr)"/>
+<rect x="40" y="502" width="990" height="867" rx="8" class="box white dash" stroke="#1f2937"/>
+<text x="54" y="529" class="sec">Newton–Raphson iteration loop — BaseSolveSolutionStep(), iterations 1 … max_iteration</text>
+<rect x="60" y="546" width="950" height="112" rx="8" class="box red" />
+<text x="74" y="567" class="hd" style="fill:#dc2626">3 · InitializeNonLinearIteration + assembly — PairedCondition / MortarContactCondition&lt;…&gt;</text>
+<text x="74" y="588" class="t" style="fill:#6b7280">•</text>
+<text x="88" y="588" class="t">Paired normal refreshed when CONSIDER_NORMAL_VARIATION ≠ NO_DERIVATIVES_COMPUTATION.</text>
+<text x="88" y="607" class="t">CalculateConditionSystem: ExactMortarIntegrationUtility segmentation → Ae (dual LM) → mortar operators D, M (+ ΔD, ΔM</text>
+<text x="88" y="626" class="t">via DerivativesUtilities) → AD-generated CalculateLocalLHS/RHS.</text>
+<text x="74" y="649" class="sb mono" style="fill:#6b7280">INTEGRATION_ORDER_CONTACT · CONSIDER_NORMAL_VARIATION (normal_variation)</text>
+<line x1="110" y1="658" x2="110" y2="678" class="ln" marker-end="url(#arr)"/>
+<rect x="60" y="678" width="950" height="131" rx="8" class="box blue" />
+<text x="74" y="699" class="hd" style="fill:#2563eb">4 · Build &amp; Solve — ContactResidualBasedBlockBuilderAndSolver → MixedULMLinearSolver</text>
+<text x="74" y="720" class="t" style="fill:#6b7280">•</text>
+<text x="88" y="720" class="t">FixIsolatedNodes(): nodes of non-paired conditions are flagged ISOLATED and their LM DoFs fixed so the LM block is not</text>
+<text x="88" y="739" class="t">singular (freed afterwards). MixedULMLinearSolver (use_mixed_ulm_solver) classifies DoFs OTHER / MASTER /</text>
+<text x="88" y="758" class="t">SLAVE_INACTIVE / SLAVE_ACTIVE / LM_INACTIVE / LM_ACTIVE, condenses the diagonal dual-LM block and calls</text>
+<text x="88" y="777" class="t">linear_solver_settings on the displacement block.</text>
+<text x="74" y="800" class="sb mono" style="fill:#6b7280">contact_block_builder_and_solver · use_mixed_ulm_solver · mixed_ulm_solver_parameters</text>
+<line x1="110" y1="809" x2="110" y2="829" class="ln" marker-end="url(#arr)"/>
+<rect x="60" y="829" width="950" height="72" rx="8" class="box amber" />
+<text x="74" y="850" class="hd" style="fill:#d97706">5 · Update — UpdateDatabase(): u += Δu, λ += Δλ</text>
+<text x="74" y="871" class="t" style="fill:#6b7280">•</text>
+<text x="88" y="871" class="t">LineSearchContactStrategy splits Δx into displacement and LM parts and fits one parabola per block (ComputeMixedResidual</text>
+<text x="88" y="890" class="t">/ ComputeParabola, factor in [1e-3, 1]).</text>
+<line x1="110" y1="901" x2="110" y2="921" class="ln" marker-end="url(#arr)"/>
+<rect x="60" y="921" width="950" height="91" rx="8" class="box purple" />
+<text x="74" y="942" class="hd" style="fill:#7c3aed">6 · PreCriteria — BaseMortarConvergenceCriteria::PreCriteria()</text>
+<text x="74" y="963" class="t" style="fill:#6b7280">•</text>
+<text x="88" y="963" class="t">Normals (ComputeNodesMeanNormalModelPartWithPairedNormal) and nodal tangents</text>
+<text x="88" y="982" class="t">(MortarUtilities::ComputeNodesTangentModelPart, frictional) updated; weighted gap recomputed when ADAPT_PENALTY or</text>
+<text x="88" y="1001" class="t">dynamic; ComputeDynamicFactorProcess (compute_dynamic_factor); AALMAdaptPenaltyValueProcess (adapt_penalty).</text>
+<line x1="110" y1="1012" x2="110" y2="1032" class="ln" marker-end="url(#arr)"/>
+<rect x="60" y="1032" width="950" height="167" rx="8" class="box purple" />
+<text x="74" y="1053" class="hd" style="fill:#7c3aed">7 · Convergence check — MortarAndConvergenceCriteria = user criterion AND mortar criterion</text>
+<text x="74" y="1074" class="t" style="fill:#6b7280">•</text>
+<text x="88" y="1074" class="t">User criterion (convergence_criterion: contact_displacement / contact_residual / contact_mixed / contact_and /</text>
+<text x="88" y="1093" class="t">contact_or_criterion) → Displacement[LagrangeMultiplier][Residual|Mixed][Frictional]ContactCriteria on ‖ru‖, ‖rλn‖,</text>
+<text x="88" y="1112" class="t">stick/slip ‖rλτ‖ (thesis eq. 4.43, 4.78). Mortar criterion by mortar_type → ALMFrictionless / …Components / ALMFrictional /</text>
+<text x="88" y="1131" class="t">PenaltyFrictionless / PenaltyFrictional MortarConvergenceCriteria: true only if ACTIVE_SET_CONVERGED (and</text>
+<text x="88" y="1150" class="t">SLIP_SET_CONVERGED).</text>
+<text x="74" y="1173" class="sb mono" style="fill:#6b7280">ContactConvergenceCriteriaFactory · contact_displacement_* · contact_residual_* · frictional_stick_* ·</text>
+<text x="74" y="1190" class="sb mono" style="fill:#6b7280">frictional_slip_* · fancy_convergence_criterion · condn_convergence_criterion</text>
+<line x1="110" y1="1199" x2="110" y2="1219" class="ln" marker-end="url(#arr)"/>
+<rect x="60" y="1219" width="950" height="131" rx="8" class="box purple" />
+<text x="74" y="1240" class="hd" style="fill:#7c3aed">8 · PostCriteria — active set / stick–slip update (BaseMortarConvergenceCriteria::PostCriteria())</text>
+<text x="74" y="1261" class="t" style="fill:#6b7280">•</text>
+<text x="88" y="1261" class="t">ActiveSetUtilities::ComputeALMFrictionlessActiveSet / ComputeALMFrictionlessComponentsActiveSet /</text>
+<text x="88" y="1280" class="t">ComputeALMFrictionalActiveSet(pure_slip) / ComputePenalty…ActiveSet flip nodal ACTIVE and SLIP from the augmented</text>
+<text x="88" y="1299" class="t">pressures (see csma_active_set_flowchart); the change counts set ACTIVE_SET_CONVERGED / SLIP_SET_CONVERGED.</text>
+<text x="88" y="1318" class="t">WEIGHTED_GAP pushed to buffer(1), reset and recomputed.</text>
+<text x="74" y="1341" class="sb mono" style="fill:#6b7280">custom_utilities/active_set_utilities.cpp · gidio_debug</text>
+<path d="M890,1356 L890,1374 L1020,1374 L1020,566 L1011,566" class="lnr" marker-end="url(#arrr)"/>
+<text x="880" y="1371" class="sb e" style="fill:#dc2626">not converged → next iteration</text>
+<line x1="110" y1="1369" x2="110" y2="1393" class="ln" marker-end="url(#arr)"/>
+<text x="122" y="1386.0" class="s m">converged  (or max_iteration reached → not converged)</text>
+<rect x="40" y="1393" width="990" height="72" rx="8" class="box amber" />
+<text x="54" y="1414" class="hd" style="fill:#d97706">9 · FinalizeSolutionStep — strategy (mFinalizeWasPerformed guard) → conditions → contact process</text>
+<text x="54" y="1435" class="t" style="fill:#6b7280">•</text>
+<text x="68" y="1435" class="t">Frictional conditions store the converged mortar operators (ComputePreviousMortarOperators) for the next slip increment; the</text>
+<text x="68" y="1454" class="t">WEIGHTED_GAP buffer advances.</text>
+<line x1="110" y1="1465" x2="110" y2="1487" class="ln" marker-end="url(#arr)"/>
+<rect x="40" y="1487" width="990" height="72" rx="8" class="box gray" />
+<text x="54" y="1508" class="hd" style="fill:#1f2937">10 · Output — ExecuteBeforeOutputStep() → PrintOutput() → ExecuteAfterOutputStep()</text>
+<text x="54" y="1529" class="t" style="fill:#6b7280">•</text>
+<text x="68" y="1529" class="t">clear_inactive_for_post (default true) removes inactive pair conditions from ComputingContact before writing;</text>
+<text x="68" y="1548" class="t">AUGMENTED_NORMAL_CONTACT_PRESSURE, WEIGHTED_GAP, NORMAL_GAP and the LM are available as nodal results.</text>
+<rect x="1060" y="104" width="500" height="36" rx="8" class="box gray" />
+<text x="1074" y="128" class="hd">Legend</text>
+<rect x="1156" y="114" width="15" height="15" rx="4" class="box teal" />
+<text x="1176" y="127" class="s">search</text>
+<rect x="1229.34" y="114" width="15" height="15" rx="4" class="box amber" />
+<text x="1249.34" y="127" class="s">strategy</text>
+<rect x="1316.46" y="114" width="15" height="15" rx="4" class="box blue" />
+<text x="1336.46" y="127" class="s">solver</text>
+<rect x="1386.81" y="114" width="15" height="15" rx="4" class="box purple" />
+<text x="1406.81" y="127" class="s">criteria</text>
+<rect x="1467.95" y="114" width="15" height="15" rx="4" class="box red" />
+<text x="1487.95" y="127" class="s">conditions</text>
+<rect x="1060" y="162" width="500" height="336" rx="8" class="box amber" />
+<text x="1074" y="188" class="sec" style="fill:#d97706">Two ways to drive the active set</text>
+<text x="1074" y="210" class="sb mono">contact_settings.simplified_semi_smooth_newton</text>
+<rect x="1074" y="224" width="472" height="112" rx="8" class="box white" />
+<text x="1088" y="246" class="b" style="fill:#d97706">false (default) → model part flag INTERACTION set</text>
+<text x="1088" y="267" class="t">Full semi-smooth Newton (thesis Algorithms 2 / 3): one NR</text>
+<text x="1088" y="286" class="t">loop in which steps 3–8 run at every iteration, so</text>
+<text x="1088" y="305" class="t">displacements, LM and the active / stick–slip sets converge</text>
+<text x="1088" y="324" class="t">together.</text>
+<rect x="1074" y="346" width="472" height="138" rx="8" class="box white" />
+<text x="1088" y="368" class="b" style="fill:#d97706">true → INTERACTION not set → simplified variant</text>
+<text x="1088" y="389" class="t">Outer loop up to inner_loop_iterations (default 5): each pass</text>
+<text x="1088" y="408" class="t">runs the whole NR loop with the sets frozen, resets</text>
+<text x="1088" y="427" class="t">NL_ITERATION_NUMBER = 1, increments</text>
+<text x="1088" y="446" class="t">INNER_LOOP_ITERATION and re-checks the set with</text>
+<text x="1088" y="465" class="t">PostCriteria; stops when nothing changes.</text>
+<rect x="1060" y="520" width="500" height="250" rx="8" class="box red" />
+<text x="1074" y="546" class="sec" style="fill:#dc2626">Not converged → adaptive time stepping</text>
+<text x="1074" y="568" class="sb mono">contact_settings.adaptative_strategy (default false)</text>
+<text x="1074" y="590" class="t">AdaptativeStep(): DELTA_TIME is divided by split_factor (10.0)</text>
+<text x="1074" y="609" class="t">at most max_number_splits (3) times. Each sub-step re-runs</text>
+<text x="1074" y="628" class="t">Initialize → InitializeSolutionStep → Predict → SolveSolutionStep</text>
+<text x="1074" y="647" class="t">→ FinalizeSolutionStep and drives the Python process lists</text>
+<text x="1074" y="666" class="t">(ProcessFactoryUtility) and PrintOutput;</text>
+<text x="1074" y="685" class="t">CheckGeometryInverted() reverts STEP on inverted elements.</text>
+<text x="1074" y="708" class="s">Otherwise the strategy only warns (error with ensure_contact);</text>
+<text x="1074" y="724" class="s">silent_strategy mutes the echo.</text>
+<rect x="1060" y="792" width="500" height="372" rx="8" class="box blue" />
+<text x="1074" y="818" class="sec" style="fill:#2563eb">Quantities carried along the loop</text>
+<text x="1074" y="842" class="sb" style="fill:#2563eb">WEIGHTED_GAP (historical, slave nodes)</text>
+<text x="1074" y="858" class="s">g̃n = n·(D x¹ − M x²); reset in Predict / PostCriteria, buffer(1) = previous</text>
+<text x="1074" y="874" class="s">iteration</text>
+<text x="1074" y="895" class="sb" style="fill:#2563eb">WEIGHTED_SLIP (historical, frictional)</text>
+<text x="1074" y="911" class="s">tangential weighted slip used for the Coulomb check and the tangents</text>
+<text x="1074" y="932" class="sb" style="fill:#2563eb">LAGRANGE_MULTIPLIER_CONTACT_PRESSURE ·</text>
+<text x="1074" y="948" class="sb" style="fill:#2563eb">VECTOR_LAGRANGE_MULTIPLIER</text>
+<text x="1074" y="964" class="s">LM DoFs of the ALM scalar / vector formulations (none for penalty)</text>
+<text x="1074" y="985" class="sb" style="fill:#2563eb">AUGMENTED_NORMAL/TANGENT_CONTACT_PRESSURE</text>
+<text x="1074" y="1001" class="sb" style="fill:#2563eb">(non-historical)</text>
+<text x="1074" y="1017" class="s">k λn + ε g̃n written by ActiveSetUtilities, post-processing only</text>
+<text x="1074" y="1038" class="sb" style="fill:#2563eb">INITIAL_PENALTY ε · SCALE_FACTOR k · TANGENT_FACTOR</text>
+<text x="1074" y="1054" class="s">ProcessInfo (ALMVariablesCalculationProcess) or nodal with adapt_penalty</text>
+<text x="1074" y="1075" class="sb" style="fill:#2563eb">Flags ACTIVE · SLIP · ISOLATED · MASTER / SLAVE ·</text>
+<text x="1074" y="1091" class="sb" style="fill:#2563eb">INTERACTION</text>
+<text x="1074" y="1107" class="s">nodes / conditions / model part</text>
+<rect x="1060" y="1186" width="500" height="373" rx="8" class="box teal" />
+<text x="1074" y="1212" class="sec" style="fill:#0d9488">Python wiring (who creates what)</text>
+<text x="1074" y="1236" class="sb" style="fill:#0d9488">contact_structural_mechanics_static_solver.py /</text>
+<text x="1074" y="1252" class="sb" style="fill:#0d9488">_implicit_dynamic_solver.py</text>
+<text x="1074" y="1268" class="s">reads solver_settings.contact_settings (AuxiliaryContactSettings), adds</text>
+<text x="1074" y="1284" class="s">variables/DoFs by mortar_type, sets INTERACTION</text>
+<text x="1074" y="1305" class="sb" style="fill:#0d9488">auxiliary_methods_solvers.AuxiliaryNewton / AuxiliaryLineSearch</text>
+<text x="1074" y="1321" class="s">build the contact strategy with the process lists for the adaptive split</text>
+<text x="1074" y="1342" class="sb" style="fill:#0d9488">ContactConvergenceCriteriaFactory</text>
+<text x="1074" y="1358" class="s">user criterion + mortar criterion → MortarAndConvergenceCriteria</text>
+<text x="1074" y="1379" class="sb" style="fill:#0d9488">AuxiliaryCreateLinearSolver</text>
+<text x="1074" y="1395" class="s">wraps linear_solver_settings in MixedULMLinearSolver when</text>
+<text x="1074" y="1411" class="s">use_mixed_ulm_solver</text>
+<text x="1074" y="1432" class="sb" style="fill:#0d9488">processes.contact_process_list → alm_contact_process /</text>
+<text x="1074" y="1448" class="sb" style="fill:#0d9488">penalty_contact_process</text>
+<text x="1074" y="1464" class="s">SearchBaseProcess builds the model parts and one ContactSearchProcess</text>
+<text x="1074" y="1480" class="s">per pair; writes mortar_type</text>
+<text x="40" y="1580" class="foot">Sources: residualbased_newton_raphson_contact_strategy.h · base_mortar_criteria.h · mortar_and_criteria.h · contact_residualbased_block_builder_and_solver.h · mixedulm_linear_solver.h · search_base_process.py · thesis §4.3.3.5–6, §4.3.4.4–5</text>
+<text x="40" y="1602" class="foot">ContactStructuralMechanicsApplication · Kratos Multiphysics</text>
+</svg>

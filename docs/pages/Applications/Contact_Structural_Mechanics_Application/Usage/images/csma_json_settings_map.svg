@@ -1,0 +1,174 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 1180" width="1600" height="1180">
+<style>
+text{font-family:Helvetica,Arial,sans-serif;fill:#1f2937}
+.title{font-size:30px;font-weight:700}
+.sub{font-size:17px;fill:#6b7280}
+.hd{font-size:18px;font-weight:700}
+.t{font-size:15px}
+.k{font-size:15px;font-weight:700}
+.s{font-size:13px;fill:#6b7280}
+.sym{font-size:15px;font-weight:700;fill:#dc2626}
+.foot{font-size:13px;fill:#6b7280}
+.box{stroke:#cbd5e1;stroke-width:1.5}
+.blue{fill:#eff6ff}.teal{fill:#f0fdfa}.amber{fill:#fffbeb}.purple{fill:#f5f3ff}.red{fill:#fef2f2}
+.lb{stroke:#2563eb}.lt{stroke:#0d9488}.la{stroke:#d97706}.lp{stroke:#7c3aed}.lr{stroke:#dc2626}
+.ar{stroke-width:1.8;fill:none}
+.row{stroke:#e5e7eb;stroke-width:1}
+</style>
+<defs>
+<marker id="mb" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#2563eb"/></marker>
+<marker id="mt" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#0d9488"/></marker>
+<marker id="ma" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#d97706"/></marker>
+<marker id="mp" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#7c3aed"/></marker>
+<marker id="mr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#dc2626"/></marker>
+</defs>
+<rect width="1600" height="1180" fill="#fff"/>
+<text x="40" y="50" class="title">ProjectParameters.json map: which key is read by which object</text>
+<text x="40" y="78" class="sub">Left: the two contact-specific blocks with their default values. Right: the Python / C++ consumers. Red symbols are the theory quantities (k, ε, μ, gap threshold).</text>
+
+<!-- ================= PANEL A ================= -->
+<rect x="40" y="105" width="640" height="470" rx="8" class="box blue"/>
+<rect x="40" y="105" width="640" height="34" rx="8" fill="#2563eb"/>
+<text x="56" y="129" class="hd" style="fill:#fff">"solver_settings" → "contact_settings"   (AuxiliaryContactSettings)</text>
+
+<text x="56" y="166" class="k">"mortar_type"</text>
+<text x="200" y="166" class="t">"" · written by the contact process, e.g. ALMContactFrictionless,</text>
+<text x="200" y="184" class="t">ALMContactFrictionlessComponents, ALMContactFrictional, Penalty…</text>
+<line x1="56" y1="196" x2="664" y2="196" class="row"/>
+
+<text x="56" y="220" class="k">"fancy_convergence_criterion"</text><text x="330" y="220" class="t">true · "print_convergence_criterion" false</text>
+<text x="56" y="240" class="k">"condn_convergence_criterion"</text><text x="330" y="240" class="t">false · condition-number estimate (power iteration)</text>
+<line x1="56" y1="252" x2="664" y2="252" class="row"/>
+
+<text x="56" y="276" class="k">"adaptative_strategy"</text><text x="260" y="276" class="t">false · "split_factor" 10.0 · "max_number_splits" 3</text>
+<text x="56" y="296" class="k">"inner_loop_iterations"</text><text x="260" y="296" class="t">5 · "inner_loop_adaptive" false</text>
+<text x="56" y="316" class="k">"simplified_semi_smooth_newton"</text><text x="330" y="316" class="t">false → INTERACTION flag set (single loop)</text>
+<line x1="56" y1="328" x2="664" y2="328" class="row"/>
+
+<text x="56" y="352" class="k">"use_mixed_ulm_solver"</text><text x="260" y="352" class="t">true · "mixed_ulm_solver_parameters" {"tolerance" 1e-6,</text>
+<text x="260" y="372" class="t">"max_iteration_number" 200, "echo_level" 0}</text>
+<line x1="56" y1="384" x2="664" y2="384" class="row"/>
+
+<text x="56" y="408" class="k">"contact_displacement_*" / "contact_residual_*"</text><text x="440" y="408" class="t">relative 1e-4 · absolute 1e-9</text>
+<text x="56" y="428" class="k">"frictional_stick_*" / "frictional_slip_*"</text><text x="440" y="428" class="t">same pattern · "rotation_*"</text>
+<text x="56" y="448" class="k">"ratio_normal_tangent_threshold"</text><text x="330" y="448" class="t">1e-4</text>
+<line x1="56" y1="460" x2="664" y2="460" class="row"/>
+
+<text x="56" y="484" class="k">"ensure_contact"</text><text x="200" y="484" class="t">false · "silent_strategy" true · "rescale_linear_solver" false</text>
+<text x="56" y="504" class="k">"frictional_decomposed"</text><text x="260" y="504" class="t">true · "compute_dynamic_factor" false · "gidio_debug" false</text>
+<line x1="56" y1="516" x2="664" y2="516" class="row"/>
+<text x="56" y="540" class="s">MPC route uses "mpc_contact_settings" instead: contact_type, simplified_semi_smooth_newton,</text>
+<text x="56" y="558" class="s">inner_loop_iterations 10, update_each_nl_iteration, enforce_ntn (AuxiliaryMPCContactSettings)</text>
+
+<!-- consumers A -->
+<rect x="900" y="105" width="660" height="100" rx="8" class="box blue"/>
+<text x="916" y="130" class="hd" style="fill:#2563eb">Contact solver (Python)</text>
+<text x="916" y="152" class="t">contact_structural_mechanics_static_solver.py / _implicit_dynamic_solver.py</text>
+<text x="916" y="172" class="t">AuxiliaryAddVariables / AuxiliaryAddDofs by mortar_type; buffer ≥ 3 if frictional;</text>
+<text x="916" y="192" class="t">sets INTERACTION = not simplified_semi_smooth_newton; silent_strategy</text>
+
+<rect x="900" y="225" width="660" height="100" rx="8" class="box amber"/>
+<text x="916" y="250" class="hd" style="fill:#d97706">ResidualBasedNewtonRaphsonContactStrategy (header-only C++)</text>
+<text x="916" y="272" class="t">adaptative_strategy → time-step split by split_factor, at most max_number_splits</text>
+<text x="916" y="292" class="t">inner_loop_iterations when INTERACTION is not set (simplified SSN)</text>
+<text x="916" y="312" class="t">ensure_contact, rescale_linear_solver, clear_storage forced true</text>
+
+<rect x="900" y="345" width="660" height="110" rx="8" class="box purple"/>
+<text x="916" y="370" class="hd" style="fill:#7c3aed">ContactConvergenceCriteriaFactory → MortarAndConvergenceCriteria</text>
+<text x="916" y="392" class="t">user criterion (contact_displacement/residual/mixed/and/or_criterion) AND</text>
+<text x="916" y="412" class="t">mortar criterion picked by mortar_type: ALMFrictionless[Components]…,</text>
+<text x="916" y="432" class="t">ALMFrictional…, PenaltyFrictionless/Frictional…, MeshTyingMortarConvergenceCriteria</text>
+<text x="916" y="450" class="s">tolerances, fancy/print flags, condn → ConditionNumberUtility</text>
+
+<rect x="900" y="475" width="660" height="100" rx="8" class="box teal"/>
+<text x="916" y="500" class="hd" style="fill:#0d9488">AuxiliaryCreateLinearSolver → MixedULMLinearSolver</text>
+<text x="916" y="522" class="t">wrapped only for mortar_type ALMContactFrictional* and</text>
+<text x="916" y="542" class="t">ALMContactFrictionlessComponents; inner solver = user linear_solver_settings</text>
+<text x="916" y="562" class="t">(AMGCL fallback, block_size := DOMAIN_SIZE)</text>
+
+<!-- arrows A -->
+<path d="M680,170 C790,170 790,155 898,155" class="ar lb" marker-end="url(#mb)"/>
+<path d="M680,176 C790,176 790,400 898,400" class="ar lp" marker-end="url(#mp)"/>
+<path d="M680,182 C790,182 790,520 898,520" class="ar lt" marker-end="url(#mt)"/>
+<path d="M680,230 C790,230 790,420 898,420" class="ar lp" marker-end="url(#mp)"/>
+<path d="M680,290 C790,290 790,275 898,275" class="ar la" marker-end="url(#ma)"/>
+<path d="M680,310 C790,310 790,185 898,185" class="ar lb" marker-end="url(#mb)"/>
+<path d="M680,360 C790,360 790,540 898,540" class="ar lt" marker-end="url(#mt)"/>
+<path d="M680,428 C790,428 790,440 898,440" class="ar lp" marker-end="url(#mp)"/>
+<path d="M680,494 C790,494 790,300 898,300" class="ar la" marker-end="url(#ma)"/>
+
+<!-- ================= PANEL B ================= -->
+<rect x="40" y="605" width="640" height="500" rx="8" class="box teal"/>
+<rect x="40" y="605" width="640" height="34" rx="8" fill="#0d9488"/>
+<text x="56" y="629" class="hd" style="fill:#fff">"processes" → "contact_process_list" → "alm_contact_process"</text>
+
+<text x="56" y="666" class="k">"contact_model_part"</text><text x="260" y="666" class="t">{"0": [...], ...} · "assume_master_slave" {"0": [...], ...}</text>
+<text x="56" y="686" class="k">"contact_property_ids"</text><text x="260" y="686" class="t">{"0": 0, ...} · "interval" [0.0, "End"]</text>
+<line x1="56" y1="698" x2="664" y2="698" class="row"/>
+
+<text x="56" y="722" class="k">"contact_type"</text><text x="200" y="722" class="t">"Frictionless" | "FrictionlessComponents" | "Frictional"</text>
+<text x="56" y="742" class="k">"normal_variation"</text><text x="210" y="742" class="t">"no_derivatives_computation" → CONSIDER_NORMAL_VARIATION</text>
+<line x1="56" y1="754" x2="664" y2="754" class="row"/>
+
+<text x="56" y="778" class="k">"friction_coefficients"</text><text x="260" y="778" class="t">{"0": 0.0, ...} → FRICTION_COEFFICIENT</text><text x="560" y="778" class="sym">μ</text>
+<text x="56" y="798" class="k">"frictional_law"</text><text x="200" y="798" class="t">"Coulomb" · "slip_threshold" 2e-2 · "operator_threshold" 1e-3</text>
+<text x="56" y="818" class="k">"tangent_factor"</text><text x="200" y="818" class="t">2.5e-2 → TANGENT_FACTOR (penalty 1e-3, explicit 1e-4)</text>
+<line x1="56" y1="830" x2="664" y2="830" class="row"/>
+
+<text x="56" y="854" class="k">"integration_order"</text><text x="220" y="854" class="t">2 → INTEGRATION_ORDER_CONTACT · "consider_tessellation"</text>
+<line x1="56" y1="866" x2="664" y2="866" class="row"/>
+
+<text x="56" y="890" class="k">"advance_ALM_parameters"</text><text x="280" y="890" class="t">"manual_ALM" false · "stiffness_factor" 1.0</text>
+<text x="80" y="910" class="t">"penalty_scale_factor" 1.0 · "use_scale_factor" true · "adapt_penalty" false</text>
+<text x="80" y="930" class="t">"penalty" 1e-12 → INITIAL_PENALTY</text><text x="345" y="930" class="sym">ε</text><text x="370" y="930" class="t">· "scale_factor" 1.0 → SCALE_FACTOR</text><text x="645" y="930" class="sym">k</text>
+<text x="80" y="950" class="t">"max_gap_factor" 1e-3 → MAX_GAP_FACTOR (adaptive penalty)</text>
+<line x1="56" y1="962" x2="664" y2="962" class="row"/>
+
+<text x="56" y="986" class="k">"search_parameters"</text><text x="240" y="986" class="t">"type_search" "in_radius_with_obb" · "search_factor" 3.5</text>
+<text x="80" y="1006" class="t">"active_check_factor" 0.01 → ACTIVE_CHECK_FACTOR</text><text x="470" y="1006" class="sym">gap threshold ḡ</text>
+<text x="80" y="1026" class="t">"check_gap" "check_mapping" · "dynamic_search" false · "database_step_update" 1</text>
+<text x="80" y="1046" class="t">"simple_search" false · "adapt_search" false · "octree_search_parameters" {…}</text>
+<line x1="56" y1="1058" x2="664" y2="1058" class="row"/>
+<text x="56" y="1082" class="k">"alternative_formulations"</text><text x="300" y="1082" class="t">{"axisymmetric": false} · "clear_inactive_for_post" true</text>
+
+<!-- consumers B -->
+<rect x="900" y="605" width="660" height="120" rx="8" class="box teal"/>
+<text x="916" y="630" class="hd" style="fill:#0d9488">SearchBaseProcess / ALMContactProcess (Python)</text>
+<text x="916" y="652" class="t">builds Contact, ContactSubN, MasterSubModelPartN, SlaveSubModelPartN;</text>
+<text x="916" y="672" class="t">InterfacePreprocessCondition, NormalCheckProcess, MasterSlaveProcess;</text>
+<text x="916" y="692" class="t">picks the condition name ALM[NV]Frictionless[Components][Axisym]MortarContact</text>
+<text x="916" y="712" class="t">and writes mortar_type into contact_settings</text>
+
+<rect x="900" y="745" width="660" height="100" rx="8" class="box amber"/>
+<text x="916" y="770" class="hd" style="fill:#d97706">ALMVariablesCalculationProcess (C++)</text>
+<text x="916" y="792" class="t">ε = stiffness_factor · E / h,  k = penalty_scale_factor · ε  → INITIAL_PENALTY, SCALE_FACTOR</text>
+<text x="916" y="812" class="t">(E, h = mean YOUNG_MODULUS and NODAL_H over the interface)</text>
+<text x="916" y="832" class="s">skipped when manual_ALM = true (values taken verbatim)</text>
+
+<rect x="900" y="865" width="660" height="110" rx="8" class="box purple"/>
+<text x="916" y="890" class="hd" style="fill:#7c3aed">ContactSearchProcess (one per pair, C++)</text>
+<text x="916" y="912" class="t">SimpleContactSearchProcess / AdvancedContactSearchProcess: KD-tree or Octree,</text>
+<text x="916" y="932" class="t">OBB, ACTIVE if gap ≤ active_check_factor · DISTANCE_THRESHOLD</text>
+<text x="916" y="952" class="t">check_gap: "check_mapping" | "check_direct" | "no_check"; dynamic_search uses velocity</text>
+<text x="916" y="970" class="s">rerun every database_step_update steps</text>
+
+<rect x="900" y="995" width="660" height="130" rx="8" class="box red"/>
+<text x="916" y="1020" class="hd" style="fill:#dc2626">Conditions (via ProcessInfo / Properties)</text>
+<text x="916" y="1042" class="t">ProcessInfo: SCALE_FACTOR k, INITIAL_PENALTY ε, CONSIDER_NORMAL_VARIATION,</text>
+<text x="916" y="1062" class="t">TANGENT_FACTOR, SLIP_THRESHOLD, OPERATOR_THRESHOLD, ADAPT_PENALTY,</text>
+<text x="916" y="1082" class="t">MAX_GAP_FACTOR</text>
+<text x="916" y="1102" class="t">Properties: INTEGRATION_ORDER_CONTACT, ACTIVE_CHECK_FACTOR,</text>
+<text x="916" y="1120" class="t">FRICTION_COEFFICIENT μ</text>
+
+<!-- arrows B -->
+<path d="M680,675 C790,675 790,660 898,660" class="ar lt" marker-end="url(#mt)"/>
+<path d="M680,732 C790,732 790,690 898,690" class="ar lt" marker-end="url(#mt)"/>
+<path d="M680,738 C790,738 790,1030 898,1030" class="ar lr" marker-end="url(#mr)"/>
+<path d="M680,798 C790,798 790,1050 898,1050" class="ar lr" marker-end="url(#mr)"/>
+<path d="M680,850 C790,850 790,1070 898,1070" class="ar lr" marker-end="url(#mr)"/>
+<path d="M680,920 C790,920 790,790 898,790" class="ar la" marker-end="url(#ma)"/>
+<path d="M680,1016 C790,1016 790,920 898,920" class="ar lp" marker-end="url(#mp)"/>
+
+<text x="40" y="1145" class="s">Penalty and explicit-penalty processes reuse the same block ("penalty_contact_process", "explicit_penalty_contact_process"); "mpc_contact_process" drops advance_ALM_parameters and adds reaction_check_stiffness_factor.</text>
+<text x="40" y="1168" class="foot">ContactStructuralMechanicsApplication · Kratos Multiphysics</text>
+</svg>

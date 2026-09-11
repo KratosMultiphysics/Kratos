@@ -1,0 +1,73 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 800" width="1600" height="800">
+<style>text{font-family:Helvetica,Arial,sans-serif;fill:#1f2937}.title{font-size:30px;font-weight:bold}.sub{font-size:17px;fill:#6b7280}
+.ax{font-size:15px;fill:#6b7280}.val{font-size:14px;font-weight:bold;fill:#1f2937}.yr{font-size:17px;font-weight:bold}.ms{font-size:15px}.foot{font-size:13px;fill:#6b7280}</style>
+<rect width="1600" height="800" fill="#ffffff"/>
+<text x="30" y="44" class="title">Development timeline of the ContactStructuralMechanicsApplication</text>
+<text x="30" y="72" class="sub">Commits touching applications/ContactStructuralMechanicsApplication per year (git log, 3 154 commits since 2016-08-05) and the main milestones</text>
+<line x1="80" y1="370" x2="1560" y2="370" stroke="#cbd5e1" stroke-width="1.5"/>
+<line x1="80" y1="370" x2="1560" y2="370" stroke="#eef2f7" stroke-width="1"/>
+<text x="70" y="375" class="ax" text-anchor="end">0</text>
+<line x1="80" y1="283" x2="1560" y2="283" stroke="#eef2f7" stroke-width="1"/>
+<text x="70" y="288" class="ax" text-anchor="end">300</text>
+<line x1="80" y1="197" x2="1560" y2="197" stroke="#eef2f7" stroke-width="1"/>
+<text x="70" y="202" class="ax" text-anchor="end">600</text>
+<line x1="80" y1="110" x2="1560" y2="110" stroke="#eef2f7" stroke-width="1"/>
+<text x="70" y="115" class="ax" text-anchor="end">900</text>
+<rect x="100" y="317" width="94" height="53" rx="6" fill="#2563eb"/>
+<text x="147" y="309" class="val" text-anchor="middle">183</text>
+<text x="147" y="394" class="yr" text-anchor="middle">2016</text>
+<rect x="235" y="158" width="94" height="212" rx="6" fill="#2563eb"/>
+<text x="282" y="150" class="val" text-anchor="middle">733</text>
+<text x="282" y="394" class="yr" text-anchor="middle">2017</text>
+<rect x="369" y="194" width="94" height="176" rx="6" fill="#2563eb"/>
+<text x="416" y="186" class="val" text-anchor="middle">610</text>
+<text x="416" y="394" class="yr" text-anchor="middle">2018</text>
+<rect x="504" y="124" width="94" height="246" rx="6" fill="#2563eb"/>
+<text x="551" y="116" class="val" text-anchor="middle">852</text>
+<text x="551" y="394" class="yr" text-anchor="middle">2019</text>
+<rect x="638" y="288" width="94" height="82" rx="6" fill="#7c3aed"/>
+<text x="685" y="280" class="val" text-anchor="middle">283</text>
+<text x="685" y="394" class="yr" text-anchor="middle">2020</text>
+<rect x="773" y="294" width="94" height="76" rx="6" fill="#7c3aed"/>
+<text x="820" y="286" class="val" text-anchor="middle">262</text>
+<text x="820" y="394" class="yr" text-anchor="middle">2021</text>
+<rect x="907" y="346" width="94" height="24" rx="6" fill="#94a3b8"/>
+<text x="955" y="338" class="val" text-anchor="middle">82</text>
+<text x="955" y="394" class="yr" text-anchor="middle">2022</text>
+<rect x="1042" y="347" width="94" height="23" rx="6" fill="#94a3b8"/>
+<text x="1089" y="339" class="val" text-anchor="middle">81</text>
+<text x="1089" y="394" class="yr" text-anchor="middle">2023</text>
+<rect x="1177" y="364" width="94" height="6" rx="6" fill="#94a3b8"/>
+<text x="1224" y="356" class="val" text-anchor="middle">20</text>
+<text x="1224" y="394" class="yr" text-anchor="middle">2024</text>
+<rect x="1311" y="358" width="94" height="12" rx="6" fill="#94a3b8"/>
+<text x="1358" y="350" class="val" text-anchor="middle">41</text>
+<text x="1358" y="394" class="yr" text-anchor="middle">2025</text>
+<rect x="1446" y="368" width="94" height="2" rx="6" fill="#94a3b8"/>
+<text x="1493" y="360" class="val" text-anchor="middle">7</text>
+<text x="1493" y="394" class="yr" text-anchor="middle">2026</text>
+<text x="80" y="422" class="ax">Blue: active development (2016–2019) · Purple: MPC route and refactors (2020–2021) · Grey: maintenance (2022–2026, status badge "Maintained")</text>
+<line x1="80" y1="470" x2="80" y2="750" stroke="#cbd5e1" stroke-width="2"/>
+<circle cx="80" cy="480" r="7" fill="#2563eb"/>
+<text x="102" y="485" class="yr" fill="#2563eb">Aug 2016</text>
+<text x="260" y="485" class="ms">Application created: first general mortar contact condition (dual LM, ALM frictionless)</text>
+<circle cx="80" cy="520" r="7" fill="#2563eb"/>
+<text x="102" y="525" class="yr" fill="#2563eb">2017</text>
+<text x="260" y="525" class="ms">Axisymmetric conditions, vector (components) LM, explicit contribution utilities, dynamic search</text>
+<circle cx="80" cy="560" r="7" fill="#0d9488"/>
+<text x="102" y="565" class="yr" fill="#0d9488">2018</text>
+<text x="260" y="565" class="ms">MixedULMLinearSolver (static condensation of the dual LM), adaptive remeshing branch</text>
+<circle cx="80" cy="600" r="7" fill="#d97706"/>
+<text x="102" y="605" class="yr" fill="#d97706">2019 (peak)</text>
+<text x="260" y="605" class="ms">Penalty &amp; frictional formulations, frictional laws, explicit solver, self-contact utilities, MMG contact remeshing</text>
+<circle cx="80" cy="640" r="7" fill="#7c3aed"/>
+<text x="102" y="645" class="yr" fill="#7c3aed">2020</text>
+<text x="260" y="645" class="ms">MPC contact route (MPCMortarContactCondition + ContactMasterSlaveConstraint); PhD thesis defended (UPC)</text>
+<circle cx="80" cy="680" r="7" fill="#0d9488"/>
+<text x="102" y="685" class="yr" fill="#0d9488">2021</text>
+<text x="260" y="685" class="ms">Convergence-criteria refactor (Create/Parameters constructors), MixedULM updates</text>
+<circle cx="80" cy="720" r="7" fill="#6b7280"/>
+<text x="102" y="725" class="yr" fill="#6b7280">2022 →</text>
+<text x="260" y="725" class="ms">Maintenance mode: frictional-law updates, fixes, packaging (pyproject.toml 2025), AD folder naming (2025)</text>
+<text x="30" y="782" class="foot">ContactStructuralMechanicsApplication · Kratos Multiphysics</text>
+</svg>
