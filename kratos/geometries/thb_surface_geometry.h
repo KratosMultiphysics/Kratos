@@ -16,6 +16,7 @@
 #include <algorithm>
 #include <cmath>
 #include <limits>
+#include <unordered_map>
 #include <vector>
 
 // Project includes
@@ -599,6 +600,27 @@ public:
         } else {
             return ControlPointOffset(Level) + FlatIndex;
         }
+    }
+
+    /// Returns a lookup {node_id -> CP weight} covering every active CP across
+    /// every level of this THB surface.
+    std::unordered_map<IndexType, double> WeightsByNodeId() const
+    {
+        std::unordered_map<IndexType, double> result;
+        for (SizeType l = 0; l < mLevels.size(); ++l) {
+            const auto& level = mLevels[l];
+            const bool is_rational = level.Weights.size() > 0;
+            const SizeType n_u = level.KnotsU.size() - level.DegreeU + 1;
+            const SizeType n_v = level.KnotsV.size() - level.DegreeV + 1;
+            const SizeType total = n_u * n_v;
+            for (SizeType flat = 0; flat < total; ++flat) {
+                if (!mActiveFunctions[l][flat]) continue;
+                const SizeType packed = PackedControlPointIndex(l, flat);
+                const IndexType node_id = this->pGetPoint(packed)->Id();
+                result[node_id] = is_rational ? level.Weights[flat] : 1.0;
+            }
+        }
+        return result;
     }
 
     ///@}
