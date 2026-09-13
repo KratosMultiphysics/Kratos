@@ -115,14 +115,14 @@ class HRomTrainingUtility(object):
         self.element_id_to_numpy_index_mapping = {}
         self.numpy_index_to_element_id_mapping = {}
         for index, element in enumerate(root_model_part.Elements):
-            self.numpy_index_to_element_id_mapping[index] = element.Id-1 #FIXME -1
-            self.element_id_to_numpy_index_mapping[element.Id-1] = index #FIXME -1
-
+            self.numpy_index_to_element_id_mapping[index] = element.Id
+            self.element_id_to_numpy_index_mapping[element.Id] = index
         self.condition_id_to_numpy_index_mapping = {}
         self.numpy_index_to_condition_id_mapping = {}
         for index, condition in enumerate(root_model_part.Conditions):
-            self.numpy_index_to_condition_id_mapping[index+number_of_elements] = condition.Id -1 +number_of_elements  #FIXME -1 #FIXME +number_of_elements We should remove redundant fixes
-            self.condition_id_to_numpy_index_mapping[condition.Id-1] = index+number_of_elements #FIXME -1
+            flat_index = index + number_of_elements
+            self.numpy_index_to_condition_id_mapping[flat_index] = condition.Id
+            self.condition_id_to_numpy_index_mapping[condition.Id] = flat_index
 
 
     def map_condition_ids_to_numpy_indexes(self, this_modelpart_condition_ids):
@@ -139,17 +139,14 @@ class HRomTrainingUtility(object):
         return np.array(this_modelpart_indexes_numpy)
 
 
-    def map_numpy_indexes_to_element_and_conditions_ids(self,indexes,number_of_elements):
+    def map_numpy_indexes_to_element_and_conditions_ids(self, indexes, number_of_elements):
+        element_mask = indexes < number_of_elements
+        condition_mask = indexes >= number_of_elements
 
-        kratos_indexes = []
-        for i in range(np.size(indexes)):
-            if indexes[i]<=number_of_elements-1:
-                kratos_indexes.append(self.numpy_index_to_element_id_mapping[indexes[i]])
-            else:
-                kratos_indexes.append(self.numpy_index_to_condition_id_mapping[indexes[i]])
+        element_ids = [self.numpy_index_to_element_id_mapping[i] for i in indexes[element_mask]]
+        condition_ids = [self.numpy_index_to_condition_id_mapping[i] for i in indexes[condition_mask]]
 
-        return np.array(kratos_indexes) #FIXME -1
-
+        return np.array(element_ids), np.array(condition_ids), element_mask, condition_mask
 
 
     def AppendCurrentStepResiduals(self):
@@ -331,10 +328,8 @@ class HRomTrainingUtility(object):
         number_of_elements = self.solver.GetComputingModelPart().GetRootModelPart().NumberOfElements()
         weights = np.squeeze(self.hyper_reduction_element_selector.w)
         indexes = self.hyper_reduction_element_selector.z
-        indexes = self.map_numpy_indexes_to_element_and_conditions_ids(indexes,number_of_elements)
-
-        # Create dictionary with HROM weights (Only used for the expansion of the selected Conditions to include their parent Elements)
-        hrom_weights = self.__CreateDictionaryWithRomElementsAndWeights(weights,indexes,number_of_elements)
+        element_ids, condition_ids, element_mask, condition_mask = self.map_numpy_indexes_to_element_and_conditions_ids(indexes, number_of_elements)
+        hrom_weights = self.__CreateDictionaryWithRomElementsAndWeights(weights, element_ids, condition_ids, element_mask, condition_mask)
 
         # Get the root model part
         root_model_part = self.solver.GetComputingModelPart().GetRootModelPart()
@@ -422,13 +417,11 @@ class HRomTrainingUtility(object):
                 hrom_weights["Elements"][parent_id] = 0.0
             weights, indexes = self.__AddSelectedElementsWithZeroWeights(weights,indexes, missing_condition_parents)
 
-        if self.hrom_output_format=="numpy":
-            element_indexes = np.where(indexes < number_of_elements)[0]
-            condition_indexes = np.where(indexes >= number_of_elements)[0]
-            np.save(self.rom_basis_output_folder / "HROM_ElementWeights.npy", weights[element_indexes])
-            np.save(self.rom_basis_output_folder / "HROM_ConditionWeights.npy", weights[condition_indexes])
-            np.save(self.rom_basis_output_folder / "HROM_ElementIds.npy", indexes[element_indexes])  # FIXME fix the -1 in the indexes of numpy and ids of Kratos
-            np.save(self.rom_basis_output_folder / "HROM_ConditionIds.npy", indexes[condition_indexes] - number_of_elements)  # FIXME fix the -1 in the indexes of numpy and ids of Kratos
+        if self.hrom_output_format == "numpy":
+            np.save(self.rom_basis_output_folder / "HROM_ElementWeights.npy", weights[element_mask])
+            np.save(self.rom_basis_output_folder / "HROM_ConditionWeights.npy", weights[condition_mask])
+            np.save(self.rom_basis_output_folder / "HROM_ElementIds.npy", element_ids)
+            np.save(self.rom_basis_output_folder / "HROM_ConditionIds.npy", condition_ids)
 
         elif self.hrom_output_format=="json":
             with (self.rom_basis_output_folder / self.rom_basis_output_name).with_suffix('.json').open('r') as f:
@@ -456,33 +449,26 @@ class HRomTrainingUtility(object):
 
         return updated_weights, updated_conditions
 
-    def __CreateDictionaryWithRomElementsAndWeights(self, weights = None, indexes=None, number_of_elements = None):
 
-        if number_of_elements is None:
-            number_of_elements = self.solver.GetComputingModelPart().NumberOfElements()
+    def __CreateDictionaryWithRomElementsAndWeights(self, weights=None, element_ids=None, condition_ids=None, element_mask=None, condition_mask=None):
+        hrom_weights = {"Elements": {}, "Conditions": {}}
         if weights is None:
-            weights = np.r_[np.load(self.rom_basis_output_folder / "HROM_ElementWeights.npy"), np.load(self.rom_basis_output_folder / "HROM_ConditionWeights.npy")]
-        if indexes is None:
-            indexes = np.r_[np.load(self.rom_basis_output_folder / "HROM_ElementIds.npy"), np.load(self.rom_basis_output_folder / "HROM_ConditionIds.npy") + number_of_elements]
-        hrom_weights = {}
-        hrom_weights["Elements"] = {}
-        hrom_weights["Conditions"] = {}
-
-        if type(indexes)==np.int64 or type(indexes)==np.int32:
-            # Only one element found !
-            if indexes <= number_of_elements-1:
-                hrom_weights["Elements"][int(indexes)] = float(weights)
-            else:
-                hrom_weights["Conditions"][int(indexes)-number_of_elements] = float(weights)
+            elem_weights = np.load(self.rom_basis_output_folder / "HROM_ElementWeights.npy")
+            cond_weights = np.load(self.rom_basis_output_folder / "HROM_ConditionWeights.npy")
+            element_ids = np.load(self.rom_basis_output_folder / "HROM_ElementIds.npy")
+            condition_ids = np.load(self.rom_basis_output_folder / "HROM_ConditionIds.npy")
         else:
-            # Many elements found
-            for j in range (len(indexes)):
-                if indexes[j] <=  number_of_elements -1:
-                    hrom_weights["Elements"][int(indexes[j])] = float(weights[j])
-                else:
-                    hrom_weights["Conditions"][int(indexes[j])-number_of_elements] = float(weights[j])
+            elem_weights = weights[element_mask]
+            cond_weights = weights[condition_mask]
+
+        for i, elem_id in enumerate(element_ids):
+            hrom_weights["Elements"][int(elem_id)] = float(elem_weights[i])
+
+        for i, cond_id in enumerate(condition_ids):
+            hrom_weights["Conditions"][int(cond_id)] = float(cond_weights[i])
 
         return hrom_weights
+
 
     def __CreateListsWithRomElements(self):
         number_of_elements = self.solver.GetComputingModelPart().NumberOfElements()
@@ -507,5 +493,3 @@ class HRomTrainingUtility(object):
         unique_condition_ids_list = unique_condition_ids.astype(int).tolist()
 
         return unique_element_ids_list, unique_condition_ids_list
-
-
