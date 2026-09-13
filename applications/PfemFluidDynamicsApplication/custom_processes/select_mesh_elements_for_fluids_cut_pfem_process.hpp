@@ -96,22 +96,20 @@ namespace Kratos
                 std::cout << "MODEL PART OutNumberOfElements " << mrRemesh.OutMesh.GetNumberOfElements() << std::endl;
                 std::cout << "MODEL PART OutNumberOfPoints " << mrRemesh.OutMesh.GetNumberOfPoints() << std::endl;
             }
+
             const int &OutNumberOfElements = mrRemesh.OutMesh.GetNumberOfElements();
-            mrRemesh.PreservedElements.clear();
-            mrRemesh.PreservedElements.resize(OutNumberOfElements, false);
-            std::fill(mrRemesh.PreservedElements.begin(), mrRemesh.PreservedElements.end(), 0);
+            mrRemesh.PreservedElements.assign(OutNumberOfElements, 0);
             mrRemesh.MeshElementsSelectedFlag = true;
 
             MesherUtilities MesherUtils;
-            double ModelPartVolume = MesherUtils.ComputeModelPartVolume(mrModelPart);
-            double CriticalVolume = 0.05 * ModelPartVolume / double(mrModelPart.Elements().size());
+            const double ModelPartVolume = MesherUtils.ComputeModelPartVolume(mrModelPart);
+            const double InitialCriticalVolume = 0.05 * ModelPartVolume / double(mrModelPart.Elements().size());
 
             mrRemesh.Info->NumberOfElements = 0;
 
             const ProcessInfo &rCurrentProcessInfo = mrModelPart.GetProcessInfo();
-            double currentTime = rCurrentProcessInfo[TIME];
-            double deltaTime = rCurrentProcessInfo[DELTA_TIME];
-            int number_of_slivers = 0;
+            const double currentTime = rCurrentProcessInfo[TIME];
+            const double deltaTime = rCurrentProcessInfo[DELTA_TIME];
 
             bool refiningBox = false;
             for (SizeType index = 0; index < mrRemesh.UseRefiningBox.size(); index++)
@@ -147,30 +145,29 @@ namespace Kratos
                 // #pragma omp parallel for reduction(+:number) private(el)
                 for (el = 0; el < OutNumberOfElements; el++)
                 {
+
                     Geometry<Node> vertices;
                     double meanMeshSize = mrRemesh.Refine->CriticalRadius; // this must be inside because if there is a refined zone, each element has a different critical radius
-                    double distance_tolerance = 0.05 * meanMeshSize;
+                    const double distance_tolerance = 0.05 * meanMeshSize;
+                    bool noremesh = false;
+                    bool increaseAlfa = false;
+                    std::array<double, 4> normVelocityP;
+                    std::array<array_1d<double, 3>, 4> nodesVelocities;
+                    std::array<array_1d<double, 3>, 4> nodesCoordinates;
                     SizeType numfreesurf = 0;
                     SizeType numboundary = 0;
                     SizeType numrigid = 0;
                     SizeType numInletNodes = 0;
                     SizeType numisolated = 0;
-                    bool noremesh = false;
-                    std::vector<double> normVelocityP;
-                    normVelocityP.resize(nds, false);
                     SizeType checkedNodes = 0;
-                    bool increaseAlfa = false;
                     SizeType previouslyFreeSurfaceNodes = 0;
                     SizeType previouslyIsolatedNodes = 0;
                     SizeType sumPreviouslyIsolatedFreeSurf = 0;
                     SizeType sumIsolatedFreeSurf = 0;
-                    std::vector<array_1d<double, 3>> nodesCoordinates;
-                    nodesCoordinates.resize(nds);
-                    std::vector<array_1d<double, 3>> nodesVelocities;
-                    nodesVelocities.resize(nds);
                     SizeType isolatedNodesInTheElement = 0;
                     double rigidNodeLocalMeshSize = 0;
                     double rigidNodeMeshCounter = 0;
+                    double CriticalVolume = InitialCriticalVolume;
 
                     for (SizeType pn = 0; pn < nds; pn++)
                     {
@@ -183,61 +180,61 @@ namespace Kratos
                             break;
                         }
                         vertices.push_back(rNodes(OutElementList[el * nds + pn]));
+                        Node &rNode = vertices.back();
 
-                        if (vertices.back().IsNot(RIGID) && vertices.back().IsNot(SOLID) && vertices.back().GetSolutionStepValue(DISTANCE) > distance_tolerance)
+                        if (rNode.IsNot(RIGID) && rNode.IsNot(SOLID) && rNode.GetSolutionStepValue(DISTANCE) > distance_tolerance)
                         {
-                            isolatedNodesInTheElement += vertices.back().FastGetSolutionStepValue(ISOLATED_NODE);
+                            isolatedNodesInTheElement += rNode.FastGetSolutionStepValue(ISOLATED_NODE);
                         }
                         // check flags on nodes
-                        if (vertices.back().Is(ISOLATED))
+                        if (rNode.Is(ISOLATED))
                         {
-                            numisolated++;
+                            ++numisolated;
                         }
-                        if (vertices.back().Is(PFEMFlags::PREVIOUS_FREESURFACE))
+                        if (rNode.Is(PFEMFlags::PREVIOUS_FREESURFACE))
                         {
-                            previouslyFreeSurfaceNodes++;
+                            ++previouslyFreeSurfaceNodes;
                         }
-                        if (vertices.back().Is(PFEMFlags::PREVIOUS_ISOLATED))
+                        if (rNode.Is(PFEMFlags::PREVIOUS_ISOLATED))
                         {
-                            previouslyIsolatedNodes++;
+                            ++previouslyIsolatedNodes;
                         }
-                        if (vertices.back().Is(BOUNDARY))
+                        if (rNode.Is(BOUNDARY))
                         {
-                            numboundary++;
+                            ++numboundary;
                         }
-                        if (vertices.back().GetValue(NO_MESH))
+                        if (rNode.GetValue(NO_MESH))
                         {
                             noremesh = true;
                         }
 
-                        if (vertices.back().Is(RIGID) || vertices.back().Is(SOLID) || (vertices.back().GetSolutionStepValue(DISTANCE) < 0.0 && dimension == 3))
-                        // if (vertices.back().Is(RIGID) || vertices.back().Is(SOLID))
+                        if (rNode.Is(RIGID) || rNode.Is(SOLID) || (rNode.GetSolutionStepValue(DISTANCE) < 0.0 && dimension == 3))
                         {
-                            if (vertices.back().Is(RIGID) || (vertices.back().GetSolutionStepValue(DISTANCE) < 0.0 && dimension == 3))
+                            if (rNode.Is(RIGID) || (rNode.GetSolutionStepValue(DISTANCE) < 0.0 && dimension == 3))
                             {
-                                rigidNodeLocalMeshSize += vertices.back().FastGetSolutionStepValue(NODAL_H_WALL);
+                                rigidNodeLocalMeshSize += rNode.FastGetSolutionStepValue(NODAL_H_WALL);
                                 rigidNodeMeshCounter += 1.0;
                             }
 
                             numrigid++;
                         }
 
-                        if (vertices.back().IsNot(RIGID) && vertices.back().Is(BOUNDARY) && vertices.back().GetSolutionStepValue(DISTANCE) > distance_tolerance)
+                        if (rNode.IsNot(RIGID) && rNode.Is(BOUNDARY) && rNode.GetSolutionStepValue(DISTANCE) > distance_tolerance)
                         {
                             numfreesurf++;
-                            const array_1d<double, 3> &velocityP0 = vertices.back().FastGetSolutionStepValue(VELOCITY, 0);
+                            const array_1d<double, 3> &velocityP0 = rNode.FastGetSolutionStepValue(VELOCITY, 0);
                             normVelocityP[pn] = norm_2(velocityP0);
                             nodesVelocities[pn] = velocityP0;
                             checkedNodes++;
                         }
-                        else if (vertices.back().Is(ISOLATED))
+                        else if (rNode.Is(ISOLATED))
                         {
-                            const array_1d<double, 3> &velocityP0 = vertices.back().FastGetSolutionStepValue(VELOCITY, 0);
+                            const array_1d<double, 3> &velocityP0 = rNode.FastGetSolutionStepValue(VELOCITY, 0);
                             normVelocityP[pn] = norm_2(velocityP0);
                             nodesVelocities[pn] = velocityP0;
                             checkedNodes++;
                         }
-                        if (vertices.back().Is(INLET))
+                        if (rNode.Is(INLET))
                         {
                             numInletNodes++;
                         }
@@ -268,9 +265,9 @@ namespace Kratos
                         this->SetMeshSizeInBoundaryZones(meanMeshSize, previouslyFreeSurfaceNodes, numfreesurf, currentTime, deltaTime, rigidNodeLocalMeshSize, rigidNodeMeshCounter);
                     }
 
-                    if (refiningBox == true)
+                    if (refiningBox && increaseAlfa)
                     {
-                        this->IncreaseAlphaForRefininedZones(Alpha, increaseAlfa, nds, numfreesurf, numrigid, numisolated);
+                        this->IncreaseAlphaForRefininedZones(Alpha, nds, numfreesurf, numrigid, numisolated);
                     }
 
                     sumIsolatedFreeSurf = numisolated + numfreesurf;
@@ -324,7 +321,7 @@ namespace Kratos
                     if (dimension == 3 && accepted && numrigid < 3 &&
                         (previouslyIsolatedNodes == 4 || previouslyFreeSurfaceNodes == 4 || sumIsolatedFreeSurf == 4 || numfreesurf == 4 || numisolated == 4 || (numrigid == 2 && isolatedNodesInTheElement > 1)))
                     {
-                        this->ControlSliverElements(accepted, number_of_slivers, vertices, nodesCoordinates, CriticalVolume);
+                        this->ControlSliverElements(accepted, nodesCoordinates, CriticalVolume);
                     }
 
                     if (accepted)
@@ -338,7 +335,7 @@ namespace Kratos
 
             if (mEchoLevel > 1)
             {
-                std::cout << "Number of Preserved Fluid Elements " << mrRemesh.Info->NumberOfElements << " (slivers detected: " << number_of_slivers << ") " << std::endl;
+                std::cout << "Number of Preserved Fluid Elements " << mrRemesh.Info->NumberOfElements << std::endl;
                 std::cout << "TOTAL removed nodes " << mrRemesh.Info->RemovedNodes << std::endl;
             }
             if (mrRemesh.ExecutionOptions.IsNot(MesherUtilities::KEEP_ISOLATED_NODES))
