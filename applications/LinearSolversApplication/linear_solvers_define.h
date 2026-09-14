@@ -18,7 +18,7 @@
 
 // Project includes
 #ifdef KRATOS_USE_EIGEN_BACKEND
-#include "includes/kratos_eigen_interface.h" // KratosEigenIndexType
+#include "includes/eigen_sparse_types.h" // KratosEigenIndexType
 #endif
 
 namespace Kratos
