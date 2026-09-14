@@ -89,7 +89,7 @@ public:
 
         // Compute the Householder QR decomposition
         // Note that the QR is computed when constructing the pointer
-        Eigen::Map<EigenMatrix> eigen_input_matrix_map(&rInputMatrix.data()[0], m, n);
+        Eigen::Map<EigenMatrix> eigen_input_matrix_map(rInputMatrix.data().begin(), m, n);
         mpHouseholderQR = Kratos::make_unique<Eigen::HouseholderQR<Eigen::Ref<EigenMatrix>>>(eigen_input_matrix_map);
     }
 
@@ -116,8 +116,8 @@ public:
         }
 
         // Solve the problem Ax = b
-        Eigen::Map<EigenMatrix> eigen_x_map(&rX.data()[0], k, n);
-        Eigen::Map<EigenMatrix> eigen_rhs_map(&rB.data()[0], rB.size1(), n);
+        Eigen::Map<EigenMatrix> eigen_x_map(rX.data().begin(), k, n);
+        Eigen::Map<EigenMatrix> eigen_rhs_map(rB.data().begin(), rB.size1(), n);
         eigen_x_map = mpHouseholderQR->solve(eigen_rhs_map);
     }
 
@@ -135,8 +135,8 @@ public:
         }
 
         // Solve the problem Ax = b
-        Eigen::Map<EigenMatrix> eigen_x_map(&rX.data()[0], k, 1);
-        Eigen::Map<EigenMatrix> eigen_rhs_map(&const_cast<VectorType&>(rB).data()[0], rB.size(), 1);
+        Eigen::Map<EigenMatrix> eigen_x_map(rX.data().begin(), k, 1);
+        Eigen::Map<EigenMatrix> eigen_rhs_map(const_cast<VectorType&>(rB).data().begin(), rB.size(), 1);
         eigen_x_map = mpHouseholderQR->solve(eigen_rhs_map);
     }
 
@@ -154,7 +154,7 @@ public:
 
         // Get the thin unitary matrix Q from the complete one
         // Note that Eigen stores it not as matrix type but as a sequence of Householder transformations (householderQ())
-        Eigen::Map<EigenMatrix> thin_Q(&rMatrixQ.data()[0], Q_rows, n);
+        Eigen::Map<EigenMatrix> thin_Q(rMatrixQ.data().begin(), Q_rows, n);
         thin_Q = EigenMatrix::Identity(Q_rows,n);
         thin_Q = mpHouseholderQR->householderQ() * thin_Q;
     }
@@ -172,7 +172,7 @@ public:
 
         // Get the upper triangular matrix
         // Note that we specify Eigen to return the upper triangular part as the bottom part are auxiliary internal values
-        Eigen::Map<EigenMatrix> matrix_R_map(&rMatrixR.data()[0], n, n);
+        Eigen::Map<EigenMatrix> matrix_R_map(rMatrixR.data().begin(), n, n);
         matrix_R_map = mpHouseholderQR->matrixQR().topLeftCorner(n, n).template triangularView<Eigen::Upper>();
     }
 
