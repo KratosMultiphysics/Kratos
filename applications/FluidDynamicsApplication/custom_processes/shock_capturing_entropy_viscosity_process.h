@@ -120,16 +120,8 @@ public:
             KRATOS_CATCH("")
         }
 
-#ifdef KRATOS_USE_EIGEN_BACKEND
-        // No uBLAS matrix_row over the Eigen-backed Matrix: the shape
-        // function row materializes into a dense vector on the way in.
-        using ShapeFunctionsRowType = Vector;
-#else
-        using ShapeFunctionsRowType = MatrixRow<const Matrix>;
-#endif
-
         double ComputeAtGaussPoint(
-            const ShapeFunctionsRowType& rShapeFunctions,
+            const MatrixRow<const Matrix>& rShapeFunctions,
             const Matrix& rShapeFunctionsGradents) const
         {
             KRATOS_TRY
