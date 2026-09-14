@@ -93,7 +93,7 @@ void BuildMatrix(Kratos::unique_ptr<typename MappingSparseSpaceType::MatrixType>
             ierr = rpMdo->SumIntoGlobalValues(
                 destination_ids.size(), destination_ids.data(),
                 origin_ids.size(), origin_ids.data(),
-                &local_mapping_matrix.data()[0], // valid for both the uBLAS storage and the Eigen pointer
+                local_mapping_matrix.data().begin(),
                 Epetra_FECrsMatrix::ROW_MAJOR ); // same for Ublas ad AMatrix
 
             // TODO maybe change this to a debug error only
