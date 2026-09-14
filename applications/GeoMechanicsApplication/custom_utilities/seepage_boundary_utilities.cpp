@@ -35,12 +35,12 @@ void SeepageBoundaryUtilities::AccumulateWaterPressureEntries(const std::vector<
     }
 }
 
-SeepageBoundaryUtilities::NodalFlowMap SeepageBoundaryUtilities::CalculateNodalWaterFlows(ModelPart& rModelPart,
-                                                                                          const ProcessInfo& rProcessInfo)
+SeepageBoundaryUtilities::NodalFlowMap SeepageBoundaryUtilities::CalculateNodalWaterFlows(
+    ModelPart::ElementsContainerType& rElements, const ProcessInfo& rProcessInfo)
 {
     auto result = NodalFlowMap{};
 
-    for (auto& r_element : rModelPart.Elements()) {
+    for (auto& r_element : rElements) {
         auto dofs = std::vector<Dof<double>*>{};
         r_element.GetDofList(dofs, rProcessInfo);
         auto right_hand_side = Vector{};

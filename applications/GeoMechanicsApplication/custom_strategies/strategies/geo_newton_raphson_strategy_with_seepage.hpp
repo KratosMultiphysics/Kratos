@@ -293,8 +293,8 @@ public:
 
         auto&       r_model_part   = BaseType::GetModelPart();
         const auto& r_process_info = r_model_part.GetProcessInfo();
-        const auto  nodal_flows =
-            Geo::SeepageBoundaryUtilities::CalculateNodalWaterFlows(r_model_part, r_process_info);
+        const auto  nodal_flows    = Geo::SeepageBoundaryUtilities::CalculateNodalWaterFlows(
+            r_model_part.Elements(), r_process_info);
         Geo::SeepageBoundaryUtilities::AssignNodalWaterFlows(r_model_part, nodal_flows);
     }
 
@@ -307,7 +307,7 @@ private:
         if (mSeepageNodes.empty()) return false;
 
         const auto nodal_flows = Geo::SeepageBoundaryUtilities::CalculateNodalWaterFlows(
-            BaseType::GetModelPart(), BaseType::GetModelPart().GetProcessInfo());
+            BaseType::GetModelPart().Elements(), BaseType::GetModelPart().GetProcessInfo());
 
         return Geo::SeepageBoundaryUtilities::SwitchOneSeepageNodeIfNeeded(
             mSeepageNodes, nodal_flows, this->GetEchoLevel());

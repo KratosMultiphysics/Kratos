@@ -39,10 +39,11 @@ public:
                                                const Vector&                    rRightHandSide,
                                                NodalFlowMap&                    rNodalFlows);
 
-    // Returns the nodal water flow for every node in the model part, assembled from the right-hand
-    // side of every element. For a Pw element that right-hand side is exactly the permeability flow
-    // plus the compressibility flow plus the fluid body flow.
-    static NodalFlowMap CalculateNodalWaterFlows(ModelPart& rModelPart, const ProcessInfo& rProcessInfo);
+    // Returns the nodal water flow for every unique node of the given elements, assembled from the
+    // right-hand side of every element. For a Pw element that right-hand side is exactly the sum of
+    // the permeability flow, the compressibility flow and the fluid body flow.
+    static NodalFlowMap CalculateNodalWaterFlows(ModelPart::ElementsContainerType& rElements,
+                                                 const ProcessInfo&                rProcessInfo);
 
     // Writes the nodal water flows onto the NODAL_WATER_FLOW solution-step variable of the model
     // part. Every node is set to zero first, so nodes absent from rNodalFlows (e.g. nodes without a
