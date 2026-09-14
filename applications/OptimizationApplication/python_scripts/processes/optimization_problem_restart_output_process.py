@@ -19,12 +19,21 @@ _TENSOR_ADAPTOR_TYPES = (
 
 _SCALAR_LEAF_TYPES = (int, float, bool, str, list, dict, type(None))
 
+class _UnsupportedLeafType(Exception):
+    pass
+
 def ConvertLeafToRestartData(value) -> dict:
     """Converts a single BufferedDict leaf value to a plain, pickle-safe representation.
 
     Kratos.TensorAdaptors.* are C++-bound and are not picklable directly, so their data is
     copied out to plain numpy arrays here. Everything else stored in the OptimizationProblem's
     BufferedDict tree is expected to already be a plain, picklable Python value.
+
+    Raises _UnsupportedLeafType for anything else (e.g. a raw C++-bound object such as a
+    SystemIdentificationApplication Sensor stored via ComponentDataView's UnBuffered data); the
+    caller skips those leaves rather than failing the whole checkpoint, since such objects are
+    typically re-derived from their own inputs (e.g. read back from a settings/measurement file)
+    on every run and are not cross-iteration state that needs restoring.
     """
     if isinstance(value, Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor):
         return {"kind": "combined_tensor", "parts": [numpy.array(ta.data, copy=True) for ta in value.GetTensorAdaptors()]}
@@ -33,25 +42,39 @@ def ConvertLeafToRestartData(value) -> dict:
     if isinstance(value, _SCALAR_LEAF_TYPES):
         return {"kind": "scalar", "value": value}
 
-    raise RuntimeError(
-        f"OptimizationProblemRestartOutputProcess does not know how to check-point a value of type "
-        f"\"{type(value).__name__}\" [ value = {value} ]. Only tensor adaptors and plain "
-        "int/float/bool/str/None/list/dict values are supported. If this is a new kind of "
-        "cross-iteration state, either route it through a Kratos.TensorAdaptors.* container or "
-        "store it via ComponentDataView's Buffered/UnBuffered data as one of the supported types.")
+    raise _UnsupportedLeafType(type(value).__name__)
 
-def SnapshotBufferedDict(node: BufferedDict) -> dict:
+def SnapshotBufferedDict(node: BufferedDict, echo_level: int = 0) -> dict:
     """Recursively snapshots every buffer slot and sub item of a BufferedDict into a plain dict.
 
     Mirrors the traversal BufferedDict.PrintData/__Info already implements (iterate every
     buffer slot, then recurse into sub items), just building a nested dict instead of a string.
+
+    Leaves of an unsupported type are omitted from the snapshot (with a warning) instead of
+    aborting the checkpoint; see ConvertLeafToRestartData.
     """
+    slots = []
+    for step_index in range(node.GetBufferSize()):
+        slot = {}
+        for key, value in node.GetValueItems(step_index).items():
+            try:
+                slot[key] = ConvertLeafToRestartData(value)
+            except _UnsupportedLeafType as exc:
+                if echo_level > 0:
+                    Kratos.Logger.PrintWarning(
+                        "OptimizationProblemRestartOutputProcess",
+                        f"Skipping check-pointing of \"{key}\" [ value = {value} ]: does not know how to "
+                        f"check-point a value of type \"{exc}\". Only tensor adaptors and plain "
+                        "int/float/bool/str/None/list/dict values are supported. If this is a new kind of "
+                        "cross-iteration state (rather than something re-derived on every run, e.g. from a "
+                        "settings/measurement file), either route it through a Kratos.TensorAdaptors.* "
+                        "container or store it via ComponentDataView's Buffered/UnBuffered data as one of "
+                        "the supported types.")
+        slots.append(slot)
+
     return {
-        "slots": [
-            {key: ConvertLeafToRestartData(value) for key, value in node.GetValueItems(step_index).items()}
-            for step_index in range(node.GetBufferSize())
-        ],
-        "sub_items": {name: SnapshotBufferedDict(sub_item) for name, sub_item in node.GetSubItems().items()},
+        "slots": slots,
+        "sub_items": {name: SnapshotBufferedDict(sub_item, echo_level) for name, sub_item in node.GetSubItems().items()},
     }
 
 class OptimizationProblemRestartOutputProcess(Kratos.OutputProcess):
@@ -90,7 +113,7 @@ class OptimizationProblemRestartOutputProcess(Kratos.OutputProcess):
 
         payload = {
             "step": step,
-            "data": SnapshotBufferedDict(self.optimization_problem.GetProblemDataContainer()),
+            "data": SnapshotBufferedDict(self.optimization_problem.GetProblemDataContainer(), self.echo_level),
         }
 
         file_path = (self.restart_files_path / self.restart_file_name.replace("<step>", str(step))).resolve()

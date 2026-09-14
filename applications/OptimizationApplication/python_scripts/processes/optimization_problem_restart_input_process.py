@@ -11,7 +11,7 @@ def Factory(_: Kratos.Model, parameters: Kratos.Parameters, optimization_problem
         raise RuntimeError(f"OptimizationProblemRestartInputProcess instantiation requires a \"settings\" in parameters [ parameters = {parameters}].")
     return OptimizationProblemRestartInputProcess(parameters["settings"], optimization_problem)
 
-def RestoreBufferedDict(node: BufferedDict, snapshot: dict, shape_owner, echo_level: int) -> None:
+def RestoreBufferedDict(node: BufferedDict, snapshot: dict, shape_owner, echo_level: int, mesh_update_key: 'str | None' = None) -> None:
     """Replays a snapshot produced by optimization_problem_restart_output_process back into a
     live (freshly constructed, still empty) BufferedDict node.
 
@@ -21,6 +21,18 @@ def RestoreBufferedDict(node: BufferedDict, snapshot: dict, shape_owner, echo_le
     RestoreOptimizationProblemData for how it is resolved. If it is None, tensor-valued leaves
     are skipped (only scalars restored); this only happens for subtrees that get unconditionally
     recomputed before being read again, e.g. response value/gradient caches.
+
+    "mesh_update_key", when not None, additionally pushes the *current* step's tensor stored
+    under that exact key onto the shared mesh via shape_owner.Update(), on top of replaying it
+    into the BufferedDict. This must stay reserved for the one key that actually holds "the
+    design" (the algorithm's own "control_field" bookkeeping, see RestoreOptimizationProblemData)
+    -- deliberately scoped to a single key rather than "any tensor in this subtree", because a
+    subtree routinely holds several *other* tensors too (e.g. an algorithm's own
+    "search_direction"/"control_field_update", or output-only diagnostic fields a filtered/
+    phi-space control writes for ascii/vtu output), any one of which would corrupt the design if
+    blindly fed through Update() as if it were the full design. Relying on "whichever tensor
+    happens to be inserted last wins" would be fragile even for a single key today, so the match
+    is explicit instead.
     """
     for step_index, slot in enumerate(snapshot["slots"]):
         for key, leaf in slot.items():
@@ -52,7 +64,7 @@ def RestoreBufferedDict(node: BufferedDict, snapshot: dict, shape_owner, echo_le
             else:
                 raise RuntimeError(f"Unknown restart data kind \"{kind}\" for key \"{key}\".")
 
-            if step_index == 0:
+            if step_index == 0 and key == mesh_update_key:
                 # shape_owner.Update() writes straight to the shared mesh, so only the current
                 # step's data (step_index 0) may be pushed there. Historical steps are restored
                 # into the BufferedDict below for bookkeeping only (e.g. GetRelativeChange()'s
@@ -66,7 +78,7 @@ def RestoreBufferedDict(node: BufferedDict, snapshot: dict, shape_owner, echo_le
             if echo_level > 0:
                 Kratos.Logger.PrintWarning("OptimizationProblemRestartInputProcess", f"Skipping restore of \"{name}\" (not present yet in the live optimization problem).")
             continue
-        RestoreBufferedDict(sub_items[name], sub_snapshot, shape_owner, echo_level)
+        RestoreBufferedDict(sub_items[name], sub_snapshot, shape_owner, echo_level, mesh_update_key)
 
 def RestoreOptimizationProblemData(optimization_problem: OptimizationProblem, data_snapshot: dict, echo_level: int) -> None:
     root = optimization_problem.GetProblemDataContainer()
@@ -97,22 +109,36 @@ def RestoreOptimizationProblemData(optimization_problem: OptimizationProblem, da
                 continue
 
             shape_owner = None
+            mesh_update_key = None
             if type_name == "object":
                 # "object" holds ComponentDataView(<string>, ...) subtrees, e.g. the "algorithm"
                 # buffered data every Algorithm implementation uses -- that one is mesh-shaped
-                # like the master control. Everything else under "object" (response value/gradient
-                # caches, projection helper bookkeeping) gets recomputed before being read again,
-                # so it's fine to leave those tensors unresolved.
+                # like the master control, and its "control_field" entry is the one place the
+                # *full*, accumulated design is bookkept every iteration (see
+                # Algorithm.Output()), so it's the one key allowed to push its tensor onto the
+                # mesh via shape_owner.Update() (the same subtree also holds other tensors, e.g.
+                # "search_direction"/"control_field_update", or momentum-like state an algorithm
+                # such as Nesterov/Adam bookkeeps -- none of those are "the design"). Everything
+                # else under "object" (response value/gradient caches, projection helper
+                # bookkeeping) gets recomputed before being read again, so it's fine to leave
+                # those tensors unresolved.
                 if component_name == "algorithm":
                     shape_owner = algorithm_shape_owner
+                    mesh_update_key = "control_field"
             elif type_name in type_name_to_class:
+                # A component's own ComponentDataView subtree (e.g. a Control's) routinely holds
+                # other tensors too -- e.g. output-only diagnostic fields a filtered/phi-space
+                # control writes for ascii/vtu output -- that are not "the design" in the sense
+                # Update() expects. shape_owner here is only used to get the right shape to
+                # deserialize each tensor back into the BufferedDict (mesh_update_key stays
+                # None); the "algorithm" subtree above is the sole source of truth for the mesh.
                 component = optimization_problem.GetComponent(component_name, type_name_to_class[type_name])
                 if hasattr(component, "GetEmptyField"):
                     shape_owner = component
                 elif hasattr(component, "GetMasterControl"):
                     shape_owner = component.GetMasterControl()
 
-            RestoreBufferedDict(type_node_sub_items[component_name], component_snapshot, shape_owner, echo_level)
+            RestoreBufferedDict(type_node_sub_items[component_name], component_snapshot, shape_owner, echo_level, mesh_update_key)
 
 class OptimizationProblemRestartInputProcess(Kratos.Process):
     def GetDefaultParameters(self) -> Kratos.Parameters:
