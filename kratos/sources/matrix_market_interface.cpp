@@ -11,16 +11,14 @@
 //
 
 // System includes
+#include <algorithm>
 
 // External includes
 
 // Project includes
 #include "includes/default_interface.h"
 #include "includes/ublas_complex_interface.h"
-#include "spaces/ublas_space.h"
-#ifdef KRATOS_USE_EIGEN_BACKEND
-#include "includes/kratos_eigen_interface.h"
-#endif
+#include "spaces/default_spaces.h"
 #include "includes/matrix_market_interface.h"
 
 namespace Kratos {
@@ -341,6 +339,17 @@ int WriteMatrixMarketMatrixEntry(FILE *f, int I, int J, const std::complex<doubl
 template <typename CompressedMatrixType>
 bool WriteMatrixMarketMatrix(const char *FileName, const CompressedMatrixType &M, bool Symmetric)
 {
+    // The Eigen-backed compressed matrix may be in uncompressed mode after
+    // element-wise insertions: write a compressed copy in that case, so the
+    // CSR arrays below are the packed ones.
+    if constexpr (requires { M.isCompressed(); }) {
+        if (!M.isCompressed()) {
+            CompressedMatrixType compressed(M);
+            compressed.makeCompressed();
+            return WriteMatrixMarketMatrix(FileName, compressed, Symmetric);
+        }
+    }
+
     // Open MM file for writing
     FILE *f = fopen(FileName, "w");
 
@@ -366,29 +375,23 @@ bool WriteMatrixMarketMatrix(const char *FileName, const CompressedMatrixType &M
 
     mm_write_banner(f, mm_code);
 
+    // The CSR storage arrays (the same surface for the uBLAS and the Eigen
+    // compressed matrices): row pointers, column indices and values
+    const auto& row_ptr = M.index1_data();
+    const auto& col_idx = M.index2_data();
+    const auto& values = M.value_data();
+    const std::size_t filled_rows = M.filled1() > 0 ? std::min<std::size_t>(M.size1(), M.filled1() - 1) : 0;
+
     // Find out the actual number of non-zeros in case of a symmetric matrix
     int nnz;
 
     if (Symmetric)
     {
         nnz = 0;
-
-        typename CompressedMatrixType::const_iterator1 a_iterator = M.begin1();
-
-        for (unsigned int i = 0; i < M.size1(); i++)
-        {
-    #ifndef BOOST_UBLAS_NO_NESTED_CLASS_RELATION
-            for (typename CompressedMatrixType::const_iterator2 row_iterator = a_iterator.begin(); row_iterator != a_iterator.end(); ++row_iterator)
-    #else
-            for (typename CompressedMatrixType::const_iterator2 row_iterator = begin(a_iterator, iterator1_tag()); row_iterator != end(a_iterator, iterator1_tag()); ++row_iterator)
-    #endif
-            {
-                if (a_iterator.index1() >= row_iterator.index2())
+        for (std::size_t i = 0; i < filled_rows; i++)
+            for (auto k = row_ptr[i]; k < row_ptr[i + 1]; ++k)
+                if (i >= static_cast<std::size_t>(col_idx[k]))
                     nnz++;
-            }
-
-            a_iterator++;
-        }
     }
     else
         nnz = M.nnz();
@@ -396,55 +399,21 @@ bool WriteMatrixMarketMatrix(const char *FileName, const CompressedMatrixType &M
     // Write MM file sizes
     mm_write_mtx_crd_size(f, M.size1(), M.size2(), nnz);
 
-    if (Symmetric)
+    for (std::size_t i = 0; i < filled_rows; i++)
     {
-        typename CompressedMatrixType::const_iterator1 a_iterator = M.begin1();
-
-        for (unsigned int i = 0; i < M.size1(); i++)
+        for (auto k = row_ptr[i]; k < row_ptr[i + 1]; ++k)
         {
-    #ifndef BOOST_UBLAS_NO_NESTED_CLASS_RELATION
-            for (typename CompressedMatrixType::const_iterator2 row_iterator = a_iterator.begin(); row_iterator != a_iterator.end(); ++row_iterator)
-    #else
-            for (typename CompressedMatrixType::const_iterator2 row_iterator = begin(a_iterator, iterator1_tag()); row_iterator != end(a_iterator, iterator1_tag()); ++row_iterator)
-    #endif
+            const int I = static_cast<int>(i), J = static_cast<int>(col_idx[k]);
+
+            if (Symmetric && I < J)
+                continue;
+
+            if (WriteMatrixMarketMatrixEntry(f, I+1, J+1, values[k]) < 0)
             {
-                int I = a_iterator.index1(), J = row_iterator.index2();
-
-                if (I >= J)
-                    if (WriteMatrixMarketMatrixEntry(f, I+1, J+1, *row_iterator) < 0)
-                    {
-                        printf("WriteMatrixMarketMatrix(): unable to write data.\n");
-                        fclose(f);
-                        return false;
-                    }
+                printf("WriteMatrixMarketMatrix(): unable to write data.\n");
+                fclose(f);
+                return false;
             }
-
-            a_iterator++;
-        }
-    }
-    else
-    {
-        typename CompressedMatrixType::const_iterator1 a_iterator = M.begin1();
-
-        for (unsigned int i = 0; i < M.size1(); i++)
-        {
-    #ifndef BOOST_UBLAS_NO_NESTED_CLASS_RELATION
-            for (typename CompressedMatrixType::const_iterator2 row_iterator = a_iterator.begin(); row_iterator != a_iterator.end(); ++row_iterator)
-    #else
-            for (typename CompressedMatrixType::const_iterator2 row_iterator = begin(a_iterator, iterator1_tag()); row_iterator != end(a_iterator, iterator1_tag()); ++row_iterator)
-    #endif
-            {
-                int I = a_iterator.index1(), J = row_iterator.index2();
-
-                if (WriteMatrixMarketMatrixEntry(f, I+1, J+1, *row_iterator) < 0)
-                {
-                    printf("WriteMatrixMarketMatrix(): unable to write data.\n");
-                    fclose(f);
-                    return false;
-                }
-            }
-
-            a_iterator++;
         }
     }
 
@@ -452,8 +421,6 @@ bool WriteMatrixMarketMatrix(const char *FileName, const CompressedMatrixType &M
 
     return true;
 }
-
-// Vector I/O routines
 
 bool ReadMatrixMarketVectorEntry(FILE *f, double& entry)
 {
@@ -624,29 +591,19 @@ bool WriteMatrixMarketVector(const char *FileName, const VectorType &V)
 }
 
 template KRATOS_API(KRATOS_CORE) bool ReadMatrixMarketMatrix<Kratos::CompressedMatrix>(const char *FileName, Kratos::CompressedMatrix &M);
-template KRATOS_API(KRATOS_CORE) bool ReadMatrixMarketMatrix<Kratos::TUblasSparseSpace<float>::MatrixType>(const char *FileName, Kratos::TUblasSparseSpace<float>::MatrixType &M);
+template KRATOS_API(KRATOS_CORE) bool ReadMatrixMarketMatrix<Kratos::TDefaultSparseSpace<float>::MatrixType>(const char *FileName, Kratos::TDefaultSparseSpace<float>::MatrixType &M);
 template KRATOS_API(KRATOS_CORE) bool ReadMatrixMarketMatrix<Kratos::ComplexCompressedMatrix>(const char *FileName, Kratos::ComplexCompressedMatrix &M);
 
 template KRATOS_API(KRATOS_CORE) bool WriteMatrixMarketMatrix<Kratos::CompressedMatrix>(const char *FileName, const Kratos::CompressedMatrix &M, bool Symmetric);
-template KRATOS_API(KRATOS_CORE) bool WriteMatrixMarketMatrix<Kratos::TUblasSparseSpace<float>::MatrixType>(const char *FileName, const Kratos::TUblasSparseSpace<float>::MatrixType &M, bool Symmetric);
+template KRATOS_API(KRATOS_CORE) bool WriteMatrixMarketMatrix<Kratos::TDefaultSparseSpace<float>::MatrixType>(const char *FileName, const Kratos::TDefaultSparseSpace<float>::MatrixType &M, bool Symmetric);
 template KRATOS_API(KRATOS_CORE) bool WriteMatrixMarketMatrix<Kratos::ComplexCompressedMatrix>(const char *FileName, const Kratos::ComplexCompressedMatrix &M, bool Symmetric);
 
-template KRATOS_API(KRATOS_CORE) bool ReadMatrixMarketVector<Kratos::TUblasSparseSpace<double>::VectorType>(const char *FileName, Kratos::TUblasSparseSpace<double>::VectorType &V);
-template KRATOS_API(KRATOS_CORE) bool ReadMatrixMarketVector<Kratos::TUblasSparseSpace<float>::VectorType>(const char *FileName, Kratos::TUblasSparseSpace<float>::VectorType &V);
+template KRATOS_API(KRATOS_CORE) bool ReadMatrixMarketVector<Kratos::Vector>(const char *FileName, Kratos::Vector &V);
+template KRATOS_API(KRATOS_CORE) bool ReadMatrixMarketVector<Kratos::TDefaultSparseSpace<float>::VectorType>(const char *FileName, Kratos::TDefaultSparseSpace<float>::VectorType &V);
 template KRATOS_API(KRATOS_CORE) bool ReadMatrixMarketVector<Kratos::ComplexVector>(const char *FileName, Kratos::ComplexVector &V);
 
-template KRATOS_API(KRATOS_CORE) bool WriteMatrixMarketVector<Kratos::TUblasSparseSpace<double>::VectorType>(const char *FileName, const Kratos::TUblasSparseSpace<double>::VectorType &V);
-template KRATOS_API(KRATOS_CORE) bool WriteMatrixMarketVector<Kratos::TUblasSparseSpace<float>::VectorType>(const char *FileName, const Kratos::TUblasSparseSpace<float>::VectorType &V);
+template KRATOS_API(KRATOS_CORE) bool WriteMatrixMarketVector<Kratos::Vector>(const char *FileName, const Kratos::Vector &V);
+template KRATOS_API(KRATOS_CORE) bool WriteMatrixMarketVector<Kratos::TDefaultSparseSpace<float>::VectorType>(const char *FileName, const Kratos::TDefaultSparseSpace<float>::VectorType &V);
 template KRATOS_API(KRATOS_CORE) bool WriteMatrixMarketVector<Kratos::ComplexVector>(const char *FileName, const Kratos::ComplexVector &V);
 
-#ifdef KRATOS_USE_EIGEN_BACKEND
-// Eigen system-matrix/vector variants, so the direct solvers of the Eigen
-// backend can be exercised from python without a uBLAS<->Eigen conversion.
-// Only ReadMatrixMarketMatrix is instantiated: WriteMatrixMarketMatrix relies
-// on the uBLAS-only nested iterator1/iterator2 concept, which the Eigen
-// wrapper does not mirror (it exposes the CSR storage arrays instead).
-template KRATOS_API(KRATOS_CORE) bool ReadMatrixMarketMatrix<Kratos::EigenCompressedMatrix<double>>(const char *FileName, Kratos::EigenCompressedMatrix<double> &M);
-template KRATOS_API(KRATOS_CORE) bool ReadMatrixMarketVector<Kratos::EigenVector<double>>(const char *FileName, Kratos::EigenVector<double> &V);
-template KRATOS_API(KRATOS_CORE) bool WriteMatrixMarketVector<Kratos::EigenVector<double>>(const char *FileName, const Kratos::EigenVector<double> &V);
-#endif
 }
