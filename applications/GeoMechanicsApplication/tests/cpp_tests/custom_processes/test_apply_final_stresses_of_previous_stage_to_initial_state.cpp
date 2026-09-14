@@ -18,7 +18,6 @@
 #include "includes/constitutive_law.h"
 #include "includes/element.h"
 #include "includes/kratos_parameters.h"
-#include "includes/model_part.h"
 #include "includes/node.h"
 #include "includes/process_info.h"
 #include "includes/default_interface.h"
