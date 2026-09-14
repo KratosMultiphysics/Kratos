@@ -82,9 +82,8 @@ std::vector<Node*> SeepageBoundaryUtilities::CollectSeepageNodes(ModelPart& rMod
     for (auto& r_condition : rModelPart.Conditions()) {
         if (!dynamic_cast<const GeoSeepageCondition*>(&r_condition)) continue;
 
-        for (auto& r_node : r_condition.GetGeometry()) {
-            result.insert(&r_node);
-        }
+        std::ranges::transform(r_condition.GetGeometry(), std::inserter(result, result.end()),
+                               [](Node& r_node) { return &r_node; });
     }
 
     return {result.begin(), result.end()};
