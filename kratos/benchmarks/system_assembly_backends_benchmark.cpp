@@ -29,26 +29,19 @@
 #include "solving_strategies/builder_and_solvers/residualbased_block_builder_and_solver.h"
 #include "solving_strategies/schemes/residualbased_incrementalupdate_static_scheme.h"
 #include "spaces/default_spaces.h"
-#include "spaces/eigen_space.h"
-#include "spaces/ublas_space.h"
 #include "utilities/parallel_utilities.h"
 #include "utilities/variable_utils.h"
 
-// Full-mesh system build/assembly comparison of the sparse linear-algebra
-// backends (uBLAS vs Eigen): where linear_algebra_backends_benchmark.cpp
-// measures the individual operations, this file measures something closer to a
-// real case — the sparse graph construction and the scattered CSR assembly of
-// a complete FE mesh through the actual ResidualBasedBlockBuilderAndSolver,
-// with a real element (DistanceCalculationElementSimplex, Poisson step)
-// providing the local contributions.
-//
-// Both space implementations are always compiled, so a single binary
-// benchmarks both under identical compiler flags — this file names both sparse
-// spaces explicitly. The DENSE space is intentionally the backend-default one
-// in both legs: the Element/Condition virtual interfaces are spelled on the
-// compiled backend's Kratos::Matrix/Vector, so the element-local kernels are
-// identical in both legs and the timings isolate exactly the sparse-side
-// differences (graph construction and assembly scatter).
+// Full-mesh system build/assembly benchmark of the linear-algebra backend
+// selected at configure time (uBLAS or Eigen): where
+// linear_algebra_backends_benchmark.cpp measures the individual operations,
+// this file measures something closer to a real case — the sparse graph
+// construction and the scattered CSR assembly of a complete FE mesh through
+// the actual ResidualBasedBlockBuilderAndSolver, with a real element
+// (DistanceCalculationElementSimplex, Poisson step) providing the local
+// contributions. The two backends are mutually exclusive in one build, so
+// comparing them means running the binary of each build; the benchmark names
+// carry the backend.
 //
 // The parallel behavior follows the usual Kratos shared-memory settings: run
 // with OMP_NUM_THREADS=1 for serial numbers and higher values for the
@@ -60,11 +53,16 @@ namespace Kratos
 namespace
 {
 
-using UblasSparse = TUblasSparseSpace<double>;
-using EigenSparse = TEigenSparseSpace<double>;
+#ifdef KRATOS_USE_EIGEN_BACKEND
+#define KRATOS_BACKEND_NAME "eigen"
+#else
+#define KRATOS_BACKEND_NAME "ublas"
+#endif
+
+using DefaultSparse = TDefaultSparseSpace<double>;
 using DenseSpace = TDefaultDenseSpace<double>;
 
-/// Builds (once per mesh size, shared by both legs) a structured simplicial
+/// Builds (once per mesh size) a structured simplicial
 /// mesh of DistanceCalculationElementSimplex elements on the unit
 /// square/cube, with the DISTANCE DOF added and smooth signed nodal DISTANCE
 /// values, ready for a FRACTIONAL_STEP = 1 (Poisson) build.
@@ -220,54 +218,19 @@ void BM_BuildLHSAndRHS(benchmark::State& rState)
     }
 }
 
-// --- Cross-check -------------------------------------------------------------
-// Not a timing: asserts once, on a small mesh, that both legs assemble the
-// same system (Frobenius norm of the matrix and 2-norm of the RHS), so the
-// numbers above compare identical work. A failure aborts the whole run.
-void BM_AssemblyCrossCheck(benchmark::State& rState)
-{
-    auto& r_model_part = GetBenchmarkModelPart(2, 32);
-
-    const auto assemble_norms = [&r_model_part](auto SparseSpaceTag) {
-        using SparseSpace = decltype(SparseSpaceTag);
-        AssemblyFixture<SparseSpace> fixture(r_model_part);
-        fixture.InitializeSystem();
-        SparseSpace::SetToZero(*fixture.mpA);
-        SparseSpace::SetToZero(*fixture.mpb);
-        fixture.mBuilderAndSolver.Build(fixture.mpScheme, r_model_part, *fixture.mpA, *fixture.mpb);
-        return std::make_pair(SparseSpace::TwoNorm(*fixture.mpA), SparseSpace::TwoNorm(*fixture.mpb));
-    };
-
-    const auto [ublas_norm_A, ublas_norm_b] = assemble_norms(UblasSparse{});
-    const auto [eigen_norm_A, eigen_norm_b] = assemble_norms(EigenSparse{});
-
-    KRATOS_ERROR_IF(std::abs(ublas_norm_A - eigen_norm_A) > 1e-10 * std::abs(ublas_norm_A))
-        << "uBLAS and Eigen assemblies disagree on the matrix norm: " << ublas_norm_A << " vs " << eigen_norm_A << std::endl;
-    KRATOS_ERROR_IF(std::abs(ublas_norm_b - eigen_norm_b) > 1e-10 * std::abs(ublas_norm_b))
-        << "uBLAS and Eigen assemblies disagree on the RHS norm: " << ublas_norm_b << " vs " << eigen_norm_b << std::endl;
-
-    for (auto _ : rState) {
-        benchmark::DoNotOptimize(eigen_norm_A);
-    }
-}
-
 // Mesh sizes: {dimension, number_of_divisions}. 2D: ~33k / ~526k triangles
 // (~17k / ~263k DOFs); 3D: ~25k / ~384k tetrahedra (~5k / ~69k DOFs).
 #define KRATOS_REGISTER_ASSEMBLY_BENCHMARK(name)                    \
-    BENCHMARK_TEMPLATE(name, UblasSparse)                           \
-        ->Name(#name "/ublas")                                      \
-        ->Args({2, 128})->Args({2, 512})->Args({3, 16})->Args({3, 40}) \
-        ->Unit(benchmark::kMillisecond);                            \
-    BENCHMARK_TEMPLATE(name, EigenSparse)                           \
-        ->Name(#name "/eigen")                                      \
+    BENCHMARK_TEMPLATE(name, DefaultSparse)                         \
+        ->Name(#name "/" KRATOS_BACKEND_NAME)                       \
         ->Args({2, 128})->Args({2, 512})->Args({3, 16})->Args({3, 40}) \
         ->Unit(benchmark::kMillisecond);
 
-BENCHMARK(BM_AssemblyCrossCheck)->Iterations(1);
 KRATOS_REGISTER_ASSEMBLY_BENCHMARK(BM_ConstructSystemStructure)
 KRATOS_REGISTER_ASSEMBLY_BENCHMARK(BM_BuildLHSAndRHS)
 
 #undef KRATOS_REGISTER_ASSEMBLY_BENCHMARK
+#undef KRATOS_BACKEND_NAME
 
 } // namespace Kratos
 

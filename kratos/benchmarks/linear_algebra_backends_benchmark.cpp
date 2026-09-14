@@ -17,21 +17,18 @@
 #include <benchmark/benchmark.h>
 
 // Project includes
-#include "spaces/ublas_space.h"
-#include "spaces/eigen_space.h"
+#include "spaces/default_spaces.h"
 #include "linear_solvers/cg_solver.h"
 #include "utilities/parallel_utilities.h"
 
-// Side-by-side performance comparison of the sparse linear-algebra backends
-// (uBLAS vs Eigen). Both space implementations are always compiled, so a
-// single binary benchmarks both under identical compiler flags — the
-// KRATOS_LINEAR_ALGEBRA_BACKEND option only selects which one the default
-// space aliases point to, and this file names both spaces explicitly.
+// Performance benchmarks of the linear-algebra backend selected at configure
+// time (KRATOS_LINEAR_ALGEBRA_BACKEND: uBLAS or Eigen). The two backends are
+// mutually exclusive in one build, so comparing them means running the
+// benchmark binary of each build; the benchmark names carry the backend.
 //
-// Every benchmark is registered twice through BENCHMARK_TEMPLATE, once per
-// space, on identical data. The system matrix is a synthetic banded
-// diagonally-dominant (SPD) matrix mimicking a FEM stencil, built by writing
-// the CSR arrays directly (exactly as the builder-and-solvers do).
+// The system matrix is a synthetic banded diagonally-dominant (SPD) matrix
+// mimicking a FEM stencil, built by writing the CSR arrays directly (exactly
+// as the builder-and-solvers do).
 //
 // The parallel behavior follows the usual Kratos shared-memory settings: run
 // with OMP_NUM_THREADS=1 for serial numbers and higher values for the
@@ -43,21 +40,19 @@ namespace Kratos
 namespace
 {
 
-using UblasSparse = TUblasSparseSpace<double>;
-using EigenSparse = TEigenSparseSpace<double>;
+#ifdef KRATOS_USE_EIGEN_BACKEND
+#define KRATOS_BACKEND_NAME "eigen"
+#else
+#define KRATOS_BACKEND_NAME "ublas"
+#endif
 
-/// Each sparse family is paired with the dense space of its own backend, so
-/// neither benchmark leg mixes uBLAS and Eigen types.
+using DefaultSparse = TDefaultSparseSpace<double>;
+
+/// The sparse space is paired with the dense space of the same backend.
 template <class TSpaceType>
 struct PairedDenseSpace
 {
-    using Type = TUblasDenseSpace<double>;
-};
-
-template <>
-struct PairedDenseSpace<EigenSparse>
-{
-    using Type = TEigenDenseSpace<double>;
+    using Type = TDefaultDenseSpace<double>;
 };
 
 constexpr std::size_t BandHalfWidth = 4; // 9 entries per interior row, FEM-stencil-like
@@ -239,21 +234,13 @@ static void BM_CGSolve(benchmark::State& rState)
 }
 
 // --- Expression-level operations ---------------------------------------------
-// The ublas idiom (prod, inner_prod, trans, sum, noalias, ...) spelled
-// IDENTICALLY for both families: for the uBLAS types the calls resolve to the
-// boost::numeric::ublas expression templates injected by ublas_interface.h,
-// for the Eigen types to the compat operations of eigen_compat_operations.h.
+// The ublas idiom (prod, inner_prod, trans, sum, noalias, ...) on the dense
+// types of the configured backend.
 
-struct UblasExprFamily
+struct DefaultExprFamily
 {
-    using MatrixType = Matrix; // boost::numeric::ublas::matrix<double>
-    using VectorType = Vector; // boost::numeric::ublas::vector<double>
-};
-
-struct EigenExprFamily
-{
-    using MatrixType = EigenMatrix<double>;
-    using VectorType = EigenVector<double>;
+    using MatrixType = Matrix;
+    using VectorType = Vector;
 };
 
 namespace
@@ -412,8 +399,7 @@ static void BM_ExprSparseProdMV(benchmark::State& rState)
 // --- Registration -------------------------------------------------------------
 
 #define KRATOS_REGISTER_BACKEND_BENCHMARK(name)                                       \
-    BENCHMARK_TEMPLATE(name, UblasSparse)->Name(#name "/ublas")->Arg(1<<14)->Arg(1<<20); \
-    BENCHMARK_TEMPLATE(name, EigenSparse)->Name(#name "/eigen")->Arg(1<<14)->Arg(1<<20);
+    BENCHMARK_TEMPLATE(name, DefaultSparse)->Name(#name "/" KRATOS_BACKEND_NAME)->Arg(1<<14)->Arg(1<<20);
 
 KRATOS_REGISTER_BACKEND_BENCHMARK(BM_SpMV)
 KRATOS_REGISTER_BACKEND_BENCHMARK(BM_TransposeSpMV)
@@ -425,16 +411,14 @@ KRATOS_REGISTER_BACKEND_BENCHMARK(BM_VectorTwoNorm)
 KRATOS_REGISTER_BACKEND_BENCHMARK(BM_ScaleAndAdd)
 KRATOS_REGISTER_BACKEND_BENCHMARK(BM_UnaliasedAdd)
 
-BENCHMARK_TEMPLATE(BM_CGSolve, UblasSparse)->Name("BM_CGSolve/ublas")->Arg(1<<14)->Arg(1<<18)->Unit(benchmark::kMillisecond);
-BENCHMARK_TEMPLATE(BM_CGSolve, EigenSparse)->Name("BM_CGSolve/eigen")->Arg(1<<14)->Arg(1<<18)->Unit(benchmark::kMillisecond);
+BENCHMARK_TEMPLATE(BM_CGSolve, DefaultSparse)->Name("BM_CGSolve/" KRATOS_BACKEND_NAME)->Arg(1<<14)->Arg(1<<18)->Unit(benchmark::kMillisecond);
 
 #undef KRATOS_REGISTER_BACKEND_BENCHMARK
 
 // Expression-level operations: dense matrix ops at element-local (16) and
 // mid (128/512) sizes, vector ops at 4k and 1M entries
 #define KRATOS_REGISTER_EXPR_MATRIX_BENCHMARK(name, ...)                                      \
-    BENCHMARK_TEMPLATE(name, UblasExprFamily)->Name(#name "/ublas")->__VA_ARGS__;             \
-    BENCHMARK_TEMPLATE(name, EigenExprFamily)->Name(#name "/eigen")->__VA_ARGS__;
+    BENCHMARK_TEMPLATE(name, DefaultExprFamily)->Name(#name "/" KRATOS_BACKEND_NAME)->__VA_ARGS__;
 
 KRATOS_REGISTER_EXPR_MATRIX_BENCHMARK(BM_ExprDenseProdMM, Arg(16)->Arg(128))
 KRATOS_REGISTER_EXPR_MATRIX_BENCHMARK(BM_ExprTransProdMM, Arg(16)->Arg(128))
@@ -450,16 +434,11 @@ KRATOS_REGISTER_EXPR_MATRIX_BENCHMARK(BM_ExprAxpy, Arg(1<<12)->Arg(1<<20))
 
 #undef KRATOS_REGISTER_EXPR_MATRIX_BENCHMARK
 
-BENCHMARK_TEMPLATE(BM_ExprSparseProdMV, UblasSparse)->Name("BM_ExprSparseProdMV/ublas")->Arg(1<<14)->Arg(1<<17);
-BENCHMARK_TEMPLATE(BM_ExprSparseProdMV, EigenSparse)->Name("BM_ExprSparseProdMV/eigen")->Arg(1<<14)->Arg(1<<17);
+BENCHMARK_TEMPLATE(BM_ExprSparseProdMV, DefaultSparse)->Name("BM_ExprSparseProdMV/" KRATOS_BACKEND_NAME)->Arg(1<<14)->Arg(1<<17);
 
 // --- Fixed-size (element-local) dense operations ------------------------------
-// Side-by-side comparison of the backend-selected fixed-size types (array_1d,
-// BoundedMatrix, BoundedVector — Eigen-backed when KRATOS_LINEAR_ALGEBRA_BACKEND
-// is "eigen") against the boost::numeric::ublas bounded types named explicitly.
-// Under the uBLAS backend both families resolve to the same implementations, so
-// equal timings there are the expected sanity baseline; under the Eigen backend
-// the "/backend" numbers measure the Eigen-backed types.
+// The backend-selected fixed-size types (array_1d, BoundedMatrix: Eigen-backed
+// when KRATOS_LINEAR_ALGEBRA_BACKEND is "eigen", boost bounded types otherwise).
 // The kernels are the idioms element CalculateLocalSystem code is made of.
 
 template <std::size_t TSize>
@@ -467,13 +446,6 @@ struct BackendFixedFamily
 {
     using VectorType = array_1d<double, TSize>;
     using MatrixType = BoundedMatrix<double, TSize, TSize>;
-};
-
-template <std::size_t TSize>
-struct UblasFixedFamily
-{
-    using VectorType = boost::numeric::ublas::bounded_vector<double, TSize>;
-    using MatrixType = boost::numeric::ublas::bounded_matrix<double, TSize, TSize>;
 };
 
 namespace
@@ -596,10 +568,8 @@ static void BM_FixedOuterProd(benchmark::State& rState)
 }
 
 #define KRATOS_REGISTER_FIXED_BENCHMARK(name)                                                     \
-    BENCHMARK_TEMPLATE(name, BackendFixedFamily<3>)->Name(#name "/backend/3");                    \
-    BENCHMARK_TEMPLATE(name, UblasFixedFamily<3>)->Name(#name "/ublas/3");                        \
-    BENCHMARK_TEMPLATE(name, BackendFixedFamily<9>)->Name(#name "/backend/9");                    \
-    BENCHMARK_TEMPLATE(name, UblasFixedFamily<9>)->Name(#name "/ublas/9");
+    BENCHMARK_TEMPLATE(name, BackendFixedFamily<3>)->Name(#name "/" KRATOS_BACKEND_NAME "/3");    \
+    BENCHMARK_TEMPLATE(name, BackendFixedFamily<9>)->Name(#name "/" KRATOS_BACKEND_NAME "/9");
 
 KRATOS_REGISTER_FIXED_BENCHMARK(BM_FixedProdMV)
 KRATOS_REGISTER_FIXED_BENCHMARK(BM_FixedProdMM)
@@ -611,6 +581,7 @@ KRATOS_REGISTER_FIXED_BENCHMARK(BM_FixedNorm2)
 KRATOS_REGISTER_FIXED_BENCHMARK(BM_FixedOuterProd)
 
 #undef KRATOS_REGISTER_FIXED_BENCHMARK
+#undef KRATOS_BACKEND_NAME
 
 } // namespace Kratos
 
