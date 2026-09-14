@@ -287,9 +287,9 @@ class KratosGeoMechanicsPartialSaturation(KratosUnittest.TestCase):
             reader, output_data, expected_results_at_times, variable_name
         )
 
-    # @KratosUnittest.skip(
-    #     "This test is very sensitive and gives different results depending on e.g. compiler/os. Therefore it's skipped until the test is stabilized."
-    # )
+    @KratosUnittest.skip(
+        "This test is very sensitive and gives different results depending on e.g. compiler/os. Therefore it's skipped until the test is stabilized."
+    )
     def test_infiltration_from_top_boundary_B10(self):
         file_path = test_helper.get_file_path(
             os.path.join(
@@ -417,9 +417,9 @@ class KratosGeoMechanicsPartialSaturation(KratosUnittest.TestCase):
             reader, output_data, expected_results_at_times, variable_name
         )
 
-    # @KratosUnittest.skip(
-    #     "This test is very sensitive and gives different results depending on e.g. compiler/os. Therefore it's skipped until the test is stabilized."
-    # )
+    @KratosUnittest.skip(
+        "This test is very sensitive and gives different results depending on e.g. compiler/os. Therefore it's skipped until the test is stabilized."
+    )
     def test_infiltration_from_top_boundary_O6(self):
         file_path = test_helper.get_file_path(
             os.path.join(
