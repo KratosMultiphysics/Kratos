@@ -681,6 +681,11 @@ void BalancedProduct(const typename TLHSSparse::MatrixType& rLhs,
 
     KRATOS_TRY
 
+    // The CSR column-index array is read through a pointer of its own element
+    // type (std::size_t for the uBLAS matrix, the signed StorageIndex for the
+    // Eigen one), not through the space's IndexType.
+    using ColumnIndexType = typename std::decay_t<decltype(rLhs.index2_data())>::value_type;
+
     // Create partition for entries in the matrix.
     const auto thread_count = ParallelUtilities::GetNumThreads();
     std::vector<typename TLHSSparse::IndexType> partition(thread_count + 1);
@@ -718,7 +723,7 @@ void BalancedProduct(const typename TLHSSparse::MatrixType& rLhs,
                                                                                                                                             \
                 auto contribution = static_cast<typename TOutputSparse::DataType>(0);                                                       \
                                                                                                                                             \
-                KRATOS_GET_ALIGNED_INDEX_ARRAY(const typename TLHSSparse::IndexType*, it_column, &*(rLhs.index2_data().begin() + i_begin)); \
+                KRATOS_GET_ALIGNED_INDEX_ARRAY(const ColumnIndexType*, it_column, &*(rLhs.index2_data().begin() + i_begin)); \
                 KRATOS_GET_ALIGNED_INDEX_ARRAY(const typename TLHSSparse::DataType*, it_entry, &*(rLhs.value_data().begin() + i_begin));    \
                 KRATOS_GET_ALIGNED_INDEX_ARRAY(const typename TRHSSparse::DataType*, it_rhs, &*rRhs.begin());                               \
                                                                                                                                             \
