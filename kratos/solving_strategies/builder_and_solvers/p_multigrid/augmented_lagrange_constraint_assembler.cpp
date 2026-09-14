@@ -69,7 +69,7 @@ void ApplyDirichletConditions(typename TSparse::MatrixType& rRelationMatrix,
             for (auto i_entry=i_entry_begin; i_entry<i_entry_end; ++i_entry) {
                 const auto i_dof = rRelationMatrix.index2_data()[i_entry];
                 const Dof<typename TDense::DataType>& r_dof = *(itDofBegin + i_dof);
-                KRATOS_DEBUG_ERROR_IF_NOT(i_dof == r_dof.EquationId());
+                KRATOS_DEBUG_ERROR_IF_NOT(static_cast<std::size_t>(i_dof) == static_cast<std::size_t>(r_dof.EquationId()));
 
                 std::scoped_lock<LockObject> lock(mutexes[i_dof]);
                 if (r_dof.IsFixed()) {

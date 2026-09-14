@@ -15,3 +15,7 @@ def Pa_to_kPa(stress_in_Pa):
 
 def unit_to_k_unit(unit_value):
     return unit_value / 1000.0
+
+
+def fraction_to_percentage(fraction_value):
+    return fraction_value * 100.0

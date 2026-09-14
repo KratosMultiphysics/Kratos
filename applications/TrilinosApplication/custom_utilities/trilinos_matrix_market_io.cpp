@@ -19,11 +19,14 @@
  * CMakeLists.txt so that it never shares a TU with Kratos' mmio.h.
  */
 
+// System includes
+#include <utility>
+
 // Project includes — must come first so the safe Tpetra headers are seen.
 #include "custom_utilities/trilinos_matrix_market_io.h"
 #include "includes/define.h"
 
-// External includes — the conflicting header, isolated here.
+// External includes
 #include <MatrixMarket_Tpetra.hpp>
 
 namespace Kratos::TpetraMatrixMarketIO
@@ -38,6 +41,51 @@ using CrsMatrix  = Tpetra::CrsMatrix<ST, LO, GO, NT>;
 using FEGraph    = Tpetra::FECrsGraph<LO, GO, NT>;
 using MapType    = Tpetra::Map<LO, GO, NT>;
 
+namespace Detail
+{
+
+/**
+ * @brief Helper function to get the number of local rows in a Tpetra matrix.
+ * @details This function uses SFINAE to select the appropriate method for getting the number of local rows, depending on whether the matrix type has a getLocalNumRows() or getNodeNumRows() method.
+ * @tparam TMatrix The type of the Tpetra matrix.
+ * @param rMatrix The Tpetra matrix.
+ * @return The number of local rows in the matrix.
+ */
+template <class TMatrix>
+auto GetNumLocalRowsImpl(const TMatrix& rMatrix, int)
+    -> decltype(std::declval<const TMatrix&>().getLocalNumRows(), LO{})
+{
+    return static_cast<LO>(rMatrix.getLocalNumRows());
+}
+
+/**
+ * @brief Helper function to get the number of local rows in a Tpetra matrix.
+ * @details This function is called when the matrix type does not have a getLocalNumRows() method, and instead has a getNodeNumRows() method.
+ * @tparam TMatrix The type of the Tpetra matrix.
+ * @param rMatrix The Tpetra matrix.
+ * @return The number of local rows in the matrix.
+ */
+template <class TMatrix>
+LO GetNumLocalRowsImpl(const TMatrix& rMatrix, long)
+{
+    return static_cast<LO>(rMatrix.getNodeNumRows());
+}
+
+/**
+ * @brief Get the number of local rows in a Tpetra matrix.
+ * @details This function dispatches to the appropriate implementation based on the presence of getLocalNumRows() or getNodeNumRows() methods in the matrix type.
+ * @tparam TMatrix The type of the Tpetra matrix.
+ * @param rMatrix The Tpetra matrix.
+ * @return The number of local rows in the matrix.
+ */
+template <class TMatrix>
+LO GetNumLocalRows(const TMatrix& rMatrix)
+{
+    return GetNumLocalRowsImpl(rMatrix, 0);
+}
+
+} // namespace Detail
+
 Teuchos::RCP<FEMatrix> ReadMatrix(
     const std::string& rFileName,
     Comm& rComm)
@@ -49,13 +97,12 @@ Teuchos::RCP<FEMatrix> ReadMatrix(
 
     const auto p_row_map = p_crs->getRowMap();
     const auto p_col_map = p_crs->getColMap();
-    const LO num_local_rows = static_cast<LO>(p_crs->getNodeNumRows());
+    const LO num_local_rows = Detail::GetNumLocalRows(*p_crs);
 
     // Per-row max entry count for the FECrsGraph.
     std::size_t max_entries = 0;
     for (LO i = 0; i < num_local_rows; ++i) {
-        max_entries = std::max(max_entries,
-            static_cast<std::size_t>(p_crs->getNumEntriesInLocalRow(i)));
+        max_entries = std::max(max_entries, static_cast<std::size_t>(p_crs->getNumEntriesInLocalRow(i)));
     }
 
     // Build FECrsGraph mirroring the sparsity pattern.

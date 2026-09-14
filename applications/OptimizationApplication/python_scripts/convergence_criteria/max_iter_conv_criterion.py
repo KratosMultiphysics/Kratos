@@ -26,7 +26,7 @@ class MaxIterConvCriterion(ConvergenceCriterion):
         self.__optimization_problem = optimization_problem
 
         if self.__max_iter < 0:
-            raise RuntimeError("The number of max iterations cannot be negative.")
+            raise RuntimeError(f"The number of max iterations cannot negative.")
 
     def Initialize(self):
         pass

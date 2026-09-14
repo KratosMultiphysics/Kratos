@@ -21,16 +21,16 @@ class Header:
         header_length = len(header_name)
 
         if isinstance(value, bool):
-            value_length = max(len(format_info[type(value)][0]), len(format_info[type(value)][1]))
+            value_length = max(len(format_info[bool][0]), len(format_info[bool][1]))
             value_format_post_fix = "s"
-            self.__value_converter = lambda x: format_info[type(value)][1] if x else format_info[type(value)][0]
+            self.__value_converter = lambda x: format_info[bool][1] if x else format_info[bool][0]
         elif isinstance(value, int):
-            value_length = len(("{:" + str(format_info[type(value)]) + "d}").format(value))
+            value_length = len(("{:" + str(format_info[int]) + "d}").format(value))
             value_format_post_fix = "d"
             self.__value_converter = lambda x: int(x)
         elif isinstance(value, float):
-            value_length = len(("{:0." + str(format_info[type(value)]) + "e}").format(value))
-            value_format_post_fix = f".{format_info[type(value)]}e"
+            value_length = len(("{:0." + str(format_info[float]) + "e}").format(value))
+            value_format_post_fix = f".{format_info[float]}e"
             self.__value_converter = lambda x: float(x)
         else:
             value_length = format_info[str]

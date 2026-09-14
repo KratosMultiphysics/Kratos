@@ -23,7 +23,7 @@
                     {
                         "name": "Modelers.KratosMultiphysics.ImportMDPAModeler",
                         "Parameters": {
-                            "input_filename": "../../common/model",
+                            "input_filename": "../../../common/model",
                             "model_part_name": "PorousDomain"
                         }
                     }
@@ -73,7 +73,7 @@
                         "input_type": "use_input_model_part"
                     },
                     "material_import_settings": {
-                        "materials_filename": "../../common/initial_materials.json"
+                        "materials_filename": "../../../common/initial_materials.json"
                     },
                     "buffer_size": 2,
                     "clear_storage": false,
@@ -81,7 +81,7 @@
                     "move_mesh_flag": false,
                     "reform_dofs_at_each_step": false,
                     "block_builder": true,
-                    "reset_displacements": false,
+                    "reset_totals": false,
                     "convergence_criterion": "residual_criterion",
                     "residual_relative_tolerance": 1.0e-04,
                     "residual_absolute_tolerance": 1.0e-09,
@@ -286,7 +286,7 @@
                         "input_type": "use_input_model_part"
                     },
                     "material_import_settings": {
-                        "materials_filename": "../MaterialParameters.json"
+                        "materials_filename": "../../MaterialParameters.json"
                     },
                     "buffer_size": 2,
                     "clear_storage": false,
@@ -294,7 +294,7 @@
                     "move_mesh_flag": false,
                     "reform_dofs_at_each_step": false,
                     "block_builder": true,
-                    "reset_displacements": false,
+                    "reset_totals": false,
                     "convergence_criterion": "residual_criterion",
                     "residual_relative_tolerance": 1.0e-04,
                     "residual_absolute_tolerance": 1.0e-09,
@@ -499,7 +499,7 @@
                         "input_type": "use_input_model_part"
                     },
                     "material_import_settings": {
-                        "materials_filename": "../MaterialParameters.json"
+                        "materials_filename": "../../MaterialParameters.json"
                     },
                     "buffer_size": 2,
                     "clear_storage": false,
@@ -507,7 +507,7 @@
                     "move_mesh_flag": false,
                     "reform_dofs_at_each_step": false,
                     "block_builder": true,
-                    "reset_displacements": true,
+                    "reset_totals": true,
                     "convergence_criterion": "residual_criterion",
                     "residual_relative_tolerance": 1.0e-03,
                     "residual_absolute_tolerance": 1.0e-09,
@@ -798,7 +798,7 @@
                         "input_type": "use_input_model_part"
                     },
                     "material_import_settings": {
-                        "materials_filename": "../MaterialParameters.json"
+                        "materials_filename": "../../MaterialParameters.json"
                     },
                     "buffer_size": 2,
                     "clear_storage": false,
@@ -806,7 +806,7 @@
                     "move_mesh_flag": false,
                     "reform_dofs_at_each_step": false,
                     "block_builder": true,
-                    "reset_displacements": false,
+                    "reset_totals": false,
                     "convergence_criterion": "residual_criterion",
                     "residual_relative_tolerance": 1.0e-03,
                     "residual_absolute_tolerance": 1.0e-09,
@@ -1104,7 +1104,7 @@
                         "input_type": "use_input_model_part"
                     },
                     "material_import_settings": {
-                        "materials_filename": "../MaterialParameters.json"
+                        "materials_filename": "../../MaterialParameters.json"
                     },
                     "buffer_size": 2,
                     "clear_storage": false,
@@ -1112,9 +1112,9 @@
                     "move_mesh_flag": false,
                     "reform_dofs_at_each_step": false,
                     "block_builder": true,
-                    "reset_displacements": false,
+                    "reset_totals": false,
                     "convergence_criterion": "residual_criterion",
-                    "residual_relative_tolerance": 1.0e-02,
+                    "residual_relative_tolerance": 1.0e-03,
                     "residual_absolute_tolerance": 1.0e-09,
                     "min_iterations": 6,
                     "max_iterations": 150,
@@ -1418,7 +1418,7 @@
                         "input_type": "use_input_model_part"
                     },
                     "material_import_settings": {
-                        "materials_filename": "../MaterialParameters.json"
+                        "materials_filename": "../../MaterialParameters.json"
                     },
                     "buffer_size": 2,
                     "clear_storage": false,
@@ -1426,12 +1426,12 @@
                     "move_mesh_flag": false,
                     "reform_dofs_at_each_step": false,
                     "block_builder": true,
-                    "reset_displacements": false,
+                    "reset_totals": false,
                     "convergence_criterion": "residual_criterion",
-                    "residual_relative_tolerance": 1.0e-02,
+                    "residual_relative_tolerance": 1.0e-04,
                     "residual_absolute_tolerance": 1.0e-09,
                     "min_iterations": 6,
-                    "max_iterations": 150,
+                    "max_iterations": 300,
                     "number_cycles": 1,
                     "reduction_factor": 0.5,
                     "increase_factor": 2.0,
@@ -1727,7 +1727,7 @@
                         "input_type": "use_input_model_part"
                     },
                     "material_import_settings": {
-                        "materials_filename": "../MaterialParameters.json"
+                        "materials_filename": "../../MaterialParameters.json"
                     },
                     "buffer_size": 2,
                     "clear_storage": false,
@@ -1735,12 +1735,12 @@
                     "move_mesh_flag": false,
                     "reform_dofs_at_each_step": false,
                     "block_builder": true,
-                    "reset_displacements": false,
+                    "reset_totals": false,
                     "convergence_criterion": "residual_criterion",
                     "residual_relative_tolerance": 1.0e-02,
                     "residual_absolute_tolerance": 1.0e-09,
                     "min_iterations": 6,
-                    "max_iterations": 150,
+                    "max_iterations": 300,
                     "number_cycles": 1,
                     "reduction_factor": 0.5,
                     "increase_factor": 2.0,

@@ -491,8 +491,6 @@ void LinearTrussElement<TDimension, TNNodes>::CalculateLeftHandSide(
 
     // Loop over the integration points
     for (SizeType IP = 0; IP < integration_points.size(); ++IP) {
-        const auto local_body_forces = GetLocalAxesBodyForce(*this, integration_points, IP);
-
         const double xi     = integration_points[IP].X();
         const double weight = integration_points[IP].Weight();
         const double jacobian_weight = weight * J * area;

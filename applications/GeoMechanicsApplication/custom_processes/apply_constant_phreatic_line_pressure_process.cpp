@@ -33,7 +33,6 @@ ApplyConstantPhreaticLinePressureProcess::ApplyConstantPhreaticLinePressureProce
                 "model_part_name":"PLEASE_CHOOSE_MODEL_PART_NAME",
                 "variable_name": "PLEASE_PRESCRIBE_VARIABLE_NAME",
                 "is_fixed": false,
-                "is_seepage": false,
                 "gravity_direction": 1,
                 "out_of_plane_direction": 2,
                 "first_reference_coordinate":           [0.0,1.0,0.0],
@@ -57,7 +56,6 @@ ApplyConstantPhreaticLinePressureProcess::ApplyConstantPhreaticLinePressureProce
 
     mVariableName        = rParameters["variable_name"].GetString();
     mIsFixed             = rParameters["is_fixed"].GetBool();
-    mIsSeepage           = rParameters["is_seepage"].GetBool();
     mGravityDirection    = rParameters["gravity_direction"].GetInt();
     mOutOfPlaneDirection = rParameters["out_of_plane_direction"].GetInt();
     if (mGravityDirection == mOutOfPlaneDirection)
@@ -100,19 +98,10 @@ void ApplyConstantPhreaticLinePressureProcess::ExecuteInitialize()
     block_for_each(mrModelPart.Nodes(), [&var, this](Node& rNode) {
         const double pressure = PORE_PRESSURE_SIGN_FACTOR * CalculatePressure(rNode);
 
-        if (mIsSeepage) {
-            if (pressure < PORE_PRESSURE_SIGN_FACTOR * mPressureTensionCutOff) { // Before 0. was used i.s.o. the tension cut off value -> no effect in any test.
-                rNode.FastGetSolutionStepValue(var) = pressure;
-                if (mIsFixed) rNode.Fix(var);
-            } else {
-                if (mIsFixedProvided) rNode.Free(var);
-            }
-        } else {
-            rNode.FastGetSolutionStepValue(var) =
-                std::min(pressure, PORE_PRESSURE_SIGN_FACTOR * mPressureTensionCutOff);
-            if (mIsFixed) rNode.Fix(var);
-            else if (mIsFixedProvided) rNode.Free(var);
-        }
+        rNode.FastGetSolutionStepValue(var) =
+            std::min(pressure, PORE_PRESSURE_SIGN_FACTOR * mPressureTensionCutOff);
+        if (mIsFixed) rNode.Fix(var);
+        else if (mIsFixedProvided) rNode.Free(var);
     });
 
     KRATOS_CATCH("")
