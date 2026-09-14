@@ -25,6 +25,7 @@
 // linear-algebra backends; the Eigen-only parts are guarded.
 #include "includes/default_interface.h"
 #include "containers/array_1d.h"
+#include "containers/sparse_graph.h"
 #include "utilities/math_utils.h"
 
 namespace Kratos::Testing {
@@ -419,6 +420,16 @@ KRATOS_TEST_CASE_IN_SUITE(EigenCompatStorageAccessAndResize, KratosCoreFastSuite
     KRATOS_EXPECT_TRUE(vb[1]);
     DenseMatrix<unsigned int> mu(2, 3, 7u);
     KRATOS_EXPECT_EQ(mu(1, 2), 7u);
+
+    // move-only scalars (a container of sparse graphs): the preserving resize
+    // must not require copy assignment
+    DenseVector<SparseGraph<>> graphs(2);
+    graphs[0].AddEntry(1, 2);
+    graphs.resize(4);
+    KRATOS_EXPECT_EQ(graphs.size(), 4);
+    KRATOS_EXPECT_TRUE(graphs[0].Has(1, 2));
+    graphs.resize(1, false);
+    KRATOS_EXPECT_EQ(graphs.size(), 1);
 
     // uBLAS text format round trip
     std::stringstream ss;
