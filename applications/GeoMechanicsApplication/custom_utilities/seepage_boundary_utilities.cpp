@@ -17,12 +17,12 @@
 #include "geo_mechanics_application_variables.h"
 #include "includes/variables.h"
 
-namespace Kratos::Geo::SeepageBoundaryUtilities
+namespace Kratos::Geo
 {
 
-void AccumulateWaterPressureEntries(const std::vector<Dof<double>*>& rDofs,
-                                    const Vector&                    rRightHandSide,
-                                    NodalFlowMap&                    rNodalFlows)
+void SeepageBoundaryUtilities::AccumulateWaterPressureEntries(const std::vector<Dof<double>*>& rDofs,
+                                                              const Vector& rRightHandSide,
+                                                              NodalFlowMap& rNodalFlows)
 {
     KRATOS_ERROR_IF(rDofs.size() > rRightHandSide.size())
         << "Number of degrees of freedom (" << rDofs.size()
@@ -35,7 +35,8 @@ void AccumulateWaterPressureEntries(const std::vector<Dof<double>*>& rDofs,
     }
 }
 
-NodalFlowMap CalculateNodalWaterFlows(ModelPart& rModelPart, const ProcessInfo& rProcessInfo)
+SeepageBoundaryUtilities::NodalFlowMap SeepageBoundaryUtilities::CalculateNodalWaterFlows(ModelPart& rModelPart,
+                                                                                          const ProcessInfo& rProcessInfo)
 {
     auto result = NodalFlowMap{};
 
@@ -51,7 +52,7 @@ NodalFlowMap CalculateNodalWaterFlows(ModelPart& rModelPart, const ProcessInfo& 
     return result;
 }
 
-void AssignNodalWaterFlows(ModelPart& rModelPart, const NodalFlowMap& rNodalFlows)
+void SeepageBoundaryUtilities::AssignNodalWaterFlows(ModelPart& rModelPart, const NodalFlowMap& rNodalFlows)
 {
     for (auto& r_node : rModelPart.Nodes()) {
         r_node.FastGetSolutionStepValue(NODAL_WATER_FLOW) = 0.0;
@@ -74,7 +75,7 @@ struct NodeComparator {
 
 } // namespace
 
-std::vector<Node*> CollectSeepageNodes(ModelPart& rModelPart)
+std::vector<Node*> SeepageBoundaryUtilities::CollectSeepageNodes(ModelPart& rModelPart)
 {
     auto result = std::set<Node*, NodeComparator>{};
 
@@ -116,7 +117,9 @@ Node* SelectBestCandidate(const std::vector<Node*>& rNodes, PredicateType IsCand
 
 } // namespace
 
-bool SwitchOneSeepageNodeIfNeeded(const std::vector<Node*>& rSeepageNodes, const NodalFlowMap& rNodalFlows, int EchoLevel)
+bool SeepageBoundaryUtilities::SwitchOneSeepageNodeIfNeeded(const std::vector<Node*>& rSeepageNodes,
+                                                            const NodalFlowMap&       rNodalFlows,
+                                                            int                       EchoLevel)
 {
     if (EchoLevel > 1) {
         for (auto* p_node : rSeepageNodes) {
@@ -158,4 +161,4 @@ bool SwitchOneSeepageNodeIfNeeded(const std::vector<Node*>& rSeepageNodes, const
     return false;
 }
 
-} // namespace Kratos::Geo::SeepageBoundaryUtilities
+} // namespace Kratos::Geo
