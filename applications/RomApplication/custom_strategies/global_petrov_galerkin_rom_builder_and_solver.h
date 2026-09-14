@@ -211,9 +211,9 @@ public:
         BuildLeftROMBasis(rModelPart, mPsiGlobal);
         auto a_wrapper = UblasWrapper<double>(rA);
         const auto& eigen_rA = a_wrapper.matrix();
-        Eigen::Map<EigenDynamicVector> eigen_rb(&rb.data()[0], rb.size());
-        Eigen::Map<EigenDynamicMatrix> eigen_mPhiGlobal(&mPhiGlobal.data()[0], mPhiGlobal.size1(), mPhiGlobal.size2());
-        Eigen::Map<EigenDynamicMatrix> eigen_mPsiGlobal(&mPsiGlobal.data()[0], mPsiGlobal.size1(), mPsiGlobal.size2());
+        Eigen::Map<EigenDynamicVector> eigen_rb(rb.data().begin(), rb.size());
+        Eigen::Map<EigenDynamicMatrix> eigen_mPhiGlobal(mPhiGlobal.data().begin(), mPhiGlobal.size1(), mPhiGlobal.size2());
+        Eigen::Map<EigenDynamicMatrix> eigen_mPsiGlobal(mPsiGlobal.data().begin(), mPsiGlobal.size1(), mPsiGlobal.size2());
 
         EigenDynamicMatrix eigen_rA_times_mPhiGlobal = eigen_rA * eigen_mPhiGlobal; //TODO: Make it in parallel.
 
