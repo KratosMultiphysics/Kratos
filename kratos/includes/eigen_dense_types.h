@@ -27,6 +27,7 @@
 #include <Eigen/Core>
 
 // Project includes
+#include "includes/define.h"
 #include "includes/storage_view.h"
 
 namespace Kratos
