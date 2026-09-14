@@ -58,7 +58,6 @@ class LinearLoadCombinationPreparationAnalysis(AnalysisStage):
 
         for load_definition in self.load_processes.values():
             self.__ResetLoadVariables()
-            #self.__ResetRHS()
             process_id = load_definition["process_id"].GetString() #get the loadcase id
             process = self.__CreateProcess(load_definition) 
             process.ExecuteInitialize()
@@ -84,6 +83,10 @@ class LinearLoadCombinationPreparationAnalysis(AnalysisStage):
         return rhs.copy()
 
     def __CreateProcess(self, process_definition):
+        """Create one process from an explicit process definition.
+
+        The RHS vectors are built loadcase by loadcase, requiring each load process to be constructed and executed independently. The base class method takes a process list name, e.g. "processes", and creates all processes stored under that key.
+        """
         factory = KratosProcessFactory(self.model) #instantiate factory
         # the function "ConstructListOfProcesses" expects a Parameters array, so the process_list is stores in one here
         process_list = KratosMultiphysics.Parameters("[]") 
