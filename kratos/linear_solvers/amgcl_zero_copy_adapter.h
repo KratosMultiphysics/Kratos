@@ -24,7 +24,7 @@
 #include <amgcl/backend/builtin.hpp>
 
 // Project includes
-#include "includes/kratos_eigen_interface.h" // Internals::EigenArrayProxy
+#include "includes/storage_view.h"
 
 namespace Kratos {
 
@@ -51,9 +51,9 @@ std::shared_ptr<amgcl::backend::crs<TVal>> MakeAmgclZeroCopyAdapter(
         const std::size_t nnz = NRows ? static_cast<std::size_t>(pRowExtents[NRows]) : 0;
         return std::make_shared<amgcl::backend::crs<TVal>>(std::make_tuple(
             NRows,
-            Internals::EigenArrayProxy<const TPtr>(pRowExtents, NRows + 1),
-            Internals::EigenArrayProxy<const TCol>(pColumnIndices, nnz),
-            Internals::EigenArrayProxy<const TVal>(pValues, nnz)));
+            Internals::StorageView<const TPtr>(pRowExtents, NRows + 1),
+            Internals::StorageView<const TCol>(pColumnIndices, nnz),
+            Internals::StorageView<const TVal>(pValues, nnz)));
     }
 }
 

@@ -8,11 +8,13 @@
 //                   Kratos default license: kratos/license.txt
 //
 
+// The Eigen adaptor and the Eigen-space AMGCLSolver instantiations exist only
+// under the eigen backend (amgcl_solver_impl.cpp provides the uBLAS ones).
+#ifdef KRATOS_USE_EIGEN_BACKEND
+
 // Core includes
 #include "linear_solvers/amgcl_solver.h" // AMGCLSolver
-#include "spaces/eigen_space.h" // TEigenSparseSpace
-#include "spaces/ublas_space.h" // TUblasDenseSpace
-#include "spaces/default_spaces.h" // TDefaultDenseSpace
+#include "spaces/default_spaces.h" // TEigenSparseSpace, TDefaultDenseSpace
 
 // See the note in amgcl_solver_impl.cpp: the implementation of AMGCLSolver is
 // split between an implementation header and per-representation source files.
@@ -82,13 +84,13 @@ struct AMGCLAdaptor<TEigenSparseSpace<TValue>>
     auto MakeVectorIterator(const typename TEigenSparseSpace<TValue>::VectorType& rVector) const
     {
         KRATOS_ERROR_IF(rVector.size() == 0);
-        return rVector.data();
+        return rVector.data().begin();
     }
 
     auto MakeVectorIterator(typename TEigenSparseSpace<TValue>::VectorType& rVector) const
     {
         KRATOS_ERROR_IF(rVector.size() == 0);
-        return rVector.data();
+        return rVector.data().begin();
     }
 
 private:
@@ -109,10 +111,6 @@ private:
 }; // struct AMGCLAdaptor
 
 
-// The Eigen-real AMGCLSolver instantiations exist only under the eigen
-// backend: the two linear-algebra backends are mutually exclusive.
-#ifdef KRATOS_USE_EIGEN_BACKEND
-
 template class KRATOS_API(KRATOS_CORE) AMGCLSolver<
     TEigenSparseSpace<double>,
     TDefaultDenseSpace<double>
@@ -123,7 +121,7 @@ template class KRATOS_API(KRATOS_CORE) AMGCLSolver<
     TDefaultDenseSpace<double>
 >;
 
-#endif // KRATOS_USE_EIGEN_BACKEND
-
 
 } // namespace Kratos
+
+#endif // KRATOS_USE_EIGEN_BACKEND

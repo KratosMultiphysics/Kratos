@@ -34,6 +34,10 @@
 
 namespace Kratos {
 
+// The uBLAS adaptor and the uBLAS-space AMGCLSolver instantiations exist only
+// under the ublas backend (spaces/eigen_space.h and amgcl_solver_eigen_impl.cpp
+// provide the Eigen counterparts).
+#ifndef KRATOS_USE_EIGEN_BACKEND
 
 template <class TValue>
 struct AMGCLAdaptor<TUblasSparseSpace<TValue>>
@@ -106,11 +110,6 @@ private:
     >> mIntermediateAdaptor;
 }; // struct AMGCLAdaptor
 
-
-// The uBLAS-real AMGCLSolver instantiations exist only under the ublas
-// backend (the AMGCLAdaptor specialization above stays available for
-// uBLAS-typed template code such as the p-multigrid grids).
-#ifndef KRATOS_USE_EIGEN_BACKEND
 
 template class KRATOS_API(KRATOS_CORE) AMGCLSolver<
     TUblasSparseSpace<double>,
