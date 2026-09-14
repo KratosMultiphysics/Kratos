@@ -45,8 +45,6 @@ class SbmStokesTests(KratosUnittest.TestCase):
                     "model_part_name" : "IgaModelPart",
                     "lower_point_xyz": [0.0,0.0,0.0],
                     "upper_point_xyz": [2.0,2.0,0.0],
-                    "lower_point_uvw": [0.0,0.0,0.0],
-                    "upper_point_uvw": [2.0,2.0,0.0],
                     "polynomial_order" : [3, 3],
                     "number_of_knot_spans" : [5,5],
                     "lambda_outer": 0.5,
