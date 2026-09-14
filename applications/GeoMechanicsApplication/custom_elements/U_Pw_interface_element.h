@@ -21,7 +21,7 @@
 #include "custom_elements/contribution_calculators/up_coupling_calculator.hpp"
 #include "geo_aliases.h"
 #include "includes/element.h"
-#include "includes/ublas_interface.h"
+#include "includes/default_interface.h"
 #include "integration_coefficients_calculator.hpp"
 #include "integration_scheme.h"
 #include "stress_state_policy.h"

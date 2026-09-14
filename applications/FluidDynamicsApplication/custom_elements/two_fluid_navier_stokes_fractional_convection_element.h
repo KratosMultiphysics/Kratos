@@ -19,7 +19,7 @@
 // External includes
 
 // Project includes
-#include "includes/ublas_interface.h"
+#include "includes/default_interface.h"
 #include "includes/variables.h"
 #include "includes/cfd_variables.h"
 #include "includes/convection_diffusion_settings.h"
