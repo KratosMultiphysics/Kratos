@@ -19,19 +19,17 @@ def Factory(settings, Model):
 
 class ApplyRbe2Process(KM.Process):
     """
-    Erzeugt eine RBE2-Starrkoerperkopplung (LinearMasterSlaveConstraint) zwischen einem Master-Knoten und einem SubModelPart voller
-    Slave-Knoten.
-    Erwartete Parameter:
-        model_part_name   : Name der ModelPart, die master/slave enthaelt
-        master_sub_model_part : SubModelPart-Name mit genau 1 Knoten (Master)
-        slave_sub_model_part  : SubModelPart-Name mit den Slave-Knoten
-        constraint_id_start   : erste freie MasterSlaveConstraint-Id
-        constrained dofs: hier kann man wählen, was alles übetragen werden soll
+    Generates a RBE2-coupling with a master and a set of slave nodes (using LinearMasterSlaveConstraint) 
+    Expected parameters:
+        model_part_name   : name of the model part
+        master_sub_model_part : SubModelPart-Name with the master node
+        slave_sub_model_part  : SubModelPart-Name with the slave nodes
+        constraint_id_start   : MasterSlaveConstraint-Id
+        constrained dofs: DOFs that should be coupled
     """
     def __init__(self, model, settings):
-        self.echo_level = settings["echo_level"].GetInt() if settings.Has("echo_level") else 0 #Ausgaben
-        super().__init__() #ruft den Konstruktor der Basisklasse KM.Process auf, 
-        # zuerst wird Elternklasse initialisiert, dann die eigene Klasse
+        self.echo_level = settings["echo_level"].GetInt() if settings.Has("echo_level") else 0 
+        super().__init__() 
         default_settings = KM.Parameters("""{
             "model_part_name"       : "",
             "master_sub_model_part" : "",
@@ -42,23 +40,21 @@ class ApplyRbe2Process(KM.Process):
         }""")
         settings.ValidateAndAssignDefaults(default_settings)
 
-# self --> instance of the class
         self.model_part = model[settings["model_part_name"].GetString()]
         self.master_mp = model[settings["master_sub_model_part"].GetString()]
         self.slave_mp = model[settings["slave_sub_model_part"].GetString()]
         self.constraint_id_start = settings["constraint_id_start"].GetInt()
 
         requested = settings["constrained_dofs"].GetStringArray()
-        invalid = set(requested) - set(DOF_MAP) # wenn in Json ein DOF-Name steht, der nicht in DOF_MAP ist, dann ist invalid = True
+        invalid = set(requested) - set(DOF_MAP) #DOF must be one of the list above --> otherwise invalid =true
         if invalid:
             raise Exception(f"Invalid input: {invalid}")
         
         self.dof_names = requested #string
-        self.dof_vars = [DOF_MAP[name] for name in self.dof_names] #Kratos-Variable (z.B. KM.DISPLACEMENT_X) 
+        self.dof_vars = [DOF_MAP[name] for name in self.dof_names] #Kratos-Variable (for example KM.DISPLACEMENT_X) 
         self.n_dofs = len(self.dof_vars)
-        self.idx_map = {name: i for i, name in enumerate(self.dof_names)} #DOFs bekommen Nummern 0,1,2..
+        self.idx_map = {name: i for i, name in enumerate(self.dof_names)} #DOFs --> 0,1,2
 
-        # Skew-Kopplung nur einbauen, wenn Translation UND Rotation gewählt sind
         self.couple_rotation = (
             any(n in self.idx_map for n in TRANSLATION_NAMES)
             and any(n in self.idx_map for n in ROTATION_NAMES)
@@ -81,14 +77,17 @@ class ApplyRbe2Process(KM.Process):
                 master_dofs, slave_dofs, relation_matrix, constant)
             cid += 1 
 
-    def _build_relation_matrix(self, slave_node, x_m):       
+    def _build_relation_matrix(self, slave_node, x_m):      
+        """
+        builts the relation matrix between master and slave nodes
+        expected input: slave node and x_m (vector to master)
+        """ 
         T = np.eye(self.n_dofs)
 
         if not self.couple_rotation:
             return T
         r = np.array([slave_node.X, slave_node.Y, slave_node.Z]) - x_m
         skew_r = self._skew(r)
-        #KM.Logger.PrintInfo(r)
 
         for t_i, t_name in enumerate(TRANSLATION_NAMES):
             if t_name not in self.idx_map:
@@ -98,17 +97,20 @@ class ApplyRbe2Process(KM.Process):
                 if r_name not in self.idx_map:
                     continue
                 col = self.idx_map[r_name]
-                T[row, col] = -skew_r[t_i, r_i]
-        #KM.Logger.PrintInfo(T)
+                T[row, col] = -skew_r[t_i, r_i] 
+                #(-ry)·θx + rx·θy + 0·θz  =  rx·θy - ry·θx
         return T
           
-# hier wird die skew matrix definiert; sie ist Teil der 6x6 Matrix und stellt das kreuzprodukt r × θ dar, das die Rotationsanteile der Slave-Knoten beschreibt.
-# man kann das nicht über ein Kreuprodukt cross machen, da es noch in die 6x6 matrix eingebettet werden muss
     @staticmethod
     def _skew(r):
+        """
+        skew matrix: cross product r × θ
+        describes the rotational part of the slaves
+        will be embedded in the 6x6 relation matrix
+        expected input: r (vector master-slave)
+        """
         return np.array([
             [0.0, -r[2], r[1]],
             [r[2], 0.0, -r[0]],
-            [-r[1], r[0], 0.0]  #mit theta multipliziert: (-ry)·θx + rx·θy + 0·θz  =  rx·θy - ry·θx
+            [-r[1], r[0], 0.0] 
         ])
-    #jede Zeile drückt eine Komponente (x, y, z) des Kreuzprodukts r × θ als lineare Kombination von θx, θy, θz aus

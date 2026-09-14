@@ -2,21 +2,21 @@
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics as KM
 import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
-import pathlib
-import sys
+
 
 from KratosMultiphysics.StructuralMechanicsApplication.RBE2_process import ApplyRbe2Process
 
-#from pathlib import Path
-#python_scripts_path = (Path(__file__).resolve().parents[1] / "python_scripts")
-#sys.path.insert(0, str(python_scripts_path))
-#import RBE2_process
-
-
-def GetFullPathToFile(fileName):
-    return pathlib.Path(__file__).absolute().parent / fileName
-
 class TestRBE2(KratosUnittest.TestCase):
+    """
+    This test verifies the RBE2 connection (kinematic coupling) between a master node and multiple slave nodes.
+    A simple panel model is created in Kratos. A prescribed displacement or rotation is applied to the master node, and the resulting displacements and rotations of the slave nodes are compared against reference results obtained from Nastran.
+
+    Six test cases are evaluated: 
+    Translation in X, Y and Z direction and 
+    Rotation about X, Y and Z axis
+
+    The results are validated using a relative error tolerance of: rel_tol = 1.0e-5
+    """
     def setUp(self):
         pass
 
@@ -28,7 +28,6 @@ class TestRBE2(KratosUnittest.TestCase):
 
 
     def _add_dofs(self,mp):
-        # Adding the dofs AND their corresponding reaction!
         KM.VariableUtils().AddDof(KM.DISPLACEMENT_X, KM.REACTION_X,mp)
         KM.VariableUtils().AddDof(KM.DISPLACEMENT_Y, KM.REACTION_Y,mp)
         KM.VariableUtils().AddDof(KM.DISPLACEMENT_Z, KM.REACTION_Z,mp)
@@ -88,7 +87,6 @@ class TestRBE2(KratosUnittest.TestCase):
             )
 
     def _apply_material_properties(self,mp):
-        #define properties
         mp.CreateNewProperties(1)
         mp.GetProperties()[1].SetValue(KM.YOUNG_MODULUS,210E+3)
         mp.GetProperties()[1].SetValue(KM.POISSON_RATIO,0.3)
@@ -124,7 +122,6 @@ class TestRBE2(KratosUnittest.TestCase):
         strategy.Solve()
 
     def _check_slave_disp(self,node,displacement_results, rotation_results):
-        #check that the results are exact on the node
         disp = node.GetSolutionStepValue(KM.DISPLACEMENT)
         rot = node.GetSolutionStepValue(KM.ROTATION)
         axis = ["x", "y", "z"]
@@ -132,20 +129,18 @@ class TestRBE2(KratosUnittest.TestCase):
             self.assertIsClose(disp[component], 
                                displacement_results[component],
                                abs_tol=0.001, 
-                               rel_tol=0.0001, 
-                               msg= None #wird nur ausgegeben bei Fehler
+                               rel_tol=0.00001, 
+                               msg= None #only shown for an error
             )
-            #diff = disp[component] - displacement_results[component]
-            #print(f"Node {node.Id}, displacement[{axis[component]}]: diff = {diff}")
+
             self.assertIsClose(
                 rot[component],
                 rotation_results[component],
                 abs_tol=0.001, 
-                rel_tol=0.0001, 
+                rel_tol=0.00001, 
                 msg= None
             )
-            #diff_rot = rot[component] - rotation_results[component]
-            #print(f"Node {node.Id}, rotation[{axis[component]}]: diff_rot = {diff_rot}")
+
 
     def execute_RBE2_test(self, current_model, element_name, applied_disp, applied_rot, displacement_results, rotation_results):
         mp = current_model.CreateModelPart("Structure")
@@ -163,14 +158,12 @@ class TestRBE2(KratosUnittest.TestCase):
         self._add_dofs(mp)
         self._create_elements(mp,element_name)
 
-        #create a submodelpart for slaves
-        slave = mp.CreateSubModelPart("RBE2_slaves") #wichtig, dass diese namen mit dem Prozess übereinstimmen
+        slave = mp.CreateSubModelPart("RBE2_slaves") 
         slave.AddNodes([10,11,12])
 
         master = mp.CreateSubModelPart("RBE2_master")
         master.AddNodes([13])
 
-        #create a submodelpart for dirichlet boundary conditions
         bcs_dirichlet = mp.CreateSubModelPart("BoundaryCondtionsDirichlet")
         bcs_dirichlet.AddNodes([1,2,3])
 
