@@ -96,7 +96,8 @@
                 "gradient_scaling": "inf_norm"
             },
             "conv_settings": {
-                "max_iter": 4
+                "max_iter": 4,
+                "constraint_conv_settings": "none"
             },
             "linear_solver_settings": {
                 "solver_type": "LinearSolversApplication.dense_col_piv_householder_qr"

@@ -152,18 +152,43 @@ class AdaptiveSigmoidalDesignVariableProjection(DesignVariableProjection):
         self.optimization_problem = optimization_problem
         self.__restart_data = restart_data
 
-        # "beta" grows monotonically across iterations (see Update below). On a restart
-        # (step > 0) it is re-hydrated from restart_data instead of re-initialized, so the
-        # projection resumes exactly where it left off.
-        if self.__restart_data is not None and optimization_problem.GetStep() > 0 and self.__restart_data.HasValue("beta"):
-            self.beta = self.__restart_data["beta"]
-            self.beta_computed_step = self.__restart_data["beta_computed_step"]
+        # "beta" grows monotonically across iterations (see Update below). It is bookkept in
+        # restart_data (read/written live via the beta/beta_computed_step properties below)
+        # rather than cached in a plain attribute here, because this control is constructed
+        # (and this __init__ runs) before a restart input process's ExecuteInitialize() has had
+        # a chance to populate restart_data from a checkpoint -- optimization_problem.GetStep()
+        # still reads its pre-restart value of 0 at this point, so a "restart (step > 0)" check
+        # here would never see the checkpoint data. Reading live means whichever value
+        # restart_data ends up holding (fresh default, or restored) is always what's used,
+        # regardless of exactly when that happens relative to this constructor.
+        if self.__restart_data is None:
+            self.__beta = parameters["initial_value"].GetDouble()
+            self.__beta_computed_step = 1
+        elif not self.__restart_data.HasValue("beta"):
+            self.__restart_data.SetValue("beta", parameters["initial_value"].GetDouble(), overwrite=True)
+            self.__restart_data.SetValue("beta_computed_step", 1, overwrite=True)
+
+    @property
+    def beta(self) -> float:
+        return self.__restart_data["beta"] if self.__restart_data is not None else self.__beta
+
+    @beta.setter
+    def beta(self, value: float) -> None:
+        if self.__restart_data is not None:
+            self.__restart_data.SetValue("beta", value, overwrite=True)
         else:
-            self.beta = parameters["initial_value"].GetDouble()
-            self.beta_computed_step = 1
-            if self.__restart_data is not None:
-                self.__restart_data.SetValue("beta", self.beta, overwrite=True)
-                self.__restart_data.SetValue("beta_computed_step", self.beta_computed_step, overwrite=True)
+            self.__beta = value
+
+    @property
+    def beta_computed_step(self) -> int:
+        return self.__restart_data["beta_computed_step"] if self.__restart_data is not None else self.__beta_computed_step
+
+    @beta_computed_step.setter
+    def beta_computed_step(self, value: int) -> None:
+        if self.__restart_data is not None:
+            self.__restart_data.SetValue("beta_computed_step", value, overwrite=True)
+        else:
+            self.__beta_computed_step = value
 
     def SetProjectionSpaces(self, x_space_values: 'list[float]', y_space_values: 'list[float]') -> None:
         self.x_space_values = x_space_values
@@ -184,9 +209,6 @@ class AdaptiveSigmoidalDesignVariableProjection(DesignVariableProjection):
             self.beta_computed_step = step
             self.beta = min(self.beta * self.increase_fac, self.max_beta)
             Kratos.Logger.PrintInfo(self.__class__.__name__, f"Increased beta to {self.beta}.")
-            if self.__restart_data is not None:
-                self.__restart_data.SetValue("beta", self.beta, overwrite=True)
-                self.__restart_data.SetValue("beta_computed_step", self.beta_computed_step, overwrite=True)
 
 
 def CreateProjection(parameters: Kratos.Parameters, optimization_problem: OptimizationProblem, restart_data: Optional[BufferedDict] = None) -> DesignVariableProjection:

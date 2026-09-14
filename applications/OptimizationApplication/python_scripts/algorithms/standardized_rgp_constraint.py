@@ -94,10 +94,17 @@ class StandardizedRGPConstraint(ResponseRoutine):
         self.max_w_c = parameters["max_w_c"].GetDouble()
         self.tolerance = parameters["tolerance"].GetDouble()
 
-        # these coefficients evolve every iteration (see UpdateBufferSize). On a restart
-        # (step > 0) they are re-hydrated from unbuffered data instead of re-initialized,
-        # so the constraint resumes exactly where it left off.
-        if optimization_problem.GetStep() > 0 and self.__unbuffered_data.HasValue("BSF"):
+    def Initialize(self) -> None:
+        super().Initialize()
+
+        # these coefficients evolve every iteration (see UpdateBufferSize), so on a restart
+        # (step > 0) they must be re-hydrated from unbuffered data instead of re-initialized,
+        # so the constraint resumes exactly where it left off. This has to happen here rather
+        # than in __init__: the algorithm (and thus this constraint) is constructed before the
+        # restart input process's ExecuteInitialize() runs (see OptimizationAnalysis.__init__
+        # vs. Initialize()), so __optimization_problem.GetStep() would still read its pre-restart
+        # value of 0 there.
+        if self.__optimization_problem.GetStep() > 0 and self.__unbuffered_data.HasValue("BSF"):
             self.BSF = self.__unbuffered_data["BSF"]
             self.CBV = self.__unbuffered_data["CBV"]
             self.BS = self.__unbuffered_data["BS"]
