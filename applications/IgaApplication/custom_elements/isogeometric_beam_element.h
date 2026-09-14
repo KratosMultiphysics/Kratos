@@ -201,6 +201,14 @@ public:
     void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
     void InitializeMaterial();
 
+    /// LOCAL_AXES_MATRIX returns the reference frame, with rows T, N, V.
+    /// Supported on single-point quadrature geometries, without material initialization.
+    using Element::CalculateOnIntegrationPoints;
+    void CalculateOnIntegrationPoints(
+        const Variable<Matrix>& rVariable,
+        std::vector<Matrix>& rOutput,
+        const ProcessInfo& rCurrentProcessInfo) override;
+
     //Computes RHS
     void CalculateRightHandSide(
         VectorType& rRightHandSideVector,

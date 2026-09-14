@@ -6,6 +6,53 @@
 #include <iomanip>
 
 namespace Kratos {
+
+    void IsogeometricBeamElement::CalculateOnIntegrationPoints(
+        const Variable<Matrix>& rVariable,
+        std::vector<Matrix>& rOutput,
+        const ProcessInfo& rCurrentProcessInfo)
+    {
+        KRATOS_TRY
+        if (rVariable != LOCAL_AXES_MATRIX) {
+            Element::CalculateOnIntegrationPoints(rVariable, rOutput, rCurrentProcessInfo);
+            return;
+        }
+
+        const auto& r_geometry = GetGeometry();
+        const auto& r_properties = GetProperties();
+        KRATOS_ERROR_IF(r_geometry.IntegrationPointsNumber() != 1)
+            << "Reference beam frame requires a single quadrature point." << std::endl;
+        KRATOS_ERROR_IF_NOT(r_properties.Has(T_0) && r_properties.Has(N_0) &&
+            r_properties.Has(LOCAL_AXIS_ORIENTATION))
+            << "Reference beam frame requires T_0, N_0 and LOCAL_AXIS_ORIENTATION." << std::endl;
+        const auto& r_orientation = r_properties[LOCAL_AXIS_ORIENTATION];
+        KRATOS_ERROR_IF(r_orientation.size1() < 2 || r_orientation.size2() != 4)
+            << "LOCAL_AXIS_ORIENTATION must have at least two rows and four columns." << std::endl;
+        for (std::size_t i = 1; i < r_orientation.size1(); ++i) {
+            KRATOS_ERROR_IF(r_orientation(i, 0) <= r_orientation(i - 1, 0))
+                << "LOCAL_AXIS_ORIENTATION coordinates must be strictly increasing." << std::endl;
+        }
+
+        KinematicVariables kinematics;
+        const auto& r_dn = r_geometry.ShapeFunctionDerivatives(1, 0);
+        const auto& r_ddn = r_geometry.ShapeFunctionDerivatives(2, 0);
+        for (std::size_t i = 0; i < r_geometry.size(); ++i) {
+            kinematics.R1 += r_dn(i, 0) * r_geometry[i].GetInitialPosition();
+            kinematics.R2 += r_ddn(i, 0) * r_geometry[i].GetInitialPosition();
+        }
+        KRATOS_ERROR_IF(norm_2(kinematics.R1) <= std::numeric_limits<double>::epsilon())
+            << "Reference beam frame has a degenerate tangent." << std::endl;
+        CompGeometryReferenceCrossSection(kinematics);
+        const Vector3d tangent = kinematics.R1 / norm_2(kinematics.R1);
+        rOutput.resize(1);
+        rOutput[0].resize(3, 3, false);
+        for (std::size_t i = 0; i < 3; ++i) {
+            rOutput[0](0, i) = tangent[i];
+            rOutput[0](1, i) = kinematics.n[i];
+            rOutput[0](2, i) = kinematics.v[i];
+        }
+        KRATOS_CATCH("")
+    }
     
     void IsogeometricBeamElement::EquationIdVector(
         EquationIdVectorType& rResult,
@@ -3865,4 +3912,3 @@ namespace Kratos {
     KRATOS_CATCH("")
     }
 }
-

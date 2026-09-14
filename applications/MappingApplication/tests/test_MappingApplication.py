@@ -13,6 +13,7 @@ import test_barycentric_mapper
 import test_projection_3d_2d_mapper
 import test_coupling_geometry_mapper
 import test_beam_mapper
+import test_iga_beam_mapper
 
 from test_patch_test_mappers import TestPatchTestMappers
 
@@ -34,6 +35,8 @@ def AssembleTestSuites():
     # Create a test suit with the selected tests (Small tests):
     # smallSuite will contain the following tests:
     smallSuite = suites['small']
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_iga_beam_mapper.TestIgaBeamMapperBox]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_iga_beam_mapper.TestIgaBeamMapperCurvedBox]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestPatchTestMappers]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_coupling_geometry_mapper.TestCouplingGeometryMapper]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_coupling_geometry_mapper.TestIgaFEMCouplingGeometryMapper]))

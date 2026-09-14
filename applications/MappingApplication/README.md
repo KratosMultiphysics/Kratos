@@ -320,6 +320,128 @@ If ```json"precompute_mapping_matrix": true```, the resulting mapping matrix is 
   - ```json"max_support_points" > 0``` → restricts support to a local neighborhood for each destination point.
 
 
+#### IGA Beam Mapper
+
+`iga_beam_mapper` initializes reference beam–surface attachments and maps total
+historical `DISPLACEMENT` from beam to surface, reading `ROTATION_X` as twist.
+It reconstructs the current centerline from initial coordinates plus displacement,
+aligns the reference section with the current tangent, and applies the interpolated
+twist. Repeated calls overwrite surface displacement; they do not accumulate it
+or move mesh coordinates. Mapping flags are currently unsupported. Opposite
+reference/current tangents and degenerate current tangents throw errors.
+Force transfer uses the analytic tangent of these same kinematics at the current
+beam state: `g = H^T f`. Import StructuralMechanicsApplication and allocate historical
+`POINT_LOAD` and `POINT_MOMENT` on the beam before creating nodes. Allocate a
+historical vector variable (for example `KM.FORCE`) for integrated surface nodal
+forces, with the sign of forces acting on the beam. Then call:
+
+```python
+import KratosMultiphysics.StructuralMechanicsApplication as SMA
+mapper.InverseMap(SMA.POINT_LOAD, KM.FORCE)
+```
+
+The first argument is the beam output; the second is the surface input. Each call
+also writes `POINT_MOMENT_X` and zeros its Y/Z components. Calls overwrite previous
+mapped loads and accept no flags. Pressure/traction must be integrated separately.
+Create one `PointLoadCondition3D1N` and one `PointMomentCondition3D1N` per control
+point. Add the three displacement and three rotation DOFs, fixing `ROTATION_Y` and
+`ROTATION_Z` because the IGA beam uses only scalar `ROTATION_X`. `POINT_MOMENT_X`
+is the generalized twist load, not a global Cartesian moment component. Keep
+condition-level loads zero unless their additional contribution is intended:
+the conditions add condition-level and historical nodal loads.
+
+Tests cover straight/curved deformed states using finite differences of surface
+virtual work for all control-point DOFs, total force balance, an eccentric force,
+a pure torque couple, native condition RHS assembly, overwrite/zero behavior,
+and rejection of invalid forces and flags. These are mapping and assembly tests,
+not a coupled structural solve. Loads can be recomputed between coupling iterations;
+a consistent external-load tangent for a monolithic Newton solve is not supplied.
+
+For CoSimulation, use the existing `kratos_beam_mapping` data transfer operator:
+
+```json
+{
+    "type": "kratos_beam_mapping",
+    "solver_name_beam": "structure",
+    "solver_name_surface": "fluid",
+    "model_part_name_beam": "beam",
+    "model_part_name_surface": "box",
+    "second_variable_displacement": "ROTATION",
+    "second_variable_force": "POINT_MOMENT",
+    "mapper_settings": {"mapper_type": "iga_beam_mapper"}
+}
+```
+
+Replace the solver and model-part names with your coupling names. Use historical
+3D vector interface data: beam/surface `DISPLACEMENT` for forward transfer and
+surface integrated forces/beam `POINT_LOAD` for reverse transfer. The secondary
+variables remain `ROTATION` and `POINT_MOMENT`, with scalar X semantics described
+above. Use empty `transfer_options`: the IGA mapper currently rejects `swap_sign`.
+Supply forces with the required sign. Rebuild the MappingApplication Python module
+as well as its core library after adding the beam-style overloads.
+The straight and curved `force_transfer_operator` tests exercise the actual
+CoSimulation factory and operator in both directions and both initialization orders.
+
+The quadratic-beam/closed-FEM-box test covers translation, bending, twist, finite
+rigid rotation, repeated mapping, and invalid inputs. Run from the repository root
+after building/installing the applications:
+
+```bash
+OMP_NUM_THREADS=1 python applications/MappingApplication/tests/test_iga_beam_mapper.py
+```
+
+The same file also tests an exact quadratic rational quarter-circle of radius
+10, surrounded by a curved box with 1,634 nodes and 1,632 quadrilateral faces.
+`TestIgaBeamMapperCurvedBox` checks zero deformation/translation, in-plane rigid
+rotation, varying twist, and a 20% radius expansion that preserves section size.
+The root/middle/tip control-point twists are 0, pi, and 2*pi; rational interpolation
+makes the twist nonlinear in arc length. Run just these four cases with:
+
+```bash
+OMP_NUM_THREADS=1 python applications/MappingApplication/tests/test_iga_beam_mapper.py TestIgaBeamMapperCurvedBox -v
+```
+
+Each test writes an initial state and every successfully checked mapped state to
+`tests/iga_beam_mapper_vtk/<test_name>/`. `VtkOutputProcess` writes the box to
+`surface/box_0_<step>.vtk`; `IgaVTKOutputProcess` samples the beam into
+`beam.vtkhdf`. Both contain reference geometry and `DISPLACEMENT`: select a
+nonzero output step in ParaView and use **Warp By Vector** with scale factor 1
+on both datasets. The beam file also includes interpolated `ROTATION`.
+
+```json
+{
+    "mapper_type": "iga_beam_mapper",
+    "projection_tolerance": 1e-8,
+    "projection_max_iterations": 50
+}
+```
+
+The origin must contain quadrature-point `IsogeometricBeamElement` elements
+sharing one direct 3D NURBS parent curve of degree at least two. The control
+points must belong to the origin and have historical `DISPLACEMENT` and
+`ROTATION` data; `ROTATION_X` represents scalar twist. Destination surface nodes
+must have historical `DISPLACEMENT`. Only serial model parts are supported.
+Initialize the beam's `T_0`, `N_0`, and `LOCAL_AXIS_ORIENTATION` properties before
+constructing the mapper, and keep the parent curve alive while using it.
+
+Construction projects initial surface positions onto a separate curve built
+from initial control-point positions. A multistart Newton search over every
+knot span compares converged stationary minima and constrained endpoints by
+distance. This is a numerical closest-point search, not a certified global
+minimizer for arbitrarily folded curves. A failure to find a valid projection
+throws an error identifying the surface node. `projection_tolerance` is an
+absolute geometric tolerance in model length units; it also bounds the
+reference reconstruction residual.
+
+The beam supplies its reference frame through `CalculateOnIntegrationPoints`
+with `LOCAL_AXES_MATRIX` (rows: tangent, normal, binormal). The mapper uses a
+temporary element at the projected coordinate with properties from the closest
+origin integration point having the same active spline support. It caches the
+parameter, control points, basis values and first derivatives, frame, and normal
+and binormal offsets. Attachments remain fixed when the mesh moves. Points with
+a tangential offset at a projected endpoint are rejected because the assumed
+rigid cross-section cannot reconstruct their initial position.
+
 #### Beam Mapper 
 The _BeamMapper_ provides support for mapping between 1D beam elements and 2D/3D surface meshes. It follows the formulation of Wang (2019) and is intended for cases where beam DOFs (displacements and rotations) must be transferred consistently to a surrounding surface, e.g. in FSI or beam–solid coupling.
 
