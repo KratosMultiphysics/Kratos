@@ -163,7 +163,7 @@ public:
     explicit InterfaceNode(NodePointerType pNode)
         : mpNode(pNode)
     {
-        Coordinates() = mpNode->Coordinates();
+        noalias(Coordinates()) = mpNode->Coordinates();
     }
 
     NodePointerType pGetBaseNode() const override
@@ -196,7 +196,7 @@ public:
     explicit InterfaceGeometryObject(GeometryPointerType pGeometry)
         : mpGeometry(pGeometry)
     {
-        Coordinates() = mpGeometry->Center();
+        noalias(Coordinates()) = mpGeometry->Center();
     }
 
     GeometryPointerType pGetBaseGeometry() const override
