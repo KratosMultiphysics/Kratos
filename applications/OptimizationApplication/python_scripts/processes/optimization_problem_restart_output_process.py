@@ -72,6 +72,8 @@ class OptimizationProblemRestartOutputProcess(Kratos.OutputProcess):
         self.restart_files_path = Path(parameters["restart_files_path"].GetString())
         self.restart_file_name = parameters["restart_file_name"].GetString()
         self.restart_save_frequency = parameters["restart_save_frequency"].GetInt()
+        if self.restart_save_frequency <= 0:
+            raise RuntimeError(f"\"restart_save_frequency\" must be > 0. [ restart_save_frequency = {self.restart_save_frequency} ].")
         self.max_files_to_keep = parameters["max_files_to_keep"].GetInt()
         self.echo_level = parameters["echo_level"].GetInt()
 
@@ -91,9 +93,11 @@ class OptimizationProblemRestartOutputProcess(Kratos.OutputProcess):
             "data": SnapshotBufferedDict(self.optimization_problem.GetProblemDataContainer()),
         }
 
-        file_path = self.restart_files_path / self.restart_file_name.replace("<step>", str(step))
+        file_path = (self.restart_files_path / self.restart_file_name.replace("<step>", str(step))).resolve()
+        if self.restart_files_path.resolve() not in file_path.parents:
+            raise RuntimeError(f"Resolved restart checkpoint path is outside restart_files_path. [ file_path = \"{file_path}\" ].")
         with open(file_path, "wb") as file_output:
-            pickle.dump(payload, file_output)
+            pickle.dump(payload, file_output, protocol=pickle.HIGHEST_PROTOCOL)
 
         if self.echo_level > 0:
             Kratos.Logger.PrintInfo(self.__class__.__name__, f"Wrote restart checkpoint to \"{file_path}\".")
