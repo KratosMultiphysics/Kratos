@@ -158,11 +158,9 @@ template class KratosComponents<Variable<ConstitutiveLaw::Pointer>>;
 template class KratosComponents<MasterSlaveConstraint>;
 template class KratosComponents<Modeler>;
 
-// The real sparse spaces follow the configure-time selected linear-algebra
-// backend exclusively; the complex sparse space stays uBLAS in every backend
-// (there is no Eigen complex space) — a deliberate, documented exception.
-using ComplexSparseSpace = UblasSpace<std::complex<double>, boost::numeric::ublas::compressed_matrix<std::complex<double>>, boost::numeric::ublas::vector<std::complex<double>>>;
-using ComplexDenseSpace = UblasSpace<std::complex<double>, DenseMatrix<std::complex<double>>, DenseVector<std::complex<double>>>;
+// The spaces follow the configure-time selected linear-algebra backend.
+using ComplexSparseSpace = TDefaultSparseSpace<std::complex<double>>;
+using ComplexDenseSpace = TDefaultDenseSpace<std::complex<double>>;
 
 template class KratosComponents<LinearSolverFactory<TDefaultSparseSpace<double>, TDefaultDenseSpace<double>>>;
 template class KratosComponents<LinearSolverFactory<TDefaultSparseSpace<float>, TDefaultDenseSpace<double>>>;
