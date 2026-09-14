@@ -10,7 +10,12 @@
 //  Main authors:    Vicente Mataix Ferrandiz
 //
 
+// The Eigen-backed types only exist under the Eigen backend
+#ifdef KRATOS_USE_EIGEN_BACKEND
+
 // System includes
+#include <cmath>
+#include <vector>
 
 // External includes
 
@@ -18,7 +23,6 @@
 #include "includes/define.h"
 #include "testing/testing.h"
 #include "spaces/eigen_space.h"
-#include "spaces/ublas_space.h"
 #include "containers/model.h"
 
 namespace Kratos::Testing {
@@ -55,17 +59,6 @@ void FillTriDiagonalMatrix(EigenCompressedMatrix<double>& rMatrix, const std::si
         row_indices[i + 1] = counter;
     }
     rMatrix.set_filled(Size + 1, nnz);
-}
-
-/// The same tri-diagonal matrix as a ublas CompressedMatrix, for parity checks.
-void FillTriDiagonalMatrix(CompressedMatrix& rMatrix, const std::size_t Size)
-{
-    rMatrix = CompressedMatrix(Size, Size);
-    for (std::size_t i = 0; i < Size; ++i) {
-        if (i >= 1) {rMatrix.push_back(i, i - 1, -1.123);}
-        rMatrix.push_back(i, i, 4.5);
-        if (i + 1 < Size) {rMatrix.push_back(i, i + 1, 2.336);}
-    }
 }
 
 } // namespace
@@ -172,107 +165,118 @@ KRATOS_TEST_CASE_IN_SUITE(EigenSpaceGetScaleNorm, KratosCoreFastSuite)
 }
 
 // -------------------------------------------------------------------------
-// Cross-backend parity: run the same operation through TUblasSparseSpace and
-// TEigenSparseSpace on identical data and compare the results.
+// Reference checks: run the space operations on known data and compare the
+// results against straightforward hand-written computations.
 // -------------------------------------------------------------------------
 
-KRATOS_TEST_CASE_IN_SUITE(EigenSpaceUblasParityVectorOps, KratosCoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(EigenSpaceVectorOpsReference, KratosCoreFastSuite)
 {
-    using EigenSpaceType = TEigenSparseSpace<double>;
-    using UblasSpaceType = TUblasSparseSpace<double>;
+    using SpaceType = TEigenSparseSpace<double>;
 
     const std::size_t size = 7;
-    EigenSpaceType::VectorType ex(size), ey(size), ez(size);
-    UblasSpaceType::VectorType ux(size), uy(size), uz(size);
+    SpaceType::VectorType x(size), y(size), z(size);
+    std::vector<double> rx(size), ry(size), rz(size);
     for (std::size_t i = 0; i < size; ++i) {
-        ex[i] = ux[i] = 0.5 * static_cast<double>(i) - 1.0;
-        ey[i] = uy[i] = 2.0 - static_cast<double>(i % 3);
+        x[i] = rx[i] = 0.5 * static_cast<double>(i) - 1.0;
+        y[i] = ry[i] = 2.0 - static_cast<double>(i % 3);
     }
 
     // Dot / TwoNorm
-    KRATOS_EXPECT_NEAR(EigenSpaceType::Dot(ex, ey), UblasSpaceType::Dot(ux, uy), 1e-12);
-    KRATOS_EXPECT_NEAR(EigenSpaceType::TwoNorm(ex), UblasSpaceType::TwoNorm(ux), 1e-12);
+    double reference_dot = 0.0, reference_norm = 0.0;
+    for (std::size_t i = 0; i < size; ++i) {
+        reference_dot += rx[i] * ry[i];
+        reference_norm += rx[i] * rx[i];
+    }
+    KRATOS_EXPECT_NEAR(SpaceType::Dot(x, y), reference_dot, 1e-12);
+    KRATOS_EXPECT_NEAR(SpaceType::TwoNorm(x), std::sqrt(reference_norm), 1e-12);
 
     // ScaleAndAdd (both overloads)
-    EigenSpaceType::ScaleAndAdd(1.5, ex, -0.5, ey, ez);
-    UblasSpaceType::ScaleAndAdd(1.5, ux, -0.5, uy, uz);
+    SpaceType::ScaleAndAdd(1.5, x, -0.5, y, z);
     for (std::size_t i = 0; i < size; ++i) {
-        KRATOS_EXPECT_NEAR(ez[i], uz[i], 1e-12);
+        rz[i] = 1.5 * rx[i] - 0.5 * ry[i];
+        KRATOS_EXPECT_NEAR(z[i], rz[i], 1e-12);
     }
 
-    EigenSpaceType::ScaleAndAdd(0.25, ex, 3.0, ez);
-    UblasSpaceType::ScaleAndAdd(0.25, ux, 3.0, uz);
+    SpaceType::ScaleAndAdd(0.25, x, 3.0, z);
     for (std::size_t i = 0; i < size; ++i) {
-        KRATOS_EXPECT_NEAR(ez[i], uz[i], 1e-12);
+        rz[i] = 0.25 * rx[i] + 3.0 * rz[i];
+        KRATOS_EXPECT_NEAR(z[i], rz[i], 1e-12);
     }
 
     // InplaceMult / UnaliasedAdd / Assign / Set / SetToZero
-    EigenSpaceType::InplaceMult(ez, -2.0);
-    UblasSpaceType::InplaceMult(uz, -2.0);
-    EigenSpaceType::UnaliasedAdd(ez, 0.75, ex);
-    UblasSpaceType::UnaliasedAdd(uz, 0.75, ux);
-    EigenSpaceType::Assign(ey, -1.0, ez);
-    UblasSpaceType::Assign(uy, -1.0, uz);
+    SpaceType::InplaceMult(z, -2.0);
+    SpaceType::UnaliasedAdd(z, 0.75, x);
+    SpaceType::Assign(y, -1.0, z);
     for (std::size_t i = 0; i < size; ++i) {
-        KRATOS_EXPECT_NEAR(ey[i], uy[i], 1e-12);
+        rz[i] = -2.0 * rz[i] + 0.75 * rx[i];
+        ry[i] = -rz[i];
+        KRATOS_EXPECT_NEAR(y[i], ry[i], 1e-12);
     }
 
-    EigenSpaceType::Set(ey, 3.14);
-    UblasSpaceType::Set(uy, 3.14);
-    KRATOS_EXPECT_NEAR(ey[size-1], uy[size-1], 1e-12);
+    SpaceType::Set(y, 3.14);
+    KRATOS_EXPECT_NEAR(y[size-1], 3.14, 1e-12);
 
-    EigenSpaceType::SetToZero(ey);
-    UblasSpaceType::SetToZero(uy);
-    KRATOS_EXPECT_NEAR(ey[0], uy[0], 1e-12);
+    SpaceType::SetToZero(y);
+    KRATOS_EXPECT_NEAR(y[0], 0.0, 1e-12);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(EigenSpaceUblasParitySpMV, KratosCoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(EigenSpaceSpMVReference, KratosCoreFastSuite)
 {
-    using EigenSpaceType = TEigenSparseSpace<double>;
-    using UblasSpaceType = TUblasSparseSpace<double>;
+    using SpaceType = TEigenSparseSpace<double>;
 
     const std::size_t size = 10;
-    EigenSpaceType::MatrixType e_mat;
-    UblasSpaceType::MatrixType u_mat;
-    FillTriDiagonalMatrix(e_mat, size);
-    FillTriDiagonalMatrix(u_mat, size);
+    SpaceType::MatrixType mat;
+    FillTriDiagonalMatrix(mat, size);
+    const double diagonal = 4.5, sub_diagonal = -1.123, super_diagonal = 2.336;
+    auto entry = [&](const std::size_t i, const std::size_t j) {
+        if (i == j) return diagonal;
+        if (j + 1 == i) return sub_diagonal;
+        if (i + 1 == j) return super_diagonal;
+        return 0.0;
+    };
 
-    EigenSpaceType::VectorType ex(size), ey(size);
-    UblasSpaceType::VectorType ux(size), uy(size);
+    SpaceType::VectorType x(size), y(size);
     for (std::size_t i = 0; i < size; ++i) {
-        ex[i] = ux[i] = 1.0 + 0.1 * static_cast<double>(i);
+        x[i] = 1.0 + 0.1 * static_cast<double>(i);
     }
 
     // Mult
-    EigenSpaceType::Mult(e_mat, ex, ey);
-    UblasSpaceType::Mult(u_mat, ux, uy);
+    SpaceType::Mult(mat, x, y);
     for (std::size_t i = 0; i < size; ++i) {
-        KRATOS_EXPECT_NEAR(ey[i], uy[i], 1e-12);
+        double reference = 0.0;
+        for (std::size_t j = 0; j < size; ++j) reference += entry(i, j) * x[j];
+        KRATOS_EXPECT_NEAR(y[i], reference, 1e-12);
     }
 
     // TransposeMult
-    EigenSpaceType::TransposeMult(e_mat, ex, ey);
-    UblasSpaceType::TransposeMult(u_mat, ux, uy);
+    SpaceType::TransposeMult(mat, x, y);
     for (std::size_t i = 0; i < size; ++i) {
-        KRATOS_EXPECT_NEAR(ey[i], uy[i], 1e-12);
+        double reference = 0.0;
+        for (std::size_t j = 0; j < size; ++j) reference += entry(j, i) * x[j];
+        KRATOS_EXPECT_NEAR(y[i], reference, 1e-12);
     }
 
     // Norms and diagonal queries
-    KRATOS_EXPECT_NEAR(EigenSpaceType::TwoNorm(e_mat), UblasSpaceType::TwoNorm(u_mat), 1e-12);
-    KRATOS_EXPECT_NEAR(EigenSpaceType::JacobiNorm(e_mat), UblasSpaceType::JacobiNorm(u_mat), 1e-12);
-    KRATOS_EXPECT_NEAR(EigenSpaceType::GetDiagonalNorm(e_mat), UblasSpaceType::GetDiagonalNorm(u_mat), 1e-12);
-    KRATOS_EXPECT_NEAR(EigenSpaceType::GetMaxDiagonal(e_mat), UblasSpaceType::GetMaxDiagonal(u_mat), 1e-12);
-    KRATOS_EXPECT_NEAR(EigenSpaceType::GetMinDiagonal(e_mat), UblasSpaceType::GetMinDiagonal(u_mat), 1e-12);
+    double frobenius = 0.0, jacobi = 0.0;
+    for (std::size_t i = 0; i < size; ++i) {
+        for (std::size_t j = 0; j < size; ++j) {
+            frobenius += entry(i, j) * entry(i, j);
+            if (i != j) jacobi += std::abs(entry(i, j));
+        }
+    }
+    KRATOS_EXPECT_NEAR(SpaceType::TwoNorm(mat), std::sqrt(frobenius), 1e-12);
+    KRATOS_EXPECT_NEAR(SpaceType::JacobiNorm(mat), jacobi, 1e-12);
+    KRATOS_EXPECT_NEAR(SpaceType::GetDiagonalNorm(mat), std::sqrt(static_cast<double>(size)) * diagonal, 1e-12);
+    KRATOS_EXPECT_NEAR(SpaceType::GetMaxDiagonal(mat), diagonal, 1e-12);
+    KRATOS_EXPECT_NEAR(SpaceType::GetMinDiagonal(mat), diagonal, 1e-12);
 
     // SetToZero keeps the graph but zeroes the values
-    EigenSpaceType::SetToZero(e_mat);
-    UblasSpaceType::SetToZero(u_mat);
-    KRATOS_EXPECT_EQ(e_mat.nnz(), static_cast<std::size_t>(u_mat.nnz()));
-    EigenSpaceType::Mult(e_mat, ex, ey);
-    UblasSpaceType::Mult(u_mat, ux, uy);
+    const std::size_t nnz_before = mat.nnz();
+    SpaceType::SetToZero(mat);
+    KRATOS_EXPECT_EQ(mat.nnz(), nnz_before);
+    SpaceType::Mult(mat, x, y);
     for (std::size_t i = 0; i < size; ++i) {
-        KRATOS_EXPECT_NEAR(ey[i], uy[i], 1e-12);
-        KRATOS_EXPECT_NEAR(ey[i], 0.0, 1e-12);
+        KRATOS_EXPECT_NEAR(y[i], 0.0, 1e-12);
     }
 }
 
@@ -324,3 +328,5 @@ KRATOS_TEST_CASE_IN_SUITE(EigenSpaceUblasParityGraph, KratosCoreFastSuite)
 }
 
 } // namespace Kratos::Testing
+
+#endif // KRATOS_USE_EIGEN_BACKEND

@@ -10,14 +10,16 @@
 //  Main authors:    Vicente Mataix Ferrandiz
 //
 
+// The Eigen-backed types only exist under the Eigen backend
+#ifdef KRATOS_USE_EIGEN_BACKEND
+
 // System includes
 
 // External includes
-#include <boost/numeric/ublas/matrix.hpp>
 
 // Project includes
 #include "testing/testing.h"
-#include "includes/kratos_eigen_interface.h"
+#include "includes/default_interface.h"
 
 namespace Kratos::Testing {
 
@@ -132,12 +134,12 @@ KRATOS_TEST_CASE_IN_SUITE(EigenVectorUblasMemberSurface, KratosCoreFastSuite)
     KRATOS_EXPECT_EQ(static_cast<std::size_t>(vector.size()), 2);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(EigenCompressedMatrixFromUblasDense, KratosCoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(EigenCompressedMatrixFromDense, KratosCoreFastSuite)
 {
-    // Construction from a dense uBLAS matrix expression gathers the nonzero
-    // entries into compressed storage, mirroring ublas::compressed_matrix's
-    // own dense constructor.
-    boost::numeric::ublas::matrix<double> dense(3, 3, 0.0);
+    // Construction from a dense matrix gathers the nonzero entries into
+    // compressed storage, mirroring ublas::compressed_matrix's own dense
+    // constructor.
+    Matrix dense(3, 3, 0.0);
     dense(0, 0) = 1.0;
     dense(0, 2) = 2.0;
     dense(1, 1) = 3.0;
@@ -179,3 +181,5 @@ KRATOS_TEST_CASE_IN_SUITE(EigenCompressedMatrixFromUblasDense, KratosCoreFastSui
 }
 
 } // namespace Kratos::Testing
+
+#endif // KRATOS_USE_EIGEN_BACKEND

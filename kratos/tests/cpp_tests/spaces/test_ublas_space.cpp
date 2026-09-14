@@ -11,6 +11,9 @@
 //                   Vicente Mataix Ferrandiz
 //
 
+// The uBLAS space is only compiled under the uBLAS backend
+#ifndef KRATOS_USE_EIGEN_BACKEND
+
 // System includes
 
 // External includes
@@ -118,3 +121,5 @@ KRATOS_TEST_CASE_IN_SUITE(GetScaleNorm, KratosCoreFastSuite)
 
 } // namespace Testing
 } // namespace Kratos.
+
+#endif // !KRATOS_USE_EIGEN_BACKEND
