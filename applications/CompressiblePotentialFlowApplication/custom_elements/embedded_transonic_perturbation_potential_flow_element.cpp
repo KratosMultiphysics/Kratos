@@ -303,7 +303,7 @@ void EmbeddedTransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::Calcula
 
 
         if (local_velocity_squared < max_velocity_squared){
-            rLhs_total += positive_side_weights(i_gauss) * 2 * DrhoDu2 * outer_prod(DNV, DNV);
+            rLhs_total += positive_side_weights(i_gauss) * 2 * DrhoDu2 * outer_prod(DNV, trans(DNV));
         }
     }
 }
@@ -362,7 +362,7 @@ void EmbeddedTransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::Assembl
         DN_DX = positive_side_sh_func_gradients(i_gauss);
         linear_term += positive_side_weights(i_gauss) * density * prod(DN_DX, trans(DN_DX));
 
-        rLeftHandSideMatrix += positive_side_weights(i_gauss) * 2.0 * outer_prod(DNV_extended, DNV_assembly);
+        rLeftHandSideMatrix += positive_side_weights(i_gauss) * 2.0 * outer_prod(DNV_extended, trans(DNV_assembly));
     }
 
     for (int i = 0; i < TNumNodes; i++)

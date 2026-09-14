@@ -564,7 +564,7 @@ void CompressiblePotentialFlowElement<Dim, NumNodes>::CalculateLeftHandSideContr
 
     const double max_velocity_squared = PotentialFlowUtilities::ComputeMaximumVelocitySquared<Dim, NumNodes>(rCurrentProcessInfo);
     if (local_velocity_squared < max_velocity_squared){
-        rLhs_total += rData.vol * 2 * DrhoDu2 * outer_prod(DNV, DNV);
+        rLhs_total += rData.vol * 2 * DrhoDu2 * outer_prod(DNV, trans(DNV));
     }
 }
 
@@ -648,7 +648,7 @@ void CompressiblePotentialFlowElement<Dim, NumNodes>::CalculateLeftHandSideSubdi
         {
             noalias(lhs_positive) += Volumes[i] * upper_density * prod(data.DN_DX, trans(data.DN_DX));
             if( upper_local_velocity_squared < max_velocity_squared){
-                noalias(lhs_positive) += Volumes[i] * 2 * upper_DrhoDu2 * outer_prod(upper_DNV, upper_DNV);
+                noalias(lhs_positive) += Volumes[i] * 2 * upper_DrhoDu2 * outer_prod(upper_DNV, trans(upper_DNV));
             }
 
         }
@@ -656,7 +656,7 @@ void CompressiblePotentialFlowElement<Dim, NumNodes>::CalculateLeftHandSideSubdi
         {
             noalias(lhs_negative) += Volumes[i] * lower_density * prod(data.DN_DX, trans(data.DN_DX));
             if( lower_local_velocity_squared < max_velocity_squared){
-                noalias(lhs_negative) += Volumes[i] * 2 * lower_DrhoDu2 * outer_prod(lower_DNV, lower_DNV);
+                noalias(lhs_negative) += Volumes[i] * 2 * lower_DrhoDu2 * outer_prod(lower_DNV, trans(lower_DNV));
             }
         }
     }

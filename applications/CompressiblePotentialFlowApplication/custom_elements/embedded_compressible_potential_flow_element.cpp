@@ -146,7 +146,7 @@ void EmbeddedCompressiblePotentialFlowElement<Dim, NumNodes>::CalculateEmbeddedL
         noalias(laplacian) += aux_matrix;
         noalias(rLeftHandSideMatrix) += aux_matrix;
         if (local_velocity_squared < max_velocity_squared){
-            noalias(rLeftHandSideMatrix) += positive_side_weights(i_gauss) * 2 * DrhoDu2 * outer_prod(DNV, DNV);
+            noalias(rLeftHandSideMatrix) += positive_side_weights(i_gauss) * 2 * DrhoDu2 * outer_prod(DNV, trans(DNV));
         }
     }
 
@@ -188,11 +188,11 @@ void EmbeddedCompressiblePotentialFlowElement<Dim, NumNodes>::CalculateKuttaWake
 
     const BoundedMatrix<double, NumNodes, NumNodes> lhs_total_upper =
         data.vol * density * prod(data.DN_DX, trans(data.DN_DX)) +
-        data.vol * 2 * DrhoDu2 * outer_prod(DNV_upper, DNV_upper);
+        data.vol * 2 * DrhoDu2 * outer_prod(DNV_upper, trans(DNV_upper));
 
     const BoundedMatrix<double, NumNodes, NumNodes> lhs_total_lower =
         data.vol * density * prod(data.DN_DX, trans(data.DN_DX)) +
-        data.vol * 2 * DrhoDu2 * outer_prod(DNV_lower, DNV_lower);
+        data.vol * 2 * DrhoDu2 * outer_prod(DNV_lower, trans(DNV_lower));
 
     for (unsigned int i = 0; i < NumNodes; ++i)
     {

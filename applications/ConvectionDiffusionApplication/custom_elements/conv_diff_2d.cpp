@@ -178,7 +178,7 @@ ConvDiff2D::~ConvDiff2D()
     double k_aux = fabs(res) / (norm_grad + 1e-6);
     k_aux *= 0.707;
     
-    noalias(First) = outer_prod(ms_vel_gauss, ms_vel_gauss);
+    noalias(First) = outer_prod(ms_vel_gauss, trans(ms_vel_gauss));
     First /= ((norm_u + 1e-6)*(norm_u + 1e-6));
     noalias(Second) = Identity - First;
     noalias(Third) = prod(Second, trans(msDN_DX));
