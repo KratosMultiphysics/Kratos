@@ -185,4 +185,67 @@ KRATOS_TEST_CASE_IN_SUITE(ModelPartUtilsFromConnectivityGenerateElementsBenchmar
     KRATOS_EXPECT_LT(duration, duration_manual);
 }
 
+KRATOS_TEST_CASE_IN_SUITE(ModelPartUtilsGetModelPart, KratosCoreFastSuite)
+{
+    Model model;
+    ModelPart& mp_1 = model.CreateModelPart("root1");
+
+    ModelPart& mp_1_1 = mp_1.CreateSubModelPart("sub1");
+    ModelPart& mp_1_1_1 = mp_1_1.CreateSubModelPart("sub1sub1");
+    ModelPart& mp_1_1_2 = mp_1_1.CreateSubModelPart("sub1sub2");
+
+    ModelPart& mp_1_2 = mp_1.CreateSubModelPart("sub2");
+    ModelPart& mp_1_2_1 = mp_1_2.CreateSubModelPart("sub2sub1");
+
+    // model part tests
+    KRATOS_EXPECT_EQ(&mp_1_1_1, ModelPartUtils::GetModelPart(mp_1, mp_1_1_1.Nodes()));
+    KRATOS_EXPECT_EQ(&mp_1_1_1, ModelPartUtils::GetModelPart(mp_1, mp_1_1_1.Conditions()));
+    KRATOS_EXPECT_EQ(&mp_1_1_1, ModelPartUtils::GetModelPart(mp_1, mp_1_1_1.Elements()));
+
+    KRATOS_EXPECT_EQ(&mp_1_1_2, ModelPartUtils::GetModelPart(mp_1, mp_1_1_2.Nodes()));
+    KRATOS_EXPECT_EQ(&mp_1_1_2, ModelPartUtils::GetModelPart(mp_1, mp_1_1_2.Conditions()));
+    KRATOS_EXPECT_EQ(&mp_1_1_2, ModelPartUtils::GetModelPart(mp_1, mp_1_1_2.Elements()));
+
+    KRATOS_EXPECT_EQ(&mp_1_1_2, ModelPartUtils::GetModelPart(mp_1, mp_1_1_2.Nodes()));
+    KRATOS_EXPECT_EQ(&mp_1_1_2, ModelPartUtils::GetModelPart(mp_1, mp_1_1_2.Conditions()));
+    KRATOS_EXPECT_EQ(&mp_1_1_2, ModelPartUtils::GetModelPart(mp_1, mp_1_1_2.Elements()));
+
+    KRATOS_EXPECT_EQ(&mp_1_2_1, ModelPartUtils::GetModelPart(mp_1, mp_1_2_1.Nodes()));
+    KRATOS_EXPECT_EQ(&mp_1_2_1, ModelPartUtils::GetModelPart(mp_1, mp_1_2_1.Conditions()));
+    KRATOS_EXPECT_EQ(&mp_1_2_1, ModelPartUtils::GetModelPart(mp_1, mp_1_2_1.Elements()));
+
+    KRATOS_EXPECT_EQ(&mp_1_1, ModelPartUtils::GetModelPart(mp_1, mp_1_1.Nodes()));
+    KRATOS_EXPECT_EQ(&mp_1_1, ModelPartUtils::GetModelPart(mp_1, mp_1_1.Conditions()));
+    KRATOS_EXPECT_EQ(&mp_1_1, ModelPartUtils::GetModelPart(mp_1, mp_1_1.Elements()));
+
+    KRATOS_EXPECT_EQ(&mp_1, ModelPartUtils::GetModelPart(mp_1, mp_1.Nodes()));
+    KRATOS_EXPECT_EQ(&mp_1, ModelPartUtils::GetModelPart(mp_1, mp_1.Conditions()));
+    KRATOS_EXPECT_EQ(&mp_1, ModelPartUtils::GetModelPart(mp_1, mp_1.Elements()));
+
+    // model tests
+    KRATOS_EXPECT_EQ(&mp_1_1_1, ModelPartUtils::GetModelPart(model, mp_1_1_1.Nodes()));
+    KRATOS_EXPECT_EQ(&mp_1_1_1, ModelPartUtils::GetModelPart(model, mp_1_1_1.Conditions()));
+    KRATOS_EXPECT_EQ(&mp_1_1_1, ModelPartUtils::GetModelPart(model, mp_1_1_1.Elements()));
+
+    KRATOS_EXPECT_EQ(&mp_1_1_2, ModelPartUtils::GetModelPart(model, mp_1_1_2.Nodes()));
+    KRATOS_EXPECT_EQ(&mp_1_1_2, ModelPartUtils::GetModelPart(model, mp_1_1_2.Conditions()));
+    KRATOS_EXPECT_EQ(&mp_1_1_2, ModelPartUtils::GetModelPart(model, mp_1_1_2.Elements()));
+
+    KRATOS_EXPECT_EQ(&mp_1_1_2, ModelPartUtils::GetModelPart(model, mp_1_1_2.Nodes()));
+    KRATOS_EXPECT_EQ(&mp_1_1_2, ModelPartUtils::GetModelPart(model, mp_1_1_2.Conditions()));
+    KRATOS_EXPECT_EQ(&mp_1_1_2, ModelPartUtils::GetModelPart(model, mp_1_1_2.Elements()));
+
+    KRATOS_EXPECT_EQ(&mp_1_2_1, ModelPartUtils::GetModelPart(model, mp_1_2_1.Nodes()));
+    KRATOS_EXPECT_EQ(&mp_1_2_1, ModelPartUtils::GetModelPart(model, mp_1_2_1.Conditions()));
+    KRATOS_EXPECT_EQ(&mp_1_2_1, ModelPartUtils::GetModelPart(model, mp_1_2_1.Elements()));
+
+    KRATOS_EXPECT_EQ(&mp_1_1, ModelPartUtils::GetModelPart(model, mp_1_1.Nodes()));
+    KRATOS_EXPECT_EQ(&mp_1_1, ModelPartUtils::GetModelPart(model, mp_1_1.Conditions()));
+    KRATOS_EXPECT_EQ(&mp_1_1, ModelPartUtils::GetModelPart(model, mp_1_1.Elements()));
+
+    KRATOS_EXPECT_EQ(&mp_1, ModelPartUtils::GetModelPart(model, mp_1.Nodes()));
+    KRATOS_EXPECT_EQ(&mp_1, ModelPartUtils::GetModelPart(model, mp_1.Conditions()));
+    KRATOS_EXPECT_EQ(&mp_1, ModelPartUtils::GetModelPart(model, mp_1.Elements()));
+}
+
 } // namespace Kratos::Testing.
