@@ -157,7 +157,7 @@ void register_base_dense_solver(pybind11::module& m)
 {
     namespace py = pybind11;
     typedef TDefaultDenseSpace<double> LocalSpaceType;
-    typedef TUblasDenseSpace<std::complex<double>> ComplexLocalSpaceType;
+    typedef TDefaultDenseSpace<std::complex<double>> ComplexLocalSpaceType;
     typedef LinearSolver<LocalSpaceType,  LocalSpaceType> DenseLinearSolverType;
     typedef LinearSolver<ComplexLocalSpaceType, ComplexLocalSpaceType> ComplexDenseLinearSolverType;
 
