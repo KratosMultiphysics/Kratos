@@ -131,13 +131,10 @@ KRATOS_TEST_CASE_IN_SUITE(MixedULMLinearSolverSimplestSystem, KratosContactStruc
         Doftemp.push_back( *it );
 
     const std::size_t system_size = 4;
-    SparseSpaceType::MatrixType A(system_size, system_size);
-    SparseSpaceType::VectorType ref_Dx(system_size);
-        ref_Dx.clear();
-    SparseSpaceType::VectorType Dx(system_size);
-        Dx.clear();
-    SparseSpaceType::VectorType b(system_size);
-        b.clear();
+    CompressedMatrix A(system_size, system_size);
+    Vector ref_Dx = ZeroVector(system_size);
+    Vector Dx = ZeroVector(system_size);
+    Vector b = ZeroVector(system_size);
     double count = 0.0;
     for (std::size_t i = 0; i < system_size; ++i) {
         for (std::size_t j = 0; j < system_size; ++j) {
@@ -231,13 +228,10 @@ KRATOS_TEST_CASE_IN_SUITE(MixedULMLinearSolverSimplestWithInactiveSystem, Kratos
         Doftemp.push_back( *it );
 
     const std::size_t system_size = 5;
-    SparseSpaceType::MatrixType A(system_size, system_size);
-    SparseSpaceType::VectorType ref_Dx(system_size);
-        ref_Dx.clear();
-    SparseSpaceType::VectorType Dx(system_size);
-        Dx.clear();
-    SparseSpaceType::VectorType b(system_size);
-        b.clear();
+    CompressedMatrix A(system_size, system_size);
+    Vector ref_Dx = ZeroVector(system_size);
+    Vector Dx = ZeroVector(system_size);
+    Vector b = ZeroVector(system_size);
     double count = 0.0;
     for (std::size_t i = 0; i < system_size; ++i) {
         for (std::size_t j = 0; j < system_size; ++j) {
@@ -323,16 +317,12 @@ KRATOS_TEST_CASE_IN_SUITE(MixedULMLinearSolverSimplestUnorderedSystem, KratosCon
         Doftemp.push_back( *it );
 
     const std::size_t system_size = 4;
-    SparseSpaceType::MatrixType A(system_size, system_size);
-    SparseSpaceType::MatrixType Aaux(system_size, system_size);
-    SparseSpaceType::VectorType ref_Dx(system_size);
-        ref_Dx.clear();
-    SparseSpaceType::VectorType Dx(system_size);
-        Dx.clear();
-    SparseSpaceType::VectorType b(system_size);
-        b.clear();
-    SparseSpaceType::VectorType baux(system_size);
-    baux.clear();
+    CompressedMatrix A(system_size, system_size);
+    CompressedMatrix Aaux(system_size, system_size);
+    Vector ref_Dx = ZeroVector(system_size);
+    Vector Dx = ZeroVector(system_size);
+    Vector b = ZeroVector(system_size);
+    Vector baux = ZeroVector(system_size);
     double count = 0.0;
     for (std::size_t i = 0; i < system_size; ++i) {
         for (std::size_t j = 0; j < system_size; ++j) {
@@ -451,13 +441,10 @@ KRATOS_TEST_CASE_IN_SUITE(MixedULMLinearSolverTwoDoFSystem, KratosContactStructu
         Doftemp.push_back( *it );
 
     const std::size_t system_size = 8;
-    SparseSpaceType::MatrixType A(system_size, system_size);
-    SparseSpaceType::VectorType ref_Dx(system_size);
-        ref_Dx.clear();
-    SparseSpaceType::VectorType Dx(system_size);
-        Dx.clear();
-    SparseSpaceType::VectorType b(system_size);
-        b.clear();
+    CompressedMatrix A(system_size, system_size);
+    Vector ref_Dx = ZeroVector(system_size);
+    Vector Dx = ZeroVector(system_size);
+    Vector b = ZeroVector(system_size);
     double count = 0.0;
     for (std::size_t i = 0; i < system_size; ++i) {
         for (std::size_t j = 0; j < system_size; ++j) {
@@ -551,16 +538,12 @@ KRATOS_TEST_CASE_IN_SUITE(MixedULMLinearSolverTwoDoFUnorderedSystem, KratosConta
         Doftemp.push_back( *it );
 
     const std::size_t system_size = 8;
-    SparseSpaceType::MatrixType A(system_size, system_size);
-    SparseSpaceType::MatrixType Aaux(system_size, system_size);
-    SparseSpaceType::VectorType ref_Dx(system_size);
-        ref_Dx.clear();
-    SparseSpaceType::VectorType Dx(system_size);
-        Dx.clear();
-    SparseSpaceType::VectorType b(system_size);
-        b.clear();
-    SparseSpaceType::VectorType baux(system_size);
-    baux.clear();
+    CompressedMatrix A(system_size, system_size);
+    CompressedMatrix Aaux(system_size, system_size);
+    Vector ref_Dx = ZeroVector(system_size);
+    Vector Dx = ZeroVector(system_size);
+    Vector b = ZeroVector(system_size);
+    Vector baux = ZeroVector(system_size);
     double count = 0.0;
     for (std::size_t i = 0; i < system_size; ++i) {
         for (std::size_t j = 0; j < system_size; ++j) {
@@ -704,13 +687,10 @@ KRATOS_TEST_CASE_IN_SUITE(MixedULMLinearSolverThreeDoFSystem, KratosContactStruc
         Doftemp.push_back( *it );
 
     const std::size_t system_size = 12;
-    SparseSpaceType::MatrixType A(system_size, system_size);
-    SparseSpaceType::VectorType ref_Dx(system_size);
-        ref_Dx.clear();
-    SparseSpaceType::VectorType Dx(system_size);
-        Dx.clear();
-    SparseSpaceType::VectorType b(system_size);
-        b.clear();
+    CompressedMatrix A(system_size, system_size);
+    Vector ref_Dx = ZeroVector(system_size);
+    Vector Dx = ZeroVector(system_size);
+    Vector b = ZeroVector(system_size);
     double count = 0.0;
     for (std::size_t i = 0; i < system_size; ++i) {
         for (std::size_t j = 0; j < system_size; ++j) {
@@ -812,16 +792,12 @@ KRATOS_TEST_CASE_IN_SUITE(MixedULMLinearSolverThreeDoFUnorderedSystem, KratosCon
         Doftemp.push_back( *it );
 
     const std::size_t system_size = 12;
-    SparseSpaceType::MatrixType A(system_size, system_size);
-    SparseSpaceType::MatrixType Aaux(system_size, system_size);
-    SparseSpaceType::VectorType ref_Dx(system_size);
-        ref_Dx.clear();
-    SparseSpaceType::VectorType Dx(system_size);
-        Dx.clear();
-    SparseSpaceType::VectorType b(system_size);
-        b.clear();
-    SparseSpaceType::VectorType baux(system_size);
-    baux.clear();
+    CompressedMatrix A(system_size, system_size);
+    CompressedMatrix Aaux(system_size, system_size);
+    Vector ref_Dx = ZeroVector(system_size);
+    Vector Dx = ZeroVector(system_size);
+    Vector b = ZeroVector(system_size);
+    Vector baux = ZeroVector(system_size);
     double count = 0.0;
     for (std::size_t i = 0; i < system_size; ++i) {
         for (std::size_t j = 0; j < system_size; ++j) {
@@ -1002,13 +978,10 @@ KRATOS_TEST_CASE_IN_SUITE(MixedULMLinearSolverRealSystem, KratosContactStructura
         Doftemp.push_back( *it );
 
     const std::size_t system_size = 16;
-    SparseSpaceType::MatrixType A(system_size, system_size);
-    SparseSpaceType::VectorType ref_Dx(system_size);
-        ref_Dx.clear();
-    SparseSpaceType::VectorType Dx(system_size);
-        Dx.clear();
-    SparseSpaceType::VectorType b(system_size);
-        b.clear();
+    CompressedMatrix A(system_size, system_size);
+    Vector ref_Dx = ZeroVector(system_size);
+    Vector Dx = ZeroVector(system_size);
+    Vector b = ZeroVector(system_size);
 
     // CHANGE THIS TO ADAPT TO YOUR PROBLEM
     CreateAuxiliaryFiles();
