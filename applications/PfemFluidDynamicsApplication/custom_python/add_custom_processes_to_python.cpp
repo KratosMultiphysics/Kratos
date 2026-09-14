@@ -149,8 +149,7 @@ void AddCustomProcessesToPython(pybind11::module &m)
         .def(py::init<ModelPart &, MesherUtilities::MeshingParameters &, int>());
 
     py::class_<BuildModelPartBoundaryForFluidsProcess, BuildModelPartBoundaryForFluidsProcess::Pointer, MesherProcess>(m, "BuildModelPartBoundaryForFluids")
-        .def(py::init<ModelPart &, std::string, int>())
-        .def("SearchConditionMasters", &BuildModelPartBoundaryForFluidsProcess::SearchConditionMasters);
+        .def(py::init<ModelPart &, std::string, int>());
 
     py::class_<SetDummyPropertyForRigidElementsProcess, SetDummyPropertyForRigidElementsProcess::Pointer, ProcessBaseType>(m, "SetDummyPropertyForRigidElementsProcess")
         .def(py::init<ModelPart &, unsigned int &>())

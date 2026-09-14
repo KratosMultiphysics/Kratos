@@ -72,6 +72,7 @@ from interface_prestress import KratosGeoMechanicsInterfacePreStressTests
 from test_upw_interface import KratosGeoMechanicsUPwInterfaceTests
 from test_building_pit import KratosGeoMechanicsBuildingPit
 from test_CROW_case import KratosGeoMechanicsCrowValidation
+from test_piecewise_linear_moment_capacity import KratosGeoMechanicsPiecewiseLinearMomentCapacityTests
 from test_udsm_serialization import KratosGeoMechanicsUDSMSerializationTest
 from test_Muskat import KratosGeoMechanicsMuskatTests
 
@@ -132,6 +133,7 @@ def AssembleTestSuites():
                         KratosGeoMechanicsDirichletUConstantTests,
                         KratosGeoMechanicsInterfacePreStressTests,
                         KratosGeoMechanicsUPwInterfaceTests,
+                        KratosGeoMechanicsPiecewiseLinearMomentCapacityTests,
                         KratosGeoMechanicsUDSMSerializationTest,
                         KratosGeoMechanicsMuskatTests,
                         ]
@@ -148,7 +150,6 @@ def AssembleTestSuites():
                         KratosGeoMechanicsTransientThermalTests,
                         KratosGeoMechanicsTransientPressureLineElementTests,
                         KratosGeoMechanicsTransientPressurePointFluxTests,
-                        KratosGeoMechanicsPartialSaturation,
                         KratosGeoMechanics1DConsolidation,
                         KratosGeoMechanics1DConsolidationCppRoute,
                         KratosGeoMechanicsMovingColumnWithFixedPressureAbovePhreaticLine,
@@ -169,6 +170,7 @@ def AssembleTestSuites():
                         KratosGeoMechanicsDSettlementValidationTests,
                         KratosGeoMechanicsBuildingPit,
                         KratosGeoMechanicsCrowValidation,
+                        KratosGeoMechanicsPartialSaturation,
                         ]
 
     # Create an array that contains all the tests from every testCase

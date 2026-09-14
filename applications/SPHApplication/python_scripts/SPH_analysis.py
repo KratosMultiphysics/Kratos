@@ -1,5 +1,4 @@
 import KratosMultiphysics as KM 
-import KratosMultiphysics.SPHApplication as SPH
 
 from KratosMultiphysics.analysis_stage import AnalysisStage
 from KratosMultiphysics.SPHApplication import python_solvers_wrapper_sph as sph_solvers
@@ -32,48 +31,6 @@ class SPHAnalysis(AnalysisStage):
 		"""Create the solver"""
 		KM.Logger.PrintInfo("::[SPHAnalysis]:: ", "Creating SPH solver")
 		return sph_solvers.CreateSolver(self.model, self.project_parameters)
-
-	def _CreateProcesses(self, parameter_name, initialization_order):
-		list_of_processes = super()._CreateProcesses(parameter_name, initialization_order)
-
-		model_part = self.model["Structure"]
-
-		if parameter_name != "processes":
-			return list_of_processes
-
-		params = KM.Parameters("""
-		{
-			"model_part_name" : "Structure",
-			"coefficient"     : 0.5
-		}
-		""");
-		neighbours_process = SPH.NeighboursSearchProcess(model_part, params)
-
-		params = KM.Parameters("""
-		{
-			"model_part_name" : "Structure",
-			"controls"     : true,
-			"tol" : 1e-10
-		}
-		""");
-		kernel_correction_process = SPH.ComputeKernelCorrectionProcess(model_part, params)
-
-		params = KM.Parameters("""
-		{
-			"model_part_name" : "set_model_part_name",
-			"structured_mesh" : false
-		}
-		""");
-		volume_process = SPH.ComputeVolumeProcess(self.model["Structure.Triangulation"], params)
-
-		## Il problema al momento è scrivere in modo più compatto questi input e assegnare quelli di default,
-		## default non assegato perchè non viene richiamata la factory
-
-		list_of_processes.insert(0, volume_process)
-		list_of_processes.insert(1, neighbours_process)
-		list_of_processes.insert(2, kernel_correction_process)
-
-		return list_of_processes
 
 	def _GetSimulationName(self):
 		return "::[SPH Simulation]:: "
