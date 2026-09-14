@@ -38,7 +38,7 @@ GeoMechanicsNewtonRaphsonErosionProcessStrategy = (
     KratosGeo.GeoMechanicsNewtonRaphsonErosionProcessStrategy
 )
 GeoMechanicsQuasiNewtonStrategy = KratosGeo.GeoMechanicsQuasiNewtonStrategy
-GeoSeepageNewtonRaphsonStrategy = KratosGeo.GeoSeepageNewtonRaphsonStrategy
+GeoNewtonRaphsonStrategyWithSeepage = KratosGeo.GeoNewtonRaphsonStrategyWithSeepage
 
 # Processes
 ApplyCPhiReductionProcess = KratosGeo.ApplyCPhiReductionProcess

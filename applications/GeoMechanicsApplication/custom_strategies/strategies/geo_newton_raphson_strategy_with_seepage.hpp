@@ -29,11 +29,11 @@ namespace Kratos
 // This strategy makes sure that the solver does not declare convergence on an iteration whose
 // boundary configuration has just changed underneath it.
 template <class TSparseSpace, class TDenseSpace, class TLinearSolver>
-class GeoSeepageNewtonRaphsonStrategy
+class GeoNewtonRaphsonStrategyWithSeepage
     : public ResidualBasedNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>
 {
 public:
-    KRATOS_CLASS_POINTER_DEFINITION(GeoSeepageNewtonRaphsonStrategy);
+    KRATOS_CLASS_POINTER_DEFINITION(GeoNewtonRaphsonStrategyWithSeepage);
 
     using BaseType   = ImplicitSolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>;
     using MotherType = ResidualBasedNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>;
@@ -56,19 +56,22 @@ public:
     using MotherType::mStoreNonconvergedSolutionsFlag;
     using MotherType::mUseOldStiffnessInFirstIteration;
 
-    GeoSeepageNewtonRaphsonStrategy(ModelPart&                    rModelPart,
-                                    typename TSchemeType::Pointer pScheme,
-                                    typename TConvergenceCriteriaType::Pointer pNewConvergenceCriteria,
-                                    typename TBuilderAndSolverType::Pointer pNewBuilderAndSolver,
-                                    int                                     MaxIterations = 30,
-                                    bool CalculateReactions                               = false,
-                                    bool ReformDofSetAtEachStep                           = false,
-                                    bool MoveMeshFlag                                     = false)
+    GeoNewtonRaphsonStrategyWithSeepage(ModelPart&                    rModelPart,
+                                        typename TSchemeType::Pointer pScheme,
+                                        typename TConvergenceCriteriaType::Pointer pNewConvergenceCriteria,
+                                        typename TBuilderAndSolverType::Pointer pNewBuilderAndSolver,
+                                        int  MaxIterations          = 30,
+                                        bool CalculateReactions     = false,
+                                        bool ReformDofSetAtEachStep = false,
+                                        bool MoveMeshFlag           = false)
         : MotherType(rModelPart, pScheme, pNewConvergenceCriteria, pNewBuilderAndSolver, MaxIterations, CalculateReactions, ReformDofSetAtEachStep, MoveMeshFlag)
     {
     }
 
-    [[nodiscard]] std::string Info() const override { return "GeoSeepageNewtonRaphsonStrategy"; }
+    [[nodiscard]] std::string Info() const override
+    {
+        return "GeoNewtonRaphsonStrategyWithSeepage";
+    }
 
     void Initialize() override
     {
@@ -76,11 +79,11 @@ public:
 
         mSeepageNodes = Geo::SeepageBoundaryUtilities::CollectSeepageNodes(BaseType::GetModelPart());
 
-        KRATOS_INFO_IF("GeoSeepageNewtonRaphsonStrategy::Initialize", this->GetEchoLevel() > 0)
+        KRATOS_INFO_IF("GeoNewtonRaphsonStrategyWithSeepage::Initialize", this->GetEchoLevel() > 0)
             << "Found " << mSeepageNodes.size() << " seepage nodes" << std::endl;
         if (this->GetEchoLevel() > 1) {
             for (auto* p_node : mSeepageNodes) {
-                KRATOS_INFO("GeoSeepageNewtonRaphsonStrategy::Initialize")
+                KRATOS_INFO("GeoNewtonRaphsonStrategyWithSeepage::Initialize")
                     << "Node " << p_node->Id()
                     << " pressure = " << p_node->FastGetSolutionStepValue(WATER_PRESSURE)
                     << ", fixed = " << p_node->IsFixed(WATER_PRESSURE) << "\n";
@@ -254,12 +257,12 @@ public:
             this->MaxIterationsExceeded();
 
             // ---- SEEPAGE SEAM 3: report that switching seepage node states requires more iterations ----
-            KRATOS_INFO_IF("GeoSeepageNewtonRaphsonStrategy", any_switched)
+            KRATOS_INFO_IF("GeoNewtonRaphsonStrategyWithSeepage", any_switched)
                 << "The state of a seepage node was switched during the last iteration. "
                 << "Please increase the maximum number of iterations to let seepage converge." << std::endl;
             // ----------------------------------------------------------------------------------
         } else {
-            KRATOS_INFO_IF("GeoSeepageNewtonRaphsonStrategy", this->GetEchoLevel() > 0)
+            KRATOS_INFO_IF("GeoNewtonRaphsonStrategyWithSeepage", this->GetEchoLevel() > 0)
                 << "Convergence achieved after " << iteration_number << " / " << mMaxIterationNumber
                 << " iterations" << std::endl;
         }
@@ -313,6 +316,6 @@ private:
     // Cached once in Initialize. The conditions of a model part do not change during a solve, so
     // there is no need to rediscover the seepage nodes every iteration.
     std::vector<Node*> mSeepageNodes;
-}; // Class GeoSeepageNewtonRaphsonStrategy
+}; // Class GeoNewtonRaphsonStrategyWithSeepage
 
 } // namespace Kratos

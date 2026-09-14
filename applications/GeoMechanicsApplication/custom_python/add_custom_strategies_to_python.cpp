@@ -22,7 +22,7 @@
 #include "custom_strategies/strategies/geo_mechanics_newton_raphson_erosion_process_strategy.hpp"
 #include "custom_strategies/strategies/geo_mechanics_newton_raphson_strategy.hpp"
 #include "custom_strategies/strategies/geo_mechanics_quasi_newton_strategy.hpp"
-#include "custom_strategies/strategies/geo_seepage_newton_raphson_strategy.hpp"
+#include "custom_strategies/strategies/geo_newton_raphson_strategy_with_seepage.hpp"
 #include "solving_strategies/strategies/solving_strategy.h"
 
 // builders and solvers
@@ -81,8 +81,8 @@ void AddCustomStrategiesToPython(const pybind11::module& m)
         GeoMechanicsQuasiNewtonStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType>;
     using GeoMechanicsNewtonRaphsonErosionProcessStrategyType =
         GeoMechanicsNewtonRaphsonErosionProcessStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType>;
-    using GeoSeepageNewtonRaphsonStrategyType =
-        GeoSeepageNewtonRaphsonStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType>;
+    using GeoNewtonRaphsonStrategyWithSeepageType =
+        GeoNewtonRaphsonStrategyWithSeepage<SparseSpaceType, LocalSpaceType, LinearSolverType>;
 
     py::class_<NewmarkQuasistaticUPwSchemeType, typename NewmarkQuasistaticUPwSchemeType::Pointer, BaseSchemeType>(
         m, "NewmarkQuasistaticUPwScheme", py::module_local())
@@ -142,8 +142,8 @@ void AddCustomStrategiesToPython(const pybind11::module& m)
 
     // Note: unlike its siblings above, this strategy derives from the core Newton-Raphson strategy
     // rather than from GeoMechanicsNewtonRaphsonStrategy, so it takes no Parameters argument.
-    py::class_<GeoSeepageNewtonRaphsonStrategyType, typename GeoSeepageNewtonRaphsonStrategyType::Pointer, BaseSolvingStrategyType>(
-        m, "GeoSeepageNewtonRaphsonStrategy")
+    py::class_<GeoNewtonRaphsonStrategyWithSeepageType, typename GeoNewtonRaphsonStrategyWithSeepageType::Pointer, BaseSolvingStrategyType>(
+        m, "GeoNewtonRaphsonStrategyWithSeepage")
         .def(py::init<ModelPart&, BaseSchemeType::Pointer, ConvergenceCriteriaType::Pointer,
                       BuilderAndSolverType::Pointer, int, bool, bool, bool>());
 
