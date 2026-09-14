@@ -173,8 +173,8 @@ KRATOS_API_EXTERN template class KRATOS_API(KRATOS_CORE) KratosComponents<Linear
 #define KRATOS_REGISTER_LINEAR_SOLVER(name, reference) \
     KratosComponents<LinearSolverFactoryType>::Add(name, reference);
 
-typedef TUblasSparseSpace<std::complex<double>> ComplexSparseSpaceType;
-typedef TUblasDenseSpace<std::complex<double>> ComplexLocalSparseSpaceType;
+typedef TDefaultSparseSpace<std::complex<double>> ComplexSparseSpaceType;
+typedef TDefaultDenseSpace<std::complex<double>> ComplexLocalSparseSpaceType;
 
 typedef LinearSolverFactory<ComplexSparseSpaceType,  ComplexLocalSparseSpaceType> ComplexLinearSolverFactoryType;
 
