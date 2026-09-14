@@ -36,9 +36,9 @@
 // Application includes
 #include "dam_application_variables.h"
 #include "custom_constitutive/thermal_linear_elastic_3D_law.hpp"
-#include "custom_constitutive/thermal_linear_elastic_3D_law_nodal.hpp"
-#include "custom_constitutive/thermal_linear_elastic_2D_plane_strain_nodal.hpp"
-#include "custom_constitutive/thermal_linear_elastic_2D_plane_stress_nodal.hpp"
+#include "custom_constitutive/thermal_linear_elastic_2D_plane_stress.hpp"
+#include "custom_utilities/nodal_young_modulus_accessor.h"
+#include "custom_constitutive/elastic_isotropic_3d.h"
 #include "custom_constitutive/thermal_simo_ju_local_damage_3D_law.hpp"
 #include "custom_constitutive/thermal_simo_ju_local_damage_plane_strain_2D_law.hpp"
 #include "custom_constitutive/thermal_simo_ju_local_damage_plane_stress_2D_law.hpp"
@@ -376,7 +376,7 @@ KRATOS_TEST_CASE_IN_SUITE(SpecializedOutputsKeepHasFalse, KratosDamFastSuite)
 {
     const std::vector<ConstitutiveLaw::Pointer> laws = {
         ConstitutiveLaw::Pointer(new ThermalLinearElastic3DLaw()),
-        ConstitutiveLaw::Pointer(new ThermalLinearElastic3DLawNodal()),
+        ConstitutiveLaw::Pointer(new FlexibleElasticIsotropic3D()),
         ConstitutiveLaw::Pointer(new ThermalSimoJuLocalDamage3DLaw()),
         ConstitutiveLaw::Pointer(new ThermalSimoJuNonlocalDamage3DLaw()),
         ConstitutiveLaw::Pointer(new ThermalModifiedMisesNonlocalDamage3DLaw())};
@@ -422,6 +422,12 @@ void VerifyNodalLinear(
         n.FastGetSolutionStepValue(TEMPERATURE) = sdso_test_reference_temperature + 10.0 + 2.0 * x0[0];
         n.FastGetSolutionStepValue(NODAL_REFERENCE_TEMPERATURE) = sdso_test_reference_temperature - 5.0 + x0[1];
     }
+
+    // The spatially varying Young's modulus is now supplied through the standard
+    // Accessor mechanism: the standard thermal law retrieves YOUNG_MODULUS via
+    // Properties::GetValue, which is interpolated from NODAL_YOUNG_MODULUS.
+    r_mp.pGetProperties(1)->SetAccessor(
+        YOUNG_MODULUS, Kratos::make_unique<NodalYoungModulusAccessor>());
 
     const GeometryData::IntegrationMethod integration_method = p_elem->GetIntegrationMethod();
     const Geometry<Node>& r_geometry = p_elem->GetGeometry();
@@ -473,7 +479,7 @@ KRATOS_TEST_CASE_IN_SUITE(NodalThermalLinearOutputsWithNonUniformProperties3D, K
 {
     VerifyNodalLinear("NodalLinear3D",
                       GeometryKind::Hexa3D,
-                      ConstitutiveLaw::Pointer(new ThermalLinearElastic3DLawNodal()),
+                      ConstitutiveLaw::Pointer(new ThermalLinearElastic3DLaw()),
                       1.0);
 }
 
@@ -655,7 +661,7 @@ KRATOS_TEST_CASE_IN_SUITE(SpecializedOutputsShearConvention, KratosDamFastSuite)
         const GeometryKind geo = is_3d ? GeometryKind::Hexa3D : GeometryKind::Quadrilateral2D;
         ConstitutiveLaw::Pointer p_law = is_3d
             ? ConstitutiveLaw::Pointer(new ThermalLinearElastic3DLaw())
-            : ConstitutiveLaw::Pointer(new ThermalLinearElastic2DPlaneStressNodal());
+            : ConstitutiveLaw::Pointer(new ThermalLinearElastic2DPlaneStress());
         ModelPart& r_mp = CreateOutputModelPart<sdso_TestSmallDisplacementElement>(
             model, is_3d ? "Shear3D" : "Shear2D", p_elem, p_law, geo, false);
         p_elem->Initialize(r_mp.GetProcessInfo());

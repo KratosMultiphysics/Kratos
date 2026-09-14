@@ -154,13 +154,15 @@ void KratosDamApplication::Register()
     Serializer::Register("ThermalLinearElastic2DPlaneStress",mThermalLinearElastic2DPlaneStress);
     Serializer::Register("ThermalLinearElastic2DPlaneStrain",mThermalLinearElastic2DPlaneStrain);
 
-    Serializer::Register("LinearElastic3DLawNodal",mLinearElastic3DLawNodal);
     Serializer::Register("LinearElastic2DPlaneStressNodal",mLinearElastic2DPlaneStressNodal);
     Serializer::Register("LinearElastic2DPlaneStrainNodal",mLinearElastic2DPlaneStrainNodal);
 
-    Serializer::Register("ThermalLinearElastic3DLawNodal",mThermalLinearElastic3DLawNodal);
-    Serializer::Register("ThermalLinearElastic2DPlaneStressNodal",mThermalLinearElastic2DPlaneStressNodal);
-    Serializer::Register("ThermalLinearElastic2DPlaneStrainNodal",mThermalLinearElastic2DPlaneStrainNodal);
+    // The 3D and thermal nodal Young's modulus behavior is now provided by the
+    // standard/accessor-aware laws; the historical nodal names are kept as
+    // aliases so existing input files keep working.
+    Serializer::Register("ThermalLinearElastic3DLawNodal",mThermalLinearElastic3DLaw);
+    Serializer::Register("ThermalLinearElastic2DPlaneStressNodal",mThermalLinearElastic2DPlaneStress);
+    Serializer::Register("ThermalLinearElastic2DPlaneStrainNodal",mThermalLinearElastic2DPlaneStrain);
 
     Serializer::Register("ThermalSimoJuLocalDamage3DLaw",mThermalSimoJuLocalDamage3DLaw);
     Serializer::Register("ThermalSimoJuLocalDamagePlaneStrain2DLaw",mThermalSimoJuLocalDamagePlaneStrain2DLaw);

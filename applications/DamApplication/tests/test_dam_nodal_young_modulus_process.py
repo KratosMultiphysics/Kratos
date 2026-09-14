@@ -116,7 +116,10 @@ class TestImposeNodalYoungModulusProcess(KratosUnittest.TestCase):
             node.SetSolutionStepValue(KratosDam.NODAL_YOUNG_MODULUS, 0, young)
         properties = model_part.GetProperties()[1]
         properties.SetValue(KratosMultiphysics.POISSON_RATIO, 0.3)
+        # The historical nodal law name now resolves to the standard accessor-aware
+        # law; the nodal Young's modulus field is exposed through the Accessor.
         law = KratosDam.LinearElastic3DLawNodal()
+        KratosDam.AddNodalYoungModulusAccessor(model_part)
         geometry = KratosMultiphysics.Tetrahedra3D4(*nodes)
         return model_part, properties, law, geometry
 

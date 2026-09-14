@@ -23,6 +23,7 @@
 
 // Application include
 #include "dam_application_variables.h"
+#include "custom_utilities/nodal_young_modulus_accessor.h"
 
 namespace Kratos
 {
@@ -119,6 +120,18 @@ public:
                     it->FastGetSolutionStepValue(var) = mrTable.GetValue(it->Id());
 
                 }
+            }
+        }
+
+        // Expose the nodal field through the standard Accessor mechanism (see
+        // DamNodalYoungModulusProcess) so accessor-aware standard constitutive
+        // laws retrieve the spatially varying Young's modulus through
+        // Properties::GetValue(YOUNG_MODULUS, geometry, N, process_info).
+        for (auto& r_properties : mrModelPart.GetMesh(0).Properties()) {
+            if (!r_properties.HasAccessor(YOUNG_MODULUS)) {
+                r_properties.SetAccessor(
+                    YOUNG_MODULUS,
+                    Kratos::make_unique<NodalYoungModulusAccessor>());
             }
         }
 
