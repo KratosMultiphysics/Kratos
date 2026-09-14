@@ -185,7 +185,22 @@ public:
     void resize(const std::size_t NewSize1, const std::size_t NewSize2, const bool Preserve = true)
     {
         if (Preserve) {
-            this->conservativeResize(NewSize1, NewSize2);
+            if constexpr (std::is_copy_assignable_v<TDataType>) {
+                this->conservativeResize(NewSize1, NewSize2);
+            } else {
+                // Move-only scalars (e.g. a container of sparse graphs): Eigen's
+                // conservativeResize copy-assigns, so keep the entries by moving
+                // them into freshly allocated storage instead.
+                BaseType new_storage(NewSize1, NewSize2);
+                const std::size_t common_rows = std::min(NewSize1, size1());
+                const std::size_t common_cols = std::min(NewSize2, size2());
+                for (std::size_t i = 0; i < common_rows; ++i) {
+                    for (std::size_t j = 0; j < common_cols; ++j) {
+                        new_storage(i, j) = std::move((*this)(i, j));
+                    }
+                }
+                BaseType::swap(new_storage);
+            }
         } else {
             BaseType::resize(NewSize1, NewSize2);
         }
@@ -334,7 +349,19 @@ public:
     void resize(const std::size_t NewSize, const bool Preserve = true)
     {
         if (Preserve) {
-            this->conservativeResize(NewSize);
+            if constexpr (std::is_copy_assignable_v<TDataType>) {
+                this->conservativeResize(NewSize);
+            } else {
+                // Move-only scalars (e.g. a container of sparse graphs): Eigen's
+                // conservativeResize copy-assigns, so keep the entries by moving
+                // them into freshly allocated storage instead.
+                BaseType new_storage(NewSize);
+                const std::size_t common_size = std::min(NewSize, size());
+                for (std::size_t i = 0; i < common_size; ++i) {
+                    new_storage[i] = std::move((*this)[i]);
+                }
+                BaseType::swap(new_storage);
+            }
         } else {
             BaseType::resize(NewSize);
         }
