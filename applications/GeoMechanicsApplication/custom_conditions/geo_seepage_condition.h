@@ -35,9 +35,9 @@ class KRATOS_API(GEO_MECHANICS_APPLICATION) GeoSeepageCondition : public Conditi
 public:
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(GeoSeepageCondition);
 
-    GeoSeepageCondition();
-    GeoSeepageCondition(IndexType ConditionId, GeometryType::Pointer pGeometry);
-    GeoSeepageCondition(IndexType ConditionId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
+    explicit GeoSeepageCondition(IndexType               ConditionId = 0,
+                                 GeometryType::Pointer   pGeometry   = nullptr,
+                                 PropertiesType::Pointer pProperties = nullptr);
     ~GeoSeepageCondition() override;
 
     Condition::Pointer Create(IndexType               ConditionId,

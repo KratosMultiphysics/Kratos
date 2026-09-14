@@ -20,13 +20,6 @@ using namespace std::string_literals;
 namespace Kratos
 {
 
-GeoSeepageCondition::GeoSeepageCondition() : GeoSeepageCondition(0, nullptr, nullptr) {}
-
-GeoSeepageCondition::GeoSeepageCondition(IndexType ConditionId, GeometryType::Pointer pGeometry)
-    : GeoSeepageCondition(ConditionId, std::move(pGeometry), nullptr)
-{
-}
-
 GeoSeepageCondition::GeoSeepageCondition(IndexType               ConditionId,
                                          GeometryType::Pointer   pGeometry,
                                          PropertiesType::Pointer pProperties)
