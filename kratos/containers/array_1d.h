@@ -26,14 +26,6 @@
 
 #ifdef KRATOS_USE_EIGEN_BACKEND
 
-// The Kratos CMake defines EIGEN_MATRIXBASE_PLUGIN globally when the Eigen
-// backend is selected; the injected conversions (Eigen expression -> uBLAS
-// dense containers) are part of the array_1d contract, so refuse to build
-// without them (e.g. a hand-rolled build defining only the backend macro).
-#ifndef EIGEN_MATRIXBASE_PLUGIN
-#error "KRATOS_USE_EIGEN_BACKEND requires EIGEN_MATRIXBASE_PLUGIN=\"<kratos>/kratos/includes/kratos_eigen_matrixbase_plugin.h\" to be defined globally; configure with KRATOS_LINEAR_ALGEBRA_BACKEND=eigen through the Kratos CMake."
-#endif
-
 // System includes
 #include <algorithm>
 #include <array>
@@ -45,12 +37,10 @@
 
 // External includes
 #include <Eigen/Core>
-#include <boost/numeric/ublas/expression_types.hpp>
-#include <boost/numeric/ublas/vector.hpp>
 
 // Project includes
 #include "includes/define.h"
-#include "includes/ublas_interface.h" // also pulls in the Eigen compatibility operations under this backend
+#include "includes/default_interface.h" // the Eigen-backed types and the uBLAS-style operations
 
 namespace Kratos
 {
@@ -88,14 +78,11 @@ inline constexpr bool IsRowShapedEigenExpression =
  *   contiguity and the MPI buffers rely on it, hence Eigen::DontAlign and the
  *   static_asserts at the end of this block.
  * - The uBLAS-style member surface: operator() and operator[], size(),
- *   near-no-op resize(), clear(), raw-pointer iterators, swap, the
- *   assign/plus_assign/minus_assign protocol and construction/assignment from
- *   uBLAS vector expressions (the dynamic Vector/Matrix types remain uBLAS
- *   under both backends).
+ *   near-no-op resize(), clear(), raw-pointer iterators, data(), swap and the
+ *   assign/plus_assign/minus_assign protocol.
  * - The uBLAS text format for streaming: [N](v0,v1,...).
  * Deriving from Eigen::Matrix makes every Eigen expression (a+b, prod, ...)
- * available on the type; the mixed uBLAS/Eigen idiom layer lives in
- * includes/eigen_ublas_compat_operations.h.
+ * available on the type.
  */
 template<class T, std::size_t N>
 class array_1d : public Eigen::Matrix<T, static_cast<int>(N), 1, Eigen::ColMajor | Eigen::DontAlign>
@@ -167,18 +154,6 @@ public:
     requires (Internals::IsRowShapedEigenExpression<TDerived, N>)
     array_1d(const Eigen::MatrixBase<TDerived>& rExpression) : BaseType(rExpression.transpose().template cast<T>()) {}
 
-    /// Construction from any uBLAS vector expression (interoperability with
-    /// the dynamic uBLAS Vector and the uBLAS proxies/expressions).
-    template<class TExpression>
-    array_1d(const boost::numeric::ublas::vector_expression<TExpression>& rExpression) : BaseType()
-    {
-        const auto& r_expression = rExpression();
-        KRATOS_DEBUG_ERROR_IF(r_expression.size() != N) << "Wrong size in the construction from a vector expression [ expression size = " << r_expression.size() << ", array size = " << N << " ]." << std::endl;
-        for (size_type i = 0; i < N; ++i) {
-            (*this)[i] = r_expression(i);
-        }
-    }
-
     ///@}
     ///@name Operators
     ///@{
@@ -213,9 +188,8 @@ public:
     }
 
     /// The assignment evaluates through a temporary (.eval()), reproducing
-    /// the alias-safe uBLAS operator= semantics (e.g. x = trans-like
-    /// expressions of x itself); the temporary-free fast path remains
-    /// noalias(x) = expr, exactly as in uBLAS.
+    /// the alias-safe uBLAS operator= semantics; the temporary-free fast path
+    /// remains noalias(x) = expr, exactly as in uBLAS.
     template<class TDerived>
     requires (Internals::IsColumnShapedEigenExpression<TDerived, N> || Internals::IsRowShapedEigenExpression<TDerived, N>)
     array_1d& operator=(const Eigen::MatrixBase<TDerived>& rExpression)
@@ -252,57 +226,9 @@ public:
         return *this;
     }
 
-    template<class TExpression>
-    array_1d& operator=(const boost::numeric::ublas::vector_expression<TExpression>& rExpression)
-    {
-        // a uBLAS expression cannot reference this (Eigen) object, so no
-        // protective temporary is needed
-        const auto& r_expression = rExpression();
-        KRATOS_DEBUG_ERROR_IF(r_expression.size() != N) << "Wrong size in the assignment from a vector expression [ expression size = " << r_expression.size() << ", array size = " << N << " ]." << std::endl;
-        for (size_type i = 0; i < N; ++i) {
-            (*this)[i] = r_expression(i);
-        }
-        return *this;
-    }
-
-    template<class TExpression>
-    array_1d& operator+=(const boost::numeric::ublas::vector_expression<TExpression>& rExpression)
-    {
-        const auto& r_expression = rExpression();
-        KRATOS_DEBUG_ERROR_IF(r_expression.size() != N) << "Wrong size in the addition of a vector expression [ expression size = " << r_expression.size() << ", array size = " << N << " ]." << std::endl;
-        for (size_type i = 0; i < N; ++i) {
-            (*this)[i] += r_expression(i);
-        }
-        return *this;
-    }
-
-    template<class TExpression>
-    array_1d& operator-=(const boost::numeric::ublas::vector_expression<TExpression>& rExpression)
-    {
-        const auto& r_expression = rExpression();
-        KRATOS_DEBUG_ERROR_IF(r_expression.size() != N) << "Wrong size in the subtraction of a vector expression [ expression size = " << r_expression.size() << ", array size = " << N << " ]." << std::endl;
-        for (size_type i = 0; i < N; ++i) {
-            (*this)[i] -= r_expression(i);
-        }
-        return *this;
-    }
-
     // Scalar operators keep the base class implementations (no aliasing there)
     using BaseType::operator*=;
     using BaseType::operator/=;
-
-    /// Implicit conversion to the dynamic uBLAS vector, mirroring the
-    /// implicit vector_expression conversion the uBLAS implementation offers
-    /// (e.g. Vector v = some_array; or passing an array_1d to a Vector
-    /// parameter).
-    operator boost::numeric::ublas::vector<T>() const
-    {
-        boost::numeric::ublas::vector<T> result(N);
-        for (size_type i = 0; i < N; ++i) {
-            result[i] = (*this)[i];
-        }
-        return result;
-    }
 
     /**
      * @brief Compares whether this array_1d is equal to the given array_1d.
@@ -333,20 +259,23 @@ public:
     }
 
     // uBLAS assignment protocol (kept for generic code written against it)
-    template<class TExpression>
-    array_1d& assign(const boost::numeric::ublas::vector_expression<TExpression>& rExpression)
+    template<class TDerived>
+    array_1d& assign(const Eigen::MatrixBase<TDerived>& rExpression)
     {
-        return (*this = rExpression);
+        this->noalias() = rExpression.template cast<T>();
+        return *this;
     }
-    template<class TExpression>
-    array_1d& plus_assign(const boost::numeric::ublas::vector_expression<TExpression>& rExpression)
+    template<class TDerived>
+    array_1d& plus_assign(const Eigen::MatrixBase<TDerived>& rExpression)
     {
-        return (*this += rExpression);
+        this->noalias() += rExpression.template cast<T>();
+        return *this;
     }
-    template<class TExpression>
-    array_1d& minus_assign(const boost::numeric::ublas::vector_expression<TExpression>& rExpression)
+    template<class TDerived>
+    array_1d& minus_assign(const Eigen::MatrixBase<TDerived>& rExpression)
     {
-        return (*this -= rExpression);
+        this->noalias() -= rExpression.template cast<T>();
+        return *this;
     }
 
     void swap(array_1d& rOther)
@@ -384,9 +313,10 @@ public:
         return N;
     }
 
-    /// Raw contiguous storage pointer (Eigen semantics: T* rather than the
-    /// std::array& of the uBLAS implementation).
-    using BaseType::data;
+    /// Contiguous storage view, with the uBLAS data() surface (begin/end/size,
+    /// operator[]) and an implicit conversion to the raw pointer.
+    Internals::StorageView<T> data() { return {BaseType::data(), N}; }
+    Internals::StorageView<const T> data() const { return {BaseType::data(), N}; }
 
     iterator begin() { return BaseType::data(); }
     const_iterator begin() const { return BaseType::data(); }
