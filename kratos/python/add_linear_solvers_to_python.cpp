@@ -52,7 +52,7 @@ namespace Kratos::Python
     template <class TDataType, class TOtherDataType>
     using TLinearSolverType = LinearSolver<TSpaceType<TDataType>, TLocalSpaceType<TOtherDataType>>;
     template <class TDataType>
-    using TDirectSolverType = DirectSolver<TUblasSparseSpace<TDataType>, TUblasDenseSpace<TDataType>>;
+    using TDirectSolverType = DirectSolver<TSpaceType<TDataType>, TLocalSpaceType<TDataType>>;
 
 void  AddLinearSolversToPython(pybind11::module& m)
 {
