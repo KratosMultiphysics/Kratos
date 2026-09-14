@@ -103,7 +103,7 @@ public:
      */
     void UpdatePoint()
     {
-        this->Coordinates() = mpElement->GetGeometry().Center().Coordinates();
+        noalias(this->Coordinates()) = mpElement->GetGeometry().Center().Coordinates();
     }
 
 private:
