@@ -41,9 +41,10 @@ template<typename _Scalar> using EigenSparseMatrix = Eigen::SparseMatrix<_Scalar
 
 // Backend-tracking system-matrix type. When Kratos is built with
 // KRATOS_LINEAR_ALGEBRA_BACKEND=eigen the system sparse matrix is an
-// EigenCompressedMatrix (StorageIndex == KratosEigenIndexType, i.e. ptrdiff_t),
-// so instantiating the pure-Eigen solvers with this index lets them read the
-// system matrix's own CSR arrays zero-copy (no ptrdiff_t -> int rebuild). In the
+// EigenCompressedMatrix (StorageIndex == KratosEigenIndexType, int by default,
+// ptrdiff_t with KRATOS_EIGEN_64BIT_INDICES), so instantiating the pure-Eigen
+// solvers with this index lets them read the system matrix's own CSR arrays
+// zero-copy (no index rebuild). In the
 // default uBLAS build this resolves back to int, so those solvers are unchanged.
 // Solvers with an inherent int requirement (Pardiso/MKL) stay on EigenSparseMatrix.
 #ifdef KRATOS_USE_EIGEN_BACKEND
