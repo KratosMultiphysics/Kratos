@@ -321,9 +321,8 @@ public:
 
     ///@}
 
-public:
-    ///@name Implementation-detail static operations
-    // (public: invoked across the DataTypeTraits family and its Internals helpers)
+private:
+    ///@name Private static operations
     ///@{
 
     template<unsigned int TCheckIndex, unsigned int TCurrentIndex = 0>
@@ -703,9 +702,8 @@ public:
 
     ///@}
 
-public:
-    ///@name Implementation-detail static operations
-    // (public: invoked across the DataTypeTraits family and its Internals helpers)
+private:
+    ///@name Private static operations
     ///@{
 
     template<unsigned int TCheckIndex, unsigned int TCurrentIndex>
@@ -728,20 +726,18 @@ public:
     ///@}
 };
 
-namespace Internals {
-
 /**
  * @brief Data type traits for DenseVector data types
  *
  * @tparam TDataType    Data type of DenseVector
  */
-template<class TContainerType, class TDataType> class DenseVectorLikeTraits
+template<class TDataType> class DataTypeTraits<DenseVector<TDataType>>
 {
 public:
     ///@name Type definitions
     ///@{
 
-    using ContainerType = TContainerType;
+    using ContainerType = DenseVector<TDataType>;
 
     using ValueType = TDataType;
 
@@ -958,7 +954,7 @@ public:
     inline static PrimitiveType const * GetContiguousData(const ContainerType& rValue) requires (IsContiguous)
     {
         if constexpr(std::is_same_v<PrimitiveType, ValueType>) {
-            if constexpr (std::is_pointer_v<decltype(rValue.data())>) { return rValue.data(); } else { return rValue.data().begin(); }
+            return rValue.data().begin();
         } else {
             // since the underlying data structure for recusive static data types
             // is contiguous in ublas types, we can do the following to get the
@@ -986,7 +982,7 @@ public:
     inline static PrimitiveType * GetContiguousData(ContainerType& rValue) requires (IsContiguous)
     {
         if constexpr(std::is_same_v<PrimitiveType, ValueType>) {
-            if constexpr (std::is_pointer_v<decltype(rValue.data())>) { return rValue.data(); } else { return rValue.data().begin(); }
+            return rValue.data().begin();
         } else {
             // since the underlying data structure for recusive static data types
             // is contiguous in ublas types, we can do the following to get the
@@ -1119,9 +1115,8 @@ public:
 
     ///@}
 
-public:
-    ///@name Implementation-detail static operations
-    // (public: invoked across the DataTypeTraits family and its Internals helpers)
+private:
+    ///@name Private static operations
     ///@{
 
     template<unsigned int TCheckIndex, unsigned int TCurrentIndex>
@@ -1144,13 +1139,13 @@ public:
     ///@}
 };
 
-template<class TContainerType, class TDataType> class DenseMatrixLikeTraits
+template<class TDataType> class DataTypeTraits<DenseMatrix<TDataType>>
 {
 public:
     ///@name Type definitions
     ///@{
 
-    using ContainerType = TContainerType;
+    using ContainerType = DenseMatrix<TDataType>;
 
     using ValueType = TDataType;
 
@@ -1346,7 +1341,7 @@ public:
         }
 
         if constexpr(ValueTraits::IsDynamic) {
-            std::for_each(StorageBegin(rContainer), StorageEnd(rContainer), [&is_reshaped, pShapeBegin, pShapeEnd](auto& rValue) {
+            std::for_each(rContainer.data().begin(), rContainer.data().end(), [&is_reshaped, pShapeBegin, pShapeEnd](auto& rValue) {
                 is_reshaped = ValueTraits::Reshape(rValue, pShapeBegin + 2, pShapeEnd) || is_reshaped;
             });
         }
@@ -1367,7 +1362,7 @@ public:
     inline static PrimitiveType const * GetContiguousData(const ContainerType& rValue) requires (IsContiguous)
     {
         if constexpr(std::is_same_v<PrimitiveType, ValueType>) {
-            if constexpr (std::is_pointer_v<decltype(rValue.data())>) { return rValue.data(); } else { return rValue.data().begin(); }
+            return rValue.data().begin();
         } else {
             // since the underlying data structure for recusive static data types
             // is contiguous in ublas types, we can do the following to get the
@@ -1395,7 +1390,7 @@ public:
     inline static PrimitiveType * GetContiguousData(ContainerType& rValue) requires (IsContiguous)
     {
         if constexpr(std::is_same_v<PrimitiveType, ValueType>) {
-            if constexpr (std::is_pointer_v<decltype(rValue.data())>) { return rValue.data(); } else { return rValue.data().begin(); }
+            return rValue.data().begin();
         } else {
             // since the underlying data structure for recusive static data types
             // is contiguous in ublas types, we can do the following to get the
@@ -1536,26 +1531,8 @@ public:
 
     ///@}
 
-
-    ///@}
-    ///@name Storage access helpers
-    ///@{
-
-    // The uBLAS containers expose their storage through data().begin()/end(),
-    // the Eigen-backed ones through a raw data() pointer.
-    static auto StorageBegin(ContainerType& rContainer)
-    {
-        if constexpr (std::is_pointer_v<decltype(rContainer.data())>) { return rContainer.data(); } else { return rContainer.data().begin(); }
-    }
-
-    static auto StorageEnd(ContainerType& rContainer)
-    {
-        return StorageBegin(rContainer) + rContainer.size1() * rContainer.size2();
-    }
-
-public:
-    ///@name Implementation-detail static operations
-    // (public: invoked across the DataTypeTraits family and its Internals helpers)
+private:
+    ///@name Private static operations
     ///@{
 
     template<unsigned int TCheckIndex, unsigned int TCurrentIndex>
@@ -1577,28 +1554,6 @@ public:
 
     ///@}
 };
-
-} // namespace Internals
-
-/// Data type traits for the uBLAS DenseVector types.
-template<class TDataType> class DataTypeTraits<DenseVector<TDataType>>
-    : public Internals::DenseVectorLikeTraits<DenseVector<TDataType>, TDataType> {};
-
-/// Data type traits for the uBLAS DenseMatrix types.
-template<class TDataType> class DataTypeTraits<DenseMatrix<TDataType>>
-    : public Internals::DenseMatrixLikeTraits<DenseMatrix<TDataType>, TDataType> {};
-
-#ifdef KRATOS_USE_EIGEN_BACKEND
-/// Data type traits for the Eigen-backed dynamic dense types (the
-/// Matrix/Vector aliases of the Eigen backend); same trait surface and
-/// semantics as the uBLAS ones above.
-template<class TDataType> class DataTypeTraits<EigenVector<TDataType>>
-    : public Internals::DenseVectorLikeTraits<EigenVector<TDataType>, TDataType> {};
-
-template<class TDataType> class DataTypeTraits<EigenMatrix<TDataType>>
-    : public Internals::DenseMatrixLikeTraits<EigenMatrix<TDataType>, TDataType> {};
-#endif
-
 
 template<> class DataTypeTraits<std::string>
 {
@@ -1921,9 +1876,8 @@ public:
 
     ///@}
 
-public:
-    ///@name Implementation-detail static operations
-    // (public: invoked across the DataTypeTraits family and its Internals helpers)
+private:
+    ///@name Private static operations
     ///@{
 
     template<unsigned int TCheckIndex, unsigned int TCurrentIndex>
@@ -2298,9 +2252,8 @@ public:
 
     ///@}
 
-public:
-    ///@name Implementation-detail static operations
-    // (public: invoked across the DataTypeTraits family and its Internals helpers)
+private:
+    ///@name Private static operations
     ///@{
 
     template<unsigned int TCheckIndex, unsigned int TCurrentIndex>
