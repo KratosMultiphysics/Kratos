@@ -81,6 +81,8 @@ public:
 
         KRATOS_INFO_IF("GeoNewtonRaphsonStrategyWithSeepage::Initialize", this->GetEchoLevel() > 0)
             << "Found " << mSeepageNodes.size() << " seepage nodes" << std::endl;
+        KRATOS_WARNING_IF("GeoNewtonRaphsonStrategyWithSeepage::Initialize", mSeepageNodes.empty()) << "No seepage nodes found. This strategy will behave like a normal Newton-Raphson strategy."
+                                                                                                    << std::endl;
         if (this->GetEchoLevel() > 1) {
             for (auto* p_node : mSeepageNodes) {
                 KRATOS_INFO("GeoNewtonRaphsonStrategyWithSeepage::Initialize")
