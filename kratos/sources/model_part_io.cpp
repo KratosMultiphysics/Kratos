@@ -1661,7 +1661,7 @@ void ModelPartIO::ReadModelPartDataBlock(ModelPart& rModelPart, const bool IsSub
         }
         else if(KratosComponents<Variable<Quaternion<double> > >::Has(variable_name))
         {
-            DenseVector<double> temp_vector; // a uBLAS vector: Quaternion assignment takes a ublas vector expression and operator >> is not defined for Quaternion yet!
+            Vector temp_vector; // defining a Vector because for Quaternion the operator >> is not defined yet!
             ReadVectorialValue(temp_vector);
             rModelPart[KratosComponents<Variable<Quaternion<double> > >::Get(variable_name)] = temp_vector;
         }
@@ -2136,7 +2136,7 @@ void ModelPartIO::ReadPropertiesBlock(PropertiesContainerType& rThisProperties)
         }
         else if(KratosComponents<Variable<Quaternion<double> > >::Has(variable_name))
         {
-            DenseVector<double> temp_vector; // a uBLAS vector: Quaternion assignment takes a ublas vector expression and operator >> is not defined for Quaternion yet!
+            Vector temp_vector; // defining a Vector because for Quaternion the operator >> is not defined yet!
             ReadVectorialValue(temp_vector);
             temp_properties[KratosComponents<Variable<Quaternion<double> > >::Get(variable_name)] = temp_vector;
         }
@@ -4224,7 +4224,7 @@ void ModelPartIO::ReadMeshDataBlock(MeshType& rMesh)
         }
         else if(KratosComponents<Variable<Quaternion<double> > >::Has(variable_name))
         {
-            DenseVector<double> temp_vector; // a uBLAS vector: Quaternion assignment takes a ublas vector expression and operator >> is not defined for Quaternion yet!
+            Vector temp_vector; // defining a Vector because for Quaternion the operator >> is not defined yet!
             ReadVectorialValue(temp_vector);
             rMesh[KratosComponents<Variable<Quaternion<double> > >::Get(variable_name)] = temp_vector;
         }
@@ -4395,7 +4395,7 @@ void ModelPartIO::ReadMeshPropertiesBlock(ModelPart& rModelPart, MeshType& rMesh
         }
         else if(KratosComponents<Variable<Quaternion<double> > >::Has(variable_name))
         {
-            DenseVector<double> temp_vector; // a uBLAS vector: Quaternion assignment takes a ublas vector expression and operator >> is not defined for Quaternion yet!
+            Vector temp_vector; // defining a Vector because for Quaternion the operator >> is not defined yet!
             ReadVectorialValue(temp_vector);
             temp_properties[KratosComponents<Variable<Quaternion<double> > >::Get(variable_name)] = temp_vector;
         }
@@ -6254,7 +6254,7 @@ void ModelPartIO::WriteCommunicatorData(
     std::vector<PartitionIndicesContainerType> local_nodes_indices(NumberOfPartitions, PartitionIndicesContainerType(number_of_colors));
     std::vector<PartitionIndicesContainerType> ghost_nodes_indices(NumberOfPartitions, PartitionIndicesContainerType(number_of_colors));
 
-    DenseMatrix<int> interface_indices = boost::numeric::ublas::scalar_matrix<int>(NumberOfPartitions, NumberOfPartitions, -1);
+    DenseMatrix<int> interface_indices = scalar_matrix<int>(NumberOfPartitions, NumberOfPartitions, -1);
 
     for(SizeType i_partition = 0 ; i_partition < NumberOfPartitions ; i_partition++)
     {
