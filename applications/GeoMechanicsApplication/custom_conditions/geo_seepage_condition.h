@@ -15,7 +15,7 @@
 #include <string>
 
 #include "includes/condition.h"
-#include "includes/define.h"
+#include "includes/kratos_export_api.h"
 
 namespace Kratos
 {
