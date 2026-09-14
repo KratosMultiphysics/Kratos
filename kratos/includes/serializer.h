@@ -514,24 +514,6 @@ public:
             load("E", rObject[i]);
     }
 
-#ifdef KRATOS_USE_EIGEN_BACKEND
-    /// Same on-disk format as the uBLAS DenseVector overload above, for the
-    /// Eigen-backed dynamic Vector alias of the Eigen backend.
-    template<class TDataType>
-    void load(std::string const & rTag, EigenVector<TDataType>& rObject)
-    {
-        load_trace_point(rTag);
-        SizeType size;
-
-        load("size", size);
-
-        rObject.resize(size,false);
-
-        for(SizeType i = 0 ; i < size ; i++)
-            load("E", rObject[i]);
-    }
-#endif
-
 
     template<class TKeyType, class TDataType>
     void load(std::string const & rTag, std::map<TKeyType, TDataType>& rObject)
