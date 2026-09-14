@@ -72,52 +72,6 @@ KRATOS_TEST_CASE_IN_SUITE(GeoSeepageConditionCreateReturnsGeoSeepageCondition, K
     KRATOS_EXPECT_EQ(p_created->Id(), 2);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(GeoSeepageConditionGetDofListReturnsOneWaterPressureDofPerNode,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
-{
-    auto  model        = Model{};
-    auto& r_model_part = CreateModelPartWithTwoWaterPressureNodes(model);
-    auto  condition    = CreateSeepageCondition(r_model_part);
-
-    auto dofs = Condition::DofsVectorType{};
-    condition.GetDofList(dofs, ProcessInfo{});
-
-    ASSERT_EQ(dofs.size(), 2);
-    KRATOS_EXPECT_EQ(dofs[0]->GetVariable(), WATER_PRESSURE);
-    KRATOS_EXPECT_EQ(dofs[1]->GetVariable(), WATER_PRESSURE);
-}
-
-KRATOS_TEST_CASE_IN_SUITE(GeoSeepageConditionEquationIdVectorHasOneEntryPerNode, KratosGeoMechanicsFastSuiteWithoutKernel)
-{
-    auto  model        = Model{};
-    auto& r_model_part = CreateModelPartWithTwoWaterPressureNodes(model);
-    auto  condition    = CreateSeepageCondition(r_model_part);
-
-    auto equation_ids = Condition::EquationIdVectorType{};
-    condition.EquationIdVector(equation_ids, ProcessInfo{});
-
-    KRATOS_EXPECT_EQ(equation_ids.size(), 2);
-}
-
-KRATOS_TEST_CASE_IN_SUITE(GeoSeepageConditionCalculateLocalSystemReturnsZeroes, KratosGeoMechanicsFastSuiteWithoutKernel)
-{
-    auto  model        = Model{};
-    auto& r_model_part = CreateModelPartWithTwoWaterPressureNodes(model);
-    auto  condition    = CreateSeepageCondition(r_model_part);
-
-    auto left_hand_side  = Matrix{};
-    auto right_hand_side = Vector{};
-    condition.CalculateLocalSystem(left_hand_side, right_hand_side, ProcessInfo{});
-
-    // Materialize the expected values: the gmock matcher behind KRATOS_EXPECT_VECTOR_NEAR
-    // iterates its argument, which a ublas zero-expression does not support.
-    const auto expected_left_hand_side  = Matrix{ZeroMatrix{2, 2}};
-    const auto expected_right_hand_side = Vector{ZeroVector{2}};
-
-    KRATOS_EXPECT_MATRIX_NEAR(left_hand_side, expected_left_hand_side, Defaults::absolute_tolerance)
-    KRATOS_EXPECT_VECTOR_NEAR(right_hand_side, expected_right_hand_side, Defaults::absolute_tolerance)
-}
-
 KRATOS_TEST_CASE_IN_SUITE(GeoSeepageConditionCheckReturnsZeroForValidSetup, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     auto  model        = Model{};

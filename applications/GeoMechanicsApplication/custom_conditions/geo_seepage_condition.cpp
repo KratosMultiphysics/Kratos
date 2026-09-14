@@ -43,45 +43,6 @@ Condition::Pointer GeoSeepageCondition::Create(IndexType               Condition
     return make_intrusive<GeoSeepageCondition>(ConditionId, pGeometry, pProperties);
 }
 
-void GeoSeepageCondition::GetDofList(DofsVectorType& rResult, const ProcessInfo&) const
-{
-    rResult = GetDofs();
-}
-
-void GeoSeepageCondition::EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo&) const
-{
-    rResult = Geo::DofUtilities::ExtractEquationIdsFrom(GetDofs());
-}
-
-void GeoSeepageCondition::CalculateLocalSystem(Matrix&            rLeftHandSideMatrix,
-                                               Vector&            rRightHandSideVector,
-                                               const ProcessInfo& rCurrentProcessInfo)
-{
-    CalculateLeftHandSide(rLeftHandSideMatrix, rCurrentProcessInfo);
-    CalculateRightHandSide(rRightHandSideVector, rCurrentProcessInfo);
-}
-
-void GeoSeepageCondition::CalculateLeftHandSide(Matrix& rLeftHandSideMatrix, const ProcessInfo&)
-{
-    // A seepage condition never contributes to the system matrix: in Dirichlet mode the fixed
-    // degrees of freedom are handled by the builder and solver, and in Neumann mode the flux is zero.
-    const auto number_of_nodes = GetGeometry().PointsNumber();
-    rLeftHandSideMatrix.resize(number_of_nodes, number_of_nodes, false);
-    noalias(rLeftHandSideMatrix) = ZeroMatrix(number_of_nodes, number_of_nodes);
-}
-
-void GeoSeepageCondition::CalculateRightHandSide(Vector& rRightHandSideVector, const ProcessInfo&)
-{
-    const auto number_of_nodes = GetGeometry().PointsNumber();
-    rRightHandSideVector.resize(number_of_nodes, false);
-    noalias(rRightHandSideVector) = ZeroVector(number_of_nodes);
-}
-
-Condition::DofsVectorType GeoSeepageCondition::GetDofs() const
-{
-    return Geo::DofUtilities::ExtractDofsFromNodes(GetGeometry(), WATER_PRESSURE);
-}
-
 int GeoSeepageCondition::Check(const ProcessInfo& rCurrentProcessInfo) const
 {
     const auto base_check_result = Condition::Check(rCurrentProcessInfo);

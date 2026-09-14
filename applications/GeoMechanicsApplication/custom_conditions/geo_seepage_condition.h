@@ -47,22 +47,11 @@ public:
                               GeometryType::Pointer   pGeometry,
                               PropertiesType::Pointer pProperties) const override;
 
-    void GetDofList(DofsVectorType& rResult, const ProcessInfo&) const override;
-    void EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo&) const override;
-
-    void CalculateLocalSystem(Matrix&            rLeftHandSideMatrix,
-                              Vector&            rRightHandSideVector,
-                              const ProcessInfo& rCurrentProcessInfo) override;
-    void CalculateLeftHandSide(Matrix& rLeftHandSideMatrix, const ProcessInfo&) override;
-    void CalculateRightHandSide(Vector& rRightHandSideVector, const ProcessInfo&) override;
-
     [[nodiscard]] int Check(const ProcessInfo& rCurrentProcessInfo) const override;
 
     [[nodiscard]] std::string Info() const override;
 
 private:
-    [[nodiscard]] DofsVectorType GetDofs() const;
-
     friend Serializer;
     void save(Serializer& rSerializer) const override;
     void load(Serializer& rSerializer) override;
