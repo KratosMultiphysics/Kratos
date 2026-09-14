@@ -1,5 +1,7 @@
 import math
 import pathlib
+from dataclasses import dataclass
+from pathlib import Path
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -26,7 +28,6 @@ def _make_plot(
     figure, axes = plt.subplots(layout="constrained")
     if xscale is not None:
         axes.set_xscale(xscale)
-
     _plot_data_series_on_axis(axes, data_series_collection)
     axes.yaxis.set_inverted(yaxis_inverted)
     if xlabel is not None:
@@ -113,6 +114,58 @@ def make_sub_plots(
     if isinstance(plot_file_path, pathlib.Path):
         plot_file_path = str(plot_file_path.resolve())
     print(f"Saving plot to {plot_file_path}")
+    plt.savefig(plot_file_path, bbox_inches="tight")
+    plt.close(figure)
+
+
+@dataclass
+class SubPlotOptions:
+    title: str
+    xlabel: str
+    ylabel: str
+    log_y_plot: bool = False
+
+
+def make_separate_sub_plots(
+    data_series_collections: list[list[DataSeries]],
+    plot_file_path: Path,
+    subplot_options: list[SubPlotOptions],
+    max_plots_per_row: int = 5,
+    figsize: tuple[int, int] = (20, 6),
+):
+    num_rows = math.ceil(len(data_series_collections) / max_plots_per_row)
+    num_cols = math.ceil(len(data_series_collections) / num_rows)
+    figure, axes = plt.subplots(
+        num_rows, num_cols, figsize=figsize, layout="constrained"
+    )
+    axes = np.ravel(axes)
+    for ax in axes[len(data_series_collections) :]:
+        ax.set_axis_off()
+
+    lines = []
+    assert len(data_series_collections) == len(subplot_options)
+    for index, (ax, collection, options) in enumerate(
+        zip(axes, data_series_collections, subplot_options)
+    ):
+        lines.extend(_plot_data_series_on_axis(ax, collection))
+        if options.log_y_plot:
+            ax.set_yscale("log", base=10, nonpositive="mask")
+        ax.set_title(options.title)
+        ax.set_xlabel(options.xlabel)
+        ax.set_ylabel(options.ylabel)
+
+    lines_with_unique_labels = []
+    unique_labels = set()
+    for line in lines:
+        if line.get_label() not in unique_labels:
+            lines_with_unique_labels.append(line)
+            unique_labels.add(line.get_label())
+
+    figure.legend(
+        loc="upper center", bbox_to_anchor=(0.5, 0.0), handles=lines_with_unique_labels
+    )
+
+    print(f"Saving plot to {str(plot_file_path.resolve())}")
     plt.savefig(plot_file_path, bbox_inches="tight")
     plt.close(figure)
 
