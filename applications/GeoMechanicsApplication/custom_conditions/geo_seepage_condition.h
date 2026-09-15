@@ -38,7 +38,6 @@ public:
     explicit GeoSeepageCondition(IndexType               ConditionId = 0,
                                  GeometryType::Pointer   pGeometry   = nullptr,
                                  PropertiesType::Pointer pProperties = nullptr);
-    ~GeoSeepageCondition() override;
 
     Condition::Pointer Create(IndexType               ConditionId,
                               const NodesArrayType&   rNodes,

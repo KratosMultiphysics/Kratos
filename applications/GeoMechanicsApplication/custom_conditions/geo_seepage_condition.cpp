@@ -27,8 +27,6 @@ GeoSeepageCondition::GeoSeepageCondition(IndexType               ConditionId,
 {
 }
 
-GeoSeepageCondition::~GeoSeepageCondition() = default;
-
 Condition::Pointer GeoSeepageCondition::Create(IndexType               ConditionId,
                                                const NodesArrayType&   rNodes,
                                                PropertiesType::Pointer pProperties) const
