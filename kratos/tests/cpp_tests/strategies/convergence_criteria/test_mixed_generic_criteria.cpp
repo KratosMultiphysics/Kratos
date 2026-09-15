@@ -22,14 +22,14 @@
 #include "includes/define.h"
 #include "includes/model_part.h"
 #include "solving_strategies/convergencecriterias/mixed_generic_criteria.h"
-#include "spaces/ublas_space.h"
+#include "spaces/default_spaces.h"
 
 namespace Kratos::Testing
 {
 using NodeType = Node;
 using GeometryType = Geometry<NodeType>;
-using LocalSpaceType = UblasSpace<double, Matrix, Vector>;
-using SparseSpaceType = UblasSpace<double, CompressedMatrix, Vector>;
+using LocalSpaceType = TDefaultDenseSpace<double>;
+using SparseSpaceType = TDefaultSparseSpace<double>;
 
 using DofsArrayType = ModelPart::DofsArrayType;
 
