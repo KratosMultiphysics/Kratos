@@ -153,7 +153,7 @@ KRATOS_TEST_CASE_IN_SUITE(SwitchOneSeepageNodeDoesNothingWhenNoNodeViolatesItsCo
 {
     auto  model        = Model{};
     auto& r_model_part = CreateModelPartWithNodes(model, 2);
-    // Node 1 fixed with no outflow, node 2 free and under suction: both are consistent.
+    // Node 1 fixed with no inflow, node 2 free and under suction: both are consistent.
     r_model_part.pGetNode(1)->Fix(WATER_PRESSURE);
     r_model_part.pGetNode(2)->Free(WATER_PRESSURE);
     r_model_part.pGetNode(2)->FastGetSolutionStepValue(WATER_PRESSURE) = 5.0;
