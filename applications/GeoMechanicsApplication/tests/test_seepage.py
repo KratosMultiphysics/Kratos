@@ -1,6 +1,7 @@
 import os
 
 import KratosMultiphysics.KratosUnittest as KratosUnittest
+import KratosGeoUnittest
 import test_helper
 
 from KratosMultiphysics.GeoMechanicsApplication.gid_output_file_reader import (
@@ -22,7 +23,7 @@ def node_ids_of_model_part(model_part):
     return [node.Id for node in model_part.Nodes]
 
 
-class KratosGeoMechanicsSeepageTests(KratosUnittest.TestCase):
+class KratosGeoMechanicsSeepageTests(KratosGeoUnittest.TestCase):
     """
     Test suite for seepage conditions on steady state groundwater flow problems.
     """
@@ -30,19 +31,16 @@ class KratosGeoMechanicsSeepageTests(KratosUnittest.TestCase):
     def assert_uniform_nodal_values(
         self, node_ids, output_item_name, output_data, time, expected_value
     ):
-        actual_values = GiDOutputFileReader.nodal_values_at_time(
-            output_item_name, time, output_data, node_ids
+        self.assert_nodal_values_at_time(
+            output_data,
+            output_item_name,
+            node_ids,
+            [expected_value] * len(node_ids),
+            time,
+            delta=test_helper.calculate_delta(
+                expected_value, relative_tolerance=1.0e-04
+            ),
         )
-        for node_id, value in zip(node_ids, actual_values):
-            self.assertAlmostEqual(
-                value,
-                expected_value,
-                places=None,
-                delta=test_helper.calculate_delta(
-                    expected_value, relative_tolerance=1.0e-04
-                ),
-                msg=f'"{output_item_name}" at node {node_id}',
-            )
 
     def test_three_element_seepage_fixed_bottom_boundary(self):
         """
@@ -63,7 +61,9 @@ class KratosGeoMechanicsSeepageTests(KratosUnittest.TestCase):
         )
 
         # Verify that top boundary nodes have seepage condition applied
-        top_node_ids = node_ids_of_model_part(model.GetModelPart("PorousDomain.top_boundary"))
+        top_node_ids = node_ids_of_model_part(
+            model.GetModelPart("PorousDomain.top_boundary")
+        )
 
         # Since the bottom boundary is fixed to a high number, leading to outflow, the
         # seepage nodes should have pressure = 0
@@ -83,7 +83,9 @@ class KratosGeoMechanicsSeepageTests(KratosUnittest.TestCase):
         )
 
         # Verify the in-flow at the bottom boundary. There's no need to check the water pressure since it's fixed.
-        bottom_node_ids = node_ids_of_model_part(model.GetModelPart("PorousDomain.bottom_boundary"))
+        bottom_node_ids = node_ids_of_model_part(
+            model.GetModelPart("PorousDomain.bottom_boundary")
+        )
         self.assert_uniform_nodal_values(
             bottom_node_ids,
             "NODAL_WATER_FLOW",
@@ -111,7 +113,9 @@ class KratosGeoMechanicsSeepageTests(KratosUnittest.TestCase):
         )
 
         # Verify that top boundary nodes have seepage condition applied
-        top_node_ids = node_ids_of_model_part(model.GetModelPart("PorousDomain.top_boundary"))
+        top_node_ids = node_ids_of_model_part(
+            model.GetModelPart("PorousDomain.top_boundary")
+        )
 
         # On the seepage face, there should be no flow
         self.assert_uniform_nodal_values(
@@ -135,7 +139,9 @@ class KratosGeoMechanicsSeepageTests(KratosUnittest.TestCase):
         )
 
         # Also at the bottom boundary, there shouldn't be any flow. There's no need to check the water pressure since it's fixed.
-        bottom_node_ids = node_ids_of_model_part(model.GetModelPart("PorousDomain.bottom_boundary"))
+        bottom_node_ids = node_ids_of_model_part(
+            model.GetModelPart("PorousDomain.bottom_boundary")
+        )
         self.assert_uniform_nodal_values(
             bottom_node_ids,
             "NODAL_WATER_FLOW",
@@ -162,7 +168,9 @@ class KratosGeoMechanicsSeepageTests(KratosUnittest.TestCase):
         )
 
         # Verify that top boundary nodes (y=3.0) have seepage condition applied
-        top_node_ids = node_ids_of_model_part(model.GetModelPart("PorousDomain.top_boundary"))
+        top_node_ids = node_ids_of_model_part(
+            model.GetModelPart("PorousDomain.top_boundary")
+        )
 
         # On the seepage face, the nodal out-flow should equal the nodal in-flow at the bottom
         in_flux = 5.0  # m^3/(m^2 * s)
@@ -186,7 +194,9 @@ class KratosGeoMechanicsSeepageTests(KratosUnittest.TestCase):
         )
 
         # At the bottom boundary, the expected water pressure can be calculated using Darcy's law
-        bottom_node_ids = node_ids_of_model_part(model.GetModelPart("PorousDomain.bottom_boundary"))
+        bottom_node_ids = node_ids_of_model_part(
+            model.GetModelPart("PorousDomain.bottom_boundary")
+        )
         pressure_drop = (in_flux * dynamic_viscosity * height) / (
             intrinsic_permeability * area
         )
