@@ -28,6 +28,7 @@
 #include "containers/sparse_graph.h"
 #include "geometries/point.h"
 #include "utilities/math_utils.h"
+#include "spaces/ublas_space.h"
 
 namespace Kratos::Testing {
 
@@ -555,6 +556,94 @@ KRATOS_TEST_CASE_IN_SUITE(EigenCompatLUFactorization, KratosCoreFastSuite)
     M4(0, 3) = 2.0;
     KRATOS_EXPECT_NEAR(MathUtils<double>::Cofactor(M4, 0, 0), 1.0, 1e-12);
     KRATOS_EXPECT_NEAR(MathUtils<double>::Cofactor(M4, 3, 0), -2.0, 1e-12);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(EigenCompatCompressedMatrixIterators, KratosCoreFastSuite)
+{
+    // The ublas row/entry iterator idiom over a CSR matrix, as the mesh
+    // refinement and cutting utilities of MeshingApplication use it.
+    compressed_matrix<int> coord(4, 4);
+    coord.push_back(0, 1, -2);
+    coord.push_back(1, 2, -1);
+    coord.push_back(2, 3, -2);
+
+    using i1_t = compressed_matrix<int>::iterator1;
+    using i2_t = compressed_matrix<int>::iterator2;
+
+    std::size_t marked_count = 0;
+    for (i1_t i1 = coord.begin1(); i1 != coord.end1(); ++i1) {
+        for (i2_t i2 = i1.begin(); i2 != i1.end(); ++i2) {
+            if (coord(i2.index1(), i2.index2()) == -2) {
+                ++marked_count;
+            }
+        }
+    }
+    KRATOS_EXPECT_EQ(marked_count, 2);
+
+    // index1()/index2() report the position of the entry, and the entries are
+    // writable both through operator() and through the iterator itself
+    std::vector<std::pair<std::size_t, std::size_t>> visited;
+    for (i1_t i1 = coord.begin1(); i1 != coord.end1(); ++i1) {
+        for (i2_t i2 = i1.begin(); i2 != i1.end(); ++i2) {
+            visited.emplace_back(i2.index1(), i2.index2());
+            if (coord(i2.index1(), i2.index2()) == -2) {
+                coord(i2.index1(), i2.index2()) = 7;
+            } else {
+                *i2 = 5;
+            }
+        }
+    }
+    KRATOS_EXPECT_EQ(visited.size(), 3);
+    KRATOS_EXPECT_EQ(visited[0].first, 0);
+    KRATOS_EXPECT_EQ(visited[0].second, 1);
+    KRATOS_EXPECT_EQ(visited[2].first, 2);
+    KRATOS_EXPECT_EQ(visited[2].second, 3);
+    KRATOS_EXPECT_EQ(coord(0, 1), 7);
+    KRATOS_EXPECT_EQ(coord(1, 2), 5);
+    KRATOS_EXPECT_EQ(coord(2, 3), 7);
+
+    // const traversal visits the same entries
+    const compressed_matrix<int>& r_const_coord = coord;
+    std::size_t const_count = 0;
+    for (auto i1 = r_const_coord.begin1(); i1 != r_const_coord.end1(); ++i1) {
+        KRATOS_EXPECT_TRUE(i1.index1() < 4);
+        for (auto i2 = i1.begin(); i2 != i1.end(); ++i2) {
+            KRATOS_EXPECT_TRUE(*i2 == 7 || *i2 == 5);
+            ++const_count;
+        }
+    }
+    KRATOS_EXPECT_EQ(const_count, 3);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(EigenCompatUblasSpaceNames, KratosCoreFastSuite)
+{
+    // The ublas space spellings must keep naming the backend's spaces, so code
+    // written against them (Mapping's MPI definitions, FSI, Dam) compiles in
+    // both backends.
+    using DenseSpaceType = TUblasDenseSpace<double>;
+    using LocalSpaceType = UblasSpace<double, Matrix, Vector>;
+    using SparseSpaceType = UblasSpace<double, CompressedMatrix, Vector>;
+
+    Matrix a(2, 2);
+    a(0, 0) = 1.0; a(0, 1) = 2.0;
+    a(1, 0) = 3.0; a(1, 1) = 4.0;
+    Vector x(2);
+    x[0] = 1.0; x[1] = 1.0;
+    Vector y(2);
+
+    LocalSpaceType::Mult(a, x, y);
+    KRATOS_EXPECT_DOUBLE_EQ(y[0], 3.0);
+    KRATOS_EXPECT_DOUBLE_EQ(y[1], 7.0);
+
+    DenseSpaceType::Mult(a, x, y);
+    KRATOS_EXPECT_DOUBLE_EQ(y[0], 3.0);
+    KRATOS_EXPECT_EQ(TUblasSparseSpace<double>::Size(x), 2);
+
+    CompressedMatrix k(2, 2, 2);
+    k.push_back(0, 0, 3.0);
+    k.push_back(1, 1, 4.0);
+    k.complete_index1_data();
+    KRATOS_EXPECT_DOUBLE_EQ(SparseSpaceType::TwoNorm(k), 5.0);
 }
 
 } // namespace Kratos::Testing
