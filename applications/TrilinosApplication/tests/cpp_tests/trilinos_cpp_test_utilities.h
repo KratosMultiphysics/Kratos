@@ -18,6 +18,7 @@
 
 // Project includes
 #include "trilinos_space.h"
+#include "spaces/default_spaces.h"
 
 namespace Kratos
 {
@@ -44,7 +45,7 @@ public:
 
     /// Basic definitions
     using TrilinosSparseSpaceType = TrilinosSpace<Epetra_FECrsMatrix, Epetra_FEVector>;
-    using TrilinosLocalSpaceType = UblasSpace<double, Matrix, Vector>;
+    using TrilinosLocalSpaceType = TDefaultDenseSpace<double>;
 
     /// Trilinos definitions
     using TrilinosSparseMatrixType = TrilinosSparseSpaceType::MatrixType;

@@ -86,8 +86,8 @@ double CoulombFrictionalLaw<TDim,TNumNodes,TNormalVariation, TNumNodesMaster>::G
         // Mortar condition matrices - DOperator and MOperator
         const BoundedMatrix<double, TNumNodes, TNumNodes>& DOperator = rMortarConditionMatrices.DOperator;
         const BoundedMatrix<double, TNumNodes, TNumNodesMaster>& MOperator = rMortarConditionMatrices.MOperator;
-        const BoundedMatrix<double, TNumNodes, TNumNodes>& DeltaMOperator = rMortarConditionMatrices.DeltaMOperator[IndexDerivative];
-        const BoundedMatrix<double, TNumNodes, TNumNodesMaster>& DeltaDOperator = rMortarConditionMatrices.DeltaDOperator[IndexDerivative];
+        const BoundedMatrix<double, TNumNodes, TNumNodesMaster>& DeltaMOperator = rMortarConditionMatrices.DeltaMOperator[IndexDerivative];
+        const BoundedMatrix<double, TNumNodes, TNumNodes>& DeltaDOperator = rMortarConditionMatrices.DeltaDOperator[IndexDerivative];
 
         // Some operations
         array_1d<double, TDim> aux_normal, aux_array;
@@ -109,7 +109,16 @@ double CoulombFrictionalLaw<TDim,TNumNodes,TNormalVariation, TNumNodesMaster>::G
         }
 
         // Adding delta contribution
-        const BoundedMatrix<double, TNumNodes, TDim> D_Deltax1_M_Deltax2 = prod(MOperator, Deltax1) - prod(DOperator, Deltax2);
+        // NOTE: the crosswise operator pairing inherited from the original
+        // implementation only exists for TNumNodes == TNumNodesMaster (uBLAS
+        // accepted it for mixed pairings through its runtime-sized
+        // bounded_matrix); the consistent pairing is used otherwise
+        BoundedMatrix<double, TNumNodes, TDim> D_Deltax1_M_Deltax2;
+        if constexpr (TNumNodes == TNumNodesMaster) {
+            noalias(D_Deltax1_M_Deltax2) = prod(MOperator, Deltax1) - prod(DOperator, Deltax2);
+        } else {
+            noalias(D_Deltax1_M_Deltax2) = prod(DOperator, Deltax1) - prod(MOperator, Deltax2);
+        }
         noalias(aux_array) = row(D_Deltax1_M_Deltax2, IndexNode);
         delta_weighted_gap += inner_prod(aux_array, - aux_normal);
 
@@ -117,8 +126,13 @@ double CoulombFrictionalLaw<TDim,TNumNodes,TNormalVariation, TNumNodesMaster>::G
         const BoundedMatrix<double, TNumNodes, TDim> x1 = rDerivativeData.u1 + rDerivativeData.X1;
         const BoundedMatrix<double, TNumNodesMaster, TDim> x2 = rDerivativeData.u2 + rDerivativeData.X2;
 
-        // Adding delta contribution
-        const BoundedMatrix<double, TNumNodes, TDim> DeltaD_x1_DeltaM_x2 = prod(DeltaMOperator, x1) - prod(DeltaDOperator, x2);
+        // Adding delta contribution (same crosswise-pairing note as above)
+        BoundedMatrix<double, TNumNodes, TDim> DeltaD_x1_DeltaM_x2;
+        if constexpr (TNumNodes == TNumNodesMaster) {
+            noalias(DeltaD_x1_DeltaM_x2) = prod(DeltaMOperator, x1) - prod(DeltaDOperator, x2);
+        } else {
+            noalias(DeltaD_x1_DeltaM_x2) = prod(DeltaDOperator, x1) - prod(DeltaMOperator, x2);
+        }
         noalias(aux_array) = row(DeltaD_x1_DeltaM_x2, IndexNode);
         delta_weighted_gap += inner_prod(aux_array, - aux_normal);
 
@@ -126,7 +140,13 @@ double CoulombFrictionalLaw<TDim,TNumNodes,TNormalVariation, TNumNodesMaster>::G
         if (TNormalVariation && (derivative_node_index < TNumNodes)) {
             const auto& DeltaNormalSlave = rDerivativeData.DeltaNormalSlave[IndexDerivative];
             noalias(aux_normal) = row(DeltaNormalSlave, IndexNode);
-            const BoundedMatrix<double, TNumNodes, TDim> D_x1_M_x2 = prod(MOperator, x1) - prod(DOperator, x2);
+            // Same crosswise-pairing note as above
+            BoundedMatrix<double, TNumNodes, TDim> D_x1_M_x2;
+            if constexpr (TNumNodes == TNumNodesMaster) {
+                noalias(D_x1_M_x2) = prod(MOperator, x1) - prod(DOperator, x2);
+            } else {
+                noalias(D_x1_M_x2) = prod(DOperator, x1) - prod(MOperator, x2);
+            }
             noalias(aux_array) = row(D_x1_M_x2, IndexNode);
             delta_weighted_gap += inner_prod(aux_array, - aux_normal);
         }

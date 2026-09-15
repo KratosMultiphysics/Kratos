@@ -28,7 +28,7 @@
 #include "utilities/integration_utilities.h"
 #include "utilities/geometry_utilities.h"
 #include "utilities/variable_utils.h"
-#include "spaces/ublas_space.h"
+#include "spaces/default_spaces.h"
 #include "linear_solvers/linear_solver.h"
 #include "solving_strategies/strategies/residualbased_linear_strategy.h"
 #include "includes/define.h"
@@ -83,8 +83,8 @@ public:
     typedef BaseType::MatrixType MatrixType;
     typedef BaseType::VectorType VectorType;
     typedef GeometryData::IntegrationMethod IntegrationMethod;
-    typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
-    typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
+    typedef TDefaultSparseSpace<double> SparseSpaceType;
+    typedef TDefaultDenseSpace<double> LocalSpaceType;
     typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
     typedef HelmholtzStrategy<SparseSpaceType, LocalSpaceType,LinearSolverType> StrategyType;
 

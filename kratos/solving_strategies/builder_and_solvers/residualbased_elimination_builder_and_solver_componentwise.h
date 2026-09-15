@@ -586,16 +586,29 @@ protected:
             }
         }
 
-        A.reserve(total_size,false);
-
-        //setting to zero the matrix (and the diagonal matrix)
-        for(unsigned int i=0; i<BaseType::mEquationSystemSize; i++)
+        // Build the CSR arrays directly with a zeroed pattern: valid for both
+        // the uBLAS and the Eigen backend matrix (reserve + push_back is a
+        // uBLAS-only construction idiom). The per-row indices are already
+        // sorted and unique.
+        A = TSystemMatrixType(BaseType::mEquationSystemSize, BaseType::mEquationSystemSize, total_size);
         {
-            std::vector<int>& indices = index_list[i];
-            for(unsigned int j=0; j<indices.size(); j++)
+            auto* Arow_indices = A.index1_data().begin();
+            auto* Acol_indices = A.index2_data().begin();
+            auto* Avalues = A.value_data().begin();
+            Arow_indices[0] = 0;
+            std::size_t entry = 0;
+            for(unsigned int i=0; i<BaseType::mEquationSystemSize; i++)
             {
-                A.push_back(i,indices[j] , 0.00);
+                std::vector<int>& indices = index_list[i];
+                for(unsigned int j=0; j<indices.size(); j++)
+                {
+                    Acol_indices[entry] = indices[j];
+                    Avalues[entry] = 0.0;
+                    ++entry;
+                }
+                Arow_indices[i+1] = entry;
             }
+            A.set_filled(BaseType::mEquationSystemSize + 1, total_size);
         }
 
         KRATOS_CATCH("")
@@ -672,16 +685,29 @@ protected:
         for(int i=0; i<number_of_threads; i++)
             total_size += local_sizes[i];
 
-        A.reserve(total_size,false);
-
-        //setting to zero the matrix (and the diagonal matrix)
-        for(unsigned int i=0; i<BaseType::mEquationSystemSize; i++)
+        // Build the CSR arrays directly with a zeroed pattern: valid for both
+        // the uBLAS and the Eigen backend matrix (reserve + push_back is a
+        // uBLAS-only construction idiom). The per-row indices are already
+        // sorted and unique.
+        A = TSystemMatrixType(BaseType::mEquationSystemSize, BaseType::mEquationSystemSize, total_size);
         {
-            std::vector<int>& indices = index_list[i];
-            for(unsigned int j=0; j<indices.size(); j++)
+            auto* Arow_indices = A.index1_data().begin();
+            auto* Acol_indices = A.index2_data().begin();
+            auto* Avalues = A.value_data().begin();
+            Arow_indices[0] = 0;
+            std::size_t entry = 0;
+            for(unsigned int i=0; i<BaseType::mEquationSystemSize; i++)
             {
-                A.push_back(i,indices[j] , 0.00);
+                std::vector<int>& indices = index_list[i];
+                for(unsigned int j=0; j<indices.size(); j++)
+                {
+                    Acol_indices[entry] = indices[j];
+                    Avalues[entry] = 0.0;
+                    ++entry;
+                }
+                Arow_indices[i+1] = entry;
             }
+            A.set_filled(BaseType::mEquationSystemSize + 1, total_size);
         }
 #ifndef __SUNPRO_CC
         KRATOS_CATCH("")

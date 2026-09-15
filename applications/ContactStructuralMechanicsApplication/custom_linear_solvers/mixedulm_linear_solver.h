@@ -931,8 +931,8 @@ protected:
             AllocateBlocks();
 
         // Get access to A data
-        const IndexType* index1 = rA.index1_data().begin();
-        const IndexType* index2 = rA.index2_data().begin();
+        const auto* index1 = rA.index1_data().begin();
+        const auto* index2 = rA.index2_data().begin();
         const double* values = rA.value_data().begin();
 
         // Allocate the auxiliary blocks by push_back
@@ -1965,8 +1965,10 @@ private:
     double CheckMatrix (const SparseMatrixType& rA)
     {
         // Get access to A data
-        const std::size_t* index1 = rA.index1_data().begin();
-        const std::size_t* index2 = rA.index2_data().begin();
+        // auto: the index type differs between the backends (std::size_t
+        // for uBLAS, a signed index for the Eigen CSR wrapper)
+        const auto* index1 = rA.index1_data().begin();
+        const auto* index2 = rA.index2_data().begin();
         const double* values = rA.value_data().begin();
         double norm = 0.0;
         for (std::size_t i=0; i<rA.size1(); ++i) {

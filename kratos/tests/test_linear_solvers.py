@@ -8,38 +8,45 @@ def GetFilePath(fileName):
 
 class TestLinearSolvers(KratosUnittest.TestCase):
 
-    def _RunParametrized(self, my_params_string ):
+    def _RunParametrized(self, my_params_string, matrix_name=None, rhs_scaling=1.0):
         all_settings = KratosMultiphysics.Parameters( my_params_string )
 
         for i in range(all_settings["test_list"].size()):
             settings = all_settings["test_list"][i]
-            self._auxiliary_test_function(settings)
+            if matrix_name is None:
+                self._auxiliary_test_function(settings, rhs_scaling=rhs_scaling)
+            else:
+                self._auxiliary_test_function(settings, matrix_name, rhs_scaling)
 
-    def _auxiliary_test_function(self, settings, matrix_name="auxiliar_files_for_python_unittest/sparse_matrix_files/A.mm"):
-        space = KratosMultiphysics.UblasSparseSpace()
+    def _auxiliary_test_function(self, settings, matrix_name="auxiliar_files_for_python_unittest/sparse_matrix_files/A.mm", rhs_scaling=1.0):
+        # SparseSpace/SparseMatrix/SparseVector are backend-agnostic aliases
+        # resolving to the active linear-algebra backend's system types; the
+        # vector arithmetic goes through the space interface because the eigen
+        # backend vector exposes no python operators
+        space = KratosMultiphysics.SparseSpace()
 
         #read the matrices
-        A = KratosMultiphysics.CompressedMatrix()
+        A = KratosMultiphysics.SparseMatrix()
         file_read = KratosMultiphysics.ReadMatrixMarketMatrix(GetFilePath(matrix_name),A)
         self.assertTrue(file_read, msg="The MatrixFile could not be read")
 
-        Aoriginal = KratosMultiphysics.CompressedMatrix(A) #create a copy of A
+        Aoriginal = KratosMultiphysics.SparseMatrix(A) #create a copy of A
 
         n = A.Size1()
-        b = KratosMultiphysics.Vector(n)
+        b = KratosMultiphysics.SparseVector(n)
         space.SetToZeroVector(b)
 
-        for i in range(len(b)):
-            b[i] = i/len(b)
+        for i in range(n):
+            b[i] = (i/n) * rhs_scaling
 
-        x = KratosMultiphysics.Vector(n)
+        x = KratosMultiphysics.SparseVector(n)
         #KratosMultiphysics.ReadMatrixMarketVector("b.mm",b)
 
-        boriginal = KratosMultiphysics.Vector(b) #create a copy of b
+        boriginal = KratosMultiphysics.SparseVector(n) #create a copy of b
+        space.SetToZeroVector(boriginal)
+        space.UnaliasedAdd(boriginal, 1.0, b)
 
         space.SetToZeroVector(x)
-        #space.SetToZeroVector(boriginal)
-        #space.UnaliasedAdd(boriginal, 1.0, b) #boriginal=1*bs
 
         #construct the solver
         from KratosMultiphysics import python_linear_solver_factory as linear_solver_factory
@@ -49,12 +56,14 @@ class TestLinearSolvers(KratosUnittest.TestCase):
         linear_solver.Solve(A,x,b)
 
         #test the results
-        tmp = KratosMultiphysics.Vector(n)
-        tmp *= 0.0
+        tmp = KratosMultiphysics.SparseVector(n)
+        space.SetToZeroVector(tmp)
         space.Mult(Aoriginal,x,tmp)
 
-        check = KratosMultiphysics.Vector(n)
-        check = boriginal - tmp
+        check = KratosMultiphysics.SparseVector(n)
+        space.SetToZeroVector(check)
+        space.UnaliasedAdd(check, 1.0, boriginal)
+        space.UnaliasedAdd(check, -1.0, tmp)
 
         achieved_norm = space.TwoNorm(check)
 
@@ -116,6 +125,8 @@ class TestLinearSolvers(KratosUnittest.TestCase):
             }
             """)
 
+    @KratosUnittest.skipUnless(hasattr(KratosMultiphysics, "DeflatedCGSolver"),
+                               "The deflated CG solver is uBLAS-only and is not available with the configured linear-algebra backend.")
     def test_deflated_cg_in_core(self):
         self._RunParametrized("""
             {
@@ -160,6 +171,39 @@ class TestLinearSolvers(KratosUnittest.TestCase):
                 ]
             }
             """)
+
+    def test_bicgstab_exactly_preconditioned(self):
+        """A tridiagonal system, on which ILU0 drops no fill-in and is therefore an exact
+        factorization. The preconditioned Krylov iteration then reaches the solution within
+        its first iteration, so the update it accumulated there is the whole answer: a solver
+        that treats that degenerate case as a failure and leaves the unknowns untouched
+        returns a zero correction, which no caller can distinguish from "nothing to do".
+
+        Covered with scaling both off and on, since the scaled variant is what the
+        GeoMechanics transient groundwater flow tests exercise.
+        """
+        self._RunParametrized("""
+            {
+                "test_list" : [
+                    {
+                        "solver_type" : "bicgstab",
+                        "tolerance" : 1.0e-6,
+                        "max_iteration" : 500,
+                        "preconditioner_type" : "ilu0",
+                        "scaling": false
+                    },
+                    {
+                        "solver_type" : "bicgstab",
+                        "tolerance" : 1.0e-6,
+                        "max_iteration" : 500,
+                        "preconditioner_type" : "ilu0",
+                        "scaling": true
+                    }
+                ]
+            }
+            """,
+            "auxiliar_files_for_python_unittest/sparse_matrix_files/tridiagonal_A.mm",
+            rhs_scaling=1.0e-8)
 
     def test_skyline_lu(self):
         self._RunParametrized("""

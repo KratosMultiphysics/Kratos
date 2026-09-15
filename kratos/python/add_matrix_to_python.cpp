@@ -17,7 +17,7 @@
 
 // Project includes
 #include "includes/define_python.h"
-#include "includes/ublas_interface.h"
+#include "includes/default_interface.h"
 #include "includes/ublas_complex_interface.h"
 #include "add_matrix_to_python.h"
 #include "containers/array_1d.h"
@@ -130,6 +130,11 @@ namespace Kratos::Python
         auto compressed_matrix_binder = CreateMatrixInterface< CompressedMatrix >(m,"CompressedMatrix");
         compressed_matrix_binder.def(py::init<const CompressedMatrix::size_type, const CompressedMatrix::size_type>());
         compressed_matrix_binder.def(py::init<const CompressedMatrix& >());
+        // Finalize the storage after building the matrix by element insertion
+        // (completes the row pointers of the uBLAS matrix, re-compresses the
+        // Eigen one): backend-agnostic scripts building a sparse matrix through
+        // __setitem__ must call this before using it.
+        compressed_matrix_binder.def("Compress", [](CompressedMatrix& rA){ rA.complete_index1_data(); });
         compressed_matrix_binder.def("value_data", [](const CompressedMatrix& rA) ->  std::vector<double>
                                                     {return std::vector<double>(
                                                         rA.value_data().begin(),

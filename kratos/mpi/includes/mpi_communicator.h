@@ -131,10 +131,7 @@ template<> struct SendTraits< Matrix >
 
     static inline std::size_t GetMessageSize(const Matrix& rValue)
     {
-        // Flat storage size, spelled through the extents: the uBLAS matrix
-        // exposes it as data().size(), but the Eigen-backed Matrix returns a
-        // raw pointer from data().
-        return rValue.size1() * rValue.size2();
+        return rValue.data().size();
     }
 };
 
@@ -204,27 +201,12 @@ template<typename ValueType> struct DynamicArrayTypeTransfer
 
     static inline void WriteBuffer(const ValueType& rValue, SendType* pBuffer)
     {
-        std::memcpy(pBuffer, &(rValue.data()[0]), FlatSize(rValue)*sizeof(double));
+        std::memcpy(pBuffer, &(rValue.data()[0]), rValue.data().size()*sizeof(double));
     }
 
     static inline void ReadBuffer(const SendType* pBuffer, ValueType& rValue)
     {
-        std::memcpy(&(rValue.data()[0]), pBuffer, FlatSize(rValue)*sizeof(double));
-    }
-
-private:
-
-    // Number of stored scalars. Both backends store the dynamic vector/matrix
-    // contiguously, but only the uBLAS types expose the flat storage size
-    // through data().size() (the Eigen-backed ones return a raw pointer from
-    // data()), so it is spelled through the extents instead.
-    static inline std::size_t FlatSize(const ValueType& rValue)
-    {
-        if constexpr (requires { rValue.size1(); }) {
-            return rValue.size1() * rValue.size2();
-        } else {
-            return rValue.size();
-        }
+        std::memcpy(&(rValue.data()[0]), pBuffer, rValue.data().size()*sizeof(double));
     }
 };
 
