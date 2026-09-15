@@ -25,7 +25,8 @@ class GiDOutputProcess(KM.OutputProcess):
                 "GiDPostMode": "GiD_PostBinary",
                 "WriteDeformedMeshFlag": "WriteUndeformed",
                 "WriteConditionsFlag": "WriteElementsOnly",
-                "MultiFileFlag": "SingleFile"
+                "MultiFileFlag": "SingleFile",
+                "write_geometries": false
             },
             "file_label": "time",
             "time_label_format": "{:.12f}",
@@ -344,6 +345,7 @@ class GiDOutputProcess(KM.OutputProcess):
         self.write_deformed_mesh = self.__get_gidpost_flag(param, "WriteDeformedMeshFlag", self.__write_deformed_mesh)
         self.write_conditions = self.__get_gidpost_flag(param,"WriteConditionsFlag",self.__write_conditions)
         self.multifile_flag = self.__get_gidpost_flag(param,"MultiFileFlag", self.__multi_file_flag)
+        self.write_geometries = param["write_geometries"].GetBool()
 
         if self.body_output or self.node_output:
             self.body_io = KM.GidIO( self.volume_file_name,
@@ -351,7 +353,8 @@ class GiDOutputProcess(KM.OutputProcess):
                                     self.multifile_flag,
                                     self.write_deformed_mesh,
                                     self.write_conditions,
-                                    self.param["result_file_configuration"]["gauss_point_results"].size()>0)
+                                    self.param["result_file_configuration"]["gauss_point_results"].size()>0,
+                                    self.write_geometries)
 
         if self.skin_output or self.num_planes > 0:
             self.cut_io = KM.GidIO(self.cut_file_name,
