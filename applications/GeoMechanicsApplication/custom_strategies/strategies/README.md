@@ -105,12 +105,12 @@ This strategy is very similar to the Newton-Raphson strategy implemented in Krat
 
 ```math
 \begin{aligned}
-\text{a)    } & \phi_n = 0  & \text{ if } p > 0 \\
-\text{b)    } & p = 0 & \text{ if } \phi_n \ge 0
+\text{a)    } & Q_n = 0  & \text{ if } p > 0 \\
+\text{b)    } & p = 0 & \text{ if } Q_n \ge 0
 \end{aligned}
 ```
 
-where $`p`$ is the pore water pressure, defined negative if a node contains water (and positive in case of suction). $`\phi_n`$ is the nodal flow, calculated as the accumulation of the flow contributions (permeability flow, compressibility flow and fluid body flow) of the surrounding elements. $`\phi_n`$ is defined as positive when there is a net outflow. Since switching between these two conditions acts on the number of degrees of freedom and has a two-way interaction with the pressure field, the switching of the seepage boundary needs to be done on the level of non-linear iterations. This means that within one solution step, next to the general convergence criteria, the seepage boundary also needs to 'converge' to either a Dirichlet or a Neumann boundary condition for every node on the boundary. Note that in each iteration, at most one "seepage node" switches the applied boundary condition. In that case, at least one more iteration is needed.
+where $`p`$ is the pore water pressure, defined negative if a node contains water (and positive in case of suction). $`Q_n`$ is the nodal flow, calculated as the accumulation of the flow contributions (permeability flow, compressibility flow and fluid body flow) of the surrounding elements. $`Q_n`$ is defined as positive when there is a net outflow. Since switching between these two conditions acts on the number of degrees of freedom and has a two-way interaction with the pressure field, the switching of the seepage boundary needs to be done on the level of non-linear iterations. This means that within one solution step, next to the general convergence criteria, the seepage boundary also needs to 'converge' to either a Dirichlet or a Neumann boundary condition for every node on the boundary. Note that in each iteration, at most one "seepage node" switches the applied boundary condition. In that case, at least one more iteration is needed.
 
 These conditions are depicted in the following schematic, with hydrostatic boundaries with different reference heights and a seepage boundary on the right side of the model. These lead to the no-flow or "closed" condition (a) above the phreatic line, while it leads to $`p = 0`$ and outflow (b) below the phreatic line (but above the low hydrostatic condition):
 
@@ -120,7 +120,7 @@ To implement the conditions depicted and described above in code, they need to b
 
 ```math
 \begin{aligned}
-\text{if Dirichlet condition and } \phi_n < -\epsilon_1: & Dirichlet \rightarrow Neumann, &  \phi_n=0 \\
+\text{if Dirichlet condition and } Q_n < -\epsilon_1: & Dirichlet \rightarrow Neumann, &  Q_n=0 \\
 \text{if Neumann condition and } p < -\epsilon_2: & Neumann \rightarrow Dirichlet, &  p = 0 &
 \end{aligned}
 ```
