@@ -341,6 +341,7 @@ protected:
      * @return a pair of double containing the two coefficients for the tangential velocity and shear stress terms
      */
     std::pair<const double, const double> ComputeSlipTangentialNitscheCoefficients(
+        const Vector& rN,
         const double SlipLength,
         const double GammaShear,
         const double ParentSize,

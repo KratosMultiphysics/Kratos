@@ -343,11 +343,11 @@ class NavierStokesShiftedBoundaryMonolithicSolver(FluidSolver):
     def Initialize(self):
         # Run check and prepare process again
         #NOTE that this is necessary after 'initial_remeshing' of a MMG process to get correct parent elements for wall boundary conditions
-        # prepare_model_part_settings = KM.Parameters("{}")
-        # prepare_model_part_settings.AddValue("volume_model_part_name",self.settings["volume_model_part_name"])
-        # prepare_model_part_settings.AddValue("skin_parts",self.settings["skin_parts"])
-        # prepare_model_part_settings.AddValue("assign_neighbour_elements_to_conditions",self.settings["assign_neighbour_elements_to_conditions"])
-        # check_and_prepare_model_process_fluid.CheckAndPrepareModelProcessFluid(self.main_model_part, prepare_model_part_settings).Execute()
+        prepare_model_part_settings = KM.Parameters("{}")
+        prepare_model_part_settings.AddValue("volume_model_part_name",self.settings["volume_model_part_name"])
+        prepare_model_part_settings.AddValue("skin_parts",self.settings["skin_parts"])
+        prepare_model_part_settings.AddValue("assign_neighbour_elements_to_conditions",self.settings["assign_neighbour_elements_to_conditions"])
+        check_and_prepare_model_process_fluid.CheckAndPrepareModelProcessFluid(self.main_model_part, prepare_model_part_settings).Execute()
 
         # If the solver requires an instance of the stabilized shifted boundary formulation class, set the process info variables
         #TODO not necessary?

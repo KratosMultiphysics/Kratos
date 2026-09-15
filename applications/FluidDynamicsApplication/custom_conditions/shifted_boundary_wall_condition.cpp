@@ -29,6 +29,7 @@
 
 // Application includes
 #include "shifted_boundary_wall_condition.h"
+#include <algorithm>
 #include <boost/numeric/ublas/vector.hpp>
 #include <cmath>
 #include <cstddef>
@@ -324,6 +325,9 @@ void ShiftedBoundaryWallCondition<TDim>::AddNitscheImposition(
 
     // Contribution coming from the shear stress operator (traction vector normal component)
     noalias(aux_LHS_vel) -= adjoint_consistency * weight * prod(BtCtAtPnorm, N_matrix);
+    // const double stab_const_u = pen_coeff_normal * gamma_penalty * parent_size - 2* effective_viscosity;
+    // const Matrix BtAtPnorm = prod(trans(B_matrix), AtPnorm);
+    // noalias(aux_LHS_vel) -= adjoint_consistency * weight * stab_const_u * prod(BtAtPnorm, N_matrix);
 
     // Contribution coming from the pressure terms
     const Matrix aux_matrix_VPnorm = prod(trans_pres_to_voigt_matrix_normal_op, Pnorm);
@@ -355,6 +359,7 @@ void ShiftedBoundaryWallCondition<TDim>::AddNitscheImposition(
 
     // Compute the stabilization coefficients
     auto [nitsche_coeff_tang_1, nitsche_coeff_tang_2] = this->ComputeSlipTangentialNitscheCoefficients(
+        r_N,
         slip_length, gamma_penalty_shear, parent_size,
         charact_length, effective_viscosity);
     const double nitsche_tang_w_1 = nitsche_coeff_tang_1 * weight * adjoint_consistency * 2.0;
@@ -477,7 +482,7 @@ std::pair<const double, const double> ShiftedBoundaryWallCondition<TDim>::Comput
     }
     const double int_pt_v_norm = norm_2(int_pt_v);
 
-    const double stab_constant_u = EffectiveViscosity + int_pt_rho*int_pt_v_norm*ParentSize / 6.0 + int_pt_rho*ParentSize*ParentSize/DeltaTime / 12.0;
+    //const double stab_constant_u = EffectiveViscosity + int_pt_rho*int_pt_v_norm*ParentSize / 6.0 + int_pt_rho*ParentSize*ParentSize/DeltaTime / 12.0;
 
     // const double penalty_coeff = 1.0 / (SlipLength + Gamma*ParentSize);
 
@@ -502,7 +507,12 @@ std::pair<const double, const double> ShiftedBoundaryWallCondition<TDim>::Comput
     //TODO paper
     //const double penalty_coeff = 1.0 / ( GammaShear * SlipLength + Gamma * ParentSize );
 
-    const double penalty_coeff = 1.0 / ( GammaShear * SlipLength * CharactLength / ParentSize + Gamma * ParentSize );
+    //const double penalty_coeff = 1.0 / ( GammaShear * SlipLength * CharactLength / ParentSize + Gamma * ParentSize );
+
+    // Scaling the shear terms with the Reynolds number for high Reynolds numbers with a cap of 1e4 to avoid ill-conditioning
+    const double re_scaling = std::min( 1e4, (int_pt_rho*int_pt_v_norm*ParentSize)/EffectiveViscosity );
+    const double penalty_coeff = 1.0 / ( GammaShear*SlipLength/re_scaling + Gamma*ParentSize );
+
     const double coeff_1 = penalty_coeff * SlipLength;
     const double coeff_2 = penalty_coeff * (EffectiveViscosity);  // + stab_constant_u);  // Winter et al. (2018): * EffectiveViscosity;
 
@@ -512,22 +522,23 @@ std::pair<const double, const double> ShiftedBoundaryWallCondition<TDim>::Comput
 
 template<std::size_t TDim>
 std::pair<const double, const double> ShiftedBoundaryWallCondition<TDim>::ComputeSlipTangentialNitscheCoefficients(
+    const Vector& rN,
     const double SlipLength,
     const double GammaShear,
     const double ParentSize,
     const double CharactLength,
     const double EffectiveViscosity) const
 {
-    // // Get the velocity and density for the integration point
-    // const auto& r_geometry = this->GetGeometry();
-    // const std::size_t n_nodes = r_geometry.PointsNumber();
-    // double int_pt_rho = rN(0) * r_geometry[0].FastGetSolutionStepValue(DENSITY);
-    // array_1d<double,3> int_pt_v = rN(0) * r_geometry[0].FastGetSolutionStepValue(VELOCITY);
-    // for (std::size_t i_node = 1;  i_node < n_nodes; ++i_node) {
-    //     int_pt_rho += rN(i_node) * r_geometry[i_node].FastGetSolutionStepValue(DENSITY);
-    //     int_pt_v += rN(i_node) * r_geometry[i_node].FastGetSolutionStepValue(VELOCITY);
-    // }
-    // const double int_pt_v_norm = norm_2(int_pt_v);
+    // Get the velocity and density for the integration point
+    const auto& r_geometry = this->GetGeometry();
+    const std::size_t n_nodes = r_geometry.PointsNumber();
+    double int_pt_rho = rN(0) * r_geometry[0].FastGetSolutionStepValue(DENSITY);
+    array_1d<double,3> int_pt_v = rN(0) * r_geometry[0].FastGetSolutionStepValue(VELOCITY);
+    for (std::size_t i_node = 1;  i_node < n_nodes; ++i_node) {
+        int_pt_rho += rN(i_node) * r_geometry[i_node].FastGetSolutionStepValue(DENSITY);
+        int_pt_v += rN(i_node) * r_geometry[i_node].FastGetSolutionStepValue(VELOCITY);
+    }
+    const double int_pt_v_norm = norm_2(int_pt_v);
 
     // const double b_ref = 1.0;
 
@@ -559,7 +570,10 @@ std::pair<const double, const double> ShiftedBoundaryWallCondition<TDim>::Comput
 
     //const double stab_coeff = CharactLength / ( SlipLength + CharactLength );
 
-    const double stab_coeff = ParentSize / ( SlipLength + ParentSize );
+    // Scaling the shear terms with the Reynolds number for high Reynolds numbers with a cap of 1e4 to avoid ill-conditioning
+    const double re_scaling = std::min( 1e4, (int_pt_rho*int_pt_v_norm*ParentSize)/EffectiveViscosity );
+    const double stab_coeff = ParentSize / ( SlipLength/re_scaling + ParentSize );
+
     const double coeff_1 = stab_coeff * SlipLength;
     const double coeff_2 = stab_coeff * EffectiveViscosity;
 
