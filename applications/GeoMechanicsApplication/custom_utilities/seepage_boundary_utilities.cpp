@@ -10,6 +10,9 @@
 //  Main authors:    Richard Faasse,
 //                   Wijtze Pieter Kikstra
 
+#include <algorithm>
+#include <functional>
+#include <ranges>
 #include <set>
 
 #include "custom_conditions/geo_seepage_condition.h"
@@ -92,26 +95,22 @@ std::vector<Node*> SeepageBoundaryUtilities::CollectSeepageNodes(ModelPart& rMod
 namespace
 {
 
+using CandidatePredicateType = std::function<bool(const Node*)>;
+using ScoreCalculatorType    = std::function<double(const Node*)>;
+
 // Returns the node maximising the given score among the candidates, or nullptr when there are none.
 // Candidates are visited in ascending node id order, and a strict comparison keeps the first of any
 // tie, which makes the choice reproducible.
-template <typename PredicateType, typename ScoreType>
-Node* SelectBestCandidate(const std::vector<Node*>& rNodes, PredicateType IsCandidate, ScoreType Score)
+Node* SelectBestCandidate(const std::vector<Node*>&     rNodes,
+                          const CandidatePredicateType& rIsCandidate,
+                          const ScoreCalculatorType&    rScoreCalculator)
 {
-    Node* p_result   = nullptr;
-    auto  best_score = 0.0;
-
-    for (auto* p_node : rNodes) {
-        if (!IsCandidate(*p_node)) continue;
-
-        const auto score = Score(*p_node);
-        if (!p_result || score > best_score) {
-            p_result   = p_node;
-            best_score = score;
-        }
-    }
-
-    return p_result;
+    auto candidates = rNodes | std::views::filter(rIsCandidate);
+    auto first_score_less_than_second_score = [&rScoreCalculator](auto* pFirstNode, auto* pSecondNode) {
+        return rScoreCalculator(pFirstNode) < rScoreCalculator(pSecondNode);
+    };
+    auto iter = std::ranges::max_element(candidates, first_score_less_than_second_score);
+    return iter != candidates.end() ? *iter : nullptr;
 }
 
 } // namespace
@@ -131,9 +130,14 @@ bool SeepageBoundaryUtilities::SwitchOneSeepageNodeIfNeeded(const std::vector<No
 
     // A free node under positive pressure is unsaturated, so it cannot be a draining face. Fixing
     // takes precedence over releasing.
-    if (auto* p_node = SelectBestCandidate(rSeepageNodes, [](const Node& rNode) {
-        return !rNode.IsFixed(WATER_PRESSURE) && rNode.FastGetSolutionStepValue(WATER_PRESSURE) < 0.0;
-    }, [](const Node& rNode) { return -1.0 * rNode.FastGetSolutionStepValue(WATER_PRESSURE); })) {
+    auto is_candidate     = CandidatePredicateType{[](const auto* pNode) {
+        return pNode && !pNode->IsFixed(WATER_PRESSURE) &&
+               pNode->FastGetSolutionStepValue(WATER_PRESSURE) < 0.0;
+    }};
+    auto score_calculator = ScoreCalculatorType{[](const auto* pNode) {
+        return pNode ? -1.0 * pNode->FastGetSolutionStepValue(WATER_PRESSURE) : 0.0;
+    }};
+    if (auto* p_node = SelectBestCandidate(rSeepageNodes, is_candidate, score_calculator)) {
         KRATOS_INFO_IF("Switch", EchoLevel > 1)
             << "Node " << p_node->Id() << " switched to Dirichlet, because pressure was "
             << p_node->FastGetSolutionStepValue(WATER_PRESSURE) << "\n";
@@ -147,10 +151,12 @@ bool SeepageBoundaryUtilities::SwitchOneSeepageNodeIfNeeded(const std::vector<No
         const auto it = rNodalFlows.find(rNode.Id());
         return it == rNodalFlows.end() ? 0.0 : it->second;
     };
-
-    if (auto* p_node = SelectBestCandidate(rSeepageNodes, [&flow_of](const Node& rNode) {
-        return rNode.IsFixed(WATER_PRESSURE) && flow_of(rNode) < -1e-11;
-    }, [&flow_of](const Node& rNode) { return -1.0 * flow_of(rNode); })) {
+    is_candidate     = CandidatePredicateType{[&flow_of](const auto* pNode) {
+        return pNode && pNode->IsFixed(WATER_PRESSURE) && flow_of(*pNode) < -1e-11;
+    }};
+    score_calculator = ScoreCalculatorType{
+        [&flow_of](const auto* pNode) { return pNode ? -1.0 * flow_of(*pNode) : 0.0; }};
+    if (auto* p_node = SelectBestCandidate(rSeepageNodes, is_candidate, score_calculator)) {
         KRATOS_INFO_IF("Switch", EchoLevel > 1) << "Node " << p_node->Id() << " switched to Neumann, because flow was "
                                                 << flow_of(*p_node) << "\n";
         p_node->Free(WATER_PRESSURE);
