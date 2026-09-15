@@ -1,0 +1,84 @@
+{
+    "custom_entries": [
+        "Applications_Gallery.md",
+        "Adaptive_Remeshing.md",
+        {
+            "type": "kratos_example",
+            "raw_url": "https://raw.githubusercontent.com/KratosMultiphysics/Examples/master/contact_structural_mechanics/validation/double_arch/README.md",
+            "source_url": "https://github.com/KratosMultiphysics/Examples/tree/master/contact_structural_mechanics/validation/double_arch",
+            "file_name": "Example_Double_Arch_Benchmark.md"
+        },
+        {
+            "type": "kratos_example",
+            "raw_url": "https://raw.githubusercontent.com/KratosMultiphysics/Examples/master/contact_structural_mechanics/validation/hertz/README.md",
+            "source_url": "https://github.com/KratosMultiphysics/Examples/tree/master/contact_structural_mechanics/validation/hertz",
+            "file_name": "Example_Hertz_Benchmark.md"
+        },
+        {
+            "type": "kratos_example",
+            "raw_url": "https://raw.githubusercontent.com/KratosMultiphysics/Examples/master/contact_structural_mechanics/validation/hertz_full/README.md",
+            "source_url": "https://github.com/KratosMultiphysics/Examples/tree/master/contact_structural_mechanics/validation/hertz_full",
+            "file_name": "Example_Full_Hertz_Benchmark.md"
+        },
+        {
+            "type": "kratos_example",
+            "raw_url": "https://raw.githubusercontent.com/KratosMultiphysics/Examples/master/contact_structural_mechanics/validation/shallow_ironing_3D/README.md",
+            "source_url": "https://github.com/KratosMultiphysics/Examples/tree/master/contact_structural_mechanics/validation/shallow_ironing_3D",
+            "file_name": "Example_Shallow_Ironing_3D.md"
+        },
+        {
+            "type": "kratos_example",
+            "raw_url": "https://raw.githubusercontent.com/KratosMultiphysics/Examples/master/contact_structural_mechanics/validation/press_fit/README.md",
+            "source_url": "https://github.com/KratosMultiphysics/Examples/tree/master/contact_structural_mechanics/validation/press_fit",
+            "file_name": "Example_Press_Fit.md"
+        },
+        {
+            "type": "kratos_example",
+            "raw_url": "https://raw.githubusercontent.com/KratosMultiphysics/Examples/master/contact_structural_mechanics/use_cases/cylinders/README.md",
+            "source_url": "https://github.com/KratosMultiphysics/Examples/tree/master/contact_structural_mechanics/use_cases/cylinders",
+            "file_name": "Example_Contacting_Cylinders.md"
+        },
+        {
+            "type": "kratos_example",
+            "raw_url": "https://raw.githubusercontent.com/KratosMultiphysics/Examples/master/contact_structural_mechanics/use_cases/ironing_with_die_3D/README.md",
+            "source_url": "https://github.com/KratosMultiphysics/Examples/tree/master/contact_structural_mechanics/use_cases/ironing_with_die_3D",
+            "file_name": "Example_Ironing_With_Die_3D.md"
+        },
+        {
+            "type": "kratos_example",
+            "raw_url": "https://raw.githubusercontent.com/KratosMultiphysics/Examples/master/contact_structural_mechanics/use_cases/in_ring/README.md",
+            "source_url": "https://github.com/KratosMultiphysics/Examples/tree/master/contact_structural_mechanics/use_cases/in_ring",
+            "file_name": "Example_Cylinder_In_Ring.md"
+        },
+        {
+            "type": "kratos_example",
+            "raw_url": "https://raw.githubusercontent.com/KratosMultiphysics/Examples/master/contact_structural_mechanics/use_cases/hyperelastic_tubes/README.md",
+            "source_url": "https://github.com/KratosMultiphysics/Examples/tree/master/contact_structural_mechanics/use_cases/hyperelastic_tubes",
+            "file_name": "Example_Hyperelastic_Tubes.md"
+        },
+        {
+            "type": "kratos_example",
+            "raw_url": "https://raw.githubusercontent.com/KratosMultiphysics/Examples/master/contact_structural_mechanics/use_cases/tooth_model/README.md",
+            "source_url": "https://github.com/KratosMultiphysics/Examples/tree/master/contact_structural_mechanics/use_cases/tooth_model",
+            "file_name": "Example_Tooth_Model.md"
+        },
+        {
+            "type": "kratos_example",
+            "raw_url": "https://raw.githubusercontent.com/KratosMultiphysics/Examples/master/contact_structural_mechanics/use_cases/arc_block/README.md",
+            "source_url": "https://github.com/KratosMultiphysics/Examples/tree/master/contact_structural_mechanics/use_cases/arc_block",
+            "file_name": "Example_Arc_Pressing_Block.md"
+        },
+        {
+            "type": "kratos_example",
+            "raw_url": "https://raw.githubusercontent.com/KratosMultiphysics/Examples/master/contact_structural_mechanics/use_cases/gears/README.md",
+            "source_url": "https://github.com/KratosMultiphysics/Examples/tree/master/contact_structural_mechanics/use_cases/gears",
+            "file_name": "Example_Gears.md"
+        },
+        {
+            "type": "kratos_example",
+            "raw_url": "https://raw.githubusercontent.com/KratosMultiphysics/Examples/master/contact_structural_mechanics/use_cases/self_contact/README.md",
+            "source_url": "https://github.com/KratosMultiphysics/Examples/tree/master/contact_structural_mechanics/use_cases/self_contact",
+            "file_name": "Example_Self_Contact.md"
+        }
+    ]
+}

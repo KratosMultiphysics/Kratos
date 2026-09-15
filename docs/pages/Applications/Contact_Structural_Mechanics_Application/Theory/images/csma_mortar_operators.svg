@@ -1,0 +1,85 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" width="1600" height="900">
+<style>text{font-family:Helvetica,Arial,sans-serif;fill:#1f2937}.title{font-size:30px;font-weight:bold}.sub{font-size:17px;fill:#6b7280}
+.h{font-size:18px;font-weight:bold}.b{font-size:14px}.s{font-size:13px;fill:#6b7280}.m{font-size:17px}.mb{font-size:19px;font-weight:bold}.lab{font-size:14px;font-style:italic}.foot{font-size:13px;fill:#6b7280}.ax{font-size:12px;fill:#6b7280}</style>
+<defs><marker id="ar" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#6b7280"/></marker>
+<marker id="arr" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#dc2626"/></marker></defs>
+<rect width="1600" height="900" fill="#ffffff"/>
+<text x="30" y="44" class="title">Mortar operators D and M, dual Lagrange multipliers and the weighted gap</text>
+<text x="30" y="72" class="sub">Segment-to-segment (mortar) coupling integrated on the slave side — thesis §4.3.3.4 (eqs. 4.19–4.31); kratos/includes/mortar_classes.h</text>
+<rect x="30" y="96" width="760" height="420" rx="10" fill="#f8fafc" stroke="#6b7280" stroke-width="2"/>
+<text x="46" y="124" class="h" fill="#1f2937" text-anchor="start">1 · Geometry of one pair (2D): slave segment (integration side) and master segment</text>
+<line x1="110" y1="430" x2="470" y2="400" stroke="#dc2626" stroke-width="5"/>
+<line x1="200" y1="290" x2="560" y2="240" stroke="#2563eb" stroke-width="5"/>
+<circle cx="110" cy="430" r="7" fill="#dc2626"/>
+<circle cx="470" cy="400" r="7" fill="#dc2626"/>
+<circle cx="200" cy="290" r="7" fill="#2563eb"/>
+<circle cx="560" cy="240" r="7" fill="#2563eb"/>
+<text x="100" y="456" class="lab" fill="#dc2626" text-anchor="start">x¹₁ (slave node 1)</text>
+<text x="430" y="426" class="lab" fill="#dc2626" text-anchor="start">x¹₂ (slave node 2)</text>
+<text x="140" y="274" class="lab" fill="#2563eb" text-anchor="start">x²₁ (master node 1)</text>
+<text x="500" y="224" class="lab" fill="#2563eb" text-anchor="start">x²₂ (master node 2)</text>
+<line x1="290.0" y1="415.0" x2="284.1868164102382" y2="345.24179692285844" stroke="#dc2626" stroke-width="2" marker-end="url(#arr)"/>
+<text x="292.1868164102382" y="349.24179692285844" class="lab" fill="#dc2626" text-anchor="start">n (slave normal)</text>
+<line x1="110" y1="430" x2="99" y2="304" stroke="#6b7280" stroke-width="1.5" stroke-dasharray="5 4"/>
+<circle cx="99" cy="304" r="5" fill="#ffffff" stroke="#2563eb" stroke-width="2"/>
+<line x1="470" y1="400" x2="458" y2="254" stroke="#6b7280" stroke-width="1.5" stroke-dasharray="5 4"/>
+<circle cx="458" cy="254" r="5" fill="#ffffff" stroke="#2563eb" stroke-width="2"/>
+<line x1="200" y1="302" x2="458" y2="266" stroke="#d97706" stroke-width="6" opacity="0.8"/>
+<text x="258.92448512585815" y="310.0938215102975" class="lab" fill="#d97706" text-anchor="start">integration cell (clipped overlap), Gauss points ×</text>
+<text x="250.48348741418764" y="299.4328489702517" class="mb" fill="#d97706" text-anchor="start">×</text>
+<text x="399.3654828375286" y="278.75479405034326" class="mb" fill="#d97706" text-anchor="start">×</text>
+<text x="600" y="340" class="lab" fill="#6b7280" text-anchor="start">χ : slave → master</text>
+<text x="600" y="358" class="s" text-anchor="start">projection along n</text>
+<text x="46" y="470" class="b" text-anchor="start">Everything is integrated on the slave side Γc¹: the master shape functions are evaluated at the projected</text>
+<text x="46" y="490" class="b" text-anchor="start">points N²(χ(ξ)). The cell is the part of the slave segment whose projection falls inside the master (exact segmentation).</text>
+<rect x="820" y="96" width="750" height="260" rx="10" fill="#f5f3ff" stroke="#7c3aed" stroke-width="2"/>
+<text x="836" y="124" class="h" fill="#7c3aed" text-anchor="start">2 · Standard N_k vs dual Φ_j shape functions on the slave segment (ξ ∈ [−1, 1])</text>
+<line x1="880" y1="270.0" x2="1180" y2="270.0" stroke="#cbd5e1"/>
+<line x1="1030.0" y1="320.0" x2="1030.0" y2="170.0" stroke="#e5e7eb"/>
+<text x="872" y="324.0" class="ax" text-anchor="end">-1</text>
+<text x="872" y="274.0" class="ax" text-anchor="end">0</text>
+<text x="872" y="224.0" class="ax" text-anchor="end">1</text>
+<text x="872" y="174.0" class="ax" text-anchor="end">2</text>
+<text x="880" y="336" class="ax" text-anchor="start">−1</text>
+<text x="1170" y="336" class="ax" text-anchor="start">1</text>
+<text x="1026.0" y="336" class="ax" text-anchor="start">0</text>
+<line x1="880.0" y1="220.0" x2="1180.0" y2="270.0" stroke="#6b7280" stroke-width="2"/>
+<line x1="880.0" y1="270.0" x2="1180.0" y2="220.0" stroke="#6b7280" stroke-width="2" stroke-dasharray="6 4"/>
+<line x1="880.0" y1="170.0" x2="1180.0" y2="320.0" stroke="#dc2626" stroke-width="2.5"/>
+<line x1="880.0" y1="320.0" x2="1180.0" y2="170.0" stroke="#2563eb" stroke-width="2.5"/>
+<text x="1210" y="170" class="b" text-anchor="start">N₁ = (1−ξ)/2,  N₂ = (1+ξ)/2   (grey)</text>
+<text x="1210" y="195" class="b" text-anchor="start">Φ₁ = (1−3ξ)/2   (red),   Φ₂ = (1+3ξ)/2   (blue)</text>
+<text x="1210" y="225" class="b" text-anchor="start">biorthogonality (thesis eq. 4.21):</text>
+<text x="1210" y="248" class="m" text-anchor="start">∫ₑ Φⱼ N¹ₖ de = δⱼₖ ∫ₑ N¹ₖ de</text>
+<text x="1210" y="276" class="m" text-anchor="start">Φⱼ = aⱼₖ N¹ₖ,   Aₑ = Dₑ Mₑ⁻¹  (eq. 4.23–4.24)</text>
+<text x="1210" y="300" class="s" text-anchor="start">Φ takes negative values but sums to 1; D becomes diagonal.</text>
+<text x="1210" y="318" class="s" text-anchor="start">On distorted elements Aₑ is computed numerically per element.</text>
+<text x="1210" y="342" class="s" text-anchor="start">code: DualLagrangeMultiplierOperators::CalculateAe</text>
+<rect x="820" y="376" width="750" height="250" rx="10" fill="#f0fdfa" stroke="#0d9488" stroke-width="2"/>
+<text x="836" y="404" class="h" fill="#0d9488" text-anchor="start">3 · Mortar operators (thesis eq. 4.29) and the weighted gap (eq. 4.31)</text>
+<text x="836" y="436" class="m" text-anchor="start">D[j,k] = ∫Γc¹ Φⱼ N¹ₖ dΓ · I  =  Σ_g w_g φ_gj N¹_gk J_g          (slave–slave, DIAGONAL with dual Φ)</text>
+<text x="836" y="464" class="m" text-anchor="start">M[j,l] = ∫Γc¹ Φⱼ (N²ₗ ∘ χ) dΓ · I  =  Σ_g w_g φ_gj N²_gl J_g      (slave–master, dense)</text>
+<text x="836" y="496" class="m" text-anchor="start">weighted gap of slave node j:   g̃ⁱ_n,j = nⱼ · (D x¹ − M x²)ⱼ        (WEIGHTED_GAP)</text>
+<text x="836" y="524" class="m" text-anchor="start">forces:  f_co = B_coᵀ λ  with  B_co = [ 0 , −Mᵀ , Dᵀ ]   on [ other , master , slave ] DoFs</text>
+<text x="836" y="554" class="s" text-anchor="start">sizes: D ∈ ℝ^{n_slave × n_slave}, M ∈ ℝ^{n_slave × n_master}; both stored per pair in MortarOperator</text>
+<text x="836" y="574" class="s" text-anchor="start">(mortar_classes.h: CalculateMortarOperators, CalculatePOperator = D⁻¹M) and linearised in</text>
+<text x="836" y="594" class="s" text-anchor="start">MortarOperatorWithDerivatives (ΔD, ΔM from DerivativesUtilities) for the consistent tangent</text>
+<rect x="30" y="546" width="760" height="260" rx="10" fill="#fffbeb" stroke="#d97706" stroke-width="2"/>
+<text x="46" y="574" class="h" fill="#d97706" text-anchor="start">4 · From the weighted gap to the contact state (thesis eqs. 4.13, 4.41–4.44)</text>
+<text x="46" y="606" class="m" text-anchor="start">augmented normal pressure:   λ̄_n = k λ_n + ε g̃_n     (k = SCALE_FACTOR, ε = INITIAL_PENALTY)</text>
+<text x="46" y="634" class="m" text-anchor="start">λ̄_n &lt; 0  ⇒ node ACTIVE (contact zone): condition assembles  λ̄_n n · (D w¹ − M w²) + k g̃_n w_λ</text>
+<text x="46" y="662" class="m" text-anchor="start">λ̄_n ≥ 0  ⇒ node INACTIVE (gap zone): condition assembles  −(k²/ε) λ_n w_λ  (λ_n → 0)</text>
+<text x="46" y="694" class="b" text-anchor="start">penalty formulations: λ̄_n = ε g̃_n and no multiplier DoFs; frictional: λ̄_τ = k λ_τ + TANGENT_FACTOR·ε·g̃_τ</text>
+<text x="46" y="716" class="b" text-anchor="start">default calibration (thesis eq. 4.11): ε = k ≈ stiffness_factor · E_mean / h_mean  (ALMVariablesCalculationProcess)</text>
+<text x="46" y="746" class="s" text-anchor="start">NCP function (eq. 4.44): C(λ_n, g̃_n) = k λ_n − max(0, k λ_n + ε g̃_n) = 0  ⇔  KKT conditions g̃_n ≥ 0, λ_n ≤ 0, λ_n g̃_n = 0</text>
+<text x="46" y="766" class="s" text-anchor="start">Node loop with these checks: ActiveSetUtilities (see csma_active_set_flowchart); integration: ExactMortarIntegrationUtility,</text>
+<text x="46" y="786" class="s" text-anchor="start">INTEGRATION_ORDER_CONTACT Gauss points per cell, CONSIDER_TESSELLATION for warped quadrilaterals.</text>
+<rect x="820" y="646" width="750" height="160" rx="10" fill="#eff6ff" stroke="#2563eb" stroke-width="2"/>
+<text x="836" y="674" class="h" fill="#2563eb" text-anchor="start">5 · 3D pairs</text>
+<text x="836" y="702" class="b" text-anchor="start">Slave triangle / quadrilateral projected onto the master plane, clipped polygon → fan-triangulated cells,</text>
+<text x="836" y="722" class="b" text-anchor="start">each cell mapped back to the slave and to the master (thesis Figs. 4.100–4.101, App. A.2).</text>
+<text x="836" y="748" class="b" text-anchor="start">Dual Φ on the reference triangle: Φⱼ = 4Nⱼ − 1 (Aₑ = 4I − 11ᵀ); reference quad: Φ₁ = 4N₁ − 2N₂ + N₃ − 2N₄ (Figs. 4.16, 4.17).</text>
+<text x="836" y="772" class="b" text-anchor="start">Mixed pairs 3D3N4N / 3D4N3N use the slave functions for Φ and the master functions through χ.</text>
+<text x="836" y="794" class="s" text-anchor="start">Exact segmentation vs collocation: App. A.2.2, Figs. A.1–A.6 (Taylor patch test).</text>
+<text x="30" y="882" class="foot">ContactStructuralMechanicsApplication · Kratos Multiphysics</text>
+</svg>
