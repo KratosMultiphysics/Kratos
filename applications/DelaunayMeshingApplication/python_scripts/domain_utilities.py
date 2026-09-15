@@ -102,8 +102,6 @@ class DomainUtilities(object):
         # execute building:
         skin_build.Execute()
 
-        # search condition masters: (check)
-        # skin_build.SearchConditionMasters()
 
         if( echo_level > 0 ):
             print("::[--Domain Utilities-]:: Mesh Boundary Build executed ")

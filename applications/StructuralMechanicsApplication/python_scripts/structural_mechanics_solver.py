@@ -196,16 +196,21 @@ class MechanicalSolver(PythonSolver):
         return 2
 
     def AddDofs(self):
+        MechanicalSolver.AddDofsToModelPart(self.main_model_part, self.settings)
+        KratosMultiphysics.Logger.PrintInfo("::[MechanicalSolver]:: ", "DOF's ADDED")
+
+    @staticmethod
+    def AddDofsToModelPart(main_model_part, settings):
         # Append formulation-related DOFs and reactions
         dofs_and_reactions_to_add = []
         dofs_and_reactions_to_add.append(["DISPLACEMENT_X", "REACTION_X"])
         dofs_and_reactions_to_add.append(["DISPLACEMENT_Y", "REACTION_Y"])
         dofs_and_reactions_to_add.append(["DISPLACEMENT_Z", "REACTION_Z"])
-        if self.settings["rotation_dofs"].GetBool():
+        if settings["rotation_dofs"].GetBool():
             dofs_and_reactions_to_add.append(["ROTATION_X", "REACTION_MOMENT_X"])
             dofs_and_reactions_to_add.append(["ROTATION_Y", "REACTION_MOMENT_Y"])
             dofs_and_reactions_to_add.append(["ROTATION_Z", "REACTION_MOMENT_Z"])
-        if self.settings["volumetric_strain_dofs"].GetBool():
+        if settings["volumetric_strain_dofs"].GetBool():
             dofs_and_reactions_to_add.append(["VOLUMETRIC_STRAIN", "REACTION_STRAIN"])
             #TODO: These are only required in the nonlinear OSS case so we are adding them for nothing in the linearised OSS and ASGS
             #TODO: We can get rid of this overhead once we move to the specification-based variables and DOFs addition
@@ -213,8 +218,8 @@ class MechanicalSolver(PythonSolver):
             dofs_and_reactions_to_add.append(["DISPLACEMENT_PROJECTION_Y", "DISPLACEMENT_PROJECTION_REACTION_Y"])
             dofs_and_reactions_to_add.append(["DISPLACEMENT_PROJECTION_Z", "DISPLACEMENT_PROJECTION_REACTION_Z"])
             dofs_and_reactions_to_add.append(["VOLUMETRIC_STRAIN_PROJECTION", "VOLUMETRIC_STRAIN_PROJECTION_REACTION"])
-        if self.settings["strain_dofs"].GetBool():
-            dim = self.settings["domain_size"].GetInt()
+        if settings["strain_dofs"].GetBool():
+            dim = settings["domain_size"].GetInt()
             dofs_and_reactions_to_add.append(["STRAIN_VECTOR_XX", "REACTION_STRAIN_VECTOR_XX"])
             dofs_and_reactions_to_add.append(["STRAIN_VECTOR_YY", "REACTION_STRAIN_VECTOR_YY"])
             if dim == 3:
@@ -223,17 +228,17 @@ class MechanicalSolver(PythonSolver):
             if dim == 3:
                 dofs_and_reactions_to_add.append(["STRAIN_VECTOR_YZ", "REACTION_STRAIN_VECTOR_YZ"])
                 dofs_and_reactions_to_add.append(["STRAIN_VECTOR_XZ", "REACTION_STRAIN_VECTOR_XZ"])
-        if self.settings["displacement_control"].GetBool():
+        if settings["displacement_control"].GetBool():
             dofs_and_reactions_to_add.append(["LOAD_FACTOR", "PRESCRIBED_DISPLACEMENT"])
 
         # Append user-defined DOFs and reactions in the ProjectParameters
-        auxiliary_solver_utilities.AddAuxiliaryDofsToDofsWithReactionsList(
-            self.settings["auxiliary_dofs_list"],
-            self.settings["auxiliary_reaction_list"],
-            dofs_and_reactions_to_add)
+        if settings.Has("auxiliary_dofs_list") and settings.Has("auxiliary_reaction_list"):
+            auxiliary_solver_utilities.AddAuxiliaryDofsToDofsWithReactionsList(
+                settings["auxiliary_dofs_list"],
+                settings["auxiliary_reaction_list"],
+                dofs_and_reactions_to_add)
 
-        KratosMultiphysics.VariableUtils.AddDofsList(dofs_and_reactions_to_add, self.main_model_part)
-        KratosMultiphysics.Logger.PrintInfo("::[MechanicalSolver]:: ", "DOF's ADDED")
+        KratosMultiphysics.VariableUtils.AddDofsList(dofs_and_reactions_to_add, main_model_part)
 
     def GetDofsList(self):
         """This function creates and returns a list with the DOFs defined in the conditions and elements specifications
