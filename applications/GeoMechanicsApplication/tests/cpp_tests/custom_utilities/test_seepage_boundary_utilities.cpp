@@ -17,6 +17,7 @@
 #include "geo_mechanics_application_variables.h"
 #include "geometries/line_2d_2.h"
 #include "includes/variables.h"
+#include "test_setup_utilities/model_setup_utilities.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
 
 using namespace Kratos;
@@ -25,14 +26,12 @@ using namespace std::string_literals;
 namespace
 {
 
-// Builds a model part with a chain of nodes along the x axis, each owning a WATER_PRESSURE dof.
+// Builds a model part with the given number of nodes, each owning a WATER_PRESSURE DoF.
 ModelPart& CreateModelPartWithNodes(Model& rModel, std::size_t NumberOfNodes)
 {
     auto& r_model_part = rModel.CreateModelPart("Main"s);
     r_model_part.AddNodalSolutionStepVariable(WATER_PRESSURE);
-    for (auto i = std::size_t{1}; i <= NumberOfNodes; ++i) {
-        r_model_part.CreateNewNode(static_cast<int>(i), static_cast<double>(i), 0.0, 0.0);
-    }
+    Testing::ModelSetupUtilities::CreateNumberOfNewNodes(r_model_part, NumberOfNodes);
     for (auto& r_node : r_model_part.Nodes()) {
         r_node.AddDof(WATER_PRESSURE);
     }
@@ -252,7 +251,7 @@ KRATOS_TEST_CASE_IN_SUITE(AssignNodalWaterFlowsWritesMappedValuesAndZeroesTheRes
     for (auto i = std::size_t{1}; i <= 3; ++i) {
         r_model_part.CreateNewNode(static_cast<int>(i), static_cast<double>(i), 0.0, 0.0);
     }
-    // Pre-seed a stale value on node 3 to prove it gets zeroed.
+    // Pre-seed a stale value on node 3 to prove it gets overwritten.
     r_model_part.pGetNode(3)->FastGetSolutionStepValue(NODAL_WATER_FLOW) = 99.0;
 
     // Node 2 is deliberately absent from the map and must end up at 0.0.
