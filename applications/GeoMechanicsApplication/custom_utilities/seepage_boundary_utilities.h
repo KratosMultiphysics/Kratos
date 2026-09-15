@@ -35,11 +35,11 @@ public:
      * @brief Adds the entries of an element's right-hand side that belong to WATER_PRESSURE degrees
      * of freedom onto their nodes.
      *
-     * rDofs must be the element's own degrees of freedom, in the same order as rRightHandSide.
+     * rElementDofs must be the element's own degrees of freedom, in the same order as rElementRightHandSide.
      */
-    static void AccumulateWaterPressureEntries(const std::vector<Dof<double>*>& rDofs,
-                                               const Vector&                    rRightHandSide,
-                                               NodalFlowMap&                    rNodalFlows);
+    static void AccumulateWaterPressureEntries(const std::vector<Dof<double>*>& rElementDofs,
+                                               const Vector& rElementRightHandSide,
+                                               NodalFlowMap& rNodalFlows);
 
     /**
      * @brief Returns the nodal water flow for every unique node of the given elements, assembled

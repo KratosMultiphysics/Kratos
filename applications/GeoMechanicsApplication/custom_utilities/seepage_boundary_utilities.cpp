@@ -23,18 +23,18 @@
 namespace Kratos::Geo
 {
 
-void SeepageBoundaryUtilities::AccumulateWaterPressureEntries(const std::vector<Dof<double>*>& rDofs,
-                                                              const Vector& rRightHandSide,
+void SeepageBoundaryUtilities::AccumulateWaterPressureEntries(const std::vector<Dof<double>*>& rElementDofs,
+                                                              const Vector& rElementRightHandSide,
                                                               NodalFlowMap& rNodalFlows)
 {
-    KRATOS_ERROR_IF(rDofs.size() > rRightHandSide.size())
-        << "Number of degrees of freedom (" << rDofs.size()
-        << ") exceeds the size of the right hand side (" << rRightHandSide.size() << ")" << std::endl;
+    KRATOS_ERROR_IF(rElementDofs.size() > rElementRightHandSide.size())
+        << "Number of degrees of freedom (" << rElementDofs.size() << ") exceeds the size of the right hand side ("
+        << rElementRightHandSide.size() << ")" << std::endl;
 
-    for (auto i = std::size_t{0}; i < rDofs.size(); ++i) {
-        if (rDofs[i]->GetVariable() != WATER_PRESSURE) continue;
+    for (auto i = std::size_t{0}; i < rElementDofs.size(); ++i) {
+        if (rElementDofs[i]->GetVariable() != WATER_PRESSURE) continue;
 
-        rNodalFlows[rDofs[i]->Id()] += rRightHandSide[i];
+        rNodalFlows[rElementDofs[i]->Id()] += rElementRightHandSide[i];
     }
 }
 
