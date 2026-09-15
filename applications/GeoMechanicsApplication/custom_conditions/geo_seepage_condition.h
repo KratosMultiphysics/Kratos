@@ -26,8 +26,9 @@ class Serializer;
 //
 // This condition holds no state of its own. A node's WATER_PRESSURE fixity is the single source of
 // truth for its boundary type: fixed means a Dirichlet boundary at zero pressure, free means a
-// zero-flux Neumann boundary. GeoNewtonRaphsonStrategyWithSeepage switches individual nodes while
-// iterating. This condition only marks which element boundaries belong to the seepage face.
+// zero-flux Neumann boundary. GeoMechanicsNewtonRaphsonStrategyWithSeepage switches individual
+// nodes while iterating. This condition only marks which element boundaries belong to the seepage
+// face.
 //
 // The condition never contributes to the linear system.
 class KRATOS_API(GEO_MECHANICS_APPLICATION) GeoSeepageCondition : public Condition
