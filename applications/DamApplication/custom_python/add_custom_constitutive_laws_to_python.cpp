@@ -9,6 +9,7 @@
 
 // Project includes
 #include "includes/constitutive_law.h"
+#include "includes/database_accessor.h"
 
 //Application includes
 #include "custom_python/add_custom_constitutive_laws_to_python.h"
@@ -18,7 +19,6 @@
 #include "custom_constitutive/thermal_linear_elastic_2D_plane_strain.hpp"
 #include "custom_constitutive/thermal_linear_elastic_2D_plane_stress.hpp"
 
-#include "custom_utilities/nodal_young_modulus_accessor.h"
 
 #include "custom_constitutive/linear_elastic_2D_plane_strain_nodal.hpp"
 #include "custom_constitutive/linear_elastic_2D_plane_stress_nodal.hpp"
@@ -68,28 +68,28 @@ namespace Kratos
             // the existing Dam thermal adapters (which retrieve E through the
             // accessor-aware Properties::GetValue). The historical nodal names are
             // kept as aliases so existing material files keep working. The spatially
-            // varying Young's modulus is supplied by the NodalYoungModulusAccessor
-            // installed by the nodal Young's modulus processes.
+            // varying Young's modulus is stored as nodal YOUNG_MODULUS and retrieved
+            // through the standard Kratos DatabaseAccessor.
             m.attr("LinearElastic3DLawNodal") = py::module_::import(
                 "KratosMultiphysics.StructuralMechanicsApplication").attr("FlexibleLinearElastic3DLaw");
             m.attr("ThermalLinearElastic3DLawNodal") = m.attr("ThermalLinearElastic3DLaw");
             m.attr("ThermalLinearElastic2DPlaneStrainNodal") = m.attr("ThermalLinearElastic2DPlaneStrain");
             m.attr("ThermalLinearElastic2DPlaneStressNodal") = m.attr("ThermalLinearElastic2DPlaneStress");
 
-            // Installs the NodalYoungModulusAccessor (which exposes the historical
-            // NODAL_YOUNG_MODULUS field as YOUNG_MODULUS through the standard
-            // Properties::GetValue mechanism) on every property of the model part.
-            // The nodal Young's modulus processes already do this; the helper is
-            // provided for workflows that prescribe the nodal field by other means.
-            m.def("AddNodalYoungModulusAccessor", [](ModelPart& rModelPart) {
+            // Installs the standard Kratos DatabaseAccessor (node_historical) that
+            // exposes the nodal YOUNG_MODULUS field through Properties. The nodal
+            // Young's modulus processes already install it; this helper is provided
+            // for workflows that prescribe the nodal field by other means.
+            m.def("AddYoungModulusDatabaseAccessor", [](ModelPart& rModelPart) {
                 for (auto& r_properties : rModelPart.GetMesh(0).Properties()) {
                     if (!r_properties.HasAccessor(YOUNG_MODULUS)) {
                         r_properties.SetAccessor(
                             YOUNG_MODULUS,
-                            Kratos::make_unique<NodalYoungModulusAccessor>());
+                            Kratos::make_unique<DatabaseAccessor>("node_historical"));
                     }
                 }
             }, py::arg("model_part"));
+
 
             py::class_< ThermalSimoJuLocalDamage3DLaw, ThermalSimoJuLocalDamage3DLaw::Pointer, ConstitutiveLaw >
             (m, "ThermalSimoJuLocalDamage3DLaw")

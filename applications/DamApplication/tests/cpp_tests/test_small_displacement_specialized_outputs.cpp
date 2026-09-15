@@ -37,7 +37,7 @@
 #include "dam_application_variables.h"
 #include "custom_constitutive/thermal_linear_elastic_3D_law.hpp"
 #include "custom_constitutive/thermal_linear_elastic_2D_plane_stress.hpp"
-#include "custom_utilities/nodal_young_modulus_accessor.h"
+#include "custom_utilities/nodal_young_modulus_utilities.h"
 #include "custom_constitutive/elastic_isotropic_3d.h"
 #include "custom_constitutive/thermal_simo_ju_local_damage_3D_law.hpp"
 #include "custom_constitutive/thermal_simo_ju_local_damage_plane_strain_2D_law.hpp"
@@ -114,7 +114,7 @@ ModelPart& CreateOutputModelPart(
     r_pi[IS_CONVERGED] = true;
     for (auto& v : std::vector<const VariableData*>{&DISPLACEMENT, &VELOCITY, &ACCELERATION,
                     &VOLUME_ACCELERATION, &TEMPERATURE, &NODAL_REFERENCE_TEMPERATURE,
-                    &NODAL_YOUNG_MODULUS, &NODAL_CAUCHY_STRESS_TENSOR, &NODAL_AREA,
+                    &YOUNG_MODULUS, &NODAL_CAUCHY_STRESS_TENSOR, &NODAL_AREA,
                     &INITIAL_STRESS_TENSOR}) {
         r_model_part.AddNodalSolutionStepVariable(*v);
     }
@@ -128,7 +128,7 @@ ModelPart& CreateOutputModelPart(
         n->AddDof(DISPLACEMENT_X); n->AddDof(DISPLACEMENT_Y); n->AddDof(DISPLACEMENT_Z);
         n->FastGetSolutionStepValue(NODAL_REFERENCE_TEMPERATURE) = sdso_test_reference_temperature;
         n->FastGetSolutionStepValue(TEMPERATURE) = sdso_test_reference_temperature;
-        n->FastGetSolutionStepValue(NODAL_YOUNG_MODULUS) = 2.0e7;
+        n->FastGetSolutionStepValue(YOUNG_MODULUS) = 2.0e7;
         Matrix z3(3, 3); noalias(z3) = ZeroMatrix(3, 3);
         n->FastGetSolutionStepValue(INITIAL_STRESS_TENSOR) = z3;
     }
@@ -418,7 +418,7 @@ void VerifyNodalLinear(
     // Non-uniform nodal state (E, temperature, reference temperature).
     for (auto& n : r_mp.Nodes()) {
         const auto& x0 = n.GetInitialPosition();
-        n.FastGetSolutionStepValue(NODAL_YOUNG_MODULUS) = 2.0e7 + 1.0e6 * (x0[0] + x0[1]);
+        n.FastGetSolutionStepValue(YOUNG_MODULUS) = 2.0e7 + 1.0e6 * (x0[0] + x0[1]);
         n.FastGetSolutionStepValue(TEMPERATURE) = sdso_test_reference_temperature + 10.0 + 2.0 * x0[0];
         n.FastGetSolutionStepValue(NODAL_REFERENCE_TEMPERATURE) = sdso_test_reference_temperature - 5.0 + x0[1];
     }
@@ -426,12 +426,11 @@ void VerifyNodalLinear(
     // The spatially varying Young's modulus is now supplied through the standard
     // Accessor mechanism: the standard thermal law retrieves YOUNG_MODULUS via
     // Properties::GetValue, which is interpolated from NODAL_YOUNG_MODULUS.
-    r_mp.pGetProperties(1)->SetAccessor(
-        YOUNG_MODULUS, Kratos::make_unique<NodalYoungModulusAccessor>());
+    NodalYoungModulusUtilities::InstallDatabaseAccessor(*r_mp.pGetProperties(1));
 
     const GeometryData::IntegrationMethod integration_method = p_elem->GetIntegrationMethod();
     const Geometry<Node>& r_geometry = p_elem->GetGeometry();
-    const double e_interp = InterpolateScalarAtGP(r_geometry, NODAL_YOUNG_MODULUS, 0, integration_method);
+    const double e_interp = InterpolateScalarAtGP(r_geometry, YOUNG_MODULUS, 0, integration_method);
     const double t_interp = InterpolateScalarAtGP(r_geometry, TEMPERATURE, 0, integration_method);
     const double tref_interp = InterpolateScalarAtGP(r_geometry, NODAL_REFERENCE_TEMPERATURE, 0, integration_method);
     const double delta_temperature = t_interp - tref_interp;
