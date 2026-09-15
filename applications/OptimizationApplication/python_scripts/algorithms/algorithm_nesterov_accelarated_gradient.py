@@ -38,7 +38,7 @@ class AlgorithmNesterovAcceleratedGradient(AlgorithmSteepestDescent):
     @time_decorator()
     def ComputeControlUpdate(self, alpha: Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor):
         # compute the correction part from momentum point
-        search_direction: Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor = self.algorithm_data.GetBufferedData()["search_direction"]
+        search_direction: Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor = self.algorithm_data_manager.GetValue("search_direction")
         update = Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor(search_direction, perform_collect_data_recursively=False, perform_store_data_recursively=False)
         update.data[:] *= alpha.data[:]
         update.StoreData()
@@ -50,11 +50,11 @@ class AlgorithmNesterovAcceleratedGradient(AlgorithmSteepestDescent):
             control_field_update = Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor(mom_update, perform_store_data_recursively=False)
             control_field_update.data[:] = update.data + mom_update.data * self.eta
             control_field_update.StoreData()
-            self.algorithm_data.GetBufferedData()["control_field_update"] = control_field_update
+            self.algorithm_data_manager.SetValue("control_field_update", control_field_update)
             self.prev_update = mom_update
         else:
             control_field_update = Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor(update, perform_store_data_recursively=False)
             control_field_update.data[:] = update.data * (1 + self.eta)
             control_field_update.StoreData()
-            self.algorithm_data.GetBufferedData()["control_field_update"] = control_field_update
+            self.algorithm_data_manager.SetValue("control_field_update", control_field_update)
             self.prev_update = update
