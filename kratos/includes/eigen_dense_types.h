@@ -68,9 +68,19 @@ constexpr int EigenBoundedMatrixOptions(const std::size_t Size1, const std::size
     return ((Size2 == 1 && Size1 != 1) ? Eigen::ColMajor : Eigen::RowMajor) | Eigen::DontAlign;
 }
 
-/// Dynamic, row-major Eigen matrix (the plain object behind the Kratos dense matrices).
+/// Dynamic Eigen matrix of the given storage order (Eigen::RowMajor or
+/// Eigen::ColMajor) - the plain object behind the Kratos dense matrix types.
+/// Row-major by default, matching uBLAS's own default (row_major) and the
+/// storage order of the uBLAS dense matrices, so raw-buffer interoperability
+/// is preserved; an explicit Eigen::ColMajor is used where a routine written
+/// against a foreign (Fortran/LAPACK-style) API needs column-major storage
+/// (see Kratos::column_major in eigen_interface.h).
+template<class T, int TLayout = Eigen::RowMajor>
+using DynamicMatrix = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic, TLayout>;
+
+/// Kept for code written against the previous (row-major only) name.
 template<class T>
-using DynamicRowMajorMatrix = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>;
+using DynamicRowMajorMatrix = DynamicMatrix<T, Eigen::RowMajor>;
 
 /// Dynamic Eigen column vector (the plain object behind the Kratos dense vectors).
 template<class T>
@@ -80,23 +90,27 @@ using DynamicColumnVector = Eigen::Matrix<T, Eigen::Dynamic, 1>;
 
 /**
  * @class EigenMatrix
- * @brief Dense, dynamically sized, row-major Eigen matrix with the uBLAS member surface.
- * @details Row-major storage matches the storage order of the uBLAS dense
- * matrices, so raw-buffer interoperability is preserved. The added members
+ * @brief Dense, dynamically sized Eigen matrix with the uBLAS member surface.
+ * @details Row-major by default, matching the storage order of the uBLAS
+ * dense matrices (so raw-buffer interoperability is preserved); the second
+ * template parameter lets a handful of call sites request column-major
+ * storage instead (e.g. a local buffer handed to a Fortran/LAPACK-style
+ * routine, matching uBLAS's own matrix<T, column_major>). The added members
  * (size1/size2, the preserving resize, clear, data(), the assignment
  * protocol) mirror boost::numeric::ublas::matrix so generic Kratos code
  * compiles unchanged. Eigen only ever sees the base class, so shadowing its
  * members here is safe.
  * @tparam TDataType The scalar type stored in the matrix (e.g. double).
+ * @tparam TLayout The Eigen storage order (Eigen::RowMajor by default, or Eigen::ColMajor).
  */
-template<class TDataType>
-class EigenMatrix : public Internals::DynamicRowMajorMatrix<TDataType>
+template<class TDataType, int TLayout = Eigen::RowMajor>
+class EigenMatrix : public Internals::DynamicMatrix<TDataType, TLayout>
 {
 public:
     ///@name Type Definitions
     ///@{
 
-    using BaseType = Internals::DynamicRowMajorMatrix<TDataType>;
+    using BaseType = Internals::DynamicMatrix<TDataType, TLayout>;
     using value_type = TDataType;
     using size_type = std::size_t;
     using difference_type = std::ptrdiff_t;
@@ -232,8 +246,8 @@ public:
     /// Number of columns.
     std::size_t size2() const { return static_cast<std::size_t>(this->cols()); }
 
-    /// Contiguous (row-major) storage view, with the uBLAS data() surface and
-    /// an implicit conversion to the raw pointer.
+    /// Contiguous storage view (in TLayout order), with the uBLAS data()
+    /// surface and an implicit conversion to the raw pointer.
     Internals::StorageView<TDataType> data() { return {BaseType::data(), static_cast<std::size_t>(BaseType::size())}; }
     Internals::StorageView<const TDataType> data() const { return {BaseType::data(), static_cast<std::size_t>(BaseType::size())}; }
 
