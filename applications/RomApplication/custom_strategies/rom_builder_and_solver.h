@@ -249,7 +249,7 @@ public:
     SizeType GetNumberOfROMModes() const noexcept
     {
         return mNumberOfRomModes;
-    } 
+    }
 
     void ProjectToFineBasis(
         const TSystemVectorType& rRomUnkowns,
@@ -280,7 +280,7 @@ public:
         r_root_mp.GetValue(ROM_SOLUTION_INCREMENT) = ZeroVector(GetNumberOfROMModes());
     }
 
-    
+
     void BuildAndSolve(
         typename TSchemeType::Pointer pScheme,
         ModelPart &rModelPart,
@@ -414,7 +414,7 @@ protected:
     ///@}
     ///@name Protected operators
     ///@{
-    
+
     void BuildRHSNoDirichlet(
         ModelPart& rModelPart,
         TSystemVectorType& rb)
@@ -453,7 +453,7 @@ protected:
                     AtomicAdd(r_bi, r_rhs_cond[i]); // Building RHS.
                 }
             });
-        }   
+        }
 
         KRATOS_CATCH("")
 
@@ -497,7 +497,9 @@ protected:
             [&](Element::Pointer p_element)
         {
             if (p_element->Has(HROM_WEIGHT)) {
-                element_queue.enqueue(std::move(p_element));
+                if (p_element->GetValue(HROM_WEIGHT) != 0.0) {
+                    element_queue.enqueue(std::move(p_element));
+                }
             } else {
                 p_element->SetValue(HROM_WEIGHT, 1.0);
             }
@@ -509,7 +511,9 @@ protected:
             [&](Condition::Pointer p_condition)
         {
             if (p_condition->Has(HROM_WEIGHT)) {
-                condition_queue.enqueue(std::move(p_condition));
+                if (p_condition->GetValue(HROM_WEIGHT) != 0.0) {
+                    condition_queue.enqueue(std::move(p_condition));
+                }
             } else {
                 p_condition->SetValue(HROM_WEIGHT, 1.0);
             }
@@ -536,7 +540,7 @@ protected:
 
         KRATOS_CATCH("")
     }
-    
+
     static DofQueue ExtractDofSet(
         typename TSchemeType::Pointer pScheme,
         ModelPart& rModelPart)
@@ -626,7 +630,7 @@ protected:
         RomSystemMatrixType aux = {};    // Auxiliary: romA = phi.t * (LHS * phi) := phi.t * aux
     };
 
-    
+
     /**
      * Class to sum-reduce matrices and vectors.
      */
@@ -681,7 +685,7 @@ protected:
     }
 
     /**
-     * Builds the reduced system of equations on rank 0 
+     * Builds the reduced system of equations on rank 0
      */
     virtual void BuildROM(
         typename TSchemeType::Pointer pScheme,
@@ -712,7 +716,7 @@ protected:
         if(!elements.empty())
         {
             std::tie(rA, rb) =
-            block_for_each<SystemSumReducer>(elements, assembly_tls_container, 
+            block_for_each<SystemSumReducer>(elements, assembly_tls_container,
                 [&](Element& r_element, AssemblyTLS& r_thread_prealloc)
             {
                 return CalculateLocalContribution(r_element, r_thread_prealloc, *pScheme, r_current_process_info);
@@ -726,7 +730,7 @@ protected:
             RomSystemVectorType bconditions;
 
             std::tie(Aconditions, bconditions) =
-            block_for_each<SystemSumReducer>(conditions, assembly_tls_container, 
+            block_for_each<SystemSumReducer>(conditions, assembly_tls_container,
                 [&](Condition& r_condition, AssemblyTLS& r_thread_prealloc)
             {
                 return CalculateLocalContribution(r_condition, r_thread_prealloc, *pScheme, r_current_process_info);
@@ -754,7 +758,7 @@ protected:
         KRATOS_TRY
 
         RomSystemVectorType dxrom(GetNumberOfROMModes());
-        
+
         const auto solving_timer = BuiltinTimer();
         MathUtils<double>::Solve(rA, dxrom, rb);
         // KRATOS_WATCH(dxrom)
@@ -791,7 +795,7 @@ private:
     SizeType mNumberOfRomModes;
 
     ///@}
-    ///@name Private operations 
+    ///@name Private operations
     ///@{
 
     /**
