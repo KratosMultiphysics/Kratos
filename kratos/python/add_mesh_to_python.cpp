@@ -126,6 +126,22 @@ py::list GetIntegrationPointsFromElement( Element& dummy )
     return( integration_points_list );
 }
 
+py::list GetIntegrationPointWeightsFromElement( Element& dummy )
+{
+    pybind11::list integration_point_weights_list;
+    IntegrationPointsArrayType integration_points = dummy.GetGeometry().IntegrationPoints(
+                dummy.GetIntegrationMethod() );
+    Vector integration_point_detJs;
+    dummy.GetGeometry().DeterminantOfJacobian(integration_point_detJs, dummy.GetIntegrationMethod());
+    for( unsigned int i=0; i< integration_points.size(); i++ )
+    {
+        double item;
+        item = integration_point_detJs[i] * integration_points[i].Weight();
+        integration_point_weights_list.append( item );
+    }
+    return( integration_point_weights_list );
+}
+
 ///@}
 ///@name Calculate on Integration Points
 ///@{
@@ -460,6 +476,7 @@ void  AddMeshToPython(pybind11::module& m)
     .def("GetNode", GetNodeFromElement )
     .def("GetNodes", GetNodesFromElement )
     .def("GetIntegrationPoints", GetIntegrationPointsFromElement )
+    .def("GetIntegrationPointWeights", GetIntegrationPointWeightsFromElement )
     // CalculateOnIntegrationPoints
     .def("CalculateOnIntegrationPoints", CalculateOnIntegrationPointsBool<Element>)
     .def("CalculateOnIntegrationPoints", CalculateOnIntegrationPoints<Element, int>)
