@@ -147,14 +147,12 @@ public:
         const MultiFileFlag UseMultipleFilesFlag,
         const WriteDeformedMeshFlag WriteDeformedFlag,
         const WriteConditionsFlag WriteConditions,
-        const bool InitializeGaussPointContainers=true,
-        const bool WriteGeometries=false
+        const bool InitializeGaussPointContainers=true
          ) : mResultFileName(rDatafilename),
         mMeshFileName(rDatafilename),
         mWriteDeformed(WriteDeformedFlag),
         mWriteConditions(WriteConditions),
         mUseMultiFile(UseMultipleFilesFlag),
-        mWriteGeometries(WriteGeometries),
         mMode(Mode)
     {
         mResultFileOpen = false;
@@ -1300,7 +1298,7 @@ public:
 
         Timer::Start("Writing Mesh");
 
-        if ( mWriteGeometries )
+        if ( rThisMesh.ElementsBegin() == rThisMesh.ElementsEnd() && rThisMesh.ConditionsBegin() == rThisMesh.ConditionsEnd() )
         {
             for ( auto geometry_iterator = rThisMesh.GeometriesBegin(); geometry_iterator != rThisMesh.GeometriesEnd(); ++geometry_iterator)
                 for ( auto it = mGidMeshContainers.begin(); it != mGidMeshContainers.end(); it++ )
@@ -1529,7 +1527,6 @@ protected:
     WriteDeformedMeshFlag mWriteDeformed;
     WriteConditionsFlag mWriteConditions;
     MultiFileFlag mUseMultiFile;
-    bool mWriteGeometries;
     GiD_PostMode mMode;
 
     /**

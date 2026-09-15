@@ -81,6 +81,52 @@ class TestGidIO(KratosUnittest.TestCase):
         cmp_process.ExecuteAfterOutputStep()
         cmp_process.ExecuteFinalize()
 
+    def __CreateModelPartWithGeometryOnly(self):
+        model_part = KratosMultiphysics.Model().CreateModelPart("Main")
+
+        model_part.CreateNewNode(1, 0.0, 0.0, 0.0)
+        model_part.CreateNewNode(2, 1.0, 0.0, 0.0)
+        model_part.CreateNewNode(3, 0.0, 77.25, 0.0)
+
+        model_part.CreateNewGeometry("Triangle2D3", 1, [1, 2, 3])
+
+        model_part.SetBufferSize(2)
+        return model_part
+
+    def __CreateModelPartWithElementAndGeometry(self):
+        model_part = KratosMultiphysics.Model().CreateModelPart("Main")
+
+        model_part.CreateNewNode(1, 0.0, 0.0, 0.0)
+        model_part.CreateNewNode(2, 1.0, 0.0, 0.0)
+        model_part.CreateNewNode(3, 2.0, 0.0, 0.0)
+        model_part.CreateNewNode(4, 0.0, 77.25, 0.0)
+
+        properties = KratosMultiphysics.Properties(0)
+        model_part.CreateNewElement("Element2D3N", 1, [1, 2, 3], properties)
+
+        model_part.CreateNewGeometry("Triangle2D3", 1, [1, 2, 4])
+
+        model_part.SetBufferSize(2)
+        return model_part
+
+    def __WriteMeshWithGidIO(self, model_part, output_file):
+        gid_io = KratosMultiphysics.GidIO(
+            output_file,
+            KratosMultiphysics.GiDPostMode.GiD_PostAscii,
+            KratosMultiphysics.MultiFileFlag.SingleFile,
+            KratosMultiphysics.WriteDeformedMeshFlag.WriteUndeformed,
+            KratosMultiphysics.WriteConditionsFlag.WriteConditions)
+
+        gid_io.InitializeMesh(0.0)
+        gid_io.WriteMesh(model_part.GetMesh())
+        gid_io.FinalizeMesh()
+
+    def __ReadFile(self, file_path):
+        if not os.path.exists(file_path):
+            return ""
+        with open(file_path, "r") as file:
+            return file.read()
+
     def test_gid_io_all(self):
         current_model = KratosMultiphysics.Model()
 
@@ -163,6 +209,20 @@ class TestGidIO(KratosUnittest.TestCase):
 
         self.__Check("results_out.post.res","auxiliar_files_for_python_unittest/reference_files/results_out_ref.ref")
 
+    def test_geometries_written_when_no_elements_or_conditions(self):
+        model_part = self.__CreateModelPartWithGeometryOnly()
+
+        self.__WriteMeshWithGidIO(model_part, "geom_auto_on")
+
+        self.assertIn("77.25", self.__ReadFile("geom_auto_on.post.msh"))
+
+    def test_elements_take_precedence_over_geometries(self):
+        model_part = self.__CreateModelPartWithElementAndGeometry()
+
+        self.__WriteMeshWithGidIO(model_part, "geom_auto_off")
+
+        self.assertNotIn("77.25", self.__ReadFile("geom_auto_off.post.msh"))
+
     def test_DoubleFreeError(self):
         current_model = KratosMultiphysics.Model()
 
@@ -190,6 +250,8 @@ class TestGidIO(KratosUnittest.TestCase):
         kratos_utils.DeleteFileIfExisting("deactivated_out.post.res")
         kratos_utils.DeleteFileIfExisting("results_out.post.msh")
         kratos_utils.DeleteFileIfExisting("results_out.post.res")
+        kratos_utils.DeleteFileIfExisting("geom_auto_on.post.msh")
+        kratos_utils.DeleteFileIfExisting("geom_auto_off.post.msh")
         kratos_utils.DeleteFileIfExisting("python_scripts.post.lst")
         kratos_utils.DeleteFileIfExisting("tests.post.lst")
 
