@@ -166,6 +166,64 @@ public:
         return *this;
     }
 
+    // Element access. ublas::matrix narrows whatever index it is given to its
+    // size_type, so m(i, j) reads a coefficient even when i/j are the doubles
+    // that come out of a Vector; Eigen instead reads a pair of floating-point
+    // arguments as a fancy IndexedView (its "A(indices, indices)" indexing).
+    // The first overload restores the ublas reading for any pair of arithmetic
+    // indices, the other two forward everything else (index arrays, Eigen::all,
+    // seq, the single-argument linear access) to Eigen unchanged. They are
+    // written as one complete set rather than added next to a
+    // "using BaseType::operator();": mixing the two makes the calls with
+    // converted indices ambiguous.
+
+    /// uBLAS-style coefficient access for any pair of arithmetic indices.
+    template<class TIndex1, class TIndex2>
+    requires (std::is_arithmetic_v<TIndex1> && std::is_arithmetic_v<TIndex2>)
+    reference operator()(const TIndex1 I, const TIndex2 J)
+    {
+        return BaseType::operator()(static_cast<Eigen::Index>(I), static_cast<Eigen::Index>(J));
+    }
+
+    /// uBLAS-style coefficient access for any pair of arithmetic indices (const version).
+    template<class TIndex1, class TIndex2>
+    requires (std::is_arithmetic_v<TIndex1> && std::is_arithmetic_v<TIndex2>)
+    const_reference operator()(const TIndex1 I, const TIndex2 J) const
+    {
+        return BaseType::operator()(static_cast<Eigen::Index>(I), static_cast<Eigen::Index>(J));
+    }
+
+    /// Everything else Eigen accepts as a two-argument subscript (index arrays,
+    /// Eigen::all, seq, ...), forwarded unchanged.
+    template<class TArg1, class TArg2>
+    requires (!std::is_arithmetic_v<std::decay_t<TArg1>> || !std::is_arithmetic_v<std::decay_t<TArg2>>)
+    decltype(auto) operator()(TArg1&& rArgument1, TArg2&& rArgument2)
+    {
+        return BaseType::operator()(std::forward<TArg1>(rArgument1), std::forward<TArg2>(rArgument2));
+    }
+
+    /// Two-argument subscript other than a pair of indices (const version).
+    template<class TArg1, class TArg2>
+    requires (!std::is_arithmetic_v<std::decay_t<TArg1>> || !std::is_arithmetic_v<std::decay_t<TArg2>>)
+    decltype(auto) operator()(TArg1&& rArgument1, TArg2&& rArgument2) const
+    {
+        return BaseType::operator()(std::forward<TArg1>(rArgument1), std::forward<TArg2>(rArgument2));
+    }
+
+    /// Single-argument subscript (Eigen's linear access), forwarded unchanged.
+    template<class TArg>
+    decltype(auto) operator()(TArg&& rArgument)
+    {
+        return BaseType::operator()(std::forward<TArg>(rArgument));
+    }
+
+    /// Single-argument subscript (const version).
+    template<class TArg>
+    decltype(auto) operator()(TArg&& rArgument) const
+    {
+        return BaseType::operator()(std::forward<TArg>(rArgument));
+    }
+
     ///@}
     ///@name Operations
     ///@{

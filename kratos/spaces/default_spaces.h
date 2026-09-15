@@ -55,6 +55,24 @@ template<class TDataType>
 using TDefaultDenseSpace = TUblasDenseSpace<TDataType>;
 #endif
 
+#ifdef KRATOS_USE_EIGEN_BACKEND
+// Compatibility spellings of the uBLAS space names for code written against
+// them: under this backend Matrix/Vector/CompressedMatrix are the Eigen-backed
+// types, so UblasSpace<double, Matrix, Vector> names the dense Eigen space and
+// UblasSpace<double, CompressedMatrix, Vector> the sparse one. (An explicit
+// boost container argument, e.g. UblasSpace<double, CompressedMatrix,
+// boost::numeric::ublas::vector<double>>, does not resolve: use the
+// TDefaultSparseSpace/DefaultSparseSpaceType aliases above instead.)
+template<class TDataType, class TMatrixType, class TVectorType>
+using UblasSpace = EigenSpace<TDataType, TMatrixType, TVectorType>;
+
+template<class TDataType>
+using TUblasSparseSpace = TEigenSparseSpace<TDataType>;
+
+template<class TDataType>
+using TUblasDenseSpace = TEigenDenseSpace<TDataType>;
+#endif
+
 using DefaultSparseSpaceType = TDefaultSparseSpace<double>;
 using DefaultLocalSpaceType = TDefaultDenseSpace<double>;
 

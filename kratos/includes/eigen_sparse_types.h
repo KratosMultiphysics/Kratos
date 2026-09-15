@@ -186,6 +186,122 @@ public:
     std::size_t filled2() const { return nnz(); }
 
     ///@}
+    ///@name Iterators
+    ///@{
+    // Row-major traversal with the boost::numeric::ublas::compressed_matrix
+    // iterator concept, so the ublas idiom compiles unchanged:
+    //     for (auto i1 = m.begin1(); i1 != m.end1(); ++i1)
+    //         for (auto i2 = i1.begin(); i2 != i1.end(); ++i2)
+    //             ... i2.index1(), i2.index2(), *i2 ...
+    // Only the row-major direction is provided (begin2()/iterator2 traversal
+    // over a column has no users and is not meaningful for a CSR matrix).
+
+    /**
+     * @brief Iterator over the stored entries of a single row (ublas iterator2).
+     * @details Walks the CSR arrays of one row; index1() is the row, index2()
+     * the column of the entry it currently points at.
+     * @tparam TIsConst Whether the iterator grants write access to the values.
+     */
+    template<bool TIsConst>
+    class EntryIterator
+    {
+    public:
+        using MatrixPointerType = std::conditional_t<TIsConst, const EigenCompressedMatrix*, EigenCompressedMatrix*>;
+        using reference = std::conditional_t<TIsConst, const TDataType&, TDataType&>;
+        using value_type = TDataType;
+
+        EntryIterator(MatrixPointerType pMatrix, const std::size_t Row, const std::size_t Position)
+            : mpMatrix(pMatrix), mRow(Row), mPosition(Position) {}
+
+        /// Row of the entry currently pointed at.
+        std::size_t index1() const { return mRow; }
+
+        /// Column of the entry currently pointed at.
+        std::size_t index2() const { return static_cast<std::size_t>(mpMatrix->innerIndexPtr()[mPosition]); }
+
+        reference operator*() const { return mpMatrix->valuePtr()[mPosition]; }
+
+        EntryIterator& operator++() { ++mPosition; return *this; }
+        EntryIterator operator++(int) { EntryIterator copy(*this); ++mPosition; return copy; }
+
+        bool operator==(const EntryIterator& rOther) const { return mPosition == rOther.mPosition; }
+        bool operator!=(const EntryIterator& rOther) const { return !(*this == rOther); }
+
+    private:
+        MatrixPointerType mpMatrix;
+        std::size_t mRow;
+        std::size_t mPosition; /// Index into the CSR value/column arrays.
+    };
+
+    /**
+     * @brief Iterator over the rows of the matrix (ublas iterator1).
+     * @details begin()/end() yield the entry iterators of the current row.
+     * @tparam TIsConst Whether the entry iterators grant write access.
+     */
+    template<bool TIsConst>
+    class RowIterator
+    {
+    public:
+        using MatrixPointerType = std::conditional_t<TIsConst, const EigenCompressedMatrix*, EigenCompressedMatrix*>;
+        using EntryIteratorType = EntryIterator<TIsConst>;
+
+        RowIterator(MatrixPointerType pMatrix, const std::size_t Row)
+            : mpMatrix(pMatrix), mRow(Row) {}
+
+        /// Index of the row currently pointed at.
+        std::size_t index1() const { return mRow; }
+
+        /// First stored entry of this row.
+        EntryIteratorType begin() const
+        {
+            return EntryIteratorType(mpMatrix, mRow, static_cast<std::size_t>(mpMatrix->outerIndexPtr()[mRow]));
+        }
+
+        /// Past-the-last stored entry of this row.
+        EntryIteratorType end() const
+        {
+            return EntryIteratorType(mpMatrix, mRow, static_cast<std::size_t>(mpMatrix->outerIndexPtr()[mRow + 1]));
+        }
+
+        RowIterator& operator++() { ++mRow; return *this; }
+        RowIterator operator++(int) { RowIterator copy(*this); ++mRow; return copy; }
+
+        bool operator==(const RowIterator& rOther) const { return mRow == rOther.mRow; }
+        bool operator!=(const RowIterator& rOther) const { return !(*this == rOther); }
+
+    private:
+        MatrixPointerType mpMatrix;
+        std::size_t mRow;
+    };
+
+    using iterator1 = RowIterator<false>;
+    using const_iterator1 = RowIterator<true>;
+    using iterator2 = EntryIterator<false>;
+    using const_iterator2 = EntryIterator<true>;
+
+    /// First row (the storage is packed first, so the CSR arrays the iterators
+    /// walk are the compressed ones; a no-op when it already is compressed).
+    iterator1 begin1()
+    {
+        this->makeCompressed();
+        return iterator1(this, 0);
+    }
+
+    /// Past-the-last row.
+    iterator1 end1() { return iterator1(this, size1()); }
+
+    /// First row (const version).
+    const_iterator1 begin1() const
+    {
+        KRATOS_DEBUG_ERROR_IF_NOT(this->isCompressed())
+            << "Iterating a compressed matrix whose storage is not packed; call complete_index1_data() first." << std::endl;
+        return const_iterator1(this, 0);
+    }
+
+    /// Past-the-last row (const version).
+    const_iterator1 end1() const { return const_iterator1(this, size1()); }
+
+    ///@}
     ///@name Operations
     ///@{
 
