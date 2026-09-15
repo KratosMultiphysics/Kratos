@@ -425,7 +425,7 @@ void VerifyNodalLinear(
 
     // The spatially varying Young's modulus is now supplied through the standard
     // Accessor mechanism: the standard thermal law retrieves YOUNG_MODULUS via
-    // Properties::GetValue, which is interpolated from NODAL_YOUNG_MODULUS.
+    // Properties::GetValue, which is interpolated from nodal YOUNG_MODULUS.
     NodalYoungModulusUtilities::InstallDatabaseAccessor(*r_mp.pGetProperties(1));
 
     const GeometryData::IntegrationMethod integration_method = p_elem->GetIntegrationMethod();
