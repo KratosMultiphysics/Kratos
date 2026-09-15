@@ -92,10 +92,25 @@ template <typename TExpressionType> using MatrixRow = matrix_row<TExpressionType
 // Sparse container (CSR)
 typedef EigenCompressedMatrix<double> CompressedMatrix;
 
+// Storage-order tags, as boost::numeric::ublas::row_major/column_major: a
+// handful of call sites request a column-major dense matrix explicitly (e.g.
+// a local buffer handed to a Fortran/LAPACK-style routine such as FEAST).
+struct row_major {};
+struct column_major {};
+
+namespace Internals
+{
+template <class TLayout> struct EigenLayoutOf;
+template <> struct EigenLayoutOf<row_major> { static constexpr int value = Eigen::RowMajor; };
+template <> struct EigenLayoutOf<column_major> { static constexpr int value = Eigen::ColMajor; };
+} // namespace Internals
+
 // Lowercase boost::numeric::ublas names that Kratos code uses unqualified
 // (under the uBLAS backend they resolve through the using-directive of
-// ublas_interface.h); mapped onto the Eigen-backed types.
-template <typename TDataType> using matrix = EigenMatrix<TDataType>;
+// ublas_interface.h); mapped onto the Eigen-backed types. matrix<T> defaults
+// to row_major, as ublas::matrix<T> does; matrix<T, column_major> selects the
+// column-major EigenMatrix instantiation.
+template <typename TDataType, typename TLayout = row_major> using matrix = EigenMatrix<TDataType, Internals::EigenLayoutOf<TLayout>::value>;
 template <typename TDataType> using vector = EigenVector<TDataType>;
 template <typename TDataType, std::size_t TSize1, std::size_t TSize2> using bounded_matrix = EigenBoundedMatrix<TDataType, TSize1, TSize2>;
 template <typename TDataType, std::size_t TSize> using bounded_vector = EigenBoundedVector<TDataType, TSize>;
