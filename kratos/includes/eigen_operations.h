@@ -728,6 +728,30 @@ inline auto noalias(Eigen::SparseMatrixBase<TDerived>& rTarget)
 }
 
 ///@}
+
+} // namespace Kratos
+
+namespace Eigen
+{
+/**
+ * @brief ADL hook for the member overload noalias(target) injected into
+ * Eigen::MatrixBase by includes/eigen_matrixbase_plugin.h.
+ * @details Inside a class deriving from an Eigen type, an unqualified
+ * noalias(x) finds Eigen's member noalias() and never reaches Kratos::noalias.
+ * The plugin adds a one-argument member overload that calls this hook
+ * unqualified; it lives in namespace Eigen because every Eigen-based target has
+ * Eigen as an associated namespace, so ADL always finds it.
+ */
+template<class TTarget>
+inline auto KratosNoAliasHook(TTarget&& rTarget)
+{
+    return Kratos::noalias(std::forward<TTarget>(rTarget));
+}
+} // namespace Eigen
+
+namespace Kratos
+{
+
 ///@name LU factorization (boost::numeric::ublas::lu_factorize / lu_substitute)
 ///@{
 

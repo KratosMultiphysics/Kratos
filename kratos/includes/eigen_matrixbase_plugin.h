@@ -41,3 +41,18 @@ inline void clear() { derived().setZero(); }
 using Base::operator();
 inline const Derived& operator()() const { return derived(); }
 inline Derived& operator()() { return derived(); }
+
+/// Free-function form noalias(target) called unqualified from inside a member
+/// function of a class that derives from an Eigen type (array_1d, Point, Node,
+/// EigenMatrix, ...). There, class-scope lookup finds Eigen's member noalias()
+/// first and hides Kratos::noalias (member lookup also suppresses ADL), so
+/// noalias(this->Coordinates()) = ... would not compile. This overload accepts
+/// the argument and forwards it to Kratos::noalias. Nothing outside Eigen can
+/// be named here, so the call goes through the dependent unqualified hook
+/// KratosNoAliasHook (namespace Eigen, includes/eigen_operations.h), found by
+/// ADL when the call is instantiated.
+template <typename TTarget>
+static inline auto noalias(TTarget&& rTarget)
+{
+    return KratosNoAliasHook(static_cast<TTarget&&>(rTarget));
+}

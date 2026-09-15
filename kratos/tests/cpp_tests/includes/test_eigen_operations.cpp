@@ -26,6 +26,7 @@
 #include "includes/default_interface.h"
 #include "containers/array_1d.h"
 #include "containers/sparse_graph.h"
+#include "geometries/point.h"
 #include "utilities/math_utils.h"
 
 namespace Kratos::Testing {
@@ -46,6 +47,40 @@ void FillVector(TVectorType& rV)
     rV[0] = 5.0;
     rV[1] = -2.0;
 }
+
+// Classes deriving from the dense container types, calling noalias(...)
+// unqualified from their member functions. Under the Eigen backend the
+// inherited member Eigen::MatrixBase::noalias() must not hide the free form.
+class NoaliasTestPoint : public Point
+{
+public:
+    using Point::Point;
+
+    void AssignCoordinates(const array_1d<double, 3>& rOther)
+    {
+        noalias(this->Coordinates()) = rOther;
+    }
+
+    void AddAndSubtract(const array_1d<double, 3>& rAdd, const array_1d<double, 3>& rSub)
+    {
+        noalias(*this) += rAdd;
+        noalias(Coordinates()) -= rSub;
+    }
+
+    void WriteInto(array_1d<double, 3>& rTarget) const
+    {
+        noalias(rTarget) = this->Coordinates();
+    }
+};
+
+class NoaliasTestArray : public array_1d<double, 3>
+{
+public:
+    void AssignScaled(const array_1d<double, 3>& rOther)
+    {
+        noalias(*this) = 2.0 * rOther;
+    }
+};
 
 } // namespace
 
@@ -197,6 +232,31 @@ KRATOS_TEST_CASE_IN_SUITE(EigenCompatNoalias, KratosCoreFastSuite)
     for (std::size_t i = 0; i < 2; ++i)
         for (std::size_t j = 0; j < 2; ++j)
             KRATOS_EXPECT_NEAR(eigen_C(i, j), ublas_C(i, j), 1e-12);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(EigenCompatNoaliasInsideDerivedClass, KratosCoreFastSuite)
+{
+    array_1d<double, 3> a;
+    a[0] = 1.0; a[1] = 2.0; a[2] = 3.0;
+    array_1d<double, 3> b;
+    b[0] = 0.5; b[1] = -1.0; b[2] = 4.0;
+
+    NoaliasTestPoint point(0.0, 0.0, 0.0);
+    point.AssignCoordinates(a);
+    KRATOS_EXPECT_VECTOR_NEAR(point.Coordinates(), a, 1e-12);
+
+    point.AddAndSubtract(a, b);
+    array_1d<double, 3> expected;
+    for (std::size_t i = 0; i < 3; ++i) expected[i] = 2.0 * a[i] - b[i];
+    KRATOS_EXPECT_VECTOR_NEAR(point.Coordinates(), expected, 1e-12);
+
+    array_1d<double, 3> copy;
+    point.WriteInto(copy);
+    KRATOS_EXPECT_VECTOR_NEAR(copy, expected, 1e-12);
+
+    NoaliasTestArray array;
+    array.AssignScaled(a);
+    for (std::size_t i = 0; i < 3; ++i) KRATOS_EXPECT_NEAR(array[i], 2.0 * a[i], 1e-12);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(EigenCompatRowColumnSubrange, KratosCoreFastSuite)
