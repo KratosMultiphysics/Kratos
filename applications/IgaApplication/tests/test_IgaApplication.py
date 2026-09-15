@@ -13,6 +13,7 @@ from truss_element_tests import TrussElementTests as TTrussElementTests
 # Beam Elements tests - python based
 from test_beam_IGA_element import BeamIGAElementTests as TBeamIGAElementTests
 from isogeometric_non_linear_bernoulli_beam_element_test import TestBeam4pElement
+from test_isogeometric_beam_dynamics import TestIsogeometricBeamDynamics
 # Structural Elements test - python based
 from test_solid_IGA_element import SolidIGAElementTests as TSolidIGAElementTests
 # Sbm Structural Elements test
@@ -93,6 +94,7 @@ def AssembleTestSuites():
         # Beam Elements tests
         TBeamIGAElementTests,
         TestBeam4pElement,
+        TestIsogeometricBeamDynamics,
         # Structural Elements tests
         TSolidIGAElementTests,
         # Sbm Elements tests

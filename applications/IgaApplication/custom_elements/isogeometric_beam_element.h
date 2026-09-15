@@ -209,6 +209,15 @@ public:
         std::vector<Matrix>& rOutput,
         const ProcessInfo& rCurrentProcessInfo) override;
 
+    /// Consistent mass from the explicitly selected simplified or full kinetic energy.
+    /// Full mass alone does not include the velocity-dependent inertial residual.
+    void CalculateMassMatrix(MatrixType& rMassMatrix,
+        const ProcessInfo& rCurrentProcessInfo) override;
+
+    /// Rayleigh damping alpha*M + beta*K using the current tangent stiffness.
+    void CalculateDampingMatrix(MatrixType& rDampingMatrix,
+        const ProcessInfo& rCurrentProcessInfo) override;
+
     //Computes RHS
     void CalculateRightHandSide(
         VectorType& rRightHandSideVector,
@@ -304,6 +313,12 @@ public:
 
     /// Get Displacemnts
     void GetValuesVector(Vector& rValues, int Step) const override;
+
+    /// ANGULAR_VELOCITY_X is the scalar twist rate, not global angular velocity.
+    void GetFirstDerivativesVector(Vector& rValues, int Step = 0) const override;
+
+    /// ANGULAR_ACCELERATION_X is the scalar twist acceleration.
+    void GetSecondDerivativesVector(Vector& rValues, int Step = 0) const override;
 
     ///@}
     ///@name Input and Output

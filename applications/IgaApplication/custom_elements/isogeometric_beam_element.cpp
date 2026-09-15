@@ -1,5 +1,7 @@
 #include "custom_elements/isogeometric_beam_element.h"
 #include <numeric>
+#include <cmath>
+#include <limits>
 #include "utilities/math_utils.h"
 #include "geometries/nurbs_curve_geometry.h"
 #include <sstream>
@@ -141,6 +143,106 @@ namespace Kratos {
         mSMatLamVarVarRodLamDer.resize(mNumberOfDofs * 3, mNumberOfDofs * 3);
         KRATOS_CATCH("")
         
+    }
+
+    void IsogeometricBeamElement::CalculateMassMatrix(
+        MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo)
+    {
+        KRATOS_TRY
+        const auto& r_properties = GetProperties();
+        KRATOS_ERROR_IF_NOT(r_properties.Has(BEAM_MASS_FORMULATION))
+            << "Specify BEAM_MASS_FORMULATION as simplified or full." << std::endl;
+        const auto& r_formulation = r_properties[BEAM_MASS_FORMULATION];
+        KRATOS_ERROR_IF(r_formulation != "simplified" && r_formulation != "full")
+            << "Unknown BEAM_MASS_FORMULATION: " << r_formulation << std::endl;
+        for (const auto* p_variable : {&DENSITY, &CROSS_AREA, &I_N, &I_V}) {
+            KRATOS_ERROR_IF_NOT(r_properties.Has(*p_variable))
+                << "Missing mass property " << p_variable->Name() << std::endl;
+            KRATOS_ERROR_IF(!std::isfinite(r_properties[*p_variable]) || r_properties[*p_variable] <= 0.0)
+                << "Mass property " << p_variable->Name() << " must be finite and positive." << std::endl;
+        }
+        const auto& r_geometry = GetGeometry();
+        const SizeType size = 4 * r_geometry.size();
+        const auto& r_shape = r_geometry.ShapeFunctionsValues();
+        const auto& r_points = r_geometry.IntegrationPoints();
+        // Reference-section orientation is defined by the element's single QPG.
+        KRATOS_ERROR_IF(r_points.size() != 1)
+            << "IsogeometricBeamElement mass requires a single quadrature-point geometry." << std::endl;
+        const auto& r_derivatives = r_geometry.ShapeFunctionDerivatives(1, 0);
+        Vector3d reference_derivative = ZeroVector(3);
+        for (SizeType i = 0; i < r_geometry.size(); ++i) {
+            reference_derivative += r_derivatives(i, 0) * r_geometry[i].GetInitialPosition();
+        }
+        const double jacobian = norm_2(reference_derivative);
+        KRATOS_ERROR_IF(!std::isfinite(jacobian) || jacobian <= std::numeric_limits<double>::epsilon())
+            << "Invalid reference tangent in beam mass calculation." << std::endl;
+        const double weight = r_properties[DENSITY] * jacobian * r_points[0].Weight();
+        Matrix mass = ZeroMatrix(size, size);
+        for (SizeType i = 0; i < r_geometry.size(); ++i) {
+            for (SizeType j = 0; j < r_geometry.size(); ++j) {
+                const double nij = weight * r_shape(0, i) * r_shape(0, j);
+                for (SizeType k = 0; k < 3; ++k) mass(4*i+k, 4*j+k) = nij * r_properties[CROSS_AREA];
+                if (r_formulation == "simplified") {
+                    mass(4*i+3, 4*j+3) = nij * (r_properties[I_N] + r_properties[I_V]);
+                }
+            }
+        }
+        if (r_formulation == "full") {
+            Vector3d derivative = ZeroVector(3);
+            double twist = 0.0;
+            for (SizeType i = 0; i < r_geometry.size(); ++i) {
+                const auto& r_node = r_geometry[i];
+                KRATOS_ERROR_IF_NOT(r_node.SolutionStepsDataHas(DISPLACEMENT) && r_node.SolutionStepsDataHas(ROTATION_X))
+                    << "Full beam mass requires DISPLACEMENT and ROTATION." << std::endl;
+                derivative += r_derivatives(i, 0) * (r_node.GetInitialPosition()
+                    + r_node.FastGetSolutionStepValue(DISPLACEMENT));
+                twist += r_shape(0, i) * r_node.FastGetSolutionStepValue(ROTATION_X);
+            }
+            const double length = norm_2(derivative);
+            KRATOS_ERROR_IF(!std::isfinite(length) || length <= std::numeric_limits<double>::epsilon() || !std::isfinite(twist))
+                << "Invalid current state in full beam mass calculation." << std::endl;
+            const Vector3d tangent = derivative / length;
+            const Vector3d reference_tangent = reference_derivative / jacobian;
+            const double cosine = inner_prod(reference_tangent, tangent);
+            KRATOS_ERROR_IF(1.0 + cosine <= 1e-12)
+                << "Full beam mass: opposite reference and current tangents." << std::endl;
+            const Vector3d axis = cross_prod(reference_tangent, tangent);
+            const double denominator = 1.0 + cosine;
+            std::vector<Matrix> frames;
+            CalculateOnIntegrationPoints(LOCAL_AXES_MATRIX, frames, rCurrentProcessInfo);
+            const double c = std::cos(twist);
+            const double s = std::sin(twist);
+            for (SizeType director = 1; director <= 2; ++director) {
+                const Vector3d reference = row(frames[0], director);
+                const double projection = inner_prod(axis, reference);
+                const Vector3d transported = cosine * reference + cross_prod(axis, reference)
+                    + axis * (projection / denominator);
+                Matrix variation = ZeroMatrix(3, size);
+                for (SizeType i = 0; i < r_geometry.size(); ++i) {
+                    for (SizeType j = 0; j < 3; ++j) {
+                        Vector3d dt = -tangent[j] * tangent;
+                        dt[j] += 1.0;
+                        dt *= r_derivatives(i, 0) / length;
+                        const double dc = inner_prod(reference_tangent, dt);
+                        const Vector3d da = cross_prod(reference_tangent, dt);
+                        const Vector3d db = dc * reference + cross_prod(da, reference)
+                            + da * (projection / denominator)
+                            + axis * (inner_prod(da, reference) / denominator
+                                - projection * dc / (denominator * denominator));
+                        const Vector3d dn = c * db + s * (cross_prod(dt, transported) + cross_prod(tangent, db));
+                        for (SizeType k = 0; k < 3; ++k) variation(k, 4*i+j) = dn[k];
+                    }
+                    const Vector3d dn = r_shape(0, i) * (-s * transported + c * cross_prod(tangent, transported));
+                    for (SizeType k = 0; k < 3; ++k) variation(k, 4*i+3) = dn[k];
+                }
+                // Offset along N rotates about V, and vice versa. I_T is a
+                // stiffness torsion constant and must not be used as polar inertia.
+                const double inertia = director == 1 ? r_properties[I_V] : r_properties[I_N];
+                noalias(mass) += weight * inertia * prod(trans(variation), variation);
+            }
+        }
+        rMassMatrix = mass;
+        KRATOS_CATCH("")
     }
 
     void IsogeometricBeamElement::InitializeMaterial()
@@ -318,6 +420,74 @@ namespace Kratos {
         KRATOS_CATCH("")
     }
         
+    void IsogeometricBeamElement::CalculateDampingMatrix(
+        MatrixType& rDampingMatrix, const ProcessInfo& rCurrentProcessInfo)
+    {
+        const SizeType size = 4 * GetGeometry().size();
+        const auto& r_properties = GetProperties();
+        const auto coefficient = [&](const Variable<double>& rVariable) {
+            const double value = r_properties.Has(rVariable) ? r_properties[rVariable]
+                : (rCurrentProcessInfo.Has(rVariable) ? rCurrentProcessInfo[rVariable] : 0.0);
+            KRATOS_ERROR_IF(!std::isfinite(value) || value < 0.0)
+                << rVariable.Name() << " must be finite and non-negative." << std::endl;
+            return value;
+        };
+        const double alpha = coefficient(RAYLEIGH_ALPHA);
+        const double beta = coefficient(RAYLEIGH_BETA);
+        Matrix damping = ZeroMatrix(size, size);
+        if (alpha != 0.0) {
+            Matrix mass;
+            CalculateMassMatrix(mass, rCurrentProcessInfo);
+            noalias(damping) += alpha * mass;
+        }
+        if (beta != 0.0) {
+            Matrix stiffness;
+            CalculateLeftHandSide(stiffness, rCurrentProcessInfo);
+            noalias(damping) += beta * stiffness;
+        }
+        rDampingMatrix = damping;
+    }
+
+    void IsogeometricBeamElement::GetFirstDerivativesVector(Vector& rValues, int Step) const
+    {
+        KRATOS_TRY
+        const auto& r_geometry = GetGeometry();
+        for (const auto& r_node : r_geometry) {
+            KRATOS_ERROR_IF(Step < 0 || static_cast<SizeType>(Step) >= r_node.GetBufferSize())
+                << "Invalid solution step in beam derivative vector." << std::endl;
+            KRATOS_ERROR_IF_NOT(r_node.SolutionStepsDataHas(VELOCITY) &&
+                r_node.SolutionStepsDataHas(ANGULAR_VELOCITY))
+                << "Beam derivative vector requires historical VELOCITY and ANGULAR_VELOCITY." << std::endl;
+        }
+        rValues.resize(4 * r_geometry.size(), false);
+        for (SizeType i = 0; i < r_geometry.size(); ++i) {
+            const auto& r_linear = r_geometry[i].FastGetSolutionStepValue(VELOCITY, Step);
+            for (SizeType k = 0; k < 3; ++k) rValues[4*i+k] = r_linear[k];
+            rValues[4*i+3] = r_geometry[i].FastGetSolutionStepValue(ANGULAR_VELOCITY_X, Step);
+        }
+        KRATOS_CATCH("")
+    }
+
+    void IsogeometricBeamElement::GetSecondDerivativesVector(Vector& rValues, int Step) const
+    {
+        KRATOS_TRY
+        const auto& r_geometry = GetGeometry();
+        for (const auto& r_node : r_geometry) {
+            KRATOS_ERROR_IF(Step < 0 || static_cast<SizeType>(Step) >= r_node.GetBufferSize())
+                << "Invalid solution step in beam derivative vector." << std::endl;
+            KRATOS_ERROR_IF_NOT(r_node.SolutionStepsDataHas(ACCELERATION) &&
+                r_node.SolutionStepsDataHas(ANGULAR_ACCELERATION))
+                << "Beam derivative vector requires historical ACCELERATION and ANGULAR_ACCELERATION." << std::endl;
+        }
+        rValues.resize(4 * r_geometry.size(), false);
+        for (SizeType i = 0; i < r_geometry.size(); ++i) {
+            const auto& r_linear = r_geometry[i].FastGetSolutionStepValue(ACCELERATION, Step);
+            for (SizeType k = 0; k < 3; ++k) rValues[4*i+k] = r_linear[k];
+            rValues[4*i+3] = r_geometry[i].FastGetSolutionStepValue(ANGULAR_ACCELERATION_X, Step);
+        }
+        KRATOS_CATCH("")
+    }
+
     void IsogeometricBeamElement::GetValuesVector(Vector& rValues,int Step) const 
     {
         const auto& r_geometry = GetGeometry();
