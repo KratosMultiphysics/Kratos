@@ -6,7 +6,9 @@ from KratosMultiphysics.StructuralMechanicsApplication.handbook_methods.panel_bu
 from KratosMultiphysics.StructuralMechanicsApplication.structural_components.panel.panel_data import (PanelGeometry, 
                                                                                                       PanelMaterial,
                                                                                                       PanelResponse,
-                                                                                                      PanelLoadState)
+                                                                                                      PanelLoadState,
+                                                                                                      PuckResponseContainer,
+                                                                                                      PanelCompositeMaterial)
 from KratosMultiphysics.StructuralMechanicsApplication.structural_components.panel.panel_geometry_interpreter import PanelGeometryInterpreter
 
 class Panel(StructuralComponent):
@@ -51,10 +53,15 @@ class Panel(StructuralComponent):
     def ExtractMaterial(self) -> None:
         if self.sub_model_part.NumberOfElements() == 0:
             raise RuntimeError("Panel submodelpart contains no elements")
-        
-        element = next(self.sub_model_part.Elements.__iter__())
-        properties = element.Properties
 
+
+        element = next(self.sub_model_part.Elements.__iter__())
+        properties = element.Properties 
+
+        #TODO: Implement reading of material for composite laminate material
+        #if properties.constitutive_law.lower() == "linearelasticorthotropic2dlaw":
+            #self.CompositeMaterial = self.ExtractCompositeMaterial()
+        #else:
         E = properties.GetValue(KratosMultiphysics.YOUNG_MODULUS)
         nu = properties.GetValue(KratosMultiphysics.POISSON_RATIO)
 
@@ -69,7 +76,9 @@ class Panel(StructuralComponent):
 
     def ExtractResponse(self) -> None:
         self._RequireGeometry()
-
+        #TODO: Implement _GetLaminateStresses() and _PreparePuckResponse()
+        laminate_stress_matrix = self._GetLaminateStresses()
+        self._PreparePuckResponse(laminate_stress_matrix)
         total_volume = 0.0
         sigma_xx_sum = 0.0
         sigma_yy_sum = 0.0
@@ -228,3 +237,9 @@ class Panel(StructuralComponent):
     def _CreateAnalysisMethods(self):
         return [PanelUniaxialBuckling(), 
                 PanelBiaxialBuckling()]
+
+    def ExtractCompositeMaterial(self):
+        ...
+        #TODO: Implement this function
+        composite_material_container = PanelCompositeMaterial(E11, E22, G12, ..)
+        return composite_material_container

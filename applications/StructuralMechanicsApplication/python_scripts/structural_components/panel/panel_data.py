@@ -18,6 +18,10 @@ class PanelMaterial:
     poisson_ratio: float
 
 @dataclass
+class PanelCompositeMaterial:
+    #TODO: Add material properties from composite material
+
+@dataclass
 class PanelResponse:
     sigma_xx: float # stress along local panel x coordinate
     sigma_yy: float # stress along local panel y coordinate
@@ -32,3 +36,7 @@ class PanelLoadState:
     is_uniaxial_compression: bool
     is_biaxial_compression: bool
     is_shear_dominant: bool
+
+@dataclass
+class PuckResponseContainer:
+    #TODO: Add responses that are necessary for Puck analysis
