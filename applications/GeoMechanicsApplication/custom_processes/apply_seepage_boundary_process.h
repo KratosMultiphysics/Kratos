@@ -26,7 +26,7 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION(ApplySeepageBoundaryProcess);
 
     ApplySeepageBoundaryProcess() = default;
-    ApplySeepageBoundaryProcess(Model& rModel, const Parameters& rProcessSettings);
+    ApplySeepageBoundaryProcess(const Model& rModel, const Parameters& rProcessSettings);
 
     [[nodiscard]] std::string Info() const override;
 };

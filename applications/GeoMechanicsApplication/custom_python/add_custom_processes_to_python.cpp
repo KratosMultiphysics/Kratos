@@ -201,7 +201,7 @@ void AddCustomProcessesToPython(const pybind11::module& m)
 
     py::class_<ApplySeepageBoundaryProcess, ApplySeepageBoundaryProcess::Pointer, Process>(
         m, "ApplySeepageBoundaryProcess")
-        .def(py::init<Model&, const Parameters&>());
+        .def(py::init<const Model&, const Parameters&>());
 }
 
 } // Namespace Kratos::Python.

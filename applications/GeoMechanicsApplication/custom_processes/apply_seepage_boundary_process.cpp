@@ -18,7 +18,7 @@ using namespace std::string_literals;
 namespace Kratos
 {
 
-ApplySeepageBoundaryProcess::ApplySeepageBoundaryProcess(Model& rModel, const Parameters& rProcessSettings)
+ApplySeepageBoundaryProcess::ApplySeepageBoundaryProcess(const Model& rModel, const Parameters& rProcessSettings)
 {
     KRATOS_ERROR_IF_NOT(rProcessSettings.Has("model_part_name"s))
         << "ApplySeepageBoundaryProcess: \"model_part_name\" is required in the process settings"
