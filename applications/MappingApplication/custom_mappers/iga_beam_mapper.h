@@ -20,7 +20,7 @@ namespace Kratos
  * tangent. The origin elements must reference one parent NurbsCurveGeometry3D.
  * Its control points must belong to the origin and store historical DISPLACEMENT
  * and ROTATION (ROTATION_X is the scalar twist, not a global bending rotation).
- * Destination nodes must store historical DISPLACEMENT. Reference attachments
+ * Destination nodes must store the requested historical vector output at Map. Reference attachments
  * are initialized at construction. Map writes total historical DISPLACEMENT;
  * InverseMap writes POINT_LOAD and POINT_MOMENT_X using the kinematic transpose. The parent curve must outlive the mapper. The beam element must
  * provide reference frame rows T, N, V through LOCAL_AXES_MATRIX.
@@ -46,6 +46,7 @@ public:
         array_1d<double, 3> ReferencePosition = ZeroVector(3);
         array_1d<double, 3> CenterlinePosition = ZeroVector(3);
         Matrix ReferenceFrame;
+        double TangentialOffset = 0.0;
         double NormalOffset = 0.0;
         double BinormalOffset = 0.0;
     };

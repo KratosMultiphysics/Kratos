@@ -327,7 +327,9 @@ historical `DISPLACEMENT` from beam to surface, reading `ROTATION_X` as twist.
 It reconstructs the current centerline from initial coordinates plus displacement,
 aligns the reference section with the current tangent, and applies the interpolated
 twist. Repeated calls overwrite surface displacement; they do not accumulate it
-or move mesh coordinates. Mapping flags are currently unsupported. Opposite
+or move mesh coordinates. Forward mapping accepts any allocated historical vector
+destination (e.g. MESH_DISPLACEMENT) without flags. Inverse mapping supports
+SWAP_SIGN; other flags remain unsupported. Opposite
 reference/current tangents and degenerate current tangents throw errors.
 Force transfer uses the analytic tangent of these same kinematics at the current
 beam state: `g = H^T f`. Import StructuralMechanicsApplication and allocate historical
@@ -342,7 +344,7 @@ mapper.InverseMap(SMA.POINT_LOAD, KM.FORCE)
 
 The first argument is the beam output; the second is the surface input. Each call
 also writes `POINT_MOMENT_X` and zeros its Y/Z components. Calls overwrite previous
-mapped loads and accept no flags. Pressure/traction must be integrated separately.
+mapped loads; SWAP_SIGN reverses forces and twist loads. Pressure/traction must be integrated separately.
 Create one `PointLoadCondition3D1N` and one `PointMomentCondition3D1N` per control
 point. Add the three displacement and three rotation DOFs, fixing `ROTATION_Y` and
 `ROTATION_Z` because the IGA beam uses only scalar `ROTATION_X`. `POINT_MOMENT_X`
@@ -373,11 +375,12 @@ For CoSimulation, use the existing `kratos_beam_mapping` data transfer operator:
 ```
 
 Replace the solver and model-part names with your coupling names. Use historical
-3D vector interface data: beam/surface `DISPLACEMENT` for forward transfer and
+vector interface data: beam `DISPLACEMENT` and surface `MESH_DISPLACEMENT` (or
+`DISPLACEMENT`) for forward transfer and
 surface integrated forces/beam `POINT_LOAD` for reverse transfer. The secondary
 variables remain `ROTATION` and `POINT_MOMENT`, with scalar X semantics described
-above. Use empty `transfer_options`: the IGA mapper currently rejects `swap_sign`.
-Supply forces with the required sign. Rebuild the MappingApplication Python module
+above. Use `swap_sign` for inverse transfer when converting fluid reactions to
+forces on the structure. Do not also negate the input forces. Rebuild the MappingApplication Python module
 as well as its core library after adding the beam-style overloads.
 The straight and curved `force_transfer_operator` tests exercise the actual
 CoSimulation factory and operator in both directions and both initialization orders.
@@ -417,10 +420,12 @@ on both datasets. The beam file also includes interpolated `ROTATION`.
 ```
 
 The origin must contain quadrature-point `IsogeometricBeamElement` elements
-sharing one direct 3D NURBS parent curve of degree at least two. The control
+sharing one 3D NURBS parent curve of degree at least two, either directly or
+through an untrimmed CAD BrepCurve wrapper. The control
 points must belong to the origin and have historical `DISPLACEMENT` and
 `ROTATION` data; `ROTATION_X` represents scalar twist. Destination surface nodes
-must have historical `DISPLACEMENT`. Only serial model parts are supported.
+must allocate the requested historical output variable before Map. Only serial
+model parts are supported.
 Initialize the beam's `T_0`, `N_0`, and `LOCAL_AXIS_ORIENTATION` properties before
 constructing the mapper, and keep the parent curve alive while using it.
 
@@ -437,10 +442,14 @@ The beam supplies its reference frame through `CalculateOnIntegrationPoints`
 with `LOCAL_AXES_MATRIX` (rows: tangent, normal, binormal). The mapper uses a
 temporary element at the projected coordinate with properties from the closest
 origin integration point having the same active spline support. It caches the
-parameter, control points, basis values and first derivatives, frame, and normal
-and binormal offsets. Attachments remain fixed when the mesh moves. Points with
-a tangential offset at a projected endpoint are rejected because the assumed
-rigid cross-section cannot reconstruct their initial position.
+parameter, control points, basis values and first derivatives, frame, and all
+three reference-offset components. Attachments remain fixed when the mesh moves.
+Constrained endpoint minima retain their tangential offset, transported with the
+current unit tangent without axial stretching. Normal and binormal offsets
+follow bending and twist. The tangential contribution and its derivative are
+included in displacement and transpose load transfer. Thus points beyond a
+finite curve can follow its endpoint as a rigid offset; this is an endpoint
+attachment model, not extrapolated beam strain. Projection failures still throw.
 
 #### Beam Mapper 
 The _BeamMapper_ provides support for mapping between 1D beam elements and 2D/3D surface meshes. It follows the formulation of Wang (2019) and is intended for cases where beam DOFs (displacements and rotations) must be transferred consistently to a surrounding surface, e.g. in FSI or beam–solid coupling.

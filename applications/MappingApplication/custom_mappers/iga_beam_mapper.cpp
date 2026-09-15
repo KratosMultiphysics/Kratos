@@ -9,6 +9,8 @@
 
 // Project includes
 #include "iga_beam_mapper.h"
+#include "mappers/mapper_flags.h"
+#include "geometries/brep_curve.h"
 #include "mappers/mapper_define.h"
 #include "utilities/math_utils.h"
 #include "utilities/nurbs_utilities/projection_nurbs_geometry_utilities.h"
@@ -205,11 +207,9 @@ void IgaBeamMapper<TSparseSpace, TDenseSpace>::InitializeReferenceAttachments()
         const array_1d<double, 3> offset = attachment.ReferencePosition - attachment.CenterlinePosition;
         attachment.NormalOffset = inner_prod(offset, row(frames[0], 1));
         attachment.BinormalOffset = inner_prod(offset, row(frames[0], 2));
-        const array_1d<double, 3> residual = offset - attachment.NormalOffset * row(frames[0], 1)
-            - attachment.BinormalOffset * row(frames[0], 2);
-        KRATOS_ERROR_IF(norm_2(residual) > mProjectionTolerance)
-            << "IgaBeamMapper: reference attachment for surface node " << r_node.Id()
-            << " has a tangential offset; the projected cross-section cannot reconstruct the point." << std::endl;
+        // Constrained minima at curve endpoints can have a tangential offset.
+        // Carry this component with the section tangent, without axial stretch.
+        attachment.TangentialOffset = inner_prod(offset, frame_tangent);
         attachments.push_back(std::move(attachment));
     }
     mReferenceAttachments = std::move(attachments);
@@ -235,7 +235,20 @@ void IgaBeamMapper<TSparseSpace, TDenseSpace>::InitializeInput()
             << "IgaBeamMapper expects quadrature-point beam elements; element "
             << r_element.Id() << " has an unsupported geometry." << std::endl;
 
-        const auto* p_curve = dynamic_cast<const NurbsCurveType*>(&r_geometry.GetGeometryParent(0));
+        const auto& r_parent = r_geometry.GetGeometryParent(0);
+        const auto* p_curve = dynamic_cast<const NurbsCurveType*>(&r_parent);
+        if (const auto* p_brep = dynamic_cast<const BrepCurve<PointerVector<Node>>*>(&r_parent)) {
+            KRATOS_ERROR_IF(p_brep->IsTrimmed())
+                << "IgaBeamMapper does not support trimmed beam curves." << std::endl;
+            p_curve = dynamic_cast<const NurbsCurveType*>(
+                p_brep->pGetGeometryPart(Geometry<Node>::BACKGROUND_GEOMETRY_INDEX).get());
+        }
+        if (const auto* p_brep = dynamic_cast<const BrepCurve<PointerVector<Node>, PointerVector<Point>>*>(&r_parent)) {
+            KRATOS_ERROR_IF(p_brep->IsTrimmed())
+                << "IgaBeamMapper does not support trimmed beam curves." << std::endl;
+            p_curve = dynamic_cast<const NurbsCurveType*>(
+                p_brep->pGetGeometryPart(Geometry<Node>::BACKGROUND_GEOMETRY_INDEX).get());
+        }
         KRATOS_ERROR_IF_NOT(p_curve)
             << "IgaBeamMapper requires a NurbsCurveGeometry3D parent for element "
             << r_element.Id() << "." << std::endl;
@@ -257,12 +270,6 @@ void IgaBeamMapper<TSparseSpace, TDenseSpace>::InitializeInput()
         KRATOS_ERROR_IF_NOT(r_node.SolutionStepsDataHas(ROTATION_X))
             << "IgaBeamMapper: control point " << r_node.Id()
             << " is missing historical ROTATION_X (scalar twist)." << std::endl;
-    }
-
-    for (const auto& r_node : mrModelPartDestination.Nodes()) {
-        KRATOS_ERROR_IF_NOT(r_node.SolutionStepsDataHas(DISPLACEMENT))
-            << "IgaBeamMapper: surface node " << r_node.Id()
-            << " is missing historical DISPLACEMENT." << std::endl;
     }
 
     KRATOS_CATCH("")
@@ -303,8 +310,8 @@ void IgaBeamMapper<TSparseSpace, TDenseSpace>::Map(
     Kratos::Flags MappingOptions)
 {
     KRATOS_TRY
-    KRATOS_ERROR_IF(rOriginVariable != DISPLACEMENT || rDestinationVariable != DISPLACEMENT)
-        << "IgaBeamMapper maps DISPLACEMENT to DISPLACEMENT and reads ROTATION_X as scalar twist."
+    KRATOS_ERROR_IF(rOriginVariable != DISPLACEMENT)
+        << "IgaBeamMapper requires origin DISPLACEMENT and reads ROTATION_X as scalar twist."
         << std::endl;
     KRATOS_ERROR_IF(MappingOptions != Flags())
         << "IgaBeamMapper currently supports total historical displacement mapping without flags." << std::endl;
@@ -314,10 +321,12 @@ void IgaBeamMapper<TSparseSpace, TDenseSpace>::Map(
     std::vector<array_1d<double, 3>> displacements;
     displacements.reserve(mReferenceAttachments.size());
     for (const auto& r_attachment : mReferenceAttachments) {
+        KRATOS_ERROR_IF_NOT(r_attachment.pSurfaceNode->SolutionStepsDataHas(rDestinationVariable))
+            << "IgaBeamMapper: missing historical destination variable " << rDestinationVariable.Name() << std::endl;
         displacements.push_back(EvaluateAttachment(r_attachment, nullptr));
     }
     for (std::size_t i = 0; i < mReferenceAttachments.size(); ++i) {
-        mReferenceAttachments[i].pSurfaceNode->FastGetSolutionStepValue(DISPLACEMENT) = displacements[i];
+        mReferenceAttachments[i].pSurfaceNode->FastGetSolutionStepValue(rDestinationVariable) = displacements[i];
     }
     KRATOS_CATCH("")
 }
@@ -357,7 +366,8 @@ array_1d<double, 3> IgaBeamMapper<TSparseSpace, TDenseSpace>::EvaluateAttachment
     const array_1d<double, 3> transported = cosine * reference_offset
         + MathUtils<double>::CrossProduct(axis, reference_offset)
         + axis * (inner_prod(axis, reference_offset) / (1.0 + cosine));
-    const array_1d<double, 3> current_offset = std::cos(twist) * transported
+    const array_1d<double, 3> current_offset = r_attachment.TangentialOffset * tangent
+        + std::cos(twist) * transported
         + std::sin(twist) * MathUtils<double>::CrossProduct(tangent, transported);
 
     if (pTangent != nullptr) {
@@ -379,7 +389,7 @@ array_1d<double, 3> IgaBeamMapper<TSparseSpace, TDenseSpace>::EvaluateAttachment
                     + da * (projection / denominator)
                     + axis * (inner_prod(da, reference_offset) / denominator
                         - projection * dc / (denominator * denominator));
-                array_1d<double, 3> dx = c * db + s * (
+                array_1d<double, 3> dx = r_attachment.TangentialOffset * dt + c * db + s * (
                     MathUtils<double>::CrossProduct(dt, transported)
                     + MathUtils<double>::CrossProduct(tangent, db));
                 dx[j] += r_attachment.ShapeFunctions[i];
@@ -414,8 +424,9 @@ void IgaBeamMapper<TSparseSpace, TDenseSpace>::InverseMap(
     const auto& r_moment = KratosComponents<Variable<array_1d<double, 3>>>::Get("POINT_MOMENT");
     KRATOS_ERROR_IF(rOriginVariable != r_load)
         << "IgaBeamMapper::InverseMap requires POINT_LOAD as origin output variable." << std::endl;
-    KRATOS_ERROR_IF(MappingOptions != Flags())
-        << "IgaBeamMapper force mapping supports historical nodal forces without flags." << std::endl;
+    KRATOS_ERROR_IF(MappingOptions != Flags() && MappingOptions != MapperFlags::SWAP_SIGN)
+        << "IgaBeamMapper force mapping supports only SWAP_SIGN; other flags are unsupported." << std::endl;
+    const double sign = MappingOptions.Is(MapperFlags::SWAP_SIGN) ? -1.0 : 1.0;
     std::unordered_map<std::size_t, std::size_t> indices;
     std::vector<array_1d<double, 3>> loads(mpReferenceCurve->size(), ZeroVector(3));
     std::vector<double> moments(mpReferenceCurve->size(), 0.0);
@@ -444,10 +455,10 @@ void IgaBeamMapper<TSparseSpace, TDenseSpace>::InverseMap(
     // Commit only after every attachment and input force has been validated.
     for (std::size_t i = 0; i < mpReferenceCurve->size(); ++i) {
         auto& r_node = mrModelPartOrigin.GetNode((*mpReferenceCurve)[i].Id());
-        r_node.FastGetSolutionStepValue(r_load) = loads[i];
+        r_node.FastGetSolutionStepValue(r_load) = sign * loads[i];
         auto& r_value = r_node.FastGetSolutionStepValue(r_moment);
         r_value = ZeroVector(3);
-        r_value[0] = moments[i];
+        r_value[0] = sign * moments[i];
     }
     KRATOS_CATCH("")
 }

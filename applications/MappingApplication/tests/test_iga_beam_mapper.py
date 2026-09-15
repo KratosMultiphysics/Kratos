@@ -26,6 +26,7 @@ class _IgaBeamMapperBoxBase(KratosUnittest.TestCase):
         self.beam.AddNodalSolutionStepVariable(KM.DISPLACEMENT)
         self.beam.AddNodalSolutionStepVariable(KM.ROTATION)
         self.box.AddNodalSolutionStepVariable(KM.DISPLACEMENT)
+        self.box.AddNodalSolutionStepVariable(KM.MESH_DISPLACEMENT)
         if "force" in self._testMethodName:
             self.skipTestIfApplicationsNotAvailable("StructuralMechanicsApplication")
             import KratosMultiphysics.StructuralMechanicsApplication as SMA
@@ -209,7 +210,7 @@ class _IgaBeamMapperBoxBase(KratosUnittest.TestCase):
             return CouplingInterfaceData(parameters, self.model, solver_name=solver)
 
         beam_displacement = interface(self.beam, KM.DISPLACEMENT, "structure")
-        surface_displacement = interface(self.box, KM.DISPLACEMENT, "fluid")
+        surface_displacement = interface(self.box, KM.MESH_DISPLACEMENT, "fluid")
         beam_load = interface(self.beam, self.sma.POINT_LOAD, "structure")
         surface_force = interface(self.box, KM.FORCE, "fluid")
         for node in self.beam.Nodes:
@@ -236,12 +237,14 @@ class _IgaBeamMapperBoxBase(KratosUnittest.TestCase):
             for source, target in transfers:
                 operator.TransferData(source, target, KM.Parameters('[]'))
             for node, value in zip(self.box.Nodes, expected_displacement):
-                self.assertVectorAlmostEqual(node.GetSolutionStepValue(KM.DISPLACEMENT), KM.Vector(value))
+                self.assertVectorAlmostEqual(node.GetSolutionStepValue(KM.MESH_DISPLACEMENT), KM.Vector(value))
             for node, force, moment in zip(self.beam.Nodes, expected_load, expected_moment):
                 self.assertVectorAlmostEqual(node.GetSolutionStepValue(self.sma.POINT_LOAD), KM.Vector(force))
                 self.assertVectorAlmostEqual(node.GetSolutionStepValue(self.sma.POINT_MOMENT), KM.Vector(moment))
-            with self.assertRaisesRegex(RuntimeError, "without flags"):
-                operator.TransferData(surface_force, beam_load, KM.Parameters('["swap_sign"]'))
+            operator.TransferData(surface_force, beam_load, KM.Parameters('["swap_sign"]'))
+            for node, force, moment in zip(self.beam.Nodes, expected_load, expected_moment):
+                self.assertVectorAlmostEqual(node.GetSolutionStepValue(self.sma.POINT_LOAD), KM.Vector([-v for v in force]))
+                self.assertVectorAlmostEqual(node.GetSolutionStepValue(self.sma.POINT_MOMENT), KM.Vector([-v for v in moment]))
         with self.assertRaisesRegex(RuntimeError, "invalid secondary rotation"):
             operator.beam_mapper.Map(KM.DISPLACEMENT, KM.DISPLACEMENT, KM.DISPLACEMENT)
         with self.assertRaisesRegex(RuntimeError, "invalid secondary moment"):
@@ -292,7 +295,7 @@ class _IgaBeamMapperBoxBase(KratosUnittest.TestCase):
         for k in range(3):
             self.assertAlmostEqual(sum(n.GetSolutionStepValue(self.sma.POINT_LOAD)[k] for n in self.beam.Nodes),
                                    sum(n.GetSolutionStepValue(KM.FORCE)[k] for n in self.box.Nodes), delta=1e-9)
-        with self.assertRaisesRegex(RuntimeError, "without flags"):
+        with self.assertRaisesRegex(RuntimeError, "only SWAP_SIGN"):
             self.mapper.InverseMap(self.sma.POINT_LOAD, KM.FORCE, KM.Mapper.ADD_VALUES)
         last = list(self.box.Nodes)[-1]
         last.SetSolutionStepValue(KM.FORCE, KM.Vector([float("nan"), 0.0, 0.0]))
@@ -310,6 +313,15 @@ class _IgaBeamMapperBoxBase(KratosUnittest.TestCase):
 
 
 class TestIgaBeamMapperBox(_IgaBeamMapperBoxBase):
+    def test_endpoint_force_mapping(self):
+        # Exercise every generalized-load derivative with offsets beyond both ends.
+        next_id = max(node.Id for node in self.box.Nodes) + 1
+        self.box.CreateNewNode(next_id, -1.0, 0.4, 0.2)
+        self.box.CreateNewNode(next_id + 1, 12.0, -0.3, 0.1)
+        self.mapper = KM.MapperFactory.CreateMapper(
+            self.beam, self.box, KM.Parameters('{"mapper_type":"iga_beam_mapper"}'))
+        self.check_force_tangent()
+
     def test_force_transfer_operator(self):
         self.check_beam_transfer_operator()
 

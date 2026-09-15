@@ -4,6 +4,7 @@
 //           Kratos default license: kratos/license.txt
 
 #include "mapping_fast_suite.h"
+#include "geometries/brep_curve.h"
 #include "custom_mappers/iga_beam_mapper.h"
 #include "factories/mapper_factory.h"
 #include "mappers/mapper_define.h"
@@ -134,7 +135,7 @@ KRATOS_TEST_CASE_IN_SUITE(IgaBeamMapperProjectsRationalCurve, KratosMappingAppli
         "minimum-distance projection failed");
 }
 
-KRATOS_TEST_CASE_IN_SUITE(IgaBeamMapperRejectsTangentialEndpointOffset, KratosMappingApplicationSerialTestSuite)
+KRATOS_TEST_CASE_IN_SUITE(IgaBeamMapperTransportsTangentialEndpointOffset, KratosMappingApplicationSerialTestSuite)
 {
     Model model;
     auto& r_beam = model.CreateModelPart("beam");
@@ -144,8 +145,30 @@ KRATOS_TEST_CASE_IN_SUITE(IgaBeamMapperRejectsTangentialEndpointOffset, KratosMa
     const auto p_curve = AddBeamCurve(r_beam);
     r_surface.AddNodalSolutionStepVariable(DISPLACEMENT);
     r_surface.CreateNewNode(1, 3.0, 1.0, 0.0);
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
-        MapperType(r_beam, r_surface, Parameters("{}")), "has a tangential offset");
+    r_surface.CreateNewNode(2, -1.0, 1.0, 0.0);
+    MapperType mapper(r_beam, r_surface, Parameters("{}"));
+    mapper.Map(DISPLACEMENT, DISPLACEMENT, Flags());
+    for (const auto& r_node : r_surface.Nodes()) {
+        KRATOS_EXPECT_NEAR(norm_2(r_node.FastGetSolutionStepValue(DISPLACEMENT)), 0.0, 1e-10);
+    }
+    // A half-turn of twist must not shorten the tangential attachment.
+    for (auto& r_node : r_beam.Nodes()) r_node.FastGetSolutionStepValue(ROTATION_X) = Globals::Pi;
+    mapper.Map(DISPLACEMENT, DISPLACEMENT, Flags());
+    for (const auto& r_node : r_surface.Nodes()) {
+        KRATOS_EXPECT_NEAR(r_node.FastGetSolutionStepValue(DISPLACEMENT_X), 0.0, 1e-10);
+        KRATOS_EXPECT_NEAR(r_node.FastGetSolutionStepValue(DISPLACEMENT_Y), -2.0, 1e-10);
+    }
+    // Rigid 90-degree rotation about Z, at both endpoints.
+    for (auto& r_node : r_beam.Nodes()) {
+        r_node.FastGetSolutionStepValue(ROTATION_X) = 0.0;
+        r_node.FastGetSolutionStepValue(DISPLACEMENT_X) = -r_node.X0();
+        r_node.FastGetSolutionStepValue(DISPLACEMENT_Y) = r_node.X0();
+    }
+    mapper.Map(DISPLACEMENT, DISPLACEMENT, Flags());
+    for (const auto& r_node : r_surface.Nodes()) {
+        KRATOS_EXPECT_NEAR(r_node.FastGetSolutionStepValue(DISPLACEMENT_X), -1.0 - r_node.X0(), 1e-10);
+        KRATOS_EXPECT_NEAR(r_node.FastGetSolutionStepValue(DISPLACEMENT_Y), r_node.X0() - 1.0, 1e-10);
+    }
 }
 
 KRATOS_TEST_CASE_IN_SUITE(IgaBeamMapperSelectsClosestKnotSpan, KratosMappingApplicationSerialTestSuite)
@@ -210,7 +233,7 @@ KRATOS_TEST_CASE_IN_SUITE(IgaBeamMapperCreatesFromFactory, KratosMappingApplicat
     KRATOS_EXPECT_EQ(&p_mapper->GetInterfaceModelPartOrigin(), &r_beam);
     KRATOS_EXPECT_EQ(&p_mapper->GetInterfaceModelPartDestination(), &r_surface);
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
-        p_mapper->Map(VELOCITY, DISPLACEMENT, Flags()), "maps DISPLACEMENT to DISPLACEMENT");
+        p_mapper->Map(VELOCITY, DISPLACEMENT, Flags()), "requires origin DISPLACEMENT");
     p_mapper->Map(DISPLACEMENT, DISPLACEMENT, Flags());
     KRATOS_EXPECT_VECTOR_NEAR(r_surface.GetNode(1).FastGetSolutionStepValue(DISPLACEMENT), ZeroVector(3), 1e-12);
 }
@@ -241,7 +264,7 @@ KRATOS_TEST_CASE_IN_SUITE(IgaBeamMapperRejectsMultipleCurves, KratosMappingAppli
         MapperType(r_beam, r_surface, Parameters("{}")), "exactly one parent NURBS curve");
 }
 
-KRATOS_TEST_CASE_IN_SUITE(IgaBeamMapperRequiresSurfaceDisplacement, KratosMappingApplicationSerialTestSuite)
+KRATOS_TEST_CASE_IN_SUITE(IgaBeamMapperChecksDestinationVariableAtMap, KratosMappingApplicationSerialTestSuite)
 {
     Model model;
     auto& r_beam = model.CreateModelPart("beam");
@@ -250,8 +273,29 @@ KRATOS_TEST_CASE_IN_SUITE(IgaBeamMapperRequiresSurfaceDisplacement, KratosMappin
     r_beam.AddNodalSolutionStepVariable(ROTATION);
     const auto p_curve = AddBeamCurve(r_beam);
     r_surface.CreateNewNode(1, 1.0, 1.0, 0.0);
+    MapperType mapper(r_beam, r_surface, Parameters("{}"));
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
-        MapperType(r_beam, r_surface, Parameters("{}")), "surface node 1 is missing historical DISPLACEMENT");
+        mapper.Map(DISPLACEMENT, DISPLACEMENT, Flags()), "missing historical destination variable DISPLACEMENT");
 }
 
 } // namespace Kratos::Testing
+
+namespace Kratos::Testing {
+KRATOS_TEST_CASE_IN_SUITE(IgaBeamMapperSupportsCadBrepParent, KratosMappingApplicationSerialTestSuite)
+{
+    Model model;
+    auto& r_beam = model.CreateModelPart("beam");
+    auto& r_surface = model.CreateModelPart("surface");
+    r_beam.AddNodalSolutionStepVariable(DISPLACEMENT);
+    r_beam.AddNodalSolutionStepVariable(ROTATION);
+    const auto p_curve = AddBeamCurve(r_beam);
+    BrepCurve<PointerVector<Node>, PointerVector<Point>> brep(p_curve);
+    for (auto& r_element : r_beam.Elements()) r_element.GetGeometry().SetGeometryParent(&brep);
+    AddSurfaceNode(r_surface);
+    MapperType mapper(r_beam, r_surface, Parameters("{}"));
+    KRATOS_EXPECT_NEAR(mapper.GetReferenceAttachments()[0].Parameter, 0.5, 1e-10);
+    mapper.Map(DISPLACEMENT, DISPLACEMENT, Flags());
+    const array_1d<double, 3> zero = ZeroVector(3);
+    KRATOS_EXPECT_VECTOR_NEAR(r_surface.GetNode(1).FastGetSolutionStepValue(DISPLACEMENT), zero, 1e-10);
+}
+}
