@@ -98,3 +98,50 @@ function sets grow parameter as false. As well the grow is set to false if all p
 This function sets values of PREV_PIPE_HEIGHT and PIPE_HEIGHT parameters based on 'grow' input value. If grow is equal
 to true which means the piping is growing then PREV_PIPE_HEIGHT value is assigned to PIPE_HEIGHT value. If grow is false
 then PIPE_HEIGHT value is assigned to the PREV_PIPE_HEIGHT value.
+
+# Newton-Raphson with Seepage
+
+This strategy is very similar to the Newton-Raphson strategy implemented in Kratos Core (i.e. class `ResidualBasedNewtonRaphsonStrategy`), except that it has been extended with support for seepage boundaries. The seepage boundary is defined as a mixed boundary condition which acts as a no-flow boundary or an atmospheric pressure boundary depending on its nodes and the surrounding elements. The strategy switches from a Dirichlet to a Neumann boundary condition based on the local pressure and flow values. In short, a zero-pressure is applied when outflow is present, while a zero-flux boundary is applied in case of suction ($`p > 0`$). Therefore, at the seepage boundary, the following two conditions hold (where condition 'a' is Neumann and condition 'b' is Dirichlet):
+
+```math
+\begin{aligned}
+\text{a)    } & Q_n = 0  & \text{ if } p > 0 \\
+\text{b)    } & p = 0 & \text{ if } Q_n \ge 0
+\end{aligned}
+```
+
+where $`p`$ is the pore water pressure, defined negative if a node contains water (and positive in case of suction). $`Q_n`$ is the nodal flow, calculated as the accumulation of the flow contributions (permeability flow, compressibility flow and fluid body flow) of the surrounding elements. $`Q_n`$ is defined as positive when there is a net outflow. Since switching between these two conditions acts on the number of degrees of freedom and has a two-way interaction with the pressure field, the switching of the seepage boundary needs to be done on the level of non-linear iterations. This means that within one solution step, next to the general convergence criteria, the seepage boundary also needs to 'converge' to either a Dirichlet or a Neumann boundary condition for every node on the boundary. Note that in each iteration, at most one "seepage node" switches the applied boundary condition. In that case, at least one more iteration is needed.
+
+These conditions are depicted in the following schematic, with hydrostatic boundaries with different reference heights and a seepage boundary on the right side of the model. These lead to the no-flow or "closed" condition (a) above the phreatic line, while it leads to $`p = 0`$ and outflow (b) below the phreatic line (but above the low hydrostatic condition):
+
+![seepage_boundary](seepage_boundary.svg)
+
+To implement the conditions depicted and described above in code, they need to be rewritten into switch conditions. Next to this, a tolerance needs to be introduced to ensure stability. The switch conditions are described as follows:
+
+```math
+\begin{aligned}
+\text{if Dirichlet condition and } Q_n < -\epsilon_1: & Dirichlet \rightarrow Neumann, &  Q_n=0 \\
+\text{if Neumann condition and } p < -\epsilon_2: & Neumann \rightarrow Dirichlet, &  p = 0 &
+\end{aligned}
+```
+
+Here, $`\epsilon_1`$ and $`\epsilon_2`$ are the aforementioned tolerances to ensure numeric stability and prevent switching of Dirichlet to Neumann (or vice versa) due to numeric noise. At present, $`\epsilon_1 = 1 \times 10^{-11}`$ and $`\epsilon_2 = 0.0`$.
+
+In pseudo-code, these switching conditions have been implemented as follows:
+```
+iteration loop:
+    ...
+    solve non linear iteration
+    ...
+
+    if seepage nodes with Neumann condition and negative pressure (water present):
+        switch node with the most negative pressure to Dirichlet -> p = 0 & p = fixed
+        has_switched = true
+    else if seepage nodes with Dirichlet condition and negative flow (highest inflow):
+        switch node with the most negative flow to Neumann -> p = free & flow = 0
+        has_switched = true
+    
+    if has_switched:
+        is_converged = false
+        rebuild_system_next_iteration = true
+```
