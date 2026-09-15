@@ -56,9 +56,8 @@ void AddSeepageCondition(ModelPart& rModelPart, std::size_t Id, std::size_t Firs
 std::vector<Node*> AllNodesOf(ModelPart& rModelPart)
 {
     auto result = std::vector<Node*>{};
-    for (auto& r_node : rModelPart.Nodes()) {
-        result.push_back(&r_node);
-    }
+    std::ranges::transform(rModelPart.Nodes(), std::back_inserter(result),
+                           [](auto& rNode) { return &rNode; });
     return result;
 }
 
