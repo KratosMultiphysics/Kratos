@@ -135,6 +135,12 @@ class TestImposeNodalYoungModulusProcess(KratosUnittest.TestCase):
         strain_vector[0] = 1.0e-3  # uniaxial strain along x
 
         options = KratosMultiphysics.Flags()
+        # The nodal laws use the standard small-strain kernel which derives the
+        # strain from the deformation gradient unless the element provides it.
+        # This direct-law harness passes a fixed strain vector, so it must opt
+        # into the element-provided-strain path (as the SmallDisplacement
+        # element does for its constitutive variables).
+        options.Set(KratosMultiphysics.ConstitutiveLaw.USE_ELEMENT_PROVIDED_STRAIN, True)
         options.Set(KratosMultiphysics.ConstitutiveLaw.COMPUTE_CONSTITUTIVE_TENSOR, True)
         options.Set(KratosMultiphysics.ConstitutiveLaw.COMPUTE_STRESS, True)
 

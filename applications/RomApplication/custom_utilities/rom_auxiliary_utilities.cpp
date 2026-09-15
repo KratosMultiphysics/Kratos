@@ -59,7 +59,7 @@ void RomAuxiliaryUtilities::SetHRomComputingModelPart(
     for (auto it = r_elem_weights.begin(); it != r_elem_weights.end(); ++it) {
         // Get element from origin mesh
         const IndexType elem_id = stoi(it.name());
-        const auto p_elem = rOriginModelPart.pGetElement(elem_id + 1); //FIXME: WHY THIS +1?
+        const auto p_elem = rOriginModelPart.pGetElement(elem_id);
 
         // Add the element to the auxiliary container and to the main HROM model part
         hrom_elems_vect.push_back(p_elem);
@@ -81,7 +81,7 @@ void RomAuxiliaryUtilities::SetHRomComputingModelPart(
     for (auto it = r_cond_weights.begin(); it != r_cond_weights.end(); ++it) {
         // Get the condition from origin mesh
         const IndexType cond_id = stoi(it.name());
-        auto p_cond = rOriginModelPart.pGetCondition(cond_id + 1); //FIXME: WHY THIS +1?
+        auto p_cond = rOriginModelPart.pGetCondition(cond_id);
 
         // Add the condition to the auxiliary container and to the main HROM model part
         hrom_conds_vect.push_back(p_cond);
@@ -153,12 +153,12 @@ void RomAuxiliaryUtilities::SetHRomComputingModelPartWithLists(const std::vector
         int elem_id = elementIds[i];
 
         // Get the element from the origin model part (assuming IDs start from 1)
-        auto p_elem = rOriginModelPart.pGetElement(elem_id + 1); //FIXME: WHY THIS +1?
+        auto p_elem = rOriginModelPart.pGetElement(elem_id);
 
         // Add the element to the auxiliary container and to the main HROM model part
         hrom_elems_vect.push_back(p_elem);
         elements_container->push_back(p_elem);
-        element_ids.push_back(elem_id + 1);
+        element_ids.push_back(elem_id);
 
         const auto& r_geom = p_elem->GetGeometry();
         for (IndexType i_node = 0; i_node < r_geom.PointsNumber(); ++i_node) {
@@ -179,12 +179,12 @@ void RomAuxiliaryUtilities::SetHRomComputingModelPartWithLists(const std::vector
         int cond_id = conditionIds[i];
 
         // Get the condition from the origin model part (assuming IDs start from 1)
-        auto p_cond = rOriginModelPart.pGetCondition(cond_id + 1); //FIXME: WHY THIS +1?
+        auto p_cond = rOriginModelPart.pGetCondition(cond_id);
 
         // Add the condition to the auxiliary container and to the main HROM model part
         hrom_conds_vect.push_back(p_cond);
         conditions_container->push_back(p_cond);
-        condition_ids.push_back(cond_id + 1);
+        condition_ids.push_back(cond_id);
 
         const auto& r_geom = p_cond->GetGeometry();
         for (IndexType i_node = 0; i_node < r_geom.PointsNumber(); ++i_node) {
@@ -400,7 +400,7 @@ void RomAuxiliaryUtilities::SetHRomComputingModelPartWithNeighbours(
     for (auto it = r_elem_weights.begin(); it != r_elem_weights.end(); ++it) {
         // Get element from origin mesh
         const IndexType elem_id = stoi(it.name());
-        const auto p_elem = rOriginModelPart.pGetElement(elem_id + 1);
+        const auto p_elem = rOriginModelPart.pGetElement(elem_id);
 
         // Add the element to the auxiliary container and to the main HROM model part
         if(std::find(hrom_elems_vect.begin(), hrom_elems_vect.end(), p_elem) == hrom_elems_vect.end()) {
@@ -461,7 +461,7 @@ void RomAuxiliaryUtilities::SetHRomComputingModelPartWithNeighbours(
     for (auto it = r_cond_weights.begin(); it != r_cond_weights.end(); ++it) {
         // Get the condition from origin mesh
         const IndexType cond_id = stoi(it.name());
-        auto p_cond = rOriginModelPart.pGetCondition(cond_id + 1);
+        auto p_cond = rOriginModelPart.pGetCondition(cond_id);
 
         // Add the condition to the auxiliary container and to the main HROM model part
         if(std::find(hrom_conds_vect.begin(), hrom_conds_vect.end(), p_cond) == hrom_conds_vect.end()) {
@@ -621,9 +621,9 @@ void RomAuxiliaryUtilities::SetHRomVolumetricVisualizationModelPart(
     rHRomVisualizationModelPart.AddNodes(skin_nodes_ids);
 
     // Create fake conditions for the HROM skin visualization
-    IndexType max_cond_id = rHRomVisualizationModelPart.NumberOfConditions() == 0 ? 0 : (rHRomVisualizationModelPart.GetRootModelPart().ConditionsEnd()-1)->Id();
-    const IndexType max_prop_id = rHRomVisualizationModelPart.NumberOfProperties() == 0 ? 0 : (rHRomVisualizationModelPart.GetRootModelPart().PropertiesEnd()-1)->Id();
-    auto p_prop = rHRomVisualizationModelPart.CreateNewProperties(max_prop_id + 1);
+    IndexType max_cond_id = rHRomVisualizationModelPart.NumberOfConditions() == 0 ? 0 : (rHRomVisualizationModelPart.GetRootModelPart().ConditionsEnd())->Id();
+    const IndexType max_prop_id = rHRomVisualizationModelPart.NumberOfProperties() == 0 ? 0 : (rHRomVisualizationModelPart.GetRootModelPart().PropertiesEnd())->Id();
+    auto p_prop = rHRomVisualizationModelPart.CreateNewProperties(max_prop_id);
     for (auto it_p_geom = skin_geom_prototypes.begin(); it_p_geom != skin_geom_prototypes.end(); ++it_p_geom) {
         // Get condition type from geometry type and create new condition
         const std::string condition_name = AuxiliaryGeometryToConditionMap[(*it_p_geom)->GetGeometryType()];
@@ -688,14 +688,14 @@ std::vector<IndexType> RomAuxiliaryUtilities::GetHRomConditionParentsIds(
 
     for (auto it = r_cond_weights.begin(); it != r_cond_weights.end(); ++it) {
         // Get the condition parent
-        const auto& r_cond = rModelPart.GetCondition(it->first + 1); //FIXME: FIX THE + 1 --> WE NEED TO WRITE REAL IDS IN THE WEIGHTS!!
+        const auto& r_cond = rModelPart.GetCondition(it->first);
         const auto& r_neigh = r_cond.GetValue(NEIGHBOUR_ELEMENTS);
         KRATOS_ERROR_IF(r_neigh.size() == 0) << "Condition "<< r_cond.Id() <<" has no parent element assigned. Check that \'NEIGHBOUR_ELEMENTS\' have been already computed." << std::endl;
 
         // Add the parent to the HROM weights
         // Note that we check if the condition parent has been already added by the HROM element selection strategy
-        if (r_elem_weights.find(r_neigh[0].Id() - 1) == r_elem_weights.end()) { //FIXME: FIX THE + 1 --> WE NEED TO WRITE REAL IDS IN THE WEIGHTS!!
-            parent_ids.push_back(r_neigh[0].Id() - 1); //FIXME: FIX THE + 1 --> WE NEED TO WRITE REAL IDS IN THE WEIGHTS!!
+        if (r_elem_weights.find(r_neigh[0].Id()) == r_elem_weights.end()) {
+            parent_ids.push_back(r_neigh[0].Id());
         }
     }
 
@@ -713,13 +713,13 @@ std::vector<IndexType> RomAuxiliaryUtilities::GetHRomConditionParentsIds(
     std::unordered_set<IndexType> parent_ids_set;
     // Iterate over the given node IDs
     for (const auto condId : rConditionIds) {
-        auto& r_cond = rModelPart.GetCondition(condId + 1);
+        auto& r_cond = rModelPart.GetCondition(condId);
         // Add neighboring elements' IDs to the set
         const auto& r_neigh_elements = r_cond.GetValue(NEIGHBOUR_ELEMENTS);
         // Add the neighbour elements to new_element_ids_set
         for (size_t i = 0; i < r_neigh_elements.size(); ++i) {
             const auto& r_elem = r_neigh_elements[i];
-            parent_ids_set.insert(r_elem.Id() - 1); //FIXME: FIX THE + 1 --> WE NEED TO WRITE REAL IDS IN THE WEIGHTS!!
+            parent_ids_set.insert(r_elem.Id());
             break;
         }
     }
@@ -749,8 +749,8 @@ std::vector<IndexType> RomAuxiliaryUtilities::GetNodalNeighbouringElementIdsNotI
             const auto& r_elem = r_neigh[i];
 
             // Note that we check if the element has been already added by the HROM element selection strategy
-            if (r_elem_weights.find(r_elem.Id() - 1) == r_elem_weights.end()) { //FIXME: FIX THE + 1 --> WE NEED TO WRITE REAL IDS IN THE WEIGHTS!!
-                new_element_ids.push_back(r_elem.Id() - 1); //FIXME: FIX THE + 1 --> WE NEED TO WRITE REAL IDS IN THE WEIGHTS!!
+            if (r_elem_weights.find(r_elem.Id()) == r_elem_weights.end()) {
+                new_element_ids.push_back(r_elem.Id());
             }
         }
     }
@@ -773,7 +773,7 @@ std::vector<IndexType> RomAuxiliaryUtilities::GetNodalNeighbouringElementIds(
         // Add the neighbour elements to new_element_ids_set
         for (size_t i = 0; i < r_neigh.size(); ++i) {
             const auto& r_elem = r_neigh[i];
-            new_element_ids_set.insert(r_elem.Id() - 1); //FIXME: FIX THE + 1 --> WE NEED TO WRITE REAL IDS IN THE WEIGHTS!!
+            new_element_ids_set.insert(r_elem.Id());
         }
     }
 
@@ -803,7 +803,7 @@ std::vector<IndexType> RomAuxiliaryUtilities::GetNodalNeighbouringElementIds(
         // Add the neighbour elements to new_element_ids_set
         for (size_t i = 0; i < r_neigh_elements.size(); ++i) {
             const auto& r_elem = r_neigh_elements[i];
-            new_entity_ids_set.insert(r_elem.Id() - 1); //FIXME: FIX THE + 1 --> WE NEED TO WRITE REAL IDS IN THE WEIGHTS!!
+            new_entity_ids_set.insert(r_elem.Id());
             if (RetrieveSingleNeighbour) {
                 break; // Break if only one neighbour should be retrieved
             }
@@ -836,7 +836,7 @@ std::vector<IndexType> RomAuxiliaryUtilities::GetNodalNeighbouringConditionIds(
         // Add the neighbour elements to new_element_ids_set
         for (size_t i = 0; i < r_neigh_elements.size(); ++i) {
             const auto& r_cond = r_neigh_elements[i];
-            new_condition_ids_set.insert(r_cond.Id() - 1); //FIXME: FIX THE + 1 --> WE NEED TO WRITE REAL IDS IN THE WEIGHTS!!
+            new_condition_ids_set.insert(r_cond.Id());
             if (RetrieveSingleNeighbour) {
                 break; // Break if only one neighbour should be retrieved
             }
@@ -860,8 +860,8 @@ std::vector<IndexType> RomAuxiliaryUtilities::GetElementIdsNotInHRomModelPart(
         IndexType element_id = r_elem.Id();
 
         // Check if the element is already added
-        if (r_elem_weights.find(element_id - 1) == r_elem_weights.end()) { //FIXME: FIX THE + 1 --> WE NEED TO WRITE REAL IDS IN THE WEIGHTS!!
-            new_element_ids.push_back(element_id - 1); //FIXME: FIX THE + 1 --> WE NEED TO WRITE REAL IDS IN THE WEIGHTS!!
+        if (r_elem_weights.find(element_id) == r_elem_weights.end()) {
+            new_element_ids.push_back(element_id);
         }
     }
 
@@ -880,8 +880,8 @@ std::vector<IndexType> RomAuxiliaryUtilities::GetConditionIdsNotInHRomModelPart(
         IndexType condition_id = r_cond.Id();
 
         // Check if the condition is already added
-        if (r_cond_weights.find(condition_id - 1) == r_cond_weights.end()) { //FIXME: FIX THE + 1 --> WE NEED TO WRITE REAL IDS IN THE WEIGHTS!!
-            new_condition_ids.push_back(condition_id - 1); //FIXME: FIX THE + 1 --> WE NEED TO WRITE REAL IDS IN THE WEIGHTS!!
+        if (r_cond_weights.find(condition_id ) == r_cond_weights.end()) {
+            new_condition_ids.push_back(condition_id);
         }
     }
 
@@ -894,7 +894,7 @@ std::vector<IndexType> RomAuxiliaryUtilities::GetElementIdsInModelPart(
     std::vector<IndexType> element_ids;
 
     for (const auto& r_elem : rModelPart.Elements()) {
-        element_ids.push_back(r_elem.Id() - 1); //FIXME: FIX THE + 1 --> WE NEED TO WRITE REAL IDS IN THE WEIGHTS!!
+        element_ids.push_back(r_elem.Id());
     }
     return element_ids;
 }
@@ -905,7 +905,7 @@ std::vector<IndexType> RomAuxiliaryUtilities::GetConditionIdsInModelPart(
     std::vector<IndexType> condition_ids;
 
     for (const auto& r_cond : rModelPart.Conditions()) {
-        condition_ids.push_back(r_cond.Id() - 1); //FIXME: FIX THE + 1 --> WE NEED TO WRITE REAL IDS IN THE WEIGHTS!!
+        condition_ids.push_back(r_cond.Id());
     }
     return condition_ids;
 }
@@ -923,7 +923,7 @@ std::vector<IndexType> RomAuxiliaryUtilities::GetHRomMinimumConditionsIds(
         // Check if the HROM condition weights already have one of the conditions of this model part
         bool has_minimum_condition = false;
         for (auto it = rHRomConditionWeights.begin(); it != rHRomConditionWeights.end(); ++it) {
-            const IndexType cond_id = it->first + 1; //FIXME: FIX THE +1 !!!!!!!
+            const IndexType cond_id = it->first;
             if (rModelPart.HasCondition(cond_id)) {
                 has_minimum_condition = true;
                 break;
@@ -932,7 +932,7 @@ std::vector<IndexType> RomAuxiliaryUtilities::GetHRomMinimumConditionsIds(
 
         // If minimum condition is missing, add the first condition as minimum one
         if (!has_minimum_condition) {
-            cond_ids.push_back(rModelPart.ConditionsBegin()->Id() - 1); //FIXME: FIX THE + 1 !!!!! -> WE SHOULD WRITE REAL IDS!!!!
+            cond_ids.push_back(rModelPart.ConditionsBegin()->Id());
         }
 
         // Recursively check the submodelparts
@@ -959,7 +959,7 @@ void RomAuxiliaryUtilities::RecursiveHRomMinimumConditionIds(
         // Check if the HROM condition weights already have one of the conditions of this model part
         bool has_minimum_condition = false;
         for (auto it = rHRomConditionWeights.begin(); it != rHRomConditionWeights.end(); ++it) {
-            const IndexType cond_id = it->first + 1; //FIXME: FIX THE + 1
+            const IndexType cond_id = it->first;
             if (rModelPart.HasCondition(cond_id)) {
                 has_minimum_condition = true;
                 break;
@@ -968,7 +968,7 @@ void RomAuxiliaryUtilities::RecursiveHRomMinimumConditionIds(
 
         // If minimum condition is missing, add the first condition as minimum one
         if (!has_minimum_condition) {
-            rMinimumConditionsIds.push_back(rModelPart.ConditionsBegin()->Id() - 1); //FIXME: FIX THE + 1
+            rMinimumConditionsIds.push_back(rModelPart.ConditionsBegin()->Id());
         }
 
         // Recursively check the current modelpart submodelparts
