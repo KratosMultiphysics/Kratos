@@ -54,7 +54,7 @@
                     "Structure"
                 ],
                 "primal_analysis_name": "Structure_static",
-                "perturbation_size": 1e-8
+                "perturbation_size": 1e-08
             }
         }
     ],
@@ -90,9 +90,9 @@
         "type": "algorithm_mma",
         "settings": {
             "echo_level": 0,
-            "move"                : 0.1,
-            "controls_lower_bound": "-5.0",
-            "controls_upper_bound": "15.0",
+            "move": 0.05,
+            "controls_lower_bound": "-0.5",
+            "controls_upper_bound": "0.5",
             "conv_settings": {
                 "max_iter": 10
             }

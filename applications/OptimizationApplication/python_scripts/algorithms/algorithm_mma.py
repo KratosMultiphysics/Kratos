@@ -71,7 +71,8 @@ class AlgorithmMMA(Algorithm):
                     "epsilon_reduction_factor" : 0.1,
                     "residual_tol_factor"      : 0.9,
                     "fraction_to_boundary"     : 0.99,
-                    "max_newton_iter"          : 50
+                    "max_newton_iter"          : 50,
+                    "verbose"                  : false
                 },
                 "gcmma_settings": {
                     "raa_init_factor"      : 0.1,
@@ -153,6 +154,7 @@ class AlgorithmMMA(Algorithm):
             "fraction_to_boundary": subsolve_settings["fraction_to_boundary"].GetDouble(),
             "max_newton_iter": subsolve_settings["max_newton_iter"].GetInt(),
         }
+        self.verbose = subsolve_settings["verbose"].GetBool()
 
         gcmma_settings = settings["gcmma_settings"]
         self.raa_init_factor = gcmma_settings["raa_init_factor"].GetDouble()
@@ -246,10 +248,10 @@ class AlgorithmMMA(Algorithm):
         p, q = mma_math.compute_pq(df, x, self.low, self.upp)
         r = mma_math.compute_r(f, x, p, q, self.low, self.upp)
         b = -r
-        xmma, _, _, _, kkt_norm = mma_math.solve_mma_subproblem(
+        xmma, _, _, lam, subsolve_residual = mma_math.solve_mma_subproblem(
             x, alfa, beta, self.low, self.upp, p0, q0, p, q, b, self.a0, self.a_vec, self.c_vec, self.d_vec,
-            self.subsolve_settings)
-        return xmma, kkt_norm, 0
+            self.subsolve_settings, verbose=self.verbose)
+        return xmma, lam, subsolve_residual, 0
 
     def __SolveGCMMA(self, x, f0, df0, f, df, alfa, beta):
         n = x.size
@@ -260,7 +262,8 @@ class AlgorithmMMA(Algorithm):
             if m > 0 else np.empty(0)
 
         xmma = x
-        kkt_norm = 0.0
+        lam = np.empty(m)
+        subsolve_residual = 0.0
         inner_iterations = 0
         reached_cap = True
         for inner_iterations in range(1, self.inner_max_iter + 1):
@@ -273,9 +276,9 @@ class AlgorithmMMA(Algorithm):
                 p, q, r = np.empty((0, n)), np.empty((0, n)), np.empty(0)
             b = -r
 
-            xmma, _, _, _, kkt_norm = mma_math.solve_mma_subproblem(
+            xmma, _, _, lam, subsolve_residual = mma_math.solve_mma_subproblem(
                 x, alfa, beta, self.low, self.upp, p0, q0, p, q, b, self.a0, self.a_vec, self.c_vec, self.d_vec,
-                self.subsolve_settings)
+                self.subsolve_settings, verbose=self.verbose)
 
             f0_approx = mma_math.evaluate_approximation(xmma, p0, q0, r0, self.low, self.upp)
             f_approx = mma_math.evaluate_approximation(xmma, p, q, r, self.low, self.upp) if m > 0 else np.empty(0)
@@ -309,7 +312,7 @@ class AlgorithmMMA(Algorithm):
                                         f"{self.inner_max_iter} without satisfying conservativeness; "
                                         "accepting the last trial point anyway.")
 
-        return xmma, kkt_norm, inner_iterations
+        return xmma, lam, subsolve_residual, inner_iterations
 
     @time_decorator()
     def Solve(self) -> bool:
@@ -346,11 +349,18 @@ class AlgorithmMMA(Algorithm):
                 alfa, beta = mma_math.compute_move_limits(x, self.low, self.upp, self.xmin, self.xmax, self.albefa, self.move)
 
                 if self.variant == "mma":
-                    xmma, kkt_norm, inner_iterations = self.__SolvePlainMMA(x, f0, df0, f, df, alfa, beta)
+                    xmma, lam, subsolve_residual, inner_iterations = self.__SolvePlainMMA(x, f0, df0, f, df, alfa, beta)
                 else:
-                    xmma, kkt_norm, inner_iterations = self.__SolveGCMMA(x, f0, df0, f, df, alfa, beta)
+                    xmma, lam, subsolve_residual, inner_iterations = self.__SolveGCMMA(x, f0, df0, f, df, alfa, beta)
 
+                # kkt_norm is the TRUE KKT residual of the original problem at x, using the
+                # real gradients/values just computed above and the dual multipliers lam
+                # returned by the subproblem -- this is what genuinely shrinks as the outer
+                # loop converges, unlike subsolve_residual (the subproblem's own interior-point
+                # residual, which is always driven to ~epsilon_min regardless of outer progress).
+                kkt_norm = mma_math.kkt_residual(x, df0, df, f, self.xmin, self.xmax, lam)
                 self.algorithm_data.GetBufferedData()["kkt_norm"] = kkt_norm
+                self.algorithm_data.GetBufferedData()["subsolve_residual"] = subsolve_residual
                 if self.variant == "gcmma":
                     self.algorithm_data.GetBufferedData()["gcmma_inner_iterations"] = inner_iterations
 

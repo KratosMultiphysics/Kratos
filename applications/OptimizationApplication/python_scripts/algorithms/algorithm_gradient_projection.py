@@ -163,6 +163,13 @@ class AlgorithmGradientProjection(Algorithm):
         self.algorithm_data.GetBufferedData()["search_direction"] = search_direction
         self.algorithm_data.GetBufferedData()["correction"] = correction
 
+        # search_direction is the update the algorithm still wants to make (the raw negative
+        # gradient when unconstrained, or the constraint-projected direction when constrained);
+        # its norm is therefore a natural KKT-style stationarity residual for this algorithm --
+        # it shrinks to zero exactly when no further descent step is needed, mirroring how
+        # AlgorithmMMA reports its own (differently computed) kkt_norm.
+        self.algorithm_data.GetBufferedData()["kkt_norm"] = numpy.max(numpy.abs(search_direction.data))
+
     @time_decorator()
     def ComputeControlUpdate(self, alpha: Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor) -> Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor:
         search_direction: Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor = self.algorithm_data.GetBufferedData()["search_direction"]

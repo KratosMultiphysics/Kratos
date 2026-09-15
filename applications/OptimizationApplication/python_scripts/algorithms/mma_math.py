@@ -20,6 +20,8 @@ constraint gradient/coefficient matrices. This module has no Kratos
 dependency and can be used and tested standalone.
 """
 
+import time
+
 import numpy as np
 
 
@@ -187,9 +189,6 @@ def _residual_norms(*args):
 
 def _newton_direction(x, y, z, lam, xsi, eta, mu, zeta, s, p0, q0, p, q, b, low, upp,
                        alfa, beta, a0, a, c, d, epsilon):
-    n = x.size
-    m = lam.size
-
     ux1 = upp - x
     xl1 = x - low
     plam = p0 + lam @ p
@@ -209,19 +208,21 @@ def _newton_direction(x, y, z, lam, xsi, eta, mu, zeta, s, p0, q0, p, q, b, low,
     delz = rez + rezet / z
     dellam = relam - res / lam
 
-    top = np.hstack([np.diag(diagx), np.zeros((n, m)), np.zeros((n, 1)), GG.T])
-    row2 = np.hstack([np.zeros((m, n)), np.diag(diagy), np.zeros((m, 1)), -np.eye(m)])
-    row3 = np.hstack([np.zeros((1, n)), np.zeros((1, m)), np.array([[diagz]]), -a.reshape(1, m)])
-    row4 = np.hstack([GG, -np.eye(m), -a.reshape(m, 1), -np.diag(diaglam)])
-    jacobian = np.vstack([top, row2, row3, row4])
+    # The (x, y, z) blocks of the full KKT Jacobian are diagonal (each x_j/y_i only
+    # couples to itself and to lam, never to another x_k/y_l), so dx, dy, dz can be
+    # eliminated analytically, leaving only an (m x m) system to solve for dlam. This
+    # is essential for performance: n is the number of design variables (can be in the
+    # thousands for real topology optimization), while m (number of constraints) is
+    # typically small -- solving an (m x m) system instead of a dense (n+2m+1) x (n+2m+1)
+    # one turns an O(n^3) factorization into O(n*m^2).
+    GG_scaled = GG / diagx  # (m, n): each column j divided by diagx_j
+    schur = GG_scaled @ GG.T + np.diag(1.0 / diagy) + np.outer(a, a) / diagz + np.diag(diaglam)
+    rhs_lam = dellam - GG_scaled @ delx + dely / diagy + a * delz / diagz
 
-    rhs = np.concatenate([-delx, -dely, [-delz], -dellam])
-    solution = np.linalg.solve(jacobian, rhs)
-
-    dx = solution[:n]
-    dy = solution[n:n + m]
-    dz = solution[n + m]
-    dlam = solution[n + m + 1:]
+    dlam = np.linalg.solve(schur, rhs_lam)
+    dz = (-delz + a @ dlam) / diagz
+    dy = (-dely + dlam) / diagy
+    dx = (-delx - GG.T @ dlam) / diagx
 
     dxsi = (-rexsi - xsi * dx) / (x - alfa)
     deta = (-reeta + eta * dx) / (beta - x)
@@ -273,7 +274,7 @@ def _solve_unconstrained(alfa, beta, p0, q0, low, upp):
     return np.clip(x_star, alfa, beta)
 
 
-def solve_mma_subproblem(x0, alfa, beta, low, upp, p0, q0, p, q, b, a0, a, c, d, settings=None):
+def solve_mma_subproblem(x0, alfa, beta, low, upp, p0, q0, p, q, b, a0, a, c, d, settings=None, verbose=False):
     """Solves the MMA/GCMMA convex subproblem:
 
         minimize_{x,y,z}   sum_j(p0_j/(upp_j-x_j) + q0_j/(x_j-low_j))
@@ -284,8 +285,20 @@ def solve_mma_subproblem(x0, alfa, beta, low, upp, p0, q0, p, q, b, a0, a, c, d,
     via a primal-dual interior-point Newton method on the KKT system of this
     artificial-variable formulation (Svanberg 1987, Section 5).
 
+    If `verbose` is True, prints one line per epsilon level and one line per
+    Newton iteration, each with a wall-clock timestamp and elapsed time, so
+    progress can be observed on large problems.
+
     Returns:
-        xmma, ymma, zmma, lam, kkt_norm
+        xmma, ymma, zmma, lam, subsolve_residual
+
+    Note: `subsolve_residual` measures how precisely *this iteration's convex
+    approximation* was solved (its interior-point continuation always drives
+    it down to roughly `subsolve_settings.epsilon_min`, by construction, on
+    every outer iteration) -- it is a solver-health diagnostic, not a measure
+    of how close the design is to a true optimum of the original problem. For
+    that, use `kkt_residual` with the real (unapproximated) gradients/values
+    at the accepted design point, together with the `lam` returned here.
     """
     settings = dict(_DEFAULT_SUBSOLVE_SETTINGS, **(settings or {}))
     epsilon = settings["epsilon_init"]
@@ -296,10 +309,20 @@ def solve_mma_subproblem(x0, alfa, beta, low, upp, p0, q0, p, q, b, a0, a, c, d,
     max_newton_iter = settings["max_newton_iter"]
 
     m = a.size
+    n = x0.size
 
     if m == 0:
         xmma = _solve_unconstrained(alfa, beta, p0, q0, low, upp)
         return xmma, np.zeros(0), 0.0, np.zeros(0), 0.0
+
+    start_time = time.time()
+
+    def _log(message):
+        if verbose:
+            elapsed = time.time() - start_time
+            print(f"[mma_math] {time.strftime('%H:%M:%S')} (+{elapsed:7.2f}s) {message}", flush=True)
+
+    _log(f"solve_mma_subproblem start: n={n}, m={m}")
 
     x = 0.5 * (alfa + beta)
     y = np.ones(m)
@@ -311,13 +334,17 @@ def solve_mma_subproblem(x0, alfa, beta, low, upp, p0, q0, p, q, b, a0, a, c, d,
     zeta = 1.0
     s = np.ones(m)
 
+    epsilon_level = 0
     while epsilon > epsilon_min:
+        epsilon_level += 1
         residual_norm, residual_max = _residual_norms(
             x, y, z, lam, xsi, eta, mu, zeta, s, p0, q0, p, q, b, low, upp, alfa, beta, a0, a, c, d, epsilon)
+        _log(f"epsilon level {epsilon_level}: epsilon={epsilon:.2e}, residual_max={residual_max:.3e}")
 
         newton_iter = 0
         while residual_max > residual_tol_factor * epsilon and newton_iter < max_newton_iter:
             newton_iter += 1
+            newton_start = time.time()
 
             dx, dy, dz, dlam, dxsi, deta, dmu, dzeta, ds = _newton_direction(
                 x, y, z, lam, xsi, eta, mu, zeta, s, p0, q0, p, q, b, low, upp, alfa, beta, a0, a, c, d, epsilon)
@@ -347,12 +374,70 @@ def solve_mma_subproblem(x0, alfa, beta, low, upp, p0, q0, p, q, b, a0, a, c, d,
             xsi, eta, mu, zeta, s = xsi_new, eta_new, mu_new, zeta_new, s_new
             residual_norm, residual_max = new_norm, new_max
 
+            _log(f"  newton iter {newton_iter}: step={steg:.3e}, residual_max={residual_max:.3e}, "
+                 f"iter_time={time.time() - newton_start:.3f}s")
+
         epsilon *= epsilon_reduction_factor
 
     _, kkt_max = _residual_norms(
         x, y, z, lam, xsi, eta, mu, zeta, s, p0, q0, p, q, b, low, upp, alfa, beta, a0, a, c, d, 0.0)
 
+    _log(f"solve_mma_subproblem done: subsolve_residual={kkt_max:.3e}, total_time={time.time() - start_time:.3f}s")
+
     return x, y, z, lam, kkt_max
+
+
+def kkt_residual(x, df0dx, dfdx, f_value, xmin, xmax, lam):
+    """True KKT residual of the *original*, unapproximated problem at design
+    point `x`, using the real objective/constraint gradients and values and
+    the Lagrange multipliers `lam` returned by the last-solved MMA/GCMMA
+    subproblem.
+
+    Combines three standard KKT ingredients for `minimize f0(x) subject to
+    f_i(x) <= 0, xmin <= x <= xmax`:
+      - stationarity: the box-constrained projected-gradient residual of the
+        Lagrangian `grad f0(x) + lam @ grad f(x)` (zero iff x is a KKT point):
+        for each variable strictly interior to [xmin, xmax] the raw gradient
+        component must vanish; at the lower bound only a negative component
+        counts against it (a positive one just means the bound is correctly
+        binding), and symmetrically at the upper bound. This has no arbitrary
+        step-size parameter -- unlike a naive "take a unit step and clip to
+        the box" residual, which saturates at (and gets stuck reporting) a
+        value of order (xmax-xmin) whenever the raw gradient is larger than
+        the box width, regardless of how close x actually is to optimal;
+      - feasibility: how much any f_i(x) exceeds 0;
+      - complementary slackness: how far lam_i * f_i(x) is from 0.
+
+    Deliberately NOT rescaled by the gradient's own norm (e.g. dividing
+    df0dx by ||df0dx||_inf): since the max-abs component of any nonzero
+    vector divided by its own max-abs is always exactly 1, that would make
+    this residual pinned at ~1 for any nonzero gradient and only ever drop
+    to 0 at *exact* convergence -- a binary signal, not a genuinely shrinking
+    one. So this residual is intentionally reported on the same raw scale as
+    the gradients passed in (i.e. the responses' own scaling), and is not
+    directly comparable in magnitude to a differently-normalized residual
+    from another algorithm.
+
+    Unlike the subsolve's own interior-point residual (see
+    `solve_mma_subproblem`), this is not artificially bounded by a fixed
+    solver tolerance -- it genuinely shrinks as the outer MMA/GCMMA
+    iterations converge to a stationary point of the real problem.
+    """
+    grad_lagrangian = df0dx + lam @ dfdx if lam.size else df0dx
+    at_lower = x <= xmin
+    at_upper = x >= xmax
+    projected_grad = np.where(at_lower, np.minimum(grad_lagrangian, 0.0), grad_lagrangian)
+    projected_grad = np.where(at_upper, np.maximum(projected_grad, 0.0), projected_grad)
+    stationarity = np.max(np.abs(projected_grad)) if x.size else 0.0
+
+    if f_value.size:
+        feasibility = np.max(np.maximum(f_value, 0.0))
+        complementarity = np.max(np.abs(lam * f_value))
+    else:
+        feasibility = 0.0
+        complementarity = 0.0
+
+    return max(stationarity, feasibility, complementarity)
 
 
 def initial_raa(dfdx, xmin, xmax, factor=0.1, floor=1.0e-6):
