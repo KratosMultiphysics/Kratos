@@ -27,6 +27,7 @@
 
 // Application includes
 #include "dam_application_variables.h"
+#include "custom_utilities/nodal_young_modulus_utilities.h"
 
 namespace Kratos
 {
@@ -209,9 +210,14 @@ class ConstructionUtility
             else
             {
                 VariableUtils().SetVariable(ALPHA_HEAT_SOURCE, mAlphaInitial, mrThermalModelPart.Nodes());
-                VariableUtils().SetVariable(NODAL_YOUNG_MODULUS, sqrt(mAlphaInitial) * mYoungInf, mrThermalModelPart.Nodes());
+                VariableUtils().SetVariable(YOUNG_MODULUS, sqrt(mAlphaInitial) * mYoungInf, mrThermalModelPart.Nodes());
             }
         }
+
+        // Expose the nodal YOUNG_MODULUS field through the standard
+        // DatabaseAccessor on the mechanical model part properties (the
+        // constitutive response reads it through Properties::GetValue).
+        NodalYoungModulusUtilities::InstallDatabaseAccessor(mrMechanicalModelPart);
 
         KRATOS_CATCH("");
     }
@@ -776,7 +782,7 @@ class ConstructionUtility
                 // Updating values according the computations
                 rNode.FastGetSolutionStepValue(HEAT_FLUX) = heat_flux;
                 rNode.FastGetSolutionStepValue(ALPHA_HEAT_SOURCE) = current_alpha;
-                rNode.FastGetSolutionStepValue(NODAL_YOUNG_MODULUS) = sqrt(current_alpha) * mYoungInf;
+                rNode.FastGetSolutionStepValue(YOUNG_MODULUS) = sqrt(current_alpha) * mYoungInf;
             }
         });
 

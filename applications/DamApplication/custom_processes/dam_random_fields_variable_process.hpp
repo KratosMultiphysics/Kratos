@@ -23,6 +23,7 @@
 
 // Application include
 #include "dam_application_variables.h"
+#include "custom_utilities/nodal_young_modulus_utilities.h"
 
 namespace Kratos
 {
@@ -92,7 +93,11 @@ public:
 
         KRATOS_TRY;
 
-        const Variable<double>& var = KratosComponents<Variable<double>>::Get(mVariableName);
+        // The historical NODAL_YOUNG_MODULUS name is transparently resolved to
+        // the standard nodal YOUNG_MODULUS field (any other variable keeps its
+        // generic behavior).
+        const Variable<double>& var =
+            NodalYoungModulusUtilities::ResolveYoungModulusVariable(mVariableName);
         const int nnodes = mrModelPart.GetMesh(0).Nodes().size();
 
         if(nnodes != 0)
@@ -107,6 +112,12 @@ public:
                 it->FastGetSolutionStepValue(var) = mrTable.GetValue(it->Id());
 
             }
+        }
+
+        // When the field is Young's modulus, expose it through the standard
+        // DatabaseAccessor (idempotent). Other variables are left untouched.
+        if (var == YOUNG_MODULUS) {
+            NodalYoungModulusUtilities::InstallDatabaseAccessor(mrModelPart);
         }
 
         KRATOS_CATCH("");

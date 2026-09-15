@@ -42,6 +42,22 @@ public:
 
     using SizeType     = std::size_t;
     using GeometryType = Geometry<Node>;
+    using VariableType = Variable<double>;
+
+    /**
+     * @brief Resolves a configured variable name to the variable actually
+     * written. The historical NODAL_YOUNG_MODULUS name is accepted for backward
+     * compatibility and transparently resolved to the standard nodal
+     * YOUNG_MODULUS field; any other name keeps its generic behavior.
+     */
+    static const VariableType& ResolveYoungModulusVariable(
+        const std::string& rVariableName)
+    {
+        if (rVariableName == "NODAL_YOUNG_MODULUS" ||
+            rVariableName == "YOUNG_MODULUS")
+            return YOUNG_MODULUS;
+        return KratosComponents<VariableType>::Get(rVariableName);
+    }
 
     /**
      * @brief Interpolated nodal Young modulus (E_gp = sum_i N_i * E_i).

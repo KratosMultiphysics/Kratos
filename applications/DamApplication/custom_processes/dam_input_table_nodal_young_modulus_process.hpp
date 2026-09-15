@@ -94,9 +94,8 @@ public:
 
         // The nodal field is stored as the standard YOUNG_MODULUS; the historical
         // variable_name is accepted for input compatibility.
-        const Variable<double>& var = (mVariableName == "NODAL_YOUNG_MODULUS" ||
-            mVariableName == "YOUNG_MODULUS") ? YOUNG_MODULUS
-            : KratosComponents<Variable<double>>::Get(mVariableName);
+        const Variable<double>& var =
+            NodalYoungModulusUtilities::ResolveYoungModulusVariable(mVariableName);
         const int nnodes = mrModelPart.GetMesh(0).Nodes().size();
 
         if(nnodes != 0)
@@ -143,9 +142,8 @@ public:
 
         // The nodal field is stored as the standard YOUNG_MODULUS; the historical
         // variable_name is accepted for input compatibility.
-        const Variable<double>& var = (mVariableName == "NODAL_YOUNG_MODULUS" ||
-            mVariableName == "YOUNG_MODULUS") ? YOUNG_MODULUS
-            : KratosComponents<Variable<double>>::Get(mVariableName);
+        const Variable<double>& var =
+            NodalYoungModulusUtilities::ResolveYoungModulusVariable(mVariableName);
         const int nnodes = mrModelPart.GetMesh(0).Nodes().size();
 
 
