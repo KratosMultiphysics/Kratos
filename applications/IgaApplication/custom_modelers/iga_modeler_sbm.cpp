@@ -234,7 +234,9 @@ void IgaModelerSbm::CreateQuadraturePointGeometries(
     const SizeType required_shape_function_derivatives_order =
     rGeometryList[0].pGetGeometryPart(GeometryType::BACKGROUND_GEOMETRY_INDEX)-> PolynomialDegree(0) + 1;
 
-    KRATOS_ERROR_IF(shape_function_derivatives_order < required_shape_function_derivatives_order)
+    KRATOS_ERROR_IF(
+        shape_function_derivatives_order < 0 ||
+        static_cast<SizeType>(shape_function_derivatives_order) < required_shape_function_derivatives_order)
         << "::[IgaModelerSbm]:: \"shape_function_derivatives_order\" must be at least " << required_shape_function_derivatives_order << ", but received " << shape_function_derivatives_order << std::endl;
 
 
@@ -367,7 +369,9 @@ void IgaModelerSbm::CreateQuadraturePointGeometriesSbmByProjectionLayer(
     const SizeType required_shape_function_derivatives_order =
     rGeometryList[0].pGetGeometryPart(GeometryType::BACKGROUND_GEOMETRY_INDEX)-> PolynomialDegree(0) + 1;
 
-    KRATOS_ERROR_IF(shape_function_derivatives_order < required_shape_function_derivatives_order)
+    KRATOS_ERROR_IF(
+        shape_function_derivatives_order < 0 ||
+        static_cast<SizeType>(shape_function_derivatives_order) < required_shape_function_derivatives_order)
         << "::[IgaModelerSbm]:: \"shape_function_derivatives_order\" must be at least " << required_shape_function_derivatives_order << ", but received " << shape_function_derivatives_order << std::endl;
 
     std::string quadrature_method = rParameters.Has("quadrature_method")
@@ -563,7 +567,9 @@ void IgaModelerSbm::CreateQuadraturePointGeometriesSbmByFixedConditionName(
     const SizeType required_shape_function_derivatives_order =
     rGeometryList[0].pGetGeometryPart(GeometryType::BACKGROUND_GEOMETRY_INDEX)-> PolynomialDegree(0) + 1;
 
-    KRATOS_ERROR_IF(shape_function_derivatives_order < required_shape_function_derivatives_order)
+    KRATOS_ERROR_IF(
+        shape_function_derivatives_order < 0 ||
+        static_cast<SizeType>(shape_function_derivatives_order) < required_shape_function_derivatives_order)
         << "::[IgaModelerSbm]:: \"shape_function_derivatives_order\" must be at least " << required_shape_function_derivatives_order << ", but received " << shape_function_derivatives_order << std::endl;
 
     std::string quadrature_method = rParameters.Has("quadrature_method")
