@@ -35,9 +35,8 @@ class TestGiDHDF5PostProcess(KratosUnittest.TestCase):
         self.output_file = "gid_hdf5_postprocess_test_{}.h5".format(self._testMethodName)
 
     def tearDown(self):
-        pass
-        # if os.path.exists(self.output_file):
-        #     os.remove(self.output_file)
+        if os.path.exists(self.output_file):
+            os.remove(self.output_file)
 
     def _CreateProcess(self):
         parameters = KratosMultiphysics.Parameters(
