@@ -647,7 +647,7 @@ private:
                 const std::size_t col_end   = rA.index1_data()[k + 1];
 
                 for (std::size_t j = col_begin; j < col_end; ++j) {
-                    if (rA.index2_data()[j] == k) {
+                    if (static_cast<std::size_t>(rA.index2_data()[j]) == k) {
                         has_diagonal = true;
                         break;
                     }
@@ -669,7 +669,7 @@ private:
 
             if (scaling_factors[k] == 0.0) {
                 for (std::size_t j = col_begin; j < col_end; ++j) {
-                    if (AColIndices[j] != k) {
+                    if (static_cast<std::size_t>(AColIndices[j]) != k) {
                         AValues[j] = ComplexType(0.0, 0.0);
                     } else {
                         AValues[j] = DiagonalValue;
