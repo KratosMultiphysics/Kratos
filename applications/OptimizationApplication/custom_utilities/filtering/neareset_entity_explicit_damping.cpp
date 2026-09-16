@@ -112,7 +112,13 @@ void NearestEntityExplicitDamping<TContainerType>::Update()
     const auto radius_view = mpDampingRadius->ViewData();
 
     mDampingCoefficients.resize(radius_view.size(), stride);
-    auto& damping_coefficient_data = mDampingCoefficients.data();
+    // Raw pointer into the matrix's own storage: mDampingCoefficients.data()
+    // yields a lightweight (temporary) view under the Eigen backend and a
+    // persistent array reference under uBLAS, so it cannot be bound to
+    // auto&; taking .begin() from it gives a plain pointer that is valid
+    // under both and can be captured by value in the lambda below.
+    auto* p_damping_coefficient_data = mDampingCoefficients.data().begin();
+    const auto number_of_damping_coefficients = radius_view.size() * stride;
 
     for (IndexType i_comp = 0; i_comp < stride; ++i_comp) {
         auto& r_damped_model_parts = mComponentWiseDampedModelParts[i_comp];
@@ -120,7 +126,7 @@ void NearestEntityExplicitDamping<TContainerType>::Update()
         PositionAdapter adapter(r_damped_model_parts);
 
         if (adapter.kdtree_get_point_count() == 0) {
-            std::fill(damping_coefficient_data.begin(), damping_coefficient_data.end(), 1.0);
+            std::fill(p_damping_coefficient_data, p_damping_coefficient_data + number_of_damping_coefficients, 1.0);
         } else {
             // now construct the kd tree
             KDTreeIndexType kd_tree_index(
@@ -131,7 +137,7 @@ void NearestEntityExplicitDamping<TContainerType>::Update()
             const auto& kernel_function = *mpKernelFunction;
 
             // now calculate the damping for each entity
-            IndexPartition<IndexType>(r_container.size()).for_each([&damping_coefficient_data, &r_container, &kd_tree_index, &kernel_function, &radius_view, stride, i_comp](const auto Index){
+            IndexPartition<IndexType>(r_container.size()).for_each([p_damping_coefficient_data, &r_container, &kd_tree_index, &kernel_function, &radius_view, stride, i_comp](const auto Index){
                 const auto data_begin_index = Index * stride;
                 const auto radius = radius_view[Index];
 
@@ -139,7 +145,7 @@ void NearestEntityExplicitDamping<TContainerType>::Update()
                 unsigned int global_index;
                 kd_tree_index.knnSearch(&OptimizationUtils::GetEntityPosition(*(r_container.begin() + Index))[0], 1, &global_index, &squared_distance);
 
-                double& value = *(damping_coefficient_data.begin() + data_begin_index + i_comp);
+                double& value = *(p_damping_coefficient_data + data_begin_index + i_comp);
                 value = 1.0 - kernel_function.ComputeWeight(radius, std::sqrt(squared_distance));
             });
         }
