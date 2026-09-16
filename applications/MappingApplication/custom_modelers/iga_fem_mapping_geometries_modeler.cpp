@@ -141,7 +141,8 @@ namespace Kratos
                     coupling_model_part,
                     is_origin_iga,
                     patch_cache,
-                    search_radius);
+                    search_radius,
+                    write_triangles_to_file);
             } else {
                 // Plain-NURBS BrepSurface path
                 // Create coupling geometries connecting each finite element with the IGA surface
@@ -157,7 +158,8 @@ namespace Kratos
                     coupling_model_part,
                     is_origin_iga,
                     patch_cache,
-                    search_radius);
+                    search_radius,
+                    write_triangles_to_file);
             }
         }
     }
