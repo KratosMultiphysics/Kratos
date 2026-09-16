@@ -140,12 +140,10 @@ void AddCustomStrategiesToPython(const pybind11::module& m)
         .def(py::init<ModelPart&, BaseSchemeType::Pointer, ConvergenceCriteriaType::Pointer,
                       BuilderAndSolverType::Pointer, Parameters&, int, bool, bool, bool>());
 
-    // Note: unlike its siblings above, this strategy derives from the core Newton-Raphson strategy
-    // rather than from GeoMechanicsNewtonRaphsonStrategy, so it takes no Parameters argument.
     py::class_<GeoMechanicsNewtonRaphsonStrategyWithSeepageType, typename GeoMechanicsNewtonRaphsonStrategyWithSeepageType::Pointer, BaseSolvingStrategyType>(
         m, "GeoMechanicsNewtonRaphsonStrategyWithSeepage")
         .def(py::init<ModelPart&, BaseSchemeType::Pointer, ConvergenceCriteriaType::Pointer,
-                      BuilderAndSolverType::Pointer, int, bool, bool, bool>());
+                      BuilderAndSolverType::Pointer, const Parameters&, int, bool, bool, bool>());
 
     using ResidualBasedBlockBuilderAndSolverWithMassAndDampingType =
         ResidualBasedBlockBuilderAndSolverWithMassAndDamping<SparseSpaceType, LocalSpaceType, LinearSolverType>;

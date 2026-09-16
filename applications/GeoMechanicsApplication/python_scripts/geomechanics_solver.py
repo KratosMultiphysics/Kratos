@@ -520,11 +520,11 @@ class GeoMechanicalSolver(PythonSolver):
                                                                                                        move_mesh_flag)
 
         elif strategy_type.lower() == "newton_raphson_with_seepage":
-            # Note that this strategy doesn't take a settings object
             solving_strategy = GeoMechanicsApplication.GeoMechanicsNewtonRaphsonStrategyWithSeepage(self.computing_model_part,
                                                                                                     self.scheme,
                                                                                                     self.convergence_criterion,
                                                                                                     builder_and_solver,
+                                                                                                    self.settings,
                                                                                                     max_iterations,
                                                                                                     compute_reactions,
                                                                                                     reform_step_dofs,

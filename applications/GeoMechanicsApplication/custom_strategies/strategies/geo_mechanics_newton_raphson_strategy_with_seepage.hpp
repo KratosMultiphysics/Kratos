@@ -17,8 +17,11 @@
 
 #include "custom_utilities/seepage_boundary_utilities.h"
 #include "includes/define.h"
+#include "includes/kratos_parameters.h"
 #include "includes/model_part.h"
 #include "solving_strategies/strategies/residualbased_newton_raphson_strategy.h"
+
+using namespace std::string_literals;
 
 namespace Kratos
 {
@@ -60,12 +63,18 @@ public:
                                                  typename TSchemeType::Pointer pScheme,
                                                  typename TConvergenceCriteriaType::Pointer pNewConvergenceCriteria,
                                                  typename TBuilderAndSolverType::Pointer pNewBuilderAndSolver,
-                                                 int  MaxIterations          = 30,
-                                                 bool CalculateReactions     = false,
-                                                 bool ReformDofSetAtEachStep = false,
-                                                 bool MoveMeshFlag           = false)
+                                                 const Parameters& rSolverSettings,
+                                                 int               MaxIterations          = 30,
+                                                 bool              CalculateReactions     = false,
+                                                 bool              ReformDofSetAtEachStep = false,
+                                                 bool              MoveMeshFlag           = false)
         : MotherType(rModelPart, pScheme, pNewConvergenceCriteria, pNewBuilderAndSolver, MaxIterations, CalculateReactions, ReformDofSetAtEachStep, MoveMeshFlag)
     {
+        KRATOS_ERROR_IF(rSolverSettings.Has("number_cycles"s) && rSolverSettings["number_cycles"s].GetInt() > 1)
+            << "GeoMechanicsNewtonRaphsonStrategyWithSeepage does not support multiple cycles. "
+               "This is because the fixity of degrees of freedom is not properly restored when a "
+               "solution step does not converge and another cycle is attempted."
+            << std::endl;
     }
 
     [[nodiscard]] std::string Info() const override
