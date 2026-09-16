@@ -215,7 +215,8 @@ namespace IgaMappingIntersectionUtilities
         ModelPart& rModelPartCoupling,
         bool origin_is_iga,
         const PatchCacheMap& rPatchCache,
-        const double search_radius);
+        const double search_radius,
+        const bool WriteTrianglesToFile);
 
 
     /**
