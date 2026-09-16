@@ -8,9 +8,8 @@
 //                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Danilo Cavalcanti
-//                   Ignasi de Pouplana
-//                   Xavier Tort
 //                   Lorena Casallas
+//                   Ignasi de Pouplana
 //
 
 
@@ -76,8 +75,6 @@ public:
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    void CalculateMassMatrix(MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo) override;
-
     void InitializeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo) override;
 
     void FinalizeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo) override;
@@ -111,12 +108,7 @@ protected:
         double LiquidCompressibilityCoeff;
         double GasCompressibilityCoeff;
         double Porosity;
-        double GasHenrySolubilityCoeff;
-        double GasMolarWeight;
-        double Temperature;
-        double TortuosityCoeff;
-        double GasDiffusionCoeff;
-        double LiquidDensityRefPressure;
+        double GasDiffusionCoefficient;
 
         ///ProcessInfo variables
         double VelocityCoefficient;
@@ -172,6 +164,8 @@ protected:
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     void CalculateStiffnessMatrix( MatrixType& rStiffnessMatrix, const ProcessInfo& rCurrentProcessInfo ) override;
+
+    void CalculateMassMatrix(MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo) override;
 
     void CalculateLumpedMassMatrix( MatrixType& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo ) override;
 
