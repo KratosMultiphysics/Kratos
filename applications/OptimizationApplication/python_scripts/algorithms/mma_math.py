@@ -198,37 +198,43 @@ def _newton_direction(x, y, z, lam, xsi, eta, mu, zeta, s, p0, q0, p, q, b, low,
     (rex, rey, rez, relam, rexsi, reeta, remu, rezet, res) = _compute_residuals(
         x, y, z, lam, xsi, eta, mu, zeta, s, p0, q0, p, q, b, low, upp, alfa, beta, a0, a, c, d, epsilon)
 
-    diagx = 2.0 * plam / ux1 ** 3 + 2.0 * qlam / xl1 ** 3 + xsi / (x - alfa) + eta / (beta - x)
-    diagy = d + mu / y
-    diagz = zeta / z
-    diaglam = s / lam
+    # x_j can end up an exact floating-point match for alfa_j/beta_j when that bound is
+    # genuinely active (xsi_j/eta_j is then driven up until x_j - alfa_j or beta_j - x_j
+    # underflows to exact 0.0), producing benign +-inf/NaN terms below. This is expected
+    # and handled by solve_mma_subproblem's backtracking (it never accepts a non-finite
+    # trial state), so the resulting divide-by-zero/invalid-value warnings are suppressed.
+    with np.errstate(divide="ignore", invalid="ignore"):
+        diagx = 2.0 * plam / ux1 ** 3 + 2.0 * qlam / xl1 ** 3 + xsi / (x - alfa) + eta / (beta - x)
+        diagy = d + mu / y
+        diagz = zeta / z
+        diaglam = s / lam
 
-    delx = rex + rexsi / (x - alfa) - reeta / (beta - x)
-    dely = rey + remu / y
-    delz = rez + rezet / z
-    dellam = relam - res / lam
+        delx = rex + rexsi / (x - alfa) - reeta / (beta - x)
+        dely = rey + remu / y
+        delz = rez + rezet / z
+        dellam = relam - res / lam
 
-    # The (x, y, z) blocks of the full KKT Jacobian are diagonal (each x_j/y_i only
-    # couples to itself and to lam, never to another x_k/y_l), so dx, dy, dz can be
-    # eliminated analytically, leaving only an (m x m) system to solve for dlam. This
-    # is essential for performance: n is the number of design variables (can be in the
-    # thousands for real topology optimization), while m (number of constraints) is
-    # typically small -- solving an (m x m) system instead of a dense (n+2m+1) x (n+2m+1)
-    # one turns an O(n^3) factorization into O(n*m^2).
-    GG_scaled = GG / diagx  # (m, n): each column j divided by diagx_j
-    schur = GG_scaled @ GG.T + np.diag(1.0 / diagy) + np.outer(a, a) / diagz + np.diag(diaglam)
-    rhs_lam = dellam - GG_scaled @ delx + dely / diagy + a * delz / diagz
+        # The (x, y, z) blocks of the full KKT Jacobian are diagonal (each x_j/y_i only
+        # couples to itself and to lam, never to another x_k/y_l), so dx, dy, dz can be
+        # eliminated analytically, leaving only an (m x m) system to solve for dlam. This
+        # is essential for performance: n is the number of design variables (can be in the
+        # thousands for real topology optimization), while m (number of constraints) is
+        # typically small -- solving an (m x m) system instead of a dense (n+2m+1) x (n+2m+1)
+        # one turns an O(n^3) factorization into O(n*m^2).
+        GG_scaled = GG / diagx  # (m, n): each column j divided by diagx_j
+        schur = GG_scaled @ GG.T + np.diag(1.0 / diagy) + np.outer(a, a) / diagz + np.diag(diaglam)
+        rhs_lam = dellam - GG_scaled @ delx + dely / diagy + a * delz / diagz
 
-    dlam = np.linalg.solve(schur, rhs_lam)
-    dz = (-delz + a @ dlam) / diagz
-    dy = (-dely + dlam) / diagy
-    dx = (-delx - GG.T @ dlam) / diagx
+        dlam = np.linalg.solve(schur, rhs_lam)
+        dz = (-delz + a @ dlam) / diagz
+        dy = (-dely + dlam) / diagy
+        dx = (-delx - GG.T @ dlam) / diagx
 
-    dxsi = (-rexsi - xsi * dx) / (x - alfa)
-    deta = (-reeta + eta * dx) / (beta - x)
-    dmu = (-remu - mu * dy) / y
-    dzeta = (-rezet - zeta * dz) / z
-    ds = (-res - s * dlam) / lam
+        dxsi = (-rexsi - xsi * dx) / (x - alfa)
+        deta = (-reeta + eta * dx) / (beta - x)
+        dmu = (-remu - mu * dy) / y
+        dzeta = (-rezet - zeta * dz) / z
+        ds = (-res - s * dlam) / lam
 
     return dx, dy, dz, dlam, dxsi, deta, dmu, dzeta, ds
 
@@ -352,6 +358,7 @@ def solve_mma_subproblem(x0, alfa, beta, low, upp, p0, q0, p, q, b, a0, a, c, d,
             steg = _max_fraction_to_boundary_step(
                 x, y, z, lam, xsi, eta, mu, zeta, s, dx, dy, dz, dlam, dxsi, deta, dmu, dzeta, ds, alfa, beta, tau)
 
+            found_improving_step = False
             for _ in range(50):
                 x_new = x + steg * dx
                 y_new = y + steg * dy
@@ -366,9 +373,21 @@ def solve_mma_subproblem(x0, alfa, beta, low, upp, p0, q0, p, q, b, a0, a, c, d,
                 new_norm, new_max = _residual_norms(
                     x_new, y_new, z_new, lam_new, xsi_new, eta_new, mu_new, zeta_new, s_new,
                     p0, q0, p, q, b, low, upp, alfa, beta, a0, a, c, d, epsilon)
+                # "new_norm < residual_norm" is already False whenever new_norm is NaN or
+                # +inf (an out-of-range fraction-to-boundary candidate or catastrophic
+                # cancellation in a residual can produce either), so this also serves as
+                # the finiteness check.
                 if new_norm < residual_norm:
+                    found_improving_step = True
                     break
                 steg *= 0.5
+
+            if not found_improving_step:
+                # Backtracking never found a finite, improving step at this epsilon level
+                # (the primal-dual state would otherwise be corrupted with NaN/Inf) -- stop
+                # refining here and let the outer continuation retry at a smaller epsilon
+                # from the last known-good state, rather than accepting a broken one.
+                break
 
             x, y, z, lam = x_new, y_new, z_new, lam_new
             xsi, eta, mu, zeta, s = xsi_new, eta_new, mu_new, zeta_new, s_new

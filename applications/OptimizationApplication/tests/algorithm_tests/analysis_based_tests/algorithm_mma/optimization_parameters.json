@@ -90,9 +90,9 @@
         "type": "algorithm_mma",
         "settings": {
             "echo_level": 0,
-            "move": 0.05,
-            "controls_lower_bound": "-0.5",
-            "controls_upper_bound": "0.5",
+            "move": 0.0002,
+            "controls_lower_bound": "-20.0",
+            "controls_upper_bound": "20.0",
             "conv_settings": {
                 "max_iter": 10
             }

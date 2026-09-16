@@ -7,6 +7,19 @@ from KratosMultiphysics.compare_two_files_check_process import CompareTwoFilesCh
 
 
 class TestMMAAnalysis(KratosUnittest.TestCase):
+    def setUp(self):
+        # MMA's asymptote/move-limit heuristics react very sensitively to this problem's
+        # design space (a shell thickness control whose raw, unfiltered representation is
+        # poorly scaled), so tiny floating-point differences from OpenMP's thread-order-
+        # dependent reduction sums get amplified across outer iterations. Pin to a single
+        # thread so the reference CSV comparison is reproducible regardless of the machine's
+        # core count.
+        self.previous_threads = Kratos.ParallelUtilities.GetNumThreads()
+        Kratos.ParallelUtilities.SetNumThreads(1)
+
+    def tearDown(self):
+        Kratos.ParallelUtilities.SetNumThreads(self.previous_threads)
+
     def test_mma_analysis(self):
         with KratosUnittest.WorkFolderScope(".", __file__):
             with open("optimization_parameters.json", "r") as file_input:
