@@ -19,6 +19,30 @@ def run_modelers(current_model, modelers_list):
 
 
 class TestNurbsGeometryModelerGapSbm(KratosUnittest.TestCase):
+    def test_rejects_user_defined_lambda_parameters(self):
+        from KratosMultiphysics.modeler_factory import KratosModelerFactory
+
+        for parameter_name in ("lambda_inner", "lambda_outer"):
+            with self.subTest(parameter_name=parameter_name):
+                modeler_settings = KM.Parameters(
+                    f"""
+                    [
+                        {{
+                            "modeler_name": "NurbsGeometryModelerGapSbm",
+                            "Parameters": {{
+                                "{parameter_name}": 0.5
+                            }}
+                        }}
+                    ]
+                    """
+                )
+
+                with self.assertRaisesRegex(
+                    RuntimeError,
+                    '"lambda_inner" and "lambda_outer" must not be provided'):
+                    KratosModelerFactory().ConstructListOfModelers(
+                        KM.Model(), modeler_settings)
+
     def test_quadrature_points_gap_sbm_on_circle(self):
         current_model = KM.Model()
 
