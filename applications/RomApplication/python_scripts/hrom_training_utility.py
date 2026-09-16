@@ -417,9 +417,12 @@ class HRomTrainingUtility(object):
                 hrom_weights["Elements"][parent_id] = 0.0
             weights, indexes = self.__AddSelectedElementsWithZeroWeights(weights,indexes, missing_condition_parents)
 
+        # Regenerate masks and IDs with the final updated indexes array
+        element_ids, condition_ids, element_mask, condition_mask = self.map_numpy_indexes_to_element_and_conditions_ids(indexes, number_of_elements)
+
         if self.hrom_output_format == "numpy":
-            np.save(self.rom_basis_output_folder / "HROM_ElementWeights.npy", weights[element_mask])
-            np.save(self.rom_basis_output_folder / "HROM_ConditionWeights.npy", weights[condition_mask])
+            np.save(self.rom_basis_output_folder / "HROM_ElementWeights.npy", (weights[element_mask]).reshape(-1,1))
+            np.save(self.rom_basis_output_folder / "HROM_ConditionWeights.npy", weights[condition_mask].reshape(-1,1))
             np.save(self.rom_basis_output_folder / "HROM_ElementIds.npy", element_ids)
             np.save(self.rom_basis_output_folder / "HROM_ConditionIds.npy", condition_ids)
 
@@ -433,19 +436,17 @@ class HRomTrainingUtility(object):
 
         if self.echo_level > 0 : KratosMultiphysics.Logger.PrintInfo("HRomTrainingUtility","\'RomParameters.json\' file updated with HROM weights.")
 
-    def __AddSelectedElementsWithZeroWeights(self, original_weights,original_elements, elements_to_add):
-
-        added_elements_ids = np.array(elements_to_add)
-        updated_elements = np.r_[original_elements, added_elements_ids]
-        updated_weights = np.r_[original_weights, np.zeros(added_elements_ids.shape)]
+    def __AddSelectedElementsWithZeroWeights(self, original_weights, original_elements, elements_to_add):
+        added_numpy_indexes = [self.element_id_to_numpy_index_mapping[i] for i in elements_to_add]
+        updated_elements = np.r_[original_elements, added_numpy_indexes]
+        updated_weights = np.r_[original_weights, np.zeros(len(elements_to_add))]
 
         return updated_weights, updated_elements
 
     def __AddSelectedConditionsWithZeroWeights(self, original_weights, original_conditions, conditions_to_add, number_of_elements):
-
-        added_conditions_ids = np.array(conditions_to_add)+number_of_elements
-        updated_conditions = np.r_[original_conditions, added_conditions_ids]
-        updated_weights = np.r_[original_weights, np.zeros(added_conditions_ids.shape)]
+        added_numpy_indexes = [self.condition_id_to_numpy_index_mapping[i] for i in conditions_to_add]
+        updated_conditions = np.r_[original_conditions, added_numpy_indexes]
+        updated_weights = np.r_[original_weights, np.zeros(len(conditions_to_add))]
 
         return updated_weights, updated_conditions
 
@@ -471,22 +472,12 @@ class HRomTrainingUtility(object):
 
 
     def __CreateListsWithRomElements(self):
-        number_of_elements = self.solver.GetComputingModelPart().NumberOfElements()
-
-        # Load combined indexes for elements and conditions
         element_ids = np.load(self.rom_basis_output_folder / "HROM_ElementIds.npy")
-        condition_ids = np.load(self.rom_basis_output_folder / "HROM_ConditionIds.npy") + number_of_elements
-
-        # Combine element and condition IDs
-        combined_indexes = np.r_[element_ids, condition_ids]
-
-        # Separate element and condition indexes
-        element_mask = combined_indexes < number_of_elements
-        condition_mask = ~element_mask
+        condition_ids = np.load(self.rom_basis_output_folder / "HROM_ConditionIds.npy")
 
         # Extract unique element and condition indexes
-        unique_element_ids = np.unique(combined_indexes[element_mask], return_inverse=False)
-        unique_condition_ids = np.unique(combined_indexes[condition_mask] - number_of_elements, return_inverse=False)
+        unique_element_ids = np.unique(element_ids)
+        unique_condition_ids = np.unique(condition_ids)
 
         # Convert to Python lists
         unique_element_ids_list = unique_element_ids.astype(int).tolist()
