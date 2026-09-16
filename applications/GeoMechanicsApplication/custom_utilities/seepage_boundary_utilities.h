@@ -70,10 +70,11 @@ public:
      * @brief Switches at most one seepage node between a Dirichlet and a zero-flux Neumann
      * boundary, and returns whether it switched anything.
      *
-     * A free node whose WATER_PRESSURE is positive is unsaturated, so it should not be draining:
-     * the highest-pressure such node is fixed at zero pressure. Otherwise, the fixed node with the
-     * largest outflow is released. Fixing takes precedence over releasing, and ties are broken by
-     * the lowest node id so the result is reproducible.
+     * A free node with negative WATER_PRESSURE is selected for a zero-pressure Dirichlet boundary;
+     * the node with most-negative water pressure is chosen. Otherwise, the fixed node with the
+     * largest inflow is released. Fixing takes precedence over releasing, and when equally suitable
+     * candidates are found, the one with the lowest node ID will be selected, just so the result is
+     * reproducible.
      */
     static bool SwitchOneSeepageNodeIfNeeded(const std::vector<Node*>& rSeepageNodes,
                                              const NodalFlowMap&       rNodalFlows,

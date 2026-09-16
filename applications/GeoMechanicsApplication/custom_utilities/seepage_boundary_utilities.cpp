@@ -132,8 +132,7 @@ bool SeepageBoundaryUtilities::SwitchOneSeepageNodeIfNeeded(const std::vector<No
         }
     }
 
-    // A free node under positive pressure is unsaturated, so it cannot be a draining face. Fixing
-    // takes precedence over releasing.
+    // A free node with negative water pressure is a candidate for fixing.
     auto is_candidate     = CandidatePredicateType{[](const auto* pNode) {
         return pNode && !pNode->IsFixed(WATER_PRESSURE) &&
                pNode->FastGetSolutionStepValue(WATER_PRESSURE) < 0.0;
