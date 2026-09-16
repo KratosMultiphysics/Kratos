@@ -1088,10 +1088,8 @@ public:
     {
         KRATOS_TRY
 
-        const auto size_1 = static_cast<IndexType>(rInputMatrix.size1());
-        const auto size_2 = static_cast<IndexType>(rInputMatrix.size2());
-        for(IndexType i = 0; i < size_1; ++i) {
-            for(IndexType j = 0; j < size_2; ++j) {
+        for(IndexType i = 0; i < static_cast<IndexType>(rInputMatrix.size1()); ++i) {
+            for(IndexType j = 0; j < static_cast<IndexType>(rInputMatrix.size2()); ++j) {
                 rDestination(InitialRow+i, InitialCol+j) += rInputMatrix(i,j);
             }
         }
