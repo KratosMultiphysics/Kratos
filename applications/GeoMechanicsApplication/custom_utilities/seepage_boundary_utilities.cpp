@@ -105,7 +105,11 @@ Node* SelectBestCandidate(const std::vector<Node*>&     rNodes,
                           const CandidatePredicateType& rIsCandidate,
                           const ScoreCalculatorType&    rScoreCalculator)
 {
-    auto candidates = rNodes | std::views::filter(rIsCandidate);
+    // For filtering the candidates, we'd prefer to use std::views::filter, but unfortunately not
+    // all compilers on GitHub support it yet. Therefore, we copy the candidates into a separate
+    // vector.
+    auto candidates = std::vector<Node*>{};
+    std::ranges::copy_if(rNodes, std::back_inserter(candidates), rIsCandidate);
     auto first_score_less_than_second_score = [&rScoreCalculator](auto* pFirstNode, auto* pSecondNode) {
         return rScoreCalculator(pFirstNode) < rScoreCalculator(pSecondNode);
     };
