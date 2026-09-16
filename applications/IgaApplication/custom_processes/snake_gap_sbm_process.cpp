@@ -3332,8 +3332,6 @@ const Parameters SnakeGapSbmProcess::GetValidParameters() const
         "gap_relative_tolerance_for_subdivisions": 0.1,
         "number_of_interpolation_levels": 3,
         "gap_sbm_type": "default",
-        "lambda_inner" : 0.0,
-        "lambda_outer" : 1.0,
         "skin_model_part_outer_initial_name": "initial_skin_model_part_out",    
         "skin_model_part_inner_initial_name": "initial_skin_model_part_in",           
         "skin_model_part_name": "skin_model_part",
