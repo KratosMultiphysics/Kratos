@@ -8,6 +8,15 @@ from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem_u
 from KratosMultiphysics.OptimizationApplication.utilities.helper_utilities import CallOnAll
 from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem import OptimizationProblem
 from KratosMultiphysics.OptimizationApplication.utilities.logger_utilities import OptimizationAnalysisTimeLogger
+from KratosMultiphysics.OptimizationApplication.utilities.restart_file_naming import ResolveRestartLoadStep, GetModelPartRestartFileBaseName, SplitRestartFileName
+from KratosMultiphysics.OptimizationApplication.processes.optimization_problem_restart_output_process import OptimizationProblemRestartOutputProcess
+from KratosMultiphysics.OptimizationApplication.processes.optimization_problem_restart_input_process import OptimizationProblemRestartInputProcess
+
+_SERIALIZER_TRACE_TYPES = {
+    "no_trace":    Kratos.SerializerTraceType.SERIALIZER_NO_TRACE,
+    "trace_error": Kratos.SerializerTraceType.SERIALIZER_TRACE_ERROR,
+    "trace_all":   Kratos.SerializerTraceType.SERIALIZER_TRACE_ALL,
+}
 
 class OptimizationAnalysis:
     @classmethod
@@ -22,6 +31,21 @@ class OptimizationAnalysis:
             "processes"  : {
                 "kratos_processes"           : {},
                 "optimization_data_processes": {}
+            },
+            "restart_settings": {
+                "save_restart"           : false,
+                "load_restart"           : false,
+                "restart_file_name"      : "Optimization_Restart/restart_<step>.pkl",
+                "restart_save_frequency" : 1,
+                "restart_load_step"      : "latest",
+                "max_files_to_keep"      : -1,
+                "echo_level"             : 0,
+                "model_parts_settings"   : {
+                    "save_model_parts"  : true,
+                    "load_model_parts"  : true,
+                    "serializer_trace"  : "no_trace",
+                    "clean_before_save" : true
+                }
             }
         }""")
 
@@ -41,6 +65,10 @@ class OptimizationAnalysis:
         self._CreateResponses()
         self._CreateAlgorithm()
         self._CreateProcesses()
+        # _CreateRestart must run after _CreateProcesses: _CreateProcesses() unconditionally
+        # calls optimization_problem.AddProcessType(process_type) for every process type, which
+        # resets (rather than appends to) that type's process list.
+        self._CreateRestart()
 
     def Initialize(self):
         CallOnAll(self.__list_of_model_part_controllers, ModelPartController.ImportModelPart)
@@ -133,6 +161,66 @@ class OptimizationAnalysis:
                     process_settings.AddMissingParameters(optimization_data_process_default_settings)
                     process = OptimizationComponentFactory(self.model, process_settings, self.optimization_problem)
                     self.optimization_problem.AddProcess(process_type, process)
+
+    def _CreateRestart(self):
+        restart_settings = self.project_parameters["restart_settings"]
+
+        default_restart_settings = self.GetDefaultParameters()["restart_settings"]
+        # "restart_load_step" is either the string "latest" or an explicit step (int).
+        # ValidateAndAssignDefaults requires matching types, so the default's type is chosen to
+        # match whatever the user provided (mirrors the same workaround already used by
+        # OptimizationProblemRestartInputProcess.__init__).
+        if restart_settings.Has("restart_load_step") and restart_settings["restart_load_step"].IsInt():
+            default_restart_settings["restart_load_step"].SetInt(0)
+        restart_settings.ValidateAndAssignDefaults(default_restart_settings)
+        # ValidateAndAssignDefaults is not recursive (see _CreateProcesses' identical pattern for
+        # "processes"), so a partially-specified "model_parts_settings" needs its own explicit
+        # default-filling pass here.
+        restart_settings["model_parts_settings"].ValidateAndAssignDefaults(default_restart_settings["model_parts_settings"])
+
+        save_restart = restart_settings["save_restart"].GetBool()
+        load_restart = restart_settings["load_restart"].GetBool()
+        if not save_restart and not load_restart:
+            return
+
+        restart_files_path, restart_file_name = SplitRestartFileName(restart_settings["restart_file_name"].GetString())
+        echo_level = restart_settings["echo_level"].GetInt()
+
+        model_parts_settings = restart_settings["model_parts_settings"]
+        serializer_trace = _SERIALIZER_TRACE_TYPES[model_parts_settings["serializer_trace"].GetString()]
+
+        restart_capable_controllers = [controller for controller in self.__list_of_model_part_controllers if controller.SupportsRestart()]
+
+        if load_restart:
+            input_settings = Kratos.Parameters("{}")
+            for key in ("restart_file_name", "restart_load_step", "echo_level"):
+                input_settings.AddValue(key, restart_settings[key])
+            input_process = OptimizationProblemRestartInputProcess(input_settings, self.optimization_problem)
+            self.optimization_problem.AddProcess("auxiliary_processes", input_process)
+
+            if model_parts_settings["load_model_parts"].GetBool() and restart_capable_controllers:
+                resolved_step = ResolveRestartLoadStep(restart_files_path, restart_file_name, restart_settings["restart_load_step"])
+                if resolved_step is not None:
+                    for controller in restart_capable_controllers:
+                        model_part_name = controller.GetModelPart().Name
+                        base_name = GetModelPartRestartFileBaseName(restart_file_name, resolved_step, model_part_name)
+                        if (restart_files_path / f"{base_name}.rest").is_file():
+                            controller.SetRestartLoadFile(restart_files_path / base_name, serializer_trace)
+                        elif echo_level > 0:
+                            Kratos.Logger.PrintWarning("OptimizationAnalysis", f"No restart file found for model part \"{model_part_name}\"; it will be imported normally.")
+
+        if save_restart:
+            output_settings = Kratos.Parameters("{}")
+            for key in ("restart_file_name", "restart_save_frequency", "max_files_to_keep", "echo_level"):
+                output_settings.AddValue(key, restart_settings[key])
+            output_model_parts_settings = Kratos.Parameters("{}")
+            for key in ("save_model_parts", "serializer_trace", "clean_before_save"):
+                output_model_parts_settings.AddValue(key, model_parts_settings[key])
+            output_settings.AddValue("model_parts_settings", output_model_parts_settings)
+
+            list_of_model_parts = [controller.GetModelPart() for controller in restart_capable_controllers]
+            output_process = OptimizationProblemRestartOutputProcess(output_settings, self.optimization_problem, list_of_model_parts)
+            self.optimization_problem.AddProcess("output_processes", output_process)
 
     def _CreateAlgorithm(self):
         default_settings = Kratos.Parameters("""{

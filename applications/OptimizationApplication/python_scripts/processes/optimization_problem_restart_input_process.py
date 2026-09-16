@@ -5,11 +5,14 @@ import KratosMultiphysics as Kratos
 from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem import OptimizationProblem
 from KratosMultiphysics.OptimizationApplication.utilities.buffered_dict import BufferedDict
 from KratosMultiphysics.OptimizationApplication.utilities.component_data_view import ComponentDataView
+from KratosMultiphysics.OptimizationApplication.utilities.restart_file_naming import SplitRestartFileName
 
-def Factory(_: Kratos.Model, parameters: Kratos.Parameters, optimization_problem: OptimizationProblem) -> Kratos.Process:
-    if not parameters.Has("settings"):
-        raise RuntimeError(f"OptimizationProblemRestartInputProcess instantiation requires a \"settings\" in parameters [ parameters = {parameters}].")
-    return OptimizationProblemRestartInputProcess(parameters["settings"], optimization_problem)
+def Factory(*_args, **_kwargs):
+    raise RuntimeError(
+        "\"optimization_problem_restart_input_process\" can no longer be configured under "
+        "\"processes\"; restart is now configured via the top-level \"restart_settings\" section "
+        "of the optimization parameters (see OptimizationAnalysis.GetDefaultParameters())."
+    )
 
 def RestoreBufferedDict(node: BufferedDict, snapshot: dict, shape_owner, echo_level: int, mesh_update_key: 'str | None' = None) -> None:
     """Replays a snapshot produced by optimization_problem_restart_output_process back into a
@@ -143,8 +146,7 @@ def RestoreOptimizationProblemData(optimization_problem: OptimizationProblem, da
 class OptimizationProblemRestartInputProcess(Kratos.Process):
     def GetDefaultParameters(self) -> Kratos.Parameters:
         return Kratos.Parameters("""{
-            "restart_files_path": "Optimization_Restart",
-            "restart_file_name" : "restart_<step>.pkl",
+            "restart_file_name" : "Optimization_Restart/restart_<step>.pkl",
             "restart_load_step" : "latest",
             "echo_level"         : 0
         }""")
@@ -162,8 +164,7 @@ class OptimizationProblemRestartInputProcess(Kratos.Process):
         parameters.ValidateAndAssignDefaults(default_parameters)
 
         self.optimization_problem = optimization_problem
-        self.restart_files_path = Path(parameters["restart_files_path"].GetString())
-        self.restart_file_name = parameters["restart_file_name"].GetString()
+        self.restart_files_path, self.restart_file_name = SplitRestartFileName(parameters["restart_file_name"].GetString())
         self.echo_level = parameters["echo_level"].GetInt()
 
         if "<step>" not in self.restart_file_name:

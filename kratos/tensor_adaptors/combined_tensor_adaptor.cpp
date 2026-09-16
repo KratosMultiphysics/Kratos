@@ -38,6 +38,17 @@ namespace {
 } // namespace
 
 template<class TDataType>
+CombinedTensorAdaptor<TDataType>::CombinedTensorAdaptor()
+    : mPerformCollectDataRecursively(true),
+      mPerformStoreDataRecursively(true),
+      mAxis(-1)
+{
+    // placeholder-initialized; only meant to be populated via Serializer::load, which overwrites
+    // these const members through the same const-cast idiom the primitive-type
+    // KRATOS_SERIALIZATION_DIRECT_LOAD macro uses internally.
+}
+
+template<class TDataType>
 CombinedTensorAdaptor<TDataType>::CombinedTensorAdaptor(
     const TensorAdaptorVectorType& rTensorAdaptorVector,
     const unsigned int Axis,
@@ -345,6 +356,39 @@ std::string CombinedTensorAdaptor<TDataType>::Info() const
     }
     info << "\n]";
     return info.str();
+}
+
+template<class TDataType>
+void CombinedTensorAdaptor<TDataType>::save(Serializer& rSerializer) const
+{
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, BaseType);
+
+    rSerializer.save("PerformCollectDataRecursively", mPerformCollectDataRecursively);
+    rSerializer.save("PerformStoreDataRecursively", mPerformStoreDataRecursively);
+    rSerializer.save("Axis", mAxis);
+
+    const std::size_t size = mTensorAdaptors.size();
+    rSerializer.save("Size", size);
+    for (std::size_t i = 0; i < size; ++i) {
+        rSerializer.save("TA", mTensorAdaptors[i]);
+    }
+}
+
+template<class TDataType>
+void CombinedTensorAdaptor<TDataType>::load(Serializer& rSerializer)
+{
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, BaseType);
+
+    rSerializer.load("PerformCollectDataRecursively", mPerformCollectDataRecursively);
+    rSerializer.load("PerformStoreDataRecursively", mPerformStoreDataRecursively);
+    rSerializer.load("Axis", mAxis);
+
+    std::size_t size;
+    rSerializer.load("Size", size);
+    mTensorAdaptors.resize(size);
+    for (std::size_t i = 0; i < size; ++i) {
+        rSerializer.load("TA", mTensorAdaptors[i]);
+    }
 }
 
 // template instantiations

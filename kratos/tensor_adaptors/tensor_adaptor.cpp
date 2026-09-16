@@ -168,6 +168,47 @@ std::string TensorAdaptor<TDataType>::Info() const
     return info.str();
 }
 
+template<class TDataType>
+void TensorAdaptor<TDataType>::save(Serializer& rSerializer) const
+{
+    rSerializer.save("Storage", mpStorage);
+
+    const bool has_container = mpContainer.has_value();
+    rSerializer.save("HasContainer", has_container);
+    if (has_container) {
+        const std::size_t index = mpContainer.value().index();
+        rSerializer.save("ContainerIndex", index);
+        std::visit([&rSerializer](auto pContainer) {
+            rSerializer.save("Container", pContainer);
+        }, mpContainer.value());
+    }
+}
+
+template<class TDataType>
+void TensorAdaptor<TDataType>::load(Serializer& rSerializer)
+{
+    rSerializer.load("Storage", mpStorage);
+
+    bool has_container;
+    rSerializer.load("HasContainer", has_container);
+    if (has_container) {
+        std::size_t index;
+        rSerializer.load("ContainerIndex", index);
+        switch (index) {
+            case 0: { ModelPart::DofsArrayType::Pointer p; rSerializer.load("Container", p); mpContainer = p; break; }
+            case 1: { ModelPart::NodesContainerType::Pointer p; rSerializer.load("Container", p); mpContainer = p; break; }
+            case 2: { ModelPart::ConditionsContainerType::Pointer p; rSerializer.load("Container", p); mpContainer = p; break; }
+            case 3: { ModelPart::ElementsContainerType::Pointer p; rSerializer.load("Container", p); mpContainer = p; break; }
+            case 4: { ModelPart::PropertiesContainerType::Pointer p; rSerializer.load("Container", p); mpContainer = p; break; }
+            case 5: { ModelPart::MasterSlaveConstraintContainerType::Pointer p; rSerializer.load("Container", p); mpContainer = p; break; }
+            case 6: { ModelPart::GeometryContainerType::Pointer p; rSerializer.load("Container", p); mpContainer = p; break; }
+            default: KRATOS_ERROR << "Unknown tensor adaptor container variant index: " << index << std::endl;
+        }
+    } else {
+        mpContainer.reset();
+    }
+}
+
 // template instantiations
 template class TensorAdaptor<bool>;
 template class TensorAdaptor<int>;

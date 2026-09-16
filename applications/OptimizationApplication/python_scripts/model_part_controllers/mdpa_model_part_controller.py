@@ -1,3 +1,5 @@
+from pathlib import Path
+
 import KratosMultiphysics as Kratos
 from KratosMultiphysics.OptimizationApplication.model_part_controllers.model_part_controller import ModelPartController
 
@@ -32,7 +34,31 @@ class MdpaModelPartController(ModelPartController):
         self.model_part = model.CreateModelPart(model_part_name)
         self.read_data = parameters["read_data"].GetBool()
 
+        self.__restart_load_file_path: 'Path | None' = None
+        self.__restart_serializer_trace = Kratos.SerializerTraceType.SERIALIZER_NO_TRACE
+
+    def SupportsRestart(self) -> bool:
+        return True
+
+    def SetRestartLoadFile(self, file_path: Path, serializer_trace: Kratos.SerializerTraceType) -> None:
+        self.__restart_load_file_path = file_path
+        self.__restart_serializer_trace = serializer_trace
+
     def ImportModelPart(self) -> None:
+        if self.__restart_load_file_path is not None:
+            Kratos.Logger.PrintInfo("MdpaModelPartController", f"Loading model part \"{self.model_part.Name}\" from restart file \"{self.__restart_load_file_path}.rest\".")
+            serializer = Kratos.FileSerializer(str(self.__restart_load_file_path), self.__restart_serializer_trace)
+            serializer.Set(Kratos.Serializer.SHALLOW_GLOBAL_POINTERS_SERIALIZATION)
+            serializer.Load(self.model_part.Name, self.model_part)
+            # Mirrors Kratos.RestartUtility.LoadRestart(): downstream solvers (e.g.
+            # MechanicalSolver.PrepareModelPart()) gate re-reading materials/constitutive laws on
+            # IS_RESTARTED -- skipping it is required, not just an optimization, since the
+            # restored model part's Properties/constitutive laws would otherwise be clobbered by
+            # a second, independent materials-import on top of the deserialized ones.
+            self.model_part.ProcessInfo[Kratos.IS_RESTARTED] = True
+            self.model_part.ProcessInfo[Kratos.LOAD_RESTART] = self.model_part.ProcessInfo[Kratos.STEP] + 1
+            return
+
         if self.read_data:
             Kratos.ModelPartIO(self.input_filename, Kratos.ModelPartIO.READ).ReadModelPart(self.model_part)
         else:

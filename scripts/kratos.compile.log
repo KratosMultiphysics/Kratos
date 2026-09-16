@@ -1,0 +1,327 @@
+===== Compiling kratos using "gcc" and "g++" in "Release".
+ 
+:: initializing oneAPI environment ...
+   configure.sh: SH_VERSION = unknown
+   args: Using "$@" for setvars.sh arguments: 
+:: compiler -- latest
+:: mkl -- latest
+:: tbb -- latest
+:: tcm -- latest
+:: umf -- latest
+:: oneAPI environment initialized ::
+ 
+TERM environment variable not set.
+-- The C compiler identification is GNU 15.2.0
+-- The CXX compiler identification is GNU 15.2.0
+-- Detecting C compiler ABI info
+-- Detecting C compiler ABI info - done
+-- Check for working C compiler: /usr/bin/gcc - skipped
+-- Detecting C compile features
+-- Detecting C compile features - done
+-- Detecting CXX compiler ABI info
+-- Detecting CXX compiler ABI info - done
+-- Check for working CXX compiler: /usr/bin/g++ - skipped
+-- Detecting CXX compile features
+-- Detecting CXX compile features - done
+-- No KRATOS_SOURCE_DIR is defined, using: /home/ihar/Software/Kratos/dtapp
+-- No KRATOS_BINARY_DIR is defined, using: /home/ihar/Software/Kratos/dtapp/build/gcc_Release
+-- No CMAKE_INSTALL_MESSAGE is defined. Setting to NEVER
+-- Found Git: /usr/bin/git (found version "2.53.0")
+-- Additional default options were set for GCC
+-- CMAKE_SYSTEM_NAME = Linux
+-- CMAKE_CXX_COMPILER_ID = GNU
+-- CMAKE_CXX_FLAGS =  -funroll-loops -Wall -Wl,--no-as-needed -ldl -Wsuggest-override -Wno-template-id-cdtor
+-- CMAKE_C_FLAGS =  -funroll-loops -Wall -Wl,--no-as-needed -ldl
+CMake Deprecation Warning at build/gcc_Release/_deps/googletest-src/CMakeLists.txt:4 (cmake_minimum_required):
+  Compatibility with CMake < 3.10 will be removed from a future version of
+  CMake.
+
+  Update the VERSION argument <min> value.  Or, use the <min>...<max> syntax
+  to tell CMake that the project requires at least <min> but has been updated
+  to work with policies introduced by <max> or earlier.
+
+
+CMake Deprecation Warning at build/gcc_Release/_deps/googletest-src/googlemock/CMakeLists.txt:39 (cmake_minimum_required):
+  Compatibility with CMake < 3.10 will be removed from a future version of
+  CMake.
+
+  Update the VERSION argument <min> value.  Or, use the <min>...<max> syntax
+  to tell CMake that the project requires at least <min> but has been updated
+  to work with policies introduced by <max> or earlier.
+
+
+CMake Deprecation Warning at build/gcc_Release/_deps/googletest-src/googletest/CMakeLists.txt:49 (cmake_minimum_required):
+  Compatibility with CMake < 3.10 will be removed from a future version of
+  CMake.
+
+  Update the VERSION argument <min> value.  Or, use the <min>...<max> syntax
+  to tell CMake that the project requires at least <min> but has been updated
+  to work with policies introduced by <max> or earlier.
+
+
+-- Found Python: /home/ihar/Software/python_venv/dtapp_gcc_Release/bin/python3 (found version "3.14.4") found components: Interpreter
+-- Performing Test CMAKE_HAVE_LIBC_PTHREAD
+-- Performing Test CMAKE_HAVE_LIBC_PTHREAD - Success
+-- Found Threads: TRUE
+CMake Deprecation Warning at cmake_modules/pybind11Tools.cmake:8 (cmake_minimum_required):
+  Compatibility with CMake < 3.10 will be removed from a future version of
+  CMake.
+
+  Update the VERSION argument <min> value.  Or, use the <min>...<max> syntax
+  to tell CMake that the project requires at least <min> but has been updated
+  to work with policies introduced by <max> or earlier.
+Call Stack (most recent call first):
+  CMakeLists.txt:421 (include)
+
+
+-- Found PythonInterp: python (found suitable version "3.14.4", minimum required is "3.6")
+-- Found PythonLibs: /usr/lib/x86_64-linux-gnu/libpython3.14.so
+-- LTO is Disabled
+-- AR VERSION: /usr/bin/ar
+-- Python version used for the interface will be 3.14
+-- User defined install dir /home/ihar/Software/python_venv/dtapp_gcc_Release/lib/python3.14/site-packages
+-- "KRATOS_SHARED_MEMORY_PARALLELIZATION" not defined, defaulting to "OpenMP"
+-- Found OpenMP_C: -fopenmp (found version "4.5")
+-- Found OpenMP_CXX: -fopenmp (found version "4.5")
+-- Found OpenMP: TRUE (found version "4.5")
+-- Using OpenMP for shared memory parallelization
+-- Found Boost: /usr/lib/x86_64-linux-gnu/cmake/Boost-1.90.0/BoostConfig.cmake (found version "1.90.0")
+-- Boost include directory found with find_package
+-- Boost library deduced from root directory
+-- Boost include directory: /usr/include
+-- Boost library directory: /lib
+-- Found ZLIB: /usr/lib/x86_64-linux-gnu/libz.so (found version "1.3.1")
+
+-- CMAKE_BUILD_TYPE ........ Release
+
+-- Eigen not found on the system. Downloading Eigen 5.0.0 ...
+-- -- /home/ihar/Software/Kratos/dtapp/build/gcc_Release/external_libraries/eigen3/eigen-5.0.0.tar.gz found. unpacking...
+-- Eigen include directory (downloaded): /home/ihar/Software/Kratos/dtapp/build/gcc_Release/external_libraries/eigen3/eigen-5.0.0
+-- Found ZLIB by find_package(): /usr/include
+-- Kernel version: 7.0.0-31-generic
+-- * Configuring gidpost library
+-- Configuring applications (ENV):
+	Adding application '/home/ihar/Software/Kratos/dtapp/scripts/../applications/StructuralMechanicsApplication'
+**** configuring KratosStructuralMechanicsApplication ****
+CMake Deprecation Warning at cmake_modules/pybind11Tools.cmake:8 (cmake_minimum_required):
+  Compatibility with CMake < 3.10 will be removed from a future version of
+  CMake.
+
+  Update the VERSION argument <min> value.  Or, use the <min>...<max> syntax
+  to tell CMake that the project requires at least <min> but has been updated
+  to work with policies introduced by <max> or earlier.
+Call Stack (most recent call first):
+  applications/StructuralMechanicsApplication/CMakeLists.txt:6 (include)
+
+
+	Adding application '/home/ihar/Software/Kratos/dtapp/scripts/../applications/ConstitutiveLawsApplication'
+**** configuring KratosConstitutiveLawsApplication ****
+CMake Deprecation Warning at cmake_modules/pybind11Tools.cmake:8 (cmake_minimum_required):
+  Compatibility with CMake < 3.10 will be removed from a future version of
+  CMake.
+
+  Update the VERSION argument <min> value.  Or, use the <min>...<max> syntax
+  to tell CMake that the project requires at least <min> but has been updated
+  to work with policies introduced by <max> or earlier.
+Call Stack (most recent call first):
+  applications/ConstitutiveLawsApplication/CMakeLists.txt:6 (include)
+
+
+	Adding application '/home/ihar/Software/Kratos/dtapp/scripts/../applications/LinearSolversApplication'
+**** configuring KratosLinearSolversApplication ****
+CMake Deprecation Warning at cmake_modules/pybind11Tools.cmake:8 (cmake_minimum_required):
+  Compatibility with CMake < 3.10 will be removed from a future version of
+  CMake.
+
+  Update the VERSION argument <min> value.  Or, use the <min>...<max> syntax
+  to tell CMake that the project requires at least <min> but has been updated
+  to work with policies introduced by <max> or earlier.
+Call Stack (most recent call first):
+  applications/LinearSolversApplication/CMakeLists.txt:28 (include)
+
+
+-- MKLROOT = /opt/intel/oneapi/mkl/2026.1
+-- Found CHOLMOD: /usr/include/suitesparse
+-- Found SPQR: /usr/include/suitesparse
+-- Found UMFPACK: /usr/include/suitesparse
+	Adding application '/home/ihar/Software/Kratos/dtapp/scripts/../applications/OptimizationApplication'
+**** configuring KratosOptimizationApplication ****
+CMake Deprecation Warning at cmake_modules/pybind11Tools.cmake:8 (cmake_minimum_required):
+  Compatibility with CMake < 3.10 will be removed from a future version of
+  CMake.
+
+  Update the VERSION argument <min> value.  Or, use the <min>...<max> syntax
+  to tell CMake that the project requires at least <min> but has been updated
+  to work with policies introduced by <max> or earlier.
+Call Stack (most recent call first):
+  applications/OptimizationApplication/CMakeLists.txt:6 (include)
+
+
+	Adding application '/home/ihar/Software/Kratos/dtapp/scripts/../applications/SystemIdentificationApplication'
+**** configuring KratosSystemIdentificationApplication ****
+CMake Deprecation Warning at cmake_modules/pybind11Tools.cmake:8 (cmake_minimum_required):
+  Compatibility with CMake < 3.10 will be removed from a future version of
+  CMake.
+
+  Update the VERSION argument <min> value.  Or, use the <min>...<max> syntax
+  to tell CMake that the project requires at least <min> but has been updated
+  to work with policies introduced by <max> or earlier.
+Call Stack (most recent call first):
+  applications/SystemIdentificationApplication/CMakeLists.txt:6 (include)
+
+
+
+***********************************************************************
+
+        LIST OF APPLICATIONS THAT ARE GOING TO BE COMPILED:
+
+        StructuralMechanicsApplication
+        ConstitutiveLawsApplication
+        LinearSolversApplication
+        OptimizationApplication
+        SystemIdentificationApplication
+
+        APPLICATIONS ADDED TO COMPILATION THROUGH DEPENDENCIES:
+
+
+***********************************************************************
+
+
+List of upcoming API-breaking and behavior changes:
+	 Behavior change of Testing. Please ensure you use KRATOS_EXPECT for testing instead of KRATOS_CHECK
+	 Removal of misused EXTENDED_GAUSS integration rules and unification across geometries: https://github.com/KratosMultiphysics/Kratos/pull/13444
+-- clipper : /home/ihar/Software/Kratos/dtapp/external_libraries/clipper
+-- tinyexpr : /home/ihar/Software/Kratos/dtapp/external_libraries/tinyexpr/tinyexpr/
+-- Configuring done (1.2s)
+-- Generating done (0.1s)
+-- Build files have been written to: /home/ihar/Software/Kratos/dtapp/build/gcc_Release
+[  1%] Built target tinyexpr
+[  1%] Built target KratosVersion
+[  2%] Built target gidpost
+[  2%] Built target gtest
+[  2%] Built target clipper
+[  2%] Built target gtest_main
+[  3%] Built target gmock
+[  3%] Built target gmock_main
+[  3%] Building CXX object kratos/CMakeFiles/KratosCore.dir/containers/data_value_container.cpp.o
+[  3%] Building CXX object kratos/CMakeFiles/KratosCore.dir/containers/model.cpp.o
+[  3%] Building CXX object kratos/CMakeFiles/KratosCore.dir/conditions/mesh_condition.cpp.o
+[  4%] Building CXX object kratos/CMakeFiles/KratosCore.dir/constraints/slip_constraint.cpp.o
+[  4%] Building CXX object kratos/CMakeFiles/KratosCore.dir/constraints/linear_master_slave_constraint.cpp.o
+[  4%] Building CXX object kratos/CMakeFiles/KratosCore.dir/containers/nd_data.cpp.o
+[  4%] Building CXX object kratos/CMakeFiles/KratosCore.dir/containers/nodal_data.cpp.o
+[  4%] Building CXX object kratos/CMakeFiles/KratosCore.dir/containers/flags.cpp.o
+[  4%] Building CXX object kratos/CMakeFiles/KratosCore.dir/containers/variable_data.cpp.o
+[  4%] Building CXX object kratos/CMakeFiles/KratosCore.dir/containers/variables_list.cpp.o
+[  4%] Building CXX object kratos/CMakeFiles/KratosCore.dir/controllers/output_controller.cpp.o
+[  4%] Building CXX object kratos/CMakeFiles/KratosCore.dir/elements/edge_based_gradient_recovery_element.cpp.o
+[  5%] Building CXX object kratos/CMakeFiles/KratosCore.dir/elements/embedded_nodal_variable_calculation_element_simplex.cpp.o
+[  5%] Building CXX object kratos/CMakeFiles/KratosCore.dir/elements/levelset_convection_element_simplex_algebraic_stabilization.cpp.o
+[  5%] Building CXX object kratos/CMakeFiles/KratosCore.dir/elements/mesh_element.cpp.o
+[  5%] Building CXX object kratos/CMakeFiles/KratosCore.dir/factories/mapper_factory.cpp.o
+[  5%] Building CXX object kratos/CMakeFiles/KratosCore.dir/factories/register_factories.cpp.o
+[  5%] Building CXX object kratos/CMakeFiles/KratosCore.dir/factories/standard_linear_solver_factory.cpp.o
+[  5%] Building CXX object kratos/CMakeFiles/KratosCore.dir/factories/standard_preconditioner_factory.cpp.o
+[  5%] Building CXX object kratos/CMakeFiles/KratosCore.dir/geometries/nurbs_shape_function_utilities/nurbs_curve_refinement_utilities.cpp.o
+[  5%] Building CXX object kratos/CMakeFiles/KratosCore.dir/geometries/nurbs_shape_function_utilities/nurbs_surface_refinement_utilities.cpp.o
+[  6%] Building CXX object kratos/CMakeFiles/KratosCore.dir/geometries/oriented_bounding_box.cpp.o
+[  6%] Building CXX object kratos/CMakeFiles/KratosCore.dir/input_output/cad_json_output.cpp.o
+[  6%] Building CXX object kratos/CMakeFiles/KratosCore.dir/input_output/ensight_output.cpp.o
+[  7%] Building CXX object kratos/CMakeFiles/KratosCore.dir/input_output/logger_message.cpp.o
+[  7%] Building CXX object kratos/CMakeFiles/KratosCore.dir/input_output/logger_output.cpp.o
+[  7%] Building CXX object kratos/CMakeFiles/KratosCore.dir/input_output/logger_table_output.cpp.o
+[  7%] Building CXX object kratos/CMakeFiles/KratosCore.dir/input_output/obj_io.cpp.o
+[  7%] Building CXX object kratos/CMakeFiles/KratosCore.dir/input_output/stl_io.cpp.o
+[  7%] Building CXX object kratos/CMakeFiles/KratosCore.dir/input_output/unv_output.cpp.o
+[  7%] Building CXX object kratos/CMakeFiles/KratosCore.dir/input_output/vtk_definition.cpp.o
+[  7%] Building CXX object kratos/CMakeFiles/KratosCore.dir/input_output/vtk_output.cpp.o
+[  7%] Building CXX object kratos/CMakeFiles/KratosCore.dir/input_output/vtu_output.cpp.o
+[  7%] Building CXX object kratos/CMakeFiles/KratosCore.dir/integration/integration_info.cpp.o
+[  7%] Building CXX object kratos/CMakeFiles/KratosCore.dir/integration/integration_point_utilities.cpp.o
+[  7%] Building CXX object kratos/CMakeFiles/KratosCore.dir/linear_solvers/amgcl_solver_impl.cpp.o
+[  7%] Building CXX object kratos/CMakeFiles/KratosCore.dir/linear_solvers/linear_solver_ublas.cpp.o
+[  7%] Building CXX object kratos/CMakeFiles/KratosCore.dir/modeler/cad_io_modeler.cpp.o
+[  7%] Building CXX object kratos/CMakeFiles/KratosCore.dir/modeler/clean_up_problematic_triangles_modeler.cpp.o
+[  7%] Building CXX object kratos/CMakeFiles/KratosCore.dir/modeler/coloring/color_and_intersect_with_cells_in_touch.cpp.o
+[  7%] Building CXX object kratos/CMakeFiles/KratosCore.dir/modeler/coloring/color_cell_faces.cpp.o
+[  8%] Building CXX object kratos/CMakeFiles/KratosCore.dir/modeler/coloring/color_cell_faces_between_colors.cpp.o
+[  8%] Building CXX object kratos/CMakeFiles/KratosCore.dir/modeler/coloring/color_cells_in_touch.cpp.o
+[  8%] Building CXX object kratos/CMakeFiles/KratosCore.dir/modeler/coloring/color_cells_with_center_in_sphere_around_nodes.cpp.o
+[  8%] Building CXX object kratos/CMakeFiles/KratosCore.dir/modeler/coloring/color_cells_with_inside_center.cpp.o
+[  8%] Building CXX object kratos/CMakeFiles/KratosCore.dir/modeler/coloring/color_connected_cells_in_touch.cpp.o
+[  8%] Building CXX object kratos/CMakeFiles/KratosCore.dir/modeler/coloring/color_outer_faces_of_cells_with_colors.cpp.o
+[  8%] Building CXX object kratos/CMakeFiles/KratosCore.dir/modeler/coloring/voxel_mesher_coloring.cpp.o
+[  8%] Building CXX object kratos/CMakeFiles/KratosCore.dir/modeler/coloring/voxel_mesher_coloring_factory.cpp.o
+[  8%] Building CXX object kratos/CMakeFiles/KratosCore.dir/modeler/combine_model_part_modeler.cpp.o
+[  9%] Building CXX object kratos/CMakeFiles/KratosCore.dir/modeler/connectivity_preserve_modeler.cpp.o
+[  9%] Building CXX object kratos/CMakeFiles/KratosCore.dir/modeler/copy_properties_modeler.cpp.o
+[  9%] Building CXX object kratos/CMakeFiles/KratosCore.dir/modeler/create_entities_from_geometries_modeler.cpp.o
+[  9%] Building CXX object kratos/CMakeFiles/KratosCore.dir/modeler/duplicate_mesh_modeler.cpp.o
+[  9%] Building CXX object kratos/CMakeFiles/KratosCore.dir/modeler/entity_generation/generate_conditions_with_face_color.cpp.o
+[  9%] Building CXX object kratos/CMakeFiles/KratosCore.dir/modeler/entity_generation/generate_elements_with_cell_color.cpp.o
+[  9%] Building CXX object kratos/CMakeFiles/KratosCore.dir/modeler/entity_generation/generate_quadratic_elements_with_cell_color.cpp.o
+[  9%] Building CXX object kratos/CMakeFiles/KratosCore.dir/modeler/entity_generation/generate_stl_intersection_with_cells.cpp.o
+[  9%] Building CXX object kratos/CMakeFiles/KratosCore.dir/modeler/entity_generation/generate_tetrahedral_elements_with_cell_color.cpp.o
+[ 10%] Building CXX object kratos/CMakeFiles/KratosCore.dir/modeler/entity_generation/generate_triangular_conditions_with_face_color.cpp.o
+[ 10%] Building CXX object kratos/CMakeFiles/KratosCore.dir/modeler/entity_generation/voxel_mesher_entity_generation.cpp.o
+[ 10%] Building CXX object kratos/CMakeFiles/KratosCore.dir/modeler/entity_generation/voxel_mesher_entity_generation_factory.cpp.o
+[ 10%] Building CXX object kratos/CMakeFiles/KratosCore.dir/modeler/key_plane_generation/key_plane_generation.cpp.o
+[ 10%] Building CXX object kratos/CMakeFiles/KratosCore.dir/modeler/key_plane_generation/key_plane_generation_by_bounding_box.cpp.o
+[ 10%] Building CXX object kratos/CMakeFiles/KratosCore.dir/modeler/key_plane_generation/key_plane_generation_factory.cpp.o
+[ 10%] Building CXX object kratos/CMakeFiles/KratosCore.dir/modeler/key_plane_generation/key_plane_generation_with_refinement.cpp.o
+[ 10%] Building CXX object kratos/CMakeFiles/KratosCore.dir/modeler/modeler_factory.cpp.o
+[ 10%] Building CXX object kratos/CMakeFiles/KratosCore.dir/modeler/operation/compute_surrogate_boundary_data.cpp.o
+[ 10%] Building CXX object kratos/CMakeFiles/KratosCore.dir/modeler/operation/find_contacts_in_skin_model_part.cpp.o
+[ 11%] Building CXX object kratos/CMakeFiles/KratosCore.dir/modeler/operation/voxel_mesher_operation.cpp.o
+[ 11%] Building CXX object kratos/CMakeFiles/KratosCore.dir/modeler/operation/voxel_mesher_operation_factory.cpp.o
+[ 11%] Building CXX object kratos/CMakeFiles/KratosCore.dir/modeler/serial_model_part_combinator_modeler.cpp.o
+[ 11%] Building CXX object kratos/CMakeFiles/KratosCore.dir/modeler/tetrahedra_ball.cpp.o
+[ 11%] Building CXX object kratos/CMakeFiles/KratosCore.dir/modeler/tetrahedra_edge_shell.cpp.o
+[ 11%] Building CXX object kratos/CMakeFiles/KratosCore.dir/modeler/voxel_mesh_generator_modeler.cpp.o
+[ 11%] Building CXX object kratos/CMakeFiles/KratosCore.dir/modified_shape_functions/ausas_modified_shape_functions.cpp.o
+[ 11%] Building CXX object kratos/CMakeFiles/KratosCore.dir/modified_shape_functions/modified_shape_functions.cpp.o
+[ 11%] Building CXX object kratos/CMakeFiles/KratosCore.dir/modified_shape_functions/tetrahedra_3d_4_ausas_incised_shape_functions.cpp.o
+[ 12%] Building CXX object kratos/CMakeFiles/KratosCore.dir/modified_shape_functions/tetrahedra_3d_4_ausas_modified_shape_functions.cpp.o
+[ 12%] Building CXX object kratos/CMakeFiles/KratosCore.dir/modified_shape_functions/tetrahedra_3d_4_modified_shape_functions.cpp.o
+[ 12%] Building CXX object kratos/CMakeFiles/KratosCore.dir/modified_shape_functions/triangle_2d_3_ausas_incised_shape_functions.cpp.o
+[ 12%] Building CXX object kratos/CMakeFiles/KratosCore.dir/modified_shape_functions/triangle_2d_3_ausas_modified_shape_functions.cpp.o
+[ 12%] Building CXX object kratos/CMakeFiles/KratosCore.dir/modified_shape_functions/triangle_2d_3_modified_shape_functions.cpp.o
+[ 12%] Building CXX object kratos/CMakeFiles/KratosCore.dir/processes/apply_constant_scalarvalue_process.cpp.o
+[ 12%] Building CXX object kratos/CMakeFiles/KratosCore.dir/processes/apply_constant_vectorvalue_process.cpp.o
+[ 12%] Building CXX object kratos/CMakeFiles/KratosCore.dir/processes/apply_periodic_boundary_condition_process.cpp.o
+[ 12%] Building CXX object kratos/CMakeFiles/KratosCore.dir/processes/apply_ray_casting_interface_recognition_process.cpp.o
+[ 12%] Building CXX object kratos/CMakeFiles/KratosCore.dir/processes/apply_ray_casting_process.cpp.o
+[ 13%] Building CXX object kratos/CMakeFiles/KratosCore.dir/processes/assign_scalar_field_to_entities_process.cpp.o
+[ 13%] Building CXX object kratos/CMakeFiles/KratosCore.dir/processes/assign_scalar_input_to_entities_process.cpp.o
+[ 13%] Building CXX object kratos/CMakeFiles/KratosCore.dir/processes/assign_scalar_variable_to_entities_process.cpp.o
+[ 13%] Building CXX object kratos/CMakeFiles/KratosCore.dir/processes/calculate_discontinuous_distance_to_skin_process.cpp.o
+[ 13%] Building CXX object kratos/CMakeFiles/KratosCore.dir/processes/calculate_distance_to_path_process.cpp.o
+[ 13%] Building CXX object kratos/CMakeFiles/KratosCore.dir/processes/calculate_distance_to_skin_process.cpp.o
+[ 13%] Building CXX object kratos/CMakeFiles/KratosCore.dir/processes/calculate_nodal_area_process.cpp.o
+[ 13%] Building CXX object kratos/CMakeFiles/KratosCore.dir/processes/calculate_nodal_distance_to_skin_process.cpp.o
+[ 13%] Building CXX object kratos/CMakeFiles/KratosCore.dir/processes/check_same_modelpart_using_skin_distance_process.cpp.o
+[ 14%] Building CXX object kratos/CMakeFiles/KratosCore.dir/processes/check_skin_process.cpp.o
+[ 14%] Building CXX object kratos/CMakeFiles/KratosCore.dir/processes/compute_nodal_gradient_process.cpp.o
+[ 14%] Building CXX object kratos/CMakeFiles/KratosCore.dir/processes/compute_nodal_normal_divergence_process.cpp.o
+[ 14%] Building CXX object kratos/CMakeFiles/KratosCore.dir/processes/entity_erase_process.cpp.o
+[ 14%] Building CXX object kratos/CMakeFiles/KratosCore.dir/processes/fast_transfer_between_model_parts_process.cpp.o
+[ 14%] Building CXX object kratos/CMakeFiles/KratosCore.dir/processes/find_conditions_neighbours_process.cpp.o
+[ 14%] Building CXX object kratos/CMakeFiles/KratosCore.dir/processes/find_global_nodal_entity_neighbours_process.cpp.o
+[ 14%] Building CXX object kratos/CMakeFiles/KratosCore.dir/processes/find_global_nodal_neighbours_for_entities_process.cpp.o
+[ 14%] Building CXX object kratos/CMakeFiles/KratosCore.dir/processes/find_intersected_geometrical_objects_process.cpp.o
+[ 15%] Building CXX object kratos/CMakeFiles/KratosCore.dir/processes/find_intersected_geometrical_objects_with_obb_process.cpp.o
+[ 15%] Building CXX object kratos/CMakeFiles/KratosCore.dir/processes/find_nodal_h_process.cpp.o
+[ 15%] Building CXX object kratos/CMakeFiles/KratosCore.dir/processes/find_nodal_neighbours_process.cpp.o
+[ 15%] Building CXX object kratos/CMakeFiles/KratosCore.dir/processes/from_json_check_result_process.cpp.o
+[ 15%] Building CXX object kratos/CMakeFiles/KratosCore.dir/processes/generic_find_elements_neighbours_process.cpp.o
+[ 15%] Building CXX object kratos/CMakeFiles/KratosCore.dir/processes/integration_values_extrapolation_to_nodes_process.cpp.o
+[ 15%] Building CXX object kratos/CMakeFiles/KratosCore.dir/processes/measure_mesh_quality_process.cpp.o
+[ 15%] Building CXX object kratos/CMakeFiles/KratosCore.dir/processes/mesh_coarsening_process.cpp.o
+[ 15%] Building CXX object kratos/CMakeFiles/KratosCore.dir/processes/mesh_local_smoothing_process.cpp.o
+[ 15%] Building CXX object kratos/CMakeFiles/KratosCore.dir/processes/mesh_node_collapsing_process.cpp.o
+[ 16%] Building CXX object kratos/CMakeFiles/KratosCore.dir/processes/parallel_distance_calculation_process.cpp.o
+[ 16%] Building CXX object kratos/CMakeFiles/KratosCore.dir/processes/reorder_and_optimize_modelpart_process.cpp.o
+[ 16%] Building CXX object kratos/CMakeFiles/KratosCore.dir/processes/replace_elements_and_condition_process.cpp.o
+[ 16%] Building CXX object kratos/CMakeFiles/KratosCore.dir/processes/set_initial_state_process.cpp.o
+[ 16%] Building CXX object kratos/CMakeFiles/KratosCore.dir/processes/simple_mortar_mapper_process.cpp.o
+[ 16%] Building CXX object kratos/CMakeFiles/KratosCore.dir/processes/skin_detection_process.cpp.o
