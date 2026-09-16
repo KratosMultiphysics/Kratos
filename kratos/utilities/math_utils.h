@@ -1088,8 +1088,8 @@ public:
     {
         KRATOS_TRY
 
-        for(IndexType i = 0; i < static_cast<IndexType>(rInputMatrix.size1()); ++i) {
-            for(IndexType j = 0; j < static_cast<IndexType>(rInputMatrix.size2()); ++j) {
+        for (IndexType i = 0; i < static_cast<IndexType>(rInputMatrix.size1()); ++i) {
+            for (IndexType j = 0; j < static_cast<IndexType>(rInputMatrix.size2()); ++j) {
                 rDestination(InitialRow+i, InitialCol+j) += rInputMatrix(i,j);
             }
         }
@@ -1112,9 +1112,7 @@ public:
     {
         KRATOS_TRY
 
-        // size() of a lazy Eigen expression is signed (Eigen::Index); cast keeps the comparison warning-free
-        const auto size = static_cast<IndexType>(rInputVector.size());
-        for(IndexType i = 0; i < size; ++i) {
+        for (IndexType i = 0; i < static_cast<IndexType>(rInputVector.size()); ++i) {
             rDestination[InitialIndex+i] += rInputVector[i];
         }
         KRATOS_CATCH("")
@@ -1137,8 +1135,8 @@ public:
     {
         KRATOS_TRY;
 
-        for(IndexType i = 0; i<rInputMatrix.size1(); ++i) {
-            for(IndexType j = 0; j<rInputMatrix.size2(); ++j) {
+        for (IndexType i = 0; i<rInputMatrix.size1(); ++i) {
+            for (IndexType j = 0; j<rInputMatrix.size2(); ++j) {
                 rDestination(InitialRow+i, InitialCol+j) -= rInputMatrix(i,j);
             }
         }
@@ -1164,8 +1162,8 @@ public:
     {
         KRATOS_TRY;
 
-        for(IndexType i = 0; i < rInputMatrix.size1(); ++i) {
-            for(IndexType j = 0; j < rInputMatrix.size2(); ++j) {
+        for (IndexType i = 0; i < rInputMatrix.size1(); ++i) {
+            for (IndexType j = 0; j < rInputMatrix.size2(); ++j) {
                 rDestination(InitialRow+i, InitialCol+j) = rInputMatrix(i,j);
             }
         }
