@@ -153,7 +153,7 @@ class KratosGeoMechanicsSeepageTests(KratosGeoUnittest.TestCase):
     def test_three_element_seepage_flux_bottom_boundary(self):
         """
         Test with forced flux. The nodal outflow is therefore known (the seepage boundary
-        allows it) and the pressure should be forces to 0.0 by the seepage boundary
+        allows it) and the pressure should be set to 0.0 by the seepage boundary.
         """
         test_name = "seepage_tests"
         file_path = test_helper.get_file_path(
