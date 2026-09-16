@@ -115,6 +115,27 @@ Clipper2Lib::Paths64 CreateAllLoops(
     return all_loops;
 }
 
+Clipper2Lib::Paths64 CreateAllLoops(
+    const LocalRefinedBrepSurface<PointerVector<Node>, THBSurfaceGeometry<3, PointerVector<Node>>, false, PointerVector<Point>>& rLocalRefinedBrepSurface,
+    const double Factor,
+    const double TessellationTolerance)
+{
+    const auto& r_outer_loops = rLocalRefinedBrepSurface.GetOuterLoops();
+    const auto& r_inner_loops = rLocalRefinedBrepSurface.GetInnerLoops();
+    KRATOS_ERROR_IF(r_outer_loops.empty())
+        << "LocalRefinedBrepSurface has no outer trimming loop.\n";
+
+    Clipper2Lib::Paths64 all_loops(1 + r_inner_loops.size());
+    FillClipperPathFromLoop(
+        r_outer_loops[0], all_loops[0], Factor, TessellationTolerance);
+    for (std::size_t i = 0; i < r_inner_loops.size(); ++i) {
+        FillClipperPathFromLoop(
+            r_inner_loops[i], all_loops[i + 1],
+            Factor, TessellationTolerance);
+    }
+    return all_loops;
+}
+
 void SplitOuterAndInnerPaths(
     const Clipper2Lib::Paths64& rAllLoops,
     Clipper2Lib::Paths64& rOuterPaths,

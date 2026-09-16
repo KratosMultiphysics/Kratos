@@ -13,6 +13,8 @@
 
 // Project includes
 #include "geometries/brep_surface.h"
+#include "geometries/local_refined_brep_surface.h"
+#include "geometries/thb_surface_geometry.h"
 #include "mapping_application.h"
 
 // External includes
@@ -35,6 +37,13 @@ namespace Kratos::BrepClipperUtilities
  */
 Clipper2Lib::Paths64 KRATOS_API(MAPPING_APPLICATION) CreateAllLoops(
     const BrepSurface<PointerVector<Node>, false, PointerVector<Point>>& rBrepSurface,
+    const double Factor,
+    const double TessellationTolerance = 1.0e-3);
+
+/// THB overload of @ref CreateAllLoops. Same contract, applied to the
+/// trimming loops carried by a LocalRefinedBrepSurface (BrepCurveOnLocalRefinedSurface).
+Clipper2Lib::Paths64 KRATOS_API(MAPPING_APPLICATION) CreateAllLoops(
+    const LocalRefinedBrepSurface<PointerVector<Node>, THBSurfaceGeometry<3, PointerVector<Node>>, false, PointerVector<Point>>& rLocalRefinedBrepSurface,
     const double Factor,
     const double TessellationTolerance = 1.0e-3);
 
