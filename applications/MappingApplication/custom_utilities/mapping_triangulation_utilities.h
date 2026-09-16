@@ -18,6 +18,8 @@
 // Project includes
 #include "includes/model_part.h"
 #include "geometries/brep_surface.h"
+#include "geometries/local_refined_brep_surface.h"
+#include "geometries/thb_surface_geometry.h"
 #include "mapping_application.h"
 
 namespace Kratos
@@ -33,6 +35,8 @@ using PolygonType = std::vector<CoordinatesArrayType>;
 using BrepSurfaceType =
     BrepSurface<PointerVector<Node>, false, PointerVector<Point>>;
 using BrepLoopArrayType = BrepSurfaceType::BrepCurveOnSurfaceLoopArrayType;
+using LocalRefinedBrepSurfaceThbType =
+    LocalRefinedBrepSurface<PointerVector<Node>, THBSurfaceGeometry<3, PointerVector<Node>>, false, PointerVector<Point>>;
 
 /**
  * @brief Sorts a parametric polygon counter-clockwise and triangulates it as a fan.
@@ -75,6 +79,14 @@ ClipTrianglesWithTrimmingLoops(
     const BrepSurfaceType& rBrepSurface,
     const double Factor);
 
+/// THB overload of @ref ClipTrianglesWithTrimmingLoops. Same contract, applied to
+/// the trimming loops carried by a LocalRefinedBrepSurface (BrepCurveOnLocalRefinedSurface).
+std::vector<PolygonType> KRATOS_API(MAPPING_APPLICATION)
+ClipTrianglesWithTrimmingLoops(
+    const std::vector<PolygonType>& rCandidateTriangles,
+    const LocalRefinedBrepSurfaceThbType& rLocalRefinedBrepSurface,
+    const double Factor);
+
 /**
  * @brief Intersects a triangle with every overlapping knot-span rectangle.
  * @details Each final intersection polygon is triangulated exactly once. This
@@ -87,6 +99,21 @@ ClipTrianglesWithTrimmingLoops(
 void KRATOS_API(MAPPING_APPLICATION) Triangulation(
     const TriangleType& rOriginalTriangleCoordinates,
     GeometryPointerType pMasterGeometry,
+    std::vector<TriangleType>& rNewTriangles);
+
+/**
+ * @brief Triangulate a parametric triangle against an explicit set of active
+ * cell rectangles.
+ * @details Same clipping and area-consistency logic as @ref Triangulation, but
+ * the cell rectangles are provided directly (typically the return value of
+ * LocalRefinedBrepSurface::GetActiveCells() for THB patches).
+ * @param rOriginalTriangleCoordinates Coordinates of the triangle to subdivide.
+ * @param rActiveCells Active cell rectangles as @c (u0, u1, v0, v1) tuples.
+ * @param rNewTriangles Resulting triangles, replacing any existing contents.
+ */
+void KRATOS_API(MAPPING_APPLICATION) TriangulationAgainstActiveCells(
+    const TriangleType& rOriginalTriangleCoordinates,
+    const std::vector<std::array<double, 4>>& rActiveCells,
     std::vector<TriangleType>& rNewTriangles);
 
 } // namespace MappingTriangulationUtilities

@@ -428,17 +428,19 @@ void TriangulateTrimmedRegion(
  * Factor: Conversion factor between parametric and integer coordinates.
  * Returns triangles covering only the retained trimmed region.
  */
-std::vector<PolygonType> ClipTrianglesWithTrimmingLoops(
+namespace
+{
+
+// Shared body: consume already-created outer/inner Clipper paths
+std::vector<PolygonType> ClipTrianglesAgainstPreparedPaths(
     const std::vector<PolygonType>& rCandidateTriangles,
-    const BrepSurfaceType& rBrepSurface,
+    const Clipper2Lib::Paths64& rAllLoops,
     const double Factor)
 {
-    const auto all_loops = BrepClipperUtilities::CreateAllLoops(
-        rBrepSurface, Factor);
     Clipper2Lib::Paths64 outer_paths;
     Clipper2Lib::Paths64 inner_paths;
     BrepClipperUtilities::SplitOuterAndInnerPaths(
-        all_loops, outer_paths, inner_paths);
+        rAllLoops, outer_paths, inner_paths);
     if (outer_paths.empty()) {
         return rCandidateTriangles;
     }
@@ -496,6 +498,30 @@ std::vector<PolygonType> ClipTrianglesWithTrimmingLoops(
     }
 
     return clipped_triangles;
+}
+
+} // unnamed namespace
+
+std::vector<PolygonType> ClipTrianglesWithTrimmingLoops(
+    const std::vector<PolygonType>& rCandidateTriangles,
+    const BrepSurfaceType& rBrepSurface,
+    const double Factor)
+{
+    const auto all_loops = BrepClipperUtilities::CreateAllLoops(
+        rBrepSurface, Factor);
+    return ClipTrianglesAgainstPreparedPaths(
+        rCandidateTriangles, all_loops, Factor);
+}
+
+std::vector<PolygonType> ClipTrianglesWithTrimmingLoops(
+    const std::vector<PolygonType>& rCandidateTriangles,
+    const LocalRefinedBrepSurfaceThbType& rLocalRefinedBrepSurface,
+    const double Factor)
+{
+    const auto all_loops = BrepClipperUtilities::CreateAllLoops(
+        rLocalRefinedBrepSurface, Factor);
+    return ClipTrianglesAgainstPreparedPaths(
+        rCandidateTriangles, all_loops, Factor);
 }
 
 /*
@@ -578,6 +604,82 @@ void Triangulation(
         std::abs(triangulated_area - original_area) / original_area >
         relative_area_tolerance)
         << "Knot-span subdivision does not conserve triangle area. Original area: "
+        << original_area << ", triangulated area: " << triangulated_area << ".\n";
+}
+
+
+// Same clipping / triangulation strategy as Triangulation() above, but the
+// cell rectangles are supplied directly. This lets the caller pass the true
+// THB active cells (e.g. LocalRefinedBrepSurface::GetActiveCells()).
+void TriangulationAgainstActiveCells(
+    const TriangleType& rOriginalTriangleCoordinates,
+    const std::vector<std::array<double, 4>>& rActiveCells,
+    std::vector<TriangleType>& rNewTriangles)
+{
+    KRATOS_ERROR_IF(rActiveCells.empty())
+        << "TriangulationAgainstActiveCells: empty active-cell list.\n";
+
+    // Estimate the parametric scale from the union of the provided cells.
+    double u_lo = rActiveCells.front()[0];
+    double u_hi = rActiveCells.front()[1];
+    double v_lo = rActiveCells.front()[2];
+    double v_hi = rActiveCells.front()[3];
+    for (const auto& cell : rActiveCells) {
+        u_lo = std::min(u_lo, cell[0]);
+        u_hi = std::max(u_hi, cell[1]);
+        v_lo = std::min(v_lo, cell[2]);
+        v_hi = std::max(v_hi, cell[3]);
+    }
+
+    const auto [triangle_u_min_it, triangle_u_max_it] = std::minmax_element(
+        rOriginalTriangleCoordinates.begin(), rOriginalTriangleCoordinates.end(),
+        [](const CoordinatesArrayType& rA, const CoordinatesArrayType& rB) {
+            return rA[0] < rB[0];
+        });
+    const auto [triangle_v_min_it, triangle_v_max_it] = std::minmax_element(
+        rOriginalTriangleCoordinates.begin(), rOriginalTriangleCoordinates.end(),
+        [](const CoordinatesArrayType& rA, const CoordinatesArrayType& rB) {
+            return rA[1] < rB[1];
+        });
+
+    const double parameter_scale = std::max({
+        1.0, std::abs(u_hi - u_lo), std::abs(v_hi - v_lo)});
+    const double coordinate_tolerance = 1e-12 * parameter_scale;
+    const double original_area = TriangleArea(rOriginalTriangleCoordinates);
+    const double area_tolerance = 1e-14 * parameter_scale * parameter_scale;
+    KRATOS_ERROR_IF(original_area <= area_tolerance)
+        << "Cannot subdivide a degenerate triangle with area "
+        << original_area << ".\n";
+
+    rNewTriangles.clear();
+    for (const auto& cell : rActiveCells) {
+        const double u_min = cell[0];
+        const double u_max = cell[1];
+        const double v_min = cell[2];
+        const double v_max = cell[3];
+
+        if (u_max < (*triangle_u_min_it)[0] - coordinate_tolerance ||
+            u_min > (*triangle_u_max_it)[0] + coordinate_tolerance ||
+            v_max < (*triangle_v_min_it)[1] - coordinate_tolerance ||
+            v_min > (*triangle_v_max_it)[1] + coordinate_tolerance) {
+            continue;
+        }
+
+        auto clipped_polygon = ClipTriangleWithRectangle(
+            rOriginalTriangleCoordinates,
+            u_min, u_max, v_min, v_max, coordinate_tolerance);
+        TriangulatePolygon(clipped_polygon, rNewTriangles, area_tolerance);
+    }
+
+    double triangulated_area = 0.0;
+    for (const auto& r_triangle : rNewTriangles) {
+        triangulated_area += TriangleArea(r_triangle);
+    }
+    constexpr double relative_area_tolerance = 1e-6;
+    KRATOS_ERROR_IF(
+        std::abs(triangulated_area - original_area) / original_area >
+        relative_area_tolerance)
+        << "Active-cell subdivision does not conserve triangle area. Original area: "
         << original_area << ", triangulated area: " << triangulated_area << ".\n";
 }
 
