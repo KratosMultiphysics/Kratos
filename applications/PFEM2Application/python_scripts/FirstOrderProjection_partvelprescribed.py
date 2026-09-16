@@ -284,7 +284,7 @@ class PFEM2Solver:
 
         print("info will be projected onto the mesh")
         #transfering data from the particles to the mesh:
-        (self.moveparticles).TransferLagrangianToEulerian_aux()
+        (self.moveparticles).TransferLagrangianToEulerian_partvelprescribed()
         t5 = timer.time()
         self.lagrangiantoeulerian = self.lagrangiantoeulerian + t5-t4
         print("info has been projected onto the mesh")

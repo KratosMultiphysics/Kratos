@@ -13,6 +13,7 @@ def AddVariables(model_part):
     model_part.AddNodalSolutionStepVariable(PRESSURE)
     model_part.AddNodalSolutionStepVariable(DISTANCE)
     model_part.AddNodalSolutionStepVariable(VELOCITY)
+    model_part.AddNodalSolutionStepVariable(TEMPERATURE)
     model_part.AddNodalSolutionStepVariable(ACCELERATION)
     model_part.AddNodalSolutionStepVariable(YP)
     model_part.AddNodalSolutionStepVariable(PRESS_PROJ)
@@ -294,6 +295,8 @@ class PFEM2Solver:
         full_reset=True;
         (self.moveparticles).ResetBoundaryConditions(full_reset)
         (self.moveparticles).CopyVectorVarToPreviousTimeStep(VELOCITY,self.model_part.Nodes)
+
+        (self.moveparticles).InterpolateParticleVelocity();
 
 
 

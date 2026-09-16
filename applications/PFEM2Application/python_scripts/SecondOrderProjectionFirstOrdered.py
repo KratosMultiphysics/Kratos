@@ -285,7 +285,7 @@ class PFEM2Solver:
 
         print("info will be projected onto the mesh")
         #transfering data from the particles to the mesh:
-        (self.moveparticles).TransferLagrangianToEulerian()
+        (self.moveparticles).TransferLagrangianToEulerianSecondOrder_madesimilartoweightedaverage()
         t5 = timer.time()
         self.lagrangiantoeulerian = self.lagrangiantoeulerian + t5-t4
         print("info has been projected onto the mesh")
@@ -296,8 +296,8 @@ class PFEM2Solver:
         (self.moveparticles).ResetBoundaryConditions(full_reset)
         (self.moveparticles).CopyVectorVarToPreviousTimeStep(VELOCITY,self.model_part.Nodes)
 
-        #delta_velocity= Velocity(final) - ProjectedVelocity(from the particles), so we add to the particles the correction done in the mesh.
         (self.moveparticles).InterpolateParticleVelocity();
+
 
 
     def RotateParticlesAndDomainVelocities(self,angles):
