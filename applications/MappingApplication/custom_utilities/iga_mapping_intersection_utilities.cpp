@@ -19,6 +19,8 @@
 // Project includes
 #include "iga_mapping_intersection_utilities.h"
 #include "custom_utilities/mapping_triangulation_utilities.h"
+#include "geometries/local_refined_brep_surface.h"
+#include "geometries/thb_surface_geometry.h"
 
 // Data structures for doing spatial search 
 #include "utilities/function_parser_utility.h"
@@ -34,6 +36,7 @@ using CoordinatesArrayType =
 using GeometryType = IgaMappingIntersectionUtilities::GeometryType;
 using PatchCacheMap = IgaMappingIntersectionUtilities::PatchCacheMap;
 using NurbsSurfaceType = NurbsSurfaceGeometry<3, PointerVector<Node>>;
+using LocalRefinedBrepSurfaceThbType = LocalRefinedBrepSurface<PointerVector<Node>, THBSurfaceGeometry<3, PointerVector<Node>>, false, PointerVector<Point>>;
 
 constexpr double parametric_point_tolerance = 1e-8;
 
@@ -50,6 +53,11 @@ void AddEnclosedDomainCorners(
     const GeometryType& rFEMGeometry,
     std::vector<CoordinatesArrayType>& rPoints);
 
+void AddEnclosedDomainCorners(
+    const GeometryType& rMasterGeometry,
+    const GeometryType& rFEMGeometry,
+    std::vector<CoordinatesArrayType>& rPoints);
+
 bool RecoverUnprojectedTriangleIntersection(
     const GeometryType& rMasterGeometry,
     const GeometryType& rFEMGeometry,
@@ -57,6 +65,18 @@ bool RecoverUnprojectedTriangleIntersection(
     const PatchCacheMap& rPatchCache,
     const double SearchRadius,
     std::vector<CoordinatesArrayType>& rPolygon);
+
+bool RecoverUnprojectedTriangleIntersection(
+    const GeometryType& rMasterGeometry,
+    const GeometryType& rFEMGeometry,
+    const PatchCacheMap& rPatchCache,
+    const double SearchRadius,
+    std::vector<CoordinatesArrayType>& rPolygon);
+
+PatchCacheMap BuildThbPatchCaches(
+    const std::vector<IndexType>& rPatchesId,
+    const ModelPart& rModelPartIga,
+    const IndexType NDiv);
 
 // Writes the three vertices of a parametric triangle and its BRep patch ID.
 template<class TTriangleType>
@@ -668,6 +688,7 @@ void IgaMappingIntersectionUtilities::CreateIgaFEMQuadraturePointsOnSurface(
     }
 }
 
+// Broad-phase mortar setup for THB (locally refined) IGA patches.
 void IgaMappingIntersectionUtilities::CreateThbFEMCouplingGeometriesOnSurface(
     ModelPart& rModelPartDomainA,
     ModelPart& rModelPartDomainB,
@@ -676,25 +697,319 @@ void IgaMappingIntersectionUtilities::CreateThbFEMCouplingGeometriesOnSurface(
     const double search_radius,
     PatchCacheMap& rPatchCache)
 {
-    KRATOS_ERROR
-        << "IgaMappingIntersectionUtilities::CreateThbFEMCouplingGeometriesOnSurface: "
-           "THB mortar mapper is not yet implemented. This entry point is reached "
-           "when the IGA-side interface uses LocalRefinedBrepSurface (THB) patches."
-        << std::endl;
+    std::vector<IndexType> patches_id;
+
+    if (is_origin_iga) {
+        std::unordered_set<IndexType> patch_ids;
+
+        for (const auto& r_elem : rModelPartDomainA.Elements()) {
+            const auto& r_geom   = r_elem.GetGeometry();
+            const auto& r_parent = r_geom.GetGeometryParent(0);
+            patch_ids.insert(r_parent.Id());
+        }
+        for (const auto& r_cond : rModelPartDomainA.Conditions()) {
+            const auto& r_geom   = r_cond.GetGeometry();
+            const auto& r_parent = r_geom.GetGeometryParent(0);
+            patch_ids.insert(r_parent.Id());
+        }
+
+        patches_id.assign(patch_ids.begin(), patch_ids.end());
+    }
+
+    const IndexType patch_divisions = 100;
+    rPatchCache = BuildThbPatchCaches(patches_id, rModelPartDomainA, patch_divisions);
+
+    for (auto condition_b_itr = rModelPartDomainB.ConditionsBegin();
+         condition_b_itr != rModelPartDomainB.ConditionsEnd();
+         ++condition_b_itr) {
+        const CoordinatesArrayType element_center =
+            condition_b_itr->GetGeometry().Center();
+
+        const std::vector<IndexType> patches_with_probable_projection_id =
+            IgaMappingIntersectionUtilities::GetPatchesWithProbableProjection(
+                patches_id, rPatchCache, element_center, search_radius);
+
+        for (IndexType i = 0; i < patches_with_probable_projection_id.size(); ++i) {
+            auto p_brep_surface = rModelPartDomainA.GetRootModelPart()
+                .pGetGeometry(patches_with_probable_projection_id[i]);
+
+            rModelPartResult.AddGeometry(Kratos::make_shared<CouplingGeometry<NodeType>>(
+                p_brep_surface, condition_b_itr->pGetGeometry()));
+        }
+    }
 }
 
 
+// Narrow-phase mortar QP generation for THB (locally refined) IGA patches.
 void IgaMappingIntersectionUtilities::CreateThbFEMQuadraturePointsOnSurface(
     ModelPart& rModelPartCoupling,
     bool origin_is_iga,
     const PatchCacheMap& rPatchCache,
-    const double search_radius)
+    const double search_radius,
+    const bool WriteTrianglesToFile)
 {
-    KRATOS_ERROR
-        << "IgaMappingIntersectionUtilities::CreateThbFEMQuadraturePointsOnSurface: "
-           "THB mortar mapper is not yet implemented. This entry point is reached "
-           "when the IGA-side interface uses LocalRefinedBrepSurface (THB) patches."
-        << std::endl;
+    const ModelPart& r_parent_model_part = rModelPartCoupling.GetParentModelPart();
+
+    std::ofstream parametric_triangles_output_file;
+    std::ofstream physical_triangles_output_file;
+    if (WriteTrianglesToFile) {
+        const std::string parametric_output_file_name =
+            "obtained_triangles_after_intersection_with_knot_lines_parameter_space.txt";
+        const std::string physical_output_file_name =
+            "obtained_triangles_after_intersection_with_knot_lines_physical_space.txt";
+        parametric_triangles_output_file.open(parametric_output_file_name);
+        physical_triangles_output_file.open(physical_output_file_name);
+        KRATOS_ERROR_IF_NOT(parametric_triangles_output_file.is_open())
+            << "Could not open triangle output file: "
+            << parametric_output_file_name << "\n";
+        KRATOS_ERROR_IF_NOT(physical_triangles_output_file.is_open())
+            << "Could not open triangle output file: "
+            << physical_output_file_name << "\n";
+        parametric_triangles_output_file << std::setprecision(17)
+            << "# Parametric triangle vertices: u v w\n"
+            << "# Each triangle starts with: # brep_id <id>\n"
+            << "# Every three non-empty lines define one triangle.\n";
+        physical_triangles_output_file << std::setprecision(17)
+            << "# Physical triangle vertices: x y z\n"
+            << "# Every three non-empty lines define one triangle.\n";
+    }
+
+    for (auto geometry_itr = rModelPartCoupling.GeometriesBegin();
+         geometry_itr != rModelPartCoupling.GeometriesEnd();
+         ++geometry_itr) {
+        if (geometry_itr->NumberOfGeometryParts() < 2) { continue; }
+
+        auto geom_master = geometry_itr->pGetGeometryPart(0);  // THB / LR-BREP
+        auto geom_slave  = geometry_itr->pGetGeometryPart(1);  // FEM triangle
+        auto& r_geom_slave = *geom_slave;
+
+        auto geom_master_cast =
+            dynamic_pointer_cast<LocalRefinedBrepSurfaceThbType>(geom_master);
+        KRATOS_ERROR_IF_NOT(geom_master_cast)
+            << "CreateThbFEMQuadraturePointsOnSurface: master geometry (id "
+            << geom_master->Id()
+            << ") is not a LocalRefinedBrepSurface wrapping a THBSurfaceGeometry.\n";
+
+        std::vector<std::vector<CoordinatesArrayType>> triangles_param_space;
+
+        CoordinatesArrayType local_parameter = ZeroVector(3);
+        CoordinatesArrayType node_coordinate_xyz;
+
+        const IndexType n_nodes = r_geom_slave.size();
+
+        std::vector<CoordinatesArrayType> successful_nodes_xyz;
+        std::vector<CoordinatesArrayType> failed_nodes_xyz;
+        std::vector<CoordinatesArrayType> points_to_triangulate;
+
+        successful_nodes_xyz.reserve(n_nodes);
+        failed_nodes_xyz.reserve(n_nodes);
+        points_to_triangulate.reserve(n_nodes);
+
+        for (IndexType i = 0; i < n_nodes; ++i) {
+            const auto p_point = r_geom_slave.pGetPoint(i);
+            node_coordinate_xyz = p_point->GetInitialPosition();
+
+            const bool have_initial_guess =
+                IgaMappingIntersectionUtilities::FindInitialGuessNewtonRaphsonProjection(
+                    node_coordinate_xyz,
+                    geometry_itr->GetGeometryPart(0),
+                    rPatchCache,
+                    local_parameter,
+                    search_radius);
+            if (!have_initial_guess) {
+                local_parameter = ZeroVector(3);
+            }
+
+            const bool projection_ok = geom_master->ProjectionPointGlobalToLocalSpace(
+                node_coordinate_xyz, local_parameter, 1e-5) == 1;
+
+            if (projection_ok) {
+                successful_nodes_xyz.push_back(node_coordinate_xyz);
+                points_to_triangulate.push_back(local_parameter);
+            } else {
+                failed_nodes_xyz.push_back(node_coordinate_xyz);
+            }
+        }
+
+        const IndexType projection_is_successful_count =
+            static_cast<IndexType>(successful_nodes_xyz.size());
+
+        if (projection_is_successful_count == 0) {
+            if (!RecoverUnprojectedTriangleIntersection(
+                    *geom_master, r_geom_slave,
+                    rPatchCache, search_radius, points_to_triangulate)) {
+                continue;
+            }
+            MappingTriangulationUtilities::TriangulatePolygonFan(
+                points_to_triangulate, triangles_param_space);
+        } else if (projection_is_successful_count == 1) {
+            KRATOS_ERROR_IF(points_to_triangulate.size() != 1)
+                << "Expected points_to_triangulate.size()==1, got "
+                << points_to_triangulate.size() << "\n";
+            KRATOS_ERROR_IF(failed_nodes_xyz.size() < 2)
+                << "Expected at least 2 failed nodes, got "
+                << failed_nodes_xyz.size() << "\n";
+
+            points_to_triangulate.reserve(7);
+
+            bool all_found = true;
+            for (IndexType i = 0; i < 2; ++i) {
+                CoordinatesArrayType intersection_point_local_space = ZeroVector(3);
+                const bool found = FindTriangleSegmentSurfaceIntersectionWithBisection(
+                    geometry_itr->GetGeometryPart(0),
+                    successful_nodes_xyz[0],
+                    failed_nodes_xyz[i],
+                    points_to_triangulate[0],
+                    intersection_point_local_space);
+                if (!found) { all_found = false; break; }
+                points_to_triangulate.push_back(intersection_point_local_space);
+            }
+            if (!all_found) { continue; }
+
+            AddEnclosedDomainCorners(*geom_master, r_geom_slave, points_to_triangulate);
+            MappingTriangulationUtilities::TriangulatePolygonFan(
+                points_to_triangulate, triangles_param_space);
+        } else if (projection_is_successful_count == 2) {
+            KRATOS_ERROR_IF(points_to_triangulate.size() != 2)
+                << "Expected 2 param points in points_to_triangulate, got "
+                << points_to_triangulate.size() << "\n";
+            KRATOS_ERROR_IF(failed_nodes_xyz.size() < 1)
+                << "Expected at least 1 non-successful node.\n";
+
+            points_to_triangulate.reserve(8);
+
+            bool all_found = true;
+            for (IndexType i = 0; i < 2; ++i) {
+                CoordinatesArrayType intersection_point_local_space = ZeroVector(3);
+                const bool found =
+                    IgaMappingIntersectionUtilities::FindTriangleSegmentSurfaceIntersectionWithBisection(
+                        geometry_itr->GetGeometryPart(0),
+                        successful_nodes_xyz[i],
+                        failed_nodes_xyz[0],
+                        points_to_triangulate[i],
+                        intersection_point_local_space);
+                if (!found) { all_found = false; break; }
+                AddUniquePoint(points_to_triangulate, intersection_point_local_space);
+            }
+            if (!all_found) { continue; }
+
+            AddEnclosedDomainCorners(*geom_master, r_geom_slave, points_to_triangulate);
+            MappingTriangulationUtilities::TriangulatePolygonFan(
+                points_to_triangulate, triangles_param_space);
+        } else if (projection_is_successful_count == 3) {
+            SortVerticesCounterClockwise(points_to_triangulate);
+            triangles_param_space.push_back(points_to_triangulate);
+        } else {
+            KRATOS_WARNING("IgaMappingIntersectionUtilities")
+                << "The FEM-IGA projection resulted in a failure";
+            continue;
+        }
+
+        // Clip every candidate triangle against the trimming loops of the
+        // LocalRefinedBrepSurface.
+        constexpr double factor = 1e-10;
+        triangles_param_space =
+            MappingTriangulationUtilities::ClipTrianglesWithTrimmingLoops(
+                triangles_param_space,
+                *geom_master_cast,
+                factor);
+
+        std::vector<MappingTriangulationUtilities::TriangleType>
+            obtained_triangles_after_intersection_with_knot_lines;
+
+        IntegrationPointsArrayType integration_points_master(3);
+        GeometriesArrayType quadrature_point_geometries_master(3);
+        IntegrationPointsArrayType integration_points_slave(3);
+        GeometriesArrayType quadrature_point_geometries_slave(3);
+
+        CoordinatesArrayType master_quadrature_point_xyz = ZeroVector(3);
+        CoordinatesArrayType slave_quadrature_point_local_space = ZeroVector(3);
+
+        IntegrationInfo master_integration_info = geom_master->GetDefaultIntegrationInfo();
+
+        for (IndexType tri_id = 0; tri_id < triangles_param_space.size(); ++tri_id) {
+            obtained_triangles_after_intersection_with_knot_lines.clear();
+
+            KRATOS_ERROR_IF(triangles_param_space[tri_id].size() != 3)
+                << "Expected a triangle with 3 vertices, got "
+                << triangles_param_space[tri_id].size() << ".\n";
+
+            const MappingTriangulationUtilities::TriangleType triangle{{
+                triangles_param_space[tri_id][0],
+                triangles_param_space[tri_id][1],
+                triangles_param_space[tri_id][2]}};
+
+            const auto active_cells = geom_master_cast->GetActiveCells();
+            MappingTriangulationUtilities::TriangulationAgainstActiveCells(
+                triangle, active_cells,
+                obtained_triangles_after_intersection_with_knot_lines);
+
+            for (IndexType j = 0; j < obtained_triangles_after_intersection_with_knot_lines.size(); ++j) {
+                const auto& r_triangle = obtained_triangles_after_intersection_with_knot_lines[j];
+
+                if (WriteTrianglesToFile) {
+                    WriteParametricTriangleToTextFile(
+                        parametric_triangles_output_file,
+                        r_triangle,
+                        geom_master_cast->Id());
+                    WritePhysicalTriangleToTextFile(
+                        physical_triangles_output_file,
+                        r_triangle,
+                        *geom_master_cast);
+                }
+
+                const double xi_0  = r_triangle[0][0];
+                const double xi_1  = r_triangle[1][0];
+                const double xi_2  = r_triangle[2][0];
+                const double eta_0 = r_triangle[0][1];
+                const double eta_1 = r_triangle[1][1];
+                const double eta_2 = r_triangle[2][1];
+
+                auto master_it = integration_points_master.begin();
+                IntegrationPointUtilities::IntegrationPointsTriangle2D(
+                    master_it, 1, xi_0, xi_1, xi_2, eta_0, eta_1, eta_2);
+
+                geom_master->CreateQuadraturePointGeometries(
+                    quadrature_point_geometries_master, 3, integration_points_master, master_integration_info);
+
+                integration_points_slave = integration_points_master;
+
+                for (IndexType qp = 0; qp < quadrature_point_geometries_master.size(); ++qp) {
+                    master_quadrature_point_xyz = quadrature_point_geometries_master[qp].Center();
+                    geom_slave->PointLocalCoordinates(
+                        slave_quadrature_point_local_space, master_quadrature_point_xyz);
+                    integration_points_slave[qp].X() = slave_quadrature_point_local_space[0];
+                    integration_points_slave[qp].Y() = slave_quadrature_point_local_space[1];
+                }
+
+                CreateQuadraturePointsUtility<NodeType>::Create(
+                    r_geom_slave, quadrature_point_geometries_slave, integration_points_slave, 1);
+
+                IndexType base_id =
+                    (r_parent_model_part.NumberOfConditions() == 0)
+                        ? 1
+                        : (r_parent_model_part.ConditionsEnd() - 1)->Id() + 1;
+
+                if (origin_is_iga) {
+                    for (IndexType qp = 0; qp < quadrature_point_geometries_master.size(); ++qp) {
+                        rModelPartCoupling.AddCondition(Kratos::make_intrusive<Condition>(
+                            base_id + qp,
+                            Kratos::make_shared<CouplingGeometry<Node>>(
+                                quadrature_point_geometries_master(qp),
+                                quadrature_point_geometries_slave(qp))));
+                    }
+                } else {
+                    for (IndexType qp = 0; qp < quadrature_point_geometries_master.size(); ++qp) {
+                        rModelPartCoupling.AddCondition(Kratos::make_intrusive<Condition>(
+                            base_id + qp,
+                            Kratos::make_shared<CouplingGeometry<Node>>(
+                                quadrature_point_geometries_slave(qp),
+                                quadrature_point_geometries_master(qp))));
+                    }
+                }
+            }
+        }
+    }
 }
 
 
@@ -1074,6 +1389,167 @@ bool RecoverUnprojectedTriangleIntersection(
     }
 
     return rPolygon.size() >= 3;
+}
+
+
+// Base-geometry variant of AddEnclosedDomainCorners. Reads the parametric domain
+// [u_min, u_max] x [v_min, v_max] from SpansLocalSpace on the master geometry
+// itself, so it works uniformly for BrepSurface and LocalRefinedBrepSurface.
+void AddEnclosedDomainCorners(
+    const GeometryType& rMasterGeometry,
+    const GeometryType& rFEMGeometry,
+    std::vector<CoordinatesArrayType>& rPoints)
+{
+    std::vector<double> spans_u;
+    std::vector<double> spans_v;
+    rMasterGeometry.SpansLocalSpace(spans_u, 0);
+    rMasterGeometry.SpansLocalSpace(spans_v, 1);
+    if (spans_u.size() < 2 || spans_v.size() < 2) {
+        return;
+    }
+    const double u_min = spans_u.front();
+    const double u_max = spans_u.back();
+    const double v_min = spans_v.front();
+    const double v_max = spans_v.back();
+
+    const std::array<CoordinatesArrayType, 4> domain_corners{{
+        CoordinatesArrayType{u_min, v_min, 0.0},
+        CoordinatesArrayType{u_max, v_min, 0.0},
+        CoordinatesArrayType{u_max, v_max, 0.0},
+        CoordinatesArrayType{u_min, v_max, 0.0}}};
+
+    for (const auto& r_corner_local : domain_corners) {
+        CoordinatesArrayType corner_global = ZeroVector(3);
+        rMasterGeometry.GlobalCoordinates(corner_global, r_corner_local);
+        if (IsInsideInitialFEMTriangle(corner_global, rFEMGeometry)) {
+            AddUniquePoint(rPoints, r_corner_local);
+        }
+    }
+}
+
+
+// Base-geometry variant of RecoverUnprojectedTriangleIntersection. Identical to
+// the NurbsSurface version except that the enclosed-domain corners are read
+// from the master geometry itself via SpansLocalSpace.
+bool RecoverUnprojectedTriangleIntersection(
+    const GeometryType& rMasterGeometry,
+    const GeometryType& rFEMGeometry,
+    const PatchCacheMap& rPatchCache,
+    const double SearchRadius,
+    std::vector<CoordinatesArrayType>& rPolygon)
+{
+    AddEnclosedDomainCorners(rMasterGeometry, rFEMGeometry, rPolygon);
+
+    constexpr std::size_t number_of_edge_samples = 16;
+    for (std::size_t i = 0; i < 3; ++i) {
+        const CoordinatesArrayType edge_point_1 =
+            rFEMGeometry.pGetPoint(i)->GetInitialPosition();
+        const CoordinatesArrayType edge_point_2 =
+            rFEMGeometry.pGetPoint((i + 1) % 3)->GetInitialPosition();
+
+        CoordinatesArrayType projected_edge_point = ZeroVector(3);
+        CoordinatesArrayType projected_edge_local = ZeroVector(3);
+        bool edge_crosses_domain = false;
+
+        for (std::size_t sample = 1; sample < number_of_edge_samples; ++sample) {
+            const double position = static_cast<double>(sample) /
+                static_cast<double>(number_of_edge_samples);
+            const CoordinatesArrayType edge_point =
+                (1.0 - position) * edge_point_1 + position * edge_point_2;
+
+            CoordinatesArrayType edge_local = ZeroVector(3);
+            IgaMappingIntersectionUtilities::FindInitialGuessNewtonRaphsonProjection(
+                edge_point, rMasterGeometry, rPatchCache,
+                edge_local, SearchRadius);
+
+            if (rMasterGeometry.ProjectionPointGlobalToLocalSpace(
+                    edge_point, edge_local, 1e-5) == 1) {
+                projected_edge_point = edge_point;
+                projected_edge_local = edge_local;
+                edge_crosses_domain = true;
+                break;
+            }
+        }
+
+        if (!edge_crosses_domain) {
+            continue;
+        }
+
+        for (const auto& r_endpoint : {edge_point_1, edge_point_2}) {
+            CoordinatesArrayType intersection_local = ZeroVector(3);
+            if (IgaMappingIntersectionUtilities::
+                    FindTriangleSegmentSurfaceIntersectionWithBisection(
+                        rMasterGeometry, projected_edge_point, r_endpoint,
+                        projected_edge_local, intersection_local)) {
+                AddUniquePoint(rPolygon, intersection_local);
+            }
+        }
+    }
+
+    return rPolygon.size() >= 3;
+}
+
+
+// THB counterpart of BuildPatchCaches. Same layout, only the cast target changes.
+PatchCacheMap BuildThbPatchCaches(
+    const std::vector<IndexType>& rPatchesId,
+    const ModelPart& rModelPartIga,
+    const IndexType NDiv)
+{
+    PatchCacheMap cache;
+    cache.reserve(rPatchesId.size());
+
+    for (const IndexType patch_id : rPatchesId) {
+        IgaMappingIntersectionUtilities::PatchSearchCache pc;
+
+        auto p_geom = rModelPartIga.pGetGeometry(patch_id);
+        auto p_lr_brep = dynamic_pointer_cast<LocalRefinedBrepSurfaceThbType>(p_geom);
+        KRATOS_ERROR_IF_NOT(p_lr_brep)
+            << "Geometry with id " << patch_id
+            << " is not a LocalRefinedBrepSurface (THB)\n";
+
+        std::vector<double> knot_u, knot_v;
+        p_lr_brep->SpansLocalSpace(knot_u, 0);
+        p_lr_brep->SpansLocalSpace(knot_v, 1);
+
+        KRATOS_ERROR_IF(knot_u.empty() || knot_v.empty())
+            << "Empty knot vectors for THB patch " << patch_id << "\n";
+
+        const double u_0 = knot_u.front();
+        const double u_1 = knot_u.back();
+        const double v_0 = knot_v.front();
+        const double v_1 = knot_v.back();
+        const IndexType number_pts = NDiv + 1;
+
+        pc.number_pts = number_pts;
+        pc.u_0 = u_0;
+        pc.v_0 = v_0;
+        pc.delta_u = (u_1 - u_0) / static_cast<double>(NDiv);
+        pc.delta_v = (v_1 - v_0) / static_cast<double>(NDiv);
+        pc.points.reserve(number_pts * number_pts);
+
+        CoordinatesArrayType local = ZeroVector(3);
+        CoordinatesArrayType phys  = ZeroVector(3);
+
+        IndexType id = 0;
+        for (IndexType i = 0; i < number_pts; ++i) {
+            local[0] = pc.u_0 + pc.delta_u * static_cast<double>(i);
+            for (IndexType j = 0; j < number_pts; ++j) {
+                local[1] = pc.v_0 + pc.delta_v * static_cast<double>(j);
+                p_lr_brep->GlobalCoordinates(phys, local);
+                pc.points.push_back(IgaMappingIntersectionUtilities::PointTypePointer(
+                    new IgaMappingIntersectionUtilities::PointType(
+                        id++, phys[0], phys[1], phys[2])));
+            }
+        }
+
+        pc.p_bins = std::make_unique<IgaMappingIntersectionUtilities::DynamicBins>(
+            pc.points.begin(), pc.points.end());
+
+        cache.emplace(patch_id, std::move(pc));
+    }
+
+    return cache;
 }
 
 } // unnamed namespace
