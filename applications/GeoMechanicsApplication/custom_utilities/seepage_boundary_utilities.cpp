@@ -22,20 +22,21 @@
 namespace Kratos::Geo
 {
 
-void SeepageBoundaryUtilities::AccumulateWaterPressureEntries(const std::vector<Dof<double>*>& rElementDofs,
-                                                              const Vector& rElementRightHandSide,
-                                                              NodalFlowMap& rNodalFlows)
+namespace
 {
-    KRATOS_ERROR_IF(rElementDofs.size() > rElementRightHandSide.size())
-        << "Number of degrees of freedom (" << rElementDofs.size() << ") exceeds the size of the right hand side ("
-        << rElementRightHandSide.size() << ")" << std::endl;
 
+void AccumulateWaterPressureEntries(const std::vector<Dof<double>*>&        rElementDofs,
+                                    const Vector&                           rElementRightHandSide,
+                                    SeepageBoundaryUtilities::NodalFlowMap& rNodalFlows)
+{
     for (auto i = std::size_t{0}; i < rElementDofs.size(); ++i) {
         if (rElementDofs[i]->GetVariable() != WATER_PRESSURE) continue;
 
         rNodalFlows[rElementDofs[i]->Id()] += rElementRightHandSide[i];
     }
 }
+
+} // namespace
 
 SeepageBoundaryUtilities::NodalFlowMap SeepageBoundaryUtilities::CalculateNodalWaterFlows(
     ModelPart::ElementsContainerType& rElements, const ProcessInfo& rProcessInfo)

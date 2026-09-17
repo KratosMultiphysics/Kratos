@@ -32,16 +32,6 @@ public:
     using NodalFlowMap = std::unordered_map<std::size_t, double>;
 
     /**
-     * @brief Adds the entries of an element's right-hand side that belong to WATER_PRESSURE degrees
-     * of freedom onto their nodes.
-     *
-     * rElementDofs must be the element's own degrees of freedom, in the same order as rElementRightHandSide.
-     */
-    static void AccumulateWaterPressureEntries(const std::vector<Dof<double>*>& rElementDofs,
-                                               const Vector& rElementRightHandSide,
-                                               NodalFlowMap& rNodalFlows);
-
-    /**
      * @brief Returns the nodal water flow for every unique node of the given elements, assembled
      * from the right-hand side of every element. For a Pw element that right-hand side is exactly
      * the sum of the permeability flow, the compressibility flow and the fluid body flow.
