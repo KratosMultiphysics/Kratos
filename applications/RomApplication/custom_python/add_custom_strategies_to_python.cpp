@@ -31,9 +31,11 @@
 #include "custom_strategies/rom_builder_and_solver.h"
 #include "custom_strategies/lspg_rom_builder_and_solver.h"
 #include "custom_strategies/ann_prom_lspg_rom_builder_and_solver.h"
+#include "custom_strategies/rbf_prom_lspg_rom_builder_and_solver.h"
 #include "custom_strategies/petrov_galerkin_rom_builder_and_solver.h"
 #include "custom_strategies/global_rom_builder_and_solver.h"
 #include "custom_strategies/ann_prom_global_rom_builder_and_solver.h"
+#include "custom_strategies/rbf_prom_global_rom_builder_and_solver.h"
 #include "custom_strategies/global_petrov_galerkin_rom_builder_and_solver.h"
 
 //linear solvers
@@ -99,6 +101,15 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
     .def("RunDecoder", &AnnPromGlobalROMBuilderAndSolverType::RunDecoder)
     ;
 
+    typedef RbfPromGlobalROMBuilderAndSolver<SparseSpaceType, LocalSpaceType, LinearSolverType> RbfPromGlobalROMBuilderAndSolverType;
+
+    py::class_<RbfPromGlobalROMBuilderAndSolverType, typename RbfPromGlobalROMBuilderAndSolverType::Pointer, ResidualBasedBlockBuilderAndSolverType>(m, "RbfPromGlobalROMBuilderAndSolver")
+    .def(py::init< LinearSolverType::Pointer, Parameters>() )
+    .def("SetNumberOfROMModes", &RbfPromGlobalROMBuilderAndSolverType::SetNumberOfROMModes)
+    .def("SetDecoderParameters", &RbfPromGlobalROMBuilderAndSolverType::SetDecoderParameters)
+    .def("RunDecoder", &RbfPromGlobalROMBuilderAndSolverType::RunDecoder)
+    ;
+
     typedef AnnPromLeastSquaresPetrovGalerkinROMBuilderAndSolver<SparseSpaceType, LocalSpaceType, LinearSolverType> AnnPromLeastSquaresPetrovGalerkinROMBuilderAndSolverType;
     
     py::class_<AnnPromLeastSquaresPetrovGalerkinROMBuilderAndSolverType, typename AnnPromLeastSquaresPetrovGalerkinROMBuilderAndSolverType::Pointer, ResidualBasedBlockBuilderAndSolverType>(m, "AnnPromLeastSquaresPetrovGalerkinROMBuilderAndSolver")
@@ -107,6 +118,15 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
     .def("SetDecoderParameters", &AnnPromLeastSquaresPetrovGalerkinROMBuilderAndSolverType::SetDecoderParameters)
     .def("SetNNLayer", &AnnPromLeastSquaresPetrovGalerkinROMBuilderAndSolverType::SetNNLayer)
     .def("RunDecoder", &AnnPromLeastSquaresPetrovGalerkinROMBuilderAndSolverType::RunDecoder)
+    ;
+
+    typedef RbfPromLeastSquaresPetrovGalerkinROMBuilderAndSolver<SparseSpaceType, LocalSpaceType, LinearSolverType> RbfPromLeastSquaresPetrovGalerkinROMBuilderAndSolverType;
+    
+    py::class_<RbfPromLeastSquaresPetrovGalerkinROMBuilderAndSolverType, typename RbfPromLeastSquaresPetrovGalerkinROMBuilderAndSolverType::Pointer, ResidualBasedBlockBuilderAndSolverType>(m, "RbfPromLeastSquaresPetrovGalerkinROMBuilderAndSolver")
+    .def(py::init< LinearSolverType::Pointer, Parameters>() )
+    .def("SetNumberOfROMModes", &RbfPromLeastSquaresPetrovGalerkinROMBuilderAndSolverType::SetNumberOfROMModes)
+    .def("SetDecoderParameters", &RbfPromLeastSquaresPetrovGalerkinROMBuilderAndSolverType::SetDecoderParameters)
+    .def("RunDecoder", &RbfPromLeastSquaresPetrovGalerkinROMBuilderAndSolverType::RunDecoder)
     ;
 
 }
