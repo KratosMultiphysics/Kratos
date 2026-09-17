@@ -65,11 +65,53 @@ class TestMeshioPlusPlusIO(KratosUnittest.TestCase):
         with self.assertRaisesRegex(RuntimeError, "Unknown format"):
             KratosMeshioPlusPlus.MeshioPlusPlusIO.FormatFromString("not_a_format")
 
+        # vti/vts/vtr/vtm (meshio++ v11.6.0's VTK XML structured/multiblock family)
+        for name, format_value in (("vti", Format.VTI), ("vts", Format.VTS),
+                                   ("vtr", Format.VTR), ("vtm", Format.VTM)):
+            self.assertEqual(KratosMeshioPlusPlus.MeshioPlusPlusIO.FormatFromString(name), format_value)
+            self.assertEqual(KratosMeshioPlusPlus.MeshioPlusPlusIO.FormatName(format_value), name)
+        self.assertEqual(KratosMeshioPlusPlus.MeshioPlusPlusIO.ResolveFormat("mesh.vtm"), Format.VTM)
+
     def testWriteReadRoundTripVtu(self):
         self._RunWriteReadRoundTrip(".vtu")
 
     def testWriteReadRoundTripGmsh(self):
         self._RunWriteReadRoundTrip(".msh")
+
+    def testWriteReadRoundTripVti(self):
+        self._RunLatticeWriteReadRoundTrip(".vti")
+
+    def testWriteReadRoundTripVts(self):
+        self._RunLatticeWriteReadRoundTrip(".vts")
+
+    def testWriteReadRoundTripVtr(self):
+        self._RunLatticeWriteReadRoundTrip(".vtr")
+
+    def testWriteReadRoundTripVtm(self):
+        # vtm (MultiBlock) writes one .vtu piece PER CELL BLOCK, each independently pruned to
+        # its own referenced points and merged back with no welding - a mesh with more than one
+        # block (_PopulateModelPart's tetrahedra elements plus triangle condition) would
+        # duplicate the points the two blocks share, so this uses a single-block
+        # (tetrahedra-only) mesh instead, for which counts are preserved exactly.
+        write_model_part = self.model.CreateModelPart("write_vtm")
+        read_model_part = self.model.CreateModelPart("read_vtm")
+        properties = write_model_part.CreateNewProperties(1)
+        write_model_part.CreateNewNode(1, 0.0, 0.0, 0.0)
+        write_model_part.CreateNewNode(2, 1.0, 0.0, 0.0)
+        write_model_part.CreateNewNode(3, 0.0, 1.0, 0.0)
+        write_model_part.CreateNewNode(4, 0.0, 0.0, 1.0)
+        write_model_part.CreateNewNode(5, 1.0, 1.0, 1.0)
+        write_model_part.CreateNewElement("Element3D4N", 1, [1, 2, 3, 4], properties)
+        write_model_part.CreateNewElement("Element3D4N", 2, [2, 3, 4, 5], properties)
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            file_name = str(Path(temp_dir) / "round_trip.vtm")
+            write_settings = KratosMultiphysics.Parameters("""{"time_series" : "single_file"}""")
+            KratosMeshioPlusPlus.MeshioPlusPlusIO(file_name, write_settings).WriteModelPart(write_model_part)
+            KratosMeshioPlusPlus.MeshioPlusPlusIO(file_name).ReadModelPart(read_model_part)
+
+        self.assertEqual(write_model_part.NumberOfNodes(), read_model_part.NumberOfNodes())
+        self.assertEqual(write_model_part.NumberOfElements(), read_model_part.NumberOfElements())
 
     def testWriteReadRoundTripVtp(self):
         """vtp is a surface (PolyData) format: round trip a triangle mesh."""
@@ -153,6 +195,25 @@ class TestMeshioPlusPlusIO(KratosUnittest.TestCase):
             self.assertAlmostEqual(node_write.X, node_read.X, 12)
             self.assertAlmostEqual(node_write.Y, node_read.Y, 12)
             self.assertAlmostEqual(node_write.Z, node_read.Z, 12)
+
+    def _RunLatticeWriteReadRoundTrip(self, extension):
+        # vti/vts/vtr all need a uniform lattice to write: Grid is the one generator that
+        # always produces one.
+        write_model_part = self.model.CreateModelPart("write" + extension.replace(".", "_"))
+        read_model_part = self.model.CreateModelPart("read" + extension.replace(".", "_"))
+        grid_settings = KratosMultiphysics.Parameters("""{
+            "dims" : [2, 2, 2], "origin" : [0.0, 0.0, 0.0], "spacing" : [1.0, 1.0, 1.0]
+        }""")
+        KratosMeshioPlusPlus.MeshioPlusPlusMeshOperations.Grid(grid_settings, write_model_part)
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            file_name = str(Path(temp_dir) / ("round_trip" + extension))
+            write_settings = KratosMultiphysics.Parameters("""{"time_series" : "single_file"}""")
+            KratosMeshioPlusPlus.MeshioPlusPlusIO(file_name, write_settings).WriteModelPart(write_model_part)
+            KratosMeshioPlusPlus.MeshioPlusPlusIO(file_name).ReadModelPart(read_model_part)
+
+        self.assertEqual(write_model_part.NumberOfNodes(), read_model_part.NumberOfNodes())
+        self.assertEqual(write_model_part.NumberOfElements(), read_model_part.NumberOfElements())
 
     def testXdmfTimeSeries(self):
         model_part = self.model.CreateModelPart("transient")
@@ -409,6 +470,58 @@ End Elements
         self.assertIn("42", preserved)
         self.assertNotIn("99", renumbered)
         self.assertNotIn("42", renumbered)
+
+    def testLenientSkipsUnsupportedConstructs(self):
+        """"Begin Geometries" is unsupported: strict throws naming it, "lenient" skips it."""
+        deck = """Begin Nodes
+1 0.0 0.0 0.0
+2 1.0 0.0 0.0
+3 0.0 1.0 0.0
+4 0.0 0.0 1.0
+End Nodes
+
+Begin Geometries
+SomeGeometry 1 1 2 3 4
+End Geometries
+
+Begin Elements Element3D4N
+1 0 1 2 3 4
+End Elements
+"""
+        with tempfile.TemporaryDirectory() as temp_dir:
+            path = Path(temp_dir) / "unsupported.mdpa"
+            path.write_text(deck)
+
+            strict = self.model.CreateModelPart("strict")
+            with self.assertRaisesRegex(RuntimeError, "Geometries"):
+                KratosMeshioPlusPlus.MeshioPlusPlusIO(str(path)).ReadModelPart(strict)
+
+            lenient = self.model.CreateModelPart("lenient")
+            settings = KratosMultiphysics.Parameters("""{"lenient" : true}""")
+            KratosMeshioPlusPlus.MeshioPlusPlusIO(str(path), settings).ReadModelPart(lenient)
+
+        self.assertEqual(lenient.NumberOfNodes(), 4)
+        self.assertEqual(lenient.NumberOfElements(), 1)
+
+    def testTimeStepOutOfRangeThrows(self):
+        """Tecplot's reader always resolves "time_step", even for a non-transient file, unlike
+        gmsh/EnSight which skip the resolution entirely when the file carries no timeline."""
+        write_model_part = self.model.CreateModelPart("write_time_step")
+        _PopulateModelPart(write_model_part)
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            file_name = str(Path(temp_dir) / "no_time_series.dat")
+            write_settings = KratosMultiphysics.Parameters("""{"time_series" : "single_file"}""")
+            KratosMeshioPlusPlus.MeshioPlusPlusIO(file_name, write_settings).WriteModelPart(write_model_part)
+
+            read_default = self.model.CreateModelPart("read_default")
+            KratosMeshioPlusPlus.MeshioPlusPlusIO(file_name).ReadModelPart(read_default)
+            self.assertEqual(read_default.NumberOfNodes(), write_model_part.NumberOfNodes())
+
+            read_out_of_range = self.model.CreateModelPart("read_out_of_range")
+            settings = KratosMultiphysics.Parameters("""{"time_step" : 3}""")
+            with self.assertRaisesRegex(RuntimeError, "time step"):
+                KratosMeshioPlusPlus.MeshioPlusPlusIO(file_name, settings).ReadModelPart(read_out_of_range)
 
     def testSniffFormat(self):
         """Identifies the format from content, not extension."""
