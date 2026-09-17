@@ -509,8 +509,8 @@ std::pair<const double, const double> ShiftedBoundaryWallCondition<TDim>::Comput
 
     //const double penalty_coeff = 1.0 / ( GammaShear * SlipLength * CharactLength / ParentSize + Gamma * ParentSize );
 
-    // Scaling the shear terms with the Reynolds number for high Reynolds numbers with a cap of 1e4 to avoid ill-conditioning
-    const double re_scaling = std::min( 1e4, (int_pt_rho*int_pt_v_norm*ParentSize)/EffectiveViscosity );
+    // Scaling the shear terms with the Reynolds number for high Reynolds numbers with a cap of 1e4 to avoid ill-conditioning, also avoid division by zero
+    const double re_scaling = std::max(1e-12, std::min((int_pt_rho*int_pt_v_norm*ParentSize)/EffectiveViscosity, 1e4));
     const double penalty_coeff = 1.0 / ( GammaShear*SlipLength/re_scaling + Gamma*ParentSize );
 
     const double coeff_1 = penalty_coeff * SlipLength;
@@ -570,8 +570,8 @@ std::pair<const double, const double> ShiftedBoundaryWallCondition<TDim>::Comput
 
     //const double stab_coeff = CharactLength / ( SlipLength + CharactLength );
 
-    // Scaling the shear terms with the Reynolds number for high Reynolds numbers with a cap of 1e4 to avoid ill-conditioning
-    const double re_scaling = std::min( 1e4, (int_pt_rho*int_pt_v_norm*ParentSize)/EffectiveViscosity );
+   // Scaling the shear terms with the Reynolds number for high Reynolds numbers with a cap of 1e4 to avoid ill-conditioning, also avoid division by zero
+    const double re_scaling = std::max(1e-12, std::min((int_pt_rho*int_pt_v_norm*ParentSize)/EffectiveViscosity, 1e4));
     const double stab_coeff = ParentSize / ( SlipLength/re_scaling + ParentSize );
 
     const double coeff_1 = stab_coeff * SlipLength;

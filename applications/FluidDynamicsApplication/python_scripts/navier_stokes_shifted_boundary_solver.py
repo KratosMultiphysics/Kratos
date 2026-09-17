@@ -327,7 +327,7 @@ class NavierStokesShiftedBoundaryMonolithicSolver(FluidSolver):
         # Create shifted-boundary utility
         self.__CreateShiftedBoundaryUtilities()
         # Flag BOUNDARY elements for calculating the metric for an initial remeshing (MMG)
-        #self.__FlagBoundaryElements()
+        self.__FlagBoundaryElements()
 
         # Clone the solution step data for skin and skin points model parts
         t =  self.GetComputingModelPart().ProcessInfo[KM.TIME]
