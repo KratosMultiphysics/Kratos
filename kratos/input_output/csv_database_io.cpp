@@ -12,8 +12,9 @@
 
 // System includes
 #include <chrono>
-#include <format>
+#include <ctime>
 #include <fstream>
+#include <iomanip>
 #include <numeric>
 #include <ranges>
 #include <regex>
@@ -59,6 +60,19 @@ std::string GetType(const CSVDatabaseIO::ValueType& rValue)
 
 } // namespace CSVDatabaseIOUtils
 
+namespace
+{
+
+std::string FormatTimestamp()
+{
+    const auto current_time = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
+    std::ostringstream output;
+    output << std::put_time(std::localtime(&current_time), "%Y-%m-%d %H:%M:%S");
+    return output.str();
+}
+
+} // namespace
+
 CSVDatabaseIO::Column::Column(
     const std::string& rHeaderName,
     const ValueType& rValue,
@@ -72,22 +86,18 @@ CSVDatabaseIO::Column::Column(
     switch (mDummyValue.index()) {
         case 1: {
             mColumnWidth = std::max(rHeaderName.size(), std::max(mrFormatSettings.mBooleanValues[0].size(), mrFormatSettings.mBooleanValues[1].size()));
-            mFormatString = "{:>" + std::to_string(mColumnWidth) + "}";
             break;
         }
         case 2: {
             mColumnWidth = std::max(rHeaderName.size(), mrFormatSettings.mIntLength);
-            mFormatString = "{: " + std::to_string(mColumnWidth) + "d}";
             break;
         }
         case 3: {
             mColumnWidth = std::max(rHeaderName.size(), mrFormatSettings.mFloatPrecision + 7);
-            mFormatString = "{: " + std::to_string(mColumnWidth) + "." + std::to_string(mrFormatSettings.mFloatPrecision) + "e}";
             break;
         }
         case 4: {
             mColumnWidth = std::max(rHeaderName.size(), mrFormatSettings.mStringLength);
-            mFormatString = "{:>" + std::to_string(mColumnWidth) + "}";
             break;
         }
         default: {
@@ -110,22 +120,28 @@ std::string CSVDatabaseIO::Column::GetHeader() const
 
 std::string CSVDatabaseIO::Column::GetFormattedHeader() const
 {
-    return std::vformat("{:>" + std::to_string(mColumnWidth) + "}", std::make_format_args(mHeader));;
+    std::ostringstream output;
+    output << std::setw(mColumnWidth) << mHeader;
+    return output.str();
 }
 
 std::string CSVDatabaseIO::Column::GetFormattedValue(const ValueType& rValue) const
 {
     if (mDummyValue.index() == rValue.index()) {
+        std::ostringstream output;
         switch (rValue.index()) {
-            case 1 : return std::vformat(mFormatString, std::make_format_args(mrFormatSettings.mBooleanValues[std::get<bool>(rValue)]));
-            case 2 : return std::vformat(mFormatString, std::make_format_args(std::get<int>(rValue)));
-            case 3 : return std::vformat(mFormatString, std::make_format_args(std::get<double>(rValue)));
-            case 4 : return std::vformat(mFormatString, std::make_format_args(std::get<std::string>(rValue)));
-            default: return std::vformat("{:>" + std::to_string(mColumnWidth) + "}", std::make_format_args("n/a"));
+            case 1 : output << std::setw(mColumnWidth) << mrFormatSettings.mBooleanValues[std::get<bool>(rValue)]; break;
+            case 2 : output << std::setw(mColumnWidth) << std::get<int>(rValue); break;
+            case 3 : output << std::setw(mColumnWidth) << std::scientific << std::setprecision(mrFormatSettings.mFloatPrecision) << std::get<double>(rValue); break;
+            case 4 : output << std::setw(mColumnWidth) << std::get<std::string>(rValue); break;
+            default: output << std::setw(mColumnWidth) << "n/a"; break;
         }
+        return output.str();
     } else {
         if (std::holds_alternative<std::monostate>(rValue)) {
-            return std::vformat("{:>" + std::to_string(mColumnWidth) + "}", std::make_format_args("n/a"));;
+            std::ostringstream output;
+            output << std::setw(mColumnWidth) << "n/a";
+            return output.str();
         } else {
             KRATOS_ERROR << "Type mismatch for header \"" << mHeader << "\"."
                          << "\n\t Column type = " << CSVDatabaseIOUtils::GetType(mDummyValue)
@@ -213,7 +229,7 @@ void CSVDatabaseIO::Finalize(const int TableId)
         WriteData(output_file);
 
         if (mWriteTimeStamp) {
-            output_file << "# End of File - " << std::format("{:%Y-%m-%d %H:%M:%S}", std::chrono::system_clock::now()) << std::endl;
+            output_file << "# End of File - " << FormatTimestamp() << std::endl;
         } else {
             output_file << "# End of File" << std::endl;
         }
@@ -504,7 +520,7 @@ void CSVDatabaseIO::WriteTitleBlock(const int TableId)
         output_file << "# Kratos version: not_given" << std::endl;
     }
     if (mWriteTimeStamp) {
-        output_file << "# Timestamp     : " << std::format("{:%Y-%m-%d %H:%M:%S}", std::chrono::system_clock::now()) << std::endl;
+        output_file << "# Timestamp     : " << FormatTimestamp() << std::endl;
     } else {
         output_file << "# Timestamp     : not_specified" << std::endl;
     }

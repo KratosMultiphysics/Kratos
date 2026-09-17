@@ -231,8 +231,6 @@ private:
 
         IndexType mColumnWidth;
 
-        std::string mFormatString;
-
         ///@}
     };
 
