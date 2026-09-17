@@ -226,7 +226,10 @@ void CSVDatabaseIO::Finalize(const int TableId)
 
         std::ofstream output_file(mCurrentFileName, std::ios::out | std::ios::app | std::ios::binary);
 
-        WriteData(output_file);
+        if (mLastWrittenStep == -1) {
+            WriteHeaders(output_file);
+        }
+        WriteData(output_file)
 
         if (mWriteTimeStamp) {
             output_file << "# End of File - " << FormatTimestamp() << std::endl;
