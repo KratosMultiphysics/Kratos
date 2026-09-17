@@ -20,6 +20,7 @@ class PanelMaterial:
 @dataclass
 class PanelCompositeMaterial:
     #TODO: Add material properties from composite material
+    pass
 
 @dataclass
 class PanelResponse:
@@ -40,3 +41,4 @@ class PanelLoadState:
 @dataclass
 class PuckResponseContainer:
     #TODO: Add responses that are necessary for Puck analysis
+    pass

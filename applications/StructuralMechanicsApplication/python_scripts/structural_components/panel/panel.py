@@ -77,8 +77,8 @@ class Panel(StructuralComponent):
     def ExtractResponse(self) -> None:
         self._RequireGeometry()
         #TODO: Implement _GetLaminateStresses() and _PreparePuckResponse()
-        laminate_stress_matrix = self._GetLaminateStresses()
-        self._PreparePuckResponse(laminate_stress_matrix)
+        #laminate_stress_matrix = self._GetLaminateStresses()
+        #self._PreparePuckResponse(laminate_stress_matrix)
         total_volume = 0.0
         sigma_xx_sum = 0.0
         sigma_yy_sum = 0.0
@@ -241,5 +241,6 @@ class Panel(StructuralComponent):
     def ExtractCompositeMaterial(self):
         ...
         #TODO: Implement this function
-        composite_material_container = PanelCompositeMaterial(E11, E22, G12, ..)
-        return composite_material_container
+        #composite_material_container = PanelCompositeMaterial(E11, E22, G12, ..)
+        #return composite_material_container
+        pass
