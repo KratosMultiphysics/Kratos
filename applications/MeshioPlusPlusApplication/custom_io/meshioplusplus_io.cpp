@@ -30,10 +30,15 @@
 #include "meshioplusplus/formats/flac3d.hpp"
 #include "meshioplusplus/formats/gid.hpp"
 #include "meshioplusplus/formats/gmsh.hpp"
+#include "meshioplusplus/formats/openfoam.hpp"
 #include "meshioplusplus/formats/ply.hpp"
 #include "meshioplusplus/formats/stl.hpp"
+#include "meshioplusplus/formats/vti.hpp"
 #include "meshioplusplus/formats/vtk.hpp"
+#include "meshioplusplus/formats/vtm.hpp"
 #include "meshioplusplus/formats/vtp.hpp"
+#include "meshioplusplus/formats/vtr.hpp"
+#include "meshioplusplus/formats/vts.hpp"
 #include "meshioplusplus/formats/vtu.hpp"
 #include "meshioplusplus/operations/sniff.hpp"
 
@@ -98,8 +103,12 @@ using Internals::DataArray;
     X(TRIANGLE, "triangle")              \
     X(UGRID, "ugrid")                    \
     X(UNV, "unv")                        \
+    X(VTI, "vti")                        \
     X(VTK, "vtk")                        \
+    X(VTM, "vtm")                        \
     X(VTP, "vtp")                        \
+    X(VTR, "vtr")                        \
+    X(VTS, "vts")                        \
     X(VTU, "vtu")                        \
     X(WKT, "wkt")                        \
     X(XDMF, "xdmf")
@@ -202,6 +211,22 @@ bool WriteWithFileFormatOverride(
     }
     if (rFormatName == "vtp") {
         mio::write_vtp(path, rMesh, Binary, /*zlib=*/Binary);
+        return true;
+    }
+    if (rFormatName == "vti") {
+        mio::write_vti(path, rMesh, Binary, /*zlib=*/Binary);
+        return true;
+    }
+    if (rFormatName == "vts") {
+        mio::write_vts(path, rMesh, Binary, /*zlib=*/Binary);
+        return true;
+    }
+    if (rFormatName == "vtr") {
+        mio::write_vtr(path, rMesh, Binary, /*zlib=*/Binary);
+        return true;
+    }
+    if (rFormatName == "vtm") {
+        mio::write_vtm(path, rMesh, Binary, /*zlib=*/Binary);
         return true;
     }
     if (rFormatName == "vtk") {
@@ -378,6 +403,9 @@ Parameters MeshioPlusPlusIO::GetDefaultParameters()
         "format"                                      : "auto",
         "file_format"                                 : "default",
         "skin"                                        : true,
+        "time_step"                                   : 0,
+        "lenient"                                     : false,
+        "openfoam_region"                             : "",
         "time_series"                                 : "automatic",
         "output_control_type"                         : "step",
         "output_precision"                            : 7,
@@ -604,11 +632,34 @@ void MeshioPlusPlusIO::ReadModelPart(ModelPart& rThisModelPart)
 
     const std::string format_name = ResolveEffectiveFormat(false);
 
+    // "time_step" (mTimeStep, ResolveTimeStep semantics: negative counts from the end)
+    // and "lenient" (mLenient) reach every format with native support for them through
+    // the single options-aware registry_read() call below - mdpa/med downgrade a
+    // construct they cannot represent to a warning instead of throwing, and
+    // med/cgns/tecplot/gmsh/ensight/openfoam select one step of a multi-step file
+    // instead of always the first. A format with no such support (registry_readers_ex()
+    // has no entry for it) ignores both settings and is read whole, exactly as before.
+    mio::ReadOptions read_options;
+    read_options.mTimeStep = mParameters["time_step"].GetInt();
+    read_options.mLenient = mParameters["lenient"].GetBool();
+
     // Read into the meshio++ Kratos backend: the materialized model part view
     // splits max-dimension cell blocks into elements, lower-dimension ones into
     // conditions, and turns integer tag arrays (gmsh physical groups, ...) into
     // sub model parts.
-    mio::Mesh mesh = mio::registry_readers().at(format_name)(mFileName.string());
+    const std::string openfoam_region = mParameters["openfoam_region"].GetString();
+    mio::Mesh mesh = [&]() {
+        // "openfoam_region" selects one region of a multi-region case (constant/<region>/
+        // polyMesh rather than a bare constant/polyMesh) - orthogonal to "time_step", it
+        // is carried through OpenFoamInfo::mRegion rather than ReadOptions, so it needs
+        // the three-argument overload rather than the generic registry_read() path above.
+        if (format_name == "openfoam" && !openfoam_region.empty()) {
+            mio::OpenFoamInfo info;
+            info.mRegion = openfoam_region;
+            return mio::read_openfoam(mFileName.string(), read_options, info);
+        }
+        return mio::registry_read(mFileName.string(), format_name, read_options);
+    }();
 
     // In .mdpa a "gmsh:physical" tag is how a Kratos properties id is stored, not a
     // physical group, so the automatic tag pass would synthesize a spurious

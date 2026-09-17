@@ -39,12 +39,12 @@ class IntegrationValuesExtrapolationToNodesProcess; // forward declaration (gaus
 
 /**
  * @brief Multi-format mesh input/output based on the meshio++ library.
- * @details Reads and writes ~40 mesh file formats (vtu, vtk, gmsh, med, xdmf,
- * abaqus, ...; see @ref Format) converting to/from Kratos model parts through
- * the meshio++ Kratos bridge. Availability of the HDF5-backed formats (med,
- * cgns, h5m, hmf, the HDF data path of xdmf) and the netCDF-backed ones
- * (exodus) depends on the build; query @ref GetSupportedFormats /
- * @ref IsFormatAvailable.
+ * @details Reads and writes 46 readable / 49 writable mesh file formats (vtu,
+ * vtk, gmsh, med, xdmf, abaqus, ...; see @ref Format) converting to/from Kratos
+ * model parts through the meshio++ Kratos bridge. Availability of the
+ * HDF5-backed formats (med, cgns, h5m, hmf, the HDF data path of xdmf) and the
+ * netCDF-backed ones (exodus) depends on the build; query
+ * @ref GetSupportedFormats / @ref IsFormatAvailable.
  *
  * When writing a volume mesh to a surface-only format (stl, ply) the boundary
  * skin is extracted and written by default; set the "skin" setting to false
@@ -88,14 +88,25 @@ public:
      * @details AUTOMATIC resolves the format from the file extension. Formats
      * backed by an optional dependency (HDF5: CGNS, H5M, HMF, MED and the HDF
      * data path of XDMF; netCDF: EXODUS) are only available when the build
-     * enables them - check with @ref IsFormatAvailable. OPENFOAM is read only;
-     * SVG and TIKZ are write only.
+     * enables them - check with @ref IsFormatAvailable. OPENFOAM is readable
+     * and writable (the polyMesh writer since meshio++ v9.20.0); SVG and TIKZ
+     * are write only.
      *
      * GID is readable in strictly more build configurations than it is writable:
      * writing goes through gidpost, which is hard-gated on zlib, while reading is
      * meshio++'s own code needing nothing at all for the ascii flavour, zlib for
      * binary and HDF5 for hdf5. @ref IsFormatAvailable answers for the *write*
      * side, as it does for every other format.
+     *
+     * VTI/VTS/VTR are all regular-lattice VTK XML formats: VTI (uniform
+     * Origin/Spacing), VTS (explicit points, implicit connectivity) and VTR
+     * (three independent per-axis coordinate arrays) all read a lattice back
+     * as hexahedra, but only VTR's reader accepts a genuinely graded grid -
+     * writing any of the three still requires a uniform lattice mesh (the
+     * output of @ref MeshioPlusPlusMeshOperations::Grid, "voxelize" or
+     * "compute_sdf"). VTM (MultiBlock) is the exception: it writes one .vtu
+     * piece per cell block with no lattice requirement, and reads every piece
+     * back as a named Cell region.
      */
     enum class Format
     {
@@ -140,8 +151,12 @@ public:
         TRIANGLE,  /// Shewchuk Triangle .node/.ele/.poly (.node/.ele resolve to TETGEN by extension - select via the "format" setting)
         UGRID,     /// AFLR3 .ugrid
         UNV,       /// I-deas universal .unv
+        VTI,       /// VTK XML ImageData .vti (a regular lattice; writing needs a uniform lattice mesh)
         VTK,       /// VTK legacy .vtk
+        VTM,       /// VTK XML MultiBlock .vtm (an index plus one .vtu piece per cell block, read back as named Cell regions)
         VTP,       /// VTK PolyData XML .vtp
+        VTR,       /// VTK XML RectilinearGrid .vtr (reads any graded lattice; writing needs a uniform lattice mesh)
+        VTS,       /// VTK XML StructuredGrid .vts (a lattice with explicit points; writing needs a lattice mesh)
         VTU,       /// VTK unstructured XML .vtu
         WKT,       /// Well-known text .wkt
         XDMF       /// XDMF v3 .xdmf/.xmf (HDF data path requires HDF5)
@@ -236,6 +251,15 @@ public:
      * The one exception is .mdpa's "gmsh:physical", which stores a properties id
      * rather than a group and so is not turned into one. Material data carried by
      * the format is assigned to the corresponding @ref Properties blocks.
+     *
+     * The "time_step" setting (default 0, negative counts from the end) selects
+     * one step of a multi-step file for the formats meshio++ reads selectively
+     * (mdpa/med/exodus/gmsh/tecplot/ensight/cgns/openfoam - see @ref GetTimeValues);
+     * any other format ignores it and is always read whole. "lenient" (default
+     * false) downgrades a construct mdpa/med cannot represent from an error to a
+     * warning and a skip, instead of throwing. "openfoam_region" (default "",
+     * OPENFOAM only) selects one region of a case with no single
+     * constant/polyMesh, but constant/<region>/polyMesh per region.
      * @param rThisModelPart Reference to the model part to read into.
      */
     void ReadModelPart(ModelPart& rThisModelPart) override;
