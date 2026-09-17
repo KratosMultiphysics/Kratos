@@ -81,9 +81,9 @@ MockPwElementForSeepageTests::MockPwElementForSeepageTests(const std::vector<int
 void MockPwElementForSeepageTests::GetDofList(DofsVectorType& rElementalDofList, const ProcessInfo&) const
 {
     rElementalDofList.clear();
-    for (const auto& p_node : mNodes) {
-        rElementalDofList.push_back(p_node->pGetDof(WATER_PRESSURE));
-    }
+    rElementalDofList.reserve(mNodes.size());
+    std::ranges::transform(mNodes, std::back_inserter(rElementalDofList),
+                           [](const auto& rp_node) { return rp_node->pGetDof(WATER_PRESSURE); });
 }
 
 void MockPwElementForSeepageTests::CalculateRightHandSide(VectorType& rRightHandSideVector, const ProcessInfo&)
