@@ -505,9 +505,17 @@ End Elements
 
     def testTimeStepOutOfRangeThrows(self):
         """Tecplot's reader always resolves "time_step", even for a non-transient file, unlike
-        gmsh/EnSight which skip the resolution entirely when the file carries no timeline."""
+        gmsh/EnSight which skip the resolution entirely when the file carries no timeline. The
+        C++ tecplot writer supports a single cell type, so this uses tetrahedra only."""
         write_model_part = self.model.CreateModelPart("write_time_step")
-        _PopulateModelPart(write_model_part)
+        properties = write_model_part.CreateNewProperties(1)
+        write_model_part.CreateNewNode(1, 0.0, 0.0, 0.0)
+        write_model_part.CreateNewNode(2, 1.0, 0.0, 0.0)
+        write_model_part.CreateNewNode(3, 0.0, 1.0, 0.0)
+        write_model_part.CreateNewNode(4, 0.0, 0.0, 1.0)
+        write_model_part.CreateNewNode(5, 1.0, 1.0, 1.0)
+        write_model_part.CreateNewElement("Element3D4N", 1, [1, 2, 3, 4], properties)
+        write_model_part.CreateNewElement("Element3D4N", 2, [2, 3, 4, 5], properties)
 
         with tempfile.TemporaryDirectory() as temp_dir:
             file_name = str(Path(temp_dir) / "no_time_series.dat")

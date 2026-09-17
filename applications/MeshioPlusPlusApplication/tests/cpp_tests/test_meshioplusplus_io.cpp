@@ -1249,9 +1249,18 @@ KRATOS_TEST_CASE_IN_SUITE(MeshioPlusPlusIOTimeStepOutOfRangeThrows, KratosMeshio
     // still reads normally, and any other value throws by name instead of silently reading
     // step 0, proof "time_step" actually reaches the reader through the new registry_read()
     // call rather than being silently ignored.
+    // The C++ tecplot writer supports a single cell type, so this uses tetrahedra only
+    // (PopulateTetrahedraModelPart also carries a triangle condition, which it would refuse).
     Model model;
     auto& r_write_model_part = model.CreateModelPart("write");
-    PopulateTetrahedraModelPart(r_write_model_part);
+    auto p_properties = r_write_model_part.CreateNewProperties(1);
+    r_write_model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
+    r_write_model_part.CreateNewNode(2, 1.0, 0.0, 0.0);
+    r_write_model_part.CreateNewNode(3, 0.0, 1.0, 0.0);
+    r_write_model_part.CreateNewNode(4, 0.0, 0.0, 1.0);
+    r_write_model_part.CreateNewNode(5, 1.0, 1.0, 1.0);
+    r_write_model_part.CreateNewElement("Element3D4N", 1, {1, 2, 3, 4}, p_properties);
+    r_write_model_part.CreateNewElement("Element3D4N", 2, {2, 3, 4, 5}, p_properties);
     const auto file_path = TestFilePath(".dat");
     {
         Parameters settings(R"({"time_series" : "single_file"})");
