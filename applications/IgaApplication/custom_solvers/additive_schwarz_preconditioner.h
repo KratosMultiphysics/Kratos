@@ -243,12 +243,12 @@ private:
         S.resize(rA.size1(), rA.size1(), false);
         S.reserve(rA.nnz_capacity(), false);
 
-        double* Avalues = S.value_data().begin();
-        std::size_t* Arow_indices = S.index1_data().begin();
-        std::size_t* Acol_indices = S.index2_data().begin();
+        auto* Avalues = S.value_data().begin();
+        auto* Arow_indices = S.index1_data().begin();
+        auto* Acol_indices = S.index2_data().begin();
 
-        std::size_t* Arow_indices_old = rA.index1_data().begin();
-        std::size_t* Acol_indices_old = rA.index2_data().begin();
+        auto* Arow_indices_old = rA.index1_data().begin();
+        auto* Acol_indices_old = rA.index2_data().begin();
 
         // Copy row indices
         IndexPartition<std::size_t>(rA.index1_data().size()).for_each([&](IndexType i){
@@ -300,9 +300,9 @@ private:
     }
 
     void AssembleRowEntries(SparseMatrixType& rA, const DenseMatrixType& rAlocal, const unsigned int i, const unsigned int i_local, std::vector<std::size_t>& rEquationId){
-        double* values_vector = rA.value_data().begin();
-        std::size_t* index1_vector = rA.index1_data().begin();
-        std::size_t* index2_vector = rA.index2_data().begin();
+        auto* values_vector = rA.value_data().begin();
+        auto* index1_vector = rA.index1_data().begin();
+        auto* index2_vector = rA.index2_data().begin();
 
         size_t left_limit = index1_vector[i];
 
@@ -336,9 +336,9 @@ private:
     }
 
     void GetRowEntries(SparseMatrixType& rA, DenseMatrixType& rAlocal, const unsigned int i, const unsigned int i_local, std::vector<std::size_t>& rEquationId){
-        double* values_vector = rA.value_data().begin();
-        std::size_t* index1_vector = rA.index1_data().begin();
-        std::size_t* index2_vector = rA.index2_data().begin();
+        auto* values_vector = rA.value_data().begin();
+        auto* index1_vector = rA.index1_data().begin();
+        auto* index2_vector = rA.index2_data().begin();
 
         size_t left_limit = index1_vector[i];
 
@@ -371,21 +371,23 @@ private:
         }
     }
 
+    template<class TIndexPointerType>
     inline unsigned int ForwardFind(const unsigned int id_to_find,
                                     const unsigned int start,
-                                    const std::size_t* index_vector)
+                                    const TIndexPointerType index_vector)
     {
         unsigned int pos = start;
-        while(id_to_find != index_vector[pos]) pos++;
+        while(static_cast<std::size_t>(id_to_find) != static_cast<std::size_t>(index_vector[pos])) pos++;
         return pos;
     }
 
+    template<class TIndexPointerType>
     inline unsigned int BackwardFind(const unsigned int id_to_find,
                                      const unsigned int start,
-                                     const std::size_t* index_vector)
+                                     const TIndexPointerType index_vector)
     {
         unsigned int pos = start;
-        while(id_to_find != index_vector[pos]) pos--;
+        while(static_cast<std::size_t>(id_to_find) != static_cast<std::size_t>(index_vector[pos])) pos--;
         return pos;
     }
 

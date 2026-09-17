@@ -26,7 +26,7 @@
         "compute_reactions":                  true,
         "solution_type":                      "Quasi-Static",
         "scheme_type":                        "Backward_Euler",
-        "reset_displacements":                false,
+        "reset_totals":                       false,
         "strategy_type":                      "newton_raphson",
         "convergence_criterion":              "residual_criterion",
         "residual_relative_tolerance":        1.0E-4,

@@ -85,6 +85,18 @@ CoulombImpl::CoulombImpl(const Properties& rMaterialProperties)
     }
 }
 
+std::unique_ptr<CoulombImpl> CoulombImpl::Clone() const
+{
+    auto p_result                                  = std::make_unique<CoulombImpl>();
+    p_result->mCoulombYieldSurface                 = mCoulombYieldSurface;
+    p_result->mTensionCutOff                       = mTensionCutOff;
+    p_result->mSavedKappaOfCoulombYieldSurface     = mSavedKappaOfCoulombYieldSurface;
+    p_result->mAbsoluteYieldFunctionValueTolerance = mAbsoluteYieldFunctionValueTolerance;
+    p_result->mMaxNumberOfPlasticIterations        = mMaxNumberOfPlasticIterations;
+    p_result->mPlasticityStatus                    = mPlasticityStatus;
+    return p_result;
+}
+
 bool CoulombImpl::IsAdmissibleStressState(const Geo::SigmaTau& rTrialTraction)
 {
     return IsAdmissibleStressState<>(rTrialTraction);
