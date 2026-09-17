@@ -1,3 +1,4 @@
+import math
 import tempfile
 from pathlib import Path
 
@@ -91,7 +92,8 @@ class TestMeshioPlusPlusMeshOperations(KratosUnittest.TestCase):
         operations = KratosMeshioPlusPlus.MeshioPlusPlusMeshOperations.GetSupportedOperations()
         for expected in ("clean", "transform", "refine", "partition", "extract_skin", "stats",
                          "subdivide", "agglomerate", "decimate_volume", "remesh", "remesh_volume",
-                         "optimize_volume", "estimate_error", "hessian", "data_integrate"):
+                         "optimize_volume", "estimate_error", "hessian", "data_integrate",
+                         "curvature", "repair", "sobolev_deform"):
             self.assertIn(expected, operations)
 
     def test_unknown_operation_raises(self):
@@ -663,6 +665,119 @@ class TestMeshioPlusPlusMeshOperations(KratosUnittest.TestCase):
             destination)
         self.assertEqual(report["number_of_elements"].GetInt(), target.NumberOfElements())
         self.assertEqual(destination.NumberOfNodes(), target.NumberOfNodes())
+
+    def test_curvature_gauss_bonnet(self):
+        # Gauss-Bonnet: for a CLOSED surface the sum of every vertex's angle defect is
+        # 2*pi*chi - 4*pi for anything sphere-like - whatever the tessellation. The cube's
+        # skin is topologically a sphere, so this is a hard oracle.
+        surface = self.model.CreateModelPart("CurvatureSkin")
+        _CreateClosedCubeSkin(surface)
+        destination, report = self._Execute("curvature", source=surface)
+
+        self.assertAlmostEqual(report["total_angle_defect"].GetDouble(), 4.0 * math.pi, places=9)
+        self.assertTrue(report["surface_quality"]["watertight"].GetBool())
+        self.assertEqual(destination.NumberOfNodes(), surface.NumberOfNodes())
+
+    def test_repair_fixes_orientation_and_fills_a_hole(self):
+        # The closed cube skin with the z=1 face's second triangle dropped (a hole) and the
+        # z=0 face's first triangle wound backwards (an orientation flip "repair" must undo).
+        source = self.model.CreateModelPart("BrokenSkin")
+        source.CreateNewNode(1, 0.0, 0.0, 0.0)
+        source.CreateNewNode(2, 1.0, 0.0, 0.0)
+        source.CreateNewNode(3, 1.0, 1.0, 0.0)
+        source.CreateNewNode(4, 0.0, 1.0, 0.0)
+        source.CreateNewNode(5, 0.0, 0.0, 1.0)
+        source.CreateNewNode(6, 1.0, 0.0, 1.0)
+        source.CreateNewNode(7, 1.0, 1.0, 1.0)
+        source.CreateNewNode(8, 0.0, 1.0, 1.0)
+        properties = source.CreateNewProperties(1)
+        connectivities = [
+            [1, 2, 3],              # z = 0, flipped (should be [1, 3, 2])
+            [1, 4, 3],               # z = 0
+            [5, 6, 7],               # z = 1, [5, 7, 8] dropped -> a boundary loop (the hole)
+            [1, 2, 6], [1, 6, 5],
+            [3, 4, 8], [3, 8, 7],
+            [2, 3, 7], [2, 7, 6],
+            [1, 5, 8], [1, 8, 4],
+        ]
+        for i, nodes in enumerate(connectivities):
+            source.CreateNewElement("Element2D3N", i + 1, nodes, properties)
+
+        before = KratosMeshioPlusPlus.MeshioPlusPlusMeshOperations.CheckSurfaceWatertight(source)
+        self.assertFalse(before["watertight"].GetBool())
+        self.assertGreater(before["inconsistent_pairs"].GetInt(), 0)
+        self.assertGreater(before["boundary_edges"].GetInt(), 0)
+
+        destination, report = self._Execute("repair", source=source)
+
+        self.assertEqual(report["surface_quality_after"]["inconsistent_pairs"].GetInt(), 0)
+        self.assertEqual(report["surface_quality_after"]["boundary_edges"].GetInt(), 0)
+        self.assertGreater(report["number_of_flipped"].GetInt(), 0)
+        self.assertGreater(report["number_of_holes_filled"].GetInt(), 0)
+
+        after = KratosMeshioPlusPlus.MeshioPlusPlusMeshOperations.CheckSurfaceWatertight(destination)
+        self.assertTrue(after["watertight"].GetBool())
+
+    def test_sobolev_deform_zero_length_scale_is_exact(self):
+        # "length_scale" : 0.0 (the default) applies the raw displacement directly at every
+        # free point with no CG solve - zero iterations, and every point moves by exactly the
+        # uniform displacement given.
+        source = self._CreateCubeWithNodalVariable("SobolevSource", KratosMultiphysics.DISPLACEMENT)
+        for node in source.Nodes:
+            node.SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT, [0.0, 0.0, 0.5])
+
+        destination, report = self._Execute("sobolev_deform", KratosMultiphysics.Parameters("""{
+            "array_name" : "DISPLACEMENT",
+            "nodal_solution_step_data_variables" : ["DISPLACEMENT"]
+        }"""), source=source)
+
+        self.assertEqual(report["number_of_iterations"].GetInt(), 0)
+        self.assertTrue(report["converged"].GetBool())
+        self.assertAlmostEqual(report["max_displacement"].GetDouble(), 0.5, places=9)
+        self.assertEqual(destination.NumberOfNodes(), source.NumberOfNodes())
+        for node_src, node_dst in zip(source.Nodes, destination.Nodes):
+            self.assertAlmostEqual(node_dst.X, node_src.X, places=9)
+            self.assertAlmostEqual(node_dst.Y, node_src.Y, places=9)
+            self.assertAlmostEqual(node_dst.Z, node_src.Z + 0.5, places=9)
+
+    def test_shrinkwrap_projects_onto_target(self):
+        # The source is the unit cube's skin scaled by 2 about the origin, so every source
+        # point sits strictly outside the (unit) target and must move onto it - a hard
+        # containment oracle: every projected point stays within the target's bounding box.
+        source = self.model.CreateModelPart("ShrinkwrapSource")
+        source.CreateNewNode(1, 0.0, 0.0, 0.0)
+        source.CreateNewNode(2, 2.0, 0.0, 0.0)
+        source.CreateNewNode(3, 2.0, 2.0, 0.0)
+        source.CreateNewNode(4, 0.0, 2.0, 0.0)
+        source.CreateNewNode(5, 0.0, 0.0, 2.0)
+        source.CreateNewNode(6, 2.0, 0.0, 2.0)
+        source.CreateNewNode(7, 2.0, 2.0, 2.0)
+        source.CreateNewNode(8, 0.0, 2.0, 2.0)
+        properties = source.CreateNewProperties(1)
+        connectivities = [
+            [1, 3, 2], [1, 4, 3], [5, 6, 7], [5, 7, 8], [1, 2, 6], [1, 6, 5],
+            [3, 4, 8], [3, 8, 7], [2, 3, 7], [2, 7, 6], [1, 5, 8], [1, 8, 4],
+        ]
+        for i, nodes in enumerate(connectivities):
+            source.CreateNewElement("Element2D3N", i + 1, nodes, properties)
+
+        target = self.model.CreateModelPart("ShrinkwrapTarget")
+        _CreateClosedCubeSkin(target)
+
+        destination = self.model.CreateModelPart("ShrinkwrapResult")
+        report = KratosMeshioPlusPlus.MeshioPlusPlusMeshOperations.Shrinkwrap(
+            source, target, KratosMultiphysics.Parameters("{}"), destination)
+
+        self.assertEqual(destination.NumberOfNodes(), source.NumberOfNodes())
+        self.assertEqual(report["number_of_missed"].GetInt(), 0)
+        self.assertEqual(report["number_of_projected"].GetInt(), source.NumberOfNodes())
+        for node in destination.Nodes:
+            self.assertGreaterEqual(node.X, -1e-9)
+            self.assertGreaterEqual(node.Y, -1e-9)
+            self.assertGreaterEqual(node.Z, -1e-9)
+            self.assertLessEqual(node.X, 1.0 + 1e-9)
+            self.assertLessEqual(node.Y, 1.0 + 1e-9)
+            self.assertLessEqual(node.Z, 1.0 + 1e-9)
 
 
 if __name__ == "__main__":
