@@ -9,14 +9,15 @@ class MeshioOperationModeler(KratosMultiphysics.Modeler):
     passed through in "operation_settings" - including "clean", "transform", "convert_cells",
     "refine", "decimate", "smooth", "reorder", "extract_surface", "extract_skin", "crop_bbox",
     "crop_halfspace", "crop_predicate", "slice", "isosurface", "attach_quality", "gradient",
-    "voxelize", "compute_sdf", "split", "partition", "stats", "quality", and the data
-    operations "data_calc", "data_condition", "data_manage", "data_info",
-    "point_data_to_cell_data", "cell_data_to_point_data". Query what this build supports with
+    "hessian", "estimate_error", "curvature", "repair", "sobolev_deform", "voxelize",
+    "compute_sdf", "split", "partition", "stats", "quality", and the data operations
+    "data_calc", "data_condition", "data_manage", "data_info", "point_data_to_cell_data",
+    "cell_data_to_point_data". Query what this build supports with
     KratosMeshioPlusPlus.MeshioPlusPlusMeshOperations.GetSupportedOperations(), and the
     available settings with GetDefaultParameters(). "interpolate" is not reachable here - it
     needs two source model parts; see MeshioInterpolateModeler. Nor are "Grid" (no source at
-    all), "DistanceToSurface" (two sources) and "CheckSurfaceWatertight" (report-only); call
-    those on MeshioPlusPlusMeshOperations directly.
+    all), "DistanceToSurface", "Shrinkwrap" (both two sources) and "CheckSurfaceWatertight"
+    (report-only); call those on MeshioPlusPlusMeshOperations directly.
 
     Field data (nodal/elemental/conditional variables, flags and ids) can be carried through
     the operation with the same "nodal_solution_step_data_variables" /
