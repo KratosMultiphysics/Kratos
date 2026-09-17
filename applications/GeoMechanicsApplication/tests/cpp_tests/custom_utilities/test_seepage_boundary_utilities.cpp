@@ -17,6 +17,7 @@
 #include "geo_mechanics_application_variables.h"
 #include "geometries/line_2d_2.h"
 #include "includes/variables.h"
+#include "test_setup_utilities/element_setup_utilities.hpp"
 #include "test_setup_utilities/model_setup_utilities.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
 
@@ -58,6 +59,39 @@ std::vector<Node*> AllNodesOf(ModelPart& rModelPart)
     std::ranges::transform(rModelPart.Nodes(), std::back_inserter(result),
                            [](auto& rNode) { return &rNode; });
     return result;
+}
+
+class MockPwElementForSeepageTests : public Element
+{
+public:
+    explicit MockPwElementForSeepageTests(const std::vector<intrusive_ptr<Node>>& rNodes);
+
+    void GetDofList(DofsVectorType& rElementalDofList, const ProcessInfo&) const override;
+    void CalculateRightHandSide(VectorType& rRightHandSideVector, const ProcessInfo&) override;
+
+private:
+    std::vector<intrusive_ptr<Node>> mNodes;
+};
+
+MockPwElementForSeepageTests::MockPwElementForSeepageTests(const std::vector<intrusive_ptr<Node>>& rNodes)
+    : mNodes{rNodes}
+{
+}
+
+void MockPwElementForSeepageTests::GetDofList(DofsVectorType& rElementalDofList, const ProcessInfo&) const
+{
+    rElementalDofList.clear();
+    for (const auto& p_node : mNodes) {
+        rElementalDofList.push_back(p_node->pGetDof(WATER_PRESSURE));
+    }
+}
+
+void MockPwElementForSeepageTests::CalculateRightHandSide(VectorType& rRightHandSideVector, const ProcessInfo&)
+{
+    rRightHandSideVector = VectorType{mNodes.size()};
+    for (std::size_t i = 0; i < mNodes.size(); ++i) {
+        rRightHandSideVector[i] = static_cast<double>(mNodes[i]->Id()); // Just a dummy value for testing
+    }
 }
 
 } // namespace
@@ -145,6 +179,39 @@ KRATOS_TEST_CASE_IN_SUITE(AccumulateWaterPressureEntriesSumsContributionsFromSev
 
     KRATOS_EXPECT_DOUBLE_EQ(nodal_flows.at(1), 2.0);
     KRATOS_EXPECT_DOUBLE_EQ(nodal_flows.at(2), 0.0);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(CalculateNodalWaterFlowsSumsRHSContributionsFromSeveralElements,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    const auto nodal_positions = std::vector{Point{0.0, 0.0, 0.0}, Point{1.0, 0.0, 0.0},
+                                             Point{0.0, 1.0, 0.0}, Point{1.0, 1.0, 0.0}};
+    const auto nodes           = ElementSetupUtilities::GenerateNodes(nodal_positions);
+
+    auto p_variable_list = make_intrusive<VariablesList>();
+    p_variable_list->Add(WATER_PRESSURE);
+    for (auto& r_node : nodes) {
+        r_node.SetSolutionStepVariablesList(p_variable_list);
+        r_node.AddDof(WATER_PRESSURE);
+    }
+
+    const auto nodes_of_element_1 =
+        std::vector{nodes.GetContainer()[0], nodes.GetContainer()[1], nodes.GetContainer()[2]};
+    const auto nodes_of_element_2 =
+        std::vector{nodes.GetContainer()[1], nodes.GetContainer()[3], nodes.GetContainer()[2]};
+
+    auto elements = ModelPart::ElementsContainerType{};
+    elements.push_back(make_intrusive<MockPwElementForSeepageTests>(nodes_of_element_1));
+    elements.push_back(make_intrusive<MockPwElementForSeepageTests>(nodes_of_element_2));
+
+    const auto nodal_flow_map =
+        Geo::SeepageBoundaryUtilities::CalculateNodalWaterFlows(elements, ProcessInfo{});
+
+    ASSERT_EQ(nodal_flow_map.size(), 4);
+    KRATOS_EXPECT_DOUBLE_EQ(nodal_flow_map.at(1), 1 * 1.0);
+    KRATOS_EXPECT_DOUBLE_EQ(nodal_flow_map.at(2), 2 * 2.0);
+    KRATOS_EXPECT_DOUBLE_EQ(nodal_flow_map.at(3), 2 * 3.0);
+    KRATOS_EXPECT_DOUBLE_EQ(nodal_flow_map.at(4), 1 * 4.0);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(SwitchOneSeepageNodeDoesNothingWhenNoNodeViolatesItsCondition,
