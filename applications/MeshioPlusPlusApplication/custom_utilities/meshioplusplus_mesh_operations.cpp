@@ -28,6 +28,7 @@
 #include "meshioplusplus/operations/conservative_interpolate.hpp"
 #include "meshioplusplus/operations/convert_cells.hpp"
 #include "meshioplusplus/operations/crop.hpp"
+#include "meshioplusplus/operations/curvature.hpp"
 #include "meshioplusplus/operations/data_average.hpp"
 #include "meshioplusplus/operations/data_calc.hpp"
 #include "meshioplusplus/operations/data_common.hpp"
@@ -51,9 +52,12 @@
 #include "meshioplusplus/operations/remesh.hpp"
 #include "meshioplusplus/operations/remesh_volume.hpp"
 #include "meshioplusplus/operations/reorder.hpp"
+#include "meshioplusplus/operations/repair.hpp"
 #include "meshioplusplus/operations/sdf.hpp"
+#include "meshioplusplus/operations/shrinkwrap.hpp"
 #include "meshioplusplus/operations/slice.hpp"
 #include "meshioplusplus/operations/smooth.hpp"
+#include "meshioplusplus/operations/sobolev_deform.hpp"
 #include "meshioplusplus/operations/split.hpp"
 #include "meshioplusplus/operations/stats.hpp"
 #include "meshioplusplus/operations/subdivide.hpp"
@@ -77,12 +81,12 @@ const std::vector<std::string>& OperationNames()
 {
     static const std::vector<std::string> names = {
         "agglomerate", "attach_quality", "cell_data_to_point_data", "clean", "compute_sdf",
-        "convert_cells", "crop_bbox", "crop_halfspace", "crop_predicate", "data_calc",
-        "data_condition", "data_info", "data_integrate", "data_manage", "decimate",
+        "convert_cells", "crop_bbox", "crop_halfspace", "crop_predicate", "curvature",
+        "data_calc", "data_condition", "data_info", "data_integrate", "data_manage", "decimate",
         "decimate_volume", "estimate_error", "extract_skin", "extract_surface", "gradient",
         "hessian", "isosurface", "optimize_volume", "partition", "point_data_to_cell_data",
-        "quality", "refine", "remesh", "remesh_volume", "reorder", "slice", "smooth", "split",
-        "stats", "subdivide", "transform", "voxelize"
+        "quality", "refine", "remesh", "remesh_volume", "reorder", "repair", "slice", "smooth",
+        "sobolev_deform", "split", "stats", "subdivide", "transform", "voxelize"
     };
     return names;
 }
@@ -464,6 +468,22 @@ Parameters MeshioPlusPlusMeshOperations::GetDefaultParameters()
         "mu"                                           : -0.34,
         "fix_boundary"                                 : true,
         "guard_inversion"                              : true,
+
+        "fix_orientation"                              : true,
+        "orient_outward"                               : true,
+        "fill_holes"                                   : true,
+        "split_non_manifold"                           : true,
+        "repair_record_provenance"                     : false,
+        "max_hole_edges"                               : 10,
+        "weld_tolerance"                               : 0.0,
+
+        "length_scale"                                 : 0.0,
+        "fixed_points_array"                           : "",
+        "sobolev_fix_boundary"                         : false,
+        "record_filtered"                              : false,
+        "sobolev_max_iterations"                       : 128,
+        "sobolev_tolerance"                            : 1e-10,
+
         "number_of_parts"                              : 2,
         "imbalance"                                    : 0.03,
         "seed"                                         : 0,
@@ -536,6 +556,13 @@ Parameters MeshioPlusPlusMeshOperations::GetDefaultParameters()
         "marking_value"                                : 0.0,
         "marked_name"                                  : "",
 
+        "curvature_mean"                               : true,
+        "curvature_gaussian"                           : true,
+        "dual_area"                                    : "mixed-voronoi",
+        "include_boundary"                             : false,
+        "record_area"                                  : false,
+        "record_principal"                             : false,
+
         "resolution"                                   : [],
         "cell_size"                                    : -1.0,
         "bounds"                                       : [],
@@ -559,6 +586,12 @@ Parameters MeshioPlusPlusMeshOperations::GetDefaultParameters()
         "watertight_check"                             : "warn",
         "grid_cell_size"                               : 0.0,
         "max_winding_work"                             : 2.0e9,
+
+        "offset"                                       : 0.0,
+        "max_distance"                                 : 0.0,
+        "weights"                                      : "",
+        "target_region"                                : "",
+        "record_distance"                              : false,
 
         "dims"                                         : [1, 1, 1],
         "spacing"                                      : [1.0, 1.0, 1.0],
@@ -819,6 +852,66 @@ Parameters MeshioPlusPlusMeshOperations::Execute(
         report.AddInt("skipped_inversion", static_cast<int>(result.mNumSkippedInversion));
         StoreResult(result.mMesh, rDestination);
 
+    } else if (operation == "repair") {
+        // A surface topology fix (orientation, holes, pinched vertices) - "repair_record_provenance"
+        // rather than the shared "record_provenance": that one appends to meshio++'s provenance
+        // chain for a later write, this one is RepairOptions::mRecordProvenance, attaching
+        // "repair:parent_point"/"repair:hole" onto the *mesh itself* - a different question with
+        // a different default, so it cannot share the key.
+        mio::RepairOptions options;
+        options.mFixOrientation = Settings["fix_orientation"].GetBool();
+        options.mOrientOutward = Settings["orient_outward"].GetBool();
+        options.mFillHoles = Settings["fill_holes"].GetBool();
+        options.mSplitNonManifold = Settings["split_non_manifold"].GetBool();
+        options.mRecordProvenance = Settings["repair_record_provenance"].GetBool();
+        options.mMaxHoleEdges = static_cast<std::int64_t>(Settings["max_hole_edges"].GetInt());
+        options.mWeldTolerance = Settings["weld_tolerance"].GetDouble();
+        mio::RepairResult result = mio::repair(mesh, options);
+        report.AddValue("surface_quality_before", SurfaceQualityReport(result.mQualityBefore));
+        report.AddValue("surface_quality_after", SurfaceQualityReport(result.mQualityAfter));
+        report.AddInt("number_of_flipped", static_cast<int>(result.mNumFlipped));
+        report.AddInt("number_of_components", static_cast<int>(result.mNumComponents));
+        report.AddInt("largest_component", static_cast<int>(result.mLargestComponent));
+        report.AddInt("number_of_oriented_outward", static_cast<int>(result.mNumOrientedOutward));
+        report.AddInt("number_of_unorientable", static_cast<int>(result.mNumUnorientable));
+        report.AddInt("number_of_vertices_split", static_cast<int>(result.mNumVerticesSplit));
+        report.AddInt("number_of_holes_detected", static_cast<int>(result.mNumHolesDetected));
+        report.AddInt("number_of_holes_filled", static_cast<int>(result.mNumHolesFilled));
+        report.AddInt("number_of_holes_skipped", static_cast<int>(result.mNumHolesSkipped));
+        report.AddInt("number_of_faces_added", static_cast<int>(result.mNumFacesAdded));
+        report.AddInt("number_of_points_added", static_cast<int>(result.mNumPointsAdded));
+        report.AddInt("points_welded", static_cast<int>(result.mPointsWelded));
+        StoreResult(result.mMesh, rDestination);
+
+    } else if (operation == "sobolev_deform") {
+        // Sobolev-filters a raw displacement field, then moves the mesh's points by the
+        // filtered result - "sobolev_fix_boundary"/"sobolev_max_iterations"/"sobolev_tolerance"
+        // rather than the shared "fix_boundary"/"max_iterations"/"tolerance": upstream's own
+        // defaults for this operation (false, 128, 1e-10) differ from what those keys already
+        // default to for "smooth"/"remesh"/"clean", and a single Kratos key can only carry one
+        // default (the "optimize_iterations" precedent, see above).
+        mio::SobolevOptions options;
+        options.mArrayName = Settings["array_name"].GetString();
+        KRATOS_ERROR_IF(options.mArrayName.empty())
+            << "The \"sobolev_deform\" operation needs an \"array_name\"" << std::endl;
+        options.mLengthScale = Settings["length_scale"].GetDouble();
+        options.mFixedPoints = ReadFrozenFlags(Settings["frozen"]);
+        options.mFixedPointsArray = Settings["fixed_points_array"].GetString();
+        options.mFixBoundary = Settings["sobolev_fix_boundary"].GetBool();
+        options.mRecordFiltered = Settings["record_filtered"].GetBool();
+        options.mMaxIterations = Settings["sobolev_max_iterations"].GetInt();
+        options.mTolerance = Settings["sobolev_tolerance"].GetDouble();
+        mio::SobolevResult result = mio::sobolev_deform(mesh, options);
+        report.AddInt("number_of_iterations", static_cast<int>(result.mNumIterations));
+        report.AddDouble("residual", result.mResidual);
+        report.AddBool("converged", result.mConverged);
+        report.AddInt("number_of_fixed", static_cast<int>(result.mNumFixed));
+        report.AddInt("number_of_isolated", static_cast<int>(result.mNumIsolated));
+        report.AddDouble("max_displacement", result.mMaxDisplacement);
+        RenameResultArray(result.mMesh, mio::DataLocation::Point, mio::kSobolevDisplacementName,
+                          Settings["output"].GetString());
+        StoreResult(result.mMesh, rDestination);
+
     } else if (operation == "reorder") {
         const std::int64_t before = mio::compute_bandwidth(mesh);
         mio::ReorderResult result = mio::reorder(mesh, mio::reorder_method_from_name(Settings["method"].GetString()));
@@ -919,6 +1012,32 @@ Parameters MeshioPlusPlusMeshOperations::Execute(
                           Settings["output"].GetString());
         RenameResultArray(result.mMesh, mio::DataLocation::Cell, mio::kErrorMarkedName,
                           Settings["marked_name"].GetString());
+        StoreResult(result.mMesh, rDestination);
+
+    } else if (operation == "curvature") {
+        // Per-vertex mean/Gaussian curvature of a surface, over the standard discrete
+        // estimators (angle defect for K, cotangent Laplace-Beltrami for H). Reuses "region"
+        // (already the "restrict to this named Cell region" key for "refine") and "output" (the
+        // primary result's rename target, the same single-array precedent "voxelize"/
+        // "compute_sdf" use) - "curvature:gaussian"/"curvature:area"/"curvature:principal" stay
+        // colon-namespaced and unreachable from Kratos, the same documented gap
+        // "attach_quality"'s own invented names have.
+        mio::CurvatureOptions options;
+        options.mMean = Settings["curvature_mean"].GetBool();
+        options.mGaussian = Settings["curvature_gaussian"].GetBool();
+        options.mDualArea = mio::curvature_dual_area_from_name(Settings["dual_area"].GetString());
+        options.mIncludeBoundary = Settings["include_boundary"].GetBool();
+        options.mRecordArea = Settings["record_area"].GetBool();
+        options.mRecordPrincipal = Settings["record_principal"].GetBool();
+        options.mRegion = Settings["region"].GetString();
+        mio::CurvatureResult result = mio::compute_curvature(mesh, options);
+        report.AddValue("surface_quality", SurfaceQualityReport(result.mQuality));
+        report.AddInt("number_of_boundary", static_cast<int>(result.mNumBoundary));
+        report.AddInt("number_of_isolated", static_cast<int>(result.mNumIsolated));
+        report.AddInt("number_of_degenerate", static_cast<int>(result.mNumDegenerate));
+        report.AddDouble("total_angle_defect", result.mTotalAngleDefect);
+        RenameResultArray(result.mMesh, mio::DataLocation::Point, mio::kCurvatureMeanName,
+                          Settings["output"].GetString());
         StoreResult(result.mMesh, rDestination);
 
     } else if (operation == "voxelize") {
@@ -1239,6 +1358,60 @@ Parameters MeshioPlusPlusMeshOperations::ConservativeInterpolate(
     Internals::MeshToModelPart(result, rDestination);
 
     Parameters report(R"({})");
+    report.AddInt("number_of_nodes", static_cast<int>(rDestination.NumberOfNodes()));
+    report.AddInt("number_of_elements", static_cast<int>(rDestination.NumberOfElements()));
+    report.AddInt("number_of_conditions", static_cast<int>(rDestination.NumberOfConditions()));
+    return report;
+
+    KRATOS_CATCH("")
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+Parameters MeshioPlusPlusMeshOperations::Shrinkwrap(
+    const ModelPart& rSource,
+    const ModelPart& rTarget,
+    Parameters Settings,
+    ModelPart& rDestination
+    )
+{
+    KRATOS_TRY
+
+    KRATOS_ERROR_IF(rSource.IsDistributed() || rTarget.IsDistributed())
+        << "The meshio++ operations do not support distributed model parts" << std::endl;
+
+    Settings.AddMissingParameters(GetDefaultParameters());
+
+    const bool deformed = Settings["use_deformed_configuration"].GetBool();
+    const Internals::FieldDataSelection selection = BuildFieldDataSelection(Settings);
+    mio::Mesh source = Internals::ModelPartToMeshWithData(rSource, true, true, deformed, selection);
+    mio::Mesh target = Internals::ModelPartToMeshWithData(rTarget, true, true, deformed, selection);
+
+    // "sdf_weight" is the same SdfPseudonormalWeight axis DistanceToSurface/compute_sdf already
+    // expose - the hit feature's pseudonormal weighting, not a per-point blend factor (that is
+    // "weights", the array name below).
+    mio::ShrinkwrapOptions options;
+    options.mOffset = Settings["offset"].GetDouble();
+    options.mMaxDistance = Settings["max_distance"].GetDouble();
+    options.mWeights = Settings["weights"].GetString();
+    options.mTargetRegion = Settings["target_region"].GetString();
+    options.mNormalWeight = mio::sdf_weight_from_name(Settings["sdf_weight"].GetString());
+    options.mRecordDistance = Settings["record_distance"].GetBool();
+    options.mRecordClosestCell = Settings["record_closest_cell"].GetBool();
+    options.mGridCellSize = Settings["grid_cell_size"].GetDouble();
+
+    mio::ShrinkwrapResult result = mio::shrinkwrap(source, target, options);
+    RenameResultArray(result.mMesh, mio::DataLocation::Point, mio::kShrinkwrapDistanceName,
+                      Settings["output"].GetString());
+    Internals::MeshToModelPart(result.mMesh, rDestination);
+
+    Parameters report(R"({})");
+    report.AddValue("target_quality", SurfaceQualityReport(result.mQuality));
+    report.AddInt("number_of_projected", static_cast<int>(result.mNumProjected));
+    report.AddInt("number_of_missed", static_cast<int>(result.mNumMissed));
+    report.AddInt("number_of_skipped", static_cast<int>(result.mNumSkipped));
+    report.AddDouble("max_displacement", result.mMaxDisplacement);
     report.AddInt("number_of_nodes", static_cast<int>(rDestination.NumberOfNodes()));
     report.AddInt("number_of_elements", static_cast<int>(rDestination.NumberOfElements()));
     report.AddInt("number_of_conditions", static_cast<int>(rDestination.NumberOfConditions()));

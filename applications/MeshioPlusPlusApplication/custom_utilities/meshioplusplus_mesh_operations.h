@@ -45,9 +45,9 @@ namespace Kratos
  *  - report-only (stats, quality, diff, data_info, data_integrate): the destination is left
  *    untouched and the whole result is in the returned @ref Parameters.
  *
- * Three operations are *not* reachable through @ref Execute because they do not have its
- * one-mesh-in/one-mesh-out shape: @ref Interpolate and @ref ConservativeInterpolate each need
- * two independent meshes, and @ref Grid needs none at all.
+ * Four operations are *not* reachable through @ref Execute because they do not have its
+ * one-mesh-in/one-mesh-out shape: @ref Interpolate, @ref ConservativeInterpolate and
+ * @ref Shrinkwrap each need two independent meshes, and @ref Grid needs none at all.
  *
  * @note meshio++'s `undo_green` is deliberately **not** exposed. It resolves a refinement's
  * green closure through the `refine:cell_id`/`refine:parent_id` arrays `refine(record_hierarchy)`
@@ -177,6 +177,33 @@ public:
      * @return The transfer report.
      */
     static Parameters ConservativeInterpolate(
+        const ModelPart& rSource,
+        const ModelPart& rTarget,
+        Parameters Settings,
+        ModelPart& rDestination
+        );
+
+    /**
+     * @brief Projects a model part's points onto a target surface, optionally offset.
+     * @details Not reachable through @ref Execute for the same reason as @ref Interpolate and
+     * @ref ConservativeInterpolate: it needs two independent meshes. One projection, not an
+     * iteration - a fit, not a smoothing - along the hit feature's pseudonormal rather than the
+     * hit triangle's own normal, so a creased target offsets consistently regardless of which
+     * of two equidistant faces a query happens to land on. Every point of @p rSource moves,
+     * whatever cells it carries (a volume mesh's interior points too); only @p rTarget must be
+     * a surface.
+     * @param rSource The model part whose points move.
+     * @param rTarget The surface to project onto (quads/polygons are fanned; a volume or
+     *                higher-order block is refused by name).
+     * @param Settings Shrinkwrap settings ("offset", "max_distance", "weights",
+     *                 "target_region", "sdf_weight", "record_distance",
+     *                 "record_closest_cell", "grid_cell_size") plus "output" (renames
+     *                 "shrinkwrap:distance" to a registered variable, when "record_distance"
+     *                 is set) and the shared field data settings.
+     * @param rDestination The model part receiving the moved source mesh (expected empty).
+     * @return The projection report.
+     */
+    static Parameters Shrinkwrap(
         const ModelPart& rSource,
         const ModelPart& rTarget,
         Parameters Settings,
