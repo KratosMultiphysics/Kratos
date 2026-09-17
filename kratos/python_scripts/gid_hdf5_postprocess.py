@@ -65,8 +65,11 @@ class GiDHDF5OutputProcess(KratosMultiphysics.OutputProcess):
         39: '???', 
         40: 'Kratos_Brep_Curve_On_Surface', 
         41: '???', 
-        42: 'Kratos_Quadrature_Point_Geometry', 
-        43: 'Kratos_Coupling_Geometry'
+         42: 'Kratos_Quadrature_Point_Geometry',
+         43: 'Kratos_Coupling_Geometry',
+         44: 'Kratos_Quadrature_Point_Curve_Geometry',
+         45: 'Kratos_Quadrature_Point_Curve_On_Surface_Geometry',
+         46: 'Kratos_Quadrature_Point_Surface_In_Volume_Geometry'
         }
     
     
@@ -159,51 +162,39 @@ class GiDHDF5OutputProcess(KratosMultiphysics.OutputProcess):
         return list_of_flags
 
 
-    def __categorize_element_geometries_by_geometry_type(self, elements_container):
+    def __categorize_entities_by_geometry_type(self):
         """
-        Categorizes the geometry of each element into its respective geometry
-        type based on the KratosGeometryType enum.
+        Categorizes the model part entities by geometry type using
+        ContainerClassificationUtilities.
 
-        The resulting containers are keyed by element id, so the mesh
-        connectivity written later is aligned with the element ids.
-
-        Parameters
-        ----------
-        elements_container : iterable
-            A container of element objects (e.g. ModelPart.Elements).
+        If the model part contains elements, the elements are classified and
+        the mesh is printed keyed by element id. Otherwise the standalone
+        geometries of the model part are classified and printed keyed by
+        geometry id. A geometry without an explicitly assigned id raises an
+        error.
 
         Returns
         -------
         list
-            A list of KratosMultiphysics.GeometryContainerType, where each index corresponds to a geometry type as defined in KratosMultiphysics.GeometryData_KratosGeometryType enum. Each container holds the element geometries of that type, keyed by element id.
+            A list of containers where each index corresponds to a geometry
+            type as defined in the KratosMultiphysics.GeometryData_KratosGeometryType
+            enum. Each container holds the entities of that type.
         """
-        #TODO: make a utility to do this operation in c++
-        #initialize "categorized" with empty lists for each geometry type
-        categorized = []
-        for i in range(len(KratosMultiphysics.GeometryData_KratosGeometryType.__members__)):
-            categorized.append(KratosMultiphysics.GeometryContainerType())
+        classifier = KratosMultiphysics.ContainerClassificationUtilities()
+        if len(self.model_part.Elements) > 0:
+            return classifier.ClassifyByGeometryType(self.model_part.Elements)
+        else:
+            for node in self.model_part.Geometries:
+                if node.IsIdSelfAssigned() or node.IsIdGeneratedFromString():
+                    raise Exception(f"Geometry with id {node.Id} does not have an explicitly assigned id. "
+                                    "Assign an id to all geometries before printing the mesh with the GiD HDF5 postprocess.")
+            return classifier.ClassifyByGeometryType(self.model_part.Geometries)
 
-        for element in elements_container:
-            geometry = element.GetGeometry()
-            geometry_type = geometry.GetGeometryType()
-            categorized[geometry_type][element.Id] = geometry
-        
-        return categorized
 
     def ExecuteInitialize(self):
-        self.categorized_geometries = self.__categorize_element_geometries_by_geometry_type(self.model_part.Elements)
-
-        # for i in range(len(self.categorized_geometries)):
-        #     item = self.categorized_geometries[i]
-        #     type_name = self.type_names[int(KratosMultiphysics.GeometryData_KratosGeometryType(i))]
-        #     if len(item) != 0:
-        #         print("Found {} elements of type {}".format(len(item), type_name))
-
+        self.categorized_entities = self.__categorize_entities_by_geometry_type()
         
-        # #TODO: make it efficient by using a tensor adaptor for this
-        self.node_ids = []
-        for node in self.model_part.Nodes:
-            self.node_ids.append(node.Id)
+        self.node_ids = self.model_part.Nodes.IdsList()
         
         max_id = max(self.node_ids)
         if max_id > np.iinfo(np.int32).max:
@@ -214,7 +205,6 @@ class GiDHDF5OutputProcess(KratosMultiphysics.OutputProcess):
         self.__WriteMesh()
         
         self.base_results_group = self.f.create_group("Results")
-        #self.base_mesh_group.attrs['ModelPartName'] = self.model_part.Name
 
     def _CreateDataset(self, group, name, data):
         """Create a 1-D HDF5 dataset, applying szip compression only when the
@@ -233,8 +223,8 @@ class GiDHDF5OutputProcess(KratosMultiphysics.OutputProcess):
         
 
         mesh_id = 1
-        for i in range(len(self.categorized_geometries)):
-            item = self.categorized_geometries[i]
+        for i in range(len(self.categorized_entities)):
+            item = self.categorized_entities[i]
             type_name = self.type_names[int(KratosMultiphysics.GeometryData_KratosGeometryType(i))]
 
             if len(item) != 0:
@@ -261,7 +251,7 @@ class GiDHDF5OutputProcess(KratosMultiphysics.OutputProcess):
                 connectivity_adaptor = KratosMultiphysics.TensorAdaptors.ConnectivityIdsTensorAdaptor(item)
                 connectivity_adaptor.CollectData()
                 connectivity = connectivity_adaptor.data  # numpy array: shape (num_geometries, num_nodes_per_elem)
-                print("connectivity shape: ", connectivity.shape)
+
                 dtype_dim = np.dtype('S1')
                 dtype_type = np.dtype('S50')
                 dtype_nnode = np.dtype('S5')
@@ -270,11 +260,7 @@ class GiDHDF5OutputProcess(KratosMultiphysics.OutputProcess):
                 mesh_group.attrs.create('Name', data=type_name, dtype=dtype_type)
                 mesh_group.attrs.create('Nnode', data=str(connectivity.shape[1]), dtype=dtype_nnode)
 
-                #TODO: make this efficient
-                ids = []
-                for geom in item:
-                    ids.append(geom.Id)
-                ids = np.array(ids, dtype=self.int_type)
+                ids = item.IdsList()
 
                 self._CreateDataset(conn_group, '1', ids)
                 for i in range(connectivity.shape[1]):
@@ -295,7 +281,6 @@ class GiDHDF5OutputProcess(KratosMultiphysics.OutputProcess):
         group.attrs.create('Analysis', data="Kratos", dtype=dtype_analysis)
         group.attrs.create('Name', data=variable.Name(), dtype=dtype_name)
         group.attrs.create('Step', data=str(self.model_part.ProcessInfo[self.time_label_var]), dtype=dtype_step)
-        #group.attrs.create('Time', data=str(self.model_part.ProcessInfo[KratosMultiphysics.TIME]), dtype=dtype_time)
 
         if(type(variable) == KratosMultiphysics.DoubleVariable):
             group.attrs.create('NumComponents', data="1", dtype=dtype_single)
