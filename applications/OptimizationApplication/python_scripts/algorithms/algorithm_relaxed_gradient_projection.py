@@ -154,12 +154,17 @@ class AlgorithmRelaxedGradientProjection(AlgorithmGradientProjection):
         self.algorithm_data.GetBufferedData().SetValue("correction", correction, overwrite=True)
         self.algorithm_data.GetBufferedData().SetValue("projected_direction", projected_direction, overwrite=True)
 
-        # search_direction is the update the algorithm still wants to make (the raw negative
-        # gradient when unconstrained, or the constraint-projected direction plus any feasibility
-        # correction when constrained); its norm is therefore a natural KKT-style stationarity
-        # residual for this algorithm -- it shrinks to zero exactly when no further descent step
-        # is needed, mirroring how AlgorithmMMA reports its own (differently computed) kkt_norm.
-        self.algorithm_data.GetBufferedData().SetValue("kkt_norm", numpy.max(numpy.abs(search_direction.data)), overwrite=True)
+        # kkt_norm combines the search direction norm with the worst current constraint
+        # violation: Compute_W_correction returns zero whenever w <= 1 even if the constraint
+        # residual is still nonzero within that buffer, so the direction norm alone can hit
+        # zero at a non-KKT point and falsely satisfy a target/magnitude convergence criterion.
+        constraint_violation = max(
+            (abs(constraint.GetStandardizedValue()) if constraint.IsEqualityType()
+             else max(constraint.GetStandardizedValue(), 0.0)
+             for constraint in self._constraints_list),
+            default=0.0)
+        self.algorithm_data.GetBufferedData().SetValue(
+            "kkt_norm", max(numpy.max(numpy.abs(search_direction.data)), constraint_violation), overwrite=True)
 
     def ComputeBufferCoefficients(self):
         active_constraints_list = self.GetActiveConstraintsList()

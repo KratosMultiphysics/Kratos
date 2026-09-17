@@ -112,6 +112,8 @@ class AlgorithmMMA(Algorithm):
         self._constraints_list: 'list[StandardizedConstraint]' = []
         for constraint_param in parameters["constraints"].values():
             constraint = StandardizedConstraint(constraint_param, self.master_control, self._optimization_problem)
+            if constraint.IsEqualityType():
+                raise RuntimeError("AlgorithmMMA supports inequality constraints only.")
             self._optimization_problem.AddComponent(constraint)
             self._constraints_list.append(constraint)
 

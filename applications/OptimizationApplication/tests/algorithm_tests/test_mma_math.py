@@ -15,12 +15,18 @@ import numpy as np
 
 
 def _load_mma_math():
-    module_path = os.path.join(
-        os.path.dirname(__file__), "..", "..", "python_scripts", "algorithms", "mma_math.py")
-    spec = importlib.util.spec_from_file_location("mma_math", os.path.normpath(module_path))
-    module = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(module)
-    return module
+    try:
+        from KratosMultiphysics.OptimizationApplication.algorithms import mma_math
+        return mma_math
+    except ModuleNotFoundError:
+        # plain `python3 -m unittest` without a compiled Kratos build: fall back to
+        # loading the module directly by file path.
+        module_path = os.path.join(
+            os.path.dirname(__file__), "..", "..", "python_scripts", "algorithms", "mma_math.py")
+        spec = importlib.util.spec_from_file_location("mma_math", os.path.normpath(module_path))
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        return module
 
 
 mma_math = _load_mma_math()
