@@ -223,10 +223,25 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateNodalWaterFlowsSumsRHSContributionsFromSevera
         Geo::SeepageBoundaryUtilities::CalculateNodalWaterFlows(elements, ProcessInfo{});
 
     ASSERT_EQ(nodal_flow_map.size(), 4);
+    KRATOS_EXPECT_DOUBLE_EQ(nodal_flow_map.at(1), 1 * 1.0); // only element 1 contributes
+    KRATOS_EXPECT_DOUBLE_EQ(nodal_flow_map.at(2), 2 * 2.0); // both elements contribute
+    KRATOS_EXPECT_DOUBLE_EQ(nodal_flow_map.at(3), 2 * 3.0); // both elements contribute
+    KRATOS_EXPECT_DOUBLE_EQ(nodal_flow_map.at(4), 1 * 4.0); // only element 2 contributes
+}
+
+KRATOS_TEST_CASE_IN_SUITE(CalculateNodalWaterFlowsSkipsInactiveElements, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    auto elements = CreateTwoConnectedMockPwElements();
+    elements.back().Set(ACTIVE, false); // deactivate element 2
+
+    const auto nodal_flow_map =
+        Geo::SeepageBoundaryUtilities::CalculateNodalWaterFlows(elements, ProcessInfo{});
+
+    ASSERT_EQ(nodal_flow_map.size(), 3);
     KRATOS_EXPECT_DOUBLE_EQ(nodal_flow_map.at(1), 1 * 1.0);
-    KRATOS_EXPECT_DOUBLE_EQ(nodal_flow_map.at(2), 2 * 2.0);
-    KRATOS_EXPECT_DOUBLE_EQ(nodal_flow_map.at(3), 2 * 3.0);
-    KRATOS_EXPECT_DOUBLE_EQ(nodal_flow_map.at(4), 1 * 4.0);
+    KRATOS_EXPECT_DOUBLE_EQ(nodal_flow_map.at(2), 1 * 2.0);
+    KRATOS_EXPECT_DOUBLE_EQ(nodal_flow_map.at(3), 1 * 3.0);
+    // Node 4 is not part of any active element, so it should not appear in the map
 }
 
 KRATOS_TEST_CASE_IN_SUITE(SwitchOneSeepageNodeDoesNothingWhenNoNodeViolatesItsCondition,
