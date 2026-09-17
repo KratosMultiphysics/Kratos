@@ -96,6 +96,9 @@ class GeoMechanicsAnalysis(AnalysisStage):
             raise RuntimeError('The time step is too small!')
 
     def _RevertStateToStartOfStep(self):
+        # Note that this function does NOT revert the fixity of the nodal variables, which may lead to incorrect results
+        # when a seepage analysis attempts another cycle when the solution step did not converge. This still needs to be
+        # fixed.
         KratosMultiphysics.VariableUtils().UpdateCurrentPosition(self._GetSolver().GetComputingModelPart().Nodes, KratosMultiphysics.DISPLACEMENT,1)
         copy_nodal_solution_step_values(self._GetSolver().GetComputingModelPart(), KratosMultiphysics.DISPLACEMENT, 1, 0)
         copy_nodal_solution_step_values(self._GetSolver().GetComputingModelPart(), KratosMultiphysics.ROTATION, 1, 0)
