@@ -13,8 +13,9 @@
 #pragma once
 
 // System includes
+#include <ostream>
 #include <string>
-
+#include <vector>
 // External includes
 
 // Project includes
