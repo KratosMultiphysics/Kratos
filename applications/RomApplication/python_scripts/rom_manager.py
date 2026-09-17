@@ -9,6 +9,7 @@ from KratosMultiphysics.RomApplication.rom_testing_utilities import SetUpSimulat
 from KratosMultiphysics.RomApplication.calculate_rom_basis_output_process import CalculateRomBasisOutputProcess
 from KratosMultiphysics.RomApplication.randomized_singular_value_decomposition import RandomizedSingularValueDecomposition
 from KratosMultiphysics.RomApplication.rom_nn_interface import NN_ROM_Interface
+from KratosMultiphysics.RomApplication.rom_rbf_interface import RBF_ROM_Interface
 
 
 class RomManager(object):
@@ -54,6 +55,17 @@ class RomManager(object):
                 if any(item == "HROM" for item in training_stages):
                     err_msg = f'HROM is not available yet for ann_enhanced decoders.'
                     raise Exception(err_msg)
+            elif type_of_decoder=="rbf_enhanced":
+                if any(item == "ROM" for item in training_stages):
+                    self._LaunchTrainROM(mu_train)
+                    self._LaunchFOM(mu_validation) #What to do here with the gid and vtk results?
+                    self.TrainRbfEnhancedROM(mu_train,mu_validation)
+                    self._ChangeRomFlags(simulation_to_run = "GalerkinROM_RBF")
+                    rbf_rom_interface = RBF_ROM_Interface(mu_train, self.data_base)
+                    self._LaunchROM(mu_train, rbf_rom_interface=rbf_rom_interface)
+                if any(item == "HROM" for item in training_stages):
+                    err_msg = f'HROM is not available yet for rbf_enhanced decoders.'
+                    raise Exception(err_msg)
             elif type_of_decoder =="linear":
                 if any(item == "ROM" for item in training_stages):
                     self._LaunchTrainROM(mu_train)
@@ -81,6 +93,17 @@ class RomManager(object):
                 if any(item == "HROM" for item in training_stages):
                     err_msg = f'HROM is not available yet for ann_enhanced decoders.'
                     raise Exception(err_msg)
+            elif type_of_decoder=="rbf_enhanced":
+                if any(item == "ROM" for item in training_stages):
+                    self._LaunchTrainROM(mu_train)
+                    self._LaunchFOM(mu_validation) #What to do here with the gid and vtk results?
+                    self.TrainRbfEnhancedROM(mu_train,mu_validation)
+                    self._ChangeRomFlags(simulation_to_run = "lspg_RBF")
+                    rbf_rom_interface = RBF_ROM_Interface(mu_train, self.data_base)
+                    self._LaunchROM(mu_train, rbf_rom_interface=rbf_rom_interface)
+                if any(item == "HROM" for item in training_stages):
+                    err_msg = f'HROM is not available yet for rbf_enhanced decoders.'
+                    raise Exception(err_msg)
             elif type_of_decoder =="linear":
                 if any(item == "ROM" for item in training_stages):
                     self._LaunchTrainROM(mu_train)
@@ -101,6 +124,9 @@ class RomManager(object):
             if type_of_decoder =="ann_enhanced":
                 err_msg = f'ann_enhanced rom only available for Galerkin Rom and LSPG ROM for the moment'
                 raise Exception(err_msg)
+            elif type_of_decoder =="rbf_enhanced":
+                            err_msg = f'rbf_enhanced rom only available for Galerkin Rom and LSPG ROM for the moment'
+                            raise Exception(err_msg)
             elif type_of_decoder =="linear":
             ##########################
                 if any(item == "ROM" for item in training_stages):
@@ -137,9 +163,16 @@ class RomManager(object):
                 in_database, _ = self.data_base.check_if_in_database("Neural_Network", mu_train)
             self._LaunchTrainNeuralNetwork(mu_train,mu_validation)
 
+    def TrainRbfEnhancedROM(self, mu_train, mu_validation):
+        in_database, _ = self.data_base.check_if_in_database("RBF", mu_train)
+        if not in_database or self.general_rom_manager_parameters["ROM"]["rbf_enhanced_settings"]["training"]["retrain_if_exists"].GetBool():
+            self._LaunchTrainRBF(mu_train,mu_validation)
+
     def TestNeuralNetworkReconstruction(self, mu_train, mu_validation):
         self._LaunchTestNeuralNetworkReconstruction( mu_train, mu_validation)
 
+    def TestRBFReconstruction(self, mu_train, mu_validation):
+        self._LaunchTestRBFReconstruction(mu_train, mu_validation)
 
     def Test(self, mu_test=[None], mu_train=[None]):
         chosen_projection_strategy = self.general_rom_manager_parameters["projection_strategy"].GetString()
@@ -158,6 +191,16 @@ class RomManager(object):
                     self._LaunchROM(mu_test, gid_and_vtk_name='ROM_Test', nn_rom_interface=nn_rom_interface)
                 if any(item == "HROM" for item in testing_stages):
                     err_msg = f'HROM is not available yet for ann_enhanced decoders.'
+                    raise Exception(err_msg)
+            elif type_of_decoder =="rbf_enhanced":
+                if any(item == "ROM" for item in testing_stages):
+                    self._LoadSolutionBasis(mu_train)
+                    self._LaunchFOM(mu_test, gid_and_vtk_name='FOM_Test')
+                    self._ChangeRomFlags(simulation_to_run = "GalerkinROM_RBF")
+                    rbf_rom_interface = RBF_ROM_Interface(mu_train, self.data_base)
+                    self._LaunchROM(mu_test, gid_and_vtk_name='ROM_Test', rbf_rom_interface=rbf_rom_interface)
+                if any(item == "HROM" for item in testing_stages):
+                    err_msg = f'HROM is not available yet for rbf_enhanced decoders.'
                     raise Exception(err_msg)
             elif type_of_decoder =="linear":
                 if any(item == "ROM" for item in testing_stages):
@@ -184,6 +227,16 @@ class RomManager(object):
                     self._LaunchROM(mu_test, gid_and_vtk_name='ROM_Test', nn_rom_interface=nn_rom_interface)
                 if any(item == "HROM" for item in testing_stages):
                     err_msg = f'HROM is not available yet for ann_enhanced decoders.'
+            elif type_of_decoder =="rbf_enhanced":
+                if any(item == "ROM" for item in testing_stages):
+                    self._LoadSolutionBasis(mu_train)
+                    self._LaunchFOM(mu_test, gid_and_vtk_name='FOM_Test')
+                    self._ChangeRomFlags(simulation_to_run = "lspg_RBF")
+                    rbf_rom_interface = RBF_ROM_Interface(mu_train, self.data_base)
+                    self._LaunchROM(mu_test, gid_and_vtk_name='ROM_Test', rbf_rom_interface=rbf_rom_interface)
+                if any(item == "HROM" for item in testing_stages):
+                    err_msg = f'HROM is not available yet for rbf_enhanced decoders.'
+                    raise Exception(err_msg)
             elif type_of_decoder =="linear":
                 if any(item == "ROM" for item in testing_stages):
                     self._LoadSolutionBasis(mu_train)
@@ -227,6 +280,7 @@ class RomManager(object):
         chosen_projection_strategy = self.general_rom_manager_parameters["projection_strategy"].GetString()
         type_of_decoder = self.general_rom_manager_parameters["type_of_decoder"].GetString()
         nn_rom_interface = None
+        rbf_rom_interface = None
         self._LoadSolutionBasis(mu_train)
         #######################
         ######  Galerkin ######
@@ -234,6 +288,9 @@ class RomManager(object):
             if type_of_decoder =="ann_enhanced":
                 self._ChangeRomFlags(simulation_to_run = "GalerkinROM_ANN")
                 nn_rom_interface = NN_ROM_Interface(mu_train, self.data_base)
+            elif type_of_decoder =="rbf_enhanced":
+                self._ChangeRomFlags(simulation_to_run = "GalerkinROM_RBF")
+                rbf_rom_interface = RBF_ROM_Interface(mu_train, self.data_base)
             elif type_of_decoder =="linear":
                 self._ChangeRomFlags(simulation_to_run = "GalerkinROM")
         #######################################
@@ -242,6 +299,9 @@ class RomManager(object):
             if type_of_decoder =="ann_enhanced":
                 self._ChangeRomFlags(simulation_to_run = "lspg_ANN")
                 nn_rom_interface = NN_ROM_Interface(mu_train, self.data_base)
+            elif type_of_decoder =="rbf_enhanced":
+                self._ChangeRomFlags(simulation_to_run = "lspg_RBF")
+                rbf_rom_interface = RBF_ROM_Interface(mu_train, self.data_base)
             elif type_of_decoder =="linear":
                 self._ChangeRomFlags(simulation_to_run = "lspg")
         ##########################
@@ -250,13 +310,16 @@ class RomManager(object):
             if type_of_decoder =="ann_enhanced":
                 err_msg = f'ann_enhanced rom only available for Galerkin Rom and LSPG ROM for the moment'
                 raise Exception(err_msg)
+            elif type_of_decoder =="rbf_enhanced":
+                err_msg = f'rbf_enhanced rom only available for Galerkin Rom and LSPG ROM for the moment'
+                raise Exception(err_msg)
             elif type_of_decoder =="linear":
                 self._ChangeRomFlags(simulation_to_run = "PG")
         #########################################
         else:
             err_msg = f'Provided projection strategy {chosen_projection_strategy} is not supported. Available options are \'galerkin\', \'lspg\' and \'petrov_galerkin\'.'
             raise Exception(err_msg)
-        self._LaunchRunROM(mu_run, nn_rom_interface=nn_rom_interface)
+        self._LaunchRunROM(mu_run, nn_rom_interface=nn_rom_interface, rbf_interface=rbf_interface)
 
 
 
@@ -271,12 +334,18 @@ class RomManager(object):
             if type_of_decoder =="ann_enhanced":
                 err_msg = f'HROM only supports linear projection strategy for the moment'
                 raise Exception(err_msg)
+            elif type_of_decoder =="rbf_enhanced":
+                err_msg = f'HROM only supports linear projection strategy for the moment'
+                raise Exception(err_msg)
             elif type_of_decoder =="linear":
                 self._ChangeRomFlags(simulation_to_run = "runHROMGalerkin")
         #######################################
         ##  Least-Squares Petrov Galerkin   ###
         elif chosen_projection_strategy == "lspg":
             if type_of_decoder =="ann_enhanced":
+                err_msg = f'HROM only supports linear projection strategy for the moment'
+                raise Exception(err_msg)
+            elif type_of_decoder =="rbf_enhanced":
                 err_msg = f'HROM only supports linear projection strategy for the moment'
                 raise Exception(err_msg)
             elif type_of_decoder =="linear":
@@ -432,7 +501,7 @@ class RomManager(object):
 
 
 
-    def _LaunchROM(self, mu_train, gid_and_vtk_name='ROM_Fit', nn_rom_interface = None):
+    def _LaunchROM(self, mu_train, gid_and_vtk_name='ROM_Fit', nn_rom_interface = None, rbf_rom_interface = None):
         """
         This method should be parallel capable
         """
@@ -448,7 +517,7 @@ class RomManager(object):
                 materials_file_name = parameters_copy["solver_settings"]["material_import_settings"]["materials_filename"].GetString()
                 self.UpdateMaterialParametersFile(materials_file_name, mu)
                 model = KratosMultiphysics.Model()
-                analysis_stage_class = type(SetUpSimulationInstance(model, parameters_copy, nn_rom_interface=nn_rom_interface))
+                analysis_stage_class = type(SetUpSimulationInstance(model, parameters_copy, nn_rom_interface=nn_rom_interface, rbf_rom_interface=rbf_rom_interface))
                 simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters_copy, mu)
 
                 simulation.Run()
@@ -604,7 +673,7 @@ class RomManager(object):
             simulation.Run()
             self.QoI_Run_FOM.append(simulation.GetFinalData())
 
-    def _LaunchRunROM(self, mu_run, nn_rom_interface=None):
+    def _LaunchRunROM(self, mu_run, nn_rom_interface=None, rbf_rom_interface=None):
         """
         This method should be parallel capable
         """
@@ -617,7 +686,7 @@ class RomManager(object):
             materials_file_name = parameters_copy["solver_settings"]["material_import_settings"]["materials_filename"].GetString()
             self.UpdateMaterialParametersFile(materials_file_name, mu)
             model = KratosMultiphysics.Model()
-            analysis_stage_class = type(SetUpSimulationInstance(model, parameters_copy, nn_rom_interface=nn_rom_interface))
+            analysis_stage_class = type(SetUpSimulationInstance(model, parameters_copy, nn_rom_interface=nn_rom_interface, rbf_rom_interface=rbf_rom_interface))
             simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters_copy, mu)
             simulation.Run()
             self.QoI_Run_ROM.append(simulation.GetFinalData())
@@ -651,12 +720,23 @@ class RomManager(object):
         self.data_base.add_to_database("Neural_Network", mu_train , None)
         rom_nn_trainer.EvaluateNetwork()
 
+    def _LaunchTrainRBF(self, mu_train, mu_validation):
+        from KratosMultiphysics.RomApplication.rom_rbf_trainer import RomRBFTrainer
+        rom_rbf_trainer = RomRBFTrainer(self.general_rom_manager_parameters, mu_train, mu_validation, self.data_base)
+        rom_rbf_trainer.TrainRBF()
+        self.data_base.add_to_database("RBF", mu_train , None)
+        rom_rbf_trainer.EvaluateRBF()
 
     def _LaunchTestNeuralNetworkReconstruction(self,mu_train, mu_validation):
         RomNeuralNetworkTrainer = self._TryImportNNTrainer()
         rom_nn_trainer = RomNeuralNetworkTrainer(self.general_rom_manager_parameters, mu_train, mu_validation, self.data_base)
         rom_nn_trainer.EvaluateNetwork()
 
+    def _LaunchTestRBFReconstruction(self,mu_train, mu_validation):
+        from KratosMultiphysics.RomApplication.rom_rbf_trainer import RomRBFTrainer
+        rom_rbf_trainer = RomRBFTrainer(self.general_rom_manager_parameters, mu_train, mu_validation, self.data_base)
+        rom_rbf_trainer.EvaluateRBF()
+    
     def InitializeDummySimulationForBasisOutputProcess(self):
         with open(self.project_parameters_name,'r') as parameter_file:
             parameters = KratosMultiphysics.Parameters(parameter_file.read())
@@ -791,6 +871,16 @@ class RomManager(object):
                 f['run_hrom']=False
                 f['projection_strategy']="lspg_ann"
                 f["rom_settings"]['rom_bns_settings'] = self._SetLSPGBnSParameters()
+            elif simulation_to_run=='GalerkinROM_RBF':
+                f['train_hrom']=False
+                f['run_hrom']=False
+                f['projection_strategy']="galerkin_rbf"
+                f["rom_settings"]['rom_bns_settings'] = self._SetGalerkinBnSParameters()
+            elif simulation_to_run=='lspg_RBF':
+                f['train_hrom']=False
+                f['run_hrom']=False
+                f['projection_strategy']="lspg_rbf"
+                f["rom_settings"]['rom_bns_settings'] = self._SetLSPGBnSParameters()
             else:
                 raise Exception(f'Unknown flag "{simulation_to_run}" change for RomParameters.json')
             parameter_file.seek(0)
@@ -923,6 +1013,7 @@ class RomManager(object):
                 "rom_basis_output_folder": "rom_data",
                 "snapshots_control_type": "step",                          // "step", "time"
                 "snapshots_interval": 1,
+                "snapshots_control_is_periodic": true,
                 "print_singular_values": false,
                 "use_non_converged_sols" : false,
                 "galerkin_rom_bns_settings": {
@@ -955,6 +1046,13 @@ class RomManager(object):
                     },
                     "online":{
                         "model_number": 0   // out of the models existing for the same parameters, this is the model that will be lauched
+                    }
+                },
+                "rbf_enhanced_settings": {
+                    "modes":[5,50],
+                    "rbf_solver": "svd",   // Available options: "svd" and "ridge"
+                    "training":{
+                        "retrain_if_exists" : false  // If false only one model will be trained for each mu_train and RBF hyperparameters combination
                     }
                 }
             },
@@ -1047,7 +1145,8 @@ class RomManager(object):
             "rom_basis_output_folder",
             "nodal_unknowns",
             "snapshots_interval",
-            "print_singular_values"
+            "print_singular_values",
+            "snapshots_control_is_periodic"
         ]
 
         for key in keys_to_copy:
@@ -1082,6 +1181,7 @@ class RomManager(object):
                     "rom_manager" : false,      // set to false for manual manipulation of ROM via flags in the RomParameters
                     "snapshots_control_type": "step",
                     "snapshots_interval": 1.0,
+                    "snapshots_control_is_periodic": true,
                     "nodal_unknowns":  [],
                     "rom_basis_output_format": "json",
                     "rom_basis_output_name": "RomParameters",
