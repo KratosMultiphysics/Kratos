@@ -94,6 +94,39 @@ void MockPwElementForSeepageTests::CalculateRightHandSide(VectorType& rRightHand
     }
 }
 
+// Creates two triangular mock elements sharing an edge, with WATER_PRESSURE DoFs on each node.
+
+//   3      4
+//   *------*
+//   | \    |
+//   |   \  |
+//   |     \|
+//   *------*
+//   1      2
+auto CreateTwoConnectedMockPwElements()
+{
+    const auto nodal_positions = std::vector{Point{0.0, 0.0, 0.0}, Point{1.0, 0.0, 0.0},
+                                             Point{0.0, 1.0, 0.0}, Point{1.0, 1.0, 0.0}};
+    const auto nodes           = Testing::ElementSetupUtilities::GenerateNodes(nodal_positions);
+
+    auto p_variable_list = make_intrusive<VariablesList>();
+    p_variable_list->Add(WATER_PRESSURE);
+    for (auto& r_node : nodes) {
+        r_node.SetSolutionStepVariablesList(p_variable_list);
+        r_node.AddDof(WATER_PRESSURE);
+    }
+
+    const auto nodes_of_element_1 =
+        std::vector{nodes.GetContainer()[0], nodes.GetContainer()[1], nodes.GetContainer()[2]};
+    const auto nodes_of_element_2 =
+        std::vector{nodes.GetContainer()[1], nodes.GetContainer()[3], nodes.GetContainer()[2]};
+
+    auto result = ModelPart::ElementsContainerType{};
+    result.push_back(make_intrusive<MockPwElementForSeepageTests>(nodes_of_element_1));
+    result.push_back(make_intrusive<MockPwElementForSeepageTests>(nodes_of_element_2));
+    return result;
+}
+
 } // namespace
 
 namespace Kratos::Testing
@@ -184,25 +217,7 @@ KRATOS_TEST_CASE_IN_SUITE(AccumulateWaterPressureEntriesSumsContributionsFromSev
 KRATOS_TEST_CASE_IN_SUITE(CalculateNodalWaterFlowsSumsRHSContributionsFromSeveralElements,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    const auto nodal_positions = std::vector{Point{0.0, 0.0, 0.0}, Point{1.0, 0.0, 0.0},
-                                             Point{0.0, 1.0, 0.0}, Point{1.0, 1.0, 0.0}};
-    const auto nodes           = ElementSetupUtilities::GenerateNodes(nodal_positions);
-
-    auto p_variable_list = make_intrusive<VariablesList>();
-    p_variable_list->Add(WATER_PRESSURE);
-    for (auto& r_node : nodes) {
-        r_node.SetSolutionStepVariablesList(p_variable_list);
-        r_node.AddDof(WATER_PRESSURE);
-    }
-
-    const auto nodes_of_element_1 =
-        std::vector{nodes.GetContainer()[0], nodes.GetContainer()[1], nodes.GetContainer()[2]};
-    const auto nodes_of_element_2 =
-        std::vector{nodes.GetContainer()[1], nodes.GetContainer()[3], nodes.GetContainer()[2]};
-
-    auto elements = ModelPart::ElementsContainerType{};
-    elements.push_back(make_intrusive<MockPwElementForSeepageTests>(nodes_of_element_1));
-    elements.push_back(make_intrusive<MockPwElementForSeepageTests>(nodes_of_element_2));
+    auto elements = CreateTwoConnectedMockPwElements();
 
     const auto nodal_flow_map =
         Geo::SeepageBoundaryUtilities::CalculateNodalWaterFlows(elements, ProcessInfo{});
