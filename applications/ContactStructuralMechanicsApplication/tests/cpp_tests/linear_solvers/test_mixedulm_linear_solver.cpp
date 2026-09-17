@@ -32,6 +32,7 @@
 #include "linear_solvers/linear_solver.h"
 #include "linear_solvers/skyline_lu_factorization_solver.h"
 #include "linear_solvers/amgcl_solver.h"
+#include "linear_solvers/fallback_linear_solver.h"
 #include "custom_linear_solvers/mixedulm_linear_solver.h"
 
 namespace Kratos::Testing
@@ -48,6 +49,7 @@ using AMGCLSolverType = AMGCLSolver<SparseSpaceType, LocalSpaceType>;
 using SkylineLUFactorizationSolverType = SkylineLUFactorizationSolver<SparseSpaceType, LocalSpaceType, ReordererType>;
 using PreconditionerType = Preconditioner<SparseSpaceType, LocalSpaceType>;
 using MixedULMLinearSolverType = MixedULMLinearSolver<SparseSpaceType, LocalSpaceType, PreconditionerType, ReordererType>;
+using FallbackLinearSolverType = FallbackLinearSolver<SparseSpaceType, LocalSpaceType, ReordererType>;
 
 // Dof arrays
 using DofsArrayType = ModelPart::DofsArrayType;
@@ -1009,4 +1011,275 @@ KRATOS_TEST_CASE_IN_SUITE(MixedULMLinearSolverRealSystem, KratosContactStructura
         KRATOS_EXPECT_VECTOR_NEAR(Dx, ref_Dx, tolerance);
     }
 }
+
+/**
+* @brief Sets up the model part of the real system used by the dual LM validity tests
+* @details Same layout as MixedULMLinearSolverRealSystem: nodes 2 and 3 are active slaves carrying the LM,
+* nodes 4 and 5 are masters. The resulting DoF set is returned through rDoFs/rDofTemp.
+*/
+void SetUpRealSystemModelPart(
+    ModelPart& rModelPart,
+    std::vector<Dof<double>::Pointer>& rDoFs,
+    DofsArrayType& rDofTemp
+    )
+{
+    rModelPart.AddNodalSolutionStepVariable(DISPLACEMENT);
+    rModelPart.AddNodalSolutionStepVariable(VECTOR_LAGRANGE_MULTIPLIER);
+
+    Node::Pointer pnode1 = rModelPart.CreateNewNode(1, 0.0, 0.0, 0.0);
+    Node::Pointer pnode2 = rModelPart.CreateNewNode(2, 0.0, 0.0, 0.0);
+    pnode2->Set(INTERFACE, true);
+    pnode2->Set(ACTIVE, true);
+    pnode2->Set(MASTER, false);
+    pnode2->Set(SLAVE, true);
+    Node::Pointer pnode3 = rModelPart.CreateNewNode(3, 0.0, 0.0, 0.0);
+    pnode3->Set(INTERFACE, true);
+    pnode3->Set(ACTIVE, true);
+    pnode3->Set(MASTER, false);
+    pnode3->Set(SLAVE, true);
+    Node::Pointer pnode4 = rModelPart.CreateNewNode(4, 0.0, 0.0, 0.0);
+    pnode4->Set(INTERFACE, true);
+    pnode4->Set(MASTER, true);
+    pnode4->Set(SLAVE, false);
+    Node::Pointer pnode5 = rModelPart.CreateNewNode(5, 0.0, 0.0, 0.0);
+    pnode5->Set(INTERFACE, true);
+    pnode5->Set(MASTER, true);
+    pnode5->Set(SLAVE, false);
+    Node::Pointer pnode6 = rModelPart.CreateNewNode(6, 0.0, 0.0, 0.0);
+
+    pnode1->AddDof(DISPLACEMENT_X);
+    pnode1->AddDof(DISPLACEMENT_Y);
+    pnode2->AddDof(DISPLACEMENT_X);
+    pnode2->AddDof(DISPLACEMENT_Y);
+    pnode2->AddDof(VECTOR_LAGRANGE_MULTIPLIER_X);
+    pnode2->AddDof(VECTOR_LAGRANGE_MULTIPLIER_Y);
+    pnode3->AddDof(DISPLACEMENT_X);
+    pnode3->AddDof(DISPLACEMENT_Y);
+    pnode3->AddDof(VECTOR_LAGRANGE_MULTIPLIER_X);
+    pnode3->AddDof(VECTOR_LAGRANGE_MULTIPLIER_Y);
+    pnode4->AddDof(DISPLACEMENT_X);
+    pnode4->AddDof(DISPLACEMENT_Y);
+    pnode5->AddDof(DISPLACEMENT_X);
+    pnode5->AddDof(DISPLACEMENT_Y);
+    pnode6->AddDof(DISPLACEMENT_X);
+    pnode6->AddDof(DISPLACEMENT_Y);
+
+    rDoFs.reserve(16);
+    rDoFs.push_back(pnode1->pGetDof(DISPLACEMENT_X));
+    rDoFs.push_back(pnode1->pGetDof(DISPLACEMENT_Y));
+    rDoFs.push_back(pnode2->pGetDof(DISPLACEMENT_X));
+    rDoFs.push_back(pnode2->pGetDof(DISPLACEMENT_Y));
+    rDoFs.push_back(pnode2->pGetDof(VECTOR_LAGRANGE_MULTIPLIER_X));
+    rDoFs.push_back(pnode2->pGetDof(VECTOR_LAGRANGE_MULTIPLIER_Y));
+    rDoFs.push_back(pnode3->pGetDof(DISPLACEMENT_X));
+    rDoFs.push_back(pnode3->pGetDof(DISPLACEMENT_Y));
+    rDoFs.push_back(pnode3->pGetDof(VECTOR_LAGRANGE_MULTIPLIER_X));
+    rDoFs.push_back(pnode3->pGetDof(VECTOR_LAGRANGE_MULTIPLIER_Y));
+    rDoFs.push_back(pnode4->pGetDof(DISPLACEMENT_X));
+    rDoFs.push_back(pnode4->pGetDof(DISPLACEMENT_Y));
+    rDoFs.push_back(pnode5->pGetDof(DISPLACEMENT_X));
+    rDoFs.push_back(pnode5->pGetDof(DISPLACEMENT_Y));
+    rDoFs.push_back(pnode6->pGetDof(DISPLACEMENT_X));
+    rDoFs.push_back(pnode6->pGetDof(DISPLACEMENT_Y));
+
+    // Set initial solution
+    (pnode1->FastGetSolutionStepValue(DISPLACEMENT)).clear();
+    (pnode2->FastGetSolutionStepValue(DISPLACEMENT)).clear();
+    (pnode2->FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER)).clear();
+    (pnode3->FastGetSolutionStepValue(DISPLACEMENT)).clear();
+    (pnode3->FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER)).clear();
+    (pnode4->FastGetSolutionStepValue(DISPLACEMENT)).clear();
+    (pnode5->FastGetSolutionStepValue(DISPLACEMENT)).clear();
+    (pnode6->FastGetSolutionStepValue(DISPLACEMENT)).clear();
+
+    rDofTemp.reserve(rDoFs.size());
+    for (auto it = rDoFs.begin(); it != rDoFs.end(); it++)
+        rDofTemp.push_back( *it );
+}
+
+/**
+* @brief Reads the real system dumped from an actual contact problem
+* @return True if both the matrix and the vector could be read
+*/
+bool ReadRealSystem(
+    CompressedMatrix& rA,
+    Vector& rB
+    )
+{
+    CreateAuxiliaryFiles();
+    std::filesystem::path file_path_a = std::filesystem::current_path() / "A_testing_condensation.mm";
+    const bool read_a = Kratos::ReadMatrixMarketMatrix(file_path_a.string().c_str(), rA);
+    std::filesystem::path file_path_b = std::filesystem::current_path() / "b_testing_condensation.rhs";
+    const bool read_b = Kratos::ReadMatrixMarketVector(file_path_b.string().c_str(), rB);
+
+    // Removing files
+    std::filesystem::remove(file_path_a);
+    std::filesystem::remove(file_path_b);
+
+    return read_a && read_b;
+}
+
+/**
+* @brief Breaks the duality of the mortar operator D of the real system
+* @details Global DoF 7 (the Y displacement of the active slave node 3) is coupled with global DoF 5 (the Y
+* Lagrange multiplier of the active slave node 2). In the dual LM formulation the biorthogonality of the dual
+* shape functions makes D couple a node only with its OWN Lagrange multiplier, so a coupling between two
+* different nodes is exactly what appears when the mortar cut is too distorted for the dual shape functions to be
+* built and Ae falls back to the identity. Note this is not the same as the nodal sub-block being non diagonal,
+* which happens legitimately in a frictional formulation. Both entries already exist in the sparsity pattern
+* (stored as explicit zeros), so no reallocation takes place.
+*/
+void BreakDualLagrangeMultiplier(CompressedMatrix& rA)
+{
+    constexpr double off_diagonal_value = -5.0e10; // Roughly half of the diagonal entry, -1.0345e+11
+    rA(7, 5) = off_diagonal_value;
+    rA(5, 7) = off_diagonal_value;
+}
+
+/**
+* Checks that the MixedULM solver reports success, and a valid condensation, on a well posed dual LM system
+*/
+KRATOS_TEST_CASE_IN_SUITE(MixedULMLinearSolverValidDualLM, KratosContactStructuralMechanicsFastSuite)
+{
+    Model this_model;
+    ModelPart& r_model_part = this_model.CreateModelPart("Main", 3);
+
+    LinearSolverType::Pointer psolver = LinearSolverType::Pointer( new SkylineLUFactorizationSolverType() );
+    MixedULMLinearSolverType::Pointer pmixed_solver = Kratos::make_shared<MixedULMLinearSolverType>(psolver);
+
+    std::vector< Dof<double>::Pointer > DoF;
+    DofsArrayType Doftemp;
+    SetUpRealSystemModelPart(r_model_part, DoF, Doftemp);
+
+    const std::size_t system_size = 16;
+    CompressedMatrix A(system_size, system_size);
+    Vector Dx = ZeroVector(system_size);
+    Vector b = ZeroVector(system_size);
+
+    if (ReadRealSystem(A, b)) {
+        pmixed_solver->ProvideAdditionalData(A, Dx, b, Doftemp, r_model_part);
+        const bool solved = pmixed_solver->Solve(A, Dx, b);
+
+        // The system comes from an actual contact problem, so the condensation must hold
+        KRATOS_EXPECT_TRUE(pmixed_solver->IsDualLMValid());
+        KRATOS_EXPECT_TRUE(solved);
+    }
+}
+
+/**
+* Checks that the MixedULM solver detects a mortar operator D that is no longer diagonal and reports failure
+*/
+KRATOS_TEST_CASE_IN_SUITE(MixedULMLinearSolverDetectsBrokenDualLM, KratosContactStructuralMechanicsFastSuite)
+{
+    Model this_model;
+    ModelPart& r_model_part = this_model.CreateModelPart("Main", 3);
+
+    LinearSolverType::Pointer psolver = LinearSolverType::Pointer( new SkylineLUFactorizationSolverType() );
+    MixedULMLinearSolverType::Pointer pmixed_solver = Kratos::make_shared<MixedULMLinearSolverType>(psolver);
+
+    std::vector< Dof<double>::Pointer > DoF;
+    DofsArrayType Doftemp;
+    SetUpRealSystemModelPart(r_model_part, DoF, Doftemp);
+
+    const std::size_t system_size = 16;
+    CompressedMatrix A(system_size, system_size);
+    Vector Dx = ZeroVector(system_size);
+    Vector b = ZeroVector(system_size);
+
+    if (ReadRealSystem(A, b)) {
+        BreakDualLagrangeMultiplier(A);
+
+        pmixed_solver->ProvideAdditionalData(A, Dx, b, Doftemp, r_model_part);
+        const bool solved = pmixed_solver->Solve(A, Dx, b);
+
+        // The condensation does not hold any more, so the solver must say so instead of returning garbage
+        KRATOS_EXPECT_FALSE(pmixed_solver->IsDualLMValid());
+        KRATOS_EXPECT_FALSE(solved);
+
+        // No solution may have been written, otherwise a wrong result would silently be used
+        const Vector zero_reference = ZeroVector(system_size);
+        KRATOS_EXPECT_VECTOR_NEAR(Dx, zero_reference, std::numeric_limits<double>::epsilon());
+    }
+}
+
+/**
+* Checks that the check can be switched off, recovering the legacy behaviour
+*/
+KRATOS_TEST_CASE_IN_SUITE(MixedULMLinearSolverBrokenDualLMCheckDisabled, KratosContactStructuralMechanicsFastSuite)
+{
+    Model this_model;
+    ModelPart& r_model_part = this_model.CreateModelPart("Main", 3);
+
+    Parameters parameters = Parameters(R"({"check_dual_lm_condensation" : false})");
+    LinearSolverType::Pointer psolver = LinearSolverType::Pointer( new SkylineLUFactorizationSolverType() );
+    MixedULMLinearSolverType::Pointer pmixed_solver = Kratos::make_shared<MixedULMLinearSolverType>(psolver, parameters);
+
+    std::vector< Dof<double>::Pointer > DoF;
+    DofsArrayType Doftemp;
+    SetUpRealSystemModelPart(r_model_part, DoF, Doftemp);
+
+    const std::size_t system_size = 16;
+    CompressedMatrix A(system_size, system_size);
+    Vector Dx = ZeroVector(system_size);
+    Vector b = ZeroVector(system_size);
+
+    if (ReadRealSystem(A, b)) {
+        BreakDualLagrangeMultiplier(A);
+
+        pmixed_solver->ProvideAdditionalData(A, Dx, b, Doftemp, r_model_part);
+        pmixed_solver->Solve(A, Dx, b);
+
+        // The check is disabled, so the condensation is performed regardless
+        KRATOS_EXPECT_TRUE(pmixed_solver->IsDualLMValid());
+    }
+}
+
+/**
+* Checks that a FallbackLinearSolver recovers the right solution when the dual LM condensation is not valid
+*/
+KRATOS_TEST_CASE_IN_SUITE(MixedULMLinearSolverFallback, KratosContactStructuralMechanicsFastSuite)
+{
+    constexpr double tolerance = 1e-3;
+
+    Model this_model;
+    ModelPart& r_model_part = this_model.CreateModelPart("Main", 3);
+
+    LinearSolverType::Pointer psolver = LinearSolverType::Pointer( new SkylineLUFactorizationSolverType() );
+    MixedULMLinearSolverType::Pointer pmixed_solver = Kratos::make_shared<MixedULMLinearSolverType>(psolver);
+
+    // The fallback solver must be an independent instance, psolver is already owned by the mixed solver
+    LinearSolverType::Pointer pfallback_solver = LinearSolverType::Pointer( new SkylineLUFactorizationSolverType() );
+
+    // reset_solver_each_try is what makes the condensation be retried on every solve
+    Parameters fallback_parameters = Parameters(R"({"reset_solver_each_try" : true})");
+    std::vector<LinearSolverType::Pointer> solvers = {pmixed_solver, pfallback_solver};
+    FallbackLinearSolverType fallback_solver(solvers, fallback_parameters);
+
+    std::vector< Dof<double>::Pointer > DoF;
+    DofsArrayType Doftemp;
+    SetUpRealSystemModelPart(r_model_part, DoF, Doftemp);
+
+    const std::size_t system_size = 16;
+    CompressedMatrix A(system_size, system_size);
+    Vector ref_Dx = ZeroVector(system_size);
+    Vector Dx = ZeroVector(system_size);
+    Vector b = ZeroVector(system_size);
+
+    if (ReadRealSystem(A, b)) {
+        BreakDualLagrangeMultiplier(A);
+
+        // The reference solution of the full, non-condensed system
+        LinearSolverType::Pointer preference_solver = LinearSolverType::Pointer( new SkylineLUFactorizationSolverType() );
+        preference_solver->Solve(A, ref_Dx, b);
+
+        fallback_solver.ProvideAdditionalData(A, Dx, b, Doftemp, r_model_part);
+        const bool solved = fallback_solver.Solve(A, Dx, b);
+
+        // The mixed solver rejects the system, so the second solver of the list is the one that solves it
+        KRATOS_EXPECT_TRUE(solved);
+        KRATOS_EXPECT_EQ(fallback_solver.GetCurrentSolverIndex(), 1);
+        KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(Dx, ref_Dx, tolerance);
+    }
+}
+
 } // namespace Kratos::Testing

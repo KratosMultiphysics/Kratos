@@ -564,7 +564,6 @@ namespace Kratos
         // Perform yz polygon intersection to determine depth and z-position of sub-point
         // local x = global y
         // local y = global z
-        array_1d<double, 2> sub_point_z_coord = ZeroVector(2);
         bool is_initialized = false;
         double min_z = 0.0;
         double max_z = 0.0;
