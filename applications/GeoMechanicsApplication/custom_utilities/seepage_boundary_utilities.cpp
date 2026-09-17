@@ -12,7 +12,6 @@
 
 #include <algorithm>
 #include <functional>
-#include <ranges>
 #include <set>
 
 #include "custom_conditions/geo_seepage_condition.h"
