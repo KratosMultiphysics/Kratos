@@ -73,7 +73,17 @@ class LinkConstraintProcess(KratosMultiphysics.Process):
         # nodes in the root model part by the number of DoFs nodes have. Since fetching
         # DoFs from nodes is not exposed to python, the next best thing is fetching
         # historical variables.
-        dofs_per_node: int = len(self.__model_part.GetHistoricalVariablesNames())
+        dofs_per_node: int = 0
+        kernel: KratosMultiphysics.Kernel = KratosMultiphysics.Kernel()
+        for variable_name in self.__model_part.GetHistoricalVariablesNames():
+            if kernel.HasDoubleVariable(variable_name):
+                dofs_per_node += 1
+            elif kernel.HasArrayVariable(variable_name):
+                dofs_per_node += 3
+            else:
+                raise RuntimeError(f"unhandled variable \"{variable_name}\"")
+
+        len(self.__model_part.GetHistoricalVariablesNames())
         node_count: int = len(self.__model_part.GetRootModelPart().Nodes)
         max_dofs: int = self.__model_part.GetCommunicator().GetDataCommunicator().SumAll(dofs_per_node * node_count)
 
