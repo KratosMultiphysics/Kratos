@@ -9,6 +9,12 @@ class MeshioInputModeler(KratosMultiphysics.Modeler):
     extension of "input_filename" when it is "auto". Query the formats
     available in this build with
     KratosMeshioPlusPlus.MeshioPlusPlusIO.GetSupportedReadFormats().
+
+    "time_step" (default 0, negative counts from the end) selects one step of a
+    multi-step file for the formats meshio++ reads selectively; "lenient"
+    (default false) downgrades an unrepresentable mdpa/med construct to a
+    warning instead of an error; "openfoam_region" (default "") selects one
+    region of a multi-region OpenFOAM case. See MeshioPlusPlusIO.ReadModelPart.
     """
 
     def __init__(self, model, settings):
@@ -37,6 +43,9 @@ class MeshioInputModeler(KratosMultiphysics.Modeler):
         # Note that at this point solvers must have already added the variables to the nodal variable data
         io_settings = KratosMultiphysics.Parameters("""{}""")
         io_settings.AddString("format", self.settings["input_format"].GetString())
+        io_settings.AddInt("time_step", self.settings["time_step"].GetInt())
+        io_settings.AddBool("lenient", self.settings["lenient"].GetBool())
+        io_settings.AddString("openfoam_region", self.settings["openfoam_region"].GetString())
         meshio_io = KratosMeshioPlusPlus.MeshioPlusPlusIO(
             self.settings["input_filename"].GetString(),
             io_settings)
@@ -51,10 +60,13 @@ class MeshioInputModeler(KratosMultiphysics.Modeler):
     @classmethod
     def __GetDefaultSettings(cls):
         default_settings = KratosMultiphysics.Parameters('''{
-            "echo_level"      : 0,
-            "input_filename"  : "",
-            "input_format"    : "auto",
-            "model_part_name" : ""
+            "echo_level"       : 0,
+            "input_filename"   : "",
+            "input_format"     : "auto",
+            "model_part_name"  : "",
+            "time_step"        : 0,
+            "lenient"          : false,
+            "openfoam_region"  : ""
         }''')
         return default_settings
 
