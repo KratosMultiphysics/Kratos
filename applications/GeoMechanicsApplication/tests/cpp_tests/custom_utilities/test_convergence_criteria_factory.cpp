@@ -14,45 +14,123 @@
 #include "spaces/ublas_space.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
 
+#include <string>
+
 using namespace Kratos;
 using SparseSpaceType                = UblasSpace<double, CompressedMatrix, Vector>;
 using LocalSpaceType                 = UblasSpace<double, Matrix, Vector>;
 using ConvergenceCriteriaFactoryType = ConvergenceCriteriaFactory<SparseSpaceType, LocalSpaceType>;
+using DisplacementCriterionType      = ConvergenceCriteriaFactoryType::DisplacementCriterionType;
+using ResidualCriterionType          = ConvergenceCriteriaFactoryType::ResidualCriterionType;
+using AndCriterionType               = ConvergenceCriteriaFactoryType::AndCriterionType;
+using OrCriterionType                = ConvergenceCriteriaFactoryType::OrCriterionType;
+using WaterPressureCriterionType     = ConvergenceCriteriaFactoryType::MixedGenericCriterionType;
+using DisplacementAndWaterPressureCriterionType = AndCriterionType;
+
+using namespace std::string_literals;
 
 namespace Kratos::Testing
 {
 
-KRATOS_TEST_CASE_IN_SUITE(Create_ReturnsCorrectConvergenceCriteria_ForDisplacement, KratosGeoMechanicsFastSuiteWithoutKernel)
-{
-    const std::string valid_parameters = R"(
-    {
-        "convergence_criterion":              "displacement_criterion",
-        "displacement_relative_tolerance":    1.0E-4,
-        "displacement_absolute_tolerance":    1.0E-9
-    }
-    )";
+struct CreateDisplacementCriterionTest {
+    using CriterionType = DisplacementCriterionType;
+    static const std::string CriterionDefinition;
+};
 
-    const auto convergence_criteria = ConvergenceCriteriaFactoryType::Create(Parameters{valid_parameters});
-    const auto displacement_criterion =
-        dynamic_cast<const DisplacementCriteria<SparseSpaceType, LocalSpaceType>*>(
-            convergence_criteria.get());
-    KRATOS_EXPECT_NE(displacement_criterion, nullptr);
+const std::string CreateDisplacementCriterionTest::CriterionDefinition = R"(
+{
+    "convergence_criterion": "displacement_criterion",
+    "displacement_relative_tolerance": 1.0E-4,
+    "displacement_absolute_tolerance": 1.0E-9
 }
+)"s;
 
-KRATOS_TEST_CASE_IN_SUITE(Create_ReturnsCorrectConvergenceCriteria_ForResidual, KratosGeoMechanicsFastSuiteWithoutKernel)
+struct CreateResidualCriterionTest {
+    using CriterionType = ResidualCriterionType;
+    static const std::string CriterionDefinition;
+};
+
+const std::string CreateResidualCriterionTest::CriterionDefinition = R"(
 {
-    const std::string valid_parameters = R"(
-    {
-        "convergence_criterion":          "residual_criterion",
-        "residual_relative_tolerance":    1.0E-4,
-        "residual_absolute_tolerance":    1.0E-9
-    }
-    )";
+    "convergence_criterion": "residual_criterion",
+    "residual_relative_tolerance": 1.0E-4,
+    "residual_absolute_tolerance": 1.0E-9
+}
+)"s;
 
-    const auto convergence_criteria = ConvergenceCriteriaFactoryType::Create(Parameters{valid_parameters});
-    const auto residual_criterion =
-        dynamic_cast<const ResidualCriteria<SparseSpaceType, LocalSpaceType>*>(convergence_criteria.get());
-    KRATOS_EXPECT_NE(residual_criterion, nullptr);
+struct CreateAndCriterionTest {
+    using CriterionType = AndCriterionType;
+    static const std::string CriterionDefinition;
+};
+
+const std::string CreateAndCriterionTest::CriterionDefinition = R"(
+{
+    "convergence_criterion": "and_criterion",
+    "displacement_relative_tolerance": 1.0E-4,
+    "displacement_absolute_tolerance": 1.0E-9,
+    "residual_relative_tolerance": 1.0E-4,
+    "residual_absolute_tolerance": 1.0E-9
+}
+)"s;
+
+struct CreateOrCriterionTest {
+    using CriterionType = OrCriterionType;
+    static const std::string CriterionDefinition;
+};
+
+const std::string CreateOrCriterionTest::CriterionDefinition = R"(
+{
+    "convergence_criterion": "or_criterion",
+    "displacement_relative_tolerance": 1.0E-4,
+    "displacement_absolute_tolerance": 1.0E-9,
+    "residual_relative_tolerance": 1.0E-4,
+    "residual_absolute_tolerance": 1.0E-9
+}
+)"s;
+
+struct CreateWaterPressureCriterionTest {
+    using CriterionType = WaterPressureCriterionType;
+    static const std::string CriterionDefinition;
+};
+
+const std::string CreateWaterPressureCriterionTest::CriterionDefinition = R"(
+{
+    "convergence_criterion": "water_pressure_criterion",
+    "water_pressure_relative_tolerance": 1.0E-4,
+    "water_pressure_absolute_tolerance": 1.0E-9
+}
+)"s;
+
+struct CreateDisplacementAndWaterPressureCriterionTest {
+    using CriterionType = DisplacementAndWaterPressureCriterionType;
+    static const std::string CriterionDefinition;
+};
+
+const std::string CreateDisplacementAndWaterPressureCriterionTest::CriterionDefinition = R"(
+{
+    "convergence_criterion": "displacement_and_water_pressure_criterion",
+    "displacement_relative_tolerance": 1.0E-4,
+    "displacement_absolute_tolerance": 1.0E-9,
+    "water_pressure_relative_tolerance": 1.0E-4,
+    "water_pressure_absolute_tolerance": 1.0E-9
+}
+)"s;
+
+template <typename T>
+class CreateConvergenceCriterionTest : public testing::Test
+{
+};
+
+using CreateConvergenceCriterionTestTypes =
+    ::testing::Types<CreateDisplacementCriterionTest, CreateResidualCriterionTest, CreateAndCriterionTest, CreateOrCriterionTest, CreateWaterPressureCriterionTest, CreateDisplacementAndWaterPressureCriterionTest>;
+TYPED_TEST_SUITE(CreateConvergenceCriterionTest, CreateConvergenceCriterionTestTypes);
+
+TYPED_TEST(CreateConvergenceCriterionTest, ConvergenceCriteriaFactoryProducesDefinedCriterionType)
+{
+    const auto p_convergence_criterion =
+        ConvergenceCriteriaFactoryType::Create(Parameters{TypeParam::CriterionDefinition});
+    KRATOS_EXPECT_NE(
+        dynamic_cast<const typename TypeParam::CriterionType*>(p_convergence_criterion.get()), nullptr);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(Create_Throws_WhenConvergenceCriterionDoesNotExist,
@@ -63,9 +141,7 @@ KRATOS_TEST_CASE_IN_SUITE(Create_Throws_WhenConvergenceCriterionDoesNotExist,
 KRATOS_TEST_CASE_IN_SUITE(Create_Throws_WhenConvergenceCriterionIsUnknown, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     const auto invalid_parameters = Parameters{R"({"convergence_criterion" : "something_unknown" })"};
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(ConvergenceCriteriaFactoryType::Create(invalid_parameters),
-                                      "The convergence_criterion (something_unknown) is unknown, "
-                                      "supported criteria are: 'displacement_criterion'")
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(ConvergenceCriteriaFactoryType::Create(invalid_parameters), "The convergence_criterion (something_unknown) is unknown, supported criteria are: and_criterion, displacement_and_water_pressure_criterion, displacement_criterion, or_criterion, residual_criterion, water_pressure_criterion");
 }
 
 } // namespace Kratos::Testing

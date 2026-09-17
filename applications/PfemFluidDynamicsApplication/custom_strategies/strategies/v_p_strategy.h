@@ -128,6 +128,7 @@ namespace Kratos
         for (ModelPart::ElementIterator itElem = ElemBegin; itElem != ElemEnd; ++itElem)
         {
           unsigned int numNodes = itElem->GetGeometry().size();
+          const auto &r_geometry = itElem->GetGeometry();
           std::vector<array_1d<double, 3>> nodesCoordinates;
           nodesCoordinates.resize(numNodes);
 
@@ -140,20 +141,20 @@ namespace Kratos
           unsigned int isolatedNodes = 0;
           for (unsigned int i = 0; i < numNodes; i++)
           {
-            if (itElem->GetGeometry()[i].Is(FREE_SURFACE))
+            if (r_geometry[i].Is(FREE_SURFACE))
             {
               freeSurfaceNodes++;
-              if (itElem->GetGeometry()[i].Is(RIGID))
+              if (r_geometry[i].Is(RIGID))
               {
                 freeSurfaceRigidNodes++;
               }
             }
-            else if (itElem->GetGeometry()[i].Is(RIGID))
+            else if (r_geometry[i].Is(RIGID))
             {
               rigidNodes++;
             }
-            nodesCoordinates[i] = itElem->GetGeometry()[i].Coordinates();
-            ElementWeakPtrVectorType &neighb_elems = itElem->GetGeometry()[i].GetValue(NEIGHBOUR_ELEMENTS);
+            nodesCoordinates[i] = r_geometry[i].Coordinates();
+            const ElementWeakPtrVectorType& neighb_elems =  r_geometry[i].GetValue(NEIGHBOUR_ELEMENTS);
             if (neighb_elems.size() == 1)
             {
               isolatedNodes++;
@@ -186,13 +187,18 @@ namespace Kratos
             a4 = (nodesCoordinates[0][1] - nodesCoordinates[2][1]) * (nodesCoordinates[3][2] - nodesCoordinates[2][2]) - (nodesCoordinates[3][1] - nodesCoordinates[2][1]) * (nodesCoordinates[0][2] - nodesCoordinates[2][2]);
             b4 = (nodesCoordinates[0][2] - nodesCoordinates[2][2]) * (nodesCoordinates[3][0] - nodesCoordinates[2][0]) - (nodesCoordinates[3][2] - nodesCoordinates[2][2]) * (nodesCoordinates[0][0] - nodesCoordinates[2][0]);
             c4 = (nodesCoordinates[0][0] - nodesCoordinates[2][0]) * (nodesCoordinates[3][1] - nodesCoordinates[2][1]) - (nodesCoordinates[3][0] - nodesCoordinates[2][0]) * (nodesCoordinates[0][1] - nodesCoordinates[2][1]);
+            
+            const double norm1 = std::sqrt(a1 * a1 + b1 * b1 + c1 * c1);
+            const double norm2 = std::sqrt(a2 * a2 + b2 * b2 + c2 * c2);
+            const double norm3 = std::sqrt(a3 * a3 + b3 * b3 + c3 * c3);
+            const double norm4 = std::sqrt(a4 * a4 + b4 * b4 + c4 * c4);
 
-            double cosAngle12 = (a1 * a2 + b1 * b2 + c1 * c2) / (sqrt(pow(a1, 2) + pow(b1, 2) + pow(c1, 2)) * sqrt(pow(a2, 2) + pow(b2, 2) + pow(c2, 2)));
-            double cosAngle13 = (a1 * a3 + b1 * b3 + c1 * c3) / (sqrt(pow(a1, 2) + pow(b1, 2) + pow(c1, 2)) * sqrt(pow(a3, 2) + pow(b3, 2) + pow(c3, 2)));
-            double cosAngle14 = (a1 * a4 + b1 * b4 + c1 * c4) / (sqrt(pow(a1, 2) + pow(b1, 2) + pow(c1, 2)) * sqrt(pow(a4, 2) + pow(b4, 2) + pow(c4, 2)));
-            double cosAngle23 = (a3 * a2 + b3 * b2 + c3 * c2) / (sqrt(pow(a3, 2) + pow(b3, 2) + pow(c3, 2)) * sqrt(pow(a2, 2) + pow(b2, 2) + pow(c2, 2)));
-            double cosAngle24 = (a4 * a2 + b4 * b2 + c4 * c2) / (sqrt(pow(a4, 2) + pow(b4, 2) + pow(c4, 2)) * sqrt(pow(a2, 2) + pow(b2, 2) + pow(c2, 2)));
-            double cosAngle34 = (a4 * a3 + b4 * b3 + c4 * c3) / (sqrt(pow(a4, 2) + pow(b4, 2) + pow(c4, 2)) * sqrt(pow(a3, 2) + pow(b3, 2) + pow(c3, 2)));
+            const double cosAngle12 = (a1 * a2 + b1 * b2 + c1 * c2) / (norm1 * norm2);
+            const double cosAngle13 = (a1 * a3 + b1 * b3 + c1 * c3) / (norm1 * norm3);
+            const double cosAngle14 = (a1 * a4 + b1 * b4 + c1 * c4) / (norm1 * norm4);
+            const double cosAngle23 = (a3 * a2 + b3 * b2 + c3 * c2) / (norm2 * norm3);
+            const double cosAngle24 = (a4 * a2 + b4 * b2 + c4 * c2) / (norm2 * norm4);
+            const double cosAngle34 = (a4 * a3 + b4 * b3 + c4 * c3) / (norm3 * norm4);
 
             if ((fabs(cosAngle12) > 0.99 || fabs(cosAngle13) > 0.99 || fabs(cosAngle14) > 0.99 || fabs(cosAngle23) > 0.99 || fabs(cosAngle24) > 0.99 || fabs(cosAngle34) > 0.99) && (freeSurfaceNodes == numNodes) && isolatedNodes > 1)
             {
@@ -276,6 +282,9 @@ namespace Kratos
       ModelPart &rModelPart = BaseType::GetModelPart();
       ProcessInfo &rCurrentProcessInfo = rModelPart.GetProcessInfo();
 
+      const double timeInterval = rCurrentProcessInfo[DELTA_TIME];
+      const unsigned int timeStep = rCurrentProcessInfo[STEP];
+
       for (ModelPart::NodeIterator i = rModelPart.NodesBegin();
            i != rModelPart.NodesEnd(); ++i)
       {
@@ -293,9 +302,8 @@ namespace Kratos
         }
         else if ((i)->Is(RIGID))
         {
-          array_1d<double, 3> Zeros(3, 0.0);
-          (i)->FastGetSolutionStepValue(ACCELERATION, 0) = Zeros;
-          (i)->FastGetSolutionStepValue(ACCELERATION, 1) = Zeros;
+          noalias(i->FastGetSolutionStepValue(ACCELERATION, 0)) = ZeroVector(3);
+          noalias(i->FastGetSolutionStepValue(ACCELERATION, 1)) = ZeroVector(3);
         }
         else
         {
@@ -313,8 +321,6 @@ namespace Kratos
           }
         }
 
-        const double timeInterval = rCurrentProcessInfo[DELTA_TIME];
-        unsigned int timeStep = rCurrentProcessInfo[STEP];
         if (timeStep == 1)
         {
           (i)->FastGetSolutionStepValue(PRESSURE_VELOCITY, 0) = 0;
@@ -343,6 +349,8 @@ namespace Kratos
       ModelPart &rModelPart = BaseType::GetModelPart();
       ProcessInfo &rCurrentProcessInfo = rModelPart.GetProcessInfo();
 
+      const double timeInterval = rCurrentProcessInfo[DELTA_TIME];
+
       for (ModelPart::NodeIterator i = rModelPart.NodesBegin();
            i != rModelPart.NodesEnd(); ++i)
       {
@@ -360,9 +368,8 @@ namespace Kratos
         }
         else if ((i)->Is(RIGID))
         {
-          array_1d<double, 3> Zeros(3, 0.0);
-          (i)->FastGetSolutionStepValue(ACCELERATION, 0) = Zeros;
-          (i)->FastGetSolutionStepValue(ACCELERATION, 1) = Zeros;
+          noalias(i->FastGetSolutionStepValue(ACCELERATION, 0)) = ZeroVector(3);
+          noalias(i->FastGetSolutionStepValue(ACCELERATION, 1)) = ZeroVector(3);
         }
         else
         {
@@ -376,7 +383,7 @@ namespace Kratos
           {
             array_1d<double, 3> &VolumeAcceleration = (i)->FastGetSolutionStepValue(VOLUME_ACCELERATION);
             (i)->FastGetSolutionStepValue(ACCELERATION, 0) = VolumeAcceleration;
-            (i)->FastGetSolutionStepValue(VELOCITY, 0) += VolumeAcceleration * rCurrentProcessInfo[DELTA_TIME];
+            (i)->FastGetSolutionStepValue(VELOCITY, 0) += VolumeAcceleration * timeInterval;
           }
         }
       }
@@ -397,8 +404,7 @@ namespace Kratos
     {
       ModelPart &rModelPart = BaseType::GetModelPart();
       ProcessInfo &rCurrentProcessInfo = rModelPart.GetProcessInfo();
-      const double TimeStep = rCurrentProcessInfo[DELTA_TIME];
-
+      const double half_dt = 0.5 * rCurrentProcessInfo[DELTA_TIME];
       for (ModelPart::NodeIterator i = rModelPart.NodesBegin();
            i != rModelPart.NodesEnd(); ++i)
       {
@@ -411,16 +417,15 @@ namespace Kratos
           array_1d<double, 3> &CurrentDisplacement = (i)->FastGetSolutionStepValue(DISPLACEMENT, 0);
           array_1d<double, 3> &PreviousDisplacement = (i)->FastGetSolutionStepValue(DISPLACEMENT, 1);
 
-          if(!i->IsFixed(DISPLACEMENT_X))
-            CurrentDisplacement[0] = 0.5 * TimeStep * (CurrentVelocity[0] + PreviousVelocity[0]) + PreviousDisplacement[0];
+          if (!i->IsFixed(DISPLACEMENT_X))
+            CurrentDisplacement[0] = half_dt * (CurrentVelocity[0] + PreviousVelocity[0]) + PreviousDisplacement[0];
 
-          if(!i->IsFixed(DISPLACEMENT_Y))
-            CurrentDisplacement[1] = 0.5 * TimeStep * (CurrentVelocity[1] + PreviousVelocity[1]) + PreviousDisplacement[1];
+          if (!i->IsFixed(DISPLACEMENT_Y))
+            CurrentDisplacement[1] = half_dt * (CurrentVelocity[1] + PreviousVelocity[1]) + PreviousDisplacement[1];
 
-          if(!i->IsFixed(DISPLACEMENT_Z))
-            CurrentDisplacement[2] = 0.5 * TimeStep * (CurrentVelocity[2] + PreviousVelocity[2]) + PreviousDisplacement[2];
+          if (!i->IsFixed(DISPLACEMENT_Z))
+            CurrentDisplacement[2] = half_dt * (CurrentVelocity[2] + PreviousVelocity[2]) + PreviousDisplacement[2];
 
-          // currentFluidFractionRate = (currentFluidFraction - previousFluidFraction)/TimeStep;
         }
       }
     }
@@ -513,7 +518,6 @@ namespace Kratos
       const double currentTime = rCurrentProcessInfo[TIME];
       const unsigned int dimension = rModelPart.ElementsBegin()->GetGeometry().WorkingSpaceDimension();
 
-      long double sumErrorL2Velocity = 0;
       long double sumErrorL2VelocityX = 0;
       long double sumErrorL2VelocityY = 0;
       long double sumErrorL2Pressure = 0;
@@ -530,21 +534,10 @@ namespace Kratos
         {
 
           Element::GeometryType &geometry = itElem->GetGeometry();
-          long double nodalArea = 0;
-
-          if (dimension == 2)
-          {
-            nodalArea = geometry.Area() / 3.0;
-          }
-          else if (dimension == 3)
-          {
-            nodalArea = geometry.Volume() * 0.25;
-          }
 
           long double bariPosX = 0;
           long double bariPosY = 0;
 
-          long double eleErrorL2Velocity = 0;
           long double eleErrorL2VelocityX = 0;
           long double eleErrorL2VelocityY = 0;
           long double eleErrorL2Pressure = 0;
@@ -559,7 +552,6 @@ namespace Kratos
           double elementalPressure = N[0] * geometry(0)->FastGetSolutionStepValue(PRESSURE);
           double elementalVelocityX = N[0] * geometry(0)->FastGetSolutionStepValue(VELOCITY_X);
           double elementalVelocityY = N[0] * geometry(0)->FastGetSolutionStepValue(VELOCITY_Y);
-          ;
 
           for (unsigned int i = 1; i < NumNodes; i++)
           {
@@ -580,8 +572,8 @@ namespace Kratos
 
           const long double posX = bariPosX;
           const long double posY = bariPosY;
-          long double expectedVelocityX = pow(posX, 2) * (1.0 - posX) * (1.0 - posX) * (2.0 * posY - 6.0 * pow(posY, 2) + 4.0 * pow(posY, 3));
-          long double expectedVelocityY = -pow(posY, 2) * (1.0 - posY) * (1.0 - posY) * (2.0 * posX - 6.0 * pow(posX, 2) + 4.0 * pow(posX, 3));
+          long double expectedVelocityX = posX*posX * (1.0 - posX) * (1.0 - posX) * (2.0 * posY - 6.0 * posY*posY + 4.0 * pow(posY, 3));
+          long double expectedVelocityY = -posY*posY * (1.0 - posY) * (1.0 - posY) * (2.0 * posX - 6.0 * posX*posX + 4.0 * pow(posX, 3));
           long double expectedPressure = -tensilStressSign * posX * (1.0 - posX);
 
           eleErrorL2VelocityX = elementalVelocityX - expectedVelocityX;
@@ -610,18 +602,13 @@ namespace Kratos
         }
       }
 
-      long double errorL2Velocity = sqrt(sumErrorL2Velocity);
-      long double errorL2VelocityX = sqrt(sumErrorL2VelocityX);
-      long double errorL2VelocityY = sqrt(sumErrorL2VelocityY);
-      long double errorL2Pressure = sqrt(sumErrorL2Pressure);
-      long double errorL2TauXX = sqrt(sumErrorL2TauXX);
-      long double errorL2TauYY = sqrt(sumErrorL2TauYY);
-      long double errorL2TauXY = sqrt(sumErrorL2TauXY);
+      long double errorL2VelocityX = std::sqrt(sumErrorL2VelocityX);
+      long double errorL2VelocityY = std::sqrt(sumErrorL2VelocityY);
+      long double errorL2Pressure = std::sqrt(sumErrorL2Pressure);
+      long double errorL2TauXX = std::sqrt(sumErrorL2TauXX);
+      long double errorL2TauYY = std::sqrt(sumErrorL2TauYY);
+      long double errorL2TauXY = std::sqrt(sumErrorL2TauXY);
 
-      std::ofstream myfileVelocity;
-      myfileVelocity.open("errorL2VelocityFile.txt", std::ios::app);
-      myfileVelocity << currentTime << "\t" << errorL2Velocity << "\n";
-      myfileVelocity.close();
 
       std::ofstream myfileVelocityX;
       myfileVelocityX.open("errorL2VelocityXFile.txt", std::ios::app);
@@ -679,21 +666,10 @@ namespace Kratos
         {
 
           Element::GeometryType &geometry = itElem->GetGeometry();
-          long double nodalArea = 0;
-
-          if (dimension == 2)
-          {
-            nodalArea = geometry.Area() / 3.0;
-          }
-          else if (dimension == 3)
-          {
-            nodalArea = geometry.Volume() * 0.25;
-          }
 
           long double bariPosX = 0;
           long double bariPosY = 0;
 
-          long double eleErrorL2Velocity = 0;
           long double eleErrorL2VelocityX = 0;
           long double eleErrorL2VelocityY = 0;
           long double eleErrorL2Pressure = 0;
@@ -708,7 +684,6 @@ namespace Kratos
           double elementalPressure = N[0] * geometry(0)->FastGetSolutionStepValue(PRESSURE);
           double elementalVelocityX = N[0] * geometry(0)->FastGetSolutionStepValue(VELOCITY_X);
           double elementalVelocityY = N[0] * geometry(0)->FastGetSolutionStepValue(VELOCITY_Y);
-          ;
 
           for (unsigned int i = 1; i < NumNodes; i++)
           {
@@ -730,14 +705,14 @@ namespace Kratos
 
           const long double posX = bariPosX;
           const long double posY = bariPosY;
-          const double rPos = sqrt(pow(posX, 2) + pow(posY, 2));
+          const double rPos = std::sqrt(posX*posX + posY*posY);
           const double cosalfa = posX / rPos;
           const double sinalfa = posY / rPos;
           const double sin2alfa = 2.0 * cosalfa * sinalfa;
           const double cos2alfa = 1.0 - 2.0 * pow(sinalfa, 2);
 
           double expectedVelocityTheta = pow(kappa, 2) * omega * R_out / (1.0 - pow(kappa, 2)) * (R_out / rPos - rPos / R_out);
-          double computedVelocityTheta = sqrt(pow(elementalVelocityX, 2) + pow(elementalVelocityY, 2));
+          double computedVelocityTheta = std::sqrt(pow(elementalVelocityX, 2) + pow(elementalVelocityY, 2));
           double nodalErrorVelocityTheta = computedVelocityTheta - expectedVelocityTheta;
 
           const long double tauXX = 0; // itElem->GetValue(ELEMENTAL_DEVIATORIC_STRESS_XX);
@@ -753,8 +728,8 @@ namespace Kratos
         }
       }
 
-      double errorL2VelocityTheta = sqrt(sumErrorL2VelocityTheta);
-      double errorL2TauTheta = sqrt(sumErrorL2TauTheta);
+      double errorL2VelocityTheta = std::sqrt(sumErrorL2VelocityTheta);
+      double errorL2TauTheta = std::sqrt(sumErrorL2TauTheta);
 
       std::ofstream myfileVelocity;
       myfileVelocity.open("errorL2Poiseuille.txt", std::ios::app);
@@ -769,8 +744,7 @@ namespace Kratos
 
       double NormV = 0.00;
 
-#pragma omp parallel for reduction(+ \
-                                   : NormV)
+#pragma omp parallel for reduction(+ : NormV)
       for (int i_node = 0; i_node < n_nodes; ++i_node)
       {
         const auto it_node = rModelPart.NodesBegin() + i_node;
@@ -781,7 +755,7 @@ namespace Kratos
         }
       }
       NormV = BaseType::GetModelPart().GetCommunicator().GetDataCommunicator().SumAll(NormV);
-      NormV = sqrt(NormV);
+      NormV = std::sqrt(NormV);
 
       const double zero_tol = 1.0e-12;
       if (NormV < zero_tol)
@@ -797,8 +771,7 @@ namespace Kratos
 
       double NormP = 0.00;
 
-#pragma omp parallel for reduction(+ \
-                                   : NormP)
+#pragma omp parallel for reduction(+ : NormP)
       for (int i_node = 0; i_node < n_nodes; ++i_node)
       {
         const auto it_node = rModelPart.NodesBegin() + i_node;
@@ -806,7 +779,7 @@ namespace Kratos
         NormP += Pr * Pr;
       }
       NormP = BaseType::GetModelPart().GetCommunicator().GetDataCommunicator().SumAll(NormP);
-      NormP = sqrt(NormP);
+      NormP = std::sqrt(NormP);
 
       const double zero_tol = 1.0e-12;
       if (NormP < zero_tol)

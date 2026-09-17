@@ -256,6 +256,8 @@ AMGCLSolver<TSparse,TDense>::~AMGCLSolver() = default;
 
 template <class TSparse, class TDense>
 void AMGCLSolver<TSparse,TDense>::ApplySettings(Parameters Settings) {
+    const bool direct_configuration = Settings.Has("direct_settings") && Settings["direct_settings"].begin() != Settings["direct_settings"].end();
+
     Parameters default_parameters = this->GetDefaultParameters();
     // Optionally set the a user-defined block size.
     KRATOS_TRY
@@ -286,9 +288,8 @@ void AMGCLSolver<TSparse,TDense>::ApplySettings(Parameters Settings) {
     // noone will let me remove it.
     // Configuring AMGCL directly involves converting a Kratos JSON representation
     // to a boost one, and passing it on to AMGCL.
-    if (!Settings.Has("direct_settings") || Settings["direct_settings"].begin() == Settings["direct_settings"].end()) {
+    if (!direct_configuration) {
         // Configuration through a Kratos translation layer.
-
         KRATOS_TRY
             Settings.ValidateAndAssignDefaults(default_parameters);
         KRATOS_CATCH("")
@@ -310,18 +311,12 @@ void AMGCLSolver<TSparse,TDense>::ApplySettings(Parameters Settings) {
         if (preconditioner_type == "relaxation")
             this->SetSmootherType(Settings["smoother_type"].GetString());
 
-        // Termination criteria.
-        mTolerance = Settings["tolerance"].GetDouble();
-        mMaxIterationsNumber = Settings["max_iteration"].GetInt();
-        mAMGCLParameters.put("solver.tol", mTolerance);
-        mAMGCLParameters.put("solver.maxiter", mMaxIterationsNumber);
-        mAMGCLParameters.put("solver.verbose", mVerbosity >= 2);
-
         mGMRESSize = Settings["gmres_krylov_space_dimension"].GetInt();
 
         // Termination criteria.
         mAMGCLParameters.put("solver.tol", Settings["tolerance"].GetDouble());
         mAMGCLParameters.put("solver.maxiter", Settings["max_iteration"].GetInt());
+        mAMGCLParameters.put("solver.verbose", mVerbosity >= 2);
 
         mFallbackToGMRES = false;
         this->SetIterativeSolverType(Settings["krylov_type"].GetString());

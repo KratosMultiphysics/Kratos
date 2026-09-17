@@ -147,7 +147,7 @@ class PfemFluidSolver(PythonSolver):
         
         # Set penalty coefficient for Cut-PFEM
         #TODO: Create a Cut-PFEM solver deriving from this one and do this in there
-        self.computing_model_part.ProcessInfo[KratosPfemFluid.PENALTY_COEFFICIENT] = self.settings["penalty_coefficient"].GetDouble()
+        self.computing_model_part.ProcessInfo[KratosMultiphysics.PENALTY_COEFFICIENT] = self.settings["penalty_coefficient"].GetDouble()
 
     def AddVariables(self):
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY)
