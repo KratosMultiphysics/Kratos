@@ -229,7 +229,7 @@ void CSVDatabaseIO::Finalize(const int TableId)
         if (mLastWrittenStep == -1) {
             WriteHeaders(output_file);
         }
-        WriteData(output_file)
+        WriteData(output_file);
 
         if (mWriteTimeStamp) {
             output_file << "# End of File - " << FormatTimestamp() << std::endl;
