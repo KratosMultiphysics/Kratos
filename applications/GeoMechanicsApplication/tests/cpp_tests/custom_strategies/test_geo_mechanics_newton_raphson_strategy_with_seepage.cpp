@@ -37,7 +37,7 @@ KRATOS_TEST_CASE_IN_SUITE(GeoMechanicsNewtonRaphsonStrategyWithSeepage_ThrowsWhe
     // omits restoring the fixity of degrees of freedom.
 
     // The settings below are supposed to be contained by the "solver_settings" object
-    const auto solver_settings = Parameters{R"(
+    auto solver_settings = Parameters{R"(
     {
         "number_cycles": 2
     })"s};
@@ -53,6 +53,10 @@ KRATOS_TEST_CASE_IN_SUITE(GeoMechanicsNewtonRaphsonStrategyWithSeepage_ThrowsWhe
         std::make_shared<BuilderAndSolver<SparseSpaceType, LocalSpaceType, LinearSolverType>>();
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         (GeoMechanicsNewtonRaphsonStrategyWithSeepage<SparseSpaceType, LocalSpaceType, LinearSolverType>{r_model_part, nullptr, p_convergence_criterion, p_builder_and_solver, solver_settings}), "GeoMechanicsNewtonRaphsonStrategyWithSeepage does not support multiple cycles. This is because the fixity of degrees of freedom is not properly restored when a solution step does not converge and another cycle is attempted.")
+
+    solver_settings["number_cycles"s].SetInt(1); // OK
+    EXPECT_NO_THROW((GeoMechanicsNewtonRaphsonStrategyWithSeepage<SparseSpaceType, LocalSpaceType, LinearSolverType>{
+        r_model_part, nullptr, p_convergence_criterion, p_builder_and_solver, solver_settings}));
 }
 
 } // namespace Kratos::Testing
