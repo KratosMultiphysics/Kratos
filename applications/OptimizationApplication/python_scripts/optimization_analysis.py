@@ -1,3 +1,5 @@
+import pickle
+
 import KratosMultiphysics as Kratos
 from KratosMultiphysics.process_factory import KratosProcessFactory
 from KratosMultiphysics.OptimizationApplication.algorithms.algorithm import Algorithm
@@ -8,15 +10,9 @@ from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem_u
 from KratosMultiphysics.OptimizationApplication.utilities.helper_utilities import CallOnAll
 from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem import OptimizationProblem
 from KratosMultiphysics.OptimizationApplication.utilities.logger_utilities import OptimizationAnalysisTimeLogger
-from KratosMultiphysics.OptimizationApplication.utilities.restart_file_naming import ResolveRestartLoadStep, GetModelPartRestartFileBaseName, SplitRestartFileName
+from KratosMultiphysics.OptimizationApplication.utilities.restart_file_naming import ResolveRestartLoadStep, SplitRestartFileName
 from KratosMultiphysics.OptimizationApplication.processes.optimization_problem_restart_output_process import OptimizationProblemRestartOutputProcess
 from KratosMultiphysics.OptimizationApplication.processes.optimization_problem_restart_input_process import OptimizationProblemRestartInputProcess
-
-_SERIALIZER_TRACE_TYPES = {
-    "no_trace":    Kratos.SerializerTraceType.SERIALIZER_NO_TRACE,
-    "trace_error": Kratos.SerializerTraceType.SERIALIZER_TRACE_ERROR,
-    "trace_all":   Kratos.SerializerTraceType.SERIALIZER_TRACE_ALL,
-}
 
 class OptimizationAnalysis:
     @classmethod
@@ -187,27 +183,42 @@ class OptimizationAnalysis:
         echo_level = restart_settings["echo_level"].GetInt()
 
         model_parts_settings = restart_settings["model_parts_settings"]
-        serializer_trace = _SERIALIZER_TRACE_TYPES[model_parts_settings["serializer_trace"].GetString()]
 
         restart_capable_controllers = [controller for controller in self.__list_of_model_part_controllers if controller.SupportsRestart()]
 
         if load_restart:
-            input_settings = Kratos.Parameters("{}")
-            for key in ("restart_file_name", "restart_load_step", "echo_level"):
-                input_settings.AddValue(key, restart_settings[key])
-            input_process = OptimizationProblemRestartInputProcess(input_settings, self.optimization_problem)
-            self.optimization_problem.AddProcess("auxiliary_processes", input_process)
+            payload = None
+            resolved_step = ResolveRestartLoadStep(restart_files_path, restart_file_name, restart_settings["restart_load_step"])
+            if resolved_step is not None:
+                file_path = (restart_files_path / restart_file_name.replace("<step>", str(resolved_step))).resolve()
+                if restart_files_path.resolve() not in file_path.parents:
+                    raise RuntimeError(f"Resolved restart checkpoint path is outside restart_files_path. [ file_path = \"{file_path}\" ].")
+                if not file_path.is_file():
+                    raise FileNotFoundError(f"Restart checkpoint file not found: \"{file_path}\".")
 
-            if model_parts_settings["load_model_parts"].GetBool() and restart_capable_controllers:
-                resolved_step = ResolveRestartLoadStep(restart_files_path, restart_file_name, restart_settings["restart_load_step"])
-                if resolved_step is not None:
+                Kratos.Logger.PrintInfo("OptimizationAnalysis", f"Loading restart checkpoint from \"{file_path}\".")
+                with open(file_path, "rb") as file_input:
+                    payload = pickle.load(file_input)
+
+                # Load restart-capable model parts directly here, synchronously, before
+                # Initialize() ever calls ModelPartController.ImportModelPart() -- confirmed safe
+                # even though _CreateModelPartControllers() already created these (empty) model
+                # parts above: Kratos.ModelPart.load() correctly populates an already-created,
+                # empty ModelPart of the same name in place. Reusing payload["serializer"] (rather
+                # than each controller reading its own file) is required for the BufferedDict's
+                # TensorAdaptor leaves (restored later, from this exact same Serializer instance,
+                # by OptimizationProblemRestartInputProcess) to stay pointer-linked to these model
+                # parts' Node/Element/Condition containers.
+                if model_parts_settings["load_model_parts"].GetBool():
                     for controller in restart_capable_controllers:
-                        model_part_name = controller.GetModelPart().Name
-                        base_name = GetModelPartRestartFileBaseName(restart_file_name, resolved_step, model_part_name)
-                        if (restart_files_path / f"{base_name}.rest").is_file():
-                            controller.SetRestartLoadFile(restart_files_path / base_name, serializer_trace)
+                        model_part = controller.GetModelPart()
+                        if model_part.Name in payload["model_part_names"]:
+                            payload["serializer"].Load(model_part.Name, model_part)
                         elif echo_level > 0:
-                            Kratos.Logger.PrintWarning("OptimizationAnalysis", f"No restart file found for model part \"{model_part_name}\"; it will be imported normally.")
+                            Kratos.Logger.PrintWarning("OptimizationAnalysis", f"No restart data found for model part \"{model_part.Name}\"; it will be imported normally.")
+
+            input_process = OptimizationProblemRestartInputProcess(payload, self.optimization_problem, echo_level)
+            self.optimization_problem.AddProcess("auxiliary_processes", input_process)
 
         if save_restart:
             output_settings = Kratos.Parameters("{}")

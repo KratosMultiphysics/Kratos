@@ -1,11 +1,7 @@
-import pickle
-from pathlib import Path
-
 import KratosMultiphysics as Kratos
 from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem import OptimizationProblem
 from KratosMultiphysics.OptimizationApplication.utilities.buffered_dict import BufferedDict
 from KratosMultiphysics.OptimizationApplication.utilities.component_data_view import ComponentDataView
-from KratosMultiphysics.OptimizationApplication.utilities.restart_file_naming import SplitRestartFileName
 
 def Factory(*_args, **_kwargs):
     raise RuntimeError(
@@ -14,192 +10,122 @@ def Factory(*_args, **_kwargs):
         "of the optimization parameters (see OptimizationAnalysis.GetDefaultParameters())."
     )
 
-def RestoreBufferedDict(node: BufferedDict, snapshot: dict, shape_owner, echo_level: int, mesh_update_key: 'str | None' = None) -> None:
-    """Replays a snapshot produced by optimization_problem_restart_output_process back into a
-    live (freshly constructed, still empty) BufferedDict node.
+def _GetExistingParentSubItem(root: BufferedDict, bufferdict_key: str) -> 'BufferedDict | None':
+    """Walks bufferdict_key's parent path (all but its last "/"-separated segment) through
+    already-existing sub items only, never creating new ones.
 
-    Tensor-valued leaves need a correctly-shaped placeholder Kratos.TensorAdaptors.* object to
-    write the restored numpy array into (they cannot be unpickled directly). "shape_owner" is
-    the component (Control/MasterControl) this subtree's tensors are shaped like -- see
-    RestoreOptimizationProblemData for how it is resolved. If it is None, tensor-valued leaves
-    are skipped (only scalars restored); this only happens for subtrees that get unconditionally
-    recomputed before being read again, e.g. response value/gradient caches.
-
-    "mesh_update_key", when not None, additionally pushes the *current* step's tensor stored
-    under that exact key onto the shared mesh via shape_owner.Update(), on top of replaying it
-    into the BufferedDict. This must stay reserved for the one key that actually holds "the
-    design" (the algorithm's own "control_field" bookkeeping, see RestoreOptimizationProblemData)
-    -- deliberately scoped to a single key rather than "any tensor in this subtree", because a
-    subtree routinely holds several *other* tensors too (e.g. an algorithm's own
-    "search_direction"/"control_field_update", or output-only diagnostic fields a filtered/
-    phi-space control writes for ascii/vtu output), any one of which would corrupt the design if
-    blindly fed through Update() as if it were the full design. Relying on "whichever tensor
-    happens to be inserted last wins" would be fragile even for a single key today, so the match
-    is explicit instead.
+    Returns the parent BufferedDict node if the whole chain already exists live, or None if any
+    segment is missing -- meaning the checkpoint refers to a component/subtree that isn't part of
+    the current run (e.g. a Control that was removed from the optimization parameters since the
+    checkpoint was written). Callers skip such leaves rather than letting BufferedDict.SetValue's
+    own "/"-path auto-creation silently insert orphaned structure into the live tree.
     """
-    for step_index, slot in enumerate(snapshot["slots"]):
-        for key, leaf in slot.items():
-            kind = leaf["kind"]
-            if kind == "scalar":
-                node.SetValue(key, leaf["value"], step_index, overwrite=True)
-                continue
-
-            if shape_owner is None:
-                if echo_level > 0:
-                    Kratos.Logger.PrintWarning("OptimizationProblemRestartInputProcess", f"Skipping restore of tensor-valued key \"{key}\" (no known shape owner for this subtree).")
-                continue
-
-            placeholder = shape_owner.GetEmptyField()
-            if kind == "tensor":
-                placeholder.data[:] = leaf["array"]
-            elif kind == "combined_tensor":
-                parts = leaf["parts"]
-                tensor_adaptors = placeholder.GetTensorAdaptors()
-                if len(parts) != len(tensor_adaptors):
-                    raise RuntimeError(
-                        f"Restart data for key \"{key}\" has {len(parts)} parts, but the current placeholder has {len(tensor_adaptors)} parts."
-                    )
-                for part_array, part_ta in zip(parts, tensor_adaptors):
-                    part_ta.data[:] = part_array
-                # a combined tensor adaptor's own .data is a separate buffer from its parts';
-                # CollectData() resyncs it from the parts we just wrote.
-                placeholder.CollectData()
-            else:
-                raise RuntimeError(f"Unknown restart data kind \"{kind}\" for key \"{key}\".")
-
-            if step_index == 0 and key == mesh_update_key:
-                # shape_owner.Update() writes straight to the shared mesh, so only the current
-                # step's data (step_index 0) may be pushed there. Historical steps are restored
-                # into the BufferedDict below for bookkeeping only (e.g. GetRelativeChange()'s
-                # previous-step value), never onto the mesh.
-                shape_owner.Update(placeholder)
-            node.SetValue(key, placeholder, step_index, overwrite=True)
-
-    for name, sub_snapshot in snapshot["sub_items"].items():
+    node = root
+    segments = bufferdict_key.split("/")
+    for segment in segments[:-1]:
         sub_items = node.GetSubItems()
-        if name not in sub_items:
+        if segment not in sub_items:
+            return None
+        node = sub_items[segment]
+    return node
+
+def RestoreScalars(root: BufferedDict, scalar_snapshot: dict, echo_level: int) -> None:
+    for (bufferdict_key, step_index), value in scalar_snapshot.items():
+        if _GetExistingParentSubItem(root, bufferdict_key) is None:
             if echo_level > 0:
-                Kratos.Logger.PrintWarning("OptimizationProblemRestartInputProcess", f"Skipping restore of \"{name}\" (not present yet in the live optimization problem).")
+                Kratos.Logger.PrintWarning("OptimizationProblemRestartInputProcess", f"Skipping restore of \"{bufferdict_key}\" (not present yet in the live optimization problem).")
             continue
-        RestoreBufferedDict(sub_items[name], sub_snapshot, shape_owner, echo_level, mesh_update_key)
+        root.SetValue(bufferdict_key, value, step_index, overwrite=True)
 
-def RestoreOptimizationProblemData(optimization_problem: OptimizationProblem, data_snapshot: dict, echo_level: int) -> None:
-    root = optimization_problem.GetProblemDataContainer()
+def RestoreTensors(root: BufferedDict, serializer: Kratos.StreamSerializer, tensor_kinds: dict, echo_level: int) -> None:
+    """Restores every TensorAdaptor leaf directly via the shared Serializer.
 
-    # restore root-level scalar leaves too (currently just "step"; ExecuteInitialize also sets
-    # it explicitly via SetStep, so this is redundant but harmless).
-    for step_index, slot in enumerate(data_snapshot["slots"]):
-        for key, leaf in slot.items():
-            if leaf["kind"] == "scalar":
-                root.SetValue(key, leaf["value"], step_index, overwrite=True)
-
-    type_name_to_class = {cls.__name__: cls for cls in optimization_problem.GetComponentContainer().keys()}
-
-    master_controls = list(optimization_problem.GetListOfMasterControls())
-    algorithm_shape_owner = master_controls[0] if len(master_controls) > 0 else None
-
-    root_sub_items = root.GetSubItems()
-    for type_name, type_snapshot in data_snapshot["sub_items"].items():
-        if type_name not in root_sub_items:
+    Since `serializer` also holds (or, for BufferedDict tensors backed by a container outside any
+    restart-capable model part, simply doesn't reference) whichever ModelPart(s) were saved
+    alongside it, a natively-`Load()`ed tensor already comes back with the right shape *and* the
+    right container reference -- no shape_owner/GetEmptyField() resolution needed here, unlike the
+    numpy-array-based restore this replaces.
+    """
+    for (bufferdict_key, step_index), (serializer_tag, kind) in tensor_kinds.items():
+        if _GetExistingParentSubItem(root, bufferdict_key) is None:
+            if echo_level > 0:
+                Kratos.Logger.PrintWarning("OptimizationProblemRestartInputProcess", f"Skipping restore of \"{bufferdict_key}\" (not present yet in the live optimization problem).")
             continue
-        type_node = root_sub_items[type_name]
-        type_node_sub_items = type_node.GetSubItems()
-
-        for component_name, component_snapshot in type_snapshot["sub_items"].items():
-            if component_name not in type_node_sub_items:
-                if echo_level > 0:
-                    Kratos.Logger.PrintWarning("OptimizationProblemRestartInputProcess", f"Skipping restore of \"{type_name}/{component_name}\" (component not present in this run).")
-                continue
-
-            shape_owner = None
-            mesh_update_key = None
-            if type_name == "object":
-                # "object" holds ComponentDataView(<string>, ...) subtrees, e.g. the "algorithm"
-                # buffered data every Algorithm implementation uses -- that one is mesh-shaped
-                # like the master control, and its "control_field" entry is the one place the
-                # *full*, accumulated design is bookkept every iteration (see
-                # Algorithm.Output()), so it's the one key allowed to push its tensor onto the
-                # mesh via shape_owner.Update() (the same subtree also holds other tensors, e.g.
-                # "search_direction"/"control_field_update", or momentum-like state an algorithm
-                # such as Nesterov/Adam bookkeeps -- none of those are "the design"). Everything
-                # else under "object" (response value/gradient caches, projection helper
-                # bookkeeping) gets recomputed before being read again, so it's fine to leave
-                # those tensors unresolved.
-                if component_name == "algorithm":
-                    shape_owner = algorithm_shape_owner
-                    mesh_update_key = "control_field"
-            elif type_name in type_name_to_class:
-                # A component's own ComponentDataView subtree (e.g. a Control's) routinely holds
-                # other tensors too -- e.g. output-only diagnostic fields a filtered/phi-space
-                # control writes for ascii/vtu output -- that are not "the design" in the sense
-                # Update() expects. shape_owner here is only used to get the right shape to
-                # deserialize each tensor back into the BufferedDict (mesh_update_key stays
-                # None); the "algorithm" subtree above is the sole source of truth for the mesh.
-                component = optimization_problem.GetComponent(component_name, type_name_to_class[type_name])
-                if hasattr(component, "GetEmptyField"):
-                    shape_owner = component
-                elif hasattr(component, "GetMasterControl"):
-                    shape_owner = component.GetMasterControl()
-
-            RestoreBufferedDict(type_node_sub_items[component_name], component_snapshot, shape_owner, echo_level, mesh_update_key)
+        placeholder = getattr(Kratos.TensorAdaptors, kind)()
+        serializer.Load(serializer_tag, placeholder)
+        root.SetValue(bufferdict_key, placeholder, step_index, overwrite=True)
 
 class OptimizationProblemRestartInputProcess(Kratos.Process):
-    def GetDefaultParameters(self) -> Kratos.Parameters:
-        return Kratos.Parameters("""{
-            "restart_file_name" : "Optimization_Restart/restart_<step>.pkl",
-            "restart_load_step" : "latest",
-            "echo_level"         : 0
-        }""")
-
-    def __init__(self, parameters: Kratos.Parameters, optimization_problem: OptimizationProblem):
+    def __init__(self, payload: 'dict | None', optimization_problem: OptimizationProblem, echo_level: int = 0):
+        """`payload` is the dict OptimizationAnalysis._CreateRestart() unpickled from the restart
+        checkpoint file (None if no checkpoint was found, e.g. a first-ever run with load_restart
+        enabled) -- see _CreateRestart() for why it's threaded in already-unpickled: it also has
+        already used `payload["serializer"]` to load the restart-capable ModelPart(s) into
+        `optimization_problem`'s model, and this process's ExecuteInitialize() must keep restoring
+        BufferedDict tensors from that *exact same* Serializer instance, not a freshly re-read one,
+        for the ModelPart<->tensor pointer relinking to hold.
+        """
         Kratos.Process.__init__(self)
-
-        # "restart_load_step" is either the string "latest" or an explicit step (int).
-        # ValidateAndAssignDefaults requires matching types, so the default's type is chosen
-        # to match whatever the user provided (mirrors the "scaled_ref_value" pattern used in
-        # standardized_rgp_constraint.py).
-        default_parameters = self.GetDefaultParameters()
-        if parameters.Has("restart_load_step") and parameters["restart_load_step"].IsInt():
-            default_parameters["restart_load_step"].SetInt(0)
-        parameters.ValidateAndAssignDefaults(default_parameters)
-
+        self.payload = payload
         self.optimization_problem = optimization_problem
-        self.restart_files_path, self.restart_file_name = SplitRestartFileName(parameters["restart_file_name"].GetString())
-        self.echo_level = parameters["echo_level"].GetInt()
-
-        if "<step>" not in self.restart_file_name:
-            raise RuntimeError(f"\"restart_file_name\" should contain the \"<step>\" placeholder [ restart_file_name = \"{self.restart_file_name}\" ].")
-
-        load_step_param = parameters["restart_load_step"]
-        self.restart_load_step = None if load_step_param.IsString() and load_step_param.GetString() == "latest" else load_step_param.GetInt()
+        self.echo_level = echo_level
 
     def ExecuteInitialize(self) -> None:
-        file_path = self.__ResolveCheckpointFile()
-        if file_path is None:
-            Kratos.Logger.PrintInfo(self.__class__.__name__, f"No restart checkpoint found under \"{self.restart_files_path}\". Starting a fresh run.")
+        if self.payload is None:
+            Kratos.Logger.PrintInfo(self.__class__.__name__, "No restart checkpoint found. Starting a fresh run.")
             return
 
-        Kratos.Logger.PrintInfo(self.__class__.__name__, f"Restoring optimization problem state from \"{file_path}\".")
-        with open(file_path, "rb") as file_input:
-            payload = pickle.load(file_input)
+        Kratos.Logger.PrintInfo(self.__class__.__name__, f"Restoring optimization problem state from step {self.payload['step']}.")
 
-        # Controls are normally initialized later, from the algorithm's own Initialize(). Restoring
-        # tensor data needs GetEmptyField()/Update() on already-initialized controls, so initialize
-        # the master control(s) here first; Control.Initialize() is idempotent, so the algorithm
-        # initializing them again afterwards is harmless.
+        # Controls are normally initialized later, from the algorithm's own Initialize(). The
+        # control_field_update reapplication below needs GetControlField()/Update() on
+        # already-initialized controls, so initialize the master control(s) here first;
+        # Control.Initialize() is idempotent, so the algorithm initializing them again afterwards
+        # is harmless.
         for master_control in self.optimization_problem.GetListOfMasterControls():
             master_control.Initialize()
 
-        self.optimization_problem.SetStep(payload["step"])
-        RestoreOptimizationProblemData(self.optimization_problem, payload["data"], self.echo_level)
+        self.optimization_problem.SetStep(self.payload["step"])
+        root = self.optimization_problem.GetProblemDataContainer()
+        RestoreScalars(root, self.payload["scalars"], self.echo_level)
+        RestoreTensors(root, self.payload["serializer"], self.payload["tensor_kinds"], self.echo_level)
 
-        # The checkpoint is written by Algorithm.Output(), which always runs before that step's own
-        # UpdateControl() call. So the design just restored is the one that *produced* the
-        # checkpointed step's results, not the design the live run had moved on to by the time it
-        # stopped. Apply the checkpointed step's pending "control_field_update" now to get there.
+        # MasterControl.GetControlField()/Control.GetControlField() read live, current data
+        # straight off each control's own storage (ultimately the mesh) -- they do NOT consult the
+        # BufferedDict's "control_field" entry we just restored above. So restoring that entry into
+        # the BufferedDict alone does not, by itself, make the design "reappear" on the mesh; it
+        # has to be explicitly pushed through Control.Update().
+        #
+        # Route this through GetEmptyField() rather than pushing the restored "control_field"
+        # tensor directly: when the model part(s) it's built over are *not themselves* also
+        # restart-loaded (restart_settings.model_parts_settings.load_model_parts=false, or a
+        # control's model part simply isn't restart-capable -- e.g. a
+        # connectivity_preserving_model_part_controller-derived one), that tensor's own
+        # Serializer-restored container is a fresh, disconnected reconstruction, not the live model
+        # part Control.Update() expects (confirmed by test_system_identification_restart.py: this
+        # raised "Updates for the required element container not found" before this fix).
+        # GetEmptyField() is always correctly linked to the live mesh; copying just the restored
+        # *values* into it sidesteps the container question entirely, matching how the
+        # "control_field_update" reapplication below already safely only ever reads restored data
+        # via .data (never relies on a restored tensor's own container).
         master_controls = list(self.optimization_problem.GetListOfMasterControls())
         if master_controls:
             algorithm_data = ComponentDataView("algorithm", self.optimization_problem).GetBufferedData()
+            if algorithm_data.HasValue("control_field"):
+                master_control = master_controls[0]
+                live_field = master_control.GetEmptyField()
+                live_field.data[:] = algorithm_data.GetValue("control_field").data
+                # a combined tensor adaptor's .data is disconnected from its parts; Update() reads
+                # the parts, so the change has to be pushed down via StoreData() first (same as the
+                # control_field_update reapplication below).
+                Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor(live_field, perform_store_data_recursively=False, copy=False).StoreData()
+                master_control.Update(live_field)
+
+            # The checkpoint is written by Algorithm.Output(), which always runs before that step's
+            # own UpdateControl() call. So the design just restored is the one that *produced* the
+            # checkpointed step's results, not the design the live run had moved on to by the time
+            # it stopped. Apply the checkpointed step's pending "control_field_update" now to get
+            # there.
             if algorithm_data.HasValue("control_field_update"):
                 master_control = master_controls[0]
                 resumed_field = master_control.GetControlField()
@@ -221,20 +147,4 @@ class OptimizationProblemRestartInputProcess(Kratos.Process):
         for master_control in self.optimization_problem.GetListOfMasterControls():
             master_control.Update(master_control.GetControlField())
 
-        Kratos.Logger.PrintInfo(self.__class__.__name__, f"Restored optimization problem at step {payload['step']}.")
-
-    def __ResolveCheckpointFile(self) -> 'Path | None':
-        if self.restart_load_step is not None:
-            file_path = (self.restart_files_path / self.restart_file_name.replace("<step>", str(self.restart_load_step))).resolve()
-            if self.restart_files_path.resolve() not in file_path.parents:
-                raise RuntimeError(f"Resolved restart checkpoint path is outside restart_files_path. [ file_path = \"{file_path}\" ].")
-            if not file_path.is_file():
-                raise FileNotFoundError(f"Restart checkpoint file not found: \"{file_path}\".")
-            return file_path
-
-        checkpoint_glob = self.restart_file_name.replace("<step>", "*")
-        checkpoints = list(self.restart_files_path.glob(checkpoint_glob)) if self.restart_files_path.is_dir() else []
-        if len(checkpoints) == 0:
-            return None
-
-        return max(checkpoints, key=lambda p: p.stat().st_mtime)
+        Kratos.Logger.PrintInfo(self.__class__.__name__, f"Restored optimization problem at step {self.payload['step']}.")

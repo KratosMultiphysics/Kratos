@@ -9,13 +9,6 @@ def SplitRestartFileName(restart_file_name: str) -> 'tuple[Path, str]':
     path = Path(restart_file_name)
     return path.parent, path.name
 
-def GetModelPartRestartFileBaseName(restart_file_name: str, step: int, model_part_name: str) -> str:
-    """Derives the base file name (no ".rest" -- Kratos.FileSerializer appends it itself) for a
-    given model part's restart file at the given step, from the checkpoint payload's own
-    "<step>"-templated restart_file_name, e.g. "restart_<step>.pkl" -> "restart_5_Structure"."""
-    stem = Path(restart_file_name.replace("<step>", str(step))).stem
-    return f"{stem}_{model_part_name}"
-
 def ParseStepFromFileName(restart_file_name: str, file_name: str) -> int:
     """Inverse of restart_file_name.replace("<step>", str(step))."""
     prefix, suffix = restart_file_name.split("<step>")

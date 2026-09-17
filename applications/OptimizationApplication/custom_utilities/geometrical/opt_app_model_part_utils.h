@@ -123,6 +123,23 @@ public:
         ModelPart& rDestinationModelPart,
         const Element& rReferenceElement);
 
+    /**
+     * @brief Temporarily clears NEIGHBOUR_ELEMENTS/NEIGHBOUR_CONDITIONS/NEIGHBOUR_NODES from the
+     *        nodes of the given model parts, backing them up for RestoreNeighbourEntitiesData().
+     *
+     * These GlobalPointersVector variables cannot survive a Kratos::Serializer round-trip: nodes
+     * are deserialized before the entities they point to, so on load the pointers can't resolve
+     * (crash). They're purely derived (recomputed by whatever built them, e.g. a filter's
+     * Initialize()), so clearing them around a Serializer save and restoring right after is safe,
+     * as long as nothing else runs in between (true for single-threaded Python).
+     *
+     * @param rModelParts       Model parts whose nodes' neighbour entity data should be cleared.
+     */
+    static void ClearNeighbourEntitiesData(const std::vector<ModelPart*>& rModelParts);
+
+    /// Restores neighbour entity data most recently cleared by ClearNeighbourEntitiesData.
+    static void RestoreNeighbourEntitiesData();
+
     ///@}
 };
 
