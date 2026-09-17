@@ -43,6 +43,8 @@ SeepageBoundaryUtilities::NodalFlowMap SeepageBoundaryUtilities::CalculateNodalW
     auto result = NodalFlowMap{};
 
     for (auto& r_element : rElements) {
+        if (!r_element.IsActive()) continue;
+
         auto dofs = std::vector<Dof<double>*>{};
         r_element.GetDofList(dofs, rProcessInfo);
         auto right_hand_side = Vector{};
