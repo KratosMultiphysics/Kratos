@@ -84,6 +84,14 @@ void IgaModelerSbm::CreateIntegrationDomainPerUnit(
                 
     std::string geometry_type = rPhysicsParameters["geometry_type"].GetString();
 
+    KRATOS_ERROR_IF(
+        geometry_type != "GeometrySurface" &&
+        geometry_type != "SurfaceEdge")
+        << "::[IgaModelerSbm]:: Unsupported \"geometry_type\": \""
+        << geometry_type
+        << "\". Available options: GeometrySurface, SurfaceEdge."
+        << std::endl;
+
     if (!rPhysicsParameters.Has("sbm_parameters"))
         CreateQuadraturePointGeometries(
             geometry_list, sub_model_part, rPhysicsParameters, geometry_type); 
