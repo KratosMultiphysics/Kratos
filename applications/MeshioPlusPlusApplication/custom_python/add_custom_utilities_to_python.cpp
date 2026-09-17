@@ -36,10 +36,11 @@ void AddCustomUtilitiesToPython(pybind11::module& m)
         "The meshio++ mesh and data operations (clean, transform, split, refine, decimate, "
         "smooth, reorder, partition, crop, slice, isosurface, quality, stats, data_calc, "
         "data_condition, data_manage, data_info, point_data_to_cell_data, "
-        "cell_data_to_point_data, ...) exposed as Kratos utilities. Every operation is "
-        "driven by Parameters keyed by an \"operation\" name mirroring the meshio++ command "
-        "line verbs. Field data (nodal/elemental/conditional variables and flags) can be "
-        "carried through with the same settings MeshioPlusPlusIO uses; see GetDefaultParameters.")
+        "cell_data_to_point_data, curvature, repair, sobolev_deform, ...) exposed as Kratos "
+        "utilities. Every operation is driven by Parameters keyed by an \"operation\" name "
+        "mirroring the meshio++ command line verbs. Field data (nodal/elemental/conditional "
+        "variables and flags) can be carried through with the same settings MeshioPlusPlusIO "
+        "uses; see GetDefaultParameters.")
         .def_static("GetSupportedOperations", &MeshioPlusPlusMeshOperations::GetSupportedOperations,
             "The names accepted by the \"operation\" setting of Execute.")
         .def_static("GetDefaultParameters", &MeshioPlusPlusMeshOperations::GetDefaultParameters,
@@ -74,6 +75,14 @@ void AddCustomUtilitiesToPython(pybind11::module& m)
             "choice for an extensive field (a mass, a heat load), the wrong one for an intensive "
             "one (a temperature). Also needs two independent meshes, so also not reachable "
             "through Execute.")
+        .def_static("Shrinkwrap", &MeshioPlusPlusMeshOperations::Shrinkwrap,
+            py::arg("source_model_part"), py::arg("target_model_part"), py::arg("settings"),
+            py::arg("destination_model_part"),
+            "Projects source_model_part's points onto target_model_part's surface, optionally "
+            "offset along the hit feature's pseudonormal - a fit, not a smoothing (one "
+            "projection, no iteration). Needs two independent meshes, so also not reachable "
+            "through Execute. Set \"output\" to a registered Variable name to get the "
+            "pre-move distance back: meshio++ names it \"shrinkwrap:distance\".")
         .def_static("Grid", &MeshioPlusPlusMeshOperations::Grid,
             py::arg("settings"), py::arg("destination_model_part"),
             "Builds a regular hexahedron lattice from \"dims\"/\"origin\"/\"spacing\". Not "
