@@ -25,6 +25,7 @@
 #include "containers/model.h"
 #include "includes/variables.h"
 #include "custom_io/meshioplusplus_io.h"
+#include "custom_utilities/meshioplusplus_mesh_operations.h"
 #include "meshioplusplus_fast_suite.h"
 
 namespace Kratos::Testing {
@@ -176,6 +177,22 @@ KRATOS_TEST_CASE_IN_SUITE(MeshioPlusPlusIOFormatIntrospection, KratosMeshioPlusP
                      static_cast<int>(MeshioPlusPlusIO::Format::VTP));
     KRATOS_EXPECT_EQ(MeshioPlusPlusIO::FormatName(MeshioPlusPlusIO::Format::TIKZ), "tikz");
 
+    // vti/vts/vtr/vtm (meshio++ v11.6.0's VTK XML structured/multiblock family)
+    KRATOS_EXPECT_EQ(static_cast<int>(MeshioPlusPlusIO::FormatFromString("vti")),
+                     static_cast<int>(MeshioPlusPlusIO::Format::VTI));
+    KRATOS_EXPECT_EQ(MeshioPlusPlusIO::FormatName(MeshioPlusPlusIO::Format::VTI), "vti");
+    KRATOS_EXPECT_EQ(static_cast<int>(MeshioPlusPlusIO::FormatFromString("vts")),
+                     static_cast<int>(MeshioPlusPlusIO::Format::VTS));
+    KRATOS_EXPECT_EQ(MeshioPlusPlusIO::FormatName(MeshioPlusPlusIO::Format::VTS), "vts");
+    KRATOS_EXPECT_EQ(static_cast<int>(MeshioPlusPlusIO::FormatFromString("vtr")),
+                     static_cast<int>(MeshioPlusPlusIO::Format::VTR));
+    KRATOS_EXPECT_EQ(MeshioPlusPlusIO::FormatName(MeshioPlusPlusIO::Format::VTR), "vtr");
+    KRATOS_EXPECT_EQ(static_cast<int>(MeshioPlusPlusIO::FormatFromString("vtm")),
+                     static_cast<int>(MeshioPlusPlusIO::Format::VTM));
+    KRATOS_EXPECT_EQ(MeshioPlusPlusIO::FormatName(MeshioPlusPlusIO::Format::VTM), "vtm");
+    KRATOS_EXPECT_EQ(static_cast<int>(MeshioPlusPlusIO::ResolveFormat("mesh.vtm")),
+                     static_cast<int>(MeshioPlusPlusIO::Format::VTM));
+
     // Extension resolution
     KRATOS_EXPECT_EQ(static_cast<int>(MeshioPlusPlusIO::ResolveFormat("mesh.vtu")),
                      static_cast<int>(MeshioPlusPlusIO::Format::VTU));
@@ -266,6 +283,120 @@ KRATOS_TEST_CASE_IN_SUITE(MeshioPlusPlusIOWriteReadVtp, KratosMeshioPlusPlusFast
     RemoveIfExists(file_path);
 
     ExpectSameMesh(r_write_model_part, r_read_model_part);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(MeshioPlusPlusIOWriteReadVti, KratosMeshioPlusPlusFastSuite)
+{
+    // vti (ImageData) needs a uniform lattice to write: Grid is the one generator that always
+    // produces one.
+    Model model;
+    auto& r_write_model_part = model.CreateModelPart("write");
+    Parameters grid_settings(R"({"dims" : [2, 2, 2], "origin" : [0.0, 0.0, 0.0], "spacing" : [1.0, 1.0, 1.0]})");
+    MeshioPlusPlusMeshOperations::Grid(grid_settings, r_write_model_part);
+
+    auto& r_read_model_part = model.CreateModelPart("read");
+    const auto file_path = TestFilePath(".vti");
+    {
+        Parameters settings(R"({"time_series" : "single_file"})");
+        MeshioPlusPlusIO io_write(file_path, settings);
+        io_write.WriteModelPart(r_write_model_part);
+    }
+    {
+        MeshioPlusPlusIO io_read(file_path);
+        io_read.ReadModelPart(r_read_model_part);
+    }
+    RemoveIfExists(file_path);
+
+    KRATOS_EXPECT_EQ(r_read_model_part.NumberOfNodes(), r_write_model_part.NumberOfNodes());
+    KRATOS_EXPECT_EQ(r_read_model_part.NumberOfElements(), r_write_model_part.NumberOfElements());
+}
+
+KRATOS_TEST_CASE_IN_SUITE(MeshioPlusPlusIOWriteReadVts, KratosMeshioPlusPlusFastSuite)
+{
+    // vts (StructuredGrid) also needs a lattice to write, exactly like vti - see its Format
+    // enum entry.
+    Model model;
+    auto& r_write_model_part = model.CreateModelPart("write");
+    Parameters grid_settings(R"({"dims" : [2, 2, 2], "origin" : [0.0, 0.0, 0.0], "spacing" : [1.0, 1.0, 1.0]})");
+    MeshioPlusPlusMeshOperations::Grid(grid_settings, r_write_model_part);
+
+    auto& r_read_model_part = model.CreateModelPart("read");
+    const auto file_path = TestFilePath(".vts");
+    {
+        Parameters settings(R"({"time_series" : "single_file"})");
+        MeshioPlusPlusIO io_write(file_path, settings);
+        io_write.WriteModelPart(r_write_model_part);
+    }
+    {
+        MeshioPlusPlusIO io_read(file_path);
+        io_read.ReadModelPart(r_read_model_part);
+    }
+    RemoveIfExists(file_path);
+
+    KRATOS_EXPECT_EQ(r_read_model_part.NumberOfNodes(), r_write_model_part.NumberOfNodes());
+    KRATOS_EXPECT_EQ(r_read_model_part.NumberOfElements(), r_write_model_part.NumberOfElements());
+}
+
+KRATOS_TEST_CASE_IN_SUITE(MeshioPlusPlusIOWriteReadVtr, KratosMeshioPlusPlusFastSuite)
+{
+    // vtr (RectilinearGrid): writing still needs a uniform lattice (its per-axis coordinate
+    // arrays are only recovered from one via the same lattice detection vti/vts use), though
+    // its reader is fully general and would also accept a graded one.
+    Model model;
+    auto& r_write_model_part = model.CreateModelPart("write");
+    Parameters grid_settings(R"({"dims" : [2, 2, 2], "origin" : [0.0, 0.0, 0.0], "spacing" : [1.0, 1.0, 1.0]})");
+    MeshioPlusPlusMeshOperations::Grid(grid_settings, r_write_model_part);
+
+    auto& r_read_model_part = model.CreateModelPart("read");
+    const auto file_path = TestFilePath(".vtr");
+    {
+        Parameters settings(R"({"time_series" : "single_file"})");
+        MeshioPlusPlusIO io_write(file_path, settings);
+        io_write.WriteModelPart(r_write_model_part);
+    }
+    {
+        MeshioPlusPlusIO io_read(file_path);
+        io_read.ReadModelPart(r_read_model_part);
+    }
+    RemoveIfExists(file_path);
+
+    KRATOS_EXPECT_EQ(r_read_model_part.NumberOfNodes(), r_write_model_part.NumberOfNodes());
+    KRATOS_EXPECT_EQ(r_read_model_part.NumberOfElements(), r_write_model_part.NumberOfElements());
+}
+
+KRATOS_TEST_CASE_IN_SUITE(MeshioPlusPlusIOWriteReadVtm, KratosMeshioPlusPlusFastSuite)
+{
+    // vtm (MultiBlock) has no lattice requirement, but writes one .vtu piece PER CELL BLOCK,
+    // each independently pruned to its own referenced points and merged back with no welding -
+    // a mesh with more than one block (PopulateTetrahedraModelPart's tetrahedra elements plus
+    // triangle condition) would duplicate the points the two blocks share, so this uses a
+    // single-block (tetrahedra-only) mesh instead, for which counts are preserved exactly.
+    Model model;
+    auto& r_write_model_part = model.CreateModelPart("write");
+    auto& r_read_model_part = model.CreateModelPart("read");
+    auto p_properties = r_write_model_part.CreateNewProperties(1);
+    r_write_model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
+    r_write_model_part.CreateNewNode(2, 1.0, 0.0, 0.0);
+    r_write_model_part.CreateNewNode(3, 0.0, 1.0, 0.0);
+    r_write_model_part.CreateNewNode(4, 0.0, 0.0, 1.0);
+    r_write_model_part.CreateNewNode(5, 1.0, 1.0, 1.0);
+    r_write_model_part.CreateNewElement("Element3D4N", 1, {1, 2, 3, 4}, p_properties);
+    r_write_model_part.CreateNewElement("Element3D4N", 2, {2, 3, 4, 5}, p_properties);
+
+    const auto file_path = TestFilePath(".vtm");
+    {
+        Parameters settings(R"({"time_series" : "single_file"})");
+        MeshioPlusPlusIO io_write(file_path, settings);
+        io_write.WriteModelPart(r_write_model_part);
+    }
+    {
+        MeshioPlusPlusIO io_read(file_path);
+        io_read.ReadModelPart(r_read_model_part);
+    }
+    RemoveIfExists(file_path);
+
+    KRATOS_EXPECT_EQ(r_read_model_part.NumberOfNodes(), r_write_model_part.NumberOfNodes());
+    KRATOS_EXPECT_EQ(r_read_model_part.NumberOfElements(), r_write_model_part.NumberOfElements());
 }
 
 KRATOS_TEST_CASE_IN_SUITE(MeshioPlusPlusIOTriangleFormat, KratosMeshioPlusPlusFastSuite)
@@ -1069,6 +1200,78 @@ KRATOS_TEST_CASE_IN_SUITE(MeshioPlusPlusIOWriteMdpaIdsPreservesOriginalIds, Krat
     // Without the setting the very same model part is renumbered, so those ids are gone.
     KRATOS_EXPECT_TRUE(renumbered.find("99") == std::string::npos);
     KRATOS_EXPECT_TRUE(renumbered.find("42") == std::string::npos);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+KRATOS_TEST_CASE_IN_SUITE(MeshioPlusPlusIOLenientSkipsUnsupportedConstructs, KratosMeshioPlusPlusFastSuite)
+{
+    // "Begin Geometries" is a construct the C++ mdpa reader cannot represent: strict (the
+    // default "lenient" : false) throws naming it, "lenient" warns and skips it instead,
+    // leaving the rest of the deck - the nodes and the element - readable.
+    const auto file_path = TestFilePath(".mdpa");
+    RemoveIfExists(file_path);
+    {
+        std::ofstream file(file_path);
+        file << "Begin Nodes\n1 0.0 0.0 0.0\n2 1.0 0.0 0.0\n3 0.0 1.0 0.0\n4 0.0 0.0 1.0\n"
+             << "End Nodes\n\n"
+             << "Begin Geometries\nSomeGeometry 1 1 2 3 4\nEnd Geometries\n\n"
+             << "Begin Elements Element3D4N\n1 0 1 2 3 4\nEnd Elements\n";
+    }
+
+    Model model;
+    {
+        auto& r_strict = model.CreateModelPart("strict");
+        MeshioPlusPlusIO io_read(file_path);
+        KRATOS_EXPECT_EXCEPTION_IS_THROWN(io_read.ReadModelPart(r_strict), "Geometries");
+    }
+    {
+        auto& r_lenient = model.CreateModelPart("lenient");
+        Parameters settings(R"({"lenient" : true})");
+        MeshioPlusPlusIO io_read(file_path, settings);
+        io_read.ReadModelPart(r_lenient);
+        KRATOS_EXPECT_EQ(r_lenient.NumberOfNodes(), 4);
+        KRATOS_EXPECT_EQ(r_lenient.NumberOfElements(), 1);
+    }
+
+    RemoveIfExists(file_path);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+KRATOS_TEST_CASE_IN_SUITE(MeshioPlusPlusIOTimeStepOutOfRangeThrows, KratosMeshioPlusPlusFastSuite)
+{
+    // Tecplot's reader calls ReadOptions::ResolveTimeStep unconditionally, even for a
+    // non-transient file (no SOLUTIONTIME), unlike gmsh/EnSight which skip the call entirely
+    // when the file carries no timeline at all - so "time_step" 0 (the default, a no-op)
+    // still reads normally, and any other value throws by name instead of silently reading
+    // step 0, proof "time_step" actually reaches the reader through the new registry_read()
+    // call rather than being silently ignored.
+    Model model;
+    auto& r_write_model_part = model.CreateModelPart("write");
+    PopulateTetrahedraModelPart(r_write_model_part);
+    const auto file_path = TestFilePath(".dat");
+    {
+        Parameters settings(R"({"time_series" : "single_file"})");
+        MeshioPlusPlusIO(file_path, settings).WriteModelPart(r_write_model_part);
+    }
+
+    {
+        auto& r_read = model.CreateModelPart("read_default");
+        MeshioPlusPlusIO io_read(file_path);
+        io_read.ReadModelPart(r_read);
+        KRATOS_EXPECT_EQ(r_read.NumberOfNodes(), r_write_model_part.NumberOfNodes());
+    }
+    {
+        auto& r_read = model.CreateModelPart("read_out_of_range");
+        Parameters settings(R"({"time_step" : 3})");
+        MeshioPlusPlusIO io_read(file_path, settings);
+        KRATOS_EXPECT_EXCEPTION_IS_THROWN(io_read.ReadModelPart(r_read), "time step");
+    }
+
+    RemoveIfExists(file_path);
 }
 
 /***********************************************************************************/
