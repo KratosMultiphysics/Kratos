@@ -46,21 +46,22 @@ class ApplyRbe2Process(KM.Process):
         self.constraint_id_start = settings["constraint_id_start"].GetInt()
 
         requested = settings["constrained_dofs"].GetStringArray()
-        invalid = set(requested) - set(DOF_MAP) #DOF must be one of the list above --> otherwise invalid =true
+        invalid = set(requested) - set(DOF_MAP) 
         if invalid:
             raise Exception(f"Invalid input: {invalid}")
         
-        self.dof_names = requested #string
-        self.dof_vars = [DOF_MAP[name] for name in self.dof_names] #Kratos-Variable (for example KM.DISPLACEMENT_X) 
+        self.dof_names = requested 
+        self.dof_vars = [DOF_MAP[name] for name in self.dof_names] 
         self.n_dofs = len(self.dof_vars)
-        self.idx_map = {name: i for i, name in enumerate(self.dof_names)} #DOFs --> 0,1,2
+        self.idx_map = {name: i for i, name in enumerate(self.dof_names)}
 
         self.couple_rotation = (
             any(n in self.idx_map for n in TRANSLATION_NAMES)
             and any(n in self.idx_map for n in ROTATION_NAMES)
         )
     def ExecuteInitialize(self):
-        assert self.master_mp.NumberOfNodes() == 1, "RBE3 needs exactly 1 master node"
+        if self.master_mp.NumberOfNodes() != 1:
+            raise RuntimeError("RBE2 needs exactly 1 master node")
         master_node = next(iter(self.master_mp.Nodes))
         x_m = np.array([master_node.X, master_node.Y, master_node.Z])
         master_dofs = [master_node.GetDof(v) for v in self.dof_vars]
@@ -98,13 +99,12 @@ class ApplyRbe2Process(KM.Process):
                     continue
                 col = self.idx_map[r_name]
                 T[row, col] = -skew_r[t_i, r_i] 
-                #(-ry)·θx + rx·θy + 0·θz  =  rx·θy - ry·θx
         return T
           
     @staticmethod
     def _skew(r):
         """
-        skew matrix: cross product r × θ
+        skew matrix: cross product r × θ 
         describes the rotational part of the slaves
         will be embedded in the 6x6 relation matrix
         expected input: r (vector master-slave)
