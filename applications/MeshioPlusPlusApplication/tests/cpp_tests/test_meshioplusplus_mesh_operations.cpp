@@ -15,6 +15,7 @@
 
 // System includes
 #include <algorithm>
+#include <cmath>
 #include <filesystem>
 #include <fstream>
 #include <sstream>
@@ -136,14 +137,14 @@ KRATOS_TEST_CASE_IN_SUITE(MeshioPlusPlusMeshOperationsGetSupportedOperations, Kr
     const auto operations = MeshioPlusPlusMeshOperations::GetSupportedOperations();
     for (const std::string name : {"agglomerate", "attach_quality", "cell_data_to_point_data",
                                    "clean", "compute_sdf", "convert_cells", "crop_bbox",
-                                   "crop_halfspace", "crop_predicate", "data_calc",
+                                   "crop_halfspace", "crop_predicate", "curvature", "data_calc",
                                    "data_condition", "data_info", "data_integrate", "data_manage",
                                    "decimate", "decimate_volume", "estimate_error", "extract_skin",
                                    "extract_surface", "gradient", "hessian", "isosurface",
                                    "optimize_volume", "point_data_to_cell_data", "partition",
                                    "quality", "refine", "remesh", "remesh_volume", "reorder",
-                                   "slice", "smooth", "split", "stats", "subdivide", "transform",
-                                   "voxelize"}) {
+                                   "repair", "slice", "smooth", "sobolev_deform", "split", "stats",
+                                   "subdivide", "transform", "voxelize"}) {
         KRATOS_EXPECT_TRUE(std::find(operations.begin(), operations.end(), name) != operations.end());
     }
     KRATOS_EXPECT_TRUE(std::is_sorted(operations.begin(), operations.end()));
@@ -1948,6 +1949,189 @@ KRATOS_TEST_CASE_IN_SUITE(MeshioPlusPlusMeshOperationsConservativeInterpolate, K
     KRATOS_EXPECT_EQ(report["number_of_elements"].GetInt(),
                      static_cast<int>(r_target.NumberOfElements()));
     KRATOS_EXPECT_EQ(r_destination.NumberOfNodes(), r_target.NumberOfNodes());
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+KRATOS_TEST_CASE_IN_SUITE(MeshioPlusPlusMeshOperationsCurvatureGaussBonnet, KratosMeshioPlusPlusFastSuite)
+{
+    // Gauss-Bonnet: for a CLOSED surface the sum of every vertex's angle defect is 2*pi*chi -
+    // 4*pi for anything sphere-like - whatever the tessellation, so this is a hard oracle
+    // rather than a tolerance-dependent one. The cube's skin is topologically a sphere.
+    Model model;
+    auto& r_source = model.CreateModelPart("source");
+    PopulateClosedCubeSkin(r_source);
+    auto& r_destination = model.CreateModelPart("destination");
+
+    const Parameters report = MeshioPlusPlusMeshOperations::Execute(
+        r_source, OperationSettings("curvature"), r_destination);
+
+    const double four_pi = 4.0 * std::acos(-1.0);
+    KRATOS_EXPECT_NEAR(report["total_angle_defect"].GetDouble(), four_pi, 1e-9);
+    KRATOS_EXPECT_TRUE(report["surface_quality"]["watertight"].GetBool());
+    KRATOS_EXPECT_EQ(report["number_of_boundary"].GetInt(), 0);
+    KRATOS_EXPECT_EQ(r_destination.NumberOfNodes(), r_source.NumberOfNodes());
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+KRATOS_TEST_CASE_IN_SUITE(MeshioPlusPlusMeshOperationsCurvatureRenamesToAVariable, KratosMeshioPlusPlusFastSuite)
+{
+    // Same rename mechanism as DistanceToSurface: meshio++ names the primary result
+    // "curvature:mean", which no Kratos Variable is, so without "output" the destination
+    // could never retrieve it.
+    Model model;
+    auto& r_source = model.CreateModelPart("source");
+    PopulateClosedCubeSkin(r_source);
+    auto& r_destination = model.CreateModelPart("destination");
+
+    const Parameters report = MeshioPlusPlusMeshOperations::Execute(
+        r_source, OperationSettings("curvature", R"({"output" : "TEMPERATURE"})"), r_destination);
+
+    KRATOS_EXPECT_TRUE(report.Has("total_angle_defect"));
+    for (const auto& r_node : r_destination.Nodes()) {
+        // Reachable at all is the point of the test; the flat cube faces make every vertex's
+        // mean curvature a large but finite number driven entirely by the corner geometry.
+        KRATOS_EXPECT_TRUE(std::isfinite(r_node.GetValue(TEMPERATURE)));
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+KRATOS_TEST_CASE_IN_SUITE(MeshioPlusPlusMeshOperationsRepairFixesOrientationAndFillsAHole, KratosMeshioPlusPlusFastSuite)
+{
+    // The closed cube skin (see PopulateClosedCubeSkin) with the z=1 face's second triangle
+    // dropped (a hole) and the z=0 face's first triangle deliberately wound backwards (an
+    // orientation flip "repair" must undo).
+    Model model;
+    auto& r_source = model.CreateModelPart("source");
+    r_source.CreateNewNode(1, 0.0, 0.0, 0.0);
+    r_source.CreateNewNode(2, 1.0, 0.0, 0.0);
+    r_source.CreateNewNode(3, 1.0, 1.0, 0.0);
+    r_source.CreateNewNode(4, 0.0, 1.0, 0.0);
+    r_source.CreateNewNode(5, 0.0, 0.0, 1.0);
+    r_source.CreateNewNode(6, 1.0, 0.0, 1.0);
+    r_source.CreateNewNode(7, 1.0, 1.0, 1.0);
+    r_source.CreateNewNode(8, 0.0, 1.0, 1.0);
+
+    auto p_properties = r_source.CreateNewProperties(1);
+    const std::vector<std::vector<std::size_t>> connectivities = {
+        {1, 2, 3},              // z = 0, flipped (should be {1, 3, 2})
+        {1, 4, 3},               // z = 0
+        {5, 6, 7},               // z = 1, {5, 7, 8} dropped -> a boundary loop (the hole)
+        {1, 2, 6}, {1, 6, 5},   // y = 0
+        {3, 4, 8}, {3, 8, 7},   // y = 1
+        {2, 3, 7}, {2, 7, 6},   // x = 1
+        {1, 5, 8}, {1, 8, 4},   // x = 0
+    };
+    for (std::size_t i = 0; i < connectivities.size(); ++i) {
+        r_source.CreateNewElement("Element2D3N", i + 1, connectivities[i], p_properties);
+    }
+
+    const Parameters before_report = MeshioPlusPlusMeshOperations::CheckSurfaceWatertight(r_source);
+    KRATOS_EXPECT_FALSE(before_report["watertight"].GetBool());
+    KRATOS_EXPECT_GT(before_report["inconsistent_pairs"].GetInt(), 0);
+    KRATOS_EXPECT_GT(before_report["boundary_edges"].GetInt(), 0);
+
+    auto& r_destination = model.CreateModelPart("destination");
+    const Parameters report = MeshioPlusPlusMeshOperations::Execute(
+        r_source, OperationSettings("repair"), r_destination);
+
+    KRATOS_EXPECT_EQ(report["surface_quality_after"]["inconsistent_pairs"].GetInt(), 0);
+    KRATOS_EXPECT_EQ(report["surface_quality_after"]["boundary_edges"].GetInt(), 0);
+    KRATOS_EXPECT_GT(report["number_of_flipped"].GetInt(), 0);
+    KRATOS_EXPECT_GT(report["number_of_holes_filled"].GetInt(), 0);
+    KRATOS_EXPECT_GT(report["number_of_faces_added"].GetInt(), 0);
+
+    const Parameters after_check = MeshioPlusPlusMeshOperations::CheckSurfaceWatertight(r_destination);
+    KRATOS_EXPECT_TRUE(after_check["watertight"].GetBool());
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+KRATOS_TEST_CASE_IN_SUITE(MeshioPlusPlusMeshOperationsSobolevDeformZeroLengthScaleIsExact, KratosMeshioPlusPlusFastSuite)
+{
+    // "length_scale" : 0.0 (the meshio++ default) applies the raw displacement directly at
+    // every free point with no CG solve at all - the exact-preservation invariant the header
+    // documents, and a hard oracle: zero iterations, and every point moves by exactly the
+    // uniform displacement given, nothing smoothed away.
+    Model model;
+    auto& r_source = model.CreateModelPart("source");
+    r_source.AddNodalSolutionStepVariable(DISPLACEMENT);
+    PopulateCubeOfTetrahedra(r_source);
+    for (auto& r_node : r_source.Nodes()) {
+        r_node.FastGetSolutionStepValue(DISPLACEMENT) = array_1d<double, 3>{0.0, 0.0, 0.5};
+    }
+
+    auto& r_destination = model.CreateModelPart("destination");
+    Parameters settings = OperationSettings("sobolev_deform",
+        R"({"array_name" : "DISPLACEMENT",
+            "nodal_solution_step_data_variables" : ["DISPLACEMENT"]})");
+    const Parameters report = MeshioPlusPlusMeshOperations::Execute(r_source, settings, r_destination);
+
+    KRATOS_EXPECT_EQ(report["number_of_iterations"].GetInt(), 0);
+    KRATOS_EXPECT_TRUE(report["converged"].GetBool());
+    KRATOS_EXPECT_NEAR(report["max_displacement"].GetDouble(), 0.5, 1e-9);
+    KRATOS_EXPECT_EQ(r_destination.NumberOfNodes(), r_source.NumberOfNodes());
+    for (std::size_t i = 1; i <= r_destination.NumberOfNodes(); ++i) {
+        const auto& r_src_node = r_source.GetNode(i);
+        const auto& r_dst_node = r_destination.GetNode(i);
+        KRATOS_EXPECT_NEAR(r_dst_node.X(), r_src_node.X(), 1e-9);
+        KRATOS_EXPECT_NEAR(r_dst_node.Y(), r_src_node.Y(), 1e-9);
+        KRATOS_EXPECT_NEAR(r_dst_node.Z(), r_src_node.Z() + 0.5, 1e-9);
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+KRATOS_TEST_CASE_IN_SUITE(MeshioPlusPlusMeshOperationsShrinkwrapProjectsOntoTarget, KratosMeshioPlusPlusFastSuite)
+{
+    // The source is the unit cube's skin scaled by 2 about the origin, so every source point
+    // sits strictly outside the (unit) target and must move onto it - a hard containment
+    // oracle: every projected point stays within the target's own bounding box, and nothing
+    // is missed (unlimited "max_distance", the default).
+    Model model;
+    auto& r_source = model.CreateModelPart("source");
+    r_source.CreateNewNode(1, 0.0, 0.0, 0.0);
+    r_source.CreateNewNode(2, 2.0, 0.0, 0.0);
+    r_source.CreateNewNode(3, 2.0, 2.0, 0.0);
+    r_source.CreateNewNode(4, 0.0, 2.0, 0.0);
+    r_source.CreateNewNode(5, 0.0, 0.0, 2.0);
+    r_source.CreateNewNode(6, 2.0, 0.0, 2.0);
+    r_source.CreateNewNode(7, 2.0, 2.0, 2.0);
+    r_source.CreateNewNode(8, 0.0, 2.0, 2.0);
+    auto p_source_properties = r_source.CreateNewProperties(1);
+    const std::vector<std::vector<std::size_t>> source_connectivities = {
+        {1, 3, 2}, {1, 4, 3}, {5, 6, 7}, {5, 7, 8}, {1, 2, 6}, {1, 6, 5},
+        {3, 4, 8}, {3, 8, 7}, {2, 3, 7}, {2, 7, 6}, {1, 5, 8}, {1, 8, 4},
+    };
+    for (std::size_t i = 0; i < source_connectivities.size(); ++i) {
+        r_source.CreateNewElement("Element2D3N", i + 1, source_connectivities[i], p_source_properties);
+    }
+
+    auto& r_target = model.CreateModelPart("target");
+    PopulateClosedCubeSkin(r_target);
+
+    auto& r_destination = model.CreateModelPart("destination");
+    const Parameters report = MeshioPlusPlusMeshOperations::Shrinkwrap(
+        r_source, r_target, Parameters(R"({})"), r_destination);
+
+    KRATOS_EXPECT_EQ(r_destination.NumberOfNodes(), r_source.NumberOfNodes());
+    KRATOS_EXPECT_EQ(report["number_of_missed"].GetInt(), 0);
+    KRATOS_EXPECT_EQ(report["number_of_projected"].GetInt(), static_cast<int>(r_source.NumberOfNodes()));
+    for (const auto& r_node : r_destination.Nodes()) {
+        KRATOS_EXPECT_LE(r_node.X(), 1.0 + 1e-9);
+        KRATOS_EXPECT_LE(r_node.Y(), 1.0 + 1e-9);
+        KRATOS_EXPECT_LE(r_node.Z(), 1.0 + 1e-9);
+        KRATOS_EXPECT_GE(r_node.X(), -1e-9);
+        KRATOS_EXPECT_GE(r_node.Y(), -1e-9);
+        KRATOS_EXPECT_GE(r_node.Z(), -1e-9);
+    }
 }
 
 } // namespace Kratos::Testing
