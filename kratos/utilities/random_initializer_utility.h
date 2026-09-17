@@ -92,7 +92,7 @@ public:
         
         std::normal_distribution<TDataType> normal_distribution(MeanValue, VarianceValue);
         
-        for (SizeType i = 0; i < R.size(); ++i)
+        for (SizeType i = 0; i < static_cast<SizeType>(R.size()); ++i)
             R[i] = normal_distribution(generator);
     }
     
