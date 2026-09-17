@@ -1900,6 +1900,9 @@ void SnakeGapSbmProcess::CreateConditions(
     const std::vector<Geometry<Node>::Pointer> &pSurrogateReferenceGeometries,
     const double CharacteristicLength) const
 {
+    KRATOS_ERROR_IF_NOT(KratosComponents<Condition>::Has(rConditionName))
+        << rConditionName << " not registered." << std::endl;
+
     const Condition& reference_condition = KratosComponents<Condition>::Get(rConditionName);
 
     ModelPart::ConditionsContainerType new_condition_list;
