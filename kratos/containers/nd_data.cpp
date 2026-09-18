@@ -122,6 +122,32 @@ std::string NDData<TDataType>::Info() const
     return info.str();
 }
 
+template<class TDataType>
+void NDData<TDataType>::save(Serializer& rSerializer) const
+{
+    rSerializer.save("Shape", mShape);
+
+    // wrap the raw buffer as a DenseVector to reuse Serializer's existing bulk-efficient
+    // (de)serialization instead of looping element-by-element through per-call tag overhead.
+    DenseVector<TDataType> data_vector(this->Size());
+    const auto data = this->ViewData();
+    std::copy(data.begin(), data.end(), data_vector.begin());
+    rSerializer.save("Data", data_vector);
+}
+
+template<class TDataType>
+void NDData<TDataType>::load(Serializer& rSerializer)
+{
+    rSerializer.load("Shape", const_cast<DenseVector<unsigned int>&>(mShape));
+
+    DenseVector<TDataType> data_vector;
+    rSerializer.load("Data", data_vector);
+
+    TDataType* p_data = new TDataType[data_vector.size()];
+    std::copy(data_vector.begin(), data_vector.end(), p_data);
+    mpData = Kratos::make_intrusive<PointerWrapper>(p_data, true);
+}
+
 // template instantiations
 template class NDData<unsigned char>; // We have to use the unsigned char, because numpy does not have proper bindings for std::uint8_t.
 template class NDData<bool>;

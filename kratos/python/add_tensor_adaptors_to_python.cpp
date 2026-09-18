@@ -55,6 +55,7 @@ void AddBaseTensorAdaptor(
      // add the base tensor adaptor
      using tensor_adaptor = TensorAdaptor<TDataType>;
      pybind11::class_<tensor_adaptor, typename tensor_adaptor::Pointer>(rModule, (rName + "Adaptor").c_str())
+          .def(pybind11::init<>())
           .def(pybind11::init<typename tensor_adaptor::ContainerPointerType, typename NDData<TDataType>::Pointer, const bool>(),
                pybind11::arg("container"),
                pybind11::arg("nd_data"),
@@ -98,6 +99,7 @@ void AddCombinedTensorAdaptor(
 {
      using combined_ta_type = CombinedTensorAdaptor<TDataType>;
      pybind11::class_<combined_ta_type, typename combined_ta_type::Pointer, typename combined_ta_type::BaseType>(rModule, rName.c_str())
+          .def(pybind11::init<>())
           .def(pybind11::init<const typename combined_ta_type::TensorAdaptorVectorType &, const bool, const bool, const bool>(),
                pybind11::arg("list_of_tensor_adaptors"),
                pybind11::arg("perform_collect_data_recursively") = true,
