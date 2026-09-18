@@ -28,6 +28,16 @@
 #include "includes/master_slave_constraint.h"
 #include "tensor_adaptors/tensor_adaptor.h"
 #include "tensor_adaptors/combined_tensor_adaptor.h"
+#include "tensor_adaptors/variable_tensor_adaptor.h"
+#include "tensor_adaptors/historical_variable_tensor_adaptor.h"
+#include "tensor_adaptors/gauss_point_variable_tensor_adaptor.h"
+#include "tensor_adaptors/equation_ids_tensor_adaptor.h"
+#include "tensor_adaptors/fixity_tensor_adaptor.h"
+#include "tensor_adaptors/flags_tensor_adaptor.h"
+#include "tensor_adaptors/node_position_tensor_adaptor.h"
+#include "tensor_adaptors/geometry_metrics_tensor_adaptor.h"
+#include "tensor_adaptors/geometries_tensor_adaptor.h"
+#include "tensor_adaptors/connectivity_ids_tensor_adaptor.h"
 
 /* Factories */
 #include "factories/standard_linear_solver_factory.h"
@@ -184,6 +194,21 @@ void KratosApplication::RegisterKratosCore() {
     Serializer::Register("DoubleCombinedTensorAdaptor", CombinedTensorAdaptor<double>());
     Serializer::Register("IntCombinedTensorAdaptor", CombinedTensorAdaptor<int>());
     Serializer::Register("BoolCombinedTensorAdaptor", CombinedTensorAdaptor<bool>());
+
+    // Concrete TensorAdaptor subtypes: needed so a CombinedTensorAdaptor's mTensorAdaptors vector
+    // of polymorphic TensorAdaptor<T> pointers can be reconstructed on load with the right dynamic
+    // type -- without these, saving a combined field whose children survived Clone() as their
+    // derived type throws ("no object registered with type id ...").
+    Serializer::Register("VariableTensorAdaptor", VariableTensorAdaptor());
+    Serializer::Register("HistoricalVariableTensorAdaptor", HistoricalVariableTensorAdaptor());
+    Serializer::Register("GaussPointVariableTensorAdaptor", GaussPointVariableTensorAdaptor());
+    Serializer::Register("EquationIdsTensorAdaptor", EquationIdsTensorAdaptor());
+    Serializer::Register("FixityTensorAdaptor", FixityTensorAdaptor());
+    Serializer::Register("FlagsTensorAdaptor", FlagsTensorAdaptor());
+    Serializer::Register("NodePositionTensorAdaptor", NodePositionTensorAdaptor());
+    Serializer::Register("GeometryMetricsTensorAdaptor", GeometryMetricsTensorAdaptor());
+    Serializer::Register("GeometriesTensorAdaptor", GeometriesTensorAdaptor());
+    Serializer::Register("ConnectivityIdsTensorAdaptor", ConnectivityIdsTensorAdaptor());
 
     //Register specific conditions ( must be completed : conditions defined in kratos_application.h)
     //generic condition

@@ -223,4 +223,18 @@ std::string HistoricalVariableTensorAdaptor::Info() const
     return info.str();
 }
 
+void HistoricalVariableTensorAdaptor::save(Serializer& rSerializer) const
+{
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, BaseType);
+    TensorAdaptorUtils::SaveVariablePointer(rSerializer, "Variable", mpVariable);
+    rSerializer.save("StepIndex", mStepIndex);
+}
+
+void HistoricalVariableTensorAdaptor::load(Serializer& rSerializer)
+{
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, BaseType);
+    TensorAdaptorUtils::LoadVariablePointer(rSerializer, "Variable", mpVariable);
+    rSerializer.load("StepIndex", mStepIndex);
+}
+
 } // namespace Kratos

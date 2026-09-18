@@ -128,6 +128,20 @@ std::string GaussPointVariableTensorAdaptor::Info() const
     return info.str();
 }
 
+void GaussPointVariableTensorAdaptor::save(Serializer& rSerializer) const
+{
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, BaseType);
+    TensorAdaptorUtils::SaveVariablePointer(rSerializer, "Variable", mpVariable);
+    rSerializer.save("ProcessInfo", mpProcessInfo);
+}
+
+void GaussPointVariableTensorAdaptor::load(Serializer& rSerializer)
+{
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, BaseType);
+    TensorAdaptorUtils::LoadVariablePointer(rSerializer, "Variable", mpVariable);
+    rSerializer.load("ProcessInfo", mpProcessInfo);
+}
+
 // template instantiations
 template KRATOS_API(KRATOS_CORE) GaussPointVariableTensorAdaptor::GaussPointVariableTensorAdaptor(ModelPart::ConditionsContainerType::Pointer, VariablePointerType, ProcessInfo::Pointer);
 template KRATOS_API(KRATOS_CORE) GaussPointVariableTensorAdaptor::GaussPointVariableTensorAdaptor(ModelPart::ElementsContainerType::Pointer, VariablePointerType, ProcessInfo::Pointer);
