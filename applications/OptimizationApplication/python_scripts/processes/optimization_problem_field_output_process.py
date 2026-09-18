@@ -85,23 +85,6 @@ class OptimizationProblemFieldOutputProcess(Kratos.OutputProcess):
                      isinstance(global_v, Kratos.TensorAdaptors.BoolTensorAdaptor):
                     self.__AddTensorAdaptor(TensorAdaptorData(global_k, global_v))
 
-    def __AddTensorAdaptor(self, tensor_adaptor_data: TensorAdaptorData) -> bool:
-        found_output = False
-        for tensor_adaptor_output in self.list_of_tensor_adaptor_outputs:
-            if tensor_adaptor_output.AddTensorAdaptorData(tensor_adaptor_data):
-                found_output = True
-                break
-
-        if not found_output:
-            tensor_adaptor_output = self._CreateTensorAdaptorOutput(tensor_adaptor_data)
-            tensor_adaptor_output.AddTensorAdaptorData(tensor_adaptor_data)
-            self.list_of_tensor_adaptor_outputs.append(tensor_adaptor_output)
-            if self.echo_level > 0:
-                Kratos.Logger.PrintInfo(self.__class__.__name__, f"Created tensor adaptor output {tensor_adaptor_output}.")
-
-    def _CreateTensorAdaptorOutput(self, _: TensorAdaptorData) -> TensorAdaptorOutput:
-        raise NotImplementedError("_CreateTensorAdaptorOutput needs to be implemented in the derived class")
-
     def _GetModelPart(self, container) -> Kratos.ModelPart:
         def get_model_part(container, model_part: Kratos.ModelPart):
             if container in [model_part.Nodes, model_part.Conditions, model_part.Elements]:
@@ -121,4 +104,19 @@ class OptimizationProblemFieldOutputProcess(Kratos.OutputProcess):
 
         raise RuntimeError(f"No model part contains the provided container.")
 
+    def __AddTensorAdaptor(self, tensor_adaptor_data: TensorAdaptorData) -> bool:
+        found_output = False
+        for tensor_adaptor_output in self.list_of_tensor_adaptor_outputs:
+            if tensor_adaptor_output.AddTensorAdaptorData(tensor_adaptor_data):
+                found_output = True
+                break
 
+        if not found_output:
+            tensor_adaptor_output = self._CreateTensorAdaptorOutput(tensor_adaptor_data)
+            tensor_adaptor_output.AddTensorAdaptorData(tensor_adaptor_data)
+            self.list_of_tensor_adaptor_outputs.append(tensor_adaptor_output)
+            if self.echo_level > 0:
+                Kratos.Logger.PrintInfo(self.__class__.__name__, f"Created tensor adaptor output {tensor_adaptor_output}.")
+
+    def _CreateTensorAdaptorOutput(self, _: TensorAdaptorData) -> TensorAdaptorOutput:
+        raise NotImplementedError("_CreateTensorAdaptorOutput needs to be implemented in the derived class")
