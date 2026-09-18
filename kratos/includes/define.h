@@ -22,6 +22,7 @@
 #include "includes/kratos_export_api.h"
 #include "includes/smart_pointers.h"
 #include "includes/exception.h"
+#include "includes/schema.h"
 
 // Defining the OS
 #if defined(__linux__) || defined(__linux) || defined(linux) || defined(__gnu_linux__)

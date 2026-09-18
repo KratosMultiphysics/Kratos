@@ -1,0 +1,47 @@
+R"({
+    "model_part_name": {
+        "type": "string",
+        "default": "PLEASE_SPECIFY_MODEL_PART_NAME"
+    },
+
+    "variables_list": {
+        "type": "array",
+        "items": {
+            "type": "string"
+        },
+        "default": []
+    },
+
+    "averaged_variables_list": {
+        "type": "array",
+        "items": {
+            "type": "string"
+        },
+        "default": []
+    },
+
+    "time_averaging_container": {
+        "type": "string",
+        "default": "NodalHistorical"
+    },
+
+    "time_averaging_method": {
+        "type": "string",
+        "default": "Average"
+    },
+
+    "integration_start_point_control_variable_name": {
+        "type": "string",
+        "default": "TIME"
+    },
+
+    "integration_start_point_control_value": {
+        "type": "number",
+        "default": 0.0
+    },
+
+    "echo_level": {
+        "type": "integer",
+        "default": 0
+    }
+})"

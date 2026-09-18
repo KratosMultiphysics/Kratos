@@ -237,6 +237,10 @@ private:
 
 }; // Class Process
 
+inline const SchemaRegistrar<Process> ProcessSchema{typeid(Process).name(),"Process",
+    #include "processes/process.json"
+};
+
 ///@}
 
 ///@name Type Definitions
