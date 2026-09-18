@@ -1007,6 +1007,8 @@ void ShellThickElement3D4N<TKinematics>::CheckGeneralizedStressOrStrainOutput(co
     } else if (rVariable == SHELL_ORTHOTROPIC_STRESS_TOP_SURFACE_GLOBAL) {
         ijob = 9;
         bGlobal = true;
+    } else if (rVariable == SHELL_ORTHOTROPIC_STRESS_THROUGH_THICKNESS) {
+        ijob = 10;
     }
 }
 
@@ -1622,6 +1624,20 @@ bool ShellThickElement3D4N<TKinematics>::TryCalculateOnIntegrationPoints_General
             iValue(0, 1) = iValue(1, 0) = rlaminateStresses[0][2];
             iValue(0, 2) = iValue(2, 0) = rlaminateStresses[0][6];
             iValue(1, 2) = iValue(2, 1) = rlaminateStresses[0][7];
+        } else if (ijob == 10) { // SHELL_ORTHOTROPIC_STRESS_THROUGH_THICKNESS 
+            const SizeType number_of_surfaces = data.rlaminateStresses.size();
+            
+            if (iValue.size1() != number_of_surfaces || iValue.size2() != 5) {
+                iValue.resize(number_of_surfaces, 5, false);
+            }
+
+            for (IndexType surface = 0; surface < number_of_surfaces; ++surface) {
+                iValue(surface, 0) = data.rlaminateStresses[surface][0];
+                iValue(surface, 1) = data.rlaminateStresses[surface][1];
+                iValue(surface, 2) = data.rlaminateStresses[surface][2];
+                iValue(surface, 3) = data.rlaminateStresses[surface][6];
+                iValue(surface, 4) = data.rlaminateStresses[surface][7];
+            }
         }
 
         // if requested, rotate the results in the global coordinate system
