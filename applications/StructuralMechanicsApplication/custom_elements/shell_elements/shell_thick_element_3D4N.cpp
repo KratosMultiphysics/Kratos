@@ -1625,18 +1625,18 @@ bool ShellThickElement3D4N<TKinematics>::TryCalculateOnIntegrationPoints_General
             iValue(0, 2) = iValue(2, 0) = rlaminateStresses[0][6];
             iValue(1, 2) = iValue(2, 1) = rlaminateStresses[0][7];
         } else if (ijob == 10) { // SHELL_ORTHOTROPIC_STRESS_THROUGH_THICKNESS 
-            const SizeType number_of_surfaces = data.rlaminateStresses.size();
+            const SizeType number_of_surfaces = rlaminateStresses.size();
             
             if (iValue.size1() != number_of_surfaces || iValue.size2() != 5) {
                 iValue.resize(number_of_surfaces, 5, false);
             }
 
             for (IndexType surface = 0; surface < number_of_surfaces; ++surface) {
-                iValue(surface, 0) = data.rlaminateStresses[surface][0];
-                iValue(surface, 1) = data.rlaminateStresses[surface][1];
-                iValue(surface, 2) = data.rlaminateStresses[surface][2];
-                iValue(surface, 3) = data.rlaminateStresses[surface][6];
-                iValue(surface, 4) = data.rlaminateStresses[surface][7];
+                iValue(surface, 0) = rlaminateStresses[surface][0];
+                iValue(surface, 1) = rlaminateStresses[surface][1];
+                iValue(surface, 2) = rlaminateStresses[surface][2];
+                iValue(surface, 3) = rlaminateStresses[surface][6];
+                iValue(surface, 4) = rlaminateStresses[surface][7];
             }
         }
 
