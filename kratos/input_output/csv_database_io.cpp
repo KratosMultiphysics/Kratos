@@ -16,7 +16,6 @@
 #include <fstream>
 #include <iomanip>
 #include <numeric>
-#include <ranges>
 #include <regex>
 #include <sstream>
 #include <string_view>
@@ -390,9 +389,10 @@ void CSVDatabaseIO::ReadCSVFile()
                 KRATOS_INFO_IF("CSVDatabaseIO", mEchoLevel > 0) << "Found the headers." << std::endl;
                 if (mReadData.empty()) {
                     // no column information block was found. Assume all data are floats.
-                    for (auto part : line | std::views::split(',')) {
-                        const auto& header = CSVDatabaseIOUtils::Trim(std::string{std::string_view(part.begin(), part.end())});
-                        mReadData.push_back(std::make_pair(header, std::vector<double>{}));
+                    std::string header;
+                    std::stringstream line_stream{line};
+                    while (std::getline(line_stream, header, ',')) {
+                        mReadData.push_back(std::make_pair(CSVDatabaseIOUtils::Trim(header), std::vector<double>{}));
                     }
                     // replace the first one with a in vector because, first one always should be the step
                     if (!mReadData.empty()) {
@@ -415,9 +415,11 @@ void CSVDatabaseIO::ReadCSVFile()
             if (found_header_line) {
                 // split the line by commas (",")
                 IndexType column_index = 0;
-                for (auto part : line | std::views::split(',')) {
+                std::string raw_value;
+                std::stringstream line_stream{line};
+                while (std::getline(line_stream, raw_value, ',')) {
                     if (column_index < mReadData.size()) {
-                        const std::string& value = CSVDatabaseIOUtils::Trim(std::string{std::string_view(part.begin(), part.end())});
+                        const std::string& value = CSVDatabaseIOUtils::Trim(raw_value);
                         switch (mReadData[column_index].second.index()) {
                             case 0: {
                                 if (value != "n/a")
