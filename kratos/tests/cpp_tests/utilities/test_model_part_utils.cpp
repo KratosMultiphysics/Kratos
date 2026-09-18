@@ -206,9 +206,9 @@ KRATOS_TEST_CASE_IN_SUITE(ModelPartUtilsGetModelPart, KratosCoreFastSuite)
     KRATOS_EXPECT_EQ(&mp_1_1_2, ModelPartUtils::GetModelPart(mp_1, mp_1_1_2.Conditions()));
     KRATOS_EXPECT_EQ(&mp_1_1_2, ModelPartUtils::GetModelPart(mp_1, mp_1_1_2.Elements()));
 
-    KRATOS_EXPECT_EQ(&mp_1_1_2, ModelPartUtils::GetModelPart(mp_1, mp_1_1_2.Nodes()));
-    KRATOS_EXPECT_EQ(&mp_1_1_2, ModelPartUtils::GetModelPart(mp_1, mp_1_1_2.Conditions()));
-    KRATOS_EXPECT_EQ(&mp_1_1_2, ModelPartUtils::GetModelPart(mp_1, mp_1_1_2.Elements()));
+    KRATOS_EXPECT_EQ(nullptr, ModelPartUtils::GetModelPart(mp_1_1, mp_1_2_1.Nodes()));
+    KRATOS_EXPECT_EQ(nullptr, ModelPartUtils::GetModelPart(mp_1_1, mp_1_2_1.Conditions()));
+    KRATOS_EXPECT_EQ(nullptr, ModelPartUtils::GetModelPart(mp_1_1, mp_1_2_1.Elements()));
 
     KRATOS_EXPECT_EQ(&mp_1_2_1, ModelPartUtils::GetModelPart(mp_1, mp_1_2_1.Nodes()));
     KRATOS_EXPECT_EQ(&mp_1_2_1, ModelPartUtils::GetModelPart(mp_1, mp_1_2_1.Conditions()));
