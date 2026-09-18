@@ -231,9 +231,9 @@ void CSVDatabaseIO::Finalize(const int TableId)
         WriteData(output_file);
 
         if (mWriteTimeStamp) {
-            output_file << "# End of File - " << FormatTimestamp() << std::endl;
+            output_file << "# End of File - " << FormatTimestamp() << '\n';
         } else {
-            output_file << "# End of File" << std::endl;
+            output_file << "# End of File\n";
         }
 
         output_file.close();
@@ -495,7 +495,7 @@ void CSVDatabaseIO::WriteTitleBlock(const int TableId)
 
     std::ofstream output_file(mCurrentFileName, std::ios::out | std::ios::trunc | std::ios::binary);
 
-    output_file << "# ===========================================================" << std::endl;
+    output_file << "# ===========================================================\n";
     output_file << "# ";
     const int left_gap = (59 - mTitle.size()) / 2 - 1;
     if (left_gap > 0) {
@@ -511,25 +511,25 @@ void CSVDatabaseIO::WriteTitleBlock(const int TableId)
         for (; i < 59 - 2 ; ++i) {
             output_file << "=";
         }
-        output_file << std::endl;
+        output_file << '\n';
     } else {
-        output_file << mTitle << std::endl;
+        output_file << mTitle << '\n';
     }
 
-    output_file << "# ===========================================================" << std::endl;
+    output_file << "# ===========================================================\n";
 
-    output_file << "# ------------------- Kratos information --------------------" << std::endl;
+    output_file << "# ------------------- Kratos information --------------------\n";
     if (mWriteKratosVersion) {
-        output_file << "# Kratos version: " << Kernel::Version() << std::endl;
+        output_file << "# Kratos version: " << Kernel::Version() << '\n';
     } else {
-        output_file << "# Kratos version: not_given" << std::endl;
+        output_file << "# Kratos version: not_given\n";
     }
     if (mWriteTimeStamp) {
-        output_file << "# Timestamp     : " << FormatTimestamp() << std::endl;
+        output_file << "# Timestamp     : " << FormatTimestamp() << '\n';
     } else {
-        output_file << "# Timestamp     : not_specified" << std::endl;
+        output_file << "# Timestamp     : not_specified\n";
     }
-    output_file << "# --------------- End of Kratos information -----------------" << std::endl;
+    output_file << "# --------------- End of Kratos information -----------------\n";
 
     output_file << std::regex_replace(mHeader, std::regex(mTableIdTag), std::to_string(TableId));;
 
@@ -608,7 +608,7 @@ void CSVDatabaseIO::WriteData(std::ofstream& rOutputFile)
         rOutputFile << ", " << mWritingData[i].first.GetFormattedValue(mWritingData[i].second);
         mWritingData[i].second = ValueType();
     }
-    rOutputFile << std::endl;
+    rOutputFile << '\n';
 
     KRATOS_INFO_IF(this->Info(), mEchoLevel > 1) << "Data for " << mWritingData[0].first.GetHeader() << " = " << std::get<int>(mWritingData.front().second) << " is written to file \"" << mCurrentFileName << "\".\n";
 
@@ -653,19 +653,19 @@ void CSVDatabaseIO::GenericRead(
 
 void CSVDatabaseIO::WriteHeaders(std::ofstream& rOutputFile) const
 {
-    rOutputFile << "# ------------------ <Column information> -------------------" << std::endl;
+    rOutputFile << "# ------------------ <Column information> -------------------\n";
     for (IndexType i = 0; i < mWritingData.size(); ++i) {
-        rOutputFile << "#         " << mWritingData[i].first.GetHeader() << ": " << CSVDatabaseIOUtils::GetType(mWritingData[i].second) << std::endl;
+        rOutputFile << "#         " << mWritingData[i].first.GetHeader() << ": " << CSVDatabaseIOUtils::GetType(mWritingData[i].second) << '\n';
     }
-    rOutputFile << "# --------------- End of column information -----------------" << std::endl;
+    rOutputFile << "# --------------- End of column information -----------------\n";
 
-    rOutputFile << "# Headers:" << std::endl;
+    rOutputFile << "# Headers:\n";
 
     rOutputFile << mWritingData.front().first.GetFormattedHeader();
     for (IndexType i = 1; i < mWritingData.size(); ++i) {
         rOutputFile << ", " << mWritingData[i].first.GetFormattedHeader();
     }
-    rOutputFile << std::endl;
+    rOutputFile << '\n';
 
     KRATOS_INFO_IF(this->Info(), mEchoLevel > 0) << "Header names are written to file \"" << mCurrentFileName << "\".\n";
 }
