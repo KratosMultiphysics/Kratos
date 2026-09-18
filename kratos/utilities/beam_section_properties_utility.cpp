@@ -118,14 +118,17 @@ SectionProperties CalculateBar(const std::vector<double>& rDimensions, const std
 {
     const double width = GetDimension(rDimensions, 0, rSectionType);
     const double height = GetDimension(rDimensions, 1, rSectionType);
+    // Torsion constant calculation assumes that width > height
+    const double a = std::max(width, height);
+    const double b = std::min(width, height);
 
     SectionProperties section_properties;
     section_properties.Area = width * height;
     section_properties.I22 = width * std::pow(height, 3) / 12.0;
     section_properties.I33 = height * std::pow(width, 3) / 12.0;
     section_properties.TorsionalInertia =
-        width * std::pow(height, 3) *
-        (1.0 / 3.0 - 0.21 * height / width * (1.0 - std::pow(height, 4) / (12.0 * std::pow(width, 4))));
+        a * std::pow(b, 3) *
+        (1.0 / 3.0 - 0.21 * b / a * (1.0 - std::pow(b, 4) / (12.0 * std::pow(a, 4))));
     section_properties.ShearFactorY = 5.0 / 6.0;
     section_properties.ShearFactorZ = 5.0 / 6.0;
 
@@ -145,106 +148,105 @@ SectionProperties CalculateBox(const std::vector<double>& rDimensions, const std
     SectionProperties section_properties;
     section_properties.Area = width * height - (width - 2.0 * thickness_z) * (height - 2.0 * thickness_y);
     section_properties.I22 =
-        width * std::pow(height, 3) / 12.0
-        - (width - 2.0 * thickness_z) * std::pow(height - 2.0 * thickness_y, 3) / 12.0;
-    section_properties.I33 =
         height * std::pow(width, 3) / 12.0
         - (height - 2.0 * thickness_y) * std::pow(width - 2.0 * thickness_z, 3) / 12.0;
+    section_properties.I33 =
+        width * std::pow(height, 3) / 12.0
+        - (width - 2.0 * thickness_z) * std::pow(height - 2.0 * thickness_y, 3) / 12.0;
     section_properties.TorsionalInertia =
         2.0 * thickness_z * thickness_y * std::pow(width - thickness_z, 2) * std::pow(height - thickness_y, 2)
         / (width * thickness_z + height * thickness_y - std::pow(thickness_z, 2) - std::pow(thickness_y, 2));
-    const auto shear_factors = ApproximateShearFactors(
-        section_properties.Area,
-        2.0 * thickness_z * (height - thickness_y),
-        2.0 * thickness_y * (width - thickness_z));
-    section_properties.ShearFactorY = shear_factors[0];
-    section_properties.ShearFactorZ = shear_factors[1];
+    section_properties.ShearFactorY = 2.0 * thickness_z * (height - 2.0 * thickness_y) / section_properties.Area;
+    section_properties.ShearFactorZ = 2.0 * thickness_y * (width - 2.0 * thickness_z) / section_properties.Area;
 
     return section_properties;
 }
 
 SectionProperties CalculateI(const std::vector<double>& rDimensions, const std::string& rSectionType)
 {
-    const double l1 = GetDimension(rDimensions, 1, rSectionType);
-    const double l2 = GetDimension(rDimensions, 3, rSectionType);
-    const double l3 = GetDimension(rDimensions, 2, rSectionType);
-    const double h1 = GetDimension(rDimensions, 4, rSectionType);
-    const double h3 = GetDimension(rDimensions, 5, rSectionType);
+    const double a = GetDimension(rDimensions, 1, rSectionType);
+    const double b = GetDimension(rDimensions, 2, rSectionType);
+    const double t_w = GetDimension(rDimensions, 3, rSectionType);
+    const double t_a = GetDimension(rDimensions, 4, rSectionType);
+    const double t_b = GetDimension(rDimensions, 5, rSectionType);
     const double total_height = GetDimension(rDimensions, 0, rSectionType);
-    const double h2 = total_height - h1 - h3;
+    const double h_w = total_height - t_a - t_b;
 
-    KRATOS_ERROR_IF(h2 <= 0.0)
+    KRATOS_ERROR_IF(h_w <= 0.0)
         << "Invalid flange/web dimensions for CROSS_SECTION_TYPE \"" << rSectionType << "\"." << std::endl;
 
-    const double y1 = h1 / 2.0;
-    const double y2 = h2 / 2.0 + h1;
-    const double y3 = total_height - h3 / 2.0;
+    const double y1 = t_a / 2.0;
+    const double y2 = h_w / 2.0 + t_a;
+    const double y3 = total_height - t_b / 2.0;
 
     SectionProperties section_properties;
-    section_properties.Area = l1 * h1 + l2 * h2 + l3 * h3;
+    section_properties.Area = a * t_a + t_w * h_w + b * t_b;
 
-    const double y_bar = (l1 * h1 * y1 + l2 * h2 * y2 + l3 * h3 * y3) / section_properties.Area;
+    const double y_bar = (a * t_a * y1 + t_w * h_w * y2 + b * t_b * y3) / section_properties.Area;
 
-    section_properties.I22 =
-        l1 * std::pow(h1, 3) / 12.0 + l1 * h1 * std::pow(y_bar - y1, 2)
-        + l2 * std::pow(h2, 3) / 12.0 + l2 * h2 * std::pow(y_bar - y2, 2)
-        + l3 * std::pow(h3, 3) / 12.0 + l3 * h3 * std::pow(y_bar - y3, 2);
-    section_properties.I33 = h1 * std::pow(l1, 3) / 12.0 + h2 * std::pow(l2, 3) / 12.0 + h3 * std::pow(l3, 3) / 12.0;
+    section_properties.I22 = t_a * std::pow(a, 3) / 12.0 + h_w * std::pow(t_w, 3) / 12.0 + t_b * std::pow(b, 3) / 12.0;
+    section_properties.I33 =
+        a * std::pow(t_a, 3) / 12.0 + a * t_a * std::pow(y_bar - y1, 2)
+        + t_w * std::pow(h_w, 3) / 12.0 + t_w * h_w * std::pow(y_bar - y2, 2)
+        + b * std::pow(t_b, 3) / 12.0 + b * t_b * std::pow(y_bar - y3, 2);
+    // Thin-walled open-section approximation for the Saint-Venant torsion constant.
     section_properties.TorsionalInertia =
-        (std::pow(h3, 3) * l3 + std::pow(h1, 3) * l1 + std::pow(l2, 3) * (total_height - (h1 + h3) / 2.0)) / 3.0;
-    const auto shear_factors = ApproximateShearFactors(
-        section_properties.Area,
-        l2 * h2,
-        l1 * h1 + l3 * h3);
-    section_properties.ShearFactorY = shear_factors[0];
-    section_properties.ShearFactorZ = shear_factors[1];
+        (std::pow(t_b, 3) * b + std::pow(t_a, 3) * a + std::pow(t_w, 3) * (total_height - (t_a + t_b) / 2.0)) / 3.0;
+
+    /*
+    *Shear factor calculation follows the element library reference for I sections.
+    *When compared with value from HyperMesh, the value for ShearFactorY is the same.
+    *HyperMesh reports different value for ShearFactorZ.
+    *Equation should be revisited.
+    */
+    section_properties.ShearFactorY = t_w * h_w / section_properties.Area;
+    section_properties.ShearFactorZ = 5.0 * (a * t_a + b * t_b) / (6.0 * section_properties.Area);
 
     return section_properties;
 }
 
 SectionProperties CalculateChan(const std::vector<double>& rDimensions, const std::string& rSectionType)
 {
-    const double l1 = GetDimension(rDimensions, 0, rSectionType);
+    const double total_width = GetDimension(rDimensions, 0, rSectionType);
     const double total_height = GetDimension(rDimensions, 1, rSectionType);
-    const double l2 = GetDimension(rDimensions, 2, rSectionType);
-    const double wall_thickness = GetDimension(rDimensions, 3, rSectionType);
-    const double l3 = l1;
-    const double h1 = wall_thickness;
-    const double h2 = total_height - 2.0 * wall_thickness;
-    const double h3 = wall_thickness;
+    const double t_w = GetDimension(rDimensions, 2, rSectionType);
+    const double t_f = GetDimension(rDimensions, 3, rSectionType);
+    const double b = total_width - 0.5 * t_w;
+    const double h = total_height - t_f;
+    const double b_f = total_width - t_w;
+    const double h_w = total_height - 2.0 * t_f;
 
-    KRATOS_ERROR_IF(h2 <= 0.0)
+    KRATOS_ERROR_IF(h_w <= 0.0 || b_f <= 0.0)
         << "Invalid dimensions for CROSS_SECTION_TYPE \"" << rSectionType << "\"." << std::endl;
 
-    const double y1 = wall_thickness / 2.0;
-    const double y2 = total_height / 2.0;
-    const double y3 = total_height - wall_thickness / 2.0;
-    const double z1 = l1 / 2.0;
-    const double z2 = l2 / 2.0;
-    const double z3 = l3 / 2.0;
+    const double y_bottom_flange = t_f / 2.0;
+    const double y_web = total_height / 2.0;
+    const double y_top_flange = total_height - t_f / 2.0;
+    const double z_web = t_w / 2.0;
+    const double z_flange = t_w + b_f / 2.0;
 
     SectionProperties section_properties;
-    section_properties.Area = l1 * h1 + l2 * h2 + l3 * h3;
+    section_properties.Area = t_w * total_height + 2.0 * b_f * t_f;
 
-    const double y_bar = (l1 * h1 * y1 + l2 * h2 * y2 + l3 * h3 * y3) / section_properties.Area;
-    const double z_bar = (l1 * h1 * z1 + l2 * h2 * z2 + l3 * h3 * z3) / section_properties.Area;
+    const double y_bar =
+        (b_f * t_f * y_bottom_flange + t_w * total_height * y_web + b_f * t_f * y_top_flange)
+        / section_properties.Area;
+    const double z_bar =
+        (b_f * t_f * z_flange + t_w * total_height * z_web + b_f * t_f * z_flange)
+        / section_properties.Area;
 
     section_properties.I22 =
-        l1 * std::pow(h1, 3) / 12.0 + l1 * h1 * std::pow(y_bar - y1, 2)
-        + l2 * std::pow(h2, 3) / 12.0 + l2 * h2 * std::pow(y_bar - y2, 2)
-        + l3 * std::pow(h3, 3) / 12.0 + l3 * h3 * std::pow(y_bar - y3, 2);
+        2.0 * (t_f * std::pow(b_f, 3) / 12.0 + t_f * b_f * std::pow(z_bar - z_flange, 2))
+        + total_height * std::pow(t_w, 3) / 12.0 + total_height * t_w * std::pow(z_bar - z_web, 2);
     section_properties.I33 =
-        h1 * std::pow(l1, 3) / 12.0 + h1 * l1 * std::pow(z_bar - z1, 2)
-        + h2 * std::pow(l2, 3) / 12.0 + h2 * l2 * std::pow(z_bar - z2, 2)
-        + h3 * std::pow(l3, 3) / 12.0 + h3 * l3 * std::pow(z_bar - z3, 2);
+        b_f * std::pow(t_f, 3) / 12.0 + b_f * t_f * std::pow(y_bar - y_bottom_flange, 2)
+        + t_w * std::pow(total_height, 3) / 12.0 + t_w * total_height * std::pow(y_bar - y_web, 2)
+        + b_f * std::pow(t_f, 3) / 12.0 + b_f * t_f * std::pow(y_bar - y_top_flange, 2);
     section_properties.TorsionalInertia =
-        (2.0 * (l1 - l2 / 2.0) * std::pow(wall_thickness, 3) + (total_height - wall_thickness) * std::pow(l2, 3)) / 3.0;
-    const auto shear_factors = ApproximateShearFactors(
-        section_properties.Area,
-        l2 * h2,
-        l1 * h1 + l3 * h3);
-    section_properties.ShearFactorY = shear_factors[0];
-    section_properties.ShearFactorZ = shear_factors[1];
+        (2.0 * b * std::pow(t_f, 3) + h * std::pow(t_w, 3)) / 3.0;
+
+    section_properties.ShearFactorY = t_w*h_w/section_properties.Area;
+    section_properties.ShearFactorZ = 2*t_f*b_f/section_properties.Area;
 
     return section_properties;
 }

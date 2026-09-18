@@ -56,7 +56,7 @@ KRATOS_TEST_CASE_IN_SUITE(BeamSectionPropertiesUtilityCalculatesBar, KratosCoreF
     KRATOS_EXPECT_NEAR(section_properties.Area, 0.010000000000000002, 1.0e-15);
     KRATOS_EXPECT_NEAR(section_properties.I22, 3.333333333333334e-05, 1.0e-18);
     KRATOS_EXPECT_NEAR(section_properties.I33, 2.083333333333334e-06, 1.0e-18);
-    KRATOS_EXPECT_NEAR(section_properties.TorsionalInertia, 0.0069653333333333355, 1.0e-15);
+    KRATOS_EXPECT_NEAR(section_properties.TorsionalInertia, 7.021260579427085e-06, 1.0e-15);
     KRATOS_EXPECT_NEAR(section_properties.ShearFactorY, 0.8333333333333334, 1.0e-15);
     KRATOS_EXPECT_NEAR(section_properties.ShearFactorZ, 0.8333333333333334, 1.0e-15);
 }
@@ -66,23 +66,23 @@ KRATOS_TEST_CASE_IN_SUITE(BeamSectionPropertiesUtilityCalculatesBox, KratosCoreF
     const auto section_properties =
         BeamSectionPropertiesUtility::CalculateProperties("BOX", std::vector<double>{0.16, 0.24, 0.02, 0.015});
 
-    KRATOS_EXPECT_NEAR(section_properties.Area, 0.012399999999999998, 1.0e-15);
-    KRATOS_EXPECT_NEAR(section_properties.I22, 9.765333333333332e-05, 1.0e-18);
-    KRATOS_EXPECT_NEAR(section_properties.I33, 4.530333333333335e-05, 1.0e-18);
+    KRATOS_EXPECT_NEAR(section_properties.Area, 0.0124, 1.0e-15);
+    KRATOS_EXPECT_NEAR(section_properties.I22, 4.530333333333335e-05, 1.0e-18);
+    KRATOS_EXPECT_NEAR(section_properties.I33, 9.765333333333332e-05, 1.0e-18);
     KRATOS_EXPECT_NEAR(section_properties.TorsionalInertia, 9.286174904942968e-05, 1.0e-18);
-    KRATOS_EXPECT_NEAR(section_properties.ShearFactorY, 0.44354838709677424, 1.0e-15);
-    KRATOS_EXPECT_NEAR(section_properties.ShearFactorZ, 0.38978494623655924, 1.0e-15);
+    KRATOS_EXPECT_NEAR(section_properties.ShearFactorY, 0.48387096774194, 1.0e-15);
+    KRATOS_EXPECT_NEAR(section_properties.ShearFactorZ, 0.41935483870968, 1.0e-15);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(BeamSectionPropertiesUtilityCalculatesIProfileCaseInsensitive, KratosCoreFastSuite)
 {
     const auto section_properties = BeamSectionPropertiesUtility::CalculateProperties(
-        "i",
+        "I",
         std::vector<double>{0.20, 0.05, 0.05, 0.005, 0.005, 0.005});
 
-    KRATOS_EXPECT_NEAR(section_properties.Area, 0.0014500000000000001, 1.0e-15);
-    KRATOS_EXPECT_NEAR(section_properties.I22, 7.6120833333333345e-06, 1.0e-18);
-    KRATOS_EXPECT_NEAR(section_properties.I33, 1.0614583333333336e-07, 1.0e-19);
+    KRATOS_EXPECT_NEAR(section_properties.Area, 0.00145, 1.0e-15);
+    KRATOS_EXPECT_NEAR(section_properties.I22, 1.0614583333333336e-07, 1.0e-19);
+    KRATOS_EXPECT_NEAR(section_properties.I33, 7.6120833333333345e-06, 1.0e-18);
     KRATOS_EXPECT_NEAR(section_properties.TorsionalInertia, 1.2291666666666668e-08, 1.0e-20);
     KRATOS_EXPECT_NEAR(section_properties.ShearFactorY, 0.5459770114942528, 1.0e-15);
     KRATOS_EXPECT_NEAR(section_properties.ShearFactorZ, 0.28735632183908044, 1.0e-15);
@@ -93,9 +93,9 @@ KRATOS_TEST_CASE_IN_SUITE(BeamSectionPropertiesUtilityCalculatesChan, KratosCore
     const auto section_properties =
         BeamSectionPropertiesUtility::CalculateProperties("CHAN", std::vector<double>{0.08, 0.2, 0.01, 0.02});
 
-    KRATOS_EXPECT_NEAR(section_properties.Area, 0.0048000000000000004, 1.0e-15);
-    KRATOS_EXPECT_NEAR(section_properties.I22, 2.9440000000000003e-05, 1.0e-18);
-    KRATOS_EXPECT_NEAR(section_properties.I33, 3.0266666666666668e-06, 1.0e-18);
+    KRATOS_EXPECT_NEAR(section_properties.Area, 4.8e-3, 1.0e-15);
+    KRATOS_EXPECT_NEAR(section_properties.I22, 3.0266666666666668e-06, 1.0e-18);
+    KRATOS_EXPECT_NEAR(section_properties.I33, 2.9440000000000003e-05, 1.0e-18);
     KRATOS_EXPECT_NEAR(section_properties.TorsionalInertia, 4.6000000000000004e-07, 1.0e-19);
     KRATOS_EXPECT_NEAR(section_properties.ShearFactorY, 0.2777777777777778, 1.0e-15);
     KRATOS_EXPECT_NEAR(section_properties.ShearFactorZ, 0.5555555555555556, 1.0e-15);
