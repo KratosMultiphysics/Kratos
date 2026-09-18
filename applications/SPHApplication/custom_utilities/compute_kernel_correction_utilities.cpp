@@ -67,7 +67,7 @@ void ComputeKernelCorrectionUtilities::ComputeGradientCorrection(ModelPart& rThi
             Vector X_AB_target(domain_size);
             const auto& JPcoords = r_geom_neigh[0].Coordinates();
             for (IndexType d = 0; d < domain_size; d++){
-                X_AB_target[d] = JPcoords[d]; // Equivalent to X_AB_target[d] = IPcoords[d] - JPcoords[d]; If \sum_b V_b * \nabla W_b(X_a) = 0.
+                X_AB_target[d] = JPcoords[d];
             }
             
             const double volume = r_geom_neigh[0].GetValue(VOLUME);

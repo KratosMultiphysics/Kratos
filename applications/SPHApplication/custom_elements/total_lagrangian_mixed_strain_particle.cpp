@@ -1,5 +1,4 @@
 #include "custom_elements/total_lagrangian_mixed_strain_particle.h"
-#include "constitutive_laws_application_variables.h"
 
 namespace Kratos
 {
@@ -379,7 +378,6 @@ void TotalLagrangianMixedStrainParticle<TKernelType, TDim>::CalculateAndAddKg(
     ) const 
 {
     KRATOS_TRY
-    // This should be okay, check if it is correct to use A to derive all the entries of the matrix 
     const auto& r_neighbours = this->GetValue(NEIGHBOURS);
 
     int self_index = this->GetNeighbourPosition(r_neighbours);
@@ -393,23 +391,17 @@ void TotalLagrangianMixedStrainParticle<TKernelType, TDim>::CalculateAndAddKg(
         const SizeType row_start = TDim * i;
 
         if constexpr (TDim == 2){
-
             A[0] = rStressVector[0] * rDW_DX(i, 0) + rStressVector[2] * rDW_DX(i, 1);
             A[1] = rStressVector[2] * rDW_DX(i, 0) + rStressVector[1] * rDW_DX(i, 1);
             A *= weight;
-
         } else {
-
             A[0] = rStressVector[0] * rDW_DX(i, 0) + rStressVector[3] * rDW_DX(i, 1) + rStressVector[5] * rDW_DX(i, 2); 
             A[1] = rStressVector[3] * rDW_DX(i, 0) + rStressVector[1] * rDW_DX(i, 1) + rStressVector[4] * rDW_DX(i, 2); 
             A[2] = rStressVector[5] * rDW_DX(i, 0) + rStressVector[4] * rDW_DX(i, 1) + rStressVector[2] * rDW_DX(i, 2);
             A *= weight;
-
         }
-
         for (SizeType row = 0; row < TDim; ++row){
             for (SizeType col = 0; col < TDim; ++col){
-
                 if constexpr (TDim == 2) {
                     constexpr SizeType indices[2][2] = {{0, 2}, {3, 1}};
                     F_index = indices[row][col];
@@ -434,7 +426,6 @@ void TotalLagrangianMixedStrainParticle<TKernelType, TDim>::CalculateAndAddKm(
     ) const 
 {
     KRATOS_TRY
-    // This is okay, only thing to check is the correcteness of the L matrix (also in case someday I change variable order)
 
     const auto& r_neighbours = this->GetValue(NEIGHBOURS);
     const int self_index = this->GetNeighbourPosition(r_neighbours);
@@ -772,8 +763,10 @@ void TotalLagrangianMixedStrainParticle<TKernelType, TDim>::CalculateAndAddUpwin
         const auto& r_neighbour_initial_position = r_neighbour_geom[0].GetInitialPosition();
         const auto& r_neighbour_displacement = r_neighbour_geom[0].FastGetSolutionStepValue(DISPLACEMENT);
         for (IndexType d = 0; d < TDim; ++d) {
-            initial_distance[d] = - r_initial_position[d] + r_neighbour_initial_position[d];
-            current_distance[d] = r_neighbour_initial_position[d] + r_neighbour_displacement[d] - r_initial_position[d] - r_displacement[d];
+            //X_AB_target[d] = r_geom_neigh[0].GetInitialPosition()[d] - r_geom[0].GetInitialPosition()[d];
+            initial_distance[d] = r_geom[0].GetInitialPosition()[d] - r_neighbour_geom[0].GetInitialPosition()[d];
+            //current_distance[d] = r_geom_neigh[0].GetInitialPosition()[d] + r_neighbour_displacement[d] - r_geom[0].GetInitialPosition()[d] - r_displacement[d];
+            current_distance[d] = r_geom[0].GetInitialPosition()[d] + r_displacement[d] - r_neighbour_geom[0].GetInitialPosition()[d] - r_neighbour_displacement[d];
         }
         
         CalculatePairUpwindStabilizationMatrix(stabilization_matrix, *r_neighbours[i], rThisKinematicVariables.F, rProcessInfo);
@@ -834,8 +827,8 @@ void TotalLagrangianMixedStrainParticle<TKernelType, TDim>::CalculatePairUpwindS
     const auto& r_displacement = r_geom[0].FastGetSolutionStepValue(DISPLACEMENT, 1);
     const auto& r_neighbour_displacement = r_geom_neigh[0].FastGetSolutionStepValue(DISPLACEMENT, 1);
     for (IndexType d = 0; d < TDim; ++d) {
-        X_AB_target[d] = r_geom_neigh[0].GetInitialPosition()[d] - r_geom[0].GetInitialPosition()[d] ;
-        current_distance[d] = r_geom_neigh[0].GetInitialPosition()[d] + r_neighbour_displacement[d] - r_geom[0].GetInitialPosition()[d] - r_displacement[d];
+        X_AB_target[d] = r_geom[0].GetInitialPosition()[d] - r_geom_neigh[0].GetInitialPosition()[d];
+        current_distance[d] = r_geom[0].GetInitialPosition()[d] + r_displacement[d] - r_geom_neigh[0].GetInitialPosition()[d] - r_neighbour_displacement[d];
     }
     
     const double norm_dist = norm_2(current_distance);

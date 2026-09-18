@@ -64,52 +64,6 @@ void TotalLagrangianDisplacementParticle<TKernelType, TDim>::FinalizeSolutionSte
 
         this->mThisConstitutiveLaw->FinalizeMaterialResponse(Values, ConstitutiveLaw::StressMeasure_PK2);
     }
-
-    // TO BE DELETED SOMEDAY --->>
-    auto& r_geom = this->GetGeometry();
-    const auto& r_prop = this->GetProperties();
-    const SizeType number_of_neighbours = this-> GetValue(NEIGHBOURS).size();
-    const SizeType dimension = r_geom.WorkingSpaceDimension();
-    const SizeType strain_size = this->mThisConstitutiveLaw->GetStrainSize();
-
-    KinematicVariables this_kinematic_variables(strain_size, dimension, number_of_neighbours);
-    ConstitutiveVariables this_constitutive_variables(strain_size);
-    ConstitutiveLaw::Parameters Values(r_geom, r_prop, rProcessInfo);
-
-    auto& ConstitutiveLawOptions = Values.GetOptions();
-    ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, false);
-    ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
-    ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
-    
-    Values.SetStrainVector(this_constitutive_variables.StrainVector);
-
-    CalculateKinematicVariables(this_kinematic_variables, rProcessInfo);
-    SetConstitutiveLawVariables(this_constitutive_variables, this_kinematic_variables, Values);
-    
-    this->mThisConstitutiveLaw->CalculateMaterialResponse(Values, ConstitutiveLaw::StressMeasure_Cauchy);
-
-    this->GetGeometry()[0].SetValue(DETERMINANT_F, this_kinematic_variables.detF);
-
-    MatrixType F_3d = ZeroMatrix(3,3);
-    for (int i = 0; i < dimension; ++i){
-        for (int j = 0; j < dimension; ++j){
-            F_3d(i,j) = this_kinematic_variables.F(i,j);
-        }
-    }
-    F_3d(2,2) = 1.0;
-
-    Values.SetDeterminantF(MathUtils<double>::Det(F_3d));
-    Values.SetDeformationGradientF(F_3d);
-    
-    double strain_energy = 0.0;
-    this->mThisConstitutiveLaw->CalculateValue(Values, STRAIN_ENERGY, strain_energy);
-    this->GetGeometry()[0].SetValue(STRAIN_ENERGY, strain_energy);
-    // This assign the value of PLASTIC_STRAIN_VECTOR to a non historical variable of the geometry
-    if (required){
-        VectorType temp(strain_size);
-        this->mThisConstitutiveLaw->GetValue(PLASTIC_STRAIN_VECTOR, temp);
-        r_geom[0].SetValue(PLASTIC_STRAIN_VECTOR, temp);
-    }
 }
 
 template<class TKernelType, std::size_t TDim>

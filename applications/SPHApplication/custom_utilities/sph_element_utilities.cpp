@@ -128,8 +128,8 @@ void SPHElementUtilities::ComputeVelocityJump(
         neighbour_velocity[d] = r_neighbour_velocity[d];
     }
 
-    const VectorType particle_interface_velocity = particle_velocity + 0.5 * prod(velocity_gradient_particle, rInitialDistance);
-    const VectorType neighbour_interface_velocity = neighbour_velocity - 0.5 * prod(velocity_gradient_neighbour, rInitialDistance);
+    const VectorType particle_interface_velocity = particle_velocity - 0.5 * prod(velocity_gradient_particle, rInitialDistance);
+    const VectorType neighbour_interface_velocity = neighbour_velocity + 0.5 * prod(velocity_gradient_neighbour, rInitialDistance);
 
     noalias(rJumpVector) = neighbour_interface_velocity - particle_interface_velocity;
 }
