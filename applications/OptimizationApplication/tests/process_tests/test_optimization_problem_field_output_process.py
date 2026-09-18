@@ -94,6 +94,11 @@ class TestOptimizationProblemFieldOutputProcess(kratos_unittest.TestCase):
         cls.model_part2.CreateNewNode(4, 0.0, 1.0, 0.0)
         properties = cls.model_part2.CreateNewProperties(2)
         cls.model_part2.CreateNewElement("Element2D4N", 1, [1, 2, 3, 4], properties)
+        cls.model_part2.CreateNewElement("Element2D3N", 2, [1, 2, 3], properties)
+
+        cls.model_part3 = cls.model.CreateModelPart("test_2.sub_model_1")
+        cls.model_part3.AddNodes([1, 2, 3])
+        cls.model_part3.AddElements([2])
 
         for node in cls.model_part2.Nodes:
             node.SetValue(Kratos.VELOCITY, Kratos.Array3([node.Id + 1, node.Id + 2, node.Id + 3]))
@@ -111,6 +116,7 @@ class TestOptimizationProblemFieldOutputProcess(kratos_unittest.TestCase):
         self.components_list.append(TestOptimizationProblemFieldOutputProcess.DummyControl("control_1", self.model_part1))
         self.components_list.append(TestOptimizationProblemFieldOutputProcess.DummyControl("control_2", self.model_part2))
         self.components_list.append(TestOptimizationProblemFieldOutputProcess.DummyControl("control_3", self.model_part1))
+        self.components_list.append(TestOptimizationProblemFieldOutputProcess.DummyControl("control_4", self.model_part3))
         self.components_list.append(TestOptimizationProblemFieldOutputProcess.DummyExecutionPolicy("policy_1", self.model_part1))
         self.components_list.append(TestOptimizationProblemFieldOutputProcess.DummyExecutionPolicy("policy_2", self.model_part2))
         self.components_list.append(TestOptimizationProblemFieldOutputProcess.DummyExecutionPolicy("policy_3", self.model_part1))
@@ -150,6 +156,7 @@ class TestOptimizationProblemFieldOutputProcess(kratos_unittest.TestCase):
                 "file_name"                   : "<model_part_full_name>",
                 "file_format"                 : "ascii",
                 "write_deformed_configuration": false,
+                "output_sub_model_parts"      : true,
                 "list_of_output_components"   : ["all"],
                 "output_precision"            : 7,
                 "output_interval"             : 1,

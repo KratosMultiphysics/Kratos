@@ -13,8 +13,7 @@ def Factory(model: Kratos.Model, parameters: Kratos.Parameters, optimization_pro
 
 class TensorAdaptorVtuOutput(TensorAdaptorOutput):
     def __init__(self,  model_part: Kratos.ModelPart, parameters: Kratos.Parameters, optimization_problem: OptimizationProblem):
-        self.model_part = model_part.GetRootModelPart()
-        self.working_model_part = model_part # to avoid two sub-model parts overwriting each other
+        self.model_part = model_part
         self.optimization_problem = optimization_problem
 
         if parameters["save_output_files_in_folder"].GetBool():
@@ -64,8 +63,8 @@ class TensorAdaptorVtuOutput(TensorAdaptorOutput):
             self.vtu_output.EmplaceTensorAdaptor(tensor_adaptor_data.GetTensorAdaptorName(), tensor_adaptor_data.GetTensorAdaptor(self.optimization_problem))
 
         output_file_name = self.output_file_name_prefix
-        output_file_name = output_file_name.replace("<model_part_full_name>", self.working_model_part.FullName())
-        output_file_name = output_file_name.replace("<model_part_name>", self.working_model_part.Name)
+        output_file_name = output_file_name.replace("<model_part_full_name>", self.model_part.FullName())
+        output_file_name = output_file_name.replace("<model_part_name>", self.model_part.Name)
         self.vtu_output.PrintOutput(str(self.output_path / output_file_name), self.optimization_problem.GetStep(), self.optimization_problem.GetStep())
 
     def __str__(self) -> str:
