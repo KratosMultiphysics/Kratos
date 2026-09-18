@@ -91,22 +91,22 @@ std::vector<TContainerType> ContainerClassificationUtilities::ClassifyByGeometry
 }
 
 // Explicit template instantiations
-template std::vector<ModelPart::ElementsContainerType> 
+template KRATOS_API(KRATOS_CORE) std::vector<ModelPart::ElementsContainerType> 
 ContainerClassificationUtilities::Classify(ModelPart::ElementsContainerType&);
 
-template std::vector<ModelPart::ConditionsContainerType> 
+template KRATOS_API(KRATOS_CORE) std::vector<ModelPart::ConditionsContainerType> 
 ContainerClassificationUtilities::Classify(ModelPart::ConditionsContainerType&);
 
-template std::vector<ModelPart::GeometryContainerType> 
+template KRATOS_API(KRATOS_CORE) std::vector<ModelPart::GeometryContainerType> 
 ContainerClassificationUtilities::Classify(ModelPart::GeometryContainerType&);
 
-template std::vector<ModelPart::ElementsContainerType> 
+template KRATOS_API(KRATOS_CORE) std::vector<ModelPart::ElementsContainerType> 
 ContainerClassificationUtilities::ClassifyByGeometryType(ModelPart::ElementsContainerType&);
 
-template std::vector<ModelPart::ConditionsContainerType> 
+template KRATOS_API(KRATOS_CORE) std::vector<ModelPart::ConditionsContainerType> 
 ContainerClassificationUtilities::ClassifyByGeometryType(ModelPart::ConditionsContainerType&);
 
-template std::vector<ModelPart::GeometryContainerType> 
+template KRATOS_API(KRATOS_CORE) std::vector<ModelPart::GeometryContainerType> 
 ContainerClassificationUtilities::ClassifyByGeometryType(ModelPart::GeometryContainerType&);
 
 } // namespace Kratos
