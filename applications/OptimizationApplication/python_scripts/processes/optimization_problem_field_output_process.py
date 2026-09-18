@@ -102,3 +102,23 @@ class OptimizationProblemFieldOutputProcess(Kratos.OutputProcess):
     def _CreateTensorAdaptorOutput(self, _: TensorAdaptorData) -> TensorAdaptorOutput:
         raise NotImplementedError("_CreateTensorAdaptorOutput needs to be implemented in the derived class")
 
+    def _GetModelPart(self, container) -> Kratos.ModelPart:
+        def get_model_part(container, model_part: Kratos.ModelPart):
+            if container in [model_part.Nodes, model_part.Conditions, model_part.Elements]:
+                return model_part
+
+            for sub_model_part_name in model_part.GetSubModelPartNames():
+                root_model_part = get_model_part(container, model_part.GetSubModelPart(sub_model_part_name))
+                if root_model_part is not None:
+                    return root_model_part
+
+            return None
+
+        for model_part_name in self.model.GetModelPartNames():
+            root_model_part = get_model_part(container, self.model[model_part_name])
+            if root_model_part is not None:
+                return root_model_part
+
+        raise RuntimeError(f"No model part contains the provided container.")
+
+
