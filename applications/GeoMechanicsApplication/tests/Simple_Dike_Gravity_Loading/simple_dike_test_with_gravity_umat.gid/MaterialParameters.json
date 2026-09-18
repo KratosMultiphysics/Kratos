@@ -7,7 +7,7 @@
               "name"             :  "SmallStrainUMAT2DPlaneStrainLaw" 
           },
           "Variables": {
-              "IGNORE_UNDRAINED"         :  true,
+              "GEO_DRAINAGE_TYPE"        :  "CONSTANT_PW_FIELD",
               "DENSITY_SOLID"            :  2650,
               "DENSITY_WATER"            :  1.0e3,
               "POROSITY"                 :  0.395,
@@ -26,8 +26,7 @@
                                              0.0,
                                              1000],
               "STATE_VARIABLES"         :  [0.0]
-         },
-         "Tables": {}
+         }
       }
    },{
       "model_part_name":         "PorousDomain.dike",
@@ -37,7 +36,7 @@
               "name"             :  "SmallStrainUMAT2DPlaneStrainLaw" 
           },
           "Variables": {
-              "IGNORE_UNDRAINED"         :  true,
+              "GEO_DRAINAGE_TYPE"        :  "CONSTANT_PW_FIELD",
               "DENSITY_SOLID"            :  2650,
               "DENSITY_WATER"            :  1.0e3,
               "POROSITY"                 :  0.395,
@@ -56,8 +55,7 @@
                                              0.0,
                                              1000],
               "STATE_VARIABLES"         :  [0.0]
-         },
-         "Tables": {}
+         }
       }
    }]
 }

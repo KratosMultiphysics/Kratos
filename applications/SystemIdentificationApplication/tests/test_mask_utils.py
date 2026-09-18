@@ -3,7 +3,6 @@ import numpy as np
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.KratosUnittest as UnitTest
 import KratosMultiphysics.SystemIdentificationApplication as KratosSI
-from KratosMultiphysics.SystemIdentificationApplication.utilities.expression_utils import ExpressionUnionType
 
 class TestMaskUtils(UnitTest.TestCase):
     @classmethod
@@ -19,14 +18,14 @@ class TestMaskUtils(UnitTest.TestCase):
             node.SetValue(Kratos.HEAT_FLUX, 2 * (node.Id % 2))
 
     def test_Union(self):
-        mask_1 = Kratos.Expression.NodalExpression(self.model_part)
-        mask_2 = Kratos.Expression.NodalExpression(self.model_part)
+        mask_1 = Kratos.TensorAdaptors.VariableTensorAdaptor(self.model_part.Nodes, Kratos.PRESSURE)
+        mask_2 = Kratos.TensorAdaptors.VariableTensorAdaptor(self.model_part.Nodes, Kratos.DENSITY)
 
-        Kratos.Expression.VariableExpressionIO.Read(mask_1, Kratos.PRESSURE, False)
-        Kratos.Expression.VariableExpressionIO.Read(mask_2, Kratos.DENSITY, False)
+        mask_1.CollectData()
+        mask_2.CollectData()
 
-        union_mask: Kratos.Expression.NodalExpression = KratosSI.MaskUtils.Union(mask_1, mask_2, 2)
-        Kratos.Expression.VariableExpressionIO.Write(union_mask, Kratos.TEMPERATURE, False)
+        union_mask = KratosSI.MaskUtils.Union(mask_1, mask_2, 2)
+        Kratos.TensorAdaptors.VariableTensorAdaptor(union_mask, Kratos.TEMPERATURE, copy=False).StoreData()
         for node in self.model_part.Nodes:
             if (node.Id % 3 >= 2 or node.Id % 5 >= 2):
                 self.assertEqual(node.GetValue(Kratos.TEMPERATURE), 2)
@@ -34,14 +33,14 @@ class TestMaskUtils(UnitTest.TestCase):
                 self.assertEqual(node.GetValue(Kratos.TEMPERATURE), 0)
 
     def test_Intersect(self):
-        mask_1 = Kratos.Expression.NodalExpression(self.model_part)
-        mask_2 = Kratos.Expression.NodalExpression(self.model_part)
+        mask_1 = Kratos.TensorAdaptors.VariableTensorAdaptor(self.model_part.Nodes, Kratos.PRESSURE)
+        mask_2 = Kratos.TensorAdaptors.VariableTensorAdaptor(self.model_part.Nodes, Kratos.DENSITY)
 
-        Kratos.Expression.VariableExpressionIO.Read(mask_1, Kratos.PRESSURE, False)
-        Kratos.Expression.VariableExpressionIO.Read(mask_2, Kratos.DENSITY, False)
+        mask_1.CollectData()
+        mask_2.CollectData()
 
-        union_mask: Kratos.Expression.NodalExpression = KratosSI.MaskUtils.Intersect(mask_1, mask_2, 2)
-        Kratos.Expression.VariableExpressionIO.Write(union_mask, Kratos.TEMPERATURE, False)
+        intersect_mask = KratosSI.MaskUtils.Intersect(mask_1, mask_2, 2)
+        Kratos.TensorAdaptors.VariableTensorAdaptor(intersect_mask, Kratos.TEMPERATURE, copy=False).StoreData()
         for node in self.model_part.Nodes:
             if (node.Id % 3 >= 2 and node.Id % 5 >= 2):
                 self.assertEqual(node.GetValue(Kratos.TEMPERATURE), 2)
@@ -49,14 +48,14 @@ class TestMaskUtils(UnitTest.TestCase):
                 self.assertEqual(node.GetValue(Kratos.TEMPERATURE), 0)
 
     def test_Substract(self):
-        mask_1 = Kratos.Expression.NodalExpression(self.model_part)
-        mask_2 = Kratos.Expression.NodalExpression(self.model_part)
+        mask_1 = Kratos.TensorAdaptors.VariableTensorAdaptor(self.model_part.Nodes, Kratos.PRESSURE)
+        mask_2 = Kratos.TensorAdaptors.VariableTensorAdaptor(self.model_part.Nodes, Kratos.DENSITY)
 
-        Kratos.Expression.VariableExpressionIO.Read(mask_1, Kratos.PRESSURE, False)
-        Kratos.Expression.VariableExpressionIO.Read(mask_2, Kratos.DENSITY, False)
+        mask_1.CollectData()
+        mask_2.CollectData()
 
-        union_mask: Kratos.Expression.NodalExpression = KratosSI.MaskUtils.Subtract(mask_1, mask_2, 2)
-        Kratos.Expression.VariableExpressionIO.Write(union_mask, Kratos.TEMPERATURE, False)
+        subtract_mask = KratosSI.MaskUtils.Subtract(mask_1, mask_2, 2)
+        Kratos.TensorAdaptors.VariableTensorAdaptor(subtract_mask, Kratos.TEMPERATURE, copy=False).StoreData()
         for node in self.model_part.Nodes:
             if (node.Id % 3 >= 2 and node.Id % 5 < 2):
                 self.assertEqual(node.GetValue(Kratos.TEMPERATURE), 2)
@@ -64,60 +63,56 @@ class TestMaskUtils(UnitTest.TestCase):
                 self.assertEqual(node.GetValue(Kratos.TEMPERATURE), 0)
 
     def test_GetMaskSize(self):
-       mask = Kratos.Expression.NodalExpression(self.model_part)
-       Kratos.Expression.VariableExpressionIO.Read(mask, Kratos.DENSITY, False)
+       mask = Kratos.TensorAdaptors.VariableTensorAdaptor(self.model_part.Nodes, Kratos.DENSITY)
+       mask.CollectData()
 
        self.assertEqual(KratosSI.MaskUtils.GetMaskSize(mask), self.n - self.n // 5)
        self.assertEqual(KratosSI.MaskUtils.GetMaskSize(mask, 2), self.n - 2 * self.n // 5)
        self.assertEqual(KratosSI.MaskUtils.GetMaskSize(mask, 3), self.n - 3 * self.n // 5)
 
     def test_GetMaskNoThreshold(self):
-        values = Kratos.Expression.NodalExpression(self.model_part)
-        Kratos.Expression.VariableExpressionIO.Read(values, Kratos.HEAT_FLUX, False)
+        values = Kratos.TensorAdaptors.VariableTensorAdaptor(self.model_part.Nodes, Kratos.HEAT_FLUX)
+        values.CollectData()
 
         mask = KratosSI.MaskUtils.GetMask(values)
-        Kratos.Expression.VariableExpressionIO.Write(mask, Kratos.TEMPERATURE, False)
+        Kratos.TensorAdaptors.VariableTensorAdaptor(mask, Kratos.TEMPERATURE, copy=False).StoreData()
 
         mask_threshold = KratosSI.MaskUtils.GetMaskThreshold(values)
-        print(mask_threshold)
         mask_1 = KratosSI.MaskUtils.GetMask(values, mask_threshold)
-        self.assertAlmostEqual(Kratos.Expression.Utils.NormL2(mask - mask_1), 0.0)
+        self.assertAlmostEqual(np.linalg.norm(mask.data - mask_1.data), 0.0)
 
         for node in self.model_part.Nodes:
             self.assertEqual(node.GetValue(Kratos.TEMPERATURE), node.Id % 2)
 
-    def test_GetMaskWithhreshold(self):
-        values = Kratos.Expression.NodalExpression(self.model_part)
-        Kratos.Expression.VariableExpressionIO.Read(values, Kratos.HEAT_FLUX, False)
+    def test_GetMaskWithThreshold(self):
+        values = Kratos.TensorAdaptors.VariableTensorAdaptor(self.model_part.Nodes, Kratos.HEAT_FLUX)
+        values.CollectData()
 
         mask = KratosSI.MaskUtils.GetMask(values, 1.0)
-        Kratos.Expression.VariableExpressionIO.Write(mask, Kratos.TEMPERATURE, False)
+        Kratos.TensorAdaptors.VariableTensorAdaptor(mask, Kratos.TEMPERATURE, copy=False).StoreData()
 
         for node in self.model_part.Nodes:
             self.assertEqual(node.GetValue(Kratos.TEMPERATURE), node.Id % 2)
 
     def test_Scale(self):
-        values = Kratos.Expression.NodalExpression(self.model_part)
-        Kratos.Expression.VariableExpressionIO.Read(values, Kratos.HEAT_FLUX, False)
+        values = Kratos.TensorAdaptors.VariableTensorAdaptor(self.model_part.Nodes, Kratos.HEAT_FLUX)
+        values.CollectData()
 
-        float_exp_np = np.arange(0, self.n, dtype=np.float64)
-        float_exp = Kratos.Expression.NodalExpression(self.model_part)
-        Kratos.Expression.CArrayExpressionIO.Read(float_exp, float_exp_np)
-        scaled_exp_sum = np.sum(KratosSI.MaskUtils.Scale(float_exp, values).Evaluate())
+        float_ta = values.Clone()
+        float_ta.data[:] = np.arange(0, self.n, dtype=np.float64)
+        scaled_exp_sum = np.sum(KratosSI.MaskUtils.Scale(float_ta, values).data)
         self.assertEqual(scaled_exp_sum, (self.n // 2 - 1) * (self.n // 2))
 
     def test_ClusterMasks(self):
-        masks_list: 'list[Kratos.Expression.NodalExpression]' = []
+        masks_list: 'list[Kratos.TensorAdaptors.DoubleTensorAdaptor]' = []
         number_of_masks = 5
         for i in range(number_of_masks):
-            mask = np.zeros((self.n), dtype=np.int32)
+            mask_ta = Kratos.TensorAdaptors.VariableTensorAdaptor(self.model_part.Nodes, Kratos.PRESSURE)
             for j in range(self.n):
-                mask[j] = j % (i + 1)
-            mask_exp = Kratos.Expression.NodalExpression(self.model_part)
-            Kratos.Expression.CArrayExpressionIO.Read(mask_exp, mask)
-            masks_list.append(mask_exp)
+                mask_ta.data[j] = j % (i + 1)
+            masks_list.append(mask_ta)
 
-        cluster_data: 'list[tuple[list[int], ExpressionUnionType]]' = KratosSI.MaskUtils.ClusterMasks(masks_list)
+        cluster_data = KratosSI.MaskUtils.ClusterMasks(masks_list)
         reference_cluster_indices = [[], [1,2,3,4], [2,3,4], [1,3,4], [2,4], [1,2,3], [3,4]]
         reference_cluster_masks = np.array([
             [1,0,0,0,0,0,0,0,0,0],
@@ -131,24 +126,22 @@ class TestMaskUtils(UnitTest.TestCase):
 
         for i, (cluster_indices, cluster_mask) in enumerate(cluster_data):
             self.assertEqual(cluster_indices, reference_cluster_indices[i])
-            self.assertAlmostEqual(np.linalg.norm(cluster_mask.Evaluate() - reference_cluster_masks[i, :]), 0.0, 12)
+            self.assertAlmostEqual(np.linalg.norm(cluster_mask.data - reference_cluster_masks[i, :]), 0.0, 12)
 
     def test_GetMasksDividingReferenceMask(self):
-        masks_list: 'list[Kratos.Expression.NodalExpression]' = []
+        masks_list: 'list[Kratos.TensorAdaptors.DoubleTensorAdaptor]' = []
         number_of_masks = 5
         for i in range(number_of_masks):
-            mask = np.zeros((self.n), dtype=np.int32)
+            mask_ta = Kratos.TensorAdaptors.VariableTensorAdaptor(self.model_part.Nodes, Kratos.PRESSURE)
             for j in range(self.n):
-                mask[j] = j % (i + 1)
-            mask_exp = Kratos.Expression.NodalExpression(self.model_part)
-            Kratos.Expression.CArrayExpressionIO.Read(mask_exp, mask)
-            masks_list.append(mask_exp)
+                mask_ta.data[j] = j % (i + 1)
+            masks_list.append(mask_ta)
 
         ref_mask = np.zeros((self.n), dtype=np.int32)
         ref_mask[3:5] = 1
-        ref_mask_exp = Kratos.Expression.NodalExpression(self.model_part)
-        Kratos.Expression.CArrayExpressionIO.Read(ref_mask_exp, ref_mask)
-        indices = KratosSI.MaskUtils.GetMasksDividingReferenceMask(ref_mask_exp, masks_list)
+        ref_mask_ta = Kratos.TensorAdaptors.VariableTensorAdaptor(self.model_part.Nodes, Kratos.PRESSURE)
+        ref_mask_ta.data[:] = ref_mask
+        indices = KratosSI.MaskUtils.GetMasksDividingReferenceMask(ref_mask_ta, masks_list)
 
         self.assertEqual(indices, [1,2,3])
 

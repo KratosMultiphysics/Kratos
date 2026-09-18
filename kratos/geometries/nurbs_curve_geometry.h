@@ -64,10 +64,12 @@ public:
     NurbsCurveGeometry(
         const PointsArrayType& rThisPoints,
         const SizeType PolynomialDegree,
-        const Vector& rKnots)
+        const Vector& rKnots,
+        const ProjectionAlgorithm ProjectionAlgorithm = ProjectionAlgorithm::NewtonRaphson)
         : BaseType(rThisPoints, &msGeometryData)
         , mPolynomialDegree(PolynomialDegree)
         , mKnots(rKnots)
+        , mProjectionAlgorithm(ProjectionAlgorithm)
     {
         CheckAndFitKnotVectors();
     }
@@ -77,11 +79,13 @@ public:
         const PointsArrayType& rThisPoints,
         const SizeType PolynomialDegree,
         const Vector& rKnots,
-        const Vector& rWeights)
+        const Vector& rWeights,
+        const ProjectionAlgorithm ProjectionAlgorithm = ProjectionAlgorithm::NewtonRaphson)
         : BaseType(rThisPoints, &msGeometryData)
         , mPolynomialDegree(PolynomialDegree)
         , mKnots(rKnots)
         , mWeights(rWeights)
+        , mProjectionAlgorithm(ProjectionAlgorithm)
     {
         CheckAndFitKnotVectors();
 
@@ -388,12 +392,21 @@ public:
     {
         CoordinatesArrayType point_global_coordinates;
 
-        return ProjectionNurbsGeometryUtilities::NewtonRaphsonCurve(
+        if (mProjectionAlgorithm == ProjectionAlgorithm::NewtonRaphson) {
+            return ProjectionNurbsGeometryUtilities::NewtonRaphsonCurve(
+                rProjectedPointLocalCoordinates,
+                rPointGlobalCoordinates,
+                point_global_coordinates,
+                *this,
+                20, Tolerance);
+        }
+
+        return ProjectionNurbsGeometryUtilities::LevenbergMarquardtCurve(
             rProjectedPointLocalCoordinates,
             rPointGlobalCoordinates,
             point_global_coordinates,
             *this,
-            20, Tolerance);
+            50, Tolerance);
     }
 
     ///@}
@@ -449,6 +462,16 @@ public:
             }
         }
         return rResult;
+    }
+
+    void SetProjectionAlgorithm(const ProjectionAlgorithm ProjectionAlgorithm)
+    {
+        mProjectionAlgorithm = ProjectionAlgorithm;
+    }
+
+    ProjectionAlgorithm GetProjectionAlgorithm() const
+    {
+        return mProjectionAlgorithm;
     }
 
     ///@}
@@ -520,6 +543,12 @@ public:
 
         for (IndexType i = 0; i < rIntegrationPoints.size(); ++i)
         {
+            std::vector<CoordinatesArrayType> global_space_derivatives(2);
+            this->GlobalSpaceDerivatives(
+                                        global_space_derivatives,
+                                        rIntegrationPoints[i],
+                                        1);
+
             if (IsRational()) {
                 shape_function_container.ComputeNurbsShapeFunctionValues(
                     mKnots, mWeights, rIntegrationPoints[i][0]);
@@ -553,9 +582,11 @@ public:
             GeometryShapeFunctionContainer<GeometryData::IntegrationMethod> data_container(
                 default_method, rIntegrationPoints[i],
                 N, shape_function_derivatives);
-
-            rResultGeometries(i) = CreateQuadraturePointsUtility<NodeType>::CreateQuadraturePoint(
-                this->WorkingSpaceDimension(), 1, data_container, nonzero_control_points);
+            
+            rResultGeometries(i) = CreateQuadraturePointsUtility<NodeType>::CreateQuadraturePointCurve(
+                this->WorkingSpaceDimension(), 1, 
+                data_container, nonzero_control_points,
+                global_space_derivatives[1][0], global_space_derivatives[1][1], this);
         }
     }
 
@@ -667,6 +698,115 @@ public:
         return rResult;
     }
 
+    /**
+    * @brief Returns the nonzero shape-function values, derivatives, and active
+    * control-point IDs at a position in the curve parameter space.
+    *
+    * @param rCoordinates Parameter-space coordinates. Only rCoordinates[0] is used.
+    * @param rControlPointIndices IDs of the active control points.
+    * @param rShapeFunctionsValues Values of the active shape functions.
+    * @param DerivativeOrder Highest requested derivative order.
+    * @param pShapeFunctionDerivatives Optional derivative matrices.
+    */
+    void ShapeFunctionsValuesAndCPIndices(
+        const CoordinatesArrayType& rCoordinates,
+        std::vector<IndexType>& rControlPointIndices,
+        Vector& rShapeFunctionsValues,
+        const IndexType DerivativeOrder = 0,
+        DenseVector<Matrix>* pShapeFunctionDerivatives = nullptr
+    ) const
+    {
+        const double u = rCoordinates[0];
+
+        KRATOS_WARNING_IF(
+            "ShapeFunctionsValuesAndCPIndices",
+            DerivativeOrder > mPolynomialDegree)
+            << "Requested derivative order (" << DerivativeOrder
+            << ") exceeds the polynomial degree (" << mPolynomialDegree
+            << "). Higher derivatives may be zero or undefined."
+            << std::endl;
+
+        NurbsCurveShapeFunction shape_function_container(
+            mPolynomialDegree,
+            DerivativeOrder + 1);
+
+        if (IsRational()) {
+            shape_function_container.ComputeNurbsShapeFunctionValues(
+                mKnots,
+                mWeights,
+                u);
+        } else {
+            shape_function_container.ComputeBSplineShapeFunctionValues(
+                mKnots,
+                u);
+        }
+
+        const SizeType number_of_nonzero_control_points =
+            shape_function_container.NumberOfNonzeroControlPoints();
+
+        // Active control-point indices in the complete control-point array.
+        const auto control_point_indices =
+            shape_function_container.GetNonzeroControlPointIndices();
+
+        // Return the Kratos IDs of the active control points.
+        rControlPointIndices.resize(control_point_indices.size());
+
+        for (IndexType i = 0; i < control_point_indices.size(); ++i) {
+            rControlPointIndices[i] =
+                this->pGetPoint(control_point_indices[i])->Id();
+        }
+
+        // Shape-function values.
+        if (rShapeFunctionsValues.size() !=
+            number_of_nonzero_control_points) {
+            rShapeFunctionsValues.resize(
+                number_of_nonzero_control_points,
+                false);
+        }
+
+        for (IndexType i = 0;
+            i < number_of_nonzero_control_points;
+            ++i) {
+            rShapeFunctionsValues[i] =
+                shape_function_container(i, 0);
+        }
+
+        // Shape-function derivatives.
+        if (pShapeFunctionDerivatives == nullptr ||
+            DerivativeOrder == 0) {
+            return;
+        }
+
+        pShapeFunctionDerivatives->resize(DerivativeOrder);
+
+        for (IndexType derivative_order = 0;
+            derivative_order < DerivativeOrder;
+            ++derivative_order) {
+            Matrix& r_derivatives =
+                (*pShapeFunctionDerivatives)[derivative_order];
+
+            r_derivatives.resize(
+                number_of_nonzero_control_points,
+                1,
+                false);
+
+            // Column zero contains the derivative with respect to u.
+            // derivative_order = 0 corresponds to dN/du and is stored
+            // in column 1 of the shape-function container.
+            const IndexType container_derivative_index =
+                derivative_order + 1;
+
+            for (IndexType i = 0;
+                i < number_of_nonzero_control_points;
+                ++i) {
+                r_derivatives(i, 0) =
+                    shape_function_container(
+                        i,
+                        container_derivative_index);
+            }
+        }
+    }
+
     /*
     * @brief This function computes the first derivatives at a certain point.
     * From Piegl and Tiller, The NURBS Book, Algorithm A3.2/ A4.2
@@ -697,6 +837,18 @@ public:
         }
 
         return rResult;
+    }
+
+    void SetInternals(
+        const PointsArrayType& rThisPoints,
+        const SizeType PolynomialDegree,
+        const Vector& rKnots,
+        const Vector& rWeights)
+    {
+        this->Points() = rThisPoints;
+        mPolynomialDegree = PolynomialDegree;
+        mKnots = rKnots;
+        mWeights = rWeights;
     }
 
     ///@}
@@ -760,6 +912,7 @@ private:
     SizeType mPolynomialDegree;
     Vector mKnots;
     Vector mWeights;
+    ProjectionAlgorithm mProjectionAlgorithm = ProjectionAlgorithm::NewtonRaphson;
 
     ///@}
     ///@name Private Operations

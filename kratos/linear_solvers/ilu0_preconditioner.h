@@ -171,24 +171,23 @@ public:
             BaseType::iU[i]=0;
         }
 
-        for (typename SparseMatrixType::iterator1 a_iterator = rA.begin1(); a_iterator != rA.end1(); a_iterator++)
+        // The CSR arrays are used directly so that this works with any sparse
+        // space matrix exposing the compressed_matrix member surface (uBLAS, Eigen, ...)
         {
-            i = a_iterator.index1();
-            diagFound=false;
-#ifndef BOOST_UBLAS_NO_NESTED_CLASS_RELATION
-            for (typename SparseMatrixType::iterator2 row_iterator = a_iterator.begin() ; row_iterator != a_iterator.end() ; ++row_iterator)
+            const auto& row_indices = rA.index1_data();
+            const auto& col_indices = rA.index2_data();
+            for (i = 0; i < n; i++)
             {
-#else
-            for ( SparseMatrixType::iterator2 row_iterator = begin(a_iterator, boost::numeric::ublas::iterator1_tag()); row_iterator != end(a_iterator, boost::numeric::ublas::iterator1_tag()); ++row_iterator )
-            {
-#endif
-                //j= row_iterator->first; // Changed by Pooyan!!!
-                j= row_iterator.index2(); // Changed by Pooyan!!!
-                if (i<=j) BaseType::iU[i]=BaseType::iU[i]+1;
-                if (i>j)  BaseType::iL[i]=BaseType::iL[i]+1;
-                if (i==j) diagFound=true;
+                diagFound=false;
+                for (auto entry_k = row_indices[i]; entry_k < row_indices[i+1]; ++entry_k)
+                {
+                    j = col_indices[entry_k];
+                    if (i<=j) BaseType::iU[i]=BaseType::iU[i]+1;
+                    if (i>j)  BaseType::iL[i]=BaseType::iL[i]+1;
+                    if (i==j) diagFound=true;
+                }
+                if (!diagFound) BaseType::iU[i]=BaseType::iU[i]+1;
             }
-            if (!diagFound) BaseType::iU[i]=BaseType::iU[i]+1;
         }
 
         // BaseType::iL[i] is now the number of nonzero entries in the
@@ -213,39 +212,38 @@ public:
         BaseType::jU=new int   [BaseType::iU[n]];
         fillL=0;
         fillU=0;
-        //for (i=0; i<n; i++) {
-        for (typename SparseMatrixType::iterator1 a_iterator = rA.begin1(); a_iterator != rA.end1(); a_iterator++)
         {
-            i = a_iterator.index1();
-            diagFound=false;
-#ifndef BOOST_UBLAS_NO_NESTED_CLASS_RELATION
-            for (typename SparseMatrixType::iterator2 row_iterator = a_iterator.begin() ; row_iterator != a_iterator.end() ; ++row_iterator)
+            const auto& row_indices = rA.index1_data();
+            const auto& col_indices = rA.index2_data();
+            const auto& values = rA.value_data();
+            for (i = 0; i < n; i++)
             {
-#else
-            for ( SparseMatrixType::iterator2 row_iterator = begin(a_iterator, boost::numeric::ublas::iterator1_tag()); row_iterator != end(a_iterator, boost::numeric::ublas::iterator1_tag()); ++row_iterator )
-            {
-#endif
-                j= row_iterator.index2(); // Changed by Pooyan!!!
-                if (i==j) diagFound=true;
-                if ( (j>i) && (!diagFound) )
+                diagFound=false;
+                for (auto entry_k = row_indices[i]; entry_k < row_indices[i+1]; ++entry_k)
                 {
-                    // This row does not have a diagonal entry. Make it and put a zero.
-                    BaseType::jU[fillU]=i;
-                    BaseType::U[fillU]=0.00;
-                    fillU++;
-                    diagFound=true;
-                }
-                if (i<=j)
-                {
-                    BaseType::jU[fillU]=j;
-                    BaseType::U[fillU]= *row_iterator;
-                    fillU++;
-                }
-                if (i>j)
-                {
-                    BaseType::jL[fillL]=j;
-                    BaseType::L[fillL]= *row_iterator;
-                    fillL++;
+                    j = col_indices[entry_k];
+                    const double entry = values[entry_k];
+                    if (i==j) diagFound=true;
+                    if ( (j>i) && (!diagFound) )
+                    {
+                        // This row does not have a diagonal entry. Make it and put a zero.
+                        BaseType::jU[fillU]=i;
+                        BaseType::U[fillU]=0.00;
+                        fillU++;
+                        diagFound=true;
+                    }
+                    if (i<=j)
+                    {
+                        BaseType::jU[fillU]=j;
+                        BaseType::U[fillU]= entry;
+                        fillU++;
+                    }
+                    if (i>j)
+                    {
+                        BaseType::jL[fillL]=j;
+                        BaseType::L[fillL]= entry;
+                        fillL++;
+                    }
                 }
             }
         }

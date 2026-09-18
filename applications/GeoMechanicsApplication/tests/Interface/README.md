@@ -10,7 +10,7 @@ Currently, User Defined Soil Model (UDSM) is used to prescribe the interface pro
 
 ### Setup
 
-This test models the beam movement in the soil. The model consists of 4230 3-noded elements for the soil (using the UPwSmallStrainElement2D3N class), 31 2-noded elements for the beam (GeoCrBeamElementLinear2D2N), and 62 4-noded elements for interfaces (UPwSmallStrainInterfaceElement2D4N) that connect the beam with the soil. A schematic representation can be found in the figure below:
+This test models the beam movement in the soil. The model consists of 4230 3-noded elements for the soil (using the UPwSmallStrainElement2D3N class), 31 2-noded elements for the beam (LinearTimoshenkoBeamElement2D2N), and 62 4-noded elements for interfaces (UPwSmallStrainInterfaceElement2D4N) that connect the beam with the soil. A schematic representation can be found in the figure below:
 
 ![MeshStructure](interface_on_beam.svg)
 
@@ -24,7 +24,7 @@ The soil is described with GeoLinearElasticPlaneStrain2DLaw:
 -   The dynamic viscosity of water $\mu = 10^{-3} \  \mathrm{[Pa \cdot s]}$ and the intrinsic permeability of the soil $\kappa = 4.5\cdot 10^{-30} \  \mathrm{[m^2]}$.
 
 
-The beam is described with BeamConstitutiveLaw:
+The beam is described with TimoshenkoBeamElasticConstitutiveLaw:
 -   A Young's modulus $E = 2.07e13 \  \mathrm{[Pa]}$ with Poisson's ratio $\nu = 0.29 \  \mathrm{[-]}$.
 -   Density of $7850.0 \  \mathrm{[kg/m^3]}$.
 -   Cross area of $0.01 \  \mathrm{[m^2]}$,

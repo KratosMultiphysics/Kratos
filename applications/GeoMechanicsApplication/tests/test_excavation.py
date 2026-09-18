@@ -116,52 +116,5 @@ class KratosGeoMechanicsExcavationTests(KratosUnittest.TestCase):
         for i in range(len(top_nodes)):
             self.assertAlmostEqual(top_y_displacement[i], displacements[top_nodes[i]-1][1])
 
-
-    @KratosUnittest.skip("unit test skipped as it is not ready")
-    def test_phases(self):
-        """
-        Test of a two surface geometry where 1 surface is deactivated. Values are not checked on analytical value,
-        but on the fact that equal displacements should occur at both sides of the geometry.
-        :return:
-        """
-        print("todo")
-        # test_name_1 = 'excavation_test'
-        # test_name_2 = 'excavation_test4'
-        # file_path_1 = GetFilePath(os.path.join('test_data',test_name_1))
-        # file_path_2 = GetFilePath(os.path.join('test_data', test_name_2))
-        #
-        # parameter_file_name_1 = os.path.join(file_path_1, 'ProjectParameters.json')
-        # parameter_file_name_2 = os.path.join(file_path_2, 'ProjectParameters.json')
-        #
-        # os.chdir(file_path_1)
-        # with open(parameter_file_name_1, 'r') as parameter_file:
-        #     parameters_1 = Kratos.Parameters(parameter_file.read())
-        #
-        # os.chdir(file_path_2)
-        # with open(parameter_file_name_2, 'r') as parameter_file:
-        #     parameters_2 = Kratos.Parameters(parameter_file.read())
-        #
-        # model = Kratos.Model()
-        #
-        # stage_1 = analysis.GeoMechanicsAnalysis(model, parameters_1)
-        # stage_2 = analysis.GeoMechanicsAnalysis(model, parameters_2)
-        #
-        # stage_1.Run()
-        # stage_2.Run()
-        #
-        # displacements = get_displacement(stage_2)
-        #
-        # bottom_nodes = [5, 7, 9, 12]
-        # # check if bottom nodes are not moving
-        # for bottom_node in bottom_nodes:
-        #     self.assertEqual(0, displacements[bottom_node - 1][0])
-        #     self.assertEqual(0,displacements[bottom_node - 1][1])
-        #     self.assertEqual(0,displacements[bottom_node - 1][2])
-        #
-        # top_nodes = [1, 2, 6, 10, 13]
-        # top_y_displacement = [0, 0, 3.16312e-07, 3.14736e-07, 3.16312e-07]
-        # for i in range(len(top_nodes)):
-        #     self.assertAlmostEqual(top_y_displacement[i], displacements[top_nodes[i]-1][1])
-
 if __name__ == '__main__':
     KratosUnittest.main()

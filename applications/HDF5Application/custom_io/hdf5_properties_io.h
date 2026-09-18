@@ -33,12 +33,12 @@ namespace Kratos::HDF5::Internals
 ///@addtogroup HDF5Application
 ///@{
 
-void ReadProperties(
+void KRATOS_API(HDF5_APPLICATION) ReadProperties(
     File& rFile,
     const std::string& rPrefix,
     PropertiesContainerType& rProperties);
 
-void WriteProperties(
+void KRATOS_API(HDF5_APPLICATION) WriteProperties(
     File& rFile,
     const std::string& rPrefix,
     const PropertiesContainerType& rProperties);

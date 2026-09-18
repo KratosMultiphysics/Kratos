@@ -1,0 +1,87 @@
+Begin ModelPartData
+//  VARIABLE_NAME value
+End ModelPartData
+
+Begin Properties 0
+End Properties
+Begin Nodes
+    1  -0.0998186938   0.0189198520   4.5210000000
+    2  -0.0935800254   0.0177373612   4.2384375000
+    3  -0.0873413571   0.0165548705   3.9558750000
+    4  -0.0811026887   0.0153723798   3.6733125000
+    5  -0.0748640203   0.0141898890   3.3907500000
+    6  -0.0686253520   0.0130073982   3.1081875000
+    7  -0.0623866836   0.0118249075   2.8256250000
+    8  -0.0561480153   0.0106424168   2.5430625000
+    9  -0.0499093469   0.0094599260   2.2605000000
+   10  -0.0436706785   0.0082774352   1.9779375000
+   11  -0.0374320102   0.0070949445   1.6953750000
+   12  -0.0311933418   0.0059124538   1.4128125000
+   13  -0.0249546734   0.0047299630   1.1302500000
+   14  -0.0187160051   0.0035474723   0.8476875000
+   15  -0.0124773367   0.0023649815   0.5651250000
+   16  -0.0062386684   0.0011824908   0.2825625000
+   17   0.0000000000   0.0000000000   0.0000000000
+End Nodes
+
+
+Begin Elements Element3D2N// GUI group identifier: Add SubModelPart Auto1
+        1          0         17         16 
+        2          0         16         15 
+        3          0         15         14 
+        4          0         14         13 
+        5          0         13         12 
+        6          0         12         11 
+        7          0         11         10 
+        8          0         10          9 
+        9          0          9          8 
+       10          0          8          7 
+       11          0          7          6 
+       12          0          6          5 
+       13          0          5          4 
+       14          0          4          3 
+       15          0          3          2 
+       16          0          2          1 
+End Elements
+
+Begin SubModelPart GENERIC_Add_SubModelPart_Auto1 // Group Add SubModelPart Auto1 // Subtree GENERIC
+    Begin SubModelPartNodes
+            1
+            2
+            3
+            4
+            5
+            6
+            7
+            8
+            9
+           10
+           11
+           12
+           13
+           14
+           15
+           16
+           17
+    End SubModelPartNodes
+    Begin SubModelPartElements
+            1
+            2
+            3
+            4
+            5
+            6
+            7
+            8
+            9
+           10
+           11
+           12
+           13
+           14
+           15
+           16
+    End SubModelPartElements
+    Begin SubModelPartConditions
+    End SubModelPartConditions
+End SubModelPart

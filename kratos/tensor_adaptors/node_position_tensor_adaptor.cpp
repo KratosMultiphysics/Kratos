@@ -80,6 +80,11 @@ NodePositionTensorAdaptor::NodePositionTensorAdaptor(
     KRATOS_CATCH("");
 }
 
+TensorAdaptor<double>::Pointer NodePositionTensorAdaptor::Clone() const
+{
+    return Kratos::make_shared<NodePositionTensorAdaptor>(*this);
+}
+
 void NodePositionTensorAdaptor::CollectData()
 {
     KRATOS_TRY

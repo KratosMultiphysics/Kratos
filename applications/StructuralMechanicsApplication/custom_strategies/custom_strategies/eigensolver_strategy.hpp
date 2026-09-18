@@ -20,6 +20,8 @@
 #include "utilities/builtin_timer.h"
 #include "utilities/atomic_utilities.h"
 #include "utilities/entities_utilities.h"
+#include "utilities/parallel_utilities.h"
+#include "utilities/reduction_utilities.h"
 
 // Application includes
 #include "structural_mechanics_application_variables.h"
@@ -91,12 +93,14 @@ public:
         BuilderAndSolverPointerType pBuilderAndSolver,
         double MassMatrixDiagonalValue,
         double StiffnessMatrixDiagonalValue,
-        bool ComputeModalDecomposition = false
+        bool ComputeModalDecomposition = false,
+        bool NormalizeEigenvectorsWithMassMatrix = false
         )
         : ImplicitSolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(rModelPart),
             mMassMatrixDiagonalValue(MassMatrixDiagonalValue),
             mStiffnessMatrixDiagonalValue(StiffnessMatrixDiagonalValue),
-            mComputeModalDecompostion(ComputeModalDecomposition)
+            mComputeModalDecompostion(ComputeModalDecomposition),
+            mNormalizeEigenvectorsWithMassMatrix(NormalizeEigenvectorsWithMassMatrix)
     {
         KRATOS_TRY
 
@@ -450,6 +454,10 @@ public:
             this->ReconstructSlaveSolution(Eigenvectors);
         }
 
+        if (mNormalizeEigenvectorsWithMassMatrix){
+            MassNormalizeEigenvectors(Eigenvectors);
+        }
+
         this->AssignVariables(Eigenvalues,Eigenvectors);
 
 
@@ -578,6 +586,8 @@ private:
 
     bool mComputeModalDecompostion = false;
 
+    bool mNormalizeEigenvectorsWithMassMatrix = false; 
+
     ///@}
     ///@name Private Operators
     ///@{
@@ -650,6 +660,46 @@ private:
         KRATOS_CATCH("")
     }
 
+    /// Normalize the eigenmodes with respect to the mass matrix
+    void MassNormalizeEigenvectors(DenseMatrixType& rEigenvectors)
+    {
+        const SparseMatrixType& rMassMatrix = this->GetMassMatrix();
+        const std::size_t num_modes = rEigenvectors.size1();
+        const std::size_t num_dofs  = rEigenvectors.size2();
+
+        DenseVectorType phi(num_dofs);
+        DenseVectorType tmp(num_dofs);
+
+        for (std::size_t j = 0; j < num_modes; ++j) {
+             // copy row j -> phi
+            IndexPartition<std::size_t>(num_dofs).for_each([&phi, &rEigenvectors, j](std::size_t i){
+                phi[i] = rEigenvectors(j, i);
+            });
+
+            // tmp = M * phi_j
+            TSparseSpace::Mult(rMassMatrix, phi, tmp);
+
+            // Compute modal_mass = phi^T * tmp
+            const double modal_mass = IndexPartition<std::size_t>(num_dofs).for_each<SumReduction<double>>([&phi, &tmp](std::size_t i)->double {
+                return phi[i] * tmp[i];
+            });
+            const auto global_modal_mass = BaseType::GetModelPart().GetCommunicator().GetDataCommunicator().SumAll(modal_mass);
+
+            if (!(global_modal_mass > 0.0)) {
+                KRATOS_WARNING("MassNormalizeEigenvectors")
+                    << "Modal mass for mode " << j << " is non-positive (" << global_modal_mass << "). Skipping normalization.\n";
+                continue;
+            }
+
+            const double scale = 1.0 / std::sqrt(global_modal_mass);
+
+           // scale and write back into rEigenvectors 
+            IndexPartition<std::size_t>(num_dofs).for_each([&rEigenvectors, &phi, scale, j](std::size_t i){
+                rEigenvectors(j, i) = phi[i] * scale;
+            });
+        }
+    }
+
     /// Apply Dirichlet boundary conditions without modifying dof pattern.
     /**
      *  The dof pattern is preserved to support algebraic multigrid solvers with
@@ -705,7 +755,7 @@ private:
                 // row dof is fixed. zero off-diagonal columns and factor diagonal
                 for (std::size_t j = ColBegin; j < ColEnd; ++j)
                 {
-                    if (AColIndices[j] != k)
+                    if (static_cast<std::size_t>(AColIndices[j]) != k)
                     {
                         AValues[j] = 0.0;
                     }

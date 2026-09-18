@@ -156,7 +156,8 @@ public:
     CombinedTensorAdaptor(
         const TensorAdaptorVectorType& rTensorAdaptorVector,
         const bool PerformCollectDataRecursively = true,
-        const bool PerformStoreDataRecursively = true);
+        const bool PerformStoreDataRecursively = true,
+        const bool Copy = true);
 
     /**
      * @brief Construct a new Combined Tensor Adaptor  given list of @ref TensorAdaptor instances along the specified @p Axis.
@@ -189,7 +190,8 @@ public:
         const TensorAdaptorVectorType& rTensorAdaptorVector,
         const unsigned int Axis,
         const bool PerformCollectDataRecursively = true,
-        const bool PerformStoreDataRecursively = true);
+        const bool PerformStoreDataRecursively = true,
+        const bool Copy = true);
 
     /**
      * @brief Construct a new Combined Tensor Adaptor based on an existing @p rOther.
@@ -210,6 +212,11 @@ public:
     ///@}
     ///@name Public operations
     ///@{
+
+    /**
+     * @brief Clones the existing tensor adaptor.
+     */
+    typename TensorAdaptor<TDataType>::Pointer Clone() const override;
 
     /**
      * @brief Check if the necessary data is present in the underlying container.

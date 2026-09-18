@@ -99,6 +99,11 @@ EquationIdsTensorAdaptor::EquationIdsTensorAdaptor(
     KRATOS_CATCH("");
 }
 
+TensorAdaptor<int>::Pointer EquationIdsTensorAdaptor::Clone() const
+{
+    return Kratos::make_shared<EquationIdsTensorAdaptor>(*this);
+}
+
 void EquationIdsTensorAdaptor::CollectData()
 {
     KRATOS_TRY

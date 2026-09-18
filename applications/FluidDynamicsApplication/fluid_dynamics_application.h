@@ -458,9 +458,13 @@ private:
     /// Low Mach Navier-Stokes element
     const LowMachNavierStokes<LowMachNavierStokesData<2,3>> mLowMachNavierStokes2D3N;
     const LowMachNavierStokes<LowMachNavierStokesData<2,4>> mLowMachNavierStokes2D4N;
+    const LowMachNavierStokes<LowMachNavierStokesData<3,4>> mLowMachNavierStokes3D4N;
+    const LowMachNavierStokes<LowMachNavierStokesData<3,8>> mLowMachNavierStokes3D8N;
 
     /// Low Mach Navier-Stokes condition
     const LowMachNavierStokesWallCondition<2,2> mLowMachNavierStokesWallCondition2D2N;
+    const LowMachNavierStokesWallCondition<3,3> mLowMachNavierStokesWallCondition3D3N;
+    const LowMachNavierStokesWallCondition<3,4> mLowMachNavierStokesWallCondition3D4N;
 
     /// Compressible Navier-Stokes symbolic element
     const CompressibleNavierStokesExplicit<2, 3> mCompressibleNavierStokesExplicit2D3N;

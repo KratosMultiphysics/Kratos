@@ -117,7 +117,6 @@ public:
 
         int split_edge[] = {0, 1, 2, 3, -1, -1, -1, -1, -1, -1, -1, -1};
         int new_node_id = 4;
-        BoundedMatrix<double, 4, 4 > length = ZeroMatrix(4, 4);
 
         //int n_zero_distance_nodes = 0;
         int n_negative_distance_nodes = 0;
@@ -560,7 +559,6 @@ public:
 
         int split_edge[] = {0, 1, 2, 3, -1, -1, -1, -1, -1, -1, -1, -1};
         int new_node_id = 4;
-        BoundedMatrix<double, 4, 4 > length = ZeroMatrix(4, 4);
 
         //int n_zero_distance_nodes = 0;
         int n_negative_distance_nodes = 0;
@@ -1238,7 +1236,6 @@ public:
         BoundedMatrix<double, 3, 2 > coord_subdomain; //used to pass arguments when we must calculate areas, shape functions, etc
         BoundedMatrix<double,3,2> DN_DX_subdomain; //used to retrieve derivatives
 
-        double most_common_sign=0; //the side of the cut in which two nodes are found (same sign) will be the ones that remains unchanged when builing the discontinuity
         double Area;//area of the complete element
         rGPShapeFunctionValues(0,0)=one_third;
         rGPShapeFunctionValues(0,1)=one_third;
@@ -1392,12 +1389,10 @@ public:
             if (rDistances[i] < 0.0)
             {
                 exact_distance[i] = -abs_distance[i];
-                --most_common_sign;
             }
             else
             {
                 exact_distance[i] = abs_distance[i];
-                ++most_common_sign;
             }
         }
 
@@ -2417,7 +2412,7 @@ private:
         //            rShapeFunctionValues(Volume2Id, j) = division_j * 0.25;
     }
 
-    static double ComputeSubTetraVolumeAndCenter(const BoundedMatrix<double, 3, 8 > & aux_coordinates,
+    static double ComputeSubTetraVolumeAndCenter(const BoundedMatrix<double, 8, 3 > & aux_coordinates,
             array_1d<double, 3 > & center_position,
             const int i0, const int i1, const int i2, const int i3)
     {
@@ -2500,8 +2495,9 @@ private:
     }
 
     //2d
+    template<class TCoordinateContainerType>
     static inline void CalculateGeometryData(
-        const BoundedMatrix<double, 3, 3 > & coordinates,
+        const TCoordinateContainerType& coordinates,
         BoundedMatrix<double,3,2>& DN_DX,
         array_1d<double,3>& N,
         double& Area)
@@ -2536,8 +2532,9 @@ private:
     }
 
     //template<class TMatrixType, class TVectorType, class TGradientType>
+    template<class TCoordinateContainerType>
     static inline double CalculateVolume2D(
-        const BoundedMatrix<double, 3, 3 > & coordinates)
+        const TCoordinateContainerType& coordinates)
     {
         double x10 = coordinates(1,0) - coordinates(0,0);
         double y10 = coordinates(1,1) - coordinates(0,1);
@@ -2548,7 +2545,8 @@ private:
         return 0.5*detJ;
     }
 
-    static inline bool CalculatePosition(const BoundedMatrix<double, 3, 3 > & coordinates,
+    template<class TCoordinateContainerType>
+    static inline bool CalculatePosition(const TCoordinateContainerType& coordinates,
                                          const double xc, const double yc, const double zc,
                                          array_1d<double, 3 > & N
                                         )
@@ -2591,8 +2589,9 @@ private:
         return 0.5 * ((x1 - x0)*(y2 - y0)- (y1 - y0)*(x2 - x0));
     }
 
+    template<class TCoordinateContainerType>
     static inline void CalculateGeometryData(
-        const BoundedMatrix<double, 3, 3 > & coordinates,
+        const TCoordinateContainerType& coordinates,
         BoundedMatrix<double,3,2>& DN_DX,
         double& Area)
     {

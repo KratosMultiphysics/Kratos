@@ -1,7 +1,7 @@
-$RELEASE_BRANCH="ci/updating-wheelbuilders"
+$RELEASE_BRANCH="Release-10.4.2"
 
 $HOST_SWAP="C:/data_swap_host"
 $GUEST_SWAP="/data_swap_guest"
 
-docker run --name release_build -v ${HOST_SWAP}:${GUEST_SWAP} --entrypoint="/bin/bash" kratosmultiphysics/kratos-wheelbuilder-linux-mpi /workspace/scripts/start.sh ${RELEASE_BRANCH}
+docker run --name release_build -v ${HOST_SWAP}:${GUEST_SWAP} --entrypoint="/bin/bash" kratosmultiphysics/kratos-wheelbuilder-linux /workspace/scripts/start.sh ${RELEASE_BRANCH}
 docker rm release_build

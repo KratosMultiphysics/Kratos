@@ -57,6 +57,16 @@ namespace Testing {
         );
     }
 
+    /** Generates a point type sample Line3D2N
+    * @return  Pointer to a Line3D2N
+    */
+    Line3D2<Point>::Pointer GenerateCornerCasePointsLine3D2() {
+        return Kratos::make_shared<Line3D2<Point>>(
+        Kratos::make_shared<Point>(-20.0, 0.0, 0.0),
+        Kratos::make_shared<Point>(-20.0, 5.0, 0.0)
+        );
+    }
+
     /** Generates a point type sample Line3D2N.
     * @return  Pointer to a Line3D2N
     */
@@ -65,7 +75,6 @@ namespace Testing {
     }
 
     /** Checks if the number of edges is correct.
-    * Checks if the number of edges is correct.
     */
     KRATOS_TEST_CASE_IN_SUITE(Line3D2EdgesNumber, KratosCoreGeometriesFastSuite) {
         Geometry<Point>::Pointer p_geom = GeneratePointsUnitXDirectionLine3D2();
@@ -73,7 +82,6 @@ namespace Testing {
     }
 
     /** Checks if the edges are correct.
-    * Checks if the edges are correct.
     */
     KRATOS_TEST_CASE_IN_SUITE(Line3D2Edges, KratosCoreGeometriesFastSuite) {
         auto p_geom = GeneratePointsUnitXDirectionLine3D2();
@@ -86,7 +94,6 @@ namespace Testing {
     }
 
     /** Checks if the number of faces is correct.
-    * Checks if the number of faces is correct.
     */
     KRATOS_TEST_CASE_IN_SUITE(Line3D2FacesNumber, KratosCoreGeometriesFastSuite) {
         Geometry<Point>::Pointer p_geom = GeneratePointsUnitXDirectionLine3D2();
@@ -124,6 +131,11 @@ namespace Testing {
         KRATOS_EXPECT_FALSE(p_geom->IsInside(PointOutside, LocalCoords, EPSILON));
         KRATOS_EXPECT_TRUE(p_geom->IsInside(PointInVertex, LocalCoords, EPSILON));
         KRATOS_EXPECT_TRUE(p_geom->IsInside(PointInEdge, LocalCoords, EPSILON));
+
+        // testing Corner Case
+        Geometry<Point>::Pointer p_geom2 = GenerateCornerCasePointsLine3D2();
+        Point PointOutside2(-16.0, 2.5, 0.0);
+        KRATOS_EXPECT_FALSE(p_geom2->IsInside(PointOutside2, LocalCoords, EPSILON));
     }
 
     /** Checks the point local coordinates for a given point respect to the

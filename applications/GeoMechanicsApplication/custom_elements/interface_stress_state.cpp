@@ -11,10 +11,10 @@
 //                   Anne van de Graaf
 //
 #include "interface_stress_state.h"
+#include "custom_utilities/ublas_utilities.h"
 #include "geo_mechanics_application_constants.h"
 #include "includes/serializer.h"
 
-#include <boost/numeric/ublas/assignment.hpp>
 #include <type_traits>
 
 namespace
@@ -82,10 +82,7 @@ SizeType Line2DInterfaceStressState::GetStressTensorSize() const
 
 Vector Line2DInterfaceStressState::DefineInterfaceVoigtVector()
 {
-    Vector result{VOIGT_SIZE_2D_INTERFACE};
-    result <<= 1.0, 0.0;
-
-    return result;
+    return UblasUtilities::CreateVector({1.0, 0.0}); // must have length VOIGT_SIZE_2D_INTERFACE
 }
 
 const Vector Line2DInterfaceStressState::VoigtVectorInterface2D =
@@ -136,10 +133,7 @@ SizeType SurfaceInterfaceStressState::GetStressTensorSize() const
 
 Vector SurfaceInterfaceStressState::DefineInterfaceVoigtVector()
 {
-    Vector result{VOIGT_SIZE_3D_INTERFACE};
-    result <<= 1.0, 0.0, 0.0;
-
-    return result;
+    return UblasUtilities::CreateVector({1.0, 0.0, 0.0}); // Must have length VOIGT_SIZE_3D_INTERFACE
 }
 
 const Vector SurfaceInterfaceStressState::VoigtVectorInterface3D =

@@ -42,7 +42,7 @@ class TestTransferConditions(KratosUnittest.TestCase):
         acceleration = [KratosMultiphysics.Vector([1.5,-1.12,2.45])]
         cond.SetValuesOnIntegrationPoints(KratosMPM.MPC_ACCELERATION,acceleration,process_info)
         if condition_type == "dirichlet" or condition_type == "coupling":
-            cond.SetValuesOnIntegrationPoints(KratosMPM.PENALTY_FACTOR,[100.0],process_info)
+            cond.SetValuesOnIntegrationPoints(KratosMultiphysics.PENALTY_COEFFICIENT,[100.0],process_info)
             displacement = [KratosMultiphysics.Vector([1.22,-1.11,0.0])]
             cond.SetValuesOnIntegrationPoints(KratosMPM.MPC_DISPLACEMENT,displacement,process_info)
             imposed_displacement = [KratosMultiphysics.Vector([1.0,-1.0,0.0])]
@@ -104,8 +104,8 @@ class TestTransferConditions(KratosUnittest.TestCase):
                 self.assertVectorAlmostEqual(point_load[0],[3.3,4.4,5.5])
             else:
                 #penalty_dirichlet_condition members
-                penalty_factor = cond.CalculateOnIntegrationPoints(KratosMPM.PENALTY_FACTOR, process_info)
-                self.assertAlmostEqual(penalty_factor[0], 100.0, 7)
+                penalty_coefficient = cond.CalculateOnIntegrationPoints(KratosMultiphysics.PENALTY_COEFFICIENT, process_info)
+                self.assertAlmostEqual(penalty_coefficient[0], 100.0, 7)
                 #base_dirichlet_condition members
                 displacement = cond.CalculateOnIntegrationPoints(KratosMPM.MPC_DISPLACEMENT, process_info)
                 self.assertVectorAlmostEqual(displacement[0],[1.22,-1.11,0.0],7)

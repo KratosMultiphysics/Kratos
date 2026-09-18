@@ -209,9 +209,9 @@ public:
 
                     // Modifications to introduce friction force
                     const double mu = rGeometry[itNode].GetValue(FRICTION_COEFFICIENT);
-                    const double tangential_penalty_factor = rGeometry[itNode].GetValue(TANGENTIAL_PENALTY_FACTOR);
+                    const double tangential_penalty_coefficient = rGeometry[itNode].GetValue(TANGENTIAL_PENALTY_COEFFICIENT);
 
-                    if (mu > 0 && tangential_penalty_factor > 0) { // Friction active
+                    if (mu > 0 && tangential_penalty_coefficient > 0) { // Friction active
                         array_1d<double,3> & r_stick_force = rGeometry[itNode].FastGetSolutionStepValue(STICK_FORCE);
 
                         // accumulate normal forces (RHS vector) for subsequent re-determination of friction state
@@ -232,7 +232,7 @@ public:
                             // [ displacement in MPM is the displacement update -> penalize any and all displacement
                             //   updates in the tangential direction [this assumes a stationary background grid]
                             for( unsigned int i = 1; i < this->GetDomainSize(); ++i) {
-                                r_stick_force[i] = -tangential_penalty_factor * displacement_copy[i];
+                                r_stick_force[i] = -tangential_penalty_coefficient * displacement_copy[i];
                             }
 
                             const int friction_state = rGeometry[itNode].FastGetSolutionStepValue(FRICTION_STATE);
@@ -240,7 +240,7 @@ public:
                             if(friction_state == STICK) {
                                 if (rLocalMatrix.size1() != 0) {
                                     for (unsigned int i = 1; i < this->GetDomainSize(); ++i)
-                                        rLocalMatrix(j + i, j + i) += tangential_penalty_factor;
+                                        rLocalMatrix(j + i, j + i) += tangential_penalty_coefficient;
                                 }
                             } // else, sliding: nothing needed for LHS
 

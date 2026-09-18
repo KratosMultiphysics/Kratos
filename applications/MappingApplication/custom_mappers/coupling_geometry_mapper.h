@@ -311,8 +311,8 @@ private:
 
     void AssignInterfaceEquationIds()
     {
-        MapperUtilities::AssignInterfaceEquationIds(mpCouplingInterfaceSlave->GetCommunicator());
-        MapperUtilities::AssignInterfaceEquationIds(mpCouplingInterfaceMaster->GetCommunicator());
+        MapperUtilities::AssignInterfaceEquationIdsToNodes(mpCouplingInterfaceSlave->GetCommunicator());
+        MapperUtilities::AssignInterfaceEquationIdsToNodes(mpCouplingInterfaceMaster->GetCommunicator());
     }
 
     void MapInternal(const Variable<double>& rOriginVariable,

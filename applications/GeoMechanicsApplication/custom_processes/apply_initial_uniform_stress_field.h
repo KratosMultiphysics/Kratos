@@ -15,6 +15,8 @@
 #include "includes/kratos_export_api.h"
 #include "processes/process.h"
 
+#include <string>
+
 namespace Kratos
 {
 
@@ -35,7 +37,8 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION(ApplyInitialUniformStressField);
 
     ApplyInitialUniformStressField(ModelPart& rModelPart, const Parameters& rParameters);
-    void ExecuteInitialize() override;
+    void                      ExecuteInitialize() override;
+    [[nodiscard]] std::string Info() const override;
 
 private:
     ModelPart& mrModelPart;

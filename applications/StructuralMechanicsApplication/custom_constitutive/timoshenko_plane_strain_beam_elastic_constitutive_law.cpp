@@ -118,6 +118,10 @@ void TimoshenkoBeamPlaneStrainElasticConstitutiveLaw::CalculateMaterialResponseC
 
         AddInitialStressVectorContribution(r_generalized_stress_vector);
 
+        if (r_material_properties.Has(BEAM_PRESTRESS_PK2)) {
+            r_generalized_stress_vector += r_material_properties[BEAM_PRESTRESS_PK2];
+        }
+
         if (r_cl_law_options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
             auto &r_stress_derivatives = rValues.GetConstitutiveMatrix(); // dN_dEl, dM_dkappa, dV_dGamma_xy
             if (r_stress_derivatives.size1() != strain_size || r_stress_derivatives.size2() != strain_size)

@@ -768,7 +768,7 @@ Vector LinearTimoshenkoCurvedBeamElement2D3N::CalculateStrainVector(double Xi)
     BoundedMatrix<double, 2, 2> frenet_serret = GetFrenetSerretMatrix(Xi, t, n);
     BoundedVector<double, 2> gamma = prod(prod(frenet_serret, aux_B_s), nodal_values);
 
-    Vector strain_vector(3);
+    Vector strain_vector(mConstitutiveLawVector[0]->GetStrainSize());
     strain_vector.clear();
     strain_vector[0] = gamma[0]; // axial strain
     strain_vector[2] = gamma[1]; // shear strain
@@ -807,6 +807,37 @@ int LinearTimoshenkoCurvedBeamElement2D3N::Check(const ProcessInfo& rCurrentProc
     return mConstitutiveLawVector[0]->Check(GetProperties(), GetGeometry(), rCurrentProcessInfo);
 
     KRATOS_CATCH( "" );
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void LinearTimoshenkoCurvedBeamElement2D3N::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_TRY
+
+    if (mConstitutiveLawVector.empty()) return;
+
+    const auto& r_geometry   = GetGeometry();
+    const auto& r_properties = GetProperties();
+    const auto& r_integration_points = IntegrationPoints(GetIntegrationMethod());
+    const auto  strain_size = mConstitutiveLawVector[0]->GetStrainSize();
+
+    VectorType strain_vector(strain_size);
+    VectorType stress_vector(strain_size);
+
+    ConstitutiveLaw::Parameters cl_values(r_geometry, r_properties, rCurrentProcessInfo);
+    cl_values.GetOptions().Set(ConstitutiveLaw::COMPUTE_STRESS, true);
+    cl_values.SetStrainVector(strain_vector);
+    cl_values.SetStressVector(stress_vector);
+
+    for (auto integration_point = std::size_t{0}; integration_point < r_integration_points.size(); ++integration_point) {
+        if (!mConstitutiveLawVector[integration_point]->RequiresFinalizeMaterialResponse()) continue;
+        noalias(strain_vector) = CalculateStrainVector(r_integration_points[integration_point].X());
+        mConstitutiveLawVector[integration_point]->FinalizeMaterialResponse(cl_values, mConstitutiveLawVector[integration_point]->GetStressMeasure());
+    }
+
+    KRATOS_CATCH("")
 }
 
 /***********************************************************************************/

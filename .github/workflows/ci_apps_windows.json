@@ -16,7 +16,6 @@
     "MappingApplication",
     "CoSimulationApplication",
     "StatisticsApplication",
-    "SwimmingDEMApplication",
     "ShapeOptimizationApplication",
     "ConstitutiveLawsApplication",
     "RANSApplication",

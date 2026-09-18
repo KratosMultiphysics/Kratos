@@ -74,12 +74,19 @@ public:
         ProcessInfo::Pointer pProcessInfo,
         const bool Copy = true);
 
+    EquationIdsTensorAdaptor(const EquationIdsTensorAdaptor& rOther) = default;
+
     // Destructor
     ~EquationIdsTensorAdaptor() override = default;
 
     ///@}
     ///@name Public operations
     ///@{
+
+    /**
+     * @brief Clones the existing tensor adaptor.
+     */
+    TensorAdaptor::Pointer Clone() const override;
 
     /**
      * @brief Fill the internal data from Kratos data structures

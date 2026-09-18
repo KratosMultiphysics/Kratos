@@ -69,7 +69,7 @@ struct as_block {
                     const params &prm = params(),
                     const backend_params &bprm = backend_params()
                     )
-            : base(*std::make_shared<typename BlockBackend::matrix>(adapter::block_matrix<BlockType>(A)), prm, bprm),
+            : base(*std::make_shared<typename backend::crs<BlockType, col_type, ptr_type>>(adapter::block_matrix<BlockType>(A)), prm, bprm),
               nrows(backend::rows(A) / math::static_rows<BlockType>::value)
             { }
 

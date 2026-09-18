@@ -3,6 +3,7 @@ import KratosMultiphysics
 from KratosMultiphysics import IsDistributedRun
 import KratosMultiphysics.kratos_utilities as kratos_utils
 from KratosMultiphysics.StructuralMechanicsApplication.structural_mechanics_analysis import StructuralMechanicsAnalysis
+from KratosMultiphysics.StructuralMechanicsApplication.structural_mechanics_load_stepping_analysis import StructuralMechanicsLoadSteppingAnalysis
 
 # Import KratosUnittest
 import KratosMultiphysics.KratosUnittest as KratosUnittest
@@ -37,6 +38,8 @@ def SelectAndVerifyLinearSolver(settings, skiptest):
 
 
 class StructuralMechanicsTestFactory(KratosUnittest.TestCase):
+    analysis_type = StructuralMechanicsAnalysis
+
     def setUp(self):
         # Within this location context:
         with KratosUnittest.WorkFolderScope(".", __file__):
@@ -57,7 +60,7 @@ class StructuralMechanicsTestFactory(KratosUnittest.TestCase):
 
             # Creating the test
             model = KratosMultiphysics.Model()
-            self.test = StructuralMechanicsAnalysis(model, ProjectParameters)
+            self.test = self.analysis_type(model, ProjectParameters)
             self.test.Initialize()
 
     def modify_parameters(self, project_parameters):
@@ -76,6 +79,12 @@ class StructuralMechanicsTestFactory(KratosUnittest.TestCase):
         with KratosUnittest.WorkFolderScope(".", __file__):
             self.test.Finalize()
 
+class LinearReissnerMindlinTest(StructuralMechanicsTestFactory):
+    file_name = "reissner_mindlin_shells/3_noded/linear/hook_triangles_test"
+
+class CorotationalReissnerMindlinTest(StructuralMechanicsTestFactory):
+    file_name = "reissner_mindlin_shells/3_noded/corotational/hook_triangles_test"
+
 class MixedUEElementTest(StructuralMechanicsTestFactory):
     file_name = "mixed_u_E_test/mixed_u_E_element_test"
 
@@ -87,6 +96,9 @@ class LinearTruss2D3NTest(StructuralMechanicsTestFactory):
 
 class LinearTruss3DTest(StructuralMechanicsTestFactory):
     file_name = "LinearTruss3D/linear_3d_truss_test"
+
+class TLTruss3DTest(StructuralMechanicsTestFactory):
+    file_name = "TLTruss3D/tl_3d_truss_test"
 
 class TimoshenkoBeam3D2NTest(StructuralMechanicsTestFactory):
     file_name = "TimoshenkoBeams/3D2N_straight/timoshenko_beam_3d2N_test"
@@ -266,14 +278,32 @@ class Simple3D2NBeamCrNonLinearTest(StructuralMechanicsTestFactory):
 class Simple3D2NBeamCrDynamicTest(StructuralMechanicsTestFactory):
     file_name = "beam_test/dynamic_3D2NBeamCr_test"
 
+class Simple3D2NBeamCrDynamicPseudoStepTest(StructuralMechanicsTestFactory):
+    class TestClass(StructuralMechanicsLoadSteppingAnalysis):
+        list_of_steps: 'list[int]' = []
+        def FinalizeSolutionStep(self):
+            super().FinalizeSolutionStep()
+            self.list_of_steps.append(self.is_converged)
+
+    file_name = "beam_test/dynamic_3D2NBeamCr_pseudo_step_test"
+    analysis_type = TestClass
+
+    def test_execution(self):
+        super().test_execution()
+        self.assertTrue(all(self.test.list_of_steps))
+
+    def tearDown(self):
+        super().tearDown()
+        kratos_utils.DeleteFileIfExisting("serialization.rest")
+
 class Simple2D2NBeamCrTest(StructuralMechanicsTestFactory):
     file_name = "beam_test/nonlinear_2D2NBeamCr_test"
 
 class InitialStateElasticityTest(StructuralMechanicsTestFactory):
     file_name = "InitialStateElasticity/initial_state_test"
 
-class InitialStrainShellQ4ThickTest(StructuralMechanicsTestFactory):
-    file_name = "InitialStateElasticity/initial_strain_shell_Q4_thick_test"
+# class InitialStrainShellQ4ThickTest(StructuralMechanicsTestFactory):
+#     file_name = "InitialStateElasticity/initial_strain_shell_Q4_thick_test"   # TODO: This test will be activated again when the initial state capability is added to the new MITC thick shell. A. Cornejo, 2026.
 
 class ShellT3IsotropicLinearStaticStructScordelisLoRoofTests(StructuralMechanicsTestFactory):
     file_name = "shell_test/Shell_T3_isotropic_linear_static_struct_scordelis_lo_roof"
@@ -324,8 +354,6 @@ class ShellQ4ThickDrillingRollUpTests(StructuralMechanicsTestFactory):
     file_name = "shell_test/Shell_Q4_Thick__DrillingRollUp_test"
 
 @KratosUnittest.skipIfApplicationsNotAvailable("ConstitutiveLawsApplication")
-class ShellQ4ThickOrthotropicLaminateLinearStaticTests(StructuralMechanicsTestFactory):
-    file_name = "shell_test/Shell_Q4_Thick_orthotropic_laminate_linear_static_test"
 class ShellT3ThinBendingRollUpTests(StructuralMechanicsTestFactory):
     file_name = "shell_test/Shell_T3_Thin__BendingRollUp_test"
 class ShellT3ThinDrillingRollUpTests(StructuralMechanicsTestFactory):

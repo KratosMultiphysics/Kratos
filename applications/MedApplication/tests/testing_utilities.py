@@ -27,8 +27,8 @@ class MedModelPartIOTestCase(KratosUnittest.TestCase):
             self.assertEqual(node.Id, i + 1)
 
         # check geometries have correct Ids
-        # Note: Geometries are not ordered, thus cannot check like nodes
-        self.assertEqual(set(get_geometry_ids(model_part)), set(range(1, model_part.NumberOfGeometries() + 1)))
+        for i, geom in enumerate(model_part.Geometries):
+            self.assertEqual(geom.Id, i + 1)
 
         # check that the entities are unique in the ModelParts
         self._check_unique_nodes(model_part)

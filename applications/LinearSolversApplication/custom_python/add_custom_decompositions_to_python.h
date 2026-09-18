@@ -10,8 +10,7 @@
 //  Main authors:    Ruben Zorrilla
 //
 
-#if !defined(KRATOS_ADD_CUSTOM_DECOMPOSITIONS_TO_PYTHON_H_INCLUDED)
-#define KRATOS_ADD_CUSTOM_DECOMPOSITIONS_TO_PYTHON_H_INCLUDED
+#pragma once
 
 // System includes
 #include <pybind11/pybind11.h>
@@ -20,12 +19,8 @@
 
 // Project includes
 
-namespace Kratos {
-namespace Python {
+namespace Kratos::Python {
 
 void AddCustomDecompositionsToPython(pybind11::module& m);
 
-} // namespace Python
-} // namespace Kratos
-
-#endif // defined(KRATOS_ADD_CUSTOM_DECOMPOSITIONS_TO_PYTHON_H_INCLUDED)
+} // namespace Kratos::Python

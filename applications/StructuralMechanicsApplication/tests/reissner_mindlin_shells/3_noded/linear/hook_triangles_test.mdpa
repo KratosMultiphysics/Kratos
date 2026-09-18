@@ -1,0 +1,134 @@
+Begin ModelPartData
+//  VARIABLE_NAME value
+End ModelPartData
+
+Begin Properties 0
+End Properties
+Begin Nodes
+    1   0.024739 -13.999900 -320.0
+    2  12.303490  -6.692460 -320.0
+    3   0.024739 -13.999900 -300.0
+    4  12.303490  -6.692460 -300.0
+    5  21.853550   4.778016 -320.0
+    6  21.853550   4.778016 -300.0
+    7  34.573420  12.587010 -320.0
+    8  34.573420  12.587010 -300.0
+    9  49.123940  15.912390 -320.0
+   10  49.123940  15.912390 -300.0
+   11  63.973200  14.404040 -320.0
+   12  63.973200  14.404040 -300.0
+   13  77.557850   8.220776 -320.0
+   14  77.557850   8.220776 -300.0
+   15  88.447680  -1.986430 -320.0
+   16  88.447680  -1.986430 -300.0
+   17  95.496200 -15.142900 -320.0
+   18  95.496200 -15.142900 -300.0
+   19  97.961320 -29.863600 -320.0
+   20  97.961320 -29.863600 -300.0
+End Nodes
+
+
+Begin Elements CSDSG3ThickShellLinearElement3D3N // CSDSG3ThickShellCorotationalElement3D3N
+     3631          0     1   2   3     
+     3632          0     3   2   4     
+     3633          0     2   5   4     
+     3634          0     4   5   6     
+     3635          0     5   7   6     
+     3636          0     6   7   8     
+     3637          0     7   9   8     
+     3638          0     8   9  10     
+     3639          0     9  11  10     
+     3640          0    10  11  12     
+     3641          0    11  14  12     
+     3642          0    11  13  14     
+     3643          0    13  15  14     
+     3644          0    14  15  16     
+     3645          0    15  17  16     
+     3646          0    16  17  18     
+     3647          0    17  19  18     
+     3648          0    18  19  20     
+End Elements
+
+Begin Conditions PointLoadCondition3D1N// GUI group identifier: Load on points Auto1
+    1 0 19
+     2 0 20
+End Conditions
+
+Begin SubModelPart Parts_Shell_Shell_Auto1 // Group Shell Auto1 // Subtree Parts_Shell
+    Begin SubModelPartNodes
+            1
+            2
+            3
+            4
+            5
+            6
+            7
+            8
+            9
+           10
+           11
+           12
+           13
+           14
+           15
+           16
+           17
+           18
+           19
+           20
+    End SubModelPartNodes
+    Begin SubModelPartElements
+         3631
+         3632
+         3633
+         3634
+         3635
+         3636
+         3637
+         3638
+         3639
+         3640
+         3641
+         3642
+         3643
+         3644
+         3645
+         3646
+         3647
+         3648
+    End SubModelPartElements
+    Begin SubModelPartConditions
+    End SubModelPartConditions
+End SubModelPart
+Begin SubModelPart DISPLACEMENT_Displacement_Auto1 // Group Displacement Auto1 // Subtree DISPLACEMENT
+    Begin SubModelPartNodes
+            1
+            3
+    End SubModelPartNodes
+    Begin SubModelPartElements
+    End SubModelPartElements
+    Begin SubModelPartConditions
+    End SubModelPartConditions
+End SubModelPart
+Begin SubModelPart ROTATION_Rotation_Auto1 // Group Rotation Auto1 // Subtree ROTATION
+    Begin SubModelPartNodes
+            1
+            3
+    End SubModelPartNodes
+    Begin SubModelPartElements
+    End SubModelPartElements
+    Begin SubModelPartConditions
+    End SubModelPartConditions
+End SubModelPart
+Begin SubModelPart PointLoad3D_Load_on_points_Auto1 // Group Load on points Auto1 // Subtree PointLoad3D
+    Begin SubModelPartNodes
+           19
+           20
+    End SubModelPartNodes
+    Begin SubModelPartElements
+    End SubModelPartElements
+    Begin SubModelPartConditions
+            1
+            2
+    End SubModelPartConditions
+End SubModelPart

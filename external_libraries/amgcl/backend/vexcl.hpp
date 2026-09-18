@@ -267,7 +267,7 @@ template <
 struct vexcl_hybrid : public vexcl<typename math::scalar_of<BlockType>::type, ColumnType, PointerType, DirectSolver>
 {
     typedef typename math::scalar_of<BlockType>::type ScalarType;
-    typedef vexcl<ScalarType, DirectSolver> Base;
+    typedef vexcl<ScalarType, ColumnType, PointerType, DirectSolver> Base;
     typedef vex::sparse::distributed<
                 vex::sparse::matrix<
                     BlockType,

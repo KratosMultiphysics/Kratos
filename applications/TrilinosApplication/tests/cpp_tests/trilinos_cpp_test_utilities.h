@@ -46,6 +46,7 @@ public:
     using TrilinosSparseSpaceType = TrilinosSpace<Epetra_FECrsMatrix, Epetra_FEVector>;
     using TrilinosLocalSpaceType = UblasSpace<double, Matrix, Vector>;
 
+    /// Trilinos definitions
     using TrilinosSparseMatrixType = TrilinosSparseSpaceType::MatrixType;
     using TrilinosVectorType = TrilinosSparseSpaceType::VectorType;
 
@@ -186,8 +187,8 @@ public:
     * @param rRowIndexes The row indices
     * @param rColumnIndexes The column indices
     * @param rValues The values
-    * @param PrintValues If printing the vectors, for debugging pourposes
-    * @param IncludeHardZeros If including the hard zeros (giving  a cerain threshold)
+    * @param PrintValues If printing the vectors, for debugging purposes
+    * @param IncludeHardZeros If including the hard zeros (giving  a certain threshold)
     */
     static void GenerateSparseMatrixIndexAndValuesVectors(
         const TrilinosSparseSpaceType::MatrixType& rA,

@@ -56,6 +56,7 @@ cmake ..                                                                        
 -DCMAKE_C_FLAGS=${CMAKE_C_FLAGS}                                                                    \
 -DCMAKE_CXX_FLAGS="${KRATOS_CMAKE_CXX_FLAGS} ${CMAKE_CXX_FLAGS}"                                    \
 -DCMAKE_EXPORT_COMPILE_COMMANDS=${CMAKE_EXPORT_COMPILE_COMMANDS}                                    \
+-DCMAKE_POLICY_VERSION_MINIMUM=3.5                                                                  \
 -DKRATOS_BUILD_TESTING=ON                                                                           \
 -DKRATOS_SHARED_MEMORY_PARALLELIZATION="${KRATOS_SHARED_MEMORY_PARALLELIZATION}"                    \
 -DUSE_EIGEN_MKL=OFF

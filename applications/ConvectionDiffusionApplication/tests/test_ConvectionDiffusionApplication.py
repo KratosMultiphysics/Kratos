@@ -6,6 +6,7 @@ import KratosMultiphysics.ConvectionDiffusionApplication
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 ##### SELF-CONTAINED TESTS #####
+from test_discontinuity_propagation import DiscontinuityPropagationUnitSquareTest
 from bfecc_convection_test import BFECCConvectionTest
 from source_term_test import SourceTermTest
 from thermal_coupling_test import ThermalCouplingTest
@@ -46,6 +47,7 @@ def AssembleTestSuites():
     nightSuite = suites['nightly'] # These tests are executed in the nightly build
 
     ### Adding the self-contained tests
+    smallSuite.addTest(DiscontinuityPropagationUnitSquareTest('testDiscontinuityPropagation'))
     smallSuite.addTest(SourceTermTest('testPureDiffusion'))
     smallSuite.addTest(SourceTermTest('testDiffusionDominated'))
     smallSuite.addTest(SourceTermTest('testConvectionDominated'))

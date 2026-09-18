@@ -1,7 +1,7 @@
 // KRATOS    ______            __             __  _____ __                  __                   __
 //          / ____/___  ____  / /_____ ______/ /_/ ___// /________  _______/ /___  ___________ _/ /
-//         / /   / __ \/ __ \/ __/ __ `/ ___/ __/\__ \/ __/ ___/ / / / ___/ __/ / / / ___/ __ `/ / 
-//        / /___/ /_/ / / / / /_/ /_/ / /__/ /_ ___/ / /_/ /  / /_/ / /__/ /_/ /_/ / /  / /_/ / /  
+//         / /   / __ \/ __ \/ __/ __ `/ ___/ __/\__ \/ __/ ___/ / / / ___/ __/ / / / ___/ __ `/ /
+//        / /___/ /_/ / / / / /_/ /_/ / /__/ /_ ___/ / /_/ /  / /_/ / /__/ /_/ /_/ / /  / /_/ / /
 //        \____/\____/_/ /_/\__/\__,_/\___/\__//____/\__/_/   \__,_/\___/\__/\__,_/_/   \__,_/_/  MECHANICS
 //
 //  License:         BSD License
@@ -78,7 +78,7 @@ public:
     /// Default constructor.
     ALMVariablesCalculationProcess(
         ModelPart& rThisModelPart,
-        Variable<double>& rNodalLengthVariable = NODAL_H,
+        const Variable<double>& rNodalLengthVariable = NODAL_H,
         Parameters ThisParameters =  Parameters(R"({})")
         ):mrThisModelPart(rThisModelPart),
           mrNodalLengthVariable(rNodalLengthVariable)
@@ -184,12 +184,12 @@ private:
     ///@name Member Variables
     ///@{
 
-    ModelPart& mrThisModelPart;              /// The main model part
-    Variable<double>& mrNodalLengthVariable; /// The variable used to messure the length of the element
-    double mFactorStiffness;                 /// The proportion between stiffness and penalty/scale factor
-    double mPenaltyScale;                    /// The penalty/scale factor proportion
-    bool mComputeScaleFactor;                /// If compute the scale factor
-    bool mComputePenalty;                    /// If compute the penalty
+    ModelPart& mrThisModelPart;                    /// The main model part
+    const Variable<double>& mrNodalLengthVariable; /// The variable used to messure the length of the element
+    double mFactorStiffness;                       /// The proportion between stiffness and penalty/scale factor
+    double mPenaltyScale;                          /// The penalty/scale factor proportion
+    bool mComputeScaleFactor;                      /// If compute the scale factor
+    bool mComputePenalty;                          /// If compute the penalty
 
     ///@}
     ///@name Private Operators

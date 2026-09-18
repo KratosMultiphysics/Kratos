@@ -32,7 +32,7 @@
 
 namespace Kratos {
 
-#if defined(KRATOS_SMP_CXX11)
+#if defined(KRATOS_SMP_CXX11) || defined(KRATOS_COMPILED_IN_OS)
     #if defined(__cpp_lib_atomic_ref) // C++20
         template <class T>
         using AtomicRef = std::atomic_ref<T>;
@@ -54,11 +54,11 @@ namespace Kratos {
 template<class TDataType>
 inline void AtomicAdd(TDataType& target, const TDataType& value)
 {
-#ifdef KRATOS_SMP_OPENMP
+#if defined(KRATOS_SMP_CXX11) || defined(KRATOS_COMPILED_IN_OS)
+    AtomicRef<TDataType>{target} += value;
+#elif defined(KRATOS_SMP_OPENMP)
     #pragma omp atomic
     target += value;
-#elif defined(KRATOS_SMP_CXX11)
-    AtomicRef<TDataType>{target} += value;
 #else
     target += value;
 #endif
@@ -86,7 +86,7 @@ inline void AtomicAdd(array_1d<TDataType,ArraySize>& target, const array_1d<TDat
 template<class TVectorType1, class TVectorType2>
 inline void AtomicAddVector(TVectorType1& target, const TVectorType2& value)
 {
-    KRATOS_DEBUG_ERROR_IF(target.size() != value.size()) << "vector size mismatch in vector AtomicAddVector- Sizes are: " << target.size() << " for target and " << value.size() << " for value " << std::endl;
+    KRATOS_DEBUG_ERROR_IF(static_cast<std::size_t>(target.size()) != static_cast<std::size_t>(value.size())) << "vector size mismatch in vector AtomicAddVector- Sizes are: " << target.size() << " for target and " << value.size() << " for value " << std::endl;
 
     for(std::size_t i=0; i<target.size(); ++i) {
        AtomicAdd(target[i], value[i]);
@@ -117,14 +117,7 @@ inline void AtomicAddMatrix(TMatrixType1& target, const TMatrixType2& value)
 template<class TDataType>
 inline void AtomicSub(TDataType& target, const TDataType& value)
 {
-#ifdef KRATOS_SMP_OPENMP
-    #pragma omp atomic
-    target -= value;
-#elif defined(KRATOS_SMP_CXX11)
-    AtomicRef<TDataType>{target} -= value;
-#else
-    target -= value;
-#endif
+    AtomicAdd(target, -value);
 }
 
 /**
@@ -148,7 +141,7 @@ inline void AtomicSub(array_1d<TDataType,ArraySize>& target, const array_1d<TDat
  */
 template<class TVectorType1, class TVectorType2>
 inline void AtomicSubVector(TVectorType1& target, const TVectorType2& value) {
-    KRATOS_DEBUG_ERROR_IF(target.size() != value.size()) << "vector size mismatch in vector AtomicSubVector- Sizes are: " << target.size() << " for target and " << value.size() << " for value " << std::endl;
+    KRATOS_DEBUG_ERROR_IF(static_cast<std::size_t>(target.size()) != static_cast<std::size_t>(value.size())) << "vector size mismatch in vector AtomicSubVector- Sizes are: " << target.size() << " for target and " << value.size() << " for value " << std::endl;
 
     for(std::size_t i=0; i<target.size(); ++i) {
        AtomicSub(target[i], value[i]);
@@ -172,18 +165,35 @@ inline void AtomicSubMatrix(TMatrixType1& target, const TMatrixType2& value)
     }
 }
 
+/** @param ref scalar variable being atomically updated by doing ref *= factor
+ * @param factor vector value being multiplied
+ */
+template<class T>
+inline T atomic_mul(std::atomic_ref<T>& ref, T factor)
+{
+    T old = ref.load(std::memory_order_relaxed);
+    T result;
+    do {
+        result = old * factor;
+    } while (!ref.compare_exchange_weak(old, result, std::memory_order_acq_rel, std::memory_order_relaxed));
+
+    return result;
+}
+
 /** @param target vector variable being atomically updated by doing target *= value
  * @param value vector value being multiplied
+ * Note that "=*" compound operator is --> **NOT** <-- defined for multiplication in boost::atomic//std::atomic,
+ * so we need to implement it ourselves
  */
 template<class TDataType>
 inline void AtomicMult(TDataType& target, const TDataType& value)
 {
-#ifdef KRATOS_SMP_OPENMP
+#if defined(KRATOS_SMP_CXX11) || defined(KRATOS_COMPILED_IN_OS)
+    AtomicRef<TDataType> at_ref{target};
+    atomic_mul(at_ref, value);
+#elif defined(KRATOS_SMP_OPENMP)
     #pragma omp atomic
     target *= value;
-#elif defined(KRATOS_SMP_CXX11)
-    AtomicRef<TDataType> at_ref{target};
-    at_ref = at_ref*value;
 #else
     target *= value;
 #endif
@@ -209,7 +219,7 @@ inline void AtomicMult(array_1d<TDataType,ArraySize>& target, const array_1d<TDa
 template<class TVectorType1, class TVectorType2>
 inline void AtomicMultVector(TVectorType1& target, const TVectorType2& value)
 {
-    KRATOS_DEBUG_ERROR_IF(target.size() != value.size()) << "vector size mismatch in vector AtomicMultVector- Sizes are: " << target.size() << " for target and " << value.size() << " for value " << std::endl;
+    KRATOS_DEBUG_ERROR_IF(static_cast<std::size_t>(target.size()) != static_cast<std::size_t>(value.size())) << "vector size mismatch in vector AtomicMultVector- Sizes are: " << target.size() << " for target and " << value.size() << " for value " << std::endl;
 
     for(std::size_t i=0; i<target.size(); ++i) {
        AtomicMult(target[i], value[i]);
@@ -262,7 +272,7 @@ inline void AtomicDiv(array_1d<TDataType,ArraySize>& target, const array_1d<TDat
 template<class TVectorType1, class TVectorType2>
 inline void AtomicDivVector(TVectorType1& target, const TVectorType2& value)
 {
-    KRATOS_DEBUG_ERROR_IF(target.size() != value.size()) << "vector size mismatch in vector AtomicDivVector- Sizes are: " << target.size() << " for target and " << value.size() << " for value " << std::endl;
+    KRATOS_DEBUG_ERROR_IF(static_cast<std::size_t>(target.size()) != static_cast<std::size_t>(value.size())) << "vector size mismatch in vector AtomicDivVector- Sizes are: " << target.size() << " for target and " << value.size() << " for value " << std::endl;
 
     for(std::size_t i=0; i<target.size(); ++i) {
        AtomicDiv(target[i], value[i]);

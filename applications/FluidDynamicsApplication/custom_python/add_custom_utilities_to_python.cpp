@@ -25,7 +25,7 @@
 #include "linear_solvers/linear_solver.h"
 
 #include "custom_utilities/fluid_auxiliary_utilities.h"
-#include "custom_utilities/drag_utilities.h"
+#include "custom_utilities/flow_forces_and_moments_utilities.h"
 #include "custom_utilities/dynamic_smagorinsky_utilities.h"
 #include "custom_utilities/estimate_dt_utilities.h"
 #include "custom_utilities/fluid_characteristic_numbers_utilities.h"
@@ -152,10 +152,10 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         ;
 
     // Calculate embedded drag utilities
-    py::class_< DragUtilities> (m,"DragUtilities")
+    py::class_< FlowForcesAndMomentsUtilities> (m,"FlowForcesAndMomentsUtilities")
         .def(py::init<>())
-        .def("CalculateBodyFittedDrag", &DragUtilities::CalculateBodyFittedDrag)
-        .def("CalculateEmbeddedDrag", &DragUtilities::CalculateEmbeddedDrag)
+        .def("CalculateBodyFittedFlowForcesAndMoments", &FlowForcesAndMomentsUtilities::CalculateBodyFittedFlowForcesAndMoments)
+        .def("CalculateEmbeddedFlowForcesAndMoments", &FlowForcesAndMomentsUtilities::CalculateEmbeddedFlowForcesAndMoments)
         ;
 
     py::class_<

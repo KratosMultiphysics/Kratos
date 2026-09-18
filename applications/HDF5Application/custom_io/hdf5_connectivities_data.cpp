@@ -109,7 +109,7 @@ void ConnectivitiesData<TContainerType>::Write(
 {
     KRATOS_TRY;
 
-    if (mpFile->GetDataCommunicator().SumAll(rEntities.size()) == 0) {
+    if (mpFile->GetDataCommunicator().SumAll(static_cast<unsigned int>(rEntities.size())) == 0) {
         // do nothing if the all the ranks have no entities.
         return;
     }

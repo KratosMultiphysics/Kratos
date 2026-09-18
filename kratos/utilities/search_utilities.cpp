@@ -48,6 +48,36 @@ void SearchUtilities::ComputeBoundingBoxesWithTolerance(
 /***********************************************************************************/
 /***********************************************************************************/
 
+void SearchUtilities::ComputeBoundingBoxesWithTolerance(
+    const std::vector<BoundingBox<Point>>& rBoundingBoxes,
+    const double Tolerance,
+    std::vector<BoundingBox<Point>>& rBoundingBoxesWithTolerance
+    )
+{
+    const SizeType size_vec = rBoundingBoxes.size();
+
+    if (rBoundingBoxesWithTolerance.size() != size_vec) {
+        rBoundingBoxesWithTolerance.resize(size_vec);
+    }
+
+    // Apply Tolerances
+    for (IndexType i = 0; i < size_vec; i++) {
+        const auto& r_bounding_box = rBoundingBoxes[i];
+        const auto& r_min_point = r_bounding_box.GetMinPoint();
+        const auto& r_max_point = r_bounding_box.GetMaxPoint();
+        auto& r_bb_with_tolerance = rBoundingBoxesWithTolerance[i];
+        auto& r_min_point_with_tolerance = r_bb_with_tolerance.GetMinPoint();
+        auto& r_max_point_with_tolerance = r_bb_with_tolerance.GetMaxPoint();
+        for (unsigned int j = 0; j < 3; ++j) {
+            r_min_point_with_tolerance[j] = r_min_point[j] - Tolerance;
+            r_max_point_with_tolerance[j] = r_max_point[j] + Tolerance;
+        }
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 void SearchUtilities::ComputeBoundingBoxesWithToleranceCheckingNullBB(
     const std::vector<double>& rBoundingBoxes,
     const double Tolerance,
@@ -73,6 +103,44 @@ void SearchUtilities::ComputeBoundingBoxesWithToleranceCheckingNullBB(
 
         for (IndexType i=1; i<size_vec; i+=2) {
             rBoundingBoxesWithTolerance[i] = rBoundingBoxes[i] - Tolerance;
+        }
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void SearchUtilities::ComputeBoundingBoxesWithToleranceCheckingNullBB(
+    const std::vector<BoundingBox<Point>>& rBoundingBoxes,
+    const double Tolerance,
+    std::vector<BoundingBox<Point>>& rBoundingBoxesWithTolerance
+    )
+{
+    const SizeType size_vec = rBoundingBoxes.size();
+
+    if (rBoundingBoxesWithTolerance.size() != size_vec) {
+        rBoundingBoxesWithTolerance.resize(size_vec);
+    }
+
+    // Apply Tolerances if the BB is not null
+    const double zero_tolerance = std::numeric_limits<double>::epsilon();
+    const auto& r_first_bb = rBoundingBoxes[0];
+    const auto& r_first_bb_min_point = r_first_bb.GetMinPoint();
+    const auto& r_first_bb_max_point = r_first_bb.GetMaxPoint();
+    if (std::abs(r_first_bb_max_point[0] - r_first_bb_min_point[0]) > zero_tolerance && 
+        std::abs(r_first_bb_max_point[1] - r_first_bb_min_point[1]) > zero_tolerance &&
+        std::abs(r_first_bb_max_point[2] - r_first_bb_min_point[2]) > zero_tolerance) {
+        for (IndexType i = 0; i < size_vec; i++) {
+            const auto& r_bounding_box = rBoundingBoxes[i];
+            const auto& r_min_point = r_bounding_box.GetMinPoint();
+            const auto& r_max_point = r_bounding_box.GetMaxPoint();
+            auto& r_bb_with_tolerance = rBoundingBoxesWithTolerance[i];
+            auto& r_min_point_with_tolerance = r_bb_with_tolerance.GetMinPoint();
+            auto& r_max_point_with_tolerance = r_bb_with_tolerance.GetMaxPoint();
+            for (unsigned int j = 0; j < 3; ++j) {
+                r_min_point_with_tolerance[j] = r_min_point[j] - Tolerance;
+                r_max_point_with_tolerance[j] = r_max_point[j] + Tolerance;
+            }
         }
     }
 }

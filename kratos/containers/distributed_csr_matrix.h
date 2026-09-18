@@ -260,6 +260,7 @@ public:
         mOffDiagonalGlobalIds = std::move(rOtherMatrix.mOffDiagonalGlobalIds);
         mfem_assemble_colors = std::move(rOtherMatrix.mfem_assemble_colors);
         mpVectorImporter = std::move(rOtherMatrix.mpVectorImporter);
+        return *this;
     }
     /// Destructor.
     ~DistributedCsrMatrix() {}

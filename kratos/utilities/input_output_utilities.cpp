@@ -63,6 +63,9 @@ bool InputOutputUtilities::SkippableEntity(
             case GeometryData::KratosGeometryType::Kratos_Coupling_Geometry:
                 KRATOS_WARNING(rWarningLabel) << "Skipping geometry type: Kratos_Coupling_Geometry" << std::endl;
                 return true;
+            case GeometryData::KratosGeometryType::Kratos_Quadrature_Point_Curve_Geometry:
+                KRATOS_WARNING(rWarningLabel) << "Skipping geometry type: Kratos_Quadrature_Point_Curve_Geometry" << std::endl;
+                return true;
             case GeometryData::KratosGeometryType::Kratos_Quadrature_Point_Curve_On_Surface_Geometry:
                 KRATOS_WARNING(rWarningLabel) << "Skipping geometry type: Kratos_Quadrature_Point_Curve_On_Surface_Geometry" << std::endl;
                 return true;

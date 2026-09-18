@@ -3,7 +3,6 @@ import abc
 import KratosMultiphysics as Kratos
 
 from KratosMultiphysics.analysis_stage import AnalysisStage
-from KratosMultiphysics.OptimizationApplication.utilities.union_utilities import ContainerExpressionTypes
 from KratosMultiphysics.OptimizationApplication.utilities.union_utilities import SupportedSensitivityFieldVariableTypes
 
 class ResponseSensitivityAnalysis(AnalysisStage, abc.ABC):
@@ -18,17 +17,17 @@ class ResponseSensitivityAnalysis(AnalysisStage, abc.ABC):
         """
         pass
 
-    def GetGradient(self, sensitivity_variable: SupportedSensitivityFieldVariableTypes, gradient_expression: ContainerExpressionTypes) -> None:
-        """Returns the gradients in the domain represented by gradient_expression container expression.
+    def GetGradient(self, sensitivity_variable: SupportedSensitivityFieldVariableTypes, gradient_tensor_adaptor: Kratos.TensorAdaptors.DoubleTensorAdaptor) -> None:
+        """Returns the gradients in the domain represented by gradient_tensor_adaptor tensor adaptor.
 
         Args:
             sensitivity_variable (SupportedSensitivityFieldVariableTypes): Sensitivity variable
-            gradient_expression (ContainerExpressionTypes): Container expression to hold the gradients.
+            gradient_tensor_adaptor (Kratos.TensorAdaptors.DoubleTensorAdaptor): TensorAdaptor to hold the gradients.
         """
-        if isinstance(gradient_expression, Kratos.Expression.NodalExpression):
-            Kratos.Expression.VariableExpressionIO.Read(gradient_expression, sensitivity_variable, True)
+        if isinstance(gradient_tensor_adaptor.GetContainer(), Kratos.NodesArray):
+            Kratos.TensorAdaptors.HistoricalVariableTensorAdaptor(gradient_tensor_adaptor, sensitivity_variable, copy=False).CollectData()
         else:
-            Kratos.Expression.VariableExpressionIO.Read(gradient_expression, sensitivity_variable)
+            Kratos.TensorAdaptors.VariableTensorAdaptor(gradient_tensor_adaptor, sensitivity_variable, copy=False).CollectData()
 
     def GetProcessesOrder(self) -> 'list[str]':
         """The order of execution of the process categories.

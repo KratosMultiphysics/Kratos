@@ -182,9 +182,8 @@ class InletMesherProcess
           if( distance > critical_distance ){
 
             // add new inlet node
-            NodeType::Pointer pnode = i_node->Clone();
-
-            pnode->SetId(NodeId);
+            NodeType::Pointer pnode = i_node->Clone(NodeId);
+            
             pnode->Coordinates() = pnode->GetInitialPosition();
 
             pnode->Set(INLET,true);

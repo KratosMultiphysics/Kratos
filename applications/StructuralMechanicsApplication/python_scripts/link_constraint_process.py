@@ -70,7 +70,7 @@ class LinkConstraintProcess(KratosMultiphysics.Process):
         constraint_count: int = len(self.__model_part.MasterSlaveConstraints)
         last_constraint_id: int
         if constraint_count:
-            last_constraint_id = self.__model_part.MasterSlaveConstraints[constraint_count - 1]
+            last_constraint_id = self.__model_part.MasterSlaveConstraints.back().Id
         else:
             last_constraint_id = 0
         return self.__model_part.GetCommunicator().GetDataCommunicator().MaxAll(last_constraint_id)

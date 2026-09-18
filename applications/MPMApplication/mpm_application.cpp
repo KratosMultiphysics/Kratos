@@ -69,9 +69,9 @@ namespace Kratos
         mMPMUpdatedLagrangian3D4N( 0, Element::GeometryType::Pointer( new Tetrahedra3D4 <Node >( Element::GeometryType::PointsArrayType( 4 ) ) ) ),
         mMPMUpdatedLagrangianUP2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3 <Node >( Element::GeometryType::PointsArrayType( 3 ) ) ) ),
         //mMPMUpdatedLagrangianUP3D4N( 0, Element::GeometryType::Pointer( new Tetrahedra3D4 <Node >( Element::GeometryType::PointsArrayType( 4 ) ) ) ),
+        mMPMUpdatedLagrangianUP2D4N( 0, Element::GeometryType::Pointer( new Quadrilateral2D4 <Node >( Element::GeometryType::PointsArrayType( 4 ) ) ) ),
         mMPMUpdatedLagrangian2D4N( 0, Element::GeometryType::Pointer( new Quadrilateral2D4 <Node >( Element::GeometryType::PointsArrayType( 4 ) ) ) ),
         mMPMUpdatedLagrangian3D8N( 0, Element::GeometryType::Pointer( new Hexahedra3D8 <Node >( Element::GeometryType::PointsArrayType( 8 ) ) ) ),
-        //mMPMUpdatedLagrangianUP2D4N( 0, Element::GeometryType::Pointer( new Quadrilateral2D4 <Node >( Element::GeometryType::PointsArrayType( 4 ) ) ) )
         //mTotalLagrangian2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3 <Node >( Element::GeometryType::PointsArrayType( 3, Node() ) ) ) ),
         //mTotalLagrangian3D4N( 0, Element::GeometryType::Pointer( new Tetrahedra3D4 <Node >( Element::GeometryType::PointsArrayType( 4, Node() ) ) ) )
         mMPMUpdatedLagrangianAxisymmetry2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3 <Node >( Element::GeometryType::PointsArrayType( 3 ) ) ) ),
@@ -123,10 +123,10 @@ namespace Kratos
         KRATOS_REGISTER_ELEMENT( "MPMUpdatedLagrangian2D3N", mMPMUpdatedLagrangian2D3N )
         KRATOS_REGISTER_ELEMENT( "MPMUpdatedLagrangian3D4N", mMPMUpdatedLagrangian3D4N )
         KRATOS_REGISTER_ELEMENT( "MPMUpdatedLagrangianUP2D3N", mMPMUpdatedLagrangianUP2D3N )
+        KRATOS_REGISTER_ELEMENT( "MPMUpdatedLagrangianUP2D4N", mMPMUpdatedLagrangianUP2D4N )
         //KRATOS_REGISTER_ELEMENT( "MPMUpdatedLagrangianUP3D4N", mMPMUpdatedLagrangianUP3D4N )
         KRATOS_REGISTER_ELEMENT( "MPMUpdatedLagrangian2D4N", mMPMUpdatedLagrangian2D4N )
         KRATOS_REGISTER_ELEMENT( "MPMUpdatedLagrangian3D8N", mMPMUpdatedLagrangian3D8N )
-        //KRATOS_REGISTER_ELEMENT( "MPMUpdatedLagrangianUP2D4N", mMPMUpdatedLagrangianUP2D4N )
         KRATOS_REGISTER_ELEMENT( "MPMUpdatedLagrangianAxisymmetry2D3N", mMPMUpdatedLagrangianAxisymmetry2D3N )
         KRATOS_REGISTER_ELEMENT( "MPMUpdatedLagrangianAxisymmetry2D4N", mMPMUpdatedLagrangianAxisymmetry2D4N )
 
@@ -208,7 +208,6 @@ namespace Kratos
         // Registering condition variables
         // Essential Boundary Conditions
         KRATOS_REGISTER_VARIABLE( MPC_BOUNDARY_CONDITION_TYPE )
-        KRATOS_REGISTER_VARIABLE( PENALTY_FACTOR )
         KRATOS_REGISTER_VARIABLE( PARTICLE_BASED_SLIP )
         KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( WEIGHTED_VECTOR_RESIDUAL )
         KRATOS_REGISTER_VARIABLE( MPC_LAGRANGE_NODE )
@@ -225,6 +224,7 @@ namespace Kratos
         KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( MP_VELOCITY )
         KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( MP_ACCELERATION )
         KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( MP_VOLUME_ACCELERATION )
+        KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( MP_BODY_FORCE )
         KRATOS_REGISTER_VARIABLE( MP_CAUCHY_STRESS_VECTOR )
         KRATOS_REGISTER_VARIABLE( MP_ALMANSI_STRAIN_VECTOR )
 
@@ -323,7 +323,7 @@ namespace Kratos
         // For friction
         KRATOS_REGISTER_VARIABLE(STICK_FORCE)
         KRATOS_REGISTER_VARIABLE(FRICTION_STATE)
-        KRATOS_REGISTER_VARIABLE(TANGENTIAL_PENALTY_FACTOR)
+        KRATOS_REGISTER_VARIABLE(TANGENTIAL_PENALTY_COEFFICIENT)
         KRATOS_REGISTER_VARIABLE(FRICTION_ACTIVE)
         KRATOS_REGISTER_VARIABLE(FRICTION_ASSIGNED)
         KRATOS_REGISTER_VARIABLE(HAS_INITIAL_MOMENTUM)
@@ -331,5 +331,4 @@ namespace Kratos
     }
 
 }  // namespace Kratos.
-
 

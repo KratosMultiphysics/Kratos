@@ -92,7 +92,12 @@ namespace Kratos
                             PointsRefined, KnotsURefined, WeightsRefined);
 
                         // Recreate nodes in model part to ensure correct assignment of dofs
-                        IndexType node_id = (r_model_part.NodesEnd() - 1)->Id() + 1;
+                        for (auto& r_point : p_nurbs_surface->Points()) {
+                            r_point.Set(TO_ERASE, true);
+                        }
+                        r_model_part.RemoveNodesFromAllLevels(TO_ERASE);
+                        IndexType node_id = r_model_part.Nodes().empty() ? 1 : (r_model_part.NodesEnd() - 1)->Id() + 1;
+
                         for (IndexType i = 0; i < PointsRefined.size(); ++i) {
                             if (PointsRefined(i)->Id() == 0) {
                                 PointsRefined(i) = r_model_part.CreateNewNode(node_id, PointsRefined[i][0], PointsRefined[i][1], PointsRefined[i][2]);
@@ -133,7 +138,12 @@ namespace Kratos
                             PointsRefined, KnotsVRefined, WeightsRefined);
 
                         // Recreate nodes in model part to ensure correct assignment of dofs
-                        IndexType node_id = (r_model_part.NodesEnd() - 1)->Id() + 1;
+                        for (auto& r_point : p_nurbs_surface->Points()) {
+                            r_point.Set(TO_ERASE, true);
+                        }
+                        r_model_part.RemoveNodesFromAllLevels(TO_ERASE);
+                        IndexType node_id = r_model_part.Nodes().empty() ? 1 : (r_model_part.NodesEnd() - 1)->Id() + 1;
+
                         for (IndexType i = 0; i < PointsRefined.size(); ++i) {
                             if (PointsRefined(i)->Id() == 0) {
                                 PointsRefined(i) = r_model_part.CreateNewNode(node_id, PointsRefined[i][0], PointsRefined[i][1], PointsRefined[i][2]);
@@ -182,7 +192,12 @@ namespace Kratos
                             PointsRefined, KnotsURefined, WeightsRefined);
 
                         // Recreate nodes in model part to ensure correct assignment of dofs
-                        IndexType node_id = (r_model_part.NodesEnd() - 1)->Id() + 1;
+                        for (auto& r_point : p_nurbs_surface->Points()) {
+                            r_point.Set(TO_ERASE, true);
+                        }
+                        r_model_part.RemoveNodesFromAllLevels(TO_ERASE);
+                        IndexType node_id = r_model_part.Nodes().empty() ? 1 : (r_model_part.NodesEnd() - 1)->Id() + 1;
+                        
                         for (IndexType i = 0; i < PointsRefined.size(); ++i) {
                             if (PointsRefined(i)->Id() == 0) {
                                 PointsRefined(i) = r_model_part.CreateNewNode(node_id, PointsRefined[i][0], PointsRefined[i][1], PointsRefined[i][2]);
@@ -231,7 +246,12 @@ namespace Kratos
                         PointsRefined, KnotsVRefined, WeightsRefined);
 
                     // Recreate nodes in model part to ensure correct assignment of dofs
-                    IndexType node_id = (r_model_part.NodesEnd() - 1)->Id() + 1;
+                    for (auto& r_point : p_nurbs_surface->Points()) {
+                        r_point.Set(TO_ERASE, true);
+                    }
+                    r_model_part.RemoveNodesFromAllLevels(TO_ERASE);
+                    IndexType node_id = r_model_part.Nodes().empty() ? 1 : (r_model_part.NodesEnd() - 1)->Id() + 1;
+
                     for (IndexType i = 0; i < PointsRefined.size(); ++i) {
                         if (PointsRefined(i)->Id() == 0) {
                             PointsRefined(i) = r_model_part.CreateNewNode(node_id, PointsRefined[i][0], PointsRefined[i][1], PointsRefined[i][2]);
@@ -255,6 +275,161 @@ namespace Kratos
                     }
                 }
             }
+        } else if (rParameters["geometry_type"].GetString() == "NurbsCurve") {
+            for (IndexType n = 0; n < geometry_list.size(); ++n) {
+                auto p_nurbs_curve =
+                    std::dynamic_pointer_cast<NurbsCurveGeometry<3, PointerVector<Node>>>(
+                        geometry_list(n)
+                    );
+
+                if (!p_nurbs_curve) {
+                    p_nurbs_curve =
+                        std::dynamic_pointer_cast<NurbsCurveGeometry<3, PointerVector<Node>>>(
+                            geometry_list(n)->pGetGeometryPart(
+                                GeometryType::BACKGROUND_GEOMETRY_INDEX
+                            )
+                        );
+                }
+
+                KRATOS_ERROR_IF_NOT(p_nurbs_curve)
+                    << "Selected geometry is not a NurbsCurveGeometry and does not contain "
+                    << "a NurbsCurveGeometry as BACKGROUND_GEOMETRY.\nSelected geometry:\n"
+                    << *geometry_list(n) << std::endl;
+
+                if (rParameters["parameters"].Has("increase_degree")) {
+                    const SizeType increase_degree =
+                        rParameters["parameters"]["increase_degree"].GetInt();
+
+                    if (increase_degree > 0) {
+                        KRATOS_INFO_IF("::[RefinementModeler]::ApplyRefinement", mEchoLevel > 1)
+                            << "Refining nurbs curve #" << p_nurbs_curve->Id()
+                            << " by elevating degree: " << increase_degree << std::endl;
+
+                        PointerVector<NodeType> PointsRefined;
+                        Vector KnotsRefined;
+                        Vector WeightsRefined;
+
+                        NurbsCurveRefinementUtilities::DegreeElevation(
+                            *p_nurbs_curve,
+                            increase_degree,
+                            PointsRefined,
+                            KnotsRefined,
+                            WeightsRefined
+                        );
+
+                        for (auto& r_point : p_nurbs_curve->Points()) {
+                            r_point.Set(TO_ERASE, true);
+                        }
+
+                        r_model_part.RemoveNodesFromAllLevels(TO_ERASE);
+
+                        IndexType node_id = r_model_part.Nodes().empty()
+                            ? 1
+                            : (r_model_part.NodesEnd() - 1)->Id() + 1;
+
+                        for (IndexType i = 0; i < PointsRefined.size(); ++i) {
+                            if (PointsRefined(i)->Id() == 0) {
+                                PointsRefined(i) = r_model_part.CreateNewNode(
+                                    node_id,
+                                    PointsRefined[i][0],
+                                    PointsRefined[i][1],
+                                    PointsRefined[i][2]
+                                );
+                                node_id++;
+                            }
+                        }
+
+                        KRATOS_INFO_IF("::[RefinementModeler]::ApplyRefinement", mEchoLevel > 1)
+                            << "New knot vector: " << KnotsRefined
+                            << ", new weights vector: " << WeightsRefined << std::endl;
+
+                        p_nurbs_curve->SetInternals(
+                            PointsRefined,
+                            p_nurbs_curve->PolynomialDegree(0) + increase_degree,
+                            KnotsRefined,
+                            WeightsRefined
+                        );
+                    }
+                }
+
+                if (rParameters["parameters"].Has("insert_nb_per_span")) {
+                    const IndexType nb_per_span =
+                        rParameters["parameters"]["insert_nb_per_span"].GetInt();
+
+                    if (nb_per_span > 0) {
+                        std::vector<double> spans_local_space;
+                        p_nurbs_curve->SpansLocalSpace(spans_local_space);
+
+                        std::vector<double> knots_to_insert;
+
+                        for (IndexType i = 0; i < spans_local_space.size() - 1; ++i) {
+                            const double delta =
+                                (spans_local_space[i + 1] - spans_local_space[i]) /
+                                static_cast<double>(nb_per_span + 1);
+
+                            for (IndexType j = 1; j < nb_per_span + 1; ++j) {
+                                knots_to_insert.push_back(spans_local_space[i] + delta * j);
+                            }
+                        }
+
+                        KRATOS_INFO_IF("::[RefinementModeler]::ApplyRefinement", mEchoLevel > 1)
+                            << "Refining nurbs curve #" << p_nurbs_curve->Id()
+                            << " by inserting knots: " << knots_to_insert << std::endl;
+
+                        PointerVector<NodeType> PointsRefined;
+                        Vector KnotsRefined;
+                        Vector WeightsRefined;
+
+                        NurbsCurveRefinementUtilities::KnotRefinement(
+                            *p_nurbs_curve,
+                            knots_to_insert,
+                            PointsRefined,
+                            KnotsRefined,
+                            WeightsRefined
+                        );
+
+                        for (auto& r_point : p_nurbs_curve->Points()) {
+                            r_point.Set(TO_ERASE, true);
+                        }
+
+                        r_model_part.RemoveNodesFromAllLevels(TO_ERASE);
+
+                        IndexType node_id = r_model_part.Nodes().empty()
+                            ? 1
+                            : (r_model_part.NodesEnd() - 1)->Id() + 1;
+
+                        for (IndexType i = 0; i < PointsRefined.size(); ++i) {
+                            if (PointsRefined(i)->Id() == 0) {
+                                PointsRefined(i) = r_model_part.CreateNewNode(
+                                    node_id,
+                                    PointsRefined[i][0],
+                                    PointsRefined[i][1],
+                                    PointsRefined[i][2]
+                                );
+                                node_id++;
+                            }
+                        }
+
+                        KRATOS_INFO_IF("::[RefinementModeler]::ApplyRefinement", mEchoLevel > 1)
+                            << "New knot vector: " << KnotsRefined
+                            << ", new weights vector: " << WeightsRefined << std::endl;
+
+                        p_nurbs_curve->SetInternals(
+                            PointsRefined,
+                            p_nurbs_curve->PolynomialDegree(0),
+                            KnotsRefined,
+                            WeightsRefined
+                        );
+                    }
+                }
+            }
+        }
+
+        // Reassign node ids from 1 to n after refinement
+        std::size_t new_id = 1;
+        for (auto& r_node : r_model_part.Nodes()) {
+            r_node.SetId(new_id);
+            new_id++;
         }
     }
 

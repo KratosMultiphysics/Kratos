@@ -14,7 +14,7 @@
 //
 
 // Application includes
-#include "custom_conditions/Pw_normal_flux_condition.hpp"
+#include "custom_conditions/Pw_normal_flux_condition.h"
 #include "custom_utilities/condition_utilities.hpp"
 #include "custom_utilities/variables_utilities.hpp"
 
@@ -22,6 +22,25 @@
 
 namespace Kratos
 {
+
+template <unsigned int TDim, unsigned int TNumNodes>
+PwNormalFluxCondition<TDim, TNumNodes>::PwNormalFluxCondition() : PwCondition<TDim, TNumNodes>()
+{
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+PwNormalFluxCondition<TDim, TNumNodes>::PwNormalFluxCondition(IndexType NewId, GeometryType::Pointer pGeometry)
+    : PwCondition<TDim, TNumNodes>(NewId, pGeometry)
+{
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+PwNormalFluxCondition<TDim, TNumNodes>::PwNormalFluxCondition(IndexType               NewId,
+                                                              GeometryType::Pointer   pGeometry,
+                                                              PropertiesType::Pointer pProperties)
+    : PwCondition<TDim, TNumNodes>(NewId, pGeometry, pProperties)
+{
+}
 
 template <unsigned int TDim, unsigned int TNumNodes>
 Condition::Pointer PwNormalFluxCondition<TDim, TNumNodes>::Create(IndexType             NewId,
@@ -48,8 +67,7 @@ void PwNormalFluxCondition<TDim, TNumNodes>::CalculateRHS(Vector&            rRi
     r_geometry.Jacobian(j_container, this->GetIntegrationMethod());
 
     // Condition variables
-    Vector normal_flux_vector(TNumNodes);
-    VariablesUtilities::GetNodalValues(r_geometry, NORMAL_FLUID_FLUX, normal_flux_vector.begin());
+    const auto normal_flux_vector = VariablesUtilities::GetNodalValues(r_geometry, NORMAL_FLUID_FLUX);
 
     for (unsigned int integration_point = 0; integration_point < number_of_integration_points; ++integration_point) {
         // Interpolation of nodal normal flux to integration point normal flux.
@@ -64,6 +82,18 @@ void PwNormalFluxCondition<TDim, TNumNodes>::CalculateRHS(Vector&            rRi
         // Contributions to the right hand side
         rRightHandSideVector -= normal_flux * row(r_n_container, integration_point) * integration_coefficient;
     }
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+void PwNormalFluxCondition<TDim, TNumNodes>::save(Serializer& rSerializer) const
+{
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Condition)
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+void PwNormalFluxCondition<TDim, TNumNodes>::load(Serializer& rSerializer)
+{
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Condition)
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>

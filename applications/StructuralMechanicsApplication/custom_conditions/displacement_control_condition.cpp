@@ -106,7 +106,7 @@ Condition::Pointer DisplacementControlCondition::Clone (
 /***********************************************************************************/
 /***********************************************************************************/
 
-Variable<double>* DisplacementControlCondition::GetDisplacementInDirection() const
+const Variable<double>* DisplacementControlCondition::GetDisplacementInDirection() const
 {
     KRATOS_TRY
 
@@ -134,7 +134,7 @@ Variable<double>* DisplacementControlCondition::GetDisplacementInDirection() con
 /***********************************************************************************/
 /***********************************************************************************/
 
-Variable<double>* DisplacementControlCondition::GetPointLoadInDirection() const
+const Variable<double>* DisplacementControlCondition::GetPointLoadInDirection() const
 {
     KRATOS_TRY
 

@@ -1,10 +1,10 @@
+import numpy
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.OptimizationApplication as KratosOA
 
 import KratosMultiphysics.KratosUnittest as kratos_unittest
 from KratosMultiphysics.OptimizationApplication.controls.master_control import MasterControl
 from KratosMultiphysics.OptimizationApplication.controls.material.material_properties_control import MaterialPropertiesControl
-from KratosMultiphysics.OptimizationApplication.utilities.helper_utilities import IsSameContainerExpression
 from KratosMultiphysics.OptimizationApplication.responses.mass_response_function import MassResponseFunction
 from KratosMultiphysics.OptimizationApplication.responses.response_routine import ResponseRoutine
 
@@ -79,52 +79,60 @@ class TestResponseRoutine(kratos_unittest.TestCase):
 
     def test_CalculateValue(self):
         control_field = self.master_control.GetEmptyField()
-        KratosOA.CollectiveExpressionIO.Read(control_field, KratosOA.CollectiveExpressionIO.PropertiesVariable(Kratos.DENSITY))
+        for ta in control_field.GetTensorAdaptors():
+            KratosOA.TensorAdaptors.PropertiesVariableTensorAdaptor(ta, Kratos.DENSITY, copy=False).CollectData()
+        Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor(control_field, perform_collect_data_recursively=False, copy=False).CollectData()
+
         value = self.response_routine.CalculateValue(control_field)
         self.assertEqual(value, 84)
 
         # now change the control field where response does not depend on
         # changing a variable such as YOUNG_MODULUS
-        Kratos.Expression.LiteralExpressionIO.SetData(control_field.GetContainerExpressions()[1], 2.0)
+        control_field.GetTensorAdaptors()[1].data[:] = 2.0
+        Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor(control_field, perform_collect_data_recursively=False, copy=False).CollectData()
         value = self.response_routine.CalculateValue(control_field)
         self.assertEqual(value, 84)
 
         # now change a dependent variable where the domain is not having intersection
         # changing DENSITY variable
-        Kratos.Expression.LiteralExpressionIO.SetData(control_field.GetContainerExpressions()[3], 3.0)
+        control_field.GetTensorAdaptors()[3].data[:] = 3.0
+        Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor(control_field, perform_collect_data_recursively=False, copy=False).CollectData()
         value = self.response_routine.CalculateValue(control_field)
         self.assertEqual(value, 84)
 
         # now change a dependent field
-        Kratos.Expression.LiteralExpressionIO.SetData(control_field.GetContainerExpressions()[0], 3.0)
+        control_field.GetTensorAdaptors()[0].data[:] = 3.0
+        Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor(control_field, perform_collect_data_recursively=False, copy=False).CollectData()
         value = self.response_routine.CalculateValue(control_field)
         self.assertEqual(value, 66)
 
     def test_CalculateGradient(self):
         control_field = self.master_control.GetEmptyField()
-        KratosOA.CollectiveExpressionIO.Read(control_field, KratosOA.CollectiveExpressionIO.PropertiesVariable(Kratos.DENSITY))
+        for ta in control_field.GetTensorAdaptors():
+            KratosOA.TensorAdaptors.PropertiesVariableTensorAdaptor(ta, Kratos.DENSITY, copy=False).CollectData()
+        Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor(control_field, perform_collect_data_recursively=False, copy=False).CollectData()
 
         # Calculate value should always be called once before the calculate gradient
         _ = self.response_routine.CalculateValue(control_field)
         gradient = self.response_routine.CalculateGradient()
 
-        self.assertEqual(len(gradient.GetContainerExpressions()), 4)
+        self.assertEqual(len(gradient.GetTensorAdaptors()), 4)
 
         # mass response has gradients w.r.t. control1.
-        control_1_gradient = gradient.GetContainerExpressions()[0]
-        self.assertEqual(Kratos.Expression.Utils.NormL2(control_1_gradient), 20.09975124224178)
+        control_1_gradient = gradient.GetTensorAdaptors()[0]
+        self.assertEqual(numpy.linalg.norm(control_1_gradient.data), 20.09975124224178)
 
         # mass response has gradients w.r.t. YOUNG_MODULUS even the response evaluated in the same control2 domain (same model part).
-        control_2_gradient = gradient.GetContainerExpressions()[1]
-        self.assertEqual(Kratos.Expression.Utils.NormInf(control_2_gradient), 0.0)
+        control_2_gradient = gradient.GetTensorAdaptors()[1]
+        self.assertEqual(numpy.linalg.norm(control_2_gradient.data, ord=numpy.inf), 0.0)
 
         # mass response has gradients w.r.t. control3.
-        control_3_gradient = gradient.GetContainerExpressions()[2]
-        self.assertEqual(Kratos.Expression.Utils.NormL2(control_3_gradient), 20.09975124224178)
+        control_3_gradient = gradient.GetTensorAdaptors()[2]
+        self.assertEqual(numpy.linalg.norm(control_3_gradient.data), 20.09975124224178)
 
         # mass response has gradients w.r.t. DENSITY because evaluation and control domains does not have an intersection.
-        control_4_gradient = gradient.GetContainerExpressions()[3]
-        self.assertEqual(Kratos.Expression.Utils.NormInf(control_4_gradient), 0.0)
+        control_4_gradient = gradient.GetTensorAdaptors()[3]
+        self.assertEqual(numpy.linalg.norm(control_4_gradient.data, ord=numpy.inf), 0.0)
 
 if __name__ == "__main__":
     kratos_unittest.main()

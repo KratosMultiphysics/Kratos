@@ -110,25 +110,104 @@ struct cuda_deleter {
         AMGCL_CALL_CUDA( cusparseDestroyMatDescr(handle) );
     }
 
-#if CUDART_VERSION < 11000
-    void operator()(cusparseHybMat_t handle) {
-        AMGCL_CALL_CUDA( cusparseDestroyHybMat(handle) );
-    }
-#endif
-
-    void operator()(csrilu02Info_t handle) {
-        AMGCL_CALL_CUDA( cusparseDestroyCsrilu02Info(handle) );
+    void operator()(cusparseSpMatDescr_t handle) {
+        AMGCL_CALL_CUDA( cusparseDestroySpMat(handle) );
     }
 
-    void operator()(csrsv2Info_t handle) {
-        AMGCL_CALL_CUDA( cusparseDestroyCsrsv2Info(handle) );
+    void operator()(cusparseDnVecDescr_t handle) {
+        AMGCL_CALL_CUDA( cusparseDestroyDnVec(handle) );
     }
 
     void operator()(cudaEvent_t handle) {
         AMGCL_CALL_CUDA( cudaEventDestroy(handle) );
     }
+
+    void operator()(csrilu02Info_t handle) {
+        AMGCL_CALL_CUDA( cusparseDestroyCsrilu02Info(handle) );
+    }
+
+#if CUDART_VERSION >= 11000
+    void operator()(cusparseSpSVDescr_t handle) {
+        AMGCL_CALL_CUDA( cusparseSpSV_destroyDescr(handle) );
+    }
+#else
+    void operator()(cusparseHybMat_t handle) {
+        AMGCL_CALL_CUDA( cusparseDestroyHybMat(handle) );
+    }
+
+    void operator()(csrsv2Info_t handle) {
+        AMGCL_CALL_CUDA( cusparseDestroyCsrsv2Info(handle) );
+    }
+#endif
 };
 
+
+template <typename real>
+cudaDataType cuda_datatype() {
+    if (sizeof(real) == sizeof(float))
+        return CUDA_R_32F;
+    else
+        return CUDA_R_64F;
+}
+
+#if CUDART_VERSION >= 11000
+template <typename real>
+cusparseDnVecDescr_t cuda_vector_description(thrust::device_vector<real> &x) {
+    cusparseDnVecDescr_t desc;
+    AMGCL_CALL_CUDA(
+            cusparseCreateDnVec(
+                &desc,
+                x.size(),
+                thrust::raw_pointer_cast(&x[0]),
+                cuda_datatype<real>()
+                )
+            );
+    return desc;
+}
+
+template <typename real>
+cusparseDnVecDescr_t cuda_vector_description(const thrust::device_vector<real> &&x) {
+    cusparseDnVecDescr_t desc;
+    AMGCL_CALL_CUDA(
+            cusparseCreateDnVec(
+                &desc,
+                x.size(),
+                thrust::raw_pointer_cast(&x[0]),
+                cuda_datatype<real>()
+                )
+            );
+    return desc;
+}
+
+template <typename real>
+cusparseSpMatDescr_t cuda_matrix_description(
+        size_t nrows,
+        size_t ncols,
+        size_t nnz,
+        thrust::device_vector<int> &ptr,
+        thrust::device_vector<int> &col,
+        thrust::device_vector<real> &val
+        )
+{
+    cusparseSpMatDescr_t desc;
+    AMGCL_CALL_CUDA(
+            cusparseCreateCsr(
+                &desc,
+                nrows,
+                ncols,
+                nnz,
+                thrust::raw_pointer_cast(&ptr[0]),
+                thrust::raw_pointer_cast(&col[0]),
+                thrust::raw_pointer_cast(&val[0]),
+                CUSPARSE_INDEX_32I,
+                CUSPARSE_INDEX_32I,
+                CUSPARSE_INDEX_BASE_ZERO,
+                detail::cuda_datatype<real>()
+                )
+            );
+    return desc;
+}
+#endif // CUDART_VERSION >= 11000
 
 } // namespace detail
 
@@ -141,15 +220,18 @@ class cuda_matrix {
 
         cuda_matrix(
                 size_t n, size_t m,
-                const ptrdiff_t *ptr,
-                const ptrdiff_t *col,
-                const real      *val,
+                const ptrdiff_t *p_ptr,
+                const ptrdiff_t *p_col,
+                const real      *p_val,
                 cusparseHandle_t handle
                 )
-            : nrows(n), ncols(m), nnz(ptr[n]), handle(handle),
-              ptr(ptr, ptr + n + 1), col(col, col + nnz), val(val, val + nnz),
-              desc(create_description(), backend::detail::cuda_deleter())
+            : nrows(n), ncols(m), nnz(p_ptr[n]), handle(handle),
+              ptr(p_ptr, p_ptr + n + 1), col(p_col, p_col + nnz), val(p_val, p_val + nnz)
         {
+              desc.reset(
+                      detail::cuda_matrix_description(nrows, ncols, nnz, ptr, col, val),
+                      backend::detail::cuda_deleter()
+                      );
         }
 
         void spmv(
@@ -157,47 +239,45 @@ class cuda_matrix {
                 real beta,  thrust::device_vector<real>       &y
             ) const
         {
+            std::shared_ptr<std::remove_pointer<cusparseDnVecDescr_t>::type> xdesc(
+                    detail::cuda_vector_description(const_cast<thrust::device_vector<real>&>(x)),
+                    backend::detail::cuda_deleter()
+                    );
+            std::shared_ptr<std::remove_pointer<cusparseDnVecDescr_t>::type> ydesc(
+                    detail::cuda_vector_description(y),
+                    backend::detail::cuda_deleter()
+                    );
+
             size_t buf_size;
             AMGCL_CALL_CUDA(
-                    cusparseCsrmvEx_bufferSize(
+                    cusparseSpMV_bufferSize(
                         handle,
-                        CUSPARSE_ALG_MERGE_PATH,
                         CUSPARSE_OPERATION_NON_TRANSPOSE,
-                        nrows,
-                        ncols,
-                        nnz,
-                        &alpha, datatype(),
+                        &alpha,
                         desc.get(),
-                        thrust::raw_pointer_cast(&val[0]), datatype(),
-                        thrust::raw_pointer_cast(&ptr[0]),
-                        thrust::raw_pointer_cast(&col[0]),
-                        thrust::raw_pointer_cast(&x[0]), datatype(),
-                        &beta, datatype(),
-                        thrust::raw_pointer_cast(&y[0]), datatype(),
-                        datatype(),
-                        &buf_size)
+                        xdesc.get(),
+                        &beta,
+                        ydesc.get(),
+                        detail::cuda_datatype<real>(),
+                        CUSPARSE_SPMV_CSR_ALG1,
+                        &buf_size
+                        )
                     );
 
             if (buf.size() < buf_size)
                 buf.resize(buf_size);
 
             AMGCL_CALL_CUDA(
-                    cusparseCsrmvEx(
+                    cusparseSpMV(
                         handle,
-                        CUSPARSE_ALG_MERGE_PATH,
                         CUSPARSE_OPERATION_NON_TRANSPOSE,
-                        nrows,
-                        ncols,
-                        nnz,
-                        &alpha, datatype(),
+                        &alpha,
                         desc.get(),
-                        thrust::raw_pointer_cast(&val[0]), datatype(),
-                        thrust::raw_pointer_cast(&ptr[0]),
-                        thrust::raw_pointer_cast(&col[0]),
-                        thrust::raw_pointer_cast(&x[0]), datatype(),
-                        &beta, datatype(),
-                        thrust::raw_pointer_cast(&y[0]), datatype(),
-                        datatype(),
+                        xdesc.get(),
+                        &beta,
+                        ydesc.get(),
+                        detail::cuda_datatype<real>(),
+                        CUSPARSE_SPMV_CSR_ALG1,
                         thrust::raw_pointer_cast(&buf[0])
                         )
                     );
@@ -217,7 +297,7 @@ class cuda_matrix {
 
         cusparseHandle_t handle;
 
-        std::shared_ptr<std::remove_pointer<cusparseMatDescr_t>::type> desc;
+        std::shared_ptr<std::remove_pointer<cusparseSpMatDescr_t>::type> desc;
 
         thrust::device_vector<int>  ptr;
         thrust::device_vector<int>  col;
@@ -225,20 +305,6 @@ class cuda_matrix {
 
         mutable thrust::device_vector<char> buf;
 
-        static cusparseMatDescr_t create_description() {
-            cusparseMatDescr_t desc;
-            AMGCL_CALL_CUDA( cusparseCreateMatDescr(&desc) );
-            AMGCL_CALL_CUDA( cusparseSetMatType(desc, CUSPARSE_MATRIX_TYPE_GENERAL) );
-            AMGCL_CALL_CUDA( cusparseSetMatIndexBase(desc, CUSPARSE_INDEX_BASE_ZERO) );
-            return desc;
-        }
-
-        static cudaDataType datatype() {
-            if (sizeof(real) == sizeof(float))
-                return CUDA_R_32F;
-            else
-                return CUDA_R_64F;
-        }
 };
 
 #else  // CUDART_VERSION >= 11000
@@ -370,7 +436,6 @@ class cuda_matrix {
 };
 
 #endif // CUDART_VERSION >= 11000
-
 /// CUDA backend.
 /**
  * Uses CUSPARSE for matrix operations and Thrust for vector operations.

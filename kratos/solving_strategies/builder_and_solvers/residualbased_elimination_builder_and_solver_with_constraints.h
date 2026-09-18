@@ -130,7 +130,7 @@ class ResidualBasedEliminationBuilderAndSolverWithConstraints
     typedef PointerVectorSet<Element, IndexedObject> ElementsContainerType;
     typedef Element::EquationIdVectorType EquationIdVectorType;
     typedef Element::DofsVectorType DofsVectorType;
-    typedef boost::numeric::ublas::compressed_matrix<double> CompressedMatrixType;
+    typedef typename TSparseSpace::MatrixType CompressedMatrixType;
 
     /// DoF types definition
     typedef typename NodeType::DofType DofType;
@@ -912,9 +912,9 @@ protected:
 
         rA = CompressedMatrixType(indices.size(), indices.size(), nnz);
 
-        double *Avalues = rA.value_data().begin();
-        IndexType *Arow_indices = rA.index1_data().begin();
-        IndexType *Acol_indices = rA.index2_data().begin();
+        auto* Avalues = rA.value_data().begin();
+        auto* Arow_indices = rA.index1_data().begin();
+        auto* Acol_indices = rA.index2_data().begin();
 
         // Filling the index1 vector - DO NOT MAKE PARALLEL THE FOLLOWING LOOP!
         Arow_indices[0] = 0;
@@ -1019,9 +1019,9 @@ protected:
 
         rT = CompressedMatrixType(BaseType::mEquationSystemSize, mDoFToSolveSystemSize, nnz);
 
-        double *Tvalues = rT.value_data().begin();
-        IndexType *Trow_indices = rT.index1_data().begin();
-        IndexType *Tcol_indices = rT.index2_data().begin();
+        auto* Tvalues = rT.value_data().begin();
+        auto* Trow_indices = rT.index1_data().begin();
+        auto* Tcol_indices = rT.index2_data().begin();
 
         // Filling the index1 vector - DO NOT MAKE PARALLEL THE FOLLOWING LOOP!
         Trow_indices[0] = 0;
@@ -1226,7 +1226,7 @@ protected:
         if (BaseType::mCalculateReactionsFlag) {
             const SizeType reactions_vector_size = BaseType::mDofSet.size() - mDoFToSolveSystemSize + mDoFMasterFixedSet.size();
             TSystemVectorType& rReactionsVector = *(BaseType::mpReactionsVector);
-            if (rReactionsVector.size() != reactions_vector_size)
+            if (static_cast<SizeType>(rReactionsVector.size()) != reactions_vector_size)
                 rReactionsVector.resize(reactions_vector_size, false);
         }
 
@@ -1369,9 +1369,9 @@ protected:
                 }
             }
 
-            double* Avalues = rA.value_data().begin();
-            IndexType* Arow_indices = rA.index1_data().begin();
-            IndexType* Acol_indices = rA.index2_data().begin();
+            auto* Avalues = rA.value_data().begin();
+            auto* Arow_indices = rA.index1_data().begin();
+            auto* Acol_indices = rA.index2_data().begin();
 
             // Define  zero value tolerance
             const double zero_tolerance = std::numeric_limits<double>::epsilon();
@@ -1402,7 +1402,7 @@ protected:
                 if (k_factor == 0) {
                     // Zero out the whole row, except the diagonal
                     for (IndexType j = col_begin; j < col_end; ++j)
-                        if (Acol_indices[j] != Index )
+                        if (static_cast<std::size_t>(Acol_indices[j]) != Index )
                             Avalues[j] = 0.0;
 
                     // Zero out the RHS
@@ -1960,7 +1960,7 @@ private:
     void ResetConstraintSystem()
     {
         TSystemMatrixType& rTMatrix = *mpTMatrix;
-        double *Tvalues = rTMatrix.value_data().begin();
+        auto* Tvalues = rTMatrix.value_data().begin();
 
         IndexPartition<std::size_t>(rTMatrix.nnz()).for_each([&Tvalues](std::size_t Index){
             Tvalues[Index] = 0.0;

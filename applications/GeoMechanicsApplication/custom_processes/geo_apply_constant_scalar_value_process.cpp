@@ -21,6 +21,7 @@
 
 namespace Kratos
 {
+using namespace std::string_literals;
 
 GeoApplyConstantScalarValueProcess::GeoApplyConstantScalarValueProcess(ModelPart& rModelPart,
                                                                        const Parameters& rParameters)
@@ -90,6 +91,11 @@ void GeoApplyConstantScalarValueProcess::ExecuteFinalize()
         VariableUtils().ApplyFixity(KratosComponents<Variable<double>>::Get(mVariableName), false,
                                     mrModelPart.Nodes());
     }
+}
+
+std::string GeoApplyConstantScalarValueProcess::Info() const
+{
+    return "GeoApplyConstantScalarValueProcess"s;
 }
 
 } // namespace Kratos

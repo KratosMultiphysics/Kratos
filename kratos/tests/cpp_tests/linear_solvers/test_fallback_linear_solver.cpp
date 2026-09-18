@@ -63,6 +63,27 @@ public:
     }
 
     ///@}
+    ///@name Input and output
+    ///@{
+
+    /// Turn back information as a string.
+    std::string Info() const override
+    {
+        return "Dummy linear solver";
+    }
+
+    /// Print information about this object.
+    void PrintInfo(std::ostream& rOStream) const override
+    {
+        rOStream << "Dummy linear solver";
+    }
+
+    /// Print object's data.
+    void PrintData(std::ostream& rOStream) const override
+    {
+    }
+
+    ///@}
 
 }; // Class DummyLinearSolver
 
@@ -87,7 +108,8 @@ KRATOS_TEST_CASE_IN_SUITE(FallbackLinearSolverConstructorSolvers, KratosCoreFast
     // Create the solvers
     auto p_solver1 = Kratos::make_shared<DummyLinearSolverType>();
     Parameters amgcl_parameters = Parameters(R"({
-        "solver_type": "amgcl"
+        "solver_type": "amgcl",
+        "block_size" : 3
     })");
     auto p_solver2 = LinearSolverFactoryType().Create(amgcl_parameters);
 
@@ -98,8 +120,9 @@ KRATOS_TEST_CASE_IN_SUITE(FallbackLinearSolverConstructorSolvers, KratosCoreFast
     for (std::size_t i = 0; i < size; ++i) {
         A.push_back(i, i, 1.0);
     }
-    VectorType b(size);
-    VectorType x(size);
+    A.set_filled(size + 1, size);
+    VectorType b = ZeroVector(size);
+    VectorType x = ZeroVector(size);
 
     // Create a simple fallback solver
     std::vector<LinearSolverType::Pointer> solvers = {p_solver1, p_solver2};
@@ -124,15 +147,17 @@ KRATOS_TEST_CASE_IN_SUITE(FallbackLinearSolverConstructorParameters, KratosCoreF
     for (std::size_t i = 0; i < size; ++i) {
         A.push_back(i, i, 1.0);
     }
-    VectorType b(size);
-    VectorType x(size);
+    A.set_filled(size + 1, size);
+    VectorType b = ZeroVector(size);
+    VectorType x = ZeroVector(size);
 
     // Create a simple fallback solver
     Parameters parameters = Parameters(R"({
         "solver_type": "fallback_linear_solver",
         "solvers"    : [
             {
-                "solver_type": "amgcl"
+                "solver_type": "amgcl",
+                "block_size" : 3
             },
             {
                 "solver_type": "skyline_lu_factorization"
@@ -150,6 +175,34 @@ KRATOS_TEST_CASE_IN_SUITE(FallbackLinearSolverConstructorParameters, KratosCoreF
 
     // Check index is 0 (solve 0 succeeded)
     KRATOS_EXPECT_EQ(simple_fallback_solver.GetCurrentSolverIndex(), 0);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(FallbackLinearSolverAllSolversFail, KratosCoreFastSuite)
+{
+    // Create the solvers, none of which can solve anything
+    auto p_solver1 = Kratos::make_shared<DummyLinearSolverType>();
+    auto p_solver2 = Kratos::make_shared<DummyLinearSolverType>();
+
+    // Create the matrix and vectors
+    const std::size_t size = 3;
+    SparseMatrixType A(size, size);
+    // Push back 1.0 in the diagonal
+    for (std::size_t i = 0; i < size; ++i) {
+        A.push_back(i, i, 1.0);
+    }
+    A.set_filled(size + 1, size);
+    VectorType b = ZeroVector(size);
+    VectorType x = ZeroVector(size);
+
+    // Create a simple fallback solver
+    std::vector<LinearSolverType::Pointer> solvers = {p_solver1, p_solver2};
+    FallbackLinearSolverType simple_fallback_solver(solvers);
+
+    // Exhausting the list must be reported as a failure, not throw
+    const auto solved = simple_fallback_solver.Solve(A, x, b);
+
+    // Check that the system was not solved
+    KRATOS_EXPECT_FALSE(solved);
 }
 
 } // namespace Kratos::Testing

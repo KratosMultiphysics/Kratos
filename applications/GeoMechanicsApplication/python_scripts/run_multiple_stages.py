@@ -1,17 +1,27 @@
-import os
 import sys
 
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.GeoMechanicsApplication.geomechanics_analysis as analysis
 import KratosMultiphysics.GeoMechanicsApplication.context_managers as context_managers
+from KratosMultiphysics.GeoMechanicsApplication import validation_helpers
 
-
-def run_stages(project_path, n_stages):
+def run_stages(
+    project_path,
+    n_stages,
+    filename_pattern="ProjectParameters_stage{}.json",
+    input_path=None,
+):
     """
     Run all construction stages
     """
     model = Kratos.Model()
-    project_parameters_filenames = [f"ProjectParameters_stage{i + 1}.json" for i in range(n_stages)]
+
+    if input_path is None:
+        input_path = project_path
+
+    project_parameters_filenames = validation_helpers.validated_stage_file_paths(
+        input_path, n_stages, filename_pattern, base_path=project_path
+    )
 
     result = []
     with context_managers.set_cwd_to(project_path):

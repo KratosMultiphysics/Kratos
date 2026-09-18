@@ -1,8 +1,6 @@
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.SystemIdentificationApplication as KratosSI
 from KratosMultiphysics.StructuralMechanicsApplication.structural_mechanics_adjoint_static_solver import StructuralMechanicsAdjointStaticSolver
-from KratosMultiphysics.OptimizationApplication.utilities.union_utilities import SupportedSensitivityFieldVariableTypes
-from KratosMultiphysics.SystemIdentificationApplication.utilities.expression_utils import ExpressionUnionType
 from KratosMultiphysics.SystemIdentificationApplication.sensor_sensitivity_solvers.response_sensitivity_interface import ResponseSensitivityInterface
 
 class SensorSensitivityAdjointStaticSolver(StructuralMechanicsAdjointStaticSolver, ResponseSensitivityInterface):
@@ -28,9 +26,6 @@ class SensorSensitivityAdjointStaticSolver(StructuralMechanicsAdjointStaticSolve
 
         # skip calling Initialize of StructuralMechanicsAdjointStaticSolver and call the its base class Initialize
         super(StructuralMechanicsAdjointStaticSolver, self).Initialize()
-
-        # set the strategy to only build LHS once, and build RHS for all other solves
-        self._GetSolutionStrategy().SetRebuildLevel(0)
 
         Kratos.Logger.PrintInfo(self.__class__.__name__, "Finished initialization.")
 

@@ -322,6 +322,8 @@ protected:
     ///@name Protected member Variables
     ///@{
 
+    /// Rotation tool instance
+    RotationToolPointerType mpRotationTool;
 
     ///@}
     ///@name Protected Operators
@@ -349,53 +351,7 @@ protected:
 
 
     ///@}
-
-private:
-
-    ///@name Static Member Variables
-    ///@{
-
-
-    ///@}
-    ///@name Member Variables
-    ///@{
-
-    /// Rotation tool instance
-    RotationToolPointerType mpRotationTool;
-
-    ///@}
-    ///@name Serialization
-    ///@{
-
-
-    ///@}
-    ///@name Private Operators
-    ///@{
-
-
-    ///@}
-    ///@name Private Operations
-    ///@{
-
-
-    ///@}
-    ///@name Private  Access
-    ///@{
-
-
-    ///@}
-    ///@name Private Inquiry
-    ///@{
-
-
-    ///@}
-    ///@name Un accessible methods
-    ///@{
-
-
-    ///@}
-
-}; // class
+}; // class ResidualBasedIncrementalUpdateStaticSchemeSlip
 
 ///@}
 ///@name Type Definitions
