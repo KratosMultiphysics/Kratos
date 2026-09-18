@@ -88,10 +88,10 @@ void MockPwElementForSeepageTests::GetDofList(DofsVectorType& rElementalDofList,
 
 void MockPwElementForSeepageTests::CalculateRightHandSide(VectorType& rRightHandSideVector, const ProcessInfo&)
 {
-    rRightHandSideVector = VectorType{mNodes.size()};
-    for (std::size_t i = 0; i < mNodes.size(); ++i) {
-        rRightHandSideVector[i] = static_cast<double>(mNodes[i]->Id()); // Just a dummy value for testing
-    }
+    rRightHandSideVector.resize(mNodes.size());
+    // For each degree of freedom, use the node ID as the right hand side value
+    std::ranges::transform(mNodes, rRightHandSideVector.begin(),
+                           [](const auto& rpNode) { return static_cast<double>(rpNode->Id()); });
 }
 
 // Creates two triangular mock elements sharing an edge, with WATER_PRESSURE DoFs on each node.
