@@ -609,6 +609,7 @@ void CSVDatabaseIO::WriteData(std::ofstream& rOutputFile)
         mWritingData[i].second = ValueType();
     }
     rOutputFile << '\n';
+    rOutputFile.flush();
 
     KRATOS_INFO_IF(this->Info(), mEchoLevel > 1) << "Data for " << mWritingData[0].first.GetHeader() << " = " << std::get<int>(mWritingData.front().second) << " is written to file \"" << mCurrentFileName << "\".\n";
 
