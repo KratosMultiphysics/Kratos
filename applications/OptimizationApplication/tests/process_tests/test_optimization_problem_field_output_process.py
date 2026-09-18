@@ -1,3 +1,4 @@
+from pathlib import Path
 import KratosMultiphysics as Kratos
 
 # Import KratosUnittest
@@ -149,11 +150,12 @@ class TestOptimizationProblemFieldOutputProcess(kratos_unittest.TestCase):
         Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor(combined_data, perform_store_data_recursively=False, copy=False).StoreData()
         buffered_dict[f"{component.GetName()}_combined_element_{is_buffered_data}"] = combined_data
 
-    def test_OptimizationProblemVtuOutputProcess(self):
+    def test_OptimizationProblemVtuOutputProcess1(self):
         parameters = Kratos.Parameters(
             """
             {
                 "file_name"                   : "<model_part_full_name>",
+                "output_path"                 : "Optimization_Results/check_1",
                 "file_format"                 : "ascii",
                 "write_deformed_configuration": false,
                 "output_sub_model_parts"      : true,
@@ -189,7 +191,7 @@ class TestOptimizationProblemFieldOutputProcess(kratos_unittest.TestCase):
             CompareTwoFilesCheckProcess(Kratos.Parameters("""
             {
                 "reference_file_name"   : "test_1_orig.vtu",
-                "output_file_name"      : "Optimization_Results/test_1/test_1_elements_9.vtu",
+                "output_file_name"      : "Optimization_Results/check_1/test_1/test_1_elements_9.vtu",
                 "remove_output_file"    : true,
                 "comparison_type"       : "vtu"
             }""")).Execute()
@@ -197,10 +199,88 @@ class TestOptimizationProblemFieldOutputProcess(kratos_unittest.TestCase):
             CompareTwoFilesCheckProcess(Kratos.Parameters("""
             {
                 "reference_file_name"   : "test_2_orig.vtu",
-                "output_file_name"      : "Optimization_Results/test_2/test_2_elements_9.vtu",
+                "output_file_name"      : "Optimization_Results/check_1/test_2/test_2_elements_9.vtu",
                 "remove_output_file"    : true,
                 "comparison_type"       : "vtu"
             }""")).Execute()
+
+            CompareTwoFilesCheckProcess(Kratos.Parameters("""
+            {
+                "reference_file_name"   : "test_2.sub_model_1_orig.vtu",
+                "output_file_name"      : "Optimization_Results/check_1/test_2/test_2.sub_model_1_elements_9.vtu",
+                "remove_output_file"    : true,
+                "comparison_type"       : "vtu"
+            }""")).Execute()
+
+            self.assertTrue(Path("Optimization_Results/check_1/test_1.vtm.series").is_file())
+            self.assertTrue(Path("Optimization_Results/check_1/test_2.vtm.series").is_file())
+            self.assertFalse(Path("Optimization_Results/check_1/test_2.sub_model_1.vtm.series").is_file())
+
+    def test_OptimizationProblemVtuOutputProcess2(self):
+        parameters = Kratos.Parameters(
+            """
+            {
+                "file_name"                   : "<model_part_full_name>",
+                "output_path"                 : "Optimization_Results/check_2",
+                "file_format"                 : "ascii",
+                "write_deformed_configuration": false,
+                "output_sub_model_parts"      : false,
+                "list_of_output_components"   : ["all"],
+                "output_precision"            : 7,
+                "output_interval"             : 1,
+                "echo_level"                  : 0
+            }
+            """
+        )
+
+        process = OptimizationProblemVtuOutputProcess(self.model, parameters, self.optimization_problem)
+        process.ExecuteInitialize()
+
+        # initialize unbuffered data
+        for component in self.components_list:
+            self.__AddData(ComponentDataView(component, self.optimization_problem).GetUnBufferedData(), False, component)
+
+        with kratos_unittest.WorkFolderScope(".", __file__):
+            number_of_steps = 10
+            for i in range(number_of_steps):
+                # initialize the buffered data
+                for component in self.components_list:
+                    self.__AddData(ComponentDataView(component, self.optimization_problem).GetBufferedData(), True, component)
+
+                process.PrintOutput()
+
+                if i != number_of_steps - 1:
+                    self.optimization_problem.AdvanceStep()
+
+            process.ExecuteFinalize()
+
+            CompareTwoFilesCheckProcess(Kratos.Parameters("""
+            {
+                "reference_file_name"   : "test_1_orig.vtu",
+                "output_file_name"      : "Optimization_Results/check_2/test_1/test_1_elements_9.vtu",
+                "remove_output_file"    : true,
+                "comparison_type"       : "vtu"
+            }""")).Execute()
+
+            CompareTwoFilesCheckProcess(Kratos.Parameters("""
+            {
+                "reference_file_name"   : "test_2_orig.vtu",
+                "output_file_name"      : "Optimization_Results/check_2/test_2/test_2_elements_9.vtu",
+                "remove_output_file"    : true,
+                "comparison_type"       : "vtu"
+            }""")).Execute()
+
+            CompareTwoFilesCheckProcess(Kratos.Parameters("""
+            {
+                "reference_file_name"   : "test_2.sub_model_1_orig.vtu",
+                "output_file_name"      : "Optimization_Results/check_2/test_2.sub_model_1/test_2.sub_model_1_elements_9.vtu",
+                "remove_output_file"    : true,
+                "comparison_type"       : "vtu"
+            }""")).Execute()
+
+            self.assertTrue(Path("Optimization_Results/check_2/test_1.vtm.series").is_file())
+            self.assertTrue(Path("Optimization_Results/check_2/test_2.vtm.series").is_file())
+            self.assertTrue(Path("Optimization_Results/check_2/test_2.sub_model_1.vtm.series").is_file())
 
     @kratos_unittest.skipIfApplicationsNotAvailable("HDF5Application")
     def test_OptimizationProblemHDF5OutputProcess(self):
