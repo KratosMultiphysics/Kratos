@@ -74,7 +74,7 @@ class LinkConstraintProcess(KratosMultiphysics.Process):
         # DoFs from nodes is not exposed to python, the next best thing is fetching
         # historical variables.
         dofs_per_node: int = 0
-        kernel: KratosMultiphysics.Kernel = KratosMultiphysics.Kernel()
+        kernel: KratosMultiphysics.Kernel = KratosMultiphysics.KratosGlobals.Kernel
         for variable_name in self.__model_part.GetHistoricalVariablesNames():
             if kernel.HasDoubleVariable(variable_name):
                 dofs_per_node += 1
