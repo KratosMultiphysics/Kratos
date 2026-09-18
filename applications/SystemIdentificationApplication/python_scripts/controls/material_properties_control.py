@@ -111,12 +111,8 @@ class MaterialPropertiesControl(Control):
                 KratosOA.OptAppModelPartUtils.LogModelPartStatus(self.adjoint_model_part, "element_specific_properties_created")
 
         if self.physical_phi_field is None:
-            # Initialize() is called twice on a restart-resumed run (once by
-            # optimization_problem_restart_input_process before it restores this control's
-            # tensor data via Update(), once more from Algorithm.Initialize() right after --
-            # Control.Initialize() is documented there as idempotent). Both the filter rebuild
-            # and the physical_phi_field/control_phi_field/physical_phi_derivative_field
-            # derivation must only happen once:
+            # idempotency guard: the filter rebuild and the physical_phi_field/control_phi_field/
+            # physical_phi_derivative_field derivation must only happen once per run --
             #  - self.filter.Initialize() fully rebuilds the filter's neighbour-weight matrix
             #    from scratch; for a large mesh this is computed in parallel, and floating-point
             #    reduction order is not guaranteed to reproduce bit-identical weights between two

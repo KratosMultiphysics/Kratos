@@ -45,6 +45,11 @@ class OptimizationProblem:
         # initialize the step
         self.__problem_data["step"] = 0
 
+        # restart state -- set by OptimizationAnalysis._LoadRestartModel()/_CreateRestart(), read
+        # by ModelPartController.ImportModelPart() implementations and by Algorithm.SaveRestartFile().
+        self.__is_restarted = False
+        self.__restart_output = None
+
     def GetComponentType(self, component: Union[ExecutionPolicy, ResponseFunction, Control, MasterControl, ResponseRoutine]) -> Any:
         for k in self.__components.keys():
             if isinstance(component, k):
@@ -224,6 +229,24 @@ class OptimizationProblem:
             BufferedDict: Global problem data container.
         """
         return self.__problem_data
+
+    def IsRestarted(self) -> bool:
+        """Whether this run resumed from a restart checkpoint (set by _LoadRestartModel())."""
+        return self.__is_restarted
+
+    def SetRestarted(self, is_restarted: bool) -> None:
+        self.__is_restarted = is_restarted
+
+    def GetRestartOutput(self) -> 'Any | None':
+        """The restart writer installed by _CreateRestart(), or None if save_restart is off.
+
+        Deliberately not a process type (see Algorithm.SaveRestartFile()): the only place it is
+        ever driven from.
+        """
+        return self.__restart_output
+
+    def SetRestartOutput(self, restart_output: 'Any | None') -> None:
+        self.__restart_output = restart_output
 
     def GetComponentContainer(self) -> 'dict[Any, dict[str, Any]]':
         return self.__components

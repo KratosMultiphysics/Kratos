@@ -1,13 +1,14 @@
 import KratosMultiphysics as Kratos
 from KratosMultiphysics.OptimizationApplication.model_part_controllers.model_part_controller import ModelPartController
+from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem import OptimizationProblem
 
-def Factory(model: Kratos.Model, parameters: Kratos.Parameters, _) -> ModelPartController:
+def Factory(model: Kratos.Model, parameters: Kratos.Parameters, optimization_problem: OptimizationProblem) -> ModelPartController:
     if not parameters.Has("settings"):
         raise RuntimeError(f"MdpaModelPartController instantiation requires a \"settings\" in parameters [ parameters = {parameters}].")
-    return MdpaModelPartController(model, parameters["settings"])
+    return MdpaModelPartController(model, parameters["settings"], optimization_problem)
 
 class MdpaModelPartController(ModelPartController):
-    def __init__(self, model: Kratos.Model, parameters: Kratos.Parameters):
+    def __init__(self, model: Kratos.Model, parameters: Kratos.Parameters, optimization_problem: OptimizationProblem):
         default_settings = Kratos.Parameters("""{
             "model_part_name": "",
             "input_filename" : "",
@@ -31,14 +32,12 @@ class MdpaModelPartController(ModelPartController):
 
         self.model_part = model.CreateModelPart(model_part_name)
         self.read_data = parameters["read_data"].GetBool()
-
-    def SupportsRestart(self) -> bool:
-        return True
+        self.optimization_problem = optimization_problem
 
     def ImportModelPart(self) -> None:
-        if self.model_part.NumberOfNodes() > 0:
-            # OptimizationAnalysis._CreateRestart() already loaded this model part directly from
-            # the restart checkpoint, synchronously, before Initialize() ever calls this method --
+        if self.optimization_problem.IsRestarted():
+            # OptimizationAnalysis._LoadRestartModel() already loaded the whole Model directly
+            # from the checkpoint, synchronously, before Initialize() ever calls this method --
             # skip the normal mdpa read.
             # Mirrors Kratos.RestartUtility.LoadRestart(): downstream solvers (e.g.
             # MechanicalSolver.PrepareModelPart()) gate re-reading materials/constitutive laws on

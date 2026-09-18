@@ -1,10 +1,11 @@
+import os
 import pickle
 
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.OptimizationApplication as KratosOA
 from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem import OptimizationProblem
 from KratosMultiphysics.OptimizationApplication.utilities.buffered_dict import BufferedDict
-from KratosMultiphysics.OptimizationApplication.utilities.restart_file_naming import SplitRestartFileName
+from KratosMultiphysics.OptimizationApplication.utilities.restart_file_naming import SplitRestartFileName, ParseStepFromFileName
 
 def Factory(*_args, **_kwargs):
     raise RuntimeError(
@@ -19,70 +20,76 @@ _SERIALIZER_TRACE_TYPES = {
     "trace_all":   Kratos.SerializerTraceType.SERIALIZER_TRACE_ALL,
 }
 
+# (base type, matching combined type, matching NDData type) per dtype.
+_DTYPE_TENSOR_ADAPTOR_TYPES = (
+    (Kratos.TensorAdaptors.DoubleTensorAdaptor, Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor, Kratos.DoubleNDData),
+    (Kratos.TensorAdaptors.IntTensorAdaptor, Kratos.TensorAdaptors.IntCombinedTensorAdaptor, Kratos.IntNDData),
+    (Kratos.TensorAdaptors.BoolTensorAdaptor, Kratos.TensorAdaptors.BoolCombinedTensorAdaptor, Kratos.BoolNDData),
+)
+
 # isinstance against just the 3 base types also matches the corresponding combined subtype, since
 # Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor (etc.) is bound as a Python subclass of
 # Kratos.TensorAdaptors.DoubleTensorAdaptor (etc.) -- see kratos/python/add_tensor_adaptors_to_python.cpp.
-# It also matches further-derived, application-specific subtypes not registered with the
-# Serializer (e.g. SystemIdentificationApplication's PropertiesVariableTensorAdaptor) -- those get
-# "laundered" into a plain base-type instance before saving; see _ToNativelySerializable.
-_TENSOR_ADAPTOR_BASE_TYPES = (
-    Kratos.TensorAdaptors.DoubleTensorAdaptor,
-    Kratos.TensorAdaptors.IntTensorAdaptor,
-    Kratos.TensorAdaptors.BoolTensorAdaptor,
-)
+_TENSOR_ADAPTOR_BASE_TYPES = tuple(base for base, _, _ in _DTYPE_TENSOR_ADAPTOR_TYPES)
+_COMBINED_TENSOR_ADAPTOR_TYPES = tuple(combined for _, combined, _ in _DTYPE_TENSOR_ADAPTOR_TYPES)
 
-# the only types actually registered with Kratos::Serializer (kratos/sources/kratos_application.cpp)
+# the only leaf (non-combined) types registered with Kratos::Serializer (kratos_application.cpp)
 # and therefore safe to save/load directly, as themselves.
-_EXACT_NATIVE_TENSOR_ADAPTOR_TYPES = (
-    Kratos.TensorAdaptors.DoubleTensorAdaptor,
-    Kratos.TensorAdaptors.IntTensorAdaptor,
-    Kratos.TensorAdaptors.BoolTensorAdaptor,
-    Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor,
-    Kratos.TensorAdaptors.IntCombinedTensorAdaptor,
-    Kratos.TensorAdaptors.BoolCombinedTensorAdaptor,
-)
-
-# (base tensor adaptor type, matching NDData type) per dtype, used by _ToNativelySerializable.
-_DTYPE_TENSOR_ADAPTOR_TYPES = (
-    (Kratos.TensorAdaptors.DoubleTensorAdaptor, Kratos.DoubleNDData),
-    (Kratos.TensorAdaptors.IntTensorAdaptor, Kratos.IntNDData),
-    (Kratos.TensorAdaptors.BoolTensorAdaptor, Kratos.BoolNDData),
-)
+_EXACT_NATIVE_TENSOR_ADAPTOR_TYPES = _TENSOR_ADAPTOR_BASE_TYPES
 
 _SCALAR_LEAF_TYPES = (int, float, bool, str, list, dict, type(None))
 
 def _ToNativelySerializable(value):
     """Returns a TensorAdaptor safe to save/load directly through Kratos.Serializer.
 
-    `value` itself if its exact type is already one of the few registered with the Serializer
-    (kratos_application.cpp); otherwise "launders" it into a freshly-constructed plain base-type
-    instance wrapping the *same* container and a copy of the *same* data -- dropping whatever
-    extra, subclass-specific state a further-derived type carries (e.g.
-    PropertiesVariableTensorAdaptor's mapped Properties Variable), since restart only needs to
-    round-trip the current values and which container they belong to, not that subclass's own
-    CollectData/StoreData behaviour.
+    A combined adaptor's own C++ save() serializes each child through a polymorphic pointer, which
+    throws for a further-derived, unregistered child type (e.g. SystemIdentificationApplication's
+    PropertiesVariableTensorAdaptor) -- so recurse into every combined adaptor's children first and
+    rebuild a plain combined instance from their laundered results, regardless of the combined
+    adaptor's own exact type. The rebuilt combined instance's own top-level .data is freshly
+    allocated and disconnected from its (already-correct) children until CollectData() pulls
+    values in from them -- save() serializes that top-level buffer too, so skipping this would
+    silently save garbage. perform_collect_data_recursively=False keeps that pull to "children's
+    .data -> this .data" only: recursing further ("child's container -> child's .data") would be
+    wrong for a child that doesn't represent something re-readable from its container at all (e.g.
+    a momentum/moment estimate, whose container is only there for shape/identity).
 
-    Returns None if `value` has no container to launder through (HasContainer() is False) and
-    isn't itself one of the registered types -- the caller falls back to skipping it, with a
-    warning, same as any other genuinely unsupported leaf.
+    A leaf whose exact type is already registered returns unchanged; otherwise it is "laundered"
+    into a freshly-constructed plain base-type instance wrapping the *same* container and a copy of
+    the *same* data -- dropping whatever extra, subclass-specific state the derived type carries,
+    since restart only needs to round-trip the current values and which container they belong to.
+
+    Returns None if a leaf has no container to launder through (HasContainer() is False) and isn't
+    itself one of the registered types -- the caller falls back to skipping it, with a warning, same
+    as any other genuinely unsupported leaf.
     """
+    if isinstance(value, _COMBINED_TENSOR_ADAPTOR_TYPES):
+        children = [_ToNativelySerializable(child) for child in value.GetTensorAdaptors()]
+        if any(child is None for child in children):
+            return None
+        for _, combined_type, _ in _DTYPE_TENSOR_ADAPTOR_TYPES:
+            if isinstance(value, combined_type):
+                native_value = combined_type(children, perform_collect_data_recursively=False, copy=False)
+                native_value.CollectData()
+                return native_value
+        return None
     if type(value) in _EXACT_NATIVE_TENSOR_ADAPTOR_TYPES:
         return value
     if not value.HasContainer():
         return None
-    for base_type, nd_data_type in _DTYPE_TENSOR_ADAPTOR_TYPES:
+    for base_type, _, nd_data_type in _DTYPE_TENSOR_ADAPTOR_TYPES:
         if isinstance(value, base_type):
             return base_type(value.GetContainer(), nd_data_type(value.data, True), True)
     return None
 
-def SaveBufferedDictToSerializer(node: BufferedDict, path: str, serializer: Kratos.StreamSerializer, scalar_snapshot: dict, tensor_kinds: dict, echo_level: int = 0) -> None:
+def SaveBufferedDictToSerializer(node: BufferedDict, path: str, serializer: Kratos.StreamSerializer, scalar_snapshot: dict, tensor_kinds: dict, node_metadata: dict, keep_alive: list, echo_level: int = 0) -> None:
     """Recursively walks every buffer slot and sub item of a BufferedDict.
 
     Mirrors the traversal BufferedDict.PrintData/__Info already implements (iterate every buffer
     slot, then recurse into sub items). Kratos.TensorAdaptors.* leaves are saved natively into
-    `serializer` (so they stay linked to whichever ModelPart(s) they were built from, also saved
-    into the same serializer -- see OptimizationProblemRestartOutputProcess.PrintOutput); plain
-    picklable leaves go into `scalar_snapshot` instead.
+    `serializer` (so they stay linked to the Model also saved into the same serializer -- see
+    OptimizationProblemRestartOutput.SaveRestartFile); plain picklable leaves go into
+    `scalar_snapshot` instead.
 
     "path" is the BufferedDict.SetValue()-style "/"-separated key of `node` itself (SetValue
     natively resolves such nested keys, see buffered_dict.py). Each leaf's own BufferedDict key is
@@ -91,17 +98,31 @@ def SaveBufferedDictToSerializer(node: BufferedDict, path: str, serializer: Krat
     buffer slots. Tensor leaves additionally get a unique string tag (`tensor_kinds`' value)
     derived from that same pair, since Kratos.Serializer.Save/Load need a string tag.
 
+    `node_metadata` records every sub item's own (buffer_size, clear_buffer_when_advancing), keyed
+    by its path -- used on restore to recreate a sub item that no longer has a live counterpart
+    (e.g. a control removed from this run's parameters since the checkpoint was written) with its
+    original buffer size, instead of BufferedDict.SetValue's path auto-creation, which would default
+    it to buffer_size=1.
+
     Leaves of an unsupported type (e.g. a raw C++-bound object such as a SystemIdentification
     Sensor stored via ComponentDataView's UnBuffered data) are skipped (with a warning) instead of
     aborting the checkpoint, since such objects are typically re-derived from their own inputs
     (e.g. read back from a settings/measurement file) on every run and are not cross-iteration
     state that needs restoring.
+
+    `keep_alive` collects every laundered TensorAdaptor this call creates, and the caller must hold
+    it until the whole save (not just this call) is done. Serializer's pointer-identity tracking
+    (needed for the Model<->tensor relinking this whole mechanism relies on) keys off raw C++
+    addresses; a laundered object that goes out of scope and gets garbage-collected mid-save frees
+    its address for reuse by the next allocation, which the serializer would then wrongly treat as
+    "the same object, already written" -- silently saving a stale reference instead of real data.
     """
     for step_index in range(node.GetBufferSize()):
         for key, value in node.GetValueItems(step_index).items():
             bufferdict_key = f"{path}/{key}" if path else key
             native_value = _ToNativelySerializable(value) if isinstance(value, _TENSOR_ADAPTOR_BASE_TYPES) else None
             if native_value is not None:
+                keep_alive.append(native_value)
                 serializer_tag = f"{bufferdict_key}:{step_index}"
                 serializer.Save(serializer_tag, native_value)
                 tensor_kinds[(bufferdict_key, step_index)] = (serializer_tag, type(native_value).__name__)
@@ -109,7 +130,7 @@ def SaveBufferedDictToSerializer(node: BufferedDict, path: str, serializer: Krat
                 scalar_snapshot[(bufferdict_key, step_index)] = value
             elif echo_level > 0:
                 Kratos.Logger.PrintWarning(
-                    "OptimizationProblemRestartOutputProcess",
+                    "OptimizationProblemRestartOutput",
                     f"Skipping check-pointing of \"{bufferdict_key}\" [ value = {value} ]: does not know how to "
                     f"check-point a value of type \"{type(value).__name__}\". Only tensor adaptors and plain "
                     "int/float/bool/str/None/list/dict values are supported. If this is a new kind of "
@@ -119,90 +140,100 @@ def SaveBufferedDictToSerializer(node: BufferedDict, path: str, serializer: Krat
                     "the supported types.")
 
     for name, sub_item in node.GetSubItems().items():
-        SaveBufferedDictToSerializer(sub_item, f"{path}/{name}" if path else name, serializer, scalar_snapshot, tensor_kinds, echo_level)
+        sub_path = f"{path}/{name}" if path else name
+        node_metadata[sub_path] = (sub_item.GetBufferSize(), sub_item.GetClearBufferWhenAdvancing())
+        SaveBufferedDictToSerializer(sub_item, sub_path, serializer, scalar_snapshot, tensor_kinds, node_metadata, keep_alive, echo_level)
 
-class OptimizationProblemRestartOutputProcess(Kratos.OutputProcess):
+class OptimizationProblemRestartOutput:
+    """Writes restart checkpoints: SerializerFlags + the whole Kratos.Model + the whole
+    OptimizationProblem BufferedDict, into one StreamSerializer, pickled to one file per step.
+
+    Deliberately not a Kratos.OutputProcess: it has exactly one caller, Algorithm.SaveRestartFile()
+    (called right after UpdateControl(), so the checkpoint always matches a design the mesh and
+    BufferedDict agree on) -- registering this as an output process too would give it a second,
+    live entry point and risk writing the same checkpoint twice per step.
+    """
     def GetDefaultParameters(self) -> Kratos.Parameters:
         return Kratos.Parameters("""{
             "restart_file_name"     : "Optimization_Restart/restart_<step>.pkl",
             "restart_save_frequency": 1,
             "max_files_to_keep"     : -1,
-            "echo_level"            : 0,
-            "model_parts_settings"  : {
-                "save_model_parts" : true,
-                "serializer_trace" : "no_trace",
-                "clean_before_save": true
-            }
+            "serializer_trace"      : "no_trace",
+            "echo_level"            : 0
         }""")
 
-    def __init__(self, parameters: Kratos.Parameters, optimization_problem: OptimizationProblem, list_of_model_parts: 'list[Kratos.ModelPart]'):
-        Kratos.OutputProcess.__init__(self)
+    def __init__(self, parameters: Kratos.Parameters, optimization_problem: OptimizationProblem, model: Kratos.Model):
         parameters.ValidateAndAssignDefaults(self.GetDefaultParameters())
 
         self.optimization_problem = optimization_problem
+        self.model = model
         self.restart_files_path, self.restart_file_name = SplitRestartFileName(parameters["restart_file_name"].GetString())
         self.restart_save_frequency = parameters["restart_save_frequency"].GetInt()
         if self.restart_save_frequency <= 0:
             raise RuntimeError(f"\"restart_save_frequency\" must be > 0. [ restart_save_frequency = {self.restart_save_frequency} ].")
         self.max_files_to_keep = parameters["max_files_to_keep"].GetInt()
+        self.serializer_trace = _SERIALIZER_TRACE_TYPES[parameters["serializer_trace"].GetString()]
         self.echo_level = parameters["echo_level"].GetInt()
 
         if "<step>" not in self.restart_file_name:
             raise RuntimeError(f"\"restart_file_name\" should contain the \"<step>\" placeholder [ restart_file_name = \"{self.restart_file_name}\" ].")
 
-        model_parts_settings = parameters["model_parts_settings"]
-        self.save_model_parts = model_parts_settings["save_model_parts"].GetBool()
-        self.clean_before_save = model_parts_settings["clean_before_save"].GetBool()
-        self.serializer_trace = _SERIALIZER_TRACE_TYPES[model_parts_settings["serializer_trace"].GetString()]
-        self.list_of_model_parts = list_of_model_parts
-
         self.restart_files_path.mkdir(parents=True, exist_ok=True)
 
-    def IsOutputStep(self) -> bool:
+    def IsSaveStep(self) -> bool:
         return self.optimization_problem.GetStep() % self.restart_save_frequency == 0
 
-    def PrintOutput(self) -> None:
+    def SaveRestartFile(self) -> None:
         step = self.optimization_problem.GetStep()
 
         serializer = Kratos.StreamSerializer(self.serializer_trace)
-        serializer.Set(Kratos.Serializer.SHALLOW_GLOBAL_POINTERS_SERIALIZATION)
+        flags = Kratos.Serializer.SHALLOW_GLOBAL_POINTERS_SERIALIZATION
+        serializer.Set(flags)
+        # StreamSerializer's own pickle state does not carry serializer.Set() flags (only the
+        # buffer + trace type), so save them as the first record and reapply on load -- same
+        # pattern kratos/python_scripts/project.py uses for Model + stage checkpointing.
+        serializer.Save("SerializerFlags", flags)
+
+        root_model_parts = [self.model[name] for name in self.model.GetModelPartNames() if "." not in name]
 
         # NEIGHBOUR_ELEMENTS/etc. (e.g. from the Helmholtz filter) can't survive a Serializer
         # round-trip (nodes load before the entities they point to -- crash on load). They're
-        # recomputable, so clear them for this save (covers both the model-part save below and any
+        # recomputable, so clear them for this save (covers both the Model save below and any
         # tensor, e.g. "control_field", whose container reaches the same nodes) and restore right
         # after so this run's own continuation is unaffected.
-        KratosOA.OptAppModelPartUtils.ClearNeighbourEntitiesData(self.list_of_model_parts)
+        KratosOA.OptAppModelPartUtils.ClearNeighbourEntitiesData(root_model_parts)
         try:
-            model_part_names = []
-            if self.save_model_parts and self.list_of_model_parts:
-                if self.clean_before_save:
-                    # strips the dynamically-created "<OPTIMIZATION_APP_AUTO>"-prefixed sub-model-parts
-                    # (pure recomputable scratch/cache, e.g. for overhang-angle sensitivity) so they
-                    # don't bloat/complicate the restart file; they are recreated on demand when next
-                    # needed.
-                    KratosOA.OptAppModelPartUtils.RemoveModelPartsWithCommonReferenceEntitiesBetweenReferenceListAndExaminedList(self.list_of_model_parts)
-                for model_part in self.list_of_model_parts:
-                    serializer.Save(model_part.Name, model_part)
-                    model_part_names.append(model_part.Name)
+            # strips the dynamically-created "<OPTIMIZATION_APP_AUTO>"-prefixed sub-model-parts
+            # (pure recomputable scratch/cache, e.g. for overhang-angle sensitivity) so they don't
+            # bloat/complicate the restart file; they are recreated on demand when next needed.
+            KratosOA.OptAppModelPartUtils.RemoveModelPartsWithCommonReferenceEntitiesBetweenReferenceListAndExaminedList(root_model_parts)
+
+            serializer.Save("Model", self.model)
 
             scalar_snapshot = {}
             tensor_kinds = {}
-            SaveBufferedDictToSerializer(self.optimization_problem.GetProblemDataContainer(), "", serializer, scalar_snapshot, tensor_kinds, self.echo_level)
+            node_metadata = {}
+            keep_alive = []  # see SaveBufferedDictToSerializer's own docstring
+            SaveBufferedDictToSerializer(self.optimization_problem.GetProblemDataContainer(), "", serializer, scalar_snapshot, tensor_kinds, node_metadata, keep_alive, self.echo_level)
         finally:
             KratosOA.OptAppModelPartUtils.RestoreNeighbourEntitiesData()
 
         file_path = (self.restart_files_path / self.restart_file_name.replace("<step>", str(step))).resolve()
         if self.restart_files_path.resolve() not in file_path.parents:
             raise RuntimeError(f"Resolved restart checkpoint path is outside restart_files_path. [ file_path = \"{file_path}\" ].")
-        with open(file_path, "wb") as file_output:
+
+        # write to a temp file in the same directory and rename into place, so a run killed
+        # mid-dump never leaves a truncated file that a later "latest" resolution could pick up.
+        tmp_file_path = file_path.with_name(file_path.name + ".tmp")
+        with open(tmp_file_path, "wb") as file_output:
             pickle.dump({
                 "step": step,
                 "serializer": serializer,
-                "model_part_names": model_part_names,
                 "scalars": scalar_snapshot,
                 "tensor_kinds": tensor_kinds,
+                "node_metadata": node_metadata,
             }, file_output, protocol=pickle.HIGHEST_PROTOCOL)
+        os.replace(tmp_file_path, file_path)
 
         if self.echo_level > 0:
             Kratos.Logger.PrintInfo(self.__class__.__name__, f"Wrote restart checkpoint to \"{file_path}\".")
@@ -214,7 +245,7 @@ class OptimizationProblemRestartOutputProcess(Kratos.OutputProcess):
             return
 
         checkpoint_glob = self.restart_file_name.replace("<step>", "*")
-        checkpoints = sorted(self.restart_files_path.glob(checkpoint_glob), key=lambda p: p.stat().st_mtime)
+        checkpoints = sorted(self.restart_files_path.glob(checkpoint_glob), key=lambda p: ParseStepFromFileName(self.restart_file_name, p.name))
         for stale_checkpoint in checkpoints[:-self.max_files_to_keep]:
             stale_checkpoint.unlink()
             if self.echo_level > 0:

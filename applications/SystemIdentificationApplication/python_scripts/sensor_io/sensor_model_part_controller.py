@@ -31,7 +31,12 @@ class SensorModelPartController(ModelPartController):
         self.debug_output_filename = parameters["debug_output_filename"].GetString()
 
         if model.HasModelPart(self.sensor_group_name):
-            raise RuntimeError(f"The sensor model part name \"{self.sensor_group_name}\" already exists. Please provide a different \"sensor_group_name\".")
+            if not self.optimization_problem.IsRestarted():
+                raise RuntimeError(f"The sensor model part name \"{self.sensor_group_name}\" already exists. Please provide a different \"sensor_group_name\".")
+            # the whole-Model restore already created this model part; Sensor objects themselves
+            # are UnBuffered data and deliberately not checkpointed (re-derived below, same as a
+            # fresh run), so drop the restored placeholder and rebuild it the normal way.
+            model.DeleteModelPart(self.sensor_group_name)
         self.sensor_model_part = model.CreateModelPart(self.sensor_group_name)
 
         # this dummy component data view is used to create the proper sensor group within the optimization problem.

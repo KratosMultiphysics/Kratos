@@ -9,10 +9,25 @@ from KratosMultiphysics.OptimizationApplication.responses.response_function impo
 from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem_utilities import OptimizationComponentFactory
 from KratosMultiphysics.OptimizationApplication.utilities.helper_utilities import CallOnAll
 from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem import OptimizationProblem
+from KratosMultiphysics.OptimizationApplication.utilities.buffered_dict import BufferedDict
 from KratosMultiphysics.OptimizationApplication.utilities.logger_utilities import OptimizationAnalysisTimeLogger
 from KratosMultiphysics.OptimizationApplication.utilities.restart_file_naming import ResolveRestartLoadStep, SplitRestartFileName
-from KratosMultiphysics.OptimizationApplication.processes.optimization_problem_restart_output_process import OptimizationProblemRestartOutputProcess
-from KratosMultiphysics.OptimizationApplication.processes.optimization_problem_restart_input_process import OptimizationProblemRestartInputProcess
+from KratosMultiphysics.OptimizationApplication.processes.optimization_problem_restart_output_process import OptimizationProblemRestartOutput
+
+def _EnsureBufferedDictPath(root: BufferedDict, bufferdict_key: str, node_metadata: dict) -> None:
+    """Pre-creates any BufferedDict node along bufferdict_key's parent path that doesn't exist yet,
+    using that node's own recorded (buffer_size, clear_buffer_when_advancing) from node_metadata --
+    not BufferedDict.SetValue's own path auto-creation, which would default every new node to
+    buffer_size=1 and could undersize a node a later ComponentDataView.SetDataBuffer call rejects.
+    """
+    node = root
+    path = ""
+    for segment in bufferdict_key.split("/")[:-1]:
+        path = f"{path}/{segment}" if path else segment
+        if segment not in node.GetSubItems():
+            buffer_size, clear_buffer_when_advancing = node_metadata[path]
+            node.SetValue(segment, BufferedDict(buffer_size, clear_buffer_when_advancing))
+        node = node.GetSubItems()[segment]
 
 class OptimizationAnalysis:
     @classmethod
@@ -35,13 +50,8 @@ class OptimizationAnalysis:
                 "restart_save_frequency" : 1,
                 "restart_load_step"      : "latest",
                 "max_files_to_keep"      : -1,
-                "echo_level"             : 0,
-                "model_parts_settings"   : {
-                    "save_model_parts"  : true,
-                    "load_model_parts"  : true,
-                    "serializer_trace"  : "no_trace",
-                    "clean_before_save" : true
-                }
+                "serializer_trace"       : "no_trace",
+                "echo_level"             : 0
             }
         }""")
 
@@ -55,6 +65,11 @@ class OptimizationAnalysis:
         self.__list_of_model_part_controllers: 'list[ModelPartController]' = []
         self.__algorithm: Algorithm = None
 
+        # must run before any model part gets created below: Kratos.Model.load() populates an
+        # already-created, empty Model in place, so the checkpoint's Model has to be the first
+        # thing written into self.model.
+        self.__restart_payload = self._LoadRestartModel()
+
         self._CreateModelPartControllers()
         self._CreateAnalyses()
         self._CreateControls()
@@ -63,7 +78,9 @@ class OptimizationAnalysis:
         self._CreateProcesses()
         # _CreateRestart must run after _CreateProcesses: _CreateProcesses() unconditionally
         # calls optimization_problem.AddProcessType(process_type) for every process type, which
-        # resets (rather than appends to) that type's process list.
+        # resets (rather than appends to) that type's process list. It must also run after every
+        # other _Create*() call above: restoring the BufferedDict relies on each component's own
+        # SetDataBuffer() call having already sized its BufferedDict node.
         self._CreateRestart()
 
     def Initialize(self):
@@ -158,80 +175,99 @@ class OptimizationAnalysis:
                     process = OptimizationComponentFactory(self.model, process_settings, self.optimization_problem)
                     self.optimization_problem.AddProcess(process_type, process)
 
-    def _CreateRestart(self):
+    def _GetValidatedRestartSettings(self) -> Kratos.Parameters:
         restart_settings = self.project_parameters["restart_settings"]
 
         default_restart_settings = self.GetDefaultParameters()["restart_settings"]
         # "restart_load_step" is either the string "latest" or an explicit step (int).
         # ValidateAndAssignDefaults requires matching types, so the default's type is chosen to
-        # match whatever the user provided (mirrors the same workaround already used by
-        # OptimizationProblemRestartInputProcess.__init__).
+        # match whatever the user provided.
         if restart_settings.Has("restart_load_step") and restart_settings["restart_load_step"].IsInt():
             default_restart_settings["restart_load_step"].SetInt(0)
         restart_settings.ValidateAndAssignDefaults(default_restart_settings)
-        # ValidateAndAssignDefaults is not recursive (see _CreateProcesses' identical pattern for
-        # "processes"), so a partially-specified "model_parts_settings" needs its own explicit
-        # default-filling pass here.
-        restart_settings["model_parts_settings"].ValidateAndAssignDefaults(default_restart_settings["model_parts_settings"])
+        return restart_settings
 
-        save_restart = restart_settings["save_restart"].GetBool()
-        load_restart = restart_settings["load_restart"].GetBool()
-        if not save_restart and not load_restart:
-            return
+    def _LoadRestartModel(self) -> 'dict | None':
+        """If load_restart is set and a checkpoint is found, loads its Model record directly into
+        self.model and returns the unpickled payload, for _CreateRestart() to restore the
+        BufferedDict from later (after every component's own SetDataBuffer() call has sized its
+        node). Returns None otherwise (restart off, or "latest" with no checkpoint yet).
+        """
+        restart_settings = self._GetValidatedRestartSettings()
+        if not restart_settings["load_restart"].GetBool():
+            return None
 
         restart_files_path, restart_file_name = SplitRestartFileName(restart_settings["restart_file_name"].GetString())
-        echo_level = restart_settings["echo_level"].GetInt()
+        resolved_step = ResolveRestartLoadStep(restart_files_path, restart_file_name, restart_settings["restart_load_step"])
+        if resolved_step is None:
+            return None
 
-        model_parts_settings = restart_settings["model_parts_settings"]
+        file_path = (restart_files_path / restart_file_name.replace("<step>", str(resolved_step))).resolve()
+        if restart_files_path.resolve() not in file_path.parents:
+            raise RuntimeError(f"Resolved restart checkpoint path is outside restart_files_path. [ file_path = \"{file_path}\" ].")
+        if not file_path.is_file():
+            raise FileNotFoundError(f"Restart checkpoint file not found: \"{file_path}\".")
 
-        restart_capable_controllers = [controller for controller in self.__list_of_model_part_controllers if controller.SupportsRestart()]
+        Kratos.Logger.PrintInfo("OptimizationAnalysis", f"Loading restart checkpoint from \"{file_path}\".")
+        with open(file_path, "rb") as file_input:
+            payload: dict = pickle.load(file_input)
 
-        if load_restart:
-            payload = None
-            resolved_step = ResolveRestartLoadStep(restart_files_path, restart_file_name, restart_settings["restart_load_step"])
-            if resolved_step is not None:
-                file_path = (restart_files_path / restart_file_name.replace("<step>", str(resolved_step))).resolve()
-                if restart_files_path.resolve() not in file_path.parents:
-                    raise RuntimeError(f"Resolved restart checkpoint path is outside restart_files_path. [ file_path = \"{file_path}\" ].")
-                if not file_path.is_file():
-                    raise FileNotFoundError(f"Restart checkpoint file not found: \"{file_path}\".")
+        serializer: Kratos.StreamSerializer = payload["serializer"]
+        flags = Kratos.Flags()
+        serializer.Load("SerializerFlags", flags)
+        serializer.Set(flags)
+        serializer.Load("Model", self.model)
 
-                Kratos.Logger.PrintInfo("OptimizationAnalysis", f"Loading restart checkpoint from \"{file_path}\".")
-                with open(file_path, "rb") as file_input:
-                    payload = pickle.load(file_input)
+        self.optimization_problem.SetRestarted(True)
+        return payload
 
-                # Load restart-capable model parts directly here, synchronously, before
-                # Initialize() ever calls ModelPartController.ImportModelPart() -- confirmed safe
-                # even though _CreateModelPartControllers() already created these (empty) model
-                # parts above: Kratos.ModelPart.load() correctly populates an already-created,
-                # empty ModelPart of the same name in place. Reusing payload["serializer"] (rather
-                # than each controller reading its own file) is required for the BufferedDict's
-                # TensorAdaptor leaves (restored later, from this exact same Serializer instance,
-                # by OptimizationProblemRestartInputProcess) to stay pointer-linked to these model
-                # parts' Node/Element/Condition containers.
-                if model_parts_settings["load_model_parts"].GetBool():
-                    for controller in restart_capable_controllers:
-                        model_part = controller.GetModelPart()
-                        if model_part.Name in payload["model_part_names"]:
-                            payload["serializer"].Load(model_part.Name, model_part)
-                        elif echo_level > 0:
-                            Kratos.Logger.PrintWarning("OptimizationAnalysis", f"No restart data found for model part \"{model_part.Name}\"; it will be imported normally.")
+    def _CreateRestart(self):
+        restart_settings = self._GetValidatedRestartSettings()
+        save_restart = restart_settings["save_restart"].GetBool()
+        load_restart = restart_settings["load_restart"].GetBool()
 
-            input_process = OptimizationProblemRestartInputProcess(payload, self.optimization_problem, echo_level)
-            self.optimization_problem.AddProcess("auxiliary_processes", input_process)
+        if (save_restart or load_restart) and not self.__algorithm.SUPPORTS_RESTART:
+            raise RuntimeError(
+                f"\"{type(self.__algorithm).__name__}\" does not call SaveRestartFile() from its "
+                "Solve() loop, so restart_settings.save_restart/load_restart cannot be honoured "
+                "for it.")
+
+        if self.__restart_payload is not None:
+            payload = self.__restart_payload
+            root = self.optimization_problem.GetProblemDataContainer()
+            node_metadata = payload["node_metadata"]
+            serializer: Kratos.StreamSerializer = payload["serializer"]
+
+            # "fully read what is in the files without extra logic": every recorded scalar/tensor
+            # is restored unconditionally, recreating any missing intermediate BufferedDict node
+            # (e.g. a control removed from this run's parameters since the checkpoint was written)
+            # from its own recorded metadata rather than skipping it.
+            for (bufferdict_key, step_index), value in payload["scalars"].items():
+                _EnsureBufferedDictPath(root, bufferdict_key, node_metadata)
+                root.SetValue(bufferdict_key, value, step_index, overwrite=True)
+
+            for (bufferdict_key, step_index), (serializer_tag, kind) in payload["tensor_kinds"].items():
+                _EnsureBufferedDictPath(root, bufferdict_key, node_metadata)
+                placeholder = getattr(Kratos.TensorAdaptors, kind)()
+                serializer.Load(serializer_tag, placeholder)
+                root.SetValue(bufferdict_key, placeholder, step_index, overwrite=True)
+
+            # The checkpoint is written after the checkpointed step's own UpdateControl() (see
+            # Algorithm.SaveRestartFile()), so both restored buffer slots are still "occupied"
+            # (current = checkpointed step, previous = the step before it). Advance now to free up
+            # a fresh current slot for the next iteration, as AdvanceStep() would have done had the
+            # checkpointed run continued.
+            self.optimization_problem.SetStep(payload["step"])
+            self.optimization_problem.AdvanceStep()
+
+            Kratos.Logger.PrintInfo("OptimizationAnalysis", f"Restored optimization problem state from step {payload['step']}.")
 
         if save_restart:
             output_settings = Kratos.Parameters("{}")
-            for key in ("restart_file_name", "restart_save_frequency", "max_files_to_keep", "echo_level"):
+            for key in ("restart_file_name", "restart_save_frequency", "max_files_to_keep", "serializer_trace", "echo_level"):
                 output_settings.AddValue(key, restart_settings[key])
-            output_model_parts_settings = Kratos.Parameters("{}")
-            for key in ("save_model_parts", "serializer_trace", "clean_before_save"):
-                output_model_parts_settings.AddValue(key, model_parts_settings[key])
-            output_settings.AddValue("model_parts_settings", output_model_parts_settings)
-
-            list_of_model_parts = [controller.GetModelPart() for controller in restart_capable_controllers]
-            output_process = OptimizationProblemRestartOutputProcess(output_settings, self.optimization_problem, list_of_model_parts)
-            self.optimization_problem.AddProcess("output_processes", output_process)
+            restart_output = OptimizationProblemRestartOutput(output_settings, self.optimization_problem, self.model)
+            self.optimization_problem.SetRestartOutput(restart_output)
 
     def _CreateAlgorithm(self):
         default_settings = Kratos.Parameters("""{

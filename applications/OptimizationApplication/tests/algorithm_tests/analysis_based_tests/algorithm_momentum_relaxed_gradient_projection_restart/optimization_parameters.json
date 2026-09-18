@@ -67,8 +67,13 @@
                     "Structure.Parts_Shell_structure"
                 ],
                 "filter_settings": {
-                    "filter_type": "implicit_filter",
-                    "filter_radius": 0.2
+                    "filter_type": "explicit_filter",
+                    "filter_function_type": "linear",
+                    "max_items_in_bucket": 10,
+                    "filter_radius_settings": {
+                        "filter_radius_type": "constant",
+                        "filter_radius": 0.2
+                    }
                 },
                 "output_all_fields": false,
                 "physical_thicknesses": [

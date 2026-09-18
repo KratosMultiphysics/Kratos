@@ -13,27 +13,20 @@ class TestSystemIdentificationRestart(kratos_unittest.TestCase):
 
     1. Sensors are never written to the restart checkpoint (they are re-derived from
        "list_of_sensors"/measurement-file settings on every run, restart or not -- see
-       SensorModelPartController.ImportModelPart) -- optimization_problem_restart_output_process
-       must skip them rather than crash (see ConvertLeafToRestartData), and the resumed run's
+       SensorModelPartController.ImportModelPart) -- OptimizationProblemRestartOutput must skip
+       them rather than crash (they have no container to launder through), and the resumed run's
        damage_response must still match the reference run, proving the re-derived sensors are
        equivalent to the reference run's.
-    2. MaterialPropertiesControl (SI) is Initialize()'d twice on a resumed run -- once explicitly
-       by optimization_problem_restart_input_process before restoring tensor data, once more via
-       Algorithm.Initialize() -- and its "element_specific_properties_created" ModelPart status
-       flag (material_properties_control.py) must make the second call a no-op; otherwise entity
-       specific properties would be created twice and the resumed run would diverge (or crash).
+    2. Restart now saves/restores the whole Kratos.Model in one shot, so "AdjointStructure"
+       (independently mdpa-imported) and "Structure" (derived from it via
+       connectivity_preserving_model_part_controller, so it has no independent import of its own)
+       come back together, both carrying the MODEL_PART_STATUS they had at save time. This is what
+       actually makes MaterialPropertiesControl.Initialize()'s primal/adjoint consistency check
+       (material_properties_control.py) pass on resume -- restoring only one side used to trip it.
        "output_all_fields": true is set below so the control's ComponentDataView also holds
        several diagnostic-only tensors (not just the design), stressing the restart process's
-       "which tensor is actually the design" gating (see RestoreBufferedDict).
+       "which tensor is actually the design" gating.
 
-    model-part-level (Kratos.Serializer-based) restart is explicitly disabled below
-    ("model_parts_settings"): "AdjointStructure" is independently mdpa-imported (restart-capable),
-    but "Structure" is derived from it via connectivity_preserving_model_part_controller (not
-    restart-capable -- see MdpaModelPartController/ModelPartController.SupportsRestart). Restoring
-    only "AdjointStructure"'s MODEL_PART_STATUS while "Structure" is freshly re-derived (with no
-    status) trips MaterialPropertiesControl.Initialize()'s primal/adjoint consistency check
-    (material_properties_control.py:106-107). Extending restart to shared-node primal/adjoint
-    pairs is a real follow-up, out of scope here.
     """
     restart_files_path = "Optimization_Restart_test"
 
@@ -50,6 +43,18 @@ class TestSystemIdentificationRestart(kratos_unittest.TestCase):
         analysis.Run()
         return analysis
 
+    def _GetPhysicalField(self, analysis: OptimizationAnalysis) -> 'list[float]':
+        """The identified material field as it sits on the mesh -- the restart-invariant quantity.
+
+        GetCurrentControlField() is deliberately not used: with an explicit filter the control
+        (phi-space) field is a pure delta accumulator -- Update() applies only
+        new_control_field - control_phi_field, and ExplicitFilter.UnfilterField() seeds it at zero
+        on every Initialize() -- so a resumed run legitimately carries a different absolute phi
+        value for the same physical field.
+        """
+        control, = analysis.GetAlgorithm().master_control.GetListOfControls()
+        return list(control.GetPhysicalField().data)
+
     def test_system_identification_restart(self):
         with kratos_unittest.WorkFolderScope(".", __file__):
             # reference run: solve iterations 0..2 in one uninterrupted process.
@@ -58,7 +63,7 @@ class TestSystemIdentificationRestart(kratos_unittest.TestCase):
             reference_analysis = self._RunToConvergence(reference_parameters)
             reference_algorithm = reference_analysis.GetAlgorithm()
             reference_obj_value = reference_algorithm.GetOptimizedObjectiveValue()
-            reference_control_field = list(reference_algorithm.GetCurrentControlField().data)
+            reference_physical_field = self._GetPhysicalField(reference_analysis)
 
             # checkpoint run: solve iterations 0..1 only, writing a restart checkpoint every step.
             checkpoint_parameters = self._ReadParameters()
@@ -66,46 +71,34 @@ class TestSystemIdentificationRestart(kratos_unittest.TestCase):
             checkpoint_parameters.AddValue("restart_settings", Kratos.Parameters("""{
                 "save_restart"           : true,
                 "restart_file_name"      : \"""" + self.restart_files_path + """/restart_<step>.pkl",
-                "restart_save_frequency" : 1,
-                "model_parts_settings"   : {
-                    "save_model_parts": false
-                }
+                "restart_save_frequency" : 1
             }"""))
             self._RunToConvergence(checkpoint_parameters)
 
             # resume run: restore the checkpoint from iteration 2 and run one more iteration to 3.
-            # This is also where MaterialPropertiesControl.Initialize() runs twice (see class
-            # docstring): once from optimization_problem_restart_input_process.ExecuteInitialize,
-            # once more from Algorithm.Initialize() right after.
             resume_parameters = self._ReadParameters()
             self._SetMaxIter(resume_parameters, 3)
             resume_parameters.AddValue("restart_settings", Kratos.Parameters("""{
                 "load_restart"       : true,
                 "restart_file_name"  : \"""" + self.restart_files_path + """/restart_<step>.pkl",
-                "restart_load_step"  : 2,
-                "model_parts_settings": {
-                    "load_model_parts": false
-                }
+                "restart_load_step"  : 2
             }"""))
             resume_analysis = self._RunToConvergence(resume_parameters)
             resume_algorithm = resume_analysis.GetAlgorithm()
             resume_obj_value = resume_algorithm.GetOptimizedObjectiveValue()
-            resume_control_field = list(resume_algorithm.GetCurrentControlField().data)
+            resume_physical_field = self._GetPhysicalField(resume_analysis)
 
             self.assertAlmostEqual(reference_obj_value, resume_obj_value, places=9)
-            # GetCurrentControlField() here is the *phi-space* (filtered/clamped) field, not the
-            # raw physical one, so a places-based comparison isn't meaningful either way -- compare
-            # with a delta scaled to the field's own magnitude instead. Unlike
-            # algorithm_steepest_descent_restart's linear, direct (unfiltered, unbounded) primal
-            # solve, this response runs an adjoint FEM solve through an iterative (amgcl) linear
-            # solver each iteration, so run-to-run reproducibility has a higher noise floor (order
-            # 1e-8 relative here, vs. 1e-9 there) -- still tight enough to catch a materially wrong
-            # restart restore, e.g. sensors/measurements not reproduced identically on resume, or
-            # entity specific properties created twice (this delta failed at ~3e-1 relative, not
-            # 1e-8, when this test first caught the control's Initialize()-is-idempotent bug fixed
-            # alongside it -- see MaterialPropertiesControl.Initialize()).
-            max_abs_reference_value = max(abs(value) for value in reference_control_field)
-            self.assertVectorAlmostEqual(reference_control_field, resume_control_field, places=None, delta=max_abs_reference_value * 1e-6)
+            # This response runs an adjoint FEM solve through an iterative (amgcl) linear solver
+            # each iteration, so run-to-run reproducibility has a higher noise floor than
+            # algorithm_steepest_descent_restart's linear, direct solve -- compare with a delta
+            # scaled to the field's own magnitude instead of an absolute places=. Still tight
+            # enough to catch a materially wrong restore, e.g. sensors/measurements not reproduced
+            # identically on resume, or entity specific properties created twice (this delta failed
+            # at ~3e-1 relative when this test first caught the control's Initialize()-is-idempotent
+            # bug fixed alongside it -- see MaterialPropertiesControl.Initialize()).
+            max_abs_reference_value = max(abs(value) for value in reference_physical_field)
+            self.assertVectorAlmostEqual(reference_physical_field, resume_physical_field, places=None, delta=max_abs_reference_value * 1e-6)
 
     @classmethod
     def tearDownClass(cls) -> None:

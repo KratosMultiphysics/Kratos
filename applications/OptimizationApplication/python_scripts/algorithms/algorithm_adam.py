@@ -46,8 +46,7 @@ class AlgorithmAdam(AlgorithmSteepestDescent):
         # update the biased first and second raw moment estimates. The moments from the previous
         # call are bookkept in "algorithm"'s own buffered data (step_index 1, i.e. the previous
         # step -- this call writes this step's moments to step_index 0) rather than plain Python
-        # attributes, so that a restart checkpoint/resume round-trips them correctly; see
-        # optimization_problem_restart_input_process.py.
+        # attributes, so that a restart checkpoint/resume round-trips them correctly.
         moment_1 = Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor(search_direction, perform_collect_data_recursively=False, perform_store_data_recursively=False)
         moment_2 = Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor(search_direction, perform_collect_data_recursively=False, perform_store_data_recursively=False)
         if algorithm_buffered_data.HasValue("moment_1", 1) and algorithm_buffered_data.HasValue("moment_2", 1):

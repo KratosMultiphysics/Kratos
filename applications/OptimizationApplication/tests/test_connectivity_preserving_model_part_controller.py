@@ -3,6 +3,7 @@ import KratosMultiphysics as Kratos
 import KratosMultiphysics.OptimizationApplication as KratosOA
 import KratosMultiphysics.KratosUnittest as kratos_unittest
 from KratosMultiphysics.OptimizationApplication.model_part_controllers.connectivity_preserving_model_part_controller import ConnectivityPreservingModelPartController
+from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem import OptimizationProblem
 
 
 class TestConnectivityPreservingModelPartController(kratos_unittest.TestCase):
@@ -31,7 +32,7 @@ class TestConnectivityPreservingModelPartController(kratos_unittest.TestCase):
                 }
             ]
         }""")
-        ConnectivityPreservingModelPartController(model, parameters).ImportModelPart()
+        ConnectivityPreservingModelPartController(model, parameters, OptimizationProblem()).ImportModelPart()
         self.__CheckModelParts(model_part, model["destination"])
 
     def test_Duplication2(self):
@@ -63,7 +64,7 @@ class TestConnectivityPreservingModelPartController(kratos_unittest.TestCase):
                 }
             ]
         }""")
-        ConnectivityPreservingModelPartController(model, parameters).ImportModelPart()
+        ConnectivityPreservingModelPartController(model, parameters, OptimizationProblem()).ImportModelPart()
         self.__CheckModelParts(sub_model_part, model["destination"])
         self.__CheckModelParts(sub_model_part, model["destination.sub_source"])
 
@@ -106,7 +107,7 @@ class TestConnectivityPreservingModelPartController(kratos_unittest.TestCase):
                 }
             ]
         }""")
-        ConnectivityPreservingModelPartController(model, parameters).ImportModelPart()
+        ConnectivityPreservingModelPartController(model, parameters, OptimizationProblem()).ImportModelPart()
         self.__CheckModelParts(model_part, model["destination"])
         self.__CheckModelParts(sub_model_part_1, model["destination.sub_source_1"])
         self.__CheckModelParts(sub_model_part_2, model["destination.sub_source_2"])
@@ -154,7 +155,7 @@ class TestConnectivityPreservingModelPartController(kratos_unittest.TestCase):
                 }
             ]
         }""")
-        ConnectivityPreservingModelPartController(model, parameters).ImportModelPart()
+        ConnectivityPreservingModelPartController(model, parameters, OptimizationProblem()).ImportModelPart()
         self.__CheckModelParts(model_part, model["destination"])
         self.__CheckModelParts(sub_model_part_1, model["destination.sub_source_1"])
         self.__CheckModelParts(sub_model_part_2, model["destination.sub_source_2"])
@@ -191,7 +192,7 @@ class TestConnectivityPreservingModelPartController(kratos_unittest.TestCase):
                 }
             ]
         }""")
-        ConnectivityPreservingModelPartController(model, parameters).ImportModelPart()
+        ConnectivityPreservingModelPartController(model, parameters, OptimizationProblem()).ImportModelPart()
         self.__CheckModelParts(sub_model_part, model["destination.sub_source"])
 
     def test_Duplication6(self):
@@ -228,7 +229,7 @@ class TestConnectivityPreservingModelPartController(kratos_unittest.TestCase):
         }""")
 
         with self.assertRaises(RuntimeError):
-            ConnectivityPreservingModelPartController(model, parameters).ImportModelPart()
+            ConnectivityPreservingModelPartController(model, parameters, OptimizationProblem()).ImportModelPart()
 
     def __CheckModelParts(self, model_part_1: Kratos.ModelPart, model_part_2: Kratos.ModelPart):
         self.assertEqual(model_part_1.NumberOfElements(), model_part_2.NumberOfElements())

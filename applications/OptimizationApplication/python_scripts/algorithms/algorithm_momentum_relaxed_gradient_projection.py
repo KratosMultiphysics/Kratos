@@ -51,9 +51,8 @@ class AlgorithmMomentumRelaxedGradientProjection(AlgorithmRelaxedGradientProject
         # add momentum to the correction update to compute new momentum point. The momentum from
         # the previous call is bookkept in "algorithm"'s own buffered data (step_index 1, i.e. the
         # previous step -- this call writes this step's momentum to step_index 0) rather than a
-        # plain Python attribute, so that a restart checkpoint/resume round-trips it correctly;
-        # see optimization_problem_restart_input_process.py (mirrors
-        # algorithm_nesterov_accelarated_gradient.py's identical fix).
+        # plain Python attribute, so that a restart checkpoint/resume round-trips it correctly
+        # (mirrors algorithm_nesterov_accelarated_gradient.py's identical fix).
         # overwrite=True: unlike AlgorithmSteepestDescent-based algorithms, AlgorithmRelaxedGradientProjection.Solve()
         # can call ComputeControlUpdate() more than once per outer step (its "max_inner_iter" retry
         # loop, when CheckLinearizedConstraints() rejects the first attempt), so this step's

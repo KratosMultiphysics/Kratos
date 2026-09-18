@@ -3,6 +3,7 @@ import KratosMultiphysics as Kratos
 import KratosMultiphysics.KratosUnittest as kratos_unittest
 from KratosMultiphysics.kratos_utilities import DeleteFileIfExisting
 from KratosMultiphysics.OptimizationApplication.model_part_controllers.mdpa_model_part_controller import MdpaModelPartController
+from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem import OptimizationProblem
 
 class TestMdpaModelPartController(kratos_unittest.TestCase):
     def test_MdpaModelPartControllerReadData(self):
@@ -15,7 +16,7 @@ class TestMdpaModelPartController(kratos_unittest.TestCase):
             }""")
 
             model = Kratos.Model()
-            model_part_controller = MdpaModelPartController(model, model_part_controller_settings)
+            model_part_controller = MdpaModelPartController(model, model_part_controller_settings, OptimizationProblem())
             model_part_controller.GetModelPart().AddNodalSolutionStepVariable(Kratos.DENSITY)
             model_part_controller.ImportModelPart()
 
@@ -42,7 +43,7 @@ class TestMdpaModelPartController(kratos_unittest.TestCase):
             }""")
 
             model = Kratos.Model()
-            model_part_controller = MdpaModelPartController(model, model_part_controller_settings)
+            model_part_controller = MdpaModelPartController(model, model_part_controller_settings, OptimizationProblem())
             model_part_controller.ImportModelPart()
 
             ref_model_part = model.CreateModelPart("ref")

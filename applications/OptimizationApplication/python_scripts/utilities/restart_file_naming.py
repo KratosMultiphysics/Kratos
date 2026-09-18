@@ -18,13 +18,15 @@ def ParseStepFromFileName(restart_file_name: str, file_name: str) -> int:
 def ResolveRestartLoadStep(restart_files_path: Path, restart_file_name: str, restart_load_step_param: Kratos.Parameters) -> 'int | None':
     """Resolves "restart_load_step" ("latest" or an explicit int) to a concrete step number.
 
-    Returns None only for "latest" when no checkpoint exists yet (fresh run).
+    "latest" is the highest step number parsed from an existing checkpoint's file name, not the
+    most recently modified file -- mtime is wrong after copying checkpoints between runs/machines
+    or re-running an earlier step. Returns None only for "latest" when no checkpoint exists yet
+    (fresh run).
     """
     if restart_load_step_param.IsString():
         checkpoint_glob = restart_file_name.replace("<step>", "*")
         checkpoints = list(restart_files_path.glob(checkpoint_glob)) if restart_files_path.is_dir() else []
         if not checkpoints:
             return None
-        latest = max(checkpoints, key=lambda p: p.stat().st_mtime)
-        return ParseStepFromFileName(restart_file_name, latest.name)
+        return max(ParseStepFromFileName(restart_file_name, p.name) for p in checkpoints)
     return restart_load_step_param.GetInt()
