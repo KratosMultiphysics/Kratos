@@ -136,6 +136,18 @@ std::string EquationIdsTensorAdaptor::Info() const
     return info.str();
 }
 
+void EquationIdsTensorAdaptor::save(Serializer& rSerializer) const
+{
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, BaseType);
+    rSerializer.save("ProcessInfo", mpProcessInfo);
+}
+
+void EquationIdsTensorAdaptor::load(Serializer& rSerializer)
+{
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, BaseType);
+    rSerializer.load("ProcessInfo", mpProcessInfo);
+}
+
 // template instantiations
 template KRATOS_API(KRATOS_CORE) EquationIdsTensorAdaptor::EquationIdsTensorAdaptor(ModelPart::ConditionsContainerType::Pointer, ProcessInfo::Pointer);
 template KRATOS_API(KRATOS_CORE) EquationIdsTensorAdaptor::EquationIdsTensorAdaptor(ModelPart::ElementsContainerType::Pointer, ProcessInfo::Pointer);

@@ -59,6 +59,26 @@ public:
     ///@{
 
     /**
+     * @brief Serializes a @ref VariablePointerType (variant index + variable name).
+     * @details Shared by every TensorAdaptor subtype that stores a @ref VariablePointerType, so the
+     *          variant-index dispatch is written once. See @ref LoadVariablePointer for the inverse.
+     */
+    static void SaveVariablePointer(
+        Serializer& rSerializer,
+        const std::string& rTag,
+        const VariablePointerType& rVariable);
+
+    /**
+     * @brief Deserializes a @ref VariablePointerType saved by @ref SaveVariablePointer.
+     * @details Reconstructs the pointer via @ref KratosComponents, matching @ref VariablesList::load's
+     *          by-name variable lookup.
+     */
+    static void LoadVariablePointer(
+        Serializer& rSerializer,
+        const std::string& rTag,
+        VariablePointerType& rVariable);
+
+    /**
      * @brief Computes the shape of a tensor represented by a container of data elements.
      *
      * @details This static utility function determines the shape of a tensor based on the provided @p rContainer
