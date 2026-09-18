@@ -81,17 +81,25 @@ MockPwElementForSeepageTests::MockPwElementForSeepageTests(const std::vector<int
 void MockPwElementForSeepageTests::GetDofList(DofsVectorType& rElementalDofList, const ProcessInfo&) const
 {
     rElementalDofList.clear();
-    rElementalDofList.reserve(mNodes.size());
-    std::ranges::transform(mNodes, std::back_inserter(rElementalDofList),
-                           [](const auto& rp_node) { return rp_node->pGetDof(WATER_PRESSURE); });
+    for (const auto& rp_node : mNodes) {
+        std::ranges::transform(rp_node->GetDofs(), std::back_inserter(rElementalDofList),
+                               [](const auto& rpDof) { return rpDof.get(); });
+    }
 }
 
 void MockPwElementForSeepageTests::CalculateRightHandSide(VectorType& rRightHandSideVector, const ProcessInfo&)
 {
-    rRightHandSideVector.resize(mNodes.size());
-    // For each degree of freedom, use the node ID as the right hand side value
-    std::ranges::transform(mNodes, rRightHandSideVector.begin(),
-                           [](const auto& rpNode) { return static_cast<double>(rpNode->Id()); });
+    auto dofs = DofsVectorType{};
+    this->GetDofList(dofs, ProcessInfo{});
+
+    rRightHandSideVector.resize(dofs.size());
+    // For each water pressure DoF, use the node ID as the right hand side value. For every other
+    // DoF, use twice the node ID.
+    auto calculate_dof_value = [](const auto* pDof) {
+        return pDof->GetVariable() == WATER_PRESSURE ? static_cast<double>(pDof->Id())
+                                                     : 2.0 * static_cast<double>(pDof->Id());
+    };
+    std::ranges::transform(dofs, rRightHandSideVector.begin(), calculate_dof_value);
 }
 
 // Creates two triangular mock elements sharing an edge, with WATER_PRESSURE DoFs on each node.
@@ -103,18 +111,14 @@ void MockPwElementForSeepageTests::CalculateRightHandSide(VectorType& rRightHand
 //   |     \|
 //   *------*
 //   1      2
-auto CreateTwoConnectedMockPwElements()
+auto CreateTwoConnectedMockElements(const Geo::ConstVariableDataRefs& rSolutionStepVariables,
+                                    const Geo::ConstVariableRefs&     rDegreesOfFreedom)
 {
     const auto nodal_positions = std::vector{Point{0.0, 0.0, 0.0}, Point{1.0, 0.0, 0.0},
                                              Point{0.0, 1.0, 0.0}, Point{1.0, 1.0, 0.0}};
-    const auto nodes           = Testing::ElementSetupUtilities::GenerateNodes(nodal_positions);
+    auto       nodes           = Testing::ElementSetupUtilities::GenerateNodes(nodal_positions);
 
-    auto p_variable_list = make_intrusive<VariablesList>();
-    p_variable_list->Add(WATER_PRESSURE);
-    for (auto& r_node : nodes) {
-        r_node.SetSolutionStepVariablesList(p_variable_list);
-        r_node.AddDof(WATER_PRESSURE);
-    }
+    Testing::ElementSetupUtilities::AddVariablesToNodes(nodes, rSolutionStepVariables, rDegreesOfFreedom);
 
     const auto nodes_of_element_1 =
         std::vector{nodes.GetContainer()[0], nodes.GetContainer()[1], nodes.GetContainer()[2]};
@@ -160,7 +164,7 @@ KRATOS_TEST_CASE_IN_SUITE(CollectSeepageNodesReturnsSharedNodesOnlyOnce, KratosG
 KRATOS_TEST_CASE_IN_SUITE(CalculateNodalWaterFlowsSumsRHSContributionsFromSeveralElements,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    auto elements = CreateTwoConnectedMockPwElements();
+    auto elements = CreateTwoConnectedMockElements({std::cref(WATER_PRESSURE)}, {std::cref(WATER_PRESSURE)});
 
     const auto nodal_flow_map =
         Geo::SeepageBoundaryUtilities::CalculateNodalWaterFlows(elements, ProcessInfo{});
@@ -174,7 +178,7 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateNodalWaterFlowsSumsRHSContributionsFromSevera
 
 KRATOS_TEST_CASE_IN_SUITE(CalculateNodalWaterFlowsSkipsInactiveElements, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    auto elements = CreateTwoConnectedMockPwElements();
+    auto elements = CreateTwoConnectedMockElements({std::cref(WATER_PRESSURE)}, {std::cref(WATER_PRESSURE)});
     elements.back().Set(ACTIVE, false); // deactivate element 2
 
     const auto nodal_flow_map =
@@ -185,6 +189,22 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateNodalWaterFlowsSkipsInactiveElements, KratosG
     KRATOS_EXPECT_DOUBLE_EQ(nodal_flow_map.at(2), 1 * 2.0);
     KRATOS_EXPECT_DOUBLE_EQ(nodal_flow_map.at(3), 1 * 3.0);
     // Node 4 is not part of any active element, so it should not appear in the map
+}
+
+KRATOS_TEST_CASE_IN_SUITE(CalculateNodalWaterFlowsConsidersPwDoFsOnly, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    auto elements = CreateTwoConnectedMockElements(
+        {std::cref(WATER_PRESSURE), std::cref(DISPLACEMENT)},
+        {std::cref(WATER_PRESSURE), std::cref(DISPLACEMENT_X), std::cref(DISPLACEMENT_Y)});
+
+    const auto nodal_flow_map =
+        Geo::SeepageBoundaryUtilities::CalculateNodalWaterFlows(elements, ProcessInfo{});
+
+    ASSERT_EQ(nodal_flow_map.size(), 4);
+    KRATOS_EXPECT_DOUBLE_EQ(nodal_flow_map.at(1), 1 * 1.0); // only element 1 contributes
+    KRATOS_EXPECT_DOUBLE_EQ(nodal_flow_map.at(2), 2 * 2.0); // both elements contribute
+    KRATOS_EXPECT_DOUBLE_EQ(nodal_flow_map.at(3), 2 * 3.0); // both elements contribute
+    KRATOS_EXPECT_DOUBLE_EQ(nodal_flow_map.at(4), 1 * 4.0); // only element 2 contributes
 }
 
 KRATOS_TEST_CASE_IN_SUITE(SwitchOneSeepageNodeDoesNothingWhenNoNodeViolatesItsCondition,
