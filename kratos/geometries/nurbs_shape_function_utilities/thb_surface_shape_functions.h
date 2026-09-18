@@ -16,6 +16,7 @@
 #include <unordered_map>
 
 // Project includes
+#include "containers/array_1d.h"
 #include "geometries/nurbs_shape_function_utilities/nurbs_surface_shape_functions.h"
 
 namespace Kratos {
@@ -107,6 +108,14 @@ public:
     /// These already account for EliminateInactiveFunctions (packed layout).
     const std::vector<IndexType>& ControlPointIndices() const { return mControlPointIndices; }
 
+    /// Per-level tensor-grid coordinates for each nonzero basis function.
+    /// Each entry is (level, u_in_level, v_in_level), where u,v are the 2D indices
+    /// in that level's tensor grid.
+    const std::vector<array_1d<int, 3>>& NonzeroControlPointIndices() const
+    {
+        return mNonzeroControlPointIndices;
+    }
+
     ///@}
     ///@name Evaluation
     ///@{
@@ -169,11 +178,14 @@ public:
         // N_i^l = D_ij * (w_i/w_j) * N_j^m for every derivative row. For non-rational
         // geometries (all weights empty) w_i/w_j = 1 and the formula is unchanged.
         mControlPointIndices.clear();
+        mNonzeroControlPointIndices.clear();
         std::vector<std::vector<double>> truncated_value_per_control_point;
 
         for (SizeType l = 0; l <= ActiveLevel; ++l) {
             const auto& CurrentLevelCache = level_caches[l];
             const auto& active_flags = rGeometry.GetActiveFunctions(l);
+            const SizeType number_of_control_points_u_at_level =
+                AllLevels[l].KnotsU.size() - AllLevels[l].DegreeU + 1;
 
             for (SizeType j = 0; j < CurrentLevelCache.number_of_nonzero_control_points; ++j) {
                 const SizeType flat_index = static_cast<SizeType>(CurrentLevelCache.local_flat_indices[j]);
@@ -202,6 +214,11 @@ public:
                 }
 
                 mControlPointIndices.push_back(rGeometry.PackedControlPointIndex(l, flat_index));
+                array_1d<int, 3> level_uv;
+                level_uv[0] = static_cast<int>(l);
+                level_uv[1] = static_cast<int>(flat_index % number_of_control_points_u_at_level);
+                level_uv[2] = static_cast<int>(flat_index / number_of_control_points_u_at_level);
+                mNonzeroControlPointIndices.push_back(level_uv);
                 truncated_value_per_control_point.push_back(std::move(truncated_value));
             }
         }
@@ -223,6 +240,8 @@ private:
     SizeType                  mDerivativeOrder = 0;
     NurbsSurfaceShapeFunction mTensorProductNurbs;
     std::vector<IndexType>    mControlPointIndices;
+    /// Per-level tensor-grid coordinates: (level, u_in_level, v_in_level).
+    std::vector<array_1d<int, 3>>     mNonzeroControlPointIndices;
     /// Shape function values: layout [row * num_nonzero + cp_idx].
     std::vector<double>       mValues;
 

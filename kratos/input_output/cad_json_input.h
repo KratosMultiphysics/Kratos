@@ -600,12 +600,37 @@ private:
                     pNurbsSurface->PolynomialDegree(0), pNurbsSurface->PolynomialDegree(1),
                     pNurbsSurface->KnotsU(), pNurbsSurface->KnotsV());
 
-            // Collect per-level refinement method ("h" = knot insertion, "p" = degree elevation).
-            std::vector<std::string> level_method(max_level + 1, "h");
+            // Collect per-level refinement method ("h" = knot insertion,
+            // "p" = degree elevation, "k" = combined).
+            // Unspecified levels inherit from the nearest specified level below;
+            // if nothing lower is specified they inherit from the nearest level above.
+            std::vector<std::string> level_method(max_level + 1);
+            std::vector<bool>        level_specified(max_level + 1, false);
             for (SizeType i = 0; i < local_ref.size(); ++i) {
+                if (!local_ref[i].Has("refinement_method")) continue;
                 const SizeType lv = (SizeType)local_ref[i]["refinement_level"].GetInt();
-                if (local_ref[i].Has("refinement_method"))
-                    level_method[lv] = local_ref[i]["refinement_method"].GetString();
+                level_method[lv]    = local_ref[i]["refinement_method"].GetString();
+                level_specified[lv] = true;
+            }
+            for (SizeType lv = 1; lv <= max_level; ++lv) {
+                if (level_specified[lv]) continue;
+                bool found = false;
+                for (int j = static_cast<int>(lv) - 1; j >= 1 && !found; --j) {
+                    if (level_specified[j]) { level_method[lv] = level_method[j]; found = true; }
+                }
+                for (SizeType j = lv + 1; j <= max_level && !found; ++j) {
+                    if (level_specified[j]) { level_method[lv] = level_method[j]; found = true; }
+                }
+                if (!found) level_method[lv] = "h";
+            }
+            if (EchoLevel > 2) {
+                std::stringstream method_summary;
+                method_summary << "Per-level method for brep_id " << brep_id << ": [";
+                for (SizeType lv = 1; lv <= max_level; ++lv)
+                    method_summary << (lv > 1 ? ", " : "") << lv << "=\"" << level_method[lv] << "\""
+                        << (level_specified[lv] ? "" : " (inherited)");
+                method_summary << "]";
+                KRATOS_INFO("ReadLocalRefinement") << method_summary.str() << std::endl;
             }
 
             // Add levels one by one so that p- and h-refinement may be mixed.

@@ -15,6 +15,8 @@
 // System includes
 #include <algorithm>
 #include <cmath>
+#include <limits>
+#include <unordered_map>
 #include <vector>
 
 // Project includes
@@ -477,6 +479,28 @@ public:
         return result;
     }
 
+    /// Evaluates THB shape function values at a single (u, v) point.
+    /// rResult is sized to the number of nonzero active basis functions at (u, v)
+    /// (varies per point in the hierarchy, differs from NURBS's fixed (p+1)*(q+1)).
+    Vector& ShapeFunctionsValues(
+        Vector& rResult,
+        const CoordinatesArrayType& rCoordinates) const override
+    {
+        THBSurfaceShapeFunction shape_function_container(
+            mLevels.back().DegreeU, mLevels.back().DegreeV, 0);
+        shape_function_container.ComputeShapeFunctionValues(
+            *this, rCoordinates[0], rCoordinates[1]);
+
+        const SizeType num_nonzero = shape_function_container.NumberOfNonzeroControlPoints();
+        if (rResult.size() != num_nonzero)
+            rResult.resize(num_nonzero, false);
+
+        for (SizeType j = 0; j < num_nonzero; ++j)
+            rResult[j] = shape_function_container(j, 0);
+
+        return rResult;
+    }
+
     /// Evaluates THB shape functions at a single (u, v) point, returning node IDs
     /// and values for the nonzero active basis functions.
     void ShapeFunctionsValuesAndCPIndices(
@@ -576,6 +600,27 @@ public:
         } else {
             return ControlPointOffset(Level) + FlatIndex;
         }
+    }
+
+    /// Returns a lookup {node_id -> CP weight} covering every active CP across
+    /// every level of this THB surface.
+    std::unordered_map<IndexType, double> WeightsByNodeId() const
+    {
+        std::unordered_map<IndexType, double> result;
+        for (SizeType l = 0; l < mLevels.size(); ++l) {
+            const auto& level = mLevels[l];
+            const bool is_rational = level.Weights.size() > 0;
+            const SizeType n_u = level.KnotsU.size() - level.DegreeU + 1;
+            const SizeType n_v = level.KnotsV.size() - level.DegreeV + 1;
+            const SizeType total = n_u * n_v;
+            for (SizeType flat = 0; flat < total; ++flat) {
+                if (!mActiveFunctions[l][flat]) continue;
+                const SizeType packed = PackedControlPointIndex(l, flat);
+                const IndexType node_id = this->pGetPoint(packed)->Id();
+                result[node_id] = is_rational ? level.Weights[flat] : 1.0;
+            }
+        }
+        return result;
     }
 
     ///@}

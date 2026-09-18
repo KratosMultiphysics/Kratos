@@ -681,6 +681,7 @@ void  AddGeometriesToPython(pybind11::module& m)
              py::arg("level"))
         .def("EliminateInactiveFunctions", &THBSurfaceGeometry3DType::EliminateInactiveFunctions,
              py::arg("model_part"))
+        .def("WeightsByNodeId", &THBSurfaceGeometry3DType::WeightsByNodeId)
         .def("EvaluateShapeFunctions", &THBSurfaceGeometry3DType::EvaluateShapeFunctions,
              py::arg("uv_values"))
         .def("SetLevel0", &THBSurfaceGeometry3DType::SetLevel0,
