@@ -21,11 +21,9 @@
 
 namespace Kratos {
 
-bool MasterSlaveConstraint::IsActive() const
+bool MasterSlaveConstraint::IsActive() const 
 {
     return IsDefined(ACTIVE) ? Is(ACTIVE) : true;
 }
-
-template class KratosComponents<MasterSlaveConstraint>;
 
 }  // namespace Kratos.

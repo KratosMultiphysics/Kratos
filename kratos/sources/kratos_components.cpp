@@ -155,6 +155,7 @@ template class KratosComponents<Element>;
 template class KratosComponents<Condition>;
 template class KratosComponents<ConstitutiveLaw>;
 template class KratosComponents<Variable<ConstitutiveLaw::Pointer>>;
+template class KratosComponents<MasterSlaveConstraint>;
 template class KratosComponents<Modeler>;
 
 using RealSparseSpace = UblasSpace<double, boost::numeric::ublas::compressed_matrix<double>, boost::numeric::ublas::vector<double>>;
