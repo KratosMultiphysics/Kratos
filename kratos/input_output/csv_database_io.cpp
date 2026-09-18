@@ -164,7 +164,7 @@ CSVDatabaseIO::CSVDatabaseIO(
       mrDataCommunicator(rDataCommunicator),
       mEchoLevel(EchoLevel),
       mRowIdName(rRowIdName),
-      mFormatSettings(9, 9, 9, std::vector<std::string>{"0", rBooleanTrueValue}),
+      mFormatSettings{9, 9, 9, std::vector<std::string>{"0", rBooleanTrueValue}},
       mCurrentTableId(std::numeric_limits<int>::min()),
       mTitle(""),
       mHeader(""),
