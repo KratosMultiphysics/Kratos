@@ -23,7 +23,7 @@ namespace
 
 using namespace Kratos;
 
-void CheckElement(Element& rElement, const std::string& rModelPartName, const ProcessInfo& rProcessInfo)
+void CheckElement(const Element& rElement, const std::string& rModelPartName, const ProcessInfo& rProcessInfo)
 {
     int check_result = 0;
     try {
@@ -46,6 +46,19 @@ void CheckElement(Element& rElement, const std::string& rModelPartName, const Pr
                                           "Element Check failed before extrapolation for "
                                        << "element id " << rElement.Id() << " in ModelPart='" << rModelPartName
                                        << "'. Check returned " << check_result << "." << std::endl;
+}
+} // namespace
+
+namespace
+{
+using namespace Kratos;
+
+std::tuple<GeometryData::KratosGeometryType, std::size_t, int> GetCacheKey(const Element& rElement)
+{
+    // Combine geometry type and number of integration points for unique key
+    const auto& r_geometry = rElement.GetGeometry();
+    auto        geoType    = r_geometry.GetGeometryType();
+    return {geoType, r_geometry.size(), GeoElementUtilities::GetNumberOfIntegrationPointsOf(rElement)};
 }
 } // namespace
 
@@ -212,18 +225,18 @@ void GeoExtrapolateIntegrationPointValuesToNodesProcess::CacheExtrapolationMatri
 
 bool GeoExtrapolateIntegrationPointValuesToNodesProcess::ExtrapolationMatrixIsCachedFor(const Element& rElement) const
 {
-    return mExtrapolationMatrixMap.contains(typeid(rElement).hash_code());
+    return mExtrapolationMatrixMap.contains(GetCacheKey(rElement));
 }
 
 void GeoExtrapolateIntegrationPointValuesToNodesProcess::CacheExtrapolationMatrixFor(const Element& rElement,
                                                                                      const Matrix& rExtrapolationMatrix)
 {
-    mExtrapolationMatrixMap[typeid(rElement).hash_code()] = rExtrapolationMatrix;
+    mExtrapolationMatrixMap[GetCacheKey(rElement)] = rExtrapolationMatrix;
 }
 
 const Matrix& GeoExtrapolateIntegrationPointValuesToNodesProcess::GetCachedExtrapolationMatrixFor(const Element& rElement) const
 {
-    return mExtrapolationMatrixMap.at(typeid(rElement).hash_code());
+    return mExtrapolationMatrixMap.at(GetCacheKey(rElement));
 }
 
 void GeoExtrapolateIntegrationPointValuesToNodesProcess::AddIntegrationPointContributionsForAllVariables(

@@ -152,7 +152,7 @@ KratosGeoSettlement::KratosGeoSettlement(std::unique_ptr<InputUtility>      pInp
 void KratosGeoSettlement::InitializeProcessFactory()
 {
     mProcessFactory->AddCreator("ApplyScalarConstraintTableProcess",
-                                MakeCreatorFor<ApplyScalarConstraintTableProcess>());
+                                MakeCreatorWithModelFor<ApplyScalarConstraintTableProcess>());
     mProcessFactory->AddCreator("ApplyNormalLoadTableProcess", MakeCreatorFor<ApplyNormalLoadTableProcess>());
     mProcessFactory->AddCreator("ApplyVectorConstraintTableProcess",
                                 MakeCreatorWithModelFor<ApplyVectorConstraintTableProcess>());
