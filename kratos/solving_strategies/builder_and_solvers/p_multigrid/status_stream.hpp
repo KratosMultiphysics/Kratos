@@ -33,15 +33,18 @@ class PMGStatusStream final {
 public:
     struct Report {
         std::size_t grid_level;
-        bool multigrid_converged;
+        bool multigrid_absolute_converged;
+        bool multigrid_relative_converged;
         std::size_t multigrid_iteration;
-        std::optional<double> maybe_multigrid_residual;
-        bool constraints_converged;
+        std::optional<double> maybe_multigrid_absolute_residual;
+        std::optional<double> maybe_multigrid_relative_residual;
+        bool constraints_absolute_converged;
+        bool constraints_relative_converged;
         std::size_t constraint_iteration;
-        std::optional<double> maybe_constraint_residual;
+        std::optional<double> maybe_constraint_absolute_residual;
+        std::optional<double> maybe_constraint_relative_residual;
 
-        std::pair<Report,int> Tag(int ReportVerbosity)
-        {
+        std::pair<Report,int> Tag(int ReportVerbosity) const noexcept {
             return std::make_pair(*this, ReportVerbosity);
         }
     }; // struct Report
