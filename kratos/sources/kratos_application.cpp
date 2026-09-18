@@ -26,6 +26,8 @@
 #include "includes/constitutive_law.h"
 #include "includes/geometrical_object.h"
 #include "includes/master_slave_constraint.h"
+#include "tensor_adaptors/tensor_adaptor.h"
+#include "tensor_adaptors/combined_tensor_adaptor.h"
 
 /* Factories */
 #include "factories/standard_linear_solver_factory.h"
@@ -175,6 +177,13 @@ void KratosApplication::RegisterKratosCore() {
 
     Serializer::Register("MasterSlaveConstraint", MasterSlaveConstraint());
     Serializer::Register("MultifreedomConstraint", MultifreedomConstraint());
+
+    Serializer::Register("DoubleTensorAdaptor", TensorAdaptor<double>());
+    Serializer::Register("IntTensorAdaptor", TensorAdaptor<int>());
+    Serializer::Register("BoolTensorAdaptor", TensorAdaptor<bool>());
+    Serializer::Register("DoubleCombinedTensorAdaptor", CombinedTensorAdaptor<double>());
+    Serializer::Register("IntCombinedTensorAdaptor", CombinedTensorAdaptor<int>());
+    Serializer::Register("BoolCombinedTensorAdaptor", CombinedTensorAdaptor<bool>());
 
     //Register specific conditions ( must be completed : conditions defined in kratos_application.h)
     //generic condition

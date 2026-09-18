@@ -38,33 +38,43 @@ class AlgorithmMomentumRelaxedGradientProjection(AlgorithmRelaxedGradientProject
 
     def __init__(self, model:Kratos.Model, parameters: Kratos.Parameters, optimization_problem: OptimizationProblem):
         super().__init__(model, parameters, optimization_problem)
-        self.prev_update = None
         self.eta = self.parameters["settings"]["eta"].GetDouble()
 
     @time_decorator()
     def ComputeControlUpdate(self, alpha: Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor):
         # compute the correction part from momentum point
-        search_direction: Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor = self.algorithm_data.GetBufferedData()["search_direction"]
+        algorithm_buffered_data = self.algorithm_data.GetBufferedData()
+        search_direction: Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor = algorithm_buffered_data["search_direction"]
         update = Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor(search_direction, perform_store_data_recursively=False)
         update.data[:] *= alpha.data
         update.StoreData()
-        # add momentum to the correction update to compute new momentum point.
-        if self.prev_update:
+        # add momentum to the correction update to compute new momentum point. The momentum from
+        # the previous call is bookkept in "algorithm"'s own buffered data (step_index 1, i.e. the
+        # previous step -- this call writes this step's momentum to step_index 0) rather than a
+        # plain Python attribute, so that a restart checkpoint/resume round-trips it correctly;
+        # see optimization_problem_restart_input_process.py (mirrors
+        # algorithm_nesterov_accelarated_gradient.py's identical fix).
+        # overwrite=True: unlike AlgorithmSteepestDescent-based algorithms, AlgorithmRelaxedGradientProjection.Solve()
+        # can call ComputeControlUpdate() more than once per outer step (its "max_inner_iter" retry
+        # loop, when CheckLinearizedConstraints() rejects the first attempt), so this step's
+        # "momentum" slot may already be set from an earlier retry within the same step.
+        if algorithm_buffered_data.HasValue("momentum", 1):
+            prev_momentum: Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor = algorithm_buffered_data.GetValue("momentum", 1)
             mom_update = Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor(update, perform_store_data_recursively=False)
-            mom_update.data[:] += self.prev_update.data * self.eta
+            mom_update.data[:] += prev_momentum.data * self.eta
             mom_update.StoreData()
 
             full_update = Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor(update, perform_store_data_recursively=False)
             full_update.data[:] += mom_update.data * self.eta
             full_update.StoreData()
-            self.prev_update = mom_update
+            algorithm_buffered_data.SetValue("momentum", mom_update, overwrite=True)
         else:
             full_update = Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor(update, perform_store_data_recursively=False)
             full_update.data[:] *= (1 + self.eta)
             full_update.StoreData()
-            self.prev_update = update
+            algorithm_buffered_data.SetValue("momentum", update, overwrite=True)
 
-        self.algorithm_data.GetBufferedData().SetValue("control_field_update", full_update, overwrite=True)
+        algorithm_buffered_data.SetValue("control_field_update", full_update, overwrite=True)
 
 
         return full_update

@@ -32,7 +32,23 @@ class MdpaModelPartController(ModelPartController):
         self.model_part = model.CreateModelPart(model_part_name)
         self.read_data = parameters["read_data"].GetBool()
 
+    def SupportsRestart(self) -> bool:
+        return True
+
     def ImportModelPart(self) -> None:
+        if self.model_part.NumberOfNodes() > 0:
+            # OptimizationAnalysis._CreateRestart() already loaded this model part directly from
+            # the restart checkpoint, synchronously, before Initialize() ever calls this method --
+            # skip the normal mdpa read.
+            # Mirrors Kratos.RestartUtility.LoadRestart(): downstream solvers (e.g.
+            # MechanicalSolver.PrepareModelPart()) gate re-reading materials/constitutive laws on
+            # IS_RESTARTED -- skipping it is required, not just an optimization, since the
+            # restored model part's Properties/constitutive laws would otherwise be clobbered by
+            # a second, independent materials-import on top of the deserialized ones.
+            self.model_part.ProcessInfo[Kratos.IS_RESTARTED] = True
+            self.model_part.ProcessInfo[Kratos.LOAD_RESTART] = self.model_part.ProcessInfo[Kratos.STEP] + 1
+            return
+
         if self.read_data:
             Kratos.ModelPartIO(self.input_filename, Kratos.ModelPartIO.READ).ReadModelPart(self.model_part)
         else:

@@ -122,6 +122,13 @@ public:
     ///@{
 
     /**
+     * @brief Construct an empty, invalid instance.
+     * @details Only intended for @ref Serializer::load to construct into before populating via
+     *          @ref load. Any other use leaves the instance with a null storage and no container.
+     */
+    TensorAdaptor() = default;
+
+    /**
      * @brief Construct a new Tensor Adaptor from a given @p pContainer and a @p pData
      * @details This constructor creates an instance of @ref TensorAdaptor using the @p pContainer
      *          as the container and the data in the @p pData .
@@ -248,18 +255,22 @@ public:
     ///@}
 
 protected:
-    ///@name Protected life cycle
-    ///@{
-
-    TensorAdaptor() = default;
-
-    ///@}
     ///@name Protected member variables
     ///@{
 
     typename Storage::Pointer mpStorage;
 
     std::optional<ContainerPointerType> mpContainer;
+
+    ///@}
+    ///@name Serialization
+    ///@{
+
+    friend class Serializer;
+
+    virtual void save(Serializer& rSerializer) const;
+
+    virtual void load(Serializer& rSerializer);
 
     ///@}
 };

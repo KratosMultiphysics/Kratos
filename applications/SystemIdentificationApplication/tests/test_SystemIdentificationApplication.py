@@ -4,6 +4,7 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 import test_adjoint_sensors
 import test_sensor_output_process
 import test_system_identification
+import test_system_identification_restart
 import responses.test_damage_response
 import responses.test_temperature_response
 import responses.test_pressure_response
@@ -29,6 +30,7 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_sensor_utils.TestSensorUtils]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_sensor_generator_analysis.TestSensorGeneratorAnalysis]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_system_identification.TestSystemIdentification]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_system_identification_restart.TestSystemIdentificationRestart]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([responses.test_damage_response.TestDamageDetectionAdjointResponseFunction]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([responses.test_damage_response.TestDamageDetectionResponse]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([responses.test_damage_response.TestDamageDetectionResponseStrainSensor]))

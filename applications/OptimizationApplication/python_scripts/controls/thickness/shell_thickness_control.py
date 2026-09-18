@@ -57,7 +57,8 @@ class ShellThicknessControl(Control):
         self.output_all_fields = self.parameters["output_all_fields"].GetBool()
         self.physical_thicknesses = self.parameters["physical_thicknesses"].GetVector()
 
-        self.thickness_projection = CreateProjection(parameters["thickness_projection_settings"], self.optimization_problem)
+        thickness_projection_restart_data = ComponentDataView(f"{self.GetName()}:thickness_projection", optimization_problem).GetUnBufferedData()
+        self.thickness_projection = CreateProjection(parameters["thickness_projection_settings"], self.optimization_problem, thickness_projection_restart_data)
 
         self.consider_recursive_property_update = parameters["consider_recursive_property_update"].GetBool()
 
@@ -67,6 +68,16 @@ class ShellThicknessControl(Control):
         self.filtered_thicknesses = [i for i, _ in enumerate(self.physical_thicknesses)]
 
     def Initialize(self) -> None:
+        # a restart resume needs GetEmptyField()/Update() on an already-initialized control before
+        # the algorithm's own Initialize() call runs (see optimization_problem_restart_input_process.py),
+        # so it calls Initialize() itself first and relies on the second, algorithm-driven call being
+        # a no-op. Guard on that here: unlike most of what follows, deriving control_phi_field/
+        # physical_phi_field below reads the *current* mesh state, so re-running it after a restart has
+        # already restored/updated those fields would silently discard the restored design (re-deriving
+        # it lossily through the thickness projection/filter round-trip instead).
+        if self.model_part is not None:
+            return
+
         self.model_part = self.model_part_operation.GetModelPart()
 
         if not KratosOA.OptAppModelPartUtils.CheckModelPartStatus(self.model_part, "element_specific_properties_created"):

@@ -194,6 +194,18 @@ class OptimizationProblem:
         """
         return self.__problem_data["step"]
 
+    def SetStep(self, step: int) -> None:
+        """Directly sets the current step of the optimization info.
+
+        Unlike @ref AdvanceStep, this does not cycle the buffer or clear any data. It is
+        meant to be used by a restart process to set the step counter to a previously
+        checkpointed value before manually repopulating the buffered data.
+
+        Args:
+            step (int): Step value to set.
+        """
+        self.__problem_data.SetValue("step", step, overwrite=True)
+
     def AdvanceStep(self) -> None:
         """Advances the problem data by one step.
 
