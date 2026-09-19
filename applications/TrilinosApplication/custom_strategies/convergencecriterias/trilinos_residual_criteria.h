@@ -75,6 +75,9 @@ public:
     /// Definition of the IndexType
     using IndexType = std::size_t;
 
+    /// Definition of the SizeType
+    using SizeType = std::size_t;
+
     ///@}
     ///@name Life Cycle
     ///@{
@@ -225,10 +228,6 @@ public:
     }
 
     ///@}
-    ///@name Friends
-    ///@{
-
-    ///@}
 protected:
     ///@name Protected Operations
     ///@{
@@ -245,6 +244,66 @@ protected:
     {
         // Filling mActiveDofs when MPC exist
         ConstraintUtilities::DistributedComputeActiveDofs(rModelPart, BaseType::mActiveDofs, rDofSet, BaseType::mInitialDoFId);
+    }
+
+    /**
+     * @brief This method computes the norm of the residual
+     * @details It checks if the dof is fixed
+     * @param rModelPart Reference to the ModelPart containing the problem.
+     * @param rResidualSolutionNorm The norm of the residual
+     * @param rDofNum The number of DoFs
+     * @param rDofSet Reference to the container of the problem's degrees of freedom (stored by the BuilderAndSolver)
+     * @param rb RHS vector (residual + reactions)
+     */
+    void CalculateResidualNorm(
+        ModelPart& rModelPart,
+        TDataType& rResidualSolutionNorm,
+        SizeType& rDofNum,
+        DofsArrayType& rDofSet,
+        const TSystemVectorType& rb
+        ) override
+    {
+        if constexpr (TSparseSpace::LinearAlgebraLibrary() == TrilinosLinearAlgebraLibrary::EPETRA) {
+            BaseType::CalculateResidualNorm(rModelPart, rResidualSolutionNorm, rDofNum, rDofSet, rb);
+        } else if constexpr (TSparseSpace::LinearAlgebraLibrary() == TrilinosLinearAlgebraLibrary::TPETRA) { // Kokkos conflicts with OpenMP in the block_for_each, so we need to specialize the code for TPETRA
+        #if (HAVE_TPETRA)
+            // Retrieve the data communicator
+            const auto& r_data_communicator = rModelPart.GetCommunicator().GetDataCommunicator();
+
+            // The current MPI rank
+            const int rank = r_data_communicator.Rank();
+
+            // Initialize
+            TDataType residual_solution_norm = TDataType();
+            unsigned int dof_num = 0;
+
+            // Loop over Dofs
+            if (rModelPart.NumberOfMasterSlaveConstraints() > 0) {
+                for (auto& rDof : rDofSet) {
+                    if (this->IsActiveAndLocalDof(rDof, rank)) {
+                        const TDataType residual_dof_value = TSparseSpace::GetValue(rb, rDof.EquationId());
+                        residual_solution_norm += std::pow(residual_dof_value, 2);
+                        ++dof_num;
+                    }
+                }
+            } else {
+                for (auto& rDof : rDofSet) {
+                    if (this->IsFreeAndLocalDof(rDof, rank)) {
+                        const TDataType residual_dof_value = TSparseSpace::GetValue(rb, rDof.EquationId());
+                        residual_solution_norm += std::pow(residual_dof_value, 2);
+                        ++dof_num;
+                    }
+                }
+            }
+
+            rDofNum = static_cast<SizeType>(r_data_communicator.SumAll(dof_num));
+            rResidualSolutionNorm = std::sqrt(r_data_communicator.SumAll(residual_solution_norm));
+        #else
+            KRATOS_ERROR << "You must compile Kratos with TPETRA support" << std::endl;
+        #endif
+        } else {
+            KRATOS_ERROR << "Only EPETRA and TPETRA are supported for now" << std::endl;
+        }
     }
 
     ///@}
