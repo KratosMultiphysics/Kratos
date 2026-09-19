@@ -18,7 +18,7 @@
 #include "geo_aliases.h"
 #include "includes/constitutive_law.h"
 #include "includes/properties.h"
-#include "includes/ublas_interface.h"
+#include "includes/default_interface.h"
 
 #include <utility>
 

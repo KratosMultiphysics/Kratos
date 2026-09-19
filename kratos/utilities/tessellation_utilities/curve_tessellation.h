@@ -22,7 +22,7 @@
 #include "geometries/geometry.h"
 #include "geometries/nurbs_curve_geometry.h"
 
-#include "includes/ublas_interface.h"
+#include "includes/default_interface.h"
 #include "containers/array_1d.h"
 
 namespace Kratos {

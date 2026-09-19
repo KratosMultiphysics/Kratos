@@ -19,12 +19,10 @@
 
 /* Project includes */
 #include "containers/array_1d.h"
-#include "includes/ublas_interface.h"
+#include "includes/default_interface.h"
 #include "testing/testing.h"
 #include "containers/model.h"
 #include "geometries/point_3d.h"
-#include "includes/define.h"
-#include "includes/model_part.h"
 #include "spaces/ublas_space.h"
 #include "tests/test_utilities/test_element.h"
 #include "solving_strategies/builder_and_solvers/residualbased_block_builder_and_solver.h"
