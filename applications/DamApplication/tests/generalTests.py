@@ -2,7 +2,6 @@ import KratosMultiphysics
 import KratosMultiphysics.DamApplication as KratosDam
 
 import KratosMultiphysics.KratosUnittest as KratosUnittest
-from KratosMultiphysics.json_output_process import JsonOutputProcess
 from KratosMultiphysics.from_json_check_result_process import FromJsonCheckResultProcess
 
 # Importing analysis
@@ -149,7 +148,7 @@ class KratosDamGeneralTests(KratosUnittest.TestCase):
         }""")
         json_output_settings["model_part_name"].SetString(parameters["problem_data"]["model_part_name"].GetString() + '.Results')
         json_output_settings["output_file_name"].SetString(results_filename)
-        self.json_output = JsonOutputProcess(model, json_output_settings)
+        self.json_output = KratosMultiphysics.JsonOutputProcess(model, json_output_settings)
         self.json_output.ExecuteInitialize()
         self.json_output.ExecuteBeforeSolutionLoop()
         self.json_output.ExecuteFinalizeSolutionStep()
@@ -164,7 +163,7 @@ class KratosDamGeneralTests(KratosUnittest.TestCase):
         }""")
         json_output_settings["model_part_name"].SetString(parameters["problem_data"]["model_part_name"].GetString() + '.Results')
         json_output_settings["output_file_name"].SetString(results_filename)
-        self.json_output = JsonOutputProcess(model, json_output_settings)
+        self.json_output = KratosMultiphysics.JsonOutputProcess(model, json_output_settings)
         self.json_output.ExecuteInitialize()
         self.json_output.ExecuteBeforeSolutionLoop()
         self.json_output.ExecuteFinalizeSolutionStep()
