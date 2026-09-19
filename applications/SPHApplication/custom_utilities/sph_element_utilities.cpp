@@ -1,11 +1,9 @@
-#pragma once
-
 #include "custom_utilities/sph_element_utilities.h"
 
 namespace Kratos
 {
 
-void SPHElementUtilities::GetLocalBodyForces(Element& rElement, VectorType& body_force) 
+void SPHElementUtilities::GetLocalBodyForces(Element& rElement, VectorType& body_force, int Step) 
 {
     array_1d<double, 3> total_body_force;
     for (IndexType i = 0; i < 3; ++i)
@@ -23,7 +21,7 @@ void SPHElementUtilities::GetLocalBodyForces(Element& rElement, VectorType& body
         noalias(total_body_force) += density * r_prop[VOLUME_ACCELERATION];
 
     if (r_geom[0].SolutionStepsDataHas(VOLUME_ACCELERATION)){
-        noalias(total_body_force) += density * r_geom[0].GetSolutionStepValue(VOLUME_ACCELERATION);
+        noalias(total_body_force) += density * r_geom[0].GetSolutionStepValue(VOLUME_ACCELERATION, Step);
     }
 
     for (int d = 0; d < domain_size; ++d)
@@ -82,6 +80,60 @@ void SPHElementUtilities::ComputeParticleJump(
     for (IndexType d = 0; d < dimension; ++d) rJumpVector[d] = neighbour_interface_position[d] - particle_interface_position[d];
 }
 
+void SPHElementUtilities::ComputeVelocityJump(
+    VectorType& rJumpVector,
+    Element& rThisParticle,
+    Element& rThisNeighbour,
+    VectorType& rInitialDistance,
+    const int Step)
+{
+    const SizeType dimension = rThisParticle.GetGeometry().WorkingSpaceDimension();
+
+    const auto& r_particle_node = rThisParticle.GetGeometry()[0];
+    const auto& r_neighbour_node = rThisNeighbour.GetGeometry()[0];
+
+    MatrixType velocity_gradient_particle(dimension, dimension), velocity_gradient_neighbour(dimension, dimension); 
+    velocity_gradient_particle.clear(); velocity_gradient_neighbour.clear();
+
+    velocity_gradient_particle(0, 0) = r_particle_node.FastGetSolutionStepValue(DEFORMATION_GRADIENT_DOT_XX, Step);
+    velocity_gradient_particle(1, 1) = r_particle_node.FastGetSolutionStepValue(DEFORMATION_GRADIENT_DOT_YY, Step);
+    velocity_gradient_particle(0, 1) = r_particle_node.FastGetSolutionStepValue(DEFORMATION_GRADIENT_DOT_XY, Step);
+    velocity_gradient_particle(1, 0) = r_particle_node.FastGetSolutionStepValue(DEFORMATION_GRADIENT_DOT_YX, Step);
+
+    velocity_gradient_neighbour(0, 0) = r_neighbour_node.FastGetSolutionStepValue(DEFORMATION_GRADIENT_DOT_XX, Step);
+    velocity_gradient_neighbour(1, 1) = r_neighbour_node.FastGetSolutionStepValue(DEFORMATION_GRADIENT_DOT_YY, Step);
+    velocity_gradient_neighbour(0, 1) = r_neighbour_node.FastGetSolutionStepValue(DEFORMATION_GRADIENT_DOT_XY, Step);
+    velocity_gradient_neighbour(1, 0) = r_neighbour_node.FastGetSolutionStepValue(DEFORMATION_GRADIENT_DOT_YX, Step);
+
+    if (dimension == 3) {
+        velocity_gradient_particle(2, 2) = r_particle_node.FastGetSolutionStepValue(DEFORMATION_GRADIENT_DOT_ZZ, Step);
+        velocity_gradient_particle(0, 2) = r_particle_node.FastGetSolutionStepValue(DEFORMATION_GRADIENT_DOT_XZ, Step);
+        velocity_gradient_particle(1, 2) = r_particle_node.FastGetSolutionStepValue(DEFORMATION_GRADIENT_DOT_YZ, Step);
+        velocity_gradient_particle(2, 0) = r_particle_node.FastGetSolutionStepValue(DEFORMATION_GRADIENT_DOT_ZX, Step);
+        velocity_gradient_particle(2, 1) = r_particle_node.FastGetSolutionStepValue(DEFORMATION_GRADIENT_DOT_ZY, Step);
+
+        velocity_gradient_neighbour(2, 2) = r_neighbour_node.FastGetSolutionStepValue(DEFORMATION_GRADIENT_DOT_ZZ, Step);
+        velocity_gradient_neighbour(0, 2) = r_neighbour_node.FastGetSolutionStepValue(DEFORMATION_GRADIENT_DOT_XZ, Step);
+        velocity_gradient_neighbour(1, 2) = r_neighbour_node.FastGetSolutionStepValue(DEFORMATION_GRADIENT_DOT_YZ, Step);
+        velocity_gradient_neighbour(2, 0) = r_neighbour_node.FastGetSolutionStepValue(DEFORMATION_GRADIENT_DOT_ZX, Step);
+        velocity_gradient_neighbour(2, 1) = r_neighbour_node.FastGetSolutionStepValue(DEFORMATION_GRADIENT_DOT_ZY, Step);
+    }
+
+    VectorType particle_velocity(dimension), neighbour_velocity(dimension);
+    const auto& r_particle_velocity = r_particle_node.FastGetSolutionStepValue(VELOCITY, Step);
+    const auto& r_neighbour_velocity = r_neighbour_node.FastGetSolutionStepValue(VELOCITY, Step);
+    
+    for (IndexType d = 0; d < dimension; ++d) {
+        particle_velocity[d] = r_particle_velocity[d];
+        neighbour_velocity[d] = r_neighbour_velocity[d];
+    }
+
+    const VectorType particle_interface_velocity = particle_velocity - 0.5 * prod(velocity_gradient_particle, rInitialDistance);
+    const VectorType neighbour_interface_velocity = neighbour_velocity + 0.5 * prod(velocity_gradient_neighbour, rInitialDistance);
+
+    noalias(rJumpVector) = neighbour_interface_velocity - particle_interface_velocity;
+}
+
 void SPHElementUtilities::ComputeWaveSpeed(
     double& PressureWaveSpeed, 
     double& ShearWaveSpeed, 
@@ -97,5 +149,117 @@ void SPHElementUtilities::ComputeWaveSpeed(
     PressureWaveSpeed = std::sqrt((lambda + 2 * mu) / density);
     ShearWaveSpeed = std::sqrt(mu / density);
 }
+
+void SPHElementUtilities::Calculate2DB(
+    MatrixType& rB, 
+    const MatrixType& rF, 
+    const MatrixType& rDW_DX,
+    const SizeType NumberOfNeighbours
+)
+{
+    const int domain_size = 2; 
+    for (IndexType i =0; i < NumberOfNeighbours; ++i){
+        const IndexType index = i * domain_size;
+        rB(0, index    ) = rF(0, 0) * rDW_DX(i, 0);
+        rB(0, index + 1) = rF(1, 0) * rDW_DX(i, 0);
+        rB(1, index    ) = rF(0, 1) * rDW_DX(i, 1);
+        rB(1, index + 1) = rF(1, 1) * rDW_DX(i, 1);
+        rB(2, index    ) = rF(0, 0) * rDW_DX(i, 1) + rF(0, 1) * rDW_DX(i, 0);
+        rB(2, index + 1) = rF(1, 0) * rDW_DX(i, 1) + rF(1, 1) * rDW_DX(i, 0);
+    }
+}
+
+void SPHElementUtilities::Calculate3DB(
+    MatrixType& rB, 
+    const MatrixType& rF, 
+    const MatrixType& rDW_DX,
+    const SizeType NumberOfNeighbours
+)
+{
+    const int domain_size = 3; 
+    for (IndexType i =0; i < NumberOfNeighbours; ++i){
+        const IndexType index = i * domain_size;
+        rB(0, index    ) = rF(0, 0) * rDW_DX(i, 0);
+        rB(0, index + 1) = rF(1, 0) * rDW_DX(i, 0);
+        rB(0, index + 2) = rF(2, 0) * rDW_DX(i, 0);
+        rB(1, index    ) = rF(0, 1) * rDW_DX(i, 1);
+        rB(1, index + 1) = rF(1, 1) * rDW_DX(i, 1);
+        rB(1, index + 2) = rF(2, 1) * rDW_DX(i, 1);
+        rB(2, index    ) = rF(0, 2) * rDW_DX(i, 2);
+        rB(2, index + 1) = rF(1, 2) * rDW_DX(i, 2);
+        rB(2, index + 2) = rF(2, 2) * rDW_DX(i, 2);
+        rB(3, index    ) = rF(0, 0) * rDW_DX(i, 1) + rF(0, 1) * rDW_DX(i, 0);
+        rB(3, index + 1) = rF(1, 0) * rDW_DX(i, 1) + rF(1, 1) * rDW_DX(i, 0);
+        rB(3, index + 2) = rF(2, 0) * rDW_DX(i, 1) + rF(2, 1) * rDW_DX(i, 0);
+        rB(4, index    ) = rF(0, 1) * rDW_DX(i, 2) + rF(0, 2) * rDW_DX(i, 1);
+        rB(4, index + 1) = rF(1, 1) * rDW_DX(i, 2) + rF(1, 2) * rDW_DX(i, 1);
+        rB(4, index + 2) = rF(2, 1) * rDW_DX(i, 2) + rF(2, 2) * rDW_DX(i, 1);
+        rB(5, index    ) = rF(0, 2) * rDW_DX(i, 0) + rF(0, 0) * rDW_DX(i, 2);
+        rB(5, index + 1) = rF(1, 2) * rDW_DX(i, 0) + rF(1, 0) * rDW_DX(i, 2);
+        rB(5, index + 2) = rF(2, 2) * rDW_DX(i, 0) + rF(2, 0) * rDW_DX(i, 2);
+    }
+}
+
+template<std::size_t TDim>
+Vector SPHElementUtilities::NonSymmetricTensorToVector(
+    const MatrixType& rTensor
+    )
+{
+    KRATOS_TRY
+
+    VectorType output_vector(TDim * TDim); output_vector.clear();
+    
+    if constexpr (TDim == 2) {
+        output_vector[0] = rTensor(0,0);
+        output_vector[1] = rTensor(1,1);
+        output_vector[2] = rTensor(0,1);
+        output_vector[3] = rTensor(1,0);
+    } else if constexpr (TDim == 3) {
+        output_vector[0] = rTensor(0,0);
+        output_vector[1] = rTensor(1,1);
+        output_vector[2] = rTensor(2,2);
+        output_vector[3] = rTensor(0,1);
+        output_vector[4] = rTensor(0,2);
+        output_vector[5] = rTensor(1,0);
+        output_vector[6] = rTensor(1,2);
+        output_vector[7] = rTensor(2,0);
+        output_vector[8] = rTensor(2,1);
+    }
+
+    return output_vector;
+
+    KRATOS_CATCH("")
+}
+
+void SPHElementUtilities::ComputeDeformationDependentWaveSpeed(
+    double& rPressureWaveSpeed,
+    double& rShearWaveSpeed,
+    const MatrixType& rF,
+    const Properties& rProperties
+)
+{
+    const SizeType dimension = rF.size1();
+    ComputeWaveSpeed(rPressureWaveSpeed, rShearWaveSpeed, rProperties);
+
+    MatrixType right_cauchy_green(dimension, dimension);
+    noalias(right_cauchy_green) = prod(trans(rF), rF);
+
+    MatrixType eigenvectors, eigenvalues;
+    const bool is_converged = MathUtils<double>::GaussSeidelEigenSystem(right_cauchy_green, eigenvectors, eigenvalues);
+    KRATOS_ERROR_IF_NOT(is_converged)<< "Eigenvalue decomposition of C = F^T F did not converge" << std::endl;
+
+    double minimum_eigenvalue = eigenvalues(0, 0);
+    for (IndexType i = 1; i < dimension; ++i) 
+        minimum_eigenvalue = std::min(minimum_eigenvalue, eigenvalues(i, i));
+
+    const double inverse_minimum_stretch = 1.0 / std::sqrt(minimum_eigenvalue);
+    rPressureWaveSpeed *= inverse_minimum_stretch;
+    rShearWaveSpeed *= inverse_minimum_stretch;
+}
+
+// Function template instantiations 
+template SPHElementUtilities::VectorType SPHElementUtilities::NonSymmetricTensorToVector<2>(const SPHElementUtilities::MatrixType& rTensor);
+template SPHElementUtilities::VectorType SPHElementUtilities::NonSymmetricTensorToVector<3>(const SPHElementUtilities::MatrixType& rTensor);
+
 
 }

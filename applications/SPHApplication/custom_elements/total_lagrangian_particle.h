@@ -22,6 +22,7 @@ using SizeType = std::size_t;
 template<class TKernelType, std::size_t TDim>
 class KRATOS_API(SPH_APPLICATION) TotalLagrangianDisplacementParticle: public SmallDisplacementParticle<TKernelType, TDim>
 {
+
 public: 
 
     using BaseType = SmallDisplacementParticle<TKernelType, TDim>;
@@ -31,8 +32,9 @@ public:
     using IndexType = typename BaseType::IndexType;
     using MatrixType = typename BaseType::MatrixType;
     using VectorType = typename BaseType::VectorType;
-    using SizeType = typename BaseType::SizeType;
     using NodesArrayType = typename BaseType::NodesArrayType;
+    using EquationIdVectorType = typename BaseType::EquationIdVectorType;
+    using DofsVectorType = typename BaseType::DofsVectorType;
     
     using KinematicVariables = typename BaseType::KinematicVariables;
     using ConstitutiveVariables = typename BaseType::ConstitutiveVariables;
@@ -140,24 +142,6 @@ public:
         MatrixType& rDW_DX,
         VectorType& rW,
         const ProcessInfo& rProcessInfo
-    );
-
-    /**
-     * @brief This function computes the deformation matrix B for 2D simulations
-     */
-    void Calculate2DB(
-        MatrixType& rB,
-        const MatrixType& rF,
-        const MatrixType& rDW_DX
-    );
-
-    /**
-     * @brief This function computes the deformation matrix B for 3D simulations 
-     */
-    void Calculate3DB(
-        MatrixType& rB,
-        const MatrixType& rF,
-        const MatrixType& rDW_DX
     );
 
     /**

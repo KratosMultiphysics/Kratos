@@ -286,9 +286,7 @@ void SmallDisplacementParticle<TKernelType, TDim>::CalculateAll(
         noalias(rRHS) = ZeroVector(mat_size);
     }
 
-    VectorType nodal_values(mat_size), dkernel(TDim), X_AB_target(TDim), body_force(TDim);
-    double kernel;
-    GetNodalValuesVector(nodal_values);
+    VectorType body_force(TDim);
 
     // Constitutive law 
     ConstitutiveLaw::Parameters cl_values(r_geom, r_props, rProcessInfo);
@@ -309,8 +307,7 @@ void SmallDisplacementParticle<TKernelType, TDim>::CalculateAll(
     CalculateConstitutiveVariables(this_constitutive_variables, this_kinematic_variables, cl_values, ConstitutiveLaw::StressMeasure_Cauchy);
 
     if (CalculateStiffnessMatrixFlag){
-        MatrixType temp = prod(this_constitutive_variables.C, this_kinematic_variables.B);
-        noalias(rLHS) = gauss_weight * prod(trans(this_kinematic_variables.B), temp);
+        noalias(rLHS) = gauss_weight * prod(trans(this_kinematic_variables.B), Matrix(prod(this_constitutive_variables.C, this_kinematic_variables.B)));
     }
 
     if (CalculateResidualVectorFlag){
@@ -331,6 +328,7 @@ void SmallDisplacementParticle<TKernelType, TDim>::CalculateKinematicVariables(K
 
     // Initialization of variables
     const auto& r_neighbours = this->GetValue(NEIGHBOURS);
+    const SizeType number_of_neigh = r_neighbours.size();
     const double h = rProcessInfo.GetValue(SMOOTHING_LENGTH);
 
     const auto& IPcoords = GetGeometry()[0].GetInitialPosition();
@@ -356,49 +354,12 @@ void SmallDisplacementParticle<TKernelType, TDim>::CalculateKinematicVariables(K
     }
 
     if constexpr (TDim == 2){
-        Calculate2DB(rThisKinematicVariables.B, rThisKinematicVariables.DW_DX);
+        SPHElementUtilities::Calculate2DB(rThisKinematicVariables.B, IdentityMatrix(TDim), rThisKinematicVariables.DW_DX, number_of_neigh);
     } else {
-        Calculate3DB(rThisKinematicVariables.B, rThisKinematicVariables.DW_DX);
+        SPHElementUtilities::Calculate3DB(rThisKinematicVariables.B, IdentityMatrix(TDim), rThisKinematicVariables.DW_DX, number_of_neigh);
     }
 
     KRATOS_CATCH("")
-}
-
-template<class TKernelType, std::size_t TDim>
-void SmallDisplacementParticle<TKernelType, TDim>::Calculate2DB(MatrixType& rB, const MatrixType& rDW_DX)
-{
-    const SizeType number_of_neigh = GetValue(NEIGHBOURS).size();
-
-    rB.clear();
-
-    for (IndexType i =0; i < number_of_neigh; ++i){
-        const IndexType index = i * TDim;
-        rB(0, index + 0) = rDW_DX(i, 0);
-        rB(1, index + 1) = rDW_DX(i, 1);
-        rB(2, index + 0) = rDW_DX(i, 1);
-        rB(2, index + 1) = rDW_DX(i, 0);
-    }
-}
-
-template<class TKernelType, std::size_t TDim>
-void SmallDisplacementParticle<TKernelType, TDim>::Calculate3DB(MatrixType& rB, const MatrixType& rDW_DX)
-{
-    const SizeType number_of_neigh = GetValue(NEIGHBOURS).size();
-
-    rB.clear();
-
-    for (IndexType i =0; i < number_of_neigh; ++i){
-        const IndexType index = i * TDim;
-        rB(0, index + 0) = rDW_DX(i, 0);
-        rB(1, index + 1) = rDW_DX(i, 1);
-        rB(2, index + 2) = rDW_DX(i, 2);
-        rB(3,index+0) = rDW_DX(i, 1);
-        rB(3,index+1) = rDW_DX(i, 0);
-        rB(4,index+1) = rDW_DX(i, 2);
-        rB(4,index+2) = rDW_DX(i, 1);
-        rB(5,index+0) = rDW_DX(i, 2);
-        rB(5,index+2) = rDW_DX(i, 0);
-    }
 }
 
 template<class TKernelType, std::size_t TDim>
@@ -430,15 +391,13 @@ void SmallDisplacementParticle<TKernelType, TDim>::CalculateConstitutiveVariable
 )
 {
     const SizeType number_of_neigh = GetValue(NEIGHBOURS).size();
-    const SizeType strain_size = mThisConstitutiveLaw->GetStrainSize();
-
     GetNodalValuesVector(rThisKinematicVariables.Displacement);
 
     rValues.SetDeterminantF(1.0); 
     rValues.SetDeformationGradientF(IdentityMatrix(TDim));
     rValues.SetConstitutiveMatrix(rThisConstitutiveVariables.C);
     rValues.SetStressVector(rThisConstitutiveVariables.StressVector);
-
+    
     if constexpr (TDim == 2){
         for (IndexType i = 0; i < number_of_neigh; ++i){
             rThisConstitutiveVariables.StrainVector[0] += rThisKinematicVariables.Displacement[TDim * i] * rThisKinematicVariables.DW_DX(i, 0);
@@ -458,9 +417,7 @@ void SmallDisplacementParticle<TKernelType, TDim>::CalculateConstitutiveVariable
             rThisConstitutiveVariables.StrainVector[5] += rThisKinematicVariables.Displacement[TDim * i] * rThisKinematicVariables.DW_DX(i, 2)
                 + rThisKinematicVariables.Displacement[TDim * i + 2] * rThisKinematicVariables.DW_DX(i, 0);
         }
-    }
-
-    
+    } 
     
     mThisConstitutiveLaw->CalculateMaterialResponse(rValues, ThisStressMeasure);
 }

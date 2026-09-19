@@ -28,6 +28,7 @@ using SizeType = std::size_t;
 template<class TKernelType, std::size_t TDim>
 class KRATOS_API(SPH_APPLICATION) SmallDisplacementParticle : public Element
 {
+    
 protected:
     /**
      * Internal variables used in the kinematic calculations
@@ -56,7 +57,7 @@ protected:
             W = ZeroVector(NumberOfNeighbours);
             DW_DX = ZeroMatrix(NumberOfNeighbours, DomainSize);
             B = ZeroMatrix(StrainSize, DomainSize * NumberOfNeighbours);
-            double detF = 1.0;
+            detF = 1.0;
             F = IdentityMatrix(DomainSize);
             Displacement = ZeroVector(DomainSize * NumberOfNeighbours);
         }
@@ -222,22 +223,6 @@ public:
         KinematicVariables& rThisKinematicVariables, 
         const ProcessInfo& rProcessInfo,
         int Step = 0
-    );
-
-    /**
-     * @brief This function computes the deformation matrix B for 2D simulations 
-     */
-    virtual void Calculate2DB(
-        MatrixType& rB,
-        const MatrixType& rDW_DX
-    );
-
-    /**
-     * @brief This function computes the deformation matrix B for 3D simulations 
-     */
-    virtual void Calculate3DB(
-        MatrixType& rB,
-        const MatrixType& rDW_DX
     );
 
     /**
