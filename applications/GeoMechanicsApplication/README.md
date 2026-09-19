@@ -39,6 +39,10 @@ conditions)
 
 - Loading User Materials (UMAT) dll/so, written in ABAQUS forrmat
 
+### Developer notes
+
+- IGNORE_UNDRAINED formulation implementation sequence: see [documents/implementation_details/formulation_sequence_ignore_undrained.md](documents/ignore_undrained_formulation_sequence.md)
+
 ### How to compile Geo-Mechanics Application
 
 Make sure that the following lines are properly set in the configuration file:
