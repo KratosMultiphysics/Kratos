@@ -62,6 +62,7 @@ namespace Kratos
         /// Elements, using QuadraturePointGeometries:
         mMPMUpdatedLagrangian(0, Element::GeometryType::Pointer(new GeometryType(Element::GeometryType::PointsArrayType(0)))),
         mMPMUpdatedLagrangianUP(0, Element::GeometryType::Pointer(new GeometryType(Element::GeometryType::PointsArrayType(0)))),
+        mMPMUpdatedLagrangianUPVMS(0, Element::GeometryType::Pointer(new GeometryType(Element::GeometryType::PointsArrayType(0)))),
         mMPMUpdatedLagrangianPQ(0, Element::GeometryType::Pointer(new GeometryType(Element::GeometryType::PointsArrayType(0)))),
 
         /// Deprecated Elements
@@ -118,6 +119,7 @@ namespace Kratos
         KRATOS_REGISTER_ELEMENT("MPMUpdatedLagrangian", mMPMUpdatedLagrangian)
         KRATOS_REGISTER_ELEMENT("MPMUpdatedLagrangianUP", mMPMUpdatedLagrangianUP)
         KRATOS_REGISTER_ELEMENT("MPMUpdatedLagrangianPQ", mMPMUpdatedLagrangianPQ)
+        KRATOS_REGISTER_ELEMENT("MPMUpdatedLagrangianUPVMS", mMPMUpdatedLagrangianUPVMS)
 
         // Deprecated elements
         KRATOS_REGISTER_ELEMENT( "MPMUpdatedLagrangian2D3N", mMPMUpdatedLagrangian2D3N )
@@ -331,4 +333,3 @@ namespace Kratos
     }
 
 }  // namespace Kratos.
-

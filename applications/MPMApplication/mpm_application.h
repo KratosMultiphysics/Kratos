@@ -50,6 +50,7 @@
 #include "custom_elements/mpm_updated_lagrangian.hpp"
 #include "custom_elements/mpm_updated_lagrangian_UP.hpp"
 #include "custom_elements/mpm_updated_lagrangian_PQ.hpp"
+#include "custom_elements/mpm_updated_lagrangian_UP_VMS.hpp"
 
 //---constitutive laws
 #include "custom_constitutive/linear_elastic_3D_law.hpp"
@@ -233,6 +234,7 @@ private:
     // Elements
     const MPMUpdatedLagrangian mMPMUpdatedLagrangian;
     const MPMUpdatedLagrangianUP mMPMUpdatedLagrangianUP;
+    const MPMUpdatedLagrangianUPVMS mMPMUpdatedLagrangianUPVMS;
     const MPMUpdatedLagrangianPQ mMPMUpdatedLagrangianPQ;
 
     // Deprecated Elements
@@ -372,5 +374,4 @@ private:
 }  // namespace Kratos.
 
 #endif // KRATOS_MPM_APPLICATION_H_INCLUDED  defined
-
 
