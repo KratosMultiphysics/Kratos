@@ -5,16 +5,12 @@ message("**** configuring KratosMedApplication ****")
 ################### PYBIND11
 include(pybind11Tools)
 
-list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}) # for FindMED
-find_package(MED REQUIRED)
-
-# MED uses HDF
-# TODO check interoperability with the HDFapp, both in serial and parallel
+# MED files are read/written directly as HDF5 (no "med" library dependency)
 if (NOT HDF5_FOUND)
     find_package(HDF5 REQUIRED COMPONENTS C)
 endif()
 
-include_directories(${MED_INCLUDE_DIR} ${HDF5_INCLUDE_DIRS})
+include_directories(${HDF5_INCLUDE_DIRS})
 
 include_directories( ${KRATOS_SOURCE_DIR}/kratos )
 
@@ -35,9 +31,8 @@ endif(${KRATOS_BUILD_TESTING} MATCHES ON)
 file(GLOB_RECURSE KRATOS_MED_APPLICATION_PYTHON_INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/*.cpp)
 
 add_library(KratosMedCore SHARED ${KRATOS_MED_APPLICATION_CORE})
-target_link_libraries(KratosMedCore PUBLIC KratosCore ${MED_LIBRARIES} ${HDF5_C_LIBRARIES})
+target_link_libraries(KratosMedCore PUBLIC KratosCore ${HDF5_C_LIBRARIES})
 set_target_properties(KratosMedCore PROPERTIES COMPILE_DEFINITIONS "MED_APPLICATION=EXPORT,API")
-target_include_directories(KratosMedCore SYSTEM PRIVATE hdf5::hdf5)
 
 
 ###############################################################
@@ -79,33 +74,29 @@ endif(${INSTALL_TESTING_FILES} MATCHES ON)
 # Fix Windows paths
 file(TO_CMAKE_PATH "${HDF5_ROOT}/lib" HDF5_ROOT_DEP_LIB)
 file(TO_CMAKE_PATH "${HDF5_ROOT}/bin" HDF5_ROOT_DEP_BIN)
-file(TO_CMAKE_PATH "${MED_ROOT}/lib" MED_ROOT_DEP)
 
 # Install targets
 install(TARGETS KratosMedCore DESTINATION libs)
 install(TARGETS KratosMedApplication DESTINATION libs)
 
 # Install dependent libraries
-# Note: Please be carefull to enable this option if MED or HDF5 are system wide dependencies as it will
+# Note: Please be carefull to enable this option if HDF5 is a system wide dependency as it will
 # the full /lib system dir into kratos.
 if(${INSTALL_TPL_LIBRARIES} MATCHES ON)
     if(WIN32)
         install(DIRECTORY "${HDF5_ROOT_DEP_LIB}/" DESTINATION libs FILES_MATCHING PATTERN "*.dll")
         install(DIRECTORY "${HDF5_ROOT_DEP_BIN}/" DESTINATION libs FILES_MATCHING PATTERN "*.dll")
-        install(DIRECTORY "${MED_ROOT_DEP}/" DESTINATION libs FILES_MATCHING PATTERN "*.dll")
     endif()
     if(APPLE)
         install(DIRECTORY "${HDF5_ROOT_DEP_LIB}/" DESTINATION libs FILES_MATCHING PATTERN "*.dylib")
         install(DIRECTORY "${HDF5_ROOT_DEP_BIN}/" DESTINATION libs FILES_MATCHING PATTERN "*.dylib")
-        install(DIRECTORY "${MED_ROOT_DEP}/" DESTINATION libs FILES_MATCHING PATTERN "*.dylib")
     endif()
     if(UNIX AND NOT APPLE)
         file(GLOB_RECURSE HDF5_LIB_FILES "${HDF5_ROOT_DEP_LIB}/*.so*")
         file(GLOB_RECURSE HDF5_BIN_FILES "${HDF5_ROOT_DEP_BIN}/*.so*")
-        file(GLOB_RECURSE MED_LIB_FILES  "${MED_ROOT_DEP}/*.so*")
-        
-        set(ALL_LIB_FILES ${HDF5_LIB_FILES} ${HDF5_BIN_FILES} ${MED_LIB_FILES})
-        
+
+        set(ALL_LIB_FILES ${HDF5_LIB_FILES} ${HDF5_BIN_FILES})
+
         install(FILES ${ALL_LIB_FILES} DESTINATION libs)
     endif()
 endif()
