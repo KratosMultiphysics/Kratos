@@ -26,6 +26,9 @@ class TestEigensystemSolver(KratosUnittest.TestCase):
 
         for i in range(n):
             M[i, i] = 1.0
+        # Finalize the storage after element insertion (required by the eigen
+        # backend matrix, harmless for uBLAS).
+        M.Compress()
 
         # create result containers (they will be resized inside the solver)
         eigenvalues = KratosMultiphysics.Vector(n)
@@ -42,7 +45,8 @@ class TestEigensystemSolver(KratosUnittest.TestCase):
         self.assertAlmostEqual(eigenvalues[2], 0.153184311127333, 7)
 
 
-        # test mass normalization of eigenvectors
+        # test mass normalization of eigenvectors (system-space vectors so
+        # space.Mult operates in place on both backends)
         for i in range(eigenvectors.Size1()):
             eigenvector = KratosMultiphysics.SparseVector(n)
             for j in range(n):

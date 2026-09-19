@@ -646,13 +646,16 @@ public:
 
     /**
      * @brief This method assembles several sparse matrices into one large sparse matrix
+     * @details Templated on the compressed matrix type, so it works with both the
+     * uBLAS and the Eigen backend system matrix (both expose the CSR member surface)
      * @param rMatricespBlocks The pointers to the matrices we are interested in assemble
      * @param ContributionCoefficients The matrix containing the coefficients to be considered (copy, so we don't need to provide it)
      * @param TransposeBlocks The matrix containing the flags telling us to transpose the blocks (copy, so we don't need to provide it)
      */
+    template <class TMatrix = CompressedMatrix>
     static inline void AssembleSparseMatrixByBlocks(
-        CompressedMatrix& rMatrix,
-        const DenseMatrix<CompressedMatrix*>& rMatricespBlocks,
+        TMatrix& rMatrix,
+        const DenseMatrix<TMatrix*>& rMatricespBlocks,
         DenseMatrix<double> ContributionCoefficients = DenseMatrix<double>(0,0),
         DenseMatrix<bool> TransposeBlocks = DenseMatrix<bool>(0,0)
         )
@@ -741,14 +744,14 @@ public:
                     IndexType partial_matrix_cols_aux = 0;
                 #endif
                     // Skip if empty matrix
-                    CompressedMatrix& r_matrix = *rMatricespBlocks(i, j);
+                    TMatrix& r_matrix = *rMatricespBlocks(i, j);
                     if (r_matrix.nnz() > 0) {
                         if (TransposeBlocks(i, j)) {
                             // We compute the transposed matrix
                             const SizeType size_system_1 = r_matrix.size1();
                             const SizeType size_system_2 = r_matrix.size2();
-                            CompressedMatrix transpose(size_system_2, size_system_1);
-                            TransposeMatrix<CompressedMatrix, CompressedMatrix>(transpose, r_matrix);
+                            TMatrix transpose(size_system_2, size_system_1);
+                            TransposeMatrix<TMatrix, TMatrix>(transpose, r_matrix);
                             ComputeNonZeroBlocks(transpose, k, matrix_cols_aux);
                         #ifdef KRATOS_DEBUG
                             ComputeNonZeroBlocks(transpose, k, partial_matrix_cols_aux);
@@ -791,12 +794,12 @@ public:
     #endif
 
         // Initialize matrix with the corresponding non-zero values
-        rMatrix = CompressedMatrix(nrows, ncols, nonzero_values);
+        rMatrix = TMatrix(nrows, ncols, nonzero_values);
 
-        // Fill the new matrix
-        double* Matrix_values = rMatrix.value_data().begin();
-        IndexType* Matrix_index1 = rMatrix.index1_data().begin();
-        IndexType* Matrix_index2 = rMatrix.index2_data().begin();
+        // Fill the new matrix (the index value type follows the matrix type)
+        auto* Matrix_values = rMatrix.value_data().begin();
+        auto* Matrix_index1 = rMatrix.index1_data().begin();
+        auto* Matrix_index2 = rMatrix.index2_data().begin();
 
         Matrix_index1[0] = 0;
         for (IndexType i = 0; i < nrows; ++i) {
@@ -811,14 +814,14 @@ public:
                     const SizeType initial_index_column = std::accumulate(column_sizes.begin(), column_sizes.begin() + j, 0);
 
                     // Skip if empty matrix
-                    CompressedMatrix& r_matrix = *rMatricespBlocks(i, j);
+                    TMatrix& r_matrix = *rMatricespBlocks(i, j);
                     if (r_matrix.nnz() > 0) {
                         if (TransposeBlocks(i, j)) {
                             // We compute the transposed matrix
                             const SizeType size_system_1 = r_matrix.size1();
                             const SizeType size_system_2 = r_matrix.size2();
-                            CompressedMatrix transpose(size_system_2, size_system_1);
-                            TransposeMatrix<CompressedMatrix, CompressedMatrix>(transpose, r_matrix);
+                            TMatrix transpose(size_system_2, size_system_1);
+                            TransposeMatrix<TMatrix, TMatrix>(transpose, r_matrix);
                             ComputeAuxiliarValuesBlocks(transpose, Matrix_index2, Matrix_values, k, row_end, initial_index_column, ContributionCoefficients(i, j));
                         } else {
                             ComputeAuxiliarValuesBlocks(r_matrix, Matrix_index2, Matrix_values, k, row_end, initial_index_column, ContributionCoefficients(i, j));
@@ -841,14 +844,15 @@ public:
      * @param CurrentRow The current row computed
      * @param rNonZeroColsAux2 The nonzero rows array
      */
+    template <class TMatrix = CompressedMatrix>
     static inline void ComputeNonZeroBlocks(
-        const CompressedMatrix& rMatrix,
+        const TMatrix& rMatrix,
         const int CurrentRow,
         IndexType& rNonZeroColsAux2
         )
     {
-        // Get access to aux_K data
-        const IndexType* aux_matrix_index1 = rMatrix.index1_data().begin();
+        // Get access to aux_K data (the index value type follows the matrix type)
+        const auto* aux_matrix_index1 = rMatrix.index1_data().begin();
 
         const IndexType row_begin = aux_matrix_index1[CurrentRow];
         const IndexType row_end   = aux_matrix_index1[CurrentRow + 1];
@@ -867,9 +871,10 @@ public:
      * @param RowEnd The last column computed
      * @param InitialIndexColumn The initial column index of the auxiliary block in the final matrix
      */
+    template <class TMatrix = CompressedMatrix, class TIndex = IndexType>
     static inline void ComputeAuxiliarValuesBlocks(
-        const CompressedMatrix& rMatrix,
-        IndexType* AuxIndex2,
+        const TMatrix& rMatrix,
+        TIndex* AuxIndex2,
         double* AuxVals,
         const int CurrentRow,
         IndexType& RowEnd,
@@ -877,10 +882,10 @@ public:
         const double ContributionCoefficient = 1.0
         )
     {
-        // Get access to aux_K data
+        // Get access to aux_K data (the index value type follows the matrix type)
         const double* aux_values = rMatrix.value_data().begin();
-        const IndexType* aux_Matrix_index1 = rMatrix.index1_data().begin();
-        const IndexType* aux_Matrix_index2 = rMatrix.index2_data().begin();
+        const auto* aux_Matrix_index1 = rMatrix.index1_data().begin();
+        const auto* aux_Matrix_index2 = rMatrix.index2_data().begin();
 
         const IndexType aux_Matrix_row_begin = aux_Matrix_index1[CurrentRow];
         const IndexType aux_Matrix_row_end   = aux_Matrix_index1[CurrentRow + 1];

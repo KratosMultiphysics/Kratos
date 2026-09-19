@@ -360,8 +360,8 @@ namespace Kratos
 
 			if (rigidNodes == 2 && freesurfaceNodes == 0)
 			{
-				array_1d<double, 2> NormalA(2, 0.0);
-				array_1d<double, 2> NormalB(2, 0.0);
+				array_1d<double, 3> NormalA(3, 0.0); // nodal NORMAL is stored with 3 components
+				array_1d<double, 3> NormalB(3, 0.0); // nodal NORMAL is stored with 3 components
 				double cosAngle = 1;
 
 				if ((Element[0].Is(RIGID) && Element[1].Is(RIGID)) || (Element[0].Is(INLET) && Element[1].Is(INLET)))

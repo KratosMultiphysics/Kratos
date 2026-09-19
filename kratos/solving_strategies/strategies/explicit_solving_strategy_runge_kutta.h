@@ -303,7 +303,7 @@ protected:
                 const double& r_u_old = it_dof->GetSolutionStepValue(1);
                 if (!it_dof->IsFixed()) {
                     const double mass = r_lumped_mass_vector(i_dof);
-                    const MatrixRow<LocalSystemMatrixType> substeps_k = row(rk_K, i_dof);
+                    const auto substeps_k = row(rk_K, i_dof);
                     r_u = r_u_old + (dt / mass) * std::inner_product(weights.begin(), weights.end(), substeps_k.begin(), 0.0);
                 } else {
                     r_u = u_n(i_dof);

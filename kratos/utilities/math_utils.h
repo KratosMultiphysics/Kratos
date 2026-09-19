@@ -25,7 +25,7 @@
 
 // Project includes
 #include "input_output/logger.h"
-#include "includes/ublas_interface.h"
+#include "includes/default_interface.h"
 #include "includes/global_variables.h"
 #include "containers/array_1d.h"
 
@@ -94,7 +94,7 @@ public:
     using IndexType = std::size_t;
 
     /// The indirect array type
-    using IndirectArrayType = boost::numeric::ublas::indirect_array<DenseVector<std::size_t>>;
+    using IndirectArrayType = indirect_array<DenseVector<std::size_t>>;
 
     /// The machine precision
     static constexpr double ZeroTolerance = std::numeric_limits<double>::epsilon();
@@ -177,7 +177,7 @@ public:
             if (k != j)
                 ia2(j_sub++) = k;
 
-        boost::numeric::ublas::matrix_indirect<const TMatrixType, IndirectArrayType> sub_mat(rMat, ia1, ia2);
+        matrix_indirect<const TMatrixType, IndirectArrayType> sub_mat(rMat, ia1, ia2);
         const double first_minor = Det(sub_mat);
         return ((i + j) % 2) ? -first_minor : first_minor;
     }
@@ -623,7 +623,6 @@ public:
                 return Det4(rA);
             default:
                 double det = 1.0;
-                using namespace boost::numeric::ublas;
                 typedef permutation_matrix<SizeType> pmatrix;
                 Matrix Aux(rA);
                 pmatrix pm(Aux.size1());
@@ -1089,8 +1088,8 @@ public:
     {
         KRATOS_TRY
 
-        for(IndexType i = 0; i < rInputMatrix.size1(); ++i) {
-            for(IndexType j = 0; j < rInputMatrix.size2(); ++j) {
+        for (IndexType i = 0; i < static_cast<IndexType>(rInputMatrix.size1()); ++i) {
+            for (IndexType j = 0; j < static_cast<IndexType>(rInputMatrix.size2()); ++j) {
                 rDestination(InitialRow+i, InitialCol+j) += rInputMatrix(i,j);
             }
         }
@@ -1113,7 +1112,7 @@ public:
     {
         KRATOS_TRY
 
-        for(IndexType i = 0; i < rInputVector.size(); ++i) {
+        for (IndexType i = 0; i < static_cast<IndexType>(rInputVector.size()); ++i) {
             rDestination[InitialIndex+i] += rInputVector[i];
         }
         KRATOS_CATCH("")
@@ -1136,8 +1135,8 @@ public:
     {
         KRATOS_TRY;
 
-        for(IndexType i = 0; i<rInputMatrix.size1(); ++i) {
-            for(IndexType j = 0; j<rInputMatrix.size2(); ++j) {
+        for (IndexType i = 0; i<rInputMatrix.size1(); ++i) {
+            for (IndexType j = 0; j<rInputMatrix.size2(); ++j) {
                 rDestination(InitialRow+i, InitialCol+j) -= rInputMatrix(i,j);
             }
         }
@@ -1163,8 +1162,8 @@ public:
     {
         KRATOS_TRY;
 
-        for(IndexType i = 0; i < rInputMatrix.size1(); ++i) {
-            for(IndexType j = 0; j < rInputMatrix.size2(); ++j) {
+        for (IndexType i = 0; i < rInputMatrix.size1(); ++i) {
+            for (IndexType j = 0; j < rInputMatrix.size2(); ++j) {
                 rDestination(InitialRow+i, InitialCol+j) = rInputMatrix(i,j);
             }
         }

@@ -14,7 +14,8 @@
 #include "solving_strategies/builder_and_solvers/p_multigrid/status_stream.hpp" // PMGStatusStream
 #include "includes/kratos_components.h"
 #include "solving_strategies/builder_and_solvers/p_multigrid/p_multigrid_builder_and_solver.hpp" // PMultigridBuilderAndSolver
-#include "spaces/ublas_space.h" // TUblasSparseSpace
+#include "spaces/ublas_space.h" // TDefaultSparseSpace
+#include "spaces/default_spaces.h"
 #include "input_output/vtu_output.h" // VtuOutput
 #include "includes/model_part.h" // ModelPart
 
@@ -31,12 +32,12 @@
 namespace Kratos {
 
 
-using DoubleBnS = PMultigridBuilderAndSolver<TUblasSparseSpace<double>,
-                                             TUblasDenseSpace<double>>;
+using DoubleBnS = PMultigridBuilderAndSolver<TDefaultSparseSpace<double>,
+                                             TDefaultDenseSpace<double>>;
 
 
-using SingleBnS = PMultigridBuilderAndSolver<TUblasSparseSpace<float>,
-                                             TUblasDenseSpace<double>>;
+using SingleBnS = PMultigridBuilderAndSolver<TDefaultSparseSpace<float>,
+                                             TDefaultDenseSpace<double>>;
 
 
 std::unique_ptr<VtuOutput> MakeVtuOutput(ModelPart& rModelPart,
@@ -256,8 +257,8 @@ struct PMGStatusStream::Impl {
 
     ModelPart* mpModelPart;
 
-    using DoubleSpace = TUblasSparseSpace<double>;
-    using SingleSpace = TUblasSparseSpace<float>;
+    using DoubleSpace = TDefaultSparseSpace<double>;
+    using SingleSpace = TDefaultSparseSpace<float>;
     std::variant<
         std::tuple<const typename DoubleSpace::MatrixType*,
                    const typename DoubleSpace::VectorType*,
@@ -333,18 +334,18 @@ PMGStatusStream& PMGStatusStream::operator<<(const Report& rReport)
 template PMGStatusStream::PMGStatusStream(std::ostream&,
                                           DoubleBnS&,
                                           ModelPart&,
-                                          const typename TUblasSparseSpace<double>::MatrixType&,
-                                          const typename TUblasSparseSpace<double>::VectorType&,
-                                          const typename TUblasSparseSpace<double>::VectorType&,
+                                          const typename TDefaultSparseSpace<double>::MatrixType&,
+                                          const typename TDefaultSparseSpace<double>::VectorType&,
+                                          const typename TDefaultSparseSpace<double>::VectorType&,
                                           bool);
 
 
 template PMGStatusStream::PMGStatusStream(std::ostream&,
                                           SingleBnS&,
                                           ModelPart&,
-                                          const typename TUblasSparseSpace<float>::MatrixType&,
-                                          const typename TUblasSparseSpace<float>::VectorType&,
-                                          const typename TUblasSparseSpace<float>::VectorType&,
+                                          const typename TDefaultSparseSpace<float>::MatrixType&,
+                                          const typename TDefaultSparseSpace<float>::VectorType&,
+                                          const typename TDefaultSparseSpace<float>::VectorType&,
                                           bool);
 
 

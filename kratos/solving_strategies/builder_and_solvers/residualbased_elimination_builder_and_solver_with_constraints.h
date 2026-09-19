@@ -1028,7 +1028,7 @@ protected:
         for (IndexType i = 0; i < BaseType::mEquationSystemSize; ++i)
             Trow_indices[i + 1] = Trow_indices[i] + master_indices[i].size();
 
-        KRATOS_DEBUG_ERROR_IF_NOT(Trow_indices[BaseType::mEquationSystemSize] == nnz) << "Nonzero values does not coincide with the row index definition: " << Trow_indices[BaseType::mEquationSystemSize] << " vs " << nnz << std::endl;
+        KRATOS_DEBUG_ERROR_IF_NOT(static_cast<std::size_t>(Trow_indices[BaseType::mEquationSystemSize]) == static_cast<std::size_t>(nnz)) << "Nonzero values does not coincide with the row index definition: " << Trow_indices[BaseType::mEquationSystemSize] << " vs " << nnz << std::endl;
 
         IndexPartition<std::size_t>(rT.size1()).for_each([&](std::size_t Index){
             const IndexType row_begin = Trow_indices[Index];

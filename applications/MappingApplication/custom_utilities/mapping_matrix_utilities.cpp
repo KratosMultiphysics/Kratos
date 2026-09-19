@@ -14,6 +14,7 @@
 //  Framework for Non-Matching Grid Mapping"
 
 // System includes
+#include <type_traits>
 
 // External includes
 
@@ -42,6 +43,20 @@ using SizeType = std::size_t;
 /***********************************************************************************/
 /* Functions for internal use in this file */
 /***********************************************************************************/
+
+template<class TMatrixType, class TValueType>
+void AtomicAddMatrixEntry(
+    TMatrixType& rMatrix,
+    const IndexType RowIndex,
+    const IndexType ColumnIndex,
+    const TValueType& rValue)
+{
+    if constexpr (std::is_reference_v<decltype(rMatrix(RowIndex, ColumnIndex))>) {
+        AtomicAdd(rMatrix(RowIndex, ColumnIndex), rValue);
+    } else {
+        AtomicAdd(rMatrix(RowIndex, ColumnIndex).ref(), rValue);
+    }
+}
 
 void ConstructMatrixStructure(Kratos::unique_ptr<typename MappingSparseSpaceType::MatrixType>& rpMdo,
                               std::vector<Kratos::unique_ptr<MapperLocalSystem>>& rMapperLocalSystems,
@@ -87,8 +102,8 @@ void ConstructMatrixStructure(Kratos::unique_ptr<typename MappingSparseSpaceType
         NumNodesOrigin,
         num_non_zero_entries);
 
-    IndexType* p_matrix_row_indices = p_Mdo->index1_data().begin();
-    IndexType* p_matrix_col_indices = p_Mdo->index2_data().begin();
+    auto* p_matrix_row_indices = p_Mdo->index1_data().begin();
+    auto* p_matrix_col_indices = p_Mdo->index2_data().begin();
     double*    p_matrix_values       = p_Mdo->value_data().begin();
 
     IndexPartition<IndexType>(NumNodesDestination + 1).for_each([&](IndexType i) {
@@ -125,7 +140,11 @@ void BuildMatrix(Kratos::unique_ptr<typename MappingSparseSpaceType::MatrixType>
 
         for (IndexType i = 0; i < rTls.destination_ids.size(); ++i) {
             for (IndexType j = 0; j < rTls.origin_ids.size(); ++j) {
-                AtomicAdd((*rpMdo)(rTls.destination_ids[i], rTls.origin_ids[j]).ref(), rTls.local_mapping_matrix(i,j));
+                AtomicAddMatrixEntry(
+                    *rpMdo,
+                    rTls.destination_ids[i],
+                    rTls.origin_ids[j],
+                    rTls.local_mapping_matrix(i,j));
             }
         }
 

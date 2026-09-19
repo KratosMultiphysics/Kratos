@@ -16,6 +16,7 @@
 
 // Project includes
 #include "testing/testing.h"
+#include "spaces/default_spaces.h"
 #include "trilinos_space.h"
 #include "tests/cpp_tests/trilinos_cpp_test_utilities.h"
 #include "tests/cpp_tests/trilinos_fast_suite.h"
@@ -90,7 +91,7 @@ public:
 
 // Define the types of spaces
 using TrilinosSparseSpaceType = TrilinosSpace<Epetra_FECrsMatrix, Epetra_FEVector>;
-using TrilinosLocalSpaceType = UblasSpace<double, Matrix, Vector>;
+using TrilinosLocalSpaceType = TDefaultDenseSpace<double>;
 
 // Define the vector and matrix types
 using SparseMatrixType = typename TrilinosSparseSpaceType::MatrixType;

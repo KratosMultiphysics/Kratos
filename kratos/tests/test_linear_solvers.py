@@ -19,30 +19,30 @@ class TestLinearSolvers(KratosUnittest.TestCase):
                 self._auxiliary_test_function(settings, matrix_name, rhs_scaling)
 
     def _auxiliary_test_function(self, settings, matrix_name="auxiliar_files_for_python_unittest/sparse_matrix_files/A.mm", rhs_scaling=1.0):
-        space = KratosMultiphysics.UblasSparseSpace()
+        space = KratosMultiphysics.SparseSpace()
 
         #read the matrices
-        A = KratosMultiphysics.CompressedMatrix()
+        A = KratosMultiphysics.SparseMatrix()
         file_read = KratosMultiphysics.ReadMatrixMarketMatrix(GetFilePath(matrix_name),A)
         self.assertTrue(file_read, msg="The MatrixFile could not be read")
 
-        Aoriginal = KratosMultiphysics.CompressedMatrix(A) #create a copy of A
+        Aoriginal = KratosMultiphysics.SparseMatrix(A) #create a copy of A
 
         n = A.Size1()
-        b = KratosMultiphysics.Vector(n)
+        b = KratosMultiphysics.SparseVector(n)
         space.SetToZeroVector(b)
 
-        for i in range(len(b)):
-            b[i] = rhs_scaling * i/len(b)
+        for i in range(n):
+            b[i] = (i/n) * rhs_scaling
 
-        x = KratosMultiphysics.Vector(n)
+        x = KratosMultiphysics.SparseVector(n)
         #KratosMultiphysics.ReadMatrixMarketVector("b.mm",b)
 
-        boriginal = KratosMultiphysics.Vector(b) #create a copy of b
+        boriginal = KratosMultiphysics.SparseVector(n) #create a copy of b
+        space.SetToZeroVector(boriginal)
+        space.UnaliasedAdd(boriginal, 1.0, b)
 
         space.SetToZeroVector(x)
-        #space.SetToZeroVector(boriginal)
-        #space.UnaliasedAdd(boriginal, 1.0, b) #boriginal=1*bs
 
         #construct the solver
         from KratosMultiphysics import python_linear_solver_factory as linear_solver_factory
@@ -52,12 +52,14 @@ class TestLinearSolvers(KratosUnittest.TestCase):
         linear_solver.Solve(A,x,b)
 
         #test the results
-        tmp = KratosMultiphysics.Vector(n)
-        tmp *= 0.0
+        tmp = KratosMultiphysics.SparseVector(n)
+        space.SetToZeroVector(tmp)
         space.Mult(Aoriginal,x,tmp)
 
-        check = KratosMultiphysics.Vector(n)
-        check = boriginal - tmp
+        check = KratosMultiphysics.SparseVector(n)
+        space.SetToZeroVector(check)
+        space.UnaliasedAdd(check, 1.0, boriginal)
+        space.UnaliasedAdd(check, -1.0, tmp)
 
         achieved_norm = space.TwoNorm(check)
 
@@ -119,6 +121,8 @@ class TestLinearSolvers(KratosUnittest.TestCase):
             }
             """)
 
+    @KratosUnittest.skipUnless(hasattr(KratosMultiphysics, "DeflatedCGSolver"),
+                               "The deflated CG solver is uBLAS-only and is not available with the configured linear-algebra backend.")
     def test_deflated_cg_in_core(self):
         self._RunParametrized("""
             {

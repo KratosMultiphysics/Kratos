@@ -48,6 +48,7 @@ rm -rf "${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}/CMakeFiles"
  -DCMAKE_POLICY_VERSION_MINIMUM=3.5                                                                         \
  -DCMAKE_C_FLAGS="${CMAKE_C_FLAGS} -msse3 -L/usr/local/opt/llvm/lib"                                        \
  -DUSE_EIGEN_MKL=OFF                                                                                        \
+ -DKRATOS_LINEAR_ALGEBRA_BACKEND="ublas"                                                                    \
  -DKRATOS_GENERATE_PYTHON_STUBS=ON
 
 # Build

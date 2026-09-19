@@ -19,7 +19,7 @@
 #include "includes/model_part.h"
 #include "includes/matrix_market_interface.h"
 #include "includes/kratos_filesystem.h"
-#include "spaces/ublas_space.h"
+#include "spaces/default_spaces.h"
 #include "containers/model.h"
 
 // Application includes
@@ -38,8 +38,8 @@
 namespace Kratos::Testing
 {
 /// Tests
-using SparseSpaceType = UblasSpace<double, CompressedMatrix, Vector>;
-using LocalSpaceType = UblasSpace<double, Matrix, Vector>;
+using SparseSpaceType = TDefaultSparseSpace<double>;
+using LocalSpaceType = TDefaultDenseSpace<double>;
 
 // The direct solver
 using ReordererType = Reorderer<SparseSpaceType, LocalSpaceType>;

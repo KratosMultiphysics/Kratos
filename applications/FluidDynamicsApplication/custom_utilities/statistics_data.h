@@ -46,8 +46,15 @@ public:
 
     typedef std::vector<double> ValueContainerType;
 
+#ifdef KRATOS_USE_EIGEN_BACKEND
+    // See the note on the matching typedefs in statistics_utilities.h: the
+    // views over one integration point's data are Eigen row expressions.
+    typedef Matrix::RowXpr IntegrationPointDataView;
+    typedef Matrix::ConstRowXpr IntegrationPointDataConstView;
+#else
     typedef Matrix::iterator1 IntegrationPointDataView;
     typedef Matrix::const_iterator1 IntegrationPointDataConstView;
+#endif
 
     ///@}
     ///@name Life Cycle
@@ -174,7 +181,11 @@ public:
                 coordinates += shape_functions(g,n) * r_geometry[n].Coordinates();
             rOutputStream << coordinates[0] << rSeparator << coordinates[1] << rSeparator << coordinates[2];
 
+#ifdef KRATOS_USE_EIGEN_BACKEND
+            StatisticsSampler::IntegrationPointDataViewIterator data_iterator = &mData(g, 0);
+#else
             auto data_iterator = IntegrationPointData(g).begin();
+#endif
             for (auto it_sampler = rRecordedStatistics.begin(); it_sampler != rRecordedStatistics.end(); ++it_sampler)
             {
                 it_sampler->OutputResult(rOutputStream,data_iterator,NumberOfMeasurements,rSeparator);
@@ -220,7 +231,11 @@ public:
         KRATOS_DEBUG_ERROR_IF(IntegrationPointIndex >= mData.size1())
             << "Asking for integration point number " << IntegrationPointIndex
             << " but only " << mData.size1() << " points are recorded." << std::endl;
+#ifdef KRATOS_USE_EIGEN_BACKEND
+        return mData.row(IntegrationPointIndex);
+#else
         return (mData.begin1() + IntegrationPointIndex);
+#endif
     }
 
     /// Access internal data for a given integration point.
@@ -231,7 +246,11 @@ public:
         KRATOS_DEBUG_ERROR_IF(IntegrationPointIndex >= mData.size1())
             << "Asking for integration point number " << IntegrationPointIndex
             << " but only " << mData.size1() << " points are recorded." << std::endl;
+#ifdef KRATOS_USE_EIGEN_BACKEND
+        return mData.row(IntegrationPointIndex);
+#else
         return (mData.begin1() + IntegrationPointIndex);
+#endif
     }
 
     ///@}

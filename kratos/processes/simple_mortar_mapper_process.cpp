@@ -674,8 +674,8 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::Asse
     )
 {
     double* values_vector = rA.value_data().begin();
-    SizeType* index1_vector = rA.index1_data().begin();
-    SizeType* index2_vector = rA.index2_data().begin();
+    auto* index1_vector = rA.index1_data().begin();
+    auto* index2_vector = rA.index2_data().begin();
 
     for (IndexType i_node = 0; i_node < TNumNodes; ++i_node) {
         const SizeType node_i_id = rSlaveGeometry[i_node].Id();
@@ -689,7 +689,7 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::Asse
 
         SizeType left_limit = index1_vector[pos_i_id];
         SizeType last_pos = left_limit;
-        while(pos_i_id != index2_vector[last_pos]) last_pos++;
+        while(pos_i_id != static_cast<SizeType>(index2_vector[last_pos])) last_pos++;
         double& a_value = values_vector[last_pos];
 
         AtomicAdd(a_value, rThisMortarOperators.DOperator(i_node, i_node));

@@ -10,27 +10,25 @@
 //  Main authors:    Vicente Mataix Ferrandiz
 //
 
-#if !defined(KRATOS_REGISTER_FACTORIES_H_INCLUDED )
-#define  KRATOS_REGISTER_FACTORIES_H_INCLUDED
+#pragma once
 
 // System includes
 
 // External includes
 
 // Project includes
-#include "includes/define.h"
 #include "factories/factory.h"
 #include "includes/kratos_components.h"
 #include "solving_strategies/builder_and_solvers/explicit_builder.h"
-#include "spaces/ublas_space.h"
+#include "spaces/default_spaces.h"
 
 namespace Kratos
 {
 ///@name Type Definitions
 ///@{
 
-typedef TUblasSparseSpace<double> SparseSpaceType;
-typedef TUblasDenseSpace<double> LocalSpaceType;
+typedef DefaultSparseSpaceType SparseSpaceType;
+typedef DefaultLocalSpaceType LocalSpaceType;
 
 ///@}
 
@@ -41,5 +39,3 @@ KRATOS_API_EXTERN template class KRATOS_API(KRATOS_CORE) KratosComponents<Explic
 void KRATOS_API(KRATOS_CORE) AddKratosComponent(std::string const& Name, ExplicitBuilderType const& ThisComponent);
 
 }  // namespace Kratos.
-
-#endif // KRATOS_REGISTER_FACTORIES_H_INCLUDED  defined
