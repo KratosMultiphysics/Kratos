@@ -104,8 +104,7 @@ public:
      */
     ContainerComponentIO(
         Parameters Settings,
-        File::Pointer pFile,
-        const std::string& rLegacySuffix = "");
+        File::Pointer pFile);
 
     ///@}
     ///@name Operations

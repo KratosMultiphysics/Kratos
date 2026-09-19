@@ -64,7 +64,8 @@ class TestTensorAdaptorIO(UnitTest.TestCase):
         self.assertEqual(np.linalg.norm(ta_out.data - ta.data), 0)
 
     def __TestWriteVariableAndReadTensorAdaptor(self, variable, hdf5_io_type, container, prefix: str):
-        params = Kratos.Parameters("""{"prefix": "/ResultsData" }""")
+        params = Kratos.Parameters("""{"prefix": ""}""")
+        params["prefix"].SetString(prefix)
         params.AddStringArray("list_of_variables", [variable.Name()])
         io = hdf5_io_type(params, self.h5_file)
         io.Write(self.model_part)
