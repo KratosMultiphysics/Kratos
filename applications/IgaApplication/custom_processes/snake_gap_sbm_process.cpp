@@ -287,6 +287,10 @@ SnakeGapSbmProcess::CreateSkinNodesPerKnotSpanMatrix(
             r_occupancy_matrix.push_back(span_index_x, span_index_y, 0.0);  // keep strictly increasing (i,j)
         }
     }
+    // FindNnzIndex/CellIds read index1_data()/index2_data()/value_data() as packed CSR
+    // arrays; element-wise insertion leaves the Eigen-backed matrix uncompressed
+    // (its arrays then span the allocated capacity), so finalize the storage first.
+    r_occupancy_matrix.complete_index1_data();
 
     // Temporary per-nnz buckets for node ids
     std::vector<std::vector<IndexType>> node_ids_per_non_zero(number_of_non_zero_entries);
@@ -407,6 +411,10 @@ SnakeGapSbmProcess::CreateSkinConditionsPerKnotSpanMatrix(
             occupancy_index_lookup[span_index_x].emplace(span_index_y, nnz_counter++);
         }
     }
+    // FindNnzIndex/CellIds read index1_data()/index2_data()/value_data() as packed CSR
+    // arrays; element-wise insertion leaves the Eigen-backed matrix uncompressed
+    // (its arrays then span the allocated capacity), so finalize the storage first.
+    r_occupancy_matrix.complete_index1_data();
 
     // Fill
     std::vector<std::vector<IndexType>> condition_ids_per_non_zero(number_of_non_zero_entries);
