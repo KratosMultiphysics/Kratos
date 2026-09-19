@@ -74,7 +74,7 @@ public:
         {
             Geometry< Node >& geom = iii->GetGeometry();
             Properties::Pointer properties = iii->pGetProperties();
-            Element::Pointer p_element = rReferenceElement.Create(id, geom ,properties);
+            Element::Pointer p_element = rReferenceElement.Create(id, geom.Points() ,properties);
             DestinationModelPart.Elements().push_back(p_element);
             id = id + 1;
         }
@@ -92,7 +92,7 @@ public:
             if(nfree_surf > 1)
             {
                 Properties::Pointer properties = iii->pGetProperties();
-                Condition::Pointer p_condition = rReferenceBoundaryCondition.Create(id, geom,properties);
+                Condition::Pointer p_condition = rReferenceBoundaryCondition.Create(id, geom.Points(), properties);
                 DestinationModelPart.Conditions().push_back(p_condition);
                 id = id + 1;
             }

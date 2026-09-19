@@ -56,16 +56,16 @@ KRATOS_TEST_CASE_IN_SUITE(FastTransferBetweenModelPartsProcess1, KratosCoreFastS
     // Now we create the "geometries"
     Triangle3D3<Node> triangle_0( PointerVector<Node>{nodes_0} );
     Triangle3D3<Node> triangle_1( PointerVector<Node>{nodes_1} );
-    r_origin_model_part.CreateNewGeometry("Triangle3D3", 1, triangle_0);
-    r_origin_model_part.CreateNewGeometry("Triangle3D3", 2, triangle_1);
+    r_origin_model_part.CreateNewGeometry("Triangle3D3", 1, triangle_0.Points());
+    r_origin_model_part.CreateNewGeometry("Triangle3D3", 2, triangle_1.Points());
 
     // Now we create the "elements"
-    r_origin_model_part.CreateNewElement("Element3D3N", 1, triangle_0, p_prop);
-    r_origin_model_part.CreateNewElement("Element3D3N", 2, triangle_1, p_prop);
+    r_origin_model_part.CreateNewElement("Element3D3N", 1, triangle_0.Points(), p_prop);
+    r_origin_model_part.CreateNewElement("Element3D3N", 2, triangle_1.Points(), p_prop);
 
     // Now we create the "conditions"
-    r_origin_model_part.CreateNewCondition("SurfaceCondition3D3N", 1, triangle_0, p_prop);
-    r_origin_model_part.CreateNewCondition("SurfaceCondition3D3N", 2, triangle_1, p_prop);
+    r_origin_model_part.CreateNewCondition("SurfaceCondition3D3N", 1, triangle_0.Points(), p_prop);
+    r_origin_model_part.CreateNewCondition("SurfaceCondition3D3N", 2, triangle_1.Points(), p_prop);
 
     // This will copy all
     FastTransferBetweenModelPartsProcess process = FastTransferBetweenModelPartsProcess(r_destination_model_part, r_origin_model_part, FastTransferBetweenModelPartsProcess::EntityTransfered::ALL);
@@ -128,8 +128,8 @@ KRATOS_TEST_CASE_IN_SUITE(FastTransferBetweenModelPartsProcess2, KratosCoreFastS
     Triangle3D3<Node> triangle_0( PointerVector<Node>{nodes_0} );
     Triangle3D3<Node> triangle_1( PointerVector<Node>{nodes_1} );
 
-    Condition::Pointer p_cond_0 = r_origin_model_part.CreateNewCondition("SurfaceCondition3D3N", 1, triangle_0, p_cond_prop);
-    Condition::Pointer p_cond_1 = r_origin_model_part.CreateNewCondition("SurfaceCondition3D3N", 2, triangle_1, p_cond_prop);
+    Condition::Pointer p_cond_0 = r_origin_model_part.CreateNewCondition("SurfaceCondition3D3N", 1, triangle_0.Points(), p_cond_prop);
+    Condition::Pointer p_cond_1 = r_origin_model_part.CreateNewCondition("SurfaceCondition3D3N", 2, triangle_1.Points(), p_cond_prop);
 
     // Setting flags
     // SLAVE
@@ -204,8 +204,8 @@ KRATOS_TEST_CASE_IN_SUITE(FastTransferBetweenModelPartsProcess3, KratosCoreFastS
     Triangle3D3<Node> triangle_0( PointerVector<Node>{nodes_0} );
     Triangle3D3<Node> triangle_1( PointerVector<Node>{nodes_1} );
 
-    Condition::Pointer p_cond_0 = r_origin_model_part.CreateNewCondition("SurfaceCondition3D3N", 1, triangle_0, p_cond_prop);
-    Condition::Pointer p_cond_1 = r_origin_model_part.CreateNewCondition("SurfaceCondition3D3N", 2, triangle_1, p_cond_prop);
+    Condition::Pointer p_cond_0 = r_origin_model_part.CreateNewCondition("SurfaceCondition3D3N", 1, triangle_0.Points(), p_cond_prop);
+    Condition::Pointer p_cond_1 = r_origin_model_part.CreateNewCondition("SurfaceCondition3D3N", 2, triangle_1.Points(), p_cond_prop);
 
     // This will copy all
     FastTransferBetweenModelPartsProcess process = FastTransferBetweenModelPartsProcess(r_destination_model_part, r_origin_model_part, FastTransferBetweenModelPartsProcess::EntityTransfered::ALL, Flags(), true);
@@ -256,8 +256,8 @@ KRATOS_TEST_CASE_IN_SUITE(FastTransferBetweenModelPartsProcess4, KratosCoreFastS
     Triangle3D3 <Node> triangle_0( PointerVector<Node>{nodes_0} );
     Triangle3D3 <Node> triangle_1( PointerVector<Node>{nodes_1} );
 
-    Condition::Pointer p_cond_0 = r_origin_model_part.CreateNewCondition("SurfaceCondition3D3N", 1, triangle_0, p_cond_prop);
-    Condition::Pointer p_cond_1 = r_origin_model_part.CreateNewCondition("SurfaceCondition3D3N", 2, triangle_1, p_cond_prop);
+    Condition::Pointer p_cond_0 = r_origin_model_part.CreateNewCondition("SurfaceCondition3D3N", 1, triangle_0.Points(), p_cond_prop);
+    Condition::Pointer p_cond_1 = r_origin_model_part.CreateNewCondition("SurfaceCondition3D3N", 2, triangle_1.Points(), p_cond_prop);
 
     // Setting flags
     // SLAVE

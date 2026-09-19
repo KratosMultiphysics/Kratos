@@ -233,7 +233,7 @@ public:
                 *( (nodes_begin +  out.tetrahedronlist[base+3]-1).base() 	)
             );
 
-            Element::Pointer p_element = rReferenceElement.Create(i+1, geom, properties);
+            Element::Pointer p_element = rReferenceElement.Create(i+1, geom.Points(), properties);
             (mrModelPart.Elements()).push_back(p_element);
         }
 
