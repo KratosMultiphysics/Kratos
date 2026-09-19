@@ -302,6 +302,10 @@ class AlgorithmRelaxedGradientProjection(OptimizationAlgorithm):
                 gradient = Kratos.Vector()
                 self.optimization_utilities.AssembleVector(self.design_surface, gradient, g_a_variable)
                 self.optimization_utilities.AssembleVector(self.design_surface, shape_update, KSO.SHAPE_UPDATE)
+                gradient_norm = self.optimization_utilities.ComputeMaxNormOfNodalVariable(self.design_surface, g_a_variable)
+                # skip constraint with zero gradients
+                if abs(gradient_norm) < 1e-10:
+                    continue
                 new_g_i = g_i + np.dot(gradient, shape_update)
                 Kratos.Logger.PrintInfo("Constraint ", identifier, "\n Linearized new value = ", new_g_i)
                 if new_g_i > 0.0:
@@ -398,6 +402,18 @@ class AlgorithmRelaxedGradientProjection(OptimizationAlgorithm):
         """adapted from https://msulaiman.org/onewebmedia/GradProj_2.pdf"""
         if self.inner_iter == 1:
             self.g_a, self.g_a_variables, self.relaxation_coefficients, self.correction_coefficients = self.__getActiveConstraints()
+
+            # remove constraint with zero gradients
+            for i in range(len(self.g_a)):
+                g_a_variable = self.g_a_variables[i]
+                g_a_variable_vector = Kratos.Vector()
+                self.optimization_utilities.AssembleVector(self.design_surface, g_a_variable_vector, g_a_variable)
+                g_a_norm = self.optimization_utilities.ComputeMaxNormOfNodalVariable(self.design_surface, g_a_variable)
+                if abs(g_a_norm) < 1e-10:
+                    self.g_a.pop(i)
+                    self.g_a_variables.pop(i)
+                    self.relaxation_coefficients.pop(i)
+                    self.correction_coefficients.pop(i)
 
         Kratos.Logger.PrintInfo("ShapeOpt", "Assemble vector of objective gradient.")
         nabla_f = Kratos.Vector()
