@@ -14,7 +14,7 @@
 #include "custom_utilities/ublas_utilities.h"
 #include "includes/condition.h"
 #include "includes/element.h"
-#include "spaces/ublas_space.h"
+#include "spaces/default_spaces.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
 #include "tests/cpp_tests/test_utilities.h"
 
@@ -74,8 +74,8 @@ public:
 namespace Kratos::Testing
 {
 
-using SparseSpaceType = UblasSpace<double, CompressedMatrix, Vector>;
-using LocalSpaceType  = UblasSpace<double, Matrix, Vector>;
+using SparseSpaceType = TDefaultSparseSpace<double>;
+using LocalSpaceType  = TDefaultDenseSpace<double>;
 
 class LoadSteppingSchemeElementRightHandSideScaling
     : public ::testing::TestWithParam<std::tuple<double, Vector>>
@@ -100,9 +100,9 @@ TEST_P(LoadSteppingSchemeElementRightHandSideScaling, RightHandSideIsCalculatedB
     Model model;
     auto& model_part = model.CreateModelPart("Main");
     model_part.AddElement(element);
-    CompressedMatrix A;
-    Vector           Dx;
-    Vector           b;
+    SparseSpaceType::MatrixType A;
+    SparseSpaceType::VectorType           Dx;
+    SparseSpaceType::VectorType           b;
     scheme.InitializeSolutionStep(model_part, A, Dx, b);
 
     element->SetInternalForces(UblasUtilities::CreateVector({2.0, 3.0, 4.0, 5.0}));
