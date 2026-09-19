@@ -82,7 +82,7 @@ proc InitKratosPT { ptdir } {
 	    }
 	}
     } else {
-	# Setup path is standard in Windows, do not ask it to the user, and do not try to open a file in the problemtype folder (it could require permisions we don't have)
+	# Setup path is standard in Windows, do not ask it to the user, and do not try to open a file in the problemtype folder (it could require permissions we don't have)
 	set ::kaux::kratos_path ""
 	set knownpath 1
     }
@@ -555,7 +555,7 @@ proc findboundary {entity} {
 	set instruction [format "MaxNum%ss" $Entity]
 	set Max [GiD_Info Geometry $instruction]
 	
-	# Generate a list containing all entities and record their id and number of HigerEntities
+	# Generate a list containing all entities and record their id and number of HigherEntities
 	set EntityList [GiD_Info list_entities $entities 1:$Max]
 	set candidates [regexp -all -inline {Num: ([0-9]*) HigherEntity: ([0-9]*)} $EntityList]
 
@@ -669,7 +669,7 @@ proc assign_element_choice { Option entity args } {
 		        }
 		        set valstring "$new_auto $valstring"
 		        GiD_AssignData Condition ${entity}_${choice} ${entity}s $valstring $entnum
-		        # It is always assigned using default values (but elements should't have values, so it shouldn't be a problem)
+		        # It is always assigned using default values (but elements shouldn't have values, so it shouldn't be a problem)
 		}
 	}
 }
@@ -751,7 +751,7 @@ if {$have_geometry>0} then {
 	    set otherents "Lines and points"
 	    set check_list [list surface line]
 	}
-	# Check if lower entities will recive a material automatically
+	# Check if lower entities will receive a material automatically
 	if {[GiD_AccessValue get gendata Transfer_materials_to_lower_entities] == 1} {
 	    set ent_list  [GiD_Geometry list $maxent 1:]
 	    # Check that all highest level entities have an assigned material

@@ -58,7 +58,7 @@ namespace Kratos
    }
 
 
-   //*******************************ASSIGMENT OPERATOR***********************************
+   //******************************ASSIGNMENT OPERATOR***********************************
    //************************************************************************************
 
    UpdatedLagrangianUJWwPElement&  UpdatedLagrangianUJWwPElement::operator=(UpdatedLagrangianUJWwPElement const& rOther)
@@ -489,7 +489,7 @@ namespace Kratos
    }
 
    //************************************************************************************
-   //         Matrix due to the the water pressure contribution to the internal forces
+   //         Matrix due to the water pressure contribution to the internal forces
    void UpdatedLagrangianUJWwPElement::CalculateAndAddKUwP( MatrixType & rLeftHandSide, ElementDataType & rVariables, double & rIntegrationWeight)
    {
       KRATOS_TRY
@@ -809,7 +809,7 @@ namespace Kratos
          //compute element kinematics
          this->CalculateKinematics( Variables, PointNumber );
 
-         //getting informations for integration
+         //getting information for integration
          double IntegrationWeight = integration_points[PointNumber].Weight() * Variables.detJ;
 
          IntegrationWeight = this->CalculateIntegrationWeight( IntegrationWeight );  // multiplies by thickness
@@ -838,7 +838,7 @@ namespace Kratos
    }
 
    // ********************************************************************************
-   //      part of the mass matrix that steams from the stabilization factor
+   //      part of the mass matrix that stems from the stabilization factor
    void UpdatedLagrangianUJWwPElement::CalculateAndAddMassStabilizationMatrix( MatrixType & rMassMatrix, ElementDataType & rVariables, double & rIntegrationWeight)
    {
       KRATOS_TRY
@@ -891,7 +891,7 @@ namespace Kratos
 
          //std::cout << "N = " << Variables.N << std::endl;
 
-         //getting informations for integration
+         //getting information for integration
          double IntegrationWeight = integration_points[PointNumber].Weight() * Variables.detJ;
 
          IntegrationWeight = this->CalculateIntegrationWeight( IntegrationWeight );  // multiplies by thickness
@@ -958,7 +958,7 @@ namespace Kratos
 
 
    // ********************************************************************************
-   //      part of the damping matrix that steams from the stabilization factor
+   //      part of the damping matrix that stems from the stabilization factor
    void UpdatedLagrangianUJWwPElement::CalculateAndAddDampingStabilizationMatrix( MatrixType & rDampingMatrix, ElementDataType & rVariables, double & rIntegrationWeight)
    {
       KRATOS_TRY

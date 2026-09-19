@@ -63,7 +63,7 @@ namespace Kratos
    }
 
 
-   //*******************************ASSIGMENT OPERATOR***********************************
+   //******************************ASSIGNMENT OPERATOR***********************************
    //************************************************************************************
 
    AxisymUpdatedLagrangianUPressureElement&  AxisymUpdatedLagrangianUPressureElement::operator=(AxisymUpdatedLagrangianUPressureElement const& rOther)
@@ -246,7 +246,7 @@ namespace Kratos
       // VectorType Fh=rRightHandSideVector;
       // std::cout<<" Element "<<this->Id()<<" "<<std::endl;
 
-      //use of this variable for the complete parameter: (deffault: 4)
+      //use of this variable for the complete parameter: (default: 4)
       double AlphaStabilization  = 4.0;
       double StabilizationFactor = GetProperties()[STABILIZATION_FACTOR_P];
       AlphaStabilization *= StabilizationFactor;
@@ -1006,7 +1006,7 @@ namespace Kratos
    {
       KRATOS_TRY
 
-      //Get the parent coodinates derivative [dN/d£]
+      //Get the parent coordinates derivative [dN/d£]
       const GeometryType::ShapeFunctionsGradientsType& DN_De = rVariables.GetShapeFunctionsGradients();
       //Get the shape functions for the order of the integration method [N]
       const Matrix& Ncontainer = rVariables.GetShapeFunctions();

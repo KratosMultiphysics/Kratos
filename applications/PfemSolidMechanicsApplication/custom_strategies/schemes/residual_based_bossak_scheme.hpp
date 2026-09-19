@@ -390,7 +390,7 @@ public:
         KRATOS_TRY
 
         if(this->mElementsAreInitialized==false)
-            KRATOS_THROW_ERROR( std::logic_error, "Before initilizing Conditions, initialize Elements FIRST", "" )
+            KRATOS_THROW_ERROR( std::logic_error, "Before initializing Conditions, initialize Elements FIRST", "" )
 
             int NumThreads = OpenMPUtils::GetNumThreads();
         OpenMPUtils::PartitionVector ConditionPartition;
@@ -891,7 +891,7 @@ protected:
         {
             noalias(LHS_Contribution) += M * (1-mAlpha.m) * mNewmark.c0 * mNewmark.static_dynamic;
 
-            //std::cout<<" Mass Matrix "<<M<<" coeficient "<<(1-mAlpha.m)*mNewmark.c0<<std::endl;
+            //std::cout<<" Mass Matrix "<<M<<" coefficient "<<(1-mAlpha.m)*mNewmark.c0<<std::endl;
         }
 
         //adding  damping contribution
