@@ -70,7 +70,7 @@ typename MortarExplicitContributionUtilities<TDim,TNumNodes,TFrictional, TNormal
     bool dual_LM = false;
 
     const double geometry_area = r_slave_geometry.Area();
-    if (is_inside && ((integration_area/geometry_area) > 1.0e-5)) {
+    if (is_inside && ((integration_area/geometry_area) > 1.0e-12)) {
         IntegrationMethod this_integration_method = pCondition->GetIntegrationMethod();
 
         // Initialize general variables for the current master element
@@ -642,7 +642,7 @@ void MortarExplicitContributionUtilities<TDim,TNumNodes,TFrictional, TNormalVari
     GeometryType::CoordinatesArrayType slave_gp_global;
     r_slave_geometry.GlobalCoordinates( slave_gp_global, rLocalPoint );
     const PointType slave_gp_global_point = PointType(slave_gp_global);
-    GeometricalProjectionUtilities::FastProjectDirection( r_master_geometry, slave_gp_global_point, projected_gp_global, rNormalMaster, -gp_normal ); // The opposite direction
+    GeometricalProjectionUtilities::FastProjectDirection( r_master_geometry, slave_gp_global_point, projected_gp_global, gp_normal, rNormalMaster ); // The opposite direction
 
     GeometryType::CoordinatesArrayType projected_gp_local;
 
