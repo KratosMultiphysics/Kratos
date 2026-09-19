@@ -36,6 +36,8 @@
 #include "modeler/entity_generation/voxel_mesher_entity_generation_factory.h"
 #include "modeler/operation/voxel_mesher_operation_factory.h"
 
+#include "utilities/multi_level_data_accesors.h"
+
 namespace Kratos {
 
 KratosApplication::KratosApplication(const std::string& ApplicationName)
@@ -168,6 +170,7 @@ void KratosApplication::RegisterKratosCore() {
     Serializer::Register("Modeler", Modeler());
     Serializer::Register("Properties", Properties());
     Serializer::Register("GeometricalObject", GeometricalObject());
+    Serializer::Register("LayeredGaussPointDataAccesor", LayeredGaussPointDataAccesor());
 
     //Register objects with specific definition ( non essential, must be deleted in future )
     Serializer::Register("Node3D", NodeType());
