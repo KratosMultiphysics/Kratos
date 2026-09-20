@@ -167,7 +167,9 @@ void Shell7pElement::InitializeNonLinearIteration(const ProcessInfo& rCurrentPro
         const Vector delta_u = current_nodal_dofs - mPreviousNodalDofs;
         Vector residual = mRtild + prod(mLt, delta_u);
         Vector delta_alpha = ZeroVector(mAlphaEas.size());
-        noalias(delta_alpha) = prod(mDtildInv, residual);
+        noalias(delta_alpha) = -prod(mDtildInv, residual);
+        mAlphaEas += delta_alpha;
+        mPreviousNodalDofs = current_nodal_dofs;
 
 
     KRATOS_CATCH( "" )
@@ -953,12 +955,12 @@ void Shell7pElement::CalculateGreenLagrangeStrain(array_1d<double,6>& GL_strain_
     double b31r = inner_prod(akovr[2],a3kvpr[0]);
     double b32r = inner_prod(akovr[2],a3kvpr[1]);
 
-    GL_strain_tensor(0,0) = 0.5 * ((amkovc(0,0)-amkovr(0,0)) + 2.0*Theta3 * (b11c-b11r))       + eas_enhancement[0] + Theta3 * eas_enhancement[6];
-    GL_strain_tensor(0,1) = 0.5 * ((amkovc(0,1)-amkovr(0,1)) + Theta3 * (b21c+b12c-b21r-b12r)) + eas_enhancement[1] + Theta3 * eas_enhancement[7];
-    GL_strain_tensor(0,2) = 0.5 * Theta3 * (b31c-b31r)                                         + eas_enhancement[2] + Theta3 * eas_enhancement[8];
-    GL_strain_tensor(1,1) = 0.5 * ((amkovc(1,1)-amkovr(1,1)) + 2.0*Theta3 * (b22c-b22r))       + eas_enhancement[3] + Theta3 * eas_enhancement[9];
-    GL_strain_tensor(1,2) = 0.5 * Theta3 * (b32c-b32r)                                         + eas_enhancement[4] + Theta3 * eas_enhancement[10];
-    GL_strain_tensor(2,2) = 0.5 * (amkovc(2,2)-amkovr(2,2))                                    + eas_enhancement[5] + Theta3 * eas_enhancement[11];
+    GL_strain_tensor(0,0) = 0.5 * ((amkovc(0,0)-amkovr(0,0)) + 2.0*Theta3 * (b11c-b11r))           +        eas_enhancement[0] + Theta3 * eas_enhancement[6];
+    GL_strain_tensor(0,1) = 0.5 * ((amkovc(0,1)-amkovr(0,1)) +     Theta3 * (b21c+b12c-b21r-b12r)) + 0.5 * (eas_enhancement[1] + Theta3 * eas_enhancement[7]);
+    GL_strain_tensor(0,2) = 0.5 *                                  Theta3 * (b31c-b31r)            + 0.5 * (eas_enhancement[2] + Theta3 * eas_enhancement[8]);
+    GL_strain_tensor(1,1) = 0.5 * ((amkovc(1,1)-amkovr(1,1)) + 2.0*Theta3 * (b22c-b22r))           +        eas_enhancement[3] + Theta3 * eas_enhancement[9];
+    GL_strain_tensor(1,2) = 0.5 *                                  Theta3 * (b32c-b32r)            + 0.5 * (eas_enhancement[4] + Theta3 * eas_enhancement[10]);
+    GL_strain_tensor(2,2) = 0.5 * (amkovc(2,2)-amkovr(2,2))                                        +        eas_enhancement[5] + Theta3 * eas_enhancement[11];
 
     if (!ansq)
     {
