@@ -96,4 +96,19 @@ KRATOS_TEST_CASE_IN_SUITE(GeoSeepageConditionCheckThrowsWhenNodeHasNoWaterPressu
                                       "Missing degree of freedom for WATER_PRESSURE on node 1")
 }
 
+KRATOS_TEST_CASE_IN_SUITE(GeoSeepageConditionCheckThrowsWhenItHasMoreThanOneNeighbouringElement,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    auto  model              = Model{};
+    auto& r_model_part       = CreateModelPartWithTwoWaterPressureNodes(model);
+    auto  condition          = CreateSeepageCondition(r_model_part);
+    auto  neighbour_elements = GlobalPointersVector<Element>{};
+    // Add two null pointers, to pretend the condition has two neighbouring elements
+    neighbour_elements.push_back({});
+    neighbour_elements.push_back({});
+    condition.SetValue(NEIGHBOUR_ELEMENTS, neighbour_elements);
+
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN([[maybe_unused]] const auto result = condition.Check(ProcessInfo{}), "The seepage condition with ID 1 has more than one neighbouring element, which is not allowed")
+}
+
 } // namespace Kratos::Testing

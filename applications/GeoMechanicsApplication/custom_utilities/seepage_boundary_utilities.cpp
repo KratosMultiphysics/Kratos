@@ -125,19 +125,26 @@ bool SeepageBoundaryUtilities::SwitchOneSeepageNodeIfNeeded(const std::vector<No
                                                             const NodalFlowMap&       rNodalFlows,
                                                             int                       EchoLevel)
 {
+    const auto flow_of = [&rNodalFlows](const Node& rNode) {
+        const auto it = rNodalFlows.find(rNode.Id());
+        return it == rNodalFlows.end() ? 0.0 : it->second;
+    };
+
     if (EchoLevel > 1) {
         for (auto* p_node : rSeepageNodes) {
             KRATOS_INFO("Node") << p_node->Id()
                                 << " pressure = " << p_node->FastGetSolutionStepValue(WATER_PRESSURE)
-                                << "\n";
-            KRATOS_INFO("Node") << p_node->Id() << " fixed = " << p_node->IsFixed(WATER_PRESSURE) << "\n";
+                                << ", fixed = " << p_node->IsFixed(WATER_PRESSURE)
+                                << ", flow = " << flow_of(*p_node) << "\n";
         }
     }
 
     // A free node with negative water pressure is a candidate for fixing.
     auto is_candidate     = CandidatePredicateType{[](const auto* pNode) {
+        constexpr auto epsilon_2 =
+            0.0; // This tolerance value implicitly assumes the units chosen by the user. Since it's set to zero, it's not immediately a problem, but it needs to be addressed in the future.
         return pNode && !pNode->IsFixed(WATER_PRESSURE) &&
-               pNode->FastGetSolutionStepValue(WATER_PRESSURE) < 0.0;
+               pNode->FastGetSolutionStepValue(WATER_PRESSURE) < -epsilon_2;
     }};
     auto score_calculator = ScoreCalculatorType{[](const auto* pNode) {
         return pNode ? -1.0 * pNode->FastGetSolutionStepValue(WATER_PRESSURE) : 0.0;
@@ -152,12 +159,10 @@ bool SeepageBoundaryUtilities::SwitchOneSeepageNodeIfNeeded(const std::vector<No
     }
 
     // Otherwise release the prescribed node carrying the largest inflow.
-    const auto flow_of = [&rNodalFlows](const Node& rNode) {
-        const auto it = rNodalFlows.find(rNode.Id());
-        return it == rNodalFlows.end() ? 0.0 : it->second;
-    };
     is_candidate     = CandidatePredicateType{[&flow_of](const auto* pNode) {
-        return pNode && pNode->IsFixed(WATER_PRESSURE) && flow_of(*pNode) < -1e-11;
+        constexpr auto epsilon_1 =
+            1e-11; // This tolerance value implicitly assumes the units chosen by the user. That needs to be addressed in the future.
+        return pNode && pNode->IsFixed(WATER_PRESSURE) && flow_of(*pNode) < -epsilon_1;
     }};
     score_calculator = ScoreCalculatorType{
         [&flow_of](const auto* pNode) { return pNode ? -1.0 * flow_of(*pNode) : 0.0; }};

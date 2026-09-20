@@ -19,11 +19,6 @@ using namespace std::string_literals;
 namespace Kratos::Testing
 {
 
-KRATOS_TEST_CASE_IN_SUITE(ApplySeepageBoundaryProcess_InfoReturnsClassName, KratosGeoMechanicsFastSuiteWithoutKernel)
-{
-    KRATOS_EXPECT_EQ(ApplySeepageBoundaryProcess{}.Info(), "ApplySeepageBoundaryProcess"s);
-}
-
 KRATOS_TEST_CASE_IN_SUITE(ApplySeepageBoundaryProcess_ConstructorThrowsWhenNoModelPartNameIsProvided,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
@@ -37,7 +32,7 @@ KRATOS_TEST_CASE_IN_SUITE(ApplySeepageBoundaryProcess_ConstructorThrowsWhenModel
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     auto       model         = Model{};
-    const auto test_settings = Parameters{R"({"model_part_name" : "Foo"})"};
+    const auto test_settings = Parameters{R"({"model_part_name" : "Foo"})"s};
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         (ApplySeepageBoundaryProcess{model, test_settings}),
         "ApplySeepageBoundaryProcess: \"Foo\" does not correspond to any model part in the model");

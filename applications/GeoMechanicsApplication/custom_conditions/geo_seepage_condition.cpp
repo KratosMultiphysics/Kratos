@@ -12,6 +12,7 @@
 
 #include "custom_conditions/geo_seepage_condition.h"
 #include "custom_utilities/dof_utilities.hpp"
+#include "includes/element.h"
 #include "includes/serializer.h"
 #include "includes/variables.h"
 
@@ -48,6 +49,10 @@ int GeoSeepageCondition::Check(const ProcessInfo& rCurrentProcessInfo) const
     KRATOS_ERROR_IF(GetGeometry().PointsNumber() < 2)
         << "GeoSeepageCondition " << Id() << " needs at least two nodes, but has "
         << GetGeometry().PointsNumber() << std::endl;
+
+    KRATOS_ERROR_IF(GetValue(NEIGHBOUR_ELEMENTS).size() > 1)
+        << "The seepage condition with ID " << Id()
+        << " has more than one neighbouring element, which is not allowed\n";
 
     for (const auto& r_node : GetGeometry()) {
         KRATOS_ERROR_IF_NOT(r_node.SolutionStepsDataHas(WATER_PRESSURE))
