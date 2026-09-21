@@ -31,10 +31,10 @@ double VanGenuchtenLaw::CalculateSaturation(Parameters& rParameters) const
 {
     const auto& r_material_properties = rParameters.GetMaterialProperties();
 
-    const auto sat_max = r_material_properties[SATURATED_SATURATION];
-    const auto sat_min = r_material_properties[RESIDUAL_SATURATION];
+    const auto s_s = r_material_properties[SATURATED_SATURATION];
+    const auto s_r = r_material_properties[RESIDUAL_SATURATION];
 
-    return sat_min + CalculateEffectiveSaturation(rParameters) * (sat_max - sat_min);
+    return s_r + CalculateEffectiveSaturation(rParameters) * (s_s - s_r);
 }
 
 double VanGenuchtenLaw::CalculateEffectiveSaturation(Parameters& rParameters) const
@@ -42,11 +42,11 @@ double VanGenuchtenLaw::CalculateEffectiveSaturation(Parameters& rParameters) co
     const auto p = rParameters.GetFluidPressure();
     if (p > 0.0) {
         const auto& r_material_properties = rParameters.GetMaterialProperties();
-        const auto  pb                    = r_material_properties[VAN_GENUCHTEN_AIR_ENTRY_PRESSURE];
+        const auto  p_b                   = r_material_properties[VAN_GENUCHTEN_AIR_ENTRY_PRESSURE];
         const auto  n                     = r_material_properties[VAN_GENUCHTEN_GN];
         const auto  m                     = (n - 1.0) / n;
 
-        return std::pow(1.0 + std::pow(p / pb, n), -m);
+        return std::pow(1.0 + std::pow(p / p_b, n), -m);
     }
     return 1.0;
 }
@@ -56,14 +56,14 @@ double VanGenuchtenLaw::CalculateDerivativeOfSaturation(Parameters& rParameters)
     const auto p = rParameters.GetFluidPressure();
     if (p > 0.0) {
         const auto& r_material_properties = rParameters.GetMaterialProperties();
-        const auto  sat_max               = r_material_properties[SATURATED_SATURATION];
-        const auto  sat_min               = r_material_properties[RESIDUAL_SATURATION];
-        const auto  pb                    = r_material_properties[VAN_GENUCHTEN_AIR_ENTRY_PRESSURE];
+        const auto  s_s                   = r_material_properties[SATURATED_SATURATION];
+        const auto  s_r                   = r_material_properties[RESIDUAL_SATURATION];
+        const auto  p_b                   = r_material_properties[VAN_GENUCHTEN_AIR_ENTRY_PRESSURE];
         const auto  n                     = r_material_properties[VAN_GENUCHTEN_GN];
         const auto  m                     = (n - 1.0) / n;
 
-        return (sat_max - sat_min) * (-m) * n * std::pow(pb, -n) * std::pow(p, n - 1.0) /
-               std::pow((1.0 + std::pow(p / pb, n)), m + 1.0);
+        return (s_s - s_r) * (-m) * n * std::pow(p_b, -n) * std::pow(p, n - 1.0) /
+               std::pow((1.0 + std::pow(p / p_b, n)), m + 1.0);
     }
     return 0.0;
 }
