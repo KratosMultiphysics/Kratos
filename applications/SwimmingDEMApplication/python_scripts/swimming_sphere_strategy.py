@@ -5,6 +5,49 @@ import KratosMultiphysics.SwimmingDEMApplication as SDEM
 from KratosMultiphysics.DEMApplication.sphere_strategy import ExplicitStrategy
 BaseStrategy = ExplicitStrategy
 
+def GetTerminalVelocitySchemeParameters(sdem_parameters):
+    """Parameters of the TerminalVelocityScheme read from the SwimmingDEM ProjectParameters.
+
+    The scheme moves inertia-free particles with the fluid velocity plus the Stokes
+    settling velocity 2 a^2 (rho_p - rho_f) g / (9 mu). Both mu and g must be given
+    explicitly in ``custom_dem.terminal_velocity_scheme_parameters``::
+
+        "custom_dem" : {
+            "translational_integration_scheme" : "TerminalVelocityScheme",
+            "terminal_velocity_scheme_parameters" : {
+                "dynamic_viscosity" : 1.0,
+                "gravity"           : [0.0, 0.0, -1.0]
+            }
+        }
+
+    in the units of the case (dimensional or dimensionless); the scheme itself
+    carries no hidden constants. The gravity is checked against ``gravity_parameters``
+    (the gravity seen by the fluid) so that both cannot silently disagree.
+    """
+    if not sdem_parameters.Has("custom_dem") or not sdem_parameters["custom_dem"].Has("terminal_velocity_scheme_parameters"):
+        raise Exception("TerminalVelocityScheme requires 'custom_dem.terminal_velocity_scheme_parameters' "
+                        "with 'dynamic_viscosity' and 'gravity' in the SwimmingDEM ProjectParameters "
+                        "(no hidden default values are used).")
+    scheme_parameters = sdem_parameters["custom_dem"]["terminal_velocity_scheme_parameters"]
+    for key in ("dynamic_viscosity", "gravity"):
+        if not scheme_parameters.Has(key):
+            raise Exception("'custom_dem.terminal_velocity_scheme_parameters' must contain '{}'".format(key))
+    if sdem_parameters.Has("gravity_parameters"):
+        g_fluid = sdem_parameters["gravity_parameters"]["direction"].GetVector()
+        g_fluid *= sdem_parameters["gravity_parameters"]["modulus"].GetDouble()
+        g_scheme = scheme_parameters["gravity"].GetVector()
+        scale = max(1.0e-300, max(abs(g_fluid[k]) for k in range(3)), max(abs(g_scheme[k]) for k in range(3)))
+        if max(abs(g_fluid[k] - g_scheme[k]) for k in range(3)) > 1.0e-10 * scale:
+            Kratos.Logger.PrintWarning("TerminalVelocityScheme",
+                "the gravity of 'terminal_velocity_scheme_parameters' {} differs from 'gravity_parameters' {}".format(
+                    [g_scheme[k] for k in range(3)], [g_fluid[k] for k in range(3)]))
+    return scheme_parameters
+
+
+def CreateTerminalVelocityScheme(sdem_parameters):
+    return SDEM.TerminalVelocityScheme(GetTerminalVelocitySchemeParameters(sdem_parameters))
+
+
 class SwimmingStrategy(BaseStrategy):
 
     @staticmethod
@@ -59,6 +102,8 @@ class SwimmingStrategy(BaseStrategy):
                                                                  self.search_strategy, self.solver_settings)
 
     def GetTranslationalSchemeInstance(self, class_name):
+        if class_name == 'TerminalVelocityScheme':
+            return CreateTerminalVelocityScheme(self.project_parameters)
         try:
             translational_scheme = super().GetTranslationalSchemeInstance(class_name)
         except Exception:
@@ -66,6 +111,8 @@ class SwimmingStrategy(BaseStrategy):
         return translational_scheme
 
     def GetRotationalSchemeInstance(self, class_name):
+        if class_name == 'TerminalVelocityScheme':
+            return CreateTerminalVelocityScheme(self.project_parameters)
         try:
             rotational_scheme = super().GetRotationalSchemeInstance(class_name)
         except Exception:

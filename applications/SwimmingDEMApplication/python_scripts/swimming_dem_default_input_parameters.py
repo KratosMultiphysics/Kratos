@@ -184,7 +184,8 @@ def GetDefaultInputParameters():
             "do_search_dem_neighbours" : true,
             "do_search_fem_neighbours" : true,
             "type_of_dem_inlet" : "VelocityImposed",
-            "translational_integration_scheme" : "Hybrid_Bashforth"
+            "translational_integration_scheme" : "Hybrid_Bashforth",
+            "terminal_velocity_scheme_parameters_comment" : "required when the TerminalVelocityScheme is used: a block terminal_velocity_scheme_parameters with dynamic_viscosity (scalar) and gravity (vector), in the units of the case; there are no default values"
         },
 
         "dem_nodal_results" : {

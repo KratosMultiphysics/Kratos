@@ -2,6 +2,7 @@ import KratosMultiphysics.DEMApplication as DEM
 import KratosMultiphysics.SwimmingDEMApplication as SDEM
 import KratosMultiphysics.DEMApplication.DEM_analysis_stage as DEM_analysis_stage
 from importlib import import_module
+from KratosMultiphysics.SwimmingDEMApplication.swimming_sphere_strategy import CreateTerminalVelocityScheme
 
 BaseAnalysis = DEM_analysis_stage.DEMAnalysisStage
 
@@ -36,7 +37,7 @@ class FluidCoupledDEMAnalysisStage(BaseAnalysis):
             if translational_scheme_name == 'Hybrid_Bashforth':
                 return SDEM.HybridBashforthScheme()
             elif translational_scheme_name == "TerminalVelocityScheme":
-                return SDEM.TerminalVelocityScheme()
+                return CreateTerminalVelocityScheme(self.sdem_parameters)
             else:
                 return None
         else:
@@ -52,7 +53,7 @@ class FluidCoupledDEMAnalysisStage(BaseAnalysis):
                 if translational_scheme_name == 'Hybrid_Bashforth':
                     return SDEM.HybridBashforthScheme()
                 elif translational_scheme_name == 'TerminalVelocityScheme':
-                    return SDEM.TerminalVelocityScheme()
+                    return CreateTerminalVelocityScheme(self.sdem_parameters)
             elif rotational_scheme_name == 'Runge_Kutta':
                 return SDEM.RungeKuttaScheme()
             elif rotational_scheme_name == 'Quaternion_Integration':

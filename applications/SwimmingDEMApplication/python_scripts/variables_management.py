@@ -225,6 +225,7 @@ class VariablesManager:
             self.dem_vars += [Kratos.VELOCITY_OLD]
             self.dem_vars += [Kratos.ADDITIONAL_FORCE_OLD]
             self.dem_vars += [Kratos.AUX_VEL]
+            self.dem_vars += [Kratos.DENSITY]   # particle density stored by the TerminalVelocityScheme
 
         if parameters["add_each_hydro_force_option"].GetBool():
             self.dem_vars += [Kratos.DRAG_FORCE]

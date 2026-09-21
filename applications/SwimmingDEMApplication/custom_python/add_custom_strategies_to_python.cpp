@@ -96,7 +96,16 @@ namespace Kratos
             (m,  "HybridBashforthScheme").def(py::init<>());
 
             py::class_< TerminalVelocityScheme, typename TerminalVelocityScheme::Pointer, HybridBashforthScheme>
-            (m,  "TerminalVelocityScheme").def(py::init<>());
+            (m,  "TerminalVelocityScheme")
+            .def(py::init<>())
+            .def(py::init<Parameters>(), py::arg("parameters"))
+            .def("SetDynamicViscosity", &TerminalVelocityScheme::SetDynamicViscosity)
+            .def("SetGravity", &TerminalVelocityScheme::SetGravity)
+            .def("GetDynamicViscosity", &TerminalVelocityScheme::GetDynamicViscosity)
+            .def("GetGravity", &TerminalVelocityScheme::GetGravity)
+            .def("IsConfigured", &TerminalVelocityScheme::IsConfigured)
+            .def_static("GetDefaultParameters", &TerminalVelocityScheme::GetDefaultParameters)
+            ;
 
             py::class_< SymplecticEulerOldVelocityScheme, typename SymplecticEulerOldVelocityScheme::Pointer, SymplecticEulerScheme>
             (m,  "SymplecticEulerOldVelocityScheme").def(py::init<>());

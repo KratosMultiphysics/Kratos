@@ -2,10 +2,46 @@
 // Author: Guillermo Casas gcasas@cimne.upc.edu
 //
 // Project includes
+#include <cmath>
+
 #include "terminal_velocity_scheme.h"
 #include "swimming_dem_application_variables.h"
 
 namespace Kratos {
+
+    TerminalVelocityScheme::TerminalVelocityScheme(Parameters rParameters)
+        : mDynamicViscosity(0.0), mGravity(ZeroVector(3)), mIsConfigured(false)
+    {
+        KRATOS_ERROR_IF_NOT(rParameters.Has("dynamic_viscosity"))
+            << "TerminalVelocityScheme: the parameters must contain \"dynamic_viscosity\" (no hidden default is used). "
+            << "Received:\n" << rParameters.PrettyPrintJsonString() << std::endl;
+        KRATOS_ERROR_IF_NOT(rParameters.Has("gravity"))
+            << "TerminalVelocityScheme: the parameters must contain the gravity vector \"gravity\" (no hidden default is used). "
+            << "Received:\n" << rParameters.PrettyPrintJsonString() << std::endl;
+        rParameters.ValidateAndAssignDefaults(GetDefaultParameters());
+        SetDynamicViscosity(rParameters["dynamic_viscosity"].GetDouble());
+        const Vector g = rParameters["gravity"].GetVector();
+        KRATOS_ERROR_IF(g.size() != 3) << "TerminalVelocityScheme: \"gravity\" must have 3 components." << std::endl;
+        array_1d<double, 3> gravity;
+        for (unsigned k = 0; k < 3; ++k) gravity[k] = g[k];
+        SetGravity(gravity);
+    }
+
+    void TerminalVelocityScheme::SetDynamicViscosity(const double Viscosity)
+    {
+        KRATOS_ERROR_IF_NOT(Viscosity > 0.0 && std::isfinite(Viscosity))
+            << "TerminalVelocityScheme: the dynamic viscosity must be finite and positive, got " << Viscosity << std::endl;
+        mDynamicViscosity = Viscosity;
+        mIsConfigured = true;
+    }
+
+    void TerminalVelocityScheme::SetGravity(const array_1d<double, 3>& rGravity)
+    {
+        for (unsigned k = 0; k < 3; ++k)
+            KRATOS_ERROR_IF_NOT(std::isfinite(rGravity[k])) << "TerminalVelocityScheme: non-finite gravity component." << std::endl;
+        noalias(mGravity) = rGravity;
+        mIsConfigured = mIsConfigured && mDynamicViscosity > 0.0;
+    }
 
     void TerminalVelocityScheme::UpdateTranslationalVariables(
             int StepFlag,
@@ -25,12 +61,8 @@ namespace Kratos {
             const array_1d<double, 3 >& old_vel = i.FastGetSolutionStepValue(VELOCITY_OLD);
             const array_1d<double, 3 >& current_vel = i.FastGetSolutionStepValue(VELOCITY);
 
-            //noalias(vel) = old_vel;
-            //noalias(vel) = 0.5 * (3 * i.FastGetSolutionStepValue(VELOCITY) - old_vel);
             // trapezoidal
             noalias(vel) = 0.5 * (old_vel + current_vel);
-            //true trapezoidal
-            //noalias(vel) = current_vel;
 
             for (int k = 0; k < 3; k++) {
                 if (Fix_vel[k] == false) {
@@ -41,43 +73,37 @@ namespace Kratos {
             } // dimensions
         }
         else {
-            // const double drag_coefficient_inv = 1.0 / i.FastGetSolutionStepValue(DRAG_COEFFICIENT);
+            KRATOS_ERROR_IF_NOT(mIsConfigured)
+                << "TerminalVelocityScheme: the fluid dynamic viscosity and the gravity were not set. "
+                << "Construct the scheme with Parameters {\"dynamic_viscosity\": mu, \"gravity\": [gx, gy, gz]} "
+                << "(SwimmingDEM: custom_dem.terminal_velocity_scheme_parameters in the ProjectParameters)." << std::endl;
+
             const array_1d<double, 3 >& fluid_vel = i.FastGetSolutionStepValue(FLUID_VEL_PROJECTED);
             const array_1d<double, 3 > contact_force =  force - i.FastGetSolutionStepValue(HYDRODYNAMIC_FORCE);
             array_1d<double, 3 >& force_old = i.FastGetSolutionStepValue(ADDITIONAL_FORCE_OLD);
 
-            // hard-coded
+            // Terminal (Stokes) settling velocity of an inertia-free sphere:
+            //     v = u_f + (V_p / (6 pi mu a)) (rho_p - rho_f) g   with  V_p / (6 pi mu a) = 2 a^2 / (9 mu).
+            // The fluid density is the value projected from the fluid mesh onto the particle
+            // (NODAL_DENSITY_PROJECTED); the particle density follows from its mass and volume.
+            // A negative projected density flags a particle without fluid data (outside the
+            // mesh or before the first projection): it is then advected with the fluid only.
             const double rad = i.FastGetSolutionStepValue(RADIUS);
-            double disp_volume = (4. * M_PI / 3.) * pow(rad, 3);
-            const double g = 9.8;
-            const double mu = 1e-3;
-            // const double rho_f = 1e3;
+            const double disp_volume = (4. * Globals::Pi / 3.) * rad * rad * rad;
             const double rho_f = i.FastGetSolutionStepValue(NODAL_DENSITY_PROJECTED);
-            const double rho_p = (mass / disp_volume);  // relative density
-            i.FastGetSolutionStepValue(DENSITY) = rho_p;
-            const double drag_coeff = 6.0 * Globals::Pi * mu * rad;
+            const double rho_p = mass / disp_volume;
+            // DENSITY is not necessarily a nodal variable of the particles: writing it
+            // with the unchecked accessor corrupted the nodal data buffer (heap corruption
+            // revealed when a particle was destroyed).  Store it only if it exists.
+            if (i.SolutionStepsDataHas(DENSITY)) {
+                i.FastGetSolutionStepValue(DENSITY) = rho_p;
+            }
+            const double mobility = disp_volume / (6.0 * Globals::Pi * mDynamicViscosity * rad); // 2 a^2 / (9 mu)
+            const double buoyant_factor = (rho_f >= 0.0) ? mobility * (rho_p - rho_f) : 0.0;
 
-            // std::cout << "rho_p = " << rho_p << ", drag_coef = " << drag_coeff << ", disp_volume " << disp_volume << std::endl;
             for (int k = 0; k < 3; k++){
                 if (Fix_vel[k] == false){
-//                    vel[k] = 0.5 * (- vel[k]  + 3 * (fluid_vel[k] + drag_coefficient_inv * contact_force[k])); // all forces are always in equilibrium with the drag force
-                    // adams-bashforth
-                    // vel[k] = fluid_vel[k] + 0.5 * drag_coefficient_inv * (3 * contact_force[k] - force_old[k]); // all forces are always in equilibrium with the drag force
-                    // vel[k] = fluid_vel[k] + 0.5 * drag_coefficient_inv * (3 * force[k] - force_old[k]); // all forces are always in equilibrium with the drag force
-                    // trapezoidal
-//                    vel[k] = fluid_vel[k] + 0.5 * drag_coefficient_inv * (contact_force[k] + force_old[k]); // all forces are always in equilibrium with the drag force
-
-                //    delta_displ[k] = delta_t * vel[k];
-                //    displ[k] += delta_displ[k];
-                //    coor[k] = initial_coor[k] + displ[k];
-
-                // Force drag to be in balance with the forces hardcoded (assume different densities in z direction)
-                if ((k == 2) && (rho_f >= 0.0)) {
-                    vel[k] = fluid_vel[k] - (disp_volume / drag_coeff) * (rho_p - rho_f) * g;
-                } else {
-                    vel[k] = fluid_vel[k];
-                }
-
+                    vel[k] = fluid_vel[k] + buoyant_factor * mGravity[k];
                 }
                 else {
                     delta_displ[k] = delta_t * vel[k];
@@ -85,9 +111,6 @@ namespace Kratos {
                     coor[k] = initial_coor[k] + displ[k];
                 }
             } // dimensions
-
-            // std::cout << "particle at " << initial_coor << " will have v = " << vel << std::endl;
-            // std::cout << "f_contact = " << contact_force << ", f_old = " << force_old << ", fluid_vel = " << fluid_vel << std::endl;
 
             array_1d<double, 3 >& old_vel = i.FastGetSolutionStepValue(VELOCITY_OLD);
             noalias(old_vel) = vel;
