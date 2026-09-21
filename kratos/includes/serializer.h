@@ -1188,6 +1188,38 @@ private:
         KRATOS_SERIALIZER_MODE_END
     }
 
+    void read(unsigned char& rValue)
+    {
+        KRATOS_SERIALIZER_MODE_BINARY
+
+        mpBuffer->read(reinterpret_cast<char*>(&rValue), sizeof(unsigned char));
+
+        KRATOS_SERIALIZER_MODE_ASCII
+
+        // unsigned char's iostream overload inserts/extracts a raw character rather than a numeric
+        // value, and extraction skips whitespace bytes (e.g. 32) -- route ASCII through an unsigned
+        // temporary instead, mirroring the PointerType overloads above.
+        unsigned temp;
+        *mpBuffer >> temp;
+        rValue = static_cast<unsigned char>(temp);
+        mNumberOfLines++;
+
+        KRATOS_SERIALIZER_MODE_END
+    }
+
+    void write(unsigned char const& rValue)
+    {
+        KRATOS_SERIALIZER_MODE_BINARY
+
+        mpBuffer->write(reinterpret_cast<const char*>(&rValue), sizeof(unsigned char));
+
+        KRATOS_SERIALIZER_MODE_ASCII
+
+        *mpBuffer << static_cast<unsigned>(rValue) << std::endl;
+
+        KRATOS_SERIALIZER_MODE_END
+    }
+
     void read(std::string& rValue)
     {
         KRATOS_SERIALIZER_MODE_BINARY

@@ -194,14 +194,19 @@ void TensorAdaptor<TDataType>::load(Serializer& rSerializer)
     if (has_container) {
         std::size_t index;
         rSerializer.load("ContainerIndex", index);
+        // Seed each local from the existing mpContainer (when its variant index already matches)
+        // rather than a fresh null pointer: in Serializer's DataOnly mode, load(shared_ptr&) reads
+        // nothing at all for a null destination, which would silently desync the stream and discard
+        // a preinitialized container instead of reusing it -- mirroring how mpStorage above is loaded
+        // directly into the real member, not a fresh local.
         switch (index) {
-            case 0: { ModelPart::DofsArrayType::Pointer p; rSerializer.load("Container", p); mpContainer = p; break; }
-            case 1: { ModelPart::NodesContainerType::Pointer p; rSerializer.load("Container", p); mpContainer = p; break; }
-            case 2: { ModelPart::ConditionsContainerType::Pointer p; rSerializer.load("Container", p); mpContainer = p; break; }
-            case 3: { ModelPart::ElementsContainerType::Pointer p; rSerializer.load("Container", p); mpContainer = p; break; }
-            case 4: { ModelPart::PropertiesContainerType::Pointer p; rSerializer.load("Container", p); mpContainer = p; break; }
-            case 5: { ModelPart::MasterSlaveConstraintContainerType::Pointer p; rSerializer.load("Container", p); mpContainer = p; break; }
-            case 6: { ModelPart::GeometryContainerType::Pointer p; rSerializer.load("Container", p); mpContainer = p; break; }
+            case 0: { ModelPart::DofsArrayType::Pointer p = (mpContainer.has_value() && mpContainer->index() == 0) ? std::get<0>(mpContainer.value()) : nullptr; rSerializer.load("Container", p); mpContainer = p; break; }
+            case 1: { ModelPart::NodesContainerType::Pointer p = (mpContainer.has_value() && mpContainer->index() == 1) ? std::get<1>(mpContainer.value()) : nullptr; rSerializer.load("Container", p); mpContainer = p; break; }
+            case 2: { ModelPart::ConditionsContainerType::Pointer p = (mpContainer.has_value() && mpContainer->index() == 2) ? std::get<2>(mpContainer.value()) : nullptr; rSerializer.load("Container", p); mpContainer = p; break; }
+            case 3: { ModelPart::ElementsContainerType::Pointer p = (mpContainer.has_value() && mpContainer->index() == 3) ? std::get<3>(mpContainer.value()) : nullptr; rSerializer.load("Container", p); mpContainer = p; break; }
+            case 4: { ModelPart::PropertiesContainerType::Pointer p = (mpContainer.has_value() && mpContainer->index() == 4) ? std::get<4>(mpContainer.value()) : nullptr; rSerializer.load("Container", p); mpContainer = p; break; }
+            case 5: { ModelPart::MasterSlaveConstraintContainerType::Pointer p = (mpContainer.has_value() && mpContainer->index() == 5) ? std::get<5>(mpContainer.value()) : nullptr; rSerializer.load("Container", p); mpContainer = p; break; }
+            case 6: { ModelPart::GeometryContainerType::Pointer p = (mpContainer.has_value() && mpContainer->index() == 6) ? std::get<6>(mpContainer.value()) : nullptr; rSerializer.load("Container", p); mpContainer = p; break; }
             default: KRATOS_ERROR << "Unknown tensor adaptor container variant index: " << index << std::endl;
         }
     } else {

@@ -385,6 +385,15 @@ void CombinedTensorAdaptor<TDataType>::load(Serializer& rSerializer)
 
     std::size_t size;
     rSerializer.load("Size", size);
+    // In the default mode, clear first so every child pointer starts null: Serializer::load(shared_ptr&)
+    // only reconstructs the registered type when the destination is null, otherwise it dispatches
+    // through the existing dynamic type -- leaving a stale child here would load a saved-as-a-different
+    // -subtype record through the wrong virtual load(). In DataOnly mode, keep any preexisting children
+    // as-is (that is the legitimate preinitialize-then-reload path; DataOnly's load(shared_ptr&) reads
+    // nothing for a null destination, so clearing here would desync the stream instead).
+    if (!rSerializer.IsDataOnly()) {
+        mTensorAdaptors.clear();
+    }
     mTensorAdaptors.resize(size);
     for (std::size_t i = 0; i < size; ++i) {
         rSerializer.load("TA", mTensorAdaptors[i]);

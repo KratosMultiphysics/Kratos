@@ -42,6 +42,7 @@ import control.material.test_simp_control
 import filtering.implicit_filters_tests
 import filtering.explicit_filters_tests
 import test_component_data_view
+import test_tensor_adaptor_serialization
 import process_tests.test_optimization_problem_field_output_process
 import process_tests.test_optimization_problem_ascii_output_process
 import process_tests.test_optimization_problem_graph_output_process
@@ -83,6 +84,7 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([symmetry_utilities_tests.symmetry_tests.SymmetryUtilitiesTest]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_buffered_dict.TestBufferedDict]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_component_data_view.TestComponentDataView]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_tensor_adaptor_serialization.TestPropertiesVariableTensorAdaptorSerialization]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_optimization_info.TestOptimizationInfo]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_optimization_utils.TestOptimizationUtils]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_model_part_utils.TestOptAppModelPartUtils]))
