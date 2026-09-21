@@ -17,6 +17,8 @@
 #include "custom_utilities/check_utilities.hpp"
 #include "custom_utilities/constitutive_law_utilities.h"
 #include "custom_utilities/function_object_utilities.h"
+#include "custom_utilities/math_utilities.hpp"
+#include "custom_utilities/stress_strain_utilities.h"
 #include "custom_utilities/string_utilities.h"
 #include "custom_utilities/ublas_utilities.h"
 #include "geo_mechanics_application_variables.h"
@@ -119,9 +121,33 @@ double CompressionCapYieldSurface::YieldFunctionValue(const Geo::PQ& rPQ) const
     return std::pow(rPQ.Q() / GetCapSize(), 2) + rPQ.P() * rPQ.P() - std::pow(GetPreconsolidationStress(), 2);
 }
 
+double CompressionCapYieldSurface::YieldFunctionValue(const Geo::PrincipalStresses& rPrincipalStresses) const
+{
+    return YieldFunctionValue(StressStrainUtilities::TransformPrincipalStressesToPandQ(rPrincipalStresses));
+}
+
+double CompressionCapYieldSurface::YieldFunctionValue(const Geo::SigmaTau&) const
+{
+    KRATOS_ERROR << "CompressionCapYieldSurface::YieldFunctionValue(const Geo::SigmaTau&) is not "
+                    "implemented\n";
+}
+
 Vector CompressionCapYieldSurface::DerivativeOfFlowFunction(const Geo::PQ& rPQ) const
 {
     return UblasUtilities::CreateVector({2.0 * rPQ.P(), 2.0 * rPQ.Q() / std::pow(GetCapSize(), 2)});
+}
+
+Vector CompressionCapYieldSurface::DerivativeOfFlowFunction(const Geo::PrincipalStresses& rPrincipalStresses) const
+{
+    const auto p_q = StressStrainUtilities::TransformPrincipalStressesToPandQ(rPrincipalStresses);
+    auto       derivative_pq = DerivativeOfFlowFunction(p_q);
+    const auto c1            = derivative_pq[0] / 3.0;
+    const auto c2            = 3.0 * derivative_pq[1] / (2.0 * p_q.Q());
+    Vector     result        = Vector(3, 0.0);
+    result[0]                = c1 + c2 * (rPrincipalStresses.Values()[0] - p_q.P());
+    result[1]                = c1 + c2 * (rPrincipalStresses.Values()[1] - p_q.P());
+    result[2]                = c1 + c2 * (rPrincipalStresses.Values()[2] - p_q.P());
+    return result;
 }
 
 void CompressionCapYieldSurface::InitializeKappaDependentFunctions()
@@ -145,6 +171,33 @@ void CompressionCapYieldSurface::CheckMaterialProperties() const
                         "GEO_COMPRESSION_CAP_SIZE, K0_NC, or GEO_FRICTION_ANGLE to be defined."
                      << std::endl;
     }
+}
+
+double CompressionCapYieldSurface::CalculatePlasticMultiplier(const Geo::PrincipalStresses& rPrincipalStresses,
+                                                              const Vector& rDerivativeOfFlowFunction,
+                                                              const Matrix& rElasticConstitutiveTensor) const
+{
+    const auto principals =
+        UblasUtilities::CreateVector({rPrincipalStresses.Values()[0] - rPrincipalStresses.Values()[1],
+                                      rPrincipalStresses.Values()[1] - rPrincipalStresses.Values()[2],
+                                      rPrincipalStresses.Values()[2] - rPrincipalStresses.Values()[0]});
+    const auto elastic_matrix    = subrange(rElasticConstitutiveTensor, 0, 3, 0, 3);
+    const auto stress_correction = Vector{prod(elastic_matrix, rDerivativeOfFlowFunction)};
+    const auto temp = UblasUtilities::CreateVector({stress_correction[0] - stress_correction[1],
+                                                    stress_correction[1] - stress_correction[2],
+                                                    stress_correction[2] - stress_correction[0]});
+    const auto A    = inner_prod(temp, temp) / (2.0 * std::pow(GetCapSize(), 2)) +
+                   std::pow((stress_correction[0] + stress_correction[1] + stress_correction[2]) / 3.0, 2);
+    const auto B =
+        inner_prod(principals, temp) / std::pow(GetCapSize(), 2) +
+        (rPrincipalStresses.Values()[0] + rPrincipalStresses.Values()[1] + rPrincipalStresses.Values()[2]) *
+            (stress_correction[0] + stress_correction[1] + stress_correction[2]) * 2.0 / 9.0;
+    const auto C = YieldFunctionValue(rPrincipalStresses);
+
+    const auto roots = GeoMechanicsMathUtilities::RootsOfSecondOrderEquation(A, B, C);
+    KRATOS_DEBUG_ERROR_IF(roots.size() == 0)
+        << "Failed to calculate the plastic multiplier for the cap.\n";
+    return *std::ranges::max_element(roots);
 }
 
 void CompressionCapYieldSurface::save(Serializer& rSerializer) const

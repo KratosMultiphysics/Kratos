@@ -12,6 +12,7 @@
 
 #include <algorithm>
 
+#include "custom_utilities/ublas_utilities.h"
 #include "math_utilities.hpp"
 #include "utilities/math_utils.h"
 
@@ -52,6 +53,18 @@ Vector GeoMechanicsMathUtilities::DiagonalOfMatrixToVector(const Matrix& rMatrix
 Matrix GeoMechanicsMathUtilities::RotateSecondOrderTensor(const Matrix& rTensor, const Matrix& rRotationMatrix)
 {
     return prod(rRotationMatrix, Matrix{prod(rTensor, trans(rRotationMatrix))});
+}
+
+Vector GeoMechanicsMathUtilities::RootsOfSecondOrderEquation(double A, double B, double C)
+{
+    KRATOS_ERROR_IF(A == 0.0) << "A == 0 does not define a second order equation." << std::endl;
+
+    const auto discriminant = B * B - 4.0 * A * C;
+    // no solution
+    if (discriminant < 0.0) return Vector{};
+    if (discriminant == 0.0) return Vector{1, -B / (2.0 * A)};
+    const auto root = std::sqrt(discriminant);
+    return UblasUtilities::CreateVector({(-B - root) / (2.0 * A), (-B + root) / (2.0 * A)});
 }
 
 } // namespace Kratos

@@ -18,6 +18,7 @@
 #include <optional>
 
 #include "coulomb_yield_surface.h"
+#include "compression_cap_yield_surface.h"
 #include "custom_constitutive/principal_stresses.hpp"
 #include "geo_mechanics_application_constants.h"
 #include "tension_cutoff.h"
@@ -56,22 +57,28 @@ public:
     [[nodiscard]] PlasticityStatus GetPlasticityStatus() const;
 
 private:
-    CoulombYieldSurface          mCoulombYieldSurface;
-    std::optional<TensionCutoff> mTensionCutOff;
-    double                       mSavedKappaOfCoulombYieldSurface{0.0};
-    double                       mAbsoluteYieldFunctionValueTolerance{1.0e-8};
-    std::size_t                  mMaxNumberOfPlasticIterations{100};
-    PlasticityStatus             mPlasticityStatus{PlasticityStatus::ELASTIC};
+    CoulombYieldSurface                       mCoulombYieldSurface;
+    std::optional<TensionCutoff>              mTensionCutOff;
+    std::optional<CompressionCapYieldSurface> mOptionalCompressionCap;
+    double                                    mSavedKappaOfCoulombYieldSurface{0.0};
+    double                                    mAbsoluteYieldFunctionValueTolerance{1.0e-8};
+    std::size_t                               mMaxNumberOfPlasticIterations{100};
+    PlasticityStatus                          mPlasticityStatus{PlasticityStatus::ELASTIC};
 
     template <typename StressStateType>
     [[nodiscard]] bool IsAdmissibleStressState(const StressStateType& rTrialStressState);
+// , typename StressStateToPQFunctionType
     template <typename StressStateType, typename StressStateToSigmaTauFunctionType>
     [[nodiscard]] StressStateType DoReturnMapping(const StressStateType& rTrialStressState,
                                                   const StressStateToSigmaTauFunctionType& rStressStateToSigmaTau,
                                                   const Matrix& rElasticConstitutiveTensor,
                                                   Geo::PrincipalStresses::AveragingType AveragingType);
+    [[nodiscard]] bool            IsStressAtCompressionCapReturnZone(const Geo::PQ& rTrialPQ) const;
+    [[nodiscard]] bool            IsStressAtCapCornerReturnZone(const Geo::PQ& rTrialPQ,
+                                                                Geo::PrincipalStresses::AveragingType AveragingType) const;
 
     [[nodiscard]] Geo::SigmaTau CalculateCornerPoint() const;
+    [[nodiscard]] Geo::PQ       CalculateCapCornerPoint() const;
     [[nodiscard]] bool IsStressAtTensionApexReturnZone(const Geo::SigmaTau& rTrialTraction) const;
     [[nodiscard]] bool IsStressAtTensionCutoffReturnZone(const Geo::SigmaTau& rTrialTraction) const;
     [[nodiscard]] bool IsStressAtCornerReturnZone(const Geo::SigmaTau& rTrialTraction,
@@ -99,6 +106,18 @@ private:
     [[nodiscard]] Geo::SigmaTau ReturnStressAtCornerPoint(const Geo::SigmaTau&,
                                                           const Matrix&,
                                                           Geo::PrincipalStresses::AveragingType AveragingType) const;
+
+    [[nodiscard]] Geo::PrincipalStresses ReturnStressAtCompressionCapZone(const Geo::PrincipalStresses& rTrialPrincipalStresses,
+                                                                          const Matrix& rElasticMatrix) const;
+    [[nodiscard]] Geo::SigmaTau ReturnStressAtCompressionCapZone(const Geo::SigmaTau& rTrialSigmaTau,
+                                                                 const Matrix& rElasticMatrix) const;
+    [[nodiscard]] Geo::PrincipalStresses ReturnStressAtCapCornerZone(
+        const Geo::PrincipalStresses&         rTrialPrincipalStresses,
+        const Matrix&                         rElasticConstitutiveTensor,
+        Geo::PrincipalStresses::AveragingType AveragingType) const;
+    [[nodiscard]] Geo::SigmaTau ReturnStressAtCapCornerZone(const Geo::SigmaTau& rTrialSigmaTau,
+                                                            const Matrix& rElasticConstitutiveTensor,
+                                                            Geo::PrincipalStresses::AveragingType AveragingType) const;
 
     friend class Serializer;
     void save(Serializer& rSerializer) const;

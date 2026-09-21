@@ -17,6 +17,7 @@
 #include "custom_constitutive/principal_stresses.hpp"
 #include "custom_constitutive/sigma_tau.hpp"
 #include "custom_utilities/constitutive_law_utilities.h"
+#include "custom_utilities/math_utilities.hpp"
 #include "custom_utilities/stress_strain_utilities.h"
 #include "custom_utilities/ublas_utilities.h"
 #include "geo_mechanics_application_variables.h"
@@ -24,6 +25,7 @@
 #include "includes/serializer.h"
 #include "utilities/math_utils.h"
 
+#include <algorithm>
 #include <string>
 
 using namespace std::string_literals;
@@ -32,6 +34,14 @@ namespace
 {
 
 using namespace Kratos;
+
+std::optional<CompressionCapYieldSurface> CreateOptionalCompressionCap(const Properties& rMaterialProperties)
+{
+    if (!rMaterialProperties.Has(GEO_ENABLE_COMPRESSION_CAP) || !rMaterialProperties[GEO_ENABLE_COMPRESSION_CAP])
+        return std::nullopt;
+
+    return std::make_optional<CompressionCapYieldSurface>(rMaterialProperties);
+}
 
 template <typename YieldSurfaceType>
 auto CalculatePrincipalStressCorrection(const Geo::PrincipalStresses& rTrialPrincipalStresses,
@@ -67,6 +77,15 @@ bool IsAdmissibleStressState(const YieldSurfaceType& rYieldSurface, const Stress
     return yield_function_value < tolerance;
 }
 
+template <typename YieldSurfaceType>
+auto CalculatePrincipalStressCorrection(const Geo::PrincipalStresses& rTrialPrincipalStresses,
+                                        const Matrix&                 rElasticConstitutiveTensor,
+                                        const YieldSurfaceType&       rYieldSurface)
+{
+    const auto dG_dSigma = rYieldSurface.DerivativeOfFlowFunction(rTrialPrincipalStresses);
+    return Geo::PrincipalStresses{prod(subrange(rElasticConstitutiveTensor, 0, 3, 0, 3), dG_dSigma)};
+}
+
 } // namespace
 
 namespace Kratos
@@ -74,7 +93,8 @@ namespace Kratos
 
 CoulombImpl::CoulombImpl(const Properties& rMaterialProperties)
     : mCoulombYieldSurface{rMaterialProperties},
-      mTensionCutOff{CreateOptionalTensionCutOff(rMaterialProperties)}
+      mTensionCutOff{CreateOptionalTensionCutOff(rMaterialProperties)},
+      mOptionalCompressionCap{CreateOptionalCompressionCap(rMaterialProperties)}
 {
     if (rMaterialProperties.Has(GEO_ABS_YIELD_FUNCTION_TOLERANCE)) {
         mAbsoluteYieldFunctionValueTolerance = rMaterialProperties[GEO_ABS_YIELD_FUNCTION_TOLERANCE];
@@ -346,6 +366,82 @@ Geo::SigmaTau CoulombImpl::ReturnStressAtCornerPoint(const Geo::SigmaTau&,
     return CalculateCornerPoint();
 }
 
+Geo::PrincipalStresses CoulombImpl::ReturnStressAtCompressionCapZone(
+    const Geo::PrincipalStresses& rTrialPrincipalStresses, const Matrix& rElasticConstitutiveTensor) const
+{
+    const auto dG_dSigma = mOptionalCompressionCap->DerivativeOfFlowFunction(rTrialPrincipalStresses);
+    const auto lambda = mOptionalCompressionCap->CalculatePlasticMultiplier(
+        rTrialPrincipalStresses, dG_dSigma, rElasticConstitutiveTensor);
+    return rTrialPrincipalStresses +
+           Geo::PrincipalStresses{lambda * prod(subrange(rElasticConstitutiveTensor, 0, 3, 0, 3), dG_dSigma)};
+}
+
+Geo::SigmaTau CoulombImpl::ReturnStressAtCompressionCapZone(const Geo::SigmaTau&,
+                                                                             const Matrix&) const
+{
+    KRATOS_ERROR << "Returning the traction to the compression cap zone is not supported\n";
+}
+
+Geo::PrincipalStresses CoulombImpl::ReturnStressAtCapCornerZone(
+    const Geo::PrincipalStresses&         rTrialPrincipalStresses,
+    const Matrix&                         rElasticConstitutiveTensor,
+    Geo::PrincipalStresses::AveragingType AveragingType) const
+{
+    const auto principal_stress_correction_Coulomb = CalculatePrincipalStressCorrection(
+        rTrialPrincipalStresses, AveragingType, rElasticConstitutiveTensor, mCoulombYieldSurface);
+    const auto pq_correction_Coulomb =
+        StressStrainUtilities::TransformPrincipalStressesToPandQ(principal_stress_correction_Coulomb);
+
+    const auto principal_stress_correction_cap = CalculatePrincipalStressCorrection(
+        rTrialPrincipalStresses, rElasticConstitutiveTensor, *mOptionalCompressionCap);
+    const auto pq_correction_cap =
+        StressStrainUtilities::TransformPrincipalStressesToPandQ(principal_stress_correction_cap);
+
+    const auto p_q = StressStrainUtilities::TransformPrincipalStressesToPandQ(rTrialPrincipalStresses);
+    const auto sin_phi         = std::sin(mCoulombYieldSurface.GetFrictionAngleInRadians());
+    const auto cap_size_square = std::pow(mOptionalCompressionCap->GetCapSize(), 2);
+
+    const auto c0 = 6.0 * sin_phi / (3.0 - sin_phi);
+    const auto c1 = pq_correction_Coulomb.Q() + c0 * pq_correction_Coulomb.P();
+    const auto c2 = pq_correction_cap.Q() + c0 * pq_correction_cap.P();
+    const auto c3 = -mCoulombYieldSurface.YieldFunctionValue(rTrialPrincipalStresses);
+
+    const auto c4 = std::pow(pq_correction_Coulomb.Q(), 2) / cap_size_square +
+                    std::pow(pq_correction_Coulomb.P(), 2);
+    const auto c5 =
+        std::pow(pq_correction_cap.Q(), 2) / cap_size_square + std::pow(pq_correction_cap.P(), 2);
+    const auto c6 = 2.0 * (p_q.Q() * pq_correction_Coulomb.Q() / cap_size_square +
+                           p_q.P() * pq_correction_Coulomb.P());
+    const auto c7 =
+        2.0 * (p_q.Q() * pq_correction_cap.Q() / cap_size_square + p_q.P() * pq_correction_cap.P());
+    const auto c8 = 2.0 * (pq_correction_Coulomb.Q() * pq_correction_cap.Q() / cap_size_square +
+                           pq_correction_Coulomb.P() * pq_correction_cap.P());
+    const auto c9 = -mOptionalCompressionCap->YieldFunctionValue(rTrialPrincipalStresses);
+
+    const auto A = c2 / c1 * (c2 * c4 / c1 - c8) + c5;
+    const auto B = (-2.0 * c2 * c3 * c4 / c1 - c2 * c6 + c3 * c8) / c1 + c7;
+    const auto C = (c3 * c4 / c1 + c6) * c3 / c1 - c9;
+
+    const auto roots = GeoMechanicsMathUtilities::RootsOfSecondOrderEquation(A, B, C);
+
+    KRATOS_DEBUG_ERROR_IF(roots.size() == 0)
+        << "Failed to calculate the plastic multiplier for cap return.\n";
+
+    const auto lambda_cap     = *std::ranges::max_element(roots);
+    const auto lambda_Coulomb = (c3 - c2 * lambda_cap) / c1;
+
+    return rTrialPrincipalStresses +
+           Geo::PrincipalStresses{lambda_Coulomb * principal_stress_correction_Coulomb.Values() +
+                                  lambda_cap * principal_stress_correction_cap.Values()};
+}
+
+Geo::SigmaTau CoulombImpl::ReturnStressAtCapCornerZone(const Geo::SigmaTau&,
+                                                                        const Matrix&,
+                                                                        Geo::PrincipalStresses::AveragingType) const
+{
+    KRATOS_ERROR << "Returning the traction to the compression cap zone is not supported\n";
+}
+
 PlasticityStatus CoulombImpl::GetPlasticityStatus() const { return mPlasticityStatus; }
 
 void CoulombImpl::save(Serializer& rSerializer) const
@@ -357,6 +453,8 @@ void CoulombImpl::save(Serializer& rSerializer) const
     rSerializer.save("AbsoluteYieldFunctionValueTolerance"s, mAbsoluteYieldFunctionValueTolerance);
     rSerializer.save("MaxNumberOfPlasticIterations"s, mMaxNumberOfPlasticIterations);
     rSerializer.save("PlasticityStatus"s, static_cast<int>(mPlasticityStatus));
+    rSerializer.save("HasOptionalCompressionCap", mOptionalCompressionCap.has_value());
+    if (mOptionalCompressionCap) rSerializer.save("CompressionCap", *mOptionalCompressionCap);
 }
 
 void CoulombImpl::load(Serializer& rSerializer)
@@ -368,6 +466,13 @@ void CoulombImpl::load(Serializer& rSerializer)
         TensionCutoff tension_cutoff;
         rSerializer.load("TensionCutOff"s, tension_cutoff);
         mTensionCutOff = std::make_optional(tension_cutoff);
+    }
+    auto has_compression_cap = false;
+    rSerializer.load("HasOptionalCompressionCap", has_compression_cap);
+    if (has_compression_cap) {
+        auto compression_cap = CompressionCapYieldSurface{};
+        rSerializer.load("CompressionCap", compression_cap);
+        mOptionalCompressionCap = std::make_optional<CompressionCapYieldSurface>(compression_cap);
     }
     rSerializer.load("SavedKappaOfCoulombYieldSurface"s, mSavedKappaOfCoulombYieldSurface);
     rSerializer.load("AbsoluteYieldFunctionValueTolerance"s, mAbsoluteYieldFunctionValueTolerance);
