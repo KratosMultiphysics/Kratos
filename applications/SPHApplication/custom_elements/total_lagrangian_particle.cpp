@@ -29,7 +29,7 @@ void TotalLagrangianDisplacementParticle<TKernelType, TDim>::InitializeSolutionS
 
         this->CalculateKinematicVariables(this_kinematic_variables, rProcessInfo);
 
-        this->SetConstitutiveLawVariables(this_constitutive_variables, this_kinematic_variables, Values);
+        this->SetConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, Values);
 
         this->mThisConstitutiveLaw->InitializeMaterialResponse(Values, ConstitutiveLaw::StressMeasure_PK2);
     }
@@ -60,10 +60,16 @@ void TotalLagrangianDisplacementParticle<TKernelType, TDim>::FinalizeSolutionSte
 
         this->CalculateKinematicVariables(this_kinematic_variables, rProcessInfo);
         
-        this->SetConstitutiveLawVariables(this_constitutive_variables, this_kinematic_variables, Values);
+        this->SetConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, Values);
 
         this->mThisConstitutiveLaw->FinalizeMaterialResponse(Values, ConstitutiveLaw::StressMeasure_PK2);
     }
+}
+
+template<class TKernelType, std::size_t TDim>
+bool TotalLagrangianDisplacementParticle<TKernelType, TDim>::UseElementProvidedStrain() const
+{
+    return false;
 }
 
 template<class TKernelType, std::size_t TDim>
@@ -118,7 +124,7 @@ void TotalLagrangianDisplacementParticle<TKernelType, TDim>::CalculateAll(
 
     ConstitutiveLaw::Parameters Values(r_geom, r_props, rProcessInfo);
     auto& ConstitutiveLawOptions = Values.GetOptions();
-    ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, false);
+    ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, UseElementProvidedStrain());
     ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
     if (CalculateStiffnessMatrixFlag) {
         ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
@@ -225,15 +231,15 @@ void TotalLagrangianDisplacementParticle<TKernelType, TDim>::CalculateConstituti
     const ConstitutiveLaw::StressMeasure ThisStressMeasure
 )
 {
-    SetConstitutiveLawVariables(rThisConstitutiveVariables, rThisKinematicVariables, rValues);
+    SetConstitutiveVariables(rThisKinematicVariables, rThisConstitutiveVariables, rValues);
         
     this->mThisConstitutiveLaw->CalculateMaterialResponse(rValues, ThisStressMeasure);
 }
 
 template<class TKernelType, std::size_t TDim>
-void TotalLagrangianDisplacementParticle<TKernelType, TDim>::SetConstitutiveLawVariables(
-    ConstitutiveVariables& rThisConstitutiveVariables,
+void TotalLagrangianDisplacementParticle<TKernelType, TDim>::SetConstitutiveVariables(
     KinematicVariables& rThisKinematicVariables,
+    ConstitutiveVariables& rThisConstitutiveVariables,
     ConstitutiveLaw::Parameters& rValues
 )
 {
@@ -430,7 +436,7 @@ void TotalLagrangianDisplacementParticle<TKernelType, TDim>::CalculateOnIntegrat
     const ProcessInfo& rProcessInfo
 )
 {
-    if (rVariable == F_DEFORMATION_GRADIENT){
+    if (rVariable == DEFORMATION_GRADIENT){
         // Initialization of variables
         const auto& r_neighbours = this->GetValue(NEIGHBOURS);
         const double h = rProcessInfo.GetValue(SMOOTHING_LENGTH);

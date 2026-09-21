@@ -72,9 +72,9 @@ void SPHElementUtilities::ComputeParticleJump(
     std::vector<Matrix> def_gradient_particle;
     std::vector<Matrix> def_gradient_neighbour;
         
-    rThisParticle.CalculateOnIntegrationPoints(F_DEFORMATION_GRADIENT, def_gradient_particle, rProcessInfo);
+    rThisParticle.CalculateOnIntegrationPoints(DEFORMATION_GRADIENT, def_gradient_particle, rProcessInfo);
     const VectorType particle_interface_position = particle_position - 0.5 * prod(def_gradient_particle[0], rInitialDistance);
-    rThisNeighbour.CalculateOnIntegrationPoints(F_DEFORMATION_GRADIENT, def_gradient_neighbour, rProcessInfo);
+    rThisNeighbour.CalculateOnIntegrationPoints(DEFORMATION_GRADIENT, def_gradient_neighbour, rProcessInfo);
     const VectorType neighbour_interface_position = neighbour_position + 0.5 * prod(def_gradient_neighbour[0], rInitialDistance);
 
     for (IndexType d = 0; d < dimension; ++d) rJumpVector[d] = neighbour_interface_position[d] - particle_interface_position[d];

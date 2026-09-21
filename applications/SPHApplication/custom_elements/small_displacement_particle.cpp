@@ -33,6 +33,12 @@ void SmallDisplacementParticle<TKernelType, TDim>::InitializeMaterial()
 }
 
 template<class TKernelType, std::size_t TDim>
+bool SmallDisplacementParticle<TKernelType, TDim>::UseElementProvidedStrain() const
+{
+    return true;
+}
+
+template<class TKernelType, std::size_t TDim>
 Element::Pointer SmallDisplacementParticle<TKernelType, TDim>::Clone( 
     IndexType NewId, 
     NodesArrayType const& rThisNodes
@@ -291,7 +297,7 @@ void SmallDisplacementParticle<TKernelType, TDim>::CalculateAll(
     // Constitutive law 
     ConstitutiveLaw::Parameters cl_values(r_geom, r_props, rProcessInfo);
     auto& r_cl_options = cl_values.GetOptions();
-    r_cl_options.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true); //To compute the strain outside the CL
+    r_cl_options.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, UseElementProvidedStrain());
     r_cl_options.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
     if (CalculateStiffnessMatrixFlag){
         r_cl_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
@@ -393,10 +399,7 @@ void SmallDisplacementParticle<TKernelType, TDim>::CalculateConstitutiveVariable
     const SizeType number_of_neigh = GetValue(NEIGHBOURS).size();
     GetNodalValuesVector(rThisKinematicVariables.Displacement);
 
-    rValues.SetDeterminantF(1.0); 
-    rValues.SetDeformationGradientF(IdentityMatrix(TDim));
-    rValues.SetConstitutiveMatrix(rThisConstitutiveVariables.C);
-    rValues.SetStressVector(rThisConstitutiveVariables.StressVector);
+    SetConstitutiveVariables(rThisKinematicVariables, rThisConstitutiveVariables, rValues);
     
     if constexpr (TDim == 2){
         for (IndexType i = 0; i < number_of_neigh; ++i){
@@ -420,6 +423,22 @@ void SmallDisplacementParticle<TKernelType, TDim>::CalculateConstitutiveVariable
     } 
     
     mThisConstitutiveLaw->CalculateMaterialResponse(rValues, ThisStressMeasure);
+}
+
+template<class TKernelType, std::size_t TDim>
+void SmallDisplacementParticle<TKernelType, TDim>::SetConstitutiveVariables(
+    KinematicVariables& rThisKinematicVariables,
+    ConstitutiveVariables& rThisConstitutiveVariables,
+    ConstitutiveLaw::Parameters& rValues
+)
+{
+    // Essential input parameters for the constitutive law
+    rValues.SetDeterminantF(1.0);
+    rValues.SetDeformationGradientF(IdentityMatrix(TDim));
+
+    // Space in which the resulta shall be saved
+    rValues.SetConstitutiveMatrix(rThisConstitutiveVariables.C);
+    rValues.SetStressVector(rThisConstitutiveVariables.StressVector);
 }
 
 template<class TKernelType, std::size_t TDim>
@@ -506,7 +525,7 @@ void SmallDisplacementParticle<TKernelType, TDim>::CalculateDampingMatrix(Matrix
 template<class TKernelType, std::size_t TDim>
 void SmallDisplacementParticle<TKernelType, TDim>::CalculateOnIntegrationPoints(const Variable<Vector>& rVariable, std::vector<Vector>& rOutput, const ProcessInfo& rProcessInfo)
 {
-    if (rVariable == SPH_KERNEL_GRADIENT){
+    if (rVariable == SPH_KERNEL_GRADIENT){ // This variable is specific to SPH
         const auto& r_neighbours = this->GetValue(NEIGHBOURS);
         const double h = rProcessInfo.GetValue(SMOOTHING_LENGTH);
 
@@ -528,38 +547,79 @@ void SmallDisplacementParticle<TKernelType, TDim>::CalculateOnIntegrationPoints(
             rOutput[index] = dkernel;
             ++index;
         }
-    } else if (mThisConstitutiveLaw->Has(rVariable)){  // At the moment this funtion is never called because the Point2D/Point3D geometries does not have an integration point
-        const SizeType strain_size = mThisConstitutiveLaw->GetStrainSize();
-        rOutput.resize(1, ZeroVector(strain_size));
-        mThisConstitutiveLaw->GetValue(rVariable, rOutput[0]);
+    } else if (mThisConstitutiveLaw->Has(rVariable)){
+        GetValueOnConstituitiveLaw(rVariable, rOutput);
+    } else {
+        CalculateOnIntegrationPoints(rVariable, rOutput, rProcessInfo);
     }
 }
 
 template<class TKernelType, std::size_t TDim>
 void SmallDisplacementParticle<TKernelType, TDim>::CalculateOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rOutput, const ProcessInfo& rProcessInfo)
 {
-    if (rVariable == SPH_KERNEL){
-        const auto& r_neighbours = this->GetValue(NEIGHBOURS);
+    const auto& r_geom = GetGeometry();
+    const auto& r_props = GetProperties();
+    const SizeType dimension = r_geom.WorkingSpaceDimension();
+
+    const auto& r_neighbours = this->GetValue(NEIGHBOURS);
+    const SizeType number_of_neigh = r_neighbours.size();
+
+    rOutput.resize(1);
+
+    if (rVariable == SPH_KERNEL){  // This variable is specific to SPH
         const double h = rProcessInfo.GetValue(SMOOTHING_LENGTH);
+        const auto& IPcoords = r_geom[0].GetInitialPosition();
 
-        const auto& IPcoords = GetGeometry()[0].GetInitialPosition();
+        VectorType X_AB_target(TDim); 
+        double kernel;
+        rOutput.resize(number_of_neigh);
 
-        IndexType index = 0;
-        rOutput.resize(r_neighbours.size());
+        for (IndexType i = 0; i < number_of_neigh; ++i){
+            const auto& JPcoords = r_neighbours[i]->GetGeometry()[0].GetInitialPosition();
+            
+            for (IndexType d = 0; d < TDim; d++) X_AB_target[d] = IPcoords[d] - JPcoords[d];
 
-        for (auto& JP : r_neighbours){
-            const auto& JPcoords = JP->GetGeometry()[0].GetInitialPosition();
-
-            VectorType X_AB_target(TDim);
-            for (IndexType d = 0; d < TDim; d++){
-                X_AB_target[d] = IPcoords[d] - JPcoords[d];
-            }
-
-            double kernel;
             TKernelType::ComputeKernelValue(kernel, h, X_AB_target);
-            rOutput[index] = kernel;
-            ++index;
+            rOutput[i] = kernel;
         }
+
+    } else if (mThisConstitutiveLaw->Has(rVariable)){
+        GetValueOnConstituitiveLaw(rVariable, rOutput);
+    } else if (rVariable == STRAIN_ENERGY){
+        const SizeType strain_size = mThisConstitutiveLaw->GetStrainSize();
+        KinematicVariables this_kinematic_variables(strain_size, dimension, number_of_neigh);
+        ConstitutiveVariables this_constitutive_variables(strain_size);
+
+        ConstitutiveLaw::Parameters cl_values(r_geom, r_props, rProcessInfo);
+
+        // Set constitutive law flags:
+        Flags& r_cl_options = cl_values.GetOptions();
+        r_cl_options.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, UseElementProvidedStrain());
+        r_cl_options.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
+        r_cl_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
+
+        // If strain has to be computed inside of the constitutive law with PK2
+        cl_values.SetStrainVector(this_constitutive_variables.StrainVector);
+            
+        this->CalculateKinematicVariables(this_kinematic_variables, rProcessInfo);
+        this->SetConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, cl_values);
+
+        MatrixType F_3d = ZeroMatrix(3,3);
+        for (int i = 0; i < dimension; ++i){
+            for (int j = 0; j < dimension; ++j){
+                F_3d(i,j) = this_kinematic_variables.F(i,j);
+            }
+        }
+        F_3d(2,2) = 1.0;
+
+        cl_values.SetDeterminantF(MathUtils<double>::Det(F_3d));
+        cl_values.SetDeformationGradientF(F_3d);
+
+        double StrainEnergy = 0.0;
+        mThisConstitutiveLaw->CalculateValue(cl_values, STRAIN_ENERGY, StrainEnergy);
+        rOutput[0] = StrainEnergy;
+    } else {
+        CalculateOnIntegrationPoints(rVariable, rOutput, rProcessInfo);
     }
 }
 
