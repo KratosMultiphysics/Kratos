@@ -1327,6 +1327,72 @@ KRATOS_TEST_CASE_IN_SUITE(TrilinosAssembleRHS, KratosTrilinosApplicationMPITestS
     }
 }
 
+KRATOS_TEST_CASE_IN_SUITE(TrilinosCreateImport, KratosTrilinosApplicationMPITestSuite)
+{
+    const auto& r_comm = Testing::GetDefaultDataCommunicator();
+    auto raw_mpi_comm = MPIDataCommunicator::GetMPICommunicator(r_comm);
+    Epetra_MpiComm epetra_comm(raw_mpi_comm);
+
+    const int local_size = 2;
+    const int rank = r_comm.Rank();
+    const int system_size = local_size * r_comm.Size();
+    const int first_local_id = rank * local_size;
+
+    // Build a distributed vector whose map covers [first_local_id, first_local_id + local_size)
+    std::vector<int> local_ids(local_size);
+    for (int i = 0; i < local_size; ++i) local_ids[i] = first_local_id + i;
+    Epetra_Map map(-1, local_size, local_ids.data(), 0, epetra_comm);
+    TrilinosVectorType dx(map);
+    for (int i = 0; i < local_size; ++i) {
+        dx.ReplaceGlobalValue(local_ids[i], 0, static_cast<double>(local_ids[i]));
+    }
+    dx.GlobalAssemble();
+
+    // Build a DofsArrayType whose equation ids cover all global ids (each rank contributes its own)
+    Model model;
+    ModelPart& r_model_part = model.CreateModelPart("TestModelPart");
+    r_model_part.AddNodalSolutionStepVariable(PRESSURE);
+    r_model_part.GetNodalSolutionStepVariablesList().AddDof(&PRESSURE);
+
+    TrilinosSparseSpaceType::DofsArrayType dof_set;
+    dof_set.reserve(local_size);
+    for (int i = 0; i < local_size; ++i) {
+        const int global_id = first_local_id + i;
+        auto p_node = r_model_part.CreateNewNode(global_id + 1, 0.0, 0.0, 0.0);
+        p_node->AddDof(PRESSURE);
+        auto p_dof = p_node->pGetDof(PRESSURE);
+        p_dof->SetEquationId(global_id);
+        dof_set.push_back(p_dof);
+    }
+    dof_set.Sort();
+
+    // Create the import object
+    auto p_import = TrilinosSparseSpaceType::CreateImport(dof_set, dx);
+
+    // The import must be created successfully
+    KRATOS_EXPECT_NE(nullptr, p_import.get());
+
+    // The target map must contain exactly the local dof equations ids
+    KRATOS_EXPECT_EQ(local_size, p_import->TargetMap().NumMyElements());
+
+    // Use the import to gather Dx values locally and verify correctness
+    Epetra_Vector local_dx(p_import->TargetMap());
+    const int i_err = local_dx.Import(dx, *p_import, Insert);
+    KRATOS_EXPECT_EQ(0, i_err);
+    for (int i = 0; i < local_size; ++i) {
+        const int gid = first_local_id + i;
+        const int lid = p_import->TargetMap().LID(gid);
+        KRATOS_EXPECT_GE(lid, 0);
+        KRATOS_EXPECT_DOUBLE_EQ(static_cast<double>(gid), local_dx[lid]);
+    }
+
+    // The source map must match the distributed vector's map
+    KRATOS_EXPECT_TRUE(p_import->SourceMap().SameAs(dx.Map()));
+
+    // The global number of entries in the target map must equal the system size
+    KRATOS_EXPECT_EQ(system_size, p_import->TargetMap().NumGlobalElements());
+}
+
 KRATOS_TEST_CASE_IN_SUITE(TrilinosCreateDofUpdater, KratosTrilinosApplicationMPITestSuite)
 {
     auto dof_updater = TrilinosSparseSpaceType::CreateDofUpdater();

@@ -22,6 +22,7 @@
 // Project includes
 #include "linear_solvers/linear_solver.h"
 #include "custom_utilities/trilinos_solver_utilities.h"
+#include "trilinos_application.h"
 
 namespace Kratos
 {
@@ -154,24 +155,41 @@ public:
         using Teuchos::RCP;
         using Teuchos::rcp;
 
-        // Amesos2 is missing specializations for FE-matrices and vectors
-        // hence here we need to use the corresponding baseclasses
-        // see "Amesos2_MatrixTraits.hpp" and "Amesos2_VectorTraits.hpp"
-        using MAT = Epetra_CrsMatrix;   // baseclass of "SparseMatrixType" aka "Epetra_FECrsMatrix"
-        using MV  = Epetra_MultiVector; // baseclass of "VectorType"       aka "Epetra_FEVector
-
-        RCP<Amesos2::Solver<MAT,MV> > solver;
-
-        RCP<SparseMatrixType> rcp_A = rcp(&rA, false);
-        RCP<VectorType> rcp_X = rcp(&rX, false);
-        RCP<VectorType> rcp_B = rcp(&rB, false);
         RCP<Teuchos::ParameterList> rcp_params = rcp(&mParameterList, false);
 
-        solver = Amesos2::create<MAT,MV>(mSolverName, rcp_A, rcp_X, rcp_B);
+        if constexpr (TSparseSpaceType::LinearAlgebraLibrary() == TrilinosLinearAlgebraLibrary::EPETRA) {
+            // Amesos2 is missing specializations for FE-matrices and vectors
+            // hence here we need to use the corresponding baseclasses
+            // see "Amesos2_MatrixTraits.hpp" and "Amesos2_VectorTraits.hpp"
+            using MAT = Epetra_CrsMatrix;   // baseclass of "SparseMatrixType" aka "Epetra_FECrsMatrix"
+            using MV  = Epetra_MultiVector; // baseclass of "VectorType"       aka "Epetra_FEVector"
 
-        solver->setParameters(rcp_params);
+            RCP<MAT> rcp_A = rcp(dynamic_cast<MAT*>(&rA), false);
+            RCP<MV>  rcp_X = rcp(dynamic_cast<MV*>(&rX), false);
+            RCP<MV>  rcp_B = rcp(dynamic_cast<MV*>(&rB), false);
 
-        solver->symbolicFactorization().numericFactorization().solve();
+            auto solver = Amesos2::create<MAT,MV>(mSolverName, rcp_A, rcp_X, rcp_B);
+            solver->setParameters(rcp_params);
+            solver->symbolicFactorization().numericFactorization().solve();
+        } else {
+        #if (HAVE_TPETRA)
+            // For Tpetra: Amesos2 is missing specializations for FE-matrices and vectors
+            // hence here we need to use the corresponding baseclasses
+            // see "Amesos2_MatrixTraits.hpp" and "Amesos2_VectorTraits.hpp"
+            using MAT = Tpetra::CrsMatrix<>;   // baseclass of "SparseMatrixType" aka "Tpetra::FECrsMatrix<>"
+            using MV  = Tpetra::MultiVector<>; // baseclass of "VectorType"       aka "Tpetra::FEMultiVector<>"
+
+            RCP<MAT> rcp_A = rcp(dynamic_cast<MAT*>(&rA), false);
+            RCP<MV>  rcp_X = rcp(dynamic_cast<MV*>(&rX), false);
+            RCP<MV>  rcp_B = rcp(dynamic_cast<MV*>(&rB), false);
+
+            auto solver = Amesos2::create<MAT,MV>(mSolverName, rcp_A, rcp_X, rcp_B);
+            solver->setParameters(rcp_params);
+            solver->symbolicFactorization().numericFactorization().solve();
+        #else
+            KRATOS_ERROR << "You must compile Kratos with TPETRA support" << std::endl;
+        #endif
+        }
 
         return true;
 

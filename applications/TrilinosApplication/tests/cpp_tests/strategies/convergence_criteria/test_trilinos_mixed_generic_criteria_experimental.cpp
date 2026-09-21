@@ -22,18 +22,18 @@
 #include "mpi/utilities/model_part_communicator_utilities.h"
 #include "mpi/utilities/parallel_fill_communicator.h"
 #include "spaces/ublas_space.h"
-#include "trilinos_space.h"
+#include "trilinos_space_experimental.h"
 
 namespace Kratos::Testing
 {
 
 using DofsArrayType = ModelPart::DofsArrayType;
 using TrilinosLocalSpaceType = UblasSpace<double, Matrix, Vector>;
-using TrilinosSparseSpaceType = TrilinosSpace<Epetra_FECrsMatrix, Epetra_FEVector>;
-using TrilinosMixedGenericCriteriaType = TrilinosMixedGenericCriteria<TrilinosSparseSpaceType, TrilinosLocalSpaceType>;
-using ConvergenceVariableListType = typename TrilinosMixedGenericCriteriaType::ConvergenceVariableListType;
+using TrilinosExperimentalSparseSpaceType = TrilinosSpaceExperimental<Tpetra::FECrsMatrix<>, Tpetra::FEMultiVector<>>;
+using TrilinosExperimentalMixedGenericCriteriaType = TrilinosMixedGenericCriteria<TrilinosExperimentalSparseSpaceType, TrilinosLocalSpaceType>;
+using ExperimentalConvergenceVariableListType = typename TrilinosExperimentalMixedGenericCriteriaType::ConvergenceVariableListType;
 
-void GenerateTestTrilinosMixedGenericCriteriaModelPart(
+void GenerateTestTrilinosExperimentalMixedGenericCriteriaModelPart(
     ModelPart& rModelPart,
     const unsigned int NumberOfNodes = 10)
 {
@@ -66,7 +66,7 @@ void GenerateTestTrilinosMixedGenericCriteriaModelPart(
     ParallelFillCommunicator(rModelPart, r_comm).Execute();
 }
 
-void SetupMixedCriteriaDofs(
+void SetupExperimentalMixedCriteriaDofs(
     ModelPart& rModelPart,
     DofsArrayType& rAuxDofSet)
 {
@@ -97,18 +97,16 @@ void SetupMixedCriteriaDofs(
     rAuxDofSet.Sort();
 }
 
-ConvergenceVariableListType CreateConvergenceSettings()
+ExperimentalConvergenceVariableListType CreateExperimentalConvergenceSettings()
 {
-    ConvergenceVariableListType convergence_settings;
-    const VariableData* p_pressure = &PRESSURE;
-    const VariableData* p_velocity = &VELOCITY;
-    convergence_settings.push_back(std::make_tuple(p_pressure, 1.0e-3, 1.0e-5));
-    convergence_settings.push_back(std::make_tuple(p_velocity, 1.0e-3, 1.0e-5));
+    ExperimentalConvergenceVariableListType convergence_settings;
+    convergence_settings.push_back(std::make_tuple(static_cast<const VariableData*>(&PRESSURE), 1.0e-3, 1.0e-5));
+    convergence_settings.push_back(std::make_tuple(static_cast<const VariableData*>(&VELOCITY), 1.0e-3, 1.0e-5));
     return convergence_settings;
 }
 
 template<class TSparseSpaceType>
-void SetTestValues(
+void SetExperimentalMixedCriteriaTestValues(
     ModelPart& rModelPart,
     typename TSparseSpaceType::VectorType& rDx,
     const double ScaleFactor)
@@ -134,46 +132,59 @@ void SetTestValues(
     }
 }
 
-KRATOS_TEST_CASE_IN_SUITE(TrilinosMixedGenericCriteria, KratosTrilinosApplicationMPITestSuite)
+KRATOS_TEST_CASE_IN_SUITE(TrilinosExperimentalMixedGenericCriteria, KratosTrilinosApplicationMPITestSuite)
 {
     Model current_model;
     ModelPart& r_model_part = current_model.CreateModelPart("TestModelPart");
 
     const unsigned int n_nodes = 10;
-    GenerateTestTrilinosMixedGenericCriteriaModelPart(r_model_part, n_nodes);
+    GenerateTestTrilinosExperimentalMixedGenericCriteriaModelPart(r_model_part, n_nodes);
 
     const auto& r_comm = r_model_part.GetCommunicator().GetDataCommunicator();
     const int rank = r_comm.Rank();
 
     DofsArrayType aux_dof_set;
-    SetupMixedCriteriaDofs(r_model_part, aux_dof_set);
+    SetupExperimentalMixedCriteriaDofs(r_model_part, aux_dof_set);
 
-    auto mixed_generic_criteria = TrilinosMixedGenericCriteriaType(CreateConvergenceSettings());
+    auto mixed_generic_criteria = TrilinosExperimentalMixedGenericCriteriaType(CreateExperimentalConvergenceSettings());
 
     auto raw_mpi_comm = MPIDataCommunicator::GetMPICommunicator(r_comm);
-    Epetra_MpiComm epetra_comm(raw_mpi_comm);
+    Teuchos::RCP<const Teuchos::MpiComm<int>> p_tpetra_comm = Teuchos::rcp(new Teuchos::MpiComm<int>(raw_mpi_comm));
 
-    const int n_local_dofs = static_cast<int>(3 * n_nodes);
-    std::vector<int> local_dof_ids(n_local_dofs, 0);
-    for (int i = 0; i < n_local_dofs; ++i) {
-        local_dof_ids[i] = (3 * n_nodes * rank) + i;
+    using LO = TrilinosExperimentalSparseSpaceType::LO;
+    using GO = TrilinosExperimentalSparseSpaceType::GO;
+    using NT = TrilinosExperimentalSparseSpaceType::NT;
+
+    const IndexType n_local_dofs = 3 * n_nodes;
+    std::vector<GO> indices(n_local_dofs);
+    for (IndexType i = 0; i != n_local_dofs; ++i) {
+        indices[i] = static_cast<GO>((3 * n_nodes * rank) + i);
     }
-    Epetra_Map map(-1, n_local_dofs, local_dof_ids.data(), 0, epetra_comm);
 
-    TrilinosSparseSpaceType::MatrixPointerType pA;
-    TrilinosSparseSpaceType::MatrixType& rA = *pA;
-    TrilinosSparseSpaceType::VectorType Dx(map);
-    TrilinosSparseSpaceType::VectorPointerType pb;
-    TrilinosSparseSpaceType::VectorType& rb = *pb;
+    auto p_map = Teuchos::rcp(new Tpetra::Map<LO, GO, NT>(
+        Teuchos::OrdinalTraits<Tpetra::global_size_t>::invalid(),
+        Teuchos::ArrayView<const GO>(indices),
+        0,
+        p_tpetra_comm));
 
-    SetTestValues<TrilinosSparseSpaceType>(r_model_part, Dx, 1.0);
-    mixed_generic_criteria.InitializeSolutionStep(r_model_part, aux_dof_set, rA, Dx, rb);
+    auto p_map_aux = Teuchos::rcp(new TrilinosExperimentalSparseSpaceType::MapType(0, 0, p_tpetra_comm));
+    auto p_graph_aux = Teuchos::rcp(new TrilinosExperimentalSparseSpaceType::GraphType(p_map_aux, p_map_aux, 0));
+    p_graph_aux->fillComplete();
 
-    bool convergence = mixed_generic_criteria.PostCriteria(r_model_part, aux_dof_set, rA, Dx, rb);
+    TrilinosExperimentalSparseSpaceType::MatrixType A(p_graph_aux);
+    auto p_Dx = TrilinosExperimentalSparseSpaceType::CreateVector(p_map);
+    auto& rDx = *p_Dx;
+    auto p_b = TrilinosExperimentalSparseSpaceType::CreateVector(p_map_aux);
+    auto& rb = *p_b;
+
+    SetExperimentalMixedCriteriaTestValues<TrilinosExperimentalSparseSpaceType>(r_model_part, rDx, 1.0);
+    mixed_generic_criteria.InitializeSolutionStep(r_model_part, aux_dof_set, A, rDx, rb);
+
+    bool convergence = mixed_generic_criteria.PostCriteria(r_model_part, aux_dof_set, A, rDx, rb);
     KRATOS_EXPECT_FALSE(convergence);
 
-    SetTestValues<TrilinosSparseSpaceType>(r_model_part, Dx, 1.0e-4);
-    convergence = mixed_generic_criteria.PostCriteria(r_model_part, aux_dof_set, rA, Dx, rb);
+    SetExperimentalMixedCriteriaTestValues<TrilinosExperimentalSparseSpaceType>(r_model_part, rDx, 1.0e-4);
+    convergence = mixed_generic_criteria.PostCriteria(r_model_part, aux_dof_set, A, rDx, rb);
     KRATOS_EXPECT_TRUE(convergence);
 }
 

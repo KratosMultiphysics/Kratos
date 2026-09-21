@@ -18,8 +18,10 @@
 // External includes
 
 // Project includes
-#include "includes/define.h"
 #include "trilinos_space.h"
+#ifdef HAVE_TPETRA
+#include "trilinos_space_experimental.h"
+#endif
 #include "factories/linear_solver_factory.h"
 
 namespace Kratos
@@ -61,7 +63,7 @@ class KRATOS_API(TRILINOS_APPLICATION) TrilinosLinearSolverFactory
     ///@{
 
     /// The definition of the preconditioner
-    typedef LinearSolver<TSparseSpace,TLocalSpace> LinearSolverType;
+    using LinearSolverType = LinearSolver<TSparseSpace,TLocalSpace>;
 
     ///@}
 protected:
@@ -104,10 +106,16 @@ inline std::ostream& operator << (std::ostream& rOStream,
 
 void RegisterTrilinosLinearSolvers();
 
-typedef TrilinosSpace<Epetra_FECrsMatrix, Epetra_FEVector> TrilinosSparseSpaceType;
-typedef UblasSpace<double, Matrix, Vector> TrilinosLocalSpaceType;
+using TrilinosSparseSpaceType = TrilinosSpace<Epetra_FECrsMatrix, Epetra_FEVector>;
+#ifdef HAVE_TPETRA
+using TrilinosExperimentalSparseSpaceType = TrilinosSpaceExperimental<Tpetra::FECrsMatrix<>, Tpetra::FEMultiVector<>>;
+#endif
+using TrilinosLocalSpaceType = UblasSpace<double, Matrix, Vector>;
 
-typedef LinearSolverFactory<TrilinosSparseSpaceType,  TrilinosLocalSpaceType> TrilinosLinearSolverFactoryType;
+using TrilinosLinearSolverFactoryType = LinearSolverFactory<TrilinosSparseSpaceType,  TrilinosLocalSpaceType>;
+#ifdef HAVE_TPETRA
+using TrilinosExperimentalLinearSolverFactoryType = LinearSolverFactory<TrilinosExperimentalSparseSpaceType, TrilinosLocalSpaceType>;
+#endif
 
 #ifdef KRATOS_REGISTER_TRILINOS_LINEAR_SOLVER
 #undef KRATOS_REGISTER_TRILINOS_LINEAR_SOLVER
@@ -115,6 +123,17 @@ typedef LinearSolverFactory<TrilinosSparseSpaceType,  TrilinosLocalSpaceType> Tr
 #define KRATOS_REGISTER_TRILINOS_LINEAR_SOLVER(name, reference) ; \
     KratosComponents<TrilinosLinearSolverFactoryType>::Add(name, reference);
 
+#ifdef HAVE_TPETRA
+#ifdef KRATOS_REGISTER_TRILINOS_EXPERIMENTAL_LINEAR_SOLVER
+#undef KRATOS_REGISTER_TRILINOS_EXPERIMENTAL_LINEAR_SOLVER
+#endif
+#define KRATOS_REGISTER_TRILINOS_EXPERIMENTAL_LINEAR_SOLVER(name, reference) ; \
+    KratosComponents<TrilinosExperimentalLinearSolverFactoryType>::Add(name, reference);
+#endif
+
 KRATOS_API_EXTERN template class KRATOS_API(TRILINOS_APPLICATION) KratosComponents<TrilinosLinearSolverFactoryType>;
+#ifdef HAVE_TPETRA
+KRATOS_API_EXTERN template class KRATOS_API(TRILINOS_APPLICATION) KratosComponents<TrilinosExperimentalLinearSolverFactoryType>;
+#endif
 
 }  // namespace Kratos.

@@ -8,6 +8,7 @@
 //                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
+//                   Vicente Mataix Ferrandiz
 //
 
 #if defined(KRATOS_PYTHON)
@@ -18,6 +19,9 @@
 
 // Project includes
 #include "trilinos_space.h"
+#ifdef HAVE_TPETRA
+#include "trilinos_space_experimental.h"
+#endif
 #include "spaces/ublas_space.h"
 #include "solving_strategies/convergencecriterias/residual_criteria.h"
 #include "solving_strategies/convergencecriterias/and_criteria.h"
@@ -34,64 +38,77 @@ namespace Kratos::Python
 
 namespace py = pybind11;
 
+namespace {
+    template<class TSparseSpace, class TLocalSpace>
+    void RegisterConvergenceCriterias(pybind11::module& m, const std::string& Prefix)
+    {
+        using ConvergenceCriteriaType = ConvergenceCriteria<TSparseSpace, TLocalSpace>;
+        using ConvergenceCriteriaPointerType = typename ConvergenceCriteria<TSparseSpace, TLocalSpace>::Pointer;
+
+        py::class_<ConvergenceCriteriaType, ConvergenceCriteriaPointerType>(m, (Prefix + "ConvergenceCriteria").c_str())
+            .def(py::init<>())
+            .def("SetActualizeRHSFlag",      &ConvergenceCriteriaType::SetActualizeRHSFlag)
+            .def("GetActualizeRHSflag",      &ConvergenceCriteriaType::GetActualizeRHSflag)
+            .def("PreCriteria",              &ConvergenceCriteriaType::PreCriteria)
+            .def("PostCriteria",             &ConvergenceCriteriaType::PostCriteria)
+            .def("Initialize",               &ConvergenceCriteriaType::Initialize)
+            .def("InitializeSolutionStep",   &ConvergenceCriteriaType::InitializeSolutionStep)
+            .def("FinalizeSolutionStep",     &ConvergenceCriteriaType::FinalizeSolutionStep)
+            .def("Check",                    &ConvergenceCriteriaType::Check)
+            .def("SetEchoLevel",             &ConvergenceCriteriaType::SetEchoLevel)
+            ;
+
+        py::class_<
+            TrilinosDisplacementCriteria<TSparseSpace, TLocalSpace>,
+            typename TrilinosDisplacementCriteria<TSparseSpace, TLocalSpace>::Pointer,
+            ConvergenceCriteriaType>(m, (Prefix + "DisplacementCriteria").c_str())
+            .def(py::init<typename TSparseSpace::DataType, typename TSparseSpace::DataType>())
+            .def(py::init<Parameters>())
+            ;
+
+        py::class_<
+            TrilinosResidualCriteria<TSparseSpace, TLocalSpace>,
+            typename TrilinosResidualCriteria<TSparseSpace, TLocalSpace>::Pointer,
+            ConvergenceCriteriaType>(m, (Prefix + "ResidualCriteria").c_str())
+            .def(py::init<typename TSparseSpace::DataType, typename TSparseSpace::DataType>())
+            .def(py::init<Parameters>())
+            ;
+
+        py::class_<
+            And_Criteria<TSparseSpace, TLocalSpace>,
+            typename And_Criteria<TSparseSpace, TLocalSpace>::Pointer,
+            ConvergenceCriteriaType>(m, (Prefix + "AndCriteria").c_str())
+            .def(py::init<ConvergenceCriteriaPointerType, ConvergenceCriteriaPointerType>())
+            ;
+
+        py::class_<
+            Or_Criteria<TSparseSpace, TLocalSpace>,
+            typename Or_Criteria<TSparseSpace, TLocalSpace>::Pointer,
+            ConvergenceCriteriaType>(m, (Prefix + "OrCriteria").c_str())
+            .def(py::init<ConvergenceCriteriaPointerType, ConvergenceCriteriaPointerType>())
+            ;
+
+        using ConvergenceVariableListType = typename TrilinosMixedGenericCriteria<TSparseSpace, TLocalSpace>::ConvergenceVariableListType;
+        py::class_<
+            TrilinosMixedGenericCriteria<TSparseSpace, TLocalSpace>,
+            typename TrilinosMixedGenericCriteria<TSparseSpace, TLocalSpace>::Pointer,
+            ConvergenceCriteriaType>(m, (Prefix + "MixedGenericCriteria").c_str())
+            .def(py::init<const ConvergenceVariableListType&>())
+            ;
+    }
+}
+
 void  AddConvergenceCriterias(pybind11::module& m)
 {
     using TrilinosSparseSpaceType = TrilinosSpace<Epetra_FECrsMatrix, Epetra_FEVector>;
     using TrilinosLocalSpaceType = UblasSpace<double, Matrix, Vector>;
 
-    //********************************************************************
-    //********************************************************************
-    // Convergence criteria base class
-    using TrilinosConvergenceCriteria = ConvergenceCriteria< TrilinosSparseSpaceType, TrilinosLocalSpaceType >;
+    RegisterConvergenceCriterias<TrilinosSparseSpaceType, TrilinosLocalSpaceType>(m, "Trilinos");
 
-    using TrilinosConvergenceCriteriaPointer = typename ConvergenceCriteria< TrilinosSparseSpaceType, TrilinosLocalSpaceType > ::Pointer;
-
-    py::class_< TrilinosConvergenceCriteria, TrilinosConvergenceCriteriaPointer > (m,"TrilinosConvergenceCriteria")
-    .def(py::init<>())
-    .def("SetActualizeRHSFlag", &ConvergenceCriteria<TrilinosSparseSpaceType, TrilinosLocalSpaceType >::SetActualizeRHSFlag)
-    .def("GetActualizeRHSflag", &ConvergenceCriteria<TrilinosSparseSpaceType, TrilinosLocalSpaceType >::GetActualizeRHSflag)
-    .def("PreCriteria", &ConvergenceCriteria<TrilinosSparseSpaceType, TrilinosLocalSpaceType >::PreCriteria)
-    .def("PostCriteria", &ConvergenceCriteria<TrilinosSparseSpaceType, TrilinosLocalSpaceType >::PostCriteria)
-    .def("Initialize", &ConvergenceCriteria<TrilinosSparseSpaceType, TrilinosLocalSpaceType >::Initialize)
-    .def("InitializeSolutionStep", &ConvergenceCriteria<TrilinosSparseSpaceType, TrilinosLocalSpaceType >::InitializeSolutionStep)
-    .def("FinalizeSolutionStep", &ConvergenceCriteria<TrilinosSparseSpaceType, TrilinosLocalSpaceType >::FinalizeSolutionStep)
-    .def("Check", &ConvergenceCriteria<TrilinosSparseSpaceType, TrilinosLocalSpaceType >::Check)
-    .def("SetEchoLevel", &ConvergenceCriteria<TrilinosSparseSpaceType, TrilinosLocalSpaceType >::SetEchoLevel)
-    ;
-
-    py::class_< TrilinosDisplacementCriteria<TrilinosSparseSpaceType, TrilinosLocalSpaceType >,
-            typename TrilinosDisplacementCriteria<TrilinosSparseSpaceType, TrilinosLocalSpaceType >::Pointer,
-            TrilinosConvergenceCriteria>(m,"TrilinosDisplacementCriteria")
-            .def(py::init< TrilinosSparseSpaceType::DataType, TrilinosSparseSpaceType::DataType >())
-            .def(py::init< Parameters >())
-            ;
-
-    py::class_< TrilinosResidualCriteria<TrilinosSparseSpaceType, TrilinosLocalSpaceType >,
-            typename TrilinosResidualCriteria<TrilinosSparseSpaceType, TrilinosLocalSpaceType >::Pointer,
-            TrilinosConvergenceCriteria >
-            (m,"TrilinosResidualCriteria")
-            .def(py::init< TrilinosSparseSpaceType::DataType, TrilinosSparseSpaceType::DataType >())
-            .def(py::init< Parameters >())
-            ;
-
-    py::class_<And_Criteria<TrilinosSparseSpaceType, TrilinosLocalSpaceType >,
-            typename And_Criteria<TrilinosSparseSpaceType, TrilinosLocalSpaceType >::Pointer,
-            TrilinosConvergenceCriteria>
-            (m,"TrilinosAndCriteria")
-            .def(py::init<TrilinosConvergenceCriteriaPointer, TrilinosConvergenceCriteriaPointer > ());
-
-    py::class_<Or_Criteria<TrilinosSparseSpaceType, TrilinosLocalSpaceType >,
-            typename Or_Criteria<TrilinosSparseSpaceType, TrilinosLocalSpaceType >::Pointer,
-            TrilinosConvergenceCriteria>
-            (m,"TrilinosOrCriteria")
-            .def(py::init<TrilinosConvergenceCriteriaPointer, TrilinosConvergenceCriteriaPointer > ());
-
-    using ConvergenceVariableListType = typename TrilinosMixedGenericCriteria<TrilinosSparseSpaceType, TrilinosLocalSpaceType>::ConvergenceVariableListType;
-    py::class_<
-        TrilinosMixedGenericCriteria<TrilinosSparseSpaceType, TrilinosLocalSpaceType>,
-        typename TrilinosMixedGenericCriteria<TrilinosSparseSpaceType, TrilinosLocalSpaceType>::Pointer,
-        TrilinosConvergenceCriteria>(m, "TrilinosMixedGenericCriteria")
-        .def(py::init< const ConvergenceVariableListType& >());
+#ifdef HAVE_TPETRA
+    using TrilinosExperimentalSparseSpaceType = TrilinosSpaceExperimental<Tpetra::FECrsMatrix<>, Tpetra::FEMultiVector<>>;
+    RegisterConvergenceCriterias<TrilinosExperimentalSparseSpaceType, TrilinosLocalSpaceType>(m, "TrilinosExperimental");
+#endif
 }
 
 } // namespace Kratos::Python.
