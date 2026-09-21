@@ -41,10 +41,6 @@ class LinearLoadCombinationPreparationAnalysis(AnalysisStage):
             if self.project_parameters["mass_matrix"].GetString().lower() == "lumped":
                 self.lumped_mass_matrix = True
 
-    def Initialize(self):
-        super().Initialize()
-        
-
     def __PrepareFixityDataBase(self):
         self.fixities = {}
         for fixity_definition in self.project_parameters["process_combinations"]["fixity_processes"].values():
