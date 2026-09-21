@@ -4,10 +4,9 @@ import KratosMultiphysics.OptimizationApplication as KratosOA
 
 class TestPropertiesVariableTensorAdaptorSerialization(kratos_unittest.TestCase):
     def test_CombinedTensorAdaptorWithPropertiesVariableChild(self):
-        # Regression: PropertiesVariableTensorAdaptor had no default constructor, serialization
-        # hooks, or Serializer::Register entry, so saving a combined field whose child survived
-        # Clone() as this (real, OptimizationApplication) type threw "no object registered with
-        # type id ...", the same class of bug this PR's core subtype registrations fixed.
+        # children are saved through TensorAdaptor<double> pointers, so PropertiesVariableTensorAdaptor
+        # must be registered with the Serializer (optimization_application.cpp), otherwise saving
+        # throws "no object registered with type id ...".
         model = Kratos.Model()
         model_part = model.CreateModelPart("Test")
         model_part.CreateNewNode(1, 0.0, 0.0, 0.0)

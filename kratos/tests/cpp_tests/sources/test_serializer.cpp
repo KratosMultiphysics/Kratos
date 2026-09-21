@@ -156,11 +156,8 @@ KRATOS_TEST_CASE_IN_SUITE(SerializerUnsignedChar, KratosCoreFastSuite)
     TestObjectSerialization(object_to_be_saved, object_to_be_loaded);
 }
 
-// Binary mode (used above) never had this bug: the generic write/read templates copy raw bytes there.
-// ASCII/trace mode routes unsigned char through iostream's character-insertion overload instead of a
-// numeric one, so a byte value like 32 (space) is written as a literal space and then silently skipped
-// by istream's default whitespace-skipping extraction on read -- corrupting the value and misaligning
-// the stream. Cover both the corrupting value and an ordinary one, under a tracing serializer.
+// ASCII (trace) mode used to write unsigned char as a raw character, so on read operator>> skipped
+// whitespace bytes such as 32 (' '), corrupting the value and misaligning the stream.
 KRATOS_TEST_CASE_IN_SUITE(SerializerUnsignedCharAsciiTrace, KratosCoreFastSuite)
 {
     StreamSerializer serializer(Serializer::SERIALIZER_TRACE_ALL);

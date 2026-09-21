@@ -14,6 +14,7 @@
 #include <string>
 #include <atomic>
 #include <variant>
+#include <utility>
 #include <numeric>
 
 // External includes
@@ -115,6 +116,7 @@ bool TensorAdaptor<TDataType>::HasContainer() const
 template<class TDataType>
 Kratos::span<const TDataType> TensorAdaptor<TDataType>::ViewData() const
 {
+    KRATOS_ERROR_IF_NOT(mpStorage) << "Uninitialized TensorAdaptor (default-constructed, only valid as a Serializer load target).\n";
     const auto& storage = *mpStorage;
     return storage.ViewData();
 }
@@ -122,12 +124,14 @@ Kratos::span<const TDataType> TensorAdaptor<TDataType>::ViewData() const
 template<class TDataType>
 Kratos::span<TDataType> TensorAdaptor<TDataType>::ViewData()
 {
+    KRATOS_ERROR_IF_NOT(mpStorage) << "Uninitialized TensorAdaptor (default-constructed, only valid as a Serializer load target).\n";
     return mpStorage->ViewData();
 }
 
 template<class TDataType>
 DenseVector<unsigned int> TensorAdaptor<TDataType>::Shape() const
 {
+    KRATOS_ERROR_IF_NOT(mpStorage) << "Uninitialized TensorAdaptor (default-constructed, only valid as a Serializer load target).\n";
     return mpStorage->Shape();
 }
 
@@ -143,6 +147,7 @@ DenseVector<unsigned int> TensorAdaptor<TDataType>::DataShape() const
 template<class TDataType>
 unsigned int TensorAdaptor<TDataType>::Size() const
 {
+    KRATOS_ERROR_IF_NOT(mpStorage) << "Uninitialized TensorAdaptor (default-constructed, only valid as a Serializer load target).\n";
     return mpStorage->Size();
 }
 
@@ -194,21 +199,20 @@ void TensorAdaptor<TDataType>::load(Serializer& rSerializer)
     if (has_container) {
         std::size_t index;
         rSerializer.load("ContainerIndex", index);
-        // Seed each local from the existing mpContainer (when its variant index already matches)
-        // rather than a fresh null pointer: in Serializer's DataOnly mode, load(shared_ptr&) reads
-        // nothing at all for a null destination, which would silently desync the stream and discard
-        // a preinitialized container instead of reusing it -- mirroring how mpStorage above is loaded
-        // directly into the real member, not a fresh local.
-        switch (index) {
-            case 0: { ModelPart::DofsArrayType::Pointer p = (mpContainer.has_value() && mpContainer->index() == 0) ? std::get<0>(mpContainer.value()) : nullptr; rSerializer.load("Container", p); mpContainer = p; break; }
-            case 1: { ModelPart::NodesContainerType::Pointer p = (mpContainer.has_value() && mpContainer->index() == 1) ? std::get<1>(mpContainer.value()) : nullptr; rSerializer.load("Container", p); mpContainer = p; break; }
-            case 2: { ModelPart::ConditionsContainerType::Pointer p = (mpContainer.has_value() && mpContainer->index() == 2) ? std::get<2>(mpContainer.value()) : nullptr; rSerializer.load("Container", p); mpContainer = p; break; }
-            case 3: { ModelPart::ElementsContainerType::Pointer p = (mpContainer.has_value() && mpContainer->index() == 3) ? std::get<3>(mpContainer.value()) : nullptr; rSerializer.load("Container", p); mpContainer = p; break; }
-            case 4: { ModelPart::PropertiesContainerType::Pointer p = (mpContainer.has_value() && mpContainer->index() == 4) ? std::get<4>(mpContainer.value()) : nullptr; rSerializer.load("Container", p); mpContainer = p; break; }
-            case 5: { ModelPart::MasterSlaveConstraintContainerType::Pointer p = (mpContainer.has_value() && mpContainer->index() == 5) ? std::get<5>(mpContainer.value()) : nullptr; rSerializer.load("Container", p); mpContainer = p; break; }
-            case 6: { ModelPart::GeometryContainerType::Pointer p = (mpContainer.has_value() && mpContainer->index() == 6) ? std::get<6>(mpContainer.value()) : nullptr; rSerializer.load("Container", p); mpContainer = p; break; }
-            default: KRATOS_ERROR << "Unknown tensor adaptor container variant index: " << index << std::endl;
-        }
+        KRATOS_ERROR_IF(index >= std::variant_size_v<ContainerPointerType>) << "Unknown tensor adaptor container variant index: " << index << std::endl;
+
+        // Reuse the existing container pointer if it holds the saved variant type: in DataOnly mode
+        // load(shared_ptr&) reads nothing into a null pointer, which would desync the stream and drop
+        // the preinitialized container. Only the fold branch with I == index runs.
+        [&]<std::size_t... I>(std::index_sequence<I...>) {
+            ([&] {
+                if (I != index) return;
+                std::variant_alternative_t<I, ContainerPointerType> p_container;
+                if (mpContainer.has_value() && mpContainer->index() == I) p_container = std::get<I>(*mpContainer);
+                rSerializer.load("Container", p_container);
+                mpContainer = ContainerPointerType(std::in_place_index<I>, p_container);
+            }(), ...);
+        }(std::make_index_sequence<std::variant_size_v<ContainerPointerType>>{});
     } else {
         mpContainer.reset();
     }

@@ -182,7 +182,7 @@ void FixityTensorAdaptor::load(Serializer& rSerializer)
         rSerializer.load("VariableName", name);
         dofs_var_pointer_list[i] = &KratosComponents<Variable<double>>::Get(name);
     }
-    const_cast<std::vector<const Variable<double>*>&>(mDofsVarPointerList) = dofs_var_pointer_list;
+    mDofsVarPointerList = dofs_var_pointer_list;
 }
 
 } // namespace Kratos

@@ -139,7 +139,7 @@ private:
 
     VariablePointerType mpVariable;
 
-    const int mStepIndex;
+    int mStepIndex;
 
     ///@}
     ///@name Serialization

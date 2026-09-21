@@ -1196,9 +1196,8 @@ private:
 
         KRATOS_SERIALIZER_MODE_ASCII
 
-        // unsigned char's iostream overload inserts/extracts a raw character rather than a numeric
-        // value, and extraction skips whitespace bytes (e.g. 32) -- route ASCII through an unsigned
-        // temporary instead, mirroring the PointerType overloads above.
+        // iostream treats unsigned char as a character: a whitespace byte (e.g. 32 = ' ') would be
+        // skipped on read, corrupting the value and the rest of the stream. Stream it as unsigned.
         unsigned temp;
         *mpBuffer >> temp;
         rValue = static_cast<unsigned char>(temp);

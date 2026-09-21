@@ -79,10 +79,8 @@ public:
     /**
      * @brief Construct an empty, invalid instance.
      * @details Only intended for @ref Serializer::load to construct into before populating via @ref load.
-     *          Not "= default": mDofsVarPointerList is const and std::vector's default constructor is not
-     *          user-provided, which makes a defaulted default constructor deleted ([class.default.ctor]/2).
      */
-    FixityTensorAdaptor() : mDofsVarPointerList() {}
+    FixityTensorAdaptor() = default;
 
     // Destructor
     ~FixityTensorAdaptor() override = default;
@@ -111,7 +109,7 @@ public:
     ///@name Private members
     ///@{
 
-    const std::vector<const Variable<double>*> mDofsVarPointerList;
+    std::vector<const Variable<double>*> mDofsVarPointerList;
 
     ///@}
     ///@name Serialization

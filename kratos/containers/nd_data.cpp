@@ -138,7 +138,7 @@ void NDData<TDataType>::save(Serializer& rSerializer) const
 template<class TDataType>
 void NDData<TDataType>::load(Serializer& rSerializer)
 {
-    rSerializer.load("Shape", const_cast<DenseVector<unsigned int>&>(mShape));
+    rSerializer.load("Shape", mShape);
 
     DenseVector<TDataType> data_vector;
     rSerializer.load("Data", data_vector);

@@ -37,9 +37,6 @@ namespace Kratos::Testing {
 
 namespace {
 
-// One StreamSerializer per test: saves the Model alongside the tensor adaptor(s) under test, so
-// SHALLOW_GLOBAL_POINTERS_SERIALIZATION relinks the loaded adaptor's container to the same
-// Node/Element objects the loaded Model holds -- not a disconnected copy.
 ModelPart& CreateTestModelPart(Model& rModel, const std::string& rName)
 {
     ModelPart& r_model_part = rModel.CreateModelPart(rName);
@@ -81,8 +78,8 @@ KRATOS_TEST_CASE_IN_SUITE(VariableTensorAdaptorSerialization, KratosCoreFastSuit
     }
     KRATOS_EXPECT_EQ(loaded.Info(), original.Info());
 
-    // pointer-identity check: the loaded adaptor's container is the *same* Nodes container the
-    // loaded Model holds, not a disconnected reconstruction.
+    // the Model is saved first, so the container must resolve to the loaded model's own Nodes
+    // container, not to a detached copy.
     ModelPart& r_load_model_part = load_model.GetModelPart("Test");
     KRATOS_EXPECT_EQ(std::get<ModelPart::NodesContainerType::Pointer>(loaded.GetContainer()).get(), r_load_model_part.pNodes().get());
 }
@@ -108,7 +105,7 @@ KRATOS_TEST_CASE_IN_SUITE(HistoricalVariableTensorAdaptorSerialization, KratosCo
     for (IndexType i = 0; i < original.Size(); ++i) {
         KRATOS_EXPECT_DOUBLE_EQ(loaded.ViewData()[i], original.ViewData()[i]);
     }
-    // Info() encodes the variable name and step index -- confirms both round-tripped.
+    // Info() prints the variable name and step index, so equal Info() means both were restored.
     KRATOS_EXPECT_EQ(loaded.Info(), original.Info());
 }
 
@@ -185,9 +182,8 @@ KRATOS_TEST_CASE_IN_SUITE(EquationIdsTensorAdaptorSerialization, KratosCoreFastS
     Model save_model;
     auto& r_save_model_part = CreateTestModelPart(save_model, "Test");
 
-    // adopt an already-shaped base TensorAdaptor -- EquationIdsTensorAdaptor's own construction
-    // path requires live DOFs, which is unrelated to what this test verifies (that mpProcessInfo
-    // round-trips through the Serializer).
+    // build from a shaped base adaptor: the container constructor needs real DOFs, which are not
+    // what this test checks (data and mpProcessInfo round trip).
     auto p_nd_data = Kratos::make_shared<NDData<int>>(DenseVector<unsigned int>(1, r_save_model_part.NumberOfElements()));
     TensorAdaptor<int> base(r_save_model_part.pElements(), p_nd_data, false);
     EquationIdsTensorAdaptor original(base, r_save_model_part.pGetProcessInfo(), false);
@@ -208,8 +204,8 @@ KRATOS_TEST_CASE_IN_SUITE(GaussPointVariableTensorAdaptorSerialization, KratosCo
     Model save_model;
     auto& r_save_model_part = CreateTestModelPart(save_model, "Test");
 
-    // adopt path (see EquationIdsTensorAdaptorSerialization above for why): only mpVariable and
-    // mpProcessInfo round-tripping is under test here.
+    // build from a shaped base adaptor (see EquationIdsTensorAdaptorSerialization): only the data,
+    // mpVariable and mpProcessInfo round trip is tested.
     DenseVector<unsigned int> shape(2);
     shape[0] = r_save_model_part.NumberOfElements();
     shape[1] = 1;
@@ -290,13 +286,9 @@ KRATOS_TEST_CASE_IN_SUITE(ConnectivityIdsTensorAdaptorSerialization, KratosCoreF
     }
 }
 
-// The regression case this whole change is for: CombinedTensorAdaptor::save (already core
-// functionality before this change) serializes each child through a polymorphic
-// TensorAdaptor<double> pointer. Before this change, only the base/combined prototypes were
-// registered, so a combined field holding derived children (as any real control field does, e.g.
-// VariableTensorAdaptor/HistoricalVariableTensorAdaptor leaves) threw "no object registered with
-// type id ...". This must now round-trip cleanly, each child recovering its own concrete type,
-// values, and extra state.
+// children are saved through polymorphic TensorAdaptor<double> pointers. Before the subtypes were
+// registered, this threw "no object registered with type id ..."; now each child must come back
+// as its own subtype with its data and members.
 KRATOS_TEST_CASE_IN_SUITE(CombinedTensorAdaptorWithDerivedChildrenSerialization, KratosCoreFastSuite)
 {
     Model save_model;
@@ -338,21 +330,13 @@ KRATOS_TEST_CASE_IN_SUITE(CombinedTensorAdaptorWithDerivedChildrenSerialization,
     KRATOS_EXPECT_NE(std::dynamic_pointer_cast<VariableTensorAdaptor>(loaded_children[0]), nullptr);
     KRATOS_EXPECT_NE(std::dynamic_pointer_cast<HistoricalVariableTensorAdaptor>(loaded_children[1]), nullptr);
 
-    // pointer-identity check on a child, mirroring VariableTensorAdaptorSerialization above.
     ModelPart& r_load_model_part = load_model.GetModelPart("Test");
     KRATOS_EXPECT_EQ(std::get<ModelPart::NodesContainerType::Pointer>(loaded_children[0]->GetContainer()).get(), r_load_model_part.pNodes().get());
 }
 
-// Regression for TensorAdaptor::load()'s container-reconstruction switch always declaring a fresh,
-// null local pointer before loading into it. Serializer's DataOnly mode only reads a shared_ptr's data
-// when the destination is already non-null -- the caller is expected to have prebuilt an identical
-// structure first, exactly as ModelPart::load does for its sub-model-parts. A fresh null local made a
-// DataOnly load read zero bytes for the container, desynchronizing the stream and discarding whatever
-// container the adaptor already held, even when it was correctly preinitialized.
-//
-// Uses an empty MasterSlaveConstraint container (no entities created) so the test stays focused on
-// TensorAdaptor::load()'s own container-pointer handling, without depending on Node/PointerVectorSet's
-// own (separate, pre-existing) entity-level DataOnly round-trip behavior.
+// DataOnly mode reads a shared_ptr's data only into a non-null (prebuilt) target. load() used to use
+// a fresh null pointer for the container, which read nothing, desynced the stream and dropped the
+// preinitialized container. The empty constraint container keeps entity-level DataOnly out of it.
 KRATOS_TEST_CASE_IN_SUITE(TensorAdaptorDataOnlyLoadReusesExistingContainer, KratosCoreFastSuite)
 {
     Model model;
@@ -361,37 +345,28 @@ KRATOS_TEST_CASE_IN_SUITE(TensorAdaptorDataOnlyLoadReusesExistingContainer, Krat
 
     VariableTensorAdaptor original(p_constraints, &PRESSURE);
 
-    // `loaded` is preinitialized against the same live (empty) container, as a restart reload
-    // would build it before a DataOnly load.
+    // `loaded` is prebuilt on the same container, as a restart reload does before a DataOnly load.
     VariableTensorAdaptor loaded(p_constraints, &PRESSURE);
 
     const std::string file_name = "test_tensor_adaptor_data_only_load";
-    // Pre-create the backing file: FileSerializer opens in|out and only falls back to a
-    // (write-only) out-only stream if that fails, which would make the immediately-following
-    // load() read garbage.
+    struct RemoveFileOnExit { std::string mName; ~RemoveFileOnExit() { std::remove(mName.c_str()); } } remove_file{file_name + ".rest"};
+    // create the file first: without it FileSerializer falls back to an out-only stream and the
+    // load() below reads garbage.
     std::fstream(file_name + ".rest", std::ios::out).close();
     {
         FileSerializer serializer(file_name, Serializer::SERIALIZER_NO_TRACE, /*DataOnly=*/true);
         serializer.save("TA", original);
-        // Unlike StreamSerializer's in-memory stringstream (whose independent get/put positions leave
-        // the read position at 0 after a fresh write), FileSerializer's fstream shares one file-level
-        // position between reads and writes -- switching from writing to reading requires an explicit
-        // seek back to the start.
+        // the fstream shares one read/write position (unlike a stringstream), so rewind before reading.
         serializer.SetLoadState();
         serializer.load("TA", loaded);
     }
-    std::remove((file_name + ".rest").c_str());
 
     KRATOS_EXPECT_EQ(std::get<ModelPart::MasterSlaveConstraintContainerType::Pointer>(loaded.GetContainer()).get(), p_constraints.get());
 }
 
-// Regression for CombinedTensorAdaptor::load(): resize(size) preserves any preexisting child pointers,
-// and Serializer::load(shared_ptr&) only reconstructs the registered type when the destination pointer
-// is null -- otherwise it dispatches virtually through the pointer's *existing* dynamic type. Loading a
-// stream saved from one derived type into a stale child of a *different* derived type therefore ran the
-// wrong subtype's load() and would have corrupted that child instead of recovering the type actually
-// saved. Reproduces in the default (non-DataOnly) mode, via the constructor also used for `original`
-// in CombinedTensorAdaptorWithDerivedChildrenSerialization above.
+// load(shared_ptr&) loads a non-null target through its existing type. CombinedTensorAdaptor::load()
+// used to keep existing children, so the stale VariableTensorAdaptor child below would run the wrong
+// load() on the saved HistoricalVariableTensorAdaptor.
 KRATOS_TEST_CASE_IN_SUITE(CombinedTensorAdaptorLoadDiscardsStaleDerivedTypeChild, KratosCoreFastSuite)
 {
     Model save_model;
@@ -414,10 +389,6 @@ KRATOS_TEST_CASE_IN_SUITE(CombinedTensorAdaptorLoadDiscardsStaleDerivedTypeChild
     serializer.save("TA", original);
 
     Model load_model;
-    // `loaded` starts with a stale child of the WRONG derived type in the slot the stream actually
-    // saved a HistoricalVariableTensorAdaptor to -- before the fix, resize(size) would keep this
-    // pointer non-null and Serializer::load(shared_ptr&) would dispatch through its (wrong) dynamic
-    // type instead of reconstructing the correct one.
     auto p_stale_child = Kratos::make_shared<VariableTensorAdaptor>(r_save_model_part.pNodes(), &PRESSURE);
     CombinedTensorAdaptor<double> loaded(
         CombinedTensorAdaptor<double>::TensorAdaptorVectorType{p_stale_child},
@@ -434,6 +405,117 @@ KRATOS_TEST_CASE_IN_SUITE(CombinedTensorAdaptorLoadDiscardsStaleDerivedTypeChild
     const auto loaded_children = loaded.GetTensorAdaptors();
     KRATOS_EXPECT_EQ(loaded_children.size(), 1);
     KRATOS_EXPECT_NE(std::dynamic_pointer_cast<HistoricalVariableTensorAdaptor>(loaded_children[0]), nullptr);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(TensorAdaptorSerializationAsciiTrace, KratosCoreFastSuite)
+{
+    Model save_model;
+    auto& r_save_model_part = CreateTestModelPart(save_model, "Test");
+
+    VariableTensorAdaptor original(r_save_model_part.pNodes(), &PRESSURE);
+    original.ViewData()[0] = 1.5;
+    original.ViewData()[1] = -2.25;
+    original.ViewData()[2] = 3.0;
+
+    StreamSerializer serializer(Serializer::SERIALIZER_TRACE_ALL);
+    serializer.Set(Serializer::SHALLOW_GLOBAL_POINTERS_SERIALIZATION);
+    serializer.save("Model", save_model);
+    serializer.save("TA", original);
+
+    Model load_model;
+    VariableTensorAdaptor loaded;
+    serializer.load("Model", load_model);
+    serializer.load("TA", loaded);
+
+    KRATOS_EXPECT_EQ(loaded.Size(), original.Size());
+    for (IndexType i = 0; i < original.Size(); ++i) {
+        KRATOS_EXPECT_DOUBLE_EQ(loaded.ViewData()[i], original.ViewData()[i]);
+    }
+    KRATOS_EXPECT_EQ(std::get<ModelPart::NodesContainerType::Pointer>(loaded.GetContainer()).get(), load_model.GetModelPart("Test").pNodes().get());
+}
+
+KRATOS_TEST_CASE_IN_SUITE(BoolTensorAdaptorSerialization, KratosCoreFastSuite)
+{
+    Model save_model;
+    auto& r_save_model_part = CreateTestModelPart(save_model, "Test");
+
+    auto p_nd_data = Kratos::make_shared<NDData<bool>>(DenseVector<unsigned int>(1, r_save_model_part.NumberOfNodes()));
+    TensorAdaptor<bool> original(r_save_model_part.pNodes(), p_nd_data, false);
+    original.ViewData()[0] = true;
+    original.ViewData()[1] = false;
+    original.ViewData()[2] = true;
+
+    StreamSerializer serializer;
+    serializer.save("TA", original);
+
+    TensorAdaptor<bool> loaded;
+    serializer.load("TA", loaded);
+
+    KRATOS_EXPECT_EQ(loaded.Size(), original.Size());
+    for (IndexType i = 0; i < original.Size(); ++i) {
+        KRATOS_EXPECT_EQ(loaded.ViewData()[i], original.ViewData()[i]);
+    }
+}
+
+KRATOS_TEST_CASE_IN_SUITE(NDDataUnsignedCharSerializationAsciiTrace, KratosCoreFastSuite)
+{
+    NDData<unsigned char> original(DenseVector<unsigned int>(1, 3));
+    original.ViewData()[0] = 0;
+    original.ViewData()[1] = 32; // ' ', skipped by operator>> if written as a character
+    original.ViewData()[2] = 255;
+
+    StreamSerializer serializer(Serializer::SERIALIZER_TRACE_ALL);
+    serializer.save("Data", original);
+
+    NDData<unsigned char> loaded;
+    serializer.load("Data", loaded);
+
+    KRATOS_EXPECT_EQ(loaded.Size(), original.Size());
+    for (IndexType i = 0; i < original.Size(); ++i) {
+        KRATOS_EXPECT_EQ(loaded.ViewData()[i], original.ViewData()[i]);
+    }
+}
+
+KRATOS_TEST_CASE_IN_SUITE(DofsTensorAdaptorSerialization, KratosCoreFastSuite)
+{
+    Model save_model;
+    auto& r_save_model_part = CreateTestModelPart(save_model, "Test");
+    auto p_dofs = Kratos::make_shared<ModelPart::DofsArrayType>();
+    for (auto& r_node : r_save_model_part.Nodes()) {
+        p_dofs->push_back(r_node.pAddDof(TEMPERATURE));
+    }
+    p_dofs->Sort();
+
+    auto p_nd_data = Kratos::make_shared<NDData<double>>(DenseVector<unsigned int>(1, p_dofs->size()));
+    TensorAdaptor<double> original(p_dofs, p_nd_data, false);
+
+    StreamSerializer serializer;
+    serializer.Set(Serializer::SHALLOW_GLOBAL_POINTERS_SERIALIZATION);
+    serializer.save("Model", save_model);
+    serializer.save("TA", original);
+
+    Model load_model;
+    TensorAdaptor<double> loaded;
+    serializer.load("Model", load_model);
+    serializer.load("TA", loaded);
+
+    // Dofs hold a raw pointer to their node's data, so the loaded container must hold the loaded
+    // nodes' own Dof objects (same address), not detached copies.
+    auto& r_load_model_part = load_model.GetModelPart("Test");
+    const auto& r_loaded_dofs = *std::get<ModelPart::DofsArrayType::Pointer>(loaded.GetContainer());
+    KRATOS_EXPECT_EQ(r_loaded_dofs.size(), p_dofs->size());
+    for (const auto& r_dof : r_loaded_dofs) {
+        auto& r_node = r_load_model_part.GetNode(r_dof.Id());
+        KRATOS_EXPECT_EQ(&r_dof, r_node.pGetDof(TEMPERATURE));
+    }
+}
+
+KRATOS_TEST_CASE_IN_SUITE(UninitializedTensorAdaptorThrows, KratosCoreFastSuite)
+{
+    TensorAdaptor<double> tensor_adaptor;
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(tensor_adaptor.Shape(), "Uninitialized TensorAdaptor");
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(tensor_adaptor.Size(), "Uninitialized TensorAdaptor");
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(tensor_adaptor.ViewData(), "Uninitialized TensorAdaptor");
 }
 
 } // namespace Kratos::Testing

@@ -250,7 +250,7 @@ private:
     ///@name private member variables
     ///@{
 
-    const DenseVector<unsigned int> mShape;
+    DenseVector<unsigned int> mShape;
 
     typename PointerWrapper::Pointer mpData;
 
