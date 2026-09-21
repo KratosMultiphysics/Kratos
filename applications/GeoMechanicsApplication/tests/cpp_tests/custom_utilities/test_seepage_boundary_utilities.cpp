@@ -11,6 +11,7 @@
 //                   Wijtze Pieter Kikstra
 
 #include "containers/model.h"
+#include "custom_conditions/Pw_normal_flux_condition.h"
 #include "custom_conditions/geo_seepage_condition.h"
 #include "custom_utilities/seepage_boundary_utilities.h"
 #include "custom_utilities/ublas_utilities.h"
@@ -161,50 +162,62 @@ KRATOS_TEST_CASE_IN_SUITE(CollectSeepageNodesReturnsSharedNodesOnlyOnce, KratosG
     KRATOS_EXPECT_EQ(nodes[2]->Id(), 3);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(CalculateNodalWaterFlowsSumsRHSContributionsFromSeveralElements,
+KRATOS_TEST_CASE_IN_SUITE(CollectSeepageNodesIgnoresNonSeepageConditions, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    auto  model        = Model{};
+    auto& r_model_part = CreateModelPartWithNodes(model, 3);
+    auto p_geometry = std::make_shared<Line2D2<Node>>(r_model_part.pGetNode(1), r_model_part.pGetNode(2));
+    r_model_part.AddCondition(make_intrusive<PwNormalFluxCondition<2, 2>>(1, p_geometry));
+
+    const auto nodes = Geo::SeepageBoundaryUtilities::CollectSeepageNodes(r_model_part);
+
+    KRATOS_EXPECT_TRUE(nodes.empty())
+}
+
+KRATOS_TEST_CASE_IN_SUITE(CalculateNodalWaterFlowRatesSumsRHSContributionsFromSeveralElements,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     auto elements = CreateTwoConnectedMockElements({std::cref(WATER_PRESSURE)}, {std::cref(WATER_PRESSURE)});
 
-    const auto nodal_flow_map =
-        Geo::SeepageBoundaryUtilities::CalculateNodalWaterFlows(elements, ProcessInfo{});
+    const auto nodal_flow_rate_map =
+        Geo::SeepageBoundaryUtilities::CalculateNodalWaterFlowRates(elements, ProcessInfo{});
 
-    ASSERT_EQ(nodal_flow_map.size(), 4);
-    KRATOS_EXPECT_DOUBLE_EQ(nodal_flow_map.at(1), 1 * 1.0); // only element 1 contributes
-    KRATOS_EXPECT_DOUBLE_EQ(nodal_flow_map.at(2), 2 * 2.0); // both elements contribute
-    KRATOS_EXPECT_DOUBLE_EQ(nodal_flow_map.at(3), 2 * 3.0); // both elements contribute
-    KRATOS_EXPECT_DOUBLE_EQ(nodal_flow_map.at(4), 1 * 4.0); // only element 2 contributes
+    ASSERT_EQ(nodal_flow_rate_map.size(), 4);
+    KRATOS_EXPECT_DOUBLE_EQ(nodal_flow_rate_map.at(1), 1 * 1.0); // only element 1 contributes
+    KRATOS_EXPECT_DOUBLE_EQ(nodal_flow_rate_map.at(2), 2 * 2.0); // both elements contribute
+    KRATOS_EXPECT_DOUBLE_EQ(nodal_flow_rate_map.at(3), 2 * 3.0); // both elements contribute
+    KRATOS_EXPECT_DOUBLE_EQ(nodal_flow_rate_map.at(4), 1 * 4.0); // only element 2 contributes
 }
 
-KRATOS_TEST_CASE_IN_SUITE(CalculateNodalWaterFlowsSkipsInactiveElements, KratosGeoMechanicsFastSuiteWithoutKernel)
+KRATOS_TEST_CASE_IN_SUITE(CalculateNodalWaterFlowRatesSkipsInactiveElements, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     auto elements = CreateTwoConnectedMockElements({std::cref(WATER_PRESSURE)}, {std::cref(WATER_PRESSURE)});
     elements.back().Set(ACTIVE, false); // deactivate element 2
 
-    const auto nodal_flow_map =
-        Geo::SeepageBoundaryUtilities::CalculateNodalWaterFlows(elements, ProcessInfo{});
+    const auto nodal_flow_rate_map =
+        Geo::SeepageBoundaryUtilities::CalculateNodalWaterFlowRates(elements, ProcessInfo{});
 
-    ASSERT_EQ(nodal_flow_map.size(), 3);
-    KRATOS_EXPECT_DOUBLE_EQ(nodal_flow_map.at(1), 1 * 1.0);
-    KRATOS_EXPECT_DOUBLE_EQ(nodal_flow_map.at(2), 1 * 2.0);
-    KRATOS_EXPECT_DOUBLE_EQ(nodal_flow_map.at(3), 1 * 3.0);
+    ASSERT_EQ(nodal_flow_rate_map.size(), 3);
+    KRATOS_EXPECT_DOUBLE_EQ(nodal_flow_rate_map.at(1), 1 * 1.0);
+    KRATOS_EXPECT_DOUBLE_EQ(nodal_flow_rate_map.at(2), 1 * 2.0);
+    KRATOS_EXPECT_DOUBLE_EQ(nodal_flow_rate_map.at(3), 1 * 3.0);
     // Node 4 is not part of any active element, so it should not appear in the map
 }
 
-KRATOS_TEST_CASE_IN_SUITE(CalculateNodalWaterFlowsConsidersPwDoFsOnly, KratosGeoMechanicsFastSuiteWithoutKernel)
+KRATOS_TEST_CASE_IN_SUITE(CalculateNodalWaterFlowRatesConsidersPwDoFsOnly, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     auto elements = CreateTwoConnectedMockElements(
         {std::cref(WATER_PRESSURE), std::cref(DISPLACEMENT)},
         {std::cref(WATER_PRESSURE), std::cref(DISPLACEMENT_X), std::cref(DISPLACEMENT_Y)});
 
-    const auto nodal_flow_map =
-        Geo::SeepageBoundaryUtilities::CalculateNodalWaterFlows(elements, ProcessInfo{});
+    const auto nodal_flow_rate_map =
+        Geo::SeepageBoundaryUtilities::CalculateNodalWaterFlowRates(elements, ProcessInfo{});
 
-    ASSERT_EQ(nodal_flow_map.size(), 4);
-    KRATOS_EXPECT_DOUBLE_EQ(nodal_flow_map.at(1), 1 * 1.0); // only element 1 contributes
-    KRATOS_EXPECT_DOUBLE_EQ(nodal_flow_map.at(2), 2 * 2.0); // both elements contribute
-    KRATOS_EXPECT_DOUBLE_EQ(nodal_flow_map.at(3), 2 * 3.0); // both elements contribute
-    KRATOS_EXPECT_DOUBLE_EQ(nodal_flow_map.at(4), 1 * 4.0); // only element 2 contributes
+    ASSERT_EQ(nodal_flow_rate_map.size(), 4);
+    KRATOS_EXPECT_DOUBLE_EQ(nodal_flow_rate_map.at(1), 1 * 1.0); // only element 1 contributes
+    KRATOS_EXPECT_DOUBLE_EQ(nodal_flow_rate_map.at(2), 2 * 2.0); // both elements contribute
+    KRATOS_EXPECT_DOUBLE_EQ(nodal_flow_rate_map.at(3), 2 * 3.0); // both elements contribute
+    KRATOS_EXPECT_DOUBLE_EQ(nodal_flow_rate_map.at(4), 1 * 4.0); // only element 2 contributes
 }
 
 KRATOS_TEST_CASE_IN_SUITE(SwitchOneSeepageNodeDoesNothingWhenNoNodeViolatesItsCondition,
@@ -217,10 +230,10 @@ KRATOS_TEST_CASE_IN_SUITE(SwitchOneSeepageNodeDoesNothingWhenNoNodeViolatesItsCo
     r_model_part.pGetNode(2)->Free(WATER_PRESSURE);
     r_model_part.pGetNode(2)->FastGetSolutionStepValue(WATER_PRESSURE) = 5.0;
 
-    const auto nodes       = AllNodesOf(r_model_part);
-    const auto nodal_flows = Geo::SeepageBoundaryUtilities::NodalFlowMap{{1, 1.0}, {2, 0.0}};
+    const auto nodes = AllNodesOf(r_model_part);
+    const auto nodal_flow_rates = Geo::SeepageBoundaryUtilities::NodalFlowRateMap{{1, 1.0}, {2, 0.0}};
 
-    KRATOS_EXPECT_FALSE(Geo::SeepageBoundaryUtilities::SwitchOneSeepageNodeIfNeeded(nodes, nodal_flows))
+    KRATOS_EXPECT_FALSE(Geo::SeepageBoundaryUtilities::SwitchOneSeepageNodeIfNeeded(nodes, nodal_flow_rates))
     KRATOS_EXPECT_TRUE(r_model_part.pGetNode(1)->IsFixed(WATER_PRESSURE))
     KRATOS_EXPECT_FALSE(r_model_part.pGetNode(2)->IsFixed(WATER_PRESSURE))
 }
@@ -239,7 +252,7 @@ KRATOS_TEST_CASE_IN_SUITE(SwitchOneSeepageNodeFixesTheHighestPressureFreeNode, K
     const auto nodes = AllNodesOf(r_model_part);
 
     KRATOS_EXPECT_TRUE(Geo::SeepageBoundaryUtilities::SwitchOneSeepageNodeIfNeeded(
-        nodes, Geo::SeepageBoundaryUtilities::NodalFlowMap{}))
+        nodes, Geo::SeepageBoundaryUtilities::NodalFlowRateMap{}))
 
     // Only node 2 switches, and it is prescribed at zero pressure.
     KRATOS_EXPECT_FALSE(r_model_part.pGetNode(1)->IsFixed(WATER_PRESSURE))
@@ -257,9 +270,10 @@ KRATOS_TEST_CASE_IN_SUITE(SwitchOneSeepageNodeReleasesTheLargestInflowFixedNode,
     }
 
     const auto nodes = AllNodesOf(r_model_part);
-    const auto nodal_flows = Geo::SeepageBoundaryUtilities::NodalFlowMap{{1, -4.0}, {2, -11.0}, {3, 2.0}};
+    const auto nodal_flow_rates =
+        Geo::SeepageBoundaryUtilities::NodalFlowRateMap{{1, -4.0}, {2, -11.0}, {3, 2.0}};
 
-    KRATOS_EXPECT_TRUE(Geo::SeepageBoundaryUtilities::SwitchOneSeepageNodeIfNeeded(nodes, nodal_flows))
+    KRATOS_EXPECT_TRUE(Geo::SeepageBoundaryUtilities::SwitchOneSeepageNodeIfNeeded(nodes, nodal_flow_rates))
 
     // Only node 2, which has the largest outflow, is released.
     KRATOS_EXPECT_TRUE(r_model_part.pGetNode(1)->IsFixed(WATER_PRESSURE))
@@ -276,10 +290,10 @@ KRATOS_TEST_CASE_IN_SUITE(SwitchOneSeepageNodePrefersFixingOverReleasing, Kratos
     r_model_part.pGetNode(2)->Free(WATER_PRESSURE);
     r_model_part.pGetNode(2)->FastGetSolutionStepValue(WATER_PRESSURE) = -1.0;
 
-    const auto nodes       = AllNodesOf(r_model_part);
-    const auto nodal_flows = Geo::SeepageBoundaryUtilities::NodalFlowMap{{1, -100.0}};
+    const auto nodes            = AllNodesOf(r_model_part);
+    const auto nodal_flow_rates = Geo::SeepageBoundaryUtilities::NodalFlowRateMap{{1, -100.0}};
 
-    KRATOS_EXPECT_TRUE(Geo::SeepageBoundaryUtilities::SwitchOneSeepageNodeIfNeeded(nodes, nodal_flows))
+    KRATOS_EXPECT_TRUE(Geo::SeepageBoundaryUtilities::SwitchOneSeepageNodeIfNeeded(nodes, nodal_flow_rates))
 
     // The Neumann to Dirichlet switch wins, and node 1 is left alone this iteration.
     KRATOS_EXPECT_TRUE(r_model_part.pGetNode(2)->IsFixed(WATER_PRESSURE))
@@ -294,10 +308,10 @@ KRATOS_TEST_CASE_IN_SUITE(SwitchOneSeepageNodeBreaksTiesByLowestNodeId, KratosGe
         r_node.Fix(WATER_PRESSURE);
     }
 
-    const auto nodes       = AllNodesOf(r_model_part);
-    const auto nodal_flows = Geo::SeepageBoundaryUtilities::NodalFlowMap{{1, -5.0}, {2, -5.0}};
+    const auto nodes = AllNodesOf(r_model_part);
+    const auto nodal_flow_rates = Geo::SeepageBoundaryUtilities::NodalFlowRateMap{{1, -5.0}, {2, -5.0}};
 
-    KRATOS_EXPECT_TRUE(Geo::SeepageBoundaryUtilities::SwitchOneSeepageNodeIfNeeded(nodes, nodal_flows))
+    KRATOS_EXPECT_TRUE(Geo::SeepageBoundaryUtilities::SwitchOneSeepageNodeIfNeeded(nodes, nodal_flow_rates))
 
     KRATOS_EXPECT_FALSE(r_model_part.pGetNode(1)->IsFixed(WATER_PRESSURE))
     KRATOS_EXPECT_TRUE(r_model_part.pGetNode(2)->IsFixed(WATER_PRESSURE))
@@ -307,21 +321,21 @@ KRATOS_TEST_CASE_IN_SUITE(AssignNodalWaterFlowsWritesMappedValuesAndZeroesTheRes
 {
     auto  model        = Model{};
     auto& r_model_part = model.CreateModelPart("Main"s);
-    r_model_part.AddNodalSolutionStepVariable(NODAL_WATER_FLOW);
+    r_model_part.AddNodalSolutionStepVariable(NODAL_WATER_FLOW_RATE);
     for (auto i = std::size_t{1}; i <= 3; ++i) {
         r_model_part.CreateNewNode(static_cast<int>(i), static_cast<double>(i), 0.0, 0.0);
     }
     // Pre-seed a stale value on node 3 to prove it gets overwritten.
-    r_model_part.pGetNode(3)->FastGetSolutionStepValue(NODAL_WATER_FLOW) = 99.0;
+    r_model_part.pGetNode(3)->FastGetSolutionStepValue(NODAL_WATER_FLOW_RATE) = 99.0;
 
     // Node 2 is deliberately absent from the map and must end up at 0.0.
-    const auto nodal_flows = Geo::SeepageBoundaryUtilities::NodalFlowMap{{1, 4.0}, {3, -2.0}};
+    const auto nodal_flow_rates = Geo::SeepageBoundaryUtilities::NodalFlowRateMap{{1, 4.0}, {3, -2.0}};
 
-    Geo::SeepageBoundaryUtilities::AssignNodalWaterFlows(r_model_part, nodal_flows);
+    Geo::SeepageBoundaryUtilities::AssignNodalWaterFlowRates(r_model_part, nodal_flow_rates);
 
-    KRATOS_EXPECT_DOUBLE_EQ(r_model_part.pGetNode(1)->FastGetSolutionStepValue(NODAL_WATER_FLOW), 4.0);
-    KRATOS_EXPECT_DOUBLE_EQ(r_model_part.pGetNode(2)->FastGetSolutionStepValue(NODAL_WATER_FLOW), 0.0);
-    KRATOS_EXPECT_DOUBLE_EQ(r_model_part.pGetNode(3)->FastGetSolutionStepValue(NODAL_WATER_FLOW), -2.0);
+    KRATOS_EXPECT_DOUBLE_EQ(r_model_part.pGetNode(1)->FastGetSolutionStepValue(NODAL_WATER_FLOW_RATE), 4.0);
+    KRATOS_EXPECT_DOUBLE_EQ(r_model_part.pGetNode(2)->FastGetSolutionStepValue(NODAL_WATER_FLOW_RATE), 0.0);
+    KRATOS_EXPECT_DOUBLE_EQ(r_model_part.pGetNode(3)->FastGetSolutionStepValue(NODAL_WATER_FLOW_RATE), -2.0);
 }
 
 } // namespace Kratos::Testing

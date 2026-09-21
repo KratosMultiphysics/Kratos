@@ -65,21 +65,20 @@ class KratosGeoMechanicsSeepageTests(KratosGeoUnittest.TestCase):
             model.GetModelPart("PorousDomain.top_boundary")
         )
 
-        # Since the bottom boundary is fixed to a high number, leading to outflow, the
-        # seepage nodes should have pressure = 0
+        # Since the prescribed bottom pressure drives the outflow, the seepage nodes should have pressure = 0
         self.assert_uniform_nodal_values(
             top_node_ids, "WATER_PRESSURE", output_data, end_time, 0.0
         )
         overpressure = 1.0e04  # N/m^2
-        expected_nodal_out_flow = (
+        expected_nodal_out_flow_rate = (
             intrinsic_permeability * nodal_area * overpressure
         ) / (dynamic_viscosity * height)
         self.assert_uniform_nodal_values(
             top_node_ids,
-            "NODAL_WATER_FLOW",
+            "NODAL_WATER_FLOW_RATE",
             output_data,
             end_time,
-            expected_nodal_out_flow,
+            expected_nodal_out_flow_rate,
         )
 
         # Verify the in-flow at the bottom boundary. There's no need to check the water pressure since it's fixed.
@@ -88,10 +87,10 @@ class KratosGeoMechanicsSeepageTests(KratosGeoUnittest.TestCase):
         )
         self.assert_uniform_nodal_values(
             bottom_node_ids,
-            "NODAL_WATER_FLOW",
+            "NODAL_WATER_FLOW_RATE",
             output_data,
             end_time,
-            -1.0 * expected_nodal_out_flow,
+            -1.0 * expected_nodal_out_flow_rate,
         )
 
     def test_three_element_seepage_fixed_bottom_boundary_stop_inflow(self):
@@ -120,7 +119,7 @@ class KratosGeoMechanicsSeepageTests(KratosGeoUnittest.TestCase):
         # On the seepage face, there should be no flow
         self.assert_uniform_nodal_values(
             top_node_ids,
-            "NODAL_WATER_FLOW",
+            "NODAL_WATER_FLOW_RATE",
             output_data,
             end_time,
             0.0,
@@ -144,7 +143,7 @@ class KratosGeoMechanicsSeepageTests(KratosGeoUnittest.TestCase):
         )
         self.assert_uniform_nodal_values(
             bottom_node_ids,
-            "NODAL_WATER_FLOW",
+            "NODAL_WATER_FLOW_RATE",
             output_data,
             end_time,
             0.0,
@@ -174,13 +173,13 @@ class KratosGeoMechanicsSeepageTests(KratosGeoUnittest.TestCase):
 
         # On the seepage face, the nodal out-flow should equal the nodal in-flow at the bottom
         in_flux = 5.0  # m^3/(m^2 * s)
-        expected_nodal_out_flow = in_flux * nodal_area
+        expected_nodal_out_flow_rate = in_flux * nodal_area
         self.assert_uniform_nodal_values(
             top_node_ids,
-            "NODAL_WATER_FLOW",
+            "NODAL_WATER_FLOW_RATE",
             output_data,
             end_time,
-            expected_nodal_out_flow,
+            expected_nodal_out_flow_rate,
         )
 
         # Since the bottom boundary has a fixed in-flux, leading to outflow at the seepage boundary, the

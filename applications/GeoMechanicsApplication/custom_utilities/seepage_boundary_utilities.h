@@ -28,24 +28,25 @@ namespace Kratos::Geo
 class KRATOS_API(GEO_MECHANICS_APPLICATION) SeepageBoundaryUtilities
 {
 public:
-    // Nodal water flow, keyed by node id.
-    using NodalFlowMap = std::unordered_map<std::size_t, double>;
+    // Nodal water flow rate, keyed by node id.
+    using NodalFlowRateMap = std::unordered_map<std::size_t, double>;
 
     /**
-     * @brief Returns the nodal water flow for every unique node of the given elements, assembled
-     * from the right-hand side of every element. For a Pw element that right-hand side is exactly
-     * the sum of the permeability flow, the compressibility flow and the fluid body flow.
+     * @brief Returns the nodal water flow rate for every unique node of the given elements,
+     * assembled from the right-hand side of every element. For a Pw element that right-hand side is
+     * exactly the sum of the permeability flow, the compressibility flow and the fluid body flow.
      */
-    static NodalFlowMap CalculateNodalWaterFlows(ModelPart::ElementsContainerType& rElements,
-                                                 const ProcessInfo&                rProcessInfo);
+    static NodalFlowRateMap CalculateNodalWaterFlowRates(ModelPart::ElementsContainerType& rElements,
+                                                         const ProcessInfo& rProcessInfo);
 
     /**
-     * @brief Writes the nodal water flows onto the NODAL_WATER_FLOW solution-step variable of the
-     * model part. Every node is set to zero first, so nodes absent from rNodalFlows (e.g. nodes
-     * without a WATER_PRESSURE degree of freedom) hold a defined value rather than stale data. This
-     * makes the assembled flow visualisable through the normal nodal output path.
+     * @brief Writes the nodal water flow rates onto the NODAL_WATER_FLOW_RATE solution-step
+     * variable of the model part. Every node is set to zero first, so nodes absent from
+     * rNodalFlowRates (e.g. nodes without a WATER_PRESSURE degree of freedom) hold a defined value
+     * rather than stale data. This makes the assembled flow rate visualisable through the normal
+     * nodal output path.
      */
-    static void AssignNodalWaterFlows(ModelPart& rModelPart, const NodalFlowMap& rNodalFlows);
+    static void AssignNodalWaterFlowRates(ModelPart& rModelPart, const NodalFlowRateMap& rNodalFlowRates);
 
     /**
      * @brief Returns the distinct nodes of every GeoSeepageCondition in the model part, sorted
@@ -67,7 +68,7 @@ public:
      * reproducible.
      */
     static bool SwitchOneSeepageNodeIfNeeded(const std::vector<Node*>& rSeepageNodes,
-                                             const NodalFlowMap&       rNodalFlows,
+                                             const NodalFlowRateMap&   rNodalFlowRates,
                                              int                       EchoLevel = 0);
 };
 

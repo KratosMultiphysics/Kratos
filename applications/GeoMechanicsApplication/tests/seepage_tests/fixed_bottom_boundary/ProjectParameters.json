@@ -69,7 +69,7 @@
                             "body_output": true,
                             "node_output": false,
                             "skin_output": false,
-                            "nodal_results": ["WATER_PRESSURE", "NODAL_WATER_FLOW"]
+                            "nodal_results": ["WATER_PRESSURE", "NODAL_WATER_FLOW_RATE"]
                         }
                     }
                 }

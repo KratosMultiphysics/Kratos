@@ -25,23 +25,23 @@ namespace Kratos::Geo
 namespace
 {
 
-void AccumulateWaterPressureEntries(const std::vector<Dof<double>*>&        rElementDofs,
-                                    const Vector&                           rElementRightHandSide,
-                                    SeepageBoundaryUtilities::NodalFlowMap& rNodalFlows)
+void AccumulateWaterPressureEntries(const std::vector<Dof<double>*>& rElementDofs,
+                                    const Vector&                    rElementRightHandSide,
+                                    SeepageBoundaryUtilities::NodalFlowRateMap& rNodalFlowRates)
 {
     for (auto i = std::size_t{0}; i < rElementDofs.size(); ++i) {
         if (rElementDofs[i]->GetVariable() != WATER_PRESSURE) continue;
 
-        rNodalFlows[rElementDofs[i]->Id()] += rElementRightHandSide[i];
+        rNodalFlowRates[rElementDofs[i]->Id()] += rElementRightHandSide[i];
     }
 }
 
 } // namespace
 
-SeepageBoundaryUtilities::NodalFlowMap SeepageBoundaryUtilities::CalculateNodalWaterFlows(
+SeepageBoundaryUtilities::NodalFlowRateMap SeepageBoundaryUtilities::CalculateNodalWaterFlowRates(
     ModelPart::ElementsContainerType& rElements, const ProcessInfo& rProcessInfo)
 {
-    auto result = NodalFlowMap{};
+    auto result = NodalFlowRateMap{};
 
     for (auto& r_element : rElements) {
         if (!r_element.IsActive()) continue;
@@ -57,14 +57,14 @@ SeepageBoundaryUtilities::NodalFlowMap SeepageBoundaryUtilities::CalculateNodalW
     return result;
 }
 
-void SeepageBoundaryUtilities::AssignNodalWaterFlows(ModelPart& rModelPart, const NodalFlowMap& rNodalFlows)
+void SeepageBoundaryUtilities::AssignNodalWaterFlowRates(ModelPart& rModelPart, const NodalFlowRateMap& rNodalFlowRates)
 {
     for (auto& r_node : rModelPart.Nodes()) {
-        r_node.FastGetSolutionStepValue(NODAL_WATER_FLOW) = 0.0;
+        r_node.FastGetSolutionStepValue(NODAL_WATER_FLOW_RATE) = 0.0;
     }
 
-    for (const auto& [node_id, flow] : rNodalFlows) {
-        rModelPart.GetNode(node_id).FastGetSolutionStepValue(NODAL_WATER_FLOW) = flow;
+    for (const auto& [node_id, flow_rate] : rNodalFlowRates) {
+        rModelPart.GetNode(node_id).FastGetSolutionStepValue(NODAL_WATER_FLOW_RATE) = flow_rate;
     }
 }
 
@@ -122,12 +122,12 @@ Node* SelectBestCandidate(const std::vector<Node*>&     rNodes,
 } // namespace
 
 bool SeepageBoundaryUtilities::SwitchOneSeepageNodeIfNeeded(const std::vector<Node*>& rSeepageNodes,
-                                                            const NodalFlowMap&       rNodalFlows,
-                                                            int                       EchoLevel)
+                                                            const NodalFlowRateMap& rNodalFlowRates,
+                                                            int                     EchoLevel)
 {
-    const auto flow_of = [&rNodalFlows](const Node& rNode) {
-        const auto it = rNodalFlows.find(rNode.Id());
-        return it == rNodalFlows.end() ? 0.0 : it->second;
+    const auto flow_rate_of = [&rNodalFlowRates](const Node& rNode) {
+        const auto it = rNodalFlowRates.find(rNode.Id());
+        return it == rNodalFlowRates.end() ? 0.0 : it->second;
     };
 
     if (EchoLevel > 1) {
@@ -135,7 +135,7 @@ bool SeepageBoundaryUtilities::SwitchOneSeepageNodeIfNeeded(const std::vector<No
             KRATOS_INFO("Node") << p_node->Id()
                                 << " pressure = " << p_node->FastGetSolutionStepValue(WATER_PRESSURE)
                                 << ", fixed = " << p_node->IsFixed(WATER_PRESSURE)
-                                << ", flow = " << flow_of(*p_node) << "\n";
+                                << ", flow rate = " << flow_rate_of(*p_node) << "\n";
         }
     }
 
@@ -159,16 +159,17 @@ bool SeepageBoundaryUtilities::SwitchOneSeepageNodeIfNeeded(const std::vector<No
     }
 
     // Otherwise release the prescribed node carrying the largest inflow.
-    is_candidate     = CandidatePredicateType{[&flow_of](const auto* pNode) {
+    is_candidate     = CandidatePredicateType{[&flow_rate_of](const auto* pNode) {
         constexpr auto epsilon_1 =
             1e-11; // This tolerance value implicitly assumes the units chosen by the user. That needs to be addressed in the future.
-        return pNode && pNode->IsFixed(WATER_PRESSURE) && flow_of(*pNode) < -epsilon_1;
+        return pNode && pNode->IsFixed(WATER_PRESSURE) && flow_rate_of(*pNode) < -epsilon_1;
     }};
     score_calculator = ScoreCalculatorType{
-        [&flow_of](const auto* pNode) { return pNode ? -1.0 * flow_of(*pNode) : 0.0; }};
+        [&flow_rate_of](const auto* pNode) { return pNode ? -1.0 * flow_rate_of(*pNode) : 0.0; }};
     if (auto* p_node = SelectBestCandidate(rSeepageNodes, is_candidate, score_calculator)) {
-        KRATOS_INFO_IF("Switch", EchoLevel > 1) << "Node " << p_node->Id() << " switched to Neumann, because flow was "
-                                                << flow_of(*p_node) << "\n";
+        KRATOS_INFO_IF("Switch", EchoLevel > 1)
+            << "Node " << p_node->Id() << " switched to Neumann, because flow rate was "
+            << flow_rate_of(*p_node) << "\n";
         p_node->Free(WATER_PRESSURE);
         return true;
     }

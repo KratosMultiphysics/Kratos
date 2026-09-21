@@ -25,9 +25,9 @@ Note that $`\gamma_{\mathrm{w}}`$ equals $`\rho_{\mathrm{w}} \cdot g`$, where $`
 To check the numerical solutions, we can calculate the volumetric flow rate $`Q`$ through a porous medium using Darcy's law:
 
 ```math
-Q = \frac{\kappa \cdot A \cdot \rho_{\mathrm{w}} \cdot g \cdot \Delta h}{\mu \cdot L}
+Q = \frac{\kappa \cdot A \cdot \rho_{\mathrm{w}} \cdot g \cdot \Delta h}{\mu \cdot L} = \frac{\kappa \cdot A \cdot \Delta P}{\mu \cdot L}
 ```
-where $`\kappa`$ is intrinsic permeability, $`A`$ is cross-sectional area, $`\rho_{\mathrm{w}}`$ is water density, $`g`$ is gravity acceleration, $`\Delta h`$ is hydraulic head difference, and $`L`$ is length.
+where $`\kappa`$ is intrinsic permeability, $`A`$ is cross-sectional area, $`\rho_{\mathrm{w}}`$ is water density, $`g`$ is gravity acceleration, $`\Delta h`$ is hydraulic head difference, $`L`$ is length, and $`\Delta P`$ is pressure drop.
 
 ## Test cases
 ### Test case 1: Prescribed overpressure at the bottom

@@ -295,18 +295,18 @@ public:
         return is_converged;
     }
 
-    // After the step converges, store the assembled nodal water flow on the nodes so it can be
+    // After the step converges, store the assembled nodal water flow rate on the nodes so it can be
     // visualised. This is exactly the map that drives the boundary switching, which is what makes
     // it useful for verifying the sign convention in ShouldReleaseToNeumann.
     void FinalizeSolutionStep() override
     {
         MotherType::FinalizeSolutionStep();
 
-        auto&       r_model_part   = BaseType::GetModelPart();
-        const auto& r_process_info = r_model_part.GetProcessInfo();
-        const auto  nodal_flows    = Geo::SeepageBoundaryUtilities::CalculateNodalWaterFlows(
+        auto&       r_model_part     = BaseType::GetModelPart();
+        const auto& r_process_info   = r_model_part.GetProcessInfo();
+        const auto  nodal_flow_rates = Geo::SeepageBoundaryUtilities::CalculateNodalWaterFlowRates(
             r_model_part.Elements(), r_process_info);
-        Geo::SeepageBoundaryUtilities::AssignNodalWaterFlows(r_model_part, nodal_flows);
+        Geo::SeepageBoundaryUtilities::AssignNodalWaterFlowRates(r_model_part, nodal_flow_rates);
     }
 
 private:
@@ -317,11 +317,11 @@ private:
     {
         if (mSeepageNodes.empty()) return false;
 
-        const auto nodal_flows = Geo::SeepageBoundaryUtilities::CalculateNodalWaterFlows(
+        const auto nodal_flow_rates = Geo::SeepageBoundaryUtilities::CalculateNodalWaterFlowRates(
             BaseType::GetModelPart().Elements(), BaseType::GetModelPart().GetProcessInfo());
 
         return Geo::SeepageBoundaryUtilities::SwitchOneSeepageNodeIfNeeded(
-            mSeepageNodes, nodal_flows, this->GetEchoLevel());
+            mSeepageNodes, nodal_flow_rates, this->GetEchoLevel());
     }
 
     // Cached once in Initialize. The conditions of a model part do not change during a solve, so
