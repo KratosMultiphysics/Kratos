@@ -180,10 +180,23 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
     ;
 
     py::class_<BlurrinessCalculator>(m, "BlurrinessCalculator")
-    .def(py::init<ModelPart&, const std::vector<ModelPart*>&, const std::vector<double>&, const std::vector<double>&, const Variable<double>&>())
-    .def(py::init<ModelPart&, const std::vector<ModelPart*>&, const std::vector<double>&, const std::vector<double>&, const Variable<double>&, const double&, const double&>())
+    .def(py::init<ModelPart&, const std::vector<ModelPart*>&, const std::vector<double>&, const std::vector<double>&, const Variable<double>&>(),
+         py::arg("main_model_part"), py::arg("surface_model_parts"), py::arg("interfaces"), py::arg("layer_values"), py::arg("scalar_variable"))
+    .def(py::init<ModelPart&, const std::vector<ModelPart*>&, const std::vector<double>&, const std::vector<double>&, const Variable<double>&, const Variable<array_1d<double,3>>&>(),
+         py::arg("main_model_part"), py::arg("surface_model_parts"), py::arg("interfaces"), py::arg("layer_values"), py::arg("scalar_variable"), py::arg("velocity_variable"))
+    .def("SetFarFieldValue", &BlurrinessCalculator::SetFarFieldValue)
+    .def("UnsetFarFieldValue", &BlurrinessCalculator::UnsetFarFieldValue)
     .def("ComputeBlurriness", &BlurrinessCalculator::ComputeBlurriness)
     .def("GetBlurriness", &BlurrinessCalculator::GetBlurriness)
+    .def("GetFarFieldValues", &BlurrinessCalculator::GetFarFieldValues)
+    .def("GetNumerators", &BlurrinessCalculator::GetNumerators)
+    .def("GetDenominators", &BlurrinessCalculator::GetDenominators)
+    .def("GetFlowRates", &BlurrinessCalculator::GetFlowRates)
+    .def("GetAreas", &BlurrinessCalculator::GetAreas)
+    .def("GetLayerFlowRates", &BlurrinessCalculator::GetLayerFlowRates)
+    .def("GetExtrapolatedPointCounts", &BlurrinessCalculator::GetExtrapolatedPointCounts)
+    .def("SetRelaxedTolerance", &BlurrinessCalculator::SetRelaxedTolerance)
+    .def("SetSearchCellSize", &BlurrinessCalculator::SetSearchCellSize)
     ;
 
     py::class_<SurfaceInterpolatedL2Norm<double>>(m, "SurfaceInterpolatedL2Norm")
