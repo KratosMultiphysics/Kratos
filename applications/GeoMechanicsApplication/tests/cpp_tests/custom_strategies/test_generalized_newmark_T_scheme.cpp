@@ -120,7 +120,7 @@ KRATOS_TEST_CASE_IN_SUITE(NewmarkTSchemeUpdate_SetsDtTemperature, KratosGeoMecha
     scheme.Predict(model_part, dof_set, A, Dx, b);
 
     // This is the expected value as calculated by the UpdateVariablesDerivatives
-    KRATOS_EXPECT_DOUBLE_EQ(node.FastGetSolutionStepValue(DT_TEMPERATURE, 0), 7.0 / 3.0);
+    KRATOS_EXPECT_DOUBLE_EQ(node.FastGetSolutionStepValue(DT_TEMPERATURE, 0), 3.0);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(InitializeNewmarkTScheme_SetsTimeFactors, KratosGeoMechanicsFastSuiteWithoutKernel)

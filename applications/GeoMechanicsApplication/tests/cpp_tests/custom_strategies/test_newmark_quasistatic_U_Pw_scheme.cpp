@@ -94,6 +94,47 @@ KRATOS_TEST_CASE_IN_SUITE(InitializeNewmarkUPwScheme_SetsTimeFactors, KratosGeoM
                             expected_velocity_coefficient);
 }
 
+KRATOS_TEST_CASE_IN_SUITE(NewmarkUPwSchemePredict_PredictsWaterPressure, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    NewmarkQuasistaticUPwSchemeTester tester;
+
+    ModelPart::DofsArrayType dof_set;
+    CompressedMatrix         A;
+    Vector                   Dx;
+    Vector                   b;
+    tester.GetModelPart().GetProcessInfo()[DELTA_TIME]                              = 4.0;
+    tester.GetModelPart().GetNode(0).FastGetSolutionStepValue(DT_WATER_PRESSURE, 1) = 3.0;
+    tester.mScheme.InitializeSolutionStep(tester.GetModelPart(), A, Dx, b); // This is needed to set the time factors
+
+    tester.mScheme.Predict(tester.GetModelPart(), dof_set, A, Dx, b);
+    constexpr auto expected_water_pressure = 13.0;
+
+    KRATOS_EXPECT_DOUBLE_EQ(tester.GetModelPart().Nodes()[0].FastGetSolutionStepValue(WATER_PRESSURE, 0),
+                            expected_water_pressure);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(NewmarkUPwSchemePredict_PredictsWaterPressureWhenDerivativeIsFixed,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    NewmarkQuasistaticUPwSchemeTester tester;
+
+    ModelPart::DofsArrayType dof_set;
+    CompressedMatrix         A;
+    Vector                   Dx;
+    Vector                   b;
+    tester.GetModelPart().GetProcessInfo()[DELTA_TIME]                              = 4.0;
+    tester.GetModelPart().GetNode(0).FastGetSolutionStepValue(DT_WATER_PRESSURE, 1) = 3.0;
+    tester.GetModelPart().GetNode(0).FastGetSolutionStepValue(DT_WATER_PRESSURE, 0) = 7.0;
+    tester.GetModelPart().GetNode(0).Fix(DT_WATER_PRESSURE);
+    tester.mScheme.InitializeSolutionStep(tester.GetModelPart(), A, Dx, b); // This is needed to set the time factors
+
+    tester.mScheme.Predict(tester.GetModelPart(), dof_set, A, Dx, b);
+    constexpr auto expected_water_pressure = 25.0;
+
+    KRATOS_EXPECT_DOUBLE_EQ(tester.GetModelPart().Nodes()[0].FastGetSolutionStepValue(WATER_PRESSURE, 0),
+                            expected_water_pressure);
+}
+
 KRATOS_TEST_CASE_IN_SUITE(NewmarkUPwSchemePredict_UpdatesVariablesDerivatives, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     NewmarkQuasistaticUPwSchemeTester tester;
@@ -102,6 +143,7 @@ KRATOS_TEST_CASE_IN_SUITE(NewmarkUPwSchemePredict_UpdatesVariablesDerivatives, K
     CompressedMatrix         A;
     Vector                   Dx;
     Vector                   b;
+    tester.GetModelPart().GetNode(0).FastGetSolutionStepValue(DT_WATER_PRESSURE, 1) = 3.0;
 
     tester.mScheme.InitializeSolutionStep(tester.GetModelPart(), A, Dx, b); // This is needed to set the time factors
 
@@ -110,7 +152,7 @@ KRATOS_TEST_CASE_IN_SUITE(NewmarkUPwSchemePredict_UpdatesVariablesDerivatives, K
     // These expected numbers result from the calculations in UpdateVariablesDerivatives
     const auto     expected_acceleration      = Kratos::array_1d<double, 3>{-6.75, -9.0, -11.25};
     const auto     expected_velocity          = Kratos::array_1d<double, 3>{-4.5, -6.0, -7.5};
-    constexpr auto expected_dt_water_pressure = 1.0 / 3.0;
+    constexpr auto expected_dt_water_pressure = 3.0;
 
     const auto actual_acceleration =
         tester.GetModelPart().Nodes()[0].FastGetSolutionStepValue(ACCELERATION, 0);
