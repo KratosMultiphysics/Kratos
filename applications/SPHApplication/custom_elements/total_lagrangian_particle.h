@@ -107,6 +107,11 @@ public:
     }
 
     /**
+     * @brief This method returns if the element provides the strain
+     */
+    virtual bool UseElementProvidedStrain() const;
+
+    /**
      * @brief This functions calculates both the RHS and the LHS
      * @param rLeftHandSideMatrix The LHS matrix
      * @param rRightHandSideVector The RHS vector
@@ -157,9 +162,9 @@ public:
     /**
      * @brief This function is called to set the variables for the constitutive law
      */
-    virtual void SetConstitutiveLawVariables(
-        ConstitutiveVariables& rThisConstitutiveVariables,
+    virtual void SetConstitutiveVariables(
         KinematicVariables& rThisKinematicVariables,
+        ConstitutiveVariables& rThisConstitutiveVariables,
         ConstitutiveLaw::Parameters& rValues
     );
     

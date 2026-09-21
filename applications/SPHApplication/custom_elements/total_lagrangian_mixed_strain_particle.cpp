@@ -343,7 +343,7 @@ void TotalLagrangianMixedStrainParticle<TKernelType, TDim>::CalculateAll(
             historical_cl_values.SetStrainVector(historical_constitutive_variables.StrainVector);
 
             CalculateKinematicVariables(historical_kinematic_variables, rProcessInfo, 1);
-            this->SetConstitutiveLawVariables(historical_constitutive_variables, historical_kinematic_variables, historical_cl_values);
+            this->SetConstitutiveVariables(historical_kinematic_variables, historical_constitutive_variables, historical_cl_values);
             p_historical_constitutive_law->CalculateMaterialResponse(historical_cl_values, ConstitutiveLaw::StressMeasure_PK2);
 
             VectorType historical_RHSv(TDim * number_of_neighbours); historical_RHSv.clear();
