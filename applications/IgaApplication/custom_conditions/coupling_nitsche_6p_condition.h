@@ -61,6 +61,9 @@ protected:
         }
     };
 
+    /// Master or slave patch selector, shared with derived classes
+    enum class PatchType { Master, Slave };
+
     ///@}
 
 public:
@@ -217,15 +220,9 @@ public:
 
     ///@}
 
-private:
+protected:
 
-    ///@name Private enums
-    ///@{
-
-    enum class PatchType { Master, Slave };
-
-    ///@}
-    ///@name Private operations
+    ///@name Protected operations
     ///@{
 
     /// Reference-config midsurface kinematics (a1, a2, a3, a3_tilde, dA) at
@@ -235,12 +232,24 @@ private:
         KinematicVariables& rKinematicVariables,
         const PatchType& rPatch) const;
 
-    /// d(a3)/d(xi), d(a3)/d(eta) 
+    /// Geometry-based overload of CalculateKinematics
+    void CalculateKinematics(
+        IndexType IntegrationPointIndex,
+        KinematicVariables& rKinematicVariables,
+        const GeometryType& rGeometry) const;
+
+    /// d(a3)/d(xi), d(a3)/d(eta)
     void CalculateNormalVectorDerivatives(
         IndexType IntegrationPointIndex,
         const KinematicVariables& rKinematicVariables,
         Matrix& rNormalVectorDerivatives,
         const PatchType& rPatch) const;
+
+    void CalculateNormalVectorDerivatives(
+        IndexType IntegrationPointIndex,
+        const KinematicVariables& rKinematicVariables,
+        Matrix& rNormalVectorDerivatives,
+        const GeometryType& rGeometry) const;
 
     /// Voigt transformation matrix from the local (a1,a2,a3) orthonormal
     /// frame to global Cartesian
@@ -264,6 +273,14 @@ private:
         array_1d<double, 3>& rUnitConormal,
         double& rAreaScale) const;
 
+    void CalculateLateralConormal(
+        IndexType IntegrationPointIndex,
+        const Matrix& rJacobianInv,
+        double JacobianThicknessDet,
+        const GeometryType& rGeometry,
+        array_1d<double, 3>& rUnitConormal,
+        double& rAreaScale) const;
+
     /// Builds the 3x(6*n_nodes) global-Cartesian strain B-operator at one
     /// through-thickness point (zeta)
     void CalculateBAndDisplacementOperator(
@@ -274,6 +291,17 @@ private:
         const Matrix& rNormalVectorDerivatives,
         const KinematicVariables& rKinematicVariables,
         const PatchType& rPatch,
+        Matrix& rBOperator,
+        Matrix& rDisplacementOperator) const;
+
+    void CalculateBAndDisplacementOperator(
+        IndexType IntegrationPointIndex,
+        double zeta,
+        double Thickness,
+        const Matrix& rJacobianInv,
+        const Matrix& rNormalVectorDerivatives,
+        const KinematicVariables& rKinematicVariables,
+        const GeometryType& rGeometry,
         Matrix& rBOperator,
         Matrix& rDisplacementOperator) const;
 

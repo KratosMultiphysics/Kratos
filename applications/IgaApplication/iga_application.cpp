@@ -58,6 +58,10 @@ KratosIgaApplication::KratosIgaApplication()
         new Geometry<Node>(Condition::GeometryType::PointsArrayType(1))))
     , mCouplingNitsche6pCondition(0, Condition::GeometryType::Pointer(
         new Geometry<Node>(Condition::GeometryType::PointsArrayType(1))))
+    , mCouplingSbmExtensionOperator6pCondition(0, Condition::GeometryType::Pointer(
+        new Geometry<Node>(Condition::GeometryType::PointsArrayType(1))))
+    , mCouplingSbmTaylorInterface6pCondition(0, Condition::GeometryType::Pointer(
+        new Geometry<Node>(Condition::GeometryType::PointsArrayType(1))))
     , mSupportPenaltyCondition(0, Condition::GeometryType::Pointer(
         new Geometry<Node>(Condition::GeometryType::PointsArrayType(1))))
     , mSupportPenalty6pCondition(0, Condition::GeometryType::Pointer(
@@ -119,6 +123,8 @@ KRATOS_INFO("") << "    KRATOS  _____ _____\n"
     KRATOS_REGISTER_CONDITION("CouplingLagrangeCondition", mCouplingLagrangeCondition)
     KRATOS_REGISTER_CONDITION("CouplingNitscheCondition", mCouplingNitscheCondition)
     KRATOS_REGISTER_CONDITION("CouplingNitsche6pCondition", mCouplingNitsche6pCondition)
+    KRATOS_REGISTER_CONDITION("CouplingSbmExtensionOperator6pCondition", mCouplingSbmExtensionOperator6pCondition)
+    KRATOS_REGISTER_CONDITION("CouplingSbmTaylorInterface6pCondition", mCouplingSbmTaylorInterface6pCondition)
     KRATOS_REGISTER_CONDITION("SupportPenaltyCondition", mSupportPenaltyCondition)
     KRATOS_REGISTER_CONDITION("SupportPenalty6pCondition", mSupportPenalty6pCondition)
     KRATOS_REGISTER_CONDITION("SupportLagrangeCondition", mSupportLagrangeCondition)

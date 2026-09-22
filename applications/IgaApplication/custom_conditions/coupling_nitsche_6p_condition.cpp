@@ -26,7 +26,15 @@ namespace Kratos
         const PatchType& rPatch) const
     {
         const IndexType geometry_part = (rPatch == PatchType::Master) ? 0 : 1;
-        const auto& r_geometry = GetGeometry().GetGeometryPart(geometry_part);
+        CalculateKinematics(IntegrationPointIndex, rKinematicVariables, GetGeometry().GetGeometryPart(geometry_part));
+    }
+
+    void CouplingNitsche6pCondition::CalculateKinematics(
+        IndexType IntegrationPointIndex,
+        KinematicVariables& rKinematicVariables,
+        const GeometryType& rGeometry) const
+    {
+        const auto& r_geometry = rGeometry;
         const SizeType number_of_nodes = r_geometry.size();
 
         const auto& r_shape_functions_gradients = r_geometry.ShapeFunctionsLocalGradients(r_geometry.GetDefaultIntegrationMethod());
@@ -63,7 +71,17 @@ namespace Kratos
         const PatchType& rPatch) const
     {
         const IndexType geometry_part = (rPatch == PatchType::Master) ? 0 : 1;
-        const auto& r_geometry = GetGeometry().GetGeometryPart(geometry_part);
+        CalculateNormalVectorDerivatives(IntegrationPointIndex, rKinematicVariables, rNormalVectorDerivatives,
+            GetGeometry().GetGeometryPart(geometry_part));
+    }
+
+    void CouplingNitsche6pCondition::CalculateNormalVectorDerivatives(
+        IndexType IntegrationPointIndex,
+        const KinematicVariables& rKinematicVariables,
+        Matrix& rNormalVectorDerivatives,
+        const GeometryType& rGeometry) const
+    {
+        const auto& r_geometry = rGeometry;
 
         const Matrix& r_DDN_DDe = r_geometry.ShapeFunctionDerivatives(
             2, IntegrationPointIndex, r_geometry.GetDefaultIntegrationMethod());
@@ -207,9 +225,20 @@ namespace Kratos
         double& rAreaScale) const
     {
         const IndexType geometry_part = (rPatch == PatchType::Master) ? 0 : 1;
+        CalculateLateralConormal(IntegrationPointIndex, rJacobianInv, JacobianThicknessDet,
+            GetGeometry().GetGeometryPart(geometry_part), rUnitConormal, rAreaScale);
+    }
 
+    void CouplingNitsche6pCondition::CalculateLateralConormal(
+        IndexType IntegrationPointIndex,
+        const Matrix& rJacobianInv,
+        double JacobianThicknessDet,
+        const GeometryType& rGeometry,
+        array_1d<double, 3>& rUnitConormal,
+        double& rAreaScale) const
+    {
         array_1d<double, 3> local_tangent;
-        GetGeometry().GetGeometryPart(geometry_part).Calculate(LOCAL_TANGENT, local_tangent);
+        rGeometry.Calculate(LOCAL_TANGENT, local_tangent);
 
         const double tangent_norm = std::sqrt(local_tangent[0] * local_tangent[0] + local_tangent[1] * local_tangent[1]);
 
@@ -244,7 +273,23 @@ namespace Kratos
         Matrix& rDisplacementOperator) const
     {
         const IndexType geometry_part = (rPatch == PatchType::Master) ? 0 : 1;
-        const auto& r_geometry = GetGeometry().GetGeometryPart(geometry_part);
+        CalculateBAndDisplacementOperator(IntegrationPointIndex, zeta, Thickness, rJacobianInv,
+            rNormalVectorDerivatives, rKinematicVariables, GetGeometry().GetGeometryPart(geometry_part),
+            rBOperator, rDisplacementOperator);
+    }
+
+    void CouplingNitsche6pCondition::CalculateBAndDisplacementOperator(
+        IndexType IntegrationPointIndex,
+        double zeta,
+        double Thickness,
+        const Matrix& rJacobianInv,
+        const Matrix& rNormalVectorDerivatives,
+        const KinematicVariables& rKinematicVariables,
+        const GeometryType& rGeometry,
+        Matrix& rBOperator,
+        Matrix& rDisplacementOperator) const
+    {
+        const auto& r_geometry = rGeometry;
         const IndexType number_of_control_points = r_geometry.size();
         const IndexType mat_size = number_of_control_points * 6;
 
