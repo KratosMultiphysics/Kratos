@@ -80,6 +80,9 @@ class RomResidualsOutputProcess(KratosMultiphysics.OutputProcess):
             res_mat = self.__rom_residuals_utility.GetProjectedResidualsOntoJPhi(jacobian_phi_product)
         elif self.projection_strategy == "petrov_galerkin":
             res_mat = self.__rom_residuals_utility.GetProjectedResidualsOntoPsi()
+        elif self.projection_strategy == "galerkin_ann":
+            tangent_operator = self.solver._GetBuilderAndSolver().GetTangentOperatorV()
+            res_mat = self.__rom_residuals_utility.GetProjectedResidualsOntoV(tangent_operator)
         else:
             raise Exception(f"Projection strategy '{self.projection_strategy}' is not supported.")
 
