@@ -115,10 +115,10 @@ KRATOS_TEST_CASE_IN_SUITE(NewmarkPwSchemeUpdate_SetsDtPressure, KratosGeoMechani
     node.FastGetSolutionStepValue(WATER_PRESSURE, 1)    = previous_pressure;
     node.FastGetSolutionStepValue(DT_WATER_PRESSURE, 1) = previous_dt_pressure;
 
-    ModelPart::DofsArrayType dof_set;
-    SparseSpaceType::MatrixType         A;
-    SparseSpaceType::VectorType                   Dx;
-    SparseSpaceType::VectorType                   b;
+    ModelPart::DofsArrayType    dof_set;
+    SparseSpaceType::MatrixType A;
+    SparseSpaceType::VectorType Dx;
+    SparseSpaceType::VectorType b;
 
     scheme.InitializeSolutionStep(model_part, A, Dx, b); // This is needed to set the time factors
     scheme.Predict(model_part, dof_set, A, Dx, b);
@@ -143,8 +143,8 @@ KRATOS_TEST_CASE_IN_SUITE(InitializeNewmarkPwScheme_SetsTimeFactors, KratosGeoMe
     KRATOS_EXPECT_TRUE(scheme.SchemeIsInitialized())
 
     SparseSpaceType::MatrixType A;
-    SparseSpaceType::VectorType           Dx;
-    SparseSpaceType::VectorType           b;
+    SparseSpaceType::VectorType Dx;
+    SparseSpaceType::VectorType b;
     scheme.InitializeSolutionStep(model_part, A, Dx, b); // This is needed to set the time factors
     KRATOS_EXPECT_DOUBLE_EQ(model_part.GetProcessInfo()[DT_PRESSURE_COEFFICIENT], 1.0 / (theta * delta_time));
 }

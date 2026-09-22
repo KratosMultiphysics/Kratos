@@ -100,8 +100,8 @@ public:
     void TestFunctionCallOnAllComponents_AreOnlyCalledForActiveComponents()
     {
         SparseSpaceType::MatrixType A;
-        SparseSpaceType::VectorType           Dx;
-        SparseSpaceType::VectorType           b;
+        SparseSpaceType::VectorType Dx;
+        SparseSpaceType::VectorType b;
 
         auto functions_and_checks = CreateFunctionsAndChecksCalledOnAllComponents<T>(A, Dx, b);
 
@@ -242,10 +242,10 @@ void TestUpdateForNumberOfThreads(int NumberOfThreads)
 {
     GeoMechanicsSchemeTester tester;
     tester.Setup();
-    SparseSpaceType::MatrixType         A;
-    SparseSpaceType::VectorType                   Dx = ZeroVector(3);
-    SparseSpaceType::VectorType                   b;
-    ModelPart::DofsArrayType dofs_array;
+    SparseSpaceType::MatrixType A;
+    SparseSpaceType::VectorType Dx = ZeroVector(3);
+    SparseSpaceType::VectorType b;
+    ModelPart::DofsArrayType    dofs_array;
 
     ParallelUtilities::SetNumThreads(NumberOfThreads);
 
