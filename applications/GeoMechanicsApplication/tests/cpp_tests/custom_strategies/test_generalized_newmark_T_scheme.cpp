@@ -111,10 +111,10 @@ KRATOS_TEST_CASE_IN_SUITE(NewmarkTSchemeUpdate_SetsDtTemperature, KratosGeoMecha
     node.FastGetSolutionStepValue(TEMPERATURE, 1)    = previous_temperature;
     node.FastGetSolutionStepValue(DT_TEMPERATURE, 1) = previous_dt_temperature;
 
-    ModelPart::DofsArrayType dof_set;
-    SparseSpaceType::MatrixType         A;
-    SparseSpaceType::VectorType                   Dx;
-    SparseSpaceType::VectorType                   b;
+    ModelPart::DofsArrayType    dof_set;
+    SparseSpaceType::MatrixType A;
+    SparseSpaceType::VectorType Dx;
+    SparseSpaceType::VectorType b;
 
     scheme.InitializeSolutionStep(model_part, A, Dx, b); // This is needed to set the time factors
     scheme.Predict(model_part, dof_set, A, Dx, b);
@@ -135,8 +135,8 @@ KRATOS_TEST_CASE_IN_SUITE(InitializeNewmarkTScheme_SetsTimeFactors, KratosGeoMec
     model_part.GetProcessInfo()[DELTA_TIME] = delta_time;
 
     SparseSpaceType::MatrixType A;
-    SparseSpaceType::VectorType           Dx;
-    SparseSpaceType::VectorType           b;
+    SparseSpaceType::VectorType Dx;
+    SparseSpaceType::VectorType b;
     scheme.Initialize(model_part);
 
     KRATOS_EXPECT_TRUE(scheme.SchemeIsInitialized())

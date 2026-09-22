@@ -14,9 +14,9 @@
 #include "custom_elements/Pw_element.hpp"
 #include "custom_elements/geo_steady_state_Pw_piping_element.h"
 #include "custom_strategies/strategies/geo_mechanics_newton_raphson_erosion_process_strategy.hpp"
+#include "spaces/default_spaces.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
 #include "tests/cpp_tests/test_utilities.h"
-#include "spaces/default_spaces.h"
 
 #include <geo_mechanics_application.h>
 #include <linear_solvers/skyline_lu_factorization_solver.h>
