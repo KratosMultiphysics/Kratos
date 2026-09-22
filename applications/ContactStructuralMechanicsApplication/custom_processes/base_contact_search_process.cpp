@@ -922,7 +922,8 @@ inline typename BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::Chec
     IndexMap::Pointer pIndexesPairs,
     const GeometricalObject::Pointer pGeometricalObject1,
     const GeometricalObject::Pointer pGeometricalObject2,
-    const bool InvertedSearch
+    const bool InvertedSearch,
+    const double NormalOrientationThreshold
     )
 {
     KRATOS_TRY
@@ -949,8 +950,7 @@ inline typename BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::Chec
     const array_1d<double, 3> normal_2 = r_geometry_2.UnitNormal(aux_coords);
 
     // Use the robust normal orientation check
-    const double normal_orientation_threshold = mThisParameters["normal_orientation_threshold"].GetDouble();
-    if (!CheckNormalOrientation(normal_1, normal_2, normal_orientation_threshold)) {
+    if (!CheckNormalOrientation(normal_1, normal_2, NormalOrientationThreshold)) {
         return CheckResult::Fail;
     }
 
@@ -972,13 +972,14 @@ inline typename BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::Chec
     IndexMap::Pointer pIndexesPairs,
     const Condition::Pointer pCond1,
     const Condition::Pointer pCond2,
-    const bool InvertedSearch
+    const bool InvertedSearch,
+    const double NormalOrientationThreshold
     )
 {
     KRATOS_TRY
 
     // Note: CheckGeometricalObject already performs normal orientation checking via CheckNormalOrientation
-    if (CheckGeometricalObject(pIndexesPairs, pCond1, pCond2, InvertedSearch) == CheckResult::Fail) {
+    if (CheckGeometricalObject(pIndexesPairs, pCond1, pCond2, InvertedSearch, NormalOrientationThreshold) == CheckResult::Fail) {
         return CheckResult::Fail;
     }
 
@@ -1137,6 +1138,8 @@ void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::ClearDestinatio
     // If the OBB is built from the base BB
     const bool build_from_bounding_box = octree_parameters["build_from_bounding_box"].GetBool();
 
+    const double normal_orientation_threshold = mThisParameters["normal_orientation_threshold"].GetDouble();
+
     // Now we iterate over the conditions
     for(int i = 0; i < num_conditions; ++i) {
         auto it_cond = it_cond_begin + i;
@@ -1167,7 +1170,7 @@ void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::ClearDestinatio
                     }
                 }
 
-                const CheckResult condition_checked_right = CheckCondition(p_indexes_pairs, (*it_cond.base()), p_cond_master, this->Is(BaseContactSearchProcess::INVERTED_SEARCH));
+                const CheckResult condition_checked_right = CheckCondition(p_indexes_pairs, (*it_cond.base()), p_cond_master, this->Is(BaseContactSearchProcess::INVERTED_SEARCH), normal_orientation_threshold);
 
                 if (condition_checked_right == CheckResult::OK)
                     p_indexes_pairs->AddId(p_cond_master->Id());

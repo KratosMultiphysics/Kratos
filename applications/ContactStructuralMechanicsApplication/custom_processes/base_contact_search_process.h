@@ -257,7 +257,7 @@ public:
     /**
      * @brief This resets the contact operators
      */
-     virtual void ResetContactOperators();
+    virtual void ResetContactOperators();
 
     /**
      * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
@@ -518,7 +518,8 @@ private:
         IndexMap::Pointer pIndexesPairs,
         const GeometricalObject::Pointer pGeometricalObject1,
         const GeometricalObject::Pointer pGeometricalObject2,
-        const bool InvertedSearch = false
+        const bool InvertedSearch = false,
+        const double NormalOrientationThreshold = 1.0e-8
         );
 
     /**
@@ -533,7 +534,8 @@ private:
         IndexMap::Pointer pIndexesPairs,
         const Condition::Pointer pCond1,
         const Condition::Pointer pCond2,
-        const bool InvertedSearch = false
+        const bool InvertedSearch = false,
+        const double NormalOrientationThreshold = 1.0e-8
         );
 
     /**
