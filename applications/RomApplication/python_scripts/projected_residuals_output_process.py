@@ -47,8 +47,18 @@ class RomResidualsOutputProcess(KratosMultiphysics.OutputProcess):
         self.rom_settings.RemoveValue("rom_bns_settings")
 
 
-    def _GetJacobianPhiMultiplication(self, computing_model_part):
+    def _GetJacobianPhiMultiplication(self):
         """Assembles the Jacobian and multiplies it by the ROM basis for LSPG."""
+        computing_model_part = self.solver.GetComputingModelPart()
+        builder_and_solver = self.solver._GetBuilderAndSolver()
+        system_size = builder_and_solver.GetEquationSystemSize()
+        right_rom_basis = KratosMultiphysics.Matrix(system_size, self.num_of_right_rom_dofs)
+        builder_and_solver.GetRightROMBasis(computing_model_part, right_rom_basis)
+
+        return self._GetJabocialMatrix() @ right_rom_basis
+
+    def _GetJabocialMatrix(self):
+        computing_model_part = self.solver.GetComputingModelPart()
         jacobian_matrix = KratosMultiphysics.CompressedMatrix()
         builder_and_solver = self.solver._GetBuilderAndSolver()
         system_size = builder_and_solver.GetEquationSystemSize()
@@ -58,11 +68,14 @@ class RomResidualsOutputProcess(KratosMultiphysics.OutputProcess):
 
         builder_and_solver.BuildAndApplyDirichletConditions(self.solver._GetScheme(), computing_model_part, jacobian_matrix, residual_vector, delta_x_vector)
 
-        right_rom_basis = KratosMultiphysics.Matrix(system_size, self.num_of_right_rom_dofs)
-        builder_and_solver.GetRightROMBasis(computing_model_part, right_rom_basis)
+        return KratosMultiphysics.scipy_conversion_tools.to_csr(jacobian_matrix)
 
-        jacobian_scipy_format = KratosMultiphysics.scipy_conversion_tools.to_csr(jacobian_matrix)
-        return jacobian_scipy_format @ right_rom_basis
+
+    def _GetJacobianVMultiplication(self):
+        """Assembles the Jacobian and multiplies it by the tangent operator for LSPG."""
+
+        return self._GetJabocialMatrix() @ self.solver._GetBuilderAndSolver().GetTangentOperatorV()
+
 
     def _GetCurrentResidualsProjected(self):
         computing_model_part = self.solver.GetComputingModelPart()
@@ -76,13 +89,16 @@ class RomResidualsOutputProcess(KratosMultiphysics.OutputProcess):
         if self.projection_strategy == "galerkin":
             res_mat = self.__rom_residuals_utility.GetProjectedResidualsOntoPhi()
         elif self.projection_strategy == "lspg":
-            jacobian_phi_product = self._GetJacobianPhiMultiplication(computing_model_part)
+            jacobian_phi_product = self._GetJacobianPhiMultiplication()
             res_mat = self.__rom_residuals_utility.GetProjectedResidualsOntoJPhi(jacobian_phi_product)
         elif self.projection_strategy == "petrov_galerkin":
             res_mat = self.__rom_residuals_utility.GetProjectedResidualsOntoPsi()
         elif self.projection_strategy == "galerkin_ann":
             tangent_operator = self.solver._GetBuilderAndSolver().GetTangentOperatorV()
             res_mat = self.__rom_residuals_utility.GetProjectedResidualsOntoV(tangent_operator)
+        elif self.projection_strategy == "lspg_ann":
+            J_times_tangent_operator = self._GetJacobianVMultiplication()
+            res_mat = self.__rom_residuals_utility.GetProjectedResidualsOntoV(J_times_tangent_operator)
         else:
             raise Exception(f"Projection strategy '{self.projection_strategy}' is not supported.")
 

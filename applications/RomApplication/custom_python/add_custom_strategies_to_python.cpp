@@ -108,6 +108,8 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
     .def("SetDecoderParameters", &AnnPromLeastSquaresPetrovGalerkinROMBuilderAndSolverType::SetDecoderParameters)
     .def("SetNNLayer", &AnnPromLeastSquaresPetrovGalerkinROMBuilderAndSolverType::SetNNLayer)
     .def("RunDecoder", &AnnPromLeastSquaresPetrovGalerkinROMBuilderAndSolverType::RunDecoder)
+    .def("GetTangentOperatorV", &AnnPromLeastSquaresPetrovGalerkinROMBuilderAndSolverType::GetTangentOperatorV)
+    .def("BuildAndApplyDirichletConditions", &AnnPromLeastSquaresPetrovGalerkinROMBuilderAndSolverType::BuildAndApplyDirichletConditions)
     ;
 
 }
