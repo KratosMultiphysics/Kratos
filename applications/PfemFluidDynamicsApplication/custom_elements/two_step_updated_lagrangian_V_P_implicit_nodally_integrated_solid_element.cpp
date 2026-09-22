@@ -117,7 +117,7 @@ namespace Kratos
     const ShapeFunctionDerivativesType &rDN_DX = DN_DX[g];
     bool computeElement = this->CalcStrainRateMeasures(rElementalVariables, rCurrentProcessInfo, rDN_DX, theta);
 
-    if (computeElement == true)
+    if (computeElement)
     {
       double Density = 0;
       double DeviatoricCoeff = 0;
@@ -287,7 +287,7 @@ namespace Kratos
 
       CalcElasticPlasticCauchySplitted(rElementalVariables, g, N, rCurrentProcessInfo, Density, DeviatoricCoeff, VolumetricCoeff);
 
-      if (computeElement == true)
+      if (computeElement)
       {
         // this->AddExternalForces(rRightHandSideVector, Density, N, GaussWeight);
 

@@ -304,10 +304,6 @@ class SettleModelStructureProcess
     NodalNeighboursSearchProcess FindNeighbours(mrMainModelPart);
     FindNeighbours.Execute();
 
-    //NODAL_H SEARCH
-    //FindNodalHProcess FindNodalH(mrMainModelPart);
-    //FindNodalH.Execute();
-
     //CONDITIONS MASTER_ELEMENTS and MASTER_NODES SEARCH
     BuildModelPartBoundaryProcess BuildBoundaryProcess(mrMainModelPart, mrMainModelPart.Name(), mEchoLevel);
     BuildBoundaryProcess.SearchConditionMasters();
