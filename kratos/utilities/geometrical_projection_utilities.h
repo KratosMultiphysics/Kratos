@@ -90,18 +90,18 @@ static inline double FastProjectDirection(
     const TGeometryType& rGeometryToProject,
     const Point& rPointToProject,
     Point& rPointProjected,
-    const array_1d<double,3>& rSlaveNormal, // slave normal
-    const array_1d<double,3>& rMasterNormal, // master normal
+    const array_1d<double,3>& rProjectionNormal, 
+    const array_1d<double,3>& rGeometryToProjectNormal,
     const SizeType EchoLevel = 0
     )
 {
     const double zero_tolerance = 1.0e-12;
-    const double slave_normal_norm = norm_2(rSlaveNormal);
+    const double slave_normal_norm = norm_2(rProjectionNormal);
 
-    const array_1d<double, 3> proj_dir = rSlaveNormal / slave_normal_norm;
+    const array_1d<double, 3> proj_dir = rProjectionNormal / slave_normal_norm;
 
     // Ray-plane intersection denominator check
-    const double denom = inner_prod(proj_dir, rMasterNormal);
+    const double denom = inner_prod(proj_dir, rGeometryToProjectNormal);
 
     if (std::abs(denom) <= zero_tolerance) {
         noalias(rPointProjected.Coordinates()) = rPointToProject.Coordinates();
@@ -109,12 +109,12 @@ static inline double FastProjectDirection(
     }
 
     const array_1d<double, 3> point_to_plane = rGeometryToProject[0].Coordinates() - rPointToProject.Coordinates();
-    const double alpha = inner_prod(point_to_plane, rMasterNormal) / denom;
+    const double alpha = inner_prod(point_to_plane, rGeometryToProjectNormal) / denom;
 
     // Set exact projected point on master surface
     noalias(rPointProjected.Coordinates()) = rPointToProject.Coordinates() + alpha * proj_dir;
 
-    return std::abs(alpha);
+    return alpha;
 }
 
     /**
