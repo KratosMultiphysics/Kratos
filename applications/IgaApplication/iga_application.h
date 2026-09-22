@@ -42,6 +42,7 @@
 #include "custom_conditions/coupling_nitsche_6p_condition.h"
 #include "custom_conditions/coupling_sbm_extension_operator_6p_condition.h"
 #include "custom_conditions/coupling_sbm_taylor_interface_6p_condition.h"
+#include "custom_conditions/sbm_surrogate_consistency_6p_condition.h"
 #include "custom_conditions/support_penalty_condition.h"
 #include "custom_conditions/support_penalty_6p_condition.h"
 #include "custom_conditions/support_lagrange_condition.h"
@@ -164,6 +165,7 @@ private:
     const CouplingNitsche6pCondition mCouplingNitsche6pCondition;
     const CouplingSbmExtensionOperator6pCondition mCouplingSbmExtensionOperator6pCondition;
     const CouplingSbmTaylorInterface6pCondition mCouplingSbmTaylorInterface6pCondition;
+    const SbmSurrogateConsistency6pCondition mSbmSurrogateConsistency6pCondition;
     const SupportPenaltyCondition mSupportPenaltyCondition;
     const SupportPenalty6pCondition mSupportPenalty6pCondition;
     const SupportLagrangeCondition mSupportLagrangeCondition;
