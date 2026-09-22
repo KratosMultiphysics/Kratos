@@ -258,8 +258,14 @@ private:
                                    const Element::NodesArrayType& rNodes,
                                    Vector& rDerivativesOfDrag) const
     {
+        // Fixed-capacity buffer of which only the leading size2() entries are used
+        // (a uBLAS bounded_vector shrinks at runtime, the Eigen one does not, so the
+        // used part is addressed explicitly through a subrange view).
         constexpr std::size_t max_size = 50;
-        BoundedVector<double, max_size> drag_flag_vector(rDerivativesOfResidual.size2());
+        const std::size_t used_size = rDerivativesOfResidual.size2();
+        KRATOS_DEBUG_ERROR_IF(used_size > max_size) << "The residual derivatives have " << used_size
+            << " columns, more than the " << max_size << " supported by the drag response function." << std::endl;
+        BoundedVector<double, max_size> drag_flag_vector;
         drag_flag_vector.clear();
 
         const unsigned num_nodes = rNodes.size();
@@ -277,7 +283,7 @@ private:
         if (rDerivativesOfDrag.size() != rDerivativesOfResidual.size1())
             rDerivativesOfDrag.resize(rDerivativesOfResidual.size1(), false);
 
-        noalias(rDerivativesOfDrag) = prod(rDerivativesOfResidual, drag_flag_vector);
+        noalias(rDerivativesOfDrag) = prod(rDerivativesOfResidual, subrange(drag_flag_vector, 0, used_size));
     }
 
     ///@}
