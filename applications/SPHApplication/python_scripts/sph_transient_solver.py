@@ -33,28 +33,31 @@ class SPHTransientSolver(SPHSolver):
             return
     
         dim = self.settings["domain_size"].GetInt()
+
         components = [
-            (SPHApplication.DEFORMATION_GRADIENT_XX, 1.0),
-            (SPHApplication.DEFORMATION_GRADIENT_YY, 1.0),
-            (SPHApplication.DEFORMATION_GRADIENT_XY, 0.0),
-            (SPHApplication.DEFORMATION_GRADIENT_YX, 0.0),
-            ]
+            (SPHApplication.MIXED_DEFORMATION_GRADIENT_XX, 1.0),
+            (SPHApplication.MIXED_DEFORMATION_GRADIENT_YY, 1.0),
+            (SPHApplication.MIXED_DEFORMATION_GRADIENT_XY, 0.0),
+            (SPHApplication.MIXED_DEFORMATION_GRADIENT_YX, 0.0),
+        ]
+
         if dim == 3:
             components.extend([
-                (SPHApplication.DEFORMATION_GRADIENT_ZZ, 1.0),
-                (SPHApplication.DEFORMATION_GRADIENT_XZ, 0.0),
-                (SPHApplication.DEFORMATION_GRADIENT_YZ, 0.0),
-                (SPHApplication.DEFORMATION_GRADIENT_ZX, 0.0),
-                (SPHApplication.DEFORMATION_GRADIENT_ZY, 0.0),
+                (SPHApplication.MIXED_DEFORMATION_GRADIENT_ZZ, 1.0),
+                (SPHApplication.MIXED_DEFORMATION_GRADIENT_XZ, 0.0),
+                (SPHApplication.MIXED_DEFORMATION_GRADIENT_YZ, 0.0),
+                (SPHApplication.MIXED_DEFORMATION_GRADIENT_ZX, 0.0),
+                (SPHApplication.MIXED_DEFORMATION_GRADIENT_ZY, 0.0),
             ])
     
         for node in self.main_model_part.Nodes:
             for step in range(self.main_model_part.GetBufferSize()):
                 for variable, value in components:
                     node.SetSolutionStepValue(variable, step, value)
-    
+
         KratosMultiphysics.Logger.PrintInfo(
-            "::[SPHSolver]::", "Initialized mixed deformation gradient to identity")
+            "::[SPHSolver]::", "Initialized mixed deformation gradient to identity"
+        )
         
 
     @classmethod

@@ -44,14 +44,14 @@ void TotalLagrangianMixedStrainParticle<TKernelType, TDim>::EquationIdVector(
             const SizeType F_block = i * TDim * TDim + TDim * number_of_neighbours;
 
             const IndexType vpos = r_geom[0].GetDofPosition(VELOCITY_X);
-            const IndexType Fpos = r_geom[0].GetDofPosition(DEFORMATION_GRADIENT_XX);
+            const IndexType Fpos = r_geom[0].GetDofPosition(MIXED_DEFORMATION_GRADIENT_XX);
 
             rResult[v_block    ] = r_geom[0].GetDof(VELOCITY_X, vpos    ).EquationId();
             rResult[v_block + 1] = r_geom[0].GetDof(VELOCITY_Y, vpos + 1).EquationId();
-            rResult[F_block    ] = r_geom[0].GetDof(DEFORMATION_GRADIENT_XX, Fpos    ).EquationId();
-            rResult[F_block + 1] = r_geom[0].GetDof(DEFORMATION_GRADIENT_YY, Fpos + 1).EquationId();
-            rResult[F_block + 2] = r_geom[0].GetDof(DEFORMATION_GRADIENT_XY, Fpos + 2).EquationId();
-            rResult[F_block + 3] = r_geom[0].GetDof(DEFORMATION_GRADIENT_YX, Fpos + 3).EquationId();
+            rResult[F_block    ] = r_geom[0].GetDof(MIXED_DEFORMATION_GRADIENT_XX, Fpos    ).EquationId();
+            rResult[F_block + 1] = r_geom[0].GetDof(MIXED_DEFORMATION_GRADIENT_YY, Fpos + 1).EquationId();
+            rResult[F_block + 2] = r_geom[0].GetDof(MIXED_DEFORMATION_GRADIENT_XY, Fpos + 2).EquationId();
+            rResult[F_block + 3] = r_geom[0].GetDof(MIXED_DEFORMATION_GRADIENT_YX, Fpos + 3).EquationId();
         }
     } else {
         for (IndexType i = 0; i < number_of_neighbours; ++i){
@@ -60,20 +60,20 @@ void TotalLagrangianMixedStrainParticle<TKernelType, TDim>::EquationIdVector(
             const SizeType F_block = i * TDim * TDim + TDim * number_of_neighbours;
 
             const IndexType vpos = r_geom[0].GetDofPosition(VELOCITY_X);
-            const IndexType Fpos = r_geom[0].GetDofPosition(DEFORMATION_GRADIENT_XX);
+            const IndexType Fpos = r_geom[0].GetDofPosition(MIXED_DEFORMATION_GRADIENT_XX);
 
             rResult[v_block    ] = r_geom[0].GetDof(VELOCITY_X, vpos    ).EquationId();
             rResult[v_block + 1] = r_geom[0].GetDof(VELOCITY_Y, vpos + 1).EquationId();
             rResult[v_block + 2] = r_geom[0].GetDof(VELOCITY_Z, vpos + 2).EquationId();
-            rResult[F_block    ] = r_geom[0].GetDof(DEFORMATION_GRADIENT_XX, Fpos    ).EquationId();
-            rResult[F_block + 1] = r_geom[0].GetDof(DEFORMATION_GRADIENT_YY, Fpos + 1).EquationId();
-            rResult[F_block + 2] = r_geom[0].GetDof(DEFORMATION_GRADIENT_ZZ, Fpos + 2).EquationId(); 
-            rResult[F_block + 3] = r_geom[0].GetDof(DEFORMATION_GRADIENT_XY, Fpos + 3).EquationId();
-            rResult[F_block + 4] = r_geom[0].GetDof(DEFORMATION_GRADIENT_XZ, Fpos + 4).EquationId();
-            rResult[F_block + 5] = r_geom[0].GetDof(DEFORMATION_GRADIENT_YX, Fpos + 5).EquationId();
-            rResult[F_block + 6] = r_geom[0].GetDof(DEFORMATION_GRADIENT_YZ, Fpos + 6).EquationId();
-            rResult[F_block + 7] = r_geom[0].GetDof(DEFORMATION_GRADIENT_ZX, Fpos + 7).EquationId();
-            rResult[F_block + 8] = r_geom[0].GetDof(DEFORMATION_GRADIENT_ZY, Fpos + 8).EquationId(); 
+            rResult[F_block    ] = r_geom[0].GetDof(MIXED_DEFORMATION_GRADIENT_XX, Fpos    ).EquationId();
+            rResult[F_block + 1] = r_geom[0].GetDof(MIXED_DEFORMATION_GRADIENT_YY, Fpos + 1).EquationId();
+            rResult[F_block + 2] = r_geom[0].GetDof(MIXED_DEFORMATION_GRADIENT_ZZ, Fpos + 2).EquationId(); 
+            rResult[F_block + 3] = r_geom[0].GetDof(MIXED_DEFORMATION_GRADIENT_XY, Fpos + 3).EquationId();
+            rResult[F_block + 4] = r_geom[0].GetDof(MIXED_DEFORMATION_GRADIENT_XZ, Fpos + 4).EquationId();
+            rResult[F_block + 5] = r_geom[0].GetDof(MIXED_DEFORMATION_GRADIENT_YX, Fpos + 5).EquationId();
+            rResult[F_block + 6] = r_geom[0].GetDof(MIXED_DEFORMATION_GRADIENT_YZ, Fpos + 6).EquationId();
+            rResult[F_block + 7] = r_geom[0].GetDof(MIXED_DEFORMATION_GRADIENT_ZX, Fpos + 7).EquationId();
+            rResult[F_block + 8] = r_geom[0].GetDof(MIXED_DEFORMATION_GRADIENT_ZY, Fpos + 8).EquationId(); 
         }
     }
     KRATOS_CATCH("")
@@ -101,10 +101,10 @@ void TotalLagrangianMixedStrainParticle<TKernelType, TDim>::GetDofList(
 
             rElementalDofList[v_block    ] = r_geom[0].pGetDof(VELOCITY_X);
             rElementalDofList[v_block + 1] = r_geom[0].pGetDof(VELOCITY_Y);
-            rElementalDofList[F_block    ] = r_geom[0].pGetDof(DEFORMATION_GRADIENT_XX);
-            rElementalDofList[F_block + 1] = r_geom[0].pGetDof(DEFORMATION_GRADIENT_YY);
-            rElementalDofList[F_block + 2] = r_geom[0].pGetDof(DEFORMATION_GRADIENT_XY);
-            rElementalDofList[F_block + 3] = r_geom[0].pGetDof(DEFORMATION_GRADIENT_YX);
+            rElementalDofList[F_block    ] = r_geom[0].pGetDof(MIXED_DEFORMATION_GRADIENT_XX);
+            rElementalDofList[F_block + 1] = r_geom[0].pGetDof(MIXED_DEFORMATION_GRADIENT_YY);
+            rElementalDofList[F_block + 2] = r_geom[0].pGetDof(MIXED_DEFORMATION_GRADIENT_XY);
+            rElementalDofList[F_block + 3] = r_geom[0].pGetDof(MIXED_DEFORMATION_GRADIENT_YX);
         }
     } else {
         for (IndexType i = 0; i < number_of_neighbours; ++i){
@@ -115,15 +115,15 @@ void TotalLagrangianMixedStrainParticle<TKernelType, TDim>::GetDofList(
             rElementalDofList[v_block    ] = r_geom[0].pGetDof(VELOCITY_X);
             rElementalDofList[v_block + 1] = r_geom[0].pGetDof(VELOCITY_Y);
             rElementalDofList[v_block + 2] = r_geom[0].pGetDof(VELOCITY_Z);
-            rElementalDofList[F_block    ] = r_geom[0].pGetDof(DEFORMATION_GRADIENT_XX);
-            rElementalDofList[F_block + 1] = r_geom[0].pGetDof(DEFORMATION_GRADIENT_YY);
-            rElementalDofList[F_block + 2] = r_geom[0].pGetDof(DEFORMATION_GRADIENT_ZZ); 
-            rElementalDofList[F_block + 3] = r_geom[0].pGetDof(DEFORMATION_GRADIENT_XY);
-            rElementalDofList[F_block + 4] = r_geom[0].pGetDof(DEFORMATION_GRADIENT_XZ);
-            rElementalDofList[F_block + 5] = r_geom[0].pGetDof(DEFORMATION_GRADIENT_YX);
-            rElementalDofList[F_block + 6] = r_geom[0].pGetDof(DEFORMATION_GRADIENT_YZ);
-            rElementalDofList[F_block + 7] = r_geom[0].pGetDof(DEFORMATION_GRADIENT_ZX);
-            rElementalDofList[F_block + 8] = r_geom[0].pGetDof(DEFORMATION_GRADIENT_ZY); 
+            rElementalDofList[F_block    ] = r_geom[0].pGetDof(MIXED_DEFORMATION_GRADIENT_XX);
+            rElementalDofList[F_block + 1] = r_geom[0].pGetDof(MIXED_DEFORMATION_GRADIENT_YY);
+            rElementalDofList[F_block + 2] = r_geom[0].pGetDof(MIXED_DEFORMATION_GRADIENT_ZZ); 
+            rElementalDofList[F_block + 3] = r_geom[0].pGetDof(MIXED_DEFORMATION_GRADIENT_XY);
+            rElementalDofList[F_block + 4] = r_geom[0].pGetDof(MIXED_DEFORMATION_GRADIENT_XZ);
+            rElementalDofList[F_block + 5] = r_geom[0].pGetDof(MIXED_DEFORMATION_GRADIENT_YX);
+            rElementalDofList[F_block + 6] = r_geom[0].pGetDof(MIXED_DEFORMATION_GRADIENT_YZ);
+            rElementalDofList[F_block + 7] = r_geom[0].pGetDof(MIXED_DEFORMATION_GRADIENT_ZX);
+            rElementalDofList[F_block + 8] = r_geom[0].pGetDof(MIXED_DEFORMATION_GRADIENT_ZY); 
         }
     }
     KRATOS_CATCH("")
@@ -151,13 +151,14 @@ void TotalLagrangianMixedStrainParticle<TKernelType, TDim>::GetValuesVector(
             const SizeType F_block = i * TDim * TDim + TDim * number_of_neighbours;
 
             const array_1d<double, 3>& velocity = r_geom[0].FastGetSolutionStepValue(VELOCITY, Step);
+            const auto& rF = r_geom[0].FastGetSolutionStepValue(MIXED_DEFORMATION_GRADIENT, Step);
             
             rValues[v_block    ] = velocity[0];
             rValues[v_block + 1] = velocity[1];
-            rValues[F_block    ] = r_geom[0].FastGetSolutionStepValue(DEFORMATION_GRADIENT_XX, Step);
-            rValues[F_block + 1] = r_geom[0].FastGetSolutionStepValue(DEFORMATION_GRADIENT_YY, Step);
-            rValues[F_block + 2] = r_geom[0].FastGetSolutionStepValue(DEFORMATION_GRADIENT_XY, Step);
-            rValues[F_block + 3] = r_geom[0].FastGetSolutionStepValue(DEFORMATION_GRADIENT_YX, Step);
+            rValues[F_block    ] = rF[0]; // XX
+            rValues[F_block + 1] = rF[4]; // YY
+            rValues[F_block + 2] = rF[1]; // XY
+            rValues[F_block + 3] = rF[3]; // YX
         }
     } else {
         for (IndexType i = 0; i < number_of_neighbours; ++i){
@@ -166,19 +167,20 @@ void TotalLagrangianMixedStrainParticle<TKernelType, TDim>::GetValuesVector(
             const SizeType F_block = i * TDim * TDim + TDim * number_of_neighbours;
 
             const array_1d<double, 3>& velocity = r_geom[0].FastGetSolutionStepValue(VELOCITY, Step);
+            const auto& rF = r_geom[0].FastGetSolutionStepValue(MIXED_DEFORMATION_GRADIENT, Step);
 
             rValues[v_block    ] = velocity[0];
             rValues[v_block + 1] = velocity[1];
             rValues[v_block + 2] = velocity[2];
-            rValues[F_block    ] = r_geom[0].FastGetSolutionStepValue(DEFORMATION_GRADIENT_XX, Step);
-            rValues[F_block + 1] = r_geom[0].FastGetSolutionStepValue(DEFORMATION_GRADIENT_YY, Step);
-            rValues[F_block + 2] = r_geom[0].FastGetSolutionStepValue(DEFORMATION_GRADIENT_ZZ, Step); 
-            rValues[F_block + 3] = r_geom[0].FastGetSolutionStepValue(DEFORMATION_GRADIENT_XY, Step);
-            rValues[F_block + 4] = r_geom[0].FastGetSolutionStepValue(DEFORMATION_GRADIENT_XZ, Step);
-            rValues[F_block + 5] = r_geom[0].FastGetSolutionStepValue(DEFORMATION_GRADIENT_YX, Step);
-            rValues[F_block + 6] = r_geom[0].FastGetSolutionStepValue(DEFORMATION_GRADIENT_YZ, Step);
-            rValues[F_block + 7] = r_geom[0].FastGetSolutionStepValue(DEFORMATION_GRADIENT_ZX, Step);
-            rValues[F_block + 8] = r_geom[0].FastGetSolutionStepValue(DEFORMATION_GRADIENT_ZY, Step);
+            rValues[F_block    ] = rF[0]; // XX
+            rValues[F_block + 1] = rF[4]; // YY
+            rValues[F_block + 2] = rF[8]; // ZZ
+            rValues[F_block + 3] = rF[1]; // XY
+            rValues[F_block + 4] = rF[2]; // XZ
+            rValues[F_block + 5] = rF[3]; // YX
+            rValues[F_block + 6] = rF[5]; // YZ
+            rValues[F_block + 7] = rF[6]; // ZX
+            rValues[F_block + 8] = rF[7]; // ZY
         }
     }
     KRATOS_CATCH("")
@@ -202,13 +204,14 @@ void TotalLagrangianMixedStrainParticle<TKernelType, TDim>::GetFirstDerivativesV
             const SizeType F_block = i * TDim * TDim + TDim * number_of_neighbours;
 
             const array_1d<double, 3>& acceleration = r_geom[0].FastGetSolutionStepValue(ACCELERATION, step);
+            const auto& rF_dot = r_geom[0].FastGetSolutionStepValue(MIXED_DEFORMATION_GRADIENT_DOT, step);
             
             rValues[v_block    ] = acceleration[0];
             rValues[v_block + 1] = acceleration[1];
-            rValues[F_block    ] = r_geom[0].FastGetSolutionStepValue(DEFORMATION_GRADIENT_DOT_XX, step);
-            rValues[F_block + 1] = r_geom[0].FastGetSolutionStepValue(DEFORMATION_GRADIENT_DOT_YY, step);
-            rValues[F_block + 2] = r_geom[0].FastGetSolutionStepValue(DEFORMATION_GRADIENT_DOT_XY, step);
-            rValues[F_block + 3] = r_geom[0].FastGetSolutionStepValue(DEFORMATION_GRADIENT_DOT_YX, step);
+            rValues[F_block    ] = rF_dot[0];
+            rValues[F_block + 1] = rF_dot[4];
+            rValues[F_block + 2] = rF_dot[1];
+            rValues[F_block + 3] = rF_dot[3];
         }
     } else {
         for(IndexType i = 0; i < number_of_neighbours; ++i){
@@ -217,19 +220,20 @@ void TotalLagrangianMixedStrainParticle<TKernelType, TDim>::GetFirstDerivativesV
             const SizeType F_block = i * TDim * TDim + TDim * number_of_neighbours;
 
             const array_1d<double, 3>& acceleration = r_geom[0].FastGetSolutionStepValue(ACCELERATION, step);
+            const auto& rF_dot = r_geom[0].FastGetSolutionStepValue(MIXED_DEFORMATION_GRADIENT_DOT, step);
 
             rValues[v_block    ] = acceleration[0];
             rValues[v_block + 1] = acceleration[1];
             rValues[v_block + 2] = acceleration[2];
-            rValues[F_block    ] = r_geom[0].FastGetSolutionStepValue(DEFORMATION_GRADIENT_DOT_XX, step);
-            rValues[F_block + 1] = r_geom[0].FastGetSolutionStepValue(DEFORMATION_GRADIENT_DOT_YY, step);
-            rValues[F_block + 2] = r_geom[0].FastGetSolutionStepValue(DEFORMATION_GRADIENT_DOT_ZZ, step);
-            rValues[F_block + 3] = r_geom[0].FastGetSolutionStepValue(DEFORMATION_GRADIENT_DOT_XY, step);
-            rValues[F_block + 4] = r_geom[0].FastGetSolutionStepValue(DEFORMATION_GRADIENT_DOT_XZ, step);
-            rValues[F_block + 5] = r_geom[0].FastGetSolutionStepValue(DEFORMATION_GRADIENT_DOT_YX, step);
-            rValues[F_block + 6] = r_geom[0].FastGetSolutionStepValue(DEFORMATION_GRADIENT_DOT_YZ, step);
-            rValues[F_block + 7] = r_geom[0].FastGetSolutionStepValue(DEFORMATION_GRADIENT_DOT_ZX, step);
-            rValues[F_block + 8] = r_geom[0].FastGetSolutionStepValue(DEFORMATION_GRADIENT_DOT_ZY, step);
+            rValues[F_block    ] = rF_dot[0];
+            rValues[F_block + 1] = rF_dot[4];
+            rValues[F_block + 2] = rF_dot[8];
+            rValues[F_block + 3] = rF_dot[1];
+            rValues[F_block + 4] = rF_dot[2];
+            rValues[F_block + 5] = rF_dot[3];
+            rValues[F_block + 6] = rF_dot[5];
+            rValues[F_block + 7] = rF_dot[6];
+            rValues[F_block + 8] = rF_dot[7];
         }
     }
     KRATOS_CATCH("")
@@ -932,20 +936,22 @@ void TotalLagrangianMixedStrainParticle<TKernelType, TDim>::AssembleDeformationG
     const auto& r_geom = this->GetGeometry();
     
     if constexpr (TDim == 2){
-        rF(0,0) = r_geom[0].FastGetSolutionStepValue(DEFORMATION_GRADIENT_XX, Step);
-        rF(1,1) = r_geom[0].FastGetSolutionStepValue(DEFORMATION_GRADIENT_YY, Step);
-        rF(0,1) = r_geom[0].FastGetSolutionStepValue(DEFORMATION_GRADIENT_XY, Step);
-        rF(1,0) = r_geom[0].FastGetSolutionStepValue(DEFORMATION_GRADIENT_YX, Step);
+        const auto& deformation_gradient = r_geom[0].FastGetSolutionStepValue(MIXED_DEFORMATION_GRADIENT, Step);
+        rF(0,0) = deformation_gradient[0];
+        rF(1,1) = deformation_gradient[4];
+        rF(0,1) = deformation_gradient[1];
+        rF(1,0) = deformation_gradient[3];
     } else {
-        rF(0,0) = r_geom[0].FastGetSolutionStepValue(DEFORMATION_GRADIENT_XX, Step);
-        rF(1,1) = r_geom[0].FastGetSolutionStepValue(DEFORMATION_GRADIENT_YY, Step);
-        rF(2,2) = r_geom[0].FastGetSolutionStepValue(DEFORMATION_GRADIENT_ZZ, Step);
-        rF(0,1) = r_geom[0].FastGetSolutionStepValue(DEFORMATION_GRADIENT_XY, Step);
-        rF(0,2) = r_geom[0].FastGetSolutionStepValue(DEFORMATION_GRADIENT_XZ, Step);
-        rF(1,0) = r_geom[0].FastGetSolutionStepValue(DEFORMATION_GRADIENT_YX, Step);
-        rF(1,2) = r_geom[0].FastGetSolutionStepValue(DEFORMATION_GRADIENT_YZ, Step);
-        rF(2,0) = r_geom[0].FastGetSolutionStepValue(DEFORMATION_GRADIENT_ZX, Step);
-        rF(2,1) = r_geom[0].FastGetSolutionStepValue(DEFORMATION_GRADIENT_ZY, Step);
+        const auto& deformation_gradient = r_geom[0].FastGetSolutionStepValue(MIXED_DEFORMATION_GRADIENT, Step);
+        rF(0,0) = deformation_gradient[0];
+        rF(1,1) = deformation_gradient[4];
+        rF(2,2) = deformation_gradient[8];
+        rF(0,1) = deformation_gradient[1];
+        rF(0,2) = deformation_gradient[2];
+        rF(1,0) = deformation_gradient[3];
+        rF(1,2) = deformation_gradient[5];
+        rF(2,0) = deformation_gradient[6];
+        rF(2,1) = deformation_gradient[7];
     }
 }
     

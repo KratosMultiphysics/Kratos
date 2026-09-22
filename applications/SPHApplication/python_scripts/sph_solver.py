@@ -137,31 +137,29 @@ class SPHSolver(PythonSolver):
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION)
-        self.main_model_part.AddNodalSolutionStepVariable(CLA.PLASTIC_STRAIN_VECTOR)####
         # Add specific variables for the problem conditions.
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VOLUME_ACCELERATION)
 
         if self.settings["strain_dofs"].GetBool():
             dim = self.settings["domain_size"].GetInt()
-            self.main_model_part.AddNodalSolutionStepVariable(SPHApplication.DEFORMATION_GRADIENT_XX)
-            self.main_model_part.AddNodalSolutionStepVariable(SPHApplication.REACTION_DEFORMATION_GRADIENT_XX)
-            self.main_model_part.AddNodalSolutionStepVariable(SPHApplication.DEFORMATION_GRADIENT_YY)
-            self.main_model_part.AddNodalSolutionStepVariable(SPHApplication.REACTION_DEFORMATION_GRADIENT_YY)
-            self.main_model_part.AddNodalSolutionStepVariable(SPHApplication.DEFORMATION_GRADIENT_XY)
-            self.main_model_part.AddNodalSolutionStepVariable(SPHApplication.REACTION_DEFORMATION_GRADIENT_XY)
-            self.main_model_part.AddNodalSolutionStepVariable(SPHApplication.DEFORMATION_GRADIENT_YX)
-            self.main_model_part.AddNodalSolutionStepVariable(SPHApplication.REACTION_DEFORMATION_GRADIENT_YX)
-            if dim == 3:
-                self.main_model_part.AddNodalSolutionStepVariable(SPHApplication.DEFORMATION_GRADIENT_ZZ)
-                self.main_model_part.AddNodalSolutionStepVariable(SPHApplication.REACTION_DEFORMATION_GRADIENT_ZZ)
-                self.main_model_part.AddNodalSolutionStepVariable(SPHApplication.DEFORMATION_GRADIENT_XZ)
-                self.main_model_part.AddNodalSolutionStepVariable(SPHApplication.REACTION_DEFORMATION_GRADIENT_XZ)
-                self.main_model_part.AddNodalSolutionStepVariable(SPHApplication.DEFORMATION_GRADIENT_YZ)
-                self.main_model_part.AddNodalSolutionStepVariable(SPHApplication.REACTION_DEFORMATION_GRADIENT_YZ)
-                self.main_model_part.AddNodalSolutionStepVariable(SPHApplication.DEFORMATION_GRADIENT_ZX)
-                self.main_model_part.AddNodalSolutionStepVariable(SPHApplication.REACTION_DEFORMATION_GRADIENT_ZX)
-                self.main_model_part.AddNodalSolutionStepVariable(SPHApplication.DEFORMATION_GRADIENT_ZY)
-                self.main_model_part.AddNodalSolutionStepVariable(SPHApplication.REACTION_DEFORMATION_GRADIENT_ZY)
+            self.main_model_part.AddNodalSolutionStepVariable(SPHApplication.MIXED_DEFORMATION_GRADIENT_XX)
+            self.main_model_part.AddNodalSolutionStepVariable(SPHApplication.MIXED_DEFORMATION_GRADIENT_XY)
+            self.main_model_part.AddNodalSolutionStepVariable(SPHApplication.MIXED_DEFORMATION_GRADIENT_XZ)
+            self.main_model_part.AddNodalSolutionStepVariable(SPHApplication.MIXED_DEFORMATION_GRADIENT_YX)
+            self.main_model_part.AddNodalSolutionStepVariable(SPHApplication.MIXED_DEFORMATION_GRADIENT_YY)
+            self.main_model_part.AddNodalSolutionStepVariable(SPHApplication.MIXED_DEFORMATION_GRADIENT_YZ)
+            self.main_model_part.AddNodalSolutionStepVariable(SPHApplication.MIXED_DEFORMATION_GRADIENT_ZX)
+            self.main_model_part.AddNodalSolutionStepVariable(SPHApplication.MIXED_DEFORMATION_GRADIENT_ZY)
+            self.main_model_part.AddNodalSolutionStepVariable(SPHApplication.MIXED_DEFORMATION_GRADIENT_ZZ)
+            self.main_model_part.AddNodalSolutionStepVariable(SPHApplication.MIXED_REACTION_DEFORMATION_GRADIENT_XX)
+            self.main_model_part.AddNodalSolutionStepVariable(SPHApplication.MIXED_REACTION_DEFORMATION_GRADIENT_YY)
+            self.main_model_part.AddNodalSolutionStepVariable(SPHApplication.MIXED_REACTION_DEFORMATION_GRADIENT_XY)
+            self.main_model_part.AddNodalSolutionStepVariable(SPHApplication.MIXED_REACTION_DEFORMATION_GRADIENT_YX)
+            self.main_model_part.AddNodalSolutionStepVariable(SPHApplication.MIXED_REACTION_DEFORMATION_GRADIENT_ZZ)
+            self.main_model_part.AddNodalSolutionStepVariable(SPHApplication.MIXED_REACTION_DEFORMATION_GRADIENT_XZ)
+            self.main_model_part.AddNodalSolutionStepVariable(SPHApplication.MIXED_REACTION_DEFORMATION_GRADIENT_YZ)
+            self.main_model_part.AddNodalSolutionStepVariable(SPHApplication.MIXED_REACTION_DEFORMATION_GRADIENT_ZX)
+            self.main_model_part.AddNodalSolutionStepVariable(SPHApplication.MIXED_REACTION_DEFORMATION_GRADIENT_ZY)
 
         # Add variables that the user defined in the ProjectParameters
         auxiliary_solver_utilities.AddVariables(self.main_model_part, self.settings["auxiliary_variables_list"])
@@ -186,16 +184,16 @@ class SPHSolver(PythonSolver):
             dofs_and_reactions_to_add.append(["VELOCITY_Z", "REACTION_Z"])
 
             dim = self.settings["domain_size"].GetInt()
-            dofs_and_reactions_to_add.append(["DEFORMATION_GRADIENT_XX", "REACTION_DEFORMATION_GRADIENT_XX"])
-            dofs_and_reactions_to_add.append(["DEFORMATION_GRADIENT_YY", "REACTION_DEFORMATION_GRADIENT_YY"])
-            dofs_and_reactions_to_add.append(["DEFORMATION_GRADIENT_XY", "REACTION_DEFORMATION_GRADIENT_XY"])
-            dofs_and_reactions_to_add.append(["DEFORMATION_GRADIENT_YX", "REACTION_DEFORMATION_GRADIENT_YX"])
+            dofs_and_reactions_to_add.append(["MIXED_DEFORMATION_GRADIENT_XX", "MIXED_REACTION_DEFORMATION_GRADIENT_XX"])
+            dofs_and_reactions_to_add.append(["MIXED_DEFORMATION_GRADIENT_YY", "MIXED_REACTION_DEFORMATION_GRADIENT_YY"])
+            dofs_and_reactions_to_add.append(["MIXED_DEFORMATION_GRADIENT_XY", "MIXED_REACTION_DEFORMATION_GRADIENT_XY"])
+            dofs_and_reactions_to_add.append(["MIXED_DEFORMATION_GRADIENT_YX", "MIXED_REACTION_DEFORMATION_GRADIENT_YX"])
             if dim == 3:
-                dofs_and_reactions_to_add.append(["DEFORMATION_GRADIENT_ZZ", "REACTION_DEFORMATION_GRADIENT_ZZ"])
-                dofs_and_reactions_to_add.append(["DEFORMATION_GRADIENT_XZ", "REACTION_DEFORMATION_GRADIENT_XZ"])
-                dofs_and_reactions_to_add.append(["DEFORMATION_GRADIENT_YZ", "REACTION_DEFORMATION_GRADIENT_YZ"])
-                dofs_and_reactions_to_add.append(["DEFORMATION_GRADIENT_ZX", "REACTION_DEFORMATION_GRADIENT_ZX"])
-                dofs_and_reactions_to_add.append(["DEFORMATION_GRADIENT_ZY", "REACTION_DEFORMATION_GRADIENT_ZY"])
+                dofs_and_reactions_to_add.append(["MIXED_DEFORMATION_GRADIENT_ZZ", "MIXED_REACTION_DEFORMATION_GRADIENT_ZZ"])
+                dofs_and_reactions_to_add.append(["MIXED_DEFORMATION_GRADIENT_XZ", "MIXED_REACTION_DEFORMATION_GRADIENT_XZ"])
+                dofs_and_reactions_to_add.append(["MIXED_DEFORMATION_GRADIENT_YZ", "MIXED_REACTION_DEFORMATION_GRADIENT_YZ"])
+                dofs_and_reactions_to_add.append(["MIXED_DEFORMATION_GRADIENT_ZX", "MIXED_REACTION_DEFORMATION_GRADIENT_ZX"])
+                dofs_and_reactions_to_add.append(["MIXED_DEFORMATION_GRADIENT_ZY", "MIXED_REACTION_DEFORMATION_GRADIENT_ZY"])
 
         # Append user-defined DOFs and reactions in the ProjectParameters
         auxiliary_solver_utilities.AddAuxiliaryDofsToDofsWithReactionsList(
@@ -376,16 +374,16 @@ class SPHSolver(PythonSolver):
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ACCELERATION)
         if self.settings["strain_dofs"].GetBool():
             dim = self.settings["domain_size"].GetInt()
-            self.main_model_part.AddNodalSolutionStepVariable(SPHApplication.DEFORMATION_GRADIENT_DOT_XX)
-            self.main_model_part.AddNodalSolutionStepVariable(SPHApplication.DEFORMATION_GRADIENT_DOT_YY)
-            self.main_model_part.AddNodalSolutionStepVariable(SPHApplication.DEFORMATION_GRADIENT_DOT_XY)
-            self.main_model_part.AddNodalSolutionStepVariable(SPHApplication.DEFORMATION_GRADIENT_DOT_YX)
+            self.main_model_part.AddNodalSolutionStepVariable(SPHApplication.MIXED_DEFORMATION_GRADIENT_DOT_XX)
+            self.main_model_part.AddNodalSolutionStepVariable(SPHApplication.MIXED_DEFORMATION_GRADIENT_DOT_YY)
+            self.main_model_part.AddNodalSolutionStepVariable(SPHApplication.MIXED_DEFORMATION_GRADIENT_DOT_XY)
+            self.main_model_part.AddNodalSolutionStepVariable(SPHApplication.MIXED_DEFORMATION_GRADIENT_DOT_YX)
             if dim == 3:
-                self.main_model_part.AddNodalSolutionStepVariable(SPHApplication.DEFORMATION_GRADIENT_DOT_ZZ)
-                self.main_model_part.AddNodalSolutionStepVariable(SPHApplication.DEFORMATION_GRADIENT_DOT_XZ)
-                self.main_model_part.AddNodalSolutionStepVariable(SPHApplication.DEFORMATION_GRADIENT_DOT_YZ)
-                self.main_model_part.AddNodalSolutionStepVariable(SPHApplication.DEFORMATION_GRADIENT_DOT_ZX)
-                self.main_model_part.AddNodalSolutionStepVariable(SPHApplication.DEFORMATION_GRADIENT_DOT_ZY)
+                self.main_model_part.AddNodalSolutionStepVariable(SPHApplication.MIXED_DEFORMATION_GRADIENT_DOT_ZZ)
+                self.main_model_part.AddNodalSolutionStepVariable(SPHApplication.MIXED_DEFORMATION_GRADIENT_DOT_XZ)
+                self.main_model_part.AddNodalSolutionStepVariable(SPHApplication.MIXED_DEFORMATION_GRADIENT_DOT_YZ)
+                self.main_model_part.AddNodalSolutionStepVariable(SPHApplication.MIXED_DEFORMATION_GRADIENT_DOT_ZX)
+                self.main_model_part.AddNodalSolutionStepVariable(SPHApplication.MIXED_DEFORMATION_GRADIENT_DOT_ZY)
 
     def _add_dynamic_dofs(self):
         # Dynamic quantities are registered as nodal solution-step variables in

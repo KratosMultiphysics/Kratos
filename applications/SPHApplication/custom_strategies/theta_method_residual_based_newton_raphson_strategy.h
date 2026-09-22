@@ -103,29 +103,7 @@ protected:
         const int domain_size = r_process_info[DOMAIN_SIZE];
 
         const double one_minus_theta = 1.0 - theta;
-
-        const std::array<const Variable<double>*, 9> deformation_gradient_variables = {{
-            &DEFORMATION_GRADIENT_XX,
-            &DEFORMATION_GRADIENT_YY,
-            &DEFORMATION_GRADIENT_XY,
-            &DEFORMATION_GRADIENT_YX,
-            &DEFORMATION_GRADIENT_ZZ,
-            &DEFORMATION_GRADIENT_XZ,
-            &DEFORMATION_GRADIENT_YZ,
-            &DEFORMATION_GRADIENT_ZX,
-            &DEFORMATION_GRADIENT_ZY
-        }};
-        const std::array<const Variable<double>*, 9> deformation_gradient_rate_variables = {{
-            &DEFORMATION_GRADIENT_DOT_XX,
-            &DEFORMATION_GRADIENT_DOT_YY,
-            &DEFORMATION_GRADIENT_DOT_XY,
-            &DEFORMATION_GRADIENT_DOT_YX,
-            &DEFORMATION_GRADIENT_DOT_ZZ,
-            &DEFORMATION_GRADIENT_DOT_XZ,
-            &DEFORMATION_GRADIENT_DOT_YZ,
-            &DEFORMATION_GRADIENT_DOT_ZX,
-            &DEFORMATION_GRADIENT_DOT_ZY
-        }};
+        const std::array indices_2d = {0, 1, 3, 4}; // Active indicies for 2D deformation gradient components 
         
         const std::size_t number_of_deformation_gradient_components = domain_size == 2 ? 4 : 9;
 
@@ -154,17 +132,20 @@ protected:
                 r_current_position[component] = r_initial_position[component] + r_current_displacement[component];
             }
 
-            for (std::size_t component = 0; component < number_of_deformation_gradient_components; ++component) {
-                const auto& r_deformation_gradient_variable = *deformation_gradient_variables[component];
-                const auto& r_deformation_gradient_rate_variable = *deformation_gradient_rate_variables[component];
-                
-                const double previous_deformation_gradient = r_node.FastGetSolutionStepValue(r_deformation_gradient_variable, 1);
-                const double current_deformation_gradient = r_node.FastGetSolutionStepValue(r_deformation_gradient_variable);
-                const double previous_deformation_gradient_rate = r_node.FastGetSolutionStepValue(r_deformation_gradient_rate_variable, 1);
+            // Updarting the deformation gradient derivative components 
+            const auto& r_previous_F = r_node.FastGetSolutionStepValue(MIXED_DEFORMATION_GRADIENT, 1);
+            const auto& r_current_F = r_node.FastGetSolutionStepValue(MIXED_DEFORMATION_GRADIENT);
+            const auto& r_previous_F_dot = r_node.FastGetSolutionStepValue(MIXED_DEFORMATION_GRADIENT_DOT, 1);
+            auto& r_current_F_dot = r_node.FastGetSolutionStepValue(MIXED_DEFORMATION_GRADIENT_DOT);
 
-                // Updating deformation gradient rate using the theta method relations
-                r_node.FastGetSolutionStepValue(r_deformation_gradient_rate_variable) = 
-                    ((current_deformation_gradient - previous_deformation_gradient) / delta_time - one_minus_theta * previous_deformation_gradient_rate) / theta;
+            if (domain_size == 2) {
+                for (const auto idx : indices_2d) {
+                    r_current_F_dot[idx] = ((r_current_F[idx] - r_previous_F[idx]) / delta_time - one_minus_theta * r_previous_F_dot[idx]) / theta;
+                }
+            } else {
+                for (std::size_t idx = 0; idx < 9; ++idx) {
+                    r_current_F_dot[idx] = ((r_current_F[idx] - r_previous_F[idx]) / delta_time - one_minus_theta * r_previous_F_dot[idx]) / theta;
+                }
             }
         }
     }
