@@ -290,13 +290,7 @@ void FractionalStepDiscontinuous<TDim>::CalculateLocalPressureSystem(MatrixType&
         array_1d<double, TDim + 1> Ncontinuous;
         GeometryUtils::CalculateGeometryData(this->GetGeometry(), DN_DXcontinuous, Ncontinuous, Volume_tot);
 
-        // The full gradient has 3 components (DN_DX is 4x3); only the first
-        // TDim enter the projection below.
-        const array_1d<double, 3> grad_d_full = prod(trans(DN_DXcontinuous), distances);
-        array_1d<double, TDim> grad_d;
-        for (unsigned int i = 0; i < TDim; i++) {
-            grad_d[i] = grad_d_full[i];
-        }
+        array_1d<double, TDim> grad_d = prod(trans(DN_DXcontinuous), distances);
         grad_d /= norm_2(grad_d);
 
         double vn = grad_d[0] * vel[0];
@@ -685,12 +679,7 @@ void FractionalStepDiscontinuous<TDim>::CalculateLocalSystem(MatrixType& rLeftHa
 
 
 
-            // the geometry data is computed with the (tetrahedra) 3D sizes;
-            // only the first TDim components are used below
-            const array_1d<double, 3> normal_full = prod(trans(DN_DXcontinuous), distances);
-            array_1d<double, TDim> normal;
-            for (unsigned int d = 0; d < TDim; ++d)
-                normal[d] = normal_full[d];
+            array_1d<double, TDim> normal = prod(trans(DN_DXcontinuous), distances);
             normal /= norm_2(normal);
             //KRATOS_WATCH(normal)
             //compute the block diagonal parallel projection
