@@ -161,7 +161,11 @@ public:
 
         // Calculate system contributions in residual form.
         r_const_elem_ref.GetValuesVector(mAdjointValues[thread_id]);
-        noalias(rRHSContribution) -= prod(rLHS_Contribution, mAdjointValues[thread_id]);
+        // Entities without a LHS (the base Element/Condition default, e.g. the load
+        // conditions) return an empty matrix and hence an empty RHS: nothing to subtract.
+        if (rLHS_Contribution.size1() != 0) {
+            noalias(rRHSContribution) -= prod(rLHS_Contribution, mAdjointValues[thread_id]);
+        }
 
         r_const_elem_ref.EquationIdVector(rEquationId, rCurrentProcessInfo);
 
@@ -204,7 +208,11 @@ public:
 
         // Calculate system contributions in residual form.
         r_const_elem_ref.GetValuesVector(mAdjointValues[thread_id]);
-        noalias(rRHSContribution) -= prod(lhs, mAdjointValues[thread_id]);
+        // Entities without a LHS (the base Element/Condition default, e.g. the load
+        // conditions) return an empty matrix and hence an empty RHS: nothing to subtract.
+        if (lhs.size1() != 0) {
+            noalias(rRHSContribution) -= prod(lhs, mAdjointValues[thread_id]);
+        }
 
         r_const_elem_ref.EquationIdVector(rEquationId, rCurrentProcessInfo);
     }
@@ -231,7 +239,11 @@ public:
 
         // Calculate system contributions in residual form.
         r_const_cond_ref.GetValuesVector(mAdjointValues[thread_id]);
-        noalias(rRHSContribution) -= prod(rLHS_Contribution, mAdjointValues[thread_id]);
+        // Entities without a LHS (the base Element/Condition default, e.g. the load
+        // conditions) return an empty matrix and hence an empty RHS: nothing to subtract.
+        if (rLHS_Contribution.size1() != 0) {
+            noalias(rRHSContribution) -= prod(rLHS_Contribution, mAdjointValues[thread_id]);
+        }
 
         r_const_cond_ref.EquationIdVector(rEquationId, rCurrentProcessInfo);
 
@@ -274,7 +286,11 @@ public:
 
         // Calculate system contributions in residual form.
         r_const_elem_ref.GetValuesVector(mAdjointValues[thread_id]);
-        noalias(rRHSContribution) -= prod(lhs, mAdjointValues[thread_id]);
+        // Entities without a LHS (the base Element/Condition default, e.g. the load
+        // conditions) return an empty matrix and hence an empty RHS: nothing to subtract.
+        if (lhs.size1() != 0) {
+            noalias(rRHSContribution) -= prod(lhs, mAdjointValues[thread_id]);
+        }
 
         r_const_elem_ref.EquationIdVector(rEquationId, rCurrentProcessInfo);
     }

@@ -206,7 +206,7 @@ void SymbolicStokes<TElementData>::AddBoundaryTraction(
 
     // Compute some Gauss pt. auxiliar matrices
     const BoundedMatrix<double, Dim, StrainSize> aux_matrix_AC = prod(voigt_normal_projection_matrix, rData.C);
-    const BoundedMatrix<double, StrainSize, LocalSize> aux_matrix_ACB = prod(aux_matrix_AC, B_matrix);
+    const BoundedMatrix<double, Dim, LocalSize> aux_matrix_ACB = prod(aux_matrix_AC, B_matrix);
 
     // Fill the pressure to Voigt notation operator matrix
     BoundedMatrix<double, StrainSize, LocalSize> pres_to_voigt_matrix_op = ZeroMatrix(StrainSize, LocalSize);
