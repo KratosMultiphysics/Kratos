@@ -85,9 +85,10 @@ void PrepareLinearConstraintsForQuadraticContactProcess::ExecuteInitialize()
             }
         }
     }
-    for (auto& r_node : mrModelPart.Nodes()) {
+    // We reset the MARKER flag for all nodes in the model part
+    block_for_each(mrModelPart.Nodes(), [&](ModelPart::NodeType& r_node) {
         r_node.Set(MARKER, false);
-    }
+    });
 }
 
 } // namespace Kratos
