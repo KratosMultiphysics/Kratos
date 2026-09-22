@@ -45,8 +45,33 @@ namespace Kratos
 /**
  * @class PrepareLinearConstraintsForQuadraticContactProcess
  * @ingroup ContactStructuralMechanicsApplication
- * @brief Description of the process for preparing linear constraints for quadratic contact
- * @author Your Name
+ * @brief Prepares linear (master-slave) constraints for the mid-side nodes of quadratic
+ *        (second-order) triangle elements, as required for the quadratic contact formulation.
+ *
+ * In a second-order triangular element, the mid-side node displacement must be kept
+ * compatible with the two corner nodes of the same edge. This process enforces, for each
+ * such edge and for every displacement direction (X, Y, Z), the linear relation
+ *
+ *     d_mid = 0.5 * d_node0 + 0.5 * d_node1
+ *
+ * by creating a \p LinearMasterSlaveConstraint condition whose relation matrix is
+ * [0.5, 0.5] and whose constant term is zero.
+ *
+ * @details The process is executed in #ExecuteInitialize() and performs the following:
+ *  - Determines the next available condition ID by scanning the master-slave constraints
+ *    of the parent model part.
+ *  - Iterates over the geometries of the given model part. Geometries with six interface
+ *    points (flagged with #INTERFACE) are recognized as quadratic triangles.
+ *  - For each of the three edges of a quadratic triangle, a triple of constraints
+ *    (one per displacement DOF) is created coupling the mid-side node to the two
+ *    corner nodes.
+ *  - A transient #MARKER flag on the mid-side nodes is used to avoid creating
+ *    duplicate constraints for edges shared by adjacent elements.
+ *
+ * @note This process must be run after the interface nodes have been flagged with
+ *       #INTERFACE and before the solver is built.
+ *
+ * @author Alejandro Cornejo
  */
 class KRATOS_API(CONTACT_STRUCTURAL_MECHANICS_APPLICATION) PrepareLinearConstraintsForQuadraticContactProcess
     : public Process
