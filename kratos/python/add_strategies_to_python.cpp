@@ -560,10 +560,6 @@ namespace Kratos:: Python
         m.attr("SparseMatrix") = m.attr("CompressedMatrix");
         m.attr("SparseVector") = m.attr("Vector");
 
-        m.attr("SparseSpace") = m.attr("UblasSparseSpace");
-        m.attr("SparseMatrix") = m.attr("CompressedMatrix");
-        m.attr("SparseVector") = m.attr("Vector");
-
         auto cplx_sparse_space_binder = CreateSpaceInterface< ComplexSparseSpaceType >(m,"UblasComplexSparseSpace");
 
         //********************************************************************
