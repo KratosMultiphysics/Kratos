@@ -1,3 +1,20 @@
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
+//
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
+//
+//  Main authors:    Riccardo Rossi
+//
+
+// System includes
+
+// External includes
+
+// Project includes
 #include "fractional_step_discontinuous.h"
 #include "utilities/geometry_utilities.h"
 #include "includes/kratos_flags.h"
@@ -269,8 +286,8 @@ void FractionalStepDiscontinuous<TDim>::CalculateLocalPressureSystem(MatrixType&
         const Vector& distances = this->GetValue(ELEMENTAL_DISTANCES);
 
         double Volume_tot;
-        BoundedMatrix<double, 4, 3 > DN_DXcontinuous;
-        array_1d<double, 4 > Ncontinuous;
+        BoundedMatrix<double, TDim + 1, TDim> DN_DXcontinuous;
+        array_1d<double, TDim + 1> Ncontinuous;
         GeometryUtils::CalculateGeometryData(this->GetGeometry(), DN_DXcontinuous, Ncontinuous, Volume_tot);
 
         // The full gradient has 3 components (DN_DX is 4x3); only the first
@@ -649,8 +666,8 @@ void FractionalStepDiscontinuous<TDim>::CalculateLocalSystem(MatrixType& rLeftHa
         {
 
             double Volume_tot;
-            BoundedMatrix<double, 4, 3 > DN_DXcontinuous;
-            array_1d<double, 4 > Ncontinuous;
+            BoundedMatrix<double, TDim + 1, TDim> DN_DXcontinuous;
+            array_1d<double, TDim + 1> Ncontinuous;
             GeometryUtils::CalculateGeometryData(this->GetGeometry(), DN_DXcontinuous, Ncontinuous, Volume_tot);
 
             const array_1d<double, 3 > & embedded_vel = this->GetValue(EMBEDDED_VELOCITY);

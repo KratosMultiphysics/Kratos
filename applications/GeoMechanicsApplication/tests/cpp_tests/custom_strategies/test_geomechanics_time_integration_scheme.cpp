@@ -99,9 +99,9 @@ public:
     template <class T>
     void TestFunctionCallOnAllComponents_AreOnlyCalledForActiveComponents()
     {
-        CompressedMatrix A;
-        Vector           Dx;
-        Vector           b;
+        SparseSpaceType::MatrixType A;
+        SparseSpaceType::VectorType           Dx;
+        SparseSpaceType::VectorType           b;
 
         auto functions_and_checks = CreateFunctionsAndChecksCalledOnAllComponents<T>(A, Dx, b);
 
@@ -127,7 +127,7 @@ public:
 
     template <class T>
     std::vector<std::pair<std::function<void()>, std::function<bool(const Kratos::intrusive_ptr<T> rElement)>>> CreateFunctionsAndChecksCalledOnAllComponents(
-        CompressedMatrix& A, Vector& Dx, Vector& b)
+        SparseSpaceType::MatrixType& A, SparseSpaceType::VectorType& Dx, SparseSpaceType::VectorType& b)
     {
         std::vector<std::pair<std::function<void()>, std::function<bool(const Kratos::intrusive_ptr<T> rElement)>>> functions_and_checks;
 
@@ -242,9 +242,9 @@ void TestUpdateForNumberOfThreads(int NumberOfThreads)
 {
     GeoMechanicsSchemeTester tester;
     tester.Setup();
-    CompressedMatrix         A;
-    Vector                   Dx = ZeroVector(3);
-    Vector                   b;
+    SparseSpaceType::MatrixType         A;
+    SparseSpaceType::VectorType                   Dx = ZeroVector(3);
+    SparseSpaceType::VectorType                   b;
     ModelPart::DofsArrayType dofs_array;
 
     ParallelUtilities::SetNumThreads(NumberOfThreads);
