@@ -29,6 +29,9 @@ class TestDataValuesControl_nodal_historical(kratos_unittest.TestCase):
                         "filter_radius": 1e-10
                     }
             },
+            "projection_settings": {
+                "type": "clamping_projection"
+            },
             "model_part_names": [
                 {
                     "primal_model_part_name" : "Structure",
@@ -149,6 +152,9 @@ class TestDataValuesControl_condition(kratos_unittest.TestCase):
                         "filter_radius_type": "constant",
                         "filter_radius": 1e-10
                     }
+            },
+            "projection_settings": {
+                "type": "clamping_projection"
             },
             "model_part_names": [
                 {

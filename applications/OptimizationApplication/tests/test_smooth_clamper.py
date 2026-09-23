@@ -1,6 +1,6 @@
 import numpy as np
 import KratosMultiphysics as Kratos
-import KratosMultiphysics.SystemIdentificationApplication as KratosSI
+import KratosMultiphysics.OptimizationApplication as KratosOA
 import KratosMultiphysics.KratosUnittest as UnitTest
 
 class TestSmoothClamper(UnitTest.TestCase):
@@ -20,7 +20,7 @@ class TestSmoothClamper(UnitTest.TestCase):
         cls.x_ta = Kratos.TensorAdaptors.VariableTensorAdaptor(cls.model_part.Nodes, Kratos.PRESSURE)
         cls.x_ta.Check()
         cls.x_ta.CollectData()
-        cls.clamper = KratosSI.SmoothClamper(-10, 10)
+        cls.clamper = KratosOA.ControlUtils.SmoothClamper(-10, 10)
 
     def test_Clamp(self) -> None:
         y = self.clamper.ProjectForward(self.x_ta)
