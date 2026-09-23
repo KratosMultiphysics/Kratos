@@ -148,6 +148,34 @@ KRATOS_TEST_CASE_IN_SUITE(SerializerUnsignedInt, KratosCoreFastSuite)
     TestObjectSerialization(object_to_be_saved, object_to_be_loaded);
 }
 
+KRATOS_TEST_CASE_IN_SUITE(SerializerUnsignedChar, KratosCoreFastSuite)
+{
+    unsigned char object_to_be_saved = 42;
+    unsigned char object_to_be_loaded;
+
+    TestObjectSerialization(object_to_be_saved, object_to_be_loaded);
+}
+
+// ASCII (trace) mode used to write unsigned char as a raw character, so on read operator>> skipped
+// whitespace bytes such as 32 (' '), corrupting the value and misaligning the stream.
+KRATOS_TEST_CASE_IN_SUITE(SerializerUnsignedCharAsciiTrace, KratosCoreFastSuite)
+{
+    StreamSerializer serializer(Serializer::SERIALIZER_TRACE_ALL);
+
+    const unsigned char space_value = 32;
+    const unsigned char ordinary_value = 200;
+    unsigned char loaded_space_value;
+    unsigned char loaded_ordinary_value;
+
+    serializer.save("SpaceValue", space_value);
+    serializer.save("OrdinaryValue", ordinary_value);
+    serializer.load("SpaceValue", loaded_space_value);
+    serializer.load("OrdinaryValue", loaded_ordinary_value);
+
+    KRATOS_EXPECT_EQ(loaded_space_value, space_value);
+    KRATOS_EXPECT_EQ(loaded_ordinary_value, ordinary_value);
+}
+
 KRATOS_TEST_CASE_IN_SUITE(SerializerStdString, KratosCoreFastSuite)
 {
     std::string object_to_be_saved = "MyStringToBeSerialized";

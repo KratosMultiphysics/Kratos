@@ -576,6 +576,7 @@ public:
     }
 
     KRATOS_SERIALIZATION_DIRECT_LOAD(bool)
+    KRATOS_SERIALIZATION_DIRECT_LOAD(unsigned char)
     KRATOS_SERIALIZATION_DIRECT_LOAD(int)
     KRATOS_SERIALIZATION_DIRECT_LOAD(long)
     KRATOS_SERIALIZATION_DIRECT_LOAD(double)
@@ -825,6 +826,7 @@ public:
     }
 
     KRATOS_SERIALIZATION_DIRECT_SAVE(bool)
+    KRATOS_SERIALIZATION_DIRECT_SAVE(unsigned char)
     KRATOS_SERIALIZATION_DIRECT_SAVE(int)
     KRATOS_SERIALIZATION_DIRECT_SAVE(long)
     KRATOS_SERIALIZATION_DIRECT_SAVE(double)
@@ -1182,6 +1184,37 @@ private:
         KRATOS_SERIALIZER_MODE_ASCII
 
         *mpBuffer << int(rValue) << std::endl;
+
+        KRATOS_SERIALIZER_MODE_END
+    }
+
+    void read(unsigned char& rValue)
+    {
+        KRATOS_SERIALIZER_MODE_BINARY
+
+        mpBuffer->read(reinterpret_cast<char*>(&rValue), sizeof(unsigned char));
+
+        KRATOS_SERIALIZER_MODE_ASCII
+
+        // iostream treats unsigned char as a character: a whitespace byte (e.g. 32 = ' ') would be
+        // skipped on read, corrupting the value and the rest of the stream. Stream it as unsigned.
+        unsigned temp;
+        *mpBuffer >> temp;
+        rValue = static_cast<unsigned char>(temp);
+        mNumberOfLines++;
+
+        KRATOS_SERIALIZER_MODE_END
+    }
+
+    void write(unsigned char const& rValue)
+    {
+        KRATOS_SERIALIZER_MODE_BINARY
+
+        mpBuffer->write(reinterpret_cast<const char*>(&rValue), sizeof(unsigned char));
+
+        KRATOS_SERIALIZER_MODE_ASCII
+
+        *mpBuffer << static_cast<unsigned>(rValue) << std::endl;
 
         KRATOS_SERIALIZER_MODE_END
     }

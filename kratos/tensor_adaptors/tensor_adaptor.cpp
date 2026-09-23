@@ -14,6 +14,7 @@
 #include <string>
 #include <atomic>
 #include <variant>
+#include <utility>
 #include <numeric>
 
 // External includes
@@ -115,6 +116,7 @@ bool TensorAdaptor<TDataType>::HasContainer() const
 template<class TDataType>
 Kratos::span<const TDataType> TensorAdaptor<TDataType>::ViewData() const
 {
+    KRATOS_ERROR_IF_NOT(mpStorage) << "Uninitialized TensorAdaptor (default-constructed, only valid as a Serializer load target).\n";
     const auto& storage = *mpStorage;
     return storage.ViewData();
 }
@@ -122,12 +124,14 @@ Kratos::span<const TDataType> TensorAdaptor<TDataType>::ViewData() const
 template<class TDataType>
 Kratos::span<TDataType> TensorAdaptor<TDataType>::ViewData()
 {
+    KRATOS_ERROR_IF_NOT(mpStorage) << "Uninitialized TensorAdaptor (default-constructed, only valid as a Serializer load target).\n";
     return mpStorage->ViewData();
 }
 
 template<class TDataType>
 DenseVector<unsigned int> TensorAdaptor<TDataType>::Shape() const
 {
+    KRATOS_ERROR_IF_NOT(mpStorage) << "Uninitialized TensorAdaptor (default-constructed, only valid as a Serializer load target).\n";
     return mpStorage->Shape();
 }
 
@@ -143,6 +147,7 @@ DenseVector<unsigned int> TensorAdaptor<TDataType>::DataShape() const
 template<class TDataType>
 unsigned int TensorAdaptor<TDataType>::Size() const
 {
+    KRATOS_ERROR_IF_NOT(mpStorage) << "Uninitialized TensorAdaptor (default-constructed, only valid as a Serializer load target).\n";
     return mpStorage->Size();
 }
 
@@ -166,6 +171,51 @@ std::string TensorAdaptor<TDataType>::Info() const
         info << "Storage with with shape = " << this->Shape();
     }
     return info.str();
+}
+
+template<class TDataType>
+void TensorAdaptor<TDataType>::save(Serializer& rSerializer) const
+{
+    rSerializer.save("Storage", mpStorage);
+
+    const bool has_container = mpContainer.has_value();
+    rSerializer.save("HasContainer", has_container);
+    if (has_container) {
+        const std::size_t index = mpContainer.value().index();
+        rSerializer.save("ContainerIndex", index);
+        std::visit([&rSerializer](auto pContainer) {
+            rSerializer.save("Container", pContainer);
+        }, mpContainer.value());
+    }
+}
+
+template<class TDataType>
+void TensorAdaptor<TDataType>::load(Serializer& rSerializer)
+{
+    rSerializer.load("Storage", mpStorage);
+
+    bool has_container;
+    rSerializer.load("HasContainer", has_container);
+    if (has_container) {
+        std::size_t index;
+        rSerializer.load("ContainerIndex", index);
+        KRATOS_ERROR_IF(index >= std::variant_size_v<ContainerPointerType>) << "Unknown tensor adaptor container variant index: " << index << std::endl;
+
+        // Reuse the existing container pointer if it holds the saved variant type: in DataOnly mode
+        // load(shared_ptr&) reads nothing into a null pointer, which would desync the stream and drop
+        // the preinitialized container. Only the fold branch with I == index runs.
+        [&]<std::size_t... I>(std::index_sequence<I...>) {
+            ([&] {
+                if (I != index) return;
+                std::variant_alternative_t<I, ContainerPointerType> p_container;
+                if (mpContainer.has_value() && mpContainer->index() == I) p_container = std::get<I>(*mpContainer);
+                rSerializer.load("Container", p_container);
+                mpContainer = ContainerPointerType(std::in_place_index<I>, p_container);
+            }(), ...);
+        }(std::make_index_sequence<std::variant_size_v<ContainerPointerType>>{});
+    } else {
+        mpContainer.reset();
+    }
 }
 
 // template instantiations

@@ -22,6 +22,7 @@
 // Project includes
 #include "includes/define.h"
 #include "includes/ublas_interface.h"
+#include "includes/serializer.h"
 
 namespace Kratos {
 
@@ -140,6 +141,13 @@ public:
     ///@{
 
     /**
+     * @brief Construct an empty, invalid instance.
+     * @details Only intended for @ref Serializer::load to construct into before populating via
+     *          @ref load. Any other use leaves the instance with a null internal data pointer.
+     */
+    NDData() = default;
+
+    /**
      * @brief Construct a new instance with a provided shape.
      * @details This constructor will only allocate memory for the given shape.
      * @warning The values will be uninitialized.
@@ -242,9 +250,19 @@ private:
     ///@name private member variables
     ///@{
 
-    const DenseVector<unsigned int> mShape;
+    DenseVector<unsigned int> mShape;
 
     typename PointerWrapper::Pointer mpData;
+
+    ///@}
+    ///@name Serialization
+    ///@{
+
+    friend class Serializer;
+
+    void save(Serializer& rSerializer) const;
+
+    void load(Serializer& rSerializer);
 
     ///@}
 };

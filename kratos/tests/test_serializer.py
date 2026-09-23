@@ -213,5 +213,53 @@ class TestSerializer(KratosUnittest.TestCase):
         comparator(model_1, model_2, 1.0)
 
 
+    def test_TensorAdaptorSerialization(self):
+        model = KratosMultiphysics.Model()
+        model_part = model.CreateModelPart("Test")
+        model_part.AddNodalSolutionStepVariable(KratosMultiphysics.TEMPERATURE)
+        for i in range(3):
+            node = model_part.CreateNewNode(i + 1, float(i), 0.0, 0.0)
+            node.SetValue(KratosMultiphysics.PRESSURE, i + 1.0)
+            node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE, 10.0 * (i + 1))
+
+        ta = KratosMultiphysics.TensorAdaptors
+        variable_ta = ta.VariableTensorAdaptor(model_part.Nodes, KratosMultiphysics.PRESSURE)
+        variable_ta.CollectData()
+        historical_ta = ta.HistoricalVariableTensorAdaptor(model_part.Nodes, KratosMultiphysics.TEMPERATURE)
+        historical_ta.CollectData()
+        combined = ta.DoubleCombinedTensorAdaptor([variable_ta, historical_ta], False, False, False)
+        combined.CollectData()
+
+        serializer = KratosMultiphysics.StreamSerializer()
+        serializer.Set(KratosMultiphysics.Serializer.SHALLOW_GLOBAL_POINTERS_SERIALIZATION)
+        serializer.Save("Model", model)
+        serializer.Save("Variable", variable_ta)
+        serializer.Save("Combined", combined)
+
+        loaded_model = KratosMultiphysics.Model()
+        loaded_variable = ta.VariableTensorAdaptor()
+        loaded_combined = ta.DoubleCombinedTensorAdaptor()
+        serializer.Load("Model", loaded_model)
+        serializer.Load("Variable", loaded_variable)
+        serializer.Load("Combined", loaded_combined)
+
+        self.assertVectorAlmostEqual(loaded_variable.data, variable_ta.data)
+        self.assertVectorAlmostEqual(loaded_combined.data, combined.data)
+        children = loaded_combined.GetTensorAdaptors()
+        self.assertIsInstance(children[0], ta.VariableTensorAdaptor)
+        self.assertIsInstance(children[1], ta.HistoricalVariableTensorAdaptor)
+
+        # the container must point into the loaded model, not a copy: StoreData() changes the
+        # loaded nodes and leaves the original model untouched.
+        loaded_variable.data[:] = [7.0, 8.0, 9.0]
+        loaded_variable.StoreData()
+        loaded_model_part = loaded_model.GetModelPart("Test")
+        self.assertEqual([node.GetValue(KratosMultiphysics.PRESSURE) for node in loaded_model_part.Nodes], [7.0, 8.0, 9.0])
+        self.assertEqual([node.GetValue(KratosMultiphysics.PRESSURE) for node in model_part.Nodes], [1.0, 2.0, 3.0])
+
+    def test_UninitializedTensorAdaptor(self):
+        with self.assertRaisesRegex(RuntimeError, "Uninitialized TensorAdaptor"):
+            KratosMultiphysics.TensorAdaptors.DoubleTensorAdaptor().Shape()
+
 if __name__ == '__main__':
     KratosUnittest.main()
