@@ -17,7 +17,8 @@ class MeshioOutputProcess(KratosMultiphysics.OutputProcess):
 
     It wraps KratosMeshioPlusPlus.MeshioPlusPlusIO: every output step calls
     WriteModelPart, which extends the current output instead of overwriting it
-    (an XDMF temporal collection in a single file, or a file series
+    (an XDMF temporal collection or VTKHDF Steps in a single file, a PVD
+    collection indexing one .vtu per step, or a file series
     <output_name>_<label>.<ext> for the other formats).
 
     The format is taken from the "format" setting, or resolved from the
@@ -58,6 +59,10 @@ class MeshioOutputProcess(KratosMultiphysics.OutputProcess):
                     "gid_mode", "gid_analysis_name",
                     "xdmf_data_format",
                     "xdmf_auto_flush", "xdmf_gzip_level",
+                    "vtkhdf_gzip_level",
+                    "openfoam_label_bits", "openfoam_scalar_bits",
+                    "pcd_compressed", "pcd_float64_points",
+                    "gltf_settings",
                     "nodal_solution_step_data_variables", "nodal_data_value_variables",
                     "nodal_flags",
                     "element_data_value_variables", "element_flags",
@@ -98,6 +103,12 @@ class MeshioOutputProcess(KratosMultiphysics.OutputProcess):
             "xdmf_data_format"                            : "auto",
             "xdmf_auto_flush"                             : true,
             "xdmf_gzip_level"                             : -1,
+            "vtkhdf_gzip_level"                           : 4,
+            "openfoam_label_bits"                         : 32,
+            "openfoam_scalar_bits"                        : 64,
+            "pcd_compressed"                              : false,
+            "pcd_float64_points"                          : false,
+            "gltf_settings"                               : {},
             "nodal_solution_step_data_variables"          : [],
             "nodal_data_value_variables"                  : [],
             "nodal_flags"                                 : [],
