@@ -9,12 +9,9 @@ import KratosMultiphysics
 
 # --- HDF5 Imports ---
 import KratosMultiphysics.HDF5Application as KratosHDF5
-from ..utils import ParametersWrapper
-from ..utils import EvaluatePattern
-from ..file_io import OpenHDF5File
+from ..pattern import EvaluatePattern
 
 # --- STD Imports ---
-from importlib import import_module
 import sys
 import typing
 #import abc
@@ -79,9 +76,9 @@ class ModelPartIOOperation(IOOperation):
     @classmethod
     def GetDefaultParameters(cls) -> KratosMultiphysics.Parameters:
         return KratosMultiphysics.Parameters("""{
-            "prefix"        : "/ModelData",
-            "time_format"   : "0.4f",
-            "operation_type": ""
+            "prefix"           : "/ModelData",
+            "time_format"      : "0.4f",
+            "custom_attributes": {}
         }""")
 
 
@@ -150,9 +147,8 @@ class VariableOutputOperation(IOOperation):
         return KratosMultiphysics.Parameters("""{
             "prefix"           : "/ResultsData",
             "list_of_variables": [],
-            "custom_attributes": {},
             "time_format"      : "0.4f",
-            "operation_type"   : ""
+            "custom_attributes": {}
         }""")
 
 class VariableInputOperation(IOOperation):
@@ -178,8 +174,7 @@ class VariableInputOperation(IOOperation):
         return KratosMultiphysics.Parameters("""{
             "prefix"           : "/ResultsData",
             "list_of_variables": [],
-            "time_format"      : "0.4f",
-            "operation_type"   : ""
+            "time_format"      : "0.4f"
         }""")
 
     @property
@@ -231,8 +226,7 @@ class PrimalBossakOutput(VariableOutputOperation):
             "list_of_variables": [],
             "custom_attributes": {},
             "time_format"      : "0.4f",
-            "alpha_bossak"     : -0.3,
-            "operation_type"   : ""
+            "alpha_bossak"     : -0.3
         }""")
 
 
@@ -258,75 +252,3 @@ class MoveMesh(ModelPartIOOperation):
 
     def Execute(self) -> None:
         KratosMultiphysics.ImplicitSolvingStrategy(self.model_part, True).MoveMesh()
-
-
-def GetSubclasses(base_class: type) -> "list[type]":
-    """Recursively find all subclasses of a base class"""
-    subclasses = base_class.__subclasses__()
-    for subclass in base_class.__subclasses__():
-        subclasses += GetSubclasses(subclass)
-    return subclasses
-
-
-class AggregateOperation(KratosMultiphysics.Operation):
-    """ @brief Class for aggregating HDF5 IO operations on the same file."""
-
-    def __init__(self, model: KratosMultiphysics.Model, parameters: typing.Union[KratosMultiphysics.Parameters, ParametersWrapper]):
-        super().__init__()
-        if isinstance(parameters, ParametersWrapper):
-            parameters = parameters.Get()
-        parameters.AddMissingParameters(self.GetDefaultParameters())
-
-        self.__model_part = model.GetModelPart(parameters["model_part_name"].GetString())
-        self.__io_parameters = parameters["io_settings"]
-
-        # {operation_type, operation_parameters}
-        self.__operations: "list[tuple[type, KratosMultiphysics.Parameters]]" = []
-        for i in range(parameters["list_of_operations"].size()):
-            self.__Add(parameters["list_of_operations"][i])
-
-    def Execute(self) -> None:
-        with OpenHDF5File(self.__io_parameters, self.__model_part) as file:
-            for operation, operation_parameters in self.__operations:
-                operation(self.__model_part, operation_parameters, file).Execute()
-
-    def __Add(self, operation_parameters: KratosMultiphysics.Parameters) -> None:
-        # Convert input snake case name to the internal camel case name
-        operation_type = KratosMultiphysics.StringUtilities.ConvertSnakeCaseToCamelCase(operation_parameters["operation_type"].GetString())
-        operation: typing.Type[IOOperation] = next((op for op in GetSubclasses(IOOperation) if op.__name__ == operation_type), None)
-
-        # Found an operation with a matching name
-        if not (operation is None):
-            operation_parameters.AddMissingParameters(operation.GetDefaultParameters())
-            self.__operations.append((operation, operation_parameters))
-
-        # No operation with the specified name in this scope
-        else:
-            if operation_parameters.Has("module_name"):
-                module_name = operation_parameters["module_name"].GetString()
-                module = import_module(f"KratosMultiphysics.HDF5Application.core.{module_name}")
-                operation = module.Create(operation_parameters)
-
-            if operation is None:
-                raise ValueError(f"Invalid operation type '{operation_parameters['operation_type'].GetString()}'. Available options: {[KratosMultiphysics.StringUtilities.ConvertCamelCaseToSnakeCase(op.__name__) for op in GetSubclasses(IOOperation)]}")
-            else:
-                self.__operations.append((operation, operation_parameters))
-
-    @classmethod
-    def GetDefaultParameters(cls: "typing.Type[AggregateOperation]") -> KratosMultiphysics.Parameters:
-        return KratosMultiphysics.Parameters("""{
-            "model_part_name" : "",
-            "list_of_operations" : [],
-            "io_settings" : {}
-        }""")
-
-
-def Create(model: KratosMultiphysics.Model, settings: typing.Union[KratosMultiphysics.Parameters, ParametersWrapper]) -> AggregateOperation:
-    '''Return the operation factory specified by the setting 'operation_type'.
-
-    If the 'operation_type' is not found and the settings have a 'module_name',
-    the module is imported and used to create the operation. If 'module_name'
-    is not found, an exception is raised. Empty settings will contain default
-    values after returning from the function call.
-    '''
-    return AggregateOperation(model, settings)
