@@ -7,11 +7,13 @@ class MeshioOperationModeler(KratosMultiphysics.Modeler):
 
     The operation is selected with the "operation" setting, and its own settings are
     passed through in "operation_settings" - including "clean", "transform", "convert_cells",
-    "refine", "decimate", "smooth", "reorder", "extract_surface", "extract_skin", "crop_bbox",
-    "crop_halfspace", "crop_predicate", "slice", "isosurface", "attach_quality", "gradient",
-    "hessian", "estimate_error", "curvature", "repair", "sobolev_deform", "voxelize",
-    "compute_sdf", "split", "partition", "stats", "quality", and the data operations
-    "data_calc", "data_condition", "data_manage", "data_info", "point_data_to_cell_data",
+    "refine", "subdivide", "agglomerate", "decimate", "decimate_volume", "remesh",
+    "remesh_volume", "optimize_volume", "smooth", "reorder", "extract_surface", "extract_skin",
+    "crop_bbox", "crop_halfspace", "crop_predicate", "slice", "isosurface", "attach_quality",
+    "gradient", "hessian", "estimate_error", "curvature", "compute_normals", "repair",
+    "sobolev_deform", "voxelize", "compute_sdf", "split", "partition", "stats", "quality", and
+    the data operations "data_calc", "data_condition", "data_manage", "data_info",
+    "data_integrate", "tensor_invariants", "point_data_to_cell_data",
     "cell_data_to_point_data". Query what this build supports with
     KratosMeshioPlusPlus.MeshioPlusPlusMeshOperations.GetSupportedOperations(), and the
     available settings with GetDefaultParameters(). "interpolate" is not reachable here - it

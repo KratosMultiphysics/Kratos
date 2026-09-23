@@ -14,7 +14,11 @@ class MeshioInputModeler(KratosMultiphysics.Modeler):
     multi-step file for the formats meshio++ reads selectively; "lenient"
     (default false) downgrades an unrepresentable mdpa/med construct to a
     warning instead of an error; "openfoam_region" (default "") selects one
-    region of a multi-region OpenFOAM case. See MeshioPlusPlusIO.ReadModelPart.
+    region of a multi-region OpenFOAM case. A partitioned file (vtkhdf, pvtu,
+    pvtp, pvd, vtm) is read whole unless "select_piece" (default false) picks
+    piece "piece" (default 0, negative counts from the end); "ghosts" ("keep"
+    or "drop") removes the halo cells of a pvtu/pvtp/pvd. See
+    MeshioPlusPlusIO.ReadModelPart.
     """
 
     def __init__(self, model, settings):
@@ -46,6 +50,9 @@ class MeshioInputModeler(KratosMultiphysics.Modeler):
         io_settings.AddInt("time_step", self.settings["time_step"].GetInt())
         io_settings.AddBool("lenient", self.settings["lenient"].GetBool())
         io_settings.AddString("openfoam_region", self.settings["openfoam_region"].GetString())
+        io_settings.AddBool("select_piece", self.settings["select_piece"].GetBool())
+        io_settings.AddInt("piece", self.settings["piece"].GetInt())
+        io_settings.AddString("ghosts", self.settings["ghosts"].GetString())
         meshio_io = KratosMeshioPlusPlus.MeshioPlusPlusIO(
             self.settings["input_filename"].GetString(),
             io_settings)
@@ -66,7 +73,10 @@ class MeshioInputModeler(KratosMultiphysics.Modeler):
             "model_part_name"  : "",
             "time_step"        : 0,
             "lenient"          : false,
-            "openfoam_region"  : ""
+            "openfoam_region"  : "",
+            "select_piece"     : false,
+            "piece"            : 0,
+            "ghosts"           : "keep"
         }''')
         return default_settings
 
