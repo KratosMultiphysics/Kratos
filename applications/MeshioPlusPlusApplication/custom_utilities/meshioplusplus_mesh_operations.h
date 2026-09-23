@@ -39,7 +39,8 @@ namespace Kratos
  * re-implements the staging.
  *
  * Operations fall into two groups:
- *  - mesh-producing (clean, transform, refine, remesh, ...): the result is written into the
+ *  - mesh-producing (clean, transform, refine, remesh, compute_normals, tensor_invariants,
+ *    ...): the result is written into the
  *    destination model part, and the returned @ref Parameters carry the operation's own
  *    report (counts, tolerances actually applied, ...);
  *  - report-only (stats, quality, diff, data_info, data_integrate): the destination is left
@@ -66,7 +67,9 @@ namespace Kratos
  * whose component count agrees - an operation's own invented array names never carry
  * through (see @ref Internals::MeshToModelPart), which is the one thing to know before
  * relying on "data_calc"'s "output" setting or similar: point it at an existing variable
- * name to get the result back into Kratos.
+ * name to get the result back into Kratos. "compute_normals" names its result "normals" and
+ * "tensor_invariants" <name>_mises, <name>_principal, ... - "output" = "NORMAL" and a
+ * "prefix"/"output_suffix" that lands on a registered variable are the ways back.
  *
  * @note meshio++ is serial: these operations do not support distributed model parts. The
  * intended distributed workflow is "partition" with ghost layers feeding an MPI assembly.

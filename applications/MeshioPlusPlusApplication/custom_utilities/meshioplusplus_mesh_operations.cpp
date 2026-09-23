@@ -45,6 +45,7 @@
 #include "meshioplusplus/operations/interpolate.hpp"
 #include "meshioplusplus/operations/isosurface.hpp"
 #include "meshioplusplus/operations/merge.hpp"
+#include "meshioplusplus/operations/normals.hpp"
 #include "meshioplusplus/operations/optimize_volume.hpp"
 #include "meshioplusplus/operations/partition.hpp"
 #include "meshioplusplus/operations/quality.hpp"
@@ -62,6 +63,7 @@
 #include "meshioplusplus/operations/stats.hpp"
 #include "meshioplusplus/operations/subdivide.hpp"
 #include "meshioplusplus/operations/surface.hpp"
+#include "meshioplusplus/operations/tensor_invariants.hpp"
 #include "meshioplusplus/operations/transform.hpp"
 #include "meshioplusplus/operations/voxelize.hpp"
 
@@ -80,13 +82,14 @@ namespace
 const std::vector<std::string>& OperationNames()
 {
     static const std::vector<std::string> names = {
-        "agglomerate", "attach_quality", "cell_data_to_point_data", "clean", "compute_sdf",
-        "convert_cells", "crop_bbox", "crop_halfspace", "crop_predicate", "curvature",
-        "data_calc", "data_condition", "data_info", "data_integrate", "data_manage", "decimate",
-        "decimate_volume", "estimate_error", "extract_skin", "extract_surface", "gradient",
-        "hessian", "isosurface", "optimize_volume", "partition", "point_data_to_cell_data",
-        "quality", "refine", "remesh", "remesh_volume", "reorder", "repair", "slice", "smooth",
-        "sobolev_deform", "split", "stats", "subdivide", "transform", "voxelize"
+        "agglomerate", "attach_quality", "cell_data_to_point_data", "clean", "compute_normals",
+        "compute_sdf", "convert_cells", "crop_bbox", "crop_halfspace", "crop_predicate",
+        "curvature", "data_calc", "data_condition", "data_info", "data_integrate", "data_manage",
+        "decimate", "decimate_volume", "estimate_error", "extract_skin", "extract_surface",
+        "gradient", "hessian", "isosurface", "optimize_volume", "partition",
+        "point_data_to_cell_data", "quality", "refine", "remesh", "remesh_volume", "reorder",
+        "repair", "slice", "smooth", "sobolev_deform", "split", "stats", "subdivide",
+        "tensor_invariants", "transform", "voxelize"
     };
     return names;
 }
@@ -562,6 +565,14 @@ Parameters MeshioPlusPlusMeshOperations::GetDefaultParameters()
         "include_boundary"                             : false,
         "record_area"                                  : false,
         "record_principal"                             : false,
+
+        "point_normals"                                : true,
+        "cell_normals"                                 : false,
+        "normal_weight"                                : "angle",
+        "split"                                        : false,
+        "split_angle"                                  : 30.0,
+
+        "invariants"                                   : ["all"],
 
         "resolution"                                   : [],
         "cell_size"                                    : -1.0,
@@ -1039,6 +1050,65 @@ Parameters MeshioPlusPlusMeshOperations::Execute(
         RenameResultArray(result.mMesh, mio::DataLocation::Point, mio::kCurvatureMeanName,
                           Settings["output"].GetString());
         StoreResult(result.mMesh, rDestination);
+
+    } else if (operation == "compute_normals") {
+        // Unit normals of a surface: per point (the angle/area/uniform-weighted average of the
+        // incident faces) and optionally per cell. With "split" the points where the surface
+        // creases by more than "split_angle" degrees are duplicated so that every point carries
+        // one normal - the added nodes follow the originals and "record_parent_ids" names the
+        // node each copy came from. A volume mesh is refused by name upstream (run
+        // "extract_surface" first). "output" renames the "normals" array(s), e.g. to NORMAL.
+        mio::NormalsOptions options;
+        options.mPointNormals = Settings["point_normals"].GetBool();
+        options.mCellNormals = Settings["cell_normals"].GetBool();
+        options.mWeight = mio::sdf_weight_from_name(Settings["normal_weight"].GetString());
+        options.mSplit = Settings["split"].GetBool();
+        options.mSplitAngle = Settings["split_angle"].GetDouble();
+        options.mRecordParentIds = Settings["record_parent_ids"].GetBool();
+        options.mRegion = Settings["region"].GetString();
+        mio::NormalsResult result = mio::compute_normals(mesh, options);
+        report.AddValue("surface_quality", SurfaceQualityReport(result.mQuality));
+        report.AddInt("number_of_isolated", static_cast<int>(result.mNumIsolated));
+        report.AddInt("number_of_undefined", static_cast<int>(result.mNumUndefined));
+        report.AddInt("number_of_degenerate", static_cast<int>(result.mNumDegenerate));
+        report.AddInt("number_of_split_points", static_cast<int>(result.mNumSplitPoints));
+        report.AddInt("number_of_added_points", static_cast<int>(result.mNumAddedPoints));
+        RenameResultArray(result.mMesh, mio::DataLocation::Point, mio::kNormalsName,
+                          Settings["output"].GetString());
+        RenameResultArray(result.mMesh, mio::DataLocation::Cell, mio::kNormalsName,
+                          Settings["output"].GetString());
+        StoreResult(result.mMesh, rDestination);
+
+    } else if (operation == "tensor_invariants") {
+        // Von Mises, principal values (ascending), hydrostatic and deviatoric parts of each
+        // six- (xx yy zz xy yz zx) or nine-component (row-major 3x3) array in "names", at the
+        // "location". "invariants" picks the outputs ("mises", "principal", "hydrostatic",
+        // "deviatoric" or "all"); the result arrays are named <prefix><name>_<invariant>
+        // <output_suffix>, with the same "prefix"/"output_suffix"/"overwrite" keys the
+        // data-averaging operations use. None of those names is a Kratos Variable, so
+        // "rename" (data_manage's {"location", "from", "to"} list) is applied to the result -
+        // the way to land e.g. "CAUCHY_STRESS_VECTOR_mises" on VON_MISES_STRESS.
+        const auto invariant_names = Settings["invariants"].GetStringArray();
+        KRATOS_ERROR_IF(invariant_names.empty())
+            << "\"tensor_invariants\" needs at least one entry in \"invariants\"" << std::endl;
+        unsigned outputs = 0;
+        for (const auto& r_name : invariant_names) {
+            outputs |= static_cast<unsigned>(mio::tensor_invariant_from_name(r_name));
+        }
+        mio::TensorInvariantsOptions options;
+        options.location = mio::data_location_from_name(Settings["location"].GetString());
+        options.names = Settings["names"].GetStringArray();
+        options.outputs = static_cast<mio::TensorInvariant>(outputs);
+        options.prefix = Settings["prefix"].GetString();
+        options.suffix = Settings["output_suffix"].GetString();
+        options.overwrite = Settings["overwrite"].GetBool();
+        mio::Mesh result = mio::tensor_invariants(mesh, options);
+        if (Settings["rename"].size() > 0) {
+            mio::DataManageOptions rename_options;
+            rename_options.rename = ReadDataRenames(Settings["rename"]);
+            result = mio::data_manage(result, rename_options).mMesh;
+        }
+        StoreResult(result, rDestination);
 
     } else if (operation == "voxelize") {
         mio::VoxelOptions options;
