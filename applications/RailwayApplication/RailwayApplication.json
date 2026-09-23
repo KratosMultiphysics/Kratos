@@ -1,0 +1,11 @@
+{
+	"wheel_name": "KratosRailway",
+	"included_modules": ["RailwayApplication"],
+	"included_binaries": ["RailwayApplication.*", "KratosRailwayCore.*", "libKratosRailwayCore.*"],
+    "excluded_binaries": [],
+	"dependencies": ["KratosMultiphysics==${KRATOS_VERSION}", "KratosStructuralMechanicsApplication==${KRATOS_VERSION}", "KratosLinearSolversApplication==${KRATOS_VERSION}", "KratosGeoMechanicsApplication==${KRATOS_VERSION}"],
+	"author": "Deltares",
+	"author_email": "aron.noordam@deltares.nl",
+	"description": "KRATOS Multiphysics (\"Kratos\") is a framework for building parallel, multi-disciplinary simulation software, aiming at modularity, extensibility, and high performance. Kratos is written in C++, and counts with an extensive Python interface.",
+	"readme": "applications/RailwayApplication/README.md"
+}
