@@ -6,7 +6,7 @@
 
 |            **Application**            |                                                                                                    **Description**                                                                                                    |                                              **Status**                                              |                                 **Authors**                                 |
 |:-------------------------------------:|:---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------:|:----------------------------------------------------------------------------------------------------:|:---------------------------------------------------------------------------:|
-| `MeshioPlusPlusApplication`           | The *Meshio++ Application* wraps the [meshio++](https://github.com/loumalouomega/meshioplusplus) library, bringing multi-format mesh input/output (46 readable, 49 writable formats) and a full mesh/data operations layer into *Kratos Multiphysics* | <img src="https://img.shields.io/badge/Status-%F0%9F%94%A7Maintained-blue"  width="300px"> | [*Vicente Mataix Ferrándiz*](mailto:vicente.mataix-ferrandiz@siemens.com) |
+| `MeshioPlusPlusApplication`           | The *Meshio++ Application* wraps the [meshio++](https://github.com/loumalouomega/meshioplusplus) library, bringing multi-format mesh input/output (57 readable, 59 writable formats) and a full mesh/data operations layer into *Kratos Multiphysics* | <img src="https://img.shields.io/badge/Status-%F0%9F%94%A7Maintained-blue"  width="300px"> | [*Vicente Mataix Ferrándiz*](mailto:vicente.mataix-ferrandiz@siemens.com) |
 
 The application includes tests to check the proper functioning of the application.
 
@@ -14,7 +14,7 @@ The application includes tests to check the proper functioning of the applicatio
 
 - **Multi-format mesh input/output through `MeshioPlusPlusIO`**
 
-    * *46 readable and 49 writable formats, including the Kratos native `mdpa` and the GiD postprocess format*
+    * *57 readable and 59 writable formats, including the Kratos native `mdpa`, the GiD postprocess format, the ParaView `pvtu`/`pvtp`/`pvd` indexes, VTKHDF, LS-DYNA and Code_Aster decks, CalculiX and MSC Nastran HDF5 results, point clouds and glTF*
 
     * *Format resolved explicitly or inferred from the file extension*
 
@@ -24,15 +24,19 @@ The application includes tests to check the proper functioning of the applicatio
 
     * *`Properties` material data carried in both directions, so a `mdpa` round trip keeps the values and not just the ids*
 
-    * *`"time_step"` (negative counts from the end) selects one step of a multi-step file for the formats meshio++ reads selectively — mdpa, med, exodus, gmsh, tecplot, ensight, cgns and openfoam — through a cheap native metadata reader where one exists; any other format ignores it and is always read whole*
+    * *`"time_step"` (negative counts from the end) selects one step of a multi-step file for the formats meshio++ reads selectively — mdpa, med, exodus, gmsh, tecplot, ensight, cgns, openfoam, frd, unv, nastran_h5, vtkhdf and pvd — through a cheap native metadata reader where one exists; any other format ignores it and is always read whole*
 
-    * *`"lenient"` downgrades an mdpa/med construct the reader cannot represent from an error to a warning and a skip, instead of throwing*
+    * *`"lenient"` downgrades an mdpa/med/vtkhdf construct the reader cannot represent from an error to a warning and a skip, instead of throwing*
+
+    * *A partitioned file (`vtkhdf`, `pvtu`, `pvtp`, `pvd`) is read whole, one sub model part per piece; `"select_piece"` with `"piece"` (negative counts from the end) reads one piece instead, and `"ghosts" : "drop"` removes the halo cells a `pvtu`/`pvtp`/`pvd` carries as `vtkGhostType`*
+
+    * *Format-specific writers: `"gltf_settings"` (`container`, `up_axis`, `split_angle`, `color_by` with `cmap`/`range`/`component`, ...) for glTF, `"openfoam_label_bits"`/`"openfoam_scalar_bits"` with `"file_format" : "binary"` for a binary polyMesh, `"pcd_compressed"`/`"pcd_float64_points"` for PCL's `binary_compressed`, `"vtkhdf_gzip_level"`; every other format meshio++'s ascii/binary switch covers honours `"file_format"`*
 
     * *`"openfoam_region"` selects one region of an OpenFOAM case with no single `constant/polyMesh`, but `constant/<region>/polyMesh` per region; FLAC3D `ZGROUP`/`FGROUP` cell groups round-trip as named regions instead of always deferring to the Python fallback; a gmsh 4.1 export now allocates a physical tag for a named `Cell` region that has none of its own, instead of dropping it*
 
 - **Transient output**
 
-    * *XDMF temporal collections written in a single file, GiD multi-step `.post` series, file series for every other format*
+    * *XDMF temporal collections and VTKHDF `Steps` written in a single file, ParaView `.pvd` collections (one `.vtu` per step, index rewritten after every step), GiD multi-step `.post` series, file series for every other format*
 
     * *Append mode continues an existing series, so a restarted analysis does not destroy the previous run's output*
 
@@ -102,6 +106,10 @@ The application includes tests to check the proper functioning of the applicatio
 
     * *`interpolate` (`MeshioPlusPlusMeshOperations.Interpolate`, or the `MeshioInterpolateModeler`) — sample one mesh's field data onto another's geometry (nearest/barycentric, with extrapolation and conflict handling), and `ConservativeInterpolate` — its conservative sibling, redistributing by intersected cell measure so the summed quantity is preserved: the right choice for an extensive field (a mass, a heat load), the wrong one for an intensive one (a temperature)*
 
+    * *`tensor_invariants` — von Mises, principal values, hydrostatic and deviatoric parts of a six- (`xx yy zz xy yz zx`) or nine-component tensor array; `"rename"` lands a result (`CAUCHY_STRESS_VECTOR_mises`) on a registered variable*
+
+    * *`compute_normals` — unit point (and optionally cell) normals of a surface, angle/area/uniform weighted, with `"split"` duplicating the points where the surface creases by more than `"split_angle"`; `"output" : "NORMAL"` brings them back as Kratos data*
+
     * *`curvature` — per-vertex mean and Gaussian curvature of a surface (angle defect / cotangent Laplace-Beltrami), with `"total_angle_defect"` reporting the Gauss-Bonnet invariant — `2·π·χ` for a closed surface, whatever the tessellation — as a checkable oracle*
 
 - **Geometry fitting and deformation**
@@ -153,16 +161,19 @@ then point the Kratos configure at it:
 ```
 
 > [!IMPORTANT]
-> The application requires **meshio++ ABI 13** — **v11.4.0 or newer**, which includes **v12.0.0**. The pin is on `MESHIOPLUSPLUS_ABI_VERSION` rather than the release version: that counter moves only when the installed headers stop being compatible with an already-compiled consumer, so a release that cannot affect this application needs no rebuild (v12.0.0 is a pure version-number bump over v11.6.0 and holds the ABI at 13, as v10.20.0 did over v10.19.0 at ABI 11). It is a single ABI rather than a window on purpose — supporting several meant one `MESHIOPLUSPLUS_VERSION_AT_LEAST` guard per feature, and the operations exposed here would have needed one each. Getting it wrong is not silent — the C++ variants' `SOVERSION` is the ABI version and every translation unit carries a link-time sentinel naming it, so a skew is a link error rather than memory corruption. See meshio++'s [`doc/abi.md`](https://github.com/loumalouomega/meshioplusplus/blob/master/doc/abi.md) for the criterion.
+> The application requires **meshio++ ABI 16** — **v16.0.0 or newer**, which includes **v16.1.0**. The pin is on `MESHIOPLUSPLUS_ABI_VERSION` rather than the release version: that counter moves only when the installed headers stop being compatible with an already-compiled consumer, so a release that cannot affect this application needs no rebuild (v12.0.0 is a pure version-number bump over v11.6.0 and holds the ABI at 13, as v10.20.0 did over v10.19.0 at ABI 11). It is a single ABI rather than a window on purpose — supporting several meant one `MESHIOPLUSPLUS_VERSION_AT_LEAST` guard per feature, and the operations exposed here would have needed one each. Getting it wrong is not silent — the C++ variants' `SOVERSION` is the ABI version and every translation unit carries a link-time sentinel naming it, so a skew is a link error rather than memory corruption. See meshio++'s [`doc/abi.md`](https://github.com/loumalouomega/meshioplusplus/blob/master/doc/abi.md) for the criterion.
 
 > [!NOTE]
-> Upgrading from any older meshio++ requires relinking this application once: the C++ variants' `SOVERSION` is the ABI version, so the needed library is `libmeshioplusplus_core_kratos.so.13`. Install the new meshio++ wholesale rather than part-upgrading — its headers reference a link-time sentinel an older library does not define, which fails closed rather than silently mixing.
+> Upgrading from any older meshio++ requires relinking this application once: the C++ variants' `SOVERSION` is the ABI version, so the needed library is `libmeshioplusplus_core_kratos.so.16`. Install the new meshio++ wholesale rather than part-upgrading — its headers reference a link-time sentinel an older library does not define, which fails closed rather than silently mixing.
 
 > [!NOTE]
 > Unlike the ABI 3 → 6 run, ABI 6 → 11 is one this application genuinely feels. ABI 5 and 6 came from format side-channel structs (`MedInfo`, `OpenFoamInfo`) it never names; 7 through 11 are all types it now passes by value — `RefineOptions` gained `mRecordHierarchy` (7), `RemeshOptions` grew twice (8, 9), `SmoothMethod` gained an explicit `: std::uint8_t` underlying type (10) and `MeshMetadata` gained the provenance fields (11, `sizeof` 256 → 288). What it picks up in exchange is the whole remeshing family (`remesh`, `remesh_volume`, `optimize_volume`, `decimate_volume`), `estimate_error` closing the adaptive loop against selective `refine`, `hessian`, `subdivide`, `agglomerate`, `undo_green`, `data_integrate`, `conservative_interpolate`, the GiD postprocess format in both directions, and provenance.
 
 > [!NOTE]
 > ABI 11 → 13 touches this application far less. 12 (v10.35.0) is a Tier B ODR bump — no struct this application names changed size, but `NDArray::Size()`'s inline body used to report 0 for a rank-0 (scalar) array, so a 0-d `field_data` value was silently destroyed by every operation that clones a mesh; a plain relink against the new library fixes it, with no source change here. 13 (v11.4.0) grows `OpenFoamInfo` (96 → 128 bytes) with a new `mRegion` field for multi-region case selection — a struct this application does not name at this integration level, so the layout change is inert. What it picks up in exchange: `compute_curvature`, `repair`, `shrinkwrap` and `sobolev_deform`; the `vts`/`vtr`/`vtm` VTK XML structured/multiblock formats; `time_step`-selected reads for MED, CGNS, Tecplot, Gmsh, EnSight and OpenFOAM (each with a cheap native metadata reader); FLAC3D `ZGROUP`/`FGROUP` cell groups read and written natively as named regions instead of always deferring to the Python fallback; and Gmsh 4.1 export allocating a physical tag for an untagged named region instead of dropping it.
+
+> [!NOTE]
+> ABI 13 → 16 is a rebuild, not a relink. 14 (v14.0.0) grows `ReadOptions` 56 → 72 bytes with `mPiece`/`mPieceSet`, and 15 (v15.0.0) puts `mGhosts` into its tail padding (the size holds, but a consumer built against older headers leaves that byte indeterminate) — this application builds a `ReadOptions` for every read, so both reach it. 16 (v16.0.0) appends `CellType::Triangle7` before `CellType::Custom`, moving `Custom` 76 → 77 and growing the inline cell-type tables. What it picks up in exchange: the `vtkhdf`, `pvtu`/`pvtp`/`pvd`, `pcd`/`xyz`, `lsdyna`, `code_aster`, `mphbin` formats, `frd` and `nastran_h5` (read-only) and `gltf` (write-only); piece selection and ghost dropping; single-file VTKHDF and PVD time series; binary OpenFOAM; `compute_normals` and `tensor_invariants`. Upstream behaviour changes that reach this application's I/O: Nastran writes the real `CTETRA`/`CPYRA`/`CPENTA`/`CHEXA` keywords for quadratic solids and reads any bulk-data deck; COMSOL uses COMSOL's own quadratic node order and writes a version 4 Mesh; I-DEAS UNV swaps its group entity types and the hexahedron20/wedge15 mid-edge order; multi-zone Tecplot reads every zone; `.vtu`/`.vtp` carry `field_data`.
 
 > [!TIP]
 > Writing GiD needs a **zlib-enabled** meshio++ build (`gidpost` deflates unconditionally, so `MESHIOPLUSPLUS_WITH_GIDPOST` auto-disables without it), and the `hdf5` flavour additionally needs HDF5. Reading needs *nothing* for the ascii flavour, zlib for binary and HDF5 for hdf5 — so `gid` is readable in strictly more configurations than it is writable. `MeshioPlusPlusIO.IsFormatAvailable(Format.GID)` answers for the write side.
@@ -215,13 +226,15 @@ print(KratosMeshioPlusPlus.MeshioPlusPlusIO.GetSupportedWriteFormats())
 
 ## 📁 Supported formats:
 
-**Read (46):** `abaqus` `ansys` `ansysinp` `avsucd` `cgns` `dex` `dolfin` `ensight` `exodus` `flac3d` `flux` `freefem` `gid` `gmsh` `h5m` `hmf` `ip` `mdpa` `med` `medit` `mff` `mfm` `mphtxt` `nastran` `netgen` `obj` `off` `openfoam` `permas` `ply` `stl` `su2` `tecplot` `tetgen` `triangle` `ugrid` `unv` `vti` `vtk` `vtm` `vtp` `vtr` `vts` `vtu` `wkt` `xdmf`
+**Read (57):** `abaqus` `ansys` `ansysinp` `avsucd` `cgns` `code_aster` `dex` `dolfin` `ensight` `exodus` `flac3d` `flux` `frd` `freefem` `gid` `gmsh` `h5m` `hmf` `ip` `lsdyna` `mdpa` `med` `medit` `mff` `mfm` `mphbin` `mphtxt` `nastran` `nastran_h5` `netgen` `obj` `off` `openfoam` `pcd` `permas` `ply` `pvd` `pvtp` `pvtu` `stl` `su2` `tecplot` `tetgen` `triangle` `ugrid` `unv` `vti` `vtk` `vtkhdf` `vtm` `vtp` `vtr` `vts` `vtu` `wkt` `xdmf` `xyz`
 
-**Write (49):** the same set (every readable format is writable since meshio++ v9.20.0 added the OpenFOAM polyMesh writer), plus `gmsh22`, `svg` and `tikz` (write-only).
+**Write (59):** the same set minus the result files `frd` (CalculiX) and `nastran_h5` (MSC Nastran HDF5), which are read-only, plus `gltf`, `gmsh22`, `svg` and `tikz` (write-only).
+
+`pvtu`/`pvtp`/`pvd` write an index plus a sibling directory named after its stem holding the pieces (`case.pvtu` → `case/case_0000.vtu`). `pcd` and `xyz` are point clouds: only the nodes are written, and a read gives the points back. `gltf` (`.glb`, or `.gltf` with a `.bin` beside it) exports the surface of the mesh for the web — three.js, Blender, model viewers — with per-vertex normals, the nodal data as attributes and, with `color_by`, a baked colour map. `frd` and `nastran_h5` read every increment or result domain as a time step. `xyz` claims `.txt`, `.asc` and `.pts` too, and `nastran_h5` claims `.h5` (a `.post.h5` still resolves to GiD).
 
 `vti`/`vts`/`vtr` (VTK XML ImageData/StructuredGrid/RectilinearGrid) all write only a regular lattice — the output of `Grid`, `voxelize` or `compute_sdf` — though `vtr`'s reader, unlike the other two, accepts a genuinely graded one. `vtm` (VTK XML MultiBlock) has no such requirement: it writes one `.vtu` piece per cell block and reads every piece back as a named `Cell` region.
 
-`cgns`, `h5m`, `hmf`, `med` and the XDMF-HDF data path require an HDF5-enabled meshio++ build; `exodus` requires netCDF; `gid` requires zlib to write (see the tip above). A format compiled out is still resolved by extension and reports *why* it is unavailable rather than "unknown format".
+`cgns`, `h5m`, `hmf`, `med`, `vtkhdf`, `nastran_h5` and the XDMF-HDF data path require an HDF5-enabled meshio++ build; `exodus` requires netCDF; `gid` requires zlib to write (see the tip above). A format compiled out is still resolved by extension and reports *why* it is unavailable rather than "unknown format".
 
 `gid` has four on-disk flavours selected with `"gid_mode"` (`auto`/`ascii`/`binary`/`hdf5`/`ascii_zipped`): `ascii` writes a `<stem>.post.msh`/`<stem>.post.res` sibling pair, `binary` one `<stem>.post.bin`, `hdf5` one `<stem>.post.h5`. `auto` never resolves to `ascii_zipped` — no extension can express "zipped".
 
@@ -230,6 +243,8 @@ print(KratosMeshioPlusPlus.MeshioPlusPlusIO.GetSupportedWriteFormats())
 - **Serial only.** meshio++ has no MPI, no distributed reader or writer and no communicator. The intended distributed workflow is `partition` with ghost layers, feeding an MPI assembly.
 - meshio++'s `undo_green` is **not** exposed. It resolves a refinement's green closure through the colon-namespaced `refine:cell_id`/`refine:parent_id` arrays, and the write-back constraint below means those never reach a model part — the hierarchy is already gone by the time a refined mesh is a `ModelPart`, so any wrapper taking one would fail by construction.
 - `remesh` and `decimate` operate on triangle surfaces; `remesh_volume`, `optimize_volume` and `decimate_volume` on tetrahedra. Neither family accepts the other's cells — they are separate operations rather than modes of one, and say so by name when handed the wrong kind.
+- Kratos has no seven-node triangle, so a `triangle7` block (a Code_Aster `TRIA7`, a VTK/MED `TR7`) cannot become a model part entity.
+- Only the halo of a *partitioned* file can be dropped: the application writes a single-piece `pvtu`/`pvtp` (Kratos has no `partition:part` variable to carve by), so multi-piece output is meshio++'s own `partition` → `write_pvtu_pieces_codec` route.
 - `Matrix`-valued variables are not written, and a `Matrix`-valued `Properties` entry is skipped with a warning — meshio++ has no representation for it.
 - `Properties` entries that are not numeric are left to the materials file: a `Begin Table` curve, and text values such as a constitutive law name (instantiating one needs Kratos's own registry, which meshio++ deliberately does not link). Everything numeric — scalars, integers and vector-valued variables alike — round-trips.
 - The C++ `mdpa` reader throws by name on constructs it cannot represent (`Geometries`, `Mesh <id>`, `Constraints`, ...); the `"lenient"` setting downgrades those to a warning and a skip instead.
