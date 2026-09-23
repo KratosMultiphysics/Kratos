@@ -24,6 +24,9 @@
 
 // External includes
 #include "meshioplusplus/mesh.hpp"
+#include "meshioplusplus/read_options.hpp"
+#include "meshioplusplus/formats/pvd.hpp"
+#include "meshioplusplus/formats/vtkhdf_time_series.hpp"
 #include "meshioplusplus/formats/xdmf_time_series.hpp"
 
 // Project includes
@@ -39,11 +42,11 @@ class IntegrationValuesExtrapolationToNodesProcess; // forward declaration (gaus
 
 /**
  * @brief Multi-format mesh input/output based on the meshio++ library.
- * @details Reads and writes 46 readable / 49 writable mesh file formats (vtu,
+ * @details Reads and writes 57 readable / 59 writable mesh file formats (vtu,
  * vtk, gmsh, med, xdmf, abaqus, ...; see @ref Format) converting to/from Kratos
  * model parts through the meshio++ Kratos bridge. Availability of the
- * HDF5-backed formats (med, cgns, h5m, hmf, the HDF data path of xdmf) and the
- * netCDF-backed ones (exodus) depends on the build; query
+ * HDF5-backed formats (med, cgns, h5m, hmf, vtkhdf, nastran_h5, the HDF data
+ * path of xdmf) and the netCDF-backed ones (exodus) depends on the build; query
  * @ref GetSupportedFormats / @ref IsFormatAvailable.
  *
  * When writing a volume mesh to a surface-only format (stl, ply) the boundary
@@ -58,9 +61,16 @@ class IntegrationValuesExtrapolationToNodesProcess; // forward declaration (gaus
  *
  * Writing supports transient output: repeated calls to @ref WriteModelPart on
  * the same instance extend the current output instead of overwriting it. For
- * XDMF the steps are appended to the temporal collection of a single file
- * (checking whether the file "buffer" already exists); for the other formats a
- * file series <stem>_<label>.<ext> is produced. See the "time_series" setting.
+ * XDMF and VTKHDF the steps are appended to a single file (checking whether the
+ * file "buffer" already exists); PVD extends its index (one .vtu per step in a
+ * sibling directory); GiD buffers the steps until @ref CloseOutput; for the
+ * other formats a file series <stem>_<label>.<ext> is produced. See the
+ * "time_series" setting.
+ *
+ * Reading a partitioned file (pvtu, pvtp, pvd, vtkhdf, vtm) merges every piece
+ * into one model part, one sub model part per piece, unless "select_piece"
+ * picks one ("piece", negative counting from the end); "ghosts" : "drop"
+ * removes the halo cells of a pvtu/pvtp/pvd written with ghost layers.
  *
  * @ref GetNumberOfTimeSteps / @ref GetTimeValues / @ref GetTimeStepIndex query a
  * transient input file's step count and time values without a full read, for
@@ -86,11 +96,12 @@ public:
     /**
      * @brief The file formats this IO is compatible with.
      * @details AUTOMATIC resolves the format from the file extension. Formats
-     * backed by an optional dependency (HDF5: CGNS, H5M, HMF, MED and the HDF
-     * data path of XDMF; netCDF: EXODUS) are only available when the build
-     * enables them - check with @ref IsFormatAvailable. OPENFOAM is readable
-     * and writable (the polyMesh writer since meshio++ v9.20.0); SVG and TIKZ
-     * are write only.
+     * backed by an optional dependency (HDF5: CGNS, H5M, HMF, MED, VTKHDF,
+     * NASTRAN_H5 and the HDF data path of XDMF; netCDF: EXODUS) are only
+     * available when the build enables them - check with @ref IsFormatAvailable.
+     * OPENFOAM is readable and writable (the polyMesh writer since meshio++
+     * v9.20.0); SVG, TIKZ, GMSH22 and GLTF are write only; FRD and NASTRAN_H5
+     * are read only.
      *
      * GID is readable in strictly more build configurations than it is writable:
      * writing goes through gidpost, which is hard-gated on zlib, while reading is
@@ -116,32 +127,42 @@ public:
         ANSYSINP,  /// ANSYS Mechanical APDL .inp (cdb)
         AVSUCD,    /// AVS-UCD .avs
         CGNS,      /// CGNS .cgns (requires HDF5)
+        CODE_ASTER, /// Code_Aster native mesh .mail
         DEX,       /// Dexelas .dex
         DOLFIN,    /// DOLFIN XML .xml
         ENSIGHT,   /// EnSight Gold .case/.geo
         EXODUS,    /// Exodus II .e/.exo (requires netCDF)
         FLAC3D,    /// FLAC3D .f3grid
         FLUX,      /// Flux .pf3
+        FRD,       /// CalculiX results .frd (read only; every increment is a time step)
         FREEFEM,   /// FreeFEM .msh
         GID,       /// GiD postprocess .post.msh+.post.res/.post.bin/.post.h5 (writing needs a zlib-enabled build)
+        GLTF,      /// glTF 2.0 .glb/.gltf (write only; the surface of the mesh, see "gltf_settings")
         GMSH,      /// Gmsh .msh (4.1 writer)
         GMSH22,    /// Gmsh 2.2 .msh (write only; the only Gmsh writer round-tripping region membership)
         H5M,       /// MOAB .h5m (requires HDF5)
         HMF,       /// HMF .hmf (requires HDF5)
         IP,        /// Ipreo .ip
+        LSDYNA,    /// LS-DYNA keyword deck .k/.key/.dyn (parts and sets as regions)
         MDPA,      /// Kratos native .mdpa
         MED,       /// salome MED .med (requires HDF5)
         MEDIT,     /// Medit .mesh/.meshb
         MFF,       /// MFF .mff
         MFM,       /// MFM .mfm
+        MPHBIN,    /// COMSOL binary .mphbin
         MPHTXT,    /// COMSOL .mphtxt
-        NASTRAN,   /// Nastran .bdf/.nas
+        NASTRAN,   /// Nastran/OptiStruct bulk data .bdf/.nas/.fem
+        NASTRAN_H5, /// MSC Nastran HDF5 results .h5 (read only, requires HDF5; every result domain is a time step)
         NETGEN,    /// Netgen .vol
         OBJ,       /// Wavefront .obj
         OFF,       /// Object File Format .off
-        OPENFOAM,  /// OpenFOAM polyMesh (read only)
+        OPENFOAM,  /// OpenFOAM polyMesh (ascii or binary, see "openfoam_label_bits"/"openfoam_scalar_bits")
+        PCD,       /// PCL point cloud .pcd (see "pcd_compressed"/"pcd_float64_points")
         PERMAS,    /// PERMAS .post/.dato
         PLY,       /// Polygon File Format .ply
+        PVD,       /// ParaView collection .pvd (a time-indexed index; transient output extends it)
+        PVTP,      /// ParaView partitioned PolyData .pvtp
+        PVTU,      /// ParaView partitioned UnstructuredGrid .pvtu (one piece per "partition:part")
         STL,       /// Stereolithography .stl
         SU2,       /// SU2 .su2
         SVG,       /// Scalable Vector Graphics .svg (write only)
@@ -150,16 +171,18 @@ public:
         TIKZ,      /// LaTeX TikZ/PGF .tikz (write only)
         TRIANGLE,  /// Shewchuk Triangle .node/.ele/.poly (.node/.ele resolve to TETGEN by extension - select via the "format" setting)
         UGRID,     /// AFLR3 .ugrid
-        UNV,       /// I-deas universal .unv
+        UNV,       /// I-deas universal .unv/.uff
         VTI,       /// VTK XML ImageData .vti (a regular lattice; writing needs a uniform lattice mesh)
         VTK,       /// VTK legacy .vtk
+        VTKHDF,    /// VTK HDF5 .vtkhdf/.hdf (requires HDF5; transient output appends to one file)
         VTM,       /// VTK XML MultiBlock .vtm (an index plus one .vtu piece per cell block, read back as named Cell regions)
         VTP,       /// VTK PolyData XML .vtp
         VTR,       /// VTK XML RectilinearGrid .vtr (reads any graded lattice; writing needs a uniform lattice mesh)
         VTS,       /// VTK XML StructuredGrid .vts (a lattice with explicit points; writing needs a lattice mesh)
         VTU,       /// VTK unstructured XML .vtu
         WKT,       /// Well-known text .wkt
-        XDMF       /// XDMF v3 .xdmf/.xmf (HDF data path requires HDF5)
+        XDMF,      /// XDMF v3 .xdmf/.xmf (HDF data path requires HDF5)
+        XYZ        /// Headerless point cloud .xyz/.xyzn/.xyzrgb/.asc/.pts/.txt
     };
 
     ///@}
@@ -203,9 +226,9 @@ public:
 
     /**
      * @brief The names of every format this build can write.
-     * @details Read-only formats are not listed. Since meshio++ v9.20.0 gained the polyMesh
-     * writer there are none among the file-based formats; the write-only ones ("svg", "tikz")
-     * are conversely absent from @ref GetSupportedReadFormats.
+     * @details Read-only formats ("frd", "nastran_h5" - result files with no writer) are not
+     * listed; the write-only ones ("svg", "tikz", "gmsh22", "gltf") are conversely absent from
+     * @ref GetSupportedReadFormats.
      */
     static std::vector<std::string> GetSupportedWriteFormats();
 
@@ -254,32 +277,39 @@ public:
      *
      * The "time_step" setting (default 0, negative counts from the end) selects
      * one step of a multi-step file for the formats meshio++ reads selectively
-     * (mdpa/med/exodus/gmsh/tecplot/ensight/cgns/openfoam - see @ref GetTimeValues);
-     * any other format ignores it and is always read whole. "lenient" (default
-     * false) downgrades a construct mdpa/med cannot represent from an error to a
-     * warning and a skip, instead of throwing. "openfoam_region" (default "",
-     * OPENFOAM only) selects one region of a case with no single
+     * (mdpa/med/exodus/gmsh/tecplot/ensight/cgns/openfoam/frd/unv/nastran_h5/vtkhdf/pvd
+     * - see @ref GetTimeValues); any other format ignores it and is always read whole.
+     * "lenient" (default false) downgrades a construct mdpa/med/vtkhdf cannot represent
+     * from an error to a warning and a skip, instead of throwing. "openfoam_region"
+     * (default "", OPENFOAM only) selects one region of a case with no single
      * constant/polyMesh, but constant/<region>/polyMesh per region.
+     *
+     * A partitioned file (vtkhdf/pvtu/pvtp/pvd/vtm) is read whole, every piece merged with
+     * one sub model part per piece, unless "select_piece" (default false) is set: then only
+     * piece "piece" (default 0, negative counts from the end) is read. "ghosts" ("keep", the
+     * default, or "drop") removes the halo cells a pvtu/pvtp/pvd carries as vtkGhostType;
+     * every other format has no halo and ignores it.
      * @param rThisModelPart Reference to the model part to read into.
      */
     void ReadModelPart(ModelPart& rThisModelPart) override;
 
     /**
      * @brief Writes the model part to the file.
-     * @details Repeated calls extend the current output: for XDMF (with
-     * "time_series" set to "automatic") the steps are appended to the temporal
-     * collection of the file - if the file already exists with a valid time
-     * series it is extended, otherwise it is created; for other formats one
-     * file per call is written as <stem>_<label>.<ext>. With "time_series" set
-     * to "single_file" every call overwrites the file.
+     * @details Repeated calls extend the current output: for XDMF and VTKHDF (with
+     * "time_series" set to "automatic") the steps are appended to the file - if the
+     * file already exists with a valid time series it is extended, otherwise it is
+     * created; PVD writes one piece per call into its sibling directory and rewrites
+     * the index; for other formats one file per call is written as
+     * <stem>_<label>.<ext>. With "time_series" set to "single_file" every call
+     * overwrites the file.
      * @param rThisModelPart Const reference to the model part to write from.
      */
     void WriteModelPart(const ModelPart& rThisModelPart) override;
 
     /**
      * @brief Finishes any transient output this IO still holds open.
-     * @details Finalizes and releases the XDMF time-series writers, so the `.xdmf` light
-     * data is complete and the file is no longer owned by this object. Idempotent, and
+     * @details Finalizes and releases the XDMF, VTKHDF and PVD time-series writers (and
+     * writes a buffered GiD series), so the `.xdmf` light data or the `.pvd` index is complete and the file is no longer owned by this object. Idempotent, and
      * called by the destructor - an explicit call exists so the series ends at a point the
      * caller chooses rather than whenever the IO happens to be collected, and so a write
      * failure surfaces as an exception instead of only a log message.
@@ -383,6 +413,18 @@ private:
     /// "output_sub_model_parts" is enabled)
     std::map<std::string, std::unique_ptr<meshioplusplus::XdmfTimeSeriesWriter>> mXdmfWriters;
 
+#ifdef MESHIOPLUSPLUS_HAS_HDF5
+    /// Time-series writers for VTKHDF transient output (same keys as @ref mXdmfWriters).
+    /// Only a build of meshio++ with HDF5 declares the writer; the macro is a public compile
+    /// definition of its target, so every translation unit sees the same class layout.
+    std::map<std::string, std::unique_ptr<meshioplusplus::VtkhdfTimeSeriesWriter>> mVtkhdfWriters;
+#endif
+
+    /// Index writers for PVD transient output (same keys as @ref mXdmfWriters). Each step is
+    /// a whole .vtu in the index's sibling directory, and the index is rewritten after every
+    /// step, so a killed run still leaves a readable collection.
+    std::map<std::string, std::unique_ptr<meshioplusplus::PvdSeriesWriter>> mPvdWriters;
+
     /// Buffered steps for GiD transient output, one entry per output target (the same keys
     /// @ref mXdmfWriters uses). meshio++'s write_gid_series *pulls* steps through a callback
     /// while this IO is *pushed* one per @ref WriteModelPart, so the steps are held here and
@@ -481,6 +523,32 @@ private:
         const ModelPart& rThisModelPart,
         const std::string& rTargetSuffix
         );
+
+    /**
+     * @brief Transient VTKHDF write: creates or extends the target file's Steps.
+     * @details The VTKHDF counterpart of @ref WriteXdmfStep: the static mesh is written
+     * once and every step only adds its arrays. Requires an HDF5-enabled meshio++.
+     */
+    void WriteVtkhdfStep(
+        const ModelPart& rThisModelPart,
+        const std::string& rTargetSuffix
+        );
+
+    /**
+     * @brief Transient PVD write: adds one step (a whole mesh) to the target's collection.
+     * @details Unlike XDMF/VTKHDF a PVD series is not resumed: the first step of a new
+     * instance starts the collection afresh.
+     */
+    void WritePvdStep(
+        const ModelPart& rThisModelPart,
+        const std::string& rTargetSuffix
+        );
+
+    /**
+     * @brief The meshio++ read options this instance's settings describe ("time_step",
+     * "lenient", "select_piece"/"piece", "ghosts").
+     */
+    meshioplusplus::ReadOptions BuildReadOptions() const;
 
     /**
      * @brief Transient GiD write: buffers one step of the target's series.

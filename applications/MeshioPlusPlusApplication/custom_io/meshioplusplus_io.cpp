@@ -24,15 +24,22 @@
 // External includes
 #include "meshioplusplus/mesh.hpp"
 #include "meshioplusplus/registry.hpp"
+#include "meshioplusplus/write_options.hpp"
 #include "meshioplusplus/detail/provenance.hpp"
 #include "meshioplusplus/formats/ansys.hpp"
 #include "meshioplusplus/formats/ensight.hpp"
 #include "meshioplusplus/formats/flac3d.hpp"
 #include "meshioplusplus/formats/gid.hpp"
+#include "meshioplusplus/formats/gltf.hpp"
 #include "meshioplusplus/formats/gmsh.hpp"
 #include "meshioplusplus/formats/openfoam.hpp"
+#include "meshioplusplus/formats/pcd.hpp"
 #include "meshioplusplus/formats/ply.hpp"
+#include "meshioplusplus/formats/pvd.hpp"
+#include "meshioplusplus/formats/pvtp.hpp"
+#include "meshioplusplus/formats/pvtu.hpp"
 #include "meshioplusplus/formats/stl.hpp"
+#include "meshioplusplus/formats/vtkhdf.hpp"
 #include "meshioplusplus/formats/vti.hpp"
 #include "meshioplusplus/formats/vtk.hpp"
 #include "meshioplusplus/formats/vtm.hpp"
@@ -40,6 +47,7 @@
 #include "meshioplusplus/formats/vtr.hpp"
 #include "meshioplusplus/formats/vts.hpp"
 #include "meshioplusplus/formats/vtu.hpp"
+#include "meshioplusplus/operations/sdf.hpp"
 #include "meshioplusplus/operations/sniff.hpp"
 
 // Project includes
@@ -68,32 +76,42 @@ using Internals::DataArray;
     X(ANSYSINP, "ansysinp")              \
     X(AVSUCD, "avsucd")                  \
     X(CGNS, "cgns")                      \
+    X(CODE_ASTER, "code_aster")          \
     X(DEX, "dex")                        \
     X(DOLFIN, "dolfin")                  \
     X(ENSIGHT, "ensight")                \
     X(EXODUS, "exodus")                  \
     X(FLAC3D, "flac3d")                  \
     X(FLUX, "flux")                      \
+    X(FRD, "frd")                        \
     X(FREEFEM, "freefem")                \
     X(GID, "gid")                        \
+    X(GLTF, "gltf")                      \
     X(GMSH, "gmsh")                      \
     X(GMSH22, "gmsh22")                  \
     X(H5M, "h5m")                        \
     X(HMF, "hmf")                        \
     X(IP, "ip")                          \
+    X(LSDYNA, "lsdyna")                  \
     X(MDPA, "mdpa")                      \
     X(MED, "med")                        \
     X(MEDIT, "medit")                    \
     X(MFF, "mff")                        \
     X(MFM, "mfm")                        \
+    X(MPHBIN, "mphbin")                  \
     X(MPHTXT, "mphtxt")                  \
     X(NASTRAN, "nastran")                \
+    X(NASTRAN_H5, "nastran_h5")          \
     X(NETGEN, "netgen")                  \
     X(OBJ, "obj")                        \
     X(OFF, "off")                        \
     X(OPENFOAM, "openfoam")              \
+    X(PCD, "pcd")                        \
     X(PERMAS, "permas")                  \
     X(PLY, "ply")                        \
+    X(PVD, "pvd")                        \
+    X(PVTP, "pvtp")                      \
+    X(PVTU, "pvtu")                      \
     X(STL, "stl")                        \
     X(SU2, "su2")                        \
     X(SVG, "svg")                        \
@@ -105,13 +123,15 @@ using Internals::DataArray;
     X(UNV, "unv")                        \
     X(VTI, "vti")                        \
     X(VTK, "vtk")                        \
+    X(VTKHDF, "vtkhdf")                  \
     X(VTM, "vtm")                        \
     X(VTP, "vtp")                        \
     X(VTR, "vtr")                        \
     X(VTS, "vts")                        \
     X(VTU, "vtu")                        \
     X(WKT, "wkt")                        \
-    X(XDMF, "xdmf")
+    X(XDMF, "xdmf")                      \
+    X(XYZ, "xyz")
 
 const std::unordered_map<std::string, MeshioPlusPlusIO::Format>& GetFormatNameMap()
 {
@@ -229,6 +249,18 @@ bool WriteWithFileFormatOverride(
         mio::write_vtm(path, rMesh, Binary, /*zlib=*/Binary);
         return true;
     }
+    if (rFormatName == "pvtu") {
+        mio::write_pvtu(path, rMesh, Binary, /*zlib=*/Binary);
+        return true;
+    }
+    if (rFormatName == "pvtp") {
+        mio::write_pvtp(path, rMesh, Binary, /*zlib=*/Binary);
+        return true;
+    }
+    if (rFormatName == "pvd") {
+        mio::write_pvd(path, rMesh, Binary, /*zlib=*/Binary);
+        return true;
+    }
     if (rFormatName == "vtk") {
         mio::write_vtk(path, rMesh, Binary, /*v51=*/true);
         return true;
@@ -257,8 +289,78 @@ bool WriteWithFileFormatOverride(
         mio::write_ensight(path, rMesh, Binary);
         return true;
     }
+
+    // Every other format meshio++'s own ascii/binary switch covers (and whatever it learns
+    // later) goes through that switch rather than a hand-written case here.
+    mio::WriteOptions options;
+    options.mEncoding = Binary ? mio::WriteEncoding::Binary : mio::WriteEncoding::Ascii;
+    std::string reason;
+    if (mio::registry_write_supports(rFormatName, options, reason)) {
+        mio::registry_write_ex(path, rMesh, rFormatName, options);
+        return true;
+    }
     return false;
 }
+
+/// Reads the "ghosts" setting into the policy of a partitioned read.
+mio::GhostPolicy ResolveGhostPolicy(const std::string& rSetting)
+{
+    if (rSetting == "keep") {
+        return mio::GhostPolicy::Keep;
+    }
+    if (rSetting == "drop") {
+        return mio::GhostPolicy::Drop;
+    }
+    KRATOS_ERROR << "Unknown \"ghosts\" setting \"" << rSetting
+                 << "\" (use \"keep\" or \"drop\")" << std::endl;
+}
+
+/// Maps the "gltf_settings" block onto meshio++'s glTF writer options. The name parsers
+/// throw on an unknown value, which is what the constructor relies on to fail early.
+mio::GltfWriteOptions BuildGltfOptions(const Parameters& rSettings)
+{
+    mio::GltfWriteOptions options;
+    options.mContainer = mio::gltf_container_from_name(rSettings["container"].GetString());
+    options.mUpAxis = mio::gltf_up_axis_from_name(rSettings["up_axis"].GetString());
+    options.mNormalWeight = mio::sdf_weight_from_name(rSettings["normal_weight"].GetString());
+    options.mNormals = rSettings["normals"].GetBool();
+    options.mFields = rSettings["fields"].GetBool();
+    options.mRecenter = rSettings["recenter"].GetBool();
+    options.mByRegion = rSettings["by_region"].GetBool();
+    options.mUnlit = rSettings["unlit"].GetBool();
+    options.mSplitAngle = rSettings["split_angle"].GetDouble();
+    options.mScale = rSettings["scale"].GetDouble();
+    options.mColorBy = rSettings["color_by"].GetString();
+    const int component = rSettings["component"].GetInt();
+    if (component >= 0) {
+        options.mComponent = component;
+    }
+    options.mCmap = rSettings["cmap"].GetString();
+    const Vector range = rSettings["range"].GetVector();
+    KRATOS_ERROR_IF(range.size() != 0 && range.size() != 2)
+        << "The \"gltf_settings\" \"range\" must be empty (automatic) or [min, max], got "
+        << range.size() << " values" << std::endl;
+    if (range.size() == 2) {
+        options.mVMin = range[0];
+        options.mVMax = range[1];
+    }
+    options.mNanColor = rSettings["nan_color"].GetString();
+    return options;
+}
+
+/// Moves the XDMF-shaped arrays the conversion utilities collect into the VTKHDF writer's
+/// struct of the same fields.
+#ifdef MESHIOPLUSPLUS_HAS_HDF5
+std::vector<mio::VtkhdfTimeSeriesWriter::NamedArray> ToVtkhdfArrays(std::vector<DataArray>&& rArrays)
+{
+    std::vector<mio::VtkhdfTimeSeriesWriter::NamedArray> result;
+    result.reserve(rArrays.size());
+    for (auto& r_array : rArrays) {
+        result.push_back({std::move(r_array.mName), r_array.mNumComponents, std::move(r_array.mValues)});
+    }
+    return result;
+}
+#endif
 
 } // namespace
 
@@ -274,7 +376,9 @@ MeshioPlusPlusIO::MeshioPlusPlusIO(
 {
     KRATOS_TRY
 
-    mParameters.ValidateAndAssignDefaults(GetDefaultParameters());
+    const Parameters default_parameters = GetDefaultParameters();
+    mParameters.ValidateAndAssignDefaults(default_parameters);
+    mParameters["gltf_settings"].ValidateAndAssignDefaults(default_parameters["gltf_settings"]);
 
     // Eagerly validate the enumerated settings so misconfiguration fails at
     // construction and not in the middle of a simulation.
@@ -306,6 +410,20 @@ MeshioPlusPlusIO::MeshioPlusPlusIO(
 
     // Throws by name on an unknown mode, so a typo fails at construction like the rest.
     ResolveProvenanceMode(mParameters["provenance"].GetString());
+    ResolveGhostPolicy(mParameters["ghosts"].GetString());
+
+    const int label_bits = mParameters["openfoam_label_bits"].GetInt();
+    KRATOS_ERROR_IF(label_bits != 32 && label_bits != 64)
+        << "\"openfoam_label_bits\" must be 32 or 64, got " << label_bits << std::endl;
+    const int scalar_bits = mParameters["openfoam_scalar_bits"].GetInt();
+    KRATOS_ERROR_IF(scalar_bits != 32 && scalar_bits != 64)
+        << "\"openfoam_scalar_bits\" must be 32 or 64, got " << scalar_bits << std::endl;
+
+    try {
+        BuildGltfOptions(mParameters["gltf_settings"]);
+    } catch (const std::exception& r_exception) {
+        KRATOS_ERROR << "Invalid \"gltf_settings\": " << r_exception.what() << std::endl;
+    }
 
     // GiD's flavour axis is four-valued where every other format's is ascii/binary, so it gets
     // its own setting rather than overloading "file_format". mio::gid_mode_from_name throws on
@@ -387,6 +505,34 @@ void MeshioPlusPlusIO::CloseOutput()
     }
     mXdmfWriters.clear();
 
+#ifdef MESHIOPLUSPLUS_HAS_HDF5
+    for (auto& r_entry : mVtkhdfWriters) {
+        if (r_entry.second != nullptr) {
+            try {
+                r_entry.second->Finalize();
+            } catch (...) {
+                if (!first_failure) {
+                    first_failure = std::current_exception();
+                }
+            }
+        }
+    }
+    mVtkhdfWriters.clear();
+#endif
+
+    for (auto& r_entry : mPvdWriters) {
+        if (r_entry.second != nullptr) {
+            try {
+                r_entry.second->Finalize();
+            } catch (...) {
+                if (!first_failure) {
+                    first_failure = std::current_exception();
+                }
+            }
+        }
+    }
+    mPvdWriters.clear();
+
     if (first_failure) {
         std::rethrow_exception(first_failure);
     }
@@ -406,6 +552,9 @@ Parameters MeshioPlusPlusIO::GetDefaultParameters()
         "time_step"                                   : 0,
         "lenient"                                     : false,
         "openfoam_region"                             : "",
+        "select_piece"                                : false,
+        "piece"                                       : 0,
+        "ghosts"                                      : "keep",
         "time_series"                                 : "automatic",
         "output_control_type"                         : "step",
         "output_precision"                            : 7,
@@ -423,6 +572,28 @@ Parameters MeshioPlusPlusIO::GetDefaultParameters()
         "xdmf_data_format"                            : "auto",
         "xdmf_auto_flush"                             : true,
         "xdmf_gzip_level"                             : -1,
+        "vtkhdf_gzip_level"                           : 4,
+        "openfoam_label_bits"                         : 32,
+        "openfoam_scalar_bits"                        : 64,
+        "pcd_compressed"                              : false,
+        "pcd_float64_points"                          : false,
+        "gltf_settings"                               : {
+            "container"     : "auto",
+            "up_axis"       : "auto",
+            "normal_weight" : "angle",
+            "normals"       : true,
+            "fields"        : true,
+            "recenter"      : true,
+            "by_region"     : true,
+            "unlit"         : true,
+            "split_angle"   : 30.0,
+            "scale"         : 1.0,
+            "color_by"      : "",
+            "component"     : -1,
+            "cmap"          : "viridis",
+            "range"         : [],
+            "nan_color"     : "#808080"
+        },
         "nodal_solution_step_data_variables"          : [],
         "nodal_data_value_variables"                  : [],
         "nodal_flags"                                 : [],
@@ -639,9 +810,8 @@ void MeshioPlusPlusIO::ReadModelPart(ModelPart& rThisModelPart)
     // med/cgns/tecplot/gmsh/ensight/openfoam select one step of a multi-step file
     // instead of always the first. A format with no such support (registry_readers_ex()
     // has no entry for it) ignores both settings and is read whole, exactly as before.
-    mio::ReadOptions read_options;
-    read_options.mTimeStep = mParameters["time_step"].GetInt();
-    read_options.mLenient = mParameters["lenient"].GetBool();
+    // "select_piece"/"piece" and "ghosts" reach the partitioned formats the same way.
+    const mio::ReadOptions read_options = BuildReadOptions();
 
     // Read into the meshio++ Kratos backend: the materialized model part view
     // splits max-dimension cell blocks into elements, lower-dimension ones into
@@ -700,6 +870,20 @@ void MeshioPlusPlusIO::ReadModelPart(ModelPart& rThisModelPart)
 /***********************************************************************************/
 /***********************************************************************************/
 
+mio::ReadOptions MeshioPlusPlusIO::BuildReadOptions() const
+{
+    mio::ReadOptions read_options;
+    read_options.mTimeStep = mParameters["time_step"].GetInt();
+    read_options.mLenient = mParameters["lenient"].GetBool();
+    read_options.mPieceSet = mParameters["select_piece"].GetBool();
+    read_options.mPiece = mParameters["piece"].GetInt();
+    read_options.mGhosts = ResolveGhostPolicy(mParameters["ghosts"].GetString());
+    return read_options;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 std::vector<double> MeshioPlusPlusIO::GetTimeValues() const
 {
     KRATOS_TRY
@@ -720,7 +904,7 @@ std::vector<double> MeshioPlusPlusIO::GetTimeValues() const
     // Header-only summary (never the heavy arrays); falls back to a full read for formats
     // without a native metadata path, and reports no time values either way for a format
     // with no time-series concept - correct for every format, just not always as cheap.
-    const mio::MeshMetadata metadata = mio::registry_read_metadata(mFileName.string(), format_name, mio::ReadOptions());
+    const mio::MeshMetadata metadata = mio::registry_read_metadata(mFileName.string(), format_name, BuildReadOptions());
     return metadata.mTimeValues;
 
     KRATOS_CATCH("")
@@ -750,7 +934,7 @@ Parameters MeshioPlusPlusIO::GetProvenance() const
 
     const std::string format_name = ResolveEffectiveFormat(false);
     const mio::MeshMetadata metadata =
-        mio::registry_read_metadata(mFileName.string(), format_name, mio::ReadOptions());
+        mio::registry_read_metadata(mFileName.string(), format_name, BuildReadOptions());
 
     Parameters result(R"({})");
     // "recognised" is the honest distinction between "meshio++ wrote this" and "something left
@@ -840,6 +1024,12 @@ void MeshioPlusPlusIO::WriteTarget(
         if (format_name == "xdmf" && time_series == "automatic") {
             // Transient XDMF: extend the target file's temporal collection in place.
             WriteXdmfStep(rModelPart, rTargetSuffix);
+        } else if (format_name == "vtkhdf" && time_series == "automatic") {
+            // Transient VTKHDF: extend the target file's Steps group in place.
+            WriteVtkhdfStep(rModelPart, rTargetSuffix);
+        } else if (format_name == "pvd" && time_series == "automatic") {
+            // Transient PVD: one more .vtu piece, and the index rewritten over it.
+            WritePvdStep(rModelPart, rTargetSuffix);
         } else if (format_name == "gid" && time_series == "automatic") {
             // Transient GiD: buffer the step; CloseOutput writes the whole series at once.
             WriteGidSeriesStep(rModelPart, rTargetSuffix);
@@ -1052,8 +1242,37 @@ void MeshioPlusPlusIO::WriteStatic(
         return;
     }
 
-    // Honor an ascii/binary override where the format supports it
+    // The formats with options of their own beyond ascii/binary, again ahead of the generic
+    // override for the same reason as GiD.
     const std::string file_format = mParameters["file_format"].GetString();
+    if (rFormatName == "gltf") {
+        mio::write_gltf(rPath.string(), mesh, BuildGltfOptions(mParameters["gltf_settings"]));
+        return;
+    }
+    if (rFormatName == "openfoam") {
+        mio::OpenFoamWriteOptions options;
+        options.mBinary = file_format == "binary";
+        options.mLabelBits = mParameters["openfoam_label_bits"].GetInt();
+        options.mScalarBits = mParameters["openfoam_scalar_bits"].GetInt();
+        mio::write_openfoam(rPath.string(), mesh, mio::OpenFoamInfo(), options);
+        return;
+    }
+    if (rFormatName == "pcd") {
+        // binary_compressed is a third value of PCD's DATA axis, not reachable through
+        // "file_format"; it implies binary.
+        const mio::PcdData data = mParameters["pcd_compressed"].GetBool() ? mio::PcdData::BinaryCompressed
+            : (file_format == "ascii" ? mio::PcdData::Ascii : mio::PcdData::Binary);
+        mio::write_pcd(rPath.string(), mesh, data, mParameters["pcd_float64_points"].GetBool());
+        return;
+    }
+#ifdef MESHIOPLUSPLUS_HAS_HDF5
+    if (rFormatName == "vtkhdf") {
+        mio::write_vtkhdf(rPath.string(), mesh, mParameters["vtkhdf_gzip_level"].GetInt());
+        return;
+    }
+#endif
+
+    // Honor an ascii/binary override where the format supports it
     const bool skin = mParameters["skin"].GetBool();
     if (file_format != "default") {
         if (WriteWithFileFormatOverride(rFormatName, file_format == "binary", skin, rPath, mesh)) {
@@ -1141,6 +1360,85 @@ void MeshioPlusPlusIO::WriteXdmfStep(
     // rather than re-staging the whole model part into a Mesh.
     p_writer->WriteData(GetOutputTimeValue(rThisModelPart), CollectPointData(rThisModelPart),
                         CollectCellData(rThisModelPart));
+
+    KRATOS_CATCH("")
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void MeshioPlusPlusIO::WriteVtkhdfStep(
+    const ModelPart& rThisModelPart,
+    const std::string& rTargetSuffix
+    )
+{
+    KRATOS_TRY
+
+#ifdef MESHIOPLUSPLUS_HAS_HDF5
+    const mio::detail::ProvenanceScope provenance_scope(
+        ResolveProvenanceMode(mParameters["provenance"].GetString()),
+        mio::detail::current_provenance());
+    mio::detail::provenance_set_source(rThisModelPart.FullName(), "kratos");
+
+    auto& p_writer = mVtkhdfWriters[rTargetSuffix];
+    if (p_writer == nullptr) {
+        // "Append" continues a series left by a previous run, exactly as for XDMF.
+        p_writer = std::make_unique<mio::VtkhdfTimeSeriesWriter>(
+            ComposeOutputPath(rTargetSuffix, "").string(),
+            mParameters["vtkhdf_gzip_level"].GetInt(), mio::VtkhdfSeriesMode::Append);
+
+        if (p_writer->NumSteps() > 0) {
+            KRATOS_INFO("MeshioPlusPlusIO")
+                << "Continuing the existing VTKHDF time series \""
+                << ComposeOutputPath(rTargetSuffix, "").string() << "\" at step "
+                << p_writer->NumSteps() << std::endl;
+        } else {
+            mio::Mesh mesh;
+            Internals::FillMeshioModelPart(rThisModelPart, mesh.GetModelPart(), WritesElements(), WritesConditions(),
+                                mParameters["write_deformed_configuration"].GetBool());
+            mesh.InvalidateBlocks();
+            p_writer->WritePointsCells(mesh);
+        }
+    }
+
+    p_writer->WriteData(GetOutputTimeValue(rThisModelPart), ToVtkhdfArrays(CollectPointData(rThisModelPart)),
+                        ToVtkhdfArrays(CollectCellData(rThisModelPart)));
+#else
+    (void)rThisModelPart;
+    (void)rTargetSuffix;
+    KRATOS_ERROR << "Transient VTKHDF output needs a meshio++ built with HDF5" << std::endl;
+#endif
+
+    KRATOS_CATCH("")
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void MeshioPlusPlusIO::WritePvdStep(
+    const ModelPart& rThisModelPart,
+    const std::string& rTargetSuffix
+    )
+{
+    KRATOS_TRY
+
+    const mio::detail::ProvenanceScope provenance_scope(
+        ResolveProvenanceMode(mParameters["provenance"].GetString()),
+        mio::detail::current_provenance());
+    mio::detail::provenance_set_source(rThisModelPart.FullName(), "kratos");
+
+    auto& p_writer = mPvdWriters[rTargetSuffix];
+    if (p_writer == nullptr) {
+        // "file_format" : "ascii" is the one override a PVD series honors; the pieces are
+        // zlib-compressed binary .vtu otherwise, as for a plain .vtu.
+        const bool binary = mParameters["file_format"].GetString() != "ascii";
+        p_writer = std::make_unique<mio::PvdSeriesWriter>(
+            ComposeOutputPath(rTargetSuffix, "").string(), binary,
+            binary ? mio::detail::VtkCodec::Zlib : mio::detail::VtkCodec::None);
+    }
+
+    // Every step is a whole mesh (the pieces are self-contained .vtu files).
+    p_writer->Write(GetOutputTimeValue(rThisModelPart), BuildMeshWithData(rThisModelPart));
 
     KRATOS_CATCH("")
 }
