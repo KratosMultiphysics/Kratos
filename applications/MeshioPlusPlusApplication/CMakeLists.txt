@@ -16,9 +16,9 @@ include(pybind11Tools)
 #         -DBUILD_SHARED_LIBS=ON -DCMAKE_BUILD_TYPE=Release
 #   cmake --build build && cmake --install build --prefix <prefix>
 #
-# Upgrading from a meshio++ older than v11.4.0 requires relinking this application once: the
+# Upgrading from a meshio++ older than v16.0.0 requires rebuilding this application once: the
 # C++ variants' SOVERSION is the ABI version, so the library this application needs is
-# libmeshioplusplus_core_kratos.so.13 rather than an earlier .so.N.
+# libmeshioplusplus_core_kratos.so.16 rather than an earlier .so.N.
 #
 # then point this configure at it with -Dmeshioplusplus_DIR=<prefix>/lib/cmake/meshioplusplus
 #
@@ -44,23 +44,35 @@ include(pybind11Tools)
 # integration (it reads OpenFOAM through the registry map, not the direct read_openfoam(...,
 # OpenFoamInfo&) overload), so the layout change is inert until that overload is adopted.
 #
+# ABI 13 -> 16 is a rebuild, not a relink. 14 (v14.0.0) grows ReadOptions 56 -> 72 bytes with
+# mPiece/mPieceSet, the piece selector of partitioned files; 15 (v15.0.0) puts mGhosts (a
+# GhostPolicy) into its tail padding, so the size holds but a consumer built against v14 headers
+# leaves that byte indeterminate. This application builds ReadOptions by value for every read,
+# so both reach it. 16 (v16.0.0) appends CellType::Triangle7 before CellType::Custom, moving
+# Custom 76 -> 77 and growing the inline cell-type tables; nothing here names either value, but
+# the inlined tables are compiled into this application. Kratos has no seven-node triangle, so
+# a triangle7 block (a Code_Aster TRIA7, say) still cannot become a ModelPart entity.
+#
 # A single ABI rather than a window, deliberately. Supporting several meant a
 # MESHIOPLUSPLUS_VERSION_AT_LEAST guard per feature, and the operations this application now
 # exposes (remesh v10.10.0, optimize_volume v10.14.0, estimate_error v10.2.0, the gid format
-# v10.18-10.20, compute_curvature v10.37.0, repair/shrinkwrap/sobolev_deform v10.38.0) would
-# have needed one each. ABI 13 is v11.4.0 onwards, so everything compiles unconditionally.
+# v10.18-10.20, compute_curvature v10.37.0, repair/shrinkwrap/sobolev_deform v10.38.0,
+# vtkhdf v14.0.0, pvtu/pvtp/pvd v15.0.0, pcd/xyz v15.1.0, lsdyna v15.2.0, frd v15.3.0,
+# compute_normals/gltf v15.4.0, tensor_invariants/binary OpenFOAM v15.5.0, nastran_h5 v15.7.0,
+# code_aster v16.0.0, mphbin v16.1.0) would have needed one each. ABI 16 is v16.0.0 onwards, so
+# everything compiles unconditionally.
 #
 # Getting it wrong is not silent: the C++ variants' SOVERSION is the ABI version, and every
 # consumer translation unit carries a link-time sentinel naming it, so a header/library skew is
 # a link error rather than memory corruption. See meshio++'s doc/abi.md for the criterion.
 find_package(meshioplusplus CONFIG REQUIRED COMPONENTS CXX)
 
-if(NOT MESHIOPLUSPLUS_ABI_VERSION EQUAL 13)
+if(NOT MESHIOPLUSPLUS_ABI_VERSION EQUAL 16)
     message(FATAL_ERROR
-        "MeshioPlusPlusApplication needs meshio++ ABI 13, but the install at "
+        "MeshioPlusPlusApplication needs meshio++ ABI 16, but the install at "
         "'${meshioplusplus_DIR}' reports ABI ${MESHIOPLUSPLUS_ABI_VERSION} "
-        "(release ${meshioplusplus_VERSION}). ABI 13 is meshio++ v11.4.0 onwards, "
-        "which includes v12.0.0.")
+        "(release ${meshioplusplus_VERSION}). ABI 16 is meshio++ v16.0.0 onwards, "
+        "which includes v16.1.0.")
 endif()
 
 if(NOT TARGET meshioplusplus::core_kratos)
