@@ -14,6 +14,16 @@ public:
     ContainerClassificationUtilities() = default;
     ~ContainerClassificationUtilities() = default;
 
+    // Helper function to extract GeometryType enum across Elements, Conditions, and Geometries
+    template <typename TContainerType>
+    GeometryData::KratosGeometryType ExtractGeometryType(const typename TContainerType::data_type& rEntity) {
+        if constexpr (std::is_same_v<TContainerType, ModelPart::GeometryContainerType>) {
+            return rEntity.GetGeometryType();
+        } else {
+            return rEntity.GetGeometry().GetGeometryType();
+        }
+    };
+
     /// Classifies Elements/Conditions/Geometries using both Entity dynamic type (typeid) and GeometryType enum
     template <typename TContainerType>
     std::vector<TContainerType> Classify(TContainerType& rContainer);
@@ -22,6 +32,7 @@ public:
     /// Returns a std::vector<TContainerType> sized exactly to GeometryData::KratosGeometryType::NumberOfGeometryTypes
     template <typename TContainerType>
     std::vector<TContainerType> ClassifyByGeometryType(TContainerType& rContainer);
+
 };
 
 } // namespace Kratos

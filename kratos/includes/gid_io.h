@@ -1298,29 +1298,19 @@ public:
 
         Timer::Start("Writing Mesh");
 
-        if ( rThisMesh.ElementsBegin() == rThisMesh.ElementsEnd() && rThisMesh.ConditionsBegin() == rThisMesh.ConditionsEnd() )
+        if ( mWriteConditions != WriteConditionsOnly )
         {
-            for ( auto geometry_iterator = rThisMesh.GeometriesBegin(); geometry_iterator != rThisMesh.GeometriesEnd(); ++geometry_iterator)
+            for ( auto element_iterator = rThisMesh.ElementsBegin(); element_iterator != rThisMesh.ElementsEnd(); ++element_iterator)
                 for ( auto it = mGidMeshContainers.begin(); it != mGidMeshContainers.end(); it++ )
-                    if ( it->AddGeometry( geometry_iterator ) )
+                    if ( it->AddElement( element_iterator ) )
                         break;
         }
-        else
+        if ( mWriteConditions == WriteConditionsFlag::WriteConditions || mWriteConditions == WriteConditionsOnly )
         {
-            if ( mWriteConditions != WriteConditionsOnly )
-            {
-                for ( auto element_iterator = rThisMesh.ElementsBegin(); element_iterator != rThisMesh.ElementsEnd(); ++element_iterator)
-                    for ( auto it = mGidMeshContainers.begin(); it != mGidMeshContainers.end(); it++ )
-                        if ( it->AddElement( element_iterator ) )
-                            break;
-            }
-            if ( mWriteConditions == WriteConditionsFlag::WriteConditions || mWriteConditions == WriteConditionsOnly )
-            {
-                for ( auto conditions_iterator = rThisMesh.ConditionsBegin(); conditions_iterator != rThisMesh.ConditionsEnd(); conditions_iterator++ )
-                    for ( auto it = mGidMeshContainers.begin(); it != mGidMeshContainers.end(); it++ )
-                        if ( it->AddCondition( conditions_iterator ) )
-                            break;
-            }
+            for ( auto conditions_iterator = rThisMesh.ConditionsBegin(); conditions_iterator != rThisMesh.ConditionsEnd(); conditions_iterator++ )
+                for ( auto it = mGidMeshContainers.begin(); it != mGidMeshContainers.end(); it++ )
+                    if ( it->AddCondition( conditions_iterator ) )
+                        break;
         }
 
         for ( auto it = mGidMeshContainers.begin(); it != mGidMeshContainers.end(); it++ )
