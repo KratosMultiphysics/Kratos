@@ -647,6 +647,73 @@ End Elements
             self.assertTrue(provenance["recognised"].GetBool())
             self.assertGreater(provenance["lines"].size(), 0)
 
+    def testAbi16Formats(self):
+        Format = KratosMeshioPlusPlus.MeshioPlusPlusIO.Format
+        read_formats = KratosMeshioPlusPlus.MeshioPlusPlusIO.GetSupportedReadFormats()
+        write_formats = KratosMeshioPlusPlus.MeshioPlusPlusIO.GetSupportedWriteFormats()
+        for name in ("pvtu", "pvtp", "pvd", "pcd", "xyz", "lsdyna", "code_aster", "mphbin"):
+            self.assertIn(name, read_formats)
+            self.assertIn(name, write_formats)
+        self.assertIn("frd", read_formats)          # read-only result files
+        self.assertNotIn("frd", write_formats)
+        self.assertIn("gltf", write_formats)        # write-only
+        self.assertNotIn("gltf", read_formats)
+        for path, format_value in (("mesh.k", Format.LSDYNA), ("mesh.mail", Format.CODE_ASTER),
+                                   ("mesh.glb", Format.GLTF), ("mesh.pvd", Format.PVD),
+                                   ("mesh.pvtu", Format.PVTU), ("mesh.pcd", Format.PCD),
+                                   ("mesh.frd", Format.FRD), ("mesh.vtkhdf", Format.VTKHDF),
+                                   ("mesh.h5", Format.NASTRAN_H5)):
+            self.assertEqual(KratosMeshioPlusPlus.MeshioPlusPlusIO.ResolveFormat(path), format_value)
+
+    def testWriteReadRoundTripLsDyna(self):
+        self._RunWriteReadRoundTrip(".k")
+
+    def testWriteReadRoundTripCodeAster(self):
+        self._RunWriteReadRoundTrip(".mail")
+
+    def testPvdTimeSeries(self):
+        model_part = self.model.CreateModelPart("pvd")
+        model_part.AddNodalSolutionStepVariable(KratosMultiphysics.TEMPERATURE)
+        _PopulateModelPart(model_part)
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            file_name = str(Path(temp_dir) / "series.pvd")
+            settings = KratosMultiphysics.Parameters("""{
+                "output_control_type"                : "time",
+                "nodal_solution_step_data_variables" : ["TEMPERATURE"]
+            }""")
+            io = KratosMeshioPlusPlus.MeshioPlusPlusIO(file_name, settings)
+            for step in range(1, 4):
+                model_part.ProcessInfo[KratosMultiphysics.TIME] = 0.5 * step
+                io.WriteModelPart(model_part)
+            io.CloseOutput()
+
+            time_values = KratosMeshioPlusPlus.MeshioPlusPlusIO(file_name).GetTimeValues()
+            self.assertVectorAlmostEqual(time_values, [0.5, 1.0, 1.5])
+            self.assertTrue((Path(temp_dir) / "series").is_dir())
+
+    def testGltfWrite(self):
+        model_part = self.model.CreateModelPart("gltf")
+        _PopulateModelPart(model_part)
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            file_path = Path(temp_dir) / "surface.glb"
+            settings = KratosMultiphysics.Parameters("""{
+                "time_series"   : "single_file",
+                "gltf_settings" : {"up_axis" : "z", "split_angle" : 45.0}
+            }""")
+            KratosMeshioPlusPlus.MeshioPlusPlusIO(str(file_path), settings).WriteModelPart(model_part)
+            self.assertEqual(file_path.read_bytes()[:4], b"glTF")
+
+        with self.assertRaisesRegex(RuntimeError, 'Invalid "gltf_settings"'):
+            KratosMeshioPlusPlus.MeshioPlusPlusIO(
+                "unused.glb", KratosMultiphysics.Parameters('{"gltf_settings" : {"up_axis" : "w"}}'))
+
+    def testUnknownGhostsSettingRaises(self):
+        with self.assertRaisesRegex(RuntimeError, 'Unknown "ghosts" setting'):
+            KratosMeshioPlusPlus.MeshioPlusPlusIO(
+                "unused.pvtu", KratosMultiphysics.Parameters('{"ghosts" : "hide"}'))
+
     def testUnknownProvenanceModeRaises(self):
         with self.assertRaisesRegex(RuntimeError, 'Unknown "provenance" setting'):
             KratosMeshioPlusPlus.MeshioPlusPlusIO(

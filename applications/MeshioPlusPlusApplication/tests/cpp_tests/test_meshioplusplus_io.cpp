@@ -25,7 +25,10 @@
 #include "containers/model.h"
 #include "includes/variables.h"
 #include "custom_io/meshioplusplus_io.h"
+#include "custom_utilities/meshioplusplus_conversion_utilities.h"
 #include "custom_utilities/meshioplusplus_mesh_operations.h"
+#include "meshioplusplus/formats/pvtu.hpp"
+#include "meshioplusplus/operations/partition.hpp"
 #include "meshioplusplus_fast_suite.h"
 
 namespace Kratos::Testing {
@@ -43,6 +46,16 @@ void RemoveIfExists(const std::filesystem::path& rPath)
     if (std::filesystem::exists(rPath)) {
         std::filesystem::remove(rPath);
     }
+}
+
+/// Removes a ParaView index (.pvtu/.pvtp/.pvd) together with the sibling directory named after
+/// its stem that holds its pieces.
+void RemoveIndexAndPieces(const std::filesystem::path& rPath)
+{
+    RemoveIfExists(rPath);
+    auto pieces_directory = rPath;
+    pieces_directory.replace_extension();
+    std::filesystem::remove_all(pieces_directory);
 }
 
 /// Creates 5 nodes, 2 tetrahedra elements and 1 triangle condition
@@ -1522,6 +1535,405 @@ KRATOS_TEST_CASE_IN_SUITE(MeshioPlusPlusIOProvenanceNotRecognised, KratosMeshioP
     KRATOS_EXPECT_FALSE(io_read.GetProvenance()["recognised"].GetBool());
 
     RemoveIfExists(file_path);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(MeshioPlusPlusIOFormatIntrospectionAbi16, KratosMeshioPlusPlusFastSuite)
+{
+    // The formats meshio++ v14.0.0 - v16.1.0 added, and which way they go
+    const auto read_formats = MeshioPlusPlusIO::GetSupportedReadFormats();
+    const auto write_formats = MeshioPlusPlusIO::GetSupportedWriteFormats();
+    const auto contains = [](const std::vector<std::string>& rNames, const std::string& rName) {
+        return std::find(rNames.begin(), rNames.end(), rName) != rNames.end();
+    };
+    for (const std::string name : {"pvtu", "pvtp", "pvd", "pcd", "xyz", "lsdyna", "code_aster", "mphbin"}) {
+        KRATOS_EXPECT_TRUE(contains(read_formats, name));
+        KRATOS_EXPECT_TRUE(contains(write_formats, name));
+    }
+    // CalculiX and MSC Nastran result files are read-only, glTF is write-only
+    KRATOS_EXPECT_TRUE(contains(read_formats, "frd"));
+    KRATOS_EXPECT_FALSE(contains(write_formats, "frd"));
+    KRATOS_EXPECT_TRUE(contains(write_formats, "gltf"));
+    KRATOS_EXPECT_FALSE(contains(read_formats, "gltf"));
+    if (MeshioPlusPlusIO::IsFormatAvailable(MeshioPlusPlusIO::Format::VTKHDF)) {
+        KRATOS_EXPECT_TRUE(contains(read_formats, "vtkhdf"));
+        KRATOS_EXPECT_TRUE(contains(write_formats, "vtkhdf"));
+        KRATOS_EXPECT_TRUE(contains(read_formats, "nastran_h5"));
+        KRATOS_EXPECT_FALSE(contains(write_formats, "nastran_h5"));
+    }
+
+    // Name <-> enum
+    KRATOS_EXPECT_EQ(static_cast<int>(MeshioPlusPlusIO::FormatFromString("code_aster")),
+                     static_cast<int>(MeshioPlusPlusIO::Format::CODE_ASTER));
+    KRATOS_EXPECT_EQ(MeshioPlusPlusIO::FormatName(MeshioPlusPlusIO::Format::NASTRAN_H5), "nastran_h5");
+    KRATOS_EXPECT_EQ(MeshioPlusPlusIO::FormatName(MeshioPlusPlusIO::Format::XYZ), "xyz");
+
+    // Every extension upstream now claims must resolve - an unknown name would throw here
+    const std::vector<std::pair<std::string, MeshioPlusPlusIO::Format>> extensions = {
+        {"mesh.k", MeshioPlusPlusIO::Format::LSDYNA},
+        {"mesh.key", MeshioPlusPlusIO::Format::LSDYNA},
+        {"mesh.mail", MeshioPlusPlusIO::Format::CODE_ASTER},
+        {"mesh.mphbin", MeshioPlusPlusIO::Format::MPHBIN},
+        {"mesh.pcd", MeshioPlusPlusIO::Format::PCD},
+        {"mesh.xyz", MeshioPlusPlusIO::Format::XYZ},
+        {"mesh.txt", MeshioPlusPlusIO::Format::XYZ},
+        {"mesh.glb", MeshioPlusPlusIO::Format::GLTF},
+        {"mesh.gltf", MeshioPlusPlusIO::Format::GLTF},
+        {"mesh.pvtu", MeshioPlusPlusIO::Format::PVTU},
+        {"mesh.pvtp", MeshioPlusPlusIO::Format::PVTP},
+        {"mesh.pvd", MeshioPlusPlusIO::Format::PVD},
+        {"mesh.frd", MeshioPlusPlusIO::Format::FRD},
+        {"mesh.uff", MeshioPlusPlusIO::Format::UNV},
+        {"mesh.vtkhdf", MeshioPlusPlusIO::Format::VTKHDF},
+        {"mesh.h5", MeshioPlusPlusIO::Format::NASTRAN_H5},
+    };
+    for (const auto& [r_path, format] : extensions) {
+        KRATOS_EXPECT_EQ(static_cast<int>(MeshioPlusPlusIO::ResolveFormat(r_path)), static_cast<int>(format));
+    }
+    // GiD's compound extension still wins over nastran_h5's ".h5"
+    KRATOS_EXPECT_EQ(static_cast<int>(MeshioPlusPlusIO::ResolveFormat("results.post.h5")),
+                     static_cast<int>(MeshioPlusPlusIO::Format::GID));
+}
+
+KRATOS_TEST_CASE_IN_SUITE(MeshioPlusPlusIOWriteReadLsDyna, KratosMeshioPlusPlusFastSuite)
+{
+    WriteReadRoundTrip(".k");
+}
+
+KRATOS_TEST_CASE_IN_SUITE(MeshioPlusPlusIOWriteReadCodeAster, KratosMeshioPlusPlusFastSuite)
+{
+    WriteReadRoundTrip(".mail");
+}
+
+KRATOS_TEST_CASE_IN_SUITE(MeshioPlusPlusIOWriteReadMphbin, KratosMeshioPlusPlusFastSuite)
+{
+    WriteReadRoundTrip(".mphbin");
+}
+
+KRATOS_TEST_CASE_IN_SUITE(MeshioPlusPlusIOWriteReadVtkhdf, KratosMeshioPlusPlusFastSuite)
+{
+    if (!MeshioPlusPlusIO::IsFormatAvailable(MeshioPlusPlusIO::Format::VTKHDF)) {
+        GTEST_SKIP() << "vtkhdf requires an HDF5-enabled build";
+    }
+    WriteReadRoundTrip(".vtkhdf");
+}
+
+KRATOS_TEST_CASE_IN_SUITE(MeshioPlusPlusIOWriteReadPvtu, KratosMeshioPlusPlusFastSuite)
+{
+    Model model;
+    auto& r_write_model_part = model.CreateModelPart("write");
+    auto& r_read_model_part = model.CreateModelPart("read");
+    PopulateTetrahedraModelPart(r_write_model_part);
+
+    // No "partition:part" cell data: the index names a single piece in its sibling directory
+    const auto file_path = TestFilePath(".pvtu");
+    {
+        Parameters settings(R"({"time_series" : "single_file"})");
+        MeshioPlusPlusIO io_write(file_path, settings);
+        io_write.WriteModelPart(r_write_model_part);
+    }
+    auto pieces_directory = file_path;
+    pieces_directory.replace_extension();
+    KRATOS_EXPECT_TRUE(std::filesystem::is_directory(pieces_directory));
+    {
+        MeshioPlusPlusIO io_read(file_path);
+        io_read.ReadModelPart(r_read_model_part);
+    }
+    RemoveIndexAndPieces(file_path);
+
+    ExpectSameMesh(r_write_model_part, r_read_model_part);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(MeshioPlusPlusIOWriteReadPvtp, KratosMeshioPlusPlusFastSuite)
+{
+    Model model;
+    auto& r_write_model_part = model.CreateModelPart("write");
+    auto& r_read_model_part = model.CreateModelPart("read");
+    PopulateTriangleModelPart(r_write_model_part);
+
+    const auto file_path = TestFilePath(".pvtp");
+    {
+        Parameters settings(R"({"time_series" : "single_file", "file_format" : "ascii"})");
+        MeshioPlusPlusIO io_write(file_path, settings);
+        io_write.WriteModelPart(r_write_model_part);
+    }
+    {
+        MeshioPlusPlusIO io_read(file_path);
+        io_read.ReadModelPart(r_read_model_part);
+    }
+    RemoveIndexAndPieces(file_path);
+
+    ExpectSameMesh(r_write_model_part, r_read_model_part);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(MeshioPlusPlusIOPointClouds, KratosMeshioPlusPlusFastSuite)
+{
+    // pcd (every DATA mode) and xyz keep the points only
+    const std::vector<std::pair<std::string, std::string>> cases = {
+        {".pcd", R"({"time_series" : "single_file"})"},
+        {".pcd", R"({"time_series" : "single_file", "file_format" : "ascii"})"},
+        {".pcd", R"({"time_series" : "single_file", "pcd_compressed" : true, "pcd_float64_points" : true})"},
+        {".xyz", R"({"time_series" : "single_file"})"},
+    };
+    for (const auto& [r_extension, r_settings] : cases) {
+        Model model;
+        auto& r_write_model_part = model.CreateModelPart("write");
+        auto& r_read_model_part = model.CreateModelPart("read");
+        PopulateTetrahedraModelPart(r_write_model_part);
+
+        const auto file_path = TestFilePath(r_extension);
+        {
+            MeshioPlusPlusIO io_write(file_path, Parameters(r_settings));
+            io_write.WriteModelPart(r_write_model_part);
+        }
+        {
+            MeshioPlusPlusIO io_read(file_path);
+            io_read.ReadModelPart(r_read_model_part);
+        }
+        RemoveIfExists(file_path);
+
+        KRATOS_EXPECT_EQ(r_read_model_part.NumberOfNodes(), r_write_model_part.NumberOfNodes());
+        auto it_read = r_read_model_part.NodesBegin();
+        for (const auto& r_node : r_write_model_part.Nodes()) {
+            KRATOS_EXPECT_NEAR(r_node.X(), it_read->X(), 1e-6);
+            KRATOS_EXPECT_NEAR(r_node.Y(), it_read->Y(), 1e-6);
+            KRATOS_EXPECT_NEAR(r_node.Z(), it_read->Z(), 1e-6);
+            ++it_read;
+        }
+    }
+}
+
+KRATOS_TEST_CASE_IN_SUITE(MeshioPlusPlusIOPcdCompressedIsBinaryCompressed, KratosMeshioPlusPlusFastSuite)
+{
+    Model model;
+    auto& r_model_part = model.CreateModelPart("write");
+    PopulateTetrahedraModelPart(r_model_part);
+
+    const auto file_path = TestFilePath(".pcd");
+    {
+        MeshioPlusPlusIO io_write(file_path, Parameters(R"({"time_series" : "single_file", "pcd_compressed" : true})"));
+        io_write.WriteModelPart(r_model_part);
+    }
+    const std::string content = ReadFileContent(file_path);
+    RemoveIfExists(file_path);
+    KRATOS_EXPECT_NE(content.find("DATA binary_compressed"), std::string::npos);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(MeshioPlusPlusIOGltfWrite, KratosMeshioPlusPlusFastSuite)
+{
+    Model model;
+    auto& r_model_part = model.CreateModelPart("write");
+    PopulateTetrahedraModelPart(r_model_part);
+    for (auto& r_node : r_model_part.Nodes()) {
+        r_node.SetValue(TEMPERATURE, static_cast<double>(r_node.Id()));
+    }
+
+    // A .glb is the binary container: a 12-byte header opening with the "glTF" magic
+    const auto file_path = TestFilePath(".glb");
+    {
+        Parameters settings(R"({
+            "time_series"                : "single_file",
+            "nodal_data_value_variables" : ["TEMPERATURE"],
+            "gltf_settings"              : {
+                "color_by" : "TEMPERATURE",
+                "cmap"     : "coolwarm",
+                "range"    : [0.0, 5.0],
+                "up_axis"  : "z"
+            }
+        })");
+        MeshioPlusPlusIO io_write(file_path, settings);
+        io_write.WriteModelPart(r_model_part);
+    }
+    const std::string content = ReadFileContent(file_path);
+    RemoveIfExists(file_path);
+    KRATOS_EXPECT_TRUE(content.size() > 12);
+    KRATOS_EXPECT_EQ(content.substr(0, 4), "glTF");
+
+    // The glTF names are validated at construction, like every other enumerated setting
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        MeshioPlusPlusIO(file_path, Parameters(R"({"gltf_settings" : {"container" : "zip"}})")),
+        "Invalid \"gltf_settings\"");
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        MeshioPlusPlusIO(file_path, Parameters(R"({"gltf_settings" : {"range" : [1.0]}})")),
+        "must be empty (automatic) or [min, max]");
+}
+
+KRATOS_TEST_CASE_IN_SUITE(MeshioPlusPlusIOOpenFoamBinaryWrite, KratosMeshioPlusPlusFastSuite)
+{
+    Model model;
+    auto& r_write_model_part = model.CreateModelPart("write");
+    auto& r_read_model_part = model.CreateModelPart("read");
+    PopulateTetrahedraModelPart(r_write_model_part);
+
+    const auto case_directory = std::filesystem::temp_directory_path() / "MeshioPlusPlusIOOpenFoamBinaryWrite";
+    std::filesystem::remove_all(case_directory);
+    std::filesystem::create_directories(case_directory);
+    const auto file_path = case_directory / "case.foam";
+    {
+        Parameters settings(R"({
+            "time_series"         : "single_file",
+            "file_format"         : "binary",
+            "entity_type"         : "element",
+            "openfoam_label_bits" : 64
+        })");
+        MeshioPlusPlusIO io_write(file_path, settings);
+        io_write.WriteModelPart(r_write_model_part);
+    }
+    const std::string owner = ReadFileContent(case_directory / "constant" / "polyMesh" / "owner");
+    KRATOS_EXPECT_NE(owner.find("binary"), std::string::npos);
+    KRATOS_EXPECT_NE(owner.find("label=64"), std::string::npos);
+    {
+        MeshioPlusPlusIO io_read(file_path);
+        io_read.ReadModelPart(r_read_model_part);
+    }
+    std::filesystem::remove_all(case_directory);
+
+    KRATOS_EXPECT_EQ(r_read_model_part.NumberOfNodes(), r_write_model_part.NumberOfNodes());
+    KRATOS_EXPECT_EQ(r_read_model_part.NumberOfElements(), r_write_model_part.NumberOfElements());
+
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        MeshioPlusPlusIO(file_path, Parameters(R"({"openfoam_label_bits" : 16})")),
+        "\"openfoam_label_bits\" must be 32 or 64");
+}
+
+KRATOS_TEST_CASE_IN_SUITE(MeshioPlusPlusIOPvdTimeSeries, KratosMeshioPlusPlusFastSuite)
+{
+    Model model;
+    auto& r_model_part = model.CreateModelPart("write");
+    r_model_part.AddNodalSolutionStepVariable(TEMPERATURE);
+    PopulateTetrahedraModelPart(r_model_part);
+    auto& r_process_info = r_model_part.GetProcessInfo();
+
+    const auto file_path = TestFilePath(".pvd");
+    RemoveIndexAndPieces(file_path);
+    Parameters settings(R"({
+        "output_control_type"                : "time",
+        "nodal_solution_step_data_variables" : ["TEMPERATURE"]
+    })");
+    {
+        MeshioPlusPlusIO io_write(file_path, settings.Clone());
+        for (int step = 1; step <= 3; ++step) {
+            r_process_info[TIME] = 0.25 * step;
+            for (auto& r_node : r_model_part.Nodes()) {
+                r_node.FastGetSolutionStepValue(TEMPERATURE) = step * r_node.Id();
+            }
+            io_write.WriteModelPart(r_model_part);
+        }
+        io_write.CloseOutput();
+    }
+
+    // One index, not a file series: the steps are its DataSets
+    KRATOS_EXPECT_EQ(CountOccurrences(ReadFileContent(file_path), "<DataSet"), 3);
+
+    MeshioPlusPlusIO io_read(file_path);
+    const auto time_values = io_read.GetTimeValues();
+    KRATOS_EXPECT_EQ(time_values.size(), 3);
+    for (std::size_t i = 0; i < time_values.size(); ++i) {
+        KRATOS_EXPECT_NEAR(time_values[i], 0.25 * (i + 1), 1e-12);
+    }
+
+    // "time_step" selects a step of the collection
+    Model read_model;
+    auto& r_read_model_part = read_model.CreateModelPart("read");
+    MeshioPlusPlusIO io_step(file_path, Parameters(R"({"time_step" : -1})"));
+    io_step.ReadModelPart(r_read_model_part);
+    KRATOS_EXPECT_EQ(r_read_model_part.NumberOfNodes(), r_model_part.NumberOfNodes());
+
+    RemoveIndexAndPieces(file_path);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(MeshioPlusPlusIOVtkhdfTimeSeries, KratosMeshioPlusPlusFastSuite)
+{
+    if (!MeshioPlusPlusIO::IsFormatAvailable(MeshioPlusPlusIO::Format::VTKHDF)) {
+        GTEST_SKIP() << "vtkhdf requires an HDF5-enabled build";
+    }
+
+    Model model;
+    auto& r_model_part = model.CreateModelPart("write");
+    r_model_part.AddNodalSolutionStepVariable(TEMPERATURE);
+    PopulateTetrahedraModelPart(r_model_part);
+    auto& r_process_info = r_model_part.GetProcessInfo();
+
+    const auto file_path = TestFilePath(".vtkhdf");
+    RemoveIfExists(file_path);
+    Parameters settings(R"({
+        "output_control_type"                : "time",
+        "nodal_solution_step_data_variables" : ["TEMPERATURE"]
+    })");
+    {
+        MeshioPlusPlusIO io_write(file_path, settings.Clone());
+        for (int step = 1; step <= 3; ++step) {
+            r_process_info[TIME] = 0.1 * step;
+            for (auto& r_node : r_model_part.Nodes()) {
+                r_node.FastGetSolutionStepValue(TEMPERATURE) = step * r_node.Id();
+            }
+            io_write.WriteModelPart(r_model_part);
+        }
+    }
+    KRATOS_EXPECT_EQ(MeshioPlusPlusIO(file_path).GetNumberOfTimeSteps(), 3);
+
+    { // A NEW IO on the same file must continue the series rather than restart it
+        MeshioPlusPlusIO io_append(file_path, settings.Clone());
+        r_process_info[TIME] = 0.4;
+        io_append.WriteModelPart(r_model_part);
+    }
+    const auto time_values = MeshioPlusPlusIO(file_path).GetTimeValues();
+    KRATOS_EXPECT_EQ(time_values.size(), 4);
+    KRATOS_EXPECT_NEAR(time_values.back(), 0.4, 1e-12);
+
+    RemoveIfExists(file_path);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(MeshioPlusPlusIOPartitionedPiecesAndGhosts, KratosMeshioPlusPlusFastSuite)
+{
+    // A 4 x 1 x 1 hexahedra lattice cut into two parts with one ghost layer, written the way
+    // meshio++'s own "partition" command writes it: one .pvtu over both pieces, halo included.
+    Model model;
+    auto& r_source = model.CreateModelPart("source");
+    Parameters grid_settings(R"({"dims" : [4, 1, 1], "origin" : [0.0, 0.0, 0.0], "spacing" : [1.0, 1.0, 1.0]})");
+    MeshioPlusPlusMeshOperations::Grid(grid_settings, r_source);
+    const std::size_t number_of_cells = r_source.NumberOfElements();
+    KRATOS_EXPECT_EQ(number_of_cells, 4);
+
+    const auto mesh = Internals::ModelPartToMeshWithData(r_source, true, false, false, Internals::FieldDataSelection());
+    meshioplusplus::PartitionOptions options;
+    options.mNParts = 2;
+    options.mGhostLayers = 1;
+    const auto result = meshioplusplus::partition(mesh, options);
+    std::vector<const meshioplusplus::Mesh*> pieces;
+    for (const auto& r_piece : result.mPieces) {
+        pieces.push_back(&r_piece.mMesh);
+    }
+
+    const auto file_path = TestFilePath(".pvtu");
+    RemoveIndexAndPieces(file_path);
+    meshioplusplus::write_pvtu_pieces_codec(file_path.string(), pieces, true, meshioplusplus::detail::VtkCodec::None);
+
+    const auto read = [&file_path](const std::string& rSettings) {
+        Model read_model;
+        auto& r_model_part = read_model.CreateModelPart("read");
+        MeshioPlusPlusIO io(file_path, Parameters(rSettings));
+        io.ReadModelPart(r_model_part);
+        return r_model_part.NumberOfElements();
+    };
+
+    // Kept, the halo duplicates cells across the pieces; dropped, every cell is owned once
+    const std::size_t merged_with_ghosts = read(R"({})");
+    const std::size_t merged_without_ghosts = read(R"({"ghosts" : "drop"})");
+    KRATOS_EXPECT_EQ(merged_without_ghosts, number_of_cells);
+    KRATOS_EXPECT_GT(merged_with_ghosts, merged_without_ghosts);
+
+    // One piece at a time, owned cells only: the two halves add up to the whole
+    const std::size_t first = read(R"({"select_piece" : true, "piece" : 0, "ghosts" : "drop"})");
+    const std::size_t last = read(R"({"select_piece" : true, "piece" : -1, "ghosts" : "drop"})");
+    KRATOS_EXPECT_GT(first, 0);
+    KRATOS_EXPECT_GT(last, 0);
+    KRATOS_EXPECT_EQ(first + last, number_of_cells);
+
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        MeshioPlusPlusIO(file_path, Parameters(R"({"ghosts" : "hide"})")),
+        "Unknown \"ghosts\" setting");
+
+    RemoveIndexAndPieces(file_path);
 }
 
 } // namespace Kratos::Testing

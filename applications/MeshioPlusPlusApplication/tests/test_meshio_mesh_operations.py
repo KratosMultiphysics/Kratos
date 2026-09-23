@@ -93,7 +93,8 @@ class TestMeshioPlusPlusMeshOperations(KratosUnittest.TestCase):
         for expected in ("clean", "transform", "refine", "partition", "extract_skin", "stats",
                          "subdivide", "agglomerate", "decimate_volume", "remesh", "remesh_volume",
                          "optimize_volume", "estimate_error", "hessian", "data_integrate",
-                         "curvature", "repair", "sobolev_deform"):
+                         "curvature", "repair", "sobolev_deform", "compute_normals",
+                         "tensor_invariants"):
             self.assertIn(expected, operations)
 
     def test_unknown_operation_raises(self):
@@ -778,6 +779,40 @@ class TestMeshioPlusPlusMeshOperations(KratosUnittest.TestCase):
             self.assertLessEqual(node.X, 1.0 + 1e-9)
             self.assertLessEqual(node.Y, 1.0 + 1e-9)
             self.assertLessEqual(node.Z, 1.0 + 1e-9)
+
+
+    def test_compute_normals(self):
+        source = self.model.CreateModelPart("Square")
+        _CreateTriangulatedSquare(source)
+        settings = KratosMultiphysics.Parameters('{"output" : "NORMAL"}')
+        destination, report = self._Execute("compute_normals", settings, source)
+
+        self.assertEqual(report["number_of_added_points"].GetInt(), 0)
+        for node in destination.Nodes:
+            self.assertVectorAlmostEqual(node.GetValue(KratosMultiphysics.NORMAL), [0.0, 0.0, 1.0])
+
+    def test_compute_normals_rejects_volumes(self):
+        with self.assertRaisesRegex(RuntimeError, "extract_surface"):
+            self._Execute("compute_normals")
+
+    def test_tensor_invariants(self):
+        # A pure shear xy = 1: von Mises sqrt(3), hydrostatic 0
+        source = self.model.CreateModelPart("Stressed")
+        _CreateTriangulatedSquare(source)
+        for node in source.Nodes:
+            node.SetValue(KratosMultiphysics.CAUCHY_STRESS_VECTOR,
+                          KratosMultiphysics.Vector([0.0, 0.0, 0.0, 1.0, 0.0, 0.0]))
+        settings = KratosMultiphysics.Parameters("""{
+            "nodal_data_value_variables" : ["CAUCHY_STRESS_VECTOR"],
+            "names"                      : ["CAUCHY_STRESS_VECTOR"],
+            "invariants"                 : ["mises"],
+            "rename"                     : [
+                {"location" : "point", "from" : "CAUCHY_STRESS_VECTOR_mises", "to" : "TEMPERATURE"}
+            ]
+        }""")
+        destination, _ = self._Execute("tensor_invariants", settings, source)
+        for node in destination.Nodes:
+            self.assertAlmostEqual(node.GetValue(KratosMultiphysics.TEMPERATURE), math.sqrt(3.0), 12)
 
 
 if __name__ == "__main__":

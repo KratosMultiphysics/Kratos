@@ -136,7 +136,7 @@ KRATOS_TEST_CASE_IN_SUITE(MeshioPlusPlusMeshOperationsGetSupportedOperations, Kr
 {
     const auto operations = MeshioPlusPlusMeshOperations::GetSupportedOperations();
     for (const std::string name : {"agglomerate", "attach_quality", "cell_data_to_point_data",
-                                   "clean", "compute_sdf", "convert_cells", "crop_bbox",
+                                   "clean", "compute_normals", "compute_sdf", "convert_cells", "crop_bbox",
                                    "crop_halfspace", "crop_predicate", "curvature", "data_calc",
                                    "data_condition", "data_info", "data_integrate", "data_manage",
                                    "decimate", "decimate_volume", "estimate_error", "extract_skin",
@@ -144,9 +144,10 @@ KRATOS_TEST_CASE_IN_SUITE(MeshioPlusPlusMeshOperationsGetSupportedOperations, Kr
                                    "optimize_volume", "point_data_to_cell_data", "partition",
                                    "quality", "refine", "remesh", "remesh_volume", "reorder",
                                    "repair", "slice", "smooth", "sobolev_deform", "split", "stats",
-                                   "subdivide", "transform", "voxelize"}) {
+                                   "subdivide", "tensor_invariants", "transform", "voxelize"}) {
         KRATOS_EXPECT_TRUE(std::find(operations.begin(), operations.end(), name) != operations.end());
     }
+    KRATOS_EXPECT_EQ(operations.size(), 42);
     KRATOS_EXPECT_TRUE(std::is_sorted(operations.begin(), operations.end()));
 }
 
@@ -2132,6 +2133,117 @@ KRATOS_TEST_CASE_IN_SUITE(MeshioPlusPlusMeshOperationsShrinkwrapProjectsOntoTarg
         KRATOS_EXPECT_GE(r_node.Y(), -1e-9);
         KRATOS_EXPECT_GE(r_node.Z(), -1e-9);
     }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+KRATOS_TEST_CASE_IN_SUITE(MeshioPlusPlusMeshOperationsComputeNormals, KratosMeshioPlusPlusFastSuite)
+{
+    // The flat square lies in z = 0, wound counter-clockwise: every normal is +z. "normals" is
+    // no Kratos Variable, so "output" lands it on NORMAL.
+    Model model;
+    auto& r_source = model.CreateModelPart("source");
+    PopulateTriangulatedSquare(r_source);
+    auto& r_destination = model.CreateModelPart("destination");
+
+    const Parameters report = MeshioPlusPlusMeshOperations::Execute(
+        r_source, OperationSettings("compute_normals", R"({"output" : "NORMAL"})"), r_destination);
+
+    KRATOS_EXPECT_EQ(report["number_of_added_points"].GetInt(), 0);
+    KRATOS_EXPECT_EQ(r_destination.NumberOfNodes(), r_source.NumberOfNodes());
+    for (const auto& r_node : r_destination.Nodes()) {
+        const auto& r_normal = r_node.GetValue(NORMAL);
+        KRATOS_EXPECT_NEAR(r_normal[0], 0.0, 1e-12);
+        KRATOS_EXPECT_NEAR(r_normal[1], 0.0, 1e-12);
+        KRATOS_EXPECT_NEAR(r_normal[2], 1.0, 1e-12);
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+KRATOS_TEST_CASE_IN_SUITE(MeshioPlusPlusMeshOperationsComputeNormalsSplitsCreases, KratosMeshioPlusPlusFastSuite)
+{
+    // Every cube corner joins three faces at 90 degrees: with a 30 degree split each of the 8
+    // corners becomes one copy per face fan, so points are added and every normal is axis-aligned.
+    Model model;
+    auto& r_source = model.CreateModelPart("source");
+    PopulateClosedCubeSkin(r_source);
+    auto& r_destination = model.CreateModelPart("destination");
+
+    const Parameters report = MeshioPlusPlusMeshOperations::Execute(
+        r_source, OperationSettings("compute_normals", R"({"output" : "NORMAL", "split" : true, "split_angle" : 30.0})"),
+        r_destination);
+
+    KRATOS_EXPECT_GT(report["number_of_added_points"].GetInt(), 0);
+    KRATOS_EXPECT_EQ(r_destination.NumberOfNodes(),
+                     r_source.NumberOfNodes() + static_cast<std::size_t>(report["number_of_added_points"].GetInt()));
+    KRATOS_EXPECT_EQ(r_destination.NumberOfElements(), r_source.NumberOfElements());
+    for (const auto& r_node : r_destination.Nodes()) {
+        const auto& r_normal = r_node.GetValue(NORMAL);
+        const double largest = std::max({std::abs(r_normal[0]), std::abs(r_normal[1]), std::abs(r_normal[2])});
+        KRATOS_EXPECT_NEAR(largest, 1.0, 1e-12);
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+KRATOS_TEST_CASE_IN_SUITE(MeshioPlusPlusMeshOperationsComputeNormalsRejectsVolumes, KratosMeshioPlusPlusFastSuite)
+{
+    Model model;
+    auto& r_source = model.CreateModelPart("source");
+    PopulateCubeOfTetrahedra(r_source);
+    auto& r_destination = model.CreateModelPart("destination");
+
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        MeshioPlusPlusMeshOperations::Execute(r_source, OperationSettings("compute_normals"), r_destination),
+        "extract_surface");
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+KRATOS_TEST_CASE_IN_SUITE(MeshioPlusPlusMeshOperationsTensorInvariants, KratosMeshioPlusPlusFastSuite)
+{
+    // Uniaxial stress sigma_xx = 3 (xx yy zz xy yz zx): von Mises 3, hydrostatic 1. The
+    // invariant names are not Kratos Variables, so "rename" lands the von Mises value on
+    // TEMPERATURE and the hydrostatic one on PRESSURE.
+    Model model;
+    auto& r_source = model.CreateModelPart("source");
+    PopulateTriangulatedSquare(r_source);
+    for (auto& r_node : r_source.Nodes()) {
+        Vector stress = ZeroVector(6);
+        stress[0] = 3.0;
+        r_node.SetValue(CAUCHY_STRESS_VECTOR, stress);
+    }
+    auto& r_destination = model.CreateModelPart("destination");
+
+    const Parameters settings = OperationSettings("tensor_invariants", R"({
+        "nodal_data_value_variables" : ["CAUCHY_STRESS_VECTOR"],
+        "names"                      : ["CAUCHY_STRESS_VECTOR"],
+        "invariants"                 : ["mises", "hydrostatic"],
+        "rename"                     : [
+            {"location" : "point", "from" : "CAUCHY_STRESS_VECTOR_mises", "to" : "TEMPERATURE"},
+            {"location" : "point", "from" : "CAUCHY_STRESS_VECTOR_hydrostatic", "to" : "PRESSURE"}
+        ]
+    })");
+    MeshioPlusPlusMeshOperations::Execute(r_source, settings, r_destination);
+
+    KRATOS_EXPECT_EQ(r_destination.NumberOfNodes(), r_source.NumberOfNodes());
+    for (const auto& r_node : r_destination.Nodes()) {
+        KRATOS_EXPECT_NEAR(r_node.GetValue(TEMPERATURE), 3.0, 1e-12);
+        KRATOS_EXPECT_NEAR(r_node.GetValue(PRESSURE), 1.0, 1e-12);
+    }
+
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        MeshioPlusPlusMeshOperations::Execute(r_source, OperationSettings("tensor_invariants", R"({
+            "nodal_data_value_variables" : ["CAUCHY_STRESS_VECTOR"],
+            "names"                      : ["CAUCHY_STRESS_VECTOR"],
+            "invariants"                 : []
+        })"), r_destination),
+        "needs at least one entry in \"invariants\"");
 }
 
 } // namespace Kratos::Testing
