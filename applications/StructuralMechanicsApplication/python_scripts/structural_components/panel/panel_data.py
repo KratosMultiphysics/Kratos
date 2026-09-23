@@ -26,11 +26,11 @@ class PanelCompositeMaterial:
     ply_thickness   : np.ndarray
     ply_angle       : np.ndarray
 
-    strength_RF_pa_t : np.ndarray
-    strength_RF_pa_c : np.ndarray
-    strength_RF_tr_t : np.ndarray
-    strength_RF_tr_c : np.ndarray
-    strength_RF_trpa : np.ndarray
+    strength_R_pa_t : np.ndarray
+    strength_R_pa_c : np.ndarray
+    strength_R_tr_t : np.ndarray
+    strength_R_tr_c : np.ndarray
+    strength_R_trpa : np.ndarray
 
     inclination_p_trtr_c : np.ndarray
     inclination_p_trpa_t : np.ndarray
@@ -66,7 +66,7 @@ class PanelLoadState:
     is_shear_dominant: bool
 
 @dataclass
-class PuckResponseContainer:
+class PuckCompositeResponse:
     #TODO: Add responses that are necessary for Puck analysis
     sigma_1 : np.ndarray
     sigma_2 : np.ndarray
