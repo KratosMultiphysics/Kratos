@@ -5,17 +5,6 @@
 
 namespace Kratos {
 
-namespace {
-    // Helper function to extract GeometryType enum across Elements, Conditions, and Geometries
-    template <typename TContainerType>
-    GeometryData::KratosGeometryType ExtractGeometryType(const typename TContainerType::data_type& rEntity) {
-        if constexpr (std::is_same_v<TContainerType, ModelPart::GeometryContainerType>) {
-            return rEntity.GetGeometryType();
-        } else {
-            return rEntity.GetGeometry().GetGeometryType();
-        }
-    }
-}
 
 template <typename TContainerType>
 std::vector<TContainerType> ContainerClassificationUtilities::Classify(TContainerType& rContainer) 
