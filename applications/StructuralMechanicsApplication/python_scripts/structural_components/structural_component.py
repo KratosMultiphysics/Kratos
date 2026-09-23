@@ -5,9 +5,11 @@ class StructuralComponent(ABC):
 
     def __init__(self, 
                  sub_model_part, 
-                 boundary_conditions: list[float]):
+                 boundary_conditions: list[float],
+                 metadata):
         self.sub_model_part = sub_model_part
         self.boundary_conditions: list[float] = boundary_conditions
+        self.metadata = metadata
          
 
     @classmethod
