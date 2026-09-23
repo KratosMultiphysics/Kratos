@@ -50,10 +50,11 @@ using namespace Kratos;
 // where unqualified lookup finds Kratos::SparseSpaceType (declared by
 // factories/linear_solver_factory.h) BEFORE this anonymous namespace — so
 // aliases with those names would be silently bypassed there.
-using GeoSparseSpaceType = TDefaultSparseSpace<double>;
-using GeoDenseSpaceType  = TDefaultDenseSpace<double>;
+using GeoSparseSpaceType  = TDefaultSparseSpace<double>;
+using GeoDenseSpaceType   = TDefaultDenseSpace<double>;
 using GeoLinearSolverType = LinearSolver<GeoSparseSpaceType, GeoDenseSpaceType>;
-using GeoSolvingStrategyFactoryType = SolvingStrategyFactory<GeoSparseSpaceType, GeoDenseSpaceType, GeoLinearSolverType>;
+using GeoSolvingStrategyFactoryType =
+    SolvingStrategyFactory<GeoSparseSpaceType, GeoDenseSpaceType, GeoLinearSolverType>;
 
 double GetStartTimeFrom(const Parameters& rProjectParameters)
 {
