@@ -24,7 +24,7 @@
 #include "custom_python/add_custom_strategies_to_python.h"
 
 
-#include "spaces/default_spaces.h"
+#include "spaces/ublas_space.h"
 
 //strategies
 #include "solving_strategies/strategies/implicit_solving_strategy.h"

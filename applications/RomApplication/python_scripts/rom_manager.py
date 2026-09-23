@@ -163,8 +163,8 @@ class RomManager(object):
                     nn_rom_interface = NN_ROM_Interface(mu_train, self.data_base)
                     self._LaunchROM(mu_test, gid_and_vtk_name='ROM_Test', nn_rom_interface=nn_rom_interface)
                 if any(item == "HROM" for item in testing_stages):
-                    err_msg = f'HROM is not available yet for ann_enhanced decoders.'
-                    raise Exception(err_msg)
+                    self._ChangeRomFlags(simulation_to_run = "runHROMGalerkin_ANN")
+                    self._LaunchHROM(mu_train,nn_rom_interface=nn_rom_interface)
             elif type_of_decoder =="linear":
                 if any(item == "ROM" for item in testing_stages):
                     self._LoadSolutionBasis(mu_train)
@@ -189,7 +189,8 @@ class RomManager(object):
                     nn_rom_interface = NN_ROM_Interface(mu_train, self.data_base)
                     self._LaunchROM(mu_test, gid_and_vtk_name='ROM_Test', nn_rom_interface=nn_rom_interface)
                 if any(item == "HROM" for item in testing_stages):
-                    err_msg = f'HROM is not available yet for ann_enhanced decoders.'
+                    self._ChangeRomFlags(simulation_to_run = "runHROMlspg_ANN")
+                    self._LaunchHROM(mu_train,nn_rom_interface=nn_rom_interface)
             elif type_of_decoder =="linear":
                 if any(item == "ROM" for item in testing_stages):
                     self._LoadSolutionBasis(mu_train)
@@ -267,7 +268,7 @@ class RomManager(object):
 
 
 
-    def RunHROM(self, mu_run=[None], mu_train=[None], use_full_model_part = False):
+    def RunHROM(self, mu_run=[None], mu_train=[None], use_full_model_part = False, nn_rom_interface=None):
         chosen_projection_strategy = self.general_rom_manager_parameters["projection_strategy"].GetString()
         type_of_decoder = self.general_rom_manager_parameters["type_of_decoder"].GetString()
         self._LoadSolutionBasis(mu_train)
@@ -275,16 +276,18 @@ class RomManager(object):
         ######  Galerkin ######
         if chosen_projection_strategy == "galerkin":
             if type_of_decoder =="ann_enhanced":
-                err_msg = f'HROM only supports linear projection strategy for the moment'
-                raise Exception(err_msg)
+                nn_rom_interface = NN_ROM_Interface(mu_train, self.data_base)
+                self._ChangeRomFlags(simulation_to_run = "runHROMGalerkin_ANN")
+                self._LaunchHROM(mu_train,nn_rom_interface=nn_rom_interface)
             elif type_of_decoder =="linear":
                 self._ChangeRomFlags(simulation_to_run = "runHROMGalerkin")
         #######################################
         ##  Least-Squares Petrov Galerkin   ###
         elif chosen_projection_strategy == "lspg":
             if type_of_decoder =="ann_enhanced":
-                err_msg = f'HROM only supports linear projection strategy for the moment'
-                raise Exception(err_msg)
+                nn_rom_interface = NN_ROM_Interface(mu_train, self.data_base)
+                self._ChangeRomFlags(simulation_to_run = "runHROMlspg_ANN")
+                self._LaunchHROM(mu_train,nn_rom_interface=nn_rom_interface)
             elif type_of_decoder =="linear":
                 self._ChangeRomFlags(simulation_to_run = "runHROMLSPG")
         ##########################
@@ -298,7 +301,7 @@ class RomManager(object):
         else:
             err_msg = f'Provided projection strategy {chosen_projection_strategy} is not supported. Available options are \'galerkin\', \'lspg\' and \'petrov_galerkin\'.'
             raise Exception(err_msg)
-        self._LaunchRunHROM(mu_run, use_full_model_part)
+        self._LaunchRunHROM(mu_run, use_full_model_part,nn_rom_interface)
 
 
 
@@ -683,7 +686,7 @@ class RomManager(object):
             self.QoI_Run_ROM.append(simulation.GetFinalData())
 
 
-    def _LaunchRunHROM(self, mu_run, use_full_model_part):
+    def _LaunchRunHROM(self, mu_run, use_full_model_part, nn_rom_interface):
         """
         This method should be parallel capable
         """
@@ -699,7 +702,7 @@ class RomManager(object):
             materials_file_name = parameters_copy["solver_settings"]["material_import_settings"]["materials_filename"].GetString() #TODO Come up with a more robust solution to change materials. This fails for some setups
             self.UpdateMaterialParametersFile(materials_file_name, mu)
             model = KratosMultiphysics.Model()
-            analysis_stage_class = type(SetUpSimulationInstance(model, parameters_copy))
+            analysis_stage_class = type(SetUpSimulationInstance(model, parameters_copy,nn_rom_interface))
             simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters_copy, mu)
             simulation.Run()
             self.QoI_Run_HROM.append(simulation.GetFinalData())
