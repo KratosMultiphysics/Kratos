@@ -524,6 +524,7 @@ class RomManager(object):
                 in_database, _ = self.data_base.check_if_in_database("ResidualsProjected", mu)
                 if not in_database:
                     parameters_copy = self.UpdateProjectParameters(parameters.Clone(), mu)
+                    parameters_copy = self._AddBasisCreationToProjectParameters(parameters_copy) #TODO Remove the basis creation process. Here it generates the RomParameters.json, find a workaround
                     parameters_copy = self._AddResidualsProjectedOutputProcessToProjectParameters(parameters_copy)  #This deals with the creation of residuals
                     parameters_copy = self._StoreNoResults(parameters_copy)
                     materials_file_name = parameters_copy["solver_settings"]["material_import_settings"]["materials_filename"].GetString() #TODO Come up with a more robust solution to change materials. This fails for some setups

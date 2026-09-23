@@ -149,6 +149,7 @@ class TestFluidRom(KratosUnittest.TestCase):
                 if file_name.endswith(".time"):
                     kratos_utilities.DeleteFileIfExisting(file_name)
         kratos_utilities.DeleteDirectoryIfExisting("rom_data/Snapshots")
+        kratos_utilities.DeleteDirectoryIfExisting("rom_data/rom_database/xlsx_files/")
 
 ##########################################################################################
 
