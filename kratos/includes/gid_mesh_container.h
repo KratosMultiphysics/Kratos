@@ -82,23 +82,6 @@ public:
             return false;
         KRATOS_CATCH ("")
     }
-    bool AddGeometry (const ModelPart::GeometryConstantIterator pGeomIt)
-    {
-        KRATOS_TRY
-        if ( pGeomIt->GetGeometryType() == mGeometryType )
-        {
-            mMeshGeometries.push_back ( * (pGeomIt.base() ) );
-            Geometry<Node> const&geom = *pGeomIt;
-            for ( Geometry<Node>::const_iterator it = geom.begin(); it != geom.end(); it++)
-            {
-                mMeshNodes.push_back ( * (it.base() ) );
-            }
-            return true;
-        }
-        else
-            return false;
-        KRATOS_CATCH ("")
-    }
     void FinalizeMeshCreation()
     {
         if ( mMeshElements.size() != 0 )
@@ -106,10 +89,6 @@ public:
             mMeshNodes.Unique();
         }
         if ( mMeshConditions.size() != 0 )
-        {
-            mMeshNodes.Unique();
-        }
-        if ( mMeshGeometries.size() != 0 )
         {
             mMeshNodes.Unique();
         }
@@ -307,54 +286,6 @@ public:
             }
             //std::cout << "end printing conditions" <<std::endl;
         }
-        if ( mMeshGeometries.size() != 0 )
-        {
-            std::stringstream current_layer_name (std::stringstream::in | std::stringstream::out);
-            current_layer_name << mMeshTitle << "_0" ;
-            if ( mMeshGeometries.front()->WorkingSpaceDimension() == 2 )
-            {
-                GiD_fBeginMesh ( MeshFile, (char *) (current_layer_name.str() ).c_str(), GiD_2D, mGidElementType, mMeshGeometries.front()->size() );
-            }
-            else if ( mMeshGeometries.front()->WorkingSpaceDimension() == 3 )
-            {
-                GiD_fBeginMesh ( MeshFile, (char *) (current_layer_name.str() ).c_str(), GiD_3D, mGidElementType, mMeshGeometries.front()->size() );
-            }
-            else
-                KRATOS_THROW_ERROR (std::logic_error,"check working space dimension of model","");
-            //printing nodes
-            if(nodes_written == false)
-            {
-                GiD_fBeginCoordinates(MeshFile);
-                for ( ModelPart::NodesContainerType::iterator it = mMeshNodes.begin(); it != mMeshNodes.end(); ++it )
-                {
-                    if ( deformed )
-                        GiD_fWriteCoordinates ( MeshFile, (it)->Id(), (it)->X(), (it)->Y(), (it)->Z() );
-                    else
-                        GiD_fWriteCoordinates ( MeshFile, (it)->Id(), (it)->X0(), (it)->Y0(), (it)->Z0() );
-                }
-                GiD_fEndCoordinates(MeshFile);
-                nodes_written = true;
-            }
-            else
-            {
-                GiD_fBeginCoordinates(MeshFile);
-                GiD_fEndCoordinates(MeshFile);
-            }
-            //printing geometry connectivity
-            GiD_fBeginElements(MeshFile);
-            int* nodes_id = new int[mMeshGeometries.front()->size() + 1];
-            for ( std::vector<ModelPart::GeometryType::Pointer>::iterator it = mMeshGeometries.begin(); it != mMeshGeometries.end(); ++it )
-            {
-                ModelPart::GeometryType const& geom = **it;
-                for ( unsigned int i = 0; i < geom.size(); i++ )
-                    nodes_id[i] = geom[i].Id();
-                nodes_id[ geom.size() ] = 1;
-                GiD_fWriteElementMat ( MeshFile, geom.Id(), nodes_id );
-            }
-            delete [] nodes_id;
-            GiD_fEndElements(MeshFile);
-            GiD_fEndMesh(MeshFile);
-        }
         KRATOS_CATCH ("")
     }
     void Reset()
@@ -362,7 +293,6 @@ public:
         mMeshNodes.clear();
         mMeshElements.clear();
         mMeshConditions.clear();
-        mMeshGeometries.clear();
     }
     ModelPart::NodesContainerType GetMeshNodes()
     {
@@ -375,7 +305,6 @@ protected:
     ModelPart::NodesContainerType mMeshNodes;
     ModelPart::ElementsContainerType mMeshElements;
     ModelPart::ConditionsContainerType mMeshConditions;
-    std::vector<ModelPart::GeometryType::Pointer> mMeshGeometries;
     const char* mMeshTitle;
 };//class GidMeshContainer
 }// namespace Kratos.
