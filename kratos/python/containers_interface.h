@@ -92,7 +92,7 @@ public:
            py::array_t<int> ids(n);
            auto ids_ptr = static_cast<int *>(ids.request().ptr);
            IndexPartition<int>(n).for_each(
-               [&](int i) { ids_ptr[i] = (self.ptr_begin() + i)->get()->Id(); });
+               [&self, &ids_ptr](int i) { ids_ptr[i] = (self.ptr_begin() + i)->get()->Id(); });
            return ids;
          });
   }
