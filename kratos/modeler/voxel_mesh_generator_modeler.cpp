@@ -219,7 +219,7 @@ ModelPart& VoxelMeshGeneratorModeler::CreateAndGetModelPart(std::string const& F
 
 Node::Pointer VoxelMeshGeneratorModeler::GenerateOrRetrieveNode(
     ModelPart& rTheVolumeModelPart,
-    ModelPart::NodesContainerType& rThisNodes,
+    std::vector<ModelPart::NodeType::Pointer>& rThisNodes,
     const std::size_t I,
     const std::size_t J,
     const std::size_t K
@@ -240,7 +240,7 @@ Node::Pointer VoxelMeshGeneratorModeler::GenerateOrRetrieveNode(
 
 Node::Pointer VoxelMeshGeneratorModeler::GenerateOrRetrieveQuadraticNode(
     ModelPart& rTheVolumeModelPart,
-    ModelPart::NodesContainerType& rThisNodes,
+    std::vector<ModelPart::NodeType::Pointer>& rThisNodes,
     const std::size_t I,
     const std::size_t J,
     const std::size_t K
