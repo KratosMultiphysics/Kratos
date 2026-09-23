@@ -3,7 +3,13 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 from KratosMultiphysics import gid_hdf5_postprocess
 
-import h5py
+
+try:
+    import h5py
+    missing_h5py = False
+except ImportError as e:
+    missing_h5py = True
+
 import numpy as np
 import os
 
@@ -92,6 +98,7 @@ class TestGiDHDF5PostProcess(KratosUnittest.TestCase):
         np.testing.assert_allclose(coords["4"][:], [c[2] for c in self.coordinates])
         np.testing.assert_array_equal(np.asarray(mesh_1["Elements"]["1"][:]), np.array([1, 2]))
 
+    @KratosUnittest.skipIf(missing_h5py,"Missing python libraries (h5py)")
     def test_historical_nodal_results(self):
         process = self._CreateProcess()
         self._RunTwoSteps(process)
@@ -122,6 +129,7 @@ class TestGiDHDF5PostProcess(KratosUnittest.TestCase):
             self.assertEqual(self._Attr(pressure_group_2, "Step"), "2")
             np.testing.assert_allclose(pressure_group_2["2"][:], np.arange(1, 10) * 2.0)
 
+    @KratosUnittest.skipIf(missing_h5py,"Missing python libraries (h5py)")
     def test_nonhistorical_nodal_results(self):
         process = self._CreateProcess()
         self._RunTwoSteps(process)
@@ -148,6 +156,7 @@ class TestGiDHDF5PostProcess(KratosUnittest.TestCase):
             self.assertEqual(self._Attr(density_group_2, "Step"), "2")
             np.testing.assert_allclose(density_group_2["2"][:], np.arange(1, 10) * 20.0)
 
+    @KratosUnittest.skipIf(missing_h5py,"Missing python libraries (h5py)")
     def test_flags_nodal_results(self):
         process = self._CreateProcess()
         self._RunTwoSteps(process)
@@ -169,6 +178,7 @@ class TestGiDHDF5PostProcess(KratosUnittest.TestCase):
             self.assertEqual(self._Attr(flag_group_2, "Step"), "2")
             np.testing.assert_array_equal(flag_group_2["2"][:], np.array([-1, 1, -1, 1, -1, 1, -1, 1, -1]))
 
+    @KratosUnittest.skipIf(missing_h5py,"Missing python libraries (h5py)")
     def test_unknown_flag_raises(self):
         parameters = KratosMultiphysics.Parameters(
             """
