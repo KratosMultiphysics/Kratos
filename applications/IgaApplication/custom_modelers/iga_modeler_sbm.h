@@ -158,13 +158,12 @@ private:
         std::string GeometryType) const;
 
     
-    /// Creates list of rQuadraturePointGeometryList for Sbm 
-    /// using the condition name of the associated projection on the skin boundary layer
+    /// Creates SBM conditions using the exact NURBS skin projection for each quadrature point.
+    /// Reads CONDITION_NAME from the projected curve.
     void CreateQuadraturePointGeometriesSbmByProjectionLayer(
         GeometriesArrayType& rQuadraturePointGeometryList,
         ModelPart& rModelPart,
-        const Parameters rParameters,
-        std::string GeometryType) const;
+        const Parameters rParameters) const;
 
     /// Creates list of rQuadraturePointGeometryList for Sbm 
     /// using a fixed condition name for the whole surrogate boundary loop

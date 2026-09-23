@@ -12,14 +12,153 @@
 //
 
 
+// System includes
+#include <algorithm>
+#include <cmath>
+#include <limits>
+#include <string>
+#include <utility>
+#include <vector>
+
 // Project includes
 #include "iga_modeler_sbm.h"
+#include "geometries/nurbs_curve_geometry.h"
 #include "integration/integration_point_utilities.h"
 #include "iga_application_variables.h"
 
 
 namespace Kratos
 {
+namespace
+{
+using ProjectionCoordinates = array_1d<double, 3>;
+using NurbsSkinCurve = NurbsCurveGeometry<2, PointerVector<Node>>;
+
+struct NurbsProjectionResult
+{
+    Geometry<Node>::Pointer pGeometry;
+    ProjectionCoordinates LocalCoordinates = ZeroVector(3);
+    ProjectionCoordinates SkinCoordinates = ZeroVector(3);
+    double SquaredDistance = std::numeric_limits<double>::max();
+    std::string LayerName;
+    IndexType InputOrder = 0;
+    bool IsConvergedProjection = false;
+};
+
+// Finds the closest valid projection of a point onto the NURBS skin curves.
+NurbsProjectionResult ProjectToNurbsSkin(
+    const ProjectionCoordinates& rPoint,
+    Model& rModel,
+    const double SearchRadius,
+    const double Tolerance,
+    const std::string& rRequiredLayer = "")
+{
+    NurbsProjectionResult result;
+    std::vector<Geometry<Node>::Pointer> curves;
+
+    // Collects registered NURBS skin curves from the model's main model parts and sorts them by ID.
+    for (const auto& r_model_part_name : rModel.GetModelPartNames()) {
+        ModelPart& r_model_part = rModel.GetModelPart(r_model_part_name);
+        if (r_model_part.IsSubModelPart()) {
+            continue;
+        }
+        for (auto it = r_model_part.Geometries().ptr_begin();
+             it != r_model_part.Geometries().ptr_end(); ++it) {
+            auto* p_curve = dynamic_cast<NurbsSkinCurve*>((*it).get());
+            if (!p_curve || !p_curve->Has(IDENTIFIER)) {
+                continue;
+            }
+            if (!p_curve->Has(CONDITION_NAME)) {
+                continue;
+            }
+            const std::string& r_condition_name =
+                p_curve->GetValue(CONDITION_NAME);
+            if (!KratosComponents<Condition>::Has(r_condition_name)) {
+                continue;
+            }
+            curves.push_back(*it);
+        }
+    }
+    std::sort(curves.begin(), curves.end(), [](const auto& a, const auto& b) {
+        return a->Id() < b->Id();
+    });
+
+    const double admissible_radius_squared = std::pow(SearchRadius + Tolerance, 2);
+    const auto evaluate = [&](const Geometry<Node>::Pointer& pGeometry,
+                              const ProjectionCoordinates& rLocalCoordinates,
+                              const IndexType InputOrder,
+                              const bool IsConvergedProjection) {
+        if (!std::isfinite(rLocalCoordinates[0])) {
+            return;
+        }
+        ProjectionCoordinates position;
+        pGeometry->GlobalCoordinates(position, rLocalCoordinates);
+        const ProjectionCoordinates distance = position - rPoint;
+        const double squared_distance = inner_prod(distance, distance);
+        if (!std::isfinite(squared_distance) ||
+            squared_distance > admissible_radius_squared) {
+            return;
+        }
+        const double distance_norm = std::sqrt(squared_distance);
+        const double best_distance_norm = std::sqrt(result.SquaredDistance);
+
+        // Keeps the closest projection, breaking distance ties by input order.
+        if (!result.pGeometry ||
+            distance_norm < best_distance_norm - Tolerance ||
+            (std::abs(distance_norm - best_distance_norm) <= Tolerance &&
+             InputOrder < result.InputOrder)) {
+            result.pGeometry = pGeometry;
+            result.LocalCoordinates = rLocalCoordinates;
+            result.SkinCoordinates = position;
+            result.SquaredDistance = squared_distance;
+            result.LayerName = pGeometry->GetValue(IDENTIFIER);
+            result.InputOrder = InputOrder;
+            result.IsConvergedProjection = IsConvergedProjection;
+        }
+    };
+
+    IndexType input_order = 0;
+    for (auto p_geometry : curves) {
+        auto* p_curve = static_cast<NurbsSkinCurve*>(p_geometry.get());
+        const std::string& r_layer = p_curve->GetValue(IDENTIFIER);
+        if (!rRequiredLayer.empty() && r_layer != rRequiredLayer) {
+            ++input_order;
+            continue;
+        }
+
+        for (const auto& r_interval : p_curve->KnotSpanIntervals()) {
+            const double lower = r_interval.GetT0();
+            const double upper = r_interval.GetT1();
+            if (upper <= lower) {
+                continue;
+            }
+
+            // Evaluates the final projection iterate from the span midpoint and both endpoints.
+            ProjectionCoordinates local_coordinates = ZeroVector(3);
+            local_coordinates[0] = 0.5 * (lower + upper);
+            const bool converged = p_curve->ProjectionPointGlobalToLocalSpace(
+                rPoint, local_coordinates, Tolerance) != 0;
+            evaluate(p_geometry, local_coordinates, input_order, converged);
+
+            ProjectionCoordinates lower_coordinates = ZeroVector(3);
+            lower_coordinates[0] = lower;
+            evaluate(p_geometry, lower_coordinates, input_order, false);
+
+            ProjectionCoordinates upper_coordinates = ZeroVector(3);
+            upper_coordinates[0] = upper;
+            evaluate(p_geometry, upper_coordinates, input_order, false);
+        }
+        ++input_order;
+    }
+
+    KRATOS_ERROR_IF_NOT(result.pGeometry)
+        << "::[IgaModelerSbm]:: No valid NURBS projection for quadrature point "
+        << rPoint << " within search radius " << SearchRadius
+        << "." << std::endl;
+    return result;
+}
+
+} // namespace
 ///@name Stages
 ///@{
 
@@ -342,209 +481,208 @@ void IgaModelerSbm::CreateQuadraturePointGeometriesSbm(
     KRATOS_ERROR_IF_NOT(rParameters.Has("name"))
         << "\"name\" needs to be specified." << std::endl;
                             
-    std::string name = rParameters["name"].GetString();
+    const std::string name = rParameters["name"].GetString();
 
-    if (name == "SbmCondition") 
+    if (name == "SbmCondition") {
         CreateQuadraturePointGeometriesSbmByProjectionLayer(
-            rGeometryList, rModelPart, rParameters, GeometryType);
-    else
+            rGeometryList, rModelPart, rParameters);
+    } else {
         CreateQuadraturePointGeometriesSbmByFixedConditionName(
             rGeometryList, rModelPart, rParameters, GeometryType, name);
+    }
 }
 
 void IgaModelerSbm::CreateQuadraturePointGeometriesSbmByProjectionLayer(
     GeometriesArrayType& rGeometryList,
     ModelPart& rModelPart,
-    const Parameters rParameters,
-    std::string GeometryType) const
+    const Parameters rParameters) const
 {
-    KRATOS_ERROR_IF_NOT(rParameters.Has("type"))
-        << "\"type\" needs to be specified." << std::endl;
+    KRATOS_ERROR_IF(rParameters["type"].GetString() != "condition")
+        << "::[IgaModelerSbm]:: SBM operators require type \"condition\"."
+        << std::endl;
 
-    // Only conditions should call CreateQuadraturePointGeometriesSbm
-    std::string type = rParameters["type"].GetString();
-    bool check_input_type = (type == "condition");
-    KRATOS_ERROR_IF_NOT(check_input_type) << ":::[IgaModelerSbm]::: type != \"condition\" in CreateQuadraturePointGeometriesSbm. "
-                                          << "It must be a condition to apply the sbm operators. type: " << type << std::endl;
+    const bool is_inner = rParameters["sbm_parameters"]["is_inner"].GetBool();
+    const std::string loop_name = is_inner ? "inner" : "outer";
 
-    const int shape_function_derivatives_order =
-    rParameters["shape_function_derivatives_order"].GetInt();
+    KRATOS_ERROR_IF_NOT(mParameters.Has("skin_model_part_name"))
+        << "::[IgaModelerSbm]:: Missing \"skin_model_part_name\" in "
+        << "modeler parameters." << std::endl;
 
-    const SizeType required_shape_function_derivatives_order =
-    rGeometryList[0].pGetGeometryPart(GeometryType::BACKGROUND_GEOMETRY_INDEX)-> PolynomialDegree(0) + 1;
+    const std::string skin_model_part_name =
+        mParameters["skin_model_part_name"].GetString();
 
-    KRATOS_ERROR_IF(
-        shape_function_derivatives_order < 0 ||
-        static_cast<SizeType>(shape_function_derivatives_order) < required_shape_function_derivatives_order)
-        << "::[IgaModelerSbm]:: \"shape_function_derivatives_order\" must be at least " << required_shape_function_derivatives_order << ", but received " << shape_function_derivatives_order << std::endl;
+    ModelPart& r_skin_loop = mpModel->GetModelPart(
+        skin_model_part_name).GetSubModelPart(loop_name);
+
+    const Vector& r_knot_span_sizes =
+        rModelPart.GetParentModelPart().GetValue(KNOT_SPAN_SIZES);
+
+    KRATOS_ERROR_IF(r_knot_span_sizes.size() < 2)
+        << "::[IgaModelerSbm]:: Two KNOT_SPAN_SIZES are required in 2D."
+        << std::endl;
+
+    const double h = std::max(r_knot_span_sizes[0], r_knot_span_sizes[1]);
+    const double search_radius = std::sqrt(2.0) * h;
+    const double tolerance = std::max(1e-6, 1e-3 * h);
+
+    const int derivatives_order = rParameters["shape_function_derivatives_order"].GetInt();
 
     std::string quadrature_method = rParameters.Has("quadrature_method")
         ? rParameters["integration_rule"].GetString()
         : "GAUSS";
 
-    KRATOS_INFO_IF("CreateQuadraturePointGeometries", mEchoLevel > 0)
-        << "Creating " << "SbmCondition" << "s of type: " << type
-        << " for " << rGeometryList.size() << " geometries"
-        << " in " << rModelPart.Name() << "-SubModelPart." << std::endl;
+    KRATOS_ERROR_IF(quadrature_method != "GAUSS" &&
+                    quadrature_method != "GRID")
+        << "::[IgaModelerSbm]:: Unsupported quadrature method: "
+        << quadrature_method << "." << std::endl;
 
-    // Check if the sbm projection operation is needed (there is no need for background domain and for body-fitted boundary conditions)
-    PointVector points;   
-    const std::string skin_model_part_name = mParameters.Has("skin_model_part_name")
-            ? mParameters["skin_model_part_name"].GetString()
-            : "skin_model_part";
+    //Creation or retrieval of Id identifiers for conditions and nodes
+    SizeType condition_id = rModelPart.GetRootModelPart().NumberOfConditions() == 0
+        ? 1 : rModelPart.GetRootModelPart().Conditions().back().Id() + 1;
+    SizeType node_id = r_skin_loop.GetRootModelPart().NumberOfNodes() == 0
+        ? 1 : r_skin_loop.GetRootModelPart().Nodes().back().Id() + 1;
 
-    ModelPart& skin_model_part = mpModel->HasModelPart(skin_model_part_name)
-            ? mpModel->GetModelPart(skin_model_part_name)
-            : KRATOS_ERROR << "::[CreateQuadraturePointGeometriesSbm]::: Sbm case -> skin_model_part has not been defined before. "
-                            << "Maybe you are not calling the nurbs_modeler_sbm" << std::endl;
+    for (auto& r_surrogate_geometry : rGeometryList) {
+        const SizeType required_derivatives_order =
+            r_surrogate_geometry.pGetGeometryPart(
+                Geometry<Node>::BACKGROUND_GEOMETRY_INDEX)->
+                    PolynomialDegree(0) + 1;
+        KRATOS_ERROR_IF(derivatives_order < 0 || static_cast<SizeType>(derivatives_order) < required_derivatives_order)
+            << "::[IgaModelerSbm]:: shape_function_derivatives_order must be "
+            << "at least " << required_derivatives_order << "." << std::endl;
 
-    // inner & outer are defaulf sub model part names
-    auto& skin_sub_model_part_in = skin_model_part.GetSubModelPart("inner");
-    auto& skin_sub_model_part_out = skin_model_part.GetSubModelPart("outer");
 
-    const bool is_inner = rParameters["sbm_parameters"]["is_inner"].GetBool();
-    
-    const std::string surrogate_sub_model_part_name = is_inner ? "surrogate_inner" : "surrogate_outer";
-    
-    ModelPart& surrogate_sub_model_part = rModelPart.GetParentModelPart().HasSubModelPart(surrogate_sub_model_part_name)
-            ? rModelPart.GetParentModelPart().GetSubModelPart(surrogate_sub_model_part_name)
-            : KRATOS_ERROR << "::[CreateQuadraturePointGeometriesSbm]::: Sbm case -> surrogate_sub_model_part has not been defined before."
-                            << "Maybe you are not calling the nurbs_modeler_sbm" << std::endl;
+        GeometriesArrayType quadrature_geometries;
+        IntegrationInfo integration_info = r_surrogate_geometry.GetDefaultIntegrationInfo();
 
-    if (is_inner) { // INNER
-        for (auto &i_cond : skin_sub_model_part_in.Conditions()) {
-            points.push_back(PointTypePointer(new PointType(i_cond.Id(), i_cond.GetGeometry().Center().X(), i_cond.GetGeometry().Center().Y(), i_cond.GetGeometry().Center().Z())));
-        }
-    } 
-    else { // OUTER
-        for (auto &i_cond : skin_sub_model_part_out.Conditions()) {
-            points.push_back(PointTypePointer(new PointType(i_cond.Id(), i_cond.GetGeometry().Center().X(), i_cond.GetGeometry().Center().Y(), i_cond.GetGeometry().Center().Z())));
-        }
-    }
-    
-    // Get the mesh sizes from the surrogate model part
-    const Vector& knot_span_sizes = surrogate_sub_model_part.GetParentModelPart().GetValue(KNOT_SPAN_SIZES);
+        for (IndexType d = 0; d < integration_info.LocalSpaceDimension(); ++d)
+        {
+            integration_info.SetQuadratureMethod(
+                d, quadrature_method == "GRID"
+                ? IntegrationInfo::QuadratureMethod::GRID
+                : IntegrationInfo::QuadratureMethod::GAUSS);
 
-    double knot_span_reference_size = knot_span_sizes[0];
-    if (knot_span_sizes[1] > knot_span_reference_size) {knot_span_reference_size = knot_span_sizes[1];}
-    if (knot_span_sizes.size() > 2) {if (knot_span_sizes[2] > knot_span_reference_size) {knot_span_reference_size = knot_span_sizes[2];}}
-
-    const int domain_size = rModelPart.GetProcessInfo()[DOMAIN_SIZE];
-    double search_radius;
-    if (domain_size == 2) {
-        search_radius = std::sqrt(2.0) * knot_span_reference_size;
-    } else {
-        search_radius = std::sqrt(3.0) * knot_span_reference_size;
-    }
-
-    DynamicBins testBins(points.begin(), points.end());
-    
-    // Maximum number of results to be found in the search in radius
-    const int number_of_results = 1e6; 
-
-    ModelPart::NodesContainerType::ContainerType results(number_of_results);
-    std::vector<double> list_of_distances(number_of_results);
-    for (SizeType i = 0; i < rGeometryList.size(); ++i)
-    {
-        GeometriesArrayType geometries;
-        IntegrationInfo integration_info = rGeometryList[i].GetDefaultIntegrationInfo();
-        for (IndexType i = 0; i < integration_info.LocalSpaceDimension(); ++i) {
-            if (quadrature_method == "GAUSS") {
-                integration_info.SetQuadratureMethod(0, IntegrationInfo::QuadratureMethod::GAUSS);
-            }
-            else if (quadrature_method == "GRID") {
-                integration_info.SetQuadratureMethod(0, IntegrationInfo::QuadratureMethod::GRID);
-            }
-            else {
-                KRATOS_INFO("CreateQuadraturePointGeometries") << "Quadrature method: " << quadrature_method
-                    << " is not available. Available options are \"GAUSS\" and \"GRID\". Default quadrature method is being considered." << std::endl;
+            if (rParameters.Has("number_of_integration_points_per_span")) {
+                integration_info.SetNumberOfIntegrationPointsPerSpan(
+                    d, rParameters[
+                        "number_of_integration_points_per_span"].GetInt());
             }
         }
 
-        if (rParameters.Has("number_of_integration_points_per_span")) {
-            for (IndexType i = 0; i < integration_info.LocalSpaceDimension(); ++i) {
-                integration_info.SetNumberOfIntegrationPointsPerSpan(i, rParameters["number_of_integration_points_per_span"].GetInt());
+        r_surrogate_geometry.CreateQuadraturePointGeometries
+        (quadrature_geometries, derivatives_order, integration_info);
+        KRATOS_ERROR_IF(quadrature_geometries.empty())
+            << "::[IgaModelerSbm]:: No quadrature point geometries were created."<< std::endl;
+
+
+        std::vector<NurbsProjectionResult> projections;
+        std::vector<std::string> layers;
+        std::vector<SizeType> votes;
+
+        projections.reserve(quadrature_geometries.size());
+        for (const auto& r_quadrature_geometry : quadrature_geometries)
+        {
+            auto projection = ProjectToNurbsSkin(
+                r_quadrature_geometry.Center().Coordinates(),
+                *mpModel,
+                search_radius,
+                tolerance);
+
+            //Layer voting process
+            const auto layer_it = std::find(layers.begin(), layers.end(), projection.LayerName);
+            if (layer_it == layers.end()) {
+                layers.push_back(projection.LayerName);
+                votes.push_back(1);
+            } else {
+                ++votes[std::distance(layers.begin(), layer_it)];
             }
-        }
-    
-        rGeometryList[i].CreateQuadraturePointGeometries(geometries, shape_function_derivatives_order, integration_info);
-
-        KRATOS_INFO_IF("CreateQuadraturePointGeometries", mEchoLevel > 1)
-            << geometries.size() << " quadrature point geometries have been created." << std::endl;
-
-        SizeType id = 1;
-        if (rModelPart.GetRootModelPart().NumberOfConditions() > 0)
-            id = rModelPart.GetRootModelPart().Conditions().back().Id() + 1;
-        
-        std::vector<int> list_id_closest_condition(geometries.size());
-        std::vector<int> list_id_second_closest_condition(geometries.size());
-
-        for (SizeType j= 0; j < geometries.size() ; j++) {  
-
-            const Point integration_point = geometries[j].Center(); 
-            PointerType p_integration_point = PointerType(new PointType(1, integration_point.X(), integration_point.Y(), integration_point.Z()));
-
-            // Use the search in radius to find the closest point
-            SizeType obtained_results = testBins.SearchInRadius(*p_integration_point, search_radius, results.begin(), list_of_distances.begin(), number_of_results);
-
-            double minimum_distance = 1e14;
-
-            // Find the nearest node
-            IndexType nearest_node_id;
-            for (IndexType k = 0; k < obtained_results; k++) {
-                double current_distance = list_of_distances[k];   
-                if (current_distance < minimum_distance) { 
-                    minimum_distance = current_distance;
-                    nearest_node_id = k;
-                }
-            }
-            KRATOS_ERROR_IF(obtained_results == 0) << "::[IgaModelerSbm]:: Zero points found in serch for projection of point: " <<
-                integration_point << std::endl;
-
-            std::string closest_layer_name;
-            const int closest_condition_id = results[nearest_node_id]->Id();
-            if (is_inner) 
-                closest_layer_name = skin_sub_model_part_in.GetCondition(closest_condition_id).GetValue(LAYER_NAME);
-            else
-                closest_layer_name = skin_sub_model_part_out.GetCondition(closest_condition_id).GetValue(LAYER_NAME);
-
-            // find also the closest point on another layer, in case it exists
-            minimum_distance=1e10;
-            int second_nearest_node_id = -1;
-            for (IndexType k = 0; k < obtained_results; k++) {
-                double current_distance = list_of_distances[k];  
-                const int condition_id = results[k]->Id(); 
-                std::string condition_layer_name;
-                if (is_inner) 
-                    condition_layer_name = skin_sub_model_part_in.GetCondition(condition_id).GetValue(LAYER_NAME);
-                else
-                    condition_layer_name = skin_sub_model_part_out.GetCondition(condition_id).GetValue(LAYER_NAME);
-                if (current_distance < minimum_distance && condition_layer_name != closest_layer_name) { 
-                    minimum_distance = current_distance;
-                    second_nearest_node_id = k;
-                }
-            }
-            
-            // store id closest condition and closest condition to a different layer
-            list_id_closest_condition[j] = results[nearest_node_id]->Id();
-
-            if (second_nearest_node_id == -1)
-                list_id_second_closest_condition[j] = -1; // set to -1 if it couldn not find another layer
-            else
-                list_id_second_closest_condition[j] = results[second_nearest_node_id]->Id();  
+            projections.push_back(std::move(projection));
         }
 
-        if (is_inner) {
-            // pass the skin_sub_model_part_in
-            this->CreateConditions( geometries.ptr_begin(), geometries.ptr_end(),
-                rModelPart, skin_sub_model_part_in, list_id_closest_condition, list_id_second_closest_condition, 
-                id, PropertiesPointerType(), is_inner, knot_span_sizes);
+        const IndexType winner = std::distance(
+            votes.begin(), std::max_element(votes.begin(), votes.end()));
+
+        const std::string winning_layer = layers[winner];
+        for (IndexType j = 0; j < projections.size(); ++j)
+        // Re-project quadrature points to the winning layer closest point
+        {
+            if (projections[j].LayerName != winning_layer) {
+                projections[j] = ProjectToNurbsSkin(
+                    quadrature_geometries[j].Center().Coordinates(),
+                    *mpModel,
+                    search_radius,
+                    tolerance,
+                    winning_layer);
+            }
         }
-        else{
-            // pass the skin_sub_model_part_out
-            this->CreateConditions(geometries.ptr_begin(), geometries.ptr_end(),
-                rModelPart, skin_sub_model_part_out, list_id_closest_condition, list_id_second_closest_condition, 
-                id, PropertiesPointerType(), is_inner, knot_span_sizes);
+        // Create or retrieve the submodelparts for the winning layer and the projection data.
+        ModelPart& r_condition_layer =
+            rModelPart.HasSubModelPart(winning_layer)
+            ? rModelPart.GetSubModelPart(winning_layer)
+            : rModelPart.CreateSubModelPart(winning_layer);
+        ModelPart& r_skin_layer =
+            r_skin_loop.HasSubModelPart(winning_layer)
+            ? r_skin_loop.GetSubModelPart(winning_layer)
+            : r_skin_loop.CreateSubModelPart(winning_layer);
+        // Keep projection nodes in the skin hierarchy for nodal boundary-value processes.
+        ModelPart& r_projection_data = r_skin_layer.HasSubModelPart("projection_data")
+            ? r_skin_layer.GetSubModelPart("projection_data")
+            : r_skin_layer.CreateSubModelPart("projection_data");
+
+        for (IndexType j = 0; j < projections.size(); ++j) {
+            const auto& r_projection = projections[j];
+            KRATOS_WARNING_IF("IgaModelerSbm", !r_projection.IsConvergedProjection)
+                << "Closest-point convergence was not verified for quadrature point "
+                << quadrature_geometries[j].Center().Coordinates()
+                << ". Using the closest evaluated point on the NURBS skin "
+                << r_projection.SkinCoordinates << " (distance "
+                << std::sqrt(r_projection.SquaredDistance) << ")." << std::endl;
+            KRATOS_ERROR_IF_NOT(r_projection.pGeometry->Has(CONDITION_NAME))
+                << "::[IgaModelerSbm]:: Missing CONDITION_NAME on NURBS geometry "
+                << r_projection.pGeometry->Id() << "." << std::endl;
+            const std::string& condition_name = r_projection.pGeometry->GetValue(CONDITION_NAME);
+            KRATOS_ERROR_IF(condition_name.empty())
+                << "::[IgaModelerSbm]:: Empty condition name for NURBS geometry "
+                << r_projection.pGeometry->Id() << "." << std::endl;
+            KRATOS_ERROR_IF_NOT(KratosComponents<Condition>::Has(condition_name))
+                << condition_name << " not registered." << std::endl;
+
+            const Condition& r_reference_condition =
+                KratosComponents<Condition>::Get(condition_name);
+            auto p_condition = r_reference_condition.Create(
+                condition_id++, quadrature_geometries(j),
+                PropertiesPointerType());
+
+            p_condition->SetValue(IDENTIFIER, loop_name);
+            p_condition->SetValue(KNOT_SPAN_SIZES, r_knot_span_sizes);
+
+            const auto& r_position = r_projection.SkinCoordinates;
+            // Nodal boundary-value processes on the skin hierarchy include this projection.
+            auto p_projection_node = r_projection_data.CreateNewNode(
+                node_id++, r_position[0], r_position[1], r_position[2]);
+
+            std::vector<ProjectionCoordinates> derivatives;
+
+            r_projection.pGeometry->GlobalSpaceDerivatives(
+                derivatives, r_projection.LocalCoordinates, 1);
+
+            const double tangent_norm = norm_2(derivatives[1]);
+            KRATOS_ERROR_IF_NOT(std::isfinite(tangent_norm) && tangent_norm > 0.0)
+                << "::[IgaModelerSbm]:: Degenerate tangent on NURBS geometry "
+                << r_projection.pGeometry->Id() << "." << std::endl;
+
+            const ProjectionCoordinates tangent = derivatives[1] / tangent_norm;
+            ProjectionCoordinates normal = ZeroVector(3);
+
+            const double normal_sign = is_inner ? -1.0 : 1.0;
+            normal[0] = normal_sign * tangent[1];
+            normal[1] = -normal_sign * tangent[0];
+
+            // Assign the normal to the projection node and set NEIGHBOUR_NODES.
+            p_projection_node->SetValue(NORMAL, normal);
+            p_condition->SetValue(NEIGHBOUR_NODES,
+                GlobalPointersVector<Node>({p_projection_node}));
+            r_condition_layer.AddCondition(p_condition);
         }
     }
 }

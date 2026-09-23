@@ -1,3 +1,5 @@
+import math
+
 import KratosMultiphysics
 import KratosMultiphysics.IgaApplication
 import KratosMultiphysics.KratosUnittest as KratosUnittest
@@ -862,6 +864,113 @@ class TestModelersSbm(KratosUnittest.TestCase):
         self.assertEqual(support_model_part.GetConditions()[55].Info(), "\"SbmLaplacianConditionDirichlet\" #55")
         self.assertEqual(support_model_part.GetConditions()[28].Info(), "\"SbmLaplacianConditionNeumann\" #28")
         self.assertEqual(iga_model_part.NumberOfElements(), 64)
+
+    def test_iga_modeler_inner_sbm_rational_circle_projection(self):
+        current_model = KratosMultiphysics.Model()
+        iga_model_part = current_model.CreateModelPart("IgaModelPart")
+        iga_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, 2)
+
+        modeler_settings = KratosMultiphysics.Parameters("""
+        [
+            {
+                "modeler_name": "ImportNurbsSbmModeler",
+                "Parameters": {
+                    "input_filename": "import_nurbs_test/circle_00_22.json",
+                    "model_part_name": "skinModelPart_inner_initial",
+                    "link_layer_to_condition_name": [
+                        {
+                            "layer_name": "Layer0",
+                            "condition_name": "SbmLaplacianConditionNeumann"
+                        }
+                    ]
+                }
+            },
+            {
+                "modeler_name": "NurbsGeometryModelerSbm",
+                "Parameters": {
+                    "model_part_name": "IgaModelPart",
+                    "lower_point_xyz": [0.0, 0.0, 0.0],
+                    "upper_point_xyz": [2.0, 2.0, 0.0],
+                    "polynomial_order": [1, 1],
+                    "number_of_knot_spans": [31, 31],
+                    "lambda_inner": 0.5,
+                    "number_of_inner_loops": 1,
+                    "number_initial_points_if_importing_nurbs": 100,
+                    "skin_model_part_inner_initial_name":
+                        "skinModelPart_inner_initial",
+                    "skin_model_part_name": "skin_model_part"
+                }
+            },
+            {
+                "modeler_name": "IgaModelerSbm",
+                "Parameters": {
+                    "echo_level": 0,
+                    "skin_model_part_name": "skin_model_part",
+                    "analysis_model_part_name": "IgaModelPart",
+                    "element_condition_list": [
+                        {
+                            "geometry_type": "GeometrySurface",
+                            "iga_model_part": "ComputationalDomain",
+                            "type": "element",
+                            "name": "LaplacianElement",
+                            "shape_function_derivatives_order": 3
+                        },
+                        {
+                            "geometry_type": "SurfaceEdge",
+                            "iga_model_part": "SBM_Support_inner",
+                            "type": "condition",
+                            "name": "SbmCondition",
+                            "shape_function_derivatives_order": 3,
+                            "sbm_parameters": {
+                                "is_inner": true
+                            }
+                        }
+                    ]
+                }
+            }
+        ]
+        """)
+
+        run_modelers(current_model, modeler_settings)
+
+        support_model_part = current_model.GetModelPart(
+            "IgaModelPart.SBM_Support_inner.Layer0")
+        projection_model_part = current_model.GetModelPart(
+            "skin_model_part.inner.Layer0.projection_data")
+        self.assertGreater(support_model_part.NumberOfConditions(), 0)
+        self.assertEqual(
+            support_model_part.NumberOfConditions(),
+            projection_model_part.NumberOfNodes())
+
+        conditions = sorted(
+            support_model_part.Conditions, key=lambda condition: condition.Id)
+        nodes = sorted(projection_model_part.Nodes, key=lambda node: node.Id)
+        radius = 0.2
+        for condition, node in zip(conditions, nodes):
+            center = condition.GetGeometry().Center()
+            dx = center.X - 1.0
+            dy = center.Y - 1.0
+            distance = math.hypot(dx, dy)
+            self.assertGreater(distance, 0.0)
+
+            # The exact closest point on the circle lies on the radial line.
+            expected_x = 1.0 + radius * dx / distance
+            expected_y = 1.0 + radius * dy / distance
+            self.assertAlmostEqual(node.X, expected_x, delta=1e-3)
+            self.assertAlmostEqual(node.Y, expected_y, delta=1e-3)
+            self.assertAlmostEqual(node.Z, 0.0, delta=1e-8)
+            projected_radius = math.hypot(node.X - 1.0, node.Y - 1.0)
+            self.assertAlmostEqual(projected_radius, radius, delta=1e-8)
+
+            # For an inner boundary, the normal points into the circular hole.
+            normal = node.GetValue(KratosMultiphysics.NORMAL)
+            self.assertAlmostEqual(normal[0], (1.0 - node.X) / radius,
+                                   delta=1e-6)
+            self.assertAlmostEqual(normal[1], (1.0 - node.Y) / radius,
+                                   delta=1e-6)
+            self.assertAlmostEqual(normal[2], 0.0, delta=1e-8)
+            expected_info = f'"SbmLaplacianConditionNeumann" #{condition.Id}'
+            self.assertEqual(condition.Info(), expected_info)
 
 
 if __name__ == '__main__':
