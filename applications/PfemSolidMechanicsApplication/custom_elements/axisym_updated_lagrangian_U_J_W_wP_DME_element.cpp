@@ -57,7 +57,7 @@ namespace Kratos
    }
 
 
-   //*******************************ASSIGMENT OPERATOR***********************************
+   //******************************ASSIGNMENT OPERATOR***********************************
    //************************************************************************************
 
    AxisymUpdatedLagrangianUJWwPDMEElement&  AxisymUpdatedLagrangianUJWwPDMEElement::operator=(AxisymUpdatedLagrangianUJWwPDMEElement const& rOther)
