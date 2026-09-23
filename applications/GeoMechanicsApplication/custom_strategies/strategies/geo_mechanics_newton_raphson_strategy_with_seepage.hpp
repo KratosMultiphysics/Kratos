@@ -295,9 +295,9 @@ public:
         return is_converged;
     }
 
-    // After the step converges, store the assembled nodal water flow rate on the nodes so it can be
-    // visualised. This is exactly the map that drives the boundary switching, which is what makes
-    // it useful for verifying the sign convention in ShouldReleaseToNeumann.
+    // After the step converges, store the assembled nodal water flow rates on the nodes so it can
+    // be visualized. This map is also used to determine whether or not a boundary condition needs
+    // to be switched.
     void FinalizeSolutionStep() override
     {
         MotherType::FinalizeSolutionStep();

@@ -19,10 +19,7 @@
                     "PERMEABILITY_XX": 7.08e-13,
                     "PERMEABILITY_YY": 7.08e-13,
                     "PERMEABILITY_XY": 0.0,
-                    "DYNAMIC_VISCOSITY": 1.0e-03,
-                    "BIOT_COEFFICIENT": 1.0,
-                    "RETENTION_LAW": "SaturatedLaw",
-                    "SATURATED_SATURATION": 1.0
+                    "DYNAMIC_VISCOSITY": 1.0e-03
                 }
             }
         }
