@@ -45,7 +45,8 @@ class ModelPartController:
             },
             "mesh_motion" : {
                 "apply_mesh_solver" : false
-            }
+            },
+            "write_iteration_restart_files": false            
         }""")
 
         self.model_settings.ValidateAndAssignDefaults(default_settings)
@@ -74,6 +75,7 @@ class ModelPartController:
         self.design_surface = None
         self.damping_utility = None
         self.direction_dampings = []
+        self.is_iteration_restart_files_written = self.model_settings["write_iteration_restart_files"].GetBool()
 
     # --------------------------------------------------------------------------
     def Initialize(self):
@@ -147,6 +149,10 @@ class ModelPartController:
     # --------------------------------------------------------------------------
     def GetDesignSurface(self):
         return self.design_surface
+
+    # --------------------------------------------------------------------------
+    def IsIterationRestartFilesWritten(self):
+        return self.is_iteration_restart_files_written        
 
     # --------------------------------------------------------------------------
     def DampNodalSensitivityVariableIfSpecified(self, variable):
