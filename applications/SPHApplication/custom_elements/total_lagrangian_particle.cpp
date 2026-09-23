@@ -1,5 +1,4 @@
 #include "custom_elements/total_lagrangian_particle.h"
-#include "constitutive_laws_application_variables.h"
 
 namespace Kratos
 {

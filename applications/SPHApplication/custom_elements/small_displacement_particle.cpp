@@ -550,7 +550,7 @@ void SmallDisplacementParticle<TKernelType, TDim>::CalculateOnIntegrationPoints(
     } else if (mThisConstitutiveLaw->Has(rVariable)){
         GetValueOnConstituitiveLaw(rVariable, rOutput);
     } else {
-        CalculateOnIntegrationPoints(rVariable, rOutput, rProcessInfo);
+        CalculateOnConstitutiveLaw(rVariable, rOutput, rProcessInfo);
     }
 }
 
