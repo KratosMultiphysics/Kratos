@@ -3116,7 +3116,7 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
 
     def _EvaluateSlackVariablePenalizationForMMA(self, delta_it = 1, slack_variable_residual_toll = 1e-3, slack_penalty_adaptation_factor=2.0):
         self.old_slack_variable_residual = self.slack_variable_residual
-        self.slack_variable_residual = max(self.volume_constraint, 0.0)
+        self.slack_variable_residual = max(self.volume_constraint, slack_variable_residual_toll)
         self.old_slack_variable_penalty = self.slack_variable_penalty
         if ((self.opt_it % delta_it) == 0):
             if (self.slack_variable_residual > slack_variable_residual_toll):
