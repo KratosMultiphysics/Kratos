@@ -23,7 +23,7 @@
 #include "includes/constitutive_law.h"
 #include "includes/node.h"
 #include "includes/process_info.h"
-#include "includes/ublas_interface.h"
+#include "includes/default_interface.h"
 #include "utilities/time_discretization.h"
 
 // Application includes
