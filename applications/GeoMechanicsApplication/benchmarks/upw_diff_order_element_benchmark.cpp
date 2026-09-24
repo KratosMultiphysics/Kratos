@@ -82,7 +82,7 @@ auto CreateSmallStrainUPwDiffOrderElementWithUPwDofs(const Properties::Pointer& 
     const auto degrees_of_freedom =
         Geo::ConstVariableRefs{std::cref(WATER_PRESSURE), std::cref(DISPLACEMENT_X),
                                std::cref(DISPLACEMENT_Y), std::cref(DISPLACEMENT_Z)};
-    Testing::ElementSetupUtilities::AddVariablesToEntity(result, solution_step_variables, degrees_of_freedom);
+    Testing::ElementSetupUtilities::AddVariablesToNodes(nodes, solution_step_variables, degrees_of_freedom);
 
     for (auto& r_node : nodes) {
         r_node.SetBufferSize(2);

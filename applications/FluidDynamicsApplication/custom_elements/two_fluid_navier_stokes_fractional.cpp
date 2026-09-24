@@ -346,9 +346,7 @@ void TwoFluidNavierStokesFractional<TwoFluidNavierStokesFractionalData<2, 3>>::C
     const double dt = rData.DeltaTime;
     const double bdf0 = rData.bdf0;
     const double dyn_tau = rData.DynamicTau;
-    const auto vn = rData.VelocityOldStep1;
     const auto vconv = rData.Velocity - rData.MeshVelocity;
-    const auto vfrac = rData.FractionalVelocity;
 
     // Get constitutive matrix
     const Matrix &C = rData.C;
@@ -580,9 +578,7 @@ void TwoFluidNavierStokesFractional<TwoFluidNavierStokesFractionalData<3, 4>>::C
     const double dt = rData.DeltaTime;
     const double bdf0 = rData.bdf0;
     const double dyn_tau = rData.DynamicTau;
-    const auto vn=rData.VelocityOldStep1;
     const auto vconv = rData.Velocity - rData.MeshVelocity;
-    const auto vfrac = rData.FractionalVelocity;
 
     // Get constitutive matrix
     const Matrix &C = rData.C;

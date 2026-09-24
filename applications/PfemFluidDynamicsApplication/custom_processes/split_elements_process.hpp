@@ -216,7 +216,7 @@ public:
             PointsArrayType &vertices = i_elem->GetGeometry().Points();
             bool addedNode = false;
             ModelPart::NodeType::Pointer newNode = this->CreateAndAddNewNodeToSubModelPart(i_mp, i_elem, vertices, addedNode);
-            if (addedNode == true)
+            if (addedNode)
             {
               unsigned int rElementId = 0;
               ModelPart::PropertiesType::Pointer pProp = i_elem->pGetProperties();
@@ -380,7 +380,7 @@ public:
     newNode->Reset(FREE_SURFACE);
     bool is_inside = false;
     is_inside = MesherUtilities::CalculatePosition(ElementPointCoordinates, PointCoordinates, ShapeFunctionsN);
-    if (is_inside == true)
+    if (is_inside)
     {
       double alpha = 1; //1 to interpolate, 0 to leave the original data
       DataTransferUtilities.Interpolate(i_elem->GetGeometry(), ShapeFunctionsN, variables_list, newNode, alpha);

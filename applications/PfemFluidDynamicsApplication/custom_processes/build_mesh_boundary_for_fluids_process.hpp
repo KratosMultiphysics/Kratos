@@ -224,7 +224,7 @@ namespace Kratos
         in->Reset(BOUNDARY);
         in->Reset(FREE_SURFACE);
 
-        if (any_node_to_erase == false)
+        if (!any_node_to_erase)
           if (in->Is(TO_ERASE))
             any_node_to_erase = true;
       }
@@ -302,7 +302,7 @@ namespace Kratos
                   freeSurfaceFace = true;
                 }
               }
-              if (freeSurfaceFace == true)
+              if (freeSurfaceFace)
               {
                 for (unsigned int j = 1; j <= NumberNodesInFace; j++)
                 {
@@ -350,7 +350,7 @@ namespace Kratos
       if (rCondition.Is(BOUNDARY)) // flag for composite condition
         condition_not_preserved = true;
 
-      if (node_not_preserved == true || condition_not_preserved == true)
+      if (node_not_preserved || condition_not_preserved)
         return false;
       else
         return true;

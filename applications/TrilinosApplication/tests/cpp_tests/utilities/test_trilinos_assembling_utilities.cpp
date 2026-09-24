@@ -16,6 +16,7 @@
 
 // Project includes
 #include "tests/cpp_tests/trilinos_fast_suite.h"
+#include "spaces/default_spaces.h"
 #include "mpi/includes/mpi_data_communicator.h"
 #include "../trilinos_cpp_test_utilities.h"
 #include "custom_utilities/trilinos_assembling_utilities.h"
@@ -24,7 +25,7 @@ namespace Kratos::Testing
 {
 /// Basic definitions
 using TrilinosSparseSpaceType = TrilinosSpace<Epetra_FECrsMatrix, Epetra_FEVector>;
-using TrilinosLocalSpaceType = UblasSpace<double, Matrix, Vector>;
+using TrilinosLocalSpaceType = TDefaultDenseSpace<double>;
 
 using TrilinosSparseMatrixType = TrilinosSparseSpaceType::MatrixType;
 using TrilinosVectorType = TrilinosSparseSpaceType::VectorType;

@@ -11,45 +11,7 @@ import KratosMultiphysics.GeoMechanicsApplication as KratosGeo
 
 from KratosMultiphysics.analysis_stage import AnalysisStage
 from KratosMultiphysics.GeoMechanicsApplication import geomechanics_solvers_wrapper
-
-def _validated_parameter_path(
-    filename: str
-) -> Path:
-    """
-    Validates that 'filename' resolves within current working directory.
-    
-    Args:
-        filename: Name of the JSON file provided via argv.
-    
-    Returns:
-        Absolute resolved Path object if safe.
-        
-    Raises:
-        TypeError: If the path escapes the designated boundary.
-        FileNotFoundError: If the validated file does not exist.
-    """
-    safe_base = Path.cwd().resolve()
-    
-    candidate = Path(filename).expanduser()
-    if not candidate.is_absolute():
-        candidate = safe_base / candidate
-    candidate = candidate.resolve(strict=False)
-
-    try:
-        candidate.relative_to(safe_base)
-    except ValueError as exc:
-        raise TypeError(
-            f"Access denied. Parameter file '{filename}' points outside the "
-            f"allowed directory '{safe_base}'."
-        ) from exc
-
-    if candidate.suffix.lower() != ".json":
-        raise TypeError(f"Invalid file type '{candidate.suffix}'. Only .json files are accepted.")
-
-    if not candidate.exists():
-        raise FileNotFoundError(f"Parameter file not found: {candidate}")
-
-    return candidate
+from KratosMultiphysics.GeoMechanicsApplication import validation_helpers
 
 def copy_nodal_solution_step_values(model_part, variable, source_index, destination_index):
     if not model_part.HasNodalSolutionStepVariable(variable):
@@ -134,6 +96,9 @@ class GeoMechanicsAnalysis(AnalysisStage):
             raise RuntimeError('The time step is too small!')
 
     def _RevertStateToStartOfStep(self):
+        # Note that this function does NOT revert the fixity of the nodal variables, which may lead to incorrect results
+        # when a seepage analysis attempts another cycle when the solution step did not converge. This still needs to be
+        # fixed.
         KratosMultiphysics.VariableUtils().UpdateCurrentPosition(self._GetSolver().GetComputingModelPart().Nodes, KratosMultiphysics.DISPLACEMENT,1)
         copy_nodal_solution_step_values(self._GetSolver().GetComputingModelPart(), KratosMultiphysics.DISPLACEMENT, 1, 0)
         copy_nodal_solution_step_values(self._GetSolver().GetComputingModelPart(), KratosMultiphysics.ROTATION, 1, 0)
@@ -286,7 +251,7 @@ if __name__ == '__main__':
     else: # using default name
         parameter_file_name = "ProjectParameters.json"
 
-    path_to_parameter_file = _validated_parameter_path(parameter_file_name)
+    path_to_parameter_file = validation_helpers.validated_parameter_path(parameter_file_name)
 
     with open(path_to_parameter_file,'r') as parameter_file:
         parameters = Kratos.Parameters(parameter_file.read())
