@@ -117,8 +117,8 @@ void NearestEntityExplicitDamping<TContainerType>::Update()
     // persistent array reference under uBLAS, so it cannot be bound to
     // auto&; taking .begin() from it gives a plain pointer that is valid
     // under both and can be captured by value in the lambda below.
-    auto* p_damping_coefficient_data = mDampingCoefficients.data().begin();
-    const auto number_of_damping_coefficients = radius_view.size() * stride;
+    double* p_damping_coefficient_data = mDampingCoefficients.data().begin();
+    const IndexType number_of_damping_coefficients = radius_view.size() * stride;
 
     for (IndexType i_comp = 0; i_comp < stride; ++i_comp) {
         auto& r_damped_model_parts = mComponentWiseDampedModelParts[i_comp];

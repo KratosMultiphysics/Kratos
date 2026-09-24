@@ -315,6 +315,96 @@ public:
     const_iterator end() const { return BaseType::data() + BaseType::size(); }
 
     ///@}
+    ///@name Row iterators
+    ///@{
+    // Row-major traversal with the boost::numeric::ublas::matrix iterator
+    // concept, so the ublas idiom compiles unchanged:
+    //     for (auto i1 = m.begin1(); i1 != m.end1(); ++i1)
+    //         for (auto i2 = i1.begin(); i2 != i1.end(); ++i2) ...
+    //     std::copy(v.begin(), v.end(), (m.begin1() + i).begin());
+    // A row of the (row-major) storage is contiguous, so the entry iterators
+    // (iterator2) are plain pointers.
+
+    using iterator2 = TDataType*;
+    using const_iterator2 = const TDataType*;
+
+    /**
+     * @brief Iterator over the rows of the matrix (ublas iterator1).
+     * @details begin()/end() yield the entries of the current row.
+     * @tparam TIsConst Whether the entry iterators grant write access.
+     */
+    template<bool TIsConst>
+    class RowIterator
+    {
+    public:
+        using MatrixPointerType = std::conditional_t<TIsConst, const EigenMatrix*, EigenMatrix*>;
+        using EntryIteratorType = std::conditional_t<TIsConst, const TDataType*, TDataType*>;
+
+        RowIterator(MatrixPointerType pMatrix, const std::size_t Row) : mpMatrix(pMatrix), mRow(Row) {}
+
+        /// Conversion from the mutable to the const row iterator (as in ublas).
+        template<bool TOtherIsConst>
+        requires (TIsConst && !TOtherIsConst)
+        RowIterator(const RowIterator<TOtherIsConst>& rOther) : mpMatrix(rOther.mpMatrix), mRow(rOther.mRow) {}
+
+        /// Index of the row currently pointed at.
+        std::size_t index1() const { return mRow; }
+
+        /// First entry of this row.
+        EntryIteratorType begin() const { return mpMatrix->BaseType::data() + mRow * mpMatrix->size2(); }
+
+        /// Past-the-last entry of this row.
+        EntryIteratorType end() const { return begin() + mpMatrix->size2(); }
+
+        RowIterator& operator++() { ++mRow; return *this; }
+        RowIterator operator++(int) { RowIterator copy(*this); ++mRow; return copy; }
+        RowIterator& operator--() { --mRow; return *this; }
+        RowIterator& operator+=(const std::ptrdiff_t Offset) { mRow += Offset; return *this; }
+        RowIterator operator+(const std::ptrdiff_t Offset) const { return RowIterator(mpMatrix, mRow + Offset); }
+        std::ptrdiff_t operator-(const RowIterator& rOther) const { return static_cast<std::ptrdiff_t>(mRow) - static_cast<std::ptrdiff_t>(rOther.mRow); }
+
+        bool operator==(const RowIterator& rOther) const { return mRow == rOther.mRow; }
+        bool operator!=(const RowIterator& rOther) const { return !(*this == rOther); }
+
+    private:
+        template<bool TOtherIsConst> friend class RowIterator;
+
+        MatrixPointerType mpMatrix;
+        std::size_t mRow;
+    };
+
+    using iterator1 = RowIterator<false>;
+    using const_iterator1 = RowIterator<true>;
+
+    /// First row.
+    iterator1 begin1()
+    {
+        static_assert(TLayout == Eigen::RowMajor, "Row iterators require the row-major layout.");
+        return iterator1(this, 0);
+    }
+
+    /// Past-the-last row.
+    iterator1 end1()
+    {
+        static_assert(TLayout == Eigen::RowMajor, "Row iterators require the row-major layout.");
+        return iterator1(this, size1());
+    }
+
+    /// First row (const version).
+    const_iterator1 begin1() const
+    {
+        static_assert(TLayout == Eigen::RowMajor, "Row iterators require the row-major layout.");
+        return const_iterator1(this, 0);
+    }
+
+    /// Past-the-last row (const version).
+    const_iterator1 end1() const
+    {
+        static_assert(TLayout == Eigen::RowMajor, "Row iterators require the row-major layout.");
+        return const_iterator1(this, size1());
+    }
+
+    ///@}
 };
 
 /**

@@ -68,17 +68,17 @@ private:
 public:
     KRATOS_CLASS_POINTER_DEFINITION(EigenDirectSolver);
 
-    using BaseType = DirectSolver<TSparseSpaceType, TDenseSpaceType, TReordererType>;
+    typedef DirectSolver<TSparseSpaceType, TDenseSpaceType, TReordererType> BaseType;
 
-    using SparseMatrixType = typename TSparseSpaceType::MatrixType;
+    typedef typename TSparseSpaceType::MatrixType SparseMatrixType;
 
-    using VectorType = typename TSparseSpaceType::VectorType;
+    typedef typename TSparseSpaceType::VectorType VectorType;
 
-    using DataType = typename TSparseSpaceType::DataType;
+    typedef typename TSparseSpaceType::DataType DataType;
 
-    using DenseMatrixType = typename TDenseSpaceType::MatrixType;
+    typedef typename TDenseSpaceType::MatrixType DenseMatrixType;
 
-    using FactoryType = StandardLinearSolverFactory<TSparseSpaceType, TDenseSpaceType, EigenDirectSolver>;
+    typedef StandardLinearSolverFactory<TSparseSpaceType, TDenseSpaceType, EigenDirectSolver> FactoryType;
 
     EigenDirectSolver() {}
 
@@ -140,17 +140,8 @@ public:
      */
     bool PerformSolutionStep(SparseMatrixType& rA, VectorType& rX, VectorType& rB) override
     {
-        // uBLAS vectors expose the raw buffer through data().begin(), Eigen
-        // ones directly through data()
-        const auto get_buffer = [](VectorType& rVector) {
-            if constexpr (requires { rVector.data().begin(); }) {
-                return rVector.data().begin();
-            } else {
-                return rVector.data();
-            }
-        };
-        Eigen::Map<Kratos::EigenDynamicVector<DataType>> x(get_buffer(rX), rX.size());
-        Eigen::Map<Kratos::EigenDynamicVector<DataType>> b(get_buffer(rB), rB.size());
+        Eigen::Map<Kratos::EigenDynamicVector<DataType>> x(rX.data().begin(), rX.size());
+        Eigen::Map<Kratos::EigenDynamicVector<DataType>> b(rB.data().begin(), rB.size());
 
         const bool success = m_solver.Solve(b, x);
 
@@ -197,36 +188,21 @@ public:
     
         TDenseSpaceType::Resize(rX, system_size, n_rhs);
 
-        // Element-wise column extraction/insertion: works for any combination
-        // of dense-matrix and system-vector backends and any scalar type
-        // (unlike direct column() proxy assignment or the space GetColumn,
-        // which is bound to the real dense matrix)
-        const auto get_column = [](const std::size_t J, const DenseMatrixType& rM, VectorType& rColumn) {
-            if (static_cast<std::size_t>(rColumn.size()) != rM.size1())
-                rColumn.resize(rM.size1(), false);
-            for (std::size_t i = 0; i < rM.size1(); ++i)
-                rColumn[i] = rM(i, J);
-        };
-        const auto set_column = [](const std::size_t J, DenseMatrixType& rM, const VectorType& rColumn) {
-            for (std::size_t i = 0; i < rM.size1(); ++i)
-                rM(i, J) = rColumn[i];
-        };
-
-        get_column(0, rB, rhs);
+        rhs = column(rB, 0);
         this->InitializeSolutionStep(rA, solution, rhs);
-
+    
         bool success = true;
-
+    
         for (std::size_t i_column = 0ul; i_column < n_rhs; ++i_column)
         {
-            get_column(i_column, rB, rhs);
+            rhs = column(rB, i_column);
 
             TSparseSpaceType::SetToZero(solution);
 
             const bool col_success = this->PerformSolutionStep(rA, solution, rhs);
             success = success && col_success;
 
-            set_column(i_column, rX, solution);
+            column(rX, i_column) = solution;
         }
     
         this->FinalizeSolutionStep(rA, solution, rhs);

@@ -674,8 +674,8 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::Asse
     )
 {
     double* values_vector = rA.value_data().begin();
-    auto* index1_vector = rA.index1_data().begin();
-    auto* index2_vector = rA.index2_data().begin();
+    typename MatrixType::index_array_type::value_type* index1_vector = rA.index1_data().begin();
+    typename MatrixType::index_array_type::value_type* index2_vector = rA.index2_data().begin();
 
     for (IndexType i_node = 0; i_node < TNumNodes; ++i_node) {
         const SizeType node_i_id = rSlaveGeometry[i_node].Id();

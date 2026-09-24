@@ -646,4 +646,102 @@ KRATOS_TEST_CASE_IN_SUITE(EigenCompatUblasSpaceNames, KratosCoreFastSuite)
     KRATOS_EXPECT_DOUBLE_EQ(SparseSpaceType::TwoNorm(k), 5.0);
 }
 
+/**
+ * @brief Ordered construction of a compressed matrix (push_back, operator()),
+ * the element proxy (.ref()) and the construction from the lazy identity.
+ */
+KRATOS_TEST_CASE_IN_SUITE(EigenCompatCompressedMatrixOrderedInsertion, KratosCoreFastSuite)
+{
+    // Ordered push_back with an empty row in between and empty trailing rows
+    CompressedMatrix a(5, 4);
+    a.reserve(4, false);
+    a.push_back(0, 1, 1.0);
+    a.push_back(0, 3, 2.0);
+    a.push_back(2, 0, 3.0);
+    a.push_back(2, 2, 4.0);
+    a.complete_index1_data();
+    KRATOS_EXPECT_EQ(a.nnz(), 4);
+    KRATOS_EXPECT_EQ(a.index1_data()[1], 2);
+    KRATOS_EXPECT_EQ(a.index1_data()[2], 2);
+    KRATOS_EXPECT_EQ(a.index1_data()[3], 4);
+    KRATOS_EXPECT_EQ(a.index1_data()[5], 4);
+    const CompressedMatrix& r_a = a;
+    KRATOS_EXPECT_DOUBLE_EQ(r_a(0, 3), 2.0);
+    KRATOS_EXPECT_DOUBLE_EQ(r_a(2, 0), 3.0);
+    KRATOS_EXPECT_DOUBLE_EQ(r_a(1, 1), 0.0);
+    KRATOS_EXPECT_DOUBLE_EQ(r_a(4, 3), 0.0);
+
+    // Out-of-order insertion through operator() keeps a consistent matrix
+    a(1, 2) = 5.0;
+    a(0, 0) = 6.0;
+    KRATOS_EXPECT_EQ(a.nnz(), 6);
+    KRATOS_EXPECT_DOUBLE_EQ(r_a(1, 2), 5.0);
+    KRATOS_EXPECT_DOUBLE_EQ(r_a(0, 0), 6.0);
+    KRATOS_EXPECT_DOUBLE_EQ(r_a(2, 2), 4.0);
+
+    // Element proxy: compound assignment and the reference to the entry
+    a(2, 2) += 1.0;
+    double& r_entry = a(0, 1).ref();
+    r_entry = 7.0;
+    KRATOS_EXPECT_DOUBLE_EQ(r_a(2, 2), 5.0);
+    KRATOS_EXPECT_DOUBLE_EQ(r_a(0, 1), 7.0);
+
+    // Ordered construction through operator() of every row
+    CompressedMatrix b(3, 3);
+    for (std::size_t i = 0; i < 3; ++i) {
+        b(i, i) = 2.0;
+        if (i + 1 < 3) {
+            b(i, i + 1) = -1.0;
+        }
+    }
+    KRATOS_EXPECT_EQ(b.nnz(), 5);
+    const CompressedMatrix& r_b = b;
+    KRATOS_EXPECT_DOUBLE_EQ(r_b(1, 2), -1.0);
+    KRATOS_EXPECT_DOUBLE_EQ(r_b(2, 2), 2.0);
+
+    // Construction from the lazy identity
+    const CompressedMatrix identity = IdentityMatrix(3, 3);
+    KRATOS_EXPECT_EQ(identity.nnz(), 3);
+    KRATOS_EXPECT_DOUBLE_EQ(identity(1, 1), 1.0);
+    KRATOS_EXPECT_DOUBLE_EQ(identity(0, 1), 0.0);
+}
+
+/**
+ * @brief Rows of a compressed matrix (zeroing, inner_prod with a dense row)
+ * and the row iterators of a dense matrix.
+ */
+KRATOS_TEST_CASE_IN_SUITE(EigenCompatRowAccess, KratosCoreFastSuite)
+{
+    CompressedMatrix a(2, 3);
+    a.push_back(0, 0, 1.0);
+    a.push_back(0, 2, 2.0);
+    a.push_back(1, 1, 3.0);
+
+    Matrix m(2, 3);
+    FillMatrix(m);
+    m(0, 2) = 5.0;
+    m(1, 2) = 6.0;
+    KRATOS_EXPECT_DOUBLE_EQ(inner_prod(row(m, 0), row(a, 0)), 1.0 * m(0, 0) + 2.0 * m(0, 2));
+    KRATOS_EXPECT_DOUBLE_EQ(inner_prod(row(m, 1), row(a, 1)), 3.0 * m(1, 1));
+
+    row(a, 0) = ZeroVector(3);
+    const CompressedMatrix& r_a = a;
+    KRATOS_EXPECT_EQ(a.nnz(), 3);
+    KRATOS_EXPECT_DOUBLE_EQ(r_a(0, 2), 0.0);
+    KRATOS_EXPECT_DOUBLE_EQ(r_a(1, 1), 3.0);
+
+    // Dense row iterators: (begin1() + i).begin() walks row i
+    const std::vector<double> values{7.0, 8.0, 9.0};
+    std::copy(values.begin(), values.end(), (m.begin1() + 1).begin());
+    KRATOS_EXPECT_DOUBLE_EQ(m(1, 0), 7.0);
+    KRATOS_EXPECT_DOUBLE_EQ(m(1, 2), 9.0);
+    double sum = 0.0;
+    for (Matrix::const_iterator1 it_row = m.begin1(); it_row != m.end1(); ++it_row) {
+        for (Matrix::const_iterator2 it_entry = it_row.begin(); it_entry != it_row.end(); ++it_entry) {
+            sum += *it_entry;
+        }
+    }
+    KRATOS_EXPECT_DOUBLE_EQ(sum, m(0, 0) + m(0, 1) + 5.0 + 7.0 + 8.0 + 9.0);
+}
+
 } // namespace Kratos::Testing

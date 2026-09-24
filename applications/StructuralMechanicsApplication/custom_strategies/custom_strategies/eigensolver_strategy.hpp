@@ -727,11 +727,9 @@ private:
             ScalingFactors[k] = (dof_iterator->IsFixed()) ? 0.0 : 1.0;
         });
 
-        // The CSR array accessors work for both the uBLAS and the Eigen backend
-        // matrix (the index value type follows the matrix type)
-        auto* AValues = rA.value_data().begin();
-        auto* ARowIndices = rA.index1_data().begin();
-        auto* AColIndices = rA.index2_data().begin();
+        double* AValues = std::begin(rA.value_data());
+        typename SparseMatrixType::index_array_type::value_type* ARowIndices = std::begin(rA.index1_data());
+        typename SparseMatrixType::index_array_type::value_type* AColIndices = std::begin(rA.index2_data());
 
         // if there is a line of all zeros, put one on the diagonal
         // #pragma omp parallel for firstprivate(SystemSize)

@@ -286,24 +286,9 @@ public:
             const std::size_t id = rDof.EquationId();
             dofs_values[id] = rDof.GetSolutionStepValue();
         });
-        // The CSR storage index type differs between the backends (std::size_t
-        // for uBLAS, signed for the Eigen wrapper); name it from the matrix's
-        // own array typedefs instead of hardcoding one or the other.
-        using ValueType = typename TSystemMatrixType::value_array_type::value_type;
-        using IndexType = typename TSystemMatrixType::index_array_type::value_type;
-        ValueType *values_vector = rA.value_data().begin();
-        IndexType *index1_vector = rA.index1_data().begin();
-        IndexType *index2_vector = rA.index2_data().begin();
-
-        // Reference to an existing entry: ublas sparse element access returns a
-        // proxy requiring .ref(), other backends return a plain reference
-        auto entry_reference = [](TSystemMatrixType& rMatrix, const std::size_t I, const std::size_t J) -> double& {
-            if constexpr (requires { rMatrix(I, J).ref(); }) {
-                return rMatrix(I, J).ref();
-            } else {
-                return rMatrix(I, J);
-            }
-        };
+        double *values_vector = rA.value_data().begin();
+        typename TSystemMatrixType::index_array_type::value_type *index1_vector = rA.index1_data().begin();
+        typename TSystemMatrixType::index_array_type::value_type *index2_vector = rA.index2_data().begin();
 
         IndexPartition<std::size_t>(rA.size1()).for_each(
             [&](std::size_t i)
@@ -311,21 +296,21 @@ public:
                 for (std::size_t k = index1_vector[i]; k < static_cast<std::size_t>(index1_vector[i + 1]); k++) {
                     const double value = values_vector[k];
                     if (value > 0.0) {
-                        const std::size_t j = static_cast<std::size_t>(index2_vector[k]);
+                        const std::size_t j = index2_vector[k];
                         if (j > i) {
                             // TODO: Partition in blocks to gain efficiency by avoiding thread locks.
                             // Values conflicting with other threads
-                            double& r_aij = entry_reference(rA, i, j);
+                            auto& r_aij = rA(i,j).ref();
                             AtomicAdd(r_aij, -value);
-                            double& r_aji = entry_reference(rA, j, i);
+                            auto& r_aji = rA(j,i).ref();
                             AtomicAdd(r_aji, -value);
-                            double& r_aii = entry_reference(rA, i, i);
+                            auto& r_aii = rA(i,i).ref();
                             AtomicAdd(r_aii, value);
-                            double& r_ajj = entry_reference(rA, j, j);
+                            auto& r_ajj = rA(j,j).ref();
                             AtomicAdd(r_ajj, value);
-                            double& r_bi = rB[i];
+                            auto& r_bi = rB[i];
                             AtomicAdd(r_bi, value*dofs_values[j] - value*dofs_values[i]);
-                            double& r_bj = rB[j];
+                            auto& r_bj = rB[j];
                             AtomicAdd(r_bj, value*dofs_values[i] - value*dofs_values[j]);
                         }
                     }
@@ -840,7 +825,7 @@ protected:
 
         const auto solving_timer = BuiltinTimer();
 
-        Eigen::Map<EigenDynamicVector> dxrom_eigen(&r_dxRom.data()[0], r_dxRom.size());
+        Eigen::Map<EigenDynamicVector> dxrom_eigen(r_dxRom.data().begin(), r_dxRom.size());
         if(rEigenRomA.colPivHouseholderQr().isInvertible() == false){
             KRATOS_INFO("AnnPromGlobalROMBuilderAndSolver") << "Linear system to be solved by QR is not invertible" << std::endl;
         }

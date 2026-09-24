@@ -37,11 +37,11 @@ public:
     // dynamic Matrix for the same reason.
     template <unsigned int TDim, unsigned int TNumNodes, class TPermeabilityMatrixType>
     static inline BoundedMatrix<double, TNumNodes, TNumNodes> CalculatePermeabilityMatrix(
-        const Matrix&                  rGradNpT,
-        double                         DynamicViscosityInverse,
+        const Matrix&                            rGradNpT,
+        double                                   DynamicViscosityInverse,
         const TPermeabilityMatrixType& rMaterialPermeabilityMatrix,
-        double                         RelativePermeability,
-        double                         IntegrationCoefficient)
+        double                                   RelativePermeability,
+        double                                   IntegrationCoefficient)
     {
         return -PORE_PRESSURE_SIGN_FACTOR * DynamicViscosityInverse *
                prod(rGradNpT, Matrix(prod(rMaterialPermeabilityMatrix, trans(rGradNpT)))) *

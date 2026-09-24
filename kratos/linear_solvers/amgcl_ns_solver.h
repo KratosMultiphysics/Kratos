@@ -236,8 +236,8 @@ public:
         KRATOS_INFO_IF("AMGCL NS Solver", mVerbosity > 1) << "AMGCL-NS Memory Occupation : " << amgcl::human_readable_memory(amgcl::backend::bytes(solve)) << std::endl;
         // The vectors are passed as iterator ranges over their raw buffers so
         // that any system-vector backend (uBLAS, Eigen, ...) works
-        auto* x_begin = &*rX.begin();
-        const auto* b_begin = &*rB.begin();
+        typename TSparseSpaceType::DataType* x_begin = &*rX.begin();
+        const typename TSparseSpaceType::DataType* b_begin = &*rB.begin();
         return solve(*pA,
                      boost::make_iterator_range(b_begin, b_begin + rB.size()),
                      boost::make_iterator_range(x_begin, x_begin + rX.size()));
@@ -278,8 +278,8 @@ public:
         KRATOS_INFO_IF("AMGCL NS Solver", mVerbosity > 1) << "AMGCL-NS Memory Occupation : " << amgcl::human_readable_memory(amgcl::backend::bytes(solve)) << std::endl;
         // The vectors are passed as iterator ranges over their raw buffers so
         // that any system-vector backend (uBLAS, Eigen, ...) works
-        auto* x_begin = &*rX.begin();
-        const auto* b_begin = &*rB.begin();
+        typename TSparseSpaceType::DataType* x_begin = &*rX.begin();
+        const typename TSparseSpaceType::DataType* b_begin = &*rB.begin();
         return solve(*pA,
                      boost::make_iterator_range(b_begin, b_begin + rB.size()),
                      boost::make_iterator_range(x_begin, x_begin + rX.size()));

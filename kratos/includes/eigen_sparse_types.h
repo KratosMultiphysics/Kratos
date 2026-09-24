@@ -13,8 +13,10 @@
 #pragma once
 
 // System includes
+#include <algorithm>
 #include <cstddef>
 #include <type_traits>
+#include <utility>
 
 // External includes
 #include <Eigen/Core>
@@ -83,6 +85,42 @@ public:
     /// Default constructor: an empty (0 x 0) matrix.
     EigenCompressedMatrix() = default;
 
+    /// Copy constructor: the copy gets the complete row pointers even when
+    /// the source is still being built by ordered insertion.
+    EigenCompressedMatrix(const EigenCompressedMatrix& rOther) : BaseType(rOther), mAppendRow(rOther.mAppendRow)
+    {
+        CompleteAppend();
+    }
+
+    EigenCompressedMatrix(EigenCompressedMatrix&& rOther) noexcept : BaseType(std::move(static_cast<BaseType&>(rOther))), mAppendRow(rOther.mAppendRow)
+    {
+        rOther.mAppendRow = -1;
+    }
+
+    /// Copy assignment (the target gets the complete row pointers, see the copy constructor).
+    EigenCompressedMatrix& operator=(const EigenCompressedMatrix& rOther)
+    {
+        BaseType::operator=(rOther);
+        mAppendRow = rOther.mAppendRow;
+        CompleteAppend();
+        return *this;
+    }
+
+    EigenCompressedMatrix& operator=(EigenCompressedMatrix&& rOther) noexcept
+    {
+        // Eigen moves by swapping the storage, so the build state goes along
+        BaseType::operator=(std::move(static_cast<BaseType&>(rOther)));
+        std::swap(mAppendRow, rOther.mAppendRow);
+        return *this;
+    }
+
+    /// Swaps the storage and the build state with another matrix.
+    void swap(EigenCompressedMatrix& rOther)
+    {
+        BaseType::swap(rOther);
+        std::swap(mAppendRow, rOther.mAppendRow);
+    }
+
     /// Allocates an empty Size1 x Size2 sparse matrix (no nonzeros reserved).
     EigenCompressedMatrix(const std::size_t Size1, const std::size_t Size2) : BaseType(Size1, Size2) {}
 
@@ -111,6 +149,18 @@ public:
     /// `SparseMatrixType m = ZeroMatrix(n, n);` only sets the dimensions.
     EigenCompressedMatrix(const zero_matrix<TDataType>& rZero) : BaseType(rZero.size1(), rZero.size2()) {}
 
+    /// Construction from a lazy identity matrix: the uBLAS idiom
+    /// `SparseMatrixType m = IdentityMatrix(n, n);` stores the unit diagonal.
+    EigenCompressedMatrix(const identity_matrix<TDataType>& rIdentity) : BaseType(rIdentity.size1(), rIdentity.size2())
+    {
+        const std::size_t diagonal_size = std::min(size1(), size2());
+        this->reserve(diagonal_size);
+        for (std::size_t i = 0; i < diagonal_size; ++i) {
+            push_back(i, i, TDataType(1));
+        }
+        CompleteAppend();
+    }
+
     /// Element-wise conversion from a compressed matrix of another scalar or index type.
     template<class TOtherDataType, class TOtherIndexType>
     explicit EigenCompressedMatrix(const EigenCompressedMatrix<TOtherDataType, TOtherIndexType>& rOther)
@@ -125,22 +175,55 @@ public:
     EigenCompressedMatrix& operator=(const Eigen::SparseMatrixBase<TDerived>& rOther)
     {
         BaseType::operator=(rOther);
+        mAppendRow = -1;
         return *this;
     }
 
-    /// uBLAS-style element access: inserting a new entry through the
-    /// non-const version is the same O(nnz) slow path as for
-    /// ublas::compressed_matrix, and as for that type the storage stays a
-    /// packed CSR afterwards (Eigen's own insertion would leave it in
-    /// uncompressed mode, where the CSR arrays are not the packed ones).
-    TDataType& operator()(const std::size_t I, const std::size_t J)
+    /**
+     * @brief Reference to a stored entry (ublas sparse_matrix_element).
+     * @details Returned by the non-const operator(), so the uBLAS idioms
+     * `A(i, j) = v`, `A(i, j) += v`, `double& r = A(i, j)` and
+     * `AtomicAdd(A(i, j).ref(), v)` compile unchanged.
+     */
+    class ElementReference
     {
+    public:
+        explicit ElementReference(TDataType& rEntry) : mrEntry(rEntry) {}
+
+        /// The referenced storage entry (as ublas sparse_matrix_element::ref()).
+        TDataType& ref() const { return mrEntry; }
+
+        operator TDataType&() const { return mrEntry; }
+
+        ElementReference& operator=(const TDataType& rValue) { mrEntry = rValue; return *this; }
+        ElementReference& operator=(const ElementReference& rOther) { mrEntry = rOther.mrEntry; return *this; }
+        ElementReference& operator+=(const TDataType& rValue) { mrEntry += rValue; return *this; }
+        ElementReference& operator-=(const TDataType& rValue) { mrEntry -= rValue; return *this; }
+        ElementReference& operator*=(const TDataType& rValue) { mrEntry *= rValue; return *this; }
+        ElementReference& operator/=(const TDataType& rValue) { mrEntry /= rValue; return *this; }
+
+    private:
+        TDataType& mrEntry;
+    };
+
+    /// uBLAS-style element access. As for ublas::compressed_matrix, a new
+    /// entry of the last filled row (or of a later one) only shifts the
+    /// entries of that row, so a row-by-row construction is O(1) (amortized)
+    /// per entry when the columns come in increasing order; any other new
+    /// entry is the O(nnz) slow path. The storage stays a packed CSR in both
+    /// cases (Eigen's own insertion would leave it in uncompressed mode).
+    ElementReference operator()(const std::size_t I, const std::size_t J)
+    {
+        if (IsTailRow(I, J)) {
+            return ElementReference(TailRowEntry(I, J));
+        }
+        CompleteAppend();
         TDataType& r_entry = this->coeffRef(I, J);
         if (!this->isCompressed()) {
             this->makeCompressed();
-            return this->coeffRef(I, J);
+            return ElementReference(this->coeffRef(I, J));
         }
-        return r_entry;
+        return ElementReference(r_entry);
     }
 
     /// uBLAS-style element access (const version).
@@ -283,7 +366,7 @@ public:
     /// walk are the compressed ones; a no-op when it already is compressed).
     iterator1 begin1()
     {
-        this->makeCompressed();
+        complete_index1_data();
         return iterator1(this, 0);
     }
 
@@ -310,6 +393,7 @@ public:
     /// written row pointers, so this only validates consistency.
     void set_filled(const std::size_t FilledSize1, const std::size_t FilledNNZ)
     {
+        CompleteAppend();
         KRATOS_DEBUG_ERROR_IF(FilledSize1 != size1() + 1 || FilledNNZ != nnz() || FilledNNZ > static_cast<std::size_t>(this->data().size()))
             << "set_filled(" << FilledSize1 << ", " << FilledNNZ
             << ") is inconsistent with the written compressed storage ("
@@ -321,6 +405,7 @@ public:
     /// preserves, while resize(m, n, false) discards values and structure.
     void resize(const std::size_t NewSize1, const std::size_t NewSize2, const bool Preserve = true)
     {
+        CompleteAppend();
         if (Preserve) {
             this->conservativeResize(NewSize1, NewSize2);
         } else {
@@ -337,6 +422,7 @@ public:
     /// nonzeros; Preserve=true keeps the existing structure.
     void reserve(const std::size_t NNZ, const bool Preserve = true)
     {
+        CompleteAppend();
         if (Preserve) {
             BaseType::reserve(static_cast<typename BaseType::Index>(NNZ));
         } else {
@@ -347,11 +433,13 @@ public:
     /// uBLAS-style clear: removes all stored entries (the dimensions are kept).
     void clear()
     {
+        mAppendRow = -1;
         this->setZero();
     }
 
-    /// uBLAS-style element insertion (slow path meant for tests and small
-    /// setup code, not for assembly: write the CSR arrays directly instead).
+    /// uBLAS-style ordered insertion, as ublas::compressed_matrix::push_back():
+    /// entries given row by row with increasing columns are appended in O(1)
+    /// (amortized).
     void push_back(const std::size_t I, const std::size_t J, const TDataType Value)
     {
         (*this)(I, J) = Value;
@@ -363,12 +451,112 @@ public:
         (*this)(I, J) = Value;
     }
 
-    /// uBLAS-style finalization, as ublas::compressed_matrix::complete_index1_data().
-    /// The uBLAS-style insertion keeps the storage packed, so this only matters
-    /// after Eigen-native insertions (insert(), reserve()) left it uncompressed.
+    /// uBLAS-style finalization, as ublas::compressed_matrix::complete_index1_data():
+    /// sets the row pointers of the trailing rows left empty by the ordered
+    /// insertion, and packs the storage after Eigen-native insertions
+    /// (insert(), reserve()) left it uncompressed.
     void complete_index1_data()
     {
+        CompleteAppend();
         this->makeCompressed();
+    }
+
+    ///@}
+
+private:
+    ///@name Member Variables
+    ///@{
+
+    /// Row of the last entry appended by the ordered insertion while the row
+    /// pointers of the rows after it are not yet written (-1 otherwise). As
+    /// for ublas::compressed_matrix::filled1_, the row pointers past it are
+    /// completed by the next non-ordered access or complete_index1_data().
+    std::ptrdiff_t mAppendRow = -1;
+
+    ///@}
+    ///@name Private Operations
+    ///@{
+
+    /// Number of entries written so far (the packed filled count).
+    std::size_t FilledEntries() const
+    {
+        const TIndexType* p_outer = this->outerIndexPtr();
+        return static_cast<std::size_t>(mAppendRow >= 0 ? p_outer[mAppendRow + 1] : p_outer[size1()]);
+    }
+
+    /// Whether row I is the last row with stored entries or comes after it,
+    /// so an entry of it can be inserted by shifting that row only.
+    bool IsTailRow(const std::size_t I, const std::size_t J) const
+    {
+        if (!this->isCompressed() || I >= size1() || J >= size2()) {
+            return false;
+        }
+        if (mAppendRow >= 0) {
+            return I >= static_cast<std::size_t>(mAppendRow);
+        }
+        // All rows after I must be empty
+        return static_cast<std::size_t>(this->outerIndexPtr()[I + 1]) == FilledEntries();
+    }
+
+    /// Entry (I, J) of the tail row I (IsTailRow(I, J) must hold), inserted
+    /// with a zero value if not stored yet. The columns of the row are kept
+    /// sorted, shifting the entries of that row only: an ordered insertion is
+    /// an O(1) (amortized) append, as for ublas::compressed_matrix.
+    TDataType& TailRowEntry(const std::size_t I, const std::size_t J)
+    {
+        const std::size_t filled = FilledEntries();
+        TIndexType* p_outer = this->outerIndexPtr();
+        const bool is_new_row = mAppendRow >= 0 && I > static_cast<std::size_t>(mAppendRow);
+        const std::size_t row_begin = is_new_row ? filled : static_cast<std::size_t>(p_outer[I]);
+
+        // Position of column J among the (sorted) columns of the row
+        const TIndexType column = static_cast<TIndexType>(J);
+        const TIndexType* p_row_begin = this->innerIndexPtr() + row_begin;
+        const TIndexType* p_row_end = this->innerIndexPtr() + filled;
+        const std::size_t position = row_begin + static_cast<std::size_t>(std::lower_bound(p_row_begin, p_row_end, column) - p_row_begin);
+        if (position < filled && this->innerIndexPtr()[position] == column) {
+            return this->data().value(position);
+        }
+
+        // The rows skipped since the last appended one are empty (when the
+        // row pointers are complete, the rows up to I are already correct)
+        if (mAppendRow >= 0) {
+            for (std::size_t k = static_cast<std::size_t>(mAppendRow + 2); k <= I; ++k) {
+                p_outer[k] = static_cast<TIndexType>(filled);
+            }
+        }
+        // Reuse storage allocated up front ((rows, cols, nnz) constructor or
+        // reserve(nnz, false)), growing it geometrically otherwise
+        if (filled == static_cast<std::size_t>(this->data().size())) {
+            this->data().append(TDataType(), column);
+            p_outer = this->outerIndexPtr();
+        }
+        TDataType* p_values = this->valuePtr();
+        TIndexType* p_columns = this->innerIndexPtr();
+        std::copy_backward(p_values + position, p_values + filled, p_values + filled + 1);
+        std::copy_backward(p_columns + position, p_columns + filled, p_columns + filled + 1);
+        p_values[position] = TDataType();
+        p_columns[position] = column;
+        p_outer[I + 1] = static_cast<TIndexType>(filled + 1);
+        p_outer[size1()] = static_cast<TIndexType>(filled + 1);
+        // Once the last row is reached no row pointer is pending, so the
+        // matrix is left complete (later concurrent reads of existing entries
+        // then never write the build state)
+        mAppendRow = (I + 1 == size1()) ? -1 : static_cast<std::ptrdiff_t>(I);
+        return p_values[position];
+    }
+
+    /// Writes the row pointers of the rows after the last appended one.
+    void CompleteAppend()
+    {
+        if (mAppendRow >= 0) {
+            TIndexType* p_outer = this->outerIndexPtr();
+            const TIndexType filled = p_outer[mAppendRow + 1];
+            for (std::size_t k = static_cast<std::size_t>(mAppendRow + 2); k <= size1(); ++k) {
+                p_outer[k] = filled;
+            }
+            mAppendRow = -1;
+        }
     }
 
     ///@}

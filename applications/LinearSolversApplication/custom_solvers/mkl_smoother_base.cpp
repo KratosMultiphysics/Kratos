@@ -65,20 +65,16 @@ void MKLSmootherBase<TSparse,TDense>::InitializeSolutionStep(SparseMatrix& rLhs,
     mpImpl->mMaybeRowExtents.emplace(rLhs.index1_data().size());
     mpImpl->mMaybeColumnIndices.emplace(rLhs.index2_data().size());
 
-    // index1_data()/index2_data() return lvalue references for uBLAS matrices
-    // but value proxies for the Eigen-backend matrix, so bind them with
-    // decltype(auto) instead of taking the address of the returned object.
-    const auto copy_shifted = [](const auto& rSource, std::vector<MKL_INT>& rTarget) {
-        IndexPartition<typename TSparse::IndexType>(rTarget.size()).for_each(
-            [&rSource, &rTarget](typename TSparse::IndexType i) {
-                rTarget[i] = static_cast<MKL_INT>(rSource[i])
-                           + static_cast<MKL_INT>(1); //< intel sometimes exclusively uses 1-based indexing
+    using MatrixIndexType = typename SparseMatrix::index_array_type::value_type;
+    for (auto [p_source_array, p_target_array] : {std::make_pair(static_cast<MatrixIndexType*>(rLhs.index1_data().begin()), &mpImpl->mMaybeRowExtents.value()),
+                                                  std::make_pair(static_cast<MatrixIndexType*>(rLhs.index2_data().begin()), &mpImpl->mMaybeColumnIndices.value())}) {
+        auto& r_target = *p_target_array;
+        IndexPartition<typename TSparse::IndexType>(r_target.size()).for_each(
+            [p_source_array, &r_target](typename TSparse::IndexType i) mutable {
+                r_target[i] = static_cast<MKL_INT>(p_source_array[i])
+                            + static_cast<MKL_INT>(1); //< intel sometimes exclusively uses 1-based indexing
             });
-    };
-    decltype(auto) r_row_extents = rLhs.index1_data();
-    decltype(auto) r_column_indices = rLhs.index2_data();
-    copy_shifted(r_row_extents, mpImpl->mMaybeRowExtents.value());
-    copy_shifted(r_column_indices, mpImpl->mMaybeColumnIndices.value());
+    } // for p_source_array, p_target_array in array_pairs
 
     KRATOS_CATCH("")
 }

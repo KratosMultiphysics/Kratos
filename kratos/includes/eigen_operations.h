@@ -295,6 +295,69 @@ inline matrix_row<TMatrix> row(TMatrix& rM, const std::size_t I) { return matrix
 template<class TMatrix> requires Internals::IsEigenDense<TMatrix>
 inline matrix_row<const TMatrix> row(const TMatrix& rM, const std::size_t I) { return matrix_row<const TMatrix>(rM, I); }
 
+/**
+ * @class compressed_matrix_row
+ * @brief Row of a compressed matrix (ublas matrix_row over a compressed_matrix).
+ * @details Covers the uBLAS idioms used on sparse rows: zeroing the stored
+ * entries of the row (row(A, i) = ZeroVector(n)) and the scalar product with
+ * a dense vector (inner_prod(v, row(A, i))). The sparsity pattern is kept.
+ * @tparam TMatrix The (possibly const) compressed matrix type.
+ */
+template<class TMatrix>
+class compressed_matrix_row
+{
+public:
+    using value_type = typename std::remove_const_t<TMatrix>::value_type;
+
+    compressed_matrix_row(TMatrix& rMatrix, const std::size_t Index) : mrMatrix(rMatrix), mIndex(Index) {}
+
+    std::size_t size() const { return mrMatrix.size2(); }
+
+    /// Zeroes the stored entries of the row (the pattern is kept).
+    compressed_matrix_row& operator=(const zero_vector<value_type>&)
+    {
+        value_type* p_values = mrMatrix.valuePtr();
+        for (std::size_t k = RowBegin(); k < RowEnd(); ++k) {
+            p_values[k] = value_type();
+        }
+        return *this;
+    }
+
+    /// Scalar product with a dense vector expression, over the stored entries.
+    template<class TDerived>
+    value_type Dot(const Eigen::MatrixBase<TDerived>& rVector) const
+    {
+        const value_type* p_values = mrMatrix.valuePtr();
+        const typename std::remove_const_t<TMatrix>::StorageIndex* p_columns = mrMatrix.innerIndexPtr();
+        value_type result = value_type();
+        for (std::size_t k = RowBegin(); k < RowEnd(); ++k) {
+            result += p_values[k] * rVector.derived().coeff(static_cast<Eigen::Index>(p_columns[k]));
+        }
+        return result;
+    }
+
+private:
+    std::size_t RowBegin() const { return static_cast<std::size_t>(mrMatrix.outerIndexPtr()[mIndex]); }
+    std::size_t RowEnd() const { return static_cast<std::size_t>(mrMatrix.outerIndexPtr()[mIndex + 1]); }
+
+    TMatrix& mrMatrix;
+    std::size_t mIndex;
+};
+
+/// Row of a compressed matrix, zeroable and usable in inner_prod (ublas row()).
+template<class TDataType, class TIndexType>
+inline compressed_matrix_row<EigenCompressedMatrix<TDataType, TIndexType>> row(EigenCompressedMatrix<TDataType, TIndexType>& rM, const std::size_t I)
+{
+    return compressed_matrix_row<EigenCompressedMatrix<TDataType, TIndexType>>(rM, I);
+}
+
+/// Row of a compressed matrix, read-only (ublas row()).
+template<class TDataType, class TIndexType>
+inline compressed_matrix_row<const EigenCompressedMatrix<TDataType, TIndexType>> row(const EigenCompressedMatrix<TDataType, TIndexType>& rM, const std::size_t I)
+{
+    return compressed_matrix_row<const EigenCompressedMatrix<TDataType, TIndexType>>(rM, I);
+}
+
 /// Column of a matrix as a vector proxy, readable and writable (ublas column()).
 template<class TMatrix> requires Internals::IsEigenDense<TMatrix>
 inline matrix_column<TMatrix> column(TMatrix& rM, const std::size_t J) { return matrix_column<TMatrix>(rM, J); }
@@ -446,6 +509,20 @@ inline auto inner_prod(const Eigen::MatrixBase<TDerived1>& rX, const Eigen::Matr
         using ResultScalar = decltype(std::declval<Scalar1>() * std::declval<Scalar2>());
         return (rX.derived().template cast<ResultScalar>().transpose() * rY.derived().template cast<ResultScalar>()).value();
     }
+}
+
+/// Scalar product of a dense vector and a row of a compressed matrix (ublas inner_prod).
+template<class TDerived, class TMatrix>
+inline typename compressed_matrix_row<TMatrix>::value_type inner_prod(const Eigen::MatrixBase<TDerived>& rX, const compressed_matrix_row<TMatrix>& rY)
+{
+    return rY.Dot(rX);
+}
+
+/// Scalar product of a row of a compressed matrix and a dense vector (ublas inner_prod).
+template<class TMatrix, class TDerived>
+inline typename compressed_matrix_row<TMatrix>::value_type inner_prod(const compressed_matrix_row<TMatrix>& rX, const Eigen::MatrixBase<TDerived>& rY)
+{
+    return rX.Dot(rY);
 }
 
 /// Outer product of two vectors, rX * rY^T; a row-shaped rY (as produced by
