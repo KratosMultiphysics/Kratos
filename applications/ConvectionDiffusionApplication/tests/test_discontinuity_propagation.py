@@ -2,7 +2,6 @@ import KratosMultiphysics
 import KratosMultiphysics.KratosUnittest as UnitTest
 import KratosMultiphysics.ConvectionDiffusionApplication as ConvectionDiffusionApplication
 from KratosMultiphysics.ConvectionDiffusionApplication import convection_diffusion_analysis
-from KratosMultiphysics.json_output_process import JsonOutputProcess
 from KratosMultiphysics.from_json_check_result_process import FromJsonCheckResultProcess
 
 import os
@@ -58,7 +57,7 @@ class DiscontinuityPropagationUnitSquareTest(UnitTest.TestCase):
                         "time_frequency": 0.0
                 }''')
                 json_output_settings["output_file_name"].SetString(GetFilePath(self.work_folder + "/" + self.reference_file + "_results.json"))
-                json_output_process = JsonOutputProcess(self.model, json_output_settings)
+                json_output_process = KratosMultiphysics.JsonOutputProcess(self.model, json_output_settings)
                 json_output_process.ExecuteInitialize()
                 json_output_process.ExecuteBeforeSolutionLoop()
                 json_output_process.ExecuteFinalizeSolutionStep()
