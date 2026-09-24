@@ -1,10 +1,11 @@
-#ifndef AMGCL_BACKEND_CUDA_HPP
-#define AMGCL_BACKEND_CUDA_HPP
+#ifndef AMGCL_BACKEND_HIP_HPP
+#define AMGCL_BACKEND_HIP_HPP
 
 /*
 The MIT License
 
 Copyright (c) 2012-2022 Denis Demidov <dennis.demidov@gmail.com>
+Copyright (c) 2026 Advanced Micro Devices, Inc.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -26,9 +27,17 @@ THE SOFTWARE.
 */
 
 /**
- * \file   amgcl/backend/cuda.hpp
+ * \file   amgcl/backend/hip.hpp
  * \author Denis Demidov <dennis.demidov@gmail.com>
- * \brief  CUDA backend.
+ * \author Jeff Daily <jeff.daily@amd.com>
+ * \brief  ROCm/HIP backend.
+ *
+ * AMD GPU mirror of backend/cuda.hpp. Uses hipSPARSE (the cuSPARSE-compatible
+ * ROCm interface) for the CSR SpMV and rocThrust for the dense vector kernels.
+ * hipSPARSE exposes the same generic SpMV API as cuSPARSE, so this header
+ * follows the CUDA backend structure with only the cusparse->hipsparse symbol
+ * swap; rocThrust shares the thrust:: API and header paths, so the Thrust code
+ * is unchanged.
  */
 
 #include <type_traits>
@@ -47,24 +56,27 @@ THE SOFTWARE.
 #include <thrust/inner_product.h>
 #include <thrust/iterator/zip_iterator.h>
 #include <thrust/tuple.h>
-#include <cusparse_v2.h>
+
+#include <hip/hip_runtime.h>
+#include <hip/library_types.h>
+#include <hipsparse/hipsparse.h>
 
 namespace amgcl {
 
 namespace solver {
 
-/** Wrapper around solver::skyline_lu for use with the CUDA backend.
+/** Wrapper around solver::skyline_lu for use with the HIP backend.
  * Copies the rhs to the host memory, solves the problem using the host CPU,
  * then copies the solution back to the compute device(s).
  */
 template <class T>
-struct cuda_skyline_lu : solver::skyline_lu<T> {
+struct hip_skyline_lu : solver::skyline_lu<T> {
     typedef solver::skyline_lu<T> Base;
 
     mutable std::vector<T> _rhs, _x;
 
     template <class Matrix, class Params>
-    cuda_skyline_lu(const Matrix &A, const Params&)
+    hip_skyline_lu(const Matrix &A, const Params&)
         : Base(*A), _rhs(backend::rows(*A)), _x(backend::rows(*A))
     { }
 
@@ -88,101 +100,91 @@ struct cuda_skyline_lu : solver::skyline_lu<T> {
 namespace backend {
 namespace detail {
 
-inline void cuda_check(cusparseStatus_t rc, const char *file, int line) {
-    if (rc != CUSPARSE_STATUS_SUCCESS) {
+inline void hip_check(hipsparseStatus_t rc, const char *file, int line) {
+    if (rc != HIPSPARSE_STATUS_SUCCESS) {
         std::ostringstream msg;
-        msg << "CUDA error " << rc << " at \"" << file << ":" << line;
+        msg << "HIP error " << rc << " at \"" << file << ":" << line;
         precondition(false, msg.str());
     }
 }
 
-inline void cuda_check(cudaError_t rc, const char *file, int line) {
-    if (rc != cudaSuccess) {
+inline void hip_check(hipError_t rc, const char *file, int line) {
+    if (rc != hipSuccess) {
         std::ostringstream msg;
-        msg << "CUDA error " << rc << " at \"" << file << ":" << line;
+        msg << "HIP error " << rc << " at \"" << file << ":" << line;
         precondition(false, msg.str());
     }
 }
 
-#define AMGCL_CALL_CUDA(rc)                                                    \
-    amgcl::backend::detail::cuda_check(rc, __FILE__, __LINE__)
+#define AMGCL_CALL_HIP(rc)                                                     \
+    amgcl::backend::detail::hip_check(rc, __FILE__, __LINE__)
 
-struct cuda_deleter {
-    void operator()(cusparseMatDescr_t handle) {
-        AMGCL_CALL_CUDA( cusparseDestroyMatDescr(handle) );
+struct hip_deleter {
+    // hipsparseMatDescr_t and hipsparseDnVecDescr_t are both typedef'd to void*
+    // in hipSPARSE (unlike cuSPARSE, where they are distinct struct pointers),
+    // so they cannot be told apart by overload. The legacy hipsparseMatDescr_t
+    // (used only by the ILU0 relaxation) gets its own deleter there; here the
+    // void* overload destroys a dense-vector descriptor.
+    void operator()(hipsparseSpMatDescr_t handle) {
+        AMGCL_CALL_HIP( hipsparseDestroySpMat(handle) );
     }
 
-    void operator()(cusparseSpMatDescr_t handle) {
-        AMGCL_CALL_CUDA( cusparseDestroySpMat(handle) );
+    void operator()(hipsparseDnVecDescr_t handle) {
+        AMGCL_CALL_HIP( hipsparseDestroyDnVec(handle) );
     }
 
-    void operator()(cusparseDnVecDescr_t handle) {
-        AMGCL_CALL_CUDA( cusparseDestroyDnVec(handle) );
-    }
-
-    void operator()(cudaEvent_t handle) {
-        AMGCL_CALL_CUDA( cudaEventDestroy(handle) );
+    void operator()(hipEvent_t handle) {
+        AMGCL_CALL_HIP( hipEventDestroy(handle) );
     }
 
     void operator()(csrilu02Info_t handle) {
-        AMGCL_CALL_CUDA( cusparseDestroyCsrilu02Info(handle) );
+        AMGCL_CALL_HIP( hipsparseDestroyCsrilu02Info(handle) );
     }
 
-#if CUDART_VERSION >= 11000
-    void operator()(cusparseSpSVDescr_t handle) {
-        AMGCL_CALL_CUDA( cusparseSpSV_destroyDescr(handle) );
+    void operator()(hipsparseSpSVDescr_t handle) {
+        AMGCL_CALL_HIP( hipsparseSpSV_destroyDescr(handle) );
     }
-#else
-    void operator()(cusparseHybMat_t handle) {
-        AMGCL_CALL_CUDA( cusparseDestroyHybMat(handle) );
-    }
-
-    void operator()(csrsv2Info_t handle) {
-        AMGCL_CALL_CUDA( cusparseDestroyCsrsv2Info(handle) );
-    }
-#endif
 };
 
 
 template <typename real>
-cudaDataType cuda_datatype() {
+hipDataType hip_datatype() {
     if (sizeof(real) == sizeof(float))
-        return CUDA_R_32F;
+        return HIP_R_32F;
     else
-        return CUDA_R_64F;
+        return HIP_R_64F;
 }
 
-#if CUDART_VERSION >= 11000
 template <typename real>
-cusparseDnVecDescr_t cuda_vector_description(thrust::device_vector<real> &x) {
-    cusparseDnVecDescr_t desc;
-    AMGCL_CALL_CUDA(
-            cusparseCreateDnVec(
+hipsparseDnVecDescr_t hip_vector_description(thrust::device_vector<real> &x) {
+    hipsparseDnVecDescr_t desc;
+    AMGCL_CALL_HIP(
+            hipsparseCreateDnVec(
                 &desc,
                 x.size(),
                 thrust::raw_pointer_cast(&x[0]),
-                cuda_datatype<real>()
+                hip_datatype<real>()
                 )
             );
     return desc;
 }
 
 template <typename real>
-cusparseDnVecDescr_t cuda_vector_description(const thrust::device_vector<real> &&x) {
-    cusparseDnVecDescr_t desc;
-    AMGCL_CALL_CUDA(
-            cusparseCreateDnVec(
+hipsparseDnVecDescr_t hip_vector_description(const thrust::device_vector<real> &&x) {
+    hipsparseDnVecDescr_t desc;
+    AMGCL_CALL_HIP(
+            hipsparseCreateDnVec(
                 &desc,
                 x.size(),
                 thrust::raw_pointer_cast(&x[0]),
-                cuda_datatype<real>()
+                hip_datatype<real>()
                 )
             );
     return desc;
 }
 
 template <typename real>
-cusparseSpMatDescr_t cuda_matrix_description(
+hipsparseSpMatDescr_t hip_matrix_description(
         size_t nrows,
         size_t ncols,
         size_t nnz,
@@ -191,9 +193,9 @@ cusparseSpMatDescr_t cuda_matrix_description(
         thrust::device_vector<real> &val
         )
 {
-    cusparseSpMatDescr_t desc;
-    AMGCL_CALL_CUDA(
-            cusparseCreateCsr(
+    hipsparseSpMatDescr_t desc;
+    AMGCL_CALL_HIP(
+            hipsparseCreateCsr(
                 &desc,
                 nrows,
                 ncols,
@@ -201,38 +203,36 @@ cusparseSpMatDescr_t cuda_matrix_description(
                 thrust::raw_pointer_cast(&ptr[0]),
                 thrust::raw_pointer_cast(&col[0]),
                 thrust::raw_pointer_cast(&val[0]),
-                CUSPARSE_INDEX_32I,
-                CUSPARSE_INDEX_32I,
-                CUSPARSE_INDEX_BASE_ZERO,
-                detail::cuda_datatype<real>()
+                HIPSPARSE_INDEX_32I,
+                HIPSPARSE_INDEX_32I,
+                HIPSPARSE_INDEX_BASE_ZERO,
+                detail::hip_datatype<real>()
                 )
             );
     return desc;
 }
-#endif // CUDART_VERSION >= 11000
 
 } // namespace detail
 
-#if CUDART_VERSION >= 11000
-/// CUSPARSE matrix in CSR format.
+/// hipSPARSE matrix in CSR format.
 template <typename real>
-class cuda_matrix {
+class hip_matrix {
     public:
         typedef real value_type;
 
-        cuda_matrix(
+        hip_matrix(
                 size_t n, size_t m,
                 const ptrdiff_t *p_ptr,
                 const ptrdiff_t *p_col,
                 const real      *p_val,
-                cusparseHandle_t handle
+                hipsparseHandle_t handle
                 )
             : nrows(n), ncols(m), nnz(p_ptr[n]), handle(handle),
               ptr(p_ptr, p_ptr + n + 1), col(p_col, p_col + nnz), val(p_val, p_val + nnz)
         {
               desc.reset(
-                      detail::cuda_matrix_description(nrows, ncols, nnz, ptr, col, val),
-                      backend::detail::cuda_deleter()
+                      detail::hip_matrix_description(nrows, ncols, nnz, ptr, col, val),
+                      backend::detail::hip_deleter()
                       );
         }
 
@@ -241,29 +241,29 @@ class cuda_matrix {
                 real beta,  thrust::device_vector<real>       &y
             ) const
         {
-            std::shared_ptr<std::remove_pointer<cusparseDnVecDescr_t>::type> xdesc(
-                    detail::cuda_vector_description(const_cast<thrust::device_vector<real>&>(x)),
-                    backend::detail::cuda_deleter()
+            std::shared_ptr<std::remove_pointer<hipsparseDnVecDescr_t>::type> xdesc(
+                    detail::hip_vector_description(const_cast<thrust::device_vector<real>&>(x)),
+                    backend::detail::hip_deleter()
                     );
-            std::shared_ptr<std::remove_pointer<cusparseDnVecDescr_t>::type> ydesc(
-                    detail::cuda_vector_description(y),
-                    backend::detail::cuda_deleter()
+            std::shared_ptr<std::remove_pointer<hipsparseDnVecDescr_t>::type> ydesc(
+                    detail::hip_vector_description(y),
+                    backend::detail::hip_deleter()
                     );
 
             if (!ready_for_spmv) {
                 size_t buf_size;
 
-                AMGCL_CALL_CUDA(
-                        cusparseSpMV_bufferSize(
+                AMGCL_CALL_HIP(
+                        hipsparseSpMV_bufferSize(
                             handle,
-                            CUSPARSE_OPERATION_NON_TRANSPOSE,
+                            HIPSPARSE_OPERATION_NON_TRANSPOSE,
                             &alpha,
                             desc.get(),
                             xdesc.get(),
                             &beta,
                             ydesc.get(),
-                            detail::cuda_datatype<real>(),
-                            CUSPARSE_SPMV_CSR_ALG1,
+                            detail::hip_datatype<real>(),
+                            HIPSPARSE_SPMV_CSR_ALG1,
                             &buf_size
                             )
                         );
@@ -271,37 +271,35 @@ class cuda_matrix {
                 if (buf.size() < buf_size)
                     buf.resize(buf_size);
 
-#if CUDART_VERSION >= 12040
-                AMGCL_CALL_CUDA(
-                        cusparseSpMV_preprocess(
+                AMGCL_CALL_HIP(
+                        hipsparseSpMV_preprocess(
                             handle,
-                            CUSPARSE_OPERATION_NON_TRANSPOSE,
+                            HIPSPARSE_OPERATION_NON_TRANSPOSE,
                             &alpha,
                             desc.get(),
                             xdesc.get(),
                             &beta,
                             ydesc.get(),
-                            detail::cuda_datatype<real>(),
-                            CUSPARSE_SPMV_CSR_ALG1,
+                            detail::hip_datatype<real>(),
+                            HIPSPARSE_SPMV_CSR_ALG1,
                             thrust::raw_pointer_cast(&buf[0])
                             )
                         );
-#endif
 
                 ready_for_spmv = true;
             }
 
-            AMGCL_CALL_CUDA(
-                    cusparseSpMV(
+            AMGCL_CALL_HIP(
+                    hipsparseSpMV(
                         handle,
-                        CUSPARSE_OPERATION_NON_TRANSPOSE,
+                        HIPSPARSE_OPERATION_NON_TRANSPOSE,
                         &alpha,
                         desc.get(),
                         xdesc.get(),
                         &beta,
                         ydesc.get(),
-                        detail::cuda_datatype<real>(),
-                        CUSPARSE_SPMV_CSR_ALG1,
+                        detail::hip_datatype<real>(),
+                        HIPSPARSE_SPMV_CSR_ALG1,
                         thrust::raw_pointer_cast(&buf[0])
                         )
                     );
@@ -319,9 +317,9 @@ class cuda_matrix {
     private:
         size_t nrows, ncols, nnz;
 
-        cusparseHandle_t handle;
+        hipsparseHandle_t handle;
 
-        std::shared_ptr<std::remove_pointer<cusparseSpMatDescr_t>::type> desc;
+        std::shared_ptr<std::remove_pointer<hipsparseSpMatDescr_t>::type> desc;
 
         thrust::device_vector<int>  ptr;
         thrust::device_vector<int>  col;
@@ -332,154 +330,26 @@ class cuda_matrix {
 
 };
 
-#else  // CUDART_VERSION >= 11000
-
-/// CUSPARSE matrix in Hyb format.
-template <typename real>
-class cuda_matrix {
-    public:
-        typedef real value_type;
-
-        cuda_matrix(
-                size_t n, size_t m,
-                const ptrdiff_t *ptr,
-                const ptrdiff_t *col,
-                const real      *val,
-                cusparseHandle_t handle
-                )
-            : nrows(n), ncols(m), nnz(ptr[n]), handle( handle ),
-              desc  ( create_description(), backend::detail::cuda_deleter() ),
-              mat   ( create_matrix(),      backend::detail::cuda_deleter() )
-        {
-            fill_matrix(n, m, ptr, col, val);
-        }
-
-        void spmv(
-                real alpha, thrust::device_vector<real> const &x,
-                real beta,  thrust::device_vector<real>       &y
-            ) const
-        {
-            spmv(alpha, x, beta, y, std::integral_constant<bool, sizeof(real) == sizeof(double)>());
-        }
-
-        void spmv(
-                real alpha, thrust::device_vector<real> const &x,
-                real beta,  thrust::device_vector<real>       &y,
-                std::false_type
-            ) const
-        {
-            AMGCL_CALL_CUDA(
-                    cusparseShybmv(handle, CUSPARSE_OPERATION_NON_TRANSPOSE,
-                        &alpha, desc.get(), mat.get(),
-                        thrust::raw_pointer_cast(&x[0]), &beta,
-                        thrust::raw_pointer_cast(&y[0])
-                        )
-                    );
-        }
-
-        void spmv(
-                real alpha, thrust::device_vector<real> const &x,
-                real beta,  thrust::device_vector<real>       &y,
-                std::true_type
-            ) const
-        {
-            AMGCL_CALL_CUDA(
-                    cusparseDhybmv(handle, CUSPARSE_OPERATION_NON_TRANSPOSE,
-                        &alpha, desc.get(), mat.get(),
-                        thrust::raw_pointer_cast(&x[0]), &beta,
-                        thrust::raw_pointer_cast(&y[0])
-                        )
-                    );
-        }
-
-        size_t rows()     const { return nrows; }
-        size_t cols()     const { return ncols; }
-        size_t nonzeros() const { return nnz;   }
-        size_t bytes()    const {
-            return
-                sizeof(int)  * (nrows + 1) +
-                sizeof(int)  * nnz +
-                sizeof(real) * nnz;
-        }
-    private:
-        size_t nrows, ncols, nnz;
-
-        cusparseHandle_t handle;
-
-        std::shared_ptr<std::remove_pointer<cusparseMatDescr_t>::type> desc;
-        std::shared_ptr<std::remove_pointer<cusparseHybMat_t>::type>   mat;
-
-        static cusparseMatDescr_t create_description() {
-            cusparseMatDescr_t desc;
-            AMGCL_CALL_CUDA( cusparseCreateMatDescr(&desc) );
-            AMGCL_CALL_CUDA( cusparseSetMatType(desc, CUSPARSE_MATRIX_TYPE_GENERAL) );
-            AMGCL_CALL_CUDA( cusparseSetMatIndexBase(desc, CUSPARSE_INDEX_BASE_ZERO) );
-            return desc;
-        }
-
-        static cusparseHybMat_t create_matrix() {
-            cusparseHybMat_t mat;
-            AMGCL_CALL_CUDA( cusparseCreateHybMat(&mat) );
-            return mat;
-        }
-
-        void fill_matrix(size_t n, size_t m,
-                const ptrdiff_t *ptr, const ptrdiff_t *col, const float *val
-                )
-        {
-            thrust::device_vector<int>   p(ptr, ptr + n + 1);
-            thrust::device_vector<int>   c(col, col + ptr[n]);
-            thrust::device_vector<float> v(val, val + ptr[n]);
-
-            AMGCL_CALL_CUDA(
-                    cusparseScsr2hyb(handle, n, m, desc.get(),
-                        thrust::raw_pointer_cast(&v[0]),
-                        thrust::raw_pointer_cast(&p[0]),
-                        thrust::raw_pointer_cast(&c[0]),
-                        mat.get(), 0, CUSPARSE_HYB_PARTITION_AUTO
-                        )
-                    );
-        }
-
-        void fill_matrix(size_t n, size_t m,
-                const ptrdiff_t *ptr, const ptrdiff_t *col, const double *val
-                )
-        {
-            thrust::device_vector<int>    p(ptr, ptr + n + 1);
-            thrust::device_vector<int>    c(col, col + ptr[n]);
-            thrust::device_vector<double> v(val, val + ptr[n]);
-
-            AMGCL_CALL_CUDA(
-                    cusparseDcsr2hyb(handle, n, m, desc.get(),
-                        thrust::raw_pointer_cast(&v[0]),
-                        thrust::raw_pointer_cast(&p[0]),
-                        thrust::raw_pointer_cast(&c[0]),
-                        mat.get(), 0, CUSPARSE_HYB_PARTITION_AUTO
-                        )
-                    );
-        }
-};
-
-#endif // CUDART_VERSION >= 11000
-/// CUDA backend.
+/// ROCm/HIP backend.
 /**
- * Uses CUSPARSE for matrix operations and Thrust for vector operations.
+ * Uses hipSPARSE for matrix operations and Thrust (rocThrust) for vector
+ * operations.
  *
  * \param real Value type.
  * \ingroup backends
  */
-template <typename real, class DirectSolver = solver::cuda_skyline_lu<real> >
-struct cuda {
+template <typename real, class DirectSolver = solver::hip_skyline_lu<real> >
+struct hip {
         static_assert(
                 std::is_same<real, float>::value ||
                 std::is_same<real, double>::value,
-                "Unsupported value type for cuda backend"
+                "Unsupported value type for hip backend"
                 );
 
     typedef real value_type;
     typedef ptrdiff_t col_type;
     typedef ptrdiff_t ptr_type;
-    typedef cuda_matrix<real>       matrix;
+    typedef hip_matrix<real>        matrix;
     typedef thrust::device_vector<real> vector;
     typedef thrust::device_vector<real> matrix_diagonal;
     typedef DirectSolver                direct_solver;
@@ -488,32 +358,32 @@ struct cuda {
 
     /// Backend parameters.
     struct params {
-        /// CUSPARSE handle.
-        cusparseHandle_t cusparse_handle;
+        /// hipSPARSE handle.
+        hipsparseHandle_t hipsparse_handle;
 
-        params(cusparseHandle_t handle = 0) : cusparse_handle(handle) {}
+        params(hipsparseHandle_t handle = 0) : hipsparse_handle(handle) {}
 
 #ifndef AMGCL_NO_BOOST
         params(const boost::property_tree::ptree &p)
-            : AMGCL_PARAMS_IMPORT_VALUE(p, cusparse_handle)
+            : AMGCL_PARAMS_IMPORT_VALUE(p, hipsparse_handle)
         {
-            check_params(p, {"cusparse_handle"});
+            check_params(p, {"hipsparse_handle"});
         }
 
         void get(boost::property_tree::ptree &p, const std::string &path) const {
-            AMGCL_PARAMS_EXPORT_VALUE(p, path, cusparse_handle);
+            AMGCL_PARAMS_EXPORT_VALUE(p, path, hipsparse_handle);
         }
 #endif
     };
 
-    static std::string name() { return "cuda"; }
+    static std::string name() { return "hip"; }
 
     /// Copy matrix from builtin backend.
     static std::shared_ptr<matrix>
     copy_matrix(std::shared_ptr< typename builtin<real>::matrix > A, const params &prm)
     {
         return std::make_shared<matrix>(rows(*A), cols(*A),
-                A->ptr, A->col, A->val, prm.cusparse_handle
+                A->ptr, A->col, A->val, prm.hipsparse_handle
                 );
     }
 
@@ -588,11 +458,11 @@ struct bytes_impl< thrust::device_vector<V> > {
 
 template < typename Alpha, typename Beta, typename V >
 struct spmv_impl<
-    Alpha, cuda_matrix<V>, thrust::device_vector<V>,
+    Alpha, hip_matrix<V>, thrust::device_vector<V>,
     Beta,  thrust::device_vector<V>
     >
 {
-    typedef cuda_matrix<V> matrix;
+    typedef hip_matrix<V> matrix;
     typedef thrust::device_vector<V> vector;
 
     static void apply(Alpha alpha, const matrix &A, const vector &x,
@@ -604,13 +474,13 @@ struct spmv_impl<
 
 template < typename V >
 struct residual_impl<
-    cuda_matrix<V>,
+    hip_matrix<V>,
     thrust::device_vector<V>,
     thrust::device_vector<V>,
     thrust::device_vector<V>
     >
 {
-    typedef cuda_matrix<V> matrix;
+    typedef hip_matrix<V> matrix;
     typedef thrust::device_vector<V> vector;
 
     static void apply(const vector &rhs, const matrix &A, const vector &x,
@@ -806,34 +676,34 @@ struct vmul_impl<
     }
 };
 
-class cuda_event {
+class hip_event {
     public:
-        cuda_event() : e(create_event(), backend::detail::cuda_deleter()) { }
+        hip_event() : e(create_event(), backend::detail::hip_deleter()) { }
 
-        float operator-(cuda_event tic) const {
+        float operator-(hip_event tic) const {
             float delta;
-            cudaEventSynchronize(e.get());
-            cudaEventElapsedTime(&delta, tic.e.get(), e.get());
+            AMGCL_CALL_HIP( hipEventSynchronize(e.get()) );
+            AMGCL_CALL_HIP( hipEventElapsedTime(&delta, tic.e.get(), e.get()) );
             return delta / 1000.0f;
         }
     private:
-        std::shared_ptr<std::remove_pointer<cudaEvent_t>::type> e;
+        std::shared_ptr<std::remove_pointer<hipEvent_t>::type> e;
 
-        static cudaEvent_t create_event() {
-            cudaEvent_t e;
-            cudaEventCreate(&e);
-            cudaEventRecord(e, 0);
+        static hipEvent_t create_event() {
+            hipEvent_t e;
+            AMGCL_CALL_HIP( hipEventCreate(&e) );
+            AMGCL_CALL_HIP( hipEventRecord(e, 0) );
             return e;
         }
 };
 
-struct cuda_clock {
-    typedef cuda_event value_type;
+struct hip_clock {
+    typedef hip_event value_type;
 
     static const char* units() { return "s"; }
 
-    cuda_event current() const {
-        return cuda_event();
+    hip_event current() const {
+        return hip_event();
     }
 };
 

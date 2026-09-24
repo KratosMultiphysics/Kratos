@@ -201,6 +201,9 @@ public:
             "max_levels"                     : -1,
             "pre_sweeps"                     : 1,
             "post_sweeps"                    : 1,
+            "sweeps"                         : 5,
+            "omega"                          : 0.8,
+            "symmetric_scaling"              : false,
             "use_gpgpu"                      : false,
             "direct_settings"                : {}
         })");
@@ -286,6 +289,7 @@ protected:
             "spai0",
             "spai1",
             "ilu0",
+            "ilu0_chow_patel",
             "ilut",
             "iluk",
             "damped_jacobi",

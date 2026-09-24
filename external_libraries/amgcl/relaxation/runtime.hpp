@@ -42,6 +42,7 @@ THE SOFTWARE.
 #include <amgcl/util.hpp>
 #include <amgcl/relaxation/gauss_seidel.hpp>
 #include <amgcl/relaxation/ilu0.hpp>
+#include <amgcl/relaxation/ilu0_chow_patel.hpp>
 #include <amgcl/relaxation/iluk.hpp>
 #include <amgcl/relaxation/ilup.hpp>
 #include <amgcl/relaxation/ilut.hpp>
@@ -58,6 +59,7 @@ namespace relaxation {
 enum type {
     gauss_seidel,               ///< Gauss-Seidel smoothing
     ilu0,                       ///< Incomplete LU with zero fill-in
+    ilu0_chow_patel,            ///< Parallel ILU(0) via Chow-Patel iterative algorithm
     iluk,                       ///< Level-based incomplete LU
     ilup,                       ///< Level-based incomplete LU (fill-in is determined from A^p pattern)
     ilut,                       ///< Incomplete LU with thresholding
@@ -74,6 +76,8 @@ inline std::ostream& operator<<(std::ostream &os, type r)
             return os << "gauss_seidel";
         case ilu0:
             return os << "ilu0";
+        case ilu0_chow_patel:
+            return os << "ilu0_chow_patel";
         case iluk:
             return os << "iluk";
         case ilup:
@@ -102,6 +106,8 @@ inline std::istream& operator>>(std::istream &in, type &r)
         r = gauss_seidel;
     else if (val == "ilu0")
         r = ilu0;
+    else if (val == "ilu0_chow_patel")
+        r = ilu0_chow_patel;
     else if (val == "iluk")
         r = iluk;
     else if (val == "ilup")
@@ -118,7 +124,7 @@ inline std::istream& operator>>(std::istream &in, type &r)
         r = chebyshev;
     else
         throw std::invalid_argument("Invalid relaxation value. Valid choices are:"
-                "gauss_seidel, ilu0, iluk, ilup, ilut, damped_jacobi, spai0, spai1, chebyshev.");
+                "gauss_seidel, ilu0, ilu0_chow_patel, iluk, ilup, ilut, damped_jacobi, spai0, spai1, chebyshev.");
 
     return in;
 }
@@ -147,6 +153,7 @@ struct wrapper {
 
             AMGCL_RUNTIME_RELAXATION(gauss_seidel);
             AMGCL_RUNTIME_RELAXATION(ilu0);
+            AMGCL_RUNTIME_RELAXATION(ilu0_chow_patel);
             AMGCL_RUNTIME_RELAXATION(iluk);
             AMGCL_RUNTIME_RELAXATION(ilup);
             AMGCL_RUNTIME_RELAXATION(ilut);
@@ -172,6 +179,7 @@ struct wrapper {
 
             AMGCL_RUNTIME_RELAXATION(gauss_seidel);
             AMGCL_RUNTIME_RELAXATION(ilu0);
+            AMGCL_RUNTIME_RELAXATION(ilu0_chow_patel);
             AMGCL_RUNTIME_RELAXATION(iluk);
             AMGCL_RUNTIME_RELAXATION(ilup);
             AMGCL_RUNTIME_RELAXATION(ilut);
@@ -198,6 +206,7 @@ struct wrapper {
 
             AMGCL_RUNTIME_RELAXATION(gauss_seidel);
             AMGCL_RUNTIME_RELAXATION(ilu0);
+            AMGCL_RUNTIME_RELAXATION(ilu0_chow_patel);
             AMGCL_RUNTIME_RELAXATION(iluk);
             AMGCL_RUNTIME_RELAXATION(ilup);
             AMGCL_RUNTIME_RELAXATION(ilut);
@@ -227,6 +236,7 @@ struct wrapper {
 
             AMGCL_RUNTIME_RELAXATION(gauss_seidel);
             AMGCL_RUNTIME_RELAXATION(ilu0);
+            AMGCL_RUNTIME_RELAXATION(ilu0_chow_patel);
             AMGCL_RUNTIME_RELAXATION(iluk);
             AMGCL_RUNTIME_RELAXATION(ilup);
             AMGCL_RUNTIME_RELAXATION(ilut);
@@ -254,6 +264,7 @@ struct wrapper {
 
             AMGCL_RUNTIME_RELAXATION(gauss_seidel);
             AMGCL_RUNTIME_RELAXATION(ilu0);
+            AMGCL_RUNTIME_RELAXATION(ilu0_chow_patel);
             AMGCL_RUNTIME_RELAXATION(iluk);
             AMGCL_RUNTIME_RELAXATION(ilup);
             AMGCL_RUNTIME_RELAXATION(ilut);
@@ -278,6 +289,7 @@ struct wrapper {
 
             AMGCL_RUNTIME_RELAXATION(gauss_seidel);
             AMGCL_RUNTIME_RELAXATION(ilu0);
+            AMGCL_RUNTIME_RELAXATION(ilu0_chow_patel);
             AMGCL_RUNTIME_RELAXATION(iluk);
             AMGCL_RUNTIME_RELAXATION(ilup);
             AMGCL_RUNTIME_RELAXATION(ilut);

@@ -168,6 +168,9 @@ public:
             "max_levels"                     : -1,
             "pre_sweeps"                     : 1,
             "post_sweeps"                    : 1,
+            "sweeps"                         : 5,
+            "omega"                          : 0.8,
+            "symmetric_scaling"              : false,
             "use_gpgpu"                      : false
         }  )" );
 
@@ -175,7 +178,7 @@ public:
         ThisParameters.ValidateAndAssignDefaults(default_parameters);
 
         // specify available options
-        std::set<std::string> available_smoothers = {"spai0","spai1","ilu0","ilut","iluk","damped_jacobi","gauss_seidel","chebyshev"};
+        std::set<std::string> available_smoothers = {"spai0","spai1","ilu0","ilu0_chow_patel","ilut","iluk","damped_jacobi","gauss_seidel","chebyshev"};
         std::set<std::string> available_solvers = {"gmres","bicgstab","cg","bicgstabl","lgmres","fgmres", "bicgstab_with_gmres_fallback","idrs"};
         std::set<std::string> available_coarsening = {"ruge_stuben","aggregation","smoothed_aggregation","smoothed_aggr_emin"};
         std::set<std::string> available_preconditioner = {"amg","relaxation","dummy"};
@@ -230,6 +233,26 @@ public:
         }
 
         mUseBlockMatricesIfPossible = ThisParameters["use_block_matrices_if_possible"].GetBool();
+
+        // ILU0 Chow-Patel sweeps, omega and symmetric_scaling settings.
+        {
+            const std::string relax_type = mAMGCLParameters.get<std::string>("precond.relax.type", "");
+            const std::string precond_type = mAMGCLParameters.get<std::string>("precond.type", "");
+            if (relax_type == "ilu0_chow_patel" || precond_type == "ilu0_chow_patel") {
+                const int chow_patel_sweeps = ThisParameters["sweeps"].GetInt();
+                const double chow_patel_omega = ThisParameters["omega"].GetDouble();
+                const bool chow_patel_sym_scaling = ThisParameters["symmetric_scaling"].GetBool();
+                if (relax_type == "ilu0_chow_patel") {
+                    mAMGCLParameters.put("precond.relax.sweeps", chow_patel_sweeps);
+                    mAMGCLParameters.put("precond.relax.omega", chow_patel_omega);
+                    mAMGCLParameters.put("precond.relax.symmetric_scaling", chow_patel_sym_scaling);
+                } else {
+                    mAMGCLParameters.put("precond.sweeps", chow_patel_sweeps);
+                    mAMGCLParameters.put("precond.omega", chow_patel_omega);
+                    mAMGCLParameters.put("precond.symmetric_scaling", chow_patel_sym_scaling);
+                }
+            }
+        }
 
         mUseGPGPU = ThisParameters["use_gpgpu"].GetBool();
     }
