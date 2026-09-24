@@ -46,8 +46,6 @@ class PanelCompositeMaterial:
     degradationfactor_E_tr_B  : float
     degradationfactor_G_patr_B: float
 
-    max_degradation_steps     : int
-
 
 @dataclass
 class PanelResponse:
@@ -66,7 +64,7 @@ class PanelLoadState:
     is_shear_dominant: bool
 
 @dataclass
-class PuckCompositeResponse:
+class PanelCompositeResponse:
     #TODO: Add responses that are necessary for Puck analysis
     sigma_1 : np.ndarray
     sigma_2 : np.ndarray

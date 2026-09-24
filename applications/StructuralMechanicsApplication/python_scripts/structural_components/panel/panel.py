@@ -8,7 +8,7 @@ from KratosMultiphysics.StructuralMechanicsApplication.structural_components.pan
                                                                                                       PanelMaterial,
                                                                                                       PanelResponse,
                                                                                                       PanelLoadState,
-                                                                                                      PuckResponseContainer,
+                                                                                                      PanelCompositeResponse,
                                                                                                       PanelCompositeMaterial)
 from KratosMultiphysics.StructuralMechanicsApplication.structural_components.panel.panel_geometry_interpreter import PanelGeometryInterpreter
 from KratosMultiphysics.StructuralMechanicsApplication.structural_components.panel.panel_material_extractor import PanelMaterialExtractor
@@ -66,7 +66,8 @@ class Panel(StructuralComponent):
         element = next(self.sub_model_part.Elements.__iter__())
         properties = element.Properties 
         #TODO: Implement reading of material for composite laminate material
-        if properties.constitutive_law.lower() == "linearelasticorthotropic2dlaw":
+        constitutive_law = type(properties[KratosMultiphysics.CONSTITUTIVE_LAW]).__name__
+        if constitutive_law.lower() == "linearelasticorthotropic2dlaw":
             self.mat_type = "orthotropic"
             self.material = PanelMaterialExtractor().ExtractCompositeMaterial(self.sub_model_part, self.metadata)
         else:
@@ -89,7 +90,7 @@ class Panel(StructuralComponent):
         #laminate_stress_matrix = self._GetLaminateStresses()
         #self._PreparePuckResponse(laminate_stress_matrix)
         if self.mat_type == "orthotropic":
-            self.response = PanelResponseExtractor.ExtractCompositeResponse(self.sub_model_part, self.material)
+          self.response = PanelResponseExtractor().ExtractCompositeResponse(self.sub_model_part, self.material)
         else:
             total_volume = 0.0
             sigma_xx_sum = 0.0
@@ -146,13 +147,15 @@ class Panel(StructuralComponent):
         self.analysis_results = []
         for method in self.analysis_methods:
             if method.IsApplicable(self):
-                result = method.Evaluate(self)
-                self.analysis_results.append(result)
+                method.Evaluate(self)
+                #TODO: Clean up
+                #result = method.Evaluate(self)
+                #self.analysis_results.append(result)
 
-                KratosMultiphysics.Logger.PrintInfo(
-                "Panel",
-                f"{result.method_name}: RF={result.value:.6e}"
-            )
+                #KratosMultiphysics.Logger.PrintInfo(
+                #"Panel",
+                #f"{result.method_name}: RF={result.value:.6e}"
+                #)
                 
     def StoreResults(self) -> None:
         for result in self.analysis_results:
@@ -170,31 +173,32 @@ class Panel(StructuralComponent):
 
     def ClassifyLoadState(self) -> None:
         self._RequireResponse()
-
-        sigma_xx = self.response.sigma_xx
-        sigma_yy = self.response.sigma_yy
-        tau_xy = self.response.tau_xy
-
-        tolerance = 1e-12 * max(abs(sigma_xx), abs(sigma_yy), abs(tau_xy), 1.0)
-
-        has_x_compression = sigma_xx < -tolerance
-        has_y_compression = sigma_yy < -tolerance
-        has_shear = abs(tau_xy) > tolerance
-
-        is_biaxial_compression = has_x_compression and has_y_compression
-        is_uniaxial_compression = (has_x_compression != has_y_compression)
-
-        # This is just for testing purposes and needs to be changed to a "more correct" logic for panels with shear
-        is_shear_dominant = has_shear and not is_biaxial_compression and not is_uniaxial_compression
-
-        self.load_state = PanelLoadState(
-            has_x_compression,
-            has_y_compression,
-            has_shear,
-            is_uniaxial_compression,
-            is_biaxial_compression,
-            is_shear_dominant
-        )
+        #TODO: clean up later
+        pass
+        #sigma_xx = self.response.sigma_xx
+        #sigma_yy = self.response.sigma_yy
+        #tau_xy = self.response.tau_xy
+#
+        #tolerance = 1e-12 * max(abs(sigma_xx), abs(sigma_yy), abs(tau_xy), 1.0)
+#
+        #has_x_compression = sigma_xx < -tolerance
+        #has_y_compression = sigma_yy < -tolerance
+        #has_shear = abs(tau_xy) > tolerance
+#
+        #is_biaxial_compression = has_x_compression and has_y_compression
+        #is_uniaxial_compression = (has_x_compression != has_y_compression)
+#
+        ## This is just for testing purposes and needs to be changed to a "more correct" logic for panels with shear
+        #is_shear_dominant = has_shear and not is_biaxial_compression and not is_uniaxial_compression
+#
+        #self.load_state = PanelLoadState(
+        #    has_x_compression,
+        #    has_y_compression,
+        #    has_shear,
+        #    is_uniaxial_compression,
+        #    is_biaxial_compression,
+        #    is_shear_dominant
+        #)
 
     @property
     def a(self):
@@ -243,11 +247,13 @@ class Panel(StructuralComponent):
             raise RuntimeError(f"Panel '{self.sub_model_part.Name}' has no response. Call ExtractResponse() first.")
         
     def _RequireLoadState(self):
-        if self.load_state is None:
-            raise RuntimeError(f"Panel '{self.sub_model_part.Name}' has no load state. Call ClassifyLoadState() first.")
+        return True
+        #TODO: Clean up
+        #if self.load_state is None:
+        #    raise RuntimeError(f"Panel '{self.sub_model_part.Name}' has no load state. Call ClassifyLoadState() first.")
 
     def _CreateAnalysisMethods(self):
-        return [PanelUniaxialBuckling(), 
-                PanelBiaxialBuckling(),
+        return [#PanelUniaxialBuckling(), 
+                #PanelBiaxialBuckling(),
                 PuckAnalysis()]
         

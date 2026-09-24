@@ -14,7 +14,7 @@ class PanelResponseExtractor:
         process_info = sub_model_part.ProcessInfo      
         
         total_plies = 0
-        for element in sub_model_part.sub_model_part.Elements:
+        for element in sub_model_part.Elements:
             total_plies += NumberOfPlies(element.Properties) # Gesamtzahl der Plies über alle Elemente hinweg, um die Größe der Arrays zu bestimmen        
         
         if total_plies == 0:
@@ -25,7 +25,7 @@ class PanelResponseExtractor:
         sigma_2 = np.zeros(2*total_plies)
         tau_21  = np.zeros(2*total_plies)
 
-        num_elements = sub_model_part.sub_model_part.NumberOfElements()
+        num_elements = sub_model_part.NumberOfElements()
 
         force_x = np.zeros(num_elements)  
         force_y = np.zeros(num_elements)

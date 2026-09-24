@@ -1,0 +1,103 @@
+Begin ModelPartData
+//  VARIABLE_NAME value
+End ModelPartData
+
+Begin Properties 0
+End Properties
+Begin Nodes
+    1   0.0   0.0   0.0
+    2   1.0   0.0   0.0
+    3   2.0   0.0   0.0
+    4   3.0   0.0   0.0
+    5   4.0   0.0   0.0
+    6   0.0   1.0   0.0
+    7   1.0   1.0   0.0
+    8   2.0   1.0   0.0
+    9   3.0   1.0   0.0
+    10  4.0   1.0   0.0
+    11  0.0   2.0   0.0
+    12  1.0   2.0   0.0
+    13  2.0   2.0   0.0
+    14  3.0   2.0   0.0
+    15  4.0   2.0   0.0
+End Nodes
+
+Begin Elements LegacyThickShellElement3D4N
+        1          0    1    2   7  6
+        2          0    2    3   8  7
+        3          0    3   4   9   8
+        4          0    4   5   10  9
+        5          0    6   7   12  11
+        6          0    7   8   13  12
+        7          0    8   9   14  13
+        8          0    9   10  15  14
+End Elements
+
+Begin Conditions PointLoadCondition2D1N
+    1 0 5
+End Conditions
+
+Begin Conditions PointLoadCondition2D1N
+   2 0 10
+End Conditions
+
+Begin Conditions PointLoadCondition2D1N
+  3 0 15
+End Conditions
+
+Begin SubModelPart Shell_gesamt
+    Begin SubModelPartElements
+            1
+            2
+            3
+            4
+            5
+            6
+            7
+            8
+    End SubModelPartElements
+    Begin SubModelPartNodes
+            1
+            2
+            3
+            4
+            5
+            6
+            7
+            8
+            9
+            10
+            11
+            12
+            13
+            14
+            15
+    End SubModelPartNodes
+End SubModelPart
+
+Begin SubModelPart Einspannungen_xyfix
+    Begin SubModelPartNodes
+            1
+            6
+            11
+    End SubModelPartNodes
+End SubModelPart
+
+
+Begin SubModelPart Last_x_Node5
+    Begin SubModelPartConditions
+            1
+    End SubModelPartConditions
+End SubModelPart
+
+Begin SubModelPart Last_x_Node10
+    Begin SubModelPartConditions
+            2
+    End SubModelPartConditions
+End SubModelPart
+
+Begin SubModelPart Last_x_Node15
+    Begin SubModelPartConditions
+            3
+    End SubModelPartConditions
+End SubModelPart

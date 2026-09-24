@@ -12,16 +12,35 @@ from KratosMultiphysics.StructuralMechanicsApplication.handbook_methods.analysis
 from KratosMultiphysics.StructuralMechanicsApplication.handbook_methods.method_base import HandbookMethod
 import KratosMultiphysics.StructuralMechanicsApplication as SMA
 
+
+
 class PuckAnalysis:
 
     def IsApplicable(self, structural_component):
         return True
 
+
+
     def Evaluate(self, structural_component):
+        #self.ValidateMetaData((structural_component))
+        criterion = structural_component.metadata["criterion"].GetString() #z.B. "first_ply_failure"
+        self.first_ply_failure = False
+        self.first_fiber_failure = False
+        self.last_ply_failure = False
+        if criterion == "first_ply_failure":
+            self.first_ply_failure = True
+        elif criterion == "last_ply_failure":
+            self.last_ply_failure = True
+        elif criterion =="first_fiber_failure":
+            self.first_fiber_failure = True
+        else:
+            raise ValueError(f"Unknown failure criterion: {criterion}")
         self.PuckAnalysis(structural_component)
 
-    @staticmethod
-    def PuckFF(sigma_1: np.ndarray, R_pa_t: np.ndarray, R_pa_c: np.ndarray):
+ #   def ValidateMetaData(self, structural_component):
+
+
+    def PuckFF(self, sigma_1: np.ndarray, R_pa_t: np.ndarray, R_pa_c: np.ndarray):
         """Parameter Description
 
         Returns:
@@ -49,8 +68,8 @@ class PuckAnalysis:
         return RF_FF,f_E_FF,failure_mode_FF
    
     
-    @staticmethod
-    def PuckIFF(sigma_2: np.ndarray, tau_21: np.ndarray, R_tr_t: np.ndarray, R_tr_c: np.ndarray, R_trpa: np.ndarray, p_trtr_c: np.ndarray, p_trpa_t: np.ndarray, p_trpa_c: np.ndarray):
+
+    def PuckIFF(self, sigma_2: np.ndarray, tau_21: np.ndarray, R_tr_t: np.ndarray, R_tr_c: np.ndarray, R_trpa: np.ndarray, p_trtr_c: np.ndarray, p_trpa_t: np.ndarray, p_trpa_c: np.ndarray):
            
         """Parameter Description
 
@@ -112,12 +131,9 @@ class PuckAnalysis:
 
         return RF_IFF, f_E_IFF, failure_mode_IFF, theta_fp_IFF
 
-    
 
-
-    @staticmethod
-    def PuckDegradation (ElementID: np.array, PlyID: np.array, topbot: np.array, RF_FF_deg: np.ndarray, failure_mode_FF: np.ndarray, RF_IFF_deg: np.ndarray, failure_mode_IFF: np.ndarray, force_x: np.ndarray, force_y: np.ndarray, force_xy: np.ndarray, moment_x: np.ndarray, moment_y: np.ndarray, moment_xy: np.ndarray, E_pa: np.ndarray, E_tr: np.ndarray, nu_12: np.ndarray, G_trpa: np.ndarray, PlyAngle: np.ndarray, PlyThickness: np.ndarray, plies_element: int, num_elements: int,
-                         R_pa_t: np.ndarray, R_pa_c: np.ndarray, R_tr_t: np.ndarray, R_tr_c: np.ndarray, R_trpa: np.ndarray, p_trtr_c: np.ndarray, p_trpa_t: np.ndarray, p_trpa_c: np.ndarray, E_tr_A: int, G_patr_A: int, E_tr_B: int, G_patr_B:int, DegSteps_max: int):
+    def PuckDegradation (self, ElementID: np.array, PlyID: np.array, topbot: np.array, RF_FF_deg: np.ndarray, failure_mode_FF: np.ndarray, RF_IFF_deg: np.ndarray, failure_mode_IFF: np.ndarray, force_x: np.ndarray, force_y: np.ndarray, force_xy: np.ndarray, moment_x: np.ndarray, moment_y: np.ndarray, moment_xy: np.ndarray, E_pa: np.ndarray, E_tr: np.ndarray, nu_12: np.ndarray, G_trpa: np.ndarray, PlyAngle: np.ndarray, PlyThickness: np.ndarray, plies_element: int, num_elements: int,
+                         R_pa_t: np.ndarray, R_pa_c: np.ndarray, R_tr_t: np.ndarray, R_tr_c: np.ndarray, R_trpa: np.ndarray, p_trtr_c: np.ndarray, p_trpa_t: np.ndarray, p_trpa_c: np.ndarray, E_tr_A: int, G_patr_A: int, E_tr_B: int, G_patr_B:int):
         """Parameter Description
 
         Returns:
@@ -168,10 +184,15 @@ class PuckAnalysis:
         nu_12 = np.reshape(nu_12, (plies_element*2, num_elements), order='F')
         G_trpa = np.reshape(G_trpa, (plies_element*2, num_elements), order='F')
 
+       
+
 #Implementiert nach structure sizing Last Ply Failure LPF            
         for element in range(num_elements): #Iterieren über alle Elemente
             Degradation_abbruch = False
             Degradation_number = 1
+
+            Deg_check = np.full(plies_element, True, dtype=bool)
+
 
             while True:
                 
@@ -198,8 +219,6 @@ class PuckAnalysis:
 
                 RF_IFF_ABD = np.minimum(RF_top, RF_bottom) #RF IFF min der Lage von top und Bottom ist relevant
 
-                #print("RF_ABD", RF_IFF_ABD)
-
                 failure_mode_IFF_ABD = np.where(
                     RF_top <= RF_bottom,
                     failure_mode_IFF_deg[0::2, element],
@@ -207,13 +226,19 @@ class PuckAnalysis:
 
                 for ply in range(plies_element): 
 
-                #FFF Check lässt sich hinzufügen !!
-                    # if RF_FF_deg[ply, element]<1 : #Optional hinzuschalten von FFF- Die FF dieser Ply führen direkt zum Abbruch
-                    #     print("In Element ", ElementID[ply,element], "Ply ID: ", PlyID[ply,element], "Top=0/Bottom=1:" ,topbot[ply,element], "FF Failure detected and not allowed")
-                    #     print("RF_FF: ", RF_FF_deg[ply, element], "Failure Mode: ", failure_mode_FF_deg[ply, element])
-                    #     Degradation_abbruch = True
-                    #     break   
+                    if np.any(RF_FF_deg[:, element]<1) and self.first_fiber_failure: #Optional hinzuschalten von FFF- Die FF dieser Ply führen direkt zum Abbruch
+                        print("In Element ", ElementID[ply,element], "Ply ID: ", PlyID[ply,element], "Top=0/Bottom=1:" ,topbot[ply,element], "FF Failure detected and according to First Fiber Fracture not allowed")
+                        print("RF_FF: ", RF_FF_deg[ply, element], "Failure Mode: ", failure_mode_FF_deg[ply, element])
+                        Degradation_abbruch = True
+                        break 
 
+                    if np.any(RF_IFF_deg[:, element]<1) and self.first_ply_failure : #Optional hinzuschalten von FFF- Die FF dieser Ply führen direkt zum Abbruch
+                        print("In Element ", ElementID[ply,element], "Ply ID: ", PlyID[ply,element], "Top=0/Bottom=1:" ,topbot[ply,element], "IFF Failure detected and according to First Ply Failure not allowed")
+                        print("RF_IFF: ", RF_FF_deg[ply, element], "Failure Mode: ", failure_mode_FF_deg[ply, element])
+                        Degradation_abbruch = True
+                        break 
+
+# Wird fortgesetzt wenn weder frist fiber failure oder first ply failure entdeckt wurde --> Fortsetzen bedeutet Last Ply Failure
                     if RF_IFF_ABD[ply] >= 1:
                     # Berechnung Q-Matrix - UHRSPRUNGSWETE FÜR E UND G - O = Original
 
@@ -297,7 +322,9 @@ class PuckAnalysis:
                                         [0, 0, Qb66A]
                                     ])
 
-                        Q_vektor[ply] = Qb_A                        
+                        Q_vektor[ply] = Qb_A   
+
+                        Deg_check[ply] = False                            
 
 
                     elif failure_mode_IFF_ABD[ply] == "IFF Mode B":
@@ -339,7 +366,9 @@ class PuckAnalysis:
                                         [0, 0, Qb66B]
                                     ])
 
-                        Q_vektor[ply] = Qb_B                        
+                        Q_vektor[ply] = Qb_B    
+
+                        Deg_check[ply] = False                    
 
 
 
@@ -358,10 +387,6 @@ class PuckAnalysis:
 
                 z_ABD = z_interfaces
 
-                # print("z", z)
-                # print("z Schnittstellen", z_ABD)
-
-
                 for k in range(plies_element):
 
                     A += Q_vektor[k] * (z_ABD[k+1] - z_ABD[k])
@@ -372,7 +397,7 @@ class PuckAnalysis:
                                 [A, B],
                                 [B, D]
                             ])    
-                
+
 #3x1 Vektor der Dehnungen am element im globalen KS
                 Belastung = np.zeros(6)
                 Belastung[0] = force_x[element]
@@ -433,9 +458,9 @@ class PuckAnalysis:
                 
 
 
-                RF_FF_deg_new,f_E_FF,failure_mode_FF_new = PuckAnalysis.PuckFF(sigma_1_deg, R_pa_t_deg, R_pa_c_deg)
+                RF_FF_deg_new,f_E_FF,failure_mode_FF_new = self.PuckFF(sigma_1_deg, R_pa_t_deg, R_pa_c_deg)
         
-                RF_IFF_deg_new,f_E_IFF,failure_mode_IFF_deg_new,theta_fp_IFF_new = PuckAnalysis.PuckIFF(sigma_2_deg, tau_21_deg, R_tr_t_deg, R_tr_c_deg, R_trpa_deg, p_trtr_c_deg, p_trpa_t_deg, p_trpa_c_deg)
+                RF_IFF_deg_new,f_E_IFF,failure_mode_IFF_deg_new,theta_fp_IFF_new = self.PuckIFF(sigma_2_deg, tau_21_deg, R_tr_t_deg, R_tr_c_deg, R_trpa_deg, p_trtr_c_deg, p_trpa_t_deg, p_trpa_c_deg)
 
                 RF_FF_deg[:,element] = RF_FF_deg_new
                 failure_mode_FF_deg[:,element] = failure_mode_FF_new
@@ -450,7 +475,7 @@ class PuckAnalysis:
                 Puck_degradations_analyse[:,3] = theta_fp_IFF_new
 
                 print ("-RF_IFF-", "-f_E_IFF-", "-failure_mode_IFF-", "-theta_fp_IFF-")
-                PuckAnalysis.PrintMatrix(Puck_degradations_analyse)
+                self.PrintMatrix(Puck_degradations_analyse)
 
 #Zur Ausgabe in gesamter Matrix
                 PuckDegradationIFF[:,element] = RF_IFF_deg_new
@@ -458,18 +483,25 @@ class PuckAnalysis:
                                         
                 Degradation_number += 1
 
-#Abbruch falls Anbruchkiriterium nicht erreicht wird und Degradationsanalyse zu lange dauert anzahl 10 sind beliebig gewählt
-                if Degradation_number > DegSteps_max:
-                    print("Maximale Anzahl von", DegSteps_max, "Schritten in der Degradationsanalyse erreicht")
+
+                Deg_check_new = RF_IFF_deg[::2,element] >= 1
+                if np.array_equal(Deg_check_new,Deg_check):
+                    print("Keine weitere Degradation notwenig")
                     break
+
+                Deg_check = Deg_check_new
+
+                # if np.any(Deg_check & (RF_IFF_deg[::2, element] >= 1)) and not np.any(Deg_check & (RF_IFF_deg[::2, element] < 1)):
+                #     print("Keine weitere Degradation notwenig")
+                #     break
                                 
         return PuckDegradationIFF, element_mit_degradation
 
 
         
     #Methode zur strukturierten Ausgabe der Puck_Analyse Matrix
-    @staticmethod
-    def PrintMatrix(matrix):
+
+    def PrintMatrix(self, matrix):
         n_cols = matrix.shape[1]
         col_widths = [max(len(str(val)) for val in matrix[:, c]) for c in range(n_cols)]
 
@@ -484,8 +516,7 @@ class PuckAnalysis:
             print(separator)
         
 
-    @staticmethod
-    def PuckAnalysis(structural_component):
+    def PuckAnalysis(self, structural_component):
 
         # ensure numpy arrays
         ElementID = np.array(structural_component.material.element_id)
@@ -530,19 +561,17 @@ class PuckAnalysis:
         E_tr_B   = structural_component.material.degradationfactor_E_tr_B
         G_patr_B = structural_component.material.degradationfactor_G_patr_B
 
-        DegSteps_max = structural_component.material.max_degradation_steps
 
-        
-        RF_FF,f_E_FF,failure_mode_FF = PuckAnalysis.PuckFF(sigma_1, R_pa_t, R_pa_c)
+        RF_FF,f_E_FF,failure_mode_FF = self.PuckFF(sigma_1, R_pa_t, R_pa_c)
         
 
-        RF_IFF,f_E_IFF,failure_mode_IFF,theta_fp_IFF = PuckAnalysis.PuckIFF(sigma_2,tau_21, R_tr_t, R_tr_c, R_trpa, p_trtr_c, p_trpa_t, p_trpa_c)
+        RF_IFF,f_E_IFF,failure_mode_IFF,theta_fp_IFF = self.PuckIFF(sigma_2,tau_21, R_tr_t, R_tr_c, R_trpa, p_trtr_c, p_trpa_t, p_trpa_c)
 
         RF_FF_deg = RF_FF
         RF_IFF_deg = RF_IFF
 
-        PuckDegradationIFF, element_mit_degradation = PuckAnalysis.PuckDegradation(ElementID, PlyID, topbot, RF_FF_deg, failure_mode_FF, RF_IFF_deg, failure_mode_IFF, force_x, force_y, force_xy, moment_x, moment_y, moment_xy, E_pa, E_tr, nu_12, G_trpa, PlyAngle, PlyThickness, plies_element, num_elements,
-                                                               R_pa_t, R_pa_c, R_tr_t, R_tr_c, R_trpa, p_trtr_c, p_trpa_t, p_trpa_c, E_tr_A, G_patr_A, E_tr_B, G_patr_B, DegSteps_max)
+        PuckDegradationIFF, element_mit_degradation = self.PuckDegradation(ElementID, PlyID, topbot, RF_FF_deg, failure_mode_FF, RF_IFF_deg, failure_mode_IFF, force_x, force_y, force_xy, moment_x, moment_y, moment_xy, E_pa, E_tr, nu_12, G_trpa, PlyAngle, PlyThickness, plies_element, num_elements,
+                                                               R_pa_t, R_pa_c, R_tr_t, R_tr_c, R_trpa, p_trtr_c, p_trpa_t, p_trpa_c, E_tr_A, G_patr_A, E_tr_B, G_patr_B)
 
         Puck_analyse = np.zeros((PlyID.size, 12), dtype=object) #PlyID ist schon ein vector mit doppelter größe wegen TOP und BOTTOM
  
@@ -570,6 +599,6 @@ class PuckAnalysis:
 
         print ("-ElementID-", "-PlyID-", "-PlyAngle-", "-topbot-", "-RF_FF-", "-f_E_FF-", "-failure_mode_FF-", "-RF_IFF-", "-f_E_IFF-", "-failure_mode_IFF-", "-theta_fp_IFF-", "-PuckDegradationIFF-")
     
-        PuckAnalysis.PrintMatrix(Puck_analyse)   
+        self.PrintMatrix(Puck_analyse)   
 
 

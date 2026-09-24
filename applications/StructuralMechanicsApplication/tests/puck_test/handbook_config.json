@@ -1,0 +1,24 @@
+{
+    "Structural_Elements"   :   [{
+        "type"  :   "Panel",
+        "submodelpart": "Shell_gesamt",
+        "boundary_conditions" : [1,2,3,4],
+        "analysis_methods"   :   ["PuckAnalysis"],
+        "metadata" : {
+            "criterion" : "last_ply_failure",
+
+            "puck_parameters": {
+            "p_trtr_c" : 0.25,
+            "p_trpa_t" : 0.25,
+            "p_trpa_c" : 0.25},
+
+            "degradation_factors": {
+            "E_tr_A" : 0.0,
+            "G_patr_A" : 0.0,
+            "E_tr_B" : 0.5,
+            "G_patr_B" : 0.5
+            }
+        }
+ 
+        }]
+}

@@ -104,18 +104,7 @@ class PanelMaterialExtractor:
         degradationfactor_G_patr_A = G_patr_A
         degradationfactor_E_tr_B   = E_tr_B
         degradationfactor_G_patr_B = G_patr_B
-
-#einmalig die Maximale Anzahl der Degradationschritte werden eingelesen
-        if metadata is not None and metadata.Has("max_degradation_steps"):
-            if metadata["max_degradation_steps"].Has("DegSteps_max"):
-                DegSteps_max = metadata["max_degradation_steps"]["DegSteps_max"].GetInt()
-            else:
-                DegSteps_max = 10
-        else:
-            KratosMultiphysics.Logger.PrintInfo("::[Puck Analysis]::", "No Degradation Factors found in metadata. Using default values.")
-            DegSteps_max = 10
-
-        max_degradation_steps = DegSteps_max      
+  
 
 #Start Matrialdaten auslesen                
         idx = 0 #globaler Index für die Zuordnung der Werte zu den jeweiligen Plies über alle Elemente hinweg
@@ -128,10 +117,8 @@ class PanelMaterialExtractor:
                 continue
 
             layers_matrix = properties.GetValue(layers_variable) # eine allgemeine Variable wo jetzt die Materialdaten des gesamten Elements beinhaltet
-
-            print("layers_matrix for Element",layers_matrix )
             
-            rows = layers_matrix.Size1() #16 Zeilen
+            rows = layers_matrix.Size1() #16 Zeilen            print("layers_matrix for Element",layers_matrix )
             cols = layers_matrix.Size2() #8 Spalten
                         
 #Layers_matrix ist eine Kratos.Matrix und daher kann ich nicht einfach auf zeile 1 zugreifen. Gelöst durch Zeile nehmen und durch Spalten cols itterieren und so meine erwartete Matrix füllen die ich dann auslesen kann. 
@@ -209,7 +196,7 @@ class PanelMaterialExtractor:
                                                                             degradationfactor_G_patr_A, 
                                                                             degradationfactor_E_tr_B, 
                                                                             degradationfactor_G_patr_B, 
-                                                                            max_degradation_steps)
+                                                                            )
 
 
         return composite_material
