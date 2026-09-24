@@ -15,6 +15,7 @@ from KratosMultiphysics.FluidDynamicsApplication.fluid_solver import FluidSolver
 from KratosMultiphysics.FluidDynamicsApplication import check_and_prepare_model_process_fluid
 
 import datetime
+import time
 import numpy
 
 #from bin.RelWithDebInfo import KratosMultiphysics
@@ -227,6 +228,7 @@ class NavierStokesShiftedBoundaryMonolithicSolver(FluidSolver):
         self.postprocess_skin_points = self.shifted_boundary_formulation.postprocess_skin_points
         self.postprocess_skin_nodes = self.shifted_boundary_formulation.postprocess_skin_nodes
         self.boundary_sub_model_part_name = self.shifted_boundary_formulation.boundary_sub_model_part_name
+        self.sbm_time = 0.0
 
         # Create a skin model part and skin points model part
         for skin_mp_name in self.skin_model_part_names:
@@ -325,9 +327,11 @@ class NavierStokesShiftedBoundaryMonolithicSolver(FluidSolver):
             self.__SetShiftedBoundaryFormulation()
 
         # Create shifted-boundary utility
+        time_start = time.perf_counter()
         self.__CreateShiftedBoundaryUtilities()
+        self.sbm_time += time.perf_counter() - time_start
         # Flag BOUNDARY elements for calculating the metric for an initial remeshing (MMG)
-        self.__FlagBoundaryElements()
+        # self.__FlagBoundaryElements()
 
         # Clone the solution step data for skin and skin points model parts
         t =  self.GetComputingModelPart().ProcessInfo[KM.TIME]
@@ -343,11 +347,11 @@ class NavierStokesShiftedBoundaryMonolithicSolver(FluidSolver):
     def Initialize(self):
         # Run check and prepare process again
         #NOTE that this is necessary after 'initial_remeshing' of a MMG process to get correct parent elements for wall boundary conditions
-        prepare_model_part_settings = KM.Parameters("{}")
-        prepare_model_part_settings.AddValue("volume_model_part_name",self.settings["volume_model_part_name"])
-        prepare_model_part_settings.AddValue("skin_parts",self.settings["skin_parts"])
-        prepare_model_part_settings.AddValue("assign_neighbour_elements_to_conditions",self.settings["assign_neighbour_elements_to_conditions"])
-        check_and_prepare_model_process_fluid.CheckAndPrepareModelProcessFluid(self.main_model_part, prepare_model_part_settings).Execute()
+        # prepare_model_part_settings = KM.Parameters("{}")
+        # prepare_model_part_settings.AddValue("volume_model_part_name",self.settings["volume_model_part_name"])
+        # prepare_model_part_settings.AddValue("skin_parts",self.settings["skin_parts"])
+        # prepare_model_part_settings.AddValue("assign_neighbour_elements_to_conditions",self.settings["assign_neighbour_elements_to_conditions"])
+        # check_and_prepare_model_process_fluid.CheckAndPrepareModelProcessFluid(self.main_model_part, prepare_model_part_settings).Execute()
 
         # If the solver requires an instance of the stabilized shifted boundary formulation class, set the process info variables
         #TODO not necessary?
@@ -385,7 +389,10 @@ class NavierStokesShiftedBoundaryMonolithicSolver(FluidSolver):
         #else:
             # Call shifted-boundary utility methods to immerse the boundary and calculate extension operators requiring nodal and elemental neighbors
         #TODO why is this necessary??? otherwise SegFault bc of DOF set??
+        time_start = time.perf_counter()
         self.__ImmerseShiftedBoundaries()
+        self.sbm_time += time.perf_counter() - time_start
+        KM.Logger.PrintInfo(self.__class__.__name__, "ELAPSED TIME: " + str(self.sbm_time) + " s for shifted-boundary utility operations in solver initialization.")
 
         KM.Logger.PrintInfo(self.__class__.__name__, "Solver initialization finished.")
 
