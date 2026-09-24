@@ -4,7 +4,9 @@ import KratosMultiphysics as KM
 from KratosMultiphysics import python_linear_solver_factory as linear_solver_factory
 import KratosMultiphysics.kratos_utilities as kratos_utils
 
-def ConstructSolver(settings):
+from typing import Union
+
+def ConstructSolver(settings: KM.Parameters) -> Union[KM.LinearSolver, KM.ComplexLinearSolver]:
     if not isinstance(settings, KM.Parameters):
         raise Exception("Input is expected to be provided as a Kratos Parameters object")
 
@@ -59,19 +61,6 @@ def ConstructSolver(settings):
         else:
             raise Exception("LinearSolversApplication not available")
 
-    linear_solver_configuration = settings["linear_solver_settings"]
-    if linear_solver_configuration.Has("solver_type"): # user specified a linear solver
-        linear_solver = linear_solver_factory.ConstructSolver(linear_solver_configuration)
     else:
-        linear_solver = linear_solver_factory.CreateFastestAvailableDirectLinearSolver()
+        return linear_solver_factory.ConstructSolver(settings)
 
-    if solver_type == "power_iteration_eigenvalue_solver":
-        eigen_solver = KM.PowerIterationEigenvalueSolver( settings, linear_solver)
-    elif solver_type == "power_iteration_highest_eigenvalue_solver":
-        eigen_solver = KM.PowerIterationHighestEigenvalueSolver( settings, linear_solver)
-    elif solver_type == "rayleigh_quotient_iteration_eigenvalue_solver":
-        eigen_solver = KM.RayleighQuotientIterationEigenvalueSolver( settings, linear_solver)
-    else:
-        raise Exception("Solver type not found. Asking for :" + solver_type)
-
-    return eigen_solver
