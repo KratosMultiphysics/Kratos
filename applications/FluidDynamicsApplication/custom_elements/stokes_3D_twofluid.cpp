@@ -1239,9 +1239,7 @@ void Stokes3DTwoFluid::ComputeGaussPointEnrichmentContributions(
         const double tau1 = 1.0/(tau_denom*rho);
 
         //auxiliary variables used in the calculation of the RHS
-        const array_1d<double,dim> fgauss = prod(trans(f), N);
         const array_1d<double,dim> vgauss = prod(trans(v), N);
-        const array_1d<double,dim> grad_p = prod(trans(DN), p);
 //         const double pgauss = inner_prod(N,p);
 
         array_1d<double,dim> acch = bdf0*vgauss;

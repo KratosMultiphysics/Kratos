@@ -19,7 +19,7 @@
 #include "includes/define.h"
 #include "includes/model_part.h"
 #include "spatial_containers/spatial_containers.h"
-#include "spaces/ublas_space.h"
+#include "spaces/default_spaces.h"
 #include "mapper_base.h"
 #include "custom_utilities/filter_function.h"
 #include "symmetry_base.h"
@@ -51,7 +51,7 @@ public:
     typedef array_1d<double,3> array_3d;
 
     // Type definitions for linear algebra including sparse systems
-    typedef TUblasSparseSpace<double> SparseSpaceType;
+    typedef TDefaultSparseSpace<double> SparseSpaceType;
     typedef SparseSpaceType::MatrixType SparseMatrixType;
     typedef SparseSpaceType::VectorType VectorType;
 

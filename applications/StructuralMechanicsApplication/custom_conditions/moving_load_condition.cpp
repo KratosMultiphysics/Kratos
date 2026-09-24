@@ -177,7 +177,7 @@ void MovingLoadCondition< TDim, TNumNodes>::CalculateAll(
         const double local_x_coord = this->GetValue(MOVING_LOAD_LOCAL_DISTANCE);
         const GeometryType& r_geom = this->GetGeometry();
 
-        bounded_matrix<double, TDim, TDim> rotation_matrix = ZeroMatrix(TDim, TDim);
+        BoundedMatrix<double, TDim, TDim> rotation_matrix = ZeroMatrix(TDim, TDim);
         this->CalculateRotationMatrix(rotation_matrix, r_geom);
 
         // rotate load to local system
@@ -201,9 +201,6 @@ void MovingLoadCondition< TDim, TNumNodes>::CalculateAll(
             r_geom.ShapeFunctionsValues(shear_shape_functions_vector, local_coordinates_array);
 
         }
-
-        array_1d<double, TDim> load_first_node = ZeroVector(TDim);
-        array_1d<double, TDim> load_end_node = ZeroVector(TDim);
 
         BoundedMatrix<double, TDim, TNumNodes> local_load_matrix = ZeroMatrix(TDim, TNumNodes);
         BoundedMatrix<double, TDim, TNumNodes> global_load_matrix = ZeroMatrix(TDim, TNumNodes);
@@ -448,7 +445,7 @@ Vector MovingLoadCondition< TDim, TNumNodes>::CalculateLoadPointDisplacementVect
     const bool has_rot_dof = this->HasRotDof();
 
     // Convert displacement vector to a ndim by nnodes matrix
-    bounded_matrix<double, TDim, TNumNodes> displacement_matrix = ZeroMatrix(TDim, TNumNodes);
+    BoundedMatrix<double, TDim, TNumNodes> displacement_matrix = ZeroMatrix(TDim, TNumNodes);
 
     IndexType vector_index = 0;
     for (IndexType ii = 0; ii < TNumNodes; ++ii) {
@@ -460,7 +457,7 @@ Vector MovingLoadCondition< TDim, TNumNodes>::CalculateLoadPointDisplacementVect
 
 
     // Get global nodal rotation matrix
-    bounded_matrix<double, 3, TNumNodes> nodal_rotation_matrix = ZeroMatrix(3, TNumNodes);
+    BoundedMatrix<double, 3, TNumNodes> nodal_rotation_matrix = ZeroMatrix(3, TNumNodes);
     if (has_rot_dof) {
         for (IndexType ii = 0; ii < TNumNodes; ++ii) {
 
@@ -473,11 +470,11 @@ Vector MovingLoadCondition< TDim, TNumNodes>::CalculateLoadPointDisplacementVect
     }
 
     // calculate elemental rotation matrix
-    bounded_matrix<double, TDim, TDim> rotation_matrix = ZeroMatrix(TDim, TDim);
+    BoundedMatrix<double, TDim, TDim> rotation_matrix = ZeroMatrix(TDim, TDim);
     this->CalculateRotationMatrix(rotation_matrix, this->GetGeometry());
 
     // make sure the elemental rotation matrix is 3x3
-    bounded_matrix<double, 3, 3> full_rotation_matrix = ZeroMatrix(3, 3);
+    BoundedMatrix<double, 3, 3> full_rotation_matrix = ZeroMatrix(3, 3);
     for (IndexType i = 0; i < TDim; i++) {
         for (IndexType j = 0; j < TDim; j++) {
             full_rotation_matrix(i, j) = rotation_matrix(i, j);
@@ -488,10 +485,10 @@ Vector MovingLoadCondition< TDim, TNumNodes>::CalculateLoadPointDisplacementVect
     }
 
     // Calculate local nodal rotation matrix
-    bounded_matrix<double, 3, TNumNodes> local_nodal_rotation_matrix = prod(full_rotation_matrix, nodal_rotation_matrix);
+    BoundedMatrix<double, 3, TNumNodes> local_nodal_rotation_matrix = prod(full_rotation_matrix, nodal_rotation_matrix);
 
     // calculate local displacement matrix
-    bounded_matrix<double, TDim, TNumNodes> local_disp_matrix = prod(rotation_matrix, displacement_matrix);
+    BoundedMatrix<double, TDim, TNumNodes> local_disp_matrix = prod(rotation_matrix, displacement_matrix);
 
     // Get local coordinate of the moving load position
     const double local_x_coord = this->GetValue(MOVING_LOAD_LOCAL_DISTANCE);
@@ -595,7 +592,7 @@ Vector MovingLoadCondition< TDim, TNumNodes>::CalculateLoadPointRotationVector()
     const bool has_rot_dof = this->HasRotDof();
 
     // Convert displacement vector to a ndim by nnodes matrix
-    bounded_matrix<double, TDim, TNumNodes> displacement_matrix = ZeroMatrix(TDim, TNumNodes);
+    BoundedMatrix<double, TDim, TNumNodes> displacement_matrix = ZeroMatrix(TDim, TNumNodes);
 
     IndexType vector_index = 0;
     for (IndexType ii = 0; ii < TNumNodes; ++ii) {
@@ -607,7 +604,7 @@ Vector MovingLoadCondition< TDim, TNumNodes>::CalculateLoadPointRotationVector()
     }
 
     // Get global nodal rotation matrix
-    bounded_matrix<double, 3, TNumNodes> nodal_rotation_matrix = ZeroMatrix(3, TNumNodes);
+    BoundedMatrix<double, 3, TNumNodes> nodal_rotation_matrix = ZeroMatrix(3, TNumNodes);
 
     if (has_rot_dof) {
         for (IndexType ii = 0; ii < TNumNodes; ++ii) {
@@ -621,12 +618,12 @@ Vector MovingLoadCondition< TDim, TNumNodes>::CalculateLoadPointRotationVector()
 
 
     // calculate elemental rotation matrix
-    bounded_matrix<double, TDim, TDim> rotation_matrix = ZeroMatrix(TDim, TDim);
+    BoundedMatrix<double, TDim, TDim> rotation_matrix = ZeroMatrix(TDim, TDim);
     this->CalculateRotationMatrix(rotation_matrix, this->GetGeometry());
 
 
     // define full rotation matrix which is required to back calculate the global rotation at the location of the moving load
-    bounded_matrix<double, 3, 3> full_rotation_matrix = ZeroMatrix(3, 3);
+    BoundedMatrix<double, 3, 3> full_rotation_matrix = ZeroMatrix(3, 3);
 
     for (IndexType i = 0; i<TDim; ++i) {
         for (IndexType j = 0; j < TDim; ++j) {
@@ -639,10 +636,10 @@ Vector MovingLoadCondition< TDim, TNumNodes>::CalculateLoadPointRotationVector()
 
 
     // calculate local nodal rotation matrix
-    bounded_matrix<double, 3, TNumNodes> local_nodal_rotation_matrix = prod(full_rotation_matrix, nodal_rotation_matrix);
+    BoundedMatrix<double, 3, TNumNodes> local_nodal_rotation_matrix = prod(full_rotation_matrix, nodal_rotation_matrix);
 
     // calculate local displacement matrix
-    bounded_matrix<double, TDim, TNumNodes> local_disp_matrix = prod(rotation_matrix, displacement_matrix);
+    BoundedMatrix<double, TDim, TNumNodes> local_disp_matrix = prod(rotation_matrix, displacement_matrix);
 
 
     // get local location of the moving load

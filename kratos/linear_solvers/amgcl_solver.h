@@ -204,7 +204,8 @@ public:
             "sweeps"                         : 5,
             "omega"                          : 0.8,
             "symmetric_scaling"              : false,
-            "use_gpgpu"                      : false
+            "use_gpgpu"                      : false,
+            "direct_settings"                : {}
         })");
     }
 
