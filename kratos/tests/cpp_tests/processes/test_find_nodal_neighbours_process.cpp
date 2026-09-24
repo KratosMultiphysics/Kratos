@@ -132,7 +132,7 @@ KRATOS_TEST_CASE_IN_SUITE(FindNodalNeighboursProcess3, KratosCoreFastSuite)
 
     // Create elements with the same geometry as conditions
     for (auto& r_cond : r_model_part.Conditions()) {
-        r_model_part.CreateNewElement("Element3D3N", r_cond.Id(), r_cond.GetGeometry(), r_cond.pGetProperties());
+        r_model_part.CreateNewElement("Element3D3N", r_cond.Id(), r_cond.GetGeometry().Points(), r_cond.pGetProperties());
     }
 
     // Re-execute the process

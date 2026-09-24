@@ -228,7 +228,7 @@ public:
             );
 //KRATOS_WATCH(geom);
 //KRATOS_WATCH("AFTER GEOM");
-            Element::Pointer p_element = rReferenceElement.Create(id, geom, properties);
+            Element::Pointer p_element = rReferenceElement.Create(id, geom.Points(), properties);
             p_element->GetValue(IS_FLUID) = 10;  //before IS_CONTACT_MASTER
             p_element->GetValue(IS_WATER_ELEMENT) = -10.0;
             //KRATOS_WATCH("inside 12");
