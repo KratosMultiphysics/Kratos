@@ -1,4 +1,13 @@
 #!/bin/bash
+# WARNING: This script is DEPRECATED. Please use ./mac_build instead.
+#
+# The mac_build script is the recommended and actively maintained build tool for macOS.
+# It automatically handles LLVM, Boost, and Python detection.
+#
+# Usage: ./mac_build -j4
+#        ./mac_build -h  # for help
+#
+# This legacy script is kept for reference only but may become outdated.
 # Please do not modify this script
 
 # You can use your interpreter of choice (bash, sh, zsh, ...)
