@@ -230,6 +230,12 @@ void MeshElement::CalculateOnIntegrationPoints(
     if (rOutput.size() != integration_points_number) {
         rOutput.resize(integration_points_number, rVariable.Zero());
     }
+    const auto& r_shape_function_values = r_geometry.ShapeFunctionsValues(r_geometry.GetDefaultIntegrationMethod());
+    for (SizeType point_number = 0; point_number < integration_points_number; ++point_number){
+        rOutput[point_number] = ZeroVector(3);
+        for (SizeType n = 0; n < r_geometry.size(); ++n)
+            rOutput[point_number] += r_shape_function_values(point_number, n) * r_geometry[n].FastGetSolutionStepValue(rVariable);
+    }
 }
 
 /***********************************************************************************/
