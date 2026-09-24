@@ -22,7 +22,6 @@
 // External includes
 
 // Project includes
-#include "includes/define.h"
 #include "includes/node.h"
 #include "includes/default_interface.h"
 #include "geometries/geometry.h"

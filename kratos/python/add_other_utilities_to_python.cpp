@@ -70,6 +70,7 @@
 #include "utilities/string_utilities.h"
 #include "utilities/model_part_operation_utilities.h"
 #include "utilities/model_part_utils.h"
+#include "utilities/container_classification_utilities.h"
 
 namespace Kratos::Python {
 
@@ -870,6 +871,18 @@ void AddOtherUtilitiesToPython(pybind11::module &m)
             py::arg("properties")
         );
     ;
+
+    py::class_<ContainerClassificationUtilities, ContainerClassificationUtilities::Pointer>(m, "ContainerClassificationUtilities")
+        .def(py::init<>())
+        // Classify
+        .def("Classify", &ContainerClassificationUtilities::Classify<ModelPart::ElementsContainerType>)
+        .def("Classify", &ContainerClassificationUtilities::Classify<ModelPart::ConditionsContainerType>)
+        .def("Classify", &ContainerClassificationUtilities::Classify<ModelPart::GeometryContainerType>)
+        // ClassifyByGeometryType
+        .def("ClassifyByGeometryType", &ContainerClassificationUtilities::ClassifyByGeometryType<ModelPart::ElementsContainerType>)
+        .def("ClassifyByGeometryType", &ContainerClassificationUtilities::ClassifyByGeometryType<ModelPart::ConditionsContainerType>)
+        .def("ClassifyByGeometryType", &ContainerClassificationUtilities::ClassifyByGeometryType<ModelPart::GeometryContainerType>);
+
 }
 
 } // namespace Kratos::Python.
