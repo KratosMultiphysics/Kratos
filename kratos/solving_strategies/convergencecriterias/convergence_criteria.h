@@ -144,46 +144,6 @@ public:
     }
 
     /**
-     * @brief Get component wise element components
-     * @warning Must be defined on the derived classes
-     * @return The RHS element components
-     */
-    virtual std::vector<TSystemVectorType>&  GetRHS_Element_Components()
-    {
-        KRATOS_ERROR <<"Asking for Global Components to the CONVERGENCE CRITERION base class which is not component wise and not contains this member variable" << std::endl;
-    }
-
-    /**
-     * @brief Get component wise element variables
-     * @warning Must be defined on the derived classes
-     * @return The RHS element variables
-     */
-    virtual std::vector< Variable< LocalSystemVectorType > >&  GetRHS_Element_Variables()
-    {
-        KRATOS_ERROR <<"Asking for Global Components to the CONVERGENCE CRITERION base class which is not component wise and not contains this member variable" << std::endl;
-    }
-
-    /**
-     * @brief Get component wise condition components
-     * @warning Must be defined on the derived classes
-     * @return The RHS condition components
-     */
-    virtual std::vector<TSystemVectorType>&  GetRHS_Condition_Components()
-    {
-        KRATOS_ERROR <<"Asking for Global Components to the CONVERGENCE CRITERION base class which is not component wise and not contains this member variable" << std::endl;
-    }
-
-    /**
-     * @brief Get component wise condition variables
-     * @warning Must be defined on the derived classes
-     * @return The RHS condition variables
-     */
-    virtual std::vector< Variable< LocalSystemVectorType > >&  GetRHS_Condition_Variables()
-    {
-        KRATOS_ERROR <<"Asking for Global Components to the CONVERGENCE CRITERION base class which is not component wise and not contains this member variable" << std::endl;
-    }
-
-    /**
      * @brief It sets the level of echo for the solving strategy
      * @param Level The level to set
      * @details The different levels of echo are:

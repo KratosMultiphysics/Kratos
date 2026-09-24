@@ -43,6 +43,7 @@
 #include "custom_conditions/axisymmetric_U_Pw_normal_face_load_condition.h"
 #include "custom_conditions/axisymmetric_line_normal_fluid_flux_2D_diff_order_condition.h"
 #include "custom_conditions/axisymmetric_line_normal_load_2D_diff_order_condition.h"
+#include "custom_conditions/geo_seepage_condition.h"
 #include "custom_conditions/line_load_2D_diff_order_condition.h"
 #include "custom_conditions/line_normal_fluid_flux_2D_diff_order_condition.h"
 #include "custom_conditions/line_normal_load_2D_diff_order_condition.h"
@@ -107,12 +108,13 @@
 // constitutive models
 #include "custom_constitutive/incremental_linear_elastic_interface_law.h"
 #include "custom_constitutive/incremental_linear_elastic_law.h"
-#include "custom_constitutive/interface_coulomb_with_tension_cut_off.h"
+#include "custom_constitutive/interface_coulomb_law.h"
 #include "custom_constitutive/interface_plane_strain.h"
 #include "custom_constitutive/interface_three_dimensional_surface.h"
 #include "custom_constitutive/linear_elastic_2D_interface_law.h"
 #include "custom_constitutive/linear_elastic_3D_interface_law.h"
-#include "custom_constitutive/mohr_coulomb_with_tension_cutoff.h"
+#include "custom_constitutive/mohr_coulomb_law.h"
+#include "custom_constitutive/piecewise_linear_moment_capacity_plane_strain_constitutive_law.h"
 #include "custom_constitutive/plane_strain.h"
 #include "custom_constitutive/small_strain_udsm_2D_interface_law.h"
 #include "custom_constitutive/small_strain_udsm_3D_interface_law.h"
@@ -258,6 +260,12 @@ private:
     ///@}
     ///@name Un accessible methods
     ///@{
+
+    // Custom geometries
+    const InterfaceGeometry<Line2D2<NodeType>> mLineInterfaceGeometryInPlaneStrain2Plus2N{
+        0, Element::GeometryType::PointsArrayType(4)};
+    const InterfaceGeometry<Line2D3<NodeType>> mLineInterfaceGeometryInPlaneStrain3Plus3N{
+        0, Element::GeometryType::PointsArrayType(6)};
 
     // elements
     // transient one-phase flow elements:
@@ -795,6 +803,11 @@ private:
     const PwPointFluxCondition<3, 1> mPwPointFluxCondition3D1N{
         0, Kratos::make_shared<Point3D<NodeType>>(Condition::GeometryType::PointsArrayType(1))};
 
+    const GeoSeepageCondition mGeoSeepageCondition2D2N{
+        0, Kratos::make_shared<Line2D2<NodeType>>(Condition::GeometryType::PointsArrayType(2))};
+    const GeoSeepageCondition mGeoSeepageCondition2D3N{
+        0, Kratos::make_shared<Line2D3<NodeType>>(Condition::GeometryType::PointsArrayType(3))};
+
     const UPwFaceLoadInterfaceCondition<2, 2> mUPwFaceLoadInterfaceCondition2D2N{
         0, Kratos::make_shared<Line2D2<NodeType>>(Condition::GeometryType::PointsArrayType(2))};
     const UPwFaceLoadInterfaceCondition<3, 4> mUPwFaceLoadInterfaceCondition3D4N{
@@ -955,17 +968,17 @@ private:
     const LinearElastic3DInterfaceLaw mLinearElastic3DInterfaceLaw;
 
     const TrussBackboneConstitutiveLaw mTrussBackboneConstitutiveLaw;
+    const PiecewiseLinearMomentCapacityPlaneStrainConstitutiveLaw mPiecewiseLinearMomentCapacityPlaneStrainConstitutiveLaw;
 
     const GeoIncrementalLinearElasticInterfaceLaw mIncrementalLinearElasticInterfaceLaw{
         std::make_unique<InterfacePlaneStrain>()};
     const GeoIncrementalLinearElasticInterfaceLaw mIncrementalLinearElasticInterface3DSurfaceLaw{
         std::make_unique<InterfaceThreeDimensionalSurface>()};
 
-    const MohrCoulombWithTensionCutOff mMohrCoulombWithTensionCutOff2D{std::make_unique<PlaneStrain>()};
-    const MohrCoulombWithTensionCutOff mMohrCoulombWithTensionCutOff3D{std::make_unique<ThreeDimensional>()};
+    const MohrCoulombLaw mMohrCoulombLawPlaneStrain{std::make_unique<PlaneStrain>()};
+    const MohrCoulombLaw mMohrCoulombLaw3D{std::make_unique<ThreeDimensional>()};
 
-    const InterfaceCoulombWithTensionCutOff mInterfaceCoulombWithTensionCutOff{
-        std::make_unique<InterfacePlaneStrain>()};
+    const InterfaceCoulombLaw mInterfaceCoulombLawPlaneStrain{std::make_unique<InterfacePlaneStrain>()};
 
     ///@}
 

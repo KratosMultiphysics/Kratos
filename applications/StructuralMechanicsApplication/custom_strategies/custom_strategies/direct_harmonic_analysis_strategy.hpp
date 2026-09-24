@@ -6,9 +6,6 @@
 #include <vector>
 
 // External includes
-#include <boost/numeric/ublas/matrix_sparse.hpp>
-#include <boost/numeric/ublas/vector.hpp>
-#include <boost/numeric/ublas/matrix.hpp>
 
 // Project includes
 #include "solving_strategies/strategies/implicit_solving_strategy.h"
@@ -279,11 +276,11 @@ public:
 
             const std::size_t system_size = SparseSpaceType::Size1(*p_stiffness_matrix);
 
-            if (mpRealLoadVector->size() != system_size) {
+            if (static_cast<IndexType>(mpRealLoadVector->size()) != system_size) {
                 SparseSpaceType::Resize(*mpRealLoadVector, system_size);
             }
             SparseSpaceType::Set(*mpRealLoadVector, 0.0);
-            if (mpImaginaryLoadVector->size() != system_size) {
+            if (static_cast<std::size_t>(mpImaginaryLoadVector->size()) != system_size) {
                 SparseSpaceType::Resize(*mpImaginaryLoadVector, system_size);
             }
             SparseSpaceType::Set(*mpImaginaryLoadVector, 0.0);
@@ -616,11 +613,15 @@ private:
         const SparseMatrixType& rB,
         const ComplexType Coeff)
     {
-        for (typename SparseMatrixType::const_iterator1 it1 = rB.begin1(); it1 != rB.end1(); ++it1) {
-            for (typename SparseMatrixType::const_iterator2 it2 = it1.begin(); it2 != it1.end(); ++it2) {
-                const std::size_t I = it2.index1();
-                const std::size_t J = it2.index2();
-                rA(I, J) += Coeff * (*it2);
+        // Iterate the real system matrix through its CSR arrays: valid for both
+        // the uBLAS and the Eigen backend matrix (uBLAS iterator1/iterator2 is
+        // a uBLAS-only concept). The complex target stays uBLAS in every backend.
+        const auto& row_ptr = rB.index1_data();
+        const auto& col_idx = rB.index2_data();
+        const auto& values = rB.value_data();
+        for (std::size_t i = 0; i < rB.size1(); ++i) {
+            for (auto k = row_ptr[i]; k < row_ptr[i + 1]; ++k) {
+                rA(i, col_idx[k]) += Coeff * values[k];
             }
         }
     }
@@ -699,37 +700,49 @@ private:
 
         for (auto& r_node : r_model_part.Nodes()) {
 
-            // initialize the full vector to zero first
+            // Initialize imaginary displacement
             auto& r_displacement_imaginary = r_node.FastGetSolutionStepValue(DISPLACEMENT_IMAGINARY);
-            r_displacement_imaginary[0] = 0.0;
-            r_displacement_imaginary[1] = 0.0;
-            r_displacement_imaginary[2] = 0.0;
+            auto& r_rotation_imaginary = r_node.FastGetSolutionStepValue(ROTATION_IMAGINARY);
+
+            r_displacement_imaginary = ZeroVector(3);
+            r_rotation_imaginary = ZeroVector(3);
 
             auto& r_node_dofs = r_node.GetDofs();
 
             for (auto it_dof = r_node_dofs.begin(); it_dof != r_node_dofs.end(); ++it_dof) {
+
                 auto& p_dof = *it_dof;
                 const auto& r_var = p_dof->GetVariable();
 
                 if (!p_dof->IsFixed()) {
+
                     const std::size_t eq_id = p_dof->EquationId();
                     const ComplexType u = rSolution[eq_id];
 
                     const double u_real = std::real(u);
                     const double u_imag = std::imag(u);
 
-                    // real part -> actual displacement DOF value
+                    // Store real part
                     p_dof->GetSolutionStepValue() = u_real;
 
-                    // imaginary part -> MESH_DISPLACEMENT vector
+                    // Store imaginary part
                     if (r_var == DISPLACEMENT_X) {
                         r_displacement_imaginary[0] = u_imag;
                     } else if (r_var == DISPLACEMENT_Y) {
                         r_displacement_imaginary[1] = u_imag;
                     } else if (r_var == DISPLACEMENT_Z) {
                         r_displacement_imaginary[2] = u_imag;
+                    } else if (r_var == ROTATION_X) {
+                        r_rotation_imaginary[0] = u_imag;
+                    } else if (r_var == ROTATION_Y) {
+                        r_rotation_imaginary[1] = u_imag;
+                    } else if (r_var == ROTATION_Z) {
+                        r_rotation_imaginary[2] = u_imag;
                     }
+
                 } else {
+
+                    // Fixed DOFs
                     p_dof->GetSolutionStepValue() = 0.0;
 
                     if (r_var == DISPLACEMENT_X) {
@@ -738,6 +751,12 @@ private:
                         r_displacement_imaginary[1] = 0.0;
                     } else if (r_var == DISPLACEMENT_Z) {
                         r_displacement_imaginary[2] = 0.0;
+                    } else if (r_var == ROTATION_X) {
+                        r_rotation_imaginary[0] = 0.0;
+                    } else if (r_var == ROTATION_Y) {
+                        r_rotation_imaginary[1] = 0.0;
+                    } else if (r_var == ROTATION_Z) {
+                        r_rotation_imaginary[2] = 0.0;
                     }
                 }
             }
@@ -768,7 +787,7 @@ private:
 
                 for (IndexType i = 0; i < r_equation_id.size(); ++i) {
                     const auto eq_id = r_equation_id[i];
-                    if (eq_id < rRHS.size()) {
+                    if (eq_id < static_cast<std::size_t>(rRHS.size())) {
                         AtomicAdd(rRHS[eq_id], r_local_rhs[i]);
                     }
                 }

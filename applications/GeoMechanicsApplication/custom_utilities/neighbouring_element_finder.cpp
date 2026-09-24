@@ -49,7 +49,7 @@ void NeighbouringElementFinder::AddNeighbouringElementsToEntitiesBasedOnOverlapp
 {
     for (const auto& r_boundary_geometry : rBoundaryGeometries) {
         AddNeighbouringElementsBasedOnBoundaryGeometry(rElement, r_boundary_geometry);
-        if (mEnableReverseSearch) {
+        if (r_boundary_geometry.size() > 1 && mEnableReverseSearch) {
             constexpr auto reverse_search = true;
             AddNeighbouringElementsBasedOnBoundaryGeometry(rElement, r_boundary_geometry, reverse_search);
         }

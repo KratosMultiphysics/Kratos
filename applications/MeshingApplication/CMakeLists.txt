@@ -40,6 +40,7 @@ if(${INCLUDE_MMG} MATCHES ON)
         ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/mmg/*.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/mmg/*.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/custom_io/mmg/*.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/custom_modelers/mmg/*.cpp
     )
 
     IF (MMG_ROOT)
@@ -81,6 +82,17 @@ if(${INCLUDE_MMG} MATCHES ON)
 
         INSTALL(FILES ${RESOLVED_FILES_LIBS} DESTINATION ${CMAKE_INSTALL_PREFIX}/libs  COMPONENT libraries)
     ENDFOREACH (FILE ${ALL_MMG_LIBRARIES})
+
+    # On Windows, MMG places its runtime DLLs in <MMG_ROOT>/bin while the
+    # import libraries used above are in <MMG_ROOT>/lib. Install both so the
+    # Python extension can resolve its MMG dependencies at load time.
+    if(WIN32)
+        file(TO_CMAKE_PATH "${MMG_BUILDDIR}/bin" MMG_RUNTIME_DIR)
+        file(GLOB MMG_RUNTIME_DLLS "${MMG_RUNTIME_DIR}/mmg*.dll")
+        if(MMG_RUNTIME_DLLS)
+            install(FILES ${MMG_RUNTIME_DLLS} DESTINATION ${CMAKE_INSTALL_PREFIX}/libs COMPONENT libraries)
+        endif()
+    endif()
 
     message(STATUS "Compilation with MMG: ${MMG_LIBRARIES} ${MMG_INCLUDE_DIRS}")
     message(STATUS "Compilation with MMG2D: ${MMG2D_LIBRARIES} ${MMG2D_INCLUDE_DIRS}")

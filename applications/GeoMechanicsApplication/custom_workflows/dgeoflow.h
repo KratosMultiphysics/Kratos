@@ -19,7 +19,7 @@
 #include "includes/kernel.h"
 
 /* Utility includes */
-#include "spaces/ublas_space.h"
+#include "spaces/default_spaces.h"
 
 #include "linear_solvers/linear_solver.h"
 #include "solving_strategies/builder_and_solvers/residualbased_block_builder_and_solver.h"
@@ -43,8 +43,8 @@ public:
     KratosExecute();
 
     using NodeType        = Node;
-    using SparseSpaceType = UblasSpace<double, CompressedMatrix, Vector>;
-    using LocalSpaceType  = UblasSpace<double, Matrix, Vector>;
+    using SparseSpaceType = TDefaultSparseSpace<double>;
+    using LocalSpaceType  = TDefaultDenseSpace<double>;
 
     // The direct solver
     using LinearSolverType = LinearSolver<SparseSpaceType, LocalSpaceType>;

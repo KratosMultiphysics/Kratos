@@ -16,7 +16,7 @@
 #include "geometries/geometry.h"
 #include "includes/kratos_export_api.h"
 #include "includes/node.h"
-#include "includes/ublas_interface.h"
+#include "includes/default_interface.h"
 
 namespace Kratos
 {

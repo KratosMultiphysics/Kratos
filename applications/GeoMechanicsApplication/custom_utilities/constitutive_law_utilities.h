@@ -73,6 +73,9 @@ public:
 
     [[nodiscard]] static double CalculateExcessPorePressureIncrement(const Properties& rProperties,
                                                                      double VolumetricStrainIncrement);
+
+    [[nodiscard]] static bool WantTensionCutOff(const Properties& rMaterialProperties);
+
 }; /* Class ConstitutiveLawUtilities*/
 
 } // namespace Kratos

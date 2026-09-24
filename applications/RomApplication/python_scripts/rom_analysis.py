@@ -110,6 +110,42 @@ def CreateRomAnalysisInstance(cls, global_model, parameters, nn_rom_interface=No
                 err_msg = f"'Using {self.solving_strategy}' projection strategy but found no NN_ROM_Interface instance to use."
                 raise Exception(err_msg)
 
+            solver_type = self.project_parameters["solver_settings"]["solver_type"].GetString()
+
+            # The solver used fluid-thermal coupled simulations contains two solvers:  'fluid_solver' and 'thermal_solver'.
+            # This patch creates rom_solvers for each of them, to seamlessly use the existing infrastructure in the RomApp
+            if solver_type =="ThermallyCoupled":
+
+                from KratosMultiphysics.FluidDynamicsApplication import python_solvers_wrapper_fluid
+                from KratosMultiphysics.ConvectionDiffusionApplication import python_solvers_wrapper_convection_diffusion
+
+                original_create_fluid = python_solvers_wrapper_fluid.CreateSolverByParameters
+                original_create_thermal = python_solvers_wrapper_convection_diffusion.CreateSolverByParameters
+
+                def mock_create_fluid(model, settings, parallelism):
+                    # FOM wrapper
+                    if not settings.Has("rom_settings"):
+                        return original_create_fluid(model, settings, parallelism)
+
+                    # ROM wrapper
+                    return python_solvers_wrapper_rom.CreateSolverByParameters(
+                        model, settings, parallelism,
+                        'KratosMultiphysics.FluidDynamicsApplication.fluid_dynamics_analysis'
+                    )
+                def mock_create_thermal(model, settings, parallelism):
+                    # FOM wrapper
+                    if not settings.Has("rom_settings"):
+                        return original_create_thermal(model, settings, parallelism)
+
+                    # ROM wrapper
+                    return python_solvers_wrapper_rom.CreateSolverByParameters(
+                        model, settings, parallelism,
+                        'KratosMultiphysics.ConvectionDiffusionApplication.convection_difussion_analysis'
+                    )
+                # Apply the patch
+                python_solvers_wrapper_fluid.CreateSolverByParameters = mock_create_fluid
+                python_solvers_wrapper_convection_diffusion.CreateSolverByParameters = mock_create_thermal
+
             # Create the ROM solver
             return python_solvers_wrapper_rom.CreateSolver(
                 self.model,
@@ -127,6 +163,11 @@ def CreateRomAnalysisInstance(cls, global_model, parameters, nn_rom_interface=No
                         KratosMultiphysics.Logger.PrintWarning("RomAnalysis", warn_msg)
                         list_of_processes.remove(process)
                 self.rom_basis_process_list_check = False
+
+            # Automatically inject the Python solver into any custom process that needs it
+            for process in list_of_processes:
+                if hasattr(process, "SetDependencies"):
+                    process.SetDependencies(self._GetSolver(), self.rom_parameters)
 
             return list_of_processes
 
@@ -236,21 +277,27 @@ def CreateRomAnalysisInstance(cls, global_model, parameters, nn_rom_interface=No
                 if self.hrom_format == "json":
                     # Set the HROM weights in elements and conditions
                     hrom_weights_elements = self.rom_parameters["elements_and_weights"]["Elements"]
-                    for key,value in zip(hrom_weights_elements.keys(), hrom_weights_elements.values()):
-                        computing_model_part.GetElement(int(key)+1).SetValue(KratosROM.HROM_WEIGHT, value.GetDouble()) #FIXME: FIX THE +1
-                    hrom_weights_condtions = self.rom_parameters["elements_and_weights"]["Conditions"]
-                    for key,value in zip(hrom_weights_condtions.keys(), hrom_weights_condtions.values()):
-                        computing_model_part.GetCondition(int(key)+1).SetValue(KratosROM.HROM_WEIGHT, value.GetDouble()) #FIXME: FIX THE +1
+                    for key, value in hrom_weights_elements.items():
+                        computing_model_part.GetElement(int(key)).SetValue(KratosROM.HROM_WEIGHT, value.GetDouble())
+
+                    hrom_weights_conditions = self.rom_parameters["elements_and_weights"]["Conditions"]
+                    for key, value in hrom_weights_conditions.items():
+                        computing_model_part.GetCondition(int(key)).SetValue(KratosROM.HROM_WEIGHT, value.GetDouble())
+
                 elif self.hrom_format == "numpy":
                     # Set the HROM weights in elements and conditions
-                    element_indexes = np.load(f"{self.rom_basis_output_folder}/HROM_ElementIds.npy")
+                    element_ids = np.load(f"{self.rom_basis_output_folder}/HROM_ElementIds.npy")
                     element_weights = np.load(f"{self.rom_basis_output_folder}/HROM_ElementWeights.npy")
-                    condition_indexes = np.load(f"{self.rom_basis_output_folder}/HROM_ConditionIds.npy")
-                    conditon_weights = np.load(f"{self.rom_basis_output_folder}/HROM_ConditionWeights.npy")
-                    for i in range(np.size(element_indexes)):
-                        computing_model_part.GetElement(int( element_indexes[i])+1).SetValue(KratosROM.HROM_WEIGHT, element_weights[i]  ) #FIXME: FIX THE +1
-                    for i in range(np.size(condition_indexes)):
-                        computing_model_part.GetCondition(int( condition_indexes[i])+1).SetValue(KratosROM.HROM_WEIGHT, conditon_weights[i]  ) #FIXME: FIX THE +1
+
+                    condition_ids = np.load(f"{self.rom_basis_output_folder}/HROM_ConditionIds.npy")
+                    condition_weights = np.load(f"{self.rom_basis_output_folder}/HROM_ConditionWeights.npy")
+
+                    for i in range(np.size(element_ids)):
+                        computing_model_part.GetElement(int(element_ids[i])).SetValue(KratosROM.HROM_WEIGHT, element_weights[i,:])
+
+                    for i in range(np.size(condition_ids)):
+                        computing_model_part.GetCondition(int(condition_ids[i])).SetValue(KratosROM.HROM_WEIGHT,condition_weights[i,:])
+
 
 
             # Check and Initialize Petrov Galerkin Training stage
@@ -331,6 +378,11 @@ def CreateRomAnalysisInstance(cls, global_model, parameters, nn_rom_interface=No
             # Note that this needs to be done prior to the other processes to avoid unfixing the BCs
             if self.train_hrom:
                 self.__hrom_training_utility.AppendCurrentStepResiduals()
+
+            # If the residuals process is present, fetch residuals before clearing.
+            for process in self._GetListOfOutputProcesses():
+                if hasattr(process, "CaptureResiduals"):
+                    process.CaptureResiduals()
 
             # #FIXME: Make this optional. This must be a process
             # # Project the ROM solution onto the visualization modelparts

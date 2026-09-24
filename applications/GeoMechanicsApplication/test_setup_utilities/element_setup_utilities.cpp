@@ -183,12 +183,13 @@ Element::Pointer ElementSetupUtilities::Create2D3NLineElement(const PointerVecto
 }
 
 Element::Pointer ElementSetupUtilities::Create2D2NElement(const PointerVector<Node>& rNodes,
-                                                          const Properties::Pointer& rProperties)
+                                                          const Properties::Pointer& rProperties,
+                                                          std::size_t                Id)
 {
     using enum CalculationContribution;
     const auto contributions = {Permeability, Compressibility, FluidBodyFlow};
 
-    return make_intrusive<PwElement<2, 2>>(1, std::make_shared<Line2D2<Node>>(rNodes), rProperties,
+    return make_intrusive<PwElement<2, 2>>(Id, std::make_shared<Line2D2<Node>>(rNodes), rProperties,
                                            contributions, nullptr);
 }
 

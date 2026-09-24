@@ -33,7 +33,6 @@ ApplyConstantInterpolateLinePressureProcess::ApplyConstantInterpolateLinePressur
                 "model_part_name":"PLEASE_CHOOSE_MODEL_PART_NAME",
                 "variable_name": "PLEASE_PRESCRIBE_VARIABLE_NAME",
                 "is_fixed": false,
-                "is_seepage": false,
                 "gravity_direction": 1,
                 "out_of_plane_direction": 2,
                 "pressure_tension_cut_off" : 0.0,
@@ -55,7 +54,6 @@ ApplyConstantInterpolateLinePressureProcess::ApplyConstantInterpolateLinePressur
     FindBoundaryNodes();
 
     mIsFixed             = rParameters["is_fixed"].GetBool();
-    mIsSeepage           = rParameters["is_seepage"].GetBool();
     mGravityDirection    = rParameters["gravity_direction"].GetInt();
     mOutOfPlaneDirection = rParameters["out_of_plane_direction"].GetInt();
     if (mGravityDirection == mOutOfPlaneDirection)
@@ -79,19 +77,10 @@ void ApplyConstantInterpolateLinePressureProcess::ExecuteInitializeSolutionStep(
 
     block_for_each(mrModelPart.Nodes(), [&var, this](Node& rNode) {
         const double pressure = CalculatePressure(rNode);
-        if (mIsSeepage) {
-            if (pressure < PORE_PRESSURE_SIGN_FACTOR * mPressureTensionCutOff) {
-                rNode.FastGetSolutionStepValue(var) = pressure;
-                if (mIsFixed) rNode.Fix(var);
-            } else {
-                rNode.Free(var);
-            }
-        } else {
-            rNode.FastGetSolutionStepValue(var) =
-                std::min(pressure, PORE_PRESSURE_SIGN_FACTOR * mPressureTensionCutOff);
-            if (mIsFixed) rNode.Fix(var);
-            else if (mIsFixedProvided) rNode.Free(var);
-        }
+        rNode.FastGetSolutionStepValue(var) =
+            std::min(pressure, PORE_PRESSURE_SIGN_FACTOR * mPressureTensionCutOff);
+        if (mIsFixed) rNode.Fix(var);
+        else if (mIsFixedProvided) rNode.Free(var);
     });
     mIsInitialized = true;
     KRATOS_CATCH("")
@@ -372,8 +361,11 @@ void ApplyConstantInterpolateLinePressureProcess::FindBoundaryNodes()
         const auto Id = static_cast<int>(rNode.Id());
         for (const auto& r_boundary_node : BoundaryNodes) {
             if (Id == r_boundary_node) {
-                mBoundaryNodes[iPosition] = &rNode;
-                iPosition++;
+#pragma omp critical(boundary_node_assignment)
+                {
+                    mBoundaryNodes[iPosition] = &rNode;
+                    iPosition++;
+                }
             }
         }
     });

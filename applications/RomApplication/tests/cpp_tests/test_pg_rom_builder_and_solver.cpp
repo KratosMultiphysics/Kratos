@@ -19,7 +19,7 @@
 #include "geometries/triangle_2d_3.h"
 #include "includes/kratos_parameters.h"
 #include "testing/testing.h"
-#include "spaces/ublas_space.h"
+#include "spaces/default_spaces.h"
 #include "solving_strategies/strategies/implicit_solving_strategy.h"
 #include "linear_solvers/linear_solver.h"
 #include "custom_strategies/rom_builder_and_solver.h"
@@ -30,8 +30,8 @@
 namespace Kratos::Testing {
 namespace PetrovGalerkinROMBuilderAndSolverTestingInternal {
 
-using SparseSpaceType = UblasSpace<double, CompressedMatrix, boost::numeric::ublas::vector<double>>;
-using LocalSpaceType = UblasSpace<double, Matrix, Vector>;
+using SparseSpaceType = TDefaultSparseSpace<double>;
+using LocalSpaceType = TDefaultDenseSpace<double>;
 using LinearSolverType = LinearSolver<SparseSpaceType, LocalSpaceType >;
 using BuilderAndSolverType = BuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType >;
 using PetrovGalerkinROMBuilderAndSolverType = PetrovGalerkinROMBuilderAndSolver<SparseSpaceType, LocalSpaceType, LinearSolverType>;
@@ -153,7 +153,7 @@ ModelPart& FillModel(Model& model)
 
         left_basis(0,0) = phi_1(r_node);
         left_basis(0,1) = phi_2(r_node);
-        left_basis(0,2) = phi_3(r_node);
+        left_basis(0,2) = phi_3(0, r_node.Id() - 1);
         r_node.SetValue(ROM_LEFT_BASIS, left_basis);
     }
 
@@ -205,7 +205,9 @@ KRATOS_TEST_CASE_IN_SUITE(PetrovGalerkinROMBuilderAndSolver, RomApplicationFastS
         "name" : "rom_builder_and_solver",
         "nodal_unknowns" : ["TEMPERATURE"],
         "number_of_rom_dofs" : 2,
-        "petrov_galerkin_number_of_rom_dofs" : 3
+        "petrov_galerkin_number_of_rom_dofs" : 3,
+        "weight_vector_index": 0,
+        "number_of_hrom_sets": 1
     }
     )");
 
@@ -215,8 +217,9 @@ KRATOS_TEST_CASE_IN_SUITE(PetrovGalerkinROMBuilderAndSolver, RomApplicationFastS
 
     const auto dx = BuildAndSolve(model_part, p_scheme, romBnS);
     const auto& dq = model_part.GetValue(ROM_SOLUTION_INCREMENT);
+    const int mActiveHromSet = parameters["weight_vector_index"].GetInt();
 
-    KRATOS_EXPECT_NEAR(model_part.ElementsBegin()->GetValue(HROM_WEIGHT), 1, 1e-8);
+    KRATOS_EXPECT_NEAR(model_part.ElementsBegin()->GetValue(HROM_WEIGHT)[mActiveHromSet], 1, 1e-8);
     KRATOS_EXPECT_EQ(romBnS.GetEquationSystemSize(), 3);
 
     KRATOS_EXPECT_NEAR(dq(0), 1.0 , 1e-8);

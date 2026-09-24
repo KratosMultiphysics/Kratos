@@ -39,8 +39,6 @@ class TestModelersSbm(KratosUnittest.TestCase):
                     "model_part_name" : "IgaModelPart",
                     "lower_point_xyz": [0.0,0.0,0.0],
                     "upper_point_xyz": [2.0,2.0,0.0],
-                    "lower_point_uvw": [0.0,0.0,0.0],
-                    "upper_point_uvw": [2.0,2.0,0.0],
                     "polynomial_order" : [1, 1],
                     "number_of_knot_spans" : [5,5],
                     "lambda_outer": 0.5,
@@ -91,15 +89,9 @@ class TestModelersSbm(KratosUnittest.TestCase):
         support_model_part = current_model.GetModelPart("IgaModelPart.SBM_Support_outer")
         computational_model_part = current_model.GetModelPart("IgaModelPart.ComputationalDomain")
 
-        # # Check if all needed node are within the model parts
-        self.assertEqual(support_model_part.NumberOfNodes(), 240)
+        # Support SBM model parts now store only the conditions, not duplicated nodes
         self.assertEqual(support_model_part.NumberOfConditions(), 60)
         self.assertEqual(computational_model_part.NumberOfConditions(), 0)
-        
-        self.assertEqual(support_model_part.GetNodes()[6].X, 2.0)
-        self.assertEqual(support_model_part.GetNodes()[6].Y, 0.0)
-        self.assertEqual(support_model_part.GetNodes()[12].X, 2.0)
-        self.assertEqual(support_model_part.GetNodes()[12].Y, 0.4)
 
         self.assertEqual(support_model_part.GetConditions()[21].Info(), "\"SbmLaplacianConditionDirichlet\" #21")
         self.assertEqual(support_model_part.GetConditions()[80].Info(), "\"SbmLaplacianConditionDirichlet\" #80")
@@ -144,8 +136,6 @@ class TestModelersSbm(KratosUnittest.TestCase):
                         "model_part_name" : "IgaModelPart",
                         "lower_point_xyz": [0.0,0.0,0.0],
                         "upper_point_xyz": [4.0,6.0,0.0],
-                        "lower_point_uvw": [0.0,0.0,0.0],
-                        "upper_point_uvw": [4.0,6.0,0.0],
                         "polynomial_order" : [2, 2],
                         "number_of_knot_spans" : [20,10],
                         "lambda_inner": 1.0,
@@ -210,10 +200,8 @@ class TestModelersSbm(KratosUnittest.TestCase):
         support_model_part_inner = current_model.GetModelPart("IgaModelPart.SBM_Support_inner")
         computational_model_part = current_model.GetModelPart("IgaModelPart.ComputationalDomain")
 
-        # # Check if all needed node are within the model parts
-        self.assertEqual(support_model_part_inner.NumberOfNodes(), 990)
+        # Support SBM model parts now store only the conditions, not duplicated nodes
         self.assertEqual(support_model_part_inner.NumberOfConditions(), 110)
-        self.assertEqual(support_model_part_outer.NumberOfNodes(), 2160)
         self.assertEqual(support_model_part_outer.NumberOfConditions(), 240)
         self.assertEqual(computational_model_part.NumberOfConditions(), 0)
         self.assertEqual(computational_model_part.NumberOfElements(), 810)
@@ -235,8 +223,6 @@ class TestModelersSbm(KratosUnittest.TestCase):
                 "model_part_name" : "IgaModelPart",
                 "lower_point_xyz": [0.0,0.0,0.0],
                 "upper_point_xyz": [1.0,1.0,0.0],
-                "lower_point_uvw": [0.0,0.0,0.0],
-                "upper_point_uvw": [1.0,1.0,0.0],
                 "polynomial_order" : [4, 1],
                 "number_of_knot_spans" : [3,2]
             }
@@ -296,8 +282,6 @@ class TestModelersSbm(KratosUnittest.TestCase):
                 "model_part_name" : "IgaModelPart",
                 "lower_point_xyz": [0.0,0.0,0.0],
                 "upper_point_xyz": [2.0,2.0,0.0],
-                "lower_point_uvw": [0.0,0.0,0.0],
-                "upper_point_uvw": [2.0,2.0,0.0],
                 "polynomial_order" : [1, 1],
                 "number_of_knot_spans" : [5,5],
                 "lambda_outer": 0.5,
@@ -379,8 +363,6 @@ class TestModelersSbm(KratosUnittest.TestCase):
                 "model_part_name" : "IgaModelPart",
                 "lower_point_xyz": [0.0,0.0,0.0],
                 "upper_point_xyz": [4.0,6.0,0.0],
-                "lower_point_uvw": [0.0,0.0,0.0],
-                "upper_point_uvw": [4.0,6.0,0.0],
                 "polynomial_order" : [2, 2],
                 "number_of_knot_spans" : [6,9],
                 "lambda_inner": 0.5,
@@ -453,8 +435,6 @@ class TestModelersSbm(KratosUnittest.TestCase):
                 "model_part_name" : "IgaModelPart",
                 "lower_point_xyz": [0.0,0.0,0.0],
                 "upper_point_xyz": [4.0,6.0,0.0],
-                "lower_point_uvw": [0.0,0.0,0.0],
-                "upper_point_uvw": [4.0,6.0,0.0],
                 "polynomial_order" : [2, 2],
                 "number_of_knot_spans" : [10,15],
                 "lambda_inner": 0.5,
@@ -561,8 +541,6 @@ class TestModelersSbm(KratosUnittest.TestCase):
                 "model_part_name" : "IgaModelPart",
                 "lower_point_xyz": [0.0,0.0,0.0],
                 "upper_point_xyz": [4.0,6.0,0.0],
-                "lower_point_uvw": [0.0,0.0,0.0],
-                "upper_point_uvw": [4.0,6.0,0.0],
                 "polynomial_order" : [2, 2],
                 "number_of_knot_spans" : [20,10],
                 "lambda_inner": 1.0,
@@ -741,8 +719,6 @@ class TestModelersSbm(KratosUnittest.TestCase):
                     "model_part_name" : "IgaModelPart",
                     "lower_point_xyz": [-1.0,-1.0,0.0],
                     "upper_point_xyz": [2.0,2.0,0.0],
-                    "lower_point_uvw": [-1.0,-1.0,0.0],
-                    "upper_point_uvw": [2.0,2.0,0.0],
                     "polynomial_order" : [1, 1],
                     "number_of_knot_spans" : [10,10],
                     "lambda_outer": 0.5,
@@ -832,8 +808,6 @@ class TestModelersSbm(KratosUnittest.TestCase):
                     "model_part_name" : "IgaModelPart",
                     "lower_point_xyz": [-1.0,-1.0,0.0],
                     "upper_point_xyz": [2.0,2.0,0.0],
-                    "lower_point_uvw": [-1.0,-1.0,0.0],
-                    "upper_point_uvw": [2.0,2.0,0.0],
                     "polynomial_order" : [1, 1],
                     "number_of_knot_spans" : [10,10],
                     "lambda_outer": 0.5,

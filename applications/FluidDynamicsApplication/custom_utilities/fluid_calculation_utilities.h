@@ -22,7 +22,7 @@
 // Project includes
 #include "geometries/geometry.h"
 #include "includes/node.h"
-#include "includes/ublas_interface.h"
+#include "includes/default_interface.h"
 
 namespace Kratos
 {

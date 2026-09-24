@@ -152,7 +152,7 @@ class PythonLinearSolverFactory(object):
         if kratos_utils.CheckIfApplicationsAvailable("LinearSolversApplication"):
             from KratosMultiphysics import LinearSolversApplication
 
-        linear_solvers_by_speed = KM.UblasSparseSpace.FastestDirectSolverList()
+        linear_solvers_by_speed = KM.SparseSpace.FastestDirectSolverList()
 
         for solver_name in linear_solvers_by_speed:
             if KM.LinearSolverFactory().Has(solver_name):

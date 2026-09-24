@@ -327,7 +327,7 @@ protected:
     array_1d<double, TVoigtSize> mDeltaStrainVector;
     array_1d<double, TVoigtSize> mStrainVectorFinalized;
 
-    double mMatrixD[TVoigtSize][TVoigtSize];
+    double mMatrixD[TVoigtSize][TVoigtSize]{};
 
     ///@}
     ///@name Protected Operators

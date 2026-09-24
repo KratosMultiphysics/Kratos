@@ -64,7 +64,10 @@ void IgaModelerSbm::CreateIntegrationDomainPerUnit(
     const Parameters rPhysicsParameters) const
 {
     KRATOS_ERROR_IF_NOT(rPhysicsParameters.Has("iga_model_part"))
-        << "\"iga_model_part\" need to be specified." << std::endl;
+        << "::[IgaModelerSbm]:: \"iga_model_part\" needs to be specified." << std::endl;
+
+    KRATOS_ERROR_IF_NOT(rPhysicsParameters.Has("shape_function_derivatives_order"))
+        << "::[IgaModelerSbm]:: \"shape_function_derivatives_order\" needs to be specified." << std::endl;
 
     std::string sub_model_part_name = rPhysicsParameters["iga_model_part"].GetString();
 
@@ -80,6 +83,14 @@ void IgaModelerSbm::CreateIntegrationDomainPerUnit(
          "::[IgaModelerSbm]:: Missing \"geometry_type\" parameter." << rPhysicsParameters << std::endl;
                 
     std::string geometry_type = rPhysicsParameters["geometry_type"].GetString();
+
+    KRATOS_ERROR_IF(
+        geometry_type != "GeometrySurface" &&
+        geometry_type != "SurfaceEdge")
+        << "::[IgaModelerSbm]:: Unsupported \"geometry_type\": \""
+        << geometry_type
+        << "\". Available options: GeometrySurface, SurfaceEdge."
+        << std::endl;
 
     if (!rPhysicsParameters.Has("sbm_parameters"))
         CreateQuadraturePointGeometries(
@@ -219,20 +230,19 @@ void IgaModelerSbm::CreateQuadraturePointGeometries(
     std::string GeometryType) const
 {
     KRATOS_ERROR_IF_NOT(rParameters.Has("type"))
-        << "\"type\" need to be specified." << std::endl;
+        << "::[IgaModelerSbm]:: \"type\" need to be specified." << std::endl;
     std::string type = rParameters["type"].GetString();
     KRATOS_ERROR_IF_NOT(rParameters.Has("name"))
-        << "\"name\" need to be specified." << std::endl;
+        << "::[IgaModelerSbm]:: \"name\" need to be specified." << std::endl;
     std::string name = rParameters["name"].GetString();
 
-    SizeType shape_function_derivatives_order = 1;
-    if (rParameters.Has("shape_function_derivatives_order")) {
-        shape_function_derivatives_order = rParameters["shape_function_derivatives_order"].GetInt();
-    }
-    else {
-        KRATOS_INFO_IF("CreateQuadraturePointGeometries", mEchoLevel > 3)
-            << "shape_function_derivatives_order is not provided and thus being considered as 1. " << std::endl;
-    }
+    const int shape_function_derivatives_order =
+    rParameters["shape_function_derivatives_order"].GetInt();
+
+   KRATOS_ERROR_IF(shape_function_derivatives_order < 1)
+    << "::[IgaModelerSbm]:: \"shape_function_derivatives_order\" "
+    << "must be at least 1, but received "
+    << shape_function_derivatives_order << std::endl;
 
     std::string quadrature_method = rParameters.Has("quadrature_method")
         ? rParameters["integration_rule"].GetString()
@@ -357,14 +367,16 @@ void IgaModelerSbm::CreateQuadraturePointGeometriesSbmByProjectionLayer(
     KRATOS_ERROR_IF_NOT(check_input_type) << ":::[IgaModelerSbm]::: type != \"condition\" in CreateQuadraturePointGeometriesSbm. "
                                           << "It must be a condition to apply the sbm operators. type: " << type << std::endl;
 
-    SizeType shape_function_derivatives_order = 1;
-    if (rParameters.Has("shape_function_derivatives_order")) {
-        shape_function_derivatives_order = rParameters["shape_function_derivatives_order"].GetInt();
-    }
-    else {
-        KRATOS_INFO_IF("CreateQuadraturePointGeometries", mEchoLevel > 1)
-            << "shape_function_derivatives_order is not provided and thus being considered as 1. " << std::endl;
-    }
+    const int shape_function_derivatives_order =
+    rParameters["shape_function_derivatives_order"].GetInt();
+
+    const SizeType required_shape_function_derivatives_order =
+    rGeometryList[0].pGetGeometryPart(GeometryType::BACKGROUND_GEOMETRY_INDEX)-> PolynomialDegree(0) + 1;
+
+    KRATOS_ERROR_IF(
+        shape_function_derivatives_order < 0 ||
+        static_cast<SizeType>(shape_function_derivatives_order) < required_shape_function_derivatives_order)
+        << "::[IgaModelerSbm]:: \"shape_function_derivatives_order\" must be at least " << required_shape_function_derivatives_order << ", but received " << shape_function_derivatives_order << std::endl;
 
     std::string quadrature_method = rParameters.Has("quadrature_method")
         ? rParameters["integration_rule"].GetString()
@@ -553,14 +565,16 @@ void IgaModelerSbm::CreateQuadraturePointGeometriesSbmByFixedConditionName(
     KRATOS_ERROR_IF_NOT(check_input_type) << ":::[IgaModelerSbm]::: type != \"condition\" in CreateQuadraturePointGeometriesSbm. "
                                           << "It must be a condition to apply the sbm operators. type: " << type << std::endl;
 
-    SizeType shape_function_derivatives_order = 1;
-    if (rParameters.Has("shape_function_derivatives_order")) {
-        shape_function_derivatives_order = rParameters["shape_function_derivatives_order"].GetInt();
-    }
-    else {
-        KRATOS_INFO_IF("CreateQuadraturePointGeometries", mEchoLevel > 1)
-            << "shape_function_derivatives_order is not provided and thus being considered as 1. " << std::endl;
-    }
+    const int shape_function_derivatives_order =
+    rParameters["shape_function_derivatives_order"].GetInt();
+
+    const SizeType required_shape_function_derivatives_order =
+    rGeometryList[0].pGetGeometryPart(GeometryType::BACKGROUND_GEOMETRY_INDEX)-> PolynomialDegree(0) + 1;
+
+    KRATOS_ERROR_IF(
+        shape_function_derivatives_order < 0 ||
+        static_cast<SizeType>(shape_function_derivatives_order) < required_shape_function_derivatives_order)
+        << "::[IgaModelerSbm]:: \"shape_function_derivatives_order\" must be at least " << required_shape_function_derivatives_order << ", but received " << shape_function_derivatives_order << std::endl;
 
     std::string quadrature_method = rParameters.Has("quadrature_method")
         ? rParameters["integration_rule"].GetString()
@@ -771,9 +785,6 @@ void IgaModelerSbm::CreateConditions(
         // Set knot span sizes to the condition
         new_condition_list.GetContainer()[count_list_closest_condition]->SetValue(KNOT_SPAN_SIZES, KnotSpanSizes);
 
-        for (SizeType i = 0; i < (*it)->size(); ++i) {
-            rModelPart.Nodes().push_back((*it)->pGetPoint(i));
-        }
         rIdCounter++;
         count_list_closest_condition++;
     }
@@ -828,10 +839,6 @@ void IgaModelerSbm::CreateConditions(
             }
             new_condition_list.GetContainer()[count_list_closest_condition]->SetValue(KNOT_SPAN_SIZES, KnotSpanSizes);
                         
-            for (SizeType i = 0; i < (*it)->size(); ++i) {
-                // These are the control points associated with the basis functions involved in the condition we are creating
-                rModelPart.Nodes().push_back((*it)->pGetPoint(i));
-            }
             rIdCounter++;
             count_list_closest_condition++;
         }

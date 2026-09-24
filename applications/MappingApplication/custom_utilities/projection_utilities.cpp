@@ -66,41 +66,41 @@ void FillEquationIdVectorIBRA(const GeometryType::Pointer pGeometry,
     const IndexType polynomial_degree_u = pGeometry->PolynomialDegree(0);
     const IndexType polynomial_degree_v = pGeometry->PolynomialDegree(1);
 
-    // Get the knot vectors of the nurbs surface and extend them to be consistent
-    std::vector<double> knot_vector_u, knot_vector_v;
-    pGeometry->SpansLocalSpace(knot_vector_u, 0);
-    pGeometry->SpansLocalSpace(knot_vector_v, 1);
-    knot_vector_u.insert(knot_vector_u.begin(), polynomial_degree_u - 1, knot_vector_u.front());
-    knot_vector_u.insert(knot_vector_u.end(),   polynomial_degree_u - 1, knot_vector_u.back());
-    knot_vector_v.insert(knot_vector_v.begin(), polynomial_degree_v - 1, knot_vector_v.front());
-    knot_vector_v.insert(knot_vector_v.end(), polynomial_degree_v - 1, knot_vector_v.back());
+    // Downcast the geometry to a nurbs surface
+    auto p_nurbs_surface = dynamic_cast<NurbsSurfaceGeometryType*>(pGeometry.get());
 
-    // shape function container.
-    NurbsSurfaceShapeFunction shape_function_container(
-        polynomial_degree_u, polynomial_degree_v, 0);
-    
-    // Transform the knot vectors to the required format for the shape function container
-    Vector vector_knot_vector_u(knot_vector_u.size()), vector_knot_vector_v(knot_vector_v.size());   
-    for (IndexType i = 0; i < knot_vector_u.size(); ++i) {
-        vector_knot_vector_u[i] = knot_vector_u[i];
-    }
+    KRATOS_ERROR_IF_NOT(p_nurbs_surface) << "Geometry is not a NurbsSurfaceGeometryType!" << std::endl;
 
-    for (IndexType i = 0; i < knot_vector_v.size(); ++i) {
-        vector_knot_vector_v[i] = knot_vector_v[i];
-    }
+    // Number of CPs in the u and v directions
+    const SizeType num_cp_u = pGeometry->PointsNumberInDirection(0);
+    const SizeType num_cp_v = pGeometry->PointsNumberInDirection(1);
 
-    shape_function_container.ComputeBSplineShapeFunctionValues(vector_knot_vector_u, vector_knot_vector_v, rCoordinates[0], rCoordinates[1]);
+    // Knot vectors in the u and v directions with multiplicity of p at the beginning and end
+    const Vector knots_u = p_nurbs_surface->KnotsU();
+    const Vector knots_v = p_nurbs_surface->KnotsV();
 
-    IndexType num_nonzero_cps = shape_function_container.NumberOfNonzeroControlPoints();
+    NurbsSurfaceShapeFunction shape_function_container(polynomial_degree_u, polynomial_degree_v, 0);
 
-    /// Get List of Control Points
-    PointsArrayType nonzero_control_points(num_nonzero_cps);
-    std::vector<int> cp_indices = shape_function_container.ControlPointIndices(
-        pGeometry->PointsNumberInDirection(0), pGeometry->PointsNumberInDirection(1));
-    
-    for (IndexType j = 0; j < num_nonzero_cps; j++) {
-        KRATOS_DEBUG_ERROR_IF_NOT(pGeometry->pGetPoint(cp_indices[j])->Has(INTERFACE_EQUATION_ID)) << pGeometry->pGetPoint(cp_indices[j]) << " does not have an \"INTERFACE_EQUATION_ID\"" << std::endl;
-        rEquationIds.push_back(pGeometry->pGetPoint(cp_indices[j])->GetValue(INTERFACE_EQUATION_ID));
+    shape_function_container.ComputeBSplineShapeFunctionValues(knots_u, knots_v, rCoordinates[0], rCoordinates[1]);
+
+    // Get the indices of the non-zero shape functions (i.e. the control points influencing the point defined by rCoordinates)
+    const IndexType num_nonzero_cps = shape_function_container.NumberOfNonzeroControlPoints();
+    const std::vector<int> cp_indices = shape_function_container.ControlPointIndices(num_cp_u, num_cp_v);
+
+    rEquationIds.clear();
+    rEquationIds.resize(num_nonzero_cps);
+
+    for (IndexType j = 0; j < num_nonzero_cps; ++j) {
+        const int cp_index = cp_indices[j];
+
+        KRATOS_ERROR_IF(cp_index < 0 || cp_index >= static_cast<int>(pGeometry->PointsNumber()))
+            << "Invalid control point index " << cp_index
+            << " for geometry with " << pGeometry->PointsNumber()
+            << " control points." << std::endl;
+
+        auto p_point = pGeometry->pGetPoint(cp_index);
+
+        rEquationIds[j] = p_point->GetValue(INTERFACE_EQUATION_ID);
     }
 
     KRATOS_CATCH("")

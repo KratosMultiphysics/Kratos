@@ -19,7 +19,7 @@
 #include "geometries/triangle_2d_3.h"
 #include "includes/kratos_parameters.h"
 #include "testing/testing.h"
-#include "spaces/ublas_space.h"
+#include "spaces/default_spaces.h"
 #include "solving_strategies/strategies/implicit_solving_strategy.h"
 #include "linear_solvers/linear_solver.h"
 #include "custom_strategies/rom_builder_and_solver.h"
@@ -30,8 +30,8 @@
 namespace Kratos::Testing {
 namespace LeastSquaresPetrovGalerkinROMBuilderAndSolverTestingInternal {
 
-using SparseSpaceType = UblasSpace<double, CompressedMatrix, boost::numeric::ublas::vector<double>>;
-using LocalSpaceType = UblasSpace<double, Matrix, Vector>;
+using SparseSpaceType = TDefaultSparseSpace<double>;
+using LocalSpaceType = TDefaultDenseSpace<double>;
 using LinearSolverType = LinearSolver<SparseSpaceType, LocalSpaceType >;
 using BuilderAndSolverType = BuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType >;
 using LeastSquaresPetrovGalerkinROMBuilderAndSolverType = LeastSquaresPetrovGalerkinROMBuilderAndSolver<SparseSpaceType, LocalSpaceType, LinearSolverType>;
@@ -193,7 +193,9 @@ KRATOS_TEST_CASE_IN_SUITE(LeastSquaresPetrovGalerkinROMBuilderAndSolver, RomAppl
     {
         "name" : "rom_builder_and_solver",
         "nodal_unknowns" : ["TEMPERATURE"],
-        "number_of_rom_dofs" : 2
+        "number_of_rom_dofs" : 2,
+        "weight_vector_index": 0,
+        "number_of_hrom_sets": 1
     }
     )");
 
@@ -203,8 +205,9 @@ KRATOS_TEST_CASE_IN_SUITE(LeastSquaresPetrovGalerkinROMBuilderAndSolver, RomAppl
 
     const auto dx = BuildAndSolve(model_part, p_scheme, romBnS);
     const auto& dq = model_part.GetValue(ROM_SOLUTION_INCREMENT);
+    const int mActiveHromSet = parameters["weight_vector_index"].GetInt();
 
-    KRATOS_EXPECT_NEAR(model_part.ElementsBegin()->GetValue(HROM_WEIGHT), 1, 1e-8);
+    KRATOS_EXPECT_NEAR(model_part.ElementsBegin()->GetValue(HROM_WEIGHT)[mActiveHromSet], 1, 1e-8);
     KRATOS_EXPECT_EQ(romBnS.GetEquationSystemSize(), 3);
 
     KRATOS_EXPECT_NEAR(dq(0), 1.0 , 1e-8);
