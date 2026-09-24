@@ -1,10 +1,19 @@
-# Importing the Kratos Library
+# --- Kratos Imports ---
 import KratosMultiphysics as KM
-
 from KratosMultiphysics import python_linear_solver_factory as linear_solver_factory
 import KratosMultiphysics.kratos_utilities as kratos_utils
 
+# --- STD Imports ---
 from typing import Union
+
+
+def __ConstructNestedSolver(settings: KM.Parameters) -> Union[KM.LinearSolver, KM.ComplexLinearSolver]:
+    linear_solver_configuration = settings["linear_solver_settings"]
+    if linear_solver_configuration.Has("solver_type"): # user specified a linear solver
+        return linear_solver_factory.ConstructSolver(linear_solver_configuration)
+    else:
+        return linear_solver_factory.CreateFastestAvailableDirectLinearSolver()
+
 
 def ConstructSolver(settings: KM.Parameters) -> Union[KM.LinearSolver, KM.ComplexLinearSolver]:
     if not isinstance(settings, KM.Parameters):
@@ -60,6 +69,21 @@ def ConstructSolver(settings: KM.Parameters) -> Union[KM.LinearSolver, KM.Comple
                 raise Exception("FEAST not available in LinearSolversApplication")
         else:
             raise Exception("LinearSolversApplication not available")
+
+    elif solver_type == "power_iteration_eigenvalue_solver":
+        return KM.PowerIterationEigenvalueSolver(
+            settings,
+            __ConstructNestedSolver(settings))
+
+    elif solver_type == "power_iteration_highest_eigenvalue_solver":
+        return KM.PowerIterationHighestEigenvalueSolver(
+            settings,
+            __ConstructNestedSolver(settings))
+
+    elif solver_type == "rayleigh_quotient_iteration_eigenvalue_solver":
+        return KM.RayleighQuotientIterationEigenvalueSolver(
+            settings,
+            __ConstructNestedSolver(settings))
 
     else:
         return linear_solver_factory.ConstructSolver(settings)
