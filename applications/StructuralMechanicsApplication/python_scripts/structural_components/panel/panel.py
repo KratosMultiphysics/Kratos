@@ -147,7 +147,10 @@ class Panel(StructuralComponent):
         self.analysis_results = []
         for method in self.analysis_methods:
             if method.IsApplicable(self):
-                method.Evaluate(self)
+                result = method.Evaluate(self)#
+                if result is not None:
+                    self.analysis_results.append(result)
+                #result_dictionary = structural_component.analysis_results[0]["metadata"]
                 #TODO: Clean up
                 #result = method.Evaluate(self)
                 #self.analysis_results.append(result)
