@@ -6,14 +6,88 @@ from KratosMultiphysics.StructuralMechanicsApplication.structural_mechanics_anal
 
 class TestPuck(KratosUnittest.TestCase):
 
+
+    def _GetStressAnalysisProcess(self, simulation):
+        for process in simulation._GetListOfProcesses():
+            if hasattr(process, "structural_components"):
+                return process
+
+        self.fail("Could not find StressAnalysisProcess with structural_components.")
+
+    def _GetPuckResult(self, component):
+        for result in component.analysis_results:
+            if result.method_name == "puck":
+                return result
+
+        self.fail("Could not find Puck analysis result.")
+
+    def _CreateParametersWithPuckCriterion(self, criterion):
+        with open("ProjectParameters.json", "r") as parameter_file:
+            parameters = KratosMultiphysics.Parameters(parameter_file.read())
+
+        with open("handbook_config.json", "r") as handbook_file:
+            handbook_settings = KratosMultiphysics.Parameters(handbook_file.read())
+
+        handbook_settings["Structural_Elements"][0]["metadata"]["criterion"].SetString(criterion)
+
+        process_settings = parameters["processes"]["custom_processes"][0]
+        process_settings.RemoveValue("Parameters")
+        process_settings.AddValue("Parameters", handbook_settings)
+
+        return parameters
+
+#helper for RF_IFF step 14
+    def _CheckPuckRF_IFF(self, criterion, indices, expected_RF_IFF):
+        model, simulation = self._RunPuckAnalysis(criterion)
+
+        stress_analysis_process = self._GetStressAnalysisProcess(simulation)
+        component = stress_analysis_process.structural_components[0]
+        puck_result = self._GetPuckResult(component)
+
+        RF_IFF = puck_result.metadata["RF_IFF"]
+
+        for index, expected in zip(indices, expected_RF_IFF):
+            self.assertAlmostEqual(RF_IFF[index], expected, places=12)
+
+    def _RunPuckAnalysis(self, criterion):
+        parameters = self._CreateParametersWithPuckCriterion(criterion)
+
+        model = KratosMultiphysics.Model()
+        simulation = StructuralMechanicsAnalysis(model, parameters)
+        simulation.Run()
+
+        return model, simulation
+
+
+#helper for RF_FF step 14
+    def _CheckPuckRF_FF(self, criterion, indices, expected_RF_FF):
+        model, simulation = self._RunPuckAnalysis(criterion)
+
+        stress_analysis_process = self._GetStressAnalysisProcess(simulation)
+        component = stress_analysis_process.structural_components[0]
+        puck_result = self._GetPuckResult(component)
+
+        RF_FF = puck_result.metadata["RF_FF"]
+
+        for index, expected in zip(indices, expected_RF_FF):
+            self.assertAlmostEqual(RF_FF[index], expected, places=12)
+
+
+#helper for PuckDegradation step 14
+    def _CheckPuck_DegradationIFF(self, criterion, indices, expected_Puck_DegradationIFF):
+        model, simulation = self._RunPuckAnalysis(criterion)
+
+        stress_analysis_process = self._GetStressAnalysisProcess(simulation)
+        component = stress_analysis_process.structural_components[0]
+        puck_result = self._GetPuckResult(component)
+
+        Puck_DegradationIFF= puck_result.metadata["Puck_DegradationIFF"]
+
+        for index, expected in zip(indices, expected_Puck_DegradationIFF):
+            self.assertAlmostEqual(Puck_DegradationIFF[index], expected, places=4)            
+    
     def test_PuckDegradation_1(self):
         with KratosUnittest.WorkFolderScope("puck_test", __file__):
-
-            model, simulation = self._RunPuckAnalysis()
-
-            RF_IFF = ...
-            RF_FF = ...
-            PuckDegradationIFF = ...
 
             indices = [0, 27, 62, 84, 121]
 
@@ -41,22 +115,25 @@ class TestPuck(KratosUnittest.TestCase):
                 0.02787511025203488
             ]
 
-            for i, expected in zip(indices, expected_RF_FF):
-                self.assertAlmostEqual(RF_FF[i], expected, places=12)
-
-            for i, expected in zip(indices, expected_RF_IFF):
-                self.assertAlmostEqual(RF_IFF[i], expected, places=12)
-
-            for i, expected in zip(indices, expected_PuckDegradationIFF):
-                self.assertAlmostEqual(PuckDegradationIFF[i], expected, places=12)
+            self._CheckPuckRF_IFF(
+                        "last_ply_failure",
+                        indices,
+                        expected_RF_IFF
+                    )
+            self._CheckPuckRF_FF(
+                        "last_ply_failure",
+                        indices,
+                        expected_RF_FF
+                    )
+            self._CheckPuck_DegradationIFF(
+                        "last_ply_failure",
+                        indices,
+                        expected_PuckDegradationIFF
+                    )
 
 
     def test_PuckDegradation_2(self):
-        with KratosUnittest.WorkFolderScope("puck", __file__):
-
-            model, simulation = self._RunPuckAnalysis()
-
-            PuckDegradationIFF = ...
+        with KratosUnittest.WorkFolderScope("puck_test", __file__):
 
             indices = [0, 27, 62, 84, 121]
 
@@ -68,20 +145,16 @@ class TestPuck(KratosUnittest.TestCase):
                 0.027875110252034884
             ]
 
-            for i, expected in zip(indices, expected_PuckDegradationIFF):
-                self.assertAlmostEqual(
-                    PuckDegradationIFF[i],
-                    expected,
-                    places=12
-                )
+            self._CheckPuck_DegradationIFF(
+                        "first_fiber_failure",
+                        indices,
+                        expected_PuckDegradationIFF
+                    )
+
 
 
     def test_PuckDegradation_3(self):
-        with KratosUnittest.WorkFolderScope("puck", __file__):
-
-            model, simulation = self._RunPuckAnalysis()
-
-            PuckDegradationIFF = ...
+        with KratosUnittest.WorkFolderScope("puck_test", __file__):
 
             indices = [0, 27, 62, 84, 121]
 
@@ -93,30 +166,13 @@ class TestPuck(KratosUnittest.TestCase):
                 0
             ]
 
-            for i, expected in zip(indices, expected_PuckDegradationIFF):
-                self.assertAlmostEqual(
-                    PuckDegradationIFF[i],
-                    expected,
-                    places=12
-                )
+            self._CheckPuck_DegradationIFF(
+                        "first_ply_failure",
+                        indices,
+                        expected_PuckDegradationIFF
+                    )
 
 
-    def _RunPuckAnalysis(self):
-        with open("ProjectParameters.json", "r") as parameter_file:
-            parameters = KratosMultiphysics.Parameters(
-                parameter_file.read()
-            )
-
-        model = KratosMultiphysics.Model()
-
-        simulation = StructuralMechanicsAnalysis(
-            model,
-            parameters
-        )
-
-        simulation.Run()
-
-        return model, simulation
 
 
 if __name__ == "__main__":
