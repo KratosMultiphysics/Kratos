@@ -1,0 +1,805 @@
+{
+  "TIME": [
+    1.0
+  ],
+  "NODE_1": {
+    "VELOCITY_X": [
+      0.0
+    ],
+    "VELOCITY_Y": [
+      0.0
+    ],
+    "VELOCITY_Z": [
+      0.0
+    ],
+    "MESH_DISPLACEMENT_X": [
+      1.088042226008604
+    ],
+    "MESH_DISPLACEMENT_Y": [
+      3.678143056901656
+    ],
+    "MESH_DISPLACEMENT_Z": [
+      0.0
+    ]
+  },
+  "NODE_2": {
+    "VELOCITY_X": [
+      0.0
+    ],
+    "VELOCITY_Y": [
+      0.0
+    ],
+    "VELOCITY_Z": [
+      0.0
+    ],
+    "MESH_DISPLACEMENT_X": [
+      0.4759186770532115
+    ],
+    "MESH_DISPLACEMENT_Y": [
+      2.992366158384402
+    ],
+    "MESH_DISPLACEMENT_Z": [
+      0.0
+    ]
+  },
+  "NODE_3": {
+    "VELOCITY_X": [
+      0.0
+    ],
+    "VELOCITY_Y": [
+      0.0
+    ],
+    "VELOCITY_Z": [
+      0.0
+    ],
+    "MESH_DISPLACEMENT_X": [
+      0.09899461402101972
+    ],
+    "MESH_DISPLACEMENT_Y": [
+      3.8344194214044034
+    ],
+    "MESH_DISPLACEMENT_Z": [
+      0.0
+    ]
+  },
+  "NODE_4": {
+    "VELOCITY_X": [
+      0.0
+    ],
+    "VELOCITY_Y": [
+      0.0
+    ],
+    "VELOCITY_Z": [
+      0.0
+    ],
+    "MESH_DISPLACEMENT_X": [
+      2.002941558530337
+    ],
+    "MESH_DISPLACEMENT_Y": [
+      3.27120732232944
+    ],
+    "MESH_DISPLACEMENT_Z": [
+      0.0
+    ]
+  },
+  "NODE_5": {
+    "VELOCITY_X": [
+      0.0
+    ],
+    "VELOCITY_Y": [
+      0.0
+    ],
+    "VELOCITY_Z": [
+      0.0
+    ],
+    "MESH_DISPLACEMENT_X": [
+      1.6374635443617294
+    ],
+    "MESH_DISPLACEMENT_Y": [
+      2.407807928463774
+    ],
+    "MESH_DISPLACEMENT_Z": [
+      0.0
+    ]
+  },
+  "NODE_6": {
+    "VELOCITY_X": [
+      8.390715290764524
+    ],
+    "VELOCITY_Y": [
+      -5.440211108893697
+    ],
+    "VELOCITY_Z": [
+      0.0
+    ],
+    "MESH_DISPLACEMENT_X": [
+      0.5440211108893698
+    ],
+    "MESH_DISPLACEMENT_Y": [
+      1.8390715290764525
+    ],
+    "MESH_DISPLACEMENT_Z": [
+      0.0
+    ]
+  },
+  "NODE_7": {
+    "VELOCITY_X": [
+      0.0
+    ],
+    "VELOCITY_Y": [
+      0.0
+    ],
+    "VELOCITY_Z": [
+      0.0
+    ],
+    "MESH_DISPLACEMENT_X": [
+      -0.8967993181670197
+    ],
+    "MESH_DISPLACEMENT_Y": [
+      3.729386439554764
+    ],
+    "MESH_DISPLACEMENT_Z": [
+      0.0
+    ]
+  },
+  "NODE_8": {
+    "VELOCITY_X": [
+      0.0
+    ],
+    "VELOCITY_Y": [
+      0.0
+    ],
+    "VELOCITY_Z": [
+      0.0
+    ],
+    "MESH_DISPLACEMENT_X": [
+      2.7813437350564936
+    ],
+    "MESH_DISPLACEMENT_Y": [
+      2.6413442146342025
+    ],
+    "MESH_DISPLACEMENT_Z": [
+      0.0
+    ]
+  },
+  "NODE_9": {
+    "VELOCITY_X": [
+      2.9505041818708264
+    ],
+    "VELOCITY_Y": [
+      -13.830926399658221
+    ],
+    "VELOCITY_Z": [
+      0.0
+    ],
+    "MESH_DISPLACEMENT_X": [
+      2.383092639965822
+    ],
+    "MESH_DISPLACEMENT_Y": [
+      1.2950504181870826
+    ],
+    "MESH_DISPLACEMENT_Z": [
+      0.0
+    ]
+  },
+  "NODE_10": {
+    "VELOCITY_X": [
+      13.830926399658221
+    ],
+    "VELOCITY_Y": [
+      2.9505041818708264
+    ],
+    "VELOCITY_Z": [
+      -0.0
+    ],
+    "MESH_DISPLACEMENT_X": [
+      -1.2950504181870826
+    ],
+    "MESH_DISPLACEMENT_Y": [
+      2.383092639965822
+    ],
+    "MESH_DISPLACEMENT_Z": [
+      0.0
+    ]
+  },
+  "NODE_11": {
+    "VELOCITY_X": [
+      0.0
+    ],
+    "VELOCITY_Y": [
+      0.0
+    ],
+    "VELOCITY_Z": [
+      0.0
+    ],
+    "MESH_DISPLACEMENT_X": [
+      3.3702019324133063
+    ],
+    "MESH_DISPLACEMENT_Y": [
+      1.8314778644387268
+    ],
+    "MESH_DISPLACEMENT_Z": [
+      0.0
+    ]
+  },
+  "NODE_12": {
+    "VELOCITY_X": [
+      0.0
+    ],
+    "VELOCITY_Y": [
+      0.0
+    ],
+    "VELOCITY_Z": [
+      0.0
+    ],
+    "MESH_DISPLACEMENT_X": [
+      -1.8314778587737066
+    ],
+    "MESH_DISPLACEMENT_Y": [
+      3.37020193533752
+    ],
+    "MESH_DISPLACEMENT_Z": [
+      0.0
+    ]
+  },
+  "NODE_13": {
+    "VELOCITY_X": [
+      0.0
+    ],
+    "VELOCITY_Y": [
+      0.0
+    ],
+    "VELOCITY_Z": [
+      0.0
+    ],
+    "MESH_DISPLACEMENT_X": [
+      3.7293864380604065
+    ],
+    "MESH_DISPLACEMENT_Y": [
+      0.8967993246090703
+    ],
+    "MESH_DISPLACEMENT_Z": [
+      0.0
+    ]
+  },
+  "NODE_14": {
+    "VELOCITY_X": [
+      0.0
+    ],
+    "VELOCITY_Y": [
+      0.0
+    ],
+    "VELOCITY_Z": [
+      0.0
+    ],
+    "MESH_DISPLACEMENT_X": [
+      -2.6413442162816665
+    ],
+    "MESH_DISPLACEMENT_Y": [
+      2.7813437335438347
+    ],
+    "MESH_DISPLACEMENT_Z": [
+      0.0
+    ]
+  },
+  "NODE_15": {
+    "VELOCITY_X": [
+      -5.440211108893697
+    ],
+    "VELOCITY_Y": [
+      -8.390715290764524
+    ],
+    "VELOCITY_Z": [
+      0.0
+    ],
+    "MESH_DISPLACEMENT_X": [
+      1.8390715290764525
+    ],
+    "MESH_DISPLACEMENT_Y": [
+      -0.5440211108893698
+    ],
+    "MESH_DISPLACEMENT_Z": [
+      0.0
+    ]
+  },
+  "NODE_16": {
+    "VELOCITY_X": [
+      5.440211108893697
+    ],
+    "VELOCITY_Y": [
+      8.390715290764524
+    ],
+    "VELOCITY_Z": [
+      -0.0
+    ],
+    "MESH_DISPLACEMENT_X": [
+      -1.8390715290764525
+    ],
+    "MESH_DISPLACEMENT_Y": [
+      0.5440211108893698
+    ],
+    "MESH_DISPLACEMENT_Z": [
+      0.0
+    ]
+  },
+  "NODE_17": {
+    "VELOCITY_X": [
+      0.0
+    ],
+    "VELOCITY_Y": [
+      0.0
+    ],
+    "VELOCITY_Z": [
+      0.0
+    ],
+    "MESH_DISPLACEMENT_X": [
+      -2.611784868084282
+    ],
+    "MESH_DISPLACEMENT_Y": [
+      1.5034760213723186
+    ],
+    "MESH_DISPLACEMENT_Z": [
+      0.0
+    ]
+  },
+  "NODE_18": {
+    "VELOCITY_X": [
+      0.0
+    ],
+    "VELOCITY_Y": [
+      0.0
+    ],
+    "VELOCITY_Z": [
+      0.0
+    ],
+    "MESH_DISPLACEMENT_X": [
+      3.012649663254089
+    ],
+    "MESH_DISPLACEMENT_Y": [
+      -0.17378070816593616
+    ],
+    "MESH_DISPLACEMENT_Z": [
+      0.0
+    ]
+  },
+  "NODE_19": {
+    "VELOCITY_X": [
+      0.0
+    ],
+    "VELOCITY_Y": [
+      0.0
+    ],
+    "VELOCITY_Z": [
+      0.0
+    ],
+    "MESH_DISPLACEMENT_X": [
+      3.8344194213370004
+    ],
+    "MESH_DISPLACEMENT_Y": [
+      -0.09899461560108136
+    ],
+    "MESH_DISPLACEMENT_Z": [
+      0.0
+    ]
+  },
+  "NODE_20": {
+    "VELOCITY_X": [
+      0.0
+    ],
+    "VELOCITY_Y": [
+      0.0
+    ],
+    "VELOCITY_Z": [
+      0.0
+    ],
+    "MESH_DISPLACEMENT_X": [
+      -3.2712073231324705
+    ],
+    "MESH_DISPLACEMENT_Y": [
+      2.002941557167884
+    ],
+    "MESH_DISPLACEMENT_Z": [
+      0.0
+    ]
+  },
+  "NODE_21": {
+    "VELOCITY_X": [
+      0.0
+    ],
+    "VELOCITY_Y": [
+      0.0
+    ],
+    "VELOCITY_Z": [
+      0.0
+    ],
+    "MESH_DISPLACEMENT_X": [
+      -3.012649692415423
+    ],
+    "MESH_DISPLACEMENT_Y": [
+      0.17378070559223535
+    ],
+    "MESH_DISPLACEMENT_Z": [
+      0.0
+    ]
+  },
+  "NODE_22": {
+    "VELOCITY_X": [
+      0.0
+    ],
+    "VELOCITY_Y": [
+      0.0
+    ],
+    "VELOCITY_Z": [
+      0.0
+    ],
+    "MESH_DISPLACEMENT_X": [
+      2.611784894856724
+    ],
+    "MESH_DISPLACEMENT_Y": [
+      -1.5034760376919525
+    ],
+    "MESH_DISPLACEMENT_Z": [
+      0.0
+    ]
+  },
+  "NODE_23": {
+    "VELOCITY_X": [
+      0.0
+    ],
+    "VELOCITY_Y": [
+      0.0
+    ],
+    "VELOCITY_Z": [
+      0.0
+    ],
+    "MESH_DISPLACEMENT_X": [
+      -3.6781430575000797
+    ],
+    "MESH_DISPLACEMENT_Y": [
+      1.0880422239856256
+    ],
+    "MESH_DISPLACEMENT_Z": [
+      0.0
+    ]
+  },
+  "NODE_24": {
+    "VELOCITY_X": [
+      0.0
+    ],
+    "VELOCITY_Y": [
+      0.0
+    ],
+    "VELOCITY_Z": [
+      0.0
+    ],
+    "MESH_DISPLACEMENT_X": [
+      3.678143056248831
+    ],
+    "MESH_DISPLACEMENT_Y": [
+      -1.08804222821549
+    ],
+    "MESH_DISPLACEMENT_Z": [
+      0.0
+    ]
+  },
+  "NODE_25": {
+    "VELOCITY_X": [
+      -8.390715290764524
+    ],
+    "VELOCITY_Y": [
+      5.440211108893697
+    ],
+    "VELOCITY_Z": [
+      0.0
+    ],
+    "MESH_DISPLACEMENT_X": [
+      -0.5440211108893698
+    ],
+    "MESH_DISPLACEMENT_Y": [
+      -1.8390715290764525
+    ],
+    "MESH_DISPLACEMENT_Z": [
+      0.0
+    ]
+  },
+  "NODE_26": {
+    "VELOCITY_X": [
+      -13.830926399658221
+    ],
+    "VELOCITY_Y": [
+      -2.9505041818708264
+    ],
+    "VELOCITY_Z": [
+      0.0
+    ],
+    "MESH_DISPLACEMENT_X": [
+      1.2950504181870826
+    ],
+    "MESH_DISPLACEMENT_Y": [
+      -2.383092639965822
+    ],
+    "MESH_DISPLACEMENT_Z": [
+      0.0
+    ]
+  },
+  "NODE_27": {
+    "VELOCITY_X": [
+      -2.9505041818708264
+    ],
+    "VELOCITY_Y": [
+      13.830926399658221
+    ],
+    "VELOCITY_Z": [
+      0.0
+    ],
+    "MESH_DISPLACEMENT_X": [
+      -2.383092639965822
+    ],
+    "MESH_DISPLACEMENT_Y": [
+      -1.2950504181870826
+    ],
+    "MESH_DISPLACEMENT_Z": [
+      0.0
+    ]
+  },
+  "NODE_28": {
+    "VELOCITY_X": [
+      0.0
+    ],
+    "VELOCITY_Y": [
+      0.0
+    ],
+    "VELOCITY_Z": [
+      0.0
+    ],
+    "MESH_DISPLACEMENT_X": [
+      -3.8344194215392085
+    ],
+    "MESH_DISPLACEMENT_Y": [
+      0.09899461086089689
+    ],
+    "MESH_DISPLACEMENT_Z": [
+      0.0
+    ]
+  },
+  "NODE_29": {
+    "VELOCITY_X": [
+      0.0
+    ],
+    "VELOCITY_Y": [
+      0.0
+    ],
+    "VELOCITY_Z": [
+      0.0
+    ],
+    "MESH_DISPLACEMENT_X": [
+      3.271207320723377
+    ],
+    "MESH_DISPLACEMENT_Y": [
+      -2.002941561255243
+    ],
+    "MESH_DISPLACEMENT_Z": [
+      0.0
+    ]
+  },
+  "NODE_30": {
+    "VELOCITY_X": [
+      0.0
+    ],
+    "VELOCITY_Y": [
+      0.0
+    ],
+    "VELOCITY_Z": [
+      0.0
+    ],
+    "MESH_DISPLACEMENT_X": [
+      -3.7293864389953426
+    ],
+    "MESH_DISPLACEMENT_Y": [
+      -0.8967993203325041
+    ],
+    "MESH_DISPLACEMENT_Z": [
+      0.0
+    ]
+  },
+  "NODE_31": {
+    "VELOCITY_X": [
+      0.0
+    ],
+    "VELOCITY_Y": [
+      0.0
+    ],
+    "VELOCITY_Z": [
+      0.0
+    ],
+    "MESH_DISPLACEMENT_X": [
+      2.6413442129867386
+    ],
+    "MESH_DISPLACEMENT_Y": [
+      -2.781343736569152
+    ],
+    "MESH_DISPLACEMENT_Z": [
+      0.0
+    ]
+  },
+  "NODE_32": {
+    "VELOCITY_X": [
+      0.0
+    ],
+    "VELOCITY_Y": [
+      0.0
+    ],
+    "VELOCITY_Z": [
+      0.0
+    ],
+    "MESH_DISPLACEMENT_X": [
+      -1.637463545615378
+    ],
+    "MESH_DISPLACEMENT_Y": [
+      -2.4078079272929283
+    ],
+    "MESH_DISPLACEMENT_Z": [
+      0.0
+    ]
+  },
+  "NODE_33": {
+    "VELOCITY_X": [
+      0.0
+    ],
+    "VELOCITY_Y": [
+      0.0
+    ],
+    "VELOCITY_Z": [
+      0.0
+    ],
+    "MESH_DISPLACEMENT_X": [
+      -0.4759186760999744
+    ],
+    "MESH_DISPLACEMENT_Y": [
+      -2.9923661578663823
+    ],
+    "MESH_DISPLACEMENT_Z": [
+      0.0
+    ]
+  },
+  "NODE_34": {
+    "VELOCITY_X": [
+      0.0
+    ],
+    "VELOCITY_Y": [
+      0.0
+    ],
+    "VELOCITY_Z": [
+      0.0
+    ],
+    "MESH_DISPLACEMENT_X": [
+      -3.3702019346899945
+    ],
+    "MESH_DISPLACEMENT_Y": [
+      -1.8314778599652533
+    ],
+    "MESH_DISPLACEMENT_Z": [
+      0.0
+    ]
+  },
+  "NODE_35": {
+    "VELOCITY_X": [
+      0.0
+    ],
+    "VELOCITY_Y": [
+      0.0
+    ],
+    "VELOCITY_Z": [
+      0.0
+    ],
+    "MESH_DISPLACEMENT_X": [
+      1.8314778628249642
+    ],
+    "MESH_DISPLACEMENT_Y": [
+      -3.3702019331359345
+    ],
+    "MESH_DISPLACEMENT_Z": [
+      0.0
+    ]
+  },
+  "NODE_36": {
+    "VELOCITY_X": [
+      0.0
+    ],
+    "VELOCITY_Y": [
+      0.0
+    ],
+    "VELOCITY_Z": [
+      0.0
+    ],
+    "MESH_DISPLACEMENT_X": [
+      -2.7813437380818113
+    ],
+    "MESH_DISPLACEMENT_Y": [
+      -2.641344211339274
+    ],
+    "MESH_DISPLACEMENT_Z": [
+      0.0
+    ]
+  },
+  "NODE_37": {
+    "VELOCITY_X": [
+      0.0
+    ],
+    "VELOCITY_Y": [
+      0.0
+    ],
+    "VELOCITY_Z": [
+      0.0
+    ],
+    "MESH_DISPLACEMENT_X": [
+      0.8967993224979884
+    ],
+    "MESH_DISPLACEMENT_Y": [
+      -3.7293864384359203
+    ],
+    "MESH_DISPLACEMENT_Z": [
+      0.0
+    ]
+  },
+  "NODE_38": {
+    "VELOCITY_X": [
+      0.0
+    ],
+    "VELOCITY_Y": [
+      0.0
+    ],
+    "VELOCITY_Z": [
+      0.0
+    ],
+    "MESH_DISPLACEMENT_X": [
+      -0.09899460922643322
+    ],
+    "MESH_DISPLACEMENT_Y": [
+      -3.834419421422704
+    ],
+    "MESH_DISPLACEMENT_Z": [
+      0.0
+    ]
+  },
+  "NODE_39": {
+    "VELOCITY_X": [
+      0.0
+    ],
+    "VELOCITY_Y": [
+      0.0
+    ],
+    "VELOCITY_Z": [
+      0.0
+    ],
+    "MESH_DISPLACEMENT_X": [
+      -2.0029415626176963
+    ],
+    "MESH_DISPLACEMENT_Y": [
+      -3.2712073199203457
+    ],
+    "MESH_DISPLACEMENT_Z": [
+      0.0
+    ]
+  },
+  "NODE_40": {
+    "VELOCITY_X": [
+      0.0
+    ],
+    "VELOCITY_Y": [
+      0.0
+    ],
+    "VELOCITY_Z": [
+      0.0
+    ],
+    "MESH_DISPLACEMENT_X": [
+      -1.0880422217787395
+    ],
+    "MESH_DISPLACEMENT_Y": [
+      -3.678143058152905
+    ],
+    "MESH_DISPLACEMENT_Z": [
+      0.0
+    ]
+  }
+}
