@@ -191,6 +191,12 @@ def ConstructSolver(configuration = KM.Parameters("""{}""")):
     if not isinstance(configuration, KM.Parameters):
         raise Exception("input is expected to be provided as a Kratos Parameters object")
 
+    # Remove factory-related keys to avoid polluting the solver configuration (these are used internally and should not be passed to the factory). TODO: Adapt in the future this script to be compatible with the PythonLinearSolverFactory and avoid this "manual" cleanup
+    if configuration.Has("kratos_module"):
+        configuration.RemoveValue("kratos_module")
+    if configuration.Has("factory_module"):
+        configuration.RemoveValue("factory_module")
+
     # Define solver priority list
     if not configuration.Has("solver_type"):
         linear_solvers_by_speed = KratosTrilinos.TrilinosSparseSpace.FastestDirectSolverList()
