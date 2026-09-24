@@ -7,6 +7,10 @@
 #  Main authors:    Lucas Rimpl
 #  Co-authors:      Tobias Siemer
 #
+
+#The current test model using these material data does not produce a fiber failure in the “First Fiber Fracture” degradation analysis. 
+#Therefore, this is not fully covered by the test
+
 import numpy as np
 from KratosMultiphysics.StructuralMechanicsApplication.handbook_methods.analysis_result import AnalysisResult
 from KratosMultiphysics.StructuralMechanicsApplication.handbook_methods.method_base import HandbookMethod
@@ -14,7 +18,9 @@ import KratosMultiphysics.StructuralMechanicsApplication as SMA
 
 
 
-class PuckAnalysis:
+class PuckAnalysis(HandbookMethod):
+    name = "puck"
+    category = "strength"
 
     def IsApplicable(self, structural_component):
         return True
@@ -35,7 +41,17 @@ class PuckAnalysis:
             self.first_fiber_failure = True
         else:
             raise ValueError(f"Unknown failure criterion: {criterion}")
-        self.PuckAnalysis(structural_component)
+        
+        puck_result = self.PuckAnalysis(structural_component)
+
+        critical_reserve_factor = float(np.nanmin(puck_result["RF_IFF"]))
+
+        return AnalysisResult(
+                            method_name=self.name,
+                            category=self.category,
+                            value=critical_reserve_factor,
+                            metadata=puck_result
+                        )
 
  #   def ValidateMetaData(self, structural_component):
 
@@ -108,7 +124,8 @@ class PuckAnalysis:
         
         # Mode A
         f_E_A = np.sqrt((tau_21/R_trpa)**2+(1-p_trpa_t*R_tr_t/R_trpa)**2*(sigma_2/R_tr_t)**2)+p_trpa_t*sigma_2/R_trpa
-        
+        The current model using these material data does not produce a fiber failure in the “First Fiber Fracture” degradation analysis. 
+Therefore, this is not fully covered by the test
         # Mode B
         f_E_B = 1/R_trpa*(np.sqrt(tau_21**2+(p_trpa_c*sigma_2)**2)+p_trpa_c*sigma_2)
         
@@ -600,5 +617,12 @@ class PuckAnalysis:
         print ("-ElementID-", "-PlyID-", "-PlyAngle-", "-topbot-", "-RF_FF-", "-f_E_FF-", "-failure_mode_FF-", "-RF_IFF-", "-f_E_IFF-", "-failure_mode_IFF-", "-theta_fp_IFF-", "-PuckDegradationIFF-")
     
         self.PrintMatrix(Puck_analyse)   
+
+        return {
+            "RF_IFF": RF_IFF,
+            "RF_FF": RF_FF,
+            "Puck_DegradationIFF": Puck_DegradationIFF
+
+        }
 
 
