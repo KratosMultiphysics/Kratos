@@ -22,6 +22,7 @@ export KRATOS_INSTALL_PYTHON_USING_LINKS=ON
 # Set applications to compile
 add_app ${KRATOS_APP_DIR}/LinearSolversApplication;
 add_app ${KRATOS_APP_DIR}/MetisApplication;
+add_app ${KRATOS_APP_DIR}/KaHIPApplication;
 add_app ${KRATOS_APP_DIR}/TrilinosApplication;
 
 # Clean
