@@ -53,6 +53,9 @@ include(pybind11Tools)
 # the inlined tables are compiled into this application. Kratos has no seven-node triangle, so
 # a triangle7 block (a Code_Aster TRIA7, say) still cannot become a ModelPart entity.
 #
+# v16.1.0 -> v16.13.0 holds ABI 16: every installed-header change is an addition (the release
+# rows of meshio++'s doc/abi_reviews.md), so nothing already compiled here is affected.
+#
 # A single ABI rather than a window, deliberately. Supporting several meant a
 # MESHIOPLUSPLUS_VERSION_AT_LEAST guard per feature, and the operations this application now
 # exposes (remesh v10.10.0, optimize_volume v10.14.0, estimate_error v10.2.0, the gid format
@@ -61,6 +64,14 @@ include(pybind11Tools)
 # compute_normals/gltf v15.4.0, tensor_invariants/binary OpenFOAM v15.5.0, nastran_h5 v15.7.0,
 # code_aster v16.0.0, mphbin v16.1.0) would have needed one each. ABI 16 is v16.0.0 onwards, so
 # everything compiles unconditionally.
+#
+# There is one release floor on top of the ABI pin, because the format table and a few direct
+# overloads this application calls only exist from later ABI-16 releases: elmer, febio, femap,
+# libmesh, mfem, patran, z88 and the results formats (abaqus_fil, ansys_rst, lsdyna_d3plot, ...)
+# arrived between v16.2.0 and v16.13.0, as did read_mfem(path, grid functions, ReadOptions),
+# write_mfem(path, mesh, bool), read_patran(path, results) and read_z88/write_z88's flags. An
+# older ABI-16 install is binary compatible but does not *have* those symbols, so it is refused
+# here by release rather than failing at link time.
 #
 # Getting it wrong is not silent: the C++ variants' SOVERSION is the ABI version, and every
 # consumer translation unit carries a link-time sentinel naming it, so a header/library skew is
@@ -72,7 +83,14 @@ if(NOT MESHIOPLUSPLUS_ABI_VERSION EQUAL 16)
         "MeshioPlusPlusApplication needs meshio++ ABI 16, but the install at "
         "'${meshioplusplus_DIR}' reports ABI ${MESHIOPLUSPLUS_ABI_VERSION} "
         "(release ${meshioplusplus_VERSION}). ABI 16 is meshio++ v16.0.0 onwards, "
-        "which includes v16.1.0.")
+        "which includes v16.13.0.")
+endif()
+
+if(meshioplusplus_VERSION VERSION_LESS 16.13.0)
+    message(FATAL_ERROR
+        "MeshioPlusPlusApplication needs meshio++ v16.13.0 or newer (for its format table and "
+        "the elmer/mfem/patran/z88 entry points), but the install at '${meshioplusplus_DIR}' "
+        "is release ${meshioplusplus_VERSION}.")
 endif()
 
 if(NOT TARGET meshioplusplus::core_kratos)
@@ -86,7 +104,8 @@ endif()
 message(STATUS "meshio++ ${meshioplusplus_VERSION} (ABI ${MESHIOPLUSPLUS_ABI_VERSION}): "
                "backends '${MESHIOPLUSPLUS_MESH_BACKENDS}', "
                "parallel '${MESHIOPLUSPLUS_PARALLEL_BACKEND}', HDF5 '${MESHIOPLUSPLUS_WITH_HDF5}', "
-               "netCDF '${MESHIOPLUSPLUS_WITH_NETCDF}'")
+               "netCDF '${MESHIOPLUSPLUS_WITH_NETCDF}', ADIOS2 '${MESHIOPLUSPLUS_WITH_ADIOS2}', "
+               "TecIO '${MESHIOPLUSPLUS_WITH_TECIO}', bzip2 '${MESHIOPLUSPLUS_WITH_BZIP2}'")
 
 include_directories( ${KRATOS_SOURCE_DIR}/kratos )
 
