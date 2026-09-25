@@ -12,8 +12,6 @@ from typing import Generator
 import math
 
 
-@KratosMultiphysics.KratosUnittest.skipUnless(hasattr(KratosMultiphysics, "PMultigridBuilderAndSolver"),
-                                              "The test configurations request the p_multigrid builder-and-solver, which is not available with the configured linear-algebra backend (uBLAS-only).")
 class TestLinkConstraint(KratosMultiphysics.KratosUnittest.TestCase):
 
     def test_LinkConstraint2DWithoutMovedMesh(self) -> None:
