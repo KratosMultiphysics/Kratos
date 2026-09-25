@@ -75,7 +75,7 @@
                             "nodal_results": [
                                 "WATER_PRESSURE",
                                 "EFFECTIVE_SATURATION",
-                                "NODAL_WATER_FLOW",
+                                "NODAL_WATER_FLOW_RATE",
                                 "FLUID_FLUX_VECTOR"
                             ]
                         }
