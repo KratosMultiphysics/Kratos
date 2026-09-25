@@ -17,7 +17,11 @@ class MeshioInputModeler(KratosMultiphysics.Modeler):
     region of a multi-region OpenFOAM case. A partitioned file (vtkhdf, pvtu,
     pvtp, pvd, vtm) is read whole unless "select_piece" (default false) picks
     piece "piece" (default 0, negative counts from the end); "ghosts" ("keep"
-    or "drop") removes the halo cells of a pvtu/pvtp/pvd. See
+    or "drop") removes the halo cells of a pvtu/pvtp/pvd. "mfem_grid_functions" and
+    "patran_result_files" ({"name", "path"} lists) read fields stored next to an
+    MFEM/Patran mesh; "z88_results" : false skips a Z88 deck's results;
+    "read_field_data" carries the file's data onto the matching registered
+    variables. See
     MeshioPlusPlusIO.ReadModelPart.
     """
 
@@ -53,6 +57,10 @@ class MeshioInputModeler(KratosMultiphysics.Modeler):
         io_settings.AddBool("select_piece", self.settings["select_piece"].GetBool())
         io_settings.AddInt("piece", self.settings["piece"].GetInt())
         io_settings.AddString("ghosts", self.settings["ghosts"].GetString())
+        io_settings.AddValue("mfem_grid_functions", self.settings["mfem_grid_functions"])
+        io_settings.AddValue("patran_result_files", self.settings["patran_result_files"])
+        io_settings.AddBool("z88_results", self.settings["z88_results"].GetBool())
+        io_settings.AddBool("read_field_data", self.settings["read_field_data"].GetBool())
         meshio_io = KratosMeshioPlusPlus.MeshioPlusPlusIO(
             self.settings["input_filename"].GetString(),
             io_settings)
@@ -76,7 +84,11 @@ class MeshioInputModeler(KratosMultiphysics.Modeler):
             "openfoam_region"  : "",
             "select_piece"     : false,
             "piece"            : 0,
-            "ghosts"           : "keep"
+            "ghosts"           : "keep",
+            "mfem_grid_functions" : [],
+            "patran_result_files" : [],
+            "z88_results"      : true,
+            "read_field_data"  : false
         }''')
         return default_settings
 
