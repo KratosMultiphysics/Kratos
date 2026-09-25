@@ -42,11 +42,12 @@ class IntegrationValuesExtrapolationToNodesProcess; // forward declaration (gaus
 
 /**
  * @brief Multi-format mesh input/output based on the meshio++ library.
- * @details Reads and writes 57 readable / 59 writable mesh file formats (vtu,
+ * @details Reads and writes 78 readable / 66 writable mesh file formats (vtu,
  * vtk, gmsh, med, xdmf, abaqus, ...; see @ref Format) converting to/from Kratos
  * model parts through the meshio++ Kratos bridge. Availability of the
  * HDF5-backed formats (med, cgns, h5m, hmf, vtkhdf, nastran_h5, the HDF data
- * path of xdmf) and the netCDF-backed ones (exodus) depends on the build; query
+ * path of xdmf), the netCDF-backed ones (exodus), vtx (ADIOS2) and szplt (TecIO)
+ * depends on the build; query
  * @ref GetSupportedFormats / @ref IsFormatAvailable.
  *
  * When writing a volume mesh to a surface-only format (stl, ply) the boundary
@@ -97,11 +98,20 @@ public:
      * @brief The file formats this IO is compatible with.
      * @details AUTOMATIC resolves the format from the file extension. Formats
      * backed by an optional dependency (HDF5: CGNS, H5M, HMF, MED, VTKHDF,
-     * NASTRAN_H5 and the HDF data path of XDMF; netCDF: EXODUS) are only
-     * available when the build enables them - check with @ref IsFormatAvailable.
-     * OPENFOAM is readable and writable (the polyMesh writer since meshio++
-     * v9.20.0); SVG, TIKZ, GMSH22 and GLTF are write only; FRD and NASTRAN_H5
-     * are read only.
+     * NASTRAN_H5 and the HDF data path of XDMF; netCDF: EXODUS; ADIOS2: VTX;
+     * TecIO: SZPLT) are only available when the build enables them - check with
+     * @ref IsFormatAvailable. OPENFOAM is readable and writable (the polyMesh
+     * writer since meshio++ v9.20.0); SVG, TIKZ, GMSH22 and GLTF are write only.
+     * The solver results files are read only - FRD, NASTRAN_H5, ABAQUS_FIL,
+     * ANSYS_RST(_CYCLIC), LSDYNA_BINOUT/D3PLOT, MARC_T19, NASTRAN_OP2,
+     * RADIOSS_ANIM/TH, SZPLT, VTX and XPLT, each step selectable with "time_step" -
+     * and so are the MARC and RADIOSS input decks.
+     *
+     * Resolution is by extension, except where meshio++ looks further: an existing
+     * .mesh starting with "MFEM " is MFEM (else MEDIT), an existing .dat holding a
+     * Marc deck is MARC (else TECPLOT), and fixed names (z88i1.txt, d3plot, binout,
+     * <run>A001, <run>T01) win over any extension. A path no extension resolves
+     * (an ELMER mesh directory, say) is identified by its content instead.
      *
      * GID is readable in strictly more build configurations than it is writable:
      * writing goes through gidpost, which is hard-gated on zlib, while reading is
@@ -121,68 +131,89 @@ public:
      */
     enum class Format
     {
-        AUTOMATIC, /// Resolve from the file extension
-        ABAQUS,    /// Abaqus .inp
-        ANSYS,     /// ANSYS .msh
-        ANSYSINP,  /// ANSYS Mechanical APDL .inp (cdb)
-        AVSUCD,    /// AVS-UCD .avs
-        CGNS,      /// CGNS .cgns (requires HDF5)
-        CODE_ASTER, /// Code_Aster native mesh .mail
-        DEX,       /// Dexelas .dex
-        DOLFIN,    /// DOLFIN XML .xml
-        ENSIGHT,   /// EnSight Gold .case/.geo
-        EXODUS,    /// Exodus II .e/.exo (requires netCDF)
-        FLAC3D,    /// FLAC3D .f3grid
-        FLUX,      /// Flux .pf3
-        FRD,       /// CalculiX results .frd (read only; every increment is a time step)
-        FREEFEM,   /// FreeFEM .msh
-        GID,       /// GiD postprocess .post.msh+.post.res/.post.bin/.post.h5 (writing needs a zlib-enabled build)
-        GLTF,      /// glTF 2.0 .glb/.gltf (write only; the surface of the mesh, see "gltf_settings")
-        GMSH,      /// Gmsh .msh (4.1 writer)
-        GMSH22,    /// Gmsh 2.2 .msh (write only; the only Gmsh writer round-tripping region membership)
-        H5M,       /// MOAB .h5m (requires HDF5)
-        HMF,       /// HMF .hmf (requires HDF5)
-        IP,        /// Ipreo .ip
-        LSDYNA,    /// LS-DYNA keyword deck .k/.key/.dyn (parts and sets as regions)
-        MDPA,      /// Kratos native .mdpa
-        MED,       /// salome MED .med (requires HDF5)
-        MEDIT,     /// Medit .mesh/.meshb
-        MFF,       /// MFF .mff
-        MFM,       /// MFM .mfm
-        MPHBIN,    /// COMSOL binary .mphbin
-        MPHTXT,    /// COMSOL .mphtxt
-        NASTRAN,   /// Nastran/OptiStruct bulk data .bdf/.nas/.fem
-        NASTRAN_H5, /// MSC Nastran HDF5 results .h5 (read only, requires HDF5; every result domain is a time step)
-        NETGEN,    /// Netgen .vol
-        OBJ,       /// Wavefront .obj
-        OFF,       /// Object File Format .off
-        OPENFOAM,  /// OpenFOAM polyMesh (ascii or binary, see "openfoam_label_bits"/"openfoam_scalar_bits")
-        PCD,       /// PCL point cloud .pcd (see "pcd_compressed"/"pcd_float64_points")
-        PERMAS,    /// PERMAS .post/.dato
-        PLY,       /// Polygon File Format .ply
-        PVD,       /// ParaView collection .pvd (a time-indexed index; transient output extends it)
-        PVTP,      /// ParaView partitioned PolyData .pvtp
-        PVTU,      /// ParaView partitioned UnstructuredGrid .pvtu (one piece per "partition:part")
-        STL,       /// Stereolithography .stl
-        SU2,       /// SU2 .su2
-        SVG,       /// Scalable Vector Graphics .svg (write only)
-        TECPLOT,   /// Tecplot .dat
-        TETGEN,    /// TetGen .node/.ele
-        TIKZ,      /// LaTeX TikZ/PGF .tikz (write only)
-        TRIANGLE,  /// Shewchuk Triangle .node/.ele/.poly (.node/.ele resolve to TETGEN by extension - select via the "format" setting)
-        UGRID,     /// AFLR3 .ugrid
-        UNV,       /// I-deas universal .unv/.uff
-        VTI,       /// VTK XML ImageData .vti (a regular lattice; writing needs a uniform lattice mesh)
-        VTK,       /// VTK legacy .vtk
-        VTKHDF,    /// VTK HDF5 .vtkhdf/.hdf (requires HDF5; transient output appends to one file)
-        VTM,       /// VTK XML MultiBlock .vtm (an index plus one .vtu piece per cell block, read back as named Cell regions)
-        VTP,       /// VTK PolyData XML .vtp
-        VTR,       /// VTK XML RectilinearGrid .vtr (reads any graded lattice; writing needs a uniform lattice mesh)
-        VTS,       /// VTK XML StructuredGrid .vts (a lattice with explicit points; writing needs a lattice mesh)
-        VTU,       /// VTK unstructured XML .vtu
-        WKT,       /// Well-known text .wkt
-        XDMF,      /// XDMF v3 .xdmf/.xmf (HDF data path requires HDF5)
-        XYZ        /// Headerless point cloud .xyz/.xyzn/.xyzrgb/.asc/.pts/.txt
+        AUTOMATIC,        /// Resolve from the file extension
+        ABAQUS,           /// Abaqus .inp
+        ABAQUS_FIL,       /// Abaqus results .fil (read only; increments and modes are time steps)
+        ANSYS,            /// ANSYS .msh
+        ANSYSINP,         /// ANSYS Mechanical APDL .inp (cdb)
+        ANSYS_RST,        /// Ansys results .rst/.rth (read only; result sets are time steps)
+        ANSYS_RST_CYCLIC, /// Ansys modal cyclic results expanded to the full rotor (read only; explicit "format" only)
+        AVSUCD,           /// AVS-UCD .avs
+        CGNS,             /// CGNS .cgns (requires HDF5)
+        CODE_ASTER,       /// Code_Aster native mesh .mail
+        DEX,              /// Dexelas .dex
+        DOLFIN,           /// DOLFIN XML .xml
+        ELMER,            /// Elmer mesh directory (mesh.header, mesh.nodes, ...; no extension - write with an explicit "format")
+        ENSIGHT,          /// EnSight Gold .case/.geo
+        EXODUS,           /// Exodus II .e/.exo (requires netCDF)
+        FEBIO,            /// FEBio input deck .feb
+        FEMAP,            /// Femap neutral .neu (output sets are time steps)
+        FLAC3D,           /// FLAC3D .f3grid
+        FLUX,             /// Flux .pf3
+        FRD,              /// CalculiX results .frd (read only; every increment is a time step)
+        FREEFEM,          /// FreeFEM .msh
+        GID,              /// GiD postprocess .post.msh+.post.res/.post.bin/.post.h5 (writing needs a zlib-enabled build)
+        GLTF,             /// glTF 2.0 .glb/.gltf (write only; the surface of the mesh, see "gltf_settings")
+        GMSH,             /// Gmsh .msh (4.1 writer)
+        GMSH22,           /// Gmsh 2.2 .msh (write only; the only Gmsh writer round-tripping region membership)
+        H5M,              /// MOAB .h5m (requires HDF5)
+        HMF,              /// HMF .hmf (requires HDF5)
+        IP,               /// Ipreo .ip
+        LIBMESH,          /// libMesh .xda/.xdr (optionally .gz, or .bz2 with a bzip2-enabled build)
+        LSDYNA,           /// LS-DYNA keyword deck .k/.key/.dyn (parts and sets as regions)
+        LSDYNA_BINOUT,    /// LS-DYNA binout (read only; results as field data on a point cloud)
+        LSDYNA_D3PLOT,    /// LS-DYNA d3plot family (read only; states are time steps)
+        MARC,             /// Marc input deck .dat (read only; chosen for a .dat whose content is a Marc deck)
+        MARC_T19,         /// Marc results .t19 (read only; increments are time steps)
+        MDPA,             /// Kratos native .mdpa
+        MED,              /// salome MED .med (requires HDF5)
+        MEDIT,            /// Medit .mesh/.meshb
+        MFEM,             /// MFEM .mesh (chosen for a .mesh starting with "MFEM "; see "mfem_grid_functions")
+        MFF,              /// MFF .mff
+        MFM,              /// MFM .mfm
+        MPHBIN,           /// COMSOL binary .mphbin
+        MPHTXT,           /// COMSOL .mphtxt
+        NASTRAN,          /// Nastran/OptiStruct bulk data .bdf/.nas/.fem
+        NASTRAN_H5,       /// MSC Nastran HDF5 results .h5 (read only, requires HDF5; every result domain is a time step)
+        NASTRAN_OP2,      /// Nastran OP2 results .op2 (read only; subcases/modes/times are time steps)
+        NETGEN,           /// Netgen .vol
+        OBJ,              /// Wavefront .obj
+        OFF,              /// Object File Format .off
+        OPENFOAM,         /// OpenFOAM polyMesh (ascii or binary, see "openfoam_label_bits"/"openfoam_scalar_bits")
+        PATRAN,           /// Patran neutral .pat/.out (see "patran_result_files")
+        PCD,              /// PCL point cloud .pcd (see "pcd_compressed"/"pcd_float64_points")
+        PERMAS,           /// PERMAS .post/.dato
+        PLY,              /// Polygon File Format .ply
+        PVD,              /// ParaView collection .pvd (a time-indexed index; transient output extends it)
+        PVTP,             /// ParaView partitioned PolyData .pvtp
+        PVTU,             /// ParaView partitioned UnstructuredGrid .pvtu (one piece per "partition:part")
+        RADIOSS,          /// Radioss/OpenRadioss starter deck .rad (read only)
+        RADIOSS_ANIM,     /// Radioss animation file <run>A001 (read only; one state per file)
+        RADIOSS_TH,       /// Radioss time history <run>T01 (read only; results as field data)
+        STL,              /// Stereolithography .stl
+        SU2,              /// SU2 .su2
+        SVG,              /// Scalable Vector Graphics .svg (write only)
+        SZPLT,            /// Tecplot SZL .szplt (read only, requires TecIO)
+        TECPLOT,          /// Tecplot .dat
+        TETGEN,           /// TetGen .node/.ele
+        TIKZ,             /// LaTeX TikZ/PGF .tikz (write only)
+        TRIANGLE,         /// Shewchuk Triangle .node/.ele/.poly (.node/.ele resolve to TETGEN by extension - select via the "format" setting)
+        UGRID,            /// AFLR3 .ugrid
+        UNV,              /// I-deas universal .unv/.uff
+        VTI,              /// VTK XML ImageData .vti (a regular lattice; writing needs a uniform lattice mesh)
+        VTK,              /// VTK legacy .vtk
+        VTKHDF,           /// VTK HDF5 .vtkhdf/.hdf (requires HDF5; transient output appends to one file)
+        VTM,              /// VTK XML MultiBlock .vtm (an index plus one .vtu piece per cell block, read back as named Cell regions)
+        VTP,              /// VTK PolyData XML .vtp
+        VTR,              /// VTK XML RectilinearGrid .vtr (reads any graded lattice; writing needs a uniform lattice mesh)
+        VTS,              /// VTK XML StructuredGrid .vts (a lattice with explicit points; writing needs a lattice mesh)
+        VTU,              /// VTK unstructured XML .vtu
+        VTX,              /// DOLFINx VTX ADIOS2 .bp directory (read only, requires ADIOS2)
+        WKT,              /// Well-known text .wkt
+        XDMF,             /// XDMF v3 .xdmf/.xmf (HDF data path requires HDF5)
+        XPLT,             /// FEBio results .xplt (read only; states are time steps)
+        XYZ,              /// Headerless point cloud .xyz/.xyzn/.xyzrgb/.asc/.pts/.txt
+        Z88               /// Z88 deck z88i1.txt/z88structure.txt (see "z88_results"/"z88_stubs")
     };
 
     ///@}
@@ -226,7 +257,8 @@ public:
 
     /**
      * @brief The names of every format this build can write.
-     * @details Read-only formats ("frd", "nastran_h5" - result files with no writer) are not
+     * @details Read-only formats (the solver results files - "frd", "nastran_h5",
+     * "abaqus_fil", "nastran_op2", ... - and the "marc"/"radioss" input decks) are not
      * listed; the write-only ones ("svg", "tikz", "gmsh22", "gltf") are conversely absent from
      * @ref GetSupportedReadFormats.
      */
@@ -255,7 +287,9 @@ public:
 
     /**
      * @brief Resolves the format from a file path extension (".vtu" -> VTU).
-     * @details Throws if the extension is not associated with any format.
+     * @details Falls back to the file's *content* (@ref SniffFormat) when no extension or
+     * name rule matches - which is how an Elmer mesh directory resolves - and throws only
+     * when that finds nothing either.
      */
     static Format ResolveFormat(const std::filesystem::path& rPath);
 
@@ -289,6 +323,15 @@ public:
      * piece "piece" (default 0, negative counts from the end) is read. "ghosts" ("keep", the
      * default, or "drop") removes the halo cells a pvtu/pvtp/pvd carries as vtkGhostType;
      * every other format has no halo and ignores it.
+     *
+     * Fields stored in companion files are read through "mfem_grid_functions" (MFEM .gf
+     * files) and "patran_result_files" (Patran .nod/.dis/.els), each a list of
+     * {"name", "path"} objects; "z88_results" : false reads a Z88 structure without the
+     * z88o* results next to it. The results formats (abaqus_fil, nastran_op2, ...) read one
+     * step per "time_step", and @ref GetTimeValues lists them. "read_field_data" (default
+     * false) carries the file's point/cell data onto the created entities as non-historical
+     * values of the registered Variable of the same name (see
+     * @ref Internals::MeshToModelPart); arrays with any other name are skipped.
      * @param rThisModelPart Reference to the model part to read into.
      */
     void ReadModelPart(ModelPart& rThisModelPart) override;

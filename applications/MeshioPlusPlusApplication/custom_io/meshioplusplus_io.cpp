@@ -32,7 +32,9 @@
 #include "meshioplusplus/formats/gid.hpp"
 #include "meshioplusplus/formats/gltf.hpp"
 #include "meshioplusplus/formats/gmsh.hpp"
+#include "meshioplusplus/formats/mfem.hpp"
 #include "meshioplusplus/formats/openfoam.hpp"
+#include "meshioplusplus/formats/patran.hpp"
 #include "meshioplusplus/formats/pcd.hpp"
 #include "meshioplusplus/formats/ply.hpp"
 #include "meshioplusplus/formats/pvd.hpp"
@@ -40,6 +42,7 @@
 #include "meshioplusplus/formats/pvtu.hpp"
 #include "meshioplusplus/formats/stl.hpp"
 #include "meshioplusplus/formats/vtkhdf.hpp"
+#include "meshioplusplus/formats/z88.hpp"
 #include "meshioplusplus/formats/vti.hpp"
 #include "meshioplusplus/formats/vtk.hpp"
 #include "meshioplusplus/formats/vtm.hpp"
@@ -70,68 +73,89 @@ using Internals::DataArray;
 
 // Format enum <-> canonical meshio++ format name. Keep in sync with the
 // Format enum in meshioplusplus_io.h and meshio++'s registry.cpp.
-#define KRATOS_MESHIOPLUSPLUS_FORMATS(X) \
-    X(ABAQUS, "abaqus")                  \
-    X(ANSYS, "ansys")                    \
-    X(ANSYSINP, "ansysinp")              \
-    X(AVSUCD, "avsucd")                  \
-    X(CGNS, "cgns")                      \
-    X(CODE_ASTER, "code_aster")          \
-    X(DEX, "dex")                        \
-    X(DOLFIN, "dolfin")                  \
-    X(ENSIGHT, "ensight")                \
-    X(EXODUS, "exodus")                  \
-    X(FLAC3D, "flac3d")                  \
-    X(FLUX, "flux")                      \
-    X(FRD, "frd")                        \
-    X(FREEFEM, "freefem")                \
-    X(GID, "gid")                        \
-    X(GLTF, "gltf")                      \
-    X(GMSH, "gmsh")                      \
-    X(GMSH22, "gmsh22")                  \
-    X(H5M, "h5m")                        \
-    X(HMF, "hmf")                        \
-    X(IP, "ip")                          \
-    X(LSDYNA, "lsdyna")                  \
-    X(MDPA, "mdpa")                      \
-    X(MED, "med")                        \
-    X(MEDIT, "medit")                    \
-    X(MFF, "mff")                        \
-    X(MFM, "mfm")                        \
-    X(MPHBIN, "mphbin")                  \
-    X(MPHTXT, "mphtxt")                  \
-    X(NASTRAN, "nastran")                \
-    X(NASTRAN_H5, "nastran_h5")          \
-    X(NETGEN, "netgen")                  \
-    X(OBJ, "obj")                        \
-    X(OFF, "off")                        \
-    X(OPENFOAM, "openfoam")              \
-    X(PCD, "pcd")                        \
-    X(PERMAS, "permas")                  \
-    X(PLY, "ply")                        \
-    X(PVD, "pvd")                        \
-    X(PVTP, "pvtp")                      \
-    X(PVTU, "pvtu")                      \
-    X(STL, "stl")                        \
-    X(SU2, "su2")                        \
-    X(SVG, "svg")                        \
-    X(TECPLOT, "tecplot")                \
-    X(TETGEN, "tetgen")                  \
-    X(TIKZ, "tikz")                      \
-    X(TRIANGLE, "triangle")              \
-    X(UGRID, "ugrid")                    \
-    X(UNV, "unv")                        \
-    X(VTI, "vti")                        \
-    X(VTK, "vtk")                        \
-    X(VTKHDF, "vtkhdf")                  \
-    X(VTM, "vtm")                        \
-    X(VTP, "vtp")                        \
-    X(VTR, "vtr")                        \
-    X(VTS, "vts")                        \
-    X(VTU, "vtu")                        \
-    X(WKT, "wkt")                        \
-    X(XDMF, "xdmf")                      \
-    X(XYZ, "xyz")
+#define KRATOS_MESHIOPLUSPLUS_FORMATS(X)    \
+    X(ABAQUS, "abaqus")                     \
+    X(ABAQUS_FIL, "abaqus_fil")             \
+    X(ANSYS, "ansys")                       \
+    X(ANSYSINP, "ansysinp")                 \
+    X(ANSYS_RST, "ansys_rst")               \
+    X(ANSYS_RST_CYCLIC, "ansys_rst_cyclic") \
+    X(AVSUCD, "avsucd")                     \
+    X(CGNS, "cgns")                         \
+    X(CODE_ASTER, "code_aster")             \
+    X(DEX, "dex")                           \
+    X(DOLFIN, "dolfin")                     \
+    X(ELMER, "elmer")                       \
+    X(ENSIGHT, "ensight")                   \
+    X(EXODUS, "exodus")                     \
+    X(FEBIO, "febio")                       \
+    X(FEMAP, "femap")                       \
+    X(FLAC3D, "flac3d")                     \
+    X(FLUX, "flux")                         \
+    X(FRD, "frd")                           \
+    X(FREEFEM, "freefem")                   \
+    X(GID, "gid")                           \
+    X(GLTF, "gltf")                         \
+    X(GMSH, "gmsh")                         \
+    X(GMSH22, "gmsh22")                     \
+    X(H5M, "h5m")                           \
+    X(HMF, "hmf")                           \
+    X(IP, "ip")                             \
+    X(LIBMESH, "libmesh")                   \
+    X(LSDYNA, "lsdyna")                     \
+    X(LSDYNA_BINOUT, "lsdyna_binout")       \
+    X(LSDYNA_D3PLOT, "lsdyna_d3plot")       \
+    X(MARC, "marc")                         \
+    X(MARC_T19, "marc_t19")                 \
+    X(MDPA, "mdpa")                         \
+    X(MED, "med")                           \
+    X(MEDIT, "medit")                       \
+    X(MFEM, "mfem")                         \
+    X(MFF, "mff")                           \
+    X(MFM, "mfm")                           \
+    X(MPHBIN, "mphbin")                     \
+    X(MPHTXT, "mphtxt")                     \
+    X(NASTRAN, "nastran")                   \
+    X(NASTRAN_H5, "nastran_h5")             \
+    X(NASTRAN_OP2, "nastran_op2")           \
+    X(NETGEN, "netgen")                     \
+    X(OBJ, "obj")                           \
+    X(OFF, "off")                           \
+    X(OPENFOAM, "openfoam")                 \
+    X(PATRAN, "patran")                     \
+    X(PCD, "pcd")                           \
+    X(PERMAS, "permas")                     \
+    X(PLY, "ply")                           \
+    X(PVD, "pvd")                           \
+    X(PVTP, "pvtp")                         \
+    X(PVTU, "pvtu")                         \
+    X(RADIOSS, "radioss")                   \
+    X(RADIOSS_ANIM, "radioss_anim")         \
+    X(RADIOSS_TH, "radioss_th")             \
+    X(STL, "stl")                           \
+    X(SU2, "su2")                           \
+    X(SVG, "svg")                           \
+    X(SZPLT, "szplt")                       \
+    X(TECPLOT, "tecplot")                   \
+    X(TETGEN, "tetgen")                     \
+    X(TIKZ, "tikz")                         \
+    X(TRIANGLE, "triangle")                 \
+    X(UGRID, "ugrid")                       \
+    X(UNV, "unv")                           \
+    X(VTI, "vti")                           \
+    X(VTK, "vtk")                           \
+    X(VTKHDF, "vtkhdf")                     \
+    X(VTM, "vtm")                           \
+    X(VTP, "vtp")                           \
+    X(VTR, "vtr")                           \
+    X(VTS, "vts")                           \
+    X(VTU, "vtu")                           \
+    X(VTX, "vtx")                           \
+    X(WKT, "wkt")                           \
+    X(XDMF, "xdmf")                         \
+    X(XPLT, "xplt")                         \
+    X(XYZ, "xyz")                           \
+    X(Z88, "z88")
 
 const std::unordered_map<std::string, MeshioPlusPlusIO::Format>& GetFormatNameMap()
 {
@@ -302,6 +326,52 @@ bool WriteWithFileFormatOverride(
     return false;
 }
 
+/// The format of a path: meshio++'s extension and file-name rules first, then - for a path
+/// those cannot place, such as an Elmer mesh directory or an extensionless deck - the file's
+/// own content. Throws (with the extension rule's reason) only when both come up empty.
+std::string ResolveFormatName(const std::filesystem::path& rPath)
+{
+    try {
+        return mio::resolve_format(rPath.string(), "");
+    } catch (const std::exception& r_exception) {
+        std::string sniffed;
+        std::error_code error_code;
+        if (std::filesystem::exists(rPath, error_code)) {
+            try {
+                sniffed = mio::sniff_format(rPath.string());
+            } catch (const std::exception&) {
+                // Unreadable content is no better than no match: report the extension failure.
+            }
+        }
+        // A directory-shaped output (Elmer) does not exist yet when it is first written, so
+        // there is no content to go by either: the format has to be named.
+        KRATOS_ERROR_IF(sniffed.empty()) << "Cannot resolve a format from the extension or the content of "
+            << rPath << ": " << r_exception.what() << ". Set the \"format\" setting explicitly." << std::endl;
+        return sniffed;
+    }
+}
+
+/// Reads a list of {"name", "path"} objects - the companion files a mesh file names its fields
+/// by (MFEM grid functions, Patran result files) - throwing by name on a malformed entry.
+std::vector<std::pair<std::string, std::string>> ReadNamedPaths(
+    const Parameters& rSettings,
+    const std::string& rKey
+    )
+{
+    const Parameters entries = rSettings[rKey];
+    std::vector<std::pair<std::string, std::string>> result;
+    result.reserve(entries.size());
+    for (std::size_t i = 0; i < entries.size(); ++i) {
+        const Parameters entry = entries[i];
+        KRATOS_ERROR_IF_NOT(entry.IsSubParameter() && entry.Has("name") && entry.Has("path") &&
+                            entry["name"].IsString() && entry["path"].IsString())
+            << "Every \"" << rKey << "\" entry must be {\"name\" : <string>, \"path\" : <string>}; entry "
+            << i << " is " << entry.PrettyPrintJsonString() << std::endl;
+        result.emplace_back(entry["name"].GetString(), entry["path"].GetString());
+    }
+    return result;
+}
+
 /// Reads the "ghosts" setting into the policy of a partitioned read.
 mio::GhostPolicy ResolveGhostPolicy(const std::string& rSetting)
 {
@@ -411,6 +481,8 @@ MeshioPlusPlusIO::MeshioPlusPlusIO(
     // Throws by name on an unknown mode, so a typo fails at construction like the rest.
     ResolveProvenanceMode(mParameters["provenance"].GetString());
     ResolveGhostPolicy(mParameters["ghosts"].GetString());
+    ReadNamedPaths(mParameters, "mfem_grid_functions");
+    ReadNamedPaths(mParameters, "patran_result_files");
 
     const int label_bits = mParameters["openfoam_label_bits"].GetInt();
     KRATOS_ERROR_IF(label_bits != 32 && label_bits != 64)
@@ -555,6 +627,10 @@ Parameters MeshioPlusPlusIO::GetDefaultParameters()
         "select_piece"                                : false,
         "piece"                                       : 0,
         "ghosts"                                      : "keep",
+        "mfem_grid_functions"                         : [],
+        "patran_result_files"                         : [],
+        "z88_results"                                 : true,
+        "read_field_data"                             : false,
         "time_series"                                 : "automatic",
         "output_control_type"                         : "step",
         "output_precision"                            : 7,
@@ -577,6 +653,8 @@ Parameters MeshioPlusPlusIO::GetDefaultParameters()
         "openfoam_scalar_bits"                        : 64,
         "pcd_compressed"                              : false,
         "pcd_float64_points"                          : false,
+        "mfem_grid_functions_write"                   : false,
+        "z88_stubs"                                   : false,
         "gltf_settings"                               : {
             "container"     : "auto",
             "up_axis"       : "auto",
@@ -709,13 +787,7 @@ MeshioPlusPlusIO::Format MeshioPlusPlusIO::ResolveFormat(const std::filesystem::
 {
     KRATOS_TRY
 
-    std::string format_name;
-    try {
-        format_name = mio::resolve_format(rPath.string(), "");
-    } catch (const std::exception& r_exception) {
-        KRATOS_ERROR << "Cannot resolve a format from the extension of " << rPath
-                     << ": " << r_exception.what() << std::endl;
-    }
+    const std::string format_name = ResolveFormatName(rPath);
 
     const auto& r_format_map = GetFormatNameMap();
     const auto it = r_format_map.find(format_name);
@@ -761,12 +833,7 @@ std::string MeshioPlusPlusIO::ResolveEffectiveFormat(const bool CheckWritable) c
                    [](unsigned char Character) { return std::tolower(Character); });
 
     if (format_name.empty() || format_name == "auto" || format_name == "automatic") {
-        try {
-            format_name = mio::resolve_format(mFileName.string(), "");
-        } catch (const std::exception& r_exception) {
-            KRATOS_ERROR << "Cannot resolve a format from the extension of " << mFileName
-                         << ": " << r_exception.what() << ". Set the \"format\" setting explicitly." << std::endl;
-        }
+        format_name = ResolveFormatName(mFileName);
     }
 
     const char* p_missing_dependency = mio::registry_compiled_out(format_name);
@@ -828,6 +895,27 @@ void MeshioPlusPlusIO::ReadModelPart(ModelPart& rThisModelPart)
             info.mRegion = openfoam_region;
             return mio::read_openfoam(mFileName.string(), read_options, info);
         }
+        // The companion files a mesh names its fields by - MFEM grid functions (.gf), Patran
+        // result files (.nod/.dis/.els) - are not reachable through the registry, which reads
+        // the mesh file alone; they need the format's own overload.
+        if (format_name == "mfem" && mParameters["mfem_grid_functions"].size() > 0) {
+            std::vector<mio::MfemGridFunction> grid_functions;
+            for (auto& [r_name, r_path] : ReadNamedPaths(mParameters, "mfem_grid_functions")) {
+                grid_functions.push_back({std::move(r_name), std::move(r_path)});
+            }
+            return mio::read_mfem(mFileName.string(), grid_functions, read_options);
+        }
+        if (format_name == "patran" && mParameters["patran_result_files"].size() > 0) {
+            std::vector<mio::PatranResultFile> results;
+            for (auto& [r_name, r_path] : ReadNamedPaths(mParameters, "patran_result_files")) {
+                results.push_back({std::move(r_name), std::move(r_path)});
+            }
+            return mio::read_patran(mFileName.string(), results);
+        }
+        if (format_name == "z88" && !mParameters["z88_results"].GetBool()) {
+            // The structure only, without the z88o* results written next to it.
+            return mio::read_z88(mFileName.string(), /*Results=*/false);
+        }
         return mio::registry_read(mFileName.string(), format_name, read_options);
     }();
 
@@ -841,6 +929,19 @@ void MeshioPlusPlusIO::ReadModelPart(ModelPart& rThisModelPart)
     // cell data and never synthesizes it from entity properties ids.
     if (format_name == "mdpa") {
         mesh.ExcludeTagSubModelPartKey("gmsh:physical");
+    }
+
+    // "read_field_data" also carries the file's point/cell data onto the new nodes, elements
+    // and conditions - the results of a solver's output file, an MFEM grid function - as
+    // non-historical values of the registered Variable of the same name. Opt-in, because an
+    // array whose name is no Variable (most results files' own names) is skipped with a
+    // warning, and a plain mesh import has no use for either.
+    if (mParameters["read_field_data"].GetBool()) {
+        Internals::MeshToModelPart(mesh, rThisModelPart);
+        KRATOS_INFO("MeshioPlusPlusIO") << "Read " << rThisModelPart.NumberOfNodes() << " nodes, "
+            << rThisModelPart.NumberOfElements() << " elements and " << rThisModelPart.NumberOfConditions()
+            << " conditions with their field data from " << mFileName << " (format \"" << format_name << "\")" << std::endl;
+        return;
     }
 
     mio::ModelPart& r_source = mesh.GetModelPart();
@@ -1271,6 +1372,18 @@ void MeshioPlusPlusIO::WriteStatic(
         return;
     }
 #endif
+    if (rFormatName == "mfem" && mParameters["mfem_grid_functions_write"].GetBool()) {
+        // One <stem>.<name>.gf next to the mesh per data array: nodal data as an H1 field at
+        // the mesh's order, cell data as L2 order 0 - what an MFEM solver loads directly.
+        mio::write_mfem(rPath.string(), mesh, /*GridFunctions=*/true);
+        return;
+    }
+    if (rFormatName == "z88" && mParameters["z88_stubs"].GetBool()) {
+        // Also an empty z88i5.txt (no surface loads) and, for a mesh without constraints, an
+        // empty z88i2.txt, so the deck is complete enough for Z88 to open.
+        mio::write_z88(rPath.string(), mesh, /*Stubs=*/true);
+        return;
+    }
 
     // Honor an ascii/binary override where the format supports it
     const bool skin = mParameters["skin"].GetBool();
