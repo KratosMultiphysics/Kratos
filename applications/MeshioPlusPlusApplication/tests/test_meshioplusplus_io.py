@@ -732,7 +732,19 @@ End Elements
             self.assertEqual(KratosMeshioPlusPlus.MeshioPlusPlusIO.ResolveFormat(path), format_value)
 
     def testWriteReadRoundTripFebio(self):
-        self._RunWriteReadRoundTrip(".feb")
+        # FEBio writes the triangle condition as a <Surface> of element faces, which reads back
+        # as a side set (kept as a region, no Kratos condition); the volume mesh round-trips.
+        write_model_part = self.model.CreateModelPart("write_feb")
+        read_model_part = self.model.CreateModelPart("read_feb")
+        _PopulateModelPart(write_model_part)
+        with tempfile.TemporaryDirectory() as temp_dir:
+            file_name = str(Path(temp_dir) / "round_trip.feb")
+            settings = KratosMultiphysics.Parameters('{"time_series" : "single_file"}')
+            KratosMeshioPlusPlus.MeshioPlusPlusIO(file_name, settings).WriteModelPart(write_model_part)
+            KratosMeshioPlusPlus.MeshioPlusPlusIO(file_name).ReadModelPart(read_model_part)
+        self.assertEqual(read_model_part.NumberOfNodes(), write_model_part.NumberOfNodes())
+        self.assertEqual(read_model_part.NumberOfElements(), write_model_part.NumberOfElements())
+        self.assertEqual(read_model_part.NumberOfConditions(), 0)
 
     def testWriteReadRoundTripLibmesh(self):
         self._RunWriteReadRoundTrip(".xda")
