@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Ruben Zorrilla
 //
@@ -16,7 +16,7 @@
 /* External includes */
 
 /* Project includes */
-#include "spaces/ublas_space.h"
+#include "spaces/default_spaces.h"
 #include "solving_strategies/builder_and_solvers/explicit_builder.h"
 
 namespace Kratos
@@ -25,8 +25,11 @@ namespace Kratos
 ///@name Type Definitions
 ///@{
 
-typedef TUblasSparseSpace<double> SparseSpaceType;
-typedef TUblasDenseSpace<double> LocalSpaceType;
+// The registered prototype follows the default (configure-time selected)
+// linear-algebra backend, consistently with the KratosComponents
+// instantiation in kratos_components.cpp and the python bindings
+typedef DefaultSparseSpaceType SparseSpaceType;
+typedef DefaultLocalSpaceType LocalSpaceType;
 
 typedef ExplicitBuilder<SparseSpaceType,  LocalSpaceType> ExplicitBuilderType;
 
