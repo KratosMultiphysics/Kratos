@@ -214,10 +214,22 @@ class ConstructionUtility
             }
         }
 
-        // Expose the nodal YOUNG_MODULUS field through the standard
-        // DatabaseAccessor on the mechanical model part properties (the
-        // constitutive response reads it through Properties::GetValue).
-        NodalYoungModulusUtilities::InstallDatabaseAccessor(mrMechanicalModelPart);
+        // Only the legacy nodal laws consumed the construction aging field.
+        // Preserve constant material properties for the ordinary laws, including
+        // non-aging construction where the nodal field is not initialized.
+        for (auto& r_properties : mrMechanicalModelPart.GetMesh(0).Properties()) {
+            if (r_properties.Has(CONSTITUTIVE_LAW_NAME)) {
+                const auto& r_law_name = r_properties[CONSTITUTIVE_LAW_NAME];
+                if (r_law_name == "LinearElastic3DLawNodal" ||
+                    r_law_name == "LinearElastic2DPlaneStrainNodal" ||
+                    r_law_name == "LinearElastic2DPlaneStressNodal" ||
+                    r_law_name == "ThermalLinearElastic3DLawNodal" ||
+                    r_law_name == "ThermalLinearElastic2DPlaneStrainNodal" ||
+                    r_law_name == "ThermalLinearElastic2DPlaneStressNodal") {
+                    NodalYoungModulusUtilities::InstallDatabaseAccessor(r_properties);
+                }
+            }
+        }
 
         KRATOS_CATCH("");
     }

@@ -36,6 +36,7 @@
 // Application includes
 #include "dam_application_variables.h"
 #include "custom_utilities/nodal_young_modulus_utilities.h"
+#include "custom_utilities/construction_utility.hpp"
 #include "custom_processes/dam_random_fields_variable_process.hpp"
 #include "custom_processes/dam_chemo_mechanical_aging_young_process.hpp"
 #include "custom_processes/dam_azenha_heat_source_process.hpp"
@@ -176,6 +177,68 @@ KRATOS_TEST_CASE_IN_SUITE(AzenhaHeatFluxAgingWritesNodalYoungModulus, KratosDamF
     auto& r_props = *r_mp.pGetProperties(1);
     KRATOS_EXPECT_TRUE(r_props.HasAccessor(YOUNG_MODULUS));
     KRATOS_EXPECT_NEAR(InterpolatedYoungViaAccessor(r_props, *Geometry<Node>::Pointer(new Line2D2<Node>(pts)), r_mp.GetProcessInfo()), expected, 1.0e-12);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(ConstructionPreservesConstantAndNodalYoungModulusMaterials, KratosDamFastSuite)
+{
+    for (const bool aging : {false, true}) {
+        Model model;
+        Geometry<Node>::PointsArrayType points;
+        auto& r_model_part = BuildYoungModulusModel(model, points);
+        r_model_part.GetProcessInfo()[TIME_UNIT_CONVERTER] = 1.0;
+        auto& r_constant_properties = r_model_part.GetProperties(1);
+        r_constant_properties[CONSTITUTIVE_LAW_NAME] = "ThermalLinearElastic3DLaw";
+
+        const std::vector<std::string> nodal_law_names = {
+            "LinearElastic3DLawNodal",
+            "LinearElastic2DPlaneStrainNodal",
+            "LinearElastic2DPlaneStressNodal",
+            "ThermalLinearElastic3DLawNodal",
+            "ThermalLinearElastic2DPlaneStrainNodal",
+            "ThermalLinearElastic2DPlaneStressNodal"};
+        for (std::size_t i = 0; i < nodal_law_names.size(); ++i) {
+            auto p_properties = r_model_part.CreateNewProperties(i + 2);
+            (*p_properties)[YOUNG_MODULUS] = 2.0e7;
+            (*p_properties)[CONSTITUTIVE_LAW_NAME] = nodal_law_names[i];
+        }
+
+        Parameters parameters(R"({
+            "gravity_direction" : "Z",
+            "reservoir_bottom_coordinate_in_gravity_direction" : 0.0,
+            "lift_height" : 2.0,
+            "source_type" : "Adiabatic",
+            "aging" : false,
+            "h_0" : 15.0,
+            "activate_soil_part" : false,
+            "activate_existing_part" : false,
+            "alpha_initial" : 0.25,
+            "young_inf" : 2.0e8
+        })");
+        parameters["aging"].SetBool(aging);
+        if (aging) {
+            parameters["source_type"].SetString("NonAdiabatic");
+        }
+        Table<double, double> ambient_temperature;
+        ConstructionUtility utility(r_model_part, r_model_part, ambient_temperature, parameters);
+        utility.Initialize();
+
+        const double expected_nodal_young = aging ? 1.0e8 : 0.0;
+        for (const auto& r_node : r_model_part.Nodes()) {
+            KRATOS_EXPECT_DOUBLE_EQ(r_node.FastGetSolutionStepValue(YOUNG_MODULUS), expected_nodal_young);
+            KRATOS_EXPECT_DOUBLE_EQ(r_node.FastGetSolutionStepValue(NODAL_YOUNG_MODULUS), 0.0);
+        }
+
+        Line2D2<Node> geometry(points);
+        KRATOS_EXPECT_FALSE(r_constant_properties.HasAccessor(YOUNG_MODULUS));
+        KRATOS_EXPECT_DOUBLE_EQ(InterpolatedYoungViaAccessor(
+            r_constant_properties, geometry, r_model_part.GetProcessInfo()), 2.0e7);
+        for (std::size_t i = 0; i < nodal_law_names.size(); ++i) {
+            auto& r_properties = r_model_part.GetProperties(i + 2);
+            KRATOS_EXPECT_TRUE(r_properties.HasAccessor(YOUNG_MODULUS));
+            KRATOS_EXPECT_DOUBLE_EQ(InterpolatedYoungViaAccessor(
+                r_properties, geometry, r_model_part.GetProcessInfo()), expected_nodal_young);
+        }
+    }
 }
 
 } // namespace Testing
