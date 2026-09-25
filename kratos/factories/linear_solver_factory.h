@@ -4,26 +4,24 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
 //                   Vicente Mataix Ferrandiz
 //
 
-#if !defined(KRATOS_LINEAR_SOLVER_FACTORY_H_INCLUDED )
-#define  KRATOS_LINEAR_SOLVER_FACTORY_H_INCLUDED
+#pragma once
 
 // System includes
 
 // External includes
 
 // Project includes
-#include "includes/define.h"
 #include "includes/kratos_parameters.h"
 #include "includes/kratos_components.h"
 #include "linear_solvers/linear_solver.h"
-#include "spaces/ublas_space.h"
+#include "spaces/default_spaces.h"
 
 namespace Kratos
 {
@@ -151,15 +149,20 @@ inline std::ostream& operator << (std::ostream& rOStream,
 }
 ///@}
 
-typedef TUblasSparseSpace<double> SparseSpaceType;
-typedef TUblasDenseSpace<double> LocalSparseSpaceType;
+// The registration typedefs follow the default (configure-time selected)
+// linear-algebra backend, so the KRATOS_REGISTER_* macros register into the
+// component map the python-exposed strategies look up.
+typedef DefaultSparseSpaceType SparseSpaceType;
+typedef DefaultLocalSpaceType LocalSparseSpaceType;
 
 typedef LinearSolverFactory<SparseSpaceType,  LocalSparseSpaceType> LinearSolverFactoryType;
 
+// Only the default (backend-selected) spaces are instantiated: the two
+// linear-algebra backends are mutually exclusive for the real sparse spaces.
 KRATOS_API_EXTERN template class KRATOS_API(KRATOS_CORE) KratosComponents<LinearSolverFactoryType>;
 KRATOS_API_EXTERN template class KRATOS_API(KRATOS_CORE) KratosComponents<LinearSolverFactory<
-    TUblasSparseSpace<float>,
-    TUblasDenseSpace<double>
+    TDefaultSparseSpace<float>,
+    TDefaultDenseSpace<double>
 >>;
 
 #ifdef KRATOS_REGISTER_LINEAR_SOLVER
@@ -168,8 +171,8 @@ KRATOS_API_EXTERN template class KRATOS_API(KRATOS_CORE) KratosComponents<Linear
 #define KRATOS_REGISTER_LINEAR_SOLVER(name, reference) \
     KratosComponents<LinearSolverFactoryType>::Add(name, reference);
 
-typedef TUblasSparseSpace<std::complex<double>> ComplexSparseSpaceType;
-typedef TUblasDenseSpace<std::complex<double>> ComplexLocalSparseSpaceType;
+typedef TDefaultSparseSpace<std::complex<double>> ComplexSparseSpaceType;
+typedef TDefaultDenseSpace<std::complex<double>> ComplexLocalSparseSpaceType;
 
 typedef LinearSolverFactory<ComplexSparseSpaceType,  ComplexLocalSparseSpaceType> ComplexLinearSolverFactoryType;
 
@@ -183,5 +186,3 @@ KRATOS_API_EXTERN template class KRATOS_API(KRATOS_CORE) KratosComponents<Comple
 
 
 }  // namespace Kratos.
-
-#endif // KRATOS_LINEAR_SOLVER_FACTORY_H_INCLUDED  defined
