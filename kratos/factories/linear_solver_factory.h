@@ -4,22 +4,20 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
 //                   Vicente Mataix Ferrandiz
 //
 
-#if !defined(KRATOS_LINEAR_SOLVER_FACTORY_H_INCLUDED )
-#define  KRATOS_LINEAR_SOLVER_FACTORY_H_INCLUDED
+#pragma once
 
 // System includes
 
 // External includes
 
 // Project includes
-#include "includes/define.h"
 #include "includes/kratos_parameters.h"
 #include "includes/kratos_components.h"
 #include "linear_solvers/linear_solver.h"
@@ -188,5 +186,3 @@ KRATOS_API_EXTERN template class KRATOS_API(KRATOS_CORE) KratosComponents<Comple
 
 
 }  // namespace Kratos.
-
-#endif // KRATOS_LINEAR_SOLVER_FACTORY_H_INCLUDED  defined
