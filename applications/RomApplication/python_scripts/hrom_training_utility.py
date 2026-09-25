@@ -150,35 +150,37 @@ class HRomTrainingUtility(object):
 
 
     def AppendCurrentStepResiduals(self):
-        # Get the computing model part from the solver implementing the problem physics
-        computing_model_part = self.solver.GetComputingModelPart()
+        pass
+        #deprecated method. Use the ProjectedResidualsOutputProcess
+        # # Get the computing model part from the solver implementing the problem physics
+        # computing_model_part = self.solver.GetComputingModelPart()
 
-        # If not created yet, create the ROM residuals utility
-        # Note that this ensures that the residuals utility is created in the first residuals append call
-        # If not, it might happen that the solver scheme is created by the ROM residuals call rather than by the solver one
-        if not hasattr(self, '__rom_residuals_utility'):
-            self.__rom_residuals_utility = KratosROM.RomResidualsUtility(
-                computing_model_part,
-                self.rom_settings,
-                self.solver._GetScheme())
+        # # If not created yet, create the ROM residuals utility
+        # # Note that this ensures that the residuals utility is created in the first residuals append call
+        # # If not, it might happen that the solver scheme is created by the ROM residuals call rather than by the solver one
+        # if not hasattr(self, '__rom_residuals_utility'):
+        #     self.__rom_residuals_utility = KratosROM.RomResidualsUtility(
+        #         computing_model_part,
+        #         self.rom_settings,
+        #         self.solver._GetScheme())
 
-            if self.echo_level > 0 : KratosMultiphysics.Logger.PrintInfo("HRomTrainingUtility","RomResidualsUtility created.")
+        #     if self.echo_level > 0 : KratosMultiphysics.Logger.PrintInfo("HRomTrainingUtility","RomResidualsUtility created.")
 
-        # Generate the matrix of projected residuals
-        if self.echo_level > 0 : KratosMultiphysics.Logger.PrintInfo("HRomTrainingUtility","Generating matrix of projected residuals.")
-        if (self.projection_strategy=="galerkin"):
-                res_mat = self.__rom_residuals_utility.GetProjectedResidualsOntoPhi()
-        elif (self.projection_strategy=="lspg"):
-                jacobian_phi_product = self.GetJacobianPhiMultiplication(computing_model_part)
-                res_mat = self.__rom_residuals_utility.GetProjectedResidualsOntoJPhi(jacobian_phi_product)
-        elif (self.projection_strategy=="petrov_galerkin"):
-                res_mat = self.__rom_residuals_utility.GetProjectedResidualsOntoPsi()
-        else:
-            err_msg = f"Projection strategy \'{self.projection_strategy}\' for HROM is not supported."
-            raise Exception(err_msg)
+        # # Generate the matrix of projected residuals
+        # if self.echo_level > 0 : KratosMultiphysics.Logger.PrintInfo("HRomTrainingUtility","Generating matrix of projected residuals.")
+        # if (self.projection_strategy=="galerkin"):
+        #         res_mat = self.__rom_residuals_utility.GetProjectedResidualsOntoPhi()
+        # elif (self.projection_strategy=="lspg"):
+        #         jacobian_phi_product = self.GetJacobianPhiMultiplication(computing_model_part)
+        #         res_mat = self.__rom_residuals_utility.GetProjectedResidualsOntoJPhi(jacobian_phi_product)
+        # elif (self.projection_strategy=="petrov_galerkin"):
+        #         res_mat = self.__rom_residuals_utility.GetProjectedResidualsOntoPsi()
+        # else:
+        #     err_msg = f"Projection strategy \'{self.projection_strategy}\' for HROM is not supported."
+        #     raise Exception(err_msg)
 
-        np_res_mat = np.asarray(res_mat)
-        self.time_step_residual_matrix_container.append(np_res_mat)
+        # np_res_mat = np.asarray(res_mat)
+        # self.time_step_residual_matrix_container.append(np_res_mat)
 
     def GetJacobianPhiMultiplication(self, computing_model_part):
         jacobian_matrix = KratosMultiphysics.CompressedMatrix()
