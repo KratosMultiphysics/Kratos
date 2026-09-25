@@ -654,7 +654,7 @@ public:
         const element_data<4,3>& data,
         const array_1d<double,4>& distances,
         const array_1d<double,4>& Nenr,
-        const BoundedMatrix<double,4,4>& DNenr
+        const Matrix& DNenr
     );
 
     ///@}
