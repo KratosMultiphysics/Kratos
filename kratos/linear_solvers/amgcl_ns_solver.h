@@ -4,15 +4,13 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Denis Demidov
 //
-//
 
-#if !defined(KRATOS_AMGCL_NAVIERSTOKES_SOLVER )
-#define  KRATOS_AMGCL_NAVIERSTOKES_SOLVER
+#pragma once
 
 #ifndef AMGCL_PARAM_UNKNOWN
 #include "input_output/logger.h"
@@ -20,27 +18,16 @@
     Kratos::Logger("AMGCL") << KRATOS_CODE_LOCATION << Kratos::Logger::Severity::WARNING << "Unknown parameter " << name << std::endl
 #endif
 
-// External includes
+// System includes
 #include <iostream>
 #include <utility>
 
-#include "includes/default_interface.h"
-
-// Project includes
-#include "includes/define.h"
-#include "includes/kratos_components.h"
-#include "linear_solvers/iterative_solver.h"
-
+// External includes
 #include <boost/property_tree/json_parser.hpp>
-
 #include <boost/range/iterator_range.hpp>
-
 #include <amgcl/adapter/crs_tuple.hpp>
 #include <amgcl/adapter/ublas.hpp>
 #include <amgcl/adapter/zero_copy.hpp>
-
-// Project includes
-#include "linear_solvers/amgcl_zero_copy_adapter.h"
 #include <amgcl/backend/builtin.hpp>
 #include <amgcl/value_type/static_matrix.hpp>
 #include <amgcl/make_solver.hpp>
@@ -48,6 +35,12 @@
 #include <amgcl/solver/runtime.hpp>
 #include <amgcl/preconditioner/schur_pressure_correction.hpp>
 #include <amgcl/preconditioner/runtime.hpp>
+
+// Project includes
+#include "includes/default_interface.h"
+#include "includes/kratos_components.h"
+#include "linear_solvers/iterative_solver.h"
+#include "linear_solvers/amgcl_zero_copy_adapter.h"
 
 namespace Kratos
 {
@@ -484,7 +477,3 @@ inline std::ostream& operator << (std::ostream& rOStream,
 }
 
 }  // namespace Kratos.
-
-
-
-#endif // KRATOS_AMGCL_NAVIERSTOKES_SOLVER  defined
