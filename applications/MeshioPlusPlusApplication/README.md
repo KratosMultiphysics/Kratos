@@ -162,6 +162,9 @@ cmake --build build && cmake --install build --prefix <prefix>
 
 Three formats need an optional dependency, all off by default: `-DMESHIOPLUSPLUS_WITH_ADIOS2=ON` for DOLFINx `vtx` (`.bp`), `-DMESHIOPLUSPLUS_WITH_TECIO=ON -DTECIO_ROOT=<dir>` for Tecplot `szplt`, and `-DMESHIOPLUSPLUS_WITH_BZIP2=ON` for bzip2-compressed libMesh (`.xda.bz2`). The configure line of this application reports which ones the install carries.
 
+> [!WARNING]
+> Link meshio++ against an ADIOS2 whose libraries use the *shared* libstdc++. Some distribution packages (seen with `adios2 2.12.1-6.1`) link libstdc++ statically and export its symbols, and in a Python process those interpose on Kratos' own (`std::locale` freed by the wrong copy: `free(): invalid size`). `readelf -d libadios2_cxx.so | grep libstdc++` must list it as `NEEDED`; otherwise build ADIOS2 from source (serial, C++ only, `-DBUILD_SHARED_LIBS=ON`) and point `ADIOS2_DIR` at it.
+
 then point the Kratos configure at it:
 
 ```bash
@@ -234,7 +237,7 @@ print(KratosMeshioPlusPlus.MeshioPlusPlusIO.GetSupportedWriteFormats())
 
 ## 📁 Supported formats:
 
-**Read (78):** `abaqus` `abaqus_fil` `ansys` `ansys_rst` `ansys_rst_cyclic` `ansysinp` `avsucd` `cgns` `code_aster` `dex` `dolfin` `elmer` `ensight` `exodus` `febio` `femap` `flac3d` `flux` `frd` `freefem` `gid` `gmsh` `h5m` `hmf` `ip` `libmesh` `lsdyna` `lsdyna_binout` `lsdyna_d3plot` `marc` `marc_t19` `mdpa` `med` `medit` `mfem` `mff` `mfm` `mphbin` `mphtxt` `nastran` `nastran_h5` `nastran_op2` `netgen` `obj` `off` `openfoam` `patran` `pcd` `permas` `ply` `pvd` `pvtp` `pvtu` `radioss` `radioss_anim` `radioss_th` `stl` `su2` `szplt` `tecplot` `tetgen` `triangle` `ugrid` `unv` `vti` `vtk` `vtkhdf` `vtm` `vtp` `vtr` `vts` `vtu` `vtx` `wkt` `xdmf` `xplt` `xyz` `z88`
+**Read (78, less any format compiled out — 77 without TecIO):** `abaqus` `abaqus_fil` `ansys` `ansys_rst` `ansys_rst_cyclic` `ansysinp` `avsucd` `cgns` `code_aster` `dex` `dolfin` `elmer` `ensight` `exodus` `febio` `femap` `flac3d` `flux` `frd` `freefem` `gid` `gmsh` `h5m` `hmf` `ip` `libmesh` `lsdyna` `lsdyna_binout` `lsdyna_d3plot` `marc` `marc_t19` `mdpa` `med` `medit` `mfem` `mff` `mfm` `mphbin` `mphtxt` `nastran` `nastran_h5` `nastran_op2` `netgen` `obj` `off` `openfoam` `patran` `pcd` `permas` `ply` `pvd` `pvtp` `pvtu` `radioss` `radioss_anim` `radioss_th` `stl` `su2` `szplt` `tecplot` `tetgen` `triangle` `ugrid` `unv` `vti` `vtk` `vtkhdf` `vtm` `vtp` `vtr` `vts` `vtu` `vtx` `wkt` `xdmf` `xplt` `xyz` `z88`
 
 **Write (66):** the same set minus the read-only ones — the solver results files `abaqus_fil`, `ansys_rst`, `ansys_rst_cyclic`, `frd`, `lsdyna_binout`, `lsdyna_d3plot`, `marc_t19`, `nastran_h5`, `nastran_op2`, `radioss_anim`, `radioss_th`, `szplt`, `vtx` and `xplt`, and the `marc` and `radioss` input decks — plus `gltf`, `gmsh22`, `svg` and `tikz` (write-only).
 
