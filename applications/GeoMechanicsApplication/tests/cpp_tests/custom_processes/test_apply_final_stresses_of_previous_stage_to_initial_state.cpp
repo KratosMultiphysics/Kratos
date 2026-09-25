@@ -19,7 +19,6 @@
 #include "includes/default_interface.h"
 #include "includes/element.h"
 #include "includes/kratos_parameters.h"
-#include "includes/model_part.h"
 #include "includes/node.h"
 #include "includes/process_info.h"
 #include "tests/cpp_tests/custom_constitutive/mock_constitutive_law.hpp"

@@ -287,16 +287,16 @@ public:
             dofs_values[id] = rDof.GetSolutionStepValue();
         });
         double *values_vector = rA.value_data().begin();
-        std::size_t *index1_vector = rA.index1_data().begin();
-        std::size_t *index2_vector = rA.index2_data().begin();
+        typename TSystemMatrixType::index_array_type::value_type *index1_vector = rA.index1_data().begin();
+        typename TSystemMatrixType::index_array_type::value_type *index2_vector = rA.index2_data().begin();
 
         IndexPartition<std::size_t>(rA.size1()).for_each(
             [&](std::size_t i)
             {
-                for (std::size_t k = index1_vector[i]; k < index1_vector[i + 1]; k++) {
+                for (std::size_t k = index1_vector[i]; k < static_cast<std::size_t>(index1_vector[i + 1]); k++) {
                     const double value = values_vector[k];
                     if (value > 0.0) {
-                        const auto j = index2_vector[k];
+                        const std::size_t j = index2_vector[k];
                         if (j > i) {
                             // TODO: Partition in blocks to gain efficiency by avoiding thread locks.
                             // Values conflicting with other threads

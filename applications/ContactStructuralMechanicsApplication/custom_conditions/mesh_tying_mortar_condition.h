@@ -407,14 +407,10 @@ protected:
          */
         DofData(const std::size_t Dimension = TDim)
         {
-            // Resizing as needed (for scalar cases)
-            if (Dimension != TDim) {
-                LagrangeMultipliers.resize(TNumNodes, Dimension, false);
-                u1.resize(TNumNodes, Dimension, false);
-                u2.resize(TNumNodesMaster, Dimension, false);
-            }
-
-            // Clearing the values
+            // For the scalar cases only the first Dimension columns of the
+            // statically-sized storage are used (every consumer loops over
+            // the runtime DoF count); the remaining columns stay zero, so no
+            // runtime shrink of the bounded types is needed
             this->Clear();
         }
 

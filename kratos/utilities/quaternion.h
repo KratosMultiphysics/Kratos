@@ -106,6 +106,23 @@ namespace Kratos
 			return *this;
 		}
 
+#ifdef KRATOS_USE_EIGEN_BACKEND
+		/**
+		Assignment from an Eigen vector expression (the Eigen-backed Kratos::Vector
+		of the Eigen backend), with the same component order as the uBLAS overload.
+		*/
+		template<class TDerived>
+		Quaternion& operator = (const Eigen::MatrixBase<TDerived>& v)
+		{
+			SetX(v[0]);
+			SetY(v[1]);
+			SetZ(v[2]);
+			SetW(v[3]);
+
+			return *this;
+		}
+#endif
+
 		///@}
 
 	public:

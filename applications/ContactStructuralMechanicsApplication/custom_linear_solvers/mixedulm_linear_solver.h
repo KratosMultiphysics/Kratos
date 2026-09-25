@@ -931,8 +931,12 @@ protected:
             AllocateBlocks();
 
         // Get access to A data
-        const IndexType* index1 = rA.index1_data().begin();
-        const IndexType* index2 = rA.index2_data().begin();
+        // The CSR storage index type differs between the backends (std::size_t
+        // for uBLAS, signed for the Eigen wrapper); name it from the matrix's
+        // own array typedefs instead of hardcoding one or the other.
+        using MatrixIndexType = typename SparseMatrixType::index_array_type::value_type;
+        const MatrixIndexType* index1 = rA.index1_data().begin();
+        const MatrixIndexType* index2 = rA.index2_data().begin();
         const double* values = rA.value_data().begin();
 
         // Allocate the auxiliary blocks by push_back
@@ -1965,8 +1969,12 @@ private:
     double CheckMatrix (const SparseMatrixType& rA)
     {
         // Get access to A data
-        const std::size_t* index1 = rA.index1_data().begin();
-        const std::size_t* index2 = rA.index2_data().begin();
+        // The CSR storage index type differs between the backends (std::size_t
+        // for uBLAS, signed for the Eigen wrapper); name it from the matrix's
+        // own array typedefs instead of hardcoding one or the other.
+        using MatrixIndexType = typename SparseMatrixType::index_array_type::value_type;
+        const MatrixIndexType* index1 = rA.index1_data().begin();
+        const MatrixIndexType* index2 = rA.index2_data().begin();
         const double* values = rA.value_data().begin();
         double norm = 0.0;
         for (std::size_t i=0; i<rA.size1(); ++i) {
@@ -2077,8 +2085,12 @@ private:
         const std::size_t size_A = rA.size1();
 
         // Get access to A data
-        const std::size_t* index1 = rA.index1_data().begin();
-        const std::size_t* index2 = rA.index2_data().begin();
+        // The CSR storage index type differs between the backends (std::size_t
+        // for uBLAS, signed for the Eigen wrapper); name it from the matrix's
+        // own array typedefs instead of hardcoding one or the other.
+        using MatrixIndexType = typename SparseMatrixType::index_array_type::value_type;
+        const MatrixIndexType* index1 = rA.index1_data().begin();
+        const MatrixIndexType* index2 = rA.index2_data().begin();
         const double* values = rA.value_data().begin();
 
         IndexType* ptr = new IndexType[size_A + 1];
@@ -2089,7 +2101,9 @@ private:
         // The scale of the block, used to tell a structurally empty row from a populated one
         const double max_row_sum = IndexPartition<std::size_t>(size_A).for_each<MaxReduction<double>>([&](std::size_t i) {
             double row_sum = 0.0;
-            for (std::size_t j = index1[i]; j < index1[i+1]; ++j) {
+            const std::size_t row_begin = index1[i];
+            const std::size_t row_end = index1[i+1];
+            for (std::size_t j = row_begin; j < row_end; ++j) {
                 row_sum += std::abs(values[j]);
             }
             return row_sum;
@@ -2109,7 +2123,9 @@ private:
             double diagonal_value = 0.0;
             double row_sum = 0.0;
             double off_node_sum = 0.0;
-            for (std::size_t j = index1[i]; j < index1[i+1]; ++j) {
+            const std::size_t row_begin = index1[i];
+            const std::size_t row_end = index1[i+1];
+            for (std::size_t j = row_begin; j < row_end; ++j) {
                 const std::size_t column = index2[j];
                 const double abs_value = std::abs(values[j]);
                 row_sum += abs_value;

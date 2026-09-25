@@ -45,6 +45,7 @@ cmake -G"Ninja"                                                         ^
 -DCMAKE_POLICY_VERSION_MINIMUM=3.5                                      ^
 -DCMAKE_PDB_OUTPUT_DIRECTORY=%KRATOS_BUILD%\%KRATOS_BUILD_TYPE%/PDB     ^
 -DUSE_EIGEN_MKL=OFF                                                     ^
+-DKRATOS_LINEAR_ALGEBRA_BACKEND="ublas" ^
 -DKRATOS_GENERATE_PYTHON_STUBS=ON
 
 rem Build

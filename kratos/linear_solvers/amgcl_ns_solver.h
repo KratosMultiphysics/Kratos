@@ -4,15 +4,13 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Denis Demidov
 //
-//
 
-#if !defined(KRATOS_AMGCL_NAVIERSTOKES_SOLVER )
-#define  KRATOS_AMGCL_NAVIERSTOKES_SOLVER
+#pragma once
 
 #ifndef AMGCL_PARAM_UNKNOWN
 #include "input_output/logger.h"
@@ -20,19 +18,13 @@
     Kratos::Logger("AMGCL") << KRATOS_CODE_LOCATION << Kratos::Logger::Severity::WARNING << "Unknown parameter " << name << std::endl
 #endif
 
-// External includes
+// System includes
 #include <iostream>
 #include <utility>
 
-#include "includes/default_interface.h"
-
-// Project includes
-#include "includes/define.h"
-#include "includes/kratos_components.h"
-#include "linear_solvers/iterative_solver.h"
-
+// External includes
 #include <boost/property_tree/json_parser.hpp>
-
+#include <boost/range/iterator_range.hpp>
 #include <amgcl/adapter/crs_tuple.hpp>
 #include <amgcl/adapter/ublas.hpp>
 #include <amgcl/adapter/zero_copy.hpp>
@@ -43,6 +35,12 @@
 #include <amgcl/solver/runtime.hpp>
 #include <amgcl/preconditioner/schur_pressure_correction.hpp>
 #include <amgcl/preconditioner/runtime.hpp>
+
+// Project includes
+#include "includes/default_interface.h"
+#include "includes/kratos_components.h"
+#include "linear_solvers/iterative_solver.h"
+#include "linear_solvers/amgcl_zero_copy_adapter.h"
 
 namespace Kratos
 {
@@ -220,7 +218,7 @@ public:
             amgcl::runtime::solver::wrapper<sBackend>
             > Solver;
 
-        auto pA = amgcl::adapter::zero_copy(
+        auto pA = MakeAmgclZeroCopyAdapter(
                 rA.size1(),
                 rA.index1_data().begin(),
                 rA.index2_data().begin(),
@@ -229,7 +227,13 @@ public:
 
         Solver solve(*pA, mprm);
         KRATOS_INFO_IF("AMGCL NS Solver", mVerbosity > 1) << "AMGCL-NS Memory Occupation : " << amgcl::human_readable_memory(amgcl::backend::bytes(solve)) << std::endl;
-        return solve(*pA, rB, rX);
+        // The vectors are passed as iterator ranges over their raw buffers so
+        // that any system-vector backend (uBLAS, Eigen, ...) works
+        typename TSparseSpaceType::DataType* x_begin = &*rX.begin();
+        const typename TSparseSpaceType::DataType* b_begin = &*rB.begin();
+        return solve(*pA,
+                     boost::make_iterator_range(b_begin, b_begin + rB.size()),
+                     boost::make_iterator_range(x_begin, x_begin + rX.size()));
     }
 
     template <int UBlockSize>
@@ -256,7 +260,7 @@ public:
             amgcl::runtime::solver::wrapper<sBackend>
             > Solver;
 
-        auto pA = amgcl::adapter::zero_copy(
+        auto pA = MakeAmgclZeroCopyAdapter(
                 rA.size1(),
                 rA.index1_data().begin(),
                 rA.index2_data().begin(),
@@ -265,7 +269,13 @@ public:
 
         Solver solve(*pA, mprm);
         KRATOS_INFO_IF("AMGCL NS Solver", mVerbosity > 1) << "AMGCL-NS Memory Occupation : " << amgcl::human_readable_memory(amgcl::backend::bytes(solve)) << std::endl;
-        return solve(*pA, rB, rX);
+        // The vectors are passed as iterator ranges over their raw buffers so
+        // that any system-vector backend (uBLAS, Eigen, ...) works
+        typename TSparseSpaceType::DataType* x_begin = &*rX.begin();
+        const typename TSparseSpaceType::DataType* b_begin = &*rB.begin();
+        return solve(*pA,
+                     boost::make_iterator_range(b_begin, b_begin + rB.size()),
+                     boost::make_iterator_range(x_begin, x_begin + rX.size()));
     }
 
     /**
@@ -467,7 +477,3 @@ inline std::ostream& operator << (std::ostream& rOStream,
 }
 
 }  // namespace Kratos.
-
-
-
-#endif // KRATOS_AMGCL_NAVIERSTOKES_SOLVER  defined
