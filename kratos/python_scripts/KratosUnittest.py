@@ -90,7 +90,8 @@ class TestCase(TestCase):
 
         self.assertEqual(len(vector1), len(vector2), msg="\nCheck failed because vector arguments do not have the same size")
         for i, (v1, v2) in enumerate(zip(vector1, vector2)):
-            self.assertAlmostEqual(v1, v2, places, LazyErrMsg(i, msg), delta)
+            # unittest rejects giving both places and delta: delta takes precedence
+            self.assertAlmostEqual(v1, v2, None if delta is not None else places, LazyErrMsg(i, msg), delta)
 
     def assertMatrixAlmostEqual(self, matrix1, matrix2, places=7, msg=None, delta=None):
         class LazyDimErrMsg:
@@ -125,7 +126,7 @@ class TestCase(TestCase):
 
         for i in range(matrix1.Size1()):
             for j in range(matrix1.Size2()):
-                self.assertAlmostEqual(matrix1[i,j], matrix2[i,j], places, LazyValErrMsg(i,j,msg), delta)
+                self.assertAlmostEqual(matrix1[i,j], matrix2[i,j], None if delta is not None else places, LazyValErrMsg(i,j,msg), delta)
 
 class KratosTextTestResult(TextTestResult):
     def __init__(self, stream, descriptions, verbosity):
