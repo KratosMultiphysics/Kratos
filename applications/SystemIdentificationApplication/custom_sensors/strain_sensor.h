@@ -84,6 +84,19 @@ public:
         const IndexType Id,
         Parameters SensorParameters);
 
+    /**
+     * @brief Creates the sensor in an already located element.
+     * @details Same as the overload without ElementId, but skips the
+     *          point location. The element with ElementId in rDomainModelPart
+     *          must contain the sensor location.
+     */
+    static Sensor::Pointer Create(
+        ModelPart& rDomainModelPart,
+        ModelPart& rSensorModelPart,
+        const IndexType Id,
+        Parameters SensorParameters,
+        const IndexType ElementId);
+
     static Parameters GetDefaultParameters();
 
     ///@}

@@ -91,7 +91,29 @@ Sensor::Pointer StrainSensor::Create(
     Vector dummy_shape_functions;
 
     const auto element_id = BruteForcePointLocator(rDomainModelPart).FindElement(loc, dummy_shape_functions);
-    const auto& r_element = rDomainModelPart.GetElement(element_id);
+
+    return StrainSensor::Create(rDomainModelPart, rSensorModelPart, Id, SensorParameters, element_id);
+
+    KRATOS_CATCH("");
+}
+
+Sensor::Pointer StrainSensor::Create(
+    ModelPart& rDomainModelPart,
+    ModelPart& rSensorModelPart,
+    const IndexType Id,
+    Parameters SensorParameters,
+    const IndexType ElementId)
+{
+    KRATOS_TRY
+
+    SensorParameters.ValidateAndAssignDefaults(StrainSensor::GetDefaultParameters());
+
+    const auto& location = SensorParameters["location"].GetVector();
+    KRATOS_ERROR_IF_NOT(location.size() == 3)
+        << "Location of the sensor \"" << SensorParameters["name"].GetString()
+        << "\" should have 3 components. [ location = " << location << " ].\n";
+
+    const auto& r_element = rDomainModelPart.GetElement(ElementId);
 
     auto p_node = rSensorModelPart.CreateNewNode(Id, location[0], location[1], location[2]);
 
