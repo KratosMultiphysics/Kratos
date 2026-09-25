@@ -10,8 +10,7 @@
 //  Main authors:    Vicente Mataix Ferrandiz
 //
 
-#if !defined(KRATOS_FEAST_CONDITION_NUMBER_UTILITY )
-#define  KRATOS_FEAST_CONDITION_NUMBER_UTILITY
+#pragma once
 
 // System includes
 
@@ -247,6 +246,3 @@ private:
 ///@{
 
 }  /* namespace Kratos.*/
-
-#endif /* KRATOS_FEAST_CONDITION_NUMBER_UTILITY  defined */
-

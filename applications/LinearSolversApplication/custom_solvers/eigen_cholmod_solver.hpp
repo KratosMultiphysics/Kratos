@@ -32,9 +32,6 @@ class EigenCholmodSolver
 {
 public:
     using Scalar = TScalar;
-    // Stays on the int-indexed type: this SuiteSparse-backed solver takes the
-    // copy fallback path (SuiteSparse zero-copy with the Eigen backend's long
-    // index is untested and needs a SuiteSparse build to validate).
     using SparseMatrix = EigenSparseMatrix<Scalar>;
     using Vector = EigenDynamicVector<Scalar>;
 
