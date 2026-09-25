@@ -93,12 +93,12 @@ public:
     
     typedef unsigned IndexType;
 
-	typedef boost::numeric::ublas::indirect_array<DenseVector<std::size_t>> IndirectArrayType;
+	typedef indirect_array<DenseVector<std::size_t>> IndirectArrayType;
 
-    typedef boost::numeric::ublas::matrix_indirect<const MatrixType, IndirectArrayType> SubMatrixType;
+    typedef matrix_indirect<const MatrixType, IndirectArrayType> SubMatrixType;
 
     template <class T>
-    using matrix_row = boost::numeric::ublas::matrix_row<T>;
+    using matrix_row = matrix_row<T>;
 
     ///@}
     ///@name Life Cycle
