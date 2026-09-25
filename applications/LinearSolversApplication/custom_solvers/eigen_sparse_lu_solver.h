@@ -26,19 +26,11 @@ class EigenSparseLUSolver
 {
 public:
     using Scalar = TScalar;
-    using SparseMatrix = Kratos::EigenSystemSparseMatrix<Scalar>;
+    using SparseMatrix = Kratos::EigenSparseMatrix<Scalar>;
     using Vector = Kratos::EigenDynamicVector<Scalar>;
 
 private:
-    // NOTE: Eigen::SparseLU requires its matrix type to be column-major (see Eigen's
-    // SparseLU::factorize(), which assumes matrix.outerIndexPtr() are column pointers
-    // when applying the column permutation). Kratos' EigenSparseMatrix is row-major
-    // (to match Kratos'/uBLAS' row-major convention), so we convert to a column-major
-    // copy before handing it to the solver, rather than instantiating SparseLU with a
-    // row-major matrix type (which silently corrupts its internal state and crashes).
-    using ColMajorSparseMatrix = Eigen::SparseMatrix<Scalar, Eigen::ColMajor, int>;
-
-    Eigen::SparseLU<ColMajorSparseMatrix> m_solver;
+    Eigen::SparseLU<SparseMatrix> m_solver;
 
 public:
     static std::string Name()
@@ -52,9 +44,7 @@ public:
 
     bool Compute(Eigen::Map<const SparseMatrix> a)
     {
-        const ColMajorSparseMatrix a_col = a;
-
-        m_solver.compute(a_col);
+        m_solver.compute(a);
 
         const bool success = m_solver.info() == Eigen::Success;
 

@@ -26,7 +26,7 @@ class EigenSparseCGSolver
 {
 public:
     using Scalar = TScalar;
-    using SparseMatrix = Kratos::EigenSystemSparseMatrix<Scalar>;
+    using SparseMatrix = Kratos::EigenSparseMatrix<Scalar>;
     using Vector = Kratos::EigenDynamicVector<Scalar>;
 
 private:

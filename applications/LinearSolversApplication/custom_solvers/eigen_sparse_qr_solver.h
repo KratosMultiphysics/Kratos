@@ -27,13 +27,11 @@ class EigenSparseQRSolver
 {
 public:
     using Scalar = TScalar;
-    using SparseMatrix = Kratos::EigenSystemSparseMatrix<Scalar>;
+    using SparseMatrix = Kratos::EigenSparseMatrix<Scalar>;
     using Vector = Kratos::EigenDynamicVector<Scalar>;
 
 private:
-    // The fill-reducing ordering must use the same index type as the matrix
-    // (int for the uBLAS backend, the system index for the Eigen backend).
-    Eigen::SparseQR<SparseMatrix, Eigen::COLAMDOrdering<typename SparseMatrix::StorageIndex>> m_solver;
+    Eigen::SparseQR<SparseMatrix, Eigen::COLAMDOrdering<int>> m_solver;
 
 public:
     static std::string Name()
