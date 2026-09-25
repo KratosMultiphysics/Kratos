@@ -6,9 +6,6 @@
 #include <vector>
 
 // External includes
-#include <boost/numeric/ublas/matrix_sparse.hpp>
-#include <boost/numeric/ublas/vector.hpp>
-#include <boost/numeric/ublas/matrix.hpp>
 
 // Project includes
 #include "solving_strategies/strategies/implicit_solving_strategy.h"
