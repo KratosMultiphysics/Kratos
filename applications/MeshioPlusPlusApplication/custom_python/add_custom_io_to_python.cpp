@@ -1,0 +1,177 @@
+//  ██████   ██████ ██████████  █████████  █████   █████ █████    ███████
+// ░░██████ ██████ ░░███░░░░░█ ███░░░░░███░░███   ░░███ ░░███   ███░░░░░███      ███         ███
+//  ░███░█████░███  ░███  █ ░ ░███    ░░░  ░███    ░███  ░███  ███     ░░███    ░███        ░███
+//  ░███░░███ ░███  ░██████   ░░█████████  ░███████████  ░███ ░███      ░███ ███████████ ███████████
+//  ░███ ░░░  ░███  ░███░░█    ░░░░░░░░███ ░███░░░░░███  ░███ ░███      ░███░░░░░███░░░ ░░░░░███░░░
+//  ░███      ░███  ░███ ░   █ ███    ░███ ░███    ░███  ░███ ░░███     ███     ░███        ░███
+//  █████     █████ ██████████░░█████████  █████   █████ █████ ░░░███████░      ░░░         ░░░
+// ░░░░░     ░░░░░ ░░░░░░░░░░  ░░░░░░░░░  ░░░░░   ░░░░░ ░░░░░    ░░░░░░░                        Application
+//
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
+//
+//  Main authors:    Vicente Mataix Ferrandiz
+//
+
+// System includes
+#include <filesystem>
+
+// External includes
+#include <pybind11/stl.h>
+#include <pybind11/stl/filesystem.h>
+
+// Project includes
+#include "custom_python/add_custom_io_to_python.h"
+#include "custom_io/meshioplusplus_io.h"
+#include "includes/model_part.h"
+
+namespace Kratos::Python
+{
+
+void AddCustomIOToPython(pybind11::module& m)
+{
+    namespace py = pybind11;
+
+    auto meshio_io = py::class_<MeshioPlusPlusIO, MeshioPlusPlusIO::Pointer, IO>(m, "MeshioPlusPlusIO",
+        "Multi-format mesh IO based on the meshio++ library, converting to/from Kratos model "
+        "parts (vtu, vtk, gmsh, med, xdmf, gid, abaqus, mdpa, ...). What this build actually "
+        "supports is GetSupportedReadFormats() / GetSupportedWriteFormats() - the counts depend "
+        "on the optional dependencies it was compiled with. Repeated WriteModelPart calls extend "
+        "the output (an XDMF temporal collection, a GiD multi-step series, or a file series).")
+        .def(py::init<std::filesystem::path const&>(), py::arg("file_name"))
+        .def(py::init<std::filesystem::path const&, Parameters>(), py::arg("file_name"), py::arg("parameters"))
+        .def("ReadModelPart", &MeshioPlusPlusIO::ReadModelPart, py::arg("model_part"),
+            "Reads the file into the given (empty) model part. Highest-dimension cells become "
+            "elements, lower-dimension ones conditions, and named regions become sub model parts. "
+            "Registered entity names are restored where the format carries them.")
+        .def("WriteModelPart", py::overload_cast<const ModelPart&>(&MeshioPlusPlusIO::WriteModelPart), py::arg("model_part"),
+            "Writes the model part. Repeated calls extend the current output: XDMF appends steps "
+            "to the temporal collection of the file, other formats write a file series.")
+        .def("CloseOutput", &MeshioPlusPlusIO::CloseOutput,
+            "Finishes any transient output still held open, so the .xdmf light data is complete "
+            "and the file is released. Idempotent. Call it before deleting the output of a "
+            "transient run: a live writer finalizes on destruction and would recreate the file.")
+        .def("GetNumberOfTimeSteps", &MeshioPlusPlusIO::GetNumberOfTimeSteps,
+            "Number of transient steps this file's format reports, without a full read. "
+            "0 for a format with no time-series concept.")
+        .def("GetTimeValues", &MeshioPlusPlusIO::GetTimeValues,
+            "The simulation time of each transient step; size matches GetNumberOfTimeSteps().")
+        .def("GetTimeStepIndex", &MeshioPlusPlusIO::GetTimeStepIndex, py::arg("time_value"),
+            "The 0-based index of the transient step whose time value matches time_value "
+            "(within 1e-9), or -1 if none matches.")
+        .def("GetProvenance", &MeshioPlusPlusIO::GetProvenance,
+            "The provenance block the file carries, as {'recognised': bool, 'lines': [...]}: how "
+            "the file was produced (source, target format, encoding, operation chain). "
+            "'recognised' is False for a leading comment meshio++ did not write.")
+        .def_static("GetDefaultParameters", &MeshioPlusPlusIO::GetDefaultParameters,
+            "The default settings of the IO.")
+        .def_static("GetSupportedFormats", &MeshioPlusPlusIO::GetSupportedFormats,
+            "Names of every format this build can read or write.")
+        .def_static("GetSupportedReadFormats", &MeshioPlusPlusIO::GetSupportedReadFormats,
+            "Names of every format this build can read.")
+        .def_static("GetSupportedWriteFormats", &MeshioPlusPlusIO::GetSupportedWriteFormats,
+            "Names of every format this build can write.")
+        .def_static("SniffFormat", &MeshioPlusPlusIO::SniffFormat, py::arg("file_name"),
+            "Identifies a file's format from its content rather than its extension, returning "
+            "the format name or an empty string. Useful when the extension is missing, wrong, "
+            "or shared ('.msh' is Gmsh, ANSYS and FreeFem++; '.inp' is Abaqus and ANSYS/APDL).")
+        .def_static("FormatFromString", &MeshioPlusPlusIO::FormatFromString, py::arg("format_name"),
+            "Converts a format name to the Format enum ('gmsh' -> Format.GMSH). Throws on unknown names.")
+        .def_static("FormatName", &MeshioPlusPlusIO::FormatName, py::arg("format"),
+            "The canonical name of a Format value (Format.GMSH -> 'gmsh').")
+        .def_static("ResolveFormat", &MeshioPlusPlusIO::ResolveFormat, py::arg("path"),
+            "Resolves the format from a file path extension ('foo.vtu' -> Format.VTU).")
+        .def_static("IsFormatAvailable", &MeshioPlusPlusIO::IsFormatAvailable, py::arg("format"),
+            "False when the format was compiled out for lack of an optional dependency "
+            "(HDF5/netCDF, or zlib for writing GiD). Answers for the write side; GiD's ascii "
+            "reader is available even where its writer is not.")
+        ;
+
+    py::enum_<MeshioPlusPlusIO::Format>(meshio_io, "Format")
+        .value("AUTOMATIC", MeshioPlusPlusIO::Format::AUTOMATIC)
+        .value("ABAQUS", MeshioPlusPlusIO::Format::ABAQUS)
+        .value("ABAQUS_FIL", MeshioPlusPlusIO::Format::ABAQUS_FIL)
+        .value("ANSYS", MeshioPlusPlusIO::Format::ANSYS)
+        .value("ANSYSINP", MeshioPlusPlusIO::Format::ANSYSINP)
+        .value("ANSYS_RST", MeshioPlusPlusIO::Format::ANSYS_RST)
+        .value("ANSYS_RST_CYCLIC", MeshioPlusPlusIO::Format::ANSYS_RST_CYCLIC)
+        .value("AVSUCD", MeshioPlusPlusIO::Format::AVSUCD)
+        .value("CGNS", MeshioPlusPlusIO::Format::CGNS)
+        .value("CODE_ASTER", MeshioPlusPlusIO::Format::CODE_ASTER)
+        .value("DEX", MeshioPlusPlusIO::Format::DEX)
+        .value("DOLFIN", MeshioPlusPlusIO::Format::DOLFIN)
+        .value("ELMER", MeshioPlusPlusIO::Format::ELMER)
+        .value("ENSIGHT", MeshioPlusPlusIO::Format::ENSIGHT)
+        .value("EXODUS", MeshioPlusPlusIO::Format::EXODUS)
+        .value("FEBIO", MeshioPlusPlusIO::Format::FEBIO)
+        .value("FEMAP", MeshioPlusPlusIO::Format::FEMAP)
+        .value("FLAC3D", MeshioPlusPlusIO::Format::FLAC3D)
+        .value("FLUX", MeshioPlusPlusIO::Format::FLUX)
+        .value("FRD", MeshioPlusPlusIO::Format::FRD)
+        .value("FREEFEM", MeshioPlusPlusIO::Format::FREEFEM)
+        .value("GID", MeshioPlusPlusIO::Format::GID)
+        .value("GLTF", MeshioPlusPlusIO::Format::GLTF)
+        .value("GMSH", MeshioPlusPlusIO::Format::GMSH)
+        .value("GMSH22", MeshioPlusPlusIO::Format::GMSH22)
+        .value("H5M", MeshioPlusPlusIO::Format::H5M)
+        .value("HMF", MeshioPlusPlusIO::Format::HMF)
+        .value("IP", MeshioPlusPlusIO::Format::IP)
+        .value("LIBMESH", MeshioPlusPlusIO::Format::LIBMESH)
+        .value("LSDYNA", MeshioPlusPlusIO::Format::LSDYNA)
+        .value("LSDYNA_BINOUT", MeshioPlusPlusIO::Format::LSDYNA_BINOUT)
+        .value("LSDYNA_D3PLOT", MeshioPlusPlusIO::Format::LSDYNA_D3PLOT)
+        .value("MARC", MeshioPlusPlusIO::Format::MARC)
+        .value("MARC_T19", MeshioPlusPlusIO::Format::MARC_T19)
+        .value("MDPA", MeshioPlusPlusIO::Format::MDPA)
+        .value("MED", MeshioPlusPlusIO::Format::MED)
+        .value("MEDIT", MeshioPlusPlusIO::Format::MEDIT)
+        .value("MFEM", MeshioPlusPlusIO::Format::MFEM)
+        .value("MFF", MeshioPlusPlusIO::Format::MFF)
+        .value("MFM", MeshioPlusPlusIO::Format::MFM)
+        .value("MPHBIN", MeshioPlusPlusIO::Format::MPHBIN)
+        .value("MPHTXT", MeshioPlusPlusIO::Format::MPHTXT)
+        .value("NASTRAN", MeshioPlusPlusIO::Format::NASTRAN)
+        .value("NASTRAN_H5", MeshioPlusPlusIO::Format::NASTRAN_H5)
+        .value("NASTRAN_OP2", MeshioPlusPlusIO::Format::NASTRAN_OP2)
+        .value("NETGEN", MeshioPlusPlusIO::Format::NETGEN)
+        .value("OBJ", MeshioPlusPlusIO::Format::OBJ)
+        .value("OFF", MeshioPlusPlusIO::Format::OFF)
+        .value("OPENFOAM", MeshioPlusPlusIO::Format::OPENFOAM)
+        .value("PATRAN", MeshioPlusPlusIO::Format::PATRAN)
+        .value("PCD", MeshioPlusPlusIO::Format::PCD)
+        .value("PERMAS", MeshioPlusPlusIO::Format::PERMAS)
+        .value("PLY", MeshioPlusPlusIO::Format::PLY)
+        .value("PVD", MeshioPlusPlusIO::Format::PVD)
+        .value("PVTP", MeshioPlusPlusIO::Format::PVTP)
+        .value("PVTU", MeshioPlusPlusIO::Format::PVTU)
+        .value("RADIOSS", MeshioPlusPlusIO::Format::RADIOSS)
+        .value("RADIOSS_ANIM", MeshioPlusPlusIO::Format::RADIOSS_ANIM)
+        .value("RADIOSS_TH", MeshioPlusPlusIO::Format::RADIOSS_TH)
+        .value("STL", MeshioPlusPlusIO::Format::STL)
+        .value("SU2", MeshioPlusPlusIO::Format::SU2)
+        .value("SVG", MeshioPlusPlusIO::Format::SVG)
+        .value("SZPLT", MeshioPlusPlusIO::Format::SZPLT)
+        .value("TECPLOT", MeshioPlusPlusIO::Format::TECPLOT)
+        .value("TETGEN", MeshioPlusPlusIO::Format::TETGEN)
+        .value("TIKZ", MeshioPlusPlusIO::Format::TIKZ)
+        .value("TRIANGLE", MeshioPlusPlusIO::Format::TRIANGLE)
+        .value("UGRID", MeshioPlusPlusIO::Format::UGRID)
+        .value("UNV", MeshioPlusPlusIO::Format::UNV)
+        .value("VTI", MeshioPlusPlusIO::Format::VTI)
+        .value("VTK", MeshioPlusPlusIO::Format::VTK)
+        .value("VTKHDF", MeshioPlusPlusIO::Format::VTKHDF)
+        .value("VTM", MeshioPlusPlusIO::Format::VTM)
+        .value("VTP", MeshioPlusPlusIO::Format::VTP)
+        .value("VTR", MeshioPlusPlusIO::Format::VTR)
+        .value("VTS", MeshioPlusPlusIO::Format::VTS)
+        .value("VTU", MeshioPlusPlusIO::Format::VTU)
+        .value("VTX", MeshioPlusPlusIO::Format::VTX)
+        .value("WKT", MeshioPlusPlusIO::Format::WKT)
+        .value("XDMF", MeshioPlusPlusIO::Format::XDMF)
+        .value("XPLT", MeshioPlusPlusIO::Format::XPLT)
+        .value("XYZ", MeshioPlusPlusIO::Format::XYZ)
+        .value("Z88", MeshioPlusPlusIO::Format::Z88)
+        ;
+}
+
+} // namespace Kratos::Python
