@@ -194,9 +194,42 @@ endif()
 # fails with "libmeshioplusplus_core_kratos.so.0: cannot open shared object file" unless the
 # user sets LD_LIBRARY_PATH by hand. $ORIGIN is kept first so an INSTALL_TPL_LIBRARIES copy
 # in libs/ still wins.
-if(MESHIOPLUSPLUS_LIB_DIR AND NOT WIN32)
+#
+# The same holds for the shared libraries meshio++ passes on to its consumers (its exported
+# target links e.g. adios2::cxx publicly, so this application NEEDs it directly): one that
+# lives outside the linker's implicit directories - a source-built ADIOS2 in ~/.local, say -
+# gets its directory recorded too. The gtest executable, which links meshio++ just as
+# directly, gets the same directories on top of its own.
+set(MESHIOPLUSPLUS_RUNTIME_DIRS "")
+if(MESHIOPLUSPLUS_LIB_DIR)
+    list(APPEND MESHIOPLUSPLUS_RUNTIME_DIRS "${MESHIOPLUSPLUS_LIB_DIR}")
+endif()
+get_target_property(MESHIOPLUSPLUS_LINKED meshioplusplus::core_kratos INTERFACE_LINK_LIBRARIES)
+foreach(MESHIOPLUSPLUS_DEPENDENCY IN LISTS MESHIOPLUSPLUS_LINKED)
+    if(TARGET "${MESHIOPLUSPLUS_DEPENDENCY}")
+        get_target_property(MESHIOPLUSPLUS_DEPENDENCY_TYPE "${MESHIOPLUSPLUS_DEPENDENCY}" TYPE)
+        if(MESHIOPLUSPLUS_DEPENDENCY_TYPE STREQUAL "SHARED_LIBRARY")
+            get_target_property(MESHIOPLUSPLUS_DEPENDENCY_LOCATION "${MESHIOPLUSPLUS_DEPENDENCY}" IMPORTED_LOCATION_RELEASE)
+            if(NOT MESHIOPLUSPLUS_DEPENDENCY_LOCATION)
+                get_target_property(MESHIOPLUSPLUS_DEPENDENCY_LOCATION "${MESHIOPLUSPLUS_DEPENDENCY}" IMPORTED_LOCATION)
+            endif()
+            if(MESHIOPLUSPLUS_DEPENDENCY_LOCATION)
+                get_filename_component(MESHIOPLUSPLUS_DEPENDENCY_DIR "${MESHIOPLUSPLUS_DEPENDENCY_LOCATION}" DIRECTORY)
+                if(NOT MESHIOPLUSPLUS_DEPENDENCY_DIR IN_LIST CMAKE_CXX_IMPLICIT_LINK_DIRECTORIES)
+                    list(APPEND MESHIOPLUSPLUS_RUNTIME_DIRS "${MESHIOPLUSPLUS_DEPENDENCY_DIR}")
+                endif()
+            endif()
+        endif()
+    endif()
+endforeach()
+list(REMOVE_DUPLICATES MESHIOPLUSPLUS_RUNTIME_DIRS)
+if(MESHIOPLUSPLUS_RUNTIME_DIRS AND NOT WIN32)
     set_target_properties(KratosMeshioPlusPlusCore KratosMeshioPlusPlusApplication PROPERTIES
-        INSTALL_RPATH "$ORIGIN;${MESHIOPLUSPLUS_LIB_DIR}")
+        INSTALL_RPATH "$ORIGIN;${MESHIOPLUSPLUS_RUNTIME_DIRS}")
+    if(TARGET KratosMeshioPlusPlusCoreTest)
+        set_property(TARGET KratosMeshioPlusPlusCoreTest APPEND PROPERTY
+            INSTALL_RPATH "${MESHIOPLUSPLUS_RUNTIME_DIRS}")
+    endif()
 endif()
 
 # Install dependent libraries (the meshio++ shared library and, when it was built against
