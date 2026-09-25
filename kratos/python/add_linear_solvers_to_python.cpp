@@ -26,7 +26,6 @@
 #include "includes/ublas_complex_interface.h"
 
 #include "linear_solvers/linear_solver_ublas.h"
-#include "linear_solvers/linear_solver_eigen.h"
 #include "spaces/default_spaces.h"
 #include "linear_solvers/reorderer.h"
 #include "linear_solvers/direct_solver.h"
