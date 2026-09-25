@@ -10,7 +10,7 @@
 // Project includes
 #include "solving_strategies/strategies/implicit_solving_strategy.h"
 #include "linear_solvers/linear_solver.h"
-#include "spaces/ublas_space.h"
+#include "spaces/default_spaces.h"
 #include "utilities/builtin_timer.h"
 #include "utilities/atomic_utilities.h"
 #include "utilities/entities_utilities.h"
@@ -48,20 +48,15 @@ public:
     using RealType = double;
     using ComplexType = std::complex<double>;
 
-    using ComplexSparseMatrixType =
-        boost::numeric::ublas::compressed_matrix<ComplexType>;
+    using ComplexSparseSpaceType = TDefaultSparseSpace<ComplexType>;
 
-    using ComplexVectorType =
-        boost::numeric::ublas::vector<ComplexType>;
+    using ComplexDenseSpaceType = TDefaultDenseSpace<ComplexType>;
 
-    using ComplexDenseMatrixType =
-        boost::numeric::ublas::matrix<ComplexType>;
+    using ComplexSparseMatrixType = typename ComplexSparseSpaceType::MatrixType;
 
-    using ComplexSparseSpaceType =
-        UblasSpace<ComplexType, ComplexSparseMatrixType, ComplexVectorType>;
+    using ComplexVectorType = typename ComplexSparseSpaceType::VectorType;
 
-    using ComplexDenseSpaceType =
-        UblasSpace<ComplexType, ComplexDenseMatrixType, ComplexVectorType>;
+    using ComplexDenseMatrixType = typename ComplexDenseSpaceType::MatrixType;
 
     using ComplexLinearSolverType =
         LinearSolver<ComplexSparseSpaceType, ComplexDenseSpaceType>;
@@ -613,9 +608,8 @@ private:
         const SparseMatrixType& rB,
         const ComplexType Coeff)
     {
-        // Iterate the real system matrix through its CSR arrays: valid for both
-        // the uBLAS and the Eigen backend matrix (uBLAS iterator1/iterator2 is
-        // a uBLAS-only concept). The complex target stays uBLAS in every backend.
+        // Iterate the real system matrix through its CSR arrays (the same
+        // surface for the uBLAS and the Eigen backend matrices).
         const auto& row_ptr = rB.index1_data();
         const auto& col_idx = rB.index2_data();
         const auto& values = rB.value_data();
@@ -653,7 +647,7 @@ private:
                 const std::size_t col_end   = rA.index1_data()[k + 1];
 
                 for (std::size_t j = col_begin; j < col_end; ++j) {
-                    if (rA.index2_data()[j] == k) {
+                    if (static_cast<std::size_t>(rA.index2_data()[j]) == k) {
                         has_diagonal = true;
                         break;
                     }
@@ -675,7 +669,7 @@ private:
 
             if (scaling_factors[k] == 0.0) {
                 for (std::size_t j = col_begin; j < col_end; ++j) {
-                    if (AColIndices[j] != k) {
+                    if (static_cast<std::size_t>(AColIndices[j]) != k) {
                         AValues[j] = ComplexType(0.0, 0.0);
                     } else {
                         AValues[j] = DiagonalValue;

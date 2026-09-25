@@ -297,10 +297,13 @@ void ShellThickElement3D4N<TKinematics>::EASOperator::ComputeModfiedTangentAndRe
 {
     // invert H (the ublas LU machinery works on ublas dynamic matrices, so
     // the inverse is computed on a local copy and assigned back)
-    Matrix Hcopy(storage.Hinv);
-    permutation_matrix<Matrix::size_type> pm(5);
+    DenseMatrix<double> Hcopy(5, 5);
+    for (std::size_t i = 0; i < 5; ++i)
+        for (std::size_t j = 0; j < 5; ++j)
+            Hcopy(i, j) = storage.Hinv(i, j);
+    permutation_matrix<DenseMatrix<double>::size_type> pm(5);
     lu_factorize(Hcopy, pm);
-    Matrix h_inverse = IdentityMatrix(5);
+    DenseMatrix<double> h_inverse = IdentityMatrix(5);
     lu_substitute(Hcopy, pm, h_inverse);
     noalias(storage.Hinv) = h_inverse;
 
@@ -1132,7 +1135,19 @@ void ShellThickElement3D4N<TKinematics>::CalculateBMatrix(double xi, double eta,
     // transform the strain-displacement matrix from natural
     // to local coordinate system taking into account the element distortion
 
+#ifdef KRATOS_USE_EIGEN_BACKEND
+    // Same "virtual row swap" as the uBLAS slice(7, -1, 2) projection below:
+    // row 0 of the product goes to row 7 of B and row 1 to row 6.
+    {
+        const Matrix transformed_BN = prod(mitc_params.Transformation, BN);
+        for (std::size_t j = 0; j < transformed_BN.size2(); ++j) {
+            B(7, j) = transformed_BN(0, j);
+            B(6, j) = transformed_BN(1, j);
+        }
+    }
+#else
     project(B, slice(7, -1, 2), slice::all()) = prod(mitc_params.Transformation, BN);
+#endif
 
     // Explanation of the 'slice':
     // The MITC4Params class and the first part of this method were coded

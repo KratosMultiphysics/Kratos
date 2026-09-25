@@ -1292,7 +1292,7 @@ void ShellThickElement3D3N<TKinematics>::CalculateSmoothedDSGBMatrix(Calculation
                 // add in new entries
                 for (SizeType row = 0; row < 2; row++) {
                     for (SizeType col = 0; col < 6; col++) {
-                        convertedSubTriangleShearMatrix(row, metaNode * 6 + col) += virginSubTriangleShearMatrix(row, 6*(matrixMapping[subTriangle][metaNode] - 1) + col);
+                        convertedSubTriangleShearMatrix(row, metaNode * 6 + col) += virginSubTriangleShearMatrix(row, 6*(static_cast<SizeType>(matrixMapping[subTriangle][metaNode]) - 1) + col);
                     }
                 }
             }
