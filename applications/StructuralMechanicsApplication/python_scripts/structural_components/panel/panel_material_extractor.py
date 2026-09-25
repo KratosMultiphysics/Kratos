@@ -8,29 +8,28 @@ import numpy as np
 class PanelMaterialExtractor:
 
     def ExtractCompositeMaterial(self, sub_model_part, metadata):
+
         #TODO: Implement this function
-        
-        # Check ob SubModelPart Elemente enthält
+# check if SubModelPart include elements
         if sub_model_part.NumberOfElements() == 0:
             raise RuntimeError("Panel submodelpart contains no elements")
         
         layers_variable = SMA.SHELL_ORTHOTROPIC_LAYERS
 
-            
-        total_plies = 0 #Gesamtzahl der Plies auf 0 setzen 
+# extracting the total number of layers   
+        total_plies = 0 
         for element in sub_model_part.Elements:
-            total_plies += NumberOfPlies(element.Properties) # RUFT METHODE auf ! - Gesamtzahl der Plies über alle Elemente hinweg, um die Größe der Arrays zu bestimmen Hier 128     
-
-        if total_plies == 0: #Error fals keine Plies definiert sind, da sonst die Arrays nicht initialisiert werden können  
+            total_plies += NumberOfPlies(element.Properties) 
+        if total_plies == 0: 
             raise RuntimeError("No plies defined in any element of the submodelpart")
 
             
 
-        # Leere Arrays anlegen in der zuvor ermittelten Länge. Doppelte Länge das sie später mit Spannungen je Ply (Top und Bottom) zusammennpassen
+# initializing empty arrays, double length according to top and bottom values
         element_id       = np.zeros(2*total_plies, dtype=int)
         ply_id           = np.zeros(2*total_plies, dtype=int)
         ply_side         = np.zeros(2*total_plies, dtype=int)
-        ply_thickness    = np.zeros(total_plies) #PlyThickness brauche ich das doppelte Format nicht daher nur ein Ply ein eintrag kein top und Bottom
+        ply_thickness    = np.zeros(total_plies) # No duplicate values are required for “ply_thickness”
         ply_angle        = np.zeros(2*total_plies)
 
         strength_R_pa_t = np.zeros(2*total_plies)
@@ -48,7 +47,8 @@ class PanelMaterialExtractor:
         poissons_ratio_nu_12 = np.zeros(2*total_plies)
         shear_modulus_G_trpa = np.zeros(2*total_plies)
 
-#einmalig werden die Neigungsparameter eingelesen da für gesamtes LAminat gleich, erst später dann in Vektor in richtiger diomension geschrieben.
+# extracting user inputs
+        # inclination factor
         if metadata is not None and metadata.Has("puck_parameters"):
             if metadata["puck_parameters"].Has("p_trtr_c"):
                 p_trtr_c = metadata["puck_parameters"]["p_trtr_c"].GetDouble()
@@ -71,7 +71,7 @@ class PanelMaterialExtractor:
             p_trpa_t = 0.25
             p_trpa_c = 0.25
 
-#Einmalig werden die Degradationsfaktoren eingelesen
+        # degradation factor
         if metadata is not None and metadata.Has("degradation_factors"):
             if metadata["degradation_factors"].Has("E_tr_A"):
                 E_tr_A = metadata["degradation_factors"]["E_tr_A"].GetDouble()
@@ -99,32 +99,32 @@ class PanelMaterialExtractor:
             E_tr_B   = 0.5
             G_patr_B = 0.5
 
-
         degradationfactor_E_tr_A   = E_tr_A
         degradationfactor_G_patr_A = G_patr_A
         degradationfactor_E_tr_B   = E_tr_B
         degradationfactor_G_patr_B = G_patr_B
   
 
-#Start Matrialdaten auslesen                
-        idx = 0 #globaler Index für die Zuordnung der Werte zu den jeweiligen Plies über alle Elemente hinweg
-        for element in sub_model_part.Elements: #durch die Elemente iterieren, um die Materialdaten der Plies zu extrahieren
+# start extracting material data                
+        idx = 0 # global index for mapping values to their respective rows across all elements
+# iterate through elements using a loop  
+        for element in sub_model_part.Elements: 
 
             properties = element.Properties  
 
-            if not properties.Has(layers_variable): # Check ob SHELL_ORTHOTROPIC_LAYERS as Property im Element existiert
+            if not properties.Has(layers_variable): # check whether SHELL_ORTHOTROPIC_LAYERS exists as a property in the element
                 print("Warning: Element ", element.Id, " has no SHELL_ORTHOTROPIC_LAYERS property defined. Skipping material extraction for this element.")
                 continue
-
-            layers_matrix = properties.GetValue(layers_variable) # eine allgemeine Variable wo jetzt die Materialdaten des gesamten Elements beinhaltet
             
-            rows = layers_matrix.Size1() #16 Zeilen            print("layers_matrix for Element",layers_matrix )
-            cols = layers_matrix.Size2() #8 Spalten
+            layers_matrix = properties.GetValue(layers_variable) # a general variable that now contains the material data for the entire element
+            
+            rows = layers_matrix.Size1() # test-model: 16 Zeilen 
+            cols = layers_matrix.Size2() # test-model: 8 Spalten
                         
-#Layers_matrix ist eine Kratos.Matrix und daher kann ich nicht einfach auf zeile 1 zugreifen. Gelöst durch Zeile nehmen und durch Spalten cols itterieren und so meine erwartete Matrix füllen die ich dann auslesen kann. 
+#layers_matrix =  Kratos.Matrix, transferring the entries to NumPy-Vector
             for PlyId in range(rows):
 
-                # Zeile -> NumPy-Vektor
+                # row -> NumPy-Vector
                 current_layer_data = np.zeros(cols)
                 
                 for col in range(cols):
@@ -134,7 +134,7 @@ class PanelMaterialExtractor:
                 if current_layer_data.size < 16:
                     print(f"Fehler: zu wenig Daten für Ply {PlyId+1} in Element {element.Id}")
                     continue
-                
+#filling the vectors                
                 thickness  = current_layer_data[0]
                 alpha      = current_layer_data[1]
 
