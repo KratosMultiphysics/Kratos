@@ -10,17 +10,32 @@
 
 // Project includes
 #include "includes/serializer.h"
-#include "custom_constitutive/continuum_laws/linear_elastic_3D_law.hpp"
+
+// StructuralMechanicsApplication standard small-strain 3D elastic law (base).
+#include "custom_constitutive/elastic_isotropic_3d.h"
 
 #include "dam_application_variables.h"
 
 namespace Kratos
 {
 
-class KRATOS_API(DAM_APPLICATION) LinearElastic3DLawNodal : public LinearElastic3DLaw
+/**
+ * @brief Thin Dam compatibility adapter over SMA::ElasticIsotropic3D for the
+ * historical nodal-Young-modulus behavior.
+ * @details The generic small-strain elastic response (every stress measure,
+ * strain handling, initial strain/stress, features, stateless lifecycle and
+ * standard outputs) is inherited from the StructuralMechanicsApplication law.
+ * This class only retains the Dam-specific NODAL_YOUNG_MODULUS interpolation,
+ * fed through the E-consuming generic seams CalculatePK2Stress/
+ * CalculateElasticMatrix.
+ */
+class KRATOS_API(DAM_APPLICATION) LinearElastic3DLawNodal : public ElasticIsotropic3D
 {
 
 public:
+
+    /// The StructuralMechanicsApplication base law.
+    using BaseType = ElasticIsotropic3D;
 
     KRATOS_CLASS_POINTER_DEFINITION(LinearElastic3DLawNodal);
 
@@ -33,31 +48,26 @@ public:
     LinearElastic3DLawNodal (const LinearElastic3DLawNodal& rOther);
 
     // Destructor
-    virtual ~LinearElastic3DLawNodal();
+    ~LinearElastic3DLawNodal() override;
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     ConstitutiveLaw::Pointer Clone() const override;
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    /**
+     * @brief Constitutive matrix with the Dam interpolated NODAL_YOUNG_MODULUS.
+     */
+    void CalculateElasticMatrix(
+        ConstitutiveLaw::VoigtSizeMatrixType& rConstitutiveMatrix,
+        ConstitutiveLaw::Parameters& rValues) override;
 
     /**
-     * Computes the material response:
-     * Kirchhoff stresses and algorithmic ConstitutiveMatrix
-     * @param rValues
-     * @see   Parameters
+     * @brief Stress vector with the Dam interpolated NODAL_YOUNG_MODULUS.
      */
-    void CalculateMaterialResponseKirchhoff (Parameters & rValues) override;
-
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-protected:
-
-    // Member Variables
-
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-    double& CalculateNodalYoungModulus ( const MaterialResponseVariables & rElasticVariables, double & rYoungModulus);
+    void CalculatePK2Stress(
+        const ConstitutiveLaw::StrainVectorType& rStrainVector,
+        ConstitutiveLaw::StressVectorType& rStressVector,
+        ConstitutiveLaw::Parameters& rValues) override;
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -69,12 +79,12 @@ private:
 
     void save(Serializer& rSerializer) const override
     {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, LinearElastic3DLaw )
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, BaseType )
     }
 
     void load(Serializer& rSerializer) override
     {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, LinearElastic3DLaw )
+        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, BaseType )
     }
 
 }; // Class LinearElastic3DLawNodal

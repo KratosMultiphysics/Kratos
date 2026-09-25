@@ -12,7 +12,7 @@
 
 #pragma once
 
-#include "includes/ublas_interface.h"
+#include "includes/default_interface.h"
 
 #include <gtest/gtest.h>
 

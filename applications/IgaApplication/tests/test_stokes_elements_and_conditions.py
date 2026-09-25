@@ -81,8 +81,6 @@ def _create_support_condition_model_part_3d(condition_name):
                     "model_part_name" : "IgaModelPart",
                     "lower_point_xyz": [0.0, 0.0, 0.0],
                     "upper_point_xyz": [2.0, 2.0, 2.0],
-                    "lower_point_uvw": [0.0, 0.0, 0.0],
-                    "upper_point_uvw": [2.0, 2.0, 2.0],
                     "polynomial_order" : [1, 1, 1],
                     "number_of_knot_spans" : [4, 4, 4],
                     "lambda_outer": 0.5,

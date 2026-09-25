@@ -320,12 +320,14 @@ void MITCThickShellElement3D4N<TKinematics>::EASOperator::ComputeModfiedTangentA
         Vector& rRightHandSideVector,
         EASOperatorStorage& storage)
 {
-    // invert H
+    // invert H (the ublas LU machinery works on ublas dynamic matrices, so
+    // the inverse is computed on a local copy and assigned back)
     Matrix Hcopy(storage.Hinv);
     permutation_matrix<Matrix::size_type> pm(5);
     lu_factorize(Hcopy, pm);
-    noalias(storage.Hinv) = IdentityMatrix(5);
-    lu_substitute(Hcopy, pm, storage.Hinv);
+    Matrix h_inverse = IdentityMatrix(5);
+    lu_substitute(Hcopy, pm, h_inverse);
+    noalias(storage.Hinv) = h_inverse;
 
     // compute L' * H^-1
     Matrix LTHinv(24, 5);

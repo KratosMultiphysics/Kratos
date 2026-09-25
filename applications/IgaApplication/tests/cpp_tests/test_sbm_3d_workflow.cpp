@@ -251,13 +251,17 @@ KRATOS_TEST_CASE_IN_SUITE(BrepVolumeQuadraturePointGenerationOuter3D, KratosIgaF
     auto& r_skin_outer_initial = model.CreateModelPart("skin_model_part_outer_initial");
     CreateCubeOuterSkin(r_skin_outer_initial, 0.5, 1.5);
 
+    // This outer skin must have normals pointing into the enclosed cube.
+    for (auto& r_condition : r_skin_outer_initial.Conditions()) {
+        auto& r_points = r_condition.GetGeometry().Points();
+        std::swap(r_points(1), r_points(2));
+    }
+
     Parameters nurbs_modeler_parameters(R"(
         {
             "model_part_name" : "IgaModelPart",
             "lower_point_xyz": [0.0, 0.0, 0.0],
             "upper_point_xyz": [2.0, 2.0, 2.0],
-            "lower_point_uvw": [0.0, 0.0, 0.0],
-            "upper_point_uvw": [2.0, 2.0, 2.0],
             "polynomial_order" : [1, 1, 1],
             "number_of_knot_spans" : [4, 4, 4],
             "lambda_outer": 0.5,
@@ -278,8 +282,8 @@ KRATOS_TEST_CASE_IN_SUITE(BrepVolumeQuadraturePointGenerationOuter3D, KratosIgaF
     auto integration_info = r_brep_volume.GetDefaultIntegrationInfo();
     r_brep_volume.CreateQuadraturePointGeometries(quadrature_geometries, 2, integration_info);
 
-    KRATOS_EXPECT_EQ(r_iga_model_part.NumberOfGeometries(), 73);
-    KRATOS_EXPECT_EQ(model.GetModelPart("IgaModelPart.surrogate_outer").NumberOfConditions(), 72);
+    KRATOS_EXPECT_EQ(r_iga_model_part.NumberOfGeometries(), 25);
+    KRATOS_EXPECT_EQ(model.GetModelPart("IgaModelPart.surrogate_outer").NumberOfConditions(), 24);
     KRATOS_EXPECT_EQ(quadrature_geometries.size(), 64);
 }
 
@@ -297,8 +301,6 @@ KRATOS_TEST_CASE_IN_SUITE(IgaModelerSbmSupportOuter3D, KratosIgaFastSuite)
             "model_part_name" : "IgaModelPart",
             "lower_point_xyz": [0.0, 0.0, 0.0],
             "upper_point_xyz": [2.0, 2.0, 2.0],
-            "lower_point_uvw": [0.0, 0.0, 0.0],
-            "upper_point_uvw": [2.0, 2.0, 2.0],
             "polynomial_order" : [1, 1, 1],
             "number_of_knot_spans" : [4, 4, 4],
             "lambda_outer": 0.5,
@@ -390,8 +392,6 @@ KRATOS_TEST_CASE_IN_SUITE(IgaModelerSbmSupportInner3D, KratosIgaFastSuite)
             "model_part_name" : "IgaModelPart",
             "lower_point_xyz": [0.0, 0.0, 0.0],
             "upper_point_xyz": [2.0, 2.0, 2.0],
-            "lower_point_uvw": [0.0, 0.0, 0.0],
-            "upper_point_uvw": [2.0, 2.0, 2.0],
             "polynomial_order" : [1, 1, 1],
             "number_of_knot_spans" : [4, 4, 4],
             "lambda_inner": 0.5,

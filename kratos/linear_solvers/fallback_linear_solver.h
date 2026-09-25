@@ -279,6 +279,9 @@ public:
                 // First, update the counter
                 UpdateSolverIndex();
 
+                // If all the solvers have been tried there is nothing else to do
+                if (mCurrentSolverIndex >= mSolvers.size()) break;
+
                 // Call initialize methods
                 InitializeSolutionStep(rA, rX, rB);
 
@@ -316,6 +319,9 @@ public:
             if (!success) {
                 // First, update the counter
                 UpdateSolverIndex();
+
+                // If all the solvers have been tried there is nothing else to do
+                if (mCurrentSolverIndex >= mSolvers.size()) break;
 
                 // // Call initialize methods (NOTE: does not exist the method for dense matrices)
                 // InitializeSolutionStep(rA, rX, rB);
@@ -729,7 +735,8 @@ protected:
         if (mCurrentSolverIndex < mSolvers.size()) {
             KRATOS_INFO("FallbackLinearSolver") << "Current solver " << GetCurrentSolver()->Info() << " failed with the following settings: " << mParameters["solvers"][mCurrentSolverIndex].PrettyPrintJsonString() << std::endl;
         } else {
-            KRATOS_WARNING("FallbackLinearSolver") << "Solver index cannot be updated as all potential linear solvers has been already tried. Sticking to current solver "  << GetCurrentSolver()->Info() << std::endl;
+            // NOTE: GetCurrentSolver() cannot be called here, the index is already out of range
+            KRATOS_WARNING("FallbackLinearSolver") << "Solver index cannot be updated as all the " << mSolvers.size() << " potential linear solvers have been already tried" << std::endl;
             return;
         }
 
@@ -740,7 +747,8 @@ protected:
         if (mCurrentSolverIndex < mSolvers.size()) {
             KRATOS_INFO("FallbackLinearSolver") << "Switching to new solver " << GetCurrentSolver()->Info() << " with the following settings: " << mParameters["solvers"][mCurrentSolverIndex].PrettyPrintJsonString() << std::endl;
         } else {
-            KRATOS_WARNING("FallbackLinearSolver") << "Solver index cannot be updated as all potential linear solvers has been already tried. Sticking to current solver "  << GetCurrentSolver()->Info() << std::endl;
+            // NOTE: GetCurrentSolver() cannot be called here, the index is already out of range
+            KRATOS_WARNING("FallbackLinearSolver") << "All the " << mSolvers.size() << " potential linear solvers have been already tried and all of them failed" << std::endl;
             return;
         }
     }

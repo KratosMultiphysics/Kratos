@@ -272,13 +272,9 @@ void SbmFluidConditionDirichlet::InitializeSbmMemberVariables()
     }
     mpProjectionNode = &candidate_closest_skin_segment_1.GetGeometry()[closestNodeId] ;
 
-    mDistanceVector.resize(mDim);
+    mDistanceVector.resize(3);
     noalias(mDistanceVector) = mpProjectionNode->Coordinates() - r_geometry.Center().Coordinates();
 
-    // Compute all the derivatives of the basis functions involved
-    for (IndexType n = 1; n <= mBasisFunctionsOrder; n++) {
-        mShapeFunctionDerivatives.push_back(r_geometry.ShapeFunctionDerivatives(n, 0, this->GetIntegrationMethod()));
-    }
     const Matrix& H = r_geometry.ShapeFunctionsValues();
 
     // Compute the Hsum matrix
@@ -290,7 +286,7 @@ void SbmFluidConditionDirichlet::InitializeSbmMemberVariables()
         if (mDim == 2) {
             for (IndexType n = 1; n <= mBasisFunctionsOrder; n++) {
                 // Retrieve the appropriate derivative for the term
-                Matrix& r_shape_function_derivatives = mShapeFunctionDerivatives[n-1];
+                const Matrix& r_shape_function_derivatives = r_geometry.ShapeFunctionDerivatives(n, 0, this->GetIntegrationMethod());
                 for (IndexType k = 0; k <= n; k++) {
                     IndexType n_k = n - k;
                     double derivative = r_shape_function_derivatives(i,k); 
@@ -302,7 +298,7 @@ void SbmFluidConditionDirichlet::InitializeSbmMemberVariables()
         } else {
             // 3D Taylor expansion for the velocity dofs
             for (IndexType n = 1; n <= mBasisFunctionsOrder; ++n) {
-                Matrix& r_shape_function_derivatives = mShapeFunctionDerivatives[n-1];
+                const Matrix& r_shape_function_derivatives = r_geometry.ShapeFunctionDerivatives(n, 0, this->GetIntegrationMethod());
 
                 IndexType countDerivativeId = 0;
                 for (IndexType reverse_k_x = 0; reverse_k_x <= n; ++reverse_k_x) {

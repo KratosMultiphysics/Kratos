@@ -208,7 +208,7 @@ public:
 
                 for (std::size_t k = RowBegin; k != RowEnd; k++)
                 {
-                    if ( Acol_indices[k] == RowId )
+                    if ( static_cast<std::size_t>(Acol_indices[k]) == RowId )
                         Avalues[k] = 1.0;
                     else
                         Avalues[k] = 0.0;

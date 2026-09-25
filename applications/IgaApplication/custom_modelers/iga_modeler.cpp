@@ -87,16 +87,27 @@ namespace Kratos
                 geometry_list, sub_model_part, rParameters["parameters"], std::string{});
         }
         else {
-            std::string geometry_type = rParameters["geometry_type"].GetString();
+            const std::string geometry_type = rParameters["geometry_type"].GetString();
             if (geometry_type == "GeometrySurfaceNodes"
                 || geometry_type == "GeometrySurfaceVariationNodes"
                 || geometry_type == "GeometryCurveNodes"
                 || geometry_type == "GeometryCurveVariationNodes") {
                 GetPointsAt(geometry_list, geometry_type, rParameters["parameters"], sub_model_part);
             }
-            else {
+            else if (geometry_type == "SurfaceEdge"
+                || geometry_type == "GeometrySurface"
+                || geometry_type == "SurfaceEdgeSurfaceEdge") {
                 CreateQuadraturePointGeometries(
                     geometry_list, sub_model_part, rParameters["parameters"], geometry_type);
+            }
+            else {
+                KRATOS_ERROR
+                    << "::[IgaModeler]:: Unsupported \"geometry_type\": \""
+                    << geometry_type << "\". Available options: "
+                    << "GeometrySurfaceNodes, GeometrySurfaceVariationNodes, "
+                    << "GeometryCurveNodes, GeometryCurveVariationNodes, "
+                    << "SurfaceEdge, GeometrySurface, SurfaceEdgeSurfaceEdge."
+                    << std::endl;
             }
         }
         KRATOS_INFO_IF("CreateIntegrationDomainElementCondition", mEchoLevel > 3)
@@ -116,9 +127,14 @@ namespace Kratos
             << "\"name\" need to be specified." << std::endl;
         std::string name = rParameters["name"].GetString();
 
-        SizeType shape_function_derivatives_order = 1;
+        int shape_function_derivatives_order = 1;
         if (rParameters.Has("shape_function_derivatives_order")) {
-            shape_function_derivatives_order = rParameters["shape_function_derivatives_order"].GetInt();
+            shape_function_derivatives_order =
+                rParameters["shape_function_derivatives_order"].GetInt();
+
+            KRATOS_ERROR_IF(shape_function_derivatives_order < 1)
+                << "\"shape_function_derivatives_order\" must be at least 1."
+                << std::endl;
         }
         else {
             KRATOS_INFO_IF("CreateQuadraturePointGeometries", mEchoLevel > 4)

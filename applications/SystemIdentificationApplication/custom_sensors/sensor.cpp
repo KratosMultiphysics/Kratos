@@ -28,10 +28,12 @@ namespace Kratos
 Sensor::Sensor(
     const std::string& rName,
     Node::Pointer pNode,
-    const double Weight)
+    const double Weight,
+    const double ErrorThreshold)
     : mName(rName),
       mpNode(pNode),
       mWeight(Weight),
+      mErrorThreshold(ErrorThreshold),
       mSensorValue(0.0)
 {
 }
@@ -44,6 +46,7 @@ Parameters Sensor::GetSensorParameters() const
         "value"        : 0.0,
         "location"     : [0.0, 0.0, 0.0],
         "weight"       : 0.0,
+        "error_threshold": 0.0,
         "variable_data": {}
     })" );
 
@@ -51,6 +54,7 @@ Parameters Sensor::GetSensorParameters() const
     parameters["value"].SetDouble(this->GetSensorValue());
     parameters["location"].SetVector(this->GetNode()->Coordinates());
     parameters["weight"].SetDouble(this->GetWeight());
+    parameters["error_threshold"].SetDouble(this->GetErrorThreshold());
 
     // Adding the data value container of the nodes
     const auto& r_node = *(this->GetNode());
@@ -98,6 +102,11 @@ Node::Pointer Sensor::GetNode() const
 double Sensor::GetWeight() const
 {
     return mWeight;
+}
+
+double Sensor::GetErrorThreshold() const
+{
+    return mErrorThreshold;
 }
 
 double Sensor::GetSensorValue() const
@@ -171,6 +180,7 @@ void Sensor::PrintData(std::ostream& rOStream) const
 {
     rOStream << "    Value: " << this->GetSensorValue() << std::endl;
     rOStream << "    Weight: " << this->GetWeight() << std::endl;
+    rOStream << "    Error threshold: " << this->GetErrorThreshold() << std::endl;
     mpNode->PrintInfo(rOStream);
     mpNode->PrintData(rOStream);
 }

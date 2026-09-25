@@ -43,6 +43,7 @@
 #include "custom_processes/apply_phreatic_multi_line_pressure_table_process.h"
 #include "custom_processes/apply_phreatic_surface_pressure_table_process.h"
 #include "custom_processes/apply_scalar_constraint_table_process.h"
+#include "custom_processes/apply_seepage_boundary_process.h"
 #include "custom_processes/apply_vector_constraint_table_process.h"
 #include "custom_processes/apply_write_result_scalar_process.h"
 #include "custom_processes/calculate_incremental_motion_process.h"
@@ -164,7 +165,7 @@ void AddCustomProcessesToPython(const pybind11::module& m)
 
     py::class_<ApplyScalarConstraintTableProcess, ApplyScalarConstraintTableProcess::Pointer, Process>(
         m, "ApplyScalarConstraintTableProcess")
-        .def(py::init<ModelPart&, const Parameters&>());
+        .def(py::init<Model&, const Parameters&>());
 
     py::class_<ApplyNormalLoadTableProcess, ApplyNormalLoadTableProcess::Pointer, Process>(
         m, "ApplyNormalLoadTableProcess")
@@ -197,6 +198,10 @@ void AddCustomProcessesToPython(const pybind11::module& m)
     py::class_<FindNeighboursOfInterfacesProcess, FindNeighboursOfInterfacesProcess::Pointer, Process>(
         m, "FindNeighboursOfInterfacesProcess")
         .def(py::init<Model&, const Parameters&>());
+
+    py::class_<ApplySeepageBoundaryProcess, ApplySeepageBoundaryProcess::Pointer, Process>(
+        m, "ApplySeepageBoundaryProcess")
+        .def(py::init<const Model&, const Parameters&>());
 }
 
 } // Namespace Kratos::Python.

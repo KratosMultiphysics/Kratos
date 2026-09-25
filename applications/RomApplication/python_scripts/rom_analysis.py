@@ -164,6 +164,11 @@ def CreateRomAnalysisInstance(cls, global_model, parameters, nn_rom_interface=No
                         list_of_processes.remove(process)
                 self.rom_basis_process_list_check = False
 
+            # Automatically inject the Python solver into any custom process that needs it
+            for process in list_of_processes:
+                if hasattr(process, "SetDependencies"):
+                    process.SetDependencies(self._GetSolver(), self.rom_parameters)
+
             return list_of_processes
 
         def _GetListOfOutputProcesses(self):
@@ -272,21 +277,27 @@ def CreateRomAnalysisInstance(cls, global_model, parameters, nn_rom_interface=No
                 if self.hrom_format == "json":
                     # Set the HROM weights in elements and conditions
                     hrom_weights_elements = self.rom_parameters["elements_and_weights"]["Elements"]
-                    for key,value in zip(hrom_weights_elements.keys(), hrom_weights_elements.values()):
-                        computing_model_part.GetElement(int(key)+1).SetValue(KratosROM.HROM_WEIGHT, value.GetDouble()) #FIXME: FIX THE +1
-                    hrom_weights_condtions = self.rom_parameters["elements_and_weights"]["Conditions"]
-                    for key,value in zip(hrom_weights_condtions.keys(), hrom_weights_condtions.values()):
-                        computing_model_part.GetCondition(int(key)+1).SetValue(KratosROM.HROM_WEIGHT, value.GetDouble()) #FIXME: FIX THE +1
+                    for key, value in hrom_weights_elements.items():
+                        computing_model_part.GetElement(int(key)).SetValue(KratosROM.HROM_WEIGHT, value.GetDouble())
+
+                    hrom_weights_conditions = self.rom_parameters["elements_and_weights"]["Conditions"]
+                    for key, value in hrom_weights_conditions.items():
+                        computing_model_part.GetCondition(int(key)).SetValue(KratosROM.HROM_WEIGHT, value.GetDouble())
+
                 elif self.hrom_format == "numpy":
                     # Set the HROM weights in elements and conditions
-                    element_indexes = np.load(f"{self.rom_basis_output_folder}/HROM_ElementIds.npy")
+                    element_ids = np.load(f"{self.rom_basis_output_folder}/HROM_ElementIds.npy")
                     element_weights = np.load(f"{self.rom_basis_output_folder}/HROM_ElementWeights.npy")
-                    condition_indexes = np.load(f"{self.rom_basis_output_folder}/HROM_ConditionIds.npy")
-                    conditon_weights = np.load(f"{self.rom_basis_output_folder}/HROM_ConditionWeights.npy")
-                    for i in range(np.size(element_indexes)):
-                        computing_model_part.GetElement(int( element_indexes[i])+1).SetValue(KratosROM.HROM_WEIGHT, element_weights[i]  ) #FIXME: FIX THE +1
-                    for i in range(np.size(condition_indexes)):
-                        computing_model_part.GetCondition(int( condition_indexes[i])+1).SetValue(KratosROM.HROM_WEIGHT, conditon_weights[i]  ) #FIXME: FIX THE +1
+
+                    condition_ids = np.load(f"{self.rom_basis_output_folder}/HROM_ConditionIds.npy")
+                    condition_weights = np.load(f"{self.rom_basis_output_folder}/HROM_ConditionWeights.npy")
+
+                    for i in range(np.size(element_ids)):
+                        computing_model_part.GetElement(int(element_ids[i])).SetValue(KratosROM.HROM_WEIGHT, element_weights[i,:])
+
+                    for i in range(np.size(condition_ids)):
+                        computing_model_part.GetCondition(int(condition_ids[i])).SetValue(KratosROM.HROM_WEIGHT,condition_weights[i,:])
+
 
 
             # Check and Initialize Petrov Galerkin Training stage
@@ -367,6 +378,11 @@ def CreateRomAnalysisInstance(cls, global_model, parameters, nn_rom_interface=No
             # Note that this needs to be done prior to the other processes to avoid unfixing the BCs
             if self.train_hrom:
                 self.__hrom_training_utility.AppendCurrentStepResiduals()
+
+            # If the residuals process is present, fetch residuals before clearing.
+            for process in self._GetListOfOutputProcesses():
+                if hasattr(process, "CaptureResiduals"):
+                    process.CaptureResiduals()
 
             # #FIXME: Make this optional. This must be a process
             # # Project the ROM solution onto the visualization modelparts

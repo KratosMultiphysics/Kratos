@@ -10,17 +10,32 @@
 
 // Project includes
 #include "includes/serializer.h"
-#include "custom_constitutive/continuum_laws/linear_elastic_3D_law.hpp"
+
+// Dam thin thermal-elastic adapter over CLA::ThermalElasticIsotropic3D (base).
+#include "custom_constitutive/thermal_linear_elastic_3D_law.hpp"
 
 #include "dam_application_variables.h"
 
 namespace Kratos
 {
 
-class KRATOS_API(DAM_APPLICATION) ThermalLinearElastic3DLawNodal : public LinearElastic3DLaw
+/**
+ * @brief Thin Dam compatibility adapter over Dam::ThermalLinearElastic3DLaw
+ * (which itself derives from CLA::ThermalElasticIsotropic3D) for the historical
+ * nodal-Young-modulus behavior.
+ * @details The generic thermoelastic response (all stress measures, strain
+ * handling, thermal strain, ref.-temperature, constitutive matrix, specialized
+ * outputs, lifecycle) is inherited. This class only feeds the Dam
+ * NODAL_YOUNG_MODULUS interpolation through the E-consuming generic seams
+ * CalculatePK2Stress/CalculateElasticMatrix.
+ */
+class KRATOS_API(DAM_APPLICATION) ThermalLinearElastic3DLawNodal : public ThermalLinearElastic3DLaw
 {
 
 public:
+
+    /// The Dam thermal-elastic adapter base.
+    using BaseType = ThermalLinearElastic3DLaw;
 
     KRATOS_CLASS_POINTER_DEFINITION(ThermalLinearElastic3DLawNodal);
 
@@ -33,37 +48,26 @@ public:
     ThermalLinearElastic3DLawNodal (const ThermalLinearElastic3DLawNodal& rOther);
 
     // Destructor
-    virtual ~ThermalLinearElastic3DLawNodal();
+    ~ThermalLinearElastic3DLawNodal() override;
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     ConstitutiveLaw::Pointer Clone() const override;
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    /**
+     * @brief Constitutive matrix with the Dam interpolated NODAL_YOUNG_MODULUS.
+     */
+    void CalculateElasticMatrix(
+        ConstitutiveLaw::VoigtSizeMatrixType& rConstitutiveMatrix,
+        ConstitutiveLaw::Parameters& rValues) override;
 
     /**
-     * Computes the material response:
-     * Kirchhoff stresses and algorithmic ConstitutiveMatrix
-     * @param rValues
-     * @see   Parameters
+     * @brief Stress vector with the Dam interpolated NODAL_YOUNG_MODULUS.
      */
-    void CalculateMaterialResponseKirchhoff (Parameters & rValues) override;
-
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-protected:
-
-    // Member Variables
-
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-    double& CalculateNodalYoungModulus ( const MaterialResponseVariables & rElasticVariables, double & rYoungModulus);
-    
-    double& CalculateDomainTemperature ( const MaterialResponseVariables & rElasticVariables, double & rTemperature) override;
-
-    double& CalculateNodalReferenceTemperature ( const MaterialResponseVariables & rElasticVariables, double & rNodalReferenceTemperature);
-
-    virtual void CalculateThermalStrain( Vector& rThermalStrainVector, const MaterialResponseVariables & rElasticVariables, double & rTemperature, double & rNodalReferenceTemperature);
+    void CalculatePK2Stress(
+        const ConstitutiveLaw::StrainVectorType& rStrainVector,
+        ConstitutiveLaw::StressVectorType& rStressVector,
+        ConstitutiveLaw::Parameters& rValues) override;
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -75,12 +79,12 @@ private:
 
     void save(Serializer& rSerializer) const override
     {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, LinearElastic3DLaw )
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, BaseType )
     }
 
     void load(Serializer& rSerializer) override
     {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, LinearElastic3DLaw )
+        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, BaseType )
     }
 
 }; // Class ThermalLinearElastic3DLawNodal
