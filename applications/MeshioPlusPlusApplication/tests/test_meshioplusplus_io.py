@@ -714,6 +714,74 @@ End Elements
             KratosMeshioPlusPlus.MeshioPlusPlusIO(
                 "unused.pvtu", KratosMultiphysics.Parameters('{"ghosts" : "hide"}'))
 
+    def testV16_13Formats(self):
+        Format = KratosMeshioPlusPlus.MeshioPlusPlusIO.Format
+        read_formats = KratosMeshioPlusPlus.MeshioPlusPlusIO.GetSupportedReadFormats()
+        write_formats = KratosMeshioPlusPlus.MeshioPlusPlusIO.GetSupportedWriteFormats()
+        for name in ("elmer", "febio", "femap", "libmesh", "mfem", "patran", "z88"):
+            self.assertIn(name, read_formats)
+            self.assertIn(name, write_formats)
+        for name in ("abaqus_fil", "ansys_rst", "lsdyna_d3plot", "lsdyna_binout", "marc_t19",
+                     "nastran_op2", "radioss_th", "xplt"):   # results files: read only
+            self.assertIn(name, read_formats)
+            self.assertNotIn(name, write_formats)
+        for path, format_value in (("model.feb", Format.FEBIO), ("model.neu", Format.FEMAP),
+                                   ("model.xdr", Format.LIBMESH), ("model.op2", Format.NASTRAN_OP2),
+                                   ("model.cdb", Format.ANSYSINP), ("d3plot", Format.LSDYNA_D3PLOT),
+                                   ("z88i1.txt", Format.Z88), ("model.bp", Format.VTX)):
+            self.assertEqual(KratosMeshioPlusPlus.MeshioPlusPlusIO.ResolveFormat(path), format_value)
+
+    def testWriteReadRoundTripFebio(self):
+        self._RunWriteReadRoundTrip(".feb")
+
+    def testWriteReadRoundTripLibmesh(self):
+        self._RunWriteReadRoundTrip(".xda")
+        self._RunWriteReadRoundTrip(".xdr")
+
+    def testElmerDirectoryIsFoundByContent(self):
+        write_model_part = self.model.CreateModelPart("write_elmer")
+        read_model_part = self.model.CreateModelPart("read_elmer")
+        _PopulateModelPart(write_model_part)
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            mesh_directory = str(Path(temp_dir) / "elmer_mesh")
+            settings = KratosMultiphysics.Parameters('{"time_series" : "single_file", "format" : "elmer"}')
+            KratosMeshioPlusPlus.MeshioPlusPlusIO(mesh_directory, settings).WriteModelPart(write_model_part)
+            self.assertEqual(KratosMeshioPlusPlus.MeshioPlusPlusIO.SniffFormat(mesh_directory), "elmer")
+            KratosMeshioPlusPlus.MeshioPlusPlusIO(mesh_directory).ReadModelPart(read_model_part)
+
+        self.assertEqual(read_model_part.NumberOfNodes(), write_model_part.NumberOfNodes())
+        self.assertEqual(read_model_part.NumberOfElements(), write_model_part.NumberOfElements())
+
+    def testMfemGridFunctions(self):
+        write_model_part = self.model.CreateModelPart("write_mfem")
+        read_model_part = self.model.CreateModelPart("read_mfem")
+        _PopulateModelPart(write_model_part)
+        for node in write_model_part.Nodes:
+            node.SetValue(KratosMultiphysics.TEMPERATURE, 2.0 * node.Id)
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            mesh_path = Path(temp_dir) / "fields.mesh"
+            write_settings = KratosMultiphysics.Parameters("""{
+                "time_series"                : "single_file",
+                "format"                     : "mfem",
+                "entity_type"                : "element",
+                "nodal_data_value_variables" : ["TEMPERATURE"],
+                "mfem_grid_functions_write"  : true
+            }""")
+            KratosMeshioPlusPlus.MeshioPlusPlusIO(str(mesh_path), write_settings).WriteModelPart(write_model_part)
+
+            grid_function_path = Path(temp_dir) / "fields.TEMPERATURE.gf"
+            self.assertTrue(grid_function_path.exists())
+            read_settings = KratosMultiphysics.Parameters('{"read_field_data" : true, "mfem_grid_functions" : []}')
+            grid_function = KratosMultiphysics.Parameters('{"name" : "TEMPERATURE"}')
+            grid_function.AddString("path", str(grid_function_path))
+            read_settings["mfem_grid_functions"].Append(grid_function)
+            KratosMeshioPlusPlus.MeshioPlusPlusIO(str(mesh_path), read_settings).ReadModelPart(read_model_part)
+
+        for node in read_model_part.Nodes:
+            self.assertAlmostEqual(node.GetValue(KratosMultiphysics.TEMPERATURE), 2.0 * node.Id, 12)
+
     def testUnknownProvenanceModeRaises(self):
         with self.assertRaisesRegex(RuntimeError, 'Unknown "provenance" setting'):
             KratosMeshioPlusPlus.MeshioPlusPlusIO(
