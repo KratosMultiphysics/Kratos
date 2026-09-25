@@ -16,8 +16,8 @@
 #include "custom_retention/retention_law.h"
 #include "geo_aliases.h"
 #include "includes/cfd_variables.h"
-#include "includes/properties.h"
 #include "includes/default_interface.h"
+#include "includes/properties.h"
 
 #include <utility>
 #include <vector>
