@@ -121,7 +121,8 @@ class PanelMaterialExtractor:
             rows = layers_matrix.Size1() # test-model: 16 Zeilen 
             cols = layers_matrix.Size2() # test-model: 8 Spalten
                         
-#layers_matrix =  Kratos.Matrix, transferring the entries to NumPy-Vector
+# layers_matrix =  Kratos.Matrix, transferring the entries to NumPy-Vector
+# iterate through plies using a loop 
             for PlyId in range(rows):
 
                 # row -> NumPy-Vector
@@ -134,7 +135,7 @@ class PanelMaterialExtractor:
                 if current_layer_data.size < 16:
                     print(f"Fehler: zu wenig Daten für Ply {PlyId+1} in Element {element.Id}")
                     continue
-#filling the vectors                
+# filling the vectors                
                 thickness  = current_layer_data[0]
                 alpha      = current_layer_data[1]
 
@@ -175,6 +176,7 @@ class PanelMaterialExtractor:
 
                 idx += 2
 
+# filling the container
                 composite_material = PanelCompositeMaterial(element_id, 
                                                                             ply_id, 
                                                                             ply_side,
