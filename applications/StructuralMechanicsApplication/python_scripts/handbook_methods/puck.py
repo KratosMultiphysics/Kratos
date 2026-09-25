@@ -72,13 +72,13 @@ class PuckAnalysis(HandbookMethod):
             f_E_FF:     stress exposure Fiber Fracturen (FF)
             RF_FF:      Reserve Factor Fiber Fracture (FF)
         """
-    
+# calculation of the Puck criteria for fiber fracture   
         R_pa_ct = np.where(sigma_1 < 0, R_pa_c, R_pa_t)
 
         failure_mode_FF = np.where(sigma_1 < 0, "FF Compression","FF Tension")
 
         f_E_FF = np.abs(sigma_1/R_pa_ct)
-
+# calculation of the reserve factor
         RF_FF  = 1/f_E_FF
 
         return RF_FF,f_E_FF,failure_mode_FF
@@ -111,39 +111,35 @@ class PuckAnalysis(HandbookMethod):
             theta_fp:   angle fracture plane
             f_E_IFF:    stress exposure Inter Fiber Fracturen (IFF)
             RF_IFF:     Reserve Factor Inter Fiber Fracture (IFF)
-        """
+       """
+# calculation of Puck special parameter
         R_trtr_A = R_tr_c/(2*(1+p_trtr_c))
         tau_21_c = R_trpa*np.sqrt(1+2*p_trtr_c)
 
-        # Bedingung für failure mode
+# condition für failure mode
         cond_A = sigma_2 >= 0
         cond_B = (sigma_2 < 0) & (np.abs(sigma_2 / tau_21) <= (R_trtr_A / np.abs(tau_21_c)))
         cond_C = (sigma_2 < 0) & (np.abs(tau_21 / sigma_2) <= (np.abs(tau_21_c) / R_trtr_A))
         
-        # Stress exposure ratio ratio Mode A,B,C
-        
+# stress exposure ratio ratio Mode A,B,C
         # Mode A
         f_E_A = np.sqrt((tau_21/R_trpa)**2+(1-p_trpa_t*R_tr_t/R_trpa)**2*(sigma_2/R_tr_t)**2)+p_trpa_t*sigma_2/R_trpa
-        The current model using these material data does not produce a fiber failure in the “First Fiber Fracture” degradation analysis. 
-Therefore, this is not fully covered by the test
         # Mode B
-        f_E_B = 1/R_trpa*(np.sqrt(tau_21**2+(p_trpa_c*sigma_2)**2)+p_trpa_c*sigma_2)
-        
+        f_E_B = 1/R_trpa*(np.sqrt(tau_21**2+(p_trpa_c*sigma_2)**2)+p_trpa_c*sigma_2)        
         # Mode C
         f_E_C = ((tau_21/(2*(1+p_trtr_c)*R_trpa))**2+(sigma_2/R_tr_c)**2)*R_tr_c/-sigma_2
 
-        # Auswahl failure Mode
+# selection of the failure mode
         f_E_IFF = np.where(cond_A, f_E_A, np.where(cond_B, f_E_B, np.where(cond_C, f_E_C, np.nan)))
-
-        # Vector failure mode 
         failure_mode_IFF = np.where(cond_A,"IFF Mode A",np.where(cond_B, "IFF Mode B", np.where(cond_C, "IFF Mode C", "NO IFF Mode")))
 
-        # Bruchwinkel berechnen (nur für Mode C) np.clip als Abnsicherung falls durch Rundung Wurzel negativ oder arccos größer 1 werte bekommt
+# Calculate the fracture angle (only for Mode C); use np.clip as a safeguard in case rounding results in a negative square root or an arccosine greater than 1
         theta_fp = np.degrees(np.arccos(np.sqrt(np.clip((1/(2*(1+p_trtr_c)))*(((R_trtr_A*tau_21)/(R_trpa*sigma_2))**2+1),0.0,1.0))))
 
-        #  Zuweisung Bruchwinkel
+#  select fracture angle
         theta_fp_IFF = np.where(cond_C, theta_fp, np.degrees(0.0))
 
+# calculation of the reserve factor
         RF_IFF = 1/f_E_IFF
 
         return RF_IFF, f_E_IFF, failure_mode_IFF, theta_fp_IFF
@@ -166,19 +162,19 @@ Therefore, this is not fully covered by the test
             E_tr:     Young's modulus in transverse direction
             G_trpa:     Shear modulus in transverse direction
         """
-        PuckDegradationIFF = np.zeros((plies_element*2, num_elements), dtype=object) #Ergebnisvektor der RF_IFF für Degradation
-        element_mit_degradation = np.zeros(num_elements) #Ergebnisvektor der Elemente die Degradation erfahren haben
+# initializing the output vectors        
+        PuckDegradationIFF = np.zeros((plies_element*2, num_elements), dtype=object)
+        element_mit_degradation = np.zeros(num_elements) #Vector: Which element is affected by degradation
         Puck_degradations_analyse = np.zeros((plies_element*2, 4), dtype=object)
         
 
-       #RF nach Element sortieren
-        RF_FF_deg = np.reshape(RF_FF_deg.copy(), (plies_element*2, num_elements), order='F') #ACHTUNG Umwandlung von Vektor zu Matrix
+# converting a vector to a matrix
+        RF_FF_deg = np.reshape(RF_FF_deg.copy(), (plies_element*2, num_elements), order='F') 
         failure_mode_FF_deg= np.reshape(failure_mode_FF.copy(), (plies_element*2, num_elements), order='F')
 
         RF_IFF_deg = np.reshape(RF_IFF_deg.copy(), (plies_element*2, num_elements), order='F')
         failure_mode_IFF_deg = np.reshape(failure_mode_IFF.copy(), (plies_element*2, num_elements), order='F')
 
-        #Richtige Dimension der Elementparameter etc füt Puck
         ElementID = np.reshape(ElementID, (plies_element*2, num_elements), order='F')
         PlyID     = np.reshape(PlyID, (plies_element*2, num_elements), order='F')
         topbot    = np.reshape(topbot, (plies_element*2, num_elements), order='F')
@@ -202,63 +198,63 @@ Therefore, this is not fully covered by the test
         G_trpa = np.reshape(G_trpa, (plies_element*2, num_elements), order='F')
 
        
-
-#Implementiert nach structure sizing Last Ply Failure LPF            
-        for element in range(num_elements): #Iterieren über alle Elemente
+# iterate through elements using a loop       
+        for element in range(num_elements): 
             Degradation_abbruch = False
             Degradation_number = 1
 
             Deg_check = np.full(plies_element, True, dtype=bool)
 
-
+# loop for one element until termination
             while True:
                 
                 print("Degradationsanalyse Nummer",Degradation_number,"Startet für Element ", ElementID[0,element]) 
 
-                if np.max(( RF_IFF_deg[ :, element])) < 1 : #Gesamtes Ply bricht
+                if np.max(( RF_IFF_deg[ :, element])) < 1 : # breaking of all plies
                     print ("Element ", ElementID[:,element], "Abruchkriterium erreicht gesamtes Element RF IFF < 1")
                     Degradation_abbruch = True
                     break
                             
-                elif np.min((RF_IFF_deg[ :, element])) >= 1 : #Einzelnes Ply bricht nicht alles safe
+                elif np.min((RF_IFF_deg[ :, element])) >= 1 : # all plies are safe
                     print("Element ", ElementID[:,element], " sicher, alle RF IFF > 1, keine Degradation notwendig" )
                     Degradation_abbruch = True
                     break
 
-
+# initialize the parts for the ABD and Q-matrix
                 Q_vektor = np.zeros((plies_element, 3, 3))
                 A = np.zeros((3, 3))
                 B = np.zeros((3, 3))
                 D = np.zeros((3, 3))
-#Von Top Bottom betrachtung auf Ply betrachtung umstellen um ABD richtig zu berechnen
+# from a top-bottom view to an element view according to lower RF_IFF
                 RF_top = RF_IFF_deg[0::2, element]
                 RF_bottom = RF_IFF_deg[1::2, element]
 
-                RF_IFF_ABD = np.minimum(RF_top, RF_bottom) #RF IFF min der Lage von top und Bottom ist relevant
+                RF_IFF_ABD = np.minimum(RF_top, RF_bottom) 
 
                 failure_mode_IFF_ABD = np.where(
                     RF_top <= RF_bottom,
                     failure_mode_IFF_deg[0::2, element],
                     failure_mode_IFF_deg[1::2, element])
 
+# iterate through plies using a loop  
                 for ply in range(plies_element): 
 
+            # check frist fiber fracture
                     if np.any(RF_FF_deg[:, element]<1) and self.first_fiber_failure: #Optional hinzuschalten von FFF- Die FF dieser Ply führen direkt zum Abbruch
                         print("In Element ", ElementID[ply,element], "Ply ID: ", PlyID[ply,element], "Top=0/Bottom=1:" ,topbot[ply,element], "FF Failure detected and according to First Fiber Fracture not allowed")
                         print("RF_FF: ", RF_FF_deg[ply, element], "Failure Mode: ", failure_mode_FF_deg[ply, element])
                         Degradation_abbruch = True
                         break 
-
+            # check first ply failure
                     if np.any(RF_IFF_deg[:, element]<1) and self.first_ply_failure : #Optional hinzuschalten von FFF- Die FF dieser Ply führen direkt zum Abbruch
                         print("In Element ", ElementID[ply,element], "Ply ID: ", PlyID[ply,element], "Top=0/Bottom=1:" ,topbot[ply,element], "IFF Failure detected and according to First Ply Failure not allowed")
                         print("RF_IFF: ", RF_FF_deg[ply, element], "Failure Mode: ", failure_mode_FF_deg[ply, element])
                         Degradation_abbruch = True
                         break 
 
-# Wird fortgesetzt wenn weder frist fiber failure oder first ply failure entdeckt wurde --> Fortsetzen bedeutet Last Ply Failure
+            # continue for last ply failure or no first fiber fracture has occured
                     if RF_IFF_ABD[ply] >= 1:
-                    # Berechnung Q-Matrix - UHRSPRUNGSWETE FÜR E UND G - O = Original
-
+            # calculation of the Q-matrix, without degradation ---- O = Original
                         E_tr_degO = E_tr[2*ply, element]
                         G_trpa_degO = G_trpa[2*ply, element]
 
@@ -300,7 +296,7 @@ Therefore, this is not fully covered by the test
                         Q_vektor[ply] = Qb_O
                         
                     elif failure_mode_IFF_ABD[ply] == "IFF Mode A":
-                    # Berechnung Q-Matrix - WERTE BEI DEGRADATION FAILURE MODE A FÜR E UND G - A = MODE A
+            # calculation of the Q-matrix, with degradation ---- A = MODE A
                         E_tr_degA = E_tr_A * E_tr[2*ply, element]
                         G_trpa_degA = G_patr_A * G_trpa[2*ply, element]
 
@@ -343,9 +339,8 @@ Therefore, this is not fully covered by the test
 
                         Deg_check[ply] = False                            
 
-
                     elif failure_mode_IFF_ABD[ply] == "IFF Mode B":
-                    # Berechnung Q-Matrix - WERTE BEI DEGRADATION FAILURE MODE B FÜR E UND G - B = MODE B
+            # calculation of the Q-matrix, with degradation ---- B = MODE B
                         E_tr_degB = E_tr_B * E_tr[2*ply, element]
                         G_trpa_degB = G_patr_B * G_trpa[2*ply, element]
 
@@ -387,21 +382,18 @@ Therefore, this is not fully covered by the test
 
                         Deg_check[ply] = False                    
 
-
-
                     elif failure_mode_IFF_ABD[ply] == "IFF Mode C":
-                        #ABBRUCH FALL NICHT ERLAUBT
+            # failure mode C ist not allwoed according to the risk of delamination
                         print("In Element ", ElementID[ply,element], "Ply ID: ", PlyID[ply,element],"IFF Mode C detected and not allowed")
                         Degradation_abbruch = True
                         break
 
                 if Degradation_abbruch:
                     break
-
-                thickness_gesamt = np.sum(PlyThickness[:, element])  # Summe der PlyThickness für jedes Element = Laminat Dicke
-                z_interfaces = -thickness_gesamt / 2 + np.concatenate(([0], np.cumsum(PlyThickness[:, element])))  # Berechnung der z-Positionen der Ply-Schnittstellen und anschließend befüllen von der mitte aus, dafür sorgt np.concatenate[0] mit extra 0 im array als Platz für z=0
-                z = np.column_stack((z_interfaces[:-1], z_interfaces[1:])).flatten() #Sortieren, dass Top Bottom Top Bottom, .. reihenfolge ohne überschneidene werte nur einfach 
-
+# calculating the new ABD-matrix
+                thickness_gesamt = np.sum(PlyThickness[:, element])  # Sum of PlyThickness for each Element = Laminat thickness
+                z_interfaces = -thickness_gesamt / 2 + np.concatenate(([0], np.cumsum(PlyThickness[:, element])))  # calculate the z-positions of the ply interfaces and then fill starting from the center; np.concatenate[0] handles this by including an extra 0 in the array to account for z=0.
+                z = np.column_stack((z_interfaces[:-1], z_interfaces[1:])).flatten() # sort to get the correct vector size
                 z_ABD = z_interfaces
 
                 for k in range(plies_element):
@@ -415,7 +407,7 @@ Therefore, this is not fully covered by the test
                                 [B, D]
                             ])    
 
-#3x1 Vektor der Dehnungen am element im globalen KS
+#_global = global coordinate system, _ply = ply coordinate system
                 Belastung = np.zeros(6)
                 Belastung[0] = force_x[element]
                 Belastung[1] = force_y[element]
@@ -429,20 +421,18 @@ Therefore, this is not fully covered by the test
                 Dehnung_element_global = Dehnung_Kruemmung[:3]
                 Kruemmung_element_global = Dehnung_Kruemmung[3:]
 
-            
-
-                Q_vektordoppelt = np.repeat(Q_vektor, 2, axis=0)
+                Q_vektordoppelt = np.repeat(Q_vektor, 2, axis=0) # duplicate entries for the correct dimension
 
                 sigma_1_deg = np.zeros(plies_element*2)
                 sigma_2_deg = np.zeros(plies_element*2)
                 tau_21_deg = np.zeros(plies_element*2)
 
+# calculation of new stresses according to degradation, for each ply
                 for i in range(plies_element*2): 
                     Dehnungen_element_ply = Dehnung_element_global + z[i] * Kruemmung_element_global 
 
                     ply_angle_rad = np.radians(PlyAngle[i,element])
 
-                    #Drehmatrix Dehnunghen
                     cos = np.cos(ply_angle_rad)
                     sin = np.sin(ply_angle_rad)    
 
@@ -455,13 +445,10 @@ Therefore, this is not fully covered by the test
 
                     Spannungen_deg = Q_vektordoppelt[i] @ Dehnung_element_plyaxis
 
-                    #Das Spannungstrio an der Ply des Elements wo Kritischer IFF aufgetreten ist
                     sigma_1_deg[i] = Spannungen_deg[0] 
                     sigma_2_deg[i] = Spannungen_deg[1]
                     tau_21_deg[i] = Spannungen_deg[2]
 
-                #print(sigma_1_deg)
-                    #Irgendwie in Puck und hin und  wieder Zurück
                 R_pa_t_deg = R_pa_t[:, element]
                 R_pa_c_deg = R_pa_c[:, element]
                 R_tr_t_deg = R_tr_t[:, element]
@@ -474,7 +461,7 @@ Therefore, this is not fully covered by the test
 
                 
 
-
+# Calculating of the reserve factors according to Puck, with new stresses
                 RF_FF_deg_new,f_E_FF,failure_mode_FF_new = self.PuckFF(sigma_1_deg, R_pa_t_deg, R_pa_c_deg)
         
                 RF_IFF_deg_new,f_E_IFF,failure_mode_IFF_deg_new,theta_fp_IFF_new = self.PuckIFF(sigma_2_deg, tau_21_deg, R_tr_t_deg, R_tr_c_deg, R_trpa_deg, p_trtr_c_deg, p_trpa_t_deg, p_trpa_c_deg)
@@ -485,7 +472,7 @@ Therefore, this is not fully covered by the test
                 RF_IFF_deg[:,element] = RF_IFF_deg_new
                 failure_mode_IFF_deg[:,element] = failure_mode_IFF_deg_new
 
-#Zur Ausgabe während der Analyse                        
+# output during analysis                       
                 Puck_degradations_analyse[:,0] = RF_IFF_deg_new
                 Puck_degradations_analyse[:,1] = f_E_IFF
                 Puck_degradations_analyse[:,2] = failure_mode_IFF_deg_new
@@ -494,29 +481,22 @@ Therefore, this is not fully covered by the test
                 print ("-RF_IFF-", "-f_E_IFF-", "-failure_mode_IFF-", "-theta_fp_IFF-")
                 self.PrintMatrix(Puck_degradations_analyse)
 
-#Zur Ausgabe in gesamter Matrix
+# output in the summary matrix
                 PuckDegradationIFF[:,element] = RF_IFF_deg_new
                 element_mit_degradation[element] = ElementID[ply,element]
                                         
                 Degradation_number += 1
 
-
+# termination if no more degradation is needed
                 Deg_check_new = RF_IFF_deg[::2,element] >= 1
                 if np.array_equal(Deg_check_new,Deg_check):
                     print("Keine weitere Degradation notwenig")
                     break
 
                 Deg_check = Deg_check_new
-
-                # if np.any(Deg_check & (RF_IFF_deg[::2, element] >= 1)) and not np.any(Deg_check & (RF_IFF_deg[::2, element] < 1)):
-                #     print("Keine weitere Degradation notwenig")
-                #     break
                                 
         return PuckDegradationIFF, element_mit_degradation
 
-
-        
-    #Methode zur strukturierten Ausgabe der Puck_Analyse Matrix
 
     def PrintMatrix(self, matrix):
         n_cols = matrix.shape[1]
@@ -535,7 +515,7 @@ Therefore, this is not fully covered by the test
 
     def PuckAnalysis(self, structural_component):
 
-        # ensure numpy arrays
+# initialize variables
         ElementID = np.array(structural_component.material.element_id)
         PlyID = np.array(structural_component.material.ply_id)
         topbot = np.array(structural_component.material.ply_side) # 0 für Top und 1 für Bottom Seite der Lage
@@ -578,24 +558,20 @@ Therefore, this is not fully covered by the test
         E_tr_B   = structural_component.material.degradationfactor_E_tr_B
         G_patr_B = structural_component.material.degradationfactor_G_patr_B
 
-
+# start fiber fracture calculation
         RF_FF,f_E_FF,failure_mode_FF = self.PuckFF(sigma_1, R_pa_t, R_pa_c)
-        
-
+# start inter fiber fracture calculation
         RF_IFF,f_E_IFF,failure_mode_IFF,theta_fp_IFF = self.PuckIFF(sigma_2,tau_21, R_tr_t, R_tr_c, R_trpa, p_trtr_c, p_trpa_t, p_trpa_c)
-
         RF_FF_deg = RF_FF
         RF_IFF_deg = RF_IFF
-
+# start degradations analysis
         PuckDegradationIFF, element_mit_degradation = self.PuckDegradation(ElementID, PlyID, topbot, RF_FF_deg, failure_mode_FF, RF_IFF_deg, failure_mode_IFF, force_x, force_y, force_xy, moment_x, moment_y, moment_xy, E_pa, E_tr, nu_12, G_trpa, PlyAngle, PlyThickness, plies_element, num_elements,
                                                                R_pa_t, R_pa_c, R_tr_t, R_tr_c, R_trpa, p_trtr_c, p_trpa_t, p_trpa_c, E_tr_A, G_patr_A, E_tr_B, G_patr_B)
 
-        Puck_analyse = np.zeros((PlyID.size, 12), dtype=object) #PlyID ist schon ein vector mit doppelter größe wegen TOP und BOTTOM
- 
-
+# initialize summary Matrix
+        Puck_analyse = np.zeros((PlyID.size, 12), dtype=object) 
         Puck_DegradationIFF = PuckDegradationIFF.flatten(order="F")
     
-        # Das Array befüllen um alle Variablen des Puck-Kriteriums gebündelt auszugeben 
         Puck_analyse[:,0] = ElementID
         Puck_analyse[:,1] = PlyID
         Puck_analyse[:,2] = PlyAngle
@@ -611,7 +587,7 @@ Therefore, this is not fully covered by the test
         Puck_analyse[:,10] = theta_fp_IFF 
         Puck_analyse[:,11] = Puck_DegradationIFF
    
-
+# output summary matrix
         print ("FOLGENDE REIHENFOLGE DER SPALTEN:")
 
         print ("-ElementID-", "-PlyID-", "-PlyAngle-", "-topbot-", "-RF_FF-", "-f_E_FF-", "-failure_mode_FF-", "-RF_IFF-", "-f_E_IFF-", "-failure_mode_IFF-", "-theta_fp_IFF-", "-PuckDegradationIFF-")
