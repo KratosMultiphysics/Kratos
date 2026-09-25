@@ -16,6 +16,7 @@
 
 // Project includes
 #include "add_custom_edgebased_levelset_solver_to_python.h"
+#include "spaces/default_spaces.h"
 
 namespace Kratos
 {
@@ -26,8 +27,8 @@ namespace Kratos
         {
             namespace py = pybind11;
 
-            typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
-            typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
+            typedef TDefaultSparseSpace<double> SparseSpaceType;
+            typedef TDefaultDenseSpace<double> LocalSpaceType;
             typedef LinearSolver<SparseSpaceType, LocalSpaceType> LinearSolverType;
 
             py::class_<EdgeBasedLevelSet<2, MatrixContainer<2, SparseSpaceType>, SparseSpaceType, LinearSolverType>>(pymodule, "EdgeBasedLevelSet2D")

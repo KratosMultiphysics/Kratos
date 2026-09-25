@@ -19,7 +19,7 @@
 // Project includes
 #include "add_convergence_accelerators_to_python.h"
 #include "solving_strategies/convergence_accelerators/convergence_accelerator.h"
-#include "spaces/ublas_space.h"
+#include "spaces/default_spaces.h"
 
 namespace Kratos::Python {
 
@@ -27,8 +27,8 @@ void AddConvergenceAcceleratorsToPython(pybind11::module &m)
 {
     namespace py = pybind11;
 
-    using SparseSpaceType = UblasSpace<double, CompressedMatrix, boost::numeric::ublas::vector<double>>;
-    using LocalSpaceType  = UblasSpace<double, Matrix, Vector>;
+    using SparseSpaceType = DefaultSparseSpaceType;
+    using LocalSpaceType  = DefaultLocalSpaceType;
 
     // Convergence accelerator base class
     using BaseConvergenceAcceleratorType = ConvergenceAccelerator<SparseSpaceType, LocalSpaceType>;

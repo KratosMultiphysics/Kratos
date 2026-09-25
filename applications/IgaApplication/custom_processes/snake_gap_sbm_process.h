@@ -20,7 +20,7 @@
 #include "spatial_containers/bins_dynamic.h"
 #include "snake_sbm_process.h"
 #include "custom_utilities/create_breps_sbm_utilities.h"
-#include "spaces/ublas_space.h"
+#include "spaces/default_spaces.h"
 
 namespace Kratos
 {
@@ -56,7 +56,7 @@ public:
     using NurbsSurfaceType = NurbsSurfaceGeometry<3, PointerVector<NodeType>>;
     using NodePointerVector = GlobalPointersVector<NodeType>;
 
-    using SparseSpaceType  = UblasSpace<double, CompressedMatrix, Vector>;
+    using SparseSpaceType  = TDefaultSparseSpace<double>;
     using SparseMatrixType = SparseSpaceType::MatrixType;
 
     /**
