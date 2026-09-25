@@ -36,7 +36,7 @@ class TestPuck(KratosUnittest.TestCase):
 
         return parameters
 
-#helper for RF_IFF step 14
+#helper for RF_IFF 
     def _CheckPuckRF_IFF(self, criterion, indices, expected_RF_IFF):
         model, simulation = self._RunPuckAnalysis(criterion)
 
@@ -59,7 +59,7 @@ class TestPuck(KratosUnittest.TestCase):
         return model, simulation
 
 
-#helper for RF_FF step 14
+#helper for RF_FF 
     def _CheckPuckRF_FF(self, criterion, indices, expected_RF_FF):
         model, simulation = self._RunPuckAnalysis(criterion)
 
@@ -73,7 +73,7 @@ class TestPuck(KratosUnittest.TestCase):
             self.assertAlmostEqual(RF_FF[index], expected, places=12)
 
 
-#helper for PuckDegradation step 14
+#helper for PuckDegradation
     def _CheckPuck_DegradationIFF(self, criterion, indices, expected_Puck_DegradationIFF):
         model, simulation = self._RunPuckAnalysis(criterion)
 
