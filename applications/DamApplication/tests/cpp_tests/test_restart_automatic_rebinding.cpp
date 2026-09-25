@@ -494,7 +494,8 @@ KRATOS_TEST_CASE_IN_SUITE(HistoricalLinearElastic3DLawNodalSerializerAlias, Krat
     loader.load("Law", loaded);
 
     KRATOS_EXPECT_TRUE(loaded.p_law != nullptr);
-    KRATOS_EXPECT_TRUE(typeid(*loaded.p_law) == typeid(FlexibleElasticIsotropic3D));
+    const auto* p_loaded_law = loaded.p_law.get();
+    KRATOS_EXPECT_TRUE(typeid(*p_loaded_law) == typeid(FlexibleElasticIsotropic3D));
 }
 
 //************************************************************************************
