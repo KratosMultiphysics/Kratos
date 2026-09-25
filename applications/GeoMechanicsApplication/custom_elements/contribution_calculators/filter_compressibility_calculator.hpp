@@ -16,8 +16,8 @@
 #include "custom_utilities/transport_equation_utilities.hpp"
 #include "geo_aliases.h"
 #include "geo_mechanics_application_variables.h"
-#include "includes/properties.h"
 #include "includes/default_interface.h"
+#include "includes/properties.h"
 
 #include <utility>
 #include <vector>
