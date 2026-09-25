@@ -1065,6 +1065,45 @@ std::vector<CurvePiece> BuildBoundaryConnectorPieces(
     return pieces;
 }
 
+std::vector<CurvePiece> BuildClosedRectangleLoop(
+    const RectangleType& rRect,
+    const Orientation BoundaryOrientation,
+    const CurveMetadata& rBoundaryMetadata)
+{
+    std::vector<CurvePiece> pieces;
+    const double perimeter = RectanglePerimeter(rRect);
+    auto coordinates = BoundaryBreaks(rRect, BoundaryOrientation);
+    coordinates.insert(coordinates.begin(), 0.0);
+
+    pieces.reserve(4);
+    for (std::size_t i = 0; i + 1 < coordinates.size(); ++i) {
+        const Point2D point_a = PointFromBoundaryCoordinate(
+            coordinates[i], rRect, BoundaryOrientation);
+        const Point2D point_b = PointFromBoundaryCoordinate(
+            coordinates[i + 1] < perimeter ? coordinates[i + 1] : 0.0,
+            rRect,
+            BoundaryOrientation);
+
+        CurveMetadata metadata = rBoundaryMetadata;
+        metadata.HasBrepId = false;
+        metadata.BrepId = 0;
+        if (metadata.ConditionName.empty()) {
+            metadata.ConditionName = "SolidCouplingCondition";
+        }
+        if (metadata.Identifier.empty()) {
+            metadata.Identifier = "COUPLING_SIDE";
+        }
+
+        CurvePiece piece;
+        piece.StartPoint = point_a;
+        piece.EndPoint = point_b;
+        piece.pCurve = CreatePolylineCurve({point_a, point_b}, metadata);
+        pieces.push_back(std::move(piece));
+    }
+
+    return pieces;
+}
+
 Point2D CurveStartPoint(const CurveGeometryType& rCurve)
 {
     const auto interval = rCurve.DomainInterval();
@@ -1138,6 +1177,46 @@ std::vector<CurvePointerType> OrderConnectedCurves(const ModelPart& rSourceModel
         << "' do not form a closed loop." << std::endl;
 
     return ordered_curves;
+}
+
+bool IsPointInsideCurveLoop(
+    const Point2D& rPoint,
+    const std::vector<CurvePointerType>& rOrderedCurves,
+    const int NumberOfSamplePoints)
+{
+    bool is_inside = false;
+
+    for (const auto& p_curve : rOrderedCurves) {
+        const auto samples = SampleCurve(*p_curve, NumberOfSamplePoints);
+        for (std::size_t i = 0; i + 1 < samples.size(); ++i) {
+            const Point2D& r_a = samples[i].Point;
+            const Point2D& r_b = samples[i + 1].Point;
+
+            const double dx = r_b.X - r_a.X;
+            const double dy = r_b.Y - r_a.Y;
+            const double segment_length = std::hypot(dx, dy);
+            if (segment_length > POINT_TOL) {
+                const double cross = (rPoint.X - r_a.X) * dy - (rPoint.Y - r_a.Y) * dx;
+                const double dot = (rPoint.X - r_a.X) * dx + (rPoint.Y - r_a.Y) * dy;
+                if (std::abs(cross) <= POINT_TOL * segment_length &&
+                    dot >= -POINT_TOL &&
+                    dot <= segment_length * segment_length + POINT_TOL) {
+                    return true;
+                }
+            }
+
+            const bool crosses_ray = (r_a.Y > rPoint.Y) != (r_b.Y > rPoint.Y);
+            if (crosses_ray) {
+                const double intersection_x =
+                    r_a.X + (rPoint.Y - r_a.Y) * dx / dy;
+                if (intersection_x > rPoint.X) {
+                    is_inside = !is_inside;
+                }
+            }
+        }
+    }
+
+    return is_inside;
 }
 
 void ValidateLoopClosure(const std::vector<CurvePiece>& rPieces, const std::string& rLoopLabel)
@@ -1260,6 +1339,30 @@ void FillSubModelPartWithCurves(
     }
 }
 
+std::size_t RemoveIncompleteGapInterfaceConditions(ModelPart& rPatchModelPart)
+{
+    if (!rPatchModelPart.HasSubModelPart("GapInterfaces")) {
+        return 0;
+    }
+
+    std::vector<IndexType> condition_ids_to_remove;
+    for (const auto& r_condition :
+         rPatchModelPart.GetSubModelPart("GapInterfaces").Conditions()) {
+        if (!r_condition.Has(NEIGHBOUR_GEOMETRIES) ||
+            r_condition.GetValue(NEIGHBOUR_GEOMETRIES).size() < 2) {
+            condition_ids_to_remove.push_back(r_condition.Id());
+        }
+    }
+
+    for (const IndexType condition_id : condition_ids_to_remove) {
+        // The indexed overload called on a submodelpart only removes from
+        // its immediate parent and descendants. Nested body/patch layouts
+        // must also remove the condition from the root solver model part.
+        rPatchModelPart.GetRootModelPart().RemoveConditionFromAllLevels(condition_id);
+    }
+    return condition_ids_to_remove.size();
+}
+
 } // namespace
 
 LocalRefinementModeler::LocalRefinementModeler(
@@ -1301,6 +1404,20 @@ void LocalRefinementModeler::SetupModelPart()
     const Parameters& r_geometry_parameters = mParameters["geometry_parameters"];
     const bool has_inner = r_geometry_parameters.Has("skin_model_part_inner_initial_name");
     const bool has_outer = r_geometry_parameters.Has("skin_model_part_outer_initial_name");
+
+    // This model part is populated only when a refinement box is completely
+    // contained in an outer physical domain. Reset it when SetupModelPart is
+    // called again on the same Model.
+    if (has_outer) {
+        const std::string outer_skin_name =
+            r_geometry_parameters["skin_model_part_outer_initial_name"].GetString();
+        ModelPart& r_outer_skin_model_part = mpModel->GetModelPart(outer_skin_name);
+        if (r_outer_skin_model_part.HasSubModelPart("local_refinement_inner_initial")) {
+            CreateOrResetSubModelPart(
+                r_outer_skin_model_part,
+                "local_refinement_inner_initial");
+        }
+    }
 
     KRATOS_INFO_IF("LocalRefinementModeler", mEchoLevel > 0)
         << "SetupModelPart begin | refinement_regions=" << mRefinementRegions.size() << std::endl;
@@ -1397,6 +1514,11 @@ void LocalRefinementModeler::RunGapSbmPatchModelers()
             base_outer_initial_name = r_source_skin_model_part.GetSubModelPart("updated_outer_initial").FullName();
         } else {
             base_outer_initial_name = r_source_skin_model_part.FullName();
+        }
+        if (r_source_skin_model_part.HasSubModelPart("local_refinement_inner_initial") &&
+            r_source_skin_model_part.GetSubModelPart("local_refinement_inner_initial").NumberOfGeometries() > 0) {
+            base_inner_initial_name = r_source_skin_model_part
+                .GetSubModelPart("local_refinement_inner_initial").FullName();
         }
     }
 
@@ -1530,6 +1652,7 @@ void LocalRefinementModeler::ProcessSkinModelPart(
 
     std::vector<CurvePiece> in_pieces;
     std::vector<CurvePiece> out_pieces;
+    std::vector<CurvePiece> contained_base_inner_pieces;
     const int number_of_sample_points = GetSamplingPointsPerCurve(mParameters);
     bool has_any_boundary_intersection = false;
 
@@ -1553,10 +1676,6 @@ void LocalRefinementModeler::ProcessSkinModelPart(
         }
     }
 
-    KRATOS_ERROR_IF_NOT(has_any_boundary_intersection)
-        << "LocalRefinementModeler: refinement regions whose boundary does not intersect the immersed curve are not implemented yet."
-        << std::endl;
-
     const Orientation in_orientation = ReverseBorderOrientation
         ? Orientation::Clockwise
         : Orientation::CounterClockwise;
@@ -1567,6 +1686,36 @@ void LocalRefinementModeler::ProcessSkinModelPart(
     const CurveMetadata refinement_boundary_metadata = MakeBoundaryConnectorMetadata(
         ReverseBorderOrientation ? "COUPLING_SIDE_OUTER" : "COUPLING_SIDE_INNER");
     const CurveMetadata base_boundary_metadata = MakeBoundaryConnectorMetadata("COUPLING_SIDE");
+
+    if (!has_any_boundary_intersection) {
+        const Point2D rectangle_center{
+            0.5 * (rRect[U_MIN] + rRect[U_MAX]),
+            0.5 * (rRect[V_MIN] + rRect[V_MAX])};
+        const bool center_is_inside_loop = IsPointInsideCurveLoop(
+            rectangle_center,
+            ordered_curves,
+            number_of_sample_points);
+
+        // At present the contained-box topology is implemented for an outer
+        // true boundary: the child gets the rectangle as its outer loop and
+        // the base patch gets the oppositely oriented rectangle as an inner
+        // loop. Inner-only input would require merging multiple NURBS loops in
+        // SnakeSbmProcess, which is not supported there yet.
+        KRATOS_ERROR_IF_NOT(ReverseBorderOrientation && center_is_inside_loop)
+            << "LocalRefinementModeler: a non-intersecting refinement region is supported only "
+            << "when it is completely contained inside a domain described by "
+            << "'skin_model_part_outer_initial_name'. Region: " << RectangleToString(rRect)
+            << std::endl;
+
+        in_pieces = BuildClosedRectangleLoop(
+            rRect,
+            in_orientation,
+            refinement_boundary_metadata);
+        contained_base_inner_pieces = BuildClosedRectangleLoop(
+            rRect,
+            out_orientation,
+            base_boundary_metadata);
+    }
 
     auto rebuilt_in_pieces = RebuildLoop(
         in_pieces,
@@ -1612,6 +1761,32 @@ void LocalRefinementModeler::ProcessSkinModelPart(
 
     FillSubModelPartWithCurves(r_refinement_sub_model_part, rebuilt_in_pieces);
     FillSubModelPartWithCurves(r_updated_sub_model_part, rebuilt_out_pieces);
+    if (!contained_base_inner_pieces.empty()) {
+        ModelPart& r_base_inner_sub_model_part =
+            r_skin_model_part.HasSubModelPart("local_refinement_inner_initial")
+                ? r_skin_model_part.GetSubModelPart("local_refinement_inner_initial")
+                : r_skin_model_part.CreateSubModelPart("local_refinement_inner_initial");
+
+        KRATOS_ERROR_IF(r_base_inner_sub_model_part.NumberOfGeometries() > 0)
+            << "LocalRefinementModeler: more than one completely contained refinement "
+            << "region is not supported yet." << std::endl;
+        FillSubModelPartWithCurves(
+            r_base_inner_sub_model_part,
+            contained_base_inner_pieces);
+        // This generated inner loop is an exact rectangle. Preserve its
+        // bounds so Snake can classify it without extrapolating the nearest
+        // discretized segment at its sharp corners.
+        Matrix inner_rectangle_corners(2, 2);
+        inner_rectangle_corners(0, 0) = rRect[U_MIN];
+        inner_rectangle_corners(0, 1) = rRect[U_MAX];
+        inner_rectangle_corners(1, 0) = rRect[V_MIN];
+        inner_rectangle_corners(1, 1) = rRect[V_MAX];
+        r_base_inner_sub_model_part.SetValue(
+            PATCH_PARAMETER_SPACE_CORNERS, inner_rectangle_corners);
+        r_base_inner_sub_model_part.SetValue(
+            ORIGINAL_SKIN_MODEL_PART_FULL_NAME,
+            original_skin_model_part_full_name);
+    }
     r_refinement_sub_model_part.SetValue(
         ORIGINAL_SKIN_MODEL_PART_FULL_NAME,
         original_skin_model_part_full_name);
@@ -1673,11 +1848,18 @@ void LocalRefinementModeler::RunGapSbmPatch(
 
     if (!rInnerInitialSkinModelPartName.empty()) {
         patch_geometry.AddEmptyValue("skin_model_part_inner_initial_name").SetString(rInnerInitialSkinModelPartName);
-    } else if (!rOuterInitialSkinModelPartName.empty()) {
+    }
+    if (!rOuterInitialSkinModelPartName.empty()) {
         patch_geometry.AddEmptyValue("skin_model_part_outer_initial_name").SetString(rOuterInitialSkinModelPartName);
-    } else {
+    }
+    if (rInnerInitialSkinModelPartName.empty() && rOuterInitialSkinModelPartName.empty()) {
         KRATOS_ERROR << "LocalRefinementModeler: patch '" << patch_full_name
                      << "' has neither an inner nor an outer initial skin model part." << std::endl;
+    }
+
+    if (!rInnerInitialSkinModelPartName.empty() &&
+        rInnerInitialSkinModelPartName.find("local_refinement_inner_initial") != std::string::npos) {
+        SetOrAddIntValue(patch_geometry, "number_of_inner_loops", 1);
     }
 
     const Vector base_lower_uvw = mParameters["base_domain"]["lower_point_uvw"].GetVector();
@@ -1815,7 +1997,9 @@ void LocalRefinementModeler::RunGapSbmPatch(
             patch_geometry,
             "replace_local_refinement_closures_with_enhanced_conditions",
             !is_refinement_patch &&
-                mParameters["refinement_type"].GetString() == "sbm");
+                mParameters["refinement_type"].GetString() == "sbm" &&
+                (rInnerInitialSkinModelPartName.empty() ||
+                 rOuterInitialSkinModelPartName.empty()));
         KRATOS_INFO_IF("LocalRefinementModeler", mEchoLevel > 1)
             << "Running NurbsGeometryModelerGapSbm for patch '" << patch_full_name
             << "' | skin='" << rPatchSkinModelPartName << "'" << std::endl;
@@ -1825,6 +2009,15 @@ void LocalRefinementModeler::RunGapSbmPatch(
         geometry_modeler.PrepareGeometryModel();
         geometry_modeler.SetupModelPart();
     }
+
+    const std::size_t number_of_removed_incomplete_interfaces =
+        RemoveIncompleteGapInterfaceConditions(r_patch_model_part);
+    KRATOS_WARNING_IF(
+        "LocalRefinementModeler",
+        number_of_removed_incomplete_interfaces > 0 && mEchoLevel > 0)
+        << "Removed " << number_of_removed_incomplete_interfaces
+        << " incomplete gap-interface conditions from patch '"
+        << patch_full_name << "'." << std::endl;
 
     KRATOS_ERROR_IF_NOT(mParameters.Has("analysis_parameters"))
         << "LocalRefinementModeler: missing 'analysis_parameters' block." << std::endl;

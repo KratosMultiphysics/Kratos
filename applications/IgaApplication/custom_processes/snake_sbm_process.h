@@ -93,7 +93,8 @@ public:
             "lambda_inner" : 0.5,
             "lambda_outer" : 0.5,
             "number_of_inner_loops": 0,
-            "number_initial_points_if_importing_nurbs": 5000
+            "number_initial_points_if_importing_nurbs": 5000,
+            "offset_for_refinement_in_physical_coord": 0.0
         })" );
 
         return default_parameters;
@@ -127,6 +128,7 @@ protected:
         ModelPart& rIgaModelPart,
         ModelPart& rSkinModelPart,
         const int NumberInitialPointsIfImportingNurbs,
+        const double OffsetForRefinementInPhysicalCoord,
         bool RemoveIslands = false,
         bool CreateOuterFromInner = false,
         bool CreateInnerFromOuter = false
@@ -138,6 +140,7 @@ protected:
     IndexType mEchoLevel;
     double mLambdaInner;
     double mLambdaOuter;
+    double mOffsetForRefinementInPhysicalCoord;
     std::size_t mNumberOfInnerLoops;
     int mNumberInitialPointsIfImportingNurbs;
     bool mCreateSurrOuterFromSurrInner;
@@ -371,14 +374,18 @@ private:
      * @brief Generates outer knot spans from inner knot spans (2D), merging all inner loops on the first dimension.
      */
     static std::vector<std::vector<int>> GenerateOuterSurrogateFromInnerKnotSpansAvailable(
-        const std::vector<std::vector<std::vector<int>>>& rInnerKnotSpansAvailable
+        const std::vector<std::vector<std::vector<int>>>& rInnerKnotSpansAvailable,
+        const int RefinementPatchSizeU,
+        const int RefinementPatchSizeV
         );
 
     /**
      * @brief Generates inner knot spans from outer knot spans (2D), merging all outer loops on the first dimension.
      */
     static std::vector<std::vector<int>> GenerateInnerSurrogateFromOuterKnotSpansAvailable(
-        const std::vector<std::vector<std::vector<int>>>& rOuterKnotSpansAvailable
+        const std::vector<std::vector<std::vector<int>>>& rOuterKnotSpansAvailable,
+        const int RefinementPatchSizeU,
+        const int RefinementPatchSizeV
         );
 
     /**

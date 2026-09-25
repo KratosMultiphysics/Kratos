@@ -21,6 +21,7 @@
 #include <fstream>
 #include <cstdio>
 #include <algorithm>
+#include <cmath>
 
 namespace Kratos
 {
@@ -35,11 +36,16 @@ SnakeSbmProcess::SnakeSbmProcess(
     mEchoLevel = mThisParameters["echo_level"].GetInt();
     mLambdaInner = mThisParameters["lambda_inner"].GetDouble();
     mLambdaOuter = mThisParameters["lambda_outer"].GetDouble();
+    mOffsetForRefinementInPhysicalCoord = mThisParameters["offset_for_refinement_in_physical_coord"].GetDouble();
     mNumberOfInnerLoops = mThisParameters["number_of_inner_loops"].GetInt();
     mNumberInitialPointsIfImportingNurbs = mThisParameters["number_initial_points_if_importing_nurbs"].GetInt();
     mCreateSurrOuterFromSurrInner = mThisParameters["create_surr_outer_from_surr_inner"].GetBool();
     mCreateSurrInnerFromSurrOuter = mThisParameters["create_surr_inner_from_surr_outer"].GetBool();
     mUseForLocalRefinement = mThisParameters["use_for_local_refinement"].GetBool();
+
+    KRATOS_ERROR_IF(mOffsetForRefinementInPhysicalCoord < 0.0)
+        << "::[SnakeSbmProcess]:: \"offset_for_refinement_in_physical_coord\" must be non-negative."
+        << std::endl;
 
     std::string iga_model_part_name = mThisParameters["model_part_name"].GetString();
     std::string skin_model_part_inner_initial_name = mThisParameters["skin_model_part_inner_initial_name"].GetString();
@@ -78,7 +84,7 @@ void SnakeSbmProcess::CreateTheSnakeCoordinates(bool RemoveIslands)
         }
         // template argument IsInnerLoop set true
         CreateTheSnakeCoordinates<true>(*mpSkinModelPartInnerInitial, mNumberOfInnerLoops, mLambdaInner, mEchoLevel, *mpIgaModelPart, *mpSkinModelPart, mNumberInitialPointsIfImportingNurbs, 
-                                         RemoveIslands, mCreateSurrOuterFromSurrInner, false);            
+                                         mOffsetForRefinementInPhysicalCoord, RemoveIslands, mCreateSurrOuterFromSurrInner, false);
     }
 
     // if (mCreateSurrOuterFromSurrInner) {
@@ -93,7 +99,7 @@ void SnakeSbmProcess::CreateTheSnakeCoordinates(bool RemoveIslands)
                 mpSkinModelPart->CreateNewProperties(0);
             }
             // template argument IsInnerLoop set false
-            CreateTheSnakeCoordinates<false>(*mpSkinModelPartOuterInitial, 1, mLambdaOuter, mEchoLevel, *mpIgaModelPart, *mpSkinModelPart, mNumberInitialPointsIfImportingNurbs, false, false, mCreateSurrInnerFromSurrOuter);
+            CreateTheSnakeCoordinates<false>(*mpSkinModelPartOuterInitial, 1, mLambdaOuter, mEchoLevel, *mpIgaModelPart, *mpSkinModelPart, mNumberInitialPointsIfImportingNurbs, mOffsetForRefinementInPhysicalCoord, false, false, mCreateSurrInnerFromSurrOuter);
         }
     // }
 }    
@@ -399,7 +405,7 @@ void SnakeSbmProcess::GenerateOuterInitialFromSurrogateInner()
     if (pSkinModelPartOuterInitialFromOuter->NumberOfNodes()>0 || pSkinModelPartOuterInitialFromOuter->NumberOfGeometries()>0) {
         if (!pSkinModelPartOuterInitialFromOuter->RecursivelyHasProperties(0)) pSkinModelPartOuterInitialFromOuter->CreateNewProperties(0);
         if (!mpSkinModelPart->RecursivelyHasProperties(0)) mpSkinModelPart->CreateNewProperties(0);
-        CreateTheSnakeCoordinates<false>(*pSkinModelPartOuterInitialFromOuter, 1, mLambdaOuter, mEchoLevel, *mpIgaModelPart, *mpSkinModelPart, mNumberInitialPointsIfImportingNurbs, false, false, false);
+        CreateTheSnakeCoordinates<false>(*pSkinModelPartOuterInitialFromOuter, 1, mLambdaOuter, mEchoLevel, *mpIgaModelPart, *mpSkinModelPart, mNumberInitialPointsIfImportingNurbs, mOffsetForRefinementInPhysicalCoord, false, false, false);
     }
 }
 
@@ -612,6 +618,7 @@ void SnakeSbmProcess::CreateTheSnakeCoordinates(
     ModelPart& rIgaModelPart,
     ModelPart& rSkinModelPart,
     const int NumberInitialPointsIfImportingNurbs,
+    const double OffsetForRefinementInPhysicalCoord,
     bool RemoveIslands,
     bool CreateOuterFromInner,
     bool CreateInnerFromOuter) 
@@ -623,7 +630,41 @@ void SnakeSbmProcess::CreateTheSnakeCoordinates(
     
     Vector knot_vector_u = rIgaModelPart.GetValue(KNOT_VECTOR_U);
     Vector knot_vector_v = rIgaModelPart.GetValue(KNOT_VECTOR_V);
-    
+
+    const auto get_minimum_knot_span_size = [](const Vector& rKnotVector) {
+        double minimum_size = std::numeric_limits<double>::max();
+        for (std::size_t i = 1; i < rKnotVector.size(); ++i) {
+            const double span_size = std::abs(rKnotVector[i] - rKnotVector[i - 1]);
+            if (span_size > std::numeric_limits<double>::epsilon()) {
+                minimum_size = std::min(minimum_size, span_size);
+            }
+        }
+        return minimum_size;
+    };
+    const double minimum_knot_span_size_u = get_minimum_knot_span_size(knot_vector_u);
+    const double minimum_knot_span_size_v = get_minimum_knot_span_size(knot_vector_v);
+    KRATOS_ERROR_IF_NOT(std::isfinite(OffsetForRefinementInPhysicalCoord))
+        << "::[SnakeSbmProcess]:: \"offset_for_refinement_in_physical_coord\" must be finite."
+        << std::endl;
+    KRATOS_ERROR_IF_NOT(std::isfinite(minimum_knot_span_size_u) &&
+                        minimum_knot_span_size_u < std::numeric_limits<double>::max() &&
+                        std::isfinite(minimum_knot_span_size_v) &&
+                        minimum_knot_span_size_v < std::numeric_limits<double>::max())
+        << "::[SnakeSbmProcess]:: Cannot determine a positive knot span size for local refinement."
+        << std::endl;
+    // Use a directional element count so that the physical padding is approximately
+    // the requested offset also when the U and V knot spans differ.
+
+    KRATOS_WATCH(OffsetForRefinementInPhysicalCoord)
+    KRATOS_WATCH(minimum_knot_span_size_u)
+    KRATOS_WATCH(minimum_knot_span_size_v)
+    const int refinement_patch_size_u = static_cast<int>(std::ceil(
+        OffsetForRefinementInPhysicalCoord / minimum_knot_span_size_u));
+    const int refinement_patch_size_v = static_cast<int>(std::ceil(
+        OffsetForRefinementInPhysicalCoord / minimum_knot_span_size_v));
+    KRATOS_WATCH(refinement_patch_size_u)
+    KRATOS_WATCH(refinement_patch_size_v)
+
     const bool is_inner = TIsInnerLoop;
 
     std::string surrogate_sub_model_part_name; 
@@ -640,6 +681,17 @@ void SnakeSbmProcess::CreateTheSnakeCoordinates(
     
     ModelPart& r_skin_sub_model_part = rSkinModelPart.GetSubModelPart(skin_sub_model_part_name);
     ModelPart& r_surrogate_sub_model_part = rIgaModelPart.GetSubModelPart(surrogate_sub_model_part_name);
+
+    // Bounds are provided only for the exact rectangular inner loop created
+    // by LocalRefinementModeler, not for arbitrary imported boundaries.
+    if constexpr (TIsInnerLoop) {
+        if (rSkinModelPartInitial.Has(PATCH_PARAMETER_SPACE_CORNERS)) {
+            r_skin_sub_model_part.SetValue(PATCH_PARAMETER_SPACE_CORNERS,
+                rSkinModelPartInitial.GetValue(PATCH_PARAMETER_SPACE_CORNERS));
+        } else {
+            r_skin_sub_model_part.Erase(PATCH_PARAMETER_SPACE_CORNERS);
+        }
+    }
 
     // TODO: uniform the notation (avoid using two separate variables)
     ModelPart& r_surrogate_sub_model_part_inner = rIgaModelPart.GetSubModelPart("surrogate_inner");
@@ -1075,7 +1127,8 @@ void SnakeSbmProcess::CreateTheSnakeCoordinates(
             
             if (CreateOuterFromInner) {
 
-                auto outer_knot_spans_available = GenerateOuterSurrogateFromInnerKnotSpansAvailable(knot_spans_available);
+                auto outer_knot_spans_available = GenerateOuterSurrogateFromInnerKnotSpansAvailable(
+                    knot_spans_available, refinement_patch_size_u, refinement_patch_size_v);
                 
                 CreateSurrogateBuondaryFromSnakeOuterWithoutBoundaryCheck(
                     n_knot_spans_uv,
@@ -1096,7 +1149,8 @@ void SnakeSbmProcess::CreateTheSnakeCoordinates(
                 CreateSurrogateBuondaryFromSnakeOuter(id_inner_loop, *p_skin_sub_model_part_loop, points_bin, n_knot_spans_uv, knot_vector_u,
                                                     knot_vector_v, starting_pos_uv, knot_spans_available, r_surrogate_sub_model_part);
             if (CreateInnerFromOuter) {
-                auto inner_knot_spans_available = GenerateInnerSurrogateFromOuterKnotSpansAvailable(knot_spans_available);
+                auto inner_knot_spans_available = GenerateInnerSurrogateFromOuterKnotSpansAvailable(
+                    knot_spans_available, refinement_patch_size_u, refinement_patch_size_v);
                 CreateSurrogateBuondaryFromSnakeInnerWithoutBoundaryCheck(
                     n_knot_spans_uv,
                     knot_vector_u,
@@ -1401,6 +1455,17 @@ bool SnakeSbmProcess::IsPointInsideSkinBoundary(
     const ModelPart& rSkinModelPart)
 {
     constexpr double geometric_tolerance = 1.0e-4;
+
+    if (rSkinModelPart.Has(PATCH_PARAMETER_SPACE_CORNERS)) {
+        const auto& r_corners = rSkinModelPart.GetValue(PATCH_PARAMETER_SPACE_CORNERS);
+        KRATOS_ERROR_IF(r_corners.size1() != 2 || r_corners.size2() != 2)
+            << "Invalid rectangular inner-loop bounds in '"
+            << rSkinModelPart.FullName() << "'." << std::endl;
+        return rPoint1.X() >= r_corners(0, 0) - geometric_tolerance &&
+               rPoint1.X() <= r_corners(0, 1) + geometric_tolerance &&
+               rPoint1.Y() >= r_corners(1, 0) - geometric_tolerance &&
+               rPoint1.Y() <= r_corners(1, 1) + geometric_tolerance;
+    }
 
     // Get the nearest point of the true boundary
     DynamicBinsPointerType p_point_to_search = DynamicBinsPointerType(new PointType(1, rPoint1.X(), rPoint1.Y(), 0.0));
@@ -2167,7 +2232,9 @@ void SnakeSbmProcess::SetSurrogateNormals(
 }
 
 std::vector<std::vector<int>> SnakeSbmProcess::GenerateOuterSurrogateFromInnerKnotSpansAvailable(
-    const std::vector<std::vector<std::vector<int>>>& rInnerKnotSpansAvailable)
+    const std::vector<std::vector<std::vector<int>>>& rInnerKnotSpansAvailable,
+    const int RefinementPatchSizeU,
+    const int RefinementPatchSizeV)
 {
     if (rInnerKnotSpansAvailable.empty()) {
         return {};
@@ -2204,7 +2271,8 @@ std::vector<std::vector<int>> SnakeSbmProcess::GenerateOuterSurrogateFromInnerKn
         }
     }
 
-    constexpr int refinement_patch_size = 3;
+    const int refinement_patch_size_u = RefinementPatchSizeU;
+    const int refinement_patch_size_v = RefinementPatchSizeV;
     std::vector<std::vector<int>> outer_knot_spans(row_count, std::vector<int>(column_count, 0));
 
     auto set_one = [&outer_knot_spans](const std::size_t row, const std::size_t column) {
@@ -2231,8 +2299,8 @@ std::vector<std::vector<int>> SnakeSbmProcess::GenerateOuterSurrogateFromInnerKn
                 set_one(row, column);
                 const bool is_opening = merged_inner[row][column - 1] != 1;
                 if (is_opening) {
-                    for (int offset_row = -refinement_patch_size; offset_row <= refinement_patch_size; ++offset_row) {
-                        for (int offset = 0; offset <= refinement_patch_size; ++offset) {
+                    for (int offset_row = -refinement_patch_size_v; offset_row <= refinement_patch_size_v; ++offset_row) {
+                        for (int offset = 0; offset <= refinement_patch_size_u; ++offset) {
                             if (column >= static_cast<std::size_t>(offset)) {
                                 set_one(row+offset_row, column - static_cast<std::size_t>(offset));
                             }
@@ -2241,8 +2309,8 @@ std::vector<std::vector<int>> SnakeSbmProcess::GenerateOuterSurrogateFromInnerKn
                 }
             } else if (inner_value == 0 && found_one) {
                 found_one = false;
-                for (int offset_row = -refinement_patch_size; offset_row <= refinement_patch_size; ++offset_row) {
-                    for (int offset = 0; offset < refinement_patch_size; ++offset) {
+                for (int offset_row = -refinement_patch_size_v; offset_row <= refinement_patch_size_v; ++offset_row) {
+                    for (int offset = 0; offset < refinement_patch_size_u; ++offset) {
                         if (column >= static_cast<std::size_t>(offset)) {
                             set_one(row+offset_row, column + static_cast<std::size_t>(offset));
                         }
@@ -2264,8 +2332,8 @@ std::vector<std::vector<int>> SnakeSbmProcess::GenerateOuterSurrogateFromInnerKn
                 set_one(static_cast<std::size_t>(row), column);
                 const bool is_opening = merged_inner[static_cast<std::size_t>(row - 1)][column] != 1;
                 if (is_opening) {
-                    for (int offset_col = -refinement_patch_size; offset_col <= refinement_patch_size; ++offset_col) {
-                        for (int offset = 0; offset <= refinement_patch_size; ++offset) {
+                    for (int offset_col = -refinement_patch_size_u; offset_col <= refinement_patch_size_u; ++offset_col) {
+                        for (int offset = 0; offset <= refinement_patch_size_v; ++offset) {
                             if (column >= static_cast<std::size_t>(offset)) {
                                 set_one(row - offset, column + static_cast<std::size_t>(offset_col));
                             }
@@ -2274,8 +2342,8 @@ std::vector<std::vector<int>> SnakeSbmProcess::GenerateOuterSurrogateFromInnerKn
                 }
             } else if (inner_value == 0 && found_one) {
                 found_one = false;
-                for (int offset_col = -refinement_patch_size; offset_col <= refinement_patch_size; ++offset_col) {
-                    for (int offset = 0; offset < refinement_patch_size; ++offset) {
+                for (int offset_col = -refinement_patch_size_u; offset_col <= refinement_patch_size_u; ++offset_col) {
+                    for (int offset = 0; offset < refinement_patch_size_v; ++offset) {
                         if (column >= static_cast<std::size_t>(offset)) {
                             set_one(row + offset, column + static_cast<std::size_t>(offset_col));
                         }
@@ -2290,7 +2358,9 @@ std::vector<std::vector<int>> SnakeSbmProcess::GenerateOuterSurrogateFromInnerKn
 }
 
 std::vector<std::vector<int>> SnakeSbmProcess::GenerateInnerSurrogateFromOuterKnotSpansAvailable(
-    const std::vector<std::vector<std::vector<int>>>& rOuterKnotSpansAvailable)
+    const std::vector<std::vector<std::vector<int>>>& rOuterKnotSpansAvailable,
+    const int RefinementPatchSizeU,
+    const int RefinementPatchSizeV)
 {
     if (rOuterKnotSpansAvailable.empty()) {
         return {};
@@ -2311,7 +2381,8 @@ std::vector<std::vector<int>> SnakeSbmProcess::GenerateInnerSurrogateFromOuterKn
         << " cols=" << column_count << std::endl;
     std::vector<std::vector<int>> merged_outer = rOuterKnotSpansAvailable.front();
 
-    constexpr int refinement_patch_size = 3 ; //FIXME:
+    const int refinement_patch_size_u = RefinementPatchSizeU;
+    const int refinement_patch_size_v = RefinementPatchSizeV;
     std::vector<std::vector<int>> inner_knot_spans(row_count, std::vector<int>(column_count, 0));
 
     auto in_bounds = [row_count, column_count](const int row, const int column) {
@@ -2351,8 +2422,8 @@ std::vector<std::vector<int>> SnakeSbmProcess::GenerateInnerSurrogateFromOuterKn
                 set_one(static_cast<int>(row), static_cast<int>(column));
                 const bool is_opening = (column == 0) ? true : (merged_outer[row][column - 1] != 1);
                 if (is_opening) {
-                    for (int offset_row = -refinement_patch_size; offset_row <= refinement_patch_size; ++offset_row) {
-                        for (int offset = 0; offset <= refinement_patch_size; ++offset) {
+                    for (int offset_row = -refinement_patch_size_v; offset_row <= refinement_patch_size_v; ++offset_row) {
+                        for (int offset = 0; offset <= refinement_patch_size_u; ++offset) {
                             const int target_row = static_cast<int>(row) + offset_row;
                             const int target_col = static_cast<int>(column) + offset;
                             set_minus_one(target_row, target_col);
@@ -2361,8 +2432,8 @@ std::vector<std::vector<int>> SnakeSbmProcess::GenerateInnerSurrogateFromOuterKn
                 }
             } else if (outer_value != 1 && found_one) {
                 found_one = false;
-                for (int offset_row = -refinement_patch_size; offset_row <= refinement_patch_size; ++offset_row) {
-                    for (int offset = 0; offset <= refinement_patch_size+1; ++offset) {
+                for (int offset_row = -refinement_patch_size_v; offset_row <= refinement_patch_size_v; ++offset_row) {
+                    for (int offset = 0; offset <= refinement_patch_size_u + 1; ++offset) {
                         const int target_row = static_cast<int>(row) + offset_row;
                         const int target_col = static_cast<int>(column) - offset;
                         set_minus_one(target_row, target_col);
@@ -2384,8 +2455,8 @@ std::vector<std::vector<int>> SnakeSbmProcess::GenerateInnerSurrogateFromOuterKn
                 set_one(row, static_cast<int>(column));
                 const bool is_opening = (row == 0) ? true : (merged_outer[static_cast<std::size_t>(row - 1)][column] != 1);
                 if (is_opening) {
-                    for (int offset_col = -refinement_patch_size; offset_col <= refinement_patch_size; ++offset_col) {
-                        for (int offset = 0; offset <= refinement_patch_size; ++offset) {
+                    for (int offset_col = -refinement_patch_size_u; offset_col <= refinement_patch_size_u; ++offset_col) {
+                        for (int offset = 0; offset <= refinement_patch_size_v; ++offset) {
                             const int target_row = row + offset;
                             const int target_col = static_cast<int>(column) + offset_col;
                             set_minus_one(target_row, target_col);
@@ -2394,8 +2465,8 @@ std::vector<std::vector<int>> SnakeSbmProcess::GenerateInnerSurrogateFromOuterKn
                 }
             } else if (outer_value != 1 && found_one) {
                 found_one = false;
-                for (int offset_col = -refinement_patch_size; offset_col <= refinement_patch_size; ++offset_col) {
-                    for (int offset = 0; offset <= refinement_patch_size+1; ++offset) {
+                for (int offset_col = -refinement_patch_size_u; offset_col <= refinement_patch_size_u; ++offset_col) {
+                    for (int offset = 0; offset <= refinement_patch_size_v + 1; ++offset) {
                         const int target_row = row - offset;
                         const int target_col = static_cast<int>(column) + offset_col;
                         set_minus_one(target_row, target_col);

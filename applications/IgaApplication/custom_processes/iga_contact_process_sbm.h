@@ -297,7 +297,8 @@ private:
         double& distance,
         const int rNumberOfInitialGuesses,
         const int MaxIterations = 20,
-        const double Accuracy = 1e-6
+        const double Accuracy = 1e-6,
+        const bool TargetCurveIsAlreadyDeformed = false
         );
     
     static std::vector<IndexType> FindClosestBrepId(
@@ -319,7 +320,8 @@ private:
         double& rBestDistance,
         double tolerance = 1e-8,
         int max_iter = 100,
-        int n_initial_guesses = 5);
+        int n_initial_guesses = 5,
+        bool target_curve_is_already_deformed = false);
 
     
     bool ProjectToSkinBoundary(

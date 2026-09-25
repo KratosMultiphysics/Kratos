@@ -3798,7 +3798,7 @@ IndexType SnakeGapSbmProcess::FindClosestNodeInLayerWithDirection(
 
                 Vector normal_a = node_a->GetValue(NORMAL);
                 Vector normal_b = node_b->GetValue(NORMAL);
-                if (inner_prod(normal_a, rSearchDirection) < 0.0 && inner_prod(normal_a, rSearchDirection) < 0.0) {
+                if (inner_prod(normal_a, rSearchDirection) < 0.0 && inner_prod(normal_b, rSearchDirection) < 0.0) {
                     continue;
                 }
 
@@ -3836,6 +3836,39 @@ IndexType SnakeGapSbmProcess::FindClosestNodeInLayerWithDirection(
     best_node_id = search_with_direction(opposite_direction);
     if (best_node_id != std::numeric_limits<IndexType>::max()) {
         return best_node_id;
+    }
+
+    // At patch corners a ray normal to the current skin segment need not
+    // intersect the same layer again. In that case retain the layer constraint
+    // and fall back to its closest node instead of failing the GAP construction.
+    IndexType fallback_node_id = std::numeric_limits<IndexType>::max();
+    double fallback_distance = std::numeric_limits<double>::max();
+    for (const auto& r_condition : rSkinSubModelPart.Conditions()) {
+        const bool condition_matches_layer =
+            !filter_by_layer ||
+            (r_condition.Has(LAYER_NAME) && r_condition.GetValue(LAYER_NAME) == rLayer);
+        const auto& r_geometry = r_condition.GetGeometry();
+        for (IndexType i_node = 0; i_node < r_geometry.PointsNumber(); ++i_node) {
+            const auto p_candidate_node = r_geometry.pGetPoint(i_node);
+            if (!condition_matches_layer && !node_has_requested_layer(p_candidate_node)) {
+                continue;
+            }
+
+            const double candidate_distance = norm_2(
+                p_candidate_node->Coordinates() - rStartPoint);
+            if (candidate_distance < fallback_distance) {
+                fallback_distance = candidate_distance;
+                fallback_node_id = p_candidate_node->Id();
+            }
+        }
+    }
+    if (fallback_node_id != std::numeric_limits<IndexType>::max()) {
+        KRATOS_WARNING("SnakeGapSbmProcess")
+            << "::[SnakeGapSbmProcess]::FindClosestNodeInLayerWithDirection: no directional "
+            << "intersection found for layer '" << rLayer << "' at " << rStartPoint
+            << ". Falling back to closest same-layer node " << fallback_node_id
+            << " at distance " << fallback_distance << "." << std::endl;
+        return fallback_node_id;
     }
 
     // auto fallback_closest_node = [&]() {
@@ -4403,29 +4436,6 @@ void SnakeGapSbmProcess::CreateInnerSkinLocalRefinementCouplingConditions(
         ? mpIgaModelPart->GetSubModelPart("LocalRefinementCouplingConditions")
         : mpIgaModelPart->CreateSubModelPart("LocalRefinementCouplingConditions");
 
-    // The base-patch reference attached to a coupling condition must be selected
-    // at the quadrature point. Intersecting the references of the two end nodes
-    // can discard the correct knot-span geometry when the coupling segment crosses
-    // a base-patch knot line.
-    std::vector<Geometry<Node>::Pointer> base_reference_geometries;
-    std::unordered_set<const void*> visited_base_references;
-    for (const auto& r_node : rSkinSubModelPart.Nodes()) {
-        const auto& r_connected_layers = r_node.GetValue(CONNECTED_LAYERS);
-        if (std::find(
-                r_connected_layers.begin(),
-                r_connected_layers.end(),
-                "COUPLING_SIDE") == r_connected_layers.end()) {
-            continue;
-        }
-
-        for (const auto& p_reference_geometry : r_node.GetValue(NEIGHBOUR_GEOMETRIES)) {
-            if (p_reference_geometry &&
-                visited_base_references.insert(p_reference_geometry.get()).second) {
-                base_reference_geometries.push_back(p_reference_geometry);
-            }
-        }
-    }
-
     const auto find_closest_reference_geometry = [](
         const CoordinatesArrayType& rPoint,
         const std::vector<Geometry<Node>::Pointer>& rCandidates,
@@ -4527,7 +4537,7 @@ void SnakeGapSbmProcess::CreateInnerSkinLocalRefinementCouplingConditions(
 
         p_brep_geometry->CreateIntegrationPoints(
             brep_integration_points_list, brep_integration_info);
-        
+
         p_brep_geometry->CreateQuadraturePointGeometries(
             brep_quadrature_point_list,
             points_per_span,
@@ -4596,13 +4606,8 @@ void SnakeGapSbmProcess::CreateInnerSkinLocalRefinementCouplingConditions(
                 p_projection_node->SetValue(CONDITION_NAME, projection.ConditionName);
                 p_qp_geometry->SetValue(PROJECTION_NODE, p_projection_node);
 
-                const bool use_enhanced_load_condition =
-                    projection.ConditionName == "SbmContact2DCondition" ||
-                    projection.ConditionName == "SbmLoadSolidCondition";
                 const std::string enhanced_condition_name =
-                    use_enhanced_load_condition
-                        ? "GapSbmEnhancedLoadSolidCondition"
-                        : "GapSbmEnhancedSolidCondition";
+                    "GapSbmEnhancedLoadSolidCondition";
 
                 const std::size_t new_condition_id = id;
                 auto qp_end = qp_it;
@@ -4654,6 +4659,32 @@ void SnakeGapSbmProcess::CreateInnerSkinLocalRefinementCouplingConditions(
         if (!refinement_reference_geometries.empty()) {
             // immersed coupling on both sides
             condition_type_name = "GapSbm" + condition_type_name;
+        }
+
+        // Keep the trace of the base-patch GAP region attached to this skin
+        // segment. A globally closest surrogate face can belong to a different
+        // GAP region, especially at box corners, and introduce a spurious jump.
+        // Prefer references shared by both endpoints. If the segment crosses a
+        // base span and has no shared reference, select per quadrature point
+        // from the endpoint union instead.
+        const auto& r_first_references = p_node_0->GetValue(NEIGHBOUR_GEOMETRIES);
+        const auto& r_second_references = p_node_1->GetValue(NEIGHBOUR_GEOMETRIES);
+        std::vector<Geometry<Node>::Pointer> base_reference_geometries;
+        for (const auto& p_reference : r_first_references) {
+            if (p_reference && std::find(r_second_references.begin(),
+                    r_second_references.end(), p_reference) != r_second_references.end()) {
+                base_reference_geometries.push_back(p_reference);
+            }
+        }
+        if (base_reference_geometries.empty()) {
+            std::unordered_set<const void*> visited_references;
+            for (const auto* p_references : {&r_first_references, &r_second_references}) {
+                for (const auto& p_reference : *p_references) {
+                    if (p_reference && visited_references.insert(p_reference.get()).second) {
+                        base_reference_geometries.push_back(p_reference);
+                    }
+                }
+            }
         }
 
         for (auto qp_it = brep_quadrature_point_list.ptr_begin();

@@ -12,7 +12,7 @@
 #define MORTAR_COUPLING true
 // Set to 1 to build master/slave projections in the current deformed
 // configuration. The default (0) uses the original reference configuration.
-#define SBM_CONTACT_PROJECTION_USE_DEFORMED_CONFIGURATION 0
+#define SBM_CONTACT_PROJECTION_USE_DEFORMED_CONFIGURATION 1
 // If the slave-skin normal does not intersect a slave surrogate BREP, use its
 // closest point instead. This is intentionally enabled only for slave back projections.
 #define SBM_FALLBACK_TO_CLOSEST_SURROGATE_SLAVE false
@@ -31,8 +31,10 @@
 
 #include <chrono>
 #include <algorithm>
+#include <array>
 #include <cmath>
 #include <limits>
+#include <map>
 
 namespace Kratos
 {
@@ -198,12 +200,33 @@ namespace Kratos
     void IgaContactProcessSbm::Execute(){
         using Clock = std::chrono::steady_clock;
         const auto execute_begin = Clock::now();
+        // A deformed projection is re-built at every load step.  The former
+        // hard-coded exhaustive search (20 starts x 100 Newton iterations)
+        // dominates the run time even when the previous converged step gives
+        // an excellent initial configuration.  Keep conservative, bounded
+        // defaults and allow a case to request a tighter search explicitly.
+        const double deformed_projection_tolerance = mParameters.Has("deformed_projection_tolerance")
+            ? mParameters["deformed_projection_tolerance"].GetDouble()
+            : 1e-7;
+        const int deformed_projection_max_iterations = mParameters.Has("deformed_projection_max_iterations")
+            ? mParameters["deformed_projection_max_iterations"].GetInt()
+            : 20;
+        const int deformed_projection_initial_guesses = mParameters.Has("deformed_projection_initial_guesses")
+            ? mParameters["deformed_projection_initial_guesses"].GetInt()
+            : 3;
+        const int deformed_curve_sampling_points = mParameters.Has("deformed_curve_sampling_points")
+            ? mParameters["deformed_curve_sampling_points"].GetInt()
+            : 5;
+        KRATOS_ERROR_IF(deformed_curve_sampling_points < 2)
+            << "::[IgaContactProcessSbm]:: deformed_curve_sampling_points must be at least 2." << std::endl;
         double time_project_to_skin = 0.0;
         double time_newton = 0.0;
         double time_back_projection = 0.0;
         double time_create_quadrature = 0.0;
         double time_create_quadrature_sbm = 0.0;
         double time_create_coupling = 0.0;
+        double time_build_deformed_curves = 0.0;
+        double time_split_master_segments = 0.0;
         mDeformationEvaluationCache.clear();
         mDeformationEvaluationCache.reserve(
             mrMasterModelPart->NumberOfGeometries() + mrSlaveModelPart->NumberOfGeometries());
@@ -213,8 +236,17 @@ namespace Kratos
         std::string master_layer_name = mParameters["contact_parameters"]["master_model_part"]["layer_name"].GetString();
         const std::string slave_layer_name = mParameters["contact_parameters"]["slave_model_part"]["layer_name"].GetString();
 
-        std::vector<NurbsCurveGeometryType::Pointer> slave_skin_curves;
+        struct DeformedSlaveCurveData {
+            NurbsCurveGeometryType::Pointer p_reference_curve;
+            NurbsCurveGeometryType::Pointer p_deformed_curve;
+            CoordinatesArrayType lower;
+            CoordinatesArrayType upper;
+        };
+        std::vector<DeformedSlaveCurveData> slave_skin_curves;
         slave_skin_curves.reserve(mrSlaveSkinModelPart->NumberOfGeometries());
+        IndexType next_auxiliary_node_id = 1;
+        std::map<std::array<long long, 2>, CoordinatesArrayType> deformed_point_cache;
+        const auto deformed_curves_begin = Clock::now();
         for (auto& r_geometry : mrSlaveSkinModelPart->Geometries()) {
             if (r_geometry.GetValue(IDENTIFIER) != slave_layer_name) {
                 continue;
@@ -223,8 +255,85 @@ namespace Kratos
                 mrSlaveSkinModelPart->pGetGeometry(r_geometry.Id()));
             KRATOS_ERROR_IF(!p_curve) << "::[IgaContactProcessSbm]:: geometry " << r_geometry.Id()
                 << " in slave skin layer '" << slave_layer_name << "' is not a NURBS curve." << std::endl;
-            slave_skin_curves.push_back(p_curve);
+            const auto interval = p_curve->DomainInterval();
+            const double t_begin = interval.GetT0();
+            const double t_end = interval.GetT1();
+            PointerVector<NodeType> deformed_points;
+            deformed_points.reserve(deformed_curve_sampling_points);
+            Vector deformed_knots(deformed_curve_sampling_points);
+            CoordinatesArrayType lower = ZeroVector(3);
+            CoordinatesArrayType upper = ZeroVector(3);
+
+            for (int i_sample = 0; i_sample < deformed_curve_sampling_points; ++i_sample) {
+                CoordinatesArrayType local = ZeroVector(3);
+                local[0] = t_begin + (t_end - t_begin) * double(i_sample)
+                    / double(deformed_curve_sampling_points - 1);
+                CoordinatesArrayType reference_point = ZeroVector(3);
+                p_curve->GlobalCoordinates(reference_point, local);
+                const std::array<long long, 2> cache_key{
+                    std::llround(reference_point[0] * 1.0e10),
+                    std::llround(reference_point[1] * 1.0e10)};
+                auto cached_point = deformed_point_cache.find(cache_key);
+                CoordinatesArrayType deformed_point = ZeroVector(3);
+                if (cached_point == deformed_point_cache.end()) {
+                    GetDeformedPosition(
+                        reference_point, *mrSlaveModelPart, mSparseBrepMatrixSlave, deformed_point);
+                    deformed_point_cache.emplace(cache_key, deformed_point);
+                } else {
+                    deformed_point = cached_point->second;
+                }
+
+                deformed_points.push_back(Kratos::make_intrusive<NodeType>(
+                    next_auxiliary_node_id++,
+                    deformed_point[0], deformed_point[1], deformed_point[2]));
+                deformed_knots[i_sample] = local[0];
+                if (i_sample == 0) {
+                    lower = deformed_point;
+                    upper = deformed_point;
+                } else {
+                    for (IndexType component = 0; component < 2; ++component) {
+                        lower[component] = std::min(lower[component], deformed_point[component]);
+                        upper[component] = std::max(upper[component], deformed_point[component]);
+                    }
+                }
+            }
+
+            auto p_deformed_curve = Kratos::make_shared<NurbsCurveGeometryType>(
+                deformed_points, 1, deformed_knots);
+            p_deformed_curve->SetId(p_curve->Id());
+            slave_skin_curves.push_back({p_curve, p_deformed_curve, lower, upper});
         }
+        time_build_deformed_curves =
+            std::chrono::duration<double>(Clock::now() - deformed_curves_begin).count();
+        const double deformed_projection_search_margin = mParameters.Has("deformed_projection_search_margin")
+            ? mParameters["deformed_projection_search_margin"].GetDouble()
+            : 0.5;
+        const auto SelectSlaveProjectionCandidates = [&](const CoordinatesArrayType& rPoint) {
+            std::vector<const DeformedSlaveCurveData*> candidates;
+            for (const auto& r_curve : slave_skin_curves) {
+                double squared_distance = 0.0;
+                for (IndexType component = 0; component < 2; ++component) {
+                    const double excess = rPoint[component] < r_curve.lower[component]
+                        ? r_curve.lower[component] - rPoint[component]
+                        : (rPoint[component] > r_curve.upper[component]
+                            ? rPoint[component] - r_curve.upper[component] : 0.0);
+                    squared_distance += excess * excess;
+                }
+                if (squared_distance <= deformed_projection_search_margin * deformed_projection_search_margin) {
+                    candidates.push_back(&r_curve);
+                }
+            }
+            // A large deformation can move every curve outside the reference
+            // broad phase.  Retain the exhaustive search in that exceptional
+            // case rather than silently losing a possible contact pair.
+            if (candidates.empty()) {
+                candidates.reserve(slave_skin_curves.size());
+                for (const auto& r_curve : slave_skin_curves) {
+                    candidates.push_back(&r_curve);
+                }
+            }
+            return candidates;
+        };
 
         ConditionsArrayType& r_conditions_array = mrContactModelPart->GetParentModelPart().Conditions();
         KRATOS_TRACE_IF("Empty model part", r_conditions_array.size() == 0) << "YOUR CONTACT MODEL PART IS EMPTY" << std::endl;
@@ -366,37 +475,32 @@ namespace Kratos
         CoordinatesArrayType best_slave_projection = ZeroVector(3);
         CoordinatesArrayType best_slave_local_coords = ZeroVector(3);
         IndexType best_slave_curve_id = 0;
-        for (const auto& p_slave_nurbs_curve : slave_skin_curves) {
+        for (const auto* p_slave_curve_data : SelectSlaveProjectionCandidates(master_skin_deformed)) {
+            const auto& p_slave_nurbs_curve = p_slave_curve_data->p_deformed_curve;
             CoordinatesArrayType local_coords = ZeroVector(3);
             CoordinatesArrayType projected_point = ZeroVector(3);
             double distance = std::numeric_limits<double>::max();
-
             const auto t_newton_begin = Clock::now();
-            bool is_converged = ProjectPointAlongNormalToCurveDeformed(
-                master_skin_deformed,
-                master_normal_deformed,
-                *p_slave_nurbs_curve,
-                *mrSlaveModelPart,
-                mSparseBrepMatrixSlave,
-                projected_point,
-                local_coords,
-                distance,
-                1e-9,
-                100,
-                20);
+            const bool is_converged = ProjectPointAlongNormalToCurveDeformed(
+                master_skin_deformed, master_normal_deformed,
+                *p_slave_nurbs_curve, *mrSlaveModelPart, mSparseBrepMatrixSlave,
+                projected_point, local_coords, distance,
+                deformed_projection_tolerance,
+                deformed_projection_max_iterations,
+                deformed_projection_initial_guesses,
+                true);
             time_newton += std::chrono::duration<double>(Clock::now() - t_newton_begin).count();
-
             const bool is_internal_projection = is_inside_curve_interval(
                 local_coords[0], *p_slave_nurbs_curve, curve_endpoint_tolerance);
-
-            if (is_internal_projection && (is_converged || distance < projection_distance_fallback) && distance < best_projection_distance) {
+            if (is_internal_projection &&
+                (is_converged || distance < projection_distance_fallback) &&
+                distance < best_projection_distance) {
                 best_projection_found = true;
                 best_projection_distance = distance;
                 best_slave_local_coords = local_coords;
-                best_slave_curve_id = p_slave_nurbs_curve->Id();
-
+                best_slave_curve_id = p_slave_curve_data->p_reference_curve->Id();
                 std::vector<array_1d<double, 3>> derivatives(2, ZeroVector(3));
-                p_slave_nurbs_curve->GlobalSpaceDerivatives(derivatives, local_coords, 1);
+                p_slave_curve_data->p_reference_curve->GlobalSpaceDerivatives(derivatives, local_coords, 1);
                 best_slave_projection = derivatives[0];
             }
         }
@@ -546,6 +650,7 @@ namespace Kratos
     std::vector<NodeType::Pointer> slave_projected_master_nodes;
     if (MORTAR_COUPLING) {
         CollectUniqueSlaveVertices(slave_vertices, coordinate_tolerance);
+        const auto split_master_segments_begin = Clock::now();
         SplitMasterSegmentsWithSlaveVertices(
             slave_vertices,
             master_segments,
@@ -555,6 +660,8 @@ namespace Kratos
             coordinate_tolerance,
             master_layer_name,
             slave_layer_name);
+        time_split_master_segments = std::chrono::duration<double>(
+            Clock::now() - split_master_segments_begin).count();
     }
 
     // KRATOS_INFO("IgaContactProcessSbm")
@@ -685,50 +792,32 @@ namespace Kratos
             CoordinatesArrayType best_slave_local_coords = ZeroVector(3);
             IndexType best_slave_curve_id = 0;
 
-            for (const auto& p_slave_nurbs_curve : slave_skin_curves) {
+            for (const auto* p_slave_curve_data : SelectSlaveProjectionCandidates(master_skin_deformed)) {
+                const auto& p_slave_nurbs_curve = p_slave_curve_data->p_deformed_curve;
                 CoordinatesArrayType local_coords = ZeroVector(3);
                 CoordinatesArrayType projected_point = ZeroVector(3);
                 double distance = std::numeric_limits<double>::max();
-
                 const auto t_newton_begin = Clock::now();
-                bool is_converged = ProjectPointAlongNormalToCurveDeformed(
-                    master_skin_deformed,
-                    master_normal_deformed,
-                    *p_slave_nurbs_curve,
-                    *mrSlaveModelPart,
-                    mSparseBrepMatrixSlave,
-                    projected_point,
-                    local_coords,
-                    distance,
-                    1e-9,
-                    100,
-                    20
-                );
+                const bool is_converged = ProjectPointAlongNormalToCurveDeformed(
+                    master_skin_deformed, master_normal_deformed,
+                    *p_slave_nurbs_curve, *mrSlaveModelPart, mSparseBrepMatrixSlave,
+                    projected_point, local_coords, distance,
+                    deformed_projection_tolerance,
+                    deformed_projection_max_iterations,
+                    deformed_projection_initial_guesses,
+                    true);
                 time_newton += std::chrono::duration<double>(Clock::now() - t_newton_begin).count();
-                // if (is_target_gp) {
-                //     KRATOS_WATCH("TARGET_GP_SLAVE_CURVE_TRY")
-                //     KRATOS_WATCH(r_slave_curve_geometry.Id())
-                //     KRATOS_WATCH(master_skin_point)
-                //     KRATOS_WATCH(master_skin_deformed)
-                //     KRATOS_WATCH(projected_point)
-                //     KRATOS_WATCH(slave_layer_name)
-                //     KRATOS_WATCH(is_converged)
-                //     KRATOS_WATCH(distance)
-                // }
-
                 const bool is_internal_projection = is_inside_curve_interval(
                     local_coords[0], *p_slave_nurbs_curve, curve_endpoint_tolerance);
-
                 if (is_internal_projection &&
                     (is_converged || distance < projection_distance_fallback) &&
                     distance < best_projection_distance) {
                     best_projection_found = true;
                     best_projection_distance = distance;
                     best_slave_local_coords = local_coords;
-                    best_slave_curve_id = p_slave_nurbs_curve->Id();
-
+                    best_slave_curve_id = p_slave_curve_data->p_reference_curve->Id();
                     std::vector<array_1d<double, 3>> derivatives(2, ZeroVector(3));
-                    p_slave_nurbs_curve->GlobalSpaceDerivatives(derivatives, local_coords, 1);
+                    p_slave_curve_data->p_reference_curve->GlobalSpaceDerivatives(derivatives, local_coords, 1);
                     best_slave_projection = derivatives[0];
                 }
             }
@@ -1039,6 +1128,8 @@ namespace Kratos
 
     KRATOS_INFO_IF("IgaContactProcessSbmTiming", mEchoLevel > 1)
         << "total: " << std::chrono::duration<double>(Clock::now() - execute_begin).count()
+        << "s, BuildDeformedSkinCurves: " << time_build_deformed_curves
+        << "s, SplitMasterSegments: " << time_split_master_segments
         << "s, ProjectToSkinBoundary: " << time_project_to_skin
         << "s, MasterToSlaveProjection: " << time_newton
         << "s, ProjectBackToSurrogateBoundary: " << time_back_projection
@@ -1277,6 +1368,60 @@ void IgaContactProcessSbm::SplitMasterSegmentsWithSlaveVertices(
         return;
     }
 
+    struct DeformedMasterCurveData {
+        NurbsCurveGeometryType::Pointer p_reference_curve;
+        NurbsCurveGeometryType::Pointer p_deformed_curve;
+    };
+    std::vector<DeformedMasterCurveData> deformed_master_curves;
+    deformed_master_curves.reserve(mrMasterSkinModelPart->NumberOfGeometries());
+    std::map<std::array<long long, 2>, CoordinatesArrayType> deformed_point_cache;
+    IndexType auxiliary_node_id = 1;
+    const int sampling_points = mParameters.Has("deformed_curve_sampling_points")
+        ? mParameters["deformed_curve_sampling_points"].GetInt()
+        : 5;
+
+    for (auto& r_master_geometry : mrMasterSkinModelPart->Geometries()) {
+        if (r_master_geometry.GetValue(IDENTIFIER) != master_layer_name) {
+            continue;
+        }
+        auto p_reference_curve = std::dynamic_pointer_cast<NurbsCurveGeometryType>(
+            mrMasterSkinModelPart->pGetGeometry(r_master_geometry.Id()));
+        KRATOS_ERROR_IF(!p_reference_curve)
+            << "::[IgaContactProcessSbm]:: master skin geometry "
+            << r_master_geometry.Id() << " is not a NURBS curve." << std::endl;
+
+        const auto interval = p_reference_curve->DomainInterval();
+        PointerVector<NodeType> deformed_points;
+        deformed_points.reserve(sampling_points);
+        Vector deformed_knots(sampling_points);
+        for (int i_sample = 0; i_sample < sampling_points; ++i_sample) {
+            CoordinatesArrayType local = ZeroVector(3);
+            local[0] = interval.GetT0() + (interval.GetT1() - interval.GetT0())
+                * double(i_sample) / double(sampling_points - 1);
+            CoordinatesArrayType reference_point = ZeroVector(3);
+            p_reference_curve->GlobalCoordinates(reference_point, local);
+            const std::array<long long, 2> cache_key{
+                std::llround(reference_point[0] * 1.0e10),
+                std::llround(reference_point[1] * 1.0e10)};
+            auto cached_point = deformed_point_cache.find(cache_key);
+            CoordinatesArrayType deformed_point = ZeroVector(3);
+            if (cached_point == deformed_point_cache.end()) {
+                GetDeformedPosition(
+                    reference_point, *mrMasterModelPart, mSparseBrepMatrixMaster, deformed_point);
+                deformed_point_cache.emplace(cache_key, deformed_point);
+            } else {
+                deformed_point = cached_point->second;
+            }
+            deformed_points.push_back(Kratos::make_intrusive<NodeType>(
+                auxiliary_node_id++, deformed_point[0], deformed_point[1], deformed_point[2]));
+            deformed_knots[i_sample] = local[0];
+        }
+        auto p_deformed_curve = Kratos::make_shared<NurbsCurveGeometryType>(
+            deformed_points, 1, deformed_knots);
+        p_deformed_curve->SetId(p_reference_curve->Id());
+        deformed_master_curves.push_back({p_reference_curve, p_deformed_curve});
+    }
+
     const Vector& master_knot_span_sizes = mrMasterModelPart->GetParentModelPart().GetValue(KNOT_SPAN_SIZES);
     const double projection_distance_limit = master_knot_span_sizes[0]*3;
     const double projection_distance_fallback = master_knot_span_sizes[0]/2;
@@ -1325,16 +1470,7 @@ void IgaContactProcessSbm::SplitMasterSegmentsWithSlaveVertices(
         CoordinatesArrayType best_master_local_coords = ZeroVector(3);
         NurbsCurveGeometryType::Pointer p_best_master_curve = nullptr;
 
-        for (auto& r_master_curve_geometry : mrMasterSkinModelPart->Geometries()) {
-            if (r_master_curve_geometry.GetValue(IDENTIFIER) != master_layer_name) {
-                continue;
-            }
-
-            auto p_master_curve_geometry = mrMasterSkinModelPart->pGetGeometry(r_master_curve_geometry.Id());
-            auto p_master_curve = std::dynamic_pointer_cast<NurbsCurveGeometryType>(p_master_curve_geometry);
-            KRATOS_ERROR_IF(!p_master_curve) <<  ":::[IgaContactProcessSbm]::: the geometry with id "
-                << r_master_curve_geometry.Id() << " is not a NurbsCurveGeometryType." << std::endl;
-
+        for (const auto& r_master_curve : deformed_master_curves) {
             CoordinatesArrayType master_projection_reference = ZeroVector(3);
             CoordinatesArrayType master_local_coords = ZeroVector(3);
             double projection_distance = std::numeric_limits<double>::max();
@@ -1343,13 +1479,14 @@ void IgaContactProcessSbm::SplitMasterSegmentsWithSlaveVertices(
                 master_local_coords,
                 slave_deformed,
                 master_projection_reference,
-                *p_master_curve,
+                *r_master_curve.p_deformed_curve,
                 *mrMasterModelPart,
                 mSparseBrepMatrixMaster,
                 projection_distance,
+                3,
                 20,
-                100,
-                1.0e-9);
+                1.0e-7,
+                true);
 
             if (!converged) {
                 continue;
@@ -1359,7 +1496,7 @@ void IgaContactProcessSbm::SplitMasterSegmentsWithSlaveVertices(
                 best_projection_found = true;
                 best_projection_distance = projection_distance;
                 best_master_local_coords = master_local_coords;
-                p_best_master_curve = p_master_curve;
+                p_best_master_curve = r_master_curve.p_reference_curve;
             }
         }
 
@@ -1732,7 +1869,6 @@ void IgaContactProcessSbm::CreateConditions(
             cache_iterator = mDeformationEvaluationCache.emplace(
                 brep_geometry.get(), std::move(evaluation_data)).first;
         }
-
         const DeformationEvaluationData& r_evaluation_data = cache_iterator->second;
         const auto& surrogate_point_geometry = r_evaluation_data.p_quadrature_geometry;
         const SizeType number_of_control_points = surrogate_point_geometry->size();
@@ -1877,7 +2013,8 @@ void IgaContactProcessSbm::CreateConditions(
         double& distance,
         const int rNumberOfInitialGuesses,
         const int MaxIterations,
-        const double Accuracy)
+        const double Accuracy,
+        const bool TargetCurveIsAlreadyDeformed)
     {
         // Intialize variables
         double residual = 0.0, delta_t = 0.0;
@@ -1934,34 +2071,40 @@ void IgaContactProcessSbm::CreateConditions(
                     
                 current_point_global_coordinates = curve_derivatives[0]; // undeformed
 
+                if (TargetCurveIsAlreadyDeformed) {
+                    projected_point_deformed_global_coordinates = current_point_global_coordinates;
+                    gradient_derivatives_updated = curve_derivatives[1];
+                    hessian_derivatives_updated = curve_derivatives[2];
+                } else {
 #if SBM_CONTACT_PROJECTION_USE_DEFORMED_CONFIGURATION
-                EvaluateDeformation(
-                    current_point_global_coordinates,
-                    rTargetModelPart,
-                    rTargetSparseBrepMatrix,
-                    &projected_point_deformed_global_coordinates,
-                    &projected_point_gradient_deformation,
-                    &projected_point_hessian_deformation);
+                    EvaluateDeformation(
+                        current_point_global_coordinates,
+                        rTargetModelPart,
+                        rTargetSparseBrepMatrix,
+                        &projected_point_deformed_global_coordinates,
+                        &projected_point_gradient_deformation,
+                        &projected_point_hessian_deformation);
 
-                for (int i_dim = 0; i_dim < 2; i_dim++) {
-                    gradient_derivatives_updated[i_dim] = curve_derivatives[1][i_dim] +
-                                                          projected_point_gradient_deformation(i_dim,0)*curve_derivatives[1][0] +
-                                                          projected_point_gradient_deformation(i_dim,1)*curve_derivatives[1][1];
-                }
+                    for (int i_dim = 0; i_dim < 2; i_dim++) {
+                        gradient_derivatives_updated[i_dim] = curve_derivatives[1][i_dim] +
+                                                              projected_point_gradient_deformation(i_dim,0)*curve_derivatives[1][0] +
+                                                              projected_point_gradient_deformation(i_dim,1)*curve_derivatives[1][1];
+                    }
 
-                for (int i_dim = 0; i_dim < 2; i_dim++) {
-                    hessian_derivatives_updated[i_dim] = curve_derivatives[2][i_dim] +
-                                                          projected_point_hessian_deformation(i_dim,0)*curve_derivatives[1][0]*curve_derivatives[1][0] +
-                                                          projected_point_hessian_deformation(i_dim,2)*curve_derivatives[1][1]*curve_derivatives[1][1] +
-                                                          projected_point_gradient_deformation(i_dim,0)*curve_derivatives[2][0] +
-                                                          projected_point_gradient_deformation(i_dim,1)*curve_derivatives[2][1] +
-                                                          2*projected_point_hessian_deformation(i_dim,1)*curve_derivatives[1][0]*curve_derivatives[1][1];
-                }
+                    for (int i_dim = 0; i_dim < 2; i_dim++) {
+                        hessian_derivatives_updated[i_dim] = curve_derivatives[2][i_dim] +
+                                                              projected_point_hessian_deformation(i_dim,0)*curve_derivatives[1][0]*curve_derivatives[1][0] +
+                                                              projected_point_hessian_deformation(i_dim,2)*curve_derivatives[1][1]*curve_derivatives[1][1] +
+                                                              projected_point_gradient_deformation(i_dim,0)*curve_derivatives[2][0] +
+                                                              projected_point_gradient_deformation(i_dim,1)*curve_derivatives[2][1] +
+                                                              2*projected_point_hessian_deformation(i_dim,1)*curve_derivatives[1][0]*curve_derivatives[1][1];
+                    }
 #else
-                projected_point_deformed_global_coordinates = current_point_global_coordinates;
-                gradient_derivatives_updated = curve_derivatives[1];
-                hessian_derivatives_updated = curve_derivatives[2];
+                    projected_point_deformed_global_coordinates = current_point_global_coordinates;
+                    gradient_derivatives_updated = curve_derivatives[1];
+                    hessian_derivatives_updated = curve_derivatives[2];
 #endif
+                }
 
 
                 // Compute the distance vector between the point and its
@@ -2135,7 +2278,8 @@ void IgaContactProcessSbm::CreateConditions(
         double& rBestDistance,
         double tolerance,
         int max_iter,
-        int n_initial_guesses)
+        int n_initial_guesses,
+        bool target_curve_is_already_deformed)
     {
         CoordinatesArrayType local_coords = ZeroVector(3);
         CoordinatesArrayType global_coords = ZeroVector(3);
@@ -2160,11 +2304,62 @@ void IgaContactProcessSbm::CreateConditions(
         bool is_converged = false;
         rBestDistance = 1e12;
 
+        // Obtain a cheap initial parameter on the reference curve.  The old
+        // implementation evaluated the (expensive) Taylor-extended
+        // deformation for every uniform initial guess.  For the short,
+        // non-self-intersecting skin spans used here, a reference Newton seed
+        // is normally already in the basin of the exact deformed projection.
+        // The original deformed multistart remains below as a fallback.
+        double reference_seed_t = t_min;
+        double best_reference_residual = std::numeric_limits<double>::max();
         for (int i_guess = 0; i_guess < n_initial_guesses; ++i_guess) {
+            const double t = t_min + (t_max - t_min) * double(i_guess) / double(n_initial_guesses - 1);
+            local_coords[0] = t;
+            rTargetCurve.GlobalCoordinates(global_coords, local_coords);
+            const double s_line =
+                (global_coords[larger] - rSourcePointDeformed[larger]) /
+                rSourceNormalDeformed[larger];
+            const double residual = s_line * rSourceNormalDeformed[smaller]
+                + rSourcePointDeformed[smaller] - global_coords[smaller];
+            if (std::abs(residual) < best_reference_residual) {
+                best_reference_residual = std::abs(residual);
+                reference_seed_t = t;
+            }
+        }
+        for (int iteration = 0; iteration < 10; ++iteration) {
+            local_coords[0] = reference_seed_t;
+            std::vector<CoordinatesArrayType> reference_derivatives;
+            rTargetCurve.GlobalSpaceDerivatives(reference_derivatives, local_coords, 1);
+            const auto& r_point = reference_derivatives[0];
+            const auto& r_tangent = reference_derivatives[1];
+            const double s_line =
+                (r_point[larger] - rSourcePointDeformed[larger]) /
+                rSourceNormalDeformed[larger];
+            const double residual = s_line * rSourceNormalDeformed[smaller]
+                + rSourcePointDeformed[smaller] - r_point[smaller];
+            const double derivative =
+                rSourceNormalDeformed[smaller] / rSourceNormalDeformed[larger] * r_tangent[larger]
+                - r_tangent[smaller];
+            if (std::abs(residual) <= tolerance || std::abs(derivative) < 1e-10) {
+                break;
+            }
+            const double updated_t = reference_seed_t - residual / derivative;
+            if (updated_t < t_min || updated_t > t_max) {
+                break;
+            }
+            reference_seed_t = updated_t;
+        }
+
+        // Attempt -1 uses the reference seed.  Only if that exact deformed
+        // Newton fails do attempts 0..n_initial_guesses-1 reproduce the
+        // original uniform multistart.
+        for (int i_guess = -1; i_guess < n_initial_guesses; ++i_guess) {
             double res = tolerance + 1.0;
             int iter = 0;
 
-            double t = t_min + (t_max - t_min) * double(i_guess) / double(n_initial_guesses - 1);
+            double t = i_guess < 0
+                ? reference_seed_t
+                : t_min + (t_max - t_min) * double(i_guess) / double(n_initial_guesses - 1);
             local_coords[0] = t;
 
             rTargetCurve.GlobalCoordinates(global_coords, local_coords);
@@ -2172,17 +2367,21 @@ void IgaContactProcessSbm::CreateConditions(
             // Deformazione punto master
             CoordinatesArrayType global_coords_deformed;
             Matrix gradient_deformation = ZeroMatrix(2,2);
+            if (target_curve_is_already_deformed) {
+                global_coords_deformed = global_coords;
+            } else {
 #if SBM_CONTACT_PROJECTION_USE_DEFORMED_CONFIGURATION
-            EvaluateDeformation(
-                global_coords,
-                rTargetModelPart,
-                rTargetSparseBrepMatrix,
-                &global_coords_deformed,
-                &gradient_deformation,
-                nullptr);
+                EvaluateDeformation(
+                    global_coords,
+                    rTargetModelPart,
+                    rTargetSparseBrepMatrix,
+                    &global_coords_deformed,
+                    &gradient_deformation,
+                    nullptr);
 #else
-            global_coords_deformed = global_coords;
+                global_coords_deformed = global_coords;
 #endif
+            }
 
             std::vector<CoordinatesArrayType> global_derivatives;
             rTargetCurve.GlobalSpaceDerivatives(global_derivatives, local_coords, 1);
@@ -2209,17 +2408,21 @@ void IgaContactProcessSbm::CreateConditions(
 
                 local_coords[0] = t;
                 rTargetCurve.GlobalCoordinates(global_coords, local_coords);
+                if (target_curve_is_already_deformed) {
+                    global_coords_deformed = global_coords;
+                } else {
 #if SBM_CONTACT_PROJECTION_USE_DEFORMED_CONFIGURATION
-                EvaluateDeformation(
-                    global_coords,
-                    rTargetModelPart,
-                    rTargetSparseBrepMatrix,
-                    &global_coords_deformed,
-                    &gradient_deformation,
-                    nullptr);
+                    EvaluateDeformation(
+                        global_coords,
+                        rTargetModelPart,
+                        rTargetSparseBrepMatrix,
+                        &global_coords_deformed,
+                        &gradient_deformation,
+                        nullptr);
 #else
-                global_coords_deformed = global_coords;
+                    global_coords_deformed = global_coords;
 #endif
+                }
                 rTargetCurve.GlobalSpaceDerivatives(global_derivatives, local_coords, 1);
 
                 for (int i_dim = 0; i_dim < 2; ++i_dim) {
@@ -2241,6 +2444,9 @@ void IgaContactProcessSbm::CreateConditions(
                     rBestProjectedPoint = global_coords_deformed;
                     rBestProjectedPointLocalCoords = local_coords;
                     is_converged = true;
+                    if (i_guess < 0) {
+                        return true;
+                    }
                 }
             }
         }

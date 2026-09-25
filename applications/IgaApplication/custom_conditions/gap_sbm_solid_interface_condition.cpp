@@ -32,6 +32,9 @@ void GapSbmSolidInterfaceCondition::Initialize(const ProcessInfo& rCurrentProces
 void GapSbmSolidInterfaceCondition::InitializeMaterial()
 {
     KRATOS_TRY
+    KRATOS_ERROR_IF_NOT(pGetProperties())
+        << "GapSbmSolidInterfaceCondition #" << Id()
+        << " has no material properties." << std::endl;
     if ( GetProperties()[CONSTITUTIVE_LAW] != nullptr ) {
         const GeometryType& r_geometry = GetGeometry();
         const Properties& r_properties = GetProperties();
@@ -110,6 +113,14 @@ void GapSbmSolidInterfaceCondition::InitializeSbmMemberVariables()
 {
     //TODO:
     const auto& r_geometry = this->GetGeometry();
+    KRATOS_ERROR_IF_NOT(this->Has(NEIGHBOUR_GEOMETRIES))
+        << "GapSbmSolidInterfaceCondition #" << Id()
+        << " has no NEIGHBOUR_GEOMETRIES data." << std::endl;
+    KRATOS_ERROR_IF(this->GetValue(NEIGHBOUR_GEOMETRIES).size() < 2)
+        << "GapSbmSolidInterfaceCondition #" << Id()
+        << " requires two neighbour geometries, but only "
+        << this->GetValue(NEIGHBOUR_GEOMETRIES).size() << " were assigned."
+        << std::endl;
     const auto& r_surrogate_geometry_plus = GetGeometryPlus();
     const auto& r_surrogate_geometry_minus = GetGeometryMinus();
 

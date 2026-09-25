@@ -19,6 +19,119 @@ def run_modelers(current_model, modelers_list):
 
 
 class TestNurbsGeometryModelerGapSbm(KratosUnittest.TestCase):
+    def test_contained_refinement_with_boundary_refinement_has_closed_hole(self):
+        model = KM.Model()
+        body = model.CreateModelPart("IgaModelPart").CreateSubModelPart("Body")
+        body.ProcessInfo[KM.DOMAIN_SIZE] = 2
+        settings = KM.Parameters('''[
+            {
+                "modeler_name": "ImportNurbsSbmModeler",
+                "Parameters": {
+                    "input_filename": "import_nurbs_test/circle_00_22.json",
+                    "model_part_name": "outer_initial",
+                    "link_layer_to_condition_name": [
+                        {"layer_name": "Layer0", "condition_name": "SupportLaplacianCondition"}
+                    ]
+                }
+            },
+            {
+                "modeler_name": "LocalRefinementModeler",
+                "Parameters": {
+                    "model_part_name": "IgaModelPart.Body",
+                    "refinement_type": "sbm",
+                    "base_domain": {
+                        "lower_point_uvw": [0.7, 0.7, 0],
+                        "upper_point_uvw": [1.3, 1.3, 0]
+                    },
+                    "refinement_regions": [
+                        {
+                            "lower_point_uvw": [0.7, 0.94, 0],
+                            "upper_point_uvw": [0.94, 1.06, 0],
+                            "polynomial_order": [1, 1],
+                            "number_of_knot_spans": [16, 16],
+                            "lambda_outer": 0.5
+                        },
+                        {
+                            "lower_point_uvw": [1.02, 0.98, 0],
+                            "upper_point_uvw": [1.06, 1.02, 0],
+                            "polynomial_order": [1, 1],
+                            "number_of_knot_spans": [8, 8],
+                            "lambda_outer": 0.5
+                        }
+                    ],
+                    "geometry_parameters": {
+                        "model_part_name": "IgaModelPart.Body",
+                        "skin_model_part_name": "skin_Body",
+                        "skin_model_part_outer_initial_name": "outer_initial",
+                        "polynomial_order": [1, 1],
+                        "number_of_knot_spans": [40, 40],
+                        "lambda_inner": 0.0,
+                        "lambda_outer": 1.0,
+                        "number_of_inner_loops": 0,
+                        "number_initial_points_if_importing_nurbs": 100,
+                        "gap_approximation_order": 1,
+                        "number_internal_divisions": 0,
+                        "gap_sbm_type": "interpolation",
+                        "gap_element_name": "LaplacianElement",
+                        "gap_interface_condition_name": "SupportLaplacianCondition"
+                    },
+                    "analysis_parameters": {
+                        "analysis_model_part_name": "IgaModelPart.Body",
+                        "element_condition_list": [
+                            {"geometry_type": "GeometrySurface",
+                             "iga_model_part": "StructuralAnalysisDomain",
+                             "type": "element", "name": "LaplacianElement",
+                             "shape_function_derivatives_order": 2}
+                        ]
+                    }
+                }
+            }
+        ]''')
+        run_modelers(model, settings)
+        patch = model["IgaModelPart.Body.Patch1"]
+        inner = patch.GetSubModelPart("surrogate_inner")
+        self.assertGreater(inner.NumberOfConditions(), 0)
+        degrees = {}
+        incoming = {}
+        outgoing = {}
+        signed_area = 0.0
+        for condition in inner.Conditions:
+            for node in condition.GetGeometry():
+                degrees[node.Id] = degrees.get(node.Id, 0) + 1
+                self.assertLess(node.X, 1.1)
+                self.assertGreater(node.X, 0.99)
+            # CreateBrepsSbmUtilities reverses entering segments. Check the
+            # effective BREP orientation, not the raw scan-line direction.
+            a, b = condition.GetGeometry()[0], condition.GetGeometry()[1]
+            if condition.Is(KM.BOUNDARY):
+                a, b = b, a
+            outgoing[a.Id] = outgoing.get(a.Id, 0) + 1
+            incoming[b.Id] = incoming.get(b.Id, 0) + 1
+            signed_area += 0.5 * (a.X * b.Y - b.X * a.Y)
+        self.assertTrue(all(degree == 2 for degree in degrees.values()))
+        self.assertEqual(set(incoming), set(degrees))
+        self.assertEqual(set(outgoing), set(degrees))
+        self.assertTrue(all(degree == 1 for degree in incoming.values()))
+        self.assertTrue(all(degree == 1 for degree in outgoing.values()))
+        self.assertLess(signed_area, 0.0)  # A hole has clockwise orientation.
+
+        def is_inside(boundary, point):
+            crossings = 0
+            for condition in boundary.Conditions:
+                a, b = condition.GetGeometry()[0], condition.GetGeometry()[1]
+                if (a.Y > point.Y) != (b.Y > point.Y):
+                    x = a.X + (point.Y - a.Y) * (b.X - a.X) / (b.Y - a.Y)
+                    crossings += x > point.X
+            return crossings % 2 == 1
+
+        outer = patch.GetSubModelPart("surrogate_outer")
+        domain = patch.GetSubModelPart("StructuralAnalysisDomain")
+        self.assertGreater(domain.NumberOfElements(), 0)
+        for element in domain.Elements:
+            center = element.GetGeometry().Center()
+            self.assertTrue(is_inside(outer, center), f"Active point outside outer loop: {center}")
+            self.assertFalse(is_inside(inner, center), f"Active point inside refinement hole: {center}")
+
     def test_quadrature_points_gap_sbm_on_circle(self):
         current_model = KM.Model()
 

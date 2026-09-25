@@ -163,7 +163,11 @@ class PythonSolver:
         else:
             raise Exception("Other model part input options are not yet implemented.")
 
-        KratosMultiphysics.Logger.PrintInfo("ModelPart", model_part)
+        # Printing a complete ModelPart recursively walks every entity.  This
+        # becomes prohibitively expensive for locally refined contact meshes,
+        # so honour the solver echo level like the rest of the solver output.
+        if self.settings.Has("echo_level") and self.settings["echo_level"].GetInt() > 0:
+            KratosMultiphysics.Logger.PrintInfo("ModelPart", model_part)
         KratosMultiphysics.Logger.PrintInfo("::[PythonSolver]:: ", "Finished reading model part.")
 
     def _GetRestartSettings(self, model_part_import_settings):

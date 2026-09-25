@@ -12,6 +12,10 @@
 // Project includes
 #include "custom_processes/iga_contact_process_gap_sbm_mortar.h"
 
+// true: common master/slave refinement; false: quadrature on the original
+// master knot spans, with an independent slave projection for each Gauss point.
+#define MORTAR_COUPLING true
+
 #include <algorithm>
 #include <cmath>
 #include <limits>
@@ -1567,6 +1571,7 @@ void IgaContactProcessGapSbmMortar::Execute()
         coupling_entities.push_back(coupling_entity);
     };
 
+    if (MORTAR_COUPLING) {
     for (const auto& r_slave_curve : slave_curve_data) {
         ++debug_stats.SlaveCurvesVisited;
         double slave_domain_begin = 0.0;
@@ -1870,6 +1875,30 @@ void IgaContactProcessGapSbmMortar::Execute()
         }
     }
 
+    } else {
+        // The non-mortar path does not create coupling intervals from slave
+        // endpoints. Each master BREP retains its full parameter domain.
+        coupling_entities.reserve(master_curve_data.size());
+        for (const auto& r_master_curve : master_curve_data) {
+            double domain_begin = 0.0;
+            double domain_end = 0.0;
+            KRATOS_ERROR_IF_NOT(GetCurveDomain(
+                *r_master_curve.pReferenceCurve, domain_begin, domain_end))
+                << "::[IgaContactProcessGapSbmMortar]:: Could not retrieve master reference domain."
+                << std::endl;
+            if (domain_end <= domain_begin + parameter_tolerance) {
+                continue;
+            }
+            CouplingEntity entity;
+            entity.pMasterCurve = &r_master_curve;
+            entity.MasterDeformedBegin = domain_begin;
+            entity.MasterDeformedEnd = domain_end;
+            entity.MasterReferenceBegin = domain_begin;
+            entity.MasterReferenceEnd = domain_end;
+            coupling_entities.push_back(entity);
+        }
+    }
+
     for (const auto& r_coupling_entity : coupling_entities) {
         const auto& r_master_curve = *r_coupling_entity.pMasterCurve;
         // const double master_reference_midpoint = 0.5 * (
@@ -1893,6 +1922,12 @@ void IgaContactProcessGapSbmMortar::Execute()
             r_coupling_entity.MasterReferenceBegin,
             r_coupling_entity.MasterReferenceEnd,
             number_of_integration_points_per_span);
+        const auto master_reference_spans = MORTAR_COUPLING
+            ? std::vector<double>{}
+            : BuildClippedCurveSpans(
+                *r_master_curve.pReferenceCurve,
+                r_coupling_entity.MasterReferenceBegin,
+                r_coupling_entity.MasterReferenceEnd);
 
         auto master_integration_points_rescaled = master_integration_points;
         RescaleIntegrationPointWeightsByCurveMetric(
@@ -1953,21 +1988,74 @@ void IgaContactProcessGapSbmMortar::Execute()
             }
 
             OverlapData overlap_data;
-            const bool has_overlap_data = BuildOverlapDataFromMasterSegment(
-                *r_master_curve.pDeformedCurve,
-                *r_master_curve.pReferenceCurve,
-                r_master_curve.ReferenceGeometries,
-                r_coupling_entity.MasterDeformedBegin,
-                r_coupling_entity.MasterDeformedEnd,
-                *slave_projection.pSlaveCurve->pDeformedCurve,
-                *slave_projection.pSlaveCurve->pReferenceCurve,
-                slave_projection.pSlaveCurve->ReferenceGeometries,
-                projection_distance_limit_sq,
-                overlap_data);
+            if (MORTAR_COUPLING) {
+                const bool has_overlap_data = BuildOverlapDataFromMasterSegment(
+                    *r_master_curve.pDeformedCurve,
+                    *r_master_curve.pReferenceCurve,
+                    r_master_curve.ReferenceGeometries,
+                    r_coupling_entity.MasterDeformedBegin,
+                    r_coupling_entity.MasterDeformedEnd,
+                    *slave_projection.pSlaveCurve->pDeformedCurve,
+                    *slave_projection.pSlaveCurve->pReferenceCurve,
+                    slave_projection.pSlaveCurve->ReferenceGeometries,
+                    projection_distance_limit_sq,
+                    overlap_data);
 
-            if (!has_overlap_data) {
-                ++debug_stats.MasterGaussPointsRejectedByOverlap;
-                continue;
+                if (!has_overlap_data) {
+                    ++debug_stats.MasterGaussPointsRejectedByOverlap;
+                    continue;
+                }
+            } else {
+                // These bounds are metadata for the condition. They do not
+                // subdivide the master quadrature or gate a valid Gauss-point
+                // projection when its span crosses a slave BREP boundary.
+                const std::size_t master_span_index =
+                    i_gp / number_of_integration_points_per_span;
+                KRATOS_ERROR_IF(master_span_index + 1 >= master_reference_spans.size())
+                    << "::[IgaContactProcessGapSbmMortar]:: Invalid master Gauss-point span index."
+                    << std::endl;
+                const double master_begin = master_reference_spans[master_span_index];
+                const double master_end = master_reference_spans[master_span_index + 1];
+
+                double slave_domain_begin = 0.0;
+                double slave_domain_end = 0.0;
+                KRATOS_ERROR_IF_NOT(GetCurveDomain(
+                    *slave_projection.pSlaveCurve->pReferenceCurve,
+                    slave_domain_begin,
+                    slave_domain_end))
+                    << "::[IgaContactProcessGapSbmMortar]:: Could not retrieve slave reference domain."
+                    << std::endl;
+                const auto slave_spans = BuildClippedCurveSpans(
+                    *slave_projection.pSlaveCurve->pReferenceCurve,
+                    slave_domain_begin,
+                    slave_domain_end);
+                const auto upper = std::upper_bound(
+                    slave_spans.begin(), slave_spans.end(),
+                    slave_projection.SlaveReferenceParameter);
+                const std::size_t slave_span_index = std::min<std::size_t>(
+                    std::max<std::size_t>(
+                        1, static_cast<std::size_t>(upper - slave_spans.begin())) - 1,
+                    slave_spans.size() - 2);
+                const double slave_begin = slave_spans[slave_span_index];
+                const double slave_end = slave_spans[slave_span_index + 1];
+
+                overlap_data.IsValid = true;
+                overlap_data.MasterDeformedBegin = master_begin;
+                overlap_data.MasterDeformedEnd = master_end;
+                overlap_data.MasterReferenceBegin = master_begin;
+                overlap_data.MasterReferenceEnd = master_end;
+                overlap_data.SlaveDeformedBegin = slave_begin;
+                overlap_data.SlaveDeformedEnd = slave_end;
+                overlap_data.SlaveReferenceBegin = slave_begin;
+                overlap_data.SlaveReferenceEnd = slave_end;
+                overlap_data.MasterReferencePointBegin = EvaluateCurvePoint(
+                    *r_master_curve.pReferenceCurve, master_begin);
+                overlap_data.MasterReferencePointEnd = EvaluateCurvePoint(
+                    *r_master_curve.pReferenceCurve, master_end);
+                overlap_data.SlaveReferencePointBegin = EvaluateCurvePoint(
+                    *slave_projection.pSlaveCurve->pReferenceCurve, slave_begin);
+                overlap_data.SlaveReferencePointEnd = EvaluateCurvePoint(
+                    *slave_projection.pSlaveCurve->pReferenceCurve, slave_end);
             }
 
             const double characteristic_length = ComputeCharacteristicLength(

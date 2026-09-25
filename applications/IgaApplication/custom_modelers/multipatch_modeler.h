@@ -45,6 +45,8 @@ public:
         int NumberOfInternalDivisions = 0;
         bool HasGapRelativeToleranceForSubdivisions = false;
         double GapRelativeToleranceForSubdivisions = 0.0;
+        bool HasOffsetForRefinementInPhysicalCoord = false;
+        double OffsetForRefinementInPhysicalCoord = 0.0;
     };
 
     MultipatchModeler() = default;

@@ -83,6 +83,9 @@ void GapSbmEnhancedLoadSolidCondition::InitializeMemberVariables(
     }
 
     // Compute the normals
+    // Preserve the oriented closure normal. These physical-space curve
+    // geometries use (t_y, -t_x); curve-on-surface quadrature uses the opposite
+    // convention, so its SBM normal sign must not be copied here.
     mNormalParameterSpace = r_geometry.Normal(0, GetIntegrationMethod());
     mNormalParameterSpace = mNormalParameterSpace / MathUtils<double>::Norm(mNormalParameterSpace);
     mNormalPhysicalSpace = mNormalParameterSpace;
@@ -1062,7 +1065,8 @@ void GapSbmEnhancedLoadSolidConditionBatched::
         mQuadraturePointReferenceWeights[point_index] =
             r_points.front().Weight();
         const auto center = p_geometry->Center();
-        auto normal = p_geometry->Normal(0, method);
+        // Preserve the same oriented closure normal as the scalar condition.
+        array_1d<double, 3> normal = p_geometry->Normal(0, method);
         const double normal_norm = norm_2(normal);
         KRATOS_ERROR_IF(normal_norm <= 0.0)
             << "Zero normal at point " << point_index

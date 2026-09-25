@@ -97,7 +97,10 @@ void GapSbmEnhancedSolidCondition::InitializeMemberVariables(
         mPenalty = mBasisFunctionsOrder * mBasisFunctionsOrder * penalty / h;
     }
     // Compute the normals
-    mNormalParameterSpace = r_geometry.Normal(0, GetIntegrationMethod());
+    // The enhanced condition replaces an artificial closure of the base
+    // patch. Its quadrature geometry follows the connector/BREP orientation,
+    // which is opposite to the normal required by the SBM boundary terms.
+    mNormalParameterSpace = -r_geometry.Normal(0, GetIntegrationMethod());
     mNormalParameterSpace = mNormalParameterSpace / MathUtils<double>::Norm(mNormalParameterSpace);
     mNormalPhysicalSpace = mNormalParameterSpace;
 
@@ -1047,7 +1050,10 @@ void GapSbmEnhancedSolidConditionBatched::CompactQuadratureGeometries()
         mQuadraturePointReferenceWeights[point_index] =
             r_points.front().Weight();
         const auto center = p_geometry->Center();
-        auto normal = p_geometry->Normal(0, method);
+        // See InitializeMemberVariables(): use the SBM boundary orientation,
+        // opposite to the closure quadrature-geometry orientation.
+        array_1d<double, 3> normal = p_geometry->Normal(0, method);
+        normal *= -1.0;
         const double normal_norm = norm_2(normal);
         KRATOS_ERROR_IF(normal_norm <= 0.0)
             << "Zero normal at point " << point_index

@@ -20,6 +20,7 @@
 // System includes
 #include <algorithm>
 #include <limits>
+#include <unordered_map>
 
 namespace Kratos
 {
@@ -135,8 +136,16 @@ void PrepareLocalRefinementSurrogateData(
         const std::size_t shape_function_derivatives_order =
             2 * max_surface_degree + 1;
 
+        std::unordered_map<IndexType, const Condition*> skin_associations;
+        skin_associations.reserve(r_surrogate_loop.NumberOfConditions());
         for (auto& r_surrogate_condition : r_surrogate_loop.Conditions()) {
-            const auto surrogate_center = r_surrogate_condition.GetGeometry().Center();
+            const auto& r_surrogate_geometry = r_surrogate_condition.GetGeometry();
+            const auto surrogate_center = r_surrogate_geometry.Center();
+            KRATOS_ERROR_IF(r_surrogate_geometry.PointsNumber() < 2)
+                << "NurbsGeometryModelerSbm: surrogate condition #"
+                << r_surrogate_condition.Id() << " in '" << r_surrogate_loop.FullName()
+                << "' has fewer than two points." << std::endl;
+
             const Condition* p_closest_skin_condition = nullptr;
             double closest_distance_squared = std::numeric_limits<double>::max();
 
@@ -160,6 +169,85 @@ void PrepareLocalRefinementSurrogateData(
                 << "NurbsGeometryModelerSbm: could not associate surrogate condition #"
                 << r_surrogate_condition.Id() << " in '" << r_surrogate_loop.FullName()
                 << "' with a skin layer." << std::endl;
+            skin_associations.emplace(
+                r_surrogate_condition.Id(), p_closest_skin_condition);
+        }
+
+        auto is_coupling_layer = [](const std::string& rLayerName) {
+            return rLayerName == "COUPLING_SIDE" ||
+                   rLayerName == "COUPLING_SIDE_OUTER" ||
+                   rLayerName == "COUPLING_SIDE_INNER";
+        };
+        auto share_endpoint = [](const Condition& rFirst, const Condition& rSecond) {
+            const auto& r_first_geometry = rFirst.GetGeometry();
+            const auto& r_second_geometry = rSecond.GetGeometry();
+            for (IndexType i = 0; i < r_first_geometry.PointsNumber(); ++i) {
+                for (IndexType j = 0; j < r_second_geometry.PointsNumber(); ++j) {
+                    if (r_first_geometry[i].Id() == r_second_geometry[j].Id()) {
+                        return true;
+                    }
+                }
+            }
+            return false;
+        };
+        auto squared_tangent_alignment = [](const Condition& rFirst, const Condition& rSecond) {
+            const auto& r_first_geometry = rFirst.GetGeometry();
+            const auto& r_second_geometry = rSecond.GetGeometry();
+            const array_1d<double, 3> first_tangent =
+                r_first_geometry[1].Coordinates() - r_first_geometry[0].Coordinates();
+            const array_1d<double, 3> second_tangent =
+                r_second_geometry[1].Coordinates() - r_second_geometry[0].Coordinates();
+            const double first_length_squared = inner_prod(first_tangent, first_tangent);
+            const double second_length_squared = inner_prod(second_tangent, second_tangent);
+            if (first_length_squared <= std::numeric_limits<double>::epsilon() ||
+                second_length_squared <= std::numeric_limits<double>::epsilon()) {
+                return 1.0;
+            }
+            const double tangent_dot = inner_prod(first_tangent, second_tangent);
+            return std::clamp(
+                tangent_dot * tangent_dot /
+                    (first_length_squared * second_length_squared),
+                0.0,
+                1.0);
+        };
+
+        for (auto& r_surrogate_condition : r_surrogate_loop.Conditions()) {
+            auto& r_surrogate_geometry = r_surrogate_condition.GetGeometry();
+            const Condition* p_closest_skin_condition =
+                skin_associations.at(r_surrogate_condition.Id());
+
+            // A Cartesian surrogate represents a curved boundary by horizontal
+            // and vertical steps. At a physical/coupling transition, the short
+            // corner step is closer to the artificial closure, although it is
+            // topologically the last part of the physical boundary. Detect that
+            // one-edge bridge without propagating the physical layer along the
+            // whole coupling side.
+            if (is_coupling_layer(p_closest_skin_condition->GetValue(LAYER_NAME))) {
+                const Condition* p_physical_skin_condition = nullptr;
+                bool has_non_collinear_coupling_neighbour = false;
+                for (const auto& r_neighbour : r_surrogate_loop.Conditions()) {
+                    if (r_neighbour.Id() == r_surrogate_condition.Id() ||
+                        !share_endpoint(r_surrogate_condition, r_neighbour)) {
+                        continue;
+                    }
+
+                    const Condition* p_neighbour_skin_condition =
+                        skin_associations.at(r_neighbour.Id());
+                    const std::string& r_neighbour_layer =
+                        p_neighbour_skin_condition->GetValue(LAYER_NAME);
+                    if (is_coupling_layer(r_neighbour_layer)) {
+                        has_non_collinear_coupling_neighbour =
+                            has_non_collinear_coupling_neighbour ||
+                            squared_tangent_alignment(
+                                r_surrogate_condition, r_neighbour) < 0.5;
+                    } else {
+                        p_physical_skin_condition = p_neighbour_skin_condition;
+                    }
+                }
+                if (p_physical_skin_condition && has_non_collinear_coupling_neighbour) {
+                    p_closest_skin_condition = p_physical_skin_condition;
+                }
+            }
 
             const std::string skin_layer_name =
                 p_closest_skin_condition->GetValue(LAYER_NAME);
@@ -178,7 +266,6 @@ void PrepareLocalRefinementSurrogateData(
             r_layer_model_part.AddCondition(
                 r_surrogate_loop.pGetCondition(r_surrogate_condition.Id()));
 
-            auto& r_surrogate_geometry = r_surrogate_condition.GetGeometry();
             for (IndexType i = 0; i < r_surrogate_geometry.PointsNumber(); ++i) {
                 r_layer_model_part.AddNode(r_surrogate_geometry.pGetPoint(i));
                 AddLayerConditionMetadata(
@@ -385,6 +472,8 @@ void NurbsGeometryModelerSbm::CreateAndAddRegularGrid2D(
         snake_parameters.AddDouble("number_of_inner_loops", mParameters["number_of_inner_loops"].GetInt());
     if (mParameters.Has("number_initial_points_if_importing_nurbs"))
         snake_parameters.AddInt("number_initial_points_if_importing_nurbs", mParameters["number_initial_points_if_importing_nurbs"].GetInt());
+    if (mParameters.Has("offset_for_refinement_in_physical_coord"))
+        snake_parameters.AddDouble("offset_for_refinement_in_physical_coord", mParameters["offset_for_refinement_in_physical_coord"].GetDouble());
     if (mParameters.Has("create_surr_outer_from_surr_inner"))
         snake_parameters.AddBool("create_surr_outer_from_surr_inner", mParameters["create_surr_outer_from_surr_inner"].GetBool());
     if (mParameters.Has("create_surr_inner_from_surr_outer"))
@@ -539,6 +628,8 @@ void NurbsGeometryModelerSbm::CreateAndAddRegularGrid2D(
             snake_parameters.AddDouble("lambda_outer", mParameters["lambda_outer"].GetDouble());
         if (mParameters.Has("number_of_inner_loops"))
             snake_parameters.AddDouble("number_of_inner_loops", mParameters["number_of_inner_loops"].GetInt());
+        if (mParameters.Has("offset_for_refinement_in_physical_coord"))
+            snake_parameters.AddDouble("offset_for_refinement_in_physical_coord", mParameters["offset_for_refinement_in_physical_coord"].GetDouble());
         
         // Create the surrogate_sub_model_part for inner and outer // TODO: extend this in 3D
         SnakeSbmProcess snake_sbm_process(*mpModel, snake_parameters);
@@ -567,6 +658,7 @@ const Parameters NurbsGeometryModelerSbm::GetDefaultParameters() const
         "lambda_inner": 0.5,
         "lambda_outer": 0.5,
         "number_of_inner_loops": 0,
+        "offset_for_refinement_in_physical_coord": 0.0,
         "use_for_local_refinement": false
     })");
 }
@@ -588,6 +680,7 @@ const Parameters NurbsGeometryModelerSbm::GetValidParameters() const
         "lambda_inner": 0.5,
         "lambda_outer": 0.5,
         "number_of_inner_loops": 0,
+        "offset_for_refinement_in_physical_coord": 0.0,
         "number_initial_points_if_importing_nurbs": 1,
         "skin_model_part_inner_initial_name": "skin_model_part_inner_initial",
         "skin_model_part_outer_initial_name": "skin_model_part_outer_initial",

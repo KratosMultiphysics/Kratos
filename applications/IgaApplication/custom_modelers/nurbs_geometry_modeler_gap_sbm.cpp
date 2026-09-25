@@ -478,9 +478,18 @@ int CreateLocalRefinementClosureConnectorBrepId(
     const SkinCoordinatesType& rStartPoint,
     const SkinCoordinatesType& rEndPoint)
 {
+    const double connector_length = norm_2(rEndPoint - rStartPoint);
+    KRATOS_ERROR_IF(connector_length <= skin_point_tol)
+        << "NurbsGeometryModelerGapSbm: zero-length local-refinement closure in '"
+        << rPatchModelPart.FullName() << "'." << std::endl;
+
+    // Enhanced conditions integrate using the quadrature weights directly.
+    // Parameterize this straight physical-space curve by arc length, so its
+    // parameter interval (and the sum of its weights) is the connector length.
+    // A unit interval would over-weight every short closure by 1 / length.
     Vector active_range_knot_vector = ZeroVector(2);
     active_range_knot_vector[0] = 0.0;
-    active_range_knot_vector[1] = 1.0;
+    active_range_knot_vector[1] = connector_length;
 
     Node::Pointer p_first_node(new Node(1, rStartPoint));
     Node::Pointer p_second_node(new Node(2, rEndPoint));
@@ -1174,6 +1183,41 @@ void RebuildSkinLoopsForLocalRefinement(
                 return on_left_or_right || on_bottom_or_top;
             };
 
+            // Only patches belonging to this target loop may contribute to
+            // its reconstruction. A contained box belongs to the base inner
+            // loop, not to its outer loop (and conversely for a boundary box).
+            // Use the original interface vertices, not newly copied nodes.
+            const bool has_target_interface_on_box = std::any_of(
+                pending_matches.begin(), pending_matches.end(),
+                [&](const PendingNodeMatch& rMatch) {
+                    return is_on_box_border(rMatch.pPendingNode->Coordinates());
+                });
+            if (!has_target_interface_on_box) {
+                continue;
+            }
+
+            // A refinement patch fully contained in the physical domain has
+            // an outer surrogate boundary, while that same interface is an
+            // inner loop of the base patch. Prefer the usual layer and use the
+            // child outer layer only when rebuilding such a contained hole.
+            std::string selected_surrogate_brep_layer_name = rSurrogateBrepLayerName;
+            if (rTargetLoopName == "inner") {
+                bool has_requested_layer_on_box = false;
+                for (const auto& r_condition : r_surrogate_outer.Conditions()) {
+                    const std::string layer_name = r_condition.Has(LAYER_NAME)
+                        ? TrimWhitespace(r_condition.GetValue(LAYER_NAME))
+                        : "";
+                    if (layer_name == rSurrogateBrepLayerName &&
+                        is_on_box_border(r_condition.GetGeometry().Center())) {
+                        has_requested_layer_on_box = true;
+                        break;
+                    }
+                }
+                if (!has_requested_layer_on_box) {
+                    selected_surrogate_brep_layer_name = "COUPLING_CONDITION_OUTER";
+                }
+            }
+
             auto ReorderNodesOnBoxBoundary = [&](const Node::Pointer& pOpenEndpoint,
                                                  const Node::Pointer& pPendingNode) -> std::array<Node::Pointer, 2> {
                 KRATOS_ERROR_IF_NOT(is_on_box_border(pOpenEndpoint->Coordinates()))
@@ -1243,7 +1287,7 @@ void RebuildSkinLoopsForLocalRefinement(
                 const std::string condition_layer_name = r_condition.Has(LAYER_NAME)
                     ? TrimWhitespace(r_condition.GetValue(LAYER_NAME))
                     : "";
-                if (condition_layer_name != rSurrogateBrepLayerName) {
+                if (condition_layer_name != selected_surrogate_brep_layer_name) {
                     continue;
                 }
 
@@ -1362,7 +1406,27 @@ void RebuildSkinLoopsForLocalRefinement(
             std::vector<EndpointPendingCandidate> endpoint_pending_candidates;
             for (const auto& p_open_endpoint : open_component_endpoints) {
                 for (const auto& r_match : pending_matches) {
-                    if (r_match.IsResolved) {
+                    if (r_match.IsResolved ||
+                        !is_on_box_border(r_match.pPendingNode->Coordinates())) {
+                        continue;
+                    }
+
+                    // A closure connector must stay on one edge of this box.
+                    // Distance alone can pair vertices from different boxes
+                    // or from adjacent edges near a corner.
+                    const auto& r_open = p_open_endpoint->Coordinates();
+                    const auto& r_pending = r_match.pPendingNode->Coordinates();
+                    const bool same_vertical_edge =
+                        (std::abs(r_open[0] - refinement_box_corneres[0][0]) < box_boundary_tolerance &&
+                         std::abs(r_pending[0] - refinement_box_corneres[0][0]) < box_boundary_tolerance) ||
+                        (std::abs(r_open[0] - refinement_box_corneres[0][1]) < box_boundary_tolerance &&
+                         std::abs(r_pending[0] - refinement_box_corneres[0][1]) < box_boundary_tolerance);
+                    const bool same_horizontal_edge =
+                        (std::abs(r_open[1] - refinement_box_corneres[1][0]) < box_boundary_tolerance &&
+                         std::abs(r_pending[1] - refinement_box_corneres[1][0]) < box_boundary_tolerance) ||
+                        (std::abs(r_open[1] - refinement_box_corneres[1][1]) < box_boundary_tolerance &&
+                         std::abs(r_pending[1] - refinement_box_corneres[1][1]) < box_boundary_tolerance);
+                    if (same_vertical_edge == same_horizontal_edge) {
                         continue;
                     }
 
@@ -1718,6 +1782,8 @@ void NurbsGeometryModelerGapSbm::CreateAndAddRegularGrid2D(
         snake_parameters.AddDouble("lambda_outer", mParameters["lambda_outer"].GetDouble());
     if (mParameters.Has("number_of_inner_loops"))
         snake_parameters.AddDouble("number_of_inner_loops", mParameters["number_of_inner_loops"].GetInt());
+    if (mParameters.Has("offset_for_refinement_in_physical_coord"))
+        snake_parameters.AddDouble("offset_for_refinement_in_physical_coord", mParameters["offset_for_refinement_in_physical_coord"].GetDouble());
     if (mParameters.Has("number_internal_divisions"))
         snake_parameters.AddDouble("number_internal_divisions", mParameters["number_internal_divisions"].GetInt());
     if (mParameters.Has("number_initial_points_if_importing_nurbs"))
@@ -1934,6 +2000,7 @@ const Parameters NurbsGeometryModelerGapSbm::GetDefaultParameters() const
         "polynomial_order" : [2, 2],
         "number_of_knot_spans" : [10, 10],
         "number_of_inner_loops": 0,
+        "offset_for_refinement_in_physical_coord": 0.0,
         "number_initial_points_if_importing_nurbs": 100,
         "number_internal_divisions": 1,
         "gap_relative_tolerance_for_subdivisions": 0.1,
@@ -1965,6 +2032,7 @@ const Parameters NurbsGeometryModelerGapSbm::GetValidParameters() const
         "lambda_inner": 0.5,
         "lambda_outer": 0.5,
         "number_of_inner_loops": 0,
+        "offset_for_refinement_in_physical_coord": 0.0,
         "number_initial_points_if_importing_nurbs": 100,
         "number_internal_divisions": 1,
         "gap_relative_tolerance_for_subdivisions": 0.1,

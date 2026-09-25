@@ -10,6 +10,7 @@
 //  Main authors:    Nicolò Antonelli
 
 // System includes
+#include <cmath>
 #include <fstream>
 
 // External includes
@@ -921,6 +922,12 @@ void MultipatchModeler::ProcessRefPatch(
             patch_geometry["polynomial_order"] = poly_param;
             KRATOS_INFO_IF("MultipatchModeler", mEchoLevel > 1)
                 << "[RefPatch] Overriding polynomial_order from refinement_regions" << std::endl;
+        }
+        if (reg.HasOffsetForRefinementInPhysicalCoord) {
+            SetOrAddDoubleValue(
+                patch_geometry,
+                "offset_for_refinement_in_physical_coord",
+                reg.OffsetForRefinementInPhysicalCoord);
         }
         if (use_gap_sbm_geometry_modeler) {
             // Refinement patches always use the interpolation GAP-SBM construction.
@@ -2035,6 +2042,17 @@ void MultipatchModeler::GenerateSubdivision()
                 << "MultipatchModeler: refinement region gap_relative_tolerance_for_subdivisions must be >= 0.0." << std::endl;
             region_data.HasGapRelativeToleranceForSubdivisions = true;
             region_data.GapRelativeToleranceForSubdivisions = gap_relative_tolerance;
+        }
+
+        if (refinement_array[i].Has("offset_for_refinement_in_physical_coord")) {
+            const double offset =
+                refinement_array[i]["offset_for_refinement_in_physical_coord"].GetDouble();
+            KRATOS_ERROR_IF(!std::isfinite(offset) || offset < 0.0)
+                << "MultipatchModeler: refinement region "
+                << "offset_for_refinement_in_physical_coord must be finite and >= 0.0."
+                << std::endl;
+            region_data.HasOffsetForRefinementInPhysicalCoord = true;
+            region_data.OffsetForRefinementInPhysicalCoord = offset;
         }
 
         mRefinementRegions.push_back(region_data);

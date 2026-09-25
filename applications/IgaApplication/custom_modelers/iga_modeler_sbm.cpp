@@ -77,10 +77,33 @@ void IgaModelerSbm::ActivateNodesInElementsAndCleanRoot(ModelPart& rAnalysisMode
     VariableUtils().SetFlag(ACTIVE, false, r_analysis_nodes);
     VariableUtils().SetFlag(TO_ERASE, false, r_analysis_nodes);
 
-    for (auto& r_elem : rAnalysisModelPart.Elements()) {
-        auto& r_geom = r_elem.GetGeometry();
-        for (auto& r_node : r_geom) {
+    const auto activate_geometry_nodes = [](const Geometry<Node>::Pointer& pGeometry) {
+        if (!pGeometry) {
+            return;
+        }
+        for (auto& r_node : *pGeometry) {
             r_node.Set(ACTIVE, true);
+        }
+    };
+
+    for (auto& r_elem : rAnalysisModelPart.Elements()) {
+        for (auto& r_node : r_elem.GetGeometry()) {
+            r_node.Set(ACTIVE, true);
+        }
+        if (r_elem.Has(NEIGHBOUR_GEOMETRIES)) {
+            for (const auto& p_neighbour_geometry :
+                 r_elem.GetValue(NEIGHBOUR_GEOMETRIES)) {
+                activate_geometry_nodes(p_neighbour_geometry);
+            }
+        }
+    }
+
+    for (auto& r_condition : rAnalysisModelPart.Conditions()) {
+        if (r_condition.Has(NEIGHBOUR_GEOMETRIES)) {
+            for (const auto& p_neighbour_geometry :
+                 r_condition.GetValue(NEIGHBOUR_GEOMETRIES)) {
+                activate_geometry_nodes(p_neighbour_geometry);
+            }
         }
     }
 
