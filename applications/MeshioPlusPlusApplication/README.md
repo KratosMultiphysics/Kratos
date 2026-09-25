@@ -6,7 +6,7 @@
 
 |            **Application**            |                                                                                                    **Description**                                                                                                    |                                              **Status**                                              |                                 **Authors**                                 |
 |:-------------------------------------:|:---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------:|:----------------------------------------------------------------------------------------------------:|:---------------------------------------------------------------------------:|
-| `MeshioPlusPlusApplication`           | The *Meshio++ Application* wraps the [meshio++](https://github.com/loumalouomega/meshioplusplus) library, bringing multi-format mesh input/output (57 readable, 59 writable formats) and a full mesh/data operations layer into *Kratos Multiphysics* | <img src="https://img.shields.io/badge/Status-%F0%9F%94%A7Maintained-blue"  width="300px"> | [*Vicente Mataix Ferrándiz*](mailto:vicente.mataix-ferrandiz@siemens.com) |
+| `MeshioPlusPlusApplication`           | The *Meshio++ Application* wraps the [meshio++](https://github.com/loumalouomega/meshioplusplus) library, bringing multi-format mesh input/output (78 readable, 66 writable formats) and a full mesh/data operations layer into *Kratos Multiphysics* | <img src="https://img.shields.io/badge/Status-%F0%9F%94%A7Maintained-blue"  width="300px"> | [*Vicente Mataix Ferrándiz*](mailto:vicente.mataix-ferrandiz@siemens.com) |
 
 The application includes tests to check the proper functioning of the application.
 
@@ -14,7 +14,7 @@ The application includes tests to check the proper functioning of the applicatio
 
 - **Multi-format mesh input/output through `MeshioPlusPlusIO`**
 
-    * *57 readable and 59 writable formats, including the Kratos native `mdpa`, the GiD postprocess format, the ParaView `pvtu`/`pvtp`/`pvd` indexes, VTKHDF, LS-DYNA and Code_Aster decks, CalculiX and MSC Nastran HDF5 results, point clouds and glTF*
+    * *78 readable and 66 writable formats, including the Kratos native `mdpa`, the GiD postprocess format, the ParaView `pvtu`/`pvtp`/`pvd` indexes, VTKHDF, the FEM interchange decks (Elmer, FEBio, Femap, libMesh, MFEM, Patran, Z88), LS-DYNA and Code_Aster decks, the solver results files of Abaqus, Ansys, Nastran, LS-DYNA, Marc, Radioss, FEBio and DOLFINx, CalculiX and MSC Nastran HDF5 results, point clouds and glTF*
 
     * *Format resolved explicitly or inferred from the file extension*
 
@@ -29,6 +29,12 @@ The application includes tests to check the proper functioning of the applicatio
     * *`"lenient"` downgrades an mdpa/med/vtkhdf construct the reader cannot represent from an error to a warning and a skip, instead of throwing*
 
     * *A partitioned file (`vtkhdf`, `pvtu`, `pvtp`, `pvd`) is read whole, one sub model part per piece; `"select_piece"` with `"piece"` (negative counts from the end) reads one piece instead, and `"ghosts" : "drop"` removes the halo cells a `pvtu`/`pvtp`/`pvd` carries as `vtkGhostType`*
+
+    * *Solver results files (`abaqus_fil`, `ansys_rst`, `nastran_op2`, `lsdyna_d3plot`, `marc_t19`, `xplt`, `vtx`, ...) read one step per `"time_step"`, `GetTimeValues()` lists the steps, and `"read_field_data" : true` carries their arrays onto the registered variables of the same name*
+
+    * *A format meshio++ cannot place by extension or file name — an Elmer mesh directory, an extensionless deck — is identified by its content*
+
+    * *Companion field files: `"mfem_grid_functions"` and `"patran_result_files"` (`{"name", "path"}` lists) read the fields an MFEM `.gf` or Patran `.nod`/`.dis`/`.els` file holds; `"mfem_grid_functions_write"` writes the nodal data next to an MFEM mesh as `<stem>.<name>.gf`, ready for an MFEM solver; `"z88_results"` and `"z88_stubs"` control a Z88 deck's results and input stubs*
 
     * *Format-specific writers: `"gltf_settings"` (`container`, `up_axis`, `split_angle`, `color_by` with `cmap`/`range`/`component`, ...) for glTF, `"openfoam_label_bits"`/`"openfoam_scalar_bits"` with `"file_format" : "binary"` for a binary polyMesh, `"pcd_compressed"`/`"pcd_float64_points"` for PCL's `binary_compressed`, `"vtkhdf_gzip_level"`; every other format meshio++'s ascii/binary switch covers honours `"file_format"`*
 
@@ -154,6 +160,8 @@ cmake -S <meshioplusplus> -B build               \
 cmake --build build && cmake --install build --prefix <prefix>
 ```
 
+Three formats need an optional dependency, all off by default: `-DMESHIOPLUSPLUS_WITH_ADIOS2=ON` for DOLFINx `vtx` (`.bp`), `-DMESHIOPLUSPLUS_WITH_TECIO=ON -DTECIO_ROOT=<dir>` for Tecplot `szplt`, and `-DMESHIOPLUSPLUS_WITH_BZIP2=ON` for bzip2-compressed libMesh (`.xda.bz2`). The configure line of this application reports which ones the install carries.
+
 then point the Kratos configure at it:
 
 ```bash
@@ -161,7 +169,7 @@ then point the Kratos configure at it:
 ```
 
 > [!IMPORTANT]
-> The application requires **meshio++ ABI 16** — **v16.0.0 or newer**, which includes **v16.1.0**. The pin is on `MESHIOPLUSPLUS_ABI_VERSION` rather than the release version: that counter moves only when the installed headers stop being compatible with an already-compiled consumer, so a release that cannot affect this application needs no rebuild (v12.0.0 is a pure version-number bump over v11.6.0 and holds the ABI at 13, as v10.20.0 did over v10.19.0 at ABI 11). It is a single ABI rather than a window on purpose — supporting several meant one `MESHIOPLUSPLUS_VERSION_AT_LEAST` guard per feature, and the operations exposed here would have needed one each. Getting it wrong is not silent — the C++ variants' `SOVERSION` is the ABI version and every translation unit carries a link-time sentinel naming it, so a skew is a link error rather than memory corruption. See meshio++'s [`doc/abi.md`](https://github.com/loumalouomega/meshioplusplus/blob/master/doc/abi.md) for the criterion.
+> The application requires **meshio++ ABI 16**, release **v16.13.0 or newer** — the release floor on top of the ABI pin is there because the newer formats and the `read_mfem`/`write_mfem`/`read_patran`/`read_z88`/`write_z88` overloads this application calls arrived in later ABI-16 releases (v16.2.0–v16.13.0), all as additions. The pin is on `MESHIOPLUSPLUS_ABI_VERSION` rather than the release version: that counter moves only when the installed headers stop being compatible with an already-compiled consumer, so a release that cannot affect this application needs no rebuild (v12.0.0 is a pure version-number bump over v11.6.0 and holds the ABI at 13, as v10.20.0 did over v10.19.0 at ABI 11). It is a single ABI rather than a window on purpose — supporting several meant one `MESHIOPLUSPLUS_VERSION_AT_LEAST` guard per feature, and the operations exposed here would have needed one each. Getting it wrong is not silent — the C++ variants' `SOVERSION` is the ABI version and every translation unit carries a link-time sentinel naming it, so a skew is a link error rather than memory corruption. See meshio++'s [`doc/abi.md`](https://github.com/loumalouomega/meshioplusplus/blob/master/doc/abi.md) for the criterion.
 
 > [!NOTE]
 > Upgrading from any older meshio++ requires relinking this application once: the C++ variants' `SOVERSION` is the ABI version, so the needed library is `libmeshioplusplus_core_kratos.so.16`. Install the new meshio++ wholesale rather than part-upgrading — its headers reference a link-time sentinel an older library does not define, which fails closed rather than silently mixing.
@@ -226,15 +234,17 @@ print(KratosMeshioPlusPlus.MeshioPlusPlusIO.GetSupportedWriteFormats())
 
 ## 📁 Supported formats:
 
-**Read (57):** `abaqus` `ansys` `ansysinp` `avsucd` `cgns` `code_aster` `dex` `dolfin` `ensight` `exodus` `flac3d` `flux` `frd` `freefem` `gid` `gmsh` `h5m` `hmf` `ip` `lsdyna` `mdpa` `med` `medit` `mff` `mfm` `mphbin` `mphtxt` `nastran` `nastran_h5` `netgen` `obj` `off` `openfoam` `pcd` `permas` `ply` `pvd` `pvtp` `pvtu` `stl` `su2` `tecplot` `tetgen` `triangle` `ugrid` `unv` `vti` `vtk` `vtkhdf` `vtm` `vtp` `vtr` `vts` `vtu` `wkt` `xdmf` `xyz`
+**Read (78):** `abaqus` `abaqus_fil` `ansys` `ansys_rst` `ansys_rst_cyclic` `ansysinp` `avsucd` `cgns` `code_aster` `dex` `dolfin` `elmer` `ensight` `exodus` `febio` `femap` `flac3d` `flux` `frd` `freefem` `gid` `gmsh` `h5m` `hmf` `ip` `libmesh` `lsdyna` `lsdyna_binout` `lsdyna_d3plot` `marc` `marc_t19` `mdpa` `med` `medit` `mfem` `mff` `mfm` `mphbin` `mphtxt` `nastran` `nastran_h5` `nastran_op2` `netgen` `obj` `off` `openfoam` `patran` `pcd` `permas` `ply` `pvd` `pvtp` `pvtu` `radioss` `radioss_anim` `radioss_th` `stl` `su2` `szplt` `tecplot` `tetgen` `triangle` `ugrid` `unv` `vti` `vtk` `vtkhdf` `vtm` `vtp` `vtr` `vts` `vtu` `vtx` `wkt` `xdmf` `xplt` `xyz` `z88`
 
-**Write (59):** the same set minus the result files `frd` (CalculiX) and `nastran_h5` (MSC Nastran HDF5), which are read-only, plus `gltf`, `gmsh22`, `svg` and `tikz` (write-only).
+**Write (66):** the same set minus the read-only ones — the solver results files `abaqus_fil`, `ansys_rst`, `ansys_rst_cyclic`, `frd`, `lsdyna_binout`, `lsdyna_d3plot`, `marc_t19`, `nastran_h5`, `nastran_op2`, `radioss_anim`, `radioss_th`, `szplt`, `vtx` and `xplt`, and the `marc` and `radioss` input decks — plus `gltf`, `gmsh22`, `svg` and `tikz` (write-only).
+
+Resolution goes beyond the extension where meshio++ does: an existing `.mesh` starting with `MFEM ` is `mfem` (otherwise `medit`), an existing `.dat` holding a Marc deck is `marc` (otherwise `tecplot`), `.cdb` is `ansysinp` and `.plt` binary or ASCII `tecplot`; fixed file names win over any extension (`z88i1.txt` is `z88`, not `xyz`; `d3plot`, `binout`, `<run>A001`, `<run>T01`); and a path none of that places — an Elmer mesh *directory* — is sniffed by content. Writing Elmer names the format (`"format" : "elmer"`), since a directory that does not exist yet has no content to go by.
 
 `pvtu`/`pvtp`/`pvd` write an index plus a sibling directory named after its stem holding the pieces (`case.pvtu` → `case/case_0000.vtu`). `pcd` and `xyz` are point clouds: only the nodes are written, and a read gives the points back. `gltf` (`.glb`, or `.gltf` with a `.bin` beside it) exports the surface of the mesh for the web — three.js, Blender, model viewers — with per-vertex normals, the nodal data as attributes and, with `color_by`, a baked colour map. `frd` and `nastran_h5` read every increment or result domain as a time step. `xyz` claims `.txt`, `.asc` and `.pts` too, and `nastran_h5` claims `.h5` (a `.post.h5` still resolves to GiD).
 
 `vti`/`vts`/`vtr` (VTK XML ImageData/StructuredGrid/RectilinearGrid) all write only a regular lattice — the output of `Grid`, `voxelize` or `compute_sdf` — though `vtr`'s reader, unlike the other two, accepts a genuinely graded one. `vtm` (VTK XML MultiBlock) has no such requirement: it writes one `.vtu` piece per cell block and reads every piece back as a named `Cell` region.
 
-`cgns`, `h5m`, `hmf`, `med`, `vtkhdf`, `nastran_h5` and the XDMF-HDF data path require an HDF5-enabled meshio++ build; `exodus` requires netCDF; `gid` requires zlib to write (see the tip above). A format compiled out is still resolved by extension and reports *why* it is unavailable rather than "unknown format".
+`cgns`, `h5m`, `hmf`, `med`, `vtkhdf`, `nastran_h5` and the XDMF-HDF data path require an HDF5-enabled meshio++ build; `exodus` requires netCDF; `vtx` ADIOS2 and `szplt` TecIO (both absent from the supported lists of a build without them); `gid` requires zlib to write (see the tip above). A format compiled out is still resolved by extension and reports *why* it is unavailable rather than "unknown format".
 
 `gid` has four on-disk flavours selected with `"gid_mode"` (`auto`/`ascii`/`binary`/`hdf5`/`ascii_zipped`): `ascii` writes a `<stem>.post.msh`/`<stem>.post.res` sibling pair, `binary` one `<stem>.post.bin`, `hdf5` one `<stem>.post.h5`. `auto` never resolves to `ascii_zipped` — no extension can express "zipped".
 
@@ -243,6 +253,9 @@ print(KratosMeshioPlusPlus.MeshioPlusPlusIO.GetSupportedWriteFormats())
 - **Serial only.** meshio++ has no MPI, no distributed reader or writer and no communicator. The intended distributed workflow is `partition` with ghost layers, feeding an MPI assembly.
 - meshio++'s `undo_green` is **not** exposed. It resolves a refinement's green closure through the colon-namespaced `refine:cell_id`/`refine:parent_id` arrays, and the write-back constraint below means those never reach a model part — the hierarchy is already gone by the time a refined mesh is a `ModelPart`, so any wrapper taking one would fail by construction.
 - `remesh` and `decimate` operate on triangle surfaces; `remesh_volume`, `optimize_volume` and `decimate_volume` on tetrahedra. Neither family accepts the other's cells — they are separate operations rather than modes of one, and say so by name when handed the wrong kind.
+- Results files carry their data under the solver's own names (`U`, `S11`, `DISP`, ...), which are rarely registered Kratos variables; `"read_field_data"` transfers only the arrays whose name *is* one, and skips the rest with a warning. `radioss_th` and `lsdyna_binout` hold field data on a bare point cloud, so they give nodes and no entities.
+- Elmer's halo layer (`write_elmer(..., halo)`) is not exposed: it needs `partition:part` cell data, which no Kratos variable carries — the same reason multi-piece `pvtu` output is not.
+- Higher-order Lagrange cells — MFEM meshes of order 3 and above, Z88's 16-node plate — have no Kratos geometry and cannot become entities.
 - Kratos has no seven-node triangle, so a `triangle7` block (a Code_Aster `TRIA7`, a VTK/MED `TR7`) cannot become a model part entity.
 - Only the halo of a *partitioned* file can be dropped: the application writes a single-piece `pvtu`/`pvtp` (Kratos has no `partition:part` variable to carve by), so multi-piece output is meshio++'s own `partition` → `write_pvtu_pieces_codec` route.
 - `Matrix`-valued variables are not written, and a `Matrix`-valued `Properties` entry is skipped with a warning — meshio++ has no representation for it.
