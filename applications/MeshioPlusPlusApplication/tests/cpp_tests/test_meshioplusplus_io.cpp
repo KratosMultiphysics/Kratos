@@ -2010,7 +2010,36 @@ KRATOS_TEST_CASE_IN_SUITE(MeshioPlusPlusIOReadOnlyResultsFormatRefusesWrites, Kr
 
 KRATOS_TEST_CASE_IN_SUITE(MeshioPlusPlusIOWriteReadFebio, KratosMeshioPlusPlusFastSuite)
 {
-    WriteReadRoundTrip(".feb");
+    // FEBio has no boundary elements: the triangle condition is written as a <Surface> of
+    // the tetrahedra's faces, and a surface reads back as a side set (cell, local facet) -
+    // which a Kratos sub model part cannot hold, so it is kept as a region but creates no
+    // condition. The volume mesh itself round-trips exactly.
+    Model model;
+    auto& r_write_model_part = model.CreateModelPart("write");
+    auto& r_read_model_part = model.CreateModelPart("read");
+    PopulateTetrahedraModelPart(r_write_model_part);
+
+    const auto file_path = TestFilePath(".feb");
+    {
+        MeshioPlusPlusIO io_write(file_path, Parameters(R"({"time_series" : "single_file"})"));
+        io_write.WriteModelPart(r_write_model_part);
+    }
+    {
+        MeshioPlusPlusIO io_read(file_path);
+        io_read.ReadModelPart(r_read_model_part);
+    }
+    RemoveIfExists(file_path);
+
+    KRATOS_EXPECT_EQ(r_read_model_part.NumberOfNodes(), r_write_model_part.NumberOfNodes());
+    KRATOS_EXPECT_EQ(r_read_model_part.NumberOfElements(), r_write_model_part.NumberOfElements());
+    KRATOS_EXPECT_EQ(r_read_model_part.NumberOfConditions(), 0);
+    auto it_read = r_read_model_part.ElementsBegin();
+    for (const auto& r_element : r_write_model_part.Elements()) {
+        for (std::size_t i = 0; i < r_element.GetGeometry().size(); ++i) {
+            KRATOS_EXPECT_EQ(r_element.GetGeometry()[i].Id(), it_read->GetGeometry()[i].Id());
+        }
+        ++it_read;
+    }
 }
 
 KRATOS_TEST_CASE_IN_SUITE(MeshioPlusPlusIOWriteReadFemap, KratosMeshioPlusPlusFastSuite)
