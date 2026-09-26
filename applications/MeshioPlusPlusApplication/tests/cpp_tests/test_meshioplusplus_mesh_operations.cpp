@@ -18,6 +18,7 @@
 #include <cmath>
 #include <filesystem>
 #include <fstream>
+#include <map>
 #include <sstream>
 
 // External includes
@@ -2244,6 +2245,60 @@ KRATOS_TEST_CASE_IN_SUITE(MeshioPlusPlusMeshOperationsTensorInvariants, KratosMe
             "invariants"                 : []
         })"), r_destination),
         "needs at least one entry in \"invariants\"");
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+KRATOS_TEST_CASE_IN_SUITE(MeshioPlusPlusMeshOperationsNeighborPairsRadius, KratosMeshioPlusPlusFastSuite)
+{
+    // The unit square's corners: within 1.0 each corner has its two axis neighbours, and the
+    // diagonals (sqrt 2) are out - four pairs, each once, lower container position first.
+    Model model;
+    auto& r_source = model.CreateModelPart("source");
+    PopulateTriangulatedSquare(r_source);
+
+    const auto pairs = MeshioPlusPlusMeshOperations::NeighborPairs(
+        r_source, Parameters(R"({"method" : "radius", "radius" : 1.0})"));
+    KRATOS_EXPECT_EQ(pairs.size(), 4);
+    for (const auto& [source, target] : pairs) {
+        KRATOS_EXPECT_LT(source, target);
+        const auto& r_a = r_source.GetNode(source);
+        const auto& r_b = r_source.GetNode(target);
+        KRATOS_EXPECT_NEAR(std::hypot(r_a.X() - r_b.X(), r_a.Y() - r_b.Y()), 1.0, 1e-12);
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+KRATOS_TEST_CASE_IN_SUITE(MeshioPlusPlusMeshOperationsNeighborPairsKNearest, KratosMeshioPlusPlusFastSuite)
+{
+    Model model;
+    auto& r_source = model.CreateModelPart("source");
+    PopulateCubeOfTetrahedra(r_source);
+
+    const auto pairs = MeshioPlusPlusMeshOperations::NeighborPairs(
+        r_source, Parameters(R"({"method" : "k_nearest", "k" : 3})"));
+    KRATOS_EXPECT_EQ(pairs.size(), 3 * r_source.NumberOfNodes());
+    std::map<std::size_t, std::size_t> counts;
+    for (const auto& [source, target] : pairs) {
+        KRATOS_EXPECT_NE(source, target);
+        ++counts[source];
+    }
+    for (const auto& r_node : r_source.Nodes()) {
+        KRATOS_EXPECT_EQ(counts[r_node.Id()], 3);
+    }
+
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        MeshioPlusPlusMeshOperations::NeighborPairs(r_source, Parameters(R"({"method" : "voronoi"})")),
+        "unknown \"method\"");
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        MeshioPlusPlusMeshOperations::NeighborPairs(r_source, Parameters(R"({"method" : "radius"})")),
+        "\"radius\" must be positive");
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        MeshioPlusPlusMeshOperations::NeighborPairs(r_source, Parameters(R"({"method" : "k_nearest"})")),
+        "\"k\" must be positive");
 }
 
 } // namespace Kratos::Testing

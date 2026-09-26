@@ -1944,15 +1944,17 @@ KRATOS_TEST_CASE_IN_SUITE(MeshioPlusPlusIOFormatIntrospectionV16_13, KratosMeshi
         return std::find(rNames.begin(), rNames.end(), rName) != rNames.end();
     };
 
-    // The interchange formats of meshio++ v16.2 - v16.13 read and write
-    for (const std::string name : {"elmer", "febio", "femap", "libmesh", "mfem", "patran", "z88"}) {
+    // The interchange formats of meshio++ v16.2 - v16.13 read and write, and the Marc and
+    // Radioss decks too since v16.17
+    for (const std::string name : {"elmer", "febio", "femap", "libmesh", "mfem", "patran", "z88",
+                                   "marc", "radioss"}) {
         KRATOS_EXPECT_TRUE(contains(read_formats, name));
         KRATOS_EXPECT_TRUE(contains(write_formats, name));
     }
-    // The solver results files and the Marc/Radioss decks are read only
+    // The solver results files are read only
     for (const std::string name : {"abaqus_fil", "ansys_rst", "ansys_rst_cyclic", "lsdyna_binout",
-                                   "lsdyna_d3plot", "marc", "marc_t19", "nastran_op2", "radioss",
-                                   "radioss_anim", "radioss_th", "xplt"}) {
+                                   "lsdyna_d3plot", "marc_t19", "nastran_op2", "radioss_anim",
+                                   "radioss_th", "xplt"}) {
         KRATOS_EXPECT_TRUE(contains(read_formats, name));
         KRATOS_EXPECT_FALSE(contains(write_formats, name));
     }
@@ -2195,6 +2197,180 @@ KRATOS_TEST_CASE_IN_SUITE(MeshioPlusPlusIOWriteReadElmerDirectory, KratosMeshioP
     KRATOS_EXPECT_EQ(r_read_model_part.NumberOfNodes(), r_write_model_part.NumberOfNodes());
     KRATOS_EXPECT_EQ(r_read_model_part.NumberOfElements(), r_write_model_part.NumberOfElements());
     KRATOS_EXPECT_EQ(r_read_model_part.NumberOfConditions(), r_write_model_part.NumberOfConditions());
+}
+
+KRATOS_TEST_CASE_IN_SUITE(MeshioPlusPlusIOWriteReadRadioss, KratosMeshioPlusPlusFastSuite)
+{
+    // The OpenRadioss starter deck; the triangle condition is a /SH3N shell, read back as a
+    // lower-dimensional cell, so the round trip is exact
+    WriteReadRoundTrip(".rad");
+}
+
+KRATOS_TEST_CASE_IN_SUITE(MeshioPlusPlusIOWriteReadMarc, KratosMeshioPlusPlusFastSuite)
+{
+    // ".dat" is Tecplot's for a write; a Marc deck is written by naming the format, and read
+    // back by content
+    Model model;
+    auto& r_write_model_part = model.CreateModelPart("write");
+    auto& r_read_model_part = model.CreateModelPart("read");
+    PopulateTetrahedraModelPart(r_write_model_part);
+
+    const auto file_path = TestFilePath(".dat");
+    {
+        MeshioPlusPlusIO io_write(file_path, Parameters(R"({"time_series" : "single_file", "format" : "marc"})"));
+        io_write.WriteModelPart(r_write_model_part);
+    }
+    KRATOS_EXPECT_EQ(static_cast<int>(MeshioPlusPlusIO::ResolveFormat(file_path)),
+                     static_cast<int>(MeshioPlusPlusIO::Format::MARC));
+    {
+        MeshioPlusPlusIO io_read(file_path);
+        io_read.ReadModelPart(r_read_model_part);
+    }
+    RemoveIfExists(file_path);
+
+    KRATOS_EXPECT_EQ(r_read_model_part.NumberOfNodes(), r_write_model_part.NumberOfNodes());
+    KRATOS_EXPECT_EQ(r_read_model_part.NumberOfElements(), r_write_model_part.NumberOfElements());
+}
+
+KRATOS_TEST_CASE_IN_SUITE(MeshioPlusPlusIORadiossStubs, KratosMeshioPlusPlusFastSuite)
+{
+    Model model;
+    auto& r_model_part = model.CreateModelPart("write");
+    PopulateTetrahedraModelPart(r_model_part);
+
+    const auto file_path = TestFilePath(".rad");
+    {
+        Parameters settings(R"({"time_series" : "single_file", "entity_type" : "element", "radioss_stubs" : true})");
+        MeshioPlusPlusIO io_write(file_path, settings);
+        io_write.WriteModelPart(r_model_part);
+    }
+    const std::string content = ReadFileContent(file_path);
+    RemoveIfExists(file_path);
+    KRATOS_EXPECT_NE(content.find("/MAT/LAW1"), std::string::npos);
+    KRATOS_EXPECT_NE(content.find("/PROP/"), std::string::npos);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(MeshioPlusPlusIOWriteResolvesAmongWriters, KratosMeshioPlusPlusFastSuite)
+{
+    // A write never takes its format from what the path already holds: an existing MFEM .mesh
+    // reads as MFEM, but writing to it with an automatic format writes Medit
+    Model model;
+    auto& r_model_part = model.CreateModelPart("write");
+    PopulateTetrahedraModelPart(r_model_part);
+
+    const auto file_path = TestFilePath(".mesh");
+    {
+        MeshioPlusPlusIO io_write(file_path, Parameters(R"({"time_series" : "single_file", "format" : "mfem"})"));
+        io_write.WriteModelPart(r_model_part);
+    }
+    KRATOS_EXPECT_EQ(static_cast<int>(MeshioPlusPlusIO::ResolveFormat(file_path)),
+                     static_cast<int>(MeshioPlusPlusIO::Format::MFEM));
+    {
+        MeshioPlusPlusIO io_write(file_path, Parameters(R"({"time_series" : "single_file"})"));
+        io_write.WriteModelPart(r_model_part);
+    }
+    const std::string content = ReadFileContent(file_path);
+    RemoveIfExists(file_path);
+    KRATOS_EXPECT_EQ(content.find("MFEM"), std::string::npos);
+    KRATOS_EXPECT_NE(content.find("MeshVersionFormatted"), std::string::npos);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(MeshioPlusPlusIORawAppendedVtu, KratosMeshioPlusPlusFastSuite)
+{
+    Model model;
+    auto& r_write_model_part = model.CreateModelPart("write");
+    auto& r_read_model_part = model.CreateModelPart("read");
+    PopulateTetrahedraModelPart(r_write_model_part);
+
+    const auto file_path = TestFilePath(".vtu");
+    {
+        MeshioPlusPlusIO io_write(file_path, Parameters(R"({"time_series" : "single_file", "file_format" : "raw_appended"})"));
+        io_write.WriteModelPart(r_write_model_part);
+    }
+    KRATOS_EXPECT_NE(ReadFileContent(file_path).find("<AppendedData encoding=\"raw\""), std::string::npos);
+    {
+        MeshioPlusPlusIO io_read(file_path);
+        io_read.ReadModelPart(r_read_model_part);
+    }
+    RemoveIfExists(file_path);
+    ExpectSameMesh(r_write_model_part, r_read_model_part);
+
+    // Only .vtu has it; asking elsewhere is an error, not a silent fallback
+    const auto vtk_path = TestFilePath(".vtk");
+    MeshioPlusPlusIO io_vtk(vtk_path, Parameters(R"({"time_series" : "single_file", "file_format" : "raw_appended"})"));
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(io_vtk.WriteModelPart(r_write_model_part), "raw_appended");
+    RemoveIfExists(vtk_path);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(MeshioPlusPlusIOEnsightFortranBinary, KratosMeshioPlusPlusFastSuite)
+{
+    Model model;
+    auto& r_write_model_part = model.CreateModelPart("write");
+    auto& r_read_model_part = model.CreateModelPart("read");
+    PopulateTetrahedraModelPart(r_write_model_part);
+
+    const auto file_path = TestFilePath(".case");
+    auto geo_path = file_path;
+    geo_path.replace_extension(".geo");
+    {
+        MeshioPlusPlusIO io_write(file_path, Parameters(R"({"time_series" : "single_file", "ensight_fortran" : true})"));
+        io_write.WriteModelPart(r_write_model_part);
+    }
+    // A Fortran record opens with its 4-byte length, where C binary starts with "C Binary"
+    const std::string geometry = ReadFileContent(geo_path);
+    KRATOS_EXPECT_TRUE(geometry.size() > 4);
+    KRATOS_EXPECT_NE(geometry.substr(0, 8), "C Binary");
+    {
+        MeshioPlusPlusIO io_read(file_path);
+        io_read.ReadModelPart(r_read_model_part);
+    }
+    RemoveIfExists(file_path);
+    RemoveIfExists(geo_path);
+
+    ExpectSameMesh(r_write_model_part, r_read_model_part);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(MeshioPlusPlusIOFemapTimeSeries, KratosMeshioPlusPlusFastSuite)
+{
+    Model model;
+    auto& r_model_part = model.CreateModelPart("write");
+    r_model_part.AddNodalSolutionStepVariable(TEMPERATURE);
+    PopulateTetrahedraModelPart(r_model_part);
+    auto& r_process_info = r_model_part.GetProcessInfo();
+
+    const auto file_path = TestFilePath(".neu");
+    RemoveIfExists(file_path);
+    Parameters settings(R"({
+        "output_control_type"                : "time",
+        "nodal_solution_step_data_variables" : ["TEMPERATURE"]
+    })");
+    {
+        MeshioPlusPlusIO io_write(file_path, settings.Clone());
+        for (int step = 1; step <= 3; ++step) {
+            r_process_info[TIME] = 0.5 * step;
+            for (auto& r_node : r_model_part.Nodes()) {
+                r_node.FastGetSolutionStepValue(TEMPERATURE) = step * r_node.Id();
+            }
+            io_write.WriteModelPart(r_model_part);
+        }
+        io_write.CloseOutput();
+    }
+
+    // One neutral file, not a file series
+    KRATOS_EXPECT_TRUE(std::filesystem::exists(file_path));
+    const auto time_values = MeshioPlusPlusIO(file_path).GetTimeValues();
+    KRATOS_EXPECT_EQ(time_values.size(), 3);
+    for (std::size_t i = 0; i < time_values.size(); ++i) {
+        KRATOS_EXPECT_NEAR(time_values[i], 0.5 * (i + 1), 1e-12);
+    }
+
+    Model read_model;
+    auto& r_read_model_part = read_model.CreateModelPart("read");
+    MeshioPlusPlusIO io_step(file_path, Parameters(R"({"time_step" : -1})"));
+    io_step.ReadModelPart(r_read_model_part);
+    KRATOS_EXPECT_EQ(r_read_model_part.NumberOfNodes(), r_model_part.NumberOfNodes());
+
+    RemoveIfExists(file_path);
 }
 
 } // namespace Kratos::Testing
