@@ -16,9 +16,9 @@ include(pybind11Tools)
 #         -DBUILD_SHARED_LIBS=ON -DCMAKE_BUILD_TYPE=Release
 #   cmake --build build && cmake --install build --prefix <prefix>
 #
-# Upgrading from a meshio++ older than v16.0.0 requires rebuilding this application once: the
+# Upgrading from a meshio++ older than v16.16.0 requires rebuilding this application once: the
 # C++ variants' SOVERSION is the ABI version, so the library this application needs is
-# libmeshioplusplus_core_kratos.so.16 rather than an earlier .so.N.
+# libmeshioplusplus_core_kratos.so.18 rather than an earlier .so.N.
 #
 # then point this configure at it with -Dmeshioplusplus_DIR=<prefix>/lib/cmake/meshioplusplus
 #
@@ -56,6 +56,15 @@ include(pybind11Tools)
 # v16.1.0 -> v16.13.0 holds ABI 16: every installed-header change is an addition (the release
 # rows of meshio++'s doc/abi_reviews.md), so nothing already compiled here is affected.
 #
+# ABI 16 -> 18 changes no declaration this application names, but it is still a rebuild. 17
+# (v16.14.0) is a Tier B change to inline bodies compiled into this application: NDArray now
+# sizes through an overflow-checked AllocBytes and skips memset/memcpy for empty arrays.
+# 18 (v16.16.0) changes layouts: the MESHIO backend's CellBlock keeps ragged blocks as CSR
+# (mFlat/mRowOffsets/mFaceOffsets instead of nested vectors), and the detail:: facet, edge and
+# distance tables became sorted vectors. The KRATOS backend's own members, ReadOptions,
+# WriteOptions, MeshMetadata, CellType and every operation option and result struct used here
+# are unchanged.
+#
 # A single ABI rather than a window, deliberately. Supporting several meant a
 # MESHIOPLUSPLUS_VERSION_AT_LEAST guard per feature, and the operations this application now
 # exposes (remesh v10.10.0, optimize_volume v10.14.0, estimate_error v10.2.0, the gid format
@@ -66,31 +75,32 @@ include(pybind11Tools)
 # everything compiles unconditionally.
 #
 # There is one release floor on top of the ABI pin, because the format table and a few direct
-# overloads this application calls only exist from later ABI-16 releases: elmer, febio, femap,
-# libmesh, mfem, patran, z88 and the results formats (abaqus_fil, ansys_rst, lsdyna_d3plot, ...)
-# arrived between v16.2.0 and v16.13.0, as did read_mfem(path, grid functions, ReadOptions),
-# write_mfem(path, mesh, bool), read_patran(path, results) and read_z88/write_z88's flags. An
-# older ABI-16 install is binary compatible but does not *have* those symbols, so it is refused
-# here by release rather than failing at link time.
+# entry points this application calls only exist from later releases of that ABI: the Marc and
+# Radioss writers, resolve_write_format, write_ensight(..., fortran) and FemapSeriesWriter came in
+# v16.17.0, and WriteEncoding::RawAppended in v16.21.0 (the elmer/mfem/patran/z88 entry points
+# and results formats go back to v16.2.0-v16.13.0). An older ABI-18 install is binary compatible
+# but does not *have* those symbols, so it is refused here by release rather than failing at
+# link time.
 #
 # Getting it wrong is not silent: the C++ variants' SOVERSION is the ABI version, and every
 # consumer translation unit carries a link-time sentinel naming it, so a header/library skew is
 # a link error rather than memory corruption. See meshio++'s doc/abi.md for the criterion.
 find_package(meshioplusplus CONFIG REQUIRED COMPONENTS CXX)
 
-if(NOT MESHIOPLUSPLUS_ABI_VERSION EQUAL 16)
+if(NOT MESHIOPLUSPLUS_ABI_VERSION EQUAL 18)
     message(FATAL_ERROR
-        "MeshioPlusPlusApplication needs meshio++ ABI 16, but the install at "
+        "MeshioPlusPlusApplication needs meshio++ ABI 18, but the install at "
         "'${meshioplusplus_DIR}' reports ABI ${MESHIOPLUSPLUS_ABI_VERSION} "
-        "(release ${meshioplusplus_VERSION}). ABI 16 is meshio++ v16.0.0 onwards, "
-        "which includes v16.13.0.")
+        "(release ${meshioplusplus_VERSION}). ABI 18 is meshio++ v16.16.0 onwards, "
+        "which includes v16.22.0.")
 endif()
 
-if(meshioplusplus_VERSION VERSION_LESS 16.13.0)
+if(meshioplusplus_VERSION VERSION_LESS 16.21.0)
     message(FATAL_ERROR
-        "MeshioPlusPlusApplication needs meshio++ v16.13.0 or newer (for its format table and "
-        "the elmer/mfem/patran/z88 entry points), but the install at '${meshioplusplus_DIR}' "
-        "is release ${meshioplusplus_VERSION}.")
+        "MeshioPlusPlusApplication needs meshio++ v16.21.0 or newer (for its format table, "
+        "resolve_write_format, the Marc/Radioss writers, FemapSeriesWriter, Fortran EnSight and "
+        "raw appended VTU), but the install at '${meshioplusplus_DIR}' is release "
+        "${meshioplusplus_VERSION}.")
 endif()
 
 if(NOT TARGET meshioplusplus::core_kratos)
