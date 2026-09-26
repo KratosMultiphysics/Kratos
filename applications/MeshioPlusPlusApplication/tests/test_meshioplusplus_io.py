@@ -718,7 +718,7 @@ End Elements
         Format = KratosMeshioPlusPlus.MeshioPlusPlusIO.Format
         read_formats = KratosMeshioPlusPlus.MeshioPlusPlusIO.GetSupportedReadFormats()
         write_formats = KratosMeshioPlusPlus.MeshioPlusPlusIO.GetSupportedWriteFormats()
-        for name in ("elmer", "febio", "femap", "libmesh", "mfem", "patran", "z88"):
+        for name in ("elmer", "febio", "femap", "libmesh", "mfem", "patran", "z88", "marc", "radioss"):
             self.assertIn(name, read_formats)
             self.assertIn(name, write_formats)
         for name in ("abaqus_fil", "ansys_rst", "lsdyna_d3plot", "lsdyna_binout", "marc_t19",
@@ -793,6 +793,40 @@ End Elements
 
         for node in read_model_part.Nodes:
             self.assertAlmostEqual(node.GetValue(KratosMultiphysics.TEMPERATURE), 2.0 * node.Id, 12)
+
+    def testWriteReadRoundTripRadioss(self):
+        self._RunWriteReadRoundTrip(".rad")
+
+    def testRawAppendedVtu(self):
+        write_model_part = self.model.CreateModelPart("write_raw")
+        read_model_part = self.model.CreateModelPart("read_raw")
+        _PopulateModelPart(write_model_part)
+        with tempfile.TemporaryDirectory() as temp_dir:
+            file_path = Path(temp_dir) / "raw.vtu"
+            settings = KratosMultiphysics.Parameters('{"time_series" : "single_file", "file_format" : "raw_appended"}')
+            KratosMeshioPlusPlus.MeshioPlusPlusIO(str(file_path), settings).WriteModelPart(write_model_part)
+            self.assertIn(b'<AppendedData encoding="raw"', file_path.read_bytes())
+            KratosMeshioPlusPlus.MeshioPlusPlusIO(str(file_path)).ReadModelPart(read_model_part)
+        self.assertEqual(read_model_part.NumberOfNodes(), write_model_part.NumberOfNodes())
+        self.assertEqual(read_model_part.NumberOfElements(), write_model_part.NumberOfElements())
+
+    def testFemapTimeSeries(self):
+        model_part = self.model.CreateModelPart("femap")
+        model_part.AddNodalSolutionStepVariable(KratosMultiphysics.TEMPERATURE)
+        _PopulateModelPart(model_part)
+        with tempfile.TemporaryDirectory() as temp_dir:
+            file_name = str(Path(temp_dir) / "series.neu")
+            settings = KratosMultiphysics.Parameters("""{
+                "output_control_type"                : "time",
+                "nodal_solution_step_data_variables" : ["TEMPERATURE"]
+            }""")
+            io = KratosMeshioPlusPlus.MeshioPlusPlusIO(file_name, settings)
+            for step in range(1, 4):
+                model_part.ProcessInfo[KratosMultiphysics.TIME] = 0.25 * step
+                io.WriteModelPart(model_part)
+            io.CloseOutput()
+            time_values = KratosMeshioPlusPlus.MeshioPlusPlusIO(file_name).GetTimeValues()
+            self.assertVectorAlmostEqual(time_values, [0.25, 0.5, 0.75])
 
     def testUnknownProvenanceModeRaises(self):
         with self.assertRaisesRegex(RuntimeError, 'Unknown "provenance" setting'):

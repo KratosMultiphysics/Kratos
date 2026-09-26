@@ -815,5 +815,20 @@ class TestMeshioPlusPlusMeshOperations(KratosUnittest.TestCase):
             self.assertAlmostEqual(node.GetValue(KratosMultiphysics.TEMPERATURE), math.sqrt(3.0), 12)
 
 
+    def test_neighbor_pairs(self):
+        source = self.model.CreateModelPart("Neighbors")
+        _CreateTriangulatedSquare(source)
+        pairs = KratosMeshioPlusPlus.MeshioPlusPlusMeshOperations.NeighborPairs(
+            source, KratosMultiphysics.Parameters('{"method" : "radius", "radius" : 1.0}'))
+        self.assertEqual(sorted(pairs), [(1, 2), (1, 4), (2, 3), (3, 4)])
+
+        pairs = KratosMeshioPlusPlus.MeshioPlusPlusMeshOperations.NeighborPairs(
+            source, KratosMultiphysics.Parameters('{"method" : "k_nearest", "k" : 1}'))
+        self.assertEqual(len(pairs), source.NumberOfNodes())
+        with self.assertRaisesRegex(RuntimeError, 'unknown "method"'):
+            KratosMeshioPlusPlus.MeshioPlusPlusMeshOperations.NeighborPairs(
+                source, KratosMultiphysics.Parameters('{"method" : "voronoi"}'))
+
+
 if __name__ == "__main__":
     KratosUnittest.main()
