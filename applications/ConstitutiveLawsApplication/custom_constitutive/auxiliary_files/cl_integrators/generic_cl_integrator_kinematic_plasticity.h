@@ -34,7 +34,7 @@ namespace Kratos
 ///@{
 
 // The size type definition
-typedef std::size_t SizeType;
+using SizeType = std::size_t;
 
 ///@}
 ///@name  Enum's
@@ -75,10 +75,10 @@ class GenericConstitutiveLawIntegratorKinematicPlasticity
     static constexpr double tolerance = std::numeric_limits<double>::epsilon();
 
     /// Definition of index
-    typedef std::size_t IndexType;
+    using IndexType = std::size_t;
 
     /// The type of yield surface
-    typedef TYieldSurfaceType YieldSurfaceType;
+    using YieldSurfaceType = TYieldSurfaceType;
 
     /// The define the working dimension size, already defined in the yield surface
     static constexpr SizeType Dimension = YieldSurfaceType::Dimension;
@@ -226,7 +226,9 @@ class GenericConstitutiveLawIntegratorKinematicPlasticity
             CalculateTangentMatrix(tangent_tensor, rConstitutiveMatrix, rYieldSurfaceDerivative, rDerivativePlasticPotential, rPlasticDenominator);
             noalias(rConstitutiveMatrix) = tangent_tensor;
         }
-        KRATOS_WARNING_IF("GenericConstitutiveLawIntegratorKinematicPlasticity", iteration > max_iter) << "Maximum number of iterations in plasticity loop reached..." << std::endl;
+        if (iteration > max_iter) {
+            KRATOS_WARNING_FIRST_N("GenericConstitutiveLawIntegratorKinematicPlasticity", 10) << "Maximum number of iterations in plasticity loop reached..." << std::endl;
+        }
     }
 
     /**
@@ -654,7 +656,6 @@ class GenericConstitutiveLawIntegratorKinematicPlasticity
     ///@{
 
     ///@}
-
   protected:
     ///@name Protected static Member Variables
     ///@{
@@ -684,7 +685,6 @@ class GenericConstitutiveLawIntegratorKinematicPlasticity
     ///@{
 
     ///@}
-
   private:
     ///@name Static Member Variables
     ///@{
@@ -714,9 +714,7 @@ class GenericConstitutiveLawIntegratorKinematicPlasticity
     ///@{
 
     ///@}
-
 }; // Class GenericYieldSurface
-
 ///@}
 
 ///@name Type Definitions
