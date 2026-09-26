@@ -18,7 +18,8 @@ class MeshioOutputProcess(KratosMultiphysics.OutputProcess):
     It wraps KratosMeshioPlusPlus.MeshioPlusPlusIO: every output step calls
     WriteModelPart, which extends the current output instead of overwriting it
     (an XDMF temporal collection or VTKHDF Steps in a single file, a PVD
-    collection indexing one .vtu per step, or a file series
+    collection indexing one .vtu per step, a Femap neutral file with one
+    output set per step, or a file series
     <output_name>_<label>.<ext> for the other formats).
 
     The format is taken from the "format" setting, or resolved from the
@@ -63,6 +64,7 @@ class MeshioOutputProcess(KratosMultiphysics.OutputProcess):
                     "openfoam_label_bits", "openfoam_scalar_bits",
                     "pcd_compressed", "pcd_float64_points",
                     "mfem_grid_functions_write", "z88_stubs",
+                    "radioss_stubs", "ensight_fortran",
                     "gltf_settings",
                     "nodal_solution_step_data_variables", "nodal_data_value_variables",
                     "nodal_flags",
@@ -111,6 +113,8 @@ class MeshioOutputProcess(KratosMultiphysics.OutputProcess):
             "pcd_float64_points"                          : false,
             "mfem_grid_functions_write"                   : false,
             "z88_stubs"                                   : false,
+            "radioss_stubs"                               : false,
+            "ensight_fortran"                             : false,
             "gltf_settings"                               : {},
             "nodal_solution_step_data_variables"          : [],
             "nodal_data_value_variables"                  : [],
