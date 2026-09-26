@@ -287,6 +287,7 @@ namespace Kratos
 					array_1d<float, 3> &vel = pparticle.GetVelocity();
 					float &distance = pparticle.GetDistance();
 					noalias(vel) = ZeroVector(3);
+					array_1d<double, 3> &position = pparticle.Coordinates();
 					distance = 0.0;
 
 					for (unsigned int k = 0; k < (TDim + 1); k++)
@@ -294,6 +295,7 @@ namespace Kratos
 						noalias(vel) += (N(j, k) * geom[k].FastGetSolutionStepValue(VELOCITY));
 						distance += N(j, k) * geom[k].FastGetSolutionStepValue(DISTANCE);
 					}
+
 
 					if (distance <= 0.0)
 						distance = -1.0;
@@ -390,14 +392,14 @@ namespace Kratos
 				// KRATOS_WATCH(offset)											//(flag managed only by MoveParticles
 				ModelPart::ElementsContainerType::iterator ielembegin = mr_model_part.ElementsBegin();
 				vector<unsigned int> element_partition;
-#ifdef _OPENMP
+				#ifdef _OPENMP
 				int number_of_threads = omp_get_max_threads();
-#else
+				#else
 				int number_of_threads = 1;
-#endif
+				#endif
 				OpenMPUtils::CreatePartition(number_of_threads, mr_model_part.Elements().size(), element_partition);
 
-#pragma omp parallel for
+				#pragma omp parallel for
 				for (int kkk = 0; kkk < number_of_threads; kkk++)
 				{
 					ResultContainerType results(max_results);
@@ -823,7 +825,7 @@ namespace Kratos
 						array_1d<double, TDim + 1> N;
 						array_1d<float, 3>& particle_velocity = pparticle.GetVelocity();
 						float & particle_distance = pparticle.GetDistance();
-						Element::Pointer pelement(*(ielembegin + pparticle.GetElementId() - 1).base());
+						Element::Pointer pelement(*(ielembegin+pparticle.GetElementId()-1).base());
 						Geometry<Node> &geom = pelement->GetGeometry();
 						bool isfound = CalculatePosition(geom, position[0], position[1], position[2], N);
 						if (isfound == true)
@@ -835,6 +837,72 @@ namespace Kratos
 								noalias(particle_velocity) += (N(j) * geom[j].FastGetSolutionStepValue(VELOCITY));
                         		particle_distance +=  (N(j) * geom[j].FastGetSolutionStepValue(DISTANCE));
 							}
+
+							if (particle_distance <= 0.0)
+                        		particle_distance = -1.0;
+                    		else
+                        		particle_distance = 1.0;
+						}
+					}
+				}
+			}
+
+			KRATOS_CATCH("")
+		}
+
+		void InterpolateParticleVelocity_prescribed_tzero()
+		{
+			KRATOS_TRY
+
+			ProcessInfo &CurrentProcessInfo = mr_model_part.GetProcessInfo();
+
+			KRATOS_INFO("MoveParticleUtilityPfem2Modified") << "Interpolating the Particle Velocities prescribed at t=0" << std::endl;
+
+			vector<unsigned int> particle_partition;
+			#ifdef _OPENMP
+				int number_of_threads = omp_get_max_threads();
+			#else
+				int number_of_threads = 1;
+			#endif
+			OpenMPUtils::CreatePartition(number_of_threads, mparticles_vector.size(), particle_partition);
+			ModelPart::ElementsContainerType::iterator ielembegin = mr_model_part.ElementsBegin();
+
+
+			#pragma omp parallel for
+			for (int kkk = 0; kkk < number_of_threads; kkk++)
+			{
+				for (int ii = particle_partition[kkk]; ii < particle_partition[kkk + 1]; ii++)
+				{
+					PFEM_Particle_Fluid &pparticle = mparticles_vector[ii];
+					bool &erase_flag = pparticle.GetEraseFlag();
+					if (erase_flag == false)
+					{
+						array_1d<double, 3> &position = pparticle.Coordinates();
+						array_1d<double, TDim + 1> N;
+						array_1d<float, 3>& particle_velocity = pparticle.GetVelocity();
+						float & particle_distance = pparticle.GetDistance();
+						Element::Pointer pelement(*(ielembegin + pparticle.GetElementId() - 1).base());
+						Geometry<Node> &geom = pelement->GetGeometry();
+						bool isfound = CalculatePosition(geom, position[0], position[1], position[2], N);
+						if (isfound == true)
+						{	
+							noalias(particle_velocity) = ZeroVector(3);
+							particle_distance = 0.0;
+							for (int j = 0; j != (TDim + 1); j++)
+							{
+                        		particle_distance +=  (N(j) * geom[j].FastGetSolutionStepValue(DISTANCE));
+							}
+
+							const double x = position[0];
+					        const double y = position[1];
+							const double r_x = 0.5 * std::cos(0.0);
+							const double r_y = 0.5 * std::sin(0.0);
+							const double dx = x - r_x;
+							const double dy = y - r_y;
+							const double t_analytical = std::exp(-40.0 * dx * dx - 40.0 * dy * dy);
+							particle_velocity[0] = t_analytical;
+							particle_velocity[1] = 0.0;
+							particle_velocity[2] = 0.0;
 
 							if (particle_distance <= 0.0)
                         		particle_distance = -1.0;
@@ -898,181 +966,304 @@ namespace Kratos
 			KRATOS_CATCH("")
 		}
 
-		// to move all the particles across the streamlines. heavy task!
-		void MoveParticles(const bool discriminate_streamlines) //,const bool pressure_gradient_integrate)
-		{
+		//to move all the particles across the streamlines. heavy task!
+        void MoveParticles(const bool discriminate_streamlines) //,const bool pressure_gradient_integrate)
+        {
 
-			KRATOS_TRY
+            KRATOS_TRY
 
-			ProcessInfo &CurrentProcessInfo = mr_model_part.GetProcessInfo();
+            ProcessInfo& CurrentProcessInfo = mr_model_part.GetProcessInfo();
+            double delta_t = CurrentProcessInfo[DELTA_TIME];
+            const array_1d<double,3> gravity= CurrentProcessInfo[GRAVITY];
 
-			const int offset = CurrentProcessInfo[WATER_PARTICLE_POINTERS_OFFSET]; // the array of pointers for each element has twice the required size so that we use a part in odd timesteps and the other in even ones.
-																				   // moveparticlesdiff reads from the pointers of one part (ie odd) and saves into the other part (ie even part)
-																				   // since it is the only function in the whole procedure that does this, it must use alternatively one part and the other.
-			// KRATOS_WATCH(offset)
+            array_1d<double,TDim+1> N;
+            const unsigned int max_results = 10000;
 
-			bool even_timestep;
-			if (offset != 0)
-				even_timestep = false;
-			else
-				even_timestep = true;
 
-			const int post_offset = mmaximum_number_of_particles * int(even_timestep); // and we also save the offset to know the location in which we will save the pointers after we've moved the particles
-			// KRATOS_WATCH(post_offset)
+            vector<unsigned int> element_partition;
+            vector<unsigned int> node_partition;
+            vector<unsigned int> particle_partition;
+            #ifdef _OPENMP
+                int number_of_threads = omp_get_max_threads();
+            #else
+                int number_of_threads = 1;
+            #endif
+            OpenMPUtils::CreatePartition(number_of_threads, mr_model_part.Elements().size(), element_partition);
+            OpenMPUtils::CreatePartition(number_of_threads, mr_model_part.Nodes().size(), node_partition);
+            OpenMPUtils::CreatePartition(number_of_threads, mparticles_vector.size(), particle_partition);
+            ModelPart::ElementsContainerType::iterator ielembegin = mr_model_part.ElementsBegin();
+            ModelPart::NodesContainerType::iterator inodebegin = mr_model_part.NodesBegin();
 
-			double delta_t = CurrentProcessInfo[DELTA_TIME];
+            // auto t1 = std::chrono::high_resolution_clock::now();
 
-			const array_1d<double, 3> gravity = CurrentProcessInfo[GRAVITY];
+            //before doing anything we must reset the vector of nodes contained by each element (particles that are inside each element.
+            #pragma omp parallel for
+            for(int kkk=0; kkk<number_of_threads; kkk++)
+            {
+                for(unsigned int ii=element_partition[kkk]; ii<element_partition[kkk+1]; ii++)
+                {
+                    ModelPart::ElementsContainerType::iterator old_element = ielembegin+ii;
+                    int & number_of_particles = old_element->GetValue(NUMBER_OF_FLUID_PARTICLES);
+                    number_of_particles=0;
 
-			array_1d<double, TDim + 1> N;
-			const unsigned int max_results = 10000;
+                    //we reset the local vectors for a faster access;
+                }
+            }
 
-			// double integration_distance= 2.0;
 
-			max_nsubsteps = 10;
-			max_substep_dt = delta_t / double(max_nsubsteps);
+            bool nonzero_mesh_velocity  = false;
+            //seeing if we have to use the mesh_velocity or not
+            for(ModelPart::NodesContainerType::iterator inode = mr_model_part.NodesBegin();
+                inode!=mr_model_part.NodesEnd(); inode++)
+            {
+                const array_1d<double, 3 > velocity = inode->FastGetSolutionStepValue(MESH_VELOCITY);
+                for(unsigned int i = 0; i!=3; i++)
+                {
+                    if (fabs(velocity[i])>1.0e-9)
+                        nonzero_mesh_velocity=true;
+                }
+                if( nonzero_mesh_velocity==true)
+                    break;
+            }
 
-			vector<unsigned int> element_partition;
-#ifdef _OPENMP
-			int number_of_threads = omp_get_max_threads();
-#else
-			int number_of_threads = 1;
-#endif
-			OpenMPUtils::CreatePartition(number_of_threads, mr_model_part.Elements().size(), element_partition);
+            if ( nonzero_mesh_velocity==true)
+                muse_mesh_velocity_to_convect = true; // if there is mesh velocity, then we have to take it into account when moving the particles
+            else
+                muse_mesh_velocity_to_convect = false; //otherwise, we can avoid reading the values since we know it is zero everywhere (to save time!)
 
-			ModelPart::ElementsContainerType::iterator ielembegin = mr_model_part.ElementsBegin();
+            std::cout << "convecting particles" << std::endl;
+            //We move the particles across the fixed mesh and saving change data into them (using the function MoveParticle)
 
-// before doing anything we must reset the vector of nodes contained by each element (particles that are inside each element.
-#pragma omp parallel for
-			for (int kkk = 0; kkk < number_of_threads; kkk++)
-			{
-				for (unsigned int ii = element_partition[kkk]; ii < element_partition[kkk + 1]; ii++)
-				{
-					ModelPart::ElementsContainerType::iterator old_element = ielembegin + ii;
+            const bool local_use_mesh_velocity_to_convect = muse_mesh_velocity_to_convect;
+// 
+            #pragma omp parallel for
+            for(int kkk=0; kkk<number_of_threads; kkk++)
+            {
+             array_1d<double,3> position;
+              const array_1d<double,3> mesh_displacement = mcalculation_domain_added_displacement; //if it is a standard problem, displacements are zero and therefore nothing is added.
+              ResultContainerType results(max_results);
+              if ( (results.size()) !=max_results)
+              results.resize(max_results);
+              array_1d<double,TDim+1> N; 
+              
+            for (int ii=particle_partition[kkk]; ii<particle_partition[kkk+1]; ii++)
+            {
+              
+              PFEM_Particle_Fluid& pparticle = mparticles_vector[ii];
+              N = ZeroVector(TDim+1);
+              position = pparticle.Coordinates();
+              ResultIteratorType result_begin = results.begin();
+              bool & erase_flag=pparticle.GetEraseFlag();
+              if (erase_flag==false)
+              {
+            //    Element::Pointer pelement = Element::Pointer(*(ielembegin+pparticle.GetElementId()-1));
+            //    Element::Pointer pelement(*ielembegin.base());
+               Element::Pointer pelement(*(ielembegin+pparticle.GetElementId()-1).base());
+            //    Geometry<Node<3> >& geom = pelement->GetGeometry();
+            //    bool isfound = CalculatePosition(geom,position[0],position[1],position[2],N);
+               bool isfound = FindNodeOnMesh( position, N, pelement, result_begin, max_results);
+               if (isfound==true)
+               {
+                 erase_flag=false;
+				 result_begin = results.begin();
+                 MoveParticle(pparticle,pelement,result_begin,max_results, mesh_displacement, discriminate_streamlines, N, delta_t,gravity); 
+                 int & number_of_particles_in_current_elem = pelement->GetValue(NUMBER_OF_FLUID_PARTICLES);
+//                   if (number_of_particles_in_current_elem<mmaximum_number_of_particles && erase_flag==false) 
+                 if (erase_flag==false) 
+                 {
+                  pparticle.GetElementId()=pelement->Id();   
+                  #pragma omp atomic
+                  number_of_particles_in_current_elem++ ;         
+                 }
+                 else 
+                 {
+                  pparticle.GetElementId()=0;  
+                  pparticle.GetEraseFlag()=true; //so we just delete it!     
+                 } 
+               }
+                 else
+               {
+                 erase_flag=true;   
+                 KRATOS_WATCH("particle not found although it was erase_flag false");
+                 KRATOS_WATCH(pparticle);                    
+               }
 
-					int &number_of_particles = old_element->GetValue(NUMBER_OF_FLUID_PARTICLES);
 
-					mnumber_of_particles_in_elems_aux(ii) = number_of_particles;
-					mnumber_of_particles_in_elems(ii) = 0;
-					// we reset the local vectors for a faster access;
-				}
-			}
+              }
+            }
+            
+            }
+            
+            int badelementcounter=0;
+            for(int kkk=0; kkk<number_of_threads; kkk++)
+            {
+                for(unsigned int ii=element_partition[kkk]; ii<element_partition[kkk+1]; ii++)
+                {
+                    ModelPart::ElementsContainerType::iterator old_element = ielembegin+ii;
 
-			bool nonzero_mesh_velocity = false;
-			// seeing if we have to use the mesh_velocity or not
-			for (ModelPart::NodesContainerType::iterator inode = mr_model_part.NodesBegin();
-				 inode != mr_model_part.NodesEnd(); inode++)
-			{
-				const array_1d<double, 3> velocity = inode->FastGetSolutionStepValue(MESH_VELOCITY);
-				for (unsigned int i = 0; i != 3; i++)
-				{
-					if (fabs(velocity[i]) > 1.0e-9)
-						nonzero_mesh_velocity = true;
-				}
-				if (nonzero_mesh_velocity == true)
-					break;
-			}
+                    int & number_of_particles = old_element->GetValue(NUMBER_OF_FLUID_PARTICLES);
+                    if (number_of_particles<3)
+                    {
+                    badelementcounter++;
+                    }
+                }
+            }
+            if (badelementcounter>1)
+              KRATOS_WATCH("There are some elements with less than three particles. Prereseed will be called");
 
-			if (nonzero_mesh_velocity == true)
-				muse_mesh_velocity_to_convect = true; // if there is mesh velocity, then we have to take it into account when moving the particles
-			else
-				muse_mesh_velocity_to_convect = false; // otherwise, we can avoid reading the values since we know it is zero everywhere (to save time!)
 
-			KRATOS_INFO("MoveParticleUtilityPfem2Modified") << "Convecting particles" << std::endl;
-			// We move the particles across the fixed mesh and saving change data into them (using the function MoveParticle)
+            KRATOS_CATCH("")
+        }
 
-			const bool local_use_mesh_velocity_to_convect = muse_mesh_velocity_to_convect;
+		void MoveParticlesRK4(const bool discriminate_streamlines) //,const bool pressure_gradient_integrate)
+        {
+            //Parallel. Works!
+            KRATOS_TRY
 
-#pragma omp parallel for
-			for (int kkk = 0; kkk < number_of_threads; kkk++)
-			{
+            ProcessInfo& CurrentProcessInfo = mr_model_part.GetProcessInfo();                                                                    
+            double delta_t = CurrentProcessInfo[DELTA_TIME];
+			KRATOS_WATCH("delta_t in MoveParticlesRK4");
+			KRATOS_WATCH(delta_t);
+            const array_1d<double,3> gravity= CurrentProcessInfo[GRAVITY];
 
-				const array_1d<double, 3> mesh_displacement = mcalculation_domain_added_displacement; // if it is a standard problem, displacements are zero and therefore nothing is added.
-				ResultContainerType results(max_results);
+            array_1d<double,TDim+1> N;
+            const unsigned int max_results = 10000;
 
-				GlobalPointersVector<Element> elements_in_trajectory;
-				elements_in_trajectory.resize(20);
 
-				for (unsigned int ielem = element_partition[kkk]; ielem < element_partition[kkk + 1]; ielem++)
-				{
-					// for(unsigned int ielem=0; ielem<mr_model_part.Elements().size(); ielem++)
-					//{
+            vector<unsigned int> element_partition;
+            vector<unsigned int> node_partition;
+            vector<unsigned int> particle_partition;
+            #ifdef _OPENMP
+                int number_of_threads = omp_get_max_threads();
+            #else
+                int number_of_threads = 1;
+            #endif
+            OpenMPUtils::CreatePartition(number_of_threads, mr_model_part.Elements().size(), element_partition);
+            OpenMPUtils::CreatePartition(number_of_threads, mr_model_part.Nodes().size(), node_partition);
+            OpenMPUtils::CreatePartition(number_of_threads, mparticles_vector.size(), particle_partition);
+            ModelPart::ElementsContainerType::iterator ielembegin = mr_model_part.ElementsBegin();
+            ModelPart::NodesContainerType::iterator inodebegin = mr_model_part.NodesBegin();
 
-					ModelPart::ElementsContainerType::iterator old_element = ielembegin + ielem;
-					const int old_element_id = old_element->Id();
 
-					ParticlePointerVector &old_element_particle_pointers = *mpointers_to_particle_pointers_vectors(old_element_id - 1);
+            //before doing anything we must reset the vector of nodes contained by each element (particles that are inside each element.
+            #pragma omp parallel for
+            for(int kkk=0; kkk<number_of_threads; kkk++)
+            {
+                for(unsigned int ii=element_partition[kkk]; ii<element_partition[kkk+1]; ii++)
+                {
+                    ModelPart::ElementsContainerType::iterator old_element = ielembegin+ii;
 
-					if ((results.size()) != max_results)
-						results.resize(max_results);
+                    int & number_of_particles = old_element->GetValue(NUMBER_OF_FLUID_PARTICLES);
+                    
+                    number_of_particles=0;
 
-					unsigned int number_of_elements_in_trajectory = 0; // excluding the origin one (current one, ielem)
+                    //we reset the local vectors for a faster access;
+                }
+            }
 
-					for (int ii = 0; ii < (mnumber_of_particles_in_elems_aux(ielem)); ii++)
-					{
 
-						PFEM_Particle_Fluid &pparticle = old_element_particle_pointers[offset + ii];
+            bool nonzero_mesh_velocity  = false;
+            //seeing if we have to use the mesh_velocity or not
+            for(ModelPart::NodesContainerType::iterator inode = mr_model_part.NodesBegin();
+                inode!=mr_model_part.NodesEnd(); inode++)
+            {
+                const array_1d<double, 3 > velocity = inode->FastGetSolutionStepValue(MESH_VELOCITY);
+                for(unsigned int i = 0; i!=3; i++)
+                {
+                    if (fabs(velocity[i])>1.0e-9)
+                        nonzero_mesh_velocity=true;
+                }
+                if( nonzero_mesh_velocity==true)
+                    break;
+            }
 
-						Element::Pointer pcurrent_element(*old_element.base());
-						ResultIteratorType result_begin = results.begin();
-						bool &erase_flag = pparticle.GetEraseFlag();
-						if (erase_flag == false)
-						{
-							MoveParticle(pparticle, pcurrent_element, elements_in_trajectory, number_of_elements_in_trajectory, result_begin, max_results, mesh_displacement, discriminate_streamlines, local_use_mesh_velocity_to_convect); // saqué N de los argumentos, no lo necesito ya q empieza SIEMPRE en un nodo y no me importa donde termina
+            if ( nonzero_mesh_velocity==true)
+                muse_mesh_velocity_to_convect = true; // if there is mesh velocity, then we have to take it into account when moving the particles
+            else
+                muse_mesh_velocity_to_convect = false; //otherwise, we can avoid reading the values since we know it is zero everywhere (to save time!)
 
-							const int current_element_id = pcurrent_element->Id();
+            std::cout << "convecting particles" << std::endl;
+            //We move the particles across the fixed mesh and saving change data into them (using the function MoveParticle)
 
-							int &number_of_particles_in_current_elem = mnumber_of_particles_in_elems(current_element_id - 1);
-							// int & number_of_water_particles_in_current_elem = mnumber_of_water_particles_in_elems(current_element_id-1);
+            const bool local_use_mesh_velocity_to_convect = muse_mesh_velocity_to_convect;
 
-							if (number_of_particles_in_current_elem < mmaximum_number_of_particles && erase_flag == false)
-							{
-								{
+            #pragma omp parallel for
+            for(int kkk=0; kkk<number_of_threads; kkk++)
+            {
+            for (int ii=particle_partition[kkk]; ii<particle_partition[kkk+1]; ii++)
+            {
+             
+              array_1d<double,3> position;
+              const array_1d<double,3> mesh_displacement = mcalculation_domain_added_displacement; //if it is a standard problem, displacements are zero and therefore nothing is added.
+              
+              ResultContainerType results(max_results);
+              if ( (results.size()) !=max_results)
+              results.resize(max_results);
+              array_1d<double,TDim+1> N=ZeroVector(TDim+1);
+             
+              PFEM_Particle_Fluid& pparticle = mparticles_vector[ii];
+              position = pparticle.Coordinates();
+              ResultIteratorType result_begin = results.begin();
+              bool & erase_flag=pparticle.GetEraseFlag();
+              if (erase_flag==false)
+              {
+               Element::Pointer pelement;
+               bool isfound = FindPositionUsingBins( position, N, pelement, result_begin, max_results);
+               if (isfound==true)
+               {
+                 erase_flag=false;
+				 Geometry<Node>& geom = pelement->GetGeometry();
+                 result_begin = results.begin();
+                 MoveParticleRK4(pparticle,pelement,result_begin,max_results, mesh_displacement, discriminate_streamlines, N, delta_t,gravity); 
+                 int & number_of_particles_in_current_elem = pelement->GetValue(NUMBER_OF_FLUID_PARTICLES);
+//                  if (number_of_particles_in_current_elem<mmaximum_number_of_particles && erase_flag==false) 
+                 if (erase_flag==false) 
+                 {
+				  pparticle.GetElementId() = pelement->Id();	
+                  #pragma omp atomic
+                  number_of_particles_in_current_elem++ ;         
+                 }
+                 else
+				 {
+					pparticle.GetElementId() = 0;
+                    pparticle.GetEraseFlag()=true; //so we just delete it! 
+				 }
+                }
+                else
+                {
+                  erase_flag=true;   
+				  pparticle.GetElementId() = 0;
+                  KRATOS_WATCH("particle not found although it was erase_flag false");
+                  KRATOS_WATCH(pparticle);
+                }
+              }
+            }
+            
+            }
+            
+            int badelementcounter=0;
+            for(int kkk=0; kkk<number_of_threads; kkk++)
+            {
+                for(unsigned int ii=element_partition[kkk]; ii<element_partition[kkk+1]; ii++)
+                {
+                    ModelPart::ElementsContainerType::iterator old_element = ielembegin+ii;
 
-									ParticlePointerVector &current_element_particle_pointers = *mpointers_to_particle_pointers_vectors(current_element_id - 1);
+                    int & number_of_particles = old_element->GetValue(NUMBER_OF_FLUID_PARTICLES);
+                    if (number_of_particles<3)
+                    {
+//                       KRATOS_WATCH(*old_element);
+                    badelementcounter++;
+                    }
+                }
+            }
+            if (badelementcounter>1)
+              KRATOS_WATCH("There are some elements with less than three particles. Prereseed will be called");
+            
 
-#pragma omp critical
-									{
-										if (number_of_particles_in_current_elem < mmaximum_number_of_particles) // we cant go over this node, there's no room. otherwise we would be in the position of the first particle of the next element!!
-										{
 
-											current_element_particle_pointers(post_offset + number_of_particles_in_current_elem) = &pparticle;
 
-											number_of_particles_in_current_elem++;
-											if (number_of_particles_in_current_elem > mmaximum_number_of_particles)
-												KRATOS_WATCH("MAL");
-										}
-										else
-											pparticle.GetEraseFlag() = true; // so we just delete it!
-									}
-								}
-							}
-							else
-								pparticle.GetEraseFlag() = true; // so we just delete it!
-						}
-					}
-				}
-			}
-
-// now we pass info from the local vector to the elements:
-#pragma omp parallel for
-			for (int kkk = 0; kkk < number_of_threads; kkk++)
-			{
-				for (unsigned int ii = element_partition[kkk]; ii < element_partition[kkk + 1]; ii++)
-				{
-					ModelPart::ElementsContainerType::iterator old_element = ielembegin + ii;
-
-					old_element->GetValue(NUMBER_OF_FLUID_PARTICLES) = mnumber_of_particles_in_elems(ii);
-					// old_element->GetValue(NUMBER_OF_WATER_PARTICLES) = mnumber_of_water_particles_in_elems(ii);
-				}
-			}
-
-			// after having changed everything we change the status of the modd_timestep flag:
-			CurrentProcessInfo[WATER_PARTICLE_POINTERS_OFFSET] = post_offset;
-			; //
-
-			KRATOS_CATCH("")
-		}
+            KRATOS_CATCH("")
+        }
 
 		void TransferLagrangianToEulerian() // explicit
 		{
@@ -1558,7 +1749,7 @@ namespace Kratos
 
 						double distancenorm = sqrt(inode->FastGetSolutionStepValue(PROJECTED_DISTANCE) * inode->FastGetSolutionStepValue(PROJECTED_DISTANCE));
 						double projectedvelocitynorm = sqrt(inode->FastGetSolutionStepValue(PROJECTED_VELOCITY_X) * inode->FastGetSolutionStepValue(PROJECTED_VELOCITY_X) + inode->FastGetSolutionStepValue(PROJECTED_VELOCITY_Y) * inode->FastGetSolutionStepValue(PROJECTED_VELOCITY_Y) + inode->FastGetSolutionStepValue(PROJECTED_VELOCITY_Z) * inode->FastGetSolutionStepValue(PROJECTED_VELOCITY_Z));
-#pragma omp critical
+                        #pragma omp critical
 						{
 							sumprojecteddeltadistancenorm += projecteddeltadistancenorm;
 							sumprojecteddeltavelocitynorm += projecteddeltavelocitynorm;
@@ -2302,6 +2493,76 @@ namespace Kratos
 			KRATOS_CATCH("")
 		}
 
+		void CalculateAndPrintParticleError()
+		{
+			KRATOS_TRY
+
+			ProcessInfo &CurrentProcessInfo = mr_model_part.GetProcessInfo();
+
+			KRATOS_INFO("CalculateAndPrintParticleError") << "CalculatingAndPrintingParticleError" << std::endl;
+
+			vector<unsigned int> particle_partition;
+			#ifdef _OPENMP
+			int number_of_threads = omp_get_max_threads();
+			#else
+			int number_of_threads = 1;
+			#endif
+
+			OpenMPUtils::CreatePartition(number_of_threads, mparticles_vector.size(), particle_partition);
+			ModelPart::ElementsContainerType::iterator ielembegin = mr_model_part.ElementsBegin();
+
+            double time = CurrentProcessInfo[TIME];
+			KRATOS_WATCH("time inside CalculateAndPrintParticleError");
+			KRATOS_WATCH(time);
+
+            double sum_error = 0.0;
+			double error = 0.0;
+			int particle_count = 0;
+
+            #pragma omp parallel for reduction(+:sum_error, particle_count)
+			for (int kkk = 0; kkk < number_of_threads; kkk++)
+			{
+				for (int ii = particle_partition[kkk]; ii < particle_partition[kkk + 1]; ii++)
+				{
+					PFEM_Particle_Fluid &pparticle = mparticles_vector[ii];
+					bool &erase_flag = pparticle.GetEraseFlag();
+					if (erase_flag == false)
+					{
+						array_1d<double, 3> &position = pparticle.Coordinates();
+						array_1d<double, TDim + 1> N;
+						array_1d<float, 3> particle_velocity = pparticle.GetVelocity();
+						Element::Pointer pelement(*(ielembegin + pparticle.GetElementId() - 1).base());
+						Geometry<Node> &geom = pelement->GetGeometry();
+						bool isfound = CalculatePosition(geom, position[0], position[1], position[2], N);
+						if (isfound == true)
+						{
+							;
+							const double x = position[0];
+							const double y = position[1];
+							const double r_x = 0.5 * std::cos(time);
+							const double r_y = 0.5 * std::sin(time);
+							const double dx = x - r_x;
+							const double dy = y - r_y;
+							// const double t_analytical = std::exp(-40.0 * dx * dx - 40.0 * dy * dy);
+							const float t_analytical = static_cast<float>(std::exp(-40.0 * dx * dx - 40.0 * dy * dy));
+							const double t_particle = particle_velocity[0];	
+							// const double absdif=std::abs(t_particle - t_analytical);
+							const float absdif = std::abs(t_particle - t_analytical);
+							sum_error += std::abs(t_particle - t_analytical);
+							particle_count++;
+						}
+					}
+				}
+			}
+
+			error=sum_error/particle_count;
+			error=std::sqrt(error);
+			KRATOS_INFO("particle_count") << "particle_count: " << particle_count << std::endl;
+			KRATOS_INFO("CalculateAndPrintParticleError") << "Average Particle Error: " << error << std::endl;
+
+			KRATOS_CATCH("")
+		}
+
 		void TransferLagrangianToEulerianImp() // semi implicit
 		{
 			KRATOS_TRY
@@ -2713,279 +2974,287 @@ namespace Kratos
 		//**************************************************************************************************************
 		//**************************************************************************************************************
 
-		void PostReseed(int minimum_number_of_particles, double mass_correction_factor) // pooyan's way
-		{
-			KRATOS_TRY
+		void PostReseed(int minimum_number_of_particles, double mass_correction_factor ) //pooyan's way
+        {
+            KRATOS_TRY
 
-			ProcessInfo &CurrentProcessInfo = mr_model_part.GetProcessInfo();
-			const int offset = CurrentProcessInfo[WATER_PARTICLE_POINTERS_OFFSET];
+            ProcessInfo& CurrentProcessInfo = mr_model_part.GetProcessInfo();
 
-			if (mass_correction_factor > 0.5)
-				mass_correction_factor = 0.5;
-			if (mass_correction_factor < -0.5)
-				mass_correction_factor = -0.5;
-			// mass_correction_factor=0.0;
+            if (mass_correction_factor>0.5) mass_correction_factor=0.5;
+            if (mass_correction_factor<-0.5) mass_correction_factor=-0.5;
+            //mass_correction_factor=0.0;
 
-			// ProcessInfo& CurrentProcessInfo = mr_model_part.GetProcessInfo();
-			// const double delta_t = CurrentProcessInfo[DELTA_TIME];
-			// array_1d<double,3> & gravity= CurrentProcessInfo[GRAVITY];
-			// const int max_results = 1000;
+            //ProcessInfo& CurrentProcessInfo = mr_model_part.GetProcessInfo();
+            //const double delta_t = CurrentProcessInfo[DELTA_TIME];
+            //array_1d<double,3> & gravity= CurrentProcessInfo[GRAVITY];
+            //const int max_results = 1000;
 
-			const double threshold = mass_correction_factor * 0.5;
+            const double threshold = mass_correction_factor*0.5;
 
-			// TOOLS FOR THE PARALLELIZATION
-			// int last_id= (mr_linea_model_part.NodesEnd()-1)->Id();
-			unsigned int number_of_threads = OpenMPUtils::GetNumThreads();
-			// KRATOS_WATCH(number_of_threads);
-			vector<unsigned int> elem_partition;
-			int number_of_rows = mr_model_part.Elements().size();
-			// KRATOS_WATCH(number_of_threads);
-			// KRATOS_THROW_ERROR(std::logic_error, "Add  ----NODAL_H---- variable!!!!!! ERROR", "");
-			elem_partition.resize(number_of_threads + 1);
-			int elem_partition_size = number_of_rows / number_of_threads;
-			elem_partition[0] = 0;
-			elem_partition[number_of_threads] = number_of_rows;
-			// KRATOS_WATCH(elem_partition_size);
-			for (unsigned int i = 1; i < number_of_threads; i++)
-				elem_partition[i] = elem_partition[i - 1] + elem_partition_size;
-			// typedef Node PointType;
-			// std::vector<ModelPart::NodesContainerType> aux;// aux;
-			// aux.resize(number_of_threads);
+            //TOOLS FOR THE PARALELIZATION
+            //int last_id= (mr_linea_model_part.NodesEnd()-1)->Id();
+            unsigned int number_of_threads = OpenMPUtils::GetNumThreads();
+            //KRATOS_WATCH(number_of_threads);
+            vector<unsigned int> elem_partition;
+            int number_of_rows=mr_model_part.Elements().size();
+            //KRATOS_WATCH(number_of_threads);
+            //KRATOS_THROW_ERROR(std::logic_error, "Add  ----NODAL_H---- variable!!!!!! ERROR", "");
+            elem_partition.resize(number_of_threads + 1);
+            int elem_partition_size = number_of_rows / number_of_threads;
+            elem_partition[0] = 0;
+            elem_partition[number_of_threads] = number_of_rows;
+            //KRATOS_WATCH(elem_partition_size);
+            for (unsigned int i = 1; i < number_of_threads; i++)
+            elem_partition[i] = elem_partition[i - 1] + elem_partition_size;
+            //typedef Node < 3 > PointType;
+            //std::vector<ModelPart::NodesContainerType> aux;// aux;
+            //aux.resize(number_of_threads);
 
-			// ModelPart::NodesContainerType::iterator it_begin_particle_model_part = mr_linea_model_part.NodesBegin();
-			// ModelPart::NodesContainerType::iterator it_end_particle_model_part = mr_linea_model_part.NodesEnd();
+            //ModelPart::NodesContainerType::iterator it_begin_particle_model_part = mr_linea_model_part.NodesBegin();
+            //ModelPart::NodesContainerType::iterator it_end_particle_model_part = mr_linea_model_part.NodesEnd();
 
-#pragma omp parallel firstprivate(elem_partition) // firstprivate(results)//we will add the nodes in different parts of aux and later assemble everything together, remaming particles ids to get consecutive ids
-			{
-				unsigned int reused_particles = 0;
+            #pragma omp parallel firstprivate(elem_partition) // firstprivate(results)//we will add the nodes in different parts of aux and later assemple everything toghether, remaming particles ids to get consecutive ids
+            {
+                unsigned int reused_particles=0;
 
-				unsigned int freeparticle = 0; // we start by the first position;
+                unsigned int freeparticle = 0; //we start by the first position;
 
-				int k = OpenMPUtils::ThisThread();
-				ModelPart::ElementsContainerType::iterator it_begin = mr_model_part.ElementsBegin() + elem_partition[k];
-				ModelPart::ElementsContainerType::iterator it_end = mr_model_part.ElementsBegin() + elem_partition[k + 1];
+                int k = OpenMPUtils::ThisThread();
+                ModelPart::ElementsContainerType::iterator it_begin = mr_model_part.ElementsBegin() +  elem_partition[k];
+                ModelPart::ElementsContainerType::iterator it_end = mr_model_part.ElementsBegin() + elem_partition[k+1] ;
 
-				BoundedMatrix<double, (3 + 2 * TDim), 3> pos; // 7 particles (2D) or 9 particles (3D)
-				BoundedMatrix<double, (3 + 2 * TDim), (TDim + 1)> N;
+                BoundedMatrix<double, (3+2*TDim), 3 > pos; //7 particles (2D) or 9 particles (3D)
+                BoundedMatrix<double, (3+2*TDim), (TDim+1) > N;
 
-				array_1d<double, 3> vel_complete, vel_without_air_nodes;
-				double sum_Ns_without_air_nodes;
-				double mesh_distance;
+                array_1d<double, 3 > vel_complete, vel_without_air_nodes;
+                double sum_Ns_without_air_nodes;
+                double mesh_distance;
 
-				array_1d<double, (3 + 2 * TDim)> distances;
-				array_1d<int, (3 + 2 * TDim)> positions;
-				array_1d<bool, (3 + 2 * TDim)> is_water_particle; // for both
+                array_1d<double, (3+2*TDim) > distances;
+                array_1d<int, (3+2*TDim) > positions;
+                array_1d<bool, (3+2*TDim) > is_water_particle; //for both
 
-				unsigned int number_of_reseeded_particles;
-				// unsigned int number_of_water_reseeded_particles;
 
-				// array_1d<double, 3 > nodes_distances;
+                unsigned int number_of_reseeded_particles;
+                //unsigned int number_of_water_reseeded_particles;
 
-				// int local_id=1;
-				for (ModelPart::ElementsContainerType::iterator ielem = it_begin; ielem != it_end; ielem++)
-				{
-					// results.resize(max_results);
+                //array_1d<double, 3 > nodes_distances;
 
-					int &number_of_particles_in_elem = ielem->GetValue(NUMBER_OF_FLUID_PARTICLES);
-					ParticlePointerVector &element_particle_pointers = (ielem->GetValue(FLUID_PARTICLE_POINTERS));
+                //int local_id=1;
+                for (ModelPart::ElementsContainerType::iterator ielem = it_begin; ielem != it_end; ielem++)
+                {
+                    //results.resize(max_results);
 
-					Geometry<Node> &geom = ielem->GetGeometry();
-					if ((number_of_particles_in_elem < (minimum_number_of_particles))) // && (geom[0].Y()<0.10) ) || (number_of_water_particles_in_elem>2 && number_of_particles_in_elem<(minimum_number_of_particles) ) )
-					{
+                    int & number_of_particles_in_elem= ielem->GetValue(NUMBER_OF_FLUID_PARTICLES);
 
-						// bool reseed_more=false;
-						number_of_reseeded_particles = 0;
+                    Geometry<Node>& geom = ielem->GetGeometry();
+                    if ( (number_of_particles_in_elem<(minimum_number_of_particles)))// && (geom[0].Y()<0.10) ) || (number_of_water_particles_in_elem>2 && number_of_particles_in_elem<(minimum_number_of_particles) ) )
+                    {
 
-						// reseed_more=true;
-						number_of_reseeded_particles = 3 + 2 * TDim;
-						ComputeGaussPointPositionsForPostReseed(geom, pos, N);
+                        //bool reseed_more=false;
+                        number_of_reseeded_particles=0;
 
-						distances = ZeroVector(3 + 2 * TDim);
 
-						bool has_water_node = false;
-						bool has_air_node = false;
-						double mean_element_distance = 0.0;
+                        //reseed_more=true;
+                        number_of_reseeded_particles= 3+2*TDim;
+                        ComputeGaussPointPositionsForPostReseed(geom, pos, N);
 
-						for (unsigned int j = 0; j < (TDim + 1); j++)
-						{
-							mean_element_distance += (1.0 / double(TDim + 1)) * (geom[j].FastGetSolutionStepValue(DISTANCE));
-							if ((geom[j].FastGetSolutionStepValue(DISTANCE)) < 0.0)
-								has_water_node = true;
-							else
-								has_air_node = true;
-						}
+                        distances = ZeroVector(3+2*TDim);
 
-						// first we check the particle distance according to the nodal values
-						for (unsigned int j = 0; j < number_of_reseeded_particles; j++) // first we order particles
-						{
-							positions[j] = j + 1; // just creating a vector from 1 to 7 or whathever our lenght is (7 for 2d, 9 for 3d)
-							for (unsigned int l = 0; l < (TDim + 1); l++)
-							{
-								distances[j] += N(j, l) * geom[l].FastGetSolutionStepValue(DISTANCE);
-							}
-						}
+                        bool has_water_node=false;
+                        bool has_air_node=false;
+                        double mean_element_distance = 0.0;
 
-						if ((has_air_node && has_water_node)) // for slit elements we use the distance function
-						{
-							for (unsigned int j = 0; j < number_of_reseeded_particles; j++) // first we order particles
-							{
-								if (distances[j] > threshold)
-									is_water_particle[j] = false;
-								else
-									is_water_particle[j] = true;
-							}
-						}
-						else if (has_air_node)
-						{
-							double water_fraction = 0.5 - 0.5 * (mean_element_distance);
-							if (water_fraction > 0.9 && mass_correction_factor < 0.0) // to avoid seeding air particles when we are in a pure water element
-								mass_correction_factor = 0.0;
-							unsigned int number_of_water_reseeded_particles = double(number_of_reseeded_particles) * (1.01 + mass_correction_factor * 1.0) * water_fraction;
 
-							BubbleSort(distances, positions, number_of_reseeded_particles); // ok. now we have the particles ordered from the "watermost" to "airmost". therefore we will fill the water particles and later the air ones using that order
+                        for (unsigned int j = 0; j < (TDim+1); j++)
+                        {
+                            mean_element_distance += (1.0/double(TDim+1))*(geom[j].FastGetSolutionStepValue(DISTANCE));
+                            if ((geom[j].FastGetSolutionStepValue(DISTANCE))<0.0)
+                                has_water_node=true;
+                            else
+                                has_air_node=true;
+                        }
 
-							for (unsigned int j = 0; j < number_of_reseeded_particles; j++) // first we order particles
-							{
-								int array_position = positions[j] - 1;
-								if (array_position > 3 && number_of_reseeded_particles == 4)
-								{
-									KRATOS_WATCH("error in reseeding")
-								}
+                        //first we check the particle distance according to the nodal values
+                        for (unsigned int j = 0; j < number_of_reseeded_particles; j++) //first we order particles
+                        {
+                            positions[j]=j+1; //just creating a vector from 1 to 7 or whathever our lenght is (7 for 2d, 9 for 3d)
+                            for (unsigned int l = 0; l < (TDim+1); l++)
+                            {
+                                distances[j] +=  N(j, l) * geom[l].FastGetSolutionStepValue(DISTANCE);
+                            }
+                        }
 
-								if ((j + 1) <= number_of_water_reseeded_particles) // means it is a water particle
-									is_water_particle[array_position] = true;
-								else
-									is_water_particle[array_position] = false;
-							}
-						}
-						else // only water particles
-						{
-							for (unsigned int j = 0; j < number_of_reseeded_particles; j++) // first we order particles
-								is_water_particle[j] = true;
-						}
 
-						bool fix_distance = false;
-						unsigned int node_with_fixed_distance = 0;
-						for (unsigned int j = 0; j < (TDim + 1); j++) // we go over the 3/4 nodes:
-						{
-							if ((geom[j].IsFixed(DISTANCE)))
-							{
-								fix_distance = true;
-								node_with_fixed_distance = j;
-							}
-						}
-						// so now if the 3 were fixed, we assign the sign of the first node to all the particles:
-						if (fix_distance)
-						{
-							bool is_water_for_all_particles = true;
-							if ((geom[node_with_fixed_distance].FastGetSolutionStepValue(DISTANCE)) > 0.0)
-								is_water_for_all_particles = false;
+                        if ( (has_air_node && has_water_node) ) //for slit elements we use the distance function
+                        {
+                            for (unsigned int j = 0; j < number_of_reseeded_particles ; j++) //first we order particles
+                            {
+                                if (distances[j]>threshold)
+                                    is_water_particle[j]=false;
+                                else
+                                    is_water_particle[j]=true;
+                            }
+                        }
+                        else if (has_air_node)
+                        {
+                            double water_fraction = 0.5 - 0.5*(mean_element_distance);
+                            if (water_fraction>0.9 && mass_correction_factor<0.0) //to avoid seeding air particles when we are in a pure water element
+                                    mass_correction_factor = 0.0;
+                            unsigned int number_of_water_reseeded_particles = double(number_of_reseeded_particles)*(1.01+mass_correction_factor*1.0)*water_fraction;
 
-							for (unsigned int j = 0; j < number_of_reseeded_particles; j++) // first we order particles
-								is_water_particle[j] = is_water_for_all_particles;
-						}
+                            BubbleSort(distances, positions, number_of_reseeded_particles); //ok. now we have the particles ordered from the "watermost" to "airmost". therefore we will fill the water particles and later the air ones using that order
 
-						for (unsigned int j = 0; j < number_of_reseeded_particles; j++)
-						{
-							// now we have to find an empty space ( a particle that was about to be deleted) in the particles model part. once found. there will be our renewed particle:
-							bool keep_looking = true;
-							while (keep_looking)
-							{
-								if (mparticles_vector[freeparticle].GetEraseFlag() == true)
-								{
-#pragma omp critical
-									{
-										if (mparticles_vector[freeparticle].GetEraseFlag() == true)
-										{
-											mparticles_vector[freeparticle].GetEraseFlag() = false;
-											keep_looking = false;
-										}
-									}
-									if (keep_looking == false)
-										break;
+                            for (unsigned int j = 0; j < number_of_reseeded_particles ; j++) //first we order particles
+                            {
+                                int array_position = positions[j]-1;
+                                if (array_position>3 && number_of_reseeded_particles==4)
+                                {
+                                    KRATOS_WATCH("error in reseeding")
+                                }
 
-									else
-										freeparticle++;
-								}
-								else
-								{
-									freeparticle++;
-								}
-							}
+                                if ( (j+1) <= number_of_water_reseeded_particles ) //means it is a water particle
+                                    is_water_particle[array_position]=true;
+                                else
+                                    is_water_particle[array_position]=false;
+                            }
+                        }
+                        else //only water particles
+                        {
+                            for (unsigned int j = 0; j < number_of_reseeded_particles ; j++) //first we order particles
+                                is_water_particle[j]=true;
+                        }
 
-							PFEM_Particle_Fluid pparticle(pos(j, 0), pos(j, 1), pos(j, 2));
+                        bool fix_distance = false;
+                        unsigned int node_with_fixed_distance = 0;
+                        for (unsigned int j = 0; j < (TDim+1) ; j++) //we go over the 3/4 nodes:
+                        {
+                            if ((geom[j].IsFixed(DISTANCE)))
+                            {
+                                fix_distance = true;
+                                node_with_fixed_distance = j;
+                            }
+                        }
+                        // so now if the 3 were fixed, we assign the sign of the first node to all the particles:
+                        if (fix_distance)
+                        {
+                            bool is_water_for_all_particles=true;
+                            if ((geom[node_with_fixed_distance].FastGetSolutionStepValue(DISTANCE))>0.0)
+                                is_water_for_all_particles=false;
 
-							array_1d<float, 3> &vel = pparticle.GetVelocity();
-							float &distance = pparticle.GetDistance();
+                            for (unsigned int j = 0; j < number_of_reseeded_particles ; j++) //first we order particles
+                                is_water_particle[j]=is_water_for_all_particles;
+                        }
 
-							array_1d<double, TDim + 1> aux_N;
-							bool is_found = CalculatePosition(geom, pos(j, 0), pos(j, 1), pos(j, 2), aux_N);
-							if (is_found == false)
-							{
-								KRATOS_WATCH(aux_N);
-								KRATOS_WATCH(j)
-								KRATOS_WATCH(ielem->Id())
-							}
 
-							noalias(vel_complete) = ZeroVector(3);
-							noalias(vel_without_air_nodes) = ZeroVector(3);
-							sum_Ns_without_air_nodes = 0.0;
+                        for (unsigned int j = 0; j < number_of_reseeded_particles; j++)
+                        {
+                            //now we have to find an empty space ( a particle that was about to be deleted) in the particles model part. once found. there will be our renewed particle:
+                            bool keep_looking = true;
+                            while(keep_looking)
+                            {
+                                if (mparticles_vector[freeparticle].GetEraseFlag()==true)
+                                {
+                                    #pragma omp critical
+                                    {
+                                        if (mparticles_vector[freeparticle].GetEraseFlag()==true)
+                                        {
+                                            mparticles_vector[freeparticle].GetEraseFlag()=false;
+                                            keep_looking=false;
+                                        }
+                                    }
+                                    if (keep_looking==false)
+                                        break;
 
-							noalias(vel) = ZeroVector(3);
-							distance = 0.0;
-							mesh_distance = 0.0;
-							// oxygen = 0.0;
+                                    else
+                                        freeparticle++;
+                                }
+                                else
+                                {
+                                        freeparticle++;
+                                }
+                            }
 
-							for (unsigned int l = 0; l < (TDim + 1); l++)
-							{
-								noalias(vel_complete) += N(j, l) * geom[l].FastGetSolutionStepValue(VELOCITY);
-								mesh_distance += N(j, l) * geom[l].FastGetSolutionStepValue(DISTANCE);
-								if ((geom[l].FastGetSolutionStepValue(DISTANCE)) < 0.0)
-								{
-									sum_Ns_without_air_nodes += N(j, l);
-									noalias(vel_without_air_nodes) += N(j, l) * geom[l].FastGetSolutionStepValue(VELOCITY);
-								}
-							}
 
-							/// COMMENT TO GET A CONTINOUS DISTANCE FUNCTION FIELD
-							if (is_water_particle[j])
-							{
-								distance = -1.0;
-							}
-							else
-							{
-								// if (mesh_distance<2.0)
-								distance = 1.0;
-								// else
-								//	distance=3.0;
-							}
+                            PFEM_Particle_Fluid pparticle(pos(j,0),pos(j,1),pos(j,2));
 
-							if (distance < 0.0 && sum_Ns_without_air_nodes > 0.01)
-								vel = vel_without_air_nodes / sum_Ns_without_air_nodes;
-							else
-								vel = vel_complete;
 
-							pparticle.GetEraseFlag() = false;
+                            array_1d<float, 3 > & vel = pparticle.GetVelocity();
+                            float& distance= pparticle.GetDistance();
 
-							mparticles_vector[freeparticle] = pparticle;
-							element_particle_pointers(offset + number_of_particles_in_elem) = &mparticles_vector[freeparticle];
-							number_of_particles_in_elem++;
+                            array_1d<double,TDim+1>aux_N;
+                            bool is_found = CalculatePosition(geom,pos(j,0),pos(j,1),pos(j,2),aux_N);
+                            if (is_found==false)
+                            {
+                                KRATOS_WATCH(aux_N);
+                                KRATOS_WATCH(j)
+                                KRATOS_WATCH(ielem->Id())
+                            }
 
-							if (keep_looking)
-							{
-								KRATOS_THROW_ERROR(std::logic_error, "FINISHED THE LIST AND COULDN'T FIND A FREE CELL FOR THE NEW PARTICLE!", "");
-							}
-							else
-							{
-								reused_particles++;
-							}
-						}
-					}
-				}
-			}
 
-			KRATOS_CATCH("")
-		}
+                            noalias(vel_complete)=ZeroVector(3);
+                            noalias(vel_without_air_nodes)=ZeroVector(3);
+                            sum_Ns_without_air_nodes=0.0;
+
+                            noalias(vel) = ZeroVector(3);
+                            distance=0.0;
+                            mesh_distance = 0.0;
+                            //oxygen = 0.0;
+
+                            for (unsigned int l = 0; l < (TDim+1); l++)
+                            {
+                                noalias(vel_complete) += N(j, l) * geom[l].FastGetSolutionStepValue(VELOCITY);
+                                mesh_distance +=  N(j,l) * geom[l].FastGetSolutionStepValue(DISTANCE);
+                                if ((geom[l].FastGetSolutionStepValue(DISTANCE))<0.0)
+                                {
+                                    sum_Ns_without_air_nodes+=N(j, l);
+                                    noalias(vel_without_air_nodes) += N(j, l) * geom[l].FastGetSolutionStepValue(VELOCITY);
+                                }
+                            }
+
+                            ///COMMENT TO GET A CONTINOUS DISTANCE FUNCTION FIELD
+                            if (is_water_particle[j])
+                            {
+                                distance=-1.0;
+                            }
+                            else
+                            {
+                                //if (mesh_distance<2.0)
+                                    distance=1.0;
+                                //else
+                                //  distance=3.0;
+                            }
+
+                            if (distance<0.0 && sum_Ns_without_air_nodes>0.01)
+                                vel = vel_without_air_nodes / sum_Ns_without_air_nodes ;
+                            else
+                                vel = vel_complete;
+
+                            pparticle.GetElementId()=ielem->Id();
+                            pparticle.GetEraseFlag()=false;
+
+
+                            mparticles_vector[freeparticle]=pparticle;
+//                          element_particle_pointers(offset+number_of_particles_in_elem) = &mparticles_vector[freeparticle];
+                            number_of_particles_in_elem++;
+
+
+                            if (keep_looking)
+                            {
+                                KRATOS_THROW_ERROR(std::logic_error, "FINISHED THE LIST AND COULDNT FIND A FREE CELL FOR THE NEW PARTICLE!", "");
+                            }
+                            else
+                            {
+                                reused_particles++;
+                            }
+
+                          }
+                      }
+                  }
+            }
+
+            KRATOS_CATCH("")
+        }
 
 		void ExecuteParticlesPrintingTool(ModelPart &lagrangian_model_part, int input_filter_factor)
 		{
@@ -3297,209 +3566,502 @@ namespace Kratos
 				KRATOS_THROW_ERROR(std::invalid_argument, "missing NORMAL variable on solution step data", "");
 		}
 
-		/// this function moves a particle according to the "velocity" given
-		/// by "rVariable". The movement is performed in nsubsteps, during a total time
-		/// of Dt
-		void MoveParticle(PFEM_Particle_Fluid &pparticle,
-						  Element::Pointer &pelement,
-						  GlobalPointersVector<Element> &elements_in_trajectory,
-						  unsigned int &number_of_elements_in_trajectory,
-						  ResultIteratorType result_begin,
-						  const unsigned int MaxNumberOfResults,
-						  const array_1d<double, 3> mesh_displacement,
-						  const bool discriminate_streamlines,
-						  const bool use_mesh_velocity_to_convect)
-		{
+		///this function moves a particle according to the "velocity" given
+    ///by "rVariable". The movement is performed in nsubsteps, during a total time
+    ///of Dt
+    void MoveParticle(  PFEM_Particle_Fluid & pparticle,
+                         Element::Pointer & pelement,
+                         ResultIteratorType result_begin,
+                         const unsigned int MaxNumberOfResults,
+                         const array_1d<double,3> mesh_displacement,
+                         const bool discriminate_streamlines,
+                         array_1d<double,TDim+1>& N, 
+                         double& delta_t, 
+                         const array_1d<double,3>& gravity)
+    {
 
-			ProcessInfo &CurrentProcessInfo = mr_model_part.GetProcessInfo();
-			double delta_t = CurrentProcessInfo[DELTA_TIME];
-			array_1d<double, 3> &gravity = CurrentProcessInfo[GRAVITY];
-			unsigned int nsubsteps;
-			double substep_dt;
+        ProcessInfo& CurrentProcessInfo = mr_model_part.GetProcessInfo();
 
-			bool KEEP_INTEGRATING = false;
-			bool is_found;
-			// bool have_air_node;
-			// bool have_water_node;
+        unsigned int nsubsteps;
+        double substep_dt;
 
-			array_1d<double, 3> vel;
-			array_1d<double, 3> vel_without_other_phase_nodes = ZeroVector(3);
-			array_1d<double, 3> position;
-			array_1d<double, 3> mid_position;
-			array_1d<double, TDim + 1> N;
 
-			// we start with the first position, then it will enter the loop.
-			position = pparticle.Coordinates(); // initial coordinates
+        bool KEEP_INTEGRATING=false;
+        bool is_found;
+        //bool have_air_node;
+        //bool have_water_node;
 
-			const float particle_distance = pparticle.GetDistance();
-			array_1d<float, 3> particle_velocity = pparticle.GetVelocity();
-			// double distance=0.0;
-			array_1d<double, 3> last_useful_vel;
-			double sum_Ns_without_other_phase_nodes;
-			// double pressure=0.0;
-			///*****
-			// bool flying_water_particle=true; //if a water particle does not find a water element in its whole path, then we add the gravity*dt
-			double only_integral = 0.0;
+        array_1d<double,3> vel=ZeroVector(3);
+        array_1d<double,3> vel_without_other_phase_nodes=ZeroVector(3);
+        array_1d<double,3> position;
+        array_1d<double,3> mid_position;
 
-			is_found = FindNodeOnMesh(position, N, pelement, result_begin, MaxNumberOfResults); // good, now we know where this point is:
-			if (is_found == true)
-			{
-				KEEP_INTEGRATING = true;
-				Geometry<Node> &geom = pelement->GetGeometry(); // the element we're in
-				vel = ZeroVector(3);
-				vel_without_other_phase_nodes = ZeroVector(3);
-				sum_Ns_without_other_phase_nodes = 0.0;
-				// distance=0.0;
 
-				if (particle_distance < 0.0 && discriminate_streamlines == true)
-				{
-					for (unsigned int j = 0; j < (TDim + 1); j++)
-					{
-						if ((geom[j].FastGetSolutionStepValue(DISTANCE)) < 0.0) // ok. useful info!
-						{
-							sum_Ns_without_other_phase_nodes += N[j];
-							noalias(vel_without_other_phase_nodes) += geom[j].FastGetSolutionStepValue(VELOCITY) * N[j];
-							if (use_mesh_velocity_to_convect)
-								noalias(vel_without_other_phase_nodes) -= geom[j].FastGetSolutionStepValue(MESH_VELOCITY) * N[j];
-						}
+        //we start with the first position, then it will enter the loop.
+        position = pparticle.Coordinates(); //initial coordinates
 
-						noalias(vel) += geom[j].FastGetSolutionStepValue(VELOCITY) * N[j];
-						if (use_mesh_velocity_to_convect)
-							noalias(vel) -= geom[j].FastGetSolutionStepValue(MESH_VELOCITY) * N[j];
-					}
+        const float particle_distance = pparticle.GetDistance();
+        array_1d<float,3> particle_velocity = pparticle.GetVelocity();
+        //double distance=0.0;
+        array_1d<double,3> last_useful_vel;
+        double sum_Ns_without_other_phase_nodes;
+        //double pressure=0.0;
+        ///*****
+        //bool flying_water_particle=true; //if a water particle does not find a water element in its whole path, then we add the gravity*dt
+        double only_integral  = 0.0 ;
 
-					if (sum_Ns_without_other_phase_nodes > 0.01)
-					{
-						vel = vel_without_other_phase_nodes / sum_Ns_without_other_phase_nodes;
-						// flying_water_particle=false;
-					}
-					else
-					{
-						vel = particle_velocity;
-						if (use_mesh_velocity_to_convect)
-						{
-							for (unsigned int j = 0; j < (TDim + 1); j++)
-								noalias(vel) -= geom[j].FastGetSolutionStepValue(MESH_VELOCITY) * N[j];
-						}
-					}
-				}
-				else // air particle or we are not following streamlines
-				{
-					for (unsigned int j = 0; j < (TDim + 1); j++)
-					{
-						noalias(vel) += geom[j].FastGetSolutionStepValue(VELOCITY) * N[j];
-						if (use_mesh_velocity_to_convect)
-							noalias(vel) -= geom[j].FastGetSolutionStepValue(MESH_VELOCITY) * N[j];
-					}
-					// flying_water_particle=false;
-				}
+//         is_found = FindPositionUsingBins(position, N ,pelement,result_begin,MaxNumberOfResults); //good, now we know where this point is:
+        is_found=true; //is always true, otherwise this function would not be called
+        if(is_found == true)
+        {
+            KEEP_INTEGRATING=true;
+            Geometry<Node>& geom = pelement->GetGeometry();//the element we're in
 
-				// calculating substep to get +- courant(substep) = 0.1
-				nsubsteps = 10.0 * (delta_t * pelement->GetValue(VELOCITY_OVER_ELEM_SIZE));
-				if (nsubsteps < 1)
-					nsubsteps = 1;
-				substep_dt = delta_t / double(nsubsteps);
+            vel_without_other_phase_nodes = ZeroVector(3);
+            sum_Ns_without_other_phase_nodes=0.0;
+            //distance=0.0;
 
-				only_integral = 1.0; // weight;//*double(nsubsteps);
+            if (particle_distance<0.0 && discriminate_streamlines==true)
+            {
+                for(unsigned int j=0; j<(TDim+1); j++)
+                {
+                    if ((geom[j].FastGetSolutionStepValue(DISTANCE))<0.0) //ok. useful info!
+                    {
+                        sum_Ns_without_other_phase_nodes += N[j];
+                        noalias(vel_without_other_phase_nodes) += geom[j].FastGetSolutionStepValue(VELOCITY)*N[j];
+                    }
 
-				position += vel * substep_dt; // weight;
+                }
 
-				///*****
-				last_useful_vel = vel;
-				///*****
+                if (sum_Ns_without_other_phase_nodes>0.01)
+                {
+                    vel  = vel_without_other_phase_nodes / sum_Ns_without_other_phase_nodes;
+                    //flying_water_particle=false;
+                }
+                else
+                {
+                    vel = particle_velocity;
+                }
+            }
+            else // air particle or we are not following streamlines
+            {
+                for(unsigned int j=0; j<(TDim+1); j++)
+                {
+                    noalias(vel) += geom[j].FastGetSolutionStepValue(VELOCITY)*N[j];
+                }
+                //flying_water_particle=false;
+            }
 
-				// DONE THE FIRST LOCATION OF THE PARTICLE, NOW WE PROCEED TO STREAMLINE INTEGRATION USING THE MESH VELOCITY
-				//////////////////////////////////////////////////////////////////////////////////////////////////////
-				unsigned int check_from_element_number = 0;
 
-				for (unsigned int i = 0; i < (nsubsteps - 1); i++) // this is for the substeps n+1. in the first one we already knew the position of the particle.
-				{
-					if (KEEP_INTEGRATING == true)
-					{
-						is_found = FindNodeOnMesh(position, N, pelement, elements_in_trajectory, number_of_elements_in_trajectory, check_from_element_number, result_begin, MaxNumberOfResults); // good, now we know where this point is:
-						if (is_found == true)
-						{
-							Geometry<Node> &geom = pelement->GetGeometry(); // the element we're in
-							sum_Ns_without_other_phase_nodes = 0.0;
 
-							if (particle_distance < 0.0 && discriminate_streamlines == true)
-							{
-								vel_without_other_phase_nodes = ZeroVector(3);
+            //calculating substep to get +- courant(substep) = 0.1
+            nsubsteps = 10.0 * (delta_t * pelement->GetValue(VELOCITY_OVER_ELEM_SIZE));
+            if (nsubsteps<1)
+                nsubsteps=1;
+            substep_dt = delta_t / double(nsubsteps);
 
-								for (unsigned int j = 0; j < TDim + 1; j++)
-								{
-									if ((geom[j].FastGetSolutionStepValue(DISTANCE)) < 0.0) // ok. useful info!
-									{
-										sum_Ns_without_other_phase_nodes += N[j];
-										noalias(vel_without_other_phase_nodes) += geom[j].FastGetSolutionStepValue(VELOCITY) * N[j];
-										if (use_mesh_velocity_to_convect)
-											noalias(vel_without_other_phase_nodes) -= geom[j].FastGetSolutionStepValue(MESH_VELOCITY) * N[j];
-									}
-									noalias(vel) += geom[j].FastGetSolutionStepValue(VELOCITY) * N[j];
-									if (use_mesh_velocity_to_convect)
-										noalias(vel) -= geom[j].FastGetSolutionStepValue(MESH_VELOCITY) * N[j];
-								}
+            only_integral = 1.0;// weight;//*double(nsubsteps);
 
-								// if (have_water_node)
-								// if (distance<0.0)
-								if (sum_Ns_without_other_phase_nodes > 0.01)
-								{
-									vel = vel_without_other_phase_nodes / sum_Ns_without_other_phase_nodes;
-									// flying_water_particle=false;
-								}
-								else
-								{
-									particle_velocity += substep_dt * gravity;
-									vel = particle_velocity;
-									if (use_mesh_velocity_to_convect)
-									{
-										for (unsigned int j = 0; j < (TDim + 1); j++)
-											noalias(vel) -= geom[j].FastGetSolutionStepValue(MESH_VELOCITY) * N[j];
-									}
-								}
-							}
-							else // air particle or we are not discriminating streamlines
-							{
-								vel_without_other_phase_nodes = ZeroVector(3);
-								vel = ZeroVector(3);
-								for (unsigned int j = 0; j < (TDim + 1); j++)
-								{
-									noalias(vel) += geom[j].FastGetSolutionStepValue(VELOCITY) * N[j];
-									if (use_mesh_velocity_to_convect)
-										noalias(vel) -= geom[j].FastGetSolutionStepValue(MESH_VELOCITY) * N[j];
-								}
 
-								// flying_water_particle=false;
-							}
+            position += vel*substep_dt;//weight;
 
-							only_integral += 1.0; // values saved for the current time step
+            ///*****
+            last_useful_vel=vel;
+            ///*****
 
-							position += vel * substep_dt; // weight;
-						}
-						else
-						{
-							KEEP_INTEGRATING = false;
-							break;
-						}
-					}
-					else
-						break;
-				}
-			}
+            //DONE THE FIRST LOCATION OF THE PARTICLE, NOW WE PROCEED TO STREAMLINE INTEGRATION USING THE MESH VELOCITY
+            //////////////////////////////////////////////////////////////////////////////////////////////////////
+            unsigned int check_from_element_number=0;
 
-			// if there's a mesh velocity, we add it at the end in a single step:
-			position -= mesh_displacement;
 
-			if (KEEP_INTEGRATING == false)
-				(pparticle.GetEraseFlag() = true);
-			else
-				is_found = FindNodeOnMesh(position, N, pelement, result_begin, MaxNumberOfResults); // we must save the pointer of the last element that we're in (inside the pointervector pelement)
+            for(unsigned int i=0; i<(nsubsteps-1); i++)// this is for the substeps n+1. in the first one we already knew the position of the particle.
+            {
+              if (KEEP_INTEGRATING==true)
+              {
+                is_found = FindNodeOnMesh(position, N ,pelement,result_begin,MaxNumberOfResults); //good, now we know where this point is:
+                if(is_found == true)
+                {
+                    Geometry<Node>& geom = pelement->GetGeometry();//the element we're in
+                    sum_Ns_without_other_phase_nodes=0.0;
 
-			if (is_found == false)
-				(pparticle.GetEraseFlag() = true);
+                    if (particle_distance<0.0 && discriminate_streamlines==true)
+                    {
+                        vel_without_other_phase_nodes = ZeroVector(3);
 
-			pparticle.Coordinates() = position;
-		}
+                        for(unsigned int j=0; j<TDim+1; j++)
+                        {
+                            if ((geom[j].FastGetSolutionStepValue(DISTANCE))<0.0) //ok. useful info!
+                            {
+                                sum_Ns_without_other_phase_nodes += N[j];
+                                noalias(vel_without_other_phase_nodes) += geom[j].FastGetSolutionStepValue(VELOCITY)*N[j];
+                            }
+                        }
+
+                        if (sum_Ns_without_other_phase_nodes>0.01)
+                        {
+                            vel  = vel_without_other_phase_nodes / sum_Ns_without_other_phase_nodes;
+                            //flying_water_particle=false;
+                        }
+                        else
+                        {
+                            particle_velocity += substep_dt * gravity;
+                            vel  = particle_velocity;
+                        }
+                    }
+                    else //air particle or we are not discriminating streamlines
+                    {
+                            vel_without_other_phase_nodes = ZeroVector(3);
+                            vel = ZeroVector(3);
+                            for(unsigned int j=0; j<(TDim+1); j++)
+                            {
+                                noalias(vel) += geom[j].FastGetSolutionStepValue(VELOCITY)*N[j];
+                            }
+
+                            //flying_water_particle=false;
+                    }
+
+                    only_integral += 1.0; //values saved for the current time step
+
+                    position+=vel*substep_dt;//weight;
+
+                  }
+                  else
+                  {
+                      KEEP_INTEGRATING=false;
+                      break;
+                  }
+                }
+                else
+                    break;
+
+
+            }
+
+        }
+
+
+        if (KEEP_INTEGRATING==false) 
+        {
+         pparticle.GetEraseFlag()=true;
+        }
+        else 
+        {
+         is_found = FindPositionUsingBins(position, N ,pelement,result_begin,MaxNumberOfResults); //we must save the pointer of the last element that we're in (inside the pointervector pelement)
+         if (is_found==false) 
+          pparticle.GetEraseFlag()=true;
+        }
+
+         pparticle.Coordinates() = position;
+    }
+
+	void MoveParticleRK4(  PFEM_Particle_Fluid & pparticle,
+                         Element::Pointer & pelement,
+                         ResultIteratorType result_begin,
+                         const unsigned int MaxNumberOfResults,
+                         const array_1d<double,3> mesh_displacement,
+                         const bool discriminate_streamlines,
+                         array_1d<double,TDim+1>& N, 
+                         double& delta_t, 
+                         const array_1d<double,3>& gravity)
+    {
+
+        ProcessInfo& CurrentProcessInfo = mr_model_part.GetProcessInfo();
+
+        unsigned int nsubsteps;
+        double substep_dt;
+
+
+        bool KEEP_INTEGRATING=false;
+        bool is_found, is_found1, is_found2, is_found3, is_found4;
+        //bool have_air_node;
+        //bool have_water_node;
+
+        array_1d<double,3> vel=ZeroVector(3);
+        array_1d<double,3> vel_without_other_phase_nodes=ZeroVector(3);
+        array_1d<double,3> position;
+        array_1d<double,3> k1=ZeroVector(3);
+        array_1d<double,3> k2=ZeroVector(3);
+        array_1d<double,3> k2_aux=ZeroVector(3);        
+        array_1d<double,3> k3=ZeroVector(3);
+        array_1d<double,3> k3_aux=ZeroVector(3);        
+        array_1d<double,3> k4=ZeroVector(3);
+        array_1d<double,3> k4_aux=ZeroVector(3);   
+        double alphatau=0.0;
+
+        //we start with the first position, then it will enter the loop.
+        position = pparticle.Coordinates(); //initial coordinates
+
+        const float particle_distance = pparticle.GetDistance();
+        array_1d<float,3> particle_velocity = pparticle.GetVelocity();
+        //double distance=0.0;
+        double sum_Ns_without_other_phase_nodes;
+        //double pressure=0.0;
+        ///*****
+        //bool flying_water_particle=true; //if a water particle does not find a water element in its whole path, then we add the gravity*dt
+        //RK4 first step
+       // is_found1 = FindNodeOnMesh(position, N ,pelement,result_begin,MaxNumberOfResults); //good, now we know where this point is:
+        is_found1=true; //is always true, otherwise this function would not be called
+        if(is_found1 == true)
+        {
+            KEEP_INTEGRATING=true;
+            Geometry<Node>& geom = pelement->GetGeometry();//the element we're in
+            vel_without_other_phase_nodes = ZeroVector(3);
+            sum_Ns_without_other_phase_nodes=0.0;
+            alphatau=0.0;
+            //distance=0.0;
+            if (particle_distance<0.0 && discriminate_streamlines==true)
+            {
+                for(unsigned int j=0; j<(TDim+1); j++)
+                {
+                    if ((geom[j].FastGetSolutionStepValue(DISTANCE))<0.0) //ok. useful info!
+                    {
+                        sum_Ns_without_other_phase_nodes += N[j];
+                        noalias(vel_without_other_phase_nodes) += geom[j].FastGetSolutionStepValue(VELOCITY)*N[j];
+//                      if (use_mesh_velocity_to_convect)
+//                          noalias(vel_without_other_phase_nodes) -= geom[j].FastGetSolutionStepValue(MESH_VELOCITY)*N[j];
+                    }
+
+//                     noalias(vel) += geom[j].FastGetSolutionStepValue(VELOCITY,1)*N[j];
+//                  if (use_mesh_velocity_to_convect)
+//                          noalias(vel) -= geom[j].FastGetSolutionStepValue(MESH_VELOCITY)*N[j];
+                }
+
+                if (sum_Ns_without_other_phase_nodes>0.01)
+                {
+                    vel  = vel_without_other_phase_nodes / sum_Ns_without_other_phase_nodes;
+                    //flying_water_particle=false;
+                }
+                else
+                {
+                    vel = particle_velocity;
+//                  if (use_mesh_velocity_to_convect)
+//                  {
+//                      for(unsigned int j=0; j<(TDim+1); j++)
+//                          noalias(vel) -= geom[j].FastGetSolutionStepValue(MESH_VELOCITY)*N[j];
+//                  }
+                }
+            }
+            else // air particle or we are not following streamlines
+            {
+                for(unsigned int j=0; j<(TDim+1); j++)
+                {
+                    noalias(vel) += geom[j].FastGetSolutionStepValue(VELOCITY)*N[j];
+//                  if (use_mesh_velocity_to_convect)
+//                          noalias(vel) -= geom[j].FastGetSolutionStepValue(MESH_VELOCITY)*N[j];
+                }
+                //flying_water_particle=false;
+            }
+            
+            
+            k1 = vel*delta_t;//weight;
+            k2_aux=position+k1/2.0;
+            
+
+            //RK4 second step
+            is_found2 = FindPositionUsingBins(k2_aux, N ,pelement,result_begin,MaxNumberOfResults);
+            if(is_found2 == true)
+            {        
+             Geometry<Node>& geom = pelement->GetGeometry();//the element we're in
+             vel=ZeroVector(3);
+             vel_without_other_phase_nodes = ZeroVector(3);
+             sum_Ns_without_other_phase_nodes=0.0;
+             alphatau=delta_t/2.0;
+             //distance=0.0;
+             
+             if (particle_distance<0.0 && discriminate_streamlines==true)
+             {
+                for(unsigned int j=0; j<(TDim+1); j++)
+                {
+                    if ((geom[j].FastGetSolutionStepValue(DISTANCE))<0.0) //ok. useful info!
+                    {
+                        sum_Ns_without_other_phase_nodes += N[j];
+                        noalias(vel_without_other_phase_nodes) += geom[j].FastGetSolutionStepValue(VELOCITY)*N[j];
+//                      if (use_mesh_velocity_to_convect)
+//                          noalias(vel_without_other_phase_nodes) -= geom[j].FastGetSolutionStepValue(MESH_VELOCITY)*N[j];
+                    }
+
+//                     noalias(vel) += geom[j].FastGetSolutionStepValue(VELOCITY)*N[j];
+//                  if (use_mesh_velocity_to_convect)
+//                          noalias(vel) -= geom[j].FastGetSolutionStepValue(MESH_VELOCITY)*N[j];
+                }
+
+                if (sum_Ns_without_other_phase_nodes>0.01)
+                {
+                    vel  = vel_without_other_phase_nodes / sum_Ns_without_other_phase_nodes;
+                    //flying_water_particle=false;
+                }
+                else
+                {
+                    vel = particle_velocity;
+//                  if (use_mesh_velocity_to_convect)
+//                  {
+//                      for(unsigned int j=0; j<(TDim+1); j++)
+//                          noalias(vel) -= geom[j].FastGetSolutionStepValue(MESH_VELOCITY)*N[j];
+//                  }
+                }
+             }
+             else // air particle or we are not following streamlines
+             {
+                for(unsigned int j=0; j<(TDim+1); j++)
+                {
+                    noalias(vel) += geom[j].FastGetSolutionStepValue(VELOCITY)*N[j];
+//                  if (use_mesh_velocity_to_convect)
+//                          noalias(vel) -= geom[j].FastGetSolutionStepValue(MESH_VELOCITY)*N[j];
+                }
+                //flying_water_particle=false;
+             }             
+            }
+
+            k2 = vel*delta_t;//weight;
+            k3_aux=position+k2/2.0;
+
+            
+            //RK4 third step
+            is_found3 = FindPositionUsingBins(k3_aux, N ,pelement,result_begin,MaxNumberOfResults);
+            if(is_found3 == true)
+            {        
+             Geometry<Node>& geom = pelement->GetGeometry();//the element we're in
+             vel=ZeroVector(3);
+             vel_without_other_phase_nodes = ZeroVector(3);
+             sum_Ns_without_other_phase_nodes=0.0;
+             //distance=0.0;
+             
+             if (particle_distance<0.0 && discriminate_streamlines==true)
+             {
+                for(unsigned int j=0; j<(TDim+1); j++)
+                {
+                    if ((geom[j].FastGetSolutionStepValue(DISTANCE))<0.0) //ok. useful info!
+                    {
+                        sum_Ns_without_other_phase_nodes += N[j];
+                        noalias(vel_without_other_phase_nodes) += geom[j].FastGetSolutionStepValue(VELOCITY)*N[j];
+//                      if (use_mesh_velocity_to_convect)
+//                          noalias(vel_without_other_phase_nodes) -= geom[j].FastGetSolutionStepValue(MESH_VELOCITY)*N[j];
+                    }
+
+//                     noalias(vel) += geom[j].FastGetSolutionStepValue(VELOCITY)*N[j];
+//                  if (use_mesh_velocity_to_convect)
+//                          noalias(vel) -= geom[j].FastGetSolutionStepValue(MESH_VELOCITY)*N[j];
+                }
+
+                if (sum_Ns_without_other_phase_nodes>0.01)
+                {
+                    vel  = vel_without_other_phase_nodes / sum_Ns_without_other_phase_nodes;
+                    //flying_water_particle=false;
+                }
+                else
+                {
+                    vel = particle_velocity;
+//                  if (use_mesh_velocity_to_convect)
+//                  {
+//                      for(unsigned int j=0; j<(TDim+1); j++)
+//                          noalias(vel) -= geom[j].FastGetSolutionStepValue(MESH_VELOCITY)*N[j];
+//                  }
+                }
+             }
+             else // air particle or we are not following streamlines
+             {
+                for(unsigned int j=0; j<(TDim+1); j++)
+                {
+                    noalias(vel) += geom[j].FastGetSolutionStepValue(VELOCITY)*N[j];
+//                  if (use_mesh_velocity_to_convect)
+//                          noalias(vel) -= geom[j].FastGetSolutionStepValue(MESH_VELOCITY)*N[j];
+                }
+                //flying_water_particle=false;
+             }             
+            }
+
+
+
+            k3 = vel*delta_t;//weight;
+            k4_aux=position+k3;
+
+           
+            //RK4 fourth step
+            is_found4 = FindPositionUsingBins(k4_aux, N ,pelement,result_begin,MaxNumberOfResults);
+            if(is_found4 == true)
+            {        
+             Geometry<Node>& geom = pelement->GetGeometry();//the element we're in
+             vel=ZeroVector(3);
+             vel_without_other_phase_nodes = ZeroVector(3);
+             sum_Ns_without_other_phase_nodes=0.0;
+             alphatau=delta_t;
+             //distance=0.0;
+             
+             if (particle_distance<0.0 && discriminate_streamlines==true)
+             {
+                for(unsigned int j=0; j<(TDim+1); j++)
+                {
+                    if ((geom[j].FastGetSolutionStepValue(DISTANCE))<0.0) //ok. useful info!
+                    {
+                        sum_Ns_without_other_phase_nodes += N[j];
+                        noalias(vel_without_other_phase_nodes) += geom[j].FastGetSolutionStepValue(VELOCITY)*N[j];
+//                      if (use_mesh_velocity_to_convect)
+//                          noalias(vel_without_other_phase_nodes) -= geom[j].FastGetSolutionStepValue(MESH_VELOCITY)*N[j];
+                    }
+
+//                     noalias(vel) += geom[j].FastGetSolutionStepValue(VELOCITY)*N[j];
+//                  if (use_mesh_velocity_to_convect)
+//                          noalias(vel) -= geom[j].FastGetSolutionStepValue(MESH_VELOCITY)*N[j];
+                }
+
+                if (sum_Ns_without_other_phase_nodes>0.01)
+                {
+                    vel  = vel_without_other_phase_nodes / sum_Ns_without_other_phase_nodes;
+                    //flying_water_particle=false;
+                }
+                else
+                {
+                    vel = particle_velocity;
+//                  if (use_mesh_velocity_to_convect)
+//                  {
+//                      for(unsigned int j=0; j<(TDim+1); j++)
+//                          noalias(vel) -= geom[j].FastGetSolutionStepValue(MESH_VELOCITY)*N[j];
+//                  }
+                }
+             }
+             else // air particle or we are not following streamlines
+             {
+                for(unsigned int j=0; j<(TDim+1); j++)
+                {
+                    noalias(vel) += geom[j].FastGetSolutionStepValue(VELOCITY)*N[j];
+//                  if (use_mesh_velocity_to_convect)
+//                          noalias(vel) -= geom[j].FastGetSolutionStepValue(MESH_VELOCITY)*N[j];
+                }
+                //flying_water_particle=false;
+             }             
+            }
+
+
+            k4 = vel*delta_t;//weight;
+            
+
+
+
+        }
+        
+        if (is_found1==true && is_found2==true && is_found3==true &&is_found4==true)
+        {
+          position+=(1.0/6.0)*(k1+2.0*k2+2.0*k3+k4);
+        }
+        else
+         KEEP_INTEGRATING=false;
+
+        // //if there's a mesh velocity, we add it at the end in a single step:
+        // position-=mesh_displacement;
+
+        if (KEEP_INTEGRATING==false) 
+        {
+         pparticle.GetEraseFlag()=true;
+        }
+        else 
+        {
+         is_found = FindPositionUsingBins(position, N ,pelement,result_begin,MaxNumberOfResults); //we must save the pointer of the last element that we're in (inside the pointervector pelement)
+         if (is_found==false) 
+          pparticle.GetEraseFlag()=true;
+        }
+
+         pparticle.Coordinates() = position;
+    }
 
 		void AccelerateParticleUsingDeltaVelocity(
                          PFEM_Particle_Fluid & pparticle,
@@ -4827,6 +5389,37 @@ namespace Kratos
 			// 	}
 			// }
 		}
+
+		bool FindPositionUsingBins( array_1d<double,3>& position,
+                         array_1d<double,TDim+1>& N,
+                         Element::Pointer & pelement,
+                         ResultIteratorType result_begin,
+                         const unsigned int MaxNumberOfResults)
+        {
+          typedef std::size_t SizeType;
+          const array_1d<double,3>& coords = position;  
+          ResultContainerType results_a(10000);    //DWARNING-previously it was 10, but that was causing problems
+          ResultIteratorType result_begin_a = results_a.begin();
+          
+          
+          SizeType results_found = mpBinsObjectDynamic->SearchObjectsInCell(Point{coords}, result_begin_a, MaxNumberOfResults );  
+          if(results_found>0)
+          {
+           for(SizeType i = 0; i< results_found; i++)
+           {
+            Geometry<Node>& geom = (*(result_begin_a+i))->GetGeometry();  
+            bool is_found = CalculatePosition(geom,coords[0],coords[1],coords[2],N);
+            if(is_found == true)
+            {
+             pelement=Element::Pointer((*(result_begin_a+i))); 
+             return true;
+            }
+           }
+          }
+
+
+        return false;
+        }
 
 		// Bubble Sort Function for Descending Order
 		void BubbleSort(array_1d<double, 7> &distances, array_1d<int, 7> &positions, unsigned int &arrange_number)
