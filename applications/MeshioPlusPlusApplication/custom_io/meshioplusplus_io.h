@@ -25,6 +25,7 @@
 // External includes
 #include "meshioplusplus/mesh.hpp"
 #include "meshioplusplus/read_options.hpp"
+#include "meshioplusplus/formats/femap.hpp"
 #include "meshioplusplus/formats/pvd.hpp"
 #include "meshioplusplus/formats/vtkhdf_time_series.hpp"
 #include "meshioplusplus/formats/xdmf_time_series.hpp"
@@ -42,7 +43,7 @@ class IntegrationValuesExtrapolationToNodesProcess; // forward declaration (gaus
 
 /**
  * @brief Multi-format mesh input/output based on the meshio++ library.
- * @details Reads and writes 78 readable / 66 writable mesh file formats (vtu,
+ * @details Reads and writes 78 readable / 68 writable mesh file formats (vtu,
  * vtk, gmsh, med, xdmf, abaqus, ...; see @ref Format) converting to/from Kratos
  * model parts through the meshio++ Kratos bridge. Availability of the
  * HDF5-backed formats (med, cgns, h5m, hmf, vtkhdf, nastran_h5, the HDF data
@@ -64,7 +65,8 @@ class IntegrationValuesExtrapolationToNodesProcess; // forward declaration (gaus
  * the same instance extend the current output instead of overwriting it. For
  * XDMF and VTKHDF the steps are appended to a single file (checking whether the
  * file "buffer" already exists); PVD extends its index (one .vtu per step in a
- * sibling directory); GiD buffers the steps until @ref CloseOutput; for the
+ * sibling directory); Femap writes the mesh once and one output set per step into a single
+ * neutral file; GiD buffers the steps until @ref CloseOutput; for the
  * other formats a file series <stem>_<label>.<ext> is produced. See the
  * "time_series" setting.
  *
@@ -104,14 +106,16 @@ public:
      * writer since meshio++ v9.20.0); SVG, TIKZ, GMSH22 and GLTF are write only.
      * The solver results files are read only - FRD, NASTRAN_H5, ABAQUS_FIL,
      * ANSYS_RST(_CYCLIC), LSDYNA_BINOUT/D3PLOT, MARC_T19, NASTRAN_OP2,
-     * RADIOSS_ANIM/TH, SZPLT, VTX and XPLT, each step selectable with "time_step" -
-     * and so are the MARC and RADIOSS input decks.
+     * RADIOSS_ANIM/TH, SZPLT, VTX and XPLT, each step selectable with "time_step".
+     * The MARC and RADIOSS input decks are read and written (since meshio++ v16.17.0).
      *
-     * Resolution is by extension, except where meshio++ looks further: an existing
-     * .mesh starting with "MFEM " is MFEM (else MEDIT), an existing .dat holding a
-     * Marc deck is MARC (else TECPLOT), and fixed names (z88i1.txt, d3plot, binout,
-     * <run>A001, <run>T01) win over any extension. A path no extension resolves
-     * (an ELMER mesh directory, say) is identified by its content instead.
+     * Resolution for a read is by extension, except where meshio++ looks further: an
+     * existing .mesh starting with "MFEM " is MFEM (else MEDIT), an existing .dat
+     * holding a Marc deck is MARC (else TECPLOT), and fixed names (z88i1.txt, d3plot,
+     * binout, <run>A001, <run>T01) win over any extension. A path no extension
+     * resolves (an ELMER mesh directory, say) is identified by its content instead.
+     * A write never looks at what the path already holds: .dat is TECPLOT and .mesh
+     * MEDIT even over a Marc deck or an MFEM mesh - name "marc"/"mfem" to write those.
      *
      * GID is readable in strictly more build configurations than it is writable:
      * writing goes through gidpost, which is hard-gated on zlib, while reading is
@@ -147,7 +151,7 @@ public:
         ENSIGHT,          /// EnSight Gold .case/.geo
         EXODUS,           /// Exodus II .e/.exo (requires netCDF)
         FEBIO,            /// FEBio input deck .feb
-        FEMAP,            /// Femap neutral .neu (output sets are time steps)
+        FEMAP,            /// Femap neutral .neu (output sets are time steps; transient output writes one file, one output set per step)
         FLAC3D,           /// FLAC3D .f3grid
         FLUX,             /// Flux .pf3
         FRD,              /// CalculiX results .frd (read only; every increment is a time step)
@@ -163,7 +167,7 @@ public:
         LSDYNA,           /// LS-DYNA keyword deck .k/.key/.dyn (parts and sets as regions)
         LSDYNA_BINOUT,    /// LS-DYNA binout (read only; results as field data on a point cloud)
         LSDYNA_D3PLOT,    /// LS-DYNA d3plot family (read only; states are time steps)
-        MARC,             /// Marc input deck .dat (read only; chosen for a .dat whose content is a Marc deck)
+        MARC,             /// Marc input deck .dat (read by content for an existing Marc .dat; write with "format" : "marc")
         MARC_T19,         /// Marc results .t19 (read only; increments are time steps)
         MDPA,             /// Kratos native .mdpa
         MED,              /// salome MED .med (requires HDF5)
@@ -187,7 +191,7 @@ public:
         PVD,              /// ParaView collection .pvd (a time-indexed index; transient output extends it)
         PVTP,             /// ParaView partitioned PolyData .pvtp
         PVTU,             /// ParaView partitioned UnstructuredGrid .pvtu (one piece per "partition:part")
-        RADIOSS,          /// Radioss/OpenRadioss starter deck .rad (read only)
+        RADIOSS,          /// Radioss/OpenRadioss starter deck .rad (see "radioss_stubs")
         RADIOSS_ANIM,     /// Radioss animation file <run>A001 (read only; one state per file)
         RADIOSS_TH,       /// Radioss time history <run>T01 (read only; results as field data)
         STL,              /// Stereolithography .stl
@@ -258,8 +262,7 @@ public:
     /**
      * @brief The names of every format this build can write.
      * @details Read-only formats (the solver results files - "frd", "nastran_h5",
-     * "abaqus_fil", "nastran_op2", ... - and the "marc"/"radioss" input decks) are not
-     * listed; the write-only ones ("svg", "tikz", "gmsh22", "gltf") are conversely absent from
+     * "abaqus_fil", "nastran_op2", ...) are not listed; the write-only ones ("svg", "tikz", "gmsh22", "gltf") are conversely absent from
      * @ref GetSupportedReadFormats.
      */
     static std::vector<std::string> GetSupportedWriteFormats();
@@ -287,9 +290,10 @@ public:
 
     /**
      * @brief Resolves the format from a file path extension (".vtu" -> VTU).
-     * @details Falls back to the file's *content* (@ref SniffFormat) when no extension or
-     * name rule matches - which is how an Elmer mesh directory resolves - and throws only
-     * when that finds nothing either.
+     * @details The *read* resolution: content-aware for .mesh (MFEM) and .dat (Marc), and
+     * falling back to the file's content (@ref SniffFormat) when no extension or name rule
+     * matches - which is how an Elmer mesh directory resolves; throws only when that finds
+     * nothing either. Writes resolve among writers only, by name (see @ref Format).
      */
     static Format ResolveFormat(const std::filesystem::path& rPath);
 
@@ -342,7 +346,7 @@ public:
      * "time_series" set to "automatic") the steps are appended to the file - if the
      * file already exists with a valid time series it is extended, otherwise it is
      * created; PVD writes one piece per call into its sibling directory and rewrites
-     * the index; for other formats one file per call is written as
+     * the index; Femap adds one output set per call to a single neutral file; for other formats one file per call is written as
      * <stem>_<label>.<ext>. With "time_series" set to "single_file" every call
      * overwrites the file.
      * @param rThisModelPart Const reference to the model part to write from.
@@ -351,7 +355,7 @@ public:
 
     /**
      * @brief Finishes any transient output this IO still holds open.
-     * @details Finalizes and releases the XDMF, VTKHDF and PVD time-series writers (and
+     * @details Finalizes and releases the XDMF, VTKHDF, PVD and Femap time-series writers (and
      * writes a buffered GiD series), so the `.xdmf` light data or the `.pvd` index is complete and the file is no longer owned by this object. Idempotent, and
      * called by the destructor - an explicit call exists so the series ends at a point the
      * caller chooses rather than whenever the IO happens to be collected, and so a write
@@ -468,6 +472,10 @@ private:
     /// step, so a killed run still leaves a readable collection.
     std::map<std::string, std::unique_ptr<meshioplusplus::PvdSeriesWriter>> mPvdWriters;
 
+    /// Series writers for Femap transient output (same keys as @ref mXdmfWriters): one
+    /// neutral file holding the mesh once and one output set per step.
+    std::map<std::string, std::unique_ptr<meshioplusplus::FemapSeriesWriter>> mFemapWriters;
+
     /// Buffered steps for GiD transient output, one entry per output target (the same keys
     /// @ref mXdmfWriters uses). meshio++'s write_gid_series *pulls* steps through a callback
     /// while this IO is *pushed* one per @ref WriteModelPart, so the steps are held here and
@@ -583,6 +591,15 @@ private:
      * instance starts the collection afresh.
      */
     void WritePvdStep(
+        const ModelPart& rThisModelPart,
+        const std::string& rTargetSuffix
+        );
+
+    /**
+     * @brief Transient Femap write: adds one step (an output set) to the target's neutral file.
+     * @details Like PVD, not resumed across instances.
+     */
+    void WriteFemapStep(
         const ModelPart& rThisModelPart,
         const std::string& rTargetSuffix
         );

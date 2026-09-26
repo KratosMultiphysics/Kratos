@@ -28,6 +28,7 @@
 #include "meshioplusplus/detail/provenance.hpp"
 #include "meshioplusplus/formats/ansys.hpp"
 #include "meshioplusplus/formats/ensight.hpp"
+#include "meshioplusplus/formats/femap.hpp"
 #include "meshioplusplus/formats/flac3d.hpp"
 #include "meshioplusplus/formats/gid.hpp"
 #include "meshioplusplus/formats/gltf.hpp"
@@ -40,6 +41,7 @@
 #include "meshioplusplus/formats/pvd.hpp"
 #include "meshioplusplus/formats/pvtp.hpp"
 #include "meshioplusplus/formats/pvtu.hpp"
+#include "meshioplusplus/formats/radioss.hpp"
 #include "meshioplusplus/formats/stl.hpp"
 #include "meshioplusplus/formats/vtkhdf.hpp"
 #include "meshioplusplus/formats/z88.hpp"
@@ -329,14 +331,20 @@ bool WriteWithFileFormatOverride(
 /// The format of a path: meshio++'s extension and file-name rules first, then - for a path
 /// those cannot place, such as an Elmer mesh directory or an extensionless deck - the file's
 /// own content. Throws (with the extension rule's reason) only when both come up empty.
-std::string ResolveFormatName(const std::filesystem::path& rPath)
+///
+/// A path about to be written goes by name alone (resolve_write_format): whatever an existing
+/// file there holds must not choose the format of the one replacing it, so a .dat stays
+/// Tecplot's and a .mesh Medit's even over a Marc deck or an MFEM mesh - those are written by
+/// naming the format. Content sniffing is likewise a read-side fallback only.
+std::string ResolveFormatName(const std::filesystem::path& rPath, const bool ForWriting)
 {
     try {
-        return mio::resolve_format(rPath.string(), "");
+        return ForWriting ? mio::resolve_write_format(rPath.string(), "")
+                          : mio::resolve_format(rPath.string(), "");
     } catch (const std::exception& r_exception) {
         std::string sniffed;
         std::error_code error_code;
-        if (std::filesystem::exists(rPath, error_code)) {
+        if (!ForWriting && std::filesystem::exists(rPath, error_code)) {
             try {
                 sniffed = mio::sniff_format(rPath.string());
             } catch (const std::exception&) {
@@ -474,9 +482,10 @@ MeshioPlusPlusIO::MeshioPlusPlusIO(
         << "\" (use \"automatic\", \"element\" or \"condition\")" << std::endl;
 
     const std::string file_format = mParameters["file_format"].GetString();
-    KRATOS_ERROR_IF(file_format != "default" && file_format != "ascii" && file_format != "binary")
+    KRATOS_ERROR_IF(file_format != "default" && file_format != "ascii" && file_format != "binary" &&
+                    file_format != "raw_appended")
         << "Unknown \"file_format\" setting \"" << file_format
-        << "\" (use \"default\", \"ascii\" or \"binary\")" << std::endl;
+        << "\" (use \"default\", \"ascii\", \"binary\" or \"raw_appended\")" << std::endl;
 
     // Throws by name on an unknown mode, so a typo fails at construction like the rest.
     ResolveProvenanceMode(mParameters["provenance"].GetString());
@@ -605,6 +614,19 @@ void MeshioPlusPlusIO::CloseOutput()
     }
     mPvdWriters.clear();
 
+    for (auto& r_entry : mFemapWriters) {
+        if (r_entry.second != nullptr) {
+            try {
+                r_entry.second->Finalize();
+            } catch (...) {
+                if (!first_failure) {
+                    first_failure = std::current_exception();
+                }
+            }
+        }
+    }
+    mFemapWriters.clear();
+
     if (first_failure) {
         std::rethrow_exception(first_failure);
     }
@@ -655,6 +677,8 @@ Parameters MeshioPlusPlusIO::GetDefaultParameters()
         "pcd_float64_points"                          : false,
         "mfem_grid_functions_write"                   : false,
         "z88_stubs"                                   : false,
+        "radioss_stubs"                               : false,
+        "ensight_fortran"                             : false,
         "gltf_settings"                               : {
             "container"     : "auto",
             "up_axis"       : "auto",
@@ -787,7 +811,7 @@ MeshioPlusPlusIO::Format MeshioPlusPlusIO::ResolveFormat(const std::filesystem::
 {
     KRATOS_TRY
 
-    const std::string format_name = ResolveFormatName(rPath);
+    const std::string format_name = ResolveFormatName(rPath, /*ForWriting=*/false);
 
     const auto& r_format_map = GetFormatNameMap();
     const auto it = r_format_map.find(format_name);
@@ -833,7 +857,7 @@ std::string MeshioPlusPlusIO::ResolveEffectiveFormat(const bool CheckWritable) c
                    [](unsigned char Character) { return std::tolower(Character); });
 
     if (format_name.empty() || format_name == "auto" || format_name == "automatic") {
-        format_name = ResolveFormatName(mFileName);
+        format_name = ResolveFormatName(mFileName, /*ForWriting=*/CheckWritable);
     }
 
     const char* p_missing_dependency = mio::registry_compiled_out(format_name);
@@ -1131,6 +1155,9 @@ void MeshioPlusPlusIO::WriteTarget(
         } else if (format_name == "pvd" && time_series == "automatic") {
             // Transient PVD: one more .vtu piece, and the index rewritten over it.
             WritePvdStep(rModelPart, rTargetSuffix);
+        } else if (format_name == "femap" && time_series == "automatic") {
+            // Transient Femap: the mesh once, one output set per step, in one neutral file.
+            WriteFemapStep(rModelPart, rTargetSuffix);
         } else if (format_name == "gid" && time_series == "automatic") {
             // Transient GiD: buffer the step; CloseOutput writes the whole series at once.
             WriteGidSeriesStep(rModelPart, rTargetSuffix);
@@ -1384,6 +1411,32 @@ void MeshioPlusPlusIO::WriteStatic(
         mio::write_z88(rPath.string(), mesh, /*Stubs=*/true);
         return;
     }
+    if (rFormatName == "radioss" && mParameters["radioss_stubs"].GetBool()) {
+        // Also a placeholder /MAT/LAW1 per material and /PROP per property, so the OpenRadioss
+        // starter accepts the deck on its own.
+        mio::write_radioss(rPath.string(), mesh, /*Stubs=*/true);
+        return;
+    }
+    if (rFormatName == "ensight" && mParameters["ensight_fortran"].GetBool()) {
+        // Fortran record markers around every record (what Fortran-based solvers read and
+        // write); a Fortran file is always binary.
+        mio::write_ensight(rPath.string(), mesh, /*binary=*/true, /*fortran=*/true);
+        return;
+    }
+    if (file_format == "raw_appended") {
+        // One raw <AppendedData> section, no base64: the fastest VTU there is to write and
+        // read. Only .vtu has it, and asking for it elsewhere is an error rather than the
+        // warn-and-fall-back of the ascii/binary switch - the request is about speed or size,
+        // which a silent fallback would defeat.
+        mio::WriteOptions options;
+        options.mEncoding = mio::WriteEncoding::RawAppended;
+        std::string reason;
+        KRATOS_ERROR_IF_NOT(mio::registry_write_supports(rFormatName, options, reason))
+            << "\"file_format\" : \"raw_appended\" is not available for format \"" << rFormatName
+            << "\": " << reason << std::endl;
+        mio::registry_write_ex(rPath.string(), mesh, rFormatName, options);
+        return;
+    }
 
     // Honor an ascii/binary override where the format supports it
     const bool skin = mParameters["skin"].GetBool();
@@ -1521,6 +1574,33 @@ void MeshioPlusPlusIO::WriteVtkhdfStep(
     (void)rTargetSuffix;
     KRATOS_ERROR << "Transient VTKHDF output needs a meshio++ built with HDF5" << std::endl;
 #endif
+
+    KRATOS_CATCH("")
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void MeshioPlusPlusIO::WriteFemapStep(
+    const ModelPart& rThisModelPart,
+    const std::string& rTargetSuffix
+    )
+{
+    KRATOS_TRY
+
+    const mio::detail::ProvenanceScope provenance_scope(
+        ResolveProvenanceMode(mParameters["provenance"].GetString()),
+        mio::detail::current_provenance());
+    mio::detail::provenance_set_source(rThisModelPart.FullName(), "kratos");
+
+    // Like PVD, a Femap series is not resumed: the first step of a new instance starts the
+    // neutral file afresh. The mesh is written with the first step, every later step adds an
+    // output set (one per nodal/elemental array, multi-component arrays split per component).
+    auto& p_writer = mFemapWriters[rTargetSuffix];
+    if (p_writer == nullptr) {
+        p_writer = std::make_unique<mio::FemapSeriesWriter>(ComposeOutputPath(rTargetSuffix, "").string());
+    }
+    p_writer->Write(GetOutputTimeValue(rThisModelPart), BuildMeshWithData(rThisModelPart));
 
     KRATOS_CATCH("")
 }
