@@ -45,6 +45,7 @@
 #include "meshioplusplus/operations/interpolate.hpp"
 #include "meshioplusplus/operations/isosurface.hpp"
 #include "meshioplusplus/operations/merge.hpp"
+#include "meshioplusplus/operations/neighbors.hpp"
 #include "meshioplusplus/operations/normals.hpp"
 #include "meshioplusplus/operations/optimize_volume.hpp"
 #include "meshioplusplus/operations/partition.hpp"
@@ -1674,6 +1675,81 @@ std::size_t MeshioPlusPlusMeshOperations::ComputeBandwidth(const ModelPart& rSou
 
     mio::Mesh mesh = Internals::ModelPartToMesh(rSource);
     return static_cast<std::size_t>(mio::compute_bandwidth(mesh));
+
+    KRATOS_CATCH("")
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+std::vector<std::pair<std::size_t, std::size_t>> MeshioPlusPlusMeshOperations::NeighborPairs(
+    const ModelPart& rSource,
+    Parameters Settings
+    )
+{
+    KRATOS_TRY
+
+    Settings.ValidateAndAssignDefaults(Parameters(R"({
+        "method"                     : "radius",
+        "radius"                     : 0.0,
+        "k"                          : 0,
+        "box"                        : [],
+        "cell_size"                  : 0.0,
+        "use_deformed_configuration" : false
+    })"));
+
+    mio::NeighborOptions options;
+    const std::string method = Settings["method"].GetString();
+    if (method == "radius") {
+        options.mMethod = mio::NeighborMethod::Radius;
+        options.mRadius = Settings["radius"].GetDouble();
+        KRATOS_ERROR_IF_NOT(options.mRadius > 0.0)
+            << "NeighborPairs: \"radius\" must be positive for the \"radius\" method, got "
+            << options.mRadius << std::endl;
+    } else if (method == "k_nearest") {
+        options.mMethod = mio::NeighborMethod::KNearest;
+        options.mK = Settings["k"].GetInt();
+        KRATOS_ERROR_IF_NOT(options.mK > 0)
+            << "NeighborPairs: \"k\" must be positive for the \"k_nearest\" method, got "
+            << options.mK << std::endl;
+    } else {
+        KRATOS_ERROR << "NeighborPairs: unknown \"method\" \"" << method
+                     << "\" (use \"radius\" or \"k_nearest\")" << std::endl;
+    }
+    const Vector box = Settings["box"].GetVector();
+    options.mBox.assign(box.begin(), box.end());
+    options.mCellSize = Settings["cell_size"].GetDouble();
+
+    // The node coordinates as meshio++'s (N, 3) point array, in container order; the returned
+    // row indices are mapped back to node Ids through the same order.
+    const std::size_t number_of_nodes = rSource.NumberOfNodes();
+    if (number_of_nodes == 0) {
+        return {};
+    }
+    const bool deformed = Settings["use_deformed_configuration"].GetBool();
+    mio::NDArray points = mio::NDArray::Uninit(mio::DType::Float64, {number_of_nodes, 3});
+    double* p_points = points.As<double>();
+    std::vector<std::size_t> node_ids(number_of_nodes);
+    std::size_t row = 0;
+    for (const auto& r_node : rSource.Nodes()) {
+        const auto& r_coordinates = deformed ? r_node.Coordinates() : r_node.GetInitialPosition().Coordinates();
+        p_points[3 * row] = r_coordinates[0];
+        p_points[3 * row + 1] = r_coordinates[1];
+        p_points[3 * row + 2] = r_coordinates[2];
+        node_ids[row] = r_node.Id();
+        ++row;
+    }
+
+    const mio::NeighborPairs pairs = mio::neighbor_pairs(points, options);
+    const std::size_t number_of_pairs = pairs.mSource.Size();
+    const std::int64_t* p_source = pairs.mSource.As<std::int64_t>();
+    const std::int64_t* p_target = pairs.mTarget.As<std::int64_t>();
+    std::vector<std::pair<std::size_t, std::size_t>> result(number_of_pairs);
+    for (std::size_t i = 0; i < number_of_pairs; ++i) {
+        result[i] = {node_ids[static_cast<std::size_t>(p_source[i])],
+                     node_ids[static_cast<std::size_t>(p_target[i])]};
+    }
+    return result;
 
     KRATOS_CATCH("")
 }

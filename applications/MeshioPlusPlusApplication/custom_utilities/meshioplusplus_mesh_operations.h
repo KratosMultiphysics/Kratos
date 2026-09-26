@@ -16,6 +16,8 @@
 #pragma once
 
 // System includes
+#include <utility>
+#include <vector>
 
 // External includes
 
@@ -299,6 +301,27 @@ public:
      * @return The bandwidth.
      */
     static std::size_t ComputeBandwidth(const ModelPart& rSource);
+
+    /**
+     * @brief The radius or k-nearest neighbour pairs of the model part's nodes.
+     * @details meshio++'s cell-lattice neighbour search (the core behind its Python
+     * `proximity_graph`), over the node coordinates in container order. Settings:
+     *  - "method": "radius" (every pair within "radius", inclusive, returned once with the
+     *    lower container position first) or "k_nearest" (each node's "k" nearest, as directed
+     *    (node, neighbour) pairs, ascending by distance);
+     *  - "radius" (> 0 for "radius"), "k" (> 0 for "k_nearest"; clamped to N - 1);
+     *  - "box": [] or one periodic side per axis (the nodes must already lie in [0, side));
+     *  - "cell_size": the lattice cell side, 0 for automatic (affects speed, never the answer);
+     *  - "use_deformed_configuration": current instead of initial coordinates.
+     * Not an @ref Execute operation: it produces pairs, not a mesh.
+     * @param rSource The model part whose nodes are searched.
+     * @param Settings The search settings.
+     * @return The (source, target) pairs as node Ids, grouped by source.
+     */
+    static std::vector<std::pair<std::size_t, std::size_t>> NeighborPairs(
+        const ModelPart& rSource,
+        Parameters Settings
+        );
 
     ///@}
 }; // Class MeshioPlusPlusMeshOperations
