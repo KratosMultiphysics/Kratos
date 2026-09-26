@@ -1,0 +1,139 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 1340" width="1600" height="1340">
+<style>text{font-family:Helvetica,Arial,sans-serif;fill:#1f2937}.title{font-size:30px;font-weight:bold}.sub{font-size:17px;fill:#6b7280}
+.h{font-size:17px;font-weight:bold}.b{font-size:13.5px}.s{font-size:12.5px;fill:#6b7280}.k{font-size:12.5px;font-family:'DejaVu Sans Mono',monospace;fill:#7c3aed}.foot{font-size:13px;fill:#6b7280}.lab{font-size:13px;fill:#6b7280;font-style:italic}.st{font-size:14px;font-weight:bold;fill:#6b7280}</style>
+<defs><marker id="ar" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#6b7280"/></marker></defs>
+<rect width="1600" height="1340" fill="#ffffff"/>
+<text x="30" y="44" class="title">Contact search pipeline</text>
+<text x="30" y="72" class="sub">From the user sub-model-parts to the ACTIVE pairs in ComputingContact — python_scripts/search_base_process.py + custom_processes/base_contact_search_process.cpp (thesis §4.4)</text>
+<rect x="30" y="96" width="495" height="292" rx="10" fill="#eff6ff" stroke="#2563eb" stroke-width="2"/>
+<text x="42" y="120" class="h" fill="#2563eb">1 · Model-part preprocessing (Python, ExecuteInitialize)</text>
+<text x="42" y="142" class="b">contact_model_part {&quot;0&quot;: [...]}: the conditions of each pair</text>
+<text x="42" y="160" class="b">  are copied into Contact / ContactSub0 …</text>
+<text x="42" y="178" class="b">InterfacePreprocessCondition creates skin conditions when a</text>
+<text x="42" y="196" class="b">  body has none (simplify_geometry)</text>
+<text x="42" y="214" class="b">NormalCheckProcess fixes inverted normals</text>
+<text x="42" y="232" class="b">  (normal_check_proportion); FindNodalHProcess → NODAL_H</text>
+<text x="42" y="250" class="b">MasterSlaveProcess: assume_master_slave → MASTER / SLAVE</text>
+<text x="42" y="268" class="b">  flags; empty ⇒ self-contact mode</text>
+<text x="42" y="286" class="k">keys: contact_model_part · assume_master_slave ·</text>
+<text x="42" y="304" class="k">  contact_property_ids · integration_order ·</text>
+<text x="42" y="322" class="k">  consider_tessellation</text>
+<text x="42" y="340" class="s">thesis §4.4.1: implicit detection needs potential pairs</text>
+<text x="42" y="358" class="s">  before the solve, not real penetrations</text>
+<rect x="552" y="96" width="495" height="292" rx="10" fill="#f0fdfa" stroke="#0d9488" stroke-width="2"/>
+<text x="564" y="120" class="h" fill="#0d9488">2 · Broad phase: tree search (SearchTreeType)</text>
+<text x="564" y="142" class="b">Point list of the destination (master) conditions → KD-tree</text>
+<text x="564" y="160" class="b">  (Tree / BinsDynamic) or Octree</text>
+<text x="564" y="178" class="b">type_search: in_radius · in_box · in_radius_with_obb ·</text>
+<text x="564" y="196" class="b">  in_box_with_obb · octree_with_obb  (kdop: not implemented)</text>
+<text x="564" y="214" class="b">radius = search_factor · max(NODAL_H) of the slave</text>
+<text x="564" y="232" class="b">  condition; bucket_size, allocation_size,</text>
+<text x="564" y="250" class="b">  max_number_results</text>
+<text x="564" y="268" class="b">dynamic_search: positions predicted with VELOCITY·Δt (needs</text>
+<text x="564" y="286" class="b">  VELOCITY); inverted_search swaps the roles</text>
+<text x="564" y="304" class="k">keys: type_search · search_factor · bucket_size ·</text>
+<text x="564" y="322" class="k">  max_number_results · dynamic_search ·</text>
+<text x="564" y="340" class="k">  static_check_movement</text>
+<text x="564" y="358" class="s">thesis §4.4.2–4.4.3: bounding spheres / AABB / OBB / k-DOP,</text>
+<text x="564" y="376" class="s">  kd-tree vs octree (Figs. 4.26, 4.32, 4.33)</text>
+<rect x="1074" y="96" width="495" height="292" rx="10" fill="#f5f3ff" stroke="#7c3aed" stroke-width="2"/>
+<text x="1086" y="120" class="h" fill="#7c3aed">3 · Narrow phase: oriented bounding boxes</text>
+<text x="1086" y="142" class="b">OrientedBoundingBox built from each condition (from its AABB</text>
+<text x="1086" y="160" class="b">  or from the normal plane, Fig. 4.29)</text>
+<text x="1086" y="178" class="b">HasIntersection: SeparatingAxisTheorem (default) or Direct</text>
+<text x="1086" y="196" class="b">  point/face check (thesis eqs. 4.80–4.84)</text>
+<text x="1086" y="214" class="b">bounding_box_factor scales the box;</text>
+<text x="1086" y="232" class="b">  lower/higher_bounding_box_coefficient stretch it</text>
+<text x="1086" y="250" class="b">  asymmetrically</text>
+<text x="1086" y="268" class="b">normal_orientation_threshold discards pairs with (almost)</text>
+<text x="1086" y="286" class="b">  parallel normals: ‖n₁ − n₂‖ &lt; threshold</text>
+<text x="1086" y="304" class="k">keys: octree_search_parameters.{OBB_intersection_type,</text>
+<text x="1086" y="322" class="k">  bounding_box_factor, build_from_bounding_box, debug_obb}</text>
+<text x="1086" y="340" class="s">FindIntersectedGeometricalObjectsWithOBBContactSearchProcess</text>
+<text x="1086" y="358" class="s">  for the octree variant</text>
+<line x1="525" y1="226" x2="550" y2="226" stroke="#6b7280" stroke-width="2" marker-end="url(#ar)"/>
+<line x1="1047" y1="226" x2="1072" y2="226" stroke="#6b7280" stroke-width="2" marker-end="url(#ar)"/>
+<rect x="30" y="430" width="495" height="292" rx="10" fill="#fffbeb" stroke="#d97706" stroke-width="2"/>
+<text x="42" y="454" class="h" fill="#d97706">4 · Pair creation (PairedCondition)</text>
+<text x="42" y="476" class="b">For every accepted (slave, master) pair a condition is</text>
+<text x="42" y="494" class="b">  created in ComputingContact / ComputingContactSub0 …:</text>
+<text x="42" y="512" class="b">condition_name + geometry suffix, e.g.</text>
+<text x="42" y="530" class="b">  ALMFrictionlessMortarContactCondition3D3N4N (slave tri,</text>
+<text x="42" y="548" class="b">  master quad)</text>
+<text x="42" y="566" class="b">the pair shares the property of the slave; pairs are stored</text>
+<text x="42" y="584" class="b">  per slave condition (IndexMap of master ids)</text>
+<text x="42" y="602" class="b">self-contact: FullAssignmentOfPairs /</text>
+<text x="42" y="620" class="b">  ComputeSelfContactPairing decide MASTER/SLAVE (thesis</text>
+<text x="42" y="638" class="b">  Algorithm 4)</text>
+<text x="42" y="656" class="k">keys: condition_name (set by the process) · id_name ·</text>
+<text x="42" y="674" class="k">  predefined_master_slave</text>
+<text x="42" y="692" class="s">ResetContactOperators / ClearMortarConditions remove the</text>
+<text x="42" y="710" class="s">  pairs of the previous search</text>
+<rect x="552" y="430" width="495" height="292" rx="10" fill="#fef2f2" stroke="#dc2626" stroke-width="2"/>
+<text x="564" y="454" class="h" fill="#dc2626">5 · Gap check (CheckGap)</text>
+<text x="564" y="476" class="b">check_gap: no_check · direct_check · mapping_check (default;</text>
+<text x="564" y="494" class="b">  unknown strings fall back to MappingCheck)</text>
+<text x="564" y="512" class="b">mapping_check: NormalGapProcess maps the master surface onto</text>
+<text x="564" y="530" class="b">  the slave with the mortar mapper → NORMAL_GAP</text>
+<text x="564" y="548" class="b">direct_check: point projection along the normal;</text>
+<text x="564" y="566" class="b">  consider_gap_threshold / DISTANCE_THRESHOLD reject far</text>
+<text x="564" y="584" class="b">  pairs</text>
+<text x="564" y="602" class="b">weighted gap g̃n = n·(D x¹ − M x²) computed by the explicit</text>
+<text x="564" y="620" class="b">  contribution of the new conditions</text>
+<text x="564" y="638" class="k">keys: check_gap · consider_gap_threshold ·</text>
+<text x="564" y="656" class="k">  zero_tolerance_factor (ZERO_TOLERANCE_FACTOR)</text>
+<text x="564" y="674" class="s">thesis §4.4.4 consistent gap, Algorithm 8 (Figs. 4.34, 4.35)</text>
+<rect x="1074" y="430" width="495" height="292" rx="10" fill="#f0fdfa" stroke="#0d9488" stroke-width="2"/>
+<text x="1086" y="454" class="h" fill="#0d9488">6 · Activation (initial active set)</text>
+<text x="1086" y="476" class="b">SimpleContactSearchProcess (simple_search): ACTIVE if gap &lt;</text>
+<text x="1086" y="494" class="b">  active_check_factor · NODAL_H</text>
+<text x="1086" y="512" class="b">AdvancedContactSearchProcess (default): the same plus</text>
+<text x="1086" y="530" class="b">  prediction/correction of the Lagrange multiplier</text>
+<text x="1086" y="548" class="b">  from a linear regression gap–pressure</text>
+<text x="1086" y="566" class="b">  (predict_correct_lagrange_multiplier), per formulation</text>
+<text x="1086" y="584" class="b">  (TypeSolution)</text>
+<text x="1086" y="602" class="b">the Newton loop then refines the set with ActiveSetUtilities</text>
+<text x="1086" y="620" class="b">  (see csma_active_set_flowchart)</text>
+<text x="1086" y="638" class="k">keys: active_check_factor · simple_search ·</text>
+<text x="1086" y="656" class="k">  predict_correct_lagrange_multiplier · adapt_search</text>
+<text x="1086" y="674" class="s">ACTIVE_CHECK_FACTOR is stored in the pair property;</text>
+<text x="1086" y="692" class="s">  adapt_search rescales both factors with the mesh size</text>
+<line x1="525" y1="560" x2="550" y2="560" stroke="#6b7280" stroke-width="2" marker-end="url(#ar)"/>
+<line x1="1047" y1="560" x2="1072" y2="560" stroke="#6b7280" stroke-width="2" marker-end="url(#ar)"/>
+<path d="M 1321.5 388 L 1321.5 408 L 277.5 408 L 277.5 428" fill="none" stroke="#6b7280" stroke-width="2" marker-end="url(#ar)"/>
+<rect x="30" y="760" width="760" height="290" rx="10" fill="#f8fafc" stroke="#6b7280" stroke-width="2"/>
+<text x="42" y="784" class="h" fill="#6b7280">When does the search run?</text>
+<text x="42" y="806" class="b">ExecuteInitialize: everything once (steps 1–6) · ExecuteInitializeSolutionStep: steps 2–6</text>
+<text x="42" y="824" class="b">  every database_step_update steps</text>
+<text x="42" y="842" class="b">  (default 1; mesh tying uses 999999999 = never again) or when the mesh was MODIFIED</text>
+<text x="42" y="860" class="b">  (remeshing)</text>
+<text x="42" y="878" class="b">ExecuteFinalizeSolutionStep: ClearMortarConditions of inactive pairs / CheckMortarConditions</text>
+<text x="42" y="896" class="b">  bookkeeping</text>
+<text x="42" y="914" class="b">Strategy Predict(): recomputes the weighted gap of the pairs before the first Newton iteration</text>
+<text x="42" y="932" class="b">Explicit dynamics (ExplicitPenaltyContactProcess): default type_search = octree_with_obb,</text>
+<text x="42" y="950" class="b">  penalty only</text>
+<text x="42" y="968" class="k">keys: database_step_update · interval · debug_mode (GiD dumps of the pairs, flags and</text>
+<text x="42" y="986" class="k">  integration area)</text>
+<rect x="820" y="760" width="780" height="290" rx="10" fill="#eff6ff" stroke="#2563eb" stroke-width="2"/>
+<text x="832" y="784" class="h" fill="#2563eb">What comes out</text>
+<text x="832" y="806" class="b">Sub-model-parts: Contact ⊃ ContactSub0.. · MasterSubModelPart0.. / SlaveSubModelPart0.. ·</text>
+<text x="832" y="824" class="b">  ComputingContact ⊃ ComputingContactSub0..</text>
+<text x="832" y="842" class="b">Conditions: one PairedCondition per (slave, master) pair with the geometry pair suffix; flags</text>
+<text x="832" y="860" class="b">  ACTIVE / ISOLATED</text>
+<text x="832" y="878" class="b">Nodes: MASTER / SLAVE / INTERFACE / ACTIVE flags, NODAL_H, NORMAL, NORMAL_GAP (mapping check),</text>
+<text x="832" y="896" class="b">  WEIGHTED_GAP</text>
+<text x="832" y="914" class="b">Properties of the pair: INTEGRATION_ORDER_CONTACT, CONSIDER_TESSELLATION, ACTIVE_CHECK_FACTOR,</text>
+<text x="832" y="932" class="b">  FRICTION_COEFFICIENT</text>
+<text x="832" y="950" class="b">ProcessInfo: DISTANCE_THRESHOLD, ZERO_TOLERANCE_FACTOR, CONSIDER_NORMAL_VARIATION,</text>
+<text x="832" y="968" class="b">  INITIAL_PENALTY and SCALE_FACTOR</text>
+<text x="832" y="986" class="s">Wrapper classes: ContactSearchWrapperProcess →</text>
+<text x="832" y="1004" class="s">  Simple/AdvancedContactSearchProcess&lt;2D2N|3D3N|3D4N|3D3N4N|3D4N3N&gt;; MPC route:</text>
+<text x="832" y="1022" class="s">  MPCContactSearchWrapperProcess</text>
+<text x="30" y="1080" class="st">Variants</text>
+<text x="30" y="1106" class="b">• Self-contact (thesis §4.4.5): assume_master_slave empty → PREDEFINE_MASTER_SLAVE unset → all conditions in the destination list, MASTER/SLAVE decided by SelfContactUtilities after the search.</text>
+<text x="30" y="1129" class="b">• Dynamic search (thesis §4.4, tests/test_dynamic_search.py): the tree is built on positions x + v·Δt so that fast-approaching surfaces are paired one step ahead.</text>
+<text x="30" y="1152" class="b">• Inverted search: the slave and master roles of the tree query are swapped (destination list = slave conditions).</text>
+<text x="30" y="1175" class="b">• Multiple interfaces: one ContactSearchProcess per pair key &quot;0&quot;…&quot;9&quot; (MULTIPLE_SEARCHS flag, id_name suffix), all writing to ComputingContact.</text>
+<text x="30" y="1198" class="b">• Tests: tests/cpp_tests/processes/test_search_process.cpp (KD-tree, KD-tree + OBB, Octree), test_weighted_gap.cpp, tests/test_dynamic_search.py, utilities/test_selfcontact_utilities.cpp.</text>
+<text x="30" y="1322" class="foot">ContactStructuralMechanicsApplication · Kratos Multiphysics</text>
+</svg>
