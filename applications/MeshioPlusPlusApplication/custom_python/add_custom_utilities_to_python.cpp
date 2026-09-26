@@ -111,6 +111,12 @@ void AddCustomUtilitiesToPython(pybind11::module& m)
         .def_static("ComputeBandwidth", &MeshioPlusPlusMeshOperations::ComputeBandwidth,
             py::arg("model_part"),
             "The bandwidth of the node adjacency graph (what \"reorder\" reduces).")
+        .def_static("NeighborPairs", &MeshioPlusPlusMeshOperations::NeighborPairs,
+            py::arg("model_part"), py::arg("settings"),
+            "The radius (\"method\": \"radius\", \"radius\") or k-nearest (\"method\": "
+            "\"k_nearest\", \"k\") neighbour pairs of the nodes, as a list of (node id, node id) "
+            "tuples grouped by source: each radius pair once, k-nearest pairs directed. Also "
+            "\"box\" (periodic sides), \"cell_size\" and \"use_deformed_configuration\".")
         ;
 }
 
