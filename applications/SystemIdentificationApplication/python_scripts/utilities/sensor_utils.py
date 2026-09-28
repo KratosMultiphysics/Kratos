@@ -38,11 +38,9 @@ def CreateSensors(sensor_model_part: Kratos.ModelPart, domain_model_part: Kratos
         except:
             pass
 
-    # The sensor elements are located with one spatial search over the domain elements
-    # instead of a brute force search per sensor. Bins only see the local elements, hence
-    # distributed domains keep using the brute force search within each sensor's Create.
-    use_bins = not domain_model_part.IsDistributed() and domain_model_part.NumberOfElements() > 0
-    bins: 'typing.Optional[Kratos.GeometricalObjectsBins]' = None
+    # One spatial search over the domain elements, shared by all sensors, so each sensor's Create
+    # locates its element(s) without a linear search. Built lazily since empty bins are not searchable.
+    domain_bins: 'typing.Optional[Kratos.GeometricalObjectsBins]' = None
 
     list_of_sensors: 'list[KratosSI.Sensors.Sensor]' = []
     for parameters in list_of_parameters:
@@ -53,24 +51,13 @@ def CreateSensors(sensor_model_part: Kratos.ModelPart, domain_model_part: Kratos
         if not sensor_type_name in dict_of_sensor_types.keys():
             raise RuntimeError(f"Unsupported sensor type = \"{sensor_type_name}\" requested. Followings are supported:\n\t" + "\n\t".join(dict_of_sensor_types.keys()))
 
-        sensor_type = dict_of_sensor_types[sensor_type_name]
-        sensor_id = len(list_of_sensors) + 1
+        if domain_bins is None:
+            if domain_model_part.NumberOfElements() == 0:
+                raise RuntimeError(f"The domain model part \"{domain_model_part.FullName()}\" has no elements to locate the sensors in.")
+            # same local coordinate tolerance as the former brute force point locator
+            domain_bins = Kratos.GeometricalObjectsBins(domain_model_part.Elements, 1e-6)
 
-        element_id = None
-        if use_bins and parameters.Has("location") and parameters["location"].IsVector() and parameters["location"].GetVector().Size() == 3:
-            if bins is None:
-                # same local coordinate tolerance as the brute force search
-                bins = Kratos.GeometricalObjectsBins(domain_model_part.Elements, 1e-6)
-            location = parameters["location"].GetVector()
-            result = bins.SearchIsInside(Kratos.Point(location[0], location[1], location[2]))
-            if result.IsObjectFound():
-                element_id = result.Get().Id
-
-        if element_id is None:
-            # not located (or not locatable) by the bins, use the brute force search
-            sensor: KratosSI.Sensors.Sensor = sensor_type.Create(domain_model_part, sensor_model_part, sensor_id, parameters)
-        else:
-            sensor: KratosSI.Sensors.Sensor = sensor_type.Create(domain_model_part, sensor_model_part, sensor_id, parameters, element_id)
+        sensor: KratosSI.Sensors.Sensor = dict_of_sensor_types[sensor_type_name].Create(domain_model_part, sensor_model_part, len(list_of_sensors) + 1, parameters, domain_bins)
         list_of_sensors.append(sensor)
 
     return list_of_sensors

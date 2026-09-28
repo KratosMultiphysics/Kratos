@@ -18,6 +18,7 @@
 
 // Project includes
 #include "includes/element.h"
+#include "spatial_containers/geometrical_objects_bins.h"
 
 // Application includes
 #include "sensor.h"
@@ -78,24 +79,17 @@ public:
     ///@name Static operations
     ///@{
 
-    static Sensor::Pointer Create(
-        ModelPart& rDomainModelPart,
-        ModelPart& rSensorModelPart,
-        const IndexType Id,
-        Parameters SensorParameters);
-
     /**
-     * @brief Creates the sensor in an already located element.
-     * @details Same as the overload without ElementId, but skips the
-     *          point location. The element with ElementId in rDomainModelPart
-     *          must contain the sensor location.
+     * @brief Creates the sensor at the location given in SensorParameters.
+     * @details rDomainBins must be built from the elements of rDomainModelPart. It is
+     *          shared by all sensors, so each sensor is located without a linear search.
      */
     static Sensor::Pointer Create(
         ModelPart& rDomainModelPart,
         ModelPart& rSensorModelPart,
         const IndexType Id,
         Parameters SensorParameters,
-        const IndexType ElementId);
+        GeometricalObjectsBins& rDomainBins);
 
     static Parameters GetDefaultParameters();
 

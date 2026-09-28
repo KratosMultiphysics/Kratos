@@ -16,7 +16,6 @@
 
 // Project includes
 #include "includes/kratos_components.h"
-#include "utilities/brute_force_point_locator.h"
 
 // Application includes
 #include "custom_utilities/sensor_utils.h"
@@ -75,34 +74,8 @@ Sensor::Pointer StrainSensor::Create(
     ModelPart& rDomainModelPart,
     ModelPart& rSensorModelPart,
     const IndexType Id,
-    Parameters SensorParameters)
-{
-    KRATOS_TRY
-
-    SensorParameters.ValidateAndAssignDefaults(StrainSensor::GetDefaultParameters());
-
-    const auto& location = SensorParameters["location"].GetVector();
-    KRATOS_ERROR_IF_NOT(location.size() == 3)
-        << "Location of the sensor \"" << SensorParameters["name"].GetString()
-        << "\" should have 3 components. [ location = " << location << " ].\n";
-
-    Point loc(location[0], location[1], location[2]);
-
-    Vector dummy_shape_functions;
-
-    const auto element_id = BruteForcePointLocator(rDomainModelPart).FindElement(loc, dummy_shape_functions);
-
-    return StrainSensor::Create(rDomainModelPart, rSensorModelPart, Id, SensorParameters, element_id);
-
-    KRATOS_CATCH("");
-}
-
-Sensor::Pointer StrainSensor::Create(
-    ModelPart& rDomainModelPart,
-    ModelPart& rSensorModelPart,
-    const IndexType Id,
     Parameters SensorParameters,
-    const IndexType ElementId)
+    GeometricalObjectsBins& rDomainBins)
 {
     KRATOS_TRY
 
@@ -113,7 +86,13 @@ Sensor::Pointer StrainSensor::Create(
         << "Location of the sensor \"" << SensorParameters["name"].GetString()
         << "\" should have 3 components. [ location = " << location << " ].\n";
 
-    const auto& r_element = rDomainModelPart.GetElement(ElementId);
+    const auto search_result = rDomainBins.SearchIsInside(Point(location[0], location[1], location[2]));
+    KRATOS_ERROR_IF_NOT(search_result.GetIsObjectFound())
+        << "Location of the sensor \"" << SensorParameters["name"].GetString()
+        << "\" is not inside any element of " << rDomainModelPart.FullName()
+        << ". [ location = " << location << " ].\n";
+
+    const auto& r_element = rDomainModelPart.GetElement(search_result.Get()->Id());
 
     auto p_node = rSensorModelPart.CreateNewNode(Id, location[0], location[1], location[2]);
 
