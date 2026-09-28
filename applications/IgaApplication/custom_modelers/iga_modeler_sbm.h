@@ -158,9 +158,16 @@ private:
         std::string GeometryType) const;
 
     
-    /// Creates SBM conditions using the exact NURBS skin projection for each quadrature point.
-    /// Reads CONDITION_NAME from the projected curve.
+    /// Creates SBM conditions using the NURBS skin projection for each quadrature point.
+    /// Reads CONDITION_NAME from the curve when rConditionName is SbmCondition.
     void CreateQuadraturePointGeometriesSbmByProjectionLayer(
+        GeometriesArrayType& rQuadraturePointGeometryList,
+        ModelPart& rModelPart,
+        const Parameters rParameters,
+        const std::string& rConditionName) const;
+
+    /// Creates SBM conditions using the discretized skin projection and its layers.
+    void CreateQuadraturePointGeometriesSbmByLinealizedProjectionLayer(
         GeometriesArrayType& rQuadraturePointGeometryList,
         ModelPart& rModelPart,
         const Parameters rParameters) const;

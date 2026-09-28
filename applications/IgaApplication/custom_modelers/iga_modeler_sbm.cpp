@@ -51,6 +51,7 @@ NurbsProjectionResult ProjectToNurbsSkin(
     Model& rModel,
     const double SearchRadius,
     const double Tolerance,
+    const bool RequireConditionName,
     const std::string& rRequiredLayer = "")
 {
     NurbsProjectionResult result;
@@ -68,13 +69,12 @@ NurbsProjectionResult ProjectToNurbsSkin(
             if (!p_curve || !p_curve->Has(IDENTIFIER)) {
                 continue;
             }
-            if (!p_curve->Has(CONDITION_NAME)) {
-                continue;
-            }
-            const std::string& r_condition_name =
-                p_curve->GetValue(CONDITION_NAME);
-            if (!KratosComponents<Condition>::Has(r_condition_name)) {
-                continue;
+            // When the curve supplies the condition type, require a registered CONDITION_NAME.
+            if (RequireConditionName) {
+                if (!p_curve->Has(CONDITION_NAME) ||
+                    !KratosComponents<Condition>::Has(p_curve->GetValue(CONDITION_NAME))) {
+                    continue;
+                }
             }
             curves.push_back(*it);
         }
@@ -133,12 +133,14 @@ NurbsProjectionResult ProjectToNurbsSkin(
                 continue;
             }
 
-            // Evaluates the final projection iterate from the span midpoint and both endpoints.
-            ProjectionCoordinates local_coordinates = ZeroVector(3);
-            local_coordinates[0] = 0.5 * (lower + upper);
-            const bool converged = p_curve->ProjectionPointGlobalToLocalSpace(
-                rPoint, local_coordinates, Tolerance) != 0;
-            evaluate(p_geometry, local_coordinates, input_order, converged);
+            // Evaluates the final projection iterate from each seed and both endpoints.
+            for (const double fraction : {0.25, 0.5, 0.75}) {
+                ProjectionCoordinates local_coordinates = ZeroVector(3);
+                local_coordinates[0] = lower + fraction * (upper - lower);
+                const bool converged = p_curve->ProjectionPointGlobalToLocalSpace(
+                    rPoint, local_coordinates, Tolerance) != 0;
+                evaluate(p_geometry, local_coordinates, input_order, converged);
+            }
 
             ProjectionCoordinates lower_coordinates = ZeroVector(3);
             lower_coordinates[0] = lower;
@@ -173,9 +175,94 @@ void IgaModelerSbm::SetupModelPart()
 
     const Parameters iga_physics_parameters = mParameters["element_condition_list"];
 
+    KRATOS_ERROR_IF_NOT(iga_physics_parameters.IsArray())
+        << "\"element_condition_list\" needs to be an array." << std::endl;
+
+    std::string projection_type;
+    bool has_sbm_conditions = false;
+    for (SizeType i = 0; i < iga_physics_parameters.size(); ++i) {
+        const Parameters unit_parameters = iga_physics_parameters[i];
+        KRATOS_ERROR_IF_NOT(unit_parameters.IsSubParameter())
+            << "\"element_condition_list\" entry " << i << " needs to be an object." << std::endl;
+        if (!unit_parameters.Has("sbm_parameters")) {
+            continue;
+        }
+
+        KRATOS_ERROR_IF_NOT(unit_parameters.Has("type") &&
+                            unit_parameters["type"].GetString() == "condition")
+            << "::[IgaModelerSbm]:: SBM operators require type \"condition\" in entry "
+            << i << "." << std::endl;
+        KRATOS_ERROR_IF_NOT(unit_parameters.Has("name"))
+            << "::[IgaModelerSbm]:: Missing \"name\" in SBM entry " << i << "." << std::endl;
+
+        const Parameters sbm_parameters = unit_parameters["sbm_parameters"];
+        KRATOS_ERROR_IF_NOT(sbm_parameters.IsSubParameter() &&
+                            sbm_parameters.Has("projection_type"))
+            << "::[IgaModelerSbm]:: Missing \"projection_type\" in SBM entry "
+            << i << "." << std::endl;
+        KRATOS_ERROR_IF_NOT(sbm_parameters["projection_type"].IsString())
+            << "::[IgaModelerSbm]:: \"projection_type\" must be a string in SBM entry "
+            << i << "." << std::endl;
+
+        const std::string current_projection_type =
+            sbm_parameters["projection_type"].GetString();
+        KRATOS_ERROR_IF(current_projection_type != "analytical" &&
+                        current_projection_type != "linealized")
+            << "::[IgaModelerSbm]:: Unsupported \"projection_type\": \""
+            << current_projection_type << "\" in SBM entry " << i
+            << ". Available options: analytical, linealized." << std::endl;
+        KRATOS_ERROR_IF(has_sbm_conditions &&
+                        current_projection_type != projection_type)
+            << "::[IgaModelerSbm]:: All SBM entries must use the same \"projection_type\"."
+            << std::endl;
+
+        projection_type = current_projection_type;
+        has_sbm_conditions = true;
+
+        const std::string condition_name = unit_parameters["name"].GetString();
+        KRATOS_ERROR_IF(condition_name != "SbmCondition" &&
+                        !KratosComponents<Condition>::Has(condition_name))
+            << "::[IgaModelerSbm]:: Condition \"" << condition_name
+            << "\" is not registered." << std::endl;
+    }
+
+    const bool release_discretized_skin =
+        has_sbm_conditions && projection_type == "analytical";
+    KRATOS_ERROR_IF(release_discretized_skin &&
+                    ((analysis_model_part.GetProcessInfo().Has(DOMAIN_SIZE) &&
+                      analysis_model_part.GetProcessInfo()[DOMAIN_SIZE] == 3) ||
+                     (analysis_model_part.Has(KNOT_VECTOR_W) &&
+                      analysis_model_part.GetValue(KNOT_VECTOR_W).size() > 0)))
+        << "::[IgaModelerSbm]:: Analytical SBM projection is only implemented in 2D."
+        << std::endl;
+    if (release_discretized_skin) {
+        // The skin model part is still required to hold the projection nodes created later.
+        KRATOS_ERROR_IF_NOT(mParameters.Has("skin_model_part_name"))
+            << "Missing \"skin_model_part_name\" section" << std::endl;
+        ModelPart& skin_model_part = mpModel->GetModelPart(
+            mParameters["skin_model_part_name"].GetString());
+
+        // Projection uses the original NURBS curves, so only the inner and outer skin conditions are removed.
+        for (const char* loop_name : {"inner", "outer"}) {
+            for (auto& r_condition : skin_model_part.GetSubModelPart(loop_name).Conditions()) {
+                r_condition.Set(TO_ERASE);
+            }
+        }
+        skin_model_part.RemoveConditionsFromAllLevels(TO_ERASE);
+        for (auto& r_node : skin_model_part.Nodes()) {
+            r_node.Set(TO_ERASE);
+        }
+    }
+
     CreateIntegrationDomain(
         analysis_model_part,
         iga_physics_parameters);
+
+    if (release_discretized_skin) {
+        // The analytical SBM conditions reference only the newly created projection nodes.
+        mpModel->GetModelPart(mParameters["skin_model_part_name"].GetString())
+            .RemoveNodesFromAllLevels(TO_ERASE);
+    }
     
     ActivateNodesInElementsAndCleanRoot(analysis_model_part);
 }
@@ -482,20 +569,29 @@ void IgaModelerSbm::CreateQuadraturePointGeometriesSbm(
         << "\"name\" needs to be specified." << std::endl;
                             
     const std::string name = rParameters["name"].GetString();
+    const std::string projection_type =
+        rParameters["sbm_parameters"]["projection_type"].GetString();
 
-    if (name == "SbmCondition") {
+    if (projection_type == "analytical") {
         CreateQuadraturePointGeometriesSbmByProjectionLayer(
+            rGeometryList, rModelPart, rParameters, name);
+    } else if (projection_type == "linealized" && name == "SbmCondition") {
+        CreateQuadraturePointGeometriesSbmByLinealizedProjectionLayer(
             rGeometryList, rModelPart, rParameters);
-    } else {
+    } else if (projection_type == "linealized") {
         CreateQuadraturePointGeometriesSbmByFixedConditionName(
             rGeometryList, rModelPart, rParameters, GeometryType, name);
+    } else {
+        KRATOS_ERROR << "::[IgaModelerSbm]:: Unsupported \"projection_type\": \""
+            << projection_type << "\"." << std::endl;
     }
 }
 
 void IgaModelerSbm::CreateQuadraturePointGeometriesSbmByProjectionLayer(
     GeometriesArrayType& rGeometryList,
     ModelPart& rModelPart,
-    const Parameters rParameters) const
+    const Parameters rParameters,
+    const std::string& rConditionName) const
 {
     KRATOS_ERROR_IF(rParameters["type"].GetString() != "condition")
         << "::[IgaModelerSbm]:: SBM operators require type \"condition\"."
@@ -503,6 +599,7 @@ void IgaModelerSbm::CreateQuadraturePointGeometriesSbmByProjectionLayer(
 
     const bool is_inner = rParameters["sbm_parameters"]["is_inner"].GetBool();
     const std::string loop_name = is_inner ? "inner" : "outer";
+    const bool use_curve_condition_name = rConditionName == "SbmCondition";
 
     KRATOS_ERROR_IF_NOT(mParameters.Has("skin_model_part_name"))
         << "::[IgaModelerSbm]:: Missing \"skin_model_part_name\" in "
@@ -586,7 +683,8 @@ void IgaModelerSbm::CreateQuadraturePointGeometriesSbmByProjectionLayer(
                 r_quadrature_geometry.Center().Coordinates(),
                 *mpModel,
                 search_radius,
-                tolerance);
+                tolerance,
+                use_curve_condition_name);
 
             //Layer voting process
             const auto layer_it = std::find(layers.begin(), layers.end(), projection.LayerName);
@@ -612,6 +710,7 @@ void IgaModelerSbm::CreateQuadraturePointGeometriesSbmByProjectionLayer(
                     *mpModel,
                     search_radius,
                     tolerance,
+                    use_curve_condition_name,
                     winning_layer);
             }
         }
@@ -637,10 +736,13 @@ void IgaModelerSbm::CreateQuadraturePointGeometriesSbmByProjectionLayer(
                 << ". Using the closest evaluated point on the NURBS skin "
                 << r_projection.SkinCoordinates << " (distance "
                 << std::sqrt(r_projection.SquaredDistance) << ")." << std::endl;
-            KRATOS_ERROR_IF_NOT(r_projection.pGeometry->Has(CONDITION_NAME))
+            KRATOS_ERROR_IF(use_curve_condition_name &&
+                            !r_projection.pGeometry->Has(CONDITION_NAME))
                 << "::[IgaModelerSbm]:: Missing CONDITION_NAME on NURBS geometry "
                 << r_projection.pGeometry->Id() << "." << std::endl;
-            const std::string& condition_name = r_projection.pGeometry->GetValue(CONDITION_NAME);
+            const std::string condition_name = use_curve_condition_name
+                ? r_projection.pGeometry->GetValue(CONDITION_NAME)
+                : rConditionName;
             KRATOS_ERROR_IF(condition_name.empty())
                 << "::[IgaModelerSbm]:: Empty condition name for NURBS geometry "
                 << r_projection.pGeometry->Id() << "." << std::endl;
@@ -684,6 +786,130 @@ void IgaModelerSbm::CreateQuadraturePointGeometriesSbmByProjectionLayer(
                 GlobalPointersVector<Node>({p_projection_node}));
             r_condition_layer.AddCondition(p_condition);
         }
+    }
+}
+
+void IgaModelerSbm::CreateQuadraturePointGeometriesSbmByLinealizedProjectionLayer(
+    GeometriesArrayType& rGeometryList,
+    ModelPart& rModelPart,
+    const Parameters rParameters) const
+{
+    const bool is_inner = rParameters["sbm_parameters"]["is_inner"].GetBool();
+    const std::string loop_name = is_inner ? "inner" : "outer";
+    const std::string surrogate_name = is_inner ? "surrogate_inner" : "surrogate_outer";
+    const std::string skin_model_part_name = mParameters.Has("skin_model_part_name")
+        ? mParameters["skin_model_part_name"].GetString()
+        : "skin_model_part";
+
+    KRATOS_ERROR_IF_NOT(mpModel->HasModelPart(skin_model_part_name))
+        << "::[IgaModelerSbm]:: Missing skin model part \""
+        << skin_model_part_name << "\" for linealized projection." << std::endl;
+    ModelPart& r_skin_loop = mpModel->GetModelPart(skin_model_part_name)
+        .GetSubModelPart(loop_name);
+    KRATOS_ERROR_IF(r_skin_loop.NumberOfConditions() == 0)
+        << "::[IgaModelerSbm]:: No discretized skin conditions in \""
+        << loop_name << "\" for linealized projection." << std::endl;
+
+    ModelPart& r_surrogate_model_part = rModelPart.GetParentModelPart()
+        .GetSubModelPart(surrogate_name);
+    const Vector& r_knot_span_sizes =
+        r_surrogate_model_part.GetParentModelPart().GetValue(KNOT_SPAN_SIZES);
+    KRATOS_ERROR_IF(r_knot_span_sizes.size() < 2)
+        << "::[IgaModelerSbm]:: At least two KNOT_SPAN_SIZES are required for "
+        << "linealized projection." << std::endl;
+
+    double h = r_knot_span_sizes[0];
+    for (IndexType d = 1; d < r_knot_span_sizes.size(); ++d) {
+        h = std::max(h, r_knot_span_sizes[d]);
+    }
+    const int domain_size = rModelPart.GetProcessInfo()[DOMAIN_SIZE];
+    const double search_radius = std::sqrt(static_cast<double>(domain_size)) * h;
+    const int derivatives_order =
+        rParameters["shape_function_derivatives_order"].GetInt();
+    const std::string quadrature_method = rParameters.Has("quadrature_method")
+        ? rParameters["quadrature_method"].GetString()
+        : "GAUSS";
+    KRATOS_ERROR_IF(quadrature_method != "GAUSS" && quadrature_method != "GRID")
+        << "::[IgaModelerSbm]:: Unsupported quadrature method \""
+        << quadrature_method << "\"." << std::endl;
+
+    PointVector points;
+    points.reserve(r_skin_loop.NumberOfConditions());
+    for (const auto& r_condition : r_skin_loop.Conditions()) {
+        KRATOS_ERROR_IF_NOT(r_condition.Has(LAYER_NAME))
+            << "::[IgaModelerSbm]:: Missing LAYER_NAME on skin "
+            << "condition " << r_condition.Id() << "." << std::endl;
+        const auto center = r_condition.GetGeometry().Center();
+        points.push_back(Kratos::make_intrusive<PointType>(
+            r_condition.Id(), center.X(), center.Y(), center.Z()));
+    }
+
+    DynamicBins bins(points.begin(), points.end());
+    const SizeType max_results = points.size();
+    ModelPart::NodesContainerType::ContainerType results(max_results);
+    std::vector<double> distances(max_results);
+
+    for (auto& r_surrogate_geometry : rGeometryList) {
+        GeometriesArrayType geometries;
+        IntegrationInfo integration_info = r_surrogate_geometry.GetDefaultIntegrationInfo();
+        for (IndexType d = 0; d < integration_info.LocalSpaceDimension(); ++d) {
+            integration_info.SetQuadratureMethod(
+                d, quadrature_method == "GRID"
+                    ? IntegrationInfo::QuadratureMethod::GRID
+                    : IntegrationInfo::QuadratureMethod::GAUSS);
+            if (rParameters.Has("number_of_integration_points_per_span")) {
+                integration_info.SetNumberOfIntegrationPointsPerSpan(
+                    d, rParameters["number_of_integration_points_per_span"].GetInt());
+            }
+        }
+        r_surrogate_geometry.CreateQuadraturePointGeometries(
+            geometries, derivatives_order, integration_info);
+        KRATOS_ERROR_IF(geometries.empty())
+            << "::[IgaModelerSbm]:: No quadrature point geometries were created "
+            << "for linealized projection." << std::endl;
+
+        std::vector<int> closest_condition_ids(geometries.size());
+        std::vector<int> second_condition_ids(geometries.size(), -1);
+        for (IndexType j = 0; j < geometries.size(); ++j) {
+            const Point integration_point = geometries[j].Center();
+            PointType search_point(
+                0, integration_point.X(), integration_point.Y(), integration_point.Z());
+            const SizeType number_of_results = bins.SearchInRadius(
+                search_point, search_radius, results.begin(), distances.begin(), max_results);
+            KRATOS_ERROR_IF(number_of_results == 0)
+                << "::[IgaModelerSbm]:: No discretized skin projection for "
+                << "quadrature point " << integration_point << "." << std::endl;
+
+            IndexType closest_index = 0;
+            for (IndexType k = 1; k < number_of_results; ++k) {
+                if (distances[k] < distances[closest_index]) {
+                    closest_index = k;
+                }
+            }
+            const int closest_id = results[closest_index]->Id();
+            const std::string& r_closest_layer =
+                r_skin_loop.GetCondition(closest_id).GetValue(LAYER_NAME);
+            closest_condition_ids[j] = closest_id;
+
+            IndexType second_index = number_of_results;
+            for (IndexType k = 0; k < number_of_results; ++k) {
+                const int condition_id = results[k]->Id();
+                if (r_skin_loop.GetCondition(condition_id).GetValue(LAYER_NAME) != r_closest_layer &&
+                    (second_index == number_of_results || distances[k] < distances[second_index])) {
+                    second_index = k;
+                }
+            }
+            if (second_index != number_of_results) {
+                second_condition_ids[j] = results[second_index]->Id();
+            }
+        }
+
+        SizeType condition_id = rModelPart.GetRootModelPart().NumberOfConditions() == 0
+            ? 1 : rModelPart.GetRootModelPart().Conditions().back().Id() + 1;
+        this->CreateConditions(
+            geometries.ptr_begin(), geometries.ptr_end(), rModelPart, r_skin_loop,
+            closest_condition_ids, second_condition_ids, condition_id,
+            PropertiesPointerType(), is_inner, r_knot_span_sizes);
     }
 }
 
@@ -821,20 +1047,19 @@ void IgaModelerSbm::CreateQuadraturePointGeometriesSbmByFixedConditionName(
 
             // Use the search in radius to find the closest point
             SizeType obtained_results = testBins.SearchInRadius(*p_integration_point, search_radius, results.begin(), list_of_distances.begin(), number_of_results);
-
-            double minimum_distance = 1e14;
+            KRATOS_ERROR_IF(obtained_results == 0) << "::[IgaModelerSbm]:: Zero points found in serch for projection of point: " <<
+                integration_point << std::endl;
 
             // Find the nearest node
-            IndexType nearest_node_id;
-            for (IndexType k = 0; k < obtained_results; k++) {
+            IndexType nearest_node_id = 0;
+            double minimum_distance = list_of_distances[0];
+            for (IndexType k = 1; k < obtained_results; k++) {
                 double current_distance = list_of_distances[k];   
                 if (current_distance < minimum_distance) { 
                     minimum_distance = current_distance;
                     nearest_node_id = k;
                 }
             }
-            KRATOS_ERROR_IF(obtained_results == 0) << "::[IgaModelerSbm]:: Zero points found in serch for projection of point: " <<
-                integration_point << std::endl;
             
             // store id closest condition
             list_id_closest_condition[j] = results[nearest_node_id]->Id();
