@@ -223,23 +223,10 @@ public:
     {
         KRATOS_TRY
 
-        // Set up the system
-        InitializeLinearSystem(rImplicitStrategyData);
-
         // Initialize elements, conditions and constraints
         EntitiesUtilities::InitializeAllEntities(*mpModelPart);
 
         KRATOS_CATCH("")
-    }
-
-    /**
-     * @brief Function called once at the beginning of each solution step
-     * @param rImplicitStrategyData Auxiliary container with the linear system arrays
-     */
-    virtual void InitializeSolutionStep(ImplicitStrategyData<TLinearAlgebra>& rImplicitStrategyData)
-    {
-        // Initializes solution step for all of the elements, conditions and constraints
-        EntitiesUtilities::InitializeSolutionStepAllEntities(*mpModelPart);
     }
 
     /**
@@ -250,6 +237,16 @@ public:
     virtual void Predict(ImplicitStrategyData<TLinearAlgebra> &rImplicitStrategyData)
     {
         KRATOS_ERROR << "\'ImplicitScheme\' does not implement \'Predict\' method. Call derived class one." << std::endl;
+    }
+
+    /**
+     * @brief Function called once at the beginning of each solution step
+     * @param rImplicitStrategyData Auxiliary container with the linear system arrays
+     */
+    virtual void InitializeSolutionStep(ImplicitStrategyData<TLinearAlgebra>& rImplicitStrategyData)
+    {
+        // Initializes solution step for all of the elements, conditions and constraints
+        EntitiesUtilities::InitializeSolutionStepAllEntities(*mpModelPart);
     }
 
     /**
@@ -291,57 +288,6 @@ public:
 
         // Finalizes non-linear iteration for all of the elements, conditions and constraints
         EntitiesUtilities::FinalizeNonLinearIterationAllEntities(*mpModelPart);
-
-        KRATOS_CATCH("")
-    }
-
-    /**
-     * @brief Set the Up Dof Arrays
-     * This method sets the standard and effective DOF sets
-     * @param pDofSet Pointer to the standard DOF set
-     * @param pEffectiveDofSet Pointer to the effective DOF set
-     * @param rSlaveToMasterDofsMap The map containing the corresponding master(s) for each slave DOF
-     * @return std::pair<std::size_t, std::size_t> Sizes of the standard and effective DOF sets
-     */
-    virtual std::pair<std::size_t, std::size_t> SetUpDofArrays(
-        typename DofsArrayType::Pointer pDofSet,
-        typename DofsArrayType::Pointer pEffectiveDofSet)
-    {
-        // Call the external utility to set up the DOFs array
-        DofArrayUtilities::SetUpDofArray(*mpModelPart, *pDofSet, mEchoLevel);
-        KRATOS_INFO_IF("ImplicitScheme", mEchoLevel >= 2) << "Finished DOFs array set up." << std::endl;
-
-        // Call the external utility to set up the DOFs array
-        DofArrayUtilities::SetUpEffectiveDofArray(*mpModelPart, *pDofSet, *pEffectiveDofSet, mEchoLevel);
-        KRATOS_INFO_IF("ImplicitScheme", mEchoLevel >= 2) << "Finished effective DOFs array set up." << std::endl;
-
-        // Return the sizes of the two DOF sets
-        return std::make_pair(pDofSet->size(), pEffectiveDofSet->size());
-    }
-
-    /**
-     * @brief Set the Up System Ids
-     * This method sets the standard and effective DOF ids
-     * @param pDofSet Pointer to the standard DOF set
-     * @param pEffectiveDofSet Pointer to the effective DOF set
-     */
-    virtual void SetUpSystemIds(
-        typename DofsArrayType::Pointer pDofSet,
-        typename DofsArrayType::Pointer pEffectiveDofSet)
-    {
-        KRATOS_TRY
-
-        // Check if the provided DOF arrays have been already set
-        KRATOS_ERROR_IF(pDofSet->empty()) << "DOFs set is empty. Call the 'SetUpDofArray' first." << std::endl;
-        KRATOS_ERROR_IF(pEffectiveDofSet->empty()) << "Effective DOFs set is empty. Call the 'SetUpDofArray' first." << std::endl;
-
-        // Call the external utility to set up the DOF ids
-        DofArrayUtilities::SetDofEquationIds(*pDofSet);
-        KRATOS_INFO_IF("ImplicitScheme", mEchoLevel >= 2) << "Finished setting the DOF ids." << std::endl;
-
-        // Call the external utility to set up the effective DOF ids
-        DofArrayUtilities::SetEffectiveDofEquationIds(*pDofSet, *pEffectiveDofSet);
-        KRATOS_INFO_IF("ImplicitScheme", mEchoLevel >= 2) << "Finished setting the effective DOF ids." << std::endl;
 
         KRATOS_CATCH("")
     }
@@ -988,7 +934,7 @@ public:
             auto& r_dof_set = *(rImplicitStrategyData.pGetDofSet());
             IndexPartition<IndexType>(r_dof_set.size()).for_each([&](IndexType Index){
                 const auto p_dof = *(r_dof_set.ptr_begin() + Index);
-                const auto p_dof_find = r_eff_dof_set.find(*p_dof);
+                const auto p_dof_find = r_eff_dof_set.find(*p_dof); //FIXME: I think we can use the fact that the non-effecetive DOFs have max() EffectiveEquationId() and avoid the search
                 if (p_dof_find != r_eff_dof_set.end()) {
                     r_constraints_q[p_dof->EquationId()] = 0.0;
                     r_constraints_T(p_dof->EquationId(), p_dof_find->EffectiveEquationId()) = 1.0;
@@ -996,17 +942,18 @@ public:
             });
 
             // Setting inactive slave dofs in the T and C system
+            //FIXME: I think we can skip this if we check if the constraint is active/inactive when creating the effective DOF set
             //TODO: Can't this be parallel?
             for (auto eq_id : inactive_slave_dofs) {
                 r_constraints_q[eq_id] = 0.0;
                 r_constraints_T(eq_id, eq_id) = 1.0;
             }
 
-            KRATOS_INFO_IF("ImplicitScheme", mEchoLevel >= 1) << "Constraints build time: " << timer_constraints << std::endl;
+            KRATOS_INFO_IF("ImplicitScheme", mEchoLevel >= 1) << "Master-slave constraints build time: " << timer_constraints << std::endl;
 
             Timer::Stop("BuildConstraints");
         } else {
-            KRATOS_INFO_IF("ImplicitScheme", mEchoLevel >= 1) << "There are no constraints to build." << std::endl;
+            KRATOS_INFO_IF("ImplicitScheme", mEchoLevel >= 1) << "There are no master-slave constraints to build." << std::endl;
         }
     }
 
@@ -1212,7 +1159,8 @@ public:
             },
             "echo_level" : 0,
             "move_mesh" : false,
-            "reform_dofs_at_each_step" : false
+            "reform_dofs_at_each_step" : false,
+            "reform_effective_dofs_at_each_step" : false
         })");
 
         return default_parameters;
@@ -1247,6 +1195,15 @@ public:
     void SetReformDofsAtEachStep(const bool ReformDofsAtEachStep)
     {
         mReformDofsAtEachStep = ReformDofsAtEachStep;
+    }
+
+    /**
+     * @brief This method sets the value of mReformEffectiveDofsAtEachStep
+     * @param ReformEffectiveDofsAtEachStep If the flag must be set to true or false
+     */
+    void SetReformEffectiveDofsAtEachStep(const bool ReformEffectiveDofsAtEachStep)
+    {
+        mReformEffectiveDofsAtEachStep = ReformEffectiveDofsAtEachStep;
     }
 
     /**
@@ -1301,6 +1258,15 @@ public:
     }
 
     /**
+     * @brief This method returns if effective DOF sets have to be updated at each time step
+     * @return bool True if to be updated, false otherwise
+     */
+    bool GetReformEffectiveDofsAtEachStep() const
+    {
+        return mReformEffectiveDofsAtEachStep;
+    }
+
+    /**
      * @brief This method returns the echo level value (verbosity level)
      * @return int Echo level value
      */
@@ -1345,6 +1311,10 @@ protected:
     ///@name Protected member Variables
     ///@{
 
+    bool mLinearSystemIsInitialized = false;  /// Flag to indicate if the linear system has been initialized
+
+    bool mEffectiveLinearSystemIsInitialized = false;  /// Flag to indicate if the effective linear system has been initialized
+
     ///@}
     ///@name Protected Operators
     ///@{
@@ -1356,10 +1326,9 @@ protected:
     /**
      * @brief Auxiliary function to set up the implicit linear system of equations
      * The basic operations to be carried out in here are the following:
-     * 1) Set up the DOF arrays from the element and conditions DOFs and the corresponding effective ones accounting for the constraints
-     * 2) Set up the system ids (i.e., the DOFs equation ids), including the effective DOF ids, which may not match the "standard" ones
-     * 3) Allocate the memory for the linear system constraints arrays (note that the operations done in here may depend on the build type)
-     * 4) Allocate the memory for the system arrays (note that this implies building the sparse matrix graph)
+     * 1) Set up the DOF arrays from the element and conditions DOFs
+     * 2) Set up the system ids (i.e., the DOFs equation ids)
+     * 3) Allocate the memory for the system arrays (note that this implies building the sparse matrix graph)
      * @param rImplicitStrategyData Auxiliary container with the linear system arrays
      */
     void InitializeLinearSystem(ImplicitStrategyData<TLinearAlgebra>& rImplicitStrategyData)
@@ -1369,26 +1338,69 @@ protected:
         // Setting up the DOFs list
         BuiltinTimer setup_dofs_time;
         auto p_dof_set = rImplicitStrategyData.pGetDofSet();
-        auto p_eff_dof_set = rImplicitStrategyData.pGetEffectiveDofSet();
-        auto [eq_system_size, eff_eq_system_size] = this->SetUpDofArrays(p_dof_set, p_eff_dof_set);
-        KRATOS_INFO_IF("ImplicitScheme", this->GetEchoLevel() > 0) << "Setup DOFs Time: " << setup_dofs_time << std::endl;
+        DofArrayUtilities::SetUpDofArray(*mpModelPart, *p_dof_set, mEchoLevel); // Call the external utility to set up the DOFs array
+        KRATOS_INFO_IF("ImplicitScheme", mEchoLevel >= 2) << "Finished DOFs array set up." << std::endl;
+        KRATOS_INFO_IF("ImplicitScheme", this->GetEchoLevel() > 0) << "Set up DOFs time: " << setup_dofs_time << std::endl;
 
         // Set up the equation ids
         BuiltinTimer setup_system_ids_time;
-        this->SetUpSystemIds(p_dof_set, p_eff_dof_set);
-        KRATOS_INFO_IF("ImplicitScheme", this->GetEchoLevel() > 0) << "Set up system time: " << setup_system_ids_time << std::endl;
-        KRATOS_INFO_IF("ImplicitScheme", this->GetEchoLevel() > 0) << "Equation system size: " << eq_system_size << std::endl;
-        KRATOS_INFO_IF("ImplicitScheme", this->GetEchoLevel() > 0) << "Effective equation system size: " << eff_eq_system_size << std::endl;
+        // KRATOS_ERROR_IF(p_dof_set->empty()) << "DOFs set is empty. Call the 'SetUpDofArray' first." << std::endl; // Check if the provided DOF arrays have been already set
+        // DofArrayUtilities::SetDofEquationIds(*p_dof_set); // Call the external utility to set up the DOF ids
+        // KRATOS_INFO_IF("ImplicitScheme", mEchoLevel >= 2) << "Finished setting the DOF ids." << std::endl;
+        this->GetBuilder().SetDofEquationIds(rImplicitStrategyData); // Call the external utility to set up the DOF ids
+        KRATOS_INFO_IF("ImplicitScheme", this->GetEchoLevel() > 0) << "Set up DOFs equation ids time: " << setup_system_ids_time << std::endl;
+        KRATOS_INFO_IF("ImplicitScheme", this->GetEchoLevel() > 0) << "Equation system size: " << p_dof_set->size() << std::endl;
+
+        // Call the builder to allocate and initialize the system vectors
+        BuiltinTimer linear_system_allocation_time;
+        (this->GetBuilder()).AllocateLinearSystem(rImplicitStrategyData);
+        KRATOS_INFO_IF("ImplicitScheme", this->GetEchoLevel() > 0) << "Linear system allocation time: " << linear_system_allocation_time << std::endl;
+
+        // Set the flag to avoid reinitializing the linear system
+        mLinearSystemIsInitialized = true;
+
+        KRATOS_CATCH("")
+    }
+
+    /**
+     * @brief Initializes the effective linear system
+     * The operations to be carried out in here are the following:
+     * 1) Set up the effective DOF arrays based on the linear system constraints
+     * 2) Set up the effective system ids (i.e., the effective DOFs equation ids, which may not match the "standard" ones)
+     * 3) Allocate the memory for the linear system constraints arrays (note that the operations done in here may depend on the build type)
+     * 4) Allocate the memory for the effective system arrays
+     * @param rImplicitStrategyData
+     */
+    void InitializeEffectiveLinearSystem(ImplicitStrategyData<TLinearAlgebra>& rImplicitStrategyData)
+    {
+        KRATOS_TRY
+
+        // Setting up the effective DOFs list
+        BuiltinTimer setup_eff_dofs_time;
+        auto p_dof_set = rImplicitStrategyData.pGetDofSet();
+        auto p_eff_dof_set = rImplicitStrategyData.pGetEffectiveDofSet();
+        DofArrayUtilities::SetUpEffectiveDofArray(*mpModelPart, *p_dof_set, *p_eff_dof_set, mEchoLevel); // Call the external utility to set up the effective DOFs array
+        KRATOS_INFO_IF("ImplicitScheme", mEchoLevel >= 2) << "Finished effective DOFs array set up." << std::endl;
+        KRATOS_INFO_IF("ImplicitScheme", this->GetEchoLevel() > 0) << "Set up effective DOFs time: " << setup_eff_dofs_time << std::endl;
+
+        // Set up the effective equation ids
+        BuiltinTimer setup_eff_system_ids_time;
+        this->GetBuilder().SetDofEffectiveEquationIds(rImplicitStrategyData); // Call the builder to set up the effective DOF ids
+        KRATOS_INFO_IF("ImplicitScheme", this->GetEchoLevel() > 0) << "Set up effective equation ids time: " << setup_eff_system_ids_time << std::endl;
+        KRATOS_INFO_IF("ImplicitScheme", this->GetEchoLevel() > 0) << "Effective equation system size: " << p_eff_dof_set->size() << std::endl;
 
         // Allocating the system constraints arrays
         BuiltinTimer constraints_allocation_time;
         (this->GetBuilder()).AllocateLinearSystemConstraints(rImplicitStrategyData);
         KRATOS_INFO_IF("ImplicitScheme", this->GetEchoLevel() > 0) << "Linear system constraints allocation time: " << constraints_allocation_time << std::endl;
 
-        // Call the builder to allocate and initialize the system vectors
-        BuiltinTimer linear_system_allocation_time;
-        (this->GetBuilder()).AllocateLinearSystem(rImplicitStrategyData);
-        KRATOS_INFO_IF("ImplicitScheme", this->GetEchoLevel() > 0) << "Linear system allocation time: " << linear_system_allocation_time << std::endl;
+        // Call the builder to allocate and initialize the effective system vectors
+        BuiltinTimer eff_lin_sys_allocation_time;
+        (this->GetBuilder()).AllocateEffectiveLinearSystem(rImplicitStrategyData);
+        KRATOS_INFO_IF("ImplicitScheme", this->GetEchoLevel() > 0) << "Effective linear system allocation time: " << eff_lin_sys_allocation_time << std::endl;
+
+        // Set the flag to avoid reinitializing the effective linear system
+        mEffectiveLinearSystemIsInitialized = true;
 
         KRATOS_CATCH("")
     }
@@ -1559,6 +1571,7 @@ protected:
         mMoveMesh = ThisParameters["move_mesh"].GetBool();
         mEchoLevel = ThisParameters["echo_level"].GetInt();
         mReformDofsAtEachStep = ThisParameters["reform_dofs_at_each_step"].GetBool();
+        mReformEffectiveDofsAtEachStep = mReformDofsAtEachStep ? true : ThisParameters["reform_effective_dofs_at_each_step"].GetBool();
     }
 
     ///@}
@@ -1605,7 +1618,9 @@ private:
 
     bool mMoveMesh = false; /// Flag to activate the mesh motion from the DISPLACEMENT variable
 
-    bool mReformDofsAtEachStep = false; /// Flag to indicate if the DOF sets are required to be computed at each time step
+    bool mReformDofsAtEachStep = false; /// Flag to indicate if the DOF sets are required to be computed at each time step (e.g., remeshing)
+
+    bool mReformEffectiveDofsAtEachStep = false; /// Flag to indicate if the effective DOF sets are required to be computed at each time step (e.g., constraints changing)
 
     ModelPart* mpModelPart = nullptr; /// Pointer to the ModelPart the scheme refers to
 

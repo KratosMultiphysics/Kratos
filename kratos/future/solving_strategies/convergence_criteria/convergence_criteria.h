@@ -24,6 +24,8 @@
 #include "containers/system_vector.h"
 #include "containers/distributed_system_vector.h"
 #ifdef KRATOS_USE_FUTURE
+#include "future/containers/linear_system_tags.h"
+#include "future/solving_strategies/schemes/implicit_scheme.h"
 #include "future/solving_strategies/strategies/implicit_strategy_data.h"
 #endif
 
@@ -78,6 +80,9 @@ public:
 
     /// The DOFs array type
     using DofsArrayType = typename ModelPart::DofsArrayType;
+
+    // Scheme pointer type definition
+    using SchemePointerType = typename ImplicitScheme<TLinearAlgebra>::Pointer;
 
     ///@}
     ///@name Life Cycle
@@ -142,17 +147,17 @@ public:
      * @warning Must be defined on the derived classes
      * @return true if the solution is converged, false otherwise
      */
-    virtual bool IsConverged(ImplicitStrategyData<TLinearAlgebra>& rImplicitStrategyData)
-    {
-        KRATOS_ERROR << "Calling the base class IsConverged method. This should be implemented in the derived class." << std::endl;
-        return false;
-    }
+    virtual bool IsConverged(const ImplicitStrategyData<TLinearAlgebra>& rImplicitStrategyData)
+        {
+            KRATOS_ERROR << "Calling the base class IsConverged method. This should be implemented in the derived class." << std::endl;
+            return false;
+        }
 
     /**
      * @brief This function initialize the convergence criteria
      * @param rImplicitStrategyData Data container of the implicit strategy
      */
-    virtual void Initialize(ImplicitStrategyData<TLinearAlgebra> &rImplicitStrategyData)
+    virtual void Initialize(const ImplicitStrategyData<TLinearAlgebra> &rImplicitStrategyData)
     {
     }
 
@@ -260,9 +265,16 @@ public:
     ///@name Inquiry
     ///@{
 
-    virtual bool RequiresResidual() const
+    virtual bool RequiresBuild() const
     {
+        KRATOS_ERROR << "Calling base class 'RequiresBuild'." << std::endl;
         return false;
+    }
+
+    virtual LinearSystemTags::DenseVectorTag GetConvergenceCheckVectorTag() const
+    {
+        KRATOS_ERROR << "Calling base class 'GetConvergenceCheckVectorTag'." << std::endl;
+        return LinearSystemTags::DenseVectorTag::Dx;
     }
 
     ///@}
@@ -320,78 +332,38 @@ protected:
         mEchoLevel = ThisParameters["echo_level"].GetInt();
     }
 
-    /**
-     * @brief This method computes the norm of the given serial system vector
-     * @details Note that only the free DOFs are considered in the norm calculation.
-     * @param rDofSet Reference to the container of the problem's DOFs
-     * @param rVector The vector whose norm is to be computed
-     * @return A pair containing the number of free DOFs and the norm of the vector
-     */
-    std::pair<std::size_t, DataType> CalculateVectorNorm(
-        const DofsArrayType& rDofSet,
-        const SystemVector<DataType, IndexType>& rVector)
-    {
-        // Define custom reduction for parallel computation
-        // First item in the reduction tuple: sum of the squared norm of the variation of the DOFs
-        // Second item in the reduction tuple: number of free DOFs
-        using CustomReductionType = CombinedReduction<SumReduction<DataType>,SumReduction<std::size_t>>;
 
-        // Loop over Dofs and add the contribution of each free DOF to the norm
-        DataType vector_norm;
+    std::pair<DataType,std::size_t> CalculateConvergenceVectorNorm(const ImplicitStrategyData<TLinearAlgebra>& rImplicitStrategyData) const
+    {
+        // Get the effective vector from which convergence will be check and its corresponding effective DOF set
+        const auto conv_vect_tag = this->GetConvergenceCheckVectorTag();
+        const auto& r_eff_dof_set = *(rImplicitStrategyData.pGetEffectiveDofSet());
+        const auto& r_eff_conv_vect = *(rImplicitStrategyData.pGetEffectiveLinearSystem()->pGetVector(conv_vect_tag));
+
+        // Custom reduction to return both the norm and the number of free DOFs
+        using CustomReduction = CombinedReduction<SumReduction<DataType>,SumReduction<std::size_t>>;
+
+        // Allocate output variables for reduction
+        DataType conv_vect_norm;
         std::size_t n_free_dofs;
-        std::tie(vector_norm, n_free_dofs) = block_for_each<CustomReductionType>(rDofSet, [&rVector](auto& rDof) {
-            if (rDof.IsFree()) {
-                return std::make_tuple(std::pow(rVector[rDof.EquationId()], 2), 1);
+
+        // Loop the effective vector to calculate the norm considering only the values associated to the free DOFs
+        // Note that here it is assumed that the effective DOF equation ids are smaller than the problem size (i.e., the size of the effective vector)
+        const std::size_t pb_size = r_eff_conv_vect.size();
+        const std::size_t n_eff_dofs = r_eff_dof_set.size();
+        std::tie(conv_vect_norm, n_free_dofs) = (IndexPartition<IndexType>(n_eff_dofs)).template for_each<CustomReduction>([&](IndexType Index) {
+            const auto it_eff_dof = r_eff_dof_set.begin() + Index;
+            const std::size_t eff_eq_id = it_eff_dof->EffectiveEquationId();
+            if (it_eff_dof->IsFree() && eff_eq_id < pb_size) {
+                const DataType value = r_eff_conv_vect[eff_eq_id];
+                return std::make_tuple(value * value, 1);
             } else {
                 return std::make_tuple(DataType(), 0);
             }
         });
 
-        return std::make_pair(n_free_dofs, std::sqrt(vector_norm));
-    }
-
-    /**
-     * @brief This method computes the norm of the given distributed systemvector
-     * @details Note that only the free DOFs are considered in the norm calculation.
-     * @param rDofSet Reference to the container of the problem's DOFs
-     * @param rVector The vector whose norm is to be computed
-     * @return A pair containing the number of free DOFs and the norm of the vector
-     * @note TODO: implementation to be tested when the distributed environment implementation is completed
-     */
-    std::pair<std::size_t, DataType> CalculateVectorNorm(
-        const DofsArrayType& rDofSet,
-        const DistributedSystemVector<DataType, IndexType>& rVector)
-    {
-        // Retrieve the data communicator
-        const auto& r_data_communicator = mpModelPart->GetCommunicator().GetDataCommunicator();
-
-        // Define custom reduction for parallel computation
-        // First item in the reduction tuple: sum of the squared norm of the variation of the DOFs
-        // Second item in the reduction tuple: number of free DOFs
-        using CustomReductionType = CombinedReduction<SumReduction<DataType>,SumReduction<std::size_t>>;
-
-        // Loop over Dofs and add the contribution of each free DOF to the norm
-        // Note that only local contributions from each rank are considered
-        DataType vector_norm;
-        std::size_t n_free_dofs;
-        std::tie(vector_norm, n_free_dofs) = block_for_each<CustomReductionType>(rDofSet, [&rVector](auto& rDof) {
-            IndexType gl_eq_id = rDof.EquationId();
-            if (rVector.GetNumbering().IsLocal(gl_eq_id)) {
-                if (rDof.IsFree()) {
-                    const auto& r_local_data = rVector.GetLocalData();
-                    IndexType loc_eq_id = rVector.GetNumbering().LocalId(gl_eq_id);
-                    return std::make_tuple(std::pow(r_local_data[loc_eq_id], 2), 1);
-                } else {
-                    return std::make_tuple(DataType(), 0);
-                }
-            }
-        });
-
-        // Communicator reduction
-        n_free_dofs = r_data_communicator.SumAll(n_free_dofs);
-        vector_norm = std::sqrt(r_data_communicator.SumAll(vector_norm));
-
-        return std::make_pair(n_free_dofs, vector_norm);
+        // Return a pair with the vector norm and the number of free DOFs found during its calculation
+        return std::make_pair(sqrt(conv_vect_norm), n_free_dofs);
     }
 
     ///@}

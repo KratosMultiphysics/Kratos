@@ -22,6 +22,7 @@
 #include "utilities/parallel_utilities.h"
 #include "utilities/reduction_utilities.h"
 #ifdef KRATOS_USE_FUTURE
+#include "future/containers/linear_system_tags.h"
 #include "future/solving_strategies/convergence_criteria/convergence_criteria.h"
 #endif
 
@@ -108,12 +109,6 @@ public:
     ///@name Operations
     ///@{
 
-    /**
-     * @brief This method creates a new instance of the convergence criteria
-     * @param rModelPart The model part of the problem
-     * @param ThisParameters The configuration parameters
-     * @return A pointer to the new instance
-     */
     typename BaseType::Pointer Create(
         ModelPart& rModelPart,
         Parameters ThisParameters) const override
@@ -121,39 +116,41 @@ public:
         return Kratos::make_shared<ClassType>(rModelPart, ThisParameters);
     }
 
-    /**
-     * @brief Checks if the solution is converged
-     * @param rImplicitStrategyData Data container of the implicit strategy
-     * @return true if the solution is converged, false otherwise
-     */
-    bool IsConverged(ImplicitStrategyData<TLinearAlgebra> &rImplicitStrategyData) override
+    void InitializeSolutionStep(const ImplicitStrategyData<TLinearAlgebra> &rImplicitStrategyData) override
     {
-        // Get effective solution residual vector
-        // Note that this already accounts for MPC constraints
-        const auto p_eff_dof_set = rImplicitStrategyData.pGetEffectiveDofSet();
+        BaseType::InitializeSolutionStep(rImplicitStrategyData);
+
+        // Calculate the residual norm at the beginning of the solution step
+        // Note that this will be used as reference for the convergence ratio
+        mInitialResidualNorm = std::get<0>(this->CalculateConvergenceVectorNorm(rImplicitStrategyData));
+    }
+
+    bool IsConverged(const ImplicitStrategyData<TLinearAlgebra> &rImplicitStrategyData) override
+    {
+        // Check if we are solving forsomething (i.e., not all DOFs are fixed)
         const auto p_eff_lin_sys = rImplicitStrategyData.pGetEffectiveLinearSystem();
         const auto p_eff_rhs = p_eff_lin_sys->pGetVector(Future::LinearSystemTags::DenseVectorTag::RHS);
-
-        // Check if we are solving forsomething (i.e., not all DOFs are fixed)
         if (p_eff_rhs->size() == 0) {
             return true;
         }
 
         // Calculate the norm of the current residual (RHS)
-        const auto [n_free_dofs, eff_rhs_norm] = this->CalculateVectorNorm(*p_eff_dof_set, *p_eff_rhs);
+        const auto norm_output = this->CalculateConvergenceVectorNorm(rImplicitStrategyData);
+        const DataType res_norm = std::get<0>(norm_output);
+        const std::size_t n_free_dofs = std::get<1>(norm_output);
 
         // Calculate convergence ratio
         auto& r_model_part = this->GetModelPart();
-        const DataType ratio = mInitialResidualNorm < std::numeric_limits<DataType>::epsilon() ? 0.0 : eff_rhs_norm / mInitialResidualNorm;
+        const DataType ratio = mInitialResidualNorm < std::numeric_limits<DataType>::epsilon() ? 0.0 : res_norm / mInitialResidualNorm;
         r_model_part.GetProcessInfo()[CONVERGENCE_RATIO] = ratio;
 
         // Calculate absolute residual norm (RHS / sqrt(ndof))
-        const DataType absolute_norm = (eff_rhs_norm / std::sqrt(static_cast<DataType>(n_free_dofs)));
+        const DataType absolute_norm = (res_norm / std::sqrt(static_cast<DataType>(n_free_dofs)));
         r_model_part.GetProcessInfo()[RESIDUAL_NORM] = absolute_norm;
 
         // Print current iteration information
         const int rank = r_model_part.GetCommunicator().GetDataCommunicator().Rank();
-        KRATOS_INFO_IF("ResidualCriterion", this->GetEchoLevel() > 1 && rank == 0) << " :: [Initial residual norm = " << mInitialResidualNorm << "; Current residual norm =  " << eff_rhs_norm << "]" << std::endl;
+        KRATOS_INFO_IF("ResidualCriterion", this->GetEchoLevel() > 1 && rank == 0) << " :: [Initial residual norm = " << mInitialResidualNorm << "; Current residual norm =  " << res_norm << "]" << std::endl;
         KRATOS_INFO_IF("ResidualCriterion", this->GetEchoLevel() > 0 && rank == 0) << " :: [Obtained ratio = " << ratio << "; Expected ratio = " << mRelativeTolerance << "; Absolute norm = " << absolute_norm << "; Expected norm =  " << mAbsoluteTolerance << "]" << std::endl;
 
         // Check convergence
@@ -161,26 +158,6 @@ public:
         KRATOS_INFO_IF("ResidualCriterion", is_converged && this->GetEchoLevel() > 0 && rank == 0) << "Convergence achieved" << std::endl;
 
         return is_converged;
-    }
-
-    /**
-     * @brief This function initializes the solution step
-     * @param rImplicitStrategyData Data container of the implicit strategy
-     */
-    void InitializeSolutionStep(const ImplicitStrategyData<TLinearAlgebra>& rImplicitStrategyData) override
-    {
-        BaseType::InitializeSolutionStep(rImplicitStrategyData);
-
-        // Get effective solution residual vector
-        // Note that this already accounts for MPC constraints
-        const auto p_eff_dof_set = rImplicitStrategyData.pGetEffectiveDofSet();
-        const auto p_eff_lin_sys = rImplicitStrategyData.pGetEffectiveLinearSystem();
-        const auto p_eff_rhs = p_eff_lin_sys->pGetVector(Future::LinearSystemTags::DenseVectorTag::RHS);
-
-        // Calculate the residual norm at the beginning of the solution step
-        // Note that this will be used as reference for the convergence ratio
-        const auto output = this->CalculateVectorNorm(*p_eff_dof_set, *p_eff_rhs);
-        mInitialResidualNorm = std::get<1>(output);
     }
 
     /**
@@ -218,9 +195,14 @@ public:
     ///@name Inquiry
     ///@{
 
-    bool RequiresResidual() const override
+    bool RequiresBuild() const override
     {
         return true;
+    }
+
+    LinearSystemTags::DenseVectorTag GetConvergenceCheckVectorTag() const override
+    {
+        return LinearSystemTags::DenseVectorTag::RHS;
     }
 
     ///@}

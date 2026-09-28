@@ -176,9 +176,14 @@ public:
     {
         KRATOS_TRY
 
-        // If needed, reset the DOF sets before applying the constraints and the prediction
-        if (this->GetReformDofsAtEachStep()) {
+        // If needed (e.g., connectivity changes), reset the DOF sets before applying the constraints and the prediction
+        if (this->GetReformDofsAtEachStep() || !this->mLinearSystemIsInitialized) {
             this->InitializeLinearSystem(rImplicitStrategyData);
+        }
+
+        // If needed (e.g., constraints or BCs in elimination build change), reset the effective DOF sets before applying the constraints and the prediction
+        if (this->GetReformEffectiveDofsAtEachStep() || !this->mEffectiveLinearSystemIsInitialized) {
+            this->InitializeEffectiveLinearSystem(rImplicitStrategyData);
         }
 
         // Applying constraints if needed
@@ -193,7 +198,7 @@ public:
             // Note that the constraints constant vector is applied only once in here as we then solve for the solution increment
             auto p_constraints_T = rImplicitStrategyData.pGetConstraintsT();
             auto p_constraints_Q = rImplicitStrategyData.pGetConstraintsQ();
-            this->BuildMasterSlaveConstraints(rImplicitStrategyData);
+            this->BuildMasterSlaveConstraints(rImplicitStrategyData); //FIXME: I think this call must happen at the strategy level and in here we check if the constraints have been already built
 
             // Fill the current values vector considering the master-slave constraints
             // Note that this already accounts for the Dirichlet BCs affecting the effective DOF set

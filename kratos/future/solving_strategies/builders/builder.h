@@ -78,6 +78,9 @@ public:
     /// DOF pointer vector type definition
     using DofPointerVectorType = typename MasterSlaveConstraint::DofPointerVectorType;
 
+    /// Linear system type definition
+    using LinearSystemType = LinearSystem<TLinearAlgebra>;
+
     ///@}
     ///@name Life Cycle
     ///@{
@@ -112,32 +115,75 @@ public:
      * This method allocates the memory for the linear system arrays
      * Note that the sizes of the resultant arrays depend on the build type
      * @param rSparseGraph Reference to the linear system sparse graph
-     * @param pLinearSystemContainer Auxiliary container with the linear system arrays
+     * @param rImplicitStrategyData Auxiliary container with the linear system arrays
      */
     virtual void AllocateLinearSystem(
-        const SparseGraphType& rSparseGraph,
-        ImplicitStrategyData<TLinearAlgebra> &rLinearSystemContainer)
+        const SparseGraphType &rSparseGraph,
+        ImplicitStrategyData<TLinearAlgebra> &rImplicitStrategyData)
     {
-        KRATOS_ERROR << "Calling base class 'AllocateLinearSystem'." << std::endl;
+        // Set the system arrays
+        // Note that the graph-based constructor does both resizing and initialization
+        auto p_dx = Kratos::make_shared<VectorType>(rSparseGraph);
+        auto p_rhs = Kratos::make_shared<VectorType>(rSparseGraph);
+        auto p_lhs = Kratos::make_shared<MatrixType>(rSparseGraph);
+
+        // Set the linear system with the arrays above
+        auto p_lin_sys = Kratos::make_shared<LinearSystemType>(p_lhs, p_rhs, p_dx, "LinearSystem");
+        rImplicitStrategyData.pSetLinearSystem(p_lin_sys);
     }
 
     /**
      * @brief Allocates the memory for the linear system arrays
      * This method calculates the sparse graph and allocates the memory for the linear system arrays
      * Note that the sizes of the resultant arrays depend on the build type
-     * @param pLinearSystemContainer Auxiliary container with the linear system arrays
+     * @param rImplicitStrategyData Auxiliary container with the linear system arrays
      */
-    virtual void AllocateLinearSystem(ImplicitStrategyData<TLinearAlgebra> &rLinearSystemContainer)
+    virtual void AllocateLinearSystem(ImplicitStrategyData<TLinearAlgebra> &rImplicitStrategyData)
     {
         // Set up the system sparse matrix graph (note that the sparse graph will be destroyed when leaving this scope)
         BuiltinTimer sparse_matrix_graph_time;
-        auto p_dof_set = rLinearSystemContainer.pGetDofSet();
+        auto p_dof_set = rImplicitStrategyData.pGetDofSet();
         SparseGraphType sparse_matrix_graph(p_dof_set->size());
         this->SetUpSparseMatrixGraph(sparse_matrix_graph);
-        KRATOS_INFO_IF("BlockBuilder", this->GetEchoLevel() > 0) << "Set up sparse matrix graph time: " << sparse_matrix_graph_time << std::endl;
+        KRATOS_INFO_IF("Builder", this->GetEchoLevel() > 0) << "Set up sparse matrix graph time: " << sparse_matrix_graph_time << std::endl;
 
         // Allocate the linear system
-        this->AllocateLinearSystem(sparse_matrix_graph, rLinearSystemContainer);
+        this->AllocateLinearSystem(sparse_matrix_graph, rImplicitStrategyData);
+    }
+
+    /**
+     * @brief Allocates the memory for the effective linear system arrays
+     * Needs to be implemented in the derived classes as the effective linear system size may depend on the build type
+     * @param rImplicitStrategyData
+     */
+    virtual void AllocateEffectiveLinearSystem(ImplicitStrategyData<TLinearAlgebra> &rImplicitStrategyData)
+    {
+        KRATOS_ERROR << "Calling base class 'AllocateEffectiveLinearSystem'." << std::endl;
+    }
+
+    /**
+     * @brief Set the Dof Equation Ids
+     * This method sets the DOF equation ids in the provided DOF
+     * Needs to be implemented in the derived classes as the DOF set is build according to the build type
+     * @param rImplicitStrategyData Auxiliary container with the linear system arrays
+     * @return std::size_t The size of the original (i.e., non-effective) system of equations
+     */
+    virtual void SetDofEquationIds(ImplicitStrategyData<TLinearAlgebra>& rImplicitStrategyData)
+    {
+        KRATOS_ERROR << "Calling base class 'SetDofEquationIds'." << std::endl;
+    }
+
+    /**
+     * @brief Set the Effective Dof Equation Ids
+     * This method sets the effective DOF equation ids based on the provided DOF set and the corresponding effective one
+     * Furthermore, this method is expected to also set the mProblemSize value based on the effective DOFs equation ids
+     * Needs to be implemented in the derived classes as the effective DOF set is build according to the build type
+     * @param rImplicitStrategyData Auxiliary container with the linear system arrays
+     * @return std::size_t The size of the system to be solved
+     */
+    virtual void SetDofEffectiveEquationIds(ImplicitStrategyData<TLinearAlgebra>& rImplicitStrategyData)
+    {
+        KRATOS_ERROR << "Calling base class 'SetDofEffectiveEquationIds'." << std::endl;
     }
 
     /**
@@ -146,7 +192,7 @@ public:
      * Note that the sizes of the resultant arrays depend on the build type
      * @param rLinearSystemContainer Auxiliary container with the linear system arrays
      */
-    virtual void AllocateLinearSystemConstraints(ImplicitStrategyData<TLinearAlgebra>& rLinearSystemContainer)
+    virtual void AllocateLinearSystemConstraints(ImplicitStrategyData<TLinearAlgebra>& rImplicitStrategyData)
     {
         KRATOS_ERROR << "Calling base class 'AllocateLinearSystemConstraints'." << std::endl;
     }
@@ -258,11 +304,11 @@ public:
      * Note that linear system constraints includes both the master-slave and the Dirichlet
      * constraints. The way the constraints are applied will be reimplemented and applied
      * in the derived classes depending on the build type.
-     * @param rLinearSystemContainer Auxiliary container with the linear system arrays
+     * @param rImplicitStrategyData Auxiliary container with the linear system arrays
      * @param SkipLeftHandSide Flag to indicate if the application to the LeftHandSide should be skipped (default = false)
      */
     virtual void ApplyLinearSystemConstraints(
-        ImplicitStrategyData<TLinearAlgebra>& rLinearSystemContainer,
+        ImplicitStrategyData<TLinearAlgebra>& rImplicitStrategyData,
         bool SkipLeftHandSide = false)
     {
         KRATOS_ERROR << "Calling base class 'ApplyLinearSystemConstraints'." << std::endl;
@@ -349,6 +395,26 @@ public:
         return mEchoLevel;
     }
 
+    /**
+     * @brief Get the Echo Level object
+     * Returns the echo level member variable
+     * @return const std::size_t Level of information that is output
+     */
+    const std::size_t GetProblemSize() const
+    {
+        return mProblemSize;
+    }
+
+    ///@}
+protected:
+    ///@name Protected Access
+    ///@{
+
+    void SetProblemSize(std::size_t ProblemSize)
+    {
+        mProblemSize = ProblemSize;
+    }
+
     ///@}
 private:
     ///@name Member Variables
@@ -357,6 +423,8 @@ private:
     const ModelPart* mpModelPart = nullptr; /// Pointer to the model part the builder will refer to
 
     std::size_t mEchoLevel; /// Level of information that is output
+
+    std::size_t mProblemSize = 0; /// Size of the effective problem to be solved
 
     ///@}
     ///@name Private Operations

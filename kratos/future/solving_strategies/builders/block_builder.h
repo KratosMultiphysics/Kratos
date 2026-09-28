@@ -57,7 +57,7 @@ public:
     /// Base builder type definition
     using BaseType = Builder<TLinearAlgebra>;
 
-    /// Index type definition from sparse matrix
+    /// Index type definition
     using IndexType = typename TLinearAlgebra::IndexType;
 
     /// Matrix type definition
@@ -79,7 +79,7 @@ public:
     using DofPointerVectorType = typename BaseType::DofPointerVectorType;
 
     /// Linear system type definition
-    using LinearSystemType = LinearSystem<TLinearAlgebra>;
+    using LinearSystemType = typename BaseType::LinearSystemType;
 
     /// Dense vector tag type definition
     using DenseVectorTag = typename LinearSystemTags::DenseVectorTag;
@@ -117,24 +117,67 @@ public:
     ///@name Operations
     ///@{
 
-    void AllocateLinearSystem(
-        const SparseGraphType& rSparseGraph,
-        ImplicitStrategyData<TLinearAlgebra> &rImplicitStrategyData) override
+    void SetDofEquationIds(ImplicitStrategyData<TLinearAlgebra> &rImplicitStrategyData) override
     {
-        // Set the system arrays
-        // Note that the graph-based constructor does both resizing and initialization
-        auto p_dx = Kratos::make_shared<VectorType>(rSparseGraph);
-        auto p_rhs = Kratos::make_shared<VectorType>(rSparseGraph);
-        auto p_lhs = Kratos::make_shared<MatrixType>(rSparseGraph);
+        // Set up the DOFs equation global ids
+        auto& r_dof_set = *(rImplicitStrategyData.pGetDofSet());
+        KRATOS_ERROR_IF(r_dof_set.empty()) << "DOFs set is empty. Set up the DOFs array first." << std::endl;
+        IndexPartition<IndexType>(r_dof_set.size()).for_each([&](IndexType Index) {
+            auto it_dof = r_dof_set.begin() + Index;
+            it_dof->SetEquationId(Index);
+        });
+    }
 
-        // Set the linear system with the arrays above
-        auto p_lin_sys = Kratos::make_shared<LinearSystemType>(p_lhs, p_rhs, p_dx, "LinearSystem");
-        rImplicitStrategyData.pSetLinearSystem(p_lin_sys);
+    void SetDofEffectiveEquationIds(ImplicitStrategyData<TLinearAlgebra> &rImplicitStrategyData) override
+    {
+        KRATOS_TRY
 
+        // Get the DOFs and effective DOFs containers and check they are not empty
+        auto& r_dof_set = *(rImplicitStrategyData.pGetDofSet());
+        auto& r_eff_dof_set = *(rImplicitStrategyData.pGetEffectiveDofSet());
+        KRATOS_ERROR_IF(r_dof_set.empty()) << "DOFs set is empty. Set up the DOFs array first." << std::endl;
+        KRATOS_ERROR_IF(r_eff_dof_set.empty()) << "Effective DOFs set is empty. Set up the effective DOFs array first." << std::endl;
+
+        // Check if the effective and "standard" containers are the same
+        // We do it with the addresses to avoid checking the content (i.e., each DOF one-by-one)
+        if (&r_eff_dof_set == &r_dof_set) {
+            // Set the DOFs' effective equation global ids to match the standard ones
+            IndexPartition<IndexType>(r_eff_dof_set.size()).for_each([&](IndexType Index) {
+                auto it_dof = r_eff_dof_set.begin() + Index;
+                it_dof->SetEffectiveEquationId(it_dof->EquationId());
+            });
+        } else {
+            // Initialize all DOFs effective equation ids to the maximum allowable value
+            // Note that this makes possible to distingish the effective DOFs from the non-effective ones
+            IndexPartition<IndexType>(r_dof_set.size()).for_each([&](IndexType Index) {
+                auto it_dof = r_dof_set.begin() + Index;
+                it_dof->SetEffectiveEquationId(std::numeric_limits<typename Node::DofType::EquationIdType>::max());
+            });
+
+            // Set the effective DOFs equation ids
+            // Note that in here we assume the effective DOFs to be already sorted
+            IndexPartition<IndexType>(r_eff_dof_set.size()).for_each([&](IndexType Index) {
+                auto it_dof = r_eff_dof_set.begin() + Index;
+                it_dof->SetEffectiveEquationId(Index);
+            });
+        }
+
+        // Set the number of effective DOFs to the effective DOF set size as block build includes both fixed and free DOFs to the system
+        this->SetProblemSize(r_eff_dof_set.size());
+
+        KRATOS_CATCH("");
+    }
+
+    void AllocateEffectiveLinearSystem(ImplicitStrategyData<TLinearAlgebra> &rImplicitStrategyData) override
+    {
         // Set the effective arrays and corresponding linear system
         if (rImplicitStrategyData.RequiresEffectiveDofSet()) {
             // If there are no constraints the effective arrays are the same as the global ones
             // Note that we avoid duplicating the memory by making the effective pointers to point to the same object
+            auto p_lin_sys = rImplicitStrategyData.pGetLinearSystem();
+            auto p_dx = p_lin_sys->pGetVector(DenseVectorTag::Dx);
+            auto p_rhs = p_lin_sys->pGetVector(DenseVectorTag::RHS);
+            auto p_lhs = p_lin_sys->pGetMatrix(SparseMatrixTag::LHS);
             auto p_eff_lin_sys = Kratos::make_shared<LinearSystemType>(p_lhs, p_rhs, p_dx, "EffectiveLinearSystem");
             rImplicitStrategyData.pSetEffectiveLinearSystem(p_eff_lin_sys);
         } else {
@@ -282,7 +325,7 @@ private:
         // Note that we initialize to 1 so we start assuming all free
         // Also note that the type is uint_8 for the sake of efficiency
         const std::size_t system_size = rLHS.size1();
-        std::vector<uint8_t> free_dofs_vector(system_size, 1);
+        std::vector<uint8_t> free_dofs_vector(system_size, 1); //FIXME: this is only valid for the serial case (distributed case use the distributed vector here, that is VectorType)
 
         // Loop the DOFs to find which ones are fixed
         // Note that DOFs are assumed to be numbered consecutively in the block building

@@ -114,12 +114,6 @@ public:
     ///@name Operations
     ///@{
 
-    /**
-     * @brief This method creates a new instance of the convergence criteria
-     * @param rModelPart The model part of the problem
-     * @param ThisParameters The configuration parameters
-     * @return A pointer to the new instance
-     */
     typename BaseType::Pointer Create(
         ModelPart& rModelPart,
         Parameters ThisParameters) const override
@@ -127,41 +121,35 @@ public:
         return Kratos::make_shared<ClassType>(rModelPart, ThisParameters);
     }
 
-    /**
-     * @brief Checks if the solution is converged
-     * @param rImplicitStrategyData Data container of the implicit strategy
-     * @return true if the solution is converged, false otherwise
-     */
-    bool IsConverged(ImplicitStrategyData<TLinearAlgebra>& rImplicitStrategyData) override
+    bool IsConverged(const ImplicitStrategyData<TLinearAlgebra> &rImplicitStrategyData) override
     {
-        // Get effective solution vector
-        // Note that this already accounts for MPC constraints
-        const auto p_eff_dof_set = rImplicitStrategyData.pGetEffectiveDofSet();
+        // Check if we are solving forsomething (i.e., not all DOFs are fixed)
         const auto p_eff_lin_sys = rImplicitStrategyData.pGetEffectiveLinearSystem();
         const auto p_eff_dx = p_eff_lin_sys->pGetVector(Future::LinearSystemTags::DenseVectorTag::Dx);
-
-        // Check if we are solving forsomething (i.e., not all DOFs are fixed)
         if (p_eff_dx->size() == 0) {
             return true;
         }
 
-        // Calculate the norm of the solution increment (dx)
-        const auto [n_free_dofs, eff_dx_norm] = this->CalculateVectorNorm(*p_eff_dof_set, *p_eff_dx);
+        // Calculate the norm of the solution increment vector considering only the free DOFs
+        const auto norm_output = this->CalculateConvergenceVectorNorm(rImplicitStrategyData);
+        const DataType dx_norm = std::get<0>(norm_output);
+        const std::size_t n_free_dofs = std::get<1>(norm_output);
 
         // Calculate the norm of the solution (reference norm)
-        DataType sol_norm = CalculateSolutionNorm(*p_eff_dof_set);
+        const auto& r_eff_dof_set = *(rImplicitStrategyData.pGetEffectiveDofSet());
+        DataType sol_norm = CalculateSolutionNorm(r_eff_dof_set);
         if (sol_norm < std::numeric_limits<DataType>::epsilon()) {
             KRATOS_WARNING("SolutionCriteria") << "Zero solution norm detected. Setting reference norm to dx norm" << std::endl;
-            sol_norm = eff_dx_norm;
+            sol_norm = dx_norm;
         }
 
         // Calculate convergence ratio
         auto& r_model_part = this->GetModelPart();
-        const DataType ratio = eff_dx_norm < std::numeric_limits<DataType>::epsilon() ? 0.0 : eff_dx_norm / sol_norm;
+        const DataType ratio = dx_norm < std::numeric_limits<DataType>::epsilon() ? 0.0 : dx_norm / sol_norm;
         r_model_part.GetProcessInfo()[CONVERGENCE_RATIO] = ratio;
 
         // Calculate absolute solution increment norm (dx / sqrt(ndof))
-        const DataType absolute_norm = (eff_dx_norm / std::sqrt(static_cast<DataType>(n_free_dofs)));
+        const DataType absolute_norm = (dx_norm / std::sqrt(static_cast<DataType>(n_free_dofs)));
         r_model_part.GetProcessInfo()[RESIDUAL_NORM] = absolute_norm;
 
         // Print current iteration information
@@ -210,6 +198,16 @@ public:
     ///@}
     ///@name Inquiry
     ///@{
+
+    bool RequiresBuild() const override
+    {
+        return false;
+    }
+
+    LinearSystemTags::DenseVectorTag GetConvergenceCheckVectorTag() const override
+    {
+        return LinearSystemTags::DenseVectorTag::Dx;
+    }
 
     ///@}
     ///@name Input and output
@@ -319,7 +317,7 @@ private:
      * @param rDofSet Reference to the container of the problem's degrees of freedom (stored by the BuilderAndSolver)
      * @return The norm of the solution
      */
-    DataType CalculateSolutionNorm(DofsArrayType& rDofSet)
+    DataType CalculateSolutionNorm(const DofsArrayType& rDofSet)
     {
         // Retrieve the data communicator
         const auto& r_model_part = this->GetModelPart();
@@ -348,7 +346,8 @@ private:
             // Loop over Dofs and add the contribution of each free DOF to the norm
             sol_norm = block_for_each<SumReduction<DataType>>(rDofSet, [](auto& rDof) {
                 if (rDof.IsFree()) {
-                    return std::pow(rDof.GetSolutionStepValue(), 2);
+                    const DataType value = rDof.GetSolutionStepValue();
+                    return value * value;
                 } else {
                     return DataType();
                 }

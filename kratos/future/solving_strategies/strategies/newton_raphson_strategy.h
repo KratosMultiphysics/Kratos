@@ -202,20 +202,19 @@ public:
         // Note that this calls the InitializeSolutionStep of the scheme
         BaseType::InitializeSolutionStep();
 
-        // Calculate residual in case the convergence criteria is residual-based
-        if (this->pGetConvergenceCriteria()->RequiresResidual()) {
-            // Get scheme pointer
-            auto p_scheme = this->pGetScheme();
+        //FIXME: I think we should build the constraints here (once if the effective dof set doesn't change or at every time step)
+        //FIXME: Indeed, I think we are building the constraints twice (one in the predict and then here)
 
-            // Initialize residual vector
-            auto p_linear_system = this->GetImplicitStrategyData().pGetLinearSystem();
-            auto& r_rhs = *(p_linear_system->pGetVector(DenseVectorTag::RHS));
-            r_rhs.SetValue(0.0);
-
-            // Build the residual and apply Dirichlet conditions and constraints to it
-            p_scheme->Build(r_rhs);
-            p_scheme->BuildLinearSystemConstraints(this->GetImplicitStrategyData());
-            p_scheme->ApplyLinearSystemConstraints(this->GetImplicitStrategyData(), true); // The true flag skips the LHS application
+        // If required by the convergence criteria, perform a build of the residual vector
+        // Note that the linear system constraints are not built again as they are not expected to change during the solution step
+        auto p_scheme = this->pGetScheme();
+        auto& r_strategy_data_container = this->GetImplicitStrategyData();
+        if (this->pGetConvergenceCriteria()->RequiresBuild()) {
+            auto p_rhs = r_strategy_data_container.pGetLinearSystem()->pGetVector(DenseVectorTag::RHS);
+            p_rhs->SetValue(0.0);
+            p_scheme->Build(*p_rhs);
+            p_scheme->BuildLinearSystemConstraints(r_strategy_data_container); //TODO: Indicate if the constraints are built in here
+            p_scheme->ApplyLinearSystemConstraints(r_strategy_data_container, true); // The true flag skips the LHS application
         }
 
         // Initialize convergence criteria step
@@ -243,7 +242,7 @@ public:
 
         // Build the linear system constraints
         // Note that the constraints are built once as they are not expected to change during the solution step
-        p_scheme->BuildLinearSystemConstraints(r_strategy_data_container);
+        p_scheme->BuildLinearSystemConstraints(r_strategy_data_container); //TODO: this can be skipped if the constraints have been already built in the InitializeSolutionStep (see the convergence build). Create a mBuildConstraints internal flag
 
         // Newton-Raphson cycle
         bool is_converged = false;
@@ -267,7 +266,6 @@ public:
                     KRATOS_ERROR << "The option 'use_old_stiffness_in_first_iteration' is not yet implemented in the new strategy." << std::endl;
                 } else {
                     p_scheme->Build(r_lhs, r_rhs);
-                    // p_scheme->BuildLinearSystemConstraints(r_strategy_data_container);
                     p_scheme->ApplyLinearSystemConstraints(r_strategy_data_container);
                     this->SetStiffnessMatrixIsBuilt(true);
                 }
@@ -313,12 +311,9 @@ public:
             p_conv_crit->FinalizeNonLinearIteration(r_strategy_data_container);
 
             // Check convergence
-            // Note that the residual is computed again with current solution if the convergence criteria requires it
-            if (p_conv_crit->RequiresResidual()) {
-
+            if (p_conv_crit->RequiresBuild()) {
                 r_rhs.SetValue(0.0);
                 p_scheme->Build(r_rhs);
-                // p_scheme->BuildLinearSystemConstraints(r_strategy_data_container);
                 p_scheme->ApplyLinearSystemConstraints(r_strategy_data_container, true); // The true flag skips the LHS application
             }
             is_converged = p_conv_crit->IsConverged(r_strategy_data_container);
@@ -350,6 +345,16 @@ public:
         //FIXME: Free the effective arrays memory if p_lhs != p_eff_lhs
 
         return is_converged;
+    }
+
+    void FinalizeSolutionStep() override
+    {
+        // Call base class FinalizeSolutionStep
+        // Note that this calls the FinalizeSolutionStep of the scheme
+        BaseType::FinalizeSolutionStep();
+
+        // Finalize convergence criteria step
+        this->pGetConvergenceCriteria()->FinalizeSolutionStep(this->GetImplicitStrategyData());
     }
 
     int Check() override
