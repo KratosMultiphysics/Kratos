@@ -55,9 +55,9 @@ class RomResidualsOutputProcess(KratosMultiphysics.OutputProcess):
         right_rom_basis = KratosMultiphysics.Matrix(system_size, self.num_of_right_rom_dofs)
         builder_and_solver.GetRightROMBasis(computing_model_part, right_rom_basis)
 
-        return self._GetJabocialMatrix() @ right_rom_basis
+        return self._GetJabocianMatrix() @ right_rom_basis
 
-    def _GetJabocialMatrix(self):
+    def _GetJabocianMatrix(self):
         computing_model_part = self.solver.GetComputingModelPart()
         jacobian_matrix = KratosMultiphysics.CompressedMatrix()
         builder_and_solver = self.solver._GetBuilderAndSolver()
@@ -74,7 +74,7 @@ class RomResidualsOutputProcess(KratosMultiphysics.OutputProcess):
     def _GetJacobianVMultiplication(self):
         """Assembles the Jacobian and multiplies it by the tangent operator for LSPG."""
 
-        return self._GetJabocialMatrix() @ self.solver._GetBuilderAndSolver().GetTangentOperatorV()
+        return self._GetJabocianMatrix() @ self.solver._GetBuilderAndSolver().GetTangentOperatorV()
 
 
     def _GetCurrentResidualsProjected(self):
