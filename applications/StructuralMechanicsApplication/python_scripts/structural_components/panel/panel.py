@@ -42,7 +42,7 @@ class Panel(StructuralComponent):
         self.ExtractMaterial()
 
     def PrepareAnalysis(self) -> None:
-        self.ExtractMaterial()
+        #self.ExtractMaterial()
         self.ExtractResponse()
         self.ClassifyLoadState()
 
