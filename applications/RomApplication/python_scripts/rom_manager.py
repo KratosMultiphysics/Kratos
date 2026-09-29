@@ -8,6 +8,7 @@ from KratosMultiphysics.RomApplication.rom_database import RomDatabase
 from KratosMultiphysics.RomApplication.rom_testing_utilities import SetUpSimulationInstance
 from KratosMultiphysics.RomApplication.calculate_rom_basis_output_process import CalculateRomBasisOutputProcess
 from KratosMultiphysics.RomApplication.randomized_singular_value_decomposition import RandomizedSingularValueDecomposition
+from KratosMultiphysics.RomApplication.empirical_cubature_method import EmpiricalCubatureMethod
 from KratosMultiphysics.RomApplication.rom_nn_interface import NN_ROM_Interface
 
 
@@ -375,7 +376,7 @@ class RomManager(object):
                 parameters_copy = self.UpdateProjectParameters(parameters.Clone(), mu)
                 parameters_copy = self._AddBasisCreationToProjectParameters(parameters_copy) #TODO stop using the RomBasisOutputProcess to store the snapshots. Use instead the upcoming build-in function
                 parameters_copy = self._StoreResultsByName(parameters_copy,gid_and_vtk_name,mu,Id)
-                materials_file_name = parameters_copy["solver_settings"]["material_import_settings"]["materials_filename"].GetString()
+                materials_file_name = self._GetMaterialsFileName(parameters_copy)
                 self.UpdateMaterialParametersFile(materials_file_name, mu)
                 model = KratosMultiphysics.Model()
                 analysis_stage_class = self._GetAnalysisStageClass(parameters_copy)
@@ -445,7 +446,7 @@ class RomManager(object):
                 parameters_copy = self.UpdateProjectParameters(parameters.Clone(), mu)
                 parameters_copy = self._AddBasisCreationToProjectParameters(parameters_copy)  #TODO stop using the RomBasisOutputProcess to store the snapshots. Use instead the upcoming build-in function
                 parameters_copy = self._StoreResultsByName(parameters_copy,gid_and_vtk_name,mu,Id)
-                materials_file_name = parameters_copy["solver_settings"]["material_import_settings"]["materials_filename"].GetString()
+                materials_file_name = self._GetMaterialsFileName(parameters_copy)
                 self.UpdateMaterialParametersFile(materials_file_name, mu)
                 model = KratosMultiphysics.Model()
                 analysis_stage_class = type(SetUpSimulationInstance(model, parameters_copy, nn_rom_interface=nn_rom_interface))
@@ -478,7 +479,7 @@ class RomManager(object):
                     parameters_copy = self.UpdateProjectParameters(parameters.Clone(), mu)
                     parameters_copy = self._AddBasisCreationToProjectParameters(parameters_copy)
                     parameters_copy = self._StoreNoResults(parameters_copy)
-                    materials_file_name = parameters_copy["solver_settings"]["material_import_settings"]["materials_filename"].GetString()
+                    materials_file_name = self._GetMaterialsFileName(parameters_copy)
                     self.UpdateMaterialParametersFile(materials_file_name, mu)
                     model = KratosMultiphysics.Model()
                     analysis_stage_class = type(SetUpSimulationInstance(model, parameters_copy))
@@ -506,47 +507,45 @@ class RomManager(object):
     def _LaunchTrainHROM(self, mu_train):
         """
         This method should be parallel capable
+        The projected residuals are written by a ProjectedResidualsOutputProcess (one per sub-solver in coupled problems),
+        and a set of HROM weights is computed for each of them (i.e. one column of HROM weights per sub-solver).
         """
         in_database_elems, hash_z =  self.data_base.check_if_in_database("HROM_Elements", mu_train)
         in_database_weights, hash_w =  self.data_base.check_if_in_database("HROM_Weights", mu_train)
         if not in_database_elems and not in_database_weights:
             with open(self.project_parameters_name,'r') as parameter_file:
                 parameters = KratosMultiphysics.Parameters(parameter_file.read())
-            simulation = None
+            residuals_output_settings = self._GetResidualsProjectedOutputSettings()
+            # The residuals are collected by the output processes, so the HRomTrainingUtility does not collect them
+            self._SetTrainHROMFlag(False)
             for mu in mu_train:
                 in_database, _ = self.data_base.check_if_in_database("ResidualsProjected", mu)
                 if not in_database:
                     parameters_copy = self.UpdateProjectParameters(parameters.Clone(), mu)
                     parameters_copy = self._AddBasisCreationToProjectParameters(parameters_copy)
                     parameters_copy = self._StoreNoResults(parameters_copy)
-                    materials_file_name = parameters_copy["solver_settings"]["material_import_settings"]["materials_filename"].GetString()
+                    parameters_copy = self._AddResidualsProjectedOutputProcessToProjectParameters(parameters_copy)
+                    # Remove the residuals of previous runs, so that only the ones of this mu are collected
+                    for _, _, folder in residuals_output_settings:
+                        for residual_file in folder.glob("Residual_*.npy"):
+                            residual_file.unlink()
+                    materials_file_name = self._GetMaterialsFileName(parameters_copy)
                     self.UpdateMaterialParametersFile(materials_file_name, mu)
                     model = KratosMultiphysics.Model()
                     analysis_stage_class = type(SetUpSimulationInstance(model, parameters_copy))
                     simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters_copy, mu)
                     simulation.Run()
-                    ResidualProjected = simulation.GetHROM_utility()._GetResidualsProjectedMatrix() #TODO flush intermediately the residuals projected to cope with large models.
+                    # Vertical stack of the residuals of each solver
+                    ResidualProjected = np.vstack([self._LoadResidualsProjected(folder) for _, _, folder in residuals_output_settings])
                     self.data_base.add_to_database("ResidualsProjected", mu, ResidualProjected )
+            self._SetTrainHROMFlag(True)
             RedidualsSnapshotsMatrix = self.data_base.get_snapshots_matrix_from_database(mu_train, table_name="ResidualsProjected")
-            u,_,_,_ = RandomizedSingularValueDecomposition(COMPUTE_V=False).Calculate(RedidualsSnapshotsMatrix,
-            self.general_rom_manager_parameters["HROM"]["element_selection_svd_truncation_tolerance"].GetDouble()) #TODO load basis for residuals projected. Can we truncate it only, not compute the whole SVD but only return the respective number of singular vectors?
-            if simulation is None:
-                HROM_utility = self.InitializeDummySimulationForHromTrainingUtility()
-            else:
-                HROM_utility = simulation.GetHROM_utility()
-            HROM_utility.hyper_reduction_element_selector.SetUp(u, InitialCandidatesSet = HROM_utility.candidate_ids)
-            HROM_utility.hyper_reduction_element_selector.Run()
-            if not HROM_utility.hyper_reduction_element_selector.success:
-                KratosMultiphysics.Logger.PrintWarning("HRomTrainingUtility", "The Empirical Cubature Method did not converge using the initial set of candidates. Launching again without initial candidates.")
-                #Imposing an initial candidate set can lead to no convergence. Restart without imposing the initial candidate set
-                HROM_utility.hyper_reduction_element_selector.SetUp(u, InitialCandidatesSet = None)
-                HROM_utility.hyper_reduction_element_selector.Run()
-            z = HROM_utility.hyper_reduction_element_selector.z
-            w = HROM_utility.hyper_reduction_element_selector.w
+            HROM_utility = self.InitializeDummySimulationForHromTrainingUtility()
+            z, w = self._LocalEmpiricalCubature(np.split(RedidualsSnapshotsMatrix, len(residuals_output_settings)), HROM_utility.candidate_ids)
+            HROM_utility.hyper_reduction_element_selector.z = z
+            HROM_utility.hyper_reduction_element_selector.w = w
             self.data_base.add_to_database("HROM_Elements", mu_train, np.squeeze(z))
             self.data_base.add_to_database("HROM_Weights", mu_train, np.squeeze(w))
-            HROM_utility.AppendHRomWeightsToRomParameters()
-            HROM_utility.CreateHRomModelParts()
         # elif (in_database_elems and not in_database_weights) or (not in_database_elems and in_database_weights):
         #     error #if one of the two is there but not the other, the database is corrupted
         else:
@@ -554,9 +553,36 @@ class RomManager(object):
             #doing this ensures the elements and weights npy files contained in the rom_data folder are the ones to use.i.e. they are not from old runs of the rom manager
             HROM_utility.hyper_reduction_element_selector.w = self.data_base.get_single_numpy_from_database(hash_w)
             HROM_utility.hyper_reduction_element_selector.z = self.data_base.get_single_numpy_from_database(hash_z)
-            HROM_utility.AppendHRomWeightsToRomParameters()
+        HROM_utility.AppendHRomWeightsToRomParameters()
+        # The coupled solvers do not define a single 'model_part_name', so no HROM model parts are created (the HROM runs on the full model part)
+        if not self._GetCoupledSolverNames():
             HROM_utility.CreateHRomModelParts()
         self.GenerateDatabaseSummary()
+
+    def _LocalEmpiricalCubature(self, residuals_list, initial_candidates=None):
+        """
+        Runs the ECM for each matrix of projected residuals (one per solver). The entities selected so far are the
+        initial candidates of the next one. Returns the selected indexes and their weights (one column per coupled solver).
+        """
+        svd_truncation_tolerance = self.general_rom_manager_parameters["HROM"]["element_selection_svd_truncation_tolerance"].GetDouble()
+        constrain_sum_of_weights = self.general_rom_manager_parameters["HROM"]["constraint_sum_weights"].GetBool()
+        weights_matrix = np.zeros((residuals_list[0].shape[0], len(residuals_list)))
+        selected = np.empty(0, dtype=int)
+        candidates = initial_candidates
+        for i, residuals in enumerate(residuals_list):
+            u,_,_,_ = RandomizedSingularValueDecomposition(COMPUTE_V=False).Calculate(residuals, svd_truncation_tolerance)
+            element_selector = EmpiricalCubatureMethod()
+            element_selector.SetUp(u, InitialCandidatesSet = candidates, constrain_sum_of_weights = constrain_sum_of_weights)
+            element_selector.Run()
+            if not element_selector.success:
+                KratosMultiphysics.Logger.PrintWarning("RomManager", f"The Empirical Cubature Method did not converge for solver {i} using the initial set of candidates. Launching again without initial candidates.")
+                element_selector.SetUp(u, InitialCandidatesSet = None, constrain_sum_of_weights = constrain_sum_of_weights)
+                element_selector.Run()
+            z_i = np.atleast_1d(np.squeeze(element_selector.z)).astype(int)
+            weights_matrix[z_i, i] = np.squeeze(element_selector.w)
+            selected = np.union1d(selected, z_i)
+            candidates = selected
+        return selected, weights_matrix[selected, :]
 
     def _LaunchHROM(self, mu_train, gid_and_vtk_name ='HROM_Fit'):
         """
@@ -571,7 +597,7 @@ class RomManager(object):
                 parameters_copy = self.UpdateProjectParameters(parameters.Clone(), mu)
                 parameters_copy = self._AddBasisCreationToProjectParameters(parameters_copy)
                 parameters_copy = self._StoreResultsByName(parameters_copy,gid_and_vtk_name,mu,Id)
-                materials_file_name = parameters_copy["solver_settings"]["material_import_settings"]["materials_filename"].GetString()
+                materials_file_name = self._GetMaterialsFileName(parameters_copy)
                 self.UpdateMaterialParametersFile(materials_file_name, mu)
                 model = KratosMultiphysics.Model()
                 analysis_stage_class = type(SetUpSimulationInstance(model, parameters_copy))
@@ -596,7 +622,7 @@ class RomManager(object):
         for Id, mu in enumerate(mu_run):
             parameters_copy = self.UpdateProjectParameters(parameters.Clone(), mu)
             parameters_copy = self._StoreResultsByName(parameters_copy,'FOM_Run',mu,Id)
-            materials_file_name = parameters_copy["solver_settings"]["material_import_settings"]["materials_filename"].GetString()
+            materials_file_name = self._GetMaterialsFileName(parameters_copy)
             self.UpdateMaterialParametersFile(materials_file_name, mu)
             model = KratosMultiphysics.Model()
             analysis_stage_class = self._GetAnalysisStageClass(parameters_copy)
@@ -614,7 +640,7 @@ class RomManager(object):
         for Id, mu in enumerate(mu_run):
             parameters_copy = self.UpdateProjectParameters(parameters.Clone(), mu)
             parameters_copy = self._StoreResultsByName(parameters_copy,'ROM_Run',mu,Id)
-            materials_file_name = parameters_copy["solver_settings"]["material_import_settings"]["materials_filename"].GetString()
+            materials_file_name = self._GetMaterialsFileName(parameters_copy)
             self.UpdateMaterialParametersFile(materials_file_name, mu)
             model = KratosMultiphysics.Model()
             analysis_stage_class = type(SetUpSimulationInstance(model, parameters_copy, nn_rom_interface=nn_rom_interface))
@@ -630,13 +656,17 @@ class RomManager(object):
         with open(self.project_parameters_name,'r') as parameter_file:
             parameters = KratosMultiphysics.Parameters(parameter_file.read())
         if not use_full_model_part:
-            model_part_name = parameters["solver_settings"]["model_import_settings"]["input_filename"].GetString()
-            parameters["solver_settings"]["model_import_settings"]["input_filename"].SetString(f"{model_part_name}HROM")
+            model_import_settings = parameters["solver_settings"]["model_import_settings"]
+            if model_import_settings.Has("input_filename"):
+                model_part_name = model_import_settings["input_filename"].GetString()
+                model_import_settings["input_filename"].SetString(f"{model_part_name}HROM")
+            else:
+                KratosMultiphysics.Logger.PrintWarning("RomManager", "No 'input_filename' in 'model_import_settings'. Running the HROM on the full model part.")
 
         for Id, mu in enumerate(mu_run):
             parameters_copy = self.UpdateProjectParameters(parameters.Clone(), mu)
             parameters_copy = self._StoreResultsByName(parameters_copy,'HROM_Run',mu,Id)
-            materials_file_name = parameters_copy["solver_settings"]["material_import_settings"]["materials_filename"].GetString()
+            materials_file_name = self._GetMaterialsFileName(parameters_copy)
             self.UpdateMaterialParametersFile(materials_file_name, mu)
             model = KratosMultiphysics.Model()
             analysis_stage_class = type(SetUpSimulationInstance(model, parameters_copy))
@@ -730,6 +760,12 @@ class RomManager(object):
         with parameters_file_path.open('r+') as parameter_file:
             f=json.load(parameter_file)
             f['assembling_strategy'] = self.general_rom_manager_parameters['assembling_strategy'].GetString() if self.general_rom_manager_parameters.Has('assembling_strategy') else 'global'
+            # The order of the coupled solvers defines the HROM weights column (weight_vector_index) used by each of them
+            coupled_solvers = self._GetCoupledSolverNames()
+            if coupled_solvers:
+                f['coupled_solvers'] = coupled_solvers
+            else:
+                f.pop('coupled_solvers', None)
             self._AddHromParametersToRomParameters(f)
             if simulation_to_run=='GalerkinROM':
                 f['projection_strategy']="galerkin"
@@ -859,6 +895,75 @@ class RomManager(object):
                     defaults[key] = rom_params[key].GetDouble()
         return defaults
 
+    def _GetMaterialsFileName(self, parameters):
+        """Returns the materials file name, or None if it is not defined at the solver_settings level (e.g. coupled solvers)."""
+        solver_settings = parameters["solver_settings"]
+        if solver_settings.Has("material_import_settings"):
+            return solver_settings["material_import_settings"]["materials_filename"].GetString()
+        return None
+
+    def _GetCoupledSolvers(self):
+        """
+        Returns the (sub_solver_name, model_part_name) of the coupled sub-solvers, e.g. [('fluid_solver', 'FluidModelPart'), ('thermal_solver', 'ThermalModelPart')].
+        These are taken from 'coupled_solvers' in the ROM settings or, if not provided, from the '<sub_solver_name>_settings' of a coupled solver
+        in the project parameters. Empty for a single solver.
+        """
+        coupled_solvers = self.general_rom_manager_parameters["ROM"]["coupled_solvers"]
+        if coupled_solvers.size() > 0:
+            return [(coupled_solvers[i]["sub_solver_name"].GetString(), coupled_solvers[i]["model_part_name"].GetString()) for i in range(coupled_solvers.size())]
+        with open(self.project_parameters_name,'r') as parameter_file:
+            solver_settings = KratosMultiphysics.Parameters(parameter_file.read())["solver_settings"]
+        if solver_settings["solver_type"].GetString() != "ThermallyCoupled": # Coupled solver supported by the RomAnalysis
+            return []
+        return [(key[:-len("_settings")], value["model_part_name"].GetString()) for key, value in solver_settings.items() if key.endswith("_solver_settings") and value.Has("model_part_name")]
+
+    def _GetCoupledSolverNames(self):
+        """Returns the names of the coupled sub-solvers (e.g. ['fluid_solver', 'thermal_solver']). Empty for a single solver."""
+        return [sub_solver_name for sub_solver_name, _ in self._GetCoupledSolvers()]
+
+    def _GetResidualsProjectedOutputSettings(self):
+        """Returns the (sub_solver_name, model_part_name, output folder) of each ProjectedResidualsOutputProcess: one per coupled sub-solver, or one for the solver."""
+        rom_basis_output_folder = Path(self.general_rom_manager_parameters["ROM"]["rom_basis_output_folder"].GetString())
+        coupled_solvers = self._GetCoupledSolvers()
+        if coupled_solvers:
+            return [(sub_solver_name, model_part_name, rom_basis_output_folder / f"Residuals_{sub_solver_name}") for sub_solver_name, model_part_name in coupled_solvers]
+        return [("", self.general_rom_manager_parameters["ROM"]["model_part_name"].GetString(), rom_basis_output_folder / "Residuals")]
+
+    def _AddResidualsProjectedOutputProcessToProjectParameters(self, parameters):
+        """Adds a ProjectedResidualsOutputProcess for each solver whose projected residuals are collected."""
+        parameters["output_processes"].AddEmptyArray("rom_residuals_output")
+        for sub_solver_name, model_part_name, folder in self._GetResidualsProjectedOutputSettings():
+            process_settings = KratosMultiphysics.Parameters("""{
+                "python_module": "projected_residuals_output_process",
+                "kratos_module": "KratosMultiphysics.RomApplication",
+                "process_name": "ProjectedResidualsOutputProcess",
+                "Parameters": {
+                    "output_control_type": "step",
+                    "output_interval": 1
+                }
+            }""")
+            process_settings["Parameters"].AddString("model_part_name", model_part_name)
+            process_settings["Parameters"].AddString("sub_solver_name", sub_solver_name)
+            process_settings["Parameters"].AddString("output_path", str(folder))
+            parameters["output_processes"]["rom_residuals_output"].Append(process_settings)
+        return parameters
+
+    def _LoadResidualsProjected(self, folder):
+        """Loads the projected residuals written by the ProjectedResidualsOutputProcess (Residual_<step>.npy) in chronological order."""
+        residual_files = sorted(folder.glob("Residual_*.npy"), key=lambda residual_file: float(residual_file.stem.split("_")[1]))
+        if not residual_files:
+            raise Exception(f"No projected residuals found in {folder}")
+        return np.block([np.load(residual_file) for residual_file in residual_files])
+
+    def _SetTrainHROMFlag(self, train_hrom):
+        rom_parameters_file_path = (Path(self.general_rom_manager_parameters["ROM"]["rom_basis_output_folder"].GetString()) / self.general_rom_manager_parameters["ROM"]["rom_basis_output_name"].GetString()).with_suffix('.json')
+        with rom_parameters_file_path.open('r+') as parameter_file:
+            f = json.load(parameter_file)
+            f['train_hrom'] = train_hrom
+            parameter_file.seek(0)
+            json.dump(f, parameter_file, indent=4)
+            parameter_file.truncate()
+
     def _AddBasisCreationToProjectParameters(self, parameters):
         #FIXME make sure no other rom_output already existed. If so, erase the prior and keep only the one in self.general_rom_manager_parameters["ROM"]
         parameters["output_processes"].AddEmptyArray("rom_output")
@@ -925,6 +1030,7 @@ class RomManager(object):
                 "snapshots_interval": 1,
                 "print_singular_values": false,
                 "use_non_converged_sols" : false,
+                "coupled_solvers": [],                                     // e.g. [{"sub_solver_name": "fluid_solver", "model_part_name": "FluidModelPart"}, {"sub_solver_name": "thermal_solver", "model_part_name": "ThermalModelPart"}]
                 "galerkin_rom_bns_settings": {
                     "monotonicity_preserving": false
                 },

@@ -112,6 +112,18 @@ def CreateRomAnalysisInstance(cls, global_model, parameters, nn_rom_interface=No
 
             solver_type = self.project_parameters["solver_settings"]["solver_type"].GetString()
 
+            # In coupled problems (e.g. 'fluid_solver' and 'thermal_solver') each sub-solver gets its own copy of the ROM settings.
+            # The position of the sub-solver in 'coupled_solvers' defines the column of the HROM weights it uses (one set of weights per physics)
+            coupled_solvers = self.rom_parameters["coupled_solvers"].GetStringArray() if self.rom_parameters.Has("coupled_solvers") else []
+            for i, sub_solver_name in enumerate(coupled_solvers):
+                sub_solver_settings = self.project_parameters["solver_settings"][f"{sub_solver_name}_settings"]
+                sub_rom_settings = self.project_parameters["solver_settings"]["rom_settings"].Clone()
+                sub_rom_settings.AddInt("weight_vector_index", i)
+                sub_rom_settings.AddInt("number_of_hrom_sets", len(coupled_solvers))
+                sub_solver_settings.AddValue("rom_settings", sub_rom_settings)
+                sub_solver_settings.AddString("projection_strategy", self.solving_strategy)
+                sub_solver_settings.AddString("assembling_strategy", self.assembling_strategy)
+
             # The solver used fluid-thermal coupled simulations contains two solvers:  'fluid_solver' and 'thermal_solver'.
             # This patch creates rom_solvers for each of them, to seamlessly use the existing infrastructure in the RomApp
             if solver_type =="ThermallyCoupled":
