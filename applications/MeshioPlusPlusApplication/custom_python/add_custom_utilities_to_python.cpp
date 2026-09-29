@@ -117,6 +117,23 @@ void AddCustomUtilitiesToPython(pybind11::module& m)
             "\"k_nearest\", \"k\") neighbour pairs of the nodes, as a list of (node id, node id) "
             "tuples grouped by source: each radius pair once, k-nearest pairs directed. Also "
             "\"box\" (periodic sides), \"cell_size\" and \"use_deformed_configuration\".")
+        .def_static("HausdorffDistance", &MeshioPlusPlusMeshOperations::HausdorffDistance,
+            py::arg("first_model_part"), py::arg("second_model_part"),
+            py::arg("settings") = Parameters(R"({})"),
+            "The sampled Hausdorff distance between two surfaces (a volume contributes its skin): "
+            "the one-sided maxima, means and RMS, sample counts and worst points. Settings: "
+            "\"face_samples\", \"region_first\", \"region_second\", \"grid_cell_size\".")
+        .def_static("MatchPeriodicNodes", &MeshioPlusPlusMeshOperations::MatchPeriodicNodes,
+            py::arg("model_part"), py::arg("settings"),
+            "Pairs every node of the \"slave\" region with the node of the \"master\" region that "
+            "the transform (\"translation\", \"rotation_axis\"/\"rotation_angle\" or \"matrix\") "
+            "maps it onto, within \"tolerance\", as a list of (slave node id, master node id) "
+            "tuples ascending by slave.")
+        .def_static("BlendSteps", &MeshioPlusPlusMeshOperations::BlendSteps,
+            py::arg("first_model_part"), py::arg("second_model_part"), py::arg("weight"),
+            py::arg("settings"), py::arg("destination_model_part"),
+            "The first model part with its floating-point data linearly blended toward the second "
+            "by weight; both must share topology. \"blend_points\" also blends the coordinates.")
         ;
 }
 
