@@ -91,7 +91,7 @@ KratosStructuralMechanicsApplication::KratosStructuralMechanicsApplication()
       // Deprecated elements, remove by Dec 2026.
       mLegacyThickShellElement3D4N(0, Element::GeometryType::Pointer(new Quadrilateral3D4<NodeType >(Element::GeometryType::PointsArrayType(4)))),
       mLegacyThickShellCorotationalElement3D4N(0, Element::GeometryType::Pointer(new Quadrilateral3D4<NodeType >(Element::GeometryType::PointsArrayType(4)))),
-    
+
       mShellThinCorotationalElement3D4N(0, Element::GeometryType::Pointer(new Quadrilateral3D4<NodeType >(Element::GeometryType::PointsArrayType(4)))),
       mShellThinElement3D3N(0, Element::GeometryType::Pointer(new Triangle3D3<NodeType >(Element::GeometryType::PointsArrayType(3)))),
       mShellThinCorotationalElement3D3N(0, Element::GeometryType::Pointer(new Triangle3D3<NodeType >(Element::GeometryType::PointsArrayType(3)))),
@@ -518,7 +518,7 @@ void KratosStructuralMechanicsApplication::Register() {
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(MOVING_LOAD)
     KRATOS_REGISTER_VARIABLE(MOVING_LOAD_LOCAL_DISTANCE)
     KRATOS_REGISTER_VARIABLE(MOTION_TYPE)
-    
+
     // Condition load variables
     KRATOS_REGISTER_VARIABLE(POINT_LOADS_VECTOR)
     KRATOS_REGISTER_VARIABLE(LINE_LOADS_VECTOR)

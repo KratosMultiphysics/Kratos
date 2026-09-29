@@ -89,14 +89,18 @@ class ANNPROM_Keras_Model(Model):
 
 
 class RomNeuralNetworkTrainer(object):
-
-    def __init__(self, general_rom_manager_parameters, mu_train, mu_validation, data_base):
-
+    def __init__(self, general_rom_manager_parameters, mu_train, mu_validation, data_base, solver_info=None):
         self.general_rom_manager_parameters = general_rom_manager_parameters
         self.nn_parameters = self.general_rom_manager_parameters["ROM"]["ann_enhanced_settings"]
         self.mu_train = mu_train
         self.mu_validation = mu_validation
         self.data_base = data_base
+        self.solver_info = solver_info
+
+        # Create a prefix if this is a coupled solver (e.g., "fluid_solver_")
+        self.file_prefix = ""
+        if self.solver_info is not None:
+            self.file_prefix = self.solver_info["sub_solver_name"].GetString() + "_"
 
     def _CheckNumberOfModes(self,n_inf,n_sup,n_max):
         if n_inf >= n_max:
@@ -107,16 +111,52 @@ class RomNeuralNetworkTrainer(object):
             raise Exception(err_msg)
 
     def _GetTrainingData(self, n_inf, n_sup):
-
         S_train = self.data_base.get_snapshots_matrix_from_database(self.mu_train, table_name=f'FOM')
         S_val = self.data_base.get_snapshots_matrix_from_database(self.mu_validation, table_name=f'FOM')
 
         _, hash_basis = self.data_base.check_if_in_database("RightBasis", self.mu_train)
         phi = self.data_base.get_single_numpy_from_database(hash_basis)
-        _, hash_sigma = self.data_base.check_if_in_database("SingularValues_Solution", self.mu_train)
-        sigma_vec =  self.data_base.get_single_numpy_from_database(hash_sigma)/np.sqrt(len(self.mu_train))
 
-        self._CheckNumberOfModes(n_inf,n_sup,sigma_vec.shape[0])
+        if getattr(self, "solver_info", None) is not None:
+            # 1. Match Kratos C++ Alphabetical Sorting
+            global_unknowns = self.general_rom_manager_parameters["ROM"]["nodal_unknowns"].GetStringArray()
+            global_unknowns.sort()
+            num_vars = len(global_unknowns)
+            num_nodes = S_train.shape[0] // num_vars
+
+            physics_unknowns = self.solver_info["nodal_unknowns"].GetStringArray()
+            physics_unknowns.sort()
+
+            local_indices = [global_unknowns.index(var) for var in physics_unknowns]
+            row_indices = [node_idx * num_vars + loc_idx
+                           for node_idx in range(num_nodes)
+                           for loc_idx in local_indices]
+
+            # 2. Slice the matrices
+            S_train = S_train[row_indices, :]
+            S_val = S_val[row_indices, :]
+            phi = phi[np.ix_(row_indices, range(phi.shape[1]))]
+
+            # 3. Strip zero-padding to find TRUE available modes
+            valid_modes = 0
+            for col in range(phi.shape[1]):
+                if np.any(np.abs(phi[:, col]) > 1e-12):
+                    valid_modes += 1
+                else:
+                    break
+
+            if n_sup > valid_modes:
+                print(f"\n[WARNING] Capping n_sup from {n_sup} to {valid_modes} to avoid zero-padding.\n")
+                n_sup = valid_modes
+
+            # 4. Recompute the EXACT True Sigma
+            phi = phi[:, :n_sup]
+            sigma_vec = np.linalg.norm(phi.T @ S_train, axis=1) / np.sqrt(len(self.mu_train))
+        else:
+            _, hash_sigma = self.data_base.check_if_in_database("SingularValues_Solution", self.mu_train)
+            sigma_vec = self.data_base.get_single_numpy_from_database(hash_sigma) / np.sqrt(len(self.mu_train))
+
+        self._CheckNumberOfModes(n_inf, n_sup, sigma_vec.shape[0])
 
         phisig_inv_inf = np.linalg.inv(np.diag(sigma_vec[:n_inf]))@phi[:,:n_inf].T
         phisig_inv_sup = np.linalg.inv(np.diag(sigma_vec[n_inf:n_sup]))@phi[:,n_inf:n_sup].T
@@ -130,20 +170,20 @@ class RomNeuralNetworkTrainer(object):
         Q_inf_train_original = Q_inf_train.copy()
 
         if self.general_rom_manager_parameters["ROM"]["use_non_converged_sols"].GetBool():
-            #fetching nonconverged sols for enlarging training samples in ann enhanced prom
-            data = self.data_base.get_snapshots_matrix_from_database(self.mu_train, table_name='NonconvergedFOM') #TODO this might be too large. Add partitioned approached or a limit size
+            data = self.data_base.get_snapshots_matrix_from_database(self.mu_train, table_name='NonconvergedFOM')
+            if getattr(self, "solver_info", None) is not None:
+                data = data[row_indices, :]
             Q_inf_train = np.r_[Q_inf_train, (phisig_inv_inf@data).T]
             Q_sup_train = np.r_[Q_sup_train, (phisig_inv_sup@data).T]
 
         phisig_norm_matrix = phisig_sup.T @ phisig_sup
-
         rescaling_factor = np.mean(np.square((phisig_inf@Q_inf_train_original.T)-S_train))
         rescaling_factor *= S_train.shape[0]/Q_inf_train_original.shape[1]
 
-        return Q_inf_train, Q_inf_val, Q_sup_train, Q_sup_val, phisig_norm_matrix, rescaling_factor
+        # IMPORTANT: Returning capped n_sup!
+        return Q_inf_train, Q_inf_val, Q_sup_train, Q_sup_val, phisig_norm_matrix, rescaling_factor, n_sup
 
     def _GetEvaluationData(self, model_properties):
-
         S_val = self.data_base.get_snapshots_matrix_from_database(self.mu_validation, table_name=f'FOM')
 
         n_inf = model_properties['modes'][0]
@@ -151,8 +191,33 @@ class RomNeuralNetworkTrainer(object):
 
         _, hash_basis = self.data_base.check_if_in_database("RightBasis", self.mu_train)
         phi = self.data_base.get_single_numpy_from_database(hash_basis)
-        _, hash_sigma = self.data_base.check_if_in_database("SingularValues_Solution", self.mu_train)
-        sigma_vec =  self.data_base.get_single_numpy_from_database(hash_sigma)/np.sqrt(len(self.mu_train))
+
+        if getattr(self, "solver_info", None) is not None:
+            # 1. Match Kratos C++ Alphabetical Sorting
+            global_unknowns = self.general_rom_manager_parameters["ROM"]["nodal_unknowns"].GetStringArray()
+            global_unknowns.sort()
+            num_vars = len(global_unknowns)
+            num_nodes = S_val.shape[0] // num_vars
+
+            physics_unknowns = self.solver_info["nodal_unknowns"].GetStringArray()
+            physics_unknowns.sort()
+
+            local_indices = [global_unknowns.index(var) for var in physics_unknowns]
+            row_indices = [node_idx * num_vars + loc_idx
+                           for node_idx in range(num_nodes)
+                           for loc_idx in local_indices]
+
+            # 2. Slice Matrices
+            S_val = S_val[row_indices, :]
+            phi = phi[np.ix_(row_indices, range(n_sup))]
+
+            # 3. Recompute Exact Sigma
+            S_train = self.data_base.get_snapshots_matrix_from_database(self.mu_train, table_name=f'FOM')
+            S_train = S_train[row_indices, :]
+            sigma_vec = np.linalg.norm(phi.T @ S_train, axis=1) / np.sqrt(len(self.mu_train))
+        else:
+            _, hash_sigma = self.data_base.check_if_in_database("SingularValues_Solution", self.mu_train)
+            sigma_vec =  self.data_base.get_single_numpy_from_database(hash_sigma)/np.sqrt(len(self.mu_train))
 
         phisig_inv_inf = np.linalg.inv(np.diag(sigma_vec[:n_inf]))@phi[:,:n_inf].T
         phisig_inv_sup = np.linalg.inv(np.diag(sigma_vec[n_inf:n_sup]))@phi[:,n_inf:n_sup].T
@@ -213,6 +278,8 @@ class RomNeuralNetworkTrainer(object):
 
         np.save(weights_path, np.array(layers, dtype=object), allow_pickle=True)
 
+
+
     def TrainNetwork(self, seed=None):
 
         if seed is not None:
@@ -231,12 +298,15 @@ class RomNeuralNetworkTrainer(object):
         lr_additional_params = nn_training_parameters['lr_strategy']['additional_params'].GetVector()
         epochs = nn_training_parameters['epochs'].GetInt()
 
+        # Always use "Neural_Network" for the DB table
         model_name, _ = self.data_base.get_hashed_file_name_for_table("Neural_Network", self.mu_train)
-        model_path=pathlib.Path(self.data_base.database_root_directory / 'saved_nn_models' / model_name)
-        model_path.mkdir(parents=True, exist_ok=False)
+        model_path = pathlib.Path(self.data_base.database_root_directory / 'saved_nn_models' / model_name)
+
+        # exist_ok=True is critical here so the second loop doesn't crash
+        model_path.mkdir(parents=True, exist_ok=True)
 
 
-        Q_inf_train, Q_inf_val, Q_sup_train, Q_sup_val, phisig_norm_matrix, rescaling_factor = self._GetTrainingData(n_inf, n_sup)
+        Q_inf_train, Q_inf_val, Q_sup_train, Q_sup_val, phisig_norm_matrix, rescaling_factor, n_sup = self._GetTrainingData(n_inf, n_sup)
 
         network = self._DefineNetwork(n_inf, n_sup, layers_size, phisig_norm_matrix, rescaling_factor, w_gradNN)
 
@@ -268,22 +338,24 @@ class RomNeuralNetworkTrainer(object):
                 "additional_params": list(lr_additional_params)
             }
         }
-
-        with open(str(model_path)+"/train_config.json", "w") as ae_config_json_file:
+        # Apply the prefix to the saved files
+        with open(str(model_path) + f"/{self.file_prefix}train_config.json", "w") as ae_config_json_file:
             json.dump(training_parameters_dict, ae_config_json_file)
 
-        network.save_weights(str(model_path)+"/model.weights.h5")
-        with open(str(model_path)+"/history.json", "w") as history_file:
+        network.save_weights(str(model_path) + f"/{self.file_prefix}model.weights.h5")
+        with open(str(model_path) + f"/{self.file_prefix}history.json", "w") as history_file:
             json.dump(str(history.history), history_file)
 
-        self._SaveWeightsKratosFormat(network, str(model_path)+"/model_weights.npy")
+        self._SaveWeightsKratosFormat(network, str(model_path) + f"/{self.file_prefix}model_weights.npy")
+
 
     def EvaluateNetwork(self):
 
         model_name, _ = self.data_base.get_hashed_file_name_for_table("Neural_Network", self.mu_train)
-        model_path=pathlib.Path(self.data_base.database_root_directory / 'saved_nn_models' / model_name)
+        model_path = pathlib.Path(self.data_base.database_root_directory / 'saved_nn_models' / model_name)
 
-        with open(str(model_path)+'/train_config.json', "r") as config_file:
+        # Load using the prefix
+        with open(str(model_path) + f'/{self.file_prefix}train_config.json', "r") as config_file:
             model_properties = json.load(config_file)
 
         n_inf = model_properties['modes'][0]
@@ -293,7 +365,8 @@ class RomNeuralNetworkTrainer(object):
         network = self._DefineNetwork(n_inf, n_sup, layers_size)
         network.summary()
 
-        network.load_weights(str(model_path)+'/model.weights.h5')
+        # Load weights using the prefix
+        network.load_weights(str(model_path) + f'/{self.file_prefix}model.weights.h5')
 
         S_val, Q_inf_val, Q_sup_val, phisig_inf, phisig_sup = self._GetEvaluationData(model_properties)
 

@@ -375,7 +375,7 @@ class RomManager(object):
                 parameters_copy = self.UpdateProjectParameters(parameters.Clone(), mu)
                 parameters_copy = self._AddBasisCreationToProjectParameters(parameters_copy) #TODO stop using the RomBasisOutputProcess to store the snapshots. Use instead the upcoming build-in function
                 parameters_copy = self._StoreResultsByName(parameters_copy,gid_and_vtk_name,mu,Id)
-                materials_file_name = parameters_copy["solver_settings"]["material_import_settings"]["materials_filename"].GetString()
+                materials_file_name = None #parameters_copy["solver_settings"]["material_import_settings"]["materials_filename"].GetString()
                 self.UpdateMaterialParametersFile(materials_file_name, mu)
                 model = KratosMultiphysics.Model()
                 analysis_stage_class = self._GetAnalysisStageClass(parameters_copy)
@@ -394,23 +394,90 @@ class RomManager(object):
                     self.data_base.add_to_database("NonconvergedFOM", mu, simulation.GetNonconvergedSolutions())
 
 
-
     def _LaunchComputeSolutionBasis(self, mu_train):
         in_database, hash_basis = self.data_base.check_if_in_database("RightBasis", mu_train)
         if not in_database:
             BasisOutputProcess = self.InitializeDummySimulationForBasisOutputProcess()
+
+            # 1. Fetch monolithic snapshots
             if self.general_rom_manager_parameters["ROM"]["use_non_converged_sols"].GetBool():
-                u,sigma = BasisOutputProcess._ComputeSVD(self.data_base.get_snapshots_matrix_from_database(mu_train, table_name='NonconvergedFOM')) #TODO this might be too large for single opeartion, add partitioned svd
+                raw_snapshots = self.data_base.get_snapshots_matrix_from_database(mu_train, table_name='NonconvergedFOM')
             else:
-                u,sigma = BasisOutputProcess._ComputeSVD(self.data_base.get_snapshots_matrix_from_database(mu_train, table_name='FOM'))
-            BasisOutputProcess._PrintRomBasis(u, sigma) #Calling the RomOutput Process for creating the RomParameter.json
-            self.data_base.add_to_database("RightBasis", mu_train, u )
-            self.data_base.add_to_database("SingularValues_Solution", mu_train, sigma )
+                raw_snapshots = self.data_base.get_snapshots_matrix_from_database(mu_train, table_name='FOM')
+
+            rom_params = self.general_rom_manager_parameters["ROM"]
+
+            # 2. Check for the Coupled Solvers Exception
+            if rom_params.Has("coupled_solvers") and rom_params["coupled_solvers"].size() > 0:
+                global_unknowns = rom_params["nodal_unknowns"].GetStringArray()
+                global_unknowns.sort()
+                num_vars = len(global_unknowns)
+                num_nodes = raw_snapshots.shape[0] // num_vars
+
+                coupled_array = rom_params["coupled_solvers"]
+
+                extracted_bases = []
+                extracted_sigmas = []
+                max_modes = 0
+
+                # A. Compute independent SVDs for each physics
+                for i in range(coupled_array.size()):
+                    solver_info = coupled_array[i]
+                    physics_unknowns = solver_info["nodal_unknowns"].GetStringArray()
+                    physics_unknowns.sort() #this was missing, order matter!
+
+                    # Map the interleaved rows belonging to this physics
+                    local_indices = [global_unknowns.index(var) for var in physics_unknowns]
+                    row_indices = [node_idx * num_vars + loc_idx
+                                   for node_idx in range(num_nodes)
+                                   for loc_idx in local_indices]
+
+                    # Slice and compute
+                    physics_snapshots = raw_snapshots[row_indices, :]
+                    u_phys, sigma_phys = BasisOutputProcess._ComputeSVD(physics_snapshots)
+
+                    k_phys = u_phys.shape[1]
+                    if k_phys > max_modes:
+                        max_modes = k_phys
+
+                    extracted_bases.append((row_indices, u_phys))
+                    extracted_sigmas.append(sigma_phys)
+
+                # B. Allocate the zero-padded global container
+                u_global = np.zeros((raw_snapshots.shape[0], max_modes))
+                sigma_global = np.zeros(max_modes)
+
+                # C. Inject the bases into their respective rows (overlapping columns)
+                for idx, (row_indices, u_phys) in enumerate(extracted_bases):
+                    k_phys = u_phys.shape[1]
+
+                    # NumPy ix_ broadcasts the rows correctly into columns 0 to k_phys
+                    u_global[np.ix_(row_indices, range(k_phys))] = u_phys
+
+                    # For Singular Values, take the max per mode across physics to keep a 1D array valid for JSON output
+                    sigma_global[:k_phys] = np.maximum(sigma_global[:k_phys], extracted_sigmas[idx][:k_phys])
+
+                u = u_global
+                sigma = sigma_global
+
+            else:
+                # 3. Default Case: Single Physics
+                u, sigma = BasisOutputProcess._ComputeSVD(raw_snapshots)
+
+            # Print and save
+            BasisOutputProcess._PrintRomBasis(u, sigma)
+            self.data_base.add_to_database("RightBasis", mu_train, u)
+            self.data_base.add_to_database("SingularValues_Solution", mu_train, sigma)
         else:
             BasisOutputProcess = self.InitializeDummySimulationForBasisOutputProcess()
             _ , hash_sigma = self.data_base.check_if_in_database("SingularValues_Solution", mu_train)
-            BasisOutputProcess._PrintRomBasis(self.data_base.get_single_numpy_from_database(hash_basis), self.data_base.get_single_numpy_from_database(hash_sigma) ) #this updates the RomParameters.json
+            BasisOutputProcess._PrintRomBasis(
+                self.data_base.get_single_numpy_from_database(hash_basis),
+                self.data_base.get_single_numpy_from_database(hash_sigma)
+            )
         self.GenerateDatabaseSummary()
+
+
 
     def _LoadSolutionBasis(self, mu_train):
         in_database, hash_basis = self.data_base.check_if_in_database("RightBasis", mu_train)
@@ -644,12 +711,32 @@ class RomManager(object):
             simulation.Run()
             self.QoI_Run_HROM.append(simulation.GetFinalData())
 
+
     def _LaunchTrainNeuralNetwork(self, mu_train, mu_validation):
         RomNeuralNetworkTrainer = self._TryImportNNTrainer()
-        rom_nn_trainer = RomNeuralNetworkTrainer(self.general_rom_manager_parameters, mu_train, mu_validation, self.data_base)
-        rom_nn_trainer.TrainNetwork()
-        self.data_base.add_to_database("Neural_Network", mu_train , None)
-        rom_nn_trainer.EvaluateNetwork()
+        rom_params = self.general_rom_manager_parameters["ROM"]
+
+        # Check for Coupled Solvers
+        if rom_params.Has("coupled_solvers") and rom_params["coupled_solvers"].size() > 0:
+            coupled_solvers = rom_params["coupled_solvers"]
+
+            for i in range(coupled_solvers.size()):
+                solver_info = coupled_solvers[i]
+
+                # Pass the solver_info to the trainer
+                rom_nn_trainer = RomNeuralNetworkTrainer(self.general_rom_manager_parameters, mu_train, mu_validation, self.data_base, solver_info)
+                rom_nn_trainer.TrainNetwork()
+                rom_nn_trainer.EvaluateNetwork()
+
+            # Register the single table entry in the DB once both are trained
+            self.data_base.add_to_database("Neural_Network", mu_train , None)
+
+        else:
+            # Default Single Physics
+            rom_nn_trainer = RomNeuralNetworkTrainer(self.general_rom_manager_parameters, mu_train, mu_validation, self.data_base)
+            rom_nn_trainer.TrainNetwork()
+            self.data_base.add_to_database("Neural_Network", mu_train , None)
+            rom_nn_trainer.EvaluateNetwork()
 
 
     def _LaunchTestNeuralNetworkReconstruction(self,mu_train, mu_validation):
@@ -925,6 +1012,7 @@ class RomManager(object):
                 "snapshots_interval": 1,
                 "print_singular_values": false,
                 "use_non_converged_sols" : false,
+                "coupled_solvers" : [],
                 "galerkin_rom_bns_settings": {
                     "monotonicity_preserving": false
                 },
