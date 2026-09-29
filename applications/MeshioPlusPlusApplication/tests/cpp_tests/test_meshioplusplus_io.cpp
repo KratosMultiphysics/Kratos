@@ -1218,6 +1218,48 @@ KRATOS_TEST_CASE_IN_SUITE(MeshioPlusPlusIOWriteMdpaIdsPreservesOriginalIds, Krat
 /***********************************************************************************/
 /***********************************************************************************/
 
+KRATOS_TEST_CASE_IN_SUITE(MeshioPlusPlusIOMdpaKeepExtraBlocks, KratosMeshioPlusPlusFastSuite)
+{
+    // A top-level table and a Constraints block are refused by default. With
+    // "mdpa_keep_extra_blocks" the deck is read through MdpaInfo instead: the nodes and the
+    // element arrive, and GetMdpaInfo reports the two blocks a model part cannot hold.
+    const auto file_path = TestFilePath(".mdpa");
+    RemoveIfExists(file_path);
+    {
+        std::ofstream file(file_path);
+        file << "Begin Nodes\n1 0.0 0.0 0.0\n2 1.0 0.0 0.0\n3 0.0 1.0 0.0\n4 0.0 0.0 1.0\n"
+             << "End Nodes\n\n"
+             << "Begin Table 1 TIME VELOCITY\n0.0 0.0\n1.0 1.0\nEnd Table\n\n"
+             << "Begin Elements Element3D4N\n1 0 1 2 3 4\nEnd Elements\n\n"
+             << "Begin Constraints\n1 LinearMasterSlaveConstraint 1 2\nEnd Constraints\n";
+    }
+
+    Model model;
+    {
+        auto& r_strict = model.CreateModelPart("strict");
+        MeshioPlusPlusIO io_read(file_path);
+        KRATOS_EXPECT_EXCEPTION_IS_THROWN(io_read.ReadModelPart(r_strict), "");
+    }
+    {
+        auto& r_kept = model.CreateModelPart("kept");
+        Parameters settings(R"({"mdpa_keep_extra_blocks" : true})");
+        MeshioPlusPlusIO io_read(file_path, settings);
+        KRATOS_EXPECT_FALSE(io_read.GetMdpaInfo()["recognised"].GetBool());
+        io_read.ReadModelPart(r_kept);
+        KRATOS_EXPECT_EQ(r_kept.NumberOfNodes(), 4);
+        KRATOS_EXPECT_EQ(r_kept.NumberOfElements(), 1);
+        const Parameters info = io_read.GetMdpaInfo();
+        KRATOS_EXPECT_TRUE(info["recognised"].GetBool());
+        KRATOS_EXPECT_EQ(info["number_of_tables"].GetInt(), 1);
+        KRATOS_EXPECT_EQ(info["raw_blocks"].size(), 1);
+    }
+
+    RemoveIfExists(file_path);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 KRATOS_TEST_CASE_IN_SUITE(MeshioPlusPlusIOLenientSkipsUnsupportedConstructs, KratosMeshioPlusPlusFastSuite)
 {
     // "Begin Geometries" is a construct the C++ mdpa reader cannot represent: strict (the
