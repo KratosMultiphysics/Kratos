@@ -2301,4 +2301,170 @@ KRATOS_TEST_CASE_IN_SUITE(MeshioPlusPlusMeshOperationsNeighborPairsKNearest, Kra
         "\"k\" must be positive");
 }
 
+/***********************************************************************************/
+/***********************************************************************************/
+
+KRATOS_TEST_CASE_IN_SUITE(MeshioPlusPlusMeshOperationsCheckQuality, KratosMeshioPlusPlusFastSuite)
+{
+    Model model;
+    auto& r_source = model.CreateModelPart("source");
+    PopulateCubeOfTetrahedra(r_source);
+    auto& r_destination = model.CreateModelPart("destination");
+
+    // A scaled Jacobian never exceeds 1: >= -1 always holds, >= 2 never does.
+    Parameters report = MeshioPlusPlusMeshOperations::Execute(
+        r_source, Parameters(R"({"operation" : "check_quality", "require" : "scaled_jacobian >= -1"})"),
+        r_destination);
+    KRATOS_EXPECT_TRUE(report["passed"].GetBool());
+
+    report = MeshioPlusPlusMeshOperations::Execute(
+        r_source, Parameters(R"({"operation" : "check_quality", "require" : "scaled_jacobian >= 2"})"),
+        r_destination);
+    KRATOS_EXPECT_FALSE(report["passed"].GetBool());
+    KRATOS_EXPECT_GT(report["checks"][0]["violations"].GetInt(), 0);
+
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        MeshioPlusPlusMeshOperations::Execute(
+            r_source, Parameters(R"({"operation" : "check_quality", "require" : "not_a_metric >= 0"})"),
+            r_destination), "");
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+KRATOS_TEST_CASE_IN_SUITE(MeshioPlusPlusMeshOperationsFeatureEdges, KratosMeshioPlusPlusFastSuite)
+{
+    Model model;
+    auto& r_source = model.CreateModelPart("source");
+    PopulateClosedCubeSkin(r_source);
+    auto& r_destination = model.CreateModelPart("destination");
+
+    // The cube's twelve edges are 90 degree creases; the face diagonals are flat.
+    Parameters report = MeshioPlusPlusMeshOperations::Execute(
+        r_source, Parameters(R"({"operation" : "feature_edges"})"), r_destination);
+    KRATOS_EXPECT_EQ(report["feature_edges"].GetInt(), 12);
+    KRATOS_EXPECT_EQ(report["boundary_edges"].GetInt(), 0);
+    KRATOS_EXPECT_EQ(r_destination.NumberOfElements() + r_destination.NumberOfConditions(), 12);
+
+    auto& r_flat = model.CreateModelPart("flat");
+    report = MeshioPlusPlusMeshOperations::Execute(
+        r_source, Parameters(R"({"operation" : "feature_edges", "feature_angle" : 100.0})"), r_flat);
+    KRATOS_EXPECT_EQ(report["feature_edges"].GetInt(), 0);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+KRATOS_TEST_CASE_IN_SUITE(MeshioPlusPlusMeshOperationsHausdorffDistance, KratosMeshioPlusPlusFastSuite)
+{
+    Model model;
+    auto& r_first = model.CreateModelPart("first");
+    auto& r_second = model.CreateModelPart("second");
+    PopulateClosedCubeSkin(r_first);
+    PopulateClosedCubeSkin(r_second);
+
+    KRATOS_EXPECT_NEAR(MeshioPlusPlusMeshOperations::HausdorffDistance(r_first, r_second)["distance"].GetDouble(),
+                       0.0, 1e-12);
+
+    // Shifted by half an edge along x, the vertices at x = 0 sit 0.5 from the other surface.
+    for (auto& r_node : r_second.Nodes()) {
+        r_node.X() += 0.5;
+        r_node.X0() += 0.5;
+    }
+    KRATOS_EXPECT_NEAR(MeshioPlusPlusMeshOperations::HausdorffDistance(r_first, r_second)["distance"].GetDouble(),
+                       0.5, 1e-12);
+
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        MeshioPlusPlusMeshOperations::HausdorffDistance(r_first, r_second, Parameters(R"({"face_samples" : -1})")),
+        "");
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+KRATOS_TEST_CASE_IN_SUITE(MeshioPlusPlusMeshOperationsMatchPeriodicNodes, KratosMeshioPlusPlusFastSuite)
+{
+    Model model;
+    auto& r_source = model.CreateModelPart("source");
+    PopulateClosedCubeSkin(r_source);
+    r_source.CreateSubModelPart("left").AddNodes({1, 4, 5, 8});
+    r_source.CreateSubModelPart("right").AddNodes({2, 3, 6, 7});
+
+    Parameters settings(R"({
+        "slave"       : {"name" : "left"},
+        "master"      : {"name" : "right"},
+        "translation" : [1.0, 0.0, 0.0]
+    })");
+    auto pairs = MeshioPlusPlusMeshOperations::MatchPeriodicNodes(r_source, settings);
+    std::sort(pairs.begin(), pairs.end());
+    const std::vector<std::pair<std::size_t, std::size_t>> expected{{1, 2}, {4, 3}, {5, 6}, {8, 7}};
+    KRATOS_EXPECT_EQ(pairs.size(), expected.size());
+    for (std::size_t i = 0; i < expected.size(); ++i) {
+        KRATOS_EXPECT_EQ(pairs[i].first, expected[i].first);
+        KRATOS_EXPECT_EQ(pairs[i].second, expected[i].second);
+    }
+
+    settings["translation"].SetVector(Vector(ScalarVector(3, 0.25)));
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(MeshioPlusPlusMeshOperations::MatchPeriodicNodes(r_source, settings), "");
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+KRATOS_TEST_CASE_IN_SUITE(MeshioPlusPlusMeshOperationsEditRegionsUnion, KratosMeshioPlusPlusFastSuite)
+{
+    Model model;
+    auto& r_source = model.CreateModelPart("source");
+    PopulateClosedCubeSkin(r_source);
+    r_source.CreateSubModelPart("bottom").AddElements({1, 2});
+    r_source.CreateSubModelPart("top").AddElements({3, 4});
+    auto& r_destination = model.CreateModelPart("destination");
+
+    const Parameters report = MeshioPlusPlusMeshOperations::Execute(r_source, Parameters(R"({
+        "operation" : "edit_regions",
+        "edits"     : [{"operation" : "union", "inputs" : [{"name" : "bottom"}, {"name" : "top"}], "output_name" : "both"}]
+    })"), r_destination);
+    KRATOS_EXPECT_EQ(report["number_of_edits"].GetInt(), 1);
+    KRATOS_EXPECT_TRUE(r_destination.HasSubModelPart("both"));
+    KRATOS_EXPECT_EQ(r_destination.GetSubModelPart("both").NumberOfElements(), 4);
+
+    auto& r_missing = model.CreateModelPart("missing");
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(MeshioPlusPlusMeshOperations::Execute(r_source, Parameters(R"({
+        "operation" : "edit_regions",
+        "edits"     : [{"operation" : "delete", "inputs" : [{"name" : "nowhere"}]}]
+    })"), r_missing), "");
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+KRATOS_TEST_CASE_IN_SUITE(MeshioPlusPlusMeshOperationsBlendSteps, KratosMeshioPlusPlusFastSuite)
+{
+    Model model;
+    auto& r_first = model.CreateModelPart("first");
+    auto& r_second = model.CreateModelPart("second");
+    PopulateCubeOfTetrahedra(r_first);
+    PopulateCubeOfTetrahedra(r_second);
+    for (auto& r_node : r_first.Nodes()) {
+        r_node.SetValue(TEMPERATURE, 0.0);
+    }
+    for (auto& r_node : r_second.Nodes()) {
+        r_node.SetValue(TEMPERATURE, 10.0);
+    }
+    auto& r_destination = model.CreateModelPart("destination");
+
+    const Parameters report = MeshioPlusPlusMeshOperations::BlendSteps(
+        r_first, r_second, 0.25, Parameters(R"({"nodal_data_value_variables" : ["TEMPERATURE"]})"), r_destination);
+    KRATOS_EXPECT_EQ(report["number_of_nodes"].GetInt(), static_cast<int>(r_first.NumberOfNodes()));
+    for (const auto& r_node : r_destination.Nodes()) {
+        KRATOS_EXPECT_NEAR(r_node.GetValue(TEMPERATURE), 2.5, 1e-12);
+    }
+
+    auto& r_square = model.CreateModelPart("square");
+    PopulateTriangulatedSquare(r_square);
+    auto& r_refused = model.CreateModelPart("refused");
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        MeshioPlusPlusMeshOperations::BlendSteps(r_first, r_square, 0.5, Parameters(R"({})"), r_refused), "");
+}
+
 } // namespace Kratos::Testing
