@@ -503,6 +503,51 @@ End Elements
         self.assertEqual(lenient.NumberOfNodes(), 4)
         self.assertEqual(lenient.NumberOfElements(), 1)
 
+    def testMdpaKeepExtraBlocksReportsWhatAModelPartCannotHold(self):
+        """A top-level table and a Constraints block are refused by default, and with
+        "mdpa_keep_extra_blocks" they are read through MdpaInfo and reported, not transferred."""
+        deck = """Begin Nodes
+1 0.0 0.0 0.0
+2 1.0 0.0 0.0
+3 0.0 1.0 0.0
+4 0.0 0.0 1.0
+End Nodes
+
+Begin Table 1 TIME VELOCITY
+0.0 0.0
+1.0 1.0
+End Table
+
+Begin Elements Element3D4N
+1 0 1 2 3 4
+End Elements
+
+Begin Constraints
+1 LinearMasterSlaveConstraint 1 2
+End Constraints
+"""
+        with tempfile.TemporaryDirectory() as temp_dir:
+            path = Path(temp_dir) / "extra_blocks.mdpa"
+            path.write_text(deck)
+
+            strict = self.model.CreateModelPart("strict_extra")
+            with self.assertRaises(RuntimeError):
+                KratosMeshioPlusPlus.MeshioPlusPlusIO(str(path)).ReadModelPart(strict)
+
+            kept = self.model.CreateModelPart("kept_extra")
+            settings = KratosMultiphysics.Parameters("""{"mdpa_keep_extra_blocks" : true}""")
+            io = KratosMeshioPlusPlus.MeshioPlusPlusIO(str(path), settings)
+            self.assertFalse(io.GetMdpaInfo()["recognised"].GetBool())
+            io.ReadModelPart(kept)
+
+        self.assertEqual(kept.NumberOfNodes(), 4)
+        self.assertEqual(kept.NumberOfElements(), 1)
+        info = io.GetMdpaInfo()
+        self.assertTrue(info["recognised"].GetBool())
+        self.assertEqual(info["number_of_tables"].GetInt(), 1)
+        self.assertEqual(info["raw_blocks"].size(), 1)
+        self.assertIn("Constraints", info["raw_blocks"][0].GetString())
+
     def testTimeStepOutOfRangeThrows(self):
         """Tecplot's reader always resolves "time_step", even for a non-transient file, unlike
         gmsh/EnSight which skip the resolution entirely when the file carries no timeline. The
