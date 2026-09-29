@@ -48,9 +48,12 @@ namespace Kratos
  *  - report-only (stats, quality, diff, data_info, data_integrate): the destination is left
  *    untouched and the whole result is in the returned @ref Parameters.
  *
- * Four operations are *not* reachable through @ref Execute because they do not have its
- * one-mesh-in/one-mesh-out shape: @ref Interpolate, @ref ConservativeInterpolate and
- * @ref Shrinkwrap each need two independent meshes, and @ref Grid needs none at all.
+ * Several operations are *not* reachable through @ref Execute because they do not have its
+ * one-mesh-in/one-mesh-out shape: @ref Interpolate, @ref ConservativeInterpolate,
+ * @ref Shrinkwrap, @ref BlendSteps and @ref HausdorffDistance each need two independent meshes,
+ * @ref MatchPeriodicNodes produces node pairs, and @ref Grid needs none at all. meshio++'s
+ * `resample_sequence` is not exposed either: it is driven by a file sequence and a pipeline,
+ * not by model parts (@ref BlendSteps is its per-pair kernel).
  *
  * @note meshio++'s `undo_green` is deliberately **not** exposed. It resolves a refinement's
  * green closure through the `refine:cell_id`/`refine:parent_id` arrays `refine(record_hierarchy)`
@@ -321,6 +324,59 @@ public:
     static std::vector<std::pair<std::size_t, std::size_t>> NeighborPairs(
         const ModelPart& rSource,
         Parameters Settings
+        );
+
+    /**
+     * @brief The sampled Hausdorff distance between the surfaces of two model parts.
+     * @details A volume mesh contributes its skin. Settings: "face_samples" (0 samples the
+     * vertices only; s > 0 also the centroids of the s*s sub-triangles of every triangle),
+     * "region_first"/"region_second" (restrict a mesh to a named cell region, i.e. a sub model
+     * part), "grid_cell_size" (nearest-triangle bucket size, 0 for automatic). Report-only, and
+     * not an @ref Execute operation because it takes two meshes.
+     * @return The one-sided maxima, means and RMS, the sample counts and the worst points.
+     */
+    static Parameters HausdorffDistance(
+        const ModelPart& rFirst,
+        const ModelPart& rSecond,
+        Parameters Settings = Parameters(R"({})")
+        );
+
+    /**
+     * @brief Pairs every node of a "slave" region with the node of a "master" region that an
+     * affine transform maps it onto (periodic boundary conditions).
+     * @details Settings: "slave" and "master" ({"name", optional "kind" any/point/cell/side,
+     * "dim", "tag"}; the name of a sub model part is a region name), the transform as
+     * "translation", "rotation_axis"/"rotation_angle" (radians) or a row-major 4x4 "matrix",
+     * "tolerance" (default 1e-8), "require_complete" (default true: an unmatched slave node is
+     * an error), "use_deformed_configuration".
+     * Not an @ref Execute operation: it produces pairs, not a mesh (the @ref NeighborPairs shape).
+     * @param rSource The model part holding both regions as sub model parts.
+     * @param Settings The matching settings.
+     * @return The (slave, master) node Ids, ascending by slave.
+     */
+    static std::vector<std::pair<std::size_t, std::size_t>> MatchPeriodicNodes(
+        const ModelPart& rSource,
+        Parameters Settings
+        );
+
+    /**
+     * @brief The first model part with its floating-point data linearly blended toward the
+     * second by a weight (a time interpolation between two steps of one mesh).
+     * @details Both must share topology and data-array names; "blend_points" (default false)
+     * also blends the coordinates. Data selection uses the @ref Execute field-data settings.
+     * @param rFirst The step at weight 0.
+     * @param rSecond The step at weight 1.
+     * @param Weight The blend weight.
+     * @param Settings The settings.
+     * @param rDestination The model part receiving the blended mesh (expected empty).
+     * @return The node, element and condition counts of the result.
+     */
+    static Parameters BlendSteps(
+        const ModelPart& rFirst,
+        const ModelPart& rSecond,
+        const double Weight,
+        Parameters Settings,
+        ModelPart& rDestination
         );
 
     ///@}

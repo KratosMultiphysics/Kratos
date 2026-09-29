@@ -24,6 +24,12 @@
 #include "meshioplusplus/skin.hpp"
 #include "meshioplusplus/detail/provenance.hpp"
 #include "meshioplusplus/operations/agglomerate.hpp"
+#include "meshioplusplus/operations/blend.hpp"
+#include "meshioplusplus/operations/feature_edges.hpp"
+#include "meshioplusplus/operations/hausdorff.hpp"
+#include "meshioplusplus/operations/periodic.hpp"
+#include "meshioplusplus/operations/quality_gate.hpp"
+#include "meshioplusplus/operations/region_ops.hpp"
 #include "meshioplusplus/operations/clean.hpp"
 #include "meshioplusplus/operations/conservative_interpolate.hpp"
 #include "meshioplusplus/operations/convert_cells.hpp"
@@ -86,9 +92,9 @@ const std::vector<std::string>& OperationNames()
         "agglomerate", "attach_quality", "cell_data_to_point_data", "clean", "compute_normals",
         "compute_sdf", "convert_cells", "crop_bbox", "crop_halfspace", "crop_predicate",
         "curvature", "data_calc", "data_condition", "data_info", "data_integrate", "data_manage",
-        "decimate", "decimate_volume", "estimate_error", "extract_skin", "extract_surface",
-        "gradient", "hessian", "isosurface", "optimize_volume", "partition",
-        "point_data_to_cell_data", "quality", "refine", "remesh", "remesh_volume", "reorder",
+        "decimate", "decimate_volume", "edit_regions", "estimate_error", "extract_skin",
+        "extract_surface", "feature_edges", "gradient", "hessian", "isosurface", "optimize_volume", "partition",
+        "point_data_to_cell_data", "quality", "check_quality", "refine", "remesh", "remesh_volume", "reorder",
         "repair", "slice", "smooth", "sobolev_deform", "split", "stats", "subdivide",
         "tensor_invariants", "transform", "voxelize"
     };
@@ -428,6 +434,57 @@ Parameters StorePieces(TPieces& rPieces, ModelPart& rDestination, const std::str
     return report;
 }
 
+/// Reads a {"name", "kind", "dim", "tag"} region selector; "kind" is "any" (default), "point",
+/// "cell" or "side", and an absent "dim"/"tag" matches any.
+mio::RegionSelector ReadRegionSelector(Parameters Selector, const std::string& rWhere)
+{
+    KRATOS_ERROR_IF_NOT(Selector.Has("name") && Selector["name"].IsString())
+        << rWhere << ": a region selector needs a \"name\" string" << std::endl;
+    mio::RegionSelector selector;
+    selector.mName = Selector["name"].GetString();
+    const std::string kind = Selector.Has("kind") ? Selector["kind"].GetString() : "any";
+    if (kind == "any") {
+        selector.mKind = -1;
+    } else if (kind == "point") {
+        selector.mKind = 0;
+    } else if (kind == "cell") {
+        selector.mKind = 1;
+    } else if (kind == "side") {
+        selector.mKind = 2;
+    } else {
+        KRATOS_ERROR << rWhere << ": unknown region \"kind\" \"" << kind
+                     << "\" (use \"any\", \"point\", \"cell\" or \"side\")" << std::endl;
+    }
+    if (Selector.Has("dim")) {
+        selector.mDim = Selector["dim"].GetInt();
+    }
+    if (Selector.Has("tag")) {
+        selector.mTag = Selector["tag"].GetInt();
+    }
+    return selector;
+}
+
+/// Builds the affine transform of the "translation", "rotation_axis"/"rotation_angle" (radians)
+/// or "matrix" (16 values, row-major) settings; the matrix wins when present.
+mio::AffineTransform ReadAffineTransform(Parameters Settings)
+{
+    if (Settings["matrix"].size() > 0) {
+        const Vector matrix = Settings["matrix"].GetVector();
+        KRATOS_ERROR_IF_NOT(matrix.size() == 16)
+            << "\"matrix\" needs 16 row-major values, got " << matrix.size() << std::endl;
+        return mio::transform_from_matrix(&matrix[0]);
+    }
+    const auto axis = ReadVector3(Settings, "rotation_axis");
+    const auto translation = ReadVector3(Settings, "translation");
+    mio::AffineTransform xform;
+    const double angle = Settings["rotation_angle"].GetDouble();
+    if (std::abs(angle) > 0.0) {
+        xform = mio::transform_rotation(axis[0], axis[1], axis[2], angle);
+    }
+    return mio::transform_compose(
+        mio::transform_translation(translation[0], translation[1], translation[2]), xform);
+}
+
 } // namespace
 
 /***********************************************************************************/
@@ -632,6 +689,21 @@ Parameters MeshioPlusPlusMeshOperations::GetDefaultParameters()
         "flip"                                         : true,
         "min_improvement"                              : 1.0e-6,
 
+        "merge_coplanar_faces"                         : false,
+        "coplanar_angle"                               : 1.0,
+        "min_sphericity"                               : 0.0,
+
+        "include_feature_edges"                        : true,
+        "include_boundary_edges"                       : true,
+        "include_non_manifold_edges"                   : true,
+        "include_inconsistent_edges"                   : true,
+
+        "edits"                                        : [],
+
+        "require"                                      : "",
+        "max_inverted"                                 : 0,
+        "max_degenerate"                               : 0,
+
         "write_mdpa_ids"                               : false
     })");
 
@@ -749,7 +821,12 @@ Parameters MeshioPlusPlusMeshOperations::Execute(
     } else if (operation == "agglomerate") {
         mio::AgglomerateOptions options;
         options.mTargetGroupSize = static_cast<std::size_t>(Settings["target_group_size"].GetInt());
+        options.mMergeCoplanarFaces = Settings["merge_coplanar_faces"].GetBool();
+        options.mCoplanarAngleDeg = Settings["coplanar_angle"].GetDouble();
+        options.mMinSphericity = Settings["min_sphericity"].GetDouble();
         mio::AgglomerateResult result = mio::agglomerate(mesh, options);
+        report.AddInt("faces_merged", static_cast<int>(result.mNumFacesMerged));
+        report.AddInt("candidates_rejected", static_cast<int>(result.mNumRejected));
         StorePolyhedralResult(result.mMesh, rDestination, operation,
                               Settings["simplexify_result"].GetBool());
 
@@ -937,6 +1014,54 @@ Parameters MeshioPlusPlusMeshOperations::Execute(
 
     } else if (operation == "extract_skin") {
         mio::Mesh result = mio::extract_skin(mesh, Settings["linearize"].GetBool());
+        StoreResult(result, rDestination);
+
+    } else if (operation == "feature_edges") {
+        mio::FeatureEdgeOptions options;
+        options.mFeatureAngleDeg = Settings["feature_angle"].GetDouble();
+        options.mFeature = Settings["include_feature_edges"].GetBool();
+        options.mBoundary = Settings["include_boundary_edges"].GetBool();
+        options.mNonManifold = Settings["include_non_manifold_edges"].GetBool();
+        options.mInconsistent = Settings["include_inconsistent_edges"].GetBool();
+        options.mRegion = Settings["region"].GetString();
+        mio::FeatureEdgeResult result = mio::feature_edges(mesh, options);
+        report.AddInt("feature_edges", static_cast<int>(result.mNumFeature));
+        report.AddInt("boundary_edges", static_cast<int>(result.mNumBoundary));
+        report.AddInt("non_manifold_edges", static_cast<int>(result.mNumNonManifold));
+        report.AddInt("inconsistent_edges", static_cast<int>(result.mNumInconsistent));
+        StoreResult(result.mMesh, rDestination);
+
+    } else if (operation == "edit_regions") {
+        // Each edit: {"operation": union|intersection|difference|rename|retag|delete,
+        // "inputs": [selectors], "output_name", "output_dim", "output_tag", "keep_inputs"}.
+        std::vector<mio::RegionEdit> edits;
+        for (std::size_t i_edit = 0; i_edit < Settings["edits"].size(); ++i_edit) {
+            Parameters r_edit = Settings["edits"][i_edit];
+            mio::RegionEdit edit;
+            KRATOS_ERROR_IF_NOT(r_edit.Has("operation"))
+                << "edit_regions: every edit needs an \"operation\"" << std::endl;
+            edit.mOp = mio::region_op_from_name(r_edit["operation"].GetString());
+            if (r_edit.Has("inputs")) {
+                for (std::size_t i_input = 0; i_input < r_edit["inputs"].size(); ++i_input) {
+                    edit.mInputs.push_back(ReadRegionSelector(r_edit["inputs"][i_input], "edit_regions"));
+                }
+            }
+            if (r_edit.Has("output_name")) {
+                edit.mOutputName = r_edit["output_name"].GetString();
+            }
+            if (r_edit.Has("output_dim")) {
+                edit.mOutputDim = r_edit["output_dim"].GetInt();
+            }
+            if (r_edit.Has("output_tag")) {
+                edit.mOutputTag = r_edit["output_tag"].GetInt();
+            }
+            if (r_edit.Has("keep_inputs")) {
+                edit.mKeepInputs = r_edit["keep_inputs"].GetBool();
+            }
+            edits.push_back(std::move(edit));
+        }
+        mio::Mesh result = mio::edit_regions(mesh, edits);
+        report.AddInt("number_of_edits", static_cast<int>(edits.size()));
         StoreResult(result, rDestination);
 
     } else if (operation == "crop_bbox") {
@@ -1291,6 +1416,31 @@ Parameters MeshioPlusPlusMeshOperations::Execute(
 
     } else if (operation == "quality") {
         return ComputeQuality(rSource);
+
+    } else if (operation == "check_quality") {
+        // "require" is meshio++'s one threshold text on every surface, e.g.
+        // "scaled_jacobian >= 0.2; aspect_ratio <= 5 @ 1%".
+        mio::QualityGateOptions options;
+        options.mThresholds = mio::parse_quality_thresholds(Settings["require"].GetString());
+        options.mMaxInverted = Settings["max_inverted"].GetInt();
+        options.mMaxDegenerate = Settings["max_degenerate"].GetInt();
+        const mio::QualityGateResult result = mio::check_quality(mesh, options);
+        report.AddBool("passed", result.mPassed);
+        report.AddString("summary", mio::quality_gate_summary(result));
+        Parameters checks(R"([])");
+        for (const auto& r_check : result.mChecks) {
+            Parameters entry(R"({})");
+            entry.AddString("name", r_check.mName);
+            entry.AddBool("passed", r_check.mPassed);
+            entry.AddInt("evaluated", static_cast<int>(r_check.mEvaluated));
+            entry.AddInt("violations", static_cast<int>(r_check.mViolations));
+            entry.AddDouble("fraction", r_check.mFraction);
+            entry.AddDouble("worst", r_check.mWorst);
+            entry.AddInt("worst_cell", static_cast<int>(r_check.mWorstCell));
+            checks.Append(entry);
+        }
+        report.AddValue("checks", checks);
+        return report;
 
     } else {
         std::ostringstream supported;
@@ -1753,5 +1903,154 @@ std::vector<std::pair<std::size_t, std::size_t>> MeshioPlusPlusMeshOperations::N
 
     KRATOS_CATCH("")
 }
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+Parameters MeshioPlusPlusMeshOperations::HausdorffDistance(
+    const ModelPart& rFirst,
+    const ModelPart& rSecond,
+    Parameters Settings
+    )
+{
+    KRATOS_TRY
+
+    KRATOS_ERROR_IF(rFirst.IsDistributed() || rSecond.IsDistributed())
+        << "The meshio++ operations do not support distributed model parts" << std::endl;
+
+    Settings.ValidateAndAssignDefaults(Parameters(R"({
+        "face_samples"   : 0,
+        "region_first"   : "",
+        "region_second"  : "",
+        "grid_cell_size" : 0.0
+    })"));
+
+    mio::HausdorffOptions options;
+    options.mFaceSamples = Settings["face_samples"].GetInt();
+    options.mRegionA = Settings["region_first"].GetString();
+    options.mRegionB = Settings["region_second"].GetString();
+    options.mGridCellSize = Settings["grid_cell_size"].GetDouble();
+
+    const mio::Mesh first = Internals::ModelPartToMesh(rFirst);
+    const mio::Mesh second = Internals::ModelPartToMesh(rSecond);
+    const mio::HausdorffResult result = mio::hausdorff_distance(first, second, options);
+
+    Parameters report(R"({})");
+    report.AddDouble("distance", result.mDistance);
+    report.AddDouble("first_to_second", result.mAtoB);
+    report.AddDouble("second_to_first", result.mBtoA);
+    report.AddDouble("mean_first_to_second", result.mMeanAtoB);
+    report.AddDouble("rms_first_to_second", result.mRmsAtoB);
+    report.AddDouble("mean_second_to_first", result.mMeanBtoA);
+    report.AddDouble("rms_second_to_first", result.mRmsBtoA);
+    report.AddInt("samples_first", static_cast<int>(result.mNumSamplesA));
+    report.AddInt("samples_second", static_cast<int>(result.mNumSamplesB));
+    Vector worst_first(3), worst_second(3);
+    for (std::size_t i = 0; i < 3; ++i) {
+        worst_first[i] = result.mWorstPointA[i];
+        worst_second[i] = result.mWorstPointB[i];
+    }
+    report.AddVector("worst_point_first", worst_first);
+    report.AddVector("worst_point_second", worst_second);
+    return report;
+
+    KRATOS_CATCH("")
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+std::vector<std::pair<std::size_t, std::size_t>> MeshioPlusPlusMeshOperations::MatchPeriodicNodes(
+    const ModelPart& rSource,
+    Parameters Settings
+    )
+{
+    KRATOS_TRY
+
+    KRATOS_ERROR_IF(rSource.IsDistributed())
+        << "The meshio++ operations do not support distributed model parts" << std::endl;
+
+    // The selectors are free-form sub-objects, which a recursive validation against "{}" would
+    // reject, so the defaults are merged rather than validated.
+    Settings.AddMissingParameters(Parameters(R"({
+        "slave"                      : {},
+        "master"                     : {},
+        "translation"                : [0.0, 0.0, 0.0],
+        "rotation_axis"              : [0.0, 0.0, 1.0],
+        "rotation_angle"             : 0.0,
+        "matrix"                     : [],
+        "tolerance"                  : 1e-8,
+        "require_complete"           : true,
+        "use_deformed_configuration" : false
+    })"));
+
+    mio::PeriodicOptions options;
+    options.mTransform = ReadAffineTransform(Settings);
+    options.mAtol = Settings["tolerance"].GetDouble();
+    options.mRequireComplete = Settings["require_complete"].GetBool();
+    const mio::RegionSelector slave = ReadRegionSelector(Settings["slave"], "MatchPeriodicNodes");
+    const mio::RegionSelector master = ReadRegionSelector(Settings["master"], "MatchPeriodicNodes");
+
+    const mio::Mesh mesh = Internals::ModelPartToMesh(rSource, true, true,
+                                                      Settings["use_deformed_configuration"].GetBool());
+    const mio::PeriodicPairs pairs = mio::match_periodic_nodes(mesh, slave, master, options);
+
+    // The pair rows are point rows, which follow the node container order of the model part.
+    std::vector<std::size_t> node_ids;
+    node_ids.reserve(rSource.NumberOfNodes());
+    for (const auto& r_node : rSource.Nodes()) {
+        node_ids.push_back(r_node.Id());
+    }
+    const std::int64_t* p_slave = pairs.mSlave.As<std::int64_t>();
+    const std::int64_t* p_master = pairs.mMaster.As<std::int64_t>();
+    std::vector<std::pair<std::size_t, std::size_t>> result;
+    result.reserve(pairs.mSlave.Size());
+    for (std::size_t i = 0; i < pairs.mSlave.Size(); ++i) {
+        result.emplace_back(node_ids[static_cast<std::size_t>(p_slave[i])],
+                            node_ids[static_cast<std::size_t>(p_master[i])]);
+    }
+    return result;
+
+    KRATOS_CATCH("")
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+Parameters MeshioPlusPlusMeshOperations::BlendSteps(
+    const ModelPart& rFirst,
+    const ModelPart& rSecond,
+    const double Weight,
+    Parameters Settings,
+    ModelPart& rDestination
+    )
+{
+    KRATOS_TRY
+
+    KRATOS_ERROR_IF(rFirst.IsDistributed() || rSecond.IsDistributed())
+        << "The meshio++ operations do not support distributed model parts" << std::endl;
+
+    Settings.AddMissingParameters(GetDefaultParameters());
+    Settings.AddMissingParameters(Parameters(R"({"blend_points" : false})"));
+
+    const bool deformed = Settings["use_deformed_configuration"].GetBool();
+    const Internals::FieldDataSelection selection = BuildFieldDataSelection(Settings);
+    const mio::Mesh first = Internals::ModelPartToMeshWithData(rFirst, true, true, deformed, selection);
+    const mio::Mesh second = Internals::ModelPartToMeshWithData(rSecond, true, true, deformed, selection);
+
+    mio::BlendOptions options;
+    options.mBlendPoints = Settings["blend_points"].GetBool();
+    mio::Mesh result = mio::blend_steps(first, second, Weight, options);
+    Internals::MeshToModelPart(result, rDestination);
+
+    Parameters report(R"({})");
+    report.AddInt("number_of_nodes", static_cast<int>(rDestination.NumberOfNodes()));
+    report.AddInt("number_of_elements", static_cast<int>(rDestination.NumberOfElements()));
+    report.AddInt("number_of_conditions", static_cast<int>(rDestination.NumberOfConditions()));
+    return report;
+
+    KRATOS_CATCH("")
+}
+
 
 } // namespace Kratos
