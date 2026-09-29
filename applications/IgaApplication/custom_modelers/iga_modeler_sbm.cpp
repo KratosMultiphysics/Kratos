@@ -48,7 +48,7 @@ struct NurbsProjectionResult
 // Finds the closest valid projection of a point onto the NURBS skin curves.
 NurbsProjectionResult ProjectToNurbsSkin(
     const ProjectionCoordinates& rPoint,
-    Model& rModel,
+    const std::vector<Geometry<Node>::Pointer>& rNurbsSkinCurves,
     const double SearchRadius,
     const double Tolerance,
     const bool RequireConditionName,
@@ -57,27 +57,16 @@ NurbsProjectionResult ProjectToNurbsSkin(
     NurbsProjectionResult result;
     std::vector<Geometry<Node>::Pointer> curves;
 
-    // Collects registered NURBS skin curves from the model's main model parts and sorts them by ID.
-    for (const auto& r_model_part_name : rModel.GetModelPartNames()) {
-        ModelPart& r_model_part = rModel.GetModelPart(r_model_part_name);
-        if (r_model_part.IsSubModelPart()) {
+    // Collects NURBS curves from the skin used by this SBM loop.
+    for (const auto& p_geometry : rNurbsSkinCurves) {
+        auto* p_curve = dynamic_cast<NurbsSkinCurve*>(p_geometry.get());
+        if (!p_curve || !p_curve->Has(IDENTIFIER)) {
             continue;
         }
-        for (auto it = r_model_part.Geometries().ptr_begin();
-             it != r_model_part.Geometries().ptr_end(); ++it) {
-            auto* p_curve = dynamic_cast<NurbsSkinCurve*>((*it).get());
-            if (!p_curve || !p_curve->Has(IDENTIFIER)) {
-                continue;
-            }
-            // When the curve supplies the condition type, require a registered CONDITION_NAME.
-            if (RequireConditionName) {
-                if (!p_curve->Has(CONDITION_NAME) ||
-                    !KratosComponents<Condition>::Has(p_curve->GetValue(CONDITION_NAME))) {
-                    continue;
-                }
-            }
-            curves.push_back(*it);
+        if (RequireConditionName && !p_curve->Has(CONDITION_NAME)) {
+            continue;
         }
+        curves.push_back(p_geometry);
     }
     std::sort(curves.begin(), curves.end(), [](const auto& a, const auto& b) {
         return a->Id() < b->Id();
@@ -235,6 +224,46 @@ void IgaModelerSbm::SetupModelPart()
                       analysis_model_part.GetValue(KNOT_VECTOR_W).size() > 0)))
         << "::[IgaModelerSbm]:: Analytical SBM projection is only implemented in 2D."
         << std::endl;
+    std::vector<std::string> sbm_loop_names;
+    if (has_sbm_conditions) {
+        const std::string skin_model_part_name = mParameters.Has("skin_model_part_name")
+            ? mParameters["skin_model_part_name"].GetString() : "skin_model_part";
+        KRATOS_ERROR_IF_NOT(mpModel->HasModelPart(skin_model_part_name))
+            << "::[IgaModelerSbm]:: Missing skin model part \"" << skin_model_part_name
+            << "\"." << std::endl;
+        const ModelPart& r_skin_model_part = mpModel->GetModelPart(skin_model_part_name);
+
+        for (SizeType i = 0; i < iga_physics_parameters.size(); ++i) {
+            const Parameters unit_parameters = iga_physics_parameters[i];
+            if (!unit_parameters.Has("sbm_parameters")) {
+                continue;
+            }
+            const bool is_inner = unit_parameters["sbm_parameters"]["is_inner"].GetBool();
+            const std::string loop_name = is_inner ? "inner" : "outer";
+            KRATOS_ERROR_IF_NOT(r_skin_model_part.HasSubModelPart(loop_name))
+                << "::[IgaModelerSbm]:: Missing \"" << loop_name
+                << "\" skin sub model part." << std::endl;
+            const ModelPart& r_skin_loop = r_skin_model_part.GetSubModelPart(loop_name);
+            const bool is_nurbs_skin = r_skin_loop.Has(NEIGHBOUR_GEOMETRIES) &&
+                !r_skin_loop.GetValue(NEIGHBOUR_GEOMETRIES).empty();
+
+            if (is_nurbs_skin) {
+                KRATOS_ERROR_IF(unit_parameters["name"].GetString() != "SbmCondition")
+                    << "::[IgaModelerSbm]:: NURBS skin requires name \"SbmCondition\" "
+                    << "in SBM entry " << i << "; define the physical condition in "
+                    << "ImportNurbsSbmModeler.link_layer_to_condition_name." << std::endl;
+            } else {
+                KRATOS_ERROR_IF(projection_type == "analytical")
+                    << "::[IgaModelerSbm]:: A discretized skin requires \"linealized\" "
+                    << "projection in SBM entry " << i << "." << std::endl;
+            }
+            if (std::find(sbm_loop_names.begin(), sbm_loop_names.end(), loop_name) ==
+                sbm_loop_names.end()) {
+                sbm_loop_names.push_back(loop_name);
+            }
+        }
+    }
+
     if (release_discretized_skin) {
         // The skin model part is still required to hold the projection nodes created later.
         KRATOS_ERROR_IF_NOT(mParameters.Has("skin_model_part_name"))
@@ -242,16 +271,17 @@ void IgaModelerSbm::SetupModelPart()
         ModelPart& skin_model_part = mpModel->GetModelPart(
             mParameters["skin_model_part_name"].GetString());
 
-        // Projection uses the original NURBS curves, so only the inner and outer skin conditions are removed.
-        for (const char* loop_name : {"inner", "outer"}) {
-            for (auto& r_condition : skin_model_part.GetSubModelPart(loop_name).Conditions()) {
+        // Projection uses the original NURBS curves, so remove the discretized skin of the SBM loops.
+        for (const auto& r_loop_name : sbm_loop_names) {
+            ModelPart& r_skin_loop = skin_model_part.GetSubModelPart(r_loop_name);
+            for (auto& r_condition : r_skin_loop.Conditions()) {
                 r_condition.Set(TO_ERASE);
+            }
+            for (auto& r_node : r_skin_loop.Nodes()) {
+                r_node.Set(TO_ERASE);
             }
         }
         skin_model_part.RemoveConditionsFromAllLevels(TO_ERASE);
-        for (auto& r_node : skin_model_part.Nodes()) {
-            r_node.Set(TO_ERASE);
-        }
     }
 
     CreateIntegrationDomain(
@@ -610,6 +640,7 @@ void IgaModelerSbm::CreateQuadraturePointGeometriesSbmByProjectionLayer(
 
     ModelPart& r_skin_loop = mpModel->GetModelPart(
         skin_model_part_name).GetSubModelPart(loop_name);
+    const auto& r_nurbs_curves = r_skin_loop.GetValue(NEIGHBOUR_GEOMETRIES);
 
     const Vector& r_knot_span_sizes =
         rModelPart.GetParentModelPart().GetValue(KNOT_SPAN_SIZES);
@@ -681,7 +712,7 @@ void IgaModelerSbm::CreateQuadraturePointGeometriesSbmByProjectionLayer(
         {
             auto projection = ProjectToNurbsSkin(
                 r_quadrature_geometry.Center().Coordinates(),
-                *mpModel,
+                r_nurbs_curves,
                 search_radius,
                 tolerance,
                 use_curve_condition_name);
@@ -707,7 +738,7 @@ void IgaModelerSbm::CreateQuadraturePointGeometriesSbmByProjectionLayer(
             if (projections[j].LayerName != winning_layer) {
                 projections[j] = ProjectToNurbsSkin(
                     quadrature_geometries[j].Center().Coordinates(),
-                    *mpModel,
+                    r_nurbs_curves,
                     search_radius,
                     tolerance,
                     use_curve_condition_name,
