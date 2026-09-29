@@ -23,6 +23,7 @@
 
 // Application include
 #include "dam_application_variables.h"
+#include "custom_utilities/nodal_young_modulus_utilities.h"
 
 namespace Kratos
 {
@@ -93,7 +94,10 @@ class DamNodalYoungModulusProcess : public Process
 
         KRATOS_TRY;
 
-        const Variable<double>& var = KratosComponents<Variable<double>>::Get(mVariableName);
+        // The nodal field is stored as the standard YOUNG_MODULUS; the historical
+        // variable_name is accepted for input compatibility.
+        const Variable<double>& var =
+            NodalYoungModulusUtilities::ResolveYoungModulusVariable(mVariableName);
         const int nnodes = mrModelPart.GetMesh(0).Nodes().size();
 
         if (nnodes != 0)
@@ -116,6 +120,12 @@ class DamNodalYoungModulusProcess : public Process
             }
         }
 
+        // Expose the nodal YOUNG_MODULUS field through the standard
+        // DatabaseAccessor so accessor-aware standard constitutive laws retrieve
+        // the spatially varying Young's modulus through
+        // Properties::GetValue(YOUNG_MODULUS, geometry, N, process_info).
+        NodalYoungModulusUtilities::InstallDatabaseAccessor(mrModelPart);
+
         KRATOS_CATCH("");
     }
 
@@ -126,7 +136,10 @@ class DamNodalYoungModulusProcess : public Process
 
         KRATOS_TRY;
 
-        const Variable<double>& var = KratosComponents<Variable<double>>::Get(mVariableName);
+        // The nodal field is stored as the standard YOUNG_MODULUS; the historical
+        // variable_name is accepted for input compatibility.
+        const Variable<double>& var =
+            NodalYoungModulusUtilities::ResolveYoungModulusVariable(mVariableName);
         const int nnodes = mrModelPart.GetMesh(0).Nodes().size();
 
         if (nnodes != 0)

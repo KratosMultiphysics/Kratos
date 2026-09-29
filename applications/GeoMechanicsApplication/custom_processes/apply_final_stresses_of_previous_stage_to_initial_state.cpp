@@ -14,10 +14,10 @@
 #include "containers/model.h"
 #include "custom_utilities/process_utilities.h"
 #include "geo_mechanics_application_variables.h"
+#include "includes/default_interface.h"
 #include "includes/initial_state.h"
 #include "includes/kratos_parameters.h"
 #include "includes/model_part.h"
-#include "includes/default_interface.h"
 #include "includes/variables.h"
 
 #include <vector>
