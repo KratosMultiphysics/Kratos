@@ -157,18 +157,6 @@ MergeMatrices(typename TDefaultSparseSpace<TValue>::MatrixType& rLeft,
 
     if (!rRight.size1() || !rRight.size2() || !rRight.nnz()) return;
 
-    // Declare new containers for the merged matrix. Owning std::vectors (not
-    // the matrix's own storage-array types) so the same code serves the uBLAS
-    // storage arrays and the non-owning Eigen storage proxies.
-    std::vector<typename MatrixType::index_array_type::value_type> row_extents(rLeft.index1_data().size());
-    std::vector<typename MatrixType::index_array_type::value_type> column_indices;
-    std::vector<typename MatrixType::value_array_type::value_type> values;
-    block_for_each(
-        row_extents,
-        [](typename MatrixType::index_array_type::value_type& r_item){
-            r_item = static_cast<TValue>(0);
-        });
-
     // Merge rows into separate containers.
     {
         std::vector<
@@ -203,36 +191,37 @@ MergeMatrices(typename TDefaultSparseSpace<TValue>::MatrixType& rLeft,
             rows[i_row].shrink_to_fit();
         }); // for i_row in range(rLeft.size1())
 
+        // Allocate the merged matrix and fill its CSR arrays in place
+        // (the Eigen backend cannot adopt external buffers, so this avoids
+        // building the arrays elsewhere and copying them in).
+        std::size_t entry_count = 0;
+        for (const auto& r_row : rows) entry_count += r_row.size();
+        output = MatrixType(rLeft.size1(), rLeft.size2(), entry_count);
+
+        auto&& r_row_extents = output.index1_data();
+        auto&& r_column_indices = output.index2_data();
+        auto&& r_values = output.value_data();
+
         // Compute new row extents.
+        r_row_extents[0] = 0;
         for (std::size_t i_row=0; i_row<rLeft.size1(); ++i_row) {
-            row_extents[i_row + 1] = row_extents[i_row] + rows[i_row].size();
+            r_row_extents[i_row + 1] = r_row_extents[i_row] + rows[i_row].size();
         } // for i_row in range(rLeft.size1)
 
         // Fill column indices and entries.
-        column_indices.resize(row_extents[rLeft.size1()]);
-        values.resize(row_extents[rLeft.size1()]);
-        IndexPartition<IndexType>(rLeft.size1()).for_each([&rows, &row_extents, &column_indices, &values](const IndexType i_row){
-            const IndexType i_begin = row_extents[i_row];
+        IndexPartition<IndexType>(rLeft.size1()).for_each([&rows, &r_row_extents, &r_column_indices, &r_values](const IndexType i_row){
+            const IndexType i_begin = r_row_extents[i_row];
             for (IndexType i_pair=0ul; i_pair<static_cast<IndexType>(rows[i_row].size()); ++i_pair) {
                 const auto i_entry = i_begin + i_pair;
-                column_indices[i_entry] = rows[i_row][i_pair].first;
-                values[i_entry] = rows[i_row][i_pair].second;
+                r_column_indices[i_entry] = rows[i_row][i_pair].first;
+                r_values[i_entry] = rows[i_row][i_pair].second;
             }
         }); // for i_row in range(rLeft.size1())
+
+        output.set_filled(output.size1() + 1, entry_count);
     }
 
-    // Construct the new matrix, writing the CSR arrays directly (the same
-    // access pattern the builder-and-solvers use; valid for both backends).
-    rLeft = MatrixType(rLeft.size1(), rLeft.size2(), column_indices.size());
-    {
-        auto&& r_row_data = rLeft.index1_data();
-        auto&& r_column_data = rLeft.index2_data();
-        auto&& r_value_data = rLeft.value_data();
-        std::copy(row_extents.begin(), row_extents.end(), r_row_data.begin());
-        std::copy(column_indices.begin(), column_indices.end(), r_column_data.begin());
-        std::copy(values.begin(), values.end(), r_value_data.begin());
-    }
-    rLeft.set_filled(rLeft.size1() + 1, column_indices.size());
+    rLeft.swap(output);
 
     KRATOS_CATCH("")
 }
@@ -257,28 +246,22 @@ void MakeSparseTopology(TRowMapContainer& rRows,
     const IndexType row_count = rRows.size();
     IndexType entry_count = 0ul;
 
-    {
-        // Build the row extents in an owning container (the matrix's own
-        // storage cannot be grown before construction, and the Eigen wrapper
-        // exposes non-owning storage proxies), then write them into the
-        // freshly constructed matrix.
-        using IndexValueType = typename std::decay_t<decltype(rMatrix.index1_data())>::value_type;
-        std::vector<IndexValueType> row_extents(row_count + 1);
+    // Collect the total number of entries to store.
+    for (IndexType i = 0; i < row_count; i++) {
+        entry_count += rRows[i].size();
+    } // for i in range(row_count)
 
-        row_extents[0] = 0;
-        for (int i = 0; i < static_cast<int>(row_count); i++) {
-            row_extents[i + 1] = row_extents[i] + rRows[i].size();
-            entry_count += rRows[i].size();
-        } // for i in range(row_count)
-
-        // Resize the output matrix and all its containers.
-        rMatrix = typename TDefaultSparseSpace<TValue>::MatrixType(rRows.size(), ColumnCount, entry_count);
-        auto&& r_row_data = rMatrix.index1_data();
-        std::copy(row_extents.begin(), row_extents.end(), r_row_data.begin());
-    }
+    // Resize the output matrix and all its containers.
+    rMatrix = typename TDefaultSparseSpace<TValue>::MatrixType(rRows.size(), ColumnCount, entry_count);
 
     auto&& r_row_extents = rMatrix.index1_data();
     auto&& r_column_indices = rMatrix.index2_data();
+
+    // Fill row extents in place.
+    r_row_extents[0] = 0;
+    for (IndexType i = 0; i < row_count; i++) {
+        r_row_extents[i + 1] = r_row_extents[i] + rRows[i].size();
+    } // for i in range(row_count)
 
     // Copy column indices.
     IndexPartition<IndexType>(row_count).for_each([&r_row_extents, &r_column_indices, &rRows](const IndexType i_row){
