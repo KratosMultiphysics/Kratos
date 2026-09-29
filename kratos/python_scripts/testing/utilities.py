@@ -145,15 +145,19 @@ class Commander(object):
         else:
             # Used instead of wait to "soft-block" the process and prevent deadlocks
             # and capture the first exit code different from OK
+            # Bound here so that the "finally" block below is valid on every path
+            process_stdout, process_stderr = None, None
             try:
                 # Pipe the output of the process until the timer is reached
                 process_stdout, process_stderr = self.process.communicate(timeout=timer)
-                
+
                 # Capture the result of the process
                 self.exitCodes[test_suit_name] = int(self.process.returncode != 0)
             except subprocess.TimeoutExpired:
-                # Timeout reached
+                # Timeout reached: kill the process and drain its pipes, so that the
+                # output produced before the kill is still reported below
                 self.process.kill()
+                process_stdout, process_stderr = self.process.communicate()
                 print(f'[Error]: Tests for {test_suit_name} took too long. Process Killed.', file=sys.stderr)
                 self.exitCodes[test_suit_name] = 1
             except Exception as e:
@@ -167,7 +171,7 @@ class Commander(object):
                     self.PrintOutput(process_stderr, sys.stderr)
 
         # Exit message
-        PrintTestFooter(test_suit_name, self.process.returncode)
+        PrintTestFooter(test_suit_name, self.process.returncode if self.process is not None else 1)
         
     def RunPythonTests(self, applications, level, verbose, command, timer):
         ''' Calls the script that will run the tests.
