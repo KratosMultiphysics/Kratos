@@ -60,23 +60,41 @@ class KratosGeoMechanicsLabElementTests(KratosGeoUnittest.TestCase):
         self.assert_integration_point_tensors(result, "CAUCHY_STRESS_TENSOR", expected_stress, time, precision_places)
         self.assert_integration_point_tensors(result, "ENGINEERING_STRAIN_TENSOR", expected_strain, time, precision_places)
 
-    def test_biaxial_drained(self):
+    def test_biaxial_drained_linear_elastic(self):
         """Regression test for the biaxial experiment on a model with a constant pore water pressure."""
-        linear_elastic_file_path = test_helper.get_file_path(os.path.join('test_element_lab', 'test_biaxial', 'drained', 'linear_elastic'))
+        file_path = test_helper.get_file_path(os.path.join('test_element_lab', 'test_biaxial', 'drained', 'linear_elastic'))
         expected_disp = test_helper.get_values_from_csv_as_vectors(
-            Path(linear_elastic_file_path) / "expected_disp.csv",
+            Path(file_path) / "expected_disp.csv",
             ["node_id"],
             ["disp_x", "disp_y", "disp_z"])
         expected_stress = test_helper.get_values_from_csv_as_vectors(
-            Path(linear_elastic_file_path) / "expected_stress.csv",
+            Path(file_path) / "expected_stress.csv",
             ["element_id", "ip_index"],
             ["stress_xx", "stress_yy", "stress_zz", "stress_xy", "stress_yz", "stress_xz"])
         expected_strain = test_helper.get_values_from_csv_as_vectors(
-            Path(linear_elastic_file_path) / "expected_strain.csv",
+            Path(file_path) / "expected_strain.csv",
             ["element_id", "ip_index"],
             ["strain_xx", "strain_yy", "strain_zz", "strain_xy", "strain_yz", "strain_xz"])
-        self._run_biaxial_regression_test(linear_elastic_file_path, 'biaxial_test_output.post.res', expected_disp, expected_stress,
+        self._run_biaxial_regression_test(file_path, 'biaxial_test_output.post.res', expected_disp, expected_stress,
                                            expected_strain, 4)
+
+    def test_biaxial_drained_mohr_coulomb(self):
+        """Regression test for the biaxial experiment on a model with a constant pore water pressure."""
+        file_path = test_helper.get_file_path(os.path.join('test_element_lab', 'test_biaxial', 'drained', 'mohr_coulomb'))
+        expected_disp = test_helper.get_values_from_csv_as_vectors(
+            Path(file_path) / "expected_disp.csv",
+            ["node_id"],
+            ["disp_x", "disp_y", "disp_z"])
+        expected_stress = test_helper.get_values_from_csv_as_vectors(
+            Path(file_path) / "expected_stress.csv",
+            ["element_id", "ip_index"],
+            ["stress_xx", "stress_yy", "stress_zz", "stress_xy", "stress_yz", "stress_xz"])
+        expected_strain = test_helper.get_values_from_csv_as_vectors(
+            Path(file_path) / "expected_strain.csv",
+            ["element_id", "ip_index"],
+            ["strain_xx", "strain_yy", "strain_zz", "strain_xy", "strain_yz", "strain_xz"])
+        self._run_biaxial_regression_test(file_path, 'biaxial_test_output.post.res', expected_disp, expected_stress,
+                                          expected_strain, 4)
 
     def _run_biaxial_regression_test(self, file_path, output_file_name, expected_displacement, expected_stress, expected_strain, precision_places):
         test_helper.run_kratos(file_path)

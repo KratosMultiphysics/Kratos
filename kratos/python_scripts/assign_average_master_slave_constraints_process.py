@@ -15,7 +15,7 @@ class AssignAverageMasterSlaveConstraintsProcess(KM.Process):
 
         # Default settings for the process.
         default_settings = KM.Parameters("""{
-            "computing_model_part_name" : "ComputingModelPartName",
+            "model_part_name" : "ComputingModelPartName",
             "slave_model_part_name" : "SlaveModelPartName",
             "master_model_part_name" : "MasterModelPartName",
             "variable_name" : "",
@@ -30,7 +30,7 @@ class AssignAverageMasterSlaveConstraintsProcess(KM.Process):
 
     def ExecuteInitialize(self):
         # Store model part names from the settings
-        computing_model_part_name = self.settings["computing_model_part_name"].GetString()
+        computing_model_part_name = self.settings["model_part_name"].GetString()
         slave_model_part_name = self.settings["slave_model_part_name"].GetString()
         master_model_part_name = self.settings["master_model_part_name"].GetString()
         
@@ -77,7 +77,8 @@ class AssignAverageMasterSlaveConstraintsProcess(KM.Process):
             master_dofs_container.append(node.GetDof(variable))
         
         # Loop over all slave nodes to assign the constraints
-        counter = 1
+        counter = self.computing_model_part.NumberOfMasterSlaveConstraints() + 1
+        # counter = 1
         for node in self.slave_model_part.Nodes:
             slave_dof_container = [node.GetDof(variable)]
             self.computing_model_part.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", counter, master_dofs_container, slave_dof_container, weights_vector, constant_vector)

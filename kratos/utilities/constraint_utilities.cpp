@@ -52,9 +52,9 @@ void ComputeActiveDofs(
     // Filling rActiveDofs when MPC exist
     if (rModelPart.NumberOfMasterSlaveConstraints() > 0) {
         for (const auto& r_mpc : rModelPart.MasterSlaveConstraints()) {
-            for (const auto& r_dof : r_mpc.GetMasterDofsVector()) {
-                rActiveDofs[r_dof->EquationId()] = 0;
-            }
+            // for (const auto& r_dof : r_mpc.GetMasterDofsVector()) {
+            //     rActiveDofs[r_dof->EquationId()] = 0;
+            // }
             for (const auto& r_dof : r_mpc.GetSlaveDofsVector()) {
                 rActiveDofs[r_dof->EquationId()] = 0;
             }

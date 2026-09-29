@@ -53,6 +53,7 @@ KRATOS_TEST_CASE_IN_SUITE(ConstraintUtilitiesComputeActiveDofs, KratosCoreFastSu
     aux_dof_set.reserve(r_model_part.NumberOfNodes());
     for (auto& r_node : r_model_part.Nodes()) {
         aux_dof_set.push_back(r_node.pGetDof(TEMPERATURE));
+        KRATOS_INFO("Node #") << r_node.Id() << " DoF # " << r_node.pGetDof(TEMPERATURE)->Id() << std::endl;
     }
     aux_dof_set.Sort();
 
@@ -60,18 +61,55 @@ KRATOS_TEST_CASE_IN_SUITE(ConstraintUtilitiesComputeActiveDofs, KratosCoreFastSu
     auto p_mpc_1 = r_model_part.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", 1, r_model_part.GetNode(1), TEMPERATURE, r_model_part.GetNode(2), TEMPERATURE, 1.0, 0.0);
     auto p_mpc_2 = r_model_part.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", 2, r_model_part.GetNode(3), TEMPERATURE, r_model_part.GetNode(4), TEMPERATURE, 1.0, 0.0);
 
-    // Fix nodes
-    r_model_part.GetNode(1).Fix(TEMPERATURE);
-    r_model_part.GetNode(3).Fix(TEMPERATURE);
-
     // Compute the active dofs
     ConstraintUtilities::ComputeActiveDofs(r_model_part, active_dofs, aux_dof_set);
+    KRATOS_INFO("active D.o.F.s") << active_dofs << std::endl;
 
-    // Check the results
+    // Check that only slave dofs are inactive
     KRATOS_EXPECT_EQ(active_dofs.size(), 6);
     unsigned int counter = 0;
     for (int i : active_dofs) {
-        if (counter == 0 || counter == 1 || counter == 2 || counter == 3) {
+        if (counter == 1 || counter == 3) {
+            KRATOS_EXPECT_EQ(i, 0);
+        } else {
+            KRATOS_EXPECT_EQ(i, 1);
+        }
+        ++counter;
+    }
+
+    // Fix nodes
+    r_model_part.GetNode(5).Fix(TEMPERATURE);
+    r_model_part.GetNode(6).Fix(TEMPERATURE);
+
+    // Compute the active dofs
+    ConstraintUtilities::ComputeActiveDofs(r_model_part, active_dofs, aux_dof_set);
+    KRATOS_INFO("active D.o.F.s") << active_dofs << std::endl;
+
+    // Check that fixed nodal temperatures and slave dofs are inactive, master dofs remain active
+    KRATOS_EXPECT_EQ(active_dofs.size(), 6);
+    counter = 0;
+    for (int i : active_dofs) {
+        if (counter == 1 || counter == 3 || counter == 4 || counter == 5) {
+            KRATOS_EXPECT_EQ(i, 0);
+        } else {
+            KRATOS_EXPECT_EQ(i, 1);
+        }
+        ++counter;
+    }
+
+    // Free node 6, fix master node 1
+    r_model_part.GetNode(6).Free(TEMPERATURE);
+    r_model_part.GetNode(1).Fix(TEMPERATURE);
+
+    // Compute the active dofs
+    ConstraintUtilities::ComputeActiveDofs(r_model_part, active_dofs, aux_dof_set);
+    KRATOS_INFO("active D.o.F.s") << active_dofs << std::endl;
+
+    // Check that fixed nodal temperatures and slave dofs are inactive, free master dofs remain active
+    KRATOS_EXPECT_EQ(active_dofs.size(), 6);
+    counter = 0;
+    for (int i : active_dofs) {
+        if (counter == 1 || counter == 3 || counter == 4 || counter == 0) {
             KRATOS_EXPECT_EQ(i, 0);
         } else {
             KRATOS_EXPECT_EQ(i, 1);

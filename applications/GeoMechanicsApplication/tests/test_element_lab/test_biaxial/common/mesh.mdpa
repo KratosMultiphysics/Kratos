@@ -10,6 +10,12 @@ Begin Table 2 TIME DISPLACEMENT_Y
   1.0 -0.2000
 End Table
 
+Begin Table 3 TIME DISPLACEMENT_Y
+ -0.01 0.0
+  0.0 0.0
+  1.0 -0.1000
+End Table
+
 Begin Properties 0
 End Properties
 
@@ -93,5 +99,41 @@ Begin SubModelPart Top_displacement
             1
             2
             6
+    End SubModelPartNodes
+End SubModelPart
+
+Begin SubModelPart Middle_Y_displacement
+    Begin SubModelPartTables
+            3
+    End SubModelPartTables
+    Begin SubModelPartNodes
+            3
+            4
+            7
+    End SubModelPartNodes
+End SubModelPart
+Begin SubModelPart MasterX1
+    Begin SubModelPartNodes
+            7
+    End SubModelPartNodes
+End SubModelPart
+
+Begin SubModelPart SlaveX1
+    Begin SubModelPartNodes
+            6
+            9
+    End SubModelPartNodes
+End SubModelPart
+
+Begin SubModelPart MasterX05
+    Begin SubModelPartNodes
+            4
+    End SubModelPartNodes
+End SubModelPart
+
+Begin SubModelPart SlaveX05
+    Begin SubModelPartNodes
+            2
+            8
     End SubModelPartNodes
 End SubModelPart

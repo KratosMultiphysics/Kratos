@@ -13,7 +13,7 @@
         },
         "solver_type": "U_Pw",
         "solution_type": "Quasi-Static",
-        "strategy_type": "newton_raphson",
+        "strategy_type": "line_search",
         "scheme_type": "Backward_Euler",
         "model_part_name": "PorousDomain",
         "domain_size": 2,
@@ -103,18 +103,6 @@
                     "model_part_name": "PorousDomain.porous_computational_model_part",
                     "master_model_part_name": "PorousDomain.MasterX1",
                     "slave_model_part_name": "PorousDomain.SlaveX1",
-                    "variable_name": "DISPLACEMENT_X",
-                    "reform_constraints_at_each_step": false
-                }
-            },
-            {
-                "python_module": "assign_average_master_slave_constraints_process",
-                "kratos_module": "KratosMultiphysics",
-                "process_name": "AssignAverageMasterSlaveConstraintsProcess",
-                "Parameters": {
-                    "model_part_name": "PorousDomain.porous_computational_model_part",
-                    "master_model_part_name": "PorousDomain.MasterX05",
-                    "slave_model_part_name": "PorousDomain.SlaveX05",
                     "variable_name": "DISPLACEMENT_X",
                     "reform_constraints_at_each_step": false
                 }
