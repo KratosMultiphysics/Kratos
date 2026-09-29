@@ -171,12 +171,20 @@ private:
 
     bool mStoreFilteringMatrix;
 
-    // The storage of the filtering matrix mFilteringMatrix.
-    //      number of rows of first dense vector -> number of items in the container of interest in mrModelPart
-    //      number of rows of second dense vector -> number of neighbours for each item of each row of the first dense vector
-    //      std::get<0>(unsigned int) -> neighbour index
-    //      std::get<1>(DenseVector)  -> filter matrix coefficient corresponding to the component in stride.
-    DenseVector<DenseVector<std::pair<unsigned int, DenseVector<double>>>> mFilteringMatrix;
+    // The filtering matrix stored in CSR (Compressed Sparse Row) format.
+    //      row_ptr  : size n_entities+1; row_ptr[i] is the start index into col_idx/values for entity i.
+    //      col_idx  : neighbour entity indices, total_nnz entries.
+    //      values   : filter coefficients stored neighbour-major, stride-minor:
+    //                 values[(row_ptr[i] + k) * stride + j] is the j-th component weight
+    //                 for the k-th neighbour of entity i.
+    //      stride   : number of dof components per entity (from mpDamping->GetStride()).
+    struct FilteringMatrixCSR {
+        std::vector<IndexType> row_ptr;
+        std::vector<IndexType> col_idx;
+        std::vector<double>    values;
+        IndexType              stride = 0;
+    };
+    FilteringMatrixCSR mFilteringMatrix;
 
     ///@}
     ///@name Private operations

@@ -482,9 +482,9 @@ namespace Kratos
 
       Center /= (double)size;
 
-      double ortho = 0.15;
-      double slope = 0.25; // error assumed for some elements in the corners < 45 degrees
-      double extra = 0.95;
+      const double ortho = 0.15;
+      const double slope = 0.25; // error assumed for some elements in the corners < 45 degrees
+      const double extra = 0.95;
 
       int numouter = 0;
       int numextra = 0;
@@ -530,9 +530,10 @@ namespace Kratos
           }
         }
 
-        double coplanar = inner_prod(Coplanar, Normal);
+        const double coplanar = inner_prod(Coplanar, Normal);
 
-	    if(coplanar>0){
+        if (coplanar > 0)
+        {
           numsamedirection++;
         }
 
@@ -572,9 +573,7 @@ namespace Kratos
 
       if (numsamedirection == num && numorthogonal == 0)
         outer = false;
-
- }
-
+    }
 
     return outer; // if is outside the body domain returns true
 
@@ -861,7 +860,7 @@ namespace Kratos
     double MaximumSideLength = 0;
     double MinimumSideLength = 0;
 
-    double CriticalRelativeSideLength = (double)size * 5; // edge relative length (3,4)
+    const double CriticalRelativeSideLength = (double)size * 5; // edge relative length (3,4)
 
     Volume = rGeometry.Volume();
 
@@ -871,16 +870,14 @@ namespace Kratos
 
     if (RelativeSideLength > CriticalRelativeSideLength)
     {
-      // std::cout<<" RelativeSideLength "<<RelativeSideLength<<std::endl;
       distorted = true;
     }
 
-    double CriticalVolume = 1e-12 * std::pow(MinimumSideLength, size - 1);
+    const double CriticalVolume = 1e-12 * std::pow(MinimumSideLength, size - 1);
 
     // check sliver (volume)
     if (Volume < CriticalVolume)
     {
-      // std::cout<<" Sliver (volume) "<<Volume<<" "<<CriticalVolume<<std::endl;
       sliver = true;
     }
 
@@ -888,8 +885,6 @@ namespace Kratos
     if (!sliver)
     {
       sliver = CheckSliver(rGeometry);
-      // if(sliver)
-      // 	std::cout<<" Sliver (faces) "<<sliver<<std::endl;
     }
 
     // check if it is a contact element (contact domain definition)
@@ -899,26 +894,7 @@ namespace Kratos
     if (ContactType != NonContact)
     {
 
-      // std::cout<<" contact type "<<std::endl;
-
-      if (ContactType == PointToFace)
-      { // POINT_FACE
-
-        // check the projection of the slave vertex on the geometry face
-        double AreaTolerance = 2; // if is outside of the face (only a 2*FaceArea deviation is allowed)
-        double FaceArea = 0;
-        double ProjectedArea = 0;
-        // FaceArea = ComputeFaceArea(rGeometry, SlaveVertex);
-        // ProjectedArea = ComputePointToFaceProjection(rGeometry, SlaveVertex);
-
-        if (ProjectedArea < 0)
-        { // projection outside of the face
-
-          if (FaceArea < AreaTolerance * std::abs(ProjectedArea))
-            distorted = true;
-        }
-      }
-      else if (ContactType == EdgeToEdge)
+      if (ContactType == EdgeToEdge)
       { // EDGE_EDGE
 
         // compare vertex normals (detect coplanar faces and orthogonal faces)
@@ -931,8 +907,6 @@ namespace Kratos
         distorted = true;
       }
     }
-
-    // std::cout<<" DISTORTED "<<distorted<<" SLIVER "<<sliver<<std::endl;
 
     if (sliver)
       rShape = 1;
@@ -1153,7 +1127,6 @@ namespace Kratos
 
     Radius = ComputeRadius(Radius, Volume, Vertices, dimension);
 
-    // double CriticalVolume = 1e-12 * std::pow(h, size-1);
     double AlphaRadius = AlphaParameter * MeanMeshSize;
 
     if (Radius < 0) // degenerated element
@@ -1211,7 +1184,7 @@ namespace Kratos
 
     h /= (double)size;
 
-    double CriticalVolume = 1e-12 * std::pow(h, size - 1);
+    const double CriticalVolume = 1e-12 * std::pow(h, size - 1);
     double AlphaRadius = AlphaParameter * h;
 
     if (Volume < CriticalVolume) // sliver
@@ -1290,10 +1263,9 @@ namespace Kratos
     if (h_face > h)
       h = h_face;
 
-    double ExtraAlpha = 1.4;
-
-    double CriticalVolume = 1e-6 * std::pow(h, size - 1);
-    double AlphaRadius = AlphaParameter * h * ExtraAlpha;
+    const double ExtraAlpha = 1.4;
+    const double CriticalVolume = 1e-6 * std::pow(h, size - 1);
+    const double AlphaRadius = AlphaParameter * h * ExtraAlpha;
 
     if (Volume < CriticalVolume) // sliver
     {
@@ -1322,7 +1294,7 @@ namespace Kratos
   {
     KRATOS_TRY
 
-    int NumberOfNodes = rModelPart.NumberOfNodes();
+    const int NumberOfNodes = rModelPart.NumberOfNodes();
     std::cout << " Number of Nodes " << NumberOfNodes << std::endl;
     for (int id = 1; id <= NumberOfNodes; ++id)
     {
@@ -1483,7 +1455,7 @@ namespace Kratos
   double MesherUtilities::GetDeformationGradientDeterminant(GeometryType &rVertices, const unsigned int &rDimension)
   {
     // Deformation Gradient determinant
-    unsigned int number_of_nodes = rVertices.size();
+    const unsigned int number_of_nodes = rVertices.size();
 
     // Configuration increment
     Matrix DeltaPosition(number_of_nodes, rDimension);
@@ -1546,7 +1518,7 @@ namespace Kratos
         }
       }
     }
-    double detF = MathUtils<double>::Det(F);
+    const double detF = MathUtils<double>::Det(F);
 
     KRATOS_WARNING_IF("CheckDetF", detF < 0) << "NEGATIVE ELEMENT (DET_F:" << detF << ")" << std::endl;
 
@@ -2133,7 +2105,7 @@ namespace Kratos
     InMesh.CreateElementList(rModelPart.Elements().size(), nds);
 
     int *ElementList = InMesh.GetElementList();
-    int &NumberOfElements = InMesh.GetNumberOfElements();
+    const int &NumberOfElements = InMesh.GetNumberOfElements();
 
     int base = 0;
     for (unsigned int el = 0; el < (unsigned int)NumberOfElements; ++el)
@@ -2150,9 +2122,9 @@ namespace Kratos
     KRATOS_CATCH("")
   }
 
-  void MesherUtilities::DefineMeshSizeInTransitionZones2D(MeshingParameters &rMeshingVariables,
-                                                          double currentTime,
-                                                          array_1d<double, 3> NodeCoordinates,
+  void MesherUtilities::DefineMeshSizeInTransitionZones2D(const MeshingParameters &rMeshingVariables,
+                                                          const double currentTime,
+                                                          const array_1d<double, 3> NodeCoordinates,
                                                           double &meshSize,
                                                           bool &insideTransitionZone)
   {
@@ -2164,7 +2136,7 @@ namespace Kratos
 
     for (unsigned int index = 0; index < numberOfRefiningBoxes; index++)
     {
-      if (rMeshingVariables.UseRefiningBox[index] == true && currentTime > rMeshingVariables.RefiningBoxInitialTime[index] && currentTime < rMeshingVariables.RefiningBoxFinalTime[index])
+      if (rMeshingVariables.UseRefiningBox[index] && currentTime > rMeshingVariables.RefiningBoxInitialTime[index] && currentTime < rMeshingVariables.RefiningBoxFinalTime[index])
       {
         const array_1d<double, 3> RefiningBoxMinimumPoint = rMeshingVariables.RefiningBoxMinimumPoint[index];
         const array_1d<double, 3> RefiningBoxMaximumPoint = rMeshingVariables.RefiningBoxMaximumPoint[index];
@@ -2179,11 +2151,11 @@ namespace Kratos
     }
     if (nodeInsideRefiningBox == false)
     {
-      meshSize = 1000 * rMeshingVariables.Refine->CriticalRadius; // big number to find the minimum
+      meshSize = 1000.0 * rMeshingVariables.Refine->CriticalRadius; // big number to find the minimum
       unsigned int counter = 0;
       for (unsigned int index = 0; index < numberOfRefiningBoxes; index++)
       {
-        if (rMeshingVariables.UseRefiningBox[index] == true && currentTime > rMeshingVariables.RefiningBoxInitialTime[index] && currentTime < rMeshingVariables.RefiningBoxFinalTime[index])
+        if (rMeshingVariables.UseRefiningBox[index] && currentTime > rMeshingVariables.RefiningBoxInitialTime[index] && currentTime < rMeshingVariables.RefiningBoxFinalTime[index])
         {
           const array_1d<double, 3> RefiningBoxMinimumPoint = rMeshingVariables.RefiningBoxMinimumPoint[index];
           const array_1d<double, 3> RefiningBoxMaximumPoint = rMeshingVariables.RefiningBoxMaximumPoint[index];
@@ -2197,34 +2169,32 @@ namespace Kratos
 
           if (NodeCoordinates[0] < RefiningBoxMinimumPoint[0] && NodeCoordinates[0] > minExternalPoint[0] && NodeCoordinates[1] > minExternalPoint[1] && NodeCoordinates[1] < maxExternalPoint[1])
           {
+            counter++;
             if (NodeCoordinates[1] < RefiningBoxMinimumPoint[1])
             {
               const double distanceToBoxX = NodeCoordinates[0] - RefiningBoxMinimumPoint[0];
               const double distanceToBoxY = NodeCoordinates[1] - RefiningBoxMinimumPoint[1];
-              const double radius = std::pow(distanceToBoxX, 2) + std::pow(distanceToBoxY, 2);
-              distanceToBox = std::sqrt(radius);
+              const double squared_radius = distanceToBoxX * distanceToBoxX + distanceToBoxY * distanceToBoxY;
+              distanceToBox = std::sqrt(squared_radius);
               if (distanceToBox > transitionDistance)
               {
                 distanceToBox = transitionDistance;
               }
-              counter++;
             }
             else if (NodeCoordinates[1] > RefiningBoxMaximumPoint[1])
             {
               const double distanceToBoxX = NodeCoordinates[0] - RefiningBoxMinimumPoint[0];
               const double distanceToBoxY = NodeCoordinates[1] - RefiningBoxMaximumPoint[1];
-              const double radius = std::pow(distanceToBoxX, 2) + std::pow(distanceToBoxY, 2);
-              distanceToBox = std::sqrt(radius);
+              const double squared_radius = distanceToBoxX * distanceToBoxX + distanceToBoxY * distanceToBoxY;
+              distanceToBox = std::sqrt(squared_radius);
               if (distanceToBox > transitionDistance)
               {
                 distanceToBox = transitionDistance;
               }
-              counter++;
             }
             else
             {
               distanceToBox = NodeCoordinates[0] - RefiningBoxMinimumPoint[0];
-              counter++;
             }
             coefficient = std::abs(distanceToBox) / transitionDistance;
             const double localMeshSize = (1 - coefficient) * rMeshingVariables.RefiningBoxMeshSize[index] + coefficient * rMeshingVariables.Refine->CriticalRadius;
@@ -2236,34 +2206,32 @@ namespace Kratos
           }
           else if (NodeCoordinates[0] > RefiningBoxMaximumPoint[0] && NodeCoordinates[0] < maxExternalPoint[0] && NodeCoordinates[1] > minExternalPoint[1] && NodeCoordinates[1] < maxExternalPoint[1])
           {
+            counter++;
             if (NodeCoordinates[1] < RefiningBoxMinimumPoint[1])
             {
               const double distanceToBoxX = NodeCoordinates[0] - RefiningBoxMaximumPoint[0];
               const double distanceToBoxY = NodeCoordinates[1] - RefiningBoxMinimumPoint[1];
-              const double radius = std::pow(distanceToBoxX, 2) + std::pow(distanceToBoxY, 2);
-              distanceToBox = std::sqrt(radius);
+              const double squared_radius = distanceToBoxX * distanceToBoxX + distanceToBoxY * distanceToBoxY;
+              distanceToBox = std::sqrt(squared_radius);
               if (distanceToBox > transitionDistance)
               {
                 distanceToBox = transitionDistance;
               }
-              counter++;
             }
             else if (NodeCoordinates[1] > RefiningBoxMaximumPoint[1])
             {
               const double distanceToBoxX = NodeCoordinates[0] - RefiningBoxMaximumPoint[0];
               const double distanceToBoxY = NodeCoordinates[1] - RefiningBoxMaximumPoint[1];
-              const double radius = std::pow(distanceToBoxX, 2) + std::pow(distanceToBoxY, 2);
-              distanceToBox = std::sqrt(radius);
+              const double squared_radius = distanceToBoxX * distanceToBoxX + distanceToBoxY * distanceToBoxY;
+              distanceToBox = std::sqrt(squared_radius);
               if (distanceToBox > transitionDistance)
               {
                 distanceToBox = transitionDistance;
               }
-              counter++;
             }
             else
             {
               distanceToBox = NodeCoordinates[0] - RefiningBoxMaximumPoint[0];
-              counter++;
             }
             coefficient = std::abs(distanceToBox) / transitionDistance;
             const double localMeshSize = (1 - coefficient) * rMeshingVariables.RefiningBoxMeshSize[index] + coefficient * rMeshingVariables.Refine->CriticalRadius;
@@ -2275,8 +2243,8 @@ namespace Kratos
           }
           else if (NodeCoordinates[1] < RefiningBoxMinimumPoint[1] && NodeCoordinates[1] > minExternalPoint[1] && NodeCoordinates[0] > minExternalPoint[0] && NodeCoordinates[0] < maxExternalPoint[0])
           {
-            distanceToBox = NodeCoordinates[1] - RefiningBoxMinimumPoint[1];
             counter++;
+            distanceToBox = NodeCoordinates[1] - RefiningBoxMinimumPoint[1];
             coefficient = std::abs(distanceToBox) / transitionDistance;
             const double localMeshSize = (1 - coefficient) * rMeshingVariables.RefiningBoxMeshSize[index] + coefficient * rMeshingVariables.Refine->CriticalRadius;
             if (localMeshSize < meshSize)
@@ -2287,8 +2255,8 @@ namespace Kratos
           }
           else if (NodeCoordinates[1] > RefiningBoxMaximumPoint[1] && NodeCoordinates[1] < maxExternalPoint[1] && NodeCoordinates[0] > minExternalPoint[0] && NodeCoordinates[0] < maxExternalPoint[0])
           {
-            distanceToBox = NodeCoordinates[1] - RefiningBoxMaximumPoint[1];
             counter++;
+            distanceToBox = NodeCoordinates[1] - RefiningBoxMaximumPoint[1];
             coefficient = std::abs(distanceToBox) / transitionDistance;
             const double localMeshSize = (1 - coefficient) * rMeshingVariables.RefiningBoxMeshSize[index] + coefficient * rMeshingVariables.Refine->CriticalRadius;
             if (localMeshSize < meshSize)
@@ -2308,9 +2276,9 @@ namespace Kratos
     KRATOS_CATCH("")
   }
 
-  void MesherUtilities::DefineMeshSizeInTransitionZones3D(MeshingParameters &rMeshingVariables,
-                                                          double currentTime,
-                                                          array_1d<double, 3> NodeCoordinates,
+  void MesherUtilities::DefineMeshSizeInTransitionZones3D(const MeshingParameters &rMeshingVariables,
+                                                          const double currentTime,
+                                                          const array_1d<double, 3> NodeCoordinates,
                                                           double &meshSize,
                                                           bool &insideTransitionZone)
   {
@@ -2360,6 +2328,7 @@ namespace Kratos
                NodeCoordinates[1] > minExternalPoint[1] && NodeCoordinates[1] < maxExternalPoint[1] &&
                NodeCoordinates[2] > minExternalPoint[2] && NodeCoordinates[2] < maxExternalPoint[2]))
           {
+            counter++;
             if (NodeCoordinates[1] < RefiningBoxMinimumPoint[1])
             {
               if (NodeCoordinates[2] < RefiningBoxMinimumPoint[2])
@@ -2367,38 +2336,35 @@ namespace Kratos
                 const double distanceToBoxX = NodeCoordinates[0] - RefiningBoxMinimumPoint[0];
                 const double distanceToBoxY = NodeCoordinates[1] - RefiningBoxMinimumPoint[1];
                 const double distanceToBoxZ = NodeCoordinates[2] - RefiningBoxMinimumPoint[2];
-                const double radius = std::pow(distanceToBoxX, 2) + std::pow(distanceToBoxY, 2) + std::pow(distanceToBoxZ, 2);
-                distanceToBox = std::sqrt(radius);
+                const double squared_radius = distanceToBoxX * distanceToBoxX + distanceToBoxY * distanceToBoxY + distanceToBoxZ * distanceToBoxZ;
+                distanceToBox = std::sqrt(squared_radius);
                 if (distanceToBox > transitionDistance)
                 {
                   distanceToBox = transitionDistance;
                 }
-                counter++;
               }
               else if (NodeCoordinates[2] > RefiningBoxMaximumPoint[2])
               {
                 const double distanceToBoxX = NodeCoordinates[0] - RefiningBoxMinimumPoint[0];
                 const double distanceToBoxY = NodeCoordinates[1] - RefiningBoxMinimumPoint[1];
                 const double distanceToBoxZ = NodeCoordinates[2] - RefiningBoxMaximumPoint[2];
-                const double radius = std::pow(distanceToBoxX, 2) + std::pow(distanceToBoxY, 2) + std::pow(distanceToBoxZ, 2);
-                distanceToBox = std::sqrt(radius);
+                const double squared_radius = distanceToBoxX * distanceToBoxX + distanceToBoxY * distanceToBoxY + distanceToBoxZ * distanceToBoxZ;
+                distanceToBox = std::sqrt(squared_radius);
                 if (distanceToBox > transitionDistance)
                 {
                   distanceToBox = transitionDistance;
                 }
-                counter++;
               }
               else
               {
                 const double distanceToBoxX = NodeCoordinates[0] - RefiningBoxMinimumPoint[0];
                 const double distanceToBoxY = NodeCoordinates[1] - RefiningBoxMinimumPoint[1];
-                const double radius = std::pow(distanceToBoxX, 2) + std::pow(distanceToBoxY, 2);
-                distanceToBox = std::sqrt(radius);
+                const double squared_radius = distanceToBoxX * distanceToBoxX + distanceToBoxY * distanceToBoxY;
+                distanceToBox = std::sqrt(squared_radius);
                 if (distanceToBox > transitionDistance)
                 {
                   distanceToBox = transitionDistance;
                 }
-                counter++;
               }
             }
             else if (NodeCoordinates[1] > RefiningBoxMaximumPoint[1])
@@ -2408,44 +2374,40 @@ namespace Kratos
                 const double distanceToBoxX = NodeCoordinates[0] - RefiningBoxMinimumPoint[0];
                 const double distanceToBoxY = NodeCoordinates[1] - RefiningBoxMaximumPoint[1];
                 const double distanceToBoxZ = NodeCoordinates[2] - RefiningBoxMinimumPoint[2];
-                const double radius = std::pow(distanceToBoxX, 2) + std::pow(distanceToBoxY, 2) + std::pow(distanceToBoxZ, 2);
-                distanceToBox = std::sqrt(radius);
+                const double squared_radius = distanceToBoxX * distanceToBoxX + distanceToBoxY * distanceToBoxY + distanceToBoxZ * distanceToBoxZ;
+                distanceToBox = std::sqrt(squared_radius);
                 if (distanceToBox > transitionDistance)
                 {
                   distanceToBox = transitionDistance;
                 }
-                counter++;
               }
               else if (NodeCoordinates[2] > RefiningBoxMaximumPoint[2])
               {
                 const double distanceToBoxX = NodeCoordinates[0] - RefiningBoxMinimumPoint[0];
                 const double distanceToBoxY = NodeCoordinates[1] - RefiningBoxMaximumPoint[1];
                 const double distanceToBoxZ = NodeCoordinates[2] - RefiningBoxMaximumPoint[2];
-                const double radius = std::pow(distanceToBoxX, 2) + std::pow(distanceToBoxY, 2) + std::pow(distanceToBoxZ, 2);
-                distanceToBox = std::sqrt(radius);
+                const double squared_radius = distanceToBoxX * distanceToBoxX + distanceToBoxY * distanceToBoxY + distanceToBoxZ * distanceToBoxZ;
+                distanceToBox = std::sqrt(squared_radius);
                 if (distanceToBox > transitionDistance)
                 {
                   distanceToBox = transitionDistance;
                 }
-                counter++;
               }
               else
               {
                 const double distanceToBoxX = NodeCoordinates[0] - RefiningBoxMinimumPoint[0];
                 const double distanceToBoxY = NodeCoordinates[1] - RefiningBoxMaximumPoint[1];
-                const double radius = std::pow(distanceToBoxX, 2) + std::pow(distanceToBoxY, 2);
-                distanceToBox = std::sqrt(radius);
+                const double squared_radius = distanceToBoxX * distanceToBoxX + distanceToBoxY * distanceToBoxY;
+                distanceToBox = std::sqrt(squared_radius);
                 if (distanceToBox > transitionDistance)
                 {
                   distanceToBox = transitionDistance;
                 }
-                counter++;
               }
             }
             else
             {
               distanceToBox = NodeCoordinates[0] - RefiningBoxMinimumPoint[0];
-              counter++;
             }
 
             coefficient = std::abs(distanceToBox) / transitionDistance;
@@ -2460,6 +2422,7 @@ namespace Kratos
                     NodeCoordinates[1] > minExternalPoint[1] && NodeCoordinates[1] < maxExternalPoint[1] &&
                     NodeCoordinates[2] > minExternalPoint[2] && NodeCoordinates[2] < maxExternalPoint[2]))
           {
+            counter++;
             if (NodeCoordinates[1] < RefiningBoxMinimumPoint[1])
             {
               if (NodeCoordinates[2] < RefiningBoxMinimumPoint[2])
@@ -2467,38 +2430,35 @@ namespace Kratos
                 const double distanceToBoxX = NodeCoordinates[0] - RefiningBoxMaximumPoint[0];
                 const double distanceToBoxY = NodeCoordinates[1] - RefiningBoxMinimumPoint[1];
                 const double distanceToBoxZ = NodeCoordinates[2] - RefiningBoxMinimumPoint[2];
-                const double radius = std::pow(distanceToBoxX, 2) + std::pow(distanceToBoxY, 2) + std::pow(distanceToBoxZ, 2);
-                distanceToBox = std::sqrt(radius);
+                const double squared_radius = distanceToBoxX * distanceToBoxX + distanceToBoxY * distanceToBoxY + distanceToBoxZ * distanceToBoxZ;
+                distanceToBox = std::sqrt(squared_radius);
                 if (distanceToBox > transitionDistance)
                 {
                   distanceToBox = transitionDistance;
                 }
-                counter++;
               }
               else if (NodeCoordinates[2] > RefiningBoxMaximumPoint[2])
               {
                 const double distanceToBoxX = NodeCoordinates[0] - RefiningBoxMaximumPoint[0];
                 const double distanceToBoxY = NodeCoordinates[1] - RefiningBoxMinimumPoint[1];
                 const double distanceToBoxZ = NodeCoordinates[2] - RefiningBoxMaximumPoint[2];
-                const double radius = std::pow(distanceToBoxX, 2) + std::pow(distanceToBoxY, 2) + std::pow(distanceToBoxZ, 2);
-                distanceToBox = std::sqrt(radius);
+                const double squared_radius = distanceToBoxX * distanceToBoxX + distanceToBoxY * distanceToBoxY + distanceToBoxZ * distanceToBoxZ;
+                distanceToBox = std::sqrt(squared_radius);
                 if (distanceToBox > transitionDistance)
                 {
                   distanceToBox = transitionDistance;
                 }
-                counter++;
               }
               else
               {
                 const double distanceToBoxX = NodeCoordinates[0] - RefiningBoxMaximumPoint[0];
                 const double distanceToBoxY = NodeCoordinates[1] - RefiningBoxMinimumPoint[1];
-                const double radius = std::pow(distanceToBoxX, 2) + std::pow(distanceToBoxY, 2);
-                distanceToBox = std::sqrt(radius);
+                const double squared_radius = distanceToBoxX * distanceToBoxX + distanceToBoxY * distanceToBoxY;
+                distanceToBox = std::sqrt(squared_radius);
                 if (distanceToBox > transitionDistance)
                 {
                   distanceToBox = transitionDistance;
                 }
-                counter++;
               }
             }
             else if (NodeCoordinates[1] > RefiningBoxMaximumPoint[1])
@@ -2508,44 +2468,40 @@ namespace Kratos
                 const double distanceToBoxX = NodeCoordinates[0] - RefiningBoxMaximumPoint[0];
                 const double distanceToBoxY = NodeCoordinates[1] - RefiningBoxMaximumPoint[1];
                 const double distanceToBoxZ = NodeCoordinates[2] - RefiningBoxMinimumPoint[2];
-                const double radius = std::pow(distanceToBoxX, 2) + std::pow(distanceToBoxY, 2) + std::pow(distanceToBoxZ, 2);
-                distanceToBox = std::sqrt(radius);
+                const double squared_radius = distanceToBoxX * distanceToBoxX + distanceToBoxY * distanceToBoxY + distanceToBoxZ * distanceToBoxZ;
+                distanceToBox = std::sqrt(squared_radius);
                 if (distanceToBox > transitionDistance)
                 {
                   distanceToBox = transitionDistance;
                 }
-                counter++;
               }
               else if (NodeCoordinates[2] > RefiningBoxMaximumPoint[2])
               {
                 const double distanceToBoxX = NodeCoordinates[0] - RefiningBoxMaximumPoint[0];
                 const double distanceToBoxY = NodeCoordinates[1] - RefiningBoxMaximumPoint[1];
                 const double distanceToBoxZ = NodeCoordinates[2] - RefiningBoxMaximumPoint[2];
-                const double radius = std::pow(distanceToBoxX, 2) + std::pow(distanceToBoxY, 2) + std::pow(distanceToBoxZ, 2);
-                distanceToBox = std::sqrt(radius);
+                const double squared_radius = distanceToBoxX * distanceToBoxX + distanceToBoxY * distanceToBoxY + distanceToBoxZ * distanceToBoxZ;
+                distanceToBox = std::sqrt(squared_radius);
                 if (distanceToBox > transitionDistance)
                 {
                   distanceToBox = transitionDistance;
                 }
-                counter++;
               }
               else
               {
                 const double distanceToBoxX = NodeCoordinates[0] - RefiningBoxMaximumPoint[0];
                 const double distanceToBoxY = NodeCoordinates[1] - RefiningBoxMaximumPoint[1];
-                const double radius = std::pow(distanceToBoxX, 2) + std::pow(distanceToBoxY, 2);
-                distanceToBox = std::sqrt(radius);
+                const double squared_radius = distanceToBoxX * distanceToBoxX + distanceToBoxY * distanceToBoxY;
+                distanceToBox = std::sqrt(squared_radius);
                 if (distanceToBox > transitionDistance)
                 {
                   distanceToBox = transitionDistance;
                 }
-                counter++;
               }
             }
             else
             {
               distanceToBox = NodeCoordinates[0] - RefiningBoxMaximumPoint[0];
-              counter++;
             }
             coefficient = std::abs(distanceToBox) / transitionDistance;
             const double localMeshSize = (1 - coefficient) * rMeshingVariables.RefiningBoxMeshSize[index] + coefficient * rMeshingVariables.Refine->CriticalRadius;
@@ -2559,34 +2515,32 @@ namespace Kratos
                     NodeCoordinates[0] > minExternalPoint[0] && NodeCoordinates[0] < maxExternalPoint[0] &&
                     NodeCoordinates[2] > minExternalPoint[2] && NodeCoordinates[2] < maxExternalPoint[2]))
           {
+            counter++;
             if (NodeCoordinates[2] < RefiningBoxMinimumPoint[2])
             {
               const double distanceToBoxY = NodeCoordinates[1] - RefiningBoxMinimumPoint[1];
               const double distanceToBoxZ = NodeCoordinates[2] - RefiningBoxMinimumPoint[2];
-              double radius = std::pow(distanceToBoxY, 2) + std::pow(distanceToBoxZ, 2);
-              distanceToBox = std::sqrt(radius);
+              const double squared_radius = distanceToBoxZ * distanceToBoxZ + distanceToBoxY * distanceToBoxY;
+              distanceToBox = std::sqrt(squared_radius);
               if (distanceToBox > transitionDistance)
               {
                 distanceToBox = transitionDistance;
               }
-              counter++;
             }
             else if (NodeCoordinates[2] > RefiningBoxMaximumPoint[2])
             {
               const double distanceToBoxY = NodeCoordinates[1] - RefiningBoxMinimumPoint[1];
               const double distanceToBoxZ = NodeCoordinates[2] - RefiningBoxMaximumPoint[2];
-              double radius = std::pow(distanceToBoxY, 2) + std::pow(distanceToBoxZ, 2);
-              distanceToBox = std::sqrt(radius);
+              const double squared_radius = distanceToBoxZ * distanceToBoxZ + distanceToBoxY * distanceToBoxY;
+              distanceToBox = std::sqrt(squared_radius);
               if (distanceToBox > transitionDistance)
               {
                 distanceToBox = transitionDistance;
               }
-              counter++;
             }
             else
             {
               distanceToBox = NodeCoordinates[1] - RefiningBoxMinimumPoint[1];
-              counter++;
             }
 
             coefficient = std::abs(distanceToBox) / transitionDistance;
@@ -2601,34 +2555,32 @@ namespace Kratos
                     NodeCoordinates[0] > minExternalPoint[0] && NodeCoordinates[0] < maxExternalPoint[0] &&
                     NodeCoordinates[2] > minExternalPoint[2] && NodeCoordinates[2] < maxExternalPoint[2]))
           {
+            counter++;
             if (NodeCoordinates[2] < RefiningBoxMinimumPoint[2])
             {
               const double distanceToBoxY = NodeCoordinates[1] - RefiningBoxMaximumPoint[1];
               const double distanceToBoxZ = NodeCoordinates[2] - RefiningBoxMinimumPoint[2];
-              double radius = std::pow(distanceToBoxY, 2) + std::pow(distanceToBoxZ, 2);
-              distanceToBox = std::sqrt(radius);
+              const double squared_radius = distanceToBoxZ * distanceToBoxZ + distanceToBoxY * distanceToBoxY;
+              distanceToBox = std::sqrt(squared_radius);
               if (distanceToBox > transitionDistance)
               {
                 distanceToBox = transitionDistance;
               }
-              counter++;
             }
             else if (NodeCoordinates[2] > RefiningBoxMaximumPoint[2])
             {
               const double distanceToBoxY = NodeCoordinates[1] - RefiningBoxMaximumPoint[1];
               const double distanceToBoxZ = NodeCoordinates[2] - RefiningBoxMaximumPoint[2];
-              double radius = std::pow(distanceToBoxY, 2) + std::pow(distanceToBoxZ, 2);
-              distanceToBox = std::sqrt(radius);
+              const double squared_radius = distanceToBoxZ * distanceToBoxZ + distanceToBoxY * distanceToBoxY;
+              distanceToBox = std::sqrt(squared_radius);
               if (distanceToBox > transitionDistance)
               {
                 distanceToBox = transitionDistance;
               }
-              counter++;
             }
             else
             {
               distanceToBox = NodeCoordinates[1] - RefiningBoxMaximumPoint[1];
-              counter++;
             }
 
             coefficient = std::abs(distanceToBox) / transitionDistance;

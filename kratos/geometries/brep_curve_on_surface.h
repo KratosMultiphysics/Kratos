@@ -431,12 +431,23 @@ public:
     {
         CoordinatesArrayType point_global_coordinates;
 
-        return ProjectionNurbsGeometryUtilities::NewtonRaphsonCurve(
+        if (mpCurveOnSurface->pGetCurve()->GetProjectionAlgorithm() == ProjectionAlgorithm::NewtonRaphson) {
+            return ProjectionNurbsGeometryUtilities::NewtonRaphsonCurve(
+                rProjectedPointLocalCoordinates,
+                rPointGlobalCoordinates,
+                point_global_coordinates,
+                *this,
+                20,
+                Tolerance);
+        }
+
+        return ProjectionNurbsGeometryUtilities::LevenbergMarquardtCurve(
             rProjectedPointLocalCoordinates,
             rPointGlobalCoordinates,
             point_global_coordinates,
             *this,
-            20, Tolerance);
+            50,
+            Tolerance);
     }
 
     ///@}

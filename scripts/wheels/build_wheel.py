@@ -1,16 +1,15 @@
 import os
-import re
 import toml
-import build
 import shutil
 import fnmatch
 import logging
 import platform
 import subprocess
+import sys
 
 from pathlib import Path
 
-KRATOS_VERSION = "10.4.0"
+KRATOS_VERSION = "10.4.2"
 PLATFORM_CONFIG = {
     'Linux': {
         'PYTHONS': ["38", "39", "310", "311", "312", "313", "314"],
@@ -71,14 +70,18 @@ def getAppList(kts_apps_dir):
     return applications
 
 def getPythonInterpreter(platform: str, python_ver: str):
-    if platform == "Windows":
-        return Path("C:/python") / f"{python_ver}" / "python.exe"
-    elif platform == "Linux":
-        return Path("/opt") / "python" / f"cp{python_ver}-cp{python_ver}" / "bin" / "python"
-    elif platform == "Darwin":
-        return Path("/opt") / "python" / f"cp{python_ver}-cp{python_ver}" / "bin" / "python"
+    if python_ver == "":
+        # used for the custom wheel builds with the python path set via python environments
+        return Path(sys.executable)
     else:
-        logging.critical(f"Cannot retrieve python interpreter for platform: {platform}")
+        if platform == "Windows":
+            return Path("C:/python") / f"{python_ver}" / "python.exe"
+        elif platform == "Linux":
+            return Path("/opt") / "python" / f"cp{python_ver}-cp{python_ver}" / "bin" / "python"
+        elif platform == "Darwin":
+            return Path("/opt") / "python" / f"cp{python_ver}-cp{python_ver}" / "bin" / "python"
+        else:
+            logging.critical(f"Cannot retrieve python interpreter for platform: {platform}")
 
 def configure(CURRENT_CONFIG: dict, platform: str, python_ver: str):
     python_interpreter = getPythonInterpreter(platform, python_ver)

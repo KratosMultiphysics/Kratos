@@ -153,6 +153,10 @@ SmallStrainUMATLaw<TVoigtSize>& SmallStrainUMATLaw<TVoigtSize>::operator=(const 
 {
     KRATOS_TRY
 
+    // Self-assignment guard
+    if (this == &rOther) {
+        return *this;
+    }
     ConstitutiveLaw::operator=(rOther);
     this->mIsModelInitialized      = rOther.mIsModelInitialized;
     this->mIsUMATLoaded            = rOther.mIsUMATLoaded;

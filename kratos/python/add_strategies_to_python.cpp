@@ -83,7 +83,8 @@ namespace Kratos:: Python
 
     //ADDED BY PAOLO (next two)
 
-    double Dot(SparseSpaceType& dummy, SparseSpaceType::VectorType& rX, SparseSpaceType::VectorType& rY)
+    template< typename TSpaceType >
+    double Dot(TSpaceType& dummy, typename TSpaceType::VectorType& rX, typename TSpaceType::VectorType& rY)
     {
         return dummy.Dot(rX, rY);
     }
@@ -102,7 +103,8 @@ namespace Kratos:: Python
         dummy.Mult(rA, rX, rY);
     }
 
-    void TransposeMult(SparseSpaceType& dummy, SparseSpaceType::MatrixType& rA, SparseSpaceType::VectorType& rX, SparseSpaceType::VectorType& rY)
+    template< typename TSpaceType >
+    void TransposeMult(TSpaceType& dummy, typename TSpaceType::MatrixType& rA, typename TSpaceType::VectorType& rX, typename TSpaceType::VectorType& rY)
     //rY=A*rX (the product is stored inside the rY)
     {
         dummy.TransposeMult(rA, rX, rY);
@@ -162,7 +164,8 @@ namespace Kratos:: Python
         dummy.Clear(x);
     }
 
-    double TwoNorm(SparseSpaceType& dummy, SparseSpaceType::VectorType& x)
+    template< typename TSpaceType >
+    double TwoNorm(TSpaceType& dummy, typename TSpaceType::VectorType& x)
     {
         return dummy.TwoNorm(x);
     }
@@ -533,18 +536,23 @@ namespace Kratos:: Python
         //********************************************************************
         //********************************************************************
 
-        auto sparse_space_binder = CreateSpaceInterface< SparseSpaceType >(m,"UblasSparseSpace");
-        sparse_space_binder.def("TwoNorm", TwoNorm);
+        using UblasSparseSpaceInterfaceType = TUblasSparseSpace<double>;
+        auto sparse_space_binder = CreateSpaceInterface< UblasSparseSpaceInterfaceType >(m,"UblasSparseSpace");
+        sparse_space_binder.def("TwoNorm", TwoNorm<UblasSparseSpaceInterfaceType>);
         // The dot product of two vectors
-        sparse_space_binder.def("Dot", Dot);
-        sparse_space_binder.def("TransposeMult", TransposeMult);
+        sparse_space_binder.def("Dot", Dot<UblasSparseSpaceInterfaceType>);
+        sparse_space_binder.def("TransposeMult", TransposeMult<UblasSparseSpaceInterfaceType>);
         // Size functions
-        sparse_space_binder.def("Size", &SparseSpaceType::Size);
-        sparse_space_binder.def("Size1", &SparseSpaceType::Size1);
-        sparse_space_binder.def("Size2", &SparseSpaceType::Size2);
+        sparse_space_binder.def("Size", &UblasSparseSpaceInterfaceType::Size);
+        sparse_space_binder.def("Size1", &UblasSparseSpaceInterfaceType::Size1);
+        sparse_space_binder.def("Size2", &UblasSparseSpaceInterfaceType::Size2);
         // Information functions
-        sparse_space_binder.def("IsDistributed", &SparseSpaceType::IsDistributed);
-        sparse_space_binder.def("FastestDirectSolverList", &SparseSpaceType::FastestDirectSolverList);
+        sparse_space_binder.def("IsDistributed", &UblasSparseSpaceInterfaceType::IsDistributed);
+        sparse_space_binder.def("FastestDirectSolverList", &UblasSparseSpaceInterfaceType::FastestDirectSolverList);
+
+        m.attr("SparseSpace") = m.attr("UblasSparseSpace");
+        m.attr("SparseMatrix") = m.attr("CompressedMatrix");
+        m.attr("SparseVector") = m.attr("Vector");
 
         auto cplx_sparse_space_binder = CreateSpaceInterface< ComplexSparseSpaceType >(m,"UblasComplexSparseSpace");
 

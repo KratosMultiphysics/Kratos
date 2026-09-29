@@ -48,7 +48,7 @@ PointerVector<Node> CreateNewNodes(ModelPart& rModelPart, const std::vector<Poin
 }
 
 template <std::input_iterator InputIt>
-void AddDofsToNodes(InputIt NodeRangeBegin, InputIt NodeRangeEnd, const Geo::ConstVariableRefs& rNodalVariables)
+void AddDofsToNodes(const InputIt& NodeRangeBegin, const InputIt& NodeRangeEnd, const Geo::ConstVariableRefs& rNodalVariables)
 {
     for (const auto& r_variable : rNodalVariables) {
         for (auto it = NodeRangeBegin; it != NodeRangeEnd; ++it) {
@@ -93,9 +93,10 @@ PointerVector<Node> ModelSetupUtilities::CreateNodes(ModelPart& rModelPart, cons
 }
 
 ModelPart& ModelSetupUtilities::CreateModelPartWithASingle2D3NElement(Model& rModel,
-                                                                      const Geo::ConstVariableRefs& rNodalVariables)
+                                                                      const Geo::ConstVariableRefs& rNodalVariables,
+                                                                      const std::string& rModelPartName)
 {
-    auto& r_result = rModel.CreateModelPart("Main");
+    auto& r_result = rModel.CreateModelPart(rModelPartName);
     AddNodalVariablesToModelPart(r_result, rNodalVariables);
 
     auto nodes = CreateNewNodes(r_result, ElementSetupUtilities::CreatePointsFor2D3NElement());

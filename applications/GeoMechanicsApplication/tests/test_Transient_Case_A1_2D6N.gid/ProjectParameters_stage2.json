@@ -1,6 +1,6 @@
 {
     "problem_data": {
-        "problem_name":         "test_Transient_Case_A1_2D3N_stage2",
+        "problem_name":         "test_Transient_Case_A1_2D6N_stage2",
         "start_time":           0.0,
         "end_time":             0.232,
         "echo_level":           1,
@@ -51,7 +51,6 @@
         "desired_iterations":                 4,
         "max_radius_factor":                  10.0,
         "min_radius_factor":                  0.1,
-        "calculate_reactions":                true,
         "max_line_search_iterations":         5,
         "first_alpha_value":                  0.5,
         "second_alpha_value":                 1.0,
@@ -75,7 +74,7 @@
             "process_name": "GiDOutputProcess",
             "Parameters":    {
                 "model_part_name": "PorousDomain.porous_computational_model_part",
-                "output_name": "test_Transient_Case_A1_2D3N_stage2",
+                "output_name": "test_Transient_Case_A1_2D6N_stage2",
                 "postprocess_parameters": {
                     "result_file_configuration": {
                         "gidpost_flags":       {

@@ -1460,7 +1460,12 @@ const Parameters MmgProcess<TMMGLibrary>::GetDefaultParameters() const
             "invert_value"                     : false,
             "nonhistorical_variable"           : false,
             "use_metric_field"                 : false,
-            "remove_internal_regions"          : false
+            "remove_internal_regions"          : false,
+            "force_level_set_value"            : false,
+            "level_set_value"                  : 0.0,
+            "force_rmc"                        : false,
+            "rmc_value"                        : 0.0,
+            "isoref"                           : 0
         },
         "framework"                            : "Eulerian",
         "internal_variables_parameters"        : {
@@ -1474,7 +1479,9 @@ const Parameters MmgProcess<TMMGLibrary>::GetDefaultParameters() const
             "force_min"                           : false,
             "minimal_size"                        : 0.1,
             "force_max"                           : false,
-            "maximal_size"                        : 10.0
+            "maximal_size"                        : 10.0,
+            "force_hsiz"                          : false,
+            "constant_size"                       : 0.1
         },
         "advanced_parameters"                     : {
             "force_hausdorff_value"               : false,
@@ -1484,12 +1491,26 @@ const Parameters MmgProcess<TMMGLibrary>::GetDefaultParameters() const
             "no_insert_mesh"                      : false,
             "no_swap_mesh"                        : false,
             "normal_regularization_mesh"          : false,
+            "boundary_regularization"             : false,
+            "force_boundary_regularization_relaxation" : false,
+            "boundary_regularization_relaxation_value" : 0.5,
             "deactivate_detect_angle"             : false,
             "force_angle_detection_value"         : false,
             "angle_detection_value"               : 45.0,
             "force_gradation_value"               : false,
-            "mesh_optimization_only"              : false,
             "gradation_value"                     : 1.3,
+            "force_hgradreq"                      : false,
+            "gradation_required_value"            : 1.3,
+            "mesh_optimization_only"              : false,
+            "les_optimization"                    : false,
+            "anisotropic_metric_creation"         : false,
+            "no_fem"                              : false,
+            "preserve_subdomain_boundaries"       : false,
+            "avoid_size_at_required"              : false,
+            "octree_max_vertices"                 : 0,
+            "save_subdomain"                      : 0,
+            "force_memory_size"                   : false,
+            "memory_size_mb"                      : -1,
             "local_entity_parameters_list"        : []
         },
         "collapse_prisms_elements"             : false,

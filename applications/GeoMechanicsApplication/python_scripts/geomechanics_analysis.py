@@ -1,6 +1,7 @@
 import time as timer
 import os
 import sys
+from pathlib import Path
 
 sys.path.append(os.path.join('..','..','..'))
 
@@ -10,7 +11,7 @@ import KratosMultiphysics.GeoMechanicsApplication as KratosGeo
 
 from KratosMultiphysics.analysis_stage import AnalysisStage
 from KratosMultiphysics.GeoMechanicsApplication import geomechanics_solvers_wrapper
-
+from KratosMultiphysics.GeoMechanicsApplication import validation_helpers
 
 def copy_nodal_solution_step_values(model_part, variable, source_index, destination_index):
     if not model_part.HasNodalSolutionStepVariable(variable):
@@ -52,7 +53,7 @@ class GeoMechanicsAnalysis(AnalysisStage):
         self.number_cycles       = solver_settings["number_cycles"].GetInt()
         self.max_iterations      = solver_settings["max_iterations"].GetInt()
         self.solution_type       = solver_settings["solution_type"].GetString()
-        self.reset_displacements = solver_settings["reset_displacements"].GetBool()
+        self.reset_totals        = solver_settings["reset_totals"].GetBool()
         self.rebuild_level       = solver_settings["rebuild_level"].GetInt()
 
     def Initialize(self):
@@ -63,7 +64,7 @@ class GeoMechanicsAnalysis(AnalysisStage):
         self.ResetIfHasNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
         self.ResetIfHasNodalSolutionStepVariable(KratosMultiphysics.ROTATION)
 
-        if self.reset_displacements:
+        if self.reset_totals:
             self.ResetIfHasNodalSolutionStepVariable(KratosGeo.TOTAL_DISPLACEMENT)
             self.ResetIfHasNodalSolutionStepVariable(KratosGeo.TOTAL_ROTATION)
 
@@ -247,7 +248,9 @@ if __name__ == '__main__':
     else: # using default name
         parameter_file_name = "ProjectParameters.json"
 
-    with open(parameter_file_name,'r') as parameter_file:
+    path_to_parameter_file = validation_helpers.validated_parameter_path(parameter_file_name)
+
+    with open(path_to_parameter_file,'r') as parameter_file:
         parameters = Kratos.Parameters(parameter_file.read())
 
     model = Kratos.Model()

@@ -199,9 +199,9 @@ class TestExplicitFilterReference(kratos_unittest.TestCase):
         cls.filter_data = ComponentDataView("test", cls.optimization_problem)
         cls.filter_data.SetDataBuffer(1)
 
-        cls.vtu_output = Kratos.VtuOutput(cls.model_part, output_format=Kratos.VtuOutput.ASCII, precision=6)
 
     def setUp(self) -> None:
+        self.vtu_output = Kratos.VtuOutput(self.model_part, output_format=Kratos.VtuOutput.ASCII, precision=6)
         Kratos.TensorAdaptors.NodePositionTensorAdaptor(self.initial_nodal_pos, Kratos.Configuration.Initial, copy=False).StoreData()
         Kratos.TensorAdaptors.NodePositionTensorAdaptor(self.initial_nodal_pos, Kratos.Configuration.Current, copy=False).StoreData()
 

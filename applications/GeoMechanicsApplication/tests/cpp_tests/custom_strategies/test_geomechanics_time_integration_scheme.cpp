@@ -33,7 +33,7 @@ class ConcreteGeoMechanicsTimeIntegrationScheme
     : public GeoMechanicsTimeIntegrationScheme<SparseSpaceType, LocalSpaceType>
 {
 public:
-    ConcreteGeoMechanicsTimeIntegrationScheme(
+    explicit ConcreteGeoMechanicsTimeIntegrationScheme(
         const std::vector<FirstOrderScalarVariable>&  rFirstOrderScalarVariables  = {},
         const std::vector<SecondOrderVectorVariable>& rSecondOrderVectorVariables = {})
         : GeoMechanicsTimeIntegrationScheme<SparseSpaceType, LocalSpaceType>(

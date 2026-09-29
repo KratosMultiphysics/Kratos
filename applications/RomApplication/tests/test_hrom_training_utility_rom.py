@@ -89,21 +89,85 @@ class TestHromTrainingUtilityRom(KratosUnittest.TestCase):
                 # Use Kratos' custom assert to compare arrays as matrices
                 self.assertVectorAlmostEqual(expected, obtained, msg=f"Mismatch in {name}")
 
-    def tearDown(self):
 
+    def test_hrom_zero_weight_append_edge_cases(self):
+        # Grab the utility from the simulation
+        hrom_util = self.simulation._RomAnalysis__hrom_training_utility
+
+        # Temporarily change the output folder to avoid polluting the main test's files
+        from pathlib import Path
+        edge_case_dir = Path(self.work_folder) / "rom_edge_case_data"
+        edge_case_dir.mkdir(exist_ok=True)
+        hrom_util.rom_basis_output_folder = edge_case_dir
+
+        # Mock the ECM output: Select exactly two elements (indices 0 and 1) and NO conditions
+        hrom_util.hyper_reduction_element_selector.z = np.array([0, 1])
+        hrom_util.hyper_reduction_element_selector.w = np.array([1.5, 2.5])
+
+        # Force the utility to append extra zero-weight entities
+        hrom_util.include_minimum_condition = True
+        hrom_util.include_condition_parents = True
+
+        # Execute the method (this verifies the shape mismatch bug is fixed)
+        hrom_util.AppendHRomWeightsToRomParameters()
+
+        # Load the newly generated numpy files to assert their correctness
+        cond_ids = np.load(edge_case_dir / "HROM_ConditionIds.npy")
+        cond_weights = np.load(edge_case_dir / "HROM_ConditionWeights.npy")
+        elem_ids = np.load(edge_case_dir / "HROM_ElementIds.npy")
+        elem_weights = np.load(edge_case_dir / "HROM_ElementWeights.npy")
+
+        # --- ASSERTIONS ---
+
+        # A. Conditions edge case: Ensure conditions were safely added to the empty list
+        self.assertGreater(len(cond_ids), 0, "Conditions should have been added by include_minimum_condition.")
+        self.assertEqual(len(cond_ids), len(cond_weights), "Condition IDs and Weights shapes do not match.")
+        for w in cond_weights:
+            self.assertEqual(w, 0.0, "Appended conditions must have exactly 0.0 weight.")
+
+        # B. Elements edge case: Ensure elements were appended correctly
+        self.assertGreater(len(elem_ids), 2, "Parent elements should have been appended to the initial 2 elements.")
+        self.assertEqual(len(elem_ids), len(elem_weights), "Element IDs and Weights shapes do not match.")
+
+        # C. Verify the original non-zero elements retained their mapped IDs and weights
+        elem_id_0 = hrom_util.numpy_index_to_element_id_mapping[0]
+        elem_id_1 = hrom_util.numpy_index_to_element_id_mapping[1]
+
+        idx_0 = np.where(elem_ids == elem_id_0)[0][0]
+        idx_1 = np.where(elem_ids == elem_id_1)[0][0]
+
+        self.assertEqual(elem_weights[idx_0], 1.5, "Original element weight was corrupted.")
+        self.assertEqual(elem_weights[idx_1], 2.5, "Original element weight was corrupted.")
+
+        # D. Ensure all other appended elements have exactly 0.0 weight
+        for i, w in enumerate(elem_weights):
+            if i not in [idx_0, idx_1]:
+                self.assertEqual(w, 0.0, "Appended elements must have exactly 0.0 weight.")
+
+
+    @classmethod
+    def tearDownClass(cls):
         # Specific files and paths to delete
         specific_files = [
             "../../../FluidDynamicsApplication/tests/CouetteFlowTest/couette_flow_testHROM.mdpa",
             "rom_data/HROM_ConditionIds.npy",
             "rom_data/HROM_ConditionWeights.npy",
             "rom_data/HROM_ElementIds.npy",
-            "rom_data/HROM_ElementWeights.npy"
+            "rom_data/HROM_ElementWeights.npy",
+            "rom_edge_case_data/HROM_ConditionIds.npy",
+            "rom_edge_case_data/HROM_ConditionWeights.npy",
+            "rom_edge_case_data/HROM_ElementIds.npy",
+            "rom_edge_case_data/HROM_ElementWeights.npy"
         ]
 
         # Iterating over the specific file list and deleting each
         for file_path in specific_files:
-            full_path = os.path.join(self.work_folder, file_path)
+            full_path = os.path.join(cls.work_folder, file_path)
             kratos_utilities.DeleteFileIfExisting(full_path)
+
+        # Clean up the edge case directory itself
+        edge_case_dir = os.path.join(cls.work_folder, "rom_edge_case_data")
+        kratos_utilities.DeleteDirectoryIfExisting(edge_case_dir)
 
 if __name__ == '__main__':
     KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING)

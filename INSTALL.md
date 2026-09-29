@@ -31,6 +31,7 @@
     - [TPL-Libraries](#tpl-libraries)
       - [Tetgen](#tetgen)
       - [Triangle](#triangle)
+  - [Installing via Spack](#installing-via-spack)
 
 ## Cloning Kratos
 
@@ -58,6 +59,7 @@ git clone https://github.com/KratosMultiphysics/Kratos Kratos
   * C++17 compiler
   * CMake
   * Boost (dependencies are header-only, no compilation of boost libraries required)
+  * Eigen (header-only; see [Eigen](#eigen) below for how it is located)
 
 Additionally, Visual Studio is required to compile in *Windows*.
 
@@ -66,7 +68,7 @@ Additionally, Visual Studio is required to compile in *Windows*.
     The command below will install all the packages needed.
 
     ```Shell
-    sudo apt-get install python3-dev gcc g++ cmake libboost-all-dev
+    sudo apt-get install python3-dev gcc g++ cmake libboost-all-dev libeigen3-dev
     ```
     Newer versions of boost can be downloaded in:
 
@@ -258,6 +260,22 @@ Additionally, Visual Studio is required to compile in *Windows*.
 
 Some applications have additional dependencies. Please check the `README` files of the applications that are compiled
 
+### Eigen
+
+*Eigen* is a header-only linear-algebra library used by some applications (e.g. *LinearSolversApplication* and *RomApplication*). *Kratos* no longer ships a copy of Eigen; instead it is located automatically from one of the following sources, in order of priority:
+
+1. **`EIGEN3_ROOT`** — a user-provided root directory (environment variable or `-DEIGEN3_ROOT=...`), mirroring how `BOOST_ROOT` is handled.
+2. **OS install** — a system-wide Eigen, e.g. `libeigen3-dev` on Ubuntu/Debian (headers under `/usr/include/eigen3`).
+3. **Automatic download** — as a last resort, the pinned version (default `5.0.0`, change with `-DKRATOS_EIGEN_VERSION=...`) is downloaded and extracted into the build tree.
+
+On *GNU/Linux* you can install it with:
+
+```Shell
+sudo apt-get install libeigen3-dev
+```
+
+If you prefer to point *Kratos* at a specific Eigen checkout, set `EIGEN3_ROOT` to the directory that contains the `Eigen` folder (e.g. the root of an Eigen source tree).
+
 ## Basic Configuration
 
 You can find the new kratos configuration file in *Kratos* `scripts` folder: `standard_configure.sh` for *GNU/Linux*, `standard_configure_mac.sh` for *MacOS*, `standard_configure.bat` for *Windows* and others. In the special case of *Windows* using *MinGW* you will need to copy two scripts (`standard_configure_MINGW.bat` and `standard_configure_MINGW.sh`) both are required, but only the `.bat` file is invoked.
@@ -286,6 +304,14 @@ Path to the python executable that *Kratos* will use. We recommend that you manu
 `BOOST_ROOT`
 
 Don't use this unless you have problems during the compilation. Path to boost root directory, set it if you downloaded but without using `apt-get`.
+
+`EIGEN3_ROOT`
+
+Don't use this unless you have problems during the compilation. Path to the Eigen root directory (the folder that contains the `Eigen` header folder). Only needed if Eigen is not installed on the system and you do not want to rely on the automatic download.
+
+`KRATOS_EIGEN_VERSION`
+
+Version of Eigen to download automatically when Eigen is not found on the system. Defaults to `5.0.0`.
 
 ## Configuration scripts examples
 
@@ -874,3 +900,76 @@ Forces to re-download and replace an existing version of *Tetgen* obtained throu
 
 `-DUSE_TRIANGLE_NONFREE_TPL`
 Enables or disables the use of *Triangle* and its related utilities in the code.
+
+## Installing via Spack
+
+Building from source as described above is the recommended and default way to obtain *Kratos*. As an alternative, if you don't need a development checkout, *Kratos* can be built and installed automatically with [*Spack*](https://spack.io/), a package manager for *GNU/Linux* and *MacOS* that resolves and compiles all dependencies for you. The package (`kratos_multiphysics`) is distributed through the [official Spack packages repository](https://github.com/spack/spack-packages).
+
+First, [install Spack](https://spack.readthedocs.io/en/latest/getting_started.html) and load it into your shell:
+
+```Shell
+git clone --depth=1 https://github.com/spack/spack.git
+. spack/share/spack/setup-env.sh
+```
+
+Then install *Kratos* with its default set of applications:
+
+```Shell
+spack install kratos_multiphysics
+```
+
+Once installed, load it (this sets `PYTHONPATH`/`LD_LIBRARY_PATH` for you) so it can be imported from Python:
+
+```Shell
+spack load kratos_multiphysics
+python3 -c "import KratosMultiphysics"
+```
+
+### Selecting a version
+
+```Shell
+spack install kratos_multiphysics@10.4.3   # a tagged release
+spack install kratos_multiphysics@master   # the development branch
+```
+
+Available versions include `9.5`, `10.0`, `10.1`, `10.2.3`, `10.3.0`, `10.4.0`, `10.4.2`, `10.4.3` and `master`.
+
+### Variants
+
+The build can be customized through the following variants (defaults shown):
+
+| Variant | Default | Values | Description |
+|---------|---------|--------|-------------|
+| `applications` | `linear_solvers,structural_mechanics,fluid_dynamics,iga` | any combination of the in-tree applications (snake_case names) | Applications to compile |
+| `build_type` | `Release` | `Release`, `RelWithDebInfo`, `Debug`, `FullDebug`, `Custom` | CMake build type |
+| `shared_memory` | `openmp` | `openmp`, `cxx11`, `none` | Shared-memory parallelization backend |
+| `mpi` | `False` | `True`/`False` | Build with MPI support |
+| `mkl` | `False` | `True`/`False` | Use Intel MKL solvers |
+| `suitesparse` | `False` | `True`/`False` | Use SuiteSparse solvers |
+| `tbb` | `False` | `True`/`False` | Use Intel TBB |
+| `mmg` | `False` | `True`/`False` | Enable MMG remeshing |
+| `parmmg` | `False` | `True`/`False` | Enable ParMMG parallel remeshing |
+| `triangle` | `False` | `True`/`False` | Enable the non-free [Triangle](#triangle) TPL |
+| `tetgen` | `False` | `True`/`False` | Enable the non-free [Tetgen](#tetgen) TPL |
+| `stubs` | `True` | `True`/`False` | Generate Python stub (`.pyi`) files for IDE support |
+| `cpp_tests` | `False` | `True`/`False` | Build the C++ (GTest) unit tests |
+| `benchmark` | `False` | `True`/`False` | Build the C++ (Google Benchmark) benchmarks |
+
+Applications are chosen with the `applications` variant using their snake_case names (e.g. `structural_mechanics`, `fluid_dynamics`, `contact_mechanics`, `trilinos`). Some examples:
+
+```Shell
+# MPI build with a custom set of applications
+spack install kratos_multiphysics +mpi applications=structural_mechanics,fluid_dynamics,trilinos
+
+# Enable MKL, MMG and TBB
+spack install kratos_multiphysics +mkl +mmg +tbb shared_memory=openmp
+
+# Development version with the C++ tests and benchmarks enabled
+spack install kratos_multiphysics@master +cpp_tests +benchmark
+```
+
+You can inspect the full list of variants and applications for the installed package with:
+
+```Shell
+spack info kratos_multiphysics
+```

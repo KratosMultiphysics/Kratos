@@ -203,8 +203,7 @@ protected:
     std::vector<Matrix> CalculateBMatrices(const GeometryType::ShapeFunctionsGradientsType& rDN_DXContainer,
                                            const Matrix& rNContainer) const;
 
-    Vector GetPressures(size_t n_nodes) const;
-    void   AssignPressureToIntermediateNodes();
+    void AssignPressureToIntermediateNodes();
 
     virtual Vector CalculateGreenLagrangeStrain(const Matrix& rDeformationGradient) const;
 
@@ -224,8 +223,6 @@ protected:
                                         std::vector<Vector>& rStrainVectors,
                                         std::vector<Vector>& rStressVectors,
                                         std::vector<Matrix>& rConstitutiveMatrices);
-
-    [[nodiscard]] Vector GetPressureSolutionVector() const;
 
     [[nodiscard]] std::vector<double> CalculateDegreesOfSaturation(const std::vector<double>& rFluidPressures);
     [[nodiscard]] std::vector<double> CalculateDerivativesOfSaturation(const std::vector<double>& rFluidPressures);

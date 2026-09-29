@@ -63,7 +63,7 @@ void ApplyWriteScalarProcess::ExecuteInitialize()
         mOutFile.resize(nNodes);
 
         for (IndexType i = 0; i < nNodes; ++i) {
-            ModelPart::NodesContainerType::iterator it = it_begin + i;
+            ModelPart::NodesContainerType::iterator it = it_begin + static_cast<std::ptrdiff_t>(i);
 
             const IndexType    nodeId = it->Id();
             std::ostringstream oss;
@@ -99,7 +99,7 @@ void ApplyWriteScalarProcess::ExecuteFinalizeSolutionStep()
         ModelPart::NodesContainerType::iterator it_begin = mrModelPart.NodesBegin();
 
         for (IndexType i = 0; i < nNodes; ++i) {
-            ModelPart::NodesContainerType::iterator it = it_begin + i;
+            ModelPart::NodesContainerType::iterator it = it_begin + static_cast<std::ptrdiff_t>(i);
 
             const double value = it->FastGetSolutionStepValue(var);
             mOutFile[i] << Time << "   " << value << "\n";

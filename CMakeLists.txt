@@ -51,7 +51,7 @@ endif(POLICY CMP0167)
 # Set here the version number **** only update upon tagging a release!
 set (KratosMultiphysics_MAJOR_VERSION 10)
 set (KratosMultiphysics_MINOR_VERSION 4)
-set (KratosMultiphysics_PATCH_VERSION 0)
+set (KratosMultiphysics_PATCH_VERSION 2)
 
 # If KRATOS_SOURCE_DIR is not defined use the CMAKE_SOURCE_DIR
 if(NOT DEFINED KRATOS_SOURCE_DIR)
@@ -654,6 +654,13 @@ message("\n-- CMAKE_BUILD_TYPE ........ ${CMAKE_BUILD_TYPE}\n")
 
 # Include dir for external libraries
 include_directories( SYSTEM ${KRATOS_SOURCE_DIR}/external_libraries )
+
+# Eigen (header-only). Resolved from EIGEN3_ROOT, the OS install, or an
+# automatic download (see cmake_modules/KratosEigen.cmake). Added at top level
+# so both the core and any application can use it (e.g. as sparse
+# linear-algebra backend); EIGEN_MPL2_ONLY is set globally so every translation
+# unit agrees on the licensed subset.
+include(KratosEigen)
 
 # defines needed
 add_definitions( -DKRATOS_PYTHON )

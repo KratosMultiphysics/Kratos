@@ -593,6 +593,12 @@ public:
     Vector GetVector() const;
 
     /**
+ * @brief This method returns the vector of vectors contained in the current Parameter
+ * @return The vector of vectors value
+ */
+    std::vector<Vector> GetVectorArray() const;
+
+    /**
      * @brief This method returns the matrix contained in the current Parameter
      * @return The matrix value
      */

@@ -25,6 +25,7 @@
 #include "custom_python/add_custom_processes_to_python.h"
 #include "custom_python/add_custom_strategies_to_python.h"
 #include "custom_python/add_custom_utilities_to_python.h"
+#include "custom_python/add_retention_laws_to_python.h"
 #include "geo_mechanics_application.h"
 #include "geo_mechanics_application_variables.h"
 
@@ -42,6 +43,7 @@ PYBIND11_MODULE(KratosGeoMechanicsApplication, m)
     AddCustomStrategiesToPython(m);
     AddCustomUtilitiesToPython(m);
     AddCustomProcessesToPython(m);
+    AddRetentionLawsToPython(m);
 
     // Registering variables in python
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, VELOCITY_COEFFICIENT)
@@ -146,6 +148,10 @@ PYBIND11_MODULE(KratosGeoMechanicsApplication, m)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, FILTER_LENGTH)
 
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, GEO_PLASTICITY_STATUS)
+
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, GEO_MAX_NUMBER_OF_SUB_STEPS)
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, GEO_MAX_RELATIVE_OVERSHOOT)
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, RETENTION_LAW)
 }
 
 } // namespace Kratos::Python.

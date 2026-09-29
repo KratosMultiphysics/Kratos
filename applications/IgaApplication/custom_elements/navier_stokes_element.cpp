@@ -456,15 +456,18 @@ void NavierStokesElement::AddSecondOrderStabilizationTerms(MatrixType &rLeftHand
     // Second-order stabilization: implement for 2D and 3D when basis order > 1
     if (mBasisFunctionsOrder > 1) {
         // ---------------------------------------------------------------------
-        // RECOVERED_STRESS stores the recovered divergence of viscous stress:
+        // DIVERGENCE_STRESS stores the recovered divergence of viscous stress:
         // 2D: size 2 -> [div_tau_x, div_tau_y]
         // 3D: size 3 -> [div_tau_x, div_tau_y, div_tau_z]
 
         // ---------------------------------------------------------------------
+        KRATOS_ERROR_IF_NOT(this->Has(DIVERGENCE_STRESS))
+            << "Missing DIVERGENCE_STRESS for higher-order NavierStokesElement " << Id()
+            << ". Please set \"time_scheme\": \"bdf2_higher_order_vms\"." << std::endl;
         const Vector divergence_of_sigma = this->GetValue(DIVERGENCE_STRESS);
 
         KRATOS_ERROR_IF(divergence_of_sigma.size() != mDim)
-            << "RECOVERED_STRESS must store div(tau) of size " << mDim
+            << "DIVERGENCE_STRESS must store div(tau) of size " << mDim
             << " but has size " << divergence_of_sigma.size() << std::endl;
 
         // Get 2nd derivatives of shape functions in physical space (as provided by the geometry)
@@ -1113,6 +1116,30 @@ void NavierStokesElement::GetSolutionCoefficientVector(
             rValues[index + d] = velocity[d];
         }
     }
+}
+
+void NavierStokesElement::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_TRY
+
+    static_cast<void>(rCurrentProcessInfo);
+
+    GeometryType& r_geometry = this->GetGeometry();
+    const Matrix& r_n_values = r_geometry.ShapeFunctionsValues(this->GetIntegrationMethod());
+    const ShapeFunctionsType& rN = row(r_n_values, 0);
+
+    array_1d<double, 3> velocity = ZeroVector(3);
+    double pressure = 0.0;
+
+    this->EvaluateInPoint(velocity, VELOCITY, rN, r_geometry);
+    this->EvaluateInPoint(pressure, PRESSURE, rN, r_geometry);
+
+    this->SetValue(VELOCITY_X, velocity[0]);
+    this->SetValue(VELOCITY_Y, velocity[1]);
+    this->SetValue(VELOCITY_Z, velocity[2]);
+    this->SetValue(PRESSURE, pressure);
+
+    KRATOS_CATCH("");
 }
 
 } // Namespace Kratos

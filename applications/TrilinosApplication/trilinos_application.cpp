@@ -32,6 +32,10 @@ void KratosTrilinosApplication::Register()
     RegisterTrilinosLinearSolvers();
 }
 
+void KratosTrilinosApplication::DeregisterApplication()
+{
+}
+
 }  // namespace Kratos.
 
 

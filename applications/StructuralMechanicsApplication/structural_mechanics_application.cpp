@@ -88,6 +88,9 @@ KratosStructuralMechanicsApplication::KratosStructuralMechanicsApplication()
       // deprecated names
       mShellThickElement3D4N(0, Element::GeometryType::Pointer(new Quadrilateral3D4<NodeType >(Element::GeometryType::PointsArrayType(4)))),
       mShellThickCorotationalElement3D4N(0, Element::GeometryType::Pointer(new Quadrilateral3D4<NodeType >(Element::GeometryType::PointsArrayType(4)))),
+      // Deprecated elements, remove by Dec 2026.
+      mLegacyThickShellElement3D4N(0, Element::GeometryType::Pointer(new Quadrilateral3D4<NodeType >(Element::GeometryType::PointsArrayType(4)))),
+      mLegacyThickShellCorotationalElement3D4N(0, Element::GeometryType::Pointer(new Quadrilateral3D4<NodeType >(Element::GeometryType::PointsArrayType(4)))),
     
       mShellThinCorotationalElement3D4N(0, Element::GeometryType::Pointer(new Quadrilateral3D4<NodeType >(Element::GeometryType::PointsArrayType(4)))),
       mShellThinElement3D3N(0, Element::GeometryType::Pointer(new Triangle3D3<NodeType >(Element::GeometryType::PointsArrayType(3)))),
@@ -331,6 +334,7 @@ void KratosStructuralMechanicsApplication::Register() {
 
     // Harmonic analysis
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(DISPLACEMENT_IMAGINARY)
+    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(ROTATION_IMAGINARY)
 
     // Geometrical
     KRATOS_REGISTER_VARIABLE(AXIAL_FORCE)
@@ -414,6 +418,7 @@ void KratosStructuralMechanicsApplication::Register() {
     KRATOS_REGISTER_VARIABLE(SHELL_ORTHOTROPIC_4PLY_THROUGH_THICKNESS)
     KRATOS_REGISTER_VARIABLE(TSAI_WU_RESERVE_FACTOR)
     KRATOS_REGISTER_VARIABLE(SHELL_ORTHOTROPIC_LAMINA_STRENGTHS)
+    KRATOS_REGISTER_VARIABLE(SHELL_ORTHOTROPIC_STRESS_THROUGH_THICKNESS)
 
     // Energy
     KRATOS_REGISTER_VARIABLE(ENERGY_DAMPING_DISSIPATION)
@@ -598,7 +603,11 @@ void KratosStructuralMechanicsApplication::Register() {
 
     // deprecated names
     KRATOS_REGISTER_ELEMENT("ShellThickElement3D4N", mShellThickElement3D4N) // It uses MITC
-    KRATOS_REGISTER_ELEMENT("ShellThickCorotationalElement3D4N", mShellThickCorotationalElement3D4N) // It uses MITC
+    KRATOS_REGISTER_ELEMENT("ShellThickElementCorotational3D4N", mShellThickCorotationalElement3D4N) // It uses MITC
+
+    // Deprecated elements, to be removed by Dec 2026
+    KRATOS_REGISTER_ELEMENT("LegacyThickShellElement3D4N", mLegacyThickShellElement3D4N)
+    KRATOS_REGISTER_ELEMENT("LegacyThickShellCorotationalElement3D4N", mLegacyThickShellCorotationalElement3D4N)
 
     KRATOS_REGISTER_ELEMENT("ShellThinElementCorotational3D4N", mShellThinCorotationalElement3D4N)
     KRATOS_REGISTER_ELEMENT("ShellThinElement3D3N", mShellThinElement3D3N)
@@ -837,6 +846,7 @@ void KratosStructuralMechanicsApplication::Register() {
     KRATOS_REGISTER_CONSTITUTIVE_LAW("TrussConstitutiveLaw", mTrussConstitutiveLaw);
     KRATOS_REGISTER_CONSTITUTIVE_LAW("BeamConstitutiveLaw", mBeamConstitutiveLaw);
     KRATOS_REGISTER_CONSTITUTIVE_LAW("LinearElastic3DLaw", mElasticIsotropic3D);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("FlexibleLinearElastic3DLaw", mFlexibleElasticIsotropic3D);
     KRATOS_REGISTER_CONSTITUTIVE_LAW("LinearElasticPlaneStrain2DLaw", mLinearPlaneStrain);
     KRATOS_REGISTER_CONSTITUTIVE_LAW("LinearElasticPlaneStress2DLaw", mLinearPlaneStress);
     KRATOS_REGISTER_CONSTITUTIVE_LAW("LinearElasticAxisym2DLaw", mAxisymElasticIsotropic);

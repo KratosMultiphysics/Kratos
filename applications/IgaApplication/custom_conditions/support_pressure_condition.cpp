@@ -56,7 +56,7 @@ void SupportPressureCondition::CalculateLeftHandSide(
 {
     const std::size_t mat_size = GetGeometry().size() * (mDim+1);
 
-    if (rLeftHandSideMatrix.size1() != mat_size && rLeftHandSideMatrix.size2())
+    if (rLeftHandSideMatrix.size1() != mat_size || rLeftHandSideMatrix.size2() != mat_size)
         rLeftHandSideMatrix.resize(mat_size, mat_size);
     noalias(rLeftHandSideMatrix) = ZeroMatrix(mat_size, mat_size);
 }
@@ -101,8 +101,15 @@ void SupportPressureCondition::CalculateRightHandSide(
             rRightHandSideVector((mDim+1)*j+idim) -= p_D * ( N(0,j) * normal_parameter_space[idim] ) * mIntegrationWeight;
         }
         
-        // // Neumann condition for the velocity
-        Vector t_N = this->GetValue(NORMAL_STRESS);
+        // Optional traction data. If it is not assigned, use zero traction.
+        Vector t_N = ZeroVector(mDim);
+        if (this->Has(NORMAL_STRESS)) {
+            const Vector& r_normal_stress = this->GetValue(NORMAL_STRESS);
+            KRATOS_ERROR_IF(r_normal_stress.size() != mDim)
+                << "NORMAL_STRESS size mismatch in SupportPressureCondition " << Id()
+                << ". Expected size " << mDim << ", got " << r_normal_stress.size() << std::endl;
+            noalias(t_N) = r_normal_stress;
+        }
 
         for (IndexType idim = 0; idim < mDim; idim++) {
             rRightHandSideVector((mDim+1)*j+idim) += N(0,j) * t_N[idim] * mIntegrationWeight;
