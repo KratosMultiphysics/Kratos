@@ -26,6 +26,7 @@
 #include "meshioplusplus/mesh.hpp"
 #include "meshioplusplus/read_options.hpp"
 #include "meshioplusplus/formats/femap.hpp"
+#include "meshioplusplus/formats/mdpa.hpp"
 #include "meshioplusplus/formats/pvd.hpp"
 #include "meshioplusplus/formats/vtkhdf_time_series.hpp"
 #include "meshioplusplus/formats/xdmf_time_series.hpp"
@@ -430,6 +431,21 @@ public:
      */
     Parameters GetProvenance() const;
 
+    /**
+     * @brief What the last ".mdpa" read found that a model part cannot hold.
+     * @details meshio++ v16.27.0 reads a whole production deck through its MdpaInfo side channel
+     * instead of refusing it: top-level tables, `Begin Geometries`, `Begin Mesh <id>` blocks,
+     * `SubModelPartData`/`Tables`, non-numeric `ModelPartData` and any other top-level block
+     * (`Constraints`, ...) kept verbatim. None of it reaches the model part - it is reported here
+     * so that its loss is visible rather than silent. Only filled when the read used
+     * `"mdpa_keep_extra_blocks" : true` (by default such a deck is refused by name); "recognised"
+     * is false until then.
+     * @return `{"recognised", "number_of_tables", "number_of_geometry_blocks",
+     * "number_of_mesh_blocks", "number_of_sub_model_parts_with_data", "model_part_data" : [keys],
+     * "raw_blocks" : [headers], "skipped_constructs" : [...]}`.
+     */
+    Parameters GetMdpaInfo() const;
+
     ///@}
     ///@name Input and output
     ///@{
@@ -451,6 +467,9 @@ private:
 
     std::filesystem::path mFileName; /// The file to read from / write to
     Parameters mParameters;          /// The configuration parameters
+
+    meshioplusplus::MdpaInfo mMdpaInfo; /// The side-channel content of the last ".mdpa" read
+    bool mMdpaInfoRead = false;         /// Whether mMdpaInfo was filled by a read
 
     // Transient write state ("does the output buffer already exist?")
     IndexType mOutputStep = 0; /// Number of WriteModelPart calls performed

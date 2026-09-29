@@ -645,6 +645,7 @@ Parameters MeshioPlusPlusIO::GetDefaultParameters()
         "skin"                                        : true,
         "time_step"                                   : 0,
         "lenient"                                     : false,
+        "mdpa_keep_extra_blocks"                      : false,
         "openfoam_region"                             : "",
         "select_piece"                                : false,
         "piece"                                       : 0,
@@ -940,8 +941,26 @@ void MeshioPlusPlusIO::ReadModelPart(ModelPart& rThisModelPart)
             // The structure only, without the z88o* results written next to it.
             return mio::read_z88(mFileName.string(), /*Results=*/false);
         }
+        // "mdpa_keep_extra_blocks" reads .mdpa through the MdpaInfo overload: without one the
+        // reader refuses a deck that carries tables, geometries, Mesh blocks or a Constraints
+        // block, by name. With one the blocks are kept in the info (see GetMdpaInfo) instead.
+        if (format_name == "mdpa" && mParameters["mdpa_keep_extra_blocks"].GetBool()) {
+            mMdpaInfoRead = true;
+            return mio::read_mdpa(mFileName.string(), mMdpaInfo, read_options);
+        }
         return mio::registry_read(mFileName.string(), format_name, read_options);
     }();
+
+    if (format_name == "mdpa" && mParameters["mdpa_keep_extra_blocks"].GetBool()) {
+        const Parameters info = GetMdpaInfo();
+        if (info["number_of_tables"].GetInt() + info["number_of_geometry_blocks"].GetInt() +
+            info["number_of_mesh_blocks"].GetInt() + info["number_of_sub_model_parts_with_data"].GetInt() +
+            static_cast<int>(info["model_part_data"].size() + info["raw_blocks"].size()) > 0) {
+            KRATOS_WARNING("MeshioPlusPlusIO") << "The .mdpa file " << mFileName << " holds blocks a model part "
+                << "cannot receive (tables, geometries, Mesh blocks, sub model part data, text ModelPartData, raw "
+                << "blocks); they are reported by GetMdpaInfo() and not transferred" << std::endl;
+        }
+    }
 
     // In .mdpa a "gmsh:physical" tag is how a Kratos properties id is stored, not a
     // physical group, so the automatic tag pass would synthesize a spurious
@@ -1043,6 +1062,35 @@ int MeshioPlusPlusIO::GetNumberOfTimeSteps() const
     KRATOS_TRY
 
     return static_cast<int>(GetTimeValues().size());
+
+    KRATOS_CATCH("")
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+Parameters MeshioPlusPlusIO::GetMdpaInfo() const
+{
+    KRATOS_TRY
+
+    Parameters result(R"({})");
+    result.AddBool("recognised", mMdpaInfoRead);
+    result.AddInt("number_of_tables", static_cast<int>(mMdpaInfo.mTables.size()));
+    result.AddInt("number_of_geometry_blocks", static_cast<int>(mMdpaInfo.mGeometries.size()));
+    result.AddInt("number_of_mesh_blocks", static_cast<int>(mMdpaInfo.mMeshBlocks.size()));
+    result.AddInt("number_of_sub_model_parts_with_data", static_cast<int>(mMdpaInfo.mSubModelParts.size()));
+    std::vector<std::string> data_keys;
+    for (const auto& r_value : mMdpaInfo.mModelPartData) {
+        data_keys.push_back(r_value.mKey);
+    }
+    result.AddStringArray("model_part_data", data_keys);
+    std::vector<std::string> raw_headers;
+    for (const auto& r_block : mMdpaInfo.mRawBlocks) {
+        raw_headers.push_back(r_block.mHeader);
+    }
+    result.AddStringArray("raw_blocks", raw_headers);
+    result.AddStringArray("skipped_constructs", mMdpaInfo.mSkippedConstructs);
+    return result;
 
     KRATOS_CATCH("")
 }
