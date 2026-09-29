@@ -94,7 +94,7 @@ class TestMeshioPlusPlusMeshOperations(KratosUnittest.TestCase):
                          "subdivide", "agglomerate", "decimate_volume", "remesh", "remesh_volume",
                          "optimize_volume", "estimate_error", "hessian", "data_integrate",
                          "curvature", "repair", "sobolev_deform", "compute_normals",
-                         "tensor_invariants"):
+                         "tensor_invariants", "check_quality", "feature_edges", "edit_regions"):
             self.assertIn(expected, operations)
 
     def test_unknown_operation_raises(self):
@@ -828,6 +828,140 @@ class TestMeshioPlusPlusMeshOperations(KratosUnittest.TestCase):
         with self.assertRaisesRegex(RuntimeError, 'unknown "method"'):
             KratosMeshioPlusPlus.MeshioPlusPlusMeshOperations.NeighborPairs(
                 source, KratosMultiphysics.Parameters('{"method" : "voronoi"}'))
+
+    def test_agglomerate_reports_the_new_counters(self):
+        _, report = self._Execute(
+            "agglomerate", KratosMultiphysics.Parameters(
+                '{"target_group_size" : 2, "merge_coplanar_faces" : true, "min_sphericity" : 0.1}'))
+        self.assertTrue(report.Has("faces_merged"))
+        self.assertTrue(report.Has("candidates_rejected"))
+
+    def test_check_quality_passes_and_fails(self):
+        # A scaled Jacobian never exceeds 1, so >= -1 always holds and >= 2 never does
+        _, report = self._Execute(
+            "check_quality", KratosMultiphysics.Parameters('{"require" : "scaled_jacobian >= -1"}'))
+        self.assertTrue(report["passed"].GetBool())
+        self.assertEqual(report["checks"].size(), 3) # the threshold, then inverted and degenerate
+
+        _, report = self._Execute(
+            "check_quality", KratosMultiphysics.Parameters('{"require" : "scaled_jacobian >= 2"}'))
+        self.assertFalse(report["passed"].GetBool())
+        self.assertGreater(report["checks"][0]["violations"].GetInt(), 0)
+        self.assertNotEqual(report["summary"].GetString(), "")
+
+    def test_check_quality_rejects_an_unknown_metric(self):
+        with self.assertRaises(RuntimeError):
+            self._Execute("check_quality",
+                          KratosMultiphysics.Parameters('{"require" : "not_a_metric >= 0"}'))
+
+    def test_feature_edges_of_a_cube_skin(self):
+        skin = self.model.CreateModelPart("CubeSkin")
+        _CreateClosedCubeSkin(skin)
+        destination, report = self._Execute("feature_edges", source=skin)
+        # The cube's twelve edges are 90 degree creases, the diagonals of the faces are flat
+        self.assertEqual(report["feature_edges"].GetInt(), 12)
+        self.assertEqual(report["boundary_edges"].GetInt(), 0)
+        self.assertEqual(report["non_manifold_edges"].GetInt(), 0)
+        self.assertEqual(destination.NumberOfElements() + destination.NumberOfConditions(), 12)
+
+        # Above the crease angle nothing is sharp any more
+        _, report = self._Execute(
+            "feature_edges", KratosMultiphysics.Parameters('{"feature_angle" : 100.0}'), skin)
+        self.assertEqual(report["feature_edges"].GetInt(), 0)
+
+    def test_hausdorff_distance_between_two_cube_skins(self):
+        first = self.model.CreateModelPart("SkinA")
+        second = self.model.CreateModelPart("SkinB")
+        _CreateClosedCubeSkin(first)
+        _CreateClosedCubeSkin(second)
+        operations = KratosMeshioPlusPlus.MeshioPlusPlusMeshOperations
+        self.assertAlmostEqual(operations.HausdorffDistance(first, second)["distance"].GetDouble(), 0.0, 12)
+
+        # Shifted by half an edge along x: the vertices at x = 0 of one sit 0.5 from the other
+        for node in second.Nodes:
+            node.X += 0.5
+            node.X0 += 0.5
+        report = operations.HausdorffDistance(first, second)
+        self.assertAlmostEqual(report["distance"].GetDouble(), 0.5, 12)
+        self.assertAlmostEqual(report["first_to_second"].GetDouble(), 0.5, 12)
+        self.assertEqual(report["worst_point_first"].GetVector().Size(), 3)
+
+    def test_hausdorff_distance_rejects_a_bad_setting(self):
+        skin = self.model.CreateModelPart("SkinBadSetting")
+        _CreateClosedCubeSkin(skin)
+        with self.assertRaises(RuntimeError):
+            KratosMeshioPlusPlus.MeshioPlusPlusMeshOperations.HausdorffDistance(
+                skin, skin, KratosMultiphysics.Parameters('{"face_samples" : -1}'))
+
+    def test_match_periodic_nodes(self):
+        skin = self.model.CreateModelPart("PeriodicSkin")
+        _CreateClosedCubeSkin(skin)
+        skin.CreateSubModelPart("left").AddNodes([1, 4, 5, 8])
+        skin.CreateSubModelPart("right").AddNodes([2, 3, 6, 7])
+        settings = KratosMultiphysics.Parameters("""{
+            "slave"       : {"name" : "left"},
+            "master"      : {"name" : "right"},
+            "translation" : [1.0, 0.0, 0.0]
+        }""")
+        pairs = KratosMeshioPlusPlus.MeshioPlusPlusMeshOperations.MatchPeriodicNodes(skin, settings)
+        self.assertEqual(sorted(pairs), [(1, 2), (4, 3), (5, 6), (8, 7)])
+
+        # A translation that maps nothing onto the master region cannot pair completely
+        settings["translation"].SetVector(KratosMultiphysics.Vector([0.25, 0.0, 0.0]))
+        with self.assertRaises(RuntimeError):
+            KratosMeshioPlusPlus.MeshioPlusPlusMeshOperations.MatchPeriodicNodes(skin, settings)
+
+    def test_edit_regions_union(self):
+        skin = self.model.CreateModelPart("RegionSkin")
+        _CreateClosedCubeSkin(skin)
+        skin.CreateSubModelPart("bottom").AddElements([1, 2])
+        skin.CreateSubModelPart("top").AddElements([3, 4])
+        settings = KratosMultiphysics.Parameters("""{
+            "edits" : [
+                {"operation" : "union",
+                 "inputs" : [{"name" : "bottom"}, {"name" : "top"}],
+                 "output_name" : "both"}
+            ]
+        }""")
+        destination, report = self._Execute("edit_regions", settings, skin)
+        self.assertEqual(report["number_of_edits"].GetInt(), 1)
+        self.assertTrue(destination.HasSubModelPart("both"))
+        self.assertEqual(destination.GetSubModelPart("both").NumberOfElements(), 4)
+        # Inputs are kept by default
+        self.assertTrue(destination.HasSubModelPart("bottom"))
+
+    def test_edit_regions_rejects_a_missing_region(self):
+        skin = self.model.CreateModelPart("RegionSkinMissing")
+        _CreateClosedCubeSkin(skin)
+        settings = KratosMultiphysics.Parameters("""{
+            "edits" : [{"operation" : "delete", "inputs" : [{"name" : "nowhere"}]}]
+        }""")
+        with self.assertRaises(RuntimeError):
+            self._Execute("edit_regions", settings, skin)
+
+    def test_blend_steps(self):
+        for node in self.source.Nodes:
+            node.SetValue(KratosMultiphysics.TEMPERATURE, 0.0)
+        other = self.model.CreateModelPart("OtherStep")
+        _CreateCubeOfTetrahedra(other)
+        for node in other.Nodes:
+            node.SetValue(KratosMultiphysics.TEMPERATURE, 10.0)
+        destination = self.model.CreateModelPart("Blended")
+        settings = KratosMultiphysics.Parameters(
+            '{"nodal_data_value_variables" : ["TEMPERATURE"]}')
+        report = KratosMeshioPlusPlus.MeshioPlusPlusMeshOperations.BlendSteps(
+            self.source, other, 0.25, settings, destination)
+        self.assertEqual(report["number_of_nodes"].GetInt(), self.source.NumberOfNodes())
+        for node in destination.Nodes:
+            self.assertAlmostEqual(node.GetValue(KratosMultiphysics.TEMPERATURE), 2.5, 12)
+
+    def test_blend_steps_refuses_different_topologies(self):
+        square = self.model.CreateModelPart("BlendSquare")
+        _CreateTriangulatedSquare(square)
+        destination = self.model.CreateModelPart("BlendRefused")
+        with self.assertRaises(RuntimeError):
+            KratosMeshioPlusPlus.MeshioPlusPlusMeshOperations.BlendSteps(
+                self.source, square, 0.5, KratosMultiphysics.Parameters("{}"), destination)
 
 
 if __name__ == "__main__":
