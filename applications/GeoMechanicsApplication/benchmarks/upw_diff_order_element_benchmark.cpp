@@ -109,6 +109,8 @@ void benchmarkUPwDiffOrderLocalSystemCalculation(benchmark::State& rState)
         auto left_hand_side  = Matrix{};
         auto right_hand_side = Vector{};
         p_element->CalculateLocalSystem(left_hand_side, right_hand_side, dummy_process_info);
+        benchmark::DoNotOptimize(left_hand_side);
+        benchmark::DoNotOptimize(right_hand_side);
     }
 }
 
@@ -125,6 +127,7 @@ void benchmarkUPwDiffOrderRHSCalculation(benchmark::State& rState)
     for (auto _ : rState) {
         auto right_hand_side = Vector{};
         p_element->CalculateRightHandSide(right_hand_side, dummy_process_info);
+        benchmark::DoNotOptimize(right_hand_side);
     }
 }
 
@@ -141,6 +144,7 @@ void benchmarkUPwDiffOrderLHSCalculation(benchmark::State& rState)
     for (auto _ : rState) {
         auto left_hand_side = Matrix{};
         p_element->CalculateLeftHandSide(left_hand_side, dummy_process_info);
+        benchmark::DoNotOptimize(left_hand_side);
     }
 }
 
