@@ -63,6 +63,10 @@ void AddCustomIOToPython(pybind11::module& m)
             "The provenance block the file carries, as {'recognised': bool, 'lines': [...]}: how "
             "the file was produced (source, target format, encoding, operation chain). "
             "'recognised' is False for a leading comment meshio++ did not write.")
+        .def("GetMdpaInfo", &MeshioPlusPlusIO::GetMdpaInfo,
+            "What the last .mdpa read found that a model part cannot hold (top-level tables, "
+            "geometries, Mesh blocks, sub model part data, text ModelPartData, raw blocks such as "
+            "Constraints) as counts and names. 'recognised' is False until an .mdpa was read.")
         .def_static("GetDefaultParameters", &MeshioPlusPlusIO::GetDefaultParameters,
             "The default settings of the IO.")
         .def_static("GetSupportedFormats", &MeshioPlusPlusIO::GetSupportedFormats,
