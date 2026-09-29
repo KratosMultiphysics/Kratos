@@ -83,10 +83,10 @@ void GapSbmEnhancedLoadSolidCondition::InitializeMemberVariables(
     }
 
     // Compute the normals
-    // Preserve the oriented closure normal. These physical-space curve
-    // geometries use (t_y, -t_x); curve-on-surface quadrature uses the opposite
-    // convention, so its SBM normal sign must not be copied here.
-    mNormalParameterSpace = r_geometry.Normal(0, GetIntegrationMethod());
+    // The fake closure curve is oriented along the boundary of the base
+    // patch. The enhanced condition uses the opposite, outward normal of
+    // the refinement patch whose displacement field it extends.
+    mNormalParameterSpace = -r_geometry.Normal(0, GetIntegrationMethod());
     mNormalParameterSpace = mNormalParameterSpace / MathUtils<double>::Norm(mNormalParameterSpace);
     mNormalPhysicalSpace = mNormalParameterSpace;
 
@@ -1065,8 +1065,9 @@ void GapSbmEnhancedLoadSolidConditionBatched::
         mQuadraturePointReferenceWeights[point_index] =
             r_points.front().Weight();
         const auto center = p_geometry->Center();
-        // Preserve the same oriented closure normal as the scalar condition.
+        // Use the same refinement-patch outward normal as the scalar condition.
         array_1d<double, 3> normal = p_geometry->Normal(0, method);
+        normal *= -1.0;
         const double normal_norm = norm_2(normal);
         KRATOS_ERROR_IF(normal_norm <= 0.0)
             << "Zero normal at point " << point_index
