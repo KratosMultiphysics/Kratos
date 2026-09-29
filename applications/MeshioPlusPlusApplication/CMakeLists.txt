@@ -18,7 +18,7 @@ include(pybind11Tools)
 #
 # Upgrading from a meshio++ older than v16.16.0 requires rebuilding this application once: the
 # C++ variants' SOVERSION is the ABI version, so the library this application needs is
-# libmeshioplusplus_core_kratos.so.18 rather than an earlier .so.N.
+# libmeshioplusplus_core_kratos.so.20 rather than an earlier .so.N.
 #
 # then point this configure at it with -Dmeshioplusplus_DIR=<prefix>/lib/cmake/meshioplusplus
 #
@@ -65,6 +65,14 @@ include(pybind11Tools)
 # WriteOptions, MeshMetadata, CellType and every operation option and result struct used here
 # are unchanged.
 #
+# ABI 18 -> 20 is a rebuild that this application feels in two places. 19 (v16.25.0) grows
+# AgglomerateOptions (mMergeCoplanarFaces, mCoplanarAngleDeg, mMinSphericity) and
+# AgglomerateResult (mNumFacesMerged, mNumRejected), both of which the "agglomerate" operation
+# passes by value. 20 (v16.27.0) grows MdpaInfo (72 -> 216 bytes) with the blocks a Mesh cannot
+# hold - top-level tables, geometries, Mesh blocks, sub model part data, text ModelPartData and
+# raw blocks such as Constraints - and makes named Side regions survive the operations that split,
+# merge or retype cells. v16.28.0 is reader hardening only and holds ABI 20.
+#
 # A single ABI rather than a window, deliberately. Supporting several meant a
 # MESHIOPLUSPLUS_VERSION_AT_LEAST guard per feature, and the operations this application now
 # exposes (remesh v10.10.0, optimize_volume v10.14.0, estimate_error v10.2.0, the gid format
@@ -78,7 +86,7 @@ include(pybind11Tools)
 # entry points this application calls only exist from later releases of that ABI: the Marc and
 # Radioss writers, resolve_write_format, write_ensight(..., fortran) and FemapSeriesWriter came in
 # v16.17.0, and WriteEncoding::RawAppended in v16.21.0 (the elmer/mfem/patran/z88 entry points
-# and results formats go back to v16.2.0-v16.13.0). An older ABI-18 install is binary compatible
+# and results formats go back to v16.2.0-v16.13.0). An older install is binary compatible
 # but does not *have* those symbols, so it is refused here by release rather than failing at
 # link time.
 #
@@ -87,19 +95,20 @@ include(pybind11Tools)
 # a link error rather than memory corruption. See meshio++'s doc/abi.md for the criterion.
 find_package(meshioplusplus CONFIG REQUIRED COMPONENTS CXX)
 
-if(NOT MESHIOPLUSPLUS_ABI_VERSION EQUAL 18)
+if(NOT MESHIOPLUSPLUS_ABI_VERSION EQUAL 20)
     message(FATAL_ERROR
-        "MeshioPlusPlusApplication needs meshio++ ABI 18, but the install at "
+        "MeshioPlusPlusApplication needs meshio++ ABI 20, but the install at "
         "'${meshioplusplus_DIR}' reports ABI ${MESHIOPLUSPLUS_ABI_VERSION} "
-        "(release ${meshioplusplus_VERSION}). ABI 18 is meshio++ v16.16.0 onwards, "
-        "which includes v16.22.0.")
+        "(release ${meshioplusplus_VERSION}). ABI 20 is meshio++ v16.27.0 onwards, "
+        "which includes v16.28.0.")
 endif()
 
-if(meshioplusplus_VERSION VERSION_LESS 16.21.0)
+if(meshioplusplus_VERSION VERSION_LESS 16.27.0)
     message(FATAL_ERROR
-        "MeshioPlusPlusApplication needs meshio++ v16.21.0 or newer (for its format table, "
-        "resolve_write_format, the Marc/Radioss writers, FemapSeriesWriter, Fortran EnSight and "
-        "raw appended VTU), but the install at '${meshioplusplus_DIR}' is release "
+        "MeshioPlusPlusApplication needs meshio++ v16.27.0 or newer (for MdpaInfo's full-deck "
+        "round trip, Side regions surviving operations, check_quality, feature_edges, "
+        "hausdorff_distance, edit_regions, match_periodic_nodes, blend_steps and the agglomerate "
+        "coplanar/sphericity options), but the install at '${meshioplusplus_DIR}' is release "
         "${meshioplusplus_VERSION}.")
 endif()
 
