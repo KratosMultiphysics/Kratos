@@ -117,7 +117,7 @@ private:
 
     void CalculateGreenLagrangeStrain(array_1d<double,6>& GL_strain_vector, const Matrix& amkovr, const Matrix& amkovc, const array_1d<Vector,3> akovr,  const array_1d<Vector,3> akovc, const array_1d<Vector,2>& a3kvpr, 
     const array_1d<Vector,2>& a3kvpc, const double& Theta3, const SizeType& ansq, const array_1d<double,2>& N13_ansq, const array_1d<double,2>& N23_ansq, const array_1d<Matrix,4>& amkovr_ansq, const array_1d<Matrix,4>& amkovc_ansq, 
-    const Vector& eas_enhancement, const SizeType& ans_ct, const array_1d<Matrix,4>& amkovr_ans_ct, const array_1d<Matrix,4>& amkovc_ans_ct, const Vector& Np_ct) const;
+    const Vector& eas_enhancement, const SizeType& ans_ct, const array_1d<Matrix,4>& amkovr_ans_ct, const array_1d<Matrix,4>& amkovc_ans_ct, const Vector& Np_ct, const double& f_s) const;
 
     void ContraVariantBaseVectors(array_1d<Vector,3>& rBaseVectors,const Matrix& rContraVariantMetric,
     const array_1d<Vector,3> rCovariantBaseVectors) const;
@@ -159,7 +159,7 @@ private:
 
     void ComputeGeometricStiffnessMatrix(MatrixType& rLeftHandSideMatrix, const array_1d<double,12>& stress_resultants, const Matrix& rShapeFunctionGradientValues, const Vector& rNshape,
     const double& weight, const SizeType& ansq, const array_1d<double,2>& N13_ansq, const array_1d<double,2>& N23_ansq, const Matrix& N_ans, const array_1d<Matrix,4>& DN_ans,
-    const SizeType& ans_ct, const Vector& Np_ct, const Matrix& N_ans_ct, const array_1d<Matrix,4>& DN_ans_ct) const;
+    const SizeType& ans_ct, const Vector& Np_ct, const Matrix& N_ans_ct, const array_1d<Matrix,4>& DN_ans_ct, const double& f_s) const;
 
     friend class Serializer;
 

@@ -170,7 +170,14 @@ void Shell7pElement::InitializeNonLinearIteration(const ProcessInfo& rCurrentPro
         noalias(delta_alpha) = -prod(mDtildInv, residual);
         mAlphaEas += delta_alpha;
         mPreviousNodalDofs = current_nodal_dofs;
-
+        if (Id() == 1) {
+        KRATOS_INFO("Shell7pElement DOF debug")
+        << "step " << rCurrentProcessInfo[STEP]
+        << " iter " << rCurrentProcessInfo[NL_ITERATION_NUMBER]
+        << " Alpha = " << mAlphaEas
+        << " Rtild = " << mRtild
+        << std::endl;
+}
 
     KRATOS_CATCH( "" )
 }
@@ -187,7 +194,7 @@ void Shell7pElement::GetEASModeConfiguration(array_1d<SizeType,3>& rEasModesPerK
     rEasModesPerKinematicVariableSet[1] = 0;   // for shear related kinematic variables (alpha13, alpha23, betta13, betta23)
     rEasModesPerKinematicVariableSet[2] = 4;   // for thickness related kinematic variable (betta33)
     // total number of EAS modes from the sum over all kinematic variables. faktor 2 is due to the fact that we have two sets of EAS modes: konstant and linear
-    rNumEasModes = rEasModesPerKinematicVariableSet[0] * 2 + rEasModesPerKinematicVariableSet[1] * 2 + rEasModesPerKinematicVariableSet[2];
+    rNumEasModes = rEasModesPerKinematicVariableSet[0] + rEasModesPerKinematicVariableSet[1] * 2 + rEasModesPerKinematicVariableSet[2];
 }
 
 
@@ -467,7 +474,7 @@ void Shell7pElement::CalculateInternalForces(VectorType& rInternalForceVector, c
             CovariantBaseVectorsShellBody(gkovr,shape_functions_gradients_i,Nshape,ConfigurationType::Reference,Theta3,thickness);
             CovariantMetric(gmkovr,gkovr);
 
-            CalculateGreenLagrangeStrain(GL_strain,amkovr,amkovc,akovr,akovc,a3kvpr,a3kvpc,Theta3,ansq,N13_ansq,N23_ansq,amkovr_ansq,amkovc_ansq,eas_enhancement,ans_ct,amkovr_ans_ct,amkovc_ans_ct,Np_ct);
+            CalculateGreenLagrangeStrain(GL_strain,amkovr,amkovc,akovr,akovc,a3kvpr,a3kvpc,Theta3,ansq,N13_ansq,N23_ansq,amkovr_ansq,amkovc_ansq,eas_enhancement,ans_ct,amkovr_ans_ct,amkovc_ans_ct,Np_ct,f_s);
             ContravariantMetric(gmkonr,gmkovr,gmdet_body);
 
             double scalefactor= std::sqrt(gmdet_body)/detJ_surface * tweight;
@@ -781,7 +788,7 @@ void Shell7pElement::CalculateLeftHandSide(
             CovariantMetric(gmkovr,gkovr);
 
             // change to consistent current metric for stress/strain calculation
-            CalculateGreenLagrangeStrain(GL_strain,amkovr,amkovc,akovr,akovc,a3kvpr,a3kvpc,Theta3,ansq,N13_ansq,N23_ansq,amkovr_ansq,amkovc_ansq,eas_enhancement,ans_ct,amkovr_ans_ct,amkovc_ans_ct,Np_ct);
+            CalculateGreenLagrangeStrain(GL_strain,amkovr,amkovc,akovr,akovc,a3kvpr,a3kvpc,Theta3,ansq,N13_ansq,N23_ansq,amkovr_ansq,amkovc_ansq,eas_enhancement,ans_ct,amkovr_ans_ct,amkovc_ans_ct,Np_ct,f_s);
             ContravariantMetric(gmkonr,gmkovr,gmdet_body);
 
             double scalefactor= std::sqrt(gmdet_body)/detJ_surface * tweight;
@@ -812,7 +819,7 @@ void Shell7pElement::CalculateLeftHandSide(
         noalias(DB) = prod(Dmatrix, Bop);
         rLeftHandSideMatrix += prod(trans(Bop), DB) * weight;
 
-        ComputeGeometricStiffnessMatrix(rLeftHandSideMatrix, stress_resultants,shape_functions_gradients_i,Nshape,weight,ansq,N13_ansq,N23_ansq,N_ans,DN_ans,ans_ct,Np_ct,N_ans_ct,DN_ans_ct);
+        ComputeGeometricStiffnessMatrix(rLeftHandSideMatrix, stress_resultants,shape_functions_gradients_i,Nshape,weight,ansq,N13_ansq,N23_ansq,N_ans,DN_ans,ans_ct,Np_ct,N_ans_ct,DN_ans_ct,f_s);
         ////////////////////////////////////////////////////////////////BEGIN EAS STUFF////////////////////////////////////////////////////////////////
         //==============================================================
         //       L^T (num_eas_modes,nd) = M^T (num_eas_modes,12) * D(12,12) * B(12,nd)
@@ -956,7 +963,7 @@ void Shell7pElement::CovariantMetric(Matrix& rMetric,const array_1d<Vector,3>& r
 
 void Shell7pElement::CalculateGreenLagrangeStrain(array_1d<double,6>& GL_strain_vector, const Matrix& amkovr, const Matrix& amkovc, const array_1d<Vector,3> akovr,  const array_1d<Vector,3> akovc, const array_1d<Vector,2>& a3kvpr, 
     const array_1d<Vector,2>& a3kvpc, const double& Theta3, const SizeType& ansq, const array_1d<double,2>& N13_ansq, const array_1d<double,2>& N23_ansq, const array_1d<Matrix,4>& amkovr_ansq, const array_1d<Matrix,4>& amkovc_ansq, 
-    const Vector& eas_enhancement, const SizeType& ans_ct, const array_1d<Matrix,4>& amkovr_ans_ct, const array_1d<Matrix,4>& amkovc_ans_ct, const Vector& Np_ct) const
+    const Vector& eas_enhancement, const SizeType& ans_ct, const array_1d<Matrix,4>& amkovr_ans_ct, const array_1d<Matrix,4>& amkovc_ans_ct, const Vector& Np_ct, const double& f_s) const
 {
     Matrix GL_strain_tensor = ZeroMatrix(3);
 
@@ -974,24 +981,24 @@ void Shell7pElement::CalculateGreenLagrangeStrain(array_1d<double,6>& GL_strain_
     double b31r = inner_prod(akovr[2],a3kvpr[0]);
     double b32r = inner_prod(akovr[2],a3kvpr[1]);
 
-    GL_strain_tensor(0,0) = 0.5 * ((amkovc(0,0)-amkovr(0,0)) + 2.0*Theta3 * (b11c-b11r))           +        eas_enhancement[0] + Theta3 * eas_enhancement[6];
-    GL_strain_tensor(0,1) = 0.5 * ((amkovc(0,1)-amkovr(0,1)) +     Theta3 * (b21c+b12c-b21r-b12r)) + 0.5 * (eas_enhancement[1] + Theta3 * eas_enhancement[7]);
-    GL_strain_tensor(0,2) = 0.5 *                                  Theta3 * (b31c-b31r)            + 0.5 * (eas_enhancement[2] + Theta3 * eas_enhancement[8]);
+    GL_strain_tensor(0,0) = 0.5 * ((amkovc(0,0)-amkovr(0,0)) + 2.0*Theta3 * (b11c-b11r))                  + eas_enhancement[0] + Theta3 * eas_enhancement[6];
+    GL_strain_tensor(0,1) = 0.5 * ((amkovc(0,1)-amkovr(0,1)) +     Theta3 * (b21c+b12c-b21r-b12r))        + 0.5 * (eas_enhancement[1] + Theta3 * eas_enhancement[7]);
+    GL_strain_tensor(0,2) = 0.5 *                                  Theta3 * (b31c-b31r) * std::sqrt(f_s)  + 0.5 * (eas_enhancement[2] + Theta3 * eas_enhancement[8]);
     GL_strain_tensor(1,1) = 0.5 * ((amkovc(1,1)-amkovr(1,1)) + 2.0*Theta3 * (b22c-b22r))           +        eas_enhancement[3] + Theta3 * eas_enhancement[9];
-    GL_strain_tensor(1,2) = 0.5 *                                  Theta3 * (b32c-b32r)            + 0.5 * (eas_enhancement[4] + Theta3 * eas_enhancement[10]);
+    GL_strain_tensor(1,2) = 0.5 *                                  Theta3 * (b32c-b32r) * std::sqrt(f_s)  + 0.5 * (eas_enhancement[4] + Theta3 * eas_enhancement[10]);
     GL_strain_tensor(2,2) =                                                                                 eas_enhancement[5] + Theta3 * eas_enhancement[11];
 
     if (!ansq)
     {
-        GL_strain_tensor(0,2) += 0.5 * (amkovc(0,2)-amkovr(0,2));
-        GL_strain_tensor(1,2) += 0.5 * (amkovc(1,2)-amkovr(1,2));
+        GL_strain_tensor(0,2) += 0.5 * (amkovc(0,2)-amkovr(0,2)) * std::sqrt(f_s);
+        GL_strain_tensor(1,2) += 0.5 * (amkovc(1,2)-amkovr(1,2)) * std::sqrt(f_s);
     }
     else
     {
     for (SizeType isamp = 0; isamp < 2; ++isamp)
         {
-        GL_strain_tensor(0,2) += 0.5 * N13_ansq[isamp] * (amkovc_ansq[isamp](0,2)-amkovr_ansq[isamp](0,2));
-        GL_strain_tensor(1,2) += 0.5 * N23_ansq[isamp] * (amkovc_ansq[isamp+2](1,2)-amkovr_ansq[isamp+2](1,2));
+        GL_strain_tensor(0,2) += 0.5 * N13_ansq[isamp] * (amkovc_ansq[isamp](0,2)-amkovr_ansq[isamp](0,2)) * std::sqrt(f_s);
+        GL_strain_tensor(1,2) += 0.5 * N23_ansq[isamp] * (amkovc_ansq[isamp+2](1,2)-amkovr_ansq[isamp+2](1,2)) * std::sqrt(f_s);
         }
     }
 
@@ -1131,9 +1138,9 @@ const ConstitutiveLawType& option, const double& Theta3, const double& fact, arr
 
         CC(2,0) = C[2][0][0][0];
         CC(2,1) = C[2][0][1][0];
-        CC(2,2) = C[2][0][2][0] * 5.0/6.0 * f_s;     // sigma 13 with shear correction factor alpha=5/6 for E13 and E23
+        CC(2,2) = C[2][0][2][0] * 5.0/6.0; // * f_s;     // sigma 13 with shear correction factor alpha=5/6 for E13 and E23
         CC(2,3) = C[2][0][1][1];
-        CC(2,4) = C[2][0][2][1] * 5.0/6.0 * f_s;
+        CC(2,4) = C[2][0][2][1] * 5.0/6.0; // * f_s;
         CC(2,5) = C[2][0][2][2];
 
         CC(3,0) = C[1][1][0][0];
@@ -1145,9 +1152,9 @@ const ConstitutiveLawType& option, const double& Theta3, const double& fact, arr
 
         CC(4,0) = C[2][1][0][0];
         CC(4,1) = C[2][1][1][0];
-        CC(4,2) = C[2][1][2][0] * 5.0/6.0 * f_s;    // sigma 23 with shear correction factor alpha=5/6 for E13 and E23
+        CC(4,2) = C[2][1][2][0] * 5.0/6.0; // * f_s;    // sigma 23 with shear correction factor alpha=5/6 for E13 and E23
         CC(4,3) = C[2][1][1][1];
-        CC(4,4) = C[2][1][2][1] * 5.0/6.0 * f_s;
+        CC(4,4) = C[2][1][2][1] * 5.0/6.0; // * f_s;
         CC(4,5) = C[2][1][2][2];
 
         CC(5,0) = C[2][2][0][0];
@@ -1382,6 +1389,20 @@ void Shell7pElement::BOperatorANSTransverseShearmodification(Matrix& Bop, const 
     Bop(4,node_start+4) = 0.0;
     Bop(4,node_start+5) = 0.0;
 
+    Bop(8,node_start+0) *= std::sqrt(f_s);
+    Bop(8,node_start+1) *= std::sqrt(f_s);
+    Bop(8,node_start+2) *= std::sqrt(f_s);
+    Bop(8,node_start+3) *= std::sqrt(f_s);
+    Bop(8,node_start+4) *= std::sqrt(f_s);
+    Bop(8,node_start+5) *= std::sqrt(f_s);
+    
+    Bop(10,node_start+0) *= std::sqrt(f_s);
+    Bop(10,node_start+1) *= std::sqrt(f_s);
+    Bop(10,node_start+2) *= std::sqrt(f_s);
+    Bop(10,node_start+3) *= std::sqrt(f_s);
+    Bop(10,node_start+4) *= std::sqrt(f_s);
+    Bop(10,node_start+5) *= std::sqrt(f_s);
+
     for (SizeType isamp = 0; isamp < 2; ++isamp)
     {
       const double a1x_c1 = akovc_ans[isamp][0][0];     // a1x
@@ -1407,23 +1428,21 @@ void Shell7pElement::BOperatorANSTransverseShearmodification(Matrix& Bop, const 
       const double N13_gp = N13_ansq[isamp];
       const double N23_gp = N23_ansq[isamp];
 /*--------------------------------------------------E13(CONST)-------- */
-      Bop(2,node_start+0) += N13_gp*a3x_c1*dNd1_c1; // *f_s;
-      Bop(2,node_start+1) += N13_gp*a3y_c1*dNd1_c1; // *f_s;
-      Bop(2,node_start+2) += N13_gp*a3z_c1*dNd1_c1; // *f_s;
-      Bop(2,node_start+3) += N13_gp*a1x_c1*N_c1;   //*f_s;
-      Bop(2,node_start+4) += N13_gp*a1y_c1*N_c1;   //*f_s;
-      Bop(2,node_start+5) += N13_gp*a1z_c1*N_c1;   //*f_s;
+      Bop(2,node_start+0) += N13_gp*a3x_c1*dNd1_c1*std::sqrt(f_s); // *f_s;
+      Bop(2,node_start+1) += N13_gp*a3y_c1*dNd1_c1*std::sqrt(f_s); // *f_s;
+      Bop(2,node_start+2) += N13_gp*a3z_c1*dNd1_c1*std::sqrt(f_s); // *f_s;
+      Bop(2,node_start+3) += N13_gp*a1x_c1*N_c1*std::sqrt(f_s);   //*f_s;
+      Bop(2,node_start+4) += N13_gp*a1y_c1*N_c1*std::sqrt(f_s);   //*f_s;
+      Bop(2,node_start+5) += N13_gp*a1z_c1*N_c1*std::sqrt(f_s);   //*f_s;
 /*----------------------- --------------------------E23(CONST)-------- */
-      Bop(4,node_start+0) += N23_gp*a3x_c2*dNd2_c2; //*f_s;
-      Bop(4,node_start+1) += N23_gp*a3y_c2*dNd2_c2; //*f_s;
-      Bop(4,node_start+2) += N23_gp*a3z_c2*dNd2_c2; //*f_s;
-      Bop(4,node_start+3) += N23_gp*a2x_c2*N_c2;   //*f_s;
-      Bop(4,node_start+4) += N23_gp*a2y_c2*N_c2;   //*f_s;
-      Bop(4,node_start+5) += N23_gp*a2z_c2*N_c2;   //*f_s;
+      Bop(4,node_start+0) += N23_gp*a3x_c2*dNd2_c2*std::sqrt(f_s); //*f_s;
+      Bop(4,node_start+1) += N23_gp*a3y_c2*dNd2_c2*std::sqrt(f_s); //*f_s;
+      Bop(4,node_start+2) += N23_gp*a3z_c2*dNd2_c2*std::sqrt(f_s); //*f_s;
+      Bop(4,node_start+3) += N23_gp*a2x_c2*N_c2*std::sqrt(f_s);   //*f_s;
+      Bop(4,node_start+4) += N23_gp*a2y_c2*N_c2*std::sqrt(f_s);   //*f_s;
+      Bop(4,node_start+5) += N23_gp*a2z_c2*N_c2*std::sqrt(f_s);   //*f_s;
     }
   }
-
-
 }
 
 void Shell7pElement::BOperatorANSCurvatureThicknessModification(Matrix& Bop, const array_1d<array_1d<Vector,3>,4>& akovc_ans_ct, const Matrix& N_ans_ct, const double r, const double s, const Vector& Np, const SizeType& number_of_nodes) const
@@ -1490,12 +1509,12 @@ void Shell7pElement::CalculateEASShapeFunctions(Matrix& M0_eas, const double r, 
         M0_eas(alpha12,EAS_mode+2) = r;
         M0_eas(alpha12,EAS_mode+3) = s;
 
-        M0_eas(betta11,EAS_mode+4) = r;
-        M0_eas(betta22,EAS_mode+5) = s;
-        M0_eas(betta12,EAS_mode+6) = r;
-        M0_eas(betta12,EAS_mode+7) = s;
+        // M0_eas(betta11,EAS_mode+4) = r;
+        // M0_eas(betta22,EAS_mode+5) = s;
+        // M0_eas(betta12,EAS_mode+6) = r;
+        // M0_eas(betta12,EAS_mode+7) = s;
 
-        EAS_mode += 8;
+        EAS_mode += 4;
         break;
         case 5:
         M0_eas(alpha11,EAS_mode) = r;
@@ -1801,7 +1820,7 @@ void Shell7pElement::CalculateMassMatrix(MatrixType& rMassMatrix, const ProcessI
 
 void Shell7pElement::ComputeGeometricStiffnessMatrix(MatrixType& rLeftHandSideMatrix, const array_1d<double,12>& stress_resultants, const Matrix& rShapeFunctionGradientValues, 
 const Vector& rNshape, const double& weight, const SizeType& ansq, const array_1d<double,2>& N13_ansq, const array_1d<double,2>& N23_ansq, const Matrix& N_ans, const array_1d<Matrix,4>& DN_ans,
-const SizeType& ans_ct, const Vector& Np_ct, const Matrix& N_ans_ct, const array_1d<Matrix,4>& DN_ans_ct) const
+const SizeType& ans_ct, const Vector& Np_ct, const Matrix& N_ans_ct, const array_1d<Matrix,4>& DN_ans_ct, const double& f_s) const
 {
     KRATOS_TRY;
 
@@ -1836,12 +1855,12 @@ const SizeType& ans_ct, const Vector& Np_ct, const Matrix& N_ans_ct, const array
             double delt_v_virt_v = (n11 * (dNd1_M*dNd1_K) + n12 * (dNd1_M*dNd2_K+dNd2_M*dNd1_K) + n22 * (dNd2_M*dNd2_K)) * weight;
             double delt_w_virt_v = (m11 * (dNd1_M*dNd1_K) + m12 * (dNd1_M*dNd2_K+dNd2_M*dNd1_K) + m22 * (dNd2_M*dNd2_K)) * weight;
             double delt_v_virt_w = (m11 * (dNd1_M*dNd1_K) + m12 * (dNd1_M*dNd2_K+dNd2_M*dNd1_K) + m22 * (dNd2_M*dNd2_K)) * weight;
-            double delt_w_virt_w = (m13 * (dNd1_M*N_K + N_M*dNd1_K) + m23 * (dNd2_M*N_K + N_M*dNd2_K)) * weight;
+            double delt_w_virt_w = (m13 * (dNd1_M*N_K + N_M*dNd1_K) + m23 * (dNd2_M*N_K + N_M*dNd2_K)) * weight * std::sqrt(f_s);
 
             if (!ansq)
             {
-               delt_w_virt_v += (n13 * (N_M*dNd1_K) + n23 * (N_M*dNd2_K)) * weight;
-               delt_v_virt_w += (n13 * (dNd1_M*N_K) + n23 * (dNd2_M*N_K)) * weight;
+               delt_w_virt_v += (n13 * (N_M*dNd1_K) + n23 * (N_M*dNd2_K)) * weight * std::sqrt(f_s);
+               delt_v_virt_w += (n13 * (dNd1_M*N_K) + n23 * (dNd2_M*N_K)) * weight * std::sqrt(f_s);
             }
             else
             {
@@ -1857,8 +1876,8 @@ const SizeType& ans_ct, const Vector& Np_ct, const Matrix& N_ans_ct, const array
                     const double N_M_23_ansq = N_ans(isamp+2, node_M);
                     const double dNd2_M_23_ansq = DN_ans[isamp+2](node_M, 1);
 
-                    delt_w_virt_v += (n13 * N13_ansq[isamp] * (N_M_13_ansq*dNd1_K_13_ansq) + n23 * N23_ansq[isamp] * (N_M_23_ansq*dNd2_K_23_ansq)) * weight;
-                    delt_v_virt_w += (n13 * N13_ansq[isamp] * (dNd1_M_13_ansq*N_K_13_ansq) + n23 * N23_ansq[isamp] * (dNd2_M_23_ansq*N_K_23_ansq)) * weight;
+                    delt_w_virt_v += (n13 * N13_ansq[isamp] * (N_M_13_ansq*dNd1_K_13_ansq) + n23 * N23_ansq[isamp] * (N_M_23_ansq*dNd2_K_23_ansq)) * weight * std::sqrt(f_s);
+                    delt_v_virt_w += (n13 * N13_ansq[isamp] * (dNd1_M_13_ansq*N_K_13_ansq) + n23 * N23_ansq[isamp] * (dNd2_M_23_ansq*N_K_23_ansq)) * weight * std::sqrt(f_s);
                 }
             }
 
