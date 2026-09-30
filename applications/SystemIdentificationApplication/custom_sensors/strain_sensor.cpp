@@ -40,7 +40,8 @@ StrainSensor::StrainSensor(
       mStrainType(rStrainType),
       mrStrainVariable(rStrainVariable)
 {
-    KRATOS_ERROR_IF_NOT(rElement.GetGeometry().IsInside(*(this->GetNode()), mLocalPoint))
+    // same local coordinate tolerance as the domain bins used to find rElement
+    KRATOS_ERROR_IF_NOT(rElement.GetGeometry().IsInside(*(this->GetNode()), mLocalPoint, 1e-6))
         << "The point " << this->GetNode()->Coordinates() << " is not inside or on the boundary of the geometry of element with id "
         << mElementId << ".";
 

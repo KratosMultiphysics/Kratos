@@ -47,8 +47,10 @@ DisplacementSensor::DisplacementSensor(
     const auto& r_geometry = rElement.GetGeometry();
     const auto& current_sensor_location = *(this->GetNode());
 
+    // same local coordinate tolerance as the domain bins used to find rElement, otherwise a
+    // point lying on a face shared by two elements may be rejected by the element the bins found.
     Point local_point;
-    if (r_geometry.IsInside(current_sensor_location, local_point)) {
+    if (r_geometry.IsInside(current_sensor_location, local_point, 1e-6)) {
         // point is within the geometry. Use shape function evaluations
         // from the element geometry to get the shape function values.
         r_geometry.ShapeFunctionsValues(mNs, local_point);
