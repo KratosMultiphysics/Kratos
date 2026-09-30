@@ -22,10 +22,10 @@
                     "DYNAMIC_VISCOSITY": 1.0e-03,
                     "BIOT_COEFFICIENT": 1.0,
                     "RETENTION_LAW": "VanGenuchtenLaw",
-                    "SATURATED_SATURATION": 1,
+                    "SATURATED_SATURATION": 1.0,
                     "RESIDUAL_SATURATION": 0.0,
-                    "VAN_GENUCHTEN_AIR_ENTRY_PRESSURE": 1.890173e+03,
-                    "VAN_GENUCHTEN_GN": 1.22,
+                    "VAN_GENUCHTEN_AIR_ENTRY_PRESSURE": 1.92678e+03,
+                    "VAN_GENUCHTEN_GN": 1.216,
                     "VAN_GENUCHTEN_GL": -6.55,
                     "MINIMUM_RELATIVE_PERMEABILITY": 1.0e-04
                 }

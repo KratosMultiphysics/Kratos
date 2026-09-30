@@ -25,7 +25,7 @@
 
 // Project includes
 #include "input_output/logger.h"
-#include "includes/ublas_interface.h"
+#include "includes/default_interface.h"
 #include "includes/global_variables.h"
 #include "containers/array_1d.h"
 
@@ -94,7 +94,7 @@ public:
     using IndexType = std::size_t;
 
     /// The indirect array type
-    using IndirectArrayType = boost::numeric::ublas::indirect_array<DenseVector<std::size_t>>;
+    using IndirectArrayType = indirect_array<DenseVector<std::size_t>>;
 
     /// The machine precision
     static constexpr double ZeroTolerance = std::numeric_limits<double>::epsilon();
@@ -623,7 +623,6 @@ public:
                 return Det4(rA);
             default:
                 double det = 1.0;
-                using namespace boost::numeric::ublas;
                 typedef permutation_matrix<SizeType> pmatrix;
                 Matrix Aux(rA);
                 pmatrix pm(Aux.size1());

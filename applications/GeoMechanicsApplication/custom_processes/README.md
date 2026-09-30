@@ -11,6 +11,7 @@ Documented processes:
 - [FindNeighboursOfInterfaces](#find-neighbours-of-interfaces)
 - [GeoApplyConstantScalarValueProcess](#Geo-Apply-Constant-Scalar-Value-Process)
 - [ApplyComponentTableProcess](#Apply-Component-Table-Process)
+- [ApplySeepageBoundaryProcess](#apply-seepage-boundary-process)
 
 ## $c-\phi$ reduction process
 For the assessment of a safety factor to characterize slope stability, a Mohr-Coulomb material based $c-\phi$ reduction 
@@ -255,6 +256,10 @@ The `ApplyComponentTableProcess` is used internally for setting Dirichlet type b
 - ApplyComponentTableProcess::ExecuteInitialize() applies a fixity to the scalar D.o.F. indicated by member variable `mVariableName` on the model part indicated by member variable `mrModelPart`, depending on the value of member variable `mIsFixed`. It also sets the initial value of the D.o.F. using member variable `mInitialValue` if a time table is attached. For attached spatial tables, the value from spatial table interpolation is set.
 - ApplyComponentTableProcess::ExecuteInitializeSolutionStep() applies the scalar value obtained from time table interpolation to these D.o.F. This happens every time step.
 - ApplyComponentTableProcess::ExecuteFinalize() releases the fixity, if it was set during `ExecuteInitialize`.
+
+## Apply Seepage Boundary Process
+
+The `ApplySeepageBoundaryProcess` is used to mark the free element boundaries where seepage may occur. It requires a single parameter named `model_part_name` which provides the name of the model part that represents the seepage boundary. When a process instance is created, it checks whether or not `model_part_name` has been provided. If yes, it also checks whether or not the model part name corresponds to an existing model part. The simple fact of having this process in the list of constraint processes ensures that the corresponding boundary conditions are applied to the computational model part.
 
 ## References
 <a id="1">[1]</a> Brinkgreve, R.B.J., Bakker, H.L., 1991. Non-linear finite element analysis of safety factors, Computer Methods and Advances in Geomechanics, Beer, Booker & Carterr (eds), Balkema, Rotterdam.
