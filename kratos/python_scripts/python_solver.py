@@ -107,6 +107,11 @@ class PythonSolver:
         """
         pass
 
+    def BeforeSolutionLoop(self):
+        """This function is called before solution loop starts
+        """
+        pass
+
     def Predict(self):
         """This function performs all the required operations that should be executed
         (for each step) ONCE, AFTER initializing the solution step.
