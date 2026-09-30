@@ -504,46 +504,24 @@ protected:
     {
         KRATOS_TRY
 
-        using ElementQueue = moodycamel::ConcurrentQueue<Element::Pointer>;
-        using ConditionQueue = moodycamel::ConcurrentQueue<Condition::Pointer>;
-
         // Inspecting elements
-        ElementQueue element_queue;
-        block_for_each(rModelPart.Elements().GetContainer(),
-            [&](Element::Pointer p_element)
-        {
+        // Note that this is done in serial to keep the container ordering in the selected entities.
+        // Otherwise, the HROM assembly order (and hence its result) would depend on the thread scheduling.
+        for (auto& p_element : rModelPart.Elements().GetContainer()) {
             if (p_element->Has(HROM_WEIGHT)) {
-                element_queue.enqueue(std::move(p_element));
+                mSelectedElements.push_back(p_element);
             } else {
                 p_element->SetValue(HROM_WEIGHT, Vector(mNumberOfHromSets, 1.0));
             }
-        });
+        }
 
         // Inspecting conditions
-        ConditionQueue condition_queue;
-        block_for_each(rModelPart.Conditions().GetContainer(),
-            [&](Condition::Pointer p_condition)
-        {
+        for (auto& p_condition : rModelPart.Conditions().GetContainer()) {
             if (p_condition->Has(HROM_WEIGHT)) {
-                condition_queue.enqueue(std::move(p_condition));
+                mSelectedConditions.push_back(p_condition);
             } else {
                 p_condition->SetValue(HROM_WEIGHT, Vector(mNumberOfHromSets, 1.0));
             }
-        });
-
-        // Dequeueing elements
-        std::size_t err_id;
-        mSelectedElements.reserve(element_queue.size_approx());
-        Element::Pointer p_element;
-        while ( (err_id = element_queue.try_dequeue(p_element)) != 0) {
-            mSelectedElements.push_back(std::move(p_element));
-        }
-
-        // Dequeueing conditions
-        mSelectedConditions.reserve(condition_queue.size_approx());
-        Condition::Pointer p_condition;
-        while ( (err_id = condition_queue.try_dequeue(p_condition)) != 0) {
-            mSelectedConditions.push_back(std::move(p_condition));
         }
 
         // Wrap-up

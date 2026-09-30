@@ -495,46 +495,24 @@ protected:
     {
         KRATOS_TRY
 
-        using ElementQueue = moodycamel::ConcurrentQueue<Element::Pointer>;
-        using ConditionQueue = moodycamel::ConcurrentQueue<Condition::Pointer>;
-
         // Inspecting elements
-        ElementQueue element_queue;
-        block_for_each(rModelPart.Elements().GetContainer(),
-            [&](Element::Pointer p_element)
-        {
+        // Note that this is done in serial to keep the container ordering in the selected entities.
+        // Otherwise, the HROM assembly order (and hence its result) would depend on the thread scheduling.
+        for (auto& p_element : rModelPart.Elements().GetContainer()) {
             if (p_element->Has(HROM_WEIGHT)) {
-                element_queue.enqueue(std::move(p_element));
+                mSelectedElements.push_back(p_element);
             } else {
                 p_element->SetValue(HROM_WEIGHT, Vector(mNumberOfHromSets, 1.0));
             }
-        });
+        }
 
         // Inspecting conditions
-        ConditionQueue condition_queue;
-        block_for_each(rModelPart.Conditions().GetContainer(),
-            [&](Condition::Pointer p_condition)
-        {
+        for (auto& p_condition : rModelPart.Conditions().GetContainer()) {
             if (p_condition->Has(HROM_WEIGHT)) {
-                condition_queue.enqueue(std::move(p_condition));
+                mSelectedConditions.push_back(p_condition);
             } else {
                 p_condition->SetValue(HROM_WEIGHT, Vector(mNumberOfHromSets, 1.0));
             }
-        });
-
-        // Dequeueing elements
-        std::size_t err_id;
-        mSelectedElements.reserve(element_queue.size_approx());
-        Element::Pointer p_element;
-        while ( (err_id = element_queue.try_dequeue(p_element)) != 0) {
-            mSelectedElements.push_back(std::move(p_element));
-        }
-
-        // Dequeueing conditions
-        mSelectedConditions.reserve(condition_queue.size_approx());
-        Condition::Pointer p_condition;
-        while ( (err_id = condition_queue.try_dequeue(p_condition)) != 0) {
-            mSelectedConditions.push_back(std::move(p_condition));
         }
 
         // Wrap-up
@@ -635,48 +613,6 @@ protected:
 
 
     /**
-     * Class to sum-reduce matrices and vectors.
-     */
-    template<typename T>
-    struct NonTrivialSumReduction
-    {
-        typedef T value_type;
-        typedef T return_type;
-
-        T mValue;
-        bool mInitialized = false;
-
-        void Init(const value_type& first_value)
-        {
-            mValue = first_value;
-            mInitialized = true;
-        }
-
-        /// access to reduced value
-        return_type GetValue() const
-        {
-            return mValue;
-        }
-
-        void LocalReduce(const value_type& value)
-        {
-            if(!mInitialized) {
-                Init(value);
-            } else {
-                noalias(mValue) += value;
-            }
-        }
-
-        void ThreadSafeReduce(const NonTrivialSumReduction& rOther)
-        {
-            if(!rOther.mInitialized) return;
-
-            const std::lock_guard<LockObject> scope_lock(ParallelUtilities::GetGlobalLock());
-            LocalReduce(rOther.mValue);
-        }
-    };
-
-    /**
      * Resizes a Matrix if it's not the right size
      */
     template<typename TMatrix>
@@ -712,36 +648,13 @@ protected:
         // Assemble all entities
         const auto assembling_timer = BuiltinTimer();
 
-        using SystemSumReducer = CombinedReduction<NonTrivialSumReduction<RomSystemMatrixType>, NonTrivialSumReduction<RomSystemVectorType>>;
         AssemblyTLS assembly_tls_container(GetNumberOfROMModes());
 
         auto& elements = mHromSimulation ? mSelectedElements : rModelPart.Elements();
-        if(!elements.empty())
-        {
-            std::tie(rA, rb) =
-            block_for_each<SystemSumReducer>(elements, assembly_tls_container,
-                [&](Element& r_element, AssemblyTLS& r_thread_prealloc)
-            {
-                return CalculateLocalContribution(r_element, r_thread_prealloc, *pScheme, r_current_process_info);
-            });
-        }
+        AssembleROMContributions(elements, assembly_tls_container, *pScheme, r_current_process_info, rA, rb);
 
         auto& conditions = mHromSimulation ? mSelectedConditions : rModelPart.Conditions();
-        if(!conditions.empty())
-        {
-            RomSystemMatrixType Aconditions;
-            RomSystemVectorType bconditions;
-
-            std::tie(Aconditions, bconditions) =
-            block_for_each<SystemSumReducer>(conditions, assembly_tls_container,
-                [&](Condition& r_condition, AssemblyTLS& r_thread_prealloc)
-            {
-                return CalculateLocalContribution(r_condition, r_thread_prealloc, *pScheme, r_current_process_info);
-            });
-
-            rA += Aconditions;
-            rb += bconditions;
-        }
+        AssembleROMContributions(conditions, assembly_tls_container, *pScheme, r_current_process_info, rA, rb);
 
         KRATOS_INFO_IF("ROMBuilderAndSolver", (this->GetEchoLevel() > 0)) << "Build time: " << assembling_timer.ElapsedSeconds() << std::endl;
         KRATOS_INFO_IF("ROMBuilderAndSolver", (this->GetEchoLevel() > 2)) << "Finished parallel building" << std::endl;
@@ -835,6 +748,45 @@ private:
         noalias(rPreAlloc.romB) = prod(trans(rPreAlloc.phiE), rPreAlloc.rhs) * h_rom_weight;
 
         return std::tie(rPreAlloc.romA, rPreAlloc.romB);
+    }
+
+    /**
+     * Adds the reduced contributions of the given entities to rA and rb in a deterministic order.
+     * The entities are split in a number of chunks that does not depend on the number of threads.
+     * Each chunk is summed sequentially and the chunk sums are then added in chunk order, so the
+     * result is bitwise independent of the thread scheduling and of the number of threads.
+     */
+    template<typename TContainer>
+    void AssembleROMContributions(
+        TContainer& rEntities,
+        const AssemblyTLS& rTLSPrototype,
+        TSchemeType& rScheme,
+        const ProcessInfo& rCurrentProcessInfo,
+        RomSystemMatrixType& rA,
+        RomSystemVectorType& rb)
+    {
+        constexpr std::size_t max_number_of_chunks = 128;
+        const std::size_t n_entities = rEntities.size();
+        const std::size_t n_chunks = std::min(n_entities, max_number_of_chunks);
+        const SizeType n_modes = GetNumberOfROMModes();
+
+        std::vector<RomSystemMatrixType> chunks_A(n_chunks, ZeroMatrix(n_modes, n_modes));
+        std::vector<RomSystemVectorType> chunks_b(n_chunks, ZeroVector(n_modes));
+
+        IndexPartition<std::size_t>(n_chunks).for_each(rTLSPrototype, [&](std::size_t Chunk, AssemblyTLS& rTLS)
+        {
+            const auto it_begin = rEntities.begin();
+            for (std::size_t i = Chunk * n_entities / n_chunks; i < (Chunk + 1) * n_entities / n_chunks; ++i) {
+                const auto [r_romA, r_romB] = CalculateLocalContribution(*(it_begin + i), rTLS, rScheme, rCurrentProcessInfo);
+                noalias(chunks_A[Chunk]) += r_romA;
+                noalias(chunks_b[Chunk]) += r_romB;
+            }
+        });
+
+        for (std::size_t chunk = 0; chunk < n_chunks; ++chunk) {
+            noalias(rA) += chunks_A[chunk];
+            noalias(rb) += chunks_b[chunk];
+        }
     }
 
 
