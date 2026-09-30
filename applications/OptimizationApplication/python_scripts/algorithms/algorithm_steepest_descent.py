@@ -3,6 +3,7 @@ from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem i
 from KratosMultiphysics.OptimizationApplication.algorithms.standardized_objective import StandardizedObjective
 from KratosMultiphysics.OptimizationApplication.controls.master_control import MasterControl
 from KratosMultiphysics.OptimizationApplication.algorithms.algorithm import Algorithm
+from KratosMultiphysics.OptimizationApplication.algorithms.algorithm_data_manager import AlgorithmDataManager
 from KratosMultiphysics.OptimizationApplication.utilities.component_data_view import ComponentDataView
 from KratosMultiphysics.OptimizationApplication.utilities.opt_line_search import CreateLineSearch
 from KratosMultiphysics.OptimizationApplication.utilities.logger_utilities import time_decorator
@@ -51,13 +52,15 @@ class AlgorithmSteepestDescent(Algorithm):
             control = optimization_problem.GetControl(control_name)
             self.master_control.AddControl(control)
 
-
         settings = parameters["settings"]
         settings.ValidateAndAssignDefaults(self.GetDefaultParameters()["settings"])
 
         self.echo_level = settings["echo_level"].GetInt()
 
         ComponentDataView("algorithm", self._optimization_problem).SetDataBuffer(self.GetMinimumBufferSize())
+        algorithm_data = ComponentDataView("algorithm", self._optimization_problem)
+        algorithm_data.GetUnBufferedData().SetValue("controls", ",".join([control.GetName() for control in self.master_control.GetListOfControls()]))
+        self.algorithm_data_manager = AlgorithmDataManager(self._optimization_problem)
 
         self._convergence_criteria = self.__CreateConvergenceCriteria(settings["conv_settings"])
         self.__line_search_method = CreateLineSearch(settings["line_search"], self._optimization_problem)
@@ -81,7 +84,6 @@ class AlgorithmSteepestDescent(Algorithm):
         self.master_control.Initialize()
         self.__objective.Initialize()
         self.__control_field = self.master_control.GetControlField()
-        self.algorithm_data = ComponentDataView("algorithm", self._optimization_problem)
         self._convergence_criteria.Initialize()
 
     def Finalize(self) -> None:
@@ -94,25 +96,25 @@ class AlgorithmSteepestDescent(Algorithm):
         search_direction: Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor = obj_grad.Clone()
         search_direction.data[:] *= -1.0
         Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor(search_direction, perform_store_data_recursively=False, copy=False).StoreData()
-        self.algorithm_data.GetBufferedData()["search_direction"] = search_direction
+        self.algorithm_data_manager.SetValue("search_direction", search_direction)
         return search_direction
 
     @time_decorator()
     def ComputeControlUpdate(self, alpha: Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor) -> None:
-        update: Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor = self.algorithm_data.GetBufferedData()["search_direction"].Clone()
+        update: Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor = self.algorithm_data_manager.GetValue("search_direction").Clone()
         update.data[:] *= alpha.data[:]
         Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor(update, perform_store_data_recursively=False, copy=False).StoreData()
-        self.algorithm_data.GetBufferedData()["control_field_update"] = update
+        self.algorithm_data_manager.SetValue("control_field_update", update)
 
     @time_decorator()
     def UpdateControl(self) -> Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor:
-        update: Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor = self.algorithm_data.GetBufferedData()["control_field_update"]
+        update: Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor = self.algorithm_data_manager.GetValue("control_field_update")
         self.__control_field.data[:] += update.data
         Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor(self.__control_field, perform_store_data_recursively=False, copy=False).StoreData()
 
     @time_decorator()
     def Output(self) -> None:
-        self.algorithm_data.GetBufferedData()["control_field"] = Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor(self.__control_field)
+        self.algorithm_data_manager.SetValue("control_field", Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor(self.__control_field))
         for process in self._optimization_problem.GetListOfProcesses("output_processes"):
             if process.IsOutputStep():
                 process.PrintOutput()
@@ -131,10 +133,10 @@ class AlgorithmSteepestDescent(Algorithm):
 
                 self.__obj_val = self.__objective.CalculateStandardizedValue(self.__control_field)
                 obj_info = self.__objective.GetInfo()
-                self.algorithm_data.GetBufferedData()["std_obj_value"] = obj_info["std_value"]
-                self.algorithm_data.GetBufferedData()["rel_obj[%]"] = obj_info["rel_change [%]"]
+                self.algorithm_data_manager.SetValue("std_obj_value", obj_info["std_value"])
+                self.algorithm_data_manager.SetValue("rel_obj[%]", obj_info["rel_change [%]"])
                 if "abs_change [%]" in obj_info:
-                    self.algorithm_data.GetBufferedData()["abs_obj[%]"] = obj_info["abs_change [%]"]
+                    self.algorithm_data_manager.SetValue("abs_obj[%]", obj_info["abs_change [%]"])
 
                 obj_grad = self.__objective.CalculateStandardizedGradient()
 
