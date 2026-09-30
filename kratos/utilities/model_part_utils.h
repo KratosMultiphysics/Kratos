@@ -99,37 +99,6 @@ public:
     }
 
     /**
-     * @brief Add nodes to ModelPart from an ordered container. 
-     * @details By assuming that the input is ordered (by increasing Id), the nodes can be added more efficiently. Note that the function makes no check of the ordering, it is the responsability of the caller to ensure that it is correct.
-     * @tparam TIteratorType Iterator type for the nodes to add.
-     * @param rTargetModelPart ModelPart the nodes will be added to.
-     * @param iNodesBegin First element of the container of nodes to be added to rTargetModelPart.
-     * @param iNodesEnd End position for the container of nodes to be added to rTargetModelPart.
-     */
-    template<class TIteratorType >
-    static void AddNodesFromOrderedContainer(ModelPart& rTargetModelPart, TIteratorType iNodesBegin,  TIteratorType iNodesEnd)
-    {
-        KRATOS_TRY
-        ModelPart::NodesContainerType aux;
-        ModelPart* root_model_part = &rTargetModelPart.GetRootModelPart();
-
-        for(TIteratorType it = iNodesBegin; it!=iNodesEnd; it++) {
-            aux.push_back( *(it.base()) );
-        }
-        // Add the nodes to the root modelpart
-        root_model_part->Nodes() = JoinOrderedNodesContainerType(root_model_part->Nodes().begin(), root_model_part->Nodes().end(), aux.begin(), aux.end());
-
-        // Add to all of the leaves
-        ModelPart* current_part = &rTargetModelPart;
-        while(current_part->IsSubModelPart()) {
-            current_part->Nodes() = JoinOrderedNodesContainerType(current_part->Nodes().begin(), current_part->Nodes().end(), aux.begin(), aux.end());
-            current_part = &(current_part->GetParentModelPart());
-        }
-
-        KRATOS_CATCH("")
-    }
-
-    /**
     * @brief Generates entities (e.g., Elements or Conditions) based on provided connectivities and adds them to a specified container, with an option to use default properties.
     * @details This function is designed to create entities of a specific type (denoted by TEntity) based on their node connectivities. It facilitates the construction of these entities by looking up nodes in the provided nodes container and either using a specified Properties object or defaulting to a provided one if not explicitly specified for each entity. The generated entities are then added to the specified container. The function ensures that the entity type is registered in Kratos and that all specified nodes are available. It allows specifying a common Properties object to be used for all entities, which can be particularly useful when all entities share the same physical properties.
     * @tparam TEntity The type of entities to be generated (typically Element or Condition). Must be a type registered with KratosComponents.
@@ -302,73 +271,13 @@ public:
 
 private:
 
-  /**
-   * @brief Helper function for AddNodesFromOrderedContainer. Joins two ranges of nodes in a sorted order based on their IDs.
-   * @details This function takes two ranges of nodes (defined by iterators), and merges them into a single container of nodes in sorted order of their IDs. If one range is empty, the other is returned as is. If both ranges are empty, an empty container is returned.
-   * @tparam TIteratorType The type of the iterator. Must support operations like increment and dereference.
-   * @param iC1Begin Iterator pointing to the beginning of the first range of nodes.
-   * @param iC1End Iterator pointing to the end of the first range of nodes.
-   * @param iC2Begin Iterator pointing to the beginning of the second range of nodes.
-   * @param iC2End Iterator pointing to the end of the second range of nodes.
-   * @return ModelPart::NodesContainerType A container filled with nodes from both ranges in sorted order.
-   * @note This function assumes that each range is already sorted by node ID. The function performs a merge operation and ensures that nodes with the same ID are not duplicated in the output.
-   */
-    template<class TIteratorType >
-    static typename ModelPart::NodesContainerType JoinOrderedNodesContainerType(
-        TIteratorType iC1Begin,  
-        TIteratorType iC1End, 
-        TIteratorType iC2Begin,  
-        TIteratorType iC2End
-        )
-    {
-        std::size_t c1length = std::distance(iC1Begin,iC1End);
-        std::size_t c2length = std::distance(iC2Begin,iC2End);
-        TIteratorType blong, elong, bshort, eshort;
-        ModelPart::NodesContainerType aux;
-        aux.reserve(c1length + c2length);
-
-        // We order c1 and c2 to long and short
-        if(c1length>c2length){
-            blong = iC1Begin; elong = iC1End;
-            bshort = iC2Begin; eshort = iC2End;
-        } else {
-            blong = iC2Begin; elong = iC2End;
-            bshort = iC1Begin; eshort = iC1End;
-        }
-
-        // If short is empty we return long. If both empty it returns empty aux
-        if(c2length == 0 || c1length == 0){
-            for(TIteratorType it1=blong; it1!=elong; it1++){
-                aux.push_back(*(it1.base()) );
-            }
-            return aux;
-        }
-        TIteratorType it2 = blong;
-        for(TIteratorType it1=bshort; it1!=eshort; it1++) {
-            while(it2!=elong && it2->Id()<it1->Id()) {
-                aux.push_back(*(it2.base()));
-                it2++;
-            }
-            aux.push_back(*(it1.base()) );
-            if(it2!=elong && (it1->Id() == it2->Id())) { //If both are the same, then we need to skip
-                it2++;
-            }
-        }
-        while(it2 != elong) {
-            aux.push_back(*(it2.base()));
-            it2++;
-        }
-
-        return aux;
-    }
-  
     /**
     * @brief Checks if an entity is registered in Kratos and returns a reference to it.
     * @details This function checks if a given entity (either an Element or a Condition) is registered in Kratos. If the entity is registered, it returns a constant reference to it. If the entity is not registered, it throws an error with a descriptive message. Template parameter `TEntity` can be either `Element` or `Condition`. The function utilizes compile-time checks to generate appropriate error messages based on the entity type.
     * @tparam TEntity The type of the entity to check. Must be either `Element` or `Condition`.
     * @param rEntityName The name of the entity to check.
     * @return const TEntity& A constant reference to the entity.
-    * @throw Kratos::Exception If the entity is not registered in Kratos. The exception message will specify 
+    * @throw Kratos::Exception If the entity is not registered in Kratos. The exception message will specify
     * whether the missing entity is an Element or a Condition and remind to check the spelling and registration of the application.
     */
     template<class TEntity>
