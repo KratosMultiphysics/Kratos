@@ -9,7 +9,6 @@ from KratosMultiphysics.RomApplication.rom_testing_utilities import SetUpSimulat
 from KratosMultiphysics.RomApplication.calculate_rom_basis_output_process import CalculateRomBasisOutputProcess
 from KratosMultiphysics.RomApplication.randomized_singular_value_decomposition import RandomizedSingularValueDecomposition
 from KratosMultiphysics.RomApplication.rom_nn_interface import NN_ROM_Interface
-import os
 import re
 
 
@@ -156,15 +155,15 @@ class RomManager(object):
         ######  Galerkin ######
         if chosen_projection_strategy == "galerkin":
             if type_of_decoder =="ann_enhanced":
+                nn_rom_interface = NN_ROM_Interface(mu_train, self.data_base)
                 if any(item == "ROM" for item in testing_stages):
                     self._LoadSolutionBasis(mu_train)
                     self._LaunchFOM(mu_test, gid_and_vtk_name='FOM_Test')
                     self._ChangeRomFlags(simulation_to_run = "GalerkinROM_ANN")
-                    nn_rom_interface = NN_ROM_Interface(mu_train, self.data_base)
                     self._LaunchROM(mu_test, gid_and_vtk_name='ROM_Test', nn_rom_interface=nn_rom_interface)
                 if any(item == "HROM" for item in testing_stages):
                     self._ChangeRomFlags(simulation_to_run = "runHROMGalerkin_ANN")
-                    self._LaunchHROM(mu_train,nn_rom_interface=nn_rom_interface)
+                    self._LaunchHROM(mu_test, nn_rom_interface=nn_rom_interface, gid_and_vtk_name='HROM_Test')
             elif type_of_decoder =="linear":
                 if any(item == "ROM" for item in testing_stages):
                     self._LoadSolutionBasis(mu_train)
@@ -182,15 +181,15 @@ class RomManager(object):
         ##  Least-Squares Petrov Galerkin   ###
         elif chosen_projection_strategy == "lspg":
             if type_of_decoder =="ann_enhanced":
+                nn_rom_interface = NN_ROM_Interface(mu_train, self.data_base)
                 if any(item == "ROM" for item in testing_stages):
                     self._LoadSolutionBasis(mu_train)
                     self._LaunchFOM(mu_test, gid_and_vtk_name='FOM_Test')
                     self._ChangeRomFlags(simulation_to_run = "lspg_ANN")
-                    nn_rom_interface = NN_ROM_Interface(mu_train, self.data_base)
                     self._LaunchROM(mu_test, gid_and_vtk_name='ROM_Test', nn_rom_interface=nn_rom_interface)
                 if any(item == "HROM" for item in testing_stages):
                     self._ChangeRomFlags(simulation_to_run = "runHROMlspg_ANN")
-                    self._LaunchHROM(mu_train,nn_rom_interface=nn_rom_interface)
+                    self._LaunchHROM(mu_test, nn_rom_interface=nn_rom_interface, gid_and_vtk_name='HROM_Test')
             elif type_of_decoder =="linear":
                 if any(item == "ROM" for item in testing_stages):
                     self._LoadSolutionBasis(mu_train)
@@ -268,26 +267,25 @@ class RomManager(object):
 
 
 
-    def RunHROM(self, mu_run=[None], mu_train=[None], use_full_model_part = False, nn_rom_interface=None):
+    def RunHROM(self, mu_run=[None], mu_train=[None], use_full_model_part = False):
         chosen_projection_strategy = self.general_rom_manager_parameters["projection_strategy"].GetString()
         type_of_decoder = self.general_rom_manager_parameters["type_of_decoder"].GetString()
+        nn_rom_interface = None
         self._LoadSolutionBasis(mu_train)
         #######################
         ######  Galerkin ######
         if chosen_projection_strategy == "galerkin":
             if type_of_decoder =="ann_enhanced":
-                nn_rom_interface = NN_ROM_Interface(mu_train, self.data_base)
                 self._ChangeRomFlags(simulation_to_run = "runHROMGalerkin_ANN")
-                self._LaunchHROM(mu_train,nn_rom_interface=nn_rom_interface)
+                nn_rom_interface = NN_ROM_Interface(mu_train, self.data_base)
             elif type_of_decoder =="linear":
                 self._ChangeRomFlags(simulation_to_run = "runHROMGalerkin")
         #######################################
         ##  Least-Squares Petrov Galerkin   ###
         elif chosen_projection_strategy == "lspg":
             if type_of_decoder =="ann_enhanced":
-                nn_rom_interface = NN_ROM_Interface(mu_train, self.data_base)
                 self._ChangeRomFlags(simulation_to_run = "runHROMlspg_ANN")
-                self._LaunchHROM(mu_train,nn_rom_interface=nn_rom_interface)
+                nn_rom_interface = NN_ROM_Interface(mu_train, self.data_base)
             elif type_of_decoder =="linear":
                 self._ChangeRomFlags(simulation_to_run = "runHROMLSPG")
         ##########################
