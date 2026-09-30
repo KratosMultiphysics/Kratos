@@ -7,6 +7,15 @@ from KratosMultiphysics.StructuralMechanicsApplication.RBE3_process import Apply
 
 
 class TestRBE3(KratosUnittest.TestCase):
+    """
+    @brief 
+    Tests the RBE3 coupling process against Nastran reference results.
+
+    @details
+    A shell-element panel is clamped along one edge. A reference node located outside the panel is coupled to a set of panel nodes. 
+    Forces and moments are applied in the x-, y-, and z-directions, and the resulting displacements and rotations are compared with Nastran results.
+    The test uses one group of connected nodes with a weighting factor of 1.0.
+    """
     def setUp(self):
         pass
 
@@ -20,7 +29,6 @@ class TestRBE3(KratosUnittest.TestCase):
 
 
     def _add_dofs(self,mp):
-        # Adding the dofs AND their corresponding reaction!
         KM.VariableUtils().AddDof(KM.DISPLACEMENT_X, KM.REACTION_X,mp)
         KM.VariableUtils().AddDof(KM.DISPLACEMENT_Y, KM.REACTION_Y,mp)
         KM.VariableUtils().AddDof(KM.DISPLACEMENT_Z, KM.REACTION_Z,mp)
@@ -214,6 +222,19 @@ class TestRBE3(KratosUnittest.TestCase):
         mp.GetProperties()[1].SetValue(KM.THICKNESS,2.0)
         mp.GetProperties()[1].SetValue(KM.DENSITY,7.850E-9)
 
+    def _create_group(self, mp, name, node_Ids, dofs, weight=1.0):
+        submodel = mp.CreateSubModelPart(name)
+        submodel.AddNodes(node_Ids)
+        entry=KM.Parameters("{}")
+        entry.AddString("sub_model_part", name)
+        entry.AddDouble("weight", weight)
+        dofs_arr = KM.Parameters("[]")
+        for d in dofs:
+            dofs_arr.Append(KM.Parameters(f'"{d}"'))
+        entry.AddValue("dofs", dofs_arr)
+        return entry
+ 
+
     def _solve(self,mp):
         linear_solver = KM.SkylineLUFactorizationSolver()
         builder_and_solver = KM.ResidualBasedBlockBuilderAndSolver(
@@ -257,7 +278,6 @@ class TestRBE3(KratosUnittest.TestCase):
 
     def execute_RBE3_test(self, current_model, element_name, applied_load, applied_moment, displacement_results, rotation_results):
         mp = current_model.CreateModelPart("Structure")
-        model = current_model
         mp.SetBufferSize(2)
 
         self._add_variables(mp)
@@ -271,8 +291,9 @@ class TestRBE3(KratosUnittest.TestCase):
         self._add_dofs(mp)
         self._create_elements(mp,element_name)
 
-        connected = mp.CreateSubModelPart("RBE3_connected") 
-        connected.AddNodes([65,67,69,72,74,76])
+        group = [
+            self._create_group(mp, "RBE3_connected", [65,67,69,72,74,76], dofs=["DISPLACEMENT_X", "DISPLACEMENT_Y", "DISPLACEMENT_Z"])
+        ]
 
         reference = mp.CreateSubModelPart("RBE3_reference")
         reference.AddNodes([1000])
@@ -284,12 +305,16 @@ class TestRBE3(KratosUnittest.TestCase):
 
         rbe3_settings = KM.Parameters(r"""
         {
-            "model_part_name": "Structure",
-            "connected_sub_model_part": "Structure.RBE3_connected",
-            "reference_sub_model_part": "Structure.RBE3_reference",
-            "constraint_id_start": 1,
-            "constrained_dofs": ["DISPLACEMENT_X", "DISPLACEMENT_Y", "DISPLACEMENT_Z", "ROTATION_X", "ROTATION_Y", "ROTATION_Z"]
+            "model_part_name"           :   "Structure",
+            "reference_sub_model_part"  :   "Structure.RBE3_reference",
+            "constraint_id_start"       :   1,
+            "constrained_dofs_ref"      :   ["DISPLACEMENT_X", "DISPLACEMENT_Y", "DISPLACEMENT_Z", 
+                                            "ROTATION_X", "ROTATION_Y", "ROTATION_Z"],
+            "connected_groups"          :   []                               
         }""")
+
+        for g in group:
+            rbe3_settings["connected_groups"].Append(g)
 
         rbe3_process = ApplyRbe3Process(
             current_model,
@@ -303,7 +328,6 @@ class TestRBE3(KratosUnittest.TestCase):
         self._apply_neumann_BCs(mp, ref_node, applied_load)
         self._apply_neumann_BCs_M(mp, ref_node, applied_moment)
         self._solve(mp)
-
 
         for node_id, expected_displacement, expected_rotation in zip(
             [65,67,69,72,74,76], displacement_results, rotation_results
@@ -356,7 +380,7 @@ class TestRBE3(KratosUnittest.TestCase):
                 [7.35E+00, 1.25E-20, 7.95E-01],   # Slave 76
             ]
         )
-
+ 
     def test_RBE3_panel_fz(self):
         self._test_RBE3_panel(
             applied_load=[0.0, 0.0, 1000.0],
@@ -420,7 +444,7 @@ class TestRBE3(KratosUnittest.TestCase):
                 [-4.09E-17, 1.18E-05, 3.85E-17],  # Slave 76
             ]
         ) 
-
+ 
     def test_RBE3_panel_mz(self):
         self._test_RBE3_panel(
             applied_load=[0.0, 0.0, 0.0],
