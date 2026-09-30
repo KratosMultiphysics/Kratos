@@ -10,6 +10,7 @@ import KratosMultiphysics
 import KratosMultiphysics.RomApplication as KratosROM
 from KratosMultiphysics.RomApplication.empirical_cubature_method import EmpiricalCubatureMethod
 from KratosMultiphysics.RomApplication.randomized_singular_value_decomposition import RandomizedSingularValueDecomposition
+from KratosMultiphysics.RomApplication import rom_parameters
 
 class HRomTrainingUtility(object):
     """Auxiliary utility for the HROM training.
@@ -229,9 +230,7 @@ class HRomTrainingUtility(object):
         if self.hrom_output_format == "numpy":
             element_ids_list, condition_ids_list = self.__CreateListsWithRomElements()
         elif self.hrom_output_format == "json":
-            with (self.rom_basis_output_folder / self.rom_basis_output_name).with_suffix('.json').open('r') as f:
-                rom_parameters = KratosMultiphysics.Parameters(f.read())
-                hrom_info = rom_parameters["elements_and_weights"]
+            hrom_info = KratosMultiphysics.Parameters(json.dumps(rom_parameters.ReadRomParametersAsVersion1(self.rom_basis_output_folder, self.rom_basis_output_name)["elements_and_weights"]))
 
         # Get the weights and fill the HROM computing model part
         if (self.projection_strategy=="lspg"):
@@ -427,12 +426,9 @@ class HRomTrainingUtility(object):
             np.save(self.rom_basis_output_folder / "HROM_ConditionIds.npy", condition_ids)
 
         elif self.hrom_output_format=="json":
-            with (self.rom_basis_output_folder / self.rom_basis_output_name).with_suffix('.json').open('r') as f:
-                updated_rom_parameters = json.load(f)
-                updated_rom_parameters["elements_and_weights"] = hrom_weights  # TODO: Rename elements_and_weights to hrom_weights
-
-            with (self.rom_basis_output_folder / self.rom_basis_output_name).with_suffix('.json').open('w') as f:
-                json.dump(updated_rom_parameters, f, indent=4)
+            updated_rom_parameters = rom_parameters.ReadRomParametersAsVersion1(self.rom_basis_output_folder, self.rom_basis_output_name)
+            updated_rom_parameters["elements_and_weights"] = hrom_weights  # TODO: Rename elements_and_weights to hrom_weights
+            rom_parameters.WriteRomParameters(self.rom_basis_output_folder, self.rom_basis_output_name, updated_rom_parameters)
 
         if self.echo_level > 0 : KratosMultiphysics.Logger.PrintInfo("HRomTrainingUtility","\'RomParameters.json\' file updated with HROM weights.")
 

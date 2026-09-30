@@ -1,4 +1,5 @@
 import importlib
+import json
 
 import KratosMultiphysics
 import KratosMultiphysics.RomApplication as KratosROM
@@ -6,6 +7,7 @@ from KratosMultiphysics.RomApplication import python_solvers_wrapper_rom
 from KratosMultiphysics.RomApplication.hrom_training_utility import HRomTrainingUtility
 from KratosMultiphysics.RomApplication.petrov_galerkin_training_utility import PetrovGalerkinTrainingUtility
 from KratosMultiphysics.RomApplication.calculate_rom_basis_output_process import CalculateRomBasisOutputProcess
+from KratosMultiphysics.RomApplication import rom_parameters
 import numpy as np
 
 from glob import glob
@@ -38,8 +40,7 @@ def CreateRomAnalysisInstance(cls, global_model, parameters, nn_rom_interface=No
             self.rom_basis_output_folder = Path(self.rom_basis_output_folder)
 
             # Get the ROM settings from the RomParameters.json input file
-            with open(self.rom_basis_output_folder / self.rom_basis_output_name.with_suffix('.json')) as rom_parameters:
-                self.rom_parameters = KratosMultiphysics.Parameters(rom_parameters.read())
+            self.rom_parameters = KratosMultiphysics.Parameters(json.dumps(rom_parameters.ReadRomParametersAsVersion1(self.rom_basis_output_folder, self.rom_basis_output_name)))
 
             # Set the ROM settings in the "solver_settings" of the solver introducing the physics
             self.project_parameters["solver_settings"].AddValue("rom_settings", self.rom_parameters["rom_settings"])

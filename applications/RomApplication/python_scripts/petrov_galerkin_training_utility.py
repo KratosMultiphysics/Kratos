@@ -1,5 +1,4 @@
 # Import Python modules
-import json
 import numpy as np
 from pathlib import Path
 from glob import glob
@@ -11,6 +10,7 @@ import KratosMultiphysics.scipy_conversion_tools
 # Import applications
 import KratosMultiphysics.RomApplication as KratosROM
 from KratosMultiphysics.RomApplication.randomized_singular_value_decomposition import RandomizedSingularValueDecomposition
+from KratosMultiphysics.RomApplication import rom_parameters
 import KratosMultiphysics.kratos_utilities as kratos_utils
 
 class PetrovGalerkinTrainingUtility(object):
@@ -151,30 +151,26 @@ class PetrovGalerkinTrainingUtility(object):
             # Storing Petrov-Galerkin modes in Numpy format
             np.save(self.rom_basis_output_folder / "LeftBasisMatrix.npy", u)
 
-        with (self.rom_basis_output_folder / self.rom_basis_output_name).with_suffix('.json').open('r') as f:
-            updated_rom_parameters = json.load(f)
-            updated_rom_parameters["rom_settings"]["petrov_galerkin_number_of_rom_dofs"] = petrov_galerkin_number_of_rom_dofs
-            updated_rom_parameters["petrov_galerkin_nodal_modes"] = petrov_galerkin_nodal_modes
-
-        with (self.rom_basis_output_folder / self.rom_basis_output_name).with_suffix('.json').open('w') as f:
-            json.dump(updated_rom_parameters, f, indent=4)
+        updated_rom_parameters = rom_parameters.ReadRomParametersAsVersion1(self.rom_basis_output_folder, self.rom_basis_output_name)
+        updated_rom_parameters["rom_settings"]["petrov_galerkin_number_of_rom_dofs"] = petrov_galerkin_number_of_rom_dofs
+        updated_rom_parameters["petrov_galerkin_nodal_modes"] = petrov_galerkin_nodal_modes
+        rom_parameters.WriteRomParameters(self.rom_basis_output_folder, self.rom_basis_output_name, updated_rom_parameters)
 
         if self.echo_level > 0 : KratosMultiphysics.Logger.PrintInfo("PetrovGalerkinTrainingUtility","\'RomParameters.json\' file updated with HROM weights.")
 
     def __GetGalerkinBasis(self):
         if self.rom_format == "json":
-            with open(self.rom_basis_output_folder / self.rom_basis_output_name.with_suffix(".json"), 'r') as f:
-                galerkin_rom_parameters = json.load(f)
-                N_Dof_per_node = len(galerkin_rom_parameters["rom_settings"]["nodal_unknowns"])
-                N_nodes = len(galerkin_rom_parameters["nodal_modes"])
-                N_Dofs = int(N_Dof_per_node*N_nodes)
-                N_Dofs_rom = galerkin_rom_parameters["rom_settings"]["number_of_rom_dofs"]
-                u = np.zeros((N_Dofs,N_Dofs_rom))
-                counter_in = 0
-                for key in galerkin_rom_parameters["nodal_modes"].keys():
-                    counter_fin = counter_in + N_Dof_per_node
-                    u[counter_in:counter_fin,:] = np.array(galerkin_rom_parameters["nodal_modes"][key])
-                    counter_in = counter_fin
+            galerkin_rom_parameters = rom_parameters.ReadRomParametersAsVersion1(self.rom_basis_output_folder, self.rom_basis_output_name)
+            N_Dof_per_node = len(galerkin_rom_parameters["rom_settings"]["nodal_unknowns"])
+            N_nodes = len(galerkin_rom_parameters["nodal_modes"])
+            N_Dofs = int(N_Dof_per_node*N_nodes)
+            N_Dofs_rom = galerkin_rom_parameters["rom_settings"]["number_of_rom_dofs"]
+            u = np.zeros((N_Dofs,N_Dofs_rom))
+            counter_in = 0
+            for key in galerkin_rom_parameters["nodal_modes"].keys():
+                counter_fin = counter_in + N_Dof_per_node
+                u[counter_in:counter_fin,:] = np.array(galerkin_rom_parameters["nodal_modes"][key])
+                counter_in = counter_fin
         elif self.rom_format == "numpy":
             u = np.load(self.rom_basis_output_folder / "RightBasisMatrix.npy")
 
