@@ -606,7 +606,7 @@ protected:
 
         #pragma omp parallel firstprivate(nelements,nconditions, LHS_Contribution, RHS_Contribution, EquationId)
         {
-            # pragma omp for  schedule(guided, 512) nowait
+            # pragma omp for  schedule(guided, 512)
             for (int k = 0; k < nelements; k++) {
                 auto it_elem = el_begin + k;
 
