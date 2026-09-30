@@ -13,8 +13,8 @@
 #include "custom_elements/Pw_element.hpp"
 #include "custom_elements/contribution_calculators/calculation_contribution.h"
 #include "geo_mechanics_application_variables.h"
-#include "includes/cfd_variables.h"
 #include "geometries/tetrahedra_3d_4.h"
+#include "includes/cfd_variables.h"
 #include "test_setup_utilities/element_setup_utilities.hpp"
 
 #include <benchmark/benchmark.h>
@@ -56,13 +56,13 @@ auto CreatePwElement3D4NForBenchmark(const Properties::Pointer& rProperties)
 
     using enum CalculationContribution;
     const std::vector contributions = {Permeability, Compressibility, FluidBodyFlow};
-    auto p_element = make_intrusive<PwElement<3, 4>>(
+    auto              p_element     = make_intrusive<PwElement<3, 4>>(
         1, std::make_shared<Tetrahedra3D4<Node>>(nodes), rProperties, contributions, nullptr);
 
     const auto solution_step_variables = Geo::ConstVariableDataRefs{
         std::cref(WATER_PRESSURE), std::cref(DT_WATER_PRESSURE), std::cref(VOLUME_ACCELERATION)};
-    Testing::ElementSetupUtilities::AddVariablesToNodes(nodes, solution_step_variables,
-                                                         Geo::ConstVariableRefs{std::cref(WATER_PRESSURE)});
+    Testing::ElementSetupUtilities::AddVariablesToNodes(
+        nodes, solution_step_variables, Geo::ConstVariableRefs{std::cref(WATER_PRESSURE)});
     for (auto& r_node : nodes) {
         r_node.SetBufferSize(2);
     }
