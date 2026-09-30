@@ -70,7 +70,7 @@ namespace Kratos
       mWaterLoad = rParameters["top_water_pressure"].GetDouble();
 
       std::cout << " FINALLY CONSTRUCTED " << std::endl;
-      std::cout << " WRITTING THE MODEL PART OR SOMETHING " << rModelPart << std::endl;
+      std::cout << " WRITING THE MODEL PART OR SOMETHING " << rModelPart << std::endl;
       KRATOS_CATCH("")
    }
    

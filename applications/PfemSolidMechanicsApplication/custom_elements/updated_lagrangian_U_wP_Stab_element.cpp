@@ -57,7 +57,7 @@ namespace Kratos
    }
 
 
-   //*******************************ASSIGMENT OPERATOR***********************************
+   //******************************ASSIGNMENT OPERATOR***********************************
    //************************************************************************************
 
    UpdatedLagrangianUwPStabElement&  UpdatedLagrangianUwPStabElement::operator=(UpdatedLagrangianUwPStabElement const& rOther)

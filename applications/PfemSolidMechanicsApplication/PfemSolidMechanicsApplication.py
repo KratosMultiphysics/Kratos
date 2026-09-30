@@ -1,4 +1,4 @@
-# Applications requiered
+# Applications required
 from KratosMultiphysics.ContactMechanicsApplication import *
 from KratosMultiphysics.PfemApplication import *
 
