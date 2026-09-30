@@ -11,15 +11,15 @@ def Factory(settings, model):
     if(type(settings) != KratosMultiphysics.Parameters):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
 
-    return ComputeEmbeddedFlowForcesAndMomentsProcess(model, settings["Parameters"])
+    return ComputeShiftedBoundaryFlowForcesAndMomentsProcess(model, settings["Parameters"])
 
-class ComputeEmbeddedFlowForcesAndMomentsProcess(ComputeFlowForcesAndMomentsProcess):
+class ComputeShiftedBoundaryFlowForcesAndMomentsProcess(ComputeFlowForcesAndMomentsProcess):
     """
-    The specific implementation for the output of embedded drag forces
+    The specific implementation for the output of shifted boundary drag forces
     over obstacles in fluid dynamics problems.
     """
     def _GetFileHeader(self):
-        header  = '# Embedded flow force and moment for model part '
+        header  = '# Shifted boundary flow force and moment for model part '
         header += self.params["model_part_name"].GetString() + '\n'
 
         if self.write_flow_moments_output_file:
@@ -30,8 +30,8 @@ class ComputeEmbeddedFlowForcesAndMomentsProcess(ComputeFlowForcesAndMomentsProc
         return header
 
     def _PrintToScreen(self, result_msg):
-        KratosMultiphysics.Logger.PrintInfo("ComputeEmbeddedFlowForcesAndMomentsProcess","EMBEDDED FLOW FORCES AND MOMENTS RESULTS:")
-        KratosMultiphysics.Logger.PrintInfo("ComputeEmbeddedFlowForcesAndMomentsProcess","Current time: " + result_msg)
+        KratosMultiphysics.Logger.PrintInfo("ComputeShiftedBoundaryFlowForcesAndMomentsProcess","SHIFTED BOUNDARY FORCES AND MOMENTS RESULTS:")
+        KratosMultiphysics.Logger.PrintInfo("ComputeShiftedBoundaryFlowForcesAndMomentsProcess","Current time: " + result_msg)
 
     def _GetCorrespondingFlowForcesAndMoments(self):
-        return KratosCFD.FlowForcesAndMomentsUtilities().CalculateEmbeddedFlowForcesAndMoments(self.model_part, self.reference_point)
+        return KratosCFD.FlowForcesAndMomentsUtilities().CalculateShiftedBoundaryFlowForcesAndMoments(self.model_part, self.reference_point)

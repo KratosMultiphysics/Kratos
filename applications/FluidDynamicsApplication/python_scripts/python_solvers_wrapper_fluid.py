@@ -25,6 +25,9 @@ def CreateSolverByParameters(model, solver_settings, parallelism):
         elif (solver_type == "Embedded"):
             solver_module_name = "navier_stokes_embedded_solver"
 
+        elif solver_type == "shifted_boundary" or solver_type == "ShiftedBoundary":
+            solver_module_name = "navier_stokes_shifted_boundary_solver"
+
         elif (solver_type == "Compressible"):
             solver_module_name = "navier_stokes_compressible_solver"
 
