@@ -120,7 +120,7 @@ public:
         // Generate Stokes elements
         for (ModelPart::ElementsContainerType::iterator itElem = rReferenceModelPart.ElementsBegin(); itElem != rReferenceModelPart.ElementsEnd(); itElem++)
         {
-            Element::Pointer pElem = rReferenceElement.Create(itElem->Id(), itElem->GetGeometry(), itElem->pGetProperties() );
+            Element::Pointer pElem = rReferenceElement.Create(itElem->Id(), itElem->GetGeometry().Points(), itElem->pGetProperties() );
             rStokesModelPart.Elements().push_back(pElem);
             rStokesModelPart.GetCommunicator().LocalMesh().Elements().push_back(pElem);
         }

@@ -219,7 +219,7 @@ void NodalValuesInterpolationProcess<TDim>::GenerateBoundaryFromElements(
     auto& r_elements_array = rModelPart.Elements();
     for(IndexType i=0; i< r_elements_array.size(); ++i) {
         auto it_elem = r_elements_array.begin() + i;
-        r_new_model_part.CreateNewCondition("SurfaceCondition3D3N", new_id + 1, it_elem->GetGeometry(), it_elem->pGetProperties());
+        r_new_model_part.CreateNewCondition("SurfaceCondition3D3N", new_id + 1, it_elem->GetGeometry().Points(), it_elem->pGetProperties());
         ++new_id;
     }
 }

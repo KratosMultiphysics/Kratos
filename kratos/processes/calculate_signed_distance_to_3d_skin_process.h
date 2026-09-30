@@ -1585,7 +1585,7 @@ public:
 
                     Condition const& rReferenceCondition = KratosComponents<Condition>::Get("SurfaceCondition3D");
                     Properties::Pointer properties = mrNewSkinModelPart.rProperties()(0);
-                    Condition::Pointer p_condition = rReferenceCondition.Create(id_condition++, triangle, properties);
+                    Condition::Pointer p_condition = rReferenceCondition.Create(id_condition++, triangle.Points(), properties);
 
                     mrNewSkinModelPart.Conditions().push_back(p_condition);
                 }
@@ -1658,8 +1658,8 @@ public:
                  
                     Properties::Pointer properties = mrNewSkinModelPart.rProperties()(0);
 
-                    Condition::Pointer p_condition1 = rReferenceCondition.Create(id_condition++, triangle1, properties);
-                    Condition::Pointer p_condition2 = rReferenceCondition.Create(id_condition++, triangle2, properties);
+                    Condition::Pointer p_condition1 = rReferenceCondition.Create(id_condition++, triangle1.Points(), properties);
+                    Condition::Pointer p_condition2 = rReferenceCondition.Create(id_condition++, triangle2.Points(), properties);
 
                     mrNewSkinModelPart.Conditions().push_back(p_condition1);
                     mrNewSkinModelPart.Conditions().push_back(p_condition2);

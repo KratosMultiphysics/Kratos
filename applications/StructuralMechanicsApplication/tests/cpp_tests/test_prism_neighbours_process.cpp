@@ -67,7 +67,7 @@ namespace Kratos
             element_nodes_0[5] = p_node_6;
             Prism3D6<NodeType> prism_0( PointerVector<NodeType>{element_nodes_0} );
 
-            Element::Pointer p_elem_0 = ThisModelPart.CreateNewElement("Element3D6N", 1, prism_0, p_elem_prop);
+            Element::Pointer p_elem_0 = ThisModelPart.CreateNewElement("Element3D6N", 1, prism_0.Points(), p_elem_prop);
 
             if (NumberNeighbours > 0) {
                 NodeType::Pointer p_node_7  = ThisModelPart.CreateNewNode( 7,  1.0 ,  1.0 , 0.0);
@@ -82,7 +82,7 @@ namespace Kratos
                 element_nodes_1[5] = p_node_10;
                 Prism3D6 <NodeType> prism_1( PointerVector<NodeType>{element_nodes_1} );
 
-                Element::Pointer p_elem_1 = ThisModelPart.CreateNewElement("Element3D6N", 2, prism_1, p_elem_prop);
+                Element::Pointer p_elem_1 = ThisModelPart.CreateNewElement("Element3D6N", 2, prism_1.Points(), p_elem_prop);
             }
 
             if (NumberNeighbours > 1) {
@@ -98,7 +98,7 @@ namespace Kratos
                 element_nodes_2[5] = p_node_11;
                 Prism3D6 <NodeType> prism_2( PointerVector<NodeType>{element_nodes_2} );
 
-                Element::Pointer p_elem_2 = ThisModelPart.CreateNewElement("Element3D6N", 3, prism_2, p_elem_prop);
+                Element::Pointer p_elem_2 = ThisModelPart.CreateNewElement("Element3D6N", 3, prism_2.Points(), p_elem_prop);
             }
 
             if (NumberNeighbours > 2) {
@@ -114,7 +114,7 @@ namespace Kratos
                 element_nodes_3[5] = p_node_12;
                 Prism3D6 <NodeType> prism_3( PointerVector<NodeType>{element_nodes_3} );
 
-                Element::Pointer p_elem_3 = ThisModelPart.CreateNewElement("Element3D6N", 4, prism_3, p_elem_prop);
+                Element::Pointer p_elem_3 = ThisModelPart.CreateNewElement("Element3D6N", 4, prism_3.Points(), p_elem_prop);
             }
 
 //             // DEBUG
