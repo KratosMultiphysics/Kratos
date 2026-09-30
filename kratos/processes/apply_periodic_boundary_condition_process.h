@@ -128,10 +128,15 @@ class KRATOS_API(KRATOS_CORE) ApplyPeriodicConditionProcess : public Process
      * @param rSlaveNode The slave node which is to be connected to the rHostGeometry.
      * @param rHostedGeometry the Host geometry which has the rSlaveNode.
      * @param rWeights The weights with which the rSlaveNode is connected to the rHostedGeometry's nodes.
-     * @param rVarName The name of the vector variable on which periodic boundary condition can be applied.
+     * @param rVarName The vector containing the components of the vector variable on which periodic boundary condition can be applied.
      */
     template <int TDim>
-    void ConstraintSlaveNodeWithConditionForVectorVariable(NodeType& rSlaveNode, const GeometryType& rHostedGeometry, const VectorType& rWeights, const std::string& rVarName);
+    void ConstraintSlaveNodeWithConditionForVectorVariable(
+      NodeType& rSlaveNode, 
+      const GeometryType& rHostedGeometry, 
+      const VectorType& rWeights, 
+      const std::vector<const VariableType*>& rVars
+      );
 
     /**
      * @brief   The function adds the linear master-slave constraint to mrMasterModelPart. This function is specifically for applying
@@ -140,10 +145,15 @@ class KRATOS_API(KRATOS_CORE) ApplyPeriodicConditionProcess : public Process
      * @param rSlaveNode The slave node which is to be connected to the rHostGeometry.
      * @param rHostedGeometry the Host geometry which has the rSlaveNode.
      * @param rWeights The weights with which the rSlaveNode is connected to the rHostedGeometry's nodes.
-     * @param rVarName The name of the scalar variable on which periodic boundary condition can be applied.
+     * @param rVars The vector containing the scalar variable on which periodic boundary condition can be applied.
      */
     template <int TDim>
-    void ConstraintSlaveNodeWithConditionForScalarVariable(NodeType& rSlaveNode, const GeometryType& rHostedGeometry, const VectorType& rWeights, const std::string& rVarName);
+    void ConstraintSlaveNodeWithConditionForScalarVariable(
+      NodeType& rSlaveNode, 
+      const GeometryType& rHostedGeometry, 
+      const VectorType& rWeights, 
+      const std::vector<const VariableType*>& rVars
+      );
 
     /**
      * @brief Calculate the transformation matrix to account for the moving the two periodic condition modelparts together.
