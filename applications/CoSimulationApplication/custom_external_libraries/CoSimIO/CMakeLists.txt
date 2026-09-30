@@ -1,14 +1,5 @@
-cmake_minimum_required (VERSION 2.8.6)
-
-if(CMAKE_MAJOR_VERSION LESS 3)
-    project(CoSimIO CXX C)
-else()
-    if(POLICY CMP0048)
-        # project command manages version
-        cmake_policy(SET CMP0048 NEW)
-    endif(POLICY CMP0048)
-    project(CoSimIO LANGUAGES CXX C VERSION 3.0.0)
-endif()
+cmake_minimum_required (VERSION 3.15.0)
+project(CoSimIO LANGUAGES CXX C VERSION 3.0.0)
 
 # this has to be specified BEFORE including CTest!
 # suppressions file has to be included in the options, as using "MEMORYCHECK_SUPPRESSIONS_FILE" doesn't work on all systems
@@ -36,7 +27,7 @@ endif()
 
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -DCO_SIM_IO_DEBUG")
 
-message("Building the CoSimIO with the following configuration:")
+message("Building CoSimIO with the following configuration:")
 message("    CO_SIM_IO_BUILD_TYPE:      " ${CO_SIM_IO_BUILD_TYPE})
 message("    CO_SIM_IO_BUILD_MPI:       " ${CO_SIM_IO_BUILD_MPI})
 message("    CO_SIM_IO_BUILD_TESTING:   " ${CO_SIM_IO_BUILD_TESTING})
@@ -85,7 +76,7 @@ if(MSVC)
     endif()
 
 elseif(${CMAKE_COMPILER_IS_GNUCXX})
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c89")
 
     if (CO_SIM_IO_STRICT_COMPILER)
@@ -101,7 +92,7 @@ elseif(${CMAKE_COMPILER_IS_GNUCXX})
     # Note: This command makes sure that this option comes pretty late on the cmdline.
     link_libraries("$<$<AND:$<CXX_COMPILER_ID:GNU>,$<VERSION_GREATER:$<CXX_COMPILER_VERSION>,7.0>,$<VERSION_LESS:$<CXX_COMPILER_VERSION>,9.0>>:-lstdc++fs>")
 elseif(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c89")
 
     if (CO_SIM_IO_STRICT_COMPILER)
@@ -110,7 +101,7 @@ elseif(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
     endif()
 
 elseif(CMAKE_CXX_COMPILER_ID STREQUAL "Intel")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c89")
 
     if (CO_SIM_IO_STRICT_COMPILER)
@@ -119,7 +110,7 @@ elseif(CMAKE_CXX_COMPILER_ID STREQUAL "Intel")
     endif()
 
 else()
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17 -Wall -Wpedantic")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Wall -Wpedantic")
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c89 -Wall -Wpedantic")
 endif()
 
@@ -147,7 +138,7 @@ include(GenerateExportHeader)
 generate_export_header( co_sim_io EXPORT_MACRO_NAME CO_SIM_IO_API EXPORT_FILE_NAME
                         ${CMAKE_CURRENT_SOURCE_DIR}/co_sim_io/includes/co_sim_io_api.hpp )
 
-install(TARGETS co_sim_io DESTINATION libs)
+install(TARGETS co_sim_io DESTINATION bin)
 
 if (CO_SIM_IO_BUILD_MPI)
     # optionally enable communication via MPI
@@ -166,7 +157,7 @@ if (CO_SIM_IO_BUILD_MPI)
 
     target_link_libraries(co_sim_io_mpi co_sim_io ${MPI_LIBRARIES})
 
-    install(TARGETS co_sim_io_mpi DESTINATION libs)
+    install(TARGETS co_sim_io_mpi DESTINATION bin)
 endif()
 
 target_include_directories(co_sim_io PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/co_sim_io)
