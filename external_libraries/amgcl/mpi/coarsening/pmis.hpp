@@ -356,7 +356,7 @@ struct pmis {
         for(size_t i = 0, nv = C.send.count(); i < nv; ++i)
             D_loc[i] = D[C.send.col[i]];
 
-        C.exchange(&D_loc[0], &D_rem[0]);
+        C.exchange(D_loc.data(), D_rem.data());
 
         auto s_loc = std::make_shared<bool_matrix>();
         auto s_rem = std::make_shared<bool_matrix>();
@@ -441,7 +441,16 @@ struct pmis {
 
         // 2. Apply PMIS algorithm to the symbolic square.
         ptrdiff_t n_undone = 0;
-        std::vector<ptrdiff_t> rem_state(Sp.recv.count(), pmis::undone);
+
+        // _undone is needed to solve a linker error on i386:
+        //   https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=1020834
+        // Doing it this way resolves "pmis::undone" to the "undone" variable in
+        // this class at compile time. Skipping _undone, and passing
+        // pmis::undone directily into the std::vector constructor generates an
+        // "undone" symbol reference that is never resolved. I don't know why,
+        // but this fix is good
+        const ptrdiff_t _undone = pmis::undone;
+        std::vector<ptrdiff_t> rem_state(Sp.recv.count(), _undone);
         std::vector<int>       rem_owner(Sp.recv.count(), -1);
         std::vector<ptrdiff_t> send_state(Sp.send.count());
         std::vector<int>       send_owner(Sp.send.count());
@@ -467,7 +476,7 @@ struct pmis {
         // Exchange state
         for(ptrdiff_t i = 0, m = Sp.send.count(); i < m; ++i)
             send_state[i] = loc_state[Sp.send.col[i]];
-        Sp.exchange(&send_state[0], &rem_state[0]);
+        Sp.exchange(send_state.data(), rem_state.data());
 
         std::vector< std::vector<ptrdiff_t> > send_pts(Sp.recv.nbr.size());
         std::vector<ptrdiff_t> recv_pts;
@@ -619,7 +628,7 @@ struct pmis {
 
             for(ptrdiff_t i = 0, m = Sp.send.count(); i < m; ++i)
                 send_state[i] = loc_state[Sp.send.col[i]];
-            Sp.exchange(&send_state[0], &rem_state[0]);
+            Sp.exchange(send_state.data(), rem_state.data());
 
             if (0 == comm.reduce(MPI_SUM, n_undone))
                 break;
@@ -630,7 +639,7 @@ struct pmis {
         AMGCL_TIC("drop empty aggregates");
         for(ptrdiff_t i = 0, m = Sp.send.count(); i < m; ++i)
             send_owner[i] = loc_owner[Sp.send.col[i]];
-        Sp.exchange(&send_owner[0], &rem_owner[0]);
+        Sp.exchange(send_owner.data(), rem_owner.data());
 
         std::vector<ptrdiff_t> new_id(naggr + 1, 0);
         for(ptrdiff_t i = 0; i < n; ++i) {
