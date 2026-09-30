@@ -380,7 +380,6 @@ public:
         array_1d<double, 4 > diff_node_value;                // difference between the imposed value of the variable and its value in the node
         array_1d<double, 4 > diff_neigh_value;               // difference beween the variable value on other node of the edge (neighbour) and the imposed value
         array_1d<unsigned int, 4 > list_matching_nodes;      //used to save the new nodes that match exactly old nodes (very unlikely, but might be 4 for very plane elements)
-        unsigned int exact_nodes=0;
 
         number_of_triangles = 0;
         int current_element= 0; //current element. it's a position. NOT ID!
@@ -391,7 +390,6 @@ public:
         {
             ++current_element;
             number_of_cuts = 0;
-            exact_nodes = 0 ;
             Geometry<Node >&geom = it->GetGeometry(); //geometry of the element
             for(unsigned int i = 0; i < it->GetGeometry().size() ; i++)          //size = 4 ; nodes per element. NOTICE WE'LL BE LOOPING THE EDGES TWICE. THIS IS A WASTE OF TIME BUT MAKES IT EASIER TO IDENTITY ELEMENTS. LOOK BELOW.
                 //when we have a triangle inside a thetraedra, its edges (or nodes) must be cut 3 times by the plane. if we loop all 2 times we can have a counter. when it's = 6 then we have a triangle. when tetrahedras are cut 8 times then we have 2 triangles (or a cuatrilateral, the same)
@@ -416,7 +414,6 @@ public:
                             Coord(index_i, index_i) = -2;	              //saving a -2 in the diagonal
                             isovernode=true;
                             number_of_cuts += 2; //since its neighbour wont take this case as a cut, we must save 2 cuts instead of one. (to reach number_of_cuts=6),
-                            ++exact_nodes;
                             list_matching_nodes[i]= geom[i].Id();
                             break;
                         }
@@ -437,7 +434,6 @@ public:
                 for(unsigned int i = 0; i < it->GetGeometry().size() ; i++)
                 {
                     number_of_cuts -= 2;
-                    --exact_nodes;
                 }
             }
             //now we have to save the data. we should get a list with the elements that will generate triangles and the total number of triangles
@@ -484,7 +480,6 @@ public:
         array_1d<double, 4 > diff_node_value;                 // difference between the imposed value of the variable and its value in the node
         array_1d<double, 4 > diff_neigh_value;                // difference beween the variable value on other node of the edge (neighbour) and the imposed value
         array_1d<unsigned int, 4 > list_matching_nodes;      //used to save the new nodes that match exactly old nodes (very unlikely, but might be 4 for very plane elements)
-        unsigned int exact_nodes=0;
 
         number_of_triangles = 0;
         int current_element= 0; //current element. it's a position. NOT ID!
@@ -496,7 +491,6 @@ public:
             ++current_element;
             number_of_cuts = 0;
 
-            exact_nodes = 0 ;
             Geometry<Node >&geom = it->GetGeometry(); //geometry of the element
             for(unsigned int i = 0; i < it->GetGeometry().size() ; i++)          //size = 4 ; nodes per element. NOTICE WE'LL BE LOOPING THE EDGES TWICE. THIS IS A WASTE OF TIME BUT MAKES IT EASIER TO IDENTITY ELEMENTS. LOOK BELOW.
                 //when we have a triangle inside a thetraedra, its edges (or nodes) must be cut 3 times by the plane. if we loop all 2 times we can have a counter. when it's = 6 then we have a triangle. when tetrahedras are cut 8 times then we have 2 triangles (or a cuatrilateral, the same)
@@ -554,7 +548,6 @@ public:
                             Coord(index_i, index_i) = -2;	              //saving a -2 in the diagonal
                             isovernode=true;
                             number_of_cuts += 2; //since its neighbour wont take this case as a cut, we must save 2 cuts instead of one. (to reach number_of_cuts=6),
-                            ++exact_nodes;
                             list_matching_nodes[i]= geom[i].Id();
                             break;
                         }
@@ -585,7 +578,6 @@ public:
                 for(unsigned int i = 0; i < it->GetGeometry().size() ; i++)
                 {
                     number_of_cuts -= 2;
-                    --exact_nodes;
                 }
             }
             //now we have to save the data. we should get a list with the elements that will generate triangles and the total number of triangles
