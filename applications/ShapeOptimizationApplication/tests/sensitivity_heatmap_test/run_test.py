@@ -7,7 +7,6 @@ from KratosMultiphysics.ShapeOptimizationApplication import optimizer_factory
 from KratosMultiphysics.ShapeOptimizationApplication.analyzers.analyzer_base import AnalyzerBaseClass
 from KratosMultiphysics.ShapeOptimizationApplication.utilities import custom_math as cm
 from KratosMultiphysics.from_json_check_result_process import FromJsonCheckResultProcess
-# from KratosMultiphysics.json_output_process import JsonOutputProcess
 
 # Read parameters
 with open("parameters.json",'r') as parameter_file:
@@ -61,7 +60,7 @@ optimization_log_filename = parameters["optimization_settings"]["output"]["optim
 optimization_model_part_name = parameters["optimization_settings"]["model_settings"]["model_part_name"].GetString()
 
 # write json output
-# output_process = JsonOutputProcess(model, Kratos.Parameters(
+# output_process = Kratos.JsonOutputProcess(model, Kratos.Parameters(
 #     """{
 #         "output_variables" : ["HEATMAP_DF1DX_X","HEATMAP_DF1DX_Y","HEATMAP_DF1DX_Z",
 #                               "HEATMAP_DC1DX_X","HEATMAP_DC1DX_Y","HEATMAP_DC1DX_Z",
