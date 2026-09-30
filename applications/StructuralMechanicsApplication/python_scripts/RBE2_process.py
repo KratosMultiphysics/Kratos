@@ -19,7 +19,13 @@ def Factory(settings, Model):
 
 class ApplyRbe2Process(KM.Process):
     """
-    Generates a RBE2-coupling with a master and a set of slave nodes (using LinearMasterSlaveConstraint) 
+    @brief 
+    Generates an RBE2-type coupling between one master node and a set of slave nodes using LinearMasterSlaveConstraint objects.
+    
+    @details
+    The coupling enforces rigid-body motion between the master node and the slave nodes. 
+    The selected degrees of freedom of each slave node are determined by the corresponding motion of the master node.
+    
     Expected parameters:
         model_part_name   : name of the model part
         master_sub_model_part : SubModelPart-Name with the master node
