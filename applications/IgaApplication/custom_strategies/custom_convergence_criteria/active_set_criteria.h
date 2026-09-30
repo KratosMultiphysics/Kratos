@@ -475,60 +475,14 @@ public:
                 // continue;
 
 
-            // CURRENT VERSION:
-                if (check_value_master >= toll_gap)// && tangent_gap_master < toll_tangent_distance) //FIXME
-                {
-                    if (check_value_slave >= toll_gap)// && tangent_gap_slave < toll_tangent_distance) //BOTH ACTIVE
-                    {
-                        if (i_cond->GetValue(ACTIVATION_LEVEL) != 3)
-                        {
-                            i_cond->SetValue(ACTIVATION_LEVEL, 3);
-                            n_changes++;
-                        }
-                    }
-                    // else if (sigma_nn_slave/young_modulus_slave > 0)  // ONLY MASTER ACTIVE
-                    // {
-                    //     if (i_cond->GetValue(ACTIVATION_LEVEL) != 1)
-                    //     {
-                    //         i_cond->SetValue(ACTIVATION_LEVEL, 1);
-                    //         n_changes++;
-                    //     }
-                    // }
-                } 
-                // else if (sigma_nn_master/young_modulus_master > 0)
-                // {   
-                else
-                    {   
-                    // KRATOS_WATCH(check_value_master)
-                    // KRATOS_WATCH(sigma_nn_master)
-                    // KRATOS_WATCH("esce")
-                    // exit(0);
-                    // if (check_value_slave >= toll_gap && tangent_gap_slave < toll_tangent_distance) //ONLY SLAVE ACTIVE
-                    // {
-                    //     if (i_cond->GetValue(ACTIVATION_LEVEL) != 2)
-                    //     {
-                    //         i_cond->SetValue(ACTIVATION_LEVEL, 2);
-                    //         n_changes++;
-                    //     }
-                    //     n_active++;
-                    // }
-                    // else
-                    //  if (sigma_nn_slave/young_modulus_slave > 0) // NONE ACTIVE
-                    // {
-                    //     if (i_cond->GetValue(ACTIVATION_LEVEL) != 0)
-                    //     {
-                    //         i_cond->SetValue(ACTIVATION_LEVEL, 0);
-                    //         n_changes++;
-                    //     }
-                    // }
-
-                    if (i_cond->GetValue(ACTIVATION_LEVEL) != 0)
-                    {
-                        i_cond->SetValue(ACTIVATION_LEVEL, 0);
-                        n_changes++;
-                    }
+            // For the biased Nitsche contact formulation, activity is set by
+            // the master P_gamma criterion. Always assign a state: a slave-gap
+            // veto otherwise leaves it dependent on its previous value.
+                const int new_activation_level = check_value_master >= toll_gap ? 3 : 0;
+                if (i_cond->GetValue(ACTIVATION_LEVEL) != new_activation_level) {
+                    i_cond->SetValue(ACTIVATION_LEVEL, new_activation_level);
+                    n_changes++;
                 }
-
 
 
             //--------------------------------------------------------------------------
