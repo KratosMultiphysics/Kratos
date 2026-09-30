@@ -142,6 +142,29 @@ class TestFluidRom(KratosUnittest.TestCase):
             self.tearDown()
 
 
+    def testFluidGalerkinRom2D_ANN_Standalone(self):
+        # Same trained model as testFluidGalerkinRom2D_ANN, run without RomManager (no database): the ANN-enhanced
+        # decoder is read from the numpy files in rom_data, as given by 'ann_enhanced_settings' in the RomParameters
+        self.work_folder = "fluid_dynamics_test_files/GALERKIN_HROM_ANN_STANDALONE/"
+        expected_output_filename = "../GALERKIN_HROM_ANN/ExpectedOutputGalerkinHROM_ANN.npy"
+        parameters_filename = "ProjectParametersROM.json"
+
+        with KratosUnittest.WorkFolderScope(self.work_folder, __file__):
+            with open(parameters_filename,'r') as parameter_file:
+                parameters = KratosMultiphysics.Parameters(parameter_file.read())
+            model = KratosMultiphysics.Model()
+            simulation = rom_testing_utilities.SetUpSimulationInstance(model, parameters)
+            simulation.Run()
+
+            expected_output = np.load(expected_output_filename)
+            for i in range(expected_output.shape[1]):
+                obtained = np.load(Path(f"rom_data/Snapshots/solution_{i+1}.npy")).flatten()
+                l2 = np.linalg.norm(expected_output[:, i] - obtained) / np.linalg.norm(expected_output[:, i])
+                self.assertLess(l2, self.relative_tolerance, msg=f"Tolerance failed at step {i+1}")
+
+            kratos_utilities.DeleteDirectoryIfExisting("rom_data/Snapshots")
+
+
     def tearDown(self):
         with KratosUnittest.WorkFolderScope(self.work_folder, __file__):
             # Cleaning
