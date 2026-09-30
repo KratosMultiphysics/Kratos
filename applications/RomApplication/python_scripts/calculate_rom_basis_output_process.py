@@ -1,11 +1,11 @@
 # Import Python modules
-import json
 import numpy
 from pathlib import Path
 
 # Importing the Kratos Library
 import KratosMultiphysics
 from KratosMultiphysics.RomApplication.randomized_singular_value_decomposition import RandomizedSingularValueDecomposition
+from KratosMultiphysics.RomApplication import rom_parameters
 
 def Factory(settings, model):
     if not isinstance(settings, KratosMultiphysics.Parameters):
@@ -203,9 +203,7 @@ class CalculateRomBasisOutputProcess(KratosMultiphysics.OutputProcess):
             raise Exception(err_msg)
 
         # Creating the ROM JSON file containing or not the modes depending on "self.rom_basis_output_format"
-        output_filename = self.rom_basis_output_folder / f"{self.rom_basis_output_name}.json"
-        with output_filename.open('w') as f:
-            json.dump(rom_basis_dict, f, indent = 4)
+        rom_parameters.WriteRomParameters(self.rom_basis_output_folder, self.rom_basis_output_name, rom_basis_dict)
 
 
     def ExecuteFinalize(self):

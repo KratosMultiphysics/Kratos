@@ -1,7 +1,6 @@
 import numpy as np
 import importlib
 import json
-from pathlib import Path
 import types
 import KratosMultiphysics
 from KratosMultiphysics.RomApplication.rom_database import RomDatabase
@@ -9,6 +8,7 @@ from KratosMultiphysics.RomApplication.rom_testing_utilities import SetUpSimulat
 from KratosMultiphysics.RomApplication.calculate_rom_basis_output_process import CalculateRomBasisOutputProcess
 from KratosMultiphysics.RomApplication.randomized_singular_value_decomposition import RandomizedSingularValueDecomposition
 from KratosMultiphysics.RomApplication.rom_nn_interface import NN_ROM_Interface
+from KratosMultiphysics.RomApplication import rom_parameters
 
 
 class RomManager(object):
@@ -721,81 +721,72 @@ class RomManager(object):
         parameters_file_folder = self.general_rom_manager_parameters["ROM"]["rom_basis_output_folder"].GetString() if self.general_rom_manager_parameters["ROM"].Has("rom_basis_output_folder") else "rom_data"
         parameters_file_name = self.general_rom_manager_parameters["ROM"]["rom_basis_output_name"].GetString() if self.general_rom_manager_parameters["ROM"].Has("rom_basis_output_name") else "RomParameters"
 
-        # Convert to Path objects
-        parameters_file_folder = Path(parameters_file_folder)
-        parameters_file_name = Path(parameters_file_name)
-
-        parameters_file_path = parameters_file_folder / parameters_file_name.with_suffix('.json')
-
-        with parameters_file_path.open('r+') as parameter_file:
-            f=json.load(parameter_file)
-            f['assembling_strategy'] = self.general_rom_manager_parameters['assembling_strategy'].GetString() if self.general_rom_manager_parameters.Has('assembling_strategy') else 'global'
-            self._AddHromParametersToRomParameters(f)
-            if simulation_to_run=='GalerkinROM':
-                f['projection_strategy']="galerkin"
-                f['train_hrom']=False
-                f['run_hrom']=False
-                f["rom_settings"]['rom_bns_settings'] = self._SetGalerkinBnSParameters()
-            elif simulation_to_run=='trainHROMGalerkin':
-                f['train_hrom']=True
-                f['run_hrom']=False
-                f["rom_settings"]['rom_bns_settings'] = self._SetGalerkinBnSParameters()
-            elif simulation_to_run=='runHROMGalerkin':
-                f['projection_strategy']="galerkin"
-                f['train_hrom']=False
-                f['run_hrom']=True
-                f["rom_settings"]['rom_bns_settings'] = self._SetGalerkinBnSParameters()
-            elif simulation_to_run == 'lspg':
-                f['train_hrom'] = False
-                f['run_hrom'] = False
-                f['projection_strategy'] = "lspg"
-                f["rom_settings"]['rom_bns_settings'] = self._SetLSPGBnSParameters()
-            elif simulation_to_run == 'trainHROMLSPG':
-                f['train_hrom'] = True
-                f['run_hrom'] = False
-                f['projection_strategy'] = "lspg"
-                f["rom_settings"]['rom_bns_settings'] = self._SetLSPGBnSParameters()
-            elif simulation_to_run == 'runHROMLSPG':
-                f['train_hrom'] = False
-                f['run_hrom'] = True
-                f['projection_strategy'] = "lspg"
-                f["rom_settings"]['rom_bns_settings'] = self._SetLSPGBnSParameters()
-            elif simulation_to_run == 'TrainPG':
-                f['train_hrom'] = False
-                f['run_hrom'] = False
-                f['projection_strategy'] = "lspg"
-                f["rom_settings"]['rom_bns_settings'] = self._SetLSPGBnSParameters()
-                f["rom_settings"]['rom_bns_settings']['train_petrov_galerkin'] = True  # Override the default
-            elif simulation_to_run=='PG':
-                f['train_hrom']=False
-                f['run_hrom']=False
-                f['projection_strategy']="petrov_galerkin"
-                f["rom_settings"]['rom_bns_settings'] = self._SetPetrovGalerkinBnSParameters()
-            elif simulation_to_run=='trainHROMPetrovGalerkin':
-                f['train_hrom']=True
-                f['run_hrom']=False
-                f['projection_strategy']="petrov_galerkin"
-                f["rom_settings"]['rom_bns_settings'] = self._SetPetrovGalerkinBnSParameters()
-            elif simulation_to_run=='runHROMPetrovGalerkin':
-                f['train_hrom']=False
-                f['run_hrom']=True
-                f['projection_strategy']="petrov_galerkin"
-                f["rom_settings"]['rom_bns_settings'] = self._SetPetrovGalerkinBnSParameters()
-            elif simulation_to_run=='GalerkinROM_ANN':
-                f['train_hrom']=False
-                f['run_hrom']=False
-                f['projection_strategy']="galerkin_ann"
-                f["rom_settings"]['rom_bns_settings'] = self._SetGalerkinBnSParameters()
-            elif simulation_to_run=='lspg_ANN':
-                f['train_hrom']=False
-                f['run_hrom']=False
-                f['projection_strategy']="lspg_ann"
-                f["rom_settings"]['rom_bns_settings'] = self._SetLSPGBnSParameters()
-            else:
-                raise Exception(f'Unknown flag "{simulation_to_run}" change for RomParameters.json')
-            parameter_file.seek(0)
-            json.dump(f,parameter_file,indent=4)
-            parameter_file.truncate()
+        f = rom_parameters.ReadRomParametersAsVersion1(parameters_file_folder, parameters_file_name)
+        f['assembling_strategy'] = self.general_rom_manager_parameters['assembling_strategy'].GetString() if self.general_rom_manager_parameters.Has('assembling_strategy') else 'global'
+        self._AddHromParametersToRomParameters(f)
+        if simulation_to_run=='GalerkinROM':
+            f['projection_strategy']="galerkin"
+            f['train_hrom']=False
+            f['run_hrom']=False
+            f["rom_settings"]['rom_bns_settings'] = self._SetGalerkinBnSParameters()
+        elif simulation_to_run=='trainHROMGalerkin':
+            f['train_hrom']=True
+            f['run_hrom']=False
+            f["rom_settings"]['rom_bns_settings'] = self._SetGalerkinBnSParameters()
+        elif simulation_to_run=='runHROMGalerkin':
+            f['projection_strategy']="galerkin"
+            f['train_hrom']=False
+            f['run_hrom']=True
+            f["rom_settings"]['rom_bns_settings'] = self._SetGalerkinBnSParameters()
+        elif simulation_to_run == 'lspg':
+            f['train_hrom'] = False
+            f['run_hrom'] = False
+            f['projection_strategy'] = "lspg"
+            f["rom_settings"]['rom_bns_settings'] = self._SetLSPGBnSParameters()
+        elif simulation_to_run == 'trainHROMLSPG':
+            f['train_hrom'] = True
+            f['run_hrom'] = False
+            f['projection_strategy'] = "lspg"
+            f["rom_settings"]['rom_bns_settings'] = self._SetLSPGBnSParameters()
+        elif simulation_to_run == 'runHROMLSPG':
+            f['train_hrom'] = False
+            f['run_hrom'] = True
+            f['projection_strategy'] = "lspg"
+            f["rom_settings"]['rom_bns_settings'] = self._SetLSPGBnSParameters()
+        elif simulation_to_run == 'TrainPG':
+            f['train_hrom'] = False
+            f['run_hrom'] = False
+            f['projection_strategy'] = "lspg"
+            f["rom_settings"]['rom_bns_settings'] = self._SetLSPGBnSParameters()
+            f["rom_settings"]['rom_bns_settings']['train_petrov_galerkin'] = True  # Override the default
+        elif simulation_to_run=='PG':
+            f['train_hrom']=False
+            f['run_hrom']=False
+            f['projection_strategy']="petrov_galerkin"
+            f["rom_settings"]['rom_bns_settings'] = self._SetPetrovGalerkinBnSParameters()
+        elif simulation_to_run=='trainHROMPetrovGalerkin':
+            f['train_hrom']=True
+            f['run_hrom']=False
+            f['projection_strategy']="petrov_galerkin"
+            f["rom_settings"]['rom_bns_settings'] = self._SetPetrovGalerkinBnSParameters()
+        elif simulation_to_run=='runHROMPetrovGalerkin':
+            f['train_hrom']=False
+            f['run_hrom']=True
+            f['projection_strategy']="petrov_galerkin"
+            f["rom_settings"]['rom_bns_settings'] = self._SetPetrovGalerkinBnSParameters()
+        elif simulation_to_run=='GalerkinROM_ANN':
+            f['train_hrom']=False
+            f['run_hrom']=False
+            f['projection_strategy']="galerkin_ann"
+            f["rom_settings"]['rom_bns_settings'] = self._SetGalerkinBnSParameters()
+        elif simulation_to_run=='lspg_ANN':
+            f['train_hrom']=False
+            f['run_hrom']=False
+            f['projection_strategy']="lspg_ann"
+            f["rom_settings"]['rom_bns_settings'] = self._SetLSPGBnSParameters()
+        else:
+            raise Exception(f'Unknown flag "{simulation_to_run}" change for RomParameters.json')
+        rom_parameters.WriteRomParameters(parameters_file_folder, parameters_file_name, f)
 
     def _SetGalerkinBnSParameters(self):
         # Retrieve the default parameters as a JSON string and parse it into a dictionary
