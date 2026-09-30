@@ -55,6 +55,9 @@ import algorithm_tests.analysis_based_tests.algorithm_adam.test_adam_analysis
 import algorithm_tests.analysis_based_tests.algorithm_gradient_projection.test_gradient_projection
 import algorithm_tests.analysis_based_tests.algorithm_relaxed_gradient_projection.test_relaxed_gradient_projection
 import algorithm_tests.nlopt_tests.mma_shell_thickness_opt.test_mma_optimizer
+import algorithm_tests.test_mma_math
+import algorithm_tests.test_algorithm_mma
+import algorithm_tests.analysis_based_tests.algorithm_mma.test_mma_analysis
 
 # Nightly tests
 
@@ -132,6 +135,11 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([algorithm_tests.analysis_based_tests.algorithm_relaxed_gradient_projection.test_relaxed_gradient_projection.TestRelaxedGradientProjectionAnalysis]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([algorithm_tests.analysis_based_tests.algorithm_nesterov_accelerated_gradient.test_nestervo_accelerated_gradient_analysis.TestNesterovAcceleratedGradientAnalysis]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([algorithm_tests.analysis_based_tests.algorithm_adam.test_adam_analysis.TestAdamAnalysis]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([algorithm_tests.test_mma_math.TestMMAMathCantileverBeam]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([algorithm_tests.test_mma_math.TestMMAMathTwoBarTruss]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([algorithm_tests.test_algorithm_mma.TestAlgorithmMMAUnconstrained]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([algorithm_tests.test_algorithm_mma.TestAlgorithmMMAConstrained]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([algorithm_tests.analysis_based_tests.algorithm_mma.test_mma_analysis.TestMMAAnalysis]))
 
 
 
