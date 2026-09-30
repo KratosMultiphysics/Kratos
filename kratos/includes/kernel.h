@@ -156,6 +156,11 @@ class KRATOS_API(KRATOS_CORE) Kernel {
 
     void PrintParallelismSupportInfo() const;
 
+    /**
+     * @brief This method prints all the system hardware information
+     */
+    void PrintSystemInfo() const;
+
     ///@}
    private:
     ///@name Static Member Variables
