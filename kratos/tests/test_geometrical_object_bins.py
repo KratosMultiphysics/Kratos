@@ -106,6 +106,29 @@ class TestGeometricalObjectBins(KratosUnittest.TestCase):
             self.assertEqual(len(results), 1)
             self.assertEqual(results[0].Get().Id, 1)
 
+    def test_GeometricalObjectsBins_SearchInBoundingBox(self):
+        # Define radius
+        point_min = KM.Point(-0.25, -0.25, -0.10)
+        point_max = KM.Point(0.25, 0.25, 0.40)
+
+        # Reference solution
+        cond_id_ref = [34, 12, 117, 89, 14, 116, 120, 103, 88, 2, 98, 95, 112, 51, 110, 77, 92]
+
+        # One node search
+        if not KM.IsDistributedRun():
+            results = self.search.SearchInBoundingBox(self.node, point_min, point_max)
+            self.assertEqual(len(results), 17)
+            for result in results:
+                self.assertTrue(result.Get().Id in cond_id_ref)
+
+        # Nodes array search
+        results = self.search.SearchInBoundingBox(self.sub_model_part.Nodes, point_min, point_max)
+        if self.is_first_partition():
+            self.assertEqual(len(results), 1)
+            self.assertEqual(len(results[0]), 17)
+            for result in results[0]:
+                self.assertTrue(result.Get().Id in cond_id_ref)
+
     def test_GeometricalObjectsBins_SearchNearest(self):
         # One node search
         if not KM.IsDistributedRun():
