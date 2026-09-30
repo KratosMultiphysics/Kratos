@@ -561,15 +561,16 @@ class RomManager(object):
 
     def _LocalEmpiricalCubature(self, residuals_list, initial_candidates=None):
         """
-        Runs the ECM for each matrix of projected residuals (one per solver). The entities selected so far are the
-        initial candidates of the next one. Returns the selected indexes and their weights (one column per coupled solver).
+        Runs the ECM for each matrix of projected residuals (one per solver), with the HROM settings of that solver. The entities
+        selected so far are the initial candidates of the next one. Returns the selected indexes and their weights (one column per coupled solver).
         """
-        svd_truncation_tolerance = self.general_rom_manager_parameters["HROM"]["element_selection_svd_truncation_tolerance"].GetDouble()
-        constrain_sum_of_weights = self.general_rom_manager_parameters["HROM"]["constraint_sum_weights"].GetBool()
+        hrom_settings_list = [coupled_solver["HROM"] for coupled_solver in self._GetCoupledSolvers()] or [self.general_rom_manager_parameters["HROM"]]
         weights_matrix = np.zeros((residuals_list[0].shape[0], len(residuals_list)))
         selected = np.empty(0, dtype=int)
         candidates = initial_candidates
         for i, residuals in enumerate(residuals_list):
+            svd_truncation_tolerance = hrom_settings_list[i]["element_selection_svd_truncation_tolerance"].GetDouble()
+            constrain_sum_of_weights = hrom_settings_list[i]["constraint_sum_weights"].GetBool()
             u,_,_,_ = RandomizedSingularValueDecomposition(COMPUTE_V=False).Calculate(residuals, svd_truncation_tolerance)
             element_selector = EmpiricalCubatureMethod()
             element_selector.SetUp(u, InitialCandidatesSet = candidates, constrain_sum_of_weights = constrain_sum_of_weights)
@@ -902,31 +903,90 @@ class RomManager(object):
             return solver_settings["material_import_settings"]["materials_filename"].GetString()
         return None
 
+    # Settings that can be given per coupled solver. The rest of the 'ROM' and 'HROM' settings are shared by all of them
+    _COUPLED_SOLVER_SETTINGS = {
+        "ROM" : ["model_part_name", "nodal_unknowns", "svd_truncation_tolerance"],
+        "HROM" : ["element_selection_svd_truncation_tolerance", "constraint_sum_weights"]
+    }
+
+    def _SetUpCoupledSolvers(self):
+        """
+        Validates the 'coupled_solvers' and completes the 'ROM' and 'HROM' settings of each of them with the general ones.
+        A single (monolithic) ROM basis shared by all the coupled solvers is currently supported. Hence, its snapshots
+        contain the 'nodal_unknowns' of all of them and the smallest 'svd_truncation_tolerance' among them is used.
+        """
+        coupled_solvers = self.general_rom_manager_parameters["coupled_solvers"]
+        for i in range(coupled_solvers.size()):
+            self._CompleteCoupledSolverSettings(coupled_solvers[i])
+        if coupled_solvers.size() == 0:
+            return
+
+        rom_settings = self.general_rom_manager_parameters["ROM"]
+        tolerances = {coupled_solvers[i]["sub_solver_name"].GetString() : coupled_solvers[i]["ROM"]["svd_truncation_tolerance"].GetDouble() for i in range(coupled_solvers.size())}
+        if len(set(tolerances.values())) > 1:
+            KratosMultiphysics.Logger.PrintWarning("RomManager", f"Different 'svd_truncation_tolerance' set for the coupled solvers {tolerances}. Only a monolithic ROM basis (shared by all the coupled solvers) is currently supported, so the smallest one ({min(tolerances.values())}) is used.")
+        rom_settings["svd_truncation_tolerance"].SetDouble(min(tolerances.values()))
+        nodal_unknowns = set()
+        for i in range(coupled_solvers.size()):
+            nodal_unknowns.update(coupled_solvers[i]["ROM"]["nodal_unknowns"].GetStringArray())
+        rom_settings["nodal_unknowns"].SetStringArray(sorted(nodal_unknowns))
+
+    def _CompleteCoupledSolverSettings(self, coupled_solver):
+        coupled_solver.ValidateAndAssignDefaults(KratosMultiphysics.Parameters("""{
+            "sub_solver_name": "",
+            "ROM": {},
+            "HROM": {}
+        }"""))
+        sub_solver_name = coupled_solver["sub_solver_name"].GetString()
+        if not sub_solver_name:
+            raise Exception("Each of the 'coupled_solvers' must provide its 'sub_solver_name' (e.g. 'fluid_solver').")
+        for block, supported_keys in self._COUPLED_SOLVER_SETTINGS.items():
+            general_settings = self.general_rom_manager_parameters[block]
+            for key in coupled_solver[block].keys():
+                if key not in supported_keys:
+                    raise Exception(f"'{key}' cannot be set in the '{block}' settings of the coupled solver '{sub_solver_name}'. The ones supported per coupled solver are {supported_keys}; the rest are shared by all the coupled solvers and are set in the general '{block}' settings.")
+            # Check the types against the general settings
+            supported_defaults = KratosMultiphysics.Parameters()
+            for key in supported_keys:
+                supported_defaults.AddValue(key, general_settings[key])
+            coupled_solver[block].ValidateDefaults(supported_defaults)
+            for key in supported_keys:
+                if not coupled_solver[block].Has(key):
+                    coupled_solver[block].AddValue(key, general_settings[key])
+
     def _GetCoupledSolvers(self):
         """
-        Returns the (sub_solver_name, model_part_name) of the coupled sub-solvers, e.g. [('fluid_solver', 'FluidModelPart'), ('thermal_solver', 'ThermalModelPart')].
-        These are taken from 'coupled_solvers' in the ROM settings or, if not provided, from the '<sub_solver_name>_settings' of a coupled solver
+        Returns the settings of the coupled sub-solvers ('sub_solver_name' and complete 'ROM' and 'HROM' settings).
+        These are taken from 'coupled_solvers' or, if not provided, from the '<sub_solver_name>_settings' of a coupled solver
         in the project parameters. Empty for a single solver.
         """
-        coupled_solvers = self.general_rom_manager_parameters["ROM"]["coupled_solvers"]
+        coupled_solvers = self.general_rom_manager_parameters["coupled_solvers"]
         if coupled_solvers.size() > 0:
-            return [(coupled_solvers[i]["sub_solver_name"].GetString(), coupled_solvers[i]["model_part_name"].GetString()) for i in range(coupled_solvers.size())]
+            return [coupled_solvers[i] for i in range(coupled_solvers.size())]
         with open(self.project_parameters_name,'r') as parameter_file:
             solver_settings = KratosMultiphysics.Parameters(parameter_file.read())["solver_settings"]
         if solver_settings["solver_type"].GetString() != "ThermallyCoupled": # Coupled solver supported by the RomAnalysis
             return []
-        return [(key[:-len("_settings")], value["model_part_name"].GetString()) for key, value in solver_settings.items() if key.endswith("_solver_settings") and value.Has("model_part_name")]
+        detected_solvers = []
+        for key, value in solver_settings.items():
+            if key.endswith("_solver_settings") and value.Has("model_part_name"):
+                coupled_solver = KratosMultiphysics.Parameters("""{"ROM": {}, "HROM": {}}""")
+                coupled_solver.AddString("sub_solver_name", key[:-len("_settings")])
+                coupled_solver["ROM"].AddString("model_part_name", value["model_part_name"].GetString())
+                self._CompleteCoupledSolverSettings(coupled_solver)
+                detected_solvers.append(coupled_solver)
+        return detected_solvers
 
     def _GetCoupledSolverNames(self):
         """Returns the names of the coupled sub-solvers (e.g. ['fluid_solver', 'thermal_solver']). Empty for a single solver."""
-        return [sub_solver_name for sub_solver_name, _ in self._GetCoupledSolvers()]
+        return [coupled_solver["sub_solver_name"].GetString() for coupled_solver in self._GetCoupledSolvers()]
 
     def _GetResidualsProjectedOutputSettings(self):
         """Returns the (sub_solver_name, model_part_name, output folder) of each ProjectedResidualsOutputProcess: one per coupled sub-solver, or one for the solver."""
         rom_basis_output_folder = Path(self.general_rom_manager_parameters["ROM"]["rom_basis_output_folder"].GetString())
         coupled_solvers = self._GetCoupledSolvers()
         if coupled_solvers:
-            return [(sub_solver_name, model_part_name, rom_basis_output_folder / f"Residuals_{sub_solver_name}") for sub_solver_name, model_part_name in coupled_solvers]
+            return [(coupled_solver["sub_solver_name"].GetString(), coupled_solver["ROM"]["model_part_name"].GetString(), rom_basis_output_folder / f"Residuals_{coupled_solver['sub_solver_name'].GetString()}") for coupled_solver in coupled_solvers]
         return [("", self.general_rom_manager_parameters["ROM"]["model_part_name"].GetString(), rom_basis_output_folder / "Residuals")]
 
     def _AddResidualsProjectedOutputProcessToProjectParameters(self, parameters):
@@ -1019,6 +1079,7 @@ class RomManager(object):
             "save_vtk_output": false,                    // false, true #if true, it must exits previously in the ProjectParameters.json
             "output_name": "id",                         // "id" , "mu"
             "store_nonconverged_fom_solutions": false,
+            "coupled_solvers": [],                       // [] for a single solver. e.g. [{"sub_solver_name": "fluid_solver", "ROM": {"model_part_name": "FluidModelPart"}, "HROM": {}}, {"sub_solver_name": "thermal_solver", "ROM": {"model_part_name": "ThermalModelPart"}, "HROM": {}}]
             "ROM":{
                 "svd_truncation_tolerance": 1e-5,
                 "model_part_name": "Structure",                            // This changes depending on the simulation: Structure, FluidModelPart, ThermalPart #TODO: Idenfity it automatically
@@ -1030,7 +1091,6 @@ class RomManager(object):
                 "snapshots_interval": 1,
                 "print_singular_values": false,
                 "use_non_converged_sols" : false,
-                "coupled_solvers": [],                                     // e.g. [{"sub_solver_name": "fluid_solver", "model_part_name": "FluidModelPart"}, {"sub_solver_name": "thermal_solver", "model_part_name": "ThermalModelPart"}]
                 "galerkin_rom_bns_settings": {
                     "monotonicity_preserving": false
                 },
@@ -1083,6 +1143,7 @@ class RomManager(object):
         }""")
 
         self.general_rom_manager_parameters.RecursivelyValidateAndAssignDefaults(default_settings)
+        self._SetUpCoupledSolvers()
 
 
 
