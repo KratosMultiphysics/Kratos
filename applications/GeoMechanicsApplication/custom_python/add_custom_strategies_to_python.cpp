@@ -12,7 +12,7 @@
 //
 
 // External includes
-#include "spaces/ublas_space.h"
+#include "spaces/default_spaces.h"
 
 // Project includes
 #include "custom_python/add_custom_strategies_to_python.h"
@@ -21,6 +21,7 @@
 // strategies
 #include "custom_strategies/strategies/geo_mechanics_newton_raphson_erosion_process_strategy.hpp"
 #include "custom_strategies/strategies/geo_mechanics_newton_raphson_strategy.hpp"
+#include "custom_strategies/strategies/geo_mechanics_newton_raphson_strategy_with_seepage.hpp"
 #include "custom_strategies/strategies/geo_mechanics_quasi_newton_strategy.hpp"
 #include "solving_strategies/strategies/solving_strategy.h"
 
@@ -49,8 +50,8 @@ void AddCustomStrategiesToPython(const pybind11::module& m)
 {
     namespace py = pybind11;
 
-    using SparseSpaceType = UblasSpace<double, CompressedMatrix, Vector>;
-    using LocalSpaceType  = UblasSpace<double, Matrix, Vector>;
+    using SparseSpaceType = TDefaultSparseSpace<double>;
+    using LocalSpaceType  = TDefaultDenseSpace<double>;
 
     using LinearSolverType = LinearSolver<SparseSpaceType, LocalSpaceType>;
     using BaseSolvingStrategyType = ImplicitSolvingStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType>;
@@ -80,6 +81,8 @@ void AddCustomStrategiesToPython(const pybind11::module& m)
         GeoMechanicsQuasiNewtonStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType>;
     using GeoMechanicsNewtonRaphsonErosionProcessStrategyType =
         GeoMechanicsNewtonRaphsonErosionProcessStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType>;
+    using GeoMechanicsNewtonRaphsonStrategyWithSeepageType =
+        GeoMechanicsNewtonRaphsonStrategyWithSeepage<SparseSpaceType, LocalSpaceType, LinearSolverType>;
 
     py::class_<NewmarkQuasistaticUPwSchemeType, typename NewmarkQuasistaticUPwSchemeType::Pointer, BaseSchemeType>(
         m, "NewmarkQuasistaticUPwScheme", py::module_local())
@@ -136,6 +139,11 @@ void AddCustomStrategiesToPython(const pybind11::module& m)
         m, "GeoMechanicsNewtonRaphsonErosionProcessStrategy")
         .def(py::init<ModelPart&, BaseSchemeType::Pointer, ConvergenceCriteriaType::Pointer,
                       BuilderAndSolverType::Pointer, Parameters&, int, bool, bool, bool>());
+
+    py::class_<GeoMechanicsNewtonRaphsonStrategyWithSeepageType, typename GeoMechanicsNewtonRaphsonStrategyWithSeepageType::Pointer, BaseSolvingStrategyType>(
+        m, "GeoMechanicsNewtonRaphsonStrategyWithSeepage")
+        .def(py::init<ModelPart&, BaseSchemeType::Pointer, ConvergenceCriteriaType::Pointer,
+                      BuilderAndSolverType::Pointer, const Parameters&, int, bool, bool, bool>());
 
     using ResidualBasedBlockBuilderAndSolverWithMassAndDampingType =
         ResidualBasedBlockBuilderAndSolverWithMassAndDamping<SparseSpaceType, LocalSpaceType, LinearSolverType>;

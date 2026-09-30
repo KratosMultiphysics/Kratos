@@ -22,7 +22,7 @@
 // Utility includes
 #include "includes/define.h"
 #include "includes/model_part.h"
-#include "spaces/ublas_space.h"
+#include "spaces/default_spaces.h"
 #include "solving_strategies/schemes/residual_based_newmark_displacement_scheme.hpp"
 #include "solving_strategies/schemes/residual_based_bossak_displacement_scheme.hpp"
 #include "solving_strategies/schemes/residual_based_bdf_displacement_scheme.h"
@@ -34,8 +34,8 @@ namespace Kratos
     {
         /// Tests
 
-        typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
-        typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
+        typedef TDefaultSparseSpace<double> SparseSpaceType;
+        typedef TDefaultDenseSpace<double> LocalSpaceType;
 
         typedef Scheme< SparseSpaceType, LocalSpaceType >  SchemeType;
         typedef ModelPart::DofsArrayType DofsArrayType;

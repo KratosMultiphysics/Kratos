@@ -137,13 +137,15 @@ class TestCombinedResponseFunction(kratos_unittest.TestCase):
             nodal_ta = Kratos.TensorAdaptors.VariableTensorAdaptor(self.model_part.Nodes, KratosOA.SHAPE)
             if add_density_physical_var:
                 data = {
-                    Kratos.DENSITY: Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor([elem_ta], copy=False),
-                    KratosOA.SHAPE: Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor([nodal_ta], copy=False)
+                    Kratos.DENSITY: Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor([elem_ta], copy=False, perform_store_data_recursively=False),
+                    KratosOA.SHAPE: Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor([nodal_ta], copy=False, perform_store_data_recursively=False)
                 }
             else:
                 data = {
-                    KratosOA.SHAPE: Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor([nodal_ta], copy=False)
+                    KratosOA.SHAPE: Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor([nodal_ta], copy=False, perform_store_data_recursively=False)
                 }
+            for _, v in data.items():
+                v.CollectData()
             return nodal_ta, elem_ta, data
 
         # calculate all the values first
