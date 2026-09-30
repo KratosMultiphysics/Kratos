@@ -35,14 +35,6 @@ NurbsGeometryModelerGapSbm::NurbsGeometryModelerGapSbm(
         << "\"upper_point_xyz\", respectively."
         << std::endl;
 
-    KRATOS_ERROR_IF(
-        mParameters.Has("lambda_inner") ||
-        mParameters.Has("lambda_outer"))
-        << "NurbsGeometryModelerGapSbm: \"lambda_inner\" and \"lambda_outer\" "
-        << "must not be provided in ProjectParameters. GapSBM assigns these "
-        << "values internally."
-        << std::endl;
-
     mParameters.ValidateDefaults(this->GetValidParameters());
     mParameters.AddMissingParameters(this->GetDefaultParameters());
 
@@ -183,6 +175,10 @@ void NurbsGeometryModelerGapSbm::CreateAndAddRegularGrid2D(
     snake_parameters.AddString("gap_element_name", mParameters["gap_element_name"].GetString());
     snake_parameters.AddString("gap_interface_condition_name", mParameters["gap_interface_condition_name"].GetString());
     snake_parameters.AddString("gap_sbm_type", mParameters["gap_sbm_type"].GetString());
+    if (mParameters.Has("lambda_inner"))
+        snake_parameters.AddDouble("lambda_inner", mParameters["lambda_inner"].GetDouble());
+    if (mParameters.Has("lambda_outer"))
+        snake_parameters.AddDouble("lambda_outer", mParameters["lambda_outer"].GetDouble());
     if (mParameters.Has("number_of_inner_loops"))
         snake_parameters.AddDouble("number_of_inner_loops", mParameters["number_of_inner_loops"].GetInt());
     if (mParameters.Has("number_internal_divisions"))
@@ -334,6 +330,10 @@ void NurbsGeometryModelerGapSbm::CreateAndAddRegularGrid3D(
     // snake_parameters.AddString("gap_element_name", mParameters["gap_element_name"].GetString());
     // snake_parameters.AddString("gap_interface_condition_name", mParameters["gap_interface_condition_name"].GetString());
     // snake_parameters.AddString("gap_sbm_type", mParameters["gap_sbm_type"].GetString());
+    // if (mParameters.Has("lambda_inner"))
+    //     snake_parameters.AddDouble("lambda_inner", mParameters["lambda_inner"].GetDouble());
+    // if (mParameters.Has("lambda_outer"))
+    //     snake_parameters.AddDouble("lambda_outer", mParameters["lambda_outer"].GetDouble());
     // if (mParameters.Has("number_of_inner_loops"))
     //     snake_parameters.AddDouble("number_of_inner_loops", mParameters["number_of_inner_loops"].GetInt());
     // if (mParameters.Has("gap_approximation_order"))
@@ -393,6 +393,8 @@ const Parameters NurbsGeometryModelerGapSbm::GetValidParameters() const
         "upper_point_xyz": [1.0, 1.0, 0.0],
         "polynomial_order" : [2, 2],
         "number_of_knot_spans" : [10, 10],
+        "lambda_inner": 0.5,
+        "lambda_outer": 0.5,
         "number_of_inner_loops": 0,
         "number_initial_points_if_importing_nurbs": 100,
         "number_internal_divisions": 1,
