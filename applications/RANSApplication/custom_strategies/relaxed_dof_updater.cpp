@@ -11,7 +11,7 @@
 //
 
 // Project includes
-#include "spaces/ublas_space.h"
+#include "spaces/default_spaces.h"
 #include "utilities/parallel_utilities.h"
 
 // Include base h
@@ -19,11 +19,20 @@
 
 namespace Kratos
 {
+template <>
+void RelaxedDofUpdater<TDefaultSparseSpace<double>>::Initialize(
+    const DofsArrayType& rDofSet,
+    const SystemVectorType& rDx)
+{
+}
 
-using SparseSpace = UblasSpace<double, CompressedMatrix, Vector>;
+template <>
+void RelaxedDofUpdater<TDefaultSparseSpace<double>>::Clear()
+{
+}
 
-template<class TSparseSpace>
-void RelaxedDofUpdater<TSparseSpace>::UpdateDofs(
+template <>
+void RelaxedDofUpdater<TDefaultSparseSpace<double>>::UpdateDofs(
     DofsArrayType& rDofSet,
     const SystemVectorType& rDx)
 {
@@ -36,21 +45,18 @@ void RelaxedDofUpdater<TSparseSpace>::UpdateDofs(
     }
 }
 
-template<class TSparseSpace>
-std::string RelaxedDofUpdater<TSparseSpace>::Info() const
+template <>
+std::string RelaxedDofUpdater<TDefaultSparseSpace<double>>::Info() const
 {
-    if constexpr (std::is_same_v<TSparseSpace, SparseSpace>) {
-        std::stringstream buffer;
-        buffer << "RelaxedDofUpdater - UblasSpace";
-        return buffer.str();
-    }
+    std::stringstream buffer;
+    buffer << "RelaxedDofUpdater - default sparse space";
+    return buffer.str();
 }
 
 ///@}
 
 //class template instantiations
-template class DofUpdater<SparseSpace>;
-template class RelaxedDofUpdater<SparseSpace>;
+template class RelaxedDofUpdater<TDefaultSparseSpace<double>>;
 }; // namespace Kratos
 
 ///@}

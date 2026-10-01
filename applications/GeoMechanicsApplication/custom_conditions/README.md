@@ -164,4 +164,15 @@ $$ P_a^{j+1} = P_p^{j+1}$$
 
 $$ E_a^{j+1} = E_p^{j+1}$$
 
-The maximum storage capacity $S_{max}$ is a user defined parameter. The potential precipitation $P_p$ is also given by the user, usually in the form of time-precipitation table in the MPDA file. 
+The maximum storage capacity $S_{max}$ is a user defined parameter. The potential precipitation $P_p$ is also given by the user, usually in the form of time-precipitation table in the MPDA file.
+
+## Validation
+The following validation cases will be considered for this functionality (links to be added when the validation cases are added to the test suite):
+- A test case where a fluid flux is imposed on the bottom boundary, leading to outflow on the top seepage boundary. This should lead to a full Dirichlet condition ($p=0$).
+- A test case where a high pressure is applied on the bottom boundary, leading to outflow on the top seepage boundary. This should also lead to a full Dirichlet condition ($p=0$).
+- A test case where a low pressure is applied on the bottom boundary, which would lead to inflow if there is no seepage boundary, resulting in the seepage boundary exhibiting the behavior of a pure zero-flux Neumann boundary.
+- A test case where the pressure on the bottom is ramped up in a transient run, leading the seepage boundary at the top to switch from no-flow to a full Dirichlet condition.
+- The Muskat case (steady state), which has a seepage boundary for which both Dirichlet and Neumann behavior is exhibited on the same seepage boundary.
+
+# Seepage Boundary Condition
+The seepage boundary condition merely acts as marker to indicate where seepage may occur. The logic that decides where outflow occurs and where no-flow occurs is implemented in the [Newton-Raphson strategy with seepage](../custom_strategies/strategies/README.md). Consequently, this boundary condition has a rather limited implementation. It only provides overrides for the following member functions: `Check`, `Create`, `Info`, `save`, and `load`.

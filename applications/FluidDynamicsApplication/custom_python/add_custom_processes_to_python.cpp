@@ -43,7 +43,7 @@
 #include "custom_processes/compute_y_plus_process.h"
 #include "custom_processes/two_fluid_navier_stokes_fractional_convection_process.h"
 
-#include "spaces/ublas_space.h"
+#include "spaces/default_spaces.h"
 
 #include "linear_solvers/linear_solver.h"
 #include "solving_strategies/strategies/implicit_solving_strategy.h"
@@ -60,8 +60,8 @@ void AddCustomProcessesToPython(pybind11::module& m)
 {
     namespace py = pybind11;
 
-    typedef UblasSpace<double, CompressedMatrix, boost::numeric::ublas::vector<double> > SparseSpaceType;
-    typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
+    typedef TDefaultSparseSpace<double> SparseSpaceType;
+    typedef TDefaultDenseSpace<double> LocalSpaceType;
     typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
 
     py::class_<SpalartAllmarasTurbulenceModel< SparseSpaceType, LocalSpaceType, LinearSolverType >, SpalartAllmarasTurbulenceModel< SparseSpaceType, LocalSpaceType, LinearSolverType >::Pointer, Process>

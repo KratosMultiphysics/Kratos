@@ -225,7 +225,7 @@ void AddedMassCondition<TDim,TNumNodes>::CalculateRHS( VectorType& rRightHandSid
 		Geom.Jacobian( JContainer, mThisIntegrationMethod );
 
         double IntegrationCoefficient;
-        BoundedMatrix<double,TNumNodes,TNumNodes> MassMatrix;
+        BoundedMatrix<double,TNumNodes*TDim,TNumNodes*TDim> MassMatrix;
         Vector ShapeFunctionsValues;
         ShapeFunctionsValues.resize(TNumNodes,false);
         Vector AccelerationVector;

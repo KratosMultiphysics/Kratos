@@ -28,6 +28,7 @@
 
 // External includes
 #include "amgcl/adapter/epetra.hpp"
+#include "spaces/default_spaces.h"
 
 // Project includes
 #include "trilinos_space.h"
@@ -106,7 +107,7 @@ template class KRATOS_API(TRILINOS_APPLICATION) Kratos::AMGCLSolver<
 
 template class KRATOS_API(TRILINOS_APPLICATION) AmgclMPISolver<
     TrilinosSpace<Epetra_FECrsMatrix, Epetra_FEVector>,
-    UblasSpace<double, Matrix, Vector>
+    TDefaultDenseSpace<double>
 >;
 
 } // namespace Kratos

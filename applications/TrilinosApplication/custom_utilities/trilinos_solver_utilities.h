@@ -16,6 +16,7 @@
 // External includes
 #pragma GCC visibility push(default)
 #include "Teuchos_ParameterList.hpp"
+#include "Teuchos_Comm.hpp"
 #include <mpi.h>
 #include "Epetra_Comm.h"
 #pragma GCC visibility pop
@@ -30,6 +31,8 @@ namespace TrilinosSolverUtilities {
 void KRATOS_API(TRILINOS_APPLICATION) SetTeuchosParameters(const Parameters rSettings, Teuchos::ParameterList& rParameterlist);
 
 MPI_Comm KRATOS_API(TRILINOS_APPLICATION) GetMPICommFromEpetraComm(const Epetra_Comm& rEpetraComm);
+
+MPI_Comm GetMPICommFromTeuchosComm(const Teuchos::Comm<int>& rTeuchosComm);
 
 }  // namespace TrilinosSolverUtilities.
 }  // namespace Kratos.
