@@ -13,7 +13,6 @@
 #include "containers/model.h"
 #include "structural_mechanics_fast_suite.h"
 #include "structural_mechanics_application_variables.h"
-#include "custom_utilities/structural_mechanics_element_utilities.h"
 
 #include <utility>
 #include <boost/numeric/ublas/assignment.hpp>
@@ -525,8 +524,13 @@ KRATOS_TEST_CASE_IN_SUITE(LinearTimoshenkoBeam3D2N_InternalForcesAreFrameInvaria
     auto p_aligned_beam  = CreateLinearTimoshenkoBeam3D2N(r_aligned_model_part,  array_1d<double, 3>{7.0, 0.0, 0.0});
     auto p_inclined_beam = CreateLinearTimoshenkoBeam3D2N(r_inclined_model_part, array_1d<double, 3>{2.0, 3.0, 6.0});
 
-    // Columns of the rotation are the local axes of the inclined beam
-    const BoundedMatrix<double, 3, 3> rotation = trans(StructuralMechanicsElementUtilities::GetFrenetSerretMatrix3D(p_inclined_beam->GetGeometry()));
+    // Columns of the rotation are the local axes of the inclined beam: the beam axis, the default
+    // local axis 2 (global Y) made orthogonal to the beam axis, and the cross product of both
+    const double sqrt_10 = std::sqrt(10.0);
+    BoundedMatrix<double, 3, 3> rotation;
+    rotation <<= 2.0 / 7.0, -3.0 / (7.0 * sqrt_10), -3.0 / sqrt_10,
+                 3.0 / 7.0, 20.0 / (7.0 * sqrt_10),  0.0,
+                 6.0 / 7.0, -9.0 / (7.0 * sqrt_10),  1.0 / sqrt_10;
     ApplyLocalDeformation(*p_aligned_beam, IdentityMatrix(3));
     ApplyLocalDeformation(*p_inclined_beam, rotation);
 
