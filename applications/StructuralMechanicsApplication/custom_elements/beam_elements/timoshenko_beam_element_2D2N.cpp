@@ -787,6 +787,156 @@ void LinearTimoshenkoBeamElement2D2N::CalculateRightHandSide(
 /***********************************************************************************/
 /***********************************************************************************/
 
+void LinearTimoshenkoBeamElement2D2N::Calculate(
+    const Variable<Vector>& rVariable,
+    Vector& rOutput,
+    const ProcessInfo& rCurrentProcessInfo
+    )
+{
+    if (rVariable == INTERNAL_FORCES_VECTOR) {
+        CalculateInternalForces(rOutput, rCurrentProcessInfo);
+    } else if (rVariable == EXTERNAL_FORCES_VECTOR) {
+        CalculateExternalForces(rOutput, rCurrentProcessInfo);
+    } else {
+        KRATOS_ERROR << "Variable " << rVariable.Name() << " not supported in element " << this->Info() << std::endl;
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void LinearTimoshenkoBeamElement2D2N::CalculateInternalForces(
+    VectorType& rInternalForces,
+    const ProcessInfo& rProcessInfo
+    )
+{
+    KRATOS_TRY;
+    const auto &r_geometry = GetGeometry();
+    const auto &r_props = GetProperties();
+    const SizeType number_of_nodes = r_geometry.size();
+    const SizeType mat_size = GetDoFsPerNode() * number_of_nodes;
+    const SizeType strain_size = mConstitutiveLawVector[0]->GetStrainSize();
+
+    if (rInternalForces.size() != mat_size) {
+        rInternalForces.resize(mat_size, false);
+    }
+    noalias(rInternalForces) = ZeroVector(mat_size);
+
+    const auto& integration_points = IntegrationPoints(GetIntegrationMethod());
+
+    ConstitutiveLaw::Parameters cl_values(r_geometry, r_props, rProcessInfo);
+    auto &r_cl_options = cl_values.GetOptions();
+    r_cl_options.Set(ConstitutiveLaw::COMPUTE_STRESS             , true);
+    r_cl_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
+
+    const double length = CalculateLength();
+    const double Phi    = StructuralMechanicsElementUtilities::CalculatePhi(r_props, length);
+    const double J      = 0.5 * length;
+
+    // Let's initialize the cl values
+    VectorType strain_vector(strain_size), stress_vector(strain_size);
+    MatrixType constitutive_matrix(strain_size, strain_size);
+    strain_vector.clear();
+    cl_values.SetStrainVector(strain_vector);
+    cl_values.SetStressVector(stress_vector);
+    cl_values.SetConstitutiveMatrix(constitutive_matrix);
+    VectorType nodal_values(mat_size);
+    GetNodalValuesVector(nodal_values);
+    VectorType global_size_N(mat_size), N_u_derivatives(number_of_nodes), N_theta_derivatives(mat_size-number_of_nodes),
+        N_theta(mat_size-number_of_nodes), N_derivatives(mat_size-number_of_nodes);
+
+    // Loop over the integration points
+    for (SizeType IP = 0; IP < integration_points.size(); ++IP) {
+        global_size_N.clear();
+        const double xi     = integration_points[IP].X();
+        const double weight = integration_points[IP].Weight();
+        const double jacobian_weight = weight * J;
+
+        CalculateGeneralizedStrainsVector(strain_vector, length, Phi, xi, nodal_values);
+
+        mConstitutiveLawVector[IP]->CalculateMaterialResponseCauchy(cl_values);
+        const Vector &r_generalized_stresses = cl_values.GetStressVector();
+        const double N = r_generalized_stresses[0];
+        const double M = r_generalized_stresses[1];
+        const double V = r_generalized_stresses[2];
+
+        GetFirstDerivativesNu0ShapeFunctionsValues(N_u_derivatives, length, Phi, xi);
+        GetFirstDerivativesNThetaShapeFunctionsValues(N_theta_derivatives, length, Phi, xi);
+        GetNThetaShapeFunctionsValues(N_theta, length, Phi, xi);
+        GetFirstDerivativesShapeFunctionsValues(N_derivatives, length, Phi, xi);
+
+        // Axial contributions
+        GlobalSizeAxialVector(global_size_N, N_u_derivatives);
+        noalias(rInternalForces) += global_size_N * N * jacobian_weight;
+
+        // Bending contributions
+        GlobalSizeVector(global_size_N, N_theta_derivatives);
+        noalias(rInternalForces) += global_size_N * M * jacobian_weight;
+
+        // Shear contributions
+        GlobalSizeVector(global_size_N, N_derivatives - N_theta);
+        noalias(rInternalForces) += global_size_N * V * jacobian_weight;
+    }
+
+    RotateRHS(rInternalForces, r_geometry);
+    KRATOS_CATCH("");
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void LinearTimoshenkoBeamElement2D2N::CalculateExternalForces(
+    VectorType& rExternalForces,
+    const ProcessInfo& rProcessInfo
+    )
+{
+    KRATOS_TRY;
+    const auto &r_geometry = GetGeometry();
+    const auto &r_props = GetProperties();
+    const SizeType number_of_nodes = r_geometry.size();
+    const SizeType mat_size = GetDoFsPerNode() * number_of_nodes;
+
+    if (rExternalForces.size() != mat_size) {
+        rExternalForces.resize(mat_size, false);
+    }
+    noalias(rExternalForces) = ZeroVector(mat_size);
+
+    const auto& integration_points = IntegrationPoints(GetIntegrationMethod());
+
+    const double length = CalculateLength();
+    const double Phi    = StructuralMechanicsElementUtilities::CalculatePhi(r_props, length);
+    const double J      = 0.5 * length;
+    const double area   = GetCrossArea();
+
+    VectorType global_size_N(mat_size), N_u(number_of_nodes), N_shape(mat_size-number_of_nodes);
+
+    // Loop over the integration points
+    for (SizeType IP = 0; IP < integration_points.size(); ++IP) {
+        const auto local_body_forces = GetLocalAxesBodyForce(*this, integration_points, IP);
+
+        global_size_N.clear();
+        const double xi     = integration_points[IP].X();
+        const double weight = integration_points[IP].Weight();
+        const double J_area = weight * J * area;
+
+        GetShapeFunctionsValues(N_shape, length, Phi, xi);
+        GetNu0ShapeFunctionsValues(N_u, length, Phi, xi);
+
+        // Body forces contributions
+        GlobalSizeAxialVector(global_size_N, N_u);
+        noalias(rExternalForces) += global_size_N * local_body_forces[0] * J_area;
+
+        GlobalSizeVector(global_size_N, N_shape);
+        noalias(rExternalForces) += global_size_N * local_body_forces[1] * J_area;
+    }
+
+    RotateRHS(rExternalForces, r_geometry);
+    KRATOS_CATCH("");
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 void LinearTimoshenkoBeamElement2D2N::RotateLHS(
     MatrixType& rLHS,
     const GeometryType& rGeometry

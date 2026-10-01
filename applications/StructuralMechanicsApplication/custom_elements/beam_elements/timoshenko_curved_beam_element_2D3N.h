@@ -329,6 +329,40 @@ public:
         ) override;
 
     /**
+     * @brief Calculates a Vector variable on the element
+     * @details Supports INTERNAL_FORCES_VECTOR and EXTERNAL_FORCES_VECTOR, such that RHS = external - internal
+     * @param rVariable The variable to be computed
+     * @param rOutput The resulting vector
+     * @param rCurrentProcessInfo the current process info instance
+     */
+    void Calculate(
+        const Variable<Vector>& rVariable,
+        Vector& rOutput,
+        const ProcessInfo& rCurrentProcessInfo
+        ) override;
+    using Element::Calculate;
+
+    /**
+     * @brief Computes the internal forces vector (stress contributions)
+     * @param rInternalForces the elemental internal forces vector
+     * @param rCurrentProcessInfo the current process info instance
+     */
+    void CalculateInternalForces(
+        VectorType& rInternalForces,
+        const ProcessInfo& rCurrentProcessInfo
+        );
+
+    /**
+     * @brief Computes the external forces vector (body force contributions)
+     * @param rExternalForces the elemental external forces vector
+     * @param rCurrentProcessInfo the current process info instance
+     */
+    void CalculateExternalForces(
+        VectorType& rExternalForces,
+        const ProcessInfo& rCurrentProcessInfo
+        );
+
+    /**
      * @brief Calculate a double Variable on the Element Constitutive Law
      * @param rVariable The variable we want to get
      * @param rOutput The values obtained in the integration points

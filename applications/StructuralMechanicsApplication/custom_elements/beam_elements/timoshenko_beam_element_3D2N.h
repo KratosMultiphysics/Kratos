@@ -187,6 +187,14 @@ public:
     }
 
     /**
+     * @brief Returns the CROSS_AREA (the 2D plane strain variant does not apply in 3D)
+     */
+    double GetCrossArea() override
+    {
+        return GetProperties()[CROSS_AREA];
+    }
+
+    /**
      * @brief Modifies a vector to include the components of a local size vector to the global size
      * @param rGlobalSizeVector The global size vector multiplying v and theta_z components
      * @param rLocalSizeVector The 4 local components of Nv
@@ -351,6 +359,24 @@ public:
       */
     void CalculateRightHandSide(
         VectorType& rRightHandSideVector,
+        const ProcessInfo& rCurrentProcessInfo) override;
+
+    /**
+     * @brief Computes the internal forces vector (stress contributions), in global axes
+     * @param rInternalForces the elemental internal forces vector
+     * @param rCurrentProcessInfo the current process info instance
+     */
+    void CalculateInternalForces(
+        VectorType& rInternalForces,
+        const ProcessInfo& rCurrentProcessInfo) override;
+
+    /**
+     * @brief Computes the external forces vector (body force contributions), in global axes
+     * @param rExternalForces the elemental external forces vector
+     * @param rCurrentProcessInfo the current process info instance
+     */
+    void CalculateExternalForces(
+        VectorType& rExternalForces,
         const ProcessInfo& rCurrentProcessInfo) override;
 
     /**

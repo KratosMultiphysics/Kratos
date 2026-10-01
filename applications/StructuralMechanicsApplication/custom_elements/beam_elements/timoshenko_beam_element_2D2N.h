@@ -376,6 +376,40 @@ public:
         ) override;
 
     /**
+     * @brief Calculates a Vector variable on the element
+     * @details Supports INTERNAL_FORCES_VECTOR and EXTERNAL_FORCES_VECTOR, such that RHS = external - internal
+     * @param rVariable The variable to be computed
+     * @param rOutput The resulting vector, in global axes
+     * @param rCurrentProcessInfo the current process info instance
+     */
+    void Calculate(
+        const Variable<Vector>& rVariable,
+        Vector& rOutput,
+        const ProcessInfo& rCurrentProcessInfo
+        ) override;
+    using Element::Calculate;
+
+    /**
+     * @brief Computes the internal forces vector (stress contributions), in global axes
+     * @param rInternalForces the elemental internal forces vector
+     * @param rCurrentProcessInfo the current process info instance
+     */
+    virtual void CalculateInternalForces(
+        VectorType& rInternalForces,
+        const ProcessInfo& rCurrentProcessInfo
+        );
+
+    /**
+     * @brief Computes the external forces vector (body force contributions), in global axes
+     * @param rExternalForces the elemental external forces vector
+     * @param rCurrentProcessInfo the current process info instance
+     */
+    virtual void CalculateExternalForces(
+        VectorType& rExternalForces,
+        const ProcessInfo& rCurrentProcessInfo
+        );
+
+    /**
      * @brief Calculate a double Variable on the Element Constitutive Law
      * @param rVariable The variable we want to get
      * @param rOutput The values obtained in the integration points
@@ -425,7 +459,7 @@ public:
      * If the strain_size is 3 (standard Timoshenko beam), the area is the CROSS_AREA
      * Else (plane strain Timoshenko beam), hence the area is per unit length
      */
-    double GetCrossArea();
+    virtual double GetCrossArea();
 
     /**
      * @brief This function is called at the end of each solution step
