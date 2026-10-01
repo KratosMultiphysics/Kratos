@@ -330,9 +330,23 @@ class RomManager(object):
         export_folder.mkdir(parents=True, exist_ok=True)
 
         # Files read by NN_ROM_Interface.FromNumpyFiles
-        np.save(export_folder / "RightBasisMatrix.npy", nn_rom_interface.phi[:, :nn_rom_interface.n_sup])
-        np.save(export_folder / "SingularValues.npy", nn_rom_interface.sigma[:nn_rom_interface.n_sup])
-        shutil.copy(nn_rom_interface.network_weights_path, export_folder / "model_weights.npy")
+        coupled_solvers = self.general_rom_manager_parameters["ROM"]["coupled_solvers"]
+        if self._HasPerPhysicsBases():
+            # One network per sub-solver, with the files prefixed by its name
+            ann_enhanced_settings = {}
+            for i in range(coupled_solvers.size()):
+                sub_solver_name = coupled_solvers[i]["sub_solver_name"].GetString()
+                with open(nn_rom_interface.model_path / f"{sub_solver_name}_train_config.json", 'r') as config_file:
+                    ann_enhanced_settings[sub_solver_name] = {"modes" : [int(mode) for mode in json.load(config_file)["modes"]]}
+                for file_name in [f"{sub_solver_name}_model_weights.npy", f"{sub_solver_name}_SingularValues.npy"]:
+                    shutil.copy(nn_rom_interface.model_path / file_name, export_folder / file_name)
+            number_of_modes = max(settings["modes"][1] for settings in ann_enhanced_settings.values())
+            np.save(export_folder / "RightBasisMatrix.npy", nn_rom_interface.phi[:, :number_of_modes])
+        else:
+            ann_enhanced_settings = {"modes" : [nn_rom_interface.n_inf, nn_rom_interface.n_sup]}
+            np.save(export_folder / "RightBasisMatrix.npy", nn_rom_interface.phi[:, :nn_rom_interface.n_sup])
+            np.save(export_folder / "SingularValues.npy", nn_rom_interface.sigma[:nn_rom_interface.n_sup])
+            shutil.copy(nn_rom_interface.network_weights_path, export_folder / "model_weights.npy")
         for file_name in ["NodeIds.npy", "HROM_ElementIds.npy", "HROM_ElementWeights.npy", "HROM_ConditionIds.npy", "HROM_ConditionWeights.npy"]:
             if (rom_folder / file_name).exists():
                 shutil.copy(rom_folder / file_name, export_folder / file_name)
@@ -340,35 +354,44 @@ class RomManager(object):
         with open(rom_folder / rom_parameters_file_name, 'r') as parameter_file:
             rom_parameters = json.load(parameter_file)
         rom_parameters["rom_manager"] = False
-        rom_parameters["ann_enhanced_settings"] = {"modes" : [nn_rom_interface.n_inf, nn_rom_interface.n_sup]}
+        rom_parameters["ann_enhanced_settings"] = ann_enhanced_settings
         with open(export_folder / rom_parameters_file_name, 'w') as parameter_file:
             json.dump(rom_parameters, parameter_file, indent=4)
 
 
 
     def ComputeErrors(self, mu_list, case="Fit"):
-        fom_snapshots = self.data_base.get_snapshots_matrix_from_database(mu_list, table_name=f'FOM')
         if case=="Fit":
             stages = self.general_rom_manager_parameters["rom_stages_to_train"].GetStringArray()
         elif case=="Test":
             stages = self.general_rom_manager_parameters["rom_stages_to_test"].GetStringArray()
         stages = {"ROM", "HROM"} & set(stages)  # Ensures only "ROM" or "HROM" if present
-        rom_snapshots = None
-        hrom_snapshots = None
+
+        # Errors of the whole set, and of each of its cases
+        errors = self._ComputeErrorsOfCases(mu_list, stages)
+        errors_per_case = [self._ComputeErrorsOfCases([mu], stages) for mu in mu_list]
         if "ROM" in stages:
-            rom_snapshots = self.data_base.get_snapshots_matrix_from_database(mu_list, table_name=f'ROM')
-            error_rom_fom = np.linalg.norm(fom_snapshots - rom_snapshots) / np.linalg.norm(fom_snapshots)
-            self.ROMvsFOM[case] = error_rom_fom
+            self.ROMvsFOM[case] = errors["ROMvsFOM"]
+            self.ROMvsFOM_per_case[case] = [error["ROMvsFOM"] for error in errors_per_case]
         if "HROM" in stages:
-            if rom_snapshots is None:  # Only fetch if not already fetched
-                rom_snapshots = self.data_base.get_snapshots_matrix_from_database(mu_list, table_name=f'ROM')
+            self.ROMvsHROM[case] = errors["ROMvsHROM"]
+            self.FOMvsHROM[case] = errors["FOMvsHROM"]
+            self.ROMvsHROM_per_case[case] = [error["ROMvsHROM"] for error in errors_per_case]
+            self.FOMvsHROM_per_case[case] = [error["FOMvsHROM"] for error in errors_per_case]
+
+    def _ComputeErrorsOfCases(self, mu_list, stages):
+        errors = {}
+        if not stages:
+            return errors
+        fom_snapshots = self.data_base.get_snapshots_matrix_from_database(mu_list, table_name=f'FOM')
+        rom_snapshots = self.data_base.get_snapshots_matrix_from_database(mu_list, table_name=f'ROM')
+        if "ROM" in stages:
+            errors["ROMvsFOM"] = np.linalg.norm(fom_snapshots - rom_snapshots) / np.linalg.norm(fom_snapshots)
+        if "HROM" in stages:
             hrom_snapshots = self.data_base.get_snapshots_matrix_from_database(mu_list, table_name=f'HROM')
-            error_rom_hrom = np.linalg.norm(rom_snapshots - hrom_snapshots) / np.linalg.norm(rom_snapshots)
-            error_fom_hrom = np.linalg.norm(fom_snapshots - hrom_snapshots) / np.linalg.norm(fom_snapshots)
-            self.ROMvsHROM[case] = error_rom_hrom
-            self.FOMvsHROM[case] = error_fom_hrom
-
-
+            errors["ROMvsHROM"] = np.linalg.norm(rom_snapshots - hrom_snapshots) / np.linalg.norm(rom_snapshots)
+            errors["FOMvsHROM"] = np.linalg.norm(fom_snapshots - hrom_snapshots) / np.linalg.norm(fom_snapshots)
+        return errors
 
     def PrintErrors(self):
         training_stages = self.general_rom_manager_parameters["rom_stages_to_train"].GetStringArray()
@@ -379,29 +402,35 @@ class RomManager(object):
 
         # Check in Fit
         if "ROM" in training_set:
-            self.aux_print_errors(self.ROMvsFOM['Fit'], 'train', 'FOM vs ROM')
+            self.aux_print_errors(self.ROMvsFOM['Fit'], 'train', 'FOM vs ROM', self.ROMvsFOM_per_case['Fit'])
         if "HROM" in training_set:
-            self.aux_print_errors(self.ROMvsHROM['Fit'], 'train', 'ROM vs HROM')
-            self.aux_print_errors(self.FOMvsHROM['Fit'], 'train', 'FOM vs HROM')
+            self.aux_print_errors(self.ROMvsHROM['Fit'], 'train', 'ROM vs HROM', self.ROMvsHROM_per_case['Fit'])
+            self.aux_print_errors(self.FOMvsHROM['Fit'], 'train', 'FOM vs HROM', self.FOMvsHROM_per_case['Fit'])
 
         # Check in Test
         if "ROM" in testing_set:
-            self.aux_print_errors(self.ROMvsFOM['Test'], 'test', 'FOM vs ROM')
+            self.aux_print_errors(self.ROMvsFOM['Test'], 'test', 'FOM vs ROM', self.ROMvsFOM_per_case['Test'])
         if "HROM" in testing_set:
-            self.aux_print_errors(self.ROMvsHROM['Test'], 'test', 'ROM vs HROM')
-            self.aux_print_errors(self.FOMvsHROM['Test'], 'test', 'FOM vs HROM')
+            self.aux_print_errors(self.ROMvsHROM['Test'], 'test', 'ROM vs HROM', self.ROMvsHROM_per_case['Test'])
+            self.aux_print_errors(self.FOMvsHROM['Test'], 'test', 'FOM vs HROM', self.FOMvsHROM_per_case['Test'])
 
-    def aux_print_errors(self, error, train_or_test, comparison_in_string):
+    def aux_print_errors(self, error, train_or_test, comparison_in_string, errors_per_case=None):
         message = f"approximation error in {train_or_test} set {comparison_in_string}"
         if error is None:
             print(f"{message} not computed")
         else:
             print(f"{message}: {error}")
+            if errors_per_case is not None:
+                print(f"{message} per case: {[float(error_of_case) for error_of_case in errors_per_case]}")
 
     def SetupErrorsDictionaries(self):
         self.ROMvsFOM = {'Fit': None, 'Test': None}
         self.ROMvsHROM = {'Fit': None, 'Test': None}
         self.FOMvsHROM = {'Fit': None, 'Test': None}
+        # Same errors, as a list with the one of each case
+        self.ROMvsFOM_per_case = {'Fit': None, 'Test': None}
+        self.ROMvsHROM_per_case = {'Fit': None, 'Test': None}
+        self.FOMvsHROM_per_case = {'Fit': None, 'Test': None}
 
 
     def _LaunchTrainROM(self, mu_train):
@@ -458,7 +487,7 @@ class RomManager(object):
             rom_params = self.general_rom_manager_parameters["ROM"]
 
             # 2. Check for the Coupled Solvers Exception
-            if rom_params.Has("coupled_solvers") and rom_params["coupled_solvers"].size() > 0:
+            if self._HasPerPhysicsBases():
                 global_unknowns = rom_params["nodal_unknowns"].GetStringArray()
                 global_unknowns.sort()
                 num_vars = len(global_unknowns)
@@ -528,6 +557,12 @@ class RomManager(object):
         self.GenerateDatabaseSummary()
 
 
+
+    def _HasPerPhysicsBases(self):
+        """True if the coupled solvers list their own 'nodal_unknowns': each of them gets its own basis (and network).
+        Otherwise a single basis is computed for all the unknowns."""
+        coupled_solvers = self.general_rom_manager_parameters["ROM"]["coupled_solvers"]
+        return coupled_solvers.size() > 0 and all(coupled_solvers[i].Has("nodal_unknowns") for i in range(coupled_solvers.size()))
 
     def _GetMaterialsFileName(self, parameters):
         """Returns the materials file of the solver, None if it has no single one (e.g. coupled solvers, with a materials file per sub-solver)"""
@@ -830,7 +865,7 @@ class RomManager(object):
         rom_params = self.general_rom_manager_parameters["ROM"]
 
         # Check for Coupled Solvers
-        if rom_params.Has("coupled_solvers") and rom_params["coupled_solvers"].size() > 0:
+        if self._HasPerPhysicsBases():
             coupled_solvers = rom_params["coupled_solvers"]
 
             for i in range(coupled_solvers.size()):

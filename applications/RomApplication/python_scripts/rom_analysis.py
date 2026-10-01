@@ -346,6 +346,7 @@ def CreateRomAnalysisInstance(cls, global_model, parameters, nn_rom_interface=No
             super().ModifyInitialGeometry()
 
             if self.ann_enhanced:
+                self._ann_enhanced_solvers = []
                 all_nodal_unknown_names = self.project_parameters["solver_settings"]["rom_settings"]["nodal_unknowns"].GetStringArray()
                 sub_solver_names = self._GetCoupledSubSolverNames()
                 if sub_solver_names:
@@ -358,12 +359,21 @@ def CreateRomAnalysisInstance(cls, global_model, parameters, nn_rom_interface=No
                         positions = np.array([all_nodal_unknown_names.index(name) for name in nodal_unknown_names])
                         number_of_nodes = sub_solver_model_part.GetRootModelPart().NumberOfNodes()
                         rows = (np.arange(number_of_nodes)[:, None] * len(all_nodal_unknown_names) + positions).ravel()
-                        self._InitializeAnnEnhancedRom(sub_solver, self._GetSubSolverNNRomInterface(sub_solver_name, rows), nodal_unknown_names)
+                        self._SetAnnEnhancedDecoder(sub_solver, self._GetSubSolverNNRomInterface(sub_solver_name, rows), nodal_unknown_names)
                 else:
-                    self._InitializeAnnEnhancedRom(self._GetSolver(), self.nn_rom_interface, all_nodal_unknown_names)
+                    self._SetAnnEnhancedDecoder(self._GetSolver(), self.nn_rom_interface, all_nodal_unknown_names)
 
-        def _InitializeAnnEnhancedRom(self, solver, nn_rom_interface, nodal_unknown_names):
+        def Initialize(self):
+            super().Initialize()
+
+            # The initial state is encoded here, once the initial conditions have been applied by the processes
+            if self.ann_enhanced:
+                for solver, nn_rom_interface, nodal_unknown_names in self._ann_enhanced_solvers:
+                    self._EncodeAnnEnhancedInitialState(solver, nn_rom_interface, nodal_unknown_names)
+
+        def _SetAnnEnhancedDecoder(self, solver, nn_rom_interface, nodal_unknown_names):
             computing_model_part = solver.GetComputingModelPart().GetRootModelPart()
+            self._ann_enhanced_solvers.append((solver, nn_rom_interface, nodal_unknown_names))
 
             NNLayers=nn_rom_interface.get_NN_layers()
             SVDPhiMatrices=nn_rom_interface.get_phi_matrices()
@@ -374,24 +384,35 @@ def CreateRomAnalysisInstance(cls, global_model, parameters, nn_rom_interface=No
             for i, layer in enumerate(NNLayers):
                 solver._GetBuilderAndSolver().SetNNLayer(computing_model_part, i, layer)
 
+            # Initialize nodal ROM_BASIS to zeros
             nodal_dofs = len(nodal_unknown_names)
+            for node in computing_model_part.Nodes:
+                node.SetValue(KratosROM.ROM_BASIS, np.zeros((nodal_dofs, numberOfROMModes)))
+
+        def _EncodeAnnEnhancedInitialState(self, solver, nn_rom_interface, nodal_unknown_names):
+            computing_model_part = solver.GetComputingModelPart().GetRootModelPart()
+
             nodal_unknowns=[]
 
             for node_var_name in nodal_unknown_names:
                 nodal_unknowns.append(KratosMultiphysics.KratosGlobals.GetVariable(node_var_name))
 
             s = []
+            is_free = []
             for node in computing_model_part.Nodes:
                 for nodal_var in nodal_unknowns:
                     s.append(node.GetSolutionStepValue(nodal_var))
+                    is_free.append(not node.IsFixed(nodal_var))
 
             print('Nodal variables: ', nodal_unknown_names)
 
             s_default = np.asarray(s)
+            is_free = np.asarray(is_free)
             print(s_default.shape)
 
-            q, _ = nn_rom_interface.get_encode_function()(s_default)
-            q = np.squeeze(q, axis=0)
+            # The ROM does not solve the fixed DOFs (boundary conditions), so the reduced coordinates are fitted to the free ones only
+            phi_inf_free = nn_rom_interface.phi[is_free, :nn_rom_interface.n_inf]
+            q = np.linalg.solve(phi_inf_free.T @ phi_inf_free, phi_inf_free.T @ (s_default - nn_rom_interface.get_ref_snapshot())[is_free])
             print(q.shape)
 
             computing_model_part.SetValue(KratosROM.ROM_SOLUTION_BASE, KratosMultiphysics.Vector(q))
@@ -401,17 +422,21 @@ def CreateRomAnalysisInstance(cls, global_model, parameters, nn_rom_interface=No
             s_init = np.array(solver._GetBuilderAndSolver().RunDecoder(computing_model_part, q))
             print(s_init.shape)
 
+            # Sanity check: a large value means that the initial state is not represented by the decoder,
+            # e.g. because the rows of the basis do not follow the order of the nodes and nodal unknowns of the solver
+            s_free_norm = np.linalg.norm(s_default[is_free])
+            if s_free_norm > 0.0:
+                print('Relative difference between the initial state and its decoded one (free DOFs): ', np.linalg.norm((s_init - s_default)[is_free]) / s_free_norm)
+
+            # The fixed DOFs keep the values of their boundary conditions
             i = 0
             for node in computing_model_part.Nodes:
                 for nodal_var in nodal_unknowns:
-                    node.SetSolutionStepValue(nodal_var, s_init[i])
+                    if is_free[i]:
+                        node.SetSolutionStepValue(nodal_var, s_init[i])
                     i+=1
 
             computing_model_part.SetValue(KratosROM.SOLUTION_BASE, KratosMultiphysics.Vector(s_init))
-
-            # Initialize nodal ROM_BASIS to zeros
-            for node in computing_model_part.Nodes:
-                node.SetValue(KratosROM.ROM_BASIS, np.zeros((nodal_dofs, numberOfROMModes)))
 
 
         def FinalizeSolutionStep(self):
