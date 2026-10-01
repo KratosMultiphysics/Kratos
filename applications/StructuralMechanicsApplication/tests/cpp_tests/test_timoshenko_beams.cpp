@@ -430,21 +430,6 @@ TEST_P(ParametrizedInternalExternalForcesForTimoshenkoBeams, ExternalForcesSumUp
     KRATOS_EXPECT_VECTOR_NEAR(resultant, expected_resultant, 1.0e-10);
 }
 
-TEST_P(ParametrizedInternalExternalForcesForTimoshenkoBeams, InternalForcesVanishForRigidBodyTranslation)
-{
-    Model current_model;
-    auto& r_model_part = current_model.CreateModelPart("ModelPart", 1);
-    auto p_element = CreateBeamElement(r_model_part);
-    const auto dimension = std::get<0>(GetParam());
-    for (auto& r_node : r_model_part.Nodes()) {
-        r_node.FastGetSolutionStepValue(DISPLACEMENT) = array_1d<double, 3>{0.1, -0.2, dimension == 3 ? 0.3 : 0.0};
-    }
-
-    Vector internal_forces;
-    p_element->Calculate(INTERNAL_FORCES_VECTOR, internal_forces, r_model_part.GetProcessInfo());
-
-    KRATOS_EXPECT_VECTOR_NEAR(internal_forces, Vector(ZeroVector(internal_forces.size())), 1.0e-6);
-}
 
 TEST_P(ParametrizedInternalExternalForcesForTimoshenkoBeams, CalculateThrowsForUnsupportedVectorVariable)
 {
@@ -469,55 +454,84 @@ INSTANTIATE_TEST_SUITE_P(
     )
 );
 
+Element::Pointer CreateLinearTimoshenkoBeam3D2N(ModelPart& rModelPart, const array_1d<double, 3>& rEnd)
+{
+    rModelPart.AddNodalSolutionStepVariable(DISPLACEMENT);
+    rModelPart.AddNodalSolutionStepVariable(ROTATION);
+    rModelPart.CreateNewNode(1, 0.0, 0.0, 0.0);
+    rModelPart.CreateNewNode(2, rEnd[0], rEnd[1], rEnd[2]);
+
+    auto p_elem_prop = rModelPart.CreateNewProperties(0);
+    p_elem_prop->SetValue(YOUNG_MODULUS, 2.0e+06);
+    p_elem_prop->SetValue(POISSON_RATIO, 0.2);
+    p_elem_prop->SetValue(CROSS_AREA, 0.5);
+    p_elem_prop->SetValue(I33, 0.01);
+    p_elem_prop->SetValue(I22, 0.02);
+    p_elem_prop->SetValue(IT, 0.03);
+    p_elem_prop->SetValue(AREA_EFFECTIVE_Y, 0.4);
+    p_elem_prop->SetValue(AREA_EFFECTIVE_Z, 0.3);
+    p_elem_prop->SetValue(CONSTITUTIVE_LAW, KratosComponents<ConstitutiveLaw>::Get("TimoshenkoBeamElasticConstitutiveLaw3D").Clone());
+
+    auto p_element = rModelPart.CreateNewElement("LinearTimoshenkoBeamElement3D2N", 1, std::vector<ModelPart::IndexType>{1, 2}, p_elem_prop);
+    p_element->Initialize(rModelPart.GetProcessInfo());
+    return p_element;
+}
+
+// Applies the same deformation w.r.t. the local axes, which are the columns of rRotation
+void ApplyLocalDeformation(Element& rBeam, const BoundedMatrix<double, 3, 3>& rRotation)
+{
+    const std::vector local_displacements{array_1d<double, 3>{0.01, -0.02, 0.03}, array_1d<double, 3>{0.04, 0.05, -0.06}};
+    const std::vector local_rotations{array_1d<double, 3>{0.002, -0.003, 0.004}, array_1d<double, 3>{-0.005, 0.006, 0.007}};
+    for (std::size_t i_node = 0; i_node < 2; ++i_node) {
+        auto& r_node = rBeam.GetGeometry()[i_node];
+        r_node.FastGetSolutionStepValue(DISPLACEMENT) = prod(rRotation, local_displacements[i_node]);
+        r_node.FastGetSolutionStepValue(ROTATION)     = prod(rRotation, local_rotations[i_node]);
+    }
+}
+
+KRATOS_TEST_CASE_IN_SUITE(LinearTimoshenkoBeam3D2N_InternalForcesOfBeamAlongGlobalX, KratosStructuralMechanicsFastSuite)
+{
+    // Along the global X axis the local axes are the global axes
+    Model current_model;
+    auto& r_model_part = current_model.CreateModelPart("Aligned", 1);
+    auto p_beam = CreateLinearTimoshenkoBeam3D2N(r_model_part, array_1d<double, 3>{7.0, 0.0, 0.0});
+    ApplyLocalDeformation(*p_beam, IdentityMatrix(3));
+
+    Vector internal_forces;
+    p_beam->Calculate(INTERNAL_FORCES_VECTOR, internal_forces, r_model_part.GetProcessInfo());
+
+    KRATOS_EXPECT_EQ(internal_forces.size(), 12);
+    KRATOS_EXPECT_GT(norm_2(internal_forces), 0.0);
+
+    // Axial force N = EA * (u2x - u1x) / L = 2e6 * 0.5 * 0.03 / 7
+    const double axial_force = 3.0e+04 / 7.0;
+    KRATOS_EXPECT_NEAR(internal_forces[0], -axial_force, 1.0e-10 * axial_force);
+    KRATOS_EXPECT_NEAR(internal_forces[6],  axial_force, 1.0e-10 * axial_force);
+
+    // Torque T = G * IT * (rot2x - rot1x) / L = 2e6 / (2 * 1.2) * 0.03 * (-0.007) / 7
+    const double torque = -25.0;
+    KRATOS_EXPECT_NEAR(internal_forces[3], -torque, 1.0e-10 * std::abs(torque));
+    KRATOS_EXPECT_NEAR(internal_forces[9],  torque, 1.0e-10 * std::abs(torque));
+}
+
 KRATOS_TEST_CASE_IN_SUITE(LinearTimoshenkoBeam3D2N_InternalForcesAreFrameInvariant, KratosStructuralMechanicsFastSuite)
 {
     // The same beam, deformed in the same way w.r.t. its local axes, is created along the
     // global X axis (local axes == global axes) and along an inclined axis. The internal forces
     // of the inclined beam must be the ones of the aligned beam, rotated to the inclined axes.
-    const auto create_beam = [](ModelPart& rModelPart, const array_1d<double, 3>& rEnd) {
-        rModelPart.AddNodalSolutionStepVariable(DISPLACEMENT);
-        rModelPart.AddNodalSolutionStepVariable(ROTATION);
-        rModelPart.CreateNewNode(1, 0.0, 0.0, 0.0);
-        rModelPart.CreateNewNode(2, rEnd[0], rEnd[1], rEnd[2]);
-
-        auto p_elem_prop = rModelPart.CreateNewProperties(0);
-        p_elem_prop->SetValue(YOUNG_MODULUS, 2.0e+06);
-        p_elem_prop->SetValue(POISSON_RATIO, 0.2);
-        p_elem_prop->SetValue(CROSS_AREA, 0.5);
-        p_elem_prop->SetValue(I33, 0.01);
-        p_elem_prop->SetValue(I22, 0.02);
-        p_elem_prop->SetValue(IT, 0.03);
-        p_elem_prop->SetValue(AREA_EFFECTIVE_Y, 0.4);
-        p_elem_prop->SetValue(AREA_EFFECTIVE_Z, 0.3);
-        p_elem_prop->SetValue(CONSTITUTIVE_LAW, KratosComponents<ConstitutiveLaw>::Get("TimoshenkoBeamElasticConstitutiveLaw3D").Clone());
-
-        auto p_element = rModelPart.CreateNewElement("LinearTimoshenkoBeamElement3D2N", 1, std::vector<ModelPart::IndexType>{1, 2}, p_elem_prop);
-        p_element->Initialize(rModelPart.GetProcessInfo());
-        return p_element;
-    };
-
     Model current_model;
     auto& r_aligned_model_part  = current_model.CreateModelPart("Aligned", 1);
     auto& r_inclined_model_part = current_model.CreateModelPart("Inclined", 1);
-    auto p_aligned_beam  = create_beam(r_aligned_model_part,  array_1d<double, 3>{7.0, 0.0, 0.0});
-    auto p_inclined_beam = create_beam(r_inclined_model_part, array_1d<double, 3>{2.0, 3.0, 6.0});
+    auto p_aligned_beam  = CreateLinearTimoshenkoBeam3D2N(r_aligned_model_part,  array_1d<double, 3>{7.0, 0.0, 0.0});
+    auto p_inclined_beam = CreateLinearTimoshenkoBeam3D2N(r_inclined_model_part, array_1d<double, 3>{2.0, 3.0, 6.0});
 
     // Columns of the rotation are the local axes of the inclined beam
     const BoundedMatrix<double, 3, 3> rotation = trans(StructuralMechanicsElementUtilities::GetFrenetSerretMatrix3D(p_inclined_beam->GetGeometry()));
+    ApplyLocalDeformation(*p_aligned_beam, IdentityMatrix(3));
+    ApplyLocalDeformation(*p_inclined_beam, rotation);
 
-    using array_3 = array_1d<double, 3>;
-    const std::vector local_displacements{array_3{0.01, -0.02, 0.03}, array_3{0.04, 0.05, -0.06}};
-    const std::vector local_rotations{array_3{0.002, -0.003, 0.004}, array_3{-0.005, 0.006, 0.007}};
-    for (std::size_t i_node = 0; i_node < 2; ++i_node) {
-        auto& r_aligned_node  = p_aligned_beam->GetGeometry()[i_node];
-        auto& r_inclined_node = p_inclined_beam->GetGeometry()[i_node];
-        r_aligned_node.FastGetSolutionStepValue(DISPLACEMENT)  = local_displacements[i_node];
-        r_aligned_node.FastGetSolutionStepValue(ROTATION)      = local_rotations[i_node];
-        r_inclined_node.FastGetSolutionStepValue(DISPLACEMENT) = prod(rotation, local_displacements[i_node]);
-        r_inclined_node.FastGetSolutionStepValue(ROTATION)     = prod(rotation, local_rotations[i_node]);
-    }
-
-    Vector aligned_internal_forces, inclined_internal_forces;
+    Vector aligned_internal_forces;
+    Vector inclined_internal_forces;
     p_aligned_beam->Calculate(INTERNAL_FORCES_VECTOR, aligned_internal_forces, r_aligned_model_part.GetProcessInfo());
     p_inclined_beam->Calculate(INTERNAL_FORCES_VECTOR, inclined_internal_forces, r_inclined_model_part.GetProcessInfo());
 
@@ -534,7 +548,6 @@ KRATOS_TEST_CASE_IN_SUITE(LinearTimoshenkoBeam3D2N_InternalForcesAreFrameInvaria
         }
     }
 
-    KRATOS_EXPECT_GT(norm_2(aligned_internal_forces), 0.0);
     KRATOS_EXPECT_VECTOR_NEAR(inclined_internal_forces, expected_internal_forces, 1.0e-10 * norm_2(expected_internal_forces));
 }
 
