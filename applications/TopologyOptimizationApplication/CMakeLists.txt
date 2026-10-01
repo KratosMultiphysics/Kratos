@@ -27,7 +27,7 @@ set( KRATOS_TOPOLOGY_OPTIMIZATION_APPLICATION_PYTHON_INTERFACE
 
 add_library(KratosTopologyOptimizationCore SHARED ${KRATOS_TOPOLOGY_OPTIMIZATION_APPLICATION_CORE})
 target_link_libraries(KratosTopologyOptimizationCore PUBLIC KratosCore KratosStructuralMechanicsCore)
-set_target_properties(KratosTopologyOptimizationCore PROPERTIES COMPILE_DEFINITIONS "TOPOLOGY_OPTIMIZATION_APPLICATION=EXPORT,API")
+set_target_properties(KratosTopologyOptimizationCore PROPERTIES CXX_VISIBILITY_PRESET hidden VISIBILITY_INLINES_HIDDEN ON COMPILE_DEFINITIONS "TOPOLOGY_OPTIMIZATION_APPLICATION=EXPORT,API")
 
 ###############################################################
 ## define library Kratos which defines the basic python interface

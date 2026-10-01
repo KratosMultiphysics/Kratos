@@ -20,6 +20,7 @@
 #include "containers/pointer_vector_set.h"
 #include "utilities/parallel_utilities.h"
 #include "utilities/reduction_utilities.h"
+#include "processes/find_global_nodal_entity_neighbours_process.h"
 
 // Application includes
 #include "rom_application_variables.h"

@@ -40,7 +40,7 @@ namespace Kratos {
  * @author Riccardo Rossi
  */
 template<class TSparseSpaceType, class TDenseSpaceType, class TReordererType = Reorderer<TSparseSpaceType, TDenseSpaceType> >
-class LinearSolver
+class KRATOS_EXPOSE LinearSolver
 {
 public:
     KRATOS_CLASS_POINTER_DEFINITION(LinearSolver);
@@ -73,7 +73,7 @@ public:
     ///@{
 
     /// Default constructor.
-    LinearSolver() : mpReorderer(new TReordererType()) {}
+    LinearSolver() = default;
 
     /// Destructor.
     virtual ~LinearSolver() = default;
@@ -383,9 +383,8 @@ public:
 
 private:
     /// A counted pointer to the reorderer object.
-    typename TReordererType::Pointer mpReorderer;
+    typename TReordererType::Pointer mpReorderer = std::make_shared<TReordererType>();
 }; // class LinearSolver
-
 
 ///@name Input and output
 ///@{

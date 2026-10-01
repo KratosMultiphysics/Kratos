@@ -1775,6 +1775,6 @@ void ShellThickElement3D3N<TKinematics>::load(Serializer& rSerializer)
     KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, BaseType);
 }
 
-template class ShellThickElement3D3N<ShellKinematics::NONLINEAR_COROTATIONAL>;
+template class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ShellThickElement3D3N<ShellKinematics::NONLINEAR_COROTATIONAL>;
 
 } // namespace Kratos

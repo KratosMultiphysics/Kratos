@@ -36,11 +36,13 @@ void RelaxedDofUpdater<TDefaultSparseSpace<double>>::UpdateDofs(
     DofsArrayType& rDofSet,
     const SystemVectorType& rDx)
 {
-    block_for_each(rDofSet, [&](DofType& rDof) {
-        if (rDof.IsFree()) {
-            rDof.GetSolutionStepValue() += rDx[rDof.EquationId()] * mRelaxationFactor;
-        }
-    });
+    if constexpr (std::is_same_v<TSparseSpace, SparseSpace>) {
+        block_for_each(rDofSet, [&](DofType& rDof) {
+            if (rDof.IsFree()) {
+                rDof.GetSolutionStepValue() += rDx[rDof.EquationId()] * mRelaxationFactor;
+            }
+        });
+    }
 }
 
 template <>

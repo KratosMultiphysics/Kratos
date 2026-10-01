@@ -186,8 +186,8 @@ void EntitityIdentifier<TEntity>::GenerateTemplatedTypes(const std::string& rNam
 /***********************************************************************************/
 /***********************************************************************************/
 
-template class EntitityIdentifier<Condition>;
-template class EntitityIdentifier<Element>;
+template class KRATOS_API(KRATOS_CORE) EntitityIdentifier<Condition>;
+template class KRATOS_API(KRATOS_CORE) EntitityIdentifier<Element>;
 
 /***********************************************************************************/
 /***********************************************************************************/

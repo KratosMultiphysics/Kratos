@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Ruben Zorrilla
 //
@@ -25,10 +25,12 @@ namespace Kratos
 ///@name Type Definitions
 ///@{
 
-typedef TUblasSparseSpace<double> SparseSpaceType;
-typedef TUblasDenseSpace<double> LocalSpaceType;
+using SparseSpaceType = TUblasSparseSpace<double>;
+using LocalSpaceType = TUblasDenseSpace<double>;
 
-typedef ExplicitBuilder<SparseSpaceType,  LocalSpaceType> ExplicitBuilderType;
+using ExplicitBuilderType = ExplicitBuilder<SparseSpaceType, LocalSpaceType>;
+
+template class KRATOS_API(KRATOS_CORE) ExplicitBuilder<SparseSpaceType, LocalSpaceType>;
 
 //NOTE: here we must create persisting objects for the builder and solvers
 static ExplicitBuilderType msExplicitBuilder;

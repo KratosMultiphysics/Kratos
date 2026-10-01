@@ -450,31 +450,31 @@ std::map<std::string, Parameters> ContainerComponentIO<TContainerType, TContaine
 
 // template instantiations
 #ifndef KRATOS_HDF5_INSTANTIATE_CONTAINER_COMPONENT_IO
-#define KRATOS_HDF5_INSTANTIATE_CONTAINER_COMPONENT_IO(CONTAINER_TYPE, CONTAINER_DATA_IO, ...)                      \
+#define KRATOS_HDF5_INSTANTIATE_CONTAINER_COMPONENT_IO(CONTAINER_TYPE, CONTAINER_DATA_IO, ...)           \
 template class KRATOS_API(HDF5_APPLICATION) ContainerComponentIO<CONTAINER_TYPE, CONTAINER_DATA_IO, __VA_ARGS__>;
 #endif
 
 #ifndef KRATOS_HDF5_INSTANTIATE_FLAGS_CONTAINER_COMPONENT_IO
-#define KRATOS_HDF5_INSTANTIATE_FLAGS_CONTAINER_COMPONENT_IO(CONTAINER_TYPE)                \
+#define KRATOS_HDF5_INSTANTIATE_FLAGS_CONTAINER_COMPONENT_IO(CONTAINER_TYPE)           \
 KRATOS_HDF5_INSTANTIATE_CONTAINER_COMPONENT_IO(CONTAINER_TYPE, Internals::FlagIO, Flags);
 #endif
 
 #ifndef KRATOS_HDF5_INSTANTIATE_VARIABLE_CONTAINER_COMPONENT_IO
 #define KRATOS_HDF5_INSTANTIATE_VARIABLE_CONTAINER_COMPONENT_IO(CONTAINER_TYPE, CONTAINER_DATA_IO)  \
-KRATOS_HDF5_INSTANTIATE_CONTAINER_COMPONENT_IO(CONTAINER_TYPE, CONTAINER_DATA_IO,                   \
-                                               Variable<int>,                                       \
-                                               Variable<double>,                                    \
-                                               Variable<array_1d<double, 3>>,                       \
-                                               Variable<array_1d<double, 4>>,                       \
-                                               Variable<array_1d<double, 6>>,                       \
-                                               Variable<array_1d<double, 9>>,                       \
-                                               Variable<Kratos::Vector>,                            \
-                                               Variable<Kratos::Matrix>);
+KRATOS_HDF5_INSTANTIATE_CONTAINER_COMPONENT_IO(CONTAINER_TYPE, CONTAINER_DATA_IO,                    \
+                                              Variable<int>,                                        \
+                                              Variable<double>,                                     \
+                                              Variable<array_1d<double, 3>>,                        \
+                                              Variable<array_1d<double, 4>>,                        \
+                                              Variable<array_1d<double, 6>>,                        \
+                                              Variable<array_1d<double, 9>>,                        \
+                                              Variable<Kratos::Vector>,                             \
+                                              Variable<Kratos::Matrix>);
 #endif
 
 #ifndef KRATOS_HDF5_INSTANTIATE_GENERIC_CONTAINER_COMPONENT_IO
-#define KRATOS_HDF5_INSTANTIATE_GENERIC_CONTAINER_COMPONENT_IO(CONTAINER_TYPE)                                              \
-KRATOS_HDF5_INSTANTIATE_FLAGS_CONTAINER_COMPONENT_IO(CONTAINER_TYPE)                                                        \
+#define KRATOS_HDF5_INSTANTIATE_GENERIC_CONTAINER_COMPONENT_IO(CONTAINER_TYPE)                                        \
+KRATOS_HDF5_INSTANTIATE_FLAGS_CONTAINER_COMPONENT_IO(CONTAINER_TYPE)                                                  \
 KRATOS_HDF5_INSTANTIATE_VARIABLE_CONTAINER_COMPONENT_IO(CONTAINER_TYPE, Internals::NonHistoricalIO)
 #endif
 

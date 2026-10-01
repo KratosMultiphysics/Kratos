@@ -23,7 +23,7 @@ endif(${KRATOS_BUILD_TESTING} MATCHES ON)
 
 add_library(KratosMeshMovingCore SHARED ${KRATOS_MESH_MOVING_APPLICATION_CORE})
 target_link_libraries(KratosMeshMovingCore PUBLIC KratosCore)
-set_target_properties(KratosMeshMovingCore PROPERTIES COMPILE_DEFINITIONS "MESH_MOVING_APPLICATION=EXPORT,API")
+set_target_properties(KratosMeshMovingCore PROPERTIES CXX_VISIBILITY_PRESET hidden VISIBILITY_INLINES_HIDDEN ON COMPILE_DEFINITIONS "MESH_MOVING_APPLICATION=EXPORT,API")
 
 ###############################################################
 ## define library Kratos which defines the basic python interface

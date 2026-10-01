@@ -65,7 +65,7 @@ typedef std::size_t SizeType;
  * @author Alejandro Cornejo & Lucia Barbu
  */
 template<class TYieldSurfaceType>
-class GenericConstitutiveLawIntegratorKinematicPlasticity
+class KRATOS_EXPOSE GenericConstitutiveLawIntegratorKinematicPlasticity
 {
   public:
     ///@name Type Definitions

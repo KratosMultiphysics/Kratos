@@ -36,7 +36,7 @@ endif(${KRATOS_BUILD_TESTING} MATCHES ON)
 
 add_library(KratosStructuralMechanicsCore SHARED ${KRATOS_STRUCTURAL_MECHANICS_APPLICATION_CORE})
 target_link_libraries(KratosStructuralMechanicsCore PUBLIC KratosCore)
-set_target_properties(KratosStructuralMechanicsCore PROPERTIES COMPILE_DEFINITIONS "STRUCTURAL_MECHANICS_APPLICATION=EXPORT,API")
+set_target_properties(KratosStructuralMechanicsCore PROPERTIES CXX_VISIBILITY_PRESET hidden VISIBILITY_INLINES_HIDDEN ON COMPILE_DEFINITIONS "STRUCTURAL_MECHANICS_APPLICATION=EXPORT,API")
 
 ## StructuralMechanics benchmark sources. Disabled by default
 if(${KRATOS_BUILD_BENCHMARK} MATCHES ON)
@@ -48,7 +48,7 @@ if(${KRATOS_BUILD_BENCHMARK} MATCHES ON)
         get_filename_component(filename ${file} NAME_WE)
         add_executable(${filename} ${file})
         target_link_libraries(${filename} PUBLIC KratosStructuralMechanicsCore benchmark::benchmark)
-        set_target_properties(${filename} PROPERTIES COMPILE_DEFINITIONS "KRATOS_BENCHMARK=IMPORT,API")
+        set_target_properties(${filename} PROPERTIES CXX_VISIBILITY_PRESET hidden VISIBILITY_INLINES_HIDDEN ON COMPILE_DEFINITIONS "KRATOS_BENCHMARK=IMPORT,API")
         install(TARGETS ${filename} DESTINATION benchmark)
     endforeach(file ${KRATOS_BENCHMARK_SOURCES})
 endif(${KRATOS_BUILD_BENCHMARK} MATCHES ON)

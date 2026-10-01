@@ -49,7 +49,7 @@ namespace Kratos
  * @author Alejandro Cornejo & Lucia Barbu
  */
 template <SizeType TVoigtSize = 6>
-class TrescaPlasticPotential
+class KRATOS_EXPOSE TrescaPlasticPotential
 {
   public:
     ///@name Type Definitions

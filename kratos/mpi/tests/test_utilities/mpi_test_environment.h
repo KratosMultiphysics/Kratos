@@ -27,7 +27,7 @@ namespace Kratos::Testing
  * This Fixture creates a new kernel instance for kratos, so the test is able to interact with the database.
  * Its called this way to that all tests belong to a existing kernel fixture
 */
-class KratosMpiTestEnv : public ::testing::Environment 
+class KRATOS_API(KRATOS_MPI_CORE) KratosMpiTestEnv : public ::testing::Environment 
 {
     public:
         ~KratosMpiTestEnv() override {}

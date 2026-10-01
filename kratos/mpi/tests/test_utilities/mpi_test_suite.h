@@ -25,7 +25,7 @@ namespace Kratos::Testing
 /*
  * Suite for the mpi testing environment (mKernel(true))
 */
-class KratosMPICoreFastSuite : public KratosCoreFastSuite
+class KRATOS_API(KRATOS_MPI_CORE) KratosMPICoreFastSuite : public KratosCoreFastSuite
 {
     public:
         void TearDown() override;

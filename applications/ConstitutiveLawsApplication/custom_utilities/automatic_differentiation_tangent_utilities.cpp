@@ -3889,6 +3889,7 @@ template class AutomaticDifferentiationTangentUtilities<DruckerPragerYieldSurfac
 template class AutomaticDifferentiationTangentUtilities<RankineYieldSurface<RankinePlasticPotential<3>>, static_cast<SizeType>(SofteningType::Exponential)>;
 template class AutomaticDifferentiationTangentUtilities<SimoJuYieldSurface<VonMisesPlasticPotential<3>>, static_cast<SizeType>(SofteningType::Exponential)>;
 template class AutomaticDifferentiationTangentUtilities<MohrCoulombYieldSurface<MohrCoulombPlasticPotential<3>>, static_cast<SizeType>(SofteningType::Exponential)>;
+
 // 2D Linear
 template class AutomaticDifferentiationTangentUtilities<ThermalVonMisesYieldSurface<VonMisesPlasticPotential<3>>, static_cast<SizeType>(SofteningType::Linear)>;
 template class AutomaticDifferentiationTangentUtilities<ThermalModifiedMohrCoulombYieldSurface<VonMisesPlasticPotential<3>>, static_cast<SizeType>(SofteningType::Linear)>;

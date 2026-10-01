@@ -6,10 +6,5 @@
 namespace Kratos {
 
 
-KRATOS_API_EXTERN template class KRATOS_API(TRILINOS_APPLICATION) LinearSolver<
-    TrilinosSpace<Epetra_FECrsMatrix,Epetra_FEVector>,
-    UblasSpace<double, Matrix, Vector>
->;
-
 
 } // namespace Kratos

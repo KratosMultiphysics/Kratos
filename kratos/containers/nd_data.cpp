@@ -123,9 +123,9 @@ std::string NDData<TDataType>::Info() const
 }
 
 // template instantiations
-template class NDData<unsigned char>; // We have to use the unsigned char, because numpy does not have proper bindings for std::uint8_t.
-template class NDData<bool>;
-template class NDData<int>;
-template class NDData<double>;
+template class  NDData<unsigned char>; // We have to use the unsigned char, because numpy does not have proper bindings for std::uint8_t.
+template class  NDData<bool>;
+template class  NDData<int>;
+template class  NDData<double>;
 
 } // namespace Kratos

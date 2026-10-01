@@ -28,7 +28,7 @@
 #include "processes/find_nodal_neighbours_process.h"
 #include "processes/find_conditions_neighbours_process.h"
 #include "processes/find_global_nodal_neighbours_process.h"
-#include "processes/find_global_nodal_neighbours_for_entities_process.h"
+#include "processes/find_nodal_neighbours_for_entities_process.h"
 #include "processes/find_global_nodal_entity_neighbours_process.h"
 #include "processes/find_intersected_geometrical_objects_process.h"
 #include "processes/flux_corrected_transport_convection_process.h"

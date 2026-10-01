@@ -81,7 +81,7 @@ public:
 ///@{
 
 template <class TDataType, class TMatrixType, class TVectorType>
-class UblasSpace;
+class KRATOS_EXPOSE UblasSpace;
 
 template <class TDataType>
 using TUblasSparseSpace =
@@ -117,7 +117,7 @@ enum class SCALING_DIAGONAL {NO_SCALING = 0, CONSIDER_NORM_DIAGONAL = 1, CONSIDE
  * @author Riccardo Rossi
  */
 template<class TDataType, class TMatrixType, class TVectorType>
-class UblasSpace
+class KRATOS_EXPOSE UblasSpace
 {
 public:
     ///@name Type Definitions

@@ -36,7 +36,7 @@ namespace Kratos
 /** This object is used by the bin search. It is the baseclass for objects that hold information
  * about geometric entities, e.g. Nodes or Geometries
 */
-class InterfaceObject : public Point
+class KRATOS_EXPOSE InterfaceObject : public Point
 {
 public:
     ///@name Type Definitions
@@ -153,7 +153,7 @@ private:
 ///@} addtogroup block
 
 
-class InterfaceNode : public InterfaceObject
+class KRATOS_EXPOSE InterfaceNode : public InterfaceObject
 {
 public:
     typedef InterfaceObject::NodePointerType NodePointerType;
@@ -186,7 +186,7 @@ private:
     }
 };
 
-class InterfaceGeometryObject : public InterfaceObject
+class KRATOS_EXPOSE InterfaceGeometryObject : public InterfaceObject
 {
 public:
     typedef InterfaceObject::GeometryPointerType GeometryPointerType;

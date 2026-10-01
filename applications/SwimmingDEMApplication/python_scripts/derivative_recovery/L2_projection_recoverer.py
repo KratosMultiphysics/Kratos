@@ -41,7 +41,7 @@ class L2ProjectionDerivativesRecoverer(recoverer.DerivativesRecoverer):
         if self.use_lumped_mass_matrix:
             linear_solver = SuperLUIterativeSolver()
         else:
-            linear_solver = Kratos.AMGCLSolver(amgcl_smoother, amgcl_krylov_type, tolerance, max_iterations, verbosity,gmres_size)
+            linear_solver = Kratos.r(amgcl_smoother, amgcl_krylov_type, tolerance, max_iterations, verbosity,gmres_size)
 
         self.recovery_strategy = Kratos.ResidualBasedDerivativeRecoveryStrategy(self.recovery_model_part, scheme, linear_solver, False, True, False, False)
         self.recovery_strategy.SetEchoLevel(echo_level)
