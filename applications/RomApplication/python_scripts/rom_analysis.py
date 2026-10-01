@@ -113,8 +113,10 @@ def CreateRomAnalysisInstance(cls, global_model, parameters, nn_rom_interface=No
                 if not self.rom_parameters.Has("ann_enhanced_settings"):
                     err_msg = f"Using '{self.solving_strategy}' projection strategy but found no NN_ROM_Interface instance to use, nor 'ann_enhanced_settings' in the RomParameters to create one."
                     raise Exception(err_msg)
-                modes = self.rom_parameters["ann_enhanced_settings"]["modes"].GetVector()
-                self.nn_rom_interface = NN_ROM_Interface.FromNumpyFiles(self.rom_basis_output_folder, modes)
+                # Coupled solvers provide the modes of each sub-solver instead (see _GetSubSolverNNRomInterface)
+                if self.rom_parameters["ann_enhanced_settings"].Has("modes"):
+                    modes = self.rom_parameters["ann_enhanced_settings"]["modes"].GetVector()
+                    self.nn_rom_interface = NN_ROM_Interface.FromNumpyFiles(self.rom_basis_output_folder, modes)
 
             solver_type = self.project_parameters["solver_settings"]["solver_type"].GetString()
 
@@ -124,6 +126,17 @@ def CreateRomAnalysisInstance(cls, global_model, parameters, nn_rom_interface=No
 
                 from KratosMultiphysics.FluidDynamicsApplication import python_solvers_wrapper_fluid
                 from KratosMultiphysics.ConvectionDiffusionApplication import python_solvers_wrapper_convection_diffusion
+
+                for sub_solver_name in self._GetCoupledSubSolverNames():
+                    sub_solver_settings = self.project_parameters["solver_settings"][f"{sub_solver_name}_settings"]
+                    # Each sub-solver gets its own copy of the ROM settings, unless it already provides them
+                    if not sub_solver_settings.Has("rom_settings"):
+                        sub_solver_settings.AddValue("rom_settings", self.project_parameters["solver_settings"]["rom_settings"].Clone())
+                        sub_solver_settings.AddString("projection_strategy", self.solving_strategy)
+                        sub_solver_settings.AddString("assembling_strategy", self.assembling_strategy)
+                    # Each sub-solver needs its own ANN-enhanced builder and solver
+                    if self.ann_enhanced:
+                        sub_solver_settings["projection_strategy"].SetString(self.solving_strategy)
 
                 original_create_fluid = python_solvers_wrapper_fluid.CreateSolverByParameters
                 original_create_thermal = python_solvers_wrapper_convection_diffusion.CreateSolverByParameters
@@ -316,60 +329,89 @@ def CreateRomAnalysisInstance(cls, global_model, parameters, nn_rom_interface=No
                     self.rom_parameters)
 
 
+        def _GetCoupledSubSolverNames(self):
+            """Names of the sub-solvers of a coupled solver, each of them with its own ROM. Empty if the solver is not a coupled one."""
+            if self.project_parameters["solver_settings"]["solver_type"].GetString() == "ThermallyCoupled":
+                return ["fluid_solver", "thermal_solver"]
+            return []
+
+        def _GetSubSolverNNRomInterface(self, sub_solver_name, rows):
+            if self.nn_rom_interface is not None:
+                return self.nn_rom_interface.GetSubSolverInterface(sub_solver_name, rows)
+            # Standalone run (no RomManager): read the ANN-enhanced decoder of the sub-solver from the numpy files in the ROM folder
+            modes = self.rom_parameters["ann_enhanced_settings"][sub_solver_name]["modes"].GetVector()
+            return NN_ROM_Interface.FromNumpyFiles(self.rom_basis_output_folder, modes, file_prefix=f"{sub_solver_name}_", rows=rows)
+
         def ModifyInitialGeometry(self):
             super().ModifyInitialGeometry()
 
             if self.ann_enhanced:
-                computing_model_part = self._GetSolver().GetComputingModelPart().GetRootModelPart()
+                all_nodal_unknown_names = self.project_parameters["solver_settings"]["rom_settings"]["nodal_unknowns"].GetStringArray()
+                sub_solver_names = self._GetCoupledSubSolverNames()
+                if sub_solver_names:
+                    for sub_solver_name in sub_solver_names:
+                        # Each sub-solver has its own decoder, acting on the rows of the basis of its unknowns
+                        sub_solver = getattr(self._GetSolver(), sub_solver_name)
+                        sub_solver_model_part = sub_solver.GetComputingModelPart()
+                        sub_solver_dofs = {dof.GetVariable().Name() for dof in next(iter(sub_solver_model_part.Elements)).GetDofList(sub_solver_model_part.ProcessInfo)}
+                        nodal_unknown_names = [name for name in all_nodal_unknown_names if name in sub_solver_dofs]
+                        positions = np.array([all_nodal_unknown_names.index(name) for name in nodal_unknown_names])
+                        number_of_nodes = sub_solver_model_part.GetRootModelPart().NumberOfNodes()
+                        rows = (np.arange(number_of_nodes)[:, None] * len(all_nodal_unknown_names) + positions).ravel()
+                        self._InitializeAnnEnhancedRom(sub_solver, self._GetSubSolverNNRomInterface(sub_solver_name, rows), nodal_unknown_names)
+                else:
+                    self._InitializeAnnEnhancedRom(self._GetSolver(), self.nn_rom_interface, all_nodal_unknown_names)
 
-                NNLayers=self.nn_rom_interface.get_NN_layers()
-                SVDPhiMatrices=self.nn_rom_interface.get_phi_matrices()
-                refSnapshot=self.nn_rom_interface.get_ref_snapshot()
-                numberOfROMModes = SVDPhiMatrices[0].Size2()
-                self._GetSolver()._GetBuilderAndSolver().SetNumberOfROMModes(numberOfROMModes)
-                self._GetSolver()._GetBuilderAndSolver().SetDecoderParameters(computing_model_part, len(NNLayers), SVDPhiMatrices[0], SVDPhiMatrices[1], SVDPhiMatrices[2], refSnapshot)
-                for i, layer in enumerate(NNLayers):
-                    self._GetSolver()._GetBuilderAndSolver().SetNNLayer(computing_model_part, i, layer)
+        def _InitializeAnnEnhancedRom(self, solver, nn_rom_interface, nodal_unknown_names):
+            computing_model_part = solver.GetComputingModelPart().GetRootModelPart()
 
-                nodal_unknown_names= self.project_parameters["solver_settings"]["rom_settings"]["nodal_unknowns"].GetStringArray()
-                nodal_dofs = len(nodal_unknown_names)
-                nodal_unknowns=[]
+            NNLayers=nn_rom_interface.get_NN_layers()
+            SVDPhiMatrices=nn_rom_interface.get_phi_matrices()
+            refSnapshot=nn_rom_interface.get_ref_snapshot()
+            numberOfROMModes = SVDPhiMatrices[0].Size2()
+            solver._GetBuilderAndSolver().SetNumberOfROMModes(numberOfROMModes)
+            solver._GetBuilderAndSolver().SetDecoderParameters(computing_model_part, len(NNLayers), SVDPhiMatrices[0], SVDPhiMatrices[1], SVDPhiMatrices[2], refSnapshot)
+            for i, layer in enumerate(NNLayers):
+                solver._GetBuilderAndSolver().SetNNLayer(computing_model_part, i, layer)
 
-                for node_var_name in nodal_unknown_names:
-                    nodal_unknowns.append(KratosMultiphysics.KratosGlobals.GetVariable(node_var_name))
+            nodal_dofs = len(nodal_unknown_names)
+            nodal_unknowns=[]
 
-                s = []
-                for node in computing_model_part.Nodes:
-                    for nodal_var in nodal_unknowns:
-                        s.append(node.GetSolutionStepValue(nodal_var))
+            for node_var_name in nodal_unknown_names:
+                nodal_unknowns.append(KratosMultiphysics.KratosGlobals.GetVariable(node_var_name))
 
-                print('Nodal variables: ', nodal_unknown_names)
+            s = []
+            for node in computing_model_part.Nodes:
+                for nodal_var in nodal_unknowns:
+                    s.append(node.GetSolutionStepValue(nodal_var))
 
-                s_default = np.asarray(s)
-                print(s_default.shape)
+            print('Nodal variables: ', nodal_unknown_names)
 
-                q, _ = self.nn_rom_interface.get_encode_function()(s_default)
-                q = np.squeeze(q, axis=0)
-                print(q.shape)
+            s_default = np.asarray(s)
+            print(s_default.shape)
 
-                computing_model_part.SetValue(KratosROM.ROM_SOLUTION_BASE, KratosMultiphysics.Vector(q))
-                computing_model_part.SetValue(KratosROM.ROM_SOLUTION_TOTAL, KratosMultiphysics.Vector(q))
-                computing_model_part.SetValue(KratosROM.ROM_SOLUTION_INCREMENT, KratosMultiphysics.Vector(np.zeros_like(q)))
+            q, _ = nn_rom_interface.get_encode_function()(s_default)
+            q = np.squeeze(q, axis=0)
+            print(q.shape)
 
-                s_init = np.array(self._GetSolver()._GetBuilderAndSolver().RunDecoder(computing_model_part, q))
-                print(s_init.shape)
+            computing_model_part.SetValue(KratosROM.ROM_SOLUTION_BASE, KratosMultiphysics.Vector(q))
+            computing_model_part.SetValue(KratosROM.ROM_SOLUTION_TOTAL, KratosMultiphysics.Vector(q))
+            computing_model_part.SetValue(KratosROM.ROM_SOLUTION_INCREMENT, KratosMultiphysics.Vector(np.zeros_like(q)))
 
-                i = 0
-                for node in computing_model_part.Nodes:
-                    for nodal_var in nodal_unknowns:
-                        node.SetSolutionStepValue(nodal_var, s_init[i])
-                        i+=1
+            s_init = np.array(solver._GetBuilderAndSolver().RunDecoder(computing_model_part, q))
+            print(s_init.shape)
 
-                computing_model_part.SetValue(KratosROM.SOLUTION_BASE, KratosMultiphysics.Vector(s_init))
+            i = 0
+            for node in computing_model_part.Nodes:
+                for nodal_var in nodal_unknowns:
+                    node.SetSolutionStepValue(nodal_var, s_init[i])
+                    i+=1
 
-                # Initialize nodal ROM_BASIS to zeros
-                for node in computing_model_part.Nodes:
-                    node.SetValue(KratosROM.ROM_BASIS, np.zeros((nodal_dofs, numberOfROMModes)))
+            computing_model_part.SetValue(KratosROM.SOLUTION_BASE, KratosMultiphysics.Vector(s_init))
+
+            # Initialize nodal ROM_BASIS to zeros
+            for node in computing_model_part.Nodes:
+                node.SetValue(KratosROM.ROM_BASIS, np.zeros((nodal_dofs, numberOfROMModes)))
 
 
         def FinalizeSolutionStep(self):

@@ -158,6 +158,9 @@ class RomNeuralNetworkTrainer(object):
 
         self._CheckNumberOfModes(n_inf, n_sup, sigma_vec.shape[0])
 
+        # Kept to be saved with the network: the online decoder must use the same scaling
+        self.sigma_vec = sigma_vec[:n_sup]
+
         phisig_inv_inf = np.linalg.inv(np.diag(sigma_vec[:n_inf]))@phi[:,:n_inf].T
         phisig_inv_sup = np.linalg.inv(np.diag(sigma_vec[n_inf:n_sup]))@phi[:,n_inf:n_sup].T
         phisig_inf = phi[:,:n_inf]@np.diag(sigma_vec[:n_inf])
@@ -347,6 +350,7 @@ class RomNeuralNetworkTrainer(object):
             json.dump(str(history.history), history_file)
 
         self._SaveWeightsKratosFormat(network, str(model_path) + f"/{self.file_prefix}model_weights.npy")
+        np.save(str(model_path) + f"/{self.file_prefix}SingularValues.npy", self.sigma_vec)
 
 
     def EvaluateNetwork(self):

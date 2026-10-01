@@ -425,7 +425,7 @@ class RomManager(object):
                 parameters_copy = self.UpdateProjectParameters(parameters.Clone(), mu)
                 parameters_copy = self._AddBasisCreationToProjectParameters(parameters_copy) #TODO stop using the RomBasisOutputProcess to store the snapshots. Use instead the upcoming build-in function
                 parameters_copy = self._StoreResultsByName(parameters_copy,gid_and_vtk_name,mu,Id)
-                materials_file_name = None #parameters_copy["solver_settings"]["material_import_settings"]["materials_filename"].GetString()
+                materials_file_name = self._GetMaterialsFileName(parameters_copy)
                 self.UpdateMaterialParametersFile(materials_file_name, mu)
                 model = KratosMultiphysics.Model()
                 analysis_stage_class = self._GetAnalysisStageClass(parameters_copy)
@@ -529,6 +529,14 @@ class RomManager(object):
 
 
 
+    def _GetMaterialsFileName(self, parameters):
+        """Returns the materials file of the solver, None if it has no single one (e.g. coupled solvers, with a materials file per sub-solver)"""
+        #TODO Come up with a more robust solution to change materials. This fails for some setups
+        solver_settings = parameters["solver_settings"]
+        if solver_settings.Has("material_import_settings"):
+            return solver_settings["material_import_settings"]["materials_filename"].GetString()
+        return None
+
     def _LoadSolutionBasis(self, mu_train):
         in_database, hash_basis = self.data_base.check_if_in_database("RightBasis", mu_train)
         basis_directory = self.data_base.database_root_directory.parent
@@ -562,7 +570,7 @@ class RomManager(object):
                 parameters_copy = self.UpdateProjectParameters(parameters.Clone(), mu)
                 parameters_copy = self._AddBasisCreationToProjectParameters(parameters_copy)  #TODO stop using the RomBasisOutputProcess to store the snapshots. Use instead the upcoming build-in function
                 parameters_copy = self._StoreResultsByName(parameters_copy,gid_and_vtk_name,mu,Id)
-                materials_file_name = parameters_copy["solver_settings"]["material_import_settings"]["materials_filename"].GetString() #TODO Come up with a more robust solution to change materials. This fails for some setups
+                materials_file_name = self._GetMaterialsFileName(parameters_copy)
                 self.UpdateMaterialParametersFile(materials_file_name, mu)
                 model = KratosMultiphysics.Model()
                 analysis_stage_class = type(SetUpSimulationInstance(model, parameters_copy, nn_rom_interface=nn_rom_interface))
@@ -595,7 +603,7 @@ class RomManager(object):
                     parameters_copy = self.UpdateProjectParameters(parameters.Clone(), mu)
                     parameters_copy = self._AddBasisCreationToProjectParameters(parameters_copy)
                     parameters_copy = self._StoreNoResults(parameters_copy)
-                    materials_file_name = parameters_copy["solver_settings"]["material_import_settings"]["materials_filename"].GetString() #TODO Come up with a more robust solution to change materials. This fails for some setups
+                    materials_file_name = self._GetMaterialsFileName(parameters_copy)
                     self.UpdateMaterialParametersFile(materials_file_name, mu)
                     model = KratosMultiphysics.Model()
                     analysis_stage_class = type(SetUpSimulationInstance(model, parameters_copy))
@@ -635,7 +643,7 @@ class RomManager(object):
                     parameters_copy = self._AddBasisCreationToProjectParameters(parameters_copy) #TODO Remove the basis creation process. Here it generates the RomParameters.json, find a workaround
                     parameters_copy = self._AddResidualsProjectedOutputProcessToProjectParameters(parameters_copy)  #This deals with the creation of residuals
                     parameters_copy = self._StoreNoResults(parameters_copy)
-                    materials_file_name = parameters_copy["solver_settings"]["material_import_settings"]["materials_filename"].GetString() #TODO Come up with a more robust solution to change materials. This fails for some setups
+                    materials_file_name = self._GetMaterialsFileName(parameters_copy)
                     self.UpdateMaterialParametersFile(materials_file_name, mu)
                     model = KratosMultiphysics.Model()
                     analysis_stage_class = type(SetUpSimulationInstance(model, parameters_copy, nn_rom_interface))
@@ -743,7 +751,7 @@ class RomManager(object):
                 parameters_copy = self.UpdateProjectParameters(parameters.Clone(), mu)
                 parameters_copy = self._AddBasisCreationToProjectParameters(parameters_copy)
                 parameters_copy = self._StoreResultsByName(parameters_copy,gid_and_vtk_name,mu,Id)
-                materials_file_name = parameters_copy["solver_settings"]["material_import_settings"]["materials_filename"].GetString() #TODO Come up with a more robust solution to change materials. This fails for some setups
+                materials_file_name = self._GetMaterialsFileName(parameters_copy)
                 self.UpdateMaterialParametersFile(materials_file_name, mu)
                 model = KratosMultiphysics.Model()
                 analysis_stage_class = type(SetUpSimulationInstance(model, parameters_copy,nn_rom_interface))
@@ -768,7 +776,7 @@ class RomManager(object):
         for Id, mu in enumerate(mu_run):
             parameters_copy = self.UpdateProjectParameters(parameters.Clone(), mu)
             parameters_copy = self._StoreResultsByName(parameters_copy,'FOM_Run',mu,Id)
-            materials_file_name = parameters_copy["solver_settings"]["material_import_settings"]["materials_filename"].GetString() #TODO Come up with a more robust solution to change materials. This fails for some setups
+            materials_file_name = self._GetMaterialsFileName(parameters_copy)
             self.UpdateMaterialParametersFile(materials_file_name, mu)
             model = KratosMultiphysics.Model()
             analysis_stage_class = self._GetAnalysisStageClass(parameters_copy)
@@ -786,7 +794,7 @@ class RomManager(object):
         for Id, mu in enumerate(mu_run):
             parameters_copy = self.UpdateProjectParameters(parameters.Clone(), mu)
             parameters_copy = self._StoreResultsByName(parameters_copy,'ROM_Run',mu,Id)
-            materials_file_name = parameters_copy["solver_settings"]["material_import_settings"]["materials_filename"].GetString() #TODO Come up with a more robust solution to change materials. This fails for some setups
+            materials_file_name = self._GetMaterialsFileName(parameters_copy)
             self.UpdateMaterialParametersFile(materials_file_name, mu)
             model = KratosMultiphysics.Model()
             analysis_stage_class = type(SetUpSimulationInstance(model, parameters_copy, nn_rom_interface=nn_rom_interface))
@@ -808,7 +816,7 @@ class RomManager(object):
         for Id, mu in enumerate(mu_run):
             parameters_copy = self.UpdateProjectParameters(parameters.Clone(), mu)
             parameters_copy = self._StoreResultsByName(parameters_copy,'HROM_Run',mu,Id)
-            materials_file_name = parameters_copy["solver_settings"]["material_import_settings"]["materials_filename"].GetString() #TODO Come up with a more robust solution to change materials. This fails for some setups
+            materials_file_name = self._GetMaterialsFileName(parameters_copy)
             self.UpdateMaterialParametersFile(materials_file_name, mu)
             model = KratosMultiphysics.Model()
             analysis_stage_class = type(SetUpSimulationInstance(model, parameters_copy,nn_rom_interface))
