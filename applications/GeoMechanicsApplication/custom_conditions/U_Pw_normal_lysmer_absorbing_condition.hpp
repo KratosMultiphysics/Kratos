@@ -102,7 +102,7 @@ public:
 
 protected:
     static constexpr SizeType N_DOF          = TNumNodes * TDim;
-    static constexpr SizeType CONDITION_SIZE = TNumNodes * TDim + TNumNodes;
+    static constexpr SizeType CONDITION_SIZE = TNumNodes * TDim;
 
     using ElementMatrixType   = BoundedMatrix<double, N_DOF, N_DOF>;
     using DimensionMatrixType = BoundedMatrix<double, TDim, TDim>;

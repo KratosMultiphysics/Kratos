@@ -27,7 +27,7 @@
 #include "utilities/builtin_timer.h"
 
 // default builder and solver
-#include "custom_strategies/builder_and_solvers/residualbased_block_builder_and_solver_linear_elastic_dynamic.h"
+//#include "custom_strategies/builder_and_solvers/residualbased_block_builder_and_solver_linear_elastic_dynamic.h"
 #include "solving_strategies/strategies/implicit_solving_strategy.h"
 
 #include "custom_processes/deactivate_conditions_on_inactive_elements_process.hpp"

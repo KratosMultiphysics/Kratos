@@ -1,5 +1,9 @@
 import os
 import json
+import sys
+
+sys.path.append(r"C:\software_development\Kratos4\bin\Release")
+sys.path.append(r"C:\software_development\Kratos4\bin\Release\libs")
 
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics.GeoMechanicsApplication as KratosGeo

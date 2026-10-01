@@ -115,12 +115,10 @@ public:
      * @brief Constructor.
      */
     explicit ResidualBasedBlockBuilderAndSolverNohBathe(typename TLinearSolver::Pointer pNewLinearSystemSolver,
-                                                        double Beta,
-                                                        double Gamma,
+		                                                bool   UseDiagonalScalingLumpedMassMatrix,
                                                         bool   CalculateInitialSecondDerivative)
         : BaseType(pNewLinearSystemSolver),
-          mBeta(Beta),
-          mGamma(Gamma),
+		mDiagonalScalingLumpedMassMatrix(UseDiagonalScalingLumpedMassMatrix),
           mCalculateInitialSecondDerivative(CalculateInitialSecondDerivative)
     {
     }
@@ -398,6 +396,8 @@ public:
             }
             });
 
+
+
         // update the first and second derivative vector
         Geo::SparseSystemUtilities::SetUFirstAndSecondDerivativeVector(v_t_p, a_next, rModelPart);
 
@@ -530,6 +530,7 @@ private:
     double mBeta;
     double mGamma;
     bool   mCalculateInitialSecondDerivative;
+	bool   mDiagonalScalingLumpedMassMatrix;
     bool   mCopyExternalForceVector = false;
     bool   mUsePerformSolutionStep  = false;
 
@@ -686,7 +687,12 @@ private:
         // lump mass matrix
         TSystemVectorType lumped_mass_vector(BaseType::mEquationSystemSize, 0.0);
 
-        this->LumpMassMatrix(mMassMatrix, lumped_mass_vector);
+		if (mDiagonalScalingLumpedMassMatrix)
+			this->DiagonalScalingLumpMassMatrix(mMassMatrix, lumped_mass_vector);
+		else
+			this->RowLumpMassMatrix(mMassMatrix, lumped_mass_vector);
+		//this->RowLumpMassMatrix(mMassMatrix, lumped_mass_vector);
+		//this->DiagonalScalingLumpMassMatrix(mMassMatrix, lumped_mass_vector);
         // Invert the lumped mass matrix
 		this->InvertLumpedMatrix(lumped_mass_vector, mInvLumpedMassMatrix);
     }
@@ -787,7 +793,7 @@ private:
 
 
     // Row lumping function
-    void LumpMassMatrix(const TSystemMatrixType& M, TSystemVectorType& LumpedM)
+    void RowLumpMassMatrix(const TSystemMatrixType& M, TSystemVectorType& LumpedM)
     {
 		
         const std::size_t size = M.size1();
@@ -803,6 +809,43 @@ private:
         }
 
     }
+
+    void DiagonalScalingLumpMassMatrix(const TSystemMatrixType& M, TSystemVectorType& LumpedM)
+    {
+        const std::size_t size = M.size1();
+        LumpedM.resize(size, false);
+        noalias(LumpedM) = ZeroVector(size);
+
+        double total_mass = 0.0;
+        double diagonal_sum = 0.0;
+
+        // First pass: compute total mass and diagonal sum
+        for (compressed_matrix<double>::const_iterator1 row_it = M.begin1(); row_it != M.end1(); ++row_it) {
+            std::size_t row = row_it.index1();
+            for (compressed_matrix<double>::const_iterator2 col_it = row_it.begin(); col_it != row_it.end(); ++col_it) {
+                double value = *col_it;
+                total_mass += value;
+                if (col_it.index2() == row)
+                    diagonal_sum += value;
+            }
+        }
+
+        // Avoid divide by zero
+        double scale_factor = (diagonal_sum > 1e-12) ? (total_mass / diagonal_sum) : 1.0;
+
+        // Second pass: extract scaled diagonal
+        for (compressed_matrix<double>::const_iterator1 row_it = M.begin1(); row_it != M.end1(); ++row_it) {
+            std::size_t row = row_it.index1();
+            for (compressed_matrix<double>::const_iterator2 col_it = row_it.begin(); col_it != row_it.end(); ++col_it) {
+                if (col_it.index2() == row) {
+                    LumpedM(row) = (*col_it) * scale_factor;
+                    break; // go to next row
+                }
+            }
+        }
+    }
+
+
 
 	void InvertLumpedMatrix(
 		const TSystemVectorType& LumpedM, TSystemVectorType& InvertedLumpedM)

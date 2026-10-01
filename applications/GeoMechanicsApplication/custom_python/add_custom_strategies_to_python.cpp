@@ -161,7 +161,7 @@ void AddCustomStrategiesToPython(const pybind11::module& m)
         ResidualBasedBlockBuilderAndSolverNohBathe<SparseSpaceType, LocalSpaceType, LinearSolverType>;
     py::class_<ResidualBasedBlockBuilderAndSolverNohBatheType, ResidualBasedBlockBuilderAndSolverNohBatheType::Pointer, BuilderAndSolverType>(
         m, "ResidualBasedBlockBuilderAndSolverNohBathe")
-        .def(py::init<LinearSolverType::Pointer, double, double, bool>());
+        .def(py::init<LinearSolverType::Pointer, bool, bool>());
 }
 
 } // Namespace Kratos::Python

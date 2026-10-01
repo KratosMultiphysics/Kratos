@@ -286,7 +286,78 @@ public:
             // recover solution of the original problem
             TSparseSpace::Mult(BaseType::mT, Dxmodified, rDx);
         } else {
-            this->InternalSystemSolveWithPhysics(rA, rDx, rb, rModelPart);
+
+            // Make copies
+
+            TSystemMatrixType A_scaled = rA;
+            //TSparseSpace::SetToZero(A_scaled);
+
+            //BaseType::ConstructMatrixStructure(pScheme, A_scaled, rModelPart);
+            //TSparseSpace::SetToZero(A_scaled);
+
+            //double* a_scaled_values = A_scaled.value_data().begin();
+            //const double* a_values = rA.value_data().begin();
+
+            //// add mass and damping contribution to LHS sparse matrix, not that this has to be done in a loop to preserve the sparsity of the matrix
+            //// mass contribution: 1.0 / (mBeta * delta_time * delta_time) * M
+            //// damping contribution: mGamma / (mBeta * delta_time) * C
+            //for (std::size_t i = 0; i < A_scaled.size1(); i++) {
+            //    const std::size_t col_begin = A_scaled.index1_data()[i];
+            //    const std::size_t col_end = A_scaled.index1_data()[i + 1];
+
+            //    for (std::size_t j = col_begin; j < col_end; ++j) {
+            //        a_scaled_values[j] += a_values[j];
+
+            //    }
+            //}
+
+
+            TSystemVectorType b_scaled;
+            TSystemVectorType x_scaled;
+            TSystemVectorType Dinv_sqrt;
+
+            std::cout << "start copying" << std::endl;
+            
+            TSparseSpace::Copy(rb, b_scaled);
+            //TSparseSpace::Copy(rDx, x_scaled);
+            std::cout << "start scaling" << std::endl;
+
+            ApplyJacobiScaling(A_scaled,
+                rDx,
+                b_scaled,
+                Dinv_sqrt);
+            //std::cout << "start writing " << std::endl;
+
+            //WriteSparseMatrixCSV(rA,"rA_matrix.csv");
+            //WriteVectorCSV(rb, "rb_vector.csv");
+            //std::cout << "start writing2 " << std::endl;
+            //WriteSparseMatrixCSV(A_scaled, "A_scaled_matrix.csv");
+            //WriteVectorCSV(b_scaled, "b_scaled_vector.csv");
+
+            TSystemMatrixType A_clean(A_scaled.size1(), A_scaled.size2());
+
+            for (typename TSystemMatrixType::const_iterator1 rowIt = A_scaled.begin1(); rowIt != A_scaled.end1(); ++rowIt)
+            {
+                std::size_t i = rowIt.index1();
+
+                for (typename TSystemMatrixType::const_iterator2 colIt = rowIt.begin(); colIt != rowIt.end(); ++colIt)
+                {
+                    double val = *colIt;
+                    if (std::abs(val) > 1e-10)
+                        A_clean(i, colIt.index2()) = val;
+                }
+            }
+
+            this->InternalSystemSolveWithPhysics(A_clean, rDx, b_scaled, rModelPart);
+            //BaseType::mpLinearSystemSolver->Solve(A_scaled, x_scaled, b_scaled);
+
+            std::cout << "start unscaling" << std::endl;
+            UnscaleSolution(rDx, Dinv_sqrt);
+            //std::cout << "start copying 2" << std::endl;
+            //TSparseSpace::Copy(x_scaled, rDx);
+
+            //KRATOS_ERROR_IF_NOT(false) << "exit for debugging" << std::endl;
+            //this->InternalSystemSolveWithPhysics(rA, rDx, rb, rModelPart);
         }
 
         TSparseSpace::Copy(mCurrentOutOfBalanceVector, mPreviousOutOfBalanceVector);
@@ -301,6 +372,95 @@ public:
             << "\nRHS vector = " << rb << std::endl;
 
         KRATOS_CATCH("")
+    }
+
+    template <typename SparseMatrixType>
+    void WriteSparseMatrixCSV(const SparseMatrixType& A, const std::string& filename)
+    {
+        std::ofstream out(filename);
+        if (!out.is_open()) throw std::runtime_error("Cannot open file " + filename);
+
+        for (typename SparseMatrixType::const_iterator1 rowIt = A.begin1(); rowIt != A.end1(); ++rowIt)
+        {
+            std::size_t i = rowIt.index1();
+            for (typename SparseMatrixType::const_iterator2 colIt = rowIt.begin(); colIt != rowIt.end(); ++colIt)
+            {
+                std::size_t j = colIt.index2();
+                out << i << "," << j << "," << *colIt << "\n";
+            }
+        }
+
+        out.close();
+        std::cout << "Sparse matrix written to " << filename << std::endl;
+    }
+
+    template <typename VectorType>
+    void WriteVectorCSV(const VectorType& v, const std::string& filename)
+    {
+        std::ofstream out(filename);
+        if (!out.is_open()) {
+            throw std::runtime_error("Cannot open file " + filename);
+        }
+
+        for (std::size_t i = 0; i < v.size(); ++i) {
+            out << v(i) << "\n";
+        }
+
+        out.close();
+        std::cout << "Vector written to " << filename << std::endl;
+    }
+
+    template <typename SparseMatrixType, typename VectorType>
+    void ApplyJacobiScaling(SparseMatrixType& rA,
+        VectorType& rDx,
+        VectorType& rb,
+        VectorType& Dinv_sqrt)
+    {
+        typedef typename SparseMatrixType::size_type size_type;
+        typedef typename SparseMatrixType::value_type value_type;
+
+        size_type n = rA.size1();
+        Dinv_sqrt.resize(n, false);
+
+        // 1. Extract D^{-1/2}
+        for (size_type i = 0; i < n; ++i) {
+            value_type diag = rA(i, i);
+            if (diag <= 0.0) {
+                throw std::runtime_error("Matrix not SPD or has zero diagonal entry.");
+            }
+            Dinv_sqrt(i) = 1.0 / std::sqrt(diag);
+        }
+
+        // 2. Symmetric scaling: scale nonzeros
+        for (typename SparseMatrixType::iterator1 rowIt = rA.begin1(); rowIt != rA.end1(); ++rowIt) {
+            size_type i = rowIt.index1();
+            for (typename SparseMatrixType::iterator2 colIt = rowIt.begin(); colIt != rowIt.end(); ++colIt) {
+                size_type j = colIt.index2();
+                *colIt = Dinv_sqrt(i) * (*colIt) * Dinv_sqrt(j);
+            }
+        }
+
+        // 3. Scale RHS
+        for (size_type i = 0; i < n; ++i) {
+            rb(i) = Dinv_sqrt(i) * rb(i);
+        }
+
+        //// 4. Scale initial guess
+        //for (size_type i = 0; i < n; ++i) {
+        //    rDx(i) = rDx(i) / Dinv_sqrt(i);
+        //}
+    }
+
+
+    template <typename VectorType>
+    void UnscaleSolution(VectorType& y, const VectorType& Dinv_sqrt)
+    {
+        typedef typename VectorType::size_type size_type;
+        size_type n = y.size();
+
+        for (size_type i = 0; i < n; ++i) {
+            y(i) = y(i) * Dinv_sqrt(i);
+        }
     }
 
     /**
@@ -320,7 +480,9 @@ public:
             if (mUsePerformSolutionStep) {
                 BaseType::mpLinearSystemSolver->PerformSolutionStep(rA, rDx, rb);
             } else {
+            
                 BaseType::mpLinearSystemSolver->Solve(rA, rDx, rb);
+
             }
         } else {
             KRATOS_WARNING_IF("ResidualBasedBlockBuilderAndSolverLinearElasticDynamic",
