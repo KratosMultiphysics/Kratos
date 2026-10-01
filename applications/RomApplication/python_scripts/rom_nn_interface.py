@@ -14,15 +14,37 @@ class NN_ROM_Interface():
         with open(pathlib.Path(model_path / 'train_config.json'), "r") as config_file:
             model_config = json.load(config_file)
 
-        self.n_inf = int(model_config["modes"][0])
-        self.n_sup = int(model_config["modes"][1])
-                                                  
-        self.network_weights_path = pathlib.Path(model_path / 'model_weights.npy')
-
         _, hash_basis = data_base.check_if_in_database("RightBasis", mu_train)
-        self.phi = data_base.get_single_numpy_from_database(hash_basis)
+        phi = data_base.get_single_numpy_from_database(hash_basis)
         _, hash_sigma = data_base.check_if_in_database("SingularValues_Solution", mu_train)
-        self.sigma =  data_base.get_single_numpy_from_database(hash_sigma)/np.sqrt(len(mu_train))
+        sigma = data_base.get_single_numpy_from_database(hash_sigma)/np.sqrt(len(mu_train))
+
+        self._SetData(phi, sigma, model_config["modes"], pathlib.Path(model_path / 'model_weights.npy'))
+
+    @classmethod
+    def FromNumpyFiles(cls, rom_data_folder, modes):
+        """Creates the interface without a RomManager database, e.g. for a network trained outside the RomManager.
+        The folder must contain:
+        - 'RightBasisMatrix.npy': the solution basis, with at least n_sup columns and the rows in the order used for training.
+        - 'SingularValues.npy': the singular values used to scale the basis during training (the RomManager uses sigma/sqrt(number_of_training_cases)).
+        - 'model_weights.npy': the list of weight matrices of the network (as saved by the RomManager, layers without bias).
+        'modes' is [n_inf, n_sup].
+        """
+        rom_data_folder = pathlib.Path(rom_data_folder)
+        interface = cls.__new__(cls)
+        interface._SetData(
+            np.load(rom_data_folder / 'RightBasisMatrix.npy'),
+            np.load(rom_data_folder / 'SingularValues.npy'),
+            modes,
+            rom_data_folder / 'model_weights.npy')
+        return interface
+
+    def _SetData(self, phi, sigma, modes, network_weights_path):
+        self.n_inf = int(modes[0])
+        self.n_sup = int(modes[1])
+        self.network_weights_path = network_weights_path
+        self.phi = phi
+        self.sigma = sigma
         self.ref_snapshot = np.zeros(self.phi.shape[0])
 
     def get_encode_function(self):

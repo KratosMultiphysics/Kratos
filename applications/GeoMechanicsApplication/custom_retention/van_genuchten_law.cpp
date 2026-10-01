@@ -39,8 +39,7 @@ double VanGenuchtenLaw::CalculateSaturation(Parameters& rParameters) const
 
 double VanGenuchtenLaw::CalculateEffectiveSaturation(Parameters& rParameters) const
 {
-    const auto p = rParameters.GetFluidPressure();
-    if (p > 0.0) {
+    if (const auto p = rParameters.GetFluidPressure(); p > 0.0) {
         const auto& r_material_properties = rParameters.GetMaterialProperties();
         const auto  p_b                   = r_material_properties[VAN_GENUCHTEN_AIR_ENTRY_PRESSURE];
         const auto  n                     = r_material_properties[VAN_GENUCHTEN_GN];
@@ -53,8 +52,7 @@ double VanGenuchtenLaw::CalculateEffectiveSaturation(Parameters& rParameters) co
 
 double VanGenuchtenLaw::CalculateDerivativeOfSaturation(Parameters& rParameters) const
 {
-    const auto p = rParameters.GetFluidPressure();
-    if (p > 0.0) {
+    if (const auto p = rParameters.GetFluidPressure(); p > 0.0) {
         const auto& r_material_properties = rParameters.GetMaterialProperties();
         const auto  s_s                   = r_material_properties[SATURATED_SATURATION];
         const auto  s_r                   = r_material_properties[RESIDUAL_SATURATION];

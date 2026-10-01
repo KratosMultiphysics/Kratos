@@ -19,9 +19,8 @@
 // External includes
 
 // Project includes
-#include "includes/define.h"
 #include "includes/kratos_parameters.h"
-#include "includes/ublas_interface.h"
+#include "includes/default_interface.h"
 #include "response_functions/adjoint_response_function.h"
 #include "utilities/variable_utils.h"
 
