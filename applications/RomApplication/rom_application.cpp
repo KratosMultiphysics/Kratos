@@ -31,12 +31,7 @@ KratosRomApplication::KratosRomApplication():
 
 void KratosRomApplication::Register()
 {
-    KRATOS_INFO("") << "    KRATOS   ____    ___   __  __\n"
-                    << "            |  _ \\  / _ \\ |  \\/  |\n"
-                    << "            | |_) || | | || |\\/| |\n"
-                    << "            |  _ < | |_| || |  | |\n"
-                    << "            |_| \\_\\ \\___/ |_|  |_| APPLICATION\n"
-                    << "Initializing KratosRomApplication..." << std::endl;
+    KRATOS_INFO("") << "Initializing KratosRomApplication..." << std::endl;
 
     KRATOS_REGISTER_MODELER("HRomVisualizationMeshModeler", mHRomVisualizationMeshModeler);
 
