@@ -96,6 +96,9 @@ public:
         const Variable<Vector>& rVariable, std::vector<Vector>& rOutput,
         const ProcessInfo& rCurrentProcessInfo) override;
 
+protected:
+    void CalculateInternalForces(VectorType& rInternalForces, const ProcessInfo& rCurrentProcessInfo) override;
+
 private:
     // boolean for the cable --> does not resist to compression
     bool mIsCompressed;

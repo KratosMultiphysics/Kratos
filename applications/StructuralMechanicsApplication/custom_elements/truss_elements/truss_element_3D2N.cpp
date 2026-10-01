@@ -407,6 +407,40 @@ void TrussElement3D2N::Calculate(const Variable<double>& rVariable, double& rOut
     }
 }
 
+void TrussElement3D2N::Calculate(const Variable<Vector>& rVariable, Vector& rOutput, const ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_TRY
+
+    if (rVariable == INTERNAL_FORCES_VECTOR) {
+        CalculateInternalForces(rOutput, rCurrentProcessInfo);
+    } else if (rVariable == EXTERNAL_FORCES_VECTOR) {
+        CalculateExternalForces(rOutput);
+    } else {
+        KRATOS_ERROR << "Variable " << rVariable.Name() << " is not supported in element " << this->Info() << std::endl;
+    }
+
+    KRATOS_CATCH("")
+}
+
+void TrussElement3D2N::CalculateInternalForces(VectorType& rInternalForces, const ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_TRY
+    BoundedVector<double, msLocalSize> internal_forces = ZeroVector(msLocalSize);
+    UpdateInternalForces(internal_forces, rCurrentProcessInfo);
+    rInternalForces = internal_forces;
+    KRATOS_CATCH("")
+}
+
+void TrussElement3D2N::CalculateExternalForces(VectorType& rExternalForces)
+{
+    KRATOS_TRY
+    rExternalForces = ZeroVector(msLocalSize);
+    if (HasSelfWeight()) {
+        noalias(rExternalForces) = CalculateBodyForces();
+    }
+    KRATOS_CATCH("")
+}
+
 
 
 void TrussElement3D2N::CalculateOnIntegrationPoints(

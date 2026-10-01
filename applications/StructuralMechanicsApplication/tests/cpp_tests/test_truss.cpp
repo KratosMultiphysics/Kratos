@@ -152,6 +152,149 @@ void CreateTrussModel2N_and_CheckPK2Stress(std::string TrussElementName)
         KRATOS_EXPECT_DOUBLE_EQ(expected_stress + pre_stress, stress_vector[0][0]);
     }
 
+void CreateTrussModel_and_CheckInternalAndExternalForces(std::string TrussElementName,
+                                                         std::size_t NumberOfNodes,
+                                                         const array_1d<double, 3>& rUnitDirection,
+                                                         const array_1d<double, 3>& rVolumeAcceleration)
+    {
+        Model current_model;
+        auto& r_model_part = CreateTestModelPart(current_model);
+
+        // Set the element properties
+        constexpr auto youngs_modulus = 2.0e+06;
+        constexpr auto area           = 0.01;
+        constexpr auto density        = 7850.0;
+        constexpr auto pre_stress     = 1.0e+03;
+        auto p_elem_prop = r_model_part.CreateNewProperties(0);
+        p_elem_prop->SetValue(YOUNG_MODULUS, youngs_modulus);
+        p_elem_prop->SetValue(CROSS_AREA, area);
+        p_elem_prop->SetValue(DENSITY, density);
+        p_elem_prop->SetValue(TRUSS_PRESTRESS_PK2, pre_stress);
+        p_elem_prop->SetValue(VOLUME_ACCELERATION, rVolumeAcceleration);
+        p_elem_prop->SetValue(CONSTITUTIVE_LAW, KratosComponents<ConstitutiveLaw>::Get("TrussConstitutiveLaw").Clone());
+
+        // Create the test element, uniformly stretched along its axis (the third node, if any, is the mid node)
+        constexpr auto length     = 3.0;
+        constexpr auto elongation = 0.03;
+        const auto relative_node_positions = NumberOfNodes == 2 ? std::vector<double>{0.0, 1.0}
+                                                                : std::vector<double>{0.0, 1.0, 0.5};
+        std::vector<ModelPart::IndexType> element_nodes;
+        for (std::size_t i = 0; i < NumberOfNodes; ++i) {
+            const array_1d<double, 3> coordinates = relative_node_positions[i] * length * rUnitDirection;
+            auto p_node = r_model_part.CreateNewNode(i + 1, coordinates[0], coordinates[1], coordinates[2]);
+            p_node->FastGetSolutionStepValue(DISPLACEMENT) = relative_node_positions[i] * elongation * rUnitDirection;
+            element_nodes.push_back(p_node->Id());
+        }
+
+        auto p_element = r_model_part.CreateNewElement(std::move(TrussElementName), 1, element_nodes, p_elem_prop);
+        const auto& r_process_info = r_model_part.GetProcessInfo();
+        p_element->Initialize(r_process_info); // Initialize the element to initialize the constitutive law
+
+        Vector internal_forces, external_forces, rhs;
+        p_element->Calculate(INTERNAL_FORCES_VECTOR, internal_forces, r_process_info);
+        p_element->Calculate(EXTERNAL_FORCES_VECTOR, external_forces, r_process_info);
+        p_element->CalculateRightHandSide(rhs, r_process_info);
+
+        // The internal forces are the axial force acting along the axis on the end nodes, the external forces
+        // are the self weight distributed over the nodes by the (linear or quadratic) shape functions
+        const auto axial_force  = (youngs_modulus * elongation / length + pre_stress) * area;
+        const auto total_mass   = density * area * length;
+        const auto axial_force_signs = NumberOfNodes == 2 ? std::vector<double>{-1.0, 1.0}
+                                                          : std::vector<double>{-1.0, 1.0, 0.0};
+        const auto mass_fractions    = NumberOfNodes == 2 ? std::vector<double>{0.5, 0.5}
+                                                          : std::vector<double>{1.0 / 6.0, 1.0 / 6.0, 2.0 / 3.0};
+
+        const auto dimension = p_element->GetGeometry().WorkingSpaceDimension();
+        Vector expected_internal_forces(NumberOfNodes * dimension), expected_external_forces(NumberOfNodes * dimension);
+        for (std::size_t i = 0; i < NumberOfNodes; ++i) {
+            for (std::size_t j = 0; j < dimension; ++j) {
+                expected_internal_forces[i * dimension + j] = axial_force_signs[i] * axial_force * rUnitDirection[j];
+                expected_external_forces[i * dimension + j] = mass_fractions[i] * total_mass * rVolumeAcceleration[j];
+            }
+        }
+
+        constexpr auto tolerance = 1.0e-8;
+        KRATOS_EXPECT_VECTOR_NEAR(internal_forces, expected_internal_forces, tolerance);
+        KRATOS_EXPECT_VECTOR_NEAR(external_forces, expected_external_forces, tolerance);
+
+        // The residual must be consistent with the separately computed forces
+        const Vector expected_rhs = external_forces - internal_forces;
+        KRATOS_EXPECT_VECTOR_NEAR(rhs, expected_rhs, tolerance);
+    }
+
+// Data of the prestressed TrussElement3D2N-based test trusses
+constexpr auto truss_3D2N_youngs_modulus = 2.0e+06;
+constexpr auto truss_3D2N_area           = 0.01;
+constexpr auto truss_3D2N_pre_stress     = 1.0e+03;
+constexpr auto truss_3D2N_length         = 3.0;
+
+void CreateTruss3D2NModel_and_CheckInternalAndExternalForces(std::string TrussElementName,
+                                                             double Elongation,
+                                                             double ExpectedAxialForce)
+    {
+        Model current_model;
+        auto& r_model_part = CreateTestModelPart(current_model);
+        r_model_part.AddNodalSolutionStepVariable(VOLUME_ACCELERATION);
+
+        // Set the element properties
+        constexpr auto density = 7850.0;
+        auto p_elem_prop = r_model_part.CreateNewProperties(0);
+        p_elem_prop->SetValue(YOUNG_MODULUS, truss_3D2N_youngs_modulus);
+        p_elem_prop->SetValue(CROSS_AREA, truss_3D2N_area);
+        p_elem_prop->SetValue(DENSITY, density);
+        p_elem_prop->SetValue(TRUSS_PRESTRESS_PK2, truss_3D2N_pre_stress);
+        p_elem_prop->SetValue(CONSTITUTIVE_LAW, KratosComponents<ConstitutiveLaw>::Get("TrussConstitutiveLaw").Clone());
+
+        // Create the test element along an inclined axis, loaded by self weight and stretched along its axis
+        const array_1d<double, 3> unit_direction{1.0 / 3.0, 2.0 / 3.0, 2.0 / 3.0};
+        const array_1d<double, 3> volume_acceleration{1.0, 2.0, -9.81};
+        const array_1d<double, 3> end_coordinates = truss_3D2N_length * unit_direction;
+        r_model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
+        auto p_end_node = r_model_part.CreateNewNode(2, end_coordinates[0], end_coordinates[1], end_coordinates[2]);
+        for (auto& r_node : r_model_part.Nodes()) {
+            r_node.FastGetSolutionStepValue(VOLUME_ACCELERATION) = volume_acceleration;
+        }
+        p_end_node->FastGetSolutionStepValue(DISPLACEMENT) = Elongation * unit_direction;
+
+        const std::vector<ModelPart::IndexType> element_nodes {1, 2};
+        auto p_element = r_model_part.CreateNewElement(std::move(TrussElementName), 1, element_nodes, p_elem_prop);
+        const auto& r_process_info = r_model_part.GetProcessInfo();
+        p_element->Initialize(r_process_info); // Initialize the element to initialize the constitutive law
+
+        Vector internal_forces, external_forces, rhs;
+        p_element->Calculate(INTERNAL_FORCES_VECTOR, internal_forces, r_process_info);
+        p_element->Calculate(EXTERNAL_FORCES_VECTOR, external_forces, r_process_info);
+        p_element->CalculateRightHandSide(rhs, r_process_info);
+
+        // The internal forces are the axial force acting along the axis on both nodes,
+        // the external forces are the self weight lumped equally into both nodes
+        const auto nodal_mass = 0.5 * density * truss_3D2N_area * truss_3D2N_length;
+        Vector expected_internal_forces(6), expected_external_forces(6);
+        for (std::size_t j = 0; j < 3; ++j) {
+            expected_internal_forces[j]     = -ExpectedAxialForce * unit_direction[j];
+            expected_internal_forces[3 + j] =  ExpectedAxialForce * unit_direction[j];
+            expected_external_forces[j]     = nodal_mass * volume_acceleration[j];
+            expected_external_forces[3 + j] = nodal_mass * volume_acceleration[j];
+        }
+
+        constexpr auto tolerance = 1.0e-8;
+        KRATOS_EXPECT_VECTOR_NEAR(internal_forces, expected_internal_forces, tolerance);
+        KRATOS_EXPECT_VECTOR_NEAR(external_forces, expected_external_forces, tolerance);
+
+        // The residual must be consistent with the separately computed forces
+        const Vector expected_rhs = external_forces - internal_forces;
+        KRATOS_EXPECT_VECTOR_NEAR(rhs, expected_rhs, tolerance);
+    }
+
+double CalculateExpectedAxialForceOfTrussElement3D2N(double Elongation)
+    {
+        // The PK2 stress follows from the Green-Lagrange strain, the axial force is pushed forward to the current configuration
+        const auto current_length = truss_3D2N_length + Elongation;
+        const auto green_lagrange_strain = (current_length * current_length - truss_3D2N_length * truss_3D2N_length) /
+                                           (2.0 * truss_3D2N_length * truss_3D2N_length);
+        return (truss_3D2N_youngs_modulus * green_lagrange_strain + truss_3D2N_pre_stress) * truss_3D2N_area * current_length / truss_3D2N_length;
+    }
+
     // Tests the mass matrix of the TrussElement3D2N
     KRATOS_TEST_CASE_IN_SUITE(TrussElement3D2NMassMatrix, KratosStructuralMechanicsFastSuite)
     {
@@ -400,5 +543,86 @@ void CreateTrussModel2N_and_CheckPK2Stress(std::string TrussElementName)
     KRATOS_TEST_CASE_IN_SUITE(LinearTrussElement3D2N_CalculatesPK2Stress, KratosStructuralMechanicsFastSuite)
     {
         CreateTrussModel2N_and_CheckPK2Stress("LinearTrussElement3D2N");
+    }
+
+    KRATOS_TEST_CASE_IN_SUITE(LinearTrussElement2D2N_CalculatesInternalAndExternalForces, KratosStructuralMechanicsFastSuite)
+    {
+        CreateTrussModel_and_CheckInternalAndExternalForces("LinearTrussElement2D2N", 2,
+            array_1d<double, 3>{0.6, 0.8, 0.0}, array_1d<double, 3>{1.0, -9.81, 0.0});
+    }
+
+    KRATOS_TEST_CASE_IN_SUITE(LinearTrussElement2D3N_CalculatesInternalAndExternalForces, KratosStructuralMechanicsFastSuite)
+    {
+        CreateTrussModel_and_CheckInternalAndExternalForces("LinearTrussElement2D3N", 3,
+            array_1d<double, 3>{0.6, 0.8, 0.0}, array_1d<double, 3>{1.0, -9.81, 0.0});
+    }
+
+    KRATOS_TEST_CASE_IN_SUITE(LinearTrussElement3D2N_CalculatesInternalAndExternalForces, KratosStructuralMechanicsFastSuite)
+    {
+        CreateTrussModel_and_CheckInternalAndExternalForces("LinearTrussElement3D2N", 2,
+            array_1d<double, 3>{1.0 / 3.0, 2.0 / 3.0, 2.0 / 3.0}, array_1d<double, 3>{1.0, 2.0, -9.81});
+    }
+
+    KRATOS_TEST_CASE_IN_SUITE(LinearTrussElement3D3N_CalculatesInternalAndExternalForces, KratosStructuralMechanicsFastSuite)
+    {
+        CreateTrussModel_and_CheckInternalAndExternalForces("LinearTrussElement3D3N", 3,
+            array_1d<double, 3>{1.0 / 3.0, 2.0 / 3.0, 2.0 / 3.0}, array_1d<double, 3>{1.0, 2.0, -9.81});
+    }
+
+    KRATOS_TEST_CASE_IN_SUITE(LinearTrussElement3D2N_CalculateThrowsForUnsupportedVectorVariable, KratosStructuralMechanicsFastSuite)
+    {
+        Model current_model;
+        auto& r_model_part = CreateTestModelPart(current_model);
+        auto [p_bottom_node, p_top_node] = CreateEndNodes(r_model_part, 2.0);
+        auto p_elem_prop = r_model_part.CreateNewProperties(0);
+        const std::vector<ModelPart::IndexType> element_nodes {p_bottom_node->Id(), p_top_node->Id()};
+        auto p_element = r_model_part.CreateNewElement("LinearTrussElement3D2N", 1, element_nodes, p_elem_prop);
+
+        Vector output;
+        KRATOS_EXPECT_EXCEPTION_IS_THROWN(p_element->Calculate(PK2_STRESS_VECTOR, output, r_model_part.GetProcessInfo()),
+                                          "Variable PK2_STRESS_VECTOR is not supported in element")
+    }
+
+    KRATOS_TEST_CASE_IN_SUITE(TrussElement3D2N_CalculatesInternalAndExternalForces, KratosStructuralMechanicsFastSuite)
+    {
+        constexpr auto elongation = 0.03;
+        CreateTruss3D2NModel_and_CheckInternalAndExternalForces("TrussElement3D2N", elongation,
+            CalculateExpectedAxialForceOfTrussElement3D2N(elongation));
+    }
+
+    KRATOS_TEST_CASE_IN_SUITE(TrussElementLinear3D2N_CalculatesInternalAndExternalForces, KratosStructuralMechanicsFastSuite)
+    {
+        constexpr auto elongation = 0.03;
+        constexpr auto expected_axial_force =
+            (truss_3D2N_youngs_modulus * elongation / truss_3D2N_length + truss_3D2N_pre_stress) * truss_3D2N_area;
+        CreateTruss3D2NModel_and_CheckInternalAndExternalForces("TrussLinearElement3D2N", elongation, expected_axial_force);
+    }
+
+    KRATOS_TEST_CASE_IN_SUITE(CableElement3D2N_CalculatesInternalAndExternalForcesInTension, KratosStructuralMechanicsFastSuite)
+    {
+        constexpr auto elongation = 0.03;
+        CreateTruss3D2NModel_and_CheckInternalAndExternalForces("CableElement3D2N", elongation,
+            CalculateExpectedAxialForceOfTrussElement3D2N(elongation));
+    }
+
+    KRATOS_TEST_CASE_IN_SUITE(CableElement3D2N_HasNoInternalForcesInCompression, KratosStructuralMechanicsFastSuite)
+    {
+        constexpr auto elongation = -0.03;
+        constexpr auto expected_axial_force = 0.0; // a compressed cable does not carry any load
+        CreateTruss3D2NModel_and_CheckInternalAndExternalForces("CableElement3D2N", elongation, expected_axial_force);
+    }
+
+    KRATOS_TEST_CASE_IN_SUITE(TrussElement3D2N_CalculateThrowsForUnsupportedVectorVariable, KratosStructuralMechanicsFastSuite)
+    {
+        Model current_model;
+        auto& r_model_part = CreateTestModelPart(current_model);
+        auto [p_bottom_node, p_top_node] = CreateEndNodes(r_model_part, 2.0);
+        auto p_elem_prop = r_model_part.CreateNewProperties(0);
+        const std::vector<ModelPart::IndexType> element_nodes {p_bottom_node->Id(), p_top_node->Id()};
+        auto p_element = r_model_part.CreateNewElement("TrussElement3D2N", 1, element_nodes, p_elem_prop);
+
+        Vector output;
+        KRATOS_EXPECT_EXCEPTION_IS_THROWN(p_element->Calculate(PK2_STRESS_VECTOR, output, r_model_part.GetProcessInfo()),
+                                          "Variable PK2_STRESS_VECTOR is not supported in element")
     }
 }
