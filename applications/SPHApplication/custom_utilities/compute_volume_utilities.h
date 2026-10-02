@@ -1,3 +1,9 @@
+// SPH Application 
+
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
+
+//  Main authors:    Marco Pilotto
 
 #pragma once 
 
