@@ -10,38 +10,31 @@
 //  Main authors:    Nicolò Antonelli
 //
 
-
 #pragma once
 
 // Project includes
 #include "fluid_dynamics_application_variables.h"
 #include "includes/condition.h"
-#include "includes/constitutive_law.h"
 
 namespace Kratos {
 
 /**
- * @class SbmFluidDirichletCondition2D4N
- * @brief Face-based 2D SBM velocity Dirichlet condition.
- * @details One condition integrates an entire surrogate Line2 face while its
- *          Kratos geometry is the owner Quad4. This is required by standard
- *          schemes, which assume that geometry nodes and local-system blocks
- *          coincide. The two oriented face points are stored row-wise in
- *          SURROGATE_BOUNDARY_FACE_COORDINATES. In standard SBM mode,
- *          SURROGATE_BOUNDARY_PROJECTION is a 2x3 matrix containing the
- *          true-boundary projections and the trace is obtained by the linear
- *          Taylor shift. In Gap-SBM mode it is a 2x7 boundary-quadrature
- *          matrix [x,y,z,nx,ny,nz,weight]; the extended parent basis is then
- *          evaluated and integrated directly at the reconstructed true
- *          boundary. Prescribed values are stored in SBM_BOUNDARY_VELOCITIES.
- *          The existing core PENALTY_COEFFICIENT controls the optional penalty
- *          contribution and defaults to zero (penalty-free).
+ * @class SbmFluidNeumannCondition2D4N
+ * @brief Applies a prescribed traction on a reconstructed Gap-SBM boundary.
+ * @details The condition geometry is the owner Quad4, so the extended Q1
+ *          basis is evaluated directly at the two reconstructed-boundary
+ *          Gauss points stored in SURROGATE_BOUNDARY_PROJECTION. The 2x7
+ *          matrix rows contain [x,y,z,nx,ny,nz,weight]. A pointwise prescribed
+ *          total Cauchy stress can be stored in CAUCHY_STRESS_TENSOR as a 2x4
+ *          matrix [sigma_xx,sigma_xy,sigma_yx,sigma_yy]; the condition then
+ *          applies t=sigma*n. Alternatively, FACE_LOAD supplies one constant
+ *          traction vector for the complete face.
  */
-class KRATOS_API(FLUID_DYNAMICS_APPLICATION) SbmFluidDirichletCondition2D4N
+class KRATOS_API(FLUID_DYNAMICS_APPLICATION) SbmFluidNeumannCondition2D4N
     : public Condition
 {
 public:
-    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(SbmFluidDirichletCondition2D4N);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(SbmFluidNeumannCondition2D4N);
 
     using IndexType = Condition::IndexType;
     using SizeType = Condition::SizeType;
@@ -53,12 +46,14 @@ public:
     using EquationIdVectorType = Condition::EquationIdVectorType;
     using DofsVectorType = Condition::DofsVectorType;
 
-    SbmFluidDirichletCondition2D4N(IndexType NewId, GeometryType::Pointer pGeometry)
+    SbmFluidNeumannCondition2D4N(
+        IndexType NewId,
+        GeometryType::Pointer pGeometry)
         : Condition(NewId, pGeometry)
     {
     }
 
-    SbmFluidDirichletCondition2D4N(
+    SbmFluidNeumannCondition2D4N(
         IndexType NewId,
         GeometryType::Pointer pGeometry,
         PropertiesType::Pointer pProperties)
@@ -66,7 +61,7 @@ public:
     {
     }
 
-    ~SbmFluidDirichletCondition2D4N() override = default;
+    ~SbmFluidNeumannCondition2D4N() override = default;
 
     Condition::Pointer Create(
         IndexType NewId,
@@ -77,8 +72,6 @@ public:
         IndexType NewId,
         NodesArrayType const& rThisNodes,
         PropertiesType::Pointer pProperties) const override;
-
-    void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
 
     void CalculateLocalSystem(
         MatrixType& rLeftHandSideMatrix,
@@ -118,52 +111,29 @@ public:
 
     std::string Info() const override
     {
-        return "SbmFluidDirichletCondition2D4N";
+        return "SbmFluidNeumannCondition2D4N";
     }
 
 protected:
-    SbmFluidDirichletCondition2D4N() = default;
+    SbmFluidNeumannCondition2D4N() = default;
 
 private:
     friend class Serializer;
 
-    struct ConstitutiveVariables
-    {
-        ConstitutiveLaw::StrainVectorType StrainVector = ZeroVector(3);
-        ConstitutiveLaw::StressVectorType StressVector = ZeroVector(3);
-        ConstitutiveLaw::VoigtSizeMatrixType ConstitutiveMatrix = ZeroMatrix(3, 3);
-    };
+    void CalculateNeumannLoad(VectorType& rRightHandSideVector) const;
 
-    void CalculateAll(
-        MatrixType& rLeftHandSideMatrix,
-        VectorType& rRightHandSideVector,
-        const ProcessInfo& rCurrentProcessInfo,
-        bool CalculateStiffnessMatrixFlag,
-        bool CalculateResidualVectorFlag);
-
-    const GeometryType& GetParentGeometry() const;
-
-    array_1d<double, 3> GetPrescribedVelocity(SizeType IntegrationPointIndex) const;
-
-    static void CalculateB(Matrix& rB, const Matrix& rDN_DX);
-
-    static void BuildStressFromVoigtColumn(
-        Matrix& rStressTensor,
-        const Matrix& rConstitutiveBMatrix,
-        IndexType Column);
-
-    std::vector<ConstitutiveLaw::Pointer> mConstitutiveLaws;
+    array_1d<double, 3> GetPrescribedTraction(
+        SizeType IntegrationPointIndex,
+        const array_1d<double, 2>& rNormal) const;
 
     void save(Serializer& rSerializer) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Condition);
-        rSerializer.save("ConstitutiveLaws", mConstitutiveLaws);
     }
 
     void load(Serializer& rSerializer) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Condition);
-        rSerializer.load("ConstitutiveLaws", mConstitutiveLaws);
     }
 };
 

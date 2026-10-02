@@ -10,38 +10,41 @@
 //  Main authors:    Nicolò Antonelli
 //
 
-
 #pragma once
+
+// System includes
+#include <vector>
 
 // Project includes
 #include "fluid_dynamics_application_variables.h"
 #include "includes/condition.h"
 #include "includes/constitutive_law.h"
+#include "includes/element.h"
 
 namespace Kratos {
 
 /**
- * @class SbmFluidDirichletCondition2D4N
- * @brief Face-based 2D SBM velocity Dirichlet condition.
- * @details One condition integrates an entire surrogate Line2 face while its
- *          Kratos geometry is the owner Quad4. This is required by standard
- *          schemes, which assume that geometry nodes and local-system blocks
- *          coincide. The two oriented face points are stored row-wise in
- *          SURROGATE_BOUNDARY_FACE_COORDINATES. In standard SBM mode,
- *          SURROGATE_BOUNDARY_PROJECTION is a 2x3 matrix containing the
- *          true-boundary projections and the trace is obtained by the linear
- *          Taylor shift. In Gap-SBM mode it is a 2x7 boundary-quadrature
- *          matrix [x,y,z,nx,ny,nz,weight]; the extended parent basis is then
- *          evaluated and integrated directly at the reconstructed true
- *          boundary. Prescribed values are stored in SBM_BOUNDARY_VELOCITIES.
- *          The existing core PENALTY_COEFFICIENT controls the optional penalty
- *          contribution and defaults to zero (penalty-free).
+ * @class SbmFluidGapInterfaceCondition2D
+ * @brief Weakly couples the FEM extensions of two adjacent 2D gap patches.
+ * @details The condition implements a nonsymmetric Nitsche interface form for
+ *          the incompressible Stokes operator,
+ *
+ *          - [v] . {sigma(u,p)n} + {sigma(v,q)n} . [u]
+ *          + gamma/h [v] . [u].
+ *
+ *          The condition geometry is the union of the nodes of both parent
+ *          Quad4 elements. The two parents are supplied in NEIGHBOUR_ELEMENTS
+ *          and the oriented connector (surrogate vertex to reconstructed skin)
+ *          is supplied in SURROGATE_BOUNDARY_FACE_COORDINATES. The normal
+ *          encoded by the connector orientation points from parent 0 to parent
+ *          1. PENALTY_COEFFICIENT=0 selects the penalty-free form.
  */
-class KRATOS_API(FLUID_DYNAMICS_APPLICATION) SbmFluidDirichletCondition2D4N
-    : public Condition
+class KRATOS_API(FLUID_DYNAMICS_APPLICATION)
+    SbmFluidGapInterfaceCondition2D : public Condition
 {
 public:
-    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(SbmFluidDirichletCondition2D4N);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(
+        SbmFluidGapInterfaceCondition2D);
 
     using IndexType = Condition::IndexType;
     using SizeType = Condition::SizeType;
@@ -53,12 +56,14 @@ public:
     using EquationIdVectorType = Condition::EquationIdVectorType;
     using DofsVectorType = Condition::DofsVectorType;
 
-    SbmFluidDirichletCondition2D4N(IndexType NewId, GeometryType::Pointer pGeometry)
+    SbmFluidGapInterfaceCondition2D(
+        IndexType NewId,
+        GeometryType::Pointer pGeometry)
         : Condition(NewId, pGeometry)
     {
     }
 
-    SbmFluidDirichletCondition2D4N(
+    SbmFluidGapInterfaceCondition2D(
         IndexType NewId,
         GeometryType::Pointer pGeometry,
         PropertiesType::Pointer pProperties)
@@ -66,7 +71,7 @@ public:
     {
     }
 
-    ~SbmFluidDirichletCondition2D4N() override = default;
+    ~SbmFluidGapInterfaceCondition2D() override = default;
 
     Condition::Pointer Create(
         IndexType NewId,
@@ -118,11 +123,11 @@ public:
 
     std::string Info() const override
     {
-        return "SbmFluidDirichletCondition2D4N";
+        return "SbmFluidGapInterfaceCondition2D";
     }
 
 protected:
-    SbmFluidDirichletCondition2D4N() = default;
+    SbmFluidGapInterfaceCondition2D() = default;
 
 private:
     friend class Serializer;
@@ -131,7 +136,8 @@ private:
     {
         ConstitutiveLaw::StrainVectorType StrainVector = ZeroVector(3);
         ConstitutiveLaw::StressVectorType StressVector = ZeroVector(3);
-        ConstitutiveLaw::VoigtSizeMatrixType ConstitutiveMatrix = ZeroMatrix(3, 3);
+        ConstitutiveLaw::VoigtSizeMatrixType ConstitutiveMatrix =
+            ZeroMatrix(3, 3);
     };
 
     void CalculateAll(
@@ -141,9 +147,11 @@ private:
         bool CalculateStiffnessMatrixFlag,
         bool CalculateResidualVectorFlag);
 
-    const GeometryType& GetParentGeometry() const;
-
-    array_1d<double, 3> GetPrescribedVelocity(SizeType IntegrationPointIndex) const;
+    static void CalculateParentShapeFunctions(
+        const GeometryType& rParentGeometry,
+        const Point& rGlobalPoint,
+        Vector& rN,
+        Matrix& rDN_DX);
 
     static void CalculateB(Matrix& rB, const Matrix& rDN_DX);
 

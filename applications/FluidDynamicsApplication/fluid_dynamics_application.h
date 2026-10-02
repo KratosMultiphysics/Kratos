@@ -71,6 +71,8 @@
 #include "custom_conditions/navier_stokes_p2_p1_continuous_wall_condition.h"
 #include "custom_conditions/embedded_ausas_navier_stokes_wall_condition.h"
 #include "custom_conditions/sbm_fluid_dirichlet_condition.h"
+#include "custom_conditions/sbm_fluid_gap_interface_condition.h"
+#include "custom_conditions/sbm_fluid_neumann_condition.h"
 
 #include "custom_elements/dpg_vms.h"
 #include "custom_elements/bingham_fluid.h"
@@ -458,6 +460,8 @@ private:
 
     /// Shifted velocity Dirichlet condition for incompressible flow
     const SbmFluidDirichletCondition2D4N mSbmFluidDirichletCondition2D4N;
+    const SbmFluidGapInterfaceCondition2D mSbmFluidGapInterfaceCondition2D;
+    const SbmFluidNeumannCondition2D4N mSbmFluidNeumannCondition2D4N;
 
     /// Low Mach Navier-Stokes element
     const LowMachNavierStokes<LowMachNavierStokesData<2,3>> mLowMachNavierStokes2D3N;
