@@ -498,9 +498,11 @@ void LinearTimoshenkoBeamElement3D2N::CalculateLocalSystem(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void LinearTimoshenkoBeamElement3D2N::CalculateRightHandSide(
-    VectorType& rRHS,
-    const ProcessInfo& rProcessInfo
+void LinearTimoshenkoBeamElement3D2N::CalculateInternalAndExternalForcesVector(
+    VectorType& rForces,
+    const ProcessInfo& rProcessInfo,
+    const bool ComputeInternalForces,
+    const bool ComputeExternalForces
     )
 {
     KRATOS_TRY
@@ -512,10 +514,10 @@ void LinearTimoshenkoBeamElement3D2N::CalculateRightHandSide(
     const SizeType strain_size = mConstitutiveLawVector[0]->GetStrainSize();
     const SizeType local_trans_deflection_size = mat_size - 4 * number_of_nodes;
 
-    if (rRHS.size() != mat_size) {
-        rRHS.resize(mat_size, false);
+    if (rForces.size() != mat_size) {
+        rForces.resize(mat_size, false);
     }
-    rRHS.clear();
+    rForces.clear();
 
     ConstitutiveLaw::Parameters cl_values(r_geometry, r_props, rProcessInfo);
     auto &r_cl_options = cl_values.GetOptions();
@@ -550,257 +552,86 @@ void LinearTimoshenkoBeamElement3D2N::CalculateRightHandSide(
     // Loop over the integration points (IP)
     const auto& r_integration_points = IntegrationPoints(GetIntegrationMethod());
     for (SizeType IP = 0; IP < r_integration_points.size(); ++IP) {
-        const auto local_body_forces = GetLocalAxesBodyForce(*this, r_integration_points, IP);
-
         global_size_N.clear();
         const double xi     = r_integration_points[IP].X();
         const double weight = r_integration_points[IP].Weight();
         const double jacobian_weight = weight * J;
 
-        CalculateGeneralizedStrainsVector(strain_vector, length, 0.0, xi, nodal_values);
+        if (ComputeInternalForces) {
+            CalculateGeneralizedStrainsVector(strain_vector, length, 0.0, xi, nodal_values);
 
-        mConstitutiveLawVector[IP]->CalculateMaterialResponseCauchy(cl_values);
-        const Vector &r_generalized_stresses = cl_values.GetStressVector();
-        const double N  = r_generalized_stresses[0];
-        const double Mx = r_generalized_stresses[1];
-        const double My = r_generalized_stresses[2];
-        const double Mz = r_generalized_stresses[3];
-        const double Vy = r_generalized_stresses[4];
-        const double Vz = r_generalized_stresses[5];
+            mConstitutiveLawVector[IP]->CalculateMaterialResponseCauchy(cl_values);
+            const Vector &r_generalized_stresses = cl_values.GetStressVector();
+            const double N  = r_generalized_stresses[0];
+            const double Mx = r_generalized_stresses[1];
+            const double My = r_generalized_stresses[2];
+            const double Mz = r_generalized_stresses[3];
+            const double Vy = r_generalized_stresses[4];
+            const double Vz = r_generalized_stresses[5];
 
-        // Axial DoFs shape functions (u and theta_x)
-        GetFirstDerivativesNu0ShapeFunctionsValues(N_u_derivatives, length, 0.0, xi);
-        GetNu0ShapeFunctionsValues(N_u, length, 0.0, xi);
+            // Axial DoFs shape functions (u and theta_x)
+            GetFirstDerivativesNu0ShapeFunctionsValues(N_u_derivatives, length, 0.0, xi);
 
-        // Axial contributions
-        GlobalSizeAxialVector(global_size_N, N_u_derivatives);
-        noalias(rRHS) -= global_size_N * N * jacobian_weight;
+            // Axial contributions
+            GlobalSizeAxialVector(global_size_N, N_u_derivatives);
+            noalias(rForces) -= global_size_N * N * jacobian_weight;
 
-        // External body forces in u
-        GlobalSizeAxialVector(global_size_N, N_u);
-        noalias(rRHS) += global_size_N * local_body_forces[0] * jacobian_weight * area;
+            // Torsional contributions
+            GlobalSizeVectorAxialRotation(global_size_N, N_u_derivatives);
+            noalias(rForces) -= global_size_N * Mx * jacobian_weight;
 
-        // Torsional contributions
-        GlobalSizeVectorAxialRotation(global_size_N, N_u_derivatives);
-        noalias(rRHS) -= global_size_N * Mx * jacobian_weight;
+            // Transverse DoFs shape functions {v, theta_z}
+            GetNThetaShapeFunctionsValues(N_theta, length, Phi_rot_z, xi);
+            GetFirstDerivativesNThetaShapeFunctionsValues(N_theta_derivatives, length, Phi_rot_z, xi);
+            GetFirstDerivativesShapeFunctionsValues(N_derivatives, length, Phi_rot_z, xi);
+            noalias(N_s) = N_derivatives - N_theta;
 
-        // Transverse DoFs shape functions {v, theta_z}
-        GetNThetaShapeFunctionsValues(N_theta, length, Phi_rot_z, xi);
-        GetFirstDerivativesNThetaShapeFunctionsValues(N_theta_derivatives, length, Phi_rot_z, xi);
-        GetShapeFunctionsValues(N_shape, length, Phi_rot_z, xi);
-        GetFirstDerivativesShapeFunctionsValues(N_derivatives, length, Phi_rot_z, xi);
-        noalias(N_s) = N_derivatives - N_theta;
+            // Bending in z contributions
+            GlobalSizeVectorTransversalY(global_size_N, N_theta_derivatives);
+            noalias(rForces) -= global_size_N * Mz * jacobian_weight;
 
-        // Bending in z contributions
-        GlobalSizeVectorTransversalY(global_size_N, N_theta_derivatives);
-        noalias(rRHS) -= global_size_N * Mz * jacobian_weight;
+            // Shear XY contributions
+            GlobalSizeVectorTransversalY(global_size_N, N_s);
+            noalias(rForces) -= global_size_N * Vy * jacobian_weight;
 
-        // Shear XY contributions
-        GlobalSizeVectorTransversalY(global_size_N, N_s);
-        noalias(rRHS) -= global_size_N * Vy * jacobian_weight;
+            // Transverse DoFs shape functions {w, theta_y}
+            GetNThetaShapeFunctionsValues(N_theta, length, Phi_rot_y, xi);
+            GetFirstDerivativesNThetaShapeFunctionsValues(N_theta_derivatives, length, Phi_rot_y, xi);
+            GetFirstDerivativesShapeFunctionsValues(N_derivatives, length, Phi_rot_y, xi);
+            noalias(N_s) = N_derivatives - N_theta;
 
-        // External body forces in v
-        GlobalSizeVectorTransversalY(global_size_N, N_shape);
-        noalias(rRHS) += global_size_N * local_body_forces[1] * jacobian_weight * area;
+            // Bending in y contributions
+            GlobalSizeVectorTransversalZ(global_size_N, N_theta_derivatives);
+            noalias(rForces) -= global_size_N * My * jacobian_weight;
 
-        // Transverse DoFs shape functions {w, theta_y}
-        GetNThetaShapeFunctionsValues(N_theta, length, Phi_rot_y, xi);
-        GetFirstDerivativesNThetaShapeFunctionsValues(N_theta_derivatives, length, Phi_rot_y, xi);
-        GetShapeFunctionsValues(N_shape, length, Phi_rot_y, xi);
-        GetFirstDerivativesShapeFunctionsValues(N_derivatives, length, Phi_rot_y, xi);
-        noalias(N_s) = N_derivatives - N_theta;
+            // Shear XZ contributions
+            GlobalSizeVectorTransversalZ(global_size_N, N_s);
+            noalias(rForces) -= global_size_N * Vz * jacobian_weight;
+        }
 
-        // Bending in y contributions
-        GlobalSizeVectorTransversalZ(global_size_N, N_theta_derivatives);
-        noalias(rRHS) -= global_size_N * My * jacobian_weight;
+        if (ComputeExternalForces) {
+            const auto local_body_forces = GetLocalAxesBodyForce(*this, r_integration_points, IP);
 
-        // Shear XZ contributions
-        GlobalSizeVectorTransversalZ(global_size_N, N_s);
-        noalias(rRHS) -= global_size_N * Vz * jacobian_weight;
+            // External body forces in u
+            GetNu0ShapeFunctionsValues(N_u, length, 0.0, xi);
+            GlobalSizeAxialVector(global_size_N, N_u);
+            noalias(rForces) += global_size_N * local_body_forces[0] * jacobian_weight * area;
 
-        // External body forces in w
-        GlobalSizeVectorTransversalZ(global_size_N, N_shape);
-        noalias(rRHS) += global_size_N * local_body_forces[2] * jacobian_weight * area;
+            // External body forces in v
+            GetShapeFunctionsValues(N_shape, length, Phi_rot_z, xi);
+            GlobalSizeVectorTransversalY(global_size_N, N_shape);
+            noalias(rForces) += global_size_N * local_body_forces[1] * jacobian_weight * area;
+
+            // External body forces in w
+            GetShapeFunctionsValues(N_shape, length, Phi_rot_y, xi);
+            GlobalSizeVectorTransversalZ(global_size_N, N_shape);
+            noalias(rForces) += global_size_N * local_body_forces[2] * jacobian_weight * area;
+        }
     }
 
-    RotateRHS(rRHS, r_geometry);
+    RotateRHS(rForces, r_geometry);
 
-    KRATOS_CATCH("LinearTimoshenkoBeamElement3D2N::CalculateRightHandSide")
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-void LinearTimoshenkoBeamElement3D2N::CalculateInternalForces(
-    VectorType& rInternalForces,
-    const ProcessInfo& rProcessInfo
-    )
-{
-    KRATOS_TRY
-
-    const auto &r_props = GetProperties();
-    const auto &r_geometry = GetGeometry();
-    const SizeType number_of_nodes = r_geometry.size();
-    const SizeType mat_size = GetDoFsPerNode() * number_of_nodes;
-    const SizeType strain_size = mConstitutiveLawVector[0]->GetStrainSize();
-    const SizeType local_trans_deflection_size = mat_size - 4 * number_of_nodes;
-
-    if (rInternalForces.size() != mat_size) {
-        rInternalForces.resize(mat_size, false);
-    }
-    rInternalForces.clear();
-
-    ConstitutiveLaw::Parameters cl_values(r_geometry, r_props, rProcessInfo);
-    auto &r_cl_options = cl_values.GetOptions();
-    r_cl_options.Set(ConstitutiveLaw::COMPUTE_STRESS             , true);
-    r_cl_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
-
-    const double length = CalculateLength();
-    const double Phi_rot_z  = StructuralMechanicsElementUtilities::CalculatePhi(r_props, length);
-    const double Phi_rot_y  = StructuralMechanicsElementUtilities::CalculatePhi(r_props, length, 1);
-    const double J    = 0.5 * length;
-
-    VectorType strain_vector(strain_size), stress_vector(strain_size);
-    MatrixType constitutive_matrix(strain_size, strain_size);
-    strain_vector.clear();
-    cl_values.SetStrainVector(strain_vector);
-    cl_values.SetStressVector(stress_vector);
-    cl_values.SetConstitutiveMatrix(constitutive_matrix);
-
-    VectorType nodal_values(mat_size);
-    GetNodalValuesVector(nodal_values);
-
-    VectorType global_size_N(mat_size);
-    VectorType N_u_derivatives(number_of_nodes);
-    VectorType N_theta_derivatives(local_trans_deflection_size);
-    VectorType N_theta(local_trans_deflection_size);
-    VectorType N_derivatives(local_trans_deflection_size);
-    VectorType N_s(local_trans_deflection_size);
-
-    // Loop over the integration points (IP)
-    const auto& r_integration_points = IntegrationPoints(GetIntegrationMethod());
-    for (SizeType IP = 0; IP < r_integration_points.size(); ++IP) {
-        global_size_N.clear();
-        const double xi     = r_integration_points[IP].X();
-        const double weight = r_integration_points[IP].Weight();
-        const double jacobian_weight = weight * J;
-
-        CalculateGeneralizedStrainsVector(strain_vector, length, 0.0, xi, nodal_values);
-
-        mConstitutiveLawVector[IP]->CalculateMaterialResponseCauchy(cl_values);
-        const Vector &r_generalized_stresses = cl_values.GetStressVector();
-        const double N  = r_generalized_stresses[0];
-        const double Mx = r_generalized_stresses[1];
-        const double My = r_generalized_stresses[2];
-        const double Mz = r_generalized_stresses[3];
-        const double Vy = r_generalized_stresses[4];
-        const double Vz = r_generalized_stresses[5];
-
-        // Axial DoFs shape functions (u and theta_x)
-        GetFirstDerivativesNu0ShapeFunctionsValues(N_u_derivatives, length, 0.0, xi);
-
-        // Axial contributions
-        GlobalSizeAxialVector(global_size_N, N_u_derivatives);
-        noalias(rInternalForces) += global_size_N * N * jacobian_weight;
-
-        // Torsional contributions
-        GlobalSizeVectorAxialRotation(global_size_N, N_u_derivatives);
-        noalias(rInternalForces) += global_size_N * Mx * jacobian_weight;
-
-        // Transverse DoFs shape functions {v, theta_z}
-        GetNThetaShapeFunctionsValues(N_theta, length, Phi_rot_z, xi);
-        GetFirstDerivativesNThetaShapeFunctionsValues(N_theta_derivatives, length, Phi_rot_z, xi);
-        GetFirstDerivativesShapeFunctionsValues(N_derivatives, length, Phi_rot_z, xi);
-        noalias(N_s) = N_derivatives - N_theta;
-
-        // Bending in z contributions
-        GlobalSizeVectorTransversalY(global_size_N, N_theta_derivatives);
-        noalias(rInternalForces) += global_size_N * Mz * jacobian_weight;
-
-        // Shear XY contributions
-        GlobalSizeVectorTransversalY(global_size_N, N_s);
-        noalias(rInternalForces) += global_size_N * Vy * jacobian_weight;
-
-        // Transverse DoFs shape functions {w, theta_y}
-        GetNThetaShapeFunctionsValues(N_theta, length, Phi_rot_y, xi);
-        GetFirstDerivativesNThetaShapeFunctionsValues(N_theta_derivatives, length, Phi_rot_y, xi);
-        GetFirstDerivativesShapeFunctionsValues(N_derivatives, length, Phi_rot_y, xi);
-        noalias(N_s) = N_derivatives - N_theta;
-
-        // Bending in y contributions
-        GlobalSizeVectorTransversalZ(global_size_N, N_theta_derivatives);
-        noalias(rInternalForces) += global_size_N * My * jacobian_weight;
-
-        // Shear XZ contributions
-        GlobalSizeVectorTransversalZ(global_size_N, N_s);
-        noalias(rInternalForces) += global_size_N * Vz * jacobian_weight;
-    }
-
-    RotateRHS(rInternalForces, r_geometry);
-
-    KRATOS_CATCH("LinearTimoshenkoBeamElement3D2N::CalculateInternalForces")
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-void LinearTimoshenkoBeamElement3D2N::CalculateExternalForces(
-    VectorType& rExternalForces,
-    const ProcessInfo& rProcessInfo
-    )
-{
-    KRATOS_TRY
-
-    const auto &r_props = GetProperties();
-    const auto &r_geometry = GetGeometry();
-    const SizeType number_of_nodes = r_geometry.size();
-    const SizeType mat_size = GetDoFsPerNode() * number_of_nodes;
-    const SizeType local_trans_deflection_size = mat_size - 4 * number_of_nodes;
-
-    if (rExternalForces.size() != mat_size) {
-        rExternalForces.resize(mat_size, false);
-    }
-    rExternalForces.clear();
-
-    const double length = CalculateLength();
-    const double Phi_rot_z  = StructuralMechanicsElementUtilities::CalculatePhi(r_props, length);
-    const double Phi_rot_y  = StructuralMechanicsElementUtilities::CalculatePhi(r_props, length, 1);
-    const double J    = 0.5 * length;
-    const double area = GetCrossArea();
-
-    VectorType global_size_N(mat_size);
-    VectorType N_u(number_of_nodes);
-    VectorType N_shape(local_trans_deflection_size);
-
-    // Loop over the integration points (IP)
-    const auto& r_integration_points = IntegrationPoints(GetIntegrationMethod());
-    for (SizeType IP = 0; IP < r_integration_points.size(); ++IP) {
-        const auto local_body_forces = GetLocalAxesBodyForce(*this, r_integration_points, IP);
-
-        global_size_N.clear();
-        const double xi     = r_integration_points[IP].X();
-        const double weight = r_integration_points[IP].Weight();
-        const double jacobian_weight = weight * J;
-
-        // External body forces in u
-        GetNu0ShapeFunctionsValues(N_u, length, 0.0, xi);
-        GlobalSizeAxialVector(global_size_N, N_u);
-        noalias(rExternalForces) += global_size_N * local_body_forces[0] * jacobian_weight * area;
-
-        // External body forces in v
-        GetShapeFunctionsValues(N_shape, length, Phi_rot_z, xi);
-        GlobalSizeVectorTransversalY(global_size_N, N_shape);
-        noalias(rExternalForces) += global_size_N * local_body_forces[1] * jacobian_weight * area;
-
-        // External body forces in w
-        GetShapeFunctionsValues(N_shape, length, Phi_rot_y, xi);
-        GlobalSizeVectorTransversalZ(global_size_N, N_shape);
-        noalias(rExternalForces) += global_size_N * local_body_forces[2] * jacobian_weight * area;
-    }
-
-    RotateRHS(rExternalForces, r_geometry);
-
-    KRATOS_CATCH("LinearTimoshenkoBeamElement3D2N::CalculateExternalForces")
+    KRATOS_CATCH("LinearTimoshenkoBeamElement3D2N::CalculateInternalAndExternalForcesVector")
 }
 
 /***********************************************************************************/

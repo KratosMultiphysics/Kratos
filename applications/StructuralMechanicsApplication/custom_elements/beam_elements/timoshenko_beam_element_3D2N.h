@@ -353,31 +353,18 @@ public:
         const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
-      * @brief This is called during the assembling process in order to calculate the elemental right hand side vector only
-      * @param rRightHandSideVector the elemental right hand side vector
-      * @param rCurrentProcessInfo the current process info instance
-      */
-    void CalculateRightHandSide(
-        VectorType& rRightHandSideVector,
-        const ProcessInfo& rCurrentProcessInfo) override;
-
-    /**
-     * @brief Computes the internal forces vector (stress contributions), in global axes
-     * @param rInternalForces the elemental internal forces vector
+     * @brief Computes the external minus the internal forces vector, in global axes
+     * @details Only the requested contributions are added, hence with both flags the RHS is obtained
+     * @param rForces the elemental forces vector (external - internal)
      * @param rCurrentProcessInfo the current process info instance
+     * @param ComputeInternalForces whether the internal forces (stress contributions) are subtracted
+     * @param ComputeExternalForces whether the external forces (body force contributions) are added
      */
-    void CalculateInternalForces(
-        VectorType& rInternalForces,
-        const ProcessInfo& rCurrentProcessInfo) override;
-
-    /**
-     * @brief Computes the external forces vector (body force contributions), in global axes
-     * @param rExternalForces the elemental external forces vector
-     * @param rCurrentProcessInfo the current process info instance
-     */
-    void CalculateExternalForces(
-        VectorType& rExternalForces,
-        const ProcessInfo& rCurrentProcessInfo) override;
+    void CalculateInternalAndExternalForcesVector(
+        VectorType& rForces,
+        const ProcessInfo& rCurrentProcessInfo,
+        const bool ComputeInternalForces,
+        const bool ComputeExternalForces) override;
 
     /**
      * @brief Calculate a double Variable on the Element Constitutive Law

@@ -390,23 +390,18 @@ public:
     using Element::Calculate;
 
     /**
-     * @brief Computes the internal forces vector (stress contributions), in global axes
-     * @param rInternalForces the elemental internal forces vector
+     * @brief Computes the external minus the internal forces vector, in global axes
+     * @details Only the requested contributions are added, hence with both flags the RHS is obtained
+     * @param rForces the elemental forces vector (external - internal)
      * @param rCurrentProcessInfo the current process info instance
+     * @param ComputeInternalForces whether the internal forces (stress contributions) are subtracted
+     * @param ComputeExternalForces whether the external forces (body force contributions) are added
      */
-    virtual void CalculateInternalForces(
-        VectorType& rInternalForces,
-        const ProcessInfo& rCurrentProcessInfo
-        );
-
-    /**
-     * @brief Computes the external forces vector (body force contributions), in global axes
-     * @param rExternalForces the elemental external forces vector
-     * @param rCurrentProcessInfo the current process info instance
-     */
-    virtual void CalculateExternalForces(
-        VectorType& rExternalForces,
-        const ProcessInfo& rCurrentProcessInfo
+    virtual void CalculateInternalAndExternalForcesVector(
+        VectorType& rForces,
+        const ProcessInfo& rCurrentProcessInfo,
+        const bool ComputeInternalForces,
+        const bool ComputeExternalForces
         );
 
     /**
