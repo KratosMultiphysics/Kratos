@@ -186,7 +186,7 @@ class PFEM2Solver:
 
         #streamline integration:
         discriminate_streamlines=True
-        (self.moveparticles).MoveParticles(discriminate_streamlines);
+        (self.moveparticles).MoveParticlesRK2(discriminate_streamlines);
         t3 = timer.time()
         self.streamlineintegration = self.streamlineintegration + t3-t2
 

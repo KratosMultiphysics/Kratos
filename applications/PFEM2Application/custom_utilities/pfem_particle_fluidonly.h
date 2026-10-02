@@ -164,11 +164,11 @@ public:
 	{
 		return this->DISTANCE;
 	}
-	
-	//double& GetTemperature()
-	//{
-	//	return this->TEMPERATURE;
-	//}
+
+	double& GetTemperature()
+	{
+		return this->TEMPERATURE;
+	}
 	
 	//double& GetOxygen()
 	//{
@@ -215,7 +215,7 @@ public:
 private: 
 	array_1d<float,3> VELOCITY;
 	float DISTANCE;
-	//double TEMPERATURE;
+	double TEMPERATURE;
 	//double OXYGEN;
 	//Element::Pointer ELEMENT_WEAKPOINTER;
 	//unsigned int ELEMENT_ID;

@@ -280,5 +280,5 @@ class PFEM2Solver:
     def PrintInfo(self,print_times):
         self.print_times=print_times
 
-    def InterpolateParticleVelocity_prescribed_tzero(self):
-        (self.moveparticles).InterpolateParticleVelocity_prescribed_tzero()
+    def InterpolateParticleTemperature_prescribed_tzero(self):
+        (self.moveparticles).InterpolateParticleTemperature_prescribed_tzero()
