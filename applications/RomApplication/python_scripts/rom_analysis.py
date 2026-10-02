@@ -12,7 +12,7 @@ from glob import glob
 from os import remove
 from pathlib import Path
 
-def CreateRomAnalysisInstance(cls, global_model, parameters, nn_rom_interface=None):
+def CreateRomAnalysisInstance(cls, global_model, parameters, nn_rom_interface=None, rom_basis_output_folder=None, rom_basis_output_name=None):
     class RomAnalysis(cls):
 
         def __init__(self,global_model, parameters):
@@ -34,6 +34,11 @@ def CreateRomAnalysisInstance(cls, global_model, parameters, nn_rom_interface=No
                                     self.rom_basis_output_name = parameter_set["Parameters"]["rom_basis_output_name"].GetString()
                                 if parameter_set["Parameters"].Has("rom_basis_output_folder"):
                                     self.rom_basis_output_folder = parameter_set["Parameters"]["rom_basis_output_folder"].GetString()
+            # Explicitly provided values (e.g. from the RomManager) take precedence
+            if rom_basis_output_name is not None:
+                self.rom_basis_output_name = rom_basis_output_name
+            if rom_basis_output_folder is not None:
+                self.rom_basis_output_folder = rom_basis_output_folder
             self.rom_basis_output_name = Path(self.rom_basis_output_name)
             self.rom_basis_output_folder = Path(self.rom_basis_output_folder)
 
