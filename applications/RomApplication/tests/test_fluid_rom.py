@@ -148,6 +148,8 @@ class TestFluidRom(KratosUnittest.TestCase):
             for file_name in os.listdir():
                 if file_name.endswith(".time"):
                     kratos_utilities.DeleteFileIfExisting(file_name)
+        with KratosUnittest.WorkFolderScope("fluid_dynamics_test_files/GALERKIN_HROM_ANN", __file__):
+            kratos_utilities.DeleteFileIfExisting(Path('./rom_data/NodeIds.npy'))
         kratos_utilities.DeleteDirectoryIfExisting("rom_data/Snapshots")
         kratos_utilities.DeleteDirectoryIfExisting("rom_data/rom_database/xlsx_files/")
 
