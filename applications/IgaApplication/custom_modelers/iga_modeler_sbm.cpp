@@ -1078,7 +1078,7 @@ void IgaModelerSbm::CreateQuadraturePointGeometriesSbmByFixedConditionName(
 
             // Use the search in radius to find the closest point
             SizeType obtained_results = testBins.SearchInRadius(*p_integration_point, search_radius, results.begin(), list_of_distances.begin(), number_of_results);
-            KRATOS_ERROR_IF(obtained_results == 0) << "::[IgaModelerSbm]:: Zero points found in serch for projection of point: " <<
+            KRATOS_ERROR_IF(obtained_results == 0) << "::[IgaModelerSbm]:: Zero points found in search for projection of point: " <<
                 integration_point << std::endl;
 
             // Find the nearest node
