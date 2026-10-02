@@ -268,6 +268,7 @@ class TestRomManager(KratosUnittest.TestCase):
                     kratos_utilities.DeleteFileIfExisting(file_name)
         with KratosUnittest.WorkFolderScope(self.work_folder+'/rom_data', __file__):
             kratos_utilities.DeleteDirectoryIfExisting(Path('./rom_database/'))
+            kratos_utilities.DeleteDirectoryIfExisting(Path('./Residuals/'))
             for file_name in os.listdir():
                 if file_name.endswith("test_to_erase.json"):
                     kratos_utilities.DeleteFileIfExisting(file_name)

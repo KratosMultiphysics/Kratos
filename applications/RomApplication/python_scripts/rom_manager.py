@@ -10,6 +10,7 @@ from KratosMultiphysics.RomApplication.calculate_rom_basis_output_process import
 from KratosMultiphysics.RomApplication.randomized_singular_value_decomposition import RandomizedSingularValueDecomposition
 from KratosMultiphysics.RomApplication.empirical_cubature_method import EmpiricalCubatureMethod
 from KratosMultiphysics.RomApplication.rom_nn_interface import NN_ROM_Interface
+import re
 
 
 class RomManager(object):
@@ -53,8 +54,10 @@ class RomManager(object):
                     nn_rom_interface = NN_ROM_Interface(mu_train, self.data_base)
                     self._LaunchROM(mu_train, nn_rom_interface=nn_rom_interface)
                 if any(item == "HROM" for item in training_stages):
-                    err_msg = f'HROM is not available yet for ann_enhanced decoders.'
-                    raise Exception(err_msg)
+                    self._ChangeRomFlags(simulation_to_run = "trainHROMGalerkin_ANN")
+                    self._LaunchTrainHROM(mu_train, nn_rom_interface=nn_rom_interface)
+                    self._ChangeRomFlags(simulation_to_run = "runHROMGalerkin_ANN")
+                    self._LaunchHROM(mu_train,nn_rom_interface=nn_rom_interface)
             elif type_of_decoder =="linear":
                 if any(item == "ROM" for item in training_stages):
                     self._LaunchTrainROM(mu_train)
@@ -80,8 +83,10 @@ class RomManager(object):
                     nn_rom_interface = NN_ROM_Interface(mu_train, self.data_base)
                     self._LaunchROM(mu_train, nn_rom_interface=nn_rom_interface)
                 if any(item == "HROM" for item in training_stages):
-                    err_msg = f'HROM is not available yet for ann_enhanced decoders.'
-                    raise Exception(err_msg)
+                    self._ChangeRomFlags(simulation_to_run = "trainHROMlspg_ANN")
+                    self._LaunchTrainHROM(mu_train, nn_rom_interface=nn_rom_interface)
+                    self._ChangeRomFlags(simulation_to_run = "runHROMlspg_ANN")
+                    self._LaunchHROM(mu_train,nn_rom_interface=nn_rom_interface)
             elif type_of_decoder =="linear":
                 if any(item == "ROM" for item in training_stages):
                     self._LaunchTrainROM(mu_train)
@@ -151,15 +156,15 @@ class RomManager(object):
         ######  Galerkin ######
         if chosen_projection_strategy == "galerkin":
             if type_of_decoder =="ann_enhanced":
+                nn_rom_interface = NN_ROM_Interface(mu_train, self.data_base)
                 if any(item == "ROM" for item in testing_stages):
                     self._LoadSolutionBasis(mu_train)
                     self._LaunchFOM(mu_test, gid_and_vtk_name='FOM_Test')
                     self._ChangeRomFlags(simulation_to_run = "GalerkinROM_ANN")
-                    nn_rom_interface = NN_ROM_Interface(mu_train, self.data_base)
                     self._LaunchROM(mu_test, gid_and_vtk_name='ROM_Test', nn_rom_interface=nn_rom_interface)
                 if any(item == "HROM" for item in testing_stages):
-                    err_msg = f'HROM is not available yet for ann_enhanced decoders.'
-                    raise Exception(err_msg)
+                    self._ChangeRomFlags(simulation_to_run = "runHROMGalerkin_ANN")
+                    self._LaunchHROM(mu_test, nn_rom_interface=nn_rom_interface, gid_and_vtk_name='HROM_Test')
             elif type_of_decoder =="linear":
                 if any(item == "ROM" for item in testing_stages):
                     self._LoadSolutionBasis(mu_train)
@@ -177,14 +182,15 @@ class RomManager(object):
         ##  Least-Squares Petrov Galerkin   ###
         elif chosen_projection_strategy == "lspg":
             if type_of_decoder =="ann_enhanced":
+                nn_rom_interface = NN_ROM_Interface(mu_train, self.data_base)
                 if any(item == "ROM" for item in testing_stages):
                     self._LoadSolutionBasis(mu_train)
                     self._LaunchFOM(mu_test, gid_and_vtk_name='FOM_Test')
                     self._ChangeRomFlags(simulation_to_run = "lspg_ANN")
-                    nn_rom_interface = NN_ROM_Interface(mu_train, self.data_base)
                     self._LaunchROM(mu_test, gid_and_vtk_name='ROM_Test', nn_rom_interface=nn_rom_interface)
                 if any(item == "HROM" for item in testing_stages):
-                    err_msg = f'HROM is not available yet for ann_enhanced decoders.'
+                    self._ChangeRomFlags(simulation_to_run = "runHROMlspg_ANN")
+                    self._LaunchHROM(mu_test, nn_rom_interface=nn_rom_interface, gid_and_vtk_name='HROM_Test')
             elif type_of_decoder =="linear":
                 if any(item == "ROM" for item in testing_stages):
                     self._LoadSolutionBasis(mu_train)
@@ -265,21 +271,22 @@ class RomManager(object):
     def RunHROM(self, mu_run=[None], mu_train=[None], use_full_model_part = False):
         chosen_projection_strategy = self.general_rom_manager_parameters["projection_strategy"].GetString()
         type_of_decoder = self.general_rom_manager_parameters["type_of_decoder"].GetString()
+        nn_rom_interface = None
         self._LoadSolutionBasis(mu_train)
         #######################
         ######  Galerkin ######
         if chosen_projection_strategy == "galerkin":
             if type_of_decoder =="ann_enhanced":
-                err_msg = f'HROM only supports linear projection strategy for the moment'
-                raise Exception(err_msg)
+                self._ChangeRomFlags(simulation_to_run = "runHROMGalerkin_ANN")
+                nn_rom_interface = NN_ROM_Interface(mu_train, self.data_base)
             elif type_of_decoder =="linear":
                 self._ChangeRomFlags(simulation_to_run = "runHROMGalerkin")
         #######################################
         ##  Least-Squares Petrov Galerkin   ###
         elif chosen_projection_strategy == "lspg":
             if type_of_decoder =="ann_enhanced":
-                err_msg = f'HROM only supports linear projection strategy for the moment'
-                raise Exception(err_msg)
+                self._ChangeRomFlags(simulation_to_run = "runHROMlspg_ANN")
+                nn_rom_interface = NN_ROM_Interface(mu_train, self.data_base)
             elif type_of_decoder =="linear":
                 self._ChangeRomFlags(simulation_to_run = "runHROMLSPG")
         ##########################
@@ -293,7 +300,7 @@ class RomManager(object):
         else:
             err_msg = f'Provided projection strategy {chosen_projection_strategy} is not supported. Available options are \'galerkin\', \'lspg\' and \'petrov_galerkin\'.'
             raise Exception(err_msg)
-        self._LaunchRunHROM(mu_run, use_full_model_part)
+        self._LaunchRunHROM(mu_run, use_full_model_part,nn_rom_interface)
 
 
 
@@ -502,9 +509,7 @@ class RomManager(object):
 
 
 
-
-
-    def _LaunchTrainHROM(self, mu_train):
+    def _LaunchTrainHROM(self, mu_train, nn_rom_interface = None):
         """
         This method should be parallel capable
         The projected residuals are written by a ProjectedResidualsOutputProcess (one per sub-solver in coupled problems),
@@ -522,9 +527,9 @@ class RomManager(object):
                 in_database, _ = self.data_base.check_if_in_database("ResidualsProjected", mu)
                 if not in_database:
                     parameters_copy = self.UpdateProjectParameters(parameters.Clone(), mu)
-                    parameters_copy = self._AddBasisCreationToProjectParameters(parameters_copy)
+                    parameters_copy = self._AddBasisCreationToProjectParameters(parameters_copy) #TODO Remove the basis creation process. Here it generates the RomParameters.json, find a workaround
+                    parameters_copy = self._AddResidualsProjectedOutputProcessToProjectParameters(parameters_copy)  #This deals with the creation of residuals
                     parameters_copy = self._StoreNoResults(parameters_copy)
-                    parameters_copy = self._AddResidualsProjectedOutputProcessToProjectParameters(parameters_copy)
                     # Remove the residuals of previous runs, so that only the ones of this mu are collected
                     for _, _, folder in residuals_output_settings:
                         for residual_file in folder.glob("Residual_*.npy"):
@@ -532,15 +537,15 @@ class RomManager(object):
                     materials_file_name = self._GetMaterialsFileName(parameters_copy)
                     self.UpdateMaterialParametersFile(materials_file_name, mu)
                     model = KratosMultiphysics.Model()
-                    analysis_stage_class = type(SetUpSimulationInstance(model, parameters_copy))
+                    analysis_stage_class = type(SetUpSimulationInstance(model, parameters_copy, nn_rom_interface))
                     simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters_copy, mu)
                     simulation.Run()
-                    # Vertical stack of the residuals of each solver
-                    ResidualProjected = np.vstack([self._LoadResidualsProjected(folder) for _, _, folder in residuals_output_settings])
+                    ResidualProjected = self._GetResidualProjected() # this method fetches the residuals projected from the corresponding folder.
                     self.data_base.add_to_database("ResidualsProjected", mu, ResidualProjected )
+                    # TODO for later PR: Implement path-based database storage to avoid RAM bottlenecks and erase the temporary .npy files from disk here.
             self._SetTrainHROMFlag(True)
             RedidualsSnapshotsMatrix = self.data_base.get_snapshots_matrix_from_database(mu_train, table_name="ResidualsProjected")
-            HROM_utility = self.InitializeDummySimulationForHromTrainingUtility()
+            HROM_utility = self.InitializeDummySimulationForHromTrainingUtility(nn_rom_interface=nn_rom_interface)
             z, w = self._LocalEmpiricalCubature(np.split(RedidualsSnapshotsMatrix, len(residuals_output_settings)), HROM_utility.candidate_ids)
             HROM_utility.hyper_reduction_element_selector.z = z
             HROM_utility.hyper_reduction_element_selector.w = w
@@ -549,14 +554,12 @@ class RomManager(object):
         # elif (in_database_elems and not in_database_weights) or (not in_database_elems and in_database_weights):
         #     error #if one of the two is there but not the other, the database is corrupted
         else:
-            HROM_utility = self.InitializeDummySimulationForHromTrainingUtility()
+            HROM_utility = self.InitializeDummySimulationForHromTrainingUtility(nn_rom_interface=nn_rom_interface)
             #doing this ensures the elements and weights npy files contained in the rom_data folder are the ones to use.i.e. they are not from old runs of the rom manager
             HROM_utility.hyper_reduction_element_selector.w = self.data_base.get_single_numpy_from_database(hash_w)
             HROM_utility.hyper_reduction_element_selector.z = self.data_base.get_single_numpy_from_database(hash_z)
         HROM_utility.AppendHRomWeightsToRomParameters()
-        # The coupled solvers do not define a single 'model_part_name', so no HROM model parts are created (the HROM runs on the full model part)
-        if not self._GetCoupledSolverNames():
-            HROM_utility.CreateHRomModelParts()
+        #HROM_utility.CreateHRomModelParts() TODO Fix HROM model part creation. This is broken for generic model parts and MED files
         self.GenerateDatabaseSummary()
 
     def _LocalEmpiricalCubature(self, residuals_list, initial_candidates=None):
@@ -585,7 +588,36 @@ class RomManager(object):
             candidates = selected
         return selected, weights_matrix[selected, :]
 
-    def _LaunchHROM(self, mu_train, gid_and_vtk_name ='HROM_Fit'):
+    def _GetResidualProjected(self):
+        """
+        Fetches the projected residuals from the corresponding output folders.
+        In the case of coupled physics, it creates a consolidated vertical matrix.
+        """
+
+        def load_and_block_residuals(folder_path):
+            """Robustly loads all .npy files in a folder in the correct chronological order."""
+            path_obj = Path(folder_path)
+            if not path_obj.exists():
+                raise FileNotFoundError(f"Expected residual folder not found: {folder_path}")
+
+            # Natural sort ensures 'Residual_2' comes before 'Residual_10'
+            def natural_sort_key(s):
+                return [int(text) if text.isdigit() else text.lower() for text in re.split('([0-9]+)', str(s))]
+
+            files = sorted(path_obj.glob("*.npy"), key=lambda x: natural_sort_key(x.name))
+
+            if not files:
+                raise ValueError(f"No .npy files found in {folder_path}")
+
+            # Load and consolidate into a single block
+            residuals_list = [np.load(f) for f in files]
+            return np.block(residuals_list)
+
+        # Vertical stack of the residuals of each solver (one folder per coupled sub-solver, or a single one)
+        return np.vstack([load_and_block_residuals(folder) for _, _, folder in self._GetResidualsProjectedOutputSettings()])
+
+
+    def _LaunchHROM(self, mu_train, nn_rom_interface=None,gid_and_vtk_name ='HROM_Fit'):
         """
         This method should be parallel capable
         """
@@ -601,7 +633,7 @@ class RomManager(object):
                 materials_file_name = self._GetMaterialsFileName(parameters_copy)
                 self.UpdateMaterialParametersFile(materials_file_name, mu)
                 model = KratosMultiphysics.Model()
-                analysis_stage_class = type(SetUpSimulationInstance(model, parameters_copy))
+                analysis_stage_class = type(SetUpSimulationInstance(model, parameters_copy,nn_rom_interface))
                 simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters_copy, mu)
                 simulation.Run()
                 self.data_base.add_to_database("QoI_HROM", mu, simulation.GetFinalData())
@@ -650,7 +682,7 @@ class RomManager(object):
             self.QoI_Run_ROM.append(simulation.GetFinalData())
 
 
-    def _LaunchRunHROM(self, mu_run, use_full_model_part):
+    def _LaunchRunHROM(self, mu_run, use_full_model_part, nn_rom_interface):
         """
         This method should be parallel capable
         """
@@ -670,7 +702,7 @@ class RomManager(object):
             materials_file_name = self._GetMaterialsFileName(parameters_copy)
             self.UpdateMaterialParametersFile(materials_file_name, mu)
             model = KratosMultiphysics.Model()
-            analysis_stage_class = type(SetUpSimulationInstance(model, parameters_copy))
+            analysis_stage_class = type(SetUpSimulationInstance(model, parameters_copy,nn_rom_interface))
             simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters_copy, mu)
             simulation.Run()
             self.QoI_Run_HROM.append(simulation.GetFinalData())
@@ -703,13 +735,13 @@ class RomManager(object):
         return BasisOutputProcess
 
 
-    def InitializeDummySimulationForHromTrainingUtility(self):
+    def InitializeDummySimulationForHromTrainingUtility(self, nn_rom_interface=None):
         with open(self.project_parameters_name,'r') as parameter_file:
             parameters = KratosMultiphysics.Parameters(parameter_file.read())
         parameters = self._AddBasisCreationToProjectParameters(parameters)
         parameters = self._StoreNoResults(parameters)
         model = KratosMultiphysics.Model()
-        analysis_stage_class = type(SetUpSimulationInstance(model, parameters))
+        analysis_stage_class = type(SetUpSimulationInstance(model, parameters,nn_rom_interface=nn_rom_interface))
         simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters)
         simulation.Initialize()
         return simulation.GetHROM_utility()
@@ -823,10 +855,30 @@ class RomManager(object):
                 f['run_hrom']=False
                 f['projection_strategy']="galerkin_ann"
                 f["rom_settings"]['rom_bns_settings'] = self._SetGalerkinBnSParameters()
+            elif simulation_to_run=="trainHROMGalerkin_ANN":
+                f['projection_strategy']="galerkin_ann"
+                f['train_hrom']=True
+                f['run_hrom']=False
+                f["rom_settings"]['rom_bns_settings'] = self._SetGalerkinBnSParameters()
+            elif simulation_to_run=="runHROMGalerkin_ANN":
+                f['projection_strategy']="galerkin_ann"
+                f['train_hrom']=False
+                f['run_hrom']=True
+                f["rom_settings"]['rom_bns_settings'] = self._SetGalerkinBnSParameters()
             elif simulation_to_run=='lspg_ANN':
                 f['train_hrom']=False
                 f['run_hrom']=False
                 f['projection_strategy']="lspg_ann"
+                f["rom_settings"]['rom_bns_settings'] = self._SetLSPGBnSParameters()
+            elif simulation_to_run=="trainHROMlspg_ANN":
+                f['projection_strategy']="lspg_ann"
+                f['train_hrom']=True
+                f['run_hrom']=False
+                f["rom_settings"]['rom_bns_settings'] = self._SetLSPGBnSParameters()
+            elif simulation_to_run=="runHROMlspg_ANN":
+                f['projection_strategy']="lspg_ann"
+                f['train_hrom']=False
+                f['run_hrom']=True
                 f["rom_settings"]['rom_bns_settings'] = self._SetLSPGBnSParameters()
             else:
                 raise Exception(f'Unknown flag "{simulation_to_run}" change for RomParameters.json')
@@ -989,32 +1041,6 @@ class RomManager(object):
             return [(coupled_solver["sub_solver_name"].GetString(), coupled_solver["ROM"]["model_part_name"].GetString(), rom_basis_output_folder / f"Residuals_{coupled_solver['sub_solver_name'].GetString()}") for coupled_solver in coupled_solvers]
         return [("", self.general_rom_manager_parameters["ROM"]["model_part_name"].GetString(), rom_basis_output_folder / "Residuals")]
 
-    def _AddResidualsProjectedOutputProcessToProjectParameters(self, parameters):
-        """Adds a ProjectedResidualsOutputProcess for each solver whose projected residuals are collected."""
-        parameters["output_processes"].AddEmptyArray("rom_residuals_output")
-        for sub_solver_name, model_part_name, folder in self._GetResidualsProjectedOutputSettings():
-            process_settings = KratosMultiphysics.Parameters("""{
-                "python_module": "projected_residuals_output_process",
-                "kratos_module": "KratosMultiphysics.RomApplication",
-                "process_name": "ProjectedResidualsOutputProcess",
-                "Parameters": {
-                    "output_control_type": "step",
-                    "output_interval": 1
-                }
-            }""")
-            process_settings["Parameters"].AddString("model_part_name", model_part_name)
-            process_settings["Parameters"].AddString("sub_solver_name", sub_solver_name)
-            process_settings["Parameters"].AddString("output_path", str(folder))
-            parameters["output_processes"]["rom_residuals_output"].Append(process_settings)
-        return parameters
-
-    def _LoadResidualsProjected(self, folder):
-        """Loads the projected residuals written by the ProjectedResidualsOutputProcess (Residual_<step>.npy) in chronological order."""
-        residual_files = sorted(folder.glob("Residual_*.npy"), key=lambda residual_file: float(residual_file.stem.split("_")[1]))
-        if not residual_files:
-            raise Exception(f"No projected residuals found in {folder}")
-        return np.block([np.load(residual_file) for residual_file in residual_files])
-
     def _SetTrainHROMFlag(self, train_hrom):
         rom_parameters_file_path = (Path(self.general_rom_manager_parameters["ROM"]["rom_basis_output_folder"].GetString()) / self.general_rom_manager_parameters["ROM"]["rom_basis_output_name"].GetString()).with_suffix('.json')
         with rom_parameters_file_path.open('r+') as parameter_file:
@@ -1024,6 +1050,7 @@ class RomManager(object):
             json.dump(f, parameter_file, indent=4)
             parameter_file.truncate()
 
+    #TODO get rid of this process in favor or Numpy output process
     def _AddBasisCreationToProjectParameters(self, parameters):
         #FIXME make sure no other rom_output already existed. If so, erase the prior and keep only the one in self.general_rom_manager_parameters["ROM"]
         parameters["output_processes"].AddEmptyArray("rom_output")
@@ -1033,6 +1060,21 @@ class RomManager(object):
         return parameters
 
 
+    def _AddResidualsProjectedOutputProcessToProjectParameters(self, parameters):
+        if not parameters.Has("output_processes"):
+            parameters.AddEmptyValue("output_processes")
+
+        # Remove existing to avoid duplicate process
+        if parameters["output_processes"].Has("rom_residuals_output"):
+            parameters["output_processes"].RemoveValue("rom_residuals_output")
+
+        parameters["output_processes"].AddEmptyArray("rom_residuals_output")
+        # One process per coupled sub-solver, or a single one
+        for sub_solver_name, model_part_name, _ in self._GetResidualsProjectedOutputSettings():
+            process_parameters = self._SetUpProjectedResidualsOutputProcessParameters(model_part_name, sub_solver_name)
+            parameters["output_processes"]["rom_residuals_output"].Append(process_parameters)
+
+        return parameters
 
 
     def _StoreResultsByName(self,parameters,results_name,mu, Id):
@@ -1224,6 +1266,35 @@ class RomManager(object):
         return defaults
 
 
+    def _SetUpProjectedResidualsOutputProcessParameters(self, model_part_name, sub_solver_name=""):
+        process_settings = self._GetDefaulProjectedResidualsOutputProcessParameters()
+        rom_params = self.general_rom_manager_parameters["ROM"]
+
+        # Set the specific solver and model part names
+        process_settings["Parameters"]["model_part_name"].SetString(model_part_name)
+        if sub_solver_name:
+            process_settings["Parameters"]["sub_solver_name"].SetString(sub_solver_name)
+
+        # Map global ROM settings
+        if rom_params.Has("snapshots_interval"):
+            process_settings["Parameters"]["output_interval"] = rom_params["snapshots_interval"].Clone()
+
+        if rom_params.Has("snapshots_control_type"):
+            process_settings["Parameters"]["output_control_type"] = rom_params["snapshots_control_type"].Clone()
+
+        # Dynamically set output path to prevent conflicts (e.g., rom_data/Residuals_fluid_solver)
+        base_folder = "rom_data"
+        if rom_params.Has("rom_basis_output_folder"):
+            base_folder = rom_params["rom_basis_output_folder"].GetString()
+
+        folder_suffix = f"_{sub_solver_name}" if sub_solver_name else ""
+        process_settings["Parameters"]["output_path"].SetString(f"{base_folder}/Residuals{folder_suffix}")
+
+        return process_settings
+
+
+
+
 
     def _GetAnalysisStageClass(self, parameters):
 
@@ -1258,6 +1329,24 @@ class RomManager(object):
                 }
             }""")
         return rom_training_parameters
+
+
+
+    def _GetDefaulProjectedResidualsOutputProcessParameters(self):
+        return KratosMultiphysics.Parameters("""{
+            "python_module": "projected_residuals_output_process",
+            "kratos_module": "KratosMultiphysics.RomApplication",
+            "process_name": "ProjectedResidualsOutputProcess",
+            "Parameters": {
+                "model_part_name": "",
+                "output_control_type": "step",
+                "output_interval": 1,
+                "output_path": "rom_data/Residuals",
+                "sub_solver_name": "",
+                "range_of_entity_ids_to_fetch_residuals_projected": ["1","end"]
+            }
+        }""")
+
 
 
     def SetUpQuantityOfInterestContainers(self):
