@@ -1017,7 +1017,7 @@ class RomManager(object):
             return [coupled_solvers[i] for i in range(coupled_solvers.size())]
         with open(self.project_parameters_name,'r') as parameter_file:
             solver_settings = KratosMultiphysics.Parameters(parameter_file.read())["solver_settings"]
-        if solver_settings["solver_type"].GetString() != "ThermallyCoupled": # Coupled solver supported by the RomAnalysis
+        if solver_settings["solver_type"].GetString() not in ["ThermallyCoupled", "ThermoMechanicallyCoupled"]: # Coupled solvers supported by the RomAnalysis
             return []
         detected_solvers = []
         for key, value in solver_settings.items():

@@ -124,39 +124,32 @@ def CreateRomAnalysisInstance(cls, global_model, parameters, nn_rom_interface=No
                 sub_solver_settings.AddString("projection_strategy", self.solving_strategy)
                 sub_solver_settings.AddString("assembling_strategy", self.assembling_strategy)
 
-            # The solver used fluid-thermal coupled simulations contains two solvers:  'fluid_solver' and 'thermal_solver'.
+            # The coupled solvers contain two sub-solvers (e.g. 'fluid_solver' and 'thermal_solver', or 'structural_solver' and 'thermal_solver').
             # This patch creates rom_solvers for each of them, to seamlessly use the existing infrastructure in the RomApp
-            if solver_type =="ThermallyCoupled":
+            coupled_solvers_wrappers = {
+                "ThermallyCoupled" : [
+                    ("KratosMultiphysics.FluidDynamicsApplication.python_solvers_wrapper_fluid", "KratosMultiphysics.FluidDynamicsApplication.fluid_dynamics_analysis"),
+                    ("KratosMultiphysics.ConvectionDiffusionApplication.python_solvers_wrapper_convection_diffusion", "KratosMultiphysics.ConvectionDiffusionApplication.convection_diffusion_analysis")],
+                "ThermoMechanicallyCoupled" : [
+                    ("KratosMultiphysics.StructuralMechanicsApplication.python_solvers_wrapper_structural", "KratosMultiphysics.StructuralMechanicsApplication.structural_mechanics_analysis"),
+                    ("KratosMultiphysics.ConvectionDiffusionApplication.python_solvers_wrapper_convection_diffusion", "KratosMultiphysics.ConvectionDiffusionApplication.convection_diffusion_analysis")]
+            }
+            for wrapper_module_name, analysis_stage_module_name in coupled_solvers_wrappers.get(solver_type, []):
+                wrapper_module = importlib.import_module(wrapper_module_name)
+                if hasattr(wrapper_module.CreateSolverByParameters, "is_rom_patch"): # Already patched by a previous RomAnalysis
+                    continue
 
-                from KratosMultiphysics.FluidDynamicsApplication import python_solvers_wrapper_fluid
-                from KratosMultiphysics.ConvectionDiffusionApplication import python_solvers_wrapper_convection_diffusion
-
-                original_create_fluid = python_solvers_wrapper_fluid.CreateSolverByParameters
-                original_create_thermal = python_solvers_wrapper_convection_diffusion.CreateSolverByParameters
-
-                def mock_create_fluid(model, settings, parallelism):
+                def create_solver(model, settings, parallelism, original_create=wrapper_module.CreateSolverByParameters, analysis_stage_module_name=analysis_stage_module_name):
                     # FOM wrapper
                     if not settings.Has("rom_settings"):
-                        return original_create_fluid(model, settings, parallelism)
+                        return original_create(model, settings, parallelism)
 
                     # ROM wrapper
-                    return python_solvers_wrapper_rom.CreateSolverByParameters(
-                        model, settings, parallelism,
-                        'KratosMultiphysics.FluidDynamicsApplication.fluid_dynamics_analysis'
-                    )
-                def mock_create_thermal(model, settings, parallelism):
-                    # FOM wrapper
-                    if not settings.Has("rom_settings"):
-                        return original_create_thermal(model, settings, parallelism)
+                    return python_solvers_wrapper_rom.CreateSolverByParameters(model, settings, parallelism, analysis_stage_module_name)
 
-                    # ROM wrapper
-                    return python_solvers_wrapper_rom.CreateSolverByParameters(
-                        model, settings, parallelism,
-                        'KratosMultiphysics.ConvectionDiffusionApplication.convection_difussion_analysis'
-                    )
                 # Apply the patch
-                python_solvers_wrapper_fluid.CreateSolverByParameters = mock_create_fluid
-                python_solvers_wrapper_convection_diffusion.CreateSolverByParameters = mock_create_thermal
+                create_solver.is_rom_patch = True
+                wrapper_module.CreateSolverByParameters = create_solver
 
             # Create the ROM solver
             return python_solvers_wrapper_rom.CreateSolver(
