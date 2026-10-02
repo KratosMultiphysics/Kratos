@@ -103,6 +103,11 @@ namespace Kratos
         this-> GetNodalValues(Variables,rCurrentProcessInfo);
         double h = this->ComputeH(DN_DX);
 
+        if (this->GetValue(FLAG_VARIABLE) && this->GetProperties().Has(ARTIFICIAL_CONDUCTIVITY))
+        {
+            Variables.conductivity = this->GetProperties()[ARTIFICIAL_CONDUCTIVITY];
+        }
+
         this->ComputeTurbulentConductivity(DN_DX, h, Variables, rCurrentProcessInfo);
 
         array_1d<double,TDim> grad_phi_halfstep = prod(trans(DN_DX), 0.5*(Variables.phi+Variables.phi_old));
@@ -172,12 +177,12 @@ namespace Kratos
 
                 // Complete residual
                 const double residual = dphi_dt + convection + reaction - source;
-    
+
                 // //:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
                 // //:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-                // // Peclet's projected formulation was commented after some testing due to 
-                // // residual radial instabilities in 3D cases. 
-                // // It was decided to use a complete approach with 'crosswind_constant' without 
+                // // Peclet's projected formulation was commented after some testing due to
+                // // residual radial instabilities in 3D cases.
+                // // It was decided to use a complete approach with 'crosswind_constant' without
                 // // considering the projection.
                 // //:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
                 // // Velocity projected in the direction of the solution gradient
@@ -193,10 +198,10 @@ namespace Kratos
                 // double k_c = 0.5 * alpha_c * h * std::abs(residual / norm_grad);
                 // //:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
                 // //:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-                
+
                 // Discontinuity capturing coefficient
                 double k_c = Variables.crosswind_constant * h * std::abs(residual / norm_grad);
-                
+
                 // Crosswind diffusion tensor
                 Dcw = k_c * IdentityMatrix(TDim);
 
@@ -403,7 +408,7 @@ namespace Kratos
 //----------------------------------------------------------------------------------------
 
     template< unsigned int TDim, unsigned int TNumNodes >
-    void EulerianConvectionDiffusionElement<TDim,TNumNodes>::ComputeTurbulentConductivity( 
+    void EulerianConvectionDiffusionElement<TDim,TNumNodes>::ComputeTurbulentConductivity(
         const BoundedMatrix<double,TNumNodes,TDim>& rDN_DX, double h, ElementVariables& rVariables, const ProcessInfo& rCurrentProcessInfo)
     {
         const double Csmag = this->GetProperties().Has(C_SMAGORINSKY) ? this->GetProperties()[C_SMAGORINSKY] : 0.0;

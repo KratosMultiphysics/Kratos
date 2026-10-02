@@ -109,7 +109,7 @@ class CoupledFluidThermalSolver(PythonSolver):
         self.fluid_solver.Initialize()
         self.thermal_solver.Initialize()
         
-        self.fluid_solve_frequency = 1
+        self.fluid_solve_frequency = 5
         self.step = 0
 
     def Clear(self):
