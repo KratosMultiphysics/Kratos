@@ -501,7 +501,7 @@ void IgaModelerSbm::CreateQuadraturePointGeometries(
     << shape_function_derivatives_order << std::endl;
 
     std::string quadrature_method = rParameters.Has("quadrature_method")
-        ? rParameters["integration_rule"].GetString()
+        ? rParameters["quadrature_method"].GetString()
         : "GAUSS";
 
     KRATOS_INFO_IF("CreateQuadraturePointGeometries", mEchoLevel > 0)
@@ -656,7 +656,7 @@ void IgaModelerSbm::CreateQuadraturePointGeometriesSbmByProjectionLayer(
     const int derivatives_order = rParameters["shape_function_derivatives_order"].GetInt();
 
     std::string quadrature_method = rParameters.Has("quadrature_method")
-        ? rParameters["integration_rule"].GetString()
+        ? rParameters["quadrature_method"].GetString()
         : "GAUSS";
 
     KRATOS_ERROR_IF(quadrature_method != "GAUSS" &&
@@ -857,9 +857,11 @@ void IgaModelerSbm::CreateQuadraturePointGeometriesSbmByLinealizedProjectionLaye
     const double search_radius = std::sqrt(static_cast<double>(domain_size)) * h;
     const int derivatives_order =
         rParameters["shape_function_derivatives_order"].GetInt();
+
     const std::string quadrature_method = rParameters.Has("quadrature_method")
         ? rParameters["quadrature_method"].GetString()
         : "GAUSS";
+
     KRATOS_ERROR_IF(quadrature_method != "GAUSS" && quadrature_method != "GRID")
         << "::[IgaModelerSbm]:: Unsupported quadrature method \""
         << quadrature_method << "\"." << std::endl;
@@ -972,7 +974,7 @@ void IgaModelerSbm::CreateQuadraturePointGeometriesSbmByFixedConditionName(
         << "::[IgaModelerSbm]:: \"shape_function_derivatives_order\" must be at least " << required_shape_function_derivatives_order << ", but received " << shape_function_derivatives_order << std::endl;
 
     std::string quadrature_method = rParameters.Has("quadrature_method")
-        ? rParameters["integration_rule"].GetString()
+        ? rParameters["quadrature_method"].GetString()
         : "GAUSS";
 
     KRATOS_INFO_IF("CreateQuadraturePointGeometries", mEchoLevel > 0)
