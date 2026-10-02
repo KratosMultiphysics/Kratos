@@ -345,82 +345,52 @@ public:
         local_coord_2[0] = End;
         mpNurbsCurve->GlobalCoordinates(physical_coord_2, local_coord_2);
 
-        // 2D need to re-order
-        bool reverse_order = false;
-        if ((physical_coord_2[0] - physical_coord_1[0] < 0 ) || 
-            (physical_coord_2[1] - physical_coord_1[1] < 0 )) {
-            reverse_order = true;
-        }
-        // Scale factor between surface coordinate and curve one
-        double physical_length_segment = norm_2(physical_coord_1-physical_coord_2);
-        double parameter_length_segment = norm_2(local_coord_1-local_coord_2);
+        const double physical_length_segment = norm_2(physical_coord_1 - physical_coord_2);
         const double range_u = surface_spans_u.empty() ? 0.0 : (surface_spans_u.back() - surface_spans_u.front());
         const double range_v = surface_spans_v.empty() ? 0.0 : (surface_spans_v.back() - surface_spans_v.front());
         const double length_scale = std::max(1.0, std::max(physical_length_segment, std::max(range_u, range_v)));
-        std::vector<double> tempSpans;
         const double tolerance_orientation = 1e-10 * length_scale;
         const double tolerance_intersection = 1e-15 * length_scale;
-        
-        double scale_factor = parameter_length_segment/physical_length_segment;
 
-        std::vector<double> knot_interval(2);
-
-        // Compute constant coordinate -> understand segment orientation (vertical/horizontal)
-        if (std::abs(physical_coord_1[0]-physical_coord_2[0]) > tolerance_orientation) {
-            // horizontal case
-            knot_interval[0] = physical_coord_1[0]; 
-            knot_interval[1] = physical_coord_2[0];
-            std::sort(knot_interval.begin(), knot_interval.end());
-
-            knot_interval[0] -= tolerance_intersection; 
-            knot_interval[1] += tolerance_intersection;
-            // Compare with surface_spans_u
-            for (IndexType i = 0; i < surface_spans_u.size(); i++) {
-                double curr_knot_value = surface_spans_u[i];
-                if (curr_knot_value < knot_interval[0]) {continue;}
-                if (std::abs(curr_knot_value - knot_interval[0]) < tolerance_intersection*10) knot_interval[0] = curr_knot_value;
-                if (curr_knot_value > knot_interval[1]) {break;}
-                if (std::abs(curr_knot_value - knot_interval[1]) < tolerance_intersection*10) knot_interval[1] = curr_knot_value;
-                double knot_value_in_curve_parameter = Start + (curr_knot_value-knot_interval[0]) * scale_factor;
-                
-                tempSpans.push_back(knot_value_in_curve_parameter);
-            }
-            
-        } else if (std::abs(physical_coord_1[1]-physical_coord_2[1]) > tolerance_orientation) {
-            // vertical case
-            knot_interval[0] = physical_coord_1[1]; 
-            knot_interval[1] = physical_coord_2[1];
-            std::sort(knot_interval.begin(), knot_interval.end());
-
-            knot_interval[0] -= tolerance_intersection; 
-            knot_interval[1] += tolerance_intersection;
-            // Compare with surface_spans_v
-            for (IndexType i = 0; i < surface_spans_v.size(); i++) {
-                double curr_knot_value = surface_spans_v[i];
-                if (curr_knot_value < knot_interval[0]) {continue;}
-                if (std::abs(curr_knot_value - knot_interval[0]) < tolerance_intersection*10) knot_interval[0] = curr_knot_value;
-                if (curr_knot_value > knot_interval[1]) {break;}
-                if (std::abs(curr_knot_value - knot_interval[1]) < tolerance_intersection*10) knot_interval[1] = curr_knot_value;
-                double knot_value_in_curve_parameter = Start + (curr_knot_value-knot_interval[0]) * scale_factor;
-                
-                tempSpans.push_back(knot_value_in_curve_parameter);
-            }
+        IndexType direction = 0;
+        if (std::abs(physical_coord_2[0] - physical_coord_1[0]) > tolerance_orientation) {
+            direction = 0;
+        } else if (std::abs(physical_coord_2[1] - physical_coord_1[1]) > tolerance_orientation) {
+            direction = 1;
         } else {
             KRATOS_ERROR << "ComputeAxisIntersectionSBM :: brep not parallel to any surface knot vector";
         }
 
-        rSpans.resize(tempSpans.size());
-        if (tempSpans.size() > 2){
-            if (reverse_order) {
-                for (IndexType i = 0; i < tempSpans.size(); i++) {
-                    rSpans[i] = End - tempSpans[tempSpans.size()-1-i];
-                }
-            } else {
-                rSpans = tempSpans;
+        const auto& r_surface_spans = direction == 0 ? surface_spans_u : surface_spans_v;
+        const double first_coordinate = physical_coord_1[direction];
+        const double last_coordinate = physical_coord_2[direction];
+        const double lower_coordinate = std::min(first_coordinate, last_coordinate);
+        const double upper_coordinate = std::max(first_coordinate, last_coordinate);
+        const double scale_factor = (End - Start) / (last_coordinate - first_coordinate);
+
+        // A clipped BRep may start or end inside a surface knot span. Always
+        // retain its endpoints; surface knots alone do not cover that interval.
+        rSpans = {Start, End};
+        for (const double knot : r_surface_spans) {
+            if (knot <= lower_coordinate + tolerance_intersection) {
+                continue;
             }
-        } else rSpans = tempSpans;
-        
-        // KRATOS_ERROR_IF(rSpans.size()<2) << "ComputeAxisIntersectionSBM :: Wrong number of intersection found (<2)" << std::endl;
+            if (knot >= upper_coordinate - tolerance_intersection) {
+                break;
+            }
+            // The signed map also handles reversed curves and nonzero Start.
+            rSpans.push_back(Start + (knot - first_coordinate) * scale_factor);
+        }
+
+        std::sort(rSpans.begin(), rSpans.end());
+        const double parameter_tolerance = tolerance_intersection * std::abs(scale_factor);
+        rSpans.erase(std::unique(rSpans.begin(), rSpans.end(),
+            [parameter_tolerance](const double A, const double B) {
+                return std::abs(A - B) <= parameter_tolerance;
+            }), rSpans.end());
+        if (Start > End) {
+            std::reverse(rSpans.begin(), rSpans.end());
+        }
     }
 
     /* @brief Provides the nurbs boundaries of the NURBS/B-Spline curve.
@@ -686,6 +656,11 @@ public:
         const IntegrationPointsArrayType& rIntegrationPoints,
         IntegrationInfo& rIntegrationInfo) 
     {
+        if (rIntegrationPoints.empty()) {
+            rResultGeometries.clear();
+            return;
+        }
+
         // shape function container.
         NurbsSurfaceShapeFunction shape_function_container(
             mpNurbsSurface->PolynomialDegreeU(), mpNurbsSurface->PolynomialDegreeV(),

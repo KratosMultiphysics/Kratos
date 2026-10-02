@@ -1960,15 +1960,15 @@ void IgaContactProcessSbm::CreateConditions(
                 const Matrix& r_shape_function_derivatives = n_shape_function_derivatives[n - 1];
                 for (int k = 0; k <= n-2; k++) {
                     extended_hessian_xx += taylor_term(
-                        r_shape_function_derivatives(i, k), n - 1 - k, k);
+                        r_shape_function_derivatives(i, k), n - 2 - k, k);
                 }
                 for (int k = 0; k <= n-2; k++) {
                     extended_hessian_xy += taylor_term(
-                        r_shape_function_derivatives(i, k + 1), n - 1 - k, k);
+                        r_shape_function_derivatives(i, k + 1), n - 2 - k, k);
                 }
                 for (int k = 0; k <= n-2; k++) {
                     extended_hessian_yy += taylor_term(
-                        r_shape_function_derivatives(i, k + 2), n - 1 - k, k);
+                        r_shape_function_derivatives(i, k + 2), n - 2 - k, k);
                 }
             }
 

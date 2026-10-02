@@ -691,6 +691,81 @@ typedef Node NodeType;
         KRATOS_EXPECT_EQ(curve_on_surface.GetGeometryType(), geometry_type);
     }
 
+    KRATOS_TEST_CASE_IN_SUITE(NurbsCurveOnSurfaceSBMClippedSegmentEndpoints, KratosCoreNurbsGeometriesFastSuite)
+    {
+        std::vector<Vector> coordinates(2, Vector(2));
+        coordinates[0][0] = 0.0;
+        coordinates[0][1] = 1.0;
+        coordinates[1][0] = 3.0;
+        coordinates[1][1] = 1.0;
+        auto curve_on_surface = GenerateReferenceNurbs2dforKnotIntersections(coordinates);
+
+        std::vector<double> spans;
+        curve_on_surface.SpansLocalSpaceSBM(spans, 0.25, 1.0);
+        KRATOS_EXPECT_EQ(spans.size(), 2);
+        KRATOS_EXPECT_NEAR(spans.front(), 0.25, TOLERANCE);
+        KRATOS_EXPECT_NEAR(spans.back(), 1.0, TOLERANCE);
+
+        Geometry<Point>::IntegrationPointsArrayType integration_points;
+        auto integration_info = curve_on_surface.GetDefaultIntegrationInfo();
+        IntegrationPointUtilities::CreateIntegrationPoints1D(integration_points, spans, integration_info);
+        Geometry<Point>::GeometriesArrayType quadrature_points;
+        curve_on_surface.CreateQuadraturePointGeometriesSBM(
+            quadrature_points, 3, integration_points, integration_info);
+        KRATOS_EXPECT_EQ(quadrature_points.size(), 3);
+        double total_weight = 0.0;
+        for (const auto& r_point : integration_points) {
+            KRATOS_EXPECT_GT(r_point.X(), 0.25);
+            KRATOS_EXPECT_LT(r_point.X(), 1.0);
+            total_weight += r_point.Weight();
+        }
+        KRATOS_EXPECT_NEAR(total_weight, 0.75, TOLERANCE);
+
+        curve_on_surface.SpansLocalSpaceSBM(spans, 0.25, 0.75);
+        KRATOS_EXPECT_EQ(spans.size(), 2);
+        KRATOS_EXPECT_NEAR(spans.front(), 0.25, TOLERANCE);
+        KRATOS_EXPECT_NEAR(spans.back(), 0.75, TOLERANCE);
+    }
+
+    KRATOS_TEST_CASE_IN_SUITE(NurbsCurveOnSurfaceSBMReversedClippedSegment, KratosCoreNurbsGeometriesFastSuite)
+    {
+        for (IndexType direction = 0; direction < 2; ++direction) {
+            std::vector<Vector> coordinates(2, Vector(2));
+            coordinates[0][direction] = 3.0;
+            coordinates[1][direction] = 0.0;
+            coordinates[0][1 - direction] = 1.0;
+            coordinates[1][1 - direction] = 1.0;
+            auto curve_on_surface = GenerateReferenceNurbs2dforKnotIntersections(coordinates);
+
+            std::vector<double> spans;
+            curve_on_surface.SpansLocalSpaceSBM(spans, 0.25, 2.5);
+            const std::vector<double> expected_spans = {0.25, 1.0, 2.0, 2.5};
+            KRATOS_EXPECT_VECTOR_NEAR(spans, expected_spans, TOLERANCE);
+        }
+    }
+
+    KRATOS_TEST_CASE_IN_SUITE(NurbsCurveOnSurfaceSBMEmptyQuadratureClearsResult, KratosCoreNurbsGeometriesFastSuite)
+    {
+        std::vector<Vector> coordinates(2, Vector(2));
+        coordinates[0][0] = 1.0;
+        coordinates[0][1] = 1.0;
+        coordinates[1][0] = 2.0;
+        coordinates[1][1] = 1.0;
+        auto curve_on_surface = GenerateReferenceNurbs2dforKnotIntersections(coordinates);
+        Geometry<Point>::IntegrationPointsArrayType integration_points;
+        auto integration_info = curve_on_surface.GetDefaultIntegrationInfo();
+        curve_on_surface.CreateIntegrationPoints(integration_points, integration_info);
+        Geometry<Point>::GeometriesArrayType quadrature_points;
+        curve_on_surface.CreateQuadraturePointGeometriesSBM(
+            quadrature_points, 3, integration_points, integration_info);
+        KRATOS_EXPECT_EQ(quadrature_points.size(), 3);
+
+        integration_points.clear();
+        curve_on_surface.CreateQuadraturePointGeometriesSBM(
+            quadrature_points, 3, integration_points, integration_info);
+        KRATOS_EXPECT_EQ(quadrature_points.size(), 0);
+    }
+
     // test quadrature points of curve on surface
     KRATOS_TEST_CASE_IN_SUITE(NurbsCurveOnSurfaceCreateQuadraturePointsSBMInternal, KratosCoreNurbsGeometriesFastSuite)
     {
