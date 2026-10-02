@@ -117,18 +117,18 @@ namespace Testing {
 
         void AccessComputeConsistentResidual(
             ModelPart &rModelPart,
-            Variable<TValueType> &rOriginalVariable,
-            Variable<TValueType> &rModifiedVariable,
-            Variable<TValueType> &rResidualVariable)
+            const Variable<TValueType> &rOriginalVariable,
+            const Variable<TValueType> &rModifiedVariable,
+            const Variable<TValueType> &rResidualVariable)
         {
             this->ComputeConsistentResidual(rModelPart, rOriginalVariable, rModifiedVariable, rResidualVariable);
         }
 
         void AccessComputeNodeByNodeResidual(
             ModelPart &rModelPart,
-            Variable<TValueType> &rOriginalVariable,
-            Variable<TValueType> &rModifiedVariable,
-            Variable<TValueType> &rResidualVariable)
+            const Variable<TValueType> &rOriginalVariable,
+            const Variable<TValueType> &rModifiedVariable,
+            const Variable<TValueType> &rResidualVariable)
         {
             this->ComputeNodeByNodeResidual(rModelPart, rOriginalVariable, rModifiedVariable, rResidualVariable);
         }

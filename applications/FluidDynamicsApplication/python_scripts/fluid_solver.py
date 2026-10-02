@@ -309,9 +309,17 @@ class FluidSolver(PythonSolver):
         if self.element_integrates_in_time:
             # "Fake" scheme for those cases in where the element manages the time integration
             # It is required to perform the nodal update once the current time step is solved
-            scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticSchemeSlip(
-                domain_size,
-                domain_size + 1)
+            scheme_settings = KratosMultiphysics.Parameters("""{
+                "block_size" : 0,
+                "domain_size" : 0,
+                "rotation_dof_position" : 0,
+                "rotation_flag_name" : "SLIP"
+            }""")
+            domain_size = self.GetComputingModelPart().ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
+            scheme_settings["domain_size"].SetInt(domain_size)
+            scheme_settings["block_size"].SetInt(domain_size + 1)
+            scheme = KratosCFD.IncrementalUpdateRotationScheme(scheme_settings)
+
             # In case the BDF2 scheme is used inside the element, the BDF time discretization utility is required to update the BDF coefficients
             if (self.settings["time_scheme"].GetString() == "bdf2"):
                 time_order = 2

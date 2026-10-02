@@ -4,7 +4,6 @@ from typing import Any
 import KratosMultiphysics as Kratos
 from KratosMultiphysics.kratos_utilities import GetListOfAvailableApplications
 from KratosMultiphysics.kratos_utilities import GetKratosMultiphysicsPath
-from KratosMultiphysics.OptimizationApplication.utilities.union_utilities import ContainerExpressionTypes
 
 def GetClassModuleFromKratos(full_class_name: str) -> str:
     sub_module_paths = full_class_name.split(".")
@@ -39,15 +38,3 @@ def GetClassModuleFromKratos(full_class_name: str) -> str:
 def CallOnAll(list_of_objects: 'list[Any]', method: Any, *args, **kwargs):
     for obj in list_of_objects:
         getattr(obj, method.__name__)(*args, **kwargs)
-
-def IsSameContainerExpression(container_expression_1: ContainerExpressionTypes, container_expression_2: ContainerExpressionTypes) -> bool:
-    if container_expression_1.GetModelPart().FullName() != container_expression_2.GetModelPart().FullName():
-        return False
-
-    if type(container_expression_1) != type(container_expression_2):
-        return False
-
-    return True
-
-def HasContainerExpression(container_expression: ContainerExpressionTypes, list_of_container_expressions: 'list[ContainerExpressionTypes]') -> bool:
-    return any([IsSameContainerExpression(container_expression, list_container_expression) for list_container_expression in list_of_container_expressions])

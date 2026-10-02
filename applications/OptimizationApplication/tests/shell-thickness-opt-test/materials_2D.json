@@ -5,7 +5,7 @@
             "Material": {
                     "name": "Shell_Material",
                     "constitutive_law": {
-                            "name": "LinearElasticPlaneStress2DLaw"
+                            "name": "ReissnerMindlinShellElasticConstitutiveLaw"
                     },
                     "Variables": {
                             "DENSITY": 7.85000E+03,

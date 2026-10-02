@@ -53,7 +53,7 @@ namespace Kratos::Future
  * @author Ruben Zorrilla
  * @author Riccardo Rossi
  */
-template <class TSparseMatrixType, class TSystemVectorType, class TSparseGraphType>
+template <class TLinearAlgebra>
 class ImplicitStrategy : public Strategy
 {
 public:
@@ -64,31 +64,16 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION(ImplicitStrategy);
 
     // Scheme pointer type definition
-    using SchemePointerType = typename ImplicitScheme<TSparseMatrixType, TSystemVectorType, TSparseGraphType>::Pointer;
+    using SchemePointerType = typename ImplicitScheme<TLinearAlgebra>::Pointer;
 
     // Linear solver pointer definition
-    using LinearSolverPointerType = typename Future::LinearSolver<TSparseMatrixType, TSystemVectorType>::Pointer;
+    using LinearSolverPointerType = typename Future::LinearSolver<TLinearAlgebra>::Pointer;
 
-    /// Index type definition
-    using IndexType = typename TSparseMatrixType::IndexType;
-
-    /// Data type definition
-    using DataType = typename TSparseMatrixType::DataType;
+    /// Data container type definition
+    using ImplicitStrategyDataType = ImplicitStrategyData<TLinearAlgebra>;
 
     /// DOFs array type definition
     using DofsArrayType = typename ModelPart::DofsArrayType;
-
-    /// Matrix type definition
-    using SystemMatrixType = TSparseMatrixType;
-
-    /// Matrix pointer type definition
-    using SystemMatrixPointerType = typename TSparseMatrixType::Pointer;
-
-    /// Vector type definition
-    using SystemVectorType = TSystemVectorType;
-
-    /// Vector type definition
-    using SystemVectorPointerType = typename SystemVectorType::Pointer;
 
     ///@}
     ///@name Life Cycle
@@ -192,7 +177,7 @@ public:
         ModelPart &rModelPart,
         Parameters ThisParameters) const override
     {
-        return Kratos::make_shared<ImplicitStrategy<TSparseMatrixType, TSystemVectorType, TSparseGraphType>>(rModelPart, ThisParameters);
+        return Kratos::make_shared<ImplicitStrategy<TLinearAlgebra>>(rModelPart, ThisParameters);
     }
 
     void Initialize() override
@@ -200,7 +185,10 @@ public:
         KRATOS_TRY
 
         // Initialize scheme (this has to be done once)
-        pGetScheme()->Initialize(mLinearSystemContainer);
+        pGetScheme()->Initialize(mImplicitStrategyData);
+
+        // // Initialize linear solver
+        // pGetLinearSolver()->Initialize();
 
         KRATOS_CATCH("")
     }
@@ -210,7 +198,7 @@ public:
         KRATOS_TRY
 
         // Call the scheme InitializeSolutionStep
-        pGetScheme()->InitializeSolutionStep(mLinearSystemContainer);
+        pGetScheme()->InitializeSolutionStep(mImplicitStrategyData);
 
         KRATOS_CATCH("")
     }
@@ -220,7 +208,7 @@ public:
         KRATOS_TRY
 
         // Call the time scheme predict (note that this also updates the mesh if needed)
-        pGetScheme()->Predict(mLinearSystemContainer);
+        pGetScheme()->Predict(mImplicitStrategyData);
 
         KRATOS_CATCH("")
     }
@@ -235,7 +223,7 @@ public:
         KRATOS_TRY;
 
         // Finalisation of the solution step (operations to be done after achieving convergence)
-        pGetScheme()->FinalizeSolutionStep(mLinearSystemContainer);
+        pGetScheme()->FinalizeSolutionStep(mImplicitStrategyData);
 
         // Reset flags for next step
         mStiffnessMatrixIsBuilt = false; // By default we always rebuilt (if not implement a derived strategy)
@@ -258,7 +246,7 @@ public:
         }
 
         // Clearing the system of equations
-        mLinearSystemContainer.Clear();
+        mImplicitStrategyData.Clear();
 
         // Clearing scheme
         // Note that this resets the DOF set
@@ -502,22 +490,19 @@ public:
     //     return mpEffectiveDx;
     // }
 
-    LinearSystemContainer<TSparseMatrixType, TSystemVectorType>& GetLinearSystemContainer()
+    ImplicitStrategyDataType& GetImplicitStrategyData()
     {
-        return mLinearSystemContainer;
+        return mImplicitStrategyData;
     }
 
-    const LinearSystemContainer<TSparseMatrixType, TSystemVectorType>& GetLinearSystemContainer() const
+    const ImplicitStrategyDataType& GetImplicitStrategyData() const
     {
-        return mLinearSystemContainer;
+        return mImplicitStrategyData;
     }
 
-    /**
-     * @brief It allows to get the list of Dofs from the element
-     */
     DofsArrayType& GetDofSet()
     {
-        return *mLinearSystemContainer.pDofSet;
+        return *mImplicitStrategyData.pGetDofSet();
     }
 
     /**
@@ -525,7 +510,7 @@ public:
      */
     const DofsArrayType& GetDofSet() const
     {
-        return *mLinearSystemContainer.pDofSet;
+        return *mImplicitStrategyData.pGetDofSet();
     }
 
     /**
@@ -533,7 +518,7 @@ public:
      */
     DofsArrayType& GetEffectiveDofSet()
     {
-        return *mLinearSystemContainer.pEffectiveDofSet;
+        return *mImplicitStrategyData.pGetEffectiveDofSet();
     }
 
     /**
@@ -541,7 +526,7 @@ public:
      */
     const DofsArrayType &GetEffectiveDofSet() const
     {
-        return *mLinearSystemContainer.mEffectiveDofSet;
+        return *mImplicitStrategyData.pGetEffectiveDofSet();
     }
 
     ///@}
@@ -597,8 +582,8 @@ public:
      */
     double GetResidualNorm()
     {
-        auto p_rhs = mLinearSystemContainer.pRhs;
-        KRATOS_ERROR_IF(p_rhs == nullptr) << "Right hand side vector is not set. Residual cannot be computed." << std::endl;
+        auto p_rhs = mImplicitStrategyData.pGetLinearSystem()->pGetVector(LinearSystemTags::DenseVectorTag::RHS);
+        KRATOS_ERROR_IF_NOT(p_rhs) << "RHS vector not found in the linear system." << std::endl;
         if (p_rhs->size() != 0) {
             return p_rhs->Norm();
         } else {
@@ -674,9 +659,10 @@ protected:
      */
     virtual void EchoInfo()
     {
-        const auto& r_A = mLinearSystemContainer.pLhs;
-        const auto& r_b = mLinearSystemContainer.pRhs;
-        const auto& r_dx = *mLinearSystemContainer.pDx;
+        const auto p_linear_system = mImplicitStrategyData.pGetLinearSystem();
+        const auto& r_A = *(p_linear_system->pGetMatrix(LinearSystemTags::SparseMatrixTag::LHS));
+        const auto& r_b = *(p_linear_system->pGetVector(LinearSystemTags::DenseVectorTag::RHS));
+        const auto& r_dx = *(p_linear_system->pGetVector(LinearSystemTags::DenseVectorTag::Dx));
 
         if (GetEchoLevel() == 3) { //if it is needed to print the debug info
             KRATOS_INFO("ImplicitStrategy") << "LHS = " << r_A << std::endl;
@@ -720,7 +706,7 @@ private:
 
     LinearSolverPointerType mpLinearSolver = nullptr; /// The pointer to the linear solver
 
-    LinearSystemContainer<TSparseMatrixType, TSystemVectorType> mLinearSystemContainer;
+    ImplicitStrategyDataType mImplicitStrategyData; /// The implicit strategy data container (includes linear systems, DOFs, etc.)
 
     int mEchoLevel;
 

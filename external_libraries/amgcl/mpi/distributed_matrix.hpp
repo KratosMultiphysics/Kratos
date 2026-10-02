@@ -498,16 +498,13 @@ class distributed_matrix {
             }
 
             if (!A_rem && a_rem && a_rem->nnz > 0) {
-                std::vector<ptrdiff_t> backup;
                 if (keep_src) {
-                    backup.assign(a_rem->col, a_rem->col + a_rem->nnz);
-                }
-
-                C->renumber(a_rem->nnz, a_rem->col);
-                A_rem = Backend::copy_matrix(a_rem, bprm);
-
-                if (keep_src) {
-                    std::copy(backup.begin(), backup.end(), a_rem->col);
+                    auto rem_copy = std::make_shared<build_matrix>(*a_rem);
+                    C->renumber(rem_copy->nnz, rem_copy->col);
+                    A_rem = Backend::copy_matrix(rem_copy, bprm);
+                } else {
+                    C->renumber(a_rem->nnz, a_rem->col);
+                    A_rem = Backend::copy_matrix(a_rem, bprm);
                 }
             }
 

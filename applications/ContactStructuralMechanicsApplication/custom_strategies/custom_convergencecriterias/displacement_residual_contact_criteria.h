@@ -263,8 +263,8 @@ public:
             residual_rot_ratio = mRotCurrentResidualNorm/mRotInitialResidualNorm;
 
             // We calculate the absolute norms
-            const double residual_disp_abs = mDispCurrentResidualNorm/disp_dof_num;
-            const double residual_rot_abs = mRotCurrentResidualNorm/rot_dof_num;
+            const double residual_disp_abs = (disp_dof_num > 0) ? mDispCurrentResidualNorm/static_cast<double>(disp_dof_num) : 0.0;
+            const double residual_rot_abs = (rot_dof_num > 0) ? mRotCurrentResidualNorm/static_cast<double>(rot_dof_num) : 0.0;
 
             // The process info of the model part
             ProcessInfo& r_process_info = rModelPart.GetProcessInfo();
@@ -340,8 +340,9 @@ public:
                 }
                 return false;
             }
-        } else // In this case all the displacements are imposed!
+        } else { // In this case all the displacements are imposed!
             return true;
+        }
     }
 
     /**

@@ -12,10 +12,10 @@
 
 #pragma once
 
-#include "geometries/geometry.h"
-#include "includes/define.h"
+#include "includes/kratos_export_api.h"
 #include "nodal_extrapolator.h"
-#include <cstddef>
+
+#include <memory>
 
 namespace Kratos
 {
@@ -24,18 +24,16 @@ class KRATOS_API(GEO_MECHANICS_APPLICATION) LinearNodalExtrapolator : public Nod
 {
 public:
     using NodalExtrapolator::GeometryType;
-    using SizeType  = std::size_t;
-    using IndexType = std::size_t;
 
     [[nodiscard]] Matrix CalculateElementExtrapolationMatrix(
-        const GeometryType& rGeometry, const GeometryData::IntegrationMethod& rIntegrationMethod) const override;
+        const GeometryType& rGeometry, const Geo::IntegrationPointVectorType& rIntegrationPoints) const override;
 
 private:
     void static CheckIfGeometryIsSupported(const GeometryType& rGeometry);
     [[nodiscard]] static std::unique_ptr<GeometryType> CreateLowerOrderGeometry(const GeometryType& rGeometry);
     static void AddRowsForMidsideNodes(const GeometryType& rGeometry, Matrix& rExtrapolationMatrix);
     [[nodiscard]] static Matrix CalculateExtrapolationMatrixForCornerNodes(const GeometryType& rGeometry,
-                                                                           const GeometryData::IntegrationMethod& rIntegrationMethod,
+                                                                           const Geo::IntegrationPointVectorType& rIntegrationPoints,
                                                                            const GeometryType& rCornerGeometry);
 };
 

@@ -91,6 +91,31 @@ KRATOS_TEST_CASE_IN_SUITE(VariablesRegister, KratosCoreFastSuite) {
     )
 }
 
+KRATOS_TEST_CASE_IN_SUITE(VariablesKeyConstexpr, KratosCoreFastSuite) {
+    const auto& func_variable = [](const Variable<double>& rVariable) -> int {
+        switch (rVariable.Key()) {
+            case PRESSURE.Key(): return 1;
+            case DENSITY.Key(): return 2;
+            default: return 3;
+        }
+    };
+
+    KRATOS_EXPECT_EQ(func_variable(PRESSURE), 1);
+    KRATOS_EXPECT_EQ(func_variable(DENSITY), 2);
+    KRATOS_EXPECT_EQ(func_variable(TEMPERATURE), 3);
+
+    const auto& func_variable_data = [](const VariableData& rVariableData) -> int {
+        switch (rVariableData.Key()) {
+            case VELOCITY.Key(): return 1;
+            case ACCELERATION.Key(): return 2;
+            default: return 3;
+        }
+    };
+
+    KRATOS_EXPECT_EQ(func_variable_data(VELOCITY), 1);
+    KRATOS_EXPECT_EQ(func_variable_data(ACCELERATION), 2);
+    KRATOS_EXPECT_EQ(func_variable_data(TEMPERATURE), 3);
+}
 
 }
 } // namespace Kratos.

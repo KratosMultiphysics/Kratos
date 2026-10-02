@@ -73,12 +73,14 @@ class schur_pressure_correction {
             backend_type;
 
         typedef typename backend_type::value_type value_type;
+        typedef typename backend_type::col_type col_type;
+        typedef typename backend_type::ptr_type ptr_type;
         typedef typename math::scalar_of<value_type>::type scalar_type;
         typedef typename backend_type::matrix     matrix;
         typedef typename backend_type::vector     vector;
         typedef typename backend_type::params     backend_params;
 
-        typedef typename backend::builtin<value_type>::matrix build_matrix;
+        typedef typename backend::builtin<value_type, col_type, ptr_type>::matrix build_matrix;
 
         struct params {
             typedef typename USolver::params usolver_params;

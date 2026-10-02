@@ -148,13 +148,11 @@ public:
 
 
         //now we have to search for the conditions. they can only be triangles, otherwise -> not stored
-        int number_of_local_conditions=0;
         for (ModelPart::ConditionsContainerType::iterator it = this_model_part.ConditionsBegin(); it != this_model_part.ConditionsEnd(); it++)
         {
             Geometry<Node >& geom = it->GetGeometry();
             if (geom.size()==3)
             {
-                ++number_of_local_conditions; //conditions are always owned
                 for (unsigned int i = 0; i < geom.size(); i++)
                 {
                     int node_position = this_model_part.Nodes().find(geom[i].Id()) - it_begin_node_old; //probably there-s a better way to do this, i only need the position in the array, (not the ID)
@@ -201,13 +199,11 @@ public:
         array_1d<unsigned int, 4 > list_matching_nodes; // used to save the new nodes that match exactly old nodes  (very unlikely, but might be 4 for very plane elements)
         unsigned int exact_nodes = 0;
         unsigned int outside_nodes = 0;
-        int current_element=0;
         int number_of_cuts=0;
 
         for (ElementsArrayType::iterator it = it_begin; it != it_end; ++it)
         {
             bool print_element=false;
-            ++current_element;
             number_of_cuts = 0;
             exact_nodes = 0;
             outside_nodes = 0;
@@ -294,13 +290,11 @@ public:
         array_1d<unsigned int, 4 > list_matching_nodes; // used to save the new nodes that match exactly old nodes  (very unlikely, but might be 4 for very plane elements)
         unsigned int exact_nodes = 0;
         unsigned int outside_nodes = 0;
-        int current_element=0;
         int number_of_cuts=0;
 
         for (ElementsArrayType::iterator it = it_begin; it != it_end; ++it)
         {
             bool print_element=false;
-            ++current_element;
             number_of_cuts = 0;
             exact_nodes = 0;
             outside_nodes = 0;
@@ -399,13 +393,11 @@ public:
         array_1d<unsigned int, 4 > list_matching_nodes; // used to save the new nodes that match exactly old nodes  (very unlikely, but might be 4 for very plane elements)
         unsigned int exact_nodes = 0;
         unsigned int outside_nodes = 0;
-        int current_element=0;
         int number_of_cuts=0;
 
         for (ElementsArrayType::iterator it = it_begin; it != it_end; ++it)
         {
             bool print_element=false;
-            ++current_element;
             number_of_cuts = 0;
             exact_nodes = 0;
             outside_nodes = 0;

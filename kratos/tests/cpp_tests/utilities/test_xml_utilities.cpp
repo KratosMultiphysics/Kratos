@@ -12,44 +12,38 @@
 
 // System includes
 #include <sstream>
-#include <vector>
-#include <tuple>
 
 // External includes
 
 // Project includes
 #include "testing/testing.h"
-#include "utilities/xml_utilities/xml_expression_element.h"
-#include "utilities/xml_utilities/xml_ostream_writer.h"
-#include "utilities/xml_utilities/xml_ostream_ascii_writer.h"
-#include "utilities/xml_utilities/xml_ostream_base64_binary_writer.h"
-#include "expression/literal_flat_expression.h"
+#include "utilities/xml_utilities/xml_elements_array.h"
+#include "utilities/xml_utilities/xml_ascii_nd_data_element.h"
+#include "utilities/xml_utilities/xml_base64_binary_nd_data_element.h"
 
 namespace Kratos::Testing {
 
-KRATOS_TEST_CASE_IN_SUITE(XmlElementGetTagName, KratosCoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(XmlElementsArrayGetTagName, KratosCoreFastSuite)
 {
-    XmlExpressionElement element("TestElement");
+    XmlElementsArray element("TestElement");
     KRATOS_EXPECT_EQ(element.GetTagName(), "TestElement");
 }
 
-KRATOS_TEST_CASE_IN_SUITE(XmlElementAddAndGetAttributes, KratosCoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(XmlElementsArrayAddAndGetAttributes, KratosCoreFastSuite)
 {
-    XmlExpressionElement element("TestElement");
+    XmlElementsArray element("TestElement");
     element.AddAttribute("Attribute1", "Value1");
     element.AddAttribute("Attribute2", "Value2");
 
     auto attributes = element.GetAttributes();
 
-    KRATOS_EXPECT_EQ(attributes[0].first, "Attribute1");
-    KRATOS_EXPECT_EQ(attributes[0].second, "Value1");
-    KRATOS_EXPECT_EQ(attributes[1].first, "Attribute2");
-    KRATOS_EXPECT_EQ(attributes[1].second, "Value2");
+    KRATOS_EXPECT_EQ(attributes["Attribute1"], "Value1");
+    KRATOS_EXPECT_EQ(attributes["Attribute2"], "Value2");
 }
 
-KRATOS_TEST_CASE_IN_SUITE(XmlElementClearAttributes, KratosCoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(XmlElementsArrayClearAttributes, KratosCoreFastSuite)
 {
-    XmlExpressionElement element("TestElement");
+    XmlElementsArray element("TestElement");
     element.AddAttribute("Attribute1", "Value1");
     element.ClearAttributes();
 
@@ -57,33 +51,34 @@ KRATOS_TEST_CASE_IN_SUITE(XmlElementClearAttributes, KratosCoreFastSuite)
     KRATOS_EXPECT_EQ(attributes.size(), 0);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(XmlElementAddElement, KratosCoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(XmlElementsArrayAddElement, KratosCoreFastSuite)
 {
-    XmlExpressionElement element("TestElement");
-    auto childElement = Kratos::make_shared<XmlExpressionElement>("ChildElement");
+    XmlElementsArray element("TestElement");
+    auto childElement = Kratos::make_shared<XmlElementsArray>("ChildElement");
     element.AddElement(childElement);
 
     auto children = element.GetElements();
     KRATOS_EXPECT_EQ(children[0]->GetTagName(), "ChildElement");
 }
 
-KRATOS_TEST_CASE_IN_SUITE(XmlElementGetElements, KratosCoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(XmlElementsArrayGetElements, KratosCoreFastSuite)
 {
-    XmlExpressionElement element("TestElement");
-    auto childElement1 = Kratos::make_shared<XmlExpressionElement>("ChildElement");
-    auto childElement2 = Kratos::make_shared<XmlExpressionElement>("ChildElement2");
+    XmlElementsArray element("TestElement");
+    auto childElement1 = Kratos::make_shared<XmlElementsArray>("ChildElement");
+    auto childElement2 = Kratos::make_shared<XmlElementsArray>("ChildElement2");
     element.AddElement(childElement1);
     element.AddElement(childElement2);
 
-    auto children = element.GetElements("ChildElement");
-    KRATOS_EXPECT_EQ(children.size(), 1);
+    auto children = element.GetElements();
+    KRATOS_EXPECT_EQ(children.size(), 2);
     KRATOS_EXPECT_EQ(children[0]->GetTagName(), "ChildElement");
+    KRATOS_EXPECT_EQ(children[1]->GetTagName(), "ChildElement2");
 }
 
-KRATOS_TEST_CASE_IN_SUITE(XmlElementClearElements, KratosCoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(XmlElementsArrayClearElements, KratosCoreFastSuite)
 {
-    XmlExpressionElement element("TestElement");
-    auto childElement = Kratos::make_shared<XmlExpressionElement>("ChildElement");
+    XmlElementsArray element("TestElement");
+    auto childElement = Kratos::make_shared<XmlElementsArray>("ChildElement");
     element.AddElement(childElement);
     element.ClearElements();
 
@@ -91,16 +86,15 @@ KRATOS_TEST_CASE_IN_SUITE(XmlElementClearElements, KratosCoreFastSuite)
     KRATOS_EXPECT_EQ(children.size(), 0);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(XmlOStreamWriterWrite, KratosCoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(XmlElementsArrayWrite, KratosCoreFastSuite)
 {
-    XmlExpressionElement element("TestElement");
+    XmlElementsArray element("TestElement");
     element.AddAttribute("Attribute1", "Value1");
-    auto childElement = Kratos::make_shared<XmlExpressionElement>("ChildElement");
+    auto childElement = Kratos::make_shared<XmlElementsArray>("ChildElement");
     element.AddElement(childElement);
 
     std::stringstream ss;
-    XmlOStreamAsciiWriter writer(ss, 4);
-    writer.WriteElement(element, 1);
+    element.Write(ss, 1);
 
     KRATOS_EXPECT_EQ(ss.str(),
                        "   <TestElement Attribute1=\"Value1\">\n"
@@ -108,227 +102,129 @@ KRATOS_TEST_CASE_IN_SUITE(XmlOStreamWriterWrite, KratosCoreFastSuite)
                        "   </TestElement>\n");
 }
 
-KRATOS_TEST_CASE_IN_SUITE(XmlOStreamWriterWriteDataElementAsciiChar, KratosCoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(XmlAsciiNDDataElementChar, KratosCoreFastSuite)
 {
-    auto char_expression_1 = LiteralFlatExpression<char>::Create(2, {3});
-    std::size_t local_index = 0;
-    for (auto it = char_expression_1->begin(); it != char_expression_1->end(); ++it) {
-        *it = local_index++;
-    }
+    DenseVector<unsigned int> shape(2, 0);
+    shape[0] = 5; shape[1] = 3;
+    auto char_nd_data_1 = Kratos::make_shared<NDData<unsigned char>>(shape);
+    auto char_nd_data_1_view = char_nd_data_1->ViewData();
+    std::iota(char_nd_data_1_view.begin(), char_nd_data_1_view.begin() + 6, 0U);
+    std::iota(char_nd_data_1_view.begin() + 6, char_nd_data_1_view.end(), 0U);
 
-    auto char_expression_2 = LiteralFlatExpression<char>::Create(3, {3});
-    local_index = 0;
-    for (auto it = char_expression_2->begin(); it != char_expression_2->end(); ++it) {
-        *it = local_index++;
-    }
-
-    std::vector<Expression::ConstPointer> expressions = {char_expression_1, char_expression_2};
-    XmlExpressionElement element("data_1", expressions);
+    XmlAsciiNDDataElement<unsigned char> element("data_1", char_nd_data_1, 9);
     element.AddAttribute("attribute1", "value1");
 
     std::stringstream ss;
-    XmlOStreamAsciiWriter writer(ss, 4);
-    writer.WriteElement(element, 1);
+    element.Write(ss, 1);
 
     KRATOS_EXPECT_EQ(ss.str(),
-            "   <DataArray type=\"UInt8\" Name=\"data_1\" NumberOfComponents=\"3\" attribute1=\"value1\" format=\"ascii\">\n"
+            "   <DataArray Name=\"data_1\" NumberOfComponents=\"3\" attribute1=\"value1\" format=\"ascii\" type=\"UInt8\">\n"
             "     0  1  2  3  4  5  0  1  2  3  4  5  6  7  8\n"
             "   </DataArray>\n");
 }
 
-KRATOS_TEST_CASE_IN_SUITE(XmlOStreamWriterWriteDataElementAsciiInt, KratosCoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(XmlAsciiNDDataElementInt, KratosCoreFastSuite)
 {
-    auto char_expression_1 = LiteralFlatExpression<int>::Create(2, {3});
-    std::size_t local_index = 0;
-    for (auto it = char_expression_1->begin(); it != char_expression_1->end(); ++it) {
-        *it = local_index++;
-    }
+    DenseVector<unsigned int> shape(2, 0);
+    shape[0] = 5; shape[1] = 3;
+    auto char_nd_data_1 = Kratos::make_shared<NDData<int>>(shape);
+    auto char_nd_data_1_view = char_nd_data_1->ViewData();
+    std::iota(char_nd_data_1_view.begin(), char_nd_data_1_view.begin() + 6, 0U);
+    std::iota(char_nd_data_1_view.begin() + 6, char_nd_data_1_view.end(), 0U);
 
-    auto char_expression_2 = LiteralFlatExpression<int>::Create(3, {3});
-    local_index = 0;
-    for (auto it = char_expression_2->begin(); it != char_expression_2->end(); ++it) {
-        *it = local_index++;
-    }
-
-    std::vector<Expression::ConstPointer> expressions = {char_expression_1, char_expression_2};
-    XmlExpressionElement element("data_1", expressions);
+    XmlAsciiNDDataElement<int> element("data_1", char_nd_data_1, 9);
     element.AddAttribute("attribute1", "value1");
 
     std::stringstream ss;
-    XmlOStreamAsciiWriter writer(ss, 4);
-    writer.WriteElement(element, 1);
+    element.Write(ss, 1);
 
     KRATOS_EXPECT_EQ(ss.str(),
-            "   <DataArray type=\"Int32\" Name=\"data_1\" NumberOfComponents=\"3\" attribute1=\"value1\" format=\"ascii\">\n"
+            "   <DataArray Name=\"data_1\" NumberOfComponents=\"3\" attribute1=\"value1\" format=\"ascii\" type=\"Int32\">\n"
             "     0  1  2  3  4  5  0  1  2  3  4  5  6  7  8\n"
             "   </DataArray>\n");
 }
 
-KRATOS_TEST_CASE_IN_SUITE(XmlOStreamWriterWriteDataElementAsciiDouble, KratosCoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(XmlAsciiNDDataElementDouble, KratosCoreFastSuite)
 {
-    auto char_expression_1 = LiteralFlatExpression<double>::Create(2, {3});
-    std::size_t local_index = 0;
-    for (auto it = char_expression_1->begin(); it != char_expression_1->end(); ++it) {
-        *it = local_index++;
-    }
+    DenseVector<unsigned int> shape(2, 0);
+    shape[0] = 5; shape[1] = 3;
+    auto char_nd_data_1 = Kratos::make_shared<NDData<double>>(shape);
+    auto char_nd_data_1_view = char_nd_data_1->ViewData();
+    std::iota(char_nd_data_1_view.begin(), char_nd_data_1_view.begin() + 6, 0.0);
+    std::iota(char_nd_data_1_view.begin() + 6, char_nd_data_1_view.end(), 0.0);
 
-    auto char_expression_2 = LiteralFlatExpression<double>::Create(3, {3});
-    local_index = 0;
-    for (auto it = char_expression_2->begin(); it != char_expression_2->end(); ++it) {
-        *it = local_index++;
-    }
-
-    std::vector<Expression::ConstPointer> expressions = {char_expression_1, char_expression_2};
-    XmlExpressionElement element("data_1", expressions);
+    XmlAsciiNDDataElement<double> element("data_1", char_nd_data_1, 1);
     element.AddAttribute("attribute1", "value1");
 
     std::stringstream ss;
-    XmlOStreamAsciiWriter writer(ss, 1);
-    writer.WriteElement(element, 1);
+    element.Write(ss, 1);
 
     KRATOS_EXPECT_EQ(ss.str(),
-            "   <DataArray type=\"Float64\" Name=\"data_1\" NumberOfComponents=\"3\" attribute1=\"value1\" format=\"ascii\">\n"
+            "   <DataArray Name=\"data_1\" NumberOfComponents=\"3\" attribute1=\"value1\" format=\"ascii\" type=\"Float64\">\n"
             "     0.0e+00  1.0e+00  2.0e+00  3.0e+00  4.0e+00  5.0e+00  0.0e+00  1.0e+00  2.0e+00  3.0e+00  4.0e+00  5.0e+00  6.0e+00  7.0e+00  8.0e+00\n"
             "   </DataArray>\n");
 }
 
-KRATOS_TEST_CASE_IN_SUITE(XmlOStreamWriterWriteDataElementAsciiMixed, KratosCoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(XmlBase64BinaryNDDataElementChar, KratosCoreFastSuite)
 {
-    auto char_expression_1 = LiteralFlatExpression<char>::Create(2, {3});
-    std::size_t local_index = 0;
-    for (auto it = char_expression_1->begin(); it != char_expression_1->end(); ++it) {
-        *it = local_index++;
-    }
+    DenseVector<unsigned int> shape(2, 0);
+    shape[0] = 5; shape[1] = 3;
+    auto char_nd_data_1 = Kratos::make_shared<NDData<unsigned char>>(shape);
+    auto char_nd_data_1_view = char_nd_data_1->ViewData();
+    std::iota(char_nd_data_1_view.begin(), char_nd_data_1_view.begin() + 6, 0U);
+    std::iota(char_nd_data_1_view.begin() + 6, char_nd_data_1_view.end(), 0U);
 
-    auto char_expression_2 = LiteralFlatExpression<double>::Create(3, {3});
-    local_index = 0;
-    for (auto it = char_expression_2->begin(); it != char_expression_2->end(); ++it) {
-        *it = local_index++;
-    }
-
-    std::vector<Expression::ConstPointer> expressions = {char_expression_1, char_expression_2};
-    XmlExpressionElement element("data_1", expressions);
+    XmlBase64BinaryNDDataElement<unsigned char> element("data_1", char_nd_data_1);
     element.AddAttribute("attribute1", "value1");
 
     std::stringstream ss;
-    XmlOStreamAsciiWriter writer(ss, 1);
-    writer.WriteElement(element, 1);
-
-    KRATOS_EXPECT_EQ(ss.str(),
-            "   <DataArray type=\"Float64\" Name=\"data_1\" NumberOfComponents=\"3\" attribute1=\"value1\" format=\"ascii\">\n"
-            "     0.0e+00  1.0e+00  2.0e+00  3.0e+00  4.0e+00  5.0e+00  0.0e+00  1.0e+00  2.0e+00  3.0e+00  4.0e+00  5.0e+00  6.0e+00  7.0e+00  8.0e+00\n"
-            "   </DataArray>\n");
-}
-
-KRATOS_TEST_CASE_IN_SUITE(XmlOStreamWriterWriteDataElementBinaryChar, KratosCoreFastSuite)
-{
-    auto char_expression_1 = LiteralFlatExpression<char>::Create(2, {3});
-    std::size_t local_index = 0;
-    for (auto it = char_expression_1->begin(); it != char_expression_1->end(); ++it) {
-        *it = local_index++;
-    }
-
-    auto char_expression_2 = LiteralFlatExpression<char>::Create(3, {3});
-    local_index = 0;
-    for (auto it = char_expression_2->begin(); it != char_expression_2->end(); ++it) {
-        *it = local_index++;
-    }
-
-    std::vector<Expression::ConstPointer> expressions = {char_expression_1, char_expression_2};
-    XmlExpressionElement element("data_1", expressions);
-    element.AddAttribute("attribute1", "value1");
-
-    std::stringstream ss;
-    XmlOStreamBase64BinaryWriter writer(ss);
-    writer.WriteElement(element, 1);
+    element.Write(ss, 1);
 
         KRATOS_EXPECT_EQ(ss.str(),
-            "   <DataArray type=\"UInt8\" Name=\"data_1\" NumberOfComponents=\"3\" attribute1=\"value1\" format=\"binary\">\n"
-            "     DwAAAAABAgMEBQABAgMEBQYHCA==\n"
+            "   <DataArray Name=\"data_1\" NumberOfComponents=\"3\" attribute1=\"value1\" format=\"binary\" type=\"UInt8\">\n"
+            "     DwAAAAAAAAAAAQIDBAUAAQIDBAUGBwg=\n"
             "   </DataArray>\n");
 }
 
-KRATOS_TEST_CASE_IN_SUITE(XmlOStreamWriterWriteDataElementBinaryInt, KratosCoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(XmlBase64BinaryNDDataElementInt, KratosCoreFastSuite)
 {
-    auto char_expression_1 = LiteralFlatExpression<int>::Create(2, {3});
-    std::size_t local_index = 0;
-    for (auto it = char_expression_1->begin(); it != char_expression_1->end(); ++it) {
-        *it = local_index++;
-    }
+    DenseVector<unsigned int> shape(2, 0);
+    shape[0] = 5; shape[1] = 3;
+    auto char_nd_data_1 = Kratos::make_shared<NDData<int>>(shape);
+    auto char_nd_data_1_view = char_nd_data_1->ViewData();
+    std::iota(char_nd_data_1_view.begin(), char_nd_data_1_view.begin() + 6, 0U);
+    std::iota(char_nd_data_1_view.begin() + 6, char_nd_data_1_view.end(), 0U);
 
-    auto char_expression_2 = LiteralFlatExpression<int>::Create(3, {3});
-    local_index = 0;
-    for (auto it = char_expression_2->begin(); it != char_expression_2->end(); ++it) {
-        *it = local_index++;
-    }
-
-    std::vector<Expression::ConstPointer> expressions = {char_expression_1, char_expression_2};
-    XmlExpressionElement element("data_1", expressions);
+    XmlBase64BinaryNDDataElement<int> element("data_1", char_nd_data_1);
     element.AddAttribute("attribute1", "value1");
 
     std::stringstream ss;
-    XmlOStreamBase64BinaryWriter writer(ss);
-    writer.WriteElement(element, 1);
+    element.Write(ss, 1);
 
     KRATOS_EXPECT_EQ(ss.str(),
-            "   <DataArray type=\"Int32\" Name=\"data_1\" NumberOfComponents=\"3\" attribute1=\"value1\" format=\"binary\">\n"
-            "     PAAAAAAAAAABAAAAAgAAAAMAAAAEAAAABQAAAAAAAAABAAAAAgAAAAMAAAAEAAAABQAAAAYAAAAHAAAACAAAAA==\n"
+            "   <DataArray Name=\"data_1\" NumberOfComponents=\"3\" attribute1=\"value1\" format=\"binary\" type=\"Int32\">\n"
+            "     PAAAAAAAAAAAAAAAAQAAAAIAAAADAAAABAAAAAUAAAAAAAAAAQAAAAIAAAADAAAABAAAAAUAAAAGAAAABwAAAAgAAAA=\n"
             "   </DataArray>\n");
 }
 
-KRATOS_TEST_CASE_IN_SUITE(XmlOStreamWriterWriteDataElementBinaryDouble, KratosCoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(XmlBase64BinaryNDDataElementDouble, KratosCoreFastSuite)
 {
-    auto char_expression_1 = LiteralFlatExpression<double>::Create(2, {3});
-    std::size_t local_index = 0;
-    for (auto it = char_expression_1->begin(); it != char_expression_1->end(); ++it) {
-        *it = local_index++;
-    }
+    DenseVector<unsigned int> shape(2, 0);
+    shape[0] = 5; shape[1] = 3;
+    auto char_nd_data_1 = Kratos::make_shared<NDData<double>>(shape);
+    auto char_nd_data_1_view = char_nd_data_1->ViewData();
+    std::iota(char_nd_data_1_view.begin(), char_nd_data_1_view.begin() + 6, 0U);
+    std::iota(char_nd_data_1_view.begin() + 6, char_nd_data_1_view.end(), 0U);
 
-    auto char_expression_2 = LiteralFlatExpression<double>::Create(3, {3});
-    local_index = 0;
-    for (auto it = char_expression_2->begin(); it != char_expression_2->end(); ++it) {
-        *it = local_index++;
-    }
-
-    std::vector<Expression::ConstPointer> expressions = {char_expression_1, char_expression_2};
-    XmlExpressionElement element("data_1", expressions);
+    XmlBase64BinaryNDDataElement<double> element("data_1", char_nd_data_1);
     element.AddAttribute("attribute1", "value1");
 
     std::stringstream ss;
-    XmlOStreamBase64BinaryWriter writer(ss);
-    writer.WriteElement(element, 1);
+    element.Write(ss, 1);
 
     KRATOS_EXPECT_EQ(ss.str(),
-            "   <DataArray type=\"Float64\" Name=\"data_1\" NumberOfComponents=\"3\" attribute1=\"value1\" format=\"binary\">\n"
-            "     eAAAAAAAAAAAAAAAAAAAAAAA8D8AAAAAAAAAQAAAAAAAAAhAAAAAAAAAEEAAAAAAAAAUQAAAAAAAAAAAAAAAAAAA8D8AAAAAAAAAQAAAAAAAAAhAAAAAAAAAEEAAAAAAAAAUQAAAAAAAABhAAAAAAAAAHEAAAAAAAAAgQA==\n"
-            "   </DataArray>\n");
-}
-
-KRATOS_TEST_CASE_IN_SUITE(XmlOStreamWriterWriteDataElementBinaryMixed, KratosCoreFastSuite)
-{
-    auto char_expression_1 = LiteralFlatExpression<char>::Create(2, {3});
-    std::size_t local_index = 0;
-    for (auto it = char_expression_1->begin(); it != char_expression_1->end(); ++it) {
-        *it = local_index++;
-    }
-
-    auto char_expression_2 = LiteralFlatExpression<double>::Create(3, {3});
-    local_index = 0;
-    for (auto it = char_expression_2->begin(); it != char_expression_2->end(); ++it) {
-        *it = local_index++;
-    }
-
-    std::vector<Expression::ConstPointer> expressions = {char_expression_1, char_expression_2};
-    XmlExpressionElement element("data_1", expressions);
-    element.AddAttribute("attribute1", "value1");
-
-    std::stringstream ss;
-    XmlOStreamBase64BinaryWriter writer(ss);
-    writer.WriteElement(element, 1);
-
-    KRATOS_EXPECT_EQ(ss.str(),
-            "   <DataArray type=\"Float64\" Name=\"data_1\" NumberOfComponents=\"3\" attribute1=\"value1\" format=\"binary\">\n"
-            "     eAAAAAAAAAAAAAAAAAAAAAAA8D8AAAAAAAAAQAAAAAAAAAhAAAAAAAAAEEAAAAAAAAAUQAAAAAAAAAAAAAAAAAAA8D8AAAAAAAAAQAAAAAAAAAhAAAAAAAAAEEAAAAAAAAAUQAAAAAAAABhAAAAAAAAAHEAAAAAAAAAgQA==\n"
+            "   <DataArray Name=\"data_1\" NumberOfComponents=\"3\" attribute1=\"value1\" format=\"binary\" type=\"Float64\">\n"
+            "     eAAAAAAAAAAAAAAAAAAAAAAAAAAAAPA/AAAAAAAAAEAAAAAAAAAIQAAAAAAAABBAAAAAAAAAFEAAAAAAAAAAAAAAAAAAAPA/AAAAAAAAAEAAAAAAAAAIQAAAAAAAABBAAAAAAAAAFEAAAAAAAAAYQAAAAAAAABxAAAAAAAAAIEA=\n"
             "   </DataArray>\n");
 }
 

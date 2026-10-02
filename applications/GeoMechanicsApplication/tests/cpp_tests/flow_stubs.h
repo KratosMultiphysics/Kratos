@@ -10,6 +10,8 @@
 //  Main authors:    Carlos Lubbers
 //
 
+#pragma once
+
 namespace flow_stubs
 {
 void emptyProgress(double progress);

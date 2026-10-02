@@ -15,7 +15,7 @@
 #include "time_loop_executor.h"
 #include "processes/process.h"
 #include "scoped_output_file_access.h"
-#include "strategy_wrapper.hpp"
+#include "strategy_wrapper.h"
 #include "time_incrementor.h"
 
 namespace Kratos

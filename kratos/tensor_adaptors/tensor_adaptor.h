@@ -156,6 +156,11 @@ public:
     ///@{
 
     /**
+     * @brief Clones the existing tensor adaptor.
+     */
+    virtual TensorAdaptor::Pointer Clone() const;
+
+    /**
      * @brief Check if the necessary data is present in the underlying container.
      * @details This method should not change anything in the underlying Kratos data structures. It should
      *          only make sure that @ref TensorAdaptor::CollectData "CollectData" and @ref TensorAdaptor::StoreData "StoreData"

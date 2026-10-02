@@ -490,7 +490,7 @@ def AssembleTestSuites():
               TThreeDPatchNotMatchingTestContact,
               #### NIGHTLY
               TALMTaylorPatchTestContact,
-              #####TALMHertzSphereTestContact,  # FIXME: This test requieres the axisymmetric to work (memory error, correct it)
+              #####TALMHertzSphereTestContact,  # FIXME: This test requires the axisymmetric to work (memory error, correct it)
               TALMHertzSimpleSphereTestContact,
               TComponentsALMTaylorPatchTestContact,
               TALMPureFrictionalTestContact,
@@ -505,7 +505,7 @@ def AssembleTestSuites():
               TBeamContactWithFrictionTest,
               TPlateTest,  # TODO: Fix this
               ### VALIDATION
-              #####TComponentsALMHertzSphereTestContact,  # FIXME: This test requieres the axisymmetric to work (memory error, correct it)
+              #####TComponentsALMHertzSphereTestContact,  # FIXME: This test requires the axisymmetric to work (memory error, correct it)
               TALMHertzSimpleTestContact,
               TALMHertzCompleteTestContact,
               TALMBeamsTestContact,

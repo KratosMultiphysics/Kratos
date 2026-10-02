@@ -20,7 +20,7 @@
 // Project includes
 #include "includes/define.h"
 #include "includes/model_part.h"
-#include "expression/container_expression.h"
+#include "tensor_adaptors/tensor_adaptor.h"
 
 // Application includes
 
@@ -64,11 +64,7 @@ public:
 
     IndexType GetNumberOfItems() const;
 
-    void Update(
-        std::variant<
-            ContainerExpression<ModelPart::NodesContainerType>::Pointer,
-            ContainerExpression<ModelPart::ConditionsContainerType>::Pointer,
-            ContainerExpression<ModelPart::ElementsContainerType>::Pointer> pDistancesExpression);
+    void Update(const TensorAdaptor<double>& rDistancesTensorAdaptor);
 
     ///@}
 

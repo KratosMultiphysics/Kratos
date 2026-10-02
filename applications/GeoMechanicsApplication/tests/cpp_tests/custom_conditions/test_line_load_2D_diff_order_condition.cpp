@@ -10,14 +10,14 @@
 //  Main authors:    Anne van de Graaf
 //
 #include "containers/variables_list.h"
-#include "custom_conditions/general_U_Pw_diff_order_condition.hpp"
-#include "custom_utilities/registration_utilities.h"
+#include "custom_conditions/general_U_Pw_diff_order_condition.h"
+#include "custom_utilities/registration_utilities.hpp"
 #include "geo_aliases.h"
 #include "geo_mechanics_application.h"
 #include "geometries/line_2d_2.h"
 #include "geometries/line_2d_3.h"
 #include "includes/stream_serializer.h"
-#include "test_setup_utilities/element_setup_utilities.h"
+#include "test_setup_utilities/element_setup_utilities.hpp"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
 
 #include <string>
@@ -41,7 +41,8 @@ KRATOS_TEST_CASE_IN_SUITE(LineLoad2DDiffOrderCondition_CanBeSavedAndLoaded, Krat
         Geo::ConstVariableRefs{std::cref(WATER_PRESSURE), std::cref(DISPLACEMENT_X),
                                std::cref(DISPLACEMENT_Y), std::cref(DISPLACEMENT_Z)};
     auto p_condition = ElementSetupUtilities::Create2D3NLineCondition();
-    ElementSetupUtilities::AddVariablesToEntity(p_condition, solution_step_variables, degrees_of_freedom);
+    ElementSetupUtilities::AddVariablesToNodes(p_condition->GetGeometry(), solution_step_variables,
+                                               degrees_of_freedom);
 
     const auto dummy_process_info = ProcessInfo{};
     p_condition->Initialize(dummy_process_info);

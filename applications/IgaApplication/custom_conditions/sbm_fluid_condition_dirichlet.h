@@ -260,7 +260,24 @@ namespace Kratos
             double derivative, 
             double dx, IndexType k, 
             double dy, IndexType n_k);
-    
+
+        /**
+         * @brief compute the Taylor expansion for apply the Shifted Boundary Method in 3D
+         * @param derivative
+         * @param dx
+         * @param k_x
+         * @param dy
+         * @param k_y
+         * @param dz
+         * @param k_z
+         * @return double
+         */
+        double ComputeTaylorTerm3D(
+            double derivative,
+            double dx, IndexType k_x,
+            double dy, IndexType k_y,
+            double dz, IndexType k_z);
+
     private:
         ///@name Serialization
         ///@{
@@ -292,6 +309,11 @@ namespace Kratos
             Matrix& rB,
             const ShapeDerivativesType& r_DN_DX) const;
 
+        void BuildStressFromVoigtColumn(
+            Matrix& rSigma,
+            const Matrix& rDBVoigt,
+            const IndexType Column) const;
+
         // member variables
         unsigned int mDim;
         double mPenalty;
@@ -299,7 +321,6 @@ namespace Kratos
         
         // sbm variables
         Matrix mHsum = ZeroMatrix(1, this->GetGeometry().size());
-        std::vector<Matrix> mShapeFunctionDerivatives;
         array_1d<double, 3> mNormalParameterSpace;
         array_1d<double, 3> mNormalPhysicalSpace;
         Vector mDistanceVector;

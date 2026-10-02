@@ -905,7 +905,7 @@ void File::SetFileDriver(const std::string& rDriver, hid_t FaplId) const
     KRATOS_CATCH("");
 }
 
-template<File::DataTransferMode TDataTransferMode, class TDataType, class TIntegerType = unsigned int>
+template<File::DataTransferMode TDataTransferMode, class TDataType, class TIntegerType>
 void File::WriteDataSetImpl(
     const std::string& rPath,
     TDataType const * pData,

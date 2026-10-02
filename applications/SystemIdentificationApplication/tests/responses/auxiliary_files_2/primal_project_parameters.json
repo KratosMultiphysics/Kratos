@@ -69,7 +69,7 @@
                 "process_name": "AssignModulusAndDirectionToConditionsProcess",
                 "Parameters": {
                     "model_part_name": "Structure.LineLoad2D_right",
-                    "variable_name": "LINE_LOAD",
+                    "variable_name": "SURFACE_LOAD",
                     "modulus": 0.01,
                     "direction": [
                         1.0,

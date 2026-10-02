@@ -160,8 +160,12 @@ KratosFluidDynamicsApplication::KratosFluidDynamicsApplication():
     // Low Mach Navier-Stokes elements
     mLowMachNavierStokes2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<Node >(Element::GeometryType::PointsArrayType(3)))),
     mLowMachNavierStokes2D4N(0, Element::GeometryType::Pointer(new Quadrilateral2D4<Node >(Element::GeometryType::PointsArrayType(4)))),
+    mLowMachNavierStokes3D4N(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node >(Element::GeometryType::PointsArrayType(4)))),
+    mLowMachNavierStokes3D8N(0, Element::GeometryType::Pointer(new Hexahedra3D8<Node >(Element::GeometryType::PointsArrayType(8)))),
     // Low Mach Navier-Stokes conditions
     mLowMachNavierStokesWallCondition2D2N(0, Element::GeometryType::Pointer(new Line2D2<Node >(Element::GeometryType::PointsArrayType(2)))),
+    mLowMachNavierStokesWallCondition3D3N(0, Element::GeometryType::Pointer(new Triangle3D3<Node >(Element::GeometryType::PointsArrayType(3)))),
+    mLowMachNavierStokesWallCondition3D4N(0, Element::GeometryType::Pointer(new Quadrilateral3D4<Node >(Element::GeometryType::PointsArrayType(4)))),
     // Compressible Navier-Stokes symbolic elements
     mCompressibleNavierStokesExplicit2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<Node >(Element::GeometryType::PointsArrayType(3)))),
     mCompressibleNavierStokesExplicit2D4N(0, Element::GeometryType::Pointer(new Quadrilateral2D4<Node >(Element::GeometryType::PointsArrayType(4)))),
@@ -289,6 +293,8 @@ void KratosFluidDynamicsApplication::Register() {
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(DRAG_FORCE_CENTER)
     KRATOS_REGISTER_VARIABLE( SMOOTHING_COEFFICIENT )
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(INLET_NORMAL)
+    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(OUTLET_NORMAL)
+    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(WALL_NORMAL)
 
     // Two-phase flow with surface tension
     KRATOS_REGISTER_VARIABLE( SURFACE_TENSION_COEFFICIENT )
@@ -424,6 +430,8 @@ void KratosFluidDynamicsApplication::Register() {
     // Low Mach Navier-Stokes elements
     KRATOS_REGISTER_ELEMENT("LowMachNavierStokes2D3N",mLowMachNavierStokes2D3N);
     KRATOS_REGISTER_ELEMENT("LowMachNavierStokes2D4N",mLowMachNavierStokes2D4N);
+    KRATOS_REGISTER_ELEMENT("LowMachNavierStokes3D4N",mLowMachNavierStokes3D4N);
+    KRATOS_REGISTER_ELEMENT("LowMachNavierStokes3D8N",mLowMachNavierStokes3D8N);
 
     // Compressible Navier-Stokes symbolic elements
     KRATOS_REGISTER_ELEMENT("CompressibleNavierStokesExplicit2D3N",mCompressibleNavierStokesExplicit2D3N);
@@ -480,6 +488,8 @@ void KratosFluidDynamicsApplication::Register() {
 
     // Low Mach Navier-Stokes conditions
     KRATOS_REGISTER_CONDITION("LowMachNavierStokesWallCondition2D2N",mLowMachNavierStokesWallCondition2D2N);
+    KRATOS_REGISTER_CONDITION("LowMachNavierStokesWallCondition3D3N",mLowMachNavierStokesWallCondition3D3N);
+    KRATOS_REGISTER_CONDITION("LowMachNavierStokesWallCondition3D4N",mLowMachNavierStokesWallCondition3D4N);
 
     // Register adjoint conditions
     KRATOS_REGISTER_CONDITION("AdjointMonolithicWallCondition2D2N", mAdjointMonolithicWallCondition2D2N);

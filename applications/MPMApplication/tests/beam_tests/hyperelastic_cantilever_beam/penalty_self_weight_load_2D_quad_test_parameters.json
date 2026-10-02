@@ -55,7 +55,7 @@
             "Parameters"    : {
                 "model_part_name" : "Background_Grid.PENALTY_Condition_Auto1",
                 "material_points_per_condition" : 5,
-                "penalty_factor"  : 1e10,
+                "penalty_coefficient"  : 1e10,
                 "constrained"     : "fixed"
             }
         },{

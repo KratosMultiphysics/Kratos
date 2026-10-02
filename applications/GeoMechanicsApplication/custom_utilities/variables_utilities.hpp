@@ -25,20 +25,29 @@ namespace Kratos
 class KRATOS_API(GEO_MECHANICS_APPLICATION) VariablesUtilities
 {
 public:
-    template <typename OutputIt>
-    static OutputIt GetNodalValues(const Geometry<Node>& rGeometry, const Variable<double>& rNodalVariable, OutputIt FirstOut)
+    template <typename NodeContainerType, typename DataType, typename OutputIt>
+    static OutputIt GetNodalValues(const NodeContainerType& rNodes, const Variable<DataType>& rNodalVariable, OutputIt FirstOut)
     {
-        return std::transform(rGeometry.begin(), rGeometry.end(), FirstOut, [&rNodalVariable](const auto& node) {
-            return node.FastGetSolutionStepValue(rNodalVariable);
-        });
+        return std::ranges::transform(rNodes, FirstOut, [&rNodalVariable](const auto& rNode) {
+            return rNode.FastGetSolutionStepValue(rNodalVariable);
+        }).out;
     }
 
-    template <unsigned int TNumNodes>
-    static array_1d<double, TNumNodes> GetNodalValuesOf(const Variable<double>& rNodalVariable,
-                                                        const Geometry<Node>&   rGeometry)
+    template <unsigned int TNumNodes, typename NodeContainerType>
+    static array_1d<double, TNumNodes> GetNodalValues(const NodeContainerType& rNodes,
+                                                      const Variable<double>&  rNodalVariable)
     {
         auto result = array_1d<double, TNumNodes>{};
-        GetNodalValues(rGeometry, rNodalVariable, result.begin());
+        GetNodalValues(rNodes, rNodalVariable, result.begin());
+        return result;
+    }
+
+    template <typename NodeContainerType, typename DataType>
+    static std::vector<DataType> GetNodalValues(const NodeContainerType& rNodes, const Variable<DataType>& rVariable)
+    {
+        auto result = std::vector<DataType>{};
+        result.reserve(rNodes.size());
+        GetNodalValues(rNodes, rVariable, std::back_inserter(result));
         return result;
     }
 

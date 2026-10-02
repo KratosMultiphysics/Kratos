@@ -13,7 +13,7 @@
 //
 
 // Project includes
-#include "custom_conditions/surface_normal_fluid_flux_3D_diff_order_condition.hpp"
+#include "custom_conditions/surface_normal_fluid_flux_3D_diff_order_condition.h"
 #include "custom_utilities/variables_utilities.hpp"
 
 #include <numeric>
@@ -21,20 +21,17 @@
 namespace Kratos
 {
 
-// Default Constructor
 SurfaceNormalFluidFlux3DDiffOrderCondition::SurfaceNormalFluidFlux3DDiffOrderCondition()
     : SurfaceLoad3DDiffOrderCondition()
 {
 }
 
-// Constructor 1
 SurfaceNormalFluidFlux3DDiffOrderCondition::SurfaceNormalFluidFlux3DDiffOrderCondition(IndexType NewId,
                                                                                        GeometryType::Pointer pGeometry)
     : SurfaceLoad3DDiffOrderCondition(NewId, std::move(pGeometry))
 {
 }
 
-// Constructor 2
 SurfaceNormalFluidFlux3DDiffOrderCondition::SurfaceNormalFluidFlux3DDiffOrderCondition(
     IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
     : SurfaceLoad3DDiffOrderCondition(NewId, std::move(pGeometry), std::move(pProperties))
@@ -59,9 +56,8 @@ void SurfaceNormalFluidFlux3DDiffOrderCondition::CalculateConditionVector(Condit
                                                                           unsigned int PointNumber)
 {
     KRATOS_TRY
-    Vector nodal_normal_fluid_flux_vector(mpPressureGeometry->PointsNumber());
-    VariablesUtilities::GetNodalValues(*mpPressureGeometry, NORMAL_FLUID_FLUX,
-                                       nodal_normal_fluid_flux_vector.begin());
+    const auto nodal_normal_fluid_flux_vector =
+        VariablesUtilities::GetNodalValues(*mpPressureGeometry, NORMAL_FLUID_FLUX);
     rVariables.ConditionVector =
         ScalarVector{1, std::inner_product(rVariables.Np.cbegin(), rVariables.Np.cend(),
                                            nodal_normal_fluid_flux_vector.cbegin(), 0.0)};
@@ -77,6 +73,14 @@ void SurfaceNormalFluidFlux3DDiffOrderCondition::CalculateAndAddConditionForce(V
             rVariables.Np[node] * rVariables.ConditionVector[0] * rVariables.IntegrationCoefficient;
     }
 }
+
+void SurfaceNormalFluidFlux3DDiffOrderCondition::save(Serializer& rSerializer) const
+{
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, SurfaceLoad3DDiffOrderCondition)
+}
+
+void SurfaceNormalFluidFlux3DDiffOrderCondition::load(Serializer& rSerializer){
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, SurfaceLoad3DDiffOrderCondition)}
 
 std::string SurfaceNormalFluidFlux3DDiffOrderCondition::Info() const
 {

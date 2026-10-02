@@ -14,7 +14,7 @@
 #include "custom_constitutive/plane_strain.h"
 #include "geo_mechanics_application_variables.h"
 #include "includes/cfd_variables.h"
-#include "test_setup_utilities/element_setup_utilities.h"
+#include "test_setup_utilities/element_setup_utilities.hpp"
 
 #include <benchmark/benchmark.h>
 
@@ -23,7 +23,7 @@ namespace
 
 using namespace Kratos;
 
-std::shared_ptr<Properties> CreateProperties()
+std::shared_ptr<Properties> CreatePropertiesForUPwDiffOrderElementBenchmark()
 {
     const auto p_properties = std::make_shared<Properties>();
     p_properties->SetValue(CONSTITUTIVE_LAW, std::make_shared<GeoIncrementalLinearElasticLaw>(
@@ -42,7 +42,7 @@ std::shared_ptr<Properties> CreateProperties()
     p_properties->SetValue(BIOT_COEFFICIENT, 1.000000e+00);
     p_properties->SetValue(RETENTION_LAW, "SaturatedLaw");
     p_properties->SetValue(SATURATED_SATURATION, 1.000000e+00);
-    p_properties->SetValue(IGNORE_UNDRAINED, false);
+    p_properties->SetValue(GEO_DRAINAGE_TYPE, "FULLY_COUPLED");
 
     return p_properties;
 }
@@ -82,7 +82,7 @@ auto CreateSmallStrainUPwDiffOrderElementWithUPwDofs(const Properties::Pointer& 
     const auto degrees_of_freedom =
         Geo::ConstVariableRefs{std::cref(WATER_PRESSURE), std::cref(DISPLACEMENT_X),
                                std::cref(DISPLACEMENT_Y), std::cref(DISPLACEMENT_Z)};
-    Testing::ElementSetupUtilities::AddVariablesToEntity(result, solution_step_variables, degrees_of_freedom);
+    Testing::ElementSetupUtilities::AddVariablesToNodes(nodes, solution_step_variables, degrees_of_freedom);
 
     for (auto& r_node : nodes) {
         r_node.SetBufferSize(2);
@@ -97,7 +97,7 @@ namespace Kratos
 
 void benchmarkUPwDiffOrderLocalSystemCalculation(benchmark::State& rState)
 {
-    const auto p_properties = CreateProperties();
+    const auto p_properties = CreatePropertiesForUPwDiffOrderElementBenchmark();
     auto       p_element    = CreateSmallStrainUPwDiffOrderElementWithUPwDofs(p_properties);
 
     SetSolutionStepValuesForGeneralCheck(p_element);
@@ -109,12 +109,14 @@ void benchmarkUPwDiffOrderLocalSystemCalculation(benchmark::State& rState)
         auto left_hand_side  = Matrix{};
         auto right_hand_side = Vector{};
         p_element->CalculateLocalSystem(left_hand_side, right_hand_side, dummy_process_info);
+        benchmark::DoNotOptimize(left_hand_side);
+        benchmark::DoNotOptimize(right_hand_side);
     }
 }
 
 void benchmarkUPwDiffOrderRHSCalculation(benchmark::State& rState)
 {
-    const auto p_properties = CreateProperties();
+    const auto p_properties = CreatePropertiesForUPwDiffOrderElementBenchmark();
     auto       p_element    = CreateSmallStrainUPwDiffOrderElementWithUPwDofs(p_properties);
 
     SetSolutionStepValuesForGeneralCheck(p_element);
@@ -125,12 +127,13 @@ void benchmarkUPwDiffOrderRHSCalculation(benchmark::State& rState)
     for (auto _ : rState) {
         auto right_hand_side = Vector{};
         p_element->CalculateRightHandSide(right_hand_side, dummy_process_info);
+        benchmark::DoNotOptimize(right_hand_side);
     }
 }
 
 void benchmarkUPwDiffOrderLHSCalculation(benchmark::State& rState)
 {
-    const auto p_properties = CreateProperties();
+    const auto p_properties = CreatePropertiesForUPwDiffOrderElementBenchmark();
     auto       p_element    = CreateSmallStrainUPwDiffOrderElementWithUPwDofs(p_properties);
 
     SetSolutionStepValuesForGeneralCheck(p_element);
@@ -141,6 +144,7 @@ void benchmarkUPwDiffOrderLHSCalculation(benchmark::State& rState)
     for (auto _ : rState) {
         auto left_hand_side = Matrix{};
         p_element->CalculateLeftHandSide(left_hand_side, dummy_process_info);
+        benchmark::DoNotOptimize(left_hand_side);
     }
 }
 

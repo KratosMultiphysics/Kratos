@@ -66,6 +66,8 @@ class RVEAnalysis(StructuralMechanicsAnalysis):
 
         self.ChangeMaterialProperties()  # this is normally empty
 
+        self._GetSolver().Predict()
+
         self._GetSolver().InitializeSolutionStep()
 
         KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "STEP: ", self._GetSolver().GetComputingModelPart().ProcessInfo[KratosMultiphysics.STEP])
@@ -285,8 +287,6 @@ class RVEAnalysis(StructuralMechanicsAnalysis):
             strain_vector[5] = 2.0*strain[0, 2]
 
         self.__CustomInitializeSolutionStep(strain, boundary_mp, averaging_mp)
-
-        self._GetSolver().Predict()
 
         self._GetSolver().SolveSolutionStep()
         process_info = averaging_mp.ProcessInfo

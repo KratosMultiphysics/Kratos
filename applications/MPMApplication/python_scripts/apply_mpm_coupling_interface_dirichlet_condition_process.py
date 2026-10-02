@@ -16,18 +16,24 @@ class ApplyMPMCouplingInterfaceDirichletConditionProcess(ApplyMPMParticleDirichl
 
         default_parameters = KratosMultiphysics.Parameters( """
             {
-                "model_part_name"           : "PLEASE_SPECIFY_MODEL_PART_NAME",
-                "material_points_per_condition"   : 0,
-                "imposition_type"           : "penalty",
-                "penalty_factor"            : 0,
-                "constrained"               : "fixed",
-                "option"                    : "",
-                "is_equal_distributed"      : false
+                "model_part_name"               : "PLEASE_SPECIFY_MODEL_PART_NAME",
+                "material_points_per_condition" : 0,
+                "imposition_type"               : "penalty",
+                "penalty_coefficient"           : 0,
+                "constrained"                   : "fixed",
+                "option"                        : "",
+                "is_equal_distributed"          : false
             }  """ )
 
         context_string = type(self).__name__
         old_name = 'particles_per_condition'
         new_name = 'material_points_per_condition'
+        if DeprecationManager.HasDeprecatedVariable(context_string, settings, old_name, new_name):
+            DeprecationManager.ReplaceDeprecatedVariableName(settings, old_name, new_name)
+
+        context_string = type(self).__name__
+        old_name = 'penalty_factor'
+        new_name = 'penalty_coefficient'
         if DeprecationManager.HasDeprecatedVariable(context_string, settings, old_name, new_name):
             DeprecationManager.ReplaceDeprecatedVariableName(settings, old_name, new_name)
 

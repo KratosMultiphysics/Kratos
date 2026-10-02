@@ -23,57 +23,57 @@ model_part_str = '''-Main- model part
     Number of sub model parts : 2
     Current solution step index : 0
 
-    Number of Geometries  : 9
     Mesh 0 :
         Number of Nodes       : 6
         Number of Properties  : 1
         Number of Elements    : 4
         Number of Conditions  : 5
+        Number of Geometries  : 9
         Number of Constraints : 2
 
     -Inlets- model part
         Number of tables : 1
         Number of sub model parts : 2
 
-        Number of Geometries  : 0
         Mesh 0 :
             Number of Nodes       : 3
             Number of Properties  : 0
             Number of Elements    : 1
             Number of Conditions  : 3
+            Number of Geometries  : 0
             Number of Constraints : 0
         -Inlet1- model part
             Number of tables : 0
             Number of sub model parts : 0
 
-            Number of Geometries  : 0
             Mesh 0 :
                 Number of Nodes       : 2
                 Number of Properties  : 0
                 Number of Elements    : 0
                 Number of Conditions  : 2
+                Number of Geometries  : 0
                 Number of Constraints : 0
         -Inlet2- model part
             Number of tables : 0
             Number of sub model parts : 0
 
-            Number of Geometries  : 0
             Mesh 0 :
                 Number of Nodes       : 0
                 Number of Properties  : 0
                 Number of Elements    : 0
                 Number of Conditions  : 2
+                Number of Geometries  : 0
                 Number of Constraints : 0
     -Outlet- model part
         Number of tables : 0
         Number of sub model parts : 0
 
-        Number of Geometries  : 0
         Mesh 0 :
             Number of Nodes       : 0
             Number of Properties  : 1
             Number of Elements    : 0
             Number of Conditions  : 1
+            Number of Geometries  : 0
             Number of Constraints : 0
 '''
 

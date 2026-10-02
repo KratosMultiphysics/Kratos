@@ -28,20 +28,20 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout static page content
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           repository: KratosMultiphysics/Documentation
           ref: master
           path: statik_content
       - name: Checkout current branch
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           path: main
       - name: Configure page content
         shell: bash
         run: cp -r statik_content/Page_files/* main/docs/
       - name: Setup Pages
-        uses: actions/configure-pages@v5
+        uses: actions/configure-pages@v6
       - name: Create navigation menus
         shell: bash
         run: cd main/docs && python3 process_pages.py -t web
@@ -51,12 +51,14 @@ jobs:
           source: ./main/docs
           destination: ./main/docs/_site
       - name: Upload artifact
-        uses: actions/upload-pages-artifact@v4
+        uses: actions/upload-pages-artifact@v5
         with:
           path: ./main/docs/_site
 
   # Deployment job
   deploy:
+    # GITHUB_TOKEN is always read-only for pull_request events from a fork, no matter what `permissions:` declares, so `actions/deploy-pages` (which needs id-token: write) can never succeed there. Skip the deploy job in that case instead of failing the run.
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
@@ -65,4 +67,4 @@ jobs:
     steps:
       - name: Deploy to GitHub Pages
         id: deployment
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@v5

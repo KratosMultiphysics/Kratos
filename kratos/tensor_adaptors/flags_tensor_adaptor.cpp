@@ -83,6 +83,11 @@ void FlagsTensorAdaptor::Check() const
     KRATOS_CATCH("");
 }
 
+TensorAdaptor<int>::Pointer FlagsTensorAdaptor::Clone() const
+{
+    return Kratos::make_shared<FlagsTensorAdaptor>(*this);
+}
+
 void FlagsTensorAdaptor::CollectData()
 {
     std::visit([this](auto pContainer) {

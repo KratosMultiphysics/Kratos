@@ -1,5 +1,4 @@
 import KratosMultiphysics as Kratos
-import KratosMultiphysics.OptimizationApplication as KratosOA
 from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem import OptimizationProblem
 from KratosMultiphysics.OptimizationApplication.responses.response_routine import ResponseRoutine
 from KratosMultiphysics.OptimizationApplication.controls.master_control import MasterControl
@@ -92,7 +91,7 @@ class StandardizedConstraint(ResponseRoutine):
             else:
                 raise RuntimeError(f"Response value for {self.GetResponseName()} is not calculated yet.")
 
-    def CalculateStandardizedValue(self, control_field: KratosOA.CollectiveExpression, save_value: bool = True) -> float:
+    def CalculateStandardizedValue(self, control_field: Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor, save_value: bool = True) -> float:
         with TimeLogger(f"StandardizedConstraint::Calculate {self.GetResponseName()} value", None, "Finished"):
             response_value = self.CalculateValue(control_field)
             standardized_response_value = response_value * self.__scaling
@@ -115,29 +114,30 @@ class StandardizedConstraint(ResponseRoutine):
     def IsActive(self):
         return self.GetStandardizedValue() > 0.0
 
-    def CalculateStandardizedGradient(self, save_field: bool = True) -> KratosOA.CollectiveExpression:
+    def CalculateStandardizedGradient(self, save_field: bool = True) -> Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor:
 
         with TimeLogger(f"StandardizedConstraint::Calculate {self.GetResponseName()} gradients", None, "Finished"):
-            gradient_collective_expression = self.CalculateGradient()
+            gradient_cta = self.CalculateGradient()
             if save_field:
                 # save the physical gradients for post processing in unbuffered data container.
                 for physical_var, physical_gradient in self.GetRequiredPhysicalGradients().items():
-                    for physical_gradient_expression in physical_gradient.GetContainerExpressions():
-                        variable_name = f"d{self.GetResponseName()}_d{physical_var.Name()}_{physical_gradient_expression.GetModelPart().Name}"
-                        if self.__unbuffered_data.HasValue(variable_name): del self.__unbuffered_data[variable_name]
-                        # cloning is a cheap operation, it only moves underlying pointers
-                        # does not create additional memory.
-                        self.__unbuffered_data[variable_name] = physical_gradient_expression.Clone()
-
-                # save the filtered gradients for post processing in unbuffered data container.
-                for gradient_container_expression, control in zip(gradient_collective_expression.GetContainerExpressions(), self.GetMasterControl().GetListOfControls()):
-                    variable_name = f"d{self.GetResponseName()}_d{control.GetName()}_{physical_gradient_expression.GetModelPart().Name}"
+                    variable_name = f"d{self.GetResponseName()}_d{physical_var.Name()}"
                     if self.__unbuffered_data.HasValue(variable_name): del self.__unbuffered_data[variable_name]
                     # cloning is a cheap operation, it only moves underlying pointers
                     # does not create additional memory.
-                    self.__unbuffered_data[variable_name] = gradient_container_expression.Clone()
+                    self.__unbuffered_data[variable_name] = Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor(physical_gradient)
 
-        return gradient_collective_expression * self.__scaling
+                # save the filtered gradients for post processing in unbuffered data container.
+                for gradient_ta, control in zip(gradient_cta.GetTensorAdaptors(), self.GetMasterControl().GetListOfControls()):
+                    variable_name = f"d{self.GetResponseName()}_d{control.GetName()}"
+                    if self.__unbuffered_data.HasValue(variable_name): del self.__unbuffered_data[variable_name]
+                    # cloning is a cheap operation, it only moves underlying pointers
+                    # does not create additional memory.
+                    self.__unbuffered_data[variable_name] = Kratos.TensorAdaptors.DoubleTensorAdaptor(gradient_ta)
+
+        gradient_cta.data[:] *= self.__scaling
+        Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor(gradient_cta, perform_store_data_recursively=False, copy=False).StoreData()
+        return gradient_cta
 
     def GetValue(self, step_index: int = 0) -> float:
         return self.__buffered_data.GetValue("value", step_index)

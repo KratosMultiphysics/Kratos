@@ -26,7 +26,7 @@
 
 // Project includes
 #include "includes/variables.h"
-#include "includes/ublas_interface.h"
+#include "includes/default_interface.h"
 #include "includes/kratos_application.h"
 
 //elements

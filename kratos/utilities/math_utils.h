@@ -25,7 +25,7 @@
 
 // Project includes
 #include "input_output/logger.h"
-#include "includes/ublas_interface.h"
+#include "includes/default_interface.h"
 #include "includes/global_variables.h"
 #include "containers/array_1d.h"
 
@@ -94,7 +94,7 @@ public:
     using IndexType = std::size_t;
 
     /// The indirect array type
-    using IndirectArrayType = boost::numeric::ublas::indirect_array<DenseVector<std::size_t>>;
+    using IndirectArrayType = indirect_array<DenseVector<std::size_t>>;
 
     /// The machine precision
     static constexpr double ZeroTolerance = std::numeric_limits<double>::epsilon();
@@ -623,7 +623,6 @@ public:
                 return Det4(rA);
             default:
                 double det = 1.0;
-                using namespace boost::numeric::ublas;
                 typedef permutation_matrix<SizeType> pmatrix;
                 Matrix Aux(rA);
                 pmatrix pm(Aux.size1());
@@ -705,7 +704,7 @@ public:
         )
     {
         TDataType temp {};
-        for (std::size_t i=0; i<rFirstVector.size(); ++i){
+        for (std::size_t i=0; i<static_cast<std::size_t>(rFirstVector.size()); ++i){
             temp += rFirstVector[i] * rSecondVector[i];
         }
         return temp;
@@ -783,9 +782,9 @@ public:
      * @return The resulting norm
      */
     template<class TVectorType>
-    static inline double Norm3(const TVectorType& a)
+    static inline double Norm3(const TVectorType& rA)
     {
-        double temp = std::pow(a[0],2) + std::pow(a[1],2) + std::pow(a[2],2);
+        double temp = rA[0] * rA[0] + rA[1] * rA[1] + rA[2] * rA[2];
         temp = std::sqrt(temp);
         return temp;
     }
@@ -984,13 +983,13 @@ public:
     static inline void OrthonormalBasisFrisvad(const T1& c,T2& a,T3& b ){
         KRATOS_DEBUG_ERROR_IF(norm_2(c) < (1.0 - 1.0e-3) || norm_2(c) > (1.0 + 1.0e-3)) << "Input should be a normal vector" << std::endl;
         if ((c[2] + 1.0) > 1.0e4 * ZeroTolerance) {
-            a[0] = 1.0 - std::pow(c[0], 2)/(1.0 + c[2]);
+            a[0] = 1.0 - (c[0] * c[0])/(1.0 + c[2]);
             a[1] = - (c[0] * c[1])/(1.0 + c[2]);
             a[2] = - c[0];
             const double norm_a = norm_2(a);
             a /= norm_a;
             b[0] = - (c[0] * c[1])/(1.0 + c[2]);
-            b[1] = 1.0 - std::pow(c[1], 2)/(1.0 + c[2]);
+            b[1] = 1.0 - (c[1] * c[1])/(1.0 + c[2]);
             b[2] = -c[1];
             const double norm_b = norm_2(b);
             b /= norm_b;

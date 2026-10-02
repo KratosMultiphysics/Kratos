@@ -13,15 +13,16 @@
 #pragma once
 
 #include "includes/define.h"
-#include "includes/kratos_parameters.h"
-#include "includes/model_part.h"
 #include "processes/process.h"
-#include "utilities/function_parser_utility.h"
+
+#include <string>
 
 #include "../../StructuralMechanicsApplication/custom_processes/set_moving_load_process.h"
 
 namespace Kratos
 {
+class ModelPart;
+class Parameters;
 
 /**
  * @class SetMultipleMovingLoadsProcess
@@ -48,7 +49,7 @@ public:
     ///@name Life Cycle
     ///@{
 
-    SetMultipleMovingLoadsProcess(ModelPart& rModelPart, const Parameters& rProcessSettings);
+    SetMultipleMovingLoadsProcess(ModelPart& rModelPart, Parameters ProcessSettings);
 
     SetMultipleMovingLoadsProcess(const SetMultipleMovingLoadsProcess&)            = delete;
     SetMultipleMovingLoadsProcess& operator=(const SetMultipleMovingLoadsProcess&) = delete;

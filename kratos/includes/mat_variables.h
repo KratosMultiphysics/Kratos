@@ -21,7 +21,7 @@
 #include "includes/define.h"
 #include "containers/variable.h"
 #include "includes/kratos_components.h"
-#include "includes/ublas_interface.h"
+#include "includes/default_interface.h"
 #include "containers/array_1d.h"
 
 #undef  KRATOS_EXPORT_MACRO
@@ -50,7 +50,6 @@ namespace Kratos
     KRATOS_DEFINE_VARIABLE( double, DAMAGE_VARIABLE )
     KRATOS_DEFINE_VARIABLE( double, DAMAGE_THRESHOLD )
     KRATOS_DEFINE_VARIABLE( double, STRENGTH_RATIO )
-    KRATOS_DEFINE_VARIABLE( double, FRACTURE_ENERGY )
     KRATOS_DEFINE_VARIABLE( double, RESIDUAL_STRENGTH )
 
     // Plasticity

@@ -73,6 +73,7 @@ class TestPressureDetectionAdjointResponseFunction(kratos_unittest.TestCase):
 
         for i, sensor in enumerate(cls.sensors):
             sensor.GetNode().SetValue(KratosSI.SENSOR_MEASURED_VALUE, i * 15 - 10)
+            sensor.GetNode().SetValue(KratosSI.SENSOR_NORMALIZATION_FACTOR, 1.0)
             cls.adjoint_response_function.AddSensor(sensor)
 
         cls.adjoint_response_function.Initialize()
@@ -148,7 +149,7 @@ class TestPressureDetectionResponse(kratos_unittest.TestCase):
 
             response.CalculateGradient(var)
 
-            gradients = var[Kratos.PRESSURE].Evaluate()
+            gradients = var[Kratos.PRESSURE].data
 
             delta = 1e-5
             for index, condition in enumerate(model_part.Conditions):
@@ -183,7 +184,7 @@ class TestPressureDetectionResponseStrainSensor(kratos_unittest.TestCase):
 
             response.CalculateGradient(var)
 
-            gradients = var[Kratos.PRESSURE].Evaluate()
+            gradients = var[Kratos.PRESSURE].data
 
             delta = 1e-5
             for index, condition in enumerate(model_part.Conditions):

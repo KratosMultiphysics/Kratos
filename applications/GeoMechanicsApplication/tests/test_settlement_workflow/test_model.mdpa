@@ -3148,8 +3148,6 @@ End Conditions
 
 
 Begin SubModelPart Clay_after_excavation
-  Begin SubModelPartTables
-  End SubModelPartTables
   Begin SubModelPartNodes
     1
     2
@@ -6163,13 +6161,9 @@ Begin SubModelPart Clay_after_excavation
     971
     972
   End SubModelPartElements
-  Begin SubModelPartConditions
-  End SubModelPartConditions
 End SubModelPart
 
 Begin SubModelPart Excavated_clay
-  Begin SubModelPartTables
-  End SubModelPartTables
   Begin SubModelPartNodes
     6
     9
@@ -6257,13 +6251,9 @@ Begin SubModelPart Excavated_clay
     993
     994
   End SubModelPartElements
-  Begin SubModelPartConditions
-  End SubModelPartConditions
 End SubModelPart
 
 Begin SubModelPart Side_sliders
-  Begin SubModelPartTables
-  End SubModelPartTables
   Begin SubModelPartNodes
     1
     2
@@ -6328,15 +6318,9 @@ Begin SubModelPart Side_sliders
     2078
     2079
   End SubModelPartNodes
-  Begin SubModelPartElements
-  End SubModelPartElements
-  Begin SubModelPartConditions
-  End SubModelPartConditions
 End SubModelPart
 
 Begin SubModelPart Bottom_fixed
-  Begin SubModelPartTables
-  End SubModelPartTables
   Begin SubModelPartNodes
     795
     798
@@ -6400,15 +6384,9 @@ Begin SubModelPart Bottom_fixed
     2076
     2079
   End SubModelPartNodes
-  Begin SubModelPartElements
-  End SubModelPartElements
-  Begin SubModelPartConditions
-  End SubModelPartConditions
 End SubModelPart
 
 Begin SubModelPart Head_line
-  Begin SubModelPartTables
-  End SubModelPartTables
   Begin SubModelPartNodes
     1
     2
@@ -9486,13 +9464,9 @@ Begin SubModelPart Head_line
     993
     994
   End SubModelPartElements
-  Begin SubModelPartConditions
-  End SubModelPartConditions
 End SubModelPart
 
 Begin SubModelPart Bottom_pressure
-  Begin SubModelPartTables
-  End SubModelPartTables
   Begin SubModelPartNodes
     795
     798
@@ -9556,104 +9530,6 @@ Begin SubModelPart Bottom_pressure
     2076
     2079
   End SubModelPartNodes
-  Begin SubModelPartElements
-  End SubModelPartElements
-  Begin SubModelPartConditions
-  End SubModelPartConditions
-End SubModelPart
-
-Begin SubModelPart Excavate_sloot
-  Begin SubModelPartTables
-  End SubModelPartTables
-  Begin SubModelPartNodes
-    6
-    9
-    11
-    15
-    16
-    18
-    23
-    24
-    26
-    32
-    33
-    35
-    41
-    42
-    43
-    46
-    51
-    52
-    53
-    55
-    58
-    61
-    63
-    65
-    68
-    70
-    73
-    74
-    76
-    78
-    82
-    84
-    88
-    89
-    90
-    93
-    94
-    100
-    102
-    105
-    107
-    108
-    115
-    117
-    119
-    124
-    128
-    130
-    132
-    139
-    142
-    149
-    153
-    160
-    166
-    169
-    176
-    183
-    194
-    202
-    222
-  End SubModelPartNodes
-  Begin SubModelPartElements
-    973
-    974
-    975
-    976
-    977
-    978
-    979
-    980
-    981
-    982
-    983
-    984
-    985
-    986
-    987
-    988
-    989
-    990
-    991
-    992
-    993
-    994
-  End SubModelPartElements
-  Begin SubModelPartConditions
-  End SubModelPartConditions
 End SubModelPart
 
 Begin SubModelPart First_line_load
@@ -9683,8 +9559,6 @@ Begin SubModelPart First_line_load
     1191
     1229
   End SubModelPartNodes
-  Begin SubModelPartElements
-  End SubModelPartElements
   Begin SubModelPartConditions
     1
     2
@@ -9726,8 +9600,6 @@ Begin SubModelPart Second_line_load
     1191
     1229
   End SubModelPartNodes
-  Begin SubModelPartElements
-  End SubModelPartElements
   Begin SubModelPartConditions
     11
     12
@@ -9743,8 +9615,6 @@ Begin SubModelPart Second_line_load
 End SubModelPart
 
 Begin SubModelPart Hydrostatic_load_in_sloot
-  Begin SubModelPartTables
-  End SubModelPartTables
   Begin SubModelPartNodes
     6
     9
@@ -9766,8 +9636,6 @@ Begin SubModelPart Hydrostatic_load_in_sloot
     202
     222
   End SubModelPartNodes
-  Begin SubModelPartElements
-  End SubModelPartElements
   Begin SubModelPartConditions
     21
     22
@@ -9782,8 +9650,6 @@ Begin SubModelPart Hydrostatic_load_in_sloot
 End SubModelPart
 
 Begin SubModelPart Gravitational_load
-  Begin SubModelPartTables
-  End SubModelPartTables
   Begin SubModelPartNodes
     1
     2
@@ -12861,6 +12727,4 @@ Begin SubModelPart Gravitational_load
     993
     994
   End SubModelPartElements
-  Begin SubModelPartConditions
-  End SubModelPartConditions
 End SubModelPart

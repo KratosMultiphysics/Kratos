@@ -16,6 +16,7 @@
 
 namespace Kratos
 {
+using namespace std::string_literals;
 
 ApplyPhreaticMultiLinePressureTableProcess::ApplyPhreaticMultiLinePressureTableProcess(ModelPart& model_part,
                                                                                        Parameters rParameters)
@@ -61,19 +62,10 @@ void ApplyPhreaticMultiLinePressureTableProcess::ExecuteInitializeSolutionStep()
 
     block_for_each(mrModelPart.Nodes(), [&var, &deltaH, this](Node& rNode) {
         const double pressure = CalculatePressure(rNode, deltaH);
-        if (IsSeepage()) {
-            if (pressure < PORE_PRESSURE_SIGN_FACTOR * PressureTensionCutOff()) {
-                rNode.FastGetSolutionStepValue(var) = pressure;
-                if (IsFixed()) rNode.Fix(var);
-            } else {
-                if (IsFixedProvided()) rNode.Free(var);
-            }
-        } else {
-            if (IsFixed()) rNode.Fix(var);
-            else if (IsFixedProvided()) rNode.Free(var);
-            rNode.FastGetSolutionStepValue(var) =
-                std::min(pressure, PORE_PRESSURE_SIGN_FACTOR * PressureTensionCutOff());
-        }
+        if (IsFixed()) rNode.Fix(var);
+        else if (IsFixedProvided()) rNode.Free(var);
+        rNode.FastGetSolutionStepValue(var) =
+            std::min(pressure, PORE_PRESSURE_SIGN_FACTOR * PressureTensionCutOff());
     });
 
     KRATOS_CATCH("")
@@ -81,7 +73,7 @@ void ApplyPhreaticMultiLinePressureTableProcess::ExecuteInitializeSolutionStep()
 
 std::string ApplyPhreaticMultiLinePressureTableProcess::Info() const
 {
-    return "ApplyPhreaticMultiLinePressureTableProcess";
+    return "ApplyPhreaticMultiLinePressureTableProcess"s;
 }
 
 void ApplyPhreaticMultiLinePressureTableProcess::PrintInfo(std::ostream& rOStream) const

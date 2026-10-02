@@ -227,8 +227,8 @@ namespace Kratos {
         virtual void CalculateConditionsRHSAndAdd();
         void ClearFEMForces();
         void CalculateNodalPressuresAndStressesOnWalls();
-        void SetFlagAndVariableToNodes(const Kratos::Flags& r_flag_name, ComponentOf3ComponentsVariableType& r_variable_to_set, const double value, NodesArrayType& r_nodes_array);
-        void SetVariableToNodes(ComponentOf3ComponentsVariableType& r_variable_to_set, const double value, NodesArrayType& r_nodes_array);
+        void SetFlagAndVariableToNodes(const Kratos::Flags& r_flag_name, const ComponentOf3ComponentsVariableType& r_variable_to_set, const double value, NodesArrayType& r_nodes_array);
+        void SetVariableToNodes(const ComponentOf3ComponentsVariableType& r_variable_to_set, const double value, NodesArrayType& r_nodes_array);
         void ResetPrescribedMotionFlagsRespectingImposedDofs();
         void ApplyPrescribedBoundaryConditions();
         void ApplyInitialConditions();

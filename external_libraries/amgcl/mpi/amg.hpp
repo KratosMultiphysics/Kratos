@@ -196,6 +196,16 @@ class amg {
             rebuild(std::make_shared<matrix>(comm, M, backend::rows(M)), bprm);
         }
 
+        template <class OtherBackend>
+        typename std::enable_if<!std::is_same<Backend, OtherBackend>::value, void>::type
+        rebuild(
+                std::shared_ptr<distributed_matrix<OtherBackend>> A,
+                const backend_params &bprm = backend_params()
+        )
+        {
+            return rebuild(std::make_shared<matrix>(*A), bprm);
+        }
+
         void rebuild(
                 std::shared_ptr<matrix> A,
                 const backend_params &bprm = backend_params()
@@ -210,10 +220,12 @@ class amg {
                     );
 
             AMGCL_TIC("rebuild");
+            this->A = A;
             Coarsening C(prm.coarsening);
             for(auto &level : levels) {
                 A = level.rebuild(A, C, prm, bprm);
             }
+            this->A->move_to_backend(bprm);
             AMGCL_TOC("rebuild");
         }
 
@@ -410,7 +422,7 @@ class amg {
             }
 
             AMGCL_TIC("move to backend");
-            this->A->move_to_backend(bprm);
+            this->A->move_to_backend(bprm, prm.allow_rebuild);
             AMGCL_TOC("move to backend");
         }
 

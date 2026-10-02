@@ -108,10 +108,13 @@ def MoveKratosModuleStubFilesToPythonModule(stub_file_path: Path, list_of_python
         if not Path(stub_source_file_name).is_file():
             # it is not a single stub file, it has multiple nested packages.
             # hence it is a directory
-            stub_source_file_name = stub_source_file_name.parent / stub_source_file_name.name[:-4]
-            stub_dest_file_name = kratos_module.GetPythonPath().parent
-            shutil.copytree(stub_source_file_name, stub_dest_file_name, dirs_exist_ok=True)
-            shutil.rmtree(stub_source_file_name)
+            try:
+                stub_source_file_name = stub_source_file_name.parent / stub_source_file_name.name[:-4]
+                stub_dest_file_name = kratos_module.GetPythonPath().parent
+                shutil.copytree(stub_source_file_name, stub_dest_file_name, dirs_exist_ok=True)
+                shutil.rmtree(stub_source_file_name)
+            except Exception as e:
+                print("Error at MoveKratosModuleStubFilesToPythonModule:", e)
         else:
             # it is a single stub file.
             if kratos_module.GetPythonPath().name == "__init__.py":
@@ -123,7 +126,7 @@ def MoveKratosModuleStubFilesToPythonModule(stub_file_path: Path, list_of_python
 def SetPythonModulesForCppModules(list_of_python_cpp_libs: 'list[KratosPythonCppLib]', kratos_python_module_path: Path) -> None:
     kratos_module_dependent_module_names_dict: 'dict[KratosPythonCppLib, list[str]]' = {}
     for file_path in kratos_python_module_path.rglob("*.py"):
-        with open(file_path, "r") as file_input:
+        with open(file_path, "r", errors="replace") as file_input:
             lines = file_input.read()
 
             for kratos_python_cpp_lib in list_of_python_cpp_libs:
@@ -212,6 +215,7 @@ def Main():
     for k in list_of_cpp_libs:
         args.extend(["-p", k.GetCppLibModule()])
     args.append("--include-docstrings")
+    # args.append("--verbose")
     options = parse_options(args)
     generate_stubs(options)
 

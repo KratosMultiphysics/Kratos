@@ -85,7 +85,7 @@ class SensorGeneratorAnalysis:
                     loc = Kratos.Point(x_coord, y_coord, z_coord)
                     shape_funcs = Kratos.Vector()
                     elem_id = point_locator.FindElement(loc, shape_funcs, Kratos.Configuration.Initial, 1e-8)
-                    if elem_id != -1 and KratosSI.SensorGeneratorUtils.IsPointInGeometry(loc, self.model_part.GetElement(elem_id).GetGeometry()):
+                    if elem_id != -1 and KratosSI.SensorUtils.IsPointInGeometry(loc, self.model_part.GetElement(elem_id).GetGeometry()):
                         current_params = sensor_params.Clone()
                         current_params["location"].SetVector(loc)
                         json_dict = json.loads(current_params.WriteJsonString().replace("<ENTITY_ID>", str(index)))

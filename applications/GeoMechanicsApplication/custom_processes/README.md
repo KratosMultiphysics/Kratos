@@ -9,6 +9,9 @@ Documented processes:
 - [$K_0$ procedure process](#K_0-procedure-process)
 - [ApplyInitialUniformStress](#apply-initial-uniform-stress)
 - [FindNeighboursOfInterfaces](#find-neighbours-of-interfaces)
+- [GeoApplyConstantScalarValueProcess](#Geo-Apply-Constant-Scalar-Value-Process)
+- [ApplyComponentTableProcess](#Apply-Component-Table-Process)
+- [ApplySeepageBoundaryProcess](#apply-seepage-boundary-process)
 
 ## $c-\phi$ reduction process
 For the assessment of a safety factor to characterize slope stability, a Mohr-Coulomb material based $c-\phi$ reduction 
@@ -39,14 +42,14 @@ $$\alpha = \frac{c_c}{c} = \frac{\tan \phi_c}{\tan \phi}$$
 The `GeoExtrapolateIntegrationPointValuesToNodesProcess` can be used as a post-processing step to acquire nodal data for variables that are stored at the integration points. This is useful for visualization services which expect nodal data.
 
 Conceptually the process consists of the following steps:
-1. Determine a count for each node, to keep track of how many elements will contribute to the nodal value.
+1. Determine a count for each node, to keep track of how many elements will contribute to the nodal value.  Note that only the elements of the given model part(s) are considered!
 2. Calculate the extrapolation matrix, to distribute the integration values to the nodes.
 3. Calculate the integration point values of the variables of interest, by using the `CalculateOnIntegrationPoints` function of the `Element` class.
 4. For each element, distribute the integration point values to their respective nodes by multiplying the extrapolation matrix with the integration point values.
 5. Divide the nodal values by the count to get the average value.
 
-### Restrictions
-Currently, this process is only implemented for 3-noded or 6-noded `Triangle` and 4-noded or 8-noded `Quadrilateral` elements in 2D. The extrapolation is always done linearly. For the higher order 6-noded and 8-noded elements, this means the corner nodes are extrapolated as usual, but the mid-side nodes are extrapolated using linear combinations of the extrapolation contributions for the corner nodes.
+### Limitations
+The process supports floating-point scalar, vector, and matrix variables.  The supported element shapes include lines, triangles, quadrilaterals, tetrahedra, and hexahedra as well as line and plane interfaces.  Furthermore, the order of the element's shape functions must be either linear or quadratic.  The extrapolation is always done linearly.  For the quadratic elements, this means the corner nodes are extrapolated as usual, but the mid-side nodes are extrapolated using linear combinations of the extrapolation contributions for the corner nodes.
 
 ### Usage
 The process is defined as follows in json (also found in some of the [integration tests](../tests/test_integration_node_extrapolation)):
@@ -61,7 +64,7 @@ The process is defined as follows in json (also found in some of the [integratio
   }
 }
 ```
-Where the `model_part_name` should contain the name of the model part where the extrapolation is to be performed for the variables in `list_of_variables`. These variables could be of any type, as long as the `Element` class has an implementation of the `CalculateOnIntegrationPoints` function for them.
+The process receives either a single model part name (when using `model_part_name`) or a list of model part names (when using `model_part_name_list`).  Note that any elements that are not part of the given model part(s) are **not** considered by the extrapolation process.  Inactive elements are automatically discarded by the process.  In general, the variables that are to be extrapolated (supplied through `list_of_variables`) should be valid for all elements of the supplied model part(s), or else errors may occur.  For instance, extrapolation of bending moments only makes sense for structural elements that have curvatures.  Similarly, extrapolation of traction vectors only makes sense in the context of interface elements.  Therefore, it is recommended to have one extrapolation process per group of variables that can be calculated for all of the elements of the given model part(s).  As mentioned in the [Section Limitations](#limitations), these variables could be of any type, as long as the `Element` class has an implementation of the `CalculateOnIntegrationPoints` function for them.
 
 
 When this process is added to the `ProjectParameters.json`, the variables specified in `list_of_variables` can be exported as nodal output (e.g. as `nodal_results` in the `GiDOutputProcess`). 
@@ -85,7 +88,7 @@ When set to true, the material used for the modelpart used for the $K_0$ procedu
 When the stress computation is completed, the original constitutive law is restored.
 
 Depending on the given input parameters, the following scheme is adapted for computation of the $K_0$ value.
-$K_0^{nc}$ is gotten from either "K0_NC" the material input file or by computation from input of "INDEX_OF_UMAT_PHI_PARAMETER" and "UMAT_PARAMETERS":
+$K_0^{nc}$ is gotten from either "K0_NC" the material input file or by computation from input of "GEO_FRICTION_ANGLE" or "INDEX_OF_UMAT_PHI_PARAMETER" and "UMAT_PARAMETERS":
 
 $$K_0^{nc} = 1.0 - \sin \phi$$
 
@@ -238,5 +241,25 @@ Next to specifying a single model part, it is also possible to provide a list of
   ]
 }
 ```
+## Geo Apply Constant Scalar Value Process
+
+The `GeoApplyConstantScalarValueProcess` is used internally for setting Dirichlet type boundary conditions on scalar D.o.F. i.e. water pressures. It implements the following steps:
+- GeoApplyConstantScalarValueProcess::ExecuteInitialize() applies a fixity to the scalar D.o.F. indicated by member variable `mVariableName` on the model part indicated by member variable `mrModelPart`, depending on the value of member variable `mIsFixed`.
+- GeoApplyConstantScalarValueProcess::ExecuteInitializeSolutionStep() applies the scalar value stored in member variable `mDoubleValue` to these D.o.F. This happens only during the first call and is safeguarded by member variable `mIsInitialized`.
+- GeoApplyConstantScalarValueProcess::ExecuteFinalize() releases the fixity, if it was set during `ExecuteInitialize`.
+
+For integer and bool type variables only ExecuteInitializeSolutionStep() is implemented, but sofar this is not used in GeoMechanicsApplication.
+
+## Apply Component Table Process
+
+The `ApplyComponentTableProcess` is used internally for setting Dirichlet type boundary conditions on components of vector D.o.F., i.e. displacements or rotations in X, Y, or Z direction and on water pressure D.o.F. The values are given in time or space by reference to a table. It implements the following steps:
+- ApplyComponentTableProcess::ExecuteInitialize() applies a fixity to the scalar D.o.F. indicated by member variable `mVariableName` on the model part indicated by member variable `mrModelPart`, depending on the value of member variable `mIsFixed`. It also sets the initial value of the D.o.F. using member variable `mInitialValue` if a time table is attached. For attached spatial tables, the value from spatial table interpolation is set.
+- ApplyComponentTableProcess::ExecuteInitializeSolutionStep() applies the scalar value obtained from time table interpolation to these D.o.F. This happens every time step.
+- ApplyComponentTableProcess::ExecuteFinalize() releases the fixity, if it was set during `ExecuteInitialize`.
+
+## Apply Seepage Boundary Process
+
+The `ApplySeepageBoundaryProcess` is used to mark the free element boundaries where seepage may occur. It requires a single parameter named `model_part_name` which provides the name of the model part that represents the seepage boundary. When a process instance is created, it checks whether or not `model_part_name` has been provided. If yes, it also checks whether or not the model part name corresponds to an existing model part. The simple fact of having this process in the list of constraint processes ensures that the corresponding boundary conditions are applied to the computational model part.
+
 ## References
 <a id="1">[1]</a> Brinkgreve, R.B.J., Bakker, H.L., 1991. Non-linear finite element analysis of safety factors, Computer Methods and Advances in Geomechanics, Beer, Booker & Carterr (eds), Balkema, Rotterdam.

@@ -11,7 +11,8 @@
 //                   Anne van de Graaf
 //
 
-#include "integration_coefficients_calculator.h"
+#include "integration_coefficients_calculator.hpp"
+#include "includes/node.h"
 
 namespace Kratos
 {
@@ -26,7 +27,7 @@ void IntegrationCoefficientsCalculator::save(const Serializer&) const
     // No data members to be saved (yet)
 }
 
-void IntegrationCoefficientsCalculator::load(const Serializer&) const
+void IntegrationCoefficientsCalculator::load(const Serializer&)
 {
     // No data members to be loaded (yet)
 }

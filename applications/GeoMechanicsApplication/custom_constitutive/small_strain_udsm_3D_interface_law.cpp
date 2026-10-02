@@ -19,16 +19,17 @@ namespace
 {
 
 using namespace Kratos;
+using namespace std::string_literals;
 
-indexStress3D GetIndex3D(const indexStress3DInterface Index3D)
+std::size_t GetIndex3DFor3DInterface(std::size_t Index3D)
 {
     switch (Index3D) {
-    case INDEX_3D_INTERFACE_ZZ:
-        return INDEX_3D_ZZ;
-    case INDEX_3D_INTERFACE_YZ:
-        return INDEX_3D_YZ;
-    case INDEX_3D_INTERFACE_XZ:
-        return INDEX_3D_XZ;
+    case 0:
+        return 5;
+    case 1:
+        return 4;
+    case 2:
+        return 2;
     default:
         KRATOS_ERROR << "invalid index: " << Index3D << std::endl;
     }
@@ -38,7 +39,6 @@ indexStress3D GetIndex3D(const indexStress3DInterface Index3D)
 
 namespace Kratos
 {
-
 ConstitutiveLaw::Pointer SmallStrainUDSM3DInterfaceLaw::Clone() const
 {
     auto pResult = std::make_shared<SmallStrainUDSM3DInterfaceLaw>();
@@ -50,19 +50,16 @@ void SmallStrainUDSM3DInterfaceLaw::UpdateInternalDeltaStrainVector(Parameters& 
 {
     const auto& r_strain_vector = rValues.GetStrainVector();
 
-    mDeltaStrainVector[INDEX_3D_ZZ] =
-        r_strain_vector[INDEX_3D_INTERFACE_ZZ] - mStrainVectorFinalized[INDEX_3D_ZZ];
-    mDeltaStrainVector[INDEX_3D_YZ] =
-        r_strain_vector[INDEX_3D_INTERFACE_YZ] - mStrainVectorFinalized[INDEX_3D_YZ];
-    mDeltaStrainVector[INDEX_3D_XZ] =
-        r_strain_vector[INDEX_3D_INTERFACE_XZ] - mStrainVectorFinalized[INDEX_3D_XZ];
+    mDeltaStrainVector[2] = r_strain_vector[2] - mStrainVectorFinalized[2];
+    mDeltaStrainVector[4] = r_strain_vector[1] - mStrainVectorFinalized[4];
+    mDeltaStrainVector[5] = r_strain_vector[0] - mStrainVectorFinalized[5];
 }
 
 void SmallStrainUDSM3DInterfaceLaw::SetExternalStressVector(Vector& rStressVector)
 {
-    rStressVector[INDEX_3D_INTERFACE_ZZ] = mStressVector[INDEX_3D_ZZ];
-    rStressVector[INDEX_3D_INTERFACE_YZ] = mStressVector[INDEX_3D_YZ];
-    rStressVector[INDEX_3D_INTERFACE_XZ] = mStressVector[INDEX_3D_XZ];
+    rStressVector[2] = mStressVector[2];
+    rStressVector[1] = mStressVector[4];
+    rStressVector[0] = mStressVector[5];
 }
 
 void SmallStrainUDSM3DInterfaceLaw::SetInternalStressVector(const Vector& rStressVector)
@@ -71,18 +68,18 @@ void SmallStrainUDSM3DInterfaceLaw::SetInternalStressVector(const Vector& rStres
 
     std::fill_n(r_sig0.begin(), StressVectorSize, 0.0);
 
-    r_sig0[INDEX_3D_ZZ] = rStressVector[INDEX_3D_INTERFACE_ZZ];
-    r_sig0[INDEX_3D_YZ] = rStressVector[INDEX_3D_INTERFACE_YZ];
-    r_sig0[INDEX_3D_XZ] = rStressVector[INDEX_3D_INTERFACE_XZ];
+    r_sig0[2] = rStressVector[2];
+    r_sig0[4] = rStressVector[1];
+    r_sig0[5] = rStressVector[0];
 }
 
 void SmallStrainUDSM3DInterfaceLaw::SetInternalStrainVector(const Vector& rStrainVector)
 {
     std::fill(mStrainVectorFinalized.begin(), mStrainVectorFinalized.end(), 0.0);
 
-    mStrainVectorFinalized[INDEX_3D_ZZ] = rStrainVector[INDEX_3D_INTERFACE_ZZ];
-    mStrainVectorFinalized[INDEX_3D_YZ] = rStrainVector[INDEX_3D_INTERFACE_YZ];
-    mStrainVectorFinalized[INDEX_3D_XZ] = rStrainVector[INDEX_3D_INTERFACE_XZ];
+    mStrainVectorFinalized[2] = rStrainVector[2];
+    mStrainVectorFinalized[4] = rStrainVector[1];
+    mStrainVectorFinalized[5] = rStrainVector[0];
 }
 
 void SmallStrainUDSM3DInterfaceLaw::CopyConstitutiveMatrix(Parameters& rValues, Matrix& rConstitutiveMatrix)
@@ -92,16 +89,14 @@ void SmallStrainUDSM3DInterfaceLaw::CopyConstitutiveMatrix(Parameters& rValues, 
         for (unsigned int i = 0; i < GetStrainSize(); i++) {
             for (unsigned int j = 0; j < GetStrainSize(); j++) {
                 rConstitutiveMatrix(i, j) =
-                    mMatrixD[GetIndex3D(static_cast<indexStress3DInterface>(j))]
-                            [GetIndex3D(static_cast<indexStress3DInterface>(i))];
+                    mMatrixD[GetIndex3DFor3DInterface(j)][GetIndex3DFor3DInterface(i)];
             }
         }
     } else {
         for (unsigned int i = 0; i < GetStrainSize(); i++) {
             for (unsigned int j = 0; j < GetStrainSize(); j++) {
                 rConstitutiveMatrix(i, j) =
-                    mMatrixD[GetIndex3D(static_cast<indexStress3DInterface>(i))]
-                            [GetIndex3D(static_cast<indexStress3DInterface>(j))];
+                    mMatrixD[GetIndex3DFor3DInterface(i)][GetIndex3DFor3DInterface(j)];
             }
         }
     }
@@ -119,13 +114,13 @@ Vector& SmallStrainUDSM3DInterfaceLaw::GetValue(const Variable<Vector>& rVariabl
 {
     if (rVariable == STATE_VARIABLES) {
         SmallStrainUDSMLaw::GetValue(rVariable, rValue);
-    } else if (rVariable == CAUCHY_STRESS_VECTOR) {
+    } else if (rVariable == CAUCHY_STRESS_VECTOR || rVariable == GEO_EFFECTIVE_TRACTION_VECTOR) {
         rValue.resize(GetStrainSize());
 
-        auto& r_sig0                  = GetSig0();
-        rValue[INDEX_3D_INTERFACE_ZZ] = r_sig0[INDEX_3D_ZZ];
-        rValue[INDEX_3D_INTERFACE_YZ] = r_sig0[INDEX_3D_YZ];
-        rValue[INDEX_3D_INTERFACE_XZ] = r_sig0[INDEX_3D_XZ];
+        auto& r_sig0 = GetSig0();
+        rValue[2]    = r_sig0[2];
+        rValue[1]    = r_sig0[4];
+        rValue[0]    = r_sig0[5];
     }
     return rValue;
 }
@@ -136,7 +131,8 @@ void SmallStrainUDSM3DInterfaceLaw::SetValue(const Variable<Vector>& rVariable,
 {
     if (rVariable == STATE_VARIABLES) {
         SmallStrainUDSMLaw::SetValue(rVariable, rValue, rCurrentProcessInfo);
-    } else if ((rVariable == CAUCHY_STRESS_VECTOR) && (rValue.size() == GetStrainSize())) {
+    } else if ((rVariable == CAUCHY_STRESS_VECTOR || rVariable == GEO_EFFECTIVE_TRACTION_VECTOR) &&
+               rValue.size() == GetStrainSize()) {
         this->SetInternalStressVector(rValue);
     }
 }
@@ -145,7 +141,7 @@ SizeType SmallStrainUDSM3DInterfaceLaw::WorkingSpaceDimension() { return N_DIM_3
 
 SizeType SmallStrainUDSM3DInterfaceLaw::GetStrainSize() const { return VOIGT_SIZE_3D_INTERFACE; }
 
-std::string SmallStrainUDSM3DInterfaceLaw::Info() const { return "SmallStrainUDSM3DInterfaceLaw"; }
+std::string SmallStrainUDSM3DInterfaceLaw::Info() const { return "SmallStrainUDSM3DInterfaceLaw"s; }
 
 void SmallStrainUDSM3DInterfaceLaw::PrintData(std::ostream& rOStream) const
 {

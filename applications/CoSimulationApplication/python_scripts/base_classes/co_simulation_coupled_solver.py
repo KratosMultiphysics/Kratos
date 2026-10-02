@@ -177,6 +177,10 @@ class CoSimulationCoupledSolver(CoSimulationSolverWrapper):
             solver.Predict()
 
     def InitializeSolutionStep(self):
+        # First we call the Predict the analysis_stage InitializeSolutionStep definition
+        self.Predict()
+
+        # Now we execute the corresponding InitializeSolutionStep functions of the solvers, predictors and coupling operations
         for solver in self.solver_wrappers.values():
             solver.InitializeSolutionStep()
 

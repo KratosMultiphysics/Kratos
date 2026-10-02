@@ -28,55 +28,53 @@
 namespace Kratos::MaterialPointGeneratorUtility
 {
 
-    typedef std::size_t IndexType;
+    using IndexType =  std::size_t;
 
-    typedef std::size_t SizeType;
+    using SizeType =  std::size_t;
 
-    typedef Geometry< Node > GeometryType;
+    using GeometryType =  Geometry<Node>;
 
-    typedef GeometryData::IntegrationMethod IntegrationMethod;
-
-    /**
-     * @brief Function that return matrix of shape function value for 16 material points.
-     * @details It is only possible to be used in 2D Triangular.
-     */
-    Matrix MP16ShapeFunctions();
-
-
-    /**
-     * @brief Function that return matrix of shape function value for 33 material points.
-     * @details It is only possible to be used in 2D Triangular.
-     */
-    Matrix MP33ShapeFunctions();
+    using IntegrationMethod =  GeometryData::IntegrationMethod;
 
     /// Get integration weights of the geometry for the given integration method
-    void GetIntegrationPointVolumes(const GeometryType& rGeom, const IntegrationMethod IntegrationMethod, Vector& rIntVolumes);
+    void GetIntegrationPointVolumes(
+            const GeometryType& rGeom,
+            const IntegrationMethod IntegrationMethod,
+            Vector& rIntVolumes);
 
     /// Get integration method and shape function values for the given element
-    void DetermineIntegrationMethodAndShapeFunctionValues(const GeometryType& rGeom, const SizeType MaterialPointsPerElement,
-        IntegrationMethod& rIntegrationMethod, Matrix& rN, bool& IsEqualVolumes);
+    void DetermineIntegrationMethodAndShapeFunctionValues(
+            const GeometryType& rGeom,
+            const SizeType MaterialPointsPerElement,
+            IntegrationMethod& rIntegrationMethod,
+            Matrix& rN);
 
     /// Get integration method and shape function values for the given condition
-    void DetermineGeometryIntegrationMethod(const GeometryType& rGeom, const SizeType MaterialPointsPerCondition,
-        IndexType& rNumPointsPerSpan);
+    void DetermineGeometryIntegrationMethod(
+            const GeometryType& rGeom,
+            const SizeType MaterialPointsPerCondition,
+            IndexType& rNumPointsPerSpan);
 
     /**
      * @brief Construct material points from given initial mesh
      * @details Generating material points using a designated shape functions
      */
     template<SizeType TDimension>
-    void GenerateMaterialPointElement(  ModelPart& rBackgroundGridModelPart,
-                                        ModelPart& rInitialModelPart,
-                                        ModelPart& rMPMModelPart,
-                                        bool IsMixedFormulation=false);
+    void GenerateMaterialPointElement(
+            ModelPart& rBackgroundGridModelPart,
+            ModelPart& rInitialModelPart,
+            ModelPart& rMPMModelPart,
+            bool IsMixedFormulation=false);
+
     /**
      * @brief Function to Initiate material point condition.
      * @details Generating material point condition using a designated shape functions
      */
     template<SizeType TDimension>
-    void GenerateMaterialPointCondition(ModelPart& rBackgroundGridModelPart,
-                                            ModelPart& rInitialModelPart,
-                                            ModelPart& rMPMModelPart);
+    void GenerateMaterialPointCondition(
+            ModelPart& rBackgroundGridModelPart,
+            ModelPart& rInitialModelPart,
+            ModelPart& rMPMModelPart);
 
     /**
      * @brief Function to add dofs to elements for Lagrange multiplier.
@@ -87,9 +85,10 @@ namespace Kratos::MaterialPointGeneratorUtility
      * @brief Function to Initiate material point condition.
      * @details Generating material point condition using a designated shape functions
      */
-    void KRATOS_API(MPM_APPLICATION) GenerateMaterialPointCondition(
-                                            ModelPart& rBackgroundGridModelPart,
-                                            ModelPart& rInitialModelPart,
-                                            ModelPart& rMPMModelPart);
+    void KRATOS_API(MPM_APPLICATION)
+        GenerateMaterialPointCondition(
+                ModelPart& rBackgroundGridModelPart,
+                ModelPart& rInitialModelPart,
+                ModelPart& rMPMModelPart);
 
 } // end namespace Kratos::MaterialPointGeneratorUtility

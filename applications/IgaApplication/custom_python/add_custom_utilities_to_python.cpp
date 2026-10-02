@@ -22,6 +22,7 @@
 #include "spaces/ublas_space.h"
 #include "custom_utilities/director_utilities.h"
 #include "custom_utilities/iga_flags.h"
+#include "custom_utilities/compute_interface_traction_shell_3p.h"
 
 
 namespace Kratos {
@@ -46,6 +47,12 @@ void AddCustomUtilitiesToPython(
     iga_flags.attr("FIX_ROTATION_X") = IgaFlags::FIX_ROTATION_X;
     iga_flags.attr("FIX_ROTATION_Y") = IgaFlags::FIX_ROTATION_Y;
     iga_flags.attr("FIX_ROTATION_Z") = IgaFlags::FIX_ROTATION_Z;
+
+    pybind11::class_< ComputeInterfaceTractionShell3pUtility >(m, "ComputeInterfaceTractionShell3pUtility")
+        .def_static(
+            "ComputeAndSetInterfaceTraction",
+            &ComputeInterfaceTractionShell3pUtility::ComputeAndSetInterfaceTraction)
+        ;
 }
 
 } // namespace Python

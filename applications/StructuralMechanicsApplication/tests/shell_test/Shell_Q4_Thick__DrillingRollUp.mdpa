@@ -259,7 +259,7 @@ Begin Nodes // GUI group identifier: Group0
 243 10.00000 0.00000 0.00000
 End Nodes
 
-Begin Elements ShellThickElementCorotational3D4N   // GUI group identifier: Group0
+Begin Elements MITCThickShellCorotationalElement3D4N   // GUI group identifier: Group0
 1	4	7	4	2	5
 2	4	9	8	4	7
 3	4	12	11	8	9

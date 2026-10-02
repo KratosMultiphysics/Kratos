@@ -1,4 +1,5 @@
 import KratosMultiphysics
+from KratosMultiphysics.deprecation_management import DeprecationManager
 import KratosMultiphysics.MPMApplication as KratosMPM
 
 def Factory(settings, Model):
@@ -13,12 +14,18 @@ class ApplyMPMSlipBoundaryProcess(KratosMultiphysics.Process):
 
         default_parameters = KratosMultiphysics.Parameters( """
             {
-                "model_part_name"           :"PLEASE_CHOOSE_MODEL_PART_NAME",
-                "friction_coefficient"      : 0,
-                "tangential_penalty_factor" : 0,
-                "option"                    : "",
-                "avoid_recomputing_normals" : true
+                "model_part_name"                : "PLEASE_CHOOSE_MODEL_PART_NAME",
+                "friction_coefficient"           : 0,
+                "tangential_penalty_coefficient" : 0,
+                "option"                         : "",
+                "avoid_recomputing_normals"      : true
             }  """ )
+
+        context_string = type(self).__name__
+        old_name = 'tangential_penalty_factor'
+        new_name = 'tangential_penalty_coefficient'
+        if DeprecationManager.HasDeprecatedVariable(context_string, settings, old_name, new_name):
+            DeprecationManager.ReplaceDeprecatedVariableName(settings, old_name, new_name)
 
         settings.ValidateAndAssignDefaults(default_parameters)
 
@@ -27,10 +34,10 @@ class ApplyMPMSlipBoundaryProcess(KratosMultiphysics.Process):
 
         # get friction parameters
         self.friction_coefficient = settings["friction_coefficient"].GetDouble()
-        self.tangential_penalty_factor = settings["tangential_penalty_factor"].GetDouble()
+        self.tangential_penalty_coefficient = settings["tangential_penalty_coefficient"].GetDouble()
         self.option = settings["option"].GetString()
 
-        if self.friction_coefficient > 0 and self.tangential_penalty_factor > 0:
+        if self.friction_coefficient > 0 and self.tangential_penalty_coefficient > 0:
             # friction active -- set flag on ProcessInfo
             self.model_part.ProcessInfo[KratosMPM.FRICTION_ACTIVE] = True
 
@@ -44,7 +51,7 @@ class ApplyMPMSlipBoundaryProcess(KratosMultiphysics.Process):
         for node in self.model_part.Nodes:
             node.Set(KratosMultiphysics.SLIP, True)
             node.SetValue(KratosMultiphysics.FRICTION_COEFFICIENT, self.friction_coefficient)
-            node.SetValue(KratosMPM.TANGENTIAL_PENALTY_FACTOR, self.tangential_penalty_factor)
+            node.SetValue(KratosMPM.TANGENTIAL_PENALTY_COEFFICIENT, self.tangential_penalty_coefficient)
             node.Set(KratosMultiphysics.MODIFIED, self.flip_normal)
 
 

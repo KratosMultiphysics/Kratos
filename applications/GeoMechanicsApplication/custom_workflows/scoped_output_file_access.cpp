@@ -11,7 +11,7 @@
 //
 
 #include "scoped_output_file_access.h"
-#include "strategy_wrapper.hpp"
+#include "strategy_wrapper.h"
 
 namespace Kratos
 {

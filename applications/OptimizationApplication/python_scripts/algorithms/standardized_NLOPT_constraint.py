@@ -114,11 +114,11 @@ class StandardizedNLOPTConstraint(ResponseRoutine):
             DictLogger("Constraint info",self.GetInfo())
 
             if gradient_field.size > 0:
-                gradient_collective_expression = self.CalculateGradient()
-                gradient_field[:] = gradient_collective_expression.Evaluate().reshape(-1) * self.GetStandardizationFactor()
+                gradient_combined_tensor_adaptor = self.CalculateGradient()
+                gradient_field[:] = gradient_combined_tensor_adaptor.data.reshape(-1) * self.GetStandardizationFactor()
 
                 if save_value:
-                    self.LogGradientFields(gradient_collective_expression)
+                    self.LogGradientFields(gradient_combined_tensor_adaptor)
 
         return self.GetStandardizedValue()
 
@@ -162,32 +162,33 @@ class StandardizedNLOPTConstraint(ResponseRoutine):
         if self.__buffered_data.HasValue("violation [%]"): del self.__buffered_data["violation [%]"]
         self.__buffered_data["violation [%]"] = self.GetAbsoluteViolation()
 
-    def LogGradientFields(self,gradient_collective_expression) -> None:
+    def LogGradientFields(self, gradient_combined_tensor_adaptor: Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor) -> None:
         # save the physical gradients for post processing in unbuffered data container.
         for physical_var, physical_gradient in self.GetRequiredPhysicalGradients().items():
             variable_name = f"d{self.GetReponse().GetName()}_d{physical_var.Name()}"
-            for physical_gradient_expression in physical_gradient.GetContainerExpressions():
+            for physical_gradient_ta in physical_gradient.GetTensorAdaptors():
                 if self.__unbuffered_data.HasValue(variable_name): del self.__unbuffered_data[variable_name]
                 # cloning is a cheap operation, it only moves underlying pointers
                 # does not create additional memory.
-                self.__unbuffered_data[variable_name] = physical_gradient_expression.Clone()
+                self.__unbuffered_data[variable_name] = physical_gradient_ta.Clone()
 
         # save the filtered gradients for post processing in unbuffered data container.
-        for gradient_container_expression, control in zip(gradient_collective_expression.GetContainerExpressions(), self.GetMasterControl().GetListOfControls()):
+        for gradient_ta, control in zip(gradient_combined_tensor_adaptor.GetTensorAdaptors(), self.GetMasterControl().GetListOfControls()):
             variable_name = f"d{self.GetReponse().GetName()}_d{control.GetName()}"
             if self.__unbuffered_data.HasValue(variable_name): del self.__unbuffered_data[variable_name]
             # cloning is a cheap operation, it only moves underlying pointers
             # does not create additional memory.
-            self.__unbuffered_data[variable_name] = gradient_container_expression.Clone()
+            self.__unbuffered_data[variable_name] = gradient_ta.Clone()
 
     def UpdateMasterControl(self, new_control_field: numpy.ndarray) -> None:
         master_control = self.GetMasterControl()
-        new_control_field_exp = master_control.GetEmptyField()
+        new_control_field_ta = master_control.GetEmptyField()
         number_of_entities = []
         shapes = []
         for control in master_control.GetListOfControls():
             number_of_entities.append(len(control.GetControlField().GetContainer()))
             shapes.append(control.GetControlField().GetItemShape())
-        KratosOA.CollectiveExpressionIO.Read(new_control_field_exp,new_control_field,shapes)
+        new_control_field_ta.data[:] = new_control_field
+        Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor(new_control_field_ta, perform_store_data_recursively=False, copy=False).StoreData()
         # now update the master control
-        master_control.Update(new_control_field_exp)
+        master_control.Update(new_control_field_ta)

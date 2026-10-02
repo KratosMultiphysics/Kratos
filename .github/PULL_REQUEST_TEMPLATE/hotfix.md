@@ -4,11 +4,21 @@ about: Quick bugfix with very localized and low impact changes.
 
 ---
 
-**Description**
+## **Description**
+
 A brief description of the bugfix or the improvements.
 If it has an associated issue please add "Fixes #XXXX".
 
-**Changelog**
+### **Key changes**
+
+Detail of the key changes.
+
+### **Validation**
+
+A way to validate the changes do not break the code.
+
+## **Changelog**
+
 Please summarize the change in one line to generate the changelog:
 E.g.
 - Fixed Y (#XXXX)
