@@ -34,15 +34,16 @@ class ApplyRbe3Process(KM.Process):
     Similar to a Nastran RBE3 element, the coupling transfers forces and moments without imposing rigid-body motion between the connected nodes.
 
     Expected parameters: 
-        model_part_name             :       name of the modelpart
-        reference_sub_model_part    :       name of the reference SubModelPart
-        constraint_id_start         :       Constraint-ID
-        constrained_dofs_ref        :       to be constrained DOFs of the reference node
-        connected_groups            :       list of connected nodes including
-                sub_model_part          :       name of the SubModelPart containing the connected independent nodes
-                dofs                    :       DOFs of the connected nodes participating in the coupling
-                weight                  :       weighing factor assigned to the DOFs of the group
+    @param    model_part_name             :       name of the modelpart
+    @param    reference_sub_model_part    :       name of the reference SubModelPart
+    @param    constraint_id_start         :       Constraint-ID
+    @param    constrained_dofs_ref        :       to be constrained DOFs of the reference node
+    @param    connected_groups            :       list of connected nodes including
+        @param        sub_model_part          :       name of the SubModelPart containing the connected independent nodes
+        @param        dofs                    :       DOFs of the connected nodes participating in the coupling
+        @param        weight                  :       weighing factor assigned to the DOFs of the group
     """
+
     def __init__(self, model, settings):
         self.echo_level = settings["echo_level"].GetInt() if settings.Has("echo_level") else 0 
         super().__init__()
@@ -94,8 +95,8 @@ class ApplyRbe3Process(KM.Process):
         
         ref_node = next(iter(self.reference_mp.Nodes))
         for i in self.ref_idx:
-            if i >= 3 and not ref_node.HasDofFor(KM_ALL_DOFS[i]):
-                raise RuntimeError("Element has no rotational DOF.") #for example a solid element
+            if i >= 3:
+                print("Rotational DOFs are assigned. Check if the element of the reference node has rotational DOFs.") 
 
         x_r = np.array([ref_node.X, ref_node.Y, ref_node.Z])
         n_ref = len(self.ref_idx)
@@ -118,8 +119,8 @@ class ApplyRbe3Process(KM.Process):
                 reference_dofs.extend(node.GetDof(KM_ALL_DOFS[i]) for i in g["idx"])
 
                 for i in g["idx"]:
-                    if i >= 3 and not node.HasDofFor(KM_ALL_DOFS[i]):
-                        raise RuntimeError("Element has no rotational DOF.")
+                    if i >= 3:
+                        print("Rotational DOFs are assigned. Check if the element of the connected node has rotational DOFs.")
 
         K = sum(w * A.T @ A for A,w in zip(A_list, w_list))
 
