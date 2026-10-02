@@ -175,7 +175,7 @@ def _set_dirichlet_bc(node,init_displacement,init_velocity):
 
 def _create_element(mp,mass,stiffness,damping):
     prop = mp.GetProperties()[1]
-    element = mp.CreateNewElement("NodalConcentratedDampedElement3D1N", 1, [1], prop)
+    element = mp.CreateNewElement("NodalConcentratedElement3D1N", 1, [1], prop)
     element.SetValue(KratosMultiphysics.NODAL_MASS,mass)
     element.SetValue(StructuralMechanicsApplication.NODAL_DISPLACEMENT_STIFFNESS,[0,stiffness,0])
     element.SetValue(StructuralMechanicsApplication.NODAL_DAMPING_RATIO,[0,damping,0])
