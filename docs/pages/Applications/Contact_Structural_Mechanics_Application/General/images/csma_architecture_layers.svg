@@ -1,0 +1,175 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 1080" width="1600" height="1080">
+<style>
+text{font-family:Helvetica,Arial,sans-serif;fill:#1f2937}
+.title{font-size:30px;font-weight:700}
+.sub{font-size:17px;fill:#6b7280}
+.sec{font-size:20px;font-weight:700}
+.hd{font-size:17px;font-weight:700}
+.t{font-size:15px}
+.s{font-size:13px;fill:#6b7280}
+.tag{font-size:13px;font-weight:700}
+.foot{font-size:13px;fill:#6b7280}
+.box{stroke:#cbd5e1;stroke-width:1.5}
+.band{stroke:#cbd5e1;stroke-width:1.5;stroke-dasharray:6 4;fill:none}
+.blue{fill:#eff6ff}.teal{fill:#f0fdfa}.amber{fill:#fffbeb}.purple{fill:#f5f3ff}.red{fill:#fef2f2}.w{fill:#fff}
+.ar{stroke:#6b7280;stroke-width:2;fill:none;marker-end:url(#ar)}
+</style>
+<defs>
+<marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#6b7280"/></marker>
+</defs>
+<rect width="1600" height="1080" fill="#fff"/>
+<text x="40" y="50" class="title">Architecture: three layers of the ContactStructuralMechanicsApplication</text>
+<text x="40" y="78" class="sub">Python layer (python_scripts/) → application C++ layer (two build targets) → Kratos core and StructuralMechanicsApplication dependencies</text>
+
+<!-- ===== LAYER 1: Python ===== -->
+<rect x="40" y="100" width="1520" height="270" rx="8" class="band"/>
+<rect x="40" y="100" width="1520" height="30" rx="8" fill="#2563eb"/>
+<text x="56" y="121" class="sec" style="fill:#fff">1 · Python layer — python_scripts/  (module KratosMultiphysics.ContactStructuralMechanicsApplication)</text>
+
+<rect x="56" y="142" width="360" height="212" rx="8" class="box blue"/>
+<text x="70" y="164" class="hd" style="fill:#2563eb">Solvers</text>
+<text x="70" y="188" class="t">contact_structural_mechanics_static_solver.py</text>
+<text x="70" y="208" class="t">contact_…_implicit_dynamic_solver.py</text>
+<text x="70" y="228" class="t">contact_…_explicit_dynamic_solver.py</text>
+<text x="70" y="248" class="t">mpc_contact_structural_mechanics_static_solver.py</text>
+<text x="70" y="268" class="t">mpc_contact_…_implicit_dynamic_solver.py</text>
+<text x="70" y="296" class="s">all derive from the StructuralMechanicsApplication</text>
+<text x="70" y="312" class="s">solvers; selected through solver_settings.solver_type</text>
+<text x="70" y="328" class="s">+ contact_settings / mpc_contact_settings</text>
+
+<rect x="432" y="142" width="380" height="212" rx="8" class="box blue"/>
+<text x="446" y="164" class="hd" style="fill:#2563eb">Processes (contact_process_list)</text>
+<text x="446" y="188" class="t">search_base_process.py   (SearchBaseProcess, base)</text>
+<text x="446" y="208" class="t">├ alm_contact_process.py</text>
+<text x="446" y="228" class="t">│  └ penalty_contact_process.py</text>
+<text x="446" y="248" class="t">│      └ explicit_penalty_contact_process.py</text>
+<text x="446" y="268" class="t">├ mpc_contact_process.py</text>
+<text x="446" y="288" class="t">└ mesh_tying_process.py</text>
+<text x="446" y="312" class="s">also: contact_remesh_mmg_process.py, basic_mapping_…,</text>
+<text x="446" y="328" class="s">replace_properties_process.py</text>
+
+<rect x="828" y="142" width="360" height="212" rx="8" class="box blue"/>
+<text x="842" y="164" class="hd" style="fill:#2563eb">Factories and helpers</text>
+<text x="842" y="188" class="t">contact_convergence_criteria_factory.py</text>
+<text x="842" y="208" class="t">auxiliary_methods_solvers.py</text>
+<text x="842" y="228" class="t">python_solvers_wrapper_adaptative_remeshing_…py</text>
+<text x="842" y="248" class="t">custom_sympy_fe_utilities.py  (code generation)</text>
+<text x="842" y="276" class="s">the factory wraps every criterion in</text>
+<text x="842" y="292" class="s">MortarAndConvergenceCriteria; auxiliary_methods_solvers</text>
+<text x="842" y="308" class="s">holds the default JSON, AddVariables/AddDofs and the</text>
+<text x="842" y="324" class="s">MixedULMLinearSolver wrapping</text>
+
+<rect x="1204" y="142" width="340" height="212" rx="8" class="box blue"/>
+<text x="1218" y="164" class="hd" style="fill:#2563eb">adaptive_remeshing/</text>
+<text x="1218" y="188" class="t">adaptative_remeshing_contact_structural_</text>
+<text x="1218" y="208" class="t">   mechanics_analysis.py</text>
+<text x="1218" y="228" class="t">   …_static_solver.py</text>
+<text x="1218" y="248" class="t">   …_implicit_dynamic_solver.py</text>
+<text x="1218" y="268" class="t">   …_utilities.py</text>
+<text x="1218" y="296" class="s">optional: needs MeshingApplication (MMG)</text>
+<text x="1218" y="312" class="s">metric on VON_MISES_STRESS / contact pressure,</text>
+<text x="1218" y="328" class="s">ContactErrorMeshCriteria</text>
+
+<!-- arrows layer1 -> layer2 -->
+<path d="M800,370 L800,398" class="ar"/>
+<text x="812" y="390" class="s">pybind11 bindings (custom_python/)</text>
+
+<!-- ===== LAYER 2: App C++ ===== -->
+<rect x="40" y="400" width="1520" height="400" rx="8" class="band"/>
+<rect x="40" y="400" width="1520" height="30" rx="8" fill="#0d9488"/>
+<text x="56" y="421" class="sec" style="fill:#fff">2 · Application C++ layer — two CMake targets</text>
+
+<!-- Core shared library -->
+<rect x="56" y="442" width="1000" height="342" rx="8" class="box teal"/>
+<text x="70" y="466" class="hd" style="fill:#0d9488">libKratosContactStructuralMechanicsCore  (SHARED library, links KratosCore + KratosStructuralMechanicsCore)</text>
+<text x="70" y="486" class="s">contact_structural_mechanics_application.cpp registers variables, 68 condition names, frictional laws and the constraint</text>
+
+<rect x="70" y="500" width="300" height="130" rx="8" class="box w"/>
+<text x="84" y="522" class="hd">custom_conditions/</text>
+<rect x="290" y="508" width="72" height="20" rx="8" fill="#0d9488"/><text x="326" y="522" class="tag" style="fill:#fff" text-anchor="middle">compiled</text>
+<text x="84" y="546" class="t">PairedCondition, MortarContactCondition</text>
+<text x="84" y="566" class="t">ALM / penalty / components / frictional</text>
+<text x="84" y="586" class="t">families (AD-generated .cpp), MeshTying,</text>
+<text x="84" y="606" class="t">MPCMortarContactCondition</text>
+
+<rect x="386" y="500" width="320" height="130" rx="8" class="box w"/>
+<text x="400" y="522" class="hd">custom_processes/  (16)</text>
+<rect x="626" y="508" width="72" height="20" rx="8" fill="#0d9488"/><text x="662" y="522" class="tag" style="fill:#fff" text-anchor="middle">compiled</text>
+<text x="400" y="546" class="t">BaseContactSearchProcess → Simple /</text>
+<text x="400" y="566" class="t">Advanced / MPC search, NormalGapProcess,</text>
+<text x="400" y="586" class="t">ALMVariablesCalculationProcess, ALMFastInit,</text>
+<text x="400" y="606" class="t">NormalCheckProcess, ContactSPRErrorProcess…</text>
+
+<rect x="722" y="500" width="320" height="130" rx="8" class="box w"/>
+<text x="736" y="522" class="hd">custom_utilities/</text>
+<rect x="962" y="508" width="72" height="20" rx="8" fill="#0d9488"/><text x="998" y="522" class="tag" style="fill:#fff" text-anchor="middle">compiled</text>
+<text x="736" y="546" class="t">DerivativesUtilities, ActiveSetUtilities,</text>
+<text x="736" y="566" class="t">ContactUtilities, SelfContactUtilities,</text>
+<text x="736" y="586" class="t">InterfacePreprocessCondition,</text>
+<text x="736" y="606" class="t">MortarExplicitContributionUtilities</text>
+
+<rect x="70" y="646" width="300" height="122" rx="8" class="box w"/>
+<text x="84" y="668" class="hd">custom_frictional_laws/</text>
+<rect x="290" y="654" width="72" height="20" rx="8" fill="#0d9488"/><text x="326" y="668" class="tag" style="fill:#fff" text-anchor="middle">compiled</text>
+<text x="84" y="692" class="t">FrictionalLaw → FrictionalLawWithDerivative</text>
+<text x="84" y="712" class="t">→ Coulomb / Tresca frictional laws</text>
+<text x="84" y="736" class="s">WIP; FRICTIONAL_LAW variable not yet used</text>
+
+<rect x="386" y="646" width="320" height="122" rx="8" class="box w"/>
+<text x="400" y="668" class="hd">custom_master_slave_…/</text>
+<rect x="626" y="654" width="72" height="20" rx="8" fill="#0d9488"/><text x="662" y="668" class="tag" style="fill:#fff" text-anchor="middle">compiled</text>
+<text x="400" y="692" class="t">ContactMasterSlaveConstraint</text>
+<text x="400" y="712" class="t">(relation matrix updated by</text>
+<text x="400" y="732" class="t">MPCMortarContactCondition each iteration)</text>
+
+<rect x="722" y="646" width="320" height="122" rx="8" class="box w"/>
+<text x="736" y="668" class="hd">custom_strategies/</text>
+<rect x="950" y="654" width="84" height="20" rx="8" fill="#7c3aed"/><text x="992" y="668" class="tag" style="fill:#fff" text-anchor="middle">header-only</text>
+<text x="736" y="692" class="t">strategies (3), convergence criteria (18),</text>
+<text x="736" y="712" class="t">builder&amp;solvers (3), MixedULMLinearSolver</text>
+<text x="736" y="736" class="s">templates instantiated only in the Python bindings</text>
+
+<!-- pybind module -->
+<rect x="1072" y="442" width="472" height="342" rx="8" class="box purple"/>
+<text x="1086" y="466" class="hd" style="fill:#7c3aed">KratosContactStructuralMechanicsApplication (pybind11)</text>
+<text x="1086" y="486" class="s">custom_python/ — links the core library, exports the Python names</text>
+<text x="1086" y="514" class="t">contact_structural_mechanics_python_application.cpp</text>
+<text x="1086" y="538" class="t">add_custom_strategies_to_python.cpp</text>
+<text x="1102" y="556" class="s">strategies, 17 criteria, 3 builder-and-solvers</text>
+<text x="1086" y="580" class="t">add_custom_processes_to_python.cpp</text>
+<text x="1102" y="598" class="s">search processes (2D2N … 3D4N3N), ALMFastInit, …</text>
+<text x="1086" y="622" class="t">add_custom_utilities_to_python.cpp</text>
+<text x="1102" y="640" class="s">ProcessFactoryUtility, ContactUtilities, ActiveSetUtilities, …</text>
+<text x="1086" y="664" class="t">add_custom_linear_solvers_to_python.cpp   (MixedULMLinearSolver)</text>
+<text x="1086" y="688" class="t">add_custom_frictional_laws_to_python.cpp</text>
+<text x="1086" y="712" class="t">process_factory_utility.cpp</text>
+<text x="1086" y="744" class="s">ContactStructuralMechanicsApplication.py imports</text>
+<text x="1086" y="760" class="s">StructuralMechanicsApplication first, then this module</text>
+
+<!-- arrows layer2 -> layer3 -->
+<path d="M800,800 L800,828" class="ar"/>
+<text x="812" y="820" class="s">kratos_add_dependency(StructuralMechanicsApplication); target_link_libraries(KratosCore, KratosStructuralMechanicsCore)</text>
+
+<!-- ===== LAYER 3: Kratos core ===== -->
+<rect x="40" y="830" width="1520" height="200" rx="8" class="band"/>
+<rect x="40" y="830" width="1520" height="30" rx="8" fill="#d97706"/>
+<text x="56" y="851" class="sec" style="fill:#fff">3 · Dependencies — Kratos core and StructuralMechanicsApplication</text>
+
+<rect x="56" y="872" width="1000" height="142" rx="8" class="box amber"/>
+<text x="70" y="896" class="hd" style="fill:#d97706">KratosCore (kratos/)</text>
+<text x="70" y="920" class="t">includes/mortar_classes.h: MortarOperator (D, M), DualLagrangeMultiplierOperators (Ae), MortarKinematicVariables, DerivativeData</text>
+<text x="70" y="940" class="t">utilities/exact_mortar_segmentation_utility.h (ExactMortarIntegrationUtility) · utilities/mortar_utilities.h (MortarUtilities)</text>
+<text x="70" y="960" class="t">processes/simple_mortar_mapper_process.h (SimpleMortarMapperProcess) · spatial_containers: KD-tree (Tree / BinsDynamic), Octree</text>
+<text x="70" y="980" class="t">geometries/oriented_bounding_box.h (OBB) · MasterSlaveConstraint, Condition, Process, Parameters, LinearSolver, ConvergenceCriteria</text>
+<text x="70" y="1000" class="s">the mortar integration and the dual shape functions live in the core so that other applications (mapping, FSI) can reuse them</text>
+
+<rect x="1072" y="872" width="472" height="142" rx="8" class="box amber"/>
+<text x="1086" y="896" class="hd" style="fill:#d97706">StructuralMechanicsApplication</text>
+<text x="1086" y="920" class="t">solid / shell / beam elements, constitutive laws</text>
+<text x="1086" y="940" class="t">(ConstitutiveLawsApplication optional at run time)</text>
+<text x="1086" y="960" class="t">time-integration schemes, StructuralMechanicsAnalysis,</text>
+<text x="1086" y="980" class="t">base Python solvers (static / implicit / explicit)</text>
+<text x="1086" y="1000" class="s">hard CMake and wheel dependency (pyproject.toml)</text>
+
+<text x="40" y="1060" class="foot">ContactStructuralMechanicsApplication · Kratos Multiphysics</text>
+</svg>
