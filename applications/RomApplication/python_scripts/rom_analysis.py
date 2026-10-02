@@ -6,6 +6,7 @@ from KratosMultiphysics.RomApplication import python_solvers_wrapper_rom
 from KratosMultiphysics.RomApplication.hrom_training_utility import HRomTrainingUtility
 from KratosMultiphysics.RomApplication.petrov_galerkin_training_utility import PetrovGalerkinTrainingUtility
 from KratosMultiphysics.RomApplication.calculate_rom_basis_output_process import CalculateRomBasisOutputProcess
+from KratosMultiphysics.RomApplication.rom_nn_interface import NN_ROM_Interface
 import numpy as np
 
 from glob import glob
@@ -16,6 +17,7 @@ def CreateRomAnalysisInstance(cls, global_model, parameters, nn_rom_interface=No
     class RomAnalysis(cls):
 
         def __init__(self,global_model, parameters):
+            self.nn_rom_interface = nn_rom_interface
             super().__init__(global_model, parameters)
 
         def _CreateSolver(self):
@@ -106,9 +108,13 @@ def CreateRomAnalysisInstance(cls, global_model, parameters, nn_rom_interface=No
 
             # Check if we are using an ann_enhanced strategy
             self.ann_enhanced = self.solving_strategy in ('galerkin_ann', 'lspg_ann')
-            if self.ann_enhanced and nn_rom_interface is None:
-                err_msg = f"'Using {self.solving_strategy}' projection strategy but found no NN_ROM_Interface instance to use."
-                raise Exception(err_msg)
+            if self.ann_enhanced and self.nn_rom_interface is None:
+                # Standalone run (no RomManager): read the ANN-enhanced decoder from the numpy files in the ROM folder
+                if not self.rom_parameters.Has("ann_enhanced_settings"):
+                    err_msg = f"Using '{self.solving_strategy}' projection strategy but found no NN_ROM_Interface instance to use, nor 'ann_enhanced_settings' in the RomParameters to create one."
+                    raise Exception(err_msg)
+                modes = self.rom_parameters["ann_enhanced_settings"]["modes"].GetVector()
+                self.nn_rom_interface = NN_ROM_Interface.FromNumpyFiles(self.rom_basis_output_folder, modes)
 
             solver_type = self.project_parameters["solver_settings"]["solver_type"].GetString()
 
@@ -316,9 +322,9 @@ def CreateRomAnalysisInstance(cls, global_model, parameters, nn_rom_interface=No
             if self.ann_enhanced:
                 computing_model_part = self._GetSolver().GetComputingModelPart().GetRootModelPart()
 
-                NNLayers=nn_rom_interface.get_NN_layers()
-                SVDPhiMatrices=nn_rom_interface.get_phi_matrices()
-                refSnapshot=nn_rom_interface.get_ref_snapshot()
+                NNLayers=self.nn_rom_interface.get_NN_layers()
+                SVDPhiMatrices=self.nn_rom_interface.get_phi_matrices()
+                refSnapshot=self.nn_rom_interface.get_ref_snapshot()
                 numberOfROMModes = SVDPhiMatrices[0].Size2()
                 self._GetSolver()._GetBuilderAndSolver().SetNumberOfROMModes(numberOfROMModes)
                 self._GetSolver()._GetBuilderAndSolver().SetDecoderParameters(computing_model_part, len(NNLayers), SVDPhiMatrices[0], SVDPhiMatrices[1], SVDPhiMatrices[2], refSnapshot)
@@ -342,7 +348,7 @@ def CreateRomAnalysisInstance(cls, global_model, parameters, nn_rom_interface=No
                 s_default = np.asarray(s)
                 print(s_default.shape)
 
-                q, _ = nn_rom_interface.get_encode_function()(s_default)
+                q, _ = self.nn_rom_interface.get_encode_function()(s_default)
                 q = np.squeeze(q, axis=0)
                 print(q.shape)
 

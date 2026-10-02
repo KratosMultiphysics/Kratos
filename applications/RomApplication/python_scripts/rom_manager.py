@@ -1,6 +1,7 @@
 import numpy as np
 import importlib
 import json
+import shutil
 from pathlib import Path
 import types
 import KratosMultiphysics
@@ -300,6 +301,48 @@ class RomManager(object):
             err_msg = f'Provided projection strategy {chosen_projection_strategy} is not supported. Available options are \'galerkin\', \'lspg\' and \'petrov_galerkin\'.'
             raise Exception(err_msg)
         self._LaunchRunHROM(mu_run, use_full_model_part,nn_rom_interface)
+
+
+    def ExportAnnEnhancedRom(self, mu_train=[None], export_folder="rom_data_standalone"):
+        """
+        Exports the ANN-enhanced ROM trained with 'mu_train' to a folder that can be run without the RomManager and its database.
+        The exported folder replaces the ROM folder (default 'rom_data') of the case to be run standalone.
+        The HROM files are copied if they exist. Set 'run_hrom' to true in the exported RomParameters to use them.
+        """
+        if self.general_rom_manager_parameters["type_of_decoder"].GetString() != "ann_enhanced":
+            raise Exception("'ExportAnnEnhancedRom' requires 'type_of_decoder' to be 'ann_enhanced'.")
+        chosen_projection_strategy = self.general_rom_manager_parameters["projection_strategy"].GetString()
+        if chosen_projection_strategy == "galerkin":
+            simulation_to_run = "GalerkinROM_ANN"
+        elif chosen_projection_strategy == "lspg":
+            simulation_to_run = "lspg_ANN"
+        else:
+            raise Exception(f'ann_enhanced rom only available for Galerkin Rom and LSPG ROM, not for \'{chosen_projection_strategy}\'.')
+
+        # Write the RomParameters of the ANN-enhanced ROM in the ROM folder
+        self._LoadSolutionBasis(mu_train)
+        self._ChangeRomFlags(simulation_to_run = simulation_to_run)
+        nn_rom_interface = NN_ROM_Interface(mu_train, self.data_base)
+
+        rom_folder = Path(self.general_rom_manager_parameters["ROM"]["rom_basis_output_folder"].GetString())
+        rom_parameters_file_name = Path(self.general_rom_manager_parameters["ROM"]["rom_basis_output_name"].GetString()).with_suffix('.json')
+        export_folder = Path(export_folder)
+        export_folder.mkdir(parents=True, exist_ok=True)
+
+        # Files read by NN_ROM_Interface.FromNumpyFiles
+        np.save(export_folder / "RightBasisMatrix.npy", nn_rom_interface.phi[:, :nn_rom_interface.n_sup])
+        np.save(export_folder / "SingularValues.npy", nn_rom_interface.sigma[:nn_rom_interface.n_sup])
+        shutil.copy(nn_rom_interface.network_weights_path, export_folder / "model_weights.npy")
+        for file_name in ["NodeIds.npy", "HROM_ElementIds.npy", "HROM_ElementWeights.npy", "HROM_ConditionIds.npy", "HROM_ConditionWeights.npy"]:
+            if (rom_folder / file_name).exists():
+                shutil.copy(rom_folder / file_name, export_folder / file_name)
+
+        with open(rom_folder / rom_parameters_file_name, 'r') as parameter_file:
+            rom_parameters = json.load(parameter_file)
+        rom_parameters["rom_manager"] = False
+        rom_parameters["ann_enhanced_settings"] = {"modes" : [nn_rom_interface.n_inf, nn_rom_interface.n_sup]}
+        with open(export_folder / rom_parameters_file_name, 'w') as parameter_file:
+            json.dump(rom_parameters, parameter_file, indent=4)
 
 
 
