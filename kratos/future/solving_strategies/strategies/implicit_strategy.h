@@ -123,7 +123,7 @@ public:
      * @brief Default constructor
      * @param rModelPart The model part of the problem
      * @param pScheme The integration scheme
-     * @param pNewLinearSolver The linear solver employed
+     * @param pLinearSolver The linear solver employed
      * @param CalculateReactionFlag The flag for the reaction calculation
      * @param ReformDofSetAtEachStep The flag that allows to compute the modification of the DOF
      * @param CalculateNormDxFlag The flag sets if the norm of Dx is computed
@@ -135,12 +135,14 @@ public:
         LinearSolverPointerType pLinearSolver,
         bool ComputeReactions = false,
         bool ReformDofSetAtEachStep = false,
+        bool ReformEffectiveDofSetAtEachStep = false,
         bool CalculateNormDxFlag = false,
         bool MoveMeshFlag = false)
         : Strategy(rModelPart, Parameters())
         , mpScheme(pScheme)
         , mpLinearSolver(pLinearSolver)
         , mReformDofsAtEachStep(ReformDofSetAtEachStep)
+        , mReformEffectiveDofsAtEachStep(ReformEffectiveDofSetAtEachStep)
         , mComputeReactions(ComputeReactions)
     {
         KRATOS_TRY
@@ -187,9 +189,6 @@ public:
         // Initialize scheme (this has to be done once)
         pGetScheme()->Initialize(mImplicitStrategyData);
 
-        // // Initialize linear solver
-        // pGetLinearSolver()->Initialize();
-
         KRATOS_CATCH("")
     }
 
@@ -216,6 +215,7 @@ public:
     bool SolveSolutionStep() override
     {
         KRATOS_ERROR << "\'ImplicitStategy\' does not implement \'SolveSolutionStep\'. Please call derived class." << std::endl;
+        return false;
     }
 
     void FinalizeSolutionStep() override
@@ -290,6 +290,7 @@ public:
             "move_mesh" : false,
             "compute_reactions" : false,
             "reform_dofs_at_each_step" : false,
+            "reform_effective_dofs_at_each_step" : false,
             "linear_solver_settings" : {},
             "scheme_settings" : {}
         })");
@@ -347,6 +348,15 @@ public:
     }
 
     /**
+     * @brief This method sets the flag mReformEffectiveDofsAtEachStep
+     * @param ReformEffectiveDofsAtEachStep The flag that indicates if the effective DOF set is reformed at each step
+     */
+    void SetReformEffectiveDofsAtEachStep(const bool ReformEffectiveDofsAtEachStep)
+    {
+        mReformEffectiveDofsAtEachStep = ReformEffectiveDofsAtEachStep;
+    }
+
+    /**
      * @brief This method sets the flag mStiffnessMatrixIsBuilt
      * @param StiffnessMatrixIsBuilt The flag that indicates if the stiffness matrix is built
      */
@@ -390,105 +400,6 @@ public:
     {
         return mpLinearSolver;
     }
-
-    // /**
-    //  * @brief This method returns the LHS matrix
-    //  * @return The LHS matrix
-    //  */
-    // SystemMatrixType& GetSystemMatrix()
-    // {
-    //     return *mpA;
-    // }
-
-    // /**
-    //  * @brief This method returns the LHS matrix
-    //  * @return The LHS matrix
-    //  */
-    // typename SystemMatrixType::Pointer pGetSystemMatrix()
-    // {
-    //     return mpA;
-    // }
-
-    // /**
-    //  * @brief This method returns the effective LHS matrix
-    //  * @return The effective LHS matrix
-    //  */
-    // SystemMatrixPointerType pGetEffectiveSystemMatrix()
-    // {
-    //     return mpEffectiveLhs;
-    // }
-
-    // /**
-    //  * @brief This method returns the RHS vector
-    //  * @return The RHS vector
-    //  */
-    // SystemVectorType& GetSystemVector()
-    // {
-    //     return *mpb;
-    // }
-
-    // /**
-    //  * @brief This method returns the RHS vector
-    //  * @return The RHS vector
-    //  */
-    // typename SystemVectorType::Pointer pGetSystemVector()
-    // {
-    //     return mpb;
-    // }
-
-    // /**
-    //  * @brief This method returns the effective RHS vector
-    //  * @return The effective RHS vector
-    //  */
-    // typename TSystemVectorType::Pointer pGetEffectiveSystemVector()
-    // {
-    //     return mpEffectiveRhs;
-    // }
-
-    // /**
-    //  * @brief This method returns the constraints constant vector (i.e., b)
-    //  * @return Pointer to the constaints constant vector
-    //  */
-    // SystemVectorType& GetConstraintsConstantVector()
-    // {
-    //     return mConstraintsConstantVector;
-    // }
-
-    // /**
-    //  * @brief This method returns the constraints relation matrix (i.e., T)
-    //  * @return Pointer to the constraints relation matrix
-    //  */
-    // SystemMatrixType& GetConstraintsRelationMatrix()
-    // {
-    //     return mConstraintsRelationMatrix;
-    // }
-
-    // /**
-    //  * @brief This method returns the solution vector
-    //  * @return The Dx vector
-    //  */
-    // SystemVectorType& GetSolutionVector()
-    // {
-    //     return *mpdx;
-    // }
-
-    // /**
-    //  * @brief This method returns the solution vector
-    //  * @return The Dx vector
-    //  */
-    // typename SystemVectorType::Pointer pGetSolutionVector()
-    // {
-    //     return mpdx;
-    // }
-
-    // /**
-    //  * @brief This method returns the effective solution vector
-    //  * @return The effective Dx vector
-    //  */
-    // typename SystemVectorType::Pointer pGetEffectiveSolutionVector()
-    // {
-    //     return mpEffectiveDx;
-    // }
 
     ImplicitStrategyDataType& GetImplicitStrategyData()
     {
@@ -568,6 +479,15 @@ public:
     }
 
     /**
+     * @brief This method returns the flag mReformEffectiveDofsAtEachStep
+     * @return The flag that indicates if the effective DOF set is reformed at each step
+     */
+    bool GetReformEffectiveDofsAtEachStep() const
+    {
+        return mReformEffectiveDofsAtEachStep;
+    }
+
+    /**
      * @brief This method returns the flag mStiffnessMatrixIsBuilt
      * @return The flag that indicates if the stiffness matrix is built
      */
@@ -627,8 +547,6 @@ protected:
     ///@name Protected member Variables
     ///@{
 
-    LinearSolverPointerType mpLinearSystemSolver = nullptr; /// Pointer to the linear solver
-
     ///@}
     ///@name Protected Operators
     ///@{
@@ -641,15 +559,20 @@ protected:
      * @brief This method assigns settings to member variables
      * @param ThisParameters Parameters that are assigned to the member variables
      */
-    void AssignSettings(const Parameters ThisParameters)
+    virtual void AssignSettings(const Parameters ThisParameters)
     {
-        // BaseType::AssignSettings(ThisParameters); // TODO: Once we have a base class
         mEchoLevel = ThisParameters["echo_level"].GetInt();
         mComputeReactions = ThisParameters["compute_reactions"].GetBool();
         mReformDofsAtEachStep = ThisParameters["reform_dofs_at_each_step"].GetBool();
+        mReformEffectiveDofsAtEachStep = ThisParameters["reform_effective_dofs_at_each_step"].GetBool();
 
         // Saving the scheme
         if (ThisParameters["scheme_settings"].Has("name")) {
+            KRATOS_ERROR << "IMPLEMENTATION PENDING IN CONSTRUCTOR WITH PARAMETERS" << std::endl;
+        }
+
+        // Saving the linear solver
+        if (ThisParameters["linear_solver_settings"].Has("name")) {
             KRATOS_ERROR << "IMPLEMENTATION PENDING IN CONSTRUCTOR WITH PARAMETERS" << std::endl;
         }
     }
@@ -711,6 +634,8 @@ private:
     int mEchoLevel;
 
     bool mReformDofsAtEachStep = false;
+
+    bool mReformEffectiveDofsAtEachStep = false;
 
     bool mStiffnessMatrixIsBuilt = false;
 
