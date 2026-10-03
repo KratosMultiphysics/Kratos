@@ -12,6 +12,46 @@
 
 #pragma once
 
+#ifdef KRATOS_USE_EIGEN_BACKEND
+
+// System includes
+#include <complex>
+
+// External includes
+
+// Project includes
+#include "includes/define.h"
+#include "includes/default_interface.h"
+
+namespace Kratos
+{
+
+///@name Type Definitions
+///@{
+// The complex counterparts of the Eigen-backed real types (the same templates
+// instantiated on std::complex<double>).
+
+typedef DenseVector<std::complex<double>> ComplexVector;
+typedef unit_vector<std::complex<double>> ComplexUnitVector;
+typedef zero_vector<std::complex<double>> ComplexZeroVector;
+typedef scalar_vector<std::complex<double>> ComplexScalarVector;
+typedef vector_range<ComplexVector> ComplexVectorRange;
+typedef vector_slice<ComplexVector> ComplexVectorSlice;
+typedef DenseMatrix<std::complex<double>> ComplexMatrix;
+typedef identity_matrix<std::complex<double>> ComplexIdentityMatrix;
+typedef zero_matrix<std::complex<double>> ComplexZeroMatrix;
+typedef scalar_matrix<std::complex<double>> ComplexScalarMatrix;
+typedef EigenCompressedMatrix<std::complex<double>> ComplexCompressedMatrix;
+typedef matrix_row<ComplexMatrix> ComplexMatrixRow;
+typedef matrix_column<ComplexMatrix> ComplexMatrixColumn;
+typedef matrix_range<ComplexMatrix> ComplexMatrixRange;
+
+///@}
+
+}  // namespace Kratos.
+
+#else // uBLAS backend
+
 // System includes
 #include <string>
 #include <iostream>
@@ -75,3 +115,5 @@ typedef matrix_slice<ComplexMatrix> ComplexMatrixSlice;
 ///@}
 
 }  // namespace Kratos.
+
+#endif // KRATOS_USE_EIGEN_BACKEND

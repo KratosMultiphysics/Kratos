@@ -111,11 +111,11 @@ KRATOS_TEST_CASE_IN_SUITE(DataTypeTraitsVectorDouble, KratosCoreFastSuite)
     test = Vector(9, 2);
 
     Vector dummy(9, -1);
-    type_trait::CopyToContiguousData(dummy.data().begin(), test);
+    type_trait::CopyToContiguousData(&dummy.data()[0], test);
     KRATOS_EXPECT_VECTOR_EQ(dummy, test);
 
     dummy = Vector(9, -2);
-    type_trait::CopyFromContiguousData(dummy, test.data().begin());
+    type_trait::CopyFromContiguousData(dummy, &test.data()[0]);
     KRATOS_EXPECT_VECTOR_EQ(dummy, test);
 
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
@@ -156,11 +156,11 @@ KRATOS_TEST_CASE_IN_SUITE(DataTypeTraitsMatrixDouble, KratosCoreFastSuite)
     test = Matrix(4, 5, 2);
 
     Matrix dummy(4, 5);
-    type_trait::CopyToContiguousData(dummy.data().begin(), test);
+    type_trait::CopyToContiguousData(&dummy.data()[0], test);
     KRATOS_EXPECT_MATRIX_EQ(dummy, test);
 
     dummy = Matrix(4, 5, -2);
-    type_trait::CopyFromContiguousData(dummy, test.data().begin());
+    type_trait::CopyFromContiguousData(dummy, &test.data()[0]);
     KRATOS_EXPECT_MATRIX_EQ(dummy, test);
 
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(

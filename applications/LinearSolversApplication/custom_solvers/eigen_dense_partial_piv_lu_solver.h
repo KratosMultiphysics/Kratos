@@ -7,8 +7,7 @@
 //  Author: Quirin Aumann
 */
 
-#if !defined(KRATOS_EIGEN_DENSE_PARTIAL_PIV_LU_SOLVER_H_INCLUDED)
-#define KRATOS_EIGEN_DENSE_PARTIAL_PIV_LU_SOLVER_H_INCLUDED
+#pragma once
 
 // External includes
 #include <Eigen/LU>
@@ -73,5 +72,3 @@ public:
 };
 
 } // namespace Kratos
-
-#endif // defined(KRATOS_EIGEN_DENSE_PARTIAL_PIV_LU_SOLVER_H_INCLUDED)

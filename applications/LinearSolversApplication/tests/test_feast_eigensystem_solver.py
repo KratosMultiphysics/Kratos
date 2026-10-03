@@ -41,6 +41,7 @@ class TestFeastEigensystemSolver(KratosUnittest.TestCase):
         M = KratosMultiphysics.SparseMatrix(n, n)
         for i in range(n):
             M[i, i] = 1.0
+        M.Compress()
 
         # create result containers (they will be resized inside the solver)
         eigenvalues = KratosMultiphysics.Vector(n)
@@ -106,6 +107,7 @@ class TestFeastEigensystemSolver(KratosUnittest.TestCase):
         M = KratosMultiphysics.SparseMatrix(n, n)
         for i in range(n):
             M[i, i] = 1
+        M.Compress()
 
         # create result containers (they will be resized inside the solver)
         # eigenvalues and vectors of unsymmetric matrices are required to be real here
@@ -161,12 +163,14 @@ class TestFeastEigensystemSolver(KratosUnittest.TestCase):
         K = KratosMultiphysics.SparseMatrix(2,2)
         K[0,0] = 1/sqrt(2)
         K[1,1] = 1
+        K.Compress()
 
         n = K.Size1()
 
         M = KratosMultiphysics.SparseMatrix(n, n)
         M[0,1] = 1
         M[1,0] = -1/sqrt(2)
+        M.Compress()
 
         # create result containers
         eigenvalues = KratosMultiphysics.ComplexVector(n)

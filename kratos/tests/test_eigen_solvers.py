@@ -17,19 +17,22 @@ class TestEigenSolvers(KratosUnittest.TestCase):
             self._auxiliary_test_function(settings, "auxiliar_files_for_python_unittest/sparse_matrix_files/A.mm", eigen_value_estimated)
 
     def _auxiliary_test_function(self, settings, matrix_name="auxiliar_files_for_python_unittest/sparse_matrix_files/A.mm", eigen_value_estimated = "lowest"):
-        space = KratosMultiphysics.UblasSparseSpace()
+        # SparseSpace/SparseMatrix are backend-agnostic aliases resolving to the
+        # active linear-algebra backend's system types
+        space = KratosMultiphysics.SparseSpace()
 
         # Read the matrices
-        K = KratosMultiphysics.CompressedMatrix()
+        K = KratosMultiphysics.SparseMatrix()
         KratosMultiphysics.ReadMatrixMarketMatrix(GetFilePath(matrix_name),K)
 
         n = K.Size1()
-        M = KratosMultiphysics.CompressedMatrix(n, n)
+        M = KratosMultiphysics.SparseMatrix(n, n)
 
         for i in range(n):
-            for j in range(n):
-                if (i == j):
-                    M[i, j] = 1.0
+            M[i, i] = 1.0
+        # Finalize the storage after element insertion (required by the eigen
+        # backend matrix, harmless for uBLAS)
+        M.Compress()
 
         # create result containers (they will be resized inside the solver)
         eigenvalues = KratosMultiphysics.Vector(n)

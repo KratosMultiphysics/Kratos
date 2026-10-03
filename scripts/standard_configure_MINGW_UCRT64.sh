@@ -59,7 +59,8 @@ cmake ..                                                                        
 -DCMAKE_POLICY_VERSION_MINIMUM=3.5                                                                  \
 -DKRATOS_BUILD_TESTING=ON                                                                           \
 -DKRATOS_SHARED_MEMORY_PARALLELIZATION="${KRATOS_SHARED_MEMORY_PARALLELIZATION}"                    \
--DUSE_EIGEN_MKL=OFF
+-DUSE_EIGEN_MKL=OFF                                                                                 \
+-DKRATOS_LINEAR_ALGEBRA_BACKEND="ublas"
 
 # Build
 cmake --build "${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" --target install -- -j$(nproc)

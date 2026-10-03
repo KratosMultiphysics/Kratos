@@ -14,7 +14,8 @@
 
 // Project includes
 #include "solving_strategies/schemes/scheme.h" // Scheme
-#include "spaces/ublas_space.h" // TUblasSparseSpace
+#include "spaces/ublas_space.h" // TDefaultSparseSpace
+#include "spaces/default_spaces.h"
 #include "utilities/profiler.h" // KRATOS_PROFILE_SCOPE
 
 // System includes
@@ -77,8 +78,8 @@ namespace Kratos {
  */
 template <class TValue>
 static void
-InPlaceMatrixAdd(typename TUblasSparseSpace<TValue>::MatrixType& rLeft,
-                 const typename TUblasSparseSpace<TValue>::MatrixType& rRight,
+InPlaceMatrixAdd(typename TDefaultSparseSpace<TValue>::MatrixType& rLeft,
+                 const typename TDefaultSparseSpace<TValue>::MatrixType& rRight,
                  const TValue Coefficient = 1.0)
 {
     // Sanity checks.
@@ -137,10 +138,10 @@ InPlaceMatrixAdd(typename TUblasSparseSpace<TValue>::MatrixType& rLeft,
 /// @brief Compute the union of two sparse matrix' sparsity patterns.
 template <class TValue>
 static void
-MergeMatrices(typename TUblasSparseSpace<TValue>::MatrixType& rLeft,
-              const typename TUblasSparseSpace<TValue>::MatrixType& rRight)
+MergeMatrices(typename TDefaultSparseSpace<TValue>::MatrixType& rLeft,
+              const typename TDefaultSparseSpace<TValue>::MatrixType& rRight)
 {
-    using SpaceType = TUblasSparseSpace<TValue>;
+    using SpaceType = TDefaultSparseSpace<TValue>;
     using MatrixType = typename SpaceType::MatrixType;
     using IndexType = typename MatrixType::index_array_type::value_type;
     MatrixType output;
@@ -155,16 +156,6 @@ MergeMatrices(typename TUblasSparseSpace<TValue>::MatrixType& rLeft,
         << "(" << rRight.size1() << "x" << rRight.size2() << ")";
 
     if (!rRight.size1() || !rRight.size2() || !rRight.nnz()) return;
-
-    // Declare new containers for the merged matrix.
-    typename MatrixType::index_array_type row_extents(rLeft.index1_data().size());
-    typename MatrixType::index_array_type column_indices;
-    typename MatrixType::value_array_type values;
-    block_for_each(
-        row_extents,
-        [](typename MatrixType::index_array_type::value_type& r_item){
-            r_item = static_cast<TValue>(0);
-        });
 
     // Merge rows into separate containers.
     {
@@ -200,30 +191,37 @@ MergeMatrices(typename TUblasSparseSpace<TValue>::MatrixType& rLeft,
             rows[i_row].shrink_to_fit();
         }); // for i_row in range(rLeft.size1())
 
+        // Allocate the merged matrix and fill its CSR arrays in place
+        // (the Eigen backend cannot adopt external buffers, so this avoids
+        // building the arrays elsewhere and copying them in).
+        std::size_t entry_count = 0;
+        for (const auto& r_row : rows) entry_count += r_row.size();
+        output = MatrixType(rLeft.size1(), rLeft.size2(), entry_count);
+
+        auto&& r_row_extents = output.index1_data();
+        auto&& r_column_indices = output.index2_data();
+        auto&& r_values = output.value_data();
+
         // Compute new row extents.
-        for (IndexType i_row=0; i_row<rLeft.size1(); ++i_row) {
-            row_extents[i_row + 1] = row_extents[i_row] + rows[i_row].size();
+        r_row_extents[0] = 0;
+        for (std::size_t i_row=0; i_row<rLeft.size1(); ++i_row) {
+            r_row_extents[i_row + 1] = r_row_extents[i_row] + rows[i_row].size();
         } // for i_row in range(rLeft.size1)
 
         // Fill column indices and entries.
-        column_indices.resize(row_extents[rLeft.size1()], false);
-        values.resize(row_extents[rLeft.size1()], false);
-        IndexPartition<IndexType>(rLeft.size1()).for_each([&rows, &row_extents, &column_indices, &values](const IndexType i_row){
-            const IndexType i_begin = row_extents[i_row];
+        IndexPartition<IndexType>(rLeft.size1()).for_each([&rows, &r_row_extents, &r_column_indices, &r_values](const IndexType i_row){
+            const IndexType i_begin = r_row_extents[i_row];
             for (IndexType i_pair=0ul; i_pair<static_cast<IndexType>(rows[i_row].size()); ++i_pair) {
                 const auto i_entry = i_begin + i_pair;
-                column_indices[i_entry] = rows[i_row][i_pair].first;
-                values[i_entry] = rows[i_row][i_pair].second;
+                r_column_indices[i_entry] = rows[i_row][i_pair].first;
+                r_values[i_entry] = rows[i_row][i_pair].second;
             }
         }); // for i_row in range(rLeft.size1())
+
+        output.set_filled(output.size1() + 1, entry_count);
     }
 
-    // Construct the new matrix.
-    rLeft = MatrixType(rLeft.size1(), rLeft.size2(), column_indices.size());
-    rLeft.index1_data().swap(row_extents);
-    rLeft.index2_data().swap(column_indices);
-    rLeft.value_data().swap(values);
-    rLeft.set_filled(rLeft.size1() + 1, column_indices.size());
+    rLeft.swap(output);
 
     KRATOS_CATCH("")
 }
@@ -234,7 +232,7 @@ template <bool SortedRows,
           class TRowMapContainer>
 void MakeSparseTopology(TRowMapContainer& rRows,
                         const IndexType ColumnCount,
-                        typename TUblasSparseSpace<TValue>::MatrixType& rMatrix,
+                        typename TDefaultSparseSpace<TValue>::MatrixType& rMatrix,
                         bool EnsureDiagonal)
 {
     KRATOS_TRY
@@ -248,26 +246,22 @@ void MakeSparseTopology(TRowMapContainer& rRows,
     const IndexType row_count = rRows.size();
     IndexType entry_count = 0ul;
 
-    {
-        auto row_extents = rMatrix.index1_data();
+    // Collect the total number of entries to store.
+    for (IndexType i = 0; i < row_count; i++) {
+        entry_count += rRows[i].size();
+    } // for i in range(row_count)
 
-        // Resize row extents.
-        row_extents.resize(row_count + 1, false);
+    // Resize the output matrix and all its containers.
+    rMatrix = typename TDefaultSparseSpace<TValue>::MatrixType(rRows.size(), ColumnCount, entry_count);
 
-        // Fill row extents and collect the total number of entries to store.
-        row_extents[0] = 0;
-        for (int i = 0; i < static_cast<int>(row_count); i++) {
-            row_extents[i + 1] = row_extents[i] + rRows[i].size();
-            entry_count += rRows[i].size();
-        } // for i in range(row_count)
+    auto&& r_row_extents = rMatrix.index1_data();
+    auto&& r_column_indices = rMatrix.index2_data();
 
-        // Resize the output matrix and all its containers.
-        rMatrix = typename TUblasSparseSpace<TValue>::MatrixType(rRows.size(), ColumnCount, entry_count);
-        rMatrix.index1_data().swap(row_extents);
-    }
-
-    auto& r_row_extents = rMatrix.index1_data();
-    auto& r_column_indices = rMatrix.index2_data();
+    // Fill row extents in place.
+    r_row_extents[0] = 0;
+    for (IndexType i = 0; i < row_count; i++) {
+        r_row_extents[i + 1] = r_row_extents[i] + rRows[i].size();
+    } // for i in range(row_count)
 
     // Copy column indices.
     IndexPartition<IndexType>(row_count).for_each([&r_row_extents, &r_column_indices, &rRows](const IndexType i_row){
@@ -285,7 +279,10 @@ void MakeSparseTopology(TRowMapContainer& rRows,
     });
 
     KRATOS_TRY
-    block_for_each(rMatrix.value_data(), [](TValue& r_entry){r_entry=0;});
+    {
+        auto&& r_value_data = rMatrix.value_data();
+        block_for_each(r_value_data, [](TValue& r_entry){r_entry=0;});
+    }
     rMatrix.set_filled(row_count + 1, entry_count);
     KRATOS_CATCH("")
 
@@ -301,7 +298,7 @@ void MapRowContribution(typename TSparse::MatrixType& rLhs,
                         const IndexType iLocalRow,
                         const Element::EquationIdVectorType& rEquationIds) noexcept
 {
-    auto& r_entries = rLhs.value_data();
+    auto&& r_entries = rLhs.value_data();
     const auto& r_row_extents = rLhs.index1_data();
     const auto& r_column_indices = rLhs.index2_data();
 
@@ -476,7 +473,7 @@ void ApplyDirichletConditions(typename TSparse::MatrixType& rLhs,
         if (r_dof.IsFixed()) {
             // Zero out the whole row, except the diagonal.
             for (typename TSparse::IndexType i_entry=i_entry_begin; i_entry<i_entry_end; ++i_entry) {
-                const auto i_column = rLhs.index2_data()[i_entry];
+                const auto i_column = static_cast<typename TSparse::IndexType>(rLhs.index2_data()[i_entry]);
                 if (i_column == i_dof) {
                     found_diagonal = true;
                     rLhs.value_data()[i_entry] = DiagonalScaleFactor;
@@ -489,7 +486,7 @@ void ApplyDirichletConditions(typename TSparse::MatrixType& rLhs,
         } /*if r_dof.IsFixed()*/ else {
             // Zero out the column which is associated with the zero'ed row.
             for (typename TSparse::IndexType i_entry=i_entry_begin; i_entry<i_entry_end; ++i_entry) {
-                const auto i_column = rLhs.index2_data()[i_entry];
+                const auto i_column = static_cast<typename TSparse::IndexType>(rLhs.index2_data()[i_entry]);
                 const auto it_column_dof = itColumnDofBegin + i_column;
 
                 if (i_column == i_dof) {
@@ -566,13 +563,13 @@ struct MatrixChecks
 
 /// @internal
 template <class TValue, std::uint8_t Checks>
-void CheckMatrix(const typename TUblasSparseSpace<TValue>::MatrixType& rMatrix)
+void CheckMatrix(const typename TDefaultSparseSpace<TValue>::MatrixType& rMatrix)
 {
     if constexpr (Checks == MatrixChecks::None) return;
 
     KRATOS_ERROR_IF_NOT(rMatrix.size1() + 1 == rMatrix.index1_data().size())
         << "input matrix has inconsistent row extents";
-    KRATOS_ERROR_IF_NOT(rMatrix.index1_data()[rMatrix.size1()] == rMatrix.nnz())
+    KRATOS_ERROR_IF_NOT(static_cast<std::size_t>(rMatrix.index1_data()[rMatrix.size1()]) == static_cast<std::size_t>(rMatrix.nnz()))
         << "row extents of the input matrix do not consistently cover its contents";
 
     if constexpr (Checks & MatrixChecks::ColumnsAreSorted) {
@@ -667,6 +664,11 @@ void BalancedProduct(const typename TLHSSparse::MatrixType& rLhs,
 
     KRATOS_TRY
 
+    // The CSR column-index array is read through a pointer of its own element
+    // type (std::size_t for the uBLAS matrix, the signed StorageIndex for the
+    // Eigen one), not through the space's IndexType.
+    using ColumnIndexType = typename std::decay_t<decltype(rLhs.index2_data())>::value_type;
+
     // Create partition for entries in the matrix.
     const auto thread_count = ParallelUtilities::GetNumThreads();
     std::vector<typename TLHSSparse::IndexType> partition(thread_count + 1);
@@ -692,11 +694,11 @@ void BalancedProduct(const typename TLHSSparse::MatrixType& rLhs,
                                                          rLhs.index1_data().end(),                                                          \
                                                          static_cast<typename TLHSSparse::IndexType>(i_chunk_begin));                       \
             typename TLHSSparse::IndexType i_row = std::distance(rLhs.index1_data().begin(), it_initial_row);                               \
-            if (rLhs.index1_data()[i_row] != i_chunk_begin) --i_row;                                                                        \
+            if (static_cast<typename TLHSSparse::IndexType>(rLhs.index1_data()[i_row]) != i_chunk_begin) --i_row;                          \
                                                                                                                                             \
             do {                                                                                                                            \
-                const auto i_row_begin = rLhs.index1_data()[i_row];                                                                         \
-                const auto i_row_end = rLhs.index1_data()[i_row + 1];                                                                       \
+                const auto i_row_begin = static_cast<typename TLHSSparse::IndexType>(rLhs.index1_data()[i_row]);                            \
+                const auto i_row_end = static_cast<typename TLHSSparse::IndexType>(rLhs.index1_data()[i_row + 1]);                          \
                                                                                                                                             \
                 const auto i_begin = std::max(i_row_begin, i_chunk_begin);                                                                  \
                 const auto i_end = std::min(i_row_end, i_chunk_end);                                                                        \
@@ -704,7 +706,7 @@ void BalancedProduct(const typename TLHSSparse::MatrixType& rLhs,
                                                                                                                                             \
                 auto contribution = static_cast<typename TOutputSparse::DataType>(0);                                                       \
                                                                                                                                             \
-                KRATOS_GET_ALIGNED_INDEX_ARRAY(const typename TLHSSparse::IndexType*, it_column, &*(rLhs.index2_data().begin() + i_begin)); \
+                KRATOS_GET_ALIGNED_INDEX_ARRAY(const ColumnIndexType*, it_column, &*(rLhs.index2_data().begin() + i_begin)); \
                 KRATOS_GET_ALIGNED_INDEX_ARRAY(const typename TLHSSparse::DataType*, it_entry, &*(rLhs.value_data().begin() + i_begin));    \
                 KRATOS_GET_ALIGNED_INDEX_ARRAY(const typename TRHSSparse::DataType*, it_rhs, &*rRhs.begin());                               \
                                                                                                                                             \
