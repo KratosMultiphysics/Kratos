@@ -544,7 +544,7 @@ private:
      */
     static inline BoundedMatrix<double, TNumNodes, TDim> ComputeTangentMatrixSlip(const GeometryType& rGeometry)
     {
-        return MortarUtilities::ComputeTangentMatrix<TDim, TNumNodes>(rGeometry);
+        return MortarUtilities::ComputeTangentMatrix<TNumNodes, TDim>(rGeometry);
 //         return ContactUtilities::ComputeTangentMatrixSlip<TDim, TNumNodes>(rGeometry, StepSlip);
     }
 
