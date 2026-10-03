@@ -357,12 +357,13 @@ public:
         const GeometryType& rSlaveGeometry,
         const array_1d<double, 3>& rSlaveNormal,
         const GeometryType& rMasterGeometry,
+        const array_1d<double, 3>& rMasterNormal,
         DerivativeDataType& rDerivativeData,
         GeneralVariables& rVariables,
         const NormalDerivativesComputation ConsiderNormalVariation,
         ConditionArrayListType& rConditionsPointsSlave,
         GeometryData::IntegrationMethod ThisIntegrationMethod,
-        const double AxiSymCoeff = 1.0
+        const double AxiSymCoeff
         );
 
 private:

@@ -8,6 +8,7 @@
 //                   license: ContactStructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Vicente Mataix Ferrandiz
+//                   Alejandro Cornejo
 //
 
 // System includes
@@ -54,10 +55,32 @@ void InterfacePreprocessCondition::GenerateInterfacePart(
     IndexType cond_counter = 0;
 
     // Generate Conditions from original the edges that can be considered interface
-    if (rInterfacePart.Conditions().size() > 0) { // We use the already existant conditions geometry (recommended)
+    if (rInterfacePart.Conditions().size() > 0) { // We use the already existant conditions geometry
         cond_counter = rInterfacePart.Conditions().size();
         // Check and creates the properties
         CheckAndCreateProperties(rInterfacePart);
+
+    } else if (rInterfacePart.Geometries().size() > 0)  { // We use the geometries instead of conditions (current approach)
+
+        std::vector<std::size_t> condition_ids(rInterfacePart.Geometries().size());
+        std::unordered_map<IndexType, Properties::Pointer> new_properties;
+        new_properties = CreateNewProperties();
+        Properties::Pointer p_prop = new_properties[2];
+
+        IndexType cond_id = ReorderConditions();
+
+        for (auto& r_geometry : rInterfacePart.Geometries()) {
+            const IndexType number_of_points = r_geometry.PointsNumber();
+            const std::string condition_name = (number_of_points == 3) ? "SurfaceCondition3D3N" : (number_of_points == 4) ? "SurfaceCondition3D4N" : (number_of_points == 6) ? "SurfaceCondition3D6N" : (number_of_points == 8) ? "SurfaceCondition3D8N" : "SurfaceCondition3D9N";
+            const auto& r_condition = KratosComponents<Condition>::Get(condition_name);
+            cond_id++;
+            auto p_condition = CreateNewCondition(p_prop, r_geometry, cond_id, r_condition);
+            p_condition->Set(INTERFACE, true);
+            condition_ids[cond_counter] = cond_id;
+            cond_counter++;
+        }
+        rInterfacePart.AddConditions(condition_ids);
+
     } else if (rInterfacePart.Nodes().size() > 0) { // Only in case we have assigned the flag directly to nodes (no conditions)
         // We reorder the conditions
         IndexType cond_id = ReorderConditions();
@@ -265,7 +288,7 @@ std::unordered_map<IndexType, Properties::Pointer> InterfacePreprocessCondition:
 /***********************************************************************************/
 /***********************************************************************************/
 
-void InterfacePreprocessCondition::CreateNewCondition(
+Condition::Pointer InterfacePreprocessCondition::CreateNewCondition(
     Properties::Pointer pThisProperties,
     const GeometryType& rGeometry,
     const IndexType ConditionId,
@@ -277,6 +300,8 @@ void InterfacePreprocessCondition::CreateNewCondition(
     Condition::Pointer p_cond = Condition::Pointer(rCondition.Create(ConditionId, rGeometry.Points(), pThisProperties));
     mrMainModelPart.AddCondition(p_cond);
     AssignMasterSlaveCondition(p_cond);
+
+    return p_cond;
 
     KRATOS_CATCH("");
 }
@@ -504,29 +529,12 @@ inline void InterfacePreprocessCondition::GenerateFaceCondition(
 
                 rInterfacePart.AddConditions(condition_ids);
             } else {
-                // We initialize a vector for the IDs
-                std::vector<std::size_t> condition_ids(4);
-
-                Triangle3D3< Node > tri_1(rFaceGeometry(0), rFaceGeometry(1), rFaceGeometry(5));
-                CreateNewCondition(pThisProperties, tri_1, rConditionId, r_condition);
-                condition_ids[0] = rConditionId;
-                ++rCondCounter;
-                ++rConditionId;
-                Triangle3D3< Node > tri_2(rFaceGeometry(1), rFaceGeometry(2), rFaceGeometry(3));
-                CreateNewCondition(pThisProperties, tri_2, rConditionId, r_condition);
-                condition_ids[1] = rConditionId;
-                ++rCondCounter;
-                ++rConditionId;
-                Triangle3D3< Node > tri_3(rFaceGeometry(1), rFaceGeometry(3), rFaceGeometry(5));
-                CreateNewCondition(pThisProperties, tri_3, rConditionId, r_condition);
-                condition_ids[2] = rConditionId;
-                ++rCondCounter;
-                ++rConditionId;
-                Triangle3D3< Node > tri_4(rFaceGeometry(3), rFaceGeometry(4), rFaceGeometry(5));
+                std::vector<std::size_t> condition_ids(1);
+                Triangle3D3< Node > tri_4(rFaceGeometry(0), rFaceGeometry(1), rFaceGeometry(2));
                 CreateNewCondition(pThisProperties, tri_4, rConditionId, r_condition);
-                condition_ids[3] = rConditionId;
+                condition_ids[0] = rConditionId;
+                ++rConditionId;
                 ++rCondCounter;
-
                 rInterfacePart.AddConditions(condition_ids);
             }
         } else if (number_of_points == 8) {

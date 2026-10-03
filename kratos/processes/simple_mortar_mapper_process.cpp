@@ -430,7 +430,7 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::Asse
 
                 GeometryType::CoordinatesArrayType slave_gp_global;
                 rSlaveGeometry.GlobalCoordinates( slave_gp_global, local_point_parent );
-                GeometricalProjectionUtilities::FastProjectDirection( rMasterGeometry, gp_global, projected_gp_global, rMasterNormal, -gp_normal ); // The opposite direction
+                GeometricalProjectionUtilities::FastProjectDirection( rMasterGeometry, gp_global, projected_gp_global, gp_normal, rMasterNormal ); // The opposite direction
 
                 rMasterGeometry.PointLocalCoordinates(projected_gp_local, projected_gp_global.Coordinates( ) ) ;
 
