@@ -67,7 +67,8 @@ class SbmStokesTests(KratosUnittest.TestCase):
                             "name": "SbmFluidConditionDirichlet",
                             "shape_function_derivatives_order": 8, 
                             "sbm_parameters": {
-                                "is_inner" : false
+                                "is_inner" : false,
+                                "projection_type" : "linealized"
                             }
                         }
                     ] // element condition list

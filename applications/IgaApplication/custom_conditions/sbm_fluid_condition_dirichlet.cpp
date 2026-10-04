@@ -17,6 +17,7 @@
 
 // Project includes
 #include "custom_conditions/sbm_fluid_condition_dirichlet.h"
+#include "includes/global_pointer_variables.h"
 
 namespace Kratos
 {
@@ -256,21 +257,28 @@ void SbmFluidConditionDirichlet::InitializeSbmMemberVariables()
     const auto& r_geometry = this->GetGeometry();
     const std::size_t number_of_nodes = r_geometry.size();
 
-    // Retrieve projection
-    Condition candidate_closest_skin_segment_1 = this->GetValue(NEIGHBOUR_CONDITIONS)[0] ;
-    // Find the closest node in condition
-    IndexType closestNodeId = 0;
-    if (mDim > 2) {
-        double incumbent_dist = 1e16;
-        // Loop over the three nodes of the closest skin element
-        for (IndexType i = 0; i < 3; ++i) {
-            if (norm_2(candidate_closest_skin_segment_1.GetGeometry()[i]-r_geometry.Center()) < incumbent_dist) {
-                incumbent_dist = norm_2(candidate_closest_skin_segment_1.GetGeometry()[i]-r_geometry.Center());
-                closestNodeId = i;
+    if (this->Has(NEIGHBOUR_NODES) && !this->Has(NEIGHBOUR_CONDITIONS)) {
+        auto& r_projection_nodes = this->GetValue(NEIGHBOUR_NODES);
+        KRATOS_ERROR_IF(r_projection_nodes.size() != 1)
+            << "Expected one projection node in condition #" << Id() << std::endl;
+        mpProjectionNode = &r_projection_nodes[0];
+    } else {
+        // Retrieve projection from the legacy skin conditions.
+        Condition candidate_closest_skin_segment_1 = this->GetValue(NEIGHBOUR_CONDITIONS)[0] ;
+        // Find the closest node in condition
+        IndexType closestNodeId = 0;
+        if (mDim > 2) {
+            double incumbent_dist = 1e16;
+            // Loop over the three nodes of the closest skin element
+            for (IndexType i = 0; i < 3; ++i) {
+                if (norm_2(candidate_closest_skin_segment_1.GetGeometry()[i]-r_geometry.Center()) < incumbent_dist) {
+                    incumbent_dist = norm_2(candidate_closest_skin_segment_1.GetGeometry()[i]-r_geometry.Center());
+                    closestNodeId = i;
+                }
             }
         }
+        mpProjectionNode = &candidate_closest_skin_segment_1.GetGeometry()[closestNodeId] ;
     }
-    mpProjectionNode = &candidate_closest_skin_segment_1.GetGeometry()[closestNodeId] ;
 
     mDistanceVector.resize(3);
     noalias(mDistanceVector) = mpProjectionNode->Coordinates() - r_geometry.Center().Coordinates();
