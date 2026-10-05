@@ -141,17 +141,6 @@ class TestCoupledFluidThermalRom(KratosUnittest.TestCase):
 
             self.assertLess(rom_manager.ROMvsFOM["Fit"], 1.0e-2)
 
-    def testCoupledAnnEnhancedHromNotAvailable(self):
-        self.work_folder = "coupled_fluid_thermal_test_files"
-        project_parameters_name = str(Path(__file__).parent / "coupled_fluid_thermal_test_files/ProjectParameters.json")
-        general_rom_manager_parameters = self._GetAnnEnhancedRomManagerParameters()
-        general_rom_manager_parameters["rom_stages_to_train"].SetStringArray(["ROM", "HROM"])
-        with KratosUnittest.WorkFolderScope(self.work_folder, __file__):
-            self.addCleanup(kratos_utilities.DeleteDirectoryIfExisting, str(Path(__file__).parent / "coupled_fluid_thermal_test_files/rom_data"))
-            rom_manager = RomManager(project_parameters_name=project_parameters_name, general_rom_manager_parameters=general_rom_manager_parameters)
-            with self.assertRaisesRegex(Exception, "HROM is not available yet for coupled solvers with ann_enhanced decoders"):
-                rom_manager.Fit()
-
     def _GetAnnEnhancedRomManagerParameters(self):
         return KratosMultiphysics.Parameters("""{
             "rom_stages_to_train": ["ROM"],

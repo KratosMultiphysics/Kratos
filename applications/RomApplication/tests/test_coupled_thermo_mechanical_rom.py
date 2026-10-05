@@ -32,6 +32,11 @@ class TestCoupledThermoMechanicalRom(KratosUnittest.TestCase):
         self.work_folder = "coupled_thermo_mechanical_test_files/ROM_ANN/"
         self._RunAndCheck("ExpectedOutputCoupledROM_ANN.npy")
 
+    def testCoupledThermoMechanicalAnnEnhancedHRom2D(self):
+        # ANN-enhanced HROM run without the RomManager: one set of HROM weights per coupled solver
+        self.work_folder = "coupled_thermo_mechanical_test_files/HROM_ANN/"
+        self._RunAndCheck("ExpectedOutputCoupledHROM_ANN.npy")
+
     def _GetProjectParameters(self):
         # The problem (parameters, mdpa and materials) is the thermo-mechanical test of the ConvectionDiffusionApplication.
         # Its paths are relative to the tests folder of that application, so they are made absolute

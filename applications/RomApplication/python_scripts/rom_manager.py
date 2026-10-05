@@ -42,7 +42,6 @@ class RomManager(object):
         chosen_projection_strategy = self.general_rom_manager_parameters["projection_strategy"].GetString()
         training_stages = self.general_rom_manager_parameters["rom_stages_to_train"].GetStringArray()
         type_of_decoder = self.general_rom_manager_parameters["type_of_decoder"].GetString()
-        self._CheckHromIsAvailable(training_stages)
         #######################
         ######  Galerkin ######
         if chosen_projection_strategy == "galerkin":
@@ -152,7 +151,6 @@ class RomManager(object):
         chosen_projection_strategy = self.general_rom_manager_parameters["projection_strategy"].GetString()
         testing_stages = self.general_rom_manager_parameters["rom_stages_to_test"].GetStringArray()
         type_of_decoder = self.general_rom_manager_parameters["type_of_decoder"].GetString()
-        self._CheckHromIsAvailable(testing_stages)
 
         #######################
         ######  Galerkin ######
@@ -274,7 +272,6 @@ class RomManager(object):
         chosen_projection_strategy = self.general_rom_manager_parameters["projection_strategy"].GetString()
         type_of_decoder = self.general_rom_manager_parameters["type_of_decoder"].GetString()
         nn_rom_interface = None
-        self._CheckHromIsAvailable(["HROM"])
         self._LoadSolutionBasis(mu_train)
         #######################
         ######  Galerkin ######
@@ -1104,10 +1101,6 @@ class RomManager(object):
         positions = np.array([all_nodal_unknowns.index(name) for name in sorted(coupled_solver["ROM"]["nodal_unknowns"].GetStringArray())])
         number_of_nodes = number_of_rows // len(all_nodal_unknowns)
         return (np.arange(number_of_nodes)[:, None] * len(all_nodal_unknowns) + positions).ravel()
-
-    def _CheckHromIsAvailable(self, stages):
-        if "HROM" in stages and self._UsesSegregatedBases():
-            raise Exception("HROM is not available yet for coupled solvers with ann_enhanced decoders.")
 
     def _GetResidualsProjectedOutputSettings(self):
         """Returns the (sub_solver_name, model_part_name, output folder) of each ProjectedResidualsOutputProcess: one per coupled sub-solver, or one for the solver."""
