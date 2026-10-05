@@ -76,8 +76,8 @@ KRATOS_TEST_CASE_IN_SUITE(InitializeNewmarkUPwScheme_SetsTimeFactors, KratosGeoM
     NewmarkQuasistaticUPwSchemeTester tester;
 
     SparseSpaceType::MatrixType A;
-    SparseSpaceType::VectorType           Dx;
-    SparseSpaceType::VectorType           b;
+    SparseSpaceType::VectorType Dx;
+    SparseSpaceType::VectorType b;
 
     tester.mScheme.Initialize(tester.GetModelPart());
 
@@ -98,10 +98,10 @@ KRATOS_TEST_CASE_IN_SUITE(NewmarkUPwSchemePredict_UpdatesVariablesDerivatives, K
 {
     NewmarkQuasistaticUPwSchemeTester tester;
 
-    ModelPart::DofsArrayType dof_set;
-    SparseSpaceType::MatrixType         A;
-    SparseSpaceType::VectorType                   Dx;
-    SparseSpaceType::VectorType                   b;
+    ModelPart::DofsArrayType    dof_set;
+    SparseSpaceType::MatrixType A;
+    SparseSpaceType::VectorType Dx;
+    SparseSpaceType::VectorType b;
 
     tester.mScheme.InitializeSolutionStep(tester.GetModelPart(), A, Dx, b); // This is needed to set the time factors
 

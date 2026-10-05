@@ -101,8 +101,8 @@ TEST_P(LoadSteppingSchemeElementRightHandSideScaling, RightHandSideIsCalculatedB
     auto& model_part = model.CreateModelPart("Main");
     model_part.AddElement(element);
     SparseSpaceType::MatrixType A;
-    SparseSpaceType::VectorType           Dx;
-    SparseSpaceType::VectorType           b;
+    SparseSpaceType::VectorType Dx;
+    SparseSpaceType::VectorType b;
     scheme.InitializeSolutionStep(model_part, A, Dx, b);
 
     element->SetInternalForces(UblasUtilities::CreateVector({2.0, 3.0, 4.0, 5.0}));

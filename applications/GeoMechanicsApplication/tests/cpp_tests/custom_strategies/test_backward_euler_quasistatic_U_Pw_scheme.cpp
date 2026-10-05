@@ -76,8 +76,8 @@ KRATOS_TEST_CASE_IN_SUITE(InitializeBackwardEulerUPwScheme_SetsTimeFactors, Krat
     KRATOS_EXPECT_TRUE(tester.mScheme.SchemeIsInitialized())
 
     SparseSpaceType::MatrixType A;
-    SparseSpaceType::VectorType           Dx;
-    SparseSpaceType::VectorType           b;
+    SparseSpaceType::VectorType Dx;
+    SparseSpaceType::VectorType b;
     tester.mScheme.InitializeSolutionStep(tester.GetModelPart(), A, Dx, b); // This is needed to set the time factors
 
     KRATOS_EXPECT_DOUBLE_EQ(tester.GetModelPart().GetProcessInfo()[DT_PRESSURE_COEFFICIENT],
@@ -90,10 +90,10 @@ KRATOS_TEST_CASE_IN_SUITE(BackwardEulerUPwSchemePredict_UpdatesVariablesDerivati
 {
     BackwardEulerQuasiStaticUPwSchemeTester tester;
 
-    ModelPart::DofsArrayType dof_set;
-    SparseSpaceType::MatrixType         A;
-    SparseSpaceType::VectorType                   Dx;
-    SparseSpaceType::VectorType                   b;
+    ModelPart::DofsArrayType    dof_set;
+    SparseSpaceType::MatrixType A;
+    SparseSpaceType::VectorType Dx;
+    SparseSpaceType::VectorType b;
 
     tester.mScheme.InitializeSolutionStep(tester.GetModelPart(), A, Dx, b); // This is needed to set the time factors
 
@@ -109,10 +109,10 @@ KRATOS_TEST_CASE_IN_SUITE(BackwardEulerUPwSchemePredict_UpdatesVariablesDerivati
 {
     BackwardEulerQuasiStaticUPwSchemeTester tester;
 
-    ModelPart::DofsArrayType dof_set;
-    SparseSpaceType::MatrixType         A;
-    SparseSpaceType::VectorType                   Dx;
-    SparseSpaceType::VectorType                   b;
+    ModelPart::DofsArrayType    dof_set;
+    SparseSpaceType::MatrixType A;
+    SparseSpaceType::VectorType Dx;
+    SparseSpaceType::VectorType b;
 
     tester.mScheme.InitializeSolutionStep(tester.GetModelPart(), A, Dx, b); // This is needed to set the time factors
 
@@ -135,10 +135,10 @@ KRATOS_TEST_CASE_IN_SUITE(BackwardEulerUPwSchemeUpdate_DoesNotUpdateFixedScalarV
 {
     BackwardEulerQuasiStaticUPwSchemeTester tester;
 
-    ModelPart::DofsArrayType dof_set;
-    SparseSpaceType::MatrixType         A;
-    SparseSpaceType::VectorType                   Dx;
-    SparseSpaceType::VectorType                   b;
+    ModelPart::DofsArrayType    dof_set;
+    SparseSpaceType::MatrixType A;
+    SparseSpaceType::VectorType Dx;
+    SparseSpaceType::VectorType b;
 
     tester.mScheme.InitializeSolutionStep(tester.GetModelPart(), A, Dx, b); // This is needed to set the time factors
 

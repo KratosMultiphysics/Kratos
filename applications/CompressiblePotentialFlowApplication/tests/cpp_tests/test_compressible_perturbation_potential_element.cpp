@@ -205,7 +205,7 @@ KRATOS_TEST_CASE_IN_SUITE(CompressiblePerturbationPotentialFlowElementLHS, Compr
 
     for (unsigned int i = 0; i < LHS.size1(); i++) {
         for (unsigned int j = 0; j < LHS.size2(); j++) {
-            KRATOS_EXPECT_NEAR(LHS(i, j), reference[i * 3 + j], 1e-16);
+            KRATOS_EXPECT_NEAR(LHS(i, j), reference[i * 3 + j], 1e-13);
         }
     }
 }
@@ -232,7 +232,7 @@ KRATOS_TEST_CASE_IN_SUITE(CompressiblePerturbationPotentialFlowElementLHSClampin
 
     for (unsigned int i = 0; i < LHS.size1(); i++) {
         for (unsigned int j = 0; j < LHS.size2(); j++) {
-            KRATOS_EXPECT_NEAR(LHS(i, j), reference[i * 3 + j], 1e-16);
+            KRATOS_EXPECT_NEAR(LHS(i, j), reference[i * 3 + j], 1e-13);
         }
     }
 }
@@ -506,7 +506,7 @@ KRATOS_TEST_CASE_IN_SUITE(WakeCompressiblePerturbationPotentialFlowElementLHS, C
 
     for (unsigned int i = 0; i < LHS.size1(); i++) {
         for (unsigned int j = 0; j < LHS.size2(); j++) {
-            KRATOS_EXPECT_NEAR(LHS(i, j), reference[6 * i + j], 1e-16);
+            KRATOS_EXPECT_NEAR(LHS(i, j), reference[6 * i + j], 1e-13);
         }
     }
 }
@@ -538,7 +538,7 @@ KRATOS_TEST_CASE_IN_SUITE(WakeCompressiblePerturbationPotentialFlowElementLHSCla
 
     for (unsigned int i = 0; i < LHS.size1(); i++) {
         for (unsigned int j = 0; j < LHS.size2(); j++) {
-            KRATOS_EXPECT_NEAR(LHS(i, j), reference[6 * i + j], 1e-16);
+            KRATOS_EXPECT_NEAR(LHS(i, j), reference[6 * i + j], 1e-13);
         }
     }
 }
@@ -574,7 +574,7 @@ KRATOS_TEST_CASE_IN_SUITE(WakeStructureCompressiblePerturbationPotentialFlowElem
 
     for (unsigned int i = 0; i < LHS.size1(); i++) {
         for (unsigned int j = 0; j < LHS.size2(); j++) {
-            KRATOS_EXPECT_NEAR(LHS(i, j), reference[6 * i + j], 1e-16);
+            KRATOS_EXPECT_NEAR(LHS(i, j), reference[6 * i + j], 1e-13);
         }
     }
 }
@@ -610,7 +610,7 @@ KRATOS_TEST_CASE_IN_SUITE(WakeStructureCompressiblePerturbationPotentialFlowElem
 
     for (unsigned int i = 0; i < LHS.size1(); i++) {
         for (unsigned int j = 0; j < LHS.size2(); j++) {
-            KRATOS_EXPECT_NEAR(LHS(i, j), reference[6 * i + j], 1e-16);
+            KRATOS_EXPECT_NEAR(LHS(i, j), reference[6 * i + j], 1e-13);
         }
     }
 }

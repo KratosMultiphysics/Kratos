@@ -45,10 +45,10 @@ KRATOS_TEST_CASE_IN_SUITE(BackwardEulerTScheme_UpdatesVariablesDerivatives_WhenP
 
     KRATOS_EXPECT_DOUBLE_EQ(p_node->FastGetSolutionStepValue(DT_TEMPERATURE, 0), 0.0);
 
-    ModelPart::DofsArrayType dof_set;
-    SparseSpaceType::MatrixType         A;
-    SparseSpaceType::VectorType                   Dx;
-    SparseSpaceType::VectorType                   b;
+    ModelPart::DofsArrayType    dof_set;
+    SparseSpaceType::MatrixType A;
+    SparseSpaceType::VectorType Dx;
+    SparseSpaceType::VectorType b;
 
     scheme.InitializeSolutionStep(model_part, A, Dx, b); // This is needed to set the time factors
 
@@ -76,8 +76,8 @@ KRATOS_TEST_CASE_IN_SUITE(InitializeBackwardEulerTScheme_SetsTimeFactors, Kratos
     KRATOS_EXPECT_TRUE(scheme.SchemeIsInitialized())
 
     SparseSpaceType::MatrixType A;
-    SparseSpaceType::VectorType           Dx;
-    SparseSpaceType::VectorType           b;
+    SparseSpaceType::VectorType Dx;
+    SparseSpaceType::VectorType b;
     scheme.InitializeSolutionStep(model_part, A, Dx, b); // This is needed to set the time factors
 
     KRATOS_EXPECT_DOUBLE_EQ(model_part.GetProcessInfo()[DT_TEMPERATURE_COEFFICIENT], 1.0 / delta_time);
