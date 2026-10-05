@@ -116,7 +116,14 @@ SnakeGapSbmProcess::ProjectionResult SnakeGapSbmProcess::ComputeSingleProjection
 
 SnakeGapSbmProcess::SnakeGapSbmProcess(
     Model& rModel, Parameters ThisParameters) : 
-    SnakeSbmProcess(rModel, ThisParameters)
+    SnakeSbmProcess(
+        rModel,
+        // Reject user-defined lambdas before the base constructor adds their default values.
+        (ThisParameters.Has("lambda_inner") || ThisParameters.Has("lambda_outer"))
+            ? KRATOS_ERROR << "[SnakeGapSbmProcess]: \"lambda_inner\" and \"lambda_outer\" "
+                           << "must not be provided in ProjectParameters. GapSBM assigns these "
+                           << "values internally." << std::endl
+            : ThisParameters)
 {
     
     KRATOS_ERROR_IF_NOT(ThisParameters.Has("gap_element_name")) << "::[SnakeGapSbmProcess]::" 
@@ -3343,8 +3350,6 @@ const Parameters SnakeGapSbmProcess::GetValidParameters() const
         "gap_relative_tolerance_for_subdivisions": 0.1,
         "number_of_interpolation_levels": 3,
         "gap_sbm_type": "default",
-        "lambda_inner" : 0.0,
-        "lambda_outer" : 1.0,
         "skin_model_part_outer_initial_name": "initial_skin_model_part_out",    
         "skin_model_part_inner_initial_name": "initial_skin_model_part_in",           
         "skin_model_part_name": "skin_model_part",

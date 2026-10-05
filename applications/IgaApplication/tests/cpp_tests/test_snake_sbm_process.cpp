@@ -13,6 +13,7 @@
 // Project includes
 #include "containers/model.h"
 #include "testing/testing.h"
+#include "custom_processes/snake_gap_sbm_process.h"
 #include "custom_processes/snake_sbm_process.h"
 #include "includes/kratos_parameters.h"
 #include "iga_application_variables.h"
@@ -20,6 +21,35 @@
 
 namespace Kratos::Testing
 {
+KRATOS_TEST_CASE_IN_SUITE(SnakeGapSbmProcessRejectsBothLambdas, KratosIgaFastSuite)
+{
+    Model model;
+    Parameters snake_parameters(R"({"lambda_inner": 0.0, "lambda_outer": 1.0})");
+
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        SnakeGapSbmProcess(model, snake_parameters),
+        "[SnakeGapSbmProcess]: \"lambda_inner\" and \"lambda_outer\" must not be provided in ProjectParameters.");
+}
+
+KRATOS_TEST_CASE_IN_SUITE(SnakeGapSbmProcessRejectsStringLambdaInner, KratosIgaFastSuite)
+{
+    Model model;
+    Parameters snake_parameters(R"({"lambda_inner": "unused"})");
+
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        SnakeGapSbmProcess(model, snake_parameters),
+        "[SnakeGapSbmProcess]: \"lambda_inner\" and \"lambda_outer\" must not be provided in ProjectParameters.");
+}
+
+KRATOS_TEST_CASE_IN_SUITE(SnakeGapSbmProcessRejectsNullLambdaOuter, KratosIgaFastSuite)
+{
+    Model model;
+    Parameters snake_parameters(R"({"lambda_outer": null})");
+
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        SnakeGapSbmProcess(model, snake_parameters),
+        "[SnakeGapSbmProcess]: \"lambda_inner\" and \"lambda_outer\" must not be provided in ProjectParameters.");
+}
 
 // Tests the SnakeSbmUProcess with a square outer geometry
 KRATOS_TEST_CASE_IN_SUITE(SnakeSbmProcessSquareOuter, KratosIgaFastSuite)
