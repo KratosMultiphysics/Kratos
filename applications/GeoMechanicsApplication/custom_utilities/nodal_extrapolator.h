@@ -13,8 +13,8 @@
 
 #include "geo_aliases.h"
 #include "geometries/geometry.h"
+#include "includes/default_interface.h"
 #include "includes/node.h"
-#include "includes/ublas_interface.h"
 
 namespace Kratos
 {

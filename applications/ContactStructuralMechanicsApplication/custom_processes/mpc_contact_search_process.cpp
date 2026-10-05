@@ -155,7 +155,7 @@ void MPCContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::CleanModelPart(M
     auto& r_constraints_array = rModelPart.MasterSlaveConstraints();
     VariableUtils().SetFlag(TO_ERASE, true, r_constraints_array);
 
-    BaseType::mrMainModelPart.RemoveMasterSlaveConstraintFromAllLevels(TO_ERASE);
+    BaseType::mrMainModelPart.RemoveMasterSlaveConstraintsFromAllLevels(TO_ERASE);
 }
 
 /***********************************************************************************/

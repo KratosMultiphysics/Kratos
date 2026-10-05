@@ -42,7 +42,7 @@ KRATOS_TEST_CASE_IN_SUITE(ApplyInitialUniformStressFieldProcessAppliesStressesTo
                                                             r_model_part.GetProcessInfo());
     KRATOS_EXPECT_EQ(actual_stresses.size(), 3);
 
-    const std::vector<double> expected_stress = {1.0, 2.0, 3.0, 4.0};
+    const auto expected_stress = std::vector{1.0, 2.0, 3.0, 4.0};
     for (const auto& stress : actual_stresses) {
         KRATOS_EXPECT_VECTOR_NEAR(stress, expected_stress, Defaults::absolute_tolerance);
     }
@@ -68,7 +68,7 @@ KRATOS_TEST_CASE_IN_SUITE(ApplyInitialUniformStressFieldProcessAppliesStressesTo
                                                             r_model_part.GetProcessInfo());
     KRATOS_EXPECT_EQ(actual_stresses.size(), 4);
 
-    const std::vector<double> expected_stress = {1.0, 2.0, 3.0, 4.0, 5.0, 6.0};
+    const auto expected_stress = std::vector{1.0, 2.0, 3.0, 4.0, 5.0, 6.0};
     for (const auto& stress : actual_stresses) {
         KRATOS_EXPECT_VECTOR_NEAR(stress, expected_stress, Defaults::absolute_tolerance);
     }
@@ -94,7 +94,7 @@ KRATOS_TEST_CASE_IN_SUITE(ApplyInitialUniformStressFieldProcessAppliesStressesTo
                                                             r_model_part.GetProcessInfo());
     KRATOS_EXPECT_EQ(actual_stresses.size(), 3);
 
-    const std::vector<double> expected_stress = {1.0, 2.0, 3.0, 4.0};
+    const auto expected_stress = std::vector{1.0, 2.0, 3.0, 4.0};
     for (const auto& stress : actual_stresses) {
         KRATOS_EXPECT_VECTOR_NEAR(stress, expected_stress, Defaults::absolute_tolerance);
     }

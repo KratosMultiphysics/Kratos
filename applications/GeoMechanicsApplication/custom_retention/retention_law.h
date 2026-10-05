@@ -34,13 +34,12 @@ public:
 
     class KRATOS_API(GEO_MECHANICS_APPLICATION) Parameters
     {
-        KRATOS_CLASS_POINTER_DEFINITION(Parameters);
-
         /**
          * Structure "Parameters" to be used by the element to pass the parameters into the retention law *
          */
 
     public:
+        KRATOS_CLASS_POINTER_DEFINITION(Parameters);
         explicit Parameters(const Properties& rMaterialProperties);
         ~Parameters() = default;
 

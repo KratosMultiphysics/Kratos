@@ -2,14 +2,11 @@
 #define  KRATOS_FIXED_PRESSURE_3D_CONDITION_H_INCLUDED
 
 // External includes
-#include "boost/smart_ptr.hpp"
 
 // Project includes
-#include "includes/define.h"
 #include "includes/serializer.h"
 #include "includes/condition.h"
-#include "includes/ublas_interface.h"
-
+#include "includes/default_interface.h"
 
 namespace Kratos
 {

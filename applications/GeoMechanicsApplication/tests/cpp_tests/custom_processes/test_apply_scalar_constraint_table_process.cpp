@@ -253,7 +253,6 @@ KRATOS_TEST_CASE_IN_SUITE(ApplyScalarConstraintTableProcess_HydrostaticBranch_Di
         "fluid_pressure_type": "Hydrostatic",
         "gravity_direction": 1,
         "is_fixed": false,
-        "is_seepage": false,
         "pressure_tension_cut_off": 0.0,
         "reference_coordinate": 0.0,
         "specific_weight": 10000.0,

@@ -755,7 +755,7 @@ public:
         //if needed resize the vector for the calculation of reactions
         if (BaseType::mCalculateReactionsFlag == true) {
             const std::size_t reactions_vector_size = BaseType::mDofSet.size() - BaseType::mEquationSystemSize;
-            if (BaseType::mpReactionsVector->size() != reactions_vector_size)
+            if (static_cast<std::size_t>(BaseType::mpReactionsVector->size()) != reactions_vector_size)
                 BaseType::mpReactionsVector->resize(reactions_vector_size, false);
         }
 

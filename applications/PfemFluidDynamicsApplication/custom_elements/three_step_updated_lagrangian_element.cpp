@@ -420,7 +420,7 @@ namespace Kratos
 
         if (freeSurfaceNodes >= TDim)
         {
-          // bool computeElement = this->CalcCompleteStrainRate(rElementalVariables, rCurrentProcessInfo, rDN_DX, 1.0);
+          // bool computeElement = this->CalcStrainRateMeasures(rElementalVariables, rCurrentProcessInfo, rDN_DX, 1.0);
           // VectorType deviatoricSpatialDefRate = rElementalVariables.SpatialDefRate;
           // deviatoricSpatialDefRate[0] -= DivU / 3.0;
           // deviatoricSpatialDefRate[1] -= DivU / 3.0;

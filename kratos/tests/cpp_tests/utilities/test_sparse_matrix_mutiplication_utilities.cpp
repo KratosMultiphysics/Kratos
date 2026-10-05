@@ -13,14 +13,14 @@
 
 // Project includes
 #include "testing/testing.h"
-#include "spaces/ublas_space.h"
+#include "spaces/default_spaces.h"
 #include "utilities/sparse_matrix_multiplication_utility.h"
 
 namespace Kratos {
 namespace Testing {
 
 /// The sparse matrix type
-typedef typename UblasSpace<double, CompressedMatrix, Vector>::MatrixType SparseMatrixType;
+typedef typename TDefaultSparseSpace<double>::MatrixType SparseMatrixType;
 
 KRATOS_TEST_CASE_IN_SUITE(AssembleSparseMatrixByBlocks, KratosCoreFastSuite)
 {
