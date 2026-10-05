@@ -1,0 +1,140 @@
+{
+  "parameters_from_apdl": {
+    "EMOD": 210000.0,
+    "NU": 0.3,
+    "KSWIFT": 1000.0,
+    "EPS0": 0.01,
+    "NSWIFT": 0.2,
+    "LENGTH": 1.0,
+    "UMAX": 0.02,
+    "NSUB": 100.0
+  },
+  "raw_file_sha256": {
+    "ansys/swift_validation_ansys.inp": "d39043b708013ad5f4cd1c5884e3fc420ff764cde209833ecd6b454c72e5042e",
+    "ansys/swift_validation_ansys.csv": "f0cc44b2230bf9ef169211266ac84d2e7834bf9a9b57a013afd06d32fc2345af",
+    "kratos/swift_validation_kratos.csv": "4b5aa6672ef131f4895e6444e9a98474ef6ae8d463211f3b047f331b958015fe"
+  },
+  "relative_denominator_thresholds": {
+    "sigma": 1.0,
+    "seqv": 1.0,
+    "p": 1e-08
+  },
+  "initial_yield_stress": 398.10717055349727,
+  "initial_yield_strain": 0.00189574843120713,
+  "converged_increments": 100,
+  "integration_points": 8,
+  "max_nonlinear_iterations": 2.0,
+  "max_final_residual_norm": 4.139749532101684e-14,
+  "max_integration_point_spread": {
+    "sigma_xx": 1.9326762412674725e-12,
+    "sigma_yy": 1.9042545318370685e-12,
+    "sigma_zz": 1.8189894035458565e-12,
+    "sigma_xy": 2.406662643531999e-13,
+    "sigma_yz": 3.7255412372584966e-13,
+    "sigma_xz": 3.2143623513579693e-13,
+    "seqv": 9.094947017729282e-13,
+    "p_eq": 1.0408340855860843e-17
+  },
+  "errors": {
+    "sigma": {
+      "ansys_analytical": {
+        "max_absolute": 0.006205578302967751,
+        "rms_absolute": 0.002225307098023631,
+        "max_relative": 1.5440412788957765e-05,
+        "relative_error_rows": 100
+      },
+      "kratos_analytical": {
+        "max_absolute": 3.84318354917923e-10,
+        "rms_absolute": 9.986295540655447e-11,
+        "max_relative": 9.427423145465202e-13,
+        "relative_error_rows": 100
+      },
+      "kratos_ansys": {
+        "max_absolute": 0.006205578302910908,
+        "rms_absolute": 0.00222530716797936,
+        "max_relative": 1.544065119884457e-05,
+        "relative_error_rows": 100
+      }
+    },
+    "seqv": {
+      "ansys_analytical": {
+        "max_absolute": 0.006205578302967751,
+        "rms_absolute": 0.002225307098023631,
+        "max_relative": 1.5440412788957765e-05,
+        "relative_error_rows": 100
+      },
+      "kratos_analytical": {
+        "max_absolute": 3.84318354917923e-10,
+        "rms_absolute": 9.888419372626596e-11,
+        "max_relative": 9.427423145465202e-13,
+        "relative_error_rows": 100
+      },
+      "kratos_ansys": {
+        "max_absolute": 0.0062055783028540645,
+        "rms_absolute": 0.0022253071642400007,
+        "max_relative": 1.5440651198703134e-05,
+        "relative_error_rows": 100
+      }
+    },
+    "p": {
+      "ansys_analytical": {
+        "max_absolute": 2.9600444754703838e-08,
+        "rms_absolute": 1.0605739863489744e-08,
+        "max_relative": 0.0002891426097528055,
+        "relative_error_rows": 91
+      },
+      "kratos_analytical": {
+        "max_absolute": 2.0046898169256977e-15,
+        "rms_absolute": 5.118617118974502e-16,
+        "max_relative": 2.336732783081979e-12,
+        "relative_error_rows": 91
+      },
+      "kratos_ansys": {
+        "max_absolute": 2.9600444754812258e-08,
+        "rms_absolute": 1.0605740232048015e-08,
+        "max_relative": 0.00028905903280642,
+        "relative_error_rows": 91
+      }
+    }
+  },
+  "max_transverse_stress": {
+    "ansys": {
+      "sigma_yy": 1.0999641342625e-12,
+      "sigma_zz": 1.1966282728159e-12
+    },
+    "kratos": {
+      "sigma_yy": 1.4096812606112508e-10,
+      "sigma_zz": 1.4097878420216148e-10
+    }
+  },
+  "max_kratos_integration_point_transverse_stress": {
+    "sigma_yy": 1.410569439030951e-10,
+    "sigma_zz": 1.410569439030951e-10
+  },
+  "miso_diagnostic": {
+    "points": 100,
+    "p_min": 0.0,
+    "p_max": 0.03,
+    "max_table_ordinate_error_from_exact_swift": 6.10214101470774e-10,
+    "ansys_vs_tabulated_uniaxial_max_absolute_sigma": 1.5253809351634118e-05,
+    "ansys_vs_tabulated_uniaxial_rms_absolute_sigma": 8.359936046774099e-06,
+    "max_ansys_distance_to_float32": {
+      "sigma_xx": 5.002220859751105e-12,
+      "seqv": 5.002220859751105e-12,
+      "p_eq": 4.891920202254596e-16
+    }
+  },
+  "final_step": {
+    "eps_xx": 0.02,
+    "sigma_analytical": 488.0015915460365,
+    "sigma_ansys": 488.00057983398,
+    "sigma_kratos": 488.00159154603983,
+    "seqv_analytical": 488.0015915460365,
+    "seqv_ansys": 488.00057983398,
+    "seqv_kratos": 488.0015915460398,
+    "p_analytical": 0.017676182897399827,
+    "p_ansys": 0.017676187679172,
+    "p_kratos": 0.017676182897399813
+  },
+  "plots": []
+}
