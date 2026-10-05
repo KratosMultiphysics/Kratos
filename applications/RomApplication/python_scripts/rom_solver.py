@@ -39,7 +39,8 @@ def CreateSolver(cls, model, custom_settings):
             available_solving_strategies = {
                 "elemental_galerkin": KratosROM.ROMBuilderAndSolver,
                 "global_galerkin": KratosROM.GlobalROMBuilderAndSolver,
-                "lspg": KratosROM.LeastSquaresPetrovGalerkinROMBuilderAndSolver,
+                "global_lspg": KratosROM.LeastSquaresPetrovGalerkinROMBuilderAndSolver,
+                "elemental_lspg": KratosROM.ElementalLeastSquaresPetrovGalerkinROMBuilderAndSolver,
                 "lspg_ann": KratosROM.AnnPromLeastSquaresPetrovGalerkinROMBuilderAndSolver,
                 "galerkin_ann": KratosROM.AnnPromGlobalROMBuilderAndSolver,
                 "elemental_petrov_galerkin": KratosROM.PetrovGalerkinROMBuilderAndSolver,
@@ -67,13 +68,8 @@ def CreateSolver(cls, model, custom_settings):
             projection_strategy = self.settings["projection_strategy"].GetString()
             assembling_strategy = self.settings["assembling_strategy"].GetString()
 
-            # Check for the 'elemental' assembling strategy in case of 'lspg' projection strategy
-            if projection_strategy == "lspg" and assembling_strategy == "elemental":
-                warn_msg = "Elemental LSPG is not yet available. Using default global assembling strategy instead."
-                KratosMultiphysics.Logger.PrintWarning("::[ROMSolver]:: ", warn_msg)
-
-            # For now, only Galerkin and Petrov-Galerkin projections have the elemental or global approach option
-            if projection_strategy in ("galerkin", "petrov_galerkin"): #TODO: Possibility of doing elemental lspg
+            # The Galerkin, LSPG and Petrov-Galerkin projections have the elemental or global approach option
+            if projection_strategy in ("galerkin", "lspg", "petrov_galerkin"):
                 available_assembling_strategies = {
                     "global",
                     "elemental"
@@ -101,7 +97,7 @@ def CreateSolver(cls, model, custom_settings):
             if not self.settings["rom_settings"].Has("rom_bns_settings"):
                 self.settings["rom_settings"].AddEmptyValue("rom_bns_settings")
             monotonicity_preserving = self.settings["rom_settings"]["rom_bns_settings"]["monotonicity_preserving"].GetBool() if self.settings["rom_settings"]["rom_bns_settings"].Has("monotonicity_preserving") else False
-            if projection_strategy in ("global_galerkin", "lspg", "global_petrov_galerkin", "galerkin_ann", "lspg_ann"):
+            if projection_strategy in ("global_galerkin", "global_lspg", "global_petrov_galerkin", "galerkin_ann", "lspg_ann"):
                 self.settings["rom_settings"]["rom_bns_settings"].AddBool("monotonicity_preserving", monotonicity_preserving)
 
     return ROMSolver(model, custom_settings)
