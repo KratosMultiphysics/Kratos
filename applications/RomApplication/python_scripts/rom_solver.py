@@ -41,9 +41,9 @@ def CreateSolver(cls, model, custom_settings):
                 "global_galerkin": KratosROM.GlobalROMBuilderAndSolver,
                 "lspg": KratosROM.LeastSquaresPetrovGalerkinROMBuilderAndSolver,
                 "lspg_ann": KratosROM.AnnPromLeastSquaresPetrovGalerkinROMBuilderAndSolver,
-                "lspg_rbf": KratosROM.RbfPromLeastSquaresPetrovGalerkinROMBuilderAndSolver,
+                "lspg_rbf": KratosROM.AnnPromLeastSquaresPetrovGalerkinROMBuilderAndSolver, # Same builder and solver as the ANN-enhanced one, with an RBF decoder
                 "galerkin_ann": KratosROM.AnnPromGlobalROMBuilderAndSolver,
-                "galerkin_rbf": KratosROM.RbfPromGlobalROMBuilderAndSolver,
+                "galerkin_rbf": KratosROM.AnnPromGlobalROMBuilderAndSolver, # Same builder and solver as the ANN-enhanced one, with an RBF decoder
                 "elemental_petrov_galerkin": KratosROM.PetrovGalerkinROMBuilderAndSolver,
                 "global_petrov_galerkin": KratosROM.GlobalPetrovGalerkinROMBuilderAndSolver
             }

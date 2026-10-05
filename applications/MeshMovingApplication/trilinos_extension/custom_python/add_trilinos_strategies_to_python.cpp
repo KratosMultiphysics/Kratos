@@ -24,7 +24,7 @@
 
 // Project includes
 #include "trilinos_space.h"
-#include "spaces/ublas_space.h"
+#include "spaces/default_spaces.h"
 
 #include "solving_strategies/strategies/solving_strategy.h"
 #include "linear_solvers/linear_solver.h"
@@ -41,13 +41,13 @@ void AddMeshMovingStrategies(pybind11::module& m)
 {
     namespace py = pybind11;
     typedef TrilinosSpace<Epetra_FECrsMatrix, Epetra_FEVector> TrilinosSparseSpaceType;
-    typedef UblasSpace<double, Matrix, Vector> TrilinosLocalSpaceType;
+    typedef TDefaultDenseSpace<double> TrilinosLocalSpaceType;
     typedef LinearSolver<TrilinosSparseSpaceType, TrilinosLocalSpaceType > TrilinosLinearSolverType;
 
     typedef ImplicitSolvingStrategy< TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType > TrilinosImplicitSolvingStrategyType;
 
     typedef TrilinosSpace<Epetra_FECrsMatrix, Epetra_FEVector> TrilinosSparseSpaceType;
-    typedef UblasSpace<double, Matrix, Vector> TrilinosLocalSpaceType;
+    typedef TDefaultDenseSpace<double> TrilinosLocalSpaceType;
 
     using TrilinosLaplacianMeshMovingStrategyType = TrilinosLaplacianMeshMovingStrategy< TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType>;
     py::class_<TrilinosLaplacianMeshMovingStrategyType, typename TrilinosLaplacianMeshMovingStrategyType::Pointer, TrilinosImplicitSolvingStrategyType>

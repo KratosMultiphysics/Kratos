@@ -14,20 +14,13 @@
 #define ROM_RBF_UTILITY_H_INCLUDED
 
 // System includes
-#include <unordered_map>
 #include <Eigen/Core>
 #include <Eigen/Dense>
-#include <Eigen/Sparse>
-
-#include <limits>
 
 // External includes
 
 // Project includes
 #include "includes/define.h"
-#include "includes/model_part.h"
-#include "utilities/builtin_timer.h"
-#include "custom_utilities/ublas_wrapper.h"
 #include "includes/ublas_interface.h"
 
 // Application includes
@@ -37,6 +30,13 @@
 namespace Kratos
 {
 
+/**
+ * @class RomRBFUtility
+ * @ingroup RomApplication
+ * @brief Decoder of the RBF-enhanced ROMs: x = x_ref + Phi_inf*q + PhiSig_sup*W^T*k(SigInv_inf*q)
+ * @details k contains the kernel evaluated at the distances from the (scaled) reduced coordinates to each of the centers.
+ * The kernel types are 0: gaussian, exp(-(eps*r)^2), and 1: inverse multiquadric, 1/sqrt(1+(eps*r)^2)
+ */
 template<class TSparseSpace, class TDenseSpace>
 class RomRBFUtility
 {
@@ -53,211 +53,141 @@ public:
      * @param rx The resulting snapshot vector.
      * @param rPhiGlobal The PhiEffective matrix to be updated
      * @param rSVDPhiMatrices The list of projection matrices for the snapshot
-     * @param r_W_mat The weights matrix for the RBF
-     * @param r_centers_mat The collection of center vectors in matrix form
-     * @param r_kernel_type Index indicating the kernel type
-     * @param r_kernel_eps Epsilon value for the RBF's kernel
+     * @param rWeights The weights matrix of the RBF (number of centers x number of superior modes)
+     * @param rCenters The centers of the RBF, one per row
+     * @param KernelType Index indicating the kernel type
+     * @param KernelEps Epsilon value of the kernel
      * @param rReferenceSnapshot Reference snapshot to sum within the decoder
      */
     static void GetXAndDecoderGradient(
-        Vector rRomUnknowns,
+        const Vector& rRomUnknowns,
         Vector& rx,
         Matrix& rPhiGlobal,
-        vector<Matrix>& rSVDPhiMatrices,
-        Matrix& r_W_mat,
-        Matrix& r_centers_mat,
-        IndexType& r_kernel_type,
-        double& r_kernel_eps,
-        Vector& rReferenceSnapshot
+        const vector<Matrix>& rSVDPhiMatrices,
+        const Matrix& rWeights,
+        const Matrix& rCenters,
+        const IndexType KernelType,
+        const double KernelEps,
+        const Vector& rReferenceSnapshot
     )
     {
-        Eigen::Map<EigenDynamicMatrix> eigen_phi_inf(rSVDPhiMatrices[0].data().begin(), rSVDPhiMatrices[0].size1(), rSVDPhiMatrices[0].size2());
-        Eigen::Map<EigenDynamicMatrix> eigen_phisig_sup(rSVDPhiMatrices[1].data().begin(), rSVDPhiMatrices[1].size1(), rSVDPhiMatrices[1].size2());  // Shape is num_dofs x n_sup
-        Eigen::Map<EigenDynamicMatrix> eigen_sig_inv_inf(rSVDPhiMatrices[2].data().begin(), rSVDPhiMatrices[2].size1(), rSVDPhiMatrices[2].size2()); // Shape is n_inf x n_inf
-
-        Eigen::Map<EigenDynamicVector> eigen_rom_unknowns(rRomUnknowns.data().begin(), rRomUnknowns.size());
-        Eigen::Map<EigenDynamicMatrix> eigen_phi_global(rPhiGlobal.data().begin(), rPhiGlobal.size1(), rPhiGlobal.size2());
-        Eigen::Map<EigenDynamicVector> eigen_rx(rx.data().begin(), rx.size());
-        
-        EigenDynamicVector q_inf_pred = eigen_sig_inv_inf*eigen_rom_unknowns;
-        Eigen::Map<EigenDynamicMatrix> distance_mat(r_centers_mat.data().begin(), r_centers_mat.size1(), r_centers_mat.size2());
-
-        // KRATOS_INFO("TESTING WITHIN RBF UTILITY:") << "(" << q_inf_pred.rows() << "," << q_inf_pred.cols() << ")" << std::endl;
-        // KRATOS_INFO("TESTING WITHIN RBF UTILITY:") << "(" << distance_mat.rows() << "," << distance_mat.cols() << ")" << std::endl;
-
-        // KRATOS_INFO("TESTING WITHIN RBF UTILITY:") << q_inf_pred << std::endl;
-        // KRATOS_INFO("TESTING WITHIN RBF UTILITY:") << distance_mat(Eigen::seq(0,3),Eigen::placeholders::all) << std::endl;
-        
-        distance_mat.rowwise() -= q_inf_pred.transpose();
-        distance_mat *= -1;  // Shape is n_centers x n_inf
-        
-        // KRATOS_INFO("TESTING WITHIN RBF UTILITY:") << "(" << distance_mat.rows() << "," << distance_mat.cols() << ")" << std::endl;
-        // KRATOS_INFO("TESTING WITHIN RBF UTILITY:") << distance_mat(Eigen::seq(0,3),Eigen::placeholders::all) << std::endl;
-
-        EigenDynamicVector norms_vec = distance_mat.rowwise().norm();
-
-        // KRATOS_INFO("TESTING WITHIN RBF UTILITY:") << "(" << norms_vec.rows() << "," << norms_vec.cols() << ")" << std::endl;
-        // KRATOS_INFO("TESTING WITHIN RBF UTILITY:") << norms_vec(Eigen::seq(0,3),Eigen::placeholders::all) << std::endl;
-
-        EigenDynamicVector kernel_results_vec;
-        EigenDynamicVector aux_derivatives_vec;
-        
-        if (r_kernel_type == 0) {
-            kernel_results_vec = (-(r_kernel_eps * norms_vec.array()).square()).exp();
-            aux_derivatives_vec = -2*std::pow(r_kernel_eps,2) * kernel_results_vec; // The derivative of the kernel would be missing multiplication by the norm,
-                            // but then we would divide by the norm in the next step anyways as part of the derivative of the norm.
-        } else if (r_kernel_type == 1) {
-            EigenDynamicVector aux_term = 1.0 + (r_kernel_eps * norms_vec.array()).square();
-
-            // KRATOS_INFO("TESTING WITHIN RBF UTILITY:") << "Epsilon" << r_kernel_eps << std::endl;
-            // KRATOS_INFO("TESTING WITHIN RBF UTILITY:") << "(" << aux_term.rows() << "," << aux_term.cols() << ")" << std::endl;
-            // KRATOS_INFO("TESTING WITHIN RBF UTILITY:") << aux_term(Eigen::seq(0,3),Eigen::placeholders::all) << std::endl;
-
-            kernel_results_vec = 1.0 / (aux_term.array()).sqrt();
-            aux_derivatives_vec = -aux_term.array().pow(-3.0/2.0)*std::pow(r_kernel_eps,2); // Also skips the multiplication by the norm
-
-            // KRATOS_INFO("TESTING WITHIN RBF UTILITY:") << "(" << kernel_results_vec.rows() << "," << kernel_results_vec.cols() << ")" << std::endl;
-            // KRATOS_INFO("TESTING WITHIN RBF UTILITY:") << kernel_results_vec(Eigen::seq(0,3),Eigen::placeholders::all) << std::endl;
-            // KRATOS_INFO("TESTING WITHIN RBF UTILITY:") << "(" << aux_derivatives_vec.rows() << "," << aux_derivatives_vec.cols() << ")" << std::endl;
-            // KRATOS_INFO("TESTING WITHIN RBF UTILITY:") << aux_derivatives_vec(Eigen::seq(0,3),Eigen::placeholders::all) << std::endl;
-
-            // Tested until here
-        }
-        
-        Eigen::Map<EigenDynamicMatrix> eigen_W_mat(r_W_mat.data().begin(), r_W_mat.size1(), r_W_mat.size2());  // Shape is num_centers x n_sup
-
-        // KRATOS_INFO("TESTING WITHIN RBF UTILITY:") << "eigen_W_mat: " << "(" << eigen_W_mat.rows() << "," << eigen_W_mat.cols() << ")" << std::endl;
-
-        EigenDynamicVector q_sup_aprox = eigen_W_mat.transpose() * kernel_results_vec;
-
-        // KRATOS_INFO("TESTING WITHIN RBF UTILITY:") << "q_sup_aprox: " << "(" << q_sup_aprox.rows() << "," << q_sup_aprox.cols() << ")" << std::endl;
-        KRATOS_INFO("TESTING WITHIN RBF UTILITY:") << "q_sup_aprox: " << q_sup_aprox(Eigen::seq(0,3),Eigen::placeholders::all) << std::endl;
-
-        EigenDynamicMatrix rbf_gradient_aux =  aux_derivatives_vec.asDiagonal() * distance_mat;
-
-        // KRATOS_INFO("TESTING WITHIN RBF UTILITY:") << "rbf_gradient_aux: " << "(" << rbf_gradient_aux.rows() << "," << rbf_gradient_aux.cols() << ")" << std::endl;
-
-        EigenDynamicMatrix rbf_gradient = eigen_W_mat.transpose() * rbf_gradient_aux;  // Shape is n_sup x n_inf
-
-        // KRATOS_INFO("TESTING WITHIN RBF UTILITY:") << "rbf_gradient: " << "(" << rbf_gradient.rows() << "," << rbf_gradient.cols() << ")" << std::endl;
-        
-        // KRATOS_INFO("TESTING WITHIN RBF UTILITY:") << "eigen_phisig_sup: " << "(" << eigen_phisig_sup.rows() << "," << eigen_phisig_sup.cols() << ")" << std::endl;
-        // KRATOS_INFO("TESTING WITHIN RBF UTILITY:") << "eigen_sig_inv_inf: " << "(" << eigen_sig_inv_inf.rows() << "," << eigen_sig_inv_inf.cols() << ")" << std::endl;
-        // KRATOS_INFO("TESTING WITHIN RBF UTILITY:") << "eigen_phi_inf: " << "(" << eigen_phi_inf.rows() << "," << eigen_phi_inf.cols() << ")" << std::endl;
-
-        eigen_phi_global=eigen_phi_inf+eigen_phisig_sup*rbf_gradient*eigen_sig_inv_inf;  // Shape is num_dofs x n_inf
-
-        // KRATOS_INFO("TESTING WITHIN RBF UTILITY:") << "eigen_phi_global: " << "(" << eigen_phi_global.rows() << "," << eigen_phi_global.cols() << ")" << std::endl;
-
-        Eigen::Map<EigenDynamicVector> eigen_ref_snapshot(rReferenceSnapshot.data().begin(), rReferenceSnapshot.size());
-        eigen_rx = eigen_ref_snapshot + eigen_phi_inf*eigen_rom_unknowns + eigen_phisig_sup*q_sup_aprox;
-
-        // KRATOS_INFO("TESTING WITHIN RBF UTILITY:") << "eigen_rx: " << "(" << eigen_rx.rows() << "," << eigen_rx.cols() << ")" << std::endl;
+        GetXFromDecoder(rRomUnknowns, rx, rSVDPhiMatrices, rWeights, rCenters, KernelType, KernelEps, rReferenceSnapshot);
+        GetDecoderGradient(rRomUnknowns, rPhiGlobal, rSVDPhiMatrices, rWeights, rCenters, KernelType, KernelEps);
     }
 
     /**
      * @brief Run the decoder on the input latent vector.
      * @param rRomUnknowns The latent vector to decode.
      * @param rx The resulting snapshot vector.
-     * @param r_W_mat The weights matrix for the RBF
-     * @param r_centers_mat The collection of center vectors in matrix form
-     * @param r_kernel_type Index indicating the kernel type
-     * @param r_kernel_eps Epsilon value for the RBF's kernel
-     * @param rNNLayers The neural network's dense layers weights (no bias)
+     * @param rSVDPhiMatrices The list of projection matrices for the snapshot
+     * @param rWeights The weights matrix of the RBF (number of centers x number of superior modes)
+     * @param rCenters The centers of the RBF, one per row
+     * @param KernelType Index indicating the kernel type
+     * @param KernelEps Epsilon value of the kernel
      * @param rReferenceSnapshot Reference snapshot to sum within the decoder
      */
     static void GetXFromDecoder(
-        Vector rRomUnknowns,
+        const Vector& rRomUnknowns,
         Vector& rx,
-        vector<Matrix>& rSVDPhiMatrices,
-        Matrix& r_W_mat,
-        Matrix& r_centers_mat,
-        IndexType& r_kernel_type,
-        double& r_kernel_eps,
-        Vector& rReferenceSnapshot
+        const vector<Matrix>& rSVDPhiMatrices,
+        const Matrix& rWeights,
+        const Matrix& rCenters,
+        const IndexType KernelType,
+        const double KernelEps,
+        const Vector& rReferenceSnapshot
         )
     {
-        Eigen::Map<EigenDynamicMatrix> eigen_phi_inf(rSVDPhiMatrices[0].data().begin(), rSVDPhiMatrices[0].size1(), rSVDPhiMatrices[0].size2());
-        Eigen::Map<EigenDynamicMatrix> eigen_phisig_sup(rSVDPhiMatrices[1].data().begin(), rSVDPhiMatrices[1].size1(), rSVDPhiMatrices[1].size2());
-        Eigen::Map<EigenDynamicMatrix> eigen_sig_inv_inf(rSVDPhiMatrices[2].data().begin(), rSVDPhiMatrices[2].size1(), rSVDPhiMatrices[2].size2());
-
-        Eigen::Map<EigenDynamicVector> eigen_rom_unknowns(rRomUnknowns.data().begin(), rRomUnknowns.size());
+        Eigen::Map<const EigenDynamicMatrix> eigen_phi_inf(rSVDPhiMatrices[0].data().begin(), rSVDPhiMatrices[0].size1(), rSVDPhiMatrices[0].size2());
+        Eigen::Map<const EigenDynamicMatrix> eigen_phisig_sup(rSVDPhiMatrices[1].data().begin(), rSVDPhiMatrices[1].size1(), rSVDPhiMatrices[1].size2());
+        Eigen::Map<const EigenDynamicMatrix> eigen_weights(rWeights.data().begin(), rWeights.size1(), rWeights.size2());
+        Eigen::Map<const EigenDynamicVector> eigen_rom_unknowns(rRomUnknowns.data().begin(), rRomUnknowns.size());
+        Eigen::Map<const EigenDynamicVector> eigen_ref_snapshot(rReferenceSnapshot.data().begin(), rReferenceSnapshot.size());
         Eigen::Map<EigenDynamicVector> eigen_rx(rx.data().begin(), rx.size());
-        
-        EigenDynamicVector q_inf_pred = eigen_sig_inv_inf*eigen_rom_unknowns;
-        Eigen::Map<EigenDynamicMatrix> distance_mat(r_centers_mat.data().begin(), r_centers_mat.size1(), r_centers_mat.size2());
-        
-        distance_mat.rowwise() -= q_inf_pred.transpose();
-        distance_mat *= -1;
 
-        EigenDynamicVector norms_vec = distance_mat.rowwise().norm();
-        EigenDynamicVector kernel_results_vec;
-        
-        if (r_kernel_type == 0) {
-            kernel_results_vec = (-(r_kernel_eps * norms_vec.array()).square()).exp();
-        } else if (r_kernel_type == 1) {
-            EigenDynamicVector aux_term = 1.0 + (r_kernel_eps * norms_vec.array()).square();
-            kernel_results_vec = 1.0 / (aux_term.array()).sqrt();
-        }
-        
-        Eigen::Map<EigenDynamicMatrix> eigen_W_mat(r_W_mat.data().begin(), r_W_mat.size1(), r_W_mat.size2());
-        EigenDynamicVector q_sup_aprox = eigen_W_mat.transpose() * kernel_results_vec;
+        EigenDynamicMatrix differences;
+        EigenDynamicVector kernels;
+        EigenDynamicVector kernel_derivative_factors;
+        EvaluateKernels(rRomUnknowns, rSVDPhiMatrices, rCenters, KernelType, KernelEps, differences, kernels, kernel_derivative_factors);
 
-        Eigen::Map<EigenDynamicVector> eigen_ref_snapshot(rReferenceSnapshot.data().begin(), rReferenceSnapshot.size());
-        eigen_rx = eigen_ref_snapshot + eigen_phi_inf*eigen_rom_unknowns + eigen_phisig_sup*q_sup_aprox;
+        const EigenDynamicVector q_sup = eigen_weights.transpose() * kernels;
+        eigen_rx = eigen_ref_snapshot + eigen_phi_inf*eigen_rom_unknowns + eigen_phisig_sup*q_sup;
     }
-
 
     /**
      * @brief Get the derivative of the decoder over the input.
      * @param rRomUnknowns The latent vector to decode.
      * @param rPhiGlobal The PhiEffective matrix to be updated
      * @param rSVDPhiMatrices The list of projection matrices for the snapshot
-     * @param r_W_mat The weights matrix for the RBF
-     * @param r_centers_mat The collection of center vectors in matrix form
-     * @param r_kernel_type Index indicating the kernel type
-     * @param r_kernel_eps Epsilon value for the RBF's kernel
+     * @param rWeights The weights matrix of the RBF (number of centers x number of superior modes)
+     * @param rCenters The centers of the RBF, one per row
+     * @param KernelType Index indicating the kernel type
+     * @param KernelEps Epsilon value of the kernel
      */
     static void GetDecoderGradient(
-        Vector rRomUnknowns,
+        const Vector& rRomUnknowns,
         Matrix& rPhiGlobal,
-        vector<Matrix>& rSVDPhiMatrices,
-        Matrix& r_W_mat,
-        Matrix& r_centers_mat,
-        IndexType& r_kernel_type,
-        double& r_kernel_eps
+        const vector<Matrix>& rSVDPhiMatrices,
+        const Matrix& rWeights,
+        const Matrix& rCenters,
+        const IndexType KernelType,
+        const double KernelEps
     )
     {
-        Eigen::Map<EigenDynamicMatrix> eigen_phi_inf(rSVDPhiMatrices[0].data().begin(), rSVDPhiMatrices[0].size1(), rSVDPhiMatrices[0].size2());
-        Eigen::Map<EigenDynamicMatrix> eigen_phisig_sup(rSVDPhiMatrices[1].data().begin(), rSVDPhiMatrices[1].size1(), rSVDPhiMatrices[1].size2());
-        Eigen::Map<EigenDynamicMatrix> eigen_sig_inv_inf(rSVDPhiMatrices[2].data().begin(), rSVDPhiMatrices[2].size1(), rSVDPhiMatrices[2].size2());
-
-        Eigen::Map<EigenDynamicVector> eigen_rom_unknowns(rRomUnknowns.data().begin(), rRomUnknowns.size());
+        Eigen::Map<const EigenDynamicMatrix> eigen_phi_inf(rSVDPhiMatrices[0].data().begin(), rSVDPhiMatrices[0].size1(), rSVDPhiMatrices[0].size2());
+        Eigen::Map<const EigenDynamicMatrix> eigen_phisig_sup(rSVDPhiMatrices[1].data().begin(), rSVDPhiMatrices[1].size1(), rSVDPhiMatrices[1].size2());
+        Eigen::Map<const EigenDynamicMatrix> eigen_sig_inv_inf(rSVDPhiMatrices[2].data().begin(), rSVDPhiMatrices[2].size1(), rSVDPhiMatrices[2].size2());
+        Eigen::Map<const EigenDynamicMatrix> eigen_weights(rWeights.data().begin(), rWeights.size1(), rWeights.size2());
         Eigen::Map<EigenDynamicMatrix> eigen_phi_global(rPhiGlobal.data().begin(), rPhiGlobal.size1(), rPhiGlobal.size2());
 
-        EigenDynamicVector q_inf_pred = eigen_sig_inv_inf*eigen_rom_unknowns;
-        Eigen::Map<EigenDynamicMatrix> distance_mat(r_centers_mat.data().begin(), r_centers_mat.size1(), r_centers_mat.size2());
-        
-        distance_mat.rowwise() -= q_inf_pred.transpose();
-        distance_mat *= -1;
+        EigenDynamicMatrix differences;
+        EigenDynamicVector kernels;
+        EigenDynamicVector kernel_derivative_factors;
+        EvaluateKernels(rRomUnknowns, rSVDPhiMatrices, rCenters, KernelType, KernelEps, differences, kernels, kernel_derivative_factors);
 
-        EigenDynamicVector norms_vec = distance_mat.rowwise().norm();
-        EigenDynamicVector aux_derivatives_vec;
-        
-        if (r_kernel_type == 0) {
-            EigenDynamicVector kernel_results_vec = (-(r_kernel_eps * norms_vec.array()).square()).exp();
-            aux_derivatives_vec = -2*std::pow(r_kernel_eps,2) * kernel_results_vec; // The derivative of the kernel would be missing multiplication by the norm,
-                            // but then we would divide by the norm in the next step anyways as part of the derivative of the norm.
-        } else if (r_kernel_type == 1) {
-            EigenDynamicVector aux_term = 1.0 + (r_kernel_eps * norms_vec.array()).square();
-            aux_derivatives_vec = -aux_term.array().pow(-3.0/2.0)*std::pow(r_kernel_eps,2); // Also skips the multiplication by the norm
+        // Gradient of the RBF with respect to the scaled reduced coordinates (number of superior modes x number of inferior modes)
+        const EigenDynamicMatrix rbf_gradient = eigen_weights.transpose() * (kernel_derivative_factors.asDiagonal() * differences);
+
+        eigen_phi_global = eigen_phi_inf + eigen_phisig_sup*rbf_gradient*eigen_sig_inv_inf;
+    }
+
+private:
+
+    /**
+     * @brief Evaluates the kernel of each center at the (scaled) reduced coordinates.
+     * @param rDifferences The scaled reduced coordinates minus each center, one per row
+     * @param rKernels The value of the kernel of each center
+     * @param rKernelDerivativeFactors Factors such that the gradient of the kernel of the i-th center is rKernelDerivativeFactors[i]*rDifferences.row(i)
+     */
+    static void EvaluateKernels(
+        const Vector& rRomUnknowns,
+        const vector<Matrix>& rSVDPhiMatrices,
+        const Matrix& rCenters,
+        const IndexType KernelType,
+        const double KernelEps,
+        EigenDynamicMatrix& rDifferences,
+        EigenDynamicVector& rKernels,
+        EigenDynamicVector& rKernelDerivativeFactors
+    )
+    {
+        Eigen::Map<const EigenDynamicMatrix> eigen_sig_inv_inf(rSVDPhiMatrices[2].data().begin(), rSVDPhiMatrices[2].size1(), rSVDPhiMatrices[2].size2());
+        Eigen::Map<const EigenDynamicVector> eigen_rom_unknowns(rRomUnknowns.data().begin(), rRomUnknowns.size());
+        Eigen::Map<const EigenDynamicMatrix> eigen_centers(rCenters.data().begin(), rCenters.size1(), rCenters.size2());
+
+        const EigenDynamicVector scaled_rom_unknowns = eigen_sig_inv_inf*eigen_rom_unknowns;
+
+        // Note that the centers are not modified
+        rDifferences = (-eigen_centers).rowwise() + scaled_rom_unknowns.transpose();
+        const EigenDynamicVector squared_scaled_distances = std::pow(KernelEps, 2) * rDifferences.rowwise().squaredNorm();
+
+        if (KernelType == 0) { // Gaussian
+            rKernels = (-squared_scaled_distances.array()).exp();
+            rKernelDerivativeFactors = -2.0*std::pow(KernelEps, 2) * rKernels;
+        } else if (KernelType == 1) { // Inverse multiquadric
+            rKernels = (1.0 + squared_scaled_distances.array()).rsqrt();
+            rKernelDerivativeFactors = -std::pow(KernelEps, 2) * rKernels.array().cube();
+        } else {
+            KRATOS_ERROR << "Unknown RBF kernel type " << KernelType << ". Available options are 0 (gaussian) and 1 (inverse multiquadric)." << std::endl;
         }
-        
-        Eigen::Map<EigenDynamicMatrix> eigen_W_mat(r_W_mat.data().begin(), r_W_mat.size1(), r_W_mat.size2());
-        EigenDynamicMatrix rbf_gradient_aux =  aux_derivatives_vec.asDiagonal() * distance_mat;
-        EigenDynamicMatrix rbf_gradient = eigen_W_mat.transpose() * rbf_gradient_aux;  // Shape is n_sup x n_inf
-
-        eigen_phi_global=eigen_phi_inf+eigen_phisig_sup*rbf_gradient*eigen_sig_inv_inf;  // Shape is num_dofs x n_inf
     }
 
 };

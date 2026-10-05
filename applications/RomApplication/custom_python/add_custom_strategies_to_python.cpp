@@ -24,18 +24,16 @@
 #include "custom_python/add_custom_strategies_to_python.h"
 
 
-#include "spaces/ublas_space.h"
+#include "spaces/default_spaces.h"
 
 //strategies
 #include "solving_strategies/strategies/implicit_solving_strategy.h"
 #include "custom_strategies/rom_builder_and_solver.h"
 #include "custom_strategies/lspg_rom_builder_and_solver.h"
 #include "custom_strategies/ann_prom_lspg_rom_builder_and_solver.h"
-#include "custom_strategies/rbf_prom_lspg_rom_builder_and_solver.h"
 #include "custom_strategies/petrov_galerkin_rom_builder_and_solver.h"
 #include "custom_strategies/global_rom_builder_and_solver.h"
 #include "custom_strategies/ann_prom_global_rom_builder_and_solver.h"
-#include "custom_strategies/rbf_prom_global_rom_builder_and_solver.h"
 #include "custom_strategies/global_petrov_galerkin_rom_builder_and_solver.h"
 
 //linear solvers
@@ -49,8 +47,8 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
 {
     namespace py = pybind11;
 
-    typedef UblasSpace<double, CompressedMatrix, boost::numeric::ublas::vector<double>> SparseSpaceType;
-    typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
+    typedef TDefaultSparseSpace<double> SparseSpaceType;
+    typedef TDefaultDenseSpace<double> LocalSpaceType;
 
     typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
 
@@ -92,41 +90,28 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
         ;
 
     typedef AnnPromGlobalROMBuilderAndSolver<SparseSpaceType, LocalSpaceType, LinearSolverType> AnnPromGlobalROMBuilderAndSolverType;
-    
+
     py::class_<AnnPromGlobalROMBuilderAndSolverType, typename AnnPromGlobalROMBuilderAndSolverType::Pointer, ResidualBasedBlockBuilderAndSolverType>(m, "AnnPromGlobalROMBuilderAndSolver")
     .def(py::init< LinearSolverType::Pointer, Parameters>() )
     .def("SetNumberOfROMModes", &AnnPromGlobalROMBuilderAndSolverType::SetNumberOfROMModes)
     .def("SetDecoderParameters", &AnnPromGlobalROMBuilderAndSolverType::SetDecoderParameters)
     .def("SetNNLayer", &AnnPromGlobalROMBuilderAndSolverType::SetNNLayer)
+    .def("SetRbfDecoderParameters", &AnnPromGlobalROMBuilderAndSolverType::SetRbfDecoderParameters)
     .def("RunDecoder", &AnnPromGlobalROMBuilderAndSolverType::RunDecoder)
-    ;
-
-    typedef RbfPromGlobalROMBuilderAndSolver<SparseSpaceType, LocalSpaceType, LinearSolverType> RbfPromGlobalROMBuilderAndSolverType;
-
-    py::class_<RbfPromGlobalROMBuilderAndSolverType, typename RbfPromGlobalROMBuilderAndSolverType::Pointer, ResidualBasedBlockBuilderAndSolverType>(m, "RbfPromGlobalROMBuilderAndSolver")
-    .def(py::init< LinearSolverType::Pointer, Parameters>() )
-    .def("SetNumberOfROMModes", &RbfPromGlobalROMBuilderAndSolverType::SetNumberOfROMModes)
-    .def("SetDecoderParameters", &RbfPromGlobalROMBuilderAndSolverType::SetDecoderParameters)
-    .def("RunDecoder", &RbfPromGlobalROMBuilderAndSolverType::RunDecoder)
+    .def("GetTangentOperatorV", &AnnPromGlobalROMBuilderAndSolverType::GetTangentOperatorV)
     ;
 
     typedef AnnPromLeastSquaresPetrovGalerkinROMBuilderAndSolver<SparseSpaceType, LocalSpaceType, LinearSolverType> AnnPromLeastSquaresPetrovGalerkinROMBuilderAndSolverType;
-    
+
     py::class_<AnnPromLeastSquaresPetrovGalerkinROMBuilderAndSolverType, typename AnnPromLeastSquaresPetrovGalerkinROMBuilderAndSolverType::Pointer, ResidualBasedBlockBuilderAndSolverType>(m, "AnnPromLeastSquaresPetrovGalerkinROMBuilderAndSolver")
     .def(py::init< LinearSolverType::Pointer, Parameters>() )
     .def("SetNumberOfROMModes", &AnnPromLeastSquaresPetrovGalerkinROMBuilderAndSolverType::SetNumberOfROMModes)
     .def("SetDecoderParameters", &AnnPromLeastSquaresPetrovGalerkinROMBuilderAndSolverType::SetDecoderParameters)
     .def("SetNNLayer", &AnnPromLeastSquaresPetrovGalerkinROMBuilderAndSolverType::SetNNLayer)
+    .def("SetRbfDecoderParameters", &AnnPromLeastSquaresPetrovGalerkinROMBuilderAndSolverType::SetRbfDecoderParameters)
     .def("RunDecoder", &AnnPromLeastSquaresPetrovGalerkinROMBuilderAndSolverType::RunDecoder)
-    ;
-
-    typedef RbfPromLeastSquaresPetrovGalerkinROMBuilderAndSolver<SparseSpaceType, LocalSpaceType, LinearSolverType> RbfPromLeastSquaresPetrovGalerkinROMBuilderAndSolverType;
-    
-    py::class_<RbfPromLeastSquaresPetrovGalerkinROMBuilderAndSolverType, typename RbfPromLeastSquaresPetrovGalerkinROMBuilderAndSolverType::Pointer, ResidualBasedBlockBuilderAndSolverType>(m, "RbfPromLeastSquaresPetrovGalerkinROMBuilderAndSolver")
-    .def(py::init< LinearSolverType::Pointer, Parameters>() )
-    .def("SetNumberOfROMModes", &RbfPromLeastSquaresPetrovGalerkinROMBuilderAndSolverType::SetNumberOfROMModes)
-    .def("SetDecoderParameters", &RbfPromLeastSquaresPetrovGalerkinROMBuilderAndSolverType::SetDecoderParameters)
-    .def("RunDecoder", &RbfPromLeastSquaresPetrovGalerkinROMBuilderAndSolverType::RunDecoder)
+    .def("GetTangentOperatorV", &AnnPromLeastSquaresPetrovGalerkinROMBuilderAndSolverType::GetTangentOperatorV)
+    .def("BuildAndApplyDirichletConditions", &AnnPromLeastSquaresPetrovGalerkinROMBuilderAndSolverType::BuildAndApplyDirichletConditions)
     ;
 
 }

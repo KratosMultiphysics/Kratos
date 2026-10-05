@@ -143,7 +143,7 @@ class RomRBFTrainer(object):
         d_va = pairwise_dist(Q_inf_val, Q_inf_train)
 
         # Grid search
-        best = {"score": np.inf, "kernel": None, "eps": None, "lam": None}
+        best = {"score": np.inf, "kernel": None, "eps": None, "lam": None, "W": None}
 
         for kernel_name, kernel_fun in rbf_kernels.items():
             for eps in epsilon_values:
@@ -156,7 +156,7 @@ class RomRBFTrainer(object):
                     score = rel_fro_pct(Q_sup_val, Q_sup_pred)
                     print(f"[STAGE3] kernel={kernel_name:8s} eps={eps:.4e} -> Val RPE={score:.2f}%")
                     if score < best["score"]:
-                        best.update(score=score, kernel=kernel_name, eps=float(eps), lam=None)
+                        best.update(score=score, kernel=kernel_name, eps=float(eps), lam=None, W=W)
 
                 elif rbf_solver == "ridge":
                     for lam in lambda_values:
@@ -165,7 +165,7 @@ class RomRBFTrainer(object):
                         score = rel_fro_pct(Q_sup_val, Q_sup_pred)
                         print(f"[STAGE3] kernel={kernel_name:8s} eps={eps:.4e} lam={lam:.1e} -> Val RPE={score:.2f}%")
                         if score < best["score"]:
-                            best.update(score=score, kernel=kernel_name, eps=float(eps), lam=float(lam))
+                            best.update(score=score, kernel=kernel_name, eps=float(eps), lam=float(lam), W=W)
                 else:
                     raise ValueError("'rbf_solver' in configuration must be 'svd' or 'ridge'")
 
@@ -196,7 +196,7 @@ class RomRBFTrainer(object):
             model_path / "model_data.npz",
             kernel_name=np.array([best["kernel"]], dtype=object),
             kernel_eps=np.array([best["eps"]], dtype=float),
-            W=W,
+            W=best["W"],
             centers_mat=Q_inf_train,
             modes = np.array([n_inf,n_sup], dtype=int),
             solver=np.array([rbf_solver], dtype=object)
