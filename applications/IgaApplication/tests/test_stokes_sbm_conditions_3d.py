@@ -101,7 +101,8 @@ def _create_outer_support_model_part():
                             "name": "SbmFluidConditionDirichlet",
                             "shape_function_derivatives_order": 3,
                             "sbm_parameters": {
-                                "is_inner" : false
+                                "is_inner" : false,
+                                "projection_type" : "linealized"
                             }
                         }
                     ]
@@ -159,7 +160,8 @@ def _create_support_pressure_condition_model_part():
                             "name": "SupportPressureCondition",
                             "shape_function_derivatives_order": 3,
                             "sbm_parameters": {
-                                "is_inner" : false
+                                "is_inner" : false,
+                                "projection_type" : "linealized"
                             }
                         }
                     ]

@@ -104,7 +104,8 @@ def _create_support_condition_model_part_3d(condition_name):
                             "name": "{condition_name}",
                             "shape_function_derivatives_order": 3,
                             "sbm_parameters": {{
-                                "is_inner" : false
+                                "is_inner" : false,
+                                "projection_type" : "linealized"
                             }}
                         }}
                     ]
