@@ -216,7 +216,7 @@ void  AddCustomProcessesToPython(pybind11::module& m)
 
     // PrepareLinearConstraintsForQuadraticContactProcess
     py::class_<PrepareLinearConstraintsForQuadraticContactProcess, PrepareLinearConstraintsForQuadraticContactProcess::Pointer, Process>(m, "PrepareLinearConstraintsForQuadraticContactProcess")
-    .def(py::init<ModelPart&, ProcessInfo&>())
+    .def(py::init<ModelPart&>())
     ;
 }
 }  // namespace Kratos::Python.

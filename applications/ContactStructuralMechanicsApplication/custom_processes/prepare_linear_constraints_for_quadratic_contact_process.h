@@ -96,8 +96,7 @@ public:
      * @param rProcessInfo The process info to be considered
      */
     PrepareLinearConstraintsForQuadraticContactProcess(
-        ModelPart& rModelPart,
-        ) : mrModelPart(rModelPart)
+        ModelPart& rModelPart) : mrModelPart(rModelPart)
     {
     }
 
