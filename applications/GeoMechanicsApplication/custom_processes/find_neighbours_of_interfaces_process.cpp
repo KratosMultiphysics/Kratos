@@ -28,7 +28,7 @@ GlobalPointersVector<Element> ExtractElementsWithHigherLocalDimension(const Glob
 {
     GlobalPointersVector<Element> result;
     std::copy_if(rElements.ptr_begin(), rElements.ptr_end(), std::back_inserter(result),
-                 [LocalSpaceDimension](const GlobalPointer<Element>& rpElement) {
+                 [LocalSpaceDimension](const auto& rpElement) {
         return rpElement->GetGeometry().LocalSpaceDimension() > LocalSpaceDimension;
     });
     return result;
