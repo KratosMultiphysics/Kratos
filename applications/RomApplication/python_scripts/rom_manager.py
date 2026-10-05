@@ -42,6 +42,7 @@ class RomManager(object):
         chosen_projection_strategy = self.general_rom_manager_parameters["projection_strategy"].GetString()
         training_stages = self.general_rom_manager_parameters["rom_stages_to_train"].GetStringArray()
         type_of_decoder = self.general_rom_manager_parameters["type_of_decoder"].GetString()
+        self._CheckHromIsAvailable(training_stages)
         #######################
         ######  Galerkin ######
         if chosen_projection_strategy == "galerkin":
@@ -151,6 +152,7 @@ class RomManager(object):
         chosen_projection_strategy = self.general_rom_manager_parameters["projection_strategy"].GetString()
         testing_stages = self.general_rom_manager_parameters["rom_stages_to_test"].GetStringArray()
         type_of_decoder = self.general_rom_manager_parameters["type_of_decoder"].GetString()
+        self._CheckHromIsAvailable(testing_stages)
 
         #######################
         ######  Galerkin ######
@@ -272,6 +274,7 @@ class RomManager(object):
         chosen_projection_strategy = self.general_rom_manager_parameters["projection_strategy"].GetString()
         type_of_decoder = self.general_rom_manager_parameters["type_of_decoder"].GetString()
         nn_rom_interface = None
+        self._CheckHromIsAvailable(["HROM"])
         self._LoadSolutionBasis(mu_train)
         #######################
         ######  Galerkin ######
@@ -330,9 +333,21 @@ class RomManager(object):
         export_folder.mkdir(parents=True, exist_ok=True)
 
         # Files read by NN_ROM_Interface.FromNumpyFiles
-        np.save(export_folder / "RightBasisMatrix.npy", nn_rom_interface.phi[:, :nn_rom_interface.n_sup])
-        np.save(export_folder / "SingularValues.npy", nn_rom_interface.sigma[:nn_rom_interface.n_sup])
-        shutil.copy(nn_rom_interface.network_weights_path, export_folder / "model_weights.npy")
+        if self._UsesSegregatedBases():
+            # One network per coupled solver, with its files prefixed by its name
+            ann_enhanced_settings = {}
+            for sub_solver_name in self._GetCoupledSolverNames():
+                with open(nn_rom_interface.model_path / f"{sub_solver_name}_train_config.json", 'r') as config_file:
+                    ann_enhanced_settings[sub_solver_name] = {"modes" : [int(mode) for mode in json.load(config_file)["modes"]]}
+                for file_name in [f"{sub_solver_name}_model_weights.npy", f"{sub_solver_name}_SingularValues.npy"]:
+                    shutil.copy(nn_rom_interface.model_path / file_name, export_folder / file_name)
+            number_of_modes = max(settings["modes"][1] for settings in ann_enhanced_settings.values())
+            np.save(export_folder / "RightBasisMatrix.npy", nn_rom_interface.phi[:, :number_of_modes])
+        else:
+            ann_enhanced_settings = {"modes" : [nn_rom_interface.n_inf, nn_rom_interface.n_sup]}
+            np.save(export_folder / "RightBasisMatrix.npy", nn_rom_interface.phi[:, :nn_rom_interface.n_sup])
+            np.save(export_folder / "SingularValues.npy", nn_rom_interface.sigma[:nn_rom_interface.n_sup])
+            shutil.copy(nn_rom_interface.network_weights_path, export_folder / "model_weights.npy")
         for file_name in ["NodeIds.npy", "HROM_ElementIds.npy", "HROM_ElementWeights.npy", "HROM_ConditionIds.npy", "HROM_ConditionWeights.npy"]:
             if (rom_folder / file_name).exists():
                 shutil.copy(rom_folder / file_name, export_folder / file_name)
@@ -340,7 +355,7 @@ class RomManager(object):
         with open(rom_folder / rom_parameters_file_name, 'r') as parameter_file:
             rom_parameters = json.load(parameter_file)
         rom_parameters["rom_manager"] = False
-        rom_parameters["ann_enhanced_settings"] = {"modes" : [nn_rom_interface.n_inf, nn_rom_interface.n_sup]}
+        rom_parameters["ann_enhanced_settings"] = ann_enhanced_settings
         with open(export_folder / rom_parameters_file_name, 'w') as parameter_file:
             json.dump(rom_parameters, parameter_file, indent=4)
 
@@ -445,10 +460,11 @@ class RomManager(object):
     def _LaunchComputeSolutionBasis(self, mu_train):
         in_database, hash_basis = self.data_base.check_if_in_database("RightBasis", mu_train)
         if not in_database:
+            compute_svd = self._ComputeSegregatedSVD if self._UsesSegregatedBases() else self._ComputeSVD
             if self.general_rom_manager_parameters["ROM"]["use_non_converged_sols"].GetBool():
-                u,sigma = self._ComputeSVD(self.data_base.get_snapshots_matrix_from_database(mu_train, table_name='NonconvergedFOM')) #TODO this might be too large for single opeartion, add partitioned svd
+                u,sigma = compute_svd(self.data_base.get_snapshots_matrix_from_database(mu_train, table_name='NonconvergedFOM')) #TODO this might be too large for single opeartion, add partitioned svd
             else:
-                u,sigma = self._ComputeSVD(self.data_base.get_snapshots_matrix_from_database(mu_train, table_name='FOM'))
+                u,sigma = compute_svd(self.data_base.get_snapshots_matrix_from_database(mu_train, table_name='FOM'))
             self._PrintRomBasis(u, sigma)
             self.data_base.add_to_database("RightBasis", mu_train, u )
             self.data_base.add_to_database("SingularValues_Solution", mu_train, sigma )
@@ -734,17 +750,29 @@ class RomManager(object):
             self.QoI_Run_HROM.append(simulation.GetFinalData())
 
     def _LaunchTrainNeuralNetwork(self, mu_train, mu_validation):
-        RomNeuralNetworkTrainer = self._TryImportNNTrainer()
-        rom_nn_trainer = RomNeuralNetworkTrainer(self.general_rom_manager_parameters, mu_train, mu_validation, self.data_base)
-        rom_nn_trainer.TrainNetwork()
+        rom_nn_trainers = self._GetNeuralNetworkTrainers(mu_train, mu_validation)
+        for rom_nn_trainer in rom_nn_trainers:
+            rom_nn_trainer.TrainNetwork()
         self.data_base.add_to_database("Neural_Network", mu_train , None)
-        rom_nn_trainer.EvaluateNetwork()
+        for rom_nn_trainer in rom_nn_trainers:
+            rom_nn_trainer.EvaluateNetwork()
 
 
     def _LaunchTestNeuralNetworkReconstruction(self,mu_train, mu_validation):
+        for rom_nn_trainer in self._GetNeuralNetworkTrainers(mu_train, mu_validation):
+            rom_nn_trainer.EvaluateNetwork()
+
+    def _GetNeuralNetworkTrainers(self, mu_train, mu_validation):
+        """Returns the trainer of the network, or one per coupled solver if each of them has its own basis."""
         RomNeuralNetworkTrainer = self._TryImportNNTrainer()
-        rom_nn_trainer = RomNeuralNetworkTrainer(self.general_rom_manager_parameters, mu_train, mu_validation, self.data_base)
-        rom_nn_trainer.EvaluateNetwork()
+        if not self._UsesSegregatedBases():
+            return [RomNeuralNetworkTrainer(self.general_rom_manager_parameters, mu_train, mu_validation, self.data_base)]
+        _, hash_basis = self.data_base.check_if_in_database("RightBasis", mu_train)
+        number_of_rows = self.data_base.get_single_numpy_from_database(hash_basis).shape[0]
+        return [RomNeuralNetworkTrainer(self.general_rom_manager_parameters, mu_train, mu_validation, self.data_base,
+                                        sub_solver_name=coupled_solver["sub_solver_name"].GetString(),
+                                        rows=self._GetCoupledSolverRows(coupled_solver, number_of_rows))
+                for coupled_solver in self._GetCoupledSolvers()]
 
     def InitializeDummySimulationForSnapshotsModelPart(self):
         with open(self.project_parameters_name,'r') as parameter_file:
@@ -995,8 +1023,9 @@ class RomManager(object):
     def _SetUpCoupledSolvers(self):
         """
         Validates the 'coupled_solvers' and completes the 'ROM' and 'HROM' settings of each of them with the general ones.
-        A single (monolithic) ROM basis shared by all the coupled solvers is currently supported. Hence, its snapshots
-        contain the 'nodal_unknowns' of all of them and the smallest 'svd_truncation_tolerance' among them is used.
+        The snapshots contain the 'nodal_unknowns' of all the coupled solvers. Linear decoders use a single (monolithic) ROM basis
+        shared by all of them, computed with the smallest 'svd_truncation_tolerance' among them. ANN-enhanced decoders use a
+        basis (and a network) per coupled solver, each computed with its own 'svd_truncation_tolerance' (see _UsesSegregatedBases).
         """
         coupled_solvers = self.general_rom_manager_parameters["coupled_solvers"]
         for i in range(coupled_solvers.size()):
@@ -1005,10 +1034,11 @@ class RomManager(object):
             return
 
         rom_settings = self.general_rom_manager_parameters["ROM"]
-        tolerances = {coupled_solvers[i]["sub_solver_name"].GetString() : coupled_solvers[i]["ROM"]["svd_truncation_tolerance"].GetDouble() for i in range(coupled_solvers.size())}
-        if len(set(tolerances.values())) > 1:
-            KratosMultiphysics.Logger.PrintWarning("RomManager", f"Different 'svd_truncation_tolerance' set for the coupled solvers {tolerances}. Only a monolithic ROM basis (shared by all the coupled solvers) is currently supported, so the smallest one ({min(tolerances.values())}) is used.")
-        rom_settings["svd_truncation_tolerance"].SetDouble(min(tolerances.values()))
+        if not self._UsesSegregatedBases():
+            tolerances = {coupled_solvers[i]["sub_solver_name"].GetString() : coupled_solvers[i]["ROM"]["svd_truncation_tolerance"].GetDouble() for i in range(coupled_solvers.size())}
+            if len(set(tolerances.values())) > 1:
+                KratosMultiphysics.Logger.PrintWarning("RomManager", f"Different 'svd_truncation_tolerance' set for the coupled solvers {tolerances}. Only a monolithic ROM basis (shared by all the coupled solvers) is currently supported, so the smallest one ({min(tolerances.values())}) is used.")
+            rom_settings["svd_truncation_tolerance"].SetDouble(min(tolerances.values()))
         nodal_unknowns = set()
         for i in range(coupled_solvers.size()):
             nodal_unknowns.update(coupled_solvers[i]["ROM"]["nodal_unknowns"].GetStringArray())
@@ -1064,6 +1094,21 @@ class RomManager(object):
         """Returns the names of the coupled sub-solvers (e.g. ['fluid_solver', 'thermal_solver']). Empty for a single solver."""
         return [coupled_solver["sub_solver_name"].GetString() for coupled_solver in self._GetCoupledSolvers()]
 
+    def _UsesSegregatedBases(self):
+        """True if each coupled solver has its own ROM basis: coupled solvers with an ANN-enhanced decoder (one network per solver)."""
+        return self.general_rom_manager_parameters["type_of_decoder"].GetString() == "ann_enhanced" and len(self._GetCoupledSolvers()) > 0
+
+    def _GetCoupledSolverRows(self, coupled_solver, number_of_rows):
+        """Rows of the 'nodal_unknowns' of a coupled solver in the snapshots and basis matrices, which store the (alphabetically sorted) unknowns of all the coupled solvers node by node."""
+        all_nodal_unknowns = sorted(self.general_rom_manager_parameters["ROM"]["nodal_unknowns"].GetStringArray())
+        positions = np.array([all_nodal_unknowns.index(name) for name in sorted(coupled_solver["ROM"]["nodal_unknowns"].GetStringArray())])
+        number_of_nodes = number_of_rows // len(all_nodal_unknowns)
+        return (np.arange(number_of_nodes)[:, None] * len(all_nodal_unknowns) + positions).ravel()
+
+    def _CheckHromIsAvailable(self, stages):
+        if "HROM" in stages and self._UsesSegregatedBases():
+            raise Exception("HROM is not available yet for coupled solvers with ann_enhanced decoders.")
+
     def _GetResidualsProjectedOutputSettings(self):
         """Returns the (sub_solver_name, model_part_name, output folder) of each ProjectedResidualsOutputProcess: one per coupled sub-solver, or one for the solver."""
         rom_basis_output_folder = Path(self.general_rom_manager_parameters["ROM"]["rom_basis_output_folder"].GetString())
@@ -1113,10 +1158,34 @@ class RomManager(object):
         return snapshots_matrix
 
 
-    def _ComputeSVD(self, snapshots_matrix):
+    def _ComputeSVD(self, snapshots_matrix, svd_truncation_tolerance=None):
         # Calculate the randomized SVD of the snapshots matrix
-        svd_truncation_tolerance = self.general_rom_manager_parameters["ROM"]["svd_truncation_tolerance"].GetDouble()
+        if svd_truncation_tolerance is None:
+            svd_truncation_tolerance = self.general_rom_manager_parameters["ROM"]["svd_truncation_tolerance"].GetDouble()
         u,sigma,_,_= RandomizedSingularValueDecomposition().Calculate(snapshots_matrix, svd_truncation_tolerance)
+        return u, sigma
+
+
+    def _ComputeSegregatedSVD(self, snapshots_matrix):
+        """
+        Computes the basis of each coupled solver from the rows of its unknowns. The bases are stored in a single matrix, each of them
+        in the rows of its solver and from the first column on (zero-padded if another solver has more modes).
+        """
+        nodal_unknowns = [name for coupled_solver in self._GetCoupledSolvers() for name in coupled_solver["ROM"]["nodal_unknowns"].GetStringArray()]
+        if len(nodal_unknowns) != len(set(nodal_unknowns)):
+            raise Exception(f"The coupled solvers share 'nodal_unknowns' ({nodal_unknowns}). With ann_enhanced decoders each of the 'coupled_solvers' needs its own 'nodal_unknowns' in its 'ROM' settings.")
+        bases = []
+        for coupled_solver in self._GetCoupledSolvers():
+            rows = self._GetCoupledSolverRows(coupled_solver, snapshots_matrix.shape[0])
+            u_solver, sigma_solver = self._ComputeSVD(snapshots_matrix[rows, :], coupled_solver["ROM"]["svd_truncation_tolerance"].GetDouble())
+            bases.append((rows, u_solver, sigma_solver))
+        number_of_modes = max(u_solver.shape[1] for _, u_solver, _ in bases)
+        u = np.zeros((snapshots_matrix.shape[0], number_of_modes))
+        sigma = np.zeros(number_of_modes)
+        for rows, u_solver, sigma_solver in bases:
+            u[rows, :u_solver.shape[1]] = u_solver
+            # A single vector is stored: each solver recomputes its own singular values from its basis when training its network
+            sigma[:len(sigma_solver)] = np.maximum(sigma[:len(sigma_solver)], sigma_solver)
         return u, sigma
 
 
