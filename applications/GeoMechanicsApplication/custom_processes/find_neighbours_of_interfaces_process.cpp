@@ -28,8 +28,8 @@ GlobalPointersVector<Element> ExtractElementsWithHigherLocalDimension(const Glob
 {
     GlobalPointersVector<Element> result;
     std::copy_if(rElements.ptr_begin(), rElements.ptr_end(), std::back_inserter(result),
-                 [LocalSpaceDimension](auto pElement) {
-        return pElement->GetGeometry().LocalSpaceDimension() > LocalSpaceDimension;
+                 [LocalSpaceDimension](const GlobalPointer<Element>& rpElement) {
+        return rpElement->GetGeometry().LocalSpaceDimension() > LocalSpaceDimension;
     });
     return result;
 }
@@ -70,16 +70,9 @@ void FindNeighboursOfInterfacesProcess::RemoveNeighboursWithoutHigherLocalDimens
         for (auto& r_interface_element : r_interface_model_part.get().Elements()) {
             // Filter the container of (global) pointers rather than the elements themselves. This is required
             // when an interface element has multiple neighbours on the same side, e.g. a beam on top of a soil element.
-            auto& r_neighbour_pointers = r_interface_element.GetValue(NEIGHBOUR_ELEMENTS).GetContainer();
-            const auto interface_element_local_dimension =
-                r_interface_element.GetGeometry().LocalSpaceDimension();
-            auto is_neighbour_without_higher_local_dimension =
-                [interface_element_local_dimension](const GlobalPointer<Element>& rpNeighbourElement) {
-                return rpNeighbourElement->GetGeometry().LocalSpaceDimension() <= interface_element_local_dimension;
-            };
-            r_neighbour_pointers.erase(std::remove_if(r_neighbour_pointers.begin(), r_neighbour_pointers.end(),
-                                                      is_neighbour_without_higher_local_dimension),
-                                       r_neighbour_pointers.end());
+            auto& r_neighbour_elements = r_interface_element.GetValue(NEIGHBOUR_ELEMENTS);
+            r_neighbour_elements       = ExtractElementsWithHigherLocalDimension(
+                r_neighbour_elements, r_interface_element.GetGeometry().LocalSpaceDimension());
         }
     }
 }
