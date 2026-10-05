@@ -13,7 +13,6 @@
 // Project includes
 #include "containers/model.h"
 #include "testing/testing.h"
-#include "custom_processes/snake_gap_sbm_process.h"
 #include "custom_processes/snake_sbm_process.h"
 #include "includes/kratos_parameters.h"
 #include "iga_application_variables.h"
