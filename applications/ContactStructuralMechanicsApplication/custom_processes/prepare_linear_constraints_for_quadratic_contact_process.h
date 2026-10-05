@@ -97,9 +97,7 @@ public:
      */
     PrepareLinearConstraintsForQuadraticContactProcess(
         ModelPart& rModelPart,
-        ProcessInfo& rProcessInfo
-        ) : mrModelPart(rModelPart),
-            mrProcessInfo(rProcessInfo)
+        ) : mrModelPart(rModelPart)
     {
     }
 
@@ -194,9 +192,6 @@ private:
 
     /// The model part reference
     ModelPart& mrModelPart;
-
-    /// The process info reference
-    ProcessInfo& mrProcessInfo;
 
     ///@}
     ///@name Operators

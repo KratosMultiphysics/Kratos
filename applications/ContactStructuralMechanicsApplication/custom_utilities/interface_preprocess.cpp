@@ -96,7 +96,7 @@ void InterfacePreprocessCondition::GenerateInterfacePart(
             const std::size_t local_space_dimension = r_geometry.LocalSpaceDimension();
 
             Properties::Pointer p_prop = (contact_property_id == 0) ? new_properties[r_elem.pGetProperties()->Id()] : mrMainModelPart.CreateNewProperties(contact_property_id);
-            KRATOS_DEBUG_ERROR_IF(p_prop == nullptr) << "ERROR:: Property not well initialized" << std::endl;
+            KRATOS_ERROR_IF(p_prop == nullptr) << "ERROR:: Property not well initialized" << std::endl;
 
             if (working_space_dimension == local_space_dimension) {
                 const auto faces = r_geometry.GenerateBoundariesEntities();

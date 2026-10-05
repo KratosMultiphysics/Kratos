@@ -22,7 +22,7 @@ namespace Kratos
 
 void PrepareLinearConstraintsForQuadraticContactProcess::ExecuteInitialize()
 {
-    int max_condition_id = 0;
+    IndexType max_condition_id = 0;
     auto& r_parent_mdpa = mrModelPart.GetParentModelPart();
     for (const auto& r_cond : r_parent_mdpa.MasterSlaveConstraints()) {
         if (r_cond.Id() > max_condition_id)
