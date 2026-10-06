@@ -106,18 +106,6 @@
                     "variable_name": "DISPLACEMENT_X",
                     "reform_constraints_at_each_step": false
                 }
-            },
-            {
-                "python_module": "assign_average_master_slave_constraints_process",
-                "kratos_module": "KratosMultiphysics",
-                "process_name": "AssignAverageMasterSlaveConstraintsProcess",
-                "Parameters": {
-                    "model_part_name": "PorousDomain.porous_computational_model_part",
-                    "master_model_part_name": "PorousDomain.MasterX05",
-                    "slave_model_part_name": "PorousDomain.SlaveX05",
-                    "variable_name": "DISPLACEMENT_X",
-                    "reform_constraints_at_each_step": false
-                }
             }
         ],
         "loads_process_list": [
@@ -148,25 +136,12 @@
                 }
             },
             {
-                "python_module": "apply_vector_constraint_table_process",
-                "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
-                "process_name": "ApplyVectorConstraintTableProcess",
-                "Parameters": {
-                    "model_part_name": "PorousDomain.Middle_Y_displacement",
-                    "variable_name": "DISPLACEMENT",
-                    "active": [false, true, false],
-                    "is_fixed": [false, true, false],
-                    "value": [0.0, 0.0, 0.0],
-                    "table": [0, 3, 0]
-                }
-            },
-            {
                 "python_module": "apply_initial_uniform_stress_field",
                 "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
                 "process_name": "ApplyInitialUniformStressField",
                 "Parameters": {
                     "model_part_name": "PorousDomain.Soil",
-                    "value": [-2.4e+04, -6.0e+04, -2.4e+04, 0.0]
+                    "value": [-100.0, -100.0, -100.0, 0.0]
                 }
             }
         ]

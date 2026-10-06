@@ -154,7 +154,7 @@
                 "process_name": "ApplyInitialUniformStressField",
                 "Parameters": {
                     "model_part_name": "PorousDomain.Soil",
-                    "value": [-2.4e+04, -6.0e+04, -2.4e+04, 0.0]
+                    "value": [-100.0, -100.0, -100.0, 0.0]
                 }
             }
         ]

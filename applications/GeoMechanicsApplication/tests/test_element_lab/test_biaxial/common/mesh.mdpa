@@ -1,19 +1,19 @@
 Begin Table 1 TIME NORMAL_CONTACT_STRESS
- -0.01 24.0E+03
-  0.0 24.00E+03
-  1.0 24.0E+03
+ -0.01 100.0
+  0.0 100.0
+  1.0 100.0
 End Table
 
 Begin Table 2 TIME DISPLACEMENT_Y
  -0.01 0.0
   0.0 0.0
-  1.0 -0.2000
+  1.0 -0.2
 End Table
 
 Begin Table 3 TIME DISPLACEMENT_Y
  -0.01 0.0
   0.0 0.0
-  1.0 -0.1000
+  1.0 -0.1
 End Table
 
 Begin Properties 0

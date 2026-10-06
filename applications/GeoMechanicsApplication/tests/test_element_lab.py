@@ -11,7 +11,7 @@ class KratosGeoMechanicsLabElementTests(KratosGeoUnittest.TestCase):
     """
     This class contains some element tests, such as triaxial and oedometer tests.
     """
-    def atest_triaxial_drained(self):
+    def test_triaxial_drained(self):
         """Regression test for the triaxial experiment on a mohr coulomb model with a constant pore water pressure."""
         file_path = test_helper.get_file_path(os.path.join('test_element_lab', 'test_triaxial', 'drained'))
         expected_disp = test_helper.get_values_from_csv_as_vectors(
@@ -29,7 +29,7 @@ class KratosGeoMechanicsLabElementTests(KratosGeoUnittest.TestCase):
         self._run_triaxial_regression_test(file_path, 'triaxial_test_output.post.res', expected_disp, expected_stress,
                                            expected_strain, 4)
 
-    def atest_triaxial_undrained(self):
+    def test_triaxial_undrained(self):
         """
         Regression test for the undrained triaxial experiment.
         """
@@ -107,7 +107,7 @@ class KratosGeoMechanicsLabElementTests(KratosGeoUnittest.TestCase):
         self.assert_integration_point_tensors(result, "CAUCHY_STRESS_TENSOR", expected_stress, time, precision_places)
         self.assert_integration_point_tensors(result, "ENGINEERING_STRAIN_TENSOR", expected_strain, time, precision_places)
 
-    def atest_oedometer_drained(self):
+    def test_oedometer_drained(self):
         """Regression test for the oedometer experiment on a linear elastic model with constant pore water pressure."""
         expected_stress_per_ip = [-1e+06/3.0, -1e+06, -1e+06/3.0, 0.0, 0.0, 0.0]
         expected_stress = [expected_stress_per_ip] * 6
@@ -135,7 +135,7 @@ class KratosGeoMechanicsLabElementTests(KratosGeoUnittest.TestCase):
         for time, expected_y in zip(displacement_times, expected_y_displacements):
             self.assert_uniform_y_displacement_at_time(result, top_nodes, expected_y, time, precision_places_displacement)
 
-    def atest_dss_drained(self):
+    def test_dss_drained(self):
         """Regression test for the direct simple shear experiment with constant pore water pressure."""
         stage_name = 'drained'
         expected_stress = [[-1.0e+05, -1.0e+05, -1.0e+05, 8.0e+05, 0.0, 0.0]] * 6
@@ -165,7 +165,7 @@ class KratosGeoMechanicsLabElementTests(KratosGeoUnittest.TestCase):
             self._make_integration_point_tensor_entries(expected_strain, num_elements=2, num_integration_points_per_element=3),
             time, places_strain)
         
-    def atest_crs_drained(self):
+    def test_crs_drained(self):
         """Regression test for the CRS experiment with constant pore water pressure."""
         stage_name = 'drained'
         nr_of_phases = 5
@@ -215,7 +215,7 @@ class KratosGeoMechanicsLabElementTests(KratosGeoUnittest.TestCase):
                 result, "ENGINEERING_STRAIN_TENSOR", expected_strains[i+1], times[i], places=places_strain)
             self.assert_nodal_values_at_time(result, "WATER_PRESSURE", node_ids, expected_water_pressures[i], times[i], places=places_water_pressure)
 
-    def atest_triaxial_comp_6n(self):
+    def test_triaxial_comp_6n(self):
         """
         Drained compression triaxial test on Mohr-Coulomb model with axisymmetric 2D6N elements
         It consists of two calculation phases:
@@ -242,7 +242,7 @@ class KratosGeoMechanicsLabElementTests(KratosGeoUnittest.TestCase):
             self._make_integration_point_tensor_entries(expected_stress, num_elements=2, num_integration_points_per_element=3),
             time=1.25, delta=0.002)
 
-    def atest_schanz_vermeer(self):
+    def test_schanz_vermeer(self):
         """
         Regression test for unloading and reloading with the pressure-dependent Schanz Vermeer stiffness law
         on the axisymmetric 2D6N triaxial setup.
@@ -277,7 +277,7 @@ class KratosGeoMechanicsLabElementTests(KratosGeoUnittest.TestCase):
         for node_id, expected_y_displacement in zip(node_ids, expected_y_displacements):
             self.assert_uniform_y_displacement_at_time(output_data, [node_id], expected_y_displacement, time, places=places)
 
-    def atest_oedometer_ULFEM(self):
+    def test_oedometer_ULFEM(self):
         """
         Oedometer test on a linear elastic model with 2D6N elements
         """
@@ -296,7 +296,7 @@ class KratosGeoMechanicsLabElementTests(KratosGeoUnittest.TestCase):
         self.assert_uniform_y_displacement_at_time(result, top_node_nbrs, -0.0654, 0.7, 4)
         self.assert_uniform_y_displacement_at_time(result, top_node_nbrs, -0.0909, 1.0, 4)
 
-    def atest_oedometer_ULFEM_diff_order(self):
+    def test_oedometer_ULFEM_diff_order(self):
         """
         Oedometer test on a linear elastic model with 2D6N with different order elements
         """
