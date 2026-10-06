@@ -100,7 +100,7 @@
                 "kratos_module": "KratosMultiphysics",
                 "process_name": "AssignAverageMasterSlaveConstraintsProcess",
                 "Parameters": {
-                    "model_part_name": "PorousDomain.porous_computational_model_part",
+                    "computing_model_part_name": "PorousDomain.porous_computational_model_part",
                     "master_model_part_name": "PorousDomain.MasterX1",
                     "slave_model_part_name": "PorousDomain.SlaveX1",
                     "variable_name": "DISPLACEMENT_X",

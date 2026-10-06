@@ -22,14 +22,18 @@ namespace
 std::vector<std::string> GetProcessModelPartNames(const Kratos::Parameters& rProcessSettings,
                                                   const std::string&        rProcessInfo)
 {
-    KRATOS_ERROR_IF_NOT(rProcessSettings.Has("model_part_name") ||
-                        rProcessSettings.Has("model_part_name_list"))
+    KRATOS_ERROR_IF_NOT(rProcessSettings.Has("model_part_name") || rProcessSettings.Has("model_part_name_list") ||
+                        rProcessSettings.Has("computing_model_part_name"))
         << "Please specify 'model_part_name' or 'model_part_name_list' for " << rProcessInfo;
 
     KRATOS_ERROR_IF(rProcessSettings.Has("model_part_name") &&
                     rProcessSettings.Has("model_part_name_list"))
         << "The parameters 'model_part_name' and 'model_part_name_list' are mutually exclusive for "
         << rProcessInfo;
+
+    // some master slave processes use computing_model_part_name
+    if (rProcessSettings.Has("computing_model_part_name"))
+        return std::vector{rProcessSettings["computing_model_part_name"].GetString()};
 
     return rProcessSettings.Has("model_part_name_list")
                ? rProcessSettings["model_part_name_list"].GetStringArray()
