@@ -98,7 +98,8 @@ def _create_outer_support_model_part():
                             "name": "SbmLaplacianConditionDirichlet",
                             "shape_function_derivatives_order": 2,
                             "sbm_parameters": {
-                                "is_inner" : false
+                                "is_inner" : false,
+                                "projection_type" : "linealized"
                             }
                         }
                     ]

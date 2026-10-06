@@ -13,8 +13,8 @@
 #include "custom_elements/three_dimensional_stress_state.h"
 #include "custom_elements/transient_Pw_element.h"
 #include "geo_mechanics_application_variables.h"
-#include "includes/cfd_variables.h"
 #include "geometries/tetrahedra_3d_4.h"
+#include "includes/cfd_variables.h"
 #include "test_setup_utilities/element_setup_utilities.hpp"
 
 #include <benchmark/benchmark.h>
@@ -60,8 +60,8 @@ auto CreateTransientPwElement3D4NForBenchmark(const Properties::Pointer& rProper
 
     const auto solution_step_variables = Geo::ConstVariableDataRefs{
         std::cref(WATER_PRESSURE), std::cref(DT_WATER_PRESSURE), std::cref(VOLUME_ACCELERATION)};
-    Testing::ElementSetupUtilities::AddVariablesToNodes(nodes, solution_step_variables,
-                                                         Geo::ConstVariableRefs{std::cref(WATER_PRESSURE)});
+    Testing::ElementSetupUtilities::AddVariablesToNodes(
+        nodes, solution_step_variables, Geo::ConstVariableRefs{std::cref(WATER_PRESSURE)});
     for (auto& r_node : nodes) {
         r_node.SetBufferSize(2);
     }
