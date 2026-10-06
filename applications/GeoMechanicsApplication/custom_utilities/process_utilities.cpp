@@ -24,7 +24,10 @@ std::vector<std::string> GetProcessModelPartNames(const Kratos::Parameters& rPro
 {
     KRATOS_ERROR_IF_NOT(rProcessSettings.Has("model_part_name") || rProcessSettings.Has("model_part_name_list") ||
                         rProcessSettings.Has("computing_model_part_name"))
-        << "Please specify 'model_part_name' or 'model_part_name_list' for " << rProcessInfo;
+        << "Please specify 'model_part_name', 'model_part_name_list' or "
+           "'computing_model_part_name' "
+           "for "
+        << rProcessInfo;
 
     KRATOS_ERROR_IF(rProcessSettings.Has("model_part_name") &&
                     rProcessSettings.Has("model_part_name_list"))

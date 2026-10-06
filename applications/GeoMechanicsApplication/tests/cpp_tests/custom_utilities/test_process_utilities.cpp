@@ -65,6 +65,25 @@ KRATOS_TEST_CASE_IN_SUITE(GetModelPartsFromSettings_ListOfModelParts, KratosGeoM
     KRATOS_EXPECT_EQ(model_parts[1].get().Name(), "Part2");
 }
 
+KRATOS_TEST_CASE_IN_SUITE(GetModelPartsFromSettings_SingleComputingModelPart, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    Model model;
+    model.CreateModelPart("Main");
+
+    Parameters settings(R"(
+        {
+            "computing_model_part_name": "Main"
+        })");
+
+    // Act
+    const auto model_parts = ProcessUtilities::GetModelPartsFromSettings(model, settings, "TestProcess");
+
+    // Assert
+    KRATOS_EXPECT_EQ(model_parts.size(), 1);
+    KRATOS_EXPECT_EQ(model_parts[0].get().Name(), "Main");
+}
+
 KRATOS_TEST_CASE_IN_SUITE(GetModelPartsFromSettings_CheckForDuplicatedNames, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
@@ -117,9 +136,10 @@ TEST_P(ModelPartsTest, GetModelPartsFromSettings_MissingParameters_Throws)
 
     const auto& param = GetParam();
 
-    KRATOS_CHECK_EXCEPTION_IS_THROWN(
-        param.factory(model, settings),
-        "Please specify 'model_part_name' or 'model_part_name_list' for " + param.name);
+    KRATOS_CHECK_EXCEPTION_IS_THROWN(param.factory(model, settings),
+                                     "Please specify 'model_part_name', 'model_part_name_list' or "
+                                     "'computing_model_part_name' for " +
+                                         param.name);
 }
 
 TEST_P(ModelPartsTest, GetModelPartsFromSettings_EmptyList_Throws)
