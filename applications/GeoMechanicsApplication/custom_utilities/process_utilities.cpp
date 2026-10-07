@@ -17,6 +17,8 @@
 #include "custom_utilities/string_utilities.h"
 #include "includes/kratos_parameters.h"
 
+using namespace std::string_literals;
+
 namespace
 {
 
@@ -43,15 +45,22 @@ std::vector<std::string> GetProcessModelPartNames(const Kratos::Parameters& rPro
 
 std::set<std::string, std::less<>> ExtractModelPartNames(const auto&      rProcessList,
                                                          std::string_view RootName,
-                                                         std::string_view Prefix,
-                                                         const std::vector<std::string>& rModelPartNameKeys = {
-                                                             "model_part_name",
-                                                             "model_part_name_list"})
+                                                         std::string_view Prefix)
 {
+    const std::set master_slave_process_names = {"AssignAverageMasterSlaveConstraintsProcess"s,
+                                                 "ApplyPeriodicConditionProcess"s, "SkinDetectionProcess"s};
+
     std::set<std::string, std::less<>> result;
     for (const auto& r_process : rProcessList) {
         if (!r_process.Has("Parameters")) continue;
-        const auto model_part_names = GetProcessModelPartNames(r_process["Parameters"], {}, rModelPartNameKeys);
+
+        const auto model_part_name_keys =
+            (r_process.Has("process_name") &&
+             master_slave_process_names.contains(r_process["process_name"].GetString()))
+                ? std::vector{"computing_model_part_name"s}
+                : std::vector{"model_part_name"s, "model_part_name_list"s};
+        const auto model_part_names =
+            GetProcessModelPartNames(r_process["Parameters"], {}, model_part_name_keys);
         for (auto model_part_name : model_part_names) {
             if (model_part_name == RootName) continue;
             if (model_part_name.starts_with(Prefix)) model_part_name.erase(0, Prefix.size());
@@ -96,8 +105,8 @@ void ProcessUtilities::AddProcessesSubModelPartListToSolverSettings(const Parame
     const auto                         prefix    = root_name + ".";
 
     if (rProjectParameters.Has("processes")) {
-        for (const auto& r_process : rProjectParameters["processes"]) {
-            const auto modelpart_names = ExtractModelPartNames(r_process, root_name, prefix);
+        for (const auto& r_process_list : rProjectParameters["processes"]) {
+            const auto modelpart_names = ExtractModelPartNames(r_process_list, root_name, prefix);
             domain_condition_names.insert(modelpart_names.begin(), modelpart_names.end());
         }
     }
