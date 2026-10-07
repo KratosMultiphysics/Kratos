@@ -1,4 +1,5 @@
 import os
+import json
 import types
 import numpy as np
 from pathlib import Path
@@ -139,6 +140,92 @@ class TestFluidRom(KratosUnittest.TestCase):
                 else:
                     self.assertLess(np.sqrt(up), self.relative_tolerance, msg=f"Absolute tolerance failed at step {i+1}")
 
+            self.tearDown()
+
+
+    def testFluidGalerkinRom2D_ANN_Standalone(self):
+        # Same trained model as testFluidGalerkinRom2D_ANN, run without RomManager (no database): the ANN-enhanced
+        # decoder is read from the numpy files in rom_data, as given by 'ann_enhanced_settings' in the RomParameters
+        self.work_folder = "fluid_dynamics_test_files/GALERKIN_HROM_ANN_STANDALONE/"
+        expected_output_filename = "../GALERKIN_HROM_ANN/ExpectedOutputGalerkinHROM_ANN.npy"
+        parameters_filename = "ProjectParametersROM.json"
+
+        with KratosUnittest.WorkFolderScope(self.work_folder, __file__):
+            with open(parameters_filename,'r') as parameter_file:
+                parameters = KratosMultiphysics.Parameters(parameter_file.read())
+            model = KratosMultiphysics.Model()
+            simulation = rom_testing_utilities.SetUpSimulationInstance(model, parameters)
+            simulation.Run()
+
+            expected_output = np.load(expected_output_filename)
+            for i in range(expected_output.shape[1]):
+                obtained = np.load(Path(f"rom_data/Snapshots/solution_{i+1}.npy")).flatten()
+                l2 = np.linalg.norm(expected_output[:, i] - obtained) / np.linalg.norm(expected_output[:, i])
+                self.assertLess(l2, self.relative_tolerance, msg=f"Tolerance failed at step {i+1}")
+
+            kratos_utilities.DeleteDirectoryIfExisting("rom_data/Snapshots")
+
+
+    def testFluidGalerkinRom2D_ANN_Export(self):
+        # Exporting the model of testFluidGalerkinRom2D_ANN must give the files run in testFluidGalerkinRom2D_ANN_Standalone
+        self.work_folder = "fluid_dynamics_test_files/GALERKIN_HROM_ANN/"
+        standalone_folder = Path("../GALERKIN_HROM_ANN_STANDALONE/rom_data")
+        export_folder = Path("rom_data_exported")
+
+        general_rom_manager_parameters = KratosMultiphysics.Parameters("""{
+            "projection_strategy": "galerkin",
+            "type_of_decoder" : "ann_enhanced",
+            "assembling_strategy": "elemental",
+            "ROM":{
+                "svd_truncation_tolerance": 0,
+                "model_part_name": "FluidModelPart",
+                "nodal_unknowns": ["VELOCITY_X","VELOCITY_Y", "PRESSURE"],
+                "ann_enhanced_settings": {
+                    "modes": [3, 10],
+                    "layers_size": [50, 50],
+                    "batch_size": 2,
+                    "epochs": 200,
+                    "NN_gradient_regularisation_weight": 1.0,
+                    "lr_strategy": {
+                        "scheduler": "sgdr",
+                        "base_lr": 0.001,
+                        "additional_params": [0.0001, 10, 400]
+                    },
+                    "online": {
+                        "model_number": 0
+                    }
+                }
+            },
+            "HROM":{
+                "element_selection_svd_truncation_tolerance": 0
+            }
+        }""")
+
+        with KratosUnittest.WorkFolderScope(self.work_folder, __file__):
+            # The export rewrites the RomParameters of the RomManager, shared with testFluidGalerkinRom2D_ANN
+            with open("rom_data/RomParameters.json") as f:
+                original_rom_parameters = f.read()
+
+            rom_manager = RomManager(project_parameters_name="ProjectParametersROM.json", general_rom_manager_parameters=general_rom_manager_parameters)
+            rom_manager.ExportAnnEnhancedRom(export_folder=export_folder)
+
+            for file_name in ["RightBasisMatrix.npy", "SingularValues.npy", "NodeIds.npy", "HROM_ElementIds.npy", "HROM_ElementWeights.npy", "HROM_ConditionIds.npy", "HROM_ConditionWeights.npy"]:
+                self.assertTrue(np.array_equal(np.load(export_folder / file_name), np.load(standalone_folder / file_name)), msg=file_name)
+            exported_layers = np.load(export_folder / "model_weights.npy", allow_pickle=True)
+            standalone_layers = np.load(standalone_folder / "model_weights.npy", allow_pickle=True)
+            self.assertEqual(len(exported_layers), len(standalone_layers))
+            for exported_layer, standalone_layer in zip(exported_layers, standalone_layers):
+                self.assertTrue(np.array_equal(exported_layer, standalone_layer))
+
+            with open(export_folder / "RomParameters.json") as f:
+                rom_parameters = json.load(f)
+            self.assertFalse(rom_parameters["rom_manager"])
+            self.assertEqual(rom_parameters["projection_strategy"], "galerkin_ann")
+            self.assertEqual(rom_parameters["ann_enhanced_settings"]["modes"], [3, 10])
+
+            kratos_utilities.DeleteDirectoryIfExisting(str(export_folder))
+            with open("rom_data/RomParameters.json", "w") as f:
+                f.write(original_rom_parameters)
             self.tearDown()
 
 
