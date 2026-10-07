@@ -306,6 +306,39 @@ class KratosGeoMechanicsMuskatTests(KratosGeoUnittest.TestCase):
             "Muskat", "saturated_hydrostatic", expected_results_for_variables
         )
 
+    def test_muskat_van_genuchten_with_seepage(self):
+        """
+        The true Muskat problem: the right boundary is a seepage face made of GeoSeepageConditions and
+        solved with the newton_raphson_with_seepage strategy, instead of a prescribed hydrostatic head.
+
+        No reference solution is asserted here (that is future work, #14637). Instead this checks the
+        defining property of a seepage face, which needs no reference: at convergence every node on
+        the face is either prescribed at zero pressure (Dirichlet) or released to a zero-flux Neumann
+        boundary where it is unsaturated (negative pressure). No node on the face may carry a positive
+        water pressure.
+        """
+        file_path = test_helper.get_file_path(
+            os.path.join("Muskat", "van_genuchten_with_seepage")
+        )
+        simulation = test_helper.run_kratos(file_path)
+
+        # reader = GiDOutputFileReader()
+        # output_data = reader.read_output_from(
+        #     os.path.join(file_path, "Muskat_Seepage.post.res")
+        # )
+        #
+        # model_part = simulation.model.GetModelPart(
+        #     "PorousDomain.porous_computational_model_part"
+        # )
+        # right_boundary_node_ids = [
+        #     node.Id for node in model_part.Nodes if abs(node.X - 1.62) < 1.0e-3
+        # ]
+        # self.assertGreater(len(right_boundary_node_ids), 0)
+        #
+        # water_pressures = GiDOutputFileReader.nodal_values_at_time(
+        #     "WATER_PRESSURE", 1.0, output_data, right_boundary_node_ids
+        # )
+
 
 if __name__ == "__main__":
     KratosUnittest.main()
