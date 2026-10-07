@@ -33,7 +33,7 @@ std::vector<std::string> GetProcessModelPartNames(const Kratos::Parameters& rPro
         << "Please specify any of " << Kratos::GeoStringUtilities::Join(rModelPartNameKeys, ", ")
         << " for " << rProcessInfo;
 
-    KRATOS_ERROR_IF(rModelPartNameKeys.size() > 1 && std::ranges::all_of(rModelPartNameKeys, has_name_key))
+    KRATOS_ERROR_IF(rModelPartNameKeys.size() > 1 && std::ranges::count_if(rModelPartNameKeys, has_name_key) > 1)
         << "The parameters " << Kratos::GeoStringUtilities::Join(rModelPartNameKeys, ", ")
         << " are mutually exclusive for " << rProcessInfo;
 
