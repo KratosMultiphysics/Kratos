@@ -19,6 +19,7 @@ def run_modelers(current_model, modelers_list):
 
 
 class TestNurbsGeometryModelerGapSbm(KratosUnittest.TestCase):
+    # Checks Gap-SBM quadrature results for a circular NURBS boundary.
     def test_quadrature_points_gap_sbm_on_circle(self):
         current_model = KM.Model()
 
@@ -118,6 +119,7 @@ class TestNurbsGeometryModelerGapSbm(KratosUnittest.TestCase):
             self.assertAlmostEqual(center_point[1], expected[1], places=12)
             self.assertAlmostEqual(center_point[2], expected[2], places=12)
 
+    # Checks Gap-SBM quadrature results for a square boundary with layers.
     def test_quadrature_points_gap_sbm_on_square_layers(self):
         current_model = KM.Model()
 
