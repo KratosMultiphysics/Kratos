@@ -194,7 +194,7 @@ void Shell7pElement::GetEASModeConfiguration(array_1d<SizeType,3>& rEasModesPerK
     rEasModesPerKinematicVariableSet[1] = 0;   // for shear related kinematic variables (alpha13, alpha23, betta13, betta23)
     rEasModesPerKinematicVariableSet[2] = 4;   // for thickness related kinematic variable (betta33)
     // total number of EAS modes from the sum over all kinematic variables. faktor 2 is due to the fact that we have two sets of EAS modes: konstant and linear
-    rNumEasModes = rEasModesPerKinematicVariableSet[0] + rEasModesPerKinematicVariableSet[1] * 2 + rEasModesPerKinematicVariableSet[2];
+    rNumEasModes = rEasModesPerKinematicVariableSet[0] * 2 + rEasModesPerKinematicVariableSet[1] * 2 + rEasModesPerKinematicVariableSet[2];
 }
 
 
@@ -983,9 +983,9 @@ void Shell7pElement::CalculateGreenLagrangeStrain(array_1d<double,6>& GL_strain_
 
     GL_strain_tensor(0,0) = 0.5 * ((amkovc(0,0)-amkovr(0,0)) + 2.0*Theta3 * (b11c-b11r))                  + eas_enhancement[0] + Theta3 * eas_enhancement[6];
     GL_strain_tensor(0,1) = 0.5 * ((amkovc(0,1)-amkovr(0,1)) +     Theta3 * (b21c+b12c-b21r-b12r))        + 0.5 * (eas_enhancement[1] + Theta3 * eas_enhancement[7]);
-    GL_strain_tensor(0,2) = 0.5 *                                  Theta3 * (b31c-b31r) * std::sqrt(f_s)  + 0.5 * (eas_enhancement[2] + Theta3 * eas_enhancement[8]);
+    GL_strain_tensor(0,2) = 0.5 *                                  Theta3 * (b31c-b31r)  + 0.5 * (eas_enhancement[2] + Theta3 * eas_enhancement[8]);
     GL_strain_tensor(1,1) = 0.5 * ((amkovc(1,1)-amkovr(1,1)) + 2.0*Theta3 * (b22c-b22r))           +        eas_enhancement[3] + Theta3 * eas_enhancement[9];
-    GL_strain_tensor(1,2) = 0.5 *                                  Theta3 * (b32c-b32r) * std::sqrt(f_s)  + 0.5 * (eas_enhancement[4] + Theta3 * eas_enhancement[10]);
+    GL_strain_tensor(1,2) = 0.5 *                                  Theta3 * (b32c-b32r)  + 0.5 * (eas_enhancement[4] + Theta3 * eas_enhancement[10]);
     GL_strain_tensor(2,2) =                                                                                 eas_enhancement[5] + Theta3 * eas_enhancement[11];
 
     if (!ansq)
@@ -1389,20 +1389,6 @@ void Shell7pElement::BOperatorANSTransverseShearmodification(Matrix& Bop, const 
     Bop(4,node_start+4) = 0.0;
     Bop(4,node_start+5) = 0.0;
 
-    Bop(8,node_start+0) *= std::sqrt(f_s);
-    Bop(8,node_start+1) *= std::sqrt(f_s);
-    Bop(8,node_start+2) *= std::sqrt(f_s);
-    Bop(8,node_start+3) *= std::sqrt(f_s);
-    Bop(8,node_start+4) *= std::sqrt(f_s);
-    Bop(8,node_start+5) *= std::sqrt(f_s);
-    
-    Bop(10,node_start+0) *= std::sqrt(f_s);
-    Bop(10,node_start+1) *= std::sqrt(f_s);
-    Bop(10,node_start+2) *= std::sqrt(f_s);
-    Bop(10,node_start+3) *= std::sqrt(f_s);
-    Bop(10,node_start+4) *= std::sqrt(f_s);
-    Bop(10,node_start+5) *= std::sqrt(f_s);
-
     for (SizeType isamp = 0; isamp < 2; ++isamp)
     {
       const double a1x_c1 = akovc_ans[isamp][0][0];     // a1x
@@ -1509,12 +1495,12 @@ void Shell7pElement::CalculateEASShapeFunctions(Matrix& M0_eas, const double r, 
         M0_eas(alpha12,EAS_mode+2) = r;
         M0_eas(alpha12,EAS_mode+3) = s;
 
-        // M0_eas(betta11,EAS_mode+4) = r;
-        // M0_eas(betta22,EAS_mode+5) = s;
-        // M0_eas(betta12,EAS_mode+6) = r;
-        // M0_eas(betta12,EAS_mode+7) = s;
+        M0_eas(betta11,EAS_mode+4) = r;
+        M0_eas(betta22,EAS_mode+5) = s;
+        M0_eas(betta12,EAS_mode+6) = r;
+        M0_eas(betta12,EAS_mode+7) = s;
 
-        EAS_mode += 4;
+        EAS_mode += 8;
         break;
         case 5:
         M0_eas(alpha11,EAS_mode) = r;
@@ -1855,7 +1841,7 @@ const SizeType& ans_ct, const Vector& Np_ct, const Matrix& N_ans_ct, const array
             double delt_v_virt_v = (n11 * (dNd1_M*dNd1_K) + n12 * (dNd1_M*dNd2_K+dNd2_M*dNd1_K) + n22 * (dNd2_M*dNd2_K)) * weight;
             double delt_w_virt_v = (m11 * (dNd1_M*dNd1_K) + m12 * (dNd1_M*dNd2_K+dNd2_M*dNd1_K) + m22 * (dNd2_M*dNd2_K)) * weight;
             double delt_v_virt_w = (m11 * (dNd1_M*dNd1_K) + m12 * (dNd1_M*dNd2_K+dNd2_M*dNd1_K) + m22 * (dNd2_M*dNd2_K)) * weight;
-            double delt_w_virt_w = (m13 * (dNd1_M*N_K + N_M*dNd1_K) + m23 * (dNd2_M*N_K + N_M*dNd2_K)) * weight * std::sqrt(f_s);
+            double delt_w_virt_w = (m13 * (dNd1_M*N_K + N_M*dNd1_K) + m23 * (dNd2_M*N_K + N_M*dNd2_K)) * weight;
 
             if (!ansq)
             {
