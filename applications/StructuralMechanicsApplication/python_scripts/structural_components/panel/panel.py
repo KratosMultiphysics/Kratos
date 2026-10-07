@@ -37,7 +37,7 @@ class Panel(StructuralComponent):
             sub_model_part (_type_): SubModelPart defined in the *.mdpa file
             data (_type_): Data from the configuration file (*.json)
         """
-        boundary_conditions = [data["boundary_conditions"][i].GetDouble() for i in range(data["boundary_conditions"].size())]
+        boundary_conditions = data["boundary_conditions"].GetString()
         metadata = None
         if data.Has("metadata"):
             metadata = data["metadata"]
