@@ -126,7 +126,8 @@ TEST_P(ModelPartsTest, GetModelPartsFromSettings_BothParametersPresent_Throws)
 
     KRATOS_CHECK_EXCEPTION_IS_THROWN(
         param.factory(model, settings),
-        "The parameters model_part_name, model_part_name_list are mutually exclusive for " + param.name);
+        "The parameters 'model_part_name' and 'model_part_name_list' are mutually exclusive for " +
+            param.name);
 }
 
 TEST_P(ModelPartsTest, GetModelPartsFromSettings_MissingParameters_Throws)
@@ -136,10 +137,11 @@ TEST_P(ModelPartsTest, GetModelPartsFromSettings_MissingParameters_Throws)
 
     const auto& param = GetParam();
 
-    KRATOS_CHECK_EXCEPTION_IS_THROWN(param.factory(model, settings),
-                                     "Please specify any of model_part_name, model_part_name_list "
-                                     "for " +
-                                         param.name);
+    KRATOS_CHECK_EXCEPTION_IS_THROWN(
+        param.factory(model, settings),
+        "Please specify any of 'model_part_name' or 'model_part_name_list' "
+        "for " +
+            param.name);
 }
 
 TEST_P(ModelPartsTest, GetModelPartsFromSettings_EmptyList_Throws)

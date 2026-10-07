@@ -164,9 +164,9 @@ KRATOS_TEST_CASE_IN_SUITE(K0ProcedureConstructorThrowsWhenNoModelPartIsDefined, 
     Model model;
     auto  k0_settings = Parameters{};
 
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
-        (ApplyK0ProcedureProcess{model, k0_settings}),
-        "Please specify any of model_part_name, model_part_name_list for ApplyK0ProcedureProcess")
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN((ApplyK0ProcedureProcess{model, k0_settings}),
+                                      "Please specify any of 'model_part_name' or "
+                                      "'model_part_name_list' for ApplyK0ProcedureProcess")
 }
 
 KRATOS_TEST_CASE_IN_SUITE(K0ProcedureConstructorThrows_WhenListAndSingularModelPartAreBothSpecified,
@@ -179,8 +179,8 @@ KRATOS_TEST_CASE_IN_SUITE(K0ProcedureConstructorThrows_WhenListAndSingularModelP
 
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         (ApplyK0ProcedureProcess{model, k0_settings}),
-        "The parameters model_part_name, "
-        "model_part_name_list are mutually exclusive for ApplyK0ProcedureProcess")
+        "The parameters 'model_part_name' and "
+        "'model_part_name_list' are mutually exclusive for ApplyK0ProcedureProcess")
 }
 
 KRATOS_TEST_CASE_IN_SUITE(K0ProcedureConstructorThrows_WhenModelPartListIsEmpty, KratosGeoMechanicsFastSuiteWithoutKernel)
