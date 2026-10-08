@@ -37,6 +37,8 @@ Both the FE runner and analytical comparison read
 
 The material uses infinitesimal strain, isotropic elasticity and associated
 J2 plasticity with continuous Swift hardening `sigma_y = K*(epsilon_0+p)^n`.
+The public Swift law uses the generic plasticity integrator with a Swift
+hardening policy and committed accumulated equivalent plastic strain history.
 Density is zero because there are no body or inertial loads. See the
 [detailed law documentation](../README.md) for its formulation and API.
 
@@ -135,10 +137,11 @@ No plotting dependency is installed by these scripts.
 Expect a homogeneous uniaxial-stress state and agreement with continuous Swift
 to constitutive-integration and FE-equilibrium precision. The generated summary
 reports actual errors; agreement thresholds are not fitted to observed results.
-The cleanup verification run converged in all 100 increments with at most two
-Newton iterations. Maximum/RMS axial-stress errors were 3.8432e-10/9.9861e-11
-MPa; maximum `p` error was 2.0047e-15. Maximum transverse stress over all points
-was 1.4106e-10 MPa, and maximum stress/`p` spreads were 1.9327e-12 MPa/1.0408e-17.
+The generic-plasticity refactor verification converged in all 100 increments
+with at most two Newton iterations. Maximum/RMS axial-stress errors were
+3.8432e-10/9.9845e-11 MPa; maximum relative stress error was 9.4274e-13 and
+maximum `p` error was 2.0047e-15. Maximum transverse stress over all points was
+1.4107e-10 MPa, and maximum stress/`p` spreads were 1.9327e-12 MPa/6.9389e-18.
 These are observed floating-point results, not portable acceptance limits.
 
 The benchmark covers one monotonic homogeneous loading path, not general

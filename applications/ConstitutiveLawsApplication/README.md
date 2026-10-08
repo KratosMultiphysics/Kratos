@@ -18,6 +18,7 @@ The application includes tests to check the proper functioning of the applicatio
     * *Small-strain 3D associative J2 plasticity with Swift isotropic hardening*
         * Registered law: `SmallStrainSwiftJ2Plasticity3DLaw`.
         * Hardening: `sigma_y = K * (epsilon_0 + p)^n`, with accumulated equivalent plastic strain `p`.
+        * Uses generic isotropic plasticity with a Swift hardening policy and committed accumulated-strain history.
         * Parameters: `YOUNG_MODULUS`, `POISSON_RATIO`, `SWIFT_COEFFICIENT`, `SWIFT_INITIAL_STRAIN`, `SWIFT_HARDENING_EXPONENT`.
         * [Swift documentation and material example](tests/SwiftPlasticity/README.md); [FE validation benchmark](tests/SwiftPlasticity/validation/README.md).
     * *Small displacement isotropic plasticity laws (just 3D)*

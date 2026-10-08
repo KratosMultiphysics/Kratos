@@ -3,87 +3,72 @@
 
 #pragma once
 
-#include "includes/constitutive_law.h"
+#include "generic_small_strain_isotropic_plasticity.h"
+#include "custom_constitutive/auxiliary_files/cl_integrators/generic_cl_integrator_plasticity.h"
+#include "custom_constitutive/auxiliary_files/hardening_laws/swift_hardening_law.h"
 
 namespace Kratos
 {
 
-/**
- * @brief Small-strain, associated J2 plasticity with sigma_y = K*(epsilon_0+p)^n.
- * @details The committed history is plastic strain and accumulated equivalent
- * plastic strain p. Strain vectors use [xx, yy, zz, 2xy, 2yz, 2xz]; stress
- * vectors use [xx, yy, zz, xy, yz, xz]. As in SmallStrainJ2Plasticity3D,
- * Delta epsilon_p = DeltaGamma*N, N = s_trial/||s_trial||, N:N = 1,
- * and Delta p = sqrt(2/3)*DeltaGamma. Thus DeltaGamma is the multiplier
- * for ||s||-sqrt(2/3)*sigma_y; the multiplier for sigma_eq-sigma_y is Delta p.
- * CalculateMaterialResponse only evaluates trial states; Finalize commits.
- * All stress-measure entry points coincide in this small-strain formulation.
+/** @brief Public Swift law backed by generic associated J2 plasticity.
+ * @details History and material-response lifecycle belong to the generic law;
+ * the generic integrator uses SwiftHardeningLaw for sigma_y(p) and its derivative.
+ * This wrapper preserves the registered name and Python/C++ construction API.
  */
 class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) SmallStrainSwiftJ2Plasticity3D
-    : public ConstitutiveLaw
+    : public GenericSmallStrainIsotropicPlasticity<GenericConstitutiveLawIntegratorPlasticity<
+        VonMisesYieldSurface<VonMisesPlasticPotential<6>>, SwiftHardeningLaw>>
 {
 public:
     KRATOS_CLASS_POINTER_DEFINITION(SmallStrainSwiftJ2Plasticity3D);
-    using BaseType = ConstitutiveLaw;
+    using BaseType = GenericSmallStrainIsotropicPlasticity<GenericConstitutiveLawIntegratorPlasticity<
+        VonMisesYieldSurface<VonMisesPlasticPotential<6>>, SwiftHardeningLaw>>;
     using BaseType::Has;
     using BaseType::GetValue;
     using BaseType::SetValue;
-    using BaseType::CalculateValue;
 
     SmallStrainSwiftJ2Plasticity3D() = default;
     SmallStrainSwiftJ2Plasticity3D(const SmallStrainSwiftJ2Plasticity3D&) = default;
     ~SmallStrainSwiftJ2Plasticity3D() override = default;
 
-    ConstitutiveLaw::Pointer Clone() const override;
-    SizeType WorkingSpaceDimension() override { return 3; }
-    SizeType GetStrainSize() const override { return 6; }
-    StressMeasure GetStressMeasure() override { return StressMeasure_Cauchy; }
-    void GetLawFeatures(Features& rFeatures) override;
+    ConstitutiveLaw::Pointer Clone() const override
+    {
+        return Kratos::make_shared<SmallStrainSwiftJ2Plasticity3D>(*this);
+    }
+
     std::string Info() const override { return "SmallStrainSwiftJ2Plasticity3DLaw"; }
 
-    bool RequiresInitializeMaterialResponse() override { return false; }
-    bool RequiresFinalizeMaterialResponse() override { return true; }
-    void InitializeMaterial(const Properties& rProperties, const GeometryType& rGeometry,
-        const Vector& rShapeFunctionsValues) override;
+    /// The legacy state vector omits p; use the two explicit history variables.
+    bool Has(const Variable<Vector>& rVariable) override
+    {
+        return rVariable != INTERNAL_VARIABLES && BaseType::Has(rVariable);
+    }
 
-    void CalculateMaterialResponseCauchy(Parameters& rValues) override;
-    void CalculateMaterialResponsePK1(Parameters& rValues) override { CalculateMaterialResponseCauchy(rValues); }
-    void CalculateMaterialResponsePK2(Parameters& rValues) override { CalculateMaterialResponseCauchy(rValues); }
-    void CalculateMaterialResponseKirchhoff(Parameters& rValues) override { CalculateMaterialResponseCauchy(rValues); }
+    Vector& GetValue(const Variable<Vector>& rVariable, Vector& rValue) override
+    {
+        KRATOS_ERROR_IF(rVariable == INTERNAL_VARIABLES)
+            << "Swift does not support INTERNAL_VARIABLES; use PLASTIC_STRAIN_VECTOR and ACCUMULATED_PLASTIC_STRAIN";
+        return BaseType::GetValue(rVariable, rValue);
+    }
 
-    void FinalizeMaterialResponseCauchy(Parameters& rValues) override;
-    void FinalizeMaterialResponsePK1(Parameters& rValues) override { FinalizeMaterialResponseCauchy(rValues); }
-    void FinalizeMaterialResponsePK2(Parameters& rValues) override { FinalizeMaterialResponseCauchy(rValues); }
-    void FinalizeMaterialResponseKirchhoff(Parameters& rValues) override { FinalizeMaterialResponseCauchy(rValues); }
-
-    bool Has(const Variable<double>& rVariable) override;
-    bool Has(const Variable<Vector>& rVariable) override;
-    double& GetValue(const Variable<double>& rVariable, double& rValue) override;
-    Vector& GetValue(const Variable<Vector>& rVariable, Vector& rValue) override;
-    void SetValue(const Variable<double>& rVariable, const double& rValue,
-        const ProcessInfo& rProcessInfo) override;
     void SetValue(const Variable<Vector>& rVariable, const Vector& rValue,
-        const ProcessInfo& rProcessInfo) override;
-
-    /// YIELD_STRESS is the Swift flow stress at the committed p, not an input parameter.
-    double& CalculateValue(Parameters& rValues, const Variable<double>& rVariable,
-        double& rValue) override;
-
-    int Check(const Properties& rProperties, const GeometryType& rGeometry,
-        const ProcessInfo& rProcessInfo) const override;
+        const ProcessInfo& rProcessInfo) override
+    {
+        KRATOS_ERROR_IF(rVariable == INTERNAL_VARIABLES)
+            << "Swift does not support INTERNAL_VARIABLES; use PLASTIC_STRAIN_VECTOR and ACCUMULATED_PLASTIC_STRAIN";
+        BaseType::SetValue(rVariable, rValue, rProcessInfo);
+    }
 
 private:
-    Vector mPlasticStrain = ZeroVector(6);
-    double mAccumulatedPlasticStrain = 0.0;
-
-    static void CheckMaterialProperties(const Properties& rProperties);
-    static void EvaluateHardening(const Properties& rProperties, const double P,
-        double& rYieldStress, double& rHardeningModulus);
-    void IntegrateResponse(Parameters& rValues, Vector& rPlasticStrain, double& rP);
-
     friend class Serializer;
-    void save(Serializer& rSerializer) const override;
-    void load(Serializer& rSerializer) override;
+    void save(Serializer& rSerializer) const override
+    {
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, BaseType);
+    }
+    void load(Serializer& rSerializer) override
+    {
+        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, BaseType);
+    }
 };
 
 } // namespace Kratos

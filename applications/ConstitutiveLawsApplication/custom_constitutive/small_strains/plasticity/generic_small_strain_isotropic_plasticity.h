@@ -71,6 +71,11 @@ public:
     /// Definition of the base class
     using BaseType = typename std::conditional<VoigtSize == 6, ElasticIsotropic3D, LinearPlaneStrain >::type;
 
+    using ConstitutiveLaw::Has;
+    using ConstitutiveLaw::GetValue;
+    using ConstitutiveLaw::SetValue;
+    using ConstitutiveLaw::CalculateValue;
+
     /// The definition of the Voigt array type
     using BoundedArrayType = array_1d<double, VoigtSize>;
 
@@ -112,7 +117,8 @@ public:
         : BaseType(rOther),
           mPlasticDissipation(rOther.mPlasticDissipation),
           mThreshold(rOther.mThreshold),
-          mPlasticStrain(rOther.mPlasticStrain)
+          mPlasticStrain(rOther.mPlasticStrain),
+          mAccumulatedPlasticStrain(rOther.mAccumulatedPlasticStrain)
     {
     }
 
@@ -380,6 +386,8 @@ public:
     ///@}
 
 protected:
+    /// This history currently represents full 3D infinitesimal plastic strain.
+    virtual bool SupportsAccumulatedPlasticStrain() const { return VoigtSize == 6; }
     ///@name Protected static Member Variables
     ///@{
 
@@ -428,6 +436,8 @@ protected:
     double mPlasticDissipation = 0.0;
     double mThreshold = 0.0;
     Vector mPlasticStrain = ZeroVector(VoigtSize);
+    /// Path history, distinct from the legacy stress-projected equivalent strain.
+    double mAccumulatedPlasticStrain = 0.0;
 
     ///@}
     ///@name Private Operators
@@ -444,6 +454,9 @@ protected:
     void CalculateTangentTensor(
         ConstitutiveLaw::Parameters &rValues,
         const Vector& rPlasticStrain);
+
+    /// Evaluate a strain-hardening policy from committed history, optionally committing.
+    void CalculateResponseWithAccumulatedHardening(ConstitutiveLaw::Parameters& rValues, const bool Commit);
 
     ///@}
     ///@name Private  Access
@@ -467,6 +480,9 @@ protected:
         rSerializer.save("PlasticDissipation", mPlasticDissipation);
         rSerializer.save("Threshold", mThreshold);
         rSerializer.save("PlasticStrain", mPlasticStrain);
+        if (SupportsAccumulatedPlasticStrain()) {
+            rSerializer.save("AccumulatedPlasticStrain", mAccumulatedPlasticStrain);
+        }
     }
 
     void load(Serializer &rSerializer) override
@@ -475,6 +491,9 @@ protected:
         rSerializer.load("PlasticDissipation", mPlasticDissipation);
         rSerializer.load("Threshold", mThreshold);
         rSerializer.load("PlasticStrain", mPlasticStrain);
+        if (SupportsAccumulatedPlasticStrain()) {
+            rSerializer.load("AccumulatedPlasticStrain", mAccumulatedPlasticStrain);
+        }
     }
 
     ///@}

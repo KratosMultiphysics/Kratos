@@ -191,6 +191,104 @@ void check_continuation(SwiftMaterialPoint& rPoint, ConstitutiveLaw& rOther)
     KRATOS_EXPECT_VECTOR_NEAR(rOther.GetValue(PLASTIC_STRAIN_VECTOR, other_plastic), rPoint.PlasticStrain(), 1.0e-15);
 }
 
+// Exercise the shared history for both the new policy and a legacy dissipation
+// model. The latter retains its original threshold and integration tolerances.
+ConstitutiveLaw::Pointer make_history_law(SwiftMaterialPoint& rPoint, const bool Legacy)
+{
+    rPoint.mrModelPart.GetProcessInfo()[STEP] = 2;
+    rPoint.mrModelPart.GetProcessInfo()[NL_ITERATION_NUMBER] = 2;
+    rPoint.mMaterial[YIELD_STRESS] = 400.0;
+    rPoint.mMaterial[FRACTURE_ENERGY] = 1.0e6;
+    rPoint.mMaterial[HARDENING_CURVE] = 3; // Existing perfect plasticity curve.
+    rPoint.mMaterial[TANGENT_OPERATOR_ESTIMATION] = 0;
+    auto p_law = Legacy
+        ? KratosComponents<ConstitutiveLaw>::Get("SmallStrainIsotropicPlasticity3DVonMisesVonMises").Clone()
+        : rPoint.mLaw.Clone();
+    p_law->InitializeMaterial(rPoint.mMaterial, *rPoint.mpGeometry, rPoint.mShapeFunctions);
+    return p_law;
+}
+
+double plastic_path_increment(const Vector& rIncrement)
+{
+    // Independent tensor contraction: two tensor shear entries, each gamma/2.
+    double squared_norm = 0.0;
+    for (unsigned int i = 0; i < 6; ++i) {
+        squared_norm += rIncrement[i] * rIncrement[i] * (i < 3 ? 1.0 : 0.5);
+    }
+    return std::sqrt(2.0 / 3.0 * squared_norm);
+}
+
+// The generic archive layout before accumulated history was introduced. Keep
+// this independent of the current generic save/load methods to detect changes
+// in unsupported laws, in both binary and tagged archives.
+struct LegacyPlasticityArchive : ConstitutiveLaw
+{
+    double mPlasticDissipation = 0.125;
+    double mThreshold = 400.0;
+    Vector mPlasticStrain;
+
+private:
+    friend class Kratos::Serializer;
+    void save(Serializer& rSerializer) const override
+    {
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, ConstitutiveLaw);
+        rSerializer.save("PlasticDissipation", mPlasticDissipation);
+        rSerializer.save("Threshold", mThreshold);
+        rSerializer.save("PlasticStrain", mPlasticStrain);
+    }
+    void load(Serializer& rSerializer) override
+    {
+        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, ConstitutiveLaw);
+        rSerializer.load("PlasticDissipation", mPlasticDissipation);
+        rSerializer.load("Threshold", mThreshold);
+        rSerializer.load("PlasticStrain", mPlasticStrain);
+    }
+};
+
+void check_unsupported_history_serialization(const std::string& rLawName)
+{
+    for (const auto trace : {Serializer::SERIALIZER_NO_TRACE, Serializer::SERIALIZER_TRACE_ERROR}) {
+        auto p_law = KratosComponents<ConstitutiveLaw>::Get(rLawName).Clone();
+        KRATOS_EXPECT_FALSE(p_law->Has(ACCUMULATED_PLASTIC_STRAIN));
+        LegacyPlasticityArchive old_state;
+        old_state.mPlasticStrain = ScalarVector(p_law->GetStrainSize(), 0.001);
+        constexpr double sentinel = 1234.5;
+        double loaded_sentinel = 0.0;
+
+        StreamSerializer old_archive(trace);
+        old_archive.save("Law", old_state);
+        old_archive.save("FollowingValue", sentinel);
+        old_archive.load("Law", *p_law);
+        old_archive.load("FollowingValue", loaded_sentinel);
+        KRATOS_EXPECT_EQ(loaded_sentinel, sentinel);
+        Vector plastic;
+        double dissipation = 0.0;
+        KRATOS_EXPECT_VECTOR_NEAR(p_law->GetValue(PLASTIC_STRAIN_VECTOR, plastic), old_state.mPlasticStrain, 1.0e-15);
+        KRATOS_EXPECT_EQ(p_law->GetValue(PLASTIC_DISSIPATION, dissipation), old_state.mPlasticDissipation);
+
+        // A previous-layout reader must also consume a newly written archive
+        // without consuming any bytes belonging to the following object.
+        StreamSerializer new_archive(trace);
+        new_archive.save("Law", *p_law);
+        new_archive.save("FollowingValue", sentinel);
+        LegacyPlasticityArchive recovered_state;
+        new_archive.load("Law", recovered_state);
+        new_archive.load("FollowingValue", loaded_sentinel);
+        KRATOS_EXPECT_EQ(loaded_sentinel, sentinel);
+        KRATOS_EXPECT_EQ(recovered_state.mThreshold, old_state.mThreshold);
+        KRATOS_EXPECT_EQ(recovered_state.mPlasticDissipation, old_state.mPlasticDissipation);
+        KRATOS_EXPECT_VECTOR_NEAR(recovered_state.mPlasticStrain, old_state.mPlasticStrain, 1.0e-15);
+
+        StreamSerializer round_trip(trace);
+        round_trip.save("Law", p_law);
+        ConstitutiveLaw::Pointer p_loaded;
+        round_trip.load("Law", p_loaded);
+        KRATOS_EXPECT_FALSE(p_loaded->Has(ACCUMULATED_PLASTIC_STRAIN));
+        KRATOS_EXPECT_VECTOR_NEAR(p_loaded->GetValue(PLASTIC_STRAIN_VECTOR, plastic), old_state.mPlasticStrain, 1.0e-15);
+        KRATOS_EXPECT_EQ(p_loaded->GetValue(PLASTIC_DISSIPATION, dissipation), old_state.mPlasticDissipation);
+    }
+}
+
 } // namespace
 
 KRATOS_TEST_CASE_IN_SUITE(SwiftJ2FlowStressEquation, KratosConstitutiveLawsFastSuite)
@@ -495,6 +593,63 @@ KRATOS_TEST_CASE_IN_SUITE(SwiftJ2SerializationPreservesHistory, KratosConstituti
     check_continuation(point, *p_loaded);
 }
 
+KRATOS_TEST_CASE_IN_SUITE(SwiftJ2ExplicitStateTransfer, KratosConstitutiveLawsFastSuite)
+{
+    SwiftMaterialPoint point;
+    point.SolveUniaxialStress(0.02);
+    point.Commit();
+    SmallStrainSwiftJ2Plasticity3D restored;
+    restored.InitializeMaterial(point.mMaterial, *point.mpGeometry, point.mShapeFunctions);
+    ConstitutiveLaw& r_restored = restored;
+    KRATOS_EXPECT_FALSE(r_restored.Has(INTERNAL_VARIABLES));
+    KRATOS_EXPECT_TRUE(r_restored.Has(PLASTIC_STRAIN_VECTOR));
+    KRATOS_EXPECT_TRUE(r_restored.Has(ACCUMULATED_PLASTIC_STRAIN));
+    Vector unsupported = ScalarVector(7, 0.25);
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(r_restored.GetValue(INTERNAL_VARIABLES, unsupported),
+        "Swift does not support INTERNAL_VARIABLES");
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(r_restored.SetValue(INTERNAL_VARIABLES, unsupported,
+        point.mrModelPart.GetProcessInfo()), "Swift does not support INTERNAL_VARIABLES");
+    Vector plastic;
+    double p = 0.0;
+    KRATOS_EXPECT_VECTOR_NEAR(r_restored.GetValue(PLASTIC_STRAIN_VECTOR, plastic), ZeroVector(6), 0.0);
+    KRATOS_EXPECT_EQ(r_restored.GetValue(ACCUMULATED_PLASTIC_STRAIN, p), 0.0);
+    r_restored.SetValue(PLASTIC_STRAIN_VECTOR, point.PlasticStrain(), point.mrModelPart.GetProcessInfo());
+    r_restored.SetValue(ACCUMULATED_PLASTIC_STRAIN, point.P(), point.mrModelPart.GetProcessInfo());
+    check_continuation(point, r_restored);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(GenericPlasticitySerializationPlaneStrainCompatibility, KratosConstitutiveLawsFastSuite)
+{
+    check_unsupported_history_serialization("SmallStrainIsotropicPlasticityPlaneStrainVonMisesVonMises");
+}
+
+KRATOS_TEST_CASE_IN_SUITE(GenericPlasticitySerializationFiniteStrainCompatibility, KratosConstitutiveLawsFastSuite)
+{
+    check_unsupported_history_serialization("FiniteStrainIsotropicPlasticity3DVonMisesVonMises");
+}
+
+KRATOS_TEST_CASE_IN_SUITE(GenericPlasticityHistoryCapabilityBoundaries, KratosConstitutiveLawsFastSuite)
+{
+    ProcessInfo process_info;
+    for (const std::string name : {
+            "SmallStrainIsotropicPlasticity3DVonMisesVonMises",
+            "SmallStrainIsotropicPlasticityPlaneStrainVonMisesVonMises",
+            "SmallStrainIsotropicPlasticityPlaneStressVonMisesVonMises",
+            "FiniteStrainIsotropicPlasticity3DVonMisesVonMises"}) {
+        auto p_law = KratosComponents<ConstitutiveLaw>::Get(name).Clone();
+        KRATOS_EXPECT_EQ(p_law->Has(ACCUMULATED_PLASTIC_STRAIN),
+            name == "SmallStrainIsotropicPlasticity3DVonMisesVonMises");
+        KRATOS_EXPECT_TRUE(p_law->Has(INTERNAL_VARIABLES));
+        Vector state = ScalarVector(1 + p_law->GetStrainSize(), 0.001);
+        state[0] = 0.125;
+        p_law->SetValue(INTERNAL_VARIABLES, state, process_info);
+        Vector recovered;
+        p_law->GetValue(INTERNAL_VARIABLES, recovered);
+        KRATOS_EXPECT_EQ(recovered.size(), state.size());
+        KRATOS_EXPECT_VECTOR_NEAR(recovered, state, 0.0);
+    }
+}
+
 KRATOS_TEST_CASE_IN_SUITE(SwiftJ2MaterialRegistration, KratosConstitutiveLawsFastSuite)
 {
     SwiftMaterialPoint point;
@@ -572,6 +727,136 @@ KRATOS_TEST_CASE_IN_SUITE(SwiftJ2OutputFlagsAndInfinitesimalStrain, KratosConsti
     point.Commit();
     KRATOS_EXPECT_GT(point.P(), 0.0);
     KRATOS_EXPECT_MATRIX_NEAR(point.mTangent, tangent, 0.0);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(GenericPlasticityAccumulatedHistoryUnloadReload, KratosConstitutiveLawsFastSuite)
+{
+    for (const bool legacy : {false, true}) {
+        SwiftMaterialPoint point;
+        auto p_law = make_history_law(point, legacy);
+        double p = 0.0;
+        Vector plastic = ZeroVector(6);
+        for (const double shear : {0.01, 0.02}) {
+            const Vector previous = plastic;
+            const double previous_p = p;
+            point.mStrain[3] = shear;
+            p_law->CalculateMaterialResponseCauchy(point.mValues);
+            KRATOS_EXPECT_EQ(p_law->GetValue(ACCUMULATED_PLASTIC_STRAIN, p), previous_p);
+            p_law->FinalizeMaterialResponseCauchy(point.mValues);
+            p_law->GetValue(PLASTIC_STRAIN_VECTOR, plastic);
+            p_law->GetValue(ACCUMULATED_PLASTIC_STRAIN, p);
+            KRATOS_EXPECT_GT(p, previous_p);
+            KRATOS_EXPECT_NEAR(p - previous_p, plastic_path_increment(Vector(plastic - previous)), 1.0e-14);
+            KRATOS_EXPECT_NEAR(p, plastic[3] / std::sqrt(3.0), 1.0e-14);
+        }
+        const double loaded_p = p;
+        const Vector loaded_plastic = plastic;
+        // Unload to zero stress, then reload to half the previous elastic shear.
+        const double elastic_shear = point.mStrain[3] - plastic[3];
+        for (const double fraction : {0.0, 0.5}) {
+            point.mStrain[3] = plastic[3] + fraction * elastic_shear;
+            p_law->FinalizeMaterialResponseCauchy(point.mValues);
+            KRATOS_EXPECT_NEAR(p_law->GetValue(ACCUMULATED_PLASTIC_STRAIN, p), loaded_p, 1.0e-14);
+            KRATOS_EXPECT_VECTOR_NEAR(p_law->GetValue(PLASTIC_STRAIN_VECTOR, plastic), loaded_plastic, 1.0e-14);
+        }
+        point.mStrain[3] = 0.03;
+        p_law->FinalizeMaterialResponseCauchy(point.mValues);
+        p_law->GetValue(ACCUMULATED_PLASTIC_STRAIN, p);
+        p_law->GetValue(PLASTIC_STRAIN_VECTOR, plastic);
+        KRATOS_EXPECT_GT(p, loaded_p);
+        KRATOS_EXPECT_NEAR(p - loaded_p, plastic_path_increment(Vector(plastic - loaded_plastic)), 1.0e-14);
+    }
+}
+
+KRATOS_TEST_CASE_IN_SUITE(GenericPlasticityAccumulatedHistoryNonproportional, KratosConstitutiveLawsFastSuite)
+{
+    for (const bool legacy : {false, true}) {
+        SwiftMaterialPoint point;
+        auto p_law = make_history_law(point, legacy);
+        double accumulated = 0.0;
+        double p = 0.0;
+        Vector plastic = ZeroVector(6);
+        const double path[][6] = {
+            {0.01, -0.004, -0.006, 0.0, 0.0, 0.0},
+            {0.005, -0.002, -0.003, 0.02, 0.0, 0.0},
+            {-0.01, 0.006, 0.004, -0.01, 0.012, 0.0}};
+        for (const auto& r_step : path) {
+            const Vector previous = plastic;
+            const double previous_p = p;
+            for (unsigned int i = 0; i < 6; ++i) {
+                point.mStrain[i] = r_step[i];
+            }
+            // Repeated trials must start from exactly the same committed history.
+            for (unsigned int i = 0; i < 3; ++i) {
+                p_law->CalculateMaterialResponseCauchy(point.mValues);
+                KRATOS_EXPECT_EQ(p_law->GetValue(ACCUMULATED_PLASTIC_STRAIN, p), previous_p);
+                KRATOS_EXPECT_VECTOR_NEAR(p_law->GetValue(PLASTIC_STRAIN_VECTOR, plastic), previous, 0.0);
+            }
+            p_law->FinalizeMaterialResponseCauchy(point.mValues);
+            p_law->GetValue(PLASTIC_STRAIN_VECTOR, plastic);
+            accumulated += plastic_path_increment(Vector(plastic - previous));
+            p_law->GetValue(ACCUMULATED_PLASTIC_STRAIN, p);
+            KRATOS_EXPECT_GT(p, previous_p);
+            KRATOS_EXPECT_NEAR(p, accumulated, 1.0e-14);
+        }
+        p_law->CalculateMaterialResponseCauchy(point.mValues);
+        const double projected_strain = inner_prod(point.mStress, plastic) / von_mises(point.mStress);
+        KRATOS_EXPECT_GT(p - plastic_path_increment(plastic), 1.0e-3);
+        KRATOS_EXPECT_GT(p - projected_strain, 1.0e-3);
+    }
+}
+
+KRATOS_TEST_CASE_IN_SUITE(GenericPlasticityAccumulatedHistoryFailedTrial, KratosConstitutiveLawsFastSuite)
+{
+    SwiftMaterialPoint point;
+    point.mMaterial[MAX_NUMBER_NL_CL_ITERATIONS] = 1;
+    point.mStrain[3] = 0.02;
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(point.Evaluate(), "failed after 1 iterations");
+    KRATOS_EXPECT_EQ(point.P(), 0.0);
+    KRATOS_EXPECT_VECTOR_NEAR(point.PlasticStrain(), ZeroVector(6), 0.0);
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(point.Commit(), "failed after 1 iterations");
+    KRATOS_EXPECT_EQ(point.P(), 0.0);
+    KRATOS_EXPECT_VECTOR_NEAR(point.PlasticStrain(), ZeroVector(6), 0.0);
+    point.mMaterial[MAX_NUMBER_NL_CL_ITERATIONS] = 100;
+    point.Commit();
+    KRATOS_EXPECT_GT(point.P(), 0.0);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(GenericPlasticityAccumulatedHistoryCloneRestart, KratosConstitutiveLawsFastSuite)
+{
+    for (const bool legacy : {false, true}) {
+        SwiftMaterialPoint point;
+        auto p_law = make_history_law(point, legacy);
+        point.mStrain[3] = 0.02;
+        p_law->FinalizeMaterialResponseCauchy(point.mValues);
+        auto p_clone = p_law->Clone();
+        StreamSerializer serializer;
+        serializer.save("Law", p_law);
+        ConstitutiveLaw::Pointer p_loaded;
+        serializer.load("Law", p_loaded);
+        double original_p = 0.0;
+        p_law->GetValue(ACCUMULATED_PLASTIC_STRAIN, original_p);
+        Vector original_plastic;
+        p_law->GetValue(PLASTIC_STRAIN_VECTOR, original_plastic);
+        for (auto& p_copy : {p_clone, p_loaded}) {
+            double copy_p = 0.0;
+            Vector copy_plastic;
+            KRATOS_EXPECT_EQ(p_copy->GetValue(ACCUMULATED_PLASTIC_STRAIN, copy_p), original_p);
+            KRATOS_EXPECT_VECTOR_NEAR(p_copy->GetValue(PLASTIC_STRAIN_VECTOR, copy_plastic), original_plastic, 0.0);
+        }
+        point.mStrain[4] = 0.03;
+        p_law->CalculateMaterialResponseCauchy(point.mValues);
+        const Vector stress = point.mStress;
+        p_law->FinalizeMaterialResponseCauchy(point.mValues);
+        p_law->GetValue(ACCUMULATED_PLASTIC_STRAIN, original_p);
+        for (auto& p_copy : {p_clone, p_loaded}) {
+            double copy_p = 0.0;
+            p_copy->CalculateMaterialResponseCauchy(point.mValues);
+            KRATOS_EXPECT_VECTOR_NEAR(point.mStress, stress, 1.0e-10);
+            p_copy->FinalizeMaterialResponseCauchy(point.mValues);
+            KRATOS_EXPECT_NEAR(p_copy->GetValue(ACCUMULATED_PLASTIC_STRAIN, copy_p), original_p, 1.0e-15);
+        }
+    }
 }
 
 } // namespace Kratos::Testing

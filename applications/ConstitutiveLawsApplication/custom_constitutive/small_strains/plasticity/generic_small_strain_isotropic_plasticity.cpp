@@ -19,6 +19,7 @@
 #include "constitutive_laws_application_variables.h"
 #include "custom_utilities/tangent_operator_calculator_utility.h"
 #include "generic_small_strain_isotropic_plasticity.h"
+#include "custom_constitutive/auxiliary_files/hardening_laws/swift_hardening_law.h"
 #include "custom_constitutive/auxiliary_files/cl_integrators/generic_cl_integrator_plasticity.h"
 
 // Yield surfaces
@@ -71,8 +72,63 @@ void GenericSmallStrainIsotropicPlasticity<TConstLawIntegratorType>::CalculateMa
 /***********************************************************************************/
 
 template <class TConstLawIntegratorType>
+void GenericSmallStrainIsotropicPlasticity<TConstLawIntegratorType>::CalculateResponseWithAccumulatedHardening(
+    ConstitutiveLaw::Parameters& rValues, const bool Commit)
+{
+    KRATOS_TRY
+    if constexpr (TConstLawIntegratorType::UsesAccumulatedPlasticStrain) {
+        TConstLawIntegratorType::Check(rValues.GetMaterialProperties());
+        const auto& r_options = rValues.GetOptions();
+        auto& r_strain = rValues.GetStrainVector();
+        if (r_options.IsNot(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN)) {
+            // Infinitesimal kinematics, including when the element supplies F.
+            const auto& r_f = rValues.GetDeformationGradientF();
+            KRATOS_ERROR_IF(r_f.size1() != 3 || r_f.size2() != 3) << "Expected a 3x3 deformation gradient";
+            r_strain.resize(VoigtSize, false);
+            for (SizeType i = 0; i < 3; ++i) {
+                r_strain[i] = r_f(i, i) - 1.0;
+            }
+            r_strain[3] = r_f(0, 1) + r_f(1, 0);
+            r_strain[4] = r_f(1, 2) + r_f(2, 1);
+            r_strain[5] = r_f(0, 2) + r_f(2, 0);
+        }
+        KRATOS_ERROR_IF(r_strain.size() != VoigtSize) << "Invalid engineering strain vector size";
+        Vector strain = r_strain;
+        this->AddInitialStrainVectorContribution(strain);
+        for (const double value : strain) {
+            KRATOS_ERROR_IF_NOT(std::isfinite(value)) << "Non-finite strain";
+        }
+        Matrix constitutive_matrix = ZeroMatrix(VoigtSize, VoigtSize);
+        this->CalculateElasticMatrix(constitutive_matrix, rValues);
+        Vector plastic_strain = mPlasticStrain;
+        double accumulated_plastic_strain = mAccumulatedPlasticStrain;
+        double threshold = mThreshold;
+        BoundedArrayType stress = prod(constitutive_matrix, strain - plastic_strain);
+        this->AddInitialStressVectorContribution(stress);
+        TConstLawIntegratorType::IntegrateStressVector(stress, strain, plastic_strain,
+            accumulated_plastic_strain, threshold, constitutive_matrix, rValues);
+        if (r_options.Is(ConstitutiveLaw::COMPUTE_STRESS)) {
+            rValues.GetStressVector() = stress;
+        }
+        if (r_options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
+            rValues.GetConstitutiveMatrix() = constitutive_matrix;
+        }
+        if (Commit) {
+            mPlasticStrain = plastic_strain;
+            mAccumulatedPlasticStrain = accumulated_plastic_strain;
+            mThreshold = threshold;
+        }
+    }
+    KRATOS_CATCH("")
+}
+
+template <class TConstLawIntegratorType>
 void GenericSmallStrainIsotropicPlasticity<TConstLawIntegratorType>::CalculateMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues)
 {
+    if constexpr (TConstLawIntegratorType::UsesAccumulatedPlasticStrain) {
+        CalculateResponseWithAccumulatedHardening(rValues, false);
+        return;
+    }
     // Auxiliary values
     const Flags& r_constitutive_law_options = rValues.GetOptions();
 
@@ -213,6 +269,12 @@ void GenericSmallStrainIsotropicPlasticity<TConstLawIntegratorType>::InitializeM
     const Vector& rShapeFunctionsValues
     )
 {
+    if constexpr (TConstLawIntegratorType::UsesAccumulatedPlasticStrain) {
+        TConstLawIntegratorType::Check(rMaterialProperties);
+        mAccumulatedPlasticStrain = 0.0;
+        mPlasticStrain = ZeroVector(VoigtSize);
+        mPlasticDissipation = 0.0;
+    }
     // We construct the CL parameters
     ProcessInfo dummy_process_info;
     ConstitutiveLaw::Parameters aux_param(rElementGeometry, rMaterialProperties, dummy_process_info);
@@ -297,6 +359,10 @@ void GenericSmallStrainIsotropicPlasticity<TConstLawIntegratorType>::FinalizeMat
 template <class TConstLawIntegratorType>
 void GenericSmallStrainIsotropicPlasticity<TConstLawIntegratorType>::FinalizeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues)
 {
+    if constexpr (TConstLawIntegratorType::UsesAccumulatedPlasticStrain) {
+        CalculateResponseWithAccumulatedHardening(rValues, true);
+        return;
+    }
     // Auxiliary values
     const Flags& r_constitutive_law_options = rValues.GetOptions();
 
@@ -357,6 +423,12 @@ void GenericSmallStrainIsotropicPlasticity<TConstLawIntegratorType>::FinalizeMat
             characteristic_length);
     }
 
+    // Record the actual step increment, without changing the legacy dissipation
+    // integration, projected equivalent strain, threshold or stress response.
+    if (SupportsAccumulatedPlasticStrain()) {
+        const Vector plastic_increment = plastic_strain - mPlasticStrain;
+        mAccumulatedPlasticStrain += TConstLawIntegratorType::CalculateAccumulatedPlasticStrainIncrement(plastic_increment);
+    }
     mPlasticDissipation = plastic_dissipation;
     noalias(mPlasticStrain) = plastic_strain;
     mThreshold = threshold;
@@ -368,6 +440,9 @@ void GenericSmallStrainIsotropicPlasticity<TConstLawIntegratorType>::FinalizeMat
 template <class TConstLawIntegratorType>
 bool GenericSmallStrainIsotropicPlasticity<TConstLawIntegratorType>::Has(const Variable<double>& rThisVariable)
 {
+    if (rThisVariable == ACCUMULATED_PLASTIC_STRAIN) {
+        return SupportsAccumulatedPlasticStrain();
+    }
     if (rThisVariable == PLASTIC_DISSIPATION) {
         return true;
     } else {
@@ -410,7 +485,10 @@ void GenericSmallStrainIsotropicPlasticity<TConstLawIntegratorType>::SetValue(
     const double& rValue,
     const ProcessInfo& rCurrentProcessInfo)
 {
-    if (rThisVariable == PLASTIC_DISSIPATION) {
+    if (rThisVariable == ACCUMULATED_PLASTIC_STRAIN && SupportsAccumulatedPlasticStrain()) {
+        KRATOS_ERROR_IF(!std::isfinite(rValue) || rValue < 0.0) << "p must be finite and non-negative";
+        mAccumulatedPlasticStrain = rValue;
+    } else if (rThisVariable == PLASTIC_DISSIPATION) {
         mPlasticDissipation = rValue;
     } else {
         BaseType::SetValue(rThisVariable, rValue, rCurrentProcessInfo);
@@ -434,6 +512,10 @@ void GenericSmallStrainIsotropicPlasticity<TConstLawIntegratorType>::SetValue(
         return;
     }
     if (rThisVariable == PLASTIC_STRAIN_VECTOR) {
+        KRATOS_ERROR_IF(rValue.size() != VoigtSize) << "Invalid plastic strain vector size";
+        for (const double value : rValue) {
+            KRATOS_ERROR_IF_NOT(std::isfinite(value)) << "Plastic strain must be finite";
+        }
         mPlasticStrain = rValue;
     } else {
         BaseType::SetValue(rThisVariable, rValue, rCurrentProcessInfo);
@@ -449,7 +531,9 @@ double& GenericSmallStrainIsotropicPlasticity<TConstLawIntegratorType>::GetValue
     double& rValue
     )
 {
-    if (rThisVariable == PLASTIC_DISSIPATION) {
+    if (rThisVariable == ACCUMULATED_PLASTIC_STRAIN && SupportsAccumulatedPlasticStrain()) {
+        rValue = mAccumulatedPlasticStrain;
+    } else if (rThisVariable == PLASTIC_DISSIPATION) {
         rValue = mPlasticDissipation;
     } else {
         BaseType::GetValue(rThisVariable, rValue);
@@ -512,6 +596,14 @@ double& GenericSmallStrainIsotropicPlasticity<TConstLawIntegratorType>::Calculat
     double& rValue
     )
 {
+    if constexpr (TConstLawIntegratorType::UsesAccumulatedPlasticStrain) {
+        if (rThisVariable == YIELD_STRESS) {
+            double derivative = 0.0;
+            TConstLawIntegratorType::CalculateEquivalentStressThreshold(
+                rParameterValues.GetMaterialProperties(), mAccumulatedPlasticStrain, rValue, derivative);
+            return rValue;
+        }
+    }
     if (rThisVariable == UNIAXIAL_STRESS) {
         // Get Values to compute the constitutive law:
         Flags& r_flags = rParameterValues.GetOptions();
@@ -601,6 +693,10 @@ int GenericSmallStrainIsotropicPlasticity<TConstLawIntegratorType>::Check(
     const ProcessInfo& rCurrentProcessInfo
     ) const
 {
+    if constexpr (TConstLawIntegratorType::UsesAccumulatedPlasticStrain) {
+        KRATOS_ERROR_IF(rElementGeometry.WorkingSpaceDimension() != Dimension) << "Incompatible geometry dimension";
+        return TConstLawIntegratorType::Check(rMaterialProperties);
+    }
     const int check_base = BaseType::Check(rMaterialProperties, rElementGeometry, rCurrentProcessInfo);
     const int check_integrator = TConstLawIntegratorType::Check(rMaterialProperties);
     KRATOS_ERROR_IF_NOT(VoigtSize == this->GetStrainSize()) << "You are combining not compatible constitutive laws" << std::endl;
@@ -611,6 +707,7 @@ int GenericSmallStrainIsotropicPlasticity<TConstLawIntegratorType>::Check(
 /***********************************************************************************/
 /***********************************************************************************/
 
+template class GenericSmallStrainIsotropicPlasticity<GenericConstitutiveLawIntegratorPlasticity<VonMisesYieldSurface<VonMisesPlasticPotential<6>>, SwiftHardeningLaw>>;
 template class GenericSmallStrainIsotropicPlasticity<GenericConstitutiveLawIntegratorPlasticity<VonMisesYieldSurface<VonMisesPlasticPotential<6>>>>;
 template class GenericSmallStrainIsotropicPlasticity<GenericConstitutiveLawIntegratorPlasticity<VonMisesYieldSurface<ModifiedMohrCoulombPlasticPotential<6>>>>;
 template class GenericSmallStrainIsotropicPlasticity<GenericConstitutiveLawIntegratorPlasticity<VonMisesYieldSurface<DruckerPragerPlasticPotential<6>>>>;
