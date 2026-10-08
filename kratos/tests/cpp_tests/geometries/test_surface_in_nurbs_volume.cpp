@@ -313,7 +313,6 @@ namespace Testing {
         test_point[0] = 0.0;
         test_point[1] = 0.0;
         test_point[2] = 0.0;
-        auto normal_ref =  p_quad_global_space->Normal(test_point);
         CoordinatesArrayType coord_ref;
         p_quad_global_space->GlobalCoordinates(coord_ref, test_point);
 

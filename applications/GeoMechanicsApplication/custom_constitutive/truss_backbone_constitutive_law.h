@@ -71,9 +71,8 @@ public:
     std::string Info() const override;
 
 private:
-    double                mAccumulatedStrain   = 0.;
-    double                mPreviousAxialStrain = 0.;
-    double                mUnReLoadCenter      = 0.;
+    double                mAccumulatedStrain = 0.;
+    double                mUnReLoadCenter    = 0.;
     Table<double, double> mStressStrainTable;
 
     [[nodiscard]] double BackboneStress(double Strain) const;
@@ -82,7 +81,6 @@ private:
     [[nodiscard]] bool   IsWithinUnReLoading(double Strain, double YoungsModulus) const;
 
     static void CheckStressStrainDiagram(const Properties& rMaterialProperties);
-    static void CheckStrainValuesAreAscending(const Vector& rStrains);
     static void CheckBackboneStiffnessesDontExceedYoungsModulus(const Vector& rStrains,
                                                                 const Vector& rStresses,
                                                                 double        YoungsModulus);

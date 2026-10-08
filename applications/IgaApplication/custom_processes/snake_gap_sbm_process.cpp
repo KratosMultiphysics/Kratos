@@ -116,7 +116,14 @@ SnakeGapSbmProcess::ProjectionResult SnakeGapSbmProcess::ComputeSingleProjection
 
 SnakeGapSbmProcess::SnakeGapSbmProcess(
     Model& rModel, Parameters ThisParameters) : 
-    SnakeSbmProcess(rModel, ThisParameters)
+    SnakeSbmProcess(
+        rModel,
+        // Reject user-defined lambdas before the base constructor adds their default values.
+        (ThisParameters.Has("lambda_inner") || ThisParameters.Has("lambda_outer"))
+            ? KRATOS_ERROR << "[SnakeGapSbmProcess]: \"lambda_inner\" and \"lambda_outer\" "
+                           << "must not be provided in ProjectParameters. GapSBM assigns these "
+                           << "values internally." << std::endl
+            : ThisParameters)
 {
     
     KRATOS_ERROR_IF_NOT(ThisParameters.Has("gap_element_name")) << "::[SnakeGapSbmProcess]::" 
@@ -287,6 +294,10 @@ SnakeGapSbmProcess::CreateSkinNodesPerKnotSpanMatrix(
             r_occupancy_matrix.push_back(span_index_x, span_index_y, 0.0);  // keep strictly increasing (i,j)
         }
     }
+    // FindNnzIndex/CellIds read index1_data()/index2_data()/value_data() as packed CSR
+    // arrays; element-wise insertion leaves the Eigen-backed matrix uncompressed
+    // (its arrays then span the allocated capacity), so finalize the storage first.
+    r_occupancy_matrix.complete_index1_data();
 
     // Temporary per-nnz buckets for node ids
     std::vector<std::vector<IndexType>> node_ids_per_non_zero(number_of_non_zero_entries);
@@ -407,6 +418,10 @@ SnakeGapSbmProcess::CreateSkinConditionsPerKnotSpanMatrix(
             occupancy_index_lookup[span_index_x].emplace(span_index_y, nnz_counter++);
         }
     }
+    // FindNnzIndex/CellIds read index1_data()/index2_data()/value_data() as packed CSR
+    // arrays; element-wise insertion leaves the Eigen-backed matrix uncompressed
+    // (its arrays then span the allocated capacity), so finalize the storage first.
+    r_occupancy_matrix.complete_index1_data();
 
     // Fill
     std::vector<std::vector<IndexType>> condition_ids_per_non_zero(number_of_non_zero_entries);
@@ -1900,6 +1915,9 @@ void SnakeGapSbmProcess::CreateConditions(
     const std::vector<Geometry<Node>::Pointer> &pSurrogateReferenceGeometries,
     const double CharacteristicLength) const
 {
+    KRATOS_ERROR_IF_NOT(KratosComponents<Condition>::Has(rConditionName))
+        << rConditionName << " not registered." << std::endl;
+
     const Condition& reference_condition = KratosComponents<Condition>::Get(rConditionName);
 
     ModelPart::ConditionsContainerType new_condition_list;
@@ -2173,9 +2191,6 @@ SnakeGapSbmProcess::CreateCoonsPatchGaussPoints(
         w[i] = integration_points[i].Weight();
     }
 
-    // --- build a reference normal to define the positive orientation ----
-    array_1d<double,3> a = rP10 - rP00;
-    array_1d<double,3> b = rP01 - rP00;
     // --- reference normal from Coons derivatives at center --------------
     const double xi_c  = 0.5, eta_c = 0.5;
     const array_1d<double,3> dXi_c  = CoonsDerivative(xi_c, eta_c, true ,
@@ -2210,11 +2225,6 @@ SnakeGapSbmProcess::CreateCoonsPatchGaussPoints(
         // --- Global coordinates -----------------------------------------
         const array_1d<double,3> X =
             CoonsPoint(xi_i, eta_j, rB0,rL0,rL1,rB1, rP00,rP01,rP10,rP11);
-
-        
-        array_1d<double,3> e1 = rP10 - rP00;
-        array_1d<double,3> e2 = X - rP00;
-
 
         // Store global coords + signed weight
         gp_list.emplace_back( IntegrationPoint<3>( X[0], X[1], X[2],
@@ -3314,8 +3324,6 @@ const Parameters SnakeGapSbmProcess::GetDefaultParameters() const
         "model_part_name" : "IgaModelPart",
         "lower_point_xyz": [0.0, 0.0, 0.0],
         "upper_point_xyz": [1.0, 1.0, 0.0],
-        "lower_point_uvw": [0.0, 0.0, 0.0],
-        "upper_point_uvw": [1.0, 1.0, 0.0],
         "polynomial_order" : [2, 2],
         "number_of_knot_spans" : [10, 10],
         "gap_relative_tolerance_for_subdivisions": 0.1,
@@ -3330,8 +3338,6 @@ const Parameters SnakeGapSbmProcess::GetValidParameters() const
         "echo_level": 0,
         "lower_point_xyz": [-0.5, -0.5,0.0],
         "upper_point_xyz": [0.5,0.5,0.0],
-        "lower_point_uvw": [-0.5,-0.5,0.0],
-        "upper_point_uvw": [0.5, 0.5,0.0],
         "polynomial_order" : [2, 2],
         "number_of_knot_spans" : [7, 7],
         "number_of_inner_loops": 0,
@@ -3340,8 +3346,6 @@ const Parameters SnakeGapSbmProcess::GetValidParameters() const
         "gap_relative_tolerance_for_subdivisions": 0.1,
         "number_of_interpolation_levels": 3,
         "gap_sbm_type": "default",
-        "lambda_inner" : 0.0,
-        "lambda_outer" : 1.0,
         "skin_model_part_outer_initial_name": "initial_skin_model_part_out",    
         "skin_model_part_inner_initial_name": "initial_skin_model_part_in",           
         "skin_model_part_name": "skin_model_part",

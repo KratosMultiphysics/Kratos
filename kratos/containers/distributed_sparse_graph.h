@@ -15,7 +15,13 @@
 // System includes
 #include <iostream>
 #include <mutex>
-#include "includes/ublas_interface.h"
+#include <unordered_map>
+#include <unordered_set>
+
+// External includes
+
+// Project includes
+#include "includes/default_interface.h"
 #include "includes/serializer.h"
 #include "includes/parallel_environment.h"
 #include "containers/distributed_numbering.h"
@@ -23,14 +29,6 @@
 #include "containers/sparse_graph.h"
 #include "containers/sparse_contiguous_row_graph.h"
 #include "utilities/parallel_utilities.h"
-
-// External includes
-#include <unordered_map>
-#include <unordered_set>
-
-// Project includes
-#include "includes/define.h"
-
 
 namespace Kratos
 {
