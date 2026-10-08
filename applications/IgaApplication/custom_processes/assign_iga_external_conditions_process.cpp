@@ -16,6 +16,8 @@
 // Application includes
 #include "assign_iga_external_conditions_process.h"
 #include "iga_application_variables.h"
+#include "custom_elements/gap_sbm_solid_element.h"
+#include "custom_conditions/gap_sbm_enhanced_load_solid_condition.h"
 
 namespace Kratos
 {
@@ -289,6 +291,54 @@ void AssignIgaExternalConditionsProcess::SetExternalConditionToElementsAndCondit
 
                 Element::Pointer p_element = *i_element.base();
                 SetVariableValueToElement(component_rVariableName, value, p_element);
+
+                auto& r_geometry = i_element->GetGeometry();
+                auto* p_compact_gap_element = dynamic_cast<
+                    GapSbmSolidElementVolumetric*>(&*i_element);
+                if (rVariableName == "BODY_FORCE" &&
+                    p_compact_gap_element != nullptr) {
+                    const std::size_t component_index =
+                        component_rVariableName == "BODY_FORCE_X" ? 0 :
+                        component_rVariableName == "BODY_FORCE_Y" ? 1 : 2;
+                    for (std::size_t point_index = 0;
+                         point_index < p_compact_gap_element
+                             ->QuadraturePointsNumber();
+                         ++point_index) {
+                        const auto coordinates = p_compact_gap_element
+                            ->GetQuadraturePointCoordinates(point_index);
+                        const double quadrature_value =
+                            eval_function->CallFunction(
+                                coordinates[0],
+                                coordinates[1],
+                                coordinates[2],
+                                Time);
+                        p_compact_gap_element
+                            ->SetQuadraturePointBodyForceComponent(
+                                point_index,
+                                component_index,
+                                quadrature_value);
+                    }
+                } else if (rVariableName == "BODY_FORCE" &&
+                           r_geometry.NumberOfGeometryParts() > 0) {
+                    for (std::size_t point_index = 0;
+                         point_index < r_geometry.NumberOfGeometryParts();
+                         ++point_index) {
+                        auto& r_quadrature_geometry =
+                            r_geometry.GetGeometryPart(point_index);
+                        const auto quadrature_center =
+                            r_quadrature_geometry.Center();
+                        const double quadrature_value =
+                            eval_function->CallFunction(
+                                quadrature_center.X(),
+                                quadrature_center.Y(),
+                                quadrature_center.Z(),
+                                Time);
+                        SetVariableValueToGeometry(
+                            component_rVariableName,
+                            quadrature_value,
+                            r_quadrature_geometry);
+                    }
+                }
             }
         }
         else if (rModelPart.Conditions().size() > 0) {
@@ -300,6 +350,34 @@ void AssignIgaExternalConditionsProcess::SetExternalConditionToElementsAndCondit
 
                 Condition::Pointer p_condition = *i_cond.base();
                 SetVariableValueToCondition(component_rVariableName, value, p_condition);
+
+                auto* p_compact_load_condition = dynamic_cast<
+                    GapSbmEnhancedLoadSolidConditionBatched*>(
+                        p_condition.get());
+                if (rVariableName == "FORCE" &&
+                    p_compact_load_condition != nullptr) {
+                    const std::size_t component_index =
+                        component_rVariableName == "FORCE_X" ? 0 :
+                        component_rVariableName == "FORCE_Y" ? 1 : 2;
+                    for (std::size_t point_index = 0;
+                         point_index < p_compact_load_condition
+                             ->QuadraturePointsNumber();
+                         ++point_index) {
+                        const auto coordinates = p_compact_load_condition
+                            ->GetQuadraturePointCoordinates(point_index);
+                        const double quadrature_value =
+                            eval_function->CallFunction(
+                                coordinates[0],
+                                coordinates[1],
+                                coordinates[2],
+                                Time);
+                        p_compact_load_condition
+                            ->SetQuadraturePointForceComponent(
+                                point_index,
+                                component_index,
+                                quadrature_value);
+                    }
+                }
             } 
         } else {KRATOS_ERROR << "AssignIgaExternalConditionsProcess : No Condition or Elements defined" ;}
     }
@@ -329,6 +407,24 @@ void AssignIgaExternalConditionsProcess::SetVariableValueToElement(
         << "in the AssignIgaExternalConditionsProcess" << std::endl;
     }
 } 
+
+void AssignIgaExternalConditionsProcess::SetVariableValueToGeometry(
+    const std::string& rVariableName,
+    const double Value,
+    GeometryType& rGeometry)
+{
+    if (rVariableName == "BODY_FORCE_X") {
+        rGeometry.SetValue(BODY_FORCE_X, Value);
+    } else if (rVariableName == "BODY_FORCE_Y") {
+        rGeometry.SetValue(BODY_FORCE_Y, Value);
+    } else if (rVariableName == "BODY_FORCE_Z") {
+        rGeometry.SetValue(BODY_FORCE_Z, Value);
+    } else {
+        KRATOS_ERROR
+            << "Variable with name " << rVariableName
+            << " cannot be assigned to a quadrature geometry.\n";
+    }
+}
 
 void AssignIgaExternalConditionsProcess::SetVariableValueToCondition(
     const std::string& rVariableName,

@@ -624,17 +624,23 @@ public:
 
 
         // Compute the intersection rSpansU and rSpansV:  LOWER SEGMENT
-        // Orientation tolerance: decide which coordinate is effectively constant
-        const double tol_orientation = 1e-10;
-        // Intersection/snap tolerance: expand interval and snap near-equal knot values
-        const double tol_intersection = 1e-15;
-        
         // Compute constant coordinate -> understand where the face is in volume parameter space
 
         // Scale factor between volume coordinate and surface one
         double physical_length_segment = norm_2(physical_coord_lower_left-physical_coord_lower_right);
         double parameter_length_segment = norm_2(local_coord_lower_left-local_coord_lower_right);
         double scale_factor = parameter_length_segment/physical_length_segment;
+
+        
+        const double range_u = volume_spans_u.empty() ? 0.0 : (volume_spans_u.back() - volume_spans_u.front());
+        const double range_v = volume_spans_v.empty() ? 0.0 : (volume_spans_v.back() - volume_spans_v.front());
+        const double range_w = volume_spans_w.empty() ? 0.0 : (volume_spans_w.back() - volume_spans_w.front());
+        const double length_scale = std::max(1.0, std::max(physical_length_segment, std::max(range_u, std::max(range_v, range_w))));
+
+        // Orientation tolerance: decide which coordinate is effectively constant
+        const double tol_orientation = 1e-10 * length_scale;
+        // Intersection/snap tolerance: expand interval and snap near-equal knot values
+        const double tol_intersection = 1e-15 * length_scale;
 
         std::vector<double> knot_interval(2);
         if (std::abs(physical_coord_lower_left[0]-physical_coord_lower_right[0]) > tol_orientation) {// left or right face

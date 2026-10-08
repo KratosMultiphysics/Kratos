@@ -21,7 +21,6 @@
 
 // Application includes
 #include "custom_conditions/sbm_laplacian_condition_dirichlet.h"
-#include "includes/global_pointer_variables.h"
 
 
 namespace Kratos
@@ -73,8 +72,10 @@ void SbmLaplacianConditionDirichlet::InitializeMemberVariables()
     // Compute basis function order (Note: it is not allow to use different orders in different directions)
     if (mDim == 3) {
         mBasisFunctionsOrder = std::cbrt(r_DN_De[0].size1()) - 1;
+        mBasisFunctionsOrder *= 3;
     } else {
         mBasisFunctionsOrder = std::sqrt(r_DN_De[0].size1()) - 1;
+        mBasisFunctionsOrder *= 2;
     }
 
     double penalty = GetProperties()[PENALTY_FACTOR];
@@ -100,16 +101,6 @@ void SbmLaplacianConditionDirichlet::InitializeMemberVariables()
 void SbmLaplacianConditionDirichlet::InitializeSbmMemberVariables()
 {
     const auto& r_geometry = this->GetGeometry();
-    if (this->Has(NEIGHBOUR_NODES) && !this->Has(NEIGHBOUR_CONDITIONS)) {
-        auto& r_projection_nodes = this->GetValue(NEIGHBOUR_NODES);
-        KRATOS_ERROR_IF(r_projection_nodes.size() != 1)
-            << "Expected one projection node in condition #" << Id() << std::endl;
-        mpProjectionNode = &r_projection_nodes[0];
-        mDistanceVector.resize(3);
-        noalias(mDistanceVector) = mpProjectionNode->Coordinates() - r_geometry.Center().Coordinates();
-        return;
-    }
-
     // Retrieve projection
     Condition candidate_closest_skin_segment_1 = this->GetValue(NEIGHBOUR_CONDITIONS)[0] ;
     // Find the closest node in condition

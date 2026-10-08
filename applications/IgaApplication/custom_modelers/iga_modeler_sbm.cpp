@@ -25,6 +25,7 @@
 #include "geometries/nurbs_curve_geometry.h"
 #include "integration/integration_point_utilities.h"
 #include "iga_application_variables.h"
+#include "utilities/variable_utils.h"
 
 
 namespace Kratos
@@ -287,7 +288,7 @@ void IgaModelerSbm::SetupModelPart()
     CreateIntegrationDomain(
         analysis_model_part,
         iga_physics_parameters);
-
+    
     if (release_discretized_skin) {
         // The analytical SBM conditions reference only the newly created projection nodes.
         mpModel->GetModelPart(mParameters["skin_model_part_name"].GetString())
@@ -722,7 +723,7 @@ void IgaModelerSbm::CreateQuadraturePointGeometriesSbmByProjectionLayer(
             if (layer_it == layers.end()) {
                 layers.push_back(projection.LayerName);
                 votes.push_back(1);
-            } else {
+    } else {
                 ++votes[std::distance(layers.begin(), layer_it)];
             }
             projections.push_back(std::move(projection));
@@ -900,11 +901,11 @@ void IgaModelerSbm::CreateQuadraturePointGeometriesSbmByLinealizedProjectionLaye
         KRATOS_ERROR_IF(geometries.empty())
             << "::[IgaModelerSbm]:: No quadrature point geometries were created "
             << "for linealized projection." << std::endl;
-
+        
         std::vector<int> closest_condition_ids(geometries.size());
         std::vector<int> second_condition_ids(geometries.size(), -1);
         for (IndexType j = 0; j < geometries.size(); ++j) {
-            const Point integration_point = geometries[j].Center();
+            const Point integration_point = geometries[j].Center(); 
             PointType search_point(
                 0, integration_point.X(), integration_point.Y(), integration_point.Z());
             const SizeType number_of_results = bins.SearchInRadius(
@@ -926,7 +927,7 @@ void IgaModelerSbm::CreateQuadraturePointGeometriesSbmByLinealizedProjectionLaye
 
             IndexType second_index = number_of_results;
             for (IndexType k = 0; k < number_of_results; ++k) {
-                const int condition_id = results[k]->Id();
+                const int condition_id = results[k]->Id(); 
                 if (r_skin_loop.GetCondition(condition_id).GetValue(LAYER_NAME) != r_closest_layer &&
                     (second_index == number_of_results || distances[k] < distances[second_index])) {
                     second_index = k;
@@ -934,7 +935,7 @@ void IgaModelerSbm::CreateQuadraturePointGeometriesSbmByLinealizedProjectionLaye
             }
             if (second_index != number_of_results) {
                 second_condition_ids[j] = results[second_index]->Id();
-            }
+        }
         }
 
         SizeType condition_id = rModelPart.GetRootModelPart().NumberOfConditions() == 0
@@ -1331,7 +1332,7 @@ void IgaModelerSbm::CreateConditions(
         auto gp_coord = (*it)->Center();
         int best_cond_id = -1;
         if (condition_layer_name != max_layer_condition_name) 
-        {
+        { 
             bool use_projections_of_the_others_quadrature_points = false;
             // search for the second closest condition
             if (rListIdSecondClosestCondition[count_list_closest_condition] != -1)

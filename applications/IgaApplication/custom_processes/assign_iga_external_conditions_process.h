@@ -148,6 +148,11 @@ private:
         const double& value,
         Element::Pointer p_element);
 
+    void SetVariableValueToGeometry(
+        const std::string& rVariableName,
+        const double Value,
+        GeometryType& rGeometry);
+
     
     /**
      * @brief Set the variable value to condition
