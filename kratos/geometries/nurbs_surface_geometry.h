@@ -16,6 +16,7 @@
 #define  KRATOS_NURBS_SURFACE_GEOMETRY_H_INCLUDED
 
 // System includes
+#include <algorithm>
 
 // External includes
 
@@ -544,8 +545,8 @@ public:
         IntegrationPointsArrayType& rIntegrationPoints,
         IntegrationInfo& rIntegrationInfo) const override
     {
-        const SizeType points_in_u = PolynomialDegreeU() + 1;
-        const SizeType points_in_v = PolynomialDegreeV() + 1;
+        const SizeType points_in_u = std::max(PolynomialDegreeU() + 1, rIntegrationInfo.GetNumberOfIntegrationPointsPerSpan(0));
+        const SizeType points_in_v = std::max(PolynomialDegreeV() + 1, rIntegrationInfo.GetNumberOfIntegrationPointsPerSpan(1));
 
         CreateIntegrationPoints(
             rIntegrationPoints, points_in_u, points_in_v);
