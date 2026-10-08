@@ -17,7 +17,7 @@
 #include "custom_utilities/ublas_wrapper.h"
 #include "factories/standard_linear_solver_factory.h"
 #include "includes/ublas_complex_interface.h"
-#include "includes/ublas_interface.h"
+#include "includes/default_interface.h"
 #include "linear_solvers/direct_solver.h"
 #include "spaces/ublas_space.h"
 

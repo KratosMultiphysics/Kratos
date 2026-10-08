@@ -98,14 +98,16 @@ public:
      * so that the total constitutive stress satisfies
      *   stress = MECHANICAL_STRESS_VECTOR - THERMAL_STRESS_VECTOR.
      * The output is read-only with respect to the constitutive state. The
-     * constitutive matrix is reused from the inherited CLA law.
+     * constitutive matrix is reused from the inherited CLA law. Any other
+     * variable is delegated to the base-class implementation.
      */
     Vector& CalculateValue(Parameters& rParameterValues, const Variable<Vector>& rThisVariable, Vector& rValue) override;
 
     /**
      * Computes the specialized thermo-mechanical tensor outputs
      * (THERMAL_STRAIN_TENSOR, THERMAL_STRESS_TENSOR, MECHANICAL_STRESS_TENSOR)
-     * as the tensor representations of the corresponding vector outputs.
+     * as the tensor representations of the corresponding vector outputs. Any
+     * other variable is delegated to the base-class implementation.
      */
     Matrix& CalculateValue(Parameters& rParameterValues, const Variable<Matrix>& rThisVariable, Matrix& rValue) override;
 

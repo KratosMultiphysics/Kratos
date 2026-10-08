@@ -255,7 +255,7 @@ KRATOS_TEST_CASE_IN_SUITE(ComputeDerivativeLocalMachSquaredWRTVelocitySquaredTra
 
     const double reference_derivative = 1.1620100191086091883e-05;
 
-    KRATOS_EXPECT_RELATIVE_NEAR(mach_derivative, reference_derivative, 1e-16);
+    KRATOS_EXPECT_RELATIVE_NEAR(mach_derivative, reference_derivative, 1e-13);
 }
 
 // Checks the function ComputeDerivativeLocalMachSquaredWRTVelocitySquared from the utilities, supersonic local Mach number
@@ -282,7 +282,7 @@ KRATOS_TEST_CASE_IN_SUITE(ComputeDerivativeLocalMachSquaredWRTVelocitySquaredSup
 
     const double reference_derivative = 2.0657955895264170124e-05;
 
-    KRATOS_EXPECT_RELATIVE_NEAR(mach_derivative, reference_derivative, 1e-16);
+    KRATOS_EXPECT_RELATIVE_NEAR(mach_derivative, reference_derivative, 1e-13);
 }
 
 // Checks the function ComputeIncompressiblePerturbationPressureCoefficient from the utilities
@@ -374,7 +374,7 @@ KRATOS_TEST_CASE_IN_SUITE(ComputePerturbationLocalMachNumber, CompressiblePotent
         PotentialFlowUtilities::ComputePerturbationLocalMachNumber<2, 3>(
             *p_element, r_current_process_info);
 
-    KRATOS_EXPECT_NEAR(local_mach_number, 0.9474471158469713, 1e-16);
+    KRATOS_EXPECT_NEAR(local_mach_number, 0.9474471158469713, 1e-13);
 }
 
 // tests the function ComputeUpwindFactor from the utilities

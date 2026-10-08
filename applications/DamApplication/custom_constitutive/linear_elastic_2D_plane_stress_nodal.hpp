@@ -49,14 +49,14 @@ public:
     ConstitutiveLaw::Pointer Clone() const override;
 
     /**
-     * @brief Plane-stress constitutive matrix with NODAL_YOUNG_MODULUS.
+     * @brief Plane-stress constitutive matrix with the interpolated nodal YOUNG_MODULUS.
      */
     void CalculateElasticMatrix(
         ConstitutiveLaw::VoigtSizeMatrixType& rConstitutiveMatrix,
         ConstitutiveLaw::Parameters& rValues) override;
 
     /**
-     * @brief Plane-stress stress vector with NODAL_YOUNG_MODULUS.
+     * @brief Plane-stress stress vector with the interpolated nodal YOUNG_MODULUS.
      */
     void CalculatePK2Stress(
         const ConstitutiveLaw::StrainVectorType& rStrainVector,

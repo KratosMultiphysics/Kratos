@@ -82,7 +82,7 @@ auto CreateSmallStrainUPwDiffOrderElementWithUPwDofs(const Properties::Pointer& 
     const auto degrees_of_freedom =
         Geo::ConstVariableRefs{std::cref(WATER_PRESSURE), std::cref(DISPLACEMENT_X),
                                std::cref(DISPLACEMENT_Y), std::cref(DISPLACEMENT_Z)};
-    Testing::ElementSetupUtilities::AddVariablesToEntity(result, solution_step_variables, degrees_of_freedom);
+    Testing::ElementSetupUtilities::AddVariablesToNodes(nodes, solution_step_variables, degrees_of_freedom);
 
     for (auto& r_node : nodes) {
         r_node.SetBufferSize(2);
@@ -109,6 +109,8 @@ void benchmarkUPwDiffOrderLocalSystemCalculation(benchmark::State& rState)
         auto left_hand_side  = Matrix{};
         auto right_hand_side = Vector{};
         p_element->CalculateLocalSystem(left_hand_side, right_hand_side, dummy_process_info);
+        benchmark::DoNotOptimize(left_hand_side);
+        benchmark::DoNotOptimize(right_hand_side);
     }
 }
 
@@ -125,6 +127,7 @@ void benchmarkUPwDiffOrderRHSCalculation(benchmark::State& rState)
     for (auto _ : rState) {
         auto right_hand_side = Vector{};
         p_element->CalculateRightHandSide(right_hand_side, dummy_process_info);
+        benchmark::DoNotOptimize(right_hand_side);
     }
 }
 
@@ -141,6 +144,7 @@ void benchmarkUPwDiffOrderLHSCalculation(benchmark::State& rState)
     for (auto _ : rState) {
         auto left_hand_side = Matrix{};
         p_element->CalculateLeftHandSide(left_hand_side, dummy_process_info);
+        benchmark::DoNotOptimize(left_hand_side);
     }
 }
 

@@ -23,7 +23,7 @@
 #include "includes/define.h"
 #include "containers/model.h"
 #include "includes/model_part.h"
-#include "spaces/ublas_space.h"
+#include "spaces/default_spaces.h"
 #include "utilities/variable_utils.h"
 
 /* Linear Solver includes */
@@ -32,8 +32,8 @@
 namespace Kratos::Testing
 {
 
-using SpaceType = TUblasSparseSpace<double>;
-using LocalSpaceType = TUblasDenseSpace<double>;
+using SpaceType = TDefaultSparseSpace<double>;
+using LocalSpaceType = TDefaultDenseSpace<double>;
 using SparseMatrixType = typename SpaceType::MatrixType;
 
 KRATOS_TEST_CASE_IN_SUITE(MonotonictyPreservingSolver, KratosCoreFastSuite)

@@ -262,8 +262,6 @@ KRATOS_TEST_CASE_IN_SUITE(BrepVolumeQuadraturePointGenerationOuter3D, KratosIgaF
             "model_part_name" : "IgaModelPart",
             "lower_point_xyz": [0.0, 0.0, 0.0],
             "upper_point_xyz": [2.0, 2.0, 2.0],
-            "lower_point_uvw": [0.0, 0.0, 0.0],
-            "upper_point_uvw": [2.0, 2.0, 2.0],
             "polynomial_order" : [1, 1, 1],
             "number_of_knot_spans" : [4, 4, 4],
             "lambda_outer": 0.5,
@@ -303,8 +301,6 @@ KRATOS_TEST_CASE_IN_SUITE(IgaModelerSbmSupportOuter3D, KratosIgaFastSuite)
             "model_part_name" : "IgaModelPart",
             "lower_point_xyz": [0.0, 0.0, 0.0],
             "upper_point_xyz": [2.0, 2.0, 2.0],
-            "lower_point_uvw": [0.0, 0.0, 0.0],
-            "upper_point_uvw": [2.0, 2.0, 2.0],
             "polynomial_order" : [1, 1, 1],
             "number_of_knot_spans" : [4, 4, 4],
             "lambda_outer": 0.5,
@@ -333,7 +329,8 @@ KRATOS_TEST_CASE_IN_SUITE(IgaModelerSbmSupportOuter3D, KratosIgaFastSuite)
                     "name": "SbmLaplacianConditionDirichlet",
                     "shape_function_derivatives_order": 2,
                     "sbm_parameters": {
-                        "is_inner" : false
+                        "is_inner" : false,
+                        "projection_type" : "linealized"
                     }
                 }
             ]
@@ -396,8 +393,6 @@ KRATOS_TEST_CASE_IN_SUITE(IgaModelerSbmSupportInner3D, KratosIgaFastSuite)
             "model_part_name" : "IgaModelPart",
             "lower_point_xyz": [0.0, 0.0, 0.0],
             "upper_point_xyz": [2.0, 2.0, 2.0],
-            "lower_point_uvw": [0.0, 0.0, 0.0],
-            "upper_point_uvw": [2.0, 2.0, 2.0],
             "polynomial_order" : [1, 1, 1],
             "number_of_knot_spans" : [4, 4, 4],
             "lambda_inner": 0.5,
@@ -426,7 +421,8 @@ KRATOS_TEST_CASE_IN_SUITE(IgaModelerSbmSupportInner3D, KratosIgaFastSuite)
                     "name": "SbmLaplacianConditionDirichlet",
                     "shape_function_derivatives_order": 2,
                     "sbm_parameters": {
-                        "is_inner" : true
+                        "is_inner" : true,
+                        "projection_type" : "linealized"
                     }
                 }
             ]
