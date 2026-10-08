@@ -17,7 +17,7 @@
 // Project includes
 #include "custom_python/add_custom_strategies_to_python.h"
 
-#include "spaces/ublas_space.h"
+#include "spaces/default_spaces.h"
 
 // Strategies
 #include "custom_strategies/custom_strategies/eigensolver_strategy.hpp"
@@ -51,8 +51,10 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
 {
     namespace py = pybind11;
 
-    typedef UblasSpace<double, CompressedMatrix, boost::numeric::ublas::vector<double>> SparseSpaceType;
-    typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
+    // The real system space follows the configure-time selected linear-algebra
+    // backend, matching the core-registered strategy/scheme/B&S base bindings.
+    typedef TDefaultSparseSpace<double> SparseSpaceType;
+    typedef TDefaultDenseSpace<double> LocalSpaceType;
     typedef Scheme< SparseSpaceType, LocalSpaceType > BaseSchemeType;
     using BaseBossakSchemeType = ResidualBasedBossakDisplacementScheme<SparseSpaceType, LocalSpaceType>;
     using BaseStaticSchemeType = ResidualBasedIncrementalUpdateStaticScheme<SparseSpaceType, LocalSpaceType>;
@@ -61,16 +63,8 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
     typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
     typedef ImplicitSolvingStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > BaseSolvingStrategyType;
     using ComplexType = std::complex<double>;
-    using ComplexSparseSpaceType = UblasSpace<
-        ComplexType,
-        boost::numeric::ublas::compressed_matrix<ComplexType>,
-        boost::numeric::ublas::vector<ComplexType>
-    >;
-    using ComplexLocalSpaceType = UblasSpace<
-        ComplexType,
-        boost::numeric::ublas::matrix<ComplexType>,
-        boost::numeric::ublas::vector<ComplexType>
-    >;
+    using ComplexSparseSpaceType = TDefaultSparseSpace<ComplexType>;
+    using ComplexLocalSpaceType = TDefaultDenseSpace<ComplexType>;
     using ComplexLinearSolverType = LinearSolver<ComplexSparseSpaceType, ComplexLocalSpaceType>;
     using ComplexLinearSolverPointer = typename ComplexLinearSolverType::Pointer;
     typedef ConvergenceCriteria< SparseSpaceType, LocalSpaceType > ConvergenceCriteriaType;

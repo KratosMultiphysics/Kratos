@@ -143,7 +143,7 @@ namespace Kratos
         }
 
         std::string quadrature_method = rParameters.Has("quadrature_method")
-            ? rParameters["integration_rule"].GetString()
+            ? rParameters["quadrature_method"].GetString()
             : "GAUSS";
 
         KRATOS_INFO_IF("CreateQuadraturePointGeometries", mEchoLevel > 0)

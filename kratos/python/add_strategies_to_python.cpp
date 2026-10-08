@@ -18,7 +18,7 @@
 #include "includes/define_python.h"
 #include "python/add_strategies_to_python.h"
 #include "includes/model_part.h"
-#include "spaces/ublas_space.h"
+#include "spaces/default_spaces.h"
 #include "includes/ublas_complex_interface.h"
 #include "utilities/variable_utils.h"
 
@@ -75,11 +75,11 @@ namespace Kratos:: Python
 {
     namespace py = pybind11;
 
-    typedef UblasSpace<double, CompressedMatrix, boost::numeric::ublas::vector<double>> SparseSpaceType;
-    typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
+    typedef DefaultSparseSpaceType SparseSpaceType;
+    typedef DefaultLocalSpaceType LocalSpaceType;
 
-    typedef UblasSpace<std::complex<double>, ComplexCompressedMatrix, boost::numeric::ublas::vector<std::complex<double>>> ComplexSparseSpaceType;
-    typedef UblasSpace<std::complex<double>, ComplexMatrix, ComplexVector> ComplexLocalSpaceType;
+    typedef DefaultComplexSparseSpaceType ComplexSparseSpaceType;
+    typedef DefaultComplexLocalSpaceType ComplexLocalSpaceType;
 
     //ADDED BY PAOLO (next two)
 
@@ -549,6 +549,10 @@ namespace Kratos:: Python
         // Information functions
         sparse_space_binder.def("IsDistributed", &UblasSparseSpaceInterfaceType::IsDistributed);
         sparse_space_binder.def("FastestDirectSolverList", &UblasSparseSpaceInterfaceType::FastestDirectSolverList);
+
+        m.attr("SparseSpace") = m.attr("UblasSparseSpace");
+        m.attr("SparseMatrix") = m.attr("CompressedMatrix");
+        m.attr("SparseVector") = m.attr("Vector");
 
         m.attr("SparseSpace") = m.attr("UblasSparseSpace");
         m.attr("SparseMatrix") = m.attr("CompressedMatrix");

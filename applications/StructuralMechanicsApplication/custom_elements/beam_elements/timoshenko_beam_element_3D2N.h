@@ -187,6 +187,14 @@ public:
     }
 
     /**
+     * @brief Returns the CROSS_AREA (the 2D plane strain variant does not apply in 3D)
+     */
+    double GetCrossArea() override
+    {
+        return GetProperties()[CROSS_AREA];
+    }
+
+    /**
      * @brief Modifies a vector to include the components of a local size vector to the global size
      * @param rGlobalSizeVector The global size vector multiplying v and theta_z components
      * @param rLocalSizeVector The 4 local components of Nv
@@ -345,13 +353,18 @@ public:
         const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
-      * @brief This is called during the assembling process in order to calculate the elemental right hand side vector only
-      * @param rRightHandSideVector the elemental right hand side vector
-      * @param rCurrentProcessInfo the current process info instance
-      */
-    void CalculateRightHandSide(
-        VectorType& rRightHandSideVector,
-        const ProcessInfo& rCurrentProcessInfo) override;
+     * @brief Computes the external minus the internal forces vector, in global axes
+     * @details Only the requested contributions are added, hence with both flags the RHS is obtained
+     * @param rForces the elemental forces vector (external - internal)
+     * @param rCurrentProcessInfo the current process info instance
+     * @param ComputeInternalForces whether the internal forces (stress contributions) are subtracted
+     * @param ComputeExternalForces whether the external forces (body force contributions) are added
+     */
+    void CalculateInternalAndExternalForcesVector(
+        VectorType& rForces,
+        const ProcessInfo& rCurrentProcessInfo,
+        const bool ComputeInternalForces,
+        const bool ComputeExternalForces) override;
 
     /**
      * @brief Calculate a double Variable on the Element Constitutive Law

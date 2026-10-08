@@ -16,6 +16,7 @@
 // local and nonlocal restart continuation and per-law multi-Properties isolation.
 //
 #include <cstddef>
+#include <cstring>
 #include <fstream>
 #include <iostream>
 #include <sstream>
@@ -36,6 +37,7 @@
 // Application includes
 #include "dam_application_variables.h"
 #include "structural_mechanics_application_variables.h"
+#include "custom_constitutive/flexible_elastic_isotropic_3d.h"
 #include "custom_constitutive/thermal_simo_ju_local_damage_3D_law.hpp"
 #include "custom_constitutive/thermal_simo_ju_local_damage_plane_strain_2D_law.hpp"
 #include "custom_constitutive/thermal_simo_ju_nonlocal_damage_3D_law.hpp"
@@ -74,6 +76,30 @@ struct LawHolder
     void save(Serializer& rSerializer) const { rSerializer.save("Law", p_law); }
     void load(Serializer& rSerializer) { rSerializer.load("Law", p_law); }
 };
+
+/// Replaces the serialized polymorphic type-name of a constitutive law inside a
+/// StreamSerializer binary archive with another registered name. The archive
+/// stores the name as a length-prefixed string (SizeType length + characters).
+std::string ReplaceSerializedLawName(
+    const std::string& rArchive,
+    const std::string& rOldName,
+    const std::string& rNewName)
+{
+    const std::size_t name_pos = rArchive.find(rOldName);
+    KRATOS_ERROR_IF(name_pos == std::string::npos)
+        << "serialized law name " << rOldName << " not found in archive";
+    const std::size_t prefix_size = sizeof(std::size_t);
+    KRATOS_ERROR_IF(name_pos < prefix_size) << "malformed archive";
+    const std::size_t old_length = *reinterpret_cast<const std::size_t*>(
+        rArchive.data() + name_pos - prefix_size);
+    KRATOS_ERROR_IF(old_length != rOldName.size()) << "length mismatch in archive";
+    std::string result = rArchive.substr(0, name_pos - prefix_size);
+    const std::size_t new_length = rNewName.size();
+    result.append(reinterpret_cast<const char*>(&new_length), prefix_size);
+    result.append(rNewName);
+    result.append(rArchive.substr(name_pos + rOldName.size()));
+    return result;
+}
 
 /// Builds a single-element model part (SMA SmallDisplacement) with the given
 /// registered element name, 3D or 2D, and the given damage law.
@@ -441,5 +467,37 @@ KRATOS_TEST_CASE_IN_SUITE(RestartRebindsEachDamageLawToItsOwnProperties, KratosD
 //************************************************************************************
 
 
+/// Serializer-compatibility contract for the removed historical
+/// LinearElastic3DLawNodal class: an archive tagged with that historical name
+/// must deserialize to the current accessor-aware standard SMA elastic law,
+/// and new archives must keep the canonical SMA type name.
+KRATOS_TEST_CASE_IN_SUITE(HistoricalLinearElastic3DLawNodalSerializerAlias, KratosDamFastSuite)
+{
+    // Serialize the current accessor-aware standard 3D elastic law.
+    LawHolder saved;
+    saved.p_law = Kratos::make_shared<FlexibleElasticIsotropic3D>();
+    StreamSerializer serializer;
+    serializer.save("Law", saved);
+    const std::string archive = serializer.GetStringRepresentation();
+
+    // New archives must keep the canonical SMA registered name.
+    KRATOS_EXPECT_TRUE(archive.find("FlexibleLinearElastic3DLaw") != std::string::npos);
+    KRATOS_EXPECT_TRUE(archive.find("LinearElastic3DLawNodal") == std::string::npos);
+
+    // Simulate an old archive tagged with the removed historical class name.
+    const std::string patched = ReplaceSerializedLawName(
+        archive, "FlexibleLinearElastic3DLaw", "LinearElastic3DLawNodal");
+
+    LawHolder loaded;
+    StreamSerializer loader(patched);
+    loader.SetLoadState();
+    loader.load("Law", loaded);
+
+    KRATOS_EXPECT_TRUE(loaded.p_law != nullptr);
+    const auto* p_loaded_law = loaded.p_law.get();
+    KRATOS_EXPECT_TRUE(typeid(*p_loaded_law) == typeid(FlexibleElasticIsotropic3D));
+}
+
+//************************************************************************************
 } // namespace Testing
 } // namespace Kratos
