@@ -345,6 +345,10 @@ void CSVDatabaseIO::ReadCSVFile()
     bool found_header_line{false};
 
     while (std::getline(input_file, line)) {
+        if (line.empty()) {
+            continue;
+        }
+
         if (line[0] == '#') {
             if (line.find("<Column information>") != std::string::npos) {
                 found_column_information_block = true;
