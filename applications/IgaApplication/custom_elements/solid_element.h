@@ -248,6 +248,10 @@ public:
     void GetSolutionCoefficientVector(
         Vector& rValues) const;
 
+    
+    // The dimension of the problem
+    int mDim;
+
 protected:
     ///@name Protected static Member Variables
     ///@{
@@ -279,6 +283,47 @@ protected:
     ///@}
     ///@name Protected Operators
     ///@{
+    
+    /**
+     * @brief Calculate the initial Jacobian matrix for the element.
+     * 
+     * @param rGeometry 
+     * @param rJacobian 
+     */
+    void CalculateInitialJacobian(
+        const GeometryType& rGeometry, Matrix& rJacobian) const
+    {
+        GeometryType::JacobiansType J0;
+        rGeometry.Jacobian(J0,this->GetIntegrationMethod());
+        
+        switch (mDim) {
+            case 2:
+            {
+                rJacobian.resize(2,2);
+                rJacobian(0,0) = J0[0](0,0);
+                rJacobian(0,1) = J0[0](0,1);
+                rJacobian(1,0) = J0[0](1,0);
+                rJacobian(1,1) = J0[0](1,1);
+                return;
+            }
+            case 3:
+            {
+                rJacobian.resize(3,3);
+                rJacobian(0,0) = J0[0](0,0);
+                rJacobian(0,1) = J0[0](0,1);
+                rJacobian(0,2) = J0[0](0,2);
+                rJacobian(1,0) = J0[0](1,0);
+                rJacobian(1,1) = J0[0](1,1);
+                rJacobian(1,2) = J0[0](1,2);
+                rJacobian(2,0) = J0[0](2,0);
+                rJacobian(2,1) = J0[0](2,1);
+                rJacobian(2,2) = J0[0](2,2);
+                return;
+            }   
+            default:
+                KRATOS_ERROR << "Dimension not supported: " << mDim << std::endl;
+        }
+    }
 
 
     ///@}

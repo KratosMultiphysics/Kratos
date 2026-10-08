@@ -201,6 +201,28 @@ public:
     ///@name Mathematical Informations
     ///@{
 
+    /* @brief Provides the natural boundaries of the NURBS/B-Spline curve.
+     * @return domain interval.
+     */
+    NurbsInterval DomainInterval() const
+    {
+        return mpNurbsCurve->DomainInterval();
+    }
+
+    /**
+     * @brief Provides the domain interval of the NURBS/B-Spline curve as a Vector.
+     * 
+     * @param domainInterval Vector to store the minimum and maximum parameter values.
+     */
+    void DomainInterval(Vector& domainInterval) const override
+    {
+        
+        if (domainInterval.size() != 2) domainInterval.resize(2);
+        domainInterval[0] = mpNurbsCurve->DomainInterval().MinParameter();
+        domainInterval[1] = mpNurbsCurve->DomainInterval().MaxParameter();
+
+    }
+
     /// Return polynomial degree of the nurbs surface
     SizeType PolynomialDegree(IndexType LocalDirectionIndex) const override
     {

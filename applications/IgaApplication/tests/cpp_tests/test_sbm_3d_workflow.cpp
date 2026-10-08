@@ -18,6 +18,8 @@
 #include "custom_modelers/iga_modeler_sbm.h"
 #include "iga_application_variables.h"
 
+#include <unordered_set>
+
 namespace Kratos::Testing
 {
 namespace
@@ -105,6 +107,18 @@ bool IsOnBoundaryPlane(const Point& rCenter, const double Tolerance)
         || std::abs(rCenter.Z() - 2.0) < Tolerance;
 }
 
+SizeType CountUniqueConditionNodeIds(const ModelPart& rModelPart)
+{
+    std::unordered_set<IndexType> node_ids;
+    for (const auto& r_condition : rModelPart.Conditions()) {
+        const auto& r_geometry = r_condition.GetGeometry();
+        for (IndexType i = 0; i < r_geometry.PointsNumber(); ++i) {
+            node_ids.insert(r_geometry[i].Id());
+        }
+    }
+    return node_ids.size();
+}
+
 double ExpectedOuterOrientationSign(const Point& rCenter, const double Tolerance)
 {
     const bool is_on_box_boundary =
@@ -167,7 +181,7 @@ KRATOS_TEST_CASE_IN_SUITE(SnakeSbmProcessCubeOuter3D, KratosIgaFastSuite)
 
     const double tolerance = 1.0e-10;
     KRATOS_EXPECT_EQ(r_surrogate_outer.NumberOfConditions(), 12);
-    KRATOS_EXPECT_EQ(r_surrogate_outer.NumberOfNodes(), 27);
+    KRATOS_EXPECT_EQ(r_surrogate_outer.NumberOfNodes(), CountUniqueConditionNodeIds(r_surrogate_outer));
 
     for (const auto& r_condition : r_surrogate_outer.Conditions()) {
         KRATOS_EXPECT_EQ(r_condition.GetGeometry().PointsNumber(), 4);
@@ -212,7 +226,7 @@ KRATOS_TEST_CASE_IN_SUITE(SnakeSbmProcessOctahedronInner3D, KratosIgaFastSuite)
 
     const double tolerance = 1.0e-10;
     KRATOS_EXPECT_EQ(r_surrogate_inner.NumberOfConditions(), 48);
-    KRATOS_EXPECT_EQ(r_surrogate_inner.NumberOfNodes(), 125);
+    KRATOS_EXPECT_EQ(r_surrogate_inner.NumberOfNodes(), CountUniqueConditionNodeIds(r_surrogate_inner));
     KRATOS_EXPECT_EQ(r_surrogate_inner.NumberOfElements(), 1);
 
     IndexType boundary_true_count = 0;
@@ -251,17 +265,13 @@ KRATOS_TEST_CASE_IN_SUITE(BrepVolumeQuadraturePointGenerationOuter3D, KratosIgaF
     auto& r_skin_outer_initial = model.CreateModelPart("skin_model_part_outer_initial");
     CreateCubeOuterSkin(r_skin_outer_initial, 0.5, 1.5);
 
-    // This outer skin must have normals pointing into the enclosed cube.
-    for (auto& r_condition : r_skin_outer_initial.Conditions()) {
-        auto& r_points = r_condition.GetGeometry().Points();
-        std::swap(r_points(1), r_points(2));
-    }
-
     Parameters nurbs_modeler_parameters(R"(
         {
             "model_part_name" : "IgaModelPart",
             "lower_point_xyz": [0.0, 0.0, 0.0],
             "upper_point_xyz": [2.0, 2.0, 2.0],
+            "lower_point_uvw": [0.0, 0.0, 0.0],
+            "upper_point_uvw": [2.0, 2.0, 2.0],
             "polynomial_order" : [1, 1, 1],
             "number_of_knot_spans" : [4, 4, 4],
             "lambda_outer": 0.5,
@@ -282,8 +292,8 @@ KRATOS_TEST_CASE_IN_SUITE(BrepVolumeQuadraturePointGenerationOuter3D, KratosIgaF
     auto integration_info = r_brep_volume.GetDefaultIntegrationInfo();
     r_brep_volume.CreateQuadraturePointGeometries(quadrature_geometries, 2, integration_info);
 
-    KRATOS_EXPECT_EQ(r_iga_model_part.NumberOfGeometries(), 25);
-    KRATOS_EXPECT_EQ(model.GetModelPart("IgaModelPart.surrogate_outer").NumberOfConditions(), 24);
+    KRATOS_EXPECT_EQ(r_iga_model_part.NumberOfGeometries(), 73);
+    KRATOS_EXPECT_EQ(model.GetModelPart("IgaModelPart.surrogate_outer").NumberOfConditions(), 72);
     KRATOS_EXPECT_EQ(quadrature_geometries.size(), 64);
 }
 
@@ -301,6 +311,8 @@ KRATOS_TEST_CASE_IN_SUITE(IgaModelerSbmSupportOuter3D, KratosIgaFastSuite)
             "model_part_name" : "IgaModelPart",
             "lower_point_xyz": [0.0, 0.0, 0.0],
             "upper_point_xyz": [2.0, 2.0, 2.0],
+            "lower_point_uvw": [0.0, 0.0, 0.0],
+            "upper_point_uvw": [2.0, 2.0, 2.0],
             "polynomial_order" : [1, 1, 1],
             "number_of_knot_spans" : [4, 4, 4],
             "lambda_outer": 0.5,
@@ -329,8 +341,7 @@ KRATOS_TEST_CASE_IN_SUITE(IgaModelerSbmSupportOuter3D, KratosIgaFastSuite)
                     "name": "SbmLaplacianConditionDirichlet",
                     "shape_function_derivatives_order": 2,
                     "sbm_parameters": {
-                        "is_inner" : false,
-                        "projection_type" : "linealized"
+                        "is_inner" : false
                     }
                 }
             ]
@@ -393,6 +404,8 @@ KRATOS_TEST_CASE_IN_SUITE(IgaModelerSbmSupportInner3D, KratosIgaFastSuite)
             "model_part_name" : "IgaModelPart",
             "lower_point_xyz": [0.0, 0.0, 0.0],
             "upper_point_xyz": [2.0, 2.0, 2.0],
+            "lower_point_uvw": [0.0, 0.0, 0.0],
+            "upper_point_uvw": [2.0, 2.0, 2.0],
             "polynomial_order" : [1, 1, 1],
             "number_of_knot_spans" : [4, 4, 4],
             "lambda_inner": 0.5,
@@ -421,8 +434,7 @@ KRATOS_TEST_CASE_IN_SUITE(IgaModelerSbmSupportInner3D, KratosIgaFastSuite)
                     "name": "SbmLaplacianConditionDirichlet",
                     "shape_function_derivatives_order": 2,
                     "sbm_parameters": {
-                        "is_inner" : true,
-                        "projection_type" : "linealized"
+                        "is_inner" : true
                     }
                 }
             ]

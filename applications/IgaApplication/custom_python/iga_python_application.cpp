@@ -19,6 +19,7 @@
 #include "includes/define.h"
 #include "iga_application.h"
 #include "iga_application_variables.h"
+#include "custom_elements/gap_sbm_solid_element.h"
 #include "custom_python/add_custom_utilities_to_python.h"
 #include "custom_python/add_custom_processes_to_python.h"
 #include "custom_python/add_custom_strategies_to_python.h"
@@ -91,7 +92,6 @@ PYBIND11_MODULE(KratosIgaApplication, m)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, INTEGRATE_CONSERVATIVE)
 
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, PENALTY_FACTOR)
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, PENALTY_ROTATION_FACTOR)
     KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, VECTOR_LAGRANGE_MULTIPLIER_REACTION)
 
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, NITSCHE_STABILIZATION_FACTOR)
@@ -100,6 +100,7 @@ PYBIND11_MODULE(KratosIgaApplication, m)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, BUILD_LEVEL)
 
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, KNOT_SPAN_SIZES)
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, PROJECTION_NODE_ID)
 
     AddCustomUtilitiesToPython(m);
     AddCustomProcessesToPython(m);

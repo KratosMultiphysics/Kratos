@@ -47,7 +47,19 @@ public:
     /// Constructor.
     NurbsGeometryModelerGapSbm(
         Model & rModel,
-        const Parameters ModelerParameters = Parameters());
+        const Parameters ModelerParameters = Parameters())
+        : NurbsGeometryModeler(rModel, ModelerParameters)
+    {
+        mParameters.ValidateDefaults(this->GetValidParameters());
+        mParameters.AddMissingParameters(this->GetDefaultParameters());
+
+        KRATOS_ERROR_IF_NOT(mParameters.Has("gap_element_name"))
+            << "NurbsGeometryModelerGapSbm: Missing \"gap_element_name\" section." << std::endl;
+        
+        KRATOS_ERROR_IF_NOT(mParameters["gap_interface_condition_name"].IsString())
+            << "NurbsGeometryModelerGapSbm: Missing \"gap_interface_condition_name\" section." << std::endl;
+        
+    }
 
     /// Destructor.
     ~NurbsGeometryModelerGapSbm() = default;

@@ -169,6 +169,34 @@ public:
         return *this;
     }
 
+    /**
+     * @brief This function returns the pointer of the geometry
+     *        which is corresponding to the trim index.
+     *        Surface of the geometry is accessible with SURFACE_INDEX.
+     * @param Index: trim_index or SURFACE_INDEX.
+     * @return pointer of geometry, corresponding to the index.
+     */
+     GeometryPointer pGetGeometryPart(const IndexType Index) override
+     {
+         const auto& const_this = *this;
+         return std::const_pointer_cast<GeometryType>(
+             const_this.pGetGeometryPart(Index));
+     }
+
+
+    /**
+    * @brief This function returns the pointer of the geometry
+    *        which is corresponding to the trim index.
+    *        Surface of the geometry is accessible with GeometryType::BACKGROUND_GEOMETRY_INDEX.
+    * @param Index: trim_index or GeometryType::BACKGROUND_GEOMETRY_INDEX.
+    * @return pointer of geometry, corresponding to the index.
+    */
+    const GeometryPointer pGetGeometryPart(const IndexType Index) const override
+    {
+        if (Index == GeometryType::BACKGROUND_GEOMETRY_INDEX)
+            return mpNurbsVolume;
+    }
+
     ///@}
     ///@name Operations
     ///@{
