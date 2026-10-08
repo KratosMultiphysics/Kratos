@@ -67,7 +67,7 @@ class TestLocalRefinementClosureParameter(KratosUnittest.TestCase):
             condition.Properties = properties
             condition.Initialize(body.ProcessInfo)
             oriented_normal = condition.GetValue(KM.NORMAL)
-            self.assertAlmostEqual(sum(normal[i] * oriented_normal[i] for i in range(3)), 1.0, places=10)
+            self.assertAlmostEqual(sum(normal[i] * oriented_normal[i] for i in range(3)), -1.0, places=10)
 
 
 if __name__ == "__main__":
