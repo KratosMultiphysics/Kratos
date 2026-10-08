@@ -752,7 +752,7 @@ class RomManager(object):
         parameters = self._StoreNoResults(parameters)
         model = KratosMultiphysics.Model()
         analysis_stage_class = self._GetAnalysisStageClass(parameters)
-        simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters)
+        simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters,[])
         simulation.Initialize()
         return model[self.general_rom_manager_parameters["ROM"]["model_part_name"].GetString()]
 
@@ -763,7 +763,7 @@ class RomManager(object):
         parameters = self._StoreNoResults(parameters)
         model = KratosMultiphysics.Model()
         analysis_stage_class = type(self._SetUpRomSimulationInstance(model, parameters, nn_rom_interface=nn_rom_interface))
-        simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters)
+        simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters,[])
         simulation.Initialize()
         return simulation.GetHROM_utility()
 
@@ -774,7 +774,7 @@ class RomManager(object):
         parameters = self._StoreNoResults(parameters)
         model = KratosMultiphysics.Model()
         analysis_stage_class = type(self._SetUpRomSimulationInstance(model, parameters))
-        simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters)
+        simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters,[])
         simulation.Initialize()
         return simulation.GetPetrovGalerkinTrainUtility()
 
