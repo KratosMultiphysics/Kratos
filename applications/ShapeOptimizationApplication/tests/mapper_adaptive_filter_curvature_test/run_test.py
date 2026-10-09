@@ -8,7 +8,6 @@ from KratosMultiphysics.from_json_check_result_process import FromJsonCheckResul
 
 # Auxiliary imports
 # from KratosMultiphysics.vtk_output_process import VtkOutputProcess
-# from KratosMultiphysics.json_output_process import JsonOutputProcess
 
 # =======================================================================================================
 # Auxiliary functions
@@ -71,7 +70,7 @@ optimization_model_part_name = parameters["optimization_settings"]["model_settin
 # Perform tests
 # =======================================================================================================
 # # write json output
-# output_process = JsonOutputProcess(model, Kratos.Parameters(
+# output_process = Kratos.JsonOutputProcess(model, Kratos.Parameters(
 #     """{
 #         "output_variables" : ["DF1DX_MAPPED", "SHAPE_UPDATE"],
 #         "output_file_name" : "gaussian_curvature_results.json",
