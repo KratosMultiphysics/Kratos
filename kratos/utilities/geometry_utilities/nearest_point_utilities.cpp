@@ -12,6 +12,7 @@
 //
 
 // System includes
+#include <limits>
 
 // External includes
 
@@ -104,7 +105,8 @@ TriangleNearestPointLocation NearestPointUtilities::TriangleNearestPoint(
 
     // Check if P in edge region of AB (edge 01), if so return projection of P onto AB
     const double vc = d1 * d4 - d3 * d2;
-    if (vc <= 0.0 && d1 >= 0.0 && d3 <= 0.0) {
+    const double vc_tol = 4.0 * std::numeric_limits<double>::epsilon() * (std::abs(d1 * d4) + std::abs(d3 * d2));
+    if (vc <= vc_tol && d1 >= 0.0 && d3 <= 0.0) {
         const double v = d1 / (d1 - d3);
         noalias(rResult.Coordinates()) = rTrianglePoint0 + v * ab;
         return TriangleNearestPointLocation::ON_TRIANGLE_EDGE_01;
@@ -121,7 +123,8 @@ TriangleNearestPointLocation NearestPointUtilities::TriangleNearestPoint(
 
     // Check if P in edge region of AC (edge 02), if so return projection of P onto AC
     const double vb = d5 * d2 - d1 * d6;
-    if (vb <= 0.0 && d2 >= 0.0 && d6 <= 0.0) {
+    const double vb_tol = 4.0 * std::numeric_limits<double>::epsilon() * (std::abs(d5 * d2) + std::abs(d1 * d6));
+    if (vb <= vb_tol && d2 >= 0.0 && d6 <= 0.0) {
         const double w = d2 / (d2 - d6);
         noalias(rResult.Coordinates()) = rTrianglePoint0 + w * ac;
         return TriangleNearestPointLocation::ON_TRIANGLE_EDGE_20;
@@ -129,7 +132,8 @@ TriangleNearestPointLocation NearestPointUtilities::TriangleNearestPoint(
 
     // Check if P in edge region of BC (edge 12), if so return projection of P onto BC
     const double va = d3 * d6 - d5 * d4;
-    if (va <= 0.0 && (d4 - d3) >= 0.0 && (d5 - d6) >= 0.0) {
+    const double va_tol = 4.0 * std::numeric_limits<double>::epsilon() * (std::abs(d3 * d6) + std::abs(d5 * d4));
+    if (va <= va_tol && (d4 - d3) >= 0.0 && (d5 - d6) >= 0.0) {
         const double w = (d4 - d3) / ((d4 - d3) + (d5 - d6));
         noalias(rResult.Coordinates()) = rTrianglePoint1 + w * (rTrianglePoint2 - rTrianglePoint1);
         return TriangleNearestPointLocation::ON_TRIANGLE_EDGE_12;
