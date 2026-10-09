@@ -86,7 +86,7 @@ GeometryData::IntegrationMethod QSVMSResidualDerivatives<TDim, TNumNodes>::GetIn
 template <unsigned int TDim, unsigned int TNumNodes>
 void QSVMSResidualDerivatives<TDim, TNumNodes>::ResidualsContributions::AddGaussPointResidualsContributions(
     VectorF& rResidual,
-    QSVMSResidualData& rData,
+    Data& rData,
     const double W,
     const Vector& rN,
     const Matrix& rdNdX) const
@@ -137,7 +137,7 @@ void QSVMSResidualDerivatives<TDim, TNumNodes>::ResidualsContributions::AddGauss
 
 template <unsigned int TDim, unsigned int TNumNodes>
 void QSVMSResidualDerivatives<TDim, TNumNodes>::ResidualsContributions::AddViscousTerms(
-    QSVMSResidualData& rData,
+    Data& rData,
     VectorF& rResidual,
     const double W)
 {
@@ -157,7 +157,7 @@ template <unsigned int TDim, unsigned int TNumNodes>
 template <unsigned int TComponentIndex>
 void QSVMSResidualDerivatives<TDim, TNumNodes>::SecondDerivatives<TComponentIndex>::CalculateGaussPointResidualsDerivativeContributions(
     VectorF& rResidualDerivative,
-    QSVMSResidualData& rData,
+    Data& rData,
     const int NodeIndex,
     const double W,
     const Vector& rN,
@@ -183,7 +183,7 @@ void QSVMSResidualDerivatives<TDim, TNumNodes>::SecondDerivatives<TComponentInde
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void QSVMSResidualDerivatives<TDim, TNumNodes>::QSVMSResidualData::Initialize(
+void QSVMSResidualDerivatives<TDim, TNumNodes>::Data::Initialize(
     const Element& rElement,
     ConstitutiveLaw& rConstitutiveLaw,
     const ProcessInfo& rProcessInfo)
@@ -205,8 +205,8 @@ void QSVMSResidualDerivatives<TDim, TNumNodes>::QSVMSResidualData::Initialize(
 
     // get values from process info
     mDynamicTau = rProcessInfo[DYNAMIC_TAU];
-    mOSSSwitch = rProcessInfo[OSS_SWITCH];
-    KRATOS_ERROR_IF(mOSSSwitch == 1)
+    mOSS_SWITCH = rProcessInfo[OSS_SWITCH];
+    KRATOS_ERROR_IF(mOSS_SWITCH == 1)
         << "OSS Projection adjoints are not yet supported.\n";
 
     mDeltaTime = rProcessInfo[DELTA_TIME];
@@ -245,7 +245,7 @@ void QSVMSResidualDerivatives<TDim, TNumNodes>::QSVMSResidualData::Initialize(
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void QSVMSResidualDerivatives<TDim, TNumNodes>::QSVMSResidualData::CalculateGaussPointData(
+void QSVMSResidualDerivatives<TDim, TNumNodes>::Data::CalculateGaussPointData(
     const double W,
     const Vector& rN,
     const Matrix& rdNdX)
@@ -404,8 +404,8 @@ void QSVMSResidualDerivatives<TDim, TNumNodes>::InitializeConstitutiveLaw(
     cl_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
 
     rParameters.SetStrainVector(rStrainVector); // this is the input parameter
-    rParameters.SetStressVector(rStressVector); // this is an output parameter
-    rParameters.SetConstitutiveMatrix(rConstitutiveMatrix); // this is an output parameter
+    rParameters.SetStressVector(rStressVector); // this is an ouput parameter
+    rParameters.SetConstitutiveMatrix(rConstitutiveMatrix); // this is an ouput parameter
 }
 
 // template instantiations
