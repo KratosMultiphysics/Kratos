@@ -18,7 +18,6 @@
 // External includes
 
 // Project includes
-#include "includes/define.h"
 #include "spaces/default_spaces.h"
 #include "trilinos_space.h"
 #include "factories/linear_solver_factory.h"

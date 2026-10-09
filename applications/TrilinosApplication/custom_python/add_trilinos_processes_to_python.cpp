@@ -17,7 +17,6 @@
 // External includes
 
 // Project includes
-#include "includes/define.h"
 #include "includes/model_part.h"
 #include "linear_solvers/linear_solver.h"
 #include "processes/process.h"
