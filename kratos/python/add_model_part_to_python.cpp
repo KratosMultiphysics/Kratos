@@ -21,7 +21,6 @@
 #include "includes/define_python.h"
 #include "containers/model.h"
 #include "containers/nd_data.h"
-#include "includes/model_part.h"
 #include "includes/kratos_components.h"
 #include "includes/process_info.h"
 #include "utilities/quaternion.h"
