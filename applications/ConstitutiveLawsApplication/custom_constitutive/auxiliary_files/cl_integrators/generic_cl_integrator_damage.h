@@ -60,7 +60,7 @@ namespace Kratos
  * @author Alejandro Cornejo & Lucia Barbu
  */
 template <class TYieldSurfaceType>
-class GenericConstitutiveLawIntegratorDamage
+class KRATOS_EXPOSE GenericConstitutiveLawIntegratorDamage
 {
   public:
     ///@name Type Definitions

@@ -37,7 +37,7 @@ file(GLOB_RECURSE KRATOS_CONSTITUTIVE_LAWS_APPLICATION_PYTHON_INTERFACE ${CMAKE_
 
 add_library(KratosConstitutiveLawsCore SHARED ${KRATOS_CONSTITUTIVE_LAWS_APPLICATION_CORE})
 target_link_libraries(KratosConstitutiveLawsCore PUBLIC KratosCore KratosStructuralMechanicsCore)
-set_target_properties(KratosConstitutiveLawsCore PROPERTIES COMPILE_DEFINITIONS "CONSTITUTIVE_LAWS_APPLICATION=EXPORT,API")
+set_target_properties(KratosConstitutiveLawsCore PROPERTIES CXX_VISIBILITY_PRESET hidden VISIBILITY_INLINES_HIDDEN ON COMPILE_DEFINITIONS "CONSTITUTIVE_LAWS_APPLICATION=EXPORT,API")
 
 ## ConstitutiveLaws benchmark sources. Disabled by default
 if(${KRATOS_BUILD_BENCHMARK} MATCHES ON)
@@ -49,7 +49,7 @@ if(${KRATOS_BUILD_BENCHMARK} MATCHES ON)
         get_filename_component(filename ${file} NAME_WE)
         add_executable(${filename} ${file})
         target_link_libraries(${filename} PUBLIC KratosConstitutiveLawsCore benchmark::benchmark)
-        set_target_properties(${filename} PROPERTIES COMPILE_DEFINITIONS "KRATOS_BENCHMARK=IMPORT,API")
+        set_target_properties(${filename} PROPERTIES CXX_VISIBILITY_PRESET hidden VISIBILITY_INLINES_HIDDEN ON COMPILE_DEFINITIONS "KRATOS_BENCHMARK=IMPORT,API")
         install(TARGETS ${filename} DESTINATION benchmark)
     endforeach(file ${KRATOS_BENCHMARK_SOURCES})
 endif(${KRATOS_BUILD_BENCHMARK} MATCHES ON)

@@ -43,7 +43,7 @@ namespace Kratos
  * Implements a point load condition for structural analysis.
  */
 
-class AxisymPointLoadCondition
+class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) AxisymPointLoadCondition
     : public PointLoadCondition
 {
 public:
@@ -52,6 +52,8 @@ public:
 
     /// Counted pointer of AxisymPointLoadCondition
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(AxisymPointLoadCondition);
+
+    using PointLoadCondition::AddExplicitContribution;
 
     ///@}
     ///@name Life Cycle

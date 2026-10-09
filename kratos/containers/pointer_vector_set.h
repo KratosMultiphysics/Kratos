@@ -69,7 +69,7 @@ template<class TDataType,
          class TEqualType = std::equal_to<decltype(std::declval<TGetKeyType>()(std::declval<TDataType>()))>,
          class TPointerType = typename TDataType::Pointer,
          class TContainerType = std::vector<TPointerType>>
-class PointerVectorSet final
+class KRATOS_EXPOSE PointerVectorSet final
 {
 public:
     ///@name Type Definitions

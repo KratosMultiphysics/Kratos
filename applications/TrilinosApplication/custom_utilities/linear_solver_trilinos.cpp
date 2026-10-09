@@ -11,5 +11,9 @@ template class LinearSolver<
     TDefaultDenseSpace<double>
 >;
 
+template class TrilinosDofUpdater<
+    TrilinosSpace<Epetra_FECrsMatrix, Epetra_FEVector>
+>;
+
 
 } // namespace Kratos

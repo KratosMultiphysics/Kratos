@@ -57,8 +57,8 @@ namespace Kratos
 /// Short	class definition.
 /** Detail class definition.
 */
-template<class T,	std::size_t	N>
-class	array_1d	: public boost::numeric::ublas::vector_expression< array_1d<T, N> >
+template<class T, std::size_t N>
+class KRATOS_EXPOSE array_1d : public boost::numeric::ublas::vector_expression< array_1d<T, N>>
 {
 public:
     ///@name Type	Definitions

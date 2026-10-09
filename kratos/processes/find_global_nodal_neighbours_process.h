@@ -24,7 +24,7 @@
 #include "includes/define.h"
 #include "includes/global_pointer_variables.h"
 #include "includes/model_part.h"
-#include "processes/find_global_nodal_neighbours_for_entities_process.h"
+#include "processes/find_nodal_neighbours_for_entities_process.h"
 #include "utilities/pointer_communicator.h"
 
 namespace Kratos

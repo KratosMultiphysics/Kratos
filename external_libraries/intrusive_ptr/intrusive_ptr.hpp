@@ -18,6 +18,13 @@
 #include <functional>
 #include <iostream>
 
+#undef KRATOS_EXPOSE
+
+#if defined(_WIN32) || defined(_WIN64)
+    #define KRATOS_EXPOSE
+#else
+    #define KRATOS_EXPOSE __attribute__((visibility("default")))
+#endif
 
 namespace Kratos
 {
@@ -63,7 +70,7 @@ template< class Y, class T > struct sp_enable_if_convertible: public sp_enable_i
 
 
 
-template<class T> class intrusive_ptr
+template<class T> class KRATOS_EXPOSE intrusive_ptr
 {
 private:
 

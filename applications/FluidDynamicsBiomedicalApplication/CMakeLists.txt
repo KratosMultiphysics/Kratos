@@ -32,7 +32,7 @@ endif(${KRATOS_BUILD_TESTING} MATCHES ON)
 ## FluidDynamicsBiomedicalApplication core library (C++ parts)
 add_library( KratosFluidDynamicsBiomedicalCore SHARED ${KRATOS_FLUID_DYNAMICS_BIOMEDICAL_APPLICATION_CORE_SOURCES})
 target_link_libraries( KratosFluidDynamicsBiomedicalCore PUBLIC KratosCore KratosFluidDynamicsCore)
-set_target_properties( KratosFluidDynamicsBiomedicalCore PROPERTIES COMPILE_DEFINITIONS "FLUID_DYNAMICS_BIOMEDICAL_APPLICATION=EXPORT,API")
+set_target_properties( KratosFluidDynamicsBiomedicalCore PROPERTIES CXX_VISIBILITY_PRESET hidden VISIBILITY_INLINES_HIDDEN ON COMPILE_DEFINITIONS "FLUID_DYNAMICS_BIOMEDICAL_APPLICATION=EXPORT,API")
 
 ## FluidDynamicsBiomedicalApplication python module
 pybind11_add_module( KratosFluidDynamicsBiomedicalApplication MODULE THIN_LTO ${KRATOS_FLUID_DYNAMICS_BIOMEDICAL_PYTHON_INTERFACE_SOURCES} )

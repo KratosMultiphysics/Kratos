@@ -177,7 +177,7 @@ const Parameters CheckSameModelPartUsingSkinDistanceProcess<TDim>::GetDefaultPar
 /***********************************************************************************/
 /***********************************************************************************/
 
-template class Kratos::CheckSameModelPartUsingSkinDistanceProcess<2>;
-template class Kratos::CheckSameModelPartUsingSkinDistanceProcess<3>;
+template class KRATOS_API(KRATOS_CORE) Kratos::CheckSameModelPartUsingSkinDistanceProcess<2>;
+template class KRATOS_API(KRATOS_CORE) Kratos::CheckSameModelPartUsingSkinDistanceProcess<3>;
 
 } // namespace Kratos

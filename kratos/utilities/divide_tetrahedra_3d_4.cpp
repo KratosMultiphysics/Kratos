@@ -361,7 +361,7 @@ namespace Kratos
         return NodeKey >= num_nodes || mNodeIsCut[NodeKey];
     }
 
-    template class DivideTetrahedra3D4<Node>;
-    template class DivideTetrahedra3D4<IndexedPoint>;
+    template class KRATOS_API(KRATOS_CORE) DivideTetrahedra3D4<Node>;
+    template class KRATOS_API(KRATOS_CORE) DivideTetrahedra3D4<IndexedPoint>;
 
 };

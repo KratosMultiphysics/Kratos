@@ -57,7 +57,7 @@ namespace Kratos
  * @author Alejandro Cornejo & Lucia Barbu
  */
 template <class TPlasticPotentialType>
-class RankineYieldSurface
+class KRATOS_EXPOSE RankineYieldSurface
 {
 public:
     ///@name Type Definitions

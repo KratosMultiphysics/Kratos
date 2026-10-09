@@ -39,7 +39,7 @@ endif(${KRATOS_BUILD_TESTING} MATCHES ON)
 
 add_library(KratosMPMCore SHARED ${KRATOS_MPM_APPLICATION_CORE})
 target_link_libraries(KratosMPMCore PUBLIC KratosCore)
-set_target_properties(KratosMPMCore PROPERTIES COMPILE_DEFINITIONS "MPM_APPLICATION=EXPORT,API")
+set_target_properties(KratosMPMCore PROPERTIES CXX_VISIBILITY_PRESET hidden VISIBILITY_INLINES_HIDDEN ON COMPILE_DEFINITIONS "MPM_APPLICATION=EXPORT,API")
 
 # Define Kratos library which defines the basic python interface
 pybind11_add_module(KratosMPMApplication MODULE THIN_LTO ${KRATOS_MPM_APPLICATION_PYTHON_INTERFACE})

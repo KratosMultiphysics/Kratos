@@ -47,7 +47,7 @@ namespace Kratos
  * @author Alejandro Cornejo
  */
 template <class TPlasticPotentialType>
-class ThermalVonMisesYieldSurface
+class KRATOS_EXPOSE ThermalVonMisesYieldSurface
 {
 public:
     ///@name Type Definitions

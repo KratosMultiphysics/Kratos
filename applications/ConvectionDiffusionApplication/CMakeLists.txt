@@ -56,7 +56,7 @@ endif(${KRATOS_BUILD_TESTING} MATCHES ON)
 ## ConvectionDiffusionApplication core library (C++ parts)
 add_library( KratosConvectionDiffusionCore SHARED ${KRATOS_CONVECTION_DIFFUSION_APPLICATION_CORE_SOURCES})
 target_link_libraries( KratosConvectionDiffusionCore PUBLIC KratosCore)
-set_target_properties( KratosConvectionDiffusionCore PROPERTIES COMPILE_DEFINITIONS "CONVECTION_DIFFUSION_APPLICATION=EXPORT,API")
+set_target_properties( KratosConvectionDiffusionCore PROPERTIES CXX_VISIBILITY_PRESET hidden VISIBILITY_INLINES_HIDDEN ON COMPILE_DEFINITIONS "CONVECTION_DIFFUSION_APPLICATION=EXPORT,API")
 
 ## FluidDynamicsApplication python module
 pybind11_add_module( KratosConvectionDiffusionApplication MODULE THIN_LTO ${KRATOS_CONVECTION_DIFFUSION_PYTHON_INTERFACE_SOURCES} )

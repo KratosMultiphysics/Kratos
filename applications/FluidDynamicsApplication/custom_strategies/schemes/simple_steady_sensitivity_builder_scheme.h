@@ -24,7 +24,7 @@
 #include "includes/define.h"
 #include "includes/global_pointer_variables.h"
 #include "includes/model_part.h"
-#include "processes/find_global_nodal_neighbours_for_entities_process.h"
+#include "processes/find_nodal_neighbours_for_entities_process.h"
 #include "response_functions/adjoint_response_function.h"
 #include "solving_strategies/schemes/sensitivity_builder_scheme.h"
 #include "utilities/coordinate_transformation_utilities.h"
