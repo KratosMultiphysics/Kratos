@@ -4,7 +4,7 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:         SystemIdentificationApplication/license.txt
+//  License:         OptimizationApplication/license.txt
 //
 //  Main authors:    Suneth Warnakulasuriya
 //
@@ -25,7 +25,7 @@ namespace Kratos {
 ///@name Kratos Classes
 ///@{
 
-class KRATOS_API(SYSTEM_IDENTIFICATION_APPLICATION) SmoothClamper
+class KRATOS_API(OPTIMIZATION_APPLICATION) SmoothClamper
 {
 public:
     ///@name Type definitions
