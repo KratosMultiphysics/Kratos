@@ -223,7 +223,7 @@ void CSVDatabaseIO::Finalize(const int TableId)
             << "Currently initialized table id = " << mCurrentTableId << " for file name \""
             << mCurrentFileName << "\".\n" << *this;
 
-        std::ofstream output_file(mCurrentFileName, std::ios::out | std::ios::app | std::ios::binary);
+        std::ofstream output_file(mCurrentFileName, std::ios::out | std::ios::app);
 
         if (mLastWrittenStep == -1) {
             WriteHeaders(output_file);
@@ -497,7 +497,7 @@ void CSVDatabaseIO::WriteTitleBlock(const int TableId)
 
     KRATOS_INFO_IF(this->Info(), mEchoLevel > 0) <<"Writing CSV header information to \"" << mCurrentFileName << "\"...\n";
 
-    std::ofstream output_file(mCurrentFileName, std::ios::out | std::ios::trunc | std::ios::binary);
+    std::ofstream output_file(mCurrentFileName, std::ios::out | std::ios::trunc);
 
     output_file << "# ===========================================================\n";
     output_file << "# ";
@@ -737,7 +737,7 @@ void CSVDatabaseIO::GenericWrite(
         }
     } else {
         // now information with new Step is given.
-        std::ofstream output_file(mCurrentFileName, std::ios::out | std::ios::app | std::ios::binary);
+        std::ofstream output_file(mCurrentFileName, std::ios::out | std::ios::app);
 
         // so we first need to check if the headers are written.
         if (mLastWrittenStep == -1) {
