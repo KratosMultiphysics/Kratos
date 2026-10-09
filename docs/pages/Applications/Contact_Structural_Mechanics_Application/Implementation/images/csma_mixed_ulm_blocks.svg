@@ -1,0 +1,113 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 880" width="1600" height="880">
+<style>text{font-family:Helvetica,Arial,sans-serif;fill:#1f2937}.title{font-size:30px;font-weight:bold}.sub{font-size:17px;fill:#6b7280}
+.h{font-size:19px;font-weight:bold}.b{font-size:15px}.s{font-size:13px;fill:#6b7280}.m{font-size:17px;font-family:'DejaVu Serif',Georgia,serif}.cell{font-size:14px;font-weight:bold;text-anchor:middle}.foot{font-size:13px;fill:#6b7280}</style>
+<defs><marker id="ar" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#6b7280"/></marker></defs>
+<rect width="1600" height="880" fill="#ffffff"/>
+<text x="30" y="44" class="title">MixedULMLinearSolver: static condensation of the dual Lagrange multipliers</text>
+<text x="30" y="72" class="sub">custom_linear_solvers/mixedulm_linear_solver.h — the mixed displacement / LM system is reduced to a displacement-only system (thesis §4.3.3.4.4, eqs. 4.37–4.40)</text>
+<text x="60" y="122" class="h" fill="#1f2937" text-anchor="start">1 · DoF classification (BlockType enum)</text>
+<text x="262.0" y="140" class="cell" fill="#6b7280" text-anchor="start">N</text>
+<text x="213" y="192.0" class="cell" fill="#6b7280" text-anchor="end">N</text>
+<text x="336.0" y="140" class="cell" fill="#2563eb" text-anchor="start">M</text>
+<text x="213" y="266.0" class="cell" fill="#2563eb" text-anchor="end">M</text>
+<text x="410.0" y="140" class="cell" fill="#0d9488" text-anchor="start">SI</text>
+<text x="213" y="340.0" class="cell" fill="#0d9488" text-anchor="end">SI</text>
+<text x="484.0" y="140" class="cell" fill="#0d9488" text-anchor="start">SA</text>
+<text x="213" y="414.0" class="cell" fill="#0d9488" text-anchor="end">SA</text>
+<text x="558.0" y="140" class="cell" fill="#7c3aed" text-anchor="start">LMI</text>
+<text x="213" y="488.0" class="cell" fill="#7c3aed" text-anchor="end">LMI</text>
+<text x="632.0" y="140" class="cell" fill="#7c3aed" text-anchor="start">LMA</text>
+<text x="213" y="562.0" class="cell" fill="#7c3aed" text-anchor="end">LMA</text>
+<rect x="225" y="150" width="74" height="74" fill="#f8fafc" stroke="#cbd5e1"/>
+<text x="262.0" y="192.0" class="cell" fill="#1f2937" text-anchor="start">K</text>
+<rect x="299" y="150" width="74" height="74" fill="#f8fafc" stroke="#cbd5e1"/>
+<text x="336.0" y="192.0" class="cell" fill="#1f2937" text-anchor="start">K</text>
+<rect x="373" y="150" width="74" height="74" fill="#f8fafc" stroke="#cbd5e1"/>
+<text x="410.0" y="192.0" class="cell" fill="#1f2937" text-anchor="start">K</text>
+<rect x="447" y="150" width="74" height="74" fill="#f8fafc" stroke="#cbd5e1"/>
+<text x="484.0" y="192.0" class="cell" fill="#1f2937" text-anchor="start">K</text>
+<rect x="521" y="150" width="74" height="74" fill="#f5f3ff" stroke="#cbd5e1"/>
+<rect x="595" y="150" width="74" height="74" fill="#f5f3ff" stroke="#cbd5e1"/>
+<rect x="225" y="224" width="74" height="74" fill="#f8fafc" stroke="#cbd5e1"/>
+<text x="262.0" y="266.0" class="cell" fill="#1f2937" text-anchor="start">K</text>
+<rect x="299" y="224" width="74" height="74" fill="#f8fafc" stroke="#cbd5e1"/>
+<text x="336.0" y="266.0" class="cell" fill="#1f2937" text-anchor="start">K</text>
+<rect x="373" y="224" width="74" height="74" fill="#f8fafc" stroke="#cbd5e1"/>
+<text x="410.0" y="266.0" class="cell" fill="#1f2937" text-anchor="start">K</text>
+<rect x="447" y="224" width="74" height="74" fill="#f8fafc" stroke="#cbd5e1"/>
+<text x="484.0" y="266.0" class="cell" fill="#1f2937" text-anchor="start">K</text>
+<rect x="521" y="224" width="74" height="74" fill="#f5f3ff" stroke="#cbd5e1"/>
+<rect x="595" y="224" width="74" height="74" fill="#f5f3ff" stroke="#cbd5e1"/>
+<text x="632.0" y="266.0" class="cell" fill="#1f2937" text-anchor="start">−Mᵀ</text>
+<rect x="225" y="298" width="74" height="74" fill="#f8fafc" stroke="#cbd5e1"/>
+<text x="262.0" y="340.0" class="cell" fill="#1f2937" text-anchor="start">K</text>
+<rect x="299" y="298" width="74" height="74" fill="#f8fafc" stroke="#cbd5e1"/>
+<text x="336.0" y="340.0" class="cell" fill="#1f2937" text-anchor="start">K</text>
+<rect x="373" y="298" width="74" height="74" fill="#f8fafc" stroke="#cbd5e1"/>
+<text x="410.0" y="340.0" class="cell" fill="#1f2937" text-anchor="start">K</text>
+<rect x="447" y="298" width="74" height="74" fill="#f8fafc" stroke="#cbd5e1"/>
+<text x="484.0" y="340.0" class="cell" fill="#1f2937" text-anchor="start">K</text>
+<rect x="521" y="298" width="74" height="74" fill="#f5f3ff" stroke="#cbd5e1"/>
+<rect x="595" y="298" width="74" height="74" fill="#f5f3ff" stroke="#cbd5e1"/>
+<rect x="225" y="372" width="74" height="74" fill="#f8fafc" stroke="#cbd5e1"/>
+<text x="262.0" y="414.0" class="cell" fill="#1f2937" text-anchor="start">K</text>
+<rect x="299" y="372" width="74" height="74" fill="#f8fafc" stroke="#cbd5e1"/>
+<text x="336.0" y="414.0" class="cell" fill="#1f2937" text-anchor="start">K</text>
+<rect x="373" y="372" width="74" height="74" fill="#f8fafc" stroke="#cbd5e1"/>
+<text x="410.0" y="414.0" class="cell" fill="#1f2937" text-anchor="start">K</text>
+<rect x="447" y="372" width="74" height="74" fill="#f8fafc" stroke="#cbd5e1"/>
+<text x="484.0" y="414.0" class="cell" fill="#1f2937" text-anchor="start">K</text>
+<rect x="521" y="372" width="74" height="74" fill="#f5f3ff" stroke="#cbd5e1"/>
+<rect x="595" y="372" width="74" height="74" fill="#fef3c7" stroke="#cbd5e1"/>
+<text x="632.0" y="414.0" class="cell" fill="#1f2937" text-anchor="start">Dᵀ</text>
+<rect x="225" y="446" width="74" height="74" fill="#f5f3ff" stroke="#cbd5e1"/>
+<rect x="299" y="446" width="74" height="74" fill="#f5f3ff" stroke="#cbd5e1"/>
+<rect x="373" y="446" width="74" height="74" fill="#f5f3ff" stroke="#cbd5e1"/>
+<rect x="447" y="446" width="74" height="74" fill="#f5f3ff" stroke="#cbd5e1"/>
+<rect x="521" y="446" width="74" height="74" fill="#fee2e2" stroke="#cbd5e1"/>
+<text x="558.0" y="488.0" class="cell" fill="#1f2937" text-anchor="start">I·k²/ε</text>
+<rect x="595" y="446" width="74" height="74" fill="#f5f3ff" stroke="#cbd5e1"/>
+<rect x="225" y="520" width="74" height="74" fill="#f5f3ff" stroke="#cbd5e1"/>
+<rect x="299" y="520" width="74" height="74" fill="#f5f3ff" stroke="#cbd5e1"/>
+<text x="336.0" y="562.0" class="cell" fill="#1f2937" text-anchor="start">−M</text>
+<rect x="373" y="520" width="74" height="74" fill="#f5f3ff" stroke="#cbd5e1"/>
+<rect x="447" y="520" width="74" height="74" fill="#fef3c7" stroke="#cbd5e1"/>
+<text x="484.0" y="562.0" class="cell" fill="#1f2937" text-anchor="start">D</text>
+<rect x="521" y="520" width="74" height="74" fill="#f5f3ff" stroke="#cbd5e1"/>
+<rect x="595" y="520" width="74" height="74" fill="#f5f3ff" stroke="#cbd5e1"/>
+<text x="632.0" y="562.0" class="cell" fill="#1f2937" text-anchor="start">0</text>
+<text x="60" y="624" class="s" text-anchor="start">Highlighted: D (diagonal thanks to the dual LM) and Dᵀ; inactive LM rows/cols</text>
+<text x="60" y="642" class="s" text-anchor="start">carry only the regularisation k²/ε·I (thesis eq. 4.35b), so all λ_I → 0.</text>
+<text x="60" y="660" class="s" text-anchor="start">Slave DoFs split into active / inactive from the ACTIVE node flag,</text>
+<text x="60" y="678" class="s" text-anchor="start">re-classified in ProvideAdditionalData at every solve.</text>
+<rect x="720" y="110" width="850" height="150" rx="10" fill="#eff6ff" stroke="#2563eb" stroke-width="2"/>
+<text x="736" y="138" class="h" fill="#2563eb" text-anchor="start">2 · Extract blocks (FillBlockMatrices)</text>
+<text x="736" y="164" class="b" text-anchor="start">KMLMA = K[M, LMA],  KSAN, KSAM, KSASI, KSASA = rows of the active slaves,  KSALMA = D (diagonal),</text>
+<text x="736" y="186" class="b" text-anchor="start">KLMALMA = K[LMA, LMA],  KLMILMI = K[LMI, LMI]  →  mKLMAModified = D⁻¹ (inverted diagonal),  mKLMIModified = (k²/ε)⁻¹ I</text>
+<text x="736" y="210" class="b" text-anchor="start">Operators (thesis eq. 4.39):   P = KMLMA · D⁻¹        C = KLMALMA · D⁻¹</text>
+<text x="736" y="236" class="s" text-anchor="start">(members mPOperator, mCOperator; SparseMatrixMultiplicationUtility::MatrixMultiplication)</text>
+<rect x="720" y="280" width="850" height="150" rx="10" fill="#f0fdfa" stroke="#0d9488" stroke-width="2"/>
+<text x="736" y="308" class="h" fill="#0d9488" text-anchor="start">3 · Condensed displacement matrix (thesis eq. 4.38)</text>
+<text x="736" y="334" class="b" text-anchor="start">mKDispModified = K[N M SI SA]; master rows corrected by −P·[KSAN KSAM KSASI KSASA];</text>
+<text x="736" y="360" class="b" text-anchor="start">active-slave rows replaced by KLMA· − C·[KSAN KSAM KSASI KSASA] (the LM row takes the SA row)</text>
+<text x="736" y="386" class="b" text-anchor="start">Result: a pure displacement system of size N+M+SI+SA, symmetric structure preserved, no saddle point,</text>
+<text x="736" y="408" class="b" text-anchor="start">so AMGCL (inner solver pSolverDispBlock, block_size = DOMAIN_SIZE) or any direct solver can be used.</text>
+<rect x="720" y="450" width="850" height="150" rx="10" fill="#fffbeb" stroke="#d97706" stroke-width="2"/>
+<text x="736" y="478" class="h" fill="#d97706" text-anchor="start">4 · Solve and recover (PerformSolutionStep)</text>
+<text x="736" y="504" class="b" text-anchor="start">GetUPart(b) → r_u ;   solve  mKDispModified · Δu = r_u  with the inner solver ;   SetUPart(x, Δu)</text>
+<text x="736" y="528" class="b" text-anchor="start">Δλ_A = D⁻¹ ( r_SA − KSAN Δu_N − KSAM Δu_M − KSASI Δu_SI − KSASA Δu_SA )   (thesis eq. 4.40b)</text>
+<text x="736" y="554" class="b" text-anchor="start">Δλ_I = (k²/ε)⁻¹ r_LMI → 0 ;   flags BLOCKS_ARE_ALLOCATED / IS_INITIALIZED cache the block structure between iterations</text>
+<text x="736" y="578" class="s" text-anchor="start">tolerance 1e-6, max_iteration_number 200 (defaults) belong to the inner iterative solver</text>
+<rect x="720" y="620" width="850" height="110" rx="10" fill="#f5f3ff" stroke="#7c3aed" stroke-width="2"/>
+<text x="736" y="648" class="h" fill="#7c3aed" text-anchor="start">When is it used?</text>
+<text x="736" y="674" class="b" text-anchor="start">contact_settings.use_mixed_ulm_solver = true (default) AND mortar_type is ALMContactFrictional* or</text>
+<text x="736" y="696" class="b" text-anchor="start">ALMContactFrictionlessComponents (vector LM); the scalar-LM ALMContactFrictionless keeps the user solver.</text>
+<text x="736" y="718" class="s" text-anchor="start">auxiliary_methods_solvers.AuxiliaryCreateLinearSolver wraps the user solver; AMGCL fallback when the user solver is amgcl.</text>
+<line x1="1145" y1="260" x2="1145" y2="278" stroke="#6b7280" stroke-width="2" marker-end="url(#ar)"/>
+<line x1="1145" y1="430" x2="1145" y2="448" stroke="#6b7280" stroke-width="2" marker-end="url(#ar)"/>
+<line x1="1145" y1="600" x2="1145" y2="618" stroke="#6b7280" stroke-width="2" marker-end="url(#ar)"/>
+<line x1="681" y1="372" x2="708" y2="200" stroke="#6b7280" stroke-width="2" marker-end="url(#ar)"/>
+<text x="30" y="790" class="s" text-anchor="start">Validated by tests/cpp_tests/linear_solvers/test_mixedulm_linear_solver.cpp (8 cases: simplest, with inactive, unordered DoFs, 2/3 DoF per node, real system).</text>
+<text x="30" y="812" class="s" text-anchor="start">Requires the block builder-and-solver (dual LM ⇒ diagonal D). With the elimination builder the LM DoFs of fixed slave displacements are fixed too.</text>
+<text x="30" y="862" class="foot" text-anchor="start">ContactStructuralMechanicsApplication · Kratos Multiphysics</text>
+</svg>

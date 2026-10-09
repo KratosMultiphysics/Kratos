@@ -1,0 +1,273 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 950" width="1600" height="950">
+<style>
+text{font-family:Helvetica,Arial,sans-serif;fill:#1f2937}
+.title{font-size:30px;font-weight:bold}
+.sub{font-size:17px;fill:#6b7280}
+.h{font-size:14px;font-weight:bold;fill:#ffffff}
+.c{font-size:13px}
+.rl{font-size:15px;font-weight:bold}
+.foot{font-size:13px;fill:#6b7280}
+.note{font-size:13px;fill:#6b7280}
+.grid{stroke:#cbd5e1;stroke-width:1;fill:none}
+</style>
+<rect width="1600" height="950" fill="#ffffff"/>
+<text x="30" y="44" class="title">Contact formulations at a glance</text>
+<text x="30" y="72" class="sub">One row per formulation: the mortar_type switch selects variables, DoFs, convergence criterion and linear solver; the Python process selects the condition family</text>
+<rect x="30" y="96" width="1540" height="48" rx="8" fill="#1f2937"/>
+<text x="40" y="125" class="h">Formulation</text>
+<text x="190" y="116" class="h">contact_settings</text>
+<text x="190" y="134" class="h">mortar_type</text>
+<text x="395" y="116" class="h">Python process /</text>
+<text x="395" y="134" class="h">contact_type</text>
+<text x="590" y="116" class="h">Condition family</text>
+<text x="590" y="134" class="h">(registered name)</text>
+<text x="785" y="116" class="h">Extra nodal DoFs</text>
+<text x="785" y="134" class="h">(AuxiliaryAddDofs)</text>
+<text x="975" y="116" class="h">Active-set criterion /</text>
+<text x="975" y="134" class="h">ActiveSetUtilities</text>
+<text x="1190" y="116" class="h">Linear solver</text>
+<text x="1190" y="134" class="h">MixedULM?</text>
+<text x="1340" y="125" class="h">Friction</text>
+<text x="1470" y="116" class="h">2D / 3D /</text>
+<text x="1470" y="134" class="h">axisym</text>
+<rect x="30" y="144" width="1540" height="86" fill="#eff6ff" opacity="0.55"/>
+<rect x="30" y="144" width="150" height="86" fill="#eff6ff" stroke="#2563eb" stroke-width="1.5"/>
+<rect x="30" y="144" width="6" height="86" fill="#2563eb"/>
+<text x="46" y="183" class="rl" fill="#2563eb">ALM frictionless</text>
+<text x="46" y="201" class="rl" fill="#2563eb">(scalar LM)</text>
+<text x="190" y="192" class="c">ALMContactFrictionless</text>
+<text x="395" y="168" class="c">ALMContactProcess</text>
+<text x="395" y="184" class="c">alm_contact_process.py</text>
+<text x="395" y="200" class="c">contact_type:</text>
+<text x="395" y="216" class="c">&quot;Frictionless&quot;</text>
+<text x="590" y="176" class="c">ALM[NV]Frictionless</text>
+<text x="590" y="192" class="c">[Axisym]MortarContact</text>
+<text x="590" y="208" class="c">Condition{2D2N…3D4N3N}</text>
+<text x="785" y="176" class="c">LAGRANGE_MULTIPLIER_</text>
+<text x="785" y="192" class="c">CONTACT_PRESSURE</text>
+<text x="785" y="208" class="c">(1 scalar per slave node)</text>
+<text x="975" y="168" class="c">ALMFrictionlessMortar</text>
+<text x="975" y="184" class="c">ConvergenceCriteria</text>
+<text x="975" y="200" class="c">ComputeALMFrictionless</text>
+<text x="975" y="216" class="c">ActiveSet</text>
+<text x="1190" y="184" class="c"><tspan fill='#6b7280'>no</tspan></text>
+<text x="1190" y="200" class="c">(user linear solver)</text>
+<text x="1340" y="192" class="c">none</text>
+<text x="1470" y="184" class="c">2D, 3D</text>
+<text x="1470" y="200" class="c">axisym (2D)</text>
+<rect x="30" y="230" width="1540" height="86" fill="#f5f3ff" opacity="0.55"/>
+<rect x="30" y="230" width="150" height="86" fill="#f5f3ff" stroke="#7c3aed" stroke-width="1.5"/>
+<rect x="30" y="230" width="6" height="86" fill="#7c3aed"/>
+<text x="46" y="260" class="rl" fill="#7c3aed">ALM frictionless</text>
+<text x="46" y="278" class="rl" fill="#7c3aed">components</text>
+<text x="46" y="296" class="rl" fill="#7c3aed">(vector LM)</text>
+<text x="190" y="270" class="c">ALMContactFrictionless</text>
+<text x="190" y="286" class="c">Components</text>
+<text x="395" y="254" class="c">ALMContactProcess</text>
+<text x="395" y="270" class="c">alm_contact_process.py</text>
+<text x="395" y="286" class="c">contact_type:</text>
+<text x="395" y="302" class="c">&quot;FrictionlessComponents&quot;</text>
+<text x="590" y="262" class="c">ALM[NV]Frictionless</text>
+<text x="590" y="278" class="c">ComponentsMortarContact</text>
+<text x="590" y="294" class="c">Condition{…}</text>
+<text x="785" y="262" class="c">VECTOR_LAGRANGE_</text>
+<text x="785" y="278" class="c">MULTIPLIER_X/Y/Z</text>
+<text x="785" y="294" class="c">(tangential part penalised)</text>
+<text x="975" y="254" class="c">ALMFrictionlessComponents</text>
+<text x="975" y="270" class="c">MortarConvergenceCriteria</text>
+<text x="975" y="286" class="c">ComputeALMFrictionless</text>
+<text x="975" y="302" class="c">ComponentsActiveSet</text>
+<text x="1190" y="262" class="c"><tspan fill='#0d9488' font-weight='bold'>yes</tspan></text>
+<text x="1190" y="278" class="c">MixedULM</text>
+<text x="1190" y="294" class="c">LinearSolver</text>
+<text x="1340" y="278" class="c">none</text>
+<text x="1470" y="270" class="c">2D, 3D</text>
+<text x="1470" y="286" class="c">no axisym</text>
+<rect x="30" y="316" width="1540" height="86" fill="#f0fdfa" opacity="0.55"/>
+<rect x="30" y="316" width="150" height="86" fill="#f0fdfa" stroke="#0d9488" stroke-width="1.5"/>
+<rect x="30" y="316" width="6" height="86" fill="#0d9488"/>
+<text x="46" y="355" class="rl" fill="#0d9488">ALM frictional</text>
+<text x="46" y="373" class="rl" fill="#0d9488">(vector LM)</text>
+<text x="190" y="348" class="c">ALMContactFrictional</text>
+<text x="190" y="364" class="c">ALMContactFrictionalPureSlip</text>
+<text x="190" y="380" class="c">buffer_size ≥ 3</text>
+<text x="395" y="340" class="c">ALMContactProcess</text>
+<text x="395" y="356" class="c">alm_contact_process.py</text>
+<text x="395" y="372" class="c">contact_type:</text>
+<text x="395" y="388" class="c">&quot;Frictional&quot; [PureSlip]</text>
+<text x="590" y="348" class="c">ALM[NV]Frictional</text>
+<text x="590" y="364" class="c">[Axisym]MortarContact</text>
+<text x="590" y="380" class="c">Condition{…}</text>
+<text x="785" y="356" class="c">VECTOR_LAGRANGE_</text>
+<text x="785" y="372" class="c">MULTIPLIER_X/Y/Z</text>
+<text x="975" y="340" class="c">ALMFrictionalMortar</text>
+<text x="975" y="356" class="c">ConvergenceCriteria</text>
+<text x="975" y="372" class="c">ComputeALMFrictional</text>
+<text x="975" y="388" class="c">ActiveSet (pure_slip)</text>
+<text x="1190" y="348" class="c"><tspan fill='#0d9488' font-weight='bold'>yes</tspan></text>
+<text x="1190" y="364" class="c">MixedULM</text>
+<text x="1190" y="380" class="c">LinearSolver</text>
+<text x="1340" y="340" class="c">Coulomb (μ =</text>
+<text x="1340" y="356" class="c">FRICTION_</text>
+<text x="1340" y="372" class="c">COEFFICIENT)</text>
+<text x="1340" y="388" class="c">STICK / SLIP</text>
+<text x="1470" y="356" class="c">2D, 3D</text>
+<text x="1470" y="372" class="c">axisym (2D)</text>
+<rect x="30" y="402" width="1540" height="86" fill="#fffbeb" opacity="0.55"/>
+<rect x="30" y="402" width="150" height="86" fill="#fffbeb" stroke="#d97706" stroke-width="1.5"/>
+<rect x="30" y="402" width="6" height="86" fill="#d97706"/>
+<text x="46" y="441" class="rl" fill="#d97706">Penalty</text>
+<text x="46" y="459" class="rl" fill="#d97706">frictionless</text>
+<text x="190" y="450" class="c">PenaltyContactFrictionless</text>
+<text x="395" y="426" class="c">PenaltyContactProcess</text>
+<text x="395" y="442" class="c">penalty_contact_process.py</text>
+<text x="395" y="458" class="c">contact_type:</text>
+<text x="395" y="474" class="c">&quot;Frictionless&quot;</text>
+<text x="590" y="434" class="c">Penalty[NV]Frictionless</text>
+<text x="590" y="450" class="c">[Axisym]MortarContact</text>
+<text x="590" y="466" class="c">Condition{…}</text>
+<text x="785" y="442" class="c">none</text>
+<text x="785" y="458" class="c">(displacement only)</text>
+<text x="975" y="426" class="c">PenaltyFrictionlessMortar</text>
+<text x="975" y="442" class="c">ConvergenceCriteria</text>
+<text x="975" y="458" class="c">ComputePenaltyFrictionless</text>
+<text x="975" y="474" class="c">ActiveSet</text>
+<text x="1190" y="450" class="c"><tspan fill='#6b7280'>no</tspan></text>
+<text x="1340" y="450" class="c">none</text>
+<text x="1470" y="442" class="c">2D, 3D</text>
+<text x="1470" y="458" class="c">axisym (2D)</text>
+<rect x="30" y="488" width="1540" height="86" fill="#fef2f2" opacity="0.55"/>
+<rect x="30" y="488" width="150" height="86" fill="#fef2f2" stroke="#dc2626" stroke-width="1.5"/>
+<rect x="30" y="488" width="6" height="86" fill="#dc2626"/>
+<text x="46" y="527" class="rl" fill="#dc2626">Penalty</text>
+<text x="46" y="545" class="rl" fill="#dc2626">frictional</text>
+<text x="190" y="520" class="c">PenaltyContactFrictional</text>
+<text x="190" y="536" class="c">PenaltyContactFrictional</text>
+<text x="190" y="552" class="c">PureSlip · buffer_size ≥ 3</text>
+<text x="395" y="512" class="c">PenaltyContactProcess</text>
+<text x="395" y="528" class="c">penalty_contact_process.py</text>
+<text x="395" y="544" class="c">contact_type:</text>
+<text x="395" y="560" class="c">&quot;Frictional&quot; [PureSlip]</text>
+<text x="590" y="520" class="c">Penalty[NV]Frictional</text>
+<text x="590" y="536" class="c">[Axisym]MortarContact</text>
+<text x="590" y="552" class="c">Condition{…}</text>
+<text x="785" y="528" class="c">none</text>
+<text x="785" y="544" class="c">(displacement only)</text>
+<text x="975" y="512" class="c">PenaltyFrictionalMortar</text>
+<text x="975" y="528" class="c">ConvergenceCriteria</text>
+<text x="975" y="544" class="c">ComputePenaltyFrictional</text>
+<text x="975" y="560" class="c">ActiveSet (pure_slip)</text>
+<text x="1190" y="536" class="c"><tspan fill='#6b7280'>no</tspan></text>
+<text x="1340" y="512" class="c">Coulomb (μ =</text>
+<text x="1340" y="528" class="c">FRICTION_</text>
+<text x="1340" y="544" class="c">COEFFICIENT)</text>
+<text x="1340" y="560" class="c">STICK / SLIP</text>
+<text x="1470" y="528" class="c">2D, 3D</text>
+<text x="1470" y="544" class="c">axisym (2D)</text>
+<rect x="30" y="574" width="1540" height="86" fill="#f8fafc" opacity="0.55"/>
+<rect x="30" y="574" width="150" height="86" fill="#f8fafc" stroke="#6b7280" stroke-width="1.5"/>
+<rect x="30" y="574" width="6" height="86" fill="#6b7280"/>
+<text x="46" y="604" class="rl" fill="#6b7280">Explicit penalty</text>
+<text x="46" y="622" class="rl" fill="#6b7280">(central</text>
+<text x="46" y="640" class="rl" fill="#6b7280">difference)</text>
+<text x="190" y="606" class="c">PenaltyContactFrictionless</text>
+<text x="190" y="622" class="c">PenaltyContactFrictional</text>
+<text x="190" y="638" class="c">(explicit dynamic solver)</text>
+<text x="395" y="598" class="c">ExplicitPenaltyContact</text>
+<text x="395" y="614" class="c">Process · explicit_penalty_</text>
+<text x="395" y="630" class="c">contact_process.py</text>
+<text x="395" y="646" class="c">&quot;Frictionless&quot; | &quot;Frictional&quot;</text>
+<text x="590" y="598" class="c">Penalty[NV]Frictionless</text>
+<text x="590" y="614" class="c">| Frictional Mortar</text>
+<text x="590" y="630" class="c">Contact Condition{…}</text>
+<text x="590" y="646" class="c">(explicit contribution)</text>
+<text x="785" y="614" class="c">none</text>
+<text x="785" y="630" class="c">(displacement only)</text>
+<text x="975" y="598" class="c">no NR criterion:</text>
+<text x="975" y="614" class="c">ComputePenaltyFrictionless/</text>
+<text x="975" y="630" class="c">FrictionalActiveSet called</text>
+<text x="975" y="646" class="c">by the process each step</text>
+<text x="1190" y="614" class="c">n/a</text>
+<text x="1190" y="630" class="c">(no linear system)</text>
+<text x="1340" y="622" class="c">Coulomb</text>
+<text x="1470" y="614" class="c">2D, 3D</text>
+<text x="1470" y="630" class="c">axisym (2D)</text>
+<rect x="30" y="660" width="1540" height="86" fill="#f8fafc" opacity="0.55"/>
+<rect x="30" y="660" width="150" height="86" fill="#f8fafc" stroke="#6b7280" stroke-width="1.5"/>
+<rect x="30" y="660" width="6" height="86" fill="#6b7280"/>
+<text x="46" y="699" class="rl" fill="#6b7280">Mesh tying</text>
+<text x="46" y="717" class="rl" fill="#6b7280">(mortar)</text>
+<text x="190" y="700" class="c">ScalarMeshTying</text>
+<text x="190" y="716" class="c">ComponentsMeshTying</text>
+<text x="395" y="684" class="c">MeshTyingProcess</text>
+<text x="395" y="700" class="c">mesh_tying_process.py</text>
+<text x="395" y="716" class="c">variable_name:</text>
+<text x="395" y="732" class="c">&quot;DISPLACEMENT&quot; (default)</text>
+<text x="590" y="700" class="c">MeshTyingMortar</text>
+<text x="590" y="716" class="c">Condition{2D2N…3D4N3N}</text>
+<text x="785" y="684" class="c">SCALAR_LAGRANGE_</text>
+<text x="785" y="700" class="c">MULTIPLIER or VECTOR_</text>
+<text x="785" y="716" class="c">LAGRANGE_MULTIPLIER_</text>
+<text x="785" y="732" class="c">X/Y/Z (per variable_name)</text>
+<text x="975" y="684" class="c">MeshTyingMortar</text>
+<text x="975" y="700" class="c">ConvergenceCriteria</text>
+<text x="975" y="716" class="c">(no active set,</text>
+<text x="975" y="732" class="c">always converged)</text>
+<text x="1190" y="708" class="c"><tspan fill='#6b7280'>no</tspan></text>
+<text x="1340" y="700" class="c">n/a</text>
+<text x="1340" y="716" class="c">(tied interface)</text>
+<text x="1470" y="700" class="c">2D, 3D</text>
+<text x="1470" y="716" class="c">no axisym</text>
+<rect x="30" y="746" width="1540" height="86" fill="#f8fafc" opacity="0.55"/>
+<rect x="30" y="746" width="150" height="86" fill="#f8fafc" stroke="#6b7280" stroke-width="1.5"/>
+<rect x="30" y="746" width="6" height="86" fill="#6b7280"/>
+<text x="46" y="785" class="rl" fill="#6b7280">MPC contact</text>
+<text x="46" y="803" class="rl" fill="#6b7280">(constraints)</text>
+<text x="190" y="770" class="c">— (no mortar_type)</text>
+<text x="190" y="786" class="c">solver_settings.</text>
+<text x="190" y="802" class="c">mpc_contact_settings.</text>
+<text x="190" y="818" class="c">contact_type</text>
+<text x="395" y="770" class="c">MPCContactProcess</text>
+<text x="395" y="786" class="c">mpc_contact_process.py</text>
+<text x="395" y="802" class="c">contact_type:</text>
+<text x="395" y="818" class="c">&quot;Frictionless&quot; | &quot;Frictional&quot;</text>
+<text x="590" y="770" class="c">MPCMortarContact</text>
+<text x="590" y="786" class="c">Condition{…} +</text>
+<text x="590" y="802" class="c">ContactMasterSlave</text>
+<text x="590" y="818" class="c">Constraint</text>
+<text x="785" y="778" class="c">none (master–slave</text>
+<text x="785" y="794" class="c">constraints built</text>
+<text x="785" y="810" class="c">from D⁻¹M)</text>
+<text x="975" y="770" class="c">MPCContactCriteria in</text>
+<text x="975" y="786" class="c">ResidualBasedNewton</text>
+<text x="975" y="802" class="c">RaphsonMPCContactStrategy</text>
+<text x="975" y="818" class="c">(mapped REACTION check)</text>
+<text x="1190" y="778" class="c"><tspan fill='#6b7280'>no</tspan></text>
+<text x="1190" y="794" class="c">(elimination B&amp;S</text>
+<text x="1190" y="810" class="c">with constraints)</text>
+<text x="1340" y="778" class="c">Frictionless /</text>
+<text x="1340" y="794" class="c">Frictional (SLIP)</text>
+<text x="1340" y="810" class="c">/ RIGID = tying</text>
+<text x="1470" y="786" class="c">2D, 3D</text>
+<text x="1470" y="802" class="c">no axisym</text>
+<rect x="30" y="144" width="1540" height="688" class="grid"/>
+<line x1="30" y1="230" x2="1570" y2="230" class="grid"/>
+<line x1="30" y1="316" x2="1570" y2="316" class="grid"/>
+<line x1="30" y1="402" x2="1570" y2="402" class="grid"/>
+<line x1="30" y1="488" x2="1570" y2="488" class="grid"/>
+<line x1="30" y1="574" x2="1570" y2="574" class="grid"/>
+<line x1="30" y1="660" x2="1570" y2="660" class="grid"/>
+<line x1="30" y1="746" x2="1570" y2="746" class="grid"/>
+<line x1="180" y1="144" x2="180" y2="832" class="grid"/>
+<line x1="385" y1="144" x2="385" y2="832" class="grid"/>
+<line x1="580" y1="144" x2="580" y2="832" class="grid"/>
+<line x1="775" y1="144" x2="775" y2="832" class="grid"/>
+<line x1="965" y1="144" x2="965" y2="832" class="grid"/>
+<line x1="1180" y1="144" x2="1180" y2="832" class="grid"/>
+<line x1="1330" y1="144" x2="1330" y2="832" class="grid"/>
+<line x1="1460" y1="144" x2="1460" y2="832" class="grid"/>
+<text x="30" y="860" class="note">Facts: mortar_type is read by auxiliary_methods_solvers.py (AuxiliaryAddVariables / AuxiliaryAddDofs / AuxiliaryCreateLinearSolver) and by contact_convergence_criteria_factory.py (GetMortarCriteria).</text>
+<text x="30" y="880" class="note">MixedULMLinearSolver is inserted only for &quot;ALMContactFrictional*&quot; and &quot;ALMContactFrictionlessComponents&quot; when use_mixed_ulm_solver = true. Axisym conditions exist only for 2D2N ALM/penalty families (never for Components).</text>
+<text x="30" y="900" class="note">NV = normal_variation &quot;nodal_elemental_derivatives&quot; (TNormalVariation = true). Frictional mortar_type values force buffer_size ≥ 3 (AuxiliarySetSettings). PureSlip suffix sets pure_slip in the mortar criterion.</text>
+<text x="30" y="932" class="foot">ContactStructuralMechanicsApplication · Kratos Multiphysics</text>
+</svg>

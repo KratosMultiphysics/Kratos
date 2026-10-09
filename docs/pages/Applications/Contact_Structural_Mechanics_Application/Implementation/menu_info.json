@@ -1,0 +1,12 @@
+{
+    "custom_entries": [
+        "Architecture.md",
+        "Conditions.md",
+        "Strategies_And_Convergence_Criteria.md",
+        "Builder_And_Solvers_And_Linear_Solvers.md",
+        "Processes.md",
+        "Utilities.md",
+        "Frictional_Laws_And_MPC_Constraint.md",
+        "Variables_And_Flags_Reference.md"
+    ]
+}

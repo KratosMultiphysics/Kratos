@@ -1,0 +1,105 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 1150" width="1600" height="1150">
+<style>text{font-family:Helvetica,Arial,sans-serif;fill:#1f2937}.title{font-size:30px;font-weight:bold}.sub{font-size:17px;fill:#6b7280}
+.h{font-size:19px;font-weight:bold}.b{font-size:15px}.s{font-size:13px;fill:#6b7280}.n{font-size:26px;font-weight:bold}.foot{font-size:13px;fill:#6b7280}</style>
+<rect width="1600" height="1150" fill="#ffffff"/>
+<text x="30" y="44" class="title">Test suite map</text>
+<text x="30" y="72" class="sub">tests/test_ContactStructuralMechanicsApplication.py (Python, 122 active tests + 5 commented out) and tests/cpp_tests (91 gtest cases in KratosContactStructuralMechanicsFastSuite)</text>
+<rect x="30" y="100" width="900" height="660" rx="10" fill="#f5f3ff" stroke="#7c3aed" stroke-width="2"/>
+<text x="46" y="128" class="h" fill="#7c3aed" text-anchor="start">validation  (-l validation)  ⊃ nightly  —  +37 tests (validation-only) · long runs</text>
+<rect x="46" y="140" width="868" height="470" rx="10" fill="#f0fdfa" stroke="#0d9488" stroke-width="2"/>
+<text x="62" y="168" class="h" fill="#0d9488" text-anchor="start">nightly  (-l nightly)  ⊃ small  —  +46 tests (nightly-only)</text>
+<rect x="62" y="180" width="836" height="250" rx="10" fill="#eff6ff" stroke="#2563eb" stroke-width="2"/>
+<text x="78" y="208" class="h" fill="#2563eb" text-anchor="start">small  (-l small, default)  —  39 tests, seconds each</text>
+<text x="78" y="236" class="b" text-anchor="start">• TestProcessFactory (2) · TestCheckNormals (2) · mesh tying patch tests 2D/3D (3)</text>
+<text x="78" y="262" class="b" text-anchor="start">• ALM frictionless hyper-simple patch tests: block / elimination / with constraints / slope / triangles</text>
+<text x="78" y="284" class="b" text-anchor="start">/ 3D (6) + Components (5)</text>
+<text x="78" y="310" class="b" text-anchor="start">• ALM frictional patch tests: no friction, perfect stick, threshold slip, slip, stick (5) + Components</text>
+<text x="78" y="332" class="b" text-anchor="start">(5)</text>
+<text x="78" y="358" class="b" text-anchor="start">• penalty frictionless (2) · penalty frictional stick / slip / threshold / no-friction / perfect-stick</text>
+<text x="78" y="380" class="b" text-anchor="start">(5)</text>
+<text x="78" y="406" class="b" text-anchor="start">• MPC contact patch tests 2D/3D, with friction, slope, matching / not matching (7)</text>
+<text x="62" y="458" class="b" text-anchor="start">• ALM patch tests: complex geometry, slope, not matching A/B, 3D tri↔quad mixed (8) + Components (8)</text>
+<text x="62" y="482" class="b" text-anchor="start">• TestCheckNormals s-shape · moving-mesh integration · mortar mapper less-basic / curvature (4) · Taylor</text>
+<text x="62" y="504" class="b" text-anchor="start">patch · Hertz simple sphere · beams (3) + Components (3)</text>
+<text x="62" y="528" class="b" text-anchor="start">• adaptive remeshing patch test (needs MeshingApplication) · mesh tying tri↔quad + simple patch (3)</text>
+<text x="62" y="552" class="b" text-anchor="start">• ALM frictional: pure friction, basic friction, static evolution load (3) · MPC beams: axil / contact /</text>
+<text x="62" y="574" class="b" text-anchor="start">tying / friction (4)</text>
+<text x="46" y="636" class="b" text-anchor="start">• double-curvature exact integration (2) · dynamic search tri/quad (2) · mortar mapping tri/quad (2) · mesh</text>
+<text x="46" y="658" class="b" text-anchor="start">tying validation + large-displacement hexa (2)</text>
+<text x="46" y="682" class="b" text-anchor="start">• ALM: Taylor dynamic / frictional · Hertz simple / complete / frictional · large displacement tetra / hexa ·</text>
+<text x="46" y="704" class="b" text-anchor="start">mesh moving (matching, not matching, frictional pure slip) · self contact · multi-layer · frictional block ·</text>
+<text x="46" y="726" class="b" text-anchor="start">evolution load · explicit penalty 3D · MPC: beams axil (tetra), plate</text>
+<rect x="30" y="780" width="900" height="82" rx="10" fill="#f8fafc" stroke="#6b7280" stroke-width="2" stroke-dasharray="6 4"/>
+<text x="46" y="804" class="b" fill="#6b7280" text-anchor="start">commented out in the validation suite (not run):</text>
+<text x="46" y="826" class="s" text-anchor="start">TALMHertzSphereTestContact, TComponentsALMHertzSphereTestContact (axisymmetric memory FIXME) · TALMIroningTestContact,</text>
+<text x="46" y="844" class="s" text-anchor="start">TALMIroningDieTestContact · TMultiLayerContactTest</text>
+<rect x="30" y="880" width="900" height="175" rx="10" fill="#fffbeb" stroke="#d97706" stroke-width="2"/>
+<text x="46" y="906" class="h" fill="#d97706" text-anchor="start">ContactStructuralMechanicsTestFactory (contact_structural_mechanics_test_factory.py)</text>
+<text x="46" y="930" class="b" text-anchor="start">each test = a class with file_name → &lt;file_name&gt;_parameters.json + _materials.json + .mdpa in the data folders;</text>
+<text x="46" y="952" class="b" text-anchor="start">results checked by from_json_check_result_process against &lt;file_name&gt;_results.json</text>
+<text x="46" y="976" class="b" text-anchor="start">frictionless_by_components = True → mortar_type ALMContactFrictionlessComponents + VECTOR_LAGRANGE_MULTIPLIER</text>
+<text x="46" y="998" class="b" text-anchor="start">(Components* classes) · SmallTests.py 32 classes · NightlyTests.py 55 · ValidationTests.py 25</text>
+<text x="46" y="1022" class="s" text-anchor="start">data folders: ALM_frictionless_contact_test_2D / _3D, ALM_frictional_contact_test_2D / _3D,</text>
+<text x="46" y="1040" class="s" text-anchor="start">penalty_frictionless_contact_test_2D / _3D, penalty_frictional_contact_test_2D, mpc_contact_tests, mesh_tying_test</text>
+<rect x="960" y="100" width="610" height="955" rx="10" fill="#fef2f2" stroke="#dc2626" stroke-width="2"/>
+<text x="976" y="128" class="h" fill="#dc2626" text-anchor="start">C++ gtests — tests/cpp_tests (91 cases)</text>
+<rect x="976" y="147" width="46" height="26" rx="6" fill="#dc2626"/>
+<text x="999" y="166" class="b" fill="#ffffff" text-anchor="middle">49</text>
+<text x="1034" y="163" class="b" text-anchor="start">utilities/test_derivatives_utilities.cpp</text>
+<text x="1034" y="181" class="s" text-anchor="start">shape-function / dual / Jacobian / normal derivatives (thesis §4.6)</text>
+<rect x="976" y="197" width="46" height="26" rx="6" fill="#dc2626"/>
+<text x="999" y="216" class="b" fill="#ffffff" text-anchor="middle">11</text>
+<text x="1034" y="213" class="b" text-anchor="start">processes/test_weighted_gap.cpp</text>
+<text x="1034" y="231" class="s" text-anchor="start">weighted gap g̃ on tri/quad pairs</text>
+<rect x="976" y="247" width="46" height="26" rx="6" fill="#dc2626"/>
+<text x="999" y="266" class="b" fill="#ffffff" text-anchor="middle">8</text>
+<text x="1034" y="263" class="b" text-anchor="start">linear_solvers/test_mixedulm_linear_solver.cpp</text>
+<text x="1034" y="281" class="s" text-anchor="start">MixedULMLinearSolver block condensation</text>
+<rect x="976" y="297" width="46" height="26" rx="6" fill="#dc2626"/>
+<text x="999" y="316" class="b" fill="#ffffff" text-anchor="middle">5</text>
+<text x="1034" y="313" class="b" text-anchor="start">utilities/test_active_set_utilities.cpp</text>
+<text x="1034" y="331" class="s" text-anchor="start">penalty / ALM active and stick-slip sets</text>
+<rect x="976" y="347" width="46" height="26" rx="6" fill="#dc2626"/>
+<text x="999" y="366" class="b" fill="#ffffff" text-anchor="middle">4</text>
+<text x="1034" y="363" class="b" text-anchor="start">utilities/test_integration_utilities.cpp</text>
+<text x="1034" y="381" class="s" text-anchor="start">mortar mass-matrix integration, rotation check</text>
+<rect x="976" y="397" width="46" height="26" rx="6" fill="#dc2626"/>
+<text x="999" y="416" class="b" fill="#ffffff" text-anchor="middle">3</text>
+<text x="1034" y="413" class="b" text-anchor="start">processes/test_search_process.cpp</text>
+<text x="1034" y="431" class="s" text-anchor="start">KD-tree, KD-tree + OBB, Octree search</text>
+<rect x="976" y="447" width="46" height="26" rx="6" fill="#dc2626"/>
+<text x="999" y="466" class="b" fill="#ffffff" text-anchor="middle">3</text>
+<text x="1034" y="463" class="b" text-anchor="start">utilities/test_selfcontact_utilities.cpp</text>
+<text x="1034" y="481" class="s" text-anchor="start">self-contact pairing (thesis Algorithm 4)</text>
+<rect x="976" y="497" width="46" height="26" rx="6" fill="#dc2626"/>
+<text x="999" y="516" class="b" fill="#ffffff" text-anchor="middle">2</text>
+<text x="1034" y="513" class="b" text-anchor="start">conditions/test_mesh_tying_condition.cpp</text>
+<text x="1034" y="531" class="s" text-anchor="start">MeshTyingMortarCondition LHS/RHS</text>
+<rect x="976" y="547" width="46" height="26" rx="6" fill="#dc2626"/>
+<text x="999" y="566" class="b" fill="#ffffff" text-anchor="middle">2</text>
+<text x="1034" y="563" class="b" text-anchor="start">utilities/test_interface_preprocess_utilities.cpp</text>
+<text x="1034" y="581" class="s" text-anchor="start">interface condition generation 2D/3D</text>
+<rect x="976" y="597" width="46" height="26" rx="6" fill="#dc2626"/>
+<text x="999" y="616" class="b" fill="#ffffff" text-anchor="middle">1</text>
+<text x="1034" y="613" class="b" text-anchor="start">processes/test_aalm_processes.cpp</text>
+<text x="1034" y="631" class="s" text-anchor="start">AALMAdaptPenaltyValueProcess</text>
+<rect x="976" y="647" width="46" height="26" rx="6" fill="#dc2626"/>
+<text x="999" y="666" class="b" fill="#ffffff" text-anchor="middle">1</text>
+<text x="1034" y="663" class="b" text-anchor="start">processes/test_alm_variables_calculation_process.cpp</text>
+<text x="1034" y="681" class="s" text-anchor="start">automatic ε and k</text>
+<rect x="976" y="697" width="46" height="26" rx="6" fill="#dc2626"/>
+<text x="999" y="716" class="b" fill="#ffffff" text-anchor="middle">1</text>
+<text x="1034" y="713" class="b" text-anchor="start">processes/test_assign_parent_element_conditions_process.cpp</text>
+<text x="1034" y="731" class="s" text-anchor="start">condition → parent element</text>
+<rect x="976" y="747" width="46" height="26" rx="6" fill="#dc2626"/>
+<text x="999" y="766" class="b" fill="#ffffff" text-anchor="middle">1</text>
+<text x="1034" y="763" class="b" text-anchor="start">utilities/test_contact_utilities.cpp</text>
+<text x="1034" y="781" class="s" text-anchor="start">CheckModelPartHasRotationDoF</text>
+<text x="976" y="840" class="s" text-anchor="start">registered with kratos_add_gtests (CMake, needs -DKRATOS_BUILD_TESTING=ON)</text>
+<text x="976" y="862" class="s" text-anchor="start">run: python3 kratos/python_scripts/testing/run_cpp_tests.py</text>
+<text x="976" y="884" class="s" text-anchor="start">Python: cd tests &amp;&amp; python3 test_ContactStructuralMechanicsApplication.py</text>
+<text x="976" y="906" class="s" text-anchor="start">        -l small | nightly | validation | all</text>
+<text x="30" y="1085" class="s" text-anchor="start">Gates: ~15 tests need ConstitutiveLawsApplication (has_CL_application); adaptive remeshing tests need MeshingApplication; one Components elimination test is skipped on Windows.</text>
+<text x="30" y="1107" class="s" text-anchor="start">Counts from the source at the time of writing (grep addTest / KRATOS_TEST_CASE_IN_SUITE).</text>
+<text x="30" y="1132" class="foot" text-anchor="start">ContactStructuralMechanicsApplication · Kratos Multiphysics</text>
+</svg>
