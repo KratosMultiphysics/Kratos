@@ -51,8 +51,8 @@ class LinearLoadCombinationSolutionAnalysis(AnalysisStage):
         self.__StoreReferenceState()
         self.__SolveConstraintState()
         self.__OutputSolutionStep()
-        for comb, dx in self.combination_solutions.items():
-            print(f"Combination {comb} solution vector dx: {dx}")
+        #for comb, dx in self.combination_solutions.items():
+        #    print(f"Combination {comb} solution vector dx: {dx}")
         self.__ReleaseFixities()
 
     def __SolveConstraintState(self):
@@ -64,11 +64,31 @@ class LinearLoadCombinationSolutionAnalysis(AnalysisStage):
         KratosMultiphysics.Logger.PrintInfo("::[LinearLoadCombinationSolutionAnalysis]::", "Finished constraint-state solve")
 
     def __OutputSolutionStep(self):
+        processes = self._CreateProcesses(
+        "processes", self._GetOrderOfProcessesInitialization()
+    )
+        for process in processes:
+            process.ExecuteInitialize() 
+        for process in processes:
+            process.ExecuteBeforeSolutionLoop()
 
         for combination_id, solution in self.combination_solutions.items():
             self.dofset.SetValues(solution)
-            self.__PrintCombinationOutput(combination_id)
-            self.__RestoreReferenceValues()
+
+            try:
+                for process in processes:
+                    process.ExecuteFinalizeSolutionStep()
+                self.__PrintCombinationOutput(combination_id)
+            finally:
+                self.__RestoreReferenceValues()
+
+        for process in processes:
+            process.ExecuteFinalize()
+
+                
+
+        for process in processes:
+            process.ExecuteFinalize()
 
     def __PrintCombinationOutput(self, combination_id):
 

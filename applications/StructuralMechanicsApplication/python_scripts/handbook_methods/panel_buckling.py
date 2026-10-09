@@ -1,4 +1,5 @@
 import numpy as np
+import KratosMultiphysics
 from KratosMultiphysics.StructuralMechanicsApplication.handbook_methods.analysis_result import AnalysisResult
 from KratosMultiphysics.StructuralMechanicsApplication.handbook_methods.method_base import HandbookMethod
 import KratosMultiphysics.StructuralMechanicsApplication as SMA
@@ -17,6 +18,7 @@ class PanelUniaxialBuckling(HandbookMethod):
         return panel.load_state.is_uniaxial_compression
 
     def Evaluate(self, panel) -> AnalysisResult:
+        KratosMultiphysics.Logger.PrintInfo("::[PanelUniaxialBuckling]::", "Evaluate Critical Buckling Load")
         if panel.load_state.has_x_compression:
             applied_stress = abs(panel.response.sigma_xx)
             buckling_length = panel.a
@@ -36,8 +38,8 @@ class PanelUniaxialBuckling(HandbookMethod):
 
         #Taken from Mittelstedt for simply supported plates
         m = (buckling_length/width) * np.pow((D22/D11), 1/4)
-        m_floor = np.floor(m)
-        m_ceil = np.ceil(m)
+        m_floor = max(1, int(np.floor(m)))
+        m_ceil = max(1, int(np.ceil(m)))
 
         print(f"m: {m} \n m_floor: {m_floor} \n m_ceil: {m_ceil}")
 
@@ -52,7 +54,7 @@ class PanelUniaxialBuckling(HandbookMethod):
 
         rf = sigma_crit / applied_stress
 
-        return AnalysisResult(self.name, self.category, rf)
+        return AnalysisResult(self.name, self.category, rf, output_variable=SMA.RESPONSE_VALUE)
 
 class PanelBiaxialBuckling(HandbookMethod):
     name = "panel_biaxial_buckling"
@@ -63,6 +65,7 @@ class PanelBiaxialBuckling(HandbookMethod):
         return panel.load_state.is_biaxial_compression
 
     def Evaluate(self, panel) -> AnalysisResult:
+        KratosMultiphysics.Logger.PrintInfo("::[PanelBiaxialBuckling]::", "Evaluate Critical Buckling Load")
         sigma_x = abs(panel.response.sigma_xx)
         sigma_y = abs(panel.response.sigma_yy)
 
@@ -73,9 +76,6 @@ class PanelBiaxialBuckling(HandbookMethod):
 
         beta = sigma_y / sigma_x
 
-        m = 1
-        n = 1
-
         a = panel.a
         b = panel.b
         t = panel.t
@@ -84,11 +84,26 @@ class PanelBiaxialBuckling(HandbookMethod):
 
         D = E * t**3 / (12.0 * (1.0 - nu**2))
 
-        sigma_x_crit = (
-            D * np.pi**2 * ((m / a)**2 + (n / b)**2)**2
-            / (t * ((m / a)**2 + beta * (n / b)**2))
-        )
+        max_half_waves = 20
+
+        mode_pairs = ([(1, n) for n in range(1, max_half_waves + 1)] + [(m, 1) for m in range(1, max_half_waves + 1)])
+
+        sigma_x_crit, m_crit, n_crit = min(
+            (
+                D * np.pi**2 * ((m / a)**2 + (n / b)**2)**2/ (t * ((m / a)**2 + beta * (n / b)**2)), m, n,
+                ) 
+                for m, n in mode_pairs
+                )
 
         rf = sigma_x_crit / sigma_x
 
-        return AnalysisResult(self.name, self.category, rf, output_variable=SMA.RESPONSE_VALUE)
+        KratosMultiphysics.Logger.PrintInfo("::[PanelBiaxialBuckling]::", "m_crit:", m_crit, "n_crit:", n_crit)
+
+        return AnalysisResult(self.name, 
+                              self.category, 
+                              rf, 
+                              output_variable=SMA.RESPONSE_VALUE,
+                              metadata={
+                                  "m": m_crit,
+                                  "n": n_crit
+                              })

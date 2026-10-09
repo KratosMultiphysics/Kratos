@@ -28,6 +28,7 @@ class Panel(StructuralComponent):
         self.response = None
         self.load_state = None
         self.analysis_methods = self._CreateAnalysisMethods()
+        self.boundary_conditions = boundary_conditions
     
     @classmethod
     def FromKratosParametersObject(cls, sub_model_part, data):
@@ -177,32 +178,30 @@ class Panel(StructuralComponent):
     def ClassifyLoadState(self) -> None:
         self._RequireResponse()
         #TODO: clean up later
-        pass
-        #sigma_xx = self.response.sigma_xx
-        #sigma_yy = self.response.sigma_yy
-        #tau_xy = self.response.tau_xy
-#
-        #tolerance = 1e-12 * max(abs(sigma_xx), abs(sigma_yy), abs(tau_xy), 1.0)
-#
-        #has_x_compression = sigma_xx < -tolerance
-        #has_y_compression = sigma_yy < -tolerance
-        #has_shear = abs(tau_xy) > tolerance
-#
-        #is_biaxial_compression = has_x_compression and has_y_compression
-        #is_uniaxial_compression = (has_x_compression != has_y_compression)
-#
-        ## This is just for testing purposes and needs to be changed to a "more correct" logic for panels with shear
-        #is_shear_dominant = has_shear and not is_biaxial_compression and not is_uniaxial_compression
-#
-        #self.load_state = PanelLoadState(
-        #    has_x_compression,
-        #    has_y_compression,
-        #    has_shear,
-        #    is_uniaxial_compression,
-        #    is_biaxial_compression,
-        #    is_shear_dominant
-        #)
+        sigma_xx = self.response.sigma_xx
+        sigma_yy = self.response.sigma_yy
+        tau_xy = self.response.tau_xy
 
+        tolerance = 1e-12 * max(abs(sigma_xx), abs(sigma_yy), abs(tau_xy), 1.0)
+
+        has_x_compression = sigma_xx < -tolerance
+        has_y_compression = sigma_yy < -tolerance
+        has_shear = abs(tau_xy) > tolerance
+
+        is_biaxial_compression = has_x_compression and has_y_compression
+        is_uniaxial_compression = (has_x_compression != has_y_compression)
+
+        # This is just for testing purposes and needs to be changed to a "more correct" logic for panels with shear
+        is_shear_dominant = has_shear and not is_biaxial_compression and not is_uniaxial_compression
+
+        self.load_state = PanelLoadState(
+            has_x_compression,
+            has_y_compression,
+            has_shear,
+            is_uniaxial_compression,
+            is_biaxial_compression,
+            is_shear_dominant
+        )       
     @property
     def a(self):
         self._RequireGeometry()
@@ -256,7 +255,8 @@ class Panel(StructuralComponent):
         #    raise RuntimeError(f"Panel '{self.sub_model_part.Name}' has no load state. Call ClassifyLoadState() first.")
 
     def _CreateAnalysisMethods(self):
-        return [#PanelUniaxialBuckling(), 
-                #PanelBiaxialBuckling(),
-                PuckAnalysis()]
+        return [PanelUniaxialBuckling(), 
+                PanelBiaxialBuckling(),
+                #PuckAnalysis()
+                ]
         
