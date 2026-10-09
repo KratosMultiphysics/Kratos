@@ -318,7 +318,7 @@ public:
         typedef typename BinBasedNodesInElementLocator<TDim>::DistanceVector DistanceVector;
         const std::size_t max_results = 5000;
         Matrix Nmat(max_results,TDim+1);
-        boost::numeric::ublas::vector<int> positions(max_results);
+        DenseVector<int> positions(max_results);
         PointVector work_results(max_results);
         DistanceVector work_distances(max_results);
         Node work_point(0,0.0,0.0,0.0);

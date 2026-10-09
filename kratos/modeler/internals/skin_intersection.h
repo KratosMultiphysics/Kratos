@@ -17,7 +17,7 @@
 // External includes
 
 // Project includes
-#include "includes/ublas_interface.h"
+#include "includes/default_interface.h"
 #include "utilities/divide_triangle_3d_3.h"
 
 namespace Kratos::Internals {

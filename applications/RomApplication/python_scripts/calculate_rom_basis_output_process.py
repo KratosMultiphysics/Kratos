@@ -5,6 +5,7 @@ from pathlib import Path
 
 # Importing the Kratos Library
 import KratosMultiphysics
+from KratosMultiphysics.kratos_utilities import IssueDeprecationWarning
 from KratosMultiphysics.RomApplication.randomized_singular_value_decomposition import RandomizedSingularValueDecomposition
 
 def Factory(settings, model):
@@ -17,6 +18,8 @@ class CalculateRomBasisOutputProcess(KratosMultiphysics.OutputProcess):
 
     def __init__(self, model, settings):
         KratosMultiphysics.OutputProcess.__init__(self)
+
+        IssueDeprecationWarning("CalculateRomBasisOutputProcess", "This process is deprecated and will be removed. Please use the RomManager to compute the ROM basis.")
 
         # Validate input settings against defaults
         settings.ValidateAndAssignDefaults(self.GetDefaultParameters())

@@ -136,7 +136,7 @@ class DamThermoMechanicSolver(object):
         self.main_model_part.AddNodalSolutionStepVariable(KratosDam.Viii_POSITIVE)
         self.main_model_part.AddNodalSolutionStepVariable(KratosPoro.NODAL_JOINT_WIDTH)
         self.main_model_part.AddNodalSolutionStepVariable(KratosPoro.NODAL_JOINT_AREA)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosDam.NODAL_YOUNG_MODULUS)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.YOUNG_MODULUS)
         self.main_model_part.AddNodalSolutionStepVariable(KratosPoro.INITIAL_STRESS_TENSOR)
 
         ## Thermal variables
@@ -387,6 +387,16 @@ class DamThermoMechanicSolver(object):
 
         rayleigh_m = self.settings["mechanical_solver_settings"]["rayleigh_m"].GetDouble()
         rayleigh_k = self.settings["mechanical_solver_settings"]["rayleigh_k"].GetDouble()
+
+        # The Dam smoothing scheme owns both the nodal Cauchy-stress extrapolation
+        # and, when 'nonlocal_damage' is enabled, the per-nonlinear-iteration
+        # LOCAL_EQUIVALENT_STRAIN production. The historical user setting
+        # 'nonlocal_damage' selects the latter; the internal ownership flag is not
+        # a user-facing option.
+        nonlocal_damage = False
+        if self.settings["mechanical_solver_settings"].Has("nonlocal_damage"):
+            nonlocal_damage = self.settings["mechanical_solver_settings"]["nonlocal_damage"].GetBool()
+        self.main_model_part.ProcessInfo[KratosDam.USE_PROCESS_BASED_LOCAL_EQUIVALENT_STRAIN] = nonlocal_damage
 
         if(solution_type == "Quasi-Static"):
             if(rayleigh_m<1.0e-15 and rayleigh_k<1.0e-15):

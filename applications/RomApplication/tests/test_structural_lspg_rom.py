@@ -8,6 +8,8 @@ import KratosMultiphysics.kratos_utilities as kratos_utilities
 import KratosMultiphysics.RomApplication.rom_testing_utilities as rom_testing_utilities
 if kratos_utilities.CheckIfApplicationsAvailable("StructuralMechanicsApplication"):
     import KratosMultiphysics.StructuralMechanicsApplication
+if kratos_utilities.CheckIfApplicationsAvailable("ConstitutiveLawsApplication"):
+    import KratosMultiphysics.ConstitutiveLawsApplication
 from KratosMultiphysics.RomApplication.rom_manager import RomManager
 from pathlib import Path
 import json
@@ -60,6 +62,7 @@ class TestStructuralLSPGRom(KratosUnittest.TestCase):
             l2 = np.sqrt(numerator/denominator)*100
             self.assertLess(l2, self.relative_tolerance)
 
+    @KratosUnittest.skipIfApplicationsNotAvailable("ConstitutiveLawsApplication")
     def testStructuralStaticLSPGRom2D_ANN(self):
         self.work_folder = "structural_static_test_files/LSPGROM_ANN/"
         expected_output_filename = "ExpectedOutputLSPG_ANN.npy"

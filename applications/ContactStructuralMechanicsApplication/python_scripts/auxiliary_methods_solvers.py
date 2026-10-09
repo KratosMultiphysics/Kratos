@@ -1,6 +1,7 @@
 # Importing the Kratos Library
 import KratosMultiphysics as KM
 import KratosMultiphysics.ContactStructuralMechanicsApplication as CSMA
+from KratosMultiphysics import python_linear_solver_factory
 
 # Import sys
 import sys
@@ -44,12 +45,16 @@ def  AuxiliaryContactSettings():
             "simplified_semi_smooth_newton"                           : false,
             "rescale_linear_solver"                                   : false,
             "use_mixed_ulm_solver"                                    : true,
+            "fallback_if_dual_lm_not_valid"                           : true,
             "mixed_ulm_solver_parameters" :
             {
-                "solver_type"          : "mixed_ulm_linear_solver",
-                "tolerance"            : 1.0e-6,
-                "max_iteration_number" : 200,
-                "echo_level"           : 0
+                "solver_type"                    : "mixed_ulm_linear_solver",
+                "tolerance"                      : 1.0e-6,
+                "max_iteration_number"           : 200,
+                "echo_level"                     : 0,
+                "check_dual_lm_condensation"     : true,
+                "dual_lm_zero_row_tolerance"     : 1.0e-12,
+                "dual_lm_off_node_tolerance" : 1.0e-6
             }
         }
     }
@@ -266,7 +271,30 @@ def  AuxiliaryCreateLinearSolver(main_model_part, settings, contact_settings, li
                             linear_solver_settings.RecursivelyValidateAndAssignDefaults(amgcl_param)
                             linear_solver = KM.AMGCLSolver(linear_solver_settings)
                     mixed_ulm_solver = CSMA.MixedULMLinearSolver(linear_solver, contact_settings["mixed_ulm_solver_parameters"])
-                    return mixed_ulm_solver
+                    if not contact_settings["fallback_if_dual_lm_not_valid"].GetBool():
+                        return mixed_ulm_solver
+                    if not linear_solver_settings.Has("solver_type"):
+                        KM.Logger.PrintWarning("::[Contact Mechanical Solver]:: ", "No solver_type defined in linear_solver_settings, cannot build the fallback solver. Using the MixedULMLinearSolver alone")
+                        return mixed_ulm_solver
+                    # The condensation performed by the MixedULMLinearSolver is only valid while the mortar
+                    # operator D couples each slave node with its own Lagrange multiplier and with no other node,
+                    # which stops being true when the mortar cut is too distorted to build the dual shape
+                    # functions. In that case the solver reports failure and this wrapper re-solves the full,
+                    # non-condensed system with a regular linear solver.
+                    # NOTE: a fresh solver instance is required, linear_solver is already owned by mixed_ulm_solver
+                    # as its displacement-block solver and is driven with block-sized matrices
+                    fallback_solver = python_linear_solver_factory.ConstructSolver(linear_solver_settings)
+                    if contact_settings["rescale_linear_solver"].GetBool():
+                        fallback_solver = KM.ScalingSolver(fallback_solver, False)
+                    # reset_solver_each_try is required: the active set changes between iterations, so a cut that
+                    # is degenerate now may well be fine on the next solve
+                    fallback_parameters = KM.Parameters("""
+                    {
+                        "solver_type"           : "fallback_linear_solver",
+                        "reset_solver_each_try" : true
+                    }
+                    """)
+                    return KM.FallbackLinearSolver([mixed_ulm_solver, fallback_solver], fallback_parameters)
                 else:
                     return linear_solver
             else:

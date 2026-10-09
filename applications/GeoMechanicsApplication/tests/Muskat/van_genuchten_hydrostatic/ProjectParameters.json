@@ -32,19 +32,16 @@
         "solution_type": "Steady_State_Groundwater_Flow",
         "strategy_type": "newton_raphson",
         "convergence_criterion": "residual_criterion",
-        "residual_relative_tolerance": 1.0e-04,
-        "residual_absolute_tolerance": 1.0e-09,
+        "residual_relative_tolerance": 1.0e-03,
+        "residual_absolute_tolerance": 1.0e-15,
         "min_iterations": 6,
         "max_iterations": 100,
         "number_cycles": 1,
         "reduction_factor": 1.0,
         "increase_factor": 1.0,
         "linear_solver_settings": {
-            "solver_type": "bicgstab",
-            "tolerance": 1.0e-06,
-            "max_iteration": 1000,
-            "scaling": true,
-            "preconditioner_type": "ilu0"
+            "solver_type": "LinearSolversApplication.sparse_lu",
+            "scaling": true
         },
         "problem_domain_sub_model_part_list": ["porous"],
         "body_domain_sub_model_part_list": ["porous"]
@@ -72,7 +69,11 @@
                             "body_output": true,
                             "node_output": false,
                             "skin_output": false,
-                            "nodal_results": ["WATER_PRESSURE", "EFFECTIVE_SATURATION"]
+                            "nodal_results": [
+                                "WATER_PRESSURE",
+                                "EFFECTIVE_SATURATION",
+                                "FLUID_FLUX_VECTOR"
+                            ]
                         }
                     }
                 }
@@ -96,7 +97,7 @@
                     "x_coordinates": [-0.25, 5.0e-02, 1.6, 1.7],
                     "y_coordinates": [3.22, 3.22, 0.48, 0.48],
                     "z_coordinates": [0.0, 0.0, 0.0, 0.0],
-                    "specific_weight": 9.81e+03
+                    "specific_weight": 1.0e+04
                 }
             },
             {
@@ -112,7 +113,7 @@
                     "reference_coordinate": 3.0,
                     "table": 0,
                     "pressure_tension_cut_off": 1.0e+05,
-                    "specific_weight": 9.81e+03
+                    "specific_weight": 1.0e+04
                 }
             },
             {
@@ -128,7 +129,7 @@
                     "reference_coordinate": 1.62,
                     "table": 0,
                     "pressure_tension_cut_off": 1.0e+05,
-                    "specific_weight": 9.81e+03
+                    "specific_weight": 1.0e+04
                 }
             }
         ],
@@ -153,7 +154,7 @@
                 "process_name": "GeoExtrapolateIntegrationPointValuesToNodesProcess",
                 "Parameters": {
                     "model_part_name": "PorousDomain.porous",
-                    "list_of_variables": ["EFFECTIVE_SATURATION"]
+                    "list_of_variables": ["EFFECTIVE_SATURATION", "FLUID_FLUX_VECTOR"]
                 }
             }
         ]
