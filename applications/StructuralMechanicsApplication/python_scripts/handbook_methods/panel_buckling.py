@@ -102,7 +102,6 @@ class PanelBiaxialBuckling(HandbookMethod):
         return AnalysisResult(self.name, 
                               self.category, 
                               rf, 
-                              output_variable=SMA.RESPONSE_VALUE,
                               metadata={
                                   "m": m_crit,
                                   "n": n_crit

@@ -1,5 +1,5 @@
 {
-    "Structural_Elements"   :   [{
+    "Structural_Components"   :   [{
         "type"  :   "Panel",
         "submodelpart": "Shell_gesamt",
         "boundary_conditions" : [1,2,3,4],

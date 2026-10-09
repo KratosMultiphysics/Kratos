@@ -7,7 +7,7 @@ class Schema_Validation:
         
         self.create_schemas()
         self.create_type_schemas()
-        self.validate_structural_element_input()
+        self.validate_structural_component_input()
 
     def param_to_dict(self, params):
         return json.loads(params.WriteJsonString())
@@ -47,14 +47,14 @@ class Schema_Validation:
             "Column": self.column_schema
         }
 
-    def validate_structural_element_input(self):
-        structural_elements = self.config_data.get("Structural_Elements", [])
-        for i, struct_elem in enumerate(structural_elements):
-            element_type = struct_elem.get("type")
-            schema = self.type_schemas.get(element_type)
+    def validate_structural_component_input(self):
+        structural_components = self.config_data.get("Structural_Components", [])
+        for i, struct_elem in enumerate(structural_components):
+            component_type = struct_elem.get("type")
+            schema = self.type_schemas.get(component_type)
             if not schema:
-                raise ValueError(f"Unknown element type '{element_type}' in element #{i+1}")
+                raise ValueError(f"Unknown component type '{component_type}' in component #{i+1}")
             try:
                 validate(instance=struct_elem, schema=schema)
             except ValidationError as e:
-                raise ValidationError(f"Validation error in element #{i+1} ({element_type}): {e.message}")
+                raise ValidationError(f"Validation error in component #{i+1} ({component_type}): {e.message}")
