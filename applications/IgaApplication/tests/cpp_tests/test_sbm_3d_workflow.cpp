@@ -329,7 +329,8 @@ KRATOS_TEST_CASE_IN_SUITE(IgaModelerSbmSupportOuter3D, KratosIgaFastSuite)
                     "name": "SbmLaplacianConditionDirichlet",
                     "shape_function_derivatives_order": 2,
                     "sbm_parameters": {
-                        "is_inner" : false
+                        "is_inner" : false,
+                        "projection_type" : "linealized"
                     }
                 }
             ]
@@ -420,7 +421,8 @@ KRATOS_TEST_CASE_IN_SUITE(IgaModelerSbmSupportInner3D, KratosIgaFastSuite)
                     "name": "SbmLaplacianConditionDirichlet",
                     "shape_function_derivatives_order": 2,
                     "sbm_parameters": {
-                        "is_inner" : true
+                        "is_inner" : true,
+                        "projection_type" : "linealized"
                     }
                 }
             ]
