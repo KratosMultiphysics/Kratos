@@ -1,12 +1,13 @@
 import numpy as np
 import importlib
+import shutil
 import json
+import shutil
 from pathlib import Path
 import types
 import KratosMultiphysics
 from KratosMultiphysics.RomApplication.rom_database import RomDatabase
 from KratosMultiphysics.RomApplication.rom_testing_utilities import SetUpSimulationInstance
-from KratosMultiphysics.RomApplication.calculate_rom_basis_output_process import CalculateRomBasisOutputProcess
 from KratosMultiphysics.RomApplication.randomized_singular_value_decomposition import RandomizedSingularValueDecomposition
 from KratosMultiphysics.RomApplication.empirical_cubature_method import EmpiricalCubatureMethod
 from KratosMultiphysics.RomApplication.rom_nn_interface import NN_ROM_Interface
@@ -18,7 +19,6 @@ class RomManager(object):
 
     def __init__(self,project_parameters_name="ProjectParameters.json", general_rom_manager_parameters=None, CustomizeSimulation=None, UpdateProjectParameters=None,UpdateMaterialParametersFile=None, mu_names=None):
         #FIXME:
-        # - Use a method (upcoming) for smothly retrieving solutions. In here we are using the RomBasisOutput process in order to store the solutions
         # - There is some redundancy between the methods that launch the simulations. Can we create a single method?
         # - Not yet paralellised with COMPSs
         self.project_parameters_name = project_parameters_name
@@ -372,6 +372,60 @@ class RomManager(object):
         self._LaunchRunHROM(mu_run, use_full_model_part,nn_rom_interface)
 
 
+    def ExportAnnEnhancedRom(self, mu_train=[None], export_folder="rom_data_standalone"):
+        """
+        Exports the ANN-enhanced ROM trained with 'mu_train' to a folder that can be run without the RomManager and its database.
+        The exported folder replaces the ROM folder (default 'rom_data') of the case to be run standalone.
+        The HROM files are copied if they exist. Set 'run_hrom' to true in the exported RomParameters to use them.
+        """
+        if self.general_rom_manager_parameters["type_of_decoder"].GetString() != "ann_enhanced":
+            raise Exception("'ExportAnnEnhancedRom' requires 'type_of_decoder' to be 'ann_enhanced'.")
+        chosen_projection_strategy = self.general_rom_manager_parameters["projection_strategy"].GetString()
+        if chosen_projection_strategy == "galerkin":
+            simulation_to_run = "GalerkinROM_ANN"
+        elif chosen_projection_strategy == "lspg":
+            simulation_to_run = "lspg_ANN"
+        else:
+            raise Exception(f'ann_enhanced rom only available for Galerkin Rom and LSPG ROM, not for \'{chosen_projection_strategy}\'.')
+
+        # Write the RomParameters of the ANN-enhanced ROM in the ROM folder
+        self._LoadSolutionBasis(mu_train)
+        self._ChangeRomFlags(simulation_to_run = simulation_to_run)
+        nn_rom_interface = NN_ROM_Interface(mu_train, self.data_base)
+
+        rom_folder = Path(self.general_rom_manager_parameters["ROM"]["rom_basis_output_folder"].GetString())
+        rom_parameters_file_name = Path(self.general_rom_manager_parameters["ROM"]["rom_basis_output_name"].GetString()).with_suffix('.json')
+        export_folder = Path(export_folder)
+        export_folder.mkdir(parents=True, exist_ok=True)
+
+        # Files read by NN_ROM_Interface.FromNumpyFiles
+        if self._UsesSegregatedBases():
+            # One network per coupled solver, with its files prefixed by its name
+            ann_enhanced_settings = {}
+            for sub_solver_name in self._GetCoupledSolverNames():
+                with open(nn_rom_interface.model_path / f"{sub_solver_name}_train_config.json", 'r') as config_file:
+                    ann_enhanced_settings[sub_solver_name] = {"modes" : [int(mode) for mode in json.load(config_file)["modes"]]}
+                for file_name in [f"{sub_solver_name}_model_weights.npy", f"{sub_solver_name}_SingularValues.npy"]:
+                    shutil.copy(nn_rom_interface.model_path / file_name, export_folder / file_name)
+            number_of_modes = max(settings["modes"][1] for settings in ann_enhanced_settings.values())
+            np.save(export_folder / "RightBasisMatrix.npy", nn_rom_interface.phi[:, :number_of_modes])
+        else:
+            ann_enhanced_settings = {"modes" : [nn_rom_interface.n_inf, nn_rom_interface.n_sup]}
+            np.save(export_folder / "RightBasisMatrix.npy", nn_rom_interface.phi[:, :nn_rom_interface.n_sup])
+            np.save(export_folder / "SingularValues.npy", nn_rom_interface.sigma[:nn_rom_interface.n_sup])
+            shutil.copy(nn_rom_interface.network_weights_path, export_folder / "model_weights.npy")
+        for file_name in ["NodeIds.npy", "HROM_ElementIds.npy", "HROM_ElementWeights.npy", "HROM_ConditionIds.npy", "HROM_ConditionWeights.npy"]:
+            if (rom_folder / file_name).exists():
+                shutil.copy(rom_folder / file_name, export_folder / file_name)
+
+        with open(rom_folder / rom_parameters_file_name, 'r') as parameter_file:
+            rom_parameters = json.load(parameter_file)
+        rom_parameters["rom_manager"] = False
+        rom_parameters["ann_enhanced_settings"] = ann_enhanced_settings
+        with open(export_folder / rom_parameters_file_name, 'w') as parameter_file:
+            json.dump(rom_parameters, parameter_file, indent=4)
+
+
 
     def ComputeErrors(self, mu_list, case="Fit"):
         fom_snapshots = self.data_base.get_snapshots_matrix_from_database(mu_list, table_name=f'FOM')
@@ -450,7 +504,7 @@ class RomManager(object):
             nonconverged_fom_in_database, _ = self.data_base.check_if_in_database("NonconvergedFOM", mu)
             if not fom_in_database or (NonConvergedSolutionsGathering and not nonconverged_fom_in_database):
                 parameters_copy = self.UpdateProjectParameters(parameters.Clone(), mu)
-                parameters_copy = self._AddBasisCreationToProjectParameters(parameters_copy) #TODO stop using the RomBasisOutputProcess to store the snapshots. Use instead the upcoming build-in function
+                parameters_copy = self._AddNumpyOutputToProjectParameters(parameters_copy)
                 parameters_copy = self._StoreResultsByName(parameters_copy,gid_and_vtk_name,mu,Id)
                 materials_file_name = self._GetMaterialsFileName(parameters_copy)
                 self.UpdateMaterialParametersFile(materials_file_name, mu)
@@ -462,10 +516,7 @@ class RomManager(object):
                 simulation.Run()
                 if not fom_in_database:
                     self.data_base.add_to_database("QoI_FOM", mu, simulation.GetFinalData())
-                    for process in simulation._GetListOfOutputProcesses():
-                        if isinstance(process, CalculateRomBasisOutputProcess):
-                            BasisOutputProcess = process
-                    SnapshotsMatrix = BasisOutputProcess._GetSnapshotsMatrix() #TODO add a CustomMethod() as a standard method in the Analysis Stage to retrive some solution
+                    SnapshotsMatrix = self._GetSnapshotsMatrixFromNumpyOutput()
                     self.data_base.add_to_database("FOM", mu, SnapshotsMatrix)
                 if NonConvergedSolutionsGathering:
                     self.data_base.add_to_database("NonconvergedFOM", mu, simulation.GetNonconvergedSolutions())
@@ -475,18 +526,17 @@ class RomManager(object):
     def _LaunchComputeSolutionBasis(self, mu_train):
         in_database, hash_basis = self.data_base.check_if_in_database("RightBasis", mu_train)
         if not in_database:
-            BasisOutputProcess = self.InitializeDummySimulationForBasisOutputProcess()
+            compute_svd = self._ComputeSegregatedSVD if self._UsesSegregatedBases() else self._ComputeSVD
             if self.general_rom_manager_parameters["ROM"]["use_non_converged_sols"].GetBool():
-                u,sigma = BasisOutputProcess._ComputeSVD(self.data_base.get_snapshots_matrix_from_database(mu_train, table_name='NonconvergedFOM')) #TODO this might be too large for single opeartion, add partitioned svd
+                u,sigma = compute_svd(self.data_base.get_snapshots_matrix_from_database(mu_train, table_name='NonconvergedFOM')) #TODO this might be too large for single opeartion, add partitioned svd
             else:
-                u,sigma = BasisOutputProcess._ComputeSVD(self.data_base.get_snapshots_matrix_from_database(mu_train, table_name='FOM'))
-            BasisOutputProcess._PrintRomBasis(u, sigma) #Calling the RomOutput Process for creating the RomParameter.json
+                u,sigma = compute_svd(self.data_base.get_snapshots_matrix_from_database(mu_train, table_name='FOM'))
+            self._PrintRomBasis(u, sigma)
             self.data_base.add_to_database("RightBasis", mu_train, u )
             self.data_base.add_to_database("SingularValues_Solution", mu_train, sigma )
         else:
-            BasisOutputProcess = self.InitializeDummySimulationForBasisOutputProcess()
             _ , hash_sigma = self.data_base.check_if_in_database("SingularValues_Solution", mu_train)
-            BasisOutputProcess._PrintRomBasis(self.data_base.get_single_numpy_from_database(hash_basis), self.data_base.get_single_numpy_from_database(hash_sigma) ) #this updates the RomParameters.json
+            self._PrintRomBasis(self.data_base.get_single_numpy_from_database(hash_basis), self.data_base.get_single_numpy_from_database(hash_sigma) ) #this updates the RomParameters.json
         self.GenerateDatabaseSummary()
 
     def _LoadSolutionBasis(self, mu_train):
@@ -502,9 +552,8 @@ class RomManager(object):
             err_msg = f'ROM basis not found for indicated training snapshots. Please run the Train method() to create it.'
             raise Exception(err_msg)
         else:
-            BasisOutputProcess = self.InitializeDummySimulationForBasisOutputProcess()
             _ , hash_sigma = self.data_base.check_if_in_database("SingularValues_Solution", mu_train)
-            BasisOutputProcess._PrintRomBasis(self.data_base.get_single_numpy_from_database(hash_basis), self.data_base.get_single_numpy_from_database(hash_sigma) ) #this updates the RomParameters.json
+            self._PrintRomBasis(self.data_base.get_single_numpy_from_database(hash_basis), self.data_base.get_single_numpy_from_database(hash_sigma) ) #this updates the RomParameters.json
         self.GenerateDatabaseSummary()
 
 
@@ -515,25 +564,21 @@ class RomManager(object):
         """
         with open(self.project_parameters_name,'r') as parameter_file:
             parameters = KratosMultiphysics.Parameters(parameter_file.read())
-        BasisOutputProcess = None
         for Id, mu in enumerate(mu_train):
             in_database, _ = self.data_base.check_if_in_database("ROM", mu)
             if not in_database:
                 parameters_copy = self.UpdateProjectParameters(parameters.Clone(), mu)
-                parameters_copy = self._AddBasisCreationToProjectParameters(parameters_copy)  #TODO stop using the RomBasisOutputProcess to store the snapshots. Use instead the upcoming build-in function
+                parameters_copy = self._AddNumpyOutputToProjectParameters(parameters_copy)
                 parameters_copy = self._StoreResultsByName(parameters_copy,gid_and_vtk_name,mu,Id)
                 materials_file_name = self._GetMaterialsFileName(parameters_copy)
                 self.UpdateMaterialParametersFile(materials_file_name, mu)
                 model = KratosMultiphysics.Model()
-                analysis_stage_class = type(SetUpSimulationInstance(model, parameters_copy, nn_rom_interface=nn_rom_interface, rbf_rom_interface=rbf_rom_interface))
+                analysis_stage_class = type(self._SetUpRomSimulationInstance(model, parameters_copy, nn_rom_interface=nn_rom_interface, rbf_rom_interface=rbf_rom_interface))
                 simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters_copy, mu)
 
                 simulation.Run()
                 self.data_base.add_to_database("QoI_ROM", mu, simulation.GetFinalData())
-                for process in simulation._GetListOfOutputProcesses():
-                    if isinstance(process, CalculateRomBasisOutputProcess):
-                        BasisOutputProcess = process
-                SnapshotsMatrix = BasisOutputProcess._GetSnapshotsMatrix() #TODO add a CustomMethod() as a standard method in the Analysis Stage to retrive some solution
+                SnapshotsMatrix = self._GetSnapshotsMatrixFromNumpyOutput()
                 self.data_base.add_to_database("ROM", mu, SnapshotsMatrix )
 
         self.GenerateDatabaseSummary()
@@ -553,12 +598,11 @@ class RomManager(object):
                 in_database, _ = self.data_base.check_if_in_database("PetrovGalerkinSnapshots", mu)
                 if not in_database:
                     parameters_copy = self.UpdateProjectParameters(parameters.Clone(), mu)
-                    parameters_copy = self._AddBasisCreationToProjectParameters(parameters_copy)
                     parameters_copy = self._StoreNoResults(parameters_copy)
                     materials_file_name = self._GetMaterialsFileName(parameters_copy)
                     self.UpdateMaterialParametersFile(materials_file_name, mu)
                     model = KratosMultiphysics.Model()
-                    analysis_stage_class = type(SetUpSimulationInstance(model, parameters_copy))
+                    analysis_stage_class = type(self._SetUpRomSimulationInstance(model, parameters_copy))
                     simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters_copy, mu)
                     simulation.Run()
                     PetrovGalerkinTrainingUtility = simulation.GetPetrovGalerkinTrainUtility()
@@ -596,7 +640,6 @@ class RomManager(object):
                 in_database, _ = self.data_base.check_if_in_database("ResidualsProjected", mu)
                 if not in_database:
                     parameters_copy = self.UpdateProjectParameters(parameters.Clone(), mu)
-                    parameters_copy = self._AddBasisCreationToProjectParameters(parameters_copy) #TODO Remove the basis creation process. Here it generates the RomParameters.json, find a workaround
                     parameters_copy = self._AddResidualsProjectedOutputProcessToProjectParameters(parameters_copy)  #This deals with the creation of residuals
                     parameters_copy = self._StoreNoResults(parameters_copy)
                     # Remove the residuals of previous runs, so that only the ones of this mu are collected
@@ -606,7 +649,7 @@ class RomManager(object):
                     materials_file_name = self._GetMaterialsFileName(parameters_copy)
                     self.UpdateMaterialParametersFile(materials_file_name, mu)
                     model = KratosMultiphysics.Model()
-                    analysis_stage_class = type(SetUpSimulationInstance(model, parameters_copy, nn_rom_interface))
+                    analysis_stage_class = type(self._SetUpRomSimulationInstance(model, parameters_copy, nn_rom_interface=nn_rom_interface))
                     simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters_copy, mu)
                     simulation.Run()
                     ResidualProjected = self._GetResidualProjected() # this method fetches the residuals projected from the corresponding folder.
@@ -692,24 +735,20 @@ class RomManager(object):
         """
         with open(self.project_parameters_name,'r') as parameter_file:
             parameters = KratosMultiphysics.Parameters(parameter_file.read())
-        BasisOutputProcess = None
         for Id, mu in enumerate(mu_train):
             in_database, _ = self.data_base.check_if_in_database("HROM", mu)
             if not in_database:
                 parameters_copy = self.UpdateProjectParameters(parameters.Clone(), mu)
-                parameters_copy = self._AddBasisCreationToProjectParameters(parameters_copy)
+                parameters_copy = self._AddNumpyOutputToProjectParameters(parameters_copy)
                 parameters_copy = self._StoreResultsByName(parameters_copy,gid_and_vtk_name,mu,Id)
                 materials_file_name = self._GetMaterialsFileName(parameters_copy)
                 self.UpdateMaterialParametersFile(materials_file_name, mu)
                 model = KratosMultiphysics.Model()
-                analysis_stage_class = type(SetUpSimulationInstance(model, parameters_copy,nn_rom_interface))
+                analysis_stage_class = type(self._SetUpRomSimulationInstance(model, parameters_copy, nn_rom_interface=nn_rom_interface))
                 simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters_copy, mu)
                 simulation.Run()
                 self.data_base.add_to_database("QoI_HROM", mu, simulation.GetFinalData())
-                for process in simulation._GetListOfOutputProcesses():
-                    if isinstance(process, CalculateRomBasisOutputProcess):
-                        BasisOutputProcess = process
-                SnapshotsMatrix = BasisOutputProcess._GetSnapshotsMatrix() #TODO add a CustomMethod() as a standard method in the Analysis Stage to retrive some solution
+                SnapshotsMatrix = self._GetSnapshotsMatrixFromNumpyOutput()
                 self.data_base.add_to_database("HROM", mu, SnapshotsMatrix)
 
         self.GenerateDatabaseSummary()
@@ -745,7 +784,7 @@ class RomManager(object):
             materials_file_name = self._GetMaterialsFileName(parameters_copy)
             self.UpdateMaterialParametersFile(materials_file_name, mu)
             model = KratosMultiphysics.Model()
-            analysis_stage_class = type(SetUpSimulationInstance(model, parameters_copy, nn_rom_interface=nn_rom_interface, rbf_rom_interface=rbf_rom_interface))
+            analysis_stage_class = type(self._SetUpRomSimulationInstance(model, parameters_copy, nn_rom_interface=nn_rom_interface, rbf_rom_interface=rbf_rom_interface))
             simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters_copy, mu)
             simulation.Run()
             self.QoI_Run_ROM.append(simulation.GetFinalData())
@@ -771,17 +810,18 @@ class RomManager(object):
             materials_file_name = self._GetMaterialsFileName(parameters_copy)
             self.UpdateMaterialParametersFile(materials_file_name, mu)
             model = KratosMultiphysics.Model()
-            analysis_stage_class = type(SetUpSimulationInstance(model, parameters_copy,nn_rom_interface))
+            analysis_stage_class = type(self._SetUpRomSimulationInstance(model, parameters_copy, nn_rom_interface=nn_rom_interface))
             simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters_copy, mu)
             simulation.Run()
             self.QoI_Run_HROM.append(simulation.GetFinalData())
 
     def _LaunchTrainNeuralNetwork(self, mu_train, mu_validation):
-        RomNeuralNetworkTrainer = self._TryImportNNTrainer()
-        rom_nn_trainer = RomNeuralNetworkTrainer(self.general_rom_manager_parameters, mu_train, mu_validation, self.data_base)
-        rom_nn_trainer.TrainNetwork()
+        rom_nn_trainers = self._GetNeuralNetworkTrainers(mu_train, mu_validation)
+        for rom_nn_trainer in rom_nn_trainers:
+            rom_nn_trainer.TrainNetwork()
         self.data_base.add_to_database("Neural_Network", mu_train , None)
-        rom_nn_trainer.EvaluateNetwork()
+        for rom_nn_trainer in rom_nn_trainers:
+            rom_nn_trainer.EvaluateNetwork()
 
     def _LaunchTrainRBF(self, mu_train, mu_validation):
         from KratosMultiphysics.RomApplication.rom_rbf_trainer import RomRBFTrainer
@@ -791,37 +831,43 @@ class RomManager(object):
         rom_rbf_trainer.EvaluateRBF()
 
     def _LaunchTestNeuralNetworkReconstruction(self,mu_train, mu_validation):
-        RomNeuralNetworkTrainer = self._TryImportNNTrainer()
-        rom_nn_trainer = RomNeuralNetworkTrainer(self.general_rom_manager_parameters, mu_train, mu_validation, self.data_base)
-        rom_nn_trainer.EvaluateNetwork()
+        for rom_nn_trainer in self._GetNeuralNetworkTrainers(mu_train, mu_validation):
+            rom_nn_trainer.EvaluateNetwork()
 
     def _LaunchTestRBFReconstruction(self,mu_train, mu_validation):
         from KratosMultiphysics.RomApplication.rom_rbf_trainer import RomRBFTrainer
         rom_rbf_trainer = RomRBFTrainer(self.general_rom_manager_parameters, mu_train, mu_validation, self.data_base)
         rom_rbf_trainer.EvaluateRBF()
-    
-    def InitializeDummySimulationForBasisOutputProcess(self):
+
+    def _GetNeuralNetworkTrainers(self, mu_train, mu_validation):
+        """Returns the trainer of the network, or one per coupled solver if each of them has its own basis."""
+        RomNeuralNetworkTrainer = self._TryImportNNTrainer()
+        if not self._UsesSegregatedBases():
+            return [RomNeuralNetworkTrainer(self.general_rom_manager_parameters, mu_train, mu_validation, self.data_base)]
+        _, hash_basis = self.data_base.check_if_in_database("RightBasis", mu_train)
+        number_of_rows = self.data_base.get_single_numpy_from_database(hash_basis).shape[0]
+        return [RomNeuralNetworkTrainer(self.general_rom_manager_parameters, mu_train, mu_validation, self.data_base,
+                                        sub_solver_name=coupled_solver["sub_solver_name"].GetString(),
+                                        rows=self._GetCoupledSolverRows(coupled_solver, number_of_rows))
+                for coupled_solver in self._GetCoupledSolvers()]
+
+    def InitializeDummySimulationForSnapshotsModelPart(self):
         with open(self.project_parameters_name,'r') as parameter_file:
             parameters = KratosMultiphysics.Parameters(parameter_file.read())
-        parameters = self._AddBasisCreationToProjectParameters(parameters)
         parameters = self._StoreNoResults(parameters)
         model = KratosMultiphysics.Model()
         analysis_stage_class = self._GetAnalysisStageClass(parameters)
         simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters)
         simulation.Initialize()
-        for process in simulation._GetListOfOutputProcesses():
-            if isinstance(process, CalculateRomBasisOutputProcess):
-                BasisOutputProcess = process
-        return BasisOutputProcess
+        return model[self.general_rom_manager_parameters["ROM"]["model_part_name"].GetString()]
 
 
     def InitializeDummySimulationForHromTrainingUtility(self, nn_rom_interface=None):
         with open(self.project_parameters_name,'r') as parameter_file:
             parameters = KratosMultiphysics.Parameters(parameter_file.read())
-        parameters = self._AddBasisCreationToProjectParameters(parameters)
         parameters = self._StoreNoResults(parameters)
         model = KratosMultiphysics.Model()
-        analysis_stage_class = type(SetUpSimulationInstance(model, parameters,nn_rom_interface=nn_rom_interface))
+        analysis_stage_class = type(self._SetUpRomSimulationInstance(model, parameters, nn_rom_interface=nn_rom_interface))
         simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters)
         simulation.Initialize()
         return simulation.GetHROM_utility()
@@ -830,10 +876,9 @@ class RomManager(object):
     def InitializeDummySimulationForPetrovGalerkinTrainingUtility(self):
         with open(self.project_parameters_name,'r') as parameter_file:
             parameters = KratosMultiphysics.Parameters(parameter_file.read())
-        parameters = self._AddBasisCreationToProjectParameters(parameters)
         parameters = self._StoreNoResults(parameters)
         model = KratosMultiphysics.Model()
-        analysis_stage_class = type(SetUpSimulationInstance(model, parameters))
+        analysis_stage_class = type(self._SetUpRomSimulationInstance(model, parameters))
         simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters)
         simulation.Initialize()
         return simulation.GetPetrovGalerkinTrainUtility()
@@ -1038,6 +1083,17 @@ class RomManager(object):
                     defaults[key] = rom_params[key].GetDouble()
         return defaults
 
+    def _SetUpRomSimulationInstance(self, model, parameters, nn_rom_interface=None, rbf_rom_interface=None):
+        rom_params = self.general_rom_manager_parameters["ROM"]
+        return SetUpSimulationInstance(model, parameters, nn_rom_interface=nn_rom_interface, rbf_rom_interface=rbf_rom_interface,
+                                       rom_basis_output_folder=rom_params["rom_basis_output_folder"].GetString(),
+                                       rom_basis_output_name=rom_params["rom_basis_output_name"].GetString())
+
+
+    def _GetSnapshotsOutputPath(self):
+        return Path(self.general_rom_manager_parameters["ROM"]["rom_basis_output_folder"].GetString()) / "numpy_snapshots"
+
+
     def _GetMaterialsFileName(self, parameters):
         """Returns the materials file name, or None if it is not defined at the solver_settings level (e.g. coupled solvers)."""
         solver_settings = parameters["solver_settings"]
@@ -1054,8 +1110,9 @@ class RomManager(object):
     def _SetUpCoupledSolvers(self):
         """
         Validates the 'coupled_solvers' and completes the 'ROM' and 'HROM' settings of each of them with the general ones.
-        A single (monolithic) ROM basis shared by all the coupled solvers is currently supported. Hence, its snapshots
-        contain the 'nodal_unknowns' of all of them and the smallest 'svd_truncation_tolerance' among them is used.
+        The snapshots contain the 'nodal_unknowns' of all the coupled solvers. Linear decoders use a single (monolithic) ROM basis
+        shared by all of them, computed with the smallest 'svd_truncation_tolerance' among them. ANN-enhanced decoders use a
+        basis (and a network) per coupled solver, each computed with its own 'svd_truncation_tolerance' (see _UsesSegregatedBases).
         """
         coupled_solvers = self.general_rom_manager_parameters["coupled_solvers"]
         for i in range(coupled_solvers.size()):
@@ -1064,10 +1121,11 @@ class RomManager(object):
             return
 
         rom_settings = self.general_rom_manager_parameters["ROM"]
-        tolerances = {coupled_solvers[i]["sub_solver_name"].GetString() : coupled_solvers[i]["ROM"]["svd_truncation_tolerance"].GetDouble() for i in range(coupled_solvers.size())}
-        if len(set(tolerances.values())) > 1:
-            KratosMultiphysics.Logger.PrintWarning("RomManager", f"Different 'svd_truncation_tolerance' set for the coupled solvers {tolerances}. Only a monolithic ROM basis (shared by all the coupled solvers) is currently supported, so the smallest one ({min(tolerances.values())}) is used.")
-        rom_settings["svd_truncation_tolerance"].SetDouble(min(tolerances.values()))
+        if not self._UsesSegregatedBases():
+            tolerances = {coupled_solvers[i]["sub_solver_name"].GetString() : coupled_solvers[i]["ROM"]["svd_truncation_tolerance"].GetDouble() for i in range(coupled_solvers.size())}
+            if len(set(tolerances.values())) > 1:
+                KratosMultiphysics.Logger.PrintWarning("RomManager", f"Different 'svd_truncation_tolerance' set for the coupled solvers {tolerances}. Only a monolithic ROM basis (shared by all the coupled solvers) is currently supported, so the smallest one ({min(tolerances.values())}) is used.")
+            rom_settings["svd_truncation_tolerance"].SetDouble(min(tolerances.values()))
         nodal_unknowns = set()
         for i in range(coupled_solvers.size()):
             nodal_unknowns.update(coupled_solvers[i]["ROM"]["nodal_unknowns"].GetStringArray())
@@ -1123,6 +1181,17 @@ class RomManager(object):
         """Returns the names of the coupled sub-solvers (e.g. ['fluid_solver', 'thermal_solver']). Empty for a single solver."""
         return [coupled_solver["sub_solver_name"].GetString() for coupled_solver in self._GetCoupledSolvers()]
 
+    def _UsesSegregatedBases(self):
+        """True if each coupled solver has its own ROM basis: coupled solvers with an ANN-enhanced decoder (one network per solver)."""
+        return self.general_rom_manager_parameters["type_of_decoder"].GetString() == "ann_enhanced" and len(self._GetCoupledSolvers()) > 0
+
+    def _GetCoupledSolverRows(self, coupled_solver, number_of_rows):
+        """Rows of the 'nodal_unknowns' of a coupled solver in the snapshots and basis matrices, which store the (alphabetically sorted) unknowns of all the coupled solvers node by node."""
+        all_nodal_unknowns = sorted(self.general_rom_manager_parameters["ROM"]["nodal_unknowns"].GetStringArray())
+        positions = np.array([all_nodal_unknowns.index(name) for name in sorted(coupled_solver["ROM"]["nodal_unknowns"].GetStringArray())])
+        number_of_nodes = number_of_rows // len(all_nodal_unknowns)
+        return (np.arange(number_of_nodes)[:, None] * len(all_nodal_unknowns) + positions).ravel()
+
     def _GetResidualsProjectedOutputSettings(self):
         """Returns the (sub_solver_name, model_part_name, output folder) of each ProjectedResidualsOutputProcess: one per coupled sub-solver, or one for the solver."""
         rom_basis_output_folder = Path(self.general_rom_manager_parameters["ROM"]["rom_basis_output_folder"].GetString())
@@ -1140,14 +1209,130 @@ class RomManager(object):
             json.dump(f, parameter_file, indent=4)
             parameter_file.truncate()
 
-    #TODO get rid of this process in favor or Numpy output process
-    def _AddBasisCreationToProjectParameters(self, parameters):
-        #FIXME make sure no other rom_output already existed. If so, erase the prior and keep only the one in self.general_rom_manager_parameters["ROM"]
-        parameters["output_processes"].AddEmptyArray("rom_output")
-        rom_basis_parameters = self._SetUpRomBasisParameters()
-        parameters["output_processes"]["rom_output"].Append(rom_basis_parameters)
+    def _AddNumpyOutputToProjectParameters(self, parameters):
+        rom_params = self.general_rom_manager_parameters["ROM"]
+        numpy_output_parameters = KratosMultiphysics.Parameters("""{
+            "python_module" : "numpy_output_process",
+            "kratos_module" : "KratosMultiphysics.RomApplication",
+            "process_name"  : "NumpyOutputProcess",
+            "Parameters"    : {}
+        }""")
+        numpy_output_parameters["Parameters"].AddString("model_part_name", rom_params["model_part_name"].GetString())
+        numpy_output_parameters["Parameters"].AddString("output_control_type", rom_params["snapshots_control_type"].GetString())
+        numpy_output_parameters["Parameters"].AddDouble("output_interval", rom_params["snapshots_interval"].GetDouble())
+        numpy_output_parameters["Parameters"].AddValue("nodal_results", rom_params["nodal_unknowns"])
+        numpy_output_parameters["Parameters"].AddString("output_path", str(self._GetSnapshotsOutputPath()))
+        parameters["output_processes"].AddEmptyArray("rom_manager_numpy_output")
+        parameters["output_processes"]["rom_manager_numpy_output"].Append(numpy_output_parameters)
+
+        # Remove leftovers from previous runs so that only the upcoming simulation snapshots are fetched
+        shutil.rmtree(self._GetSnapshotsOutputPath(), ignore_errors=True)
 
         return parameters
+
+
+    def _GetSnapshotsMatrixFromNumpyOutput(self):
+        snapshots_output_path = self._GetSnapshotsOutputPath()
+        # Files are named 'solution_<step>' or 'solution_<time>', sort them numerically
+        snapshot_files = sorted(snapshots_output_path.glob("solution_*.npy"), key=lambda f: float(f.stem[len("solution_"):]))
+        snapshots_matrix = np.block([np.load(f) for f in snapshot_files])
+        shutil.rmtree(snapshots_output_path)
+
+        return snapshots_matrix
+
+
+    def _ComputeSVD(self, snapshots_matrix, svd_truncation_tolerance=None):
+        # Calculate the randomized SVD of the snapshots matrix
+        if svd_truncation_tolerance is None:
+            svd_truncation_tolerance = self.general_rom_manager_parameters["ROM"]["svd_truncation_tolerance"].GetDouble()
+        u,sigma,_,_= RandomizedSingularValueDecomposition().Calculate(snapshots_matrix, svd_truncation_tolerance)
+        return u, sigma
+
+
+    def _ComputeSegregatedSVD(self, snapshots_matrix):
+        """
+        Computes the basis of each coupled solver from the rows of its unknowns. The bases are stored in a single matrix, each of them
+        in the rows of its solver and from the first column on (zero-padded if another solver has more modes).
+        """
+        nodal_unknowns = [name for coupled_solver in self._GetCoupledSolvers() for name in coupled_solver["ROM"]["nodal_unknowns"].GetStringArray()]
+        if len(nodal_unknowns) != len(set(nodal_unknowns)):
+            raise Exception(f"The coupled solvers share 'nodal_unknowns' ({nodal_unknowns}). With ann_enhanced decoders each of the 'coupled_solvers' needs its own 'nodal_unknowns' in its 'ROM' settings.")
+        bases = []
+        for coupled_solver in self._GetCoupledSolvers():
+            rows = self._GetCoupledSolverRows(coupled_solver, snapshots_matrix.shape[0])
+            u_solver, sigma_solver = self._ComputeSVD(snapshots_matrix[rows, :], coupled_solver["ROM"]["svd_truncation_tolerance"].GetDouble())
+            bases.append((rows, u_solver, sigma_solver))
+        number_of_modes = max(u_solver.shape[1] for _, u_solver, _ in bases)
+        u = np.zeros((snapshots_matrix.shape[0], number_of_modes))
+        sigma = np.zeros(number_of_modes)
+        for rows, u_solver, sigma_solver in bases:
+            u[rows, :u_solver.shape[1]] = u_solver
+            # A single vector is stored: each solver recomputes its own singular values from its basis when training its network
+            sigma[:len(sigma_solver)] = np.maximum(sigma[:len(sigma_solver)], sigma_solver)
+        return u, sigma
+
+
+    def _PrintRomBasis(self, u, sigma):
+        rom_params = self.general_rom_manager_parameters["ROM"]
+        rom_basis_output_format = rom_params["rom_basis_output_format"].GetString()
+        rom_basis_output_folder = Path(rom_params["rom_basis_output_folder"].GetString())
+        rom_basis_output_name = rom_params["rom_basis_output_name"].GetString()
+        print_singular_values = rom_params["print_singular_values"].GetBool()
+        if print_singular_values and rom_basis_output_format == "json":
+            err_msg = 'Cannot print singular values if using the "json" output format. Please use "numpy" instead.'
+            raise Exception(err_msg)
+
+        # Note that the nodal unknowns are sorted alphabetically, consistently with the NumpyOutputProcess
+        nodal_unknowns = sorted(rom_params["nodal_unknowns"].GetStringArray())
+        n_nodal_unknowns = len(nodal_unknowns)
+        model_part = self.InitializeDummySimulationForSnapshotsModelPart()
+
+        # Initialize the Python dictionary with the default settings
+        rom_basis_dict = {
+            "rom_manager" : True,
+            "train_hrom": False,
+            "run_hrom": False,
+            "projection_strategy": "galerkin",
+            "assembling_strategy": "global",
+            "rom_format": rom_basis_output_format,
+            "rom_settings": {
+                "rom_bns_settings": {},
+                "nodal_unknowns": nodal_unknowns,
+                "number_of_rom_dofs": np.shape(u)[1],
+                "petrov_galerkin_number_of_rom_dofs": 0
+            },
+            "hrom_settings": {
+                "hrom_format": rom_basis_output_format
+            },
+            "nodal_modes": {},
+            "elements_and_weights" : {}
+        }
+
+        # Create the folder if it doesn't already exist
+        if not rom_basis_output_folder.exists():
+            rom_basis_output_folder.mkdir(parents=True)
+
+        if rom_basis_output_format == "json":
+            # Storing modes in JSON format
+            i = 0
+            for node in model_part.Nodes:
+                rom_basis_dict["nodal_modes"][node.Id] = u[i:i+n_nodal_unknowns].tolist()
+                i += n_nodal_unknowns
+        elif rom_basis_output_format == "numpy":
+            # Storing modes in Numpy format
+            node_ids = np.array([node.Id for node in model_part.Nodes])
+            np.save(rom_basis_output_folder / "RightBasisMatrix.npy", u)
+            np.save(rom_basis_output_folder / "NodeIds.npy", node_ids)
+            if print_singular_values:
+                np.save(rom_basis_output_folder / "SingularValuesVector.npy", sigma)
+        else:
+            err_msg = f"Unsupported output format {rom_basis_output_format}. Available options are 'json' and 'numpy'."
+            raise Exception(err_msg)
+
+        # Creating the ROM JSON file containing or not the modes depending on the output format
+        output_filename = rom_basis_output_folder / f"{rom_basis_output_name}.json"
+        with output_filename.open('w') as f:
+            json.dump(rom_basis_dict, f, indent = 4)
 
 
     def _AddResidualsProjectedOutputProcessToProjectParameters(self, parameters):
@@ -1221,7 +1406,6 @@ class RomManager(object):
                 "rom_basis_output_folder": "rom_data",
                 "snapshots_control_type": "step",                          // "step", "time"
                 "snapshots_interval": 1,
-                "snapshots_control_is_periodic": true,
                 "print_singular_values": false,
                 "use_non_converged_sols" : false,
                 "galerkin_rom_bns_settings": {
@@ -1340,31 +1524,6 @@ class RomManager(object):
         #     json.dump(data, f, indent=4)
         #     f.truncate()
 
-    def _SetUpRomBasisParameters(self):
-        defaults = self._GetDefaulRomBasisOutputParameters()
-        defaults["Parameters"]["rom_manager"].SetBool(True)  # Set the flag to true when inside the RomManager to trigger particular behavior for multiple parameters
-
-        rom_params = self.general_rom_manager_parameters["ROM"]
-
-        keys_to_copy = [
-            "svd_truncation_tolerance",
-            "model_part_name",
-            "rom_basis_output_format",
-            "rom_basis_output_name",
-            "rom_basis_output_folder",
-            "nodal_unknowns",
-            "snapshots_interval",
-            "print_singular_values",
-            "snapshots_control_is_periodic"
-        ]
-
-        for key in keys_to_copy:
-            if key in rom_params.keys():
-                defaults["Parameters"][key] = rom_params[key]
-
-        return defaults
-
-
     def _SetUpProjectedResidualsOutputProcessParameters(self, model_part_name, sub_solver_name=""):
         process_settings = self._GetDefaulProjectedResidualsOutputProcessParameters()
         rom_params = self.general_rom_manager_parameters["ROM"]
@@ -1405,31 +1564,6 @@ class RomManager(object):
         analysis_stage_class = getattr(analysis_stage_module, analysis_stage_class_name)
 
         return analysis_stage_class
-
-
-    def _GetDefaulRomBasisOutputParameters(self):
-        rom_training_parameters = KratosMultiphysics.Parameters("""{
-                "python_module" : "calculate_rom_basis_output_process",
-                "kratos_module" : "KratosMultiphysics.RomApplication",
-                "process_name"  : "CalculateRomBasisOutputProcess",
-                "help"          : "This process should write the Rom basis",
-                "Parameters"    :
-                {
-                    "model_part_name": "",
-                    "rom_manager" : false,      // set to false for manual manipulation of ROM via flags in the RomParameters
-                    "snapshots_control_type": "step",
-                    "snapshots_interval": 1.0,
-                    "snapshots_control_is_periodic": true,
-                    "nodal_unknowns":  [],
-                    "rom_basis_output_format": "json",
-                    "rom_basis_output_name": "RomParameters",
-                    "rom_basis_output_folder": "rom_data",
-                    "svd_truncation_tolerance": 1e-3,
-                    "print_singular_values": false
-                }
-            }""")
-        return rom_training_parameters
-
 
 
     def _GetDefaulProjectedResidualsOutputProcessParameters(self):
