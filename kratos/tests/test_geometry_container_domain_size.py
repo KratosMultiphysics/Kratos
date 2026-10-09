@@ -43,8 +43,8 @@ class TestGeometryContainerDomainSize(KratosUnittest.TestCase):
         self.assertIsInstance(domain_sizes, numpy.ndarray)
         self.assertEqual(domain_sizes.shape, (4,))
         for index, geometry in enumerate(model_part.Geometries):
-            self.assertAlmostEqual(domain_sizes[index], expected_size[geometry.Id], places=7)
-            self.assertAlmostEqual(domain_sizes[index], geometry.DomainSize(), places=7)
+            self.assertAlmostEqual(domain_sizes[index], expected_size[geometry.Id], places=13)
+            self.assertAlmostEqual(domain_sizes[index], geometry.DomainSize(), places=13)
 
     def test_domain_size_empty_container(self):
         current_model = Kratos.Model()

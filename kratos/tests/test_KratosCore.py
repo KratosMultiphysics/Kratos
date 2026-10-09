@@ -105,6 +105,7 @@ import test_tetrahedral_mesh_orientation_check
 import test_nd_data
 import test_tensor_adaptors
 import test_geometries_tensor_adaptor
+import test_geometry_container_domain_size
 import test_connectivity_ids_tensor_adaptor
 import test_constraint_restart
 import test_vtu_output
@@ -238,6 +239,7 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_nd_data.TestNDData]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_tensor_adaptors.TestTensorAdaptors]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_geometries_tensor_adaptor.TestGeometriesTensorAdaptor]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_geometry_container_domain_size.TestGeometryContainerDomainSize]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_connectivity_ids_tensor_adaptor.TestConnectivityIdsTensorAdaptor]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_constraint_restart.TestConstraintRestart]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_vtu_output.TestVtuOutput]))

@@ -15,6 +15,7 @@
 // System includes
 #include <array>
 #include <cstddef>
+#include <functional>
 #include <tuple>
 #include <type_traits>
 #include <utility>
@@ -82,25 +83,17 @@ struct VectorizationResultInfo<BoundedVector<TDataType, TSize>>
 
 /**
  * @brief Helper only used in unevaluated contexts to deduce the result type of
- *        calling @p rFunctor with @p rEntity and the arguments stored in @p rArgs.
- * @details Method calls on the entity (i.e. member function pointers) are supported
- *          by invoking the member function on @p rEntity itself.
+ *        invoking @p rFunctor on @p rEntity with the arguments stored in @p rArgs.
+ * @details Method calls on the entity (i.e. member function pointers) are
+ *          supported by means of @ref std::invoke.
  */
-template<class TFunctorType, class TEntityRefType, class TArgsTupleType, std::size_t... TIndices,
-         std::enable_if_t<std::is_member_function_pointer_v<TFunctorType>, int> = 0>
+template<class TFunctorType, class TEntityRefType, class TArgsTupleType, std::size_t... TIndices>
 auto VectorizationCallHelper(
     TFunctorType& rFunctor,
     TEntityRefType&& rEntity,
     TArgsTupleType& rArgs,
-    std::index_sequence<TIndices...>) -> decltype((rEntity.*rFunctor)(std::get<TIndices>(rArgs)...));
-
-template<class TFunctorType, class TEntityRefType, class TArgsTupleType, std::size_t... TIndices,
-         std::enable_if_t<!std::is_member_function_pointer_v<TFunctorType>, int> = 0>
-auto VectorizationCallHelper(
-    TFunctorType& rFunctor,
-    TEntityRefType&& rEntity,
-    TArgsTupleType& rArgs,
-    std::index_sequence<TIndices...>) -> decltype(rFunctor(rEntity, std::get<TIndices>(rArgs)...));
+    std::index_sequence<TIndices...>)
+    -> decltype(std::invoke(rFunctor, rEntity, std::get<TIndices>(rArgs)...));
 
 ///@brief Invokes @p rFunctor on @p rEntity with the arguments stored in @p rArgs.
 template<class TFunctorType, class TEntityRefType, class TArgsTupleType, std::size_t... TIndices>
@@ -110,11 +103,7 @@ auto InvokeVectorization(
     TArgsTupleType& rArgs,
     std::index_sequence<TIndices...>)
 {
-    if constexpr (std::is_member_function_pointer_v<TFunctorType>) {
-        return (rEntity.*rFunctor)(std::get<TIndices>(rArgs)...);
-    } else {
-        return rFunctor(rEntity, std::get<TIndices>(rArgs)...);
-    }
+    return std::invoke(rFunctor, rEntity, std::get<TIndices>(rArgs)...);
 }
 
 } // namespace detail
