@@ -144,8 +144,7 @@ template<class TContainerType, class TFunctorType, class... TArgs>
     using args_storage_type = std::tuple<std::conditional_t<std::is_reference_v<TArgs>, TArgs, std::decay_t<TArgs>>...>;
     args_storage_type stored_args{std::forward<TArgs>(rArgs)...};
 
-    using clean_result_type = std::remove_cv_t<std::remove_reference_t<decltype(
-        detail::VectorizationCallHelper(rFunctor, *rContainer.begin(), stored_args, arg_indices{}))>>;
+    using clean_result_type = std::remove_cv_t<std::remove_reference_t<decltype(detail::VectorizationCallHelper(rFunctor, *rContainer.begin(), stored_args, arg_indices{}))>>;
     using result_info = detail::VectorizationResultInfo<clean_result_type>;
     using nd_data_type = NDData<typename result_info::DataType>;
 
