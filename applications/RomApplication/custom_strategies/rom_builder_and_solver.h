@@ -504,7 +504,9 @@ protected:
             [&](Element::Pointer p_element)
         {
             if (p_element->Has(HROM_WEIGHT)) {
-                element_queue.enqueue(std::move(p_element));
+                if (p_element->GetValue(HROM_WEIGHT) != 0.0) {
+                    element_queue.enqueue(std::move(p_element));
+                }
             } else {
                 p_element->SetValue(HROM_WEIGHT, Vector(mNumberOfHromSets, 1.0));
             }
@@ -516,7 +518,9 @@ protected:
             [&](Condition::Pointer p_condition)
         {
             if (p_condition->Has(HROM_WEIGHT)) {
-                condition_queue.enqueue(std::move(p_condition));
+                if (p_condition->GetValue(HROM_WEIGHT) != 0.0) {
+                    condition_queue.enqueue(std::move(p_condition));
+                }
             } else {
                 p_condition->SetValue(HROM_WEIGHT, Vector(mNumberOfHromSets, 1.0));
             }
