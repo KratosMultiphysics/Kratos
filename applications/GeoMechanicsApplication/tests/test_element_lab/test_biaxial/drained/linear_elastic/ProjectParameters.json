@@ -13,7 +13,7 @@
         },
         "solver_type": "U_Pw",
         "solution_type": "Quasi-Static",
-        "strategy_type": "newton_raphson",
+        "strategy_type": "line_search",
         "scheme_type": "Backward_Euler",
         "model_part_name": "PorousDomain",
         "domain_size": 2,
@@ -133,6 +133,19 @@
                     "is_fixed": [false, true, false],
                     "value": [0.0, 0.0, 0.0],
                     "table": [0, 2, 0]
+                }
+            },
+            {
+                "python_module": "apply_vector_constraint_table_process",
+                "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
+                "process_name": "ApplyVectorConstraintTableProcess",
+                "Parameters": {
+                    "model_part_name": "PorousDomain.Middle_Y_displacement",
+                    "variable_name": "DISPLACEMENT",
+                    "active": [false, true, false],
+                    "is_fixed": [false, true, false],
+                    "value": [0.0, 0.0, 0.0],
+                    "table": [0, 3, 0]
                 }
             },
             {

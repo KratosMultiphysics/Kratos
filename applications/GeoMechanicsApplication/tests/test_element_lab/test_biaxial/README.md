@@ -17,17 +17,17 @@ The test is performed with the following conditions:
     - A displacement of -0.2 is prescribed for the top nodes (1, 2, 6). The nodes move linearly from y = 1 at t = 0 to y = 0.8 at t = 1.
 - Material:
     - A linear elastic constitutive law with the following parameters:
-        - Poisson ratio = 0.3,
+        - Poisson's ratio = 0.25,
         - Young's modulus = 10000.0 $kN/m^2$.
     - A Mohr-Coulomb constitutive law with the following parameters:
-        - Poisson ratio = 0.3,
+        - Poisson's ratio = 0.25,
         - Young's modulus = 20000.0 $kN/m^2$,
         - Cohesion = 2.0 $kN/m^2$,
         - Friction angle = 25.0 $\degree$,
         - Dilatancy angle = 2.0 $\degree$.
 - Conditions:
-  - An initial uniform stress field (at t = 0) is applied with a value of [-24.0, -60.0, -24.0, 0.0] $kN/m^2$.
-  - A lateral load is applied with a value of 24 $kN/m^2$ to the right side, mimicking the constant cell pressure.
+  - An initial uniform stress field (at t = 0) is applied with a value of [-100.0, -100.0, -100.0, 0.0] $kN/m^2$.
+  - A lateral load is applied with a value of 100 $kN/m^2$ to the right side, mimicking the constant cell pressure.
 
 ## Assertions
 For this regression test, the outcomes of the simulation for the displacement, the normal stresses and the engineering strain at t = 1 are asserted.
