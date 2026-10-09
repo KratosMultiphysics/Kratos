@@ -22,7 +22,6 @@
 #include "containers/model.h"
 #include "containers/nd_data.h"
 #include "includes/kratos_components.h"
-#include "includes/process_info.h"
 #include "utilities/quaternion.h"
 #include "utilities/vectorization_helper.h"
 #include "python/add_model_part_to_python.h"
