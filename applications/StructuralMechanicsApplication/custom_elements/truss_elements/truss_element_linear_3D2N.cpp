@@ -276,7 +276,10 @@ void TrussElementLinear3D2N::CalculateInternalForces(VectorType& rInternalForces
 void TrussElementLinear3D2N::CalculateExternalForces(VectorType& rExternalForces)
 {
     KRATOS_TRY
-    rExternalForces = CalculateBodyForces();
+    if (rExternalForces.size() != msLocalSize) {
+        rExternalForces.resize(msLocalSize, false);
+    }
+    noalias(rExternalForces) = CalculateBodyForces();
     KRATOS_CATCH("")
 }
 

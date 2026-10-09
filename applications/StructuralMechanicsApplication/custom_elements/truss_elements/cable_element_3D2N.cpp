@@ -153,7 +153,7 @@ void CableElement3D2N::CalculateInternalForces(
 
     // a compressed cable does not carry any load
     if (mIsCompressed) {
-        rInternalForces = ZeroVector(msLocalSize);
+        rInternalForces.clear();
     }
     KRATOS_CATCH("")
 }

@@ -427,14 +427,20 @@ void TrussElement3D2N::CalculateInternalForces(VectorType& rInternalForces, cons
     KRATOS_TRY
     BoundedVector<double, msLocalSize> internal_forces = ZeroVector(msLocalSize);
     UpdateInternalForces(internal_forces, rCurrentProcessInfo);
-    rInternalForces = internal_forces;
+    if (rInternalForces.size() != msLocalSize) {
+        rInternalForces.resize(msLocalSize, false);
+    }
+    noalias(rInternalForces) = internal_forces;
     KRATOS_CATCH("")
 }
 
 void TrussElement3D2N::CalculateExternalForces(VectorType& rExternalForces)
 {
     KRATOS_TRY
-    rExternalForces = ZeroVector(msLocalSize);
+    if (rExternalForces.size() != msLocalSize) {
+        rExternalForces.resize(msLocalSize, false);
+    }
+    rExternalForces.clear();
     if (HasSelfWeight()) {
         noalias(rExternalForces) = CalculateBodyForces();
     }
