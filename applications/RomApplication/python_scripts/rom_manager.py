@@ -462,12 +462,12 @@ class RomManager(object):
                 u,sigma = compute_svd(self.data_base.get_snapshots_matrix_from_database(mu_train, table_name='NonconvergedFOM')) #TODO this might be too large for single opeartion, add partitioned svd
             else:
                 u,sigma = compute_svd(self.data_base.get_snapshots_matrix_from_database(mu_train, table_name='FOM'))
-            self._PrintRomBasis(u, sigma)
+            self._PrintRomBasis(u, sigma, mu_train[0])
             self.data_base.add_to_database("RightBasis", mu_train, u )
             self.data_base.add_to_database("SingularValues_Solution", mu_train, sigma )
         else:
             _ , hash_sigma = self.data_base.check_if_in_database("SingularValues_Solution", mu_train)
-            self._PrintRomBasis(self.data_base.get_single_numpy_from_database(hash_basis), self.data_base.get_single_numpy_from_database(hash_sigma) ) #this updates the RomParameters.json
+            self._PrintRomBasis(self.data_base.get_single_numpy_from_database(hash_basis), self.data_base.get_single_numpy_from_database(hash_sigma), mu_train[0] ) #this updates the RomParameters.json
         self.GenerateDatabaseSummary()
 
     def _LoadSolutionBasis(self, mu_train):
@@ -484,7 +484,7 @@ class RomManager(object):
             raise Exception(err_msg)
         else:
             _ , hash_sigma = self.data_base.check_if_in_database("SingularValues_Solution", mu_train)
-            self._PrintRomBasis(self.data_base.get_single_numpy_from_database(hash_basis), self.data_base.get_single_numpy_from_database(hash_sigma) ) #this updates the RomParameters.json
+            self._PrintRomBasis(self.data_base.get_single_numpy_from_database(hash_basis), self.data_base.get_single_numpy_from_database(hash_sigma), mu_train[0] ) #this updates the RomParameters.json
         self.GenerateDatabaseSummary()
 
 
@@ -540,13 +540,13 @@ class RomManager(object):
                     pretrov_galerkin_matrix = PetrovGalerkinTrainingUtility._GetSnapshotsMatrix() #TODO is the best way of extracting the Projected Residuals calling the HROM residuals utility?
                     self.data_base.add_to_database("PetrovGalerkinSnapshots", mu, pretrov_galerkin_matrix)
             if PetrovGalerkinTrainingUtility is None:
-                PetrovGalerkinTrainingUtility = self.InitializeDummySimulationForPetrovGalerkinTrainingUtility()
+                PetrovGalerkinTrainingUtility = self.InitializeDummySimulationForPetrovGalerkinTrainingUtility(mu_train[0])
             snapshots_matrix = self.data_base.get_snapshots_matrix_from_database(mu_train, table_name="PetrovGalerkinSnapshots")
             u = PetrovGalerkinTrainingUtility._CalculateResidualBasis(snapshots_matrix)
             PetrovGalerkinTrainingUtility._AppendNewBasisToRomParameters(u)
             self.data_base.add_to_database("LeftBasis", mu_train, u )
         else:
-            PetrovGalerkinTrainingUtility = self.InitializeDummySimulationForPetrovGalerkinTrainingUtility()
+            PetrovGalerkinTrainingUtility = self.InitializeDummySimulationForPetrovGalerkinTrainingUtility(mu_train[0])
             PetrovGalerkinTrainingUtility._AppendNewBasisToRomParameters(self.data_base.get_single_numpy_from_database(hash_basis)) #this updates the RomParameters.json
 
         self.GenerateDatabaseSummary()
@@ -588,7 +588,7 @@ class RomManager(object):
                     # TODO for later PR: Implement path-based database storage to avoid RAM bottlenecks and erase the temporary .npy files from disk here.
             self._SetTrainHROMFlag(True)
             RedidualsSnapshotsMatrix = self.data_base.get_snapshots_matrix_from_database(mu_train, table_name="ResidualsProjected")
-            HROM_utility = self.InitializeDummySimulationForHromTrainingUtility(nn_rom_interface=nn_rom_interface)
+            HROM_utility = self.InitializeDummySimulationForHromTrainingUtility(nn_rom_interface=nn_rom_interface, mu=mu_train[0])
             z, w = self._LocalEmpiricalCubature(np.split(RedidualsSnapshotsMatrix, len(residuals_output_settings)), HROM_utility.candidate_ids)
             HROM_utility.hyper_reduction_element_selector.z = z
             HROM_utility.hyper_reduction_element_selector.w = w
@@ -597,7 +597,7 @@ class RomManager(object):
         # elif (in_database_elems and not in_database_weights) or (not in_database_elems and in_database_weights):
         #     error #if one of the two is there but not the other, the database is corrupted
         else:
-            HROM_utility = self.InitializeDummySimulationForHromTrainingUtility(nn_rom_interface=nn_rom_interface)
+            HROM_utility = self.InitializeDummySimulationForHromTrainingUtility(nn_rom_interface=nn_rom_interface, mu=mu_train[0])
             #doing this ensures the elements and weights npy files contained in the rom_data folder are the ones to use.i.e. they are not from old runs of the rom manager
             HROM_utility.hyper_reduction_element_selector.w = self.data_base.get_single_numpy_from_database(hash_w)
             HROM_utility.hyper_reduction_element_selector.z = self.data_base.get_single_numpy_from_database(hash_z)
@@ -771,35 +771,35 @@ class RomManager(object):
                                         rows=self._GetCoupledSolverRows(coupled_solver, number_of_rows))
                 for coupled_solver in self._GetCoupledSolvers()]
 
-    def InitializeDummySimulationForSnapshotsModelPart(self):
+    def InitializeDummySimulationForSnapshotsModelPart(self, mu=None):
         with open(self.project_parameters_name,'r') as parameter_file:
             parameters = KratosMultiphysics.Parameters(parameter_file.read())
         parameters = self._StoreNoResults(parameters)
         model = KratosMultiphysics.Model()
         analysis_stage_class = self._GetAnalysisStageClass(parameters)
-        simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters)
+        simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters, mu)
         simulation.Initialize()
         return model[self.general_rom_manager_parameters["ROM"]["model_part_name"].GetString()]
 
 
-    def InitializeDummySimulationForHromTrainingUtility(self, nn_rom_interface=None):
+    def InitializeDummySimulationForHromTrainingUtility(self, nn_rom_interface=None, mu=None):
         with open(self.project_parameters_name,'r') as parameter_file:
             parameters = KratosMultiphysics.Parameters(parameter_file.read())
         parameters = self._StoreNoResults(parameters)
         model = KratosMultiphysics.Model()
         analysis_stage_class = type(self._SetUpRomSimulationInstance(model, parameters, nn_rom_interface=nn_rom_interface))
-        simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters)
+        simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters, mu)
         simulation.Initialize()
         return simulation.GetHROM_utility()
 
 
-    def InitializeDummySimulationForPetrovGalerkinTrainingUtility(self):
+    def InitializeDummySimulationForPetrovGalerkinTrainingUtility(self, mu=None):
         with open(self.project_parameters_name,'r') as parameter_file:
             parameters = KratosMultiphysics.Parameters(parameter_file.read())
         parameters = self._StoreNoResults(parameters)
         model = KratosMultiphysics.Model()
         analysis_stage_class = type(self._SetUpRomSimulationInstance(model, parameters))
-        simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters)
+        simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters, mu)
         simulation.Initialize()
         return simulation.GetPetrovGalerkinTrainUtility()
 
@@ -1182,7 +1182,7 @@ class RomManager(object):
         return u, sigma
 
 
-    def _PrintRomBasis(self, u, sigma):
+    def _PrintRomBasis(self, u, sigma, mu=None):
         rom_params = self.general_rom_manager_parameters["ROM"]
         rom_basis_output_format = rom_params["rom_basis_output_format"].GetString()
         rom_basis_output_folder = Path(rom_params["rom_basis_output_folder"].GetString())
@@ -1195,7 +1195,7 @@ class RomManager(object):
         # Note that the nodal unknowns are sorted alphabetically, consistently with the NumpyOutputProcess
         nodal_unknowns = sorted(rom_params["nodal_unknowns"].GetStringArray())
         n_nodal_unknowns = len(nodal_unknowns)
-        model_part = self.InitializeDummySimulationForSnapshotsModelPart()
+        model_part = self.InitializeDummySimulationForSnapshotsModelPart(mu)
 
         # Initialize the Python dictionary with the default settings
         rom_basis_dict = {
