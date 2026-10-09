@@ -77,7 +77,7 @@ public:
     using DofsArrayType = typename BaseType::DofsArrayType;
 
     /// Linear system type definition
-    using LinearSystemType = LinearSystem<TLinearAlgebra>;
+    using LinearSystemType = typename BaseType::LinearSystemType;
 
     /// Dense vector tag type definition
     using DenseVectorTag = typename LinearSystemTags::DenseVectorTag;
@@ -111,28 +111,89 @@ public:
     ///@name Operations
     ///@{
 
-    void AllocateLinearSystem(
-        const SparseGraphType& rSparseGraph,
-        ImplicitStrategyData<TLinearAlgebra> &rImplicitStrategyData) override
+    void SetDofEquationIds(ImplicitStrategyData<TLinearAlgebra> &rImplicitStrategyData) override
     {
-        // Set the system arrays
-        // Note that the graph-based constructor does both resizing and initialization
-        auto p_dx = Kratos::make_shared<VectorType>(rSparseGraph);
-        auto p_rhs = Kratos::make_shared<VectorType>(rSparseGraph);
-        auto p_lhs = Kratos::make_shared<MatrixType>(rSparseGraph);
+        // Get the DOFs and effective DOFs containers and check they are not empty
+        auto& r_dof_set = *(rImplicitStrategyData.pGetDofSet());
+        KRATOS_ERROR_IF(r_dof_set.empty()) << "DOFs set is empty. Set up the DOFs array first." << std::endl;
 
-        // Set the linear system with the arrays above
-        auto p_lin_sys = Kratos::make_shared<LinearSystemType>(p_lhs, p_rhs, p_dx, "LinearSystem");
-        rImplicitStrategyData.pSetLinearSystem(p_lin_sys);
+        // Initialize the free and fixed effective DOFs counters
+        // Note that the free DOFs ids start by 0 to position them at beginning of the system
+        // while the fixed ones are positioned at the end (in opposite order) by starting the ids from the number of effective DOFs
+        std::size_t free_id = 0;
+        std::size_t fix_id = r_dof_set.size();
 
-        // Get the number of free DOFs to allocate the effective system arrays
+        // Set the DOFs' effective equation global ids
+        // The free degrees of freedom are positioned at the beginning of the system, while the fixed ones are at the end (in opposite order)
+        // That means that if the EquationId is greater than the fix_id (i.e., the number of free DOFs) then it means that the pointed degree of freedom is restrained
+        for (auto it_dof = r_dof_set.begin(); it_dof != r_dof_set.end(); ++it_dof) {
+            if (it_dof->IsFixed()) {
+                it_dof->SetEquationId(--fix_id);
+            } else {
+                it_dof->SetEquationId(free_id++);
+            }
+        }
+    }
+
+    void SetDofEffectiveEquationIds(ImplicitStrategyData<TLinearAlgebra> &rImplicitStrategyData) override
+    {
+        KRATOS_TRY
+
+        // Get the DOFs and effective DOFs containers and check they are not empty
+        auto& r_dof_set = *(rImplicitStrategyData.pGetDofSet());
         auto& r_eff_dof_set = *(rImplicitStrategyData.pGetEffectiveDofSet());
-        const std::size_t n_free_dofs = IndexPartition<std::size_t>(r_eff_dof_set.size()).for_each<SumReduction<std::size_t>>([&](IndexType Index) {
-            auto p_dof = r_eff_dof_set.begin() + Index;
-            return p_dof->IsFixed() ? 0 : 1;
-        });
+        KRATOS_ERROR_IF(r_dof_set.empty()) << "DOFs set is empty. Set up the DOFs array first." << std::endl;
+        KRATOS_ERROR_IF(r_eff_dof_set.empty()) << "Effective DOFs set is empty. Set up the effective DOFs array first." << std::endl;
 
+        // Check if the effective and "standard" containers are the same
+        // We do it with the addresses to avoid checking the content (i.e., each DOF one-by-one)
+        if (&r_eff_dof_set == &r_dof_set) {
+            // Set the DOFs' effective equation global ids to match the standard ones
+            // Note that these already account for the free and fixed DOFs forward and backward positioning in the system
+            const std::size_t n_free_dofs = (IndexPartition<IndexType>(r_eff_dof_set.size())).template for_each<SumReduction<std::size_t>>([&](IndexType Index) {
+                auto it_dof = r_eff_dof_set.begin() + Index;
+                it_dof->SetEffectiveEquationId(it_dof->EquationId());
+                return it_dof->IsFixed() ? 0 : 1;
+            });
+
+            // Set the problem size to the number of free effective DOFs
+            this->SetProblemSize(n_free_dofs);
+        } else {
+            // Initialize the free and fixed effective DOFs counters
+            // Note that the free DOFs ids start by 0 to position them at beginning of the system
+            // while the fixed ones are positioned at the end (in opposite order) by starting the ids from the number of effective DOFs
+            std::size_t free_id = 0;
+            std::size_t fix_id = r_eff_dof_set.size();
+
+            // Initialize all DOFs effective equation ids to the maximum allowable value
+            // Note that this makes possible to distingish the effective DOFs from the non-effective ones
+            IndexPartition<IndexType>(r_dof_set.size()).for_each([&](IndexType Index) {
+                auto it_dof = r_dof_set.begin() + Index;
+                it_dof->SetEffectiveEquationId(std::numeric_limits<typename Node::DofType::EquationIdType>::max());
+            });
+
+            // Set the effective DOFs' effective equation global ids
+            // The free degrees of freedom are positioned at the beginning of the system, while the fixed ones are at the end (in opposite order)
+            // That means that if the EquationId is greater than the fix_id (i.e., the number of free DOFs) then it means that the pointed degree of freedom is restrained
+            for (auto it_eff_dof = r_eff_dof_set.begin(); it_eff_dof != r_eff_dof_set.end(); ++it_eff_dof) {
+                if (it_eff_dof->IsFixed()) {
+                    it_eff_dof->SetEffectiveEquationId(--fix_id);
+                } else {
+                    it_eff_dof->SetEffectiveEquationId(free_id++);
+                }
+            }
+
+            // Set the problem size to current fix id (i.e., number of free effective DOFs)
+            this->SetProblemSize(fix_id);
+        }
+
+        KRATOS_CATCH("");
+    }
+
+    void AllocateEffectiveLinearSystem(ImplicitStrategyData<TLinearAlgebra> &rImplicitStrategyData) override
+    {
         // Allocate the effective arrays according to the number of free effective DOFs
+        const std::size_t n_free_dofs = this->GetProblemSize(); // Problem size is already set to the number of free effective DOFs
         auto p_eff_lhs = Kratos::make_shared<MatrixType>();
         auto p_eff_rhs = Kratos::make_shared<VectorType>(n_free_dofs);
         auto p_eff_dx = Kratos::make_shared<VectorType>(n_free_dofs);
@@ -187,8 +248,9 @@ public:
         mpDirichletT.swap(p_aux_T);
     }
 
-    //FIXME: Do the RHS-only version
-    void ApplyLinearSystemConstraints(ImplicitStrategyData<TLinearAlgebra>& rImplicitStrategyData) override
+    void ApplyLinearSystemConstraints(
+        ImplicitStrategyData<TLinearAlgebra>& rImplicitStrategyData,
+        const bool SkipLeftHandSide = false) override
     {
         // Get effective arrays
         auto p_eff_lin_sys = rImplicitStrategyData.pGetEffectiveLinearSystem();
@@ -221,10 +283,12 @@ public:
             rImplicitStrategyData.pGetEffectiveT()->TransposeSpMV(r_rhs, r_eff_rhs);
 
             // Apply constraints to LHS
-            auto p_LHS_T = AmgclCSRSpMMUtilities::SparseMultiply(r_lhs, *rImplicitStrategyData.pGetEffectiveT());
-            auto p_transT = AmgclCSRConversionUtilities::Transpose(*rImplicitStrategyData.pGetEffectiveT());
-            auto p_eff_lhs = AmgclCSRSpMMUtilities::SparseMultiply(*p_transT, *p_LHS_T);
-            p_eff_lin_sys->pSetMatrix(p_eff_lhs, SparseMatrixTag::LHS);
+            if (!SkipLeftHandSide) {
+                auto p_LHS_T = AmgclCSRSpMMUtilities::SparseMultiply(r_lhs, *rImplicitStrategyData.pGetEffectiveT());
+                auto p_transT = AmgclCSRConversionUtilities::Transpose(*rImplicitStrategyData.pGetEffectiveT());
+                auto p_eff_lhs = AmgclCSRSpMMUtilities::SparseMultiply(*p_transT, *p_LHS_T);
+                p_eff_lin_sys->pSetMatrix(p_eff_lhs, SparseMatrixTag::LHS);
+            }
         } else {
             // Assign the Dirichlet relation matrix as the effective ones since there are no other constraints
             rImplicitStrategyData.pSetEffectiveT(mpDirichletT);
@@ -233,10 +297,12 @@ public:
             rImplicitStrategyData.pGetEffectiveT()->TransposeSpMV(r_rhs, r_eff_rhs);
 
             // Apply Dirichlet constraints to LHS
-            auto p_LHS_T = AmgclCSRSpMMUtilities::SparseMultiply(r_lhs, *rImplicitStrategyData.pGetEffectiveT());
-            auto p_transT = AmgclCSRConversionUtilities::Transpose(*rImplicitStrategyData.pGetEffectiveT());
-            auto p_eff_lhs = AmgclCSRSpMMUtilities::SparseMultiply(*p_transT, *p_LHS_T);
-            p_eff_lin_sys->pSetMatrix(p_eff_lhs, SparseMatrixTag::LHS);
+            if (!SkipLeftHandSide) {
+                auto p_LHS_T = AmgclCSRSpMMUtilities::SparseMultiply(r_lhs, *rImplicitStrategyData.pGetEffectiveT());
+                auto p_transT = AmgclCSRConversionUtilities::Transpose(*rImplicitStrategyData.pGetEffectiveT());
+                auto p_eff_lhs = AmgclCSRSpMMUtilities::SparseMultiply(*p_transT, *p_LHS_T);
+                p_eff_lin_sys->pSetMatrix(p_eff_lhs, SparseMatrixTag::LHS);
+            }
         }
     }
 

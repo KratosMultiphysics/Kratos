@@ -64,7 +64,10 @@ void AddStrategiesToPython(py::module& m)
         .def(py::init<ModelPart &, Parameters>())
         .def("AllocateLinearSystem", py::overload_cast<ImplicitStrategyDataType&>(&BuilderType::AllocateLinearSystem))
         .def("AllocateLinearSystem", py::overload_cast<const Future::SerialLinearAlgebraTraits::SparseGraphType&, ImplicitStrategyDataType&>(&BuilderType::AllocateLinearSystem))
+        .def("AllocateEffectiveLinearSystem", &BuilderType::AllocateEffectiveLinearSystem)
         .def("AllocateLinearSystemConstraints", &BuilderType::AllocateLinearSystemConstraints)
+        .def("SetDofEquationIds", &BuilderType::SetDofEquationIds)
+        .def("SetDofEffectiveEquationIds", &BuilderType::SetDofEffectiveEquationIds)
         .def("SetUpSparseMatrixGraph", &BuilderType::SetUpSparseMatrixGraph)
         .def("SetUpMasterSlaveConstraintsGraph", &BuilderType::SetUpMasterSlaveConstraintsGraph)
         .def("ApplyLinearSystemConstraints", &BuilderType::ApplyLinearSystemConstraints)
@@ -72,6 +75,7 @@ void AddStrategiesToPython(py::module& m)
         .def("Clear", &BuilderType::Clear)
         .def("GetModelPart", [&](const BuilderType &rThis) -> const ModelPart& { return rThis.GetModelPart(); }, py::return_value_policy::reference_internal)
         .def("GetEchoLevel", &BuilderType::GetEchoLevel)
+        .def("GetProblemSize", &BuilderType::GetProblemSize)
         ;
 
     using BlockBuilderType = Future::BlockBuilder<Future::SerialLinearAlgebraTraits>;
@@ -93,8 +97,6 @@ void AddStrategiesToPython(py::module& m)
         .def("FinalizeSolutionStep", &ImplicitSchemeType::FinalizeSolutionStep)
         .def("InitializeNonLinIteration", &ImplicitSchemeType::InitializeNonLinIteration)
         .def("FinalizeNonLinIteration", &ImplicitSchemeType::FinalizeNonLinIteration)
-        .def("SetUpDofArrays", &ImplicitSchemeType::SetUpDofArrays)
-        .def("SetUpSystemIds", &ImplicitSchemeType::SetUpSystemIds)
         .def("Build", py::overload_cast<CsrMatrix<>&, SystemVector<>&>(&ImplicitSchemeType::Build)) //TODO: To be activated once we decide the parallelism
         .def("Build", py::overload_cast<CsrMatrix<>&>(&ImplicitSchemeType::Build)) //TODO: To be activated once we decide the parallelism
         .def("Build", py::overload_cast<SystemVector<>&>(&ImplicitSchemeType::Build)) //TODO: To be activated once we decide the parallelism
