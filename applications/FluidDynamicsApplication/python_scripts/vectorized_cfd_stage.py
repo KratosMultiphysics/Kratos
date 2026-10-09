@@ -55,6 +55,7 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         # Note that these are encapsulated within the customary "solver_settings" block
         settings = project_parameters["solver_settings"]
         settings.RecursivelyValidateAndAssignDefaults(self._GetDefaultSolvingSettings())
+      
 
         # Either retrieve the model part from the model or create a new one
         model_part_name = settings["model_part_name"].GetString()
@@ -597,16 +598,6 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         aux = self.max_fourier * self.rho / self.dyn_visc
         self.dt_fourier = np.min(aux * self.h**2)
 
-        # # Assemble Laplacian matrix (w/o stabilization) to get the graph for AMG
-        # L_el = self.cfd_utils.ComputeLaplacianMatrix(self.DN) # elemental laplacian contributions as L_IJ := (∇N_I,∇N_J)
-        # L_el *= self.elemental_volumes[:, None, None] # scale Laplaciant elemental contributions
-        # self.cfd_utils.AssembleScalarMatrixByCSRIndices(L_el, self.L_assembly_indices, self.L) # assemble the scaled elemental contributions
-        # #print(f"Setting graph for AMG with {self.L.nnz} nonzeros and {self.L.shape[0]} rows")
-        # t0 = time.perf_counter()
-        # self.preconditioner = self.cfd_utils.ConstructPreconditioner(self.L)
-        # if self.echo_level > 0:
-        #     KM.Logger.PrintInfo(self.__class__.__name__, f"AMG graph setup time: {time.perf_counter()-t0}.")
-
         # Declare auxiliary flags for solution loop handling
         self.is_startup = None # Indicates if current substep is startup
         self.is_startup_old = True # Indicates if previous substep was startup (assume previous step is always startup for the restart case)
@@ -834,14 +825,12 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         t0 = time.perf_counter()
         conv_proj = self.ComputeVelocityProjection(vel, self.pi_conv)
         conv_proj_el = self.ElemData(conv_proj, self.connectivity, out=self.conv_proj_el)
-        #print(f"ComputeVelocityProjection time: {time.perf_counter() - t0}")
 
         # Compute divergence projection
         t0 = time.perf_counter()
         div_proj = self.ComputeDivergenceProjection(vel, out=self.pool.Get(0,(self.nnodes,))) # compute the divergence projection at the nodes, reusing pool array for output
         div_proj_el = self.ElemData(div_proj, self.connectivity, out=self.div_proj_el)
         self.pool.Release(div_proj)
-        #print(f"ComputeDivergenceProjection time: {time.perf_counter() - t0}")
 
         # Get current time scheme data
         time_scheme = self.time_scheme if not self.is_startup else self.startup_time_scheme
@@ -879,73 +868,6 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         self.ApplyVelocityDirichletConditions(vold, v_dirichlet, 1.0, vnew)
 
         return vnew
-
-        # # Advance in time by runge kutta
-        # # --- k1 ---
-        # t0 = time.perf_counter()
-        # k1 = xp.empty((self.nnodes,self.dim), dtype=cfd_utils.PRECISION)
-        # self.ComputeVelocityResidual(vel, pel, b_el, conv_proj_el, div_proj_el, self.DN, self.tau_1, out=k1)
-        # #self.ComputeVelocityResidualWall(v_el_wall, out=k1)
-        # k1.reshape(-1)[:] *= (1.0/self.rho) * self.Minv
-        # #print(f"k1 time: {time.perf_counter() - t0}")
-
-        # # --- k2 ---
-        # t0 = time.perf_counter()
-        # v2 = vold + 0.5 * dt * k1
-        # self.ApplyVelocitySlipConditions(v2, self.normals)
-        # self.ApplyVelocityDirichletConditions(vold,v_dirichlet,0.5,v2)
-
-        # t_el_data = time.perf_counter()
-        # vel = self.ElemData(v2, self.connectivity, self.v_el)
-        # #v_el_wall = self.ElemData(v2, self.connectivity_wall, out=self.v_el_wall) # Get the velocity at the wall nodes for the intermediate velocity v2, reusing pool array for output
-        # t_k2_res = time.perf_counter()
-        # k2 = xp.empty((self.nnodes,self.dim), dtype=cfd_utils.PRECISION)
-        # self.ComputeVelocityResidual(vel, pel, b_el, conv_proj_el, div_proj_el, self.DN,self.tau_1,out=k2)
-        # #self.ComputeVelocityResidualWall(v_el_wall, out=k2)
-        # #print(f"\tk2 residual: {time.perf_counter() - t_k2_res}")
-
-
-        # t_k2_update = time.perf_counter()
-        # k2.reshape(-1)[:] *= (1.0/self.rho) * self.Minv
-        # #print(f"\tk2 update: {time.perf_counter() - t_k2_update}")
-        # #print(f"k2 time: {time.perf_counter() - t0}")
-
-        # # --- k3 ---
-        # t0 = time.perf_counter()
-        # v3 = vold + 0.5 * dt * k2
-        # self.ApplyVelocitySlipConditions(v3, self.normals)
-        # self.ApplyVelocityDirichletConditions(vold,v_dirichlet,0.5,v3)
-
-        # vel = self.ElemData(v3, self.connectivity, self.v_el)
-        # #v_el_wall = self.ElemData(v3, self.connectivity_wall, out=self.v_el_wall) # Get the velocity at the wall nodes for the intermediate velocity v3, reusing pool array for output
-        # k3 = xp.empty((self.nnodes,self.dim), dtype=cfd_utils.PRECISION)
-        # self.ComputeVelocityResidual(vel, pel, b_el, conv_proj_el, div_proj_el, self.DN,self.tau_1,out=k3)
-        # #self.ComputeVelocityResidualWall(v_el_wall, out=k3)
-        # k3.reshape(-1)[:] *= (1.0/self.rho) * self.Minv
-        # #print(f"k3 time: {time.perf_counter() - t0}")
-        # # --- k4 ---
-        # t0 = time.perf_counter()
-        # v4 = vold + dt * k3
-        # self.ApplyVelocitySlipConditions(v4, self.normals)
-        # self.ApplyVelocityDirichletConditions(vold,v_dirichlet,1.0,v4)
-
-        # vel = self.ElemData(v4, self.connectivity, self.v_el)
-        # #v_el_wall = self.ElemData(v4, self.connectivity_wall, out=self.v_el_wall) # Get the velocity at the wall nodes for the intermediate velocity v4, reusing pool array for output
-        # k4 = xp.empty((self.nnodes,self.dim), dtype=cfd_utils.PRECISION)
-        # self.ComputeVelocityResidual(vel, pel, b_el, conv_proj_el, div_proj_el, self.DN,self.tau_1,out=k4)
-        # #self.ComputeVelocityResidualWall(v_el_wall, out=k4)
-        # k4.reshape(-1)[:] *= (1.0/self.rho) * self.Minv
-        # #print(f"k4 time: {time.perf_counter() - t0}")
-
-        # # --- final RK4 update ---
-        # vnew = vold + (dt/6.0) * (k1 + 2*k2 + 2*k3 + k4) #TODO: we can accumulate to save two arrays
-        # t0 = time.perf_counter()
-        # self.ApplyVelocitySlipConditions(vnew, self.normals)
-        # #print(f"Apply SLIP time: {time.perf_counter() - t0}")
-        # t0 = time.perf_counter()
-        # self.ApplyVelocityDirichletConditions(vold, v_dirichlet,1.0,vnew)
-        # #print(f"Apply DIRICHLET time: {time.perf_counter() - t0}")
-        # return vnew
 
     def SolveStep2(self, vfrac, p, dt, add_compressibility=False, gamma=1.0):
 
@@ -1031,7 +953,6 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         t0 = time.perf_counter()
         fix_diag_values = self.L.diagonal()[self.fix_pres_indices]
         self.cfd_utils.ApplyHomogeneousDirichlet(self.fix_pres_indices, self.csr_data_indices, self.csr_diag_indices, self.L, rhs_p, diag_value=fix_diag_values)
-        #print(f"Time to apply pressure BCs: {time.perf_counter()-t0}")
 
         # Check if preconditioner has to be constructed (or reset)
         if self.preconditioner == None: # Preconditioner is not constructed yet
@@ -1046,7 +967,6 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         t0 = time.perf_counter()
         # Construct the preconditioner (if needed) and solve the system
         p, is_converged = self._SolvePressure(rhs_p,p)
-        #print(f"Time to solve pressure: {time.perf_counter()-t0}")
         self.pool.Release(rhs_p)
 
         # Convert p back to xp for next steps
@@ -1137,7 +1057,8 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         while (self.time - current_time > 1.0e-12):
             # Check if current step is within the startup phase
             self.is_startup = current_time < self.startup_time
-            KM.Logger.PrintInfo(self.__class__.__name__, f"\tStartup: {self.is_startup}.")
+            if self.echo_level > 1:
+                KM.Logger.PrintInfo(self.__class__.__name__, f"\tStartup: {self.is_startup}.")
             check_vmax_step_1 = True if not self.is_startup else False
             check_vmax_step_3 = True if not self.is_startup else False
 
@@ -1147,16 +1068,15 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
             self.first_order_splitting = False
             if (self.startup_first_order_splitting and self.is_startup):
                 self.first_order_splitting = True
-                KM.Logger.PrintInfo(self.__class__.__name__, f"\tStartup first order splitting is enabled.")
+                if(self.echo_level > 1):
+                    KM.Logger.PrintInfo(self.__class__.__name__, f"\tStartup first order splitting is enabled.")
 
             # If first order projection is active, deactivate the pressure stabilization in the pressure solution step
             gamma = 0.0 if self.first_order_splitting else 1.0
             self.deactivate_pressure_stabilization = True if self.is_startup else False
-            # if self.first_order_splitting:
-            #     self.deactivate_pressure_stabilization = True
-            # else:
-            #     self.deactivate_pressure_stabilization = False
-            KM.Logger.PrintInfo(self.__class__.__name__, f"\tFirst order splitting: {self.first_order_splitting}. Splitting gamma factor set to: {gamma}. Deactivate pressure stabilization: {self.deactivate_pressure_stabilization}.")
+
+            if(self.echo_level > 1):
+                KM.Logger.PrintInfo(self.__class__.__name__, f"\tFirst order splitting: {self.first_order_splitting}. Splitting gamma factor set to: {gamma}. Deactivate pressure stabilization: {self.deactivate_pressure_stabilization}.")
 
             # Explicitly backup the state once per substep
             backup_current_time = current_time
@@ -1175,26 +1095,29 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
 
             repeat_step1 = True
             while(repeat_step1):
-                KM.Logger.PrintInfo(self.__class__.__name__,f"\tNext Kratos time: {self.time:.3e}. Current substep time: {current_time:.3e}. vmax = {vmax:.3f}. CFL = {self.cfl:.2f}.")
+                if self.echo_level > 1:
+                    KM.Logger.PrintInfo(self.__class__.__name__,f"\tNext Kratos time: {self.time:.3e}. Current substep time: {current_time:.3e}. vmax = {vmax:.3f}. CFL = {self.cfl:.2f}.")
                 # Compute convective operator spectral radius
                 rho_conv = self.ComputeElementalConvectiveOperatorSpectralRadius(vold, out=self.pool.Get(2, (nelem,))) #self.tmp_n_elem)
 
                 # Get maximum allowed time step with previous substep velocity
                 max_cfl_el_id, max_dt = self._ComputeDeltaTime(rho_conv)
                 self.pool.Release(rho_conv)
-                if self.echo_level > 0:
+                if self.echo_level > 1:
                     KM.Logger.PrintInfo(self.__class__.__name__, f"\tMaximum CFL found at element: {max_cfl_el_id}. Maximum dt: {max_dt:.3e}.")
 
                 # Compute current substep time step
                 n_substeps = math.ceil((self.time - current_time) / max_dt)
                 substep_dt = (self.time - current_time) / n_substeps
                 current_time += substep_dt
-                KM.Logger.PrintInfo(self.__class__.__name__,f"\tSubstep dt: {substep_dt:.3e} - n_substeps left: {n_substeps} - % of step completion: {((current_time-self.time+self.dt)/self.dt*100.0):.1f}%")
+
+                if self.echo_level > 0:
+                    KM.Logger.PrintInfo(self.__class__.__name__,f"\tSubstep dt: {substep_dt:.3e} - n_substeps left: {n_substeps} - % of step completion: {((current_time-self.time+self.dt)/self.dt*100.0):.1f}%")
 
                 # Compute current substep Dirichlet velocity and body force values
                 # Note that we assume a linear interpolation within the step
                 substep_dt_factor = 1.0 - (self.time - current_time) / self.dt
-                # print(f"\ttime: {self.time} - current_time: {current_time} - substep_dt: {substep_dt} - substep_dt_factor: {substep_dt_factor}")
+
                 b = (1.0 - substep_dt_factor) * b_old + substep_dt_factor * b_new
                 v_dirichlet = (1.0 - substep_dt_factor) * v_old_dirichlet + substep_dt_factor * v_new_dirichlet
 
@@ -1236,7 +1159,8 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
             compressibility_switch = bool(self.compressibility) if self.compressibility != None else False # True for both "lumped" and "consistent" compressibility values. False if None.
             add_compressibility = compressibility_switch if not self.is_startup else False # Deavtivate weak compressibility during startup
             if self.compressibility:
-                KM.Logger.PrintInfo(self.__class__.__name__,f"\tAdding compressibility to pressure solve: {add_compressibility}.")
+                if(self.echo_level > 1):
+                    KM.Logger.PrintInfo(self.__class__.__name__,f"\tAdding compressibility to pressure solve: {add_compressibility}.")
             p, is_converged = self.SolveStep2(vfrac, pold, substep_dt, add_compressibility=add_compressibility, gamma=gamma)
             if is_converged:
                 delta_p = p - pold if not self.first_order_splitting else p.copy()
@@ -1301,13 +1225,11 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         t0 = time.perf_counter()
         res = self.cfd_utils.ComputeBodyForceContribution(b_elemental, out=self.pool.Get(0,v_elemental.shape))
         res *= self.rho
-        #print(f"\t\ttime {1}: {time.perf_counter() - t0}")
 
         t0 = time.perf_counter()
         grad_v = self.cfd_utils.ComputeElementalGradient(DN, v_elemental, out=self.pool.Get(1,(v_elemental.shape[0], self.dim, self.dim)))
         a_grad_elemental = self.cfd_utils.ComputeElementalConvectiveOperator(v_elemental, grad_v, out=self.pool.Get(2,v_elemental.shape))
         self.pool.Release(grad_v)
-        #print(f"\t\ttime {2}: {time.perf_counter() - t0}")
 
         t0 = time.perf_counter()
         # -(w,rho·a·∇u)
@@ -1320,44 +1242,36 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         convective_stab = self.cfd_utils.ComputeMomentumStabilization(DN, v_elemental, a_grad_elemental, proj_elemental, out=self.pool.Get(1,v_elemental.shape)) #a_grad_elemental is actually still tmp_elem here
         convective_stab *= self.rho * self.rho
         res -= convective_stab * self.tau_1[:, None, None] #assemble convective stabilization contribution
-        #print(f"\t\ttime {8}: {time.perf_counter() - t0}")
         self.pool.Release(convective_stab)
         self.pool.Release(a_grad_elemental)
 
         #-(∇w,∇u)
         t0 = time.perf_counter()
         res -= self.dyn_visc * self.cfd_utils.ApplyLaplacian(DN, v_elemental, out=self.pool.Get(1,v_elemental.shape))
-        #print(f"\t\ttime {9}: {time.perf_counter() - t0}")
         self.pool.ReleaseByIndex(1)
 
         #+(∇·w,gamma·p_gauss)
         if gamma == 1:
             t0 = time.perf_counter()
             res += self.cfd_utils.ComputeDNN(self.N, DN, p_elemental, out=self.pool.Get(1,v_elemental.shape))
-            #print(f"\t\ttime {10}: {time.perf_counter() - t0}")
             self.pool.ReleaseByIndex(1)
 
         #-(∇·w,tau_2·∇·v) + (∇·w,tau_2·Pi_div)
         t0 = time.perf_counter()
         div_div_stab = self.cfd_utils.ComputeDivDivStabilization(self.N, DN, v_elemental, proj_div_el, out=self.pool.Get(1,v_elemental.shape))
         res -= div_div_stab * self.tau_2[:,np.newaxis,np.newaxis]
-        #print(f"\t\ttime {11}: {time.perf_counter() - t0}")
         self.pool.Release(div_div_stab)
 
         # Multiply by volume
         t0 = time.perf_counter()
         res *= self.elemental_volumes[:,xp.newaxis,xp.newaxis]
-        #print(f"\t\ttime {12}: {time.perf_counter() - t0}")
 
         # Vectorized assembly of the elemental contributions into the nodal residual
         t0 = time.perf_counter()
         res_assembled.fill(0.0)
         self.cfd_utils.AssembleVector(self.connectivity, res, res_assembled)
         self.pool.Release(res)
-        #print(f"\t\ttime {13}: {time.perf_counter() - t0}")
 
-        #print(f"\t Time inside ComputeVelocityResidual: {time.perf_counter() - ttot}")
-        # return res_assembled
 
     # def ComputeVelocityResidualWall(self, v_elemental_wall, out=None):
     #     if out is None:
@@ -1427,7 +1341,7 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
             "startup_time" : 0.0,
             "startup_time_scheme" : "FE",
             "startup_first_order_splitting" : true,
-            "weak_compressibility" : true,
+            "weak_compressibility" : false,
             "weak_compressibility_matrix" : "lumped"
         }""")
         return default_settings
@@ -1492,20 +1406,20 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
             # Check if preconditioner needs to be constructed again
             # Note that this is relevant when the matrix contributions change (e.g., after startup, compressibility switch on, etc.) 
             if self.construct_precond:
-                if self.echo_level > 0:
+                if self.echo_level > 1:
                     KM.Logger.PrintInfo(self.__class__.__name__, f"Setting graph for AMG with {self.L.nnz} nonzeros and {self.L.shape[0]} rows")
                 t0 = time.perf_counter()
                 self.preconditioner = self.cfd_utils.ConstructPreconditioner(self.L)
-                if self.echo_level > 0:
+                if self.echo_level > 1:
                     KM.Logger.PrintInfo(self.__class__.__name__, f"AMG graph setup time: {time.perf_counter()-t0}.")
 
             # Update preconditioner matrix values (note that this must be always done)
             if self.update_precond:
-                if self.echo_level > 0:
+                if self.echo_level > 1:
                     KM.Logger.PrintInfo(self.__class__.__name__, f"Updating graph for AMG with {self.L.nnz} nonzeros and {self.L.shape[0]} rows")
                 t0 = time.perf_counter()
                 self.preconditioner.update_matrix_values(self.L)
-                if self.echo_level > 0:
+                if self.echo_level > 1:
                     KM.Logger.PrintInfo(self.__class__.__name__, f"AMG graph update time: {time.perf_counter() - t0:.4f} seconds")
 
             t0 = time.perf_counter()
@@ -1542,9 +1456,8 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
 
 
             else:
-                if (self.echo_level > 0):
-                    KM.Logger.PrintInfo(self.__class__.__name__, f"CG converged in {info['iterations']} iterations.")
-                    KM.Logger.PrintInfo(self.__class__.__name__, f"CG solve time: {time.perf_counter() - t0:.4f} seconds")
+                if (self.echo_level > 1):
+                    KM.Logger.PrintInfo(self.__class__.__name__, f"CG converged in {info['iterations']} iterations. CG solve time: {time.perf_counter() - t0:.4f} seconds")
 
             return sol, info["converged"]
         else:
