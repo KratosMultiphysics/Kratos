@@ -7,6 +7,7 @@ class TestIntegrationPoints(KratosUnittest.TestCase):
         current_model = KratosMultiphysics.Model()
 
         mp = current_model.CreateModelPart("Main")
+        mp.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
 
         # Create nodes
         mp.CreateNewNode(1,0.00,3.00,0.00)

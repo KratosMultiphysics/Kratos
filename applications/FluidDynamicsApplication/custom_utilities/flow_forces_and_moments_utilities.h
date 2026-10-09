@@ -113,6 +113,13 @@ namespace Kratos
     */
     array_1d<double, 3> CalculateEmbeddedFlowForceCenter(const ModelPart &rModelPart);
 
+    /**
+    * Computes the integral of the Cauchy stress term normal projection as a sum of the fluid force in the given model part nodes.
+    * @param rModelPart reference to the model part in where the drag is to be computed
+    * @return An array containing the flow force value and the moment about a reference point.
+    */
+    std::tuple<array_1d<double,3>, array_1d<double,3>> CalculateShiftedBoundaryFlowForcesAndMoments(ModelPart &rModelPart, const array_1d<double, 3>& rReferencePoint);
+
     ///@}
     ///@name Access
     ///@{
