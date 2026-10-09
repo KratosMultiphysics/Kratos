@@ -32,6 +32,7 @@
 #include "custom_strategies/lspg_rom_builder_and_solver.h"
 #include "custom_strategies/ann_prom_lspg_rom_builder_and_solver.h"
 #include "custom_strategies/petrov_galerkin_rom_builder_and_solver.h"
+#include "custom_strategies/elemental_lspg_rom_builder_and_solver.h"
 #include "custom_strategies/global_rom_builder_and_solver.h"
 #include "custom_strategies/ann_prom_global_rom_builder_and_solver.h"
 #include "custom_strategies/global_petrov_galerkin_rom_builder_and_solver.h"
@@ -66,6 +67,13 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
 
      py::class_<PetrovGalerkinROMBuilderAndSolverType, typename PetrovGalerkinROMBuilderAndSolverType::Pointer, ROMBuilderAndSolverType, BuilderAndSolverType>(m, "PetrovGalerkinROMBuilderAndSolver")
         .def(py::init< LinearSolverType::Pointer, Parameters>() )
+        ;
+
+    typedef ElementalLeastSquaresPetrovGalerkinROMBuilderAndSolver<SparseSpaceType, LocalSpaceType, LinearSolverType> ElementalLeastSquaresPetrovGalerkinROMBuilderAndSolverType;
+
+    py::class_<ElementalLeastSquaresPetrovGalerkinROMBuilderAndSolverType, typename ElementalLeastSquaresPetrovGalerkinROMBuilderAndSolverType::Pointer, ROMBuilderAndSolverType, BuilderAndSolverType>(m, "ElementalLeastSquaresPetrovGalerkinROMBuilderAndSolver")
+        .def(py::init< LinearSolverType::Pointer, Parameters>() )
+        .def("CalculateJPhi", &ElementalLeastSquaresPetrovGalerkinROMBuilderAndSolverType::CalculateJPhi)
         ;
 
     typedef GlobalROMBuilderAndSolver<SparseSpaceType, LocalSpaceType, LinearSolverType> GlobalROMBuilderAndSolverType;
