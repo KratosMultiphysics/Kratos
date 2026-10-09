@@ -25,7 +25,7 @@
 // Project includes
 #include "containers/array_1d.h"
 #include "containers/nd_data.h"
-#include "includes/ublas_interface.h"
+#include "includes/default_interface.h"
 #include "utilities/parallel_utilities.h"
 
 namespace Kratos
