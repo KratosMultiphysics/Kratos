@@ -104,6 +104,7 @@ static inline double FastProjectDirection(
     const double denom = inner_prod(proj_dir, rGeometryToProjectNormal);
 
     if (std::abs(denom) <= zero_tolerance) {
+        KRATOS_WARNING("FastProjectDirection") << "The projection direction is nearly parallel to the target plane. inner_prod: " << denom << std::endl;
         noalias(rPointProjected.Coordinates()) = rPointToProject.Coordinates();
         return std::numeric_limits<double>::max();
     }
