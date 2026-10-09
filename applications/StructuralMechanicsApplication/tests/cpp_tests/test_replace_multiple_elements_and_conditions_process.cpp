@@ -42,17 +42,17 @@ namespace Kratos
             element_nodes_0[1] = p_node_2;
             element_nodes_0[2] = p_node_3;
             Triangle3D3 <NodeType> triangle_0( PointerVector<NodeType>{element_nodes_0} );
-            ThisModelPart.CreateNewElement("Element3D3N", 1, triangle_0, p_prop);
+            ThisModelPart.CreateNewElement("Element3D3N", 1, triangle_0.Points(), p_prop);
 
             std::vector<NodeType::Pointer> element_nodes_1 (3);
             element_nodes_1[0] = p_node_2;
             element_nodes_1[1] = p_node_3;
             element_nodes_1[2] = p_node_1;
             Triangle3D3 <NodeType> triangle_1( PointerVector<NodeType>{element_nodes_1} );
-            ThisModelPart.CreateNewElement("ShellThinElement3D3N", 2, triangle_1, p_prop);
+            ThisModelPart.CreateNewElement("ShellThinElement3D3N", 2, triangle_1.Points(), p_prop);
 
-            ThisModelPart.CreateNewCondition("SurfaceCondition3D3N", 1, triangle_0, p_prop);
-            ThisModelPart.CreateNewCondition("SurfaceLoadCondition3D3N", 2, triangle_1, p_prop);
+            ThisModelPart.CreateNewCondition("SurfaceCondition3D3N", 1, triangle_0.Points(), p_prop);
+            ThisModelPart.CreateNewCondition("SurfaceLoadCondition3D3N", 2, triangle_1.Points(), p_prop);
         }
 
         KRATOS_TEST_CASE_IN_SUITE(ReplaceMultipleElementsAndConditionsProcess1, KratosStructuralMechanicsFastSuite)

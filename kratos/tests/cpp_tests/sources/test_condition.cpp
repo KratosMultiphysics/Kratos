@@ -41,7 +41,7 @@ namespace Kratos {
             p_cond->SetValue(VELOCITY_X, 32.4);
             p_cond->Set(ACTIVE, true);
 
-            Condition::Pointer p_clone_of_cond = p_cond->Clone(2, p_cond->GetGeometry());
+            Condition::Pointer p_clone_of_cond = p_cond->Clone(2, p_cond->GetGeometry().Points());
 
             KRATOS_EXPECT_EQ(p_clone_of_cond->Id(), 2);
             KRATOS_EXPECT_DOUBLE_EQ(p_clone_of_cond->GetValue(DISTANCE), 12.1);

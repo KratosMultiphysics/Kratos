@@ -114,7 +114,7 @@ namespace Kratos {
                 // Generate the new Tetrahedra3D10 element
                 Tetrahedra3D10<Node> geom = GenerateTetrahedra(rThisModelPart, node_ids);
                 Element::Pointer p_element;
-                p_element = r_elem.Create(it->Id(), geom, it->pGetProperties());
+                p_element = r_elem.Create(it->Id(), geom.Points(), it->pGetProperties());
                 p_element->Initialize(r_current_process_info);
                 p_element->InitializeSolutionStep(r_current_process_info);
                 p_element->FinalizeSolutionStep(r_current_process_info);
@@ -215,7 +215,7 @@ namespace Kratos {
                     //Generate the new condition
                     Triangle3D6<Node > geom = GenerateTriangle3D6 (rThisModelPart, node_ids);
                     Condition::Pointer p_cond;
-                    p_cond = r_cond.Create(it->Id(), geom, it->pGetProperties());
+                    p_cond = r_cond.Create(it->Id(), geom.Points(), it->pGetProperties());
                     p_cond ->Initialize(r_current_process_info);
                     p_cond ->InitializeSolutionStep(r_current_process_info);
                     p_cond ->FinalizeSolutionStep(r_current_process_info);

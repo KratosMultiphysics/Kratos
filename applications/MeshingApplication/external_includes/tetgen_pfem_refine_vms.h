@@ -782,7 +782,7 @@ ModelPart::NodesContainerType& ModelNodes = ThisModelPart.Nodes();
 					KRATOS_THROW_ERROR(std::logic_error,"trying to use an inexisting node","");
 #endif
 
-				Element::Pointer p_element = rReferenceElement.Create(id, geom, properties);
+				Element::Pointer p_element = rReferenceElement.Create(id, geom.Points(), properties);
 				(ThisModelPart.Elements()).push_back(p_element);
 
 			}
