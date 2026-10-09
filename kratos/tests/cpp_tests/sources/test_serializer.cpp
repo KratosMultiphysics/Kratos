@@ -156,24 +156,44 @@ KRATOS_TEST_CASE_IN_SUITE(SerializerUnsignedChar, KratosCoreFastSuite)
     TestObjectSerialization(object_to_be_saved, object_to_be_loaded);
 }
 
-// ASCII (trace) mode used to write unsigned char as a raw character, so on read operator>> skipped
+KRATOS_TEST_CASE_IN_SUITE(SerializerSignedChar, KratosCoreFastSuite)
+{
+    signed char object_to_be_saved = -42;
+    signed char object_to_be_loaded;
+
+    TestObjectSerialization(object_to_be_saved, object_to_be_loaded);
+}
+
+// ASCII (trace) mode used to write (un)signed char as a raw character, so on read operator>> skipped
 // whitespace bytes such as 32 (' '), corrupting the value and misaligning the stream.
-KRATOS_TEST_CASE_IN_SUITE(SerializerUnsignedCharAsciiTrace, KratosCoreFastSuite)
+template<class TCharType>
+void TestCharAsciiTraceSerialization(const std::vector<TCharType>& rValues)
 {
     StreamSerializer serializer(Serializer::SERIALIZER_TRACE_ALL);
 
-    const unsigned char space_value = 32;
-    const unsigned char ordinary_value = 200;
-    unsigned char loaded_space_value;
-    unsigned char loaded_ordinary_value;
+    for (const auto value : rValues) {
+        serializer.save("Value", value);
+    }
+    serializer.save("Sentinel", 12345);
 
-    serializer.save("SpaceValue", space_value);
-    serializer.save("OrdinaryValue", ordinary_value);
-    serializer.load("SpaceValue", loaded_space_value);
-    serializer.load("OrdinaryValue", loaded_ordinary_value);
+    for (const auto value : rValues) {
+        TCharType loaded_value;
+        serializer.load("Value", loaded_value);
+        KRATOS_EXPECT_EQ(static_cast<int>(loaded_value), static_cast<int>(value));
+    }
+    int loaded_sentinel;
+    serializer.load("Sentinel", loaded_sentinel);
+    KRATOS_EXPECT_EQ(loaded_sentinel, 12345);
+}
 
-    KRATOS_EXPECT_EQ(loaded_space_value, space_value);
-    KRATOS_EXPECT_EQ(loaded_ordinary_value, ordinary_value);
+KRATOS_TEST_CASE_IN_SUITE(SerializerUnsignedCharAsciiTrace, KratosCoreFastSuite)
+{
+    TestCharAsciiTraceSerialization<unsigned char>({0, 32, 200, 255});
+}
+
+KRATOS_TEST_CASE_IN_SUITE(SerializerSignedCharAsciiTrace, KratosCoreFastSuite)
+{
+    TestCharAsciiTraceSerialization<signed char>({-128, 32, 127});
 }
 
 KRATOS_TEST_CASE_IN_SUITE(SerializerStdString, KratosCoreFastSuite)

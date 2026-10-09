@@ -55,7 +55,8 @@ public:
      * @details This class wraps around a pointer to an array with an @p intrusive_ptr.
      *          It needs to be an @p intrusive_ptr to enable sharing the internal data
      *          represented by @p mpData with numpy, whilst having the possibility to extend
-     *          the life time.
+     *          the life time. On load, an existing buffer of the saved size is overwritten in place
+     *          (ownership kept, so numpy views stay valid); otherwise a new, managed buffer is allocated.
      */
     class PointerWrapper
     {
@@ -69,6 +70,9 @@ public:
         ///@name Life cycle
         ///@{
 
+        /// Default constructor, only intended as a @ref Serializer load target.
+        PointerWrapper() = default;
+
         /**
          * @brief Construct a new Pointer Wrapper for a given @p pData pointer.
          * @details This construct a PointerWrapper for the given @p pData pointer.
@@ -77,12 +81,15 @@ public:
          *              - @p if IsManaged is false, then the data will not be managed by this @ref PointerWrapper.
          *
          * @param pData         Pointer to the data
+         * @param Size          Number of entries pointed by @p pData.
          * @param IsManaged     Whether the data pointed by @p pData is managed by this class or not.
          */
         PointerWrapper(
             TDataType * pData,
+            const std::size_t Size,
             const bool IsManaged)
         : mIsManaged(IsManaged),
+          mSize(Size),
           mpData(pData) {}
 
         ~PointerWrapper() { if (mIsManaged && mpData) delete[] mpData; }
@@ -91,15 +98,31 @@ public:
 
         TDataType const * Data() const { return mpData; }
 
+        std::size_t Size() const { return mSize; }
+
+        bool IsManaged() const { return mIsManaged; }
+
         ///@}
 
     private:
         ///@name Private member variables
         ///@{
 
-        const bool mIsManaged;
+        bool mIsManaged = false;
+
+        std::size_t mSize = 0;
 
         TDataType * mpData = nullptr;
+
+        ///@}
+        ///@name Serialization
+        ///@{
+
+        friend class Serializer;
+
+        void save(Serializer& rSerializer) const;
+
+        void load(Serializer& rSerializer);
 
         ///@}
         ///@name Private operations
@@ -144,6 +167,7 @@ public:
      * @brief Construct an empty, invalid instance.
      * @details Only intended for @ref Serializer::load to construct into before populating via
      *          @ref load. Any other use leaves the instance with a null internal data pointer.
+     *          Loading into an existing instance reuses its buffer when the size matches.
      */
     NDData() = default;
 

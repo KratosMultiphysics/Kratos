@@ -29,9 +29,12 @@ class TestPropertiesVariableTensorAdaptorSerialization(kratos_unittest.TestCase)
         serializer.Save("Model", model)
         serializer.Save("TA", combined)
 
+        # Python can't build empty adaptors: build the target on the loaded model, then Load fills it.
         load_model = Kratos.Model()
-        loaded = Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor()
         serializer.Load("Model", load_model)
+        load_model_part = load_model.GetModelPart("Test")
+        loaded = Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor([
+            KratosOA.TensorAdaptors.PropertiesVariableTensorAdaptor(load_model_part.Elements, Kratos.DENSITY)], False, False, False)
         serializer.Load("TA", loaded)
 
         self.assertEqual(loaded.Size(), combined.Size())

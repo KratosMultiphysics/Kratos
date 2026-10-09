@@ -1,4 +1,5 @@
 import os
+import numpy
 
 # Importing the Kratos Library
 import KratosMultiphysics
@@ -236,10 +237,14 @@ class TestSerializer(KratosUnittest.TestCase):
         serializer.Save("Variable", variable_ta)
         serializer.Save("Combined", combined)
 
+        # Python can't build empty adaptors: build them on the loaded model, then Load fills them.
         loaded_model = KratosMultiphysics.Model()
-        loaded_variable = ta.VariableTensorAdaptor()
-        loaded_combined = ta.DoubleCombinedTensorAdaptor()
         serializer.Load("Model", loaded_model)
+        loaded_model_part = loaded_model.GetModelPart("Test")
+        loaded_variable = ta.VariableTensorAdaptor(loaded_model_part.Nodes, KratosMultiphysics.PRESSURE)
+        loaded_combined = ta.DoubleCombinedTensorAdaptor([
+            ta.VariableTensorAdaptor(loaded_model_part.Nodes, KratosMultiphysics.PRESSURE),
+            ta.HistoricalVariableTensorAdaptor(loaded_model_part.Nodes, KratosMultiphysics.TEMPERATURE)], False, False, False)
         serializer.Load("Variable", loaded_variable)
         serializer.Load("Combined", loaded_combined)
 
@@ -253,13 +258,43 @@ class TestSerializer(KratosUnittest.TestCase):
         # loaded nodes and leaves the original model untouched.
         loaded_variable.data[:] = [7.0, 8.0, 9.0]
         loaded_variable.StoreData()
-        loaded_model_part = loaded_model.GetModelPart("Test")
         self.assertEqual([node.GetValue(KratosMultiphysics.PRESSURE) for node in loaded_model_part.Nodes], [7.0, 8.0, 9.0])
         self.assertEqual([node.GetValue(KratosMultiphysics.PRESSURE) for node in model_part.Nodes], [1.0, 2.0, 3.0])
 
-    def test_UninitializedTensorAdaptor(self):
-        with self.assertRaisesRegex(RuntimeError, "Uninitialized TensorAdaptor"):
-            KratosMultiphysics.TensorAdaptors.DoubleTensorAdaptor().Shape()
+    def test_TensorAdaptorLoadKeepsNumpyViews(self):
+        # A same-size load overwrites the existing buffer in place, so numpy arrays sharing it stay
+        # valid and see the loaded values, and a buffer owned by numpy is written back into.
+        model = KratosMultiphysics.Model()
+        model_part = model.CreateModelPart("Test")
+        for i in range(3):
+            model_part.CreateNewNode(i + 1, float(i), 0.0, 0.0).SetValue(KratosMultiphysics.PRESSURE, i + 1.0)
+
+        ta = KratosMultiphysics.TensorAdaptors
+        variable_ta = ta.VariableTensorAdaptor(model_part.Nodes, KratosMultiphysics.PRESSURE)
+        variable_ta.CollectData()
+        view = variable_ta.data
+
+        np_array = numpy.array([4.0, 5.0, 6.0])
+        nd_data_ta = ta.DoubleTensorAdaptor(model_part.Nodes, KratosMultiphysics.DoubleNDData(np_array, copy=False), copy=False)
+
+        serializer = KratosMultiphysics.StreamSerializer()
+        serializer.Set(KratosMultiphysics.Serializer.SHALLOW_GLOBAL_POINTERS_SERIALIZATION)
+        serializer.Save("Model", model)
+        serializer.Save("Variable", variable_ta)
+        serializer.Save("NDData", nd_data_ta)
+
+        variable_ta.data[:] = 0.0
+        np_array[:] = 0.0
+
+        loaded_model = KratosMultiphysics.Model()
+        serializer.Load("Model", loaded_model)
+        serializer.Load("Variable", variable_ta)
+        serializer.Load("NDData", nd_data_ta)
+
+        self.assertVectorAlmostEqual(view, [1.0, 2.0, 3.0])
+        self.assertVectorAlmostEqual(variable_ta.data, [1.0, 2.0, 3.0])
+        self.assertVectorAlmostEqual(np_array, [4.0, 5.0, 6.0])
+        self.assertVectorAlmostEqual(nd_data_ta.data, [4.0, 5.0, 6.0])
 
 if __name__ == '__main__':
     KratosUnittest.main()

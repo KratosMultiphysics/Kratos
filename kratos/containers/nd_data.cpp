@@ -30,7 +30,7 @@ NDData<TDataType>::NDData(const DenseVector<unsigned int>& rShape)
     : mShape(rShape)
 {
     // allocate new memory
-    mpData = Kratos::make_intrusive<PointerWrapper>(new TDataType[this->Size()], true);
+    mpData = Kratos::make_intrusive<PointerWrapper>(new TDataType[this->Size()], this->Size(), true);
 }
 
 template<class TDataType>
@@ -53,9 +53,9 @@ NDData<TDataType>::NDData(
     : mShape(rShape)
 {
     if (!Copy) {
-        mpData = Kratos::make_intrusive<PointerWrapper>(pData, false);
+        mpData = Kratos::make_intrusive<PointerWrapper>(pData, this->Size(), false);
     } else {
-        mpData = Kratos::make_intrusive<PointerWrapper>(new TDataType[this->Size()], true);
+        mpData = Kratos::make_intrusive<PointerWrapper>(new TDataType[this->Size()], this->Size(), true);
 
         const auto span = this->ViewData();
         IndexPartition<IndexType>(this->Size()).for_each([&span, pData](const auto Index) {
@@ -70,7 +70,7 @@ NDData<TDataType>::NDData(
     const DenseVector<unsigned int>& rShape)
     : mShape(rShape)
 {
-    mpData = Kratos::make_intrusive<PointerWrapper>(new TDataType[this->Size()], true);
+    mpData = Kratos::make_intrusive<PointerWrapper>(new TDataType[this->Size()], this->Size(), true);
 
     const auto span = this->ViewData();
     IndexPartition<IndexType>(this->Size()).for_each([&span, pData](const auto Index) {
@@ -123,16 +123,45 @@ std::string NDData<TDataType>::Info() const
 }
 
 template<class TDataType>
+void NDData<TDataType>::PointerWrapper::save(Serializer& rSerializer) const
+{
+    rSerializer.save("IsManaged", mIsManaged);
+    rSerializer.save("Size", mSize);
+    for (std::size_t i = 0; i < mSize; ++i) {
+        rSerializer.save("E", mpData[i]);
+    }
+}
+
+template<class TDataType>
+void NDData<TDataType>::PointerWrapper::load(Serializer& rSerializer)
+{
+    bool is_managed;
+    rSerializer.load("IsManaged", is_managed);
+    std::size_t size;
+    rSerializer.load("Size", size);
+
+    // Overwrite an existing buffer of the same size in place, keeping its ownership, so numpy views
+    // and foreign memory stay valid. A new buffer is always managed (otherwise it leaks), because the
+    // foreign memory behind a saved unmanaged wrapper doesn't exist in the loading process.
+    if (!mpData || mSize != size) {
+        if (mIsManaged && mpData) {
+            delete[] mpData;
+        }
+        mpData = new TDataType[size];
+        mSize = size;
+        mIsManaged = true;
+    }
+
+    for (std::size_t i = 0; i < mSize; ++i) {
+        rSerializer.load("E", mpData[i]);
+    }
+}
+
+template<class TDataType>
 void NDData<TDataType>::save(Serializer& rSerializer) const
 {
     rSerializer.save("Shape", mShape);
-
-    // wrap the raw buffer as a DenseVector to reuse Serializer's existing bulk-efficient
-    // (de)serialization instead of looping element-by-element through per-call tag overhead.
-    DenseVector<TDataType> data_vector(this->Size());
-    const auto data = this->ViewData();
-    std::copy(data.begin(), data.end(), data_vector.begin());
-    rSerializer.save("Data", data_vector);
+    rSerializer.save("Data", mpData);
 }
 
 template<class TDataType>
@@ -140,12 +169,16 @@ void NDData<TDataType>::load(Serializer& rSerializer)
 {
     rSerializer.load("Shape", mShape);
 
-    DenseVector<TDataType> data_vector;
-    rSerializer.load("Data", data_vector);
+    // keep a same-size wrapper so PointerWrapper::load reuses its buffer in place. Otherwise use a new
+    // one: reallocating a shared wrapper would leave its numpy views dangling. DataOnly mode loads
+    // nothing into a null pointer, so the wrapper must exist before the load.
+    if (!mpData || mpData->Size() != this->Size()) {
+        mpData = Kratos::make_intrusive<PointerWrapper>();
+    }
+    rSerializer.load("Data", mpData);
 
-    TDataType* p_data = new TDataType[data_vector.size()];
-    std::copy(data_vector.begin(), data_vector.end(), p_data);
-    mpData = Kratos::make_intrusive<PointerWrapper>(p_data, true);
+    KRATOS_ERROR_IF(mpData->Size() != this->Size())
+        << "Loaded data size " << mpData->Size() << " does not match the shape " << mShape << ".\n";
 }
 
 // template instantiations

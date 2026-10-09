@@ -50,6 +50,27 @@ ModelPart& CreateTestModelPart(Model& rModel, const std::string& rName)
     return r_model_part;
 }
 
+// Saves rOriginal and loads it into rTarget, either with a StreamSerializer or in DataOnly mode.
+void SaveAndLoadNDData(
+    const NDData<double>& rOriginal,
+    NDData<double>& rTarget,
+    const bool DataOnly)
+{
+    if (!DataOnly) {
+        StreamSerializer serializer;
+        serializer.save("Data", rOriginal);
+        serializer.load("Data", rTarget);
+    } else {
+        const std::string file_name = "test_nd_data_data_only_load";
+        struct RemoveFileOnExit { std::string mName; ~RemoveFileOnExit() { std::remove(mName.c_str()); } } remove_file{file_name + ".rest"};
+        std::fstream(file_name + ".rest", std::ios::out).close();
+        FileSerializer serializer(file_name, Serializer::SERIALIZER_NO_TRACE, /*DataOnly=*/true);
+        serializer.save("Data", rOriginal);
+        serializer.SetLoadState();
+        serializer.load("Data", rTarget);
+    }
+}
+
 } // namespace
 
 KRATOS_TEST_CASE_IN_SUITE(VariableTensorAdaptorSerialization, KratosCoreFastSuite)
@@ -473,6 +494,91 @@ KRATOS_TEST_CASE_IN_SUITE(NDDataUnsignedCharSerializationAsciiTrace, KratosCoreF
     KRATOS_EXPECT_EQ(loaded.Size(), original.Size());
     for (IndexType i = 0; i < original.Size(); ++i) {
         KRATOS_EXPECT_EQ(loaded.ViewData()[i], original.ViewData()[i]);
+    }
+}
+
+// A freshly allocated buffer must be owned, even if the saved data was foreign (unmanaged) memory.
+KRATOS_TEST_CASE_IN_SUITE(NDDataLoadIntoEmptyOwnsData, KratosCoreFastSuite)
+{
+    for (const bool data_only : {false, true}) {
+        std::vector<double> foreign{1.0, 2.0, 3.0};
+        NDData<double> original(foreign.data(), DenseVector<unsigned int>(1, 3), false);
+        KRATOS_EXPECT_FALSE(original.pData()->IsManaged());
+
+        NDData<double> loaded;
+        SaveAndLoadNDData(original, loaded, data_only);
+
+        KRATOS_EXPECT_EQ(loaded.Size(), 3u);
+        KRATOS_EXPECT_TRUE(loaded.pData()->IsManaged());
+        KRATOS_EXPECT_NE(loaded.ViewData().data(), foreign.data());
+        for (IndexType i = 0; i < 3; ++i) {
+            KRATOS_EXPECT_EQ(loaded.ViewData()[i], foreign[i]);
+        }
+    }
+}
+
+// Same-size load overwrites the existing buffer in place (numpy views stay valid), keeping its ownership.
+KRATOS_TEST_CASE_IN_SUITE(NDDataLoadInPlaceKeepsForeignMemory, KratosCoreFastSuite)
+{
+    for (const bool data_only : {false, true}) {
+        NDData<double> original(DenseVector<unsigned int>(1, 3));
+        for (IndexType i = 0; i < 3; ++i) {
+            original.ViewData()[i] = i + 1.0;
+        }
+
+        std::vector<double> buffer(3, 0.0);
+        NDData<double> target(buffer.data(), DenseVector<unsigned int>(1, 3), false);
+        const auto p_wrapper = target.pData();
+
+        SaveAndLoadNDData(original, target, data_only);
+
+        KRATOS_EXPECT_EQ(target.pData().get(), p_wrapper.get());
+        KRATOS_EXPECT_EQ(target.ViewData().data(), buffer.data());
+        KRATOS_EXPECT_FALSE(target.pData()->IsManaged());
+        for (IndexType i = 0; i < 3; ++i) {
+            KRATOS_EXPECT_EQ(buffer[i], i + 1.0);
+        }
+    }
+}
+
+// A load with a different size gets a new owning wrapper. The old wrapper (and anything viewing
+// its buffer, e.g. a numpy array) is left untouched.
+KRATOS_TEST_CASE_IN_SUITE(NDDataLoadSizeMismatchReallocates, KratosCoreFastSuite)
+{
+    for (const bool data_only : {false, true}) {
+        NDData<double> original(DenseVector<unsigned int>(1, 5));
+        for (IndexType i = 0; i < 5; ++i) {
+            original.ViewData()[i] = i + 1.0;
+        }
+
+        std::vector<double> buffer{7.0, 8.0, 9.0};
+        NDData<double> foreign_target(buffer.data(), DenseVector<unsigned int>(1, 3), false);
+
+        NDData<double> managed_target(DenseVector<unsigned int>(1, 3), 4.0);
+        const auto p_old_wrapper = managed_target.pData();
+        const double* p_old_data = p_old_wrapper->Data();
+
+        SaveAndLoadNDData(original, foreign_target, data_only);
+        SaveAndLoadNDData(original, managed_target, data_only);
+
+        for (const auto* p_target : {&foreign_target, &managed_target}) {
+            KRATOS_EXPECT_EQ(p_target->Shape()[0], 5u);
+            KRATOS_EXPECT_EQ(p_target->Size(), 5u);
+            KRATOS_EXPECT_TRUE(p_target->pData()->IsManaged());
+            for (IndexType i = 0; i < 5; ++i) {
+                KRATOS_EXPECT_EQ(p_target->ViewData()[i], i + 1.0);
+            }
+        }
+
+        KRATOS_EXPECT_NE(foreign_target.ViewData().data(), buffer.data());
+        KRATOS_EXPECT_EQ(buffer[0], 7.0);
+        KRATOS_EXPECT_EQ(buffer[1], 8.0);
+        KRATOS_EXPECT_EQ(buffer[2], 9.0);
+
+        KRATOS_EXPECT_NE(managed_target.pData().get(), p_old_wrapper.get());
+        KRATOS_EXPECT_EQ(p_old_wrapper->Data(), p_old_data);
+        KRATOS_EXPECT_EQ(p_old_wrapper->Size(), 3u);
+        KRATOS_EXPECT_EQ(p_old_data[0], 4.0);
     }
 }
 
