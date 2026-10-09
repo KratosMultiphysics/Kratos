@@ -141,8 +141,7 @@ template<class TContainerType, class TFunctorType, class... TArgs>
     using arg_indices = std::index_sequence_for<TArgs...>;
 
     // lvalues are stored by reference; rvalues are copied once to be safely used by every call
-    using args_storage_type = std::tuple<
-        std::conditional_t<std::is_reference_v<TArgs>, TArgs, std::decay_t<TArgs>>...>;
+    using args_storage_type = std::tuple<std::conditional_t<std::is_reference_v<TArgs>, TArgs, std::decay_t<TArgs>>...>;
     args_storage_type stored_args{std::forward<TArgs>(rArgs)...};
 
     using clean_result_type = std::remove_cv_t<std::remove_reference_t<decltype(
