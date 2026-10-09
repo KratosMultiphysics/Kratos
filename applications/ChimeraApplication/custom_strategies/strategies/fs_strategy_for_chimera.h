@@ -72,6 +72,8 @@ public:
     typedef FractionalStepStrategy<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
 
     typedef FractionalStepSettingsForChimera<TSparseSpace,TDenseSpace,TLinearSolver> SolverSettingsType;
+    
+    typedef typename BaseType::StrategyPointerType StrategyPointerType;
 
     ///@}
     ///@name Life Cycle
@@ -194,7 +196,7 @@ protected:
             KRATOS_INFO("FRACTIONAL STEP :: ")<<it+1<<std::endl;
             // build momentum system and solve for fractional step velocity increment
             r_model_part.GetProcessInfo().SetValue(FRACTIONAL_STEP,1);
-            double norm_dv = BaseType::mpMomentumStrategy->Solve();
+            const double norm_dv = SolveStrategy(BaseType::mpMomentumStrategy);
 
             // Check convergence
             converged = BaseType::CheckFractionalStepConvergence(norm_dv);
@@ -232,8 +234,9 @@ protected:
 
         KRATOS_INFO_IF("FractionalStepStrategyForChimera ", BaseType::GetEchoLevel() > 0 )<<
             "Calculating Pressure."<< std::endl;
-        //double norm_dp = 0;
-        double norm_dp = BaseType::mpPressureStrategy->Solve();
+        // Solve Pressure
+        const double norm_dp = SolveStrategy(BaseType::mpPressureStrategy);
+
 
 #pragma omp parallel
         {
@@ -326,7 +329,7 @@ protected:
 
 
          //For correcting projections for chimera
-        auto &r_pre_modelpart = rModelPart.GetSubModelPart(rModelPart.Name()+"fs_pressure_model_part");
+        auto &r_pre_modelpart = BaseType::mpPressureStrategy->GetModelPart();
         const auto& r_constraints_container = r_pre_modelpart.MasterSlaveConstraints();
         for(const auto& constraint : r_constraints_container)
         {
@@ -408,7 +411,7 @@ protected:
 
     void ChimeraProjectionCorrection(ModelPart& rModelPart)
     {
-        auto &r_pre_modelpart = rModelPart.GetSubModelPart(rModelPart.Name()+"fs_pressure_model_part");
+        auto &r_pre_modelpart = BaseType::mpPressureStrategy->GetModelPart();
         const auto& r_constraints_container = r_pre_modelpart.MasterSlaveConstraints();
         for(const auto& constraint : r_constraints_container)
         {
@@ -479,7 +482,7 @@ protected:
 
     void ChimeraVelocityCorrection(ModelPart& rModelPart)
     {
-        auto &r_pre_modelpart = rModelPart.GetSubModelPart(rModelPart.Name()+"fs_pressure_model_part");
+        auto &r_pre_modelpart = BaseType::mpPressureStrategy->GetModelPart();
         const auto& r_constraints_container = r_pre_modelpart.MasterSlaveConstraints();
         for(const auto& constraint : r_constraints_container)
         {
@@ -597,8 +600,7 @@ private:
             }
         }
 
-        auto& r_pre_modelpart =
-            rModelPart.GetSubModelPart(rModelPart.Name()+"fs_pressure_model_part");
+        auto& r_pre_modelpart = BaseType::mpPressureStrategy->GetModelPart();
         const auto& r_constraints_container = r_pre_modelpart.MasterSlaveConstraints();
         for (const auto& constraint : r_constraints_container) {
             const auto& slave_dofs = constraint.GetSlaveDofsVector();
@@ -701,6 +703,18 @@ private:
         BaseType::Check();
 
         KRATOS_CATCH("");
+    }
+
+
+    double SolveStrategy(StrategyPointerType& pStrategy)
+    {
+        pStrategy->Initialize();
+        pStrategy->InitializeSolutionStep();
+        pStrategy->Predict();
+        pStrategy->SolveSolutionStep();
+        const double norm_dx = TSparseSpace::TwoNorm(pStrategy->GetSolutionVector());
+        pStrategy->FinalizeSolutionStep();        
+        return norm_dx;
     }
 
 
