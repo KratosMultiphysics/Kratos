@@ -328,6 +328,35 @@ public:
         ) override;
 
     /**
+     * @brief Calculates a Vector variable on the element
+     * @details Supports INTERNAL_FORCES_VECTOR and EXTERNAL_FORCES_VECTOR, such that RHS = external - internal
+     * @param rVariable The variable to be computed
+     * @param rOutput The resulting vector
+     * @param rCurrentProcessInfo the current process info instance
+     */
+    void Calculate(
+        const Variable<Vector>& rVariable,
+        Vector& rOutput,
+        const ProcessInfo& rCurrentProcessInfo
+        ) override;
+    using Element::Calculate;
+
+    /**
+     * @brief Computes the external minus the internal forces vector
+     * @details Only the requested contributions are added, hence with both flags the RHS is obtained
+     * @param rForces the elemental forces vector (external - internal)
+     * @param rCurrentProcessInfo the current process info instance
+     * @param ComputeInternalForces whether the internal forces (stress contributions) are subtracted
+     * @param ComputeExternalForces whether the external forces (body force contributions) are added
+     */
+    void CalculateInternalAndExternalForcesVector(
+        VectorType& rForces,
+        const ProcessInfo& rCurrentProcessInfo,
+        const bool ComputeInternalForces,
+        const bool ComputeExternalForces
+        );
+
+    /**
      * @brief Calculate a double Variable on the Element Constitutive Law
      * @param rVariable The variable we want to get
      * @param rOutput The values obtained in the integration points
@@ -359,6 +388,12 @@ public:
      * @param rCurrentProcessInfo the current process info instance
      */
     int Check(const ProcessInfo &rCurrentProcessInfo) const override;
+
+    /**
+     * @brief This function is called at the end of each solution step
+     * @param rCurrentProcessInfo the current process info instance
+    */
+    void FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
 
     ///@}
     ///@name Access
@@ -542,7 +577,7 @@ private:
         Matrix constitutive_matrix(StrainSize, StrainSize);
         for (IndexType i = 0; i < StrainSize; ++i) {
             for (IndexType j = 0; j < StrainSize; ++j) {
-                constitutive_matrix(i, j) = rCLConstitutiveMatrix(r_permutation_vector[i], r_permutation_vector[j]);
+                constitutive_matrix(i, j) = rCLConstitutiveMatrix(static_cast<IndexType>(r_permutation_vector[i]), static_cast<IndexType>(r_permutation_vector[j]));
             }
         }
         return constitutive_matrix;

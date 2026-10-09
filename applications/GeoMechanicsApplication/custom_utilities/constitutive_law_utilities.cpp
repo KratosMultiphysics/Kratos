@@ -311,7 +311,7 @@ void ConstitutiveLawUtilities::ReplaceIgnoreUndrainedByDrainageType(Properties& 
                 << "Soon GEO_DRAINAGE_TYPE will be a mandatory material input. "
                    "Currently, the default value is "
                 << fully_coupled_drainage_type << "." << std::endl;
-            rProperties[GEO_DRAINAGE_TYPE] = fully_coupled_drainage_type;
+            rProperties.SetValue(GEO_DRAINAGE_TYPE, fully_coupled_drainage_type);
         }
         return;
     }
@@ -323,8 +323,8 @@ void ConstitutiveLawUtilities::ReplaceIgnoreUndrainedByDrainageType(Properties& 
         << "Use of IGNORE_UNDRAINED is deprecated, please change your input to "
            "GEO_DRAINAGE_TYPE"
         << std::endl;
-    rProperties[GEO_DRAINAGE_TYPE] = rProperties[IGNORE_UNDRAINED] ? constant_pw_field_drainage_type
-                                                                   : fully_coupled_drainage_type;
+    rProperties.SetValue(GEO_DRAINAGE_TYPE, rProperties[IGNORE_UNDRAINED] ? constant_pw_field_drainage_type
+                                                                          : fully_coupled_drainage_type);
     rProperties.Erase(IGNORE_UNDRAINED);
 }
 

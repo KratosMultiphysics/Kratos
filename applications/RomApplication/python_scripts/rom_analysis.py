@@ -6,16 +6,18 @@ from KratosMultiphysics.RomApplication import python_solvers_wrapper_rom
 from KratosMultiphysics.RomApplication.hrom_training_utility import HRomTrainingUtility
 from KratosMultiphysics.RomApplication.petrov_galerkin_training_utility import PetrovGalerkinTrainingUtility
 from KratosMultiphysics.RomApplication.calculate_rom_basis_output_process import CalculateRomBasisOutputProcess
+from KratosMultiphysics.RomApplication.rom_nn_interface import NN_ROM_Interface
 import numpy as np
 
 from glob import glob
 from os import remove
 from pathlib import Path
 
-def CreateRomAnalysisInstance(cls, global_model, parameters, nn_rom_interface=None):
+def CreateRomAnalysisInstance(cls, global_model, parameters, nn_rom_interface=None, rom_basis_output_folder=None, rom_basis_output_name=None):
     class RomAnalysis(cls):
 
         def __init__(self,global_model, parameters):
+            self.nn_rom_interface = nn_rom_interface
             super().__init__(global_model, parameters)
 
         def _CreateSolver(self):
@@ -34,6 +36,11 @@ def CreateRomAnalysisInstance(cls, global_model, parameters, nn_rom_interface=No
                                     self.rom_basis_output_name = parameter_set["Parameters"]["rom_basis_output_name"].GetString()
                                 if parameter_set["Parameters"].Has("rom_basis_output_folder"):
                                     self.rom_basis_output_folder = parameter_set["Parameters"]["rom_basis_output_folder"].GetString()
+            # Explicitly provided values (e.g. from the RomManager) take precedence
+            if rom_basis_output_name is not None:
+                self.rom_basis_output_name = rom_basis_output_name
+            if rom_basis_output_folder is not None:
+                self.rom_basis_output_folder = rom_basis_output_folder
             self.rom_basis_output_name = Path(self.rom_basis_output_name)
             self.rom_basis_output_folder = Path(self.rom_basis_output_folder)
 
@@ -106,9 +113,54 @@ def CreateRomAnalysisInstance(cls, global_model, parameters, nn_rom_interface=No
 
             # Check if we are using an ann_enhanced strategy
             self.ann_enhanced = self.solving_strategy in ('galerkin_ann', 'lspg_ann')
-            if self.ann_enhanced and nn_rom_interface is None:
-                err_msg = f"'Using {self.solving_strategy}' projection strategy but found no NN_ROM_Interface instance to use."
-                raise Exception(err_msg)
+            if self.ann_enhanced and self.nn_rom_interface is None:
+                # Standalone run (no RomManager): read the ANN-enhanced decoder from the numpy files in the ROM folder
+                if not self.rom_parameters.Has("ann_enhanced_settings"):
+                    err_msg = f"Using '{self.solving_strategy}' projection strategy but found no NN_ROM_Interface instance to use, nor 'ann_enhanced_settings' in the RomParameters to create one."
+                    raise Exception(err_msg)
+                modes = self.rom_parameters["ann_enhanced_settings"]["modes"].GetVector()
+                self.nn_rom_interface = NN_ROM_Interface.FromNumpyFiles(self.rom_basis_output_folder, modes)
+
+            solver_type = self.project_parameters["solver_settings"]["solver_type"].GetString()
+
+            # In coupled problems (e.g. 'fluid_solver' and 'thermal_solver') each sub-solver gets its own copy of the ROM settings.
+            # The position of the sub-solver in 'coupled_solvers' defines the column of the HROM weights it uses (one set of weights per physics)
+            coupled_solvers = self.rom_parameters["coupled_solvers"].GetStringArray() if self.rom_parameters.Has("coupled_solvers") else []
+            for i, sub_solver_name in enumerate(coupled_solvers):
+                sub_solver_settings = self.project_parameters["solver_settings"][f"{sub_solver_name}_settings"]
+                sub_rom_settings = self.project_parameters["solver_settings"]["rom_settings"].Clone()
+                sub_rom_settings.AddInt("weight_vector_index", i)
+                sub_rom_settings.AddInt("number_of_hrom_sets", len(coupled_solvers))
+                sub_solver_settings.AddValue("rom_settings", sub_rom_settings)
+                sub_solver_settings.AddString("projection_strategy", self.solving_strategy)
+                sub_solver_settings.AddString("assembling_strategy", self.assembling_strategy)
+
+            # The coupled solvers contain two sub-solvers (e.g. 'fluid_solver' and 'thermal_solver', or 'structural_solver' and 'thermal_solver').
+            # This patch creates rom_solvers for each of them, to seamlessly use the existing infrastructure in the RomApp
+            coupled_solvers_wrappers = {
+                "ThermallyCoupled" : [
+                    ("KratosMultiphysics.FluidDynamicsApplication.python_solvers_wrapper_fluid", "KratosMultiphysics.FluidDynamicsApplication.fluid_dynamics_analysis"),
+                    ("KratosMultiphysics.ConvectionDiffusionApplication.python_solvers_wrapper_convection_diffusion", "KratosMultiphysics.ConvectionDiffusionApplication.convection_diffusion_analysis")],
+                "ThermoMechanicallyCoupled" : [
+                    ("KratosMultiphysics.StructuralMechanicsApplication.python_solvers_wrapper_structural", "KratosMultiphysics.StructuralMechanicsApplication.structural_mechanics_analysis"),
+                    ("KratosMultiphysics.ConvectionDiffusionApplication.python_solvers_wrapper_convection_diffusion", "KratosMultiphysics.ConvectionDiffusionApplication.convection_diffusion_analysis")]
+            }
+            for wrapper_module_name, analysis_stage_module_name in coupled_solvers_wrappers.get(solver_type, []):
+                wrapper_module = importlib.import_module(wrapper_module_name)
+                if hasattr(wrapper_module.CreateSolverByParameters, "is_rom_patch"): # Already patched by a previous RomAnalysis
+                    continue
+
+                def create_solver(model, settings, parallelism, original_create=wrapper_module.CreateSolverByParameters, analysis_stage_module_name=analysis_stage_module_name):
+                    # FOM wrapper
+                    if not settings.Has("rom_settings"):
+                        return original_create(model, settings, parallelism)
+
+                    # ROM wrapper
+                    return python_solvers_wrapper_rom.CreateSolverByParameters(model, settings, parallelism, analysis_stage_module_name)
+
+                # Apply the patch
+                create_solver.is_rom_patch = True
+                wrapper_module.CreateSolverByParameters = create_solver
 
             # Create the ROM solver
             return python_solvers_wrapper_rom.CreateSolver(
@@ -127,6 +179,11 @@ def CreateRomAnalysisInstance(cls, global_model, parameters, nn_rom_interface=No
                         KratosMultiphysics.Logger.PrintWarning("RomAnalysis", warn_msg)
                         list_of_processes.remove(process)
                 self.rom_basis_process_list_check = False
+
+            # Automatically inject the Python solver into any custom process that needs it
+            for process in list_of_processes:
+                if hasattr(process, "SetDependencies"):
+                    process.SetDependencies(self._GetSolver(), self.rom_parameters)
 
             return list_of_processes
 
@@ -236,21 +293,27 @@ def CreateRomAnalysisInstance(cls, global_model, parameters, nn_rom_interface=No
                 if self.hrom_format == "json":
                     # Set the HROM weights in elements and conditions
                     hrom_weights_elements = self.rom_parameters["elements_and_weights"]["Elements"]
-                    for key,value in zip(hrom_weights_elements.keys(), hrom_weights_elements.values()):
-                        computing_model_part.GetElement(int(key)+1).SetValue(KratosROM.HROM_WEIGHT, value.GetDouble()) #FIXME: FIX THE +1
-                    hrom_weights_condtions = self.rom_parameters["elements_and_weights"]["Conditions"]
-                    for key,value in zip(hrom_weights_condtions.keys(), hrom_weights_condtions.values()):
-                        computing_model_part.GetCondition(int(key)+1).SetValue(KratosROM.HROM_WEIGHT, value.GetDouble()) #FIXME: FIX THE +1
+                    for key, value in hrom_weights_elements.items():
+                        computing_model_part.GetElement(int(key)).SetValue(KratosROM.HROM_WEIGHT, value.GetDouble())
+
+                    hrom_weights_conditions = self.rom_parameters["elements_and_weights"]["Conditions"]
+                    for key, value in hrom_weights_conditions.items():
+                        computing_model_part.GetCondition(int(key)).SetValue(KratosROM.HROM_WEIGHT, value.GetDouble())
+
                 elif self.hrom_format == "numpy":
                     # Set the HROM weights in elements and conditions
-                    element_indexes = np.load(f"{self.rom_basis_output_folder}/HROM_ElementIds.npy")
+                    element_ids = np.load(f"{self.rom_basis_output_folder}/HROM_ElementIds.npy")
                     element_weights = np.load(f"{self.rom_basis_output_folder}/HROM_ElementWeights.npy")
-                    condition_indexes = np.load(f"{self.rom_basis_output_folder}/HROM_ConditionIds.npy")
-                    conditon_weights = np.load(f"{self.rom_basis_output_folder}/HROM_ConditionWeights.npy")
-                    for i in range(np.size(element_indexes)):
-                        computing_model_part.GetElement(int( element_indexes[i])+1).SetValue(KratosROM.HROM_WEIGHT, element_weights[i]  ) #FIXME: FIX THE +1
-                    for i in range(np.size(condition_indexes)):
-                        computing_model_part.GetCondition(int( condition_indexes[i])+1).SetValue(KratosROM.HROM_WEIGHT, conditon_weights[i]  ) #FIXME: FIX THE +1
+
+                    condition_ids = np.load(f"{self.rom_basis_output_folder}/HROM_ConditionIds.npy")
+                    condition_weights = np.load(f"{self.rom_basis_output_folder}/HROM_ConditionWeights.npy")
+
+                    for i in range(np.size(element_ids)):
+                        computing_model_part.GetElement(int(element_ids[i])).SetValue(KratosROM.HROM_WEIGHT, element_weights[i,:])
+
+                    for i in range(np.size(condition_ids)):
+                        computing_model_part.GetCondition(int(condition_ids[i])).SetValue(KratosROM.HROM_WEIGHT,condition_weights[i,:])
+
 
 
             # Check and Initialize Petrov Galerkin Training stage
@@ -269,9 +332,9 @@ def CreateRomAnalysisInstance(cls, global_model, parameters, nn_rom_interface=No
             if self.ann_enhanced:
                 computing_model_part = self._GetSolver().GetComputingModelPart().GetRootModelPart()
 
-                NNLayers=nn_rom_interface.get_NN_layers()
-                SVDPhiMatrices=nn_rom_interface.get_phi_matrices()
-                refSnapshot=nn_rom_interface.get_ref_snapshot()
+                NNLayers=self.nn_rom_interface.get_NN_layers()
+                SVDPhiMatrices=self.nn_rom_interface.get_phi_matrices()
+                refSnapshot=self.nn_rom_interface.get_ref_snapshot()
                 numberOfROMModes = SVDPhiMatrices[0].Size2()
                 self._GetSolver()._GetBuilderAndSolver().SetNumberOfROMModes(numberOfROMModes)
                 self._GetSolver()._GetBuilderAndSolver().SetDecoderParameters(computing_model_part, len(NNLayers), SVDPhiMatrices[0], SVDPhiMatrices[1], SVDPhiMatrices[2], refSnapshot)
@@ -295,7 +358,7 @@ def CreateRomAnalysisInstance(cls, global_model, parameters, nn_rom_interface=No
                 s_default = np.asarray(s)
                 print(s_default.shape)
 
-                q, _ = nn_rom_interface.get_encode_function()(s_default)
+                q, _ = self.nn_rom_interface.get_encode_function()(s_default)
                 q = np.squeeze(q, axis=0)
                 print(q.shape)
 
@@ -331,6 +394,11 @@ def CreateRomAnalysisInstance(cls, global_model, parameters, nn_rom_interface=No
             # Note that this needs to be done prior to the other processes to avoid unfixing the BCs
             if self.train_hrom:
                 self.__hrom_training_utility.AppendCurrentStepResiduals()
+
+            # If the residuals process is present, fetch residuals before clearing.
+            for process in self._GetListOfOutputProcesses():
+                if hasattr(process, "CaptureResiduals"):
+                    process.CaptureResiduals()
 
             # #FIXME: Make this optional. This must be a process
             # # Project the ROM solution onto the visualization modelparts

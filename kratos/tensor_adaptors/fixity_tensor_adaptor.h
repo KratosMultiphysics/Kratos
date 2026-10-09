@@ -19,7 +19,7 @@
 
 // Project includes
 #include "tensor_adaptor.h"
-#include "includes/ublas_interface.h"
+#include "includes/default_interface.h"
 #include "utilities/data_type_traits.h"
 
 namespace Kratos {

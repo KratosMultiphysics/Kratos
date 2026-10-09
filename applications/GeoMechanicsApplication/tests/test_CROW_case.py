@@ -129,6 +129,13 @@ def max_abs_nodal_value(values_by_node_id_and_result_item, node_ids, result_item
     )
 
 
+def set_material_parameters(project_parameters, new_material_parameters_fn):
+    # Set the material parameters for all stages except the initialisation stage (stage 1)
+
+    for stage in list(project_parameters["stages"].values())[1:]:
+        stage["stage_settings"]["solver_settings"]["material_import_settings"][
+            "materials_filename"].SetString(new_material_parameters_fn)
+
 def set_quasi_newton_method(project_parameters, quasi_newton_method):
     # Add/set quasi-Newton method settings that apply to all stages
     for stage in project_parameters["stages"].values():
@@ -591,6 +598,22 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
             variant="linear_iteration",
         )
         self.run_simulation_and_checks()
+
+    def test_staged_construction_with_mohr_coulomb_clay_sand_using_linear_iteration_with_substepping(
+        self,
+    ):
+
+        new_material_parameters_fn = "../../MaterialParametersWithSubstepping.json"
+        self.prepare_test_run(
+            material_model_dir_name=mohr_coulomb_clay_sand_dir_name,
+            analysis_type=staged_construction,
+            variant="linear_iteration",
+            modify_project_parameters=(
+                lambda project_parameters: set_material_parameters(project_parameters, new_material_parameters_fn)
+            )
+        )
+        self.run_simulation_and_checks()
+
 
     def test_staged_construction_with_mohr_coulomb_clay_sand_using_broydens_method(
         self,

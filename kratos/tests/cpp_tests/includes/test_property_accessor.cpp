@@ -19,6 +19,7 @@
 #include "testing/testing.h"
 #include "includes/properties.h"
 #include "includes/table_accessor.h"
+#include "includes/database_accessor.h"
 #include "geometries/quadrilateral_2d_4.h"
 #include "tests/test_utilities/test_element.h"
 #include "tests/test_utilities/test_constitutive_law.h"
@@ -235,6 +236,69 @@ KRATOS_TEST_CASE_IN_SUITE(TableTableAccessorSerialization, KratosCoreFastSuite)
     serializer.load("table_accessor_info", table_accessor_loaded);
 
     KRATOS_EXPECT_EQ(TEMPERATURE.Key(), table_accessor_loaded.GetInputVariable().Key());
+}
+
+/**
+* checks the database accessor
+*/
+KRATOS_TEST_CASE_IN_SUITE(DatabaseAccessorSimplePropertiesProcessInfo, KratosCoreFastSuite)
+{
+        Model current_model;
+        auto &r_model_part = current_model.CreateModelPart("ModelPart",1);
+        r_model_part.AddNodalSolutionStepVariable(YOUNG_MODULUS);
+
+        r_model_part.GetProcessInfo().SetValue(DOMAIN_SIZE, 2);
+        r_model_part.GetProcessInfo().SetValue(TIME, 0.0);
+
+        // Set the element properties
+        auto p_elem_prop = r_model_part.CreateNewProperties(0);
+        p_elem_prop->SetValue(YOUNG_MODULUS, 2.0);
+
+        auto p_node_1 = r_model_part.CreateNewNode(1, 0.0 , 0.0 , 0.0);
+        auto p_node_2 = r_model_part.CreateNewNode(2, 1.0 , 0.0 , 0.0);
+        auto p_node_3 = r_model_part.CreateNewNode(3, 1.0 , 1.0 , 0.0);
+        auto p_node_4 = r_model_part.CreateNewNode(4, 0.0 , 1.0 , 0.0);
+
+        p_node_1->GetSolutionStepValue(YOUNG_MODULUS) = 25.0e1;
+        p_node_2->GetSolutionStepValue(YOUNG_MODULUS) = 30.0e1;
+        p_node_3->GetSolutionStepValue(YOUNG_MODULUS) = 35.0e1;
+        p_node_4->GetSolutionStepValue(YOUNG_MODULUS) = 40.0e1;
+    
+        p_node_1->GetValue(YOUNG_MODULUS) = 25.0;
+        p_node_2->GetValue(YOUNG_MODULUS) = 30.0;
+        p_node_3->GetValue(YOUNG_MODULUS) = 35.0;
+        p_node_4->GetValue(YOUNG_MODULUS) = 40.0;
+
+        std::vector<Node::Pointer> geom(4);
+        geom[0] = p_node_1;
+        geom[1] = p_node_2;
+        geom[2] = p_node_3;
+        geom[3] = p_node_4;
+
+        auto p_geom = Kratos::make_shared<Quadrilateral2D4<Node>>(PointerVector<Node>{geom});
+        Vector N = ZeroVector(4);
+        N[0] = 0.1;
+        N[1] = 0.2;
+        N[2] = 0.3;
+        N[3] = 0.4;
+
+        KRATOS_EXPECT_EQ(2.0, (*p_elem_prop)[YOUNG_MODULUS]);
+        KRATOS_EXPECT_EQ(2.0, (*p_elem_prop).GetValue(YOUNG_MODULUS));
+        KRATOS_EXPECT_EQ(2.0, (*p_elem_prop).GetValue(YOUNG_MODULUS, *p_geom, N, r_model_part.GetProcessInfo()));
+        KRATOS_EXPECT_EQ(false, (*p_elem_prop).HasAccessor(YOUNG_MODULUS));
+
+        //check interpolation of historical database
+        auto historical_accessor = DatabaseAccessor("node_historical");
+        p_elem_prop->SetAccessor(YOUNG_MODULUS, historical_accessor.Clone());
+        KRATOS_EXPECT_EQ(true, (*p_elem_prop).HasAccessor(YOUNG_MODULUS));
+        KRATOS_EXPECT_EQ(350.0, (*p_elem_prop).GetValue(YOUNG_MODULUS, *p_geom, N, r_model_part.GetProcessInfo()));
+
+        //check interpolation of non-historical database
+        auto non_historical_accessor = DatabaseAccessor("node_non_historical");
+        //p_elem_prop->SetAccessor(YOUNG_MODULUS, non_historical_accessor.Clone()); //NOTE: this does nothing as an emplace is used inside
+        p_elem_prop->pGetAccessor(YOUNG_MODULUS) = non_historical_accessor.Clone();
+        KRATOS_EXPECT_EQ(true, (*p_elem_prop).HasAccessor(YOUNG_MODULUS));
+        KRATOS_EXPECT_EQ(35.0, (*p_elem_prop).GetValue(YOUNG_MODULUS, *p_geom, N, r_model_part.GetProcessInfo()));
 }
 
 }  // namespace Kratos::Testing.

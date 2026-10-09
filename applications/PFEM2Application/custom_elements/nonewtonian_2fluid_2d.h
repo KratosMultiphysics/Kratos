@@ -41,13 +41,10 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define  KRATOS_MONOLITHIC_NONEWTONIAN_PFEM2_2D_ELEM_H_INCLUDED
 
 // External includes
-#include "boost/smart_ptr.hpp"
-
 
 // Project includes
-#include "includes/define.h"
 #include "includes/element.h"
-#include "includes/ublas_interface.h"
+#include "includes/default_interface.h"
 #include "custom_elements/monolithic_2fluid_2d.h"
 
 
