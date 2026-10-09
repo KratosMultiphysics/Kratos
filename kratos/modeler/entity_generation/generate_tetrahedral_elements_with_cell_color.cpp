@@ -45,8 +45,8 @@ void GenerateTetrahedralElementsWithCellColor::Generate(ModelPart& rModelPart, P
 
     array_1d<std::size_t, 3> number_of_cells = GetNumberOfCells();
 
-    ModelPart::NodesContainerType new_nodes;
-    ModelPart::ElementsContainerType new_elements;
+    std::vector<ModelPart::NodeType::Pointer> new_nodes;
+    std::vector<ModelPart::ElementType::Pointer> new_elements;
 
     Element::NodesArrayType cell_nodes(8);
     for (std::size_t k = 0; k < number_of_cells[2]; k++) {
@@ -61,12 +61,12 @@ void GenerateTetrahedralElementsWithCellColor::Generate(ModelPart& rModelPart, P
         }
     }
 
-    AddNodesToModelPart(rModelPart, new_nodes);
-    rModelPart.AddElements(new_elements.begin(), new_elements.end());
+    rModelPart.AddNodes(std::move(new_nodes));
+    rModelPart.AddElements(std::move(new_elements));
 }
 
 void GenerateTetrahedralElementsWithCellColor::CreateTetrahedraInCell(
-    ModelPart::ElementsContainerType& rElements,
+    std::vector<ModelPart::ElementType::Pointer>& rElements,
     Element::NodesArrayType& rCellNodes,
     const std::size_t StartId,
     Properties::Pointer& pProperties,
