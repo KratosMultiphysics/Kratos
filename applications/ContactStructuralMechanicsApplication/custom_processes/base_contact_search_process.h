@@ -257,7 +257,7 @@ public:
     /**
      * @brief This resets the contact operators
      */
-     virtual void ResetContactOperators();
+    virtual void ResetContactOperators();
 
     /**
      * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
@@ -518,7 +518,8 @@ private:
         IndexMap::Pointer pIndexesPairs,
         const GeometricalObject::Pointer pGeometricalObject1,
         const GeometricalObject::Pointer pGeometricalObject2,
-        const bool InvertedSearch = false
+        const bool InvertedSearch = false,
+        const double NormalOrientationThreshold = 1.0e-8
         );
 
     /**
@@ -533,7 +534,25 @@ private:
         IndexMap::Pointer pIndexesPairs,
         const Condition::Pointer pCond1,
         const Condition::Pointer pCond2,
-        const bool InvertedSearch = false
+        const bool InvertedSearch = false,
+        const double NormalOrientationThreshold = 1.0e-8
+        );
+
+    /**
+     * @brief Checks if two surface normals indicate the surfaces are facing each other (proper contact orientation).
+     * @details For contact to be valid, the normals must point in roughly opposite directions (dot product < 0).
+     *          This ensures surfaces are facing each other, not parallel or anti-parallel in the wrong direction.
+     * @param rNormal1 The first normal vector (unit normal of surface 1)
+     * @param rNormal2 The second normal vector (unit normal of surface 2)
+     * @param NormalOrientationThreshold The threshold for the dot product. Surfaces are rejected if dot(n1, n2) > threshold.
+     *                                   Use 0.0 to reject surfaces with angle > 90°, or a small positive value for tolerance.
+     * @return true if the normals indicate surfaces facing each other (contact orientation is valid)
+     * @return false if the normals indicate surfaces not facing each other (parallel, same direction, or facing away)
+     */
+    inline bool CheckNormalOrientation(
+        const array_1d<double, 3>& rNormal1,
+        const array_1d<double, 3>& rNormal2,
+        const double NormalOrientationThreshold
         );
 
     /**
