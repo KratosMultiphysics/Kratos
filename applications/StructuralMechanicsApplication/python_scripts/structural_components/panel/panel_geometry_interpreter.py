@@ -19,7 +19,7 @@ class PanelGeometryInterpreter:
         return PanelGeometry( panel_base_vectors[0], panel_base_vectors[1], panel_base_vectors[2], length, width, aspect_ratio, thickness)
 
     def _GetPoints(self, sub_model_part) -> np.ndarray:
-        points = np.array([[node.X, node.Y, node.Z] for node in sub_model_part.Nodes], dtype=float)
+        points = np.array([[node.X0, node.Y0, node.Z0] for node in sub_model_part.Nodes], dtype=float)
         return points
 
     def _GetCenteredPoints(self, points):

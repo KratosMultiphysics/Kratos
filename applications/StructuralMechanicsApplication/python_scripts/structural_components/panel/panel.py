@@ -182,7 +182,7 @@ class Panel(StructuralComponent):
         sigma_yy = self.response.sigma_yy
         tau_xy = self.response.tau_xy
 
-        tolerance = 1e-12 * max(abs(sigma_xx), abs(sigma_yy), abs(tau_xy), 1.0)
+        tolerance = 0.05 * max(abs(sigma_xx), abs(sigma_yy), abs(tau_xy))
 
         has_x_compression = sigma_xx < -tolerance
         has_y_compression = sigma_yy < -tolerance

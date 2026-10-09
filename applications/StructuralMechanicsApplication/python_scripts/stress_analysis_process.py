@@ -1,6 +1,4 @@
 import KratosMultiphysics
-import KratosMultiphysics.KratosUnittest as KratosUnittest
-#import KratosMultiphysics.process_factory
 import KratosMultiphysics.StructuralMechanicsApplication as SMA
 from KratosMultiphysics.StructuralMechanicsApplication.handbook_config_validation import Schema_Validation
 from KratosMultiphysics.StructuralMechanicsApplication.structural_components.structural_component_factory import CreateStructuralComponent
@@ -30,6 +28,11 @@ class StressAnalysisProcess(KratosMultiphysics.Process):
     def ExecuteFinalizeSolutionStep(self):
 
         self.structural_components = [CreateStructuralComponent(self.modelpart, component_definition) for component_definition in self.structural_component_definitions.values()]
+
+        for component_definition in self.structural_component_definitions.values():
+            self.modelpart.GetSubModelPart(component_definition["submodelpart"].GetString()).SetValue(SMA.RESPONSE_VALUE, float("nan"))
+
+
         for component in self.structural_components:
             component.Initialize()
             component.PrepareAnalysis()

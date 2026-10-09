@@ -28,7 +28,7 @@ class TestPuck(KratosUnittest.TestCase):
         with open("handbook_config.json", "r") as handbook_file:
             handbook_settings = KratosMultiphysics.Parameters(handbook_file.read())
 
-        handbook_settings["Structural_Elements"][0]["metadata"]["criterion"].SetString(criterion)
+        handbook_settings["Structural_Components"][0]["metadata"]["criterion"].SetString(criterion)
 
         process_settings = parameters["processes"]["custom_processes"][0]
         process_settings.RemoveValue("Parameters")
