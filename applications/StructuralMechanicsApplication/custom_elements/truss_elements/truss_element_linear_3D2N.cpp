@@ -261,6 +261,28 @@ double TrussElementLinear3D2N::ReturnTangentModulus1D(const ProcessInfo& rCurren
     KRATOS_CATCH("")
 }
 
+void TrussElementLinear3D2N::CalculateInternalForces(VectorType& rInternalForces, const ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_TRY
+    TrussElement3D2N::CalculateInternalForces(rInternalForces, rCurrentProcessInfo);
+
+    // The prestress is not included in UpdateInternalForces, AddPrestressLinear adds it with the sign of the right hand side
+    VectorType prestress_rhs = ZeroVector(msLocalSize);
+    AddPrestressLinear(prestress_rhs);
+    noalias(rInternalForces) -= prestress_rhs;
+    KRATOS_CATCH("")
+}
+
+void TrussElementLinear3D2N::CalculateExternalForces(VectorType& rExternalForces)
+{
+    KRATOS_TRY
+    if (rExternalForces.size() != msLocalSize) {
+        rExternalForces.resize(msLocalSize, false);
+    }
+    noalias(rExternalForces) = CalculateBodyForces();
+    KRATOS_CATCH("")
+}
+
 double TrussElementLinear3D2N::CalculateStressFromLinearStrain(const ProcessInfo &rCurrentProcessInfo)
 {
     ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),rCurrentProcessInfo);

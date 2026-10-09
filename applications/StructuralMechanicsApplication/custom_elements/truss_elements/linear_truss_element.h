@@ -368,6 +368,21 @@ public:
         ) override;
 
     /**
+     * @brief Calculates a Vector variable on the element (in global axes)
+     * @details Supported variables are INTERNAL_FORCES_VECTOR and EXTERNAL_FORCES_VECTOR
+     * @param rVariable The variable we want to calculate
+     * @param rOutput The calculated vector
+     * @param rCurrentProcessInfo the current process info instance
+     */
+    void Calculate(
+        const Variable<Vector>& rVariable,
+        Vector& rOutput,
+        const ProcessInfo& rCurrentProcessInfo
+        ) override;
+
+    using Element::Calculate;
+
+    /**
      * @brief This function provides the place to perform checks on the completeness of the input.
      * @details It is designed to be called only once (or anyway, not often) typically at the beginning
      * of the calculations, so to verify that nothing is missing from the input
@@ -477,6 +492,21 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
+
+    /**
+     * @brief Computes the internal forces vector (in global axes)
+     * @param rInternalForces The internal forces vector
+     * @param rCurrentProcessInfo the current process info instance
+     */
+    void CalculateInternalForces(
+        VectorType& rInternalForces,
+        const ProcessInfo& rCurrentProcessInfo);
+
+    /**
+     * @brief Computes the external (body) forces vector (in global axes)
+     * @param rExternalForces The external forces vector
+     */
+    void CalculateExternalForces(VectorType& rExternalForces);
 
     ///@}
     ///@name Private  Access

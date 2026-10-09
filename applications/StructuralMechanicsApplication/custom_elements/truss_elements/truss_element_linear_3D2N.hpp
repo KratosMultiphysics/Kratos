@@ -125,6 +125,11 @@ public:
     double ReturnTangentModulus1D(const ProcessInfo& rCurrentProcessInfo) override;
     using TrussElement3D2N::ReturnTangentModulus1D;
 
+protected:
+    void CalculateInternalForces(VectorType& rInternalForces, const ProcessInfo& rCurrentProcessInfo) override;
+
+    void CalculateExternalForces(VectorType& rExternalForces) override;
+
 private:
     double CalculateStressFromLinearStrain(const ProcessInfo &rCurrentProcessInfo);
 
