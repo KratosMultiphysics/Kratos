@@ -50,8 +50,10 @@ public:
                                      PMGStatusStream::Report& rReport,
                                      PMGStatusStream& rStream) override
     {
-        rReport.maybe_constraint_residual = 0;
-        rReport.constraints_converged = true;
+        rReport.maybe_constraint_absolute_residual.reset();
+        rReport.maybe_constraint_relative_residual.reset();
+        rReport.constraints_absolute_converged = true;
+        rReport.constraints_relative_converged = true;
         rStream.Submit(rReport.Tag(2), mVerbosity);
         return true;
     }

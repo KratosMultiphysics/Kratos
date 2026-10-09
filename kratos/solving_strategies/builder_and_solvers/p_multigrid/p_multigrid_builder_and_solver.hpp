@@ -18,6 +18,7 @@
 #include "includes/model_part.h" // ModelPart
 #include "includes/code_location.h" // KRATOS_CODE_LOCATION
 #include "linear_solvers/linear_solver.h" // LinearSolver
+#include "solving_strategies/builder_and_solvers/p_multigrid/constraint_assembler.hpp" // ConstraintAssembler
 
 // STL Includes
 #include <memory> // unique_ptr
