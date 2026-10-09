@@ -393,8 +393,6 @@ class RomManager(object):
         self._ChangeRomFlags(simulation_to_run = simulation_to_run)
         nn_rom_interface = NN_ROM_Interface(mu_train, self.data_base)
 
-        rom_folder = Path(self.general_rom_manager_parameters["ROM"]["rom_basis_output_folder"].GetString())
-        rom_parameters_file_name = Path(self.general_rom_manager_parameters["ROM"]["rom_basis_output_name"].GetString()).with_suffix('.json')
         export_folder = Path(export_folder)
         export_folder.mkdir(parents=True, exist_ok=True)
 
@@ -414,6 +412,53 @@ class RomManager(object):
             np.save(export_folder / "RightBasisMatrix.npy", nn_rom_interface.phi[:, :nn_rom_interface.n_sup])
             np.save(export_folder / "SingularValues.npy", nn_rom_interface.sigma[:nn_rom_interface.n_sup])
             shutil.copy(nn_rom_interface.network_weights_path, export_folder / "model_weights.npy")
+        self._ExportRomParameters(export_folder, "ann_enhanced_settings", ann_enhanced_settings)
+
+
+    def ExportRbfEnhancedRom(self, mu_train=[None], export_folder="rom_data_standalone"):
+        """
+        Exports the RBF-enhanced ROM trained with 'mu_train' to a folder that can be run without the RomManager and its database.
+        The exported folder replaces the ROM folder (default 'rom_data') of the case to be run standalone.
+        """
+        if self.general_rom_manager_parameters["type_of_decoder"].GetString() != "rbf_enhanced":
+            raise Exception("'ExportRbfEnhancedRom' requires 'type_of_decoder' to be 'rbf_enhanced'.")
+        chosen_projection_strategy = self.general_rom_manager_parameters["projection_strategy"].GetString()
+        if chosen_projection_strategy == "galerkin":
+            simulation_to_run = "GalerkinROM_RBF"
+        elif chosen_projection_strategy == "lspg":
+            simulation_to_run = "lspg_RBF"
+        else:
+            raise Exception(f'rbf_enhanced rom only available for Galerkin Rom and LSPG ROM, not for \'{chosen_projection_strategy}\'.')
+
+        # Write the RomParameters of the RBF-enhanced ROM in the ROM folder
+        self._LoadSolutionBasis(mu_train)
+        self._ChangeRomFlags(simulation_to_run = simulation_to_run)
+        rbf_rom_interface = RBF_ROM_Interface(mu_train, self.data_base)
+
+        export_folder = Path(export_folder)
+        export_folder.mkdir(parents=True, exist_ok=True)
+
+        # Files read by RBF_ROM_Interface.FromNumpyFiles
+        if self._UsesSegregatedBases():
+            # One RBF per coupled solver, with its files prefixed by its name
+            rbf_enhanced_settings = {}
+            number_of_modes = 0
+            for coupled_solver in self._GetCoupledSolvers():
+                sub_solver_name = coupled_solver["sub_solver_name"].GetString()
+                sub_solver_interface = rbf_rom_interface.GetSubSolverInterface(sub_solver_name, self._GetCoupledSolverRows(coupled_solver, rbf_rom_interface.phi.shape[0]))
+                rbf_enhanced_settings[sub_solver_name] = sub_solver_interface.SaveToNumpyFiles(export_folder, file_prefix=f"{sub_solver_name}_")
+                number_of_modes = max(number_of_modes, sub_solver_interface.n_sup)
+            np.save(export_folder / "RightBasisMatrix.npy", rbf_rom_interface.phi[:, :number_of_modes])
+        else:
+            rbf_enhanced_settings = rbf_rom_interface.SaveToNumpyFiles(export_folder)
+            np.save(export_folder / "RightBasisMatrix.npy", rbf_rom_interface.phi[:, :rbf_rom_interface.n_sup])
+        self._ExportRomParameters(export_folder, "rbf_enhanced_settings", rbf_enhanced_settings)
+
+
+    def _ExportRomParameters(self, export_folder, decoder_settings_name, decoder_settings):
+        """Copies to the exported folder the node ids and the HROM files (if they exist), and writes the RomParameters with the settings of the decoder."""
+        rom_folder = Path(self.general_rom_manager_parameters["ROM"]["rom_basis_output_folder"].GetString())
+        rom_parameters_file_name = Path(self.general_rom_manager_parameters["ROM"]["rom_basis_output_name"].GetString()).with_suffix('.json')
         for file_name in ["NodeIds.npy", "HROM_ElementIds.npy", "HROM_ElementWeights.npy", "HROM_ConditionIds.npy", "HROM_ConditionWeights.npy"]:
             if (rom_folder / file_name).exists():
                 shutil.copy(rom_folder / file_name, export_folder / file_name)
@@ -421,7 +466,7 @@ class RomManager(object):
         with open(rom_folder / rom_parameters_file_name, 'r') as parameter_file:
             rom_parameters = json.load(parameter_file)
         rom_parameters["rom_manager"] = False
-        rom_parameters["ann_enhanced_settings"] = ann_enhanced_settings
+        rom_parameters[decoder_settings_name] = decoder_settings
         with open(export_folder / rom_parameters_file_name, 'w') as parameter_file:
             json.dump(rom_parameters, parameter_file, indent=4)
 
@@ -824,20 +869,32 @@ class RomManager(object):
             rom_nn_trainer.EvaluateNetwork()
 
     def _LaunchTrainRBF(self, mu_train, mu_validation):
-        from KratosMultiphysics.RomApplication.rom_rbf_trainer import RomRBFTrainer
-        rom_rbf_trainer = RomRBFTrainer(self.general_rom_manager_parameters, mu_train, mu_validation, self.data_base)
-        rom_rbf_trainer.TrainRBF()
+        rom_rbf_trainers = self._GetRBFTrainers(mu_train, mu_validation)
+        for rom_rbf_trainer in rom_rbf_trainers:
+            rom_rbf_trainer.TrainRBF()
         self.data_base.add_to_database("RBF", mu_train , None)
-        rom_rbf_trainer.EvaluateRBF()
+        for rom_rbf_trainer in rom_rbf_trainers:
+            rom_rbf_trainer.EvaluateRBF()
 
     def _LaunchTestNeuralNetworkReconstruction(self,mu_train, mu_validation):
         for rom_nn_trainer in self._GetNeuralNetworkTrainers(mu_train, mu_validation):
             rom_nn_trainer.EvaluateNetwork()
 
     def _LaunchTestRBFReconstruction(self,mu_train, mu_validation):
+        for rom_rbf_trainer in self._GetRBFTrainers(mu_train, mu_validation):
+            rom_rbf_trainer.EvaluateRBF()
+
+    def _GetRBFTrainers(self, mu_train, mu_validation):
+        """Returns the trainer of the RBF, or one per coupled solver if each of them has its own basis."""
         from KratosMultiphysics.RomApplication.rom_rbf_trainer import RomRBFTrainer
-        rom_rbf_trainer = RomRBFTrainer(self.general_rom_manager_parameters, mu_train, mu_validation, self.data_base)
-        rom_rbf_trainer.EvaluateRBF()
+        if not self._UsesSegregatedBases():
+            return [RomRBFTrainer(self.general_rom_manager_parameters, mu_train, mu_validation, self.data_base)]
+        _, hash_basis = self.data_base.check_if_in_database("RightBasis", mu_train)
+        number_of_rows = self.data_base.get_single_numpy_from_database(hash_basis).shape[0]
+        return [RomRBFTrainer(self.general_rom_manager_parameters, mu_train, mu_validation, self.data_base,
+                              sub_solver_name=coupled_solver["sub_solver_name"].GetString(),
+                              rows=self._GetCoupledSolverRows(coupled_solver, number_of_rows))
+                for coupled_solver in self._GetCoupledSolvers()]
 
     def _GetNeuralNetworkTrainers(self, mu_train, mu_validation):
         """Returns the trainer of the network, or one per coupled solver if each of them has its own basis."""
@@ -1111,8 +1168,8 @@ class RomManager(object):
         """
         Validates the 'coupled_solvers' and completes the 'ROM' and 'HROM' settings of each of them with the general ones.
         The snapshots contain the 'nodal_unknowns' of all the coupled solvers. Linear decoders use a single (monolithic) ROM basis
-        shared by all of them, computed with the smallest 'svd_truncation_tolerance' among them. ANN-enhanced decoders use a
-        basis (and a network) per coupled solver, each computed with its own 'svd_truncation_tolerance' (see _UsesSegregatedBases).
+        shared by all of them, computed with the smallest 'svd_truncation_tolerance' among them. ANN-enhanced and RBF-enhanced decoders
+        use a basis (and a network or RBF) per coupled solver, each computed with its own 'svd_truncation_tolerance' (see _UsesSegregatedBases).
         """
         coupled_solvers = self.general_rom_manager_parameters["coupled_solvers"]
         for i in range(coupled_solvers.size()):
@@ -1182,8 +1239,8 @@ class RomManager(object):
         return [coupled_solver["sub_solver_name"].GetString() for coupled_solver in self._GetCoupledSolvers()]
 
     def _UsesSegregatedBases(self):
-        """True if each coupled solver has its own ROM basis: coupled solvers with an ANN-enhanced decoder (one network per solver)."""
-        return self.general_rom_manager_parameters["type_of_decoder"].GetString() == "ann_enhanced" and len(self._GetCoupledSolvers()) > 0
+        """True if each coupled solver has its own ROM basis: coupled solvers with an ANN-enhanced or RBF-enhanced decoder (one network or RBF per solver)."""
+        return self.general_rom_manager_parameters["type_of_decoder"].GetString() in ("ann_enhanced", "rbf_enhanced") and len(self._GetCoupledSolvers()) > 0
 
     def _GetCoupledSolverRows(self, coupled_solver, number_of_rows):
         """Rows of the 'nodal_unknowns' of a coupled solver in the snapshots and basis matrices, which store the (alphabetically sorted) unknowns of all the coupled solvers node by node."""
@@ -1256,7 +1313,7 @@ class RomManager(object):
         """
         nodal_unknowns = [name for coupled_solver in self._GetCoupledSolvers() for name in coupled_solver["ROM"]["nodal_unknowns"].GetStringArray()]
         if len(nodal_unknowns) != len(set(nodal_unknowns)):
-            raise Exception(f"The coupled solvers share 'nodal_unknowns' ({nodal_unknowns}). With ann_enhanced decoders each of the 'coupled_solvers' needs its own 'nodal_unknowns' in its 'ROM' settings.")
+            raise Exception(f"The coupled solvers share 'nodal_unknowns' ({nodal_unknowns}). With ann_enhanced and rbf_enhanced decoders each of the 'coupled_solvers' needs its own 'nodal_unknowns' in its 'ROM' settings.")
         bases = []
         for coupled_solver in self._GetCoupledSolvers():
             rows = self._GetCoupledSolverRows(coupled_solver, snapshots_matrix.shape[0])
@@ -1267,7 +1324,7 @@ class RomManager(object):
         sigma = np.zeros(number_of_modes)
         for rows, u_solver, sigma_solver in bases:
             u[rows, :u_solver.shape[1]] = u_solver
-            # A single vector is stored: each solver recomputes its own singular values from its basis when training its network
+            # A single vector is stored: each solver recomputes its own singular values from its basis when training its network or RBF
             sigma[:len(sigma_solver)] = np.maximum(sigma[:len(sigma_solver)], sigma_solver)
         return u, sigma
 
@@ -1390,7 +1447,7 @@ class RomManager(object):
             "rom_stages_to_test" : [],              // ["ROM","HROM"]
             "paralellism" : null,                        // null, TODO: add "compss"
             "projection_strategy": "galerkin",            // "lspg", "galerkin", "petrov_galerkin"
-            "type_of_decoder" : "linear",               // "linear" "ann_enhanced",  TODO: add "quadratic"
+            "type_of_decoder" : "linear",               // "linear" "ann_enhanced" "rbf_enhanced",  TODO: add "quadratic"
             "assembling_strategy": "global",            // "global", "elemental"
             "save_gid_output": false,                    // false, true #if true, it must exits previously in the ProjectParameters.json
             "save_vtk_output": false,                    // false, true #if true, it must exits previously in the ProjectParameters.json

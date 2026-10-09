@@ -4,13 +4,38 @@ import json
 
 class RomRBFTrainer(object):
 
-    def __init__(self, general_rom_manager_parameters, mu_train, mu_validation, data_base):
+    def __init__(self, general_rom_manager_parameters, mu_train, mu_validation, data_base, sub_solver_name=None, rows=None):
+        """For a coupled sub-solver, 'rows' are the rows of its unknowns in the snapshots and basis matrices,
+        and its file is prefixed with '<sub_solver_name>_'."""
 
         self.general_rom_manager_parameters = general_rom_manager_parameters
         self.rbf_parameters = self.general_rom_manager_parameters["ROM"]["rbf_enhanced_settings"]
         self.mu_train = mu_train
         self.mu_validation = mu_validation
         self.data_base = data_base
+        self.rows = rows
+        self.file_prefix = "" if sub_solver_name is None else f"{sub_solver_name}_"
+
+    def _GetSnapshots(self, mu_list, table_name='FOM'):
+        snapshots = self.data_base.get_snapshots_matrix_from_database(mu_list, table_name=table_name)
+        return snapshots if self.rows is None else snapshots[self.rows, :]
+
+    def _GetBasisAndSingularValues(self):
+        _, hash_basis = self.data_base.check_if_in_database("RightBasis", self.mu_train)
+        phi = self.data_base.get_single_numpy_from_database(hash_basis)
+        if self.rows is None:
+            _, hash_sigma = self.data_base.check_if_in_database("SingularValues_Solution", self.mu_train)
+            sigma_vec = self.data_base.get_single_numpy_from_database(hash_sigma)/np.sqrt(len(self.mu_train))
+        else:
+            # Basis of the sub-solver: the rows of its unknowns, without the zero-padded columns
+            phi = phi[self.rows, :]
+            phi = phi[:, np.any(phi != 0.0, axis=0)]
+            sigma_vec = np.linalg.norm(phi.T @ self._GetSnapshots(self.mu_train), axis=1)/np.sqrt(len(self.mu_train))
+        return phi, sigma_vec
+
+    def _GetModelPath(self):
+        model_name, _ = self.data_base.get_hashed_file_name_for_table("RBF", self.mu_train)
+        return pathlib.Path(self.data_base.database_root_directory / 'saved_rbf_models' / model_name) / f"{self.file_prefix}model_data.npz"
 
     def _CheckNumberOfModes(self,n_inf,n_sup,n_max):
         if n_inf >= n_max:
@@ -22,15 +47,15 @@ class RomRBFTrainer(object):
 
     def _GetTrainingData(self, n_inf, n_sup):
 
-        S_train = self.data_base.get_snapshots_matrix_from_database(self.mu_train, table_name=f'FOM')
-        S_val = self.data_base.get_snapshots_matrix_from_database(self.mu_validation, table_name=f'FOM')
+        S_train = self._GetSnapshots(self.mu_train)
+        S_val = self._GetSnapshots(self.mu_validation)
 
-        _, hash_basis = self.data_base.check_if_in_database("RightBasis", self.mu_train)
-        phi = self.data_base.get_single_numpy_from_database(hash_basis)
-        _, hash_sigma = self.data_base.check_if_in_database("SingularValues_Solution", self.mu_train)
-        sigma_vec =  self.data_base.get_single_numpy_from_database(hash_sigma)/np.sqrt(len(self.mu_train))
+        phi, sigma_vec = self._GetBasisAndSingularValues()
 
         self._CheckNumberOfModes(n_inf,n_sup,sigma_vec.shape[0])
+
+        # Kept to be saved with the model: the online decoder must use the same scaling
+        self.sigma_vec = sigma_vec[:n_sup]
 
         phisig_inv_inf = np.linalg.inv(np.diag(sigma_vec[:n_inf]))@phi[:,:n_inf].T
         phisig_inv_sup = np.linalg.inv(np.diag(sigma_vec[n_inf:n_sup]))@phi[:,n_inf:n_sup].T
@@ -45,7 +70,7 @@ class RomRBFTrainer(object):
 
         if self.general_rom_manager_parameters["ROM"]["use_non_converged_sols"].GetBool():
             #fetching nonconverged sols for enlarging training samples in ann enhanced prom
-            data = self.data_base.get_snapshots_matrix_from_database(self.mu_train, table_name='NonconvergedFOM') #TODO this might be too large. Add partitioned approached or a limit size
+            data = self._GetSnapshots(self.mu_train, table_name='NonconvergedFOM') #TODO this might be too large. Add partitioned approached or a limit size
             Q_inf_train = np.r_[Q_inf_train, (phisig_inv_inf@data).T]
             Q_sup_train = np.r_[Q_sup_train, (phisig_inv_sup@data).T]
 
@@ -58,12 +83,9 @@ class RomRBFTrainer(object):
 
     def _GetEvaluationData(self, n_inf, n_sup):
 
-        S_val = self.data_base.get_snapshots_matrix_from_database(self.mu_validation, table_name=f'FOM')
+        S_val = self._GetSnapshots(self.mu_validation)
 
-        _, hash_basis = self.data_base.check_if_in_database("RightBasis", self.mu_train)
-        phi = self.data_base.get_single_numpy_from_database(hash_basis)
-        _, hash_sigma = self.data_base.check_if_in_database("SingularValues_Solution", self.mu_train)
-        sigma_vec =  self.data_base.get_single_numpy_from_database(hash_sigma)/np.sqrt(len(self.mu_train))
+        phi, sigma_vec = self._GetBasisAndSingularValues()
 
         phisig_inv_inf = np.linalg.inv(np.diag(sigma_vec[:n_inf]))@phi[:,:n_inf].T
         phisig_inv_sup = np.linalg.inv(np.diag(sigma_vec[n_inf:n_sup]))@phi[:,n_inf:n_sup].T
@@ -134,6 +156,9 @@ class RomRBFTrainer(object):
         
         n_inf = int(rbf_training_parameters['modes'].GetVector()[0])
         n_sup = int(rbf_training_parameters['modes'].GetVector()[1])
+        if self.rows is not None:
+            # All the sub-solvers share the 'modes' settings, but they might have fewer modes available
+            n_sup = min(n_sup, self._GetBasisAndSingularValues()[0].shape[1])
         Q_inf_train, Q_inf_val, Q_sup_train, Q_sup_val, phisig_norm_matrix, rescaling_factor = self._GetTrainingData(n_inf, n_sup) # Check that Q_inf_tran, etc are indeed (num. snapshots) x (num. modes), otherwise they should be transposed
 
         rbf_solver = rbf_training_parameters['rbf_solver'].GetString()
@@ -188,27 +213,24 @@ class RomRBFTrainer(object):
         # - n_sup
         # - solver
 
-        model_name, _ = self.data_base.get_hashed_file_name_for_table("RBF", self.mu_train)
-        model_path=pathlib.Path(self.data_base.database_root_directory / 'saved_rbf_models' / model_name)
-        model_path.mkdir(parents=True, exist_ok=True)
+        model_path = self._GetModelPath()
+        model_path.parent.mkdir(parents=True, exist_ok=True)
 
         np.savez(
-            model_path / "model_data.npz",
-            kernel_name=np.array([best["kernel"]], dtype=object),
+            model_path,
+            kernel_name=np.array([best["kernel"]]),
             kernel_eps=np.array([best["eps"]], dtype=float),
             W=best["W"],
             centers_mat=Q_inf_train,
             modes = np.array([n_inf,n_sup], dtype=int),
-            solver=np.array([rbf_solver], dtype=object)
+            singular_values=self.sigma_vec,
+            solver=np.array([rbf_solver])
         )
 
 
     def EvaluateRBF(self):
 
-        model_name, _ = self.data_base.get_hashed_file_name_for_table("RBF", self.mu_train)
-        model_path=pathlib.Path(self.data_base.database_root_directory / 'saved_rbf_models' / model_name)
-
-        model_data = np.load(model_path / "model_data.npz", allow_pickle=True)
+        model_data = np.load(self._GetModelPath())
 
         W_mat = model_data["W"]
         centers_mat = model_data["centers_mat"]

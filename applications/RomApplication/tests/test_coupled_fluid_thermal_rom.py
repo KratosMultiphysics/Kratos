@@ -141,6 +141,58 @@ class TestCoupledFluidThermalRom(KratosUnittest.TestCase):
 
             self.assertLess(rom_manager.ROMvsFOM["Fit"], 1.0e-2)
 
+    def testCoupledFluidThermalRbfEnhancedRomManager(self):
+        # Same problem and settings as the ANN-enhanced ROM, changing the type of decoder: a basis and an RBF per coupled solver.
+        # The model is then exported and run without the RomManager (no database)
+        self.work_folder = "coupled_fluid_thermal_test_files/RomManagerRBF/"
+        self._WriteRomManagerProjectParameters("RomManagerRBF")
+        standalone_folder = Path(__file__).parent / "coupled_fluid_thermal_test_files/RomManagerRBF_Standalone"
+        self._WriteRomManagerProjectParameters("RomManagerRBF_Standalone")
+        self.addCleanup(kratos_utilities.DeleteDirectoryIfExisting, str(standalone_folder))
+
+        general_rom_manager_parameters = self._GetAnnEnhancedRomManagerParameters()
+        general_rom_manager_parameters["type_of_decoder"].SetString("rbf_enhanced")
+        general_rom_manager_parameters["ROM"].AddValue("rbf_enhanced_settings", KratosMultiphysics.Parameters("""{"modes": [3, 8]}"""))
+
+        with KratosUnittest.WorkFolderScope(self.work_folder, __file__):
+            rom_manager = RomManager(project_parameters_name="ProjectParameters.json", general_rom_manager_parameters=general_rom_manager_parameters)
+            rom_manager.Fit()
+
+            model_name, _ = rom_manager.data_base.get_hashed_file_name_for_table("RBF", [None])
+            model_path = rom_manager.data_base.database_root_directory / "saved_rbf_models" / model_name
+            for sub_solver_name in ["fluid_solver", "thermal_solver"]:
+                self.assertTrue((model_path / f"{sub_solver_name}_model_data.npz").exists())
+
+            self.assertLess(rom_manager.ROMvsFOM["Fit"], 1.0e-2)
+
+            rom_manager.ExportRbfEnhancedRom(export_folder=standalone_folder / "rom_data")
+            rom_manager_snapshots = rom_manager.data_base.get_snapshots_matrix_from_database([None], table_name='ROM')
+
+        with KratosUnittest.WorkFolderScope(standalone_folder, __file__):
+            with open("rom_data/RomParameters.json",'r') as rom_parameters_file:
+                rom_parameters = KratosMultiphysics.Parameters(rom_parameters_file.read())
+            self.assertEqual(rom_parameters["projection_strategy"].GetString(), "galerkin_rbf")
+            for sub_solver_name in ["fluid_solver", "thermal_solver"]:
+                self.assertTrue(rom_parameters["rbf_enhanced_settings"][sub_solver_name].Has("kernel"))
+                for file_name in ["SingularValues.npy", "rbf_weights.npy", "rbf_centers.npy"]:
+                    self.assertTrue(Path("rom_data", f"{sub_solver_name}_{file_name}").exists())
+
+            with open("ProjectParameters.json",'r') as parameter_file:
+                parameters = KratosMultiphysics.Parameters(parameter_file.read())
+            model = KratosMultiphysics.Model()
+            simulation = rom_testing_utilities.SetUpSimulationInstance(model, parameters)
+            simulation.Run()
+
+            # The snapshots store the (alphabetically sorted) unknowns of all the coupled solvers node by node
+            variables = [KratosMultiphysics.PRESSURE, KratosMultiphysics.TEMPERATURE, KratosMultiphysics.VELOCITY_X, KratosMultiphysics.VELOCITY_Y]
+            obtained = np.array(rom_testing_utilities.GetNodalResults(simulation._GetSolver().GetComputingModelPart(), variables))
+            expected = rom_manager_snapshots[:, -1]
+            self.assertLess(np.linalg.norm(obtained - expected) / np.linalg.norm(expected), 1.0e-10)
+
+            for file_name in os.listdir():
+                if file_name.endswith(".time"):
+                    kratos_utilities.DeleteFileIfExisting(file_name)
+
     def _GetAnnEnhancedRomManagerParameters(self):
         return KratosMultiphysics.Parameters("""{
             "rom_stages_to_train": ["ROM"],
