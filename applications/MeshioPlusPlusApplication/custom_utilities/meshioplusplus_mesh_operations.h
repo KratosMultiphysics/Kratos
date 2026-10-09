@@ -1,0 +1,387 @@
+//  ██████   ██████ ██████████  █████████  █████   █████ █████    ███████
+// ░░██████ ██████ ░░███░░░░░█ ███░░░░░███░░███   ░░███ ░░███   ███░░░░░███      ███         ███
+//  ░███░█████░███  ░███  █ ░ ░███    ░░░  ░███    ░███  ░███  ███     ░░███    ░███        ░███
+//  ░███░░███ ░███  ░██████   ░░█████████  ░███████████  ░███ ░███      ░███ ███████████ ███████████
+//  ░███ ░░░  ░███  ░███░░█    ░░░░░░░░███ ░███░░░░░███  ░███ ░███      ░███░░░░░███░░░ ░░░░░███░░░
+//  ░███      ░███  ░███ ░   █ ███    ░███ ░███    ░███  ░███ ░░███     ███     ░███        ░███
+//  █████     █████ ██████████░░█████████  █████   █████ █████ ░░░███████░      ░░░         ░░░
+// ░░░░░     ░░░░░ ░░░░░░░░░░  ░░░░░░░░░  ░░░░░   ░░░░░ ░░░░░    ░░░░░░░                        Application
+//
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
+//
+//  Main authors:    Vicente Mataix Ferrandiz
+//
+
+#pragma once
+
+// System includes
+#include <utility>
+#include <vector>
+
+// External includes
+
+// Project includes
+#include "includes/kratos_parameters.h"
+#include "includes/model_part.h"
+
+namespace Kratos
+{
+///@name Kratos Classes
+///@{
+
+/**
+ * @class MeshioPlusPlusMeshOperations
+ * @ingroup MeshioPlusPlusApplication
+ * @brief Exposes the meshio++ mesh and data operations to Kratos.
+ * @details Every operation is data-driven through @ref Parameters, keyed by an "operation"
+ * name that mirrors the meshio++ command line verbs, so adding an upstream operation is a
+ * table entry rather than a new class. The conversion to and from meshio++ is shared with
+ * @ref MeshioPlusPlusIO (see meshioplusplus_conversion_utilities.h), so no operation
+ * re-implements the staging.
+ *
+ * Operations fall into two groups:
+ *  - mesh-producing (clean, transform, refine, remesh, compute_normals, tensor_invariants,
+ *    ...): the result is written into the
+ *    destination model part, and the returned @ref Parameters carry the operation's own
+ *    report (counts, tolerances actually applied, ...);
+ *  - report-only (stats, quality, diff, data_info, data_integrate): the destination is left
+ *    untouched and the whole result is in the returned @ref Parameters.
+ *
+ * Several operations are *not* reachable through @ref Execute because they do not have its
+ * one-mesh-in/one-mesh-out shape: @ref Interpolate, @ref ConservativeInterpolate,
+ * @ref Shrinkwrap, @ref BlendSteps and @ref HausdorffDistance each need two independent meshes,
+ * @ref MatchPeriodicNodes produces node pairs, and @ref Grid needs none at all. meshio++'s
+ * `resample_sequence` is not exposed either: it is driven by a file sequence and a pipeline,
+ * not by model parts (@ref BlendSteps is its per-pair kernel).
+ *
+ * @note meshio++'s `undo_green` is deliberately **not** exposed. It resolves a refinement's
+ * green closure through the `refine:cell_id`/`refine:parent_id` arrays `refine(record_hierarchy)`
+ * attaches - and those names are colon-namespaced, so the write-back described above can never
+ * carry them onto a model part. The hierarchy is therefore already gone by the time a refined
+ * mesh is a `ModelPart`, and any ModelPart-taking wrapper for it would fail by construction.
+ * It stays reachable from meshio++ itself, where the mesh never leaves the library.
+ *
+ * @ref Execute optionally carries field data through the operation, using the same
+ * "nodal_solution_step_data_variables" / "nodal_data_value_variables" / "nodal_flags" /
+ * "element_data_value_variables" / "element_flags" / "condition_data_value_variables" /
+ * "condition_flags" / "gauss_point_variables_in_elements" / "write_ids" settings
+ * @ref MeshioPlusPlusIO uses (all empty/false by default, so an operation run without them
+ * behaves exactly as before this was added). A resulting array is written back onto the
+ * destination as non-historical data only when its name matches a registered @ref Variable
+ * whose component count agrees - an operation's own invented array names never carry
+ * through (see @ref Internals::MeshToModelPart), which is the one thing to know before
+ * relying on "data_calc"'s "output" setting or similar: point it at an existing variable
+ * name to get the result back into Kratos. "compute_normals" names its result "normals" and
+ * "tensor_invariants" <name>_mises, <name>_principal, ... - "output" = "NORMAL" and a
+ * "prefix"/"output_suffix" that lands on a registered variable are the ways back.
+ *
+ * @note meshio++ is serial: these operations do not support distributed model parts. The
+ * intended distributed workflow is "partition" with ghost layers feeding an MPI assembly.
+ * @author Vicente Mataix Ferrandiz
+ */
+class KRATOS_API(KRATOS_MESHIOPLUSPLUS_APPLICATION) MeshioPlusPlusMeshOperations
+{
+public:
+    ///@name Type Definitions
+    ///@{
+
+    /// Pointer definition of MeshioPlusPlusMeshOperations
+    KRATOS_CLASS_POINTER_DEFINITION(MeshioPlusPlusMeshOperations);
+
+    ///@}
+    ///@name Operations
+    ///@{
+
+    /**
+     * @brief The names of every operation @ref Execute accepts.
+     * @return The supported operation names, sorted.
+     */
+    static std::vector<std::string> GetSupportedOperations();
+
+    /**
+     * @brief The default settings shared by every operation.
+     * @return The default parameters.
+     */
+    static Parameters GetDefaultParameters();
+
+    /**
+     * @brief Applies a meshio++ operation to a model part.
+     * @details Mesh-producing operations fill @p rDestination. The multi-output ones
+     * ("split", "partition") instead create one model part per piece, named
+     * `<destination>_<operation>_<index>` and registered as siblings in the same @ref Model;
+     * their names are listed in the returned report. They cannot be sub model parts, since a
+     * Kratos sub model part is a view into its root's entity containers while each piece is
+     * independently renumbered from 1. Report-only operations leave @p rDestination untouched.
+     * @param rSource The model part to operate on.
+     * @param Settings The operation name plus its own settings (see @ref GetDefaultParameters).
+     * @param rDestination The model part receiving the result (expected empty).
+     * @return The operation's report.
+     */
+    static Parameters Execute(
+        const ModelPart& rSource,
+        Parameters Settings,
+        ModelPart& rDestination
+        );
+
+    /**
+     * @brief Merges several model parts into one.
+     * @param rSources The model parts to merge, in order.
+     * @param Settings Merge settings ("weld", "tolerance", "source_tag", "data_policy",
+     *                 "drop_duplicate_cells").
+     * @param rDestination The model part receiving the merged mesh (expected empty).
+     * @return The merge report.
+     */
+    static Parameters Merge(
+        const std::vector<const ModelPart*>& rSources,
+        Parameters Settings,
+        ModelPart& rDestination
+        );
+
+    /**
+     * @brief Samples one model part's field data onto another's geometry.
+     * @details Not reachable through @ref Execute: unlike every other operation this needs
+     * two independent meshes rather than one. The shared field data settings (see the
+     * class-level details) apply to *both* @p rSource and @p rTarget, using the same
+     * variable/flag names for each - the usual case is that @p rSource carries the named
+     * data and @p rTarget does not, but a name present on both is exactly what
+     * "on_conflict" resolves. The target's own topology is what is written into
+     * @p rDestination, with the interpolated arrays added.
+     * @param rSource The model part carrying the field data to sample.
+     * @param rTarget The model part whose geometry the data is sampled onto.
+     * @param Settings Interpolation settings ("method": "nearest"/"barycentric"; "names":
+     *                 array names to interpolate, empty = every array @p rSource's field
+     *                 data settings collect; "extrapolate"; "default_value"; "on_conflict":
+     *                 "error"/"overwrite"/"suffix") plus the shared field data settings.
+     * @param rDestination The model part receiving the target's geometry plus the
+     *                     interpolated data (expected empty).
+     * @return The interpolation report.
+     */
+    static Parameters Interpolate(
+        const ModelPart& rSource,
+        const ModelPart& rTarget,
+        Parameters Settings,
+        ModelPart& rDestination
+        );
+
+    /**
+     * @brief Samples one model part's field data onto another's geometry, conserving the
+     * integral rather than the point values.
+     * @details The conservative sibling of @ref Interpolate, and not reachable through
+     * @ref Execute for the same reason: it needs two independent meshes. Where @ref Interpolate
+     * samples (nearest or barycentric), this redistributes by intersected cell measure, so the
+     * summed quantity is preserved across the transfer - the right choice for an extensive
+     * field (a mass, a heat load) and the wrong one for an intensive one (a temperature).
+     *
+     * The shared field data settings apply to *both* @p rSource and @p rTarget, exactly as in
+     * @ref Interpolate.
+     * @param rSource The model part carrying the field data to transfer.
+     * @param rTarget The model part whose geometry the data is transferred onto.
+     * @param Settings "names" (array names to transfer, empty = every array @p rSource's field
+     *                 data settings collect), "default_value", "on_conflict"
+     *                 ("error"/"overwrite"/"suffix") plus the shared field data settings.
+     * @param rDestination The model part receiving the target's geometry plus the transferred
+     *                     data (expected empty).
+     * @return The transfer report.
+     */
+    static Parameters ConservativeInterpolate(
+        const ModelPart& rSource,
+        const ModelPart& rTarget,
+        Parameters Settings,
+        ModelPart& rDestination
+        );
+
+    /**
+     * @brief Projects a model part's points onto a target surface, optionally offset.
+     * @details Not reachable through @ref Execute for the same reason as @ref Interpolate and
+     * @ref ConservativeInterpolate: it needs two independent meshes. One projection, not an
+     * iteration - a fit, not a smoothing - along the hit feature's pseudonormal rather than the
+     * hit triangle's own normal, so a creased target offsets consistently regardless of which
+     * of two equidistant faces a query happens to land on. Every point of @p rSource moves,
+     * whatever cells it carries (a volume mesh's interior points too); only @p rTarget must be
+     * a surface.
+     * @param rSource The model part whose points move.
+     * @param rTarget The surface to project onto (quads/polygons are fanned; a volume or
+     *                higher-order block is refused by name).
+     * @param Settings Shrinkwrap settings ("offset", "max_distance", "weights",
+     *                 "target_region", "sdf_weight", "record_distance",
+     *                 "record_closest_cell", "grid_cell_size") plus "output" (renames
+     *                 "shrinkwrap:distance" to a registered variable, when "record_distance"
+     *                 is set) and the shared field data settings.
+     * @param rDestination The model part receiving the moved source mesh (expected empty).
+     * @return The projection report.
+     */
+    static Parameters Shrinkwrap(
+        const ModelPart& rSource,
+        const ModelPart& rTarget,
+        Parameters Settings,
+        ModelPart& rDestination
+        );
+
+    /**
+     * @brief Builds a regular hexahedron lattice from nothing.
+     * @details Not reachable through @ref Execute: it is meshio++'s only *generator*, taking
+     * no source model part at all where every other operation transforms one.
+     * @param Settings Lattice settings ("dims": cell counts per axis; "origin": the lattice's
+     *                 low corner; "spacing": the cell size per axis; "max_cells").
+     * @param rDestination The model part receiving the grid (expected empty).
+     * @return The lattice report ("dims", "origin", "spacing" and the entity counts).
+     */
+    static Parameters Grid(
+        Parameters Settings,
+        ModelPart& rDestination
+        );
+
+    /**
+     * @brief Attaches the signed distance from a query model part to a surface.
+     * @details Not reachable through @ref Execute: like @ref Interpolate this needs two
+     * independent meshes. @p rQuery's geometry is copied unchanged and annotated.
+     *
+     * meshio++ names the result `"sdf:distance"`, which no Kratos `Variable` is (they are
+     * never colon-namespaced), so it could never be read back off @p rDestination. Set
+     * "output" to a registered variable name - `DISTANCE`, for a level-set initialization -
+     * and the array is renamed before the write-back, which is what makes the result usable
+     * rather than merely computed.
+     * @param rQuery The model part to annotate.
+     * @param rSurface The surface to measure against.
+     * @param Settings Surface-distance settings ("sdf_sign", "sdf_weight", "sdf_location",
+     *                 "band", "record_closest_cell", "record_inside", "watertight_check",
+     *                 "grid_cell_size", "max_winding_work") plus "output".
+     * @param rDestination The model part receiving the annotated query mesh (expected empty).
+     * @return The report: the surface verdict and the banded-query count.
+     */
+    static Parameters DistanceToSurface(
+        const ModelPart& rQuery,
+        const ModelPart& rSurface,
+        Parameters Settings,
+        ModelPart& rDestination
+        );
+
+    /**
+     * @brief Reports what is wrong with a surface, in numbers rather than a bare flag.
+     * @details Report-only, so it takes no destination - the @ref ComputeQuality shape.
+     * A signed distance needs a closed, consistently wound surface; this is how to find out
+     * whether one is, before trusting a sign.
+     * @param rSurface The surface to check.
+     * @return The verdict: "watertight" plus the boundary-edge, non-manifold-edge,
+     *         inconsistent-pair and degenerate-triangle counts.
+     */
+    static Parameters CheckSurfaceWatertight(const ModelPart& rSurface);
+
+    /**
+     * @brief Compares two model parts with tolerances.
+     * @param rFirst The first model part.
+     * @param rSecond The second model part.
+     * @param Settings Diff settings ("absolute_tolerance", "relative_tolerance", "unordered").
+     * @return The diff report, including the per-section verdicts.
+     */
+    static Parameters Diff(
+        const ModelPart& rFirst,
+        const ModelPart& rSecond,
+        Parameters Settings = Parameters(R"({})")
+        );
+
+    /**
+     * @brief Aggregate mesh statistics: bounding box, centroid, per-cell-type counts,
+     * total area, signed and unsigned volume, inverted-cell count.
+     * @param rSource The model part to measure.
+     * @return The statistics report.
+     */
+    static Parameters ComputeStatistics(const ModelPart& rSource);
+
+    /**
+     * @brief Per-cell quality metrics summarized per metric (scaled Jacobian, aspect ratio,
+     * skewness, ...) plus the inverted and degenerate cell counts.
+     * @param rSource The model part to measure.
+     * @return The quality report.
+     */
+    static Parameters ComputeQuality(const ModelPart& rSource);
+
+    /**
+     * @brief The bandwidth of the model part's node adjacency graph.
+     * @details Useful to quantify what the "reorder" operation achieves.
+     * @param rSource The model part to measure.
+     * @return The bandwidth.
+     */
+    static std::size_t ComputeBandwidth(const ModelPart& rSource);
+
+    /**
+     * @brief The radius or k-nearest neighbour pairs of the model part's nodes.
+     * @details meshio++'s cell-lattice neighbour search (the core behind its Python
+     * `proximity_graph`), over the node coordinates in container order. Settings:
+     *  - "method": "radius" (every pair within "radius", inclusive, returned once with the
+     *    lower container position first) or "k_nearest" (each node's "k" nearest, as directed
+     *    (node, neighbour) pairs, ascending by distance);
+     *  - "radius" (> 0 for "radius"), "k" (> 0 for "k_nearest"; clamped to N - 1);
+     *  - "box": [] or one periodic side per axis (the nodes must already lie in [0, side));
+     *  - "cell_size": the lattice cell side, 0 for automatic (affects speed, never the answer);
+     *  - "use_deformed_configuration": current instead of initial coordinates.
+     * Not an @ref Execute operation: it produces pairs, not a mesh.
+     * @param rSource The model part whose nodes are searched.
+     * @param Settings The search settings.
+     * @return The (source, target) pairs as node Ids, grouped by source.
+     */
+    static std::vector<std::pair<std::size_t, std::size_t>> NeighborPairs(
+        const ModelPart& rSource,
+        Parameters Settings
+        );
+
+    /**
+     * @brief The sampled Hausdorff distance between the surfaces of two model parts.
+     * @details A volume mesh contributes its skin. Settings: "face_samples" (0 samples the
+     * vertices only; s > 0 also the centroids of the s*s sub-triangles of every triangle),
+     * "region_first"/"region_second" (restrict a mesh to a named cell region, i.e. a sub model
+     * part), "grid_cell_size" (nearest-triangle bucket size, 0 for automatic). Report-only, and
+     * not an @ref Execute operation because it takes two meshes.
+     * @return The one-sided maxima, means and RMS, the sample counts and the worst points.
+     */
+    static Parameters HausdorffDistance(
+        const ModelPart& rFirst,
+        const ModelPart& rSecond,
+        Parameters Settings = Parameters(R"({})")
+        );
+
+    /**
+     * @brief Pairs every node of a "slave" region with the node of a "master" region that an
+     * affine transform maps it onto (periodic boundary conditions).
+     * @details Settings: "slave" and "master" ({"name", optional "kind" any/point/cell/side,
+     * "dim", "tag"}; the name of a sub model part is a region name), the transform as
+     * "translation", "rotation_axis"/"rotation_angle" (radians) or a row-major 4x4 "matrix",
+     * "tolerance" (default 1e-8), "require_complete" (default true: an unmatched slave node is
+     * an error), "use_deformed_configuration".
+     * Not an @ref Execute operation: it produces pairs, not a mesh (the @ref NeighborPairs shape).
+     * @param rSource The model part holding both regions as sub model parts.
+     * @param Settings The matching settings.
+     * @return The (slave, master) node Ids, ascending by slave.
+     */
+    static std::vector<std::pair<std::size_t, std::size_t>> MatchPeriodicNodes(
+        const ModelPart& rSource,
+        Parameters Settings
+        );
+
+    /**
+     * @brief The first model part with its floating-point data linearly blended toward the
+     * second by a weight (a time interpolation between two steps of one mesh).
+     * @details Both must share topology and data-array names; "blend_points" (default false)
+     * also blends the coordinates. Data selection uses the @ref Execute field-data settings.
+     * @param rFirst The step at weight 0.
+     * @param rSecond The step at weight 1.
+     * @param Weight The blend weight.
+     * @param Settings The settings.
+     * @param rDestination The model part receiving the blended mesh (expected empty).
+     * @return The node, element and condition counts of the result.
+     */
+    static Parameters BlendSteps(
+        const ModelPart& rFirst,
+        const ModelPart& rSecond,
+        const double Weight,
+        Parameters Settings,
+        ModelPart& rDestination
+        );
+
+    ///@}
+}; // Class MeshioPlusPlusMeshOperations
+
+///@}
+
+} // namespace Kratos
