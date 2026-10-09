@@ -59,7 +59,7 @@ namespace Kratos
    }
 
 
-   //*******************************ASSIGMENT OPERATOR***********************************
+   //******************************ASSIGNMENT OPERATOR***********************************
    //************************************************************************************
 
    UpdatedLagrangianUWElement&  UpdatedLagrangianUWElement::operator=(UpdatedLagrangianUWElement const& rOther)
@@ -910,7 +910,7 @@ namespace Kratos
          //compute element kinematics
          this->CalculateKinematics( Variables, PointNumber );
 
-         //getting informations for integration
+         //getting information for integration
          double IntegrationWeight = integration_points[PointNumber].Weight() * Variables.detJ;
 
          IntegrationWeight = this->CalculateIntegrationWeight( IntegrationWeight );  // multiplies by thickness
@@ -974,7 +974,7 @@ namespace Kratos
 
          //std::cout << "N = " << Variables.N << std::endl;
 
-         //getting informations for integration
+         //getting information for integration
          double IntegrationWeight = integration_points[PointNumber].Weight() * Variables.detJ;
 
          IntegrationWeight = this->CalculateIntegrationWeight( IntegrationWeight );  // multiplies by thickness

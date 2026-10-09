@@ -207,7 +207,7 @@ protected:
 
     
    /**** 
-       the time step (requiered). It shall be somewhere else.
+       the time step (required). It shall be somewhere else.
     ****/    
     double mTimeStep;
 
