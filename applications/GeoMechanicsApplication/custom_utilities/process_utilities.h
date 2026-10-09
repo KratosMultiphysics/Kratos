@@ -15,8 +15,9 @@
 
 // Project includes
 #include "includes/model_part.h"
-
 #include <string>
+
+using namespace std::string_literals;
 
 namespace Kratos
 {
@@ -28,7 +29,10 @@ class KRATOS_API(GEO_MECHANICS_APPLICATION) ProcessUtilities
 {
 public:
     static std::vector<std::reference_wrapper<ModelPart>> GetModelPartsFromSettings(
-        Model& rModel, const Parameters& rProcessSettings, const std::string& rProcessInfo);
+        Model&             rModel,
+        const Parameters&  rProcessSettings,
+        const std::string& rProcessInfo,
+        const std::vector<std::string>& rModelPartNameKeys = {"model_part_name"s, "model_part_name_list"s});
 
     static void AddProcessesSubModelPartListToSolverSettings(const Parameters& rProjectParameters,
                                                              Parameters&       rSolverSettings);
