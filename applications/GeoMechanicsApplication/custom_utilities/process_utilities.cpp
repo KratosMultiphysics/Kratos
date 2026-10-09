@@ -17,8 +17,6 @@
 #include "custom_utilities/string_utilities.h"
 #include "includes/kratos_parameters.h"
 
-using namespace std::string_literals;
-
 namespace
 {
 
@@ -38,8 +36,8 @@ std::vector<std::string> GetProcessModelPartNames(const Kratos::Parameters& rPro
         << "The parameters " << Kratos::GeoStringUtilities::Join(rModelPartNameKeys, " and "s, "'"s)
         << " are mutually exclusive for " << rProcessInfo;
 
-    const auto& r_name_key = *std::find_if(rModelPartNameKeys.begin(), rModelPartNameKeys.end(), has_name_key);
-    const auto name_or_names = rProcessSettings[r_name_key];
+    const auto& r_name_key    = *std::ranges::find_if(rModelPartNameKeys, has_name_key);
+    const auto  name_or_names = rProcessSettings[r_name_key];
     return name_or_names.IsStringArray() ? name_or_names.GetStringArray()
                                          : std::vector{name_or_names.GetString()};
 }
@@ -48,7 +46,7 @@ std::set<std::string, std::less<>> ExtractModelPartNames(const auto&      rProce
                                                          std::string_view RootName,
                                                          std::string_view Prefix)
 {
-    const std::set processes_having_computing_model_part_name = {
+    const std::set<std::string, std::less<>> processes_having_computing_model_part_name = {
         "AssignAverageMasterSlaveConstraintsProcess"s, "ApplyPeriodicConditionProcess"s, "SkinDetectionProcess"s};
 
     std::set<std::string, std::less<>> result;
