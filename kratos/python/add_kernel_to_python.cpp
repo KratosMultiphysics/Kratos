@@ -168,6 +168,13 @@ void AddKernelToPython(pybind11::module& m)
         .def_static("OSName", &Kernel::OSName)
         .def_static("PythonVersion", &Kernel::PythonVersion)
         .def_static("Compiler", &Kernel::Compiler)
+        .def_static("LinearAlgebraBackend", []() -> std::string {
+#ifdef KRATOS_USE_EIGEN_BACKEND
+            return "eigen";
+#else
+            return "ublas";
+#endif
+        })
         ;
 }
 

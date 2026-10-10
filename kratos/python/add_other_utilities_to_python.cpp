@@ -20,6 +20,7 @@
 #include "python/add_other_utilities_to_python.h"
 #include "spaces/default_spaces.h"
 #include "linear_solvers/linear_solver_ublas.h" // exported LinearSolver instantiations (ublas backend)
+#include "linear_solvers/linear_solver_eigen.h" // exported LinearSolver instantiations (eigen backend)
 #include "includes/define_python.h"
 #include "processes/process.h"
 #include "includes/fill_communicator.h"

@@ -15,7 +15,7 @@
 
 // Project includes
 #include "custom_solvers/mkl_smoother_base.hpp" // MKLSmootherBase
-#include "spaces/ublas_space.h" // TUblasSparseSpace, TUblasDenseSpace
+#include "spaces/default_spaces.h" // TDefaultSparseSpace, TDefaultDenseSpace
 
 // STL includes
 #include <optional> // std::optional
@@ -65,13 +65,13 @@ void MKLSmootherBase<TSparse,TDense>::InitializeSolutionStep(SparseMatrix& rLhs,
     mpImpl->mMaybeRowExtents.emplace(rLhs.index1_data().size());
     mpImpl->mMaybeColumnIndices.emplace(rLhs.index2_data().size());
 
-    for (auto [p_source_array, p_target_array] : {std::make_pair(&rLhs.index1_data(), &mpImpl->mMaybeRowExtents.value()),
-                                                  std::make_pair(&rLhs.index2_data(), &mpImpl->mMaybeColumnIndices.value())}) {
-        auto& r_source = *p_source_array;
+    using MatrixIndexType = typename SparseMatrix::index_array_type::value_type;
+    for (auto [p_source_array, p_target_array] : {std::make_pair(static_cast<MatrixIndexType*>(rLhs.index1_data().begin()), &mpImpl->mMaybeRowExtents.value()),
+                                                  std::make_pair(static_cast<MatrixIndexType*>(rLhs.index2_data().begin()), &mpImpl->mMaybeColumnIndices.value())}) {
         auto& r_target = *p_target_array;
-        IndexPartition<typename TSparse::IndexType>(p_source_array->size()).for_each(
-            [&r_source, &r_target](typename TSparse::IndexType i) mutable {
-                r_target[i] = static_cast<MKL_INT>(r_source[i])
+        IndexPartition<typename TSparse::IndexType>(r_target.size()).for_each(
+            [p_source_array, &r_target](typename TSparse::IndexType i) mutable {
+                r_target[i] = static_cast<MKL_INT>(p_source_array[i])
                             + static_cast<MKL_INT>(1); //< intel sometimes exclusively uses 1-based indexing
             });
     } // for p_source_array, p_target_array in array_pairs
@@ -173,10 +173,8 @@ MKLSmootherBase<TSparse,TDense>::MakeSystemView(const SparseMatrix& rLhs,
 }
 
 
-template class MKLSmootherBase<TUblasSparseSpace<double>,TUblasDenseSpace<double>>;
-
-
-template class MKLSmootherBase<TUblasSparseSpace<float>,TUblasDenseSpace<double>>;
+// Instantiated on the configure-time selected linear-algebra backend only.
+template class MKLSmootherBase<TDefaultSparseSpace<double>,TDefaultDenseSpace<double>>;
 
 
 } // namespace Kratos

@@ -16,7 +16,8 @@
 #include "solving_strategies/builder_and_solvers/p_multigrid/constraint_assembler_factory.hpp" // ConstraintAssemblerFactory
 #include "solving_strategies/builder_and_solvers/p_multigrid/sparse_utilities.hpp" // ApplyDirichletConditions
 #include "solving_strategies/builder_and_solvers/p_multigrid/status_stream.hpp"
-#include "spaces/ublas_space.h" // TUblasSparseSpace, TUblasDenseSpace
+#include "spaces/ublas_space.h" // TDefaultSparseSpace, TDefaultDenseSpace
+#include "spaces/default_spaces.h"
 #include "factories/linear_solver_factory.h" // LinearSolverFactory
 #include "includes/kratos_components.h" // KratosComponents
 #include "utilities/profiler.h" // KRATOS_PROFILE_SCOPE
@@ -317,7 +318,7 @@ void PGrid<TSparse,TDense>::ApplyDirichletConditions(typename IndirectDofSet::co
             // Zero out the whole row, except the entry related to the dof on the fine grid.
             const auto i_fine_dof = mDofMap[i_dof];
             for (typename TSparse::IndexType i_entry=i_entry_begin; i_entry<i_entry_end; ++i_entry) {
-                const auto i_column = mRestrictionOperator.index2_data()[i_entry];
+                const auto i_column = static_cast<std::size_t>(mRestrictionOperator.index2_data()[i_entry]);
                 if (i_column == i_fine_dof) {
                     mRestrictionOperator.value_data()[i_entry] = static_cast<typename TSparse::DataType>(1);
                 } else {
@@ -327,7 +328,7 @@ void PGrid<TSparse,TDense>::ApplyDirichletConditions(typename IndirectDofSet::co
         } /*if r_dof.IsFixed()*/ else {
             // Zero out the column which is associated with the zero'ed row.
             for (typename TSparse::IndexType i_entry=i_entry_begin; i_entry<i_entry_end; ++i_entry) {
-                const auto i_column = mRestrictionOperator.index2_data()[i_entry];
+                const auto i_column = static_cast<std::size_t>(mRestrictionOperator.index2_data()[i_entry]);
                 const auto it_column_dof = itParentDofBegin + i_column;
                 if (it_column_dof->IsFixed()) {
                     mRestrictionOperator.value_data()[i_entry] = 0.0;
@@ -644,12 +645,12 @@ Parameters PGrid<TSparse,TDense>::GetDefaultParameters()
 
 #define KRATOS_INSTANTIATE_PGRID(TSparse, TDense)                                   \
     template class PGrid<TSparse,TDense>;                                           \
-    KRATOS_INSTANTIATE_PGRID_MEMBERS(TSparse, TDense, TUblasSparseSpace<double>);   \
-    KRATOS_INSTANTIATE_PGRID_MEMBERS(TSparse, TDense, TUblasSparseSpace<float>)
+    KRATOS_INSTANTIATE_PGRID_MEMBERS(TSparse, TDense, TDefaultSparseSpace<double>);   \
+    KRATOS_INSTANTIATE_PGRID_MEMBERS(TSparse, TDense, TDefaultSparseSpace<float>)
 
-KRATOS_INSTANTIATE_PGRID(TUblasSparseSpace<double>, TUblasDenseSpace<double>);
+KRATOS_INSTANTIATE_PGRID(TDefaultSparseSpace<double>, TDefaultDenseSpace<double>);
 
-KRATOS_INSTANTIATE_PGRID(TUblasSparseSpace<float>, TUblasDenseSpace<double>);
+KRATOS_INSTANTIATE_PGRID(TDefaultSparseSpace<float>, TDefaultDenseSpace<double>);
 
 #undef KRATOS_INSTANTIATE_GRID
 #undef KRATOS_INSTANTIATE_GRID_MEMBERS

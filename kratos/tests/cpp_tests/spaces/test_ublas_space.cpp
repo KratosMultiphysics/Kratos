@@ -11,6 +11,9 @@
 //                   Vicente Mataix Ferrandiz
 //
 
+// The uBLAS space is only compiled under the uBLAS backend
+#ifndef KRATOS_USE_EIGEN_BACKEND
+
 // System includes
 
 // External includes
@@ -44,7 +47,7 @@ KRATOS_TEST_CASE_IN_SUITE(UblasSpaceNormSparseMatrix, KratosCoreFastSuite)
 
 KRATOS_TEST_CASE_IN_SUITE(UblasSpaceNormDenseMatrix, KratosCoreFastSuite)
 {
-    typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
+    typedef TUblasDenseSpace<double> LocalSpaceType;
     const std::size_t size = 10;
     LocalSpaceType::MatrixType mat(size, size, 0.0);
 
@@ -63,7 +66,7 @@ KRATOS_TEST_CASE_IN_SUITE(UblasSpaceNormDenseMatrix, KratosCoreFastSuite)
 KRATOS_TEST_CASE_IN_SUITE(CheckAndCorrectZeroDiagonalValues, KratosCoreFastSuite)
 {
     /// The sparse matrix type
-    typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
+    typedef TUblasSparseSpace<double> SparseSpaceType;
     typedef typename SparseSpaceType::MatrixType SparseMatrixType;
 
     Model current_model;
@@ -75,7 +78,7 @@ KRATOS_TEST_CASE_IN_SUITE(CheckAndCorrectZeroDiagonalValues, KratosCoreFastSuite
     for (IndexType i = 0; i < 12; ++i) {
         matrix12x12.push_back(i, i, static_cast<double>(i));
     }
-    Vector vector12 = ZeroVector(12);
+    SparseSpaceType::VectorType vector12 = ZeroVector(12);
 
     // Test the norm of the matrix
     double norm = 0.0;
@@ -87,7 +90,7 @@ KRATOS_TEST_CASE_IN_SUITE(CheckAndCorrectZeroDiagonalValues, KratosCoreFastSuite
 KRATOS_TEST_CASE_IN_SUITE(GetScaleNorm, KratosCoreFastSuite)
 {
     /// The sparse matrix type
-    typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
+    typedef TUblasSparseSpace<double> SparseSpaceType;
     typedef typename SparseSpaceType::MatrixType SparseMatrixType;
 
     Model current_model;
@@ -118,3 +121,5 @@ KRATOS_TEST_CASE_IN_SUITE(GetScaleNorm, KratosCoreFastSuite)
 
 } // namespace Testing
 } // namespace Kratos.
+
+#endif // !KRATOS_USE_EIGEN_BACKEND

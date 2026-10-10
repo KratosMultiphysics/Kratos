@@ -73,14 +73,14 @@ Geometry<Point>::Pointer CreateTriangle3D3N()
     return Geometry<Point>::Pointer(new Triangle3D3<Point>(points));
 }
 
-DenseMatrix<double> GetJacobian(
+Matrix GetJacobian(
     const Geometry<Point>& rGeometry,
     GeometryData::IntegrationMethod Quadrature,
     unsigned int GaussPointIndex)
 {
     const auto& rDN_De = rGeometry.ShapeFunctionLocalGradient(GaussPointIndex, Quadrature);
-    DenseMatrix<double> jacobian(rGeometry.WorkingSpaceDimension(), rGeometry.LocalSpaceDimension());
-    DenseMatrix<double> coordinates(rGeometry.WorkingSpaceDimension(), rGeometry.PointsNumber());
+    Matrix jacobian(rGeometry.WorkingSpaceDimension(), rGeometry.LocalSpaceDimension());
+    Matrix coordinates(rGeometry.WorkingSpaceDimension(), rGeometry.PointsNumber());
 
     for (unsigned int i = 0; i < rGeometry.PointsNumber(); i++)
     {
@@ -101,7 +101,7 @@ double IntegrationPointWeight(
     unsigned int GaussPointIndex)
 {
     auto jacobian = GetJacobian(rGeometry, Quadrature, GaussPointIndex);
-    DenseMatrix<double> aux = prod(trans(jacobian), jacobian);
+    Matrix aux = prod(trans(jacobian), jacobian);
     double determinant = MathUtils<double>::Det(aux);
     return rGeometry.IntegrationPoints(Quadrature)[GaussPointIndex].Weight() * std::sqrt(determinant);
 }

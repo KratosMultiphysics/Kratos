@@ -72,6 +72,18 @@ Enables(Default) or Disables the compilation of the C++ unitary tests for *Krato
 `-DKRATOS_NO_TRY_CATCH=ON/OFF`
 Enables or Disables(Default) the prevention of code generation in `KRATOS_TRY` and `KRATOS_CATCH` macros to allow direct debug of the code through gdb without having to break at `__cxa_throw`.
 
+`-DKRATOS_LINEAR_ALGEBRA_BACKEND=String`
+Selects the linear-algebra backend behind the Kratos dense and sparse types (`Matrix`, `Vector`, `DenseMatrix`, `BoundedMatrix`, `array_1d`, `CompressedMatrix`, the complex counterparts, the spaces, builder-and-solvers and linear solvers). Options are:
+- `ublas`(Default): Boost uBLAS, the traditional Kratos backend.
+- `eigen`: [Eigen](https://eigen.tuxfamily.org), resolved from `EIGEN3_ROOT`, the OS install or an automatic download (see `cmake_modules/KratosEigen.cmake`).
+
+Notes:
+- The switch is complete: under the Eigen backend every alias of `includes/default_interface.h` (the header to include; `includes/ublas_interface.h` forwards to it) and every space of `spaces/default_spaces.h` is Eigen-backed, and the uBLAS free-function idiom (`prod`, `trans`, `noalias`, `row`, `subrange`, `project`, `lu_factorize`, ...) is provided in namespace `Kratos` with the uBLAS semantics (e.g. `trans` of a vector is the identity), so element and utility code compiles unchanged. Two behaviour differences: the fixed-size types (`BoundedMatrix`, `BoundedVector`, `array_1d`) cannot carry a runtime size below their static size (use a dynamic `Matrix`/`Vector` where a variable size is needed), and `size()` of a lazy expression is signed (the concrete types and the proxies keep the unsigned uBLAS `size()`).
+- The flag is applied globally (like `KRATOS_SHARED_MEMORY_PARALLELIZATION`): the core and **all** applications of one build must be configured with the same value. Never mix binaries built with different values.
+- Applications should use the `TDefaultSparseSpace`/`DefaultSparseSpaceType` aliases from `spaces/default_spaces.h` rather than hardcoding a backend's space. The uBLAS spellings (`UblasSpace<double, Matrix, Vector>`, `TUblasSparseSpace<T>`, `TUblasDenseSpace<T>`) keep working under the Eigen backend as aliases of the Eigen spaces, but an explicit boost container argument (e.g. `UblasSpace<double, CompressedMatrix, boost::numeric::ublas::vector<double>>`) does not.
+- The index type of the Eigen sparse matrices defaults to `int` (32-bit); `-DKRATOS_EIGEN_64BIT_INDICES=ON` selects `std::ptrdiff_t`, and `-DKRATOS_EIGEN_INDEX_TYPE=<signed type>` (as a compile definition) overrides it.
+- `deflated_cg` relies on uBLAS-only deflation utilities and is not available when the Eigen backend is active.
+
 ## Unitary Builds
 `-DCMAKE_UNITY_BUILD=ON/OFF`
 Enables or Disables(default) the use of [cmake unity build](https://cmake.org/cmake/help/latest/prop_tgt/UNITY_BUILD.html) to speedup compilation by using unitary builds.

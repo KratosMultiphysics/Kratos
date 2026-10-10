@@ -26,6 +26,7 @@
 #include "includes/ublas_complex_interface.h"
 
 #include "linear_solvers/linear_solver_ublas.h"
+#include "linear_solvers/linear_solver_eigen.h"
 #include "spaces/default_spaces.h"
 #include "linear_solvers/reorderer.h"
 #include "linear_solvers/direct_solver.h"
@@ -65,7 +66,11 @@ void  AddLinearSolversToPython(pybind11::module& m)
     using LinearSolverType = LinearSolver<SpaceType, LocalSpaceType>;
     using IterativeSolverType = IterativeSolver<SpaceType, LocalSpaceType>;
     using CGSolverType = CGSolver<SpaceType, LocalSpaceType>;
+#ifndef KRATOS_USE_EIGEN_BACKEND
+    // DeflatedCGSolver's deflation utilities are bound to the uBLAS CSR matrix,
+    // so it is not available with the Eigen sparse backend
     using DeflatedCGSolverType = DeflatedCGSolver<SpaceType, LocalSpaceType>;
+#endif
     using BICGSTABSolverType = BICGSTABSolver<SpaceType, LocalSpaceType>;
     using TFQMRSolverType = TFQMRSolver<SpaceType, LocalSpaceType>;
     using ScalingSolverType = ScalingSolver<SpaceType, LocalSpaceType>;
@@ -231,6 +236,7 @@ void  AddLinearSolversToPython(pybind11::module& m)
     .def("__str__", PrintObject<ComplexSkylineLUSolverType>)
     ;
 
+#ifndef KRATOS_USE_EIGEN_BACKEND
     py::class_<DeflatedCGSolverType, DeflatedCGSolverType::Pointer,IterativeSolverType>(m,"DeflatedCGSolver")
     .def(py::init<double,bool,int>())
     .def(py::init<double, unsigned int,bool,int>())
@@ -240,6 +246,7 @@ void  AddLinearSolversToPython(pybind11::module& m)
     //.def("",&LinearSolverType::)
     .def("__str__", PrintObject<DeflatedCGSolverType>)
     ;
+#endif
 
     using FallbackLinearSolverType = FallbackLinearSolver<SpaceType, LocalSpaceType>;
     py::class_<FallbackLinearSolverType, FallbackLinearSolverType::Pointer, LinearSolverType>(m, "FallbackLinearSolver")
