@@ -28,8 +28,8 @@ GlobalPointersVector<Element> ExtractElementsWithHigherLocalDimension(const Glob
 {
     GlobalPointersVector<Element> result;
     std::copy_if(rElements.ptr_begin(), rElements.ptr_end(), std::back_inserter(result),
-                 [LocalSpaceDimension](auto pElement) {
-        return pElement->GetGeometry().LocalSpaceDimension() > LocalSpaceDimension;
+                 [LocalSpaceDimension](const auto& rpElement) {
+        return rpElement->GetGeometry().LocalSpaceDimension() > LocalSpaceDimension;
     });
     return result;
 }
@@ -68,10 +68,10 @@ void FindNeighboursOfInterfacesProcess::RemoveNeighboursWithoutHigherLocalDimens
 {
     for (const auto& r_interface_model_part : mrInterfaceModelParts) {
         for (auto& r_interface_element : r_interface_model_part.get().Elements()) {
+            // Filter the container of (global) pointers rather than the elements themselves. This is required
+            // when an interface element has multiple neighbours on the same side, e.g. a beam on top of a soil element.
             auto& r_neighbour_elements = r_interface_element.GetValue(NEIGHBOUR_ELEMENTS);
-            // WORKAROUND: std::erase-remove on GlobalPointersVector corrupts adjacent memory.
-            // Instead of erasing in-place, construct a filtered container and assign.
-            r_neighbour_elements = ExtractElementsWithHigherLocalDimension(
+            r_neighbour_elements       = ExtractElementsWithHigherLocalDimension(
                 r_neighbour_elements, r_interface_element.GetGeometry().LocalSpaceDimension());
         }
     }
