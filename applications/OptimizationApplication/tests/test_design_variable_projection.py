@@ -38,7 +38,6 @@ class TestIdentityDesignVariableProjection(kratos_unittest.TestCase):
         result = self.projection.ForwardProjectionGradient(self.position)
         self.assertAlmostEqual(numpy.linalg.norm(result.data), numpy.sqrt(self.test_model_part.NumberOfNodes() * 3))
 
-
 class TestSigmoidalDesignVariableProjection(kratos_unittest.TestCase):
     @classmethod
     def setUpClass(cls):
@@ -183,6 +182,46 @@ class TestAdaptiveSigmoidalDesignVariableProjection(kratos_unittest.TestCase):
             result = projection.ForwardProjectionGradient(self.position)
             projection.Update()
             self.assertAlmostEqual(numpy.linalg.norm(result.data - self.position.data), 716.3046437643214)
+
+class TestClampingProjection(kratos_unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.model = Kratos.Model()
+
+        cls.test_model_part =  cls.model.CreateModelPart("test")
+        cls.test_model_part.ProcessInfo.SetValue(Kratos.DOMAIN_SIZE, 3)
+        cls.min = -15
+        cls.max = 15
+
+        for i in range(11):
+            node: Kratos.Node = cls.test_model_part.CreateNewNode(i + 1, i * 4, i * 3, i * 2)
+            v = cls.min + float(i) * (cls.max - cls.min)  / 10.0
+            node.SetValue(Kratos.PRESSURE, v)
+
+        cls.pressure = Kratos.TensorAdaptors.VariableTensorAdaptor(cls.test_model_part.Nodes, Kratos.PRESSURE)
+        cls.pressure.CollectData()
+
+        cls.optimization_problem = OptimizationProblem()
+        parameters = Kratos.Parameters("""{
+            "type"          : "clamping_projection"
+        }""")
+        cls.projection = CreateProjection(parameters, cls.optimization_problem)
+        cls.projection.SetProjectionSpaces([0.0, 1.0], [cls.min, cls.max])
+
+    def test_ProjectBackward(self):
+        result = self.projection.ProjectBackward(self.pressure)
+        self.assertAlmostEqual(numpy.linalg.norm(result.data - self.pressure.data), 30.61406393636563)
+        self.assertAlmostEqual(numpy.linalg.norm(result.data, ord=numpy.inf), 1.0)
+
+    def test_ProjectForward(self):
+        result = self.projection.ProjectForward(self.projection.ProjectBackward(self.pressure))
+        self.assertAlmostEqual(numpy.linalg.norm(result.data - self.pressure.data), 0.0)
+
+    def test_ForwardProjectionGradient(self):
+        result = self.projection.ForwardProjectionGradient(self.projection.ProjectBackward(self.pressure))
+        self.assertAlmostEqual(numpy.linalg.norm(result.data), 117.1285001317973)
+        self.assertAlmostEqual(result.data[0], 0.0)
+        self.assertAlmostEqual(result.data[-1], 0.0)
 
 if __name__ == "__main__":
     kratos_unittest.main()
