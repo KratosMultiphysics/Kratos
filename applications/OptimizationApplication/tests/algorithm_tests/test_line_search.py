@@ -25,12 +25,15 @@ class TestLineSearch(kratos_unittest.TestCase):
         control_field_update = Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor(sensitivity)
         control_field_update.data[:] *= 6.0
 
-        ComponentDataView("algorithm", cls.optimization_problem).GetBufferedData()["search_direction"] = search_direction
-        ComponentDataView("algorithm", cls.optimization_problem_one_step).GetBufferedData()["search_direction"] = sensitivity
-        ComponentDataView("algorithm", cls.optimization_problem).GetBufferedData()["control_field_update"] = control_field_update
+        ComponentDataView("algorithm", cls.optimization_problem).GetUnBufferedData().SetValue("controls", "test_control")
+        ComponentDataView("algorithm", cls.optimization_problem_one_step).GetUnBufferedData().SetValue("controls", "test_control")
+
+        ComponentDataView("algorithm", cls.optimization_problem).GetBufferedData()["search_direction/test_control_search_direction"] = search_direction
+        ComponentDataView("algorithm", cls.optimization_problem_one_step).GetBufferedData()["search_direction/test_control_search_direction"] = sensitivity
+        ComponentDataView("algorithm", cls.optimization_problem).GetBufferedData()["control_field_update/test_control_control_field_update"] = control_field_update
 
         cls.optimization_problem.AdvanceStep()
-        ComponentDataView("algorithm", cls.optimization_problem).GetBufferedData()["search_direction"] = sensitivity
+        ComponentDataView("algorithm", cls.optimization_problem).GetBufferedData()["search_direction/test_control_search_direction"] = sensitivity
     @classmethod
     def CreateElements(cls):
         cls.model_part.CreateNewNode(1, 0.0, 0.0, 0.0)
