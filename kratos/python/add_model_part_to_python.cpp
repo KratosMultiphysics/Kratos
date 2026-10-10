@@ -14,17 +14,19 @@
 // System includes
 
 // External includes
+#include <pybind11/numpy.h>
 #include <pybind11/stl.h>
 
 // Project includes
 #include "includes/define_python.h"
 #include "containers/model.h"
-#include "includes/model_part.h"
+#include "containers/nd_data.h"
 #include "includes/kratos_components.h"
-#include "includes/process_info.h"
 #include "utilities/quaternion.h"
+#include "utilities/vectorization_helper.h"
 #include "python/add_model_part_to_python.h"
 #include "python/containers_interface.h"
+#include "python/numpy_utils.h"
 
 namespace Kratos::Python
 {
@@ -756,7 +758,11 @@ void AddModelPartToPython(pybind11::module& m)
         .def("__iter__", [](typename ModelPart::SubModelPartsContainerType& self){ return py::make_iterator(self.begin(), self.end());},  py::keep_alive<0,1>())
         ;
 
-    MapInterface<ModelPart::GeometryContainerType>().CreateInterface(m,"GeometryContainerType");
+    MapInterface<ModelPart::GeometryContainerType>().CreateInterface(m, "GeometryContainerType")
+        .def("DomainSize", [](ModelPart::GeometryContainerType &rContainer) {
+                auto p_data = VectorizationHelper(rContainer, &ModelPart::GeometryType::DomainSize);
+                return GetPybindArray<double>(*p_data);
+            });
     PointerVectorSetPythonInterface<ModelPart::MasterSlaveConstraintContainerType>().CreateInterface(m,"MasterSlaveConstraintsArray");
 
     py::class_<Kratos::Python::SubModelPartView>(m, "SubModelPartView")
