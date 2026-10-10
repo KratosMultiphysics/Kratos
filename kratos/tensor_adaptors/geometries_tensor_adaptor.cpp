@@ -54,6 +54,8 @@ DenseVector<unsigned int> GeometriesTensorAdaptor::GetShape(
             return ZeroVector(3); // N_elem, N_gauss, N_node
         if (Datum == GeometriesTensorAdaptor::DatumType::ShapeFunctionDerivatives)
             return ZeroVector(4); // N_elem, N_gauss, N_node, Dim
+        if (Datum == GeometriesTensorAdaptor::DatumType::Normals)
+            return ZeroVector(3); // N_elem, N_gauss, Dim
         if (Datum == GeometriesTensorAdaptor::DatumType::Jacobians)
             return ZeroVector(4); // N_elem, N_gauss, Dim, LocalDim
         if (Datum == GeometriesTensorAdaptor::DatumType::IntegrationWeights)
@@ -89,6 +91,13 @@ DenseVector<unsigned int> GeometriesTensorAdaptor::GetShape(
         shape[1] = n_gauss;
         shape[2] = n_node;
         shape[3] = working_dim;
+        return shape;
+    } else if (Datum == GeometriesTensorAdaptor::DatumType::Normals) {
+        // [N_elem, N_gauss, WorkingDim]
+        DenseVector<unsigned int> shape(3);
+        shape[0] = n_elem;
+        shape[1] = n_gauss;
+        shape[2] = 3;
         return shape;
     } else if (Datum == GeometriesTensorAdaptor::DatumType::Jacobians) {
         // [N_elem, N_gauss, WorkingDim, LocalDim]
@@ -185,6 +194,29 @@ void GeometriesTensorAdaptor::CollectShapeFunctionsDerivatives(
 }
 
 template <class TContainerType>
+void GeometriesTensorAdaptor::CollectNormals(
+    double* pData,
+    const TContainerType& rContainer,
+    GeometryData::IntegrationMethod Method,
+    const DenseVector<unsigned int>& Shape)
+{
+    const std::size_t n_geom = Shape[0];
+    const std::size_t n_gauss = Shape[1];
+
+    array_1d<double, 3> tls_normal;
+    IndexPartition<std::size_t>(n_geom).for_each(tls_normal, [&](std::size_t i, array_1d<double, 3>& rTLS) {
+        const auto& r_geometry = GetGeometry(*(rContainer.begin() + i));
+
+        for (std::size_t g = 0; g < n_gauss; ++g) {
+            rTLS = r_geometry.Normal(g, Method);
+            for (std::size_t d = 0; d < 3; ++d) {
+                pData[i * n_gauss * 3 + g * 3 + d] = rTLS[d];
+            }
+        }
+    });
+}
+
+template <class TContainerType>
 void GeometriesTensorAdaptor::CollectJacobians(
     double* pData, const TContainerType& rContainer,
     GeometryData::IntegrationMethod Method,
@@ -228,6 +260,8 @@ void GeometriesTensorAdaptor::FillData(double* pData,
     } else if (Datum ==
                GeometriesTensorAdaptor::DatumType::ShapeFunctionDerivatives) {
         CollectShapeFunctionsDerivatives(pData, rContainer, Method, Shape);
+    } else if (Datum == GeometriesTensorAdaptor::DatumType::Normals) {
+        CollectNormals(pData, rContainer, Method, Shape);
     } else if (Datum == GeometriesTensorAdaptor::DatumType::Jacobians) {
         CollectJacobians(pData, rContainer, Method, Shape);
     } else if (Datum == GeometriesTensorAdaptor::DatumType::IntegrationWeights) {

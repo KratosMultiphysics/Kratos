@@ -164,6 +164,35 @@ public:
     }
 
     ///@}
+    ///@name Access to Geometry Parts
+    ///@{
+
+    GeometryPointer pGetGeometryPart(const IndexType Index) override
+    {
+        const auto& const_this = *this;
+        return std::const_pointer_cast<GeometryType>(
+            const_this.pGetGeometryPart(Index));
+    }
+
+    const GeometryPointer pGetGeometryPart(const IndexType Index) const override
+    {
+        if (Index == GeometryType::BACKGROUND_GEOMETRY_INDEX)
+            return mpSurfaceOnVolume->pGetGeometryPart(GeometryType::BACKGROUND_GEOMETRY_INDEX);
+
+        if (Index == SURFACE_ON_VOLUME_INDEX)
+            return mpSurfaceOnVolume;
+
+        KRATOS_ERROR << "Index " << Index << " not existing in BrepSurfaceOnVolume: "
+            << this->Id() << std::endl;
+    }
+
+    bool HasGeometryPart(const IndexType Index) const override
+    {
+        return Index == GeometryType::BACKGROUND_GEOMETRY_INDEX ||
+               Index == SURFACE_ON_VOLUME_INDEX;
+    }
+
+    ///@}
     ///@name Mathematical Informations
     ///@{
 

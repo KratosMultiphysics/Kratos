@@ -481,7 +481,7 @@ namespace Kratos
     {
         BoundedVector<double, 3> nullVec;
         nullVec = ZeroVector(3);
-        for (IndexType i = 0; i < vec.size(); ++i) {
+        for (IndexType i = 0; i < static_cast<IndexType>(vec.size()); ++i) {
             nullVec += vec[i] * (GetGeometry()[i].*funct)(args...);
         }
 

@@ -19,12 +19,12 @@ namespace Kratos
 
 using SizeType = std::size_t;
 
-template<class TKernelType>
-class KRATOS_API(SPH_APPLICATION) TotalLagrangianDisplacementParticle: public SmallDisplacementParticle<TKernelType>
+template<class TKernelType, std::size_t TDim>
+class KRATOS_API(SPH_APPLICATION) TotalLagrangianDisplacementParticle: public SmallDisplacementParticle<TKernelType, TDim>
 {
 public: 
 
-    using BaseType = SmallDisplacementParticle<TKernelType>;
+    using BaseType = SmallDisplacementParticle<TKernelType, TDim>;
 
     using GeometryType = typename BaseType::GeometryType;
     using PropertiesType = typename BaseType::PropertiesType;
@@ -125,7 +125,8 @@ public:
      */
     virtual void CalculateKinematicVariables(
         KinematicVariables& rThisKinematicVariables, 
-        const ProcessInfo& rCurrentProcessInfo
+        const ProcessInfo& rCurrentProcessInfo,
+        int Step = 0
     );
 
     /**

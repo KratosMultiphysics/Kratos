@@ -76,13 +76,25 @@ class TestRomManager(KratosUnittest.TestCase):
 
                 return parameters
 
+            def CustomizeSimulation(cls, global_model, parameters, mu):
+                """
+                'mu' is a required argument and it is used in Initialize, so every simulation (including the dummy ones) must be created with an actual parameter
+                """
+                class CustomSimulation(cls):
+
+                    def Initialize(self):
+                        super().Initialize()
+                        self.first_parameter = mu[0]
+
+                return CustomSimulation(global_model, parameters)
+
             parameters = KratosMultiphysics.Parameters("""{
                 "projection_strategy": "galerkin",
                 "ROM":{
                     "rom_basis_output_name": "RomParameters_test_to_erase"
                 }
                 }""")
-            rom_manager_object = RomManager(general_rom_manager_parameters=parameters, UpdateProjectParameters = UpdateProjectParameters)
+            rom_manager_object = RomManager(general_rom_manager_parameters=parameters, CustomizeSimulation = CustomizeSimulation, UpdateProjectParameters = UpdateProjectParameters)
             train_mu = [[0.1, 0.1, 0.1]]
             rom_manager_object.Fit(train_mu)
             right_basis = 'RightBasisMatrix'
@@ -268,6 +280,7 @@ class TestRomManager(KratosUnittest.TestCase):
                     kratos_utilities.DeleteFileIfExisting(file_name)
         with KratosUnittest.WorkFolderScope(self.work_folder+'/rom_data', __file__):
             kratos_utilities.DeleteDirectoryIfExisting(Path('./rom_database/'))
+            kratos_utilities.DeleteDirectoryIfExisting(Path('./Residuals/'))
             for file_name in os.listdir():
                 if file_name.endswith("test_to_erase.json"):
                     kratos_utilities.DeleteFileIfExisting(file_name)

@@ -1,14 +1,12 @@
 #if !defined(KRATOS_WATER_FIXED_VELOCITY_CONDITION_H_INCLUDED )
 #define  KRATOS_WATER_FIXED_VELOCITY_CONDITION_H_INCLUDED
 
-// External includes 
-#include "boost/smart_ptr.hpp"
+// External includes
 
 // Project includes
-#include "includes/define.h"
 #include "includes/serializer.h"
 #include "includes/condition.h"
-#include "includes/ublas_interface.h"
+#include "includes/default_interface.h"
 
 
 namespace Kratos

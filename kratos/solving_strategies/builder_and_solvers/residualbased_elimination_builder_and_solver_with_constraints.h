@@ -1028,7 +1028,7 @@ protected:
         for (IndexType i = 0; i < BaseType::mEquationSystemSize; ++i)
             Trow_indices[i + 1] = Trow_indices[i] + master_indices[i].size();
 
-        KRATOS_DEBUG_ERROR_IF_NOT(Trow_indices[BaseType::mEquationSystemSize] == nnz) << "Nonzero values does not coincide with the row index definition: " << Trow_indices[BaseType::mEquationSystemSize] << " vs " << nnz << std::endl;
+        KRATOS_DEBUG_ERROR_IF_NOT(static_cast<std::size_t>(Trow_indices[BaseType::mEquationSystemSize]) == static_cast<std::size_t>(nnz)) << "Nonzero values does not coincide with the row index definition: " << Trow_indices[BaseType::mEquationSystemSize] << " vs " << nnz << std::endl;
 
         IndexPartition<std::size_t>(rT.size1()).for_each([&](std::size_t Index){
             const IndexType row_begin = Trow_indices[Index];
@@ -1226,7 +1226,7 @@ protected:
         if (BaseType::mCalculateReactionsFlag) {
             const SizeType reactions_vector_size = BaseType::mDofSet.size() - mDoFToSolveSystemSize + mDoFMasterFixedSet.size();
             TSystemVectorType& rReactionsVector = *(BaseType::mpReactionsVector);
-            if (rReactionsVector.size() != reactions_vector_size)
+            if (static_cast<SizeType>(rReactionsVector.size()) != reactions_vector_size)
                 rReactionsVector.resize(reactions_vector_size, false);
         }
 
@@ -1402,7 +1402,7 @@ protected:
                 if (k_factor == 0) {
                     // Zero out the whole row, except the diagonal
                     for (IndexType j = col_begin; j < col_end; ++j)
-                        if (Acol_indices[j] != Index )
+                        if (static_cast<std::size_t>(Acol_indices[j]) != Index )
                             Avalues[j] = 0.0;
 
                     // Zero out the RHS

@@ -174,7 +174,7 @@ class FSIProblemEmulatorTest(UnitTest.TestCase):
 
                     # Residual computation
                     disp_residual = self.ComputeDirichletNeumannResidual()
-                    nl_res_norm = UblasSparseSpace().TwoNorm(disp_residual)
+                    nl_res_norm = SparseSpace().TwoNorm(disp_residual)
 
                     print("nl_it: ",nl_it," nl_res_norm: ",nl_res_norm)
 
@@ -290,7 +290,7 @@ class FSIProblemEmulatorTest(UnitTest.TestCase):
 
                 # Compute and check first residual
                 disp_residual = self.__ComputeInitialResidual()
-                nl_res_norm = UblasSparseSpace().TwoNorm(disp_residual)
+                nl_res_norm = SparseSpace().TwoNorm(disp_residual)
                 if nl_res_norm > self.nl_tol:
                     for nl_it in range(self.max_nl_it):
 
@@ -318,7 +318,7 @@ class FSIProblemEmulatorTest(UnitTest.TestCase):
                         disp_residual = self.__ComputeStructureResidual()
 
                         # Residual computation
-                        nl_res_norm = UblasSparseSpace().TwoNorm(disp_residual)
+                        nl_res_norm = SparseSpace().TwoNorm(disp_residual)
                         print("nl_it: ",nl_it," nl_res_norm: ",nl_res_norm)
 
                         # Check convergence

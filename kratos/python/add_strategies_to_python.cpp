@@ -18,7 +18,7 @@
 #include "includes/define_python.h"
 #include "python/add_strategies_to_python.h"
 #include "includes/model_part.h"
-#include "spaces/ublas_space.h"
+#include "spaces/default_spaces.h"
 #include "includes/ublas_complex_interface.h"
 #include "utilities/variable_utils.h"
 
@@ -75,15 +75,16 @@ namespace Kratos:: Python
 {
     namespace py = pybind11;
 
-    typedef UblasSpace<double, CompressedMatrix, boost::numeric::ublas::vector<double>> SparseSpaceType;
-    typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
+    typedef DefaultSparseSpaceType SparseSpaceType;
+    typedef DefaultLocalSpaceType LocalSpaceType;
 
-    typedef UblasSpace<std::complex<double>, ComplexCompressedMatrix, boost::numeric::ublas::vector<std::complex<double>>> ComplexSparseSpaceType;
-    typedef UblasSpace<std::complex<double>, ComplexMatrix, ComplexVector> ComplexLocalSpaceType;
+    typedef DefaultComplexSparseSpaceType ComplexSparseSpaceType;
+    typedef DefaultComplexLocalSpaceType ComplexLocalSpaceType;
 
     //ADDED BY PAOLO (next two)
 
-    double Dot(SparseSpaceType& dummy, SparseSpaceType::VectorType& rX, SparseSpaceType::VectorType& rY)
+    template< typename TSpaceType >
+    double Dot(TSpaceType& dummy, typename TSpaceType::VectorType& rX, typename TSpaceType::VectorType& rY)
     {
         return dummy.Dot(rX, rY);
     }
@@ -102,7 +103,8 @@ namespace Kratos:: Python
         dummy.Mult(rA, rX, rY);
     }
 
-    void TransposeMult(SparseSpaceType& dummy, SparseSpaceType::MatrixType& rA, SparseSpaceType::VectorType& rX, SparseSpaceType::VectorType& rY)
+    template< typename TSpaceType >
+    void TransposeMult(TSpaceType& dummy, typename TSpaceType::MatrixType& rA, typename TSpaceType::VectorType& rX, typename TSpaceType::VectorType& rY)
     //rY=A*rX (the product is stored inside the rY)
     {
         dummy.TransposeMult(rA, rX, rY);
@@ -162,7 +164,8 @@ namespace Kratos:: Python
         dummy.Clear(x);
     }
 
-    double TwoNorm(SparseSpaceType& dummy, SparseSpaceType::VectorType& x)
+    template< typename TSpaceType >
+    double TwoNorm(TSpaceType& dummy, typename TSpaceType::VectorType& x)
     {
         return dummy.TwoNorm(x);
     }
@@ -533,18 +536,25 @@ namespace Kratos:: Python
         //********************************************************************
         //********************************************************************
 
-        auto sparse_space_binder = CreateSpaceInterface< SparseSpaceType >(m,"UblasSparseSpace");
-        sparse_space_binder.def("TwoNorm", TwoNorm);
-        // The dot product of two vectors
-        sparse_space_binder.def("Dot", Dot);
-        sparse_space_binder.def("TransposeMult", TransposeMult);
-        // Size functions
+        // The sparse space of the strategies (the configure-time selected
+        // backend), plus backend-agnostic aliases: scripts that build system
+        // matrices/vectors to feed directly into a linear solver should use
+        // SparseSpace/SparseMatrix/SparseVector instead of hardcoding the
+        // backend-specific names.
+        const std::string sparse_space_name = "UblasSparseSpace";
+        auto sparse_space_binder = CreateSpaceInterface< SparseSpaceType >(m, sparse_space_name.c_str());
+        sparse_space_binder.def("TwoNorm", TwoNorm<SparseSpaceType>);
+        // the dot product of the argument vectors
+        sparse_space_binder.def("Dot", Dot<SparseSpaceType>);
+        sparse_space_binder.def("TransposeMult", TransposeMult<SparseSpaceType>);
         sparse_space_binder.def("Size", &SparseSpaceType::Size);
         sparse_space_binder.def("Size1", &SparseSpaceType::Size1);
         sparse_space_binder.def("Size2", &SparseSpaceType::Size2);
-        // Information functions
         sparse_space_binder.def("IsDistributed", &SparseSpaceType::IsDistributed);
         sparse_space_binder.def("FastestDirectSolverList", &SparseSpaceType::FastestDirectSolverList);
+        m.attr("SparseSpace") = m.attr(sparse_space_name.c_str());
+        m.attr("SparseMatrix") = m.attr("CompressedMatrix");
+        m.attr("SparseVector") = m.attr("Vector");
 
         auto cplx_sparse_space_binder = CreateSpaceInterface< ComplexSparseSpaceType >(m,"UblasComplexSparseSpace");
 

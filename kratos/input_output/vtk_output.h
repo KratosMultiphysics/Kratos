@@ -391,6 +391,20 @@ protected:
         std::ofstream& rFileStream) const;
 
     /**
+     * @brief Write the scalar-nonhistorical variable results of rContainer.
+     * @tparam TContainerType The type of container of the entity on which the results are to be written
+     * @tparam TVarType The type of Variable of the entity on which the results are to be written
+     * @param rContainer the container which is beging output
+     * @param rVariable Variable of the result to be written.
+     * @param rFileStream the file stream to which data is to be written.
+     */
+    template<typename TContainerType>
+    void WriteFlagsContainerVariable(
+        const TContainerType& rContainer,
+        const Variable<Flags>& rVariable,
+        std::ofstream& rFileStream) const;
+
+    /**
      * @brief Write the scalar GP variable results of rContainer.
      * @tparam TContainerType The type of container of the entity on which the results are to be written
      * @tparam TVarType The type of Variable of the entity on which the results are to be written

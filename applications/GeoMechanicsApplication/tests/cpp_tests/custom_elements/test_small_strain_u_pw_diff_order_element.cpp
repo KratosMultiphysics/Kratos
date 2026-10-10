@@ -92,7 +92,7 @@ auto CreateSmallStrainUPwDiffOrderElementWithUPwDofs(const Properties::Pointer& 
     const auto degrees_of_freedom =
         Geo::ConstVariableRefs{std::cref(WATER_PRESSURE), std::cref(DISPLACEMENT_X),
                                std::cref(DISPLACEMENT_Y), std::cref(DISPLACEMENT_Z)};
-    Testing::ElementSetupUtilities::AddVariablesToEntity(result, solution_step_variables, degrees_of_freedom);
+    Testing::ElementSetupUtilities::AddVariablesToNodes(nodes, solution_step_variables, degrees_of_freedom);
 
     for (auto& r_node : nodes) {
         r_node.SetBufferSize(2);
@@ -366,32 +366,32 @@ KRATOS_TEST_CASE_IN_SUITE(SmallStrainUPwDiffOrderElement_CheckThrowsOnFaultyInpu
                                       "Missing variable DISPLACEMENT on nodes 1 2 3 4 5 6");
 
     auto solution_step_variables = Geo::ConstVariableDataRefs{std::cref(DISPLACEMENT)};
-    ElementSetupUtilities::AddVariablesToEntity(p_element, solution_step_variables);
+    ElementSetupUtilities::AddVariablesToNodes(p_element->GetGeometry(), solution_step_variables);
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(p_element->Check(dummy_process_info),
                                       "Missing variable VELOCITY on nodes 1 2 3 4 5 6");
 
     solution_step_variables.emplace_back(std::cref(VELOCITY));
-    ElementSetupUtilities::AddVariablesToEntity(p_element, solution_step_variables);
+    ElementSetupUtilities::AddVariablesToNodes(p_element->GetGeometry(), solution_step_variables);
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(p_element->Check(dummy_process_info),
                                       "Missing variable ACCELERATION on nodes 1 2 3 4 5 6");
 
     solution_step_variables.emplace_back(std::cref(ACCELERATION));
-    ElementSetupUtilities::AddVariablesToEntity(p_element, solution_step_variables);
+    ElementSetupUtilities::AddVariablesToNodes(p_element->GetGeometry(), solution_step_variables);
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(p_element->Check(dummy_process_info),
                                       "Missing variable WATER_PRESSURE on nodes 1 2 3 4 5 6");
 
     solution_step_variables.emplace_back(std::cref(WATER_PRESSURE));
-    ElementSetupUtilities::AddVariablesToEntity(p_element, solution_step_variables);
+    ElementSetupUtilities::AddVariablesToNodes(p_element->GetGeometry(), solution_step_variables);
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(p_element->Check(dummy_process_info),
                                       "Missing variable DT_WATER_PRESSURE on nodes 1 2 3 4 5 6");
 
     solution_step_variables.emplace_back(std::cref(DT_WATER_PRESSURE));
-    ElementSetupUtilities::AddVariablesToEntity(p_element, solution_step_variables);
+    ElementSetupUtilities::AddVariablesToNodes(p_element->GetGeometry(), solution_step_variables);
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(p_element->Check(dummy_process_info),
                                       "Missing variable VOLUME_ACCELERATION on nodes 1 2 3 4 5 6");
 
     solution_step_variables.emplace_back(std::cref(VOLUME_ACCELERATION));
-    ElementSetupUtilities::AddVariablesToEntity(p_element, solution_step_variables);
+    ElementSetupUtilities::AddVariablesToNodes(p_element->GetGeometry(), solution_step_variables);
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         p_element->Check(dummy_process_info),
         "Missing the DoF for the variable DISPLACEMENT_X on nodes 1 2 3 4 5 6");
@@ -399,7 +399,7 @@ KRATOS_TEST_CASE_IN_SUITE(SmallStrainUPwDiffOrderElement_CheckThrowsOnFaultyInpu
     const auto degrees_of_freedom =
         Geo::ConstVariableRefs{std::cref(DISPLACEMENT_X), std::cref(DISPLACEMENT_Y),
                                std::cref(DISPLACEMENT_Z), std::cref(WATER_PRESSURE)};
-    ElementSetupUtilities::AddVariablesToEntity(p_element, solution_step_variables, degrees_of_freedom);
+    ElementSetupUtilities::AddVariablesToNodes(p_element->GetGeometry(), solution_step_variables, degrees_of_freedom);
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         p_element->Check(dummy_process_info),
         "DENSITY_SOLID does not exist in the material properties with Id 0 at element with Id 1.");

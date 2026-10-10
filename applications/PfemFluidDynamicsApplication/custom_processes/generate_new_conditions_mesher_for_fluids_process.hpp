@@ -204,7 +204,7 @@ protected:
       in->Reset(BOUNDARY);
       in->Reset(FREE_SURFACE);
 
-      if (any_node_to_erase == false)
+      if (!any_node_to_erase)
         if (in->Is(TO_ERASE))
           any_node_to_erase = true;
     }
@@ -284,7 +284,7 @@ protected:
     this->ClearMasterEntities(rModelPart, rTemporaryConditions);
 
     //properties to be used in the generation
-    int number_properties = rModelPart.GetParentModelPart().NumberOfProperties();
+    const int number_properties = rModelPart.GetParentModelPart().NumberOfProperties();
     Properties::Pointer properties = rModelPart.GetParentModelPart().pGetProperties(number_properties - 1);
 
     ProcessInfo &rCurrentProcessInfo = rModelPart.GetProcessInfo();
@@ -364,7 +364,7 @@ protected:
               }
             }
 
-            if (freeSurfaceFace == true)
+            if (freeSurfaceFace)
             {
               for (unsigned int j = 1; j <= NumberNodesInFace; j++)
               {
@@ -459,9 +459,8 @@ protected:
                 }
               }
 
-              if (condition_found == true)
+              if (condition_found)
               {
-                // std::cout<<" Condition Found:  "<<ic->Id()<<" ("<<ic->GetGeometry()[0].Id()<<", "<<ic->GetGeometry()[1].Id()<<") == ("<<rGeom[lpofa(1,i)].Id()<<" "<<rGeom[lpofa(2,i)].Id()<<") ->  Used : "<<rPreservedConditions[ic->Id()-1]<<" times "<<std::endl;
                 break;
               }
             }
@@ -491,15 +490,10 @@ protected:
 
                 p_cond = pBoundaryCondition->Clone(rConditionId, FaceNodes);
 
-                //p_cond->Data() = pBoundaryCondition->Data();
-
-                //std::cout<<" _IDa_ "<<p_cond->Id()<<" MASTER ELEMENT "<<ie->Id()<<" MASTER NODE "<<rElementGeometry[lpofa(0,iface)].Id()<<" or "<<rElementGeometry[lpofa(NumberNodesInFace,iface)].Id()<<std::endl;
-
                 ElementWeakPtrVectorType &MasterElements = p_cond->GetValue(MASTER_ELEMENTS);
                 MasterElements.push_back((*(ie.base())));
                 p_cond->SetValue(MASTER_ELEMENTS, MasterElements);
 
-                //p_cond->GetValue(MASTER_NODES).push_back( rElementGeometry(lpofa(0,i)) );
                 NodeWeakPtrVectorType &MasterNodes = p_cond->GetValue(MASTER_NODES);
                 MasterNodes.push_back(rElementGeometry(lpofa(0, iface)));
                 p_cond->SetValue(MASTER_NODES, MasterNodes);
@@ -517,9 +511,6 @@ protected:
                   std::cout << ")" << std::endl;
                 }
 
-                // something not implemented in geometry or condition PrintData
-                //std::cout<<" ReferenceCondition "<<rReferenceCondition<<std::endl;
-
                 p_cond = rReferenceCondition.Create(rConditionId, FaceNodes, properties);
 
                 //if a condition is created new nodes must be labeled TO_REFINE
@@ -532,13 +523,10 @@ protected:
 
                 TransferUtilities.InitializeBoundaryData(p_cond.get(), *(mrRemesh.Transfer), rCurrentProcessInfo);
 
-                //std::cout<<" _IDb_ "<<p_cond->Id()<<" MASTER ELEMENT "<<ie->Id()<<" MASTER NODE "<<rElementGeometry[lpofa(0,iface)].Id()<<" or "<<rElementGeometry[lpofa(NumberNodesInFace,iface)].Id()<<std::endl;
-
                 ElementWeakPtrVectorType &MasterElements = p_cond->GetValue(MASTER_ELEMENTS);
                 MasterElements.push_back((*(ie.base())));
                 p_cond->SetValue(MASTER_ELEMENTS, MasterElements);
 
-                //p_cond->GetValue(MASTER_NODES).push_back( rElementGeometry(lpofa(0,i)) );
                 NodeWeakPtrVectorType &MasterNodes = p_cond->GetValue(MASTER_NODES);
                 MasterNodes.push_back(rElementGeometry(lpofa(0, iface)));
                 p_cond->SetValue(MASTER_NODES, MasterNodes);
@@ -555,13 +543,7 @@ protected:
 
         } //end loop neighbours
       }
-      // else{
-      //   //set nodes to BOUNDARY for elements outside of the working space dimension
-      //   for(unsigned int j=0; j<rElementGeometry.size(); ++j)
-      //   {
-      //     rElementGeometry[j].Set(BOUNDARY);
-      //   }
-      // }
+
     }
 
     return true;
@@ -596,7 +578,7 @@ protected:
     if (rCondition.Is(BOUNDARY)) //flag for composite condition
       condition_not_preserved = true;
 
-    if (node_not_preserved == true || condition_not_preserved == true)
+    if (node_not_preserved || condition_not_preserved)
       return false;
     else
       return true;
