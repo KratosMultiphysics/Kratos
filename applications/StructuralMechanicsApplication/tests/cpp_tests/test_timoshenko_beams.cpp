@@ -9,13 +9,13 @@
 //  Main authors:    Gennady Markelov
 //
 
+// System includes
+#include <utility>
+
 // Project includes
 #include "containers/model.h"
 #include "structural_mechanics_fast_suite.h"
 #include "structural_mechanics_application_variables.h"
-
-#include <utility>
-#include <boost/numeric/ublas/assignment.hpp>
 
 namespace Kratos::Testing
 {
@@ -528,9 +528,9 @@ KRATOS_TEST_CASE_IN_SUITE(LinearTimoshenkoBeam3D2N_InternalForcesAreFrameInvaria
     // local axis 2 (global Y) made orthogonal to the beam axis, and the cross product of both
     const double sqrt_10 = std::sqrt(10.0);
     BoundedMatrix<double, 3, 3> rotation;
-    rotation <<= 2.0 / 7.0, -3.0 / (7.0 * sqrt_10), -3.0 / sqrt_10,
-                 3.0 / 7.0, 20.0 / (7.0 * sqrt_10),  0.0,
-                 6.0 / 7.0, -9.0 / (7.0 * sqrt_10),  1.0 / sqrt_10;
+    rotation(0, 0) = 2.0 / 7.0; rotation(0, 1) = -3.0 / (7.0 * sqrt_10); rotation(0, 2) = -3.0 / sqrt_10;
+    rotation(1, 0) = 3.0 / 7.0; rotation(1, 1) = 20.0 / (7.0 * sqrt_10); rotation(1, 2) = 0.0;
+    rotation(2, 0) = 6.0 / 7.0; rotation(2, 1) = -9.0 / (7.0 * sqrt_10); rotation(2, 2) = 1.0 / sqrt_10;
     ApplyLocalDeformation(*p_aligned_beam, IdentityMatrix(3));
     ApplyLocalDeformation(*p_inclined_beam, rotation);
 
