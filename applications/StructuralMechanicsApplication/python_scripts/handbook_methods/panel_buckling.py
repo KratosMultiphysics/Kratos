@@ -51,7 +51,7 @@ class PanelUniaxialBuckling(HandbookMethod):
         N_crit = min(N_floor, N_ceil)
 
         sigma_crit = N_crit/panel.t
-
+        KratosMultiphysics.Logger.PrintInfo("::[PanelUniaxialBuckling]::", "SIGMA_CRIT:", sigma_crit)
         rf = sigma_crit / applied_stress
 
         return AnalysisResult(self.name, self.category, rf, output_variable=SMA.RESPONSE_VALUE)
@@ -97,7 +97,7 @@ class PanelBiaxialBuckling(HandbookMethod):
 
         rf = sigma_x_crit / sigma_x
 
-        KratosMultiphysics.Logger.PrintInfo("::[PanelBiaxialBuckling]::", "m_crit:", m_crit, "n_crit:", n_crit)
+        KratosMultiphysics.Logger.PrintInfo("::[PanelBiaxialBuckling]::","sigma_x_crit", sigma_x_crit, "m_crit:", m_crit, "n_crit:", n_crit)
 
         return AnalysisResult(self.name, 
                               self.category, 

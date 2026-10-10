@@ -80,7 +80,7 @@ class PrebucklingSolver(MechanicalSolver):
     # Builder and Solver Static
     def _CreateBuilderAndSolver(self):
         """This method is overridden to make sure it always uses ResidualBasedEliminationBuilderAndSolver"""
-        if self.settings["builder_and_solver_settings"]["use_block_builder"].GetBool():
+        if self.settings["builder_and_solver_settings"]["type"].GetString() != "elimination":
             warn_msg = '"Elimination Builder is required. \n'
             warn_msg += '"use_block_builder" specification will be ignored'
             KratosMultiphysics.Logger.PrintWarning("StructuralMechanicsPrebucklingAnalysis; Warning", warn_msg)

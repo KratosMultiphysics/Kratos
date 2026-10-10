@@ -14,6 +14,7 @@ class StressAnalysisProcess(KratosMultiphysics.Process):
         KratosMultiphysics.Process.__init__(self)
 
         Schema_Validation(settings)
+        print(settings)
 
         self.model = model
         self.modelpart = model.GetModelPart("Structure")

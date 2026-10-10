@@ -2,7 +2,7 @@
     "Structural_Components"   :   [{
         "type"  :   "Panel",
         "submodelpart": "Shell_gesamt",
-        "boundary_conditions" : [1,2,3,4],
+        "boundary_conditions" : "SSSS",
         "analysis_methods"   :   ["PuckAnalysis"],
         "metadata" : {
             "criterion" : "last_ply_failure",
