@@ -49,7 +49,7 @@ class IndependentAnalysisExecutionPolicy(ExecutionPolicy):
             }
         }""")
 
-        parameters.ValidateAndAssignDefaults(default_settings)
+        parameters.RecursivelyValidateAndAssignDefaults(default_settings)
 
         self.analysis_module = parameters["analysis_module"].GetString()
         self.analysis_type = parameters["analysis_type"].GetString()
@@ -95,9 +95,10 @@ class IndependentAnalysisExecutionPolicy(ExecutionPolicy):
             analysis_model = Kratos.Model()
 
             hdf5_file_parameter_settings = Kratos.Parameters("""{
-                "file_name"       : """ + f"\"{self.analysis_output_h5_file_name}\"" + """,
+                "file_name"       : "",
                 "file_access_mode": "truncate"
             }""")
+            hdf5_file_parameter_settings["file_name"].SetString(self.analysis_output_h5_file_name)
             with OpenHDF5File(hdf5_file_parameter_settings, self.model[self.analysis_model_part_name]) as h5_file:
                 attributes = Kratos.Parameters("""{}""")
 
@@ -108,12 +109,12 @@ class IndependentAnalysisExecutionPolicy(ExecutionPolicy):
                     h5_path = f"""/{component_name.replace(".", "/")}"""
                     h5_file.AddPath(h5_path)
                     h5_value_name = value_name.split(":")[0]
-                    if isinstance(value, int):
+                    if isinstance(value, bool):
+                        attributes.AddBool(h5_value_name, value)
+                    elif isinstance(value, int):
                         attributes.AddInt(h5_value_name, value)
                     elif isinstance(value, float):
                         attributes.AddDouble(h5_value_name, value)
-                    elif isinstance(value, bool):
-                        attributes.AddBool(h5_value_name, value)
                     elif isinstance(value, (Kratos.TensorAdaptors.DoubleTensorAdaptor, Kratos.TensorAdaptors.IntTensorAdaptor, Kratos.TensorAdaptors.BoolTensorAdaptor)):
                         ta_parameters = Kratos.Parameters("""{
                             "prefix": """ + f"\"{h5_path}/\"" + """

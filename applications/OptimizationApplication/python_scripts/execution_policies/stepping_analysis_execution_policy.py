@@ -85,5 +85,5 @@ class SteppingAnalysisExecutionPolicy(ExecutionPolicy):
             model_part.ProcessInfo.SetValue(Kratos.TIME, time_before_analysis[index])
             model_part.ProcessInfo.SetValue(Kratos.DELTA_TIME, delta_time_before_analysis[index])
 
-    def GetPath(self) -> str:
+    def GetPath(self) -> Path:
         return Path(".").absolute()

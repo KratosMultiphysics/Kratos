@@ -92,7 +92,7 @@ class KratosAnalysisExecutionPolicy(ExecutionPolicy):
 
         self._OutputAnalysisData()
 
-    def GetPath(self) -> str:
+    def GetPath(self) -> Path:
         return Path(".").absolute()
 
     def _OutputAnalysisData(self):
