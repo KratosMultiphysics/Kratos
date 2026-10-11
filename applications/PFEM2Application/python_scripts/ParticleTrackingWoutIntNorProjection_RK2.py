@@ -6,17 +6,18 @@ from math import sqrt
 import time as timer
 
 def AddVariables(model_part):
-    model_part.AddNodalSolutionStepVariable(PRESSURE);
-    model_part.AddNodalSolutionStepVariable(DISTANCE);
-    model_part.AddNodalSolutionStepVariable(VELOCITY);
+    model_part.AddNodalSolutionStepVariable(PRESSURE)
+    model_part.AddNodalSolutionStepVariable(DISTANCE)
+    model_part.AddNodalSolutionStepVariable(VELOCITY)
     model_part.AddNodalSolutionStepVariable(TEMPERATURE)
-    model_part.AddNodalSolutionStepVariable(ACCELERATION);
-    model_part.AddNodalSolutionStepVariable(YP);
-    model_part.AddNodalSolutionStepVariable(PRESS_PROJ);
-    model_part.AddNodalSolutionStepVariable(RHS);
-    model_part.AddNodalSolutionStepVariable(PROJECTED_VELOCITY);
-    model_part.AddNodalSolutionStepVariable(NORMAL);
-    model_part.AddNodalSolutionStepVariable(PREVIOUS_ITERATION_PRESSURE);
+    model_part.AddNodalSolutionStepVariable(ACCELERATION)
+    model_part.AddNodalSolutionStepVariable(YP)
+    model_part.AddNodalSolutionStepVariable(PRESS_PROJ)
+    model_part.AddNodalSolutionStepVariable(RHS)
+    model_part.AddNodalSolutionStepVariable(PROJECTED_VELOCITY)
+    model_part.AddNodalSolutionStepVariable(PROJECTED_TEMPERATURE)
+    model_part.AddNodalSolutionStepVariable(NORMAL)
+    model_part.AddNodalSolutionStepVariable(PREVIOUS_ITERATION_PRESSURE)
     model_part.AddNodalSolutionStepVariable(DELTA_VELOCITY)
     model_part.AddNodalSolutionStepVariable(PRESS_PROJ_NO_RO)
     model_part.AddNodalSolutionStepVariable(MEAN_SIZE)
@@ -24,6 +25,11 @@ def AddVariables(model_part):
     model_part.AddNodalSolutionStepVariable(NODAL_MASS)
     model_part.AddNodalSolutionStepVariable(BODY_FORCE)
     model_part.AddNodalSolutionStepVariable(MESH_VELOCITY)
+
+    model_part.AddNodalSolutionStepVariable(LUMPED_MASS_VALUE)
+    model_part.AddNodalSolutionStepVariable(PROJECTED_DELTA_TEMPERATURE)
+    model_part.AddNodalSolutionStepVariable(PROJECTED_TEMPERATURE)
+    model_part.AddNodalSolutionStepVariable(R_NODE_TEMPERATURE)
 
     model_part.AddNodalSolutionStepVariable(VISCOSITY_AIR)
     model_part.AddNodalSolutionStepVariable(VISCOSITY_WATER)
@@ -199,7 +205,8 @@ class PFEM2Solver:
         #self.prereseed = self.prereseed + t4-t3
 
         # #transferring data from the particles to the mesh:
-        # (self.moveparticles).TransferLagrangianToEulerian();
+        # (self.moveparticles).TransferLagrangianToEulerian_Temperature()
+        (self.moveparticles).TransferLagrangianToEulerianSecondOrder_Temperature()
         # t5 = timer.time()
         # self.lagrangiantoeulerian = self.lagrangiantoeulerian + t5-t4
 
@@ -224,10 +231,9 @@ class PFEM2Solver:
         #self.accelerateparticles = self.accelerateparticles + t12-t11
 
         #reseeding in elements that have few particles to avoid having problems in next iterations:
-        # post_minimum_number_of_particles=self.domain_size*2;
-        # (self.moveparticles).PostReseed(post_minimum_number_of_particles,self.mass_correction_factor);
-        # t13 = timer.time()
-        # self.reseed=self.reseed+ t13-t12
+        # post_minimum_number_of_particles=self.domain_size*2
+        # # (self.moveparticles).PostReseed(post_minimum_number_of_particles,self.mass_correction_factor);
+        # (self.moveparticles).PostReseed_Temperature(post_minimum_number_of_particles,self.mass_correction_factor)
 
         # #calculating water volume to correct mass
         # self.water_volume = (self.calculatewatervolume).Calculate()

@@ -6,17 +6,18 @@ from math import sqrt
 import time as timer
 
 def AddVariables(model_part):
-    model_part.AddNodalSolutionStepVariable(PRESSURE);
-    model_part.AddNodalSolutionStepVariable(DISTANCE);
-    model_part.AddNodalSolutionStepVariable(VELOCITY);
+    model_part.AddNodalSolutionStepVariable(PRESSURE)
+    model_part.AddNodalSolutionStepVariable(DISTANCE)
+    model_part.AddNodalSolutionStepVariable(VELOCITY)
     model_part.AddNodalSolutionStepVariable(TEMPERATURE)
-    model_part.AddNodalSolutionStepVariable(ACCELERATION);
-    model_part.AddNodalSolutionStepVariable(YP);
-    model_part.AddNodalSolutionStepVariable(PRESS_PROJ);
-    model_part.AddNodalSolutionStepVariable(RHS);
-    model_part.AddNodalSolutionStepVariable(PROJECTED_VELOCITY);
-    model_part.AddNodalSolutionStepVariable(NORMAL);
-    model_part.AddNodalSolutionStepVariable(PREVIOUS_ITERATION_PRESSURE);
+    model_part.AddNodalSolutionStepVariable(ACCELERATION)
+    model_part.AddNodalSolutionStepVariable(YP)
+    model_part.AddNodalSolutionStepVariable(PRESS_PROJ)
+    model_part.AddNodalSolutionStepVariable(RHS)
+    model_part.AddNodalSolutionStepVariable(PROJECTED_VELOCITY)
+    model_part.AddNodalSolutionStepVariable(PROJECTED_TEMPERATURE)
+    model_part.AddNodalSolutionStepVariable(NORMAL)
+    model_part.AddNodalSolutionStepVariable(PREVIOUS_ITERATION_PRESSURE)
     model_part.AddNodalSolutionStepVariable(DELTA_VELOCITY)
     model_part.AddNodalSolutionStepVariable(PRESS_PROJ_NO_RO)
     model_part.AddNodalSolutionStepVariable(MEAN_SIZE)
@@ -199,11 +200,13 @@ class PFEM2Solver:
         #self.prereseed = self.prereseed + t4-t3
 
         # #transferring data from the particles to the mesh:
-        # (self.moveparticles).TransferLagrangianToEulerian();
+        (self.moveparticles).TransferLagrangianToEulerian_Temperature()
+        # (self.moveparticles).TransferLagrangianToEulerianSecondOrder_Temperature()
         # t5 = timer.time()
         # self.lagrangiantoeulerian = self.lagrangiantoeulerian + t5-t4
 
         #(self.VariableUtils).CopyVectorVar(PROJECTED_VELOCITY,VELOCITY,self.model_part.Nodes)
+        self.VariableUtils.CopyVariable(PROJECTED_TEMPERATURE, TEMPERATURE, self.model_part.Nodes)
         #full_reset=True;
         #(self.moveparticles).ResetBoundaryConditions(full_reset)
         #(self.moveparticles).CopyVectorVarToPreviousTimeStep(VELOCITY,self.model_part.Nodes)
