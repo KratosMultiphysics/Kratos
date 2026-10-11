@@ -92,6 +92,9 @@ class Panel(StructuralComponent):
         #self._PreparePuckResponse(laminate_stress_matrix)
         if self.mat_type == "orthotropic":
           self.response = PanelResponseExtractor().ExtractCompositeResponse(self.sub_model_part, self.material)
+          self.response.sigma_xx = 0
+          self.response.sigma_yy = 0
+          self.response.tau_xy = 0
         else:
             total_volume = 0.0
             sigma_xx_sum = 0.0
@@ -257,6 +260,6 @@ class Panel(StructuralComponent):
     def _CreateAnalysisMethods(self):
         return [PanelUniaxialBuckling(), 
                 PanelBiaxialBuckling(),
-                #PuckAnalysis()
+                PuckAnalysis()
                 ]
         

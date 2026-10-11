@@ -80,4 +80,30 @@ class PanelCompositeResponse:
 
     plies_element : int 
     num_elements  : int
-    
+
+@dataclass
+class PanelSJTUGeometry:
+    x_axis: np.ndarray              # along the longer panel edge
+    y_axis: np.ndarray              # z_axis x x_axis
+    z_axis: np.ndarray              # panel normal, oriented like the element normals
+    a: float                        # dimension along x_axis
+    b: float                        # dimension along y_axis
+    material_axis_offset: float     # angle [rad] from x_axis to LOCAL_MATERIAL_AXIS_1 about z_axis
+
+    @property
+    def rotation_matrix(self) -> np.ndarray:
+        """Rows are the panel axes: v_panel = R @ v_global, T_panel = R @ T_global @ R.T"""
+        return np.vstack((self.x_axis, self.y_axis, self.z_axis))
+
+@dataclass
+class PanelLoads:
+    """Running loads per element in the panel frame. Kratos sign convention: tension positive."""
+    element_ids: np.ndarray # (n,)
+    element_areas: np.ndarray # (n,)
+    N: np.ndarray # (n, 3): N_xx, N_yy, N_xy [force/length]
+    M: np.ndarray # (n, 3): M_xx, M_yy, M_xy [moment/length]
+
+    @property
+    def N_average(self) -> np.ndarray:
+        """Area-weighted panel average (N_xx, N_yy, N_xy), input for buckling."""
+        return self.element_areas @ self.N / self.element_areas.sum()

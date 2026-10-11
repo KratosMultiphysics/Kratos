@@ -3,19 +3,19 @@ from abc import ABC, abstractmethod
 
 class StructuralComponent(ABC):
 
-    def __init__(self, 
-                 sub_model_part, 
-                 boundary_conditions: str,
-                 metadata):
+    def __init__(self, sub_model_part, metadata):
         self.sub_model_part = sub_model_part
-        self.boundary_conditions: str = boundary_conditions
         self.metadata = metadata
-         
+        self.analysis_results = {}
+
+    @property
+    def name(self) -> str:
+        return self.sub_model_part.Name
 
     @classmethod
     @abstractmethod
     def FromKratosParametersObject(self, sub_model_part, data):
-        """This classmethod instantiates a StructuralElement Object from a Kratos.Prameters Object 
+        """Instantiates the component from its entry in the configuration file.
 
         Args:
             sub_model_part (Kratos.SubModelPart): SubModelPart from a Kratos ModelPart
@@ -26,27 +26,9 @@ class StructuralComponent(ABC):
     @abstractmethod
     def Initialize(self):
         pass
-    
-    @abstractmethod
-    def ExtractMaterial(self):
-        """Reads the material properties from the Kratos ModelPart and assigns them to the attributes of a structural element.
-        """
-        pass
 
     @abstractmethod
-    def ExtractResponse(self):
-        """This method triggers the execution of the handbook methods that are defined in the configuration file.
-        """
-        pass
-
-    @abstractmethod
-    def ExtractGeometry(self):
-        """Compute the measurements of a structural element.
-        """
-        pass
-
-    @abstractmethod
-    def RunAnalysis(self):
+    def PrepareAnalysis(self):
         """Run handbook stress methods.
         """
         pass

@@ -23,7 +23,9 @@ class PuckAnalysis(HandbookMethod):
     category = "strength"
 
     def IsApplicable(self, structural_component):
-        return True
+        #TODO: Aufräumen
+        return structural_component.mat_type == "orthotropic"
+        
 
 
 

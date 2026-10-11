@@ -19,12 +19,6 @@ class StressAnalysisProcess(KratosMultiphysics.Process):
         self.model = model
         self.modelpart = model.GetModelPart("Structure")
         self.structural_component_definitions = settings["Structural_Components"]
-
-    #def ExecuteBeforeSolutionLoop(self):
-#
-    #    self.structural_components = [CreateStructuralComponent(self.modelpart, component_definition) for component_definition in self.structural_component_definitions.values()]
-    #    for component in self.structural_components:
-    #        component.Initialize()
         
     def ExecuteFinalizeSolutionStep(self):
 
