@@ -106,5 +106,8 @@ KRATOS_CREATE_VARIABLE(std::vector<std::string>, CONNECTED_CONDITIONS)
 KRATOS_CREATE_VARIABLE(std::vector<IndexType>, INTERPOLATION_NODES_ID)
 KRATOS_CREATE_VARIABLE(int, BREP_ID)
 
+// GSBM Variables
+KRATOS_CREATE_VARIABLE(std::vector<IndexType>, KNOT_SPAN_INDICES)
+
 
 } // namespace Kratos

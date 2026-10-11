@@ -58,6 +58,7 @@
 //modelers
 #include "custom_modelers/iga_modeler.h"
 #include "custom_modelers/iga_modeler_sbm.h"
+#include "custom_modelers/iga_modeler_gsbm.h"
 #include "custom_modelers/refinement_modeler.h"
 #include "custom_modelers/nurbs_geometry_modeler.h"
 #include "custom_modelers/nurbs_geometry_modeler_sbm.h"
@@ -177,6 +178,7 @@ private:
     // Modelers
     const IgaModeler mIgaModeler;
     const IgaModelerSbm mIgaModelerSbm;
+    const IgaModelerGsbm mIgaModelerGsbm;
     const RefinementModeler mRefinementModeler;
     const NurbsGeometryModeler mNurbsGeometryModeler;
     const NurbsGeometryModelerSbm mNurbsGeometryModelerSbm;
