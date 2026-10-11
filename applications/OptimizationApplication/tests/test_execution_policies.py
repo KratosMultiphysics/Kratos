@@ -9,6 +9,7 @@ from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem i
 
 
 class TestExecutionPolicies(kratos_unittest.TestCase):
+    @kratos_unittest.skipIfApplicationsNotAvailable("HDF5Application")
     def test_IndependentAnalysisExecutionPolicy(self):
         model = Kratos.Model()
         model.CreateModelPart("MainModelPart")
