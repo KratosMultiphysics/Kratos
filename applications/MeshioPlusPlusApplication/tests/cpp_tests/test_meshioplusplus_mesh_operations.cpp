@@ -141,14 +141,14 @@ KRATOS_TEST_CASE_IN_SUITE(MeshioPlusPlusMeshOperationsGetSupportedOperations, Kr
                                    "crop_halfspace", "crop_predicate", "curvature", "data_calc",
                                    "data_condition", "data_info", "data_integrate", "data_manage",
                                    "decimate", "decimate_volume", "estimate_error", "extract_skin",
-                                   "extract_surface", "gradient", "hessian", "isosurface",
+                                   "extract_surface", "feature_edges", "fit_primitives", "gradient", "hessian", "isosurface",
                                    "optimize_volume", "point_data_to_cell_data", "partition",
                                    "quality", "refine", "remesh", "remesh_volume", "reorder",
-                                   "repair", "slice", "smooth", "sobolev_deform", "split", "stats",
+                                   "repair", "segment", "slice", "smooth", "sobolev_deform", "split", "stats",
                                    "subdivide", "tensor_invariants", "transform", "voxelize"}) {
         KRATOS_EXPECT_TRUE(std::find(operations.begin(), operations.end(), name) != operations.end());
     }
-    KRATOS_EXPECT_EQ(operations.size(), 42);
+    KRATOS_EXPECT_EQ(operations.size(), 47);
     KRATOS_EXPECT_TRUE(std::is_sorted(operations.begin(), operations.end()));
 }
 
@@ -2350,6 +2350,70 @@ KRATOS_TEST_CASE_IN_SUITE(MeshioPlusPlusMeshOperationsFeatureEdges, KratosMeshio
     report = MeshioPlusPlusMeshOperations::Execute(
         r_source, Parameters(R"({"operation" : "feature_edges", "feature_angle" : 100.0})"), r_flat);
     KRATOS_EXPECT_EQ(report["feature_edges"].GetInt(), 0);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+KRATOS_TEST_CASE_IN_SUITE(MeshioPlusPlusMeshOperationsSegment, KratosMeshioPlusPlusFastSuite)
+{
+    Model model;
+    auto& r_source = model.CreateModelPart("source");
+    PopulateClosedCubeSkin(r_source);
+    auto& r_destination = model.CreateModelPart("destination");
+
+    // Each face of the cube is one smooth patch, bounded by the twelve 90 degree creases.
+    Parameters report = MeshioPlusPlusMeshOperations::Execute(
+        r_source, Parameters(R"({"operation" : "segment"})"), r_destination);
+    KRATOS_EXPECT_EQ(report["number_of_patches"].GetInt(), 6);
+    KRATOS_EXPECT_EQ(report["feature_edges"].GetInt(), 12);
+    KRATOS_EXPECT_EQ(report["merged_patches"].GetInt(), 0);
+    KRATOS_EXPECT_EQ(report["boundary_edges"].GetInt(), 0);
+    KRATOS_EXPECT_EQ(report["non_manifold_edges"].GetInt(), 0);
+    KRATOS_EXPECT_EQ(r_destination.NumberOfElements() + r_destination.NumberOfConditions(),
+                     r_source.NumberOfElements() + r_source.NumberOfConditions());
+    KRATOS_EXPECT_EQ(r_destination.NumberOfSubModelParts(), 6);
+
+    // Above the crease angle the skin is a single patch, named after the prefix.
+    auto& r_flat = model.CreateModelPart("flat");
+    report = MeshioPlusPlusMeshOperations::Execute(
+        r_source, Parameters(R"({"operation" : "segment", "feature_angle" : 100.0, "patch_prefix" : "skin"})"), r_flat);
+    KRATOS_EXPECT_EQ(report["number_of_patches"].GetInt(), 1);
+    KRATOS_EXPECT_EQ(r_flat.NumberOfSubModelParts(), 1);
+
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        MeshioPlusPlusMeshOperations::Execute(
+            r_source, Parameters(R"({"operation" : "segment", "patch_prefix" : ""})"), r_destination), "");
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+KRATOS_TEST_CASE_IN_SUITE(MeshioPlusPlusMeshOperationsFitPrimitives, KratosMeshioPlusPlusFastSuite)
+{
+    Model model;
+    auto& r_source = model.CreateModelPart("source");
+    PopulateClosedCubeSkin(r_source);
+    auto& r_destination = model.CreateModelPart("destination");
+
+    // The six faces of a cube are six planes.
+    Parameters report = MeshioPlusPlusMeshOperations::Execute(
+        r_source, Parameters(R"({"operation" : "fit_primitives"})"), r_destination);
+    KRATOS_EXPECT_EQ(report["number_of_patches"].GetInt(), 6);
+    KRATOS_EXPECT_EQ(report["planes"].GetInt(), 6);
+    KRATOS_EXPECT_EQ(report["unfitted_patches"].GetInt(), 0);
+
+    // Restricted to spheres, no face is explained.
+    auto& r_spheres = model.CreateModelPart("spheres");
+    report = MeshioPlusPlusMeshOperations::Execute(
+        r_source, Parameters(R"({"operation" : "fit_primitives", "fit_types" : ["sphere"]})"), r_spheres);
+    KRATOS_EXPECT_EQ(report["planes"].GetInt(), 0);
+    KRATOS_EXPECT_EQ(report["unfitted_patches"].GetInt(), 6);
+
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        MeshioPlusPlusMeshOperations::Execute(
+            r_source, Parameters(R"({"operation" : "fit_primitives", "fit_types" : ["blob"]})"), r_destination),
+        "Unknown primitive type");
 }
 
 /***********************************************************************************/

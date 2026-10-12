@@ -169,10 +169,10 @@ KRATOS_TEST_CASE_IN_SUITE(MeshioPlusPlusIOFormatIntrospection, KratosMeshioPlusP
     KRATOS_EXPECT_TRUE(std::find(read_formats.begin(), read_formats.end(), "openfoam") != read_formats.end());
     KRATOS_EXPECT_TRUE(std::find(write_formats.begin(), write_formats.end(), "openfoam") != write_formats.end());
 
-    // svg and tikz are write-only
+    // svg and tikz were write-only until meshio++ v16.39.0 added their readers
     for (const std::string name : {"svg", "tikz"}) {
         KRATOS_EXPECT_TRUE(std::find(write_formats.begin(), write_formats.end(), name) != write_formats.end());
-        KRATOS_EXPECT_TRUE(std::find(read_formats.begin(), read_formats.end(), name) == read_formats.end());
+        KRATOS_EXPECT_TRUE(std::find(read_formats.begin(), read_formats.end(), name) != read_formats.end());
     }
 
     // Name <-> enum round trips
@@ -476,12 +476,42 @@ KRATOS_TEST_CASE_IN_SUITE(MeshioPlusPlusIOWriteSvgAndTikz, KratosMeshioPlusPlusF
         KRATOS_EXPECT_TRUE(std::filesystem::exists(file_path));
         KRATOS_EXPECT_TRUE(std::filesystem::file_size(file_path) > 0);
 
-        // svg/tikz are write-only
+        // svg/tikz read back what the writers emit (meshio++ v16.39.0), as a planar drawing
         auto& r_read = model.CreateModelPart("read" + extension.substr(1));
         MeshioPlusPlusIO io_read(file_path);
-        KRATOS_EXPECT_EXCEPTION_IS_THROWN(io_read.ReadModelPart(r_read), "write-only");
+        io_read.ReadModelPart(r_read);
+        KRATOS_EXPECT_EQ(r_read.NumberOfNodes(), r_model_part.NumberOfNodes());
+        KRATOS_EXPECT_EQ(r_read.NumberOfElements(), r_model_part.NumberOfElements());
         RemoveIfExists(file_path);
     }
+}
+
+KRATOS_TEST_CASE_IN_SUITE(MeshioPlusPlusIOWriteStep, KratosMeshioPlusPlusFastSuite)
+{
+    // step is write-only (meshio++ v16.39.0): the skin of a volume mesh becomes a faceted solid
+    Model model;
+    auto& r_model_part = model.CreateModelPart("write");
+    PopulateTetrahedraModelPart(r_model_part);
+
+    for (const std::string extension : {".step", ".stp"}) {
+        const auto file_path = TestFilePath(extension);
+        {
+            Parameters settings(R"({"time_series" : "single_file"})");
+            MeshioPlusPlusIO io_write(file_path, settings);
+            io_write.WriteModelPart(r_model_part);
+        }
+        KRATOS_EXPECT_TRUE(std::filesystem::exists(file_path));
+        std::ifstream file(file_path);
+        std::string first_line;
+        std::getline(file, first_line);
+        KRATOS_EXPECT_TRUE(first_line.find("ISO-10303-21") != std::string::npos);
+        RemoveIfExists(file_path);
+    }
+
+    const auto read_formats = MeshioPlusPlusIO::GetSupportedReadFormats();
+    const auto write_formats = MeshioPlusPlusIO::GetSupportedWriteFormats();
+    KRATOS_EXPECT_TRUE(std::find(write_formats.begin(), write_formats.end(), "step") != write_formats.end());
+    KRATOS_EXPECT_TRUE(std::find(read_formats.begin(), read_formats.end(), "step") == read_formats.end());
 }
 
 KRATOS_TEST_CASE_IN_SUITE(MeshioPlusPlusIOStlSkinOfVolumeMesh, KratosMeshioPlusPlusFastSuite)
@@ -1252,7 +1282,50 @@ KRATOS_TEST_CASE_IN_SUITE(MeshioPlusPlusIOMdpaKeepExtraBlocks, KratosMeshioPlusP
         KRATOS_EXPECT_TRUE(info["recognised"].GetBool());
         KRATOS_EXPECT_EQ(info["number_of_tables"].GetInt(), 1);
         KRATOS_EXPECT_EQ(info["raw_blocks"].size(), 1);
+        KRATOS_EXPECT_EQ(info["number_of_sub_model_part_geometry_ids"].GetInt(), 0);
+        KRATOS_EXPECT_EQ(info["number_of_sub_model_part_constraint_ids"].GetInt(), 0);
     }
+
+    RemoveIfExists(file_path);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+KRATOS_TEST_CASE_IN_SUITE(MeshioPlusPlusIOMdpaSubModelPartGeometryAndConstraintIds, KratosMeshioPlusPlusFastSuite)
+{
+    // The geometry and constraint ids a sub model part lists (meshio++ v16.29.0) are kept in
+    // MdpaInfo, nested parts included, and GetMdpaInfo counts them.
+    const auto file_path = TestFilePath(".mdpa");
+    RemoveIfExists(file_path);
+    {
+        std::ofstream file(file_path);
+        file << "Begin Nodes\n1 0.0 0.0 0.0\n2 1.0 0.0 0.0\n3 0.0 1.0 0.0\n4 0.0 0.0 1.0\n"
+             << "End Nodes\n\n"
+             << "Begin Elements Element3D4N\n1 0 1 2 3 4\nEnd Elements\n\n"
+             << "Begin Geometries Triangle3D3\n17 1 2 3\nEnd Geometries\n\n"
+             << "Begin Constraints LinearMasterSlaveConstraint\n"
+             << "91 1 DISPLACEMENT_X 2 DISPLACEMENT_X 1.0 0.0\nEnd Constraints\n\n"
+             << "Begin SubModelPart Extra\n"
+             << "    Begin SubModelPart Inner\n"
+             << "        Begin SubModelPartGeometries\n17\n        End SubModelPartGeometries\n"
+             << "        Begin SubModelPartConstraints\n91\n        End SubModelPartConstraints\n"
+             << "    End SubModelPart\n"
+             << "End SubModelPart\n";
+    }
+
+    Model model;
+    auto& r_model_part = model.CreateModelPart("kept");
+    Parameters settings(R"({"mdpa_keep_extra_blocks" : true})");
+    MeshioPlusPlusIO io_read(file_path, settings);
+    io_read.ReadModelPart(r_model_part);
+    KRATOS_EXPECT_EQ(r_model_part.NumberOfNodes(), 4);
+    KRATOS_EXPECT_EQ(r_model_part.NumberOfElements(), 1);
+    const Parameters info = io_read.GetMdpaInfo();
+    KRATOS_EXPECT_TRUE(info["recognised"].GetBool());
+    KRATOS_EXPECT_EQ(info["number_of_geometry_blocks"].GetInt(), 1);
+    KRATOS_EXPECT_EQ(info["number_of_sub_model_part_geometry_ids"].GetInt(), 1);
+    KRATOS_EXPECT_EQ(info["number_of_sub_model_part_constraint_ids"].GetInt(), 1);
 
     RemoveIfExists(file_path);
 }
@@ -1591,9 +1664,10 @@ KRATOS_TEST_CASE_IN_SUITE(MeshioPlusPlusIOFormatIntrospectionAbi16, KratosMeshio
         KRATOS_EXPECT_TRUE(contains(read_formats, name));
         KRATOS_EXPECT_TRUE(contains(write_formats, name));
     }
-    // CalculiX and MSC Nastran result files are read-only, glTF is write-only
+    // CalculiX results are written since meshio++ v16.39.0, MSC Nastran HDF5 results are read-only
+    // and glTF is write-only
     KRATOS_EXPECT_TRUE(contains(read_formats, "frd"));
-    KRATOS_EXPECT_FALSE(contains(write_formats, "frd"));
+    KRATOS_EXPECT_TRUE(contains(write_formats, "frd"));
     KRATOS_EXPECT_TRUE(contains(write_formats, "gltf"));
     KRATOS_EXPECT_FALSE(contains(read_formats, "gltf"));
     if (MeshioPlusPlusIO::IsFormatAvailable(MeshioPlusPlusIO::Format::VTKHDF)) {
@@ -1993,13 +2067,16 @@ KRATOS_TEST_CASE_IN_SUITE(MeshioPlusPlusIOFormatIntrospectionV16_13, KratosMeshi
         KRATOS_EXPECT_TRUE(contains(read_formats, name));
         KRATOS_EXPECT_TRUE(contains(write_formats, name));
     }
-    // The solver results files are read only
+    // The solver results files are read only...
     for (const std::string name : {"abaqus_fil", "ansys_rst", "ansys_rst_cyclic", "lsdyna_binout",
                                    "lsdyna_d3plot", "marc_t19", "nastran_op2", "radioss_anim",
-                                   "radioss_th", "xplt"}) {
+                                   "xplt"}) {
         KRATOS_EXPECT_TRUE(contains(read_formats, name));
         KRATOS_EXPECT_FALSE(contains(write_formats, name));
     }
+    // ...except the Radioss time-history file, which meshio++ v16.39.0 writes
+    KRATOS_EXPECT_TRUE(contains(read_formats, "radioss_th"));
+    KRATOS_EXPECT_TRUE(contains(write_formats, "radioss_th"));
 
     // Name <-> enum of the new entries
     KRATOS_EXPECT_EQ(static_cast<int>(MeshioPlusPlusIO::FormatFromString("ansys_rst_cyclic")),
