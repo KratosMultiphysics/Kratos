@@ -14,7 +14,7 @@ class SolvingStrategyPython:
         self.ReformDofSetAtEachStep = ReformDofSetAtEachStep
         self.MoveMeshFlag = MoveMeshFlag
 
-        self.space_utils = UblasSparseSpace()
+        self.space_utils = SparseSpace()
 
         #default values for some variables
         self.rebuild_level = 1 #rebuild at each solution step
