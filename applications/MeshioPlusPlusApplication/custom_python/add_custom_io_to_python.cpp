@@ -66,7 +66,8 @@ void AddCustomIOToPython(pybind11::module& m)
         .def("GetMdpaInfo", &MeshioPlusPlusIO::GetMdpaInfo,
             "What the last .mdpa read found that a model part cannot hold (top-level tables, "
             "geometries, Mesh blocks, sub model part data, text ModelPartData, raw blocks such as "
-            "Constraints) as counts and names. 'recognised' is False until an .mdpa was read.")
+            "Constraints, and the SubModelPartGeometries/SubModelPartConstraints id lists) as "
+            "counts and names. 'recognised' is False until an .mdpa was read.")
         .def_static("GetDefaultParameters", &MeshioPlusPlusIO::GetDefaultParameters,
             "The default settings of the IO.")
         .def_static("GetSupportedFormats", &MeshioPlusPlusIO::GetSupportedFormats,
@@ -151,6 +152,7 @@ void AddCustomIOToPython(pybind11::module& m)
         .value("RADIOSS", MeshioPlusPlusIO::Format::RADIOSS)
         .value("RADIOSS_ANIM", MeshioPlusPlusIO::Format::RADIOSS_ANIM)
         .value("RADIOSS_TH", MeshioPlusPlusIO::Format::RADIOSS_TH)
+        .value("STEP", MeshioPlusPlusIO::Format::STEP)
         .value("STL", MeshioPlusPlusIO::Format::STL)
         .value("SU2", MeshioPlusPlusIO::Format::SU2)
         .value("SVG", MeshioPlusPlusIO::Format::SVG)
