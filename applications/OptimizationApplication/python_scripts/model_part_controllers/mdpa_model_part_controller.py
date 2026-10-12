@@ -30,15 +30,26 @@ class MdpaModelPartController(ModelPartController):
             raise RuntimeError("\"domain_size\"  should be either 1, 2 or 3." + str(parameters))
 
         self.model_part = model.CreateModelPart(model_part_name)
+        #print(f"[MdpaModelPartController] Model part \"{model_part_name}\" created.")
         self.read_data = parameters["read_data"].GetBool()
 
     def ImportModelPart(self) -> None:
         if self.read_data:
             Kratos.ModelPartIO(self.input_filename, Kratos.ModelPartIO.READ).ReadModelPart(self.model_part)
         else:
+            #print(self.model_part.GetSubModelPart('all_nodes_elements_model_part').GetSubModelPartNames())
+            if len(self.model_part.GetSubModelPartNames()):
+                for sub_model_part_name in self.model_part.GetSubModelPartNames():
+                    #sub_model_part = self.model_part.GetSubModelPart(sub_model_part_name)
+                    self.model_part.RemoveSubModelPart(sub_model_part_name)
+            
+            #print(self.model_part.GetSubModelPartNames())
             Kratos.ModelPartIO(self.input_filename, Kratos.ModelPartIO.READ | Kratos.ModelPartIO.MESH_ONLY).ReadModelPart(self.model_part)
 
         self.model_part.ProcessInfo[Kratos.DOMAIN_SIZE] = self.domain_size
+
+        #print(f"[MdpaModelPartController] Model part \"{self.model_part.Name}\" imported from \"{self.input_filename}.mdpa\" with domain size {self.domain_size}.")
+        #print(self.model_part)
 
     def GetModelPart(self) -> Kratos.ModelPart:
         return self.model_part

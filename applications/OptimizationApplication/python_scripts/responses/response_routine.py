@@ -67,7 +67,7 @@ class ResponseRoutine:
     def GetResponseName(self):
         return self.__response.GetName()
 
-    def GetReponse(self) -> ResponseFunction:
+    def GetResponse(self) -> ResponseFunction:
         return self.__response
 
     def CalculateValue(self, control_field: KratosOA.CollectiveExpression) -> float:
@@ -151,6 +151,6 @@ class ResponseRoutine:
         return self.__required_physical_gradients
     
     def GetName(self):
-        return self.GetReponse().GetName()
+        return self.GetResponse().GetName()
 
 

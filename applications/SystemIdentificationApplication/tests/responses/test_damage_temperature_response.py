@@ -155,7 +155,7 @@ class TestDamageTemperatureDetectionResponse(kratos_unittest.TestCase):
             objective: ResponseRoutine = analysis.optimization_problem.GetComponent("sum", ResponseRoutine)
 
             var = objective.GetRequiredPhysicalGradients()
-            response = objective.GetReponse()
+            response = objective.GetResponse()
             model_part = response.GetInfluencingModelPart()
 
             ref_value = response.CalculateValue()
@@ -198,7 +198,7 @@ class TestDamageTemperatureDetectionResponseStrainSensor(kratos_unittest.TestCas
             objective: ResponseRoutine = analysis.optimization_problem.GetComponent("sum", ResponseRoutine)
 
             var = objective.GetRequiredPhysicalGradients()
-            response = objective.GetReponse()
+            response = objective.GetResponse()
             model_part = response.GetInfluencingModelPart()
 
             ref_value = response.CalculateValue()

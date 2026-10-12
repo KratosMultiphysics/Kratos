@@ -3,6 +3,8 @@ from typing import Optional
 
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.SystemIdentificationApplication as KratosSI
+import KratosMultiphysics.OptimizationApplication as KratosOA
+import KratosMultiphysics.StructuralMechanicsApplication as KratosSM
 from KratosMultiphysics.OptimizationApplication.controls.control import Control
 from KratosMultiphysics.OptimizationApplication.utilities.union_utilities import ContainerExpressionTypes
 from KratosMultiphysics.OptimizationApplication.utilities.union_utilities import SupportedSensitivityFieldVariableTypes
@@ -88,7 +90,8 @@ class DataValuesControl(Control):
                     "primal_model_part_name" : "PLEASE_PROVIDE_MODEL_PART_NAME",
                     "adjoint_model_part_name": "PLEASE_PROVIDE_MODEL_PART_NAME"
                 }
-            ]
+            ],
+            "implement_individual_element_properties" : false
         }""")
 
         parameters.ValidateAndAssignDefaults(default_settings)
@@ -150,9 +153,45 @@ class DataValuesControl(Control):
         self.interval_bounder = ExpressionBoundingManager(control_variable_bounds)
         self.clamper = self.container_type_helper.clamper_type(0, 1)
 
+        self.implement_individual_element_properties = parameters["implement_individual_element_properties"].GetBool()
+
     def Initialize(self) -> None:
         self.primal_model_part = self.primal_model_part_operation.GetModelPart()
         self.adjoint_model_part = self.adjoint_model_part_operation.GetModelPart()
+
+        # create element specific properties if not created already
+        if self.implement_individual_element_properties:
+            if not KratosOA.OptAppModelPartUtils.CheckModelPartStatus(self.primal_model_part, "element_specific_properties_created"):
+                KratosOA.OptimizationUtils.CreateEntitySpecificPropertiesForContainer(self.primal_model_part, self.primal_model_part.Elements, False)
+                KratosOA.OptAppModelPartUtils.LogModelPartStatus(self.primal_model_part, "element_specific_properties_created")
+                #print(f"Created element specific properties for {self.primal_model_part.FullName()}")
+                
+            if self.primal_model_part != self.adjoint_model_part:
+                if KratosOA.OptAppModelPartUtils.CheckModelPartStatus(self.adjoint_model_part, "element_specific_properties_created"):
+                    raise RuntimeError(f"Trying to create element specific properties for {self.adjoint_model_part.FullName()} which already has element specific properties.")
+
+                element_1: Kratos.Element = self.primal_model_part.GetElement(1)
+                has_prop = element_1.Properties.Has(KratosSM.CROSS_AREA)
+                if has_prop:
+                    for element in self.primal_model_part.Elements:
+                        element: Kratos.Element
+                        ##print("elem id is ", element.Id)
+                        ##print("area before",element.Properties[KratosSM.CROSS_AREA])
+                        if (element.Id in range(1,21)) or (element.Id in range(52,72)):
+                            element.Properties[KratosSM.CROSS_AREA] = 0.01
+                        elif (element.Id in range(21,32)) or (element.Id in range(32, 52)) or (element.Id in range(72, 81)) or (element.Id in range(81, 101)):
+                            element.Properties[KratosSM.CROSS_AREA] = 0.0001
+                        elif (element.Id in range(101,119)):
+                            element.Properties[KratosSM.CROSS_AREA] = 0.0016
+                        elif (element.Id in range(119,135)):
+                            element.Properties[KratosSM.CROSS_AREA] = 0.0004
+                        # else:
+                        #     print("element id not found")
+                        # print("area after",element.Properties[KratosSM.CROSS_AREA])
+
+                # now assign the properties of primal to the adjoint model parts
+                KratosSI.ControlUtils.AssignEquivalentProperties(self.primal_model_part.Elements, self.adjoint_model_part.Elements)
+                KratosOA.OptAppModelPartUtils.LogModelPartStatus(self.adjoint_model_part, "element_specific_properties_created")
 
         # initialize the filter
         self.filter.SetComponentDataView(ComponentDataView(self, self.optimization_problem))

@@ -28,16 +28,34 @@ class ConnectivityPreservingModelPartController(ModelPartController):
             sub_model_part_settings.ValidateAndAssignDefaults(default_settings["transformation_settings"].values()[0])
             
             # get source and destination model parts
-            source_model_part = self.model[sub_model_part_settings["source_model_part_name"].GetString()]
+            source_model_part_name: str = sub_model_part_settings["source_model_part_name"].GetString()
+            if not self.model.HasModelPart(source_model_part_name):
+                #print("Creating source model part:", source_model_part_name)
+                source_root_model_part_name = source_model_part_name.split(".")[0]
+                if not self.model.HasModelPart(source_root_model_part_name):
+                    #print("Creating source root model part:", source_root_model_part_name)
+                    source_root_model_part = self.model.CreateModelPart(source_root_model_part_name)
+                else:
+                    #print("Source root model part existing:", source_root_model_part_name)
+                    source_root_model_part = self.model[source_root_model_part_name]
+                source_model_part = self.model.CreateModelPart(source_model_part_name)
+            else:
+                #print("Source model part existing:", source_model_part_name)
+                source_model_part = self.model[source_model_part_name]
+
+            #source_model_part = self.model[sub_model_part_settings["source_model_part_name"].GetString()]
             destination_model_part_name: str = sub_model_part_settings["destination_model_part_name"].GetString()
             
             if not self.model.HasModelPart(destination_model_part_name):
+                #print("Creating destination model part:", destination_model_part_name)
                 # if the destination model part is not there, then check whether the destination root model part is existing
                 destination_root_model_part_name = destination_model_part_name.split(".")[0]
                 if not self.model.HasModelPart(destination_root_model_part_name):
+                    #print("Creating destination root model part:", destination_root_model_part_name)
                     # destination root model part is also not there. so we can safely assign the source model part solution variables list
                     destination_root_model_part = self.model.CreateModelPart(destination_root_model_part_name)
                 else:
+                    #print("Destination root model part existing:", destination_root_model_part_name)
                     # if it is existing, then check whether it has a subset of the variables list.
                     destination_root_model_part = self.model[destination_root_model_part_name]
                     print(source_model_part)
@@ -49,25 +67,61 @@ class ConnectivityPreservingModelPartController(ModelPartController):
                         raise RuntimeError(msg)
                 destination_model_part = self.model.CreateModelPart(destination_model_part_name)
             else:
+                #print("Destination model part existing:", destination_model_part_name)
                 destination_model_part = self.model[destination_model_part_name]
 
     def ImportModelPart(self) -> None:
         connectivity_preserve_modeller = Kratos.ConnectivityPreserveModeler()
+        # for transformation_settings in self.parameters["transformation_settings"].values():
+        #     # get source and destination model parts
+        #     source_model_part = self.model[transformation_settings["source_model_part_name"].GetString()]
+        #     destination_model_part_name: str = transformation_settings["destination_model_part_name"].GetString()
+        #     destination_model_part = self.model[destination_model_part_name]
+        #     destination_root_model_part_name = destination_model_part_name.split(".")[0]
+        #     destination_root_model_part = self.model[destination_root_model_part_name]
+            
+            # if not KratosOA.OptimizationUtils.IsSolutionStepVariablesListASubSet(source_model_part, destination_root_model_part):
+            #     msg = f"The destination root model part solution step variables at {destination_root_model_part.FullName()} is not a sub set of {source_model_part.FullName()}"
+            #     msg += f"\n\t{destination_root_model_part.FullName()} model part variables list:\n\t\t" + "\n\t\t".join(KratosOA.OptimizationUtils.GetSolutionStepVariableNamesList(destination_root_model_part))
+            #     msg += f"\n\t{source_model_part.FullName()} model part variables list:\n\t\t" + "\n\t\t".join(KratosOA.OptimizationUtils.GetSolutionStepVariableNamesList(source_model_part))
+            #     raise RuntimeError(msg)
+            
+            # self._SetNodalSolutionStepVariablesListRecursively(destination_root_model_part, source_model_part)
+        
+        destination_model_part_name = self.parameters["transformation_settings"][0]["destination_model_part_name"].GetString()
+        if self.model.HasModelPart(destination_model_part_name):
+            # Delete it now so that a pure copy can be made
+            destination_root_model_part_name = destination_model_part_name.split(".")[0]
+            self.model.DeleteModelPart(destination_root_model_part_name)
+            #print(f"Deleted existing destination root model part: {destination_root_model_part_name}")
+
         for transformation_settings in self.parameters["transformation_settings"].values():
             # get source and destination model parts
             source_model_part = self.model[transformation_settings["source_model_part_name"].GetString()]
             destination_model_part_name: str = transformation_settings["destination_model_part_name"].GetString()
-            destination_model_part = self.model[destination_model_part_name]
-            destination_root_model_part_name = destination_model_part_name.split(".")[0]
-            destination_root_model_part = self.model[destination_root_model_part_name]
-            
-            if not KratosOA.OptimizationUtils.IsSolutionStepVariablesListASubSet(source_model_part, destination_root_model_part):
-                msg = f"The destination root model part solution step variables at {destination_root_model_part.FullName()} is not a sub set of {source_model_part.FullName()}"
-                msg += f"\n\t{destination_root_model_part.FullName()} model part variables list:\n\t\t" + "\n\t\t".join(KratosOA.OptimizationUtils.GetSolutionStepVariableNamesList(destination_root_model_part))
-                msg += f"\n\t{source_model_part.FullName()} model part variables list:\n\t\t" + "\n\t\t".join(KratosOA.OptimizationUtils.GetSolutionStepVariableNamesList(source_model_part))
-                raise RuntimeError(msg)
-            
-            self._SetNodalSolutionStepVariablesListRecursively(destination_root_model_part, source_model_part)
+            if not self.model.HasModelPart(destination_model_part_name):
+                # if the destination model part is not there, then check whether the destination root model part is existing
+                destination_root_model_part_name = destination_model_part_name.split(".")[0]
+                if not self.model.HasModelPart(destination_root_model_part_name):
+                    #print("Creating destination root model part:", destination_root_model_part_name)
+                    # destination root model part is also not there. so we can safely assign the source model part solution variables list
+                    destination_root_model_part = self.model.CreateModelPart(destination_root_model_part_name)
+                else:
+                    #print("Destination root model part existing:", destination_root_model_part_name)
+                    # if it is existing, then check whether it has a subset of the variables list.
+                    destination_root_model_part = self.model[destination_root_model_part_name]
+                    #print(source_model_part)
+                    #print(destination_root_model_part)
+                    if not KratosOA.OptimizationUtils.IsSolutionStepVariablesListASubSet(source_model_part, destination_root_model_part):
+                        msg = f"The destination root model part solution step variables at {destination_root_model_part.FullName()} is not a sub set of {source_model_part.FullName()}"
+                        msg += f"\n\t{destination_root_model_part.FullName()} model part variables list:\n\t\t" + "\n\t\t".join(KratosOA.OptimizationUtils.GetSolutionStepVariableNamesList(destination_root_model_part))
+                        msg += f"\n\t{source_model_part.FullName()} model part variables list:\n\t\t" + "\n\t\t".join(KratosOA.OptimizationUtils.GetSolutionStepVariableNamesList(source_model_part))
+                        raise RuntimeError(msg)
+                KratosOA.OptimizationUtils.SetSolutionStepVariablesList(destination_root_model_part, source_model_part)
+                destination_model_part = self.model.CreateModelPart(destination_model_part_name)
+            else:
+                #print("Destination model part existing:", destination_model_part_name)
+                destination_model_part = self.model[destination_model_part_name]
 
             element_name = transformation_settings["destination_element_name"].GetString()
             condition_name = transformation_settings["destination_condition_name"].GetString()
