@@ -195,8 +195,8 @@ public:
                                           TSystemVectorType &b) override
     {
         double* Avalues = A.value_data().begin();
-        std::size_t* Arow_indices = A.index1_data().begin();
-        std::size_t* Acol_indices = A.index2_data().begin();
+        typename TSystemMatrixType::index_array_type::value_type* Arow_indices = A.index1_data().begin();
+        typename TSystemMatrixType::index_array_type::value_type* Acol_indices = A.index2_data().begin();
 
         for (typename DofsArrayType::iterator itDof = BaseType::mDofSet.begin(); itDof != BaseType::mDofSet.end(); ++itDof)
         {

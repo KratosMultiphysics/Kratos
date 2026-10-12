@@ -392,6 +392,7 @@ void SnakeSbmProcess::CreateTheSnakeCoordinates(
         KRATOS_INFO_IF("::[SnakeSbmProcess]::", !is_inner) << "Outer :: Starting SnakeStep" << std::endl;
     }
             
+    r_skin_sub_model_part.SetValue(NEIGHBOUR_GEOMETRIES, std::vector<Geometry<Node>::Pointer>());
     if (rSkinModelPartInitial.NumberOfConditions() > 0) {
 
         auto p_skin_sub_model_part_loop = &(r_skin_sub_model_part.GetSubModelPart("0"));
@@ -457,6 +458,13 @@ void SnakeSbmProcess::CreateTheSnakeCoordinates(
     else if (rSkinModelPartInitial.Geometries().size()>0) // if the skin model part is defined by nurbs geometries
     {
         is_skin_nurbs = true;
+        // Store pointers to the input NURBS curves in the skin submodel part.
+        std::vector<Geometry<Node>::Pointer> nurbs_curves;
+        nurbs_curves.reserve(rSkinModelPartInitial.NumberOfGeometries());
+        for (const auto& r_geometry : rSkinModelPartInitial.Geometries()) {
+            nurbs_curves.push_back(rSkinModelPartInitial.pGetGeometry(r_geometry.Id()));
+        }
+        r_skin_sub_model_part.SetValue(NEIGHBOUR_GEOMETRIES, nurbs_curves);
         // number of sampling points per curve side
         const int number_initial_points_if_importing_nurbs = NumberInitialPointsIfImportingNurbs; 
         int first_node_id = r_skin_sub_model_part.GetRootModelPart().NumberOfNodes()+1;

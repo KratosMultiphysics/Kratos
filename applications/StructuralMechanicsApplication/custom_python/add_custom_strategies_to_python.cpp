@@ -63,16 +63,8 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
     typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
     typedef ImplicitSolvingStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > BaseSolvingStrategyType;
     using ComplexType = std::complex<double>;
-    using ComplexSparseSpaceType = UblasSpace<
-        ComplexType,
-        boost::numeric::ublas::compressed_matrix<ComplexType>,
-        boost::numeric::ublas::vector<ComplexType>
-    >;
-    using ComplexLocalSpaceType = UblasSpace<
-        ComplexType,
-        boost::numeric::ublas::matrix<ComplexType>,
-        boost::numeric::ublas::vector<ComplexType>
-    >;
+    using ComplexSparseSpaceType = TDefaultSparseSpace<ComplexType>;
+    using ComplexLocalSpaceType = TDefaultDenseSpace<ComplexType>;
     using ComplexLinearSolverType = LinearSolver<ComplexSparseSpaceType, ComplexLocalSpaceType>;
     using ComplexLinearSolverPointer = typename ComplexLinearSolverType::Pointer;
     typedef ConvergenceCriteria< SparseSpaceType, LocalSpaceType > ConvergenceCriteriaType;

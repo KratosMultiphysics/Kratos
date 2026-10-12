@@ -409,6 +409,13 @@ public:
         return "ann_prom_global_rom_builder_and_solver";
     }
 
+    /**
+     * Returns the latest tangent operator
+     */
+    Matrix GetTangentOperatorV()
+    {
+        return mPhiGlobal;
+    }
 
     ///@}
     ///@name Access

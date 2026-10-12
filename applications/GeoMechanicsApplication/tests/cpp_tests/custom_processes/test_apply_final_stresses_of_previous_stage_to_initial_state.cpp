@@ -16,12 +16,12 @@
 #include "custom_utilities/ublas_utilities.h"
 #include "geometries/triangle_2d_3.h"
 #include "includes/constitutive_law.h"
+#include "includes/default_interface.h"
 #include "includes/element.h"
 #include "includes/kratos_parameters.h"
 #include "includes/model_part.h"
 #include "includes/node.h"
 #include "includes/process_info.h"
-#include "includes/default_interface.h"
 #include "tests/cpp_tests/custom_constitutive/mock_constitutive_law.hpp"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
 
