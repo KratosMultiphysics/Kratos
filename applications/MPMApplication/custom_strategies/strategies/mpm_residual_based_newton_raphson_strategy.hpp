@@ -258,6 +258,7 @@ public:
         // Plot a warning if the maximum number of iterations is exceeded
         if (iteration_number >= this->mMaxIterationNumber && BaseType::GetModelPart().GetCommunicator().MyPID() == 0)
         {
+            KRATOS_WARNING("MPMResidualBasedNewtonRaphsonStrategy, DID NOT CONVERGE");
             if (this->GetEchoLevel() > 1) this->MaxIterationsExceeded();
         }
 
@@ -275,7 +276,7 @@ public:
                 curr_node.FastGetSolutionStepValue(STICK_FORCE).clear();
                 }
             }
-            
+
             p_builder_and_solver->CalculateReactions(p_scheme, BaseType::GetModelPart(), rA, rDx, rb);
         }
 
@@ -317,7 +318,7 @@ public:
                     curr_node.FastGetSolutionStepValue(STICK_FORCE).clear();
                     }
                 }
-                
+
                 p_builder_and_solver->CalculateReactions(p_scheme, BaseType::GetModelPart(), rA, rDx, rb);
             }
         }
@@ -403,7 +404,7 @@ private:
                     curr_node.FastGetSolutionStepValue(STICK_FORCE).clear();
                     }
                 }
-                
+
                 TSparseSpace::SetToZero(rb);
 
                 p_builder_and_solver->BuildRHS(p_scheme, BaseType::GetModelPart(), rb);

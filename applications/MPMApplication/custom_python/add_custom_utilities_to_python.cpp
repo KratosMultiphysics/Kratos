@@ -72,7 +72,8 @@ namespace Kratos::Python{
         bool IsMixedFormulation,
         double rAccumulatedDisplacement,
         array_1d<double, 3> rGravity,
-        array_1d<double, 3> rUnitGravity,
+        array_1d<double, 3> rSurfaceDirection,
+        array_1d<double, 3> rNudgeMP,
         const double rVerticalDistance)
     {
         const auto dimension = rBackgroundGridModelPart.GetProcessInfo()[DOMAIN_SIZE];
@@ -85,7 +86,8 @@ namespace Kratos::Python{
                 IsMixedFormulation,
                 rAccumulatedDisplacement,
                 rGravity,
-                rUnitGravity,
+                rSurfaceDirection,
+                rNudgeMP,
                 rVerticalDistance);
         }
         else if (dimension == 3)
@@ -97,7 +99,8 @@ namespace Kratos::Python{
                 IsMixedFormulation,
                 rAccumulatedDisplacement,
                 rGravity,
-                rUnitGravity,
+                rSurfaceDirection,
+                rNudgeMP,
                 rVerticalDistance);
         }
     }

@@ -1,6 +1,7 @@
 import KratosMultiphysics
 import KratosMultiphysics.MPMApplication as KratosMPM
 import numpy as np
+import time
 
 
 def Factory(settings: KratosMultiphysics.Parameters, model: KratosMultiphysics.Model) -> KratosMultiphysics.Process:
@@ -43,8 +44,16 @@ class MPMInletProcess(KratosMultiphysics.Process):
         self.inlet_perpendicular_distance       = settings["inlet_perpendicular_distance"].GetDouble()
         self.inlet_normal_distance              = settings["inlet_normal_distance"].GetDouble()
         self.is_fixed                           = settings["is_fixed"].GetBool()
+        self.is_generate_at_beginning           = settings["is_generate_at_beginning"].GetBool()
         self.gravity                            = settings["gravity"].GetVector()
-        self.unit_gravity                       = self.gravity / np.linalg.norm(self.gravity)
+        self.unit_gravity                       = settings["height_direction"].GetVector()
+        self.nudge_material_point               = settings["nudge_material_point"].GetVector()
+        if np.linalg.norm(self.unit_gravity) == 0.0:
+            raise Exception('MPMInletProcess: norm of height_direction is zero!')
+        self.unit_gravity = self.unit_gravity / np.linalg.norm(self.unit_gravity)
+
+
+        # self.unit_gravity                       = self.gravity / np.linalg.norm(self.gravity)
 
 
         if settings.Has("height") and settings.Has("free_surface_elevation"):
@@ -70,7 +79,6 @@ class MPMInletProcess(KratosMultiphysics.Process):
         self.accumulated_displacement = np.array([0.0, 0.0, 0.0])
 
         self.delta_time = self.grid_model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME]
-        print("self.delta_time= ", self.delta_time)
 
 
 
@@ -84,11 +92,14 @@ class MPMInletProcess(KratosMultiphysics.Process):
                 "grid_model_part_name"              : "please_specify_model_part_name",
                 "mpm_model_part_name"               : "MPM_Material",
                 "height"                            : 0.0,
+                "height_direction"                  : [0.0, 0.0, 0.0],
                 "density"                           : 1.0,
                 "inlet_perpendicular_distance"      : 1.0,
                 "inlet_normal_distance"             : 1.0,
                 "velocity"                          : [0.0, 0.0, 0.0],
                 "is_fixed"                          : true,
+                "is_generate_at_beginning"          : true,
+                "nudge_material_point"              : [0.0, 0.0, 0.0],
                 "gravity"                           : [0.0, -9.81, 0.0],
                 "interval"                          : [0.0, 1e30]
             }
@@ -98,6 +109,8 @@ class MPMInletProcess(KratosMultiphysics.Process):
     # def ExecuteInitialize(self):
 
     def ExecuteBeforeSolutionLoop(self):
+        print("inlet: ExecuteBeforeSolutionLoop")
+        start = time.perf_counter()
         # Assign height and velocity to the nodes
         # if self.value_is_numeric:
         # self.grid_model_part.AddNodalSolutionStepVariable(self.water_depth_variable)
@@ -114,29 +127,38 @@ class MPMInletProcess(KratosMultiphysics.Process):
                 # node.SetSolutionStepValue(self.water_depth_variable, self.height)
             # self.variable_utils.SetNonHistoricalVariable(self.water_depth_variable, self.height, self.inlet_bottom_nodes_model_part.Nodes)
 
-        KratosMPM.GenerateMaterialPointAtInlet(self.grid_model_part, self.mpm_model_part, self.inlet_bottom_nodes_model_part, False, self.inlet_normal_distance, self.gravity, self.unit_gravity, self.inlet_perpendicular_distance)
+        if self.is_generate_at_beginning:
+
+            print("Generating Initial Material Point Inlet")
+            KratosMPM.GenerateMaterialPointAtInlet(self.grid_model_part, self.mpm_model_part, self.inlet_bottom_nodes_model_part, False, self.inlet_normal_distance, self.gravity, self.unit_gravity, self.nudge_material_point,self.inlet_perpendicular_distance)
+
+        elapsed = time.perf_counter() - start
+        print(f"Inlet ExecuteBeforeSolutionLoop Execution time: {elapsed:.6f} seconds")
 
     def ExecuteInitializeSolutionStep(self):
+
         current_time = self.inlet_model_part.ProcessInfo[KratosMultiphysics.TIME]
         self.delta_time = self.mpm_model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME]
 
 
         if self.interval.IsInInterval(current_time):
+
             # Assign current velocities and displacement at the active nodes of the inlet
-            print("debug: is in interval")
             self.step_is_active = True
 
 
             if self.is_fixed == True:
                 # self.variable_utils.ApplyFixity(KratosMultiphysics.VELOCITY_X    , self.is_fixed, self.inlet_model_part.Nodes)
                 self.variable_utils.ApplyFixity(KratosMultiphysics.DISPLACEMENT_X, self.is_fixed, self.inlet_model_part.Nodes)
+                self.variable_utils.ApplyFixity(KratosMultiphysics.DISPLACEMENT_Y, self.is_fixed, self.inlet_model_part.Nodes)
+                self.variable_utils.ApplyFixity(KratosMultiphysics.DISPLACEMENT_Z, self.is_fixed, self.inlet_model_part.Nodes)
 
             # impose displacement and velocity to the nodes
             # if self.velocity_value_is_numeric:
-            # self.variable_utils.SetVariable(KratosMultiphysics.VELOCITY    , self.assigned_velocity                  , self.inlet_model_part.Nodes)
+            self.variable_utils.SetVariable(KratosMultiphysics.VELOCITY    , self.assigned_velocity                  , self.inlet_model_part.Nodes)
             self.variable_utils.SetVariable(KratosMultiphysics.DISPLACEMENT, self.assigned_velocity * self.delta_time, self.inlet_model_part.Nodes)
-            for node in self.inlet_model_part.Nodes:
-                print(node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT))
+            # for node in self.inlet_model_part.Nodes:
+            #     print(node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT))
 
             # elif self.value_is_function:
             #     if self.aux_function.DependsOnSpace() == False: #depends on time only
@@ -146,11 +168,16 @@ class MPMInletProcess(KratosMultiphysics.Process):
             #         self.cpp_apply_function_utility.ApplyFunction(self.variable, current_time)
 
             if (self._IsInletStep()):
+                start = time.perf_counter()
+
                 # Generate material points at the inlet
-                KratosMPM.GenerateMaterialPointAtInlet(self.grid_model_part, self.mpm_model_part, self.inlet_bottom_nodes_model_part, False, np.linalg.norm(self.accumulated_displacement), self.gravity, self.unit_gravity, self.inlet_perpendicular_distance)
+                print('is inlet step: generating points')
+                KratosMPM.GenerateMaterialPointAtInlet(self.grid_model_part, self.mpm_model_part, self.inlet_bottom_nodes_model_part, False, np.linalg.norm(self.accumulated_displacement), self.gravity, self.unit_gravity, self.nudge_material_point,self.inlet_perpendicular_distance)
                 self.accumulated_displacement = np.array([0.0, 0.0, 0.0])
             # else:
                 # if not inlet step, accumulate the volume and mass to be assigned to during the inlet step
+                elapsed = time.perf_counter() - start
+                print(f"Inlet ExecuteInitializeSolutionStep Execution time: {elapsed:.6f} seconds")
 
 
     def ExecuteFinalizeSolutionStep(self):
@@ -163,6 +190,8 @@ class MPMInletProcess(KratosMultiphysics.Process):
             # Here we free all of the nodes in the mesh
             fixity_status  = False
             self.variable_utils.ApplyFixity(KratosMultiphysics.DISPLACEMENT_X, fixity_status, self.inlet_model_part.Nodes)
+            self.variable_utils.ApplyFixity(KratosMultiphysics.DISPLACEMENT_Y, fixity_status, self.inlet_model_part.Nodes)
+            self.variable_utils.ApplyFixity(KratosMultiphysics.DISPLACEMENT_Z, fixity_status, self.inlet_model_part.Nodes)
 
         self.step_is_active = False
 
@@ -172,20 +201,27 @@ class MPMInletProcess(KratosMultiphysics.Process):
         # It is determined by the spacing between material point given by the user
         # If the accumulated velocity * dt is bigger than the spacing, returns true
         # else, accumulate velocity * dt
-        print(self.accumulated_displacement)
-        print(self.assigned_velocity)
-        print(self.assigned_velocity * self.delta_time)
+        # print(self.accumulated_displacement)
+        # print(self.assigned_velocity)
+        # print(self.assigned_velocity * self.delta_time)
         # TODO:the accumulated_displacement should be calculated using surface normal velocity instead!
         self.accumulated_displacement += self.assigned_velocity * self.delta_time
 
-        print('calculating accumulated disp: ', np.linalg.norm(self.accumulated_displacement))
-        print('threshold: ', self.inlet_normal_distance)
-        if (np.linalg.norm(self.accumulated_displacement) >= self.inlet_normal_distance):
-            print("debug: is_inlet_step? true")
+        # print('calculating accumulated disp: ', np.linalg.norm(self.accumulated_displacement))
+        # print('threshold: ', self.inlet_normal_distance)
+        tolerance = 1e-10
+        # print("accumulated_displacement one: ", np.linalg.norm(self.accumulated_displacement))
+        # print("inlet_normal_distance one: ", self.inlet_normal_distance)
+        # print("wrong one: ", abs(np.linalg.norm(self.accumulated_displacement) - self.inlet_normal_distance))
+        # print("correct one: ", (np.linalg.norm(self.accumulated_displacement) - self.inlet_normal_distance))
+        # if (abs(np.linalg.norm(self.accumulated_displacement) - self.inlet_normal_distance) < tolerance ):
+        if ((np.linalg.norm(self.accumulated_displacement) - self.inlet_normal_distance) > tolerance ):
+
+            # print("debug: is_inlet_step? true")
             print("Generating material points at inlet")
             return True
         else:
-            print("debug: is_inlet_step? false")
+            # print("debug: is_inlet_step? false")
             return False
 
 

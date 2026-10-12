@@ -190,7 +190,7 @@ namespace Kratos::MPMSearchElementUtility
                 rMPMModelPart.GetProcessInfo(), is_found);
 
             const int thread_id = OpenMPUtils::ThisThread();
-            
+
             if (is_found) {
                 const bool is_pqmpm = (rBackgroundGridModelPart.GetProcessInfo().Has(IS_PQMPM))
                     ? rBackgroundGridModelPart.GetProcessInfo().GetValue(IS_PQMPM) : false;
@@ -243,7 +243,7 @@ namespace Kratos::MPMSearchElementUtility
                     rMPMModelPart.GetProcessInfo(), is_found);
 
                 const int thread_id = OpenMPUtils::ThisThread();
-                
+
                 if (is_found) {
                     CreateQuadraturePointsUtility<Node>::UpdateFromLocalCoordinates(
                         condition_itr->pGetGeometry(), local_coordinates,
@@ -251,7 +251,7 @@ namespace Kratos::MPMSearchElementUtility
 
                     condition_itr->Set(ACTIVE);
 
-           
+
                     for (IndexType j = 0; j < r_found_geom.PointsNumber(); ++j) {
                         rThreadActiveNodeIds[thread_id].push_back(r_found_geom.Points()[j].Id());
                     }
@@ -353,7 +353,7 @@ namespace Kratos::MPMSearchElementUtility
                             p_quadrature_point_geometry->IntegrationPoints()[0].Weight(), pelem->GetGeometry());
                     }
                     auto& r_geometry = element_itr->GetGeometry();
-                                        
+
                     const int thread_id = OpenMPUtils::ThisThread();
 
                     for (IndexType j = 0; j < r_geometry.PointsNumber(); ++j) {
@@ -365,7 +365,7 @@ namespace Kratos::MPMSearchElementUtility
 
                 } else {
                     KRATOS_INFO("MPMSearchElementUtility") << "WARNING: Search Element for Material Point: "
-                        << element_itr->Id() << " is failed. Geometry is cleared." << std::endl;
+                        << element_itr->Id() << ", with coordinates: " << xg[0] << " has failed. Geometry is cleared." << std::endl;
                     element_itr->GetGeometry().clear();
                     element_itr->Reset(ACTIVE);
                     element_itr->Set(TO_ERASE);
@@ -397,7 +397,7 @@ namespace Kratos::MPMSearchElementUtility
                             p_quadrature_point_geometry->IntegrationPoints()[0].Weight(), pelem->GetGeometry());
 
                         auto& r_geometry = condition_itr->GetGeometry();
-                        
+
                         const int thread_id = OpenMPUtils::ThisThread();
 
                         for (IndexType j = 0; j < r_geometry.PointsNumber(); ++j) {
@@ -423,11 +423,11 @@ namespace Kratos::MPMSearchElementUtility
         for (int i = 0; i < static_cast<int>(rBackgroundGridModelPart.Elements().size()); ++i) {
             auto element_itr = rBackgroundGridModelPart.Elements().begin() + i;
             element_itr->Reset(ACTIVE);
-            
+
             element_itr->GetGeometry().SetValue(MP_COUNTER, 0);
         }
 
-        // Reset all nodes 
+        // Reset all nodes
         #pragma omp parallel for
         for (int i = 0; i < static_cast<int>(rBackgroundGridModelPart.Nodes().size()); ++i) {
             auto node_itr = rBackgroundGridModelPart.NodesBegin() + i;
@@ -457,7 +457,7 @@ namespace Kratos::MPMSearchElementUtility
         ResetElementsAndNodes(rBackgroundGridModelPart);
 
         const int num_threads = ParallelUtilities::GetNumThreads();
-        
+
         std::vector<typename Element::Pointer> missing_elements;
         std::vector<typename Condition::Pointer> missing_conditions;
         std::vector<std::vector<IndexType>> thread_active_node_ids(num_threads);
@@ -468,7 +468,7 @@ namespace Kratos::MPMSearchElementUtility
         if (!rMPMModelPart.GetProcessInfo()[IS_RESTARTED]) {
             NeighbourSearchElements(rMPMModelPart, rBackgroundGridModelPart, thread_missing_elements, thread_active_node_ids, thread_mp_counts, Tolerance);
             NeighbourSearchConditions(rMPMModelPart, rBackgroundGridModelPart, thread_missing_conditions, thread_active_node_ids, Tolerance);
-            
+
             // Merge missing elements and conditions
             for (const auto& thread_vec : thread_missing_elements) {
                 missing_elements.insert(missing_elements.end(), thread_vec.begin(), thread_vec.end());

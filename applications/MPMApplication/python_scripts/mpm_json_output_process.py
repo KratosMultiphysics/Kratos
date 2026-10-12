@@ -13,9 +13,9 @@ def Factory(settings, Model):
     return MPMJsonOutputProcess(Model, settings["Parameters"])
 
 class MPMJsonOutputProcess(JsonOutputProcess):
-        
+
     def __init__(self, model, params):
-        
+
         """ The default constructor of the class
 
         Keyword arguments:
@@ -55,7 +55,7 @@ class MPMJsonOutputProcess(JsonOutputProcess):
         self.entity_type = self.params["entity_type"].GetString()
         if self.entity_type not in ["Element", "Condition"]:
             raise RuntimeError('"entity_type" must be "Element" or "Condition"')
-        
+
     def ExecuteBeforeSolutionLoop(self):
 
         if self.entity_type == "Condition":
@@ -150,6 +150,8 @@ class MPMJsonOutputProcess(JsonOutputProcess):
 
                         if variable_type == "Double" or variable_type == "Integer" or variable_type == "Component":
                             if not self.resultant_solution:
+                                # if mp_identifier not in data.keys():
+                                #     data[mp_identifier] = {}
                                 data[mp_identifier][variable_name].append(value)
                             else:
                                 if count == 0:
@@ -211,7 +213,7 @@ class MPMJsonOutputProcess(JsonOutputProcess):
             return self.sub_model_part.Conditions
         else:
             raise RuntimeError('"entity_type" must be "Element" or "Condition"')
-    
+
     def __check_flag(self, component):
 
         if self.flag != None:

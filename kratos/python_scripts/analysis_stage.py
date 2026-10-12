@@ -5,6 +5,8 @@ from KratosMultiphysics.kratos_utilities import IssueDeprecationWarning
 from KratosMultiphysics.model_parameters_factory import KratosModelParametersFactory
 from KratosMultiphysics.python_null_solver import PYTHON_NULL_SOLVER
 
+import time
+
 class AnalysisStage(object):
     """The base class for the AnalysisStage-classes in the applications
     Changes to this BaseClass have to be discussed first!
@@ -41,6 +43,8 @@ class AnalysisStage(object):
             KratosMultiphysics.Logger.PrintWarning("Parallel Type", '"MPI" is specified as "parallel_type", but Kratos is not running distributed!')
 
         self._AddVariables()
+        print("analysis_satage_AddVariables: ", self.GetComputingModelPart().ProcessInfo[KratosMultiphysics.DELTA_TIME])
+
 
     def Run(self):
         """This function executes the entire AnalysisStage
@@ -61,10 +65,15 @@ class AnalysisStage(object):
         It can be overridden by derived classes
         """
         while self.KeepAdvancingSolutionLoop():
+            start = time.perf_counter()
             self.time = self._AdvanceTime()
             self.InitializeSolutionStep()
             _ = self.SolveSolutionStep()
             self.FinalizeSolutionStep()
+
+            elapsed = time.perf_counter() - start
+            print(f"RunSolutionLoop Execution time: {elapsed:.6f} seconds")
+
             self.OutputSolutionStep()
 
     def Initialize(self):
@@ -94,6 +103,8 @@ class AnalysisStage(object):
 
         self.ModifyAfterSolverInitialize()
         self.ModifyBeforeSolutionLoop()
+
+        print("analysis_satage: ", self.GetComputingModelPart().ProcessInfo[KratosMultiphysics.DELTA_TIME])
 
         for process in self._GetListOfProcesses():
             process.ExecuteBeforeSolutionLoop()

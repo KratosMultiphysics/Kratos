@@ -807,6 +807,7 @@ namespace Kratos::MaterialPointGeneratorUtility
         double rAccumulatedDisplacement,
         array_1d<double, 3> rGravity,
         array_1d<double, 3> rSurfaceDirection,
+        array_1d<double, 3> rNudgeMP,
         const double rVerticalDistance)
     {
         const bool IsAxisSymmetry = (rBackgroundGridModelPart.GetProcessInfo().Has(IS_AXISYMMETRIC))
@@ -826,9 +827,28 @@ namespace Kratos::MaterialPointGeneratorUtility
         std::vector<double> mp_volume(1);
         // Determine element index: This convention is done in order for the purpose of visualization in GiD
         // Note: This generation assume that there is no other matrial point element in the rMPMModelPart, otherwise the element_id will be duplicated
-        const unsigned int number_elements = rBackgroundGridModelPart.NumberOfElements() + rMPMModelPart.NumberOfElements();
-        const unsigned int number_nodes = rBackgroundGridModelPart.NumberOfNodes();
-        static unsigned int last_element_id = (number_nodes > number_elements) ? (number_nodes + 1) : (number_elements + 1);
+
+        // This need to be done to avoid duplicated element id in case already existing material point elements in the rMPMModelPart
+        // Note: This is a temporary solution, a better solution might be to modify the utility into a class and store the last_element_id as a member variable
+
+        unsigned int biggest_id = 0;
+        if (rMPMModelPart.NumberOfElements() > 0)
+        {
+            for (ModelPart::ElementIterator element_iterator = rMPMModelPart.ElementsBegin();
+                    element_iterator != rMPMModelPart.ElementsEnd(); element_iterator++)
+            {
+                if (element_iterator->Id() > biggest_id)
+                    biggest_id = element_iterator->Id();
+            }
+        }
+        else
+        {
+            const unsigned int number_elements = rBackgroundGridModelPart.NumberOfElements() + rMPMModelPart.NumberOfElements();
+            const unsigned int number_nodes = rBackgroundGridModelPart.NumberOfNodes();
+            biggest_id = (number_nodes > number_elements) ? (number_nodes + 1) : (number_elements + 1);
+        }
+        static unsigned int last_element_id = biggest_id;
+
 
         BinBasedFastPointLocator<TDimension> SearchStructure(rBackgroundGridModelPart);
         SearchStructure.UpdateSearchDatabase();
@@ -957,6 +977,8 @@ namespace Kratos::MaterialPointGeneratorUtility
                     }
 
                 }
+                // Nudge the material point in the direction of the inlet to avoid the material point being exactly on the surface of the background grid element
+                global_coordinate[0] += rNudgeMP;
 
                 // Check if reference gauss point is inside grid
                 typename BinBasedFastPointLocator<TDimension>::ResultIteratorType initial_result_begin = results.begin();
@@ -1333,7 +1355,8 @@ namespace Kratos::MaterialPointGeneratorUtility
         bool IsMixedFormulation,
         double rAccumulatedDisplacement,
         array_1d<double, 3> rGravity,
-        array_1d<double, 3> rUnitGravity,
+        array_1d<double, 3> rSurfaceDirection,
+        array_1d<double, 3> rNudgeMP,
         const double rVerticalDistance);
 
     template void GenerateMaterialPointAtInlet<3>(
@@ -1343,6 +1366,7 @@ namespace Kratos::MaterialPointGeneratorUtility
         bool IsMixedFormulation,
         double rAccumulatedDisplacement,
         array_1d<double, 3> rGravity,
-        array_1d<double, 3> rUnitGravity,
+        array_1d<double, 3> rSurfaceDirection,
+        array_1d<double, 3> rNudgeMP,
         const double rVerticalDistance);
 } // end namespace Kratos::MaterialPointGeneratorUtility

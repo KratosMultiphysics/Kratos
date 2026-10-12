@@ -111,7 +111,8 @@ namespace Kratos::MaterialPointGeneratorUtility
         bool IsMixedFormulation,
         double rAccumulatedDisplacement,
         array_1d<double, 3> rGravity,
-        array_1d<double, 3> rUnitGravity,
+        array_1d<double, 3> rSurfaceDirection,
+        array_1d<double, 3> rNudgeMP,
         const double rVerticalDistance);
 
     /**
