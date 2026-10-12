@@ -80,12 +80,14 @@ public:
     /**
      * Computes the specialized thermo-mechanical vector outputs
      * (THERMAL_STRAIN_VECTOR, THERMAL_STRESS_VECTOR, MECHANICAL_STRESS_VECTOR)
-     * from the current state carried by the Parameters.
+     * from the current state carried by the Parameters. Any other variable is
+     * delegated to the base-class implementation.
      */
     Vector& CalculateValue(Parameters& rParameterValues, const Variable<Vector>& rThisVariable, Vector& rValue) override;
 
     /**
-     * Computes the specialized thermo-mechanical tensor outputs.
+     * Computes the specialized thermo-mechanical tensor outputs. Any other
+     * variable is delegated to the base-class implementation.
      */
     Matrix& CalculateValue(Parameters& rParameterValues, const Variable<Matrix>& rThisVariable, Matrix& rValue) override;
 
