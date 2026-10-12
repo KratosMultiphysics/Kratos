@@ -80,6 +80,9 @@ public:
     /// A vector of indexes (signed)
     using SignedIndexVectorType = DenseVector<SignedIndexType>;
 
+    /// The index type of the CSR storage arrays of the compressed matrix
+    using CompressedMatrixIndexType = CompressedMatrix::index_array_type::value_type;
+
     ///@}
     ///@name Life Cycle
     ///@{
@@ -795,8 +798,8 @@ public:
 
         // Fill the new matrix
         double* Matrix_values = rMatrix.value_data().begin();
-        IndexType* Matrix_index1 = rMatrix.index1_data().begin();
-        IndexType* Matrix_index2 = rMatrix.index2_data().begin();
+        CompressedMatrixIndexType* Matrix_index1 = rMatrix.index1_data().begin();
+        CompressedMatrixIndexType* Matrix_index2 = rMatrix.index2_data().begin();
 
         Matrix_index1[0] = 0;
         for (IndexType i = 0; i < nrows; ++i) {
@@ -848,7 +851,7 @@ public:
         )
     {
         // Get access to aux_K data
-        const IndexType* aux_matrix_index1 = rMatrix.index1_data().begin();
+        const CompressedMatrixIndexType* aux_matrix_index1 = rMatrix.index1_data().begin();
 
         const IndexType row_begin = aux_matrix_index1[CurrentRow];
         const IndexType row_end   = aux_matrix_index1[CurrentRow + 1];
@@ -867,9 +870,10 @@ public:
      * @param RowEnd The last column computed
      * @param InitialIndexColumn The initial column index of the auxiliary block in the final matrix
      */
+    template<class TIndexType>
     static inline void ComputeAuxiliarValuesBlocks(
         const CompressedMatrix& rMatrix,
-        IndexType* AuxIndex2,
+        TIndexType* AuxIndex2,
         double* AuxVals,
         const int CurrentRow,
         IndexType& RowEnd,
@@ -879,8 +883,8 @@ public:
     {
         // Get access to aux_K data
         const double* aux_values = rMatrix.value_data().begin();
-        const IndexType* aux_Matrix_index1 = rMatrix.index1_data().begin();
-        const IndexType* aux_Matrix_index2 = rMatrix.index2_data().begin();
+        const CompressedMatrixIndexType* aux_Matrix_index1 = rMatrix.index1_data().begin();
+        const CompressedMatrixIndexType* aux_Matrix_index2 = rMatrix.index2_data().begin();
 
         const IndexType aux_Matrix_row_begin = aux_Matrix_index1[CurrentRow];
         const IndexType aux_Matrix_row_end   = aux_Matrix_index1[CurrentRow + 1];
