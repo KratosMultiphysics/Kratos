@@ -18,6 +18,7 @@
 #include <algorithm>
 #include <array>
 #include <cmath>
+#include <cstdint>
 
 // External includes
 #include "meshioplusplus/mesh.hpp"
@@ -26,6 +27,7 @@
 #include "meshioplusplus/operations/agglomerate.hpp"
 #include "meshioplusplus/operations/blend.hpp"
 #include "meshioplusplus/operations/feature_edges.hpp"
+#include "meshioplusplus/operations/fit_primitives.hpp"
 #include "meshioplusplus/operations/hausdorff.hpp"
 #include "meshioplusplus/operations/periodic.hpp"
 #include "meshioplusplus/operations/quality_gate.hpp"
@@ -62,6 +64,7 @@
 #include "meshioplusplus/operations/reorder.hpp"
 #include "meshioplusplus/operations/repair.hpp"
 #include "meshioplusplus/operations/sdf.hpp"
+#include "meshioplusplus/operations/segment.hpp"
 #include "meshioplusplus/operations/shrinkwrap.hpp"
 #include "meshioplusplus/operations/slice.hpp"
 #include "meshioplusplus/operations/smooth.hpp"
@@ -88,17 +91,74 @@ namespace
 
 const std::vector<std::string>& OperationNames()
 {
-    static const std::vector<std::string> names = {
-        "agglomerate", "attach_quality", "cell_data_to_point_data", "clean", "compute_normals",
-        "compute_sdf", "convert_cells", "crop_bbox", "crop_halfspace", "crop_predicate",
-        "curvature", "data_calc", "data_condition", "data_info", "data_integrate", "data_manage",
-        "decimate", "decimate_volume", "edit_regions", "estimate_error", "extract_skin",
-        "extract_surface", "feature_edges", "gradient", "hessian", "isosurface", "optimize_volume", "partition",
-        "point_data_to_cell_data", "quality", "check_quality", "refine", "remesh", "remesh_volume", "reorder",
-        "repair", "slice", "smooth", "sobolev_deform", "split", "stats", "subdivide",
-        "tensor_invariants", "transform", "voxelize"
-    };
+    static const std::vector<std::string> names = [] {
+        std::vector<std::string> sorted_names = {
+            "agglomerate", "attach_quality", "cell_data_to_point_data", "clean", "compute_normals",
+            "compute_sdf", "convert_cells", "crop_bbox", "crop_halfspace", "crop_predicate",
+            "curvature", "data_calc", "data_condition", "data_info", "data_integrate", "data_manage",
+            "decimate", "decimate_volume", "edit_regions", "estimate_error", "extract_skin",
+            "extract_surface", "feature_edges", "fit_primitives", "gradient", "hessian", "isosurface", "optimize_volume", "partition",
+            "point_data_to_cell_data", "quality", "check_quality", "refine", "remesh", "remesh_volume", "reorder",
+            "repair", "segment", "slice", "smooth", "sobolev_deform", "split", "stats", "subdivide",
+            "tensor_invariants", "transform", "voxelize"
+        };
+        std::sort(sorted_names.begin(), sorted_names.end());
+        return sorted_names;
+    }();
     return names;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+/**
+ * @brief The meshio++ primitive-type bitmask of a "fit_types" list.
+ * @details meshio++ has no public name-to-type helper for fit_primitives, so the five names its
+ * own command line and pipeline accept are mapped here; the bit of a type is 1 << its enum value.
+ */
+std::uint32_t ReadFitTypes(Parameters Settings, const std::string& rKey)
+{
+    KRATOS_ERROR_IF_NOT(Settings.Has(rKey)) << "Missing \"" << rKey << "\" setting" << std::endl;
+    KRATOS_ERROR_IF_NOT(Settings[rKey].IsArray() && Settings[rKey].size() > 0)
+        << "\"" << rKey << "\" must be a non-empty list of plane, sphere, cylinder, cone or torus" << std::endl;
+    std::uint32_t mask = 0;
+    for (std::size_t i = 0; i < Settings[rKey].size(); ++i) {
+        const std::string name = Settings[rKey][i].GetString();
+        if (name == "plane") {
+            mask |= 1u << static_cast<std::uint32_t>(mio::FitPrimitiveType::Plane);
+        } else if (name == "sphere") {
+            mask |= 1u << static_cast<std::uint32_t>(mio::FitPrimitiveType::Sphere);
+        } else if (name == "cylinder") {
+            mask |= 1u << static_cast<std::uint32_t>(mio::FitPrimitiveType::Cylinder);
+        } else if (name == "cone") {
+            mask |= 1u << static_cast<std::uint32_t>(mio::FitPrimitiveType::Cone);
+        } else if (name == "torus") {
+            mask |= 1u << static_cast<std::uint32_t>(mio::FitPrimitiveType::Torus);
+        } else {
+            KRATOS_ERROR << "Unknown primitive type \"" << name << "\" in \"" << rKey
+                         << "\"; expected plane, sphere, cylinder, cone or torus" << std::endl;
+        }
+    }
+    return mask;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+/**
+ * @brief The segment options of a "segment" or "fit_primitives" operation.
+ * @details "feature_angle" and "region" are the settings feature_edges and refine already use.
+ */
+mio::SegmentOptions ReadSegmentOptions(Parameters Settings)
+{
+    mio::SegmentOptions options;
+    options.mFeatureAngleDeg = Settings["feature_angle"].GetDouble();
+    options.mNormalToleranceDeg = Settings["normal_tolerance"].GetDouble();
+    options.mCurvatureTolerance = Settings["curvature_tolerance"].GetDouble();
+    options.mMinPatchCells = Settings["min_patch_cells"].GetInt();
+    options.mRegion = Settings["region"].GetString();
+    options.mPrefix = Settings["patch_prefix"].GetString();
+    return options;
 }
 
 /***********************************************************************************/
@@ -698,6 +758,16 @@ Parameters MeshioPlusPlusMeshOperations::GetDefaultParameters()
         "include_non_manifold_edges"                   : true,
         "include_inconsistent_edges"                   : true,
 
+        "normal_tolerance"                             : 0.0,
+        "curvature_tolerance"                          : 0.0,
+        "min_patch_cells"                              : 1,
+        "patch_prefix"                                 : "patch",
+        "fit_tolerance"                                : 1.0e-3,
+        "fit_relative"                                 : true,
+        "min_inlier_fraction"                          : 0.9,
+        "fit_types"                                    : ["plane", "sphere", "cylinder", "cone", "torus"],
+        "fit_max_iterations"                           : 50,
+
         "edits"                                        : [],
 
         "require"                                      : "",
@@ -1029,6 +1099,38 @@ Parameters MeshioPlusPlusMeshOperations::Execute(
         report.AddInt("boundary_edges", static_cast<int>(result.mNumBoundary));
         report.AddInt("non_manifold_edges", static_cast<int>(result.mNumNonManifold));
         report.AddInt("inconsistent_edges", static_cast<int>(result.mNumInconsistent));
+        StoreResult(result.mMesh, rDestination);
+
+    } else if (operation == "segment") {
+        const mio::SegmentOptions options = ReadSegmentOptions(Settings);
+        mio::SegmentResult result = mio::segment(mesh, options);
+        report.AddInt("number_of_patches", static_cast<int>(result.mNumPatches));
+        report.AddInt("merged_patches", static_cast<int>(result.mNumMerged));
+        report.AddInt("feature_edges", static_cast<int>(result.mNumFeatureEdges));
+        report.AddInt("boundary_edges", static_cast<int>(result.mNumBoundaryEdges));
+        report.AddInt("non_manifold_edges", static_cast<int>(result.mNumNonManifoldEdges));
+        StoreResult(result.mMesh, rDestination);
+
+    } else if (operation == "fit_primitives") {
+        // fit_primitives reads the patches from the "segment:patch" cell data a segment run
+        // attaches. A colon-namespaced name never survives the trip onto a model part, so the
+        // two run back to back here, with the segment settings, instead of through the model part.
+        const mio::SegmentResult segmented = mio::segment(mesh, ReadSegmentOptions(Settings));
+        mio::FitPrimitivesOptions options;
+        options.mPatchData = mio::kSegmentPatchName;
+        options.mTolerance = Settings["fit_tolerance"].GetDouble();
+        options.mRelative = Settings["fit_relative"].GetBool();
+        options.mMinInlierFraction = Settings["min_inlier_fraction"].GetDouble();
+        options.mTypes = ReadFitTypes(Settings, "fit_types");
+        options.mMaxIterations = Settings["fit_max_iterations"].GetInt();
+        mio::FitPrimitivesResult result = mio::fit_primitives(segmented.mMesh, options);
+        report.AddInt("number_of_patches", static_cast<int>(result.mNumPatches));
+        report.AddInt("planes", static_cast<int>(result.mNumPlane));
+        report.AddInt("spheres", static_cast<int>(result.mNumSphere));
+        report.AddInt("cylinders", static_cast<int>(result.mNumCylinder));
+        report.AddInt("cones", static_cast<int>(result.mNumCone));
+        report.AddInt("tori", static_cast<int>(result.mNumTorus));
+        report.AddInt("unfitted_patches", static_cast<int>(result.mNumUnfitted));
         StoreResult(result.mMesh, rDestination);
 
     } else if (operation == "edit_regions") {

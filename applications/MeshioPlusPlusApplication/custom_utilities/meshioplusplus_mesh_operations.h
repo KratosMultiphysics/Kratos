@@ -62,6 +62,14 @@ namespace Kratos
  * mesh is a `ModelPart`, and any ModelPart-taking wrapper for it would fail by construction.
  * It stays reachable from meshio++ itself, where the mesh never leaves the library.
  *
+ * @note "segment" and "fit_primitives" (meshio++ v16.39.0) hit the same colon-namespaced names
+ * (`segment:patch`, `segment:adjacency`, `fit:type`, `fit:rms`, `fit:max`), so those arrays do
+ * not reach the destination. What does: the patches of "segment", as one sub model part
+ * `<patch_prefix>:<k>` per patch, and the report of both. "fit_primitives" needs `segment:patch`
+ * on its input, which no model part can carry, so it runs the segmentation itself first, with
+ * the same "feature_angle", "normal_tolerance", "curvature_tolerance", "min_patch_cells",
+ * "region" and "patch_prefix" settings, and then fits the patches ("fit_*" settings).
+ *
  * @ref Execute optionally carries field data through the operation, using the same
  * "nodal_solution_step_data_variables" / "nodal_data_value_variables" / "nodal_flags" /
  * "element_data_value_variables" / "element_flags" / "condition_data_value_variables" /
