@@ -218,10 +218,16 @@ class TestClampingProjection(kratos_unittest.TestCase):
         self.assertAlmostEqual(numpy.linalg.norm(result.data - self.pressure.data), 0.0)
 
     def test_ForwardProjectionGradient(self):
-        result = self.projection.ForwardProjectionGradient(self.projection.ProjectBackward(self.pressure))
-        self.assertAlmostEqual(numpy.linalg.norm(result.data), 117.1285001317973)
-        self.assertAlmostEqual(result.data[0], 0.0)
-        self.assertAlmostEqual(result.data[-1], 0.0)
+        delta = 1e-8
+        y_ref = self.projection.ProjectForward(self.projection.ProjectBackward(self.pressure))
+        
+        perturbed_x = self.projection.ProjectBackward(self.pressure).Clone()
+        perturbed_x.data[:] += delta
+        y = self.projection.ProjectForward(perturbed_x)
+        dy_dx = self.projection.ForwardProjectionGradient(self.projection.ProjectBackward(self.pressure))
+
+        for i, dy_dx in enumerate(dy_dx.data):
+            self.assertAlmostEqual(dy_dx, (y.data[i] - y_ref.data[i]) / delta, 5)
 
 if __name__ == "__main__":
     kratos_unittest.main()
