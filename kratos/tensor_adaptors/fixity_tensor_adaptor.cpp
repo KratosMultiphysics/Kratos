@@ -73,7 +73,7 @@ void FixityTensorAdaptor::Check() const
                 CheckContainer(this->mDofsVarPointerList, *p_container);
             }
         },
-        *mpContainer);
+        this->GetContainer());
 }
 
 TensorAdaptor<bool>::Pointer FixityTensorAdaptor::Clone() const
@@ -90,7 +90,7 @@ void FixityTensorAdaptor::CollectData()
                 CollectFixityData(this->ViewData(), this->mDofsVarPointerList, *p_container);
             }
         },
-        *mpContainer);
+        this->GetContainer());
 }
 
 void FixityTensorAdaptor::StoreData()
@@ -102,12 +102,12 @@ void FixityTensorAdaptor::StoreData()
                 StoreFixityData(this->ViewData(), this->mDofsVarPointerList, *p_container);
             }
         },
-        *mpContainer);
+        this->GetContainer());
 }
 
 std::string FixityTensorAdaptor::Info() const
 {
-  return "FixityTensorAdaptor";
+  return "FixityTensorAdaptor: " + BaseType::Info();
 }
 
 void FixityTensorAdaptor::CollectFixityData(

@@ -214,12 +214,14 @@ void HistoricalVariableTensorAdaptor::StoreData()
 
 std::string HistoricalVariableTensorAdaptor::Info() const
 {
+    // the base info goes first: it throws for an unloaded (default-constructed) instance, whose mpVariable is null
+    const auto base_info = BaseType::Info();
     std::stringstream info;
     info << "HistoricalVariableTensorAdaptor:";
     std::visit([&info](auto pVariable) {
         info << " Variable = " << pVariable->Name();
     }, this->mpVariable);
-    info << ", Step index = " << mStepIndex << ", " << BaseType::Info();
+    info << ", Step index = " << mStepIndex << ", " << base_info;
     return info.str();
 }
 

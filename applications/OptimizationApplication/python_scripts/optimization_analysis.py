@@ -12,7 +12,7 @@ from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem i
 from KratosMultiphysics.OptimizationApplication.utilities.buffered_dict import BufferedDict
 from KratosMultiphysics.OptimizationApplication.utilities.logger_utilities import OptimizationAnalysisTimeLogger
 from KratosMultiphysics.OptimizationApplication.utilities.restart_file_naming import ResolveRestartLoadStep, SplitRestartFileName
-from KratosMultiphysics.OptimizationApplication.processes.optimization_problem_restart_output_process import OptimizationProblemRestartOutput
+from KratosMultiphysics.OptimizationApplication.processes.optimization_problem_restart_output_process import OptimizationProblemRestartOutput, CreateTensorAdaptorLoadTarget
 
 def _EnsureBufferedDictPath(root: BufferedDict, bufferdict_key: str, node_metadata: dict) -> None:
     """Pre-creates any BufferedDict node along bufferdict_key's parent path that doesn't exist yet,
@@ -246,11 +246,11 @@ class OptimizationAnalysis:
                 _EnsureBufferedDictPath(root, bufferdict_key, node_metadata)
                 root.SetValue(bufferdict_key, value, step_index, overwrite=True)
 
-            for (bufferdict_key, step_index), (serializer_tag, kind) in payload["tensor_kinds"].items():
+            for (bufferdict_key, step_index), (serializer_tag, type_name) in payload["tensor_kinds"].items():
                 _EnsureBufferedDictPath(root, bufferdict_key, node_metadata)
-                placeholder = getattr(Kratos.TensorAdaptors, kind)()
-                serializer.Load(serializer_tag, placeholder)
-                root.SetValue(bufferdict_key, placeholder, step_index, overwrite=True)
+                tensor_adaptor = CreateTensorAdaptorLoadTarget(type_name)
+                serializer.Load(serializer_tag, tensor_adaptor)
+                root.SetValue(bufferdict_key, tensor_adaptor, step_index, overwrite=True)
 
             # The checkpoint is written after the checkpointed step's own UpdateControl() (see
             # Algorithm.SaveRestartFile()), so both restored buffer slots are still "occupied"

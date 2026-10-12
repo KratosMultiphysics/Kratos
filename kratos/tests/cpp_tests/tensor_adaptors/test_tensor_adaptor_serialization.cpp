@@ -582,6 +582,61 @@ KRATOS_TEST_CASE_IN_SUITE(NDDataLoadSizeMismatchReallocates, KratosCoreFastSuite
     }
 }
 
+// A default-constructed wrapper is only a load target: every accessor and save throw until it is loaded.
+KRATOS_TEST_CASE_IN_SUITE(NDDataPointerWrapperDefaultConstructed, KratosCoreFastSuite)
+{
+    using PointerWrapperType = NDData<double>::PointerWrapper;
+    const std::string message = "Uninitialized PointerWrapper (default-constructed, only valid as a Serializer load target).";
+
+    PointerWrapperType wrapper;
+    const PointerWrapperType& r_const_wrapper = wrapper;
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(wrapper.Data(), message);
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(r_const_wrapper.Data(), message);
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(wrapper.Size(), message);
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(wrapper.IsManaged(), message);
+    StreamSerializer save_serializer;
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(save_serializer.save("Wrapper", wrapper), message);
+
+    // loading into the default wrapper initializes it, with a new managed buffer
+    for (const bool data_only : {false, true}) {
+        std::vector<double> foreign{1.0, 2.0, 3.0};
+        const auto p_original = Kratos::make_intrusive<PointerWrapperType>(foreign.data(), foreign.size(), false);
+
+        auto p_loaded = Kratos::make_intrusive<PointerWrapperType>();
+        if (!data_only) {
+            StreamSerializer serializer;
+            serializer.save("Wrapper", p_original);
+            serializer.load("Wrapper", p_loaded);
+        } else {
+            const std::string file_name = "test_nd_data_pointer_wrapper_data_only_load";
+            struct RemoveFileOnExit { std::string mName; ~RemoveFileOnExit() { std::remove(mName.c_str()); } } remove_file{file_name + ".rest"};
+            std::fstream(file_name + ".rest", std::ios::out).close();
+            FileSerializer serializer(file_name, Serializer::SERIALIZER_NO_TRACE, /*DataOnly=*/true);
+            serializer.save("Wrapper", p_original);
+            serializer.SetLoadState();
+            serializer.load("Wrapper", p_loaded);
+        }
+
+        KRATOS_EXPECT_EQ(p_loaded->Size(), 3u);
+        KRATOS_EXPECT_TRUE(p_loaded->IsManaged());
+        KRATOS_EXPECT_NE(p_loaded->Data(), foreign.data());
+        for (IndexType i = 0; i < 3; ++i) {
+            KRATOS_EXPECT_EQ(p_loaded->Data()[i], foreign[i]);
+        }
+    }
+
+    // a default NDData holds a default wrapper, so its data, shape and save throw through the wrapper
+    NDData<double> nd_data;
+    const NDData<double>& r_const_nd_data = nd_data;
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(nd_data.ViewData(), message);
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(r_const_nd_data.ViewData(), message);
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(nd_data.Shape(), message);
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(nd_data.Size(), message);
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(nd_data.Info(), message);
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(NDData<double>{nd_data}, message);
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(save_serializer.save("Data", nd_data), message);
+}
+
 KRATOS_TEST_CASE_IN_SUITE(DofsTensorAdaptorSerialization, KratosCoreFastSuite)
 {
     Model save_model;
@@ -616,12 +671,77 @@ KRATOS_TEST_CASE_IN_SUITE(DofsTensorAdaptorSerialization, KratosCoreFastSuite)
     }
 }
 
+// A default-constructed TA holds a default NDData, so every data access on it (also through Info(),
+// Check() and CollectData()) throws from the PointerWrapper until it is loaded.
 KRATOS_TEST_CASE_IN_SUITE(UninitializedTensorAdaptorThrows, KratosCoreFastSuite)
 {
+    const std::string message = "Uninitialized PointerWrapper";
+
     TensorAdaptor<double> tensor_adaptor;
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(tensor_adaptor.Shape(), "Uninitialized TensorAdaptor");
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(tensor_adaptor.Size(), "Uninitialized TensorAdaptor");
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(tensor_adaptor.ViewData(), "Uninitialized TensorAdaptor");
+    const TensorAdaptor<double>& r_const_tensor_adaptor = tensor_adaptor;
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(tensor_adaptor.Shape(), message);
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(tensor_adaptor.DataShape(), message);
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(tensor_adaptor.Size(), message);
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(tensor_adaptor.ViewData(), message);
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(r_const_tensor_adaptor.ViewData(), message);
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(tensor_adaptor.Info(), message);
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(tensor_adaptor.Check(), message);
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(tensor_adaptor.GetContainer(), message);
+    StreamSerializer save_serializer;
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(save_serializer.save("TA", tensor_adaptor), message);
+
+    VariableTensorAdaptor variable_tensor_adaptor;
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(variable_tensor_adaptor.Info(), message);
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(variable_tensor_adaptor.Check(), message);
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(variable_tensor_adaptor.CollectData(), message);
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(variable_tensor_adaptor.StoreData(), message);
+
+    ConnectivityIdsTensorAdaptor connectivity_tensor_adaptor;
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(connectivity_tensor_adaptor.Info(), message);
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(connectivity_tensor_adaptor.Check(), message);
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(connectivity_tensor_adaptor.CollectData(), message);
+
+    FixityTensorAdaptor fixity_tensor_adaptor;
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(fixity_tensor_adaptor.CollectData(), message);
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(fixity_tensor_adaptor.StoreData(), message);
+}
+
+// The default storage is a valid load target in both modes. A container-less TA is used, because
+// DataOnly mode can't create a missing container.
+KRATOS_TEST_CASE_IN_SUITE(UninitializedTensorAdaptorLoad, KratosCoreFastSuite)
+{
+    Model model;
+    auto& r_model_part = CreateTestModelPart(model, "Test");
+    auto p_child = Kratos::make_shared<VariableTensorAdaptor>(r_model_part.pNodes(), &PRESSURE);
+    const CombinedTensorAdaptor<double> combined(CombinedTensorAdaptor<double>::TensorAdaptorVectorType{p_child}, false, false);
+    TensorAdaptor<double> original(combined, true);
+    KRATOS_EXPECT_FALSE(original.HasContainer());
+    for (IndexType i = 0; i < original.Size(); ++i) {
+        original.ViewData()[i] = i + 1.0;
+    }
+
+    for (const bool data_only : {false, true}) {
+        TensorAdaptor<double> loaded;
+        if (!data_only) {
+            StreamSerializer serializer;
+            serializer.save("TA", original);
+            serializer.load("TA", loaded);
+        } else {
+            const std::string file_name = "test_uninitialized_tensor_adaptor_data_only_load";
+            struct RemoveFileOnExit { std::string mName; ~RemoveFileOnExit() { std::remove(mName.c_str()); } } remove_file{file_name + ".rest"};
+            std::fstream(file_name + ".rest", std::ios::out).close();
+            FileSerializer serializer(file_name, Serializer::SERIALIZER_NO_TRACE, /*DataOnly=*/true);
+            serializer.save("TA", original);
+            serializer.SetLoadState();
+            serializer.load("TA", loaded);
+        }
+
+        KRATOS_EXPECT_FALSE(loaded.HasContainer());
+        KRATOS_EXPECT_VECTOR_EQ(loaded.Shape(), original.Shape());
+        for (IndexType i = 0; i < original.Size(); ++i) {
+            KRATOS_EXPECT_DOUBLE_EQ(loaded.ViewData()[i], original.ViewData()[i]);
+        }
+    }
 }
 
 } // namespace Kratos::Testing

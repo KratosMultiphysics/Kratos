@@ -70,7 +70,11 @@ public:
         ///@name Life cycle
         ///@{
 
-        /// Default constructor, only intended as a @ref Serializer load target.
+        /**
+         * @brief Default constructor, only intended as a @ref Serializer load target.
+         * @details Until loaded, the accessors and @ref save throw. Such an instance is detected by
+         *          a null @p mpData, since the other constructors always get a buffer (@p new T[0] is non-null).
+         */
         PointerWrapper() = default;
 
         /**
@@ -94,13 +98,29 @@ public:
 
         ~PointerWrapper() { if (mIsManaged && mpData) delete[] mpData; }
 
-        TDataType * Data() { return mpData; }
+        TDataType * Data()
+        {
+            KRATOS_ERROR_IF_NOT(mpData) << "Uninitialized PointerWrapper (default-constructed, only valid as a Serializer load target).\n";
+            return mpData;
+        }
 
-        TDataType const * Data() const { return mpData; }
+        TDataType const * Data() const
+        {
+            KRATOS_ERROR_IF_NOT(mpData) << "Uninitialized PointerWrapper (default-constructed, only valid as a Serializer load target).\n";
+            return mpData;
+        }
 
-        std::size_t Size() const { return mSize; }
+        std::size_t Size() const
+        {
+            KRATOS_ERROR_IF_NOT(mpData) << "Uninitialized PointerWrapper (default-constructed, only valid as a Serializer load target).\n";
+            return mSize;
+        }
 
-        bool IsManaged() const { return mIsManaged; }
+        bool IsManaged() const
+        {
+            KRATOS_ERROR_IF_NOT(mpData) << "Uninitialized PointerWrapper (default-constructed, only valid as a Serializer load target).\n";
+            return mIsManaged;
+        }
 
         ///@}
 
@@ -119,6 +139,9 @@ public:
         ///@{
 
         friend class Serializer;
+
+        // NDData::load reads mSize directly, since Size() throws for an unloaded wrapper.
+        friend class NDData;
 
         void save(Serializer& rSerializer) const;
 
@@ -164,12 +187,12 @@ public:
     ///@{
 
     /**
-     * @brief Construct an empty, invalid instance.
-     * @details Only intended for @ref Serializer::load to construct into before populating via
-     *          @ref load. Any other use leaves the instance with a null internal data pointer.
-     *          Loading into an existing instance reuses its buffer when the size matches.
+     * @brief Construct an empty instance, only intended as a @ref Serializer load target.
+     * @details It holds a default-constructed @ref PointerWrapper, so @ref ViewData, @ref Shape,
+     *          @ref Size and save throw until loaded. Loading into an existing instance reuses its
+     *          buffer when the size matches.
      */
-    NDData() = default;
+    NDData();
 
     /**
      * @brief Construct a new instance with a provided shape.

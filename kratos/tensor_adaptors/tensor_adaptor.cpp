@@ -116,7 +116,6 @@ bool TensorAdaptor<TDataType>::HasContainer() const
 template<class TDataType>
 Kratos::span<const TDataType> TensorAdaptor<TDataType>::ViewData() const
 {
-    KRATOS_ERROR_IF_NOT(mpStorage) << "Uninitialized TensorAdaptor (default-constructed, only valid as a Serializer load target).\n";
     const auto& storage = *mpStorage;
     return storage.ViewData();
 }
@@ -124,14 +123,12 @@ Kratos::span<const TDataType> TensorAdaptor<TDataType>::ViewData() const
 template<class TDataType>
 Kratos::span<TDataType> TensorAdaptor<TDataType>::ViewData()
 {
-    KRATOS_ERROR_IF_NOT(mpStorage) << "Uninitialized TensorAdaptor (default-constructed, only valid as a Serializer load target).\n";
     return mpStorage->ViewData();
 }
 
 template<class TDataType>
 DenseVector<unsigned int> TensorAdaptor<TDataType>::Shape() const
 {
-    KRATOS_ERROR_IF_NOT(mpStorage) << "Uninitialized TensorAdaptor (default-constructed, only valid as a Serializer load target).\n";
     return mpStorage->Shape();
 }
 
@@ -147,7 +144,6 @@ DenseVector<unsigned int> TensorAdaptor<TDataType>::DataShape() const
 template<class TDataType>
 unsigned int TensorAdaptor<TDataType>::Size() const
 {
-    KRATOS_ERROR_IF_NOT(mpStorage) << "Uninitialized TensorAdaptor (default-constructed, only valid as a Serializer load target).\n";
     return mpStorage->Size();
 }
 

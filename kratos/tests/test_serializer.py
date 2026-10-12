@@ -237,14 +237,10 @@ class TestSerializer(KratosUnittest.TestCase):
         serializer.Save("Variable", variable_ta)
         serializer.Save("Combined", combined)
 
-        # Python can't build empty adaptors: build them on the loaded model, then Load fills them.
         loaded_model = KratosMultiphysics.Model()
+        loaded_variable = ta.VariableTensorAdaptor()
+        loaded_combined = ta.DoubleCombinedTensorAdaptor()
         serializer.Load("Model", loaded_model)
-        loaded_model_part = loaded_model.GetModelPart("Test")
-        loaded_variable = ta.VariableTensorAdaptor(loaded_model_part.Nodes, KratosMultiphysics.PRESSURE)
-        loaded_combined = ta.DoubleCombinedTensorAdaptor([
-            ta.VariableTensorAdaptor(loaded_model_part.Nodes, KratosMultiphysics.PRESSURE),
-            ta.HistoricalVariableTensorAdaptor(loaded_model_part.Nodes, KratosMultiphysics.TEMPERATURE)], False, False, False)
         serializer.Load("Variable", loaded_variable)
         serializer.Load("Combined", loaded_combined)
 
@@ -258,6 +254,7 @@ class TestSerializer(KratosUnittest.TestCase):
         # loaded nodes and leaves the original model untouched.
         loaded_variable.data[:] = [7.0, 8.0, 9.0]
         loaded_variable.StoreData()
+        loaded_model_part = loaded_model.GetModelPart("Test")
         self.assertEqual([node.GetValue(KratosMultiphysics.PRESSURE) for node in loaded_model_part.Nodes], [7.0, 8.0, 9.0])
         self.assertEqual([node.GetValue(KratosMultiphysics.PRESSURE) for node in model_part.Nodes], [1.0, 2.0, 3.0])
 
@@ -295,6 +292,26 @@ class TestSerializer(KratosUnittest.TestCase):
         self.assertVectorAlmostEqual(variable_ta.data, [1.0, 2.0, 3.0])
         self.assertVectorAlmostEqual(np_array, [4.0, 5.0, 6.0])
         self.assertVectorAlmostEqual(nd_data_ta.data, [4.0, 5.0, 6.0])
+
+    def test_UninitializedTensorAdaptor(self):
+        # A default-constructed TA is only a load target: its default storage's PointerWrapper
+        # raises on any data access, including the ones made through str(), Check() and CollectData().
+        ta = KratosMultiphysics.TensorAdaptors
+        for tensor_adaptor_type in [ta.DoubleTensorAdaptor, ta.VariableTensorAdaptor, ta.ConnectivityIdsTensorAdaptor]:
+            tensor_adaptor = tensor_adaptor_type()
+            operations = {
+                "data": lambda: tensor_adaptor.data,
+                "str": lambda: str(tensor_adaptor),
+                "Shape": lambda: tensor_adaptor.Shape(),
+                "Check": lambda: tensor_adaptor.Check(),
+                "CollectData": lambda: tensor_adaptor.CollectData(),
+                "Save": lambda: KratosMultiphysics.StreamSerializer().Save("TA", tensor_adaptor)}
+            if tensor_adaptor_type is ta.DoubleTensorAdaptor:
+                del operations["CollectData"] # the base class raises its own "can only be used for data storage" error
+            for name, operation in operations.items():
+                with self.subTest(type=tensor_adaptor_type.__name__, operation=name):
+                    with self.assertRaisesRegex(RuntimeError, "Uninitialized PointerWrapper"):
+                        operation()
 
 if __name__ == '__main__':
     KratosUnittest.main()

@@ -295,9 +295,6 @@ void GeometriesTensorAdaptor::Check() const {}
 
 void GeometriesTensorAdaptor::CollectData()
 {
-    if (!mpStorage)
-        return;
-
     std::visit(
         [this](auto &&p_container)
     {
@@ -306,10 +303,10 @@ void GeometriesTensorAdaptor::CollectData()
         {
             auto method = GetIntegrationMethod(*p_container, mIntegrationMethod);
             FillData(this->ViewData().data(), *p_container, mDatum, method,
-                     mpStorage->Shape());
+                     this->Shape());
         }
     },
-    *mpContainer);
+    this->GetContainer());
 }
 
 void GeometriesTensorAdaptor::StoreData()
@@ -320,7 +317,7 @@ void GeometriesTensorAdaptor::StoreData()
 
 std::string GeometriesTensorAdaptor::Info() const
 {
-    return "GeometriesTensorAdaptor";
+    return "GeometriesTensorAdaptor: " + BaseType::Info();
 }
 
 void GeometriesTensorAdaptor::save(Serializer& rSerializer) const

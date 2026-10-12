@@ -122,11 +122,11 @@ public:
     ///@{
 
     /**
-     * @brief Construct an empty, invalid instance.
-     * @details Only intended for @ref Serializer::load to construct into before populating via
-     *          @ref load. Any other use leaves the instance with a null storage and no container.
+     * @brief Construct an empty instance, only intended as a @ref Serializer load target.
+     * @details It holds a default @ref NDData (with no container), whose PointerWrapper makes any
+     *          data access, @ref Shape, @ref Info and save throw until the instance is loaded.
      */
-    TensorAdaptor() = default;
+    TensorAdaptor() : mpStorage(Kratos::make_shared<Storage>()) {}
 
     /**
      * @brief Construct a new Tensor Adaptor from a given @p pContainer and a @p pData

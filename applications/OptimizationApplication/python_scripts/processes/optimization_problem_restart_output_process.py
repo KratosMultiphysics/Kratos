@@ -20,83 +20,41 @@ _SERIALIZER_TRACE_TYPES = {
     "trace_all":   Kratos.SerializerTraceType.SERIALIZER_TRACE_ALL,
 }
 
-# (base type, matching combined type, matching NDData type) per dtype.
-_DTYPE_TENSOR_ADAPTOR_TYPES = (
-    (Kratos.TensorAdaptors.DoubleTensorAdaptor, Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor, Kratos.DoubleNDData),
-    (Kratos.TensorAdaptors.IntTensorAdaptor, Kratos.TensorAdaptors.IntCombinedTensorAdaptor, Kratos.IntNDData),
-    (Kratos.TensorAdaptors.BoolTensorAdaptor, Kratos.TensorAdaptors.BoolCombinedTensorAdaptor, Kratos.BoolNDData),
+# isinstance against the 3 base types also matches every subtype (combined, Variable, Properties, ...).
+_TENSOR_ADAPTOR_BASE_TYPES = (
+    Kratos.TensorAdaptors.DoubleTensorAdaptor,
+    Kratos.TensorAdaptors.IntTensorAdaptor,
+    Kratos.TensorAdaptors.BoolTensorAdaptor,
 )
 
-# isinstance against just the 3 base types also matches the corresponding combined subtype, since
-# Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor (etc.) is bound as a Python subclass of
-# Kratos.TensorAdaptors.DoubleTensorAdaptor (etc.) -- see kratos/python/add_tensor_adaptors_to_python.cpp.
-_TENSOR_ADAPTOR_BASE_TYPES = tuple(base for base, _, _ in _DTYPE_TENSOR_ADAPTOR_TYPES)
-_COMBINED_TENSOR_ADAPTOR_TYPES = tuple(combined for _, combined, _ in _DTYPE_TENSOR_ADAPTOR_TYPES)
-
-# the only leaf (non-combined) types registered with Kratos::Serializer (kratos_application.cpp)
-# and therefore safe to save/load directly, as themselves.
-_EXACT_NATIVE_TENSOR_ADAPTOR_TYPES = _TENSOR_ADAPTOR_BASE_TYPES
+# modules holding every tensor adaptor type registered with Kratos::Serializer.
+_TENSOR_ADAPTOR_MODULES = (Kratos.TensorAdaptors, KratosOA.TensorAdaptors)
 
 _SCALAR_LEAF_TYPES = (int, float, bool, str, list, dict, type(None))
 
-def _ToNativelySerializable(value):
-    """Returns a TensorAdaptor safe to save/load directly through Kratos.Serializer.
+def CreateTensorAdaptorLoadTarget(type_name: str):
+    """Returns a default-constructed tensor adaptor of type type_name, to Load a saved one into."""
+    for module in _TENSOR_ADAPTOR_MODULES:
+        if hasattr(module, type_name):
+            return getattr(module, type_name)()
+    raise RuntimeError(f"Unknown restart tensor adaptor type \"{type_name}\".")
 
-    A combined adaptor's own C++ save() serializes each child through a polymorphic pointer, which
-    throws for a further-derived, unregistered child type (e.g. SystemIdentificationApplication's
-    PropertiesVariableTensorAdaptor) -- so recurse into every combined adaptor's children first and
-    rebuild a plain combined instance from their laundered results, regardless of the combined
-    adaptor's own exact type. The rebuilt combined instance's own top-level .data is freshly
-    allocated and disconnected from its (already-correct) children until CollectData() pulls
-    values in from them -- save() serializes that top-level buffer too, so skipping this would
-    silently save garbage. perform_collect_data_recursively=False keeps that pull to "children's
-    .data -> this .data" only: recursing further ("child's container -> child's .data") would be
-    wrong for a child that doesn't represent something re-readable from its container at all (e.g.
-    a momentum/moment estimate, whose container is only there for shape/identity).
-
-    A leaf whose exact type is already registered returns unchanged; otherwise it is "laundered"
-    into a freshly-constructed plain base-type instance wrapping the *same* container and a copy of
-    the *same* data -- dropping whatever extra, subclass-specific state the derived type carries,
-    since restart only needs to round-trip the current values and which container they belong to.
-
-    Returns None if a leaf has no container to launder through (HasContainer() is False) and isn't
-    itself one of the registered types -- the caller falls back to skipping it, with a warning, same
-    as any other genuinely unsupported leaf.
-    """
-    if isinstance(value, _COMBINED_TENSOR_ADAPTOR_TYPES):
-        children = [_ToNativelySerializable(child) for child in value.GetTensorAdaptors()]
-        if any(child is None for child in children):
-            return None
-        for _, combined_type, _ in _DTYPE_TENSOR_ADAPTOR_TYPES:
-            if isinstance(value, combined_type):
-                native_value = combined_type(children, perform_collect_data_recursively=False, copy=False)
-                native_value.CollectData()
-                return native_value
-        return None
-    if type(value) in _EXACT_NATIVE_TENSOR_ADAPTOR_TYPES:
-        return value
-    if not value.HasContainer():
-        return None
-    for base_type, _, nd_data_type in _DTYPE_TENSOR_ADAPTOR_TYPES:
-        if isinstance(value, base_type):
-            return base_type(value.GetContainer(), nd_data_type(value.data, True), True)
-    return None
-
-def SaveBufferedDictToSerializer(node: BufferedDict, path: str, serializer: Kratos.StreamSerializer, scalar_snapshot: dict, tensor_kinds: dict, node_metadata: dict, keep_alive: list, echo_level: int = 0) -> None:
+def SaveBufferedDictToSerializer(node: BufferedDict, path: str, serializer: Kratos.StreamSerializer, scalar_snapshot: dict, tensor_kinds: dict, node_metadata: dict, echo_level: int = 0) -> None:
     """Recursively walks every buffer slot and sub item of a BufferedDict.
 
     Mirrors the traversal BufferedDict.PrintData/__Info already implements (iterate every buffer
     slot, then recurse into sub items). Kratos.TensorAdaptors.* leaves are saved natively into
-    `serializer` (so they stay linked to the Model also saved into the same serializer -- see
-    OptimizationProblemRestartOutput.SaveRestartFile); plain picklable leaves go into
-    `scalar_snapshot` instead.
+    `serializer` as themselves (so they stay linked to the Model also saved into the same
+    serializer -- see OptimizationProblemRestartOutput.SaveRestartFile); plain picklable leaves go
+    into `scalar_snapshot` instead.
 
     "path" is the BufferedDict.SetValue()-style "/"-separated key of `node` itself (SetValue
     natively resolves such nested keys, see buffered_dict.py). Each leaf's own BufferedDict key is
     `f"{path}/{key}"` (or just `key` at the root); `tensor_kinds`/`scalar_snapshot` are keyed by
     `(bufferdict_key, step_index)` tuples, since the same key can hold different values across
-    buffer slots. Tensor leaves additionally get a unique string tag (`tensor_kinds`' value)
-    derived from that same pair, since Kratos.Serializer.Save/Load need a string tag.
+    buffer slots. Tensor leaves additionally get a unique string tag derived from that same pair,
+    since Kratos.Serializer.Save/Load need a string tag; `tensor_kinds` maps the pair to
+    (tag, exact type name), which is all CreateTensorAdaptorLoadTarget needs on restore.
 
     `node_metadata` records every sub item's own (buffer_size, clear_buffer_when_advancing), keyed
     by its path -- used on restore to recreate a sub item that no longer has a live counterpart
@@ -109,23 +67,14 @@ def SaveBufferedDictToSerializer(node: BufferedDict, path: str, serializer: Krat
     aborting the checkpoint, since such objects are typically re-derived from their own inputs
     (e.g. read back from a settings/measurement file) on every run and are not cross-iteration
     state that needs restoring.
-
-    `keep_alive` collects every laundered TensorAdaptor this call creates, and the caller must hold
-    it until the whole save (not just this call) is done. Serializer's pointer-identity tracking
-    (needed for the Model<->tensor relinking this whole mechanism relies on) keys off raw C++
-    addresses; a laundered object that goes out of scope and gets garbage-collected mid-save frees
-    its address for reuse by the next allocation, which the serializer would then wrongly treat as
-    "the same object, already written" -- silently saving a stale reference instead of real data.
     """
     for step_index in range(node.GetBufferSize()):
         for key, value in node.GetValueItems(step_index).items():
             bufferdict_key = f"{path}/{key}" if path else key
-            native_value = _ToNativelySerializable(value) if isinstance(value, _TENSOR_ADAPTOR_BASE_TYPES) else None
-            if native_value is not None:
-                keep_alive.append(native_value)
+            if isinstance(value, _TENSOR_ADAPTOR_BASE_TYPES):
                 serializer_tag = f"{bufferdict_key}:{step_index}"
-                serializer.Save(serializer_tag, native_value)
-                tensor_kinds[(bufferdict_key, step_index)] = (serializer_tag, type(native_value).__name__)
+                serializer.Save(serializer_tag, value)
+                tensor_kinds[(bufferdict_key, step_index)] = (serializer_tag, type(value).__name__)
             elif isinstance(value, _SCALAR_LEAF_TYPES):
                 scalar_snapshot[(bufferdict_key, step_index)] = value
             elif echo_level > 0:
@@ -142,7 +91,7 @@ def SaveBufferedDictToSerializer(node: BufferedDict, path: str, serializer: Krat
     for name, sub_item in node.GetSubItems().items():
         sub_path = f"{path}/{name}" if path else name
         node_metadata[sub_path] = (sub_item.GetBufferSize(), sub_item.GetClearBufferWhenAdvancing())
-        SaveBufferedDictToSerializer(sub_item, sub_path, serializer, scalar_snapshot, tensor_kinds, node_metadata, keep_alive, echo_level)
+        SaveBufferedDictToSerializer(sub_item, sub_path, serializer, scalar_snapshot, tensor_kinds, node_metadata, echo_level)
 
 class OptimizationProblemRestartOutput:
     """Writes restart checkpoints: SerializerFlags + the whole Kratos.Model + the whole
@@ -213,8 +162,7 @@ class OptimizationProblemRestartOutput:
             scalar_snapshot = {}
             tensor_kinds = {}
             node_metadata = {}
-            keep_alive = []  # see SaveBufferedDictToSerializer's own docstring
-            SaveBufferedDictToSerializer(self.optimization_problem.GetProblemDataContainer(), "", serializer, scalar_snapshot, tensor_kinds, node_metadata, keep_alive, self.echo_level)
+            SaveBufferedDictToSerializer(self.optimization_problem.GetProblemDataContainer(), "", serializer, scalar_snapshot, tensor_kinds, node_metadata, self.echo_level)
         finally:
             KratosOA.OptAppModelPartUtils.RestoreNeighbourEntitiesData()
 
