@@ -94,7 +94,8 @@ class TestMeshioPlusPlusMeshOperations(KratosUnittest.TestCase):
                          "subdivide", "agglomerate", "decimate_volume", "remesh", "remesh_volume",
                          "optimize_volume", "estimate_error", "hessian", "data_integrate",
                          "curvature", "repair", "sobolev_deform", "compute_normals",
-                         "tensor_invariants", "check_quality", "feature_edges", "edit_regions"):
+                         "tensor_invariants", "check_quality", "feature_edges", "edit_regions",
+                         "segment", "fit_primitives"):
             self.assertIn(expected, operations)
 
     def test_unknown_operation_raises(self):
@@ -868,6 +869,47 @@ class TestMeshioPlusPlusMeshOperations(KratosUnittest.TestCase):
         _, report = self._Execute(
             "feature_edges", KratosMultiphysics.Parameters('{"feature_angle" : 100.0}'), skin)
         self.assertEqual(report["feature_edges"].GetInt(), 0)
+
+    def test_segment_splits_a_cube_skin_into_its_faces(self):
+        skin = self.model.CreateModelPart("CubeSkin")
+        _CreateClosedCubeSkin(skin)
+        destination, report = self._Execute("segment", source=skin)
+        # Each face of the cube is one smooth patch, bounded by the twelve 90 degree creases
+        self.assertEqual(report["number_of_patches"].GetInt(), 6)
+        self.assertEqual(report["feature_edges"].GetInt(), 12)
+        self.assertEqual(report["merged_patches"].GetInt(), 0)
+        self.assertEqual(report["boundary_edges"].GetInt(), 0)
+        self.assertEqual(report["non_manifold_edges"].GetInt(), 0)
+        self.assertEqual(destination.NumberOfElements() + destination.NumberOfConditions(),
+                         skin.NumberOfElements() + skin.NumberOfConditions())
+        patches = [name for name in destination.GetSubModelPartNames() if name.startswith("patch")]
+        self.assertEqual(len(patches), 6)
+
+        # Above the crease angle the whole skin is one patch, named after the prefix
+        self.model.DeleteModelPart("Destination_segment")
+        settings = KratosMultiphysics.Parameters('{"feature_angle" : 100.0, "patch_prefix" : "skin"}')
+        destination, report = self._Execute("segment", settings, skin)
+        self.assertEqual(report["number_of_patches"].GetInt(), 1)
+        self.assertTrue(any(name.startswith("skin") for name in destination.GetSubModelPartNames()))
+
+    def test_fit_primitives_finds_a_plane_on_each_face_of_a_cube(self):
+        skin = self.model.CreateModelPart("CubeSkin")
+        _CreateClosedCubeSkin(skin)
+        _, report = self._Execute("fit_primitives", source=skin)
+        self.assertEqual(report["number_of_patches"].GetInt(), 6)
+        self.assertEqual(report["planes"].GetInt(), 6)
+        self.assertEqual(report["unfitted_patches"].GetInt(), 0)
+
+        # Restricted to spheres, no face of a cube is explained
+        self.model.DeleteModelPart("Destination_fit_primitives")
+        settings = KratosMultiphysics.Parameters('{"fit_types" : ["sphere"]}')
+        _, report = self._Execute("fit_primitives", settings, skin)
+        self.assertEqual(report["planes"].GetInt(), 0)
+        self.assertEqual(report["unfitted_patches"].GetInt(), 6)
+
+        self.model.DeleteModelPart("Destination_fit_primitives")
+        with self.assertRaisesRegex(RuntimeError, "Unknown primitive type"):
+            self._Execute("fit_primitives", KratosMultiphysics.Parameters('{"fit_types" : ["blob"]}'), skin)
 
     def test_hausdorff_distance_between_two_cube_skins(self):
         first = self.model.CreateModelPart("SkinA")
