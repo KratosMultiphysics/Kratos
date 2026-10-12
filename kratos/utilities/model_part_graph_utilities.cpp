@@ -61,7 +61,7 @@ std::pair<DenseVector<ModelPartGraphUtilities::IndexType>, DenseVector<ModelPart
     return data;
 }
 
-std::pair<ModelPartGraphUtilities::IndexType, Vector> ModelPartGraphUtilities::ComputeConnectedComponents(
+std::pair<ModelPartGraphUtilities::IndexType, ModelPartGraphUtilities::ColorsVectorType> ModelPartGraphUtilities::ComputeConnectedComponents(
     const ModelPart::NodesContainerType& rNodes,
     const DenseVector<ModelPartGraphUtilities::IndexType>& rRowIndices,
     const DenseVector<ModelPartGraphUtilities::IndexType>& rColIndices
@@ -90,7 +90,7 @@ std::pair<ModelPartGraphUtilities::IndexType, Vector> ModelPartGraphUtilities::C
 
     //prepare output so that is can be directly mapped to nodes by VariableUtils
     //even in the case in which nodes are not numbered consecutively
-    Vector colors(nindices);
+    ModelPartGraphUtilities::ColorsVectorType colors(nindices);
     ModelPartGraphUtilities::IndexType counter=0;
     for(const auto& r_node : rNodes)
         colors[counter++] = visited[r_node.Id()-1];
@@ -98,7 +98,7 @@ std::pair<ModelPartGraphUtilities::IndexType, Vector> ModelPartGraphUtilities::C
     return std::pair{number_of_colors, colors};
 }
 
-std::pair<ModelPartGraphUtilities::IndexType, Vector> ModelPartGraphUtilities::ComputeConnectedComponentsWithActiveNodesCheck(
+std::pair<ModelPartGraphUtilities::IndexType, ModelPartGraphUtilities::ColorsVectorType> ModelPartGraphUtilities::ComputeConnectedComponentsWithActiveNodesCheck(
     const ModelPart::NodesContainerType& rNodes,
     const DenseVector<ModelPartGraphUtilities::IndexType>& rRowIndices,
     const DenseVector<ModelPartGraphUtilities::IndexType>& rColIndices,
@@ -136,7 +136,7 @@ std::pair<ModelPartGraphUtilities::IndexType, Vector> ModelPartGraphUtilities::C
 
     //prepare output so that is can be directly mapped to nodes by VariableUtils
     //even in the case in which nodes are not numbered consecutively
-    Vector colors(nindices);
+    ModelPartGraphUtilities::ColorsVectorType colors(nindices);
     ModelPartGraphUtilities::IndexType counter=0;
     for(const auto& r_node : rNodes)
         colors[counter++] = visited[r_node.Id()-1];
@@ -147,7 +147,7 @@ std::pair<ModelPartGraphUtilities::IndexType, Vector> ModelPartGraphUtilities::C
 std::vector<ModelPartGraphUtilities::IndexType> ModelPartGraphUtilities::ApplyMinimalScalarFixity(
     ModelPart::NodesContainerType& rNodes,
     const Variable<double>& rVar,
-    const Vector& colors,
+    const ModelPartGraphUtilities::ColorsVectorType& colors,
     const ModelPartGraphUtilities::IndexType ncolors
 )
 {
