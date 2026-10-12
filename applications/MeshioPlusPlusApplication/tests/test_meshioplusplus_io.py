@@ -39,9 +39,9 @@ class TestMeshioPlusPlusIO(KratosUnittest.TestCase):
         self.assertIn("openfoam", write_formats)
         self.assertIn("gid", read_formats)
         self.assertIn("gid", write_formats)
-        for name in ("svg", "tikz"):              # write-only formats
+        for name in ("svg", "tikz"):              # readable since meshio++ v16.39.0
             self.assertIn(name, write_formats)
-            self.assertNotIn(name, read_formats)
+            self.assertIn(name, read_formats)
 
     def testFormatEnum(self):
         Format = KratosMeshioPlusPlus.MeshioPlusPlusIO.Format
@@ -547,6 +547,56 @@ End Constraints
         self.assertEqual(info["number_of_tables"].GetInt(), 1)
         self.assertEqual(info["raw_blocks"].size(), 1)
         self.assertIn("Constraints", info["raw_blocks"][0].GetString())
+        self.assertEqual(info["number_of_sub_model_part_geometry_ids"].GetInt(), 0)
+        self.assertEqual(info["number_of_sub_model_part_constraint_ids"].GetInt(), 0)
+
+    def testMdpaSubModelPartGeometryAndConstraintIds(self):
+        """The ids a sub model part lists under SubModelPartGeometries/SubModelPartConstraints
+        (meshio++ v16.29.0) are kept in the info, nested parts included."""
+        deck = """Begin Nodes
+1 0.0 0.0 0.0
+2 1.0 0.0 0.0
+3 0.0 1.0 0.0
+4 0.0 0.0 1.0
+End Nodes
+
+Begin Elements Element3D4N
+1 0 1 2 3 4
+End Elements
+
+Begin Geometries Triangle3D3
+17 1 2 3
+End Geometries
+
+Begin Constraints LinearMasterSlaveConstraint
+91 1 DISPLACEMENT_X 2 DISPLACEMENT_X 1.0 0.0
+End Constraints
+
+Begin SubModelPart Extra
+    Begin SubModelPart Inner
+        Begin SubModelPartGeometries
+17
+        End SubModelPartGeometries
+        Begin SubModelPartConstraints
+91
+        End SubModelPartConstraints
+    End SubModelPart
+End SubModelPart
+"""
+        with tempfile.TemporaryDirectory() as temp_dir:
+            path = Path(temp_dir) / "membership.mdpa"
+            path.write_text(deck)
+            model_part = self.model.CreateModelPart("membership")
+            settings = KratosMultiphysics.Parameters("""{"mdpa_keep_extra_blocks" : true}""")
+            io = KratosMeshioPlusPlus.MeshioPlusPlusIO(str(path), settings)
+            io.ReadModelPart(model_part)
+
+        self.assertEqual(model_part.NumberOfElements(), 1)
+        info = io.GetMdpaInfo()
+        self.assertTrue(info["recognised"].GetBool())
+        self.assertEqual(info["number_of_geometry_blocks"].GetInt(), 1)
+        self.assertEqual(info["number_of_sub_model_part_geometry_ids"].GetInt(), 1)
+        self.assertEqual(info["number_of_sub_model_part_constraint_ids"].GetInt(), 1)
 
     def testTimeStepOutOfRangeThrows(self):
         """Tecplot's reader always resolves "time_step", even for a non-transient file, unlike
@@ -699,8 +749,8 @@ End Constraints
         for name in ("pvtu", "pvtp", "pvd", "pcd", "xyz", "lsdyna", "code_aster", "mphbin"):
             self.assertIn(name, read_formats)
             self.assertIn(name, write_formats)
-        self.assertIn("frd", read_formats)          # read-only result files
-        self.assertNotIn("frd", write_formats)
+        self.assertIn("frd", read_formats)          # written since meshio++ v16.39.0
+        self.assertIn("frd", write_formats)
         self.assertIn("gltf", write_formats)        # write-only
         self.assertNotIn("gltf", read_formats)
         for path, format_value in (("mesh.k", Format.LSDYNA), ("mesh.mail", Format.CODE_ASTER),
@@ -767,9 +817,12 @@ End Constraints
             self.assertIn(name, read_formats)
             self.assertIn(name, write_formats)
         for name in ("abaqus_fil", "ansys_rst", "lsdyna_d3plot", "lsdyna_binout", "marc_t19",
-                     "nastran_op2", "radioss_th", "xplt"):   # results files: read only
+                     "nastran_op2", "xplt"):   # results files: read only
             self.assertIn(name, read_formats)
             self.assertNotIn(name, write_formats)
+        # the Radioss time-history file is written since meshio++ v16.39.0
+        self.assertIn("radioss_th", read_formats)
+        self.assertIn("radioss_th", write_formats)
         for path, format_value in (("model.feb", Format.FEBIO), ("model.neu", Format.FEMAP),
                                    ("model.xdr", Format.LIBMESH), ("model.op2", Format.NASTRAN_OP2),
                                    ("model.cdb", Format.ANSYSINP), ("d3plot", Format.LSDYNA_D3PLOT),
