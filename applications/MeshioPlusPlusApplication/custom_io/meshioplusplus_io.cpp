@@ -134,6 +134,7 @@ using Internals::DataArray;
     X(RADIOSS, "radioss")                   \
     X(RADIOSS_ANIM, "radioss_anim")         \
     X(RADIOSS_TH, "radioss_th")             \
+    X(STEP, "step")                         \
     X(STL, "stl")                           \
     X(SU2, "su2")                           \
     X(SVG, "svg")                           \
@@ -1079,6 +1080,14 @@ Parameters MeshioPlusPlusIO::GetMdpaInfo() const
     result.AddInt("number_of_geometry_blocks", static_cast<int>(mMdpaInfo.mGeometries.size()));
     result.AddInt("number_of_mesh_blocks", static_cast<int>(mMdpaInfo.mMeshBlocks.size()));
     result.AddInt("number_of_sub_model_parts_with_data", static_cast<int>(mMdpaInfo.mSubModelParts.size()));
+    int number_of_geometry_ids = 0;
+    int number_of_constraint_ids = 0;
+    for (const auto& r_sub_model_part : mMdpaInfo.mSubModelParts) {
+        number_of_geometry_ids += static_cast<int>(r_sub_model_part.mGeometryIds.size());
+        number_of_constraint_ids += static_cast<int>(r_sub_model_part.mConstraintIds.size());
+    }
+    result.AddInt("number_of_sub_model_part_geometry_ids", number_of_geometry_ids);
+    result.AddInt("number_of_sub_model_part_constraint_ids", number_of_constraint_ids);
     std::vector<std::string> data_keys;
     for (const auto& r_value : mMdpaInfo.mModelPartData) {
         data_keys.push_back(r_value.mKey);

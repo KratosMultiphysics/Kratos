@@ -104,10 +104,12 @@ public:
      * NASTRAN_H5 and the HDF data path of XDMF; netCDF: EXODUS; ADIOS2: VTX;
      * TecIO: SZPLT) are only available when the build enables them - check with
      * @ref IsFormatAvailable. OPENFOAM is readable and writable (the polyMesh
-     * writer since meshio++ v9.20.0); SVG, TIKZ, GMSH22 and GLTF are write only.
-     * The solver results files are read only - FRD, NASTRAN_H5, ABAQUS_FIL,
+     * writer since meshio++ v9.20.0); GMSH22, GLTF and STEP are write only (SVG and TIKZ
+     * are read back since meshio++ v16.39.0).
+     * Most solver results files are read only - NASTRAN_H5, ABAQUS_FIL,
      * ANSYS_RST(_CYCLIC), LSDYNA_BINOUT/D3PLOT, MARC_T19, NASTRAN_OP2,
-     * RADIOSS_ANIM/TH, SZPLT, VTX and XPLT, each step selectable with "time_step".
+     * RADIOSS_ANIM, SZPLT, VTX and XPLT (FRD and RADIOSS_TH are also written since
+     * v16.39.0), each step selectable with "time_step".
      * The MARC and RADIOSS input decks are read and written (since meshio++ v16.17.0).
      *
      * Resolution for a read is by extension, except where meshio++ looks further: an
@@ -155,7 +157,7 @@ public:
         FEMAP,            /// Femap neutral .neu (output sets are time steps; transient output writes one file, one output set per step)
         FLAC3D,           /// FLAC3D .f3grid
         FLUX,             /// Flux .pf3
-        FRD,              /// CalculiX results .frd (read only; every increment is a time step)
+        FRD,              /// CalculiX results .frd (every increment is a time step; written since meshio++ v16.39.0)
         FREEFEM,          /// FreeFEM .msh
         GID,              /// GiD postprocess .post.msh+.post.res/.post.bin/.post.h5 (writing needs a zlib-enabled build)
         GLTF,             /// glTF 2.0 .glb/.gltf (write only; the surface of the mesh, see "gltf_settings")
@@ -194,14 +196,15 @@ public:
         PVTU,             /// ParaView partitioned UnstructuredGrid .pvtu (one piece per "partition:part")
         RADIOSS,          /// Radioss/OpenRadioss starter deck .rad (see "radioss_stubs")
         RADIOSS_ANIM,     /// Radioss animation file <run>A001 (read only; one state per file)
-        RADIOSS_TH,       /// Radioss time history <run>T01 (read only; results as field data)
+        RADIOSS_TH,       /// Radioss time history <run>T01 (results as field data; written since meshio++ v16.39.0)
+        STEP,             /// STEP AP214 .step/.stp (write only; a closed surface, or a volume's skin, as a faceted solid)
         STL,              /// Stereolithography .stl
         SU2,              /// SU2 .su2
-        SVG,              /// Scalable Vector Graphics .svg (write only)
+        SVG,              /// Scalable Vector Graphics .svg (read back as a planar drawing since meshio++ v16.39.0)
         SZPLT,            /// Tecplot SZL .szplt (read only, requires TecIO)
         TECPLOT,          /// Tecplot .dat
         TETGEN,           /// TetGen .node/.ele
-        TIKZ,             /// LaTeX TikZ/PGF .tikz (write only)
+        TIKZ,             /// LaTeX TikZ/PGF .tikz (read back as a planar drawing since meshio++ v16.39.0)
         TRIANGLE,         /// Shewchuk Triangle .node/.ele/.poly (.node/.ele resolve to TETGEN by extension - select via the "format" setting)
         UGRID,            /// AFLR3 .ugrid
         UNV,              /// I-deas universal .unv/.uff
@@ -263,7 +266,7 @@ public:
     /**
      * @brief The names of every format this build can write.
      * @details Read-only formats (the solver results files - "frd", "nastran_h5",
-     * "abaqus_fil", "nastran_op2", ...) are not listed; the write-only ones ("svg", "tikz", "gmsh22", "gltf") are conversely absent from
+     * "abaqus_fil", "nastran_op2", ...) are not listed; the write-only ones ("gmsh22", "gltf", "step") are conversely absent from
      * @ref GetSupportedReadFormats.
      */
     static std::vector<std::string> GetSupportedWriteFormats();
@@ -439,9 +442,12 @@ public:
      * (`Constraints`, ...) kept verbatim. None of it reaches the model part - it is reported here
      * so that its loss is visible rather than silent. Only filled when the read used
      * `"mdpa_keep_extra_blocks" : true` (by default such a deck is refused by name); "recognised"
-     * is false until then.
+     * is false until then. Since v16.29.0 the `SubModelPartGeometries`/`SubModelPartConstraints`
+     * membership lists are kept too, counted here as ids over every sub model part.
      * @return `{"recognised", "number_of_tables", "number_of_geometry_blocks",
-     * "number_of_mesh_blocks", "number_of_sub_model_parts_with_data", "model_part_data" : [keys],
+     * "number_of_mesh_blocks", "number_of_sub_model_parts_with_data",
+     * "number_of_sub_model_part_geometry_ids", "number_of_sub_model_part_constraint_ids",
+     * "model_part_data" : [keys],
      * "raw_blocks" : [headers], "skipped_constructs" : [...]}`.
      */
     Parameters GetMdpaInfo() const;
