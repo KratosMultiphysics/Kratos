@@ -18,7 +18,7 @@ include(pybind11Tools)
 #
 # Upgrading from a meshio++ older than v16.16.0 requires rebuilding this application once: the
 # C++ variants' SOVERSION is the ABI version, so the library this application needs is
-# libmeshioplusplus_core_kratos.so.20 rather than an earlier .so.N.
+# libmeshioplusplus_core_kratos.so.25 rather than an earlier .so.N.
 #
 # then point this configure at it with -Dmeshioplusplus_DIR=<prefix>/lib/cmake/meshioplusplus
 #
@@ -73,6 +73,17 @@ include(pybind11Tools)
 # raw blocks such as Constraints - and makes named Side regions survive the operations that split,
 # merge or retype cells. v16.28.0 is reader hardening only and holds ABI 20.
 #
+# ABI 20 -> 25 is again a rebuild, and only one step of it reaches this application. 21 (v16.29.0)
+# grows MdpaSubModelPart (80 -> 128 bytes) with mGeometryIds and mConstraintIds, the
+# SubModelPartGeometries/SubModelPartConstraints membership lists; MdpaInfo stays 216 bytes, but
+# its vector elements changed layout, and GetMdpaInfo() reads them. 22 (v16.29.0) grows GmshInfo
+# (24 -> 48 bytes) with mPeriodic, a side channel this application does not name (periodic nodes
+# go through match_periodic_nodes). 23 (v16.32.0) changes DistanceQuery, a detail:: type. 24
+# (v16.34.0) and 25 (v16.36.0, which v16.37.0 and v16.38.0 grow again before any release carried
+# it) grow RenderOptions for the terminal rasterizer, which has no meaning for a ModelPart. The
+# rest of v16.29.0-v16.39.0 is additive: the frd, radioss_th and step writers, the svg and tikz
+# readers, and the segment and fit_primitives operations (v16.39.0) this application exposes.
+#
 # A single ABI rather than a window, deliberately. Supporting several meant a
 # MESHIOPLUSPLUS_VERSION_AT_LEAST guard per feature, and the operations this application now
 # exposes (remesh v10.10.0, optimize_volume v10.14.0, estimate_error v10.2.0, the gid format
@@ -95,21 +106,21 @@ include(pybind11Tools)
 # a link error rather than memory corruption. See meshio++'s doc/abi.md for the criterion.
 find_package(meshioplusplus CONFIG REQUIRED COMPONENTS CXX)
 
-if(NOT MESHIOPLUSPLUS_ABI_VERSION EQUAL 20)
+if(NOT MESHIOPLUSPLUS_ABI_VERSION EQUAL 25)
     message(FATAL_ERROR
-        "MeshioPlusPlusApplication needs meshio++ ABI 20, but the install at "
+        "MeshioPlusPlusApplication needs meshio++ ABI 25, but the install at "
         "'${meshioplusplus_DIR}' reports ABI ${MESHIOPLUSPLUS_ABI_VERSION} "
-        "(release ${meshioplusplus_VERSION}). ABI 20 is meshio++ v16.27.0 onwards, "
-        "which includes v16.28.0.")
+        "(release ${meshioplusplus_VERSION}). ABI 25 is meshio++ v16.36.0 onwards, "
+        "which includes v16.39.0.")
 endif()
 
-if(meshioplusplus_VERSION VERSION_LESS 16.27.0)
+if(meshioplusplus_VERSION VERSION_LESS 16.39.0)
     message(FATAL_ERROR
-        "MeshioPlusPlusApplication needs meshio++ v16.27.0 or newer (for MdpaInfo's full-deck "
-        "round trip, Side regions surviving operations, check_quality, feature_edges, "
-        "hausdorff_distance, edit_regions, match_periodic_nodes, blend_steps and the agglomerate "
-        "coplanar/sphericity options), but the install at '${meshioplusplus_DIR}' is release "
-        "${meshioplusplus_VERSION}.")
+        "MeshioPlusPlusApplication needs meshio++ v16.39.0 or newer (for the segment and "
+        "fit_primitives operations, MdpaInfo's sub model part geometry and constraint ids, "
+        "check_quality, feature_edges, hausdorff_distance, edit_regions, match_periodic_nodes, "
+        "blend_steps and the agglomerate coplanar/sphericity options), but the install at "
+        "'${meshioplusplus_DIR}' is release ${meshioplusplus_VERSION}.")
 endif()
 
 if(NOT TARGET meshioplusplus::core_kratos)
