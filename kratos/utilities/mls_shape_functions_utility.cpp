@@ -171,8 +171,7 @@ namespace
         array_1d<double,3> rad_vect;
         for (std::size_t i_pt = 0; i_pt < n_points; ++i_pt) {
             // Set current point data
-            array_1d<double,3> r_i_pt_coords;
-            for (std::size_t i_dim = 0; i_dim < 3; ++i_dim) r_i_pt_coords[i_dim] = rPoints(i_pt, i_dim);
+            const array_1d<double,3>& r_i_pt_coords = row(rPoints, i_pt);
             noalias(rad_vect) = rX - r_i_pt_coords;
 
             // Calculate kernel values
@@ -245,8 +244,7 @@ namespace
         BoundedMatrix<double,2,3> Dp_Dx;
         for (std::size_t i_pt = 0; i_pt < n_points; ++i_pt) {
             // Set current point data
-            array_1d<double,3> r_i_pt_coords;
-            for (std::size_t i_dim = 0; i_dim < 3; ++i_dim) r_i_pt_coords[i_dim] = rPoints(i_pt, i_dim);
+            const array_1d<double,3>& r_i_pt_coords = row(rPoints, i_pt);
             noalias(rad_vect) = rX - r_i_pt_coords;
 
             // Calculate kernel values
@@ -352,8 +350,7 @@ namespace
         BoundedMatrix<double,2,6> Dp_Dx;
         for (std::size_t i_pt = 0; i_pt < n_points; ++i_pt) {
             // Set current point data
-            array_1d<double,3> r_i_pt_coords;
-            for (std::size_t i_dim = 0; i_dim < 3; ++i_dim) r_i_pt_coords[i_dim] = rPoints(i_pt, i_dim);
+            const array_1d<double,3>& r_i_pt_coords = row(rPoints, i_pt);
             noalias(rad_vect) = rX - r_i_pt_coords;
 
             // Calculate kernel values
@@ -461,8 +458,7 @@ namespace
         BoundedMatrix<double,3,4> Dp_Dx;
         for (std::size_t i_pt = 0; i_pt < n_points; ++i_pt) {
             // Set current point data
-            array_1d<double,3> r_i_pt_coords;
-            for (std::size_t i_dim = 0; i_dim < 3; ++i_dim) r_i_pt_coords[i_dim] = rPoints(i_pt, i_dim);
+            const array_1d<double,3>& r_i_pt_coords = row(rPoints, i_pt);
             noalias(rad_vect) = rX - r_i_pt_coords;
 
             // Calculate kernel values
@@ -584,8 +580,7 @@ namespace
         BoundedMatrix<double,3,10> Dp_Dx;
         for (std::size_t i_pt = 0; i_pt < n_points; ++i_pt) {
             // Set current point data
-            array_1d<double,3> r_i_pt_coords;
-            for (std::size_t i_dim = 0; i_dim < 3; ++i_dim) r_i_pt_coords[i_dim] = rPoints(i_pt, i_dim);
+            const array_1d<double,3>& r_i_pt_coords = row(rPoints, i_pt);
             noalias(rad_vect) = rX - r_i_pt_coords;
 
             // Calculate kernel values
