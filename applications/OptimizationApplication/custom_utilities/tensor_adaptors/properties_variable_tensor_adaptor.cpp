@@ -213,6 +213,18 @@ std::string PropertiesVariableTensorAdaptor::Info() const
     return info.str();
 }
 
+void PropertiesVariableTensorAdaptor::save(Serializer& rSerializer) const
+{
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, BaseType);
+    TensorAdaptorUtils::SaveVariablePointer(rSerializer, "Variable", mpVariable);
+}
+
+void PropertiesVariableTensorAdaptor::load(Serializer& rSerializer)
+{
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, BaseType);
+    TensorAdaptorUtils::LoadVariablePointer(rSerializer, "Variable", mpVariable);
+}
+
 template KRATOS_API(OPTIMIZATION_APPLICATION) PropertiesVariableTensorAdaptor::PropertiesVariableTensorAdaptor(ModelPart::ConditionsContainerType::Pointer, VariablePointerType);
 template KRATOS_API(OPTIMIZATION_APPLICATION) PropertiesVariableTensorAdaptor::PropertiesVariableTensorAdaptor(ModelPart::ConditionsContainerType::Pointer, VariablePointerType, const std::vector<unsigned int>&);
 template KRATOS_API(OPTIMIZATION_APPLICATION) PropertiesVariableTensorAdaptor::PropertiesVariableTensorAdaptor(ModelPart::ElementsContainerType::Pointer, VariablePointerType);

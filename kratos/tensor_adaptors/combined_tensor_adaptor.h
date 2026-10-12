@@ -143,9 +143,7 @@ public:
 
     /**
      * @brief Construct an empty, invalid instance.
-     * @details Only intended for @ref Serializer::load to construct into before populating via
-     *          @ref load (which overwrites the const members below via the same const-cast idiom
-     *          Serializer's own KRATOS_SERIALIZATION_DIRECT_LOAD macro uses).
+     * @details Only intended for @ref Serializer::load to construct into before populating via @ref load.
      */
     CombinedTensorAdaptor();
 
@@ -263,11 +261,11 @@ private:
     ///@name Private member variables
     ///@{
 
-    const bool mPerformCollectDataRecursively;
+    bool mPerformCollectDataRecursively;
 
-    const bool mPerformStoreDataRecursively;
+    bool mPerformStoreDataRecursively;
 
-    const int mAxis;
+    int mAxis;
 
     TensorAdaptorVectorType mTensorAdaptors;
 

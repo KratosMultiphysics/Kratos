@@ -43,9 +43,6 @@ CombinedTensorAdaptor<TDataType>::CombinedTensorAdaptor()
       mPerformStoreDataRecursively(true),
       mAxis(-1)
 {
-    // placeholder-initialized; only meant to be populated via Serializer::load, which overwrites
-    // these const members through the same const-cast idiom the primitive-type
-    // KRATOS_SERIALIZATION_DIRECT_LOAD macro uses internally.
 }
 
 template<class TDataType>
@@ -385,6 +382,12 @@ void CombinedTensorAdaptor<TDataType>::load(Serializer& rSerializer)
 
     std::size_t size;
     rSerializer.load("Size", size);
+    // load(shared_ptr&) creates the saved type only for a null target, otherwise it loads through the
+    // existing child's type, so clear stale children first. DataOnly mode is the opposite: it reads
+    // nothing into a null target and relies on prebuilt children, so keep them.
+    if (!rSerializer.IsDataOnly()) {
+        mTensorAdaptors.clear();
+    }
     mTensorAdaptors.resize(size);
     for (std::size_t i = 0; i < size; ++i) {
         rSerializer.load("TA", mTensorAdaptors[i]);
