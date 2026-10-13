@@ -258,6 +258,55 @@ class TestSerializer(KratosUnittest.TestCase):
         self.assertEqual([node.GetValue(KratosMultiphysics.PRESSURE) for node in loaded_model_part.Nodes], [7.0, 8.0, 9.0])
         self.assertEqual([node.GetValue(KratosMultiphysics.PRESSURE) for node in model_part.Nodes], [1.0, 2.0, 3.0])
 
+    def test_NestedCombinedTensorAdaptorSerialization(self):
+        model = KratosMultiphysics.Model()
+        model_part = model.CreateModelPart("Test")
+        model_part.AddNodalSolutionStepVariable(KratosMultiphysics.TEMPERATURE)
+        for i in range(3):
+            node = model_part.CreateNewNode(i + 1, float(i), 0.0, 0.0)
+            node.SetValue(KratosMultiphysics.PRESSURE, i + 1.0)
+            node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE, 10.0 * (i + 1))
+
+        # 3 levels: [[[nodal PRESSURE, historical TEMPERATURE], node position], historical TEMPERATURE],
+        # every level collects and stores recursively.
+        ta = KratosMultiphysics.TensorAdaptors
+        def CreateNested(model_part):
+            level_3 = ta.DoubleCombinedTensorAdaptor([ta.VariableTensorAdaptor(model_part.Nodes, KratosMultiphysics.PRESSURE), ta.HistoricalVariableTensorAdaptor(model_part.Nodes, KratosMultiphysics.TEMPERATURE)], True, True, False)
+            level_2 = ta.DoubleCombinedTensorAdaptor([level_3, ta.NodePositionTensorAdaptor(model_part.Nodes, KratosMultiphysics.Configuration.Current)], True, True, False)
+            return ta.DoubleCombinedTensorAdaptor([level_2, ta.HistoricalVariableTensorAdaptor(model_part.Nodes, KratosMultiphysics.TEMPERATURE)], True, True, False)
+
+        combined = CreateNested(model_part)
+        combined.CollectData()
+        original_data = numpy.array(combined.data)
+
+        serializer = KratosMultiphysics.StreamSerializer()
+        serializer.Set(KratosMultiphysics.Serializer.SHALLOW_GLOBAL_POINTERS_SERIALIZATION)
+        serializer.Save("Model", model)
+        serializer.Save("Combined", combined)
+
+        loaded_model = KratosMultiphysics.Model()
+        loaded = ta.DoubleCombinedTensorAdaptor()
+        serializer.Load("Model", loaded_model)
+        serializer.Load("Combined", loaded)
+
+        self.assertVectorAlmostEqual(loaded.data, original_data)
+        level_1 = loaded.GetTensorAdaptors()
+        self.assertEqual([type(child) for child in level_1], [ta.DoubleCombinedTensorAdaptor, ta.HistoricalVariableTensorAdaptor])
+        level_2 = level_1[0].GetTensorAdaptors()
+        self.assertEqual([type(child) for child in level_2], [ta.DoubleCombinedTensorAdaptor, ta.NodePositionTensorAdaptor])
+        level_3 = level_2[0].GetTensorAdaptors()
+        self.assertEqual([type(child) for child in level_3], [ta.VariableTensorAdaptor, ta.HistoricalVariableTensorAdaptor])
+
+        # the recursive StoreData() reaches the loaded model through all levels, not the original model
+        loaded.data[:] = -original_data
+        loaded.StoreData()
+        check = CreateNested(loaded_model.GetModelPart("Test"))
+        check.CollectData()
+        self.assertVectorAlmostEqual(check.data, -original_data)
+        check = CreateNested(model_part)
+        check.CollectData()
+        self.assertVectorAlmostEqual(check.data, original_data)
+
     def test_TensorAdaptorLoadKeepsNumpyViews(self):
         # A same-size load overwrites the existing buffer in place, so numpy arrays sharing it stay
         # valid and see the loaded values, and a buffer owned by numpy is written back into.

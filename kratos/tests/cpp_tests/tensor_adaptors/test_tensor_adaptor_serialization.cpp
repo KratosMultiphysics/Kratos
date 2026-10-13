@@ -7,7 +7,7 @@
 //  License:         BSD License
 //                   Kratos default license: kratos/license.txt
 //
-//  Main authors:    Claude Sonnet 5
+//  Main authors:    Ihar Antonau
 //
 
 // System includes
@@ -69,6 +69,46 @@ void SaveAndLoadNDData(
         serializer.SetLoadState();
         serializer.load("Data", rTarget);
     }
+}
+
+// Root: [level 2, historical TEMPERATURE (step 1)], level 2: [level 3, node position, element PRESSURE],
+// level 3: [nodal PRESSURE, historical TEMPERATURE (step 0)]. Every level collects and stores recursively.
+CombinedTensorAdaptor<double>::Pointer CreateNestedCombinedTensorAdaptor(ModelPart& rModelPart)
+{
+    using combined_type = CombinedTensorAdaptor<double>;
+    using vector_type = combined_type::TensorAdaptorVectorType;
+
+    auto p_level_3 = Kratos::make_shared<combined_type>(vector_type{
+        Kratos::make_shared<VariableTensorAdaptor>(rModelPart.pNodes(), &PRESSURE),
+        Kratos::make_shared<HistoricalVariableTensorAdaptor>(rModelPart.pNodes(), &TEMPERATURE, 0)}, true, true, false);
+    auto p_level_2 = Kratos::make_shared<combined_type>(vector_type{
+        p_level_3,
+        Kratos::make_shared<NodePositionTensorAdaptor>(rModelPart.pNodes(), Globals::Configuration::Current),
+        Kratos::make_shared<VariableTensorAdaptor>(rModelPart.pElements(), &PRESSURE)}, true, true, false);
+    return Kratos::make_shared<combined_type>(vector_type{
+        p_level_2,
+        Kratos::make_shared<HistoricalVariableTensorAdaptor>(rModelPart.pNodes(), &TEMPERATURE, 1)}, true, true, false);
+}
+
+void CheckNestedCombinedTensorAdaptorStructure(const CombinedTensorAdaptor<double>& rRoot)
+{
+    const auto level_1 = rRoot.GetTensorAdaptors();
+    ASSERT_EQ(level_1.size(), 2u);
+    const auto p_level_2 = std::dynamic_pointer_cast<CombinedTensorAdaptor<double>>(level_1[0]);
+    ASSERT_NE(p_level_2, nullptr);
+    KRATOS_EXPECT_NE(std::dynamic_pointer_cast<HistoricalVariableTensorAdaptor>(level_1[1]), nullptr);
+
+    const auto level_2 = p_level_2->GetTensorAdaptors();
+    ASSERT_EQ(level_2.size(), 3u);
+    const auto p_level_3 = std::dynamic_pointer_cast<CombinedTensorAdaptor<double>>(level_2[0]);
+    ASSERT_NE(p_level_3, nullptr);
+    KRATOS_EXPECT_NE(std::dynamic_pointer_cast<NodePositionTensorAdaptor>(level_2[1]), nullptr);
+    KRATOS_EXPECT_NE(std::dynamic_pointer_cast<VariableTensorAdaptor>(level_2[2]), nullptr);
+
+    const auto level_3 = p_level_3->GetTensorAdaptors();
+    ASSERT_EQ(level_3.size(), 2u);
+    KRATOS_EXPECT_NE(std::dynamic_pointer_cast<VariableTensorAdaptor>(level_3[0]), nullptr);
+    KRATOS_EXPECT_NE(std::dynamic_pointer_cast<HistoricalVariableTensorAdaptor>(level_3[1]), nullptr);
 }
 
 } // namespace
@@ -353,6 +393,103 @@ KRATOS_TEST_CASE_IN_SUITE(CombinedTensorAdaptorWithDerivedChildrenSerialization,
 
     ModelPart& r_load_model_part = load_model.GetModelPart("Test");
     KRATOS_EXPECT_EQ(std::get<ModelPart::NodesContainerType::Pointer>(loaded_children[0]->GetContainer()).get(), r_load_model_part.pNodes().get());
+}
+
+KRATOS_TEST_CASE_IN_SUITE(NestedCombinedTensorAdaptorSerialization, KratosCoreFastSuite)
+{
+    Model save_model;
+    auto& r_save_model_part = CreateTestModelPart(save_model, "Test");
+    for (auto& r_node : r_save_model_part.Nodes()) {
+        r_node.SetValue(PRESSURE, r_node.Id() * 1.0);
+        r_node.FastGetSolutionStepValue(TEMPERATURE, 0) = r_node.Id() * 10.0;
+        r_node.FastGetSolutionStepValue(TEMPERATURE, 1) = r_node.Id() * 100.0;
+    }
+    r_save_model_part.GetElement(1).SetValue(PRESSURE, 5.0);
+
+    const auto p_original = CreateNestedCombinedTensorAdaptor(r_save_model_part);
+    p_original->CollectData();
+    KRATOS_EXPECT_EQ(p_original->Size(), 3u + 3u + 9u + 1u + 3u);
+
+    StreamSerializer serializer;
+    serializer.Set(Serializer::SHALLOW_GLOBAL_POINTERS_SERIALIZATION);
+    serializer.save("Model", save_model);
+    serializer.save("TA", *p_original);
+
+    Model load_model;
+    CombinedTensorAdaptor<double> loaded;
+    serializer.load("Model", load_model);
+    serializer.load("TA", loaded);
+
+    CheckNestedCombinedTensorAdaptorStructure(loaded);
+    // Info() lists the recursive flags of each level and the variables, step indices and containers of the leaves.
+    KRATOS_EXPECT_EQ(loaded.Info(), p_original->Info());
+    KRATOS_EXPECT_EQ(loaded.Size(), p_original->Size());
+    for (IndexType i = 0; i < p_original->Size(); ++i) {
+        KRATOS_EXPECT_DOUBLE_EQ(loaded.ViewData()[i], p_original->ViewData()[i]);
+    }
+
+    // the recursive StoreData() must reach the loaded model through all levels: an identical structure
+    // built on the loaded model collects the stored values, and the original model is untouched.
+    for (IndexType i = 0; i < loaded.Size(); ++i) {
+        loaded.ViewData()[i] = -1.0 - i;
+    }
+    loaded.StoreData();
+
+    const auto p_check = CreateNestedCombinedTensorAdaptor(load_model.GetModelPart("Test"));
+    p_check->CollectData();
+    for (IndexType i = 0; i < loaded.Size(); ++i) {
+        KRATOS_EXPECT_DOUBLE_EQ(p_check->ViewData()[i], -1.0 - i);
+    }
+
+    const auto p_original_check = CreateNestedCombinedTensorAdaptor(r_save_model_part);
+    p_original_check->CollectData();
+    for (IndexType i = 0; i < p_original->Size(); ++i) {
+        KRATOS_EXPECT_DOUBLE_EQ(p_original_check->ViewData()[i], p_original->ViewData()[i]);
+    }
+}
+
+// DataOnly mode loads into a prebuilt identical structure, which must keep its own children and containers.
+KRATOS_TEST_CASE_IN_SUITE(NestedCombinedTensorAdaptorDataOnlySerialization, KratosCoreFastSuite)
+{
+    Model model;
+    auto& r_save_model_part = CreateTestModelPart(model, "Save");
+    auto& r_load_model_part = CreateTestModelPart(model, "Load");
+    for (auto& r_node : r_save_model_part.Nodes()) {
+        r_node.SetValue(PRESSURE, r_node.Id() * 1.0);
+        r_node.FastGetSolutionStepValue(TEMPERATURE, 0) = r_node.Id() * 10.0;
+        r_node.FastGetSolutionStepValue(TEMPERATURE, 1) = r_node.Id() * 100.0;
+    }
+    r_save_model_part.GetElement(1).SetValue(PRESSURE, 5.0);
+    // DataOnly also loads the saved containers' entities, which needs the same non-historical variables.
+    for (auto& r_node : r_load_model_part.Nodes()) {
+        r_node.SetValue(PRESSURE, 0.0);
+    }
+    r_load_model_part.GetElement(1).SetValue(PRESSURE, 0.0);
+
+    const auto p_original = CreateNestedCombinedTensorAdaptor(r_save_model_part);
+    p_original->CollectData();
+
+    const auto p_loaded = CreateNestedCombinedTensorAdaptor(r_load_model_part);
+    const auto loaded_children = p_loaded->GetTensorAdaptors();
+
+    const std::string file_name = "test_nested_combined_tensor_adaptor_data_only_load";
+    struct RemoveFileOnExit { std::string mName; ~RemoveFileOnExit() { std::remove(mName.c_str()); } } remove_file{file_name + ".rest"};
+    std::fstream(file_name + ".rest", std::ios::out).close();
+    {
+        FileSerializer serializer(file_name, Serializer::SERIALIZER_NO_TRACE, /*DataOnly=*/true);
+        serializer.save("TA", *p_original);
+        serializer.SetLoadState();
+        serializer.load("TA", *p_loaded);
+    }
+
+    CheckNestedCombinedTensorAdaptorStructure(*p_loaded);
+    KRATOS_EXPECT_EQ(p_loaded->GetTensorAdaptors()[0].get(), loaded_children[0].get());
+    KRATOS_EXPECT_EQ(p_loaded->GetTensorAdaptors()[1].get(), loaded_children[1].get());
+    KRATOS_EXPECT_EQ(std::get<ModelPart::NodesContainerType::Pointer>(p_loaded->GetTensorAdaptors()[1]->GetContainer()).get(), r_load_model_part.pNodes().get());
+    KRATOS_EXPECT_EQ(p_loaded->Size(), p_original->Size());
+    for (IndexType i = 0; i < p_original->Size(); ++i) {
+        KRATOS_EXPECT_DOUBLE_EQ(p_loaded->ViewData()[i], p_original->ViewData()[i]);
+    }
 }
 
 // DataOnly mode reads a shared_ptr's data only into a non-null (prebuilt) target. load() used to use
