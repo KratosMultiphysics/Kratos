@@ -1112,7 +1112,7 @@ public:
     {
         KRATOS_TRY
 
-        for(IndexType i = 0; i < rInputVector.size(); ++i) {
+        for(IndexType i = 0; i < static_cast<IndexType>(rInputVector.size()); ++i) {
             rDestination[InitialIndex+i] += rInputVector[i];
         }
         KRATOS_CATCH("")
