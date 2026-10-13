@@ -226,12 +226,12 @@ class TestRBE3(KratosUnittest.TestCase):
         submodel = mp.CreateSubModelPart(name)
         submodel.AddNodes(node_Ids)
         entry=KM.Parameters("{}")
-        entry.AddString("sub_model_part", name)
+        entry.AddString("source_sub_model_part_name", name)
         entry.AddDouble("weight", weight)
         dofs_arr = KM.Parameters("[]")
         for d in dofs:
             dofs_arr.Append(KM.Parameters(f'"{d}"'))
-        entry.AddValue("dofs", dofs_arr)
+        entry.AddValue("source_dofs", dofs_arr)
         return entry
  
 
@@ -292,7 +292,8 @@ class TestRBE3(KratosUnittest.TestCase):
         self._create_elements(mp,element_name)
 
         group = [
-            self._create_group(mp, "RBE3_connected", [65,67,69,72,74,76], dofs=["DISPLACEMENT_X", "DISPLACEMENT_Y", "DISPLACEMENT_Z"])
+            self._create_group(mp, "RBE3_connected", [65,67,69,72,74,76], dofs=["DISPLACEMENT_X", "DISPLACEMENT_Y", "DISPLACEMENT_Z"]),
+            #self._create_group(mp, "RBE3_connected2", [65,67,69,72,74,76], dofs=["ROTATION_X", "ROTATION_Y", "ROTATION_Z"])
         ]
 
         reference = mp.CreateSubModelPart("RBE3_reference")
@@ -305,16 +306,16 @@ class TestRBE3(KratosUnittest.TestCase):
 
         rbe3_settings = KM.Parameters(r"""
         {
-            "model_part_name"           :   "Structure",
-            "reference_sub_model_part"  :   "Structure.RBE3_reference",
-            "constraint_id_start"       :   1,
-            "constrained_dofs_ref"      :   ["DISPLACEMENT_X", "DISPLACEMENT_Y", "DISPLACEMENT_Z", 
+            "main_model_part_name"           :   "Structure",
+            "target_sub_model_part_name"  :   "Structure.RBE3_reference",
+            "constraint_id" : 3,
+            "constrained_dofs_target"     :   ["DISPLACEMENT_X", "DISPLACEMENT_Y", "DISPLACEMENT_Z", 
                                             "ROTATION_X", "ROTATION_Y", "ROTATION_Z"],
-            "connected_groups"          :   []                               
+            "source_groups"               :   []                               
         }""")
 
         for g in group:
-            rbe3_settings["connected_groups"].Append(g)
+            rbe3_settings["source_groups"].Append(g)
 
         rbe3_process = ApplyRbe3Process(
             current_model,
@@ -360,7 +361,7 @@ class TestRBE3(KratosUnittest.TestCase):
             ]
     )
     def test_RBE3_panel_fy(self):
-        self._test_RBE3_panel(
+        self._test_RBE3_panel( 
             applied_load=[0.0, 1000.0, 0.0],
             applied_moment=[0.0, 0.0, 0.0],
             displacement_results=[
