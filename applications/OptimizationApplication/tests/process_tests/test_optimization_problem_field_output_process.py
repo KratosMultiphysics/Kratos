@@ -122,6 +122,8 @@ class TestOptimizationProblemFieldOutputProcess(kratos_unittest.TestCase):
         self.components_list.append(TestOptimizationProblemFieldOutputProcess.DummyExecutionPolicy("policy_2", self.model_part2))
         self.components_list.append(TestOptimizationProblemFieldOutputProcess.DummyExecutionPolicy("policy_3", self.model_part1))
 
+        ComponentDataView("algorithm", self.optimization_problem).GetUnBufferedData().SetValue("controls", ",".join([f"control_{i+1}" for i in range(2)]))
+
         for component in self.components_list:
             self.optimization_problem.AddComponent(component)
             ComponentDataView(component, self.optimization_problem).SetDataBuffer(2)
@@ -337,8 +339,8 @@ class TestOptimizationProblemFieldOutputProcess(kratos_unittest.TestCase):
                                     k_text = "True"
                                 else:
                                     k_text = "False"
-                                self.assertTrue(h5_file.IsDataSet(f"/Optimization_Results/{i}/Elements/control_{j + 1}_combined_element_{k_text}"))
-                                self.assertTrue(h5_file.IsDataSet(f"/Optimization_Results/{i}/Nodal/control_{j + 1}_combined_element_{k_text}"))
+                                self.assertTrue(h5_file.IsDataSet(f"/Optimization_Results/{i}/Elements/control_2_control_{j + 1}_combined_element_{k_text}"))
+                                self.assertTrue(h5_file.IsDataSet(f"/Optimization_Results/{i}/Nodal/control_1_control_{j + 1}_combined_element_{k_text}"))
 
     @classmethod
     def tearDownClass(cls):
