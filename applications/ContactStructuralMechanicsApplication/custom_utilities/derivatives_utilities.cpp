@@ -545,7 +545,6 @@ void DerivativesUtilities<TDim, TNumNodes, TFrictional, TNormalVariation, TNumNo
                 }
             }
         }
-
     }
 
     KRATOS_CATCH("")

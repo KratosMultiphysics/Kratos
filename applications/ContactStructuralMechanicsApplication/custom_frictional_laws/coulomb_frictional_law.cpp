@@ -152,3 +152,4 @@ template class CoulombFrictionalLaw<3, 3, true,  4>;
 template class CoulombFrictionalLaw<3, 4, true,  3>;
 
 }  // namespace Kratos.
+
