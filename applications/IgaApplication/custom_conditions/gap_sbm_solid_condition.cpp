@@ -125,7 +125,14 @@ void GapSbmSolidCondition::InitializeSbmMemberVariables()
     mDistanceVector.resize(3);
     noalias(mDistanceVector) = r_geometry.Center().Coordinates() - r_surrogate_geometry.Center().Coordinates();
     
-    SetValue(PROJECTION_NODE_COORDINATES, r_geometry.GetValue(PROJECTION_NODE)->Coordinates());
+    // The 2D modeler does not attach a projection node to boundary geometries.
+    const auto p_projection_node = r_geometry.Has(PROJECTION_NODE)
+        ? r_geometry.GetValue(PROJECTION_NODE) : Node::Pointer();
+    if (p_projection_node != nullptr) {
+        SetValue(PROJECTION_NODE_COORDINATES, p_projection_node->Coordinates());
+    } else {
+        SetValue(PROJECTION_NODE_COORDINATES, r_geometry.Center().Coordinates());
+    }
 }
 
 void GapSbmSolidCondition::CalculateLocalSystem(

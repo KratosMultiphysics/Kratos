@@ -108,7 +108,14 @@ void GapSbmLoadSolidCondition::InitializeSbmMemberVariables()
     const Point&  p_true = r_geometry.Center();            // true boundary
     const Point&  p_sur  = r_surrogate_geometry.Center();  // surrogate
 
-    SetValue(PROJECTION_NODE_COORDINATES, r_geometry.GetValue(PROJECTION_NODE)->Coordinates());
+    // The 2D modeler does not attach a projection node to boundary geometries.
+    const auto p_projection_node = r_geometry.Has(PROJECTION_NODE)
+        ? r_geometry.GetValue(PROJECTION_NODE) : Node::Pointer();
+    if (p_projection_node != nullptr) {
+        SetValue(PROJECTION_NODE_COORDINATES, p_projection_node->Coordinates());
+    } else {
+        SetValue(PROJECTION_NODE_COORDINATES, r_geometry.Center().Coordinates());
+    }
 }
 
 void GapSbmLoadSolidCondition::CalculateLocalSystem(
