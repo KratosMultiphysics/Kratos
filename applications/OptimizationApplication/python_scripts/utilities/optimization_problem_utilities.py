@@ -151,9 +151,13 @@ class TensorAdaptorData:
         return data
 
 class CombinedTensorAdaptorData(TensorAdaptorData):
-    def __init__(self, combined_tensor_adaptor_path: str, combined_tensor_adaptor: Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor, tensor_adaptor_index: int) -> None:
+    def __init__(self, prefix: str, combined_tensor_adaptor_path: str, combined_tensor_adaptor: Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor, tensor_adaptor_index: int) -> None:
         super().__init__(combined_tensor_adaptor_path, combined_tensor_adaptor.GetTensorAdaptors()[tensor_adaptor_index])
         self.tensor_adaptor_index = tensor_adaptor_index
+        self.prefix = prefix
+
+    def GetTensorAdaptorName(self) -> str:
+        return f"{self.prefix}_{self.tensor_adaptor_path[self.tensor_adaptor_path.rfind("/")+1:]}"
 
     def GetTensorAdaptor(self, optimization_problem: OptimizationProblem) -> Kratos.TensorAdaptors.DoubleTensorAdaptor:
         data = optimization_problem.GetProblemDataContainer()[self.tensor_adaptor_path]
