@@ -27,6 +27,16 @@ class TestCoupledThermoMechanicalRom(KratosUnittest.TestCase):
         self.work_folder = "coupled_thermo_mechanical_test_files/HROM/"
         self._RunAndCheck("ExpectedOutputCoupledHROM.npy")
 
+    def testCoupledThermoMechanicalAnnEnhancedRom2D(self):
+        # ANN-enhanced ROM run without the RomManager: each coupled solver has its own basis and network
+        self.work_folder = "coupled_thermo_mechanical_test_files/ROM_ANN/"
+        self._RunAndCheck("ExpectedOutputCoupledROM_ANN.npy")
+
+    def testCoupledThermoMechanicalAnnEnhancedHRom2D(self):
+        # ANN-enhanced HROM run without the RomManager: one set of HROM weights per coupled solver
+        self.work_folder = "coupled_thermo_mechanical_test_files/HROM_ANN/"
+        self._RunAndCheck("ExpectedOutputCoupledHROM_ANN.npy")
+
     def _GetProjectParameters(self):
         # The problem (parameters, mdpa and materials) is the thermo-mechanical test of the ConvectionDiffusionApplication.
         # Its paths are relative to the tests folder of that application, so they are made absolute
@@ -47,9 +57,7 @@ class TestCoupledThermoMechanicalRom(KratosUnittest.TestCase):
         self.simulation = rom_testing_utilities.SetUpSimulationInstance(model, self._GetProjectParameters())
 
         # Patch the RomAnalysis class to save the selected time steps results
-        def Initialize(cls):
-            super(type(self.simulation), cls).Initialize()
-            cls.selected_time_step_solution_container = []
+        self.simulation.selected_time_step_solution_container = []
 
         def FinalizeSolutionStep(cls):
             super(type(self.simulation), cls).FinalizeSolutionStep()
@@ -58,7 +66,6 @@ class TestCoupledThermoMechanicalRom(KratosUnittest.TestCase):
             array_of_results = rom_testing_utilities.GetNodalResults(cls._solver.GetComputingModelPart(), variables_array)
             cls.selected_time_step_solution_container.append(array_of_results)
 
-        self.simulation.Initialize  = types.MethodType(Initialize, self.simulation)
         self.simulation.FinalizeSolutionStep  = types.MethodType(FinalizeSolutionStep, self.simulation)
 
         # Run test case
