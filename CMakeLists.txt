@@ -527,10 +527,11 @@ elseif (KRATOS_LINEAR_ALGEBRA_BACKEND STREQUAL "eigen")
   # must see it.
   add_compile_definitions("EIGEN_MATRIXBASE_PLUGIN=\"${CMAKE_CURRENT_SOURCE_DIR}/kratos/includes/eigen_matrixbase_plugin.h\"")
   add_compile_definitions("EIGEN_PLAINOBJECTBASE_PLUGIN=\"${CMAKE_CURRENT_SOURCE_DIR}/kratos/includes/eigen_plainobjectbase_plugin.h\"")
-  # The Eigen sparse index type defaults to a 32-bit int (lower memory traffic
-  # in the bandwidth-bound sparse kernels); this option restores 64-bit
-  # indices for systems beyond 2^31 - 1 nonzeros per matrix.
-  option(KRATOS_EIGEN_64BIT_INDICES "Use 64-bit indices for the Eigen sparse matrices (default: 32-bit)" OFF)
+  # The Eigen sparse index type defaults to a 64-bit std::ptrdiff_t so that
+  # systems beyond 2^31 - 1 nonzeros per matrix are supported (as with uBLAS).
+  # Turn this option OFF to use 32-bit int indices instead (lower memory traffic
+  # in the bandwidth-bound sparse kernels).
+  option(KRATOS_EIGEN_64BIT_INDICES "Use 64-bit indices for the Eigen sparse matrices (OFF: 32-bit)" ON)
   if(KRATOS_EIGEN_64BIT_INDICES)
     message(STATUS "Using 64-bit indices for the Eigen sparse matrices")
     add_definitions( -DKRATOS_EIGEN_64BIT_INDICES )

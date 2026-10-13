@@ -30,12 +30,13 @@ namespace Kratos
 
 /**
  * @brief Index type used for the Eigen sparse matrices.
- * @details Eigen requires a signed StorageIndex. The default is a 32-bit int:
- * sparse kernels are memory-bound (SpMV traffic drops from 16 to 12 bytes per
- * nonzero versus 64-bit indices), and 2^31 - 1 nonzeros per matrix (~16 GB of
- * values alone) comfortably covers shared-memory problems. For larger systems
- * configure with KRATOS_EIGEN_64BIT_INDICES=ON (or override the type directly
- * with -DKRATOS_EIGEN_INDEX_TYPE=<type>).
+ * @details Eigen requires a signed StorageIndex. The default (CMake option
+ * KRATOS_EIGEN_64BIT_INDICES=ON) is a 64-bit std::ptrdiff_t, which does not limit
+ * the number of nonzeros per matrix. A 32-bit int (KRATOS_EIGEN_64BIT_INDICES=OFF)
+ * lowers the memory traffic of the memory-bound sparse kernels (SpMV traffic drops
+ * from 16 to 12 bytes per nonzero), but caps the matrix at 2^31 - 1 nonzeros
+ * (~16 GB of values alone). The type can also be overridden directly with
+ * -DKRATOS_EIGEN_INDEX_TYPE=<type>.
  */
 #if defined(KRATOS_EIGEN_INDEX_TYPE)
 using KratosEigenIndexType = KRATOS_EIGEN_INDEX_TYPE;
