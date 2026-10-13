@@ -3,11 +3,11 @@ import KratosMultiphysics
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics.kratos_utilities as KratosUtilities
 import KratosMultiphysics.FluidDynamicsApplication.cfd_utils as cfd_utils
-from KratosMultiphysics.FluidDynamicsApplication.vectorized_cfd_stage import VectorizedCFDStage
 
 # Check if cupy is available for GPU tests
 try:
     import cupy
+    from KratosMultiphysics.FluidDynamicsApplication.vectorized_cfd_stage import VectorizedCFDStage
     HAS_CUPY = True
 except ImportError:
     HAS_CUPY = False
