@@ -27,6 +27,7 @@
 
 // Application includes
 #include "dam_application_variables.h"
+#include "custom_utilities/nodal_young_modulus_utilities.h"
 
 namespace Kratos
 {
@@ -209,7 +210,24 @@ class ConstructionUtility
             else
             {
                 VariableUtils().SetVariable(ALPHA_HEAT_SOURCE, mAlphaInitial, mrThermalModelPart.Nodes());
-                VariableUtils().SetVariable(NODAL_YOUNG_MODULUS, sqrt(mAlphaInitial) * mYoungInf, mrThermalModelPart.Nodes());
+                VariableUtils().SetVariable(YOUNG_MODULUS, sqrt(mAlphaInitial) * mYoungInf, mrThermalModelPart.Nodes());
+            }
+        }
+
+        // Only the legacy nodal laws consumed the construction aging field.
+        // Preserve constant material properties for the ordinary laws, including
+        // non-aging construction where the nodal field is not initialized.
+        for (auto& r_properties : mrMechanicalModelPart.GetMesh(0).Properties()) {
+            if (r_properties.Has(CONSTITUTIVE_LAW_NAME)) {
+                const auto& r_law_name = r_properties[CONSTITUTIVE_LAW_NAME];
+                if (r_law_name == "LinearElastic3DLawNodal" ||
+                    r_law_name == "LinearElastic2DPlaneStrainNodal" ||
+                    r_law_name == "LinearElastic2DPlaneStressNodal" ||
+                    r_law_name == "ThermalLinearElastic3DLawNodal" ||
+                    r_law_name == "ThermalLinearElastic2DPlaneStrainNodal" ||
+                    r_law_name == "ThermalLinearElastic2DPlaneStressNodal") {
+                    NodalYoungModulusUtilities::InstallDatabaseAccessor(r_properties);
+                }
             }
         }
 
@@ -776,7 +794,7 @@ class ConstructionUtility
                 // Updating values according the computations
                 rNode.FastGetSolutionStepValue(HEAT_FLUX) = heat_flux;
                 rNode.FastGetSolutionStepValue(ALPHA_HEAT_SOURCE) = current_alpha;
-                rNode.FastGetSolutionStepValue(NODAL_YOUNG_MODULUS) = sqrt(current_alpha) * mYoungInf;
+                rNode.FastGetSolutionStepValue(YOUNG_MODULUS) = sqrt(current_alpha) * mYoungInf;
             }
         });
 

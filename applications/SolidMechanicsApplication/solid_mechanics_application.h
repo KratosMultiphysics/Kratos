@@ -27,9 +27,8 @@
 // External includes
 
 // Project includes
-#include "includes/define.h"
 #include "includes/constitutive_law.h"
-#include "includes/ublas_interface.h"
+#include "includes/default_interface.h"
 #include "includes/kratos_application.h"
 #include "containers/flags.h"
 

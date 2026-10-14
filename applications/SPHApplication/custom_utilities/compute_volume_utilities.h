@@ -2,7 +2,7 @@
 #pragma once 
 
 #include "includes/model_part.h"
-#include "includes/ublas_interface.h"
+#include "includes/default_interface.h"
 #include "sph_application_variables.h"
 
 /**

@@ -23,6 +23,7 @@
 #include "includes/define.h"
 #include "includes/model_part.h"
 #include "spatial_containers/spatial_containers.h"
+#include "spaces/default_spaces.h"
 
 // ==============================================================================
 
@@ -63,7 +64,7 @@ public:
 
     using NodeIterator = std::vector<NodeType::Pointer>::iterator;
 
-    typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
+    typedef TDefaultSparseSpace<double> SparseSpaceType;
     typedef SparseSpaceType::MatrixType SparseMatrixType;
 
     // Type definitions for tree-search

@@ -21,6 +21,7 @@
 
 // Project includes
 #include "includes/define.h"
+#include "spaces/default_spaces.h"
 
 // Application includes
 #include "custom_python/add_custom_utilities_to_python.h"
@@ -35,8 +36,8 @@ using namespace pybind11;
 
 void AddCustomUtilitiesToPython(pybind11::module& m)
 {
-    typedef UblasSpace<double, CompressedMatrix, boost::numeric::ublas::vector<double>> SparseSpaceType;
-    typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
+    typedef TDefaultSparseSpace<double> SparseSpaceType;
+    typedef TDefaultDenseSpace<double> LocalSpaceType;
     typedef Scheme<SparseSpaceType, LocalSpaceType> BaseSchemeType;
 
     class_<RomResidualsUtility, typename RomResidualsUtility::Pointer>(m, "RomResidualsUtility")
@@ -44,6 +45,7 @@ void AddCustomUtilitiesToPython(pybind11::module& m)
     .def("GetProjectedResidualsOntoPhi",&RomResidualsUtility::GetProjectedResidualsOntoPhi) //
     .def("GetProjectedResidualsOntoPsi",&RomResidualsUtility::GetProjectedResidualsOntoPsi) //
     .def("GetProjectedResidualsOntoJPhi",&RomResidualsUtility::GetProjectedResidualsOntoJPhi) //
+    .def("GetProjectedResidualsOntoV",&RomResidualsUtility::GetProjectedResidualsOntoV) //
     ;
 
     class_<RomAuxiliaryUtilities>(m, "RomAuxiliaryUtilities")

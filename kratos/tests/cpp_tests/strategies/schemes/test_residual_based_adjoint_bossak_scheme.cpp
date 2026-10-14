@@ -19,7 +19,7 @@
 
 #include "includes/define.h"
 #include "includes/model_part.h"
-#include "spaces/ublas_space.h"
+#include "spaces/default_spaces.h"
 #include "linear_solvers/skyline_lu_custom_scalar_solver.h"
 #include "solving_strategies/schemes/residual_based_bossak_displacement_scheme.hpp"
 #include "solving_strategies/schemes/residual_based_adjoint_bossak_scheme.h"
@@ -41,8 +41,8 @@ namespace
 const double AlphaBossak = -0.3;
 namespace Base
 {
-typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
-typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
+typedef TDefaultSparseSpace<double> SparseSpaceType;
+typedef TDefaultDenseSpace<double> LocalSpaceType;
 typedef LinearSolver<SparseSpaceType, LocalSpaceType> LinearSolverType;
 typedef Scheme<SparseSpaceType, LocalSpaceType> SchemeType;
 typedef ConvergenceCriteria<SparseSpaceType, LocalSpaceType> ConvergenceCriteriaType;

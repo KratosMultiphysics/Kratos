@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:
 //
@@ -18,11 +18,10 @@
 // External includes
 
 // Project includes
-#include "includes/define.h"
 #include "includes/element.h"
 #include "includes/condition.h"
 #include "includes/process_info.h"
-#include "includes/ublas_interface.h"
+#include "includes/default_interface.h"
 #include "containers/array_1d.h"
 #include "containers/variable.h"
 

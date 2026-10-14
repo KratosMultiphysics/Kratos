@@ -29,35 +29,3 @@ def GetTensorAdaptor(model_part: Kratos.ModelPart, data_location: TensorAdaptorD
 
     ta.CollectData()
     return ta
-
-class TensorAdaptorBoundingManager:
-    def __init__(self, bounds: 'list[float]') -> None:
-        """
-        This class is used to bound values of an tensor adaptor to specified interval.
-            If a value in an tensor adaptor is above the max value of bounds, then it will have a value larger than 1.0
-            if a value in an tensor adaptor is below the min value of bounds, then it will have a value smaller than 0.0
-            Values in an tensor adaptor will be linearly interpolated and mapped from interval [min(bounds), max(bounds)]
-            to [0, 1].
-
-        Args:
-            bounds (list[float]): Bounds of the given tensor adaptor values.
-
-        Raises:
-            RuntimeError: If bounds does not contain two values.
-        """
-        if len(bounds) != 2:
-            raise RuntimeError(f"The bounds should be of size 2. [bounds = {bounds}]")
-        self.bounds = sorted(bounds)
-
-    def GetBoundGap(self) -> float:
-        return self.bounds[1] - self.bounds[0]
-
-    def GetBoundedTensorAdaptor(self, unbounded_tensor_adaptor: Kratos.TensorAdaptors.DoubleTensorAdaptor) -> Kratos.TensorAdaptors.DoubleTensorAdaptor:
-        result = unbounded_tensor_adaptor.Clone()
-        result.data[:] = (result.data[:] - self.bounds[0]) / self.GetBoundGap()
-        return result
-
-    def GetUnboundedTensorAdaptor(self, bounded_tensor_adaptor: Kratos.TensorAdaptors.DoubleTensorAdaptor) -> Kratos.TensorAdaptors.DoubleTensorAdaptor:
-        result = bounded_tensor_adaptor.Clone()
-        result.data[:] = (result.data[:] * self.GetBoundGap() + self.bounds[0])
-        return result

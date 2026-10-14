@@ -20,7 +20,7 @@
 #include "geometries/geometry_data.h"
 #include "includes/node.h"
 #include "includes/process_info.h"
-#include "includes/ublas_interface.h"
+#include "includes/default_interface.h"
 
 // Application includes
 #include "custom_conditions/scalar_wall_flux_condition_data.h"

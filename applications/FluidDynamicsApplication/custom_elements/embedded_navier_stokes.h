@@ -545,7 +545,7 @@ protected:
 
             // Compute some Gauss pt. auxiliar matrices
             const BoundedMatrix<double, TDim, (TDim-1)*3> aux_matrix_AC = prod(voigt_normal_projection_matrix, rData.C);
-            const BoundedMatrix<double, (TDim-1)*3, MatrixSize> aux_matrix_ACB = prod(aux_matrix_AC, B_matrix);
+            const BoundedMatrix<double, TDim, MatrixSize> aux_matrix_ACB = prod(aux_matrix_AC, B_matrix);
 
             // Fill the pressure to Voigt notation operator matrix
             BoundedMatrix<double, (TDim-1)*3, MatrixSize> pres_to_voigt_matrix_op = ZeroMatrix((TDim-1)*3, MatrixSize);
@@ -1058,8 +1058,8 @@ protected:
 
             // Compute some Gauss pt. auxiliar matrices
             const BoundedMatrix<double, (TDim-1)*3, MatrixSize> aux_matrix_CB = prod(rData.C, B_matrix);
-            const BoundedMatrix<double, (TDim-1)*3, TDim> aux_matrix_PtangA = prod(tangential_projection_matrix, voigt_normal_projection_matrix);
-            const BoundedMatrix<double, MatrixSize, TDim> aux_matrix_PtangACB = prod(aux_matrix_PtangA, aux_matrix_CB);
+            const BoundedMatrix<double, TDim, (TDim-1)*3> aux_matrix_PtangA = prod(tangential_projection_matrix, voigt_normal_projection_matrix);
+            const BoundedMatrix<double, TDim, MatrixSize> aux_matrix_PtangACB = prod(aux_matrix_PtangA, aux_matrix_CB);
 
             // Contribution coming from the traction vector tangencial component
             noalias(auxLeftHandSideMatrix_1) += coeff_1*weight*prod(N_aux_trans, aux_matrix_PtangACB);
