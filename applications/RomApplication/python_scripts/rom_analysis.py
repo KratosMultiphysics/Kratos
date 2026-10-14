@@ -288,6 +288,9 @@ def CreateRomAnalysisInstance(cls, global_model, parameters, nn_rom_interface=No
                 # Pass the name of the Rom Parameters file and folder
                 self.rom_parameters.AddString("rom_basis_output_name", str(self.rom_basis_output_name))
                 self.rom_parameters.AddString("rom_basis_output_folder", str(self.rom_basis_output_folder))
+                # Reuse the input modelers to recreate the geometry based input model part
+                if self.project_parameters.Has("modelers"):
+                    self.rom_parameters["hrom_settings"].AddValue("modelers", self.project_parameters["modelers"])
                 # Create the training utility to calculate the HROM weights
                 self.__hrom_training_utility = HRomTrainingUtility(
                     self._GetSolver(),

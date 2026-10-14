@@ -602,8 +602,56 @@ class RomManager(object):
             HROM_utility.hyper_reduction_element_selector.w = self.data_base.get_single_numpy_from_database(hash_w)
             HROM_utility.hyper_reduction_element_selector.z = self.data_base.get_single_numpy_from_database(hash_z)
         HROM_utility.AppendHRomWeightsToRomParameters()
-        #HROM_utility.CreateHRomModelParts() TODO Fix HROM model part creation. This is broken for generic model parts and MED files
+        HROM_utility.CreateHRomModelParts()
         self.GenerateDatabaseSummary()
+
+    def _SetHROMInputParameters(self, parameters):
+        """Point the project parameters to the HROM model part written during training.
+
+        For geometry based inputs (i.e. MED or mdpa with geometries) the entities are created from the
+        geometries by the modelers. Hence, the importer filename is switched to the HROM file and the
+        entities-from-geometries modeler is replaced by the 'HRomCreateEntitiesFromGeometriesModeler' so
+        that the original entity numbering is recovered from the geometry id to entity id mapping written
+        during training.
+        For mesh based inputs (i.e. mdpa), only the input filename is switched to the HROM mdpa.
+        """
+        geometry_importer_modeler = None
+        entities_modeler = None
+        if parameters.Has("modelers"):
+            for modeler in parameters["modelers"].values():
+                if not modeler.Has("parameters"):
+                    continue
+                modeler_parameters = modeler["parameters"]
+                modeler_name = modeler["name"].GetString() if modeler.Has("name") else ""
+                if "CreateEntitiesFromGeometriesModeler" in modeler_name:
+                    entities_modeler = modeler_parameters
+                    modeler["name"].SetString("Modelers.KratosMultiphysics.RomApplication.HRomCreateEntitiesFromGeometriesModeler")
+                if modeler_parameters.Has("input_filename"):
+                    geometry_importer_modeler = modeler_parameters
+
+        if entities_modeler is not None and geometry_importer_modeler is not None:
+            # Geometry based input, the entities are created from the geometries by the modelers
+            input_path = Path(geometry_importer_modeler["input_filename"].GetString())
+            hrom_import_filename = str(input_path.with_suffix("")) + ("HROM.med" if input_path.suffix.lower() == ".med" else "HROM")
+            geometry_importer_modeler["input_filename"].SetString(hrom_import_filename)
+            rom_folder = self.general_rom_manager_parameters["ROM"]
+            rom_basis_output_folder = rom_folder["rom_basis_output_folder"].GetString() if rom_folder.Has("rom_basis_output_folder") else "rom_data"
+            ids_file = str(Path(rom_basis_output_folder) / "HROM_GeometryIds.csv")
+            if entities_modeler.Has("assign_ids_from_file"):
+                entities_modeler["assign_ids_from_file"].SetBool(True)
+            else:
+                entities_modeler.AddBool("assign_ids_from_file", True)
+            if entities_modeler.Has("geometry_ids_file"):
+                entities_modeler["geometry_ids_file"].SetString(ids_file)
+            else:
+                entities_modeler.AddString("geometry_ids_file", ids_file)
+        else:
+            model_import_settings = parameters["solver_settings"]["model_import_settings"]
+            if not model_import_settings.Has("input_filename"):
+                KratosMultiphysics.Logger.PrintWarning("RomManager", "No 'input_filename' in 'model_import_settings'. Running the HROM on the full model part.")
+                return
+            model_part_name = model_import_settings["input_filename"].GetString()
+            model_import_settings["input_filename"].SetString(f"{model_part_name}HROM")
 
     def _LocalEmpiricalCubature(self, residuals_list, initial_candidates=None):
         """
@@ -728,12 +776,7 @@ class RomManager(object):
         with open(self.project_parameters_name,'r') as parameter_file:
             parameters = KratosMultiphysics.Parameters(parameter_file.read())
         if not use_full_model_part:
-            model_import_settings = parameters["solver_settings"]["model_import_settings"]
-            if model_import_settings.Has("input_filename"):
-                model_part_name = model_import_settings["input_filename"].GetString()
-                model_import_settings["input_filename"].SetString(f"{model_part_name}HROM")
-            else:
-                KratosMultiphysics.Logger.PrintWarning("RomManager", "No 'input_filename' in 'model_import_settings'. Running the HROM on the full model part.")
+            self._SetHROMInputParameters(parameters)
 
         for Id, mu in enumerate(mu_run):
             parameters_copy = self.UpdateProjectParameters(parameters.Clone(), mu)
