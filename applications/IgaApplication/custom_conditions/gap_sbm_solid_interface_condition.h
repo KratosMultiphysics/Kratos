@@ -230,6 +230,7 @@ struct ConstitutiveVariables
 ///@name Protected static Member Variables
 ///@{
 void InitializeMaterial();
+void UpdateMaterialResponse(const ProcessInfo& rCurrentProcessInfo, bool Finalize);
 
 void FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
 
@@ -284,7 +285,8 @@ void ApplyConstitutiveLaw(
         std::size_t matSize, 
         Vector& rStrain, 
         ConstitutiveLaw::Parameters& rValues,
-        ConstitutiveVariables& rConstitutiVariables);
+        ConstitutiveVariables& rConstitutiVariables,
+        bool IsMinusSide = false);
 
 /**
  * @brief 
@@ -353,6 +355,7 @@ double ComputeTaylorTerm3D(
 
 ///@name Protected member Variables
 ///@{
+    ConstitutiveLaw::Pointer mpConstitutiveLawMinus;
     ConstitutiveLaw::Pointer mpConstitutiveLaw; /// The pointer containing the constitutive laws
     // sbm variables
     array_1d<double, 3> mNormalParameterSpace;

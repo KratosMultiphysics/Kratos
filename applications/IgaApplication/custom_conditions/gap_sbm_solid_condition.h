@@ -257,7 +257,7 @@ void CalculateB(
     Matrix& rB,
     Matrix& r_DN_DX) const;
 
-/**
+    /**
  * @brief Calculate the traction vector for the condition
  *
  * @param rStressVector
@@ -268,6 +268,13 @@ void CalculateTraction(
     const Vector& rStressVector,
     const array_1d<double, 3>& rNormal,
     Vector& rTraction) const;
+
+/**
+ * @brief Get the Characteristic Geometry Length Scalar object
+ * 
+ * @return double 
+ */
+double GetCharacteristicGeometryLengthScalar() const;
 
 /**
  * @brief Compute the constitutive law response for the given strain vector.
@@ -328,6 +335,7 @@ double ComputeTaylorTerm3D(
 
 ///@name Protected member Variables
 ///@{
+    Matrix mDBOld; /// Adjoint Nitsche operator frozen at the beginning of the solution step.
     ConstitutiveLaw::Pointer mpConstitutiveLaw; /// The pointer containing the constitutive laws
     // sbm variables
     array_1d<double, 3> mNormalParameterSpace;

@@ -33,7 +33,7 @@ SnakeGapSbmProcess::SnakeGapSbmProcess(
     mpGapConditionsSubModelPart = &(mpIgaModelPart->CreateSubModelPart("GapConditions"));
     mpGapInterfaceSubModelPart = &(mpIgaModelPart->CreateSubModelPart("GapInterfaces"));
     mGapElementName = ThisParameters["gap_element_name"].GetString();
-    mGapConditionName = "GapSbmEnhancedSolidCondition";
+    mGapConditionName = "GapSbmSolidCondition"; //FIXME:
     mGapInterfaceConditionName = ThisParameters["gap_interface_condition_name"].GetString();
     mGapSbmType = ThisParameters["gap_sbm_type"].GetString();
 
