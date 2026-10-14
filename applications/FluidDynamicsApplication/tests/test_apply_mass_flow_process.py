@@ -77,6 +77,59 @@ class ApplyMassFlowProcessTest(KratosUnittest.TestCase):
         for node in self.model_part.Nodes:
             self.assertEqual(node.IsFixed(KratosMultiphysics.VELOCITY_X), node.Id in wall_node_ids)
 
+    def test_uniform_partially_fixed_nodes(self):
+        # Emulate a symmetry condition in the top and bottom walls (only the normal component is fixed)
+        # The tangential component of the corner nodes comes from the previous step and must be imposed as well
+        wall_nodes = []
+        for wall_name in ["NoSlip2D_top_wall", "NoSlip2D_bottom_wall"]:
+            wall_nodes += list(self.model_part.GetSubModelPart(wall_name).Nodes)
+        for node in wall_nodes:
+            node.SetSolutionStepValue(KratosMultiphysics.VELOCITY, [5.0, 0.0, 0.0])
+            node.Fix(KratosMultiphysics.VELOCITY_Y)
+
+        process = self.__CreateProcess()
+        process.ExecuteInitializeSolutionStep()
+
+        self.assertAlmostEqual(self.__CalculateMassFlow(self.inlet_model_part), 2.0, 12)
+        self.assertAlmostEqual(self.__CalculateMassFlow(self.outlet_model_part), -2.0, 12)
+        for node in list(self.inlet_model_part.Nodes) + list(self.outlet_model_part.Nodes):
+            self.assertVectorAlmostEqual(node.GetSolutionStepValue(KratosMultiphysics.VELOCITY), [2.0 / self.density, 0.0, 0.0], 12)
+            self.assertTrue(node.IsFixed(KratosMultiphysics.VELOCITY_X))
+
+        # Only the components fixed by the mass flow process are freed
+        process.ExecuteFinalizeSolutionStep()
+        wall_node_ids = [node.Id for node in wall_nodes]
+        for node in self.model_part.Nodes:
+            self.assertFalse(node.IsFixed(KratosMultiphysics.VELOCITY_X))
+            self.assertEqual(node.IsFixed(KratosMultiphysics.VELOCITY_Y), node.Id in wall_node_ids)
+
+    def test_uniform_shared_nodes(self):
+        # Split the right wall in two outlets sharing the middle node
+        right_wall = self.model_part.GetSubModelPart("NoSlip2D_right_wall")
+        for name, is_lower in [("outlet_low", True), ("outlet_high", False)]:
+            outlet = self.model_part.CreateSubModelPart(name)
+            condition_ids = [condition.Id for condition in right_wall.Conditions if (condition.GetGeometry().Center().Y < 0.6) == is_lower]
+            outlet.AddConditions(condition_ids)
+            outlet.AddNodes(sorted({node.Id for condition_id in condition_ids for node in self.model_part.GetCondition(condition_id).GetGeometry()}))
+        outlet_low = self.model_part.GetSubModelPart("outlet_low")
+        outlet_high = self.model_part.GetSubModelPart("outlet_high")
+        self.assertEqual(len({node.Id for node in outlet_low.Nodes} & {node.Id for node in outlet_high.Nodes}), 1)
+
+        settings = KratosMultiphysics.Parameters("""{
+            "model_part_name" : "FluidModelPart",
+            "boundaries"      : [
+                {"model_part_name" : "FluidModelPart.NoSlip2D_left_wall", "mass_flow" :  3.0},
+                {"model_part_name" : "FluidModelPart.outlet_low",         "mass_flow" : -1.2},
+                {"model_part_name" : "FluidModelPart.outlet_high",        "mass_flow" : -1.8}],
+            "density"         : 1.5
+        }""")
+        process = apply_mass_flow_process.ApplyMassFlowProcess(self.model, settings)
+        process.ExecuteInitializeSolutionStep()
+
+        self.assertAlmostEqual(self.__CalculateMassFlow(self.inlet_model_part), 3.0, 12)
+        self.assertAlmostEqual(self.__CalculateMassFlow(outlet_low), -1.2, 12)
+        self.assertAlmostEqual(self.__CalculateMassFlow(outlet_high), -1.8, 12)
+
     def test_rescale_existing(self):
         for node in self.inlet_model_part.Nodes:
             node.SetSolutionStepValue(KratosMultiphysics.VELOCITY, [node.Y * (1.0 - node.Y), 0.0, 0.0])

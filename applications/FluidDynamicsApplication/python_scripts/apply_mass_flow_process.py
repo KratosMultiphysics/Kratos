@@ -1,3 +1,5 @@
+import numpy
+
 import KratosMultiphysics
 import KratosMultiphysics.FluidDynamicsApplication as KratosFluid
 
@@ -21,11 +23,14 @@ class ApplyMassFlowProcess(KratosMultiphysics.Process):
 
     Two velocity profiles are available for each boundary:
     - "uniform": the process sets (and fixes if "constrained") a uniform velocity along the average
-      boundary normal. The nodes with a velocity component already fixed are left untouched.
+      boundary normal. The velocity components already fixed (e.g. by a wall or a symmetry condition) are
+      left untouched and their flow rate is subtracted from the prescribed one.
     - "rescale_existing": the process scales the velocity set by the previous processes.
 
     Hence, this process must be placed after the wall processes and after the processes setting
-    the profile to be rescaled. Also note that two boundaries must not share nodes.
+    the profile to be rescaled. Boundaries can share nodes (e.g. adjacent outlets) if these use the
+    "uniform" profile and are "constrained": the shared nodes take the velocity of the first boundary
+    in the list and the next ones treat them as fixed.
     """
 
     def __init__(self, Model, settings):
@@ -88,15 +93,15 @@ class ApplyMassFlowProcess(KratosMultiphysics.Process):
     def ExecuteFinalizeSolutionStep(self):
         # Free the DOFs fixed by this process
         for boundary in self.boundaries:
-            own_nodes = boundary["fixed_nodes"]
-            if own_nodes is not None:
+            own_dofs = boundary["fixed_dofs"]
+            if own_dofs is not None:
                 fixity_ta = boundary["fixity_ta"]
                 fixity_ta.CollectData()
                 fixity = fixity_ta.data.copy()
-                fixity[own_nodes] = False
+                fixity[own_dofs] = False
                 fixity_ta.data = fixity
                 fixity_ta.StoreData()
-                boundary["fixed_nodes"] = None
+                boundary["fixed_dofs"] = None
 
     def __CreateBoundary(self, Model, boundary_settings):
         default_settings = KratosMultiphysics.Parameters("""
@@ -140,7 +145,7 @@ class ApplyMassFlowProcess(KratosMultiphysics.Process):
             "area" : self.__CalculateArea(boundary_model_part),
             "velocity_ta" : KratosMultiphysics.TensorAdaptors.HistoricalVariableTensorAdaptor(boundary_model_part.Nodes, KratosMultiphysics.VELOCITY),
             "fixity_ta" : KratosMultiphysics.TensorAdaptors.FixityTensorAdaptor(boundary_model_part.Nodes, [KratosMultiphysics.VELOCITY_X, KratosMultiphysics.VELOCITY_Y, KratosMultiphysics.VELOCITY_Z]),
-            "fixed_nodes" : None
+            "fixed_dofs" : None
         }
 
         if profile == "uniform":
@@ -156,28 +161,34 @@ class ApplyMassFlowProcess(KratosMultiphysics.Process):
 
         # Set the velocity profile to be scaled
         if boundary["profile"] == "uniform":
-            # Note that the nodes already fixed (e.g. those shared with a wall) are not modified
+            # Note that the velocity components already fixed (e.g. those of a wall or a symmetry plane) are not modified
+            # Their flow rate is computed with the free components set to zero and subtracted from the prescribed one
             fixity_ta = boundary["fixity_ta"]
             fixity_ta.CollectData()
             fixity = fixity_ta.data.copy()
-            own_nodes = ~fixity.any(axis=1)
-            velocity[own_nodes] = boundary["inwards_normal"]
+            own_dofs = ~fixity
+            velocity[own_dofs] = 0.0
+            velocity_ta.data = velocity
+            velocity_ta.StoreData()
+            fixed_flow_rate = KratosFluid.FluidAuxiliaryUtilities.CalculateFlowRate(boundary_model_part)
+            velocity = numpy.where(own_dofs, boundary["inwards_normal"], velocity)
             velocity_ta.data = velocity
             velocity_ta.StoreData()
             if self.constrained:
-                fixity[own_nodes] = True
+                fixity[own_dofs] = True
                 fixity_ta.data = fixity
                 fixity_ta.StoreData()
-                boundary["fixed_nodes"] = own_nodes
+                boundary["fixed_dofs"] = own_dofs
         else:
-            own_nodes = slice(None)
+            own_dofs = slice(None)
+            fixed_flow_rate = 0.0
 
         # Scale the profile to match the prescribed mass flow
         # Note that the flow rate is computed with the outwards normal (i.e. it is negative if entering the domain)
-        if mass_flow == 0.0:
+        if mass_flow == 0.0 and fixed_flow_rate == 0.0:
             scale_factor = 0.0
         else:
-            profile_flow_rate = KratosFluid.FluidAuxiliaryUtilities.CalculateFlowRate(boundary_model_part)
+            profile_flow_rate = KratosFluid.FluidAuxiliaryUtilities.CalculateFlowRate(boundary_model_part) - fixed_flow_rate
             # Note that the reference flow rate to check if the profile one is zero is the max. velocity times the boundary area
             max_velocity = float(abs(velocity).max()) if velocity.size != 0 else 0.0
             max_velocity = boundary_model_part.GetCommunicator().GetDataCommunicator().MaxAll(max_velocity)
@@ -185,9 +196,9 @@ class ApplyMassFlowProcess(KratosMultiphysics.Process):
                 err_msg = f"The '{boundary['profile']}' profile in '{boundary_model_part.FullName()}' has zero flow rate, so it cannot be scaled to the prescribed mass flow.\n"
                 err_msg += "Check that the velocity profile is set (or that not all the nodes are fixed) before this process is executed."
                 raise Exception(err_msg)
-            scale_factor = -mass_flow / (self.density * profile_flow_rate)
+            scale_factor = (-mass_flow / self.density - fixed_flow_rate) / profile_flow_rate
 
-        velocity[own_nodes] *= scale_factor
+        velocity[own_dofs] *= scale_factor
         velocity_ta.data = velocity
         velocity_ta.StoreData()
         boundary_model_part.GetCommunicator().SynchronizeVariable(KratosMultiphysics.VELOCITY)
