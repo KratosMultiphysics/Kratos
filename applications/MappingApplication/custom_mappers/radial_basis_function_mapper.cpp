@@ -519,13 +519,13 @@ void RadialBasisFunctionMapper<TSparseSpace, TDenseSpace>::MapInternal(
         const IndexType n_origin_dof = r_origin_vec.size();
         const IndexType n_poly       = system_size - n_origin_dof;
 
-        typename TSparseSpace::VectorType rhs(system_size);
+        Vector rhs(system_size);
         for (IndexType i = 0; i < n_origin_dof; ++i)
             rhs[i] = r_origin_vec[i];
         for (IndexType i = 0; i < n_poly; ++i)
             rhs[n_origin_dof + i] = 0.0;
 
-        typename TSparseSpace::VectorType solution(system_size);
+        Vector solution(system_size);
         mpLinearSolver->Solve(*mpOriginInterpolationMatrix, solution, rhs);
 
         TSparseSpace::Mult(
@@ -564,14 +564,14 @@ void RadialBasisFunctionMapper<TSparseSpace, TDenseSpace>::MapInternalTranspose(
         // solve RBF system on the fly 
         const IndexType system_size = mpOriginInterpolationMatrix->size1();
 
-        typename TSparseSpace::VectorType temp_vector_1(system_size);
+        Vector temp_vector_1(system_size);
         TSparseSpace::TransposeMult(
             *mpDestinationEvaluationMatrix,
             r_dest_vec,
             temp_vector_1
         );
 
-        typename TSparseSpace::VectorType temp_vector_2(system_size);
+        Vector temp_vector_2(system_size);
         mpLinearSolver->Solve(*mpOriginInterpolationMatrix, temp_vector_2, temp_vector_1);
 
         const IndexType n_origin_dof = r_origin_vec.size();
