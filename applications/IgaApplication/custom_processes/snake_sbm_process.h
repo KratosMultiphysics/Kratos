@@ -251,12 +251,14 @@ protected:
      * @param rPointToSearch The point to be checked.
      * @param rPointsBin Spatial bins to search for nearby points.
      * @param rSkinModelPartIn Input skin model part.
+     * @param EchoLevel Values above 1 log coordinates and classification results.
      * @return True if the point is inside the boundary, false otherwise.
      */
     static bool IsPointInsideSkinBoundary3D(
         const Point& rPointToSearch,
         DynamicBins& rPointsBin,
-        const ModelPart& rSkinModelPartIn
+        const ModelPart& rSkinModelPartIn,
+        const IndexType EchoLevel = 0
         );
 
 private:
@@ -438,7 +440,8 @@ private:
         DynamicBins& rPointsBin,
         const ModelPart& rSkinModelPart,
         const array_1d<double, 3>& rKnotStepUVW,
-        const Vector& rStartingPosition);
+        const Vector& rStartingPosition,
+        const IndexType EchoLevel = 0);
 
     /**
      * @brief Create a The Snake Coordinates 3 D object
@@ -533,7 +536,8 @@ private:
         const std::vector<int>& rNumberKnotSpansUVW,
         const array_1d<double, 3>& rKnotStepUVW,
         const Vector& rStartingPositionUV,
-        std::vector<std::vector<std::vector<std::vector<int>>>> & rKnotSpansAvailable
+        std::vector<std::vector<std::vector<std::vector<int>>>> & rKnotSpansAvailable,
+        const IndexType EchoLevel = 0
         );
 
 
@@ -562,7 +566,8 @@ private:
         const Vector& rKnotVectorW,
         const Vector& rStartingPositionUVW,
         std::vector<std::vector<std::vector<std::vector<int>>>> & rKnotSpansAvailable,
-        ModelPart& rSurrogateModelPartInner
+        ModelPart& rSurrogateModelPartInner,
+        const IndexType EchoLevel = 0
         );
 
     /**
@@ -589,7 +594,8 @@ private:
         const Vector& rKnotVectorW,
         const Vector& rStartingPositionUVW,
         std::vector<std::vector<std::vector<std::vector<int>>>> & rKnotSpansAvailable,
-        ModelPart& rSurrogateModelPartOuter
+        ModelPart& rSurrogateModelPartOuter,
+        const IndexType EchoLevel = 0
         );
 
 }; // Class SnakeSbmProcess

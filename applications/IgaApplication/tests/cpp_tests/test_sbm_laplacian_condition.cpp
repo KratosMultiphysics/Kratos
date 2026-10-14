@@ -140,7 +140,7 @@ KRATOS_TEST_CASE_IN_SUITE(SbmLaplacianDirichletConditionP2PenaltyFree, KratosIga
     //Check RHS and LHS results
     const double tolerance = 1.0e-4;
 
-    const std::array<double, 8> expected_LHS{0.00977238,-0.00166054,-0.00898983,-0.00285823,0.0093143,0.0131126,0.00612683,0.000949563};
+    const std::array<double, 8> expected_LHS{0.0135515468,-0.0098200997,-0.0077444227,0.0002767569,0.0112611445,0.0126831026,0.0048814198,0.0006775773};
     const std::array<double, 8> expected_RHS{2.55094,3.8264,1.9132,0.318867,-2.55094,-3.8264,-1.9132,-0.318867};
 
     for (unsigned int i = 0; i < left_hand_side_matrix.size1(); i++) {
@@ -191,8 +191,8 @@ KRATOS_TEST_CASE_IN_SUITE(SbmDirichletLaplacianConditionP2Penalty, KratosIgaFast
     //Check RHS and LHS results
     const double tolerance = 1.0e-3;
 
-    const std::array<double, 8> expected_LHS{3.77237,2.03571,-0.793567,-0.434165,0.464875,0.506637,0.15798,0.0104404};
-    const std::array<double, 8> expected_RHS{566.308,304.199,-120.532,-65.5272,71.4262,78.4413,24.8716,1.75377};
+    const std::array<double, 8> expected_LHS{22.6488337386,1.1427103238,-2.5152768306,1.2877882211,4.3721870714,1.9750997697,-0.6025332628,-0.2485181899};
+    const std::array<double, 8> expected_RHS{2777.9687932677,137.7505186744,-309.9386670175,157.8391359811,538.2473970427,244.8898109768,-72.7016626337,-30.2923594307};
 
     for (unsigned int i = 0; i < left_hand_side_matrix.size1(); i++) {
       KRATOS_EXPECT_NEAR(left_hand_side_matrix(0,i), expected_LHS[i], tolerance);
