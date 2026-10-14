@@ -31,7 +31,6 @@
 #include <array>
 #include <cstddef>
 #include <initializer_list>
-#include <iterator>
 #include <ostream>
 #include <type_traits>
 
@@ -47,20 +46,15 @@ namespace Kratos
 
 namespace Internals
 {
-/// An Eigen expression whose static shape is compatible with an N x 1 column
-/// vector (the array_1d layout).
+/// An Eigen expression whose static shape fits an N x 1 column vector (the
+/// array_1d layout) or, transposed, a 1 x N row (a matrix row is a plain
+/// vector in the uBLAS world; Eigen transposes vectors on assignment).
 template<class TDerived, std::size_t N>
-inline constexpr bool IsColumnShapedEigenExpression =
-    (TDerived::RowsAtCompileTime == Eigen::Dynamic || TDerived::RowsAtCompileTime == static_cast<int>(N)) &&
-    (TDerived::ColsAtCompileTime == Eigen::Dynamic || TDerived::ColsAtCompileTime == 1);
-
-/// A statically row-shaped (1 x N) Eigen expression: the uBLAS world treats a
-/// matrix row as a plain vector, so array_1d accepts it transposed.
-template<class TDerived, std::size_t N>
-inline constexpr bool IsRowShapedEigenExpression =
-    !IsColumnShapedEigenExpression<TDerived, N> &&
-    TDerived::RowsAtCompileTime == 1 &&
-    (TDerived::ColsAtCompileTime == Eigen::Dynamic || TDerived::ColsAtCompileTime == static_cast<int>(N));
+inline constexpr bool IsArray1dCompatible =
+    ((TDerived::RowsAtCompileTime == Eigen::Dynamic || TDerived::RowsAtCompileTime == static_cast<int>(N)) &&
+     (TDerived::ColsAtCompileTime == Eigen::Dynamic || TDerived::ColsAtCompileTime == 1)) ||
+    (TDerived::RowsAtCompileTime == 1 &&
+     (TDerived::ColsAtCompileTime == Eigen::Dynamic || TDerived::ColsAtCompileTime == static_cast<int>(N)));
 } // namespace Internals
 
 ///@name Kratos Classes
@@ -72,17 +66,20 @@ inline constexpr bool IsRowShapedEigenExpression =
  * @details Selected by the Eigen linear-algebra backend
  * (KRATOS_USE_EIGEN_BACKEND); the uBLAS backend uses the historical
  * boost::numeric::ublas vector_expression implementation instead (below).
- * Both implementations honour the same contract:
+ * It is a thin layer over a fixed-size Eigen column vector (every Eigen
+ * expression is available on the type) that only adds what Eigen and the
+ * Kratos Eigen plugins (includes/eigen_*_plugin.h) do not provide:
  * - Plain T[N] memory layout starting at the object address (no vtable, no
  *   padding, no over-alignment). Variable component access, DataTypeTraits
  *   contiguity and the MPI buffers rely on it, hence Eigen::DontAlign and the
  *   static_asserts at the end of this block.
- * - The uBLAS-style member surface: operator() and operator[], size(),
- *   near-no-op resize(), clear(), raw-pointer iterators, data(), swap and the
- *   assign/plus_assign/minus_assign protocol.
+ * - The uBLAS-style constructors (size, size + value, initializer list),
+ *   size_t-valued constexpr size(), checked operator()/operator[] (Debug),
+ *   the data() storage view and a resize() that value-initializes when the
+ *   content is not preserved.
+ * - Element-wise scalar conversion on construction/assignment from other
+ *   scalar types (Eigen requires an explicit cast).
  * - The uBLAS text format for streaming: [N](v0,v1,...).
- * Deriving from Eigen::Matrix makes every Eigen expression (a+b, prod, ...)
- * available on the type.
  */
 template<class T, std::size_t N>
 class array_1d : public Eigen::Matrix<T, static_cast<int>(N), 1, Eigen::ColMajor | Eigen::DontAlign>
@@ -103,10 +100,6 @@ public:
     using array_type = std::array<T, N>;
     using pointer = T*;
     using self_type = array_1d<T, N>;
-    using iterator = T*;
-    using const_iterator = const T*;
-    using reverse_iterator = std::reverse_iterator<iterator>;
-    using const_reverse_iterator = std::reverse_iterator<const_iterator>;
 
     ///@}
     ///@name Life Cycle
@@ -122,37 +115,30 @@ public:
     explicit array_1d(size_type Size, const value_type& rValue) : BaseType()
     {
         KRATOS_DEBUG_ERROR_IF(Size > N) << "Given size is greater than the size of the array!" << std::endl;
-        std::fill(begin(), begin() + Size, rValue);
+        std::fill(this->begin(), this->begin() + Size, rValue);
     }
 
     explicit array_1d(const std::initializer_list<value_type>& rInitList) : BaseType()
     {
         KRATOS_DEBUG_ERROR_IF(rInitList.size() > N) << "Size of list greater than the size of the array!" << std::endl;
-        std::copy(rInitList.begin(), rInitList.end(), begin());
+        std::copy(rInitList.begin(), rInitList.end(), this->begin());
     }
 
     array_1d(size_type Size, const array_type& rData) : BaseType()
     {
-        std::copy(rData.begin(), rData.end(), begin());
+        std::copy(rData.begin(), rData.end(), this->begin());
     }
 
-    array_1d(const array_1d& rOther) : BaseType(rOther) {}
+    array_1d(const array_1d& rOther) = default;
 
     /// Construction from any Eigen expression of compatible static size (the
-    /// constraint keeps incompatible constructions out of overload sets and
-    /// turns size bugs into clear no-viable-overload errors). The cast
-    /// mirrors the uBLAS element-wise conversion semantics for expressions of
-    /// a different scalar type (e.g. array_1d<int, 3> from an
+    /// constraint keeps incompatible constructions out of overload sets). The
+    /// cast mirrors the uBLAS element-wise conversion semantics for
+    /// expressions of a different scalar type (e.g. array_1d<int, 3> from an
     /// array_1d<std::size_t, 3>).
     template<class TDerived>
-    requires (Internals::IsColumnShapedEigenExpression<TDerived, N>)
+    requires (Internals::IsArray1dCompatible<TDerived, N>)
     array_1d(const Eigen::MatrixBase<TDerived>& rExpression) : BaseType(rExpression.template cast<T>()) {}
-
-    /// Row-shaped (1 x N) expressions - a matrix row is a plain vector in the
-    /// uBLAS semantics this type preserves - are accepted transposed.
-    template<class TDerived>
-    requires (Internals::IsRowShapedEigenExpression<TDerived, N>)
-    array_1d(const Eigen::MatrixBase<TDerived>& rExpression) : BaseType(rExpression.transpose().template cast<T>()) {}
 
     ///@}
     ///@name Operators
@@ -180,65 +166,20 @@ public:
         return BaseType::data()[i];
     }
 
-    // Assignment
-    array_1d& operator=(const array_1d& rOther)
-    {
-        BaseType::operator=(rOther);
-        return *this;
-    }
+    array_1d& operator=(const array_1d& rOther) = default;
 
-    /// The assignment evaluates through a temporary (.eval()), reproducing
-    /// the alias-safe uBLAS operator= semantics; the temporary-free fast path
-    /// remains noalias(x) = expr, exactly as in uBLAS.
+    /// Assignment from any compatible Eigen expression, converting the scalar
+    /// type element-wise. Eigen evaluates through a temporary where aliasing
+    /// matters (e.g. products); noalias(x) = expr skips it, exactly as in uBLAS.
     template<class TDerived>
-    requires (Internals::IsColumnShapedEigenExpression<TDerived, N> || Internals::IsRowShapedEigenExpression<TDerived, N>)
+    requires (Internals::IsArray1dCompatible<TDerived, N>)
     array_1d& operator=(const Eigen::MatrixBase<TDerived>& rExpression)
     {
-        if constexpr (Internals::IsRowShapedEigenExpression<TDerived, N>) {
-            BaseType::operator=(rExpression.transpose().template cast<T>().eval());
-        } else {
-            BaseType::operator=(rExpression.template cast<T>().eval());
-        }
+        BaseType::operator=(rExpression.template cast<T>());
         return *this;
     }
 
-    template<class TDerived>
-    requires (Internals::IsColumnShapedEigenExpression<TDerived, N> || Internals::IsRowShapedEigenExpression<TDerived, N>)
-    array_1d& operator+=(const Eigen::MatrixBase<TDerived>& rExpression)
-    {
-        if constexpr (Internals::IsRowShapedEigenExpression<TDerived, N>) {
-            BaseType::operator+=(rExpression.transpose().template cast<T>().eval());
-        } else {
-            BaseType::operator+=(rExpression.template cast<T>().eval());
-        }
-        return *this;
-    }
-
-    template<class TDerived>
-    requires (Internals::IsColumnShapedEigenExpression<TDerived, N> || Internals::IsRowShapedEigenExpression<TDerived, N>)
-    array_1d& operator-=(const Eigen::MatrixBase<TDerived>& rExpression)
-    {
-        if constexpr (Internals::IsRowShapedEigenExpression<TDerived, N>) {
-            BaseType::operator-=(rExpression.transpose().template cast<T>().eval());
-        } else {
-            BaseType::operator-=(rExpression.template cast<T>().eval());
-        }
-        return *this;
-    }
-
-    // Scalar operators keep the base class implementations (no aliasing there)
-    using BaseType::operator*=;
-    using BaseType::operator/=;
-
-    /**
-     * @brief Compares whether this array_1d is equal to the given array_1d.
-     * @param rOther the array_1d to compare to
-     * @return true if the two arrays are equal, false otherwise
-     */
-    bool operator==(const array_1d& rOther) const
-    {
-        return std::equal(begin(), end(), rOther.begin());
-    }
+    // The remaining operators (+=, -=, *=, /=) are Eigen's
 
     ///@}
     ///@name Operations
@@ -248,60 +189,8 @@ public:
     void resize(size_type Size, bool Preserve = true)
     {
         if (!Preserve) {
-            std::fill(begin(), end(), value_type());
+            std::fill(this->begin(), this->end(), value_type());
         }
-    }
-
-    array_1d& assign_temporary(array_1d& rOther)
-    {
-        swap(rOther);
-        return *this;
-    }
-
-    // uBLAS assignment protocol (kept for generic code written against it)
-    template<class TDerived>
-    array_1d& assign(const Eigen::MatrixBase<TDerived>& rExpression)
-    {
-        this->noalias() = rExpression.template cast<T>();
-        return *this;
-    }
-    template<class TDerived>
-    array_1d& plus_assign(const Eigen::MatrixBase<TDerived>& rExpression)
-    {
-        this->noalias() += rExpression.template cast<T>();
-        return *this;
-    }
-    template<class TDerived>
-    array_1d& minus_assign(const Eigen::MatrixBase<TDerived>& rExpression)
-    {
-        this->noalias() -= rExpression.template cast<T>();
-        return *this;
-    }
-
-    void swap(array_1d& rOther)
-    {
-        if (this != &rOther) {
-            std::swap_ranges(begin(), end(), rOther.begin());
-        }
-    }
-    friend void swap(array_1d& rFirst, array_1d& rSecond)
-    {
-        rFirst.swap(rSecond);
-    }
-
-    reference insert_element(size_type i, const_reference rValue)
-    {
-        KRATOS_DEBUG_ERROR_IF(i >= N) << "Index greater than the size of the array - index is i = " << i << std::endl;
-        return ((*this)[i] = rValue);
-    }
-    void erase_element(size_type i)
-    {
-        KRATOS_DEBUG_ERROR_IF(i >= N) << "Index greater than the size of the array - index is i = " << i << std::endl;
-        (*this)[i] = value_type();
-    }
-    void clear()
-    {
-        std::fill(begin(), end(), value_type());
     }
 
     ///@}
@@ -317,18 +206,6 @@ public:
     /// operator[]) and an implicit conversion to the raw pointer.
     Internals::StorageView<T> data() { return {BaseType::data(), N}; }
     Internals::StorageView<const T> data() const { return {BaseType::data(), N}; }
-
-    iterator begin() { return BaseType::data(); }
-    const_iterator begin() const { return BaseType::data(); }
-    const_iterator cbegin() const { return BaseType::data(); }
-    iterator end() { return BaseType::data() + N; }
-    const_iterator end() const { return BaseType::data() + N; }
-    const_iterator cend() const { return BaseType::data() + N; }
-
-    reverse_iterator rbegin() { return reverse_iterator(end()); }
-    const_reverse_iterator rbegin() const { return const_reverse_iterator(end()); }
-    reverse_iterator rend() { return reverse_iterator(begin()); }
-    const_reverse_iterator rend() const { return const_reverse_iterator(begin()); }
 
     ///@}
 }; // Class array_1d
