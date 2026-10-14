@@ -10,31 +10,19 @@
 //  Main authors:    Vicente Mataix Ferrandiz
 //
 
-#pragma once
-
-// The Eigen-real LinearSolver instantiations exist only under the eigen
-// backend: the two linear-algebra backends are mutually exclusive.
-#ifdef KRATOS_USE_EIGEN_BACKEND
-
 // Project includes
 #include "linear_solvers/linear_solver.h"
-#include "spaces/default_spaces.h"
 
 namespace Kratos {
 
-
-KRATOS_API_EXTERN template class KRATOS_API(KRATOS_CORE) LinearSolver<
-    TEigenSparseSpace<double>,
+template class LinearSolver<
+    TDefaultSparseSpace<double>,
     TDefaultDenseSpace<double>
 >;
 
-
-KRATOS_API_EXTERN template class KRATOS_API(KRATOS_CORE) LinearSolver<
-    TEigenSparseSpace<float>,
+template class LinearSolver<
+    TDefaultSparseSpace<float>,
     TDefaultDenseSpace<double>
 >;
-
 
 } // namespace Kratos
-
-#endif // KRATOS_USE_EIGEN_BACKEND
