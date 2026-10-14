@@ -44,7 +44,7 @@
         "include_conditions_model_parts_list": ["Structure.load"],
         "include_nodal_neighbouring_elements_model_parts_list":["Structure.load"],
         "include_minimum_condition": false,
-        "include_condition_parents": true,
+        "include_condition_parents": false,
         "constraint_sum_weights": true
     }
 }

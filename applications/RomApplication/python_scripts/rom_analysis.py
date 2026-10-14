@@ -369,6 +369,11 @@ def CreateRomAnalysisInstance(cls, global_model, parameters, nn_rom_interface=No
 
         def _SetAnnEnhancedDecoder(self, solver, nn_rom_interface, nodal_unknown_names):
             computing_model_part = solver.GetComputingModelPart().GetRootModelPart()
+            # The decoder acts on the basis of all the nodes, so it cannot run on a model part with only some of them (e.g. an HROM model part)
+            if nn_rom_interface.phi.shape[0] != computing_model_part.NumberOfNodes() * len(nodal_unknown_names):
+                err_msg = f"The basis of the ann_enhanced decoder has {nn_rom_interface.phi.shape[0]} rows, but '{computing_model_part.Name}' has {computing_model_part.NumberOfNodes()} nodes with {len(nodal_unknown_names)} unknowns. "
+                err_msg += "HROM model parts are not supported yet for ann_enhanced decoders: run the HROM on the full model part (use_full_model_part=True)."
+                raise Exception(err_msg)
             self._ann_enhanced_solvers.append((solver, nn_rom_interface, nodal_unknown_names))
 
             NNLayers=nn_rom_interface.get_NN_layers()

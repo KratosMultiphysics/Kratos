@@ -1,4 +1,5 @@
 import os
+import shutil
 import numpy as np
 
 import KratosMultiphysics
@@ -82,10 +83,8 @@ class TestHromMedRom(KratosUnittest.TestCase):
             io = KratosMultiphysics.MedApplication.MedModelPartIO(MED_TEST_FILE, KratosMultiphysics.IO.READ)
             io.ReadModelPart(model_part)
 
-            # Create a geometry IDs file (mapping geometry IDs to entity IDs)
-            import os as _os
-            _os.makedirs(self.work_folder, exist_ok=True)
-            geometry_ids_file = _os.path.join(self.work_folder, "geometry_ids_test.csv")
+            # Create a geometry IDs file (mapping geometry IDs to entity IDs) in the work folder
+            geometry_ids_file = "geometry_ids_test.csv"
             with open(geometry_ids_file, "w") as f:
                 for element in model_part.Elements:
                     f.write(f"{element.GetGeometry().Id},{element.Id}\n")
@@ -268,6 +267,49 @@ class TestHromMedRom(KratosUnittest.TestCase):
                     self.assertIsNotNone(element.Properties)
                 for condition in smp.Conditions:
                     self.assertIsNotNone(condition.Properties)
+
+    def test_run_hrom_on_hrom_model_part(self):
+        """Trains a ROM and an HROM with the RomManager on the MED case and checks that the HROM run on the HROM model part
+        (written during the HROM training) gives the solution of the HROM run on the full model part."""
+        work_folder = os.path.join(os.path.dirname(os.path.abspath(__file__)), self.work_folder, "RomManager")
+        self.addCleanup(kratos_utilities.DeleteDirectoryIfExisting, work_folder)
+        os.makedirs(work_folder, exist_ok=True)
+        # The HROM model part is written next to the input MED file, so the case is run on a copy of it
+        for file_name in ["ProjectParameters.json", "Materials.json", "rom_manager_parameters.json"]:
+            shutil.copy(os.path.join(os.path.dirname(work_folder), file_name), work_folder)
+        shutil.copy(MED_TEST_FILE, work_folder)
+
+        with KratosUnittest.WorkFolderScope(work_folder, __file__):
+            from KratosMultiphysics.RomApplication.rom_manager import RomManager
+
+            displacements = {}
+            def CustomizeSimulation(cls, global_model, parameters, mu=None):
+                class CustomSimulation(cls):
+                    def Finalize(self):
+                        model_part = self._GetSolver().GetComputingModelPart().GetRootModelPart()
+                        displacements[CustomizeSimulation.label] = {node.Id: list(node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT)) for node in model_part.Nodes}
+                        super().Finalize()
+                return CustomSimulation(global_model, parameters)
+
+            with open("rom_manager_parameters.json", 'r') as parameter_file:
+                general_rom_manager_parameters = KratosMultiphysics.Parameters(parameter_file.read())
+            rom_manager = RomManager(project_parameters_name="ProjectParameters.json", general_rom_manager_parameters=general_rom_manager_parameters, CustomizeSimulation=CustomizeSimulation)
+            mu = [[1.0]]
+            CustomizeSimulation.label = "Fit"
+            rom_manager.Fit(mu)
+            self.assertTrue(os.path.isfile("tetrahedral_10NHROM.med"))
+            self.assertTrue(os.path.isfile("rom_data/HROM_GeometryIds.csv"))
+
+            for label, use_full_model_part in [("full model part", True), ("HROM model part", False)]:
+                CustomizeSimulation.label = label
+                rom_manager.RunHROM(mu_run=mu, mu_train=mu, use_full_model_part=use_full_model_part)
+
+            # The HROM model part has only some of the nodes, on which both solutions must coincide
+            full, hrom = displacements["full model part"], displacements["HROM model part"]
+            self.assertLess(len(hrom), len(full))
+            expected = np.array([full[node_id] for node_id in hrom])
+            obtained = np.array([hrom[node_id] for node_id in hrom])
+            self.assertLess(np.linalg.norm(obtained - expected) / np.linalg.norm(expected), 1.0e-10)
 
     @classmethod
     def tearDownClass(cls):

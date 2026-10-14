@@ -602,7 +602,11 @@ class RomManager(object):
             HROM_utility.hyper_reduction_element_selector.w = self.data_base.get_single_numpy_from_database(hash_w)
             HROM_utility.hyper_reduction_element_selector.z = self.data_base.get_single_numpy_from_database(hash_z)
         HROM_utility.AppendHRomWeightsToRomParameters()
-        HROM_utility.CreateHRomModelParts()
+        # The HROM model part is only needed to run the HROM on it (RunHROM with use_full_model_part=False), so a failure creating it does not stop the training
+        try:
+            HROM_utility.CreateHRomModelParts()
+        except Exception as exception:
+            KratosMultiphysics.Logger.PrintWarning("RomManager", f"The HROM model part could not be created, so the HROM can only be run on the full model part (use_full_model_part=True). Error:\n{exception}")
         self.GenerateDatabaseSummary()
 
     def _SetHROMInputParameters(self, parameters):
@@ -1402,10 +1406,10 @@ class RomManager(object):
                 "svd_type": "numpy_rsvd",                         //  "numpy_svd", "numpy_rsvd"
                 "create_hrom_visualization_model_part" : true,
                 "include_elements_model_parts_list": [],          //The elements of the submodel parts included in this list will be considered in the HROM model part
-                "include_conditions_model_parts_list": [],         //The conditions of the submodel parts included in this list will be considered in the HROM model part
+                "include_conditions_model_parts_list": [],         //The conditions of the submodel parts included in this list will be considered in the HROM model part (e.g. those the processes need when running on the HROM model part, as an inlet)
                 "initial_candidate_elements_model_part_list" : [],        //These elements will be given priority when creating the HROM model part
                 "initial_candidate_conditions_model_part_list" : [],       //These conditions will be given priority when creating the HROM model part
-                "include_nodal_neighbouring_elements_model_parts_list":[],
+                "include_nodal_neighbouring_elements_model_parts_list":[],   //The elements around the nodes of these submodel parts will be considered in the HROM model part (e.g. the parents of the included conditions, required by the fluid solvers)
                 "include_minimum_condition": false,       // if true, keep at least one condition per submodelpart
                 "include_condition_parents": false,       // if true, when a condition is chosen by the ECM algorithm, the parent element is also included
                 "echo_level" : 0                          // if >0, get hrom training status promts
