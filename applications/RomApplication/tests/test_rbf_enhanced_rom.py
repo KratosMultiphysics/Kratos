@@ -96,13 +96,30 @@ class TestRbfEnhancedRom(KratosUnittest.TestCase):
                 if file_name.endswith(".time"):
                     kratos_utilities.DeleteFileIfExisting(file_name)
 
-    def testRbfEnhancedHromNotAvailable(self):
-        general_rom_manager_parameters = self._GetRomManagerParameters("galerkin")
-        general_rom_manager_parameters["rom_stages_to_train"].SetStringArray(["HROM"])
+    def _FitHromAndCheck(self, projection_strategy):
+        # The HROM integrates the projected residuals of the RBF-enhanced ROM with a subset of the elements and conditions
+        general_rom_manager_parameters = self._GetRomManagerParameters(projection_strategy)
+        general_rom_manager_parameters["rom_stages_to_train"].SetStringArray(["ROM", "HROM"])
+        general_rom_manager_parameters.AddValue("HROM", KratosMultiphysics.Parameters("""{"element_selection_svd_truncation_tolerance": 0}"""))
         with KratosUnittest.WorkFolderScope(self.work_folder, __file__):
             rom_manager = RomManager(project_parameters_name=self.project_parameters_name, general_rom_manager_parameters=general_rom_manager_parameters)
-            with self.assertRaisesRegex(Exception, "HROM is not available yet for rbf_enhanced decoders"):
-                rom_manager.Fit()
+            rom_manager.Fit()
+            self.assertLess(rom_manager.ROMvsFOM["Fit"], self.tolerance)
+            self.assertLess(rom_manager.ROMvsHROM["Fit"], self.hrom_tolerance)
+
+            self.assertGreater(np.load("rom_data/HROM_ElementIds.npy").size, 0)
+
+    def testFluidGalerkinRbfEnhancedHRom2D(self):
+        # The HROM of the enhanced decoders is not exact (the tangent operator changes with the solution); the ANN-enhanced one gives ~1e-3 here
+        self.tolerance = 1.0e-6
+        self.hrom_tolerance = 1.0e-3
+        self._FitHromAndCheck("galerkin")
+
+    def testFluidLSPGRbfEnhancedHRom2D(self):
+        # The ANN-enhanced HROM gives ~7e-3 here
+        self.tolerance = 1.0e-6
+        self.hrom_tolerance = 1.0e-2
+        self._FitHromAndCheck("lspg")
 
     def tearDown(self):
         with KratosUnittest.WorkFolderScope(self.work_folder, __file__):
