@@ -11,7 +11,7 @@ In order to write a python script with *Kratos* the first step would be to *"Obt
 There are sveral ways to Obtain the module:
 
 - Download the latest release of *Kratos* from Kratos' [release page](https://github.com/KratosMultiphysics/Kratos/releases)
-- Installing from PIP 'KratosMultiphysics-all'
+- Installing from PIP 'KratosMultiphysics[all]'
 - Getting the *Kratos* and its **GUI** from *GiD* internet retrieve.
 - Compile the source from the GitHub repo.
 
