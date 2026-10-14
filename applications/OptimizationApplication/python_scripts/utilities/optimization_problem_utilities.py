@@ -157,7 +157,7 @@ class CombinedTensorAdaptorData(TensorAdaptorData):
         self.prefix = prefix
 
     def GetTensorAdaptorName(self) -> str:
-        return f"{self.prefix}_{self.tensor_adaptor_path[self.tensor_adaptor_path.rfind("/")+1:]}"
+        return self.prefix + "_" + self.tensor_adaptor_path[self.tensor_adaptor_path.rfind("/")+1:]
 
     def GetTensorAdaptor(self, optimization_problem: OptimizationProblem) -> Kratos.TensorAdaptors.DoubleTensorAdaptor:
         data = optimization_problem.GetProblemDataContainer()[self.tensor_adaptor_path]
