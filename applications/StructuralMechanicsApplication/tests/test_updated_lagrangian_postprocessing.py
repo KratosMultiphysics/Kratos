@@ -11,12 +11,17 @@ class TestUpdatedLagrangianPostprocessing(KratosUnittest.TestCase):
     """Integration point output must not change after FinalizeSolutionStep if the displacements do not change"""
 
     # Imposed axial stretch at each step and the corresponding reference axial Cauchy stress
+    # The system is not used by the scheme here, so empty containers are enough
+    _A = KratosMultiphysics.CompressedMatrix()
+    _Dx = KratosMultiphysics.Vector()
+    _b = KratosMultiphysics.Vector()
+
     STRETCHES = [1.002, 1.004]
     REFERENCE_STRESS = [564.337033, 1126.588530]
 
     def _create_model_part(self, element_name):
-        model = KratosMultiphysics.Model()
-        mp = model.CreateModelPart("Main", 2)
+        self.model = KratosMultiphysics.Model()
+        mp = self.model.CreateModelPart("Main", 2)
         mp.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
         mp.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION)
         mp.AddNodalSolutionStepVariable(KratosMultiphysics.VOLUME_ACCELERATION)
@@ -34,7 +39,7 @@ class TestUpdatedLagrangianPostprocessing(KratosUnittest.TestCase):
         props.SetValue(KratosMultiphysics.VOLUME_ACCELERATION, [0.0, 0.0, 0.0])
         props.SetValue(KratosMultiphysics.CONSTITUTIVE_LAW, ConstitutiveLawsApplication.HyperElastic3DLaw())
 
-        element = mp.CreateNewElement(element_name, 1, [1, 2, 3, 4, 5, 6, 7, 8], props)
+        mp.CreateNewElement(element_name, 1, [1, 2, 3, 4, 5, 6, 7, 8], props)
 
         mp.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] = 3
         mp.ProcessInfo[KratosMultiphysics.STEP] = 0
@@ -44,37 +49,41 @@ class TestUpdatedLagrangianPostprocessing(KratosUnittest.TestCase):
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Y, KratosMultiphysics.REACTION_Y, mp)
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Z, KratosMultiphysics.REACTION_Z, mp)
 
-        element.Initialize(mp.ProcessInfo)
-        return mp, element
+        scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
+        scheme.InitializeElements(mp)
+        return mp, scheme
 
-    def _start_step(self, mp, element, step, stretch):
+    def _start_step(self, mp, scheme, step, stretch):
         mp.CloneTimeStep(float(step))
         mp.ProcessInfo[KratosMultiphysics.STEP] = step
         for node in mp.Nodes:
-            node.SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X, (stretch - 1.0) * node.X0)
-        element.InitializeSolutionStep(mp.ProcessInfo)
+            displacement = (stretch - 1.0) * node.X0
+            node.SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X, displacement)
+            # The elements work with the current coordinates
+            node.X = node.X0 + displacement
+        scheme.InitializeSolutionStep(mp, self._A, self._Dx, self._b)
 
     @staticmethod
-    def _stresses(mp, element):
-        return element.CalculateOnIntegrationPoints(KratosMultiphysics.CAUCHY_STRESS_VECTOR, mp.ProcessInfo)
+    def _stresses(mp):
+        return mp.GetElement(1).CalculateOnIntegrationPoints(KratosMultiphysics.CAUCHY_STRESS_VECTOR, mp.ProcessInfo)
 
     def _check_against_reference(self, stresses, step_index):
         for stress in stresses:
             self.assertAlmostEqual(stress[0], self.REFERENCE_STRESS[step_index], 4)
 
     def _run(self, element_name):
-        mp, element = self._create_model_part(element_name)
+        mp, scheme = self._create_model_part(element_name)
         for i, stretch in enumerate(self.STRETCHES):
-            self._start_step(mp, element, i + 1, stretch)
+            self._start_step(mp, scheme, i + 1, stretch)
 
-            before = self._stresses(mp, element)
+            before = self._stresses(mp)
             self._check_against_reference(before, i)
 
-            element.FinalizeSolutionStep(mp.ProcessInfo)
+            scheme.FinalizeSolutionStep(mp, self._A, self._Dx, self._b)
 
             # Several queries after finalization must be identical and equal to the ones before it
             for _ in range(2):
-                after = self._stresses(mp, element)
+                after = self._stresses(mp)
                 self._check_against_reference(after, i)
                 for stress_before, stress_after in zip(before, after):
                     self.assertVectorAlmostEqual(stress_before, stress_after, 8)
