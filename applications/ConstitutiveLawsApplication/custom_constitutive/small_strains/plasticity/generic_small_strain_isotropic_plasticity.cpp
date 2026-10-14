@@ -102,7 +102,9 @@ void GenericSmallStrainIsotropicPlasticity<TConstLawIntegratorType>::CalculateMa
     } else { // We check for plasticity
         // Integrate Stress plasticity
         Vector& r_integrated_stress_vector = rValues.GetStressVector();
-        const double characteristic_length = AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateCharacteristicLengthOnReferenceConfiguration(rValues.GetElementGeometry());
+        const double characteristic_length = (rValues.GetCharacteristicGeometryLength() != -1) 
+            ? rValues.GetCharacteristicGeometryLength() 
+            : AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateCharacteristicLengthOnReferenceConfiguration(rValues.GetElementGeometry());
 
         if (r_constitutive_law_options.IsNot(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN)) {
             BaseType::CalculateCauchyGreenStrain(rValues, r_strain_vector);
@@ -147,7 +149,7 @@ void GenericSmallStrainIsotropicPlasticity<TConstLawIntegratorType>::CalculateMa
                 r_constitutive_matrix, rValues, characteristic_length,
                 plastic_strain);
 
-            if (F <= std::abs(1.0e-4 * threshold)) { // Elastic case
+            if (F <= std::abs(1.0e-10 * threshold)) { // Elastic case
                 noalias(r_integrated_stress_vector) = predictive_stress_vector;
             } else { // Plastic case
                 // While loop backward euler
@@ -308,7 +310,9 @@ void GenericSmallStrainIsotropicPlasticity<TConstLawIntegratorType>::FinalizeMat
     this->CalculateElasticMatrix(r_constitutive_matrix, rValues);
 
     // Integrate Stress plasticity
-    const double characteristic_length = AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateCharacteristicLengthOnReferenceConfiguration(rValues.GetElementGeometry());
+    const double characteristic_length = (rValues.GetCharacteristicGeometryLength() != -1) 
+            ? rValues.GetCharacteristicGeometryLength() 
+            : AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateCharacteristicLengthOnReferenceConfiguration(rValues.GetElementGeometry());
 
     if (r_constitutive_law_options.IsNot( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN)) {
         BaseType::CalculateCauchyGreenStrain(rValues, r_strain_vector);
@@ -346,7 +350,7 @@ void GenericSmallStrainIsotropicPlasticity<TConstLawIntegratorType>::FinalizeMat
         r_constitutive_matrix, rValues, characteristic_length,
         plastic_strain);
 
-    if (F > std::abs(1.0e-4 * threshold)) { // Plastic case
+    if (F > std::abs(1.0e-10 * threshold)) { // Plastic case
         // While loop backward euler
         /* Inside "IntegrateStressVector" the predictive_stress_vector is updated to verify the yield criterion */
         TConstLawIntegratorType::IntegrateStressVector(

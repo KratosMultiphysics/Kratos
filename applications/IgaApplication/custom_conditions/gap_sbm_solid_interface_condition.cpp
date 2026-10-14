@@ -39,6 +39,8 @@ void GapSbmSolidInterfaceCondition::InitializeMaterial()
         const auto& N_values = r_geometry.ShapeFunctionsValues(this->GetIntegrationMethod());
         mpConstitutiveLaw = GetProperties()[CONSTITUTIVE_LAW]->Clone();
         mpConstitutiveLaw->InitializeMaterial( r_properties, r_geometry, row(N_values , 0 ));
+        mpConstitutiveLawMinus = GetProperties()[CONSTITUTIVE_LAW]->Clone();
+        mpConstitutiveLawMinus->InitializeMaterial(r_properties, r_geometry, row(N_values, 0));
 
     } else
         KRATOS_ERROR << "A constitutive law needs to be specified for the element with ID " << this->Id() << std::endl;
@@ -170,7 +172,6 @@ void GapSbmSolidInterfaceCondition::CalculateLeftHandSide(
     KRATOS_TRY
     const auto& r_surrogate_geometry_plus = GetGeometryPlus();
     const auto& r_surrogate_geometry_minus = GetGeometryMinus();
-    const auto& r_true_geometry = GetGeometry();
 
     const std::size_t number_of_control_points_plus = r_surrogate_geometry_plus.size();
     const std::size_t number_of_control_points_minus = r_surrogate_geometry_minus.size();
@@ -215,7 +216,7 @@ void GapSbmSolidInterfaceCondition::CalculateLeftHandSide(
     CalculateB(r_surrogate_geometry_minus, B_sum_minus, grad_N_sum_minus);
 
     // obtain the tangent constitutive matrix at the true position for the plus side
-    ConstitutiveLaw::Parameters values_true_plus(r_true_geometry, GetProperties(), rCurrentProcessInfo);
+    ConstitutiveLaw::Parameters values_true_plus(r_surrogate_geometry_plus, GetProperties(), rCurrentProcessInfo);
     Vector old_displacement_coefficient_vector_plus(mat_size_plus);
     GetSolutionCoefficientVectorPlus(old_displacement_coefficient_vector_plus);
     Vector old_strain_on_true_plus = prod(B_sum_plus, old_displacement_coefficient_vector_plus);
@@ -226,13 +227,13 @@ void GapSbmSolidInterfaceCondition::CalculateLeftHandSide(
     const Matrix& r_D_on_true_plus = values_true_plus.GetConstitutiveMatrix();
 
     // obtain the tangent constitutive matrix at the true position for the minus side
-    ConstitutiveLaw::Parameters values_true_minus(r_true_geometry, GetProperties(), rCurrentProcessInfo);
+    ConstitutiveLaw::Parameters values_true_minus(r_surrogate_geometry_minus, GetProperties(), rCurrentProcessInfo);
     Vector old_displacement_coefficient_vector_minus(mat_size_minus);
     GetSolutionCoefficientVectorMinus(old_displacement_coefficient_vector_minus);
     Vector old_strain_on_true_minus = prod(B_sum_minus, old_displacement_coefficient_vector_minus);
     const std::size_t strain_size_true_minus = mpConstitutiveLaw->GetStrainSize();
     ConstitutiveVariables this_constitutive_variables_true_minus(strain_size_true_minus);
-    ApplyConstitutiveLaw(mat_size_minus, old_strain_on_true_minus, values_true_minus, this_constitutive_variables_true_minus);
+    ApplyConstitutiveLaw(mat_size_minus, old_strain_on_true_minus, values_true_minus, this_constitutive_variables_true_minus, true);
 
     const Matrix& r_D_on_true_minus = values_true_minus.GetConstitutiveMatrix();
 
@@ -433,7 +434,6 @@ void GapSbmSolidInterfaceCondition::CalculateRightHandSide(
     KRATOS_TRY
     const auto& r_surrogate_geometry_plus = GetGeometryPlus();
     const auto& r_surrogate_geometry_minus = GetGeometryMinus();
-    const auto& r_true_geometry = GetGeometry();
 
     const std::size_t number_of_control_points_plus = r_surrogate_geometry_plus.size();
     const std::size_t number_of_control_points_minus = r_surrogate_geometry_minus.size();
@@ -478,7 +478,7 @@ void GapSbmSolidInterfaceCondition::CalculateRightHandSide(
     CalculateB(r_surrogate_geometry_minus, B_sum_minus, grad_N_sum_minus);
 
     // obtain the tangent constitutive matrix at the true position for the plus side
-    ConstitutiveLaw::Parameters values_true_plus(r_true_geometry, GetProperties(), rCurrentProcessInfo);
+    ConstitutiveLaw::Parameters values_true_plus(r_surrogate_geometry_plus, GetProperties(), rCurrentProcessInfo);
     Vector old_displacement_coefficient_vector_plus(mat_size_plus);
     GetSolutionCoefficientVectorPlus(old_displacement_coefficient_vector_plus);
     Vector old_strain_on_true_plus = prod(B_sum_plus, old_displacement_coefficient_vector_plus);
@@ -492,13 +492,13 @@ void GapSbmSolidInterfaceCondition::CalculateRightHandSide(
     CalculateTraction(r_stress_on_true_plus, mNormalPhysicalSpace, old_stress_plus);
 
     // obtain the tangent constitutive matrix at the true position for the minus side
-    ConstitutiveLaw::Parameters values_true_minus(r_true_geometry, GetProperties(), rCurrentProcessInfo);
+    ConstitutiveLaw::Parameters values_true_minus(r_surrogate_geometry_minus, GetProperties(), rCurrentProcessInfo);
     Vector old_displacement_coefficient_vector_minus(mat_size_minus);
     GetSolutionCoefficientVectorMinus(old_displacement_coefficient_vector_minus);
     Vector old_strain_on_true_minus = prod(B_sum_minus, old_displacement_coefficient_vector_minus);
     const std::size_t strain_size_true_minus = mpConstitutiveLaw->GetStrainSize();
     ConstitutiveVariables this_constitutive_variables_true_minus(strain_size_true_minus);
-    ApplyConstitutiveLaw(mat_size_minus, old_strain_on_true_minus, values_true_minus, this_constitutive_variables_true_minus);
+    ApplyConstitutiveLaw(mat_size_minus, old_strain_on_true_minus, values_true_minus, this_constitutive_variables_true_minus, true);
 
     const Vector& r_stress_on_true_minus = values_true_minus.GetStressVector();
     const Matrix& r_D_on_true_minus = values_true_minus.GetConstitutiveMatrix();
@@ -800,7 +800,7 @@ void GapSbmSolidInterfaceCondition::CalculateTraction(
 }
 
 void GapSbmSolidInterfaceCondition::ApplyConstitutiveLaw(std::size_t matSize, Vector& rStrain, ConstitutiveLaw::Parameters& rValues,
-                                    ConstitutiveVariables& rConstitutiVariables)
+                                    ConstitutiveVariables& rConstitutiVariables, bool IsMinusSide)
 {
     // Set constitutive law flags:
     Flags& ConstitutiveLawOptions=rValues.GetOptions();
@@ -813,25 +813,59 @@ void GapSbmSolidInterfaceCondition::ApplyConstitutiveLaw(std::size_t matSize, Ve
     rValues.SetStressVector(rConstitutiVariables.StressVector);
     rValues.SetConstitutiveMatrix(rConstitutiVariables.D);
 
-    mpConstitutiveLaw->CalculateMaterialResponse(rValues, ConstitutiveLaw::StressMeasure_Cauchy); 
+    auto& r_law = IsMinusSide ? *mpConstitutiveLawMinus : *mpConstitutiveLaw;
+    r_law.CalculateMaterialResponse(rValues, ConstitutiveLaw::StressMeasure_Cauchy);
 }
 
 
 void GapSbmSolidInterfaceCondition::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
 {
-    ConstitutiveLaw::Parameters constitutive_law_parameters(
-        GetGeometry(), GetProperties(), rCurrentProcessInfo);
-
-    mpConstitutiveLaw->FinalizeMaterialResponse(constitutive_law_parameters, ConstitutiveLaw::StressMeasure_Cauchy);
+    UpdateMaterialResponse(rCurrentProcessInfo, true);
 }
 
-void GapSbmSolidInterfaceCondition::InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo){
-    //--------------------------------------------------------------------------------------------
-    // calculate the constitutive law response
-    ConstitutiveLaw::Parameters constitutive_law_parameters(
-        GetGeometry(), GetProperties(), rCurrentProcessInfo);
+void GapSbmSolidInterfaceCondition::InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
+{
+    UpdateMaterialResponse(rCurrentProcessInfo, false);
+}
 
-    mpConstitutiveLaw->InitializeMaterialResponse(constitutive_law_parameters, ConstitutiveLaw::StressMeasure_Cauchy);
+void GapSbmSolidInterfaceCondition::UpdateMaterialResponse(
+    const ProcessInfo& rCurrentProcessInfo, bool Finalize)
+{
+    KRATOS_TRY
+    // Each side commits its own plastic history using the strain at the true interface.
+    for (const bool is_minus_side : {false, true}) {
+        const auto& r_geometry = is_minus_side ? GetGeometryMinus() : GetGeometryPlus();
+        const auto& r_distance = is_minus_side ? mDistanceVectorMinus : mDistanceVectorPlus;
+        auto& r_law = is_minus_side ? *mpConstitutiveLawMinus : *mpConstitutiveLaw;
+        const std::size_t strain_size = r_law.GetStrainSize();
+        const std::size_t mat_size = r_geometry.size() * mDim;
+        Matrix transposed_gradients = ZeroMatrix(3, r_geometry.size());
+        ComputeGradientTaylorExpansionContribution(r_geometry, r_distance, transposed_gradients);
+        Matrix gradients = trans(transposed_gradients);
+        Matrix B = ZeroMatrix(strain_size, mat_size);
+        CalculateB(r_geometry, B, gradients);
+        Vector displacement(mat_size);
+        if (is_minus_side) {
+            GetSolutionCoefficientVectorMinus(displacement);
+        } else {
+            GetSolutionCoefficientVectorPlus(displacement);
+        }
+        Vector strain = prod(B, displacement);
+        ConstitutiveVariables constitutive_variables(strain_size);
+        ConstitutiveLaw::Parameters values(r_geometry, GetProperties(), rCurrentProcessInfo);
+        values.GetOptions().Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
+        values.GetOptions().Set(ConstitutiveLaw::COMPUTE_STRESS, true);
+        values.GetOptions().Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
+        values.SetStrainVector(strain);
+        values.SetStressVector(constitutive_variables.StressVector);
+        values.SetConstitutiveMatrix(constitutive_variables.D);
+        if (Finalize) {
+            r_law.FinalizeMaterialResponse(values, ConstitutiveLaw::StressMeasure_Cauchy);
+        } else {
+            r_law.InitializeMaterialResponse(values, ConstitutiveLaw::StressMeasure_Cauchy);
+        }
+    }
+    KRATOS_CATCH("")
 }
 
 void GapSbmSolidInterfaceCondition::ComputeTaylorExpansionContribution(

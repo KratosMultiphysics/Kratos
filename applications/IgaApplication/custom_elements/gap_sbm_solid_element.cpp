@@ -357,11 +357,6 @@ Element::IntegrationMethod GapSbmSolidElement::GetIntegrationMethod() const
 
 void GapSbmSolidElement::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
 {
-    ConstitutiveLaw::Parameters constitutive_law_parameters(
-        GetSurrogateGeometry(), GetProperties(), rCurrentProcessInfo);
-
-    mpConstitutiveLaw->FinalizeMaterialResponse(constitutive_law_parameters, ConstitutiveLaw::StressMeasure_Cauchy);
-
     //---------- SET STRESS VECTOR VALUE ----------------------------------------------------------------
         //TODO: build a CalculateOnIntegrationPoints method
         //--------------------------------------------------------------------------------------------
@@ -391,6 +386,8 @@ void GapSbmSolidElement::FinalizeSolutionStep(const ProcessInfo& rCurrentProcess
         const std::size_t strain_size_true = mpConstitutiveLaw->GetStrainSize();
         ConstitutiveVariables this_constitutive_variables_true(strain_size_true);
         ApplyConstitutiveLaw(mat_size, old_strain_on_true, values_true, this_constitutive_variables_true);
+
+        mpConstitutiveLaw->FinalizeMaterialResponse(values_true, ConstitutiveLaw::StressMeasure_Cauchy);
 
         const Vector sigma = values_true.GetStressVector();
     
@@ -443,6 +440,31 @@ void GapSbmSolidElement::CalculateOnIntegrationPoints(
 
     if (mpConstitutiveLaw->Has(rVariable)) {
         mpConstitutiveLaw->GetValue(rVariable, rOutput[0]);
+    } else if (rVariable.Name() == "EQUIVALENT_PLASTIC_STRAIN") {
+        const auto& r_surrogate_geometry = GetSurrogateGeometry();
+        const std::size_t strain_size = mpConstitutiveLaw->GetStrainSize();
+        const std::size_t number_of_control_points = r_surrogate_geometry.size();
+        Matrix transposed_gradients = ZeroMatrix(3, number_of_control_points);
+        ComputeGradientTaylorExpansionContribution(transposed_gradients);
+        Matrix gradients = trans(transposed_gradients);
+        Matrix B = ZeroMatrix(strain_size, number_of_control_points * mDim);
+        CalculateB(B, gradients);
+        Vector displacement(number_of_control_points * mDim);
+        GetSolutionCoefficientVector(displacement);
+        Vector strain = prod(B, displacement);
+        Vector stress = ZeroVector(strain_size);
+        Matrix constitutive_matrix = ZeroMatrix(strain_size, strain_size);
+        ConstitutiveLaw::Parameters values(r_surrogate_geometry, GetProperties(), rCurrentProcessInfo);
+        values.GetOptions().Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
+        values.GetOptions().Set(ConstitutiveLaw::COMPUTE_STRESS, true);
+        values.GetOptions().Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
+        values.SetStrainVector(strain);
+        values.SetStressVector(stress);
+        values.SetConstitutiveMatrix(constitutive_matrix);
+        if (Has(CHARACTERISTIC_GEOMETRY_LENGTH)) {
+            values.SetCharacteristicGeometryLength(norm_2(GetValue(CHARACTERISTIC_GEOMETRY_LENGTH)));
+        }
+        mpConstitutiveLaw->CalculateValue(values, rVariable, rOutput[0]);
     } else {
         KRATOS_WATCH(rVariable);
         KRATOS_WARNING("VARIABLE PRINT STILL NOT IMPLEMENTED IN THE IGA FRAMEWORK");
@@ -545,6 +567,9 @@ void GapSbmSolidElement::ApplyConstitutiveLaw(std::size_t matSize, Vector& rStra
     ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
     ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
     
+    if (Has(CHARACTERISTIC_GEOMETRY_LENGTH)) {
+        rValues.SetCharacteristicGeometryLength(norm_2(GetValue(CHARACTERISTIC_GEOMETRY_LENGTH)));
+    }
     rValues.SetStrainVector(rStrain);
     rValues.SetStressVector(rConstitutiVariables.StressVector);
     rValues.SetConstitutiveMatrix(rConstitutiVariables.D);

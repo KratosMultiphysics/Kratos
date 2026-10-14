@@ -17,14 +17,18 @@
 
 // Project includes
 #include "custom_conditions/gap_sbm_solid_condition.h"
+#include "custom_utilities/analytical_j2_response_utility.h"
+
+// Comment out to assemble the incremental constitutive-law response.
+#define ANALYTICAL_TANGENT
 
 namespace Kratos
 {
 
 void GapSbmSolidCondition::Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
-    InitializeMemberVariables();
     InitializeMaterial();
+    InitializeMemberVariables();
     InitializeSbmMemberVariables();
 }
 
@@ -124,8 +128,16 @@ void GapSbmSolidCondition::InitializeSbmMemberVariables()
 
     mDistanceVector.resize(3);
     noalias(mDistanceVector) = r_geometry.Center().Coordinates() - r_surrogate_geometry.Center().Coordinates();
-    
-    SetValue(PROJECTION_NODE_COORDINATES, r_geometry.GetValue(PROJECTION_NODE)->Coordinates());
+
+    SetValue(PROJECTION_NODE_COORDINATES, r_surrogate_geometry.Center().Coordinates());
+
+    const Point&  p_true = r_geometry.Center();            // true boundary
+    const Point&  p_sur  = r_surrogate_geometry.Center();  // surrogate
+
+    std::ofstream out("centers.txt", std::ios::app);       // append mode
+    out << std::setprecision(15)                           // full precision
+        << p_true.X() << ' ' << p_true.Y() << ' ' << p_true.Z() << ' '
+        << p_sur .X() << ' ' << p_sur .Y() << ' ' << p_sur .Z() << '\n';
 }
 
 void GapSbmSolidCondition::CalculateLocalSystem(
@@ -185,6 +197,8 @@ void GapSbmSolidCondition::CalculateLeftHandSide(
 
     // obtain the tangent constitutive matrix at the true position
     ConstitutiveLaw::Parameters values_true(r_true_geometry, GetProperties(), rCurrentProcessInfo);
+    values_true.SetCharacteristicGeometryLength(GetCharacteristicGeometryLengthScalar());
+
     Vector old_displacement_coefficient_vector(mat_size);
     GetSolutionCoefficientVector(old_displacement_coefficient_vector);
     Vector old_strain_on_true = prod(B_sum, old_displacement_coefficient_vector);
@@ -192,7 +206,12 @@ void GapSbmSolidCondition::CalculateLeftHandSide(
     ConstitutiveVariables this_constitutive_variables_true(strain_size_true);
     ApplyConstitutiveLaw(mat_size, old_strain_on_true, values_true, this_constitutive_variables_true);
 
+    #ifdef ANALYTICAL_TANGENT
+    Matrix r_D_on_true = ZeroMatrix(3,3);
+    AnalyticalJ2ResponseUtility::AnalyticalConstitutiveMatrix(r_D_on_true, old_strain_on_true, GetProperties());
+    #else
     const Matrix& r_D_on_true = values_true.GetConstitutiveMatrix();
+    #endif
 
     Matrix DB_sum = prod(r_D_on_true, B_sum);
 
@@ -320,6 +339,7 @@ void GapSbmSolidCondition::CalculateRightHandSide(
 
     // obtain the tangent constitutive matrix at the true positio
     ConstitutiveLaw::Parameters values_true(r_true_geometry, GetProperties(), rCurrentProcessInfo);
+    values_true.SetCharacteristicGeometryLength(GetCharacteristicGeometryLengthScalar());
 
     Vector old_displacement_coefficient_vector(mat_size);
     GetSolutionCoefficientVector(old_displacement_coefficient_vector);
@@ -329,8 +349,15 @@ void GapSbmSolidCondition::CalculateRightHandSide(
     ConstitutiveVariables this_constitutive_variables_true(strain_size_true);
     ApplyConstitutiveLaw(mat_size, old_strain_on_true, values_true, this_constitutive_variables_true);
 
-    const Matrix& r_D_on_true = values_true.GetConstitutiveMatrix();
+    #ifdef ANALYTICAL_TANGENT
+    Vector r_stress_vector_on_true = ZeroVector(3);
+    AnalyticalJ2ResponseUtility::AnalyticalStress(r_stress_vector_on_true, old_strain_on_true, GetProperties());
+
+    Matrix r_D_on_true = ZeroMatrix(3,3);
+    AnalyticalJ2ResponseUtility::AnalyticalConstitutiveMatrix(r_D_on_true, old_strain_on_true, GetProperties());
+    #else
     const Vector& r_stress_vector_on_true = values_true.GetStressVector();
+    #endif
 
     // compute the old_displacement solution on the true boundary
     Vector old_displacement = ZeroVector(3);
@@ -583,6 +610,20 @@ void GapSbmSolidCondition::CalculateRightHandSide(
         }
     }
 
+    double GapSbmSolidCondition::GetCharacteristicGeometryLengthScalar() const
+    {
+        KRATOS_ERROR_IF_NOT(this->Has(CHARACTERISTIC_GEOMETRY_LENGTH))
+            << "CHARACTERISTIC_GEOMETRY_LENGTH not set for condition " << this->Id() << std::endl;
+
+        const array_1d<double,3>& characteristic_length_vector = this->GetValue(CHARACTERISTIC_GEOMETRY_LENGTH);
+        const double characteristic_length = norm_2(characteristic_length_vector);
+
+        KRATOS_ERROR_IF(characteristic_length <= 0.0)
+            << "Non-positive characteristic length computed for condition " << this->Id() << std::endl;
+
+        return characteristic_length;
+    }
+
     void GapSbmSolidCondition::ApplyConstitutiveLaw(std::size_t matSize, Vector& rStrain, ConstitutiveLaw::Parameters& rValues,
                                         ConstitutiveVariables& rConstitutiVariables)
     {
@@ -592,6 +633,7 @@ void GapSbmSolidCondition::CalculateRightHandSide(
         ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
         ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
         ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
+        rValues.SetCharacteristicGeometryLength(GetCharacteristicGeometryLengthScalar());
         
         rValues.SetStrainVector(rStrain);
         rValues.SetStressVector(rConstitutiVariables.StressVector);
@@ -603,11 +645,6 @@ void GapSbmSolidCondition::CalculateRightHandSide(
 
     void GapSbmSolidCondition::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
     {
-        ConstitutiveLaw::Parameters constitutive_law_parameters(
-            GetGeometry(), GetProperties(), rCurrentProcessInfo);
-
-        mpConstitutiveLaw->FinalizeMaterialResponse(constitutive_law_parameters, ConstitutiveLaw::StressMeasure_Cauchy);
-
         //---------- SET STRESS VECTOR VALUE ----------------------------------------------------------------
         //TODO: build a CalculateOnIntegrationPoints method
         //--------------------------------------------------------------------------------------------
@@ -629,6 +666,7 @@ void GapSbmSolidCondition::CalculateRightHandSide(
 
         // obtain the tangent constitutive matrix at the true position
         ConstitutiveLaw::Parameters values_true(GetGeometry(), GetProperties(), rCurrentProcessInfo);
+        values_true.SetCharacteristicGeometryLength(GetCharacteristicGeometryLengthScalar());
 
         Vector old_displacement_coefficient_vector(mat_size);
         GetSolutionCoefficientVector(old_displacement_coefficient_vector);
@@ -638,7 +676,14 @@ void GapSbmSolidCondition::CalculateRightHandSide(
         ConstitutiveVariables this_constitutive_variables_true(strain_size_true);
         ApplyConstitutiveLaw(mat_size, old_strain_on_true, values_true, this_constitutive_variables_true);
 
+        mpConstitutiveLaw->FinalizeMaterialResponse(values_true, ConstitutiveLaw::StressMeasure_Cauchy);
+
+        #ifdef ANALYTICAL_TANGENT
+        Vector sigma = ZeroVector(3);
+        AnalyticalJ2ResponseUtility::AnalyticalStress(sigma, old_strain_on_true, GetProperties());
+        #else
         const Vector sigma = values_true.GetStressVector();
+        #endif
         Vector sigma_n = ZeroVector(mDim);
 
         if (mDim == 2) {
@@ -689,10 +734,33 @@ void GapSbmSolidCondition::CalculateRightHandSide(
 void GapSbmSolidCondition::InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo){
     //--------------------------------------------------------------------------------------------
     // calculate the constitutive law response
-    ConstitutiveLaw::Parameters constitutive_law_parameters(
-        GetGeometry(), GetProperties(), rCurrentProcessInfo);
+    const auto& r_surrogate_geometry = *GetValue(NEIGHBOUR_GEOMETRIES)[0];
+    const SizeType number_of_control_points = r_surrogate_geometry.size();
+    const SizeType mat_size = number_of_control_points * mDim;
 
-    mpConstitutiveLaw->InitializeMaterialResponse(constitutive_law_parameters, ConstitutiveLaw::StressMeasure_Cauchy);
+    Matrix grad_N_sum_transposed = ZeroMatrix(3, number_of_control_points);
+    ComputeGradientTaylorExpansionContribution(grad_N_sum_transposed);
+    Matrix grad_N_sum = trans(grad_N_sum_transposed);
+    Matrix B_sum = ZeroMatrix(3, mat_size);
+    CalculateB(B_sum, grad_N_sum);
+
+    Vector displacement(mat_size);
+    GetSolutionCoefficientVector(displacement);
+    Vector strain = prod(B_sum, displacement);
+    ConstitutiveLaw::Parameters values(GetGeometry(), GetProperties(), rCurrentProcessInfo);
+    ConstitutiveVariables constitutive_variables(mpConstitutiveLaw->GetStrainSize());
+    ApplyConstitutiveLaw(mat_size, strain, values, constitutive_variables);
+
+    // Freeze the adjoint Nitsche operator for all Newton iterations of this step.
+    #ifdef ANALYTICAL_TANGENT
+    Matrix D = ZeroMatrix(3,3);
+    AnalyticalJ2ResponseUtility::AnalyticalConstitutiveMatrix(D, strain, GetProperties());
+    mDBOld = prod(D, B_sum);
+    #else
+    mDBOld = prod(values.GetConstitutiveMatrix(), B_sum);
+    #endif
+    mpConstitutiveLaw->InitializeMaterialResponse(values, ConstitutiveLaw::StressMeasure_Cauchy);
+
 }
 
 void GapSbmSolidCondition::ComputeTaylorExpansionContribution(Vector& H_sum_vec)

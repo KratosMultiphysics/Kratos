@@ -265,6 +265,7 @@ void InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
 ///@{
 ConstitutiveLaw::Pointer mpConstitutiveLaw; /// The pointer containing the constitutive laws
 unsigned int mDim; /// The dimension of the condition 
+double mCharacteristicGeometryLength = 0.0; /// Characteristic length used by the constitutive law
 
 ///@}
 

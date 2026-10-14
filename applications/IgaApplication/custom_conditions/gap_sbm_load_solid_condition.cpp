@@ -60,9 +60,7 @@ void GapSbmLoadSolidCondition::InitializeMemberVariables()
     // Initialize DN_DX
     mDim = r_DN_De[0].size2();
 
-    KRATOS_ERROR_IF(mDim != 2 && mDim != 3) << "GapSbmSolidCondition momentarily only supports 2D and 3D conditions, but the current dimension is" << mDim << std::endl;
-    
-    Vector mesh_size_uv = this->GetValue(KNOT_SPAN_SIZES);
+    KRATOS_ERROR_IF(mDim != 2) << "CutSbmLoadSolidCondition momentarily only supports 2D conditions, but the current dimension is" << mDim << std::endl;
     
     // Compute basis function order (Note: it is not allow to use different orders in different directions)
     if (mDim == 3) {
@@ -108,7 +106,14 @@ void GapSbmLoadSolidCondition::InitializeSbmMemberVariables()
     const Point&  p_true = r_geometry.Center();            // true boundary
     const Point&  p_sur  = r_surrogate_geometry.Center();  // surrogate
 
-    SetValue(PROJECTION_NODE_COORDINATES, r_geometry.GetValue(PROJECTION_NODE)->Coordinates());
+    // The 2D modeler does not attach a projection node to boundary geometries.
+    const auto p_projection_node = r_geometry.Has(PROJECTION_NODE)
+        ? r_geometry.GetValue(PROJECTION_NODE) : Node::Pointer();
+    if (p_projection_node != nullptr) {
+        SetValue(PROJECTION_NODE_COORDINATES, p_projection_node->Coordinates());
+    } else {
+        SetValue(PROJECTION_NODE_COORDINATES, r_geometry.Center().Coordinates());
+    }
 }
 
 void GapSbmLoadSolidCondition::CalculateLocalSystem(
@@ -166,7 +171,44 @@ void GapSbmLoadSolidCondition::CalculateRightHandSide(
     Vector N_sum_vec = ZeroVector(number_of_control_points);
     ComputeTaylorExpansionContribution(N_sum_vec);
 
-    Vector g_N = this->GetValue(FORCE); 
+    // Vector g_N = this->GetValue(FORCE); 
+
+
+    //PLASTICITY AT THE BOUNDARY
+    double t = rCurrentProcessInfo[TIME];
+    double nu = this->GetProperties().GetValue(POISSON_RATIO);
+    double E = this->GetProperties().GetValue(YOUNG_MODULUS);
+
+    const auto& r_true_geometry = GetGeometry();
+    const double x = r_true_geometry.Center().X();
+    const double y = r_true_geometry.Center().Y();
+    Vector g_N = ZeroVector(3); 
+
+    Vector rStressVector = ZeroVector(3);
+    rStressVector[0] = ((std::sqrt(21)*M_PI*std::fabs(t*std::sin((1.0/4.0)*M_PI*x)*std::cos((1.0/2.0)*M_PI*y)) <= 3.0/500.0) ? (
+    33500*M_PI*t*std::sin((1.0/4.0)*M_PI*x)*std::cos((1.0/2.0)*M_PI*y)
+    )
+    : (
+    (134.0/7.0)*t*(-1750*M_PI + std::sqrt(21)/std::fabs(t*std::sin((1.0/4.0)*M_PI*x)*std::cos((1.0/2.0)*M_PI*y)))*std::sin((1.0/4.0)*M_PI*x)*std::cos((1.0/2.0)*M_PI*y)
+    ));
+    rStressVector[1] = ((std::sqrt(21)*M_PI*std::fabs(t*std::sin((1.0/4.0)*M_PI*x)*std::cos((1.0/2.0)*M_PI*y)) <= 3.0/500.0) ? (
+    -134000*M_PI*t*std::sin((1.0/4.0)*M_PI*x)*std::cos((1.0/2.0)*M_PI*y)
+    )
+    : (
+    -67.0/7.0*t*(3500*M_PI + 3*std::sqrt(21)/std::fabs(t*std::sin((1.0/4.0)*M_PI*x)*std::cos((1.0/2.0)*M_PI*y)))*std::sin((1.0/4.0)*M_PI*x)*std::cos((1.0/2.0)*M_PI*y)
+    ));
+    rStressVector[2] = 0;
+
+    g_N[0] = rStressVector[0]*mNormalPhysicalSpace[0] + rStressVector[2]*mNormalPhysicalSpace[1];
+    g_N[1] = rStressVector[2]*mNormalPhysicalSpace[0] + rStressVector[1]*mNormalPhysicalSpace[1];
+
+    // // // // cosinusoidal
+    // g_N[0] = E/(1-nu)*(sin(x)*sinh(y)) * mNormalPhysicalSpace[0]; 
+    // g_N[1] = E/(1-nu)*(sin(x)*sinh(y)) * mNormalPhysicalSpace[1]; 
+
+    // // g_N[0] = E/(1-nu*nu) * mNormalPhysicalSpace[0] +  E/2/(1+nu) * mNormalPhysicalSpace[1]; 
+    // // g_N[1] = E/2/(1+nu) * mNormalPhysicalSpace[0] + E*nu/(1-nu*nu)* mNormalPhysicalSpace[1]; 
+
 
     for (IndexType i = 0; i < number_of_control_points; i++) {
         for (IndexType zdim = 0; zdim < mDim; zdim++) {
@@ -297,6 +339,7 @@ void GapSbmLoadSolidCondition::CalculateRightHandSide(
         ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
         ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
         ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
+        rValues.SetCharacteristicGeometryLength(GetCharacteristicGeometryLengthScalar());
         
         rValues.SetStrainVector(rStrain);
         rValues.SetStressVector(rConstitutiVariables.StressVector);
@@ -308,11 +351,6 @@ void GapSbmLoadSolidCondition::CalculateRightHandSide(
 
     void GapSbmLoadSolidCondition::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
     {
-        ConstitutiveLaw::Parameters constitutive_law_parameters(
-            GetSurrogateGeometry(), GetProperties(), rCurrentProcessInfo);
-
-        mpConstitutiveLaw->FinalizeMaterialResponse(constitutive_law_parameters, ConstitutiveLaw::StressMeasure_Cauchy);
-
         //---------- SET STRESS VECTOR VALUE ----------------------------------------------------------------
         //TODO: build a CalculateOnIntegrationPoints method
         //--------------------------------------------------------------------------------------------
@@ -333,8 +371,8 @@ void GapSbmLoadSolidCondition::CalculateRightHandSide(
         CalculateB(B_sum, grad_N_sum);
 
         // obtain the tangent constitutive matrix at the true position
-        ConstitutiveLaw::Parameters values_true(
-            GetBoundaryGeometry(), GetProperties(), rCurrentProcessInfo);
+        ConstitutiveLaw::Parameters values_true(GetGeometry(), GetProperties(), rCurrentProcessInfo);
+        values_true.SetCharacteristicGeometryLength(GetCharacteristicGeometryLengthScalar());
 
         Vector old_displacement_coefficient_vector(mat_size);
         GetSolutionCoefficientVector(old_displacement_coefficient_vector);
@@ -343,6 +381,8 @@ void GapSbmLoadSolidCondition::CalculateRightHandSide(
         const SizeType strain_size_true = mpConstitutiveLaw->GetStrainSize();
         ConstitutiveVariables this_constitutive_variables_true(strain_size_true);
         ApplyConstitutiveLaw(mat_size, old_strain_on_true, values_true, this_constitutive_variables_true);
+
+        mpConstitutiveLaw->FinalizeMaterialResponse(values_true, ConstitutiveLaw::StressMeasure_Cauchy);
 
         const Vector sigma = values_true.GetStressVector();
         Vector sigma_n = ZeroVector(mDim);
@@ -396,8 +436,24 @@ void GapSbmLoadSolidCondition::InitializeSolutionStep(const ProcessInfo& rCurren
     // calculate the constitutive law response
     ConstitutiveLaw::Parameters constitutive_law_parameters(
         GetSurrogateGeometry(), GetProperties(), rCurrentProcessInfo);
+    constitutive_law_parameters.SetCharacteristicGeometryLength(GetCharacteristicGeometryLengthScalar());
 
     mpConstitutiveLaw->InitializeMaterialResponse(constitutive_law_parameters, ConstitutiveLaw::StressMeasure_Cauchy);
+}
+
+
+double GapSbmLoadSolidCondition::GetCharacteristicGeometryLengthScalar() const
+{
+    KRATOS_ERROR_IF_NOT(this->Has(CHARACTERISTIC_GEOMETRY_LENGTH))
+        << "CHARACTERISTIC_GEOMETRY_LENGTH not set for condition " << this->Id() << std::endl;
+
+    const array_1d<double,3>& characteristic_length_vector = this->GetValue(CHARACTERISTIC_GEOMETRY_LENGTH);
+    const double characteristic_length = norm_2(characteristic_length_vector);
+
+    KRATOS_ERROR_IF(characteristic_length <= 0.0)
+        << "Non-positive characteristic length computed for condition " << this->Id() << std::endl;
+
+    return characteristic_length;
 }
 
 void GapSbmLoadSolidCondition::ComputeTaylorExpansionContribution(Vector& H_sum_vec)
