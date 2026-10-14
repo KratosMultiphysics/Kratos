@@ -18,7 +18,6 @@
 #include "solving_strategies/builder_and_solvers/p_multigrid/constraint_utilities.hpp" // ProcessMasterSlaveConstraint, ProcessMultifreedomConstraint, detail::MakeRelationTopology
 #include "factories/linear_solver_factory.h" // LinearSolver, LinearSolverFactory
 #include "includes/define.h" // KRATOS_TRY, KRATOS_CATCH
-#include "spaces/ublas_space.h" // TDefaultSparseSpace
 #include "spaces/default_spaces.h"
 #include "utilities/sparse_matrix_multiplication_utility.h" // SparseMatrixMultiplicationUtility
 

@@ -16,7 +16,6 @@
 #include "solving_strategies/builder_and_solvers/p_multigrid/sparse_utilities.hpp" // CSRHashMap, CSRHashSet
 #include "geometries/geometry_data.h" // GeometryData
 #include "geometries/geometry.h" // Geometry
-#include "spaces/ublas_space.h" // TDefaultSparseSpace
 #include "spaces/default_spaces.h"
 #include "includes/lock_object.h" // LockObject
 

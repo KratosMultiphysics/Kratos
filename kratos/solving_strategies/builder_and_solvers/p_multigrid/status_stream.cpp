@@ -14,7 +14,6 @@
 #include "solving_strategies/builder_and_solvers/p_multigrid/status_stream.hpp" // PMGStatusStream
 #include "includes/kratos_components.h"
 #include "solving_strategies/builder_and_solvers/p_multigrid/p_multigrid_builder_and_solver.hpp" // PMultigridBuilderAndSolver
-#include "spaces/ublas_space.h" // TDefaultSparseSpace
 #include "spaces/default_spaces.h"
 #include "input_output/vtu_output.h" // VtuOutput
 #include "includes/model_part.h" // ModelPart

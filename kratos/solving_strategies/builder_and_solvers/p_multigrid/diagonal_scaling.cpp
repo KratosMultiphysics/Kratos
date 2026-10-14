@@ -15,7 +15,6 @@
 
 // Project includes
 #include "solving_strategies/builder_and_solvers/p_multigrid/diagonal_scaling.hpp" // DiagonalScaling, ParseDiagonalScaling, GetDiagonalScaleFactor
-#include "spaces/ublas_space.h" // TDefaultSparseSpace
 #include "spaces/default_spaces.h"
 #include "utilities/reduction_utilities.h" // MaxReduction, AbsMaxReduction
 #include "utilities/profiler.h" // KRATOS_PROFILE_SCOPE

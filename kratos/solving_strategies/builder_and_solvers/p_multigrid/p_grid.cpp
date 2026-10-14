@@ -16,7 +16,6 @@
 #include "solving_strategies/builder_and_solvers/p_multigrid/constraint_assembler_factory.hpp" // ConstraintAssemblerFactory
 #include "solving_strategies/builder_and_solvers/p_multigrid/sparse_utilities.hpp" // ApplyDirichletConditions
 #include "solving_strategies/builder_and_solvers/p_multigrid/status_stream.hpp"
-#include "spaces/ublas_space.h" // TDefaultSparseSpace, TDefaultDenseSpace
 #include "spaces/default_spaces.h"
 #include "factories/linear_solver_factory.h" // LinearSolverFactory
 #include "includes/kratos_components.h" // KratosComponents

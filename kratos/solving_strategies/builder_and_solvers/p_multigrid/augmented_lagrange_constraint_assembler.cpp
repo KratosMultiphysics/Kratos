@@ -15,7 +15,6 @@
 #include "solving_strategies/builder_and_solvers/p_multigrid/sparse_utilities.hpp" // MapRowContribution, BalancedProduct
 #include "solving_strategies/builder_and_solvers/p_multigrid/constraint_utilities.hpp" // ProcessMasterSlaveConstraint, ProcessMultifreedomConstraint, detail::MakeRelationTopology
 #include "solving_strategies/builder_and_solvers/p_multigrid/diagonal_scaling.hpp" // Scaling
-#include "spaces/ublas_space.h" // TDefaultSparseSpace, TDefaultDenseSpace
 #include "spaces/default_spaces.h"
 #include "utilities/sparse_matrix_multiplication_utility.h" // SparseMatrixMultiplicationUtility
 

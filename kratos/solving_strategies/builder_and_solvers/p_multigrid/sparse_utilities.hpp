@@ -14,7 +14,6 @@
 
 // Project includes
 #include "solving_strategies/schemes/scheme.h" // Scheme
-#include "spaces/ublas_space.h" // TDefaultSparseSpace
 #include "spaces/default_spaces.h"
 #include "utilities/profiler.h" // KRATOS_PROFILE_SCOPE
 

@@ -15,9 +15,7 @@
 #include "solving_strategies/builder_and_solvers/p_multigrid/noop_constraint_assembler.hpp" // NoOpConstraintAssembler
 #include "solving_strategies/builder_and_solvers/p_multigrid/master_slave_constraint_assembler.hpp" // MasterSlaveConstraintAssembler
 #include "solving_strategies/builder_and_solvers/p_multigrid/augmented_lagrange_constraint_assembler.hpp" // AugmentedLagrangeConstraintAssembler
-#include "spaces/ublas_space.h" // TDefaultSparseSpace, TDefaultDenseSpace
 #include "spaces/default_spaces.h"
-
 
 namespace Kratos {
 

@@ -18,7 +18,6 @@
 #include "solving_strategies/builder_and_solvers/p_multigrid/p_grid.hpp" // PGrid
 #include "solving_strategies/builder_and_solvers/p_multigrid/status_stream.hpp" // PMGStatusStream
 #include "includes/model_part.h" // ModelPart
-#include "spaces/ublas_space.h" // TDefaultSparseSpace, TDefaultDenseSpace
 #include "spaces/default_spaces.h"
 #include "linear_solvers/linear_solver.h" // LinearSolver
 #include "factories/linear_solver_factory.h" // LinearSolverFactory
