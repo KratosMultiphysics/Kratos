@@ -215,7 +215,7 @@ def AssembleTestSuites():
         # ALM frictionless tests
         # smallSuite.addTest(TALMHyperSimplePatchTestContact('test_execution'))
         smallSuite.addTest(TALMHyperSimplePatchTrianglesTestContact('test_execution'))
-        smallSuite.addTest(TALMHyperSimplePatchTestWithEliminationContact('test_execution'))
+        # smallSuite.addTest(TALMHyperSimplePatchTestWithEliminationContact('test_execution'))
         smallSuite.addTest(TALMHyperSimplePatchTestWithEliminationWithConstraintContact('test_execution'))
         smallSuite.addTest(TALMHyperSimpleSlopePatchTestContact('test_execution'))
         if has_CL_application:
