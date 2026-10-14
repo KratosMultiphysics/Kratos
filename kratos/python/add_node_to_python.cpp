@@ -137,7 +137,7 @@ void  AddNodeToPython(pybind11::module& m)
     node_binder.def("SolutionStepsDataHas", &NodeSolutionStepsDataHas<Variable<array_1d<double, 6> > >);
     node_binder.def("SolutionStepsDataHas", &NodeSolutionStepsDataHas<Variable<array_1d<double, 9> > >);
     node_binder.def("SolutionStepsDataHas", &NodeSolutionStepsDataHas<Variable<Vector> >);
-    node_binder.def("SolutionStepsDataHas", &NodeSolutionStepsDataHas<Variable<DenseMatrix<double> > >);
+    node_binder.def("SolutionStepsDataHas", &NodeSolutionStepsDataHas<Variable<Matrix> >);
     node_binder.def("__str__", PrintObject<Node>);
     node_binder.def("OverwriteSolutionStepData", &Node::OverwriteSolutionStepData);
     node_binder.def("GetInitialPosition", [](Node& rNode) { return rNode.GetInitialPosition(); });
