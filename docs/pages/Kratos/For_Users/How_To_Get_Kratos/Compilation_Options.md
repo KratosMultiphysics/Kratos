@@ -82,7 +82,6 @@ Notes:
 - The flag is applied globally (like `KRATOS_SHARED_MEMORY_PARALLELIZATION`): the core and **all** applications of one build must be configured with the same value. Never mix binaries built with different values.
 - Applications should use the `TDefaultSparseSpace`/`DefaultSparseSpaceType` aliases from `spaces/default_spaces.h` rather than hardcoding a backend's space. The uBLAS spellings (`UblasSpace<double, Matrix, Vector>`, `TUblasSparseSpace<T>`, `TUblasDenseSpace<T>`) keep working under the Eigen backend as aliases of the Eigen spaces, but an explicit boost container argument (e.g. `UblasSpace<double, CompressedMatrix, boost::numeric::ublas::vector<double>>`) does not.
 - The index type of the Eigen sparse matrices defaults to `std::ptrdiff_t` (64-bit, `-DKRATOS_EIGEN_64BIT_INDICES=ON`); `-DKRATOS_EIGEN_64BIT_INDICES=OFF` selects a 32-bit `int` (less memory traffic, but limited to 2^31 - 1 nonzeros per matrix), and `-DKRATOS_EIGEN_INDEX_TYPE=<signed type>` (as a compile definition) overrides it.
-- `deflated_cg` relies on uBLAS-only deflation utilities and is not available when the Eigen backend is active.
 
 ## Unitary Builds
 `-DCMAKE_UNITY_BUILD=ON/OFF`

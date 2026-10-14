@@ -121,8 +121,6 @@ class TestLinearSolvers(KratosUnittest.TestCase):
             }
             """)
 
-    @KratosUnittest.skipUnless(hasattr(KratosMultiphysics, "DeflatedCGSolver"),
-                               "The deflated CG solver is uBLAS-only and is not available with the configured linear-algebra backend.")
     def test_deflated_cg_in_core(self):
         self._RunParametrized("""
             {
