@@ -36,6 +36,15 @@ namespace Kratos {
  * ptrdiff_t-sized indices this is the plain zero-copy view; narrower indices
  * are widened while copying through amgcl's generic range-tuple interface,
  * a copy amgcl's hierarchy/factorization construction performs anyway.
+ * @tparam TPtr Type of the row pointer entries.
+ * @tparam TCol Type of the column index entries.
+ * @tparam TVal Type of the value entries.
+ * @param NRows Number of rows of the matrix.
+ * @param pRowExtents Row pointer array of the CSR matrix, with NRows + 1 entries.
+ * @param pColumnIndices Column index array of the nonzero entries.
+ * @param pValues Value array of the nonzero entries.
+ * @return Shared pointer to the amgcl CSR matrix: a zero-copy view of the arrays when the index type has the width
+ * of std::ptrdiff_t, otherwise a copy with widened indices.
  */
 template<typename TPtr, typename TCol, typename TVal>
 std::shared_ptr<amgcl::backend::crs<TVal>> MakeAmgclZeroCopyAdapter(

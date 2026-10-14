@@ -25,8 +25,15 @@
 // resize(rows, cols) never resolves to resize(size, preserve) with an
 // integer-to-bool conversion.
 
-/// uBLAS-style resize of a matrix: preserve == true keeps the existing
-/// entries (Eigen's conservativeResize), preserve == false discards them.
+/**
+ * @brief uBLAS-style resize of a matrix
+ * @details With preserve == true the existing entries are kept (Eigen's conservativeResize), with preserve == false
+ * they are discarded. The flag must be a genuine bool, see the file header.
+ * @tparam B Deduced type of the flag, which must be a bool.
+ * @param rows New number of rows.
+ * @param cols New number of columns.
+ * @param preserve True to keep the existing entries, false to discard them.
+ */
 template <typename B, typename = typename std::enable_if<std::is_same<typename std::decay<B>::type, bool>::value>::type>
 inline void resize(Index rows, Index cols, B preserve)
 {
@@ -37,8 +44,14 @@ inline void resize(Index rows, Index cols, B preserve)
     }
 }
 
-/// uBLAS-style resize of a vector: preserve == true keeps the existing
-/// entries (Eigen's conservativeResize), preserve == false discards them.
+/**
+ * @brief uBLAS-style resize of a vector
+ * @details With preserve == true the existing entries are kept (Eigen's conservativeResize), with preserve == false
+ * they are discarded. The flag must be a genuine bool, see the file header.
+ * @tparam B Deduced type of the flag, which must be a bool.
+ * @param size New size of the vector.
+ * @param preserve True to keep the existing entries, false to discard them.
+ */
 template <typename B, typename = typename std::enable_if<std::is_same<typename std::decay<B>::type, bool>::value>::type>
 inline void resize(Index size, B preserve)
 {
