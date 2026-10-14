@@ -73,6 +73,7 @@ void LoadSolidCondition::InitializeMemberVariables()
 
     const double abs_tangent_u = std::abs(tangent_parameter_space[0]);
     const double abs_tangent_v = std::abs(tangent_parameter_space[1]);
+    //FIXME: This is a temporary solution to compute the characteristic length of the geometry for plasticity.
     mCharacteristicGeometryLength = mesh_size_uv[0];
     if (abs_tangent_v > abs_tangent_u) {
         mCharacteristicGeometryLength = mesh_size_uv[1];
