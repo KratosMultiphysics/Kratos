@@ -165,7 +165,7 @@ void FindIntersectedGeometricalObjectsWithOBBProcess::SetOctreeBoundingBox()
     }
 
     // TODO: Octree needs refactoring to work with BoundingBox. Pooyan.
-    GetOctreePointer()->SetBoundingBox(low.data().data(), high.data().data());
+    GetOctreePointer()->SetBoundingBox(&low[0], &high[0]);
 }
 
 /***********************************************************************************/

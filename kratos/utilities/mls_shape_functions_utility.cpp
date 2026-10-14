@@ -18,7 +18,7 @@
 
 // Project includes
 #include "includes/global_variables.h"
-#include "spaces/ublas_space.h"
+#include "spaces/default_spaces.h"
 #include "utilities/dense_householder_qr_decomposition.h"
 #include "mls_shape_functions_utility.h"
 
@@ -27,7 +27,7 @@ namespace Kratos
 
 namespace
 {
-    using DenseSpace = UblasSpace<double, Matrix, Vector>;
+    using DenseSpace = TDefaultDenseSpace<double>;
 }
 
     double MLSShapeFunctionsUtility::CalculateKernel(

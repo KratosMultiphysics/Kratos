@@ -881,4 +881,18 @@ KRATOS_TEST_CASE_IN_SUITE(UninitializedTensorAdaptorLoad, KratosCoreFastSuite)
     }
 }
 
+KRATOS_TEST_CASE_IN_SUITE(NDDAtaCopyConstructor, KratosCoreFastSuite)
+{
+
+    const std::string message = "Uninitialized PointerWrapper (default-constructed, only valid as a Serializer load target)";
+    NDData<double> empty;
+    NDData<double> valid(DenseVector<unsigned int>(1, 3), 10.0);
+    valid = empty;
+
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(valid.Info(), message);
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(valid.Shape(), message);
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(valid.Size(), message);
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(valid.ViewData(), message);
+}
+
 } // namespace Kratos::Testing

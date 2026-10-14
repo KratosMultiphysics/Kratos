@@ -11,7 +11,7 @@
 //
 
 #include "containers/array_1d.h"
-#include "includes/ublas_interface.h"
+#include "includes/default_interface.h"
 
 namespace Kratos
 {

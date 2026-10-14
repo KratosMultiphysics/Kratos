@@ -36,8 +36,8 @@ class TestSmallDisplacementInterfaceTangent(KratosUnittest.TestCase):
             node = model_part.CreateNewNode(node_id, x, y, 0.0)
             node.AddDof(KM.DISPLACEMENT_X)
             node.AddDof(KM.DISPLACEMENT_Y)
-            node.SetSolutionStepValue(KM.DISPLACEMENT, KM.Array3())
-            node.SetSolutionStepValue(KM.VOLUME_ACCELERATION, KM.Array3())
+            node.SetSolutionStepValue(KM.DISPLACEMENT, KM.Array3(0.0))
+            node.SetSolutionStepValue(KM.VOLUME_ACCELERATION, KM.Array3(0.0))
             initial_stress = KM.Matrix(2, 2)
             for i in range(2):
                 for j in range(2):
@@ -66,7 +66,7 @@ class TestSmallDisplacementInterfaceTangent(KratosUnittest.TestCase):
     @staticmethod
     def _set_displacement(model_part, direction, scale):
         for i, node in enumerate(model_part.Nodes):
-            displacement = KM.Array3()
+            displacement = KM.Array3(0.0)
             displacement[0] = scale * direction[2 * i]
             displacement[1] = scale * direction[2 * i + 1]
             node.SetSolutionStepValue(KM.DISPLACEMENT, displacement)
@@ -217,7 +217,7 @@ class TestSmallDisplacementInterfaceTangent(KratosUnittest.TestCase):
             (-1.0e-3, 0.0), (9.0e-2, 2.0e-1),
             (9.2e-2, 2.0e-1), (1.0e-3, 0.0))
         for node, displacement in zip(model_part.Nodes, opening_displacements):
-            value = KM.Array3()
+            value = KM.Array3(0.0)
             value[0], value[1] = displacement
             node.SetSolutionStepValue(KM.DISPLACEMENT, value)
 

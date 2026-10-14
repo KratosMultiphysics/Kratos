@@ -15,11 +15,10 @@
 // External includes
 
 // Project includes
-#include "includes/define.h"
 #include "includes/element.h"
 #include "includes/condition.h"
 #include "includes/process_info.h"
-#include "includes/ublas_interface.h"
+#include "includes/default_interface.h"
 #include "solving_strategies/schemes/scheme.h"
 
 // Application includes

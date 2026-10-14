@@ -323,14 +323,6 @@ public:
         });
     }
 
-    void GetRightROMBasis(
-        const ModelPart& rModelPart,
-        Matrix& rPhiGlobal
-    )
-    {
-        BaseType::BuildRightROMBasis();
-    }
-
     /**
      * Projects the reduced system of equations
      */

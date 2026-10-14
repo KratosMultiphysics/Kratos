@@ -580,15 +580,48 @@ void LinearTimoshenkoCurvedBeamElement2D3N::CalculateRightHandSide(
     const ProcessInfo& rProcessInfo
     )
 {
+    CalculateInternalAndExternalForcesVector(rRHS, rProcessInfo, true, true);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void LinearTimoshenkoCurvedBeamElement2D3N::Calculate(
+    const Variable<Vector>& rVariable,
+    Vector& rOutput,
+    const ProcessInfo& rCurrentProcessInfo
+    )
+{
+    if (rVariable == INTERNAL_FORCES_VECTOR) {
+        CalculateInternalAndExternalForcesVector(rOutput, rCurrentProcessInfo, true, false);
+        // The internal forces are subtracted in CalculateInternalAndExternalForcesVector
+        rOutput *= -1.0;
+    } else if (rVariable == EXTERNAL_FORCES_VECTOR) {
+        CalculateInternalAndExternalForcesVector(rOutput, rCurrentProcessInfo, false, true);
+    } else {
+        KRATOS_ERROR << "Variable " << rVariable.Name() << " not supported in element " << this->Info() << std::endl;
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void LinearTimoshenkoCurvedBeamElement2D3N::CalculateInternalAndExternalForcesVector(
+    VectorType& rForces,
+    const ProcessInfo& rProcessInfo,
+    const bool ComputeInternalForces,
+    const bool ComputeExternalForces
+    )
+{
     KRATOS_TRY;
     const auto &r_props    = GetProperties();
     const auto &r_geometry = GetGeometry();
     const SizeType strain_size = mConstitutiveLawVector[0]->GetStrainSize();
 
-    if (rRHS.size() != SystemSize) {
-        rRHS.resize(SystemSize, false);
+    if (rForces.size() != SystemSize) {
+        rForces.resize(SystemSize, false);
     }
-    noalias(rRHS) = ZeroVector(SystemSize);
+    noalias(rForces) = ZeroVector(SystemSize);
 
     const auto& r_integration_points = IntegrationPoints(GetIntegrationMethod());
 
@@ -610,8 +643,10 @@ void LinearTimoshenkoCurvedBeamElement2D3N::CalculateRightHandSide(
     // Initialize required matrices/vectors...
     GlobalSizeVector nodal_values, B_b, dNu, dN_theta, N_shape, Nu, N_theta, dN_shape;
     BoundedMatrix<double, 2, 2> frenet_serret;
-    BoundedVector<double, 2> N_forces, Gamma; // axial ans shear forces, strains
+    BoundedVector<double, 2> N_forces, Gamma; // axial and shear forces, strains
     BoundedMatrix<double, 2, 9> B_s, aux_B_s;
+
+    GetNodalValuesVector(nodal_values);
 
     // Loop over the integration points
     for (SizeType IP = 0; IP < r_integration_points.size(); ++IP) {
@@ -621,45 +656,43 @@ void LinearTimoshenkoCurvedBeamElement2D3N::CalculateRightHandSide(
         const double J      = GetJacobian(xi);
         const double jacobian_weight = weight * J;
 
-        GetNodalValuesVector(nodal_values);
+        GetShapeFunctionsValuesGlobalVectors(GetShapeFunctionsValues(xi), N_shape, Nu, N_theta);
 
-        const array_3 shape_functions   = GetShapeFunctionsValues(xi);
-        const array_3 d_shape_functions = GetFirstDerivativesShapeFunctionsValues(xi, J);
+        if (ComputeInternalForces) {
+            const array_3 d_shape_functions = GetFirstDerivativesShapeFunctionsValues(xi, J);
+            GetShapeFunctionsValuesGlobalVectors(d_shape_functions, dN_shape, dNu, dN_theta);
 
-        GetShapeFunctionsValuesGlobalVectors(shape_functions, N_shape, Nu, N_theta);
-        GetShapeFunctionsValuesGlobalVectors(d_shape_functions, dN_shape, dNu, dN_theta);
+            array_3 t, n;
+            GetTangentandTransverseUnitVectors(xi, t, n);
+            noalias(frenet_serret) = GetFrenetSerretMatrix(xi, t, n);
+            noalias(B_b) =  dN_theta;
 
-        array_3 t, n;
-        GetTangentandTransverseUnitVectors(xi, t, n);
-        noalias(frenet_serret) = GetFrenetSerretMatrix(xi, t, n);
-        noalias(B_b) =  dN_theta;
+            // we fill aux_B_s
+            for (IndexType i = 0; i < SystemSize; ++i) {
+                aux_B_s(0, i) = dNu[i] + t[1] * N_theta[i];
+                aux_B_s(1, i) = dN_shape[i] - t[0] * N_theta[i];
+            }
+            noalias(B_s) = prod(frenet_serret, aux_B_s);
 
-        // we fill aux_B_s
-        for (IndexType i = 0; i < SystemSize; ++i) {
-            aux_B_s(0, i) = dNu[i] + t[1] * N_theta[i];
-            aux_B_s(1, i) = dN_shape[i] - t[0] * N_theta[i];
+            noalias(Gamma) = prod(B_s, nodal_values);
+            strain_vector[0] = Gamma[0]; // axial strain
+            strain_vector[2] = Gamma[1]; // shear strain
+            strain_vector[1] = inner_prod(B_b, nodal_values); // curvature
+
+            mConstitutiveLawVector[IP]->CalculateMaterialResponseCauchy(cl_values);
+            const Vector &r_generalized_stresses = cl_values.GetStressVector();
+            N_forces[0] = r_generalized_stresses[0]; // N
+            N_forces[1] = r_generalized_stresses[2]; // V
+            const double M = r_generalized_stresses[1];
+
+            noalias(rForces) -= jacobian_weight * (prod(trans(B_s), N_forces) + M * B_b);
         }
-        noalias(B_s) = prod(frenet_serret, aux_B_s);
 
-        noalias(Gamma) = prod(B_s, nodal_values);
-        strain_vector[0] = Gamma[0]; // axial strain
-        strain_vector[2] = Gamma[1]; // shear strain
-        strain_vector[1] = inner_prod(B_b, nodal_values); // curvature
-
-        mConstitutiveLawVector[IP]->CalculateMaterialResponseCauchy(cl_values);
-        const Vector &r_generalized_stresses = cl_values.GetStressVector();
-        const double N = r_generalized_stresses[0];
-        const double M = r_generalized_stresses[1];
-        const double V = r_generalized_stresses[2];
-
-        N_forces[0] = N;
-        N_forces[1] = V;
-
-        noalias(rRHS) -= jacobian_weight * (prod(trans(B_s), N_forces) + M * B_b);
-
-        auto body_forces = GetBodyForce(*this, r_integration_points, IP);
-        noalias(rRHS) += Nu      * body_forces[0] * jacobian_weight * area;
-        noalias(rRHS) += N_shape * body_forces[1] * jacobian_weight * area;
+        if (ComputeExternalForces) {
+            const auto body_forces = GetBodyForce(*this, r_integration_points, IP);
+            noalias(rForces) += Nu      * body_forces[0] * jacobian_weight * area;
+            noalias(rForces) += N_shape * body_forces[1] * jacobian_weight * area;
+        }
 
     } // IP loop
     KRATOS_CATCH("");

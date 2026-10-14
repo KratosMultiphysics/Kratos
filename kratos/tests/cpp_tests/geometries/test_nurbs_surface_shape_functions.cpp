@@ -17,7 +17,7 @@
 // External includes
 
 // Project includes
-#include "includes/ublas_interface.h"
+#include "includes/default_interface.h"
 #include "testing/testing.h"
 #include "geometries/nurbs_shape_function_utilities/nurbs_surface_shape_functions.h"
 

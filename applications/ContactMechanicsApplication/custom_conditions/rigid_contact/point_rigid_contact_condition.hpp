@@ -13,13 +13,11 @@
 // System includes
 
 // External includes
-#include "boost/smart_ptr.hpp"
 
 // Project includes
-#include "includes/define.h"
 #include "includes/serializer.h"
 #include "includes/condition.h"
-#include "includes/ublas_interface.h"
+#include "includes/default_interface.h"
 #include "includes/variables.h"
 
 #include "custom_bounding/spatial_bounding_box.hpp"

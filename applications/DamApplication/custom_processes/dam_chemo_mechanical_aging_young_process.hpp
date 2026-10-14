@@ -23,6 +23,7 @@
 
 // Application include
 #include "dam_application_variables.h"
+#include "custom_utilities/nodal_young_modulus_utilities.h"
 
 namespace Kratos
 {
@@ -99,7 +100,10 @@ class DamChemoMechanicalAgingYoungProcess : public Process
     {
         KRATOS_TRY;
 
-        const Variable<double>& var = KratosComponents<Variable<double>>::Get(mVariableName);
+        // The historical NODAL_YOUNG_MODULUS name is resolved to the standard
+        // nodal YOUNG_MODULUS field (any other variable keeps its generic behavior).
+        const Variable<double>& var =
+            NodalYoungModulusUtilities::ResolveYoungModulusVariable(mVariableName);
         const int nnodes = mrModelPart.GetMesh(0).Nodes().size();
 
         // This model works in years so it is necessary to convert time in this unit
@@ -123,6 +127,12 @@ class DamChemoMechanicalAgingYoungProcess : public Process
             }
         }
 
+        // Expose the field through the standard DatabaseAccessor when it is
+        // Young's modulus (idempotent).
+        if (var == YOUNG_MODULUS) {
+            NodalYoungModulusUtilities::InstallDatabaseAccessor(mrModelPart);
+        }
+
         KRATOS_CATCH("");
     }
 
@@ -132,7 +142,10 @@ class DamChemoMechanicalAgingYoungProcess : public Process
     {
         KRATOS_TRY;
 
-        const Variable<double>& var = KratosComponents<Variable<double>>::Get(mVariableName);
+        // The historical NODAL_YOUNG_MODULUS name is resolved to the standard
+        // nodal YOUNG_MODULUS field (any other variable keeps its generic behavior).
+        const Variable<double>& var =
+            NodalYoungModulusUtilities::ResolveYoungModulusVariable(mVariableName);
         const int nnodes = mrModelPart.GetMesh(0).Nodes().size();
 
         // This model works in years so it is necessary to convert time in this unit
@@ -154,6 +167,12 @@ class DamChemoMechanicalAgingYoungProcess : public Process
                 ModelPart::NodesContainerType::iterator it = it_begin + i;
                 it->FastGetSolutionStepValue(var) = young;
             }
+        }
+
+        // Expose the field through the standard DatabaseAccessor when it is
+        // Young's modulus (idempotent).
+        if (var == YOUNG_MODULUS) {
+            NodalYoungModulusUtilities::InstallDatabaseAccessor(mrModelPart);
         }
 
         KRATOS_CATCH("");

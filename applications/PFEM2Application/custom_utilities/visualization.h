@@ -9,11 +9,10 @@
 #include <algorithm>
 
 // Project includes 
-#include "includes/define.h"
 #include "pfem_2_application_variables.h"
 #include "utilities/math_utils.h"
 #include "utilities/geometry_utilities.h" 
-#include "includes/ublas_interface.h"
+#include "includes/default_interface.h"
 #include "includes/variables.h" 
 #include "includes/model_part.h"
 #include "includes/node.h"

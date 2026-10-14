@@ -25,7 +25,7 @@
 #include "geometries/tetrahedra_3d_4.h"
 #include "includes/checks.h"
 #include "processes/skin_detection_process.h"
-#include "includes/ublas_interface.h"
+#include "includes/default_interface.h"
 
 namespace Kratos
 {

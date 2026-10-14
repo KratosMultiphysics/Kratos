@@ -18,7 +18,7 @@
 /* External includes */
 
 /* Project includes */
-#include "spaces/ublas_space.h"
+#include "spaces/default_spaces.h"
 #include "utilities/math_utils.h"
 
 // Linear solvers
@@ -72,11 +72,11 @@ public:
     /// The index type
     typedef std::size_t IndexType;
 
-    /// The sparse space considered (the one containing the compressed matrix)
-    typedef UblasSpace<double, CompressedMatrix, boost::numeric::ublas::vector<double>> SparseSpaceType;
+    /// The sparse space considered (follows the configure-time selected linear-algebra backend)
+    typedef TDefaultSparseSpace<double> SparseSpaceType;
 
     /// The dense space considered
-    typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
+    typedef TDefaultDenseSpace<double> LocalSpaceType;
 
     /// The compressed matrix
     typedef SparseSpaceType::MatrixType SparseMatrixType;
@@ -175,9 +175,20 @@ public:
 
         const SizeType size_matrix = rInputMatrix.size1();
 
-        SparseMatrixType identity_matrix(size_matrix, size_matrix);
-        for (IndexType i = 0; i < size_matrix; ++i)
-            identity_matrix.push_back(i, i, 1.0);
+        // Build the identity by writing the CSR arrays directly: works for both
+        // the uBLAS and the Eigen backend matrix (push_back/operator() insertion
+        // is a uBLAS-only idiom).
+        SparseMatrixType identity_matrix(size_matrix, size_matrix, size_matrix);
+        auto row_ptr = identity_matrix.index1_data().begin();
+        auto col_ptr = identity_matrix.index2_data().begin();
+        auto val_ptr = identity_matrix.value_data().begin();
+        row_ptr[0] = 0;
+        for (IndexType i = 0; i < size_matrix; ++i) {
+            col_ptr[i] = i;
+            val_ptr[i] = 1.0;
+            row_ptr[i + 1] = i + 1;
+        }
+        identity_matrix.set_filled(size_matrix + 1, size_matrix);
 
         pEigenSolverMax->Solve(rInputMatrix, identity_matrix, eigen_values, eigen_vectors);
         const double max_lambda = eigen_values[0];
