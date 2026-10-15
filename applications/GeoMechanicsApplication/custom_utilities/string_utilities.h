@@ -27,7 +27,7 @@ public:
     static std::string ToLower(const std::string& rString);
     static std::string Join(const std::vector<std::string>& rStrings,
                             const std::string&              rSeparator,
-                            const std::string&              rClampCharacter = ""s);
+                            const std::string&              rNameWrapper = ""s);
 };
 
 } // namespace Kratos
