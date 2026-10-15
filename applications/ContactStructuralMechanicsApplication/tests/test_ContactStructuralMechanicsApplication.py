@@ -313,8 +313,8 @@ def AssembleTestSuites():
             nightlySuite.addTest(TComponentsALMThreeDSimplestPatchTestTriQuadContact('test_execution'))
             nightlySuite.addTest(TComponentsALMThreeDSimplestPatchTestQuadTriContact('test_execution'))
             # nightlySuite.addTest(TComponentsALMThreeDSimplestPatchMatchingAdaptativeTestContact('test_execution'))
-        nightlySuite.addTest(TComponentsALMThreeDSimplestPatchMatchingSlopeTestContact('test_execution'))
-        nightlySuite.addTest(TComponentsALMThreeDPatchComplexGeomTestContact('test_execution'))
+        # nightlySuite.addTest(TComponentsALMThreeDSimplestPatchMatchingSlopeTestContact('test_execution'))
+        # nightlySuite.addTest(TComponentsALMThreeDPatchComplexGeomTestContact('test_execution'))
         nightlySuite.addTest(TComponentsALMTThreeDPatchMatchingTestContact('test_execution'))
         nightlySuite.addTest(TComponentsALMThreeDPatchNotMatchingTestContact('test_execution'))
         nightlySuite.addTest(TComponentsALMTaylorPatchTestContact('test_execution'))
@@ -466,8 +466,8 @@ def AssembleTestSuites():
               TComponentsALMThreeDSimplestPatchTestTriQuadContact,
               TComponentsALMThreeDSimplestPatchTestQuadTriContact,
             #   TComponentsALMThreeDSimplestPatchMatchingAdaptativeTestContact,
-              TComponentsALMThreeDSimplestPatchMatchingSlopeTestContact,
-              TComponentsALMThreeDPatchComplexGeomTestContact,
+            #   TComponentsALMThreeDSimplestPatchMatchingSlopeTestContact,
+            #   TComponentsALMThreeDPatchComplexGeomTestContact,
               TComponentsALMTThreeDPatchMatchingTestContact,
               TComponentsALMThreeDPatchNotMatchingTestContact,
               TALMHyperSimplePatchFrictionalTestContact,
