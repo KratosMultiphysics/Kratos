@@ -70,7 +70,7 @@ class DesignVariableProjection(ABC):
         """
 
 class IdentityDesignVariableProjection(DesignVariableProjection):
-    def __init__(self, parameters: Kratos.Parameters, _, __):
+    def __init__(self, parameters: Kratos.Parameters, _, __ = None):
         default_settings = Kratos.Parameters("""{
             "type"       : "identity_projection"
         }""")
@@ -99,7 +99,7 @@ class IdentityDesignVariableProjection(DesignVariableProjection):
         pass
 
 class SigmoidalDesignVariableProjection(DesignVariableProjection):
-    def __init__(self, parameters: Kratos.Parameters, _, __):
+    def __init__(self, parameters: Kratos.Parameters, _, __ = None):
         default_parameters = Kratos.Parameters("""{
             "type"          : "sigmoidal_projection",
             "beta_value"    : 5,
@@ -204,7 +204,7 @@ class AdaptiveSigmoidalDesignVariableProjection(DesignVariableProjection):
             Kratos.Logger.PrintInfo(self.__class__.__name__, f"Increased beta to {self.beta}.")
 
 class ClampingProjection(DesignVariableProjection):
-    def __init__(self, parameters: Kratos.Parameters, _, __):
+    def __init__(self, parameters: Kratos.Parameters, _, __ = None):
         default_parameters = Kratos.Parameters("""{
             "type"           : "clamping_projection"
         }""")

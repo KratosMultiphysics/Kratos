@@ -106,6 +106,9 @@ class PatienceConvCriterion(ConvergenceCriterion):
         unbuffered_data.SetValue(f"{prefix}_best_value", self.__best_value, overwrite=True)
         unbuffered_data.SetValue(f"{prefix}_patience_step", self.__patience_step, overwrite=True)
         unbuffered_data.SetValue(f"{prefix}_init_value", self.__init_value, overwrite=True)
+        buffered_data = self.__component_data_view.GetBufferedData()
+        buffered_data.SetValue(f"{prefix}_best_value", self.__best_value)
+        buffered_data.SetValue(f"{prefix}_patience_step", self.__patience_step)
 
         return self.__conv
 

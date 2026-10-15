@@ -39,6 +39,8 @@ class AlgorithmMomentumRelaxedGradientProjection(AlgorithmRelaxedGradientProject
     def __init__(self, model:Kratos.Model, parameters: Kratos.Parameters, optimization_problem: OptimizationProblem):
         super().__init__(model, parameters, optimization_problem)
         self.eta = self.parameters["settings"]["eta"].GetDouble()
+        self.__prev_momentum: 'Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor | None' = None
+        self.__momentum_step = -1
 
     @time_decorator()
     def ComputeControlUpdate(self, alpha: Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor):
@@ -48,24 +50,29 @@ class AlgorithmMomentumRelaxedGradientProjection(AlgorithmRelaxedGradientProject
         update = Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor(search_direction, perform_store_data_recursively=False)
         update.data[:] *= alpha.data
         update.StoreData()
-        # add momentum to the correction update. The previous momentum is kept in the buffered data
-        # (step_index 1) to survive a restart; overwrite=True as max_inner_iter retries may rewrite it.
-        if algorithm_buffered_data.HasValue("momentum", 1):
-            prev_momentum: Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor = algorithm_buffered_data.GetValue("momentum", 1)
+        # add momentum to the correction update. max_inner_iter retries chain through the previous
+        # retry's momentum; the step's first call reads the last step's one from the buffer (restart-safe).
+        step = self._optimization_problem.GetStep()
+        if self.__momentum_step != step:
+            self.__momentum_step = step
+            self.__prev_momentum = algorithm_buffered_data.GetValue("momentum", 1) if algorithm_buffered_data.HasValue("momentum", 1) else None
+
+        if self.__prev_momentum is not None:
             mom_update = Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor(update, perform_store_data_recursively=False)
-            mom_update.data[:] += prev_momentum.data * self.eta
+            mom_update.data[:] += self.__prev_momentum.data * self.eta
             mom_update.StoreData()
 
             full_update = Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor(update, perform_store_data_recursively=False)
             full_update.data[:] += mom_update.data * self.eta
             full_update.StoreData()
-            algorithm_buffered_data.SetValue("momentum", mom_update, overwrite=True)
+            self.__prev_momentum = mom_update
         else:
             full_update = Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor(update, perform_store_data_recursively=False)
             full_update.data[:] *= (1 + self.eta)
             full_update.StoreData()
-            algorithm_buffered_data.SetValue("momentum", update, overwrite=True)
+            self.__prev_momentum = update
 
+        algorithm_buffered_data.SetValue("momentum", self.__prev_momentum, overwrite=True)
         algorithm_buffered_data.SetValue("control_field_update", full_update, overwrite=True)
 
 

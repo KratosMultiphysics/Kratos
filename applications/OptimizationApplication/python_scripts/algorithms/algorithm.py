@@ -86,8 +86,8 @@ class Algorithm(ABC):
         """Writes a restart checkpoint if a restart output is installed and this is a save step.
 
         Must be called right after UpdateControl(), so that the mesh and the BufferedDict hold the
-        same design and no control update is pending. Before writing, it pushes the current control
-        field to the mesh and refreshes the algorithm's "control_field" to the just-applied design.
+        same design and no control update is pending. Side effect on a save step: it pushes the design
+        to the mesh and overwrites the algorithm's buffered "control_field" with it.
         Algorithms whose Solve() calls this must set SUPPORTS_RESTART = True.
         """
         restart_output = self._optimization_problem.GetRestartOutput()

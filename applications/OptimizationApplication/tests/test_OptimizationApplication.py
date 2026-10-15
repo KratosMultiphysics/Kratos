@@ -35,6 +35,7 @@ import test_connectivity_preserving_model_part_controller
 import test_sigmoidal_projection
 import test_smooth_clamper
 import test_buffered_dict
+import test_restart_file_naming
 import control.test_master_control
 import control.material.test_material_properties_control
 import control.thickness.test_shell_thickness_control
@@ -88,6 +89,7 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_execution_policies.TestExecutionPolicies]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([symmetry_utilities_tests.symmetry_tests.SymmetryUtilitiesTest]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_buffered_dict.TestBufferedDict]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_restart_file_naming.TestRestartFileNaming]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_component_data_view.TestComponentDataView]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_tensor_adaptor_serialization.TestPropertiesVariableTensorAdaptorSerialization]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_optimization_info.TestOptimizationInfo]))

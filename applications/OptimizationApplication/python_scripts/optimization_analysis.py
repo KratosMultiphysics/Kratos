@@ -12,7 +12,7 @@ from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem i
 from KratosMultiphysics.OptimizationApplication.utilities.buffered_dict import BufferedDict
 from KratosMultiphysics.OptimizationApplication.utilities.logger_utilities import OptimizationAnalysisTimeLogger
 from KratosMultiphysics.OptimizationApplication.utilities.restart_file_naming import ResolveRestartLoadStep, SplitRestartFileName
-from KratosMultiphysics.OptimizationApplication.processes.optimization_problem_restart_output_process import OptimizationProblemRestartOutput, CreateTensorAdaptorLoadTarget
+from KratosMultiphysics.OptimizationApplication.utilities.optimization_restart import OptimizationProblemRestartOutput, CreateTensorAdaptorLoadTarget, CheckSerialRestart
 
 def _EnsureBufferedDictPath(root: BufferedDict, bufferdict_key: str, node_metadata: dict) -> None:
     """Creates missing nodes on bufferdict_key's parent path with their checkpointed buffer settings,
@@ -70,6 +70,7 @@ class OptimizationAnalysis:
         self._CreateControls()
         self._CreateResponses()
         self._CreateAlgorithm()
+        self._CheckRestartSupport()
 
     def Initialize(self):
         CallOnAll(self.__list_of_model_part_controllers, ModelPartController.ImportModelPart)
@@ -191,10 +192,12 @@ class OptimizationAnalysis:
         restart_settings = self._GetValidatedRestartSettings()
         if not restart_settings["load_restart"].GetBool():
             return None
+        CheckSerialRestart()
 
         restart_files_path, restart_file_name = SplitRestartFileName(restart_settings["restart_file_name"].GetString())
         resolved_step = ResolveRestartLoadStep(restart_files_path, restart_file_name, restart_settings["restart_load_step"])
         if resolved_step is None:
+            Kratos.Logger.PrintInfo("OptimizationAnalysis", f"\"load_restart\" is on but no checkpoint matching \"{restart_files_path / restart_file_name}\" was found; starting from scratch.")
             return None
 
         file_path = (restart_files_path / restart_file_name.replace("<step>", str(resolved_step))).resolve()
@@ -216,23 +219,24 @@ class OptimizationAnalysis:
         self.optimization_problem.SetRestarted(True)
         return payload
 
+    def _CheckRestartSupport(self) -> None:
+        """Raises if save_restart or load_restart is on for an algorithm without SUPPORTS_RESTART."""
+        restart_settings = self._GetValidatedRestartSettings()
+        if (restart_settings["save_restart"].GetBool() or restart_settings["load_restart"].GetBool()) and not self.__algorithm.SUPPORTS_RESTART:
+            raise RuntimeError(
+                f"\"{type(self.__algorithm).__name__}\" does not call SaveRestartFile() from its "
+                "Solve() loop, so restart_settings.save_restart/load_restart cannot be honoured "
+                "for it.")
+
     def _CreateRestart(self):
         """Restores the checkpointed BufferedDict and step, and installs the restart writer.
 
         Every saved value is restored unconditionally; missing nodes are recreated from the saved
         node metadata. Must run after all components are created (they size their data buffers) and
-        before any of them is initialized. Raises if restart is requested for an algorithm that does
-        not support it.
+        before any of them is initialized.
         """
         restart_settings = self._GetValidatedRestartSettings()
         save_restart = restart_settings["save_restart"].GetBool()
-        load_restart = restart_settings["load_restart"].GetBool()
-
-        if (save_restart or load_restart) and not self.__algorithm.SUPPORTS_RESTART:
-            raise RuntimeError(
-                f"\"{type(self.__algorithm).__name__}\" does not call SaveRestartFile() from its "
-                "Solve() loop, so restart_settings.save_restart/load_restart cannot be honoured "
-                "for it.")
 
         if self.__restart_payload is not None:
             payload = self.__restart_payload

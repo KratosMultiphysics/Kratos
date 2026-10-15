@@ -1,3 +1,5 @@
+from unittest import mock
+
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.KratosUnittest as kratos_unittest
 
@@ -5,12 +7,15 @@ from KratosMultiphysics.kratos_utilities import DeleteFileIfExisting
 from KratosMultiphysics.kratos_utilities import DeleteDirectoryIfExisting
 import KratosMultiphysics.OptimizationApplication as KratosOA
 from KratosMultiphysics.OptimizationApplication.optimization_analysis import OptimizationAnalysis
+from KratosMultiphysics.OptimizationApplication.algorithms.algorithm_steepest_descent import AlgorithmSteepestDescent
 from KratosMultiphysics.OptimizationApplication.utilities.buffered_dict import BufferedDict
 from KratosMultiphysics.OptimizationApplication.utilities.component_data_view import ComponentDataView
 
 class TestSteepestDescentRestart(kratos_unittest.TestCase):
     restart_files_path = "Optimization_Restart_test"
     checkpoint_only_restart_files_path = "Optimization_Restart_checkpoint_only_test"
+    reference_summary = "summary_reference.csv"
+    restart_summary = "summary_restart.csv"
 
     def _ReadParameters(self) -> Kratos.Parameters:
         with open("optimization_parameters.json", "r") as file_input:
@@ -18,6 +23,22 @@ class TestSteepestDescentRestart(kratos_unittest.TestCase):
 
     def _SetMaxIter(self, parameters: Kratos.Parameters, max_iter: int) -> None:
         parameters["algorithm_settings"]["settings"]["conv_settings"]["max_iter"].SetInt(max_iter)
+
+    def _AddSummaryOutput(self, parameters: Kratos.Parameters, output_file_name: str) -> None:
+        parameters["processes"]["optimization_data_processes"].AddValue("output_processes", Kratos.Parameters("""[{
+            "type"    : "optimization_problem_ascii_output_process",
+            "module"  : "KratosMultiphysics.OptimizationApplication.processes",
+            "settings": {
+                "output_file_name"    : \"""" + output_file_name + """\",
+                "write_kratos_version": false,
+                "write_time_stamp"    : false
+            }
+        }]"""))
+
+    @staticmethod
+    def _ReadSummaryRows(output_file_name: str) -> 'list[list[float]]':
+        with open(output_file_name, "r") as file_input:
+            return [[float(v) for v in line.split(",")] for line in file_input if not line.startswith("#")]
 
     def _RunToConvergence(self, parameters: Kratos.Parameters) -> OptimizationAnalysis:
         model = Kratos.Model()
@@ -30,6 +51,7 @@ class TestSteepestDescentRestart(kratos_unittest.TestCase):
             # reference run: solve iterations 0..6 in one uninterrupted process.
             reference_parameters = self._ReadParameters()
             self._SetMaxIter(reference_parameters, 6)
+            self._AddSummaryOutput(reference_parameters, self.reference_summary)
             reference_analysis = self._RunToConvergence(reference_parameters)
             reference_algorithm = reference_analysis.GetAlgorithm()
             reference_obj_value = reference_algorithm.GetOptimizedObjectiveValue()
@@ -38,6 +60,7 @@ class TestSteepestDescentRestart(kratos_unittest.TestCase):
             # checkpoint run: solve iterations 0..5 only, writing a restart checkpoint every step.
             checkpoint_parameters = self._ReadParameters()
             self._SetMaxIter(checkpoint_parameters, 5)
+            self._AddSummaryOutput(checkpoint_parameters, self.restart_summary)
             checkpoint_parameters.AddValue("restart_settings", Kratos.Parameters("""{
                 "save_restart"           : true,
                 "restart_file_name"      : \"""" + self.restart_files_path + """/restart_<step>.pkl",
@@ -45,13 +68,15 @@ class TestSteepestDescentRestart(kratos_unittest.TestCase):
             }"""))
             self._RunToConvergence(checkpoint_parameters)
 
-            # resume run: restore the checkpoint from iteration 5 and run one more iteration to 6.
+            # resume run: restore the checkpoint from iteration 4 and run iterations 5..6; the summary
+            # keeps rows 0..4 of the checkpoint run, drops its row 5 and appends the resumed rows.
             resume_parameters = self._ReadParameters()
             self._SetMaxIter(resume_parameters, 6)
+            self._AddSummaryOutput(resume_parameters, self.restart_summary)
             resume_parameters.AddValue("restart_settings", Kratos.Parameters("""{
                 "load_restart"       : true,
                 "restart_file_name"  : \"""" + self.restart_files_path + """/restart_<step>.pkl",
-                "restart_load_step"  : 5
+                "restart_load_step"  : 4
             }"""))
             resume_analysis = self._RunToConvergence(resume_parameters)
             resume_algorithm = resume_analysis.GetAlgorithm()
@@ -62,6 +87,12 @@ class TestSteepestDescentRestart(kratos_unittest.TestCase):
             # YOUNG_MODULUS-scale field (~1e10): compare with a delta relative to its magnitude
             max_abs_reference_value = max(abs(value) for value in reference_control_field)
             self.assertVectorAlmostEqual(reference_control_field, resume_control_field, places=None, delta=max_abs_reference_value * 1e-9)
+
+            reference_rows = self._ReadSummaryRows(self.reference_summary)
+            restart_rows = self._ReadSummaryRows(self.restart_summary)
+            self.assertEqual([row[0] for row in restart_rows], list(range(7)))
+            for reference_row, restart_row in zip(reference_rows, restart_rows):
+                self.assertVectorAlmostEqual(reference_row, restart_row, places=None, delta=1e-6 * max(abs(v) for v in reference_row))
 
     def test_resume_with_checkpoint_only_component(self):
         """Data of a component absent from the resume run is restored verbatim: nodes are recreated
@@ -115,10 +146,24 @@ class TestSteepestDescentRestart(kratos_unittest.TestCase):
             self.assertFalse(restored_buffered.GetClearBufferWhenAdvancing())
             self.assertTrue(any(restored_buffered.HasValue("history", i) for i in range(3)))
 
+    def test_restart_with_unsupported_algorithm_raises(self):
+        """Restart settings on an algorithm without SUPPORTS_RESTART raise in the constructor."""
+        with kratos_unittest.WorkFolderScope(".", __file__):
+            parameters = self._ReadParameters()
+            parameters.AddValue("restart_settings", Kratos.Parameters("""{
+                "save_restart"     : true,
+                "restart_file_name": \"""" + self.restart_files_path + """/restart_<step>.pkl"
+            }"""))
+            with mock.patch.object(AlgorithmSteepestDescent, "SUPPORTS_RESTART", False):
+                with self.assertRaisesRegex(RuntimeError, "does not call SaveRestartFile"):
+                    OptimizationAnalysis(Kratos.Model(), parameters)
+
     @classmethod
     def tearDownClass(cls) -> None:
         with kratos_unittest.WorkFolderScope(".", __file__):
             DeleteFileIfExisting("Structure.time")
+            DeleteFileIfExisting(cls.reference_summary)
+            DeleteFileIfExisting(cls.restart_summary)
             DeleteDirectoryIfExisting(cls.restart_files_path)
             DeleteDirectoryIfExisting(cls.checkpoint_only_restart_files_path)
 

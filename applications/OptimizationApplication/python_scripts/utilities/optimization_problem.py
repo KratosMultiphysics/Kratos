@@ -226,6 +226,7 @@ class OptimizationProblem:
         return self.__is_restarted
 
     def SetRestarted(self, is_restarted: bool) -> None:
+        """Marks this run as resumed from a restart checkpoint (called by OptimizationAnalysis)."""
         self.__is_restarted = is_restarted
 
     def GetRestartOutput(self) -> 'Any | None':
@@ -233,6 +234,7 @@ class OptimizationProblem:
         return self.__restart_output
 
     def SetRestartOutput(self, restart_output: 'Any | None') -> None:
+        """Installs the restart writer that Algorithm.SaveRestartFile() calls (None disables saving)."""
         self.__restart_output = restart_output
 
     def GetComponentContainer(self) -> 'dict[Any, dict[str, Any]]':

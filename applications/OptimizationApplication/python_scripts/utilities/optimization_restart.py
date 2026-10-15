@@ -5,14 +5,7 @@ import KratosMultiphysics as Kratos
 import KratosMultiphysics.OptimizationApplication as KratosOA
 from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem import OptimizationProblem
 from KratosMultiphysics.OptimizationApplication.utilities.buffered_dict import BufferedDict
-from KratosMultiphysics.OptimizationApplication.utilities.restart_file_naming import SplitRestartFileName, ParseStepFromFileName
-
-def Factory(*_args, **_kwargs):
-    raise RuntimeError(
-        "\"optimization_problem_restart_output_process\" can no longer be configured under "
-        "\"processes\"; restart is now configured via the top-level \"restart_settings\" section "
-        "of the optimization parameters (see OptimizationAnalysis.GetDefaultParameters())."
-    )
+from KratosMultiphysics.OptimizationApplication.utilities.restart_file_naming import SplitRestartFileName, ListCheckpoints
 
 _SERIALIZER_TRACE_TYPES = {
     "no_trace":    Kratos.SerializerTraceType.SERIALIZER_NO_TRACE,
@@ -32,6 +25,11 @@ _TENSOR_ADAPTOR_MODULES = (Kratos.TensorAdaptors, KratosOA.TensorAdaptors)
 
 _SCALAR_LEAF_TYPES = (int, float, bool, str, list, dict, type(None))
 
+def CheckSerialRestart() -> None:
+    """Raises if running with more than one rank: optimization restart is serial-only for now."""
+    if Kratos.DataCommunicator.GetDefault().Size() > 1:
+        raise RuntimeError("Optimization restart (restart_settings.save_restart/load_restart) supports serial runs only.")
+
 def CreateTensorAdaptorLoadTarget(type_name: str):
     """Returns a default-constructed tensor adaptor of type type_name, to Load a saved one into."""
     for module in _TENSOR_ADAPTOR_MODULES:
@@ -39,13 +37,14 @@ def CreateTensorAdaptorLoadTarget(type_name: str):
             return getattr(module, type_name)()
     raise RuntimeError(f"Unknown restart tensor adaptor type \"{type_name}\".")
 
-def SaveBufferedDictToSerializer(node: BufferedDict, path: str, serializer: Kratos.StreamSerializer, scalar_snapshot: dict, tensor_kinds: dict, node_metadata: dict, echo_level: int = 0) -> None:
+def SaveBufferedDictToSerializer(node: BufferedDict, path: str, serializer: Kratos.StreamSerializer, scalar_snapshot: dict, tensor_kinds: dict, node_metadata: dict, warned_keys: 'set[str]') -> None:
     """Recursively saves a BufferedDict node and all its sub items for a restart checkpoint.
 
     Tensor adaptors go into serializer (relinked to the saved Model on load) and their
     (tag, type name) into tensor_kinds; plain values (int/float/bool/str/None/list/dict) go into
     scalar_snapshot. Both are keyed by (path/key, step_index). node_metadata gets each sub node's
-    (buffer_size, clear_buffer_when_advancing). Values of any other type are skipped with a warning.
+    (buffer_size, clear_buffer_when_advancing). Values of any other type are skipped with a warning,
+    once per key (warned_keys holds the keys already warned about).
     """
     for step_index in range(node.GetBufferSize()):
         for key, value in node.GetValueItems(step_index).items():
@@ -56,7 +55,8 @@ def SaveBufferedDictToSerializer(node: BufferedDict, path: str, serializer: Krat
                 tensor_kinds[(bufferdict_key, step_index)] = (serializer_tag, type(value).__name__)
             elif isinstance(value, _SCALAR_LEAF_TYPES):
                 scalar_snapshot[(bufferdict_key, step_index)] = value
-            elif echo_level > 0:
+            elif bufferdict_key not in warned_keys:
+                warned_keys.add(bufferdict_key)
                 Kratos.Logger.PrintWarning(
                     "OptimizationProblemRestartOutput",
                     f"Skipping check-pointing of \"{bufferdict_key}\" [ value = {value} ]: does not know how to "
@@ -70,7 +70,7 @@ def SaveBufferedDictToSerializer(node: BufferedDict, path: str, serializer: Krat
     for name, sub_item in node.GetSubItems().items():
         sub_path = f"{path}/{name}" if path else name
         node_metadata[sub_path] = (sub_item.GetBufferSize(), sub_item.GetClearBufferWhenAdvancing())
-        SaveBufferedDictToSerializer(sub_item, sub_path, serializer, scalar_snapshot, tensor_kinds, node_metadata, echo_level)
+        SaveBufferedDictToSerializer(sub_item, sub_path, serializer, scalar_snapshot, tensor_kinds, node_metadata, warned_keys)
 
 class OptimizationProblemRestartOutput:
     """Writes optimization restart checkpoints.
@@ -88,7 +88,8 @@ class OptimizationProblemRestartOutput:
     Files are written atomically (temp file + rename), and with "max_files_to_keep" > 0 the oldest
     checkpoints (by parsed step) are deleted.
     """
-    def GetDefaultParameters(self) -> Kratos.Parameters:
+    @classmethod
+    def GetDefaultParameters(cls) -> Kratos.Parameters:
         return Kratos.Parameters("""{
             "restart_file_name"     : "Optimization_Restart/restart_<step>.pkl",
             "restart_save_frequency": 1,
@@ -98,6 +99,7 @@ class OptimizationProblemRestartOutput:
         }""")
 
     def __init__(self, parameters: Kratos.Parameters, optimization_problem: OptimizationProblem, model: Kratos.Model):
+        CheckSerialRestart()
         parameters.ValidateAndAssignDefaults(self.GetDefaultParameters())
 
         self.optimization_problem = optimization_problem
@@ -109,6 +111,7 @@ class OptimizationProblemRestartOutput:
         self.max_files_to_keep = parameters["max_files_to_keep"].GetInt()
         self.serializer_trace = _SERIALIZER_TRACE_TYPES[parameters["serializer_trace"].GetString()]
         self.echo_level = parameters["echo_level"].GetInt()
+        self.__warned_keys: 'set[str]' = set()
 
         if "<step>" not in self.restart_file_name:
             raise RuntimeError(f"\"restart_file_name\" should contain the \"<step>\" placeholder [ restart_file_name = \"{self.restart_file_name}\" ].")
@@ -116,6 +119,7 @@ class OptimizationProblemRestartOutput:
         self.restart_files_path.mkdir(parents=True, exist_ok=True)
 
     def IsSaveStep(self) -> bool:
+        """Whether the current step is a multiple of "restart_save_frequency"."""
         return self.optimization_problem.GetStep() % self.restart_save_frequency == 0
 
     def SaveRestartFile(self) -> None:
@@ -137,7 +141,7 @@ class OptimizationProblemRestartOutput:
 
         # NEIGHBOUR_* pointers can't survive a Serializer round-trip; they are recomputable, so clear
         # them for the save and restore them right after.
-        KratosOA.OptAppModelPartUtils.ClearNeighbourEntitiesData(root_model_parts)
+        neighbour_backup = KratosOA.OptAppModelPartUtils.ClearNeighbourEntitiesData(root_model_parts)
         try:
             # "<OPTIMIZATION_APP_AUTO>" sub model parts are recomputable cache, so don't checkpoint them
             KratosOA.OptAppModelPartUtils.RemoveModelPartsWithCommonReferenceEntitiesBetweenReferenceListAndExaminedList(root_model_parts)
@@ -147,9 +151,9 @@ class OptimizationProblemRestartOutput:
             scalar_snapshot = {}
             tensor_kinds = {}
             node_metadata = {}
-            SaveBufferedDictToSerializer(self.optimization_problem.GetProblemDataContainer(), "", serializer, scalar_snapshot, tensor_kinds, node_metadata, self.echo_level)
+            SaveBufferedDictToSerializer(self.optimization_problem.GetProblemDataContainer(), "", serializer, scalar_snapshot, tensor_kinds, node_metadata, self.__warned_keys)
         finally:
-            KratosOA.OptAppModelPartUtils.RestoreNeighbourEntitiesData()
+            KratosOA.OptAppModelPartUtils.RestoreNeighbourEntitiesData(neighbour_backup)
 
         file_path = (self.restart_files_path / self.restart_file_name.replace("<step>", str(step))).resolve()
         if self.restart_files_path.resolve() not in file_path.parents:
@@ -177,9 +181,8 @@ class OptimizationProblemRestartOutput:
         if self.max_files_to_keep <= 0:
             return
 
-        checkpoint_glob = self.restart_file_name.replace("<step>", "*")
-        checkpoints = sorted(self.restart_files_path.glob(checkpoint_glob), key=lambda p: ParseStepFromFileName(self.restart_file_name, p.name))
-        for stale_checkpoint in checkpoints[:-self.max_files_to_keep]:
+        checkpoints = ListCheckpoints(self.restart_files_path, self.restart_file_name)
+        for _, stale_checkpoint in checkpoints[:-self.max_files_to_keep]:
             stale_checkpoint.unlink()
             if self.echo_level > 0:
                 Kratos.Logger.PrintInfo(self.__class__.__name__, f"Removed old restart checkpoint \"{stale_checkpoint}\".")

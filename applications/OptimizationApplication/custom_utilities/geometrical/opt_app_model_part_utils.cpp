@@ -693,61 +693,49 @@ void OptAppModelPartUtils::GenerateModelPart(
     KRATOS_CATCH("");
 }
 
-namespace {
-
-// Backup storage for ClearNeighbourEntitiesData/RestoreNeighbourEntitiesData. Global state is
-// safe here only because the two calls are always used as an immediate, non-reentrant pair.
-std::vector<std::pair<ModelPart::NodeType*, GlobalPointersVector<Element>>> s_neighbour_elements_backup;
-std::vector<std::pair<ModelPart::NodeType*, GlobalPointersVector<Condition>>> s_neighbour_conditions_backup;
-std::vector<std::pair<ModelPart::NodeType*, GlobalPointersVector<ModelPart::NodeType>>> s_neighbour_nodes_backup;
-
-} // namespace
-
-void OptAppModelPartUtils::ClearNeighbourEntitiesData(const std::vector<ModelPart*>& rModelParts)
+OptAppModelPartUtils::NeighbourEntitiesDataBackup OptAppModelPartUtils::ClearNeighbourEntitiesData(const std::vector<ModelPart*>& rModelParts)
 {
     KRATOS_TRY
 
-    s_neighbour_elements_backup.clear();
-    s_neighbour_conditions_backup.clear();
-    s_neighbour_nodes_backup.clear();
-
+    NeighbourEntitiesDataBackup backup;
     for (auto p_model_part : rModelParts) {
         for (auto& r_node : p_model_part->Nodes()) {
             if (r_node.Has(NEIGHBOUR_ELEMENTS)) {
-                s_neighbour_elements_backup.emplace_back(&r_node, r_node.GetValue(NEIGHBOUR_ELEMENTS));
+                backup.mNeighbourElements.emplace_back(&r_node, r_node.GetValue(NEIGHBOUR_ELEMENTS));
                 r_node.GetData().Erase(NEIGHBOUR_ELEMENTS);
             }
             if (r_node.Has(NEIGHBOUR_CONDITIONS)) {
-                s_neighbour_conditions_backup.emplace_back(&r_node, r_node.GetValue(NEIGHBOUR_CONDITIONS));
+                backup.mNeighbourConditions.emplace_back(&r_node, r_node.GetValue(NEIGHBOUR_CONDITIONS));
                 r_node.GetData().Erase(NEIGHBOUR_CONDITIONS);
             }
             if (r_node.Has(NEIGHBOUR_NODES)) {
-                s_neighbour_nodes_backup.emplace_back(&r_node, r_node.GetValue(NEIGHBOUR_NODES));
+                backup.mNeighbourNodes.emplace_back(&r_node, r_node.GetValue(NEIGHBOUR_NODES));
                 r_node.GetData().Erase(NEIGHBOUR_NODES);
             }
         }
     }
+    return backup;
 
     KRATOS_CATCH("");
 }
 
-void OptAppModelPartUtils::RestoreNeighbourEntitiesData()
+void OptAppModelPartUtils::RestoreNeighbourEntitiesData(NeighbourEntitiesDataBackup& rBackup)
 {
     KRATOS_TRY
 
-    for (auto& r_item : s_neighbour_elements_backup) {
+    for (auto& r_item : rBackup.mNeighbourElements) {
         r_item.first->SetValue(NEIGHBOUR_ELEMENTS, r_item.second);
     }
-    for (auto& r_item : s_neighbour_conditions_backup) {
+    for (auto& r_item : rBackup.mNeighbourConditions) {
         r_item.first->SetValue(NEIGHBOUR_CONDITIONS, r_item.second);
     }
-    for (auto& r_item : s_neighbour_nodes_backup) {
+    for (auto& r_item : rBackup.mNeighbourNodes) {
         r_item.first->SetValue(NEIGHBOUR_NODES, r_item.second);
     }
 
-    s_neighbour_elements_backup.clear();
-    s_neighbour_conditions_backup.clear();
-    s_neighbour_nodes_backup.clear();
+    rBackup.mNeighbourElements.clear();
+    rBackup.mNeighbourConditions.clear();
+    rBackup.mNeighbourNodes.clear();
 
     KRATOS_CATCH("");
 }

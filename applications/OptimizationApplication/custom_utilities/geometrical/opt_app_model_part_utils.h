@@ -22,6 +22,7 @@
 // Project includes
 #include "includes/define.h"
 #include "includes/model_part.h"
+#include "containers/global_pointers_vector.h"
 
 // Application includes
 
@@ -37,6 +38,14 @@ public:
     ///@{
 
     using IndexType = std::size_t;
+
+    /// Neighbour entity data removed by ClearNeighbourEntitiesData, to be put back by RestoreNeighbourEntitiesData.
+    struct NeighbourEntitiesDataBackup
+    {
+        std::vector<std::pair<ModelPart::NodeType*, GlobalPointersVector<Element>>> mNeighbourElements;
+        std::vector<std::pair<ModelPart::NodeType*, GlobalPointersVector<Condition>>> mNeighbourConditions;
+        std::vector<std::pair<ModelPart::NodeType*, GlobalPointersVector<ModelPart::NodeType>>> mNeighbourNodes;
+    };
 
     ///@}
     ///@name Static operations
@@ -124,23 +133,23 @@ public:
         const Element& rReferenceElement);
 
     /**
-     * @brief Clears the neighbour entity data of all nodes and keeps a backup of it.
+     * @brief Clears the neighbour entity data of all nodes and returns a backup of it.
      *
      * NEIGHBOUR_ELEMENTS, NEIGHBOUR_CONDITIONS and NEIGHBOUR_NODES can't survive a Serializer
      * round-trip (nodes load before the entities they point to), so they are erased from the nodes
-     * before a save. The backup is a single global store, so every call must be followed by
-     * RestoreNeighbourEntitiesData before the next one; calls are not reentrant or thread safe.
+     * before a save. The backup holds raw node pointers, so the nodes must outlive it.
      *
      * @param rModelParts       The list of model parts whose nodes' neighbour entity data is cleared.
+     * @return NeighbourEntitiesDataBackup  The removed data, to pass to RestoreNeighbourEntitiesData.
      */
-    static void ClearNeighbourEntitiesData(const std::vector<ModelPart*>& rModelParts);
+    static NeighbourEntitiesDataBackup ClearNeighbourEntitiesData(const std::vector<ModelPart*>& rModelParts);
 
     /**
-     * @brief Restores the neighbour entity data cleared by the last ClearNeighbourEntitiesData call.
+     * @brief Puts the neighbour entity data of rBackup back on its nodes and empties rBackup.
      *
-     * The backup is emptied afterwards.
+     * @param rBackup           The backup returned by ClearNeighbourEntitiesData.
      */
-    static void RestoreNeighbourEntitiesData();
+    static void RestoreNeighbourEntitiesData(NeighbourEntitiesDataBackup& rBackup);
 
     ///@}
 };
