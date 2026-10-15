@@ -1,4 +1,5 @@
 from pathlib import Path
+from xml.etree import ElementTree
 import KratosMultiphysics as Kratos
 
 # Import KratosUnittest
@@ -121,6 +122,8 @@ class TestOptimizationProblemFieldOutputProcess(kratos_unittest.TestCase):
         self.components_list.append(TestOptimizationProblemFieldOutputProcess.DummyExecutionPolicy("policy_1", self.model_part1))
         self.components_list.append(TestOptimizationProblemFieldOutputProcess.DummyExecutionPolicy("policy_2", self.model_part2))
         self.components_list.append(TestOptimizationProblemFieldOutputProcess.DummyExecutionPolicy("policy_3", self.model_part1))
+
+        ComponentDataView("algorithm", self.optimization_problem).GetUnBufferedData().SetValue("controls", ",".join([f"control_{i+1}" for i in range(2)]))
 
         for component in self.components_list:
             self.optimization_problem.AddComponent(component)
@@ -282,6 +285,58 @@ class TestOptimizationProblemFieldOutputProcess(kratos_unittest.TestCase):
             self.assertTrue(Path("Optimization_Results/check_2/test_2.vtm.series").is_file())
             self.assertTrue(Path("Optimization_Results/check_2/test_2.sub_model_1.vtm.series").is_file())
 
+    def test_OptimizationProblemVtuOutputProcessMultipleControlsSameContainer(self):
+        # both controls act on the same container, and the algorithm stores "search_direction" for all of them.
+        # the fields should not overwrite each other in the output.
+        parameters = Kratos.Parameters(
+            """
+            {
+                "file_name"                   : "<model_part_full_name>",
+                "output_path"                 : "Optimization_Results/check_3",
+                "file_format"                 : "ascii",
+                "write_deformed_configuration": false,
+                "output_sub_model_parts"      : false,
+                "list_of_output_components"   : ["all"],
+                "output_precision"            : 7,
+                "output_interval"             : 1,
+                "echo_level"                  : 0
+            }
+            """
+        )
+
+        search_direction_1 = Kratos.TensorAdaptors.VariableTensorAdaptor(self.model_part1.Elements, Kratos.ACCELERATION)
+        search_direction_1.CollectData()
+        search_direction_1.data[:] = 1.0
+        search_direction_2 = Kratos.TensorAdaptors.VariableTensorAdaptor(self.model_part1.Elements, Kratos.ACCELERATION)
+        search_direction_2.CollectData()
+        search_direction_2.data[:] = 2.0
+        combined_data = Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor([search_direction_1, search_direction_2], perform_collect_data_recursively=False, perform_store_data_recursively=False)
+        combined_data.CollectData()
+
+        ComponentDataView("algorithm", self.optimization_problem).SetDataBuffer(1)
+        ComponentDataView("algorithm", self.optimization_problem).GetBufferedData()["search_direction"] = combined_data
+
+        process = OptimizationProblemVtuOutputProcess(self.model, parameters, self.optimization_problem)
+        process.ExecuteInitialize()
+
+        with kratos_unittest.WorkFolderScope(".", __file__):
+            process.PrintOutput()
+            process.ExecuteFinalize()
+
+            file_name = "Optimization_Results/check_3/test_1/test_1_elements_0.vtu"
+            self.assertTrue(Path(file_name).is_file())
+            cell_data = {}
+            root = ElementTree.parse(file_name).getroot()
+            for data_array in root.iter("DataArray"):
+                if data_array.get("Name", "").endswith("search_direction"):
+                    cell_data[data_array.get("Name")] = [float(v) for v in data_array.text.split()]
+
+            self.assertEqual(sorted(cell_data.keys()), ["control_1_search_direction", "control_2_search_direction"])
+            self.assertEqual(cell_data["control_1_search_direction"], [1.0, 1.0, 1.0])
+            self.assertEqual(cell_data["control_2_search_direction"], [2.0, 2.0, 2.0])
+
+            kratos_utilities.DeleteDirectoryIfExisting("Optimization_Results/check_3")
+
     @kratos_unittest.skipIfApplicationsNotAvailable("HDF5Application")
     def test_OptimizationProblemHDF5OutputProcess(self):
         from KratosMultiphysics.OptimizationApplication.processes.optimization_problem_hdf5_output_process import OptimizationProblemHDF5OutputProcess
@@ -337,8 +392,8 @@ class TestOptimizationProblemFieldOutputProcess(kratos_unittest.TestCase):
                                     k_text = "True"
                                 else:
                                     k_text = "False"
-                                self.assertTrue(h5_file.IsDataSet(f"/Optimization_Results/{i}/Elements/control_{j + 1}_combined_element_{k_text}"))
-                                self.assertTrue(h5_file.IsDataSet(f"/Optimization_Results/{i}/Nodal/control_{j + 1}_combined_element_{k_text}"))
+                                self.assertTrue(h5_file.IsDataSet(f"/Optimization_Results/{i}/Elements/control_2_control_{j + 1}_combined_element_{k_text}"))
+                                self.assertTrue(h5_file.IsDataSet(f"/Optimization_Results/{i}/Nodal/control_1_control_{j + 1}_combined_element_{k_text}"))
 
     @classmethod
     def tearDownClass(cls):
