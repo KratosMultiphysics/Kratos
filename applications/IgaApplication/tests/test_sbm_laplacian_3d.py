@@ -38,19 +38,20 @@ def _create_cube_outer_skin(model_part, min_coord=0.25, max_coord=1.75):
     for node_id, (x, y, z) in coords.items():
         model_part.CreateNewNode(node_id, x, y, z)
 
+    # Orient the skin normals towards the interior of the cube.
     triangles = {
-        1: [1, 3, 2],
-        2: [1, 4, 3],
-        3: [5, 6, 7],
-        4: [5, 7, 8],
-        5: [1, 2, 6],
-        6: [1, 6, 5],
-        7: [4, 8, 7],
-        8: [4, 7, 3],
-        9: [1, 5, 8],
-        10: [1, 8, 4],
-        11: [2, 7, 6],
-        12: [2, 3, 7],
+        1: [1, 2, 3],
+        2: [1, 3, 4],
+        3: [5, 7, 6],
+        4: [5, 8, 7],
+        5: [1, 6, 2],
+        6: [1, 5, 6],
+        7: [4, 7, 8],
+        8: [4, 3, 7],
+        9: [1, 8, 5],
+        10: [1, 4, 8],
+        11: [2, 6, 7],
+        12: [2, 7, 3],
     }
 
     for cond_id, node_ids in triangles.items():
@@ -207,7 +208,7 @@ class TestSbmLaplacian3D(KratosUnittest.TestCase):
         current_model, support_model_part = _create_outer_support_model_part()
         self.assertTrue(current_model.HasModelPart("IgaModelPart.SBM_Support_outer"))
 
-        self.assertEqual(support_model_part.NumberOfConditions(), 288)
+        self.assertEqual(support_model_part.NumberOfConditions(), 240)
 
         tolerance = 1.0e-12
         for condition in support_model_part.Conditions:
@@ -218,29 +219,32 @@ class TestSbmLaplacian3D(KratosUnittest.TestCase):
             if abs(center[0]) < tolerance:
                 expected_normal = (-1.0, 0.0, 0.0)
             elif abs(center[0] - 0.5) < tolerance:
-                expected_normal = (1.0, 0.0, 0.0)
-            elif abs(center[0] - 1.5) < tolerance:
                 expected_normal = (-1.0, 0.0, 0.0)
+            elif abs(center[0] - 1.5) < tolerance:
+                expected_normal = (1.0, 0.0, 0.0)
             elif abs(center[0] - 2.0) < tolerance:
                 expected_normal = (1.0, 0.0, 0.0)
             elif abs(center[1]) < tolerance:
                 expected_normal = (0.0, -1.0, 0.0)
             elif abs(center[1] - 0.5) < tolerance:
-                expected_normal = (0.0, 1.0, 0.0)
-            elif abs(center[1] - 1.5) < tolerance:
                 expected_normal = (0.0, -1.0, 0.0)
+            elif abs(center[1] - 1.5) < tolerance:
+                expected_normal = (0.0, 1.0, 0.0)
             elif abs(center[1] - 2.0) < tolerance:
                 expected_normal = (0.0, 1.0, 0.0)
             elif abs(center[2]) < tolerance:
                 expected_normal = (0.0, 0.0, -1.0)
             elif abs(center[2] - 0.5) < tolerance:
-                expected_normal = (0.0, 0.0, 1.0)
-            elif abs(center[2] - 1.5) < tolerance:
                 expected_normal = (0.0, 0.0, -1.0)
+            elif abs(center[2] - 1.5) < tolerance:
+                expected_normal = (0.0, 0.0, 1.0)
             elif abs(center[2] - 2.0) < tolerance:
                 expected_normal = (0.0, 0.0, 1.0)
             else:
-                self.fail(f"Unexpected support-condition center: ({center[0]}, {center[1]}, {center[2]})")
+                self.fail(
+                    f"Unexpected support-condition center: "
+                    f"({center[0]}, {center[1]}, {center[2]})"
+                )
 
             self.assertAlmostEqual(normal[0], expected_normal[0], delta=tolerance)
             self.assertAlmostEqual(normal[1], expected_normal[1], delta=tolerance)

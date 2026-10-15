@@ -22,6 +22,7 @@
 
 // Match the analytical total-strain response of the manufactured benchmark.
 // #define ANALYTICAL_TANGENT
+#include "includes/global_pointer_variables.h"
 
 namespace Kratos
 {
@@ -137,6 +138,15 @@ void SbmSolidCondition::InitializeMemberVariables()
 void SbmSolidCondition::InitializeSbmMemberVariables()
 {
     const auto& r_geometry = this->GetGeometry();
+    if (this->Has(NEIGHBOUR_NODES) && !this->Has(NEIGHBOUR_CONDITIONS)) {
+        auto& r_projection_nodes = this->GetValue(NEIGHBOUR_NODES);
+        KRATOS_ERROR_IF(r_projection_nodes.size() != 1)
+            << "Expected one projection node in condition #" << Id() << std::endl;
+        mpProjectionNode = &r_projection_nodes[0];
+        mDistanceVector.resize(3);
+        noalias(mDistanceVector) = mpProjectionNode->Coordinates() - r_geometry.Center().Coordinates();
+        return;
+    }
     // Retrieve projection
     Condition candidate_closest_skin_segment_1 = this->GetValue(NEIGHBOUR_CONDITIONS)[0] ;
     // Find the closest node in condition

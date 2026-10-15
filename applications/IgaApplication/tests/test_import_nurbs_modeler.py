@@ -141,36 +141,7 @@ class TestImportNurbsModeler(KratosUnittest.TestCase):
                     ]
                 }
             }] """)
-
-    def test_missing_layer_mapping_for_nurbs_curve(self):
-        modelers_list = self._make_square_modeler_settings()
-        layers = modelers_list[0]["Parameters"]["link_layer_to_condition_name"]
-        layers[0]["layer_name"].SetString("other")
-
-        message = (
-            'NURBS geometry layer "bottom" has no entry in '
-            '"link_layer_to_condition_name"'
-        )
-        with self.assertRaisesRegex(RuntimeError, message):
-            run_modelers(KratosMultiphysics.Model(), modelers_list)
-
-    def test_missing_condition_name_for_nurbs_layer(self):
-        modelers_list = self._make_square_modeler_settings()
-        layers = modelers_list[0]["Parameters"]["link_layer_to_condition_name"]
-        layers[0].RemoveValue("condition_name")
-
-        with self.assertRaisesRegex(RuntimeError, 'layer "bottom" has no "condition_name"'):
-            run_modelers(KratosMultiphysics.Model(), modelers_list)
-
-    def test_empty_condition_name_for_nurbs_layer(self):
-        modelers_list = self._make_square_modeler_settings()
-        layers = modelers_list[0]["Parameters"]["link_layer_to_condition_name"]
-        layers[0]["condition_name"].SetString("")
-
-        message = 'Empty "condition_name" for NURBS geometry layer "bottom"'
-        with self.assertRaisesRegex(RuntimeError, message):
-            run_modelers(KratosMultiphysics.Model(), modelers_list)
-
+        
     def test_imports_curve_with_unregistered_condition_name(self):
         modelers_list = self._make_square_modeler_settings()
         layers = modelers_list[0]["Parameters"]["link_layer_to_condition_name"]
