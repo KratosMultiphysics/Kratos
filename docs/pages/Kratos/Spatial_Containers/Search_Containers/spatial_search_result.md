@@ -29,17 +29,20 @@ Can be found in [`spatial_search_result.h`](https://github.com/KratosMultiphysic
 A template class designed to handle the results of spatial searches. The class is templated so it can handle to hold any kind of object.
 
 #### Constructors
-- **Default Constructor**: Initializes member variables to represent an unsuccessful search.
-- **Parameterized Constructor**: Accepts a pointer to `TObjectType` and initializes based on whether the object exists. Default rank is zero, assuming a serial set up.
+- **Default Constructor**: Initializes member variables to represent an unsuccessful search (`mpObject = nullptr`, `mDistance = 0.0`, not found, distance not calculated).
+- **Parameterized Constructor**: `SpatialSearchResult(TObjectType* pObject, const int Rank = 0)`. Builds the internal `GlobalPointer<TObjectType>` from `pObject` and `Rank`, and sets `IsObjectFound()` to `true` if `pObject` is not `nullptr`. Default rank is zero, assuming a serial set up.
 
 #### Operations
-- **`Reset`**: Resets the search result to its initial state, indicating no object found and no distance calculated.
+- **`Reset`**: Resets the search result to its initial state (`mpObject = nullptr`, `mDistance = 0.0`), indicating no object found and no distance calculated.
 
 #### Accessors
-- **Getters and Setters**: For accessing and modifying the object, its distance, and status flags (object found, distance calculated).
+- **`Get`/`Set`**: Access or replace the underlying `GlobalPointer<TObjectType>` (`Get`), or set a new raw `TObjectType*` (`Set`, which also marks the object as found).
+- **`GetDistance`/`SetDistance`**: Access or set the distance to the object (`SetDistance` also marks the distance as calculated).
+- **`GetIsObjectFound`/`SetIsObjectFound`** and **`GetIsDistanceCalculated`/`SetIsDistanceCalculated`**: Explicit getter/setter pairs equivalent to the inquiry methods below. These are only available in C++, they are **not** exposed to Python.
 
 #### Inquiry
-- **Status Checks**: Methods to check if the object was found and if the distance was calculated.
+- **`IsObjectFound`**: Returns `true` if the object was found.
+- **`IsDistanceCalculated`**: Returns `true` if the distance was set (via `SetDistance` or `SetIsDistanceCalculated`).
 
 ### Python exposition
 
@@ -53,6 +56,9 @@ Here's a breakdown of the objects that are specialized and their names as expose
 2. **GeometricalObject** - This is another specialization for spatial search results and is exposed in Python as `"SpatialSearchResultGeometricalObject"`.
 3. **Element** - Specialized for spatial search results concerning elements, and it is exposed in Python as `"SpatialSearchResultElement"`.
 4. **Condition** - This type is also specialized for spatial search results, specifically for conditions, and is exposed in Python as `"SpatialSearchResultCondition"`.
+
+#### Constructors
+Two constructors are exposed: the default constructor and the one taking a raw `TObjectType*` pointer. The `Rank` argument of the C++ parameterized constructor is **not** exposed to Python (it always defaults to `0`).
 
 #### Member functions
  - `Reset`: Binds the `Reset` method that resets the internal state of the search result.
