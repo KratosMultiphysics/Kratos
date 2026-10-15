@@ -3,6 +3,7 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics as KM
 import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
 
+print(StructuralMechanicsApplication.__path__)
 
 from KratosMultiphysics.StructuralMechanicsApplication.RBE2_process import ApplyRbe2Process
 
@@ -171,10 +172,10 @@ class TestRBE2(KratosUnittest.TestCase):
 
         rbe2_settings = KM.Parameters(r"""
         {
-            "model_part_name": "Structure",
-            "master_sub_model_part": "Structure.RBE2_master",
-            "slave_sub_model_part": "Structure.RBE2_slaves",
-            "constraint_id_start": 1,
+            "main_model_part_name": "Structure",
+            "master_sub_model_part_name": "Structure.RBE2_master",
+            "slave_sub_model_part_name": "Structure.RBE2_slaves",
+            "constraint_id": 2,
             "constrained_dofs": ["DISPLACEMENT_X", "DISPLACEMENT_Y", "DISPLACEMENT_Z", "ROTATION_X", "ROTATION_Y", "ROTATION_Z"]
         }""")
 
@@ -193,7 +194,6 @@ class TestRBE2(KratosUnittest.TestCase):
         self._apply_displacement([master_node], applied_disp)
         self._apply_rotation([master_node], applied_rot)
         self._solve(mp)
-
 
         for node_id, expected_displacement, expected_rotation in zip(
             [10, 11, 12], displacement_results, rotation_results
