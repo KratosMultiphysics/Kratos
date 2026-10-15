@@ -191,30 +191,44 @@ void  AddContainersToPython(pybind11::module& m)
 
     py::class_<Variable<double>,VariableData>(m, "DoubleVariable")
     .def("__str__", PrintObject<Variable<double>>)
+    .def("HasAdjointVariable", &Variable<double>::HasAdjointVariable)
+    .def("GetAdjointVariable", &Variable<double>::GetAdjointVariable, py::return_value_policy::reference)
     ;
 
     py::class_<Variable<Vector >,VariableData>(m, "VectorVariable")
     .def("__str__", PrintObject<Variable<Vector >>)
+    .def("HasAdjointVariable", &Variable<Vector >::HasAdjointVariable)
+    .def("GetAdjointVariable", &Variable<Vector >::GetAdjointVariable, py::return_value_policy::reference)
     ;
 
     py::class_<Array1DVariable3,VariableData>(m, "Array1DVariable3")
     .def("__str__", PrintObject<Array1DVariable3>)
+    .def("HasAdjointVariable", &Array1DVariable3::HasAdjointVariable)
+    .def("GetAdjointVariable", &Array1DVariable3::GetAdjointVariable, py::return_value_policy::reference)
     ;
 
     py::class_<Array1DVariable4,VariableData>(m, "Array1DVariable4")
     .def("__str__", PrintObject<Array1DVariable4>)
+    .def("HasAdjointVariable", &Array1DVariable4::HasAdjointVariable)
+    .def("GetAdjointVariable", &Array1DVariable4::GetAdjointVariable, py::return_value_policy::reference)
     ;
 
     py::class_<Array1DVariable6,VariableData>(m, "Array1DVariable6")
     .def("__str__", PrintObject<Array1DVariable6>)
+    .def("HasAdjointVariable", &Array1DVariable6::HasAdjointVariable)
+    .def("GetAdjointVariable", &Array1DVariable6::GetAdjointVariable, py::return_value_policy::reference)
     ;
 
     py::class_<Array1DVariable9,VariableData>(m, "Array1DVariable9")
     .def("__str__", PrintObject<Array1DVariable9>)
+    .def("HasAdjointVariable", &Array1DVariable9::HasAdjointVariable)
+    .def("GetAdjointVariable", &Array1DVariable9::GetAdjointVariable, py::return_value_policy::reference)
     ;
 
     py::class_<Variable<DenseMatrix<double> >,VariableData>(m, "MatrixVariable")
     .def("__str__", PrintObject<Variable<DenseMatrix<double> >>)
+    .def("HasAdjointVariable", &Variable<DenseMatrix<double> >::HasAdjointVariable)
+    .def("GetAdjointVariable", &Variable<DenseMatrix<double> >::GetAdjointVariable, py::return_value_policy::reference)
     ;
 
     py::class_<Variable<ConstitutiveLaw::Pointer>,VariableData>(m, "ConstitutuveLawVariable")
@@ -368,6 +382,8 @@ void  AddContainersToPython(pybind11::module& m)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, CONSTRAINT_SCALE_FACTOR )
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, AUXILIAR_CONSTRAINT_SCALE_FACTOR )
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, TEMPERATURE )
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, ADJOINT_TEMPERATURE )
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, ADJOINT_PRESSURE )
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, TEMPERATURE_OLD_IT )
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, PRESSURE )
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, VISCOSITY_AIR )
@@ -392,6 +408,12 @@ void  AddContainersToPython(pybind11::module& m)
     KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, ACCELERATION )
     KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, VELOCITY )
     KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, DISPLACEMENT )
+    KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, ADJOINT_ACCELERATION )
+    KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, ADJOINT_VELOCITY )
+    KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, ADJOINT_DISPLACEMENT )
+    KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, ADJOINT_ANGULAR_ACCELERATION )
+    KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, ADJOINT_ANGULAR_VELOCITY )
+    KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, ADJOINT_ROTATION )
     KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, DISPLACEMENT_SUBSCALE )
     KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, DISPLACEMENT_PROJECTION )
     KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, DISPLACEMENT_PROJECTION_REACTION )
