@@ -365,6 +365,7 @@ void CalculateInitialJacobian(
 ///@name Protected member Variables
 ///@{
     ConstitutiveLaw::Pointer mpConstitutiveLaw; /// The pointer containing the constitutive laws
+    Matrix mDBOld; /// Adjoint Nitsche operator frozen at InitializeSolutionStep.
     // sbm variables
     array_1d<double, 3> mNormalParameterSpace;
     array_1d<double, 3> mNormalPhysicalSpace;

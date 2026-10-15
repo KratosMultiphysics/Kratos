@@ -20,7 +20,7 @@
 #include "custom_utilities/analytical_j2_response_utility.h"
 
 // Comment out to assemble the incremental constitutive-law response.
-#define ANALYTICAL_TANGENT
+// #define ANALYTICAL_TANGENT
 
 namespace Kratos
 {
@@ -252,7 +252,7 @@ void GapSbmSolidCondition::CalculateLeftHandSide(
                         // // [\sigma_1(w) \dot n] \dot n (-u_1 \dot n)
                         // //*********************************************** */
                         Vector sigma_w_n;
-                        Vector stress_column_w = column(DB_sum, iglob);
+                        Vector stress_column_w = column(mDBOld, iglob);
                         CalculateTraction(stress_column_w, mNormalPhysicalSpace, sigma_w_n);
 
                         double sigma_w_n_dot_direction = inner_prod(sigma_w_n, direction);
@@ -276,7 +276,7 @@ void GapSbmSolidCondition::CalculateLeftHandSide(
                     rLeftHandSideMatrix(iglob, mDim*j+idim) += N_sum_vec(i)*N_sum_vec(j)* penalty_integration;
 
                     Vector sigma_w_n = ZeroVector(3);
-                    Vector stress_column_w = column(DB_sum, iglob);
+                    Vector stress_column_w = column(mDBOld, iglob);
                     CalculateTraction(stress_column_w, mNormalPhysicalSpace, sigma_w_n);
                     
                     for (IndexType jdim = 0; jdim < mDim; jdim++) {
@@ -353,10 +353,9 @@ void GapSbmSolidCondition::CalculateRightHandSide(
     Vector r_stress_vector_on_true = ZeroVector(3);
     AnalyticalJ2ResponseUtility::AnalyticalStress(r_stress_vector_on_true, old_strain_on_true, GetProperties());
 
-    Matrix r_D_on_true = ZeroMatrix(3,3);
-    AnalyticalJ2ResponseUtility::AnalyticalConstitutiveMatrix(r_D_on_true, old_strain_on_true, GetProperties());
     #else
     const Vector& r_stress_vector_on_true = values_true.GetStressVector();
+
     #endif
 
     // compute the old_displacement solution on the true boundary
@@ -370,7 +369,6 @@ void GapSbmSolidCondition::CalculateRightHandSide(
         }
     }
 
-    Matrix DB_sum = prod(r_D_on_true, B_sum);
 
     // Differential area
     double penalty_integration = mPenalty * integration_weight;
@@ -410,7 +408,7 @@ void GapSbmSolidCondition::CalculateRightHandSide(
                 // // rhs -> [\sigma_1(w) \dot n] \dot n (-g_{n,0})
                 // //*********************************************** */
                 Vector sigma_w_n;
-                Vector stress_column_w = column(DB_sum, iglob);
+                Vector stress_column_w = column(mDBOld, iglob);
                 CalculateTraction(stress_column_w, mNormalPhysicalSpace, sigma_w_n);
 
                 double cut_sigma_w_n_dot_direction = inner_prod(sigma_w_n, direction);
@@ -442,7 +440,7 @@ void GapSbmSolidCondition::CalculateRightHandSide(
                 rRightHandSideVector[iglob] += N_sum_vec(i)*(u_D - old_displacement)[idim]* penalty_integration;
 
                 Vector sigma_w_n;
-                Vector stress_column_w = column(DB_sum, iglob);
+                Vector stress_column_w = column(mDBOld, iglob);
                 CalculateTraction(stress_column_w, mNormalPhysicalSpace, sigma_w_n);
 
                 for (IndexType jdim = 0; jdim < mDim; jdim++) {
@@ -741,7 +739,7 @@ void GapSbmSolidCondition::InitializeSolutionStep(const ProcessInfo& rCurrentPro
     Matrix grad_N_sum_transposed = ZeroMatrix(3, number_of_control_points);
     ComputeGradientTaylorExpansionContribution(grad_N_sum_transposed);
     Matrix grad_N_sum = trans(grad_N_sum_transposed);
-    Matrix B_sum = ZeroMatrix(3, mat_size);
+    Matrix B_sum = ZeroMatrix(mpConstitutiveLaw->GetStrainSize(), mat_size);
     CalculateB(B_sum, grad_N_sum);
 
     Vector displacement(mat_size);

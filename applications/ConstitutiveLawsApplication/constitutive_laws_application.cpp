@@ -46,6 +46,7 @@ void KratosConstitutiveLawsApplication::Register()
     KRATOS_REGISTER_CONSTITUTIVE_LAW("HyperElasticSimoTaylorNeoHookean3DLaw", mHyperElasticSimoTaylorNeoHookean3D);
     KRATOS_REGISTER_CONSTITUTIVE_LAW("HyperElasticSimoTaylorNeoHookeanPlaneStrain2DLaw", mHyperElasticSimoTaylorNeoHookeanPlaneStrain2D);
     KRATOS_REGISTER_CONSTITUTIVE_LAW("SmallStrainJ2PlasticityPlaneStrain2DLaw", mSmallStrainJ2PlasticityPlaneStrain2D);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("SmallStrainJ2PlasticityPlaneStrain2DThreeComponentsLaw", mSmallStrainJ2PlasticityPlaneStrain2DThreeComponents);
     KRATOS_REGISTER_CONSTITUTIVE_LAW("SmallStrainJ2Plasticity3DLaw", mSmallStrainJ2Plasticity3D);
     KRATOS_REGISTER_CONSTITUTIVE_LAW("SmallStrainIsotropicDamagePlaneStrain2DLaw", mSmallStrainIsotropicDamagePlaneStrain2D);
     KRATOS_REGISTER_CONSTITUTIVE_LAW("SmallStrainIsotropicDamage3DLaw", mSmallStrainIsotropicDamage3D);

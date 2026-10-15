@@ -281,7 +281,11 @@ void ApplyConstitutiveLaw(
         SizeType matSize, 
         Vector& rStrain, 
         ConstitutiveLaw::Parameters& rValues,
-        ConstitutiveVariables& rConstitutiVariables);
+        ConstitutiveVariables& rConstitutiVariables,
+        const bool IsProjectionPoint = false);
+
+void UpdateMaterialResponseAtProjectionPoint(
+    const ProcessInfo& rCurrentProcessInfo, const bool Finalize);
 
 
 /**
@@ -364,6 +368,7 @@ void CalculateInitialJacobian(
 ///@name Protected member Variables
 ///@{
     ConstitutiveLaw::Pointer mpConstitutiveLaw; /// The pointer containing the constitutive laws
+    ConstitutiveLaw::Pointer mpConstitutiveLawAtProjectionPoint; /// Independent history driven by the extended strain.
     // sbm variables
     array_1d<double, 3> mNormalParameterSpace;
     array_1d<double, 3> mNormalPhysicalSpace;

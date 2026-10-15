@@ -21,7 +21,7 @@
 // #define SWITCH_OFF_NISCHE  
 
 // Use the tangent returned by the selected constitutive law.
-#define ANALYTICAL_TANGENT
+// #define ANALYTICAL_TANGENT
 
 namespace Kratos
 {

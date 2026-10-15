@@ -18,6 +18,13 @@
 
 // Project includes
 #include "custom_conditions/sbm_load_solid_condition.h"
+#include "custom_utilities/analytical_j2_response_utility.h"
+
+// Match the analytical total-strain response of the manufactured benchmark.
+// #define ANALYTICAL_TANGENT
+
+// Comment out to reuse the surrogate history and D_s in the projected Neumann term.
+#define SBM_USE_PROJECTION_POINT_CONSTITUTIVE_LAW
 #include "includes/global_pointer_variables.h"
 
 namespace Kratos
@@ -41,6 +48,9 @@ void SbmLoadSolidCondition::InitializeMaterial()
 
         mpConstitutiveLaw = GetProperties()[CONSTITUTIVE_LAW]->Clone();
         mpConstitutiveLaw->InitializeMaterial( r_properties, r_geometry, row(N_values , 0 ));
+
+        mpConstitutiveLawAtProjectionPoint = GetProperties()[CONSTITUTIVE_LAW]->Clone();
+        mpConstitutiveLawAtProjectionPoint->InitializeMaterial(r_properties, r_geometry, row(N_values, 0));
 
     } else
         KRATOS_ERROR << "A constitutive law needs to be specified for the element with ID " << this->Id() << std::endl;
@@ -290,7 +300,17 @@ void SbmLoadSolidCondition::CalculateLeftHandSide(
 
     Matrix B_sum = ZeroMatrix(strain_size,mat_size);
     CalculateB(B_sum, grad_H_sum);
-    Matrix DB_sum = prod(r_D, B_sum); //
+
+    // Linearize the projected stress with the tangent at the same true point.
+    Vector strain_true = prod(B_sum, old_displacement_coefficient_vector);
+    ConstitutiveLaw::Parameters values_true(r_geometry, GetProperties(), rCurrentProcessInfo);
+    ConstitutiveVariables constitutive_variables_true(strain_size);
+    ApplyConstitutiveLaw(mat_size, strain_true, values_true, constitutive_variables_true, true);
+#ifdef SBM_USE_PROJECTION_POINT_CONSTITUTIVE_LAW
+    const Matrix DB_sum = prod(values_true.GetConstitutiveMatrix(), B_sum);
+#else
+    const Matrix DB_sum = prod(r_D, B_sum);
+#endif
 
     for (IndexType i = 0; i < number_of_control_points; i++) {
         for (IndexType j = 0; j < number_of_control_points; j++) {
@@ -391,7 +411,6 @@ void SbmLoadSolidCondition::CalculateRightHandSide(
     ConstitutiveVariables this_constitutive_variables_surrogate(strain_size_surrogate);
     ApplyConstitutiveLaw(mat_size, old_strain, values_surrogate, this_constitutive_variables_surrogate);
 
-    const Matrix& r_D = values_surrogate.GetConstitutiveMatrix();
     const Vector& r_stress_vector = values_surrogate.GetStressVector();
     
     // obtain the old stress vector on the true boundary (on the projection node)
@@ -401,13 +420,11 @@ void SbmLoadSolidCondition::CalculateRightHandSide(
 
     const SizeType strain_size_true = mpConstitutiveLaw->GetStrainSize();
     ConstitutiveVariables this_constitutive_variables_true(strain_size_true);
-    ApplyConstitutiveLaw(mat_size, old_strain_on_true, values_true, this_constitutive_variables_true);
+    ApplyConstitutiveLaw(mat_size, old_strain_on_true, values_true, this_constitutive_variables_true, true);
 
     const Vector& r_stress_vector_on_true = values_true.GetStressVector();
 
     // Assembly
-    const Matrix DB = prod(r_D,B);
-    const Matrix DB_sum = prod(r_D, B_sum); //
 
     Vector g_N = ZeroVector(3);
     g_N = mpProjectionNode->GetValue(FORCE);
@@ -422,9 +439,6 @@ void SbmLoadSolidCondition::CalculateRightHandSide(
         for (IndexType idim = 0; idim < mDim; idim++) {
             const int iglob = mDim*i+idim;
 
-            Vector sigma_w_n;
-            Vector stress_column_w = column(DB, iglob);
-            CalculateTraction(stress_column_w, mNormalPhysicalSpace, sigma_w_n);
 
             // External load term
             rRightHandSideVector[iglob] += r_N(0,i) * g_N[idim] * mTrueDotSurrogateNormal * int_to_reference_weight;
@@ -587,7 +601,7 @@ void SbmLoadSolidCondition::CalculateRightHandSide(
     }
 
     void SbmLoadSolidCondition::ApplyConstitutiveLaw(SizeType matSize, Vector& rStrain, ConstitutiveLaw::Parameters& rValues,
-                                        ConstitutiveVariables& rConstitutiVariables)
+                                        ConstitutiveVariables& rConstitutiVariables, const bool IsProjectionPoint)
     {
         // Set constitutive law flags:
         Flags& ConstitutiveLawOptions=rValues.GetOptions();
@@ -596,20 +610,34 @@ void SbmLoadSolidCondition::CalculateRightHandSide(
         ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
         ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
         
+        const Vector& r_span_sizes = GetValue(KNOT_SPAN_SIZES);
+        double squared_length = 0.0;
+        for (SizeType i = 0; i < mDim; ++i) {
+            squared_length += r_span_sizes[i] * r_span_sizes[i];
+        }
+        rValues.SetCharacteristicGeometryLength(0.5 * std::sqrt(squared_length));
+
         rValues.SetStrainVector(rStrain);
         rValues.SetStressVector(rConstitutiVariables.StressVector);
         rValues.SetConstitutiveMatrix(rConstitutiVariables.D);
 
-        mpConstitutiveLaw->CalculateMaterialResponse(rValues, ConstitutiveLaw::StressMeasure_Cauchy); 
+#ifdef SBM_USE_PROJECTION_POINT_CONSTITUTIVE_LAW
+        auto p_law = IsProjectionPoint ? mpConstitutiveLawAtProjectionPoint : mpConstitutiveLaw;
+#else
+        auto p_law = mpConstitutiveLaw;
+#endif
+        p_law->CalculateMaterialResponse(rValues, ConstitutiveLaw::StressMeasure_Cauchy);
+#ifdef ANALYTICAL_TANGENT
+        if (mDim == 2) {
+            AnalyticalJ2ResponseUtility::AnalyticalStress(rValues.GetStressVector(), rStrain, GetProperties());
+            AnalyticalJ2ResponseUtility::AnalyticalConstitutiveMatrix(rValues.GetConstitutiveMatrix(), rStrain, GetProperties());
+        }
+#endif
     }
 
 
     void SbmLoadSolidCondition::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
     {
-        ConstitutiveLaw::Parameters constitutive_law_parameters(
-            GetGeometry(), GetProperties(), rCurrentProcessInfo);
-
-        mpConstitutiveLaw->FinalizeMaterialResponse(constitutive_law_parameters, ConstitutiveLaw::StressMeasure_Cauchy);
         
         //---------- SET STRESS VECTOR VALUE ----------------------------------------------------------------
         //TODO: build a CalculateOnIntegrationPoints method
@@ -662,7 +690,9 @@ void SbmLoadSolidCondition::CalculateRightHandSide(
         values_surrogate.SetStrainVector(old_strain);
         values_surrogate.SetStressVector(this_constitutive_variables.StressVector);
         values_surrogate.SetConstitutiveMatrix(this_constitutive_variables.D);
-        mpConstitutiveLaw->CalculateMaterialResponse(values_surrogate, ConstitutiveLaw::StressMeasure_Cauchy);
+        ApplyConstitutiveLaw(mat_size, old_strain, values_surrogate, this_constitutive_variables);
+        mpConstitutiveLaw->FinalizeMaterialResponse(values_surrogate, ConstitutiveLaw::StressMeasure_Cauchy);
+        UpdateMaterialResponseAtProjectionPoint(rCurrentProcessInfo, true);
 
         const Vector sigma = values_surrogate.GetStressVector();
         Vector sigma_n;
@@ -679,14 +709,64 @@ void SbmLoadSolidCondition::CalculateRightHandSide(
         }
     }
 
-void SbmLoadSolidCondition::InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo){
-    //--------------------------------------------------------------------------------------------
-    // calculate the constitutive law response
-    ConstitutiveLaw::Parameters constitutive_law_parameters(
-        GetGeometry(), GetProperties(), rCurrentProcessInfo);
+void SbmLoadSolidCondition::InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_TRY
+    const auto& r_geometry = GetGeometry();
+    const SizeType mat_size = r_geometry.size() * mDim;
+    const auto& r_DN_De = r_geometry.ShapeFunctionsLocalGradients(GetIntegrationMethod());
+    Matrix gradients(r_geometry.size(), mDim);
+    if (mDim == 2) {
+        Matrix jacobian;
+        CalculateInitialJacobian(r_geometry, jacobian);
+        Matrix inverse_jacobian(mDim, mDim);
+        double determinant = 0.0;
+        MathUtils<double>::InvertMatrix(jacobian, inverse_jacobian, determinant);
+        noalias(gradients) = prod(r_DN_De[0], inverse_jacobian);
+    } else {
+        noalias(gradients) = r_DN_De[0];
+    }
+    const SizeType strain_size = mpConstitutiveLaw->GetStrainSize();
+    Matrix B = ZeroMatrix(strain_size, mat_size);
+    CalculateB(B, gradients);
+    Vector displacement(mat_size);
+    GetSolutionCoefficientVector(displacement);
+    Vector strain = prod(B, displacement);
+    ConstitutiveLaw::Parameters values(r_geometry, GetProperties(), rCurrentProcessInfo);
+    ConstitutiveVariables variables(strain_size);
+    ApplyConstitutiveLaw(mat_size, strain, values, variables);
+    mpConstitutiveLaw->InitializeMaterialResponse(values, ConstitutiveLaw::StressMeasure_Cauchy);
+    UpdateMaterialResponseAtProjectionPoint(rCurrentProcessInfo, false);
+    KRATOS_CATCH("")
+}
 
-    mpConstitutiveLaw->InitializeMaterialResponse(constitutive_law_parameters, ConstitutiveLaw::StressMeasure_Cauchy);
-
+void SbmLoadSolidCondition::UpdateMaterialResponseAtProjectionPoint(
+    const ProcessInfo& rCurrentProcessInfo, const bool Finalize)
+{
+#ifdef SBM_USE_PROJECTION_POINT_CONSTITUTIVE_LAW
+    KRATOS_TRY
+    const auto& r_geometry = GetGeometry();
+    const SizeType mat_size = r_geometry.size() * mDim;
+    const SizeType strain_size = mpConstitutiveLawAtProjectionPoint->GetStrainSize();
+    Matrix gradient_taylor = ZeroMatrix(3, r_geometry.size());
+    ComputeGradientTaylorExpansionContribution(mDistanceVector, gradient_taylor);
+    Matrix gradients = trans(gradient_taylor);
+    Matrix B_extended = ZeroMatrix(strain_size, mat_size);
+    CalculateB(B_extended, gradients);
+    Vector displacement(mat_size);
+    GetSolutionCoefficientVector(displacement);
+    Vector strain = prod(B_extended, displacement);
+    ConstitutiveLaw::Parameters values(r_geometry, GetProperties(), rCurrentProcessInfo);
+    ConstitutiveVariables variables(strain_size);
+    ApplyConstitutiveLaw(mat_size, strain, values, variables, true);
+    // Trial evaluations keep the last converged history; commit only at step finalization.
+    if (Finalize) {
+        mpConstitutiveLawAtProjectionPoint->FinalizeMaterialResponse(values, ConstitutiveLaw::StressMeasure_Cauchy);
+    } else {
+        mpConstitutiveLawAtProjectionPoint->InitializeMaterialResponse(values, ConstitutiveLaw::StressMeasure_Cauchy);
+    }
+    KRATOS_CATCH("")
+#endif
 }
 
 void SbmLoadSolidCondition::ComputeGradientTaylorExpansionContribution(const Vector& rDistanceVector, Matrix& grad_H_sum)

@@ -22,7 +22,7 @@
 #include "custom_elements/solid_element.h"
 
 // Use stress and tangent returned by the selected constitutive law.
-#define ANALYTICAL_TANGENT
+// #define ANALYTICAL_TANGENT
 
 namespace Kratos
 {

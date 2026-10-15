@@ -18,6 +18,10 @@
 
 // Project includes
 #include "custom_conditions/sbm_solid_condition.h"
+#include "custom_utilities/analytical_j2_response_utility.h"
+
+// Match the analytical total-strain response of the manufactured benchmark.
+// #define ANALYTICAL_TANGENT
 
 namespace Kratos
 {
@@ -282,7 +286,7 @@ void SbmSolidCondition::CalculateLeftHandSide(
                         // // [\sigma_1(w) \dot n] \dot n (-u_1 \dot n)
                         // //*********************************************** */
                         Vector sigma_w_n;
-                        Vector stress_column_w = column(DB, iglob);
+                        Vector stress_column_w = column(mDBOld, iglob);
                         CalculateTraction(stress_column_w, mNormalPhysicalSpace, sigma_w_n);
 
                         double sigma_w_n_dot_direction = inner_prod(sigma_w_n, direction);
@@ -307,7 +311,7 @@ void SbmSolidCondition::CalculateLeftHandSide(
                     rLeftHandSideMatrix(iglob, mDim*j+idim) += r_N(0,i)*H_sum_vec(j)* penalty_integration;
 
                     Vector sigma_w_n;
-                    Vector stress_column_w = column(DB, iglob);
+                    Vector stress_column_w = column(mDBOld, iglob);
                     CalculateTraction(stress_column_w, mNormalPhysicalSpace, sigma_w_n);
 
                     for (IndexType jdim = 0; jdim < mDim; jdim++) {
@@ -332,6 +336,7 @@ void SbmSolidCondition::CalculateLeftHandSide(
             }
         }
     }
+
     KRATOS_CATCH("")
 }
 
@@ -393,7 +398,6 @@ void SbmSolidCondition::CalculateRightHandSide(
     ConstitutiveVariables this_constitutive_variables(strain_size);
     ApplyConstitutiveLaw(mat_size, old_strain, Values, this_constitutive_variables);
 
-    const Matrix& r_D = Values.GetConstitutiveMatrix();
     const Vector& r_stress_vector = Values.GetStressVector();
 
     // Differential area
@@ -402,7 +406,6 @@ void SbmSolidCondition::CalculateRightHandSide(
 
     // Assembly
 
-    const Matrix DB = prod(r_D,B);
     // compute Taylor expansion contribution: H_sum_vec
     Vector H_sum_vec = ZeroVector(number_of_control_points);
     ComputeTaylorExpansionContribution (H_sum_vec);
@@ -449,7 +452,7 @@ void SbmSolidCondition::CalculateRightHandSide(
                 // // rhs -> [\sigma_1(w) \dot n] \dot n (-g_{n,0})
                 // //*********************************************** */
                 Vector sigma_w_n;
-                Vector stress_column_w = column(DB, iglob);
+                Vector stress_column_w = column(mDBOld, iglob);
                 CalculateTraction(stress_column_w, mNormalPhysicalSpace, sigma_w_n);
 
                 double sigma_w_n_dot_direction = inner_prod(sigma_w_n, direction);
@@ -483,7 +486,7 @@ void SbmSolidCondition::CalculateRightHandSide(
                 rRightHandSideVector[iglob] += r_N(0,i)*(u_D-old_displacement)[idim]* penalty_integration;
 
                 Vector sigma_w_n;
-                Vector stress_column_w = column(DB, iglob);
+                Vector stress_column_w = column(mDBOld, iglob);
                 CalculateTraction(stress_column_w, mNormalPhysicalSpace, sigma_w_n);
 
 
@@ -660,20 +663,29 @@ void SbmSolidCondition::CalculateRightHandSide(
         ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
         ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
 
+        const Vector& r_span_sizes = GetValue(KNOT_SPAN_SIZES);
+        double squared_length = 0.0;
+        for (SizeType i = 0; i < mDim; ++i) {
+            squared_length += r_span_sizes[i] * r_span_sizes[i];
+        }
+        rValues.SetCharacteristicGeometryLength(0.5 * std::sqrt(squared_length));
+
         rValues.SetStrainVector(rStrain);
         rValues.SetStressVector(rConstitutiVariables.StressVector);
         rValues.SetConstitutiveMatrix(rConstitutiVariables.D);
 
         mpConstitutiveLaw->CalculateMaterialResponse(rValues, ConstitutiveLaw::StressMeasure_Cauchy);
+#ifdef ANALYTICAL_TANGENT
+        if (mDim == 2) {
+            AnalyticalJ2ResponseUtility::AnalyticalStress(rValues.GetStressVector(), rStrain, GetProperties());
+            AnalyticalJ2ResponseUtility::AnalyticalConstitutiveMatrix(rValues.GetConstitutiveMatrix(), rStrain, GetProperties());
+        }
+#endif
     }
 
 
     void SbmSolidCondition::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
     {
-        ConstitutiveLaw::Parameters constitutive_law_parameters(
-            GetGeometry(), GetProperties(), rCurrentProcessInfo);
-
-        mpConstitutiveLaw->FinalizeMaterialResponse(constitutive_law_parameters, ConstitutiveLaw::StressMeasure_Cauchy);
 
         //---------- SET STRESS VECTOR VALUE ----------------------------------------------------------------
         //TODO: build a CalculateOnIntegrationPoints method
@@ -725,7 +737,8 @@ void SbmSolidCondition::CalculateRightHandSide(
         Values.SetStrainVector(old_strain);
         Values.SetStressVector(this_constitutive_variables.StressVector);
         Values.SetConstitutiveMatrix(this_constitutive_variables.D);
-        mpConstitutiveLaw->CalculateMaterialResponse(Values, ConstitutiveLaw::StressMeasure_Cauchy);
+        ApplyConstitutiveLaw(mat_size, old_strain, Values, this_constitutive_variables);
+        mpConstitutiveLaw->FinalizeMaterialResponse(Values, ConstitutiveLaw::StressMeasure_Cauchy);
 
         const Vector sigma = Values.GetStressVector();
         Vector sigma_n;
@@ -743,13 +756,54 @@ void SbmSolidCondition::CalculateRightHandSide(
         // //---------------------
     }
 
-void SbmSolidCondition::InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo){
-    //--------------------------------------------------------------------------------------------
-    // calculate the constitutive law response
-    ConstitutiveLaw::Parameters constitutive_law_parameters(
-        GetGeometry(), GetProperties(), rCurrentProcessInfo);
+void SbmSolidCondition::InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_TRY
+    const auto& r_geometry = GetGeometry();
+    const SizeType number_of_control_points = r_geometry.size();
+    const SizeType mat_size = number_of_control_points * mDim;
+    const auto& r_DN_De = r_geometry.ShapeFunctionsLocalGradients(GetIntegrationMethod());
 
-    mpConstitutiveLaw->InitializeMaterialResponse(constitutive_law_parameters, ConstitutiveLaw::StressMeasure_Cauchy);
+    // Initialize DN_DX
+    Matrix DN_DX(number_of_control_points, mDim);
+
+    // Calculating the physical derivatives (it is avoided storing them to minimize storage)
+    if (mDim == 2) {
+        Matrix InvJ0(mDim, mDim);
+        double detJ0;
+        Matrix Jacobian;
+        CalculateInitialJacobian(r_geometry, Jacobian);
+        MathUtils<double>::InvertMatrix(Jacobian,InvJ0,detJ0);
+
+        Matrix sub_inv_jacobian = ZeroMatrix(2,2);
+        sub_inv_jacobian(0,0) = InvJ0(0,0);
+        sub_inv_jacobian(1,0) = InvJ0(1,0);
+        sub_inv_jacobian(0,1) = InvJ0(0,1);
+        sub_inv_jacobian(1,1) = InvJ0(1,1);
+        noalias(DN_DX) = prod(r_DN_De[0],sub_inv_jacobian);
+    } else {
+        noalias(DN_DX) = r_DN_De[0];
+    }
+
+    const SizeType strain_size = mpConstitutiveLaw->GetStrainSize();
+    Matrix B = ZeroMatrix(strain_size,mat_size);
+    CalculateB(B, DN_DX);
+
+    // Obtain the tangent costitutive law matrix
+    ConstitutiveLaw::Parameters Values(r_geometry, GetProperties(), rCurrentProcessInfo);
+
+    Vector old_displacement_coefficient_vector(mat_size);
+    GetSolutionCoefficientVector(old_displacement_coefficient_vector);
+    Vector old_strain = prod(B,old_displacement_coefficient_vector);
+
+    ConstitutiveVariables this_constitutive_variables(strain_size);
+    ApplyConstitutiveLaw(mat_size, old_strain, Values, this_constitutive_variables);
+
+    mDBOld = prod(Values.GetConstitutiveMatrix(), B);
+
+    // Keep the adjoint Nitsche operator fixed throughout this solution step.
+    mpConstitutiveLaw->InitializeMaterialResponse(Values, ConstitutiveLaw::StressMeasure_Cauchy);
+    KRATOS_CATCH("")
 }
 
 void SbmSolidCondition::ComputeTaylorExpansionContribution(Vector& H_sum_vec)

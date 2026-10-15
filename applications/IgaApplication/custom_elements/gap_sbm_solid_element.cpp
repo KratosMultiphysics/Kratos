@@ -20,6 +20,11 @@
 
 // Application includes
 #include "custom_elements/gap_sbm_solid_element.h"
+#include "custom_utilities/analytical_j2_response_utility.h"
+
+// Match the analytical total-strain response used by SolidElement in the manufactured benchmark.
+// #define ANALYTICAL_TANGENT
+
 
 namespace Kratos
 {
@@ -574,7 +579,13 @@ void GapSbmSolidElement::ApplyConstitutiveLaw(std::size_t matSize, Vector& rStra
     rValues.SetStressVector(rConstitutiVariables.StressVector);
     rValues.SetConstitutiveMatrix(rConstitutiVariables.D);
 
-    mpConstitutiveLaw->CalculateMaterialResponse(rValues, ConstitutiveLaw::StressMeasure_Cauchy); 
+    mpConstitutiveLaw->CalculateMaterialResponse(rValues, ConstitutiveLaw::StressMeasure_Cauchy);
+#ifdef ANALYTICAL_TANGENT
+    if (mDim == 2) {
+        AnalyticalJ2ResponseUtility::AnalyticalStress(rValues.GetStressVector(), rStrain, GetProperties());
+        AnalyticalJ2ResponseUtility::AnalyticalConstitutiveMatrix(rValues.GetConstitutiveMatrix(), rStrain, GetProperties());
+    }
+#endif
 }
 
 void GapSbmSolidElement::ComputeTaylorExpansionContribution(Vector& H_sum_vec)

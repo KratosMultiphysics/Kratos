@@ -40,6 +40,7 @@
 #include "custom_constitutive/finite_strains/hyperelasticity/hyper_elastic_simo_taylor_neo_hookean_plane_strain_2d.h"
 #include "custom_constitutive/small_strains/linear/linear_elastic_orthotropic_2D_law.h"
 #include "custom_constitutive/small_strains/plasticity/small_strain_j2_plasticity_plane_strain_2d.h"
+#include "custom_constitutive/small_strains/plasticity/small_strain_j2_plasticity_plane_strain_2d_three_components.h"
 #include "custom_constitutive/small_strains/plasticity/small_strain_j2_plasticity_3d.h"
 #include "custom_constitutive/small_strains/damage/small_strain_isotropic_damage_3d.h"
 #include "custom_constitutive/small_strains/damage/small_strain_isotropic_damage_implex_3d.h"
@@ -298,6 +299,7 @@ private:
 
     const SmallStrainJ2Plasticity3D mSmallStrainJ2Plasticity3D;
     const SmallStrainJ2PlasticityPlaneStrain2D mSmallStrainJ2PlasticityPlaneStrain2D;
+    const SmallStrainJ2PlasticityPlaneStrain2DThreeComponents mSmallStrainJ2PlasticityPlaneStrain2DThreeComponents;
     const SmallStrainIsotropicDamage3D mSmallStrainIsotropicDamage3D;
     const SmallStrainIsotropicDamageImplex3D mSmallStrainIsotropicDamageImplex3D;
     const SmallStrainIsotropicDamagePlaneStrain2D mSmallStrainIsotropicDamagePlaneStrain2D;

@@ -33,6 +33,7 @@
 #include "custom_constitutive/small_strains/linear/linear_elastic_orthotropic_2D_law.h"
 #include "custom_constitutive/small_strains/plasticity/small_strain_j2_plasticity_3d.h"
 #include "custom_constitutive/small_strains/plasticity/small_strain_j2_plasticity_plane_strain_2d.h"
+#include "custom_constitutive/small_strains/plasticity/small_strain_j2_plasticity_plane_strain_2d_three_components.h"
 #include "custom_constitutive/small_strains/damage/small_strain_isotropic_damage_3d.h"
 #include "custom_constitutive/small_strains/damage/small_strain_isotropic_damage_implex_3d.h"
 #include "custom_constitutive/small_strains/damage/small_strain_isotropic_damage_traction_only_3d.h"
@@ -196,6 +197,11 @@ void AddCustomConstitutiveLawsToPython(pybind11::module& m)
     py::class_< SmallStrainJ2PlasticityPlaneStrain2D, typename SmallStrainJ2PlasticityPlaneStrain2D::Pointer,  ConstitutiveLaw >
     (m,"SmallStrainJ2PlasticityPlaneStrain2DLaw").def(py::init<>())
     ;
+
+    py::class_<SmallStrainJ2PlasticityPlaneStrain2DThreeComponents, SmallStrainJ2PlasticityPlaneStrain2DThreeComponents::Pointer, ConstitutiveLaw>
+    (m, "SmallStrainJ2PlasticityPlaneStrain2DThreeComponentsLaw",
+     "Plane-strain J2 plasticity with [xx, yy, xy] interface and full out-of-plane history.")
+    .def(py::init<>());
 
     py::class_< SmallStrainJ2Plasticity3D, typename SmallStrainJ2Plasticity3D::Pointer,  ConstitutiveLaw >
     (m,"SmallStrainJ2Plasticity3DLaw").def(py::init<>())
