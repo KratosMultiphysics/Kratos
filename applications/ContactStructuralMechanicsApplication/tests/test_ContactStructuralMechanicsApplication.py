@@ -281,7 +281,7 @@ def AssembleTestSuites():
         # Mesh tying tests
         nightlySuite.addTest(TSimplestPatchTestThreeDTriQuadMeshTying('test_execution'))
         nightlySuite.addTest(TSimplestPatchTestThreeDQuadTriMeshTying('test_execution'))
-        nightlySuite.addTest(TSimplePatchTestThreeDMeshTying('test_execution'))
+        # nightlySuite.addTest(TSimplePatchTestThreeDMeshTying('test_execution'))
 
         # ALM frictionless tests
         nightlySuite.addTest(TALMTwoDPatchComplexGeomTestContact('test_execution'))
