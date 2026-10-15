@@ -31,13 +31,13 @@ PLATFORM_CONFIG = {
         'WHEEL_OUT': "C:/data_swap_guest/"
     },
     'Darwin': {
-        'PYTHONS': ["39"],
-        'PYTHON_BUILD_VER': "39",
+        'PYTHONS': ["314"],
+        'PYTHON_BUILD_VER': "314",
         'BUILD_SCRIPT': "scripts/wheels/darwin/configure.sh",
         'BUILD_CORES': 8,
-        'KRATOS_ROOT': "/workspace/kratos/Kratos",
-        'WHEEL_ROOT': "/workspace/wheel",
-        'WHEEL_OUT': "/workspace/dist",
+        'KRATOS_ROOT': "/users/kratos/Kratos/Kratos",
+        'WHEEL_ROOT': "/users/kratos/wheels",
+        'WHEEL_OUT': "/users/kratos/dist"
     }
 }
 
@@ -189,6 +189,61 @@ def buildWheel (CURRENT_CONFIG: dict, paths: dict, platform: str, python_ver: st
 
     cleanupWheelDir(wheel_staging_path)
 
+def repairWheels(CURRENT_CONFIG: dict):
+    """Repair all generated wheels using wheels using delocate.
+        This is meant to be used for macOS wheels to ensure that all shared libraries are properly bundled within the wheel.
+    """
+
+    wheel_out = Path(CURRENT_CONFIG['WHEEL_OUT'])
+    repaired_dir = wheel_out / "repaired"
+
+    wheels = list(wheel_out.glob("*.whl"))
+
+    if not wheels:
+        raise RuntimeError(f"No wheels found in {wheel_out}")
+
+    logging.info(f"Repairing {len(wheels)} macOS wheels with delocate...")
+
+    if repaired_dir.exists():
+        shutil.rmtree(repaired_dir)
+
+    repaired_dir.mkdir(parents=True, exist_ok=True)
+
+    for wheel in wheels:
+        logging.info(f"Repairing wheel: {wheel.name}")
+
+        res = subprocess.run([sys.executable, "-m", "delocate.cmd.delocate_wheel", "-v", "-w", str(repaired_dir), str(wheel)], check=True)
+
+        logResult(res)
+
+    # Replace original wheels with repaired wheels
+    repaired_wheels = list(repaired_dir.glob("*.whl"))
+
+    if len(repaired_wheels) != len(wheels):
+        raise RuntimeError(
+            f"Expected {len(wheels)} repaired wheels, "
+            f"but delocate produced {len(repaired_wheels)}"
+        )
+
+    for repaired_wheel in repaired_wheels:
+        original_wheel = wheel_out / repaired_wheel.name
+
+        logging.info(
+            f"Replacing {original_wheel.name} with repaired wheel"
+        )
+
+        if original_wheel.exists():
+            original_wheel.unlink()
+
+        shutil.move(
+            str(repaired_wheel),
+            str(original_wheel)
+        )
+
+    shutil.rmtree(repaired_dir)
+
+    logging.info("All macOS wheels repaired successfully.")
+
 def setupWheelDir(wheel_root_path: str):
     """
     Sets up the required directory structure for building wheels in the staging area.
@@ -299,5 +354,9 @@ if __name__ == "__main__":
                 paths['project_read'] = Path(CURRENT_CONFIG['KRATOS_ROOT']) / "applications" / APP / "README.md"
 
                 buildWheel(CURRENT_CONFIG, paths, OS, PYTHON)
+
+    # Repair all generated macOS wheels after everything has been built
+    if OS == "Darwin":
+        repairMacOSWheels(CURRENT_CONFIG)
             
 
