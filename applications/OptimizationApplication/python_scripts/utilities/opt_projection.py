@@ -1,6 +1,7 @@
 # Temporal fix until to avoid list[type] related errors until we move to 3.9 and above.
 from __future__ import annotations
 
+import numpy
 from typing import Optional
 from abc import ABC, abstractmethod
 
@@ -249,6 +250,28 @@ def CreateProjection(parameters: Kratos.Parameters, optimization_problem: Optimi
         return projection_types_map[projection_type](parameters, optimization_problem, restart_data)
     else:
         raise RuntimeError(f"Unsupported projected type = \"{projection_type}\" requested. Followings are supported:\n\t" + "\n\t".join(list(projection_types_map.keys())))
+
+def StorePhiFields(restart_data: BufferedDict, physical_phi_field: Kratos.TensorAdaptors.DoubleTensorAdaptor, control_phi_field: Kratos.TensorAdaptors.DoubleTensorAdaptor) -> None:
+    """Saves copies of a projected control's phi fields in restart_data for RestorePhiFields().
+
+    A projection (e.g. clamping) maps every phi beyond its x space to the same physical value, so
+    ProjectBackward() of the checkpointed mesh cannot recover the phi a resumed run must continue from.
+    """
+    restart_data.SetValue("physical_phi", physical_phi_field.data.copy(), overwrite=True)
+    restart_data.SetValue("control_phi", control_phi_field.data.copy(), overwrite=True)
+
+def RestorePhiFields(restart_data: BufferedDict, optimization_problem: OptimizationProblem, physical_phi_field: Kratos.TensorAdaptors.DoubleTensorAdaptor, control_phi_field: Kratos.TensorAdaptors.DoubleTensorAdaptor) -> None:
+    """Overwrites the phi fields in place with the ones StorePhiFields() saved, if the problem is
+    restarted and the checkpoint has them; does nothing otherwise. Call it in the control's
+    Initialize(), after the fields were derived from the mesh and before they are projected forward.
+    """
+    if not optimization_problem.IsRestarted() or not restart_data.HasValue("physical_phi"):
+        return
+    for key, field in (("physical_phi", physical_phi_field), ("control_phi", control_phi_field)):
+        values: numpy.ndarray = restart_data[key]
+        if values.shape != field.data.shape:
+            raise RuntimeError(f"Checkpointed \"{key}\" field shape {values.shape} does not match the control's field shape {field.data.shape}.")
+        field.data[:] = values
 
 # Helper classes
 class TensorAdaptorBoundingManager:

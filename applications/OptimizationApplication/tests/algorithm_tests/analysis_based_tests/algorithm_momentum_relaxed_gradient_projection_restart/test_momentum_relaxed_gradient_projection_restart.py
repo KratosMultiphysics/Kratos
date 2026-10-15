@@ -24,8 +24,7 @@ class TestMomentumRelaxedGradientProjectionRestart(kratos_unittest.TestCase):
         return analysis
 
     def _GetPhysicalField(self, analysis: OptimizationAnalysis) -> 'list[float]':
-        """Thickness read off the mesh. The explicit filter's phi field is a delta accumulator reset
-        to zero on Initialize(), so unlike the physical field it is not restart-invariant."""
+        """Thickness read off the mesh."""
         control, = analysis.GetAlgorithm().master_control.GetListOfControls()
         return list(control.GetPhysicalField().data)
 
@@ -67,6 +66,11 @@ class TestMomentumRelaxedGradientProjectionRestart(kratos_unittest.TestCase):
             self.assertAlmostEqual(reference_obj_value, resume_obj_value, delta=abs(reference_obj_value) * 1e-7)
             max_abs_reference_value = max(abs(value) for value in reference_physical_field)
             self.assertVectorAlmostEqual(reference_physical_field, resume_physical_field, places=None, delta=max_abs_reference_value * 1e-6)
+
+            # the control resumes from its checkpointed phi fields, not from ProjectBackward() of the mesh
+            reference_control, = reference_algorithm.master_control.GetListOfControls()
+            resume_control, = resume_algorithm.master_control.GetListOfControls()
+            self.assertVectorAlmostEqual(reference_control.physical_phi_field.data, resume_control.physical_phi_field.data, places=6)
 
     @classmethod
     def tearDownClass(cls) -> None:

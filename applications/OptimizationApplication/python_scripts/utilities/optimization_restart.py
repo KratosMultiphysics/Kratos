@@ -1,5 +1,9 @@
+import importlib
 import os
 import pickle
+from pathlib import Path
+
+import numpy
 
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.OptimizationApplication as KratosOA
@@ -23,12 +27,28 @@ _TENSOR_ADAPTOR_BASE_TYPES = (
 # modules holding every tensor adaptor type registered with Kratos::Serializer.
 _TENSOR_ADAPTOR_MODULES = (Kratos.TensorAdaptors, KratosOA.TensorAdaptors)
 
-_SCALAR_LEAF_TYPES = (int, float, bool, str, list, dict, type(None))
+_SCALAR_LEAF_TYPES = (int, float, bool, str, list, dict, type(None), numpy.ndarray)
 
 def CheckSerialRestart() -> None:
     """Raises if running with more than one rank: optimization restart is serial-only for now."""
     if Kratos.DataCommunicator.GetDefault().Size() > 1:
         raise RuntimeError("Optimization restart (restart_settings.save_restart/load_restart) supports serial runs only.")
+
+def GetImportedApplicationNames() -> 'list[str]':
+    """Returns the names of the installed Kratos applications registered with the Kernel.
+
+    An application's Kernel name equals its KratosMultiphysics.<name> module name, so every package
+    next to KratosMultiphysics/__init__.py that the Kernel reports as imported is returned.
+    """
+    kernel = Kratos.KratosGlobals.Kernel
+    kratos_package_path = Path(Kratos.__file__).parent
+    return sorted(path.name for path in kratos_package_path.iterdir() if path.is_dir() and kernel.IsImported(path.name))
+
+def ImportApplications(application_names: 'list[str]') -> None:
+    """Imports KratosMultiphysics.<name> for every name, so that the elements, conditions and
+    constitutive laws of a checkpointed Model are registered before the Serializer loads it."""
+    for application_name in application_names:
+        importlib.import_module(f"KratosMultiphysics.{application_name}")
 
 def CreateTensorAdaptorLoadTarget(type_name: str):
     """Returns a default-constructed tensor adaptor of type type_name, to Load a saved one into."""
@@ -41,7 +61,7 @@ def SaveBufferedDictToSerializer(node: BufferedDict, path: str, serializer: Krat
     """Recursively saves a BufferedDict node and all its sub items for a restart checkpoint.
 
     Tensor adaptors go into serializer (relinked to the saved Model on load) and their
-    (tag, type name) into tensor_kinds; plain values (int/float/bool/str/None/list/dict) go into
+    (tag, type name) into tensor_kinds; plain values (int/float/bool/str/None/list/dict/numpy array) go into
     scalar_snapshot. Both are keyed by (path/key, step_index). node_metadata gets each sub node's
     (buffer_size, clear_buffer_when_advancing). Values of any other type are skipped with a warning,
     once per key (warned_keys holds the keys already warned about).
@@ -61,7 +81,7 @@ def SaveBufferedDictToSerializer(node: BufferedDict, path: str, serializer: Krat
                     "OptimizationProblemRestartOutput",
                     f"Skipping check-pointing of \"{bufferdict_key}\" [ value = {value} ]: does not know how to "
                     f"check-point a value of type \"{type(value).__name__}\". Only tensor adaptors and plain "
-                    "int/float/bool/str/None/list/dict values are supported. If this is a new kind of "
+                    "int/float/bool/str/None/list/dict/numpy array values are supported. If this is a new kind of "
                     "cross-iteration state (rather than something re-derived on every run, e.g. from a "
                     "settings/measurement file), either route it through a Kratos.TensorAdaptors.* "
                     "container or store it via ComponentDataView's Buffered/UnBuffered data as one of "
@@ -77,7 +97,8 @@ class OptimizationProblemRestartOutput:
 
     Each checkpoint is one pickled file per save step holding a StreamSerializer with the
     "SerializerFlags" record, the whole Kratos.Model and every tensor of the optimization problem's
-    BufferedDict, plus the BufferedDict's plain scalars and node metadata (buffer sizes) next to it.
+    BufferedDict, plus the BufferedDict's plain scalars and node metadata (buffer sizes) and the
+    imported applications (imported again before the Model is loaded) next to it.
     OptimizationAnalysis restores it verbatim: the Model before any model part controller is
     created, the BufferedDict in Initialize() after every component has sized its data buffers.
 
@@ -165,6 +186,7 @@ class OptimizationProblemRestartOutput:
         with open(tmp_file_path, "wb") as file_output:
             pickle.dump({
                 "step": step,
+                "applications": GetImportedApplicationNames(),
                 "serializer": serializer,
                 "scalars": scalar_snapshot,
                 "tensor_kinds": tensor_kinds,

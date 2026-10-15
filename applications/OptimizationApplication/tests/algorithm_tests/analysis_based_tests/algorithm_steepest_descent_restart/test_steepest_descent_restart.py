@@ -1,3 +1,6 @@
+import json
+import subprocess
+import sys
 from unittest import mock
 
 import KratosMultiphysics as Kratos
@@ -14,6 +17,8 @@ from KratosMultiphysics.OptimizationApplication.utilities.component_data_view im
 class TestSteepestDescentRestart(kratos_unittest.TestCase):
     restart_files_path = "Optimization_Restart_test"
     checkpoint_only_restart_files_path = "Optimization_Restart_checkpoint_only_test"
+    fresh_interpreter_restart_files_path = "Optimization_Restart_fresh_interpreter_test"
+    fresh_interpreter_result = "fresh_interpreter_result.json"
     reference_summary = "summary_reference.csv"
     restart_summary = "summary_restart.csv"
 
@@ -94,9 +99,49 @@ class TestSteepestDescentRestart(kratos_unittest.TestCase):
             for reference_row, restart_row in zip(reference_rows, restart_rows):
                 self.assertVectorAlmostEqual(reference_row, restart_row, places=None, delta=1e-6 * max(abs(v) for v in reference_row))
 
+    def test_resume_in_fresh_interpreter(self):
+        """Resumes in a new Python process that imported no application besides OptimizationApplication:
+        the checkpoint must import the applications whose elements and laws the Model holds."""
+        with kratos_unittest.WorkFolderScope(".", __file__):
+            reference_parameters = self._ReadParameters()
+            self._SetMaxIter(reference_parameters, 6)
+            reference_algorithm = self._RunToConvergence(reference_parameters).GetAlgorithm()
+
+            checkpoint_parameters = self._ReadParameters()
+            self._SetMaxIter(checkpoint_parameters, 4)
+            checkpoint_parameters.AddValue("restart_settings", Kratos.Parameters("""{
+                "save_restart"     : true,
+                "restart_file_name": \"""" + self.fresh_interpreter_restart_files_path + """/restart_<step>.pkl"
+            }"""))
+            self._RunToConvergence(checkpoint_parameters)
+
+            resume_script = f"""
+import json, sys
+import KratosMultiphysics as Kratos
+from KratosMultiphysics.OptimizationApplication.optimization_analysis import OptimizationAnalysis
+assert "KratosMultiphysics.StructuralMechanicsApplication" not in sys.modules
+with open("optimization_parameters.json", "r") as file_input:
+    parameters = Kratos.Parameters(file_input.read())
+parameters["algorithm_settings"]["settings"]["conv_settings"]["max_iter"].SetInt(6)
+parameters.AddValue("restart_settings", Kratos.Parameters('{{"load_restart": true, "restart_file_name": "{self.fresh_interpreter_restart_files_path}/restart_<step>.pkl"}}'))
+analysis = OptimizationAnalysis(Kratos.Model(), parameters)
+analysis.Run()
+with open("{self.fresh_interpreter_result}", "w") as file_output:
+    json.dump({{"obj": analysis.GetAlgorithm().GetOptimizedObjectiveValue(), "control_field": list(analysis.GetAlgorithm().GetCurrentControlField().data)}}, file_output)
+"""
+            process = subprocess.run([sys.executable, "-c", resume_script], capture_output=True, text=True)
+            self.assertEqual(process.returncode, 0, msg=process.stderr[-3000:])
+            with open(self.fresh_interpreter_result, "r") as file_input:
+                result = json.load(file_input)
+
+            self.assertAlmostEqual(reference_algorithm.GetOptimizedObjectiveValue(), result["obj"], places=9)
+            reference_control_field = list(reference_algorithm.GetCurrentControlField().data)
+            max_abs_reference_value = max(abs(value) for value in reference_control_field)
+            self.assertVectorAlmostEqual(reference_control_field, result["control_field"], places=None, delta=max_abs_reference_value * 1e-9)
+
     def test_resume_with_checkpoint_only_component(self):
-        """Data of a component absent from the resume run is restored verbatim: nodes are recreated
-        from node_metadata, tensors relink to the restored Model, and the run proceeds."""
+        """Data of a component absent from the resume run is restored verbatim: nodes (also empty ones)
+        are recreated from node_metadata, tensors relink to the restored Model, and the run proceeds."""
         with kratos_unittest.WorkFolderScope(".", __file__):
             reference_parameters = self._ReadParameters()
             self._SetMaxIter(reference_parameters, 6)
@@ -120,6 +165,8 @@ class TestSteepestDescentRestart(kratos_unittest.TestCase):
             orphan_view.GetUnBufferedData().SetValue("nested/scalar", 3.5)
             checkpoint_problem.GetProblemDataContainer()[f"{orphan_view.GetDataPath()}/buffered"] = BufferedDict(3, False)
             orphan_view.GetBufferedData().SetValue("history", 7)
+            # a component whose 3-slot history buffer holds no values yet
+            ComponentDataView("checkpoint_only_empty", checkpoint_problem).SetDataBuffer(3)
             checkpoint_analysis.Check()
             checkpoint_analysis.GetAlgorithm().Solve()
             checkpoint_analysis.Finalize()
@@ -145,6 +192,10 @@ class TestSteepestDescentRestart(kratos_unittest.TestCase):
             self.assertEqual(restored_buffered.GetBufferSize(), 3)
             self.assertFalse(restored_buffered.GetClearBufferWhenAdvancing())
             self.assertTrue(any(restored_buffered.HasValue("history", i) for i in range(3)))
+            empty_view = ComponentDataView("checkpoint_only_empty", resume_problem)
+            self.assertTrue(empty_view.HasDataBuffer())
+            self.assertEqual(empty_view.GetBufferedData().GetBufferSize(), 3)
+            self.assertEqual(empty_view.GetBufferedData().GetValueItems(), {})
 
     def test_restart_with_unsupported_algorithm_raises(self):
         """Restart settings on an algorithm without SUPPORTS_RESTART raise in the constructor."""
@@ -166,6 +217,8 @@ class TestSteepestDescentRestart(kratos_unittest.TestCase):
             DeleteFileIfExisting(cls.restart_summary)
             DeleteDirectoryIfExisting(cls.restart_files_path)
             DeleteDirectoryIfExisting(cls.checkpoint_only_restart_files_path)
+            DeleteDirectoryIfExisting(cls.fresh_interpreter_restart_files_path)
+            DeleteFileIfExisting(cls.fresh_interpreter_result)
 
 if __name__ == "__main__":
     kratos_unittest.main()

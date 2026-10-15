@@ -12,19 +12,18 @@ from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem i
 from KratosMultiphysics.OptimizationApplication.utilities.buffered_dict import BufferedDict
 from KratosMultiphysics.OptimizationApplication.utilities.logger_utilities import OptimizationAnalysisTimeLogger
 from KratosMultiphysics.OptimizationApplication.utilities.restart_file_naming import ResolveRestartLoadStep, SplitRestartFileName
-from KratosMultiphysics.OptimizationApplication.utilities.optimization_restart import OptimizationProblemRestartOutput, CreateTensorAdaptorLoadTarget, CheckSerialRestart
+from KratosMultiphysics.OptimizationApplication.utilities.optimization_restart import OptimizationProblemRestartOutput, CreateTensorAdaptorLoadTarget, CheckSerialRestart, ImportApplications
 
-def _EnsureBufferedDictPath(root: BufferedDict, bufferdict_key: str, node_metadata: dict) -> None:
-    """Creates missing nodes on bufferdict_key's parent path with their checkpointed buffer settings,
-    instead of SetValue's auto-created buffer_size=1 nodes."""
-    node = root
-    path = ""
-    for segment in bufferdict_key.split("/")[:-1]:
-        path = f"{path}/{segment}" if path else segment
-        if segment not in node.GetSubItems():
+def _RestoreBufferedDictNodes(root: BufferedDict, node_metadata: dict) -> None:
+    """Recreates every checkpointed BufferedDict node missing from root, parents first, with its saved
+    (buffer_size, clear_buffer_when_advancing). Nodes that already exist (sized by their component)
+    are kept, and so are nodes that hold no values (e.g. an empty history buffer)."""
+    for path in sorted(node_metadata.keys(), key=lambda node_path: node_path.count("/")):
+        parent_path, _, name = path.rpartition("/")
+        parent = root.GetValue(parent_path) if parent_path else root
+        if name not in parent.GetSubItems():
             buffer_size, clear_buffer_when_advancing = node_metadata[path]
-            node.SetValue(segment, BufferedDict(buffer_size, clear_buffer_when_advancing))
-        node = node.GetSubItems()[segment]
+            parent.SetValue(name, BufferedDict(buffer_size, clear_buffer_when_advancing))
 
 class OptimizationAnalysis:
     @classmethod
@@ -183,7 +182,8 @@ class OptimizationAnalysis:
         """Loads the checkpoint's Model into self.model if load_restart is on.
 
         Must run before any model part is created, since Model.load() fills the empty Model in place.
-        Reapplies the saved serializer flags and marks the problem as restarted.
+        Imports the applications recorded in the checkpoint, reapplies the saved serializer flags and
+        marks the problem as restarted.
 
         Returns:
             dict | None: the unpickled payload for _CreateRestart(), or None if load_restart is off
@@ -209,6 +209,9 @@ class OptimizationAnalysis:
         Kratos.Logger.PrintInfo("OptimizationAnalysis", f"Loading restart checkpoint from \"{file_path}\".")
         with open(file_path, "rb") as file_input:
             payload: dict = pickle.load(file_input)
+
+        # a fresh interpreter has not imported the applications whose entities the Model holds yet
+        ImportApplications(payload["applications"])
 
         serializer: Kratos.StreamSerializer = payload["serializer"]
         flags = Kratos.Flags()
@@ -244,14 +247,13 @@ class OptimizationAnalysis:
             node_metadata = payload["node_metadata"]
             serializer: Kratos.StreamSerializer = payload["serializer"]
 
-            # restore every value verbatim; nodes of components absent from this run are recreated
-            # from node_metadata instead of being skipped.
+            # nodes of components absent from this run are recreated from node_metadata, then every
+            # value is restored verbatim.
+            _RestoreBufferedDictNodes(root, node_metadata)
             for (bufferdict_key, step_index), value in payload["scalars"].items():
-                _EnsureBufferedDictPath(root, bufferdict_key, node_metadata)
                 root.SetValue(bufferdict_key, value, step_index, overwrite=True)
 
             for (bufferdict_key, step_index), (serializer_tag, type_name) in payload["tensor_kinds"].items():
-                _EnsureBufferedDictPath(root, bufferdict_key, node_metadata)
                 tensor_adaptor = CreateTensorAdaptorLoadTarget(type_name)
                 serializer.Load(serializer_tag, tensor_adaptor)
                 root.SetValue(bufferdict_key, tensor_adaptor, step_index, overwrite=True)

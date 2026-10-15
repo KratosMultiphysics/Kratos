@@ -1,3 +1,4 @@
+import re
 from pathlib import Path
 
 import KratosMultiphysics as Kratos
@@ -10,26 +11,24 @@ def SplitRestartFileName(restart_file_name: str) -> 'tuple[Path, str]':
 def ParseStepFromFileName(restart_file_name: str, file_name: str) -> 'int | None':
     """Inverse of restart_file_name.replace("<step>", str(step)).
 
-    Returns None if file_name does not match restart_file_name with a non-negative integer step
-    (e.g. "restart_5_old.pkl" for "restart_<step>.pkl").
+    Returns None unless the whole file_name is restart_file_name with "<step>" replaced by ASCII
+    digits, e.g. "restart_5_old.pkl" and the temp file "restart_5.pkl.tmp" give None for "restart_<step>.pkl".
     """
     prefix, suffix = restart_file_name.split("<step>")
-    if not file_name.startswith(prefix) or not file_name.endswith(suffix) or len(file_name) <= len(prefix) + len(suffix):
-        return None
-    step_str = file_name[len(prefix):len(file_name) - len(suffix)]
-    return int(step_str) if step_str.isdigit() else None
+    match = re.fullmatch(re.escape(prefix) + "([0-9]+)" + re.escape(suffix), file_name)
+    return int(match.group(1)) if match else None
 
 def ListCheckpoints(restart_files_path: Path, restart_file_name: str) -> 'list[tuple[int, Path]]':
     """Returns (step, path) of every checkpoint in restart_files_path, sorted by step.
 
-    Files that match the glob but whose step cannot be parsed are ignored.
+    Only regular files whose full name parses to a step count (no temp files or directories).
     """
     if not restart_files_path.is_dir():
         return []
     checkpoints = []
     for path in restart_files_path.glob(restart_file_name.replace("<step>", "*")):
         step = ParseStepFromFileName(restart_file_name, path.name)
-        if step is not None:
+        if step is not None and path.is_file():
             checkpoints.append((step, path))
     return sorted(checkpoints, key=lambda checkpoint: checkpoint[0])
 
