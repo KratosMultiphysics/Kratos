@@ -769,12 +769,17 @@ class RomManager(object):
             else:
                 entities_modeler.AddString("geometry_ids_file", ids_file)
         else:
+            # Mesh based input (mdpa), given in the 'model_import_settings' or in the importer modeler (e.g. the ImportMDPAModeler)
             model_import_settings = parameters["solver_settings"]["model_import_settings"]
-            if not model_import_settings.Has("input_filename"):
-                KratosMultiphysics.Logger.PrintWarning("RomManager", "No 'input_filename' in 'model_import_settings'. Running the HROM on the full model part.")
-                return
-            model_part_name = model_import_settings["input_filename"].GetString()
-            model_import_settings["input_filename"].SetString(f"{model_part_name}HROM")
+            if model_import_settings.Has("input_filename"):
+                model_part_name = model_import_settings["input_filename"].GetString()
+                model_import_settings["input_filename"].SetString(f"{model_part_name}HROM")
+            elif geometry_importer_modeler is not None:
+                input_path = Path(geometry_importer_modeler["input_filename"].GetString())
+                model_part_name = str(input_path.with_suffix("") if input_path.suffix.lower() == ".mdpa" else input_path)
+                geometry_importer_modeler["input_filename"].SetString(f"{model_part_name}HROM")
+            else:
+                KratosMultiphysics.Logger.PrintWarning("RomManager", "No 'input_filename' in 'model_import_settings' nor in the 'modelers'. Running the HROM on the full model part.")
 
     def _LocalEmpiricalCubature(self, residuals_list, initial_candidates=None):
         """
