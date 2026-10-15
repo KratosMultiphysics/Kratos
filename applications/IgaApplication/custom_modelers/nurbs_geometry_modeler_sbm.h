@@ -57,12 +57,7 @@ public:
     /// Constructor.
     NurbsGeometryModelerSbm(
         Model & rModel,
-        const Parameters ModelerParameters = Parameters())
-        : NurbsGeometryModeler(rModel, ModelerParameters)
-    {
-        mParameters.ValidateDefaults(this->GetValidParameters());
-        mParameters.AddMissingParameters(this->GetDefaultParameters());
-    }
+        const Parameters ModelerParameters = Parameters());
 
     /// Destructor.
     ~NurbsGeometryModelerSbm() = default;
@@ -82,7 +77,7 @@ public:
     ///@}
     ///@name Stages
     ///@{
-
+    void SetupGeometryModel() override;
     ///@}
 
 protected:

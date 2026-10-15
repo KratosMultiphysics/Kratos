@@ -150,35 +150,37 @@ class HRomTrainingUtility(object):
 
 
     def AppendCurrentStepResiduals(self):
-        # Get the computing model part from the solver implementing the problem physics
-        computing_model_part = self.solver.GetComputingModelPart()
+        pass
+        #deprecated method. Use the ProjectedResidualsOutputProcess
+        # # Get the computing model part from the solver implementing the problem physics
+        # computing_model_part = self.solver.GetComputingModelPart()
 
-        # If not created yet, create the ROM residuals utility
-        # Note that this ensures that the residuals utility is created in the first residuals append call
-        # If not, it might happen that the solver scheme is created by the ROM residuals call rather than by the solver one
-        if not hasattr(self, '__rom_residuals_utility'):
-            self.__rom_residuals_utility = KratosROM.RomResidualsUtility(
-                computing_model_part,
-                self.rom_settings,
-                self.solver._GetScheme())
+        # # If not created yet, create the ROM residuals utility
+        # # Note that this ensures that the residuals utility is created in the first residuals append call
+        # # If not, it might happen that the solver scheme is created by the ROM residuals call rather than by the solver one
+        # if not hasattr(self, '__rom_residuals_utility'):
+        #     self.__rom_residuals_utility = KratosROM.RomResidualsUtility(
+        #         computing_model_part,
+        #         self.rom_settings,
+        #         self.solver._GetScheme())
 
-            if self.echo_level > 0 : KratosMultiphysics.Logger.PrintInfo("HRomTrainingUtility","RomResidualsUtility created.")
+        #     if self.echo_level > 0 : KratosMultiphysics.Logger.PrintInfo("HRomTrainingUtility","RomResidualsUtility created.")
 
-        # Generate the matrix of projected residuals
-        if self.echo_level > 0 : KratosMultiphysics.Logger.PrintInfo("HRomTrainingUtility","Generating matrix of projected residuals.")
-        if (self.projection_strategy=="galerkin"):
-                res_mat = self.__rom_residuals_utility.GetProjectedResidualsOntoPhi()
-        elif (self.projection_strategy=="lspg"):
-                jacobian_phi_product = self.GetJacobianPhiMultiplication(computing_model_part)
-                res_mat = self.__rom_residuals_utility.GetProjectedResidualsOntoJPhi(jacobian_phi_product)
-        elif (self.projection_strategy=="petrov_galerkin"):
-                res_mat = self.__rom_residuals_utility.GetProjectedResidualsOntoPsi()
-        else:
-            err_msg = f"Projection strategy \'{self.projection_strategy}\' for HROM is not supported."
-            raise Exception(err_msg)
+        # # Generate the matrix of projected residuals
+        # if self.echo_level > 0 : KratosMultiphysics.Logger.PrintInfo("HRomTrainingUtility","Generating matrix of projected residuals.")
+        # if (self.projection_strategy=="galerkin"):
+        #         res_mat = self.__rom_residuals_utility.GetProjectedResidualsOntoPhi()
+        # elif (self.projection_strategy=="lspg"):
+        #         jacobian_phi_product = self.GetJacobianPhiMultiplication(computing_model_part)
+        #         res_mat = self.__rom_residuals_utility.GetProjectedResidualsOntoJPhi(jacobian_phi_product)
+        # elif (self.projection_strategy=="petrov_galerkin"):
+        #         res_mat = self.__rom_residuals_utility.GetProjectedResidualsOntoPsi()
+        # else:
+        #     err_msg = f"Projection strategy \'{self.projection_strategy}\' for HROM is not supported."
+        #     raise Exception(err_msg)
 
-        np_res_mat = np.asarray(res_mat)
-        self.time_step_residual_matrix_container.append(np_res_mat)
+        # np_res_mat = np.asarray(res_mat)
+        # self.time_step_residual_matrix_container.append(np_res_mat)
 
     def GetJacobianPhiMultiplication(self, computing_model_part):
         jacobian_matrix = KratosMultiphysics.CompressedMatrix()
@@ -417,9 +419,14 @@ class HRomTrainingUtility(object):
                 hrom_weights["Elements"][parent_id] = 0.0
             weights, indexes = self.__AddSelectedElementsWithZeroWeights(weights,indexes, missing_condition_parents)
 
+        # Regenerate masks and IDs with the final updated indexes array
+        element_ids, condition_ids, element_mask, condition_mask = self.map_numpy_indexes_to_element_and_conditions_ids(indexes, number_of_elements)
+
         if self.hrom_output_format == "numpy":
-            np.save(self.rom_basis_output_folder / "HROM_ElementWeights.npy", weights[element_mask])
-            np.save(self.rom_basis_output_folder / "HROM_ConditionWeights.npy", weights[condition_mask])
+            # One column per set of HROM weights (e.g. one per physics in coupled problems)
+            weights_matrix = weights.reshape(len(weights),-1)
+            np.save(self.rom_basis_output_folder / "HROM_ElementWeights.npy", weights_matrix[element_mask])
+            np.save(self.rom_basis_output_folder / "HROM_ConditionWeights.npy", weights_matrix[condition_mask])
             np.save(self.rom_basis_output_folder / "HROM_ElementIds.npy", element_ids)
             np.save(self.rom_basis_output_folder / "HROM_ConditionIds.npy", condition_ids)
 
@@ -433,19 +440,17 @@ class HRomTrainingUtility(object):
 
         if self.echo_level > 0 : KratosMultiphysics.Logger.PrintInfo("HRomTrainingUtility","\'RomParameters.json\' file updated with HROM weights.")
 
-    def __AddSelectedElementsWithZeroWeights(self, original_weights,original_elements, elements_to_add):
-
-        added_elements_ids = np.array(elements_to_add)
-        updated_elements = np.r_[original_elements, added_elements_ids]
-        updated_weights = np.r_[original_weights, np.zeros(added_elements_ids.shape)]
+    def __AddSelectedElementsWithZeroWeights(self, original_weights, original_elements, elements_to_add):
+        added_numpy_indexes = [self.element_id_to_numpy_index_mapping[i] for i in elements_to_add]
+        updated_elements = np.r_[original_elements, added_numpy_indexes]
+        updated_weights = np.r_[original_weights, np.zeros((len(elements_to_add),) + original_weights.shape[1:])]
 
         return updated_weights, updated_elements
 
     def __AddSelectedConditionsWithZeroWeights(self, original_weights, original_conditions, conditions_to_add, number_of_elements):
-
-        added_conditions_ids = np.array(conditions_to_add)+number_of_elements
-        updated_conditions = np.r_[original_conditions, added_conditions_ids]
-        updated_weights = np.r_[original_weights, np.zeros(added_conditions_ids.shape)]
+        added_numpy_indexes = [self.condition_id_to_numpy_index_mapping[i] for i in conditions_to_add]
+        updated_conditions = np.r_[original_conditions, added_numpy_indexes]
+        updated_weights = np.r_[original_weights, np.zeros((len(conditions_to_add),) + original_weights.shape[1:])]
 
         return updated_weights, updated_conditions
 
@@ -461,32 +466,23 @@ class HRomTrainingUtility(object):
             elem_weights = weights[element_mask]
             cond_weights = weights[condition_mask]
 
+        # With several sets of weights (i.e. several columns) the first one is stored (only the ids are used from here on)
         for i, elem_id in enumerate(element_ids):
-            hrom_weights["Elements"][int(elem_id)] = float(elem_weights[i])
+            hrom_weights["Elements"][int(elem_id)] = float(np.ravel(elem_weights[i])[0])
 
         for i, cond_id in enumerate(condition_ids):
-            hrom_weights["Conditions"][int(cond_id)] = float(cond_weights[i])
+            hrom_weights["Conditions"][int(cond_id)] = float(np.ravel(cond_weights[i])[0])
 
         return hrom_weights
 
 
     def __CreateListsWithRomElements(self):
-        number_of_elements = self.solver.GetComputingModelPart().NumberOfElements()
-
-        # Load combined indexes for elements and conditions
         element_ids = np.load(self.rom_basis_output_folder / "HROM_ElementIds.npy")
-        condition_ids = np.load(self.rom_basis_output_folder / "HROM_ConditionIds.npy") + number_of_elements
-
-        # Combine element and condition IDs
-        combined_indexes = np.r_[element_ids, condition_ids]
-
-        # Separate element and condition indexes
-        element_mask = combined_indexes < number_of_elements
-        condition_mask = ~element_mask
+        condition_ids = np.load(self.rom_basis_output_folder / "HROM_ConditionIds.npy")
 
         # Extract unique element and condition indexes
-        unique_element_ids = np.unique(combined_indexes[element_mask], return_inverse=False)
-        unique_condition_ids = np.unique(combined_indexes[condition_mask] - number_of_elements, return_inverse=False)
+        unique_element_ids = np.unique(element_ids)
+        unique_condition_ids = np.unique(condition_ids)
 
         # Convert to Python lists
         unique_element_ids_list = unique_element_ids.astype(int).tolist()

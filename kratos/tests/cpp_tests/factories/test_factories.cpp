@@ -24,7 +24,7 @@
 // #include "factories/factory.h"
 // #include "solving_strategies/strategies/explicit_solving_strategy.h"
 // #include "solving_strategies/builder_and_solvers/explicit_builder.h"
-// #include "spaces/ublas_space.h"
+// #include "spaces/default_spaces.h"
 
 namespace Kratos
 {
@@ -33,8 +33,8 @@ namespace Kratos
         // /// Tests
 
         // // Spaces
-        // using SparseSpaceType = UblasSpace<double, CompressedMatrix, Vector>;
-        // using LocalSpaceType = UblasSpace<double, Matrix, Vector>;
+        // using SparseSpaceType = TDefaultSparseSpace<double>;
+        // using LocalSpaceType = TDefaultDenseSpace<double>;
 
         // /// The definition of the explicit builder
         // using ExplicitBuilderType = ExplicitBuilder<SparseSpaceType,LocalSpaceType>;

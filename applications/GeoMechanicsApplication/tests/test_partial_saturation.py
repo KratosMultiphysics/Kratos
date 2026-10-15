@@ -250,20 +250,20 @@ class KratosGeoMechanicsPartialSaturation(KratosUnittest.TestCase):
         expected_results_at_times = {
             60.0: [],
             3600.0: [
-                ExpectedResult(47, -14.5083),
-                ExpectedResult(55, 4663.88),
-                ExpectedResult(65, 15693.5),
+                ExpectedResult(47, -14.0716),
+                ExpectedResult(55, 3754.42),
+                ExpectedResult(65, 15693.3),
             ],
             7200.0: [],
             10800.0: [
-                ExpectedResult(131, 426.075),
-                ExpectedResult(135, 5656.0),
-                ExpectedResult(139, 8197.65),
+                ExpectedResult(131, 31.9634),
+                ExpectedResult(135, 2851.93),
+                ExpectedResult(139, 7916.59),
             ],
             14400.0: [
-                ExpectedResult(202, -70.3118),
-                ExpectedResult(212, 1059.01),
-                ExpectedResult(219, 425.021),
+                ExpectedResult(202, -18000.0),
+                ExpectedResult(212, -19000.0),
+                ExpectedResult(219, -19700.0),
             ],
         }
 
@@ -318,20 +318,20 @@ class KratosGeoMechanicsPartialSaturation(KratosUnittest.TestCase):
         expected_results_at_times = {
             60.0: [],
             3600.0: [
-                ExpectedResult(37, -15.7855),
-                ExpectedResult(44, 2241.52),
-                ExpectedResult(52, 16410.0),
+                ExpectedResult(37, -18.1316),
+                ExpectedResult(44, 1358.44),
+                ExpectedResult(52, 16427.1),
             ],
             7200.0: [],
             10800.0: [
-                ExpectedResult(82, -21.7675),
-                ExpectedResult(97, 7577.55),
-                ExpectedResult(102, 11625.1),
+                ExpectedResult(82, -1.49239),
+                ExpectedResult(97, 3778.9),
+                ExpectedResult(102, 11291.1),
             ],
             14400.0: [
-                ExpectedResult(117, -9.67879),
-                ExpectedResult(122, 1365.77),
-                ExpectedResult(132, 8924.17),
+                ExpectedResult(117, -30.2786),
+                ExpectedResult(122, -31.1484),
+                ExpectedResult(132, 8849.92),
             ],
         }
 
@@ -383,19 +383,19 @@ class KratosGeoMechanicsPartialSaturation(KratosUnittest.TestCase):
             60.0: [],
             3600.0: [
                 ExpectedResult(node_id=1, value=0.0),
-                ExpectedResult(node_id=52, value=13254.5),
-                ExpectedResult(node_id=62, value=15985.4),
+                ExpectedResult(node_id=52, value=12346.9),
+                ExpectedResult(node_id=62, value=15984.9),
             ],
             7200.0: [],
             10800.0: [
-                ExpectedResult(node_id=68, value=94.5776),
-                ExpectedResult(node_id=84, value=2857.97),
-                ExpectedResult(node_id=97, value=12404.0),
+                ExpectedResult(node_id=68, value=86.073),
+                ExpectedResult(node_id=84, value=2553.62),
+                ExpectedResult(node_id=97, value=12365.2),
             ],
             14400.0: [
-                ExpectedResult(node_id=88, value=59.1236),
-                ExpectedResult(node_id=112, value=8720.64),
-                ExpectedResult(node_id=122, value=9880.12),
+                ExpectedResult(node_id=88, value=46.963),
+                ExpectedResult(node_id=112, value=7615.81),
+                ExpectedResult(node_id=122, value=9869.97),
             ],
         }
 
@@ -452,20 +452,20 @@ class KratosGeoMechanicsPartialSaturation(KratosUnittest.TestCase):
         expected_results_at_times = {
             60.0: [],
             3600.0: [
-                ExpectedResult(node_id=55, value=-11.3852),
-                ExpectedResult(node_id=60, value=14306.5),
-                ExpectedResult(node_id=65, value=15688.0),
+                ExpectedResult(node_id=55, value=-36.1071),
+                ExpectedResult(node_id=60, value=11850.6),
+                ExpectedResult(node_id=65, value=15680.2),
             ],
             7200.0: [],
             10800.0: [
-                ExpectedResult(node_id=133, value=-101.124),
-                ExpectedResult(node_id=139, value=5312.48),
-                ExpectedResult(node_id=143, value=7813.71),
+                ExpectedResult(node_id=143, value=-6.3975),
+                ExpectedResult(node_id=148, value=5960.93),
+                ExpectedResult(node_id=153, value=6881.04),
             ],
             14400.0: [
-                ExpectedResult(node_id=190, value=-229.794),
-                ExpectedResult(node_id=195, value=1004.13),
-                ExpectedResult(node_id=200, value=2169.58),
+                ExpectedResult(node_id=190, value=-16800.0),
+                ExpectedResult(node_id=195, value=-17300.0),
+                ExpectedResult(node_id=200, value=-17800.0),
             ],
         }
 

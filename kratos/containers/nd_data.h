@@ -21,7 +21,7 @@
 
 // Project includes
 #include "includes/define.h"
-#include "includes/ublas_interface.h"
+#include "includes/default_interface.h"
 #include "includes/serializer.h"
 
 namespace Kratos {
@@ -58,7 +58,7 @@ public:
      *          the life time. On load, an existing buffer of the saved size is overwritten in place
      *          (ownership kept, so numpy views stay valid); otherwise a new, managed buffer is allocated.
      */
-    class PointerWrapper
+    class KRATOS_API(KRATOS_CORE) PointerWrapper
     {
     public:
         ///@name Type definitions

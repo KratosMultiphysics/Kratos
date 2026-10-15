@@ -7,17 +7,16 @@
 //  Author:  Quirin Aumann
 */
 
-#if !defined(KRATOS_FEAST_EIGENSYSTEM_SOLVER_H_INCLUDED)
-#define KRATOS_FEAST_EIGENSYSTEM_SOLVER_H_INCLUDED
+#pragma once
 
 // External includes
 
 // Project includes
-#include "includes/define.h"
 #include "includes/kratos_parameters.h"
 #include "linear_solvers/linear_solver.h"
-#include "includes/ublas_interface.h"
+#include "includes/default_interface.h"
 #include "includes/ublas_complex_interface.h"
+#include "spaces/default_spaces.h"
 
 extern "C" {
     #include <feast.h>
@@ -176,10 +175,10 @@ template<
     bool TSymmetric,
     typename TScalarIn,
     typename TScalarOut,
-    class TSparseSpaceTypeIn = TUblasSparseSpace<TScalarIn>,
-    class TDenseSpaceTypeIn = TUblasDenseSpace<TScalarIn>,
-    class TSparseSpaceTypeOut = TUblasSparseSpace<TScalarOut>,
-    class TDenseSpaceTypeOut = TUblasDenseSpace<TScalarOut>>
+    class TSparseSpaceTypeIn = TDefaultSparseSpace<TScalarIn>,
+    class TDenseSpaceTypeIn = TDefaultDenseSpace<TScalarIn>,
+    class TSparseSpaceTypeOut = TDefaultSparseSpace<TScalarOut>,
+    class TDenseSpaceTypeOut = TDefaultDenseSpace<TScalarOut>>
 class FEASTEigensystemSolver
     : public LinearSolver<TSparseSpaceTypeIn, TDenseSpaceTypeOut>
 {
@@ -358,14 +357,14 @@ class FEASTEigensystemSolver
         // copy eigenvalues to result vector
         rEigenvalues.swap(tmp_eigenvalues);
 
-        // copy eigenvectors to result matrix
-        if( rEigenvectors.size1() != tmp_eigenvectors.size1() || rEigenvectors.size2() != tmp_eigenvectors.size2() )
-            rEigenvectors.resize(tmp_eigenvectors.size1(), tmp_eigenvectors.size2(), false);
-
-        noalias(rEigenvectors) = tmp_eigenvectors;
+        // copy eigenvectors to result matrix: the eigensolver strategy expects an eigenvector
+        // matrix of shape [n_eigenvalues, n_dofs], so FEAST's [n_dofs, n_eigenvalues] matrix is
+        // copied transposed (in one step, so the result never aliases its own transpose)
+        if( rEigenvectors.size1() != tmp_eigenvectors.size2() || rEigenvectors.size2() != tmp_eigenvectors.size1() )
+            rEigenvectors.resize(tmp_eigenvectors.size2(), tmp_eigenvectors.size1(), false);
 
         // the eigensolver strategy expects an eigenvector matrix of shape [n_eigenvalues, n_dofs], so FEAST's eigenvector matrix has to be transposed
-        rEigenvectors = trans(rEigenvectors);
+        noalias(rEigenvectors) = trans(tmp_eigenvectors);
     }
     /**
      * Print information about this object.
@@ -462,5 +461,3 @@ inline std::ostream& operator <<(
 }
 
 } // namespace Kratos
-
-#endif // defined(KRATOS_FEAST_EIGENSYSTEM_SOLVER_H_INCLUDED)

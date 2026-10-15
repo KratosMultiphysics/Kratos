@@ -75,20 +75,15 @@ class OptimizationAnalysis:
         self._CreateControls()
         self._CreateResponses()
         self._CreateAlgorithm()
-        self._CreateProcesses()
-        # _CreateRestart must run after _CreateProcesses: _CreateProcesses() unconditionally
-        # calls optimization_problem.AddProcessType(process_type) for every process type, which
-        # resets (rather than appends to) that type's process list. It must also run after every
-        # other _Create*() call above: restoring the BufferedDict relies on each component's own
-        # SetDataBuffer() call having already sized its BufferedDict node.
-        self._CreateRestart()
 
     def Initialize(self):
         CallOnAll(self.__list_of_model_part_controllers, ModelPartController.ImportModelPart)
         CallOnAll(self.__list_of_model_part_controllers, ModelPartController.Initialize)
-        CallOnAll(self.optimization_problem.GetListOfExecutionPolicies(), ExecutionPolicyDecorator.Initialize)
+        self._CreateProcesses()
         for process_type in self.__algorithm.GetProcessesOrder():
             CallOnAll(self.optimization_problem.GetListOfProcesses(process_type), Kratos.Process.ExecuteInitialize)
+            CallOnAll(self.optimization_problem.GetListOfProcesses(process_type), Kratos.Process.ExecuteBeforeSolutionLoop)
+        CallOnAll(self.optimization_problem.GetListOfExecutionPolicies(), ExecutionPolicyDecorator.Initialize)
 
         self.__algorithm.Initialize()
 
