@@ -233,6 +233,7 @@ KRATOS_INFO("") << "    KRATOS  _____ _____\n"
 
     // GSBM Variables
     KRATOS_REGISTER_VARIABLE(KNOT_SPAN_INDICES)
+    KRATOS_REGISTER_VARIABLE(VOLUME_FRACTION)
 }
 
 }  // namespace Kratos

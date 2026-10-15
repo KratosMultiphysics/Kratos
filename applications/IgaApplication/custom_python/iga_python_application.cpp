@@ -101,6 +101,9 @@ PYBIND11_MODULE(KratosIgaApplication, m)
 
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, KNOT_SPAN_SIZES)
 
+    // GSBM Variables
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, VOLUME_FRACTION)
+
     AddCustomUtilitiesToPython(m);
     AddCustomProcessesToPython(m);
     AddCustomStrategiesToPython(m);
