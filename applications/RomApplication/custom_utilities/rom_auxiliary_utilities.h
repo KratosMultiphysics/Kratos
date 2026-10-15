@@ -366,6 +366,23 @@ public:
         const Element::DofsVectorType& rDofs,
         const Matrix &rJPhi);
 
+    /**
+     * @brief Gets a set of elements and conditions together with all the elements and conditions sharing a node with them.
+     * @details This is the complementary mesh of a hyper-reduced LSPG ROM: the entities required to assemble the complete
+     * rows of the Jacobian of the DOFs of the given (selected) entities.
+     * @param rModelPart The model part containing the entities, in which the nodal neighbours are searched
+     * @param rElements The elements whose neighbours are to be found
+     * @param rConditions The conditions whose neighbours are to be found
+     * @param rElementsAndNeighbours The given elements and the neighbouring ones
+     * @param rConditionsAndNeighbours The given conditions and the neighbouring ones
+     */
+    static void GetEntitiesAndNodalNeighbours(
+        ModelPart& rModelPart,
+        const ModelPart::ElementsContainerType& rElements,
+        const ModelPart::ConditionsContainerType& rConditions,
+        ModelPart::ElementsContainerType& rElementsAndNeighbours,
+        ModelPart::ConditionsContainerType& rConditionsAndNeighbours);
+
     ///@}
 
     private:

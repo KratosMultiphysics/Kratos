@@ -11,6 +11,7 @@
 //
 
 // System includes
+#include <set>
 
 
 // External includes
@@ -18,6 +19,7 @@
 
 // Project includes
 #include "containers/pointer_vector_set.h"
+#include "processes/find_global_nodal_entity_neighbours_process.h"
 #include "utilities/parallel_utilities.h"
 #include "utilities/reduction_utilities.h"
 
@@ -1085,6 +1087,52 @@ void RomAuxiliaryUtilities::GetJPhiElemental(
         {
             const Dof<double>& r_dof = *rDofs[i];
             noalias(row(rJPhiElemental, i)) = row(rJPhi, r_dof.EquationId());
+        }
+    }
+
+void RomAuxiliaryUtilities::GetEntitiesAndNodalNeighbours(
+    ModelPart& rModelPart,
+    const ModelPart::ElementsContainerType& rElements,
+    const ModelPart::ConditionsContainerType& rConditions,
+    ModelPart::ElementsContainerType& rElementsAndNeighbours,
+    ModelPart::ConditionsContainerType& rConditionsAndNeighbours)
+    {
+        FindGlobalNodalEntityNeighboursProcess<ModelPart::ElementsContainerType>(rModelPart).Execute();
+        FindGlobalNodalEntityNeighboursProcess<ModelPart::ConditionsContainerType>(rModelPart).Execute();
+
+        // Ordered sets, so that the output containers are sorted by Id
+        std::set<IndexType> element_ids;
+        std::set<IndexType> condition_ids;
+        const auto add_nodal_neighbours = [&](const Geometry<Node>& rGeometry)
+        {
+            for (const auto& r_node : rGeometry) {
+                for (const auto& rp_neighbour : r_node.GetValue(NEIGHBOUR_ELEMENTS).GetContainer()) {
+                    element_ids.insert(rp_neighbour->Id());
+                }
+                for (const auto& rp_neighbour : r_node.GetValue(NEIGHBOUR_CONDITIONS).GetContainer()) {
+                    condition_ids.insert(rp_neighbour->Id());
+                }
+            }
+        };
+
+        for (const auto& r_element : rElements) {
+            element_ids.insert(r_element.Id());
+            add_nodal_neighbours(r_element.GetGeometry());
+        }
+        for (const auto& r_condition : rConditions) {
+            condition_ids.insert(r_condition.Id());
+            add_nodal_neighbours(r_condition.GetGeometry());
+        }
+
+        rElementsAndNeighbours.clear();
+        rElementsAndNeighbours.reserve(element_ids.size());
+        for (const IndexType id : element_ids) {
+            rElementsAndNeighbours.push_back(rModelPart.pGetElement(id));
+        }
+        rConditionsAndNeighbours.clear();
+        rConditionsAndNeighbours.reserve(condition_ids.size());
+        for (const IndexType id : condition_ids) {
+            rConditionsAndNeighbours.push_back(rModelPart.pGetCondition(id));
         }
     }
 

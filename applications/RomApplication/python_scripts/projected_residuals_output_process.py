@@ -51,6 +51,9 @@ class RomResidualsOutputProcess(KratosMultiphysics.OutputProcess):
         """Assembles the Jacobian and multiplies it by the ROM basis for LSPG."""
         computing_model_part = self.solver.GetComputingModelPart()
         builder_and_solver = self.solver._GetBuilderAndSolver()
+        # The elemental LSPG builder and solver computes the product entity by entity, without the global matrix
+        if hasattr(builder_and_solver, "CalculateJPhi"):
+            return builder_and_solver.CalculateJPhi(self.solver._GetScheme(), computing_model_part)
         system_size = builder_and_solver.GetEquationSystemSize()
         right_rom_basis = KratosMultiphysics.Matrix(system_size, self.num_of_right_rom_dofs)
         builder_and_solver.GetRightROMBasis(computing_model_part, right_rom_basis)
