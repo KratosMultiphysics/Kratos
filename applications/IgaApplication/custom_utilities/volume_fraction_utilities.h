@@ -60,6 +60,20 @@ public:
         const std::vector<double>& rSpansX,
         const std::vector<double>& rSpansY);
 
+    /**
+     * @brief Chains the 2-noded line conditions of a skin into closed loops,
+     * keeping the orientation of the input.
+     *
+     * @details Segments are chained by node connectivity, so neither the
+     * condition ordering nor the loop orientation of the input matter.
+     *
+     * @param rSkinModelPart Closed loops of 2-noded line conditions.
+     * @return One vector per loop with its conditions in chaining order: the
+     * end node of each condition is the start node of the next one.
+     */
+    static std::vector<std::vector<const Condition*>> ExtractSkinLoops(
+        const ModelPart& rSkinModelPart);
+
     ///@}
 };
 
