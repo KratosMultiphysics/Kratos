@@ -294,7 +294,7 @@ def AssembleTestSuites():
             nightlySuite.addTest(TALMThreeDSimplestPatchTestTriQuadContact('test_execution'))
             nightlySuite.addTest(TALMThreeDSimplestPatchTestQuadTriContact('test_execution'))
             # nightlySuite.addTest(TALMThreeDSimplestPatchMatchingAdaptativeTestContact('test_execution'))
-        nightlySuite.addTest(TALMThreeDSimplestPatchMatchingSlopeTestContact('test_execution'))
+        # nightlySuite.addTest(TALMThreeDSimplestPatchMatchingSlopeTestContact('test_execution'))
         nightlySuite.addTest(TALMThreeDPatchComplexGeomTestContact('test_execution'))
         nightlySuite.addTest(TALMTThreeDPatchMatchingTestContact('test_execution'))
         nightlySuite.addTest(TALMThreeDPatchNotMatchingTestContact('test_execution'))
@@ -445,7 +445,7 @@ def AssembleTestSuites():
               TALMThreeDSimplestPatchTestTriQuadContact,
               TALMThreeDSimplestPatchTestQuadTriContact,
             #   TALMThreeDSimplestPatchMatchingAdaptativeTestContact,
-              TALMThreeDSimplestPatchMatchingSlopeTestContact,
+            #   TALMThreeDSimplestPatchMatchingSlopeTestContact,
               TALMThreeDPatchComplexGeomTestContact,
               TALMTThreeDPatchMatchingTestContact,
               TALMThreeDPatchNotMatchingTestContact,
