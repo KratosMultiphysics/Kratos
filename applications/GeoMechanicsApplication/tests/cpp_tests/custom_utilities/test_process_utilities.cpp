@@ -268,4 +268,39 @@ KRATOS_TEST_CASE_IN_SUITE(AddProcessesSubModelPartList_AddsFilledListBasedOnCons
     EXPECT_EQ(actual_modelpart_names, expected_modelpart_names);
 }
 
+KRATOS_TEST_CASE_IN_SUITE(AddProcessesSubModelPartList_AddsFilledListBasedOnProcessWithNameApplyPeriodicConditionProcess,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    const Parameters project_parameters(R"(
+      {
+         "processes":
+         {
+            "constraints_process_list": [
+            {
+                "process_name": "ApplyPeriodicConditionProcess",
+                "Parameters":    {
+                    "computing_model_part_name": "PorousDomain.Sides"
+                }
+            }]
+         },
+         "solver_settings": {
+             "model_part_name": "PorousDomain"
+         }
+      })");
+
+    auto solver_settings = project_parameters["solver_settings"];
+
+    // Act
+    ProcessUtilities::AddProcessesSubModelPartListToSolverSettings(project_parameters, solver_settings);
+
+    // Assert
+    const auto& r_list = solver_settings["processes_sub_model_part_list"];
+    KRATOS_EXPECT_EQ(r_list.size(), 1);
+
+    const auto actual_modelpart_names = solver_settings["processes_sub_model_part_list"].GetStringArray();
+    const std::vector<std::string> expected_modelpart_names = {"Sides"};
+    EXPECT_EQ(actual_modelpart_names, expected_modelpart_names);
+}
+
 } // namespace Kratos::Testing
