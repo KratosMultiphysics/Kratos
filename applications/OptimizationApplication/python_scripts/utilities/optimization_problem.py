@@ -45,8 +45,7 @@ class OptimizationProblem:
         # initialize the step
         self.__problem_data["step"] = 0
 
-        # restart state -- set by OptimizationAnalysis._LoadRestartModel()/_CreateRestart(), read
-        # by ModelPartController.ImportModelPart() implementations and by Algorithm.SaveRestartFile().
+        # restart state, set by OptimizationAnalysis
         self.__is_restarted = False
         self.__restart_output = None
 
@@ -200,15 +199,7 @@ class OptimizationProblem:
         return self.__problem_data["step"]
 
     def SetStep(self, step: int) -> None:
-        """Directly sets the current step of the optimization info.
-
-        Unlike @ref AdvanceStep, this does not cycle the buffer or clear any data. It is
-        meant to be used by a restart process to set the step counter to a previously
-        checkpointed value before manually repopulating the buffered data.
-
-        Args:
-            step (int): Step value to set.
-        """
+        """Sets the step counter without advancing the buffers (used to restore a checkpoint)."""
         self.__problem_data.SetValue("step", step, overwrite=True)
 
     def AdvanceStep(self) -> None:
@@ -238,11 +229,7 @@ class OptimizationProblem:
         self.__is_restarted = is_restarted
 
     def GetRestartOutput(self) -> 'Any | None':
-        """The restart writer installed by _CreateRestart(), or None if save_restart is off.
-
-        Deliberately not a process type (see Algorithm.SaveRestartFile()): the only place it is
-        ever driven from.
-        """
+        """The restart writer driven by Algorithm.SaveRestartFile(), or None if save_restart is off."""
         return self.__restart_output
 
     def SetRestartOutput(self, restart_output: 'Any | None') -> None:

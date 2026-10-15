@@ -68,13 +68,6 @@ class ShellThicknessControl(Control):
         self.filtered_thicknesses = [i for i, _ in enumerate(self.physical_thicknesses)]
 
     def Initialize(self) -> None:
-        # idempotency guard: control_phi_field/physical_phi_field below read the *current* mesh
-        # state, so a second call would silently re-derive them (lossily, through the thickness
-        # projection/filter round-trip) instead of leaving whatever this control was already
-        # holding untouched.
-        if self.model_part is not None:
-            return
-
         self.model_part = self.model_part_operation.GetModelPart()
 
         if not KratosOA.OptAppModelPartUtils.CheckModelPartStatus(self.model_part, "element_specific_properties_created"):

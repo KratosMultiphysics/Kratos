@@ -102,7 +102,8 @@ class DataValuesControl(Control):
 
         control_variable_bounds = parameters["control_variable_bounds"].GetVector()
 
-        self.projection = CreateProjection(parameters["projection_settings"], self.optimization_problem)
+        projection_restart_data = ComponentDataView(f"{self.GetName()}:projection", optimization_problem).GetUnBufferedData()
+        self.projection = CreateProjection(parameters["projection_settings"], self.optimization_problem, projection_restart_data)
 
         # initialize the projections
         self.projection.SetProjectionSpaces([0, 1], control_variable_bounds)

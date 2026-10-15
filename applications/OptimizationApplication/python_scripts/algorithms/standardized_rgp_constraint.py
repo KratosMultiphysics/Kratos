@@ -97,13 +97,8 @@ class StandardizedRGPConstraint(ResponseRoutine):
     def Initialize(self) -> None:
         super().Initialize()
 
-        # these coefficients evolve every iteration (see UpdateBufferSize), so on a restart
-        # (step > 0) they must be re-hydrated from unbuffered data instead of re-initialized,
-        # so the constraint resumes exactly where it left off. This has to happen here rather
-        # than in __init__: the algorithm (and thus this constraint) is constructed before the
-        # restart input process's ExecuteInitialize() runs (see OptimizationAnalysis.__init__
-        # vs. Initialize()), so __optimization_problem.GetStep() would still read its pre-restart
-        # value of 0 there.
+        # the buffer coefficients evolve every iteration, so a restart re-hydrates them. Done here, not
+        # in __init__, because the checkpoint is restored after the constraint is constructed.
         if self.__optimization_problem.GetStep() > 0 and self.__unbuffered_data.HasValue("BSF"):
             self.BSF = self.__unbuffered_data["BSF"]
             self.CBV = self.__unbuffered_data["CBV"]
@@ -190,7 +185,7 @@ class StandardizedRGPConstraint(ResponseRoutine):
             if delta_values[0] * delta_values[1] < 0.0 and delta_values[1] * delta_values[2] < 0.0:
                 self.BSF += 1
 
-        # write-through so a restart can re-hydrate these evolving coefficients (see __init__)
+        # write-through so a restart can re-hydrate these evolving coefficients (see Initialize)
         self.__unbuffered_data.SetValue("BSF", self.BSF, overwrite=True)
         self.__unbuffered_data.SetValue("CBV", self.CBV, overwrite=True)
         self.__unbuffered_data.SetValue("BS", self.BS, overwrite=True)

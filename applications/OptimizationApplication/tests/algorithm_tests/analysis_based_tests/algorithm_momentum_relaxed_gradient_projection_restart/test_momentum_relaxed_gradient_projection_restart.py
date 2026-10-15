@@ -6,29 +6,8 @@ from KratosMultiphysics.kratos_utilities import DeleteDirectoryIfExisting
 from KratosMultiphysics.OptimizationApplication.optimization_analysis import OptimizationAnalysis
 
 class TestMomentumRelaxedGradientProjectionRestart(kratos_unittest.TestCase):
-    """Restart test for the momentum-based relaxed gradient projection algorithm, mirroring
-    algorithm_nesterov_accelerated_gradient_restart.
-
-    AlgorithmMomentumRelaxedGradientProjection.ComputeControlUpdate implements the same
-    Nesterov-style momentum recurrence as AlgorithmNesterovAcceleratedGradient (see that
-    algorithm's docstring/comments), and had the identical bug: momentum was kept in a plain
-    Python attribute (self.prev_update) invisible to the restart snapshot, so a resumed run
-    silently lost it. Fixed the same way -- bookkept via ComponentDataView under "momentum"
-    instead -- and verified here the same way.
-
-    Restart now always saves/restores the whole Kratos.Model (no per-model-part toggle), so any
-    NEIGHBOUR_ELEMENTS/NEIGHBOUR_CONDITIONS left on the nodes gets serialized too, which used to
-    segfault; OptAppModelPartUtils.Clear/RestoreNeighbourEntitiesData (used internally by
-    OptimizationProblemRestartOutput) clears it around the save.
-
-    The control filters explicitly on purpose -- do not switch it back to "implicit_filter".
-    The implicit (Helmholtz/Sobolev) filter builds its own auxiliary root model part of
-    HelmholtzElements, which whole-Model save now serializes like any other, and
-    Serializer::Create<HelmholtzElement<...>> crashes on load inside
-    EntityCalculationUtils::CreateSolidGeometry -- a pre-existing C++ deserialization bug in the
-    element, out of scope here. So implicit filtering has no restart coverage for now; nothing this
-    test checks (momentum surviving a checkpoint/resume) depends on which filter is used.
-    """
+    """Restart test for momentum RGP (momentum lives in the buffered data). The explicit filter is
+    deliberate: the implicit filter's HelmholtzElement currently crashes on Serializer load."""
     restart_files_path = "Optimization_Restart_test"
 
     def _ReadParameters(self) -> Kratos.Parameters:
@@ -45,14 +24,8 @@ class TestMomentumRelaxedGradientProjectionRestart(kratos_unittest.TestCase):
         return analysis
 
     def _GetPhysicalField(self, analysis: OptimizationAnalysis) -> 'list[float]':
-        """The design as it sits on the mesh (element THICKNESS) -- the restart-invariant quantity.
-
-        GetCurrentControlField() is deliberately not used: with an explicit filter the control
-        (phi-space) field is a pure delta accumulator -- Update() applies only
-        new_control_field - control_phi_field, and ExplicitFilter.UnfilterField() seeds it at zero
-        on every Initialize() -- so a resumed run legitimately carries a different absolute phi
-        value for the same physical design.
-        """
+        """Thickness read off the mesh. The explicit filter's phi field is a delta accumulator reset
+        to zero on Initialize(), so unlike the physical field it is not restart-invariant."""
         control, = analysis.GetAlgorithm().master_control.GetListOfControls()
         return list(control.GetPhysicalField().data)
 
@@ -90,10 +63,7 @@ class TestMomentumRelaxedGradientProjectionRestart(kratos_unittest.TestCase):
             resume_obj_value = resume_algorithm.GetOptimizedObjectiveValue()
             resume_physical_field = self._GetPhysicalField(resume_analysis)
 
-            # This control is filtered and passed through a nonlinear sigmoidal projection, and the
-            # constraint runs an FEM solve each iteration, so reproducibility has a small but
-            # non-zero noise floor (observed ~1e-9 relative on both quantities below) -- compare
-            # relative to each field's own magnitude rather than with an absolute places=.
+            # filter + sigmoidal projection + constraint solve give a ~1e-9 relative noise floor
             self.assertAlmostEqual(reference_obj_value, resume_obj_value, delta=abs(reference_obj_value) * 1e-7)
             max_abs_reference_value = max(abs(value) for value in reference_physical_field)
             self.assertVectorAlmostEqual(reference_physical_field, resume_physical_field, places=None, delta=max_abs_reference_value * 1e-6)

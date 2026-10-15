@@ -6,15 +6,8 @@ from KratosMultiphysics.kratos_utilities import DeleteDirectoryIfExisting
 from KratosMultiphysics.OptimizationApplication.optimization_analysis import OptimizationAnalysis
 
 class TestNesterovAcceleratedGradientRestart(kratos_unittest.TestCase):
-    """Restart test for a momentum-based algorithm.
-
-    Unlike algorithm_steepest_descent_restart (which has no cross-iteration algorithm state
-    beyond the design itself), Nesterov's momentum term must also survive a checkpoint/resume
-    round-trip -- see AlgorithmNesterovAcceleratedGradient.ComputeControlUpdate, which bookkeeps
-    it via ComponentDataView instead of a plain Python attribute for exactly this reason. Running
-    to convergence in one go (reference) and via a checkpoint taken after the momentum term is
-    already non-trivial (checkpoint/resume) must produce the same optimized design.
-    """
+    """Restart test for Nesterov: its momentum lives in the buffered data and must survive a
+    checkpoint/resume round-trip."""
     restart_files_path = "Optimization_Restart_test"
 
     def _ReadParameters(self) -> Kratos.Parameters:
@@ -40,9 +33,8 @@ class TestNesterovAcceleratedGradientRestart(kratos_unittest.TestCase):
             reference_obj_value = reference_algorithm.GetOptimizedObjectiveValue()
             reference_control_field = list(reference_algorithm.GetCurrentControlField().data)
 
-            # checkpoint run: solve iterations 0..2 only (momentum is already non-trivial by
-            # then, since it only stays trivial for the very first iteration), writing a restart
-            # checkpoint every step.
+            # checkpoint run: solve iterations 0..2 only (momentum is non-trivial by then), writing a
+            # restart checkpoint every step.
             checkpoint_parameters = self._ReadParameters()
             self._SetMaxIter(checkpoint_parameters, 3)
             checkpoint_parameters.AddValue("restart_settings", Kratos.Parameters("""{
@@ -66,11 +58,7 @@ class TestNesterovAcceleratedGradientRestart(kratos_unittest.TestCase):
             resume_control_field = list(resume_algorithm.GetCurrentControlField().data)
 
             self.assertAlmostEqual(reference_obj_value, resume_obj_value, places=9)
-            # the control field holds YOUNG_MODULUS-scale values (~1e10), so an absolute
-            # places-based comparison would demand ~19-20 significant digits -- well beyond
-            # double precision. Compare with a delta scaled to the field's own magnitude instead,
-            # loose enough to absorb floating-point noise (e.g. parallel reduction order) while
-            # still catching a materially wrong restart restore (e.g. lost/garbled momentum).
+            # YOUNG_MODULUS-scale field (~1e10): compare with a delta relative to its magnitude
             max_abs_reference_value = max(abs(value) for value in reference_control_field)
             self.assertVectorAlmostEqual(reference_control_field, resume_control_field, places=None, delta=max_abs_reference_value * 1e-9)
 

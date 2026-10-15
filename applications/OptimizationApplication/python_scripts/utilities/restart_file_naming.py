@@ -3,9 +3,7 @@ from pathlib import Path
 import KratosMultiphysics as Kratos
 
 def SplitRestartFileName(restart_file_name: str) -> 'tuple[Path, str]':
-    """Splits a "restart_file_name" setting into its directory and bare filename template, e.g.
-    "Optimization_Restart/restart_<step>.pkl" -> (Path("Optimization_Restart"), "restart_<step>.pkl").
-    A bare template with no directory (e.g. "restart_<step>.pkl") splits to (Path("."), ...)."""
+    """Splits "dir/restart_<step>.pkl" into (Path("dir"), "restart_<step>.pkl"); no dir gives Path(".")."""
     path = Path(restart_file_name)
     return path.parent, path.name
 
@@ -16,13 +14,8 @@ def ParseStepFromFileName(restart_file_name: str, file_name: str) -> int:
     return int(file_name[len(prefix):end])
 
 def ResolveRestartLoadStep(restart_files_path: Path, restart_file_name: str, restart_load_step_param: Kratos.Parameters) -> 'int | None':
-    """Resolves "restart_load_step" ("latest" or an explicit int) to a concrete step number.
-
-    "latest" is the highest step number parsed from an existing checkpoint's file name, not the
-    most recently modified file -- mtime is wrong after copying checkpoints between runs/machines
-    or re-running an earlier step. Returns None only for "latest" when no checkpoint exists yet
-    (fresh run).
-    """
+    """Resolves "restart_load_step" to a step. "latest" is the highest parsed step (mtime breaks on
+    copied checkpoints); returns None for "latest" when no checkpoint exists yet."""
     if restart_load_step_param.IsString():
         checkpoint_glob = restart_file_name.replace("<step>", "*")
         checkpoints = list(restart_files_path.glob(checkpoint_glob)) if restart_files_path.is_dir() else []

@@ -89,11 +89,11 @@ class MaterialPropertiesControl(Control):
 
         self.primal_model_part: Optional[Kratos.ModelPart] = None
         self.adjoint_model_part: Optional[Kratos.ModelPart] = None
-        self.physical_phi_field: Optional[Kratos.TensorAdaptors.DoubleTensorAdaptor] = None
 
         control_variable_bounds = parameters["control_variable_bounds"].GetVector()
 
-        self.projection = CreateProjection(parameters["projection_settings"], self.optimization_problem)
+        projection_restart_data = ComponentDataView(f"{self.GetName()}:projection", optimization_problem).GetUnBufferedData()
+        self.projection = CreateProjection(parameters["projection_settings"], self.optimization_problem, projection_restart_data)
         
         # initialize the projections
         self.projection.SetProjectionSpaces([0, 1], control_variable_bounds)
@@ -114,31 +114,17 @@ class MaterialPropertiesControl(Control):
                 KratosSI.ControlUtils.AssignEquivalentProperties(self.primal_model_part.Elements, self.adjoint_model_part.Elements)
                 KratosOA.OptAppModelPartUtils.LogModelPartStatus(self.adjoint_model_part, "element_specific_properties_created")
 
-        if self.physical_phi_field is None:
-            # idempotency guard: the filter rebuild and the physical_phi_field/control_phi_field/
-            # physical_phi_derivative_field derivation must only happen once per run --
-            #  - self.filter.Initialize() fully rebuilds the filter's neighbour-weight matrix
-            #    from scratch; for a large mesh this is computed in parallel, and floating-point
-            #    reduction order is not guaranteed to reproduce bit-identical weights between two
-            #    separate builds. A second rebuild would leave control_phi_field's already-
-            #    restored baseline (established with the *first* build's matrix) paired with a
-            #    numerically slightly different matrix for every later ForwardFilterField/
-            #    BackwardFilterIntegratedField call -- a mismatch that then compounds every
-            #    subsequent iteration, even though each individual rebuild is "correct".
-            #  - self.filter.UnfilterField() inverts a bounded/clamped projection, which is not
-            #    an exact round-trip near the bounds, so re-deriving control_phi_field here a
-            #    second time would silently replace the value Update() had just correctly
-            #    restored with a numerically different reconstruction.
-            self.filter.SetComponentDataView(ComponentDataView(self, self.optimization_problem))
-            self.filter.Initialize()
+        # initialize the filter
+        self.filter.SetComponentDataView(ComponentDataView(self, self.optimization_problem))
+        self.filter.Initialize()
 
-            physical_field = self.GetPhysicalField()
+        physical_field = self.GetPhysicalField()
 
         # get the phi field which is in [0, 1] range
         self.physical_phi_field = self.projection.ProjectBackward(physical_field)
 
-            # compute the control phi field
-            self.control_phi_field = self.filter.UnfilterField(self.physical_phi_field)
+        # compute the control phi field
+        self.control_phi_field = self.filter.UnfilterField(self.physical_phi_field)
 
         self._UpdateAndOutputFields(self.GetEmptyField())
 

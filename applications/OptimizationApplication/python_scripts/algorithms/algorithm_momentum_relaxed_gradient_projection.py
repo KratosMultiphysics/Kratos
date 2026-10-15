@@ -48,15 +48,8 @@ class AlgorithmMomentumRelaxedGradientProjection(AlgorithmRelaxedGradientProject
         update = Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor(search_direction, perform_store_data_recursively=False)
         update.data[:] *= alpha.data
         update.StoreData()
-        # add momentum to the correction update to compute new momentum point. The momentum from
-        # the previous call is bookkept in "algorithm"'s own buffered data (step_index 1, i.e. the
-        # previous step -- this call writes this step's momentum to step_index 0) rather than a
-        # plain Python attribute, so that a restart checkpoint/resume round-trips it correctly
-        # (mirrors algorithm_nesterov_accelarated_gradient.py's identical fix).
-        # overwrite=True: unlike AlgorithmSteepestDescent-based algorithms, AlgorithmRelaxedGradientProjection.Solve()
-        # can call ComputeControlUpdate() more than once per outer step (its "max_inner_iter" retry
-        # loop, when CheckLinearizedConstraints() rejects the first attempt), so this step's
-        # "momentum" slot may already be set from an earlier retry within the same step.
+        # add momentum to the correction update. The previous momentum is kept in the buffered data
+        # (step_index 1) to survive a restart; overwrite=True as max_inner_iter retries may rewrite it.
         if algorithm_buffered_data.HasValue("momentum", 1):
             prev_momentum: Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor = algorithm_buffered_data.GetValue("momentum", 1)
             mom_update = Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor(update, perform_store_data_recursively=False)

@@ -152,15 +152,8 @@ class AdaptiveSigmoidalDesignVariableProjection(DesignVariableProjection):
         self.optimization_problem = optimization_problem
         self.__restart_data = restart_data
 
-        # "beta" grows monotonically across iterations (see Update below). It is bookkept in
-        # restart_data (read/written live via the beta/beta_computed_step properties below)
-        # rather than cached in a plain attribute here, because this control is constructed
-        # (and this __init__ runs) before a restart input process's ExecuteInitialize() has had
-        # a chance to populate restart_data from a checkpoint -- optimization_problem.GetStep()
-        # still reads its pre-restart value of 0 at this point, so a "restart (step > 0)" check
-        # here would never see the checkpoint data. Reading live means whichever value
-        # restart_data ends up holding (fresh default, or restored) is always what's used,
-        # regardless of exactly when that happens relative to this constructor.
+        # "beta" grows across iterations, so it lives in restart_data and is read live: the
+        # checkpoint is restored only after this constructor has run.
         if self.__restart_data is None:
             self.__beta = parameters["initial_value"].GetDouble()
             self.__beta_computed_step = 1
@@ -211,7 +204,7 @@ class AdaptiveSigmoidalDesignVariableProjection(DesignVariableProjection):
             Kratos.Logger.PrintInfo(self.__class__.__name__, f"Increased beta to {self.beta}.")
 
 class ClampingProjection(DesignVariableProjection):
-    def __init__(self, parameters: Kratos.Parameters, _):
+    def __init__(self, parameters: Kratos.Parameters, _, __):
         default_parameters = Kratos.Parameters("""{
             "type"           : "clamping_projection"
         }""")

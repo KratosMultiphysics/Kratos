@@ -40,33 +40,12 @@ def CreateTensorAdaptorLoadTarget(type_name: str):
     raise RuntimeError(f"Unknown restart tensor adaptor type \"{type_name}\".")
 
 def SaveBufferedDictToSerializer(node: BufferedDict, path: str, serializer: Kratos.StreamSerializer, scalar_snapshot: dict, tensor_kinds: dict, node_metadata: dict, echo_level: int = 0) -> None:
-    """Recursively walks every buffer slot and sub item of a BufferedDict.
+    """Recursively saves a BufferedDict node and all its sub items for a restart checkpoint.
 
-    Mirrors the traversal BufferedDict.PrintData/__Info already implements (iterate every buffer
-    slot, then recurse into sub items). Kratos.TensorAdaptors.* leaves are saved natively into
-    `serializer` as themselves (so they stay linked to the Model also saved into the same
-    serializer -- see OptimizationProblemRestartOutput.SaveRestartFile); plain picklable leaves go
-    into `scalar_snapshot` instead.
-
-    "path" is the BufferedDict.SetValue()-style "/"-separated key of `node` itself (SetValue
-    natively resolves such nested keys, see buffered_dict.py). Each leaf's own BufferedDict key is
-    `f"{path}/{key}"` (or just `key` at the root); `tensor_kinds`/`scalar_snapshot` are keyed by
-    `(bufferdict_key, step_index)` tuples, since the same key can hold different values across
-    buffer slots. Tensor leaves additionally get a unique string tag derived from that same pair,
-    since Kratos.Serializer.Save/Load need a string tag; `tensor_kinds` maps the pair to
-    (tag, exact type name), which is all CreateTensorAdaptorLoadTarget needs on restore.
-
-    `node_metadata` records every sub item's own (buffer_size, clear_buffer_when_advancing), keyed
-    by its path -- used on restore to recreate a sub item that no longer has a live counterpart
-    (e.g. a control removed from this run's parameters since the checkpoint was written) with its
-    original buffer size, instead of BufferedDict.SetValue's path auto-creation, which would default
-    it to buffer_size=1.
-
-    Leaves of an unsupported type (e.g. a raw C++-bound object such as a SystemIdentification
-    Sensor stored via ComponentDataView's UnBuffered data) are skipped (with a warning) instead of
-    aborting the checkpoint, since such objects are typically re-derived from their own inputs
-    (e.g. read back from a settings/measurement file) on every run and are not cross-iteration
-    state that needs restoring.
+    Tensor adaptors go into serializer (relinked to the saved Model on load) and their
+    (tag, type name) into tensor_kinds; plain values (int/float/bool/str/None/list/dict) go into
+    scalar_snapshot. Both are keyed by (path/key, step_index). node_metadata gets each sub node's
+    (buffer_size, clear_buffer_when_advancing). Values of any other type are skipped with a warning.
     """
     for step_index in range(node.GetBufferSize()):
         for key, value in node.GetValueItems(step_index).items():
@@ -94,13 +73,20 @@ def SaveBufferedDictToSerializer(node: BufferedDict, path: str, serializer: Krat
         SaveBufferedDictToSerializer(sub_item, sub_path, serializer, scalar_snapshot, tensor_kinds, node_metadata, echo_level)
 
 class OptimizationProblemRestartOutput:
-    """Writes restart checkpoints: SerializerFlags + the whole Kratos.Model + the whole
-    OptimizationProblem BufferedDict, into one StreamSerializer, pickled to one file per step.
+    """Writes optimization restart checkpoints.
 
-    Deliberately not a Kratos.OutputProcess: it has exactly one caller, Algorithm.SaveRestartFile()
-    (called right after UpdateControl(), so the checkpoint always matches a design the mesh and
-    BufferedDict agree on) -- registering this as an output process too would give it a second,
-    live entry point and risk writing the same checkpoint twice per step.
+    Each checkpoint is one pickled file per save step holding a StreamSerializer with the
+    "SerializerFlags" record, the whole Kratos.Model and every tensor of the optimization problem's
+    BufferedDict, plus the BufferedDict's plain scalars and node metadata (buffer sizes) next to it.
+    OptimizationAnalysis restores it verbatim: the Model before any model part controller is
+    created, the BufferedDict in Initialize() after every component has sized its data buffers.
+
+    This is deliberately not a Kratos.OutputProcess. It is installed by OptimizationAnalysis via
+    OptimizationProblem.SetRestartOutput() and its only caller is Algorithm.SaveRestartFile(), right
+    after UpdateControl(), so the saved mesh and BufferedDict agree on the same design.
+
+    Files are written atomically (temp file + rename), and with "max_files_to_keep" > 0 the oldest
+    checkpoints (by parsed step) are deleted.
     """
     def GetDefaultParameters(self) -> Kratos.Parameters:
         return Kratos.Parameters("""{
@@ -133,28 +119,27 @@ class OptimizationProblemRestartOutput:
         return self.optimization_problem.GetStep() % self.restart_save_frequency == 0
 
     def SaveRestartFile(self) -> None:
+        """Writes the checkpoint of the current step and prunes old checkpoints.
+
+        Neighbour entity data and the "<OPTIMIZATION_APP_AUTO>" sub model parts are removed before
+        saving (both are recomputable); the neighbour data is restored afterwards, even on failure.
+        """
         step = self.optimization_problem.GetStep()
 
         serializer = Kratos.StreamSerializer(self.serializer_trace)
         flags = Kratos.Serializer.SHALLOW_GLOBAL_POINTERS_SERIALIZATION
         serializer.Set(flags)
-        # StreamSerializer's own pickle state does not carry serializer.Set() flags (only the
-        # buffer + trace type), so save them as the first record and reapply on load -- same
-        # pattern kratos/python_scripts/project.py uses for Model + stage checkpointing.
+        # StreamSerializer's pickle state drops serializer.Set() flags, so save them as the first
+        # record and reapply them on load (as kratos/python_scripts/project.py does).
         serializer.Save("SerializerFlags", flags)
 
         root_model_parts = [self.model[name] for name in self.model.GetModelPartNames() if "." not in name]
 
-        # NEIGHBOUR_ELEMENTS/etc. (e.g. from the Helmholtz filter) can't survive a Serializer
-        # round-trip (nodes load before the entities they point to -- crash on load). They're
-        # recomputable, so clear them for this save (covers both the Model save below and any
-        # tensor, e.g. "control_field", whose container reaches the same nodes) and restore right
-        # after so this run's own continuation is unaffected.
+        # NEIGHBOUR_* pointers can't survive a Serializer round-trip; they are recomputable, so clear
+        # them for the save and restore them right after.
         KratosOA.OptAppModelPartUtils.ClearNeighbourEntitiesData(root_model_parts)
         try:
-            # strips the dynamically-created "<OPTIMIZATION_APP_AUTO>"-prefixed sub-model-parts
-            # (pure recomputable scratch/cache, e.g. for overhang-angle sensitivity) so they don't
-            # bloat/complicate the restart file; they are recreated on demand when next needed.
+            # "<OPTIMIZATION_APP_AUTO>" sub model parts are recomputable cache, so don't checkpoint them
             KratosOA.OptAppModelPartUtils.RemoveModelPartsWithCommonReferenceEntitiesBetweenReferenceListAndExaminedList(root_model_parts)
 
             serializer.Save("Model", self.model)

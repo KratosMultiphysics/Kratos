@@ -43,9 +43,7 @@ class StructuralMechanicsAdjointStaticSolver(MechanicalSolver):
 
         process_info = self.main_model_part.ProcessInfo
         if process_info.Has(KratosMultiphysics.IS_RESTARTED) and process_info.GetValue(KratosMultiphysics.IS_RESTARTED):
-            # a restarted model part's elements/conditions are already the adjoint counterparts,
-            # and IS_ADJOINT is already set, both restored from the checkpoint -- redoing the
-            # replacement below would replace already-adjoint entities.
+            # restored adjoint model part: entities are already replaced and IS_ADJOINT is already set
             return
 
         if (process_info.Has(StructuralMechanicsApplication.IS_ADJOINT) and

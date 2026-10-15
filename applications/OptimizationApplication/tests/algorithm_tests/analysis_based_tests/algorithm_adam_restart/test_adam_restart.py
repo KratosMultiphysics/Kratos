@@ -6,13 +6,8 @@ from KratosMultiphysics.kratos_utilities import DeleteDirectoryIfExisting
 from KratosMultiphysics.OptimizationApplication.optimization_analysis import OptimizationAnalysis
 
 class TestAdamRestart(kratos_unittest.TestCase):
-    """Restart test for Adam, mirroring algorithm_nesterov_accelerated_gradient_restart.
-
-    Adam's first and second raw moment estimates ("moment_1"/"moment_2") are, like Nesterov's
-    momentum, bookkept via ComponentDataView (algorithm_adam.py) rather than a plain Python
-    attribute specifically so they survive a restart checkpoint/resume; this test verifies that
-    round-trip the same way the Nesterov one does.
-    """
+    """Restart test for Adam: its moment estimates live in the buffered data and must survive a
+    checkpoint/resume round-trip."""
     restart_files_path = "Optimization_Restart_test"
 
     def _ReadParameters(self) -> Kratos.Parameters:
@@ -63,11 +58,7 @@ class TestAdamRestart(kratos_unittest.TestCase):
             resume_control_field = list(resume_algorithm.GetCurrentControlField().data)
 
             self.assertAlmostEqual(reference_obj_value, resume_obj_value, places=9)
-            # the control field holds YOUNG_MODULUS-scale values (~1e10), so an absolute
-            # places-based comparison would demand ~19-20 significant digits -- well beyond
-            # double precision. Compare with a delta scaled to the field's own magnitude instead,
-            # loose enough to absorb floating-point noise (e.g. parallel reduction order) while
-            # still catching a materially wrong restart restore (e.g. lost/garbled moments).
+            # YOUNG_MODULUS-scale field (~1e10): compare with a delta relative to its magnitude
             max_abs_reference_value = max(abs(value) for value in reference_control_field)
             self.assertVectorAlmostEqual(reference_control_field, resume_control_field, places=None, delta=max_abs_reference_value * 1e-9)
 

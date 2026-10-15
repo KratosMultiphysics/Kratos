@@ -42,10 +42,8 @@ class AlgorithmNesterovAcceleratedGradient(AlgorithmSteepestDescent):
         update = Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor(search_direction, perform_collect_data_recursively=False, perform_store_data_recursively=False)
         update.data[:] *= alpha.data[:]
         update.StoreData()
-        # add momentum to the correction update to compute new momentum point. The momentum from
-        # the previous call is bookkept in "algorithm"'s own buffered data (step_index 1, i.e. the
-        # previous step -- this call writes this step's momentum to step_index 0) rather than a
-        # plain Python attribute, so that a restart checkpoint/resume round-trips it correctly.
+        # add momentum to the correction update to compute new momentum point. The previous momentum
+        # is kept in the buffered data (step_index 1) instead of an attribute, so it survives a restart.
         if algorithm_buffered_data.HasValue("momentum", 1):
             prev_momentum: Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor = algorithm_buffered_data.GetValue("momentum", 1)
             mom_update = Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor(update, perform_store_data_recursively=False)

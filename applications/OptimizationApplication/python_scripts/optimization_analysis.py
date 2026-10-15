@@ -15,11 +15,8 @@ from KratosMultiphysics.OptimizationApplication.utilities.restart_file_naming im
 from KratosMultiphysics.OptimizationApplication.processes.optimization_problem_restart_output_process import OptimizationProblemRestartOutput, CreateTensorAdaptorLoadTarget
 
 def _EnsureBufferedDictPath(root: BufferedDict, bufferdict_key: str, node_metadata: dict) -> None:
-    """Pre-creates any BufferedDict node along bufferdict_key's parent path that doesn't exist yet,
-    using that node's own recorded (buffer_size, clear_buffer_when_advancing) from node_metadata --
-    not BufferedDict.SetValue's own path auto-creation, which would default every new node to
-    buffer_size=1 and could undersize a node a later ComponentDataView.SetDataBuffer call rejects.
-    """
+    """Creates missing nodes on bufferdict_key's parent path with their checkpointed buffer settings,
+    instead of SetValue's auto-created buffer_size=1 nodes."""
     node = root
     path = ""
     for segment in bufferdict_key.split("/")[:-1]:
@@ -65,9 +62,7 @@ class OptimizationAnalysis:
         self.__list_of_model_part_controllers: 'list[ModelPartController]' = []
         self.__algorithm: Algorithm = None
 
-        # must run before any model part gets created below: Kratos.Model.load() populates an
-        # already-created, empty Model in place, so the checkpoint's Model has to be the first
-        # thing written into self.model.
+        # before any model part is created: Model.load() fills the still-empty Model in place
         self.__restart_payload = self._LoadRestartModel()
 
         self._CreateModelPartControllers()
@@ -80,6 +75,9 @@ class OptimizationAnalysis:
         CallOnAll(self.__list_of_model_part_controllers, ModelPartController.ImportModelPart)
         CallOnAll(self.__list_of_model_part_controllers, ModelPartController.Initialize)
         self._CreateProcesses()
+        # after all _Create*() calls (their SetDataBuffer() sizes the BufferedDict nodes) and before
+        # any process or the algorithm is initialized, so that they all see the restored state.
+        self._CreateRestart()
         for process_type in self.__algorithm.GetProcessesOrder():
             CallOnAll(self.optimization_problem.GetListOfProcesses(process_type), Kratos.Process.ExecuteInitialize)
             CallOnAll(self.optimization_problem.GetListOfProcesses(process_type), Kratos.Process.ExecuteBeforeSolutionLoop)
@@ -174,19 +172,21 @@ class OptimizationAnalysis:
         restart_settings = self.project_parameters["restart_settings"]
 
         default_restart_settings = self.GetDefaultParameters()["restart_settings"]
-        # "restart_load_step" is either the string "latest" or an explicit step (int).
-        # ValidateAndAssignDefaults requires matching types, so the default's type is chosen to
-        # match whatever the user provided.
+        # "restart_load_step" is "latest" or an int; match the default's type for the validation.
         if restart_settings.Has("restart_load_step") and restart_settings["restart_load_step"].IsInt():
             default_restart_settings["restart_load_step"].SetInt(0)
         restart_settings.ValidateAndAssignDefaults(default_restart_settings)
         return restart_settings
 
     def _LoadRestartModel(self) -> 'dict | None':
-        """If load_restart is set and a checkpoint is found, loads its Model record directly into
-        self.model and returns the unpickled payload, for _CreateRestart() to restore the
-        BufferedDict from later (after every component's own SetDataBuffer() call has sized its
-        node). Returns None otherwise (restart off, or "latest" with no checkpoint yet).
+        """Loads the checkpoint's Model into self.model if load_restart is on.
+
+        Must run before any model part is created, since Model.load() fills the empty Model in place.
+        Reapplies the saved serializer flags and marks the problem as restarted.
+
+        Returns:
+            dict | None: the unpickled payload for _CreateRestart(), or None if load_restart is off
+            or "restart_load_step" is "latest" and no checkpoint exists yet.
         """
         restart_settings = self._GetValidatedRestartSettings()
         if not restart_settings["load_restart"].GetBool():
@@ -217,6 +217,13 @@ class OptimizationAnalysis:
         return payload
 
     def _CreateRestart(self):
+        """Restores the checkpointed BufferedDict and step, and installs the restart writer.
+
+        Every saved value is restored unconditionally; missing nodes are recreated from the saved
+        node metadata. Must run after all components are created (they size their data buffers) and
+        before any of them is initialized. Raises if restart is requested for an algorithm that does
+        not support it.
+        """
         restart_settings = self._GetValidatedRestartSettings()
         save_restart = restart_settings["save_restart"].GetBool()
         load_restart = restart_settings["load_restart"].GetBool()
@@ -233,10 +240,8 @@ class OptimizationAnalysis:
             node_metadata = payload["node_metadata"]
             serializer: Kratos.StreamSerializer = payload["serializer"]
 
-            # "fully read what is in the files without extra logic": every recorded scalar/tensor
-            # is restored unconditionally, recreating any missing intermediate BufferedDict node
-            # (e.g. a control removed from this run's parameters since the checkpoint was written)
-            # from its own recorded metadata rather than skipping it.
+            # restore every value verbatim; nodes of components absent from this run are recreated
+            # from node_metadata instead of being skipped.
             for (bufferdict_key, step_index), value in payload["scalars"].items():
                 _EnsureBufferedDictPath(root, bufferdict_key, node_metadata)
                 root.SetValue(bufferdict_key, value, step_index, overwrite=True)
@@ -247,11 +252,8 @@ class OptimizationAnalysis:
                 serializer.Load(serializer_tag, tensor_adaptor)
                 root.SetValue(bufferdict_key, tensor_adaptor, step_index, overwrite=True)
 
-            # The checkpoint is written after the checkpointed step's own UpdateControl() (see
-            # Algorithm.SaveRestartFile()), so both restored buffer slots are still "occupied"
-            # (current = checkpointed step, previous = the step before it). Advance now to free up
-            # a fresh current slot for the next iteration, as AdvanceStep() would have done had the
-            # checkpointed run continued.
+            # the checkpoint is written after the step's UpdateControl(), so advance once, as the
+            # checkpointed run would have done before its next iteration.
             self.optimization_problem.SetStep(payload["step"])
             self.optimization_problem.AdvanceStep()
 
