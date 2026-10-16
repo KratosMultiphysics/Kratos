@@ -44,8 +44,6 @@ void AddDofUtilitiesToPython(pybind11::module& m)
     py::class_<DofArrayUtilities>(m, "DofArrayUtilities")
         .def_static("SetUpDofArray", &DofArrayUtilities::SetUpDofArray, py::arg("model_part"), py::arg("dof_array"), py::arg("echo_level") = 0)
         .def_static("SetUpEffectiveDofArray", &DofArrayUtilities::SetUpEffectiveDofArray, py::arg("model_part"), py::arg("dof_array"), py::arg("effective_dof_array"), py::arg("echo_level") = 0)
-        .def_static("SetDofEquationIds", &DofArrayUtilities::SetDofEquationIds, py::arg("dof_array"))
-        .def_static("SetEffectiveDofEquationIds", &DofArrayUtilities::SetEffectiveDofEquationIds, py::arg("dof_array"), py::arg("effective_dof_array"))
     ;
 }
 
