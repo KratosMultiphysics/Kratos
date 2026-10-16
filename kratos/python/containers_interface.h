@@ -60,8 +60,9 @@ public:
   MapInterface() {};
   virtual ~MapInterface() {};
 
-  void CreateInterface(pybind11::module &m, std::string ContainerName) {
-    py::class_<TContainerType, typename TContainerType::Pointer>(
+  py::class_<TContainerType, typename TContainerType::Pointer>
+  CreateInterface(pybind11::module &m, std::string ContainerName) {
+    auto interface = py::class_<TContainerType, typename TContainerType::Pointer>(
         m, ContainerName.c_str())
         .def(py::init<>())
         .def("__len__", [](TContainerType &self) { return self.size(); })
@@ -95,6 +96,8 @@ public:
                [&self, &ids_ptr](int i) { ids_ptr[i] = (self.ptr_begin() + i)->get()->Id(); });
            return ids;
          });
+
+    return interface;
   }
 };
 
