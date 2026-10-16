@@ -962,6 +962,90 @@ End SubModelPart
             self.assertTrue(io.GetBrepInfo()["recognised"].GetBool())
             self.assertGreaterEqual(io.GetBrepInfo()["number_of_faces"].GetInt(), 4)
 
+    def _WriteTransient(self, path, format_name, steps=(1, 2, 3)):
+        model_part = self.model.CreateModelPart("transient_" + format_name)
+        model_part.AddNodalSolutionStepVariable(KratosMultiphysics.TEMPERATURE)
+        _PopulateModelPart(model_part)
+        settings = KratosMultiphysics.Parameters(
+            '{"format" : "%s", "nodal_solution_step_data_variables" : ["TEMPERATURE"]}' % format_name)
+        io = KratosMeshioPlusPlus.MeshioPlusPlusIO(path, settings)
+        for step in steps:
+            model_part.ProcessInfo[KratosMultiphysics.STEP] = step
+            model_part.ProcessInfo[KratosMultiphysics.TIME] = 0.5 * step
+            for node in model_part.Nodes:
+                node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE, step * node.Id)
+            io.WriteModelPart(model_part)
+        io.CloseOutput()
+
+    def testTransientSolverResultsGoToOneFile(self):
+        """Since meshio++ v17.3.0 the solver results formats stream through their own series
+        writer: one file (or directory) holding the mesh once and a state per step, where the
+        "automatic" mode used to leave a file per step."""
+        for format_name, file_name in (("xplt", "m.xplt"), ("lsdyna_d3plot", "d3plot"), ("ansys_rst", "m.rst"),
+                                       ("marc_t19", "m.t19"), ("nastran_op2", "m.op2"), ("abaqus_fil", "m.fil"),
+                                       ("lsdyna_binout", "binout"), ("radioss_th", "runT01")):
+            with self.subTest(format=format_name):
+                with tempfile.TemporaryDirectory() as temp_dir:
+                    path = str(Path(temp_dir) / file_name)
+                    self._WriteTransient(path, format_name)
+                    self.assertEqual([entry.name for entry in Path(temp_dir).iterdir()], [file_name])
+                    reader = KratosMeshioPlusPlus.MeshioPlusPlusIO(path, KratosMultiphysics.Parameters('{"format" : "%s"}' % format_name))
+                    self.assertEqual(reader.GetNumberOfTimeSteps(), 3)
+                    # the default "output_control_type" labels a step by the STEP counter
+                    self.assertAlmostEqual(reader.GetTimeValues()[2], 3.0, 12)
+
+    def testTransientRadiossAnimWritesOneStatePerFile(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            self._WriteTransient(str(Path(temp_dir) / "runA001"), "radioss_anim")
+            self.assertEqual(sorted(entry.name for entry in Path(temp_dir).iterdir()), ["runA001", "runA002", "runA003"])
+
+    def testTransientFrdAndOpenFoam(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            self._WriteTransient(str(Path(temp_dir) / "m.frd"), "frd")
+            self.assertEqual([entry.name for entry in Path(temp_dir).iterdir()], ["m.frd"])
+        with tempfile.TemporaryDirectory() as temp_dir:
+            self._WriteTransient(str(Path(temp_dir) / "case.foam"), "openfoam")
+            # the polyMesh once, a time directory of fields per step
+            self.assertEqual(sorted(entry.name for entry in Path(temp_dir).iterdir()), ["1", "2", "3", "case.foam", "constant"])
+
+    def testExplicitFileSeriesStillWritesAFilePerStep(self):
+        model_part = self.model.CreateModelPart("file_series_xplt")
+        _PopulateModelPart(model_part)
+        with tempfile.TemporaryDirectory() as temp_dir:
+            settings = KratosMultiphysics.Parameters('{"time_series" : "file_series"}')
+            io = KratosMeshioPlusPlus.MeshioPlusPlusIO(str(Path(temp_dir) / "m.xplt"), settings)
+            for step in (1, 2):
+                model_part.ProcessInfo[KratosMultiphysics.STEP] = step
+                io.WriteModelPart(model_part)
+            io.CloseOutput()
+            self.assertEqual(len(list(Path(temp_dir).iterdir())), 2)
+
+    def testOpenFoamRegionWrite(self):
+        model_part = self.model.CreateModelPart("openfoam_region")
+        _PopulateModelPart(model_part)
+        with tempfile.TemporaryDirectory() as temp_dir:
+            settings = KratosMultiphysics.Parameters('{"time_series" : "single_file", "openfoam_region" : "fluid"}')
+            KratosMeshioPlusPlus.MeshioPlusPlusIO(str(Path(temp_dir) / "case.foam"), settings).WriteModelPart(model_part)
+            self.assertTrue((Path(temp_dir) / "constant" / "fluid" / "polyMesh" / "points").exists())
+
+    def testWriteBrepRoundTripsTheExactGeometry(self):
+        quad = self._WriteQuadModelPart("brep_source")
+        with tempfile.TemporaryDirectory() as temp_dir:
+            source = str(Path(temp_dir) / "square.cad.json")
+            copy = str(Path(temp_dir) / "copy.cad.json")
+            single = KratosMultiphysics.Parameters('{"time_series" : "single_file"}')
+            KratosMeshioPlusPlus.MeshioPlusPlusIO(source, single).WriteModelPart(quad)
+
+            io = KratosMeshioPlusPlus.MeshioPlusPlusIO(source, KratosMultiphysics.Parameters('{"keep_brep" : true}'))
+            with self.assertRaisesRegex(RuntimeError, "no B-rep to write"):
+                io.WriteBrep(copy)
+            io.ReadModelPart(self.model.CreateModelPart("brep_read"))
+            io.WriteBrep(copy)
+
+            info = KratosMeshioPlusPlus.MeshioPlusPlusIgaUtilities.Describe(copy)
+            self.assertEqual(info["number_of_faces"].GetInt(), 1)
+            self.assertEqual(info["patches"][0]["degrees"].GetVector()[0], 1)
+
     def testWriteReadRoundTripFebio(self):
         # FEBio writes the triangle condition as a <Surface> of element faces, which reads back
         # as a side set (kept as a region, no Kratos condition); the volume mesh round-trips.
