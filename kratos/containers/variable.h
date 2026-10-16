@@ -341,6 +341,15 @@ public:
     ///@{
 
     /**
+     * @brief This method checks if a time derivative variable was assigned
+     * @return True if the variable has a time derivative variable
+     */
+    constexpr bool HasTimeDerivative() const noexcept
+    {
+        return mpTimeDerivativeVariable != nullptr;
+    }
+
+    /**
      * @brief This method returns the time derivative variable
      * @return The reference of the time derivative variable (if any)
      */
