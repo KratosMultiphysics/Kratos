@@ -19,11 +19,14 @@
 #include <cstdint>
 #include <map>
 #include <mutex>
+#include <set>
 #include <sstream>
+#include <string>
 #include <typeindex>
 #include <utility>
 
 // External includes
+#include "meshioplusplus/backends/kratos_names.hpp"
 
 // Project includes
 #include "custom_utilities/meshioplusplus_conversion_utilities.h"
@@ -782,11 +785,45 @@ meshioplusplus::Mesh ModelPartToMeshWithData(
 /***********************************************************************************/
 /***********************************************************************************/
 
+void CheckEntitiesAreCreatable(const meshioplusplus::ModelPart& rStaged)
+{
+    KRATOS_TRY
+
+    std::set<std::string> missing;
+    for (const auto& r_element : rStaged.Elements()) {
+        const std::string& r_name = r_element.HasName() ? r_element.Name() : mio::kratos_element_name(r_element.Type());
+        if (!KratosComponents<Element>::Has(r_name)) {
+            missing.insert(r_name);
+        }
+    }
+    for (const auto& r_condition : rStaged.Conditions()) {
+        const std::string& r_name = r_condition.HasName() ? r_condition.Name() : mio::kratos_condition_name(r_condition.Type());
+        if (!KratosComponents<Condition>::Has(r_name)) {
+            missing.insert(r_name);
+        }
+    }
+    if (!missing.empty()) {
+        std::string names;
+        for (const auto& r_name : missing) {
+            names += (names.empty() ? "\"" : ", \"") + r_name + "\"";
+        }
+        KRATOS_ERROR << "The mesh holds entities Kratos has no registered class for: " << names
+                     << ". A cell type without a Kratos geometry (cubic and higher Lagrange cells, a seven-node triangle, "
+                     << "VTK Bezier cells, ...) cannot become a model part entity" << std::endl;
+    }
+
+    KRATOS_CATCH("")
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 void MeshToModelPart(meshioplusplus::Mesh& rSource, ModelPart& rDestination)
 {
     KRATOS_TRY
 
     mio::ModelPart& r_staged = rSource.GetModelPart();
+    CheckEntitiesAreCreatable(r_staged);
 
     mio::to_model_part(
         r_staged, rDestination,

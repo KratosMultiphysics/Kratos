@@ -264,6 +264,20 @@ meshioplusplus::Mesh ModelPartToMeshWithData(
 KRATOS_API(KRATOS_MESHIOPLUSPLUS_APPLICATION)
 void MeshToModelPart(meshioplusplus::Mesh& rSource, ModelPart& rDestination);
 
+/**
+ * @brief Refuses a staged mesh holding an entity Kratos has no registered class for.
+ * @details A cell type without a Kratos geometry - the cubic and higher Lagrange cells of an
+ * isogeometric sampling or of an MFEM mesh, a seven-node triangle, a VTK Bezier cell - would
+ * otherwise reach `ModelPart::CreateNewElement` under a name no element is registered as. Naming
+ * the offending types here is the difference between that and an unexplained crash. An entity
+ * keeps the name its file carried (a registered Kratos element name) when it has one, otherwise
+ * it gets meshio++'s default for its cell type, exactly as the bridge picks it.
+ * @param rStaged The staged meshio++ model part about to be copied into a Kratos one.
+ * @throws If any element or condition names a class that is not registered.
+ */
+KRATOS_API(KRATOS_MESHIOPLUSPLUS_APPLICATION)
+void CheckEntitiesAreCreatable(const meshioplusplus::ModelPart& rStaged);
+
 ///@}
 
 } // namespace Kratos::Internals
