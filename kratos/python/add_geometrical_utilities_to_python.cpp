@@ -222,6 +222,14 @@ void AddGeometricalUtilitiesToPython(pybind11::module &m)
             rNormalCalculationUtils.CalculateNormals<ModelPart::ConditionsContainerType,true>(rModelPart, EnforceGenericAlgorithm);})
         .def("CalculateNormals", [](NormalCalculationUtils& rNormalCalculationUtils, ModelPart& rModelPart){
             rNormalCalculationUtils.CalculateNormals<ModelPart::ConditionsContainerType,true>(rModelPart);})
+        .def("CalculateElementNormals", [](NormalCalculationUtils& rNormalCalculationUtils,
+                                           ModelPart& rModelPart,
+                                           const bool UnitNormals){
+                rNormalCalculationUtils.CalculateNormals<ModelPart::ElementsContainerType,true>(rModelPart,
+                                                                                                false,
+                                                                                                UnitNormals);},
+            pybind11::arg("model_part"),
+            pybind11::arg("unit_normals") = false)
         .def("CalculateNormalsNonHistorical", [](NormalCalculationUtils& rNormalCalculationUtils, ModelPart& rModelPart, const bool EnforceGenericAlgorithm, const NormalCalculationUtils::NormalVariableType& rNormalVariable){
             rNormalCalculationUtils.CalculateNormals<ModelPart::ConditionsContainerType,false>(rModelPart, EnforceGenericAlgorithm, rNormalVariable);})
         .def("CalculateNormalsNonHistorical", [](NormalCalculationUtils& rNormalCalculationUtils, ModelPart& rModelPart, const bool EnforceGenericAlgorithm){
