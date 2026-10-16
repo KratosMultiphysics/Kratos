@@ -9,8 +9,12 @@ import KratosMultiphysics.FluidDynamicsApplication.python_pool as python_pool
 import KratosMultiphysics.FluidDynamicsApplication.cfd_utils as cfd_utils
 import KratosMultiphysics.scipy_conversion_tools as scipy_conversion_tools
 import KratosMultiphysics.python_linear_solver_factory as linear_solver_factory
-from cupyx.scipy.sparse.linalg import LinearOperator
 
+if cfd_utils.USE_CUPY:
+    from cupyx.scipy.sparse.linalg import LinearOperator
+else:
+    import scipy
+    from scipy.sparse.linalg import LinearOperator
 import scipy.io as spio #TODO remove
 
 xp = None
@@ -572,8 +576,7 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         if self.normals_outlet_adaptor.data.shape[1]!=0:
             normals_outlet = xp.squeeze(normals_outlet, axis=1) # Drop integration point dimension (note that we are using a single integration point, so this is safe)
 
-        outlet_n_nodes = self.outlet_mp.NumberOfNodes()
-        self.unit_normals_outlet = xp.zeros((outlet_n_nodes, self.dim), dtype=cfd_utils.PRECISION) # Drop third component in 2D
+        self.unit_normals_outlet = xp.zeros((len(self.model_part.Nodes), self.dim), dtype=cfd_utils.PRECISION) # Assembled in global node indices (same convention as self.connectivity_outlet and self.normals)
         outlet_elem_normals = xp.repeat(normals_outlet[:, None, :], self.connectivity_outlet.shape[1], axis=1) # Replicate elemental normal to every local node
         self.cfd_utils.AssembleVector(self.connectivity_outlet, outlet_elem_normals, self.unit_normals_outlet) # Assemble the geometry normals to the nodes
         self.unit_normals_outlet /= (xp.linalg.norm(self.unit_normals_outlet, axis=1, keepdims=True) + 1.0e-12) # Normalize avoiding division by zero
@@ -1341,7 +1344,7 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
             "startup_time" : 0.0,
             "startup_time_scheme" : "FE",
             "startup_first_order_splitting" : true,
-            "weak_compressibility" : false,
+            "weak_compressibility" : true,
             "weak_compressibility_matrix" : "lumped"
         }""")
         return default_settings

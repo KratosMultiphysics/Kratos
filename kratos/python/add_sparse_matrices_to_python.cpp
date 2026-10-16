@@ -349,6 +349,29 @@ void AddSparseMatricesToPython(pybind11::module& m)
                 py::cast(self) //this is fundamental to avoid copying
             );
     }, py::return_value_policy::reference_internal)
+    .def_property_readonly("shape", [](const CsrMatrix<double,IndexType>& self){
+            return py::make_tuple(self.size1(), self.size2());
+    })
+    .def("diagonal", [](const CsrMatrix<double,IndexType>& self){
+            const IndexType n_rows = self.size1();
+            py::array_t<double> diagonal(n_rows);
+            auto diagonal_proxy = diagonal.mutable_unchecked<1>();
+            const auto& r_index1 = self.index1_data();
+            const auto& r_index2 = self.index2_data();
+            const auto& r_values = self.value_data();
+            IndexPartition<IndexType>(n_rows).for_each([&](IndexType i) {
+                diagonal_proxy(i) = 0.0;
+                const IndexType row_begin = r_index1[i];
+                const IndexType row_end = r_index1[i+1];
+                for (IndexType k = row_begin; k < row_end; ++k) {
+                    if (r_index2[k] == i) {
+                        diagonal_proxy(i) = r_values[k];
+                        break;
+                    }
+                }
+            });
+            return diagonal;
+    })
     .def("__setitem__", [](CsrMatrix<double,IndexType>& self, const std::pair<int,int> index, const  double value)
         {
             const int index_i = index.first;
