@@ -73,6 +73,9 @@ void AddCustomIOToPython(pybind11::module& m)
             "'keep_brep' for CAD JSON, STEP and IGES, or 'mdpa_cad_json' for a deck): counts of "
             "breps, faces, trimmed faces, edges, vertices and patches. 'recognised' is False "
             "until such a read.")
+        .def("WriteBrep", &MeshioPlusPlusIO::WriteBrep, py::arg("file_name"),
+            "Writes the exact NURBS B-rep the last read kept ('keep_brep' for CAD JSON, STEP and "
+            "IGES, 'mdpa_cad_json' for a deck) as Kratos CAD JSON. Raises if no B-rep was kept.")
         .def_static("GetDefaultParameters", &MeshioPlusPlusIO::GetDefaultParameters,
             "The default settings of the IO.")
         .def_static("GetSupportedFormats", &MeshioPlusPlusIO::GetSupportedFormats,
