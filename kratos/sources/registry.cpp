@@ -13,11 +13,18 @@
 
 // System includes
 #include <mutex>
+#include <regex>
+#include <memory>
 
 // External includes
 
 // Project includes
 #include "includes/registry.h"
+
+// Demangle OS includes
+#if defined(__GNUG__) || defined(__clang__)
+    #include <cxxabi.h>
+#endif
 
 namespace Kratos
 {
@@ -136,6 +143,39 @@ namespace
     {
         return GetItem(rItemFullName).HasItems();
     }
+
+    std::string Registry::GetRegistryName(std::string d_name) {
+        // Remove namespace 
+        static const std::regex ns_re(R"(\b[\w_]+::)");
+        d_name = std::regex_replace(d_name, ns_re, "");
+
+        // Remove literal suffix
+        static const std::regex suffix_re(R"(\b(\d+)(ull|ul|ll|l|u|f|L)\b)");
+        d_name = std::regex_replace(d_name, suffix_re, "$1");
+
+        // Strip all spaces
+        static const std::regex space_re(R"(\s+)");
+        d_name = std::regex_replace(d_name, space_re, "");
+
+        // Strip the trailing * from the usage of pointer types (Some demanglers leave that, some other do not)
+        d_name = std::regex_replace(d_name, std::regex("(>?)\\*$"), "$1");
+
+        return d_name;
+    }
+
+#if defined(__GNUG__) || defined(__clang__)
+    std::string Registry::GetDemangledName(const char* name) {
+        int status = 0;
+        std::unique_ptr<char, void(*)(void*)> res {
+            abi::__cxa_demangle(name, nullptr, nullptr, &status),
+            std::free
+        };
+        return (status == 0) ? Registry::GetRegistryName(res.get()) : name;
+    }
+#else
+    std::string Registry::GetDemangledName(const char* name) { return Registry::GetRegistryName(name); }
+#endif
+
 
     std::string Registry::Info() const
     {

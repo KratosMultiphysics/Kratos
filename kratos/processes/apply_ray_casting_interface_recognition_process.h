@@ -44,8 +44,10 @@ public:
     /// Pointer definition of ApplyRayCastingInterfaceRecognitionProcess
     KRATOS_CLASS_POINTER_DEFINITION(ApplyRayCastingInterfaceRecognitionProcess);
 
-    KRATOS_REGISTRY_ADD_TEMPLATE_PROTOTYPE("Processes.KratosMultiphysics", Process, ApplyRayCastingInterfaceRecognitionProcess, TDim)
-    KRATOS_REGISTRY_ADD_TEMPLATE_PROTOTYPE("Processes.All", Process, ApplyRayCastingInterfaceRecognitionProcess, TDim)
+    using RegistryBaseType = Process;
+    using RegistryClassType = ApplyRayCastingInterfaceRecognitionProcess<TDim>;
+    KRATOS_REGISTRY_ADD_TEMPLATE_PROTOTYPE("Processes.KratosMultiphysics", RegistryBaseType, RegistryClassType)
+    KRATOS_REGISTRY_ADD_TEMPLATE_PROTOTYPE("Processes.All", RegistryBaseType, RegistryClassType)
 
     ///@}
     ///@name Life Cycle
