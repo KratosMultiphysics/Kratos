@@ -187,6 +187,9 @@ class CoSimulationCoupledSolver(CoSimulationSolverWrapper):
         for predictor in self.predictors_list:
             predictor.InitializeSolutionStep()
 
+        for data_transfer_operator in self.data_transfer_operators_dict.values():
+            data_transfer_operator.InitializeSolutionStep()
+
         for coupling_operation in self.coupling_operations_dict.values():
             coupling_operation.InitializeSolutionStep()
 
@@ -196,6 +199,9 @@ class CoSimulationCoupledSolver(CoSimulationSolverWrapper):
 
         for predictor in self.predictors_list:
             predictor.FinalizeSolutionStep()
+
+        for data_transfer_operator in self.data_transfer_operators_dict.values():
+            data_transfer_operator.FinalizeSolutionStep()
 
         for coupling_operation in self.coupling_operations_dict.values():
             coupling_operation.FinalizeSolutionStep()
