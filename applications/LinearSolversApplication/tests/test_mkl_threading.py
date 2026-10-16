@@ -276,6 +276,6 @@ class TestPardisoMKLThreading(KratosUnittest.TestCase):
     def test_PardisoLLT_ManualThreads(self):
         self.__SolveAndCheck('pardiso_llt', num_threads_mkl=1)
 
-
 if __name__ == '__main__':
+    KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING)
     KratosUnittest.main()
