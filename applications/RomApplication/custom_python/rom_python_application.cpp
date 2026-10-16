@@ -26,6 +26,9 @@
 #include "custom_python/add_custom_modelers_to_python.h"
 #include "custom_python/add_custom_strategies_to_python.h"
 #include "custom_python/add_custom_utilities_to_python.h"
+#ifdef KRATOS_USE_FUTURE
+#include "custom_python/add_future_utilities_to_python.h"
+#endif
 
 
 namespace Kratos {
@@ -44,6 +47,11 @@ PYBIND11_MODULE(KratosRomApplication,m)
     AddCustomStrategiesToPython(m);
     AddCustomUtilitiesToPython(m);
     AddCustomModelersToPython(m);
+
+#ifdef KRATOS_USE_FUTURE
+    auto future = m.def_submodule("Future", "RomApplication utilities based on the Kratos Future submodule");
+    AddFutureUtilitiesToPython(future);
+#endif
 
     //registering variables in python
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, ROM_BASIS )
