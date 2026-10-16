@@ -488,7 +488,8 @@ KRATOS_TEST_CASE_IN_SUITE(MeshioPlusPlusIOWriteSvgAndTikz, KratosMeshioPlusPlusF
 
 KRATOS_TEST_CASE_IN_SUITE(MeshioPlusPlusIOWriteStep, KratosMeshioPlusPlusFastSuite)
 {
-    // step is write-only (meshio++ v16.39.0): the skin of a volume mesh becomes a faceted solid
+    // step writes the skin of a volume mesh as a faceted solid (meshio++ v16.39.0); it is read
+    // back only by a meshio++ built with OpenCASCADE (v16.42.0), like iges
     Model model;
     auto& r_model_part = model.CreateModelPart("write");
     PopulateTetrahedraModelPart(r_model_part);
@@ -511,7 +512,43 @@ KRATOS_TEST_CASE_IN_SUITE(MeshioPlusPlusIOWriteStep, KratosMeshioPlusPlusFastSui
     const auto read_formats = MeshioPlusPlusIO::GetSupportedReadFormats();
     const auto write_formats = MeshioPlusPlusIO::GetSupportedWriteFormats();
     KRATOS_EXPECT_TRUE(std::find(write_formats.begin(), write_formats.end(), "step") != write_formats.end());
-    KRATOS_EXPECT_TRUE(std::find(read_formats.begin(), read_formats.end(), "step") == read_formats.end());
+    // The registry lists the readers a build carries: step and iges come and go together
+    const bool reads_step = std::find(read_formats.begin(), read_formats.end(), "step") != read_formats.end();
+    const bool reads_iges = std::find(read_formats.begin(), read_formats.end(), "iges") != read_formats.end();
+    KRATOS_EXPECT_EQ(reads_step, reads_iges);
+    KRATOS_EXPECT_TRUE(std::find(write_formats.begin(), write_formats.end(), "iges") == write_formats.end());
+}
+
+KRATOS_TEST_CASE_IN_SUITE(MeshioPlusPlusIOFormatsAbi30, KratosMeshioPlusPlusFastSuite)
+{
+    // The formats meshio++ v16.42.0 - v17.3.0 added to the registry, and which way they go
+    const auto read_formats = MeshioPlusPlusIO::GetSupportedReadFormats();
+    const auto write_formats = MeshioPlusPlusIO::GetSupportedWriteFormats();
+    const auto contains = [](const std::vector<std::string>& rNames, const std::string& rName) {
+        return std::find(rNames.begin(), rNames.end(), rName) != rNames.end();
+    };
+    for (const std::string name : {"cad_json", "neuroglancer"}) {
+        KRATOS_EXPECT_TRUE(contains(read_formats, name));
+        KRATOS_EXPECT_TRUE(contains(write_formats, name));
+    }
+    // The solver results files are all written since v17.3.0, ansys_rst_cyclic excepted
+    for (const std::string name : {"abaqus_fil", "ansys_rst", "lsdyna_binout", "lsdyna_d3plot", "marc_t19",
+                                   "nastran_op2", "radioss_anim", "xplt"}) {
+        KRATOS_EXPECT_TRUE(contains(read_formats, name));
+        KRATOS_EXPECT_TRUE(contains(write_formats, name));
+    }
+    KRATOS_EXPECT_FALSE(contains(write_formats, "ansys_rst_cyclic"));
+
+    // Name <-> enum, including the compound extension of Kratos CAD JSON
+    KRATOS_EXPECT_EQ(MeshioPlusPlusIO::FormatName(MeshioPlusPlusIO::Format::CAD_JSON), "cad_json");
+    KRATOS_EXPECT_EQ(MeshioPlusPlusIO::FormatName(MeshioPlusPlusIO::Format::IGES), "iges");
+    KRATOS_EXPECT_EQ(MeshioPlusPlusIO::FormatName(MeshioPlusPlusIO::Format::NEUROGLANCER), "neuroglancer");
+    KRATOS_EXPECT_EQ(static_cast<int>(MeshioPlusPlusIO::FormatFromString("cad_json")),
+                     static_cast<int>(MeshioPlusPlusIO::Format::CAD_JSON));
+    KRATOS_EXPECT_EQ(static_cast<int>(MeshioPlusPlusIO::ResolveFormat("part.cad.json")),
+                     static_cast<int>(MeshioPlusPlusIO::Format::CAD_JSON));
+    KRATOS_EXPECT_EQ(static_cast<int>(MeshioPlusPlusIO::ResolveFormat("part.igs")),
+                     static_cast<int>(MeshioPlusPlusIO::Format::IGES));
 }
 
 KRATOS_TEST_CASE_IN_SUITE(MeshioPlusPlusIOStlSkinOfVolumeMesh, KratosMeshioPlusPlusFastSuite)
@@ -1664,17 +1701,18 @@ KRATOS_TEST_CASE_IN_SUITE(MeshioPlusPlusIOFormatIntrospectionAbi16, KratosMeshio
         KRATOS_EXPECT_TRUE(contains(read_formats, name));
         KRATOS_EXPECT_TRUE(contains(write_formats, name));
     }
-    // CalculiX results are written since meshio++ v16.39.0, MSC Nastran HDF5 results are read-only
-    // and glTF is write-only
+    // CalculiX results are written since meshio++ v16.39.0, MSC Nastran HDF5 results since
+    // v17.3.0, and glTF is write-only
     KRATOS_EXPECT_TRUE(contains(read_formats, "frd"));
     KRATOS_EXPECT_TRUE(contains(write_formats, "frd"));
+    // glTF is read too since meshio++ v17.1.0
     KRATOS_EXPECT_TRUE(contains(write_formats, "gltf"));
-    KRATOS_EXPECT_FALSE(contains(read_formats, "gltf"));
+    KRATOS_EXPECT_TRUE(contains(read_formats, "gltf"));
     if (MeshioPlusPlusIO::IsFormatAvailable(MeshioPlusPlusIO::Format::VTKHDF)) {
         KRATOS_EXPECT_TRUE(contains(read_formats, "vtkhdf"));
         KRATOS_EXPECT_TRUE(contains(write_formats, "vtkhdf"));
         KRATOS_EXPECT_TRUE(contains(read_formats, "nastran_h5"));
-        KRATOS_EXPECT_FALSE(contains(write_formats, "nastran_h5"));
+        KRATOS_EXPECT_TRUE(contains(write_formats, "nastran_h5"));
     }
 
     // Name <-> enum
@@ -2067,16 +2105,15 @@ KRATOS_TEST_CASE_IN_SUITE(MeshioPlusPlusIOFormatIntrospectionV16_13, KratosMeshi
         KRATOS_EXPECT_TRUE(contains(read_formats, name));
         KRATOS_EXPECT_TRUE(contains(write_formats, name));
     }
-    // The solver results files are read only...
-    for (const std::string name : {"abaqus_fil", "ansys_rst", "ansys_rst_cyclic", "lsdyna_binout",
-                                   "lsdyna_d3plot", "marc_t19", "nastran_op2", "radioss_anim",
-                                   "xplt"}) {
+    // The solver results files were read only until meshio++ v17.3.0 wrote them (the Radioss
+    // time history since v16.39.0); the cyclic Ansys expansion is the one that still is
+    for (const std::string name : {"abaqus_fil", "ansys_rst", "lsdyna_binout", "lsdyna_d3plot",
+                                   "marc_t19", "nastran_op2", "radioss_anim", "radioss_th", "xplt"}) {
         KRATOS_EXPECT_TRUE(contains(read_formats, name));
-        KRATOS_EXPECT_FALSE(contains(write_formats, name));
+        KRATOS_EXPECT_TRUE(contains(write_formats, name));
     }
-    // ...except the Radioss time-history file, which meshio++ v16.39.0 writes
-    KRATOS_EXPECT_TRUE(contains(read_formats, "radioss_th"));
-    KRATOS_EXPECT_TRUE(contains(write_formats, "radioss_th"));
+    KRATOS_EXPECT_TRUE(contains(read_formats, "ansys_rst_cyclic"));
+    KRATOS_EXPECT_FALSE(contains(write_formats, "ansys_rst_cyclic"));
 
     // Name <-> enum of the new entries
     KRATOS_EXPECT_EQ(static_cast<int>(MeshioPlusPlusIO::FormatFromString("ansys_rst_cyclic")),
@@ -2125,7 +2162,10 @@ KRATOS_TEST_CASE_IN_SUITE(MeshioPlusPlusIOReadOnlyResultsFormatRefusesWrites, Kr
     Model model;
     auto& r_model_part = model.CreateModelPart("write");
     PopulateTetrahedraModelPart(r_model_part);
-    MeshioPlusPlusIO io(TestFilePath(".op2"), Parameters(R"({"time_series" : "single_file"})"));
+    // ansys_rst_cyclic is the one results format meshio++ still only reads, and has no extension
+    // of its own: it is chosen by name
+    MeshioPlusPlusIO io(TestFilePath(".rst"),
+                        Parameters(R"({"time_series" : "single_file", "format" : "ansys_rst_cyclic"})"));
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(io.WriteModelPart(r_model_part), "read-only or unknown");
 }
 
