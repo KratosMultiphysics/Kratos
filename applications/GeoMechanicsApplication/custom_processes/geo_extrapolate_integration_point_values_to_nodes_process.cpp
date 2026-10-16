@@ -23,7 +23,7 @@ namespace
 
 using namespace Kratos;
 
-void CheckElement(Element& rElement, const std::string& rModelPartName, const ProcessInfo& rProcessInfo)
+void CheckElement(const Element& rElement, const std::string& rModelPartName, const ProcessInfo& rProcessInfo)
 {
     int check_result = 0;
     try {

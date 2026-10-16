@@ -362,6 +362,7 @@ class GeoMechanicalSolver(PythonSolver):
         self.main_model_part.AddNodalSolutionStepVariable(GeoMechanicsApplication.NORMAL_FLUID_FLUX)
         # Add variables for the water conditions
         self.main_model_part.AddNodalSolutionStepVariable(GeoMechanicsApplication.HYDRAULIC_DISCHARGE)
+        self.main_model_part.AddNodalSolutionStepVariable(GeoMechanicsApplication.NODAL_WATER_FLOW_RATE)
 
         # Add integration \ gauss point values that will likely need extrapolating to node
         self.main_model_part.AddNodalSolutionStepVariable(GeoMechanicsApplication.HYDRAULIC_HEAD)
@@ -372,6 +373,7 @@ class GeoMechanicalSolver(PythonSolver):
         self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.AXIAL_FORCE)
         self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.BENDING_MOMENT)
         self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.SHEAR_FORCE)
+        self.main_model_part.AddNodalSolutionStepVariable(GeoMechanicsApplication.EFFECTIVE_SATURATION)
 
     def _add_temperature_variables(self):
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.TEMPERATURE)
@@ -516,6 +518,17 @@ class GeoMechanicalSolver(PythonSolver):
                                                                                                        compute_reactions,
                                                                                                        reform_step_dofs,
                                                                                                        move_mesh_flag)
+
+        elif strategy_type.lower() == "newton_raphson_with_seepage":
+            solving_strategy = GeoMechanicsApplication.GeoMechanicsNewtonRaphsonStrategyWithSeepage(self.computing_model_part,
+                                                                                                    self.scheme,
+                                                                                                    self.convergence_criterion,
+                                                                                                    builder_and_solver,
+                                                                                                    self.settings,
+                                                                                                    max_iterations,
+                                                                                                    compute_reactions,
+                                                                                                    reform_step_dofs,
+                                                                                                    move_mesh_flag)
 
         elif strategy_type.lower() == "line_search":
             self.strategy_params = KratosMultiphysics.Parameters("{}")

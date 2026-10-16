@@ -854,7 +854,7 @@ Node::Pointer MmgUtilities<MMGLibrary::MMG2D>::CreateNode(
 
     KRATOS_ERROR_IF(MMG2D_Get_vertex(mMmgMesh, &coord_0, &coord_1, &Ref, &is_corner, &IsRequired) != 1 ) << "Unable to get vertex" << std::endl;
 
-    NodeType::Pointer p_node = rModelPart.CreateNewNode(iNode, coord_0, coord_1, 0.0);
+    Node::Pointer p_node = rModelPart.CreateNewNode(iNode, coord_0, coord_1, 0.0);
 
     return p_node;
 
@@ -879,7 +879,7 @@ Node::Pointer MmgUtilities<MMGLibrary::MMG3D>::CreateNode(
 
     KRATOS_ERROR_IF(MMG3D_Get_vertex(mMmgMesh, &coord_0, &coord_1, &coord_2, &Ref, &is_corner, &IsRequired) != 1 ) << "Unable to get vertex" << std::endl;
 
-    NodeType::Pointer p_node = rModelPart.CreateNewNode(iNode, coord_0, coord_1, coord_2);
+    Node::Pointer p_node = rModelPart.CreateNewNode(iNode, coord_0, coord_1, coord_2);
 
     return p_node;
 
@@ -904,7 +904,7 @@ Node::Pointer MmgUtilities<MMGLibrary::MMGS>::CreateNode(
 
     KRATOS_ERROR_IF(MMGS_Get_vertex(mMmgMesh, &coord_0, &coord_1, &coord_2, &Ref, &is_corner, &IsRequired) != 1 ) << "Unable to get vertex" << std::endl;
 
-    NodeType::Pointer p_node = rModelPart.CreateNewNode(iNode, coord_0, coord_1, coord_2);
+    Node::Pointer p_node = rModelPart.CreateNewNode(iNode, coord_0, coord_1, coord_2);
 
     return p_node;
 
@@ -944,7 +944,7 @@ Condition::Pointer MmgUtilities<MMGLibrary::MMG2D>::CreateFirstTypeCondition(
             return p_condition;
         } else {
             p_prop = rModelPart.pGetProperties(0);
-            PointerVector<NodeType> dummy_nodes (2);
+            PointerVector<Node> dummy_nodes (2);
             p_base_condition = KratosComponents<Condition>::Get("LineCondition2D2N").Create(0, dummy_nodes, p_prop);
             p_base_condition->Set(MARKER);
         }
@@ -958,11 +958,11 @@ Condition::Pointer MmgUtilities<MMGLibrary::MMG2D>::CreateFirstTypeCondition(
     if (edge_1 == 0) SkipCreation = true;
 
     if (!SkipCreation) {
-        std::vector<NodeType::Pointer> condition_nodes (2);
+        std::vector<Node::Pointer> condition_nodes (2);
         condition_nodes[0] = rModelPart.pGetNode(edge_0);
         condition_nodes[1] = rModelPart.pGetNode(edge_1);
 
-        p_condition = p_base_condition->Create(CondId, PointerVector<NodeType>{condition_nodes}, p_prop);
+        p_condition = p_base_condition->Create(CondId, PointerVector<Node>{condition_nodes}, p_prop);
         if (p_base_condition->Is(MARKER)) p_condition->Set(MARKER);
     } else if (mEchoLevel > 2)
         KRATOS_INFO("MmgUtilities") << "Condition creation avoided" << std::endl;
@@ -1007,7 +1007,7 @@ Condition::Pointer MmgUtilities<MMGLibrary::MMG3D>::CreateFirstTypeCondition(
             return p_condition;
         } else {
             p_prop = rModelPart.pGetProperties(0);
-            PointerVector<NodeType> dummy_nodes (3);
+            PointerVector<Node> dummy_nodes (3);
             p_base_condition = KratosComponents<Condition>::Get("SurfaceCondition3D3N").Create(0, dummy_nodes, p_prop);
             p_base_condition->Set(MARKER);
         }
@@ -1022,12 +1022,12 @@ Condition::Pointer MmgUtilities<MMGLibrary::MMG3D>::CreateFirstTypeCondition(
     if (vertex_2 == 0) SkipCreation = true;
 
     if (!SkipCreation) {
-        std::vector<NodeType::Pointer> condition_nodes (3);
+        std::vector<Node::Pointer> condition_nodes (3);
         condition_nodes[0] = rModelPart.pGetNode(vertex_0);
         condition_nodes[1] = rModelPart.pGetNode(vertex_1);
         condition_nodes[2] = rModelPart.pGetNode(vertex_2);
 
-        p_condition = p_base_condition->Create(CondId, PointerVector<NodeType>{condition_nodes}, p_prop);
+        p_condition = p_base_condition->Create(CondId, PointerVector<Node>{condition_nodes}, p_prop);
         if (p_base_condition->Is(MARKER)) p_condition->Set(MARKER);
     } else if (mEchoLevel > 2)
         KRATOS_WARNING_IF("MmgUtilities", mEchoLevel > 1) << "Condition creation avoided" << std::endl;
@@ -1073,11 +1073,11 @@ Condition::Pointer MmgUtilities<MMGLibrary::MMGS>::CreateFirstTypeCondition(
     if (edge_1 == 0) SkipCreation = true;
 
     if (!SkipCreation) {
-        std::vector<NodeType::Pointer> condition_nodes (2);
+        std::vector<Node::Pointer> condition_nodes (2);
         condition_nodes[0] = rModelPart.pGetNode(edge_0);
         condition_nodes[1] = rModelPart.pGetNode(edge_1);
 
-        p_condition = rMapPointersRefCondition[Ref]->Create(CondId, PointerVector<NodeType>{condition_nodes}, rMapPointersRefCondition[Ref]->pGetProperties());
+        p_condition = rMapPointersRefCondition[Ref]->Create(CondId, PointerVector<Node>{condition_nodes}, rMapPointersRefCondition[Ref]->pGetProperties());
     } else if (mEchoLevel > 2)
         KRATOS_INFO("MmgUtilities") << "Condition creation avoided" << std::endl;
 
@@ -1139,13 +1139,13 @@ Condition::Pointer MmgUtilities<MMGLibrary::MMG3D>::CreateSecondTypeCondition(
     if (vertex_3 == 0) SkipCreation = true;
 
     if (!SkipCreation) {
-        std::vector<NodeType::Pointer> condition_nodes (4);
+        std::vector<Node::Pointer> condition_nodes (4);
         condition_nodes[0] = rModelPart.pGetNode(vertex_0);
         condition_nodes[1] = rModelPart.pGetNode(vertex_1);
         condition_nodes[2] = rModelPart.pGetNode(vertex_2);
         condition_nodes[3] = rModelPart.pGetNode(vertex_3);
 
-        p_condition = rMapPointersRefCondition[Ref]->Create(CondId, PointerVector<NodeType>{condition_nodes}, rMapPointersRefCondition[Ref]->pGetProperties());
+        p_condition = rMapPointersRefCondition[Ref]->Create(CondId, PointerVector<Node>{condition_nodes}, rMapPointersRefCondition[Ref]->pGetProperties());
     } else if (mEchoLevel > 2)
         KRATOS_WARNING_IF("MmgUtilities", mEchoLevel > 1) << "Condition creation avoided" << std::endl;
 
@@ -1203,11 +1203,11 @@ Element::Pointer MmgUtilities<MMGLibrary::MMG2D>::CreateFirstTypeElement(
             if (vertex_1 == 0) SkipCreation = true;
             if (vertex_2 == 0) SkipCreation = true;
             if (!SkipCreation) {
-                std::vector<NodeType::Pointer> element_nodes (3);
+                std::vector<Node::Pointer> element_nodes (3);
                 element_nodes[0] = rModelPart.pGetNode(vertex_0);
                 element_nodes[1] = rModelPart.pGetNode(vertex_1);
                 element_nodes[2] = rModelPart.pGetNode(vertex_2);
-                p_element = rMapPointersRefElement[Ref]->Create(ElemId, PointerVector<NodeType>{element_nodes}, rMapPointersRefElement[Ref]->pGetProperties());
+                p_element = rMapPointersRefElement[Ref]->Create(ElemId, PointerVector<Node>{element_nodes}, rMapPointersRefElement[Ref]->pGetProperties());
 
                 // Setting inside flag
                 if (Ref == 2) {
@@ -1238,12 +1238,12 @@ Element::Pointer MmgUtilities<MMGLibrary::MMG2D>::CreateFirstTypeElement(
         if (vertex_2 == 0) SkipCreation = true;
 
         if (!SkipCreation) {
-            std::vector<NodeType::Pointer> element_nodes (3);
+            std::vector<Node::Pointer> element_nodes (3);
             element_nodes[0] = rModelPart.pGetNode(vertex_0);
             element_nodes[1] = rModelPart.pGetNode(vertex_1);
             element_nodes[2] = rModelPart.pGetNode(vertex_2);
 
-            p_element = p_base_element->Create(ElemId, PointerVector<NodeType>{element_nodes}, p_prop);
+            p_element = p_base_element->Create(ElemId, PointerVector<Node>{element_nodes}, p_prop);
         } else if (mEchoLevel > 2)
             KRATOS_WARNING_IF("MmgUtilities", mEchoLevel > 1) << "Element creation avoided" << std::endl;
     }
@@ -1286,12 +1286,12 @@ Element::Pointer MmgUtilities<MMGLibrary::MMG3D>::CreateFirstTypeElement(
             if (vertex_2 == 0) SkipCreation = true;
             if (vertex_3 == 0) SkipCreation = true;
             if (!SkipCreation) {
-                std::vector<NodeType::Pointer> element_nodes (4);
+                std::vector<Node::Pointer> element_nodes (4);
                 element_nodes[0] = rModelPart.pGetNode(vertex_0);
                 element_nodes[1] = rModelPart.pGetNode(vertex_1);
                 element_nodes[2] = rModelPart.pGetNode(vertex_2);
                 element_nodes[3] = rModelPart.pGetNode(vertex_3);
-                p_element = rMapPointersRefElement[Ref]->Create(ElemId, PointerVector<NodeType>{element_nodes}, rMapPointersRefElement[Ref]->pGetProperties());
+                p_element = rMapPointersRefElement[Ref]->Create(ElemId, PointerVector<Node>{element_nodes}, rMapPointersRefElement[Ref]->pGetProperties());
 
                 // Setting inside flag
                 if (Ref == 2) {
@@ -1323,13 +1323,13 @@ Element::Pointer MmgUtilities<MMGLibrary::MMG3D>::CreateFirstTypeElement(
         if (vertex_3 == 0) SkipCreation = true;
 
         if (!SkipCreation) {
-            std::vector<NodeType::Pointer> element_nodes (4);
+            std::vector<Node::Pointer> element_nodes (4);
             element_nodes[0] = rModelPart.pGetNode(vertex_0);
             element_nodes[1] = rModelPart.pGetNode(vertex_1);
             element_nodes[2] = rModelPart.pGetNode(vertex_2);
             element_nodes[3] = rModelPart.pGetNode(vertex_3);
 
-            p_element = p_base_element->Create(ElemId, PointerVector<NodeType>{element_nodes}, p_prop);
+            p_element = p_base_element->Create(ElemId, PointerVector<Node>{element_nodes}, p_prop);
         } else if (mEchoLevel > 2)
             KRATOS_WARNING_IF("MmgUtilities", mEchoLevel > 1) << "Element creation avoided" << std::endl;
     }
@@ -1373,12 +1373,12 @@ Element::Pointer MmgUtilities<MMGLibrary::MMGS>::CreateFirstTypeElement(
     if (vertex_2 == 0) SkipCreation = true;
 
     if (!SkipCreation) {
-        std::vector<NodeType::Pointer> element_nodes (3);
+        std::vector<Node::Pointer> element_nodes (3);
         element_nodes[0] = rModelPart.pGetNode(vertex_0);
         element_nodes[1] = rModelPart.pGetNode(vertex_1);
         element_nodes[2] = rModelPart.pGetNode(vertex_2);
 
-        p_element = rMapPointersRefElement[Ref]->Create(ElemId, PointerVector<NodeType>{element_nodes}, rMapPointersRefElement[Ref]->pGetProperties());
+        p_element = rMapPointersRefElement[Ref]->Create(ElemId, PointerVector<Node>{element_nodes}, rMapPointersRefElement[Ref]->pGetProperties());
     } else if (mEchoLevel > 2)
         KRATOS_WARNING_IF("MmgUtilities", mEchoLevel > 1) << "Element creation avoided" << std::endl;
 
@@ -1422,13 +1422,13 @@ Element::Pointer MmgUtilities<MMGLibrary::MMG2D>::CreateSecondTypeElement(
     if (vertex_3 == 0) SkipCreation = true;
 
     if (!SkipCreation) {
-        std::vector<NodeType::Pointer> element_nodes (4);
+        std::vector<Node::Pointer> element_nodes (4);
         element_nodes[0] = rModelPart.pGetNode(vertex_0);
         element_nodes[1] = rModelPart.pGetNode(vertex_1);
         element_nodes[2] = rModelPart.pGetNode(vertex_2);
         element_nodes[3] = rModelPart.pGetNode(vertex_3);
 
-        p_element = rMapPointersRefElement[Ref]->Create(ElemId, PointerVector<NodeType>{element_nodes}, rMapPointersRefElement[Ref]->pGetProperties());
+        p_element = rMapPointersRefElement[Ref]->Create(ElemId, PointerVector<Node>{element_nodes}, rMapPointersRefElement[Ref]->pGetProperties());
     } else if (mEchoLevel > 2)
         KRATOS_WARNING_IF("MmgUtilities", mEchoLevel > 1) << "Element creation avoided" << std::endl;
 
@@ -1472,7 +1472,7 @@ Element::Pointer MmgUtilities<MMGLibrary::MMG3D>::CreateSecondTypeElement(
     if (vertex_5 == 0) SkipCreation = true;
 
     if (!SkipCreation) {
-        std::vector<NodeType::Pointer> element_nodes (6);
+        std::vector<Node::Pointer> element_nodes (6);
         element_nodes[0] = rModelPart.pGetNode(vertex_0);
         element_nodes[1] = rModelPart.pGetNode(vertex_1);
         element_nodes[2] = rModelPart.pGetNode(vertex_2);
@@ -1480,7 +1480,7 @@ Element::Pointer MmgUtilities<MMGLibrary::MMG3D>::CreateSecondTypeElement(
         element_nodes[4] = rModelPart.pGetNode(vertex_4);
         element_nodes[5] = rModelPart.pGetNode(vertex_5);
 
-        p_element = rMapPointersRefElement[Ref]->Create(ElemId, PointerVector<NodeType>{element_nodes}, rMapPointersRefElement[Ref]->pGetProperties());
+        p_element = rMapPointersRefElement[Ref]->Create(ElemId, PointerVector<Node>{element_nodes}, rMapPointersRefElement[Ref]->pGetProperties());
     } else if (mEchoLevel > 2)
         KRATOS_WARNING_IF("MmgUtilities", mEchoLevel > 1) << "Element creation avoided" << std::endl;
 
@@ -4038,7 +4038,7 @@ void MmgUtilities<TMMGLibrary>::GenerateMeshDataFromModelPart(
 
     // Set flag on nodes
     block_for_each(r_nodes_array,
-        [&remeshed_nodes](NodeType& rNode) {
+        [&remeshed_nodes](Node& rNode) {
         if (remeshed_nodes.find(rNode.Id()) == remeshed_nodes.end()) {
             rNode.Set(OLD_ENTITY, true);
         }
@@ -4268,7 +4268,7 @@ void MmgUtilities<TMMGLibrary>::GenerateMeshDataFromModelPart(
 
     /* Nodes */
     block_for_each(r_nodes_array, nodes_colors,
-        [this,&Framework](NodeType& rNode, ColorsMapType& nodes_colors) {
+        [this,&Framework](Node& rNode, ColorsMapType& nodes_colors) {
 
         const bool old_entity = rNode.IsDefined(OLD_ENTITY) ? rNode.Is(OLD_ENTITY) : false;
         if (!old_entity) {
@@ -4442,7 +4442,7 @@ void MmgUtilities<TMMGLibrary>::GenerateSolDataFromModelPart(ModelPart& rModelPa
 
     // In case of considering metric tensor
     if (mUsingMetricTensor) {
-        block_for_each(r_nodes_array,[&r_tensor_variable,this](NodeType& rNode) {
+        block_for_each(r_nodes_array,[&r_tensor_variable,this](Node& rNode) {
             const bool old_entity = rNode.IsDefined(OLD_ENTITY) ? rNode.Is(OLD_ENTITY) : false;
             if (!old_entity) {
                 KRATOS_DEBUG_ERROR_IF_NOT(rNode.Has(r_tensor_variable)) << "METRIC_TENSOR_" + std::to_string(Dimension) + "D  not defined for node " << rNode.Id() << std::endl;
@@ -4455,7 +4455,7 @@ void MmgUtilities<TMMGLibrary>::GenerateSolDataFromModelPart(ModelPart& rModelPa
             }
         });
     } else {
-        block_for_each(r_nodes_array,[this](NodeType& rNode) {
+        block_for_each(r_nodes_array,[this](Node& rNode) {
             const bool old_entity = rNode.IsDefined(OLD_ENTITY) ? rNode.Is(OLD_ENTITY) : false;
             if (!old_entity) {
                 KRATOS_DEBUG_ERROR_IF_NOT(rNode.Has(METRIC_SCALAR)) << "METRIC_SCALAR not defined for node " << rNode.Id() << std::endl;
@@ -4500,7 +4500,7 @@ void MmgUtilities<TMMGLibrary>::GenerateDisplacementDataFromModelPart(ModelPart&
     SetDispSizeVector(r_nodes_array.size());
 
     block_for_each(r_nodes_array,
-        [this](NodeType& rNode) {
+        [this](Node& rNode) {
 
         const bool old_entity = rNode.IsDefined(OLD_ENTITY) ? rNode.Is(OLD_ENTITY) : false;
         if (!old_entity) {
@@ -4522,7 +4522,7 @@ template<MMGLibrary TMMGLibrary>
 void MmgUtilities<TMMGLibrary>::WriteMeshDataToModelPart(
     ModelPart& rModelPart,
     const std::unordered_map<IndexType,std::vector<std::string>>& rColors,
-    const NodeType::DofsContainerType& rDofs,
+    const Node::DofsContainerType& rDofs,
     const MMGMeshInfo<TMMGLibrary>& rMMGMeshInfo,
     std::unordered_map<IndexType,Condition::Pointer>& rMapPointersRefCondition,
     std::unordered_map<IndexType,Element::Pointer>& rMapPointersRefElement
@@ -4542,7 +4542,7 @@ void MmgUtilities<TMMGLibrary>::WriteMeshDataToModelPart(
 
     /* NODES */ // TODO: ADD OMP
     for (IndexType i_node = 1; i_node <= rMMGMeshInfo.NumberOfNodes; ++i_node) {
-        NodeType::Pointer p_node = CreateNode(rModelPart, i_node, ref, is_required);
+        Node::Pointer p_node = CreateNode(rModelPart, i_node, ref, is_required);
 
         // Set the DOFs in the nodes
         for (auto it_dof = rDofs.begin(); it_dof != rDofs.end(); ++it_dof)

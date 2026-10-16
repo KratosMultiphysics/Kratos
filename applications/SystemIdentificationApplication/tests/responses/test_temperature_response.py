@@ -73,6 +73,7 @@ class TestTemperatureDetectionAdjointResponseFunction(kratos_unittest.TestCase):
 
         for i, sensor in enumerate(cls.sensors):
             sensor.GetNode().SetValue(KratosSI.SENSOR_MEASURED_VALUE, i * 15 - 10)
+            sensor.GetNode().SetValue(KratosSI.SENSOR_NORMALIZATION_FACTOR, 1.0)
             cls.adjoint_response_function.AddSensor(sensor)
 
         cls.adjoint_response_function.Initialize()
@@ -157,6 +158,40 @@ class TestTemperatureDetectionResponse(kratos_unittest.TestCase):
                 node.SetSolutionStepValue(Kratos.TEMPERATURE,  nodal_temp)
 
 @kratos_unittest.skipIfApplicationsNotAvailable("ConstitutiveLawsApplication")
+class TestTemperatureDetectionResponseSensorNormalized(kratos_unittest.TestCase):
+    def test_TemperatureResponse(self):
+        with kratos_unittest.WorkFolderScope(".", __file__):
+            with open("auxiliary_files_3/optimization_parameters_p_norm_average_normalization.json", "r") as file_input:
+                parameters = Kratos.Parameters(file_input.read())
+
+            model = Kratos.Model()
+            analysis = OptimizationAnalysis(model, parameters)
+
+            analysis.Initialize()
+            analysis.Check()
+            objective: ResponseRoutine = analysis.optimization_problem.GetComponent("temperature_response", ResponseRoutine)
+
+            var = objective.GetRequiredPhysicalGradients()
+            response = objective.GetReponse()
+            model_part = response.GetInfluencingModelPart()
+
+            ref_value = response.CalculateValue()
+            self.assertAlmostEqual(ref_value, 1.009633289265493, 6)
+
+            response.CalculateGradient(var)
+
+            gradients = var[Kratos.TEMPERATURE].data
+
+            delta = 1e-5
+            for index, node in enumerate(model_part.Nodes):
+                node: Kratos.Node
+                nodal_temp = node.GetSolutionStepValue(Kratos.TEMPERATURE)
+                node.SetSolutionStepValue(Kratos.TEMPERATURE,   nodal_temp + delta)
+                sensitivity = ((response.CalculateValue() - ref_value) / delta)
+                self.assertAlmostEqual(gradients[index], sensitivity, 7)
+                node.SetSolutionStepValue(Kratos.TEMPERATURE,  nodal_temp)
+
+@kratos_unittest.skipIfApplicationsNotAvailable("ConstitutiveLawsApplication")
 class TestTemperatureDetectionResponseStrainSensor(kratos_unittest.TestCase):
     def test_TemperatureResponse(self):
         with kratos_unittest.WorkFolderScope(".", __file__):
@@ -188,6 +223,40 @@ class TestTemperatureDetectionResponseStrainSensor(kratos_unittest.TestCase):
                 node.SetSolutionStepValue(Kratos.TEMPERATURE,   nodal_temp + delta)
                 sensitivity = ((response.CalculateValue() - ref_value) / delta)
                 self.assertAlmostEqual(gradients[index], sensitivity, 8)
+                node.SetSolutionStepValue(Kratos.TEMPERATURE,  nodal_temp)
+
+@kratos_unittest.skipIfApplicationsNotAvailable("ConstitutiveLawsApplication")
+class TestTemperatureDetectionResponseStrainSensorNormalized(kratos_unittest.TestCase):
+    def test_TemperatureResponse(self):
+        with kratos_unittest.WorkFolderScope(".", __file__):
+            with open("auxiliary_files_4/optimization_parameters_p_norm_local_max_normalization.json", "r") as file_input:
+                parameters = Kratos.Parameters(file_input.read())
+
+            model = Kratos.Model()
+            analysis = OptimizationAnalysis(model, parameters)
+
+            analysis.Initialize()
+            analysis.Check()
+            objective: ResponseRoutine = analysis.optimization_problem.GetComponent("temperature_response", ResponseRoutine)
+
+            var = objective.GetRequiredPhysicalGradients()
+            response = objective.GetReponse()
+            model_part = response.GetInfluencingModelPart()
+
+            ref_value = response.CalculateValue()
+            self.assertAlmostEqual(ref_value, 0.8629806196982079, 6)
+
+            response.CalculateGradient(var)
+
+            gradients = var[Kratos.TEMPERATURE].data
+
+            delta = 1e-4
+            for index, node in enumerate(model_part.Nodes):
+                node: Kratos.Node
+                nodal_temp = node.GetSolutionStepValue(Kratos.TEMPERATURE)
+                node.SetSolutionStepValue(Kratos.TEMPERATURE,   nodal_temp + delta)
+                sensitivity = ((response.CalculateValue() - ref_value) / delta)
+                self.assertAlmostEqual(gradients[index], sensitivity, 5)
                 node.SetSolutionStepValue(Kratos.TEMPERATURE,  nodal_temp)
 
 if __name__ == "__main__":

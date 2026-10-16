@@ -11,6 +11,7 @@
 //
 
 #include "containers/model.h"
+#include "spaces/default_spaces.h"
 #include "geometries/quadrilateral_2d_4.h"
 #include "includes/kratos_application.h"
 #include "linear_solvers/linear_solver.h"
@@ -21,8 +22,8 @@
 
 namespace Kratos
 {
-using SparseSpaceType  = UblasSpace<double, CompressedMatrix, Vector>;
-using DenseSpaceType   = UblasSpace<double, Matrix, Vector>;
+using SparseSpaceType  = TDefaultSparseSpace<double>;
+using DenseSpaceType   = TDefaultDenseSpace<double>;
 using LinearSolverType = LinearSolver<SparseSpaceType, DenseSpaceType>;
 
 void BenchmarkBuildRHS(benchmark::State& rState)

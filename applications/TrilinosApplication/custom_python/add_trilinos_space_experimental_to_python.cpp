@@ -478,6 +478,15 @@ void WriteMatrixMarketVector(
     rDummy.WriteMatrixMarketVector(pFileName, rV);
 }
 
+// --- Communicator factory ---
+
+Teuchos::MpiComm<int> CreateTeuchosCommunicator(const DataCommunicator& rDataCommunicator)
+{
+    KRATOS_ERROR_IF_NOT(rDataCommunicator.IsDistributed()) << "Only distributed DataCommunicators can be used!" << std::endl;
+    auto raw_mpi_comm = MPIDataCommunicator::GetMPICommunicator(rDataCommunicator);
+    return Teuchos::MpiComm<int>(raw_mpi_comm);
+}
+
 } // anonymous namespace
 
 #endif
@@ -488,6 +497,7 @@ void AddBasicOperationsExperimental(py::module& m)
 
     // Expose underlying Tpetra/Teuchos types so Python can receive or pass them
     py::class_<Teuchos::MpiComm<int>>(m, "Experimental_TeuchosMpiComm");
+    m.def("CreateTeuchosCommunicator", CreateTeuchosCommunicator, py::arg("data_communicator"), "Creates a Teuchos::MpiComm from a distributed Kratos DataCommunicator (Tpetra counterpart of CreateEpetraCommunicator)");
     py::class_<Tpetra::FECrsMatrix<>>(m, "Experimental_FECrsMatrix");
     py::class_<Tpetra::FEMultiVector<>>(m, "Experimental_FEMultiVector");
 

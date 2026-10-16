@@ -17,6 +17,7 @@
 // External includes
 
 // Project includes
+#include "includes/kratos_components.h"
 #include "tensor_adaptors/fixity_tensor_adaptor.h"
 #include "tensor_adaptors/tensor_adaptor_utils.h"
 #include "utilities/parallel_utilities.h"
@@ -72,7 +73,7 @@ void FixityTensorAdaptor::Check() const
                 CheckContainer(this->mDofsVarPointerList, *p_container);
             }
         },
-        *mpContainer);
+        this->GetContainer());
 }
 
 TensorAdaptor<bool>::Pointer FixityTensorAdaptor::Clone() const
@@ -89,7 +90,7 @@ void FixityTensorAdaptor::CollectData()
                 CollectFixityData(this->ViewData(), this->mDofsVarPointerList, *p_container);
             }
         },
-        *mpContainer);
+        this->GetContainer());
 }
 
 void FixityTensorAdaptor::StoreData()
@@ -101,12 +102,12 @@ void FixityTensorAdaptor::StoreData()
                 StoreFixityData(this->ViewData(), this->mDofsVarPointerList, *p_container);
             }
         },
-        *mpContainer);
+        this->GetContainer());
 }
 
 std::string FixityTensorAdaptor::Info() const
 {
-  return "FixityTensorAdaptor";
+  return "FixityTensorAdaptor: " + BaseType::Info();
 }
 
 void FixityTensorAdaptor::CollectFixityData(
@@ -156,6 +157,32 @@ void FixityTensorAdaptor::CheckContainer(
             KRATOS_ERROR_IF_NOT(it->HasDofFor(*p_var)) << "Node " << it->Id() << " does not have DOF for variable " << p_var->Name() << "." << std::endl;
         });
     }
+}
+
+void FixityTensorAdaptor::save(Serializer& rSerializer) const
+{
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, BaseType);
+
+    const std::size_t size = mDofsVarPointerList.size();
+    rSerializer.save("Size", size);
+    for (std::size_t i = 0; i < size; ++i) {
+        rSerializer.save("VariableName", mDofsVarPointerList[i]->Name());
+    }
+}
+
+void FixityTensorAdaptor::load(Serializer& rSerializer)
+{
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, BaseType);
+
+    std::size_t size;
+    rSerializer.load("Size", size);
+    std::vector<const Variable<double>*> dofs_var_pointer_list(size);
+    std::string name;
+    for (std::size_t i = 0; i < size; ++i) {
+        rSerializer.load("VariableName", name);
+        dofs_var_pointer_list[i] = &KratosComponents<Variable<double>>::Get(name);
+    }
+    mDofsVarPointerList = dofs_var_pointer_list;
 }
 
 } // namespace Kratos

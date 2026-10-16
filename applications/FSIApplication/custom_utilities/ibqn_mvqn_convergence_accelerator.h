@@ -18,7 +18,7 @@
 // External includes
 
 // Project includes
-#include "includes/ublas_interface.h"
+#include "includes/default_interface.h"
 #include "utilities/math_utils.h"
 #include "utilities/dense_householder_qr_decomposition.h"
 #include "utilities/parallel_utilities.h"

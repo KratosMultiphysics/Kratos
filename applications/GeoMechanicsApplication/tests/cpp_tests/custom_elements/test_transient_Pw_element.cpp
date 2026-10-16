@@ -741,21 +741,21 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwElement_ZeroReturnFunctions, KratosGeoMecha
 
     // Act
     Vector actual_vector;
-    element.GetValuesVector(actual_vector, dummy_process_info);
+    element.GetValuesVector(actual_vector, 0);
 
     // Assert
     KRATOS_EXPECT_EQ(actual_vector.size(), n_DoF);
     KRATOS_EXPECT_VECTOR_EQ(actual_vector, expected_vector);
 
     // Act
-    element.GetFirstDerivativesVector(actual_vector, dummy_process_info);
+    element.GetFirstDerivativesVector(actual_vector, 0);
 
     // Assert
     KRATOS_EXPECT_EQ(actual_vector.size(), n_DoF);
     KRATOS_EXPECT_VECTOR_EQ(actual_vector, expected_vector);
 
     // Act
-    element.GetSecondDerivativesVector(actual_vector, dummy_process_info);
+    element.GetSecondDerivativesVector(actual_vector, 0);
 
     // Assert
     KRATOS_EXPECT_EQ(actual_vector.size(), n_DoF);

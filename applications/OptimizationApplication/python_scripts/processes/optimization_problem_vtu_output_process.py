@@ -13,7 +13,7 @@ def Factory(model: Kratos.Model, parameters: Kratos.Parameters, optimization_pro
 
 class TensorAdaptorVtuOutput(TensorAdaptorOutput):
     def __init__(self,  model_part: Kratos.ModelPart, parameters: Kratos.Parameters, optimization_problem: OptimizationProblem):
-        self.model_part = model_part.GetRootModelPart()
+        self.model_part = model_part
         self.optimization_problem = optimization_problem
 
         if parameters["save_output_files_in_folder"].GetBool():
@@ -38,13 +38,15 @@ class TensorAdaptorVtuOutput(TensorAdaptorOutput):
         else:
             raise RuntimeError(f"Only supports \"ascii\", \"binary\", \"raw\", and \"compressed_raw\" file_format. [ provided file_format = \"{file_format}\" ].")
 
+        self.output_sub_model_parts = parameters["output_sub_model_parts"].GetBool()
+
         self.output_file_name_prefix = parameters["file_name"].GetString()
         self.vtu_output: Kratos.VtuOutput = Kratos.VtuOutput(
-                                                model_part,
+                                                model_part.GetRootModelPart() if self.output_sub_model_parts else model_part,
                                                 not parameters["write_deformed_configuration"].GetBool(),
                                                 self.writer_format,
                                                 parameters["output_precision"].GetInt(),
-                                                output_sub_model_parts=True,
+                                                output_sub_model_parts=self.output_sub_model_parts,
                                                 echo_level=parameters["echo_level"].GetInt(),
                                                 write_ids=parameters["write_ids"].GetBool())
 
@@ -76,6 +78,7 @@ class OptimizationProblemVtuOutputProcess(OptimizationProblemFieldOutputProcess)
                 "file_name"                   : "<model_part_full_name>",
                 "file_format"                 : "binary",
                 "output_path"                 : "Optimization_Results",
+                "output_sub_model_parts"      : true,
                 "save_output_files_in_folder" : true,
                 "write_ids"                   : false,
                 "write_deformed_configuration": false,

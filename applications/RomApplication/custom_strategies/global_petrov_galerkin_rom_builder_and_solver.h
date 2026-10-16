@@ -270,7 +270,9 @@ public:
             "petrov_galerkin_number_of_rom_dofs" : 10,
             "rom_bns_settings": {
                 "monotonicity_preserving" : false
-            }
+            },
+            "weight_vector_index": 0,
+            "number_of_hrom_sets": 1
         })");
         default_parameters.AddMissingParameters(BaseType::GetDefaultParameters());
 

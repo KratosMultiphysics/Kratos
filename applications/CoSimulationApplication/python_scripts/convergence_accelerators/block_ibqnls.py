@@ -11,12 +11,12 @@ from KratosMultiphysics.CoSimulationApplication.base_classes.co_simulation_conve
 
 # CoSimulation imports
 import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tools
+from KratosMultiphysics.CoSimulationApplication.utilities.array_backend import HostArrayBoundary
 
 # Other imports
 import numpy as np
 from copy import deepcopy
 from collections import deque
-import scipy as sp
 
 
 def Create(settings):
@@ -71,7 +71,9 @@ class BLOCKIBQNLSConvergenceAccelerator(CoSimulationConvergenceAccelerator):
     # @param data_name coupling variable
     # @param yResidual (coupled solver) residual yResidual
     # Computes the approximated update in each iteration.
+    @HostArrayBoundary
     def UpdateSolution( self, r, x, y, data_name, yResidual,):
+        xp = self.xp
 
         coupled_data_name = self.coupl_data_names[data_name]
         self.X_tilde[data_name].appendleft( deepcopy(r + x) )
@@ -99,20 +101,20 @@ class BLOCKIBQNLSConvergenceAccelerator(CoSimulationConvergenceAccelerator):
 
         else:
             ## Construct matrix W(differences of intermediate solutions x)
-            self.W_new[data_name] = np.empty( shape = (col, rowY) ) # will be transposed later
+            self.W_new[data_name] = xp.empty( shape = (col, rowY) ) # will be transposed later
             for i in range(0, col):
                 self.W_new[data_name][i] = self.X[coupled_data_name][i] - self.X[coupled_data_name][i + 1]
             self.W_new[data_name] = self.W_new[data_name].T
             W = self._augmented_matrix(self.W_new[data_name], self.W_old[data_name], is_first_dt)
 
             ## Construct matrix W(differences of intermediate solutions y~)
-            self.V_new[data_name] = np.empty( shape = (col, row) ) # will be transposed later
+            self.V_new[data_name] = xp.empty( shape = (col, row) ) # will be transposed later
             for i in range(0, col):
                 self.V_new[data_name][i] = self.X_tilde[data_name][i] - self.X_tilde[data_name][i + 1]
             self.V_new[data_name] = self.V_new[data_name].T
             V = self._augmented_matrix(self.V_new[data_name], self.V_old[data_name], is_first_dt)
 
-        Q, R = np.linalg.qr(W)
+        Q, R = xp.linalg.qr(W)
         ##TODO QR Filtering
         b = r - self.pinv_product(V, Q, R, yResidual)
 
@@ -131,8 +133,8 @@ class BLOCKIBQNLSConvergenceAccelerator(CoSimulationConvergenceAccelerator):
 
             ## Matrix-free implementation of the linear solver (and the pseudoinverse) -------------------------------------
             block_oper = lambda vec: vec - self.pinv_product(V, Q, R, self.pinv_product(previous_V, previous_Q, previous_R, vec))
-            block_x = sp.sparse.linalg.LinearOperator((row, row), block_oper)
-            delta_x, _ = sp.sparse.linalg.gmres( block_x, b, atol=self.gmres_abs_tol, rtol=self.gmres_rel_tol )
+            block_x = self.backend.MakeLinearOperator((row, row), block_oper)
+            delta_x, _ = self.backend.Gmres( block_x, b, atol=self.gmres_abs_tol, rtol=self.gmres_rel_tol )
         else:
             ## Using J = 0 if a previous approximate Jacobian is not available
             delta_x = b
@@ -151,11 +153,11 @@ class BLOCKIBQNLSConvergenceAccelerator(CoSimulationConvergenceAccelerator):
         if is_first_dt:
             return mat.copy()
         else:
-            return np.hstack( (mat, old_mat) )
+            return self.xp.hstack( (mat, old_mat) )
 
     def pinv_product(self, LHS, Q, R, x):
         rhs = Q.T @ x
-        return LHS @ sp.linalg.solve_triangular(R, rhs, check_finite = False)
+        return LHS @ self.backend.SolveTriangular(R, rhs)
 
     def FinalizeSolutionStep( self ):
 
@@ -165,7 +167,7 @@ class BLOCKIBQNLSConvergenceAccelerator(CoSimulationConvergenceAccelerator):
                 if self.V_new[data_name] is not None:
                     # Saving the V matrix for the next (first) iteration to recover the approximate jacobian
                     if self.V_old[data_name] is not None:
-                        self.previous_V = np.hstack((self.V_new[data_name], self.V_old[data_name]))
+                        self.previous_V = self.xp.hstack((self.V_new[data_name], self.V_old[data_name]))
                     else:
                         self.previous_V = self.V_new[data_name].copy()
 
@@ -174,8 +176,8 @@ class BLOCKIBQNLSConvergenceAccelerator(CoSimulationConvergenceAccelerator):
                 self.w_old_matrices[data_name].appendleft( self.W_new[data_name] )
 
             if self.w_old_matrices[data_name] and self.v_old_matrices[data_name]:
-                self.V_old[data_name] = np.concatenate( self.v_old_matrices[data_name], 1 )
-                self.W_old[data_name] = np.concatenate( self.w_old_matrices[data_name], 1 )
+                self.V_old[data_name] = self.xp.concatenate( self.v_old_matrices[data_name], 1 )
+                self.W_old[data_name] = self.xp.concatenate( self.w_old_matrices[data_name], 1 )
 
             ## Clear the buffer
             self.X_tilde[data_name].clear()

@@ -655,6 +655,13 @@ message("\n-- CMAKE_BUILD_TYPE ........ ${CMAKE_BUILD_TYPE}\n")
 # Include dir for external libraries
 include_directories( SYSTEM ${KRATOS_SOURCE_DIR}/external_libraries )
 
+# Eigen (header-only). Resolved from EIGEN3_ROOT, the OS install, or an
+# automatic download (see cmake_modules/KratosEigen.cmake). Added at top level
+# so both the core and any application can use it (e.g. as sparse
+# linear-algebra backend); EIGEN_MPL2_ONLY is set globally so every translation
+# unit agrees on the licensed subset.
+include(KratosEigen)
+
 # defines needed
 add_definitions( -DKRATOS_PYTHON )
 

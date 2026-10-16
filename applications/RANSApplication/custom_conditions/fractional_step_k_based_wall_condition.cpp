@@ -278,9 +278,9 @@ void FractionalStepKBasedWallCondition<TDim, TNumNodes>::ApplyNeumannCondition(
             if (projection < 0) {
                 const double W = weight * density * projection;
                 for (unsigned int i = 0; i < TNumNodes; i++) {
-                    double row = i * local_size;
+                    unsigned int row = i * local_size;
                     for (unsigned int j = 0; j < TNumNodes; j++) {
-                        double col = j * local_size;
+                        unsigned int col = j * local_size;
                         const array_1d<double, 3>& rVel =
                             this->GetGeometry()[j].FastGetSolutionStepValue(VELOCITY);
                         for (unsigned int d = 0; d < TDim; d++) {

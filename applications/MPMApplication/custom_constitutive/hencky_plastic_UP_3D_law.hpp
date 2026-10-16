@@ -20,7 +20,7 @@
 
 // Project includes
 #include "custom_constitutive/hencky_plastic_3D_law.hpp"
-#include "includes/ublas_interface.h"
+#include "includes/default_interface.h"
 
 namespace Kratos
 {

@@ -238,8 +238,8 @@ KRATOS_TEST_CASE_IN_SUITE(PointsOfAllSupportedTriangleLumpedSchemesMustBeInRange
 
 KRATOS_TEST_CASE_IN_SUITE(CorrectWeightsFromTriangle6LumpedSchemes, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    std::vector<double> expected_weights{0.0328638, 0.0328638, 0.0328638, 0.300469,
-                                         0.300469,  0.300469}; // regression values see core test test_triangle_2d_6
+    auto expected_weights = std::vector{0.0328638, 0.0328638, 0.0328638, 0.300469,
+                                        0.300469,  0.300469}; // regression values see core test test_triangle_2d_6
     std::transform(expected_weights.begin(), expected_weights.end(), expected_weights.begin(),
                    [](const auto& rWeight) {
         return rWeight * 0.5; // Adjust weights for the area of the triangle
@@ -251,7 +251,7 @@ KRATOS_TEST_CASE_IN_SUITE(CorrectWeightsFromTriangle6LumpedSchemes, KratosGeoMec
 
 KRATOS_TEST_CASE_IN_SUITE(CorrectWeightsFromTriangle3LumpedSchemes, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    std::vector<double> expected_weights{1.0 / 3.0, 1.0 / 3.0, 1.0 / 3.0};
+    auto expected_weights = std::vector{1.0 / 3.0, 1.0 / 3.0, 1.0 / 3.0};
     std::transform(expected_weights.begin(), expected_weights.end(), expected_weights.begin(),
                    [](const auto& rWeight) {
         return rWeight * 0.5; // Adjust weights for the area of the triangle
@@ -263,7 +263,7 @@ KRATOS_TEST_CASE_IN_SUITE(CorrectWeightsFromTriangle3LumpedSchemes, KratosGeoMec
 
 KRATOS_TEST_CASE_IN_SUITE(CorrectWeightsFromQuadrilateral4LumpedSchemes, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    std::vector<double> expected_weights{1.0 / 4.0, 1.0 / 4.0, 1.0 / 4.0, 1.0 / 4.0};
+    auto expected_weights = std::vector{1.0 / 4.0, 1.0 / 4.0, 1.0 / 4.0, 1.0 / 4.0};
     std::transform(expected_weights.begin(), expected_weights.end(), expected_weights.begin(),
                    [](const auto& rWeight) {
         return rWeight * 4.0; // Adjust weights for the area of the quadrilateral
@@ -275,7 +275,7 @@ KRATOS_TEST_CASE_IN_SUITE(CorrectWeightsFromQuadrilateral4LumpedSchemes, KratosG
 
 KRATOS_TEST_CASE_IN_SUITE(CorrectWeightsFromQuadrilateral8LumpedSchemes, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    std::vector<double> expected_weights{
+    auto expected_weights = std::vector{
         0.0394737, 0.0394737, 0.0394737, 0.0394737, 0.210526,
         0.210526,  0.210526,  0.210526}; // regression lumping values see core test test_quadrilateral_2d_8
     std::transform(expected_weights.begin(), expected_weights.end(), expected_weights.begin(),

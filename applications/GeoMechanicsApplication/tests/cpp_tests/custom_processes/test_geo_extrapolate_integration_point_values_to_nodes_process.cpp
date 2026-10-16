@@ -113,10 +113,7 @@ public:
 
     using StubElementForNodalExtrapolationTest::StubElementForNodalExtrapolationTest;
 
-    int Check(const ProcessInfo&) const override
-    {
-        throw std::runtime_error("Synthetic check failure");
-    }
+    int Check(const ProcessInfo&) const override { KRATOS_ERROR << "Check failure"; }
 };
 
 class StubElementWithUnknownThrowingCheckForNodalExtrapolationTest : public StubElementForNodalExtrapolationTest

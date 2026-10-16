@@ -20,6 +20,9 @@
 #include "add_accessors_to_python.h"
 #include "includes/define_python.h"
 #include "includes/accessor.h"
+#include "includes/database_accessor.h"
+#include "includes/table_accessor.h"
+
 #include "includes/properties.h"
 
 using AccessorBindType = std::unique_ptr<Kratos::Accessor>;
@@ -34,6 +37,21 @@ namespace py = pybind11;
 void AddAccessorsToPython(py::module& m)
 {
     py::class_<AccessorBindType>(m, "Accessor")
+        .def_static("Create", []() { 
+            return std::make_unique<Accessor>();
+        })
+        ;
+
+        py::class_<DatabaseAccessor>(m, "DatabaseAccessor")
+        .def(py::init<const std::string&>(), py::arg("database_type"))
+        .def_static("Create", []() { 
+            return std::make_unique<Accessor>();
+        })
+        ;
+
+
+        py::class_<TableAccessor>(m, "TableAccessor")
+        .def(py::init<const Variable<double>&, const std::string&>(), py::arg("r_variable"), py::arg("database_type"))
         .def_static("Create", []() { 
             return std::make_unique<Accessor>();
         })
