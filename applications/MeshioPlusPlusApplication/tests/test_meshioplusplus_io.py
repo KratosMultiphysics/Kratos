@@ -20,6 +20,16 @@ def _PopulateModelPart(model_part):
     model_part.CreateNewElement("Element3D4N", 2, [2, 3, 4, 5], props)
     model_part.CreateNewCondition("SurfaceCondition3D3N", 1, [1, 2, 3], props)
 
+def _PopulateClosedTetrahedronSkin(model_part):
+    """The closed, outward-wound triangular skin of a tetrahedron."""
+    props = model_part.CreateNewProperties(1)
+    model_part.CreateNewNode(1, 0.0, 0.0, 0.0)
+    model_part.CreateNewNode(2, 1.0, 0.0, 0.0)
+    model_part.CreateNewNode(3, 0.0, 1.0, 0.0)
+    model_part.CreateNewNode(4, 0.0, 0.0, 1.0)
+    for i, nodes in enumerate([[1, 3, 2], [1, 2, 4], [2, 3, 4], [3, 1, 4]]):
+        model_part.CreateNewElement("Element2D3N", i + 1, nodes, props)
+
 class TestMeshioPlusPlusIO(KratosUnittest.TestCase):
     """Tests for the meshio++-based multi-format IO."""
 
@@ -751,8 +761,8 @@ End SubModelPart
             self.assertIn(name, write_formats)
         self.assertIn("frd", read_formats)          # written since meshio++ v16.39.0
         self.assertIn("frd", write_formats)
-        self.assertIn("gltf", write_formats)        # write-only
-        self.assertNotIn("gltf", read_formats)
+        self.assertIn("gltf", write_formats)
+        self.assertIn("gltf", read_formats)         # readable since meshio++ v17.1.0
         for path, format_value in (("mesh.k", Format.LSDYNA), ("mesh.mail", Format.CODE_ASTER),
                                    ("mesh.glb", Format.GLTF), ("mesh.pvd", Format.PVD),
                                    ("mesh.pvtu", Format.PVTU), ("mesh.pcd", Format.PCD),
@@ -816,10 +826,13 @@ End SubModelPart
         for name in ("elmer", "febio", "femap", "libmesh", "mfem", "patran", "z88", "marc", "radioss"):
             self.assertIn(name, read_formats)
             self.assertIn(name, write_formats)
+        # the solver results files are all written since meshio++ v17.3.0
         for name in ("abaqus_fil", "ansys_rst", "lsdyna_d3plot", "lsdyna_binout", "marc_t19",
-                     "nastran_op2", "xplt"):   # results files: read only
+                     "nastran_op2", "xplt"):
             self.assertIn(name, read_formats)
-            self.assertNotIn(name, write_formats)
+            self.assertIn(name, write_formats)
+        self.assertIn("ansys_rst_cyclic", read_formats)    # the one results format still read only
+        self.assertNotIn("ansys_rst_cyclic", write_formats)
         # the Radioss time-history file is written since meshio++ v16.39.0
         self.assertIn("radioss_th", read_formats)
         self.assertIn("radioss_th", write_formats)
@@ -828,6 +841,126 @@ End SubModelPart
                                    ("model.cdb", Format.ANSYSINP), ("d3plot", Format.LSDYNA_D3PLOT),
                                    ("z88i1.txt", Format.Z88), ("model.bp", Format.VTX)):
             self.assertEqual(KratosMeshioPlusPlus.MeshioPlusPlusIO.ResolveFormat(path), format_value)
+
+    def testV17_3Formats(self):
+        Format = KratosMeshioPlusPlus.MeshioPlusPlusIO.Format
+        read_formats = KratosMeshioPlusPlus.MeshioPlusPlusIO.GetSupportedReadFormats()
+        write_formats = KratosMeshioPlusPlus.MeshioPlusPlusIO.GetSupportedWriteFormats()
+        for name in ("cad_json", "neuroglancer"):
+            self.assertIn(name, read_formats)
+            self.assertIn(name, write_formats)
+        # IGES is read through OpenCASCADE and never written; STEP is read there too
+        if "iges" in read_formats:
+            self.assertNotIn("iges", write_formats)
+        self.assertEqual(KratosMeshioPlusPlus.MeshioPlusPlusIO.FormatFromString("cad_json"), Format.CAD_JSON)
+        self.assertEqual(KratosMeshioPlusPlus.MeshioPlusPlusIO.FormatFromString("iges"), Format.IGES)
+        self.assertEqual(KratosMeshioPlusPlus.MeshioPlusPlusIO.FormatFromString("neuroglancer"), Format.NEUROGLANCER)
+        self.assertEqual(KratosMeshioPlusPlus.MeshioPlusPlusIO.FormatName(Format.CAD_JSON), "cad_json")
+        self.assertEqual(KratosMeshioPlusPlus.MeshioPlusPlusIO.FormatName(Format.NEUROGLANCER), "neuroglancer")
+        # A compound extension: ".json" alone is not claimed
+        self.assertEqual(KratosMeshioPlusPlus.MeshioPlusPlusIO.ResolveFormat("part.cad.json"), Format.CAD_JSON)
+        self.assertEqual(KratosMeshioPlusPlus.MeshioPlusPlusIO.ResolveFormat("part.igs"), Format.IGES)
+        self.assertEqual(KratosMeshioPlusPlus.MeshioPlusPlusIO.ResolveFormat("part.step"), Format.STEP)
+
+    def _WriteQuadModelPart(self, name):
+        """A unit square made of a single bilinear quadrilateral."""
+        model_part = self.model.CreateModelPart(name)
+        props = model_part.CreateNewProperties(1)
+        model_part.CreateNewNode(1, 0.0, 0.0, 0.0)
+        model_part.CreateNewNode(2, 1.0, 0.0, 0.0)
+        model_part.CreateNewNode(3, 1.0, 1.0, 0.0)
+        model_part.CreateNewNode(4, 0.0, 1.0, 0.0)
+        model_part.CreateNewElement("Element2D4N", 1, [1, 2, 3, 4], props)
+        return model_part
+
+    def testWriteReadRoundTripCadJson(self):
+        write_model_part = self._WriteQuadModelPart("write_cad_json")
+        read_model_part = self.model.CreateModelPart("read_cad_json")
+        with tempfile.TemporaryDirectory() as temp_dir:
+            file_name = str(Path(temp_dir) / "square.cad.json")
+            KratosMeshioPlusPlus.MeshioPlusPlusIO(file_name, KratosMultiphysics.Parameters('{"time_series" : "single_file"}')).WriteModelPart(write_model_part)
+            self.assertTrue(Path(file_name).exists())
+            KratosMeshioPlusPlus.MeshioPlusPlusIO(file_name).ReadModelPart(read_model_part)
+        self.assertGreaterEqual(read_model_part.NumberOfNodes(), 4)
+        self.assertGreaterEqual(read_model_part.NumberOfElements() + read_model_part.NumberOfConditions(), 1)
+        for node in read_model_part.Nodes:
+            self.assertAlmostEqual(node.Z, 0.0, 12)
+            self.assertTrue(-1e-12 <= node.X <= 1.0 + 1e-12 and -1e-12 <= node.Y <= 1.0 + 1e-12)
+
+    def testKeepBrepReportsTheNurbsModel(self):
+        write_model_part = self._WriteQuadModelPart("write_brep")
+        with tempfile.TemporaryDirectory() as temp_dir:
+            file_name = str(Path(temp_dir) / "square.cad.json")
+            KratosMeshioPlusPlus.MeshioPlusPlusIO(file_name, KratosMultiphysics.Parameters('{"time_series" : "single_file"}')).WriteModelPart(write_model_part)
+
+            plain = KratosMeshioPlusPlus.MeshioPlusPlusIO(file_name)
+            plain.ReadModelPart(self.model.CreateModelPart("read_plain"))
+            self.assertFalse(plain.GetBrepInfo()["recognised"].GetBool())
+
+            settings = KratosMultiphysics.Parameters('{"keep_brep" : true}')
+            keeper = KratosMeshioPlusPlus.MeshioPlusPlusIO(file_name, settings)
+            keeper.ReadModelPart(self.model.CreateModelPart("read_keep"))
+            info = keeper.GetBrepInfo()
+        self.assertTrue(info["recognised"].GetBool())
+        self.assertEqual(info["number_of_faces"].GetInt(), 1)
+        self.assertEqual(info["number_of_patches"].GetInt(), 1)
+        self.assertEqual(info["number_of_trimmed_faces"].GetInt(), 0)
+
+    def testMdpaCadJsonSidecar(self):
+        write_model_part = self._WriteQuadModelPart("write_sidecar_mdpa")
+        with tempfile.TemporaryDirectory() as temp_dir:
+            mdpa_name = str(Path(temp_dir) / "deck.mdpa")
+            KratosMeshioPlusPlus.MeshioPlusPlusIO(mdpa_name, KratosMultiphysics.Parameters('{"time_series" : "single_file"}')).WriteModelPart(write_model_part)
+            KratosMeshioPlusPlus.MeshioPlusPlusIO(str(Path(temp_dir) / "deck.cad.json"), KratosMultiphysics.Parameters('{"time_series" : "single_file"}')).WriteModelPart(write_model_part)
+
+            settings = KratosMultiphysics.Parameters('{"mdpa_cad_json" : "auto"}')
+            io = KratosMeshioPlusPlus.MeshioPlusPlusIO(mdpa_name, settings)
+            io.ReadModelPart(self.model.CreateModelPart("read_sidecar_mdpa"))
+            self.assertTrue(io.GetBrepInfo()["recognised"].GetBool())
+            self.assertEqual(io.GetBrepInfo()["number_of_faces"].GetInt(), 1)
+
+            missing = KratosMultiphysics.Parameters('{"mdpa_cad_json" : "does_not_exist.cad.json"}')
+            with self.assertRaises(RuntimeError):
+                KratosMeshioPlusPlus.MeshioPlusPlusIO(mdpa_name, missing).ReadModelPart(
+                    self.model.CreateModelPart("read_sidecar_missing"))
+
+    def testWriteReadRoundTripNeuroglancer(self):
+        # No extension to resolve it by, and triangles only: name the format
+        write_model_part = self.model.CreateModelPart("write_neuroglancer")
+        read_model_part = self.model.CreateModelPart("read_neuroglancer")
+        props = write_model_part.CreateNewProperties(1)
+        for node_id, (x, y, z) in enumerate([(0.0, 0.0, 0.0), (1.0, 0.0, 0.0), (0.0, 1.0, 0.0), (0.0, 0.0, 1.0)], start=1):
+            write_model_part.CreateNewNode(node_id, x, y, z)
+        for element_id, nodes in enumerate([[1, 3, 2], [1, 2, 4], [2, 3, 4], [3, 1, 4]], start=1):
+            write_model_part.CreateNewElement("Element3D3N", element_id, nodes, props)
+        settings = KratosMultiphysics.Parameters('{"format" : "neuroglancer", "time_series" : "single_file"}')
+        with tempfile.TemporaryDirectory() as temp_dir:
+            file_name = str(Path(temp_dir) / "segment")
+            KratosMeshioPlusPlus.MeshioPlusPlusIO(file_name, settings).WriteModelPart(write_model_part)
+            self.assertTrue(Path(file_name).exists())
+            KratosMeshioPlusPlus.MeshioPlusPlusIO(file_name, settings).ReadModelPart(read_model_part)
+        self.assertEqual(read_model_part.NumberOfNodes(), 4)
+        self.assertEqual(read_model_part.NumberOfElements() + read_model_part.NumberOfConditions(), 4)
+
+    def testStepAndIgesReadNeedOpenCascade(self):
+        read_formats = KratosMeshioPlusPlus.MeshioPlusPlusIO.GetSupportedReadFormats()
+        with tempfile.TemporaryDirectory() as temp_dir:
+            step_name = str(Path(temp_dir) / "part.step")
+            write_model_part = self.model.CreateModelPart("write_step")
+            _PopulateClosedTetrahedronSkin(write_model_part)
+            KratosMeshioPlusPlus.MeshioPlusPlusIO(step_name, KratosMultiphysics.Parameters('{"time_series" : "single_file"}')).WriteModelPart(write_model_part)
+            self.assertIn("ISO-10303-21", Path(step_name).read_text()[:200])
+            read_model_part = self.model.CreateModelPart("read_step")
+            if "iges" not in read_formats:
+                with self.assertRaisesRegex(RuntimeError, "OpenCASCADE|OCCT"):
+                    KratosMeshioPlusPlus.MeshioPlusPlusIO(step_name).ReadModelPart(read_model_part)
+                return
+            settings = KratosMultiphysics.Parameters('{"keep_brep" : true}')
+            io = KratosMeshioPlusPlus.MeshioPlusPlusIO(step_name, settings)
+            io.ReadModelPart(read_model_part)
+            self.assertGreater(read_model_part.NumberOfNodes(), 0)
+            self.assertTrue(io.GetBrepInfo()["recognised"].GetBool())
+            self.assertGreaterEqual(io.GetBrepInfo()["number_of_faces"].GetInt(), 4)
 
     def testWriteReadRoundTripFebio(self):
         # FEBio writes the triangle condition as a <Surface> of element faces, which reads back
