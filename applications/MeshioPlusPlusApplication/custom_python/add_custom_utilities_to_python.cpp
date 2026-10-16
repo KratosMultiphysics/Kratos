@@ -21,6 +21,7 @@
 
 // Project includes
 #include "custom_python/add_custom_utilities_to_python.h"
+#include "custom_utilities/meshioplusplus_iga_utilities.h"
 #include "custom_utilities/meshioplusplus_mesh_operations.h"
 #include "includes/model_part.h"
 
@@ -134,6 +135,30 @@ void AddCustomUtilitiesToPython(pybind11::module& m)
             py::arg("settings"), py::arg("destination_model_part"),
             "The first model part with its floating-point data linearly blended toward the second "
             "by weight; both must share topology. \"blend_points\" also blends the coordinates.")
+        ;
+
+    py::class_<MeshioPlusPlusIgaUtilities, MeshioPlusPlusIgaUtilities::Pointer>(
+        m, "MeshioPlusPlusIgaUtilities",
+        "The isogeometric layer of meshio++: describe, sample, refine and evaluate the NURBS "
+        "models of Kratos CAD JSON, STEP, IGES and MFEM NURBS files. A NURBS model has no "
+        "ModelPart representation, so every function takes the model from a file.")
+        .def_static("GetDefaultParameters", &MeshioPlusPlusIgaUtilities::GetDefaultParameters,
+            "The default settings shared by the functions of this class.")
+        .def_static("Describe", &MeshioPlusPlusIgaUtilities::Describe,
+            py::arg("file_name"), py::arg("settings") = Parameters(R"({})"),
+            "Kind (brep or nurbs), patch, face, edge and vertex counts and the degrees of every patch.")
+        .def_static("Sample", &MeshioPlusPlusIgaUtilities::Sample,
+            py::arg("file_name"), py::arg("settings"), py::arg("destination_model_part"),
+            "Samples the model into Lagrange cells and fills the (empty) destination model part.")
+        .def_static("Refine", &MeshioPlusPlusIgaUtilities::Refine,
+            py::arg("input_file_name"), py::arg("output_file_name"), py::arg("settings"),
+            "Exact h- (\"subdivisions\") and p- (\"elevate\") refinement; a B-rep is written as "
+            "Kratos CAD JSON, an MFEM NURBS mesh as an MFEM NURBS mesh. Returns the Describe of the result.")
+        .def_static("Evaluate", &MeshioPlusPlusIgaUtilities::Evaluate,
+            py::arg("file_name"), py::arg("settings"),
+            "Points (and with \"derivatives\" : 1 first derivatives and normals) of patch/face "
+            "\"index\" at the \"parameters\" matrix; a face also reports which points lie inside "
+            "its trimming loops.")
         ;
 }
 
