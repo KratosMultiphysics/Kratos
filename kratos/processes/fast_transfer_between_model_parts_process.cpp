@@ -290,7 +290,7 @@ void FastTransferBetweenModelPartsProcess::ReplicateWithoutFlags()
             #pragma omp for schedule(guided, 512)
             for(int i = 0; i < num_elements; ++i) {
                 auto it_elem = it_elem_begin + i;
-                Element::Pointer p_new_elem = it_elem->Clone(total_num_elements + i + 1, it_elem->GetGeometry());
+                Element::Pointer p_new_elem = it_elem->Clone(total_num_elements + i + 1, it_elem->GetGeometry().Points());
                 elements_buffer_vector.insert(elements_buffer_vector.begin(), p_new_elem);
             }
         }
@@ -300,7 +300,7 @@ void FastTransferBetweenModelPartsProcess::ReplicateWithoutFlags()
             #pragma omp for schedule(guided, 512)
             for(int i = 0; i < num_conditions; ++i) {
                 auto it_cond = it_cond_begin + i;
-                Condition::Pointer p_new_cond = it_cond->Clone(total_num_conditions + i + 1, it_cond->GetGeometry());
+                Condition::Pointer p_new_cond = it_cond->Clone(total_num_conditions + i + 1, it_cond->GetGeometry().Points());
                 conditions_buffer_vector.insert(conditions_buffer_vector.begin(), p_new_cond);
             }
         }
@@ -395,7 +395,7 @@ void FastTransferBetweenModelPartsProcess::ReplicateWithFlags()
             for(int i = 0; i < num_elements; ++i) {
                 auto it_elem = it_elem_begin + i;
                 if (it_elem->Is(mFlag)) {
-                    Element::Pointer p_new_elem = it_elem->Clone(total_num_elements + i + 1, it_elem->GetGeometry());
+                    Element::Pointer p_new_elem = it_elem->Clone(total_num_elements + i + 1, it_elem->GetGeometry().Points());
                     (elements_buffer_vector).insert(elements_buffer_vector.begin(), p_new_elem);
                 }
             }
@@ -407,7 +407,7 @@ void FastTransferBetweenModelPartsProcess::ReplicateWithFlags()
             for(int i = 0; i < num_conditions; ++i) {
                 auto it_cond = it_cond_begin + i;
                 if (it_cond->Is(mFlag)) {
-                    Condition::Pointer p_new_cond = it_cond->Clone(total_num_conditions + i + 1, it_cond->GetGeometry());
+                    Condition::Pointer p_new_cond = it_cond->Clone(total_num_conditions + i + 1, it_cond->GetGeometry().Points());
                     (conditions_buffer_vector).insert(conditions_buffer_vector.begin(), p_new_cond);
                 }
             }

@@ -124,7 +124,7 @@ class EmpiricalSpringElementProcess
 
 
         const Element& rElem = KratosComponents<Element>::Get("EmpiricalSpringElement3D2N");
-        Element::Pointer pElem = rElem.Create(new_element_id, line_t, p_elem_prop);
+        Element::Pointer pElem = rElem.Create(new_element_id, line_t.Points(), p_elem_prop);
         mrModelPart.AddElement(pElem);
 
 
