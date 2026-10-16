@@ -35,15 +35,6 @@ using LinearSolverType = LinearSolver<SparseSpaceType, LocalSpaceType>;
 using SparseMatrixType = typename SparseSpaceType::MatrixType;
 using VectorType       = typename SparseSpaceType::VectorType;
 
-/// Backend-portable zero-vector factory.
-static VectorType MakeZeroVector(std::size_t n)
-{
-    VectorType v;
-    SparseSpaceType::Resize(v, n);
-    SparseSpaceType::SetToZero(v);
-    return v;
-}
-
 /// Global file path variables (set via command-line arguments; defaults provided)
 static std::string g_lhs_file = "A.mm";
 static std::string g_rhs_file = "b.mm.rhs";
@@ -169,7 +160,7 @@ static void BM_LinearSolverSolve(benchmark::State& state)
         // (some solvers modify the matrix during factorization)
         SparseMatrixType A_copy(A);
         VectorType b_copy(b);
-        VectorType x = MakeZeroVector(system_size);
+        VectorType x = ZeroVector(system_size);
         state.ResumeTiming();
 
         p_solver->Solve(A_copy, x, b_copy);
@@ -199,7 +190,7 @@ static void BM_LinearSolverInitializeSolutionStep(benchmark::State& state)
     auto p_solver = CreateSolverFromJSON(g_solver_config_file);
 
     const auto system_size = SparseSpaceType::Size(b);
-    VectorType x = MakeZeroVector(system_size);
+    VectorType x = ZeroVector(system_size);
 
     // Initialize once
     p_solver->Initialize(A, x, b);
@@ -208,7 +199,7 @@ static void BM_LinearSolverInitializeSolutionStep(benchmark::State& state)
         state.PauseTiming();
         SparseMatrixType A_copy(A);
         VectorType b_copy(b);
-        VectorType x_copy = MakeZeroVector(system_size);
+        VectorType x_copy = ZeroVector(system_size);
         state.ResumeTiming();
 
         p_solver->InitializeSolutionStep(A_copy, x_copy, b_copy);
@@ -237,7 +228,7 @@ static void BM_LinearSolverPerformSolutionStep(benchmark::State& state)
     auto p_solver = CreateSolverFromJSON(g_solver_config_file);
 
     const auto system_size = SparseSpaceType::Size(b);
-    VectorType x = MakeZeroVector(system_size);
+    VectorType x = ZeroVector(system_size);
 
     // Initialize and prepare the solver (factorize once)
     p_solver->Initialize(A, x, b);
@@ -246,7 +237,7 @@ static void BM_LinearSolverPerformSolutionStep(benchmark::State& state)
     for (auto _ : state) {
         state.PauseTiming();
         VectorType b_copy(b);
-        VectorType x_copy = MakeZeroVector(system_size);
+        VectorType x_copy = ZeroVector(system_size);
         state.ResumeTiming();
 
         p_solver->PerformSolutionStep(A, x_copy, b_copy);
