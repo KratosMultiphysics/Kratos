@@ -102,6 +102,12 @@ class TestRbfEnhancedRom(KratosUnittest.TestCase):
         general_rom_manager_parameters["rom_stages_to_train"].SetStringArray(["ROM", "HROM"])
         general_rom_manager_parameters.AddValue("HROM", KratosMultiphysics.Parameters("""{"element_selection_svd_truncation_tolerance": 0}"""))
         with KratosUnittest.WorkFolderScope(self.work_folder, __file__):
+            # The HROM training writes the HROM model parts next to the input mesh (here in the FluidDynamicsApplication tests)
+            with open(self.project_parameters_name, 'r') as parameter_file:
+                input_filename = json.load(parameter_file)["solver_settings"]["model_import_settings"]["input_filename"]
+            for suffix in ["HROM", "HROMVisualization"]:
+                self.addCleanup(kratos_utilities.DeleteFileIfExisting, os.path.abspath(f"{input_filename}{suffix}.mdpa"))
+
             rom_manager = RomManager(project_parameters_name=self.project_parameters_name, general_rom_manager_parameters=general_rom_manager_parameters)
             rom_manager.Fit()
             self.assertLess(rom_manager.ROMvsFOM["Fit"], self.tolerance)
