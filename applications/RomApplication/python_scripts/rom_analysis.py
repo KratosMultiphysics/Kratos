@@ -301,6 +301,9 @@ def CreateRomAnalysisInstance(cls, global_model, parameters, nn_rom_interface=No
                 # Pass the name of the Rom Parameters file and folder
                 self.rom_parameters.AddString("rom_basis_output_name", str(self.rom_basis_output_name))
                 self.rom_parameters.AddString("rom_basis_output_folder", str(self.rom_basis_output_folder))
+                # Reuse the input modelers to recreate the geometry based input model part
+                if self.project_parameters.Has("modelers"):
+                    self.rom_parameters["hrom_settings"].AddValue("modelers", self.project_parameters["modelers"])
                 # Create the training utility to calculate the HROM weights
                 self.__hrom_training_utility = HRomTrainingUtility(
                     self._GetSolver(),
@@ -385,6 +388,11 @@ def CreateRomAnalysisInstance(cls, global_model, parameters, nn_rom_interface=No
         def _SetEnhancedDecoder(self, solver, decoder_interface, nodal_unknown_names):
             """Sets the decoder (neural network or RBF) of an ann_enhanced or rbf_enhanced ROM in the builder and solver"""
             computing_model_part = solver.GetComputingModelPart().GetRootModelPart()
+            # The decoder acts on the basis of all the nodes, so it cannot run on a model part with only some of them (e.g. an HROM model part)
+            if decoder_interface.phi.shape[0] != computing_model_part.NumberOfNodes() * len(nodal_unknown_names):
+                err_msg = f"The basis of the enhanced decoder has {decoder_interface.phi.shape[0]} rows, but '{computing_model_part.Name}' has {computing_model_part.NumberOfNodes()} nodes with {len(nodal_unknown_names)} unknowns. "
+                err_msg += "HROM model parts are not supported yet for ann_enhanced and rbf_enhanced decoders: run the HROM on the full model part (use_full_model_part=True)."
+                raise Exception(err_msg)
             self._enhanced_decoder_solvers.append((solver, decoder_interface, nodal_unknown_names))
 
             SVDPhiMatrices=decoder_interface.get_phi_matrices()
