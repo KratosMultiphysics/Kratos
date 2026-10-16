@@ -31,6 +31,9 @@ class ResponseFunctionOutputProcess(Kratos.OutputProcess):
         if (response_type == "norm_square"):
             self.response = KratosCFD.VelocityPressureNormSquareResponseFunction(
                 self.params["response_settings"], self.model)
+        elif (response_type == "domain_integrated"):
+            self.response = KratosCFD.DomainIntegratedResponseFunction(
+                self.params["response_settings"], self.main_model_part)
         else:
             raise Exception(
                 "Unknown response_type = \"" + response_type +
