@@ -270,11 +270,12 @@ protected:
 
     /**
      * \brief Calculates the global bending moment matrix
+	 * \param rRotationMatrix rotation matrix for current condition element
      * \param rRotationalShapeFunctionVector shape functions vector for rotation
      * \param rLocalMovingLoad array for the value if the local moving load
      * \return global bending moment matrix
      */
-    Matrix CalculateGlobalMomentMatrix(const VectorType& rRotationalShapeFunctionVector, const array_1d<double, TDim>& rLocalMovingLoad) const;
+    Matrix CalculateGlobalMomentMatrix(const BoundedMatrix<double, TDim, TDim>& rRotationMatrix, const VectorType& rRotationalShapeFunctionVector, const array_1d<double, TDim>& rLocalMovingLoad) const;
 
     ///@}
     ///@name Protected  Access

@@ -375,13 +375,13 @@ class TestLoadingConditionsMoving(KratosUnittest.TestCase):
             self.assertAlmostEqual(rhs[1], 0)
             self.assertAlmostEqual(rhs[2], z_left)
             self.assertAlmostEqual(rhs[3], 0)
-            self.assertAlmostEqual(rhs[4], moment_left)
+            self.assertAlmostEqual(rhs[4], -moment_left)
             self.assertAlmostEqual(rhs[5], 0)
             self.assertAlmostEqual(rhs[6], x_right)
             self.assertAlmostEqual(rhs[7], 0)
             self.assertAlmostEqual(rhs[8], z_right)
             self.assertAlmostEqual(rhs[9], 0)
-            self.assertAlmostEqual(rhs[10], moment_right)
+            self.assertAlmostEqual(rhs[10], -moment_right)
             self.assertAlmostEqual(rhs[11], 0)
 
     def _MovingLoadCondition2D2N(self):
