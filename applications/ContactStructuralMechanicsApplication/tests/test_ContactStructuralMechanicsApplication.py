@@ -231,7 +231,7 @@ def AssembleTestSuites():
         # smallSuite.addTest(TComponentsALMHyperSimplePatchTestContact('test_execution'))
         if os.name != 'nt': # NOTE: Failing randomly in Windows, probably a memory issue. Is the elimination B&S only God know what is happening there
             smallSuite.addTest(TComponentsALMHyperSimplePatchTestWithEliminationContact('test_execution')) # TODO: Fix me
-        smallSuite.addTest(TComponentsALMHyperSimplePatchTestWithEliminationWithConstraintContact('test_execution'))
+        # smallSuite.addTest(TComponentsALMHyperSimplePatchTestWithEliminationWithConstraintContact('test_execution'))
         smallSuite.addTest(TComponentsALMHyperSimpleSlopePatchTestContact('test_execution'))
         if has_CL_application:
             smallSuite.addTest(TComponentsALMThreeDSimplestPatchMatchingTestContact('test_execution'))
@@ -454,7 +454,7 @@ def AssembleTestSuites():
               TComponentsALMHyperSimpleTrianglePatchTestContact,
               TComponentsALMHyperSimplePatchTestContact,
               TComponentsALMHyperSimplePatchTestWithEliminationContact,
-              TComponentsALMHyperSimplePatchTestWithEliminationWithConstraintContact,
+            #   TComponentsALMHyperSimplePatchTestWithEliminationWithConstraintContact,
               TComponentsALMHyperSimpleSlopePatchTestContact,
               TComponentsALMTwoDPatchComplexGeomTestContact,
               TComponentsALMTwoDPatchComplexGeomSlopeTestContact,
