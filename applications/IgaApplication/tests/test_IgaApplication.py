@@ -12,11 +12,11 @@ from iga_test_factory import SinglePatchTest as SinglePatchTest
 from truss_element_tests import TrussElementTests as TTrussElementTests
 # Beam Elements tests - python based
 from test_beam_IGA_element import BeamIGAElementTests as TBeamIGAElementTests
+from isogeometric_non_linear_bernoulli_beam_element_test import TestBeam4pElement
 # Structural Elements test - python based
 from test_solid_IGA_element import SolidIGAElementTests as TSolidIGAElementTests
 # Sbm Structural Elements test
 from sbm_solid_tests import SbmSolidTests as TSbmSolidTests
-
 # Membrane tests
 from iga_test_factory import MembraneSinglePatchFourPointSailLinearStatic as MembraneSinglePatchFourPointSailLinearStatic
 from iga_test_factory import MembraneSinglePatchFourPointSailNonLinearStatic as MembraneSinglePatchFourPointSailNonLinearStatic
@@ -68,7 +68,7 @@ from test_stokes_elements_and_conditions import FluidTests as TTestFluid
 from test_stokes_sbm_conditions_3d import SbmStokes3DTests as TTestSbmStokes
 # Iga geometries python bindings tests
 from test_python_bindings_iga_geometries import TestPythonBindingsIGAGeometries
-# Calculate tractions on interface test 
+# Calculate tractions on interface test
 from test_compute_interface_traction_shell_3p import ComputeInterfaceTractionShell3pTest as TestComputeInterfaceTractionsShell3p
 has_linear_solvers_application = kratos_utilities.CheckIfApplicationsAvailable("LinearSolversApplication")
 
@@ -92,6 +92,7 @@ def AssembleTestSuites():
         TTrussElementTests,
         # Beam Elements tests
         TBeamIGAElementTests,
+        TestBeam4pElement,
         # Structural Elements tests
         TSolidIGAElementTests,
         # Sbm Elements tests
@@ -134,10 +135,9 @@ def AssembleTestSuites():
         TTestSbmStokes,
         # Iga geometries python bindings
         TestPythonBindingsIGAGeometries,
-        # Calculate tractions on interface test 
+        # Calculate tractions on interface test
         TestComputeInterfaceTractionsShell3p
     ]))
-
     if has_linear_solvers_application:
         from KratosMultiphysics import LinearSolversApplication
         if LinearSolversApplication.HasFEAST():

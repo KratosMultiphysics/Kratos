@@ -50,8 +50,8 @@
 #include "geometries/nurbs_curve_geometry.h"
 #include "geometries/nurbs_curve_on_surface_geometry.h"
 #include "geometries/surface_in_nurbs_volume_geometry.h"
-#include "geometries/brep_surface.h" 
-#include "geometries/brep_curve.h" 
+#include "geometries/brep_surface.h"
+#include "geometries/brep_curve.h"
 
 namespace Kratos::Python
 {
@@ -374,6 +374,16 @@ void  AddGeometriesToPython(pybind11::module& m)
         .def("NumberOfControlPoints", &NurbsCurveGeometry<3, NodeContainerType>::NumberOfNonzeroControlPoints)
         .def("IsRational", &NurbsCurveGeometry<3, NodeContainerType>::IsRational)
         .def("Weights", &NurbsCurveGeometry<3, NodeContainerType>::Weights)
+        .def("GlobalSpaceDerivatives", [](NurbsCurveGeometry<3, NodeContainerType>& self, std::vector<CoordinatesArrayType>& rGlobalSpaceDerivatives, CoordinatesArrayType& rLocalCoordinates, SizeType DerivativeOrder)
+            {
+                self.GlobalSpaceDerivatives(rGlobalSpaceDerivatives, rLocalCoordinates, DerivativeOrder);
+                return rGlobalSpaceDerivatives;
+            })
+        .def("ShapeFunctionsLocalGradients", [](NurbsCurveGeometry<3, NodeContainerType>& self, Matrix& rResult, CoordinatesArrayType& rCoordinates)
+            {
+                self.ShapeFunctionsLocalGradients(rResult, rCoordinates);
+                return rResult;
+            })
         ;
 
     // NurbsCurveGeometry2D (constructed with nodes)
@@ -387,7 +397,7 @@ void  AddGeometriesToPython(pybind11::module& m)
         .def("IsRational", &NurbsCurveGeometry<2, NodeContainerType>::IsRational)
         .def("Weights", &NurbsCurveGeometry<2, NodeContainerType>::Weights)
         ;
-    
+
     // NurbsCurveGeometry2D (constructed with points)
     using NurbsCurveGeometry2DPointType = Kratos::NurbsCurveGeometry<2, PointVectorType>;
     py::class_<NurbsCurveGeometry2DPointType,
@@ -427,6 +437,23 @@ void  AddGeometriesToPython(pybind11::module& m)
         .def(py::init<
             NurbsCurveOnSurfaceGeometry3DType::NurbsSurfaceType::Pointer,
             NurbsCurveOnSurfaceGeometry3DType::NurbsCurveType::Pointer>())
+        .def("SpansLocalSpace", [](const NurbsCurveOnSurfaceGeometry3DType& self, double start, double end) {
+            std::vector<double> spans;
+            self.SpansLocalSpace(spans, start, end);
+            return spans;
+        })
+        .def("SpansLocalSpace", [](const NurbsCurveOnSurfaceGeometry3DType& self, IndexType direction_index) {
+            std::vector<double> spans;
+            self.SpansLocalSpace(spans, direction_index);
+            return spans;
+        })
+        .def("GlobalSpaceDerivatives", [](NurbsCurveOnSurfaceGeometry3DType& self,
+                std::vector<CoordinatesArrayType>& rGlobalSpaceDerivatives,
+                CoordinatesArrayType& rLocalCoordinates, SizeType DerivativeOrder)
+        {
+            self.GlobalSpaceDerivatives(rGlobalSpaceDerivatives, rLocalCoordinates, DerivativeOrder);
+            return rGlobalSpaceDerivatives;
+        })
         ;
 
     // BrepCurveOnSurface
