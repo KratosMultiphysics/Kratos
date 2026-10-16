@@ -59,7 +59,42 @@ class KratosGeoMechanicsLabElementTests(KratosGeoUnittest.TestCase):
         self.assert_nodal_values_at_time(result, "DISPLACEMENT", node_ids, expected_disp, time, precision_places)
         self.assert_integration_point_tensors(result, "CAUCHY_STRESS_TENSOR", expected_stress, time, precision_places)
         self.assert_integration_point_tensors(result, "ENGINEERING_STRAIN_TENSOR", expected_strain, time, precision_places)
-            
+
+    def test_biaxial_drained_linear_elastic(self):
+        """Regression test for the biaxial experiment on a model with a constant pore water pressure."""
+        file_path = test_helper.get_file_path(os.path.join('test_element_lab', 'test_biaxial', 'drained', 'linear_elastic'))
+        self._run_biaxial_regression_test(file_path, 'biaxial_test_output.post.res', 4)
+
+    def test_biaxial_drained_mohr_coulomb(self):
+        """Regression test for the biaxial experiment on a model with a constant pore water pressure."""
+        file_path = test_helper.get_file_path(os.path.join('test_element_lab', 'test_biaxial', 'drained', 'mohr_coulomb'))
+        self._run_biaxial_regression_test(file_path, 'biaxial_test_output.post.res', 4)
+
+    def _run_biaxial_regression_test(self, file_path, output_file_name, precision_places):
+        test_helper.run_kratos(file_path)
+        reader = GiDOutputFileReader()
+        result = reader.read_output_from(os.path.join(file_path, output_file_name))
+        time = 1.0
+
+        expected_displacement = test_helper.get_values_from_csv_as_vectors(
+            Path(file_path) / "expected_disp.csv",
+            ["node_id"],
+            ["disp_x", "disp_y", "disp_z"])
+        expected_stress = test_helper.get_values_from_csv_as_vectors(
+            Path(file_path) / "expected_stress.csv",
+            ["element_id", "ip_index"],
+            ["stress_xx", "stress_yy", "stress_zz", "stress_xy", "stress_yz", "stress_xz"])
+        expected_strain = test_helper.get_values_from_csv_as_vectors(
+            Path(file_path) / "expected_strain.csv",
+            ["element_id", "ip_index"],
+            ["strain_xx", "strain_yy", "strain_zz", "strain_xy", "strain_yz", "strain_xz"])
+
+        node_ids = list(expected_displacement.keys())
+        expected_disp = [expected_displacement[node_id] for node_id in node_ids]
+        self.assert_nodal_values_at_time(result, "DISPLACEMENT", node_ids, expected_disp, time, precision_places)
+        self.assert_integration_point_tensors(result, "CAUCHY_STRESS_TENSOR", expected_stress, time, precision_places)
+        self.assert_integration_point_tensors(result, "ENGINEERING_STRAIN_TENSOR", expected_strain, time, precision_places)
+
     def test_oedometer_drained(self):
         """Regression test for the oedometer experiment on a linear elastic model with constant pore water pressure."""
         expected_stress_per_ip = [-1e+06/3.0, -1e+06, -1e+06/3.0, 0.0, 0.0, 0.0]
