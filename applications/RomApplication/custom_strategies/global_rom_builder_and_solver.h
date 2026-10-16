@@ -512,10 +512,10 @@ protected:
         block_for_each(rModelPart.Elements().GetContainer(),
             [&](Element::Pointer p_element)
         {
+            // Note that the elements without weights are not modified: in coupled problems the element data is shared by the
+            // solvers (it lives in the geometry), so adding weights here would select all the elements for the next solver
             if (p_element->Has(HROM_WEIGHT)) {
                 element_queue.enqueue(std::move(p_element));
-            } else {
-                p_element->SetValue(HROM_WEIGHT, Vector(mNumberOfHromSets, 1.0));
             }
         });
 
@@ -524,10 +524,10 @@ protected:
         block_for_each(rModelPart.Conditions().GetContainer(),
             [&](Condition::Pointer p_condition)
         {
+            // Note that the conditions without weights are not modified: in coupled problems the condition data is shared by the
+            // solvers (it lives in the geometry), so adding weights here would select all the conditions for the next solver
             if (p_condition->Has(HROM_WEIGHT)) {
                 condition_queue.enqueue(std::move(p_condition));
-            } else {
-                p_condition->SetValue(HROM_WEIGHT, Vector(mNumberOfHromSets, 1.0));
             }
         });
 
