@@ -172,6 +172,60 @@ KRATOS_TEST_CASE_IN_SUITE(FindNeighboursOfInterfacesProcess_OnlyFindsNeighbourWh
     EXPECT_EQ(p_interface_element->GetValue(NEIGHBOUR_ELEMENTS).size(), 0);
 }
 
+
+KRATOS_TEST_CASE_IN_SUITE(FindNeighboursOfInterfacesProcess_DoesNotAlterNeighboursWithoutHigherLocalDimension,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange: a line element (e.g. a beam) and a continuum element at the same side of a line interface
+    Model model;
+    auto& r_computational_model_part = model.CreateModelPart("Main");
+    ModelSetupUtilities::CreateNumberOfNewNodes(r_computational_model_part, 9);
+
+    const auto node_ids_line_element = std::vector<std::size_t>{4, 5, 6};
+    const auto nodes_line_element =
+        ModelSetupUtilities::GetNodesFromIds(r_computational_model_part, node_ids_line_element);
+    auto p_line_element = ElementSetupUtilities::Create2D3NLineElement(nodes_line_element, {});
+    p_line_element->SetId(1);
+    r_computational_model_part.AddElement(p_line_element);
+
+    const auto node_ids_interface = std::vector<std::size_t>{1, 2, 3, 4, 5, 6};
+    const auto nodes_interface =
+        ModelSetupUtilities::GetNodesFromIds(r_computational_model_part, node_ids_interface);
+    auto p_interface_element = ElementSetupUtilities::Create2D6NInterfaceElement(nodes_interface, {});
+    p_interface_element->SetId(2);
+    r_computational_model_part.AddElement(p_interface_element);
+
+    const auto node_ids_continuum_element = std::vector<std::size_t>{4, 5, 8, 6, 9, 7};
+    const auto nodes_continuum_element =
+        ModelSetupUtilities::GetNodesFromIds(r_computational_model_part, node_ids_continuum_element);
+    auto p_continuum_element = ElementSetupUtilities::Create2D6NElement(nodes_continuum_element, {});
+    p_continuum_element->SetId(3);
+    r_computational_model_part.AddElement(p_continuum_element);
+
+    auto& r_interface_model_part = model.CreateModelPart("Interfaces");
+    r_interface_model_part.AddElement(p_interface_element);
+
+    auto test_settings = Parameters{};
+    test_settings.AddString("model_part_name", "Interfaces");
+    test_settings.AddString("model_part_name_for_neighbouring_elements", "Main");
+    FindNeighboursOfInterfacesProcess process(model, test_settings);
+
+    // Act
+    process.ExecuteInitialize();
+
+    // Assert
+    ASSERT_EQ(p_interface_element->GetValue(NEIGHBOUR_ELEMENTS).size(), 1);
+    EXPECT_EQ(p_interface_element->GetValue(NEIGHBOUR_ELEMENTS)[0].GetId(), 3);
+
+    // The removed neighbour must remain untouched
+    EXPECT_EQ(p_line_element->Id(), 1);
+    EXPECT_EQ(p_line_element->GetGeometry().PointsNumber(), 3);
+    EXPECT_EQ(p_continuum_element->Id(), 3);
+    EXPECT_EQ(p_continuum_element->GetGeometry().PointsNumber(), 6);
+    EXPECT_TRUE(r_computational_model_part.HasElement(1));
+    EXPECT_TRUE(r_computational_model_part.HasElement(3));
+}
+
 KRATOS_TEST_CASE_IN_SUITE(FindNeighboursOfInterfacesProcess_RemovesNeighboursWhenProcessIsDone,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
