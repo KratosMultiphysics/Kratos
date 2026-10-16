@@ -38,6 +38,21 @@
 
 namespace Kratos
 {
+namespace Internals
+{
+/// A meshio++ series writer behind one interface: the solver results formats each have their
+/// own class (`XpltSeriesWriter`, `LsdynaD3plotSeriesWriter`, ...) with the same
+/// `Write(time, mesh)` / `Finalize()` shape, which @ref MeshioPlusPlusIO drives without naming
+/// them. Implemented in meshioplusplus_io.cpp.
+class SeriesWriterBase
+{
+public:
+    virtual ~SeriesWriterBase() = default;
+    virtual void Write(const double Time, const meshioplusplus::Mesh& rMesh) = 0;
+    virtual void Finalize() = 0;
+};
+} // namespace Internals
+
 class IntegrationValuesExtrapolationToNodesProcess; // forward declaration (gauss point extrapolation)
 
 ///@name Kratos Classes
@@ -471,6 +486,17 @@ public:
      */
     Parameters GetBrepInfo() const;
 
+    /**
+     * @brief Writes the B-rep the last read kept as Kratos CAD JSON.
+     * @details The exact trimmed NURBS geometry (faces, loops, edges, vertices, knot vectors,
+     * weights) a `"keep_brep"` / `"mdpa_cad_json"` read held back, not the sampled cells - so a
+     * CAD JSON, STEP or IGES file, or the sidecar of a deck, can be converted without going
+     * through a lossy mesh. The file name is used as given (a series label is never added).
+     * @param rFileName Where to write; ".cad.json" by convention.
+     * @throws If the last read kept no B-rep.
+     */
+    void WriteBrep(const std::filesystem::path& rFileName) const;
+
     ///@}
     ///@name Input and output
     ///@{
@@ -522,6 +548,12 @@ private:
     /// Series writers for Femap transient output (same keys as @ref mXdmfWriters): one
     /// neutral file holding the mesh once and one output set per step.
     std::map<std::string, std::unique_ptr<meshioplusplus::FemapSeriesWriter>> mFemapWriters;
+
+    /// Series writers for the solver results formats (`xplt`, `lsdyna_d3plot`, `ansys_rst`,
+    /// `marc_t19`, `nastran_h5`, `nastran_op2`, `radioss_anim`, `radioss_th`, `abaqus_fil`,
+    /// `lsdyna_binout`, `frd`, `vtx`, `szplt`, `openfoam`; same keys as @ref mXdmfWriters): the
+    /// mesh once and one state per step, in the format's own layout.
+    std::map<std::string, std::unique_ptr<Internals::SeriesWriterBase>> mSeriesWriters;
 
     /// Buffered steps for GiD transient output, one entry per output target (the same keys
     /// @ref mXdmfWriters uses). meshio++'s write_gid_series *pulls* steps through a callback
@@ -649,6 +681,18 @@ private:
     void WriteFemapStep(
         const ModelPart& rThisModelPart,
         const std::string& rTargetSuffix
+        );
+
+    /**
+     * @brief Transient write of a solver results format: adds one state to the target's series.
+     * @details The writer is the format's own meshio++ `SeriesWriter`, created by the first call.
+     * Like PVD and Femap, a series is not resumed across instances. Every step must have the first
+     * one's points and cells.
+     */
+    void WriteSeriesStep(
+        const ModelPart& rThisModelPart,
+        const std::string& rTargetSuffix,
+        const std::string& rFormatName
         );
 
     /**

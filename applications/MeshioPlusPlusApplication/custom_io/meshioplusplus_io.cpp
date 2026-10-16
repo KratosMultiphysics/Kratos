@@ -19,6 +19,7 @@
 #include <array>
 #include <cmath>
 #include <exception>
+#include <set>
 #include <utility>
 
 // External includes
@@ -26,16 +27,24 @@
 #include "meshioplusplus/registry.hpp"
 #include "meshioplusplus/write_options.hpp"
 #include "meshioplusplus/detail/provenance.hpp"
+#include "meshioplusplus/formats/abaqus_fil.hpp"
 #include "meshioplusplus/formats/ansys.hpp"
+#include "meshioplusplus/formats/ansys_rst.hpp"
 #include "meshioplusplus/formats/cad_json.hpp"
 #include "meshioplusplus/formats/ensight.hpp"
 #include "meshioplusplus/formats/femap.hpp"
 #include "meshioplusplus/formats/flac3d.hpp"
+#include "meshioplusplus/formats/frd.hpp"
 #include "meshioplusplus/formats/gid.hpp"
 #include "meshioplusplus/formats/gltf.hpp"
 #include "meshioplusplus/formats/gmsh.hpp"
 #include "meshioplusplus/formats/iges.hpp"
+#include "meshioplusplus/formats/lsdyna_binout.hpp"
+#include "meshioplusplus/formats/lsdyna_d3plot.hpp"
+#include "meshioplusplus/formats/marc.hpp"
 #include "meshioplusplus/formats/mfem.hpp"
+#include "meshioplusplus/formats/nastran_h5.hpp"
+#include "meshioplusplus/formats/nastran_op2.hpp"
 #include "meshioplusplus/formats/openfoam.hpp"
 #include "meshioplusplus/formats/patran.hpp"
 #include "meshioplusplus/formats/pcd.hpp"
@@ -44,8 +53,11 @@
 #include "meshioplusplus/formats/pvtp.hpp"
 #include "meshioplusplus/formats/pvtu.hpp"
 #include "meshioplusplus/formats/radioss.hpp"
+#include "meshioplusplus/formats/radioss_anim.hpp"
+#include "meshioplusplus/formats/radioss_th.hpp"
 #include "meshioplusplus/formats/step.hpp"
 #include "meshioplusplus/formats/stl.hpp"
+#include "meshioplusplus/formats/szplt.hpp"
 #include "meshioplusplus/formats/vtkhdf.hpp"
 #include "meshioplusplus/formats/z88.hpp"
 #include "meshioplusplus/formats/vti.hpp"
@@ -55,6 +67,8 @@
 #include "meshioplusplus/formats/vtr.hpp"
 #include "meshioplusplus/formats/vts.hpp"
 #include "meshioplusplus/formats/vtu.hpp"
+#include "meshioplusplus/formats/vtx.hpp"
+#include "meshioplusplus/formats/xplt.hpp"
 #include "meshioplusplus/operations/sdf.hpp"
 #include "meshioplusplus/operations/sniff.hpp"
 
@@ -75,6 +89,41 @@ namespace
 {
 
 using Internals::DataArray;
+
+/// Adapts one of meshio++'s per-format series writers to @ref Internals::SeriesWriterBase.
+template<class TWriter>
+class SeriesWriterAdapter final : public Internals::SeriesWriterBase
+{
+public:
+    template<class... TArgs>
+    explicit SeriesWriterAdapter(TArgs&&... rArgs) : mWriter(std::forward<TArgs>(rArgs)...) {}
+    void Write(const double Time, const mio::Mesh& rMesh) override { mWriter.Write(Time, rMesh); }
+    void Finalize() override { mWriter.Finalize(); }
+private:
+    TWriter mWriter;
+};
+
+/// The formats whose transient output goes through a meshio++ `SeriesWriter` of their own
+/// (the mesh once and one state per step, in one file or directory) rather than a file per step.
+/// The ones whose library dependency is compiled out are left to the file series, which reports
+/// the missing dependency by name.
+bool IsSeriesFormat(const std::string& rFormatName)
+{
+    static const std::set<std::string> formats = {
+        "abaqus_fil", "ansys_rst", "frd", "lsdyna_binout", "lsdyna_d3plot", "marc_t19", "nastran_op2",
+        "openfoam", "radioss_anim", "radioss_th", "xplt"
+#ifdef MESHIOPLUSPLUS_HAS_HDF5
+        , "nastran_h5"
+#endif
+#ifdef MESHIOPLUSPLUS_HAS_ADIOS2
+        , "vtx"
+#endif
+#ifdef MESHIOPLUSPLUS_HAS_TECIO
+        , "szplt"
+#endif
+    };
+    return formats.count(rFormatName) > 0;
+}
 
 // Format enum <-> canonical meshio++ format name. Keep in sync with the
 // Format enum in meshioplusplus_io.h and meshio++'s registry.cpp.
@@ -634,6 +683,19 @@ void MeshioPlusPlusIO::CloseOutput()
     }
     mFemapWriters.clear();
 
+    for (auto& r_entry : mSeriesWriters) {
+        if (r_entry.second != nullptr) {
+            try {
+                r_entry.second->Finalize();
+            } catch (...) {
+                if (!first_failure) {
+                    first_failure = std::current_exception();
+                }
+            }
+        }
+    }
+    mSeriesWriters.clear();
+
     if (first_failure) {
         std::rethrow_exception(first_failure);
     }
@@ -691,6 +753,8 @@ Parameters MeshioPlusPlusIO::GetDefaultParameters()
         "z88_stubs"                                   : false,
         "radioss_stubs"                               : false,
         "ensight_fortran"                             : false,
+        "d3plot_double"                               : false,
+        "d3plot_max_file_bytes"                       : 1073741824,
         "gltf_settings"                               : {
             "container"     : "auto",
             "up_axis"       : "auto",
@@ -1164,6 +1228,21 @@ Parameters MeshioPlusPlusIO::GetBrepInfo() const
 /***********************************************************************************/
 /***********************************************************************************/
 
+void MeshioPlusPlusIO::WriteBrep(const std::filesystem::path& rFileName) const
+{
+    KRATOS_TRY
+
+    KRATOS_ERROR_IF_NOT(mBrepInfoRead)
+        << "There is no B-rep to write: read a cad_json, step or iges file with \"keep_brep\" : true, or a deck "
+        << "with \"mdpa_cad_json\", first" << std::endl;
+    mio::write_cad_json(rFileName.string(), mio::sample_brep(mBrepInfo), mBrepInfo);
+
+    KRATOS_CATCH("")
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 Parameters MeshioPlusPlusIO::GetProvenance() const
 {
     KRATOS_TRY
@@ -1272,6 +1351,9 @@ void MeshioPlusPlusIO::WriteTarget(
         } else if (format_name == "femap" && time_series == "automatic") {
             // Transient Femap: the mesh once, one output set per step, in one neutral file.
             WriteFemapStep(rModelPart, rTargetSuffix);
+        } else if (IsSeriesFormat(format_name) && time_series == "automatic") {
+            // Transient solver results: the format's own series writer, one state per step.
+            WriteSeriesStep(rModelPart, rTargetSuffix, format_name);
         } else if (format_name == "gid" && time_series == "automatic") {
             // Transient GiD: buffer the step; CloseOutput writes the whole series at once.
             WriteGidSeriesStep(rModelPart, rTargetSuffix);
@@ -1496,7 +1578,14 @@ void MeshioPlusPlusIO::WriteStatic(
         options.mBinary = file_format == "binary";
         options.mLabelBits = mParameters["openfoam_label_bits"].GetInt();
         options.mScalarBits = mParameters["openfoam_scalar_bits"].GetInt();
-        mio::write_openfoam(rPath.string(), mesh, mio::OpenFoamInfo(), options);
+        // "openfoam_region" writes constant/<region>/polyMesh (and the fields under <time>/<region>/)
+        // of a multi-region case, as it selects the region on a read
+        const std::string openfoam_region = mParameters["openfoam_region"].GetString();
+        if (!openfoam_region.empty()) {
+            mio::write_openfoam_region(rPath.string(), mesh, mio::OpenFoamInfo(), options, openfoam_region);
+        } else {
+            mio::write_openfoam(rPath.string(), mesh, mio::OpenFoamInfo(), options);
+        }
         return;
     }
     if (rFormatName == "pcd") {
@@ -1713,6 +1802,80 @@ void MeshioPlusPlusIO::WriteFemapStep(
     auto& p_writer = mFemapWriters[rTargetSuffix];
     if (p_writer == nullptr) {
         p_writer = std::make_unique<mio::FemapSeriesWriter>(ComposeOutputPath(rTargetSuffix, "").string());
+    }
+    p_writer->Write(GetOutputTimeValue(rThisModelPart), BuildMeshWithData(rThisModelPart));
+
+    KRATOS_CATCH("")
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void MeshioPlusPlusIO::WriteSeriesStep(
+    const ModelPart& rThisModelPart,
+    const std::string& rTargetSuffix,
+    const std::string& rFormatName
+    )
+{
+    KRATOS_TRY
+
+    const mio::detail::ProvenanceScope provenance_scope(
+        ResolveProvenanceMode(mParameters["provenance"].GetString()),
+        mio::detail::current_provenance());
+    mio::detail::provenance_set_source(rThisModelPart.FullName(), "kratos");
+
+    auto& p_writer = mSeriesWriters[rTargetSuffix];
+    if (p_writer == nullptr) {
+        const std::string path = ComposeOutputPath(rTargetSuffix, "").string();
+        if (rFormatName == "abaqus_fil") {
+            p_writer = std::make_unique<SeriesWriterAdapter<mio::AbaqusFilSeriesWriter>>(
+                path, mParameters["file_format"].GetString() == "binary");
+        } else if (rFormatName == "ansys_rst") {
+            p_writer = std::make_unique<SeriesWriterAdapter<mio::AnsysRstSeriesWriter>>(path);
+        } else if (rFormatName == "frd") {
+            p_writer = std::make_unique<SeriesWriterAdapter<mio::FrdSeriesWriter>>(path);
+        } else if (rFormatName == "lsdyna_binout") {
+            p_writer = std::make_unique<SeriesWriterAdapter<mio::LsdynaBinoutSeriesWriter>>(path);
+        } else if (rFormatName == "lsdyna_d3plot") {
+            // "d3plot_double" writes 8-byte words; the family is split over d3plot, d3plot01, ...
+            // once a member would pass "d3plot_max_file_bytes"
+            p_writer = std::make_unique<SeriesWriterAdapter<mio::LsdynaD3plotSeriesWriter>>(
+                path, static_cast<std::size_t>(mParameters["d3plot_max_file_bytes"].GetInt()),
+                mParameters["d3plot_double"].GetBool());
+        } else if (rFormatName == "marc_t19") {
+            p_writer = std::make_unique<SeriesWriterAdapter<mio::MarcT19SeriesWriter>>(path);
+        } else if (rFormatName == "nastran_op2") {
+            p_writer = std::make_unique<SeriesWriterAdapter<mio::NastranOp2SeriesWriter>>(path);
+        } else if (rFormatName == "openfoam") {
+            // The polyMesh once and a time directory of fields per step; "openfoam_region" puts
+            // it under constant/<region>/ like the static write.
+            mio::OpenFoamWriteOptions options;
+            options.mBinary = mParameters["file_format"].GetString() == "binary";
+            options.mLabelBits = mParameters["openfoam_label_bits"].GetInt();
+            options.mScalarBits = mParameters["openfoam_scalar_bits"].GetInt();
+            p_writer = std::make_unique<SeriesWriterAdapter<mio::OpenFoamSeriesWriter>>(
+                path, mio::OpenFoamInfo(), options, mParameters["openfoam_region"].GetString());
+        } else if (rFormatName == "radioss_anim") {
+            p_writer = std::make_unique<SeriesWriterAdapter<mio::RadiossAnimSeriesWriter>>(path);
+        } else if (rFormatName == "radioss_th") {
+            p_writer = std::make_unique<SeriesWriterAdapter<mio::RadiossThSeriesWriter>>(path);
+        } else if (rFormatName == "xplt") {
+            p_writer = std::make_unique<SeriesWriterAdapter<mio::XpltSeriesWriter>>(path);
+#ifdef MESHIOPLUSPLUS_HAS_HDF5
+        } else if (rFormatName == "nastran_h5") {
+            p_writer = std::make_unique<SeriesWriterAdapter<mio::NastranH5SeriesWriter>>(path);
+#endif
+#ifdef MESHIOPLUSPLUS_HAS_ADIOS2
+        } else if (rFormatName == "vtx") {
+            p_writer = std::make_unique<SeriesWriterAdapter<mio::VtxSeriesWriter>>(path);
+#endif
+#ifdef MESHIOPLUSPLUS_HAS_TECIO
+        } else if (rFormatName == "szplt") {
+            p_writer = std::make_unique<SeriesWriterAdapter<mio::SzpltSeriesWriter>>(path);
+#endif
+        } else {
+            KRATOS_ERROR << "No transient writer for format \"" << rFormatName << "\"" << std::endl;
+        }
     }
     p_writer->Write(GetOutputTimeValue(rThisModelPart), BuildMeshWithData(rThisModelPart));
 
