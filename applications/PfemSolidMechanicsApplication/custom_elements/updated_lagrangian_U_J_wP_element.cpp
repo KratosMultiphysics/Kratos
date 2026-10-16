@@ -59,7 +59,7 @@ namespace Kratos
    }
 
 
-   //*******************************ASSIGMENT OPERATOR***********************************
+   //******************************ASSIGNMENT OPERATOR***********************************
    //************************************************************************************
 
    UpdatedLagrangianUJwPElement&  UpdatedLagrangianUJwPElement::operator=(UpdatedLagrangianUJwPElement const& rOther)
@@ -568,7 +568,7 @@ namespace Kratos
          //compute element kinematics
          this->CalculateKinematics( Variables, PointNumber );
 
-         //getting informations for integration
+         //getting information for integration
          double IntegrationWeight = integration_points[PointNumber].Weight() * Variables.detJ;
 
          IntegrationWeight = this->CalculateIntegrationWeight( IntegrationWeight );  // multiplies by thickness
@@ -651,7 +651,7 @@ namespace Kratos
       this->CalculateMassMatrix ( MassMatrix, rCurrentProcessInfo );
 
 
-      //3.-Get Damping Coeffitients (RAYLEIGH_ALPHA, RAYLEIGH_BETA)
+      //3.-Get Damping Coefficients (RAYLEIGH_ALPHA, RAYLEIGH_BETA)
       double alpha = 0;
       if( GetProperties().Has(RAYLEIGH_ALPHA) ){
          alpha = GetProperties()[RAYLEIGH_ALPHA];

@@ -68,7 +68,7 @@ namespace Kratos
    }
 
 
-   // ******* Initilialize Material (due to the new variable) ******
+   // ******* Initialize Material (due to the new variable) ******
    void NonAssociativeExplicitPlasticFlowRule::InitializeMaterial( YieldCriterionPointer & pYieldCriterion, HardeningLawPointer & pHardeningLaw, const Properties & rMaterialProperties)
    {
       mPlasticMultiplierVelocity = 0.0;
@@ -271,7 +271,7 @@ namespace Kratos
          rNewElasticLeftCauchyGreen = prod( UpdateMatrix, PreviousElasticLeftCauchyGreen);
          rNewElasticLeftCauchyGreen = prod( rNewElasticLeftCauchyGreen, trans(UpdateMatrix) );
 
-         // ACTUALIZE HARDENING PARAMENTERS (Volumetric) 
+         // ACTUALIZE HARDENING PARAMETERS (Volumetric) 
          double AlphaUpdate = 0;
          for (unsigned int i = 0; i < 3; i++) {
             rReturnMappingVariables.DeltaGamma += PlasticMultiplier * AuxiliarDerivatives.PlasticPotentialD(i);
@@ -333,7 +333,7 @@ namespace Kratos
 
       //double Tolerance = 1E-6;
 
-      // 2- Check for yield Condition (at the beggining)
+      // 2- Check for yield Condition (at the beginning)
       this->CalculateKirchhoffStressVector( PreviousElasticLeftCauchyGreen, PreviousStressVector);
       rReturnMappingVariables.TrialStateFunction = mpYieldCriterion->CalculateYieldCondition(rReturnMappingVariables.TrialStateFunction, PreviousStressVector, rReturnMappingVariables.DeltaGamma );
 
@@ -364,7 +364,7 @@ namespace Kratos
          bool is_converged = false; 
 
 
-         // EXPLICIT PREDICTION OF THE "hardening" PARAMTER (volumetric)
+         // EXPLICIT PREDICTION OF THE "hardening" PARAMETER (volumetric)
          Vector HenckyStrainPrev = ConvertCauchyGreenTensorToHenckyStrain( PreviousElasticLeftCauchyGreen);
          this->UpdateDerivatives( HenckyStrainPrev, AuxiliarDerivatives, rReturnMappingVariables.DeltaGamma );
          for (unsigned int i = 0; i < 3; i++) {
@@ -372,7 +372,7 @@ namespace Kratos
          }
 
 
-         // BEGINING OF SOLVING THE NON-LINEAR THING 
+         // BEGINNING OF SOLVING THE NON-LINEAR THING 
          this->UpdateDerivatives( HenckyStrain, AuxiliarDerivatives, rReturnMappingVariables.DeltaGamma );
 
          for (unsigned int iter = 0; iter < 150; iter ++)
@@ -467,7 +467,7 @@ namespace Kratos
 
    }
 
-   // RETURNS A STRESS POINT TO THE YIELD SURFACE ACCORDING TO THE RETURN MAPPING ALGORITHMS (Some terms of the system matrix for the MCC are missing, though, thay may be not very revelant)
+   // RETURNS A STRESS POINT TO THE YIELD SURFACE ACCORDING TO THE RETURN MAPPING ALGORITHMS (Some terms of the system matrix for the MCC are missing, though, they may be not very relevant)
    void NonAssociativeExplicitPlasticFlowRule::ReturnStressToYieldSurface4( RadialReturnVariables& rReturnMappingVariables, Matrix& rNewElasticLeftCauchyGreen, Vector& rStressVector, double& rDrift, const double& rTolerance)
    {
 
@@ -598,7 +598,7 @@ namespace Kratos
          //std::cout << "   RRMM ITER " << iter << " NORM " << ResidualNorm << std::endl;;
 
          if ( iter > 140)
-         { // WRITTING THINGS IN THAT
+         { // WRITING THINGS IN THAT
 
             std::cout << " " << iter << "  " << ResidualNorm ;
 
@@ -706,7 +706,7 @@ namespace Kratos
 
       rReturnMappingVariables.IncrementalPlasticShearStrain += sqrt( aux);
 
-      /* if (iter > 60) { // STUPID FUNCION
+      /* if (iter > 60) { // STUPID FUNCTION
          std::cout << "   RRMM ITER " << iter << " NORM " << ResidualNorm << std::endl;
          {
          std::cout << " CHECK THE DERIVATIVE " << std::endl;
@@ -845,7 +845,7 @@ namespace Kratos
       double Tolerance = 1.0E-4; // LMV
 
 
-      //2- Check for yield Condition (at the beggining)
+      //2- Check for yield Condition (at the beginning)
       this->CalculateKirchhoffStressVector( PreviousElasticLeftCauchyGreen, PreviousStressVector);
       rReturnMappingVariables.TrialStateFunction = mpYieldCriterion->CalculateYieldCondition(rReturnMappingVariables.TrialStateFunction, PreviousStressVector, rReturnMappingVariables.DeltaGamma );
 
@@ -1047,7 +1047,7 @@ namespace Kratos
          std::cout<< " " << std::endl;
          std::cout << "Leaving drift correction WITHOUT converging " << rDrift << std::endl;
          std::cout << " StressVector " << rStressVector << std::endl;
-         // COMPTUING THE LODE ANGLE TO SEE WHAT HAPPENS
+         // COMPUTING THE LODE ANGLE TO SEE WHAT HAPPENS
        Matrix SM = ZeroMatrix(3,3);
 
          SM = MathUtils<double>::StressVectorToTensor( rStressVector);
@@ -1524,7 +1524,7 @@ namespace Kratos
       // COMPUTE ELASTIC MATRIX
       this->ComputeElasticMatrix(ElasticStrainVector, rElasticMatrix);
 
-      //if ( StressIntTechnique == 3) // mIMPLEX // this case allways goes with the elastic matrix.
+      //if ( StressIntTechnique == 3) // mIMPLEX // this case always goes with the elastic matrix.
       if ( rReturnMappingVariables.Options.Is(IMPLEX_ACTIVE) ) {
          return; 
       }
@@ -1727,4 +1727,4 @@ namespace Kratos
 
 
 
-} //End Namepace Kratos
+} //End Namespace Kratos

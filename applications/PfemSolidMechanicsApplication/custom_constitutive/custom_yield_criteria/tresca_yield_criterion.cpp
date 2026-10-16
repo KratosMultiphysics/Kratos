@@ -46,7 +46,7 @@ namespace Kratos
 
    }
 
-   //*******************************ASSIGMENT OPERATOR***********************************
+   //******************************ASSIGNMENT OPERATOR***********************************
    //************************************************************************************
 
    TrescaYieldCriterion& TrescaYieldCriterion::operator=(TrescaYieldCriterion const& rOther)
@@ -178,7 +178,7 @@ namespace Kratos
    }
 
 
-   // YIELD FUNCION SECOND DERIVATIVE
+   // YIELD FUNCTION SECOND DERIVATIVE
 /*   void TrescaYieldCriterion::CalculateYieldFunctionSecondDerivative(const Vector& rStressVector, Matrix& rYieldFunctionDD, const double& rAlpha)
    {
       rYieldFunctionDD = ZeroMatrix(1,1);
@@ -454,7 +454,7 @@ namespace Kratos
 
       C3Matrix(5,3) = 6 * ShearStress(5);
       C3Matrix(5,4) = 6 * ShearStress(3);
-      C3Matrix(5,5) = -6 * ShearStress(1);  // not shure but who cares
+      C3Matrix(5,5) = -6 * ShearStress(1);  // not sure but who cares
 
       for (unsigned int i = 0; i < 6; i++) {
          for (unsigned int j = i+1; j < 6; j++)
