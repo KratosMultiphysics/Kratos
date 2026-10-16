@@ -42,8 +42,11 @@ class StructuralMechanicsAdjointStaticSolver(MechanicalSolver):
         # TODO Why does replacement need to happen after reading materials?
 
         process_info = self.main_model_part.ProcessInfo
-        if (process_info.Has(StructuralMechanicsApplication.IS_ADJOINT) and
-            process_info.GetValue(StructuralMechanicsApplication.IS_ADJOINT)):
+        is_adjoint = process_info.Has(StructuralMechanicsApplication.IS_ADJOINT) and process_info.GetValue(StructuralMechanicsApplication.IS_ADJOINT)
+        if is_adjoint:
+            # a restored adjoint model part is already replaced; a restored primal one falls through
+            if process_info.Has(KratosMultiphysics.IS_RESTARTED) and process_info.GetValue(KratosMultiphysics.IS_RESTARTED):
+                return
             raise RuntimeError("Modelpart '{}' is already adjoint modelpart!".format(self.main_model_part.Name))
 
         # defines how the primal elements should be replaced with their adjoint counterparts

@@ -45,6 +45,10 @@ class BufferedDict:
         """
         return len(self.__buffered_data)
 
+    def GetClearBufferWhenAdvancing(self) -> bool:
+        """Whether AdvanceStep() clears the data of the new current step (constructor argument)."""
+        return self.__clear_buffer_when_advancing
+
     def AdvanceStep(self, recursive = True) -> None:
         """Advances the buffered data containers
 

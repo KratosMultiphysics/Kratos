@@ -57,7 +57,7 @@ class L2ConvCriterion(ConvergenceCriterion):
         if not hasattr(field, "data"):
             raise RuntimeError(f"The value represented by {self.__field_name} is not a field.")
 
-        self.__norm = numpy.linalg.norm(field.data)
+        self.__norm = float(numpy.linalg.norm(field.data))
         self.__conv = self.__norm <= self.__tolerance
         self.__component_data_view.GetBufferedData().SetValue(self.__field_name.split(':')[0] + "_l2_norm", self.__norm)
         return self.__conv

@@ -22,6 +22,7 @@
 // Project includes
 #include "includes/define.h"
 #include "includes/model_part.h"
+#include "containers/global_pointers_vector.h"
 
 // Application includes
 
@@ -37,6 +38,14 @@ public:
     ///@{
 
     using IndexType = std::size_t;
+
+    /// Neighbour entity data removed by ClearNeighbourEntitiesData, to be put back by RestoreNeighbourEntitiesData.
+    struct NeighbourEntitiesDataBackup
+    {
+        std::vector<std::pair<ModelPart::NodeType*, GlobalPointersVector<Element>>> mNeighbourElements;
+        std::vector<std::pair<ModelPart::NodeType*, GlobalPointersVector<Condition>>> mNeighbourConditions;
+        std::vector<std::pair<ModelPart::NodeType*, GlobalPointersVector<ModelPart::NodeType>>> mNeighbourNodes;
+    };
 
     ///@}
     ///@name Static operations
@@ -122,6 +131,25 @@ public:
         ModelPart::ConditionsContainerType& rOriginContainer,
         ModelPart& rDestinationModelPart,
         const Element& rReferenceElement);
+
+    /**
+     * @brief Clears the neighbour entity data of all nodes and returns a backup of it.
+     *
+     * NEIGHBOUR_ELEMENTS, NEIGHBOUR_CONDITIONS and NEIGHBOUR_NODES can't survive a Serializer
+     * round-trip (nodes load before the entities they point to), so they are erased from the nodes
+     * before a save. The backup holds raw node pointers, so the nodes must outlive it.
+     *
+     * @param rModelParts       The list of model parts whose nodes' neighbour entity data is cleared.
+     * @return NeighbourEntitiesDataBackup  The removed data, to pass to RestoreNeighbourEntitiesData.
+     */
+    static NeighbourEntitiesDataBackup ClearNeighbourEntitiesData(const std::vector<ModelPart*>& rModelParts);
+
+    /**
+     * @brief Puts the neighbour entity data of rBackup back on its nodes and empties rBackup.
+     *
+     * @param rBackup           The backup returned by ClearNeighbourEntitiesData.
+     */
+    static void RestoreNeighbourEntitiesData(NeighbourEntitiesDataBackup& rBackup);
 
     ///@}
 };

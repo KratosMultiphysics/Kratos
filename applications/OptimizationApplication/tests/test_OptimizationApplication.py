@@ -35,6 +35,7 @@ import test_connectivity_preserving_model_part_controller
 import test_sigmoidal_projection
 import test_smooth_clamper
 import test_buffered_dict
+import test_restart_file_naming
 import control.test_master_control
 import control.material.test_material_properties_control
 import control.thickness.test_shell_thickness_control
@@ -52,10 +53,14 @@ import algorithm_tests.test_line_search
 import algorithm_tests.test_algorithm_steepest_descent
 import algorithm_tests.analysis_based_tests.algorithm_steepest_descent_qnbb.test_steepest_descent_analysis
 import algorithm_tests.analysis_based_tests.algorithm_steepest_descent.test_steepest_descent_analysis
+import algorithm_tests.analysis_based_tests.algorithm_steepest_descent_restart.test_steepest_descent_restart
 import algorithm_tests.analysis_based_tests.algorithm_nesterov_accelerated_gradient.test_nestervo_accelerated_gradient_analysis
+import algorithm_tests.analysis_based_tests.algorithm_nesterov_accelerated_gradient_restart.test_nesterov_accelerated_gradient_restart
 import algorithm_tests.analysis_based_tests.algorithm_adam.test_adam_analysis
+import algorithm_tests.analysis_based_tests.algorithm_adam_restart.test_adam_restart
 import algorithm_tests.analysis_based_tests.algorithm_gradient_projection.test_gradient_projection
 import algorithm_tests.analysis_based_tests.algorithm_relaxed_gradient_projection.test_relaxed_gradient_projection
+import algorithm_tests.analysis_based_tests.algorithm_momentum_relaxed_gradient_projection_restart.test_momentum_relaxed_gradient_projection_restart
 import algorithm_tests.nlopt_tests.mma_shell_thickness_opt.test_mma_optimizer
 
 # Nightly tests
@@ -84,6 +89,7 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_execution_policies.TestExecutionPolicies]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([symmetry_utilities_tests.symmetry_tests.SymmetryUtilitiesTest]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_buffered_dict.TestBufferedDict]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_restart_file_naming.TestRestartFileNaming]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_component_data_view.TestComponentDataView]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_tensor_adaptor_serialization.TestPropertiesVariableTensorAdaptorSerialization]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_optimization_info.TestOptimizationInfo]))
@@ -130,12 +136,16 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([algorithm_tests.test_line_search.TestLineSearch]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([algorithm_tests.test_algorithm_steepest_descent.TestAlgorithmSteepestDescent]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([algorithm_tests.analysis_based_tests.algorithm_steepest_descent.test_steepest_descent_analysis.TestSteepestDescentAnalysis]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([algorithm_tests.analysis_based_tests.algorithm_steepest_descent_restart.test_steepest_descent_restart.TestSteepestDescentRestart]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([algorithm_tests.analysis_based_tests.algorithm_steepest_descent_qnbb.test_steepest_descent_analysis.TestQNBBSteepestDescentAnalysis]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([algorithm_tests.nlopt_tests.mma_shell_thickness_opt.test_mma_optimizer.TestNLOPTOptimizer]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([algorithm_tests.analysis_based_tests.algorithm_gradient_projection.test_gradient_projection.TestGradientProjectionAnalysis]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([algorithm_tests.analysis_based_tests.algorithm_relaxed_gradient_projection.test_relaxed_gradient_projection.TestRelaxedGradientProjectionAnalysis]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([algorithm_tests.analysis_based_tests.algorithm_momentum_relaxed_gradient_projection_restart.test_momentum_relaxed_gradient_projection_restart.TestMomentumRelaxedGradientProjectionRestart]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([algorithm_tests.analysis_based_tests.algorithm_nesterov_accelerated_gradient.test_nestervo_accelerated_gradient_analysis.TestNesterovAcceleratedGradientAnalysis]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([algorithm_tests.analysis_based_tests.algorithm_nesterov_accelerated_gradient_restart.test_nesterov_accelerated_gradient_restart.TestNesterovAcceleratedGradientRestart]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([algorithm_tests.analysis_based_tests.algorithm_adam.test_adam_analysis.TestAdamAnalysis]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([algorithm_tests.analysis_based_tests.algorithm_adam_restart.test_adam_restart.TestAdamRestart]))
 
 
 
