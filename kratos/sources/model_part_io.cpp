@@ -21,6 +21,7 @@
 #include "input_output/logger.h"
 #include "utilities/compare_elements_and_conditions_utility.h"
 #include "utilities/openmp_utils.h"
+#include "utilities/parallel_utilities.h"
 #include "utilities/quaternion.h"
 #include "utilities/string_utilities.h"
 #include "utilities/timer.h"
@@ -135,13 +136,23 @@ std::size_t ModelPartIO::ReadNodesNumber()
 
 void ModelPartIO::WriteNodes(NodesContainerType const& rThisNodes)
 {
-    // Printing or not with scientific precision
-    if (mOptions.Is(IO::SCIENTIFIC_PRECISION)) {
+    const bool use_scientific = mOptions.Is(IO::SCIENTIFIC_PRECISION);
+    if (use_scientific) {
         (*mpStream) << std::setprecision(10) << std::scientific;
     }
     (*mpStream) << "Begin Nodes" << std::endl;
-    for(NodesContainerType::const_iterator it_node = rThisNodes.begin() ; it_node != rThisNodes.end() ; ++it_node)
-        (*mpStream) << "\t" << it_node->Id() << "\t" << it_node->X()  << "\t" << it_node->Y() << "\t" << it_node->Z() << "\n";
+
+    const SizeType n_nodes = rThisNodes.size();
+    std::vector<std::string> rows(n_nodes);
+    IndexPartition<SizeType>(n_nodes).for_each([&](SizeType i) {
+        auto it = rThisNodes.begin() + i;
+        std::ostringstream oss;
+        if (use_scientific) oss << std::setprecision(10) << std::scientific;
+        oss << "\t" << it->Id() << "\t" << it->X() << "\t" << it->Y() << "\t" << it->Z() << "\n";
+        rows[i] = oss.str();
+    });
+    for (const auto& row : rows) *mpStream << row;
+
     (*mpStream) << "End Nodes" << std::endl << std::endl;
 }
 
@@ -375,47 +386,38 @@ std::size_t  ModelPartIO::ReadElementsConnectivities(ConnectivitiesContainerType
 
 void ModelPartIO::WriteElements(ElementsContainerType const& rThisElements)
 {
-    // We are going to proceed like the following, we are going to iterate over all the elements and compare with the components, we will save the type and we will compare until we get that the type of element has changed
-    if (rThisElements.size() > 0) {
-        std::string element_name;
+    if (rThisElements.size() == 0) return;
 
-        auto it_element = rThisElements.begin();
-        auto elements_components = KratosComponents<Element>::GetComponents();
+    const SizeType n_elements = rThisElements.size();
 
-        // First we do the first element
-        CompareElementsAndConditionsUtility::GetRegisteredName(*it_element, element_name);
+    // Build each row string in parallel; type-group headers are inserted during serial output.
+    std::vector<std::string> rows(n_elements);
+    IndexPartition<SizeType>(n_elements).for_each([&](SizeType i) {
+        auto it = rThisElements.begin() + i;
+        std::ostringstream oss;
+        oss << "\t" << it->Id() << "\t" << it->pGetProperties()->Id() << "\t";
+        for (SizeType j = 0; j < it->GetGeometry().size(); j++)
+            oss << it->GetGeometry()[j].Id() << "\t";
+        oss << "\n";
+        rows[i] = oss.str();
+    });
 
-        (*mpStream) << "Begin Elements\t" << element_name << std::endl;
-        (*mpStream) << "\t" << rThisElements.begin()->Id() << "\t" << (rThisElements.begin()->pGetProperties())->Id() << "\t";
-        for (std::size_t i_node = 0; i_node < rThisElements.begin()->GetGeometry().size(); i_node++)
-            (*mpStream) << rThisElements.begin()->GetGeometry()[i_node].Id() << "\t";
-        (*mpStream) << std::endl;
-
-        // Now we iterate over all the elements
-        for(std::size_t i = 1; i < rThisElements.size(); i++) {
-            auto it_elem_previous = rThisElements.begin() + i - 1;
-            auto it_elem_current = rThisElements.begin() + i;
-
-            if(GeometricalObject::IsSame(*it_elem_previous, *it_elem_current)) {
-                (*mpStream) << "\t" << it_elem_current->Id() << "\t" << (it_elem_current->pGetProperties())->Id() << "\t";
-                for (std::size_t i_node = 0; i_node < it_elem_current->GetGeometry().size(); i_node++)
-                    (*mpStream) << it_elem_current->GetGeometry()[i_node].Id() << "\t";
-                (*mpStream) << "\n";;
-            } else {
-                (*mpStream) << "End Elements" << std::endl << std::endl;
-
-                CompareElementsAndConditionsUtility::GetRegisteredName(*it_elem_current, element_name);
-
-                (*mpStream) << "Begin Elements\t" << element_name << std::endl;
-                (*mpStream) << "\t" << it_elem_current->Id() << "\t" << (it_elem_current->pGetProperties())->Id() << "\t";
-                for (std::size_t i_node = 0; i_node < it_elem_current->GetGeometry().size(); i_node++)
-                    (*mpStream) << it_elem_current->GetGeometry()[i_node].Id() << "\t";
-                (*mpStream) << "\n";;
-            }
+    // Serial output: detect type-group boundaries and wrap with Begin/End headers.
+    std::string element_name;
+    CompareElementsAndConditionsUtility::GetRegisteredName(*rThisElements.begin(), element_name);
+    (*mpStream) << "Begin Elements\t" << element_name << std::endl;
+    (*mpStream) << rows[0];
+    for (SizeType i = 1; i < n_elements; i++) {
+        auto it_prev = rThisElements.begin() + i - 1;
+        auto it_curr = rThisElements.begin() + i;
+        if (!GeometricalObject::IsSame(*it_prev, *it_curr)) {
+            (*mpStream) << "End Elements" << std::endl << std::endl;
+            CompareElementsAndConditionsUtility::GetRegisteredName(*it_curr, element_name);
+            (*mpStream) << "Begin Elements\t" << element_name << std::endl;
         }
-
-        (*mpStream) << "End Elements" << std::endl << std::endl;
+        (*mpStream) << rows[i];
     }
+    (*mpStream) << "End Elements" << std::endl << std::endl;
 }
 
 void ModelPartIO::ReadConditions(NodesContainerType& rThisNodes, PropertiesContainerType& rThisProperties, ConditionsContainerType& rThisConditions)
@@ -460,48 +462,38 @@ std::size_t ModelPartIO::ReadConditionsConnectivities(ConnectivitiesContainerTyp
 
 void ModelPartIO::WriteConditions(ConditionsContainerType const& rThisConditions)
 {
-    // We are going to proceed like the following, we are going to iterate over all the conditions and compare with the components, we will save the type and we will compare until we get that the type of condition has changed
+    if (rThisConditions.size() == 0) return;
 
-    if (rThisConditions.size() > 0) {
-        std::string condition_name;
+    const SizeType n_conditions = rThisConditions.size();
 
-        auto it_condition = rThisConditions.begin();
-        auto conditions_components = KratosComponents<Condition>::GetComponents();
+    // Build each row string in parallel; type-group headers are inserted during serial output.
+    std::vector<std::string> rows(n_conditions);
+    IndexPartition<SizeType>(n_conditions).for_each([&](SizeType i) {
+        auto it = rThisConditions.begin() + i;
+        std::ostringstream oss;
+        oss << "\t" << it->Id() << "\t" << it->pGetProperties()->Id() << "\t";
+        for (SizeType j = 0; j < it->GetGeometry().size(); j++)
+            oss << it->GetGeometry()[j].Id() << "\t";
+        oss << "\n";
+        rows[i] = oss.str();
+    });
 
-        // First we do the first condition
-        CompareElementsAndConditionsUtility::GetRegisteredName(*it_condition, condition_name);
-
-        (*mpStream) << "Begin Conditions\t" << condition_name << std::endl;
-        (*mpStream) << "\t" << rThisConditions.begin()->Id() << "\t" << (rThisConditions.begin()->pGetProperties())->Id() << "\t";
-        for (std::size_t i_node = 0; i_node < rThisConditions.begin()->GetGeometry().size(); i_node++)
-            (*mpStream) << rThisConditions.begin()->GetGeometry()[i_node].Id() << "\t";
-        (*mpStream) << std::endl;
-
-        // Now we iterate over all the conditions
-        for(std::size_t i = 1; i < rThisConditions.size(); i++) {
-            auto it_cond_previous = rThisConditions.begin() + i - 1;
-            auto it_cond_current = rThisConditions.begin() + i;
-
-            if(GeometricalObject::IsSame(*it_cond_previous, *it_cond_current)) {
-                (*mpStream) << "\t" << it_cond_current->Id() << "\t" << (it_cond_current->pGetProperties())->Id() << "\t";
-                for (std::size_t i_node = 0; i_node < it_cond_current->GetGeometry().size(); i_node++)
-                    (*mpStream) << it_cond_current->GetGeometry()[i_node].Id() << "\t";
-                (*mpStream) << "\n";;
-            } else {
-                (*mpStream) << "End Conditions" << std::endl << std::endl;
-
-                CompareElementsAndConditionsUtility::GetRegisteredName(*it_cond_current, condition_name);
-
-                (*mpStream) << "Begin Conditions\t" << condition_name << std::endl;
-                (*mpStream) << "\t" << it_cond_current->Id() << "\t" << (it_cond_current->pGetProperties())->Id() << "\t";
-                for (std::size_t i_node = 0; i_node < it_cond_current->GetGeometry().size(); i_node++)
-                    (*mpStream) << it_cond_current->GetGeometry()[i_node].Id() << "\t";
-                (*mpStream) << "\n";;
-            }
+    // Serial output: detect type-group boundaries and wrap with Begin/End headers.
+    std::string condition_name;
+    CompareElementsAndConditionsUtility::GetRegisteredName(*rThisConditions.begin(), condition_name);
+    (*mpStream) << "Begin Conditions\t" << condition_name << std::endl;
+    (*mpStream) << rows[0];
+    for (SizeType i = 1; i < n_conditions; i++) {
+        auto it_prev = rThisConditions.begin() + i - 1;
+        auto it_curr = rThisConditions.begin() + i;
+        if (!GeometricalObject::IsSame(*it_prev, *it_curr)) {
+            (*mpStream) << "End Conditions" << std::endl << std::endl;
+            CompareElementsAndConditionsUtility::GetRegisteredName(*it_curr, condition_name);
+            (*mpStream) << "Begin Conditions\t" << condition_name << std::endl;
         }
-
-        (*mpStream) << "End Conditions" << std::endl << std::endl;
+        (*mpStream) << rows[i];
     }
+    (*mpStream) << "End Conditions" << std::endl << std::endl;
 }
 
 void ModelPartIO::ReadConstraints(
@@ -548,237 +540,89 @@ std::size_t ModelPartIO::ReadConstraintsConnectivities(ConnectivitiesContainerTy
 
 void ModelPartIO::WriteConstraints(MasterSlaveConstraintContainerType const& rConstraintContainer)
 {
-    // We are going to proceed like the following, we are going to iterate over all the constraints and compare with the components, we will save the type and we will compare until we get that the type of constraint has changed
-    // NOTE: Only constraints with one slave dof are supported
+    if (rConstraintContainer.size() == 0) return;
 
-    // We are going to use this vector to identify if the constraint is of the same type, first the number of master dofs and then the number of slave dofs, and the the keys of the variables
-    std::vector<IndexType> check_same_type_vector_previous;
+    const SizeType n_constraints = rConstraintContainer.size();
+    ProcessInfo process_info;
 
-    // A lambda to check that the check_same_type_vector is the same
-    auto check_same_type = [](
-        const MasterSlaveConstraint& rConstraint,
-        const MasterSlaveConstraint& rConstraintPrevious,
-        const std::vector<IndexType>& rCheckSameTypeVectorPrevious,
-        const ProcessInfo& rCurrentProcessInfo
-        ) -> bool
-    {
-        if (typeid(rConstraint) != typeid(rConstraintPrevious)) {
-            return false;
-        }
+    // Match the serial behaviour: in the original code the stream manipulators set in
+    // WriteNodes stuck on the shared stream, so constraint values were written with the
+    // same precision. Each thread builds its row in a private ostringstream that does not
+    // inherit those manipulators, so the option has to be applied explicitly here.
+    const bool use_scientific = mOptions.Is(IO::SCIENTIFIC_PRECISION);
 
-        // Define the dofs
-        MasterSlaveConstraint::DofPointerVectorType master_dofs, slave_dofs;
-
-        // Compute the dofs
-        rConstraint.GetDofList(slave_dofs, master_dofs, rCurrentProcessInfo);
-
-        // We get the number of master and slave dofs
-        const SizeType number_of_master_dofs = master_dofs.size();
-        const SizeType number_of_slave_dofs = slave_dofs.size();
-        if (2 + number_of_master_dofs + number_of_slave_dofs != rCheckSameTypeVectorPrevious.size()) return false;
-        std::vector<IndexType> check_same_type_vector;
-        check_same_type_vector.reserve(2 + number_of_master_dofs + number_of_slave_dofs);
-        check_same_type_vector.push_back(number_of_master_dofs);
-        check_same_type_vector.push_back(number_of_slave_dofs);
-
-        for (IndexType i = 0; i < number_of_master_dofs; ++i) {
-            const auto& p_dof = master_dofs[i];
-            check_same_type_vector.push_back(p_dof->GetVariable().Key());
-        }
-        for (IndexType i = 0; i < number_of_slave_dofs; ++i) {
-            const auto& p_dof = slave_dofs[i];
-            check_same_type_vector.push_back(p_dof->GetVariable().Key());
-        }
-        for (IndexType i = 0; i < check_same_type_vector.size(); ++i) {
-            if (check_same_type_vector[i] != rCheckSameTypeVectorPrevious[i]) return false;
-        }
-        return true;
+    // Per-constraint data built in parallel.
+    struct ConstraintRowData {
+        std::string header;           // "Begin Constraints\tname\tslave_var\tmaster_var...\n"
+        std::string row;              // data row: "\tid\tconstant\t[T...]\tslave_id\tmaster_ids...\n"
+        std::vector<IndexType> type_sig; // (n_master, n_slave, slave_var_key, master_var_keys...)
     };
 
-    // If there are constraints we print them
-    if (rConstraintContainer.size() > 0) {
-        // Define the name of the constraint
+    std::vector<ConstraintRowData> row_data(n_constraints);
+    IndexPartition<SizeType>(n_constraints).for_each([&](SizeType i) {
+        auto it = rConstraintContainer.begin() + i;
+
+        MasterSlaveConstraint::DofPointerVectorType m_dofs, s_dofs;
+        it->GetDofList(s_dofs, m_dofs, process_info);
+
+        const SizeType n_m = m_dofs.size();
+        const SizeType n_s = s_dofs.size();
+        KRATOS_ERROR_IF(n_s != 1) << "Constraint " << it->Id() << " must have exactly one slave dof" << std::endl;
+
+        Matrix T;
+        Vector c;
+        it->CalculateLocalSystem(T, c, process_info);
+
+        // Type signature: (n_master, n_slave, slave_key, master_keys...)
+        std::vector<IndexType> sig;
+        sig.reserve(2 + n_m + n_s);
+        sig.push_back(n_m);
+        sig.push_back(n_s);
+        sig.push_back(s_dofs[0]->GetVariable().Key());
+        for (SizeType j = 0; j < n_m; ++j)
+            sig.push_back(m_dofs[j]->GetVariable().Key());
+        row_data[i].type_sig = std::move(sig);
+
+        // Block header (used when this constraint starts a new type group)
         std::string constraint_name;
+        CompareElementsAndConditionsUtility::GetRegisteredName(*it, constraint_name);
+        std::ostringstream hoss;
+        hoss << "Begin Constraints\t" << constraint_name
+             << "\t" << s_dofs[0]->GetVariable().Name();
+        for (SizeType j = 0; j < n_m; ++j)
+            hoss << "\t" << m_dofs[j]->GetVariable().Name();
+        hoss << "\n";
+        row_data[i].header = hoss.str();
 
-        // Define the variables names
-        std::vector<std::string> variables_names;
-
-        // Define empty process info
-        ProcessInfo current_process_info;
-
-        auto it_constraint_begin = rConstraintContainer.begin();
-        auto constraints_components = KratosComponents<MasterSlaveConstraint>::GetComponents();
-
-        // First we do the first constraint
-        CompareElementsAndConditionsUtility::GetRegisteredName(*it_constraint_begin, constraint_name);
-
-        // We get the transformation matrix and the constant vector
-        Matrix transformation_matrix;
-        Vector constant_vector;
-
-        // Define the dofs
-        MasterSlaveConstraint::DofPointerVectorType master_dofs, slave_dofs;
-
-        // Compute the dofs
-        it_constraint_begin->GetDofList(slave_dofs, master_dofs, current_process_info);
-
-        // We get the number of master and slave dofs
-        SizeType number_of_master_dofs = master_dofs.size();
-        SizeType number_of_slave_dofs = slave_dofs.size();
-        KRATOS_ERROR_IF(number_of_slave_dofs != 1) << "The constraint " << it_constraint_begin->Id() << " has to have only one slave dof" << std::endl;
-        variables_names.reserve(number_of_master_dofs + number_of_slave_dofs);
-        check_same_type_vector_previous.reserve(2 + number_of_master_dofs + number_of_slave_dofs);
-        check_same_type_vector_previous.push_back(number_of_master_dofs);
-        check_same_type_vector_previous.push_back(number_of_slave_dofs);
-        {
-            const auto& p_dof = slave_dofs[0];
-            const auto& r_variable = p_dof->GetVariable();
-            variables_names.push_back(r_variable.Name());
-            check_same_type_vector_previous.push_back(r_variable.Key());
+        // Data row
+        std::ostringstream oss;
+        if (use_scientific) oss << std::setprecision(10) << std::scientific;
+        oss << "\t" << it->Id() << "\t" << c[0] << "\t[";
+        for (SizeType j = 0; j < n_m; ++j) {
+            oss << T(0, j);
+            if (j < n_m - 1) oss << ",\t";
         }
-        for (IndexType i = 0; i < number_of_master_dofs; ++i) {
-            const auto& p_dof = master_dofs[i];
-            const auto& r_variable = p_dof->GetVariable();
-            variables_names.push_back(r_variable.Name());
-            check_same_type_vector_previous.push_back(r_variable.Key());
+        oss << "]\t" << s_dofs[0]->Id() << "\t";
+        for (SizeType j = 0; j < n_m; ++j)
+            oss << m_dofs[j]->Id() << "\t";
+        oss << "\n";
+        row_data[i].row = oss.str();
+    });
+
+    // Serial output: emit group headers when the type changes. The original code started a
+    // new block when the registered type differed (typeid) or the dof signature changed; the
+    // header string encodes the registered name plus the variable names, so comparing both the
+    // header and the numeric signature reproduces that exact grouping.
+    (*mpStream) << row_data[0].header << row_data[0].row;
+    for (SizeType i = 1; i < n_constraints; i++) {
+        if (row_data[i].type_sig != row_data[i - 1].type_sig ||
+            row_data[i].header != row_data[i - 1].header) {
+            (*mpStream) << "End Constraints\n\n";
+            (*mpStream) << row_data[i].header;
         }
-
-        // We get the transformation matrix and the constant vector
-        it_constraint_begin->CalculateLocalSystem(transformation_matrix, constant_vector, current_process_info);
-
-        (*mpStream) << "Begin Constraints\t" << constraint_name;// << "\t" << number_of_master_dofs;
-        for (IndexType i = 0; i < variables_names.size(); ++i) {
-            (*mpStream) << "\t" << variables_names[i];
-        }
-        (*mpStream) << "\n";
-        (*mpStream) << "\t" << it_constraint_begin->Id() << "\t";
-
-        // We write the constant vector (we consider that the first value is just one value)
-        (*mpStream) << constant_vector[0] << "\t";
-
-        // We write the transformation matrix
-        (*mpStream) << "[";
-        for (IndexType j = 0; j < number_of_master_dofs; ++j) {
-            (*mpStream) << transformation_matrix(0, j);
-            if (j < number_of_master_dofs - 1) {
-                (*mpStream) << ",\t";
-            }
-        }
-        (*mpStream) << "]\t";
-
-        // Write connectivity. First we write the slave dof, then the master dofs
-        (*mpStream) << slave_dofs[0]->Id() << "\t";
-        for (IndexType i = 0; i < number_of_master_dofs; ++i) {
-            (*mpStream) << master_dofs[i]->Id() << "\t";
-        }
-        (*mpStream) << "\n";
-
-        // Now we iterate over all the constraints
-        for(std::size_t i = 1; i < rConstraintContainer.size(); i++) {
-            auto it_const_previous = it_constraint_begin + i - 1;
-            auto it_const_current = it_constraint_begin + i;
-
-            if (check_same_type(*it_const_current, *it_const_previous, check_same_type_vector_previous, current_process_info)) {
-                // Compute the dofs
-                slave_dofs.clear();
-                master_dofs.clear();
-                it_const_current->GetDofList(slave_dofs, master_dofs, current_process_info);
-
-                // We get the transformation matrix and the constant vector
-                it_const_current->CalculateLocalSystem(transformation_matrix, constant_vector, current_process_info);
-
-                // Write the constraint id
-                (*mpStream) << "\t" << it_const_current->Id() << "\t";
-
-                // We write the constant vector (we consider that the first value is just one value)
-                (*mpStream) << constant_vector[0] << "\t";
-
-                // We write the transformation matrix
-                (*mpStream) << "[";
-                for (IndexType j = 0; j < number_of_master_dofs; ++j) {
-                    (*mpStream) << transformation_matrix(0, j);
-                    if (j < number_of_master_dofs - 1) {
-                        (*mpStream) << ",\t";
-                    }
-                }
-                (*mpStream) << "]\t";
-
-                // Write connectivity. First we write the slave dof, then the master dofs
-                (*mpStream) << slave_dofs[0]->Id() << "\t";
-                for (IndexType i = 0; i < number_of_master_dofs; ++i) {
-                    (*mpStream) << master_dofs[i]->Id() << "\t";
-                }
-                (*mpStream) << "\n";
-            } else {
-                // End previous constraint
-                (*mpStream) << "End Constraints" << "\n\n";
-
-                // Get the new name
-                CompareElementsAndConditionsUtility::GetRegisteredName(*it_const_current, constraint_name);
-
-                // Compute the dofs
-                slave_dofs.clear();
-                master_dofs.clear();
-                it_const_current->GetDofList(slave_dofs, master_dofs, current_process_info);
-
-                // We get the number of master and slave dofs
-                number_of_master_dofs = master_dofs.size();
-                number_of_slave_dofs = slave_dofs.size();
-                KRATOS_ERROR_IF(number_of_slave_dofs != 1) << "The constraint " << it_const_current->Id() << " has to have only one slave dof" << std::endl;
-                variables_names.clear();
-                variables_names.reserve(number_of_master_dofs + number_of_slave_dofs);
-                check_same_type_vector_previous.clear();
-                check_same_type_vector_previous.reserve(2 + number_of_master_dofs + number_of_slave_dofs);
-                check_same_type_vector_previous.push_back(number_of_master_dofs);
-                check_same_type_vector_previous.push_back(number_of_slave_dofs);
-
-                {
-                    const auto& p_dof = slave_dofs[0];
-                    const auto& r_variable = p_dof->GetVariable();
-                    variables_names.push_back(r_variable.Name());
-                    check_same_type_vector_previous.push_back(r_variable.Key());
-                }
-                for (IndexType i = 0; i < number_of_master_dofs; ++i) {
-                    const auto& p_dof = master_dofs[i];
-                    const auto& r_variable = p_dof->GetVariable();
-                    variables_names.push_back(r_variable.Name());
-                    check_same_type_vector_previous.push_back(r_variable.Key());
-                }
-
-                // We get the transformation matrix and the constant vector
-                it_const_current->CalculateLocalSystem(transformation_matrix, constant_vector, current_process_info);
-
-                (*mpStream) << "Begin Constraints\t" << constraint_name;// << "\t" << number_of_master_dofs;
-                for (IndexType i = 0; i < variables_names.size(); ++i) {
-                    (*mpStream) << "\t" << variables_names[i];
-                }
-                (*mpStream) << "\n";
-                (*mpStream) << "\t" << it_const_current->Id() << "\t";
-
-                // We write the constant vector (we consider that the first value is just one value)
-                (*mpStream) << constant_vector[0] << "\t";
-
-                // We write the transformation matrix
-                (*mpStream) << "[";
-                for (IndexType j = 0; j < number_of_master_dofs; ++j) {
-                    (*mpStream) << transformation_matrix(0, j);
-                    if (j < number_of_master_dofs - 1) {
-                        (*mpStream) << ",\t";
-                    }
-                }
-                (*mpStream) << "]\t";
-
-                // Write connectivity. First we write the slave dof, then the master dofs
-                (*mpStream) << slave_dofs[0]->Id() << "\t";
-                for (IndexType i = 0; i < number_of_master_dofs; ++i) {
-                    (*mpStream) << master_dofs[i]->Id() << "\t";
-                }
-                (*mpStream) << "\n";
-            }
-        }
-
-        (*mpStream) << "End Constraints" << "\n\n";
+        (*mpStream) << row_data[i].row;
     }
+    (*mpStream) << "End Constraints\n\n";
 }
 
 void ModelPartIO::ReadInitialValues(ModelPart& rThisModelPart)
@@ -2284,12 +2128,6 @@ void ModelPartIO::ReadElementsBlock(NodesContainerType& rThisNodes, PropertiesCo
 {
     KRATOS_TRY
 
-    SizeType id;
-    SizeType properties_id;
-    SizeType node_id;
-    SizeType number_of_read_elements = 0;
-
-
     std::string word;
     std::string element_name;
 
@@ -2307,33 +2145,64 @@ void ModelPartIO::ReadElementsBlock(NodesContainerType& rThisNodes, PropertiesCo
     }
 
     Element const& r_clone_element = KratosComponents<Element>::Get(element_name);
-    SizeType number_of_nodes = r_clone_element.GetGeometry().size();
-    Element::NodesArrayType temp_element_nodes;
+    const SizeType number_of_nodes = r_clone_element.GetGeometry().size();
 
+    // Phase 1 (serial): read raw connectivity data from the stream and apply the
+    // entity reordering here. ReorderedElementId/ReorderedNodeId are virtual and the
+    // ReorderConsecutiveModelPartIO overrides mutate shared maps, so they MUST be
+    // called serially (calling them from the parallel phase is a data race).
+    struct ElemConnData { SizeType id, prop_id; std::vector<SizeType> node_ids; };
+    std::vector<ElemConnData> raw_data;
 
     while(!mpStream->eof())
     {
-        ReadWord(word); // Reading the element id or End
+        ReadWord(word);
         if(CheckEndBlock("Elements", word))
             break;
 
-        ExtractValue(word,id);
-        ReadWord(word); // Reading the properties id;
-        ExtractValue(word, properties_id);
-        Properties::Pointer p_temp_properties = *(FindKey(rThisProperties, properties_id, "Properties").base());
-        temp_element_nodes.clear();
-        for(SizeType i = 0 ; i < number_of_nodes ; i++)
-        {
-            ReadWord(word); // Reading the node id;
+        ElemConnData data;
+        data.node_ids.resize(number_of_nodes);
+        ExtractValue(word, data.id);
+        data.id = ReorderedElementId(data.id);
+        ReadWord(word);
+        ExtractValue(word, data.prop_id);
+        for(SizeType i = 0; i < number_of_nodes; i++) {
+            SizeType node_id;
+            ReadWord(word);
             ExtractValue(word, node_id);
-            temp_element_nodes.push_back( *(FindKey(rThisNodes, ReorderedNodeId(node_id), "Node").base()));
+            data.node_ids[i] = ReorderedNodeId(node_id);
         }
-
-        rThisElements.push_back(r_clone_element.Create(ReorderedElementId(id), temp_element_nodes, p_temp_properties));
-        number_of_read_elements++;
-
+        raw_data.push_back(std::move(data));
     }
-    KRATOS_INFO("") << number_of_read_elements << " elements read] [Type: " <<element_name << "]" << std::endl;
+
+    // Phase 2 (parallel): look up nodes/properties and create element objects.
+    // Pre-sort both containers so the const PointerVectorSet::find() used below is a
+    // pure read-only binary search, safe for concurrent access. Ids are already reordered.
+    rThisNodes.Sort();
+    rThisProperties.Sort();
+    const NodesContainerType& r_nodes = rThisNodes;
+    const PropertiesContainerType& r_properties = rThisProperties;
+    const SizeType n = raw_data.size();
+    std::vector<Element::Pointer> element_ptrs(n);
+    IndexPartition<SizeType>(n).for_each([&](SizeType i) {
+        const auto& d = raw_data[i];
+        Element::NodesArrayType temp_nodes;
+        temp_nodes.reserve(number_of_nodes);
+        for(SizeType j = 0; j < number_of_nodes; j++) {
+            auto it_node = r_nodes.find(d.node_ids[j]);
+            KRATOS_DEBUG_ERROR_IF(it_node == r_nodes.end()) << "Node #" << d.node_ids[j] << " belonging to element #" << d.id << " is not found." << std::endl;
+            temp_nodes.push_back(*(it_node.base()));
+        }
+        auto it_prop = r_properties.find(d.prop_id);
+        KRATOS_DEBUG_ERROR_IF(it_prop == r_properties.end()) << "Properties #" << d.prop_id << " belonging to element #" << d.id << " is not found." << std::endl;
+        element_ptrs[i] = r_clone_element.Create(d.id, temp_nodes, *(it_prop.base()));
+    });
+
+    // Phase 3 (serial): insert into the container in original order.
+    for(auto& ptr : element_ptrs)
+        rThisElements.push_back(ptr);
+
+    KRATOS_INFO("") << n << " elements read] [Type: " << element_name << "]" << std::endl;
     rThisElements.Unique();
 
     KRATOS_CATCH("")
@@ -2354,12 +2223,6 @@ void ModelPartIO::ReadConditionsBlock(NodesContainerType& rThisNodes, Properties
 {
     KRATOS_TRY
 
-    SizeType id;
-    SizeType properties_id;
-    SizeType node_id;
-    SizeType number_of_read_conditions = 0;
-
-
     std::string word;
     std::string condition_name;
 
@@ -2377,31 +2240,64 @@ void ModelPartIO::ReadConditionsBlock(NodesContainerType& rThisNodes, Properties
     }
 
     Condition const& r_clone_condition = KratosComponents<Condition>::Get(condition_name);
-    SizeType number_of_nodes = r_clone_condition.GetGeometry().size();
-    Condition::NodesArrayType temp_condition_nodes;
+    const SizeType number_of_nodes = r_clone_condition.GetGeometry().size();
+
+    // Phase 1 (serial): read raw connectivity data from the stream and apply the
+    // entity reordering here. ReorderedConditionId/ReorderedNodeId are virtual and the
+    // ReorderConsecutiveModelPartIO overrides mutate shared maps, so they MUST be
+    // called serially (calling them from the parallel phase is a data race).
+    struct CondConnData { SizeType id, prop_id; std::vector<SizeType> node_ids; };
+    std::vector<CondConnData> raw_data;
 
     while(!mpStream->eof())
     {
-        ReadWord(word); // Reading the condition id or End
+        ReadWord(word);
         if(CheckEndBlock("Conditions", word))
             break;
 
-        ExtractValue(word,id);
-        ReadWord(word); // Reading the properties id;
-        ExtractValue(word, properties_id);
-        Properties::Pointer p_temp_properties = *(FindKey(rThisProperties, properties_id, "Properties").base());
-        temp_condition_nodes.clear();
-        for(SizeType i = 0 ; i < number_of_nodes ; i++)
-        {
-            ReadWord(word); // Reading the node id;
+        CondConnData data;
+        data.node_ids.resize(number_of_nodes);
+        ExtractValue(word, data.id);
+        data.id = ReorderedConditionId(data.id);
+        ReadWord(word);
+        ExtractValue(word, data.prop_id);
+        for(SizeType i = 0; i < number_of_nodes; i++) {
+            SizeType node_id;
+            ReadWord(word);
             ExtractValue(word, node_id);
-            temp_condition_nodes.push_back( *(FindKey(rThisNodes, ReorderedNodeId(node_id), "Node").base()));
+            data.node_ids[i] = ReorderedNodeId(node_id);
         }
-
-        rThisConditions.push_back(r_clone_condition.Create(ReorderedConditionId(id), temp_condition_nodes, p_temp_properties));
-        number_of_read_conditions++;
+        raw_data.push_back(std::move(data));
     }
-    KRATOS_INFO("") << number_of_read_conditions << " conditions read] [Type: " << condition_name << "]" << std::endl;
+
+    // Phase 2 (parallel): look up nodes/properties and create condition objects.
+    // Pre-sort both containers so the const PointerVectorSet::find() used below is a
+    // pure read-only binary search, safe for concurrent access. Ids are already reordered.
+    rThisNodes.Sort();
+    rThisProperties.Sort();
+    const NodesContainerType& r_nodes = rThisNodes;
+    const PropertiesContainerType& r_properties = rThisProperties;
+    const SizeType n = raw_data.size();
+    std::vector<Condition::Pointer> condition_ptrs(n);
+    IndexPartition<SizeType>(n).for_each([&](SizeType i) {
+        const auto& d = raw_data[i];
+        Condition::NodesArrayType temp_nodes;
+        temp_nodes.reserve(number_of_nodes);
+        for(SizeType j = 0; j < number_of_nodes; j++) {
+            auto it_node = r_nodes.find(d.node_ids[j]);
+            KRATOS_DEBUG_ERROR_IF(it_node == r_nodes.end()) << "Node #" << d.node_ids[j] << " belonging to condition #" << d.id << " is not found." << std::endl;
+            temp_nodes.push_back(*(it_node.base()));
+        }
+        auto it_prop = r_properties.find(d.prop_id);
+        KRATOS_DEBUG_ERROR_IF(it_prop == r_properties.end()) << "Properties #" << d.prop_id << " belonging to condition #" << d.id << " is not found." << std::endl;
+        condition_ptrs[i] = r_clone_condition.Create(d.id, temp_nodes, *(it_prop.base()));
+    });
+
+    // Phase 3 (serial): insert into the container in original order.
+    for(auto& ptr : condition_ptrs)
+        rThisConditions.push_back(ptr);
+
+    KRATOS_INFO("") << n << " conditions read] [Type: " << condition_name << "]" << std::endl;
     rThisConditions.Unique();
 
     KRATOS_CATCH("")
@@ -2425,9 +2321,7 @@ void ModelPartIO::ReadConstraintsBlock(
 {
     KRATOS_TRY
 
-    SizeType id;
     SizeType node_id;
-    SizeType number_of_read_constraints = 0;
 
     std::string word;
     std::string constraint_name;
@@ -2452,17 +2346,14 @@ void ModelPartIO::ReadConstraintsBlock(
     // Reading the number of master dofs
     std::string current_line;
     std::getline(*mpStream, current_line);
-    const auto words = StringUtilities::SplitStringIntoAVector(current_line);
+    const auto header_words = StringUtilities::SplitStringIntoAVector(current_line);
 
     // Read the slave variable
-    const Variable<double>& r_slave_variable = KratosComponents<Variable<double>>::Get(words[0]);
+    const Variable<double>& r_slave_variable = KratosComponents<Variable<double>>::Get(header_words[0]);
     std::vector<const Variable<double>*> master_variables;
 
     // The first word is the slave variable, the second and following ones are the master variables
-    SizeType number_of_master_dofs = words.size() - 1;
-
-    // The simpler case is when the connectivity is 1x1, many simplifications can be done
-    NodeType::Pointer p_slave_node;
+    SizeType number_of_master_dofs = header_words.size() - 1;
 
     if (number_of_master_dofs == 0) {
         // We save the current position of the stream
@@ -2495,76 +2386,66 @@ void ModelPartIO::ReadConstraintsBlock(
         // The more general case is when the connectivity is 1xN
         master_variables.resize(number_of_master_dofs);
         for (SizeType i = 0; i < number_of_master_dofs; i++) {
-            master_variables[i] = &KratosComponents<Variable<double>>::Get(words[i]);
+            master_variables[i] = &KratosComponents<Variable<double>>::Get(header_words[i]);
         }
     }
 
-    // Define the master and slave nodes dofs vectors
-    MasterSlaveConstraint::DofPointerVectorType slave_dofs(1);
-    MasterSlaveConstraint::DofPointerVectorType master_dofs(number_of_master_dofs);
-
-    // Define relation matrix
-    Matrix relation_matrix(1, number_of_master_dofs);
-
-    // Define the constant vector
-    Vector constant_vector(1);
-
-    // Define the temporary nodes
-    std::vector<Node::Pointer> temp_master_nodes(number_of_master_dofs);
-    std::vector<Node::Pointer> temp_slave_nodes(1);
+    // Phase 1 (serial): read raw data and set up DoFs.
+    // DoF setup (pAddDof/pGetDof) modifies nodes and must remain serial.
+    struct ConstraintRawData {
+        SizeType id;
+        MasterSlaveConstraint::DofPointerVectorType slave_dofs;
+        MasterSlaveConstraint::DofPointerVectorType master_dofs;
+        Matrix relation_matrix;
+        Vector constant_vector;
+    };
+    std::vector<ConstraintRawData> raw_data;
 
     while(!mpStream->eof()) {
-        ReadWord(word); // Reading the constraint id or End
-        if(CheckEndBlock("Constraints", word)) {
-            break;
-        }
-
-        // Constraint id
-        ExtractValue(word, id);
-
-        // Read the constant vector
         ReadWord(word);
-        ExtractValue(word, constant_vector[0]);
+        if(CheckEndBlock("Constraints", word))
+            break;
 
-        // Retrieve the line
+        ConstraintRawData data;
+        data.slave_dofs.resize(1);
+        data.master_dofs.resize(number_of_master_dofs);
+        data.relation_matrix.resize(1, number_of_master_dofs, false);
+        data.constant_vector.resize(1, false);
+
+        ExtractValue(word, data.id);
+
+        ReadWord(word);
+        ExtractValue(word, data.constant_vector[0]);
+
         std::getline(*mpStream, current_line);
         std::istringstream iss(current_line);
         std::vector<std::string> words;
-
-        // Tokenize the string
-        while (iss >> word) {
-            words.push_back(word);
-        }
+        while (iss >> word) words.push_back(word);
         const std::size_t number_of_words = words.size();
 
-        // Read the slave node id
-        word = words[number_of_words - number_of_master_dofs - 1]; // Reading slave id
+        // Read slave node and obtain its DoF
+        word = words[number_of_words - number_of_master_dofs - 1];
         ExtractValue(word, node_id);
-        p_slave_node= *(FindKey(rThisNodes, ReorderedNodeId(node_id), "Node").base());
-
-        // Then we retrieve the master nodes
-        temp_master_nodes.clear();
-        for(SizeType i = 0 ; i < number_of_master_dofs ; i++) {
-            word = words[number_of_words - (number_of_master_dofs - i)]; // Reading master id
-            ExtractValue(word, node_id);
-            temp_master_nodes.push_back(*(FindKey(rThisNodes, ReorderedNodeId(node_id), "Node").base()));
-        }
-
-        // Now with the nodes and the variables we can create the dofs
+        NodeType::Pointer p_slave_node = *(FindKey(rThisNodes, ReorderedNodeId(node_id), "Node").base());
         if (p_slave_node->HasDofFor(r_slave_variable)) {
-            slave_dofs[0] = p_slave_node->pGetDof(r_slave_variable);
+            data.slave_dofs[0] = p_slave_node->pGetDof(r_slave_variable);
         } else {
-            slave_dofs[0] = p_slave_node->pAddDof(r_slave_variable);
+            data.slave_dofs[0] = p_slave_node->pAddDof(r_slave_variable);
         }
-        for(SizeType i = 0 ; i < number_of_master_dofs ; i++) {
-            if (temp_master_nodes[i]->HasDofFor(*master_variables[i])) {
-                master_dofs[i] = temp_master_nodes[i]->pGetDof(*master_variables[i]);
+
+        // Read master nodes and obtain their DoFs
+        for(SizeType i = 0; i < number_of_master_dofs; i++) {
+            word = words[number_of_words - (number_of_master_dofs - i)];
+            ExtractValue(word, node_id);
+            NodeType::Pointer p_master_node = *(FindKey(rThisNodes, ReorderedNodeId(node_id), "Node").base());
+            if (p_master_node->HasDofFor(*master_variables[i])) {
+                data.master_dofs[i] = p_master_node->pGetDof(*master_variables[i]);
             } else {
-                master_dofs[i] = temp_master_nodes[i]->pAddDof(*master_variables[i]);
+                data.master_dofs[i] = p_master_node->pAddDof(*master_variables[i]);
             }
         }
 
-        // Read the relation matrix
+        // Read the relation matrix weights
         current_line = "";
         for (std::size_t i = 0; i < number_of_words - number_of_master_dofs - 2; ++i) {
             current_line += words[i] + " ";
@@ -2573,15 +2454,25 @@ void ModelPartIO::ReadConstraintsBlock(
         const auto weights = StringUtilities::StringToVector<double>(current_line);
         KRATOS_ERROR_IF_NOT(weights.size() == 0 || weights.size() == number_of_master_dofs) << "The number of weights read is not equal to the number of master dofs. Another option is that the weights are not read at all. Line: " << current_line << std::endl;
         for (SizeType j = 0; j < number_of_master_dofs; j++) {
-            relation_matrix(0, j) = weights[j];
+            data.relation_matrix(0, j) = weights[j];
         }
 
-        // Create the constraint
-        rConstraints.push_back(r_clone_constraint.Create(id, master_dofs, slave_dofs, relation_matrix, constant_vector));
-        number_of_read_constraints++;
+        raw_data.push_back(std::move(data));
     }
 
-    KRATOS_INFO("") << number_of_read_constraints << " constraints read] [Type: " << constraint_name << "]" << std::endl;
+    // Phase 2 (parallel): create constraint objects (Create is read-only on shared data).
+    const SizeType n = raw_data.size();
+    std::vector<MasterSlaveConstraint::Pointer> constraint_ptrs(n);
+    IndexPartition<SizeType>(n).for_each([&](SizeType i) {
+        auto& d = raw_data[i];
+        constraint_ptrs[i] = r_clone_constraint.Create(d.id, d.master_dofs, d.slave_dofs, d.relation_matrix, d.constant_vector);
+    });
+
+    // Phase 3 (serial): insert into the container in original order.
+    for(auto& ptr : constraint_ptrs)
+        rConstraints.push_back(ptr);
+
+    KRATOS_INFO("") << n << " constraints read] [Type: " << constraint_name << "]" << std::endl;
     rConstraints.Unique();
 
     KRATOS_CATCH("")
@@ -4490,6 +4381,20 @@ void ModelPartIO::WriteSubModelPartBlock(
 
     const std::vector<std::string> sub_model_part_names = rMainModelPart.GetSubModelPartNames();
 
+    // Helper: collect entity IDs from any iterable container, build rows in parallel.
+    auto write_id_list_parallel = [&](auto& container, const std::string& prefix) {
+        const SizeType n = container.size();
+        if (n == 0) return;
+        std::vector<SizeType> ids;
+        ids.reserve(n);
+        for (const auto& item : container) ids.push_back(item.Id());
+        std::vector<std::string> rows(n);
+        IndexPartition<SizeType>(n).for_each([&](SizeType i) {
+            rows[i] = prefix + std::to_string(ids[i]) + "\n";
+        });
+        for (const auto& row : rows) *mpStream << row;
+    };
+
     for (unsigned int i_sub = 0; i_sub < sub_model_part_names.size(); i_sub++) {
 
         const std::string sub_model_part_name = sub_model_part_names[i_sub];
@@ -4513,39 +4418,26 @@ void ModelPartIO::WriteSubModelPartBlock(
 //                     }
         (*mpStream) << InitialTabulation << "\tEnd SubModelPartTables" << std::endl;
 
-        // Submodelpart nodes section
+        const std::string prefix = InitialTabulation + "\t\t";
+
         (*mpStream) << InitialTabulation << "\tBegin SubModelPartNodes" << std::endl;
-        for (auto& rNode : r_sub_model_part.Nodes()) {
-            (*mpStream) << InitialTabulation << "\t\t" << rNode.Id() << "\n";
-        }
+        write_id_list_parallel(r_sub_model_part.Nodes(), prefix);
         (*mpStream) << InitialTabulation << "\tEnd SubModelPartNodes" << std::endl;
 
-        // Submodelpart elements section
         (*mpStream) << InitialTabulation << "\tBegin SubModelPartElements" << std::endl;
-        for (auto& rElem : r_sub_model_part.Elements()) {
-            (*mpStream) << InitialTabulation << "\t\t" << rElem.Id() << "\n";
-        }
+        write_id_list_parallel(r_sub_model_part.Elements(), prefix);
         (*mpStream) << InitialTabulation << "\tEnd SubModelPartElements" << std::endl;
 
-        // Submodelpart conditions section
         (*mpStream) << InitialTabulation << "\tBegin SubModelPartConditions" << std::endl;
-        for (auto& r_cond : r_sub_model_part.Conditions()) {
-            (*mpStream) << InitialTabulation << "\t\t" << r_cond.Id() << "\n";
-        }
+        write_id_list_parallel(r_sub_model_part.Conditions(), prefix);
         (*mpStream) << InitialTabulation << "\tEnd SubModelPartConditions" << std::endl;
 
-        // Submodelpart geometries section
         (*mpStream) << InitialTabulation << "\tBegin SubModelPartGeometries" << std::endl;
-        for (auto& r_geom : r_sub_model_part.Geometries()) {
-            (*mpStream) << InitialTabulation << "\t\t" << r_geom.Id() << "\n";
-        }
+        write_id_list_parallel(r_sub_model_part.Geometries(), prefix);
         (*mpStream) << InitialTabulation << "\tEnd SubModelPartGeometries" << std::endl;
 
-        // Submodelpart Constraints section
         (*mpStream) << InitialTabulation << "\tBegin SubModelPartConstraints" << std::endl;
-        for (auto& r_const : r_sub_model_part.MasterSlaveConstraints()) {
-            (*mpStream) << InitialTabulation << "\t\t" << r_const.Id() << "\n";
-        }
+        write_id_list_parallel(r_sub_model_part.MasterSlaveConstraints(), prefix);
         (*mpStream) << InitialTabulation << "\tEnd SubModelPartConstraints" << std::endl;
 
         // Write the subsubmodelparts
@@ -4603,7 +4495,6 @@ void  ModelPartIO::ReadSubModelPartNodesBlock(ModelPart& rMainModelPart, ModelPa
 
     SizeType node_id;
     std::string word;
-
             std::vector<SizeType> ordered_ids;
 
     while (!mpStream->eof())
