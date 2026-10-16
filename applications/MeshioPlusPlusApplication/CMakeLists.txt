@@ -18,7 +18,7 @@ include(pybind11Tools)
 #
 # Upgrading from a meshio++ older than v16.16.0 requires rebuilding this application once: the
 # C++ variants' SOVERSION is the ABI version, so the library this application needs is
-# libmeshioplusplus_core_kratos.so.25 rather than an earlier .so.N.
+# libmeshioplusplus_core_kratos.so.30 rather than an earlier .so.N.
 #
 # then point this configure at it with -Dmeshioplusplus_DIR=<prefix>/lib/cmake/meshioplusplus
 #
@@ -84,6 +84,18 @@ include(pybind11Tools)
 # rest of v16.29.0-v16.39.0 is additive: the frd, radioss_th and step writers, the svg and tikz
 # readers, and the segment and fit_primitives operations (v16.39.0) this application exposes.
 #
+# ABI 25 -> 30 is a rebuild, and two steps of it reach this application. 26 (v16.40.0) appends the
+# VTK Bezier cell types after CellType::Triangle7, so CellType::Custom moves 77 -> 84 and the
+# inline cell-type tables compiled into this application grow; Kratos has no Bezier geometry, so a
+# Bezier block still cannot become a ModelPart entity. 27 (v16.42.0) adds the B-rep and NURBS side
+# channels (brep.hpp, nurbs.hpp) together with the cad_json and iges formats, and the BrepInfo
+# overloads of read_mdpa/write_mdpa and the NurbsInfo ones of read_mfem/write_mfem this application
+# now calls. 28, 29 and 30 (v16.42.0, v16.44.0, v17.2.0) only grow FitCadOptions and FitCadResult,
+# which the "fit_cad" operation passes by value. v17.0.0 and v17.1.0 hold ABI 29. What the
+# application adds on top of this: tessellate (in the C++ core since v16.42.0), fit_cad (v16.41.0),
+# iga_evaluate/iga_refine/iga_sample (v16.43.0), the cad_json, iges and neuroglancer formats, and the
+# solver results writers that came in v17.3.0 (they need no code: the registry serves them).
+#
 # A single ABI rather than a window, deliberately. Supporting several meant a
 # MESHIOPLUSPLUS_VERSION_AT_LEAST guard per feature, and the operations this application now
 # exposes (remesh v10.10.0, optimize_volume v10.14.0, estimate_error v10.2.0, the gid format
@@ -106,17 +118,19 @@ include(pybind11Tools)
 # a link error rather than memory corruption. See meshio++'s doc/abi.md for the criterion.
 find_package(meshioplusplus CONFIG REQUIRED COMPONENTS CXX)
 
-if(NOT MESHIOPLUSPLUS_ABI_VERSION EQUAL 25)
+if(NOT MESHIOPLUSPLUS_ABI_VERSION EQUAL 30)
     message(FATAL_ERROR
-        "MeshioPlusPlusApplication needs meshio++ ABI 25, but the install at "
+        "MeshioPlusPlusApplication needs meshio++ ABI 30, but the install at "
         "'${meshioplusplus_DIR}' reports ABI ${MESHIOPLUSPLUS_ABI_VERSION} "
-        "(release ${meshioplusplus_VERSION}). ABI 25 is meshio++ v16.36.0 onwards, "
-        "which includes v16.39.0.")
+        "(release ${meshioplusplus_VERSION}). ABI 30 is meshio++ v17.2.0 onwards, "
+        "which includes v17.3.0.")
 endif()
 
-if(meshioplusplus_VERSION VERSION_LESS 16.39.0)
+if(meshioplusplus_VERSION VERSION_LESS 17.3.0)
     message(FATAL_ERROR
-        "MeshioPlusPlusApplication needs meshio++ v16.39.0 or newer (for the segment and "
+        "MeshioPlusPlusApplication needs meshio++ v17.3.0 or newer (for the tessellate, fit_cad "
+        "and iga_* operations, the cad_json, iges and neuroglancer formats, the BrepInfo overloads "
+        "of read_mdpa and the NurbsInfo ones of read_mfem and write_mfem, and the segment and "
         "fit_primitives operations, MdpaInfo's sub model part geometry and constraint ids, "
         "check_quality, feature_edges, hausdorff_distance, edit_regions, match_periodic_nodes, "
         "blend_steps and the agglomerate coplanar/sphericity options), but the install at "
@@ -135,7 +149,8 @@ message(STATUS "meshio++ ${meshioplusplus_VERSION} (ABI ${MESHIOPLUSPLUS_ABI_VER
                "backends '${MESHIOPLUSPLUS_MESH_BACKENDS}', "
                "parallel '${MESHIOPLUSPLUS_PARALLEL_BACKEND}', HDF5 '${MESHIOPLUSPLUS_WITH_HDF5}', "
                "netCDF '${MESHIOPLUSPLUS_WITH_NETCDF}', ADIOS2 '${MESHIOPLUSPLUS_WITH_ADIOS2}', "
-               "TecIO '${MESHIOPLUSPLUS_WITH_TECIO}', bzip2 '${MESHIOPLUSPLUS_WITH_BZIP2}'")
+               "TecIO '${MESHIOPLUSPLUS_WITH_TECIO}', bzip2 '${MESHIOPLUSPLUS_WITH_BZIP2}', "
+               "OpenCASCADE '${MESHIOPLUSPLUS_WITH_OCCT}'")
 
 include_directories( ${KRATOS_SOURCE_DIR}/kratos )
 
