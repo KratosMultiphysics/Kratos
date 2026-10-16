@@ -340,6 +340,84 @@ class TestMPIDataCommunicatorPython(KratosUnittest.TestCase):
         simple_all_reduce_check(self.world.MinAll, 1)
         simple_all_reduce_check(self.world.MaxAll, n)
 
+    @KratosUnittest.skipIf(not Kratos.IsDistributedRun(), "Non-blocking receives require a distributed DataCommunicator.")
+    def testAsyncSendRecvOperations(self):
+        # ring communication: this also works for a single process, since non-blocking sends to itself do not deadlock
+        send_rank = (self.rank + 1) % self.size
+        recv_rank = (self.rank - 1) % self.size
+
+        recv_requests = [
+            self.world.IRecvInt(recv_rank, 0),
+            self.world.IRecvDouble(recv_rank, 1),
+            self.world.IRecvInts(2, recv_rank, 2),
+            self.world.IRecvDoubles(2, recv_rank, 3),
+            self.world.IRecvString(len("rank_0"), recv_rank, 4)
+        ]
+        send_requests = [
+            self.world.ISend(self.rank, send_rank, 0),
+            self.world.ISend(2.0*self.rank, send_rank, 1),
+            self.world.ISendInts([self.rank, -self.rank], send_rank, 2),
+            self.world.ISendDoubles([2.0*self.rank, -2.0*self.rank], send_rank, 3),
+            self.world.ISendString(f"rank_{self.rank % 10}", send_rank, 4)
+        ]
+
+        # polling with Test
+        while not recv_requests[0].Test():
+            pass
+        self.assertTrue(recv_requests[0].IsCompleted())
+
+        Kratos.DataCommunicatorRequest.WaitAll(recv_requests + send_requests)
+        for request in recv_requests + send_requests:
+            self.assertTrue(request.IsCompleted())
+
+        self.assertEqual(recv_requests[0].GetResult(), recv_rank)
+        self.assertEqual(recv_requests[1].GetResult(), 2.0*recv_rank)
+        self.assertEqual(recv_requests[2].GetResult(), [recv_rank, -recv_rank])
+        self.assertEqual(recv_requests[3].GetResult(), [2.0*recv_rank, -2.0*recv_rank])
+        self.assertEqual(recv_requests[4].GetResult(), f"rank_{recv_rank % 10}")
+        self.assertIsNone(send_requests[0].GetResult())
+
+    def testAsyncBarrier(self):
+        request = self.world.IBarrier()
+        request.Wait()
+        self.assertTrue(request.IsCompleted())
+        self.assertIsNone(request.GetResult())
+
+    def testAsyncBroadcastOperations(self):
+        source_rank = self.size - 1
+        requests = [
+            self.world.IBroadcast(self.rank, source_rank),
+            self.world.IBroadcast(2.0*self.rank, source_rank),
+            self.world.IBroadcastInts([self.rank, -self.rank], source_rank),
+            self.world.IBroadcastDoubles([2.0*self.rank, -2.0*self.rank], source_rank)
+        ]
+        for request in requests:
+            request.Wait()
+
+        self.assertEqual(requests[0].GetResult(), source_rank)
+        self.assertEqual(requests[1].GetResult(), 2.0*source_rank)
+        self.assertEqual(requests[2].GetResult(), [source_rank, -source_rank])
+        self.assertEqual(requests[3].GetResult(), [2.0*source_rank, -2.0*source_rank])
+
+    def testAsyncAllReduceOperations(self):
+        requests = [
+            self.world.ISumAll(self.rank),
+            self.world.IMinAll(2.0*self.rank),
+            self.world.IMaxAll(self.rank),
+            self.world.ISumAllDoubles([2.0*self.rank, -2.0*self.rank]),
+            self.world.IMinAllInts([self.rank, -self.rank]),
+            self.world.IMaxAllDoubles([2.0*self.rank, -2.0*self.rank])
+        ]
+        Kratos.DataCommunicatorRequest.WaitAll(requests)
+
+        expected_sum = self.size * (self.size - 1) // 2
+        self.assertEqual(requests[0].GetResult(), expected_sum)
+        self.assertEqual(requests[1].GetResult(), 0.0)
+        self.assertEqual(requests[2].GetResult(), self.size - 1)
+        self.assertEqual(requests[3].GetResult(), [2.0*expected_sum, -2.0*expected_sum])
+        self.assertEqual(requests[4].GetResult(), [0, 1 - self.size])
+        self.assertEqual(requests[5].GetResult(), [2.0*(self.size - 1), 0.0])
+
 if __name__ == "__main__":
     Kratos.Logger.GetDefaultOutput().SetSeverity(Kratos.Logger.Severity.WARNING)
     KratosUnittest.main()
