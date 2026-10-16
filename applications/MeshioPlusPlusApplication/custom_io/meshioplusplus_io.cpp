@@ -27,12 +27,14 @@
 #include "meshioplusplus/write_options.hpp"
 #include "meshioplusplus/detail/provenance.hpp"
 #include "meshioplusplus/formats/ansys.hpp"
+#include "meshioplusplus/formats/cad_json.hpp"
 #include "meshioplusplus/formats/ensight.hpp"
 #include "meshioplusplus/formats/femap.hpp"
 #include "meshioplusplus/formats/flac3d.hpp"
 #include "meshioplusplus/formats/gid.hpp"
 #include "meshioplusplus/formats/gltf.hpp"
 #include "meshioplusplus/formats/gmsh.hpp"
+#include "meshioplusplus/formats/iges.hpp"
 #include "meshioplusplus/formats/mfem.hpp"
 #include "meshioplusplus/formats/openfoam.hpp"
 #include "meshioplusplus/formats/patran.hpp"
@@ -42,6 +44,7 @@
 #include "meshioplusplus/formats/pvtp.hpp"
 #include "meshioplusplus/formats/pvtu.hpp"
 #include "meshioplusplus/formats/radioss.hpp"
+#include "meshioplusplus/formats/step.hpp"
 #include "meshioplusplus/formats/stl.hpp"
 #include "meshioplusplus/formats/vtkhdf.hpp"
 #include "meshioplusplus/formats/z88.hpp"
@@ -83,6 +86,7 @@ using Internals::DataArray;
     X(ANSYS_RST, "ansys_rst")               \
     X(ANSYS_RST_CYCLIC, "ansys_rst_cyclic") \
     X(AVSUCD, "avsucd")                     \
+    X(CAD_JSON, "cad_json")                 \
     X(CGNS, "cgns")                         \
     X(CODE_ASTER, "code_aster")             \
     X(DEX, "dex")                           \
@@ -102,6 +106,7 @@ using Internals::DataArray;
     X(GMSH22, "gmsh22")                     \
     X(H5M, "h5m")                           \
     X(HMF, "hmf")                           \
+    X(IGES, "iges")                         \
     X(IP, "ip")                             \
     X(LIBMESH, "libmesh")                   \
     X(LSDYNA, "lsdyna")                     \
@@ -121,6 +126,7 @@ using Internals::DataArray;
     X(NASTRAN_H5, "nastran_h5")             \
     X(NASTRAN_OP2, "nastran_op2")           \
     X(NETGEN, "netgen")                     \
+    X(NEUROGLANCER, "neuroglancer")         \
     X(OBJ, "obj")                           \
     X(OFF, "off")                           \
     X(OPENFOAM, "openfoam")                 \
@@ -178,9 +184,9 @@ const std::unordered_map<std::string, MeshioPlusPlusIO::Format>& GetFormatNameMa
 /// step built from those halves ("results.post_3.msh") no longer resolves to gid at all, since
 /// resolve_format needs the whole ".post.msh" to beat ".msh"'s gmsh entry. Everything that
 /// composes or matches an output name goes through SplitStemAndExtension instead.
-const std::array<const char*, 4>& CompoundExtensions()
+const std::array<const char*, 5>& CompoundExtensions()
 {
-    static const std::array<const char*, 4> extensions = {".post.msh", ".post.res", ".post.bin", ".post.h5"};
+    static const std::array<const char*, 5> extensions = {".post.msh", ".post.res", ".post.bin", ".post.h5", ".cad.json"};
     return extensions;
 }
 
@@ -647,6 +653,10 @@ Parameters MeshioPlusPlusIO::GetDefaultParameters()
         "time_step"                                   : 0,
         "lenient"                                     : false,
         "mdpa_keep_extra_blocks"                      : false,
+        "mdpa_cad_json"                               : "",
+        "keep_brep"                                   : false,
+        "cad_deflection"                              : 0.0,
+        "cad_angular_deflection"                      : 0.5,
         "openfoam_region"                             : "",
         "select_piece"                                : false,
         "piece"                                       : 0,
@@ -945,14 +955,36 @@ void MeshioPlusPlusIO::ReadModelPart(ModelPart& rThisModelPart)
         // "mdpa_keep_extra_blocks" reads .mdpa through the MdpaInfo overload: without one the
         // reader refuses a deck that carries tables, geometries, Mesh blocks or a Constraints
         // block, by name. With one the blocks are kept in the info (see GetMdpaInfo) instead.
-        if (format_name == "mdpa" && mParameters["mdpa_keep_extra_blocks"].GetBool()) {
+        // "mdpa_cad_json" additionally loads the Kratos CAD JSON that goes with the deck ("auto":
+        // <stem>.cad.json beside it, else the CadIoModeler of a ProjectParameters.json there;
+        // anything else is the path) into GetBrepInfo(). It needs the info overload as well.
+        const std::string mdpa_cad_json = mParameters["mdpa_cad_json"].GetString();
+        if (format_name == "mdpa" && (mParameters["mdpa_keep_extra_blocks"].GetBool() || !mdpa_cad_json.empty())) {
             mMdpaInfoRead = true;
+            if (!mdpa_cad_json.empty()) {
+                mBrepInfoRead = true;
+                return mio::read_mdpa(mFileName.string(), mMdpaInfo, mBrepInfo, read_options,
+                                      mdpa_cad_json == "auto" ? std::string() : mdpa_cad_json);
+            }
             return mio::read_mdpa(mFileName.string(), mMdpaInfo, read_options);
+        }
+        // "keep_brep" reads the NURBS formats through their B-rep overloads, so GetBrepInfo()
+        // reports the exact geometry the sampled mesh was cut from.
+        if (mParameters["keep_brep"].GetBool() && (format_name == "cad_json" || format_name == "step" || format_name == "iges")) {
+            mBrepInfoRead = true;
+            if (format_name == "cad_json") {
+                return mio::read_cad_json(mFileName.string(), mBrepInfo);
+            }
+            mio::CadReadOptions cad_options;
+            cad_options.mDeflection = mParameters["cad_deflection"].GetDouble();
+            cad_options.mAngularDeflection = mParameters["cad_angular_deflection"].GetDouble();
+            return format_name == "step" ? mio::read_step(mFileName.string(), mBrepInfo, cad_options)
+                                         : mio::read_iges(mFileName.string(), mBrepInfo, cad_options);
         }
         return mio::registry_read(mFileName.string(), format_name, read_options);
     }();
 
-    if (format_name == "mdpa" && mParameters["mdpa_keep_extra_blocks"].GetBool()) {
+    if (format_name == "mdpa" && mMdpaInfoRead) {
         const Parameters info = GetMdpaInfo();
         if (info["number_of_tables"].GetInt() + info["number_of_geometry_blocks"].GetInt() +
             info["number_of_mesh_blocks"].GetInt() + info["number_of_sub_model_parts_with_data"].GetInt() +
@@ -989,6 +1021,7 @@ void MeshioPlusPlusIO::ReadModelPart(ModelPart& rThisModelPart)
     }
 
     mio::ModelPart& r_source = mesh.GetModelPart();
+    Internals::CheckEntitiesAreCreatable(r_source);
 
     // Bridge into the real Kratos model part (one bulk O(n) creation pass).
     // The four-argument overload also transfers the material data: meshio++ cannot fill a
@@ -1099,6 +1132,30 @@ Parameters MeshioPlusPlusIO::GetMdpaInfo() const
     }
     result.AddStringArray("raw_blocks", raw_headers);
     result.AddStringArray("skipped_constructs", mMdpaInfo.mSkippedConstructs);
+    return result;
+
+    KRATOS_CATCH("")
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+Parameters MeshioPlusPlusIO::GetBrepInfo() const
+{
+    KRATOS_TRY
+
+    Parameters result(R"({})");
+    result.AddBool("recognised", mBrepInfoRead);
+    result.AddInt("number_of_breps", static_cast<int>(mBrepInfo.mBreps.size()));
+    result.AddInt("number_of_faces", static_cast<int>(mBrepInfo.mFaces.size()));
+    int number_of_trimmed_faces = 0;
+    for (const auto& r_face : mBrepInfo.mFaces) {
+        number_of_trimmed_faces += r_face.mTrimmed ? 1 : 0;
+    }
+    result.AddInt("number_of_trimmed_faces", number_of_trimmed_faces);
+    result.AddInt("number_of_edges", static_cast<int>(mBrepInfo.mEdges.size()));
+    result.AddInt("number_of_vertices", static_cast<int>(mBrepInfo.mVertices.size()));
+    result.AddInt("number_of_patches", static_cast<int>(mBrepInfo.mPatches.size()));
     return result;
 
     KRATOS_CATCH("")

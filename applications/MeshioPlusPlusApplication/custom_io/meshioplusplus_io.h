@@ -25,6 +25,7 @@
 // External includes
 #include "meshioplusplus/mesh.hpp"
 #include "meshioplusplus/read_options.hpp"
+#include "meshioplusplus/brep.hpp"
 #include "meshioplusplus/formats/femap.hpp"
 #include "meshioplusplus/formats/mdpa.hpp"
 #include "meshioplusplus/formats/pvd.hpp"
@@ -102,14 +103,17 @@ public:
      * @details AUTOMATIC resolves the format from the file extension. Formats
      * backed by an optional dependency (HDF5: CGNS, H5M, HMF, MED, VTKHDF,
      * NASTRAN_H5 and the HDF data path of XDMF; netCDF: EXODUS; ADIOS2: VTX;
-     * TecIO: SZPLT) are only available when the build enables them - check with
-     * @ref IsFormatAvailable. OPENFOAM is readable and writable (the polyMesh
-     * writer since meshio++ v9.20.0); GMSH22, GLTF and STEP are write only (SVG and TIKZ
-     * are read back since meshio++ v16.39.0).
-     * Most solver results files are read only - NASTRAN_H5, ABAQUS_FIL,
-     * ANSYS_RST(_CYCLIC), LSDYNA_BINOUT/D3PLOT, MARC_T19, NASTRAN_OP2,
-     * RADIOSS_ANIM, SZPLT, VTX and XPLT (FRD and RADIOSS_TH are also written since
-     * v16.39.0), each step selectable with "time_step".
+     * TecIO: SZPLT; OpenCASCADE: IGES and the reading of STEP) are only available
+     * when the build enables them - check with @ref IsFormatAvailable. OPENFOAM is
+     * readable and writable (the polyMesh writer since meshio++ v9.20.0); GMSH22 is
+     * write only and IGES read only (SVG and TIKZ are read back since meshio++
+     * v16.39.0, GLTF since v17.1.0, STEP since v16.42.0). The solver results files - NASTRAN_H5,
+     * ABAQUS_FIL, ANSYS_RST, LSDYNA_BINOUT/D3PLOT, MARC_T19, NASTRAN_OP2,
+     * RADIOSS_ANIM, SZPLT, VTX, XPLT, FRD and RADIOSS_TH - are all written since
+     * meshio++ v17.3.0 (ANSYS_RST_CYCLIC stays read only), each step selectable
+     * with "time_step". CAD_JSON is the Kratos CAD JSON of isogeometric analysis:
+     * a read samples the trimmed NURBS faces into a mesh (the exact B-rep is kept
+     * with "keep_brep", see @ref GetBrepInfo).
      * The MARC and RADIOSS input decks are read and written (since meshio++ v16.17.0).
      *
      * Resolution for a read is by extension, except where meshio++ looks further: an
@@ -140,12 +144,13 @@ public:
     {
         AUTOMATIC,        /// Resolve from the file extension
         ABAQUS,           /// Abaqus .inp
-        ABAQUS_FIL,       /// Abaqus results .fil (read only; increments and modes are time steps)
+        ABAQUS_FIL,       /// Abaqus results .fil (increments and modes are time steps)
         ANSYS,            /// ANSYS .msh
         ANSYSINP,         /// ANSYS Mechanical APDL .inp (cdb)
-        ANSYS_RST,        /// Ansys results .rst/.rth (read only; result sets are time steps)
+        ANSYS_RST,        /// Ansys results .rst/.rth (result sets are time steps)
         ANSYS_RST_CYCLIC, /// Ansys modal cyclic results expanded to the full rotor (read only; explicit "format" only)
         AVSUCD,           /// AVS-UCD .avs
+        CAD_JSON,         /// Kratos CAD JSON .cad.json (the trimmed NURBS B-rep of IGA, sampled into a mesh on read)
         CGNS,             /// CGNS .cgns (requires HDF5)
         CODE_ASTER,       /// Code_Aster native mesh .mail
         DEX,              /// Dexelas .dex
@@ -157,21 +162,22 @@ public:
         FEMAP,            /// Femap neutral .neu (output sets are time steps; transient output writes one file, one output set per step)
         FLAC3D,           /// FLAC3D .f3grid
         FLUX,             /// Flux .pf3
-        FRD,              /// CalculiX results .frd (every increment is a time step; written since meshio++ v16.39.0)
+        FRD,              /// CalculiX results .frd (every increment is a time step)
         FREEFEM,          /// FreeFEM .msh
         GID,              /// GiD postprocess .post.msh+.post.res/.post.bin/.post.h5 (writing needs a zlib-enabled build)
-        GLTF,             /// glTF 2.0 .glb/.gltf (write only; the surface of the mesh, see "gltf_settings")
+        GLTF,             /// glTF 2.0 .glb/.gltf (the surface of the mesh is written, see "gltf_settings"; read back since meshio++ v17.1.0)
         GMSH,             /// Gmsh .msh (4.1 writer)
         GMSH22,           /// Gmsh 2.2 .msh (write only; the only Gmsh writer round-tripping region membership)
         H5M,              /// MOAB .h5m (requires HDF5)
         HMF,              /// HMF .hmf (requires HDF5)
+        IGES,             /// IGES .igs/.iges (read only, requires OpenCASCADE; triangulated, see "cad_deflection")
         IP,               /// Ipreo .ip
         LIBMESH,          /// libMesh .xda/.xdr (optionally .gz, or .bz2 with a bzip2-enabled build)
         LSDYNA,           /// LS-DYNA keyword deck .k/.key/.dyn (parts and sets as regions)
-        LSDYNA_BINOUT,    /// LS-DYNA binout (read only; results as field data on a point cloud)
-        LSDYNA_D3PLOT,    /// LS-DYNA d3plot family (read only; states are time steps)
+        LSDYNA_BINOUT,    /// LS-DYNA binout (results as field data on a point cloud)
+        LSDYNA_D3PLOT,    /// LS-DYNA d3plot family (states are time steps)
         MARC,             /// Marc input deck .dat (read by content for an existing Marc .dat; write with "format" : "marc")
-        MARC_T19,         /// Marc results .t19 (read only; increments are time steps)
+        MARC_T19,         /// Marc results .t19 (increments are time steps)
         MDPA,             /// Kratos native .mdpa
         MED,              /// salome MED .med (requires HDF5)
         MEDIT,            /// Medit .mesh/.meshb
@@ -181,9 +187,10 @@ public:
         MPHBIN,           /// COMSOL binary .mphbin
         MPHTXT,           /// COMSOL .mphtxt
         NASTRAN,          /// Nastran/OptiStruct bulk data .bdf/.nas/.fem
-        NASTRAN_H5,       /// MSC Nastran HDF5 results .h5 (read only, requires HDF5; every result domain is a time step)
-        NASTRAN_OP2,      /// Nastran OP2 results .op2 (read only; subcases/modes/times are time steps)
+        NASTRAN_H5,       /// MSC Nastran HDF5 results .h5 (requires HDF5; every result domain is a time step)
+        NASTRAN_OP2,      /// Nastran OP2 results .op2 (subcases/modes/times are time steps)
         NETGEN,           /// Netgen .vol
+        NEUROGLANCER,     /// Neuroglancer precomputed mesh (triangles only; no extension, name the format explicitly)
         OBJ,              /// Wavefront .obj
         OFF,              /// Object File Format .off
         OPENFOAM,         /// OpenFOAM polyMesh (ascii or binary, see "openfoam_label_bits"/"openfoam_scalar_bits")
@@ -195,13 +202,13 @@ public:
         PVTP,             /// ParaView partitioned PolyData .pvtp
         PVTU,             /// ParaView partitioned UnstructuredGrid .pvtu (one piece per "partition:part")
         RADIOSS,          /// Radioss/OpenRadioss starter deck .rad (see "radioss_stubs")
-        RADIOSS_ANIM,     /// Radioss animation file <run>A001 (read only; one state per file)
-        RADIOSS_TH,       /// Radioss time history <run>T01 (results as field data; written since meshio++ v16.39.0)
-        STEP,             /// STEP AP214 .step/.stp (write only; a closed surface, or a volume's skin, as a faceted solid)
+        RADIOSS_ANIM,     /// Radioss animation file <run>A001 (one state per file)
+        RADIOSS_TH,       /// Radioss time history <run>T01 (results as field data)
+        STEP,             /// STEP AP214 .step/.stp (a closed surface, or a volume's skin, is written as a faceted solid; reading requires OpenCASCADE)
         STL,              /// Stereolithography .stl
         SU2,              /// SU2 .su2
         SVG,              /// Scalable Vector Graphics .svg (read back as a planar drawing since meshio++ v16.39.0)
-        SZPLT,            /// Tecplot SZL .szplt (read only, requires TecIO)
+        SZPLT,            /// Tecplot SZL .szplt (requires TecIO)
         TECPLOT,          /// Tecplot .dat
         TETGEN,           /// TetGen .node/.ele
         TIKZ,             /// LaTeX TikZ/PGF .tikz (read back as a planar drawing since meshio++ v16.39.0)
@@ -216,10 +223,10 @@ public:
         VTR,              /// VTK XML RectilinearGrid .vtr (reads any graded lattice; writing needs a uniform lattice mesh)
         VTS,              /// VTK XML StructuredGrid .vts (a lattice with explicit points; writing needs a lattice mesh)
         VTU,              /// VTK unstructured XML .vtu
-        VTX,              /// DOLFINx VTX ADIOS2 .bp directory (read only, requires ADIOS2)
+        VTX,              /// DOLFINx VTX ADIOS2 .bp directory (requires ADIOS2)
         WKT,              /// Well-known text .wkt
         XDMF,             /// XDMF v3 .xdmf/.xmf (HDF data path requires HDF5)
-        XPLT,             /// FEBio results .xplt (read only; states are time steps)
+        XPLT,             /// FEBio results .xplt (states are time steps)
         XYZ,              /// Headerless point cloud .xyz/.xyzn/.xyzrgb/.asc/.pts/.txt
         Z88               /// Z88 deck z88i1.txt/z88structure.txt (see "z88_results"/"z88_stubs")
     };
@@ -265,9 +272,8 @@ public:
 
     /**
      * @brief The names of every format this build can write.
-     * @details Read-only formats (the solver results files - "frd", "nastran_h5",
-     * "abaqus_fil", "nastran_op2", ...) are not listed; the write-only ones ("gmsh22", "gltf", "step") are conversely absent from
-     * @ref GetSupportedReadFormats.
+     * @details Read-only formats ("ansys_rst_cyclic" and "iges") are not listed; the write-only
+     * one ("gmsh22") is conversely absent from @ref GetSupportedReadFormats.
      */
     static std::vector<std::string> GetSupportedWriteFormats();
 
@@ -452,6 +458,19 @@ public:
      */
     Parameters GetMdpaInfo() const;
 
+    /**
+     * @brief The NURBS boundary representation behind the last read, as a summary.
+     * @details Kratos CAD JSON, STEP and IGES files (and an ".mdpa" deck with a CAD JSON beside
+     * it) describe trimmed NURBS faces, which a model part cannot hold: a read samples them into
+     * surface cells (faces) and line cells (edges). With `"keep_brep" : true` (or
+     * `"mdpa_cad_json"` for a deck) meshio++ also returns the exact geometry it sampled away,
+     * and this reports what it holds - the geometry itself stays in meshio++ and is reached with
+     * @ref MeshioPlusPlusIgaUtilities. "recognised" is false until such a read.
+     * @return `{"recognised", "number_of_breps", "number_of_faces", "number_of_trimmed_faces",
+     * "number_of_edges", "number_of_vertices", "number_of_patches"}`.
+     */
+    Parameters GetBrepInfo() const;
+
     ///@}
     ///@name Input and output
     ///@{
@@ -476,6 +495,9 @@ private:
 
     meshioplusplus::MdpaInfo mMdpaInfo; /// The side-channel content of the last ".mdpa" read
     bool mMdpaInfoRead = false;         /// Whether mMdpaInfo was filled by a read
+
+    meshioplusplus::BrepInfo mBrepInfo; /// The B-rep of the last CAD JSON/STEP/IGES (or ".mdpa" sidecar) read
+    bool mBrepInfoRead = false;         /// Whether mBrepInfo was filled by a read
 
     // Transient write state ("does the output buffer already exist?")
     IndexType mOutputStep = 0; /// Number of WriteModelPart calls performed
