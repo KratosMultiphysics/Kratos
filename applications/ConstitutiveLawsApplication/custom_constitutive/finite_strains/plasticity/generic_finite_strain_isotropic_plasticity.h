@@ -264,6 +264,9 @@ public:
     ///@}
 
 protected:
+    // A finite-strain accumulation rule must be derived separately. Do not
+    // advertise the small-strain base history as an available finite-strain result.
+    bool SupportsAccumulatedPlasticStrain() const override { return false; }
     ///@name Protected static Member Variables
     ///@{
 
