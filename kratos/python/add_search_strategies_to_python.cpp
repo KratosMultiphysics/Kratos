@@ -68,10 +68,10 @@ void CopyRadiusArrayToPython(
 
     // Create the radius array
     rRadiusArray.resize(size_array);
-    IndexPartition<std::size_t>(size_array).for_each([&](std::size_t i) {
+    for (std::size_t i = 0; i < size_array; ++i) {
         rRadiusArray[i] = rListOfRadius[i].cast<double>();
         //rRadiusArray[i] = rListOfRadius[i];
-    });
+    }
 }
 
 /**
