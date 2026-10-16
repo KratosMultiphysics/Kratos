@@ -68,6 +68,11 @@ void AddCustomIOToPython(pybind11::module& m)
             "geometries, Mesh blocks, sub model part data, text ModelPartData, raw blocks such as "
             "Constraints, and the SubModelPartGeometries/SubModelPartConstraints id lists) as "
             "counts and names. 'recognised' is False until an .mdpa was read.")
+        .def("GetBrepInfo", &MeshioPlusPlusIO::GetBrepInfo,
+            "A summary of the NURBS boundary representation the last read kept (read with "
+            "'keep_brep' for CAD JSON, STEP and IGES, or 'mdpa_cad_json' for a deck): counts of "
+            "breps, faces, trimmed faces, edges, vertices and patches. 'recognised' is False "
+            "until such a read.")
         .def_static("GetDefaultParameters", &MeshioPlusPlusIO::GetDefaultParameters,
             "The default settings of the IO.")
         .def_static("GetSupportedFormats", &MeshioPlusPlusIO::GetSupportedFormats,
@@ -101,6 +106,7 @@ void AddCustomIOToPython(pybind11::module& m)
         .value("ANSYS_RST", MeshioPlusPlusIO::Format::ANSYS_RST)
         .value("ANSYS_RST_CYCLIC", MeshioPlusPlusIO::Format::ANSYS_RST_CYCLIC)
         .value("AVSUCD", MeshioPlusPlusIO::Format::AVSUCD)
+        .value("CAD_JSON", MeshioPlusPlusIO::Format::CAD_JSON)
         .value("CGNS", MeshioPlusPlusIO::Format::CGNS)
         .value("CODE_ASTER", MeshioPlusPlusIO::Format::CODE_ASTER)
         .value("DEX", MeshioPlusPlusIO::Format::DEX)
@@ -120,6 +126,7 @@ void AddCustomIOToPython(pybind11::module& m)
         .value("GMSH22", MeshioPlusPlusIO::Format::GMSH22)
         .value("H5M", MeshioPlusPlusIO::Format::H5M)
         .value("HMF", MeshioPlusPlusIO::Format::HMF)
+        .value("IGES", MeshioPlusPlusIO::Format::IGES)
         .value("IP", MeshioPlusPlusIO::Format::IP)
         .value("LIBMESH", MeshioPlusPlusIO::Format::LIBMESH)
         .value("LSDYNA", MeshioPlusPlusIO::Format::LSDYNA)
@@ -139,6 +146,7 @@ void AddCustomIOToPython(pybind11::module& m)
         .value("NASTRAN_H5", MeshioPlusPlusIO::Format::NASTRAN_H5)
         .value("NASTRAN_OP2", MeshioPlusPlusIO::Format::NASTRAN_OP2)
         .value("NETGEN", MeshioPlusPlusIO::Format::NETGEN)
+        .value("NEUROGLANCER", MeshioPlusPlusIO::Format::NEUROGLANCER)
         .value("OBJ", MeshioPlusPlusIO::Format::OBJ)
         .value("OFF", MeshioPlusPlusIO::Format::OFF)
         .value("OPENFOAM", MeshioPlusPlusIO::Format::OPENFOAM)
