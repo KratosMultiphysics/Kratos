@@ -953,6 +953,71 @@ public:
         KRATOS_CATCH("")
     }
 
+    /**
+     * @brief Returns the number of locally owned rows of @p rA.
+     * @details For the sequential UblasSpace, local equals global (there is no
+     *          distribution), so this is equivalent to Size1(@p rA).
+     * @param rA The matrix.
+     * @return Number of rows.
+     */
+    static IndexType GetNumLocalRows(MatrixType const& rA)
+    {
+        return Size1(rA);
+    }
+
+    /**
+     * @brief Extracts the non-zeros of @p rA as COO triplets using 0-based indices.
+     * @details For the sequential UblasSpace all indices are local = global.
+     *          When @p LowerTriangularOnly is set, only entries with row ≥ col
+     *          are emitted (for symmetric matrices).
+     *          Uses ublas row/column iterators so the same code works for both
+     *          `compressed_matrix` (visits stored non-zeros only) and dense `Matrix`
+     *          (visits all entries, skipping structural zeros).
+     * @param rA                The matrix.
+     * @param rIRowIndices      Output: 0-based row indices.
+     * @param rIColIndices      Output: 0-based column indices.
+     * @param rValues           Output: corresponding non-zero values.
+     * @param LowerTriangularOnly When @c true, restrict to the lower triangle.
+     */
+    static void GetLocalCOO(
+        const MatrixType& rA,
+        std::vector<IndexType>& rIRowIndices,
+        std::vector<IndexType>& rIColIndices,
+        std::vector<TDataType>& rValues,
+        const bool LowerTriangularOnly = false)
+    {
+        rIRowIndices.clear();
+        rIColIndices.clear();
+        rValues.clear();
+
+        for (auto it1 = rA.begin1(); it1 != rA.end1(); ++it1) {
+            const std::size_t row = it1.index1();
+            for (auto it2 = it1.begin(); it2 != it1.end(); ++it2) {
+                const std::size_t col = it2.index2();
+                if (!LowerTriangularOnly || row >= col) {
+                    const TDataType val = *it2;
+                    if (val != TDataType{}) {
+                        rIRowIndices.push_back(row);
+                        rIColIndices.push_back(col);
+                        rValues.push_back(val);
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * @brief Returns a raw pointer to the contiguous storage of the vector.
+     * @details For a ublas vector the underlying storage is always contiguous on
+     *          the host, so @c &rV[0] is well-defined.
+     * @param rV The vector whose data pointer is requested.
+     * @return Pointer to the first element.
+     */
+    static TDataType* GetRawValuesPtr(VectorType& rV)
+    {
+        return rV.size() > 0 ? &rV[0] : nullptr;
+    }
+
     template< class TOtherMatrixType >
     static bool WriteMatrixMarketMatrix(const char* pFileName, const TOtherMatrixType& rM, const bool Symmetric)
     {
