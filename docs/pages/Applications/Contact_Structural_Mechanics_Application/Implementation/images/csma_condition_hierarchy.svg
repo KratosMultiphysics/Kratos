@@ -1,0 +1,201 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 1032" width="1600" height="1032">
+<style>
+text{font-family:Helvetica,Arial,sans-serif;fill:#1f2937}
+.title{font-size:30px;font-weight:bold}
+.sub{font-size:17px;fill:#6b7280}
+.sec{font-size:20px;font-weight:bold}
+.b{font-size:16px;font-weight:bold}
+.n{font-size:15px}
+.s{font-size:13px}
+.sb{font-size:13px;font-weight:bold}
+.m{fill:#6b7280}
+.c{text-anchor:middle}
+.foot{font-size:13px;fill:#6b7280}
+.box{stroke-width:1.5;rx:8}
+.ln{stroke:#6b7280;stroke-width:1.5;fill:none}
+.blue{stroke:#2563eb;fill:#eff6ff}.tblue{fill:#2563eb}
+.purple{stroke:#7c3aed;fill:#f5f3ff}.tpurple{fill:#7c3aed}
+.teal{stroke:#0d9488;fill:#f0fdfa}.tteal{fill:#0d9488}
+.amber{stroke:#d97706;fill:#fffbeb}.tamber{fill:#d97706}
+.red{stroke:#dc2626;fill:#fef2f2}.tred{fill:#dc2626}
+.gray{stroke:#cbd5e1;fill:#ffffff}
+.ink{stroke:#1f2937;fill:#ffffff}
+.chip{stroke:#cbd5e1;fill:#f8fafc;rx:6}
+</style>
+<defs>
+<marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#6b7280"/></marker>
+</defs>
+<rect width="1600" height="1032" fill="#ffffff"/>
+<text x="30" y="44" class="title">Contact condition class hierarchy</text>
+<text x="30" y="72" class="sub">custom_conditions/: every contact pair is a Condition built from a PairedCondition; the mortar contact families are template specialisations selected by the FrictionalCase enum</text>
+
+<!-- Row 1: Condition -->
+<rect x="650" y="96" width="300" height="44" class="box ink"/>
+<text x="800" y="118" class="b c">Condition</text>
+<text x="800" y="134" class="s c m">Kratos core (includes/condition.h)</text>
+<line x1="800" y1="140" x2="800" y2="170" class="ln" marker-end="url(#arr)"/>
+
+<!-- Row 2: PairedCondition -->
+<rect x="610" y="172" width="380" height="50" class="box ink"/>
+<text x="800" y="193" class="b c">PairedCondition</text>
+<text x="800" y="211" class="s c m">wraps slave + master geometry in a CouplingGeometry</text>
+
+<!-- bus from PairedCondition -->
+<line x1="800" y1="222" x2="800" y2="244" class="ln"/>
+<line x1="619" y1="244" x2="1417" y2="244" class="ln"/>
+<line x1="619" y1="244" x2="619" y2="262" class="ln" marker-end="url(#arr)"/>
+<line x1="1417" y1="244" x2="1417" y2="262" class="ln" marker-end="url(#arr)"/>
+<line x1="1240" y1="244" x2="1240" y2="427" class="ln"/>
+<line x1="1240" y1="427" x2="1260" y2="427" class="ln" marker-end="url(#arr)"/>
+<text x="812" y="240" class="s m">derives</text>
+
+<!-- Row 3: MortarContactCondition, MeshTying -->
+<rect x="169" y="264" width="900" height="58" class="box ink"/>
+<text x="619" y="287" class="b c">MortarContactCondition&lt;TDim, TNumNodes, TFrictional, TNormalVariation, TNumNodesMaster&gt;</text>
+<text x="619" y="309" class="s c m">segmentation + mortar operators (D, M) + Gauss integration; CalculateLocalLHS/RHS delegated to the derived family (AD-generated code)</text>
+
+<rect x="1260" y="264" width="315" height="74" class="box gray"/>
+<text x="1417" y="287" class="b c">MeshTyingMortarCondition</text>
+<text x="1417" y="308" class="s c m">&lt;TDim, TNumNodes, TNumNodesMaster&gt;</text>
+<text x="1417" y="326" class="s c m">dual LM · hand-written LHS/RHS (no AD)</text>
+
+<!-- Row 4 right: MPC -->
+<rect x="1260" y="390" width="315" height="74" class="box gray"/>
+<text x="1417" y="413" class="b c">MPCMortarContactCondition</text>
+<text x="1417" y="434" class="s c m">&lt;TDim, TNumNodes, TNumNodesMaster&gt;</text>
+<text x="1417" y="452" class="s c m">zero LHS/RHS · builds the MPC relation from D⁻¹M</text>
+
+<!-- bus to families -->
+<line x1="619" y1="322" x2="619" y2="356" class="ln"/>
+<line x1="139" y1="356" x2="1099" y2="356" class="ln"/>
+<line x1="139" y1="356" x2="139" y2="390" class="ln" marker-end="url(#arr)"/>
+<line x1="379" y1="356" x2="379" y2="390" class="ln" marker-end="url(#arr)"/>
+<line x1="619" y1="356" x2="619" y2="390" class="ln" marker-end="url(#arr)"/>
+<line x1="859" y1="356" x2="859" y2="390" class="ln" marker-end="url(#arr)"/>
+<line x1="1099" y1="356" x2="1099" y2="390" class="ln" marker-end="url(#arr)"/>
+
+<!-- Row 4: five families (x = 25, 265, 505, 745, 985; w=228) -->
+<rect x="25" y="392" width="228" height="104" class="box blue"/>
+<text x="139" y="413" class="sb c">AugmentedLagrangianMethod</text>
+<text x="139" y="430" class="sb c">Frictionless</text>
+<text x="139" y="447" class="sb c">MortarContactCondition</text>
+<text x="139" y="468" class="s c tblue">TFrictional = FRICTIONLESS</text>
+<text x="139" y="486" class="s c m">scalar LM · 12 registered</text>
+
+<rect x="265" y="392" width="228" height="104" class="box purple"/>
+<text x="379" y="413" class="sb c">AugmentedLagrangianMethod</text>
+<text x="379" y="430" class="sb c">FrictionlessComponents</text>
+<text x="379" y="447" class="sb c">MortarContactCondition</text>
+<text x="379" y="468" class="s c tpurple">FRICTIONLESS_COMPONENTS</text>
+<text x="379" y="486" class="s c m">vector LM · 10 registered</text>
+
+<rect x="505" y="392" width="228" height="104" class="box teal"/>
+<text x="619" y="413" class="sb c">AugmentedLagrangianMethod</text>
+<text x="619" y="430" class="sb c">Frictional</text>
+<text x="619" y="447" class="sb c">MortarContactCondition</text>
+<text x="619" y="468" class="s c tteal">TFrictional = FRICTIONAL</text>
+<text x="619" y="486" class="s c m">vector LM, Coulomb · 12 registered</text>
+
+<rect x="745" y="392" width="228" height="104" class="box amber"/>
+<text x="859" y="413" class="sb c">PenaltyMethod</text>
+<text x="859" y="430" class="sb c">Frictionless</text>
+<text x="859" y="447" class="sb c">MortarContactCondition</text>
+<text x="859" y="468" class="s c tamber">FRICTIONLESS_PENALTY</text>
+<text x="859" y="486" class="s c m">no LM DoFs · 12 registered</text>
+
+<rect x="985" y="392" width="228" height="104" class="box red"/>
+<text x="1099" y="413" class="sb c">PenaltyMethod</text>
+<text x="1099" y="430" class="sb c">Frictional</text>
+<text x="1099" y="447" class="sb c">MortarContactCondition</text>
+<text x="1099" y="468" class="s c tred">FRICTIONAL_PENALTY</text>
+<text x="1099" y="486" class="s c m">no LM DoFs · 12 registered</text>
+
+<!-- Row 5: axisym subclasses (no components variant) -->
+<line x1="139" y1="496" x2="139" y2="530" class="ln" marker-end="url(#arr)"/>
+<line x1="619" y1="496" x2="619" y2="530" class="ln" marker-end="url(#arr)"/>
+<line x1="859" y1="496" x2="859" y2="530" class="ln" marker-end="url(#arr)"/>
+<line x1="1099" y1="496" x2="1099" y2="530" class="ln" marker-end="url(#arr)"/>
+
+<rect x="25" y="532" width="228" height="86" class="box blue" stroke-dasharray="5,3"/>
+<text x="139" y="553" class="sb c">…FrictionlessMortarContact</text>
+<text x="139" y="570" class="sb c">AxisymCondition</text>
+<text x="139" y="589" class="s c m">&lt;TNumNodes, TNormalVariation&gt;</text>
+<text x="139" y="606" class="s c m">2D only · 2πr / THICKNESS</text>
+
+<rect x="265" y="532" width="228" height="86" class="box gray" stroke-dasharray="5,3"/>
+<text x="379" y="571" class="s c m">no axisymmetric variant</text>
+<text x="379" y="590" class="s c m">(components family)</text>
+
+<rect x="505" y="532" width="228" height="86" class="box teal" stroke-dasharray="5,3"/>
+<text x="619" y="553" class="sb c">…FrictionalMortarContact</text>
+<text x="619" y="570" class="sb c">AxisymCondition</text>
+<text x="619" y="589" class="s c m">&lt;TNumNodes, TNormalVariation&gt;</text>
+<text x="619" y="606" class="s c m">2D only · 2πr / THICKNESS</text>
+
+<rect x="745" y="532" width="228" height="86" class="box amber" stroke-dasharray="5,3"/>
+<text x="859" y="553" class="sb c">PenaltyMethodFrictionless</text>
+<text x="859" y="570" class="sb c">MortarContactAxisymCondition</text>
+<text x="859" y="589" class="s c m">&lt;TNumNodes, TNormalVariation&gt;</text>
+<text x="859" y="606" class="s c m">2D only · 2πr / THICKNESS</text>
+
+<rect x="985" y="532" width="228" height="86" class="box red" stroke-dasharray="5,3"/>
+<text x="1099" y="553" class="sb c">PenaltyMethodFrictional</text>
+<text x="1099" y="570" class="sb c">MortarContactAxisymCondition</text>
+<text x="1099" y="589" class="s c m">&lt;TNumNodes, TNormalVariation,</text>
+<text x="1099" y="606" class="s c m">TNumNodesMaster&gt; · 2D only</text>
+
+<!-- Right column note -->
+<rect x="1260" y="532" width="315" height="86" class="box gray"/>
+<text x="1417" y="553" class="sb c">Not mortar-contact templates</text>
+<text x="1417" y="572" class="s c m">MeshTying: TYING_VARIABLE picks the tied variable</text>
+<text x="1417" y="589" class="s c m">(SCALAR_ or VECTOR_LAGRANGE_MULTIPLIER LM)</text>
+<text x="1417" y="606" class="s c m">MPC: zero LHS/RHS, updates CONSTRAINT_POINTER</text>
+
+<!-- FrictionalCase legend -->
+<text x="30" y="662" class="sec">FrictionalCase enum (TFrictional)</text>
+<rect x="30" y="676" width="226" height="34" class="box blue"/>
+<text x="143" y="698" class="s c tblue" font-weight="bold">FRICTIONLESS = 0</text>
+<rect x="266" y="676" width="270" height="34" class="box purple"/>
+<text x="401" y="698" class="s c tpurple" font-weight="bold">FRICTIONLESS_COMPONENTS = 1</text>
+<rect x="546" y="676" width="200" height="34" class="box teal"/>
+<text x="646" y="698" class="s c tteal" font-weight="bold">FRICTIONAL = 2</text>
+<rect x="756" y="676" width="250" height="34" class="box amber"/>
+<text x="881" y="698" class="s c tamber" font-weight="bold">FRICTIONLESS_PENALTY = 3</text>
+<rect x="1016" y="676" width="230" height="34" class="box red"/>
+<text x="1131" y="698" class="s c tred" font-weight="bold">FRICTIONAL_PENALTY = 4</text>
+<text x="1260" y="690" class="s m">defined in contact_structural_mechanics_</text>
+<text x="1260" y="706" class="s m">application_variables.h</text>
+
+<!-- Registered-name decoder -->
+<text x="30" y="748" class="sec">Registered name decoder (KRATOS_REGISTER_CONDITION)</text>
+<rect x="30" y="762" width="150" height="40" class="chip"/>
+<text x="105" y="779" class="s c" font-weight="bold">ALM | Penalty</text>
+<text x="105" y="795" class="s c m">method</text>
+<rect x="190" y="762" width="90" height="40" class="chip"/>
+<text x="235" y="779" class="s c" font-weight="bold">[NV]</text>
+<text x="235" y="795" class="s c m">optional</text>
+<rect x="290" y="762" width="420" height="40" class="chip"/>
+<text x="500" y="779" class="s c" font-weight="bold">Frictionless | FrictionlessComponents | Frictional</text>
+<text x="500" y="795" class="s c m">case</text>
+<rect x="720" y="762" width="110" height="40" class="chip"/>
+<text x="775" y="779" class="s c" font-weight="bold">[Axisym]</text>
+<text x="775" y="795" class="s c m">optional</text>
+<rect x="840" y="762" width="220" height="40" class="chip"/>
+<text x="950" y="779" class="s c" font-weight="bold">MortarContactCondition</text>
+<text x="950" y="795" class="s c m">fixed suffix</text>
+<rect x="1070" y="762" width="360" height="40" class="chip"/>
+<text x="1250" y="779" class="s c" font-weight="bold">2D2N | 3D3N | 3D4N | 3D3N4N | 3D4N3N</text>
+<text x="1250" y="795" class="s c m">slave / master geometry pair</text>
+
+<text x="30" y="826" class="s">NV = TNormalVariation = true (normal_variation = "nodal_elemental_derivatives")   ·   Axisym exists only for 2D2N and never for FrictionlessComponents   ·   example: ALMNVFrictionalMortarContactCondition3D3N4N</text>
+<text x="30" y="848" class="s">Also registered with the same five geometry codes: MeshTyingMortarCondition{2D2N, 3D3N, 3D4N, 3D3N4N, 3D4N3N} and MPCMortarContactCondition{2D2N, 3D3N, 3D4N, 3D3N4N, 3D4N3N}</text>
+<text x="30" y="870" class="s">Geometry codes: 2D2N = Line2D2 / Line2D2   ·   3D3N = Triangle3D3 / Triangle3D3   ·   3D4N = Quadrilateral3D4 / Quadrilateral3D4   ·   3D3N4N = slave triangle / master quadrilateral   ·   3D4N3N = slave quadrilateral / master triangle</text>
+
+<!-- Counts strip -->
+<rect x="30" y="890" width="1540" height="86" class="box gray"/>
+<text x="46" y="914" class="b">Registered conditions: 12 + 10 + 12 + 12 + 12 + 5 + 5 = 68</text>
+<text x="46" y="936" class="s"><tspan class="tblue" font-weight="bold">ALM frictionless 12</tspan> = (5 geometries + Axisym2D2N) × {plain, NV}   ·   <tspan class="tpurple" font-weight="bold">ALM frictionless components 10</tspan> = 5 × {plain, NV}   ·   <tspan class="tteal" font-weight="bold">ALM frictional 12</tspan> = (5 + Axisym) × 2</text>
+<text x="46" y="958" class="s"><tspan class="tamber" font-weight="bold">Penalty frictionless 12</tspan> = (5 + Axisym) × 2   ·   <tspan class="tred" font-weight="bold">Penalty frictional 12</tspan> = (5 + Axisym) × 2   ·   <tspan font-weight="bold">MeshTyingMortarCondition 5</tspan>   ·   <tspan font-weight="bold">MPCMortarContactCondition 5</tspan>   ·   plus 1 constraint: ContactMasterSlaveConstraint</text>
+
+<text x="30" y="1014" class="foot">ContactStructuralMechanicsApplication · Kratos Multiphysics</text>
+</svg>

@@ -1,0 +1,18 @@
+{
+    "side_bar_name": "contact_structural_mechanics_application",
+    "landing_page": "General/Overview.md",
+    "additional_menu_options": {
+        "product": "Contact Structural Mechanics Application",
+        "title": "sidebar"
+    },
+    "custom_entries": [
+        "General",
+        "Theory",
+        "Contact_Search",
+        "Implementation",
+        "Usage",
+        "Validation",
+        "Examples",
+        "Reference"
+    ]
+}

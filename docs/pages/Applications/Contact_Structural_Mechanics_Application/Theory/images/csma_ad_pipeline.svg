@@ -1,0 +1,158 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 960" width="1600" height="960">
+<style>
+text{font-family:Helvetica,Arial,sans-serif;fill:#1f2937}
+.title{font-size:30px;font-weight:700}
+.sub{font-size:17px;fill:#6b7280}
+.hd{font-size:18px;font-weight:700}
+.t{font-size:15px}
+.s{font-size:14px;fill:#6b7280}
+.c{font-size:14px;fill:#1f2937;font-style:italic}
+.foot{font-size:13px;fill:#6b7280}
+.box{stroke:#cbd5e1;stroke-width:1.5}
+.blue{fill:#eff6ff}.teal{fill:#f0fdfa}.amber{fill:#fffbeb}.purple{fill:#f5f3ff}.red{fill:#fef2f2}
+.hb{fill:#2563eb}.ht{fill:#0d9488}.ha{fill:#d97706}.hp{fill:#7c3aed}.hr{fill:#dc2626}
+.ar{stroke:#6b7280;stroke-width:2;fill:none;marker-end:url(#ar)}
+.w{fill:#fff}
+</style>
+<defs>
+<marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#6b7280"/></marker>
+</defs>
+<rect width="1600" height="960" fill="#fff"/>
+<text x="40" y="50" class="title">Automatic differentiation pipeline for the mortar contact conditions</text>
+<text x="40" y="78" class="sub">From a sympy functional to the generated CalculateLocalLHS / CalculateLocalRHS in custom_conditions/*.cpp (folder automatic_differentiation/)</text>
+
+<!-- Row A: Python generation -->
+<text x="40" y="118" class="hd" style="fill:#2563eb">Generation (Python, run once by the developer)</text>
+
+<!-- Box 1 -->
+<rect x="40" y="130" width="340" height="290" rx="8" class="box blue"/>
+<rect x="40" y="130" width="340" height="34" rx="8" class="hb"/>
+<text x="56" y="154" class="hd" style="fill:#fff">1 · sympy generator script</text>
+<text x="56" y="188" class="c">generate_*_mortar_condition.py</text>
+<text x="56" y="210" class="t">loops over (dim, slave nodes, master nodes):</text>
+<text x="56" y="230" class="t">[2,3,3,3,3] / [2,3,4,3,4] / [2,3,4,4,3]</text>
+<text x="56" y="250" class="t">× normal variation {false, true}</text>
+<text x="56" y="278" class="t">symbols: u1, u2, X1, X2, w1, w2,</text>
+<text x="56" y="298" class="t">LM / LMNormal, NormalSlave, DOperator,</text>
+<text x="56" y="318" class="t">MOperator, PenaltyParameter, ScaleFactor,</text>
+<text x="56" y="338" class="t">TangentFactor, DynamicFactor</text>
+<text x="56" y="366" class="t">DefineDofDependencyMatrix makes D, M</text>
+<text x="56" y="386" class="t">and NormalSlave DoF-dependent (u1, u2)</text>
+
+<!-- Box 2 -->
+<rect x="420" y="130" width="340" height="290" rx="8" class="box teal"/>
+<rect x="420" y="130" width="340" height="34" rx="8" class="ht"/>
+<text x="436" y="154" class="hd" style="fill:#fff">2 · Galerkin functional per case</text>
+<text x="436" y="188" class="t">one functional per nodal state:</text>
+<text x="436" y="210" class="t">frictionless: active / inactive</text>
+<text x="436" y="230" class="t">frictional: inactive, stick, slip</text>
+<text x="436" y="250" class="t">    × objective / non-objective</text>
+<text x="436" y="278" class="t">e.g. ALM frictionless, active node:</text>
+<text x="436" y="298" class="c">DynamicFactor·(k·λn + ε·gn)·n·(D w1 − M w2)</text>
+<text x="436" y="318" class="c">+ k·gn·wλn</text>
+<text x="436" y="342" class="t">inactive node: −k²/ε · λn·wλn</text>
+<text x="436" y="366" class="t">penalty: ε·gn only; frictional adds</text>
+<text x="436" y="386" class="t">−μ·pn·t and TangentFactor·ε·slip terms</text>
+
+<!-- Box 3 -->
+<rect x="800" y="130" width="340" height="290" rx="8" class="box amber"/>
+<rect x="800" y="130" width="340" height="34" rx="8" class="ha"/>
+<text x="816" y="154" class="hd" style="fill:#fff">3 · Compute_RHS_and_LHS</text>
+<text x="816" y="188" class="c">python_scripts/custom_sympy_fe_utilities.py</text>
+<text x="816" y="212" class="t">RHS = ∂(functional) / ∂(test functions)</text>
+<text x="816" y="232" class="t">LHS = ∂RHS / ∂(DoFs), all symbolic</text>
+<text x="816" y="260" class="t">DoF dependency of D, M, n yields the</text>
+<text x="816" y="280" class="t">consistently linearised terms</text>
+<text x="816" y="300" class="c">DeltaDOperator[i], DeltaMOperator[i],</text>
+<text x="816" y="320" class="c">DeltaNormalSlave[i]</text>
+<text x="816" y="348" class="t">frictional: also DOperatorold /</text>
+<text x="816" y="368" class="t">MOperatorold for the slip increment</text>
+<text x="816" y="392" class="s">optional do_simplifications flag</text>
+
+<!-- Box 4 -->
+<rect x="1180" y="130" width="380" height="290" rx="8" class="box purple"/>
+<rect x="1180" y="130" width="380" height="34" rx="8" class="hp"/>
+<text x="1196" y="154" class="hd" style="fill:#fff">4 · OutputMatrix_CollectingFactors</text>
+<text x="1196" y="188" class="t">common sub-expression elimination</text>
+<text x="1196" y="208" class="t">(sympy cse) → clhsN / crhsN temporaries</text>
+<text x="1196" y="236" class="t">emits C++ assignments</text>
+<text x="1196" y="256" class="c">rLocalLHS(i,j) = …;  rLocalRHS[i] = …;</text>
+<text x="1196" y="284" class="t">one block per (dim, nodes, normal</text>
+<text x="1196" y="304" class="t">variation, active/inactive case)</text>
+<text x="1196" y="332" class="t">case dispatch written by the script:</text>
+<text x="1196" y="352" class="c">if (rActiveInactive == N) … (frictionless)</text>
+<text x="1196" y="372" class="c">per-node ACTIVE / SLIP branches (frictional)</text>
+<text x="1196" y="396" class="s">_non_zero variants emit only non-zero entries</text>
+
+<!-- arrows row A -->
+<path d="M380,275 L418,275" class="ar"/>
+<path d="M760,275 L798,275" class="ar"/>
+<path d="M1140,275 L1178,275" class="ar"/>
+<!-- elbow arrow from box 4 down to row B box 5 -->
+<path d="M1370,420 L1370,455 L240,455 L240,488" class="ar"/>
+
+<!-- Row B: C++ side -->
+<text x="1560" y="483" class="hd" style="fill:#0d9488" text-anchor="end">Consumption (C++, compiled into the application)</text>
+
+<!-- Box 5 -->
+<rect x="40" y="500" width="400" height="260" rx="8" class="box blue"/>
+<rect x="40" y="500" width="400" height="34" rx="8" class="hb"/>
+<text x="56" y="524" class="hd" style="fill:#fff">5 · template .cpp</text>
+<text x="56" y="558" class="c">*_mortar_contact_condition_template.cpp</text>
+<text x="56" y="584" class="t">contains the fixed part of the condition</text>
+<text x="56" y="604" class="t">and two markers</text>
+<text x="56" y="626" class="c">// replace_lhs      // replace_rhs</text>
+<text x="56" y="652" class="t">placed between the banners</text>
+<text x="56" y="672" class="c">BEGIN AD REPLACEMENT … END AD REPLACEMENT</text>
+<text x="56" y="700" class="t">first pass reads the template, later passes</text>
+<text x="56" y="720" class="t">re-read the previous generated output</text>
+<text x="56" y="744" class="s">result is copied by hand into custom_conditions/</text>
+
+<!-- Box 6 -->
+<rect x="480" y="500" width="600" height="260" rx="8" class="box teal"/>
+<rect x="480" y="500" width="600" height="34" rx="8" class="ht"/>
+<text x="496" y="524" class="hd" style="fill:#fff">6 · generated custom_conditions/*.cpp</text>
+<text x="496" y="556" class="s">file</text>
+<text x="1060" y="556" class="s" text-anchor="end">lines</text>
+<line x1="496" y1="562" x2="1064" y2="562" stroke="#cbd5e1"/>
+<text x="496" y="584" class="c">ALM_frictionless_mortar_contact_condition.cpp</text>
+<text x="1060" y="584" class="t" text-anchor="end">28 904</text>
+<text x="496" y="608" class="c">ALM_frictionless_components_mortar_contact_condition.cpp</text>
+<text x="1060" y="608" class="t" text-anchor="end">29 155</text>
+<text x="496" y="632" class="c">ALM_frictional_mortar_contact_condition.cpp</text>
+<text x="1060" y="632" class="t" text-anchor="end" style="font-weight:700;fill:#dc2626">170 787</text>
+<text x="496" y="656" class="c">penalty_frictionless_mortar_contact_condition.cpp</text>
+<text x="1060" y="656" class="t" text-anchor="end">27 480</text>
+<text x="496" y="680" class="c">penalty_frictional_mortar_contact_condition.cpp</text>
+<text x="1060" y="680" class="t" text-anchor="end">93 764</text>
+<line x1="496" y1="692" x2="1064" y2="692" stroke="#cbd5e1"/>
+<text x="496" y="716" class="t">each file = template body + explicit CalculateLocalLHS/RHS</text>
+<text x="496" y="736" class="t">specialisations for every (dim, nodes, normal variation) combination</text>
+
+<!-- Box 7 -->
+<rect x="1120" y="500" width="440" height="260" rx="8" class="box amber"/>
+<rect x="1120" y="500" width="440" height="34" rx="8" class="ha"/>
+<text x="1136" y="524" class="hd" style="fill:#fff">7 · compile and run time</text>
+<text x="1136" y="558" class="t">CMake glob custom_conditions/*.cpp →</text>
+<text x="1136" y="578" class="c">KratosContactStructuralMechanicsCore (shared lib)</text>
+<text x="1136" y="604" class="t">condition sources are excluded from the</text>
+<text x="1136" y="624" class="t">unity build because of their size</text>
+<text x="1136" y="652" class="t">at run time the generated code consumes</text>
+<text x="1136" y="672" class="t">ΔD, ΔM, Δn computed numerically by</text>
+<text x="1136" y="692" class="c">DerivativesUtilities (custom_utilities/) and</text>
+<text x="1136" y="712" class="c">MortarOperatorWithDerivatives (core mortar_classes.h)</text>
+<text x="1136" y="740" class="s">49 C++ tests cover DerivativesUtilities</text>
+
+<!-- arrows row B -->
+<path d="M440,630 L478,630" class="ar"/>
+<path d="M1080,630 L1118,630" class="ar"/>
+
+<!-- Notes -->
+<rect x="40" y="790" width="1520" height="110" rx="8" class="box red"/>
+<text x="56" y="816" class="hd" style="fill:#dc2626">Notes</text>
+<text x="56" y="842" class="t">• Requires sympy 1.2: the symbol-as-function auto-conversion used by the scripts was removed in sympy 1.3 (automatic_differentiation/README.md).</text>
+<text x="56" y="864" class="t">• mesh_tying_mortar_condition/ is legacy: AD was removed from mesh tying and MeshTyingMortarCondition is now hand-written (no template file).</text>
+<text x="56" y="886" class="t">• Generators: ALM_frictionless(+ _non_zero), ALM_frictionless_components(+ _non_zero), ALM_frictional, penalty_frictionless(+ _non_zero), penalty_frictional.</text>
+
+<text x="40" y="940" class="foot">ContactStructuralMechanicsApplication · Kratos Multiphysics</text>
+</svg>

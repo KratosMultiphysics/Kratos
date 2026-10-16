@@ -1,0 +1,375 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 1438" width="1600" height="1438">
+<style>
+text{font-family:Helvetica,Arial,sans-serif;fill:#1f2937}
+.title{font-size:30px;font-weight:bold}
+.sub{font-size:17px;fill:#6b7280}
+.h{font-size:13px;font-weight:bold;text-anchor:middle}
+.g{font-size:16px;font-weight:bold}
+.gn{font-size:13px;fill:#6b7280}
+.l{font-size:14px;font-weight:bold}
+.ls{font-size:13px;fill:#6b7280}
+.t{font-size:13px;text-anchor:middle;font-weight:bold}
+.foot{font-size:13px;fill:#6b7280}
+.grid{stroke:#e5e7eb;stroke-width:1}
+</style>
+<rect width="1600" height="1438" fill="#ffffff"/>
+<text x="30" y="44" class="title">Variables, DoFs and flags per mortar_type</text>
+<text x="30" y="72" class="sub">What the contact solvers add to the nodes (python_scripts/auxiliary_methods_solvers.py) and which flags / non-historical values the search and active-set code rely on</text>
+<text x="30" y="136" class="l">contact_settings.mortar_type →</text>
+<rect x="453" y="96" width="134" height="66" rx="8" fill="#eff6ff" stroke="#2563eb" stroke-width="1.5"/>
+<text x="520.0" y="126" class="h" fill="#2563eb">ALMContact</text>
+<text x="520.0" y="142" class="h" fill="#2563eb">Frictionless</text>
+<rect x="593" y="96" width="134" height="66" rx="8" fill="#f5f3ff" stroke="#7c3aed" stroke-width="1.5"/>
+<text x="660.0" y="118" class="h" fill="#7c3aed">ALMContact</text>
+<text x="660.0" y="134" class="h" fill="#7c3aed">Frictionless</text>
+<text x="660.0" y="150" class="h" fill="#7c3aed">Components</text>
+<rect x="733" y="96" width="134" height="66" rx="8" fill="#f0fdfa" stroke="#0d9488" stroke-width="1.5"/>
+<text x="800.0" y="118" class="h" fill="#0d9488">ALMContact</text>
+<text x="800.0" y="134" class="h" fill="#0d9488">Frictional</text>
+<text x="800.0" y="150" class="h" fill="#0d9488">[PureSlip]</text>
+<rect x="873" y="96" width="134" height="66" rx="8" fill="#fffbeb" stroke="#d97706" stroke-width="1.5"/>
+<text x="940.0" y="126" class="h" fill="#d97706">PenaltyContact</text>
+<text x="940.0" y="142" class="h" fill="#d97706">Frictionless</text>
+<rect x="1013" y="96" width="134" height="66" rx="8" fill="#fef2f2" stroke="#dc2626" stroke-width="1.5"/>
+<text x="1080.0" y="118" class="h" fill="#dc2626">PenaltyContact</text>
+<text x="1080.0" y="134" class="h" fill="#dc2626">Frictional</text>
+<text x="1080.0" y="150" class="h" fill="#dc2626">[PureSlip]</text>
+<rect x="1153" y="96" width="134" height="66" rx="8" fill="#f8fafc" stroke="#1f2937" stroke-width="1.5"/>
+<text x="1220.0" y="134" class="h" fill="#1f2937">ScalarMeshTying</text>
+<rect x="1293" y="96" width="134" height="66" rx="8" fill="#f8fafc" stroke="#1f2937" stroke-width="1.5"/>
+<text x="1360.0" y="126" class="h" fill="#1f2937">ComponentsMesh</text>
+<text x="1360.0" y="142" class="h" fill="#1f2937">Tying</text>
+<rect x="1433" y="96" width="134" height="66" rx="8" fill="#f8fafc" stroke="#6b7280" stroke-width="1.5"/>
+<text x="1500.0" y="118" class="h" fill="#6b7280">MPC contact</text>
+<text x="1500.0" y="134" class="h" fill="#6b7280">(mpc_contact_</text>
+<text x="1500.0" y="150" class="h" fill="#6b7280">settings)</text>
+<rect x="30" y="170" width="1540" height="32" fill="#f8fafc"/>
+<line x1="30" y1="170" x2="1570" y2="170" stroke="#cbd5e1" stroke-width="1.5"/>
+<text x="36" y="191" class="g">Historical nodal variables</text>
+<text x="303" y="191" class="gn">AuxiliaryAddVariables → AddNodalSolutionStepVariable (mortar_type != &quot;&quot;); MPC route: AuxiliaryMPCAddVariables</text>
+<line x1="30" y1="240" x2="1570" y2="240" class="grid"/>
+<text x="36" y="218" class="l">NORMAL</text>
+<text x="36" y="233" class="ls">core · nodal normal</text>
+<circle cx="520.0" cy="221.0" r="6" fill="#2563eb"/>
+<circle cx="660.0" cy="221.0" r="6" fill="#7c3aed"/>
+<circle cx="800.0" cy="221.0" r="6" fill="#0d9488"/>
+<circle cx="940.0" cy="221.0" r="6" fill="#d97706"/>
+<circle cx="1080.0" cy="221.0" r="6" fill="#dc2626"/>
+<circle cx="1220.0" cy="221.0" r="6" fill="#1f2937"/>
+<circle cx="1360.0" cy="221.0" r="6" fill="#1f2937"/>
+<circle cx="1500.0" cy="221.0" r="6" fill="#6b7280"/>
+<rect x="30" y="240" width="1540" height="38" fill="#f8fafc" opacity="0.7"/>
+<line x1="30" y1="278" x2="1570" y2="278" class="grid"/>
+<text x="36" y="256" class="l">NODAL_H</text>
+<text x="36" y="271" class="ls">core · nodal size (penalty/scale factor)</text>
+<circle cx="520.0" cy="259.0" r="6" fill="#2563eb"/>
+<circle cx="660.0" cy="259.0" r="6" fill="#7c3aed"/>
+<circle cx="800.0" cy="259.0" r="6" fill="#0d9488"/>
+<circle cx="940.0" cy="259.0" r="6" fill="#d97706"/>
+<circle cx="1080.0" cy="259.0" r="6" fill="#dc2626"/>
+<circle cx="1220.0" cy="259.0" r="6" fill="#1f2937"/>
+<circle cx="1360.0" cy="259.0" r="6" fill="#1f2937"/>
+<circle cx="1500.0" cy="259.0" r="6" fill="#6b7280"/>
+<line x1="30" y1="316" x2="1570" y2="316" class="grid"/>
+<text x="36" y="294" class="l">WEIGHTED_GAP</text>
+<text x="36" y="309" class="ls">mortar-integrated normal gap g̃n</text>
+<circle cx="520.0" cy="297.0" r="6" fill="#2563eb"/>
+<circle cx="660.0" cy="297.0" r="6" fill="#7c3aed"/>
+<circle cx="800.0" cy="297.0" r="6" fill="#0d9488"/>
+<circle cx="940.0" cy="297.0" r="6" fill="#d97706"/>
+<circle cx="1080.0" cy="297.0" r="6" fill="#dc2626"/>
+<circle cx="1220.0" cy="297.0" r="2" fill="#d1d5db"/>
+<circle cx="1360.0" cy="297.0" r="2" fill="#d1d5db"/>
+<circle cx="1500.0" cy="297.0" r="6" fill="#6b7280"/>
+<rect x="30" y="316" width="1540" height="38" fill="#f8fafc" opacity="0.7"/>
+<line x1="30" y1="354" x2="1570" y2="354" class="grid"/>
+<text x="36" y="332" class="l">WEIGHTED_SLIP</text>
+<text x="36" y="347" class="ls">mortar-integrated tangential slip</text>
+<circle cx="520.0" cy="335.0" r="2" fill="#d1d5db"/>
+<circle cx="660.0" cy="335.0" r="2" fill="#d1d5db"/>
+<circle cx="800.0" cy="335.0" r="6" fill="#0d9488"/>
+<circle cx="940.0" cy="335.0" r="2" fill="#d1d5db"/>
+<circle cx="1080.0" cy="335.0" r="6" fill="#dc2626"/>
+<circle cx="1220.0" cy="335.0" r="2" fill="#d1d5db"/>
+<circle cx="1360.0" cy="335.0" r="2" fill="#d1d5db"/>
+<text x="1500.0" y="340" class="t" fill="#6b7280">Frictional</text>
+<line x1="30" y1="392" x2="1570" y2="392" class="grid"/>
+<text x="36" y="370" class="l">LAGRANGE_MULTIPLIER_CONTACT_PRESSURE</text>
+<text x="36" y="385" class="ls">scalar λn</text>
+<circle cx="520.0" cy="373.0" r="6" fill="#2563eb"/>
+<circle cx="660.0" cy="373.0" r="2" fill="#d1d5db"/>
+<circle cx="800.0" cy="373.0" r="2" fill="#d1d5db"/>
+<circle cx="940.0" cy="373.0" r="2" fill="#d1d5db"/>
+<circle cx="1080.0" cy="373.0" r="2" fill="#d1d5db"/>
+<circle cx="1220.0" cy="373.0" r="2" fill="#d1d5db"/>
+<circle cx="1360.0" cy="373.0" r="2" fill="#d1d5db"/>
+<circle cx="1500.0" cy="373.0" r="2" fill="#d1d5db"/>
+<rect x="30" y="392" width="1540" height="38" fill="#f8fafc" opacity="0.7"/>
+<line x1="30" y1="430" x2="1570" y2="430" class="grid"/>
+<text x="36" y="408" class="l">VECTOR_LAGRANGE_MULTIPLIER</text>
+<text x="36" y="423" class="ls">core · vector λ</text>
+<circle cx="520.0" cy="411.0" r="2" fill="#d1d5db"/>
+<circle cx="660.0" cy="411.0" r="6" fill="#7c3aed"/>
+<circle cx="800.0" cy="411.0" r="6" fill="#0d9488"/>
+<circle cx="940.0" cy="411.0" r="2" fill="#d1d5db"/>
+<circle cx="1080.0" cy="411.0" r="2" fill="#d1d5db"/>
+<circle cx="1220.0" cy="411.0" r="2" fill="#d1d5db"/>
+<circle cx="1360.0" cy="411.0" r="6" fill="#1f2937"/>
+<circle cx="1500.0" cy="411.0" r="2" fill="#d1d5db"/>
+<line x1="30" y1="468" x2="1570" y2="468" class="grid"/>
+<text x="36" y="446" class="l">SCALAR_LAGRANGE_MULTIPLIER</text>
+<text x="36" y="461" class="ls">core · scalar tying LM</text>
+<circle cx="520.0" cy="449.0" r="2" fill="#d1d5db"/>
+<circle cx="660.0" cy="449.0" r="2" fill="#d1d5db"/>
+<circle cx="800.0" cy="449.0" r="2" fill="#d1d5db"/>
+<circle cx="940.0" cy="449.0" r="2" fill="#d1d5db"/>
+<circle cx="1080.0" cy="449.0" r="2" fill="#d1d5db"/>
+<circle cx="1220.0" cy="449.0" r="6" fill="#1f2937"/>
+<circle cx="1360.0" cy="449.0" r="2" fill="#d1d5db"/>
+<circle cx="1500.0" cy="449.0" r="2" fill="#d1d5db"/>
+<rect x="30" y="468" width="1540" height="38" fill="#f8fafc" opacity="0.7"/>
+<line x1="30" y1="506" x2="1570" y2="506" class="grid"/>
+<text x="36" y="484" class="l">WEIGHTED_SCALAR_RESIDUAL</text>
+<text x="36" y="499" class="ls">reaction of the scalar LM DoF</text>
+<circle cx="520.0" cy="487.0" r="6" fill="#2563eb"/>
+<circle cx="660.0" cy="487.0" r="2" fill="#d1d5db"/>
+<circle cx="800.0" cy="487.0" r="2" fill="#d1d5db"/>
+<circle cx="940.0" cy="487.0" r="2" fill="#d1d5db"/>
+<circle cx="1080.0" cy="487.0" r="2" fill="#d1d5db"/>
+<circle cx="1220.0" cy="487.0" r="6" fill="#1f2937"/>
+<circle cx="1360.0" cy="487.0" r="2" fill="#d1d5db"/>
+<circle cx="1500.0" cy="487.0" r="2" fill="#d1d5db"/>
+<line x1="30" y1="544" x2="1570" y2="544" class="grid"/>
+<text x="36" y="522" class="l">WEIGHTED_VECTOR_RESIDUAL</text>
+<text x="36" y="537" class="ls">reaction of the vector LM DoFs</text>
+<circle cx="520.0" cy="525.0" r="2" fill="#d1d5db"/>
+<circle cx="660.0" cy="525.0" r="6" fill="#7c3aed"/>
+<circle cx="800.0" cy="525.0" r="6" fill="#0d9488"/>
+<circle cx="940.0" cy="525.0" r="2" fill="#d1d5db"/>
+<circle cx="1080.0" cy="525.0" r="2" fill="#d1d5db"/>
+<circle cx="1220.0" cy="525.0" r="2" fill="#d1d5db"/>
+<circle cx="1360.0" cy="525.0" r="6" fill="#1f2937"/>
+<circle cx="1500.0" cy="525.0" r="2" fill="#d1d5db"/>
+<rect x="30" y="552" width="1540" height="32" fill="#f8fafc"/>
+<line x1="30" y1="552" x2="1570" y2="552" stroke="#cbd5e1" stroke-width="1.5"/>
+<text x="36" y="573" class="g">Degrees of freedom added</text>
+<text x="284" y="573" class="gn">AuxiliaryAddDofs → VariableUtils().AddDof(variable, reaction) on every node of the main model part</text>
+<line x1="30" y1="622" x2="1570" y2="622" class="grid"/>
+<text x="36" y="600" class="l">LAGRANGE_MULTIPLIER_CONTACT_PRESSURE</text>
+<text x="36" y="615" class="ls">reaction WEIGHTED_SCALAR_RESIDUAL</text>
+<circle cx="520.0" cy="603.0" r="6" fill="#2563eb"/>
+<circle cx="660.0" cy="603.0" r="2" fill="#d1d5db"/>
+<circle cx="800.0" cy="603.0" r="2" fill="#d1d5db"/>
+<circle cx="940.0" cy="603.0" r="2" fill="#d1d5db"/>
+<circle cx="1080.0" cy="603.0" r="2" fill="#d1d5db"/>
+<circle cx="1220.0" cy="603.0" r="2" fill="#d1d5db"/>
+<circle cx="1360.0" cy="603.0" r="2" fill="#d1d5db"/>
+<circle cx="1500.0" cy="603.0" r="2" fill="#d1d5db"/>
+<rect x="30" y="622" width="1540" height="38" fill="#f8fafc" opacity="0.7"/>
+<line x1="30" y1="660" x2="1570" y2="660" class="grid"/>
+<text x="36" y="638" class="l">VECTOR_LAGRANGE_MULTIPLIER_X / _Y / _Z</text>
+<text x="36" y="653" class="ls">reaction WEIGHTED_VECTOR_RESIDUAL_X/Y/Z</text>
+<circle cx="520.0" cy="641.0" r="2" fill="#d1d5db"/>
+<circle cx="660.0" cy="641.0" r="6" fill="#7c3aed"/>
+<circle cx="800.0" cy="641.0" r="6" fill="#0d9488"/>
+<circle cx="940.0" cy="641.0" r="2" fill="#d1d5db"/>
+<circle cx="1080.0" cy="641.0" r="2" fill="#d1d5db"/>
+<circle cx="1220.0" cy="641.0" r="2" fill="#d1d5db"/>
+<circle cx="1360.0" cy="641.0" r="6" fill="#1f2937"/>
+<circle cx="1500.0" cy="641.0" r="2" fill="#d1d5db"/>
+<line x1="30" y1="698" x2="1570" y2="698" class="grid"/>
+<text x="36" y="676" class="l">SCALAR_LAGRANGE_MULTIPLIER</text>
+<text x="36" y="691" class="ls">reaction WEIGHTED_SCALAR_RESIDUAL</text>
+<circle cx="520.0" cy="679.0" r="2" fill="#d1d5db"/>
+<circle cx="660.0" cy="679.0" r="2" fill="#d1d5db"/>
+<circle cx="800.0" cy="679.0" r="2" fill="#d1d5db"/>
+<circle cx="940.0" cy="679.0" r="2" fill="#d1d5db"/>
+<circle cx="1080.0" cy="679.0" r="2" fill="#d1d5db"/>
+<circle cx="1220.0" cy="679.0" r="6" fill="#1f2937"/>
+<circle cx="1360.0" cy="679.0" r="2" fill="#d1d5db"/>
+<circle cx="1500.0" cy="679.0" r="2" fill="#d1d5db"/>
+<rect x="30" y="698" width="1540" height="38" fill="#f8fafc" opacity="0.7"/>
+<line x1="30" y1="736" x2="1570" y2="736" class="grid"/>
+<text x="36" y="714" class="l">(no LM DoFs: displacement only)</text>
+<text x="36" y="729" class="ls">penalty: ε g̃n; MPC: ContactMasterSlaveConstraint</text>
+<circle cx="520.0" cy="717.0" r="2" fill="#d1d5db"/>
+<circle cx="660.0" cy="717.0" r="2" fill="#d1d5db"/>
+<circle cx="800.0" cy="717.0" r="2" fill="#d1d5db"/>
+<circle cx="940.0" cy="717.0" r="6" fill="#d97706"/>
+<circle cx="1080.0" cy="717.0" r="6" fill="#dc2626"/>
+<circle cx="1220.0" cy="717.0" r="2" fill="#d1d5db"/>
+<circle cx="1360.0" cy="717.0" r="2" fill="#d1d5db"/>
+<text x="1500.0" y="722" class="t" fill="#6b7280">constraints</text>
+<line x1="30" y1="774" x2="1570" y2="774" class="grid"/>
+<text x="36" y="752" class="l">buffer_size</text>
+<text x="36" y="767" class="ls">AuxiliarySetSettings forces 3 when &quot;Frictional&quot; in mortar_type</text>
+<text x="520.0" y="760" class="t" fill="#2563eb">user</text>
+<text x="660.0" y="760" class="t" fill="#7c3aed">user</text>
+<text x="800.0" y="760" class="t" fill="#0d9488">≥ 3</text>
+<text x="940.0" y="760" class="t" fill="#d97706">user</text>
+<text x="1080.0" y="760" class="t" fill="#dc2626">≥ 3</text>
+<text x="1220.0" y="760" class="t" fill="#1f2937">user</text>
+<text x="1360.0" y="760" class="t" fill="#1f2937">user</text>
+<text x="1500.0" y="760" class="t" fill="#6b7280">user</text>
+<rect x="30" y="782" width="1540" height="32" fill="#f8fafc"/>
+<line x1="30" y1="782" x2="1570" y2="782" stroke="#cbd5e1" stroke-width="1.5"/>
+<text x="36" y="803" class="g">Non-historical nodal values (SetValue)</text>
+<text x="417" y="803" class="gn">initialised by ALMFastInit / ALMVariablesCalculationProcess, updated by the search process and ActiveSetUtilities</text>
+<line x1="30" y1="852" x2="1570" y2="852" class="grid"/>
+<text x="36" y="830" class="l">INITIAL_PENALTY  (nodal ε)</text>
+<text x="36" y="845" class="ls">core · from ProcessInfo[INITIAL_PENALTY]</text>
+<circle cx="520.0" cy="833.0" r="6" fill="#2563eb"/>
+<circle cx="660.0" cy="833.0" r="6" fill="#7c3aed"/>
+<circle cx="800.0" cy="833.0" r="6" fill="#0d9488"/>
+<circle cx="940.0" cy="833.0" r="6" fill="#d97706"/>
+<circle cx="1080.0" cy="833.0" r="6" fill="#dc2626"/>
+<circle cx="1220.0" cy="833.0" r="2" fill="#d1d5db"/>
+<circle cx="1360.0" cy="833.0" r="2" fill="#d1d5db"/>
+<circle cx="1500.0" cy="833.0" r="6" fill="#6b7280"/>
+<rect x="30" y="852" width="1540" height="38" fill="#f8fafc" opacity="0.7"/>
+<line x1="30" y1="890" x2="1570" y2="890" class="grid"/>
+<text x="36" y="868" class="l">DYNAMIC_FACTOR</text>
+<text x="36" y="883" class="ls">ComputeDynamicFactorProcess (init 1.0)</text>
+<circle cx="520.0" cy="871.0" r="6" fill="#2563eb"/>
+<circle cx="660.0" cy="871.0" r="6" fill="#7c3aed"/>
+<circle cx="800.0" cy="871.0" r="6" fill="#0d9488"/>
+<circle cx="940.0" cy="871.0" r="6" fill="#d97706"/>
+<circle cx="1080.0" cy="871.0" r="6" fill="#dc2626"/>
+<circle cx="1220.0" cy="871.0" r="2" fill="#d1d5db"/>
+<circle cx="1360.0" cy="871.0" r="2" fill="#d1d5db"/>
+<circle cx="1500.0" cy="871.0" r="6" fill="#6b7280"/>
+<line x1="30" y1="928" x2="1570" y2="928" class="grid"/>
+<text x="36" y="906" class="l">AUGMENTED_NORMAL_CONTACT_PRESSURE</text>
+<text x="36" y="921" class="ls">λ̄n = k λn + ε g̃n (active-set decision)</text>
+<circle cx="520.0" cy="909.0" r="6" fill="#2563eb"/>
+<circle cx="660.0" cy="909.0" r="6" fill="#7c3aed"/>
+<circle cx="800.0" cy="909.0" r="6" fill="#0d9488"/>
+<circle cx="940.0" cy="909.0" r="6" fill="#d97706"/>
+<circle cx="1080.0" cy="909.0" r="6" fill="#dc2626"/>
+<circle cx="1220.0" cy="909.0" r="2" fill="#d1d5db"/>
+<circle cx="1360.0" cy="909.0" r="2" fill="#d1d5db"/>
+<circle cx="1500.0" cy="909.0" r="6" fill="#6b7280"/>
+<rect x="30" y="928" width="1540" height="38" fill="#f8fafc" opacity="0.7"/>
+<line x1="30" y1="966" x2="1570" y2="966" class="grid"/>
+<text x="36" y="944" class="l">AUGMENTED_TANGENT_CONTACT_PRESSURE</text>
+<text x="36" y="959" class="ls">λ̄τ (stick/slip decision)</text>
+<circle cx="520.0" cy="947.0" r="2" fill="#d1d5db"/>
+<circle cx="660.0" cy="947.0" r="2" fill="#d1d5db"/>
+<circle cx="800.0" cy="947.0" r="6" fill="#0d9488"/>
+<circle cx="940.0" cy="947.0" r="2" fill="#d1d5db"/>
+<circle cx="1080.0" cy="947.0" r="6" fill="#dc2626"/>
+<circle cx="1220.0" cy="947.0" r="2" fill="#d1d5db"/>
+<circle cx="1360.0" cy="947.0" r="2" fill="#d1d5db"/>
+<text x="1500.0" y="952" class="t" fill="#6b7280">Frictional</text>
+<line x1="30" y1="1004" x2="1570" y2="1004" class="grid"/>
+<text x="36" y="982" class="l">NODAL_AREA</text>
+<text x="36" y="997" class="ls">core · integrated slave area</text>
+<circle cx="520.0" cy="985.0" r="6" fill="#2563eb"/>
+<circle cx="660.0" cy="985.0" r="6" fill="#7c3aed"/>
+<circle cx="800.0" cy="985.0" r="6" fill="#0d9488"/>
+<circle cx="940.0" cy="985.0" r="6" fill="#d97706"/>
+<circle cx="1080.0" cy="985.0" r="6" fill="#dc2626"/>
+<circle cx="1220.0" cy="985.0" r="2" fill="#d1d5db"/>
+<circle cx="1360.0" cy="985.0" r="2" fill="#d1d5db"/>
+<circle cx="1500.0" cy="985.0" r="6" fill="#6b7280"/>
+<rect x="30" y="1004" width="1540" height="38" fill="#f8fafc" opacity="0.7"/>
+<line x1="30" y1="1042" x2="1570" y2="1042" class="grid"/>
+<text x="36" y="1020" class="l">NORMAL_GAP</text>
+<text x="36" y="1035" class="ls">search: NormalGapProcess (check_gap mapping)</text>
+<circle cx="520.0" cy="1023.0" r="6" fill="#2563eb"/>
+<circle cx="660.0" cy="1023.0" r="6" fill="#7c3aed"/>
+<circle cx="800.0" cy="1023.0" r="6" fill="#0d9488"/>
+<circle cx="940.0" cy="1023.0" r="6" fill="#d97706"/>
+<circle cx="1080.0" cy="1023.0" r="6" fill="#dc2626"/>
+<circle cx="1220.0" cy="1023.0" r="6" fill="#1f2937"/>
+<circle cx="1360.0" cy="1023.0" r="6" fill="#1f2937"/>
+<circle cx="1500.0" cy="1023.0" r="6" fill="#6b7280"/>
+<line x1="30" y1="1080" x2="1570" y2="1080" class="grid"/>
+<text x="36" y="1058" class="l">FRICTION_COEFFICIENT  (nodal μ)</text>
+<text x="36" y="1073" class="ls">core · from friction_coefficients per pair</text>
+<circle cx="520.0" cy="1061.0" r="2" fill="#d1d5db"/>
+<circle cx="660.0" cy="1061.0" r="2" fill="#d1d5db"/>
+<circle cx="800.0" cy="1061.0" r="6" fill="#0d9488"/>
+<circle cx="940.0" cy="1061.0" r="2" fill="#d1d5db"/>
+<circle cx="1080.0" cy="1061.0" r="6" fill="#dc2626"/>
+<circle cx="1220.0" cy="1061.0" r="2" fill="#d1d5db"/>
+<circle cx="1360.0" cy="1061.0" r="2" fill="#d1d5db"/>
+<text x="1500.0" y="1066" class="t" fill="#6b7280">Frictional</text>
+<rect x="30" y="1088" width="1540" height="32" fill="#f8fafc"/>
+<line x1="30" y1="1088" x2="1570" y2="1088" stroke="#cbd5e1" stroke-width="1.5"/>
+<text x="36" y="1109" class="g">Flags</text>
+<text x="104" y="1109" class="gn">Kratos core flags used on contact nodes / conditions / model parts</text>
+<line x1="30" y1="1158" x2="1570" y2="1158" class="grid"/>
+<text x="36" y="1136" class="l">INTERFACE</text>
+<text x="36" y="1151" class="ls">nodes + conditions of every Contact sub-model-part</text>
+<circle cx="520.0" cy="1139.0" r="6" fill="#2563eb"/>
+<circle cx="660.0" cy="1139.0" r="6" fill="#7c3aed"/>
+<circle cx="800.0" cy="1139.0" r="6" fill="#0d9488"/>
+<circle cx="940.0" cy="1139.0" r="6" fill="#d97706"/>
+<circle cx="1080.0" cy="1139.0" r="6" fill="#dc2626"/>
+<circle cx="1220.0" cy="1139.0" r="6" fill="#1f2937"/>
+<circle cx="1360.0" cy="1139.0" r="6" fill="#1f2937"/>
+<circle cx="1500.0" cy="1139.0" r="6" fill="#6b7280"/>
+<rect x="30" y="1158" width="1540" height="38" fill="#f8fafc" opacity="0.7"/>
+<line x1="30" y1="1196" x2="1570" y2="1196" class="grid"/>
+<text x="36" y="1174" class="l">SLAVE / MASTER</text>
+<text x="36" y="1189" class="ls">MasterSlaveProcess (assume_master_slave)</text>
+<circle cx="520.0" cy="1177.0" r="6" fill="#2563eb"/>
+<circle cx="660.0" cy="1177.0" r="6" fill="#7c3aed"/>
+<circle cx="800.0" cy="1177.0" r="6" fill="#0d9488"/>
+<circle cx="940.0" cy="1177.0" r="6" fill="#d97706"/>
+<circle cx="1080.0" cy="1177.0" r="6" fill="#dc2626"/>
+<circle cx="1220.0" cy="1177.0" r="6" fill="#1f2937"/>
+<circle cx="1360.0" cy="1177.0" r="6" fill="#1f2937"/>
+<circle cx="1500.0" cy="1177.0" r="6" fill="#6b7280"/>
+<line x1="30" y1="1234" x2="1570" y2="1234" class="grid"/>
+<text x="36" y="1212" class="l">ACTIVE</text>
+<text x="36" y="1227" class="ls">in contact; set by search + ActiveSetUtilities</text>
+<circle cx="520.0" cy="1215.0" r="6" fill="#2563eb"/>
+<circle cx="660.0" cy="1215.0" r="6" fill="#7c3aed"/>
+<circle cx="800.0" cy="1215.0" r="6" fill="#0d9488"/>
+<circle cx="940.0" cy="1215.0" r="6" fill="#d97706"/>
+<circle cx="1080.0" cy="1215.0" r="6" fill="#dc2626"/>
+<circle cx="1220.0" cy="1215.0" r="2" fill="#d1d5db"/>
+<circle cx="1360.0" cy="1215.0" r="2" fill="#d1d5db"/>
+<circle cx="1500.0" cy="1215.0" r="6" fill="#6b7280"/>
+<rect x="30" y="1234" width="1540" height="38" fill="#f8fafc" opacity="0.7"/>
+<line x1="30" y1="1272" x2="1570" y2="1272" class="grid"/>
+<text x="36" y="1250" class="l">SLIP</text>
+<text x="36" y="1265" class="ls">node: slip (set) / stick (unset); model part: frictional problem</text>
+<circle cx="520.0" cy="1253.0" r="2" fill="#d1d5db"/>
+<circle cx="660.0" cy="1253.0" r="2" fill="#d1d5db"/>
+<circle cx="800.0" cy="1253.0" r="6" fill="#0d9488"/>
+<circle cx="940.0" cy="1253.0" r="2" fill="#d1d5db"/>
+<circle cx="1080.0" cy="1253.0" r="6" fill="#dc2626"/>
+<circle cx="1220.0" cy="1253.0" r="2" fill="#d1d5db"/>
+<circle cx="1360.0" cy="1253.0" r="2" fill="#d1d5db"/>
+<text x="1500.0" y="1258" class="t" fill="#6b7280">Frictional</text>
+<line x1="30" y1="1310" x2="1570" y2="1310" class="grid"/>
+<text x="36" y="1288" class="l">ISOLATED</text>
+<text x="36" y="1303" class="ls">ContactResidualBasedBlockBuilderAndSolver fixes LM DoFs</text>
+<circle cx="520.0" cy="1291.0" r="6" fill="#2563eb"/>
+<circle cx="660.0" cy="1291.0" r="6" fill="#7c3aed"/>
+<circle cx="800.0" cy="1291.0" r="6" fill="#0d9488"/>
+<circle cx="940.0" cy="1291.0" r="2" fill="#d1d5db"/>
+<circle cx="1080.0" cy="1291.0" r="2" fill="#d1d5db"/>
+<circle cx="1220.0" cy="1291.0" r="6" fill="#1f2937"/>
+<circle cx="1360.0" cy="1291.0" r="6" fill="#1f2937"/>
+<circle cx="1500.0" cy="1291.0" r="2" fill="#d1d5db"/>
+<rect x="30" y="1310" width="1540" height="38" fill="#f8fafc" opacity="0.7"/>
+<line x1="30" y1="1348" x2="1570" y2="1348" class="grid"/>
+<text x="36" y="1326" class="l">INTERACTION</text>
+<text x="36" y="1341" class="ls">computing model part: full semi-smooth Newton when set</text>
+<circle cx="520.0" cy="1329.0" r="6" fill="#2563eb"/>
+<circle cx="660.0" cy="1329.0" r="6" fill="#7c3aed"/>
+<circle cx="800.0" cy="1329.0" r="6" fill="#0d9488"/>
+<circle cx="940.0" cy="1329.0" r="6" fill="#d97706"/>
+<circle cx="1080.0" cy="1329.0" r="6" fill="#dc2626"/>
+<circle cx="1220.0" cy="1329.0" r="6" fill="#1f2937"/>
+<circle cx="1360.0" cy="1329.0" r="6" fill="#1f2937"/>
+<circle cx="1500.0" cy="1329.0" r="6" fill="#6b7280"/>
+<circle cx="38" cy="1373" r="6" fill="#1f2937"/>
+<text x="52" y="1378" class="ls">added / used for this mortar_type   ·   "Frictional" = only when mpc_contact_settings.contact_type is Frictional   ·   "user" = buffer_size left as configured   ·   grey text under each label = source or meaning</text>
+<text x="30" y="1400" class="ls">Model-part flags set by the contact process: CONTACT (main + Contact model part), SLIP (frictional problem); the search also uses MARKER / VISITED as temporary bookkeeping.</text>
+<text x="30" y="1420" class="foot">ContactStructuralMechanicsApplication · Kratos Multiphysics</text>
+</svg>
