@@ -13,7 +13,22 @@
 #ifndef CO_SIM_IO_FILESYSTEM_INC_INCLUDED
 #define CO_SIM_IO_FILESYSTEM_INC_INCLUDED
 
-#include <filesystem>
-namespace fs = std::filesystem;
+/* std::filesystem is part of C++17
+While we use C++11, the alternative implementation from
+"https://github.com/gulrak/filesystem" is used
+*/
+
+#ifndef WIN32_LEAN_AND_MEAN
+    #define WIN32_LEAN_AND_MEAN
+#endif
+#ifndef NOMINMAX
+    #define NOMINMAX
+#endif
+#include "ghc/filesystem.hpp"
+namespace fs = ghc::filesystem;
+
+// use this once moving to C++17
+// #include <filesystem>
+// namespace fs = std::filesystem;
 
 #endif // CO_SIM_IO_FILESYSTEM_INC_INCLUDED
