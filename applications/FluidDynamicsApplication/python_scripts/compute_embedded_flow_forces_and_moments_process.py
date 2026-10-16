@@ -19,7 +19,7 @@ class ComputeEmbeddedFlowForcesAndMomentsProcess(ComputeFlowForcesAndMomentsProc
     over obstacles in fluid dynamics problems.
     """
     def _GetFileHeader(self):
-        header  = '# Body fitted flow force and moment for model part '
+        header  = '# Embedded flow force and moment for model part '
         header += self.params["model_part_name"].GetString() + '\n'
 
         if self.write_flow_moments_output_file:
