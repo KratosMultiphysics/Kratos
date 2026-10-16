@@ -95,7 +95,7 @@ class TestMeshioPlusPlusMeshOperations(KratosUnittest.TestCase):
                          "optimize_volume", "estimate_error", "hessian", "data_integrate",
                          "curvature", "repair", "sobolev_deform", "compute_normals",
                          "tensor_invariants", "check_quality", "feature_edges", "edit_regions",
-                         "segment", "fit_primitives"):
+                         "segment", "fit_primitives", "tessellate", "fit_cad"):
             self.assertIn(expected, operations)
 
     def test_unknown_operation_raises(self):
@@ -910,6 +910,68 @@ class TestMeshioPlusPlusMeshOperations(KratosUnittest.TestCase):
         self.model.DeleteModelPart("Destination_fit_primitives")
         with self.assertRaisesRegex(RuntimeError, "Unknown primitive type"):
             self._Execute("fit_primitives", KratosMultiphysics.Parameters('{"fit_types" : ["blob"]}'), skin)
+
+    def test_tessellate_splits_a_quadratic_triangle(self):
+        source = self.model.CreateModelPart("QuadraticTriangle")
+        props = source.CreateNewProperties(1)
+        # Triangle2D6: three corners, then the midsides of 1-2, 2-3 and 3-1
+        for node_id, (x, y) in enumerate([(0.0, 0.0), (2.0, 0.0), (0.0, 2.0),
+                                          (1.0, 0.0), (1.0, 1.0), (0.0, 1.0)], start=1):
+            source.CreateNewNode(node_id, x, y, 0.0)
+        source.CreateNewElement("Element2D6N", 1, [1, 2, 3, 4, 5, 6], props)
+
+        settings = KratosMultiphysics.Parameters('{"tessellate_levels" : 1}')
+        destination, report = self._Execute("tessellate", settings, source)
+        self.assertEqual(report["curved_source_cells"].GetInt(), 1)
+        self.assertEqual(report["pass_through_source_cells"].GetInt(), 0)
+        # one recursive split: 2 divisions per edge, 4 triangles on the 6 original points
+        self.assertEqual(report["cells"].GetInt(), 4)
+        self.assertEqual(report["points"].GetInt(), 6)
+        self.assertEqual(destination.NumberOfNodes(), 6)
+        self.assertEqual(destination.NumberOfElements(), 4)
+
+        self.model.DeleteModelPart("Destination_tessellate")
+        settings = KratosMultiphysics.Parameters('{"tessellate_levels" : 2}')
+        destination, report = self._Execute("tessellate", settings, source)
+        self.assertEqual(report["cells"].GetInt(), 16)
+        self.assertEqual(report["facets_with_bad_count"].GetInt(), 0)
+
+        self.model.DeleteModelPart("Destination_tessellate")
+        settings = KratosMultiphysics.Parameters('{"tessellate_curved" : false}')
+        destination, report = self._Execute("tessellate", settings, source)
+        self.assertEqual(report["curved_source_cells"].GetInt(), 0)
+        self.assertEqual(report["pass_through_source_cells"].GetInt(), 1)
+
+    def test_tessellate_passes_linear_cells_through(self):
+        destination, report = self._Execute("tessellate")
+        self.assertEqual(report["curved_source_cells"].GetInt(), 0)
+        self.assertEqual(destination.NumberOfElements(), self.source.NumberOfElements())
+
+    def test_fit_cad_builds_a_solid_from_a_cube_skin(self):
+        skin = self.model.CreateModelPart("CadCubeSkin")
+        _CreateClosedCubeSkin(skin)
+        with tempfile.TemporaryDirectory() as temp_dir:
+            step_path = str(Path(temp_dir) / "cube.step")
+            json_path = str(Path(temp_dir) / "cube.cad.json")
+            settings = KratosMultiphysics.Parameters("{}")
+            settings.AddString("cad_step_path", step_path)
+            settings.AddString("cad_json_path", json_path)
+            try:
+                destination, report = self._Execute("fit_cad", settings, skin)
+            except RuntimeError as error:
+                if "OpenCASCADE" in str(error):
+                    self.skipTest("meshio++ was built without OpenCASCADE")
+                raise
+            self.assertTrue(report["valid"].GetBool())
+            self.assertEqual(report["number_of_faces"].GetInt(), 6)
+            self.assertEqual(report["planes"].GetInt(), 6)
+            self.assertEqual(report["demoted_patches"].GetInt(), 0)
+            self.assertEqual(report["solids"].GetInt(), 1)
+            self.assertAlmostEqual(report["volume"].GetDouble(), 1.0, 6)
+            self.assertAlmostEqual(report["volume_ratio"].GetDouble(), 1.0, 6)
+            self.assertGreater(destination.NumberOfNodes(), 0)
+            self.assertIn("ISO-10303-21", Path(step_path).read_text()[:200])
+            self.assertTrue(Path(json_path).stat().st_size > 0)
 
     def test_hausdorff_distance_between_two_cube_skins(self):
         first = self.model.CreateModelPart("SkinA")
