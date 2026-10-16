@@ -11,7 +11,9 @@
 //
 
 // System includes
+#include <algorithm>
 #include <array>
+#include <limits>
 #include <string>
 #include <vector>
 
@@ -21,9 +23,63 @@
 #include "custom_processes/volume_fraction_gsbm_process.h"
 #include "custom_utilities/volume_fraction_utilities.h"
 #include "iga_application_variables.h"
+#include "includes/global_pointer_variables.h"
+#include "utilities/geometry_utilities/nearest_point_utilities.h"
 
 namespace Kratos
 {
+
+namespace
+{
+
+using IndexType = VolumeFractionGsbmProcess::IndexType;
+
+/// Closest point on the skins: the skin it lies on and the point
+struct ClosestSkinPoint
+{
+    IndexType Skin = 0;
+    array_1d<double, 3> Coordinates = ZeroVector(3);
+};
+
+/**
+ * @brief Finds the closest point to rPoint over all segments of the skins, by
+ * brute force.
+ *
+ * @param rSkins The skins, made of 2-noded line conditions.
+ * @param rPoint The point to project.
+ * @return The closest point with its skin. On ties the first one found is
+ * kept, so the outer skin wins over the inner one.
+ *
+ * TODO: exact projection onto NURBS skins (e.g. as SBM's ProjectToNurbsSkin),
+ * if the sampled polyline limits the accuracy of d.
+ */
+ClosestSkinPoint FindClosestSkinPoint(
+    const std::array<const ModelPart*, 2>& rSkins,
+    const array_1d<double, 3>& rPoint)
+{
+    ClosestSkinPoint closest;
+    double min_distance = std::numeric_limits<double>::max();
+
+    // Closest point of every segment of both skins, keeping the nearest one
+    for (IndexType skin = 0; skin < rSkins.size(); ++skin) {
+        for (const auto& r_segment : rSkins[skin]->Conditions()) {
+            // Projection onto the segment's line, clamped to its end points
+            const Point candidate = NearestPointUtilities::LineNearestPoint(
+                rPoint, r_segment.GetGeometry()
+            );
+            const double distance = norm_2(candidate.Coordinates() - rPoint);
+
+            if (distance < min_distance) {
+                min_distance = distance;  // strictly nearer only
+                closest = {skin, candidate.Coordinates()};
+            }
+        }
+    }
+
+    return closest;
+}
+
+} // namespace
 
 void VolumeFractionGsbmProcess::ExecuteInitialize()
 {
@@ -55,6 +111,8 @@ void VolumeFractionGsbmProcess::ExecuteInitialize()
     }
 
     // Get the skins of the domain
+    // TODO: NURBS skins, sampled here into line conditions (e.g. as
+    // SnakeSbmProcess does); only polyline skins are supported for now
     Model empty_model;
     const ModelPart& r_empty_skin = empty_model.CreateModelPart("EmptySkin");
     const std::string outer_skin_name =
@@ -101,6 +159,62 @@ void VolumeFractionGsbmProcess::ExecuteInitialize()
         }
     }
 
+    // Per skin (0: outer, 1: inner): the skin, its name and its identifier
+    const std::array<const ModelPart*, 2> skins{&r_outer_skin, &r_inner_skin};
+    const std::array<std::string, 2> skin_names{outer_skin_name, inner_skin_name};
+    const std::array<std::string, 2> skin_identifiers{"outer", "inner"};
+
+    // Per skin: where its projection nodes go, and the first free node Id
+    std::array<ModelPart*, 2> projection_model_parts{nullptr, nullptr};
+    IndexType node_id = 1;
+
+    for (IndexType skin = 0; skin < 2; ++skin) {
+        if (skin_names[skin].empty()) {
+            continue;  // no skin of that kind, so nothing projects onto it
+        }
+
+        // Nodes at the closest skin points go to <skin>.projection_data, as SBM
+        ModelPart& r_skin = mpModel->GetModelPart(skin_names[skin]);
+        projection_model_parts[skin] = r_skin.HasSubModelPart("projection_data")
+            ? &r_skin.GetSubModelPart("projection_data")
+            : &r_skin.CreateSubModelPart("projection_data");
+
+        // Node Ids are unique per root model part, so start after its largest
+        const ModelPart& r_root_model_part = r_skin.GetRootModelPart();
+        if (r_root_model_part.NumberOfNodes() > 0) {
+            node_id = std::max(node_id, r_root_model_part.Nodes().back().Id() + 1);
+        }
+    }
+
+    // Cut facets: points where alpha jumps, which get shifted boundary terms
+    SizeType number_of_cut_facets = 0;
+
+    for (auto& r_facet : r_facets.Conditions()) {
+        const auto& r_minus = r_facet.GetGeometry().GetGeometryPart(0);
+        const auto& r_plus = r_facet.GetGeometry().GetGeometryPart(1);
+
+        if (r_minus.GetValue(VOLUME_FRACTION) == r_plus.GetValue(VOLUME_FRACTION)) {
+            continue;  // same volume fraction on both sides: not cut, so no projection
+        }
+        ++number_of_cut_facets;
+
+        // Closest skin point to the facet point, the same for both sides
+        const ClosestSkinPoint closest = FindClosestSkinPoint(
+            skins, r_minus.Center().Coordinates()
+        );
+        const IndexType skin = closest.Skin;
+
+        // Node at the closest skin point, in that skin's projection data
+        auto p_projection_node = projection_model_parts[skin]->CreateNewNode(
+            node_id++, closest.Coordinates[0], closest.Coordinates[1], closest.Coordinates[2]
+        );
+
+        // The facet's link to its node, where the condition reads d and u_D
+        r_facet.SetValue(NEIGHBOUR_NODES, GlobalPointersVector<Node>({p_projection_node}));
+        // Which skin the node lies on
+        r_facet.SetValue(IDENTIFIER, skin_identifiers[skin]);
+    }
+
     // Number of cut knot spans with 0 < alpha < 1
     SizeType number_of_cut_spans = 0;
     for (IndexType i = 0; i < volume_fractions.size1(); ++i) {
@@ -113,7 +227,8 @@ void VolumeFractionGsbmProcess::ExecuteInitialize()
     KRATOS_INFO_IF("VolumeFractionGsbmProcess", mParameters["echo_level"].GetInt() > 0)
         << "Assigned volume fractions to " << r_elements.NumberOfElements()
         << " elements and " << r_facets.NumberOfConditions() << " facets ("
-        << number_of_cut_spans << " cut knot spans)." << std::endl;
+        << number_of_cut_spans << " cut knot spans), and closest skin points to "
+        << number_of_cut_facets << " cut facets." << std::endl;
 
     KRATOS_CATCH("")
 }

@@ -11,7 +11,10 @@
 //
 
 // System includes
+#include <algorithm>
 #include <array>
+#include <cmath>
+#include <limits>
 #include <vector>
 
 // Project includes
@@ -20,6 +23,7 @@
 #include "custom_modelers/nurbs_geometry_modeler.h"
 #include "custom_processes/volume_fraction_gsbm_process.h"
 #include "iga_application_variables.h"
+#include "includes/global_pointer_variables.h"
 #include "includes/kratos_components.h"
 
 namespace Kratos::Testing
@@ -58,6 +62,38 @@ void CreateSkinLoop(
     }
 }
 
+/// Closest point to rPoint on the boundary of the rectangle [rLower, rUpper]
+array_1d<double, 3> ClosestPointOnRectangleBoundary(
+    const array_1d<double, 3>& rPoint,
+    const std::array<double, 2>& rLower,
+    const std::array<double, 2>& rUpper)
+{
+    array_1d<double, 3> closest_point = rPoint;
+    const bool is_inside = rLower[0] < rPoint[0] && rPoint[0] < rUpper[0]
+        && rLower[1] < rPoint[1] && rPoint[1] < rUpper[1];
+
+    // Outside: clamp onto the rectangle, a corner if outside in both directions
+    if (!is_inside) {
+        for (IndexType dir = 0; dir < 2; ++dir) {
+            closest_point[dir] = std::clamp(rPoint[dir], rLower[dir], rUpper[dir]);
+        }
+        return closest_point;
+    }
+
+    // Inside: move to the nearest side
+    double min_distance = std::numeric_limits<double>::max();
+    for (IndexType dir = 0; dir < 2; ++dir) {
+        for (const double bound : {rLower[dir], rUpper[dir]}) {
+            if (std::abs(rPoint[dir] - bound) < min_distance) {
+                min_distance = std::abs(rPoint[dir] - bound);
+                closest_point = rPoint;
+                closest_point[dir] = bound;
+            }
+        }
+    }
+    return closest_point;
+}
+
 } // namespace
 
 // Background patch [0, 1] x [0, 0.75] with 4 x 3 knot spans of size 0.25 and
@@ -65,7 +101,9 @@ void CreateSkinLoop(
 // [0.125, 0.875] x [0.125, 0.625] with a square hole [0.3125, 0.4375]^2 inside
 // span (1, 1), which gives volume fractions 0.25, 0.5, 0.75 and 1. Each element
 // and facet side is checked against the span found from its center, shifted
-// off the knot line towards its own side for facets.
+// off the knot line towards its own side for facets. Cut facets must get a node
+// at the closest skin point. The hole is given clockwise and the rectangle
+// counterclockwise, since the skin orientation must not matter.
 KRATOS_TEST_CASE_IN_SUITE(VolumeFractionGsbmProcess, KratosIgaFastSuite)
 {
     Model model;
@@ -108,7 +146,7 @@ KRATOS_TEST_CASE_IN_SUITE(VolumeFractionGsbmProcess, KratosIgaFastSuite)
     );
     CreateSkinLoop(
         model.CreateModelPart("InnerSkin"),
-        {{0.3125, 0.3125}, {0.4375, 0.3125}, {0.4375, 0.4375}, {0.3125, 0.4375}}
+        {{0.3125, 0.3125}, {0.3125, 0.4375}, {0.4375, 0.4375}, {0.4375, 0.3125}}
     );
 
     VolumeFractionGsbmProcess gsbm_process(model, Parameters(R"({
@@ -150,8 +188,15 @@ KRATOS_TEST_CASE_IN_SUITE(VolumeFractionGsbmProcess, KratosIgaFastSuite)
     // lines x 4 spans x (2 + 1) points
     const ModelPart& r_facets = model.GetModelPart("IgaModelPart.Facets");
     KRATOS_EXPECT_EQ(r_facets.NumberOfConditions(), 60);
+    const ModelPart& r_outer_projections = model.GetModelPart("OuterSkin.projection_data");
+    const ModelPart& r_inner_projections = model.GetModelPart("InnerSkin.projection_data");
+    const std::array<double, 2> outer_lower{0.125, 0.125};
+    const std::array<double, 2> outer_upper{0.875, 0.625};
+    const std::array<double, 2> inner_lower{0.3125, 0.3125};
+    const std::array<double, 2> inner_upper{0.4375, 0.4375};
     const double offset = 1.0e-6;
     const IndexType point_index = 0;
+    IndexType number_of_cut_facets = 0;
     for (const auto& r_facet : r_facets.Conditions()) {
         // Part 0 is the - side (behind the normal), part 1 the + side
         for (IndexType side = 0; side < 2; ++side) {
@@ -163,7 +208,40 @@ KRATOS_TEST_CASE_IN_SUITE(VolumeFractionGsbmProcess, KratosIgaFastSuite)
                 r_side.GetValue(VOLUME_FRACTION), expected_volume_fraction(point), tolerance
             );
         }
+
+        // Uncut facets ([[alpha]] = 0) get no closest skin point
+        const auto& r_minus = r_facet.GetGeometry().GetGeometryPart(0);
+        const auto& r_plus = r_facet.GetGeometry().GetGeometryPart(1);
+        if (r_minus.GetValue(VOLUME_FRACTION) == r_plus.GetValue(VOLUME_FRACTION)) {
+            KRATOS_EXPECT_FALSE(r_facet.Has(NEIGHBOUR_NODES));
+            continue;
+        }
+        ++number_of_cut_facets;
+
+        // Cut facets: one node at the closest point of the two skins
+        const array_1d<double, 3> center = r_minus.Center().Coordinates();
+        const array_1d<double, 3> outer_point =
+            ClosestPointOnRectangleBoundary(center, outer_lower, outer_upper);
+        const array_1d<double, 3> inner_point =
+            ClosestPointOnRectangleBoundary(center, inner_lower, inner_upper);
+        const bool is_inner = norm_2(inner_point - center) < norm_2(outer_point - center);
+        const array_1d<double, 3>& r_expected_point = is_inner ? inner_point : outer_point;
+
+        const auto& r_projection_nodes = r_facet.GetValue(NEIGHBOUR_NODES);
+        KRATOS_EXPECT_EQ(r_projection_nodes.size(), 1);
+        const Node& r_projection_node = r_projection_nodes[0];
+        KRATOS_EXPECT_VECTOR_NEAR(r_projection_node.Coordinates(), r_expected_point, tolerance);
+        KRATOS_EXPECT_EQ(r_facet.GetValue(IDENTIFIER), is_inner ? "inner" : "outer");
+        const ModelPart& r_projections = is_inner ? r_inner_projections : r_outer_projections;
+        KRATOS_EXPECT_TRUE(r_projections.HasNode(r_projection_node.Id()));
     }
+
+    // All facets are cut except the 8 on u = 0.5 in the bottom and top rows of
+    // spans, where the volume fraction is 0.5 on both sides
+    KRATOS_EXPECT_EQ(number_of_cut_facets, 52);
+    KRATOS_EXPECT_EQ(
+        r_outer_projections.NumberOfNodes() + r_inner_projections.NumberOfNodes(), 52
+    );
 }
 
 } // namespace Kratos::Testing

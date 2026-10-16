@@ -65,9 +65,9 @@ public:
     ///@name Operations
     ///@{
 
-    /// Assigns the VOLUME_FRACTION of their knot span to the elements and to
-    /// both sides of the facets created by IgaModelerGsbm. Assumes that the
-    /// parameter space of the background patch is the physical space (uv = xy)
+    /// Assigns VOLUME_FRACTION to the elements and facet sides. Each cut facet
+    /// gets NEIGHBOUR_NODES (a node at its closest skin point) and IDENTIFIER,
+    /// as in SBM. Assumes uv = xy
     void ExecuteInitialize() override;
 
     ///@}
