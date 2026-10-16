@@ -89,6 +89,7 @@ public:
         BoundedMatrix<double, 3, 1> MatCenter;
         BoundedMatrix<double, 3, 3> ATA = ZeroMatrix(3, 3);
         BoundedMatrix<double, 3, 1> ATB = ZeroMatrix(3, 1);
+        double BTB = 0.0;
 
         array_1d<double, 3> Normal;
         array_1d<double, 3> Intersection;
@@ -122,6 +123,32 @@ public:
     ///@{
 
     /**
+     * @brief Finds the QuadraticErrorFunction of a voxel
+     * @param rVoxel references to the voxel whose x-point will be calculated
+     * @param rTriangles references to the triangles which intersect the voxel at some edge.
+     * @param rQEFPoint The QuadraticErrorFunction point (x,y,z)
+     * @return The value of the Quadratic Error Function at the computed point
+     */
+    static double QuadraticErrorFunctionValue(
+        const GeometryType& rVoxel,
+        const GeometryArrayType& rTriangles,
+        array_1d<double, 3>& rQEFPoint
+        );
+
+    /**
+     * @brief Finds the QuadraticErrorFunction of a voxel
+     * @param rVoxel references to the voxel whose x-point will be calculated
+     * @param rTriangles references to the triangles which intersect the voxel at some edge.
+     * @param rQEFPoint The QuadraticErrorFunction point (x,y,z)
+     * @return The value of the Quadratic Error Function at the computed point
+     */
+    static double QuadraticErrorFunctionValue(
+        const BoundingBox<Point>& rBox,
+        const std::vector<GeometricalObject*>& rTriangles,
+        array_1d<double, 3>& rQEFPoint
+        );
+
+    /**
      * @brief Finds the QuadraticErrorFunction point of a voxel
      * @param rVoxel references to the voxel whose x-point will be calculated
      * @param rTriangles references to the triangles which intersect the voxel at some edge.
@@ -145,26 +172,51 @@ public:
 
     ///@}
 private:
-    ///@name Private static Member Variables
-    ///@{
-
-    ///@}
-    ///@name Private member Variables
-    ///@{
-
-    ///@}
-    ///@name Private Operators
-    ///@{
-
-    ///@}
     ///@name Private Operations
     ///@{
+
+    /**
+     * @brief Finds the QuadraticErrorFunction point of a voxel
+     * @param rVoxel references to the voxel whose x-point will be calculated
+     * @param rTriangles references to the triangles which intersect the voxel at some edge.
+     * @param rAuxiliaryClasses The auxiliary classes containing the matrices and vectors needed to compute the quadratic error function point
+     * @return The QuadraticErrorFunction point (x,y,z)
+     */
+    static array_1d<double, 3> QuadraticErrorFunctionPoint (
+        const GeometryType& rVoxel,
+        const GeometryArrayType& rTriangles,
+        AuxiliaryClasses& rAuxiliaryClasses
+        );
+
+    /**
+     * @brief Finds the QuadraticErrorFunction point of a voxel
+     * @param rVoxel references to the voxel whose x-point will be calculated
+     * @param rTriangles references to the triangles which intersect the voxel at some edge.
+     * @param rAuxiliaryClasses The auxiliary classes containing the matrices and vectors needed to compute the quadratic error function point
+     * @return The QuadraticErrorFunction point (x,y,z)
+     */
+    static array_1d<double, 3> QuadraticErrorFunctionPoint (
+        const BoundingBox<Point>& rBox,
+        const std::vector<GeometricalObject*>& rTriangles,
+        AuxiliaryClasses& rAuxiliaryClasses
+        );
 
     /**
      * @brief Update ATA and ATB matrices
      * @param rAuxiliaryClasses The auxiliary classes containing the matrices and vectors needed to compute the quadratic error function point
      */
     static void UpdateATAATB(AuxiliaryClasses& rAuxiliaryClasses);
+
+    /**
+     * @brief Computes the error given the auxiliary classes
+     * @param rAuxiliaryClasses The auxiliary classes containing the matrices and vectors needed to compute the quadratic error function point.
+     * @param rQEFPoint The QuadraticErrorFunction point (x,y,z)
+     * @return The computed error
+     */
+    static double ComputeError(
+        const AuxiliaryClasses& rAuxiliaryClasses,
+        const array_1d<double, 3>& rQEFPoint
+        );
 
     /**
      * @brief Computes the first endpoint of an edge in a bounding box.
