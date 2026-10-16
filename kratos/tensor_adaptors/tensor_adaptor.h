@@ -122,6 +122,13 @@ public:
     ///@{
 
     /**
+     * @brief Construct an empty instance, only intended as a @ref Serializer load target.
+     * @details It holds a default @ref NDData (with no container), whose PointerWrapper makes any
+     *          data access, @ref Shape, @ref Info and save throw until the instance is loaded.
+     */
+    TensorAdaptor() : mpStorage(Kratos::make_shared<Storage>()) {}
+
+    /**
      * @brief Construct a new Tensor Adaptor from a given @p pContainer and a @p pData
      * @details This constructor creates an instance of @ref TensorAdaptor using the @p pContainer
      *          as the container and the data in the @p pData .
@@ -248,18 +255,22 @@ public:
     ///@}
 
 protected:
-    ///@name Protected life cycle
-    ///@{
-
-    TensorAdaptor() = default;
-
-    ///@}
     ///@name Protected member variables
     ///@{
 
     typename Storage::Pointer mpStorage;
 
     std::optional<ContainerPointerType> mpContainer;
+
+    ///@}
+    ///@name Serialization
+    ///@{
+
+    friend class Serializer;
+
+    virtual void save(Serializer& rSerializer) const;
+
+    virtual void load(Serializer& rSerializer);
 
     ///@}
 };

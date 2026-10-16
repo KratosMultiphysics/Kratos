@@ -11,6 +11,7 @@ from KratosMultiphysics.RomApplication.rom_testing_utilities import SetUpSimulat
 from KratosMultiphysics.RomApplication.randomized_singular_value_decomposition import RandomizedSingularValueDecomposition
 from KratosMultiphysics.RomApplication.empirical_cubature_method import EmpiricalCubatureMethod
 from KratosMultiphysics.RomApplication.rom_nn_interface import NN_ROM_Interface
+from KratosMultiphysics.RomApplication.rom_rbf_interface import RBF_ROM_Interface
 import re
 
 
@@ -58,6 +59,19 @@ class RomManager(object):
                     self._LaunchTrainHROM(mu_train, nn_rom_interface=nn_rom_interface)
                     self._ChangeRomFlags(simulation_to_run = "runHROMGalerkin_ANN")
                     self._LaunchHROM(mu_train,nn_rom_interface=nn_rom_interface)
+            elif type_of_decoder=="rbf_enhanced":
+                if any(item == "ROM" for item in training_stages):
+                    self._LaunchTrainROM(mu_train)
+                    self._LaunchFOM(mu_validation) #What to do here with the gid and vtk results?
+                    self.TrainRbfEnhancedROM(mu_train,mu_validation)
+                    self._ChangeRomFlags(simulation_to_run = "GalerkinROM_RBF")
+                    rbf_rom_interface = RBF_ROM_Interface(mu_train, self.data_base)
+                    self._LaunchROM(mu_train, rbf_rom_interface=rbf_rom_interface)
+                if any(item == "HROM" for item in training_stages):
+                    self._ChangeRomFlags(simulation_to_run = "trainHROMGalerkin_RBF")
+                    self._LaunchTrainHROM(mu_train, rbf_rom_interface=rbf_rom_interface)
+                    self._ChangeRomFlags(simulation_to_run = "runHROMGalerkin_RBF")
+                    self._LaunchHROM(mu_train, rbf_rom_interface=rbf_rom_interface)
             elif type_of_decoder =="linear":
                 if any(item == "ROM" for item in training_stages):
                     self._LaunchTrainROM(mu_train)
@@ -87,6 +101,19 @@ class RomManager(object):
                     self._LaunchTrainHROM(mu_train, nn_rom_interface=nn_rom_interface)
                     self._ChangeRomFlags(simulation_to_run = "runHROMlspg_ANN")
                     self._LaunchHROM(mu_train,nn_rom_interface=nn_rom_interface)
+            elif type_of_decoder=="rbf_enhanced":
+                if any(item == "ROM" for item in training_stages):
+                    self._LaunchTrainROM(mu_train)
+                    self._LaunchFOM(mu_validation) #What to do here with the gid and vtk results?
+                    self.TrainRbfEnhancedROM(mu_train,mu_validation)
+                    self._ChangeRomFlags(simulation_to_run = "lspg_RBF")
+                    rbf_rom_interface = RBF_ROM_Interface(mu_train, self.data_base)
+                    self._LaunchROM(mu_train, rbf_rom_interface=rbf_rom_interface)
+                if any(item == "HROM" for item in training_stages):
+                    self._ChangeRomFlags(simulation_to_run = "trainHROMlspg_RBF")
+                    self._LaunchTrainHROM(mu_train, rbf_rom_interface=rbf_rom_interface)
+                    self._ChangeRomFlags(simulation_to_run = "runHROMlspg_RBF")
+                    self._LaunchHROM(mu_train, rbf_rom_interface=rbf_rom_interface)
             elif type_of_decoder =="linear":
                 if any(item == "ROM" for item in training_stages):
                     self._LaunchTrainROM(mu_train)
@@ -107,6 +134,9 @@ class RomManager(object):
             if type_of_decoder =="ann_enhanced":
                 err_msg = f'ann_enhanced rom only available for Galerkin Rom and LSPG ROM for the moment'
                 raise Exception(err_msg)
+            elif type_of_decoder =="rbf_enhanced":
+                            err_msg = f'rbf_enhanced rom only available for Galerkin Rom and LSPG ROM for the moment'
+                            raise Exception(err_msg)
             elif type_of_decoder =="linear":
             ##########################
                 if any(item == "ROM" for item in training_stages):
@@ -143,9 +173,16 @@ class RomManager(object):
                 in_database, _ = self.data_base.check_if_in_database("Neural_Network", mu_train)
             self._LaunchTrainNeuralNetwork(mu_train,mu_validation)
 
+    def TrainRbfEnhancedROM(self, mu_train, mu_validation):
+        in_database, _ = self.data_base.check_if_in_database("RBF", mu_train)
+        if not in_database or self.general_rom_manager_parameters["ROM"]["rbf_enhanced_settings"]["training"]["retrain_if_exists"].GetBool():
+            self._LaunchTrainRBF(mu_train,mu_validation)
+
     def TestNeuralNetworkReconstruction(self, mu_train, mu_validation):
         self._LaunchTestNeuralNetworkReconstruction( mu_train, mu_validation)
 
+    def TestRBFReconstruction(self, mu_train, mu_validation):
+        self._LaunchTestRBFReconstruction(mu_train, mu_validation)
 
     def Test(self, mu_test=[None], mu_train=[None]):
         chosen_projection_strategy = self.general_rom_manager_parameters["projection_strategy"].GetString()
@@ -165,6 +202,16 @@ class RomManager(object):
                 if any(item == "HROM" for item in testing_stages):
                     self._ChangeRomFlags(simulation_to_run = "runHROMGalerkin_ANN")
                     self._LaunchHROM(mu_test, nn_rom_interface=nn_rom_interface, gid_and_vtk_name='HROM_Test')
+            elif type_of_decoder =="rbf_enhanced":
+                rbf_rom_interface = RBF_ROM_Interface(mu_train, self.data_base)
+                if any(item == "ROM" for item in testing_stages):
+                    self._LoadSolutionBasis(mu_train)
+                    self._LaunchFOM(mu_test, gid_and_vtk_name='FOM_Test')
+                    self._ChangeRomFlags(simulation_to_run = "GalerkinROM_RBF")
+                    self._LaunchROM(mu_test, gid_and_vtk_name='ROM_Test', rbf_rom_interface=rbf_rom_interface)
+                if any(item == "HROM" for item in testing_stages):
+                    self._ChangeRomFlags(simulation_to_run = "runHROMGalerkin_RBF")
+                    self._LaunchHROM(mu_test, rbf_rom_interface=rbf_rom_interface, gid_and_vtk_name='HROM_Test')
             elif type_of_decoder =="linear":
                 if any(item == "ROM" for item in testing_stages):
                     self._LoadSolutionBasis(mu_train)
@@ -191,6 +238,16 @@ class RomManager(object):
                 if any(item == "HROM" for item in testing_stages):
                     self._ChangeRomFlags(simulation_to_run = "runHROMlspg_ANN")
                     self._LaunchHROM(mu_test, nn_rom_interface=nn_rom_interface, gid_and_vtk_name='HROM_Test')
+            elif type_of_decoder =="rbf_enhanced":
+                rbf_rom_interface = RBF_ROM_Interface(mu_train, self.data_base)
+                if any(item == "ROM" for item in testing_stages):
+                    self._LoadSolutionBasis(mu_train)
+                    self._LaunchFOM(mu_test, gid_and_vtk_name='FOM_Test')
+                    self._ChangeRomFlags(simulation_to_run = "lspg_RBF")
+                    self._LaunchROM(mu_test, gid_and_vtk_name='ROM_Test', rbf_rom_interface=rbf_rom_interface)
+                if any(item == "HROM" for item in testing_stages):
+                    self._ChangeRomFlags(simulation_to_run = "runHROMlspg_RBF")
+                    self._LaunchHROM(mu_test, rbf_rom_interface=rbf_rom_interface, gid_and_vtk_name='HROM_Test')
             elif type_of_decoder =="linear":
                 if any(item == "ROM" for item in testing_stages):
                     self._LoadSolutionBasis(mu_train)
@@ -234,6 +291,7 @@ class RomManager(object):
         chosen_projection_strategy = self.general_rom_manager_parameters["projection_strategy"].GetString()
         type_of_decoder = self.general_rom_manager_parameters["type_of_decoder"].GetString()
         nn_rom_interface = None
+        rbf_rom_interface = None
         self._LoadSolutionBasis(mu_train)
         #######################
         ######  Galerkin ######
@@ -241,6 +299,9 @@ class RomManager(object):
             if type_of_decoder =="ann_enhanced":
                 self._ChangeRomFlags(simulation_to_run = "GalerkinROM_ANN")
                 nn_rom_interface = NN_ROM_Interface(mu_train, self.data_base)
+            elif type_of_decoder =="rbf_enhanced":
+                self._ChangeRomFlags(simulation_to_run = "GalerkinROM_RBF")
+                rbf_rom_interface = RBF_ROM_Interface(mu_train, self.data_base)
             elif type_of_decoder =="linear":
                 self._ChangeRomFlags(simulation_to_run = "GalerkinROM")
         #######################################
@@ -249,6 +310,9 @@ class RomManager(object):
             if type_of_decoder =="ann_enhanced":
                 self._ChangeRomFlags(simulation_to_run = "lspg_ANN")
                 nn_rom_interface = NN_ROM_Interface(mu_train, self.data_base)
+            elif type_of_decoder =="rbf_enhanced":
+                self._ChangeRomFlags(simulation_to_run = "lspg_RBF")
+                rbf_rom_interface = RBF_ROM_Interface(mu_train, self.data_base)
             elif type_of_decoder =="linear":
                 self._ChangeRomFlags(simulation_to_run = "lspg")
         ##########################
@@ -257,13 +321,16 @@ class RomManager(object):
             if type_of_decoder =="ann_enhanced":
                 err_msg = f'ann_enhanced rom only available for Galerkin Rom and LSPG ROM for the moment'
                 raise Exception(err_msg)
+            elif type_of_decoder =="rbf_enhanced":
+                err_msg = f'rbf_enhanced rom only available for Galerkin Rom and LSPG ROM for the moment'
+                raise Exception(err_msg)
             elif type_of_decoder =="linear":
                 self._ChangeRomFlags(simulation_to_run = "PG")
         #########################################
         else:
             err_msg = f'Provided projection strategy {chosen_projection_strategy} is not supported. Available options are \'galerkin\', \'lspg\' and \'petrov_galerkin\'.'
             raise Exception(err_msg)
-        self._LaunchRunROM(mu_run, nn_rom_interface=nn_rom_interface)
+        self._LaunchRunROM(mu_run, nn_rom_interface=nn_rom_interface, rbf_rom_interface=rbf_rom_interface)
 
 
 
@@ -272,6 +339,7 @@ class RomManager(object):
         chosen_projection_strategy = self.general_rom_manager_parameters["projection_strategy"].GetString()
         type_of_decoder = self.general_rom_manager_parameters["type_of_decoder"].GetString()
         nn_rom_interface = None
+        rbf_rom_interface = None
         self._LoadSolutionBasis(mu_train)
         #######################
         ######  Galerkin ######
@@ -279,6 +347,9 @@ class RomManager(object):
             if type_of_decoder =="ann_enhanced":
                 self._ChangeRomFlags(simulation_to_run = "runHROMGalerkin_ANN")
                 nn_rom_interface = NN_ROM_Interface(mu_train, self.data_base)
+            elif type_of_decoder =="rbf_enhanced":
+                self._ChangeRomFlags(simulation_to_run = "runHROMGalerkin_RBF")
+                rbf_rom_interface = RBF_ROM_Interface(mu_train, self.data_base)
             elif type_of_decoder =="linear":
                 self._ChangeRomFlags(simulation_to_run = "runHROMGalerkin")
         #######################################
@@ -287,6 +358,9 @@ class RomManager(object):
             if type_of_decoder =="ann_enhanced":
                 self._ChangeRomFlags(simulation_to_run = "runHROMlspg_ANN")
                 nn_rom_interface = NN_ROM_Interface(mu_train, self.data_base)
+            elif type_of_decoder =="rbf_enhanced":
+                self._ChangeRomFlags(simulation_to_run = "runHROMlspg_RBF")
+                rbf_rom_interface = RBF_ROM_Interface(mu_train, self.data_base)
             elif type_of_decoder =="linear":
                 self._ChangeRomFlags(simulation_to_run = "runHROMLSPG")
         ##########################
@@ -300,7 +374,7 @@ class RomManager(object):
         else:
             err_msg = f'Provided projection strategy {chosen_projection_strategy} is not supported. Available options are \'galerkin\', \'lspg\' and \'petrov_galerkin\'.'
             raise Exception(err_msg)
-        self._LaunchRunHROM(mu_run, use_full_model_part,nn_rom_interface)
+        self._LaunchRunHROM(mu_run, use_full_model_part, nn_rom_interface, rbf_rom_interface)
 
 
     def ExportAnnEnhancedRom(self, mu_train=[None], export_folder="rom_data_standalone"):
@@ -324,15 +398,72 @@ class RomManager(object):
         self._ChangeRomFlags(simulation_to_run = simulation_to_run)
         nn_rom_interface = NN_ROM_Interface(mu_train, self.data_base)
 
-        rom_folder = Path(self.general_rom_manager_parameters["ROM"]["rom_basis_output_folder"].GetString())
-        rom_parameters_file_name = Path(self.general_rom_manager_parameters["ROM"]["rom_basis_output_name"].GetString()).with_suffix('.json')
         export_folder = Path(export_folder)
         export_folder.mkdir(parents=True, exist_ok=True)
 
         # Files read by NN_ROM_Interface.FromNumpyFiles
-        np.save(export_folder / "RightBasisMatrix.npy", nn_rom_interface.phi[:, :nn_rom_interface.n_sup])
-        np.save(export_folder / "SingularValues.npy", nn_rom_interface.sigma[:nn_rom_interface.n_sup])
-        shutil.copy(nn_rom_interface.network_weights_path, export_folder / "model_weights.npy")
+        if self._UsesSegregatedBases():
+            # One network per coupled solver, with its files prefixed by its name
+            ann_enhanced_settings = {}
+            for sub_solver_name in self._GetCoupledSolverNames():
+                with open(nn_rom_interface.model_path / f"{sub_solver_name}_train_config.json", 'r') as config_file:
+                    ann_enhanced_settings[sub_solver_name] = {"modes" : [int(mode) for mode in json.load(config_file)["modes"]]}
+                for file_name in [f"{sub_solver_name}_model_weights.npy", f"{sub_solver_name}_SingularValues.npy"]:
+                    shutil.copy(nn_rom_interface.model_path / file_name, export_folder / file_name)
+            number_of_modes = max(settings["modes"][1] for settings in ann_enhanced_settings.values())
+            np.save(export_folder / "RightBasisMatrix.npy", nn_rom_interface.phi[:, :number_of_modes])
+        else:
+            ann_enhanced_settings = {"modes" : [nn_rom_interface.n_inf, nn_rom_interface.n_sup]}
+            np.save(export_folder / "RightBasisMatrix.npy", nn_rom_interface.phi[:, :nn_rom_interface.n_sup])
+            np.save(export_folder / "SingularValues.npy", nn_rom_interface.sigma[:nn_rom_interface.n_sup])
+            shutil.copy(nn_rom_interface.network_weights_path, export_folder / "model_weights.npy")
+        self._ExportRomParameters(export_folder, "ann_enhanced_settings", ann_enhanced_settings)
+
+
+    def ExportRbfEnhancedRom(self, mu_train=[None], export_folder="rom_data_standalone"):
+        """
+        Exports the RBF-enhanced ROM trained with 'mu_train' to a folder that can be run without the RomManager and its database.
+        The exported folder replaces the ROM folder (default 'rom_data') of the case to be run standalone.
+        """
+        if self.general_rom_manager_parameters["type_of_decoder"].GetString() != "rbf_enhanced":
+            raise Exception("'ExportRbfEnhancedRom' requires 'type_of_decoder' to be 'rbf_enhanced'.")
+        chosen_projection_strategy = self.general_rom_manager_parameters["projection_strategy"].GetString()
+        if chosen_projection_strategy == "galerkin":
+            simulation_to_run = "GalerkinROM_RBF"
+        elif chosen_projection_strategy == "lspg":
+            simulation_to_run = "lspg_RBF"
+        else:
+            raise Exception(f'rbf_enhanced rom only available for Galerkin Rom and LSPG ROM, not for \'{chosen_projection_strategy}\'.')
+
+        # Write the RomParameters of the RBF-enhanced ROM in the ROM folder
+        self._LoadSolutionBasis(mu_train)
+        self._ChangeRomFlags(simulation_to_run = simulation_to_run)
+        rbf_rom_interface = RBF_ROM_Interface(mu_train, self.data_base)
+
+        export_folder = Path(export_folder)
+        export_folder.mkdir(parents=True, exist_ok=True)
+
+        # Files read by RBF_ROM_Interface.FromNumpyFiles
+        if self._UsesSegregatedBases():
+            # One RBF per coupled solver, with its files prefixed by its name
+            rbf_enhanced_settings = {}
+            number_of_modes = 0
+            for coupled_solver in self._GetCoupledSolvers():
+                sub_solver_name = coupled_solver["sub_solver_name"].GetString()
+                sub_solver_interface = rbf_rom_interface.GetSubSolverInterface(sub_solver_name, self._GetCoupledSolverRows(coupled_solver, rbf_rom_interface.phi.shape[0]))
+                rbf_enhanced_settings[sub_solver_name] = sub_solver_interface.SaveToNumpyFiles(export_folder, file_prefix=f"{sub_solver_name}_")
+                number_of_modes = max(number_of_modes, sub_solver_interface.n_sup)
+            np.save(export_folder / "RightBasisMatrix.npy", rbf_rom_interface.phi[:, :number_of_modes])
+        else:
+            rbf_enhanced_settings = rbf_rom_interface.SaveToNumpyFiles(export_folder)
+            np.save(export_folder / "RightBasisMatrix.npy", rbf_rom_interface.phi[:, :rbf_rom_interface.n_sup])
+        self._ExportRomParameters(export_folder, "rbf_enhanced_settings", rbf_enhanced_settings)
+
+
+    def _ExportRomParameters(self, export_folder, decoder_settings_name, decoder_settings):
+        """Copies to the exported folder the node ids and the HROM files (if they exist), and writes the RomParameters with the settings of the decoder."""
+        rom_folder = Path(self.general_rom_manager_parameters["ROM"]["rom_basis_output_folder"].GetString())
+        rom_parameters_file_name = Path(self.general_rom_manager_parameters["ROM"]["rom_basis_output_name"].GetString()).with_suffix('.json')
         for file_name in ["NodeIds.npy", "HROM_ElementIds.npy", "HROM_ElementWeights.npy", "HROM_ConditionIds.npy", "HROM_ConditionWeights.npy"]:
             if (rom_folder / file_name).exists():
                 shutil.copy(rom_folder / file_name, export_folder / file_name)
@@ -340,7 +471,7 @@ class RomManager(object):
         with open(rom_folder / rom_parameters_file_name, 'r') as parameter_file:
             rom_parameters = json.load(parameter_file)
         rom_parameters["rom_manager"] = False
-        rom_parameters["ann_enhanced_settings"] = {"modes" : [nn_rom_interface.n_inf, nn_rom_interface.n_sup]}
+        rom_parameters[decoder_settings_name] = decoder_settings
         with open(export_folder / rom_parameters_file_name, 'w') as parameter_file:
             json.dump(rom_parameters, parameter_file, indent=4)
 
@@ -445,10 +576,11 @@ class RomManager(object):
     def _LaunchComputeSolutionBasis(self, mu_train):
         in_database, hash_basis = self.data_base.check_if_in_database("RightBasis", mu_train)
         if not in_database:
+            compute_svd = self._ComputeSegregatedSVD if self._UsesSegregatedBases() else self._ComputeSVD
             if self.general_rom_manager_parameters["ROM"]["use_non_converged_sols"].GetBool():
-                u,sigma = self._ComputeSVD(self.data_base.get_snapshots_matrix_from_database(mu_train, table_name='NonconvergedFOM')) #TODO this might be too large for single opeartion, add partitioned svd
+                u,sigma = compute_svd(self.data_base.get_snapshots_matrix_from_database(mu_train, table_name='NonconvergedFOM')) #TODO this might be too large for single opeartion, add partitioned svd
             else:
-                u,sigma = self._ComputeSVD(self.data_base.get_snapshots_matrix_from_database(mu_train, table_name='FOM'))
+                u,sigma = compute_svd(self.data_base.get_snapshots_matrix_from_database(mu_train, table_name='FOM'))
             self._PrintRomBasis(u, sigma, mu_train[0])
             self.data_base.add_to_database("RightBasis", mu_train, u )
             self.data_base.add_to_database("SingularValues_Solution", mu_train, sigma )
@@ -476,7 +608,7 @@ class RomManager(object):
 
 
 
-    def _LaunchROM(self, mu_train, gid_and_vtk_name='ROM_Fit', nn_rom_interface = None):
+    def _LaunchROM(self, mu_train, gid_and_vtk_name='ROM_Fit', nn_rom_interface = None, rbf_rom_interface = None):
         """
         This method should be parallel capable
         """
@@ -491,7 +623,7 @@ class RomManager(object):
                 materials_file_name = self._GetMaterialsFileName(parameters_copy)
                 self.UpdateMaterialParametersFile(materials_file_name, mu)
                 model = KratosMultiphysics.Model()
-                analysis_stage_class = type(self._SetUpRomSimulationInstance(model, parameters_copy, nn_rom_interface=nn_rom_interface))
+                analysis_stage_class = type(self._SetUpRomSimulationInstance(model, parameters_copy, nn_rom_interface=nn_rom_interface, rbf_rom_interface=rbf_rom_interface))
                 simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters_copy, mu)
 
                 simulation.Run()
@@ -540,7 +672,7 @@ class RomManager(object):
 
 
 
-    def _LaunchTrainHROM(self, mu_train, nn_rom_interface = None):
+    def _LaunchTrainHROM(self, mu_train, nn_rom_interface = None, rbf_rom_interface = None):
         """
         This method should be parallel capable
         The projected residuals are written by a ProjectedResidualsOutputProcess (one per sub-solver in coupled problems),
@@ -567,7 +699,7 @@ class RomManager(object):
                     materials_file_name = self._GetMaterialsFileName(parameters_copy)
                     self.UpdateMaterialParametersFile(materials_file_name, mu)
                     model = KratosMultiphysics.Model()
-                    analysis_stage_class = type(self._SetUpRomSimulationInstance(model, parameters_copy, nn_rom_interface=nn_rom_interface))
+                    analysis_stage_class = type(self._SetUpRomSimulationInstance(model, parameters_copy, nn_rom_interface=nn_rom_interface, rbf_rom_interface=rbf_rom_interface))
                     simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters_copy, mu)
                     simulation.Run()
                     ResidualProjected = self._GetResidualProjected() # this method fetches the residuals projected from the corresponding folder.
@@ -575,7 +707,7 @@ class RomManager(object):
                     # TODO for later PR: Implement path-based database storage to avoid RAM bottlenecks and erase the temporary .npy files from disk here.
             self._SetTrainHROMFlag(True)
             RedidualsSnapshotsMatrix = self.data_base.get_snapshots_matrix_from_database(mu_train, table_name="ResidualsProjected")
-            HROM_utility = self.InitializeDummySimulationForHromTrainingUtility(nn_rom_interface=nn_rom_interface, mu=mu_train[0])
+            HROM_utility = self.InitializeDummySimulationForHromTrainingUtility(nn_rom_interface=nn_rom_interface, rbf_rom_interface=rbf_rom_interface, mu=mu_train[0])
             z, w = self._LocalEmpiricalCubature(np.split(RedidualsSnapshotsMatrix, len(residuals_output_settings)), HROM_utility.candidate_ids)
             HROM_utility.hyper_reduction_element_selector.z = z
             HROM_utility.hyper_reduction_element_selector.w = w
@@ -584,13 +716,65 @@ class RomManager(object):
         # elif (in_database_elems and not in_database_weights) or (not in_database_elems and in_database_weights):
         #     error #if one of the two is there but not the other, the database is corrupted
         else:
-            HROM_utility = self.InitializeDummySimulationForHromTrainingUtility(nn_rom_interface=nn_rom_interface, mu=mu_train[0])
+            HROM_utility = self.InitializeDummySimulationForHromTrainingUtility(nn_rom_interface=nn_rom_interface, rbf_rom_interface=rbf_rom_interface, mu=mu_train[0])
             #doing this ensures the elements and weights npy files contained in the rom_data folder are the ones to use.i.e. they are not from old runs of the rom manager
             HROM_utility.hyper_reduction_element_selector.w = self.data_base.get_single_numpy_from_database(hash_w)
             HROM_utility.hyper_reduction_element_selector.z = self.data_base.get_single_numpy_from_database(hash_z)
         HROM_utility.AppendHRomWeightsToRomParameters()
-        #HROM_utility.CreateHRomModelParts() TODO Fix HROM model part creation. This is broken for generic model parts and MED files
+        # The HROM model part is only needed to run the HROM on it (RunHROM with use_full_model_part=False), so a failure creating it does not stop the training
+        try:
+            HROM_utility.CreateHRomModelParts()
+        except Exception as exception:
+            KratosMultiphysics.Logger.PrintWarning("RomManager", f"The HROM model part could not be created, so the HROM can only be run on the full model part (use_full_model_part=True). Error:\n{exception}")
         self.GenerateDatabaseSummary()
+
+    def _SetHROMInputParameters(self, parameters):
+        """Point the project parameters to the HROM model part written during training.
+
+        For geometry based inputs (i.e. MED or mdpa with geometries) the entities are created from the
+        geometries by the modelers. Hence, the importer filename is switched to the HROM file and the
+        entities-from-geometries modeler is replaced by the 'HRomCreateEntitiesFromGeometriesModeler' so
+        that the original entity numbering is recovered from the geometry id to entity id mapping written
+        during training.
+        For mesh based inputs (i.e. mdpa), only the input filename is switched to the HROM mdpa.
+        """
+        geometry_importer_modeler = None
+        entities_modeler = None
+        if parameters.Has("modelers"):
+            for modeler in parameters["modelers"].values():
+                if not modeler.Has("parameters"):
+                    continue
+                modeler_parameters = modeler["parameters"]
+                modeler_name = modeler["name"].GetString() if modeler.Has("name") else ""
+                if "CreateEntitiesFromGeometriesModeler" in modeler_name:
+                    entities_modeler = modeler_parameters
+                    modeler["name"].SetString("Modelers.KratosMultiphysics.RomApplication.HRomCreateEntitiesFromGeometriesModeler")
+                if modeler_parameters.Has("input_filename"):
+                    geometry_importer_modeler = modeler_parameters
+
+        if entities_modeler is not None and geometry_importer_modeler is not None:
+            # Geometry based input, the entities are created from the geometries by the modelers
+            input_path = Path(geometry_importer_modeler["input_filename"].GetString())
+            hrom_import_filename = str(input_path.with_suffix("")) + ("HROM.med" if input_path.suffix.lower() == ".med" else "HROM")
+            geometry_importer_modeler["input_filename"].SetString(hrom_import_filename)
+            rom_folder = self.general_rom_manager_parameters["ROM"]
+            rom_basis_output_folder = rom_folder["rom_basis_output_folder"].GetString() if rom_folder.Has("rom_basis_output_folder") else "rom_data"
+            ids_file = str(Path(rom_basis_output_folder) / "HROM_GeometryIds.csv")
+            if entities_modeler.Has("assign_ids_from_file"):
+                entities_modeler["assign_ids_from_file"].SetBool(True)
+            else:
+                entities_modeler.AddBool("assign_ids_from_file", True)
+            if entities_modeler.Has("geometry_ids_file"):
+                entities_modeler["geometry_ids_file"].SetString(ids_file)
+            else:
+                entities_modeler.AddString("geometry_ids_file", ids_file)
+        else:
+            model_import_settings = parameters["solver_settings"]["model_import_settings"]
+            if not model_import_settings.Has("input_filename"):
+                KratosMultiphysics.Logger.PrintWarning("RomManager", "No 'input_filename' in 'model_import_settings'. Running the HROM on the full model part.")
+                return
+            model_part_name = model_import_settings["input_filename"].GetString()
+            model_import_settings["input_filename"].SetString(f"{model_part_name}HROM")
 
     def _LocalEmpiricalCubature(self, residuals_list, initial_candidates=None):
         """
@@ -647,7 +831,7 @@ class RomManager(object):
         return np.vstack([load_and_block_residuals(folder) for _, _, folder in self._GetResidualsProjectedOutputSettings()])
 
 
-    def _LaunchHROM(self, mu_train, nn_rom_interface=None,gid_and_vtk_name ='HROM_Fit'):
+    def _LaunchHROM(self, mu_train, nn_rom_interface=None, rbf_rom_interface=None, gid_and_vtk_name ='HROM_Fit'):
         """
         This method should be parallel capable
         """
@@ -662,7 +846,7 @@ class RomManager(object):
                 materials_file_name = self._GetMaterialsFileName(parameters_copy)
                 self.UpdateMaterialParametersFile(materials_file_name, mu)
                 model = KratosMultiphysics.Model()
-                analysis_stage_class = type(self._SetUpRomSimulationInstance(model, parameters_copy, nn_rom_interface=nn_rom_interface))
+                analysis_stage_class = type(self._SetUpRomSimulationInstance(model, parameters_copy, nn_rom_interface=nn_rom_interface, rbf_rom_interface=rbf_rom_interface))
                 simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters_copy, mu)
                 simulation.Run()
                 self.data_base.add_to_database("QoI_HROM", mu, simulation.GetFinalData())
@@ -689,7 +873,7 @@ class RomManager(object):
             simulation.Run()
             self.QoI_Run_FOM.append(simulation.GetFinalData())
 
-    def _LaunchRunROM(self, mu_run, nn_rom_interface=None):
+    def _LaunchRunROM(self, mu_run, nn_rom_interface=None, rbf_rom_interface=None):
         """
         This method should be parallel capable
         """
@@ -702,25 +886,20 @@ class RomManager(object):
             materials_file_name = self._GetMaterialsFileName(parameters_copy)
             self.UpdateMaterialParametersFile(materials_file_name, mu)
             model = KratosMultiphysics.Model()
-            analysis_stage_class = type(self._SetUpRomSimulationInstance(model, parameters_copy, nn_rom_interface=nn_rom_interface))
+            analysis_stage_class = type(self._SetUpRomSimulationInstance(model, parameters_copy, nn_rom_interface=nn_rom_interface, rbf_rom_interface=rbf_rom_interface))
             simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters_copy, mu)
             simulation.Run()
             self.QoI_Run_ROM.append(simulation.GetFinalData())
 
 
-    def _LaunchRunHROM(self, mu_run, use_full_model_part, nn_rom_interface):
+    def _LaunchRunHROM(self, mu_run, use_full_model_part, nn_rom_interface, rbf_rom_interface=None):
         """
         This method should be parallel capable
         """
         with open(self.project_parameters_name,'r') as parameter_file:
             parameters = KratosMultiphysics.Parameters(parameter_file.read())
         if not use_full_model_part:
-            model_import_settings = parameters["solver_settings"]["model_import_settings"]
-            if model_import_settings.Has("input_filename"):
-                model_part_name = model_import_settings["input_filename"].GetString()
-                model_import_settings["input_filename"].SetString(f"{model_part_name}HROM")
-            else:
-                KratosMultiphysics.Logger.PrintWarning("RomManager", "No 'input_filename' in 'model_import_settings'. Running the HROM on the full model part.")
+            self._SetHROMInputParameters(parameters)
 
         for Id, mu in enumerate(mu_run):
             parameters_copy = self.UpdateProjectParameters(parameters.Clone(), mu)
@@ -728,23 +907,58 @@ class RomManager(object):
             materials_file_name = self._GetMaterialsFileName(parameters_copy)
             self.UpdateMaterialParametersFile(materials_file_name, mu)
             model = KratosMultiphysics.Model()
-            analysis_stage_class = type(self._SetUpRomSimulationInstance(model, parameters_copy, nn_rom_interface=nn_rom_interface))
+            analysis_stage_class = type(self._SetUpRomSimulationInstance(model, parameters_copy, nn_rom_interface=nn_rom_interface, rbf_rom_interface=rbf_rom_interface))
             simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters_copy, mu)
             simulation.Run()
             self.QoI_Run_HROM.append(simulation.GetFinalData())
 
     def _LaunchTrainNeuralNetwork(self, mu_train, mu_validation):
-        RomNeuralNetworkTrainer = self._TryImportNNTrainer()
-        rom_nn_trainer = RomNeuralNetworkTrainer(self.general_rom_manager_parameters, mu_train, mu_validation, self.data_base)
-        rom_nn_trainer.TrainNetwork()
+        rom_nn_trainers = self._GetNeuralNetworkTrainers(mu_train, mu_validation)
+        for rom_nn_trainer in rom_nn_trainers:
+            rom_nn_trainer.TrainNetwork()
         self.data_base.add_to_database("Neural_Network", mu_train , None)
-        rom_nn_trainer.EvaluateNetwork()
+        for rom_nn_trainer in rom_nn_trainers:
+            rom_nn_trainer.EvaluateNetwork()
 
+    def _LaunchTrainRBF(self, mu_train, mu_validation):
+        rom_rbf_trainers = self._GetRBFTrainers(mu_train, mu_validation)
+        for rom_rbf_trainer in rom_rbf_trainers:
+            rom_rbf_trainer.TrainRBF()
+        self.data_base.add_to_database("RBF", mu_train , None)
+        for rom_rbf_trainer in rom_rbf_trainers:
+            rom_rbf_trainer.EvaluateRBF()
 
     def _LaunchTestNeuralNetworkReconstruction(self,mu_train, mu_validation):
+        for rom_nn_trainer in self._GetNeuralNetworkTrainers(mu_train, mu_validation):
+            rom_nn_trainer.EvaluateNetwork()
+
+    def _LaunchTestRBFReconstruction(self,mu_train, mu_validation):
+        for rom_rbf_trainer in self._GetRBFTrainers(mu_train, mu_validation):
+            rom_rbf_trainer.EvaluateRBF()
+
+    def _GetRBFTrainers(self, mu_train, mu_validation):
+        """Returns the trainer of the RBF, or one per coupled solver if each of them has its own basis."""
+        from KratosMultiphysics.RomApplication.rom_rbf_trainer import RomRBFTrainer
+        if not self._UsesSegregatedBases():
+            return [RomRBFTrainer(self.general_rom_manager_parameters, mu_train, mu_validation, self.data_base)]
+        _, hash_basis = self.data_base.check_if_in_database("RightBasis", mu_train)
+        number_of_rows = self.data_base.get_single_numpy_from_database(hash_basis).shape[0]
+        return [RomRBFTrainer(self.general_rom_manager_parameters, mu_train, mu_validation, self.data_base,
+                              sub_solver_name=coupled_solver["sub_solver_name"].GetString(),
+                              rows=self._GetCoupledSolverRows(coupled_solver, number_of_rows))
+                for coupled_solver in self._GetCoupledSolvers()]
+
+    def _GetNeuralNetworkTrainers(self, mu_train, mu_validation):
+        """Returns the trainer of the network, or one per coupled solver if each of them has its own basis."""
         RomNeuralNetworkTrainer = self._TryImportNNTrainer()
-        rom_nn_trainer = RomNeuralNetworkTrainer(self.general_rom_manager_parameters, mu_train, mu_validation, self.data_base)
-        rom_nn_trainer.EvaluateNetwork()
+        if not self._UsesSegregatedBases():
+            return [RomNeuralNetworkTrainer(self.general_rom_manager_parameters, mu_train, mu_validation, self.data_base)]
+        _, hash_basis = self.data_base.check_if_in_database("RightBasis", mu_train)
+        number_of_rows = self.data_base.get_single_numpy_from_database(hash_basis).shape[0]
+        return [RomNeuralNetworkTrainer(self.general_rom_manager_parameters, mu_train, mu_validation, self.data_base,
+                                        sub_solver_name=coupled_solver["sub_solver_name"].GetString(),
+                                        rows=self._GetCoupledSolverRows(coupled_solver, number_of_rows))
+                for coupled_solver in self._GetCoupledSolvers()]
 
     def InitializeDummySimulationForSnapshotsModelPart(self, mu=None):
         with open(self.project_parameters_name,'r') as parameter_file:
@@ -757,12 +971,12 @@ class RomManager(object):
         return model[self.general_rom_manager_parameters["ROM"]["model_part_name"].GetString()]
 
 
-    def InitializeDummySimulationForHromTrainingUtility(self, nn_rom_interface=None, mu=None):
+    def InitializeDummySimulationForHromTrainingUtility(self, nn_rom_interface=None, rbf_rom_interface=None, mu=None):
         with open(self.project_parameters_name,'r') as parameter_file:
             parameters = KratosMultiphysics.Parameters(parameter_file.read())
         parameters = self._StoreNoResults(parameters)
         model = KratosMultiphysics.Model()
-        analysis_stage_class = type(self._SetUpRomSimulationInstance(model, parameters, nn_rom_interface=nn_rom_interface))
+        analysis_stage_class = type(self._SetUpRomSimulationInstance(model, parameters, nn_rom_interface=nn_rom_interface, rbf_rom_interface=rbf_rom_interface))
         simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters, mu)
         simulation.Initialize()
         return simulation.GetHROM_utility()
@@ -900,6 +1114,36 @@ class RomManager(object):
                 f['train_hrom']=False
                 f['run_hrom']=True
                 f["rom_settings"]['rom_bns_settings'] = self._SetLSPGBnSParameters()
+            elif simulation_to_run=='GalerkinROM_RBF':
+                f['train_hrom']=False
+                f['run_hrom']=False
+                f['projection_strategy']="galerkin_rbf"
+                f["rom_settings"]['rom_bns_settings'] = self._SetGalerkinBnSParameters()
+            elif simulation_to_run=="trainHROMGalerkin_RBF":
+                f['projection_strategy']="galerkin_rbf"
+                f['train_hrom']=True
+                f['run_hrom']=False
+                f["rom_settings"]['rom_bns_settings'] = self._SetGalerkinBnSParameters()
+            elif simulation_to_run=="runHROMGalerkin_RBF":
+                f['projection_strategy']="galerkin_rbf"
+                f['train_hrom']=False
+                f['run_hrom']=True
+                f["rom_settings"]['rom_bns_settings'] = self._SetGalerkinBnSParameters()
+            elif simulation_to_run=='lspg_RBF':
+                f['train_hrom']=False
+                f['run_hrom']=False
+                f['projection_strategy']="lspg_rbf"
+                f["rom_settings"]['rom_bns_settings'] = self._SetLSPGBnSParameters()
+            elif simulation_to_run=="trainHROMlspg_RBF":
+                f['projection_strategy']="lspg_rbf"
+                f['train_hrom']=True
+                f['run_hrom']=False
+                f["rom_settings"]['rom_bns_settings'] = self._SetLSPGBnSParameters()
+            elif simulation_to_run=="runHROMlspg_RBF":
+                f['projection_strategy']="lspg_rbf"
+                f['train_hrom']=False
+                f['run_hrom']=True
+                f["rom_settings"]['rom_bns_settings'] = self._SetLSPGBnSParameters()
             else:
                 raise Exception(f'Unknown flag "{simulation_to_run}" change for RomParameters.json')
             parameter_file.seek(0)
@@ -968,9 +1212,9 @@ class RomManager(object):
                     defaults[key] = rom_params[key].GetDouble()
         return defaults
 
-    def _SetUpRomSimulationInstance(self, model, parameters, nn_rom_interface=None):
+    def _SetUpRomSimulationInstance(self, model, parameters, nn_rom_interface=None, rbf_rom_interface=None):
         rom_params = self.general_rom_manager_parameters["ROM"]
-        return SetUpSimulationInstance(model, parameters, nn_rom_interface=nn_rom_interface,
+        return SetUpSimulationInstance(model, parameters, nn_rom_interface=nn_rom_interface, rbf_rom_interface=rbf_rom_interface,
                                        rom_basis_output_folder=rom_params["rom_basis_output_folder"].GetString(),
                                        rom_basis_output_name=rom_params["rom_basis_output_name"].GetString())
 
@@ -995,8 +1239,9 @@ class RomManager(object):
     def _SetUpCoupledSolvers(self):
         """
         Validates the 'coupled_solvers' and completes the 'ROM' and 'HROM' settings of each of them with the general ones.
-        A single (monolithic) ROM basis shared by all the coupled solvers is currently supported. Hence, its snapshots
-        contain the 'nodal_unknowns' of all of them and the smallest 'svd_truncation_tolerance' among them is used.
+        The snapshots contain the 'nodal_unknowns' of all the coupled solvers. Linear decoders use a single (monolithic) ROM basis
+        shared by all of them, computed with the smallest 'svd_truncation_tolerance' among them. ANN-enhanced and RBF-enhanced decoders
+        use a basis (and a network or RBF) per coupled solver, each computed with its own 'svd_truncation_tolerance' (see _UsesSegregatedBases).
         """
         coupled_solvers = self.general_rom_manager_parameters["coupled_solvers"]
         for i in range(coupled_solvers.size()):
@@ -1005,10 +1250,11 @@ class RomManager(object):
             return
 
         rom_settings = self.general_rom_manager_parameters["ROM"]
-        tolerances = {coupled_solvers[i]["sub_solver_name"].GetString() : coupled_solvers[i]["ROM"]["svd_truncation_tolerance"].GetDouble() for i in range(coupled_solvers.size())}
-        if len(set(tolerances.values())) > 1:
-            KratosMultiphysics.Logger.PrintWarning("RomManager", f"Different 'svd_truncation_tolerance' set for the coupled solvers {tolerances}. Only a monolithic ROM basis (shared by all the coupled solvers) is currently supported, so the smallest one ({min(tolerances.values())}) is used.")
-        rom_settings["svd_truncation_tolerance"].SetDouble(min(tolerances.values()))
+        if not self._UsesSegregatedBases():
+            tolerances = {coupled_solvers[i]["sub_solver_name"].GetString() : coupled_solvers[i]["ROM"]["svd_truncation_tolerance"].GetDouble() for i in range(coupled_solvers.size())}
+            if len(set(tolerances.values())) > 1:
+                KratosMultiphysics.Logger.PrintWarning("RomManager", f"Different 'svd_truncation_tolerance' set for the coupled solvers {tolerances}. Only a monolithic ROM basis (shared by all the coupled solvers) is currently supported, so the smallest one ({min(tolerances.values())}) is used.")
+            rom_settings["svd_truncation_tolerance"].SetDouble(min(tolerances.values()))
         nodal_unknowns = set()
         for i in range(coupled_solvers.size()):
             nodal_unknowns.update(coupled_solvers[i]["ROM"]["nodal_unknowns"].GetStringArray())
@@ -1064,6 +1310,17 @@ class RomManager(object):
         """Returns the names of the coupled sub-solvers (e.g. ['fluid_solver', 'thermal_solver']). Empty for a single solver."""
         return [coupled_solver["sub_solver_name"].GetString() for coupled_solver in self._GetCoupledSolvers()]
 
+    def _UsesSegregatedBases(self):
+        """True if each coupled solver has its own ROM basis: coupled solvers with an ANN-enhanced or RBF-enhanced decoder (one network or RBF per solver)."""
+        return self.general_rom_manager_parameters["type_of_decoder"].GetString() in ("ann_enhanced", "rbf_enhanced") and len(self._GetCoupledSolvers()) > 0
+
+    def _GetCoupledSolverRows(self, coupled_solver, number_of_rows):
+        """Rows of the 'nodal_unknowns' of a coupled solver in the snapshots and basis matrices, which store the (alphabetically sorted) unknowns of all the coupled solvers node by node."""
+        all_nodal_unknowns = sorted(self.general_rom_manager_parameters["ROM"]["nodal_unknowns"].GetStringArray())
+        positions = np.array([all_nodal_unknowns.index(name) for name in sorted(coupled_solver["ROM"]["nodal_unknowns"].GetStringArray())])
+        number_of_nodes = number_of_rows // len(all_nodal_unknowns)
+        return (np.arange(number_of_nodes)[:, None] * len(all_nodal_unknowns) + positions).ravel()
+
     def _GetResidualsProjectedOutputSettings(self):
         """Returns the (sub_solver_name, model_part_name, output folder) of each ProjectedResidualsOutputProcess: one per coupled sub-solver, or one for the solver."""
         rom_basis_output_folder = Path(self.general_rom_manager_parameters["ROM"]["rom_basis_output_folder"].GetString())
@@ -1113,10 +1370,34 @@ class RomManager(object):
         return snapshots_matrix
 
 
-    def _ComputeSVD(self, snapshots_matrix):
+    def _ComputeSVD(self, snapshots_matrix, svd_truncation_tolerance=None):
         # Calculate the randomized SVD of the snapshots matrix
-        svd_truncation_tolerance = self.general_rom_manager_parameters["ROM"]["svd_truncation_tolerance"].GetDouble()
+        if svd_truncation_tolerance is None:
+            svd_truncation_tolerance = self.general_rom_manager_parameters["ROM"]["svd_truncation_tolerance"].GetDouble()
         u,sigma,_,_= RandomizedSingularValueDecomposition().Calculate(snapshots_matrix, svd_truncation_tolerance)
+        return u, sigma
+
+
+    def _ComputeSegregatedSVD(self, snapshots_matrix):
+        """
+        Computes the basis of each coupled solver from the rows of its unknowns. The bases are stored in a single matrix, each of them
+        in the rows of its solver and from the first column on (zero-padded if another solver has more modes).
+        """
+        nodal_unknowns = [name for coupled_solver in self._GetCoupledSolvers() for name in coupled_solver["ROM"]["nodal_unknowns"].GetStringArray()]
+        if len(nodal_unknowns) != len(set(nodal_unknowns)):
+            raise Exception(f"The coupled solvers share 'nodal_unknowns' ({nodal_unknowns}). With ann_enhanced and rbf_enhanced decoders each of the 'coupled_solvers' needs its own 'nodal_unknowns' in its 'ROM' settings.")
+        bases = []
+        for coupled_solver in self._GetCoupledSolvers():
+            rows = self._GetCoupledSolverRows(coupled_solver, snapshots_matrix.shape[0])
+            u_solver, sigma_solver = self._ComputeSVD(snapshots_matrix[rows, :], coupled_solver["ROM"]["svd_truncation_tolerance"].GetDouble())
+            bases.append((rows, u_solver, sigma_solver))
+        number_of_modes = max(u_solver.shape[1] for _, u_solver, _ in bases)
+        u = np.zeros((snapshots_matrix.shape[0], number_of_modes))
+        sigma = np.zeros(number_of_modes)
+        for rows, u_solver, sigma_solver in bases:
+            u[rows, :u_solver.shape[1]] = u_solver
+            # A single vector is stored: each solver recomputes its own singular values from its basis when training its network or RBF
+            sigma[:len(sigma_solver)] = np.maximum(sigma[:len(sigma_solver)], sigma_solver)
         return u, sigma
 
 
@@ -1238,7 +1519,7 @@ class RomManager(object):
             "rom_stages_to_test" : [],              // ["ROM","HROM"]
             "paralellism" : null,                        // null, TODO: add "compss"
             "projection_strategy": "galerkin",            // "lspg", "galerkin", "petrov_galerkin"
-            "type_of_decoder" : "linear",               // "linear" "ann_enhanced",  TODO: add "quadratic"
+            "type_of_decoder" : "linear",               // "linear" "ann_enhanced" "rbf_enhanced",  TODO: add "quadratic"
             "assembling_strategy": "global",            // "global", "elemental"
             "save_gid_output": false,                    // false, true #if true, it must exits previously in the ProjectParameters.json
             "save_vtk_output": false,                    // false, true #if true, it must exits previously in the ProjectParameters.json
@@ -1287,6 +1568,13 @@ class RomManager(object):
                     "online":{
                         "model_number": 0   // out of the models existing for the same parameters, this is the model that will be lauched
                     }
+                },
+                "rbf_enhanced_settings": {
+                    "modes":[5,50],
+                    "rbf_solver": "svd",   // Available options: "svd" and "ridge"
+                    "training":{
+                        "retrain_if_exists" : false  // If false only one model will be trained for each mu_train and RBF hyperparameters combination
+                    }
                 }
             },
             "HROM":{
@@ -1297,10 +1585,10 @@ class RomManager(object):
                 "svd_type": "numpy_rsvd",                         //  "numpy_svd", "numpy_rsvd"
                 "create_hrom_visualization_model_part" : true,
                 "include_elements_model_parts_list": [],          //The elements of the submodel parts included in this list will be considered in the HROM model part
-                "include_conditions_model_parts_list": [],         //The conditions of the submodel parts included in this list will be considered in the HROM model part
+                "include_conditions_model_parts_list": [],         //The conditions of the submodel parts included in this list will be considered in the HROM model part (e.g. those the processes need when running on the HROM model part, as an inlet)
                 "initial_candidate_elements_model_part_list" : [],        //These elements will be given priority when creating the HROM model part
                 "initial_candidate_conditions_model_part_list" : [],       //These conditions will be given priority when creating the HROM model part
-                "include_nodal_neighbouring_elements_model_parts_list":[],
+                "include_nodal_neighbouring_elements_model_parts_list":[],   //The elements around the nodes of these submodel parts will be considered in the HROM model part (e.g. the parents of the included conditions, required by the fluid solvers)
                 "include_minimum_condition": false,       // if true, keep at least one condition per submodelpart
                 "include_condition_parents": false,       // if true, when a condition is chosen by the ECM algorithm, the parent element is also included
                 "echo_level" : 0                          // if >0, get hrom training status promts
