@@ -22,6 +22,7 @@
 #include <sstream>
 
 // External includes
+#include "meshioplusplus/operations/fit_cad.hpp"
 #include "meshioplusplus/operations/refine.hpp"
 
 // Project includes
@@ -141,14 +142,14 @@ KRATOS_TEST_CASE_IN_SUITE(MeshioPlusPlusMeshOperationsGetSupportedOperations, Kr
                                    "crop_halfspace", "crop_predicate", "curvature", "data_calc",
                                    "data_condition", "data_info", "data_integrate", "data_manage",
                                    "decimate", "decimate_volume", "estimate_error", "extract_skin",
-                                   "extract_surface", "feature_edges", "fit_primitives", "gradient", "hessian", "isosurface",
+                                   "extract_surface", "feature_edges", "fit_cad", "fit_primitives", "gradient", "hessian", "isosurface",
                                    "optimize_volume", "point_data_to_cell_data", "partition",
                                    "quality", "refine", "remesh", "remesh_volume", "reorder",
                                    "repair", "segment", "slice", "smooth", "sobolev_deform", "split", "stats",
-                                   "subdivide", "tensor_invariants", "transform", "voxelize"}) {
+                                   "subdivide", "tensor_invariants", "tessellate", "transform", "voxelize"}) {
         KRATOS_EXPECT_TRUE(std::find(operations.begin(), operations.end(), name) != operations.end());
     }
-    KRATOS_EXPECT_EQ(operations.size(), 47);
+    KRATOS_EXPECT_EQ(operations.size(), 49);
     KRATOS_EXPECT_TRUE(std::is_sorted(operations.begin(), operations.end()));
 }
 
@@ -2414,6 +2415,76 @@ KRATOS_TEST_CASE_IN_SUITE(MeshioPlusPlusMeshOperationsFitPrimitives, KratosMeshi
         MeshioPlusPlusMeshOperations::Execute(
             r_source, Parameters(R"({"operation" : "fit_primitives", "fit_types" : ["blob"]})"), r_destination),
         "Unknown primitive type");
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+KRATOS_TEST_CASE_IN_SUITE(MeshioPlusPlusMeshOperationsTessellate, KratosMeshioPlusPlusFastSuite)
+{
+    Model model;
+    auto& r_source = model.CreateModelPart("source");
+    auto p_properties = r_source.CreateNewProperties(1);
+    // Triangle2D6: the corners, then the midsides of 1-2, 2-3 and 3-1
+    r_source.CreateNewNode(1, 0.0, 0.0, 0.0);
+    r_source.CreateNewNode(2, 2.0, 0.0, 0.0);
+    r_source.CreateNewNode(3, 0.0, 2.0, 0.0);
+    r_source.CreateNewNode(4, 1.0, 0.0, 0.0);
+    r_source.CreateNewNode(5, 1.0, 1.0, 0.0);
+    r_source.CreateNewNode(6, 0.0, 1.0, 0.0);
+    r_source.CreateNewElement("Element2D6N", 1, {1, 2, 3, 4, 5, 6}, p_properties);
+
+    // One recursive split: 4 triangles on the 6 original points
+    auto& r_destination = model.CreateModelPart("destination");
+    Parameters report = MeshioPlusPlusMeshOperations::Execute(
+        r_source, Parameters(R"({"operation" : "tessellate", "tessellate_levels" : 1})"), r_destination);
+    KRATOS_EXPECT_EQ(report["curved_source_cells"].GetInt(), 1);
+    KRATOS_EXPECT_EQ(report["cells"].GetInt(), 4);
+    KRATOS_EXPECT_EQ(report["points"].GetInt(), 6);
+    KRATOS_EXPECT_EQ(r_destination.NumberOfElements(), 4);
+    KRATOS_EXPECT_EQ(r_destination.NumberOfNodes(), 6);
+
+    // Two splits give 16
+    auto& r_finer = model.CreateModelPart("finer");
+    report = MeshioPlusPlusMeshOperations::Execute(
+        r_source, Parameters(R"({"operation" : "tessellate", "tessellate_levels" : 2})"), r_finer);
+    KRATOS_EXPECT_EQ(report["cells"].GetInt(), 16);
+    KRATOS_EXPECT_EQ(report["facets_with_bad_count"].GetInt(), 0);
+
+    // Not curved: the cell passes through
+    auto& r_through = model.CreateModelPart("through");
+    report = MeshioPlusPlusMeshOperations::Execute(
+        r_source, Parameters(R"({"operation" : "tessellate", "tessellate_curved" : false})"), r_through);
+    KRATOS_EXPECT_EQ(report["curved_source_cells"].GetInt(), 0);
+    KRATOS_EXPECT_EQ(report["pass_through_source_cells"].GetInt(), 1);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+KRATOS_TEST_CASE_IN_SUITE(MeshioPlusPlusMeshOperationsFitCad, KratosMeshioPlusPlusFastSuite)
+{
+    Model model;
+    auto& r_source = model.CreateModelPart("source");
+    PopulateClosedCubeSkin(r_source);
+    auto& r_destination = model.CreateModelPart("destination");
+
+    if (!meshioplusplus::fit_cad_has_occt()) {
+        KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+            MeshioPlusPlusMeshOperations::Execute(r_source, OperationSettings("fit_cad"), r_destination),
+            "OpenCASCADE");
+        return;
+    }
+
+    // The cube is six planes, sewn into one valid unit-volume solid
+    const Parameters report = MeshioPlusPlusMeshOperations::Execute(
+        r_source, OperationSettings("fit_cad"), r_destination);
+    KRATOS_EXPECT_TRUE(report["valid"].GetBool());
+    KRATOS_EXPECT_EQ(report["number_of_faces"].GetInt(), 6);
+    KRATOS_EXPECT_EQ(report["planes"].GetInt(), 6);
+    KRATOS_EXPECT_EQ(report["solids"].GetInt(), 1);
+    KRATOS_EXPECT_NEAR(report["volume"].GetDouble(), 1.0, 1e-6);
+    KRATOS_EXPECT_GT(r_destination.NumberOfNodes(), 0);
 }
 
 /***********************************************************************************/
