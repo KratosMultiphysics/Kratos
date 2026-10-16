@@ -35,6 +35,7 @@
 #include "rom_application_variables.h"
 #include "custom_utilities/rom_auxiliary_utilities.h"
 #include "custom_utilities/rom_nn_utility.h"
+#include "custom_utilities/rom_rbf_utility.h"
 
 namespace Kratos
 {
@@ -246,6 +247,35 @@ public:
         r_root_mp.SetValue(SOLUTION_REFERENCE, refSnapshot);
     }
 
+    /**
+     * Sets a radial basis functions (RBF) decoder, to be used instead of the neural network one
+     */
+    void SetRbfDecoderParameters(
+        ModelPart &rModelPart,
+        Matrix rbfWeights,
+        Matrix rbfCenters,
+        IndexType kernelType,
+        double kernelEps,
+        Matrix svdPhiInf,
+        Matrix svdPhiSigSup,
+        Matrix svdSigInvInf,
+        Vector refSnapshot
+    )
+    {
+        auto& r_root_mp = rModelPart.GetRootModelPart();
+        r_root_mp.SetValue(W_MAT, rbfWeights);
+        r_root_mp.SetValue(CENTERS_MAT, rbfCenters);
+        r_root_mp.SetValue(KERNEL_TYPE, kernelType);
+        r_root_mp.SetValue(KERNEL_EPS, kernelEps);
+        r_root_mp.SetValue(SVD_PHI_MATRICES, vector<Matrix>(3));
+        vector<Matrix>& r_svdPhiMatrices = r_root_mp.GetValue(SVD_PHI_MATRICES);
+        r_svdPhiMatrices[0] = svdPhiInf;
+        r_svdPhiMatrices[1] = svdPhiSigSup;
+        r_svdPhiMatrices[2] = svdSigInvInf;
+        r_root_mp.SetValue(SOLUTION_REFERENCE, refSnapshot);
+        mUseRbfDecoder = true;
+    }
+
     void SetNNLayer(
         ModelPart &rModelPart,
         SizeType layerIndex,
@@ -263,13 +293,11 @@ public:
     )
     {
         auto& r_root_mp = rModelPart.GetRootModelPart();
-        vector<Matrix>& r_svdPhiMatrices = r_root_mp.GetValue(SVD_PHI_MATRICES);
-        vector<Matrix>& r_nnLayers = r_root_mp.GetValue(NN_LAYERS);
         Vector& r_refSnapshot = r_root_mp.GetValue(SOLUTION_REFERENCE);
 
         TSystemVectorType xFom = ZeroVector(r_refSnapshot.size());
 
-        RomNNUtility<TSparseSpace,TDenseSpace>::GetXFromDecoder(xRom, xFom, r_svdPhiMatrices, r_nnLayers, r_refSnapshot);
+        GetXFromDecoder(r_root_mp, xRom, xFom);
 
         return xFom;
     }
@@ -468,6 +496,7 @@ protected:
     bool mHromSimulation = false;
     bool mHromWeightsInitialized = false;
     bool mRightRomBasisInitialized = false;
+    bool mUseRbfDecoder = false;
     Matrix mPhiGlobal;
 
     ///@}
@@ -756,6 +785,55 @@ protected:
     }
 
     /**
+     * Runs the decoder (neural network or RBF) on the reduced coordinates
+     */
+    void GetXFromDecoder(
+        ModelPart& rRootModelPart,
+        const Vector& rRomUnknowns,
+        Vector& rX)
+    {
+        vector<Matrix>& r_svd_phi_matrices = rRootModelPart.GetValue(SVD_PHI_MATRICES);
+        Vector& r_ref_snapshot = rRootModelPart.GetValue(SOLUTION_REFERENCE);
+        if (mUseRbfDecoder) {
+            RomRBFUtility<TSparseSpace,TDenseSpace>::GetXFromDecoder(rRomUnknowns, rX, r_svd_phi_matrices, rRootModelPart.GetValue(W_MAT), rRootModelPart.GetValue(CENTERS_MAT), rRootModelPart.GetValue(KERNEL_TYPE), rRootModelPart.GetValue(KERNEL_EPS), r_ref_snapshot);
+        } else {
+            RomNNUtility<TSparseSpace,TDenseSpace>::GetXFromDecoder(rRomUnknowns, rX, r_svd_phi_matrices, rRootModelPart.GetValue(NN_LAYERS), r_ref_snapshot);
+        }
+    }
+
+    /**
+     * Runs the decoder (neural network or RBF) on the reduced coordinates and updates its gradient (mPhiGlobal)
+     */
+    void GetXAndDecoderGradient(
+        ModelPart& rRootModelPart,
+        const Vector& rRomUnknowns,
+        Vector& rX)
+    {
+        vector<Matrix>& r_svd_phi_matrices = rRootModelPart.GetValue(SVD_PHI_MATRICES);
+        Vector& r_ref_snapshot = rRootModelPart.GetValue(SOLUTION_REFERENCE);
+        if (mUseRbfDecoder) {
+            RomRBFUtility<TSparseSpace,TDenseSpace>::GetXAndDecoderGradient(rRomUnknowns, rX, mPhiGlobal, r_svd_phi_matrices, rRootModelPart.GetValue(W_MAT), rRootModelPart.GetValue(CENTERS_MAT), rRootModelPart.GetValue(KERNEL_TYPE), rRootModelPart.GetValue(KERNEL_EPS), r_ref_snapshot);
+        } else {
+            RomNNUtility<TSparseSpace,TDenseSpace>::GetXAndDecoderGradient(rRomUnknowns, rX, mPhiGlobal, r_svd_phi_matrices, rRootModelPart.GetValue(NN_LAYERS), r_ref_snapshot);
+        }
+    }
+
+    /**
+     * Updates the gradient of the decoder (mPhiGlobal) at the reduced coordinates
+     */
+    void GetDecoderGradient(
+        ModelPart& rRootModelPart,
+        const Vector& rRomUnknowns)
+    {
+        vector<Matrix>& r_svd_phi_matrices = rRootModelPart.GetValue(SVD_PHI_MATRICES);
+        if (mUseRbfDecoder) {
+            RomRBFUtility<TSparseSpace,TDenseSpace>::GetDecoderGradient(rRomUnknowns, mPhiGlobal, r_svd_phi_matrices, rRootModelPart.GetValue(W_MAT), rRootModelPart.GetValue(CENTERS_MAT), rRootModelPart.GetValue(KERNEL_TYPE), rRootModelPart.GetValue(KERNEL_EPS));
+        } else {
+            RomNNUtility<TSparseSpace,TDenseSpace>::GetDecoderGradient(rRomUnknowns, mPhiGlobal, r_svd_phi_matrices, rRootModelPart.GetValue(NN_LAYERS));
+        }
+    }
+
+    /**
      * Projects the reduced system of equations
      */
     virtual void ProjectROM(
@@ -771,19 +849,14 @@ protected:
             mPhiGlobal = ZeroMatrix(BaseBuilderAndSolverType::GetEquationSystemSize(), GetNumberOfROMModes());
             RomSystemVectorType& r_xRom = r_root_mp.GetValue(ROM_SOLUTION_BASE);
             TSystemVectorType& r_xBase = r_root_mp.GetValue(SOLUTION_BASE);
-            vector<Matrix>& r_svdPhiMatrices = r_root_mp.GetValue(SVD_PHI_MATRICES);
-            vector<Matrix>& r_nnLayers = r_root_mp.GetValue(NN_LAYERS);
-            Vector& r_refSnapshot = r_root_mp.GetValue(SOLUTION_REFERENCE);
 
-            RomNNUtility<TSparseSpace,TDenseSpace>::GetXAndDecoderGradient(r_xRom, r_xBase, mPhiGlobal, r_svdPhiMatrices, r_nnLayers, r_refSnapshot);
+            GetXAndDecoderGradient(r_root_mp, r_xRom, r_xBase);
 
             mRightRomBasisInitialized = true;
         }
         else if (r_root_mp.GetValue(UPDATE_PHI_EFFECTIVE_BOOL)==true){
             RomSystemVectorType& r_xRomTotal = r_root_mp.GetValue(ROM_SOLUTION_TOTAL);
-            vector<Matrix>& r_svdPhiMatrices = r_root_mp.GetValue(SVD_PHI_MATRICES);
-            vector<Matrix>& r_nnLayers = r_root_mp.GetValue(NN_LAYERS);
-            RomNNUtility<TSparseSpace,TDenseSpace>::GetDecoderGradient(r_xRomTotal, mPhiGlobal, r_svdPhiMatrices, r_nnLayers);
+            GetDecoderGradient(r_root_mp, r_xRomTotal);
         }
 
         SetFixedDofsROMBasisToZero();
@@ -826,10 +899,6 @@ protected:
         Vector& r_xBase = r_root_mp.GetValue(SOLUTION_BASE);
         Vector xNew (rDx.size());
 
-        vector<Matrix>& svdPhiMatrices = r_root_mp.GetValue(SVD_PHI_MATRICES);
-        vector<Matrix>& nnLayers = r_root_mp.GetValue(NN_LAYERS);
-        Vector& refSnapshot = r_root_mp.GetValue(SOLUTION_REFERENCE);
-
         const auto solving_timer = BuiltinTimer();
 
         Eigen::Map<EigenDynamicVector> dxrom_eigen(r_dxRom.data().begin(), r_dxRom.size());
@@ -844,7 +913,7 @@ protected:
         // project reduced solution back to full order modela
         const auto backward_projection_timer = BuiltinTimer();
 
-        RomNNUtility<TSparseSpace,TDenseSpace>::GetXAndDecoderGradient(r_xRom+r_dxRom,xNew, mPhiGlobal, svdPhiMatrices, nnLayers, refSnapshot);
+        GetXAndDecoderGradient(r_root_mp, r_xRom+r_dxRom, xNew);
 
         GetDxAndUpdateXBase(xNew, r_xBase, rDx);
         KRATOS_INFO_IF("AnnPromGlobalROMBuilderAndSolver", (this->GetEchoLevel() > 0)) << "Project to fine basis time: " << backward_projection_timer.ElapsedSeconds() << std::endl;

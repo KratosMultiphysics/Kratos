@@ -16,6 +16,7 @@
 
 // Project includes
 #include "containers/nd_data.h"
+#include "includes/kratos_components.h"
 #include "utilities/data_type_traits.h"
 #include "utilities/parallel_utilities.h"
 #include "processes/find_global_nodal_entity_neighbours_process.h"
@@ -24,6 +25,38 @@
 #include "tensor_adaptor_utils.h"
 
 namespace Kratos {
+
+void TensorAdaptorUtils::SaveVariablePointer(
+    Serializer& rSerializer,
+    const std::string& rTag,
+    const VariablePointerType& rVariable)
+{
+    rSerializer.save(rTag + "Index", rVariable.index());
+    std::visit([&rSerializer, &rTag](auto pVariable) {
+        rSerializer.save(rTag + "Name", pVariable->Name());
+    }, rVariable);
+}
+
+void TensorAdaptorUtils::LoadVariablePointer(
+    Serializer& rSerializer,
+    const std::string& rTag,
+    VariablePointerType& rVariable)
+{
+    std::size_t index;
+    rSerializer.load(rTag + "Index", index);
+    std::string name;
+    rSerializer.load(rTag + "Name", name);
+    switch (index) {
+        case 0: rVariable = &KratosComponents<Variable<double>>::Get(name); break;
+        case 1: rVariable = &KratosComponents<Variable<array_1d<double, 3>>>::Get(name); break;
+        case 2: rVariable = &KratosComponents<Variable<array_1d<double, 4>>>::Get(name); break;
+        case 3: rVariable = &KratosComponents<Variable<array_1d<double, 6>>>::Get(name); break;
+        case 4: rVariable = &KratosComponents<Variable<array_1d<double, 9>>>::Get(name); break;
+        case 5: rVariable = &KratosComponents<Variable<Vector>>::Get(name); break;
+        case 6: rVariable = &KratosComponents<Variable<Matrix>>::Get(name); break;
+        default: KRATOS_ERROR << "Unknown tensor adaptor variable variant index: " << index << std::endl;
+    }
+}
 
 template<class TContainerType>
 TensorAdaptor<int>::Pointer TensorAdaptorUtils::CreateNodalNeighboursCountTensorAdaptor(ModelPart& rModelPart)

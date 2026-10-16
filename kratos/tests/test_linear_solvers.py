@@ -1,4 +1,4 @@
-﻿import KratosMultiphysics
+import KratosMultiphysics
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import os
 
@@ -461,4 +461,5 @@ class TestLinearSolvers(KratosUnittest.TestCase):
             """)
 
 if __name__ == '__main__':
+    KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING)
     KratosUnittest.main()
