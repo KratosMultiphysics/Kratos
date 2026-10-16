@@ -88,6 +88,7 @@ struct wrapper {
             AMGCL_RELAX_LOCAL_DISTR(chebyshev);
             AMGCL_RELAX_LOCAL_LOCAL(damped_jacobi);
             AMGCL_RELAX_LOCAL_LOCAL(ilu0);
+            AMGCL_RELAX_LOCAL_LOCAL(ilu0_chow_patel);
             AMGCL_RELAX_LOCAL_LOCAL(iluk);
             AMGCL_RELAX_LOCAL_LOCAL(ilup);
             AMGCL_RELAX_LOCAL_LOCAL(ilut);
@@ -118,6 +119,7 @@ struct wrapper {
             AMGCL_RELAX_DISTR(spai0);
             AMGCL_RELAX_LOCAL(damped_jacobi);
             AMGCL_RELAX_LOCAL(ilu0);
+            AMGCL_RELAX_LOCAL(ilu0_chow_patel);
             AMGCL_RELAX_LOCAL(iluk);
             AMGCL_RELAX_LOCAL(ilup);
             AMGCL_RELAX_LOCAL(ilut);
@@ -155,6 +157,7 @@ struct wrapper {
             AMGCL_RELAX_DISTR(spai0);
             AMGCL_RELAX_LOCAL_DISTR(damped_jacobi);
             AMGCL_RELAX_LOCAL_DISTR(ilu0);
+            AMGCL_RELAX_LOCAL_DISTR(ilu0_chow_patel);
             AMGCL_RELAX_LOCAL_DISTR(iluk);
             AMGCL_RELAX_LOCAL_DISTR(ilup);
             AMGCL_RELAX_LOCAL_DISTR(ilut);
@@ -193,6 +196,7 @@ struct wrapper {
             AMGCL_RELAX_DISTR(spai0);
             AMGCL_RELAX_LOCAL_DISTR(damped_jacobi);
             AMGCL_RELAX_LOCAL_DISTR(ilu0);
+            AMGCL_RELAX_LOCAL_DISTR(ilu0_chow_patel);
             AMGCL_RELAX_LOCAL_DISTR(iluk);
             AMGCL_RELAX_LOCAL_DISTR(ilup);
             AMGCL_RELAX_LOCAL_DISTR(ilut);
@@ -232,6 +236,7 @@ struct wrapper {
             AMGCL_RELAX_LOCAL_DISTR(damped_jacobi);
             AMGCL_RELAX_LOCAL_LOCAL(gauss_seidel);
             AMGCL_RELAX_LOCAL_DISTR(ilu0);
+            AMGCL_RELAX_LOCAL_DISTR(ilu0_chow_patel);
             AMGCL_RELAX_LOCAL_DISTR(iluk);
             AMGCL_RELAX_LOCAL_DISTR(ilup);
             AMGCL_RELAX_LOCAL_DISTR(ilut);

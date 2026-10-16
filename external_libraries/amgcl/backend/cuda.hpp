@@ -45,6 +45,8 @@ THE SOFTWARE.
 #include <thrust/scatter.h>
 #include <thrust/for_each.h>
 #include <thrust/inner_product.h>
+#include <thrust/iterator/zip_iterator.h>
+#include <thrust/tuple.h>
 #include <cusparse_v2.h>
 
 namespace amgcl {
@@ -248,24 +250,46 @@ class cuda_matrix {
                     backend::detail::cuda_deleter()
                     );
 
-            size_t buf_size;
-            AMGCL_CALL_CUDA(
-                    cusparseSpMV_bufferSize(
-                        handle,
-                        CUSPARSE_OPERATION_NON_TRANSPOSE,
-                        &alpha,
-                        desc.get(),
-                        xdesc.get(),
-                        &beta,
-                        ydesc.get(),
-                        detail::cuda_datatype<real>(),
-                        CUSPARSE_SPMV_CSR_ALG1,
-                        &buf_size
-                        )
-                    );
+            if (!ready_for_spmv) {
+                size_t buf_size;
 
-            if (buf.size() < buf_size)
-                buf.resize(buf_size);
+                AMGCL_CALL_CUDA(
+                        cusparseSpMV_bufferSize(
+                            handle,
+                            CUSPARSE_OPERATION_NON_TRANSPOSE,
+                            &alpha,
+                            desc.get(),
+                            xdesc.get(),
+                            &beta,
+                            ydesc.get(),
+                            detail::cuda_datatype<real>(),
+                            CUSPARSE_SPMV_CSR_ALG1,
+                            &buf_size
+                            )
+                        );
+
+                if (buf.size() < buf_size)
+                    buf.resize(buf_size);
+
+#if CUDART_VERSION >= 12040
+                AMGCL_CALL_CUDA(
+                        cusparseSpMV_preprocess(
+                            handle,
+                            CUSPARSE_OPERATION_NON_TRANSPOSE,
+                            &alpha,
+                            desc.get(),
+                            xdesc.get(),
+                            &beta,
+                            ydesc.get(),
+                            detail::cuda_datatype<real>(),
+                            CUSPARSE_SPMV_CSR_ALG1,
+                            thrust::raw_pointer_cast(&buf[0])
+                            )
+                        );
+#endif
+
+                ready_for_spmv = true;
+            }
 
             AMGCL_CALL_CUDA(
                     cusparseSpMV(
@@ -304,6 +328,7 @@ class cuda_matrix {
         thrust::device_vector<real> val;
 
         mutable thrust::device_vector<char> buf;
+        mutable bool ready_for_spmv = false;
 
 };
 
