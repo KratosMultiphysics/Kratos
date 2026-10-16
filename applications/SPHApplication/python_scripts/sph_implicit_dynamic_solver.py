@@ -25,7 +25,10 @@ class ImplicitSPHSolver(SPHSolver):
             "damp_factor_m"           : 0.0,
             "newmark_beta"            : 0.25,
             "rayleigh_alpha"          : 0.0,
-            "rayleigh_beta"           : 0.0
+            "rayleigh_beta"           : 0.0,
+            "first_order_time_integrator_settings" : {
+                "integration_variable_pairs" : []
+            }
         }""")
         this_defaults.AddMissingParameters(super().GetDefaultParameters())
         return this_defaults
@@ -50,7 +53,7 @@ class ImplicitSPHSolver(SPHSolver):
             self._GetBuilderAndSolver().SetUpSystem(self.GetComputingModelPart())
 
     def _CreateScheme(self):
-        scheme_type = self.settings["scheme_type"].GetString()
+        scheme_type = self.settings["scheme_type"].GetString().strip().lower()
 
         # Setting the Rayleigh damping parameters
         process_info = self.main_model_part.ProcessInfo
@@ -69,6 +72,6 @@ class ImplicitSPHSolver(SPHSolver):
             sph_scheme = StructuralMechanicsApplication.StructuralMechanicsBossakScheme(scheme_settings)
         else:
             err_msg = "The requested scheme type \"" + scheme_type + "\" is not available!\n"
-            err_msg += "Available options are: \"newmark\", \"bossak\", \"pseudo_static\", \"backward_euler\", \"bdf1\", \"bdf2\", \"bdf3\", \"bdf4\", \"bdf5\", \"relaxation\""
+            err_msg += "Available options are: \"newmark\", \"bossak\", \"pseudo_static\", \"backward_euler\""
             raise Exception(err_msg)
         return sph_scheme
