@@ -70,6 +70,14 @@ namespace Kratos
  * the same "feature_angle", "normal_tolerance", "curvature_tolerance", "min_patch_cells",
  * "region" and "patch_prefix" settings, and then fits the patches ("fit_*" settings).
  *
+ * @note "fit_cad" (meshio++ v16.41.0, OpenCASCADE builds only) is the end of that chain: it runs
+ * "segment" and "fit_primitives" itself, then builds a CAD solid from the fitted patches. The
+ * "cad_*" settings select where it is written ("cad_step_path", "cad_json_path") and how it is
+ * built; the destination receives the solid re-meshed, and the report carries the validity, the
+ * volumes, the deviation from the skin and a count per face kind. Its `fit_cad:*` cell data are
+ * colon-namespaced and so do not reach the destination. "tessellate" (the "tessellate_*"
+ * settings) subdivides the quadratic cells into linear triangles and tetrahedra.
+ *
  * @ref Execute optionally carries field data through the operation, using the same
  * "nodal_solution_step_data_variables" / "nodal_data_value_variables" / "nodal_flags" /
  * "element_data_value_variables" / "element_flags" / "condition_data_value_variables" /

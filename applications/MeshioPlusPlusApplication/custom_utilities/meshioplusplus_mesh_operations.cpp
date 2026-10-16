@@ -26,7 +26,9 @@
 #include "meshioplusplus/detail/provenance.hpp"
 #include "meshioplusplus/operations/agglomerate.hpp"
 #include "meshioplusplus/operations/blend.hpp"
+#include "meshioplusplus/formats/cad_json.hpp"
 #include "meshioplusplus/operations/feature_edges.hpp"
+#include "meshioplusplus/operations/fit_cad.hpp"
 #include "meshioplusplus/operations/fit_primitives.hpp"
 #include "meshioplusplus/operations/hausdorff.hpp"
 #include "meshioplusplus/operations/periodic.hpp"
@@ -74,6 +76,7 @@
 #include "meshioplusplus/operations/subdivide.hpp"
 #include "meshioplusplus/operations/surface.hpp"
 #include "meshioplusplus/operations/tensor_invariants.hpp"
+#include "meshioplusplus/operations/tessellate.hpp"
 #include "meshioplusplus/operations/transform.hpp"
 #include "meshioplusplus/operations/voxelize.hpp"
 
@@ -97,10 +100,10 @@ const std::vector<std::string>& OperationNames()
             "compute_sdf", "convert_cells", "crop_bbox", "crop_halfspace", "crop_predicate",
             "curvature", "data_calc", "data_condition", "data_info", "data_integrate", "data_manage",
             "decimate", "decimate_volume", "edit_regions", "estimate_error", "extract_skin",
-            "extract_surface", "feature_edges", "fit_primitives", "gradient", "hessian", "isosurface", "optimize_volume", "partition",
+            "extract_surface", "feature_edges", "fit_cad", "fit_primitives", "gradient", "hessian", "isosurface", "optimize_volume", "partition",
             "point_data_to_cell_data", "quality", "check_quality", "refine", "remesh", "remesh_volume", "reorder",
             "repair", "segment", "slice", "smooth", "sobolev_deform", "split", "stats", "subdivide",
-            "tensor_invariants", "transform", "voxelize"
+            "tensor_invariants", "tessellate", "transform", "voxelize"
         };
         std::sort(sorted_names.begin(), sorted_names.end());
         return sorted_names;
@@ -768,6 +771,24 @@ Parameters MeshioPlusPlusMeshOperations::GetDefaultParameters()
         "fit_types"                                    : ["plane", "sphere", "cylinder", "cone", "torus"],
         "fit_max_iterations"                           : 50,
 
+        "cad_step_path"                                : "",
+        "cad_json_path"                                : "",
+        "cad_tolerance"                                : 0.0,
+        "cad_mesh_deflection"                          : 0.0,
+        "cad_exact_edges"                              : true,
+        "cad_freeform"                                 : true,
+        "cad_freeform_degree"                          : 3,
+        "cad_freeform_max_control"                     : 64,
+        "cad_freeform_split"                           : true,
+        "cad_fillets"                                  : true,
+        "cad_threads"                                  : true,
+        "cad_max_demotion_rounds"                      : 8,
+
+        "tessellate_levels"                            : 2,
+        "tessellate_curved"                            : true,
+        "tessellate_fields"                            : true,
+        "tessellate_record_stencil"                    : false,
+
         "edits"                                        : [],
 
         "require"                                      : "",
@@ -855,6 +876,27 @@ Parameters MeshioPlusPlusMeshOperations::Execute(
         options.mMode = mio::convert_cells_mode_from_name(Settings["mode"].GetString());
         options.mRecordParentIds = Settings["record_parent_ids"].GetBool();
         mio::ConvertCellsResult result = mio::convert_cells(mesh, options);
+        StoreResult(result.mMesh, rDestination);
+
+    } else if (operation == "tessellate") {
+        // The isoparametric subdivision of triangle6, quad8, quad9, tetra10 and hexahedron27
+        // cells into linear triangles and tetrahedra: the visualization/export route for Kratos
+        // quadratic geometries. Every other cell passes through unchanged.
+        mio::TessellateOptions options;
+        options.mLevels = Settings["tessellate_levels"].GetInt();
+        options.mCurved = Settings["tessellate_curved"].GetBool();
+        options.mFields = Settings["tessellate_fields"].GetBool();
+        options.mRecordStencil = Settings["tessellate_record_stencil"].GetBool();
+        mio::TessellateResult result = mio::tessellate(mesh, options);
+        report.AddInt("source_points", static_cast<int>(result.mNumSourcePoints));
+        report.AddInt("source_cells", static_cast<int>(result.mNumSourceCells));
+        report.AddInt("curved_source_cells", static_cast<int>(result.mNumCurvedSourceCells));
+        report.AddInt("pass_through_source_cells", static_cast<int>(result.mNumPassThroughSourceCells));
+        report.AddInt("points", static_cast<int>(result.mNumPoints));
+        report.AddInt("cells", static_cast<int>(result.mNumCells));
+        report.AddInt("boundary_facets", static_cast<int>(result.mNumBoundaryFacets));
+        report.AddInt("interior_facets", static_cast<int>(result.mNumInteriorFacets));
+        report.AddInt("facets_with_bad_count", static_cast<int>(result.mNumFacetsWithBadCount));
         StoreResult(result.mMesh, rDestination);
 
     } else if (operation == "refine") {
@@ -1109,6 +1151,71 @@ Parameters MeshioPlusPlusMeshOperations::Execute(
         report.AddInt("feature_edges", static_cast<int>(result.mNumFeatureEdges));
         report.AddInt("boundary_edges", static_cast<int>(result.mNumBoundaryEdges));
         report.AddInt("non_manifold_edges", static_cast<int>(result.mNumNonManifoldEdges));
+        StoreResult(result.mMesh, rDestination);
+
+    } else if (operation == "fit_cad") {
+        // fit_cad needs the closed skin that segment and fit_primitives annotated; their
+        // colon-namespaced arrays cannot ride on a model part, so all three run back to back
+        // here, with the segment and fit_* settings.
+        KRATOS_ERROR_IF_NOT(mio::fit_cad_has_occt())
+            << "The \"fit_cad\" operation needs a meshio++ built with OpenCASCADE "
+            << "(-DMESHIOPLUSPLUS_WITH_OCCT=ON)" << std::endl;
+        const mio::SegmentResult segmented = mio::segment(mesh, ReadSegmentOptions(Settings));
+        mio::FitPrimitivesOptions fit_options;
+        fit_options.mPatchData = mio::kSegmentPatchName;
+        fit_options.mTolerance = Settings["fit_tolerance"].GetDouble();
+        fit_options.mRelative = Settings["fit_relative"].GetBool();
+        fit_options.mMinInlierFraction = Settings["min_inlier_fraction"].GetDouble();
+        fit_options.mTypes = ReadFitTypes(Settings, "fit_types");
+        fit_options.mMaxIterations = Settings["fit_max_iterations"].GetInt();
+        const mio::FitPrimitivesResult fitted = mio::fit_primitives(segmented.mMesh, fit_options);
+        mio::FitCadOptions options;
+        options.mTolerance = Settings["cad_tolerance"].GetDouble();
+        options.mExactEdges = Settings["cad_exact_edges"].GetBool();
+        options.mTypes = ReadFitTypes(Settings, "fit_types");
+        options.mMeshDeflection = Settings["cad_mesh_deflection"].GetDouble();
+        options.mMaxDemotionRounds = Settings["cad_max_demotion_rounds"].GetInt();
+        options.mFreeform = Settings["cad_freeform"].GetBool();
+        options.mFreeformDegree = Settings["cad_freeform_degree"].GetInt();
+        options.mFreeformMaxControl = Settings["cad_freeform_max_control"].GetInt();
+        options.mFreeformSplit = Settings["cad_freeform_split"].GetBool();
+        options.mFillets = Settings["cad_fillets"].GetBool();
+        options.mThreads = Settings["cad_threads"].GetBool();
+        mio::FitCadResult result = mio::fit_cad(fitted.mMesh, Settings["cad_step_path"].GetString(), options);
+        const std::string cad_json_path = Settings["cad_json_path"].GetString();
+        if (!cad_json_path.empty()) {
+            mio::write_cad_json(cad_json_path, result.mMesh, result.mBrep);
+        }
+        report.AddBool("valid", result.mValid);
+        report.AddDouble("tolerance", result.mTolerance);
+        report.AddDouble("volume", result.mVolume);
+        report.AddDouble("skin_volume", result.mSkinVolume);
+        report.AddDouble("volume_ratio", result.mVolumeRatio);
+        report.AddDouble("max_deviation", result.mMaxDeviation);
+        report.AddInt("number_of_faces", static_cast<int>(result.mNumFaces));
+        report.AddInt("planes", static_cast<int>(result.mNumPlane));
+        report.AddInt("spheres", static_cast<int>(result.mNumSphere));
+        report.AddInt("cylinders", static_cast<int>(result.mNumCylinder));
+        report.AddInt("cones", static_cast<int>(result.mNumCone));
+        report.AddInt("tori", static_cast<int>(result.mNumTorus));
+        report.AddInt("faceted_faces", static_cast<int>(result.mNumFacetedFaces));
+        report.AddInt("number_of_patches", static_cast<int>(result.mNumPatches));
+        report.AddInt("demoted_patches", static_cast<int>(result.mNumDemoted));
+        report.AddInt("exact_edges", static_cast<int>(result.mNumExactEdges));
+        report.AddInt("approximated_edges", static_cast<int>(result.mNumApproxEdges));
+        report.AddInt("solids", static_cast<int>(result.mNumSolids));
+        report.AddInt("bspline_faces", static_cast<int>(result.mNumBspline));
+        report.AddInt("split_patches", static_cast<int>(result.mNumSplitPatches));
+        report.AddInt("fillets", static_cast<int>(result.mNumFillet));
+        report.AddInt("variable_fillets", static_cast<int>(result.mNumVariableFillet));
+        report.AddInt("blends", static_cast<int>(result.mNumBlend));
+        report.AddInt("conic_blends", static_cast<int>(result.mNumConicBlend));
+        report.AddInt("vertex_blends", static_cast<int>(result.mNumVertexBlend));
+        report.AddInt("chamfers", static_cast<int>(result.mNumChamfer));
+        report.AddInt("threads", static_cast<int>(result.mNumHelical));
+        report.AddInt("rounded_threads", static_cast<int>(result.mNumRoundedThread));
+        report.AddInt("tapered_threads", static_cast<int>(result.mNumTaperedThread));
+        report.AddInt("variable_pitch_threads", static_cast<int>(result.mNumVariablePitchThread));
         StoreResult(result.mMesh, rDestination);
 
     } else if (operation == "fit_primitives") {
