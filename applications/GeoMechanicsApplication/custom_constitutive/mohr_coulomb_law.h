@@ -71,7 +71,7 @@ private:
     Vector                                             mStressVectorFinalized;
     Vector                                             mStrainVectorFinalized;
     std::unique_ptr<CoulombImpl>                       mpCoulombImpl;
-    GeoYoungsModulusFormulations::YoungsModulusVariant mFormulation;
+    GeoYoungsModulusFormulations::YoungsModulusVariant mYoungsModulusFormulation;
     bool                                               mIsModelInitialized = false;
     // Each sub-step's elastic predictor is allowed to overshoot the yield surface by at most
     // this fraction of the stress magnitude
