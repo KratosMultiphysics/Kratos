@@ -28,7 +28,8 @@ namespace Kratos::Testing
 // and degrees (2, 3), so any mix-up of u and v fails. Checks the elements on
 // all spans with their knot span indices and, for every facet on the 3
 // interior knot lines, its geometry, the knot span indices and sizes of each
-// side, and that each side is the one-sided limit of the B-spline basis.
+// side, and that each side is the one-sided limit of the B-spline basis. A
+// last entry creates more conditions on the same skeleton, sharing geometries.
 KRATOS_TEST_CASE_IN_SUITE(IgaModelerGsbmElementsAndFacets, KratosIgaFastSuite)
 {
     using IndexType = std::size_t;
@@ -64,6 +65,11 @@ KRATOS_TEST_CASE_IN_SUITE(IgaModelerGsbmElementsAndFacets, KratosIgaFastSuite)
             "iga_model_part"                  : "Facets",
             "shape_function_derivatives_order": 4,
             "gsbm_parameters"                 : {}
+        }, {
+            "type"                            : "condition",
+            "name"                            : "GenericCondition",
+            "iga_model_part"                  : "SharedFacets",
+            "gsbm_parameters"                 : {"skeleton_model_part": "Facets"}
         }]
     })"));
     p_gsbm_modeler->SetupModelPart();
@@ -185,6 +191,17 @@ KRATOS_TEST_CASE_IN_SUITE(IgaModelerGsbmElementsAndFacets, KratosIgaFastSuite)
     KRATOS_EXPECT_EQ(number_of_vertical_facets, 16);
     KRATOS_EXPECT_EQ(number_of_horizontal_facets, 9);
     KRATOS_EXPECT_NEAR(length, 2.0 * 2.0 + 1.0 * 1.5, tolerance);
+
+    // Shared skeleton: a new condition per facet, on the same geometry
+    const ModelPart& r_shared_facets = model.GetModelPart("IgaModelPart.SharedFacets");
+    KRATOS_EXPECT_EQ(r_shared_facets.NumberOfConditions(), r_facets.NumberOfConditions());
+    KRATOS_EXPECT_EQ(r_shared_facets.NumberOfNodes(), r_facets.NumberOfNodes());
+    auto it_facet = r_facets.ConditionsBegin();
+    for (const auto& r_condition : r_shared_facets.Conditions()) {
+        KRATOS_EXPECT_NE(r_condition.Id(), it_facet->Id());
+        KRATOS_EXPECT_EQ(&r_condition.GetGeometry(), &it_facet->GetGeometry());
+        ++it_facet;
+    }
 }
 
 } // namespace Kratos::Testing

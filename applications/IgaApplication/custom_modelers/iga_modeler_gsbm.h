@@ -122,6 +122,12 @@ private:
         ModelPart& rModelPart,
         const Parameters rParameters) const;
 
+    /// Creates GSBM conditions on the skeleton of an earlier entry
+    void CreateConditionsOnGsbmSkeleton(
+        GeometriesArrayType& rFacets,
+        ModelPart& rModelPart,
+        const Parameters rParameters) const;
+
     ///@}
     ///@name CAD functionalities
     ///@{

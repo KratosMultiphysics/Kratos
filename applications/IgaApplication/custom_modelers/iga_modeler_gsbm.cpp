@@ -157,14 +157,20 @@ void IgaModelerGsbm::CreateIntegrationDomainPerUnit(
     ModelPart& rModelPart,
     const Parameters rPhysicsParameters) const
 {
-    const std::array<std::string, 4> required_keys{
-        "type", "name", "iga_model_part", "shape_function_derivatives_order"
-    };
+    const std::array<std::string, 3> required_keys{"type", "name", "iga_model_part"};
     for (const std::string& r_key : required_keys) {
         KRATOS_ERROR_IF_NOT(rPhysicsParameters.Has(r_key)) << "IgaModelerGsbm: \"" << r_key
             << "\" needs to be specified in every entry of \"element_condition_list\"."
             << std::endl;
     }
+
+    // Entries on the skeleton of an earlier entry create no quadrature points
+    const bool reuses_skeleton = rPhysicsParameters.Has("gsbm_parameters")
+        && rPhysicsParameters["gsbm_parameters"].Has("skeleton_model_part");
+    KRATOS_ERROR_IF(!reuses_skeleton && !rPhysicsParameters.Has("shape_function_derivatives_order"))
+        << "IgaModelerGsbm: \"shape_function_derivatives_order\" needs to be specified in "
+        << "every entry of \"element_condition_list\" that creates quadrature points."
+        << std::endl;
 
     const std::string sub_model_part_name = rPhysicsParameters["iga_model_part"].GetString();
     ModelPart& r_sub_model_part = rModelPart.HasSubModelPart(sub_model_part_name)
@@ -177,11 +183,14 @@ void IgaModelerGsbm::CreateIntegrationDomainPerUnit(
     if (!rPhysicsParameters.Has("gsbm_parameters"))
         // Elements on the patch, or body-fitted conditions on one or more BReps
         CreateQuadraturePointGeometries(geometry_list, r_sub_model_part, rPhysicsParameters);
-    else
+    else if (!reuses_skeleton)
         // GSBM facets: always a single geometry, the background patch
         CreateQuadraturePointGeometriesGsbm(
             geometry_list[0], r_sub_model_part, rPhysicsParameters
         );
+    else
+        // More GSBM conditions on the skeleton of an earlier entry
+        CreateConditionsOnGsbmSkeleton(geometry_list, r_sub_model_part, rPhysicsParameters);
 }
 
 void IgaModelerGsbm::GetGeometryList(
@@ -191,7 +200,20 @@ void IgaModelerGsbm::GetGeometryList(
 {
     const std::string type = rPhysicsParameters["type"].GetString();
 
-    if (type == "element" || rPhysicsParameters.Has("gsbm_parameters")) {
+    if (rPhysicsParameters.Has("gsbm_parameters")
+        && rPhysicsParameters["gsbm_parameters"].Has("skeleton_model_part")) {
+        // GSBM conditions on an existing skeleton: the earlier entry's facets
+        const std::string skeleton_name =
+            rPhysicsParameters["gsbm_parameters"]["skeleton_model_part"].GetString();
+        KRATOS_ERROR_IF_NOT(rModelPart.HasSubModelPart(skeleton_name)
+            && rModelPart.GetSubModelPart(skeleton_name).NumberOfConditions() > 0)
+            << "IgaModelerGsbm: no skeleton found in \"" << skeleton_name << "\". The entry "
+            << "that creates it must come earlier in \"element_condition_list\"."
+            << std::endl;
+        for (auto& r_facet : rModelPart.GetSubModelPart(skeleton_name).Conditions()) {
+            rGeometryList.push_back(r_facet.pGetGeometry());
+        }
+    } else if (type == "element" || rPhysicsParameters.Has("gsbm_parameters")) {
         // Elements and GSBM facets: the background patch
         const std::string& r_geometry_name = mParameters["geometry_name"].GetString();
         KRATOS_ERROR_IF_NOT(rModelPart.HasGeometry(r_geometry_name))
@@ -481,6 +503,32 @@ void IgaModelerGsbm::CreateQuadraturePointGeometriesGsbm(
     KRATOS_INFO_IF("IgaModelerGsbm", mEchoLevel > 0)
         << "Created " << quadrature_geometries.size() << " facet conditions of type "
         << name << " in " << rModelPart.FullName() << "." << std::endl;
+}
+
+void IgaModelerGsbm::CreateConditionsOnGsbmSkeleton(
+    GeometriesArrayType& rFacets,
+    ModelPart& rModelPart,
+    const Parameters rParameters) const
+{
+    KRATOS_ERROR_IF(rParameters["type"].GetString() != "condition")
+        << "IgaModelerGsbm: entries on an existing GSBM skeleton create conditions, so "
+        << "they require type \"condition\"." << std::endl;
+
+    const std::string name = rParameters["name"].GetString();
+
+    // Same geometries, so alpha and d set on them are shared by both entries
+    CreateConditions(rFacets.ptr_begin(), rFacets.ptr_end(), rModelPart, name);
+
+    // Control points of the skeleton, as in the entry that created it
+    ModelPart& r_skeleton_model_part = rModelPart.GetParentModelPart().GetSubModelPart(
+        rParameters["gsbm_parameters"]["skeleton_model_part"].GetString()
+    );
+    rModelPart.AddNodes(r_skeleton_model_part.NodesBegin(), r_skeleton_model_part.NodesEnd());
+
+    KRATOS_INFO_IF("IgaModelerGsbm", mEchoLevel > 0)
+        << "Created " << rFacets.size() << " conditions of type " << name
+        << " on the skeleton of " << r_skeleton_model_part.FullName() << " in "
+        << rModelPart.FullName() << "." << std::endl;
 }
 
 void IgaModelerGsbm::CreateElements(

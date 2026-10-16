@@ -87,7 +87,7 @@ void VolumeFractionGsbmProcess::ExecuteInitialize()
 
     const std::array<std::string, 4> required_parameters{
         "model_part_name", "geometry_name",
-        "elements_model_part_name", "facets_model_part_name"
+        "elements_model_part_name", "skeleton_model_part_name"
     };
     for (const std::string& r_key : required_parameters) {
         KRATOS_ERROR_IF(mParameters[r_key].GetString().empty())
@@ -150,7 +150,7 @@ void VolumeFractionGsbmProcess::ExecuteInitialize()
 
     // Get the facets and assign volume fractions
     ModelPart& r_facets = mpModel->GetModelPart(
-        mParameters["facets_model_part_name"].GetString()
+        mParameters["skeleton_model_part_name"].GetString()
     );
     for (auto& r_facet : r_facets.Conditions()) {
         for (IndexType side = 0; side < 2; ++side) {
@@ -241,7 +241,7 @@ const Parameters VolumeFractionGsbmProcess::GetDefaultParameters() const
         "model_part_name"                    : "",
         "geometry_name"                      : "",
         "elements_model_part_name"           : "",
-        "facets_model_part_name"             : "",
+        "skeleton_model_part_name"           : "",
         "skin_model_part_outer_initial_name" : "",
         "skin_model_part_inner_initial_name" : ""
     })");

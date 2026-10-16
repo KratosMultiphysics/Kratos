@@ -153,7 +153,7 @@ KRATOS_TEST_CASE_IN_SUITE(VolumeFractionGsbmProcess, KratosIgaFastSuite)
         "model_part_name"                   : "IgaModelPart",
         "geometry_name"                     : "background",
         "elements_model_part_name"          : "IgaModelPart.Domain",
-        "facets_model_part_name"            : "IgaModelPart.Facets",
+        "skeleton_model_part_name"          : "IgaModelPart.Facets",
         "skin_model_part_outer_initial_name": "OuterSkin",
         "skin_model_part_inner_initial_name": "InnerSkin"
     })"));
