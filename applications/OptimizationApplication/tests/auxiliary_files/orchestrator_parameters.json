@@ -1,0 +1,8 @@
+{
+    "orchestrator": {
+        "settings": {
+            "stage_checkpoints": false
+        }
+    },
+    "stages":[]
+}
