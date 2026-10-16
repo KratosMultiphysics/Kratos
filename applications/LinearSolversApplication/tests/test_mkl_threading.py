@@ -1,11 +1,10 @@
-
-# --- Kratos Imports ---
+# Kratos imports
 import KratosMultiphysics
 import KratosMultiphysics.LinearSolversApplication as LinearSolversApplication
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 from KratosMultiphysics.python_linear_solver_factory import ConstructSolver
 
-# --- STD Imports ---
+# Other imports
 from pathlib import Path
 
 # Lazily evaluated: whether MKLUtilities.SetNumThreads is actually reflected by
