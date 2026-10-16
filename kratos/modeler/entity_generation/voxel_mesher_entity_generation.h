@@ -69,8 +69,6 @@ protected:
 
     bool IntersectionsGenerated(int Color) const;
 
-    void AddNodesToModelPart(ModelPart& rModelPart, ModelPart::NodesContainerType& rNewNodes) const;
-
     void SetStartIds(ModelPart& rModelPart);
 
     std::size_t GetStartElementId() const;
@@ -81,14 +79,14 @@ protected:
 
     Node::Pointer GenerateOrRetrieveNode(
         ModelPart& rTheVolumeModelPart,
-        ModelPart::NodesContainerType& rThisNodes,
+        std::vector<ModelPart::NodeType::Pointer>& rThisNodes,
         const std::size_t I,
         const std::size_t J,
         const std::size_t K);
 
     Node::Pointer GenerateOrRetrieveQuadraticNode(
         ModelPart& rTheVolumeModelPart,
-        ModelPart::NodesContainerType& rThisNodes,
+        std::vector<ModelPart::NodeType::Pointer>& rThisNodes,
         const std::size_t I,
         const std::size_t J,
         const std::size_t K);
@@ -98,7 +96,7 @@ protected:
     void GetLinearCellNodes(
         Element::NodesArrayType& rCellNodes,
         ModelPart& rTheVolumeModelPart,
-        ModelPart::NodesContainerType& rThisNodes,
+        std::vector<ModelPart::NodeType::Pointer>& rThisNodes,
         const std::size_t I,
         const std::size_t J,
         const std::size_t K);
@@ -106,7 +104,7 @@ protected:
     void GetQuadraticCellNodes(
         Element::NodesArrayType& rCellNodes,
         ModelPart& rTheVolumeModelPart,
-        ModelPart::NodesContainerType& rThisNodes,
+        std::vector<ModelPart::NodeType::Pointer>& rThisNodes,
         const std::size_t I,
         const std::size_t J,
         const std::size_t K);

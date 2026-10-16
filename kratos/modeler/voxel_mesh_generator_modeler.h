@@ -210,9 +210,9 @@ private:
 
     void GenerateEntities(ModelPart& rTheVolumeModelPart, Parameters EntityGeneratorParameters);
 
-    Node::Pointer GenerateOrRetrieveNode(ModelPart& rTheVolumeModelPart, ModelPart::NodesContainerType& rThisNodes, const std::size_t I, const std::size_t J, const std::size_t K);
+    Node::Pointer GenerateOrRetrieveNode(ModelPart& rTheVolumeModelPart, std::vector<ModelPart::NodeType::Pointer>& rThisNodes, const std::size_t I, const std::size_t J, const std::size_t K);
 
-    Node::Pointer GenerateOrRetrieveQuadraticNode(ModelPart& rTheVolumeModelPart, ModelPart::NodesContainerType& rThisNodes, const std::size_t I, const std::size_t J, const std::size_t K);
+    Node::Pointer GenerateOrRetrieveQuadraticNode(ModelPart& rTheVolumeModelPart, std::vector<ModelPart::NodeType::Pointer>& rThisNodes, const std::size_t I, const std::size_t J, const std::size_t K);
 
     Node::Pointer GenerateNode(ModelPart& rTheVolumeModelPart, const Point& rCoordinates);
 
