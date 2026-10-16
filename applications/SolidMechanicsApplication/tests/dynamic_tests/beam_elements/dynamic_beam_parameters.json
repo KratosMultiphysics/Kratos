@@ -60,8 +60,7 @@
     }],
     "_output_process_list" : [
 	{
-            "python_module"   : "json_output_process",
-            "kratos_module"   : "KratosMultiphysics",
+            "name" : "Processes.KratosMultiphysics.JsonOutputProcess",
             "Parameters"      : {
 		"output_variables" : ["ANGULAR_VELOCITY_X"],
 		"output_file_name" : "dynamic_tests/beam_elements/dynamic_beam_results.json",

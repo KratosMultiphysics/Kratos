@@ -66,6 +66,7 @@
 #include "processes/integration_values_extrapolation_to_nodes_process.h"
 #include "processes/time_averaging_process.h"
 #include "processes/from_json_check_result_process.h"
+#include "processes/json_output_process.h"
 #include "processes/set_initial_state_process.h"
 #include "processes/split_internal_interfaces_process.h"
 #include "processes/parallel_distance_calculation_process.h"
@@ -696,6 +697,11 @@ void  AddProcessesToPython(pybind11::module& m)
     from_json_check_result_process_interface.attr("CORRECT_RESULT")                 = &FromJSONCheckResultProcess::CORRECT_RESULT;
     from_json_check_result_process_interface.attr("HISTORICAL_VALUE")               = &FromJSONCheckResultProcess::HISTORICAL_VALUE;
     from_json_check_result_process_interface.attr("CHECK_ONLY_LOCAL_ENTITIES")      = &FromJSONCheckResultProcess::CHECK_ONLY_LOCAL_ENTITIES;
+
+    py::class_<JsonOutputProcess, JsonOutputProcess::Pointer, Process>(m, "JsonOutputProcess")
+    .def(py::init<Model&, Parameters>())
+    .def(py::init<ModelPart&, Parameters>())
+    ;
 
     using ScalarEdgeBasedGradientRecoveryProcessType = EdgeBasedGradientRecoveryProcess<double,SparseSpaceType,LocalSpaceType,LinearSolverType>;
     py::class_<ScalarEdgeBasedGradientRecoveryProcessType, ScalarEdgeBasedGradientRecoveryProcessType::Pointer, Process>(m, "EdgeBasedGradientRecoveryProcessScalar")

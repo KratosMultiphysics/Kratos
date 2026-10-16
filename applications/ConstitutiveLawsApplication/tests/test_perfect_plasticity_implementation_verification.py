@@ -234,8 +234,6 @@ def _create_check_outputs(current_model):
 
 def _create_reference_solution(current_model):
     # The following is used to create the solution database
-    from KratosMultiphysics.json_output_process import JsonOutputProcess
-
     out_parameters = KratosMultiphysics.Parameters("""
     {
         "gauss_points_output_variables": ["VON_MISES_STRESS"],
@@ -248,7 +246,7 @@ def _create_reference_solution(current_model):
 
     out_parameters["output_file_name"].SetString(GetFilePath("test_perfect_plasticity_implementation_verification_reference.json"))
 
-    out = JsonOutputProcess(current_model, out_parameters)
+    out = KratosMultiphysics.JsonOutputProcess(current_model, out_parameters)
     out.ExecuteInitialize()
     out.ExecuteBeforeSolutionLoop()
 
