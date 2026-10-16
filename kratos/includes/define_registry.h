@@ -27,6 +27,55 @@
 #define KRATOS_REGISTRY_NAME_(A,B) A##B
 #define KRATOS_REGISTRY_NAME(A,B) KRATOS_REGISTRY_NAME_(A,B)
 
+namespace Kratos {
+
+class RegistryNameUtils {
+  public:
+    /** Removes template parameters from the class name */
+    static void StripTemplateArgs(std::string & rName) {
+        auto token = rName.find('<');
+        if (token != std::string::npos) {
+            rName.erase(token);
+        }
+    }
+
+    template<class THandle, class TInstance>
+    static auto RegisterHandle(std::string key_name) {
+        if (!Registry::HasItem(key_name)) {
+            auto &r_item = Registry::AddItem<RegistryItem>(key_name);
+            THandle dispatcher = [](){return std::make_shared<TInstance>();};
+            r_item.AddItem<THandle>("Prototype", std::move(dispatcher));
+        }
+    }
+
+    template<class THandle, class TInstance>
+    static auto GetHandle(std::string t_name, std::string r_key) {
+        return [=]() -> bool {
+            std::string p_name = t_name;
+            std::string key_name = r_key + std::string(".") + p_name;
+
+            RegistryNameUtils::RegisterHandle<THandle, TInstance>(key_name);
+
+            return Registry::HasItem(key_name);
+        };
+    }
+
+    template<class THandle, class TInstance>
+    static auto GetHandle(std::string t_args, std::string t_name, std::string r_key) {
+        return [=]() -> bool {
+            std::string p_name = t_name;
+            RegistryNameUtils::StripTemplateArgs(p_name);
+            std::string key_name = r_key + std::string(".") + p_name + "<" + t_args + ">";
+
+            RegistryNameUtils::RegisterHandle<THandle, TInstance>(key_name);
+
+            return Registry::HasItem(key_name);
+        };
+    }
+};
+
+}
+
 /**
  * @brief Macro to register class prototypes
  * This macro creates a static bool in the class (which value is not relevant and is supposed to be never accessed)
@@ -40,29 +89,16 @@
  * the dispatcher function directly inside the std::move would break current code as the compiler will deduce the type
  * of the lambda function to something that is not an std::function.
  */
-#define KRATOS_REGISTRY_ADD_PROTOTYPE(NAME, X, Y)                                         \
-    static inline bool KRATOS_REGISTRY_NAME(_is_registered_, __LINE__) = []() -> bool {   \
-        using TFunctionType = std::function<std::shared_ptr<X>()>;                        \
-        std::string key_name = NAME + std::string(".") + std::string(#Y);                 \
-        if (!Registry::HasItem(key_name))                                                 \
-        {                                                                                 \
-            auto &r_item = Registry::AddItem<RegistryItem>(key_name);                     \
-            TFunctionType dispatcher = [](){return std::make_shared<Y>();};               \
-            r_item.AddItem<TFunctionType>("Prototype", std::move(dispatcher));            \
-        }                                                                                 \
-        return Registry::HasItem(key_name);                                               \
-    }();
+#define KRATOS_REGISTRY_ADD_PROTOTYPE(NAME, X, Y)                                       \
+    static inline bool KRATOS_REGISTRY_NAME(_is_registered_, __LINE__) =                \
+        RegistryNameUtils::GetHandle<std::function<std::shared_ptr<X>()>, Y>(           \
+            #Y, NAME                                                                    \
+        )();
 
-#define KRATOS_REGISTRY_ADD_TEMPLATE_PROTOTYPE(NAME, X, Y, ...)                                            \
-    static inline bool KRATOS_REGISTRY_NAME(_is_registered_, __LINE__) = []() -> bool {                 \
-        using TFunctionType = std::function<std::shared_ptr<X>()>;                         \
-        std::string key_name = NAME + std::string(".") + std::string(#Y) + "<" + Kratos::Registry::RegistryTemplateToString(__VA_ARGS__) + ">";    \
-        if (!Registry::HasItem(key_name))                                                               \
-        {                                                                                               \
-            auto &r_item = Registry::AddItem<RegistryItem>(key_name);                                   \
-            TFunctionType dispatcher = [](){return std::make_shared<Y<__VA_ARGS__>>();};                \
-            r_item.AddItem<TFunctionType>("Prototype", std::move(dispatcher));                          \
-        } else {                                                                                        \
-        }                                                                                               \
-        return Registry::HasItem(key_name);                                                             \
-    }();
+#define KRATOS_REGISTRY_ADD_TEMPLATE_PROTOTYPE(NAME, X, Y, ...)                         \
+    static inline bool KRATOS_REGISTRY_NAME(_is_registered_, __LINE__) =                \
+        RegistryNameUtils::GetHandle<std::function<std::shared_ptr<X>()>, Y>([](){      \
+            std::string t_args;                                                         \
+            Kratos::Registry::RegistryTemplateToString<__VA_ARGS__>::Execute(t_args);   \
+            return t_args;                                                              \
+        }(), #Y, NAME)();
