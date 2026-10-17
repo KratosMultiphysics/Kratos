@@ -341,17 +341,12 @@ public:
             BaseType::mPhiGlobal = ZeroMatrix(BaseBuilderAndSolverType::GetEquationSystemSize(), BaseType::GetNumberOfROMModes());
             Vector& r_xRom = r_root_mp.GetValue(ROM_SOLUTION_BASE);
             Vector& r_xBase = r_root_mp.GetValue(SOLUTION_BASE);
-            vector<Matrix>& r_svdPhiMatrices = r_root_mp.GetValue(SVD_PHI_MATRICES);
-            vector<Matrix>& r_nnLayers = r_root_mp.GetValue(NN_LAYERS);
-            Vector& r_refSnapshot = r_root_mp.GetValue(SOLUTION_REFERENCE);
-            RomNNUtility<TSparseSpace,TDenseSpace>::GetXAndDecoderGradient(r_xRom, r_xBase, BaseType::mPhiGlobal, r_svdPhiMatrices, r_nnLayers, r_refSnapshot);
+            BaseType::GetXAndDecoderGradient(r_root_mp, r_xRom, r_xBase);
             mRightRomBasisInitialized = true;
         }
         else if (r_root_mp.GetValue(UPDATE_PHI_EFFECTIVE_BOOL)==true){
             Vector& xromTotal = r_root_mp.GetValue(ROM_SOLUTION_TOTAL);
-            vector<Matrix>& r_svdPhiMatrices = r_root_mp.GetValue(SVD_PHI_MATRICES);
-            vector<Matrix>& r_nnLayers = r_root_mp.GetValue(NN_LAYERS);
-            RomNNUtility<TSparseSpace,TDenseSpace>::GetDecoderGradient(xromTotal, BaseType::mPhiGlobal, r_svdPhiMatrices, r_nnLayers);
+            BaseType::GetDecoderGradient(r_root_mp, xromTotal);
         }
 
         BaseType::SetFixedDofsROMBasisToZero();
