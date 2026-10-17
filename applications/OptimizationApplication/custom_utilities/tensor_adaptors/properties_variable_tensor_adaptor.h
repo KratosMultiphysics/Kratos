@@ -81,6 +81,11 @@ public:
         VariablePointerType pVariable,
         const bool Copy = true);
 
+    /**
+     * @brief Construct an empty instance for deserialization.
+     */
+    PropertiesVariableTensorAdaptor() = default;
+
     // Destructor
     ~PropertiesVariableTensorAdaptor() override = default;
 
@@ -135,6 +140,16 @@ private:
     ///@{
 
     VariablePointerType mpVariable;
+
+    ///@}
+    ///@name Serialization
+    ///@{
+
+    friend class Serializer;
+
+    void save(Serializer& rSerializer) const override;
+
+    void load(Serializer& rSerializer) override;
 
     ///@}
 };
