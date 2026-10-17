@@ -26,7 +26,6 @@
 // Application includes
 #include "optimization_application.h"
 #include "optimization_application_variables.h"
-#include "custom_utilities/tensor_adaptors/properties_variable_tensor_adaptor.h"
 
 namespace Kratos
 {
@@ -251,8 +250,6 @@ namespace Kratos
 
         // Register linear elastics laws
         KRATOS_REGISTER_CONSTITUTIVE_LAW("HelmholtzJacobianStiffened3D", mHelmholtzJacobianStiffened3D);
-
-        Serializer::Register("PropertiesVariableTensorAdaptor", PropertiesVariableTensorAdaptor());
 
  	}
 
