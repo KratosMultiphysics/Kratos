@@ -36,6 +36,8 @@ KratosIgaApplication::KratosIgaApplication()
         new Geometry<Node>(Element::GeometryType::PointsArrayType(1))))
     , mLaplacianElement(0, Element::GeometryType::Pointer(
         new Geometry<Node>(Element::GeometryType::PointsArrayType(1))))
+    , mGsbmLaplacianElement(0, Element::GeometryType::Pointer(
+        new Geometry<Node>(Element::GeometryType::PointsArrayType(1))))
     , mSolidElement(0, Element::GeometryType::Pointer(
         new Geometry<Node>(Element::GeometryType::PointsArrayType(1))))
     , mStokesElement(0, Element::GeometryType::Pointer(
@@ -104,6 +106,7 @@ KRATOS_INFO("") << "    KRATOS  _____ _____\n"
     KRATOS_REGISTER_ELEMENT("Shell5pElement", mShell5pElement)
     KRATOS_REGISTER_ELEMENT("Shell6pElement", mShell6pElement)
     KRATOS_REGISTER_ELEMENT("LaplacianElement", mLaplacianElement)
+    KRATOS_REGISTER_ELEMENT("GsbmLaplacianElement", mGsbmLaplacianElement)
     KRATOS_REGISTER_ELEMENT("SolidElement", mSolidElement)
     KRATOS_REGISTER_ELEMENT("StokesElement", mStokesElement)
     KRATOS_REGISTER_ELEMENT("NavierStokesElement", mNavierStokesElement)
@@ -234,6 +237,7 @@ KRATOS_INFO("") << "    KRATOS  _____ _____\n"
     // GSBM Variables
     KRATOS_REGISTER_VARIABLE(KNOT_SPAN_INDICES)
     KRATOS_REGISTER_VARIABLE(VOLUME_FRACTION)
+    KRATOS_REGISTER_VARIABLE(GHOST_PENALTY_FACTOR)
 }
 
 }  // namespace Kratos

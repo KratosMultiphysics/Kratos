@@ -27,6 +27,7 @@
 #include "custom_elements/shell_5p_element.h"
 #include "custom_elements/shell_6p_element.h"
 #include "custom_elements/laplacian_element.h"
+#include "custom_elements/gsbm_laplacian_element.h"
 #include "custom_elements/solid_element.h"
 #include "custom_elements/stokes_element.h"
 #include "custom_elements/navier_stokes_element.h"
@@ -147,6 +148,7 @@ private:
     const Shell5pElement mShell5pElement;
     const Shell6pElement mShell6pElement;
     const LaplacianElement mLaplacianElement;
+    const GsbmLaplacianElement mGsbmLaplacianElement;
     const SolidElement mSolidElement;
     const StokesElement mStokesElement;
     const NavierStokesElement mNavierStokesElement;

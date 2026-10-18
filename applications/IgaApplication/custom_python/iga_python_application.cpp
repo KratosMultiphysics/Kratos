@@ -103,6 +103,7 @@ PYBIND11_MODULE(KratosIgaApplication, m)
 
     // GSBM Variables
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, VOLUME_FRACTION)
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, GHOST_PENALTY_FACTOR)
 
     AddCustomUtilitiesToPython(m);
     AddCustomProcessesToPython(m);
