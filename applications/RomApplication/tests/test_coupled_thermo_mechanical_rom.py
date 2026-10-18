@@ -6,6 +6,7 @@ from pathlib import Path
 import KratosMultiphysics
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics.kratos_utilities as kratos_utilities
+import KratosMultiphysics.RomApplication as KratosROM
 import KratosMultiphysics.RomApplication.rom_testing_utilities as rom_testing_utilities
 
 
@@ -26,6 +27,7 @@ class TestCoupledThermoMechanicalRom(KratosUnittest.TestCase):
     def testCoupledThermoMechanicalHRom2D(self):
         self.work_folder = "coupled_thermo_mechanical_test_files/HROM/"
         self._RunAndCheck("ExpectedOutputCoupledHROM.npy")
+        self._CheckHromWeights()
 
     def testCoupledThermoMechanicalAnnEnhancedRom2D(self):
         # ANN-enhanced ROM run without the RomManager: each coupled solver has its own basis and network
@@ -36,6 +38,7 @@ class TestCoupledThermoMechanicalRom(KratosUnittest.TestCase):
         # ANN-enhanced HROM run without the RomManager: one set of HROM weights per coupled solver
         self.work_folder = "coupled_thermo_mechanical_test_files/HROM_ANN/"
         self._RunAndCheck("ExpectedOutputCoupledHROM_ANN.npy")
+        self._CheckHromWeights()
 
     def _GetProjectParameters(self):
         # The problem (parameters, mdpa and materials) is the thermo-mechanical test of the ConvectionDiffusionApplication.
@@ -85,6 +88,17 @@ class TestCoupledThermoMechanicalRom(KratosUnittest.TestCase):
                 down = sum((expected_output[:,i])**2)
                 l2 = np.sqrt(up/down)
                 self.assertLess(l2, self.relative_tolerance)
+
+    def _CheckHromWeights(self):
+        # The coupled solvers share the geometries, where the element and condition data is stored.
+        # Each solver must only find HROM_WEIGHT in the HROM entities, not in the rest of the mesh
+        with KratosUnittest.WorkFolderScope(self.work_folder, __file__):
+            hrom_element_ids = set(np.load("rom_data/HROM_ElementIds.npy"))
+            hrom_condition_ids = set(np.load("rom_data/HROM_ConditionIds.npy"))
+        for solver in [self.simulation._GetSolver().thermal_solver, self.simulation._GetSolver().structural_solver]:
+            model_part = solver.GetComputingModelPart()
+            self.assertSetEqual({element.Id for element in model_part.Elements if element.Has(KratosROM.HROM_WEIGHT)}, hrom_element_ids)
+            self.assertSetEqual({condition.Id for condition in model_part.Conditions if condition.Has(KratosROM.HROM_WEIGHT)}, hrom_condition_ids)
 
     def tearDown(self):
         with KratosUnittest.WorkFolderScope(self.work_folder, __file__):

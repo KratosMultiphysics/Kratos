@@ -1,3 +1,4 @@
+import copy
 import importlib
 
 import KratosMultiphysics
@@ -358,12 +359,15 @@ def CreateRomAnalysisInstance(cls, global_model, parameters, nn_rom_interface=No
                         sub_solver_model_part = sub_solver.GetComputingModelPart()
                         sub_solver_dofs = {dof.GetVariable().Name() for dof in next(iter(sub_solver_model_part.Elements)).GetDofList(sub_solver_model_part.ProcessInfo)}
                         nodal_unknown_names = [name for name in all_nodal_unknown_names if name in sub_solver_dofs]
-                        positions = np.array([all_nodal_unknown_names.index(name) for name in nodal_unknown_names])
-                        number_of_nodes = sub_solver_model_part.GetRootModelPart().NumberOfNodes()
-                        rows = (np.arange(number_of_nodes)[:, None] * len(all_nodal_unknown_names) + positions).ravel()
+                        rows = self._GetBasisRows(sub_solver_model_part.GetRootModelPart(), nodal_unknown_names)
                         self._SetEnhancedDecoder(sub_solver, self._GetSubSolverDecoderInterface(sub_solver_name, rows), nodal_unknown_names)
                 else:
-                    self._SetEnhancedDecoder(self._GetSolver(), self.rbf_rom_interface if self.rbf_enhanced else self.nn_rom_interface, all_nodal_unknown_names)
+                    decoder_interface = self.rbf_rom_interface if self.rbf_enhanced else self.nn_rom_interface
+                    rows = self._GetBasisRows(self._GetSolver().GetComputingModelPart().GetRootModelPart(), all_nodal_unknown_names)
+                    if rows.size != decoder_interface.phi.shape[0]:
+                        # The model part has only some of the nodes of the basis (e.g. an HROM model part)
+                        decoder_interface = self._RestrictDecoderInterfaceToRows(decoder_interface, rows)
+                    self._SetEnhancedDecoder(self._GetSolver(), decoder_interface, all_nodal_unknown_names)
 
         def Initialize(self):
             super().Initialize()
@@ -372,6 +376,28 @@ def CreateRomAnalysisInstance(cls, global_model, parameters, nn_rom_interface=No
             if self.ann_enhanced or self.rbf_enhanced:
                 for solver, decoder_interface, nodal_unknown_names in self._enhanced_decoder_solvers:
                     self._EncodeEnhancedInitialState(solver, decoder_interface, nodal_unknown_names)
+
+        def _GetBasisRows(self, model_part, nodal_unknown_names):
+            """Rows of the basis of the given unknowns at the nodes of the model part, in the order of the DOFs (by node id).
+            The basis stores the unknowns of all the nodes in 'NodeIds.npy' node by node, so these are all its rows unless the
+            model part has only some of the nodes (e.g. an HROM model part)."""
+            all_nodal_unknown_names = self.project_parameters["solver_settings"]["rom_settings"]["nodal_unknowns"].GetStringArray()
+            positions = np.array([all_nodal_unknown_names.index(name) for name in nodal_unknown_names])
+            node_ids_file = self.rom_basis_output_folder / "NodeIds.npy"
+            if node_ids_file.exists():
+                node_index = {node_id: index for index, node_id in enumerate(np.load(node_ids_file))}
+                node_indices = np.array([node_index[node_id] for node_id in sorted(node.Id for node in model_part.Nodes)])
+            else:
+                node_indices = np.arange(model_part.NumberOfNodes())
+            return (node_indices[:, None] * len(all_nodal_unknown_names) + positions).ravel()
+
+        @staticmethod
+        def _RestrictDecoderInterfaceToRows(decoder_interface, rows):
+            """Copy of the decoder interface (neural network or RBF) acting on the given rows of its basis"""
+            restricted_interface = copy.copy(decoder_interface)
+            restricted_interface.phi = decoder_interface.phi[rows, :]
+            restricted_interface.ref_snapshot = decoder_interface.ref_snapshot[rows]
+            return restricted_interface
 
         def _GetSubSolverDecoderInterface(self, sub_solver_name, rows):
             if self.rbf_enhanced:
@@ -388,10 +414,10 @@ def CreateRomAnalysisInstance(cls, global_model, parameters, nn_rom_interface=No
         def _SetEnhancedDecoder(self, solver, decoder_interface, nodal_unknown_names):
             """Sets the decoder (neural network or RBF) of an ann_enhanced or rbf_enhanced ROM in the builder and solver"""
             computing_model_part = solver.GetComputingModelPart().GetRootModelPart()
-            # The decoder acts on the basis of all the nodes, so it cannot run on a model part with only some of them (e.g. an HROM model part)
+            # The decoder basis must have the rows of the nodes of the model part (see _GetBasisRows)
             if decoder_interface.phi.shape[0] != computing_model_part.NumberOfNodes() * len(nodal_unknown_names):
                 err_msg = f"The basis of the enhanced decoder has {decoder_interface.phi.shape[0]} rows, but '{computing_model_part.Name}' has {computing_model_part.NumberOfNodes()} nodes with {len(nodal_unknown_names)} unknowns. "
-                err_msg += "HROM model parts are not supported yet for ann_enhanced and rbf_enhanced decoders: run the HROM on the full model part (use_full_model_part=True)."
+                err_msg += f"Note that 'NodeIds.npy' is required in '{self.rom_basis_output_folder}' to run on a model part with only some of the nodes of the basis (e.g. an HROM model part)."
                 raise Exception(err_msg)
             self._enhanced_decoder_solvers.append((solver, decoder_interface, nodal_unknown_names))
 

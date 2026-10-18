@@ -115,6 +115,44 @@ class TestRbfEnhancedRom(KratosUnittest.TestCase):
 
             self.assertGreater(np.load("rom_data/HROM_ElementIds.npy").size, 0)
 
+    def testFluidGalerkinRbfEnhancedHRom2D_HRomModelPart(self):
+        # The HROM run on the HROM model part (written during the HROM training) must give the solution of the HROM run on the full one
+        general_rom_manager_parameters = self._GetRomManagerParameters("galerkin")
+        general_rom_manager_parameters["rom_stages_to_train"].SetStringArray(["ROM", "HROM"])
+        # The fluid solver requires the parent elements of the conditions in the HROM model part
+        general_rom_manager_parameters.AddValue("HROM", KratosMultiphysics.Parameters("""{"element_selection_svd_truncation_tolerance": 0, "include_condition_parents": true}"""))
+
+        results = {}
+        def CustomizeSimulation(cls, global_model, parameters, mu=None):
+            class CustomSimulation(cls):
+                def Finalize(self):
+                    model_part = self._GetSolver().GetComputingModelPart().GetRootModelPart()
+                    variables = [KratosMultiphysics.VELOCITY_X, KratosMultiphysics.VELOCITY_Y, KratosMultiphysics.PRESSURE]
+                    results[CustomizeSimulation.label] = {node.Id: [node.GetSolutionStepValue(variable) for variable in variables] for node in model_part.Nodes}
+                    super().Finalize()
+            return CustomSimulation(global_model, parameters)
+
+        with KratosUnittest.WorkFolderScope(self.work_folder, __file__):
+            # The HROM training writes the HROM model parts next to the input mesh (here in the FluidDynamicsApplication tests)
+            with open(self.project_parameters_name, 'r') as parameter_file:
+                input_filename = json.load(parameter_file)["solver_settings"]["model_import_settings"]["input_filename"]
+            for suffix in ["HROM", "HROMVisualization"]:
+                self.addCleanup(kratos_utilities.DeleteFileIfExisting, os.path.abspath(f"{input_filename}{suffix}.mdpa"))
+
+            rom_manager = RomManager(project_parameters_name=self.project_parameters_name, general_rom_manager_parameters=general_rom_manager_parameters, CustomizeSimulation=CustomizeSimulation)
+            CustomizeSimulation.label = "Fit"
+            rom_manager.Fit()
+            for label, use_full_model_part in [("full model part", True), ("HROM model part", False)]:
+                CustomizeSimulation.label = label
+                rom_manager.RunHROM(use_full_model_part=use_full_model_part)
+
+        # The HROM model part has only some of the nodes, on which both solutions must coincide
+        full, hrom = results["full model part"], results["HROM model part"]
+        self.assertLess(len(hrom), len(full))
+        expected = np.array([full[node_id] for node_id in hrom])
+        obtained = np.array([hrom[node_id] for node_id in hrom])
+        self.assertLess(np.linalg.norm(obtained - expected) / np.linalg.norm(expected), 1.0e-9)
+
     def testFluidGalerkinRbfEnhancedHRom2D(self):
         # The HROM of the enhanced decoders is not exact (the tangent operator changes with the solution); the ANN-enhanced one gives ~1e-3 here
         self.tolerance = 1.0e-6
