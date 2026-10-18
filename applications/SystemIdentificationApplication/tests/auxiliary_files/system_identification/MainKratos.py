@@ -8,4 +8,9 @@ if __name__ == "__main__":
         params = KratosMultiphysics.Parameters(file_input.read())
 
     analysis = OptimizationAnalysis(model, params)
-    analysis.Run()
+    try:
+        analysis.Run()
+    finally:
+        del analysis
+        del params
+        del model
