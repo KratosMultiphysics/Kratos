@@ -219,10 +219,10 @@ void MohrCoulombLaw::CalculateMaterialResponseCauchy(ConstitutiveLaw::Parameters
 {
     const auto& r_properties = rParameters.GetMaterialProperties();
 
-    const auto elastic_matrix = CalculateElasticConstitutiveTensor(r_properties);
+    const auto elastic_constitutive_tensor = CalculateElasticConstitutiveTensor(r_properties);
 
     if (rParameters.GetOptions().Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
-        rParameters.GetConstitutiveMatrix() = elastic_matrix;
+        rParameters.GetConstitutiveMatrix() = elastic_constitutive_tensor;
     }
     if (!rParameters.GetOptions().Is(ConstitutiveLaw::COMPUTE_STRESS)) {
         return;
@@ -232,7 +232,7 @@ void MohrCoulombLaw::CalculateMaterialResponseCauchy(ConstitutiveLaw::Parameters
 
     // Full elastic predictor over the entire strain increment.
     const Vector full_trial_stress_vector =
-        mStressVectorFinalized + prod(elastic_matrix, total_strain_increment);
+        mStressVectorFinalized + prod(elastic_constitutive_tensor, total_strain_increment);
     const auto& [full_trial_principal_stresses, full_rotation_matrix] =
         StressStrainUtilities::CalculatePrincipalStressesAndRotationMatrix(full_trial_stress_vector);
 
@@ -248,7 +248,7 @@ void MohrCoulombLaw::CalculateMaterialResponseCauchy(ConstitutiveLaw::Parameters
         // only calculate the number of sub-steps once per solution step for stability
         if (mCalculatedNumberOfSubSteps == 0) {
             mCalculatedNumberOfSubSteps =
-                CalculateAdaptiveNumberOfSubSteps(full_trial_principal_stresses, elastic_matrix);
+                CalculateAdaptiveNumberOfSubSteps(full_trial_principal_stresses, elastic_constitutive_tensor);
         }
 
         number_of_sub_steps = mCalculatedNumberOfSubSteps;
@@ -266,7 +266,7 @@ void MohrCoulombLaw::CalculateMaterialResponseCauchy(ConstitutiveLaw::Parameters
 
         // elastic predictor from the committed sub-step state
         const Vector trial_stress_vector =
-            committed_stress + prod(elastic_matrix, sub_strain - committed_strain);
+            committed_stress + prod(elastic_constitutive_tensor, sub_strain - committed_strain);
 
         const auto& [trial_principal_stresses, rotation_matrix] =
             StressStrainUtilities::CalculatePrincipalStressesAndRotationMatrix(trial_stress_vector);
@@ -276,7 +276,7 @@ void MohrCoulombLaw::CalculateMaterialResponseCauchy(ConstitutiveLaw::Parameters
         } else {
             mpCoulombImpl->SaveKappaOfCoulombYieldSurface();
             auto mapped_principal_stresses = mpCoulombImpl->DoReturnMapping(
-                trial_principal_stresses, elastic_matrix, Geo::PrincipalStresses::AveragingType::NO_AVERAGING);
+                trial_principal_stresses, elastic_constitutive_tensor, Geo::PrincipalStresses::AveragingType::NO_AVERAGING);
 
             if (const auto averaging_type = FindAveragingType(mapped_principal_stresses);
                 averaging_type != Geo::PrincipalStresses::AveragingType::NO_AVERAGING) {
@@ -284,7 +284,7 @@ void MohrCoulombLaw::CalculateMaterialResponseCauchy(ConstitutiveLaw::Parameters
                     AveragePrincipalStressComponents(trial_principal_stresses, averaging_type);
                 mpCoulombImpl->RestoreKappaOfCoulombYieldSurface();
                 mapped_principal_stresses = mpCoulombImpl->DoReturnMapping(
-                    averaged_principal_trial_stress_vector, elastic_matrix, averaging_type);
+                    averaged_principal_trial_stress_vector, elastic_constitutive_tensor, averaging_type);
                 mapped_principal_stresses.Values()[1] =
                     mapped_principal_stresses.Values()[AveragingTypeToArrayIndex(averaging_type)];
             }
