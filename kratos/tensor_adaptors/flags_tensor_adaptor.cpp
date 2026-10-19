@@ -154,6 +154,18 @@ std::string FlagsTensorAdaptor::Info() const
     return info.str();
 }
 
+void FlagsTensorAdaptor::save(Serializer& rSerializer) const
+{
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, BaseType);
+    rSerializer.save("Flags", mFlags);
+}
+
+void FlagsTensorAdaptor::load(Serializer& rSerializer)
+{
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, BaseType);
+    rSerializer.load("Flags", mFlags);
+}
+
 // template instantiations
 template KRATOS_API(KRATOS_CORE) FlagsTensorAdaptor::FlagsTensorAdaptor(ModelPart::NodesContainerType::Pointer, const Flags&);
 template KRATOS_API(KRATOS_CORE) FlagsTensorAdaptor::FlagsTensorAdaptor(ModelPart::ConditionsContainerType::Pointer, const Flags&);

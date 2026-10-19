@@ -149,13 +149,13 @@ py::class_< TVectorType > CreateVectorInterface(pybind11::module& m, std::string
         }
     });
 
-    binder.def("__getitem__", [](TVectorType &self, pybind11::slice this_slice) -> boost::numeric::ublas::vector_slice<TVectorType>
+    binder.def("__getitem__", [](TVectorType &self, pybind11::slice this_slice) -> vector_slice<TVectorType>
     {
         size_t start, stop, step, slicelength;
         if (!this_slice.compute(self.size(), &start, &stop, &step, &slicelength))
             throw pybind11::error_already_set();
-        boost::numeric::ublas::slice ublas_slice(start, step, slicelength);
-        boost::numeric::ublas::vector_slice<TVectorType> sliced_self(self, ublas_slice);
+        slice ublas_slice(start, step, slicelength);
+        vector_slice<TVectorType> sliced_self(self, ublas_slice);
         return sliced_self;
     });
     binder.def("fill", [](TVectorType& self, const typename TVectorType::value_type value)
@@ -164,15 +164,15 @@ py::class_< TVectorType > CreateVectorInterface(pybind11::module& m, std::string
     });
     binder.def("norm_1", [](TVectorType& self)
     {
-        return boost::numeric::ublas::norm_1(self);
+        return norm_1(self);
     });
     binder.def("norm_2", [](TVectorType& self)
     {
-        return boost::numeric::ublas::norm_2(self);
+        return norm_2(self);
     });
     binder.def("norm_inf", [](TVectorType& self)
     {
-        return boost::numeric::ublas::norm_inf(self);
+        return norm_inf(self);
     });
     binder.def("__iter__", [](TVectorType& self)
     {
@@ -252,7 +252,7 @@ void CreateArray1DInterface(pybind11::module& m, const std::string& Name )
 
 void  AddVectorToPython(pybind11::module& m)
 {
-    typedef boost::numeric::ublas::vector_slice<Vector> VectorSlice;
+    typedef Kratos::VectorSlice VectorSlice;
     py::class_< VectorSlice >(m, "VectorSlice")
     .def("Size", [](const VectorSlice& self)
     {
