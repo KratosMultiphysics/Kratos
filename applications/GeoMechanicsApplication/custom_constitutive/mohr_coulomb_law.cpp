@@ -247,8 +247,8 @@ void MohrCoulombLaw::CalculateMaterialResponseCauchy(ConstitutiveLaw::Parameters
     if (mMaxNumberOfSubSteps > 1) {
         // only calculate the number of sub-steps once per solution step for stability
         if (mCalculatedNumberOfSubSteps == 0) {
-            mCalculatedNumberOfSubSteps =
-                CalculateAdaptiveNumberOfSubSteps(full_trial_principal_stresses, elastic_constitutive_tensor);
+            mCalculatedNumberOfSubSteps = CalculateAdaptiveNumberOfSubSteps(
+                full_trial_principal_stresses, elastic_constitutive_tensor);
         }
 
         number_of_sub_steps = mCalculatedNumberOfSubSteps;
@@ -275,8 +275,9 @@ void MohrCoulombLaw::CalculateMaterialResponseCauchy(ConstitutiveLaw::Parameters
             mStressVector = trial_stress_vector;
         } else {
             mpCoulombImpl->SaveKappaOfCoulombYieldSurface();
-            auto mapped_principal_stresses = mpCoulombImpl->DoReturnMapping(
-                trial_principal_stresses, elastic_constitutive_tensor, Geo::PrincipalStresses::AveragingType::NO_AVERAGING);
+            auto mapped_principal_stresses =
+                mpCoulombImpl->DoReturnMapping(trial_principal_stresses, elastic_constitutive_tensor,
+                                               Geo::PrincipalStresses::AveragingType::NO_AVERAGING);
 
             if (const auto averaging_type = FindAveragingType(mapped_principal_stresses);
                 averaging_type != Geo::PrincipalStresses::AveragingType::NO_AVERAGING) {
