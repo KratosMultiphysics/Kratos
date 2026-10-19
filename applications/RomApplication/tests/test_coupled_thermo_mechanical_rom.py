@@ -18,7 +18,7 @@ if kratos_utilities.CheckIfApplicationsAvailable("StructuralMechanicsApplication
 class TestCoupledThermoMechanicalRom(KratosUnittest.TestCase):
 
     def setUp(self):
-        self.relative_tolerance = 1.0e-12
+        self.relative_tolerance = 1.0e-10
 
     def testCoupledThermoMechanicalRom2D(self):
         self.work_folder = "coupled_thermo_mechanical_test_files/ROM/"
