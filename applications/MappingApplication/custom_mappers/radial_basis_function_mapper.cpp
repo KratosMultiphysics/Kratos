@@ -748,7 +748,16 @@ RadialBasisFunctionMapper<TSparseSpace, TDenseSpace>::ComputeMappingMatrixIgaOnC
     // the dense shape-function factor is packed into compressed storage so
     // the backend-generic sparse multiplication utility can be used
     const IndexType n_gp_rows = N_reduced.size1();
-    MappingMatrixType n_reduced_sparse(n_gp_rows, n_cp, n_gp_rows * n_cp);
+    // Only nonzero entries are stored to avoid structural zeros in the product
+    IndexType n_nonzeros = 0;
+    for (IndexType i = 0; i < n_gp_rows; ++i) {
+        for (IndexType j = 0; j < n_cp; ++j) {
+            if (N_reduced(i, j) != 0.0) {
+                ++n_nonzeros;
+            }
+        }
+    }
+    MappingMatrixType n_reduced_sparse(n_gp_rows, n_cp, n_nonzeros);
     {
         auto&& row_indices = n_reduced_sparse.index1_data();
         auto&& col_indices = n_reduced_sparse.index2_data();
@@ -757,9 +766,11 @@ RadialBasisFunctionMapper<TSparseSpace, TDenseSpace>::ComputeMappingMatrixIgaOnC
         IndexType counter = 0;
         for (IndexType i = 0; i < n_gp_rows; ++i) {
             for (IndexType j = 0; j < n_cp; ++j) {
-                col_indices[counter] = j;
-                values[counter] = N_reduced(i, j);
-                ++counter;
+                if (N_reduced(i, j) != 0.0) {
+                    col_indices[counter] = j;
+                    values[counter] = N_reduced(i, j);
+                    ++counter;
+                }
             }
             row_indices[i + 1] = counter;
         }
