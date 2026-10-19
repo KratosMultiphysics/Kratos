@@ -13,6 +13,11 @@
 // Set to 1 to build master/slave projections in the current deformed
 // configuration. The default (0) uses the original reference configuration.
 #define SBM_CONTACT_PROJECTION_USE_DEFORMED_CONFIGURATION 1
+// Set to 1 to project onto sampled polylines, or 0 to evaluate the original
+// NURBS curves directly, including deformation when enabled above.
+// Applies to master-to-slave projections and mortar segment splitting.
+// Sampled slave bounds are retained for candidate selection in both modes.
+#define SBM_CONTACT_PROJECTION_USE_POLYLINE 0
 // If the slave-skin normal does not intersect a slave surrogate BREP, use its
 // closest point instead. This is intentionally enabled only for slave back projections.
 #define SBM_FALLBACK_TO_CLOSEST_SURROGATE_SLAVE false
@@ -476,7 +481,9 @@ namespace Kratos
         CoordinatesArrayType best_slave_local_coords = ZeroVector(3);
         IndexType best_slave_curve_id = 0;
         for (const auto* p_slave_curve_data : SelectSlaveProjectionCandidates(master_skin_deformed)) {
-            const auto& p_slave_nurbs_curve = p_slave_curve_data->p_deformed_curve;
+            const auto& p_slave_nurbs_curve = SBM_CONTACT_PROJECTION_USE_POLYLINE
+                ? p_slave_curve_data->p_deformed_curve
+                : p_slave_curve_data->p_reference_curve;
             CoordinatesArrayType local_coords = ZeroVector(3);
             CoordinatesArrayType projected_point = ZeroVector(3);
             double distance = std::numeric_limits<double>::max();
@@ -488,7 +495,7 @@ namespace Kratos
                 deformed_projection_tolerance,
                 deformed_projection_max_iterations,
                 deformed_projection_initial_guesses,
-                true);
+                SBM_CONTACT_PROJECTION_USE_POLYLINE);
             time_newton += std::chrono::duration<double>(Clock::now() - t_newton_begin).count();
             const bool is_internal_projection = is_inside_curve_interval(
                 local_coords[0], *p_slave_nurbs_curve, curve_endpoint_tolerance);
@@ -793,7 +800,9 @@ namespace Kratos
             IndexType best_slave_curve_id = 0;
 
             for (const auto* p_slave_curve_data : SelectSlaveProjectionCandidates(master_skin_deformed)) {
-                const auto& p_slave_nurbs_curve = p_slave_curve_data->p_deformed_curve;
+                const auto& p_slave_nurbs_curve = SBM_CONTACT_PROJECTION_USE_POLYLINE
+                    ? p_slave_curve_data->p_deformed_curve
+                    : p_slave_curve_data->p_reference_curve;
                 CoordinatesArrayType local_coords = ZeroVector(3);
                 CoordinatesArrayType projected_point = ZeroVector(3);
                 double distance = std::numeric_limits<double>::max();
@@ -805,7 +814,7 @@ namespace Kratos
                     deformed_projection_tolerance,
                     deformed_projection_max_iterations,
                     deformed_projection_initial_guesses,
-                    true);
+                    SBM_CONTACT_PROJECTION_USE_POLYLINE);
                 time_newton += std::chrono::duration<double>(Clock::now() - t_newton_begin).count();
                 const bool is_internal_projection = is_inside_curve_interval(
                     local_coords[0], *p_slave_nurbs_curve, curve_endpoint_tolerance);
@@ -1479,14 +1488,16 @@ void IgaContactProcessSbm::SplitMasterSegmentsWithSlaveVertices(
                 master_local_coords,
                 slave_deformed,
                 master_projection_reference,
-                *r_master_curve.p_deformed_curve,
+                *(SBM_CONTACT_PROJECTION_USE_POLYLINE
+                    ? r_master_curve.p_deformed_curve
+                    : r_master_curve.p_reference_curve),
                 *mrMasterModelPart,
                 mSparseBrepMatrixMaster,
                 projection_distance,
                 3,
                 20,
                 1.0e-7,
-                true);
+                SBM_CONTACT_PROJECTION_USE_POLYLINE);
 
             if (!converged) {
                 continue;
