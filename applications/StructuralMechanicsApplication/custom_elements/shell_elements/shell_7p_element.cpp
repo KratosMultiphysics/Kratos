@@ -157,6 +157,33 @@ void Shell7pElement::InitializeNonLinearIteration(const ProcessInfo& rCurrentPro
 {
     KRATOS_TRY;
 
+    //const auto& r_geom = GetGeometry();
+    //const SizeType number_of_nodes = r_geom.size();
+    //const SizeType number_dofs = 6*number_of_nodes;
+
+    //Vector current_nodal_dofs = ZeroVector(6*number_of_nodes);
+    //GetValuesVector(current_nodal_dofs);
+
+    //    const Vector delta_u = current_nodal_dofs - mPreviousNodalDofs;
+    //    Vector residual = mRtild + prod(mLt, delta_u);
+    //    Vector delta_alpha = ZeroVector(mAlphaEas.size());
+    //    noalias(delta_alpha) = -prod(mDtildInv, residual);
+    //    mAlphaEas += delta_alpha;
+    //    mPreviousNodalDofs = current_nodal_dofs;
+    //    if (Id() == 1) {
+    //    KRATOS_INFO("Shell7pElement DOF debug")
+    //    << "step " << rCurrentProcessInfo[STEP]
+    //    << " iter " << rCurrentProcessInfo[NL_ITERATION_NUMBER]
+    //    << " Alpha = " << mAlphaEas
+    //    << " Rtild = " << mRtild
+    //    << std::endl;
+    //    }
+
+    KRATOS_CATCH( "" )
+}
+
+void Shell7pElement::FinalizeNonLinearIteration(const ProcessInfo& CurrentProcessInfo)
+{
     const auto& r_geom = GetGeometry();
     const SizeType number_of_nodes = r_geom.size();
     const SizeType number_dofs = 6*number_of_nodes;
@@ -172,19 +199,13 @@ void Shell7pElement::InitializeNonLinearIteration(const ProcessInfo& rCurrentPro
         mPreviousNodalDofs = current_nodal_dofs;
         if (Id() == 1) {
         KRATOS_INFO("Shell7pElement DOF debug")
-        << "step " << rCurrentProcessInfo[STEP]
-        << " iter " << rCurrentProcessInfo[NL_ITERATION_NUMBER]
+        << "step " << CurrentProcessInfo[STEP]
+        << " iter " << CurrentProcessInfo[NL_ITERATION_NUMBER]
         << " Alpha = " << mAlphaEas
         << " Rtild = " << mRtild
         << std::endl;
+
 }
-
-    KRATOS_CATCH( "" )
-}
-
-void Shell7pElement::FinalizeNonLinearIteration(const ProcessInfo& CurrentProcessInfo)
-{
-
 }
 
 void Shell7pElement::GetEASModeConfiguration(array_1d<SizeType,3>& rEasModesPerKinematicVariableSet, SizeType& rNumEasModes) const

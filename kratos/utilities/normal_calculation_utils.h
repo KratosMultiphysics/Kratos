@@ -131,7 +131,7 @@ public:
      * @tparam TEntity The entity type considered
      * @tparam TIsHistorical Specifies if the historical or non-historical nodal database is used
      */
-    template<class TContainerType, bool TIsHistorical = true>
+    template<class TContainerType, bool TIsHistorical = true>           // TContainerType: Allows the function to work with different container types (e.g., elements or conditions). This way, the same function can compute normals for various entity types in the model part without duplicating code.  TIsHistorical: Lets you choose whether to store the computed normals in the historical database (solution step data, used for time-dependent variables) or in the non-historical database (persistent data attached to nodes). This is important for flexibility—some workflows require normals to be available as historical variables, others as non-historical.
     void CalculateUnitNormals(
         ModelPart& rModelPart,
         const bool EnforceGenericGeometryAlgorithm = false,
