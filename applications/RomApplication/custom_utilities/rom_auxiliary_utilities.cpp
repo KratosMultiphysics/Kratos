@@ -1088,4 +1088,84 @@ void RomAuxiliaryUtilities::GetJPhiElemental(
         }
     }
 
+void RomAuxiliaryUtilities::AddGeometries(
+    const ModelPart& rOriginModelPart,
+    ModelPart& rDestinationModelPart)
+{
+    KRATOS_TRY
+
+    // Root level
+    // Elements
+    for (const auto& r_elem : rDestinationModelPart.Elements()) {
+        auto p_geom = rOriginModelPart.GetElement(r_elem.Id()).pGetGeometry();
+        rDestinationModelPart.AddGeometry(p_geom);
+    }
+    // Conditions
+    for (const auto& r_cond : rDestinationModelPart.Conditions()) {
+        auto p_geom = rOriginModelPart.GetCondition(r_cond.Id()).pGetGeometry();
+        rDestinationModelPart.AddGeometry(p_geom);
+    }
+
+    // SubModelParts
+    std::unordered_map<std::string, std::vector<IndexType>> smp_geoms;
+    for (const auto& r_dest_smp : rDestinationModelPart.SubModelParts()) {
+        auto& r_orig_smp = rOriginModelPart.GetSubModelPart(r_dest_smp.Name());
+        // Elements
+        for (const auto& r_elem : r_dest_smp.Elements()) {
+            auto p_geom = r_orig_smp.GetElement(r_elem.Id()).pGetGeometry();
+            smp_geoms[r_dest_smp.Name()].push_back(p_geom->Id());
+        }
+        // Conditions
+        for (const auto& r_cond : r_dest_smp.Conditions()) {
+            auto p_geom = r_orig_smp.GetCondition(r_cond.Id()).pGetGeometry();
+            smp_geoms[r_dest_smp.Name()].push_back(p_geom->Id());
+        }
+    }
+
+    for (const auto& r_map : smp_geoms) {
+        rDestinationModelPart.GetSubModelPart(r_map.first).AddGeometries(r_map.second);
+    }
+
+    KRATOS_CATCH("")
+}
+
+namespace {
+
+void AssignPropertiesToEntitiesInModelPart(ModelPart& rModelPart, const Properties::Pointer pProperties)
+{
+    for (auto& r_element : rModelPart.Elements()) {
+        if (r_element.pGetProperties() == nullptr) {
+            r_element.SetProperties(pProperties);
+        }
+    }
+    for (auto& r_condition : rModelPart.Conditions()) {
+        if (r_condition.pGetProperties() == nullptr) {
+            r_condition.SetProperties(pProperties);
+        }
+    }
+    for (auto& r_sub_model_part : rModelPart.SubModelParts()) {
+        AssignPropertiesToEntitiesInModelPart(r_sub_model_part, pProperties);
+    }
+}
+
+} // anonymous namespace
+
+void RomAuxiliaryUtilities::AssignPropertiesToEntitiesIfMissing(ModelPart& rModelPart)
+{
+    KRATOS_TRY
+
+    // Look for existing properties in the root model part, creating a default one if there is none
+    ModelPart& r_root_model_part = rModelPart.GetRootModelPart();
+    Properties::Pointer p_properties;
+    if (r_root_model_part.NumberOfProperties() > 0) {
+        p_properties = r_root_model_part.pGetProperties(r_root_model_part.PropertiesBegin()->Id());
+    } else {
+        p_properties = r_root_model_part.CreateNewProperties(0);
+    }
+
+    AssignPropertiesToEntitiesInModelPart(rModelPart, p_properties);
+
+    KRATOS_CATCH("")
+}
+
 } // namespace Kratos

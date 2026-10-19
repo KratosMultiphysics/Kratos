@@ -12,8 +12,8 @@
 
 #pragma once
 
-#include "includes/kratos_export_api.h"
 #include "includes/default_interface.h"
+#include "includes/kratos_export_api.h"
 
 #include <algorithm>
 #include <cstdlib>

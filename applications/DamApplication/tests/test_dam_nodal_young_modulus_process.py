@@ -19,7 +19,7 @@ class TestImposeNodalYoungModulusProcess(KratosUnittest.TestCase):
     def _CreateModelPart(num_nodes):
         model = KratosMultiphysics.Model()
         model_part = model.CreateModelPart("main")
-        model_part.AddNodalSolutionStepVariable(KratosDam.NODAL_YOUNG_MODULUS)
+        model_part.AddNodalSolutionStepVariable(KratosMultiphysics.YOUNG_MODULUS)
         for i in range(num_nodes):
             model_part.CreateNewNode(i + 1, float(i), float(i % 3), 0.25 * i)
         return model, model_part
@@ -48,7 +48,7 @@ class TestImposeNodalYoungModulusProcess(KratosUnittest.TestCase):
     @staticmethod
     def _NodalValues(model_part):
         return [
-            node.GetSolutionStepValue(KratosDam.NODAL_YOUNG_MODULUS)
+            node.GetSolutionStepValue(KratosMultiphysics.YOUNG_MODULUS)
             for node in model_part.Nodes
         ]
 
@@ -65,12 +65,12 @@ class TestImposeNodalYoungModulusProcess(KratosUnittest.TestCase):
 
         for node in model_part.Nodes:
             self.assertAlmostEqual(
-                node.GetSolutionStepValue(KratosDam.NODAL_YOUNG_MODULUS),
+                node.GetSolutionStepValue(KratosMultiphysics.YOUNG_MODULUS),
                 self._ExpectedValue(node),
             )
-            # NODAL_YOUNG_MODULUS is a prescribed nodal material field, not a
+            # YOUNG_MODULUS is a prescribed nodal material field, not a
             # degree of freedom; no DOF may be created by the process.
-            self.assertFalse(node.HasDofFor(KratosDam.NODAL_YOUNG_MODULUS))
+            self.assertFalse(node.HasDofFor(KratosMultiphysics.YOUNG_MODULUS))
 
     def test_multithreaded_execution_matches_single_thread(self):
         # Single-threaded reference
@@ -98,13 +98,13 @@ class TestImposeNodalYoungModulusProcess(KratosUnittest.TestCase):
 
         for node in model_part.Nodes:
             self.assertAlmostEqual(
-                node.GetSolutionStepValue(KratosDam.NODAL_YOUNG_MODULUS),
+                node.GetSolutionStepValue(KratosMultiphysics.YOUNG_MODULUS),
                 self._ExpectedValue(node),
             )
-            self.assertFalse(node.HasDofFor(KratosDam.NODAL_YOUNG_MODULUS))
+            self.assertFalse(node.HasDofFor(KratosMultiphysics.YOUNG_MODULUS))
 
     def _NodalYoungTetraModel(self, nodal_young):
-        """Build a single-tetra model with the given nodal NODAL_YOUNG_MODULUS."""
+        """Build a single-tetra model with the given nodal YOUNG_MODULUS."""
         model, model_part = self._CreateModelPart(4)
         nodes = list(model_part.Nodes)
         coordinates = [(0.0, 0.0, 0.0), (1.0, 0.0, 0.0), (0.0, 1.0, 0.0), (0.0, 0.0, 1.0)]
@@ -113,10 +113,13 @@ class TestImposeNodalYoungModulusProcess(KratosUnittest.TestCase):
             node.Y = coords[1]
             node.Z = coords[2]
         for node, young in zip(nodes, nodal_young):
-            node.SetSolutionStepValue(KratosDam.NODAL_YOUNG_MODULUS, 0, young)
+            node.SetSolutionStepValue(KratosMultiphysics.YOUNG_MODULUS, 0, young)
         properties = model_part.GetProperties()[1]
         properties.SetValue(KratosMultiphysics.POISSON_RATIO, 0.3)
+        # The historical nodal law name now resolves to the standard accessor-aware
+        # law; the nodal Young's modulus field is exposed through the Accessor.
         law = KratosDam.LinearElastic3DLawNodal()
+        KratosDam.AddYoungModulusDatabaseAccessor(model_part)
         geometry = KratosMultiphysics.Tetrahedra3D4(*nodes)
         return model_part, properties, law, geometry
 

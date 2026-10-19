@@ -41,6 +41,10 @@
 #include "includes/condition.h"
 #include "includes/variables.h"
 
+// Constitutive law used as the serializer-compatibility target for the
+// removed historical LinearElastic3DLawNodal class.
+#include "custom_constitutive/flexible_elastic_isotropic_3d.h"
+
 #include "dam_application.h"
 
 namespace Kratos
@@ -154,13 +158,23 @@ void KratosDamApplication::Register()
     Serializer::Register("ThermalLinearElastic2DPlaneStress",mThermalLinearElastic2DPlaneStress);
     Serializer::Register("ThermalLinearElastic2DPlaneStrain",mThermalLinearElastic2DPlaneStrain);
 
-    Serializer::Register("LinearElastic3DLawNodal",mLinearElastic3DLawNodal);
     Serializer::Register("LinearElastic2DPlaneStressNodal",mLinearElastic2DPlaneStressNodal);
     Serializer::Register("LinearElastic2DPlaneStrainNodal",mLinearElastic2DPlaneStrainNodal);
 
-    Serializer::Register("ThermalLinearElastic3DLawNodal",mThermalLinearElastic3DLawNodal);
-    Serializer::Register("ThermalLinearElastic2DPlaneStressNodal",mThermalLinearElastic2DPlaneStressNodal);
-    Serializer::Register("ThermalLinearElastic2DPlaneStrainNodal",mThermalLinearElastic2DPlaneStrainNodal);
+    // The 3D and thermal nodal Young's modulus behavior is now provided by the
+    // standard/accessor-aware laws; the historical nodal names are kept as
+    // aliases so existing input files keep working.
+    Serializer::Register("ThermalLinearElastic3DLawNodal",mThermalLinearElastic3DLaw);
+    Serializer::Register("ThermalLinearElastic2DPlaneStressNodal",mThermalLinearElastic2DPlaneStress);
+    Serializer::Register("ThermalLinearElastic2DPlaneStrainNodal",mThermalLinearElastic2DPlaneStrain);
+
+    // Serializer-compatibility alias for the removed historical mechanical 3D
+    // nodal law. The old class serialized only the stateless constitutive-law
+    // base, so its archives load into the current accessor-aware standard law.
+    // The canonical save name of FlexibleElasticIsotropic3D is unaffected
+    // (Serializer::Register does not overwrite an existing type-id mapping).
+    FlexibleElasticIsotropic3D flexible_elastic_prototype;
+    Serializer::Register("LinearElastic3DLawNodal", flexible_elastic_prototype);
 
     Serializer::Register("ThermalSimoJuLocalDamage3DLaw",mThermalSimoJuLocalDamage3DLaw);
     Serializer::Register("ThermalSimoJuLocalDamagePlaneStrain2DLaw",mThermalSimoJuLocalDamagePlaneStrain2DLaw);

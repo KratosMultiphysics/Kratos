@@ -45,6 +45,7 @@ void AddCustomUtilitiesToPython(pybind11::module& m)
     .def("GetProjectedResidualsOntoPhi",&RomResidualsUtility::GetProjectedResidualsOntoPhi) //
     .def("GetProjectedResidualsOntoPsi",&RomResidualsUtility::GetProjectedResidualsOntoPsi) //
     .def("GetProjectedResidualsOntoJPhi",&RomResidualsUtility::GetProjectedResidualsOntoJPhi) //
+    .def("GetProjectedResidualsOntoV",&RomResidualsUtility::GetProjectedResidualsOntoV) //
     ;
 
     class_<RomAuxiliaryUtilities>(m, "RomAuxiliaryUtilities")
@@ -68,6 +69,8 @@ void AddCustomUtilitiesToPython(pybind11::module& m)
         .def_static("ProjectRomSolutionIncrementToNodes", &RomAuxiliaryUtilities::ProjectRomSolutionIncrementToNodes)
         .def_static("GetElementIdsInModelPart", &RomAuxiliaryUtilities::GetElementIdsInModelPart)
         .def_static("GetConditionIdsInModelPart", &RomAuxiliaryUtilities::GetConditionIdsInModelPart)
+        .def_static("AddGeometries", &RomAuxiliaryUtilities::AddGeometries)
+        .def_static("AssignPropertiesToEntitiesIfMissing", &RomAuxiliaryUtilities::AssignPropertiesToEntitiesIfMissing)
         ;
 }
 
