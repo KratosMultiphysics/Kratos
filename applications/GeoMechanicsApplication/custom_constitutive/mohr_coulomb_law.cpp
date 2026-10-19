@@ -219,7 +219,7 @@ void MohrCoulombLaw::CalculateMaterialResponseCauchy(ConstitutiveLaw::Parameters
 {
     const auto& r_properties = rParameters.GetMaterialProperties();
 
-    const auto elastic_matrix = CalculateElasticMatrix(r_properties);
+    const auto elastic_matrix = CalculateElasticConstitutiveTensor(r_properties);
 
     if (rParameters.GetOptions().Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
         rParameters.GetConstitutiveMatrix() = elastic_matrix;
@@ -300,7 +300,7 @@ void MohrCoulombLaw::CalculateMaterialResponseCauchy(ConstitutiveLaw::Parameters
     rParameters.GetStressVector() = mStressVector;
 }
 
-Matrix MohrCoulombLaw::CalculateElasticMatrix(const Properties& rProperties)
+Matrix MohrCoulombLaw::CalculateElasticConstitutiveTensor(const Properties& rProperties)
 {
     const auto [reference_youngs_modulus, poisson_ratio] =
         ConstitutiveLawUtilities::GetOrCalculateElasticProperties(rProperties);
@@ -314,8 +314,8 @@ Matrix MohrCoulombLaw::CalculateElasticMatrix(const Properties& rProperties)
 
 Vector MohrCoulombLaw::CalculateTrialStressVector(const Vector& rStrainVector, const Properties& rProperties)
 {
-    return mStressVectorFinalized +
-           prod(CalculateElasticMatrix(rProperties), rStrainVector - mStrainVectorFinalized);
+    return mStressVectorFinalized + prod(CalculateElasticConstitutiveTensor(rProperties),
+                                         rStrainVector - mStrainVectorFinalized);
 }
 
 std::size_t MohrCoulombLaw::CalculateAdaptiveNumberOfSubSteps(const Geo::PrincipalStresses& rTrialPrincipalStresses,

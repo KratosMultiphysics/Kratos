@@ -79,7 +79,7 @@ private:
     int         mMaxNumberOfSubSteps        = 1;
     std::size_t mCalculatedNumberOfSubSteps = 0;
 
-    [[nodiscard]] Matrix CalculateElasticMatrix(const Properties& rProperties);
+    [[nodiscard]] Matrix CalculateElasticConstitutiveTensor(const Properties& rProperties);
     [[nodiscard]] Vector CalculateTrialStressVector(const Vector& rStrainVector, const Properties& rProperties);
 
     /// <summary>
