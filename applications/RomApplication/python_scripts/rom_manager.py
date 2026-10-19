@@ -12,6 +12,7 @@ from KratosMultiphysics.RomApplication.randomized_singular_value_decomposition i
 from KratosMultiphysics.RomApplication.empirical_cubature_method import EmpiricalCubatureMethod
 from KratosMultiphysics.RomApplication.rom_nn_interface import NN_ROM_Interface
 from KratosMultiphysics.RomApplication.rom_rbf_interface import RBF_ROM_Interface
+from KratosMultiphysics.RomApplication.hrom_training_utility import HRomTrainingUtility
 import re
 
 
@@ -770,7 +771,7 @@ class RomManager(object):
                 entities_modeler.AddString("geometry_ids_file", ids_file)
         else:
             # Mesh based input (mdpa), given in the 'model_import_settings' or in the importer modeler (e.g. the ImportMDPAModeler)
-            model_import_settings = parameters["solver_settings"]["model_import_settings"]
+            model_import_settings = HRomTrainingUtility.GetImportingSolverSettings(parameters["solver_settings"])["model_import_settings"]
             if model_import_settings.Has("input_filename"):
                 model_part_name = model_import_settings["input_filename"].GetString()
                 model_import_settings["input_filename"].SetString(f"{model_part_name}HROM")
