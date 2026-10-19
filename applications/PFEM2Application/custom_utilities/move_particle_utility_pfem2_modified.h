@@ -5140,10 +5140,10 @@ namespace Kratos
         double sum_Ns_without_other_phase_nodes;
 
 		//calculating substep to get +- courant(substep) = 0.1
-        nsubsteps = 10.0 * (delta_t * pelement->GetValue(VELOCITY_OVER_ELEM_SIZE));
+        // nsubsteps = 10.0 * (delta_t * pelement->GetValue(VELOCITY_OVER_ELEM_SIZE));
 		// nsubsteps = 5.0 * (delta_t * pelement->GetValue(VELOCITY_OVER_ELEM_SIZE));
 		// nsubsteps = 2.0 * (delta_t * pelement->GetValue(VELOCITY_OVER_ELEM_SIZE));
-		// nsubsteps = 1.0 * (delta_t * pelement->GetValue(VELOCITY_OVER_ELEM_SIZE));
+		nsubsteps = 1.0 * (delta_t * pelement->GetValue(VELOCITY_OVER_ELEM_SIZE));
         if (nsubsteps<1)
             nsubsteps=1;
         substep_dt = delta_t / double(nsubsteps);
