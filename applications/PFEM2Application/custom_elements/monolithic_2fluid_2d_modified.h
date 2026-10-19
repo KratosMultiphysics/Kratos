@@ -21,6 +21,12 @@
 #include "includes/element.h"
 #include "includes/ublas_interface.h"
 #include "custom_utilities/pfem_particle_fluidonly.h"
+#include "includes/serializer.h"
+#include "utilities/geometry_utilities.h"
+#include "includes/cfd_variables.h"
+
+#include "utilities/divide_triangle_2d_3.h"
+#include "modified_shape_functions/triangle_2d_3_modified_shape_functions.h"
 
 
 
@@ -59,6 +65,24 @@ public:
     typedef PointerVectorSet<Dof<double>, IndexedObject> DofsArrayType;
 	typedef PointerVector< PFEM_Particle_Fluid, PFEM_Particle_Fluid*, std::vector<PFEM_Particle_Fluid*> > ParticlePointerVector;
 
+    struct element_data
+    {
+        bounded_matrix<double,3, 2> v, vn, f, f_nitsche, f_n, f_nitsche_n; 
+        array_1d<double,3> p, rho;
+        
+        bounded_matrix<double, 3, 2 > DN_DX;
+        array_1d<double, 3 > N;
+        
+        Matrix C;
+        Vector stress;
+        
+        double bdf0;
+        double bdf1;
+        double bdf2;
+        double h;
+        double dyn_tau_coeff;
+    };
+
     /// Default constructor.
     MonolithicPFEM22DModified(IndexType NewId = 0) :
         Element(NewId)
@@ -82,7 +106,7 @@ public:
 
     void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo) override;
 
-    void AddExplicitContribution(const ProcessInfo& CurrentProcessInfo) override;
+    // void AddExplicitContribution(const ProcessInfo& CurrentProcessInfo) override;
 
     void EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo) const override;
 
@@ -90,38 +114,44 @@ public:
 
     void InitializeSolutionStep(const ProcessInfo& CurrentProcessInfo) override;
 
+    
+
 
 protected:
 
-    void CalculatePressureProjection(const ProcessInfo& CurrentProcessInfo);
+    void ComputeElementAsWATER(bounded_matrix<double,9, 9>& lhs_local,
+                              array_1d<double,9>& rhs_local,
+                              Matrix& rLeftHandSideMatrix,
+                              Vector& rRightHandSideVector,
+                              const double& Volume,
+                              element_data& data,
+                              const ProcessInfo& rCurrentProcessInfo);
 
-    virtual void AddViscousTerm(MatrixType& rDampMatrix,
-        const BoundedMatrix<double, 3, 2>& rShapeDeriv,
-        double& Viscosity,const double Area);
+    void ComputeElementAsAIR(bounded_matrix<double,9, 9>& lhs_local,
+                              array_1d<double,9>& rhs_local,
+                              Matrix& rLeftHandSideMatrix,
+                              Vector& rRightHandSideVector,
+                              const double& Volume,
+                              element_data& data,
+                              const ProcessInfo& rCurrentProcessInfo);     
 
-    void AddViscousTerm(BoundedMatrix<double, 13, 13 > & output,
-        BoundedMatrix<double, (2+1), 2 >& rShapeDeriv,
-        array_1d<double,3>&  distances,
-        std::vector< Matrix >& gauss_gradients,
-        array_1d<double,3>&  viscosities,
-        array_1d<double,3>&  signs,
-        array_1d<double,3>&  volumes ,
-        const unsigned int ndivisions);
+    // void ComputeElementAsMIXED(bounded_matrix<double,18, 18>& lhs_local, array_1d<double,18>& rhs_local,
+    //                            Matrix& rLeftHandSideMatrix,
+    //                            Vector& rRightHandSideVector,
+    //                            const double& Volume,
+    //                            element_data& data,
+    //                            const ProcessInfo& rCurrentProcessInfo,
+    //                            array_1d<double,3>& distances
+    //                           );                        
 
-    void AddViscousTerm(BoundedMatrix<double, 12, 12 > & output,
-        BoundedMatrix<double, (2+1), 2 >& rShapeDeriv,
-        array_1d<double,3>&  distances,
-        std::vector< Matrix >& gauss_gradients,
-        array_1d<double,3>&  viscosities,
-        array_1d<double,3>&  signs,
-        array_1d<double,3>&  volumes ,
-        const unsigned int ndivisions);
-
-    void  AddViscousTerm(MatrixType& rDampMatrix,
-        std::vector< Matrix > & gauss_gradients_discontinuous,
-        array_1d<double,3>&  volumes,
-        array_1d<double,3>&  viscosities,
-        const int ndivisions);
+    void ComputeConstitutiveResponse(element_data& data, const double rho, const double mu,  const ProcessInfo& rCurrentProcessInfo);
+    
+    
+    void ComputeGaussPointLHSandRHSContribution(bounded_matrix<double,9,9>& lhs, array_1d<double,9>& rhs, const element_data& data, const ProcessInfo& rCurrentProcessInfo, const double& weight);
+    
+    void ComputeGaussPointLHSandRHSContribution_NitscheDomainTerms(bounded_matrix<double,18,18>& lhs, array_1d<double,18>& rhs, const element_data& data, const ProcessInfo& rCurrentProcessInfo, const double& weight, boost::numeric::ublas::bounded_matrix<double,(18),(18)>& Tdublicate);
+    
+    void ComputeGaussPointLHSandRHSContribution_NitscheBoundaryTerms(bounded_matrix<double,18,18>& lhs, array_1d<double,18>& rhs, const element_data& data, const ProcessInfo& rCurrentProcessInfo, const double& weight, array_1d<double,3>& normal, boost::numeric::ublas::bounded_matrix<double,(18),(18)>& Tdublicate, boost::numeric::ublas::bounded_matrix<double,(18),(18)>& Tdublicate_neighbor, boost::numeric::ublas::bounded_matrix<double,(6),(6)>& Tself, boost::numeric::ublas::bounded_matrix<double,(6),(6)>& Tneighbor,const Matrix& C_self,const Matrix& C_neighbor);
 
     template<class T>
     bool InvertMatrix(const T& input, T& inverse);
@@ -141,6 +171,8 @@ private:
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element);
     }
 
+    array_1d<double,(2)> utilde_n = ZeroVector(2); //u tilde at the previous time step
+
     MonolithicPFEM22DModified & operator=(MonolithicPFEM22DModified const& rOther);
 
     /// Copy constructor.
@@ -150,4 +182,4 @@ private:
 
 }  // namespace Kratos.
 
-#endif // KRATOS_MONOLITHIC_PFEM2_2D_ELEM_H_INCLUDED  defined
+#endif // KRATOS_MONOLITHIC_PFEM2_2D_MODIFIED_ELEM_H_INCLUDED  defined

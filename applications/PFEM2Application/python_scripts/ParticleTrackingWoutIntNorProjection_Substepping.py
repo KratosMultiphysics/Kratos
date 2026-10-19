@@ -26,6 +26,12 @@ def AddVariables(model_part):
     model_part.AddNodalSolutionStepVariable(BODY_FORCE)
     model_part.AddNodalSolutionStepVariable(MESH_VELOCITY)
 
+    model_part.AddNodalSolutionStepVariable(LUMPED_MASS_VALUE)
+    model_part.AddNodalSolutionStepVariable(PROJECTED_DELTA_TEMPERATURE)
+    model_part.AddNodalSolutionStepVariable(PROJECTED_TEMPERATURE)
+    model_part.AddNodalSolutionStepVariable(PROJECTED_DISTANCE)
+    model_part.AddNodalSolutionStepVariable(R_NODE_TEMPERATURE)
+
     model_part.AddNodalSolutionStepVariable(VISCOSITY_AIR)
     model_part.AddNodalSolutionStepVariable(VISCOSITY_WATER)
     model_part.AddNodalSolutionStepVariable(DENSITY_AIR)
@@ -193,20 +199,20 @@ class PFEM2Solver:
 
         #Reseeding using streamlines in inverse way in case there are too few particles. Not very accurate since particles follow streamlines, no matter if it's water or air.
         #(for 1 fluid should be accurate though
-        #pre_minimum_number_of_particles=self.domain_size;
-        #(self.moveparticles).PreReseed(pre_minimum_number_of_particles);
-        #t4 = timer.time()
-        #self.reseed = self.reseed + t4-t3
-        #self.prereseed = self.prereseed + t4-t3
+        pre_minimum_number_of_particles=2*self.domain_size;
+        (self.moveparticles).PreReseed_Temperature(pre_minimum_number_of_particles);
+        t4 = timer.time()
+        self.reseed = self.reseed + t4-t3
+        self.prereseed = self.prereseed + t4-t3
 
         # #transferring data from the particles to the mesh:
-        (self.moveparticles).TransferLagrangianToEulerian_Temperature()
+        # (self.moveparticles).TransferLagrangianToEulerian_Temperature()
         # (self.moveparticles).TransferLagrangianToEulerianSecondOrder_Temperature()
         # t5 = timer.time()
         # self.lagrangiantoeulerian = self.lagrangiantoeulerian + t5-t4
 
         #(self.VariableUtils).CopyVectorVar(PROJECTED_VELOCITY,VELOCITY,self.model_part.Nodes)
-        self.VariableUtils.CopyVariable(PROJECTED_TEMPERATURE, TEMPERATURE, self.model_part.Nodes)
+        # self.VariableUtils.CopyVariable(PROJECTED_TEMPERATURE, TEMPERATURE, self.model_part.Nodes)
         #full_reset=True;
         #(self.moveparticles).ResetBoundaryConditions(full_reset)
         #(self.moveparticles).CopyVectorVarToPreviousTimeStep(VELOCITY,self.model_part.Nodes)
@@ -282,6 +288,9 @@ class PFEM2Solver:
 
     def PrintInfo(self,print_times):
         self.print_times=print_times
+
+    def InterpolateParticleTemperature_tzero(self):
+        (self.moveparticles).InterpolateParticleTemperature_tzero()
 
     def InterpolateParticleTemperature_prescribed_tzero(self):
         (self.moveparticles).InterpolateParticleTemperature_prescribed_tzero()

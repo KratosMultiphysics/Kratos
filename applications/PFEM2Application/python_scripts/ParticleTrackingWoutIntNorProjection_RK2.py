@@ -29,6 +29,7 @@ def AddVariables(model_part):
     model_part.AddNodalSolutionStepVariable(LUMPED_MASS_VALUE)
     model_part.AddNodalSolutionStepVariable(PROJECTED_DELTA_TEMPERATURE)
     model_part.AddNodalSolutionStepVariable(PROJECTED_TEMPERATURE)
+    model_part.AddNodalSolutionStepVariable(PROJECTED_DISTANCE)
     model_part.AddNodalSolutionStepVariable(R_NODE_TEMPERATURE)
 
     model_part.AddNodalSolutionStepVariable(VISCOSITY_AIR)

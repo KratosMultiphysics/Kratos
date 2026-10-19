@@ -26,6 +26,12 @@ def AddVariables(model_part):
     model_part.AddNodalSolutionStepVariable(BODY_FORCE)
     model_part.AddNodalSolutionStepVariable(MESH_VELOCITY)
 
+    model_part.AddNodalSolutionStepVariable(LUMPED_MASS_VALUE)
+    model_part.AddNodalSolutionStepVariable(PROJECTED_DELTA_TEMPERATURE)
+    model_part.AddNodalSolutionStepVariable(PROJECTED_TEMPERATURE)
+    model_part.AddNodalSolutionStepVariable(PROJECTED_DISTANCE)
+    model_part.AddNodalSolutionStepVariable(R_NODE_TEMPERATURE)
+
     model_part.AddNodalSolutionStepVariable(VISCOSITY_AIR)
     model_part.AddNodalSolutionStepVariable(VISCOSITY_WATER)
     model_part.AddNodalSolutionStepVariable(DENSITY_AIR)
@@ -281,5 +287,14 @@ class PFEM2Solver:
     def PrintInfo(self,print_times):
         self.print_times=print_times
 
+    def InterpolateParticleTemperature_tzero(self):
+        (self.moveparticles).InterpolateParticleTemperature_tzero()
+    
     def InterpolateParticleTemperature_prescribed_tzero(self):
         (self.moveparticles).InterpolateParticleTemperature_prescribed_tzero()
+
+    def PreReseed_Temperature_RK2_WitSubstepping(self, pre_minimum_number_of_particles):
+        (self.moveparticles).PreReseed_Temperature_RK2_WitSubstepping(pre_minimum_number_of_particles)
+
+    def PreReseed_Temperature_RK2_WithSubstepping(self, pre_minimum_number_of_particles):
+        (self.moveparticles).PreReseed_Temperature_RK2_WithSubstepping(pre_minimum_number_of_particles)
