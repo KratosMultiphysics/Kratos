@@ -20,6 +20,7 @@
 // Project includes
 #include "includes/model_part.h"
 #include "includes/global_pointer_variables.h"
+#include "spaces/default_spaces.h"
 #include "utilities/parallel_utilities.h"
 #include "utilities/atomic_utilities.h"
 
@@ -53,9 +54,9 @@ public:
     ///@name Type Definitions
     ///@{
 
-    using SparseMatrixType = boost::numeric::ublas::compressed_matrix<double>;
+    using SparseMatrixType = TDefaultSparseSpace<double>::MatrixType;
 
-    using SparseVectorType = boost::numeric::ublas::vector<double>;
+    using SparseVectorType = TDefaultSparseSpace<double>::VectorType;
 
     ///@}
     ///@name Life Cycle
@@ -140,7 +141,8 @@ public:
 
     ///this function constructs the structure of a smaller matrix using a technique taken from MIS aggregation
     ///the algorythm is taken from the pyamg lib
-    static void ConstructW(const std::size_t max_reduced_size, SparseMatrixType& rA, std::vector<int>& w, SparseMatrixType&  deflatedA)
+    template<class TMatrixType>
+    static void ConstructW(const std::size_t max_reduced_size, TMatrixType& rA, std::vector<int>& w, TMatrixType&  deflatedA)
     {
         KRATOS_TRY
 
@@ -155,21 +157,13 @@ public:
         std::vector<std::set<std::size_t> > deflatedANZ(reduced_size);
 
         // Loop over non-zero structure of A and build non-zero structure of deflatedA
-        SparseMatrixType::iterator1 a_iterator = rA.begin1();
+        typename TMatrixType::iterator1 a_iterator = rA.begin1();
 
         for (std::size_t i = 0; i < full_size; i++)
         {
-#ifndef BOOST_UBLAS_NO_NESTED_CLASS_RELATION
-            for (SparseMatrixType::iterator2 row_iterator = a_iterator.begin() ;
+            for (typename TMatrixType::iterator2 row_iterator = a_iterator.begin() ;
                     row_iterator != a_iterator.end() ; ++row_iterator)
             {
-#else
-            for (typename SparseMatrixType::iterator2 row_iterator = begin(a_iterator,
-                    boost::numeric::ublas::iterator1_tag());
-                    row_iterator != end(a_iterator,
-                                        boost::numeric::ublas::iterator1_tag()); ++row_iterator )
-            {
-#endif
                 deflatedANZ[w[a_iterator.index1()]].insert(w[row_iterator.index2()]);
             }
 
@@ -181,7 +175,7 @@ public:
         for (std::size_t i = 0; i < reduced_size; i++)
             NZ += deflatedANZ[i].size();
 
-        deflatedA = SparseMatrixType(reduced_size, reduced_size,NZ);
+        deflatedA = TMatrixType(reduced_size, reduced_size,NZ);
 
         // Insert the non-zero structure into deflatedA
         for(std::size_t i = 0 ; i < reduced_size ; i++)
@@ -192,9 +186,12 @@ public:
             }
         }
 
+        // Set the row pointers of the trailing empty rows (needed before the index arrays are read)
+        deflatedA.complete_index1_data();
+
         if(reduced_size > max_reduced_size)
         {
-            SparseMatrixType Areduced;
+            TMatrixType Areduced;
             std::vector<int> wsmaller;
 
             //need to reduce further!! - do it recursively
@@ -217,7 +214,8 @@ public:
     }
 
     ///block version of ConstructW. To be used when multiple DOFS are associated to the same node.
-    static void ConstructW(const int max_reduced_size, SparseMatrixType& rA, std::vector<int>& w, SparseMatrixType&  deflatedA, const std::size_t block_size)
+    template<class TMatrixType>
+    static void ConstructW(const int max_reduced_size, TMatrixType& rA, std::vector<int>& w, TMatrixType&  deflatedA, const std::size_t block_size)
     {
         if(block_size == 1)
         {
@@ -230,11 +228,11 @@ public:
             KRATOS_ERROR_IF(rA.nnz()%block_size != 0) << "The number of non zeros is not a multiple of block_size. Can not use the block deflation" << std::endl;
 
             //construct Ascalar
-            SparseMatrixType Ascalar;
+            TMatrixType Ascalar;
             ConstructScalarMatrix(rA.size1(),block_size,rA.index1_data().begin(), rA.index2_data().begin(), Ascalar);
 
             //deflate it using the standard methods
-            SparseMatrixType deflatedAscalar;
+            TMatrixType deflatedAscalar;
             std::vector<int> wscalar;
             ConstructW(max_reduced_size/block_size,Ascalar, wscalar, deflatedAscalar);
 
@@ -250,7 +248,7 @@ public:
             }
 
             //compute deflatedA
-            SparseMatrixType deflatedA(deflatedAscalar.size1()*block_size,deflatedAscalar.size2()*block_size);
+            TMatrixType deflatedA(deflatedAscalar.size1()*block_size,deflatedAscalar.size2()*block_size);
             //do reserve!!
             deflatedA.reserve(deflatedAscalar.nnz()*block_size*block_size);
             ExpandScalarMatrix(rA.size1(),block_size,rA.index1_data().begin(), rA.index2_data().begin(), deflatedA);
@@ -261,7 +259,8 @@ public:
     //y is a vector of "full" size
     //x is a vector of reduced size
     //y = W*x;
-    static void ApplyW(const std::vector<int>& w, const SparseVectorType& x, SparseVectorType& y)
+    template<class TVectorType>
+    static void ApplyW(const std::vector<int>& w, const TVectorType& x, TVectorType& y)
     {
         IndexPartition<std::size_t>(w.size()).for_each([&](std::size_t i) {
             y[i] = x[w[i]];
@@ -272,7 +271,8 @@ public:
     //y is a vector of "reduced" size
     //s is a vector of "full" size
     //y = Wtranspose*x;
-    static void ApplyWtranspose(const std::vector<int>& w, const SparseVectorType& x, SparseVectorType& y)
+    template<class TVectorType>
+    static void ApplyWtranspose(const std::vector<int>& w, const TVectorType& x, TVectorType& y)
     {
         //first set to zero the destination vector
         IndexPartition<std::size_t>(y.size()).for_each([&](std::size_t i) {
@@ -287,11 +287,12 @@ public:
 
     //*******************************************************************************
     //*******************************************************************************
-    static void FillDeflatedMatrix( const SparseMatrixType& rA, std::vector<int>& w, SparseMatrixType&  Ah)
+    template<class TMatrixType>
+    static void FillDeflatedMatrix( const TMatrixType& rA, std::vector<int>& w, TMatrixType&  Ah)
     {
         KRATOS_TRY
 
-        double* abegin = Ah.value_data().begin();
+        auto* abegin = Ah.value_data().begin();
         const int size = Ah.value_data().size();
         IndexPartition<int>(size).for_each([&](int i) {
             *(abegin+i) = 0.0;
@@ -299,22 +300,14 @@ public:
         // TSparseSpaceType::SetToZero(Ah);
 
         // Now building Ah
-        SparseMatrixType::const_iterator1 a_iterator = rA.begin1();
+        typename TMatrixType::const_iterator1 a_iterator = rA.begin1();
         int full_size = rA.size1();
 
         for (int i = 0; i < full_size; i++)
         {
-#ifndef BOOST_UBLAS_NO_NESTED_CLASS_RELATION
-            for (SparseMatrixType::const_iterator2 row_iterator = a_iterator.begin() ;
+            for (typename TMatrixType::const_iterator2 row_iterator = a_iterator.begin() ;
                     row_iterator != a_iterator.end() ; ++row_iterator)
             {
-#else
-            for (typename SparseMatrixType::iterator2 row_iterator = begin(a_iterator,
-                    boost::numeric::ublas::iterator1_tag());
-                    row_iterator != end(a_iterator,
-                                        boost::numeric::ublas::iterator1_tag()); ++row_iterator )
-            {
-#endif
                 Ah(w[a_iterator.index1()], w[row_iterator.index2()]) += *row_iterator;
             }
             a_iterator++;
@@ -370,10 +363,10 @@ private:
     *    A may contain diagonal entries (self loops)
     *    Unaggregated nodes are marked with a -1
     */
-    template <class I>
+    template <class I, class TIndexType>
     static I standard_aggregation(const I n_row,
-                                  const std::size_t Ap[],
-                                  const std::size_t Aj[],
+                                  const TIndexType Ap[],
+                                  const TIndexType Aj[],
                                   I  x[])
     {
         // Bj[n] == -1 means i-th node has not been aggregated
@@ -492,10 +485,11 @@ private:
 
 
 
+    template<class TMatrixType, class TIndexType>
     static void ConstructScalarMatrix(const std::size_t n_row, const std::size_t block_size,
-                                      const std::size_t Ap[],
-                                      const std::size_t Aj[],
-                                      SparseMatrixType& Ascalar
+                                      const TIndexType Ap[],
+                                      const TIndexType Aj[],
+                                      TMatrixType& Ascalar
                                      )
     {
         Ascalar.resize(n_row/block_size,n_row/block_size,0.0);
@@ -523,10 +517,11 @@ private:
         }
     }
 
+    template<class TMatrixType, class TIndexType>
     static void ExpandScalarMatrix(const std::size_t n_row, const std::size_t block_size,
-                                   const std::size_t Ap[],
-                                   const std::size_t Aj[],
-                                   SparseMatrixType& Aexpanded
+                                   const TIndexType Ap[],
+                                   const TIndexType Aj[],
+                                   TMatrixType& Aexpanded
                                   )
     {
         Aexpanded.resize(n_row*block_size,n_row*block_size,0.0);
