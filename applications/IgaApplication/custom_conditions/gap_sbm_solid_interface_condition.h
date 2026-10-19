@@ -355,6 +355,9 @@ double ComputeTaylorTerm3D(
 
 ///@name Protected member Variables
 ///@{
+    // Adjoint Nitsche operators, frozen for all Newton trials of a load step.
+    Matrix mDBOldPlus;
+    Matrix mDBOldMinus;
     ConstitutiveLaw::Pointer mpConstitutiveLawMinus;
     ConstitutiveLaw::Pointer mpConstitutiveLaw; /// The pointer containing the constitutive laws
     // sbm variables

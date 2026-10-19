@@ -171,43 +171,59 @@ void GapSbmLoadSolidCondition::CalculateRightHandSide(
     Vector N_sum_vec = ZeroVector(number_of_control_points);
     ComputeTaylorExpansionContribution(N_sum_vec);
 
-    // Vector g_N = this->GetValue(FORCE); 
+    Vector g_N = this->GetValue(FORCE); 
 
 
-    //PLASTICITY AT THE BOUNDARY
-    double t = rCurrentProcessInfo[TIME];
-    double nu = this->GetProperties().GetValue(POISSON_RATIO);
-    double E = this->GetProperties().GetValue(YOUNG_MODULUS);
+    // //PLASTICITY AT THE BOUNDARY
+    // double t = rCurrentProcessInfo[TIME];
+    // double nu = this->GetProperties().GetValue(POISSON_RATIO);
+    // double E = this->GetProperties().GetValue(YOUNG_MODULUS);
 
-    const auto& r_true_geometry = GetGeometry();
-    const double x = r_true_geometry.Center().X();
-    const double y = r_true_geometry.Center().Y();
-    Vector g_N = ZeroVector(3); 
+    // const auto& r_true_geometry = GetGeometry();
+    // const double x = r_true_geometry.Center().X();
+    // const double y = r_true_geometry.Center().Y();
+    // Vector g_N = ZeroVector(3); 
 
-    Vector rStressVector = ZeroVector(3);
-    rStressVector[0] = ((std::sqrt(21)*M_PI*std::fabs(t*std::sin((1.0/4.0)*M_PI*x)*std::cos((1.0/2.0)*M_PI*y)) <= 3.0/500.0) ? (
-    33500*M_PI*t*std::sin((1.0/4.0)*M_PI*x)*std::cos((1.0/2.0)*M_PI*y)
-    )
-    : (
-    (134.0/7.0)*t*(-1750*M_PI + std::sqrt(21)/std::fabs(t*std::sin((1.0/4.0)*M_PI*x)*std::cos((1.0/2.0)*M_PI*y)))*std::sin((1.0/4.0)*M_PI*x)*std::cos((1.0/2.0)*M_PI*y)
-    ));
-    rStressVector[1] = ((std::sqrt(21)*M_PI*std::fabs(t*std::sin((1.0/4.0)*M_PI*x)*std::cos((1.0/2.0)*M_PI*y)) <= 3.0/500.0) ? (
-    -134000*M_PI*t*std::sin((1.0/4.0)*M_PI*x)*std::cos((1.0/2.0)*M_PI*y)
-    )
-    : (
-    -67.0/7.0*t*(3500*M_PI + 3*std::sqrt(21)/std::fabs(t*std::sin((1.0/4.0)*M_PI*x)*std::cos((1.0/2.0)*M_PI*y)))*std::sin((1.0/4.0)*M_PI*x)*std::cos((1.0/2.0)*M_PI*y)
-    ));
-    rStressVector[2] = 0;
+    // Vector rStressVector = ZeroVector(3);
+    // // rStressVector[0] = ((std::sqrt(21)*M_PI*std::fabs(t*std::sin((1.0/4.0)*M_PI*x)*std::cos((1.0/2.0)*M_PI*y)) <= 3.0/500.0) ? (
+    // // 33500*M_PI*t*std::sin((1.0/4.0)*M_PI*x)*std::cos((1.0/2.0)*M_PI*y)
+    // // )
+    // // : (
+    // // (134.0/7.0)*t*(-1750*M_PI + std::sqrt(21)/std::fabs(t*std::sin((1.0/4.0)*M_PI*x)*std::cos((1.0/2.0)*M_PI*y)))*std::sin((1.0/4.0)*M_PI*x)*std::cos((1.0/2.0)*M_PI*y)
+    // // ));
+    // // rStressVector[1] = ((std::sqrt(21)*M_PI*std::fabs(t*std::sin((1.0/4.0)*M_PI*x)*std::cos((1.0/2.0)*M_PI*y)) <= 3.0/500.0) ? (
+    // // -134000*M_PI*t*std::sin((1.0/4.0)*M_PI*x)*std::cos((1.0/2.0)*M_PI*y)
+    // // )
+    // // : (
+    // // -67.0/7.0*t*(3500*M_PI + 3*std::sqrt(21)/std::fabs(t*std::sin((1.0/4.0)*M_PI*x)*std::cos((1.0/2.0)*M_PI*y)))*std::sin((1.0/4.0)*M_PI*x)*std::cos((1.0/2.0)*M_PI*y)
+    // // ));
+    // // rStressVector[2] = 0;
 
-    g_N[0] = rStressVector[0]*mNormalPhysicalSpace[0] + rStressVector[2]*mNormalPhysicalSpace[1];
-    g_N[1] = rStressVector[2]*mNormalPhysicalSpace[0] + rStressVector[1]*mNormalPhysicalSpace[1];
 
-    // // // // cosinusoidal
-    // g_N[0] = E/(1-nu)*(sin(x)*sinh(y)) * mNormalPhysicalSpace[0]; 
-    // g_N[1] = E/(1-nu)*(sin(x)*sinh(y)) * mNormalPhysicalSpace[1]; 
+    // // // plasticity at the boundary + hardening
+    // // rStressVector[0] = ((std::sqrt(21)*M_PI*std::fabs(t*std::sin((1.0/4.0)*M_PI*x)*std::cos((1.0/2.0)*M_PI*y)) <= 3.0/500.0) ? (
+    // //     33500*M_PI*t*std::sin((1.0/4.0)*M_PI*x)*std::cos((1.0/2.0)*M_PI*y)
+    // //  )
+    // //  : (
+    // //     (134.0/1547.0)*t*(-316750*M_PI + 201*std::sqrt(21)/std::fabs(t*std::sin((1.0/4.0)*M_PI*x)*std::cos((1.0/2.0)*M_PI*y)))*std::sin((1.0/4.0)*M_PI*x)*std::cos((1.0/2.0)*M_PI*y)
+    // //  ));
+    // //  rStressVector[1] = ((std::sqrt(21)*M_PI*std::fabs(t*std::sin((1.0/4.0)*M_PI*x)*std::cos((1.0/2.0)*M_PI*y)) <= 3.0/500.0) ? (
+    // //     -134000*M_PI*t*std::sin((1.0/4.0)*M_PI*x)*std::cos((1.0/2.0)*M_PI*y)
+    // //  )
+    // //  : (
+    // //     -67.0/1547.0*t*(983500*M_PI + 603*std::sqrt(21)/std::fabs(t*std::sin((1.0/4.0)*M_PI*x)*std::cos((1.0/2.0)*M_PI*y)))*std::sin((1.0/4.0)*M_PI*x)*std::cos((1.0/2.0)*M_PI*y)
+    // //  ));
+    // //  rStressVector[2] = 0;
 
-    // // g_N[0] = E/(1-nu*nu) * mNormalPhysicalSpace[0] +  E/2/(1+nu) * mNormalPhysicalSpace[1]; 
-    // // g_N[1] = E/2/(1+nu) * mNormalPhysicalSpace[0] + E*nu/(1-nu*nu)* mNormalPhysicalSpace[1]; 
+    // g_N[0] = rStressVector[0]*mNormalPhysicalSpace[0] + rStressVector[2]*mNormalPhysicalSpace[1];
+    // g_N[1] = rStressVector[2]*mNormalPhysicalSpace[0] + rStressVector[1]*mNormalPhysicalSpace[1];
+
+    // // // // // cosinusoidal
+    // // g_N[0] = E/(1-nu)*(sin(x)*sinh(y)) * mNormalPhysicalSpace[0]; 
+    // // g_N[1] = E/(1-nu)*(sin(x)*sinh(y)) * mNormalPhysicalSpace[1]; 
+
+    // // // g_N[0] = E/(1-nu*nu) * mNormalPhysicalSpace[0] +  E/2/(1+nu) * mNormalPhysicalSpace[1]; 
+    // // // g_N[1] = E/2/(1+nu) * mNormalPhysicalSpace[0] + E*nu/(1-nu*nu)* mNormalPhysicalSpace[1]; 
 
 
     for (IndexType i = 0; i < number_of_control_points; i++) {

@@ -351,7 +351,7 @@ void GapSbmSolidInterfaceCondition::CalculateLeftHandSide(
             const int iglob = mDim*i+idim;
 
             Vector sigma_w_n_plus = ZeroVector(3);
-            Vector stress_column_w = column(DB_sum_plus, iglob);
+            Vector stress_column_w = column(mDBOldPlus, iglob);
             CalculateTraction(stress_column_w, mNormalPhysicalSpace, sigma_w_n_plus);
 
             for (IndexType j = 0; j < number_of_control_points_plus; j++) {
@@ -393,7 +393,7 @@ void GapSbmSolidInterfaceCondition::CalculateLeftHandSide(
             const int iglob = mDim*i+idim + shift_dof;
 
             Vector sigma_w_n_minus = ZeroVector(3);
-            Vector stress_column_w = column(DB_sum_minus, iloc);
+            Vector stress_column_w = column(mDBOldMinus, iloc);
             CalculateTraction(stress_column_w, mNormalPhysicalSpace, sigma_w_n_minus);
 
             for (IndexType j = 0; j < number_of_control_points_plus; j++) {
@@ -492,7 +492,6 @@ void GapSbmSolidInterfaceCondition::CalculateRightHandSide(
     ApplyConstitutiveLaw(mat_size_plus, old_strain_on_true_plus, values_true_plus, this_constitutive_variables_true_plus);
 
     const Vector& r_stress_on_true_plus = values_true_plus.GetStressVector();
-    const Matrix& r_D_on_true_plus = values_true_plus.GetConstitutiveMatrix();
     Vector old_stress_plus = ZeroVector(3);
     CalculateTraction(r_stress_on_true_plus, mNormalPhysicalSpace, old_stress_plus);
 
@@ -506,7 +505,6 @@ void GapSbmSolidInterfaceCondition::CalculateRightHandSide(
     ApplyConstitutiveLaw(mat_size_minus, old_strain_on_true_minus, values_true_minus, this_constitutive_variables_true_minus, true);
 
     const Vector& r_stress_on_true_minus = values_true_minus.GetStressVector();
-    const Matrix& r_D_on_true_minus = values_true_minus.GetConstitutiveMatrix();
     Vector old_stress_minus = ZeroVector(3);
     CalculateTraction(r_stress_on_true_minus, mNormalPhysicalSpace, old_stress_minus);
 
@@ -557,9 +555,7 @@ void GapSbmSolidInterfaceCondition::CalculateRightHandSide(
     // Differential area
     double penalty_integration = mPenalty * integration_weight;
 
-    // compute the DB product
-    Matrix DB_sum_plus = prod(r_D_on_true_plus, B_sum_plus);
-    Matrix DB_sum_minus = prod(r_D_on_true_minus, B_sum_minus);
+    // The adjoint operator is fixed at InitializeSolutionStep.
     // ASSEMBLE
     //-----------------------------------------------------
     for (IndexType i = 0; i < number_of_control_points_plus; i++) {
@@ -567,7 +563,7 @@ void GapSbmSolidInterfaceCondition::CalculateRightHandSide(
             const int iglob = mDim*i+idim;
 
             Vector sigma_w_n_plus = ZeroVector(3);
-            Vector stress_column_w = column(DB_sum_plus, iglob);
+            Vector stress_column_w = column(mDBOldPlus, iglob);
             CalculateTraction(stress_column_w, mNormalPhysicalSpace, sigma_w_n_plus);
 
             // PENALTY RESIDUAL TERM
@@ -589,7 +585,7 @@ void GapSbmSolidInterfaceCondition::CalculateRightHandSide(
             const int iglob = mDim*i+idim + shift_dof;
 
             Vector sigma_w_n_minus = ZeroVector(3);
-            Vector stress_column_w = column(DB_sum_minus, iloc);
+            Vector stress_column_w = column(mDBOldMinus, iloc);
             CalculateTraction(stress_column_w, mNormalPhysicalSpace, sigma_w_n_minus);
 
             // PENALTY RESIDUAL TERM
@@ -873,6 +869,11 @@ void GapSbmSolidInterfaceCondition::UpdateMaterialResponse(
         if (Finalize) {
             r_law.FinalizeMaterialResponse(values, ConstitutiveLaw::StressMeasure_Cauchy);
         } else {
+            // Freeze only the adjoint operator. Flux stresses and tangents are
+            // still evaluated from each side's trial strain during assembly.
+            ApplyConstitutiveLaw(mat_size, strain, values, constitutive_variables, is_minus_side);
+            auto& r_db_old = is_minus_side ? mDBOldMinus : mDBOldPlus;
+            r_db_old = prod(values.GetConstitutiveMatrix(), B);
             r_law.InitializeMaterialResponse(values, ConstitutiveLaw::StressMeasure_Cauchy);
         }
     }
