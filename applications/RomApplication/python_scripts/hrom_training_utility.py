@@ -251,13 +251,18 @@ class HRomTrainingUtility(object):
                 import KratosMultiphysics.MedApplication as KratosMed
         else:
             # Mesh based input (mdpa), the model part is imported from the same input as the origin one
+            # This is given in the 'model_import_settings' or in the importer modeler (e.g. the ImportMDPAModeler)
             model_import_settings = self.solver.settings["model_import_settings"]
-            if not model_import_settings.Has("input_filename"):
+            if model_import_settings.Has("input_filename"):
+                model_part_output_name = model_import_settings["input_filename"].GetString()
+            elif geometry_importer_modeler is not None:
+                input_path = Path(geometry_importer_modeler["input_filename"].GetString())
+                model_part_output_name = str(input_path.with_suffix("") if input_path.suffix.lower() == ".mdpa" else input_path)
+            else:
                 KratosMultiphysics.Logger.PrintWarning(
                     "HRomTrainingUtility",
                     "No 'input_filename' found neither in the 'modelers' list nor in 'model_import_settings'. Skipping the HROM model part creation.")
                 return
-            model_part_output_name = model_import_settings["input_filename"].GetString()
             computing_model_part = base_model.CreateModelPart("main")
             model_part_io = KratosMultiphysics.ModelPartIO(model_part_output_name)
             model_part_io.ReadModelPart(computing_model_part)
