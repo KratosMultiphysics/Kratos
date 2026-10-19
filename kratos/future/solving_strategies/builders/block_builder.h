@@ -96,7 +96,7 @@ public:
 
     /// Constructor with model part
     BlockBuilder(
-        const ModelPart &rModelPart,
+        const ModelPart& rModelPart,
         Parameters Settings = Parameters(R"({})"))
         : BaseType(rModelPart, Settings)
     {
@@ -117,7 +117,7 @@ public:
     ///@name Operations
     ///@{
 
-    void SetDofEquationIds(ImplicitStrategyData<TLinearAlgebra> &rImplicitStrategyData) override
+    void SetDofEquationIds(ImplicitStrategyData<TLinearAlgebra>& rImplicitStrategyData) override
     {
         // Set up the DOFs equation global ids
         auto& r_dof_set = *(rImplicitStrategyData.pGetDofSet());
@@ -128,7 +128,7 @@ public:
         });
     }
 
-    void SetDofEffectiveEquationIds(ImplicitStrategyData<TLinearAlgebra> &rImplicitStrategyData) override
+    void SetDofEffectiveEquationIds(ImplicitStrategyData<TLinearAlgebra>& rImplicitStrategyData) override
     {
         KRATOS_TRY
 
@@ -168,7 +168,7 @@ public:
         KRATOS_CATCH("");
     }
 
-    void AllocateEffectiveLinearSystem(ImplicitStrategyData<TLinearAlgebra> &rImplicitStrategyData) override
+    void AllocateEffectiveLinearSystem(ImplicitStrategyData<TLinearAlgebra>& rImplicitStrategyData) override
     {
         // Set the effective arrays and corresponding linear system
         if (rImplicitStrategyData.RequiresEffectiveDofSet()) {
@@ -249,7 +249,7 @@ private:
      * @param SkipLeftHandSide Flag to indicate if the application to the LeftHandSide should be skipped
      */
     void ApplyBlockBuildMasterSlaveConstraints(
-        ImplicitStrategyData<TLinearAlgebra> &rImplicitStrategyData,
+        ImplicitStrategyData<TLinearAlgebra>& rImplicitStrategyData,
         const bool SkipLeftHandSide = false)
     {
         const auto& r_model_part = this->GetModelPart();
