@@ -14,6 +14,8 @@
 #include <string>
 #include <atomic>
 #include <variant>
+#include <optional>
+#include <utility>
 #include <numeric>
 
 // External includes
@@ -29,6 +31,35 @@
 #include "tensor_adaptor.h"
 
 namespace Kratos {
+
+namespace {
+
+// Loads the container as variant alternative I if I == Index, otherwise tries I + 1. An existing pointer
+// of that alternative is reused: in DataOnly mode load(shared_ptr&) reads nothing into a null pointer,
+// which would desync the stream and drop the preinitialized container.
+template<std::size_t I = 0, class TVariantType>
+void LoadContainer(
+    Serializer& rSerializer,
+    const std::size_t Index,
+    std::optional<TVariantType>& rContainer)
+{
+    if constexpr (I < std::variant_size_v<TVariantType>) {
+        if (I != Index) {
+            LoadContainer<I + 1>(rSerializer, Index, rContainer);
+            return;
+        }
+        std::variant_alternative_t<I, TVariantType> p_container;
+        if (rContainer.has_value() && rContainer->index() == I) {
+            p_container = std::get<I>(*rContainer);
+        }
+        rSerializer.load("Container", p_container);
+        rContainer.emplace(std::in_place_index<I>, p_container);
+    } else {
+        KRATOS_ERROR << "Unknown tensor adaptor container variant index: " << Index << std::endl;
+    }
+}
+
+} // namespace
 
 template<class TDataType>
 TensorAdaptor<TDataType>::TensorAdaptor(
@@ -166,6 +197,38 @@ std::string TensorAdaptor<TDataType>::Info() const
         info << "Storage with with shape = " << this->Shape();
     }
     return info.str();
+}
+
+template<class TDataType>
+void TensorAdaptor<TDataType>::save(Serializer& rSerializer) const
+{
+    rSerializer.save("Storage", mpStorage);
+
+    const bool has_container = mpContainer.has_value();
+    rSerializer.save("HasContainer", has_container);
+    if (has_container) {
+        const std::size_t index = mpContainer.value().index();
+        rSerializer.save("ContainerIndex", index);
+        std::visit([&rSerializer](auto pContainer) {
+            rSerializer.save("Container", pContainer);
+        }, mpContainer.value());
+    }
+}
+
+template<class TDataType>
+void TensorAdaptor<TDataType>::load(Serializer& rSerializer)
+{
+    rSerializer.load("Storage", mpStorage);
+
+    bool has_container;
+    rSerializer.load("HasContainer", has_container);
+    if (has_container) {
+        std::size_t index;
+        rSerializer.load("ContainerIndex", index);
+        LoadContainer(rSerializer, index, mpContainer);
+    } else {
+        mpContainer.reset();
+    }
 }
 
 // template instantiations

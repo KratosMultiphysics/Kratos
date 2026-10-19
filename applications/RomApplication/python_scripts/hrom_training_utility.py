@@ -42,6 +42,7 @@ class HRomTrainingUtility(object):
         self.rom_settings = custom_settings["rom_settings"].Clone()
         self.rom_settings.RemoveValue("rom_bns_settings") #Removing because the inner rom settings are specific for each builder and solver.
         self.hrom_visualization_model_part = settings["create_hrom_visualization_model_part"].GetBool()
+        self.modelers_list = settings["modelers"]
         self.projection_strategy = settings["projection_strategy"].GetString()
         self.hrom_output_format = settings["hrom_format"].GetString()
         self.include_minimum_condition = settings["include_minimum_condition"].GetBool()
@@ -150,35 +151,37 @@ class HRomTrainingUtility(object):
 
 
     def AppendCurrentStepResiduals(self):
-        # Get the computing model part from the solver implementing the problem physics
-        computing_model_part = self.solver.GetComputingModelPart()
+        pass
+        #deprecated method. Use the ProjectedResidualsOutputProcess
+        # # Get the computing model part from the solver implementing the problem physics
+        # computing_model_part = self.solver.GetComputingModelPart()
 
-        # If not created yet, create the ROM residuals utility
-        # Note that this ensures that the residuals utility is created in the first residuals append call
-        # If not, it might happen that the solver scheme is created by the ROM residuals call rather than by the solver one
-        if not hasattr(self, '__rom_residuals_utility'):
-            self.__rom_residuals_utility = KratosROM.RomResidualsUtility(
-                computing_model_part,
-                self.rom_settings,
-                self.solver._GetScheme())
+        # # If not created yet, create the ROM residuals utility
+        # # Note that this ensures that the residuals utility is created in the first residuals append call
+        # # If not, it might happen that the solver scheme is created by the ROM residuals call rather than by the solver one
+        # if not hasattr(self, '__rom_residuals_utility'):
+        #     self.__rom_residuals_utility = KratosROM.RomResidualsUtility(
+        #         computing_model_part,
+        #         self.rom_settings,
+        #         self.solver._GetScheme())
 
-            if self.echo_level > 0 : KratosMultiphysics.Logger.PrintInfo("HRomTrainingUtility","RomResidualsUtility created.")
+        #     if self.echo_level > 0 : KratosMultiphysics.Logger.PrintInfo("HRomTrainingUtility","RomResidualsUtility created.")
 
-        # Generate the matrix of projected residuals
-        if self.echo_level > 0 : KratosMultiphysics.Logger.PrintInfo("HRomTrainingUtility","Generating matrix of projected residuals.")
-        if (self.projection_strategy=="galerkin"):
-                res_mat = self.__rom_residuals_utility.GetProjectedResidualsOntoPhi()
-        elif (self.projection_strategy=="lspg"):
-                jacobian_phi_product = self.GetJacobianPhiMultiplication(computing_model_part)
-                res_mat = self.__rom_residuals_utility.GetProjectedResidualsOntoJPhi(jacobian_phi_product)
-        elif (self.projection_strategy=="petrov_galerkin"):
-                res_mat = self.__rom_residuals_utility.GetProjectedResidualsOntoPsi()
-        else:
-            err_msg = f"Projection strategy \'{self.projection_strategy}\' for HROM is not supported."
-            raise Exception(err_msg)
+        # # Generate the matrix of projected residuals
+        # if self.echo_level > 0 : KratosMultiphysics.Logger.PrintInfo("HRomTrainingUtility","Generating matrix of projected residuals.")
+        # if (self.projection_strategy=="galerkin"):
+        #         res_mat = self.__rom_residuals_utility.GetProjectedResidualsOntoPhi()
+        # elif (self.projection_strategy=="lspg"):
+        #         jacobian_phi_product = self.GetJacobianPhiMultiplication(computing_model_part)
+        #         res_mat = self.__rom_residuals_utility.GetProjectedResidualsOntoJPhi(jacobian_phi_product)
+        # elif (self.projection_strategy=="petrov_galerkin"):
+        #         res_mat = self.__rom_residuals_utility.GetProjectedResidualsOntoPsi()
+        # else:
+        #     err_msg = f"Projection strategy \'{self.projection_strategy}\' for HROM is not supported."
+        #     raise Exception(err_msg)
 
-        np_res_mat = np.asarray(res_mat)
-        self.time_step_residual_matrix_container.append(np_res_mat)
+        # np_res_mat = np.asarray(res_mat)
+        # self.time_step_residual_matrix_container.append(np_res_mat)
 
     def GetJacobianPhiMultiplication(self, computing_model_part):
         jacobian_matrix = KratosMultiphysics.CompressedMatrix()
@@ -213,13 +216,56 @@ class HRomTrainingUtility(object):
     def CreateHRomModelParts(self):
         # Get solver data
         model_part_name = self.solver.settings["model_part_name"].GetString()
-        model_part_output_name = self.solver.settings["model_import_settings"]["input_filename"].GetString()
+
+        # Detect whether the input is geometry based (i.e. the entities are created from the geometries by the modelers).
+        # This is the case when the modelers list contains both an importer (i.e. a modeler with an 'input_filename')
+        # and a modeler creating the entities from the geometries.
+        geometry_importer_modeler = None
+        has_entities_from_geometries_modeler = False
+        for modeler in self.modelers_list.values():
+            if not modeler.Has("parameters"):
+                continue
+            modeler_name = modeler["name"].GetString() if modeler.Has("name") else ""
+            if "CreateEntitiesFromGeometriesModeler" in modeler_name:
+                has_entities_from_geometries_modeler = True
+            modeler_parameters = modeler["parameters"]
+            if modeler_parameters.Has("input_filename"):
+                geometry_importer_modeler = modeler_parameters
+
+        is_geometry_based = has_entities_from_geometries_modeler and geometry_importer_modeler is not None
+
         # computing_model_part = self.solver.GetComputingModelPart()
         #computing_model_part = self.solver.GetComputingModelPart().GetRootModelPart() #TODO: DECIDE WHICH ONE WE SHOULD USE?¿?¿ MOST PROBABLY THE ROOT FOR THOSE CASES IN WHICH THE COMPUTING IS CUSTOM (e.g. CFD)
-        aux_model = KratosMultiphysics.Model()
-        computing_model_part = aux_model.CreateModelPart("main")
-        model_part_io = KratosMultiphysics.ModelPartIO(model_part_output_name)
-        model_part_io.ReadModelPart(computing_model_part)
+        base_model = KratosMultiphysics.Model()
+        write_med = False
+        if is_geometry_based:
+            # Geometry based input (e.g. MED), the entities are created from the geometries by the modelers
+            input_filename = geometry_importer_modeler["input_filename"].GetString()
+            write_med = Path(input_filename).suffix.lower() == ".med"
+            model_part_output_name = str(Path(input_filename).with_suffix(""))
+            self._CreateModelPartFromModelers(base_model)
+            computing_model_part = base_model.GetModelPart(geometry_importer_modeler["model_part_name"].GetString())
+            # Entities created from geometries have no properties, which is required to write the mdpa format
+            KratosROM.RomAuxiliaryUtilities.AssignPropertiesToEntitiesIfMissing(computing_model_part)
+            if write_med:
+                import KratosMultiphysics.MedApplication as KratosMed
+        else:
+            # Mesh based input (mdpa), the model part is imported from the same input as the origin one
+            # This is given in the 'model_import_settings' or in the importer modeler (e.g. the ImportMDPAModeler)
+            model_import_settings = self.solver.settings["model_import_settings"]
+            if model_import_settings.Has("input_filename"):
+                model_part_output_name = model_import_settings["input_filename"].GetString()
+            elif geometry_importer_modeler is not None:
+                input_path = Path(geometry_importer_modeler["input_filename"].GetString())
+                model_part_output_name = str(input_path.with_suffix("") if input_path.suffix.lower() == ".mdpa" else input_path)
+            else:
+                KratosMultiphysics.Logger.PrintWarning(
+                    "HRomTrainingUtility",
+                    "No 'input_filename' found neither in the 'modelers' list nor in 'model_import_settings'. Skipping the HROM model part creation.")
+                return
+            computing_model_part = base_model.CreateModelPart("main")
+            model_part_io = KratosMultiphysics.ModelPartIO(model_part_output_name)
+            model_part_io.ReadModelPart(computing_model_part)
 
         # Create a new model with the HROM main model part
         # This is intentionally done in order to completely emulate the origin model part
@@ -245,13 +291,36 @@ class HRomTrainingUtility(object):
         if self.echo_level > 0:
             KratosMultiphysics.Logger.PrintInfo("HRomTrainingUtility","HROM computing model part \'{}\' created.".format(hrom_main_model_part.FullName()))
 
-        # Output the HROM model part in mdpa format
-        hrom_output_name = "{}HROM".format(model_part_output_name)
-        model_part_io = KratosMultiphysics.ModelPartIO(hrom_output_name, KratosMultiphysics.IO.WRITE | KratosMultiphysics.IO.MESH_ONLY | KratosMultiphysics.IO.SCIENTIFIC_PRECISION)
-        model_part_io.WriteModelPart(hrom_main_model_part)
-        KratosMultiphysics.kratos_utilities.DeleteFileIfExisting("{}.time".format(hrom_output_name))
+        # Output the HROM model part
+        if is_geometry_based:
+            # The entities share their geometries with the origin model part, so these need to be added to the
+            # HROM model part before writing it (both MED and mdpa with geometries are geometry based formats)
+            KratosROM.RomAuxiliaryUtilities.AddGeometries(computing_model_part, hrom_main_model_part)
+            # Store the geometry id to entity id map so that the original entity numbering can be recovered
+            # when the HROM model part is read back (see HRomCreateEntitiesFromGeometriesModeler)
+            geometry_ids_list = [[element.GetGeometry().Id, element.Id] for element in hrom_main_model_part.Elements]
+            geometry_ids_list += [[condition.GetGeometry().Id, condition.Id] for condition in hrom_main_model_part.Conditions]
+            np.savetxt(f"{self.rom_basis_output_folder}/HROM_GeometryIds.csv", geometry_ids_list, fmt="%d", delimiter=",")
+            if write_med:
+                # Output the HROM model part in MED format
+                hrom_output_name = "{}HROM.med".format(model_part_output_name)
+                model_part_io = KratosMed.MedModelPartIO(hrom_output_name, KratosMultiphysics.IO.WRITE)
+                model_part_io.WriteModelPart(hrom_main_model_part)
+                del model_part_io
+            else:
+                # Output the HROM model part in mdpa format (with the geometries)
+                hrom_output_name = "{}HROM".format(model_part_output_name)
+                model_part_io = KratosMultiphysics.ModelPartIO(hrom_output_name, KratosMultiphysics.IO.WRITE | KratosMultiphysics.IO.MESH_ONLY | KratosMultiphysics.IO.SCIENTIFIC_PRECISION)
+                model_part_io.WriteModelPart(hrom_main_model_part)
+                KratosMultiphysics.kratos_utilities.DeleteFileIfExisting("{}.time".format(hrom_output_name))
+        else:
+            # Output the HROM model part in mdpa format
+            hrom_output_name = "{}HROM".format(model_part_output_name)
+            model_part_io = KratosMultiphysics.ModelPartIO(hrom_output_name, KratosMultiphysics.IO.WRITE | KratosMultiphysics.IO.MESH_ONLY | KratosMultiphysics.IO.SCIENTIFIC_PRECISION)
+            model_part_io.WriteModelPart(hrom_main_model_part)
+            KratosMultiphysics.kratos_utilities.DeleteFileIfExisting("{}.time".format(hrom_output_name))
         if self.echo_level > 0:
-            KratosMultiphysics.Logger.PrintInfo("HRomTrainingUtility","HROM mesh written in \'{}.mdpa\'".format(hrom_output_name))
+            KratosMultiphysics.Logger.PrintInfo("HRomTrainingUtility","HROM mesh written in \'{}\'".format(hrom_output_name))
 
         #TODO: Make this optional
         #TODO: Move this out of here
@@ -267,12 +336,32 @@ class HRomTrainingUtility(object):
             print(hrom_visualization_model_part)
 
             # Write the HROM visualization mesh
+            # Note that it is always written in mdpa format: its skin conditions are new entities (numbered from 1) that
+            # do not exist in the origin model part, so the geometries required by the MED format cannot be taken from it
             hrom_vis_output_name = "{}HROMVisualization".format(model_part_output_name)
             model_part_io = KratosMultiphysics.ModelPartIO(hrom_vis_output_name, KratosMultiphysics.IO.WRITE | KratosMultiphysics.IO.MESH_ONLY | KratosMultiphysics.IO.SCIENTIFIC_PRECISION)
             model_part_io.WriteModelPart(hrom_visualization_model_part)
             KratosMultiphysics.kratos_utilities.DeleteFileIfExisting("{}.time".format(hrom_vis_output_name))
             if self.echo_level > 0:
-                KratosMultiphysics.Logger.PrintInfo("HRomTrainingUtility","HROM visualization mesh written in \'{}.mdpa\'".format(hrom_vis_output_name))
+                KratosMultiphysics.Logger.PrintInfo("HRomTrainingUtility","HROM visualization mesh written in \'{}\'".format(hrom_vis_output_name))
+
+    def _CreateModelPartFromModelers(self, model):
+        """Run the modelers to create the model part from the geometry based input (e.g. MED).
+
+        The list of modelers is expected to follow the standard format:
+        "modelers" : [{
+            "name" : "geometry_import",
+            "parameters" : { ... }
+        },{ ... }]
+        """
+        from KratosMultiphysics.model_parameters_factory import KratosModelParametersFactory
+        modelers = KratosModelParametersFactory(model).ConstructListOfItems(self.modelers_list)
+        for modeler in modelers:
+            modeler.SetupGeometryModel()
+        for modeler in modelers:
+            modeler.PrepareGeometryModel()
+        for modeler in modelers:
+            modeler.SetupModelPart()
 
     @classmethod
     def __GetHRomTrainingDefaultSettings(cls):
@@ -282,6 +371,7 @@ class HRomTrainingUtility(object):
             "element_selection_svd_truncation_tolerance": 1.0e-6,
             "echo_level" : 0,
             "create_hrom_visualization_model_part" : false,
+            "modelers": [],
             "projection_strategy": "galerkin",
             "include_conditions_model_parts_list": [],
             "include_elements_model_parts_list": [],
@@ -421,8 +511,10 @@ class HRomTrainingUtility(object):
         element_ids, condition_ids, element_mask, condition_mask = self.map_numpy_indexes_to_element_and_conditions_ids(indexes, number_of_elements)
 
         if self.hrom_output_format == "numpy":
-            np.save(self.rom_basis_output_folder / "HROM_ElementWeights.npy", (weights[element_mask]).reshape(-1,1))
-            np.save(self.rom_basis_output_folder / "HROM_ConditionWeights.npy", weights[condition_mask].reshape(-1,1))
+            # One column per set of HROM weights (e.g. one per physics in coupled problems)
+            weights_matrix = weights.reshape(len(weights),-1)
+            np.save(self.rom_basis_output_folder / "HROM_ElementWeights.npy", weights_matrix[element_mask])
+            np.save(self.rom_basis_output_folder / "HROM_ConditionWeights.npy", weights_matrix[condition_mask])
             np.save(self.rom_basis_output_folder / "HROM_ElementIds.npy", element_ids)
             np.save(self.rom_basis_output_folder / "HROM_ConditionIds.npy", condition_ids)
 
@@ -439,14 +531,14 @@ class HRomTrainingUtility(object):
     def __AddSelectedElementsWithZeroWeights(self, original_weights, original_elements, elements_to_add):
         added_numpy_indexes = [self.element_id_to_numpy_index_mapping[i] for i in elements_to_add]
         updated_elements = np.r_[original_elements, added_numpy_indexes]
-        updated_weights = np.r_[original_weights, np.zeros(len(elements_to_add))]
+        updated_weights = np.r_[original_weights, np.zeros((len(elements_to_add),) + original_weights.shape[1:])]
 
         return updated_weights, updated_elements
 
     def __AddSelectedConditionsWithZeroWeights(self, original_weights, original_conditions, conditions_to_add, number_of_elements):
         added_numpy_indexes = [self.condition_id_to_numpy_index_mapping[i] for i in conditions_to_add]
         updated_conditions = np.r_[original_conditions, added_numpy_indexes]
-        updated_weights = np.r_[original_weights, np.zeros(len(conditions_to_add))]
+        updated_weights = np.r_[original_weights, np.zeros((len(conditions_to_add),) + original_weights.shape[1:])]
 
         return updated_weights, updated_conditions
 
@@ -462,11 +554,12 @@ class HRomTrainingUtility(object):
             elem_weights = weights[element_mask]
             cond_weights = weights[condition_mask]
 
+        # With several sets of weights (i.e. several columns) the first one is stored (only the ids are used from here on)
         for i, elem_id in enumerate(element_ids):
-            hrom_weights["Elements"][int(elem_id)] = float(elem_weights[i])
+            hrom_weights["Elements"][int(elem_id)] = float(np.ravel(elem_weights[i])[0])
 
         for i, cond_id in enumerate(condition_ids):
-            hrom_weights["Conditions"][int(cond_id)] = float(cond_weights[i])
+            hrom_weights["Conditions"][int(cond_id)] = float(np.ravel(cond_weights[i])[0])
 
         return hrom_weights
 
