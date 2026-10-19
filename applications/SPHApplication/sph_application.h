@@ -23,6 +23,7 @@
 #include "custom_elements/small_displacement_particle.h"
 #include "custom_elements/total_lagrangian_particle.h"
 #include "custom_elements/total_lagrangian_mixed_strain_particle.h"
+#include "custom_elements/thermal_particle.h"
 
 // Include constitutive 
 
@@ -194,6 +195,9 @@ private:
     
     const TotalLagrangianMixedStrainParticle<CubicKernel2D, 2> mTotalLagrangianMixedStrainCubicParticle2D;
     const TotalLagrangianMixedStrainParticle<CubicKernel3D, 3> mTotalLagrangianMixedStrainCubicParticle3D;
+
+    const ThermalParticle<CubicKernel2D, 2> mThermalCubicParticle2D;
+    const ThermalParticle<CubicKernel3D, 3> mThermalCubicParticle3D;
 
     /* CONSTITUTIVE LAWS */ 
 

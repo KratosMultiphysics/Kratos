@@ -40,7 +40,10 @@ KratosSPHApplication::KratosSPHApplication():
     mTotalLagrangianDisplacementCubicParticle2D(0, Element::GeometryType::Pointer(new Point2D<NodeType >(Element::GeometryType::PointsArrayType(1)))),
     mTotalLagrangianDisplacementCubicParticle3D(0, Element::GeometryType::Pointer(new Point3D<NodeType >(Element::GeometryType::PointsArrayType(1)))),
     mTotalLagrangianMixedStrainCubicParticle2D(0, Element::GeometryType::Pointer(new Point2D<NodeType >(Element::GeometryType::PointsArrayType(1)))),
-    mTotalLagrangianMixedStrainCubicParticle3D(0, Element::GeometryType::Pointer(new Point3D<NodeType >(Element::GeometryType::PointsArrayType(1))))
+    mTotalLagrangianMixedStrainCubicParticle3D(0, Element::GeometryType::Pointer(new Point3D<NodeType >(Element::GeometryType::PointsArrayType(1)))),
+
+    mThermalCubicParticle2D(0, Element::GeometryType::Pointer(new Point2D<NodeType >(Element::GeometryType::PointsArrayType(1)))),
+    mThermalCubicParticle3D(0, Element::GeometryType::Pointer(new Point3D<NodeType >(Element::GeometryType::PointsArrayType(1))))
 
     /* CONDITION */
     
@@ -59,6 +62,9 @@ void KratosSPHApplication::Register()
     KRATOS_REGISTER_ELEMENT("TotalLagrangianDisplacementCubicParticle3D", mTotalLagrangianDisplacementCubicParticle3D)
     KRATOS_REGISTER_ELEMENT("TotalLagrangianMixedStrainCubicParticle2D", mTotalLagrangianMixedStrainCubicParticle2D)
     KRATOS_REGISTER_ELEMENT("TotalLagrangianMixedStrainCubicParticle3D", mTotalLagrangianMixedStrainCubicParticle3D)
+
+    KRATOS_REGISTER_ELEMENT("ThermalCubicParticle2D", mThermalCubicParticle2D)
+    KRATOS_REGISTER_ELEMENT("ThermalCubicParticle3D", mThermalCubicParticle3D)
 
 
 

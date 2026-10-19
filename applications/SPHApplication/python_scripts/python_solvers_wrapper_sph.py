@@ -28,6 +28,8 @@ def CreateSolverByParameters(model, solver_settings, parallelism):
             solver_module_name = "sph_static_solver"
         elif solver_type == "transient" or solver_type == "Transient":
             solver_module_name = "sph_transient_solver"
+        elif solver_type.lower() == "thermal":
+            solver_module_name = "sph_thermal_solver"
     else:
         err_msg =  "The requested parallel type \"" + parallelism + "\" is not available!\n"
         err_msg += "Available options are: \"OpenMP\", \"MPI\""
