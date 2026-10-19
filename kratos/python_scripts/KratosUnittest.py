@@ -74,7 +74,10 @@ class TestCase(TestCase):
         msg = self._formatMessage(msg, standardMsg)
         raise self.failureException(msg)
 
-    def assertVectorAlmostEqual(self, vector1, vector2, places=7, msg=None, delta=None):
+    def assertVectorAlmostEqual(self, vector1, vector2, places=None, msg=None, delta=None):
+        if places is not None and delta is not None:
+            raise TypeError("specify delta or places not both")
+
         class LazyErrMsg:
             '''Since potentially expensive, this class delays printing the error message until it is actually needed'''
             def __init__(self, mismatch_idx, aux_message=None):
@@ -92,7 +95,10 @@ class TestCase(TestCase):
         for i, (v1, v2) in enumerate(zip(vector1, vector2)):
             self.assertAlmostEqual(v1, v2, places, LazyErrMsg(i, msg), delta)
 
-    def assertMatrixAlmostEqual(self, matrix1, matrix2, places=7, msg=None, delta=None):
+    def assertMatrixAlmostEqual(self, matrix1, matrix2, places=None, msg=None, delta=None):
+        if places is not None and delta is not None:
+            raise TypeError("specify delta or places not both")
+
         class LazyDimErrMsg:
             '''Since potentially expensive, this class delays printing the error message until it is actually needed'''
             def __init__(self, aux_message=None):

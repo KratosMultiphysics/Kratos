@@ -67,7 +67,7 @@ Additionaly, Visual Studio is required to compile in *Windows*.
 
     - Python
 
-        You will need at least *Python* 3.8 (recommended 3.8/3.9/3.10) in your computer in order to compile *Kratos*. You can download python from its official webpage:
+        You will need at least *Python* 3.8 (recommended 3.9-3.14) in your computer in order to compile *Kratos*. You can download python from its official webpage:
 
         * [Download Python](http://www.python.org/downloads/)
 
@@ -75,7 +75,7 @@ Additionaly, Visual Studio is required to compile in *Windows*.
 
     - Boost
 
-        The next step will consist in obtain Boost. *Kratos Multiphysics* needs *Boost* libraries to support some of its functions. You can use any version from `version 1.67` onward.
+        The next step will consist in obtain Boost. *Kratos Multiphysics* needs *Boost* libraries to support some of its functions. You can use any version from `version 1.85` onward.
 
         * [Download Boost](http://www.boost.org/users/download/)
 
@@ -198,7 +198,7 @@ Additionaly, Visual Studio is required to compile in *Windows*.
         ```
 
     - Python
-        You will need at least *Python* 3.8 (recommended 3.8/3.9/3.10) in your computer in order to compile *Kratos*. You can download python from its official webpage:
+        You will need at least *Python* 3.8 (recommended 3.9-3.14) in your computer in order to compile *Kratos*. You can download python from its official webpage:
 
         * [Download Python](http://www.python.org/downloads/)
 
@@ -207,7 +207,7 @@ Additionaly, Visual Studio is required to compile in *Windows*.
         Unfortunately, we cannot use right now *MSYS2* directly, as the development files are not available (`python3-dev` equivalent to *GNU/Linux*).
 
     - Boost
-        The next step will consist in obtain Boost. *Kratos Multiphysics* needs *Boost* libraries to support some of its functions. You can use any version from `version 1.67` onward. For that, we will use `pacman` again:
+        The next step will consist in obtain Boost. *Kratos Multiphysics* needs *Boost* libraries to support some of its functions. You can use any version from `version 1.85` onward. For that, we will use `pacman` again:
 
         ```Shell
         pacman -S mingw64/mingw-w64-x86_64-boost
@@ -384,9 +384,9 @@ goto:eof
 
 Some of the parameters detailed in the example script above may vary from system to system, or the *Visual Studio* version.
 
-If you are using *Visual Studio 2017*, the configure command should be:
+If you are using *Visual Studio 2022*, the configure command should be:
 ```
-cmake -G"Visual Studio 15 2017" -H"%KRATOS_SOURCE%" -B"%KRATOS_BUILD%\%KRATOS_BUILD_TYPE%"  ^
+cmake -G"Visual Studio 17 2022" -H"%KRATOS_SOURCE%" -B"%KRATOS_BUILD%\%KRATOS_BUILD_TYPE%"  ^
 -DUSE_EIGEN_MKL=OFF
 ```
 You can check the specific *Visual Studio* version that you have installed in your system, by checking the *Visual Studio* Tab 'Help' > 'About Microsoft Visual Studio'.
@@ -394,7 +394,7 @@ You can check the specific *Visual Studio* version that you have installed in yo
 If you have a 64-bit system, you might need to also specify it in the configure command for some *Visual Studio* versions with the flag ```-A x64```.
 
 ```
-cmake -G"Visual Studio 15 2017" -A x64 -H"%KRATOS_SOURCE%" -B"%KRATOS_BUILD%\%KRATOS_BUILD_TYPE%"  ^
+cmake -G"Visual Studio 17 2022" -A x64 -H"%KRATOS_SOURCE%" -B"%KRATOS_BUILD%\%KRATOS_BUILD_TYPE%"  ^
 -DUSE_EIGEN_MKL=OFF
 ```
 #### MinGW
@@ -592,7 +592,7 @@ export KRATOS_INSTALL_PYTHON_USING_LINKS=ON
 # Set basic configuration
 export KRATOS_BUILD_TYPE="Release"
 export BOOST_ROOT="/path/to/boost"
-export PYTHON_EXECUTABLE="/Library/Frameworks/Python.framework/Versions/3.8/bin/python3"
+export PYTHON_EXECUTABLE="python3"
 
 # Set applications to compile
 export KRATOS_APPLICATIONS=
