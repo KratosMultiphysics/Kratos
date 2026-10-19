@@ -1,5 +1,7 @@
 import os
+import json
 import numpy as np
+from pathlib import Path
 
 import KratosMultiphysics
 import KratosMultiphysics.KratosUnittest as KratosUnittest
@@ -145,6 +147,85 @@ class TestHromTrainingUtilityRom(KratosUnittest.TestCase):
                 self.assertEqual(w, 0.0, "Appended elements must have exactly 0.0 weight.")
 
 
+    def _AppendWithSettings(self, folder_name, **settings):
+        """Runs the HROM weights stages from the stored ECM selection (input_z, input_w) with the given 'include_*' settings in the given folder"""
+        hrom_util = self.simulation._RomAnalysis__hrom_training_utility
+        original = {"rom_basis_output_folder": hrom_util.rom_basis_output_folder}
+        for name in ["include_element_children", "include_minimum_condition", "include_condition_parents"]:
+            original[name] = getattr(hrom_util, name)
+            setattr(hrom_util, name, settings.get(name, False))
+        output_folder = Path(self.work_folder) / folder_name
+        output_folder.mkdir(exist_ok=True)
+        self.addCleanup(kratos_utilities.DeleteDirectoryIfExisting, str(output_folder))
+        hrom_util.rom_basis_output_folder = output_folder
+        with KratosUnittest.WorkFolderScope(self.work_folder, __file__):
+            hrom_util.hyper_reduction_element_selector.w = np.load("input_w.npy")
+            hrom_util.hyper_reduction_element_selector.z = np.load("input_z.npy")
+        hrom_util.AppendHRomWeightsToRomParameters()
+        for name, value in original.items():
+            setattr(hrom_util, name, value)
+        with (output_folder / "HROM_Summary.json").open() as f:
+            summary = json.load(f)
+        return output_folder, summary
+
+    def test_hrom_stages_and_summary(self):
+        root_model_part = self.simulation._GetSolver().GetComputingModelPart().GetRootModelPart()
+        _, summary_minimum = self._AppendWithSettings("rom_minimum_data", include_minimum_condition=True, include_condition_parents=True)
+        folder, summary = self._AppendWithSettings("rom_stages_data", include_element_children=True, include_minimum_condition=True, include_condition_parents=True)
+
+        # The stages are run in order, after the ECM selection (9 elements, no conditions)
+        self.assertEqual(summary["ecm"], {"elements": 9, "conditions": 0, "weights_sets": [{"elements": 9, "conditions": 0}]})
+        self.assertEqual([added["setting"] for added in summary["added"]], ["include_element_children", "include_minimum_condition", "include_condition_parents"])
+
+        # The element children are the conditions with all their nodes in an ECM element
+        ecm_elements = [root_model_part.GetElement(int(i)) for i in np.load(folder / "HROM_ElementIds.npy")[:9]]
+        ecm_element_nodes = [{node.Id for node in element.GetGeometry()} for element in ecm_elements]
+        expected_children = [condition.Id for condition in root_model_part.Conditions if any({node.Id for node in condition.GetGeometry()} <= nodes for nodes in ecm_element_nodes)]
+        self.assertGreater(len(expected_children), 0)
+        self.assertEqual(summary["added"][0], {"setting": "include_element_children", "elements": 0, "conditions": len(expected_children)})
+
+        # Every submodelpart with conditions is covered, the ones touched by an ECM element by its children
+        coverage = summary["submodelparts_with_conditions"]
+        self.assertTrue(all(entry["covered_by"] != "none" for entry in coverage.values()))
+        for name, entry in coverage.items():
+            touched = any(self.simulation._GetSolver().model.GetModelPart(name).HasCondition(i) for i in expected_children)
+            self.assertEqual(entry["covered_by"] == "include_element_children", touched, msg=name)
+
+        # The children need no parents, so no more elements are added than with the minimum condition alone
+        self.assertLessEqual(summary["hrom_model_part"]["elements"], summary_minimum["hrom_model_part"]["elements"])
+        self.assertEqual(summary["hrom_model_part"]["elements"], 9 + summary["added"][2]["elements"])
+
+        # The added entities have a null weight and the ECM weights are kept
+        element_weights = np.load(folder / "HROM_ElementWeights.npy")
+        np.testing.assert_array_equal(element_weights[:9].ravel(), np.load(Path(self.work_folder) / "input_w.npy").ravel())
+        self.assertTrue(np.all(element_weights[9:] == 0.0))
+        self.assertTrue(np.all(np.load(folder / "HROM_ConditionWeights.npy") == 0.0))
+
+    def test_recompute_hrom_model_part(self):
+        # Recomputing from the saved weights (no ECM) gives the same files as the training
+        hrom_util = self.simulation._RomAnalysis__hrom_training_utility
+        settings = {"include_element_children": True, "include_minimum_condition": True, "include_condition_parents": True}
+        folder, summary = self._AppendWithSettings("rom_recompute_data", **settings)
+        trained = {name: np.load(folder / f"HROM_{name}.npy") for name in ["ElementIds", "ElementWeights", "ConditionIds", "ConditionWeights"]}
+
+        original = {name: getattr(hrom_util, name) for name in list(settings) + ["rom_basis_output_folder", "CreateHRomModelParts"]}
+        for name, value in settings.items():
+            setattr(hrom_util, name, value)
+        hrom_util.rom_basis_output_folder = folder
+        model_part_calls = []
+        hrom_util.CreateHRomModelParts = lambda: model_part_calls.append(True) # The HROM model part creation is tested above
+        hrom_util.hyper_reduction_element_selector.z = None
+        hrom_util.hyper_reduction_element_selector.w = None
+        hrom_util.RecomputeHRomModelPart()
+        for name, value in original.items():
+            setattr(hrom_util, name, value)
+
+        self.assertEqual(len(model_part_calls), 1)
+        for name, expected in trained.items():
+            np.testing.assert_array_equal(np.load(folder / f"HROM_{name}.npy"), expected, err_msg=name)
+        with (folder / "HROM_Summary.json").open() as f:
+            self.assertEqual(json.load(f), summary)
+
     @classmethod
     def tearDownClass(cls):
         # Specific files and paths to delete
@@ -154,6 +235,7 @@ class TestHromTrainingUtilityRom(KratosUnittest.TestCase):
             "rom_data/HROM_ConditionWeights.npy",
             "rom_data/HROM_ElementIds.npy",
             "rom_data/HROM_ElementWeights.npy",
+            "rom_data/HROM_Summary.json",
             "rom_edge_case_data/HROM_ConditionIds.npy",
             "rom_edge_case_data/HROM_ConditionWeights.npy",
             "rom_edge_case_data/HROM_ElementIds.npy",

@@ -145,6 +145,18 @@ public:
         const ModelPart& rModelPart,
         const std::map<std::string, std::map<IndexType, double>>& rHRomWeights);
 
+    /**
+     * @brief Return the ids of the conditions attached to the HROM elements that are not in the HROM yet
+     * A condition is attached to (i.e. a child of) an HROM element if all its nodes belong to that element.
+     * This only uses the element and condition geometries, so no neighbours need to be computed beforehand.
+     * @param rModelPart Complete model part (all elements and conditions)
+     * @param rHRomWeights Map containing the current HROM conditions and elements weights
+     * @return std::vector<IndexType> List containing the ids of the conditions to be added to the HROM
+     */
+    static std::vector<IndexType> GetHRomElementChildrenIds(
+        const ModelPart& rModelPart,
+        const std::map<std::string, std::map<IndexType, double>>& rHRomWeights);
+
 
     /**
      * @brief Finds the parent elements for specified condition IDs and decrements their IDs for zero-based indexing.
