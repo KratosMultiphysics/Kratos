@@ -510,7 +510,8 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateConstitutiveMatr
     KRATOS_EXPECT_MATRIX_NEAR(constitutive_matrix, expected_constitutive_matrix, 1.E6);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(MohrCoulombLaw_SchanzVermeerElasticResponseAndState, KratosGeoMechanicsFastSuiteWithoutKernel)
+KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_SchanzVermeerElasticResponseAndState,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     KRATOS_REGISTER_VARIABLE(YOUNG_MODULUS)
     KRATOS_REGISTER_VARIABLE(POISSON_RATIO)
@@ -541,9 +542,7 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombLaw_SchanzVermeerElasticResponseAndState, K
 
         Vector strain_vector = ZeroVector(strain_size);
         Vector stress_vector = ZeroVector(strain_size);
-        for (std::size_t component = 0; component < 3; ++component) {
-            stress_vector[component] = -300.0;
-        }
+        std::fill_n(stress_vector.begin(), 3, -300.0);
         Matrix                      constitutive_matrix;
         ConstitutiveLaw::Parameters parameters;
         parameters.SetMaterialProperties(properties);
@@ -566,10 +565,10 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombLaw_SchanzVermeerElasticResponseAndState, K
         }
 
         law.CalculateMaterialResponseCauchy(parameters);
-        KRATOS_EXPECT_VECTOR_NEAR(stress_vector, expected_stress, 1.0e-10);
-        KRATOS_EXPECT_MATRIX_NEAR(constitutive_matrix, expected_matrix, 1.0e-10);
+        KRATOS_EXPECT_VECTOR_NEAR(stress_vector, expected_stress, Defaults::absolute_tolerance);
+        KRATOS_EXPECT_MATRIX_NEAR(constitutive_matrix, expected_matrix, Defaults::absolute_tolerance);
         law.CalculateMaterialResponseCauchy(parameters);
-        KRATOS_EXPECT_VECTOR_NEAR(stress_vector, expected_stress, 1.0e-10);
+        KRATOS_EXPECT_VECTOR_NEAR(stress_vector, expected_stress, Defaults::absolute_tolerance);
         law.FinalizeMaterialResponseCauchy(parameters);
 
         auto p_cloned_law = law.Clone();
@@ -589,8 +588,8 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombLaw_SchanzVermeerElasticResponseAndState, K
             stress_vector = ZeroVector(strain_size);
             p_law->InitializeMaterialResponseCauchy(parameters);
             p_law->CalculateMaterialResponseCauchy(parameters);
-            KRATOS_EXPECT_VECTOR_NEAR(stress_vector, expected_stress, 1.0e-10);
-            KRATOS_EXPECT_MATRIX_NEAR(constitutive_matrix, expected_matrix, 1.0e-10);
+            KRATOS_EXPECT_VECTOR_NEAR(stress_vector, expected_stress, Defaults::absolute_tolerance);
+            KRATOS_EXPECT_MATRIX_NEAR(constitutive_matrix, expected_matrix, Defaults::absolute_tolerance);
         }
     }
 }
