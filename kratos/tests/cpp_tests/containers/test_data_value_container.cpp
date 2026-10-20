@@ -19,6 +19,8 @@
 
 // Project includes
 #include "containers/data_value_container.h"
+#include "includes/constitutive_law.h"
+#include "includes/stream_serializer.h"
 #include "includes/variables.h"
 #include "testing/testing.h"
 #include "includes/expect.h"
@@ -194,6 +196,34 @@ KRATOS_TEST_CASE_IN_SUITE(DataValueContainerEmplace, KratosCoreFastSuite) {
     Vector vec_2 = Vector(5, 0.1);
     vec_2[2] = 0.2;
     KRATOS_EXPECT_VECTOR_EQ(container.GetValue(CONSTRAINT_LABELS), vec_2);
+}
+
+// A non-DataOnly load into a populated container must delete the old values; the law's use count
+// shows whether the container still holds a leaked copy of its pointer.
+KRATOS_TEST_CASE_IN_SUITE(DataValueContainerLoadIntoPopulatedContainer, KratosCoreFastSuite) {
+    auto p_law = Kratos::make_shared<ConstitutiveLaw>();
+    const Vector distances(3, 1.5);
+
+    DataValueContainer container;
+    container.SetValue(CONSTITUTIVE_LAW, p_law);
+    container.SetValue(DENSITY, 2.0);
+    container.SetValue(ELEMENTAL_DISTANCES, distances);
+    KRATOS_EXPECT_EQ(p_law.use_count(), 2);
+
+    for (std::size_t i = 0; i < 2; ++i) {
+        StreamSerializer serializer;
+        serializer.save("Container", container);
+        container.SetValue(DENSITY, -1.0);
+        serializer.load("Container", container);
+
+        KRATOS_EXPECT_EQ(container.Size(), 3);
+        KRATOS_EXPECT_EQ(container.GetValue(DENSITY), 2.0);
+        KRATOS_EXPECT_VECTOR_EQ(container.GetValue(ELEMENTAL_DISTANCES), distances);
+        KRATOS_EXPECT_NE(container.GetValue(CONSTITUTIVE_LAW), nullptr);
+        KRATOS_EXPECT_NE(container.GetValue(CONSTITUTIVE_LAW), p_law);
+    }
+
+    KRATOS_EXPECT_EQ(p_law.use_count(), 1);
 }
 }
 } // namespace Kratos.

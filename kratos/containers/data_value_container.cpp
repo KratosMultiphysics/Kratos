@@ -92,6 +92,10 @@ void DataValueContainer::load(Serializer& rSerializer)
 
     std::size_t size;
     rSerializer.load("Size", size);
+    if (!rSerializer.IsDataOnly()) {
+        // an in-place load allocates every value anew, so delete the current ones first
+        Clear();
+    }
     mData.resize(size);
     std::string name;
     for (std::size_t i = 0; i < size; i++) {

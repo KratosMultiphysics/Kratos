@@ -14,14 +14,15 @@ class TestPropertiesVariableTensorAdaptorSerialization(kratos_unittest.TestCase)
         model_part.CreateNewNode(1, 0.0, 0.0, 0.0)
         model_part.CreateNewNode(2, 1.0, 0.0, 0.0)
         model_part.CreateNewNode(3, 0.0, 1.0, 0.0)
-        properties = model_part.CreateNewProperties(1)
-        model_part.CreateNewElement("Element2D3N", 1, [1, 2, 3], properties)
-        model_part.CreateNewElement("Element2D3N", 2, [1, 2, 3], properties)
+        # one Properties per element: StoreData() emplaces in parallel, so shared Properties race (see Check())
+        model_part.CreateNewElement("Element2D3N", 1, [1, 2, 3], model_part.CreateNewProperties(1))
+        model_part.CreateNewElement("Element2D3N", 2, [1, 2, 3], model_part.CreateNewProperties(2))
 
         original = KratosOA.TensorAdaptors.PropertiesVariableTensorAdaptor(model_part.Elements, Kratos.DENSITY)
         original.CollectData()
         original.ViewData()[:] = [11.0, 22.0]
         original.StoreData()
+        original.Check()
 
         combined = Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor([original], False, False, False)
         combined.CollectData()

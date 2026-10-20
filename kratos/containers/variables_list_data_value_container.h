@@ -927,6 +927,8 @@ private:
 
     void load(Serializer& rSerializer)
     {
+        // Allocate() below replaces the block, so destruct and free the current one with its own list first.
+        Clear();
         rSerializer.load("Variables List", mpVariablesList);
         rSerializer.load("QueueSize", mQueueSize);
         SizeType queue_index;

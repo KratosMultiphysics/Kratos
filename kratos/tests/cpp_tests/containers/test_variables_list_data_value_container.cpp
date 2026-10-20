@@ -19,6 +19,8 @@
 
 // Project includes
 #include "containers/variables_list_data_value_container.h"
+#include "includes/constitutive_law.h"
+#include "includes/stream_serializer.h"
 #include "includes/variables.h"
 #include "testing/testing.h"
 
@@ -94,6 +96,43 @@ KRATOS_TEST_CASE_IN_SUITE(VariablesListDataValueContainerGetComponentValue, Krat
     KRATOS_EXPECT_EQ(container.GetValue(VELOCITY_X), original_velocity[0]);
     KRATOS_EXPECT_EQ(container.GetValue(VELOCITY_Y), original_velocity[1]);
     KRATOS_EXPECT_EQ(container.GetValue(VELOCITY_Z), original_velocity[2]);
+}
+
+// A load into a populated container must destruct and free its old block; the law's use count shows
+// whether a leaked block still holds copies of its pointer (one per buffer step).
+KRATOS_TEST_CASE_IN_SUITE(VariablesListDataValueContainerLoadIntoPopulatedContainer, KratosCoreFastSuite) {
+    VariablesList::Pointer p_variables_list = Kratos::make_intrusive<VariablesList>();
+    p_variables_list->Add(CONSTITUTIVE_LAW);
+    p_variables_list->Add(ELEMENTAL_DISTANCES);
+    p_variables_list->Add(DISPLACEMENT);
+    VariablesListDataValueContainer container(p_variables_list, 2);
+
+    auto p_law = Kratos::make_shared<ConstitutiveLaw>();
+    const std::vector<array_1d<double, 3>> displacements{
+        array_1d<double, 3>{0.1, 0.2, 0.3}, array_1d<double, 3>{0.4, 0.5, 0.6}};
+    for (std::size_t step = 0; step < 2; ++step) {
+        container.SetValue(CONSTITUTIVE_LAW, p_law, step);
+        container.SetValue(ELEMENTAL_DISTANCES, Vector(4, step + 1.0), step);
+        container.SetValue(DISPLACEMENT, displacements[step], step);
+    }
+    KRATOS_EXPECT_EQ(p_law.use_count(), 3);
+
+    for (std::size_t i = 0; i < 2; ++i) {
+        StreamSerializer serializer;
+        serializer.save("Container", container);
+        container.SetValue(DISPLACEMENT_X, -1.0);
+        serializer.load("Container", container);
+
+        KRATOS_EXPECT_EQ(container.QueueSize(), 2);
+        for (std::size_t step = 0; step < 2; ++step) {
+            KRATOS_EXPECT_NE(container.GetValue(CONSTITUTIVE_LAW, step), nullptr);
+            KRATOS_EXPECT_NE(container.GetValue(CONSTITUTIVE_LAW, step), p_law);
+            KRATOS_EXPECT_VECTOR_EQ(container.GetValue(ELEMENTAL_DISTANCES, step), Vector(4, step + 1.0));
+            KRATOS_EXPECT_VECTOR_EQ(container.GetValue(DISPLACEMENT, step), displacements[step]);
+        }
+    }
+
+    KRATOS_EXPECT_EQ(p_law.use_count(), 1);
 }
 
 }
