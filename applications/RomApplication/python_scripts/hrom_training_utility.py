@@ -213,9 +213,21 @@ class HRomTrainingUtility(object):
         # Note that in here we are assuming this naming convention for the ROM json file
         self.AppendHRomWeightsToRomParameters()
 
+    @staticmethod
+    def GetImportingSolverSettings(solver_settings):
+        """Settings of the solver that imports the model part. In coupled problems only the first sub-solver imports it,
+        and the thermal one copies it (ConnectivityPreserveModeler, same entity ids), so the HROM model part of the coupled
+        problem is the one of that sub-solver."""
+        importing_sub_solvers = {"ThermallyCoupled": "fluid_solver_settings", "ThermoMechanicallyCoupled": "structural_solver_settings"}
+        solver_type = solver_settings["solver_type"].GetString() if solver_settings.Has("solver_type") else ""
+        if solver_type in importing_sub_solvers:
+            return solver_settings[importing_sub_solvers[solver_type]]
+        return solver_settings
+
     def CreateHRomModelParts(self):
         # Get solver data
-        model_part_name = self.solver.settings["model_part_name"].GetString()
+        importing_solver_settings = self.GetImportingSolverSettings(self.solver.settings)
+        model_part_name = importing_solver_settings["model_part_name"].GetString()
 
         # Detect whether the input is geometry based (i.e. the entities are created from the geometries by the modelers).
         # This is the case when the modelers list contains both an importer (i.e. a modeler with an 'input_filename')
@@ -252,7 +264,7 @@ class HRomTrainingUtility(object):
         else:
             # Mesh based input (mdpa), the model part is imported from the same input as the origin one
             # This is given in the 'model_import_settings' or in the importer modeler (e.g. the ImportMDPAModeler)
-            model_import_settings = self.solver.settings["model_import_settings"]
+            model_import_settings = importing_solver_settings["model_import_settings"]
             if model_import_settings.Has("input_filename"):
                 model_part_output_name = model_import_settings["input_filename"].GetString()
             elif geometry_importer_modeler is not None:
