@@ -68,6 +68,7 @@ class FutureRomSolver:
         self.decoder = None
         self.max_iterations = settings["max_iterations"].GetInt()
         self.relative_tolerance = settings["relative_tolerance"].GetDouble()
+        self.absolute_tolerance = settings["absolute_tolerance"].GetDouble()
         self.echo_level = settings["echo_level"].GetInt()
 
         # The HROM scheme only assembles the HROM entities, scaled by their weights (see SetHRomEntities)
@@ -105,6 +106,7 @@ class FutureRomSolver:
             "hrom_weights_set" : 0,
             "max_iterations" : 10,
             "relative_tolerance" : 1.0e-9,
+            "absolute_tolerance" : 1.0e-9,
             "echo_level" : 0
         }""")
 
@@ -126,9 +128,11 @@ class FutureRomSolver:
         self.scheme.InitializeSolutionStep(self.strategy_data)
 
     def SolveSolutionStep(self):
-        """Newton-Raphson iteration on the reduced coordinates. Returns True if converged."""
+        """Newton-Raphson iteration on the reduced coordinates. Returns True if converged.
+        The convergence criterion is the one of the legacy displacement criterion, on the increment of the free DOFs (Phi dq)."""
         is_converged = False
         iteration = 0
+        free_dofs = numpy.array([not dof.IsFixed() for dof in self.GetEffectiveDofSet()])
         while iteration < self.max_iterations and not is_converged:
             iteration += 1
 
@@ -138,7 +142,8 @@ class FutureRomSolver:
             # Build and project the system evaluated at u = D(q)
             self.scheme.InitializeNonLinIteration(self.strategy_data)
             self.projector.BuildEffectiveSystem()
-            self.projector.Project(self.decoder.Jacobian(self.q))
+            phi = self.decoder.Jacobian(self.q)
+            self.projector.Project(phi)
 
             # Solve and update the reduced coordinates
             dq = self.projector.SolveReduced()
@@ -146,16 +151,26 @@ class FutureRomSolver:
             self.scheme.FinalizeNonLinIteration(self.strategy_data)
 
             # Check convergence
-            q_norm = numpy.linalg.norm(self.q)
-            ratio = numpy.linalg.norm(dq) / q_norm if q_norm > 0.0 else numpy.linalg.norm(dq)
-            is_converged = ratio < self.relative_tolerance
+            ratio, absolute_norm = self._DisplacementCriterionNorms((phi @ dq)[free_dofs], self.decoder.Decode(self.q)[free_dofs])
+            is_converged = ratio <= self.relative_tolerance or absolute_norm < self.absolute_tolerance
             if self.echo_level > 0:
-                KratosMultiphysics.Logger.PrintInfo("FutureRomSolver", "Iteration {}: |dq|/|q| = {}".format(iteration, ratio))
+                KratosMultiphysics.Logger.PrintInfo("FutureRomSolver", "Iteration {}: ratio = {}, absolute norm = {}".format(iteration, ratio, absolute_norm))
 
         # Leave the database at the last reduced coordinates
         self.projector.SetSolution(self.decoder.Decode(self.q))
 
         return is_converged
+
+    @staticmethod
+    def _DisplacementCriterionNorms(du, u):
+        """Ratio and absolute norm of the correction du of the free DOFs, as computed by the legacy DisplacementCriteria"""
+        correction_norm = numpy.linalg.norm(du)
+        reference_norm = numpy.linalg.norm(u)
+        epsilon = numpy.finfo(float).eps
+        if reference_norm < epsilon:
+            reference_norm = correction_norm
+        ratio = 0.0 if correction_norm < epsilon else correction_norm / reference_norm
+        return ratio, correction_norm / numpy.sqrt(max(len(du), 1))
 
     def FinalizeSolutionStep(self):
         self.scheme.FinalizeSolutionStep(self.strategy_data)
