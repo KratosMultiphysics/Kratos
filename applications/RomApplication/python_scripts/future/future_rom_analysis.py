@@ -19,10 +19,23 @@ def CreateFutureRomAnalysisInstance(cls, global_model, parameters, future_rom_se
         def Initialize(self):
             super().Initialize()
 
-            self.future_rom_solver = FutureRomSolver(self._GetSolver().GetComputingModelPart(), future_rom_settings)
+            self.future_rom_solver = FutureRomSolver(self._GetSolver().GetComputingModelPart(), self._GetFutureRomSettings())
             self.future_rom_solver.Initialize()
             self.future_rom_solver.SetDecoder(self._CreateDecoder())
             self.rom_solutions = []
+
+        def _GetFutureRomSettings(self):
+            """Settings of the FutureRomSolver. The nonlinear iterations not given take the values of the solver of the analysis
+            (max_iteration and, with a displacement criterion, its tolerances), so that the ROM converges as the legacy one."""
+            settings = future_rom_settings.Clone() if future_rom_settings is not None else KratosMultiphysics.Parameters("{}")
+            solver_settings = self.project_parameters["solver_settings"]
+            inherited = [("max_iterations", "max_iteration")]
+            if solver_settings.Has("convergence_criterion") and solver_settings["convergence_criterion"].GetString() == "displacement_criterion":
+                inherited += [("relative_tolerance", "displacement_relative_tolerance"), ("absolute_tolerance", "displacement_absolute_tolerance")]
+            for name, legacy_name in inherited:
+                if not settings.Has(name) and solver_settings.Has(legacy_name):
+                    settings.AddValue(name, solver_settings[legacy_name])
+            return settings
 
         def _CreateDecoder(self):
             """Linear decoder from the basis saved by the RomManager, taking the initial state as origin."""
