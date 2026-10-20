@@ -111,6 +111,7 @@ import test_vtu_output
 import test_ensight_output_process
 import test_materials_input_with_accessors
 import test_csv_database_io
+import test_checkpoint_process
 
 # Import modules required for sequential orchestrator test
 from test_sequential_orchestrator import EmptyAnalysisStage
@@ -247,6 +248,7 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_ensight_output_process.TestEnsightOutputProcess]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_materials_input_with_accessors.TestMaterialsInputWithAccessors]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_csv_database_io.TestCSVDatabaseIO]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_checkpoint_process.TestCheckpointProcess]))
 
     if sympy_available:
         smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_sympy_fe_utilities.TestSympyFEUtilities]))
