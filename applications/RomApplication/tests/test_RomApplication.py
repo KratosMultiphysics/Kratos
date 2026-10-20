@@ -10,8 +10,6 @@ from test_thermal_rom import TestThermalRom
 from test_structural_rom import TestStructuralRom
 from test_randomized_singular_value_decomposition import TestRandomizedSVD
 from test_empirical_cubature_method import TestEmpiricalCubatureMethod
-from test_calculate_rom_basis_output_process_json import TestCalculateRomBasisOutputProcessJSON
-from test_calculate_rom_basis_output_process_numpy import TestCalculateRomBasisOutputProcessNumpy
 from test_compressible_potiential_rom import TestCompressiblePotentialRom
 from test_fluid_lspg_rom import TestFluidLSPGRom
 from test_thermal_lspg_rom import TestThermalLSPGRom
@@ -28,7 +26,9 @@ from test_rom_database import TestRomDatabase
 from test_numpy_output_process import TestNumpyOutputProcess
 from test_coupled_fluid_thermal_rom import TestCoupledFluidThermalRom
 from test_coupled_thermo_mechanical_rom import TestCoupledThermoMechanicalRom
+from test_rbf_enhanced_rom import TestRbfEnhancedRom
 from test_projected_residuals_output_process import TestProjectedResidualsOutputProcess
+from test_hrom_med_rom import TestHromMedRom
 from test_future_rom import TestFutureRom
 
 def AssembleTestSuites():
@@ -53,8 +53,6 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestFluidRom]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestThermalRom]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestStructuralRom]))
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestCalculateRomBasisOutputProcessJSON]))
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestCalculateRomBasisOutputProcessNumpy]))
     smallSuite.addTest(TestRandomizedSVD('test_radomized_svd'))
     smallSuite.addTest(TestEmpiricalCubatureMethod('test_empirical_cubature_method'))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestCompressiblePotentialRom]))
@@ -73,7 +71,9 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestNumpyOutputProcess]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestCoupledFluidThermalRom]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestCoupledThermoMechanicalRom]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestRbfEnhancedRom]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestProjectedResidualsOutputProcess]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestHromMedRom]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestFutureRom]))
 
 

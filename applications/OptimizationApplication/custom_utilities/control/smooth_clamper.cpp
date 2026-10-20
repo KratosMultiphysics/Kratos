@@ -4,7 +4,7 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:         SystemIdentificationApplication/license.txt
+//  License:         OptimizationApplication/license.txt
 //
 //  Main authors:    Suneth Warnakulasuriya
 //
