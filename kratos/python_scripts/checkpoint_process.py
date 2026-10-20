@@ -11,7 +11,7 @@ class CheckPointProcess(Kratos.Process):
 
         default_settings = Kratos.Parameters("""
         {
-            "help"            : "This process sets a given value for a certain flag in all the given entities of a submodelpart",
+            "help"            : "Saves or loads a model part checkpoint using a file serializer",
             "model_part_name" : "please_specify_model_part_name",
             "checkpoint_state": "",
             "file_name"       : ""
