@@ -79,30 +79,48 @@ class TestFutureRom(KratosUnittest.TestCase):
                     obtained_output = rom_testing_utilities.GetVectorNodalResults(future_model_part, KratosMultiphysics.DISPLACEMENT)
                     self._CheckResults(obtained_output, expected_output, 1.0e-9)
 
+    def _GetGalerkinHRomParameters(self, input_filename=None):
+        """The problem of the RomManager test, loaded with 0.1 and without output, to be run in future_rom_test_files/GalerkinHROM"""
+        with open("../../test_rom_manager/ProjectParameters.json",'r') as parameter_file:
+            parameters = KratosMultiphysics.Parameters(parameter_file.read())
+        solver_settings = parameters["solver_settings"]
+        for settings, key in [(solver_settings["model_import_settings"], "input_filename"), (solver_settings["material_import_settings"], "materials_filename")]:
+            settings[key].SetString("../../test_rom_manager/" + settings[key].GetString())
+        if input_filename is not None:
+            solver_settings["model_import_settings"]["input_filename"].SetString(input_filename)
+        for load_process in parameters["processes"]["loads_process_list"].values():
+            load_process["Parameters"]["value"].SetString("(0.1)")
+        parameters.RemoveValue("output_processes")
+        return parameters
+
     @KratosUnittest.skipIfApplicationsNotAvailable("StructuralMechanicsApplication")
     def testStructuralStaticHRomLoadOutsideSelectedElements(self):
         # Galerkin HROM whose selected condition (a load) shares no node with its selected element: the rows of the DOFs not
         # touched by the selected element are empty and hold the load, so they must not be modified. The HROM integrates the
         # residual of the ROM exactly, so both must give the same solution
         with KratosUnittest.WorkFolderScope("future_rom_test_files/GalerkinHROM/", __file__):
-            # The problem is the one of the RomManager test, loaded with 0.1
-            def GetParameters():
-                with open("../../test_rom_manager/ProjectParameters.json",'r') as parameter_file:
-                    parameters = KratosMultiphysics.Parameters(parameter_file.read())
-                solver_settings = parameters["solver_settings"]
-                for settings, key in [(solver_settings["model_import_settings"], "input_filename"), (solver_settings["material_import_settings"], "materials_filename")]:
-                    settings[key].SetString("../../test_rom_manager/" + settings[key].GetString())
-                for load_process in parameters["processes"]["loads_process_list"].values():
-                    load_process["Parameters"]["value"].SetString("(0.1)")
-                return parameters
-
-            rom_model_part = self._RunFutureRom(None, "cpp", parameters=GetParameters())
+            rom_model_part = self._RunFutureRom(None, "cpp", parameters=self._GetGalerkinHRomParameters())
             expected_output = rom_testing_utilities.GetVectorNodalResults(rom_model_part, KratosMultiphysics.DISPLACEMENT)
             for projection_backend in ["numpy", "cpp"]:
                 with self.subTest(projection_backend=projection_backend):
-                    hrom_model_part = self._RunFutureRom(None, projection_backend, run_hrom=True, parameters=GetParameters())
+                    hrom_model_part = self._RunFutureRom(None, projection_backend, run_hrom=True, parameters=self._GetGalerkinHRomParameters())
                     obtained_output = rom_testing_utilities.GetVectorNodalResults(hrom_model_part, KratosMultiphysics.DISPLACEMENT)
                     self._CheckResults(obtained_output, expected_output, 1.0e-9)
+
+    @KratosUnittest.skipIfApplicationsNotAvailable("StructuralMechanicsApplication")
+    def testStructuralStaticHRomModelPart(self):
+        # The HROM run on the HROM model part (written as the HROM training does) must give the solution of the HROM run on the
+        # full one, on the nodes of the HROM model part
+        with KratosUnittest.WorkFolderScope("future_rom_test_files/GalerkinHROM/", __file__):
+            full_model_part = self._RunFutureRom(None, "cpp", run_hrom=True, parameters=self._GetGalerkinHRomParameters())
+            for projection_backend in ["numpy", "cpp"]:
+                with self.subTest(projection_backend=projection_backend):
+                    hrom_model_part = self._RunFutureRom(None, projection_backend, run_hrom=True,
+                        parameters=self._GetGalerkinHRomParameters("simple_structure_multiple_parametersHROM"))
+                    self.assertLess(hrom_model_part.NumberOfElements(), full_model_part.NumberOfElements())
+                    expected_output = [full_model_part.GetNode(node.Id).GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT) for node in hrom_model_part.Nodes]
+                    obtained_output = [node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT) for node in hrom_model_part.Nodes]
+                    self._CheckResults(obtained_output, expected_output, 1.0e-12)
 
     @KratosUnittest.skipIfApplicationsNotAvailable("ConvectionDiffusionApplication")
     def testConvDiffStationaryRom2D(self):

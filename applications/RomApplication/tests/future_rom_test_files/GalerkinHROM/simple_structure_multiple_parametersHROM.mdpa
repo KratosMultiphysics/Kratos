@@ -1,0 +1,117 @@
+Begin Properties 0
+
+End Properties
+
+Begin Nodes
+	89	0.0000000000e+00	1.0000000000e+01	0.0000000000e+00
+	92	0.0000000000e+00	9.9000000000e+00	0.0000000000e+00
+	1036	9.0000000000e-01	6.0000000000e-01	0.0000000000e+00
+	1037	8.0000000000e-01	6.0000000000e-01	0.0000000000e+00
+	1047	9.0000000000e-01	5.0000000000e-01	0.0000000000e+00
+	1048	8.0000000000e-01	5.0000000000e-01	0.0000000000e+00
+End Nodes
+
+Begin Elements	SmallDisplacementElement2D4N
+	59	0	1047	1036	1037	1048	
+End Elements
+
+Begin Conditions	SmallDisplacementLineLoadCondition2D2N
+	20	0	92	89	
+End Conditions
+
+Begin SubModelPart	Parts_Solid_Volume
+	Begin SubModelPartData
+	End SubModelPartData
+	Begin SubModelPartTables
+	End SubModelPartTables
+	Begin SubModelPartNodes
+		89
+		92
+		1036
+		1037
+		1047
+		1048
+	End SubModelPartNodes
+	Begin SubModelPartElements
+		59
+	End SubModelPartElements
+	Begin SubModelPartConditions
+	End SubModelPartConditions
+	Begin SubModelPartGeometries
+	End SubModelPartGeometries
+	Begin SubModelPartConstraints
+	End SubModelPartConstraints
+End SubModelPart	
+
+Begin SubModelPart	DISPLACEMENT_base_constraint
+	Begin SubModelPartData
+	End SubModelPartData
+	Begin SubModelPartTables
+	End SubModelPartTables
+	Begin SubModelPartNodes
+	End SubModelPartNodes
+	Begin SubModelPartElements
+	End SubModelPartElements
+	Begin SubModelPartConditions
+	End SubModelPartConditions
+	Begin SubModelPartGeometries
+	End SubModelPartGeometries
+	Begin SubModelPartConstraints
+	End SubModelPartConstraints
+End SubModelPart	
+
+Begin SubModelPart	LinePressure2D_pressure_1
+	Begin SubModelPartData
+	End SubModelPartData
+	Begin SubModelPartTables
+	End SubModelPartTables
+	Begin SubModelPartNodes
+		89
+	End SubModelPartNodes
+	Begin SubModelPartElements
+	End SubModelPartElements
+	Begin SubModelPartConditions
+	End SubModelPartConditions
+	Begin SubModelPartGeometries
+	End SubModelPartGeometries
+	Begin SubModelPartConstraints
+	End SubModelPartConstraints
+End SubModelPart	
+
+Begin SubModelPart	LinePressure2D_pressure_2
+	Begin SubModelPartData
+	End SubModelPartData
+	Begin SubModelPartTables
+	End SubModelPartTables
+	Begin SubModelPartNodes
+		89
+		92
+	End SubModelPartNodes
+	Begin SubModelPartElements
+	End SubModelPartElements
+	Begin SubModelPartConditions
+		20
+	End SubModelPartConditions
+	Begin SubModelPartGeometries
+	End SubModelPartGeometries
+	Begin SubModelPartConstraints
+	End SubModelPartConstraints
+End SubModelPart	
+
+Begin SubModelPart	LinePressure2D_pressure_3
+	Begin SubModelPartData
+	End SubModelPartData
+	Begin SubModelPartTables
+	End SubModelPartTables
+	Begin SubModelPartNodes
+	End SubModelPartNodes
+	Begin SubModelPartElements
+	End SubModelPartElements
+	Begin SubModelPartConditions
+	End SubModelPartConditions
+	Begin SubModelPartGeometries
+	End SubModelPartGeometries
+	Begin SubModelPartConstraints
+	End SubModelPartConstraints
+End SubModelPart	
+
