@@ -57,6 +57,19 @@ class TestFutureRom(KratosUnittest.TestCase):
                     # The legacy ROM adds a spurious increment of relative size 3e-10 in the second step, where the load does not change
                     self._CheckResults(obtained_output, expected_output, 1.0e-8)
 
+    @KratosUnittest.skipIfApplicationsNotAvailable("StructuralMechanicsApplication")
+    def testStructuralStaticTotalLagrangianRom2D(self):
+        # Geometrically nonlinear cantilever (total Lagrangian elements, tip displacement 27% of the length). These elements
+        # use the current coordinates, so the scheme must move the mesh as the legacy solver does ("move_mesh_flag")
+        with KratosUnittest.WorkFolderScope("future_rom_test_files/TotalLagrangianROM/", __file__):
+            legacy_model_part = self._RunLegacyRom("ProjectParameters.json")
+            expected_output = rom_testing_utilities.GetVectorNodalResults(legacy_model_part, KratosMultiphysics.DISPLACEMENT)
+            for projection_backend in ["numpy", "cpp"]:
+                with self.subTest(projection_backend=projection_backend):
+                    future_model_part = self._RunFutureRom("ProjectParameters.json", projection_backend, max_iterations=20)
+                    obtained_output = rom_testing_utilities.GetVectorNodalResults(future_model_part, KratosMultiphysics.DISPLACEMENT)
+                    self._CheckResults(obtained_output, expected_output, 1.0e-8)
+
     @KratosUnittest.skipIfApplicationsNotAvailable("ConvectionDiffusionApplication")
     def testConvDiffStationaryRom2D(self):
         with KratosUnittest.WorkFolderScope("thermal_static_test_files/ROM/", __file__):
