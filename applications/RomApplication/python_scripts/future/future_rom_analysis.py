@@ -4,7 +4,7 @@ from pathlib import Path
 import numpy
 
 import KratosMultiphysics
-from KratosMultiphysics.RomApplication.future.rom_decoders import LinearDecoder
+from KratosMultiphysics.RomApplication.future.rom_decoders import FixedDofsDecoder, LinearDecoder
 from KratosMultiphysics.RomApplication.future.rom_future_solver import FutureRomSolver
 
 
@@ -67,7 +67,8 @@ def CreateFutureRomAnalysisInstance(cls, global_model, parameters, future_rom_se
             return settings
 
         def _CreateDecoder(self):
-            """Linear decoder from the basis saved by the RomManager, taking the initial state as origin."""
+            """Linear decoder from the basis saved by the RomManager, taking the initial state as origin. With
+            "fixed_dofs_decoding": "prescribed", wrapped in a FixedDofsDecoder."""
             folder = Path(rom_basis_output_folder)
             with open(folder / "RomParameters.json", 'r') as parameter_file:
                 rom_settings = json.load(parameter_file)["rom_settings"]
@@ -84,7 +85,11 @@ def CreateFutureRomAnalysisInstance(cls, global_model, parameters, future_rom_se
             dof_set = self.future_rom_solver.GetEffectiveDofSet()
             rows = [node_id_to_index[dof.Id()] * len(nodal_unknowns) + unknown_to_index[dof.GetVariable().Name()] for dof in dof_set]
 
-            return LinearDecoder(right_modes[rows, :], numpy.array(dof_set.GetValues()))
+            decoder = LinearDecoder(right_modes[rows, :], numpy.array(dof_set.GetValues()))
+            if self.future_rom_solver.fixed_dofs_decoding == "prescribed":
+                # The fixed DOFs take their prescribed values instead of the ones of the basis
+                decoder = FixedDofsDecoder(decoder, dof_set)
+            return decoder
 
         def InitializeSolutionStep(self):
             self.PrintAnalysisStageProgressInformation()

@@ -6,6 +6,8 @@ class RomDecoder:
 
     The rows of the decoded vector and of the Jacobian follow the effective DOF set
     of the Future scheme (row i belongs to the DOF with effective equation id i).
+    A decoder may treat the fixed DOFs in its own way (e.g. FixedDofsDecoder), reading
+    the values imposed in the current step in InitializeSolutionStep.
     """
 
     def NumberOfRomDofs(self):
@@ -18,6 +20,10 @@ class RomDecoder:
     def Jacobian(self, q):
         """Returns the dense matrix dD/dq evaluated at q."""
         raise NotImplementedError("Calling base class 'Jacobian'.")
+
+    def InitializeSolutionStep(self):
+        """Called once the conditions of the step are applied (fixed DOFs and their values)."""
+        pass
 
 
 class LinearDecoder(RomDecoder):
@@ -40,3 +46,36 @@ class LinearDecoder(RomDecoder):
 
     def Jacobian(self, q):
         return self.phi
+
+
+class FixedDofsDecoder(RomDecoder):
+    """Decoder with two DOF sets: the free DOFs are given by the provided decoder and the fixed DOFs by their prescribed values.
+
+    The fixed DOFs (e.g. Dirichlet conditions) are not approximated: their values are the ones imposed in the model, read in
+    InitializeSolutionStep. Their rows of the Jacobian are zero. Any decoder can be wrapped (linear or nonlinear).
+    """
+
+    def __init__(self, decoder, dof_set):
+        self.decoder = decoder
+        self.dof_set = dof_set
+        self.InitializeSolutionStep()
+
+    def InitializeSolutionStep(self):
+        """Reads which DOFs are fixed and their prescribed values"""
+        self.decoder.InitializeSolutionStep()
+        self.fixed_dofs = numpy.array([dof.IsFixed() for dof in self.dof_set], dtype=bool)
+        self.fixed_values = numpy.array(self.dof_set.GetValues())[self.fixed_dofs]
+
+    def NumberOfRomDofs(self):
+        return self.decoder.NumberOfRomDofs()
+
+    def Decode(self, q):
+        u = numpy.array(self.decoder.Decode(q), dtype=numpy.float64)
+        u[self.fixed_dofs] = self.fixed_values
+        return u
+
+    def Jacobian(self, q):
+        # A new C-ordered array, so that it can be passed to the C++ projector without copies
+        jacobian = numpy.array(self.decoder.Jacobian(q), dtype=numpy.float64, order="C")
+        jacobian[self.fixed_dofs, :] = 0.0
+        return jacobian

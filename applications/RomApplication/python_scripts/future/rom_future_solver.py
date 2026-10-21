@@ -71,6 +71,13 @@ class FutureRomSolver:
         self.absolute_tolerance = settings["absolute_tolerance"].GetDouble()
         self.echo_level = settings["echo_level"].GetInt()
 
+        # Values of the fixed DOFs given by the decoder: "basis" (u0 + Phi q, as the free ones) or "prescribed" (the values imposed
+        # by the conditions, see FixedDofsDecoder). The projection does not use the rows of the fixed DOFs in either case
+        self.fixed_dofs_decoding = settings["fixed_dofs_decoding"].GetString()
+        if self.fixed_dofs_decoding not in ("basis", "prescribed"):
+            err_msg = "Unknown value \'{}\' for \'fixed_dofs_decoding\'. Available options are \'basis\' and \'prescribed\'.".format(self.fixed_dofs_decoding)
+            raise Exception(err_msg)
+
         # The HROM scheme only assembles the HROM entities, scaled by their weights (see SetHRomEntities)
         self.run_hrom = settings["run_hrom"].GetBool()
         self.hrom_weights_set = settings["hrom_weights_set"].GetInt()
@@ -104,6 +111,7 @@ class FutureRomSolver:
             "projection_backend" : "numpy",
             "run_hrom" : false,
             "hrom_weights_set" : 0,
+            "fixed_dofs_decoding" : "basis",
             "max_iterations" : 10,
             "relative_tolerance" : 1.0e-9,
             "absolute_tolerance" : 1.0e-9,
@@ -126,6 +134,8 @@ class FutureRomSolver:
 
     def InitializeSolutionStep(self):
         self.scheme.InitializeSolutionStep(self.strategy_data)
+        # The conditions of the step are already applied, so the decoder can read the prescribed values of the fixed DOFs
+        self.decoder.InitializeSolutionStep()
 
     def SolveSolutionStep(self):
         """Newton-Raphson iteration on the reduced coordinates. Returns True if converged.
