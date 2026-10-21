@@ -33,26 +33,16 @@ namespace
 {
 using ProjectionCoordinates = array_1d<double, 3>;
 using NurbsSkinCurve = NurbsCurveGeometry<2, PointerVector<Node>>;
-
-struct NurbsProjectionResult
-{
-    Geometry<Node>::Pointer pGeometry;
-    ProjectionCoordinates LocalCoordinates = ZeroVector(3);
-    ProjectionCoordinates SkinCoordinates = ZeroVector(3);
-    double SquaredDistance = std::numeric_limits<double>::max();
-    std::string LayerName;
-    IndexType InputOrder = 0;
-    bool IsConvergedProjection = false;
-};
+} // namespace
 
 // Finds the closest valid projection of a point onto the NURBS skin curves.
-NurbsProjectionResult ProjectToNurbsSkin(
+IgaModelerSbm::NurbsProjectionResult IgaModelerSbm::ProjectToNurbsSkin(
     const ProjectionCoordinates& rPoint,
     const std::vector<Geometry<Node>::Pointer>& rNurbsSkinCurves,
     const double SearchRadius,
     const double Tolerance,
     const bool RequireConditionName,
-    const std::string& rRequiredLayer = "")
+    const std::string& rRequiredLayer)
 {
     NurbsProjectionResult result;
     std::vector<Geometry<Node>::Pointer> curves;
@@ -149,7 +139,6 @@ NurbsProjectionResult ProjectToNurbsSkin(
     return result;
 }
 
-} // namespace
 ///@name Stages
 ///@{
 

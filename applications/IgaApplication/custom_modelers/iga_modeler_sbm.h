@@ -15,6 +15,7 @@
 # pragma once
 
 // System includes
+#include <limits>
 
 // External includes
 
@@ -66,6 +67,18 @@ public:
     using DynamicBins = BinsDynamic<3, PointType, PointVector, PointTypePointer, PointIterator, DistanceIterator>;
     using PointerType = DynamicBins::PointerType;
     using NodePointerVector = GlobalPointersVector<NodeType>;
+    using ProjectionCoordinates = array_1d<double, 3>;
+
+    struct NurbsProjectionResult
+    {
+        Geometry<Node>::Pointer pGeometry;
+        ProjectionCoordinates LocalCoordinates = ZeroVector(3);
+        ProjectionCoordinates SkinCoordinates = ZeroVector(3);
+        double SquaredDistance = std::numeric_limits<double>::max();
+        std::string LayerName;
+        IndexType InputOrder = 0;
+        bool IsConvergedProjection = false;
+    };
 
     ///@}
     ///@name Life Cycle
@@ -100,6 +113,19 @@ public:
     ///@{
 
     void SetupModelPart() override;
+
+    ///@}
+    ///@name Operations
+    ///@{
+
+    // Finds the closest valid projection of a point onto the NURBS skin curves.
+    static NurbsProjectionResult ProjectToNurbsSkin(
+        const ProjectionCoordinates& rPoint,
+        const std::vector<Geometry<Node>::Pointer>& rNurbsSkinCurves,
+        const double SearchRadius,
+        const double Tolerance,
+        const bool RequireConditionName,
+        const std::string& rRequiredLayer = "");
 
     ///@}
     ///@name Input and output
