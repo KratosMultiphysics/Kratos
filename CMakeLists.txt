@@ -642,8 +642,11 @@ endif( FORCE_LOCAL_ZLIB_COMPILATION MATCHES OFF )
 if( FORCE_LOCAL_ZLIB_COMPILATION MATCHES ON )
   message(STATUS "Preparing local ZLIB compilation.")
   include_directories( ${KRATOS_SOURCE_DIR}/external_libraries/zlib )
-  # Compile our own
+  # Compile our own (zlib sources are not unity-build safe: they redefine the same types/macros)
+  set( KRATOS_ZLIB_PREVIOUS_UNITY_BUILD ${CMAKE_UNITY_BUILD} )
+  set( CMAKE_UNITY_BUILD OFF )
   add_subdirectory( ${KRATOS_SOURCE_DIR}/external_libraries/zlib )
+  set( CMAKE_UNITY_BUILD ${KRATOS_ZLIB_PREVIOUS_UNITY_BUILD} )
   # We have to add this for zconf
   include_directories( ${KRATOS_BINARY_DIR}/external_libraries/zlib )
   set( ZLIB_LIBRARIES zlib )

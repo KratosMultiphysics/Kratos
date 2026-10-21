@@ -5,6 +5,7 @@ from pathlib import Path
 
 # Importing the Kratos Library
 import KratosMultiphysics
+from KratosMultiphysics.kratos_utilities import IssueDeprecationWarning
 from KratosMultiphysics.RomApplication.randomized_singular_value_decomposition import RandomizedSingularValueDecomposition
 
 def Factory(settings, model):
@@ -17,6 +18,8 @@ class CalculateRomBasisOutputProcess(KratosMultiphysics.OutputProcess):
 
     def __init__(self, model, settings):
         KratosMultiphysics.OutputProcess.__init__(self)
+
+        IssueDeprecationWarning("CalculateRomBasisOutputProcess", "This process is deprecated and will be removed. Please use the RomManager to compute the ROM basis.")
 
         # Validate input settings against defaults
         settings.ValidateAndAssignDefaults(self.GetDefaultParameters())
@@ -36,6 +39,9 @@ class CalculateRomBasisOutputProcess(KratosMultiphysics.OutputProcess):
             err_msg = "Unknown value \'{}\' for \'snapshots_control_type\'. Available options are \'time\' and \'step\'.".format(snapshots_control_type)
             raise Exception(err_msg)
         self.snapshots_interval = settings["snapshots_interval"].GetDouble()
+
+
+        self.snapshots_control_is_periodic = settings["snapshots_control_is_periodic"].GetBool()
 
         # Get the variables list to be used to get the snapshots matrix information
         # Note that we sort the snapshot variables list alphabetically
@@ -95,6 +101,7 @@ class CalculateRomBasisOutputProcess(KratosMultiphysics.OutputProcess):
             "rom_manager" : false,
             "snapshots_control_type": "step",
             "snapshots_interval": 1.0,
+            "snapshots_control_is_periodic": true,
             "nodal_unknowns": [],
             "rom_basis_output_format": "numpy",
             "rom_basis_output_name": "RomParameters",
@@ -108,10 +115,16 @@ class CalculateRomBasisOutputProcess(KratosMultiphysics.OutputProcess):
     def IsOutputStep(self):
         if self.snapshots_control_is_time:
             time = self.__GetPrettyFloat(self.model_part.ProcessInfo[KratosMultiphysics.TIME])
-            return time >= self.__GetPrettyFloat(self.next_output)
+            if self.snapshots_control_is_periodic:
+                return time >= self.__GetPrettyFloat(self.next_output)
+            else:
+                return time == self.__GetPrettyFloat(self.snapshots_interval)
         else:
             step = self.__GetPrettyFloat(self.model_part.ProcessInfo[KratosMultiphysics.STEP])
-            return step >= self.next_output
+            if self.snapshots_control_is_periodic:
+                return step >= self.next_output
+            else:
+                return step == self.snapshots_interval
 
     def PrintOutput(self):
         # Save the data in the snapshots data list
@@ -122,7 +135,7 @@ class CalculateRomBasisOutputProcess(KratosMultiphysics.OutputProcess):
 
 
         # Schedule next snapshot output
-        if self.snapshots_interval > 0.0: # Note: if == 0, we'll just always print
+        if self.snapshots_control_is_periodic and self.snapshots_interval > 0.0: # Note: if == 0, we'll just always print
             if self.snapshots_control_is_time:
                 time = self.__GetPrettyFloat(self.model_part.ProcessInfo[KratosMultiphysics.TIME])
                 while self.__GetPrettyFloat(self.next_output) <= time:
