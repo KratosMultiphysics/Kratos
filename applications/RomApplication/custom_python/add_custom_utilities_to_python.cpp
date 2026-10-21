@@ -57,6 +57,7 @@ void AddCustomUtilitiesToPython(pybind11::module& m)
                 return RomAuxiliaryUtilities::GetHRomConditionParentsIds(rModelPart, rConditionIds);})
         .def_static("GetHRomConditionParentsIds", [](const ModelPart& rModelPart, const std::map<std::string, std::map<IndexType, double>>& rHRomWeights) {
                 return RomAuxiliaryUtilities::GetHRomConditionParentsIds(rModelPart, rHRomWeights);})
+        .def_static("GetHRomElementChildrenIds", &RomAuxiliaryUtilities::GetHRomElementChildrenIds)
         .def_static("GetNodalNeighbouringElementIdsNotInHRom", &RomAuxiliaryUtilities::GetNodalNeighbouringElementIdsNotInHRom)
         .def_static("GetNodalNeighbouringElementIds", [](Kratos::ModelPart& rModelPart, Kratos::ModelPart& rGivenModelPart) {
                 return Kratos::RomAuxiliaryUtilities::GetNodalNeighbouringElementIds(rModelPart, rGivenModelPart);})
