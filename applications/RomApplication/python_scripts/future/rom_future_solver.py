@@ -121,8 +121,7 @@ class FutureRomSolver:
     def InitializeSolutionStep(self):
         self.scheme.InitializeSolutionStep(self.strategy_data)
         # The conditions of the step are already applied, so the decoder can read the prescribed values of the fixed DOFs
-        if hasattr(self.decoder, "UpdateFixedDofs"):
-            self.decoder.UpdateFixedDofs()
+        self.decoder.InitializeSolutionStep()
 
     def SolveSolutionStep(self):
         """Newton-Raphson iteration on the reduced coordinates. Returns True if converged.
