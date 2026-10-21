@@ -4,7 +4,7 @@ from pathlib import Path
 import numpy
 
 import KratosMultiphysics
-from KratosMultiphysics.RomApplication.future.rom_decoders import LinearDecoder
+from KratosMultiphysics.RomApplication.future.rom_decoders import FixedDofsDecoder, LinearDecoder
 from KratosMultiphysics.RomApplication.future.rom_future_solver import FutureRomSolver
 
 
@@ -59,20 +59,27 @@ def CreateFutureRomAnalysisInstance(cls, global_model, parameters, future_rom_se
             return settings
 
         def _CreateDecoder(self):
-            """Linear decoder from the basis saved by the RomManager, taking the initial state as origin (or the one of the decoder_factory)."""
+            """Linear decoder from the basis saved by the RomManager, taking the initial state as origin (or the one of the decoder_factory).
+            With "fixed_dofs_decoding": "prescribed", wrapped in a FixedDofsDecoder."""
             folder = Path(rom_basis_output_folder)
             with open(folder / "RomParameters.json", 'r') as parameter_file:
                 rom_settings = json.load(parameter_file)["rom_settings"]
             rows = self._GetBasisRows(folder, rom_settings["nodal_unknowns"])
-            u0 = numpy.array(self.future_rom_solver.GetEffectiveDofSet().GetValues())
+            dof_set = self.future_rom_solver.GetEffectiveDofSet()
+            u0 = numpy.array(dof_set.GetValues())
             if decoder_factory is not None:
-                return decoder_factory(rows, u0)
+                decoder = decoder_factory(rows, u0)
+            else:
+                right_modes = numpy.load(folder / "RightBasisMatrix.npy")
+                if right_modes.ndim == 1:
+                    right_modes = right_modes.reshape(-1, 1)
+                right_modes = right_modes[:, :rom_settings["number_of_rom_dofs"]]
+                decoder = LinearDecoder(right_modes[rows, :], u0)
 
-            right_modes = numpy.load(folder / "RightBasisMatrix.npy")
-            if right_modes.ndim == 1:
-                right_modes = right_modes.reshape(-1, 1)
-            right_modes = right_modes[:, :rom_settings["number_of_rom_dofs"]]
-            return LinearDecoder(right_modes[rows, :], u0)
+            if self.future_rom_solver.fixed_dofs_decoding == "prescribed":
+                # The fixed DOFs take their prescribed values instead of the ones of the decoder
+                decoder = FixedDofsDecoder(decoder, dof_set)
+            return decoder
 
         def _GetBasisRows(self, folder, nodal_unknowns):
             """The saved bases have one row per node and nodal unknown. Their rows in the order of the effective DOF set"""

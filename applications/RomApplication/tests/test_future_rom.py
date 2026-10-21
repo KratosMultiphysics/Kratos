@@ -148,6 +148,50 @@ class TestFutureRom(KratosUnittest.TestCase):
                     self._CheckResults(obtained_output, expected_output, 1.0e-10)
 
 
+    @KratosUnittest.skipIfApplicationsNotAvailable("ConvectionDiffusionApplication")
+    def testConvDiffStationaryRomFixedDofsDecoding(self):
+        # With "fixed_dofs_decoding": "prescribed" the decoder gives the prescribed values on the fixed DOFs (the imposed temperature
+        # of the left wall) and the ROM solution on the free ones. The solution is the one of the default decoding ("basis"), as the
+        # projection does not use the rows of the fixed DOFs. Note that the basis of this test includes the fixed DOFs
+        from KratosMultiphysics.RomApplication.future.future_rom_analysis import CreateFutureRomAnalysisInstance
+        from KratosMultiphysics.ConvectionDiffusionApplication.convection_diffusion_analysis import ConvectionDiffusionAnalysis
+
+        class FixedDofsCheck(ConvectionDiffusionAnalysis):
+            def OutputSolutionStep(self):
+                super().OutputSolutionStep()
+                solver = self.future_rom_solver
+                if not hasattr(solver.decoder, "fixed_dofs"): # Only the FixedDofsDecoder ("prescribed")
+                    return
+                decoded = solver.decoder.Decode(solver.GetRomSolution())
+                # The fixed DOFs of the step, read by the decoder once the conditions were applied (the processes free them when finalizing)
+                self.decoded = {(dof.Id(), bool(solver.decoder.fixed_dofs[i])): decoded[i] for i, dof in enumerate(solver.GetEffectiveDofSet())}
+
+        def Run(fixed_dofs_decoding):
+            with open("../ProjectParameters.json",'r') as parameter_file:
+                parameters = KratosMultiphysics.Parameters(parameter_file.read())
+            settings = KratosMultiphysics.Parameters('{"max_iterations" : 1}')
+            settings.AddString("fixed_dofs_decoding", fixed_dofs_decoding)
+            simulation = CreateFutureRomAnalysisInstance(FixedDofsCheck, KratosMultiphysics.Model(), parameters, settings)
+            simulation.Run()
+            return simulation
+
+        with KratosUnittest.WorkFolderScope("thermal_static_test_files/ROM/", __file__):
+            simulation = Run("prescribed")
+            model_part = simulation._GetSolver().GetComputingModelPart()
+            fixed = {node_id: value for (node_id, is_fixed), value in simulation.decoded.items() if is_fixed}
+            free = {node_id: value for (node_id, is_fixed), value in simulation.decoded.items() if not is_fixed}
+            self.assertGreater(len(fixed), 0)
+            for node_id, value in fixed.items():
+                self.assertEqual(value, 303.15)
+            for node_id, value in free.items():
+                self.assertAlmostEqual(value, model_part.GetNode(node_id).GetSolutionStepValue(KratosMultiphysics.TEMPERATURE), delta=1.0e-10 * abs(value))
+
+            default_model_part = Run("basis")._GetSolver().GetComputingModelPart()
+            obtained_output = rom_testing_utilities.GetScalarNodalResults(model_part, KratosMultiphysics.TEMPERATURE)
+            expected_output = rom_testing_utilities.GetScalarNodalResults(default_model_part, KratosMultiphysics.TEMPERATURE)
+            self._CheckResults(obtained_output, expected_output, 1.0e-12)
+
+
 ##########################################################################################
 
 if __name__ == '__main__':
