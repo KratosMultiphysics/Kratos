@@ -22,7 +22,20 @@ def CreateFutureRomAnalysisInstance(cls, global_model, parameters, future_rom_se
             self.future_rom_solver = FutureRomSolver(self._GetSolver().GetComputingModelPart(), self._GetFutureRomSettings())
             self.future_rom_solver.Initialize()
             self.future_rom_solver.SetDecoder(self._CreateDecoder())
+            if self.future_rom_solver.run_hrom:
+                self._SetHRomEntities()
             self.rom_solutions = []
+
+        def _SetHRomEntities(self):
+            """HROM entities and weights from the files saved by the HROM training (one column of weights per set, e.g. per physics)."""
+            folder = Path(rom_basis_output_folder)
+            weights_set = self.future_rom_solver.hrom_weights_set
+            def Weights(name, number_of_entities):
+                weights = numpy.load(folder / f"HROM_{name}Weights.npy").reshape(number_of_entities, -1)
+                return weights[:, weights_set]
+            element_ids = numpy.load(folder / "HROM_ElementIds.npy")
+            condition_ids = numpy.load(folder / "HROM_ConditionIds.npy")
+            self.future_rom_solver.SetHRomEntities(element_ids, Weights("Element", len(element_ids)), condition_ids, Weights("Condition", len(condition_ids)))
 
         def _GetFutureRomSettings(self):
             """Settings of the FutureRomSolver. The nonlinear iterations not given take the values of the solver of the analysis

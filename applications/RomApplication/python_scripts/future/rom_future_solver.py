@@ -78,7 +78,13 @@ class FutureRomSolver:
             err_msg = "Unknown value \'{}\' for \'fixed_dofs_decoding\'. Available options are \'basis\' and \'prescribed\'.".format(self.fixed_dofs_decoding)
             raise Exception(err_msg)
 
-        self.scheme = KratosMultiphysics.Future.StaticScheme(self.model_part, settings["scheme_settings"])
+        # The HROM scheme only assembles the HROM entities, scaled by their weights (see SetHRomEntities)
+        self.run_hrom = settings["run_hrom"].GetBool()
+        self.hrom_weights_set = settings["hrom_weights_set"].GetInt()
+        if self.run_hrom:
+            self.scheme = KratosROM.Future.HRomStaticScheme(self.model_part, settings["scheme_settings"])
+        else:
+            self.scheme = KratosMultiphysics.Future.StaticScheme(self.model_part, settings["scheme_settings"])
         self.strategy_data = KratosMultiphysics.Future.ImplicitStrategyData()
 
         projection_backend = settings["projection_backend"].GetString()
@@ -103,6 +109,8 @@ class FutureRomSolver:
                 "reform_dofs_at_each_step" : false
             },
             "projection_backend" : "numpy",
+            "run_hrom" : false,
+            "hrom_weights_set" : 0,
             "fixed_dofs_decoding" : "basis",
             "max_iterations" : 10,
             "relative_tolerance" : 1.0e-9,
@@ -117,6 +125,12 @@ class FutureRomSolver:
         """Sets the decoder. Its rows must follow the effective DOF set, which is available after Initialize."""
         self.decoder = decoder
         self.q = numpy.zeros(self.decoder.NumberOfRomDofs())
+
+    def SetHRomEntities(self, element_ids, element_weights, condition_ids, condition_weights):
+        """Sets the HROM elements and conditions and their weights (one value per entity) in the HROM scheme."""
+        if not self.run_hrom:
+            raise Exception("The HROM entities can only be set with 'run_hrom' set to true.")
+        self.scheme.SetHRomEntities([int(i) for i in element_ids], [float(w) for w in element_weights], [int(i) for i in condition_ids], [float(w) for w in condition_weights])
 
     def InitializeSolutionStep(self):
         self.scheme.InitializeSolutionStep(self.strategy_data)
