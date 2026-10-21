@@ -23,7 +23,7 @@ class TestFutureRom(KratosUnittest.TestCase):
         simulation.Run()
         return simulation._GetSolver().GetComputingModelPart()
 
-    def _RunFutureRom(self, parameters_filename, projection_backend, max_iterations=10):
+    def _RunFutureRom(self, parameters_filename, projection_backend, max_iterations=None):
         from KratosMultiphysics.RomApplication.future.future_rom_analysis import CreateFutureRomAnalysisInstance
 
         with open(parameters_filename,'r') as parameter_file:
@@ -34,7 +34,8 @@ class TestFutureRom(KratosUnittest.TestCase):
 
         future_rom_settings = KratosMultiphysics.Parameters("""{}""")
         future_rom_settings.AddString("projection_backend", projection_backend)
-        future_rom_settings.AddInt("max_iterations", max_iterations)
+        if max_iterations is not None: # Otherwise taken from the solver settings of the case
+            future_rom_settings.AddInt("max_iterations", max_iterations)
         simulation = CreateFutureRomAnalysisInstance(analysis_stage_class, KratosMultiphysics.Model(), parameters, future_rom_settings)
         simulation.Run()
         return simulation._GetSolver().GetComputingModelPart()
@@ -54,8 +55,8 @@ class TestFutureRom(KratosUnittest.TestCase):
                 with self.subTest(projection_backend=projection_backend):
                     future_model_part = self._RunFutureRom("../ProjectParameters.json", projection_backend)
                     obtained_output = rom_testing_utilities.GetVectorNodalResults(future_model_part, KratosMultiphysics.DISPLACEMENT)
-                    # The legacy ROM adds a spurious increment of relative size 3e-10 in the second step, where the load does not change
-                    self._CheckResults(obtained_output, expected_output, 1.0e-8)
+                    # Linear analysis: one iteration per step on the moved mesh, as the legacy linear strategy
+                    self._CheckResults(obtained_output, expected_output, 1.0e-12)
 
     @KratosUnittest.skipIfApplicationsNotAvailable("StructuralMechanicsApplication")
     def testStructuralStaticTotalLagrangianRom2D(self):
