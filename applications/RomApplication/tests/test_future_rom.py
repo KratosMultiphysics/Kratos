@@ -1,4 +1,5 @@
 import importlib
+import json
 
 import numpy as np
 
@@ -97,6 +98,29 @@ class TestFutureRom(KratosUnittest.TestCase):
                     torch_model_part = self._RunFutureRom("ProjectParameters.json", projection_backend, decoder_factory=TorchLinearDecoderFactory)
                     obtained_output = rom_testing_utilities.GetVectorNodalResults(torch_model_part, KratosMultiphysics.DISPLACEMENT)
                     self._CheckResults(obtained_output, expected_output, 1.0e-12)
+
+    @KratosUnittest.skipIfApplicationsNotAvailable("StructuralMechanicsApplication")
+    @KratosUnittest.skipUnless(have_torch, "Missing required python module: PyTorch.")
+    def testStructuralStaticAnnEnhancedDecoder2D(self):
+        # The decoder of the legacy 'galerkin_ann' ROM on its files, with the Jacobian by automatic differentiation instead of
+        # the one coded in C++. Beam clamped at both ends with two independent loads: with 2 reduced coordinates it is 2e-3
+        # from the FOM (3e-1 with the linear decoder)
+        from KratosMultiphysics.RomApplication.future.rom_decoders import AnnEnhancedDecoder
+        with KratosUnittest.WorkFolderScope("future_rom_test_files/AnnClampedBeamROM/", __file__):
+            legacy_model_part = self._RunLegacyRom("ProjectParameters.json")
+            expected_output = rom_testing_utilities.GetVectorNodalResults(legacy_model_part, KratosMultiphysics.DISPLACEMENT)
+            with open("rom_data/RomParameters.json",'r') as parameter_file:
+                modes = json.load(parameter_file)["ann_enhanced_settings"]["modes"]
+            def AnnEnhancedDecoderFactory(rows, u0):
+                return AnnEnhancedDecoder.FromNumpyFiles("rom_data", modes, rows)
+            for projection_backend in ["numpy", "cpp"]:
+                with self.subTest(projection_backend=projection_backend):
+                    future_model_part = self._RunFutureRom("ProjectParameters.json", projection_backend, decoder_factory=AnnEnhancedDecoderFactory)
+                    obtained_output = rom_testing_utilities.GetVectorNodalResults(future_model_part, KratosMultiphysics.DISPLACEMENT)
+                    self._CheckResults(obtained_output, expected_output, 1.0e-8)
+                    fom_output = np.load("ExpectedOutputFOM.npy")
+                    obtained_output = np.array([node.GetSolutionStepValue(variable) for node in future_model_part.Nodes for variable in [KratosMultiphysics.DISPLACEMENT_X, KratosMultiphysics.DISPLACEMENT_Y]])
+                    self.assertLess(np.linalg.norm(obtained_output - fom_output) / np.linalg.norm(fom_output), 5.0e-3)
 
     @KratosUnittest.skipIfApplicationsNotAvailable("StructuralMechanicsApplication", "ConstitutiveLawsApplication")
     def testStructuralStaticJ2PlasticityRom2D(self):

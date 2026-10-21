@@ -1,3 +1,5 @@
+import pathlib
+
 import numpy
 
 
@@ -66,3 +68,39 @@ class TorchDecoder(RomDecoder):
     def Jacobian(self, q):
         # C-ordered so that it can be passed to the C++ projector without copies
         return numpy.ascontiguousarray(self.jacobian_function(self.torch.as_tensor(q, dtype=self.torch.float64)).detach().numpy())
+
+
+class AnnEnhancedDecoder(TorchDecoder):
+    """ANN-enhanced decoder of the legacy 'galerkin_ann' ROM (Barnett, Farhat and Maday 2023), with the same data:
+    u = Phi_inf q + Phi_sup Sigma_sup N(Sigma_inf^-1 q), with N a network of dense layers without bias, ELU activation in all
+    of them but the last (h <- W^T h). The Jacobian is obtained by automatic differentiation (see TorchDecoder).
+    phi: basis with at least n_sup columns, sigma: the singular values used to scale it in the training, layers: the weight
+    matrices of the network, modes: [n_inf, n_sup]."""
+
+    def __init__(self, phi, sigma, layers, modes):
+        import torch
+        n_inf, n_sup = int(modes[0]), int(modes[1])
+        phi = torch.as_tensor(numpy.asarray(phi, dtype=numpy.float64))
+        sigma = torch.as_tensor(numpy.asarray(sigma, dtype=numpy.float64))
+        phi_inf = phi[:, :n_inf]
+        phi_sup_weighted = phi[:, n_inf:n_sup] * sigma[n_inf:n_sup]
+        sigma_inf = sigma[:n_inf]
+        layers = [torch.as_tensor(numpy.asarray(layer, dtype=numpy.float64)) for layer in layers]
+
+        def Function(q):
+            h = q / sigma_inf
+            for i, layer in enumerate(layers):
+                h = layer.T @ h
+                if i < len(layers) - 1:
+                    h = torch.nn.functional.elu(h)
+            return phi_inf @ q + phi_sup_weighted @ h
+
+        super().__init__(Function, n_inf)
+
+    @classmethod
+    def FromNumpyFiles(cls, rom_data_folder, modes, rows):
+        """From the files of a standalone legacy ANN-enhanced ROM (RightBasisMatrix.npy, SingularValues.npy and model_weights.npy,
+        see NN_ROM_Interface.FromNumpyFiles), with the rows of the basis in the order of the effective DOF set"""
+        folder = pathlib.Path(rom_data_folder)
+        return cls(numpy.load(folder / "RightBasisMatrix.npy")[rows, :], numpy.load(folder / "SingularValues.npy"),
+                   numpy.load(folder / "model_weights.npy", allow_pickle=True), modes)
