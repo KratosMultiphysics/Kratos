@@ -66,3 +66,48 @@ class TorchDecoder(RomDecoder):
     def Jacobian(self, q):
         # C-ordered so that it can be passed to the C++ projector without copies
         return numpy.ascontiguousarray(self.jacobian_function(self.torch.as_tensor(q, dtype=self.torch.float64)).detach().numpy())
+
+
+class QuadraticDecoder(RomDecoder):
+    """Quadratic manifold decoder u = u0 + Phi q + H k(q), with k(q) the products q_i q_j (i <= j) of the reduced coordinates
+    (Jain et al. 2017, Barnett and Farhat 2022, Geelen et al. 2023). H can be fitted to the snapshots with FitQuadraticManifold."""
+
+    def __init__(self, phi, h, u0=None):
+        self.phi = numpy.ascontiguousarray(phi, dtype=numpy.float64)
+        self.h = numpy.ascontiguousarray(h, dtype=numpy.float64)
+        number_of_rom_dofs = self.phi.shape[1]
+        self.i, self.j = numpy.triu_indices(number_of_rom_dofs)
+        if self.h.shape != (self.phi.shape[0], len(self.i)):
+            raise Exception("The shape of 'h' {} must be (rows of 'phi', {}).".format(self.h.shape, len(self.i)))
+        self.u0 = numpy.zeros(self.phi.shape[0]) if u0 is None else numpy.array(u0, dtype=numpy.float64)
+
+    def NumberOfRomDofs(self):
+        return self.phi.shape[1]
+
+    def Decode(self, q):
+        return self.u0 + self.phi @ q + self.h @ QuadraticFeatures(q)
+
+    def Jacobian(self, q):
+        # d(q_i q_j)/dq_l = delta_il q_j + delta_jl q_i
+        features_jacobian = numpy.zeros((len(self.i), self.phi.shape[1]))
+        features = numpy.arange(len(self.i))
+        features_jacobian[features, self.i] += q[self.j]
+        features_jacobian[features, self.j] += q[self.i]
+        return self.phi + self.h @ features_jacobian
+
+
+def QuadraticFeatures(q):
+    """Products q_i q_j (i <= j) of the reduced coordinates, for one vector q or for the columns of a matrix of them"""
+    i, j = numpy.triu_indices(q.shape[0])
+    return q[i] * q[j]
+
+
+def FitQuadraticManifold(snapshots, phi, u0=None, regularization=1.0e-10):
+    """Matrix H of the QuadraticDecoder fitted by least squares to the part of the snapshots out of span(Phi), with
+    q = Phi^T (u - u0) and Tikhonov regularization (relative to the trace of the normal matrix). Phi must be orthonormal."""
+    centered = snapshots if u0 is None else snapshots - numpy.asarray(u0)[:, None]
+    q = phi.T @ centered
+    features = QuadraticFeatures(q)
+    normal_matrix = features @ features.T
+    normal_matrix += regularization * numpy.trace(normal_matrix) * numpy.eye(normal_matrix.shape[0])
+    return numpy.linalg.solve(normal_matrix, features @ (centered - phi @ q).T).T
