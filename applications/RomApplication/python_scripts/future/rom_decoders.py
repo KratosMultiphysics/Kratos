@@ -40,3 +40,35 @@ class LinearDecoder(RomDecoder):
 
     def Jacobian(self, q):
         return self.phi
+
+
+class FixedDofsDecoder(RomDecoder):
+    """Decoder with two DOF sets: the free DOFs are given by the provided decoder and the fixed DOFs by their prescribed values.
+
+    The fixed DOFs (e.g. Dirichlet conditions) are not approximated: their values are the ones imposed in the model, read with
+    UpdateFixedDofs (to be called once the conditions of the current step are applied). Their rows of the Jacobian are zero.
+    """
+
+    def __init__(self, decoder, dof_set):
+        self.decoder = decoder
+        self.dof_set = dof_set
+        self.UpdateFixedDofs()
+
+    def UpdateFixedDofs(self):
+        """Reads which DOFs are fixed and their prescribed values"""
+        self.fixed_dofs = numpy.array([dof.IsFixed() for dof in self.dof_set], dtype=bool)
+        self.fixed_values = numpy.array(self.dof_set.GetValues())[self.fixed_dofs]
+
+    def NumberOfRomDofs(self):
+        return self.decoder.NumberOfRomDofs()
+
+    def Decode(self, q):
+        u = numpy.array(self.decoder.Decode(q), dtype=numpy.float64)
+        u[self.fixed_dofs] = self.fixed_values
+        return u
+
+    def Jacobian(self, q):
+        # A new C-ordered array, so that it can be passed to the C++ projector without copies
+        jacobian = numpy.array(self.decoder.Jacobian(q), dtype=numpy.float64, order="C")
+        jacobian[self.fixed_dofs, :] = 0.0
+        return jacobian
