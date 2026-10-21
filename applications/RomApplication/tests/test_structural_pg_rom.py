@@ -13,7 +13,8 @@ if kratos_utilities.CheckIfApplicationsAvailable("StructuralMechanicsApplication
 class TestStructuralPGRom(KratosUnittest.TestCase):
 
     def setUp(self):
-        self.relative_tolerance = 1.0e-10
+        # A relative change of 1e-14 in the bases or in the node coordinates changes the static results by 2e-11
+        self.relative_tolerance = 1.0e-9
 
     def testStructuralStaticPGRom2D(self):
         self.work_folder = "structural_static_test_files/PGROM/"

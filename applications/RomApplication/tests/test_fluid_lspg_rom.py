@@ -60,6 +60,8 @@ class TestFluidLSPGRom(KratosUnittest.TestCase):
                 self.assertLess(l2, self.relative_tolerance)
         
     def testFluidLSPGHRom2D(self):
+        # Flagged: sensitive to the round-off (a relative change of 1e-14 in the node coordinates changes the results by 5e-12,
+        # above the tolerance). Its tolerance is revised after the fix of the LSPG HROM, treated separately in #14846
         self.work_folder = "fluid_dynamics_test_files/LSPGHROM/"
         parameters_filename = "ProjectParametersHROM.json"
         expected_output_filename = "ExpectedOutputLSPGHROM.npy"
