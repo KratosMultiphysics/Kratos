@@ -414,6 +414,7 @@ public:
             free(mpData);
 
         mpData = 0;
+        mAllocatedDataSize = 0;
     }
 
 
@@ -517,6 +518,7 @@ public:
 
             // Setting data pointer to the allocated memory
             mpData = temp;
+            mAllocatedDataSize = size;
 
             // updating the current position
             mpCurrentPosition = mpData;
@@ -800,6 +802,9 @@ private:
 
     ContainerType mpData;
 
+    /// mpVariablesList->DataSize() when mpData was allocated (the shared list may grow afterwards, see DestructAllElements)
+    SizeType mAllocatedDataSize = 0;
+
     VariablesList::Pointer mpVariablesList;
 
     ///@}
@@ -814,13 +819,15 @@ private:
     inline void Allocate()
     {
         KRATOS_DEBUG_ERROR_IF(!mpVariablesList) << "This container don't have a variables list assigned. A possible reason is creating a node without a model part." << std::endl;
-        mpData = (BlockType*)malloc(mpVariablesList->DataSize() * sizeof(BlockType) * mQueueSize);
+        mAllocatedDataSize = mpVariablesList->DataSize();
+        mpData = (BlockType*)malloc(mAllocatedDataSize * sizeof(BlockType) * mQueueSize);
     }
 
     inline void Reallocate()
     {
         KRATOS_DEBUG_ERROR_IF(!mpVariablesList) << "This container don't have a variables list assigned. A possible reason is creating a node without a model part." << std::endl;
-        mpData = (BlockType*)realloc(mpData, mpVariablesList->DataSize() * sizeof(BlockType) * mQueueSize);
+        mAllocatedDataSize = mpVariablesList->DataSize();
+        mpData = (BlockType*)realloc(mpData, mAllocatedDataSize * sizeof(BlockType) * mQueueSize);
     }
 
     void DestructElements(SizeType ThisIndex)
@@ -836,6 +843,12 @@ private:
         }
     }
 
+    /**
+     * @brief Destructs every stored value with the layout mpData was allocated with.
+     * @details The VariablesList is shared (e.g. by all nodes of a model part) and may have grown since the allocation,
+     * e.g. when another node's load() added the archive's variables to it. VariablesList::Add only appends, so the
+     * variables with LocalOffset < mAllocatedDataSize are exactly those stored in this block, at unchanged offsets.
+     */
     void DestructAllElements()
     {
         if(!mpVariablesList)
@@ -844,9 +857,12 @@ private:
         if(mpData == 0)
             return;
 
-        const SizeType size = mpVariablesList->DataSize();
+        const SizeType size = mAllocatedDataSize;
         for(VariablesList::const_iterator it_variable = mpVariablesList->begin(); it_variable != mpVariablesList->end() ; it_variable++) {
-            BlockType*  position = mpData + LocalOffset(*it_variable);
+            const SizeType offset = LocalOffset(*it_variable);
+            if(offset >= size)
+                continue;
+            BlockType*  position = mpData + offset;
             for(SizeType i = 0 ; i < mQueueSize ; i++) {
                 it_variable->Destruct(position + i * size);
             }
@@ -927,7 +943,7 @@ private:
 
     void load(Serializer& rSerializer)
     {
-        // Allocate() below replaces the block, so destruct and free the current one with its own list first.
+        // Allocate() below replaces the block, so destruct and free the current one first (with its allocated layout).
         Clear();
         rSerializer.load("Variables List", mpVariablesList);
         rSerializer.load("QueueSize", mQueueSize);

@@ -85,9 +85,9 @@ class GlobalPointerMapCommunicator;
  *
  * @tparam TPointerDataType
  * @tparam TValueDataType
- * @tparam TApplyFunctor    Functor type as deduced by GlobalPointerMapCommunicator::GetApplyProxy: a value type
- *                          for a temporary functor (the proxy keeps a copy), a reference type for an lvalue functor
- *                          (the proxy refers to it, so it must outlive the proxy).
+ * @tparam TApplyFunctor    Functor type deduced by the forwarding reference of GlobalPointerMapCommunicator::GetApplyProxy:
+ *                          a value type for a temporary functor (moved into the proxy, so move-only functors work),
+ *                          a reference type for an lvalue functor (the proxy refers to it, so it must outlive the proxy).
  */
 template<class TPointerDataType, class TValueDataType, class TApplyFunctor>
 class ApplyProxy
@@ -111,14 +111,14 @@ public:
     /**
      * @brief Construct a new Apply Proxy object
      *
-     * @param rApplyFunctor                         Thread safe update lambda method
+     * @param rApplyFunctor                         Thread safe update lambda method, forwarded from GetApplyProxy
      * @param rPointerCommunicator                  Map communicator
      */
     ApplyProxy(
-        const TApplyFunctor& rApplyFunctor,
+        TApplyFunctor&& rApplyFunctor,
         TGPMapCommunicator& rPointerCommunicator)
         : mCurrentRank(rPointerCommunicator.GetMyPID()),
-          mApplyFunctor(rApplyFunctor),
+          mApplyFunctor(std::forward<TApplyFunctor>(rApplyFunctor)),
           mrPointerCommunicator(rPointerCommunicator)
     {
         KRATOS_TRY
@@ -192,7 +192,7 @@ private:
     ///@{
 
     const int mCurrentRank;
-    // owns a temporary (rvalue) functor; an lvalue functor deduces TApplyFunctor as a reference and is not copied
+    // GetApplyProxy's forwarding reference makes this a value (temporary functor, moved in) or a reference (lvalue)
     TApplyFunctor mApplyFunctor;
 
     void (ProxyType::*mUpdateMethod)(GlobalPointerType&, const TValueDataType&);
@@ -416,7 +416,8 @@ public:
      * Returns the Apply proxy.
      *
      * @tparam TApplyFunctor
-     * @param rApplyFunctor                Thread safe functor
+     * @param rApplyFunctor                Thread safe functor; a temporary is moved into the proxy, an lvalue is
+     *                                     referenced and must outlive the proxy
      * @return ApplyProxy<TPointerDataType, TValueDataType, TApplyFunctor>
      */
     template <class TApplyFunctor>

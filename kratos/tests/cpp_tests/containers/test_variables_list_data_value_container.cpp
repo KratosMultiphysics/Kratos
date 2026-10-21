@@ -135,5 +135,53 @@ KRATOS_TEST_CASE_IN_SUITE(VariablesListDataValueContainerLoadIntoPopulatedContai
     KRATOS_EXPECT_EQ(p_law.use_count(), 1);
 }
 
+// Nodes share one VariablesList, and the first in-place load Add()s the archive's extra variables to it. Later loads
+// must still destruct their old blocks with the layout they were allocated with (the Matrix makes a bad one visible).
+KRATOS_TEST_CASE_IN_SUITE(VariablesListDataValueContainerLoadIntoContainersSharingGrownList, KratosCoreFastSuite) {
+    const auto value = [](std::size_t Container, std::size_t Step) { return 10.0 * Container + Step + 1.0; };
+
+    auto p_saved_list = Kratos::make_intrusive<VariablesList>();
+    p_saved_list->Add(DISTANCE);
+    p_saved_list->Add(ELEMENTAL_DISTANCES);
+    p_saved_list->Add(LOCAL_AXES_MATRIX);
+    std::vector<VariablesListDataValueContainer> saved_containers;
+    saved_containers.reserve(2);
+
+    auto p_variables_list = Kratos::make_intrusive<VariablesList>();
+    p_variables_list->Add(DISTANCE);
+    p_variables_list->Add(ELEMENTAL_DISTANCES);
+    std::vector<VariablesListDataValueContainer> containers;
+    containers.reserve(2);
+
+    for (std::size_t j = 0; j < 2; ++j) {
+        saved_containers.emplace_back(p_saved_list, 2);
+        containers.emplace_back(p_variables_list, 2);
+        for (std::size_t step = 0; step < 2; ++step) {
+            saved_containers[j].SetValue(DISTANCE, value(j, step), step);
+            saved_containers[j].SetValue(ELEMENTAL_DISTANCES, Vector(3, value(j, step)), step);
+            saved_containers[j].SetValue(LOCAL_AXES_MATRIX, Matrix(2, 2, value(j, step)), step);
+            containers[j].SetValue(DISTANCE, -1.0, step);
+            containers[j].SetValue(ELEMENTAL_DISTANCES, Vector(5, -1.0), step);
+        }
+    }
+
+    StreamSerializer serializer;
+    serializer.save("Container0", saved_containers[0]);
+    serializer.save("Container1", saved_containers[1]);
+    serializer.load("Container0", containers[0]);
+    KRATOS_EXPECT_EQ(p_variables_list->DataSize(), p_saved_list->DataSize());
+    serializer.load("Container1", containers[1]);
+
+    for (std::size_t j = 0; j < 2; ++j) {
+        KRATOS_EXPECT_EQ(containers[j].pGetVariablesList(), p_variables_list);
+        KRATOS_EXPECT_EQ(containers[j].QueueSize(), 2);
+        for (std::size_t step = 0; step < 2; ++step) {
+            KRATOS_EXPECT_DOUBLE_EQ(containers[j].GetValue(DISTANCE, step), value(j, step));
+            KRATOS_EXPECT_VECTOR_EQ(containers[j].GetValue(ELEMENTAL_DISTANCES, step), Vector(3, value(j, step)));
+            KRATOS_EXPECT_MATRIX_EQ(containers[j].GetValue(LOCAL_AXES_MATRIX, step), Matrix(2, 2, value(j, step)));
+        }
+    }
+}
+
 }
 } // namespace Kratos.
