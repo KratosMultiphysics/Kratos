@@ -39,8 +39,16 @@ def CreateFutureRomAnalysisInstance(cls, global_model, parameters, future_rom_se
 
         def _GetFutureRomSettings(self):
             """Settings of the FutureRomSolver. The nonlinear iterations not given take the values of the solver of the analysis
-            (max_iteration and, with a displacement criterion, its tolerances), so that the ROM converges as the legacy one."""
+            (max_iteration and, with a displacement criterion, its tolerances), so that the ROM converges as the legacy one.
+            A linear analysis ("analysis_type": "linear") is solved in one iteration, as the legacy linear strategy does.
+            The scheme moves the mesh if the solver of the analysis does ("move_mesh_flag"), as required by the elements that
+            use the current coordinates (e.g. total Lagrangian)."""
             settings = future_rom_settings.Clone() if future_rom_settings is not None else KratosMultiphysics.Parameters("{}")
+            # The validated settings of the solver, as "analysis_type" and "move_mesh_flag" are usually taken from its defaults
+            validated_solver_settings = self._GetSolver().settings
+            if not settings.Has("max_iterations") and validated_solver_settings.Has("analysis_type") and validated_solver_settings["analysis_type"].GetString() == "linear":
+                settings.AddInt("max_iterations", 1)
+
             solver_settings = self.project_parameters["solver_settings"]
             inherited = [("max_iterations", "max_iteration")]
             if solver_settings.Has("convergence_criterion") and solver_settings["convergence_criterion"].GetString() == "displacement_criterion":
@@ -48,6 +56,14 @@ def CreateFutureRomAnalysisInstance(cls, global_model, parameters, future_rom_se
             for name, legacy_name in inherited:
                 if not settings.Has(name) and solver_settings.Has(legacy_name):
                     settings.AddValue(name, solver_settings[legacy_name])
+
+            if validated_solver_settings.Has("move_mesh_flag"):
+                if not settings.Has("scheme_settings"):
+                    scheme_settings = FutureRomSolver.GetDefaultParameters()["scheme_settings"].Clone()
+                    scheme_settings.RemoveValue("move_mesh")
+                    settings.AddValue("scheme_settings", scheme_settings)
+                if not settings["scheme_settings"].Has("move_mesh"):
+                    settings["scheme_settings"].AddValue("move_mesh", validated_solver_settings["move_mesh_flag"])
             return settings
 
         def _CreateDecoder(self):

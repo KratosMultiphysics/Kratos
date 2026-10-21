@@ -24,7 +24,7 @@ class TestFutureRom(KratosUnittest.TestCase):
         simulation.Run()
         return simulation._GetSolver().GetComputingModelPart()
 
-    def _RunFutureRom(self, parameters_filename, projection_backend, max_iterations=10, run_hrom=False, parameters=None):
+    def _RunFutureRom(self, parameters_filename, projection_backend, max_iterations=None, run_hrom=False, parameters=None):
         from KratosMultiphysics.RomApplication.future.future_rom_analysis import CreateFutureRomAnalysisInstance
 
         if parameters is None:
@@ -36,7 +36,8 @@ class TestFutureRom(KratosUnittest.TestCase):
 
         future_rom_settings = KratosMultiphysics.Parameters("""{}""")
         future_rom_settings.AddString("projection_backend", projection_backend)
-        future_rom_settings.AddInt("max_iterations", max_iterations)
+        if max_iterations is not None: # Otherwise taken from the solver settings of the case
+            future_rom_settings.AddInt("max_iterations", max_iterations)
         future_rom_settings.AddBool("run_hrom", run_hrom)
         simulation = CreateFutureRomAnalysisInstance(analysis_stage_class, KratosMultiphysics.Model(), parameters, future_rom_settings)
         simulation.Run()
@@ -57,7 +58,20 @@ class TestFutureRom(KratosUnittest.TestCase):
                 with self.subTest(projection_backend=projection_backend):
                     future_model_part = self._RunFutureRom("../ProjectParameters.json", projection_backend)
                     obtained_output = rom_testing_utilities.GetVectorNodalResults(future_model_part, KratosMultiphysics.DISPLACEMENT)
-                    # The legacy ROM adds a spurious increment of relative size 3e-10 in the second step, where the load does not change
+                    # Linear analysis: one iteration per step on the moved mesh, as the legacy linear strategy
+                    self._CheckResults(obtained_output, expected_output, 1.0e-12)
+
+    @KratosUnittest.skipIfApplicationsNotAvailable("StructuralMechanicsApplication")
+    def testStructuralStaticTotalLagrangianRom2D(self):
+        # Geometrically nonlinear cantilever (total Lagrangian elements, tip displacement 27% of the length). These elements
+        # use the current coordinates, so the scheme must move the mesh as the legacy solver does ("move_mesh_flag")
+        with KratosUnittest.WorkFolderScope("future_rom_test_files/TotalLagrangianROM/", __file__):
+            legacy_model_part = self._RunLegacyRom("ProjectParameters.json")
+            expected_output = rom_testing_utilities.GetVectorNodalResults(legacy_model_part, KratosMultiphysics.DISPLACEMENT)
+            for projection_backend in ["numpy", "cpp"]:
+                with self.subTest(projection_backend=projection_backend):
+                    future_model_part = self._RunFutureRom("ProjectParameters.json", projection_backend, max_iterations=20)
+                    obtained_output = rom_testing_utilities.GetVectorNodalResults(future_model_part, KratosMultiphysics.DISPLACEMENT)
                     self._CheckResults(obtained_output, expected_output, 1.0e-8)
 
     @KratosUnittest.skipIfApplicationsNotAvailable("StructuralMechanicsApplication")
