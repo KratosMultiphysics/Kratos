@@ -25,10 +25,10 @@
 
 // External includes
 #include <Eigen/Core>
+#include <span/span.hpp>
 
 // Project includes
 #include "includes/define.h"
-#include "includes/storage_view.h"
 
 namespace Kratos
 {
@@ -155,9 +155,9 @@ public:
     /// (see begin() and end()).
     using const_iterator = const TDataType*;
 
-    /// Type of the contiguous storage array exposed by data(). Internals::StorageView of the entries, a raw pointer
-    /// plus the length that also converts implicitly to the raw pointer. It plays the role of the uBLAS storage array.
-    using array_type = Internals::StorageView<TDataType>;
+    /// Type of the contiguous storage array exposed by data(). Kratos::span of the entries (raw pointer plus
+    /// length, its iterators are raw pointers). It plays the role of the uBLAS storage array.
+    using array_type = Kratos::span<TDataType>;
 
     ///@}
     ///@name Life Cycle
@@ -488,17 +488,17 @@ public:
 
     /**
      * @brief Contiguous storage view of the entries (in TLayout order)
-     * @details Provides the uBLAS data() surface and an implicit conversion to the raw pointer.
+     * @details Provides the uBLAS data() surface (begin()/end() are raw pointers, size(), operator[]).
      * @return Storage view of the entries: pointer to the first one and number of entries.
      */
-    Internals::StorageView<TDataType> data() { return {BaseType::data(), static_cast<std::size_t>(BaseType::size())}; }
+    Kratos::span<TDataType> data() { return {BaseType::data(), static_cast<std::size_t>(BaseType::size())}; }
 
     /**
      * @brief Contiguous read-only storage view of the entries (in TLayout order)
      * @details Const version of data(): the view refers to const entries.
      * @return Read-only storage view of the entries: pointer to the first one and number of entries.
      */
-    Internals::StorageView<const TDataType> data() const { return {BaseType::data(), static_cast<std::size_t>(BaseType::size())}; }
+    Kratos::span<const TDataType> data() const { return {BaseType::data(), static_cast<std::size_t>(BaseType::size())}; }
 
     /**
      * @brief Iterator to the first entry
@@ -790,9 +790,9 @@ public:
     /// Read-only reverse iterator over the entries. std::reverse_iterator of const_iterator (see rbegin() and rend()).
     using const_reverse_iterator = std::reverse_iterator<const_iterator>;
 
-    /// Type of the contiguous storage array exposed by data(). Internals::StorageView of the entries, a raw pointer
-    /// plus the length that also converts implicitly to the raw pointer. It plays the role of the uBLAS storage array.
-    using array_type = Internals::StorageView<TDataType>;
+    /// Type of the contiguous storage array exposed by data(). Kratos::span of the entries (raw pointer plus
+    /// length, its iterators are raw pointers). It plays the role of the uBLAS storage array.
+    using array_type = Kratos::span<TDataType>;
 
     ///@}
     ///@name Life Cycle
@@ -1034,17 +1034,17 @@ public:
 
     /**
      * @brief Contiguous storage view of the entries
-     * @details Provides the uBLAS data() surface and an implicit conversion to the raw pointer.
+     * @details Provides the uBLAS data() surface (begin()/end() are raw pointers, size(), operator[]).
      * @return Storage view of the entries: pointer to the first one and number of entries.
      */
-    Internals::StorageView<TDataType> data() { return {BaseType::data(), size()}; }
+    Kratos::span<TDataType> data() { return {BaseType::data(), size()}; }
 
     /**
      * @brief Contiguous read-only storage view of the entries
      * @details Const version of data(): the view refers to const entries.
      * @return Read-only storage view of the entries: pointer to the first one and number of entries.
      */
-    Internals::StorageView<const TDataType> data() const { return {BaseType::data(), size()}; }
+    Kratos::span<const TDataType> data() const { return {BaseType::data(), size()}; }
 
     /**
      * @brief Iterator to the first entry
@@ -1171,9 +1171,9 @@ public:
     /// end()).
     using const_iterator = const T*;
 
-    /// Type of the contiguous storage array exposed by data(). Internals::StorageView of the entries, a raw pointer
-    /// plus the length that also converts implicitly to the raw pointer. It plays the role of the uBLAS storage array.
-    using array_type = Internals::StorageView<T>;
+    /// Type of the contiguous storage array exposed by data(). Kratos::span of the entries (raw pointer plus
+    /// length, its iterators are raw pointers). It plays the role of the uBLAS storage array.
+    using array_type = Kratos::span<T>;
 
     /**
      * @brief Static bound on the number of rows
@@ -1451,17 +1451,17 @@ public:
 
     /**
      * @brief Contiguous storage view of the entries (row-major)
-     * @details Provides the uBLAS data() surface and an implicit conversion to the raw pointer.
+     * @details Provides the uBLAS data() surface (begin()/end() are raw pointers, size(), operator[]).
      * @return Storage view of the entries: pointer to the first one and number of entries.
      */
-    Internals::StorageView<T> data() { return {BaseType::data(), TSize1 * TSize2}; }
+    Kratos::span<T> data() { return {BaseType::data(), TSize1 * TSize2}; }
 
     /**
      * @brief Contiguous read-only storage view of the entries (row-major)
      * @details Const version of data(): the view refers to const entries.
      * @return Read-only storage view of the entries: pointer to the first one and number of entries.
      */
-    Internals::StorageView<const T> data() const { return {BaseType::data(), TSize1 * TSize2}; }
+    Kratos::span<const T> data() const { return {BaseType::data(), TSize1 * TSize2}; }
 
     /**
      * @brief Iterator to the first entry
@@ -1550,9 +1550,9 @@ public:
     /// Read-only reverse iterator over the entries. std::reverse_iterator of const_iterator (see rbegin() and rend()).
     using const_reverse_iterator = std::reverse_iterator<const_iterator>;
 
-    /// Type of the contiguous storage array exposed by data(). Internals::StorageView of the entries, a raw pointer
-    /// plus the length that also converts implicitly to the raw pointer. It plays the role of the uBLAS storage array.
-    using array_type = Internals::StorageView<T>;
+    /// Type of the contiguous storage array exposed by data(). Kratos::span of the entries (raw pointer plus
+    /// length, its iterators are raw pointers). It plays the role of the uBLAS storage array.
+    using array_type = Kratos::span<T>;
 
     /**
      * @brief Static bound on the number of entries
@@ -1855,17 +1855,17 @@ public:
 
     /**
      * @brief Contiguous storage view of the entries
-     * @details Provides the uBLAS data() surface and an implicit conversion to the raw pointer.
+     * @details Provides the uBLAS data() surface (begin()/end() are raw pointers, size(), operator[]).
      * @return Storage view of the entries: pointer to the first one and number of entries.
      */
-    Internals::StorageView<T> data() { return {BaseType::data(), TSize}; }
+    Kratos::span<T> data() { return {BaseType::data(), TSize}; }
 
     /**
      * @brief Contiguous read-only storage view of the entries
      * @details Const version of data(): the view refers to const entries.
      * @return Read-only storage view of the entries: pointer to the first one and number of entries.
      */
-    Internals::StorageView<const T> data() const { return {BaseType::data(), TSize}; }
+    Kratos::span<const T> data() const { return {BaseType::data(), TSize}; }
 
     /**
      * @brief Iterator to the first entry

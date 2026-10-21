@@ -514,7 +514,7 @@ KRATOS_TEST_CASE_IN_SUITE(EigenCompatStorageAccessAndResize, KratosCoreFastSuite
     KRATOS_EXPECT_EQ(raw(1, 1), 1.0);
     KRATOS_EXPECT_EQ(raw.size1(), 3);
     KRATOS_EXPECT_EQ(prod(Mm, Mm).size1(), 2);
-    double* p_data = v.data();
+    double* p_data = v.data().begin();
     KRATOS_EXPECT_EQ(p_data, &v[0]);
 #endif
 }

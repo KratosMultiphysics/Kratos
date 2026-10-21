@@ -22,9 +22,7 @@
 #include <amgcl/adapter/crs_tuple.hpp>
 #include <amgcl/adapter/zero_copy.hpp>
 #include <amgcl/backend/builtin.hpp>
-
-// Project includes
-#include "includes/storage_view.h"
+#include <span/span.hpp>
 
 namespace Kratos {
 
@@ -60,9 +58,9 @@ std::shared_ptr<amgcl::backend::crs<TVal>> MakeAmgclZeroCopyAdapter(
         const std::size_t nnz = NRows ? static_cast<std::size_t>(pRowExtents[NRows]) : 0;
         return std::make_shared<amgcl::backend::crs<TVal>>(std::make_tuple(
             NRows,
-            Internals::StorageView<const TPtr>(pRowExtents, NRows + 1),
-            Internals::StorageView<const TCol>(pColumnIndices, nnz),
-            Internals::StorageView<const TVal>(pValues, nnz)));
+            Kratos::span<const TPtr>(pRowExtents, NRows + 1),
+            Kratos::span<const TCol>(pColumnIndices, nnz),
+            Kratos::span<const TVal>(pValues, nnz)));
     }
 }
 

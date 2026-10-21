@@ -90,14 +90,14 @@ public:
 
     // uBLAS-style storage-array typedefs (generic code uses e.g.
     // typename TMatrix::index_array_type::value_type to name the index type)
-    /// Type of the CSR index arrays. Internals::StorageView over TIndexType, the type returned by the non-const
+    /// Type of the CSR index arrays. Kratos::span over TIndexType, the type returned by the non-const
     /// index1_data() and index2_data(). Generic code uses index_array_type::value_type to name the index type of the
     /// matrix.
-    using index_array_type = Internals::StorageView<TIndexType>;
+    using index_array_type = Kratos::span<TIndexType>;
 
-    /// Type of the CSR value array. Internals::StorageView over TDataType, the type returned by the non-const
+    /// Type of the CSR value array. Kratos::span over TDataType, the type returned by the non-const
     /// value_data().
-    using value_array_type = Internals::StorageView<TDataType>;
+    using value_array_type = Kratos::span<TDataType>;
 
     ///@}
     ///@name Life Cycle
@@ -432,14 +432,14 @@ public:
      * @details Writable view of the stored values. It spans the allocated capacity, not only the filled entries.
      * @return Writable view over the CSR value array.
      */
-    auto value_data() { return Internals::StorageView<TDataType>(this->valuePtr(), this->data().size()); }
+    auto value_data() { return Kratos::span<TDataType>(this->valuePtr(), this->data().size()); }
 
     /**
      * @brief View over the CSR row-pointer array
      * @details Writable view of the row pointers (size1() + 1 entries), as ublas index1_data().
      * @return Writable view over the CSR row-pointer array.
      */
-    auto index1_data() { return Internals::StorageView<TIndexType>(this->outerIndexPtr(), size1() + 1); }
+    auto index1_data() { return Kratos::span<TIndexType>(this->outerIndexPtr(), size1() + 1); }
 
     /**
      * @brief View over the CSR column-index array
@@ -447,28 +447,28 @@ public:
      * the filled entries.
      * @return Writable view over the CSR column-index array.
      */
-    auto index2_data() { return Internals::StorageView<TIndexType>(this->innerIndexPtr(), this->data().size()); }
+    auto index2_data() { return Kratos::span<TIndexType>(this->innerIndexPtr(), this->data().size()); }
 
     /**
      * @brief View over the CSR value array (const version)
      * @details Read-only view of the stored values. It spans the allocated capacity, not only the filled entries.
      * @return Read-only view over the CSR value array.
      */
-    auto value_data() const { return Internals::StorageView<const TDataType>(this->valuePtr(), this->data().size()); }
+    auto value_data() const { return Kratos::span<const TDataType>(this->valuePtr(), this->data().size()); }
 
     /**
      * @brief View over the CSR row-pointer array (const version)
      * @details Read-only view of the row pointers (size1() + 1 entries).
      * @return Read-only view over the CSR row-pointer array.
      */
-    auto index1_data() const { return Internals::StorageView<const TIndexType>(this->outerIndexPtr(), size1() + 1); }
+    auto index1_data() const { return Kratos::span<const TIndexType>(this->outerIndexPtr(), size1() + 1); }
 
     /**
      * @brief View over the CSR column-index array (const version)
      * @details Read-only view of the column indices. It spans the allocated capacity, not only the filled entries.
      * @return Read-only view over the CSR column-index array.
      */
-    auto index2_data() const { return Internals::StorageView<const TIndexType>(this->innerIndexPtr(), this->data().size()); }
+    auto index2_data() const { return Kratos::span<const TIndexType>(this->innerIndexPtr(), this->data().size()); }
 
     /**
      * @brief uBLAS-style filled row-pointer count

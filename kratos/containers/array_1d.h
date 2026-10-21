@@ -202,10 +202,10 @@ public:
         return N;
     }
 
-    /// Contiguous storage view, with the uBLAS data() surface (begin/end/size,
-    /// operator[]) and an implicit conversion to the raw pointer.
-    Internals::StorageView<T> data() { return {BaseType::data(), N}; }
-    Internals::StorageView<const T> data() const { return {BaseType::data(), N}; }
+    /// Contiguous storage view (Kratos::span), with the uBLAS data() surface
+    /// (begin/end as raw pointers, size, operator[]).
+    Kratos::span<T> data() { return {BaseType::data(), N}; }
+    Kratos::span<const T> data() const { return {BaseType::data(), N}; }
 
     ///@}
 }; // Class array_1d
