@@ -67,7 +67,12 @@ public:
 
     /// Assigns VOLUME_FRACTION to the elements and facet sides. Each cut facet
     /// gets NEIGHBOUR_NODES (a node at its closest skin point) and IDENTIFIER,
-    /// as in SBM. Assumes uv = xy
+    /// as in SBM. The node holds the skin's NORMAL, LOCAL_TANGENT, CURVATURE
+    /// and CURVATURE_DERIVATIVES there. NURBS skins are tessellated into
+    /// <skin>.tessellation, and projected onto exactly with SBM's
+    /// ProjectToNurbsSkin. Skin loops must be counterclockwise, holes
+    /// included, as in SBM.
+    /// Assumes uv = xy
     void ExecuteInitialize() override;
 
     ///@}
