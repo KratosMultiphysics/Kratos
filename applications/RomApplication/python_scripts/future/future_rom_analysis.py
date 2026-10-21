@@ -8,12 +8,17 @@ from KratosMultiphysics.RomApplication.future.rom_decoders import LinearDecoder
 from KratosMultiphysics.RomApplication.future.rom_future_solver import FutureRomSolver
 
 
-def CreateFutureRomAnalysisInstance(cls, global_model, parameters, future_rom_settings=None, rom_basis_output_folder="rom_data"):
+def CreateFutureRomAnalysisInstance(cls, global_model, parameters, future_rom_settings=None, rom_basis_output_folder="rom_data", decoder_factory=None):
     class FutureRomAnalysis(cls):
         """Makes a standard Kratos analysis stage solve its steps with the FutureRomSolver.
 
         The parent analysis stage sets up the model part, the DOFs and the processes. Its solver
         is not called in the solution steps.
+
+        The decoder is the linear one of the basis saved by the RomManager, unless a 'decoder_factory' is given: a function
+        decoder_factory(rows, u0) returning a RomDecoder (e.g. a TorchDecoder), with 'rows' the rows of the saved bases (one per
+        node and nodal unknown, see NodeIds.npy and RomParameters.json) in the order of the effective DOF set and 'u0' the
+        initial values of the effective DOFs.
         """
 
         def Initialize(self):
@@ -54,24 +59,27 @@ def CreateFutureRomAnalysisInstance(cls, global_model, parameters, future_rom_se
             return settings
 
         def _CreateDecoder(self):
-            """Linear decoder from the basis saved by the RomManager, taking the initial state as origin."""
+            """Linear decoder from the basis saved by the RomManager, taking the initial state as origin (or the one of the decoder_factory)."""
             folder = Path(rom_basis_output_folder)
             with open(folder / "RomParameters.json", 'r') as parameter_file:
                 rom_settings = json.load(parameter_file)["rom_settings"]
-            nodal_unknowns = rom_settings["nodal_unknowns"]
-            node_ids = numpy.load(folder / "NodeIds.npy")
+            rows = self._GetBasisRows(folder, rom_settings["nodal_unknowns"])
+            u0 = numpy.array(self.future_rom_solver.GetEffectiveDofSet().GetValues())
+            if decoder_factory is not None:
+                return decoder_factory(rows, u0)
+
             right_modes = numpy.load(folder / "RightBasisMatrix.npy")
             if right_modes.ndim == 1:
                 right_modes = right_modes.reshape(-1, 1)
             right_modes = right_modes[:, :rom_settings["number_of_rom_dofs"]]
+            return LinearDecoder(right_modes[rows, :], u0)
 
-            # The saved basis has one row per node and nodal unknown. Reorder them as the effective DOF set
-            node_id_to_index = {node_id: index for index, node_id in enumerate(node_ids)}
+        def _GetBasisRows(self, folder, nodal_unknowns):
+            """The saved bases have one row per node and nodal unknown. Their rows in the order of the effective DOF set"""
+            node_id_to_index = {node_id: index for index, node_id in enumerate(numpy.load(folder / "NodeIds.npy"))}
             unknown_to_index = {name: index for index, name in enumerate(nodal_unknowns)}
             dof_set = self.future_rom_solver.GetEffectiveDofSet()
-            rows = [node_id_to_index[dof.Id()] * len(nodal_unknowns) + unknown_to_index[dof.GetVariable().Name()] for dof in dof_set]
-
-            return LinearDecoder(right_modes[rows, :], numpy.array(dof_set.GetValues()))
+            return [node_id_to_index[dof.Id()] * len(nodal_unknowns) + unknown_to_index[dof.GetVariable().Name()] for dof in dof_set]
 
         def InitializeSolutionStep(self):
             self.PrintAnalysisStageProgressInformation()
