@@ -39,6 +39,7 @@ class TestableGeoMechanicsResidualCriteria : public GeoMechanicsResidualCriteria
 {
 public:
     using GeoMechanicsResidualCriteriaType::ComputeActiveDofs;
+    using GeoMechanicsResidualCriteriaType::GeoMechanicsResidualCriteriaType;
 
     const std::vector<int>& GetActiveDofs() const { return this->mActiveDofs; }
 };
@@ -83,6 +84,12 @@ KRATOS_TEST_CASE_IN_SUITE(GeoMechanicsResidualCriteria_MasksActiveConstraintDofs
     criterion.ComputeActiveDofs(r_model_part, dof_set);
 
     KRATOS_EXPECT_EQ(criterion.GetActiveDofs(), (std::vector<int>{0, 0, 0, 1}));
+
+    TestableGeoMechanicsResidualCriteria reduced_criterion{
+        GeoMechanicsResidualCriteriaType::ResidualRepresentation::ConstraintReduced};
+    reduced_criterion.ComputeActiveDofs(r_model_part, dof_set);
+
+    KRATOS_EXPECT_EQ(reduced_criterion.GetActiveDofs(), (std::vector<int>{1, 0, 0, 1}));
 }
 
 KRATOS_TEST_CASE_IN_SUITE(GeoMechanicsResidualCriteria_ConvergesForRawTiedDofResidual, KratosGeoMechanicsFastSuite)
@@ -114,6 +121,38 @@ KRATOS_TEST_CASE_IN_SUITE(GeoMechanicsResidualCriteria_ConvergesForRawTiedDofRes
 
     criterion.InitializeSolutionStep(r_model_part, dof_set, A, dx, rb);
     KRATOS_EXPECT_TRUE(criterion.PostCriteria(r_model_part, dof_set, A, dx, rb));
+}
+
+KRATOS_TEST_CASE_IN_SUITE(GeoMechanicsResidualCriteria_RetainsMastersForReducedResidual, KratosGeoMechanicsFastSuite)
+{
+    Model model;
+    auto& r_model_part = model.CreateModelPart("Main");
+    r_model_part.AddNodalSolutionStepVariable(WATER_PRESSURE);
+    r_model_part.GetNodalSolutionStepVariablesList().AddDof(&WATER_PRESSURE);
+
+    CreateNodesWithWaterPressureDofs(r_model_part, {{1, {0.0, 0.0, 0.0}}, {2, {1.0, 0.0, 0.0}}});
+    auto& r_master_node = r_model_part.GetNode(1);
+    auto& r_slave_node  = r_model_part.GetNode(2);
+    r_master_node.pGetDof(WATER_PRESSURE)->SetEquationId(0);
+    r_slave_node.pGetDof(WATER_PRESSURE)->SetEquationId(1);
+
+    r_model_part.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", 1, r_master_node,
+                                                WATER_PRESSURE, r_slave_node, WATER_PRESSURE, 1.0, 0.0);
+
+    ModelPart::DofsArrayType dof_set;
+    dof_set.push_back(r_master_node.pGetDof(WATER_PRESSURE));
+    dof_set.push_back(r_slave_node.pGetDof(WATER_PRESSURE));
+
+    GeoMechanicsResidualCriteriaType criterion{
+        GeoMechanicsResidualCriteriaType::ResidualRepresentation::ConstraintReduced};
+    CompressedMatrix A;
+    Vector           dx(2);
+    Vector           rb(2);
+    rb[0] = 1.0;
+    rb[1] = 0.0;
+
+    criterion.InitializeSolutionStep(r_model_part, dof_set, A, dx, rb);
+    KRATOS_EXPECT_FALSE(criterion.PostCriteria(r_model_part, dof_set, A, dx, rb));
 }
 
 } // namespace Kratos::Testing

@@ -39,6 +39,32 @@ conditions)
 
 - Loading User Materials (UMAT) dll/so, written in ABAQUS forrmat
 
+### Residual convergence with master-slave constraints
+
+For the C++ GeoMechanics solving-strategy factory, the residual criterion selects
+the residual representation from `strategy_type`:
+
+- `quasi_newton` uses a constraint-reduced residual. Master DOFs remain active in
+  the convergence norm and slave DOFs are excluded.
+- Other strategies use a raw, untransformed residual by default. Both master and
+  slave DOFs are excluded from the convergence norm.
+
+The `residual_representation` solver setting can override this default:
+
+```json
+{
+    "strategy_type": "newton_raphson",
+    "convergence_criterion": "residual_criterion",
+    "residual_representation": "constraint_reduced"
+}
+```
+
+Supported values are `raw` and `constraint_reduced`. Choose the value that matches
+the residual vector actually supplied to the criterion; this setting only selects
+which DOFs contribute to its norm and does not transform the residual or reduce
+the system. It applies to residual-based criteria, including those nested in
+`and_criterion` and `or_criterion`.
+
 ### How to compile Geo-Mechanics Application
 
 Make sure that the following lines are properly set in the configuration file:
@@ -61,6 +87,5 @@ add_app ${KRATOS_APP_DIR}/GeoMechanicsApplication;
 - MPI has not been tested and does not work.
 
 - The UMAT/UDSM constitutive models are not included in this repository. Some practical constitutive models can be found at https://soilmodels.com for instance.
-
 
 

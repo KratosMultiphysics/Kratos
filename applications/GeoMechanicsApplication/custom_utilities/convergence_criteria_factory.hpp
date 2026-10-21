@@ -100,7 +100,24 @@ private:
         const auto entries_to_copy = std::vector{"residual_absolute_tolerance"s, "residual_relative_tolerance"s};
         const auto convergence_inputs =
             ParametersUtilities::CopyOptionalParameters(rSolverSettings, entries_to_copy);
-        return std::make_shared<ResidualCriterionType>(convergence_inputs);
+        auto residual_representation = ResidualCriterionType::ResidualRepresentation::Raw;
+        if (rSolverSettings.Has("strategy_type"s) &&
+            GeoStringUtilities::ToLower(rSolverSettings["strategy_type"s].GetString()) == "quasi_newton"s) {
+            residual_representation = ResidualCriterionType::ResidualRepresentation::ConstraintReduced;
+        }
+        if (rSolverSettings.Has("residual_representation"s)) {
+            const auto representation =
+                GeoStringUtilities::ToLower(rSolverSettings["residual_representation"s].GetString());
+            if (representation == "raw"s) {
+                residual_representation = ResidualCriterionType::ResidualRepresentation::Raw;
+            } else if (representation == "constraint_reduced"s) {
+                residual_representation = ResidualCriterionType::ResidualRepresentation::ConstraintReduced;
+            } else {
+                KRATOS_ERROR << "Unknown residual_representation (" << representation
+                             << "), supported values are: raw, constraint_reduced." << std::endl;
+            }
+        }
+        return std::make_shared<ResidualCriterionType>(convergence_inputs, residual_representation);
     }
 
     static ConvergenceCriterionSharedPtr CreateWaterPressureCriterion(const Parameters& rSolverSettings)
