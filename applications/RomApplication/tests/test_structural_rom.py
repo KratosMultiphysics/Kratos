@@ -50,13 +50,7 @@ class TestStructuralRom(KratosUnittest.TestCase):
             aux_nodal_area = rom_manager.QoI_Run_ROM[0]["nodal_area"]
             nodal_area = [aux_nodal_area[int((i-1)/2) if i%2 != 0 else int(i/2)] for i in range(2*len(aux_nodal_area))]
 
-            numerator = 0.0
-            denominator = 0.0
-            for i in range(len(obtained_output)):
-                if expected_output[i] > 1.0e-12:
-                    numerator += nodal_area[i]*((1 - (obtained_output[i]/expected_output[i]))**2)
-                    denominator += nodal_area[i]
-            l2 = np.sqrt(numerator/denominator)*100
+            l2 = rom_testing_utilities.GetRelativeL2Error(expected_output, obtained_output, nodal_area)
             self.assertLess(l2, self.relative_tolerance)
 
     @KratosUnittest.skipIfApplicationsNotAvailable("ConstitutiveLawsApplication")
@@ -115,13 +109,7 @@ class TestStructuralRom(KratosUnittest.TestCase):
             aux_nodal_area = rom_manager.QoI_Run_ROM[0]["nodal_area"]
             nodal_area = [aux_nodal_area[int((i-1)/2) if i%2 != 0 else int(i/2)] for i in range(2*len(aux_nodal_area))]
 
-            numerator = 0.0
-            denominator = 0.0
-            for i in range(len(obtained_output)):
-                if expected_output[i] > 1.0e-12:
-                    numerator += nodal_area[i]*((1 - (obtained_output[i]/expected_output[i]))**2)
-                    denominator += nodal_area[i]
-            l2 = np.sqrt(numerator/denominator)*100
+            l2 = rom_testing_utilities.GetRelativeL2Error(expected_output, obtained_output, nodal_area)
             self.assertLess(l2, self.relative_tolerance)
 
 
@@ -140,13 +128,7 @@ class TestStructuralRom(KratosUnittest.TestCase):
             aux_nodal_area = rom_manager.QoI_Run_HROM[0]["nodal_area"]
             nodal_area = [aux_nodal_area[int((i-1)/2) if i%2 != 0 else int(i/2)] for i in range(2*len(aux_nodal_area))]
 
-            numerator = 0.0
-            denominator = 0.0
-            for i in range(len(obtained_output)):
-                if expected_output[i] > 1.0e-12:
-                    numerator += nodal_area[i]*((1 - (obtained_output[i]/expected_output[i]))**2)
-                    denominator += nodal_area[i]
-            l2 = np.sqrt(numerator/denominator)*100
+            l2 = rom_testing_utilities.GetRelativeL2Error(expected_output, obtained_output, nodal_area)
             self.assertLess(l2, self.relative_tolerance)
 
     def testStructuralDynamicRom2D(self):
