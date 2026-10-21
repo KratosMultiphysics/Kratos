@@ -30,7 +30,7 @@ So the first part of this course will cover where to find these software, how to
 
 If Python is not installed on your system, you can download it from the official [Python Website](https://www.python.org/) website. 
 
-⚠️ Kratos is availiable for **Windows** and **Linux** from versions **3.8** to **3.12** so please select one of those.
+⚠️ Kratos is availiable for **Windows** and **Linux** from versions **3.9** to **3.14** so please select one of those.
 
 ## 2.1 Create a python virtual environment:
 
@@ -67,10 +67,10 @@ If everything is set up correctly, the name of your virtual environment will app
 
 ## 3. Install Kratos
 
-Once your virtual environment is activated, install the `KratosMultiphysics-all` package by running:
+Once your virtual environment is activated, install the `KratosMultiphysics[all]` package by running:
 
 ```
-python -m pip install KratosMultiphysics-all
+python -m pip install KratosMultiphysics[all]
 ```
 {: data-lang="Bash"}
 

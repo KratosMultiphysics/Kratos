@@ -122,7 +122,7 @@ public:
 
 		if (stepsWithChangedDt == 2)
 		{
-			if (timeIntervalReduced == false)
+			if (!timeIntervalReduced)
 			{
 				stepsWithChangedDt = 0;
 				// std::cout << " 2 steps with the same reduced step " << stepsWithChangedDt << std::endl;
@@ -151,7 +151,7 @@ public:
 			std::cout << "ATTENTION! time step much smaller than initial time step, I'll not reduce it" << std::endl;
 		}
 		//here the time step is reduced because at the previous step we obtained a bad convergence (in velocity or pressure), see the criterion in two_step_vp_strategy.h
-		if ((badPressureConvergence == true || badVelocityConvergence == true) && updatedTimeInterval > (2.0 * minimumTimeInterval))
+		if ((badPressureConvergence || badVelocityConvergence) && updatedTimeInterval > (2.0 * minimumTimeInterval))
 		{
 			updatedTimeInterval *= 0.5;
 			// std::cout<<"      reducing time step (bad convergence at the previous step)"<<updatedTimeInterval<<std::endl;
@@ -183,7 +183,7 @@ public:
 		}
 
 		//here it is checked node by node and element by element, if with the new time step there could be penetration or element inversion. In these cases, the time step is reduced
-		if (timeIntervalReduced == false)
+		if (!timeIntervalReduced)
 		{
 			if (updatedTimeInterval > (2.0 * minimumTimeInterval))
 			{
@@ -193,18 +193,12 @@ public:
 				{
 					// the time step is reduced if during a time step a node moves more than its mean distance with respect to its neighbors
 					CheckNodalCriterionForTimeStepReduction(updatedTimeInterval, increaseTimeInterval, timeIntervalReduced);
-					// if (timeIntervalReduced == false)
-					// {
-					// 	// the time step is reduced if there can be some element inversion
-					// 	CheckElementalCriterionForTimeStepReduction(increaseTimeInterval);
-					// }
 				}
 			}
 
-			// if(increaseTimeInterval==true && initialTimeInterval>(1.0+tolerance)*updatedTimeInterval && badPressureConvergence==false && badVelocityConvergence==false ){
-			if (stepsWithChangedDt == 0 && increaseTimeInterval == true && initialTimeInterval > (1.0 + tolerance) * updatedTimeInterval && badVelocityConvergence == false)
+			if (stepsWithChangedDt == 0 && increaseTimeInterval && initialTimeInterval > (1.0 + tolerance) * updatedTimeInterval && !badVelocityConvergence)
 			{
-				if(increaseTimeInterval == true && (stepsWithChangedDt == 0  || stepsWithChangedDt == 2)){
+				if(increaseTimeInterval && (stepsWithChangedDt == 0  || stepsWithChangedDt == 2)){
 					IncreaseTimeInterval(updatedTimeInterval, deltaTimeToNewMilestone, tolerance, increaseTimeInterval);
 				}
 			}
@@ -216,7 +210,7 @@ public:
 
 		double newTimeInterval = rCurrentProcessInfo[DELTA_TIME];
 		double milestoneGap = fabs(newTimeInterval - deltaTimeToNewMilestone);
-		if (milestoneGap < 0.49 * newTimeInterval && milestoneTimeReached == false)
+		if (milestoneGap < 0.49 * newTimeInterval && !milestoneTimeReached)
 		{
 			// std::cout<<"the milestone is very close, I add "<<milestoneGap<<" to "<<newTimeInterval<<std::endl;
 			newTimeInterval += milestoneGap;
@@ -232,7 +226,7 @@ public:
 		/* std::cout<<"ATTENTION! new time step is more than 2 times smaller than the previous one"<<std::endl; */
 		/* } */
 
-		if (increaseTimeInterval == false && milestoneTimeReached == true && fabs(newTimeInterval - initialTimeInterval) > tolerance && !(deltaTimeToNewMilestone > newTimeInterval * (1.0 + tolerance)))
+		if (!increaseTimeInterval && milestoneTimeReached && fabs(newTimeInterval - initialTimeInterval) > tolerance && !(deltaTimeToNewMilestone > newTimeInterval * (1.0 + tolerance)))
 		{
 			rCurrentProcessInfo.SetValue(CURRENT_DELTA_TIME, currentTimeInterval);
 		}
@@ -241,15 +235,15 @@ public:
 		{
 			KRATOS_INFO("AdaptiveTimeIntervalProcess") << "current time " << updatedTime << " time step: new  " << newTimeInterval << " previous " << currentTimeInterval << " initial  " << initialTimeInterval << std::endl;
 		}
-		if (stepsWithChangedDt == 0 && timeIntervalReduced == true)
+		if (stepsWithChangedDt == 0 && timeIntervalReduced)
 		{
 			stepsWithChangedDt += 1;
 		}
-		if (stepsWithChangedDt == 1 && timeIntervalReduced == false)
+		if (stepsWithChangedDt == 1 && !timeIntervalReduced)
 		{
 			stepsWithChangedDt += 1;
 		}
-		if ((stepsWithChangedDt == 0  || stepsWithChangedDt == 1) && increaseTimeInterval == true && timeIntervalReduced == false)
+		if ((stepsWithChangedDt == 0  || stepsWithChangedDt == 1) && increaseTimeInterval && !timeIntervalReduced)
 		{
 			// std::cout << " stepsWithChangedDt due to increase time Interval " << std::endl;
 			stepsWithChangedDt += 1;
@@ -370,7 +364,7 @@ public:
 						std::cout << "GEOMETRY NOT DEFINED" << std::endl;
 					}
 
-					if (solidElement == true)
+					if (solidElement)
 					{
 						newArea = currentElementalArea;
 					}
@@ -453,7 +447,7 @@ public:
 						std::cout << "GEOMETRY NOT DEFINED" << std::endl;
 					}
 
-					if (solidElement == true)
+					if (solidElement)
 					{
 						newVolume = currentElementalVolume;
 					}

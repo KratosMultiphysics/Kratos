@@ -21,14 +21,13 @@
 /* External includes */
 
 /* Project includes */
-#include "includes/define.h"
 #include "includes/variables.h"
 #include "includes/mesh_moving_variables.h"
 #include "includes/fsi_variables.h"
 #include "containers/array_1d.h"
 #include "includes/model_part.h"
 #include "includes/communicator.h"
-#include "includes/ublas_interface.h"
+#include "includes/default_interface.h"
 #include "utilities/binbased_fast_point_locator.h"
 #include "utilities/math_utils.h"
 #include "utilities/normal_calculation_utils.h"

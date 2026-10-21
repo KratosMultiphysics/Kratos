@@ -8,7 +8,7 @@
 //                  Kratos default license: kratos/license.txt
 //
 //  Main authors:   Nicolas Sibuet, Sebastian Ares de Parga
-//                  
+//
 //
 
 #pragma once
@@ -35,6 +35,7 @@
 #include "rom_application_variables.h"
 #include "custom_utilities/rom_auxiliary_utilities.h"
 #include "custom_utilities/rom_nn_utility.h"
+#include "custom_utilities/rom_rbf_utility.h"
 
 namespace Kratos
 {
@@ -216,7 +217,7 @@ public:
     {
         return mNumberOfRomModes;
     }
-    
+
     bool GetMonotonicityPreservingFlag() const noexcept
     {
         return mMonotonicityPreservingFlag;
@@ -246,6 +247,35 @@ public:
         r_root_mp.SetValue(SOLUTION_REFERENCE, refSnapshot);
     }
 
+    /**
+     * Sets a radial basis functions (RBF) decoder, to be used instead of the neural network one
+     */
+    void SetRbfDecoderParameters(
+        ModelPart &rModelPart,
+        Matrix rbfWeights,
+        Matrix rbfCenters,
+        IndexType kernelType,
+        double kernelEps,
+        Matrix svdPhiInf,
+        Matrix svdPhiSigSup,
+        Matrix svdSigInvInf,
+        Vector refSnapshot
+    )
+    {
+        auto& r_root_mp = rModelPart.GetRootModelPart();
+        r_root_mp.SetValue(W_MAT, rbfWeights);
+        r_root_mp.SetValue(CENTERS_MAT, rbfCenters);
+        r_root_mp.SetValue(KERNEL_TYPE, kernelType);
+        r_root_mp.SetValue(KERNEL_EPS, kernelEps);
+        r_root_mp.SetValue(SVD_PHI_MATRICES, vector<Matrix>(3));
+        vector<Matrix>& r_svdPhiMatrices = r_root_mp.GetValue(SVD_PHI_MATRICES);
+        r_svdPhiMatrices[0] = svdPhiInf;
+        r_svdPhiMatrices[1] = svdPhiSigSup;
+        r_svdPhiMatrices[2] = svdSigInvInf;
+        r_root_mp.SetValue(SOLUTION_REFERENCE, refSnapshot);
+        mUseRbfDecoder = true;
+    }
+
     void SetNNLayer(
         ModelPart &rModelPart,
         SizeType layerIndex,
@@ -263,13 +293,11 @@ public:
     )
     {
         auto& r_root_mp = rModelPart.GetRootModelPart();
-        vector<Matrix>& r_svdPhiMatrices = r_root_mp.GetValue(SVD_PHI_MATRICES);
-        vector<Matrix>& r_nnLayers = r_root_mp.GetValue(NN_LAYERS);
         Vector& r_refSnapshot = r_root_mp.GetValue(SOLUTION_REFERENCE);
 
         TSystemVectorType xFom = ZeroVector(r_refSnapshot.size());
 
-        RomNNUtility<TSparseSpace,TDenseSpace>::GetXFromDecoder(xRom, xFom, r_svdPhiMatrices, r_nnLayers, r_refSnapshot);
+        GetXFromDecoder(r_root_mp, xRom, xFom);
 
         return xFom;
     }
@@ -277,7 +305,7 @@ public:
     void MonotonicityPreserving(
         TSystemMatrixType& rA,
         TSystemVectorType& rB
-    ) 
+    )
     {
         const auto& r_dof_set = BaseType::GetDofSet();
         Vector dofs_values = ZeroVector(r_dof_set.size());
@@ -287,16 +315,16 @@ public:
             dofs_values[id] = rDof.GetSolutionStepValue();
         });
         double *values_vector = rA.value_data().begin();
-        std::size_t *index1_vector = rA.index1_data().begin();
-        std::size_t *index2_vector = rA.index2_data().begin();
+        typename TSystemMatrixType::index_array_type::value_type *index1_vector = rA.index1_data().begin();
+        typename TSystemMatrixType::index_array_type::value_type *index2_vector = rA.index2_data().begin();
 
         IndexPartition<std::size_t>(rA.size1()).for_each(
             [&](std::size_t i)
             {
-                for (std::size_t k = index1_vector[i]; k < index1_vector[i + 1]; k++) {
+                for (std::size_t k = index1_vector[i]; k < static_cast<std::size_t>(index1_vector[i + 1]); k++) {
                     const double value = values_vector[k];
                     if (value > 0.0) {
-                        const auto j = index2_vector[k];
+                        const std::size_t j = index2_vector[k];
                         if (j > i) {
                             // TODO: Partition in blocks to gain efficiency by avoiding thread locks.
                             // Values conflicting with other threads
@@ -329,7 +357,7 @@ public:
         BaseBuilderAndSolverType::InitializeSolutionStep(rModelPart, rA, rDx, rb);
         }
 
-    
+
     void BuildAndSolve(
         typename TSchemeType::Pointer pScheme,
         ModelPart &rModelPart,
@@ -395,7 +423,9 @@ public:
             "number_of_rom_dofs" : 10,
             "rom_bns_settings" : {
                 "monotonicity_preserving": false
-            }
+            },
+            "weight_vector_index": 0,
+            "number_of_hrom_sets": 1
         })");
         default_parameters.AddMissingParameters(BaseBuilderAndSolverType::GetDefaultParameters());
 
@@ -407,6 +437,13 @@ public:
         return "ann_prom_global_rom_builder_and_solver";
     }
 
+    /**
+     * Returns the latest tangent operator
+     */
+    Matrix GetTangentOperatorV()
+    {
+        return mPhiGlobal;
+    }
 
     ///@}
     ///@name Access
@@ -459,6 +496,7 @@ protected:
     bool mHromSimulation = false;
     bool mHromWeightsInitialized = false;
     bool mRightRomBasisInitialized = false;
+    bool mUseRbfDecoder = false;
     Matrix mPhiGlobal;
 
     ///@}
@@ -477,6 +515,8 @@ protected:
         mNodalDofs = ThisParameters["nodal_unknowns"].size();
         mNumberOfRomModes = ThisParameters["number_of_rom_dofs"].GetInt();
         mMonotonicityPreservingFlag = ThisParameters["rom_bns_settings"]["monotonicity_preserving"].GetBool();
+        mActiveHromSet = ThisParameters["weight_vector_index"].GetInt();
+        mNumberOfHromSets = ThisParameters["number_of_hrom_sets"].GetInt();
 
         // Set up a map with key the variable key and value the correct row in ROM basis
         IndexType k = 0;
@@ -503,10 +543,10 @@ protected:
         block_for_each(rModelPart.Elements().GetContainer(),
             [&](Element::Pointer p_element)
         {
+            // Note that the elements without weights are not modified: in coupled problems the element data is shared by the
+            // solvers (it lives in the geometry), so adding weights here would select all the elements for the next solver
             if (p_element->Has(HROM_WEIGHT)) {
                 element_queue.enqueue(std::move(p_element));
-            } else {
-                p_element->SetValue(HROM_WEIGHT, 1.0);
             }
         });
 
@@ -515,10 +555,10 @@ protected:
         block_for_each(rModelPart.Conditions().GetContainer(),
             [&](Condition::Pointer p_condition)
         {
+            // Note that the conditions without weights are not modified: in coupled problems the condition data is shared by the
+            // solvers (it lives in the geometry), so adding weights here would select all the conditions for the next solver
             if (p_condition->Has(HROM_WEIGHT)) {
                 condition_queue.enqueue(std::move(p_condition));
-            } else {
-                p_condition->SetValue(HROM_WEIGHT, 1.0);
             }
         });
 
@@ -543,7 +583,7 @@ protected:
 
         KRATOS_CATCH("")
     }
-    
+
     static DofQueue ExtractDofSet(
         typename TSchemeType::Pointer pScheme,
         ModelPart& rModelPart)
@@ -624,7 +664,7 @@ protected:
     }
 
     /**
-     * Builds and projects the reduced system of equations 
+     * Builds and projects the reduced system of equations
      */
     virtual void BuildAndProjectROM(
         typename TSchemeType::Pointer pScheme,
@@ -660,7 +700,7 @@ protected:
     }
 
     /**
-     * @brief Function to perform the build of the LHS and RHS multiplied by its corresponding hrom weight. 
+     * @brief Function to perform the build of the LHS and RHS multiplied by its corresponding hrom weight.
      * @param pScheme The integration scheme considered
      * @param rModelPart The model part of the problem to solve
      * @param A The LHS matrix
@@ -708,7 +748,7 @@ protected:
                     pScheme->CalculateSystemContributions(*it_elem, LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo);
 
                     //Get HROM weight and multiply it by its contribution
-                    const double h_rom_weight = mHromSimulation ? it_elem->GetValue(HROM_WEIGHT) : 1.0;
+                    const double h_rom_weight = mHromSimulation ? it_elem->GetValue(HROM_WEIGHT)[mActiveHromSet] : 1.0;
                     LHS_Contribution *= h_rom_weight;
                     RHS_Contribution *= h_rom_weight;
 
@@ -727,7 +767,7 @@ protected:
                     pScheme->CalculateSystemContributions(*it_cond, LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo);
 
                     //Get HROM weight and multiply it by its contribution
-                    const double h_rom_weight = mHromSimulation ? it_cond->GetValue(HROM_WEIGHT) : 1.0;
+                    const double h_rom_weight = mHromSimulation ? it_cond->GetValue(HROM_WEIGHT)[mActiveHromSet] : 1.0;
                     LHS_Contribution *= h_rom_weight;
                     RHS_Contribution *= h_rom_weight;
 
@@ -745,7 +785,56 @@ protected:
     }
 
     /**
-     * Projects the reduced system of equations 
+     * Runs the decoder (neural network or RBF) on the reduced coordinates
+     */
+    void GetXFromDecoder(
+        ModelPart& rRootModelPart,
+        const Vector& rRomUnknowns,
+        Vector& rX)
+    {
+        vector<Matrix>& r_svd_phi_matrices = rRootModelPart.GetValue(SVD_PHI_MATRICES);
+        Vector& r_ref_snapshot = rRootModelPart.GetValue(SOLUTION_REFERENCE);
+        if (mUseRbfDecoder) {
+            RomRBFUtility<TSparseSpace,TDenseSpace>::GetXFromDecoder(rRomUnknowns, rX, r_svd_phi_matrices, rRootModelPart.GetValue(W_MAT), rRootModelPart.GetValue(CENTERS_MAT), rRootModelPart.GetValue(KERNEL_TYPE), rRootModelPart.GetValue(KERNEL_EPS), r_ref_snapshot);
+        } else {
+            RomNNUtility<TSparseSpace,TDenseSpace>::GetXFromDecoder(rRomUnknowns, rX, r_svd_phi_matrices, rRootModelPart.GetValue(NN_LAYERS), r_ref_snapshot);
+        }
+    }
+
+    /**
+     * Runs the decoder (neural network or RBF) on the reduced coordinates and updates its gradient (mPhiGlobal)
+     */
+    void GetXAndDecoderGradient(
+        ModelPart& rRootModelPart,
+        const Vector& rRomUnknowns,
+        Vector& rX)
+    {
+        vector<Matrix>& r_svd_phi_matrices = rRootModelPart.GetValue(SVD_PHI_MATRICES);
+        Vector& r_ref_snapshot = rRootModelPart.GetValue(SOLUTION_REFERENCE);
+        if (mUseRbfDecoder) {
+            RomRBFUtility<TSparseSpace,TDenseSpace>::GetXAndDecoderGradient(rRomUnknowns, rX, mPhiGlobal, r_svd_phi_matrices, rRootModelPart.GetValue(W_MAT), rRootModelPart.GetValue(CENTERS_MAT), rRootModelPart.GetValue(KERNEL_TYPE), rRootModelPart.GetValue(KERNEL_EPS), r_ref_snapshot);
+        } else {
+            RomNNUtility<TSparseSpace,TDenseSpace>::GetXAndDecoderGradient(rRomUnknowns, rX, mPhiGlobal, r_svd_phi_matrices, rRootModelPart.GetValue(NN_LAYERS), r_ref_snapshot);
+        }
+    }
+
+    /**
+     * Updates the gradient of the decoder (mPhiGlobal) at the reduced coordinates
+     */
+    void GetDecoderGradient(
+        ModelPart& rRootModelPart,
+        const Vector& rRomUnknowns)
+    {
+        vector<Matrix>& r_svd_phi_matrices = rRootModelPart.GetValue(SVD_PHI_MATRICES);
+        if (mUseRbfDecoder) {
+            RomRBFUtility<TSparseSpace,TDenseSpace>::GetDecoderGradient(rRomUnknowns, mPhiGlobal, r_svd_phi_matrices, rRootModelPart.GetValue(W_MAT), rRootModelPart.GetValue(CENTERS_MAT), rRootModelPart.GetValue(KERNEL_TYPE), rRootModelPart.GetValue(KERNEL_EPS));
+        } else {
+            RomNNUtility<TSparseSpace,TDenseSpace>::GetDecoderGradient(rRomUnknowns, mPhiGlobal, r_svd_phi_matrices, rRootModelPart.GetValue(NN_LAYERS));
+        }
+    }
+
+    /**
+     * Projects the reduced system of equations
      */
     virtual void ProjectROM(
         ModelPart &rModelPart,
@@ -760,34 +849,29 @@ protected:
             mPhiGlobal = ZeroMatrix(BaseBuilderAndSolverType::GetEquationSystemSize(), GetNumberOfROMModes());
             RomSystemVectorType& r_xRom = r_root_mp.GetValue(ROM_SOLUTION_BASE);
             TSystemVectorType& r_xBase = r_root_mp.GetValue(SOLUTION_BASE);
-            vector<Matrix>& r_svdPhiMatrices = r_root_mp.GetValue(SVD_PHI_MATRICES);
-            vector<Matrix>& r_nnLayers = r_root_mp.GetValue(NN_LAYERS);
-            Vector& r_refSnapshot = r_root_mp.GetValue(SOLUTION_REFERENCE);
 
-            RomNNUtility<TSparseSpace,TDenseSpace>::GetXAndDecoderGradient(r_xRom, r_xBase, mPhiGlobal, r_svdPhiMatrices, r_nnLayers, r_refSnapshot);
+            GetXAndDecoderGradient(r_root_mp, r_xRom, r_xBase);
 
             mRightRomBasisInitialized = true;
         }
         else if (r_root_mp.GetValue(UPDATE_PHI_EFFECTIVE_BOOL)==true){
             RomSystemVectorType& r_xRomTotal = r_root_mp.GetValue(ROM_SOLUTION_TOTAL);
-            vector<Matrix>& r_svdPhiMatrices = r_root_mp.GetValue(SVD_PHI_MATRICES);
-            vector<Matrix>& r_nnLayers = r_root_mp.GetValue(NN_LAYERS);
-            RomNNUtility<TSparseSpace,TDenseSpace>::GetDecoderGradient(r_xRomTotal, mPhiGlobal, r_svdPhiMatrices, r_nnLayers);
+            GetDecoderGradient(r_root_mp, r_xRomTotal);
         }
 
         SetFixedDofsROMBasisToZero();
-        
+
         auto a_wrapper = UblasWrapper<double>(rA);
         const auto& eigen_rA = a_wrapper.matrix();
         Eigen::Map<EigenDynamicVector> eigen_rb(rb.data().begin(), rb.size());
         Eigen::Map<EigenDynamicMatrix> eigen_mPhiGlobal(mPhiGlobal.data().begin(), mPhiGlobal.size1(), mPhiGlobal.size2());
-        
+
         EigenDynamicMatrix eigen_rA_times_mPhiGlobal = eigen_rA * eigen_mPhiGlobal; //TODO: Make it in parallel.
 
         // Compute the matrix multiplication
         mEigenRomA = eigen_mPhiGlobal.transpose() * eigen_rA_times_mPhiGlobal; //TODO: Make it in parallel.
         mEigenRomB = eigen_mPhiGlobal.transpose() * eigen_rb; //TODO: Make it in parallel.
-        
+
         KRATOS_CATCH("")
     }
 
@@ -815,10 +899,6 @@ protected:
         Vector& r_xBase = r_root_mp.GetValue(SOLUTION_BASE);
         Vector xNew (rDx.size());
 
-        vector<Matrix>& svdPhiMatrices = r_root_mp.GetValue(SVD_PHI_MATRICES);
-        vector<Matrix>& nnLayers = r_root_mp.GetValue(NN_LAYERS);
-        Vector& refSnapshot = r_root_mp.GetValue(SOLUTION_REFERENCE);
-
         const auto solving_timer = BuiltinTimer();
 
         Eigen::Map<EigenDynamicVector> dxrom_eigen(r_dxRom.data().begin(), r_dxRom.size());
@@ -826,22 +906,22 @@ protected:
             KRATOS_INFO("AnnPromGlobalROMBuilderAndSolver") << "Linear system to be solved by QR is not invertible" << std::endl;
         }
         dxrom_eigen = rEigenRomA.colPivHouseholderQr().solve(rEigenRomB);
-        
+
         double time = solving_timer.ElapsedSeconds();
         KRATOS_INFO_IF("AnnPromGlobalROMBuilderAndSolver", (this->GetEchoLevel() > 0)) << "Solve reduced system time: " << time << std::endl;
 
         // project reduced solution back to full order modela
         const auto backward_projection_timer = BuiltinTimer();
 
-        RomNNUtility<TSparseSpace,TDenseSpace>::GetXAndDecoderGradient(r_xRom+r_dxRom,xNew, mPhiGlobal, svdPhiMatrices, nnLayers, refSnapshot);
-        
+        GetXAndDecoderGradient(r_root_mp, r_xRom+r_dxRom, xNew);
+
         GetDxAndUpdateXBase(xNew, r_xBase, rDx);
         KRATOS_INFO_IF("AnnPromGlobalROMBuilderAndSolver", (this->GetEchoLevel() > 0)) << "Project to fine basis time: " << backward_projection_timer.ElapsedSeconds() << std::endl;
 
         r_xRomTotal = r_xRom+r_dxRom;
 
         r_root_mp.SetValue(UPDATE_PHI_EFFECTIVE_BOOL, false);
-        
+
         KRATOS_CATCH("")
     }
 
@@ -854,7 +934,7 @@ protected:
         rxBase = rx;
     }
 
-    void SetFixedDofsROMBasisToZero() 
+    void SetFixedDofsROMBasisToZero()
     {
 
         const auto& r_dof_set = BaseBuilderAndSolverType::GetDofSet();
@@ -879,16 +959,18 @@ protected:
     ///@name Protected life cycle
     ///@{
 private:
-    ///@name Private member variables 
+    ///@name Private member variables
     ///@{
-        
+
     SizeType mNumberOfRomModes;
     EigenDynamicMatrix mEigenRomA;
     EigenDynamicVector mEigenRomB;
     bool mMonotonicityPreservingFlag;
+    int mNumberOfHromSets;
+    int mActiveHromSet;
 
     ///@}
-    ///@name Private operations 
+    ///@name Private operations
     ///@{
 
     ///@}

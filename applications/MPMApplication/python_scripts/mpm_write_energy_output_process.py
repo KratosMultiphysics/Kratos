@@ -37,10 +37,6 @@ class MPMWriteEnergyOutputProcess(KratosMultiphysics.OutputProcess):
         elif self.model_part_name.startswith('Initial_MPM_Material.'):
             self.model_part_name = self.model_part_name.replace('Initial_','')
 
-        controller_settings = self.params.Clone()
-        controller_settings["model_part_name"].SetString(self.model_part_name)
-        self.controller = KratosMultiphysics.OutputController(self.model, controller_settings)
-
     @staticmethod
     def GetDefaultParameters():
         return KratosMultiphysics.Parameters('''{
@@ -52,6 +48,9 @@ class MPMWriteEnergyOutputProcess(KratosMultiphysics.OutputProcess):
         }''')
 
     def ExecuteBeforeSolutionLoop(self):
+        controller_settings = self.params.Clone()
+        controller_settings["model_part_name"].SetString(self.model_part_name)
+        self.controller = KratosMultiphysics.OutputController(self.model, controller_settings)
         self.controller.Check()
         self.model_part = self.model[self.model_part_name]
         if self.model_part.NumberOfElements() == 0:

@@ -186,8 +186,11 @@ public:
         const SizeType max_iteration = BaseType::GetMaxIterationsNumber();
         const double tolerance = BaseType::GetTolerance();
 
-        VectorType x = boost::numeric::ublas::zero_vector<double>(size);
-        VectorType y = boost::numeric::ublas::zero_vector<double>(size);
+        VectorType x(size);
+
+        TSparseSpaceType::SetToZero(x);
+        VectorType y(size);
+        TSparseSpaceType::SetToZero(y);
 
         RandomInitializeUtility<double>::RandomInitialize(K, y);
 
@@ -199,7 +202,8 @@ public:
         // Starting with first step
         double rho = 0.0;
         double old_rho = Eigenvalues[0];
-        VectorType y_old = boost::numeric::ublas::zero_vector<double>(size);
+        VectorType y_old(size);
+        TSparseSpaceType::SetToZero(y_old);
 
         for(SizeType i = 0 ; i < max_iteration ; i++) {
             // x = K*y

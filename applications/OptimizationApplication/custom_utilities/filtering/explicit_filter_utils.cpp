@@ -348,12 +348,34 @@ void ExplicitFilterUtils<TContainerType>::ComputeForwardFilteringMatrix()
     KRATOS_TRY
 
     const auto& r_container = ModelPartUtils::GetContainer<TContainerType>(mrModelPart);
+    const IndexType n_entities = r_container.size();
     const IndexType stride = mpDamping->GetStride();
     const auto& r_filter_radius_data_view = mpFilterRadiusTensorAdaptor->ViewData();
 
-    mFilteringMatrix.resize(r_container.size(), false);
+    mFilteringMatrix.stride = stride;
+    mFilteringMatrix.row_ptr.assign(n_entities + 1, 0);
 
-    IndexPartition<IndexType>(r_container.size()).for_each(KDTreeThreadLocalStorage(), [&](const IndexType Index, auto& rTLS){
+    // Pass 1 (parallel): count neighbours per entity to build row_ptr offsets.
+    IndexPartition<IndexType>(n_entities).for_each(KDTreeThreadLocalStorage(), [&](const IndexType Index, auto& rTLS){
+        mpKDTreeIndex->radiusSearch(
+            &OptimizationUtils::GetEntityPosition(*(r_container.begin() + Index))[0],
+            r_filter_radius_data_view[Index] * r_filter_radius_data_view[Index],
+            rTLS.mNeighbourIndicesAndSquaredDistances,
+            nanoflann::SearchParameters());
+        mFilteringMatrix.row_ptr[Index + 1] = static_cast<IndexType>(rTLS.mNeighbourIndicesAndSquaredDistances.size());
+    });
+
+    // Serial: exclusive prefix sum -> row_ptr[i] = start index of entity i in col_idx / values.
+    for (IndexType i = 0; i < n_entities; ++i) {
+        mFilteringMatrix.row_ptr[i + 1] += mFilteringMatrix.row_ptr[i];
+    }
+
+    const IndexType total_nnz = mFilteringMatrix.row_ptr[n_entities];
+    mFilteringMatrix.col_idx.resize(total_nnz);
+    mFilteringMatrix.values.resize(total_nnz * stride);
+
+    // Pass 2 (parallel): compute weights and fill col_idx and values.
+    IndexPartition<IndexType>(n_entities).for_each(KDTreeThreadLocalStorage(), [&](const IndexType Index, auto& rTLS){
         const double sum_of_weights = ExplicitFilterUtilsHelperUtilities::ComputeWeights<TMeshDependencyType, TContainerType>(
                 rTLS.mListOfDampedWeights, rTLS.mNeighbourIndicesAndSquaredDistances,
                 rTLS.mListOfWeights, rTLS.mNeighbourEntityPoints,
@@ -361,21 +383,13 @@ void ExplicitFilterUtils<TContainerType>::ComputeForwardFilteringMatrix()
                 OptimizationUtils::GetEntityPosition(*(r_container.begin() + Index)),
                 Index, this->mNodalDomainSizes, this->mrModelPart.Nodes());
 
-        const auto number_of_neighbours = rTLS.mNeighbourIndicesAndSquaredDistances.size();
+        const IndexType row_begin = mFilteringMatrix.row_ptr[Index];
+        const IndexType num_neighbours = mFilteringMatrix.row_ptr[Index + 1] - row_begin;
 
-        auto& filtering_matrix_row_data = mFilteringMatrix[Index];
-        filtering_matrix_row_data.resize(number_of_neighbours);
-
-        for(IndexType neighbour_index = 0 ; neighbour_index < rTLS.mNeighbourIndicesAndSquaredDistances.size(); ++neighbour_index) {
-            const IndexType neighbour_id = rTLS.mNeighbourIndicesAndSquaredDistances[neighbour_index].first;
-
-            auto& neighbour_data = filtering_matrix_row_data[neighbour_index];
-            std::get<0>(neighbour_data) = neighbour_id;
-
-            auto& coefficients = std::get<1>(neighbour_data);
-            coefficients.resize(stride, false);
+        for (IndexType k = 0; k < num_neighbours; ++k) {
+            mFilteringMatrix.col_idx[row_begin + k] = rTLS.mNeighbourIndicesAndSquaredDistances[k].first;
             for (IndexType j = 0; j < stride; ++j) {
-                coefficients[j] = rTLS.mListOfDampedWeights[j][neighbour_index] / sum_of_weights;
+                mFilteringMatrix.values[(row_begin + k) * stride + j] = rTLS.mListOfDampedWeights[j][k] / sum_of_weights;
             }
         }
     });
@@ -390,6 +404,8 @@ template<class TMeshDependencyType, bool TUseFilterMatrix>
 TensorAdaptor<double>::Pointer ExplicitFilterUtils<TContainerType>::GenericForwardFilterField(const TensorAdaptor<double>& rTensorAdaptor) const
 {
     KRATOS_TRY
+
+    BuiltinTimer timer;
 
     CheckField(rTensorAdaptor);
 
@@ -425,21 +441,21 @@ TensorAdaptor<double>::Pointer ExplicitFilterUtils<TContainerType>::GenericForwa
                 }
             }
         } else {
-            const auto& filter_matrix_row_data = mFilteringMatrix[Index];
+            const IndexType row_begin = mFilteringMatrix.row_ptr[Index];
+            const IndexType num_neighbours = mFilteringMatrix.row_ptr[Index + 1] - row_begin;
             for (IndexType j = 0; j < stride; ++j) {
                 double& current_index_value = result_data_view[Index * stride + j];
                 current_index_value = 0.0;
-                for(IndexType neighbour_index = 0 ; neighbour_index < filter_matrix_row_data.size(); ++neighbour_index) {
-                    const auto neighbour_id = std::get<0>(filter_matrix_row_data[neighbour_index]);
-                    const auto weight = std::get<1>(filter_matrix_row_data[neighbour_index])[j];
-                    const double origin_value = r_origin_data_view[neighbour_id * stride + j];
-                    current_index_value +=  weight * origin_value;
+                for (IndexType k = 0; k < num_neighbours; ++k) {
+                    const IndexType neighbour_id = mFilteringMatrix.col_idx[row_begin + k];
+                    const double weight = mFilteringMatrix.values[(row_begin + k) * stride + j];
+                    current_index_value += weight * r_origin_data_view[neighbour_id * stride + j];
                 }
             }
         }
     });
 
-    KRATOS_INFO_IF("ExplicitFilterUtils", mEchoLevel > 1) << "Computed forward filter field." << std::endl;
+    KRATOS_INFO_IF("ExplicitFilterUtils", mEchoLevel > 1) << "Computed forward filter field within " << timer.ElapsedSeconds() << "s." << std::endl;
 
     return p_result_tensor_adaptor;
 
@@ -451,6 +467,8 @@ template<class TMeshDependencyType, bool TUseFilterMatrix>
 TensorAdaptor<double>::Pointer ExplicitFilterUtils<TContainerType>::GenericBackwardFilterField(const TensorAdaptor<double>& rTensorAdaptor) const
 {
     KRATOS_TRY
+
+    BuiltinTimer timer;
 
     CheckField(rTensorAdaptor);
 
@@ -494,19 +512,20 @@ TensorAdaptor<double>::Pointer ExplicitFilterUtils<TContainerType>::GenericBackw
                 }
             }
         } else {
-            const auto& filter_matrix_row_data = mFilteringMatrix[Index];
+            const IndexType row_begin = mFilteringMatrix.row_ptr[Index];
+            const IndexType num_neighbours = mFilteringMatrix.row_ptr[Index + 1] - row_begin;
             for (IndexType j = 0; j < stride; ++j) {
                 const double origin_value = TMeshDependencyType::Compute(r_origin_data_view[current_data_begin + j], domain_size);
-                for(IndexType neighbour_index = 0 ; neighbour_index < filter_matrix_row_data.size(); ++neighbour_index) {
-                    const auto neighbour_id = std::get<0>(filter_matrix_row_data[neighbour_index]);
-                    const auto weight = std::get<1>(filter_matrix_row_data[neighbour_index])[j];
+                for (IndexType k = 0; k < num_neighbours; ++k) {
+                    const IndexType neighbour_id = mFilteringMatrix.col_idx[row_begin + k];
+                    const double weight = mFilteringMatrix.values[(row_begin + k) * stride + j];
                     AtomicAdd<double>(result_data_view[neighbour_id * stride + j], origin_value * weight);
                 }
             }
         }
     });
 
-    KRATOS_INFO_IF("ExplicitFilterUtils", mEchoLevel > 1) << "Computed backward filter field." << std::endl;
+    KRATOS_INFO_IF("ExplicitFilterUtils", mEchoLevel > 1) << "Computed backward filter field within " << timer.ElapsedSeconds() << " s." << std::endl;
 
     return p_result_tensor_adaptor;
 

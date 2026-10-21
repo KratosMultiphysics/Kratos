@@ -308,7 +308,13 @@ public:
      *
      * @param rOutputFilenamePrefix The prefix to use for the output filename.
      */
-    void PrintOutput(const std::string& rOutputFilenamePrefix);
+    void PrintOutput(
+        const std::string& rOutputFilenamePrefix);
+
+    void PrintOutput(
+        const std::string& rOutputFilenamePrefix,
+        const int Step,
+        const double Time);
 
     ///@}
     ///@name Input and output
@@ -329,7 +335,7 @@ private:
     ///@name Private member variables
     ///@{
 
-    bool mIsPVDFileHeaderWritten;
+    bool mIsSeriesFileHeaderWritten;
 
     ModelPart& mrModelPart;
 

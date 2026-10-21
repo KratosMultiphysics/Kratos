@@ -244,7 +244,7 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::CalculateOnIntegrationPo
     }
     else if (rVariable == PERTURBATION_VELOCITY)
     {
-        const array_1d<double, Dim>& free_stream_velocity = rCurrentProcessInfo[FREE_STREAM_VELOCITY];
+        const array_1d<double, 3>& free_stream_velocity = rCurrentProcessInfo[FREE_STREAM_VELOCITY];
         array_1d<double, 3> v(3, 0.0);
         array_1d<double, Dim> vaux = PotentialFlowUtilities::ComputeVelocity<Dim,NumNodes>(*this);
         for (unsigned int k = 0; k < Dim; k++)
@@ -465,14 +465,14 @@ void IncompressiblePotentialFlowElement<3, 4>::CalculateBlockLeftHandSideWakeEle
     // Computing linearized pressure equality condition lhs
     const array_1d<double, 3>& free_stream_velocity_direction = rCurrentProcessInfo[FREE_STREAM_VELOCITY_DIRECTION];
     const BoundedVector<double, 4> DNv = prod(rData.DN_DX, free_stream_velocity_direction);
-    const BoundedMatrix<double, 4, 4> pressure_equality_lhs = outer_prod(DNv,trans(DNv));
+    const BoundedMatrix<double, 4, 4> pressure_equality_lhs = outer_prod(DNv, DNv);
 
     // Computing wake normal condition lhs
     // Attention: this only works for straight trailing edges
     // TODO: Make it work for curved trailing edges, i.e., find the way to store the local normal vector of the skin in the element.
     const array_1d<double, 3>& wake_normal = rCurrentProcessInfo[WAKE_NORMAL];
     const BoundedVector<double, 4> DNn = prod(rData.DN_DX, wake_normal);
-    const BoundedMatrix<double, 4, 4> normal_condition_lhs = outer_prod(DNn,trans(DNn));
+    const BoundedMatrix<double, 4, 4> normal_condition_lhs = outer_prod(DNn, DNn);
 
     // Adding contributions
     rLhs_wake_condition = rData.vol * (pressure_equality_lhs + normal_condition_lhs);

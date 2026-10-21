@@ -20,7 +20,7 @@
 //extern "C" {
 #include "hdf5.h"
 //}
-#include "includes/ublas_interface.h"
+#include "includes/default_interface.h"
 
 // Project includes
 #include "includes/io.h"

@@ -20,7 +20,7 @@
 #include "containers/global_pointers_vector.h"
 #include "includes/kratos_parameters.h"
 #include "includes/parallel_environment.h"
-#include "includes/ublas_interface.h"
+#include "includes/default_interface.h"
 #include "input_output/logger.h"
 #include "solving_strategies/schemes/sensitivity_builder_scheme.h"
 #include "utilities/openmp_utils.h"

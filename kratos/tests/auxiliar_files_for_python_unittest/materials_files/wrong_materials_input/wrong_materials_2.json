@@ -1,7 +1,9 @@
 {
 	"properties": [{
+		"properties_id": 1,
 		"model_part_name": "Main.sub"
 	},{
+		"properties_id": 2,
 		"model_part_name": "Main.sub"
 	}]
 }

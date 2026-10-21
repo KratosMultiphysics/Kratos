@@ -39535,11 +39535,11 @@ void AugmentedLagrangianMethodFrictionalMortarContactCondition<3,3, false, 4>::C
     // Mortar operators
     const BoundedMatrix<double, 3, 4>& MOperator = rMortarConditionMatrices.MOperator;
     const BoundedMatrix<double, 3, 3>& DOperator = rMortarConditionMatrices.DOperator;
-    const BoundedMatrix<double, 3, 3>& MOperatorold = mPreviousMortarOperators.MOperator;
+    const BoundedMatrix<double, 3, 4>& MOperatorold = mPreviousMortarOperators.MOperator;
     const BoundedMatrix<double, 3, 3>& DOperatorold = mPreviousMortarOperators.DOperator;
 
     // Mortar operators derivatives
-    const array_1d<BoundedMatrix<double, 3, 3>, 21>& DeltaMOperator = rMortarConditionMatrices.DeltaMOperator;
+    const array_1d<BoundedMatrix<double, 3, 4>, 21>& DeltaMOperator = rMortarConditionMatrices.DeltaMOperator;
     const array_1d<BoundedMatrix<double, 3, 3>, 21>& DeltaDOperator = rMortarConditionMatrices.DeltaDOperator;
 
     // We get the friction coefficient
@@ -54793,11 +54793,11 @@ void AugmentedLagrangianMethodFrictionalMortarContactCondition<3,4, false, 3>::C
     // Mortar operators
     const BoundedMatrix<double, 4, 3>& MOperator = rMortarConditionMatrices.MOperator;
     const BoundedMatrix<double, 4, 4>& DOperator = rMortarConditionMatrices.DOperator;
-    const BoundedMatrix<double, 4, 4>& MOperatorold = mPreviousMortarOperators.MOperator;
+    const BoundedMatrix<double, 4, 3>& MOperatorold = mPreviousMortarOperators.MOperator;
     const BoundedMatrix<double, 4, 4>& DOperatorold = mPreviousMortarOperators.DOperator;
 
     // Mortar operators derivatives
-    const array_1d<BoundedMatrix<double, 4, 4>, 21>& DeltaMOperator = rMortarConditionMatrices.DeltaMOperator;
+    const array_1d<BoundedMatrix<double, 4, 3>, 21>& DeltaMOperator = rMortarConditionMatrices.DeltaMOperator;
     const array_1d<BoundedMatrix<double, 4, 4>, 21>& DeltaDOperator = rMortarConditionMatrices.DeltaDOperator;
 
     // We get the friction coefficient
@@ -121639,11 +121639,11 @@ void AugmentedLagrangianMethodFrictionalMortarContactCondition<3,3, true, 4>::Ca
     // Mortar operators
     const BoundedMatrix<double, 3, 4>& MOperator = rMortarConditionMatrices.MOperator;
     const BoundedMatrix<double, 3, 3>& DOperator = rMortarConditionMatrices.DOperator;
-    const BoundedMatrix<double, 3, 3>& MOperatorold = mPreviousMortarOperators.MOperator;
+    const BoundedMatrix<double, 3, 4>& MOperatorold = mPreviousMortarOperators.MOperator;
     const BoundedMatrix<double, 3, 3>& DOperatorold = mPreviousMortarOperators.DOperator;
 
     // Mortar operators derivatives
-    const array_1d<BoundedMatrix<double, 3, 3>, 21>& DeltaMOperator = rMortarConditionMatrices.DeltaMOperator;
+    const array_1d<BoundedMatrix<double, 3, 4>, 21>& DeltaMOperator = rMortarConditionMatrices.DeltaMOperator;
     const array_1d<BoundedMatrix<double, 3, 3>, 21>& DeltaDOperator = rMortarConditionMatrices.DeltaDOperator;
 
     // We get the friction coefficient
@@ -141423,11 +141423,11 @@ void AugmentedLagrangianMethodFrictionalMortarContactCondition<3,4, true, 3>::Ca
     // Mortar operators
     const BoundedMatrix<double, 4, 3>& MOperator = rMortarConditionMatrices.MOperator;
     const BoundedMatrix<double, 4, 4>& DOperator = rMortarConditionMatrices.DOperator;
-    const BoundedMatrix<double, 4, 4>& MOperatorold = mPreviousMortarOperators.MOperator;
+    const BoundedMatrix<double, 4, 3>& MOperatorold = mPreviousMortarOperators.MOperator;
     const BoundedMatrix<double, 4, 4>& DOperatorold = mPreviousMortarOperators.DOperator;
 
     // Mortar operators derivatives
-    const array_1d<BoundedMatrix<double, 4, 4>, 21>& DeltaMOperator = rMortarConditionMatrices.DeltaMOperator;
+    const array_1d<BoundedMatrix<double, 4, 3>, 21>& DeltaMOperator = rMortarConditionMatrices.DeltaMOperator;
     const array_1d<BoundedMatrix<double, 4, 4>, 21>& DeltaDOperator = rMortarConditionMatrices.DeltaDOperator;
 
     // We get the friction coefficient
@@ -168074,7 +168074,7 @@ void AugmentedLagrangianMethodFrictionalMortarContactCondition<3,3, false, 4>::S
     // Mortar operators
     const BoundedMatrix<double, 3, 4>& MOperator = rMortarConditionMatrices.MOperator;
     const BoundedMatrix<double, 3, 3>& DOperator = rMortarConditionMatrices.DOperator;
-    const BoundedMatrix<double, 3, 3>& MOperatorold = rPreviousMortarOperators.MOperator;
+    const BoundedMatrix<double, 3, 4>& MOperatorold = rPreviousMortarOperators.MOperator;
     const BoundedMatrix<double, 3, 3>& DOperatorold = rPreviousMortarOperators.DOperator;
 
 //    // The delta time
@@ -169215,7 +169215,7 @@ void AugmentedLagrangianMethodFrictionalMortarContactCondition<3,4, false, 3>::S
     // Mortar operators
     const BoundedMatrix<double, 4, 3>& MOperator = rMortarConditionMatrices.MOperator;
     const BoundedMatrix<double, 4, 4>& DOperator = rMortarConditionMatrices.DOperator;
-    const BoundedMatrix<double, 4, 4>& MOperatorold = rPreviousMortarOperators.MOperator;
+    const BoundedMatrix<double, 4, 3>& MOperatorold = rPreviousMortarOperators.MOperator;
     const BoundedMatrix<double, 4, 4>& DOperatorold = rPreviousMortarOperators.DOperator;
 
 //    // The delta time

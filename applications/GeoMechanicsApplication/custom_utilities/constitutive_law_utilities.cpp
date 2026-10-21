@@ -311,7 +311,7 @@ void ConstitutiveLawUtilities::ReplaceIgnoreUndrainedByDrainageType(Properties& 
                 << "Soon GEO_DRAINAGE_TYPE will be a mandatory material input. "
                    "Currently, the default value is "
                 << fully_coupled_drainage_type << "." << std::endl;
-            rProperties[GEO_DRAINAGE_TYPE] = fully_coupled_drainage_type;
+            rProperties.SetValue(GEO_DRAINAGE_TYPE, fully_coupled_drainage_type);
         }
         return;
     }
@@ -323,8 +323,8 @@ void ConstitutiveLawUtilities::ReplaceIgnoreUndrainedByDrainageType(Properties& 
         << "Use of IGNORE_UNDRAINED is deprecated, please change your input to "
            "GEO_DRAINAGE_TYPE"
         << std::endl;
-    rProperties[GEO_DRAINAGE_TYPE] = rProperties[IGNORE_UNDRAINED] ? constant_pw_field_drainage_type
-                                                                   : fully_coupled_drainage_type;
+    rProperties.SetValue(GEO_DRAINAGE_TYPE, rProperties[IGNORE_UNDRAINED] ? constant_pw_field_drainage_type
+                                                                          : fully_coupled_drainage_type);
     rProperties.Erase(IGNORE_UNDRAINED);
 }
 
@@ -341,5 +341,16 @@ double ConstitutiveLawUtilities::CalculateExcessPorePressureIncrement(const Prop
         << "Non-physical values: denominator < epsilon for property Id of " << rProperties.Id()
         << "." << std::endl;
     return biot_coefficient * VolumetricStrainIncrement / denominator;
+}
+
+bool ConstitutiveLawUtilities::WantTensionCutOff(const Properties& rMaterialProperties)
+{
+    if (rMaterialProperties.Has(GEO_ENABLE_TENSION_CUT_OFF) && rMaterialProperties[GEO_ENABLE_TENSION_CUT_OFF]) {
+        return true;
+    }
+
+    // The following statement is to support backward compatibility (i.e. GEO_ENABLE_TENSION_CUT_OFF is not specified,
+    // but the GEO_TENSILE_STRENGTH is provided), which results in an enabled tension cutoff.
+    return !rMaterialProperties.Has(GEO_ENABLE_TENSION_CUT_OFF) && rMaterialProperties.Has(GEO_TENSILE_STRENGTH);
 }
 } // namespace Kratos

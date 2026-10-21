@@ -21,6 +21,7 @@
 #include "custom_constitutive/truss_constitutive_law.h"
 #include "custom_constitutive/beam_constitutive_law.h"
 #include "custom_constitutive/elastic_isotropic_3d.h"
+#include "custom_constitutive/flexible_elastic_isotropic_3d.h"
 #include "custom_constitutive/axisym_elastic_isotropic.h"
 #include "custom_constitutive/linear_plane_stress.h"
 #include "custom_constitutive/linear_plane_strain.h"
@@ -54,6 +55,10 @@ void  AddCustomConstitutiveLawsToPython(pybind11::module& m)
 
     py::class_< ElasticIsotropic3D, typename ElasticIsotropic3D::Pointer, ConstitutiveLaw >
     (m, "LinearElastic3DLaw").def(py::init<>() )
+    ;
+
+    py::class_< FlexibleElasticIsotropic3D, typename FlexibleElasticIsotropic3D::Pointer, ConstitutiveLaw >
+    (m, "FlexibleLinearElastic3DLaw").def(py::init<>() )
     ;
 
     py::class_< AxisymElasticIsotropic, typename AxisymElasticIsotropic::Pointer, ConstitutiveLaw >

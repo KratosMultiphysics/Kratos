@@ -189,7 +189,7 @@ namespace Kratos
           if (EquationId.size() != 1)
             EquationId.resize(1, false);
 
-          if ((itNode->Is(FLUID) && itNode->IsNot(SOLID)) || itNode->FastGetSolutionStepValue(INTERFACE_NODE) == true)
+          if ((itNode->Is(FLUID) && itNode->IsNot(SOLID)) || itNode->FastGetSolutionStepValue(INTERFACE_NODE))
           {
 
             double nodalVolume = itNode->FastGetSolutionStepValue(NODAL_VOLUME);
@@ -206,7 +206,7 @@ namespace Kratos
               }
 
               double volumetricCoeff = itNode->FastGetSolutionStepValue(VOLUMETRIC_COEFFICIENT) + 2.0 * deviatoricCoeff / 3.0;
-              if (itNode->IsNot(SOLID) || itNode->FastGetSolutionStepValue(INTERFACE_NODE) == true)
+              if (itNode->IsNot(SOLID) || itNode->FastGetSolutionStepValue(INTERFACE_NODE))
               {
                 volumetricCoeff = timeInterval * itNode->FastGetSolutionStepValue(BULK_MODULUS);
               }
@@ -653,7 +653,7 @@ namespace Kratos
     {
       unsigned int local_size = RHS_Contribution.size();
 
-      if (BaseType::mCalculateReactionsFlag == false)
+      if (!BaseType::mCalculateReactionsFlag)
       {
         for (unsigned int i_local = 0; i_local < local_size; i_local++)
         {

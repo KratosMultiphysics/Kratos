@@ -204,9 +204,6 @@ def read_all_projects(all_project_names):
 def clear_duplications_in_mdpa_files(all_project_names, all_mdpa_data):
     submodel_parts_all = collect_submodel_parts_from_mdpa(all_mdpa_data[0])
 
-    # all_project_parameters[0]["solver_settings"]["material_import_settings"][
-    #     "materials_filename"] = 'MaterialParameters_stage1.json'
-
     for project_nr in range(1, len(all_project_names)):
 
         clear_node_data_from_mdpa(all_mdpa_data[project_nr])
@@ -242,7 +239,7 @@ def update_project_parameters_files(all_project_parameters):
     previous_end_time = 0
     for project_nr, project_parameters in enumerate(all_project_parameters):
         project_parameters["solver_settings"]["material_import_settings"][
-            "materials_filename"] = 'MaterialParameters_stage' + str(project_nr + 1) + '.json'
+            "materials_filename"] = f'MaterialParameters_stage{project_nr + 1}.json'
         if project_parameters["problem_data"]["start_time"] < previous_end_time:
             dt = project_parameters["problem_data"]["end_time"] - project_parameters["problem_data"]["start_time"]
             project_parameters["problem_data"]["start_time"] = previous_end_time
@@ -262,8 +259,8 @@ def write_all_files_in_project_dir(main_folder,new_project_name,all_project_name
 
     for stage, project_name in enumerate(all_project_names):
 
-        new_project_parameters_file = os.path.join(new_dir_name,'ProjectParameters_stage' + str(stage+1) + '.json')
-        new_material_parameters_file = os.path.join(new_dir_name,'MaterialParameters_stage' + str(stage+1) + '.json')
+        new_project_parameters_file = os.path.join(new_dir_name,f'ProjectParameters_stage{stage+1}.json')
+        new_material_parameters_file = os.path.join(new_dir_name,f'MaterialParameters_stage{stage+1}.json')
         new_mdpa_file = os.path.join(new_dir_name, project_name.replace(".gid", ".mdpa"))
 
         with open(new_project_parameters_file,'w') as f:

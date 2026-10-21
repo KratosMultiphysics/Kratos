@@ -13,7 +13,7 @@
 #include "hydraulic_discharge.h"
 #include "custom_utilities/node_utilities.h"
 #include "geo_mechanics_application_variables.h"
-#include "includes/ublas_interface.h"
+#include "includes/default_interface.h"
 
 namespace Kratos
 {

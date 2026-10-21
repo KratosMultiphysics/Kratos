@@ -48,14 +48,13 @@ protected:
     std::string  mVariableName;
     bool         mIsFixed;
     bool         mIsFixedProvided;
-    bool         mIsSeepage;
     unsigned int mGravityDirection;
     double       mSpecificWeight;
     Vector3      mFirstReferenceCoordinate;
     Vector3      mSecondReferenceCoordinate;
     Vector3      mThirdReferenceCoordinate;
     Vector3      mNormalVector;
-    double       mEqRHS;
+    double       mEqRHS = 0.0;
     double       mPressureTensionCutOff;
 
 private:

@@ -733,7 +733,7 @@ namespace Kratos
       TSystemVectorType &b = *pb;
 
       // resizing the system vectors and matrix
-      if (A.size1() == 0 || BaseType::GetReshapeMatrixFlag() == true) // if the matrix is not initialized
+      if (A.size1() == 0 || BaseType::GetReshapeMatrixFlag()) // if the matrix is not initialized
       {
         A.resize(BaseType::mEquationSystemSize, BaseType::mEquationSystemSize, false);
         ConstructMatrixStructure(pScheme, A, rModelPart);
@@ -754,7 +754,7 @@ namespace Kratos
         b.resize(BaseType::mEquationSystemSize, false);
 
       // if needed resize the vector for the calculation of reactions
-      if (BaseType::mCalculateReactionsFlag == true)
+      if (BaseType::mCalculateReactionsFlag)
       {
         unsigned int ReactionsVectorSize = BaseType::mDofSet.size();
         if (BaseType::mpReactionsVector->size() != ReactionsVectorSize)
@@ -1123,7 +1123,7 @@ namespace Kratos
     {
       unsigned int local_size = RHS_Contribution.size();
 
-      if (BaseType::mCalculateReactionsFlag == false)
+      if (!BaseType::mCalculateReactionsFlag)
       {
         for (unsigned int i_local = 0; i_local < local_size; i_local++)
         {

@@ -24,7 +24,7 @@
 #include "includes/key_hash.h"
 #include "includes/node.h"
 #include "includes/model_part.h"
-#include "includes/ublas_interface.h"
+#include "includes/default_interface.h"
 #include "modified_shape_functions/modified_shape_functions.h"
 #include "processes/find_nodal_neighbours_process.h"
 
@@ -365,6 +365,29 @@ public:
         Matrix &rJPhiElemental,
         const Element::DofsVectorType& rDofs,
         const Matrix &rJPhi);
+
+    /**
+     * @brief Adds to the destination model part the geometries of the entities of the origin model part.
+     * @details For each element/condition in the destination model part, the geometry of the entity with the
+     * same id in the origin model part is added. This is required to be able to write geometry-based formats
+     * (e.g. MED) from a model part that only contains entities, as the entities share their geometries with
+     * the origin model part.
+     * @param rOriginModelPart The model part containing the entities and their geometries.
+     * @param rDestinationModelPart The model part to which the geometries are added.
+     */
+    static void AddGeometries(
+        const ModelPart& rOriginModelPart,
+        ModelPart& rDestinationModelPart);
+
+    /**
+     * @brief Assigns a valid properties object to the entities (elements and conditions) that do not have one.
+     * @details Entities created from geometries (e.g. by the CreateEntitiesFromGeometriesModeler) are created
+     * without properties. Some operations, such as writing an mdpa file, require the entities to have a valid
+     * properties pointer. This method assigns the first available properties of the model part (creating a
+     * default one if there is none) to every entity without properties, recursing over the sub model parts.
+     * @param rModelPart The model part whose entities without properties are to be assigned a default properties.
+     */
+    static void AssignPropertiesToEntitiesIfMissing(ModelPart& rModelPart);
 
     ///@}
 

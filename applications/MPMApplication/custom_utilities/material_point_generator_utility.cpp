@@ -626,9 +626,6 @@ namespace Kratos::MaterialPointGeneratorUtility
             case 3:
                 rIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_2;
                 break;
-            case 4:
-                rIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_3;
-                break;
             case 6:
                 rIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_4;
                 break;
@@ -639,7 +636,7 @@ namespace Kratos::MaterialPointGeneratorUtility
                 std::string err_msg = "The input number of MATERIAL_POINTS_PER_ELEMENT ";
                 err_msg += "(" + std::to_string(MaterialPointsPerElement) + ")";
                 err_msg += " is not available for Triangular elements\n";
-                err_msg += "Available options are: 1, 3, 4, 6, 12.\n";
+                err_msg += "Available options are: 1, 3, 6, 12.\n";
                 KRATOS_ERROR <<  err_msg << std::endl;
                 break;
             }

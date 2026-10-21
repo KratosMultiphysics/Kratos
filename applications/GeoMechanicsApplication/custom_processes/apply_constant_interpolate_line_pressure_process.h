@@ -48,7 +48,6 @@ private:
     std::string        mVariableName;
     bool               mIsFixed;
     bool               mIsFixedProvided;
-    bool               mIsSeepage;
     bool               mIsInitialized = false;
     unsigned int       mGravityDirection;
     unsigned int       mOutOfPlaneDirection;

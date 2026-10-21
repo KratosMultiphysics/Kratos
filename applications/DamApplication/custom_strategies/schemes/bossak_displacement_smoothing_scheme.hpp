@@ -10,6 +10,8 @@
 
 // Application includes
 #include "solving_strategies/schemes/residual_based_bossak_displacement_scheme.hpp"
+#include "custom_utilities/dam_nodal_stress_smoothing_utilities.hpp"
+#include "custom_utilities/dam_nonlocal_damage_utilities.hpp"
 #include "dam_application_variables.h"
 
 namespace Kratos
@@ -73,6 +75,49 @@ public:
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
+    void InitializeNonLinIteration(
+        ModelPart& rModelPart,
+        TSystemMatrixType& A,
+        TSystemVectorType& Dx,
+        TSystemVectorType& b) override
+    {
+        KRATOS_TRY
+
+        // 1. Normal element/condition nonlinear-iteration callbacks.
+        BaseType::InitializeNonLinIteration(rModelPart, A, Dx, b);
+
+        // 2. Scheme-owned LOCAL equivalent-strain production (nonlocal damage).
+        if (DamNonlocalDamageUtilities::IsProcessBasedLocalOwnership(rModelPart)) {
+            DamNonlocalDamageUtilities::CalculateLocalEquivalentStrain(rModelPart);
+        }
+
+        KRATOS_CATCH("")
+    }
+
+//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    void FinalizeNonLinIteration(
+        ModelPart& rModelPart,
+        TSystemMatrixType& A,
+        TSystemVectorType& Dx,
+        TSystemVectorType& b) override
+    {
+        KRATOS_TRY
+
+        // 1. Normal element/condition nonlinear-iteration callbacks.
+        BaseType::FinalizeNonLinIteration(rModelPart, A, Dx, b);
+
+        // 2. Post-update LOCAL equivalent-strain production (the dynamic scheme
+        //    has already updated the state).
+        if (DamNonlocalDamageUtilities::IsProcessBasedLocalOwnership(rModelPart)) {
+            DamNonlocalDamageUtilities::CalculateLocalEquivalentStrain(rModelPart);
+        }
+
+        KRATOS_CATCH("")
+    }
+
+//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
     void FinalizeSolutionStep(
         ModelPart& rModelPart,
         TSystemMatrixType& A,
@@ -81,60 +126,10 @@ public:
     {
         KRATOS_TRY
 
-        unsigned int Dim = rModelPart.GetProcessInfo()[DOMAIN_SIZE];
-
-        // Clear nodal variables
-        #pragma omp parallel
-        {
-            ModelPart::NodeIterator NodesBegin;
-            ModelPart::NodeIterator NodesEnd;
-            OpenMPUtils::PartitionedIterators(rModelPart.Nodes(),NodesBegin,NodesEnd);
-
-            for (ModelPart::NodeIterator itNode = NodesBegin; itNode != NodesEnd; ++itNode)
-            {
-                itNode->FastGetSolutionStepValue(NODAL_AREA) = 0.0;
-                Matrix& rNodalStress = itNode->FastGetSolutionStepValue(NODAL_CAUCHY_STRESS_TENSOR);
-                if(rNodalStress.size1() != Dim)
-                    rNodalStress.resize(Dim,Dim,false);
-                noalias(rNodalStress) = ZeroMatrix(Dim,Dim);
-                itNode->FastGetSolutionStepValue(NODAL_JOINT_AREA) = 0.0;
-                itNode->FastGetSolutionStepValue(NODAL_JOINT_WIDTH) = 0.0;
-            }
-        }
-
-        BaseType::FinalizeSolutionStep(rModelPart,A,Dx,b);
-
-        // Compute smoothed nodal variables
-        #pragma omp parallel
-        {
-            ModelPart::NodeIterator NodesBegin;
-            ModelPart::NodeIterator NodesEnd;
-            OpenMPUtils::PartitionedIterators(rModelPart.Nodes(),NodesBegin,NodesEnd);
-
-            for (ModelPart::NodeIterator itNode = NodesBegin; itNode != NodesEnd; ++itNode)
-            {
-                const double& NodalArea = itNode->FastGetSolutionStepValue(NODAL_AREA);
-                if (NodalArea>1.0e-15)
-                {
-                    const double InvNodalArea = 1.0/(NodalArea);
-                    Matrix& rNodalStress = itNode->FastGetSolutionStepValue(NODAL_CAUCHY_STRESS_TENSOR);
-                    for(unsigned int i = 0; i<Dim; i++)
-                    {
-                        for(unsigned int j = 0; j<Dim; j++)
-                        {
-                            rNodalStress(i,j) *= InvNodalArea;
-                        }
-                    }
-                }
-
-                const double& NodalJointArea = itNode->FastGetSolutionStepValue(NODAL_JOINT_AREA);
-                if (NodalJointArea>1.0e-15)
-                {
-                    double& NodalJointWidth = itNode->FastGetSolutionStepValue(NODAL_JOINT_WIDTH);
-                    NodalJointWidth = NodalJointWidth/NodalJointArea;
-                }
-            }
-        }
+        // Single-owner nodal Cauchy-stress smoothing lifecycle
+        // (reset -> finalization -> accumulation -> normalization); see
+        // DamNodalStressSmoothingUtilities.
+        DamNodalStressSmoothingUtilities::FinalizeSolutionStep(*this, rModelPart, A, Dx, b);
 
         KRATOS_CATCH("")
     }

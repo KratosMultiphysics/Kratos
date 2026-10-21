@@ -16,6 +16,7 @@
 
 // Project includes
 #include "add_custom_utilities_to_python.h"
+#include "spaces/default_spaces.h"
 
 namespace Kratos
 {
@@ -27,7 +28,7 @@ namespace Kratos
 		{
 			namespace py = pybind11;
 
-			typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
+			typedef TDefaultSparseSpace<double> SparseSpaceType;
 
 			py::class_<MatrixContainer<2, SparseSpaceType>>(pymodule, "MatrixContainer2D")
 				.def(py::init<>())
