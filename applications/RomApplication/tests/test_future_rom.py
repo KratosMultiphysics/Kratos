@@ -98,6 +98,43 @@ class TestFutureRom(KratosUnittest.TestCase):
                     obtained_output = rom_testing_utilities.GetVectorNodalResults(torch_model_part, KratosMultiphysics.DISPLACEMENT)
                     self._CheckResults(obtained_output, expected_output, 1.0e-12)
 
+    def testQuadraticDecoder(self):
+        from KratosMultiphysics.RomApplication.future.rom_decoders import QuadraticDecoder, QuadraticFeatures, FitQuadraticManifold
+        random_generator = np.random.default_rng(0)
+        phi = np.linalg.qr(random_generator.standard_normal((20, 3)))[0]
+        h = random_generator.standard_normal((20, 6))
+        h -= phi @ (phi.T @ h) # out of span(Phi), as the fitted ones
+        decoder = QuadraticDecoder(phi, h, random_generator.standard_normal(20))
+
+        # Jacobian against central finite differences
+        q, delta = random_generator.standard_normal(3), 1.0e-6
+        finite_differences = np.array([(decoder.Decode(q + delta * e) - decoder.Decode(q - delta * e)) / (2.0 * delta) for e in np.eye(3)]).T
+        self.assertLess(np.abs(decoder.Jacobian(q) - finite_differences).max(), 1.0e-8)
+
+        # The fit recovers H from snapshots on the quadratic manifold
+        reduced_coordinates = random_generator.standard_normal((3, 30))
+        snapshots = phi @ reduced_coordinates + h @ QuadraticFeatures(reduced_coordinates)
+        self.assertLess(np.abs(FitQuadraticManifold(snapshots, phi, regularization=0.0) - h).max(), 1.0e-10)
+
+    @KratosUnittest.skipIfApplicationsNotAvailable("StructuralMechanicsApplication")
+    def testStructuralStaticQuadraticDecoder2D(self):
+        # Beam clamped at both ends with two independent loads: the membrane stretching makes the axial displacement quadratic in
+        # the deflections. With 2 modes the quadratic decoder is about 18 times more accurate than the linear one
+        from KratosMultiphysics.RomApplication.future.rom_decoders import QuadraticDecoder
+        with KratosUnittest.WorkFolderScope("future_rom_test_files/QuadraticClampedBeamROM/", __file__):
+            def QuadraticDecoderFactory(rows, u0):
+                return QuadraticDecoder(np.load("rom_data/RightBasisMatrix.npy")[rows, :], np.load("rom_data/QuadraticMatrix.npy")[rows, :], u0)
+            def RelativeError(model_part):
+                obtained_output = np.array([node.GetSolutionStepValue(variable) for node in model_part.Nodes for variable in [KratosMultiphysics.DISPLACEMENT_X, KratosMultiphysics.DISPLACEMENT_Y]])
+                expected_output = np.load("ExpectedOutputFOM.npy")
+                return np.linalg.norm(obtained_output - expected_output) / np.linalg.norm(expected_output)
+            for projection_backend in ["numpy", "cpp"]:
+                with self.subTest(projection_backend=projection_backend):
+                    linear_error = RelativeError(self._RunFutureRom("ProjectParameters.json", projection_backend))
+                    quadratic_error = RelativeError(self._RunFutureRom("ProjectParameters.json", projection_backend, decoder_factory=QuadraticDecoderFactory))
+                    self.assertLess(quadratic_error, 3.0e-2)
+                    self.assertLess(quadratic_error, 0.1 * linear_error)
+
     @KratosUnittest.skipIfApplicationsNotAvailable("StructuralMechanicsApplication", "ConstitutiveLawsApplication")
     def testStructuralStaticJ2PlasticityRom2D(self):
         # Material nonlinearity: J2 plasticity with linear hardening, half of the elements yield. The internal variables of the
