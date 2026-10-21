@@ -136,6 +136,37 @@ class TestRomManager(KratosUnittest.TestCase):
 
 
 
+    def test_create_hrom_model_part(self):
+        # The HROM model part is recomputed from the stored ECM selection with new HROM settings, without running any simulation
+        with KratosUnittest.WorkFolderScope(self.work_folder, __file__):
+            def UpdateProjectParameters(parameters, mu=None):
+                for i in range(3):
+                    parameters["processes"]["loads_process_list"][i]["Parameters"]["value"].SetString("("+ str(mu[i]) + ")")
+                return parameters
+
+            parameters = KratosMultiphysics.Parameters("""{
+                "projection_strategy": "galerkin",
+                "ROM":{
+                    "rom_basis_output_name": "RomParameters_test_to_erase"
+                }
+                }""")
+            rom_manager_object = RomManager(general_rom_manager_parameters=parameters, UpdateProjectParameters = UpdateProjectParameters)
+            train_mu = [[0.1, 0.1, 0.1]]
+            rom_manager_object.Fit(train_mu)
+            with open("rom_data/HROM_Summary.json") as f:
+                summary = json.load(f)
+            self.assertEqual(summary["added"], [])
+
+            rom_manager_object.general_rom_manager_parameters["HROM"]["include_element_children"].SetBool(True)
+            rom_manager_object.CreateHROMModelPart(train_mu)
+            with open("rom_data/HROM_Summary.json") as f:
+                new_summary = json.load(f)
+
+            # Same ECM selection, plus the conditions attached to its elements
+            self.assertEqual(new_summary["ecm"], summary["ecm"])
+            self.assertEqual([added["setting"] for added in new_summary["added"]], ["include_element_children"])
+            self.assertEqual(new_summary["hrom_model_part"]["conditions"], summary["hrom_model_part"]["conditions"] + new_summary["added"][0]["conditions"])
+
     def test_error_raising(self):
         with KratosUnittest.WorkFolderScope(self.work_folder, __file__):
             #unavailable projection strategy
@@ -281,7 +312,7 @@ class TestRomManager(KratosUnittest.TestCase):
             kratos_utilities.DeleteDirectoryIfExisting(Path('./rom_database/'))
             kratos_utilities.DeleteDirectoryIfExisting(Path('./Residuals/'))
             for file_name in os.listdir():
-                if file_name.endswith("test_to_erase.json"):
+                if file_name.endswith("test_to_erase.json") or file_name == "HROM_Summary.json":
                     kratos_utilities.DeleteFileIfExisting(file_name)
             self.clear_npys()
 

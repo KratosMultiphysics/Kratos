@@ -378,6 +378,27 @@ class RomManager(object):
         self._LaunchRunHROM(mu_run, use_full_model_part, nn_rom_interface, rbf_rom_interface)
 
 
+    def CreateHROMModelPart(self, mu_train=[None]):
+        """Recomputes the entities added to the ECM selection with the current 'HROM' settings, the HROM summary and the HROM
+        model part, from the HROM elements and weights stored by Fit. No simulation is run (the ECM is not run again)."""
+        in_database_elems, _ = self.data_base.check_if_in_database("HROM_Elements", mu_train)
+        in_database_weights, _ = self.data_base.check_if_in_database("HROM_Weights", mu_train)
+        if not (in_database_elems and in_database_weights):
+            raise Exception("No HROM elements and weights found in the database for these training parameters. Run Fit with the 'HROM' stage first.")
+        train_hrom_flags = {
+            ("galerkin", "linear"): "trainHROMGalerkin", ("galerkin", "ann_enhanced"): "trainHROMGalerkin_ANN", ("galerkin", "rbf_enhanced"): "trainHROMGalerkin_RBF",
+            ("lspg", "linear"): "trainHROMLSPG", ("lspg", "ann_enhanced"): "trainHROMlspg_ANN", ("lspg", "rbf_enhanced"): "trainHROMlspg_RBF",
+            ("petrov_galerkin", "linear"): "trainHROMPetrovGalerkin"}
+        key = (self.general_rom_manager_parameters["projection_strategy"].GetString(), self.general_rom_manager_parameters["type_of_decoder"].GetString())
+        if key not in train_hrom_flags:
+            raise Exception(f"HROM is not available for the '{key[0]}' projection strategy with the '{key[1]}' decoder.")
+        self._LoadSolutionBasis(mu_train)
+        self._ChangeRomFlags(simulation_to_run = train_hrom_flags[key])
+        nn_rom_interface = NN_ROM_Interface(mu_train, self.data_base) if key[1] == "ann_enhanced" else None
+        rbf_rom_interface = RBF_ROM_Interface(mu_train, self.data_base) if key[1] == "rbf_enhanced" else None
+        # The HROM elements and weights are in the database, so only the added entities and the HROM model part are computed
+        self._LaunchTrainHROM(mu_train, nn_rom_interface=nn_rom_interface, rbf_rom_interface=rbf_rom_interface)
+
     def ExportAnnEnhancedRom(self, mu_train=[None], export_folder="rom_data_standalone"):
         """
         Exports the ANN-enhanced ROM trained with 'mu_train' to a folder that can be run without the RomManager and its database.
@@ -1013,6 +1034,7 @@ class RomManager(object):
         f["hrom_settings"]["include_nodal_neighbouring_elements_model_parts_list"] = self.general_rom_manager_parameters["HROM"]["include_nodal_neighbouring_elements_model_parts_list"].GetStringArray()
         f["hrom_settings"]["include_minimum_condition"] = self.general_rom_manager_parameters["HROM"]["include_minimum_condition"].GetBool()
         f["hrom_settings"]["include_condition_parents"] = self.general_rom_manager_parameters["HROM"]["include_condition_parents"].GetBool()
+        f["hrom_settings"]["include_element_children"] = self.general_rom_manager_parameters["HROM"]["include_element_children"].GetBool()
         f["hrom_settings"]["echo_level"] = self.general_rom_manager_parameters["HROM"]["echo_level"].GetInt()
 
     def _ChangeRomFlags(self, simulation_to_run = 'ROM'):
@@ -1597,6 +1619,7 @@ class RomManager(object):
                 "include_nodal_neighbouring_elements_model_parts_list":[],   //The elements around the nodes of these submodel parts will be considered in the HROM model part (e.g. the parents of the included conditions, required by the fluid solvers)
                 "include_minimum_condition": false,       // if true, keep at least one condition per submodelpart
                 "include_condition_parents": false,       // if true, when a condition is chosen by the ECM algorithm, the parent element is also included
+                "include_element_children": false,        // if true, the conditions attached to the HROM elements are also included (e.g. so that the boundaries they touch have conditions)
                 "echo_level" : 0                          // if >0, get hrom training status promts
             }
         }""")
