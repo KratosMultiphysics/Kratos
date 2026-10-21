@@ -146,6 +146,9 @@ def CreateRomAnalysisInstance(cls, global_model, parameters, nn_rom_interface=No
             for i, sub_solver_name in enumerate(coupled_solvers):
                 sub_solver_settings = self.project_parameters["solver_settings"][f"{sub_solver_name}_settings"]
                 sub_rom_settings = self.project_parameters["solver_settings"]["rom_settings"].Clone()
+                # With segregated bases each coupled solver has its own (zero-padded) basis, of which it uses its own modes. The enhanced decoders set them instead
+                if self.rom_parameters.Has("coupled_solvers_number_of_rom_dofs") and not (self.ann_enhanced or self.rbf_enhanced):
+                    sub_rom_settings["number_of_rom_dofs"].SetInt(self.rom_parameters["coupled_solvers_number_of_rom_dofs"][sub_solver_name].GetInt())
                 sub_rom_settings.AddInt("weight_vector_index", i)
                 sub_rom_settings.AddInt("number_of_hrom_sets", len(coupled_solvers))
                 sub_solver_settings.AddValue("rom_settings", sub_rom_settings)
