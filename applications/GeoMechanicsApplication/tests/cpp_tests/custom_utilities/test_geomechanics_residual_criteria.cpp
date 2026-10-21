@@ -33,7 +33,7 @@ public:
     const std::vector<int>& GetActiveDofs() const { return this->mActiveDofs; }
 };
 
-KRATOS_TEST_CASE_IN_SUITE(GeoMechanicsResidualCriteriaMasksOnlyActiveSlaveDofs, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(GeoMechanicsResidualCriteriaMasksActiveConstraintDofs, KratosGeoMechanicsFastSuite)
 {
     Model model;
     auto& r_model_part = model.CreateModelPart("Main");
@@ -77,7 +77,41 @@ KRATOS_TEST_CASE_IN_SUITE(GeoMechanicsResidualCriteriaMasksOnlyActiveSlaveDofs, 
     TestableGeoMechanicsResidualCriteria criterion;
     criterion.ComputeActiveDofs(r_model_part, dof_set);
 
-    KRATOS_EXPECT_EQ(criterion.GetActiveDofs(), (std::vector<int>{1, 0, 0, 1}));
+    KRATOS_EXPECT_EQ(criterion.GetActiveDofs(), (std::vector<int>{0, 0, 0, 1}));
+}
+
+KRATOS_TEST_CASE_IN_SUITE(GeoMechanicsResidualCriteriaConvergesForRawTiedDofResidual, KratosGeoMechanicsFastSuite)
+{
+    Model model;
+    auto& r_model_part = model.CreateModelPart("Main");
+    r_model_part.AddNodalSolutionStepVariable(TEMPERATURE);
+    r_model_part.GetNodalSolutionStepVariablesList().AddDof(&TEMPERATURE);
+
+    r_model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
+    r_model_part.CreateNewNode(2, 1.0, 0.0, 0.0);
+    auto& r_master_node = r_model_part.GetNode(1);
+    auto& r_slave_node  = r_model_part.GetNode(2);
+    r_master_node.AddDof(TEMPERATURE);
+    r_slave_node.AddDof(TEMPERATURE);
+    r_master_node.pGetDof(TEMPERATURE)->SetEquationId(0);
+    r_slave_node.pGetDof(TEMPERATURE)->SetEquationId(1);
+
+    r_model_part.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", 1, r_master_node,
+                                                TEMPERATURE, r_slave_node, TEMPERATURE, 1.0, 0.0);
+
+    ModelPart::DofsArrayType dof_set;
+    dof_set.push_back(r_master_node.pGetDof(TEMPERATURE));
+    dof_set.push_back(r_slave_node.pGetDof(TEMPERATURE));
+
+    GeoMechanicsResidualCriteriaType criterion;
+    CompressedMatrix                 A;
+    Vector                           dx(2);
+    Vector                           rb(2);
+    rb[0] = 1.0;
+    rb[1] = -1.0;
+
+    criterion.InitializeSolutionStep(r_model_part, dof_set, A, dx, rb);
+    KRATOS_EXPECT_TRUE(criterion.PostCriteria(r_model_part, dof_set, A, dx, rb));
 }
 
 } // namespace Kratos::Testing

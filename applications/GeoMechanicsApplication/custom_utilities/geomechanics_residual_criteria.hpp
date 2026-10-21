@@ -36,9 +36,13 @@ protected:
             }
         }
 
-        // Master DoFs remain independent; only active slave DoFs are eliminated.
+        // The Newton-Raphson strategy evaluates the untransformed RHS for this criterion.
+        // Exclude both sides of an MPC until the residual is reduced with the constraint matrix.
         for (const auto& r_constraint : rModelPart.MasterSlaveConstraints()) {
             if (r_constraint.IsActive()) {
+                for (const auto& p_master_dof : r_constraint.GetMasterDofsVector()) {
+                    this->mActiveDofs[p_master_dof->EquationId()] = 0;
+                }
                 for (const auto& p_slave_dof : r_constraint.GetSlaveDofsVector()) {
                     this->mActiveDofs[p_slave_dof->EquationId()] = 0;
                 }
