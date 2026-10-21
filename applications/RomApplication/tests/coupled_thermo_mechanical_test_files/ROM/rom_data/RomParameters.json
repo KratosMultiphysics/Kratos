@@ -38,5 +38,9 @@
     "coupled_solvers": [
         "structural_solver",
         "thermal_solver"
-    ]
+    ],
+    "coupled_solvers_number_of_rom_dofs": {
+        "structural_solver": 1,
+        "thermal_solver": 5
+    }
 }
