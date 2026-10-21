@@ -12,6 +12,7 @@
 
 #pragma once
 
+#include "custom_utilities/geomechanics_residual_criteria.hpp"
 #include "custom_utilities/string_utilities.h"
 #include "includes/variables.h" // for WATER_PRESSURE
 #include "parameters_utilities.h"
@@ -19,7 +20,6 @@
 #include "solving_strategies/convergencecriterias/displacement_criteria.h"
 #include "solving_strategies/convergencecriterias/mixed_generic_criteria.h"
 #include "solving_strategies/convergencecriterias/or_criteria.h"
-#include "solving_strategies/convergencecriterias/residual_criteria.h"
 
 #include <algorithm>
 #include <functional>
@@ -38,7 +38,7 @@ public:
     using ConvergenceCriterionType      = ConvergenceCriteria<TSparseSpace, TDenseSpace>;
     using ConvergenceCriterionSharedPtr = std::shared_ptr<ConvergenceCriterionType>;
     using DisplacementCriterionType     = DisplacementCriteria<TSparseSpace, TDenseSpace>;
-    using ResidualCriterionType         = ResidualCriteria<TSparseSpace, TDenseSpace>;
+    using ResidualCriterionType         = GeoMechanicsResidualCriteria<TSparseSpace, TDenseSpace>;
     using AndCriterionType              = And_Criteria<TSparseSpace, TDenseSpace>;
     using OrCriterionType               = Or_Criteria<TSparseSpace, TDenseSpace>;
     using MixedGenericCriterionType     = MixedGenericCriteria<TSparseSpace, TDenseSpace>;
