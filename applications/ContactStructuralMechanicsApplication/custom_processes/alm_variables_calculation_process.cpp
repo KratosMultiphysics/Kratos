@@ -11,6 +11,7 @@
 //
 
 // System includes
+#include <cmath>
 
 // External includes
 
@@ -31,6 +32,26 @@ void ALMVariablesCalculationProcess::Execute()
     // Auxiliary values
     const double epsilon = std::numeric_limits<double>::epsilon();
     const double tolerance = 1.0e-12;
+
+    /* We estimate the problem size from the bounding box corners (computed in parallel) */
+    {
+        using BoundingBoxReduction = CombinedReduction<
+            MinReduction<double>, MaxReduction<double>,
+            MinReduction<double>, MaxReduction<double>,
+            MinReduction<double>, MaxReduction<double>
+        >;
+        auto [min_x, max_x, min_y, max_y, min_z, max_z] = block_for_each<BoundingBoxReduction>(mrThisModelPart.Nodes(), [](const Node& rNode) {
+            return std::make_tuple(rNode.X(), rNode.X(), rNode.Y(), rNode.Y(), rNode.Z(), rNode.Z());
+        });
+
+        // The problem reference length is the diagonal of the bounding box
+        const double problem_size = std::sqrt(
+            (max_x - min_x) * (max_x - min_x) +
+            (max_y - min_y) * (max_y - min_y) +
+            (max_z - min_z) * (max_z - min_z)
+        );
+        mrThisModelPart.GetProcessInfo().SetValue(PROBLEM_REFERENCE_LENGTH, problem_size);
+    }
 
     // We initialize the mean values
     double mean_young_modulus_slave  = 0.0;

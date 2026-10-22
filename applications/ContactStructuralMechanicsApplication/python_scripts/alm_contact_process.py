@@ -431,7 +431,7 @@ class ALMContactProcess(search_base_process.SearchBaseProcess):
             alm_var_parameters.AddValue("stiffness_factor", self.contact_settings["advanced_ALM_parameters"]["stiffness_factor"])
             alm_var_parameters.AddValue("penalty_scale_factor", self.contact_settings["advanced_ALM_parameters"]["penalty_scale_factor"])
             self.alm_var_process = CSMA.ALMVariablesCalculationProcess(self._get_process_model_part(), KM.NODAL_H, alm_var_parameters)
-            self.alm_var_process.Execute()
+            self.alm_var_process.Execute() # Here the penalty, scale factor, reference size, etc are computed and stored in the process info
             # We don't consider scale factor
             if not self.contact_settings["advanced_ALM_parameters"]["use_scale_factor"].GetBool():
                 process_info[KM.SCALE_FACTOR] = 1.0
