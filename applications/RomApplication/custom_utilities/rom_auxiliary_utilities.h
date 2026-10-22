@@ -24,7 +24,7 @@
 #include "includes/key_hash.h"
 #include "includes/node.h"
 #include "includes/model_part.h"
-#include "includes/ublas_interface.h"
+#include "includes/default_interface.h"
 #include "modified_shape_functions/modified_shape_functions.h"
 #include "processes/find_nodal_neighbours_process.h"
 
@@ -142,6 +142,18 @@ public:
      * @return std::vector<IndexType> List containing the decremented element IDs (-1 to account for numpy indexing) of the missing parent elements
      */
     static std::vector<IndexType> GetHRomConditionParentsIds(
+        const ModelPart& rModelPart,
+        const std::map<std::string, std::map<IndexType, double>>& rHRomWeights);
+
+    /**
+     * @brief Return the ids of the conditions attached to the HROM elements that are not in the HROM yet
+     * A condition is attached to (i.e. a child of) an HROM element if all its nodes belong to that element.
+     * This only uses the element and condition geometries, so no neighbours need to be computed beforehand.
+     * @param rModelPart Complete model part (all elements and conditions)
+     * @param rHRomWeights Map containing the current HROM conditions and elements weights
+     * @return std::vector<IndexType> List containing the ids of the conditions to be added to the HROM
+     */
+    static std::vector<IndexType> GetHRomElementChildrenIds(
         const ModelPart& rModelPart,
         const std::map<std::string, std::map<IndexType, double>>& rHRomWeights);
 
@@ -365,6 +377,29 @@ public:
         Matrix &rJPhiElemental,
         const Element::DofsVectorType& rDofs,
         const Matrix &rJPhi);
+
+    /**
+     * @brief Adds to the destination model part the geometries of the entities of the origin model part.
+     * @details For each element/condition in the destination model part, the geometry of the entity with the
+     * same id in the origin model part is added. This is required to be able to write geometry-based formats
+     * (e.g. MED) from a model part that only contains entities, as the entities share their geometries with
+     * the origin model part.
+     * @param rOriginModelPart The model part containing the entities and their geometries.
+     * @param rDestinationModelPart The model part to which the geometries are added.
+     */
+    static void AddGeometries(
+        const ModelPart& rOriginModelPart,
+        ModelPart& rDestinationModelPart);
+
+    /**
+     * @brief Assigns a valid properties object to the entities (elements and conditions) that do not have one.
+     * @details Entities created from geometries (e.g. by the CreateEntitiesFromGeometriesModeler) are created
+     * without properties. Some operations, such as writing an mdpa file, require the entities to have a valid
+     * properties pointer. This method assigns the first available properties of the model part (creating a
+     * default one if there is none) to every entity without properties, recursing over the sub model parts.
+     * @param rModelPart The model part whose entities without properties are to be assigned a default properties.
+     */
+    static void AssignPropertiesToEntitiesIfMissing(ModelPart& rModelPart);
 
     ///@}
 

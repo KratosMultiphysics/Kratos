@@ -4,6 +4,7 @@ import KratosMultiphysics as KM
 # CoSimulation imports
 import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tools
 import KratosMultiphysics.CoSimulationApplication.colors as colors
+from KratosMultiphysics.CoSimulationApplication.utilities.array_backend import GetArrayBackend
 
 class CoSimulationConvergenceAccelerator:
     """Baseclass for the convergence acceleratos used for CoSimulation
@@ -17,6 +18,11 @@ class CoSimulationConvergenceAccelerator:
         self.settings.RecursivelyValidateAndAssignDefaults(self._GetDefaultParameters())
 
         self.echo_level = self.settings["echo_level"].GetInt()
+
+        # array backend ("numpy", "cupy" or "auto") used by the derived accelerators for their computations;
+        # "self.xp" is the array module to use, "self.backend" additionally provides host<->device transfers
+        self.backend = GetArrayBackend(self.settings["backend"].GetString(), self._ClassName(), self.echo_level)
+        self.xp = self.backend.xp
 
     def Initialize(self):
         pass
@@ -62,5 +68,6 @@ class CoSimulationConvergenceAccelerator:
     def _GetDefaultParameters(cls):
         return KM.Parameters("""{
             "type"       : "UNSPECIFIED",
-            "echo_level" : 0
+            "echo_level" : 0,
+            "backend"    : "numpy"
         }""")

@@ -420,7 +420,7 @@ void TotalLagrangian::CalculateStress(Matrix const& rF,
 {
     KRATOS_TRY;
     Vector strain(mConstitutiveLawVector[IntegrationPoint]->GetStrainSize());
-    CalculateStrain(rF, *mConstitutiveLawVector[IntegrationPoint], strain, rCurrentProcessInfo);
+    CalculateStrain(rF, IntegrationPoint, strain, rCurrentProcessInfo);
     ConstitutiveLaw::Parameters cl_params(GetGeometry(), GetProperties(), rCurrentProcessInfo);
     cl_params.GetOptions().Set(ConstitutiveLaw::COMPUTE_STRESS | ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
     cl_params.SetStrainVector(strain);

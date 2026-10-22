@@ -17,6 +17,7 @@
 // Project includes
 #include "reorderer.h"
 #include "includes/model_part.h"
+#include "spaces/default_spaces.h"
 
 
 namespace Kratos {
@@ -409,6 +410,23 @@ inline std::ostream& operator << (std::ostream& rOStream,
 
     return rOStream;
 }
+
+///@}
+
+///@name Explicit instantiations
+///@{
+
+// Instantiated in linear_solver.cpp for the default linear-algebra backend
+// (uBLAS or Eigen, see spaces/default_spaces.h).
+KRATOS_API_EXTERN template class KRATOS_API(KRATOS_CORE) LinearSolver<
+    TDefaultSparseSpace<double>,
+    TDefaultDenseSpace<double>
+>;
+
+KRATOS_API_EXTERN template class KRATOS_API(KRATOS_CORE) LinearSolver<
+    TDefaultSparseSpace<float>,
+    TDefaultDenseSpace<double>
+>;
 
 ///@}
 

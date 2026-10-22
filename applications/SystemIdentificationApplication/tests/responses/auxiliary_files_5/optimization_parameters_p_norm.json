@@ -69,7 +69,10 @@
                     {
                         "primal_analysis_name": "Structure_static",
                         "sensor_measurement_csv_file": "auxiliary_files_5/measured_data.csv",
-                        "weight": 1.0
+                        "weight": 1.0,
+                        "sensor_normalization_settings": {
+                            "type": ""
+                        }
                     }
                 ]
             }

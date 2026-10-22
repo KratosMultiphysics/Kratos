@@ -4,7 +4,7 @@
       "properties_id":           1,
       "Material": {
           "constitutive_law": {
-              "name"             : "GeoMohrCoulombWithTensionCutOff2D"
+              "name"             : "GeoMohrCoulombLawPlaneStrain"
           },
           "Variables": {
               "GEO_DRAINAGE_TYPE"        :  "FULLY_COUPLED",
@@ -24,6 +24,7 @@
               "SATURATED_SATURATION"             :  1.0,
               "GEO_COHESION"                     :  10.0,
               "GEO_FRICTION_ANGLE"               :  35.0,
+              "GEO_ENABLE_TENSION_CUT_OFF"       : true,
               "GEO_TENSILE_STRENGTH"             :  10.0,
               "GEO_DILATANCY_ANGLE"              :  20.0
          }

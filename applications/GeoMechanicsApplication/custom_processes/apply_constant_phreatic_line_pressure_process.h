@@ -47,7 +47,6 @@ protected:
     std::string  mVariableName;
     bool         mIsFixed;
     bool         mIsFixedProvided;
-    bool         mIsSeepage;
     unsigned int mGravityDirection;
     double       mSpecificWeight;
     unsigned int mOutOfPlaneDirection;

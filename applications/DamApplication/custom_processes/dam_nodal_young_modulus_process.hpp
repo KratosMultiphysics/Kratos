@@ -23,6 +23,7 @@
 
 // Application include
 #include "dam_application_variables.h"
+#include "custom_utilities/nodal_young_modulus_utilities.h"
 
 namespace Kratos
 {
@@ -67,7 +68,6 @@ class DamNodalYoungModulusProcess : public Process
         rParameters.ValidateAndAssignDefaults(default_parameters);
 
         mVariableName = rParameters["variable_name"].GetString();
-        mIsFixed = rParameters["constrained"].GetBool();
         mYoung1 = rParameters["Young_Modulus_1"].GetDouble();
         mYoung2 = rParameters["Young_Modulus_2"].GetDouble();
         mYoung3 = rParameters["Young_Modulus_3"].GetDouble();
@@ -94,7 +94,10 @@ class DamNodalYoungModulusProcess : public Process
 
         KRATOS_TRY;
 
-        const Variable<double>& var = KratosComponents<Variable<double>>::Get(mVariableName);
+        // The nodal field is stored as the standard YOUNG_MODULUS; the historical
+        // variable_name is accepted for input compatibility.
+        const Variable<double>& var =
+            NodalYoungModulusUtilities::ResolveYoungModulusVariable(mVariableName);
         const int nnodes = mrModelPart.GetMesh(0).Nodes().size();
 
         if (nnodes != 0)
@@ -105,11 +108,6 @@ class DamNodalYoungModulusProcess : public Process
             for (int i = 0; i < nnodes; i++)
             {
                 ModelPart::NodesContainerType::iterator it = it_begin + i;
-
-                if (mIsFixed)
-                {
-                    it->Fix(var);
-                }
 
                 double Young = mYoung1 + (mYoung2 * it->X()) + (mYoung3 * it->Y()) + (mYoung4 * it->Z());
 
@@ -122,6 +120,12 @@ class DamNodalYoungModulusProcess : public Process
             }
         }
 
+        // Expose the nodal YOUNG_MODULUS field through the standard
+        // DatabaseAccessor so accessor-aware standard constitutive laws retrieve
+        // the spatially varying Young's modulus through
+        // Properties::GetValue(YOUNG_MODULUS, geometry, N, process_info).
+        NodalYoungModulusUtilities::InstallDatabaseAccessor(mrModelPart);
+
         KRATOS_CATCH("");
     }
 
@@ -132,7 +136,10 @@ class DamNodalYoungModulusProcess : public Process
 
         KRATOS_TRY;
 
-        const Variable<double>& var = KratosComponents<Variable<double>>::Get(mVariableName);
+        // The nodal field is stored as the standard YOUNG_MODULUS; the historical
+        // variable_name is accepted for input compatibility.
+        const Variable<double>& var =
+            NodalYoungModulusUtilities::ResolveYoungModulusVariable(mVariableName);
         const int nnodes = mrModelPart.GetMesh(0).Nodes().size();
 
         if (nnodes != 0)
@@ -143,11 +150,6 @@ class DamNodalYoungModulusProcess : public Process
             for (int i = 0; i < nnodes; i++)
             {
                 ModelPart::NodesContainerType::iterator it = it_begin + i;
-
-                if (mIsFixed)
-                {
-                    it->Fix(var);
-                }
 
                 double Young = mYoung1 + (mYoung2 * it->X()) + (mYoung3 * it->Y()) + (mYoung4 * it->Z());
 
@@ -187,7 +189,6 @@ class DamNodalYoungModulusProcess : public Process
 
     ModelPart &mrModelPart;
     std::string mVariableName;
-    bool mIsFixed;
     double mYoung1;
     double mYoung2;
     double mYoung3;

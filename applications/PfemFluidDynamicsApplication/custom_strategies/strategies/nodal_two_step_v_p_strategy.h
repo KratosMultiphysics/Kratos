@@ -254,7 +254,7 @@ namespace Kratos
 
 			KRATOS_INFO("\n                  Solve with nodally_integrated_two_step_vp strategy at t=") << currentTime << "s" << std::endl;
 
-			if (timeIntervalChanged == true && currentTime > 10 * timeInterval)
+			if (timeIntervalChanged && currentTime > 10 * timeInterval)
 			{
 				maxNonLinearIterations *= 2;
 			}
@@ -299,7 +299,7 @@ namespace Kratos
 				this->InitializeNonLinearIterations();
 				this->CalcNodalStrains();
 
-				if (fixedTimeStep == false)
+				if (!fixedTimeStep)
 				{
 					continuityConverged = this->SolveContinuityIteration(it, maxNonLinearIterations, pressureNorm);
 				}

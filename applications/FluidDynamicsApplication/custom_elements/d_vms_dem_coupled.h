@@ -217,7 +217,7 @@ protected:
     DenseVector< array_1d<double,3> > mPredictedSubscaleVelocity;
     DenseVector< array_1d<double,3> > mOldSubscaleVelocity;
     DenseVector< array_1d<double,Dim> > mPreviousVelocity;
-    DenseVector <BoundedMatrix<double,3,3>> mViscousResistanceTensor;
+    DenseVector <BoundedMatrix<double,Dim,Dim>> mViscousResistanceTensor;
     int mInterpolationOrder = 1;
     std::vector<double> mPorosity;
     std::vector<double> mPorosityOld;

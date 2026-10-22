@@ -758,8 +758,8 @@ void EmbeddedFluidElementDiscontinuous<TBaseElement>::AddTangentialPenaltyContri
 
         // Compute some Gauss pt. auxiliar matrices
         const BoundedMatrix<double, StrainSize, LocalSize> aux_matrix_CB = prod(rData.C, B_matrix);
-        const BoundedMatrix<double, StrainSize, Dim> aux_matrix_PtangA = prod(tang_proj_matrix, voigt_normal_proj_matrix);
-        const BoundedMatrix<double, LocalSize, Dim> aux_matrix_PtangACB = prod(aux_matrix_PtangA, aux_matrix_CB);
+        const BoundedMatrix<double, Dim, StrainSize> aux_matrix_PtangA = prod(tang_proj_matrix, voigt_normal_proj_matrix);
+        const BoundedMatrix<double, Dim, LocalSize> aux_matrix_PtangACB = prod(aux_matrix_PtangA, aux_matrix_CB);
 
         // Contribution coming from the traction vector tangencial component
         noalias(aux_LHS_1) += pen_coefs.first*weight*prod(N_mat_trans, aux_matrix_PtangACB);
@@ -801,8 +801,8 @@ void EmbeddedFluidElementDiscontinuous<TBaseElement>::AddTangentialPenaltyContri
 
         // Compute some Gauss pt. auxiliar matrices
         const BoundedMatrix<double, StrainSize, LocalSize> aux_matrix_CB = prod(rData.C, B_matrix);
-        const BoundedMatrix<double, StrainSize, Dim> aux_matrix_PtangA = prod(tang_proj_matrix, voigt_normal_proj_matrix);
-        const BoundedMatrix<double, LocalSize, Dim> aux_matrix_PtangACB = prod(aux_matrix_PtangA, aux_matrix_CB);
+        const BoundedMatrix<double, Dim, StrainSize> aux_matrix_PtangA = prod(tang_proj_matrix, voigt_normal_proj_matrix);
+        const BoundedMatrix<double, Dim, LocalSize> aux_matrix_PtangACB = prod(aux_matrix_PtangA, aux_matrix_CB);
 
         // Contribution coming from the traction vector tangencial component
         noalias(aux_LHS_1) += pen_coefs.first*weight*prod(N_mat_trans, aux_matrix_PtangACB);

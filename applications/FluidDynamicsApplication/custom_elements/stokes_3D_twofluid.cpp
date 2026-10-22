@@ -1208,7 +1208,11 @@ void Stokes3DTwoFluid::ComputeGaussPointEnrichmentContributions(
     const element_data<4,3>& data,
     const array_1d<double,4>& distances,
     const array_1d<double,4>& Nenr,
-    const BoundedMatrix<double,4,4>& DNenr
+    // The enriched gradients are 4 x 3 dynamic matrices (one per partition);
+    // a uBLAS bounded_matrix used to absorb them through its
+    // runtime-size-within-capacity semantics, which the fixed-size Eigen
+    // bounded type does not have.
+    const Matrix& DNenr
     )
     {
         const int nnodes = 4;
@@ -1239,9 +1243,7 @@ void Stokes3DTwoFluid::ComputeGaussPointEnrichmentContributions(
         const double tau1 = 1.0/(tau_denom*rho);
 
         //auxiliary variables used in the calculation of the RHS
-        const array_1d<double,dim> fgauss = prod(trans(f), N);
         const array_1d<double,dim> vgauss = prod(trans(v), N);
-        const array_1d<double,dim> grad_p = prod(trans(DN), p);
 //         const double pgauss = inner_prod(N,p);
 
         array_1d<double,dim> acch = bdf0*vgauss;

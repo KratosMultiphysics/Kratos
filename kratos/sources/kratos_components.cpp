@@ -93,6 +93,11 @@ void AddKratosComponent(const std::string& rName, const Variable<std::string>& r
     KratosComponents<Variable<std::string>>::Add(rName, rComponent);
 }
 
+void AddKratosComponent(const std::string& rName, const Variable<std::vector<Vector>>& rComponent)
+{
+    KratosComponents<Variable<std::vector<Vector>>>::Add(rName, rComponent);
+}
+
 void AddKratosComponent(const std::string& rName, const Variable<Flags>& rComponent)
 {
     KratosComponents<Variable<Flags>>::Add(rName, rComponent);
@@ -140,6 +145,7 @@ template class KratosComponents<Variable<Quaternion<double>>>;
 template class KratosComponents<Variable<Vector>>;
 template class KratosComponents<Variable<Matrix>>;
 template class KratosComponents<Variable<std::string>>;
+template class KratosComponents<Variable<std::vector<Vector>>>;
 template class KratosComponents<Variable<Flags>>;
 template class KratosComponents<Flags>;
 template class KratosComponents<DataCommunicator>;
@@ -152,17 +158,17 @@ template class KratosComponents<Variable<ConstitutiveLaw::Pointer>>;
 template class KratosComponents<MasterSlaveConstraint>;
 template class KratosComponents<Modeler>;
 
-using RealSparseSpace = UblasSpace<double, boost::numeric::ublas::compressed_matrix<double>, boost::numeric::ublas::vector<double>>;
-using SinglePrecisionRealSparseSpace = UblasSpace<float, boost::numeric::ublas::compressed_matrix<float>, boost::numeric::ublas::vector<float>>;
-using RealDenseSpace = UblasSpace<double, DenseMatrix<double>, DenseVector<double>>;
-using ComplexSparseSpace = UblasSpace<std::complex<double>, boost::numeric::ublas::compressed_matrix<std::complex<double>>, boost::numeric::ublas::vector<std::complex<double>>>;
-using ComplexDenseSpace = UblasSpace<std::complex<double>, DenseMatrix<std::complex<double>>, DenseVector<std::complex<double>>>;
+// The spaces follow the configure-time selected linear-algebra backend.
+using ComplexSparseSpace = TDefaultSparseSpace<std::complex<double>>;
+using ComplexDenseSpace = TDefaultDenseSpace<std::complex<double>>;
 
-template class KratosComponents<LinearSolverFactory<RealSparseSpace, RealDenseSpace>>;
-template class KratosComponents<LinearSolverFactory<SinglePrecisionRealSparseSpace, RealDenseSpace>>;
+template class KratosComponents<LinearSolverFactory<TDefaultSparseSpace<double>, TDefaultDenseSpace<double>>>;
+template class KratosComponents<LinearSolverFactory<TDefaultSparseSpace<float>, TDefaultDenseSpace<double>>>;
 template class KratosComponents<LinearSolverFactory<ComplexSparseSpace, ComplexDenseSpace>>;
-template class KratosComponents<PreconditionerFactory<RealSparseSpace, RealDenseSpace>>;
-template class KratosComponents<ExplicitBuilder<RealSparseSpace, RealDenseSpace>>;
+template class KratosComponents<PreconditionerFactory<TDefaultSparseSpace<double>, TDefaultDenseSpace<double>>>;
+
+// The explicit builder component follows the default spaces (see register_factories.h)
+template class KratosComponents<ExplicitBuilder<DefaultSparseSpaceType, DefaultLocalSpaceType>>;
 
 // Specialize array of components for VariableData
 KratosComponents<VariableData>::ComponentsContainerType KratosComponents<VariableData>::msComponents;

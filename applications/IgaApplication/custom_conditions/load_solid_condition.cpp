@@ -189,9 +189,6 @@ void LoadSolidCondition::CalculateRightHandSide(
     // Calculating inverse jacobian and jacobian determinant
     MathUtils<double>::InvertMatrix(Jacobian,InvJ0,DetJ0);
 
-    // retrieve the normal of the physical space
-    array_1d<double, 3> normal_physical_space = GetValue(NORMAL);
-    
     // Calculating the cartesian derivatives (it is avoided storing them to minimize storage)
     Matrix sub_inv_jacobian = ZeroMatrix(2,2);
     sub_inv_jacobian(0,0) = InvJ0(0,0);

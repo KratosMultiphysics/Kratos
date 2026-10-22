@@ -288,16 +288,16 @@ public:
             dofs_values[id] = rDof.GetSolutionStepValue();
         });
         double *values_vector = rA.value_data().begin();
-        std::size_t *index1_vector = rA.index1_data().begin();
-        std::size_t *index2_vector = rA.index2_data().begin();
+        typename TSystemMatrixType::index_array_type::value_type *index1_vector = rA.index1_data().begin();
+        typename TSystemMatrixType::index_array_type::value_type *index2_vector = rA.index2_data().begin();
 
         IndexPartition<std::size_t>(rA.size1()).for_each(
             [&](std::size_t i)
             {
-                for (std::size_t k = index1_vector[i]; k < index1_vector[i + 1]; k++) {
+                for (std::size_t k = index1_vector[i]; k < static_cast<std::size_t>(index1_vector[i + 1]); k++) {
                     const double value = values_vector[k];
                     if (value > 0.0) {
-                        const auto j = index2_vector[k];
+                        const std::size_t j = index2_vector[k];
                         if (j > i) {
                             // TODO: Partition in blocks to gain efficiency by avoiding thread locks.
                             // Values conflicting with other threads
@@ -400,7 +400,9 @@ public:
             "number_of_rom_dofs" : 10,
             "rom_bns_settings" : {
                 "monotonicity_preserving": false
-            }
+            },
+            "weight_vector_index": 0,
+            "number_of_hrom_sets": 1
         })");
         default_parameters.AddMissingParameters(BaseBuilderAndSolverType::GetDefaultParameters());
 
@@ -463,6 +465,8 @@ protected:
     bool mHromSimulation = false;
     bool mHromWeightsInitialized = false;
     bool mRightRomBasisInitialized = false;
+    int mNumberOfHromSets;
+    int mActiveHromSet;
 
     ///@}
     ///@name Protected operators
@@ -480,6 +484,8 @@ protected:
         mNodalDofs = ThisParameters["nodal_unknowns"].size();
         mNumberOfRomModes = ThisParameters["number_of_rom_dofs"].GetInt();
         mMonotonicityPreservingFlag = ThisParameters["rom_bns_settings"]["monotonicity_preserving"].GetBool();
+        mActiveHromSet = ThisParameters["weight_vector_index"].GetInt();
+        mNumberOfHromSets = ThisParameters["number_of_hrom_sets"].GetInt();
 
         // Set up a map with key the variable key and value the correct row in ROM basis
         IndexType k = 0;
@@ -506,10 +512,10 @@ protected:
         block_for_each(rModelPart.Elements().GetContainer(),
             [&](Element::Pointer p_element)
         {
+            // Note that the elements without weights are not modified: in coupled problems the element data is shared by the
+            // solvers (it lives in the geometry), so adding weights here would select all the elements for the next solver
             if (p_element->Has(HROM_WEIGHT)) {
                 element_queue.enqueue(std::move(p_element));
-            } else {
-                p_element->SetValue(HROM_WEIGHT, 1.0);
             }
         });
 
@@ -518,10 +524,10 @@ protected:
         block_for_each(rModelPart.Conditions().GetContainer(),
             [&](Condition::Pointer p_condition)
         {
+            // Note that the conditions without weights are not modified: in coupled problems the condition data is shared by the
+            // solvers (it lives in the geometry), so adding weights here would select all the conditions for the next solver
             if (p_condition->Has(HROM_WEIGHT)) {
                 condition_queue.enqueue(std::move(p_condition));
-            } else {
-                p_condition->SetValue(HROM_WEIGHT, 1.0);
             }
         });
 
@@ -711,7 +717,7 @@ protected:
                     pScheme->CalculateSystemContributions(*it_elem, LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo);
 
                     //Get HROM weight and multiply it by its contribution
-                    const double h_rom_weight = mHromSimulation ? it_elem->GetValue(HROM_WEIGHT) : 1.0;
+                    const double h_rom_weight = mHromSimulation ? it_elem->GetValue(HROM_WEIGHT)[mActiveHromSet] : 1.0;
                     LHS_Contribution *= h_rom_weight;
                     RHS_Contribution *= h_rom_weight;
 
@@ -730,7 +736,7 @@ protected:
                     pScheme->CalculateSystemContributions(*it_cond, LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo);
 
                     //Get HROM weight and multiply it by its contribution
-                    const double h_rom_weight = mHromSimulation ? it_cond->GetValue(HROM_WEIGHT) : 1.0;
+                    const double h_rom_weight = mHromSimulation ? it_cond->GetValue(HROM_WEIGHT)[mActiveHromSet] : 1.0;
                     LHS_Contribution *= h_rom_weight;
                     RHS_Contribution *= h_rom_weight;
 
@@ -832,6 +838,8 @@ private:
     EigenDynamicVector mEigenRomB;
     Matrix mPhiGlobal;
     bool mMonotonicityPreservingFlag;
+
+
 
     ///@}
     ///@name Private operations

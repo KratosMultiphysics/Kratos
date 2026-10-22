@@ -21,6 +21,7 @@
 
 // Project includes
 #include "includes/define.h"
+#include "spaces/default_spaces.h"
 
 // Application includes
 #include "custom_python/add_custom_utilities_to_python.h"
@@ -35,8 +36,8 @@ using namespace pybind11;
 
 void AddCustomUtilitiesToPython(pybind11::module& m)
 {
-    typedef UblasSpace<double, CompressedMatrix, boost::numeric::ublas::vector<double>> SparseSpaceType;
-    typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
+    typedef TDefaultSparseSpace<double> SparseSpaceType;
+    typedef TDefaultDenseSpace<double> LocalSpaceType;
     typedef Scheme<SparseSpaceType, LocalSpaceType> BaseSchemeType;
 
     class_<RomResidualsUtility, typename RomResidualsUtility::Pointer>(m, "RomResidualsUtility")
@@ -44,6 +45,7 @@ void AddCustomUtilitiesToPython(pybind11::module& m)
     .def("GetProjectedResidualsOntoPhi",&RomResidualsUtility::GetProjectedResidualsOntoPhi) //
     .def("GetProjectedResidualsOntoPsi",&RomResidualsUtility::GetProjectedResidualsOntoPsi) //
     .def("GetProjectedResidualsOntoJPhi",&RomResidualsUtility::GetProjectedResidualsOntoJPhi) //
+    .def("GetProjectedResidualsOntoV",&RomResidualsUtility::GetProjectedResidualsOntoV) //
     ;
 
     class_<RomAuxiliaryUtilities>(m, "RomAuxiliaryUtilities")
@@ -55,6 +57,7 @@ void AddCustomUtilitiesToPython(pybind11::module& m)
                 return RomAuxiliaryUtilities::GetHRomConditionParentsIds(rModelPart, rConditionIds);})
         .def_static("GetHRomConditionParentsIds", [](const ModelPart& rModelPart, const std::map<std::string, std::map<IndexType, double>>& rHRomWeights) {
                 return RomAuxiliaryUtilities::GetHRomConditionParentsIds(rModelPart, rHRomWeights);})
+        .def_static("GetHRomElementChildrenIds", &RomAuxiliaryUtilities::GetHRomElementChildrenIds)
         .def_static("GetNodalNeighbouringElementIdsNotInHRom", &RomAuxiliaryUtilities::GetNodalNeighbouringElementIdsNotInHRom)
         .def_static("GetNodalNeighbouringElementIds", [](Kratos::ModelPart& rModelPart, Kratos::ModelPart& rGivenModelPart) {
                 return Kratos::RomAuxiliaryUtilities::GetNodalNeighbouringElementIds(rModelPart, rGivenModelPart);})
@@ -67,6 +70,8 @@ void AddCustomUtilitiesToPython(pybind11::module& m)
         .def_static("ProjectRomSolutionIncrementToNodes", &RomAuxiliaryUtilities::ProjectRomSolutionIncrementToNodes)
         .def_static("GetElementIdsInModelPart", &RomAuxiliaryUtilities::GetElementIdsInModelPart)
         .def_static("GetConditionIdsInModelPart", &RomAuxiliaryUtilities::GetConditionIdsInModelPart)
+        .def_static("AddGeometries", &RomAuxiliaryUtilities::AddGeometries)
+        .def_static("AssignPropertiesToEntitiesIfMissing", &RomAuxiliaryUtilities::AssignPropertiesToEntitiesIfMissing)
         ;
 }
 

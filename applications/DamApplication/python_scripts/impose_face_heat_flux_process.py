@@ -25,6 +25,8 @@ class ImposeFaceHeatFluxProcess(KratosMultiphysics.Process):
                 t_uniform.AddEmptyValue("constrained").SetBool(False)
                 t_uniform.AddValue("variable_name",settings["variable_name"])
                 t_uniform.AddValue("value",settings["value"])
+                # Preserve the legacy apply-once behavior of ApplyConstantScalarValueProcess.
+                t_uniform.AddValue("interval", KratosMultiphysics.Parameters("[0.0, 0.0]"))
                 self.components_process_list.append(AssignScalarVariableProcess(Model, t_uniform))
             else:
                 self.components_process_list.append(KratosDam.DamFixTemperatureConditionProcess(model_part, settings))

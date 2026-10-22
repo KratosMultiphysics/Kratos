@@ -12,7 +12,7 @@
 #pragma once
 
 #include "containers/flags.h"
-#include "includes/ublas_interface.h"
+#include "includes/default_interface.h"
 
 #include <cstddef>
 #include <memory>

@@ -36,7 +36,7 @@
 
 // Project includes
 #include "trilinos_application.h"
-#include "includes/ublas_interface.h"
+#include "includes/default_interface.h"
 #include "spaces/ublas_space.h"
 #include "includes/data_communicator.h"
 #include "mpi/includes/mpi_data_communicator.h"

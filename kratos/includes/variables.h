@@ -18,7 +18,7 @@
 
 // Project includes
 #include "includes/kratos_components.h"
-#include "includes/ublas_interface.h"
+#include "includes/default_interface.h"
 #include "containers/array_1d.h"
 #include "containers/global_pointers_vector.h"
 #include "containers/periodic_variables_container.h"
@@ -481,6 +481,16 @@ namespace Kratos
     KRATOS_DEFINE_VARIABLE(double, VARIATIONAL_REDISTANCE_COEFFICIENT_FIRST)
     KRATOS_DEFINE_VARIABLE(double, VARIATIONAL_REDISTANCE_COEFFICIENT_SECOND)
 
+    // DEM - Structure - Poromechanics Interaction
+    KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(LOADING_VELOCITY)
+    KRATOS_DEFINE_VARIABLE(double, I22)
+    KRATOS_DEFINE_VARIABLE(double, I33)
+    KRATOS_DEFINE_VARIABLE(double, CROSS_AREA)
+    KRATOS_DEFINE_VARIABLE(double, FRACTURE_ENERGY)
+
+    // DEM-FEM 2D
+    KRATOS_DEFINE_VARIABLE(bool,   IMPOSED_Z_STRAIN_OPTION)
+    KRATOS_DEFINE_VARIABLE(double, IMPOSED_Z_STRAIN_VALUE)
 }  // namespace Kratos.
 
 #undef  KRATOS_EXPORT_MACRO

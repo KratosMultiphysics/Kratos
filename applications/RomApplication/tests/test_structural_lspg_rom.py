@@ -8,6 +8,8 @@ import KratosMultiphysics.kratos_utilities as kratos_utilities
 import KratosMultiphysics.RomApplication.rom_testing_utilities as rom_testing_utilities
 if kratos_utilities.CheckIfApplicationsAvailable("StructuralMechanicsApplication"):
     import KratosMultiphysics.StructuralMechanicsApplication
+if kratos_utilities.CheckIfApplicationsAvailable("ConstitutiveLawsApplication"):
+    import KratosMultiphysics.ConstitutiveLawsApplication
 from KratosMultiphysics.RomApplication.rom_manager import RomManager
 from pathlib import Path
 import json
@@ -60,6 +62,7 @@ class TestStructuralLSPGRom(KratosUnittest.TestCase):
             l2 = np.sqrt(numerator/denominator)*100
             self.assertLess(l2, self.relative_tolerance)
 
+    @KratosUnittest.skipIfApplicationsNotAvailable("ConstitutiveLawsApplication")
     def testStructuralStaticLSPGRom2D_ANN(self):
         self.work_folder = "structural_static_test_files/LSPGROM_ANN/"
         expected_output_filename = "ExpectedOutputLSPG_ANN.npy"
@@ -172,6 +175,31 @@ class TestStructuralLSPGRom(KratosUnittest.TestCase):
                 self.assertLess(l2, tolerance)
 
 
+
+    def testStructuralStaticLSPGHRom2D(self):
+        # LSPG HROM whose selected condition (a load) does not share any node with its selected element.
+        # The HROM integrates the residuals of the ROM exactly, so both must give the same solution
+        self.work_folder = "test_rom_manager/LSPGHROM/"
+        expected_output_filename = "ExpectedOutputLSPGROM.npy"
+
+        with KratosUnittest.WorkFolderScope(self.work_folder, __file__):
+            # The problem is the one of the RomManager test, in the parent folder
+            with open("../ProjectParameters.json",'r') as parameter_file:
+                parameters = KratosMultiphysics.Parameters(parameter_file.read())
+            solver_settings = parameters["solver_settings"]
+            solver_settings["model_import_settings"]["input_filename"].SetString("../" + solver_settings["model_import_settings"]["input_filename"].GetString())
+            solver_settings["material_import_settings"]["materials_filename"].SetString("../" + solver_settings["material_import_settings"]["materials_filename"].GetString())
+            for load_process in parameters["processes"]["loads_process_list"].values():
+                load_process["Parameters"]["value"].SetString("(0.1)")
+
+            model = KratosMultiphysics.Model()
+            simulation = rom_testing_utilities.SetUpSimulationInstance(model, parameters)
+            simulation.Run()
+
+            variables_array = [KratosMultiphysics.DISPLACEMENT_X, KratosMultiphysics.DISPLACEMENT_Y]
+            obtained_output = np.array(rom_testing_utilities.GetNodalResults(simulation._GetSolver().GetComputingModelPart(), variables_array))
+            expected_output = np.load(expected_output_filename)[:,0]
+            self.assertLess(np.linalg.norm(obtained_output - expected_output)/np.linalg.norm(expected_output), 1.0e-9)
 
     def tearDown(self):
         with KratosUnittest.WorkFolderScope(self.work_folder, __file__):

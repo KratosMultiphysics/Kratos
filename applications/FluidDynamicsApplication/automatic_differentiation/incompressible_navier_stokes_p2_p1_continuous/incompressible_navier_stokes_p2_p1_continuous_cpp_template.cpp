@@ -456,7 +456,7 @@ void IncompressibleNavierStokesP2P1Continuous<2>::AddGaussPointLeftHandSideContr
     const double dyn_tau = rData.DynamicTau;
 
     // Calculate convective velocity
-    const BoundedMatrix<double,2,6> vconv = rData.Velocity - rData.MeshVelocity;
+    const BoundedMatrix<double,6,2> vconv = rData.Velocity - rData.MeshVelocity;
 
     // Get constitutive matrix
     const auto& C = rData.ConstitutiveMatrix;
@@ -489,7 +489,7 @@ void IncompressibleNavierStokesP2P1Continuous<3>::AddGaussPointLeftHandSideContr
     const double dyn_tau = rData.DynamicTau;
 
     // Calculate convective velocity
-    const BoundedMatrix<double,3,10> vconv = rData.Velocity - rData.MeshVelocity;
+    const BoundedMatrix<double,10,3> vconv = rData.Velocity - rData.MeshVelocity;
 
     // Get constitutive matrix
     const auto& C = rData.ConstitutiveMatrix;
@@ -530,7 +530,7 @@ void IncompressibleNavierStokesP2P1Continuous<2>::AddGaussPointRightHandSideCont
     const auto& r_p = rData.Pressure;
 
     // Calculate convective velocity
-    const BoundedMatrix<double,2,6> vconv = r_v - r_vmesh;
+    const BoundedMatrix<double,6,2> vconv = r_v - r_vmesh;
 
     // Get stress from material response
     const auto& r_stress = rData.ShearStress;
@@ -572,7 +572,7 @@ void IncompressibleNavierStokesP2P1Continuous<3>::AddGaussPointRightHandSideCont
     const auto& r_p = rData.Pressure;
 
     // Calculate convective velocity
-    const BoundedMatrix<double,3,10> vconv = r_v - r_vmesh;
+    const BoundedMatrix<double,10,3> vconv = r_v - r_vmesh;
 
     // Get stress from material response
     const auto& r_stress = rData.ShearStress;

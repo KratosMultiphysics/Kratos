@@ -86,7 +86,7 @@ inline void AtomicAdd(array_1d<TDataType,ArraySize>& target, const array_1d<TDat
 template<class TVectorType1, class TVectorType2>
 inline void AtomicAddVector(TVectorType1& target, const TVectorType2& value)
 {
-    KRATOS_DEBUG_ERROR_IF(target.size() != value.size()) << "vector size mismatch in vector AtomicAddVector- Sizes are: " << target.size() << " for target and " << value.size() << " for value " << std::endl;
+    KRATOS_DEBUG_ERROR_IF(static_cast<std::size_t>(target.size()) != static_cast<std::size_t>(value.size())) << "vector size mismatch in vector AtomicAddVector- Sizes are: " << target.size() << " for target and " << value.size() << " for value " << std::endl;
 
     for(std::size_t i=0; i<target.size(); ++i) {
        AtomicAdd(target[i], value[i]);
@@ -141,7 +141,7 @@ inline void AtomicSub(array_1d<TDataType,ArraySize>& target, const array_1d<TDat
  */
 template<class TVectorType1, class TVectorType2>
 inline void AtomicSubVector(TVectorType1& target, const TVectorType2& value) {
-    KRATOS_DEBUG_ERROR_IF(target.size() != value.size()) << "vector size mismatch in vector AtomicSubVector- Sizes are: " << target.size() << " for target and " << value.size() << " for value " << std::endl;
+    KRATOS_DEBUG_ERROR_IF(static_cast<std::size_t>(target.size()) != static_cast<std::size_t>(value.size())) << "vector size mismatch in vector AtomicSubVector- Sizes are: " << target.size() << " for target and " << value.size() << " for value " << std::endl;
 
     for(std::size_t i=0; i<target.size(); ++i) {
        AtomicSub(target[i], value[i]);
@@ -219,7 +219,7 @@ inline void AtomicMult(array_1d<TDataType,ArraySize>& target, const array_1d<TDa
 template<class TVectorType1, class TVectorType2>
 inline void AtomicMultVector(TVectorType1& target, const TVectorType2& value)
 {
-    KRATOS_DEBUG_ERROR_IF(target.size() != value.size()) << "vector size mismatch in vector AtomicMultVector- Sizes are: " << target.size() << " for target and " << value.size() << " for value " << std::endl;
+    KRATOS_DEBUG_ERROR_IF(static_cast<std::size_t>(target.size()) != static_cast<std::size_t>(value.size())) << "vector size mismatch in vector AtomicMultVector- Sizes are: " << target.size() << " for target and " << value.size() << " for value " << std::endl;
 
     for(std::size_t i=0; i<target.size(); ++i) {
        AtomicMult(target[i], value[i]);
@@ -272,7 +272,7 @@ inline void AtomicDiv(array_1d<TDataType,ArraySize>& target, const array_1d<TDat
 template<class TVectorType1, class TVectorType2>
 inline void AtomicDivVector(TVectorType1& target, const TVectorType2& value)
 {
-    KRATOS_DEBUG_ERROR_IF(target.size() != value.size()) << "vector size mismatch in vector AtomicDivVector- Sizes are: " << target.size() << " for target and " << value.size() << " for value " << std::endl;
+    KRATOS_DEBUG_ERROR_IF(static_cast<std::size_t>(target.size()) != static_cast<std::size_t>(value.size())) << "vector size mismatch in vector AtomicDivVector- Sizes are: " << target.size() << " for target and " << value.size() << " for value " << std::endl;
 
     for(std::size_t i=0; i<target.size(); ++i) {
        AtomicDiv(target[i], value[i]);

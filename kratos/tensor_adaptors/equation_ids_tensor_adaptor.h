@@ -76,6 +76,12 @@ public:
 
     EquationIdsTensorAdaptor(const EquationIdsTensorAdaptor& rOther) = default;
 
+    /**
+     * @brief Construct an empty, invalid instance.
+     * @details Only intended for @ref Serializer::load to construct into before populating via @ref load.
+     */
+    EquationIdsTensorAdaptor() = default;
+
     // Destructor
     ~EquationIdsTensorAdaptor() override = default;
 
@@ -112,6 +118,16 @@ private:
     ///@{
 
     ProcessInfo::Pointer mpProcessInfo;
+
+    ///@}
+    ///@name Serialization
+    ///@{
+
+    friend class Serializer;
+
+    void save(Serializer& rSerializer) const override;
+
+    void load(Serializer& rSerializer) override;
 
     ///@}
 };

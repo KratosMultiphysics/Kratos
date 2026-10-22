@@ -6,7 +6,7 @@
 //
 
 // External includes
-#include "spaces/ublas_space.h"
+#include "spaces/default_spaces.h"
 
 // Project includes
 #include "custom_python/add_custom_mpi_strategies_to_python.h"
@@ -40,7 +40,7 @@ namespace py = pybind11;
 void  AddCustomMPIStrategiesToPython(pybind11::module& m)
 {
     typedef TrilinosSpace<Epetra_FECrsMatrix, Epetra_FEVector> TrilinosSparseSpaceType;
-    typedef UblasSpace<double, Matrix, Vector> TrilinosLocalSpaceType;
+    typedef TDefaultDenseSpace<double> TrilinosLocalSpaceType;
 
     typedef Scheme< TrilinosSparseSpaceType, TrilinosLocalSpaceType > TrilinosBaseSchemeType;
 

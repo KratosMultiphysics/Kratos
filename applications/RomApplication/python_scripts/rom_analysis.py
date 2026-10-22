@@ -1,3 +1,4 @@
+import copy
 import importlib
 
 import KratosMultiphysics
@@ -6,16 +7,20 @@ from KratosMultiphysics.RomApplication import python_solvers_wrapper_rom
 from KratosMultiphysics.RomApplication.hrom_training_utility import HRomTrainingUtility
 from KratosMultiphysics.RomApplication.petrov_galerkin_training_utility import PetrovGalerkinTrainingUtility
 from KratosMultiphysics.RomApplication.calculate_rom_basis_output_process import CalculateRomBasisOutputProcess
+from KratosMultiphysics.RomApplication.rom_nn_interface import NN_ROM_Interface
+from KratosMultiphysics.RomApplication.rom_rbf_interface import RBF_ROM_Interface
 import numpy as np
 
 from glob import glob
 from os import remove
 from pathlib import Path
 
-def CreateRomAnalysisInstance(cls, global_model, parameters, nn_rom_interface=None):
+def CreateRomAnalysisInstance(cls, global_model, parameters, nn_rom_interface=None, rbf_rom_interface=None, rom_basis_output_folder=None, rom_basis_output_name=None):
     class RomAnalysis(cls):
 
         def __init__(self,global_model, parameters):
+            self.nn_rom_interface = nn_rom_interface
+            self.rbf_rom_interface = rbf_rom_interface
             super().__init__(global_model, parameters)
 
         def _CreateSolver(self):
@@ -34,6 +39,11 @@ def CreateRomAnalysisInstance(cls, global_model, parameters, nn_rom_interface=No
                                     self.rom_basis_output_name = parameter_set["Parameters"]["rom_basis_output_name"].GetString()
                                 if parameter_set["Parameters"].Has("rom_basis_output_folder"):
                                     self.rom_basis_output_folder = parameter_set["Parameters"]["rom_basis_output_folder"].GetString()
+            # Explicitly provided values (e.g. from the RomManager) take precedence
+            if rom_basis_output_name is not None:
+                self.rom_basis_output_name = rom_basis_output_name
+            if rom_basis_output_folder is not None:
+                self.rom_basis_output_folder = rom_basis_output_folder
             self.rom_basis_output_name = Path(self.rom_basis_output_name)
             self.rom_basis_output_folder = Path(self.rom_basis_output_folder)
 
@@ -106,9 +116,68 @@ def CreateRomAnalysisInstance(cls, global_model, parameters, nn_rom_interface=No
 
             # Check if we are using an ann_enhanced strategy
             self.ann_enhanced = self.solving_strategy in ('galerkin_ann', 'lspg_ann')
-            if self.ann_enhanced and nn_rom_interface is None:
-                err_msg = f"'Using {self.solving_strategy}' projection strategy but found no NN_ROM_Interface instance to use."
-                raise Exception(err_msg)
+            if self.ann_enhanced and self.nn_rom_interface is None:
+                # Standalone run (no RomManager): read the ANN-enhanced decoder from the numpy files in the ROM folder
+                if not self.rom_parameters.Has("ann_enhanced_settings"):
+                    err_msg = f"Using '{self.solving_strategy}' projection strategy but found no NN_ROM_Interface instance to use, nor 'ann_enhanced_settings' in the RomParameters to create one."
+                    raise Exception(err_msg)
+                # Coupled solvers provide the modes of each sub-solver instead (see _GetSubSolverDecoderInterface)
+                if self.rom_parameters["ann_enhanced_settings"].Has("modes"):
+                    modes = self.rom_parameters["ann_enhanced_settings"]["modes"].GetVector()
+                    self.nn_rom_interface = NN_ROM_Interface.FromNumpyFiles(self.rom_basis_output_folder, modes)
+
+            # Check if we are using an rbf_enhanced strategy
+            self.rbf_enhanced = self.solving_strategy in ('galerkin_rbf', 'lspg_rbf')
+            if self.rbf_enhanced and self.rbf_rom_interface is None:
+                # Standalone run (no RomManager): read the RBF-enhanced decoder from the numpy files in the ROM folder
+                if not self.rom_parameters.Has("rbf_enhanced_settings"):
+                    err_msg = f"Using '{self.solving_strategy}' projection strategy but found no RBF_ROM_Interface instance to use, nor 'rbf_enhanced_settings' in the RomParameters to create one."
+                    raise Exception(err_msg)
+                # Coupled solvers provide the settings of each sub-solver instead (see _GetSubSolverDecoderInterface)
+                if self.rom_parameters["rbf_enhanced_settings"].Has("kernel"):
+                    self.rbf_rom_interface = RBF_ROM_Interface.FromNumpyFiles(self.rom_basis_output_folder, self.rom_parameters["rbf_enhanced_settings"])
+
+            solver_type = self.project_parameters["solver_settings"]["solver_type"].GetString()
+
+            # In coupled problems (e.g. 'fluid_solver' and 'thermal_solver') each sub-solver gets its own copy of the ROM settings.
+            # The position of the sub-solver in 'coupled_solvers' defines the column of the HROM weights it uses (one set of weights per physics)
+            coupled_solvers = self.rom_parameters["coupled_solvers"].GetStringArray() if self.rom_parameters.Has("coupled_solvers") else []
+            self.coupled_solvers = coupled_solvers
+            for i, sub_solver_name in enumerate(coupled_solvers):
+                sub_solver_settings = self.project_parameters["solver_settings"][f"{sub_solver_name}_settings"]
+                sub_rom_settings = self.project_parameters["solver_settings"]["rom_settings"].Clone()
+                sub_rom_settings.AddInt("weight_vector_index", i)
+                sub_rom_settings.AddInt("number_of_hrom_sets", len(coupled_solvers))
+                sub_solver_settings.AddValue("rom_settings", sub_rom_settings)
+                sub_solver_settings.AddString("projection_strategy", self.solving_strategy)
+                sub_solver_settings.AddString("assembling_strategy", self.assembling_strategy)
+
+            # The coupled solvers contain two sub-solvers (e.g. 'fluid_solver' and 'thermal_solver', or 'structural_solver' and 'thermal_solver').
+            # This patch creates rom_solvers for each of them, to seamlessly use the existing infrastructure in the RomApp
+            coupled_solvers_wrappers = {
+                "ThermallyCoupled" : [
+                    ("KratosMultiphysics.FluidDynamicsApplication.python_solvers_wrapper_fluid", "KratosMultiphysics.FluidDynamicsApplication.fluid_dynamics_analysis"),
+                    ("KratosMultiphysics.ConvectionDiffusionApplication.python_solvers_wrapper_convection_diffusion", "KratosMultiphysics.ConvectionDiffusionApplication.convection_diffusion_analysis")],
+                "ThermoMechanicallyCoupled" : [
+                    ("KratosMultiphysics.StructuralMechanicsApplication.python_solvers_wrapper_structural", "KratosMultiphysics.StructuralMechanicsApplication.structural_mechanics_analysis"),
+                    ("KratosMultiphysics.ConvectionDiffusionApplication.python_solvers_wrapper_convection_diffusion", "KratosMultiphysics.ConvectionDiffusionApplication.convection_diffusion_analysis")]
+            }
+            for wrapper_module_name, analysis_stage_module_name in coupled_solvers_wrappers.get(solver_type, []):
+                wrapper_module = importlib.import_module(wrapper_module_name)
+                if hasattr(wrapper_module.CreateSolverByParameters, "is_rom_patch"): # Already patched by a previous RomAnalysis
+                    continue
+
+                def create_solver(model, settings, parallelism, original_create=wrapper_module.CreateSolverByParameters, analysis_stage_module_name=analysis_stage_module_name):
+                    # FOM wrapper
+                    if not settings.Has("rom_settings"):
+                        return original_create(model, settings, parallelism)
+
+                    # ROM wrapper
+                    return python_solvers_wrapper_rom.CreateSolverByParameters(model, settings, parallelism, analysis_stage_module_name)
+
+                # Apply the patch
+                create_solver.is_rom_patch = True
+                wrapper_module.CreateSolverByParameters = create_solver
 
             # Create the ROM solver
             return python_solvers_wrapper_rom.CreateSolver(
@@ -127,6 +196,11 @@ def CreateRomAnalysisInstance(cls, global_model, parameters, nn_rom_interface=No
                         KratosMultiphysics.Logger.PrintWarning("RomAnalysis", warn_msg)
                         list_of_processes.remove(process)
                 self.rom_basis_process_list_check = False
+
+            # Automatically inject the Python solver into any custom process that needs it
+            for process in list_of_processes:
+                if hasattr(process, "SetDependencies"):
+                    process.SetDependencies(self._GetSolver(), self.rom_parameters)
 
             return list_of_processes
 
@@ -161,7 +235,7 @@ def CreateRomAnalysisInstance(cls, global_model, parameters, nn_rom_interface=No
             nodal_dofs = len(self.project_parameters["solver_settings"]["rom_settings"]["nodal_unknowns"].GetStringArray())
             rom_dofs = self.project_parameters["solver_settings"]["rom_settings"]["number_of_rom_dofs"].GetInt()
 
-            if self.ann_enhanced == False:
+            if self.ann_enhanced == False and self.rbf_enhanced == False:
                 # Set the right nodal ROM basis
                 if self.rom_format == "json":
                     aux = KratosMultiphysics.Matrix(nodal_dofs, rom_dofs)
@@ -228,6 +302,9 @@ def CreateRomAnalysisInstance(cls, global_model, parameters, nn_rom_interface=No
                 # Pass the name of the Rom Parameters file and folder
                 self.rom_parameters.AddString("rom_basis_output_name", str(self.rom_basis_output_name))
                 self.rom_parameters.AddString("rom_basis_output_folder", str(self.rom_basis_output_folder))
+                # Reuse the input modelers to recreate the geometry based input model part
+                if self.project_parameters.Has("modelers"):
+                    self.rom_parameters["hrom_settings"].AddValue("modelers", self.project_parameters["modelers"])
                 # Create the training utility to calculate the HROM weights
                 self.__hrom_training_utility = HRomTrainingUtility(
                     self._GetSolver(),
@@ -236,21 +313,27 @@ def CreateRomAnalysisInstance(cls, global_model, parameters, nn_rom_interface=No
                 if self.hrom_format == "json":
                     # Set the HROM weights in elements and conditions
                     hrom_weights_elements = self.rom_parameters["elements_and_weights"]["Elements"]
-                    for key,value in zip(hrom_weights_elements.keys(), hrom_weights_elements.values()):
-                        computing_model_part.GetElement(int(key)+1).SetValue(KratosROM.HROM_WEIGHT, value.GetDouble()) #FIXME: FIX THE +1
-                    hrom_weights_condtions = self.rom_parameters["elements_and_weights"]["Conditions"]
-                    for key,value in zip(hrom_weights_condtions.keys(), hrom_weights_condtions.values()):
-                        computing_model_part.GetCondition(int(key)+1).SetValue(KratosROM.HROM_WEIGHT, value.GetDouble()) #FIXME: FIX THE +1
+                    for key, value in hrom_weights_elements.items():
+                        computing_model_part.GetElement(int(key)).SetValue(KratosROM.HROM_WEIGHT, value.GetDouble())
+
+                    hrom_weights_conditions = self.rom_parameters["elements_and_weights"]["Conditions"]
+                    for key, value in hrom_weights_conditions.items():
+                        computing_model_part.GetCondition(int(key)).SetValue(KratosROM.HROM_WEIGHT, value.GetDouble())
+
                 elif self.hrom_format == "numpy":
                     # Set the HROM weights in elements and conditions
-                    element_indexes = np.load(f"{self.rom_basis_output_folder}/HROM_ElementIds.npy")
+                    element_ids = np.load(f"{self.rom_basis_output_folder}/HROM_ElementIds.npy")
                     element_weights = np.load(f"{self.rom_basis_output_folder}/HROM_ElementWeights.npy")
-                    condition_indexes = np.load(f"{self.rom_basis_output_folder}/HROM_ConditionIds.npy")
-                    conditon_weights = np.load(f"{self.rom_basis_output_folder}/HROM_ConditionWeights.npy")
-                    for i in range(np.size(element_indexes)):
-                        computing_model_part.GetElement(int( element_indexes[i])+1).SetValue(KratosROM.HROM_WEIGHT, element_weights[i]  ) #FIXME: FIX THE +1
-                    for i in range(np.size(condition_indexes)):
-                        computing_model_part.GetCondition(int( condition_indexes[i])+1).SetValue(KratosROM.HROM_WEIGHT, conditon_weights[i]  ) #FIXME: FIX THE +1
+
+                    condition_ids = np.load(f"{self.rom_basis_output_folder}/HROM_ConditionIds.npy")
+                    condition_weights = np.load(f"{self.rom_basis_output_folder}/HROM_ConditionWeights.npy")
+
+                    for i in range(np.size(element_ids)):
+                        computing_model_part.GetElement(int(element_ids[i])).SetValue(KratosROM.HROM_WEIGHT, element_weights[i,:])
+
+                    for i in range(np.size(condition_ids)):
+                        computing_model_part.GetCondition(int(condition_ids[i])).SetValue(KratosROM.HROM_WEIGHT,condition_weights[i,:])
+
 
 
             # Check and Initialize Petrov Galerkin Training stage
@@ -266,57 +349,127 @@ def CreateRomAnalysisInstance(cls, global_model, parameters, nn_rom_interface=No
         def ModifyInitialGeometry(self):
             super().ModifyInitialGeometry()
 
-            if self.ann_enhanced:
-                computing_model_part = self._GetSolver().GetComputingModelPart().GetRootModelPart()
+            if self.ann_enhanced or self.rbf_enhanced:
+                self._enhanced_decoder_solvers = []
+                all_nodal_unknown_names = self.project_parameters["solver_settings"]["rom_settings"]["nodal_unknowns"].GetStringArray()
+                if self.coupled_solvers:
+                    for sub_solver_name in self.coupled_solvers:
+                        # Each sub-solver has its own decoder, acting on the rows of the basis of its unknowns
+                        sub_solver = getattr(self._GetSolver(), sub_solver_name)
+                        sub_solver_model_part = sub_solver.GetComputingModelPart()
+                        sub_solver_dofs = {dof.GetVariable().Name() for dof in next(iter(sub_solver_model_part.Elements)).GetDofList(sub_solver_model_part.ProcessInfo)}
+                        nodal_unknown_names = [name for name in all_nodal_unknown_names if name in sub_solver_dofs]
+                        rows = self._GetBasisRows(sub_solver_model_part.GetRootModelPart(), nodal_unknown_names)
+                        self._SetEnhancedDecoder(sub_solver, self._GetSubSolverDecoderInterface(sub_solver_name, rows), nodal_unknown_names)
+                else:
+                    decoder_interface = self.rbf_rom_interface if self.rbf_enhanced else self.nn_rom_interface
+                    rows = self._GetBasisRows(self._GetSolver().GetComputingModelPart().GetRootModelPart(), all_nodal_unknown_names)
+                    if rows.size != decoder_interface.phi.shape[0]:
+                        # The model part has only some of the nodes of the basis (e.g. an HROM model part)
+                        decoder_interface = self._RestrictDecoderInterfaceToRows(decoder_interface, rows)
+                    self._SetEnhancedDecoder(self._GetSolver(), decoder_interface, all_nodal_unknown_names)
 
-                NNLayers=nn_rom_interface.get_NN_layers()
-                SVDPhiMatrices=nn_rom_interface.get_phi_matrices()
-                refSnapshot=nn_rom_interface.get_ref_snapshot()
-                numberOfROMModes = SVDPhiMatrices[0].Size2()
-                self._GetSolver()._GetBuilderAndSolver().SetNumberOfROMModes(numberOfROMModes)
-                self._GetSolver()._GetBuilderAndSolver().SetDecoderParameters(computing_model_part, len(NNLayers), SVDPhiMatrices[0], SVDPhiMatrices[1], SVDPhiMatrices[2], refSnapshot)
+        def Initialize(self):
+            super().Initialize()
+
+            # The initial state is encoded here, once the initial conditions have been applied by the processes
+            if self.ann_enhanced or self.rbf_enhanced:
+                for solver, decoder_interface, nodal_unknown_names in self._enhanced_decoder_solvers:
+                    self._EncodeEnhancedInitialState(solver, decoder_interface, nodal_unknown_names)
+
+        def _GetBasisRows(self, model_part, nodal_unknown_names):
+            """Rows of the basis of the given unknowns at the nodes of the model part, in the order of the DOFs (by node id).
+            The basis stores the unknowns of all the nodes in 'NodeIds.npy' node by node, so these are all its rows unless the
+            model part has only some of the nodes (e.g. an HROM model part)."""
+            all_nodal_unknown_names = self.project_parameters["solver_settings"]["rom_settings"]["nodal_unknowns"].GetStringArray()
+            positions = np.array([all_nodal_unknown_names.index(name) for name in nodal_unknown_names])
+            node_ids_file = self.rom_basis_output_folder / "NodeIds.npy"
+            if node_ids_file.exists():
+                node_index = {node_id: index for index, node_id in enumerate(np.load(node_ids_file))}
+                node_indices = np.array([node_index[node_id] for node_id in sorted(node.Id for node in model_part.Nodes)])
+            else:
+                node_indices = np.arange(model_part.NumberOfNodes())
+            return (node_indices[:, None] * len(all_nodal_unknown_names) + positions).ravel()
+
+        @staticmethod
+        def _RestrictDecoderInterfaceToRows(decoder_interface, rows):
+            """Copy of the decoder interface (neural network or RBF) acting on the given rows of its basis"""
+            restricted_interface = copy.copy(decoder_interface)
+            restricted_interface.phi = decoder_interface.phi[rows, :]
+            restricted_interface.ref_snapshot = decoder_interface.ref_snapshot[rows]
+            return restricted_interface
+
+        def _GetSubSolverDecoderInterface(self, sub_solver_name, rows):
+            if self.rbf_enhanced:
+                if self.rbf_rom_interface is not None:
+                    return self.rbf_rom_interface.GetSubSolverInterface(sub_solver_name, rows)
+                # Standalone run (no RomManager): read the RBF-enhanced decoder of the sub-solver from the numpy files in the ROM folder
+                return RBF_ROM_Interface.FromNumpyFiles(self.rom_basis_output_folder, self.rom_parameters["rbf_enhanced_settings"][sub_solver_name], file_prefix=f"{sub_solver_name}_", rows=rows)
+            if self.nn_rom_interface is not None:
+                return self.nn_rom_interface.GetSubSolverInterface(sub_solver_name, rows)
+            # Standalone run (no RomManager): read the ANN-enhanced decoder of the sub-solver from the numpy files in the ROM folder
+            modes = self.rom_parameters["ann_enhanced_settings"][sub_solver_name]["modes"].GetVector()
+            return NN_ROM_Interface.FromNumpyFiles(self.rom_basis_output_folder, modes, file_prefix=f"{sub_solver_name}_", rows=rows)
+
+        def _SetEnhancedDecoder(self, solver, decoder_interface, nodal_unknown_names):
+            """Sets the decoder (neural network or RBF) of an ann_enhanced or rbf_enhanced ROM in the builder and solver"""
+            computing_model_part = solver.GetComputingModelPart().GetRootModelPart()
+            # The decoder basis must have the rows of the nodes of the model part (see _GetBasisRows)
+            if decoder_interface.phi.shape[0] != computing_model_part.NumberOfNodes() * len(nodal_unknown_names):
+                err_msg = f"The basis of the enhanced decoder has {decoder_interface.phi.shape[0]} rows, but '{computing_model_part.Name}' has {computing_model_part.NumberOfNodes()} nodes with {len(nodal_unknown_names)} unknowns. "
+                err_msg += f"Note that 'NodeIds.npy' is required in '{self.rom_basis_output_folder}' to run on a model part with only some of the nodes of the basis (e.g. an HROM model part)."
+                raise Exception(err_msg)
+            self._enhanced_decoder_solvers.append((solver, decoder_interface, nodal_unknown_names))
+
+            SVDPhiMatrices=decoder_interface.get_phi_matrices()
+            refSnapshot=decoder_interface.get_ref_snapshot()
+            numberOfROMModes = SVDPhiMatrices[0].Size2()
+            solver._GetBuilderAndSolver().SetNumberOfROMModes(numberOfROMModes)
+            if self.rbf_enhanced:
+                rbf_data=decoder_interface.get_RBF_data_for_kratos()
+                solver._GetBuilderAndSolver().SetRbfDecoderParameters(computing_model_part, rbf_data["W_mat"], rbf_data["centers_mat"], rbf_data["kernel_type"], rbf_data["kernel_eps"], SVDPhiMatrices[0], SVDPhiMatrices[1], SVDPhiMatrices[2], refSnapshot)
+            else:
+                NNLayers=decoder_interface.get_NN_layers()
+                solver._GetBuilderAndSolver().SetDecoderParameters(computing_model_part, len(NNLayers), SVDPhiMatrices[0], SVDPhiMatrices[1], SVDPhiMatrices[2], refSnapshot)
                 for i, layer in enumerate(NNLayers):
-                    self._GetSolver()._GetBuilderAndSolver().SetNNLayer(computing_model_part, i, layer)
+                    solver._GetBuilderAndSolver().SetNNLayer(computing_model_part, i, layer)
 
-                nodal_unknown_names= self.project_parameters["solver_settings"]["rom_settings"]["nodal_unknowns"].GetStringArray()
-                nodal_dofs = len(nodal_unknown_names)
-                nodal_unknowns=[]
+            # Initialize nodal ROM_BASIS to zeros
+            for node in computing_model_part.Nodes:
+                node.SetValue(KratosROM.ROM_BASIS, np.zeros((len(nodal_unknown_names), numberOfROMModes)))
 
-                for node_var_name in nodal_unknown_names:
-                    nodal_unknowns.append(KratosMultiphysics.KratosGlobals.GetVariable(node_var_name))
+        def _EncodeEnhancedInitialState(self, solver, decoder_interface, nodal_unknown_names):
+            computing_model_part = solver.GetComputingModelPart().GetRootModelPart()
+            nodal_unknowns = [KratosMultiphysics.KratosGlobals.GetVariable(node_var_name) for node_var_name in nodal_unknown_names]
 
-                s = []
-                for node in computing_model_part.Nodes:
-                    for nodal_var in nodal_unknowns:
-                        s.append(node.GetSolutionStepValue(nodal_var))
+            s = []
+            is_free = []
+            for node in computing_model_part.Nodes:
+                for nodal_var in nodal_unknowns:
+                    s.append(node.GetSolutionStepValue(nodal_var))
+                    is_free.append(not node.IsFixed(nodal_var))
+            s_default = np.asarray(s)
+            is_free = np.asarray(is_free)
 
-                print('Nodal variables: ', nodal_unknown_names)
+            # The ROM does not solve the fixed DOFs (boundary conditions), so the reduced coordinates are fitted to the free ones only
+            phi_inf_free = decoder_interface.phi[is_free, :decoder_interface.n_inf]
+            q = np.linalg.solve(phi_inf_free.T @ phi_inf_free, phi_inf_free.T @ (s_default - decoder_interface.get_ref_snapshot())[is_free])
 
-                s_default = np.asarray(s)
-                print(s_default.shape)
+            computing_model_part.SetValue(KratosROM.ROM_SOLUTION_BASE, KratosMultiphysics.Vector(q))
+            computing_model_part.SetValue(KratosROM.ROM_SOLUTION_TOTAL, KratosMultiphysics.Vector(q))
+            computing_model_part.SetValue(KratosROM.ROM_SOLUTION_INCREMENT, KratosMultiphysics.Vector(np.zeros_like(q)))
 
-                q, _ = nn_rom_interface.get_encode_function()(s_default)
-                q = np.squeeze(q, axis=0)
-                print(q.shape)
+            s_init = np.array(solver._GetBuilderAndSolver().RunDecoder(computing_model_part, q))
 
-                computing_model_part.SetValue(KratosROM.ROM_SOLUTION_BASE, KratosMultiphysics.Vector(q))
-                computing_model_part.SetValue(KratosROM.ROM_SOLUTION_TOTAL, KratosMultiphysics.Vector(q))
-                computing_model_part.SetValue(KratosROM.ROM_SOLUTION_INCREMENT, KratosMultiphysics.Vector(np.zeros_like(q)))
-
-                s_init = np.array(self._GetSolver()._GetBuilderAndSolver().RunDecoder(computing_model_part, q))
-                print(s_init.shape)
-
-                i = 0
-                for node in computing_model_part.Nodes:
-                    for nodal_var in nodal_unknowns:
+            # The fixed DOFs keep the values of their boundary conditions
+            i = 0
+            for node in computing_model_part.Nodes:
+                for nodal_var in nodal_unknowns:
+                    if is_free[i]:
                         node.SetSolutionStepValue(nodal_var, s_init[i])
-                        i+=1
+                    i+=1
 
-                computing_model_part.SetValue(KratosROM.SOLUTION_BASE, KratosMultiphysics.Vector(s_init))
-
-                # Initialize nodal ROM_BASIS to zeros
-                for node in computing_model_part.Nodes:
-                    node.SetValue(KratosROM.ROM_BASIS, np.zeros((nodal_dofs, numberOfROMModes)))
+            computing_model_part.SetValue(KratosROM.SOLUTION_BASE, KratosMultiphysics.Vector(s_init))
 
 
         def FinalizeSolutionStep(self):
@@ -331,6 +484,11 @@ def CreateRomAnalysisInstance(cls, global_model, parameters, nn_rom_interface=No
             # Note that this needs to be done prior to the other processes to avoid unfixing the BCs
             if self.train_hrom:
                 self.__hrom_training_utility.AppendCurrentStepResiduals()
+
+            # If the residuals process is present, fetch residuals before clearing.
+            for process in self._GetListOfOutputProcesses():
+                if hasattr(process, "CaptureResiduals"):
+                    process.CaptureResiduals()
 
             # #FIXME: Make this optional. This must be a process
             # # Project the ROM solution onto the visualization modelparts

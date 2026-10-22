@@ -279,7 +279,7 @@ namespace Kratos
                                     const double Weight) override;
 
     void CalculateTauFIC(double &TauOne,
-                         double ElemSize,
+                         const double ElemSize,
                          const double Density,
                          const double Viscosity,
                          const ProcessInfo &rCurrentProcessInfo) override;
