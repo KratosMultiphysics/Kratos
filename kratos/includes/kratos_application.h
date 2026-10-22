@@ -82,6 +82,7 @@
 #include "modeler/connectivity_preserve_modeler.h"
 #include "modeler/voxel_mesh_generator_modeler.h"
 #include "modeler/surrogate_boundary_modeler.h"
+#include "modeler/gap_surrogate_boundary_modeler.h"
 #include "modeler/clean_up_problematic_triangles_modeler.h"
 
 namespace Kratos {
@@ -573,6 +574,7 @@ class KRATOS_API(KRATOS_CORE) KratosApplication {
     const ConnectivityPreserveModeler mConnectivityPreserveModeler;
     const VoxelMeshGeneratorModeler mVoxelMeshGeneratorModeler;
     const SurrogateBoundaryModeler mSurrogateBoundaryModeler;
+    const GapSurrogateBoundaryModeler mGapSurrogateBoundaryModeler;
     const CleanUpProblematicTrianglesModeler mCleanUpProblematicTrianglesModeler;
 
     // Base constitutive law definition

@@ -24,6 +24,7 @@
 #include "geometries/line_2d_2.h"
 #include "includes/kratos_components.h"
 #include "includes/variables.h"
+#include "integration/line_gauss_legendre_integration_points.h"
 #include "modeler/surrogate_boundary_modeler.h"
 #include "spatial_containers/bins_dynamic.h"
 #include "utilities/geometry_utilities/nearest_point_utilities.h"
@@ -195,6 +196,117 @@ Point ProjectOnNearestSkinCondition(
             << MaximumSearchRadius << " for surrogate point " << rPoint << "."
             << std::endl;
         search_radius = std::min(2.0 * search_radius, MaximumSearchRadius);
+    }
+}
+
+void UpdateSurrogateBoundaryProjections(
+    ModelPart::ConditionsContainerType& rSurrogateConditions,
+    ModelPart::ConditionsContainerType& rSkinConditions,
+    const Vector& rLower,
+    const Vector& rUpper,
+    const double Dx,
+    const double Dy,
+    const bool ProjectFaceEndPoints)
+{
+    CheckLineSkin(rSkinConditions);
+
+    const double domain_scale = std::max({
+        rUpper[0] - rLower[0], rUpper[1] - rLower[1], 1.0});
+    const double search_tolerance = 1.0e-12 * domain_scale;
+    SkinSearchPointVectorType skin_search_points;
+    skin_search_points.reserve(rSkinConditions.size());
+    SkinConditionLookupType condition_by_search_point;
+    condition_by_search_point.reserve(rSkinConditions.size());
+    double maximum_half_segment_length = 0.0;
+    for (auto& r_condition : rSkinConditions) {
+        const auto& r_geometry = r_condition.GetGeometry();
+        auto p_search_point = Kratos::make_shared<Point>(
+            0.5 * (r_geometry[0].X() + r_geometry[1].X()),
+            0.5 * (r_geometry[0].Y() + r_geometry[1].Y()),
+            0.5 * (r_geometry[0].Z() + r_geometry[1].Z()));
+        maximum_half_segment_length = std::max(
+            maximum_half_segment_length,
+            0.5 * std::hypot(
+                r_geometry[1].X() - r_geometry[0].X(),
+                r_geometry[1].Y() - r_geometry[0].Y()));
+        condition_by_search_point.emplace(p_search_point.get(), &r_condition);
+        skin_search_points.push_back(std::move(p_search_point));
+    }
+
+    SkinBinsType skin_bins(
+        skin_search_points.begin(), skin_search_points.end());
+    const double initial_search_radius =
+        std::hypot(Dx, Dy) + maximum_half_segment_length + search_tolerance;
+    const double maximum_search_radius = std::hypot(
+        rUpper[0] - rLower[0], rUpper[1] - rLower[1]) +
+        maximum_half_segment_length + initial_search_radius;
+    SkinSearchPointVectorType projection_candidates(skin_search_points.size());
+    SkinSearchDistanceVectorType projection_candidate_distances(
+        skin_search_points.size());
+    const auto& r_integration_points =
+        LineGaussLegendreIntegrationPoints2::IntegrationPoints();
+    const std::size_t number_of_projection_rows =
+        r_integration_points.size() + (ProjectFaceEndPoints ? 2 : 0);
+
+    for (auto& r_condition : rSurrogateConditions) {
+        const Matrix& r_face_coordinates = r_condition.GetValue(
+            SURROGATE_BOUNDARY_FACE_COORDINATES);
+        KRATOS_ERROR_IF(
+            r_face_coordinates.size1() != 2 ||
+            r_face_coordinates.size2() != 3)
+            << "Surrogate condition #" << r_condition.Id()
+            << " has invalid face coordinates." << std::endl;
+
+        Matrix projections(number_of_projection_rows, 3);
+        for (std::size_t g = 0; g < r_integration_points.size(); ++g) {
+            const double local_coordinate = r_integration_points[g].X();
+            const double first_weight = 0.5 * (1.0 - local_coordinate);
+            const double second_weight = 0.5 * (1.0 + local_coordinate);
+            const Point surrogate_point(
+                first_weight * r_face_coordinates(0, 0) +
+                    second_weight * r_face_coordinates(1, 0),
+                first_weight * r_face_coordinates(0, 1) +
+                    second_weight * r_face_coordinates(1, 1),
+                first_weight * r_face_coordinates(0, 2) +
+                    second_weight * r_face_coordinates(1, 2));
+            const Point projected_point = ProjectOnNearestSkinCondition(
+                surrogate_point,
+                skin_bins,
+                condition_by_search_point,
+                projection_candidates,
+                projection_candidate_distances,
+                maximum_half_segment_length,
+                initial_search_radius,
+                maximum_search_radius,
+                search_tolerance);
+            for (std::size_t d = 0; d < 3; ++d) {
+                projections(g, d) = projected_point[d];
+            }
+        }
+
+        if (ProjectFaceEndPoints) {
+            for (std::size_t endpoint = 0; endpoint < 2; ++endpoint) {
+                const Point surrogate_point(
+                    r_face_coordinates(endpoint, 0),
+                    r_face_coordinates(endpoint, 1),
+                    r_face_coordinates(endpoint, 2));
+                const Point projected_point = ProjectOnNearestSkinCondition(
+                    surrogate_point,
+                    skin_bins,
+                    condition_by_search_point,
+                    projection_candidates,
+                    projection_candidate_distances,
+                    maximum_half_segment_length,
+                    initial_search_radius,
+                    maximum_search_radius,
+                    search_tolerance);
+                for (std::size_t d = 0; d < 3; ++d) {
+                    projections(r_integration_points.size() + endpoint, d) =
+                        projected_point[d];
+                }
+            }
+        }
+        r_condition.SetValue(SURROGATE_BOUNDARY_PROJECTION, projections);
     }
 }
 
@@ -404,16 +516,23 @@ const Parameters SurrogateBoundaryModeler::GetDefaultParameters() const
         "element_name" : "Element2D4N",
         "condition_name" : "LineCondition2D2N",
         "properties_id" : 1,
-        "number_of_boundary_gauss_points" : 2
+        "number_of_boundary_gauss_points" : 2,
+        "project_surrogate_face_end_points" : false,
+        "is_moving" : false,
+        "background_sub_model_part_name" : "BackgroundGrid"
     })");
 }
 
 void SurrogateBoundaryModeler::SetupModelPart()
 {
     KRATOS_ERROR_IF(mpModel == nullptr) << "SurrogateBoundaryModeler has no Model container." << std::endl;
+    KRATOS_ERROR_IF(mMovingModelIsInitialized)
+        << "SurrogateBoundaryModeler::SetupModelPart must be called only once "
+        << "when 'is_moving' is true. Move the input skin and call "
+        << "PrepareGeometryModel for subsequent active-set updates." << std::endl;
     const int domain_size = mParameters["domain_size"].GetInt();
     if (domain_size == 2) {
-        SetupModelPart2D();
+        SetupModelPart2D(false);
     } else {
         KRATOS_ERROR << "SurrogateBoundaryModeler domain_size=" << domain_size
                      << " is not implemented yet. The structured topology kernel supports 3D; "
@@ -421,7 +540,25 @@ void SurrogateBoundaryModeler::SetupModelPart()
     }
 }
 
-void SurrogateBoundaryModeler::SetupModelPart2D()
+void SurrogateBoundaryModeler::PrepareGeometryModel()
+{
+    // PrepareGeometryModel is called before SetupModelPart by Kratos'
+    // standard modeler lifecycle. At that stage there is no active mesh to
+    // update, so the initial call is intentionally a no-op. Subsequent calls
+    // are explicit moving-boundary updates.
+    if (!mMovingModelIsInitialized) {
+        return;
+    }
+    KRATOS_ERROR_IF_NOT(mParameters["is_moving"].GetBool())
+        << "SurrogateBoundaryModeler::PrepareGeometryModel requires "
+        << "'is_moving' to be true." << std::endl;
+    KRATOS_ERROR_IF(mParameters["domain_size"].GetInt() != 2)
+        << "Moving SurrogateBoundaryModeler currently supports domain_size=2 only."
+        << std::endl;
+    SetupModelPart2D(true);
+}
+
+void SurrogateBoundaryModeler::SetupModelPart2D(const bool IsUpdate)
 {
     const std::string skin_name = mParameters["input_model_part_name"].GetString();
     const std::string output_name = mParameters["output_model_part_name"].GetString();
@@ -443,6 +580,18 @@ void SurrogateBoundaryModeler::SetupModelPart2D()
     ModelPart& r_surrogate = r_output.HasSubModelPart(mParameters["surrogate_sub_model_part_name"].GetString())
         ? r_output.GetSubModelPart(mParameters["surrogate_sub_model_part_name"].GetString())
         : r_output.CreateSubModelPart(mParameters["surrogate_sub_model_part_name"].GetString());
+    const bool is_moving = mParameters["is_moving"].GetBool();
+    ModelPart* p_background = nullptr;
+    if (is_moving) {
+        const std::string background_name =
+            mParameters["background_sub_model_part_name"].GetString();
+        KRATOS_ERROR_IF(background_name.empty())
+            << "background_sub_model_part_name must not be empty when "
+            << "'is_moving' is true." << std::endl;
+        p_background = r_output.HasSubModelPart(background_name)
+            ? &r_output.GetSubModelPart(background_name)
+            : &r_output.CreateSubModelPart(background_name);
+    }
 
     const auto lower = mParameters["lower_point"].GetVector();
     const auto upper = mParameters["upper_point"].GetVector();
@@ -457,6 +606,36 @@ void SurrogateBoundaryModeler::SetupModelPart2D()
         << "number_of_elements must be positive in x and y." << std::endl;
     KRATOS_ERROR_IF(upper[0] <= lower[0] || upper[1] <= lower[1])
         << "upper_point must be greater than lower_point in x and y." << std::endl;
+
+    const std::size_t expected_number_of_grid_nodes =
+        (number_of_cells[0] + 1) * (number_of_cells[1] + 1);
+    const std::size_t expected_number_of_grid_elements =
+        number_of_cells[0] * number_of_cells[1];
+    if (is_moving) {
+        if (IsUpdate) {
+            KRATOS_ERROR_IF(
+                mGridNodes.size() != expected_number_of_grid_nodes ||
+                mBackgroundElements.size() != expected_number_of_grid_elements ||
+                p_background->NumberOfNodes() != expected_number_of_grid_nodes ||
+                p_background->NumberOfElements() != expected_number_of_grid_elements)
+                << "The moving SurrogateBoundaryModeler background grid was "
+                << "modified after SetupModelPart." << std::endl;
+        } else {
+            KRATOS_ERROR_IF(
+                p_background->NumberOfNodes() != 0 ||
+                p_background->NumberOfElements() != 0)
+                << "Background submodelpart '" << p_background->Name()
+                << "' must be empty before moving-grid initialization."
+                << std::endl;
+            KRATOS_ERROR_IF(
+                r_volume.NumberOfNodes() != 0 ||
+                r_volume.NumberOfElements() != 0 ||
+                r_surrogate.NumberOfNodes() != 0 ||
+                r_surrogate.NumberOfConditions() != 0)
+                << "The moving SurrogateBoundaryModeler requires initially "
+                << "empty volume and surrogate submodelparts." << std::endl;
+        }
+    }
 
     const double dx = (upper[0] - lower[0]) / number_of_cells[0];
     const double dy = (upper[1] - lower[1]) / number_of_cells[1];
@@ -509,27 +688,88 @@ void SurrogateBoundaryModeler::SetupModelPart2D()
         maximum_half_segment_length,
         search_tolerance);
     const auto& active_cells = classification.ActiveCells;
-    const double initial_projection_search_radius =
-        std::hypot(dx, dy) + maximum_half_segment_length + search_tolerance;
-    const double maximum_projection_search_radius = std::hypot(
-        upper[0] - lower[0], upper[1] - lower[1]) +
-        maximum_half_segment_length + initial_projection_search_radius;
 
-    auto p_properties = r_output.HasProperties(mParameters["properties_id"].GetInt())
-        ? r_output.pGetProperties(mParameters["properties_id"].GetInt())
-        : r_output.CreateNewProperties(mParameters["properties_id"].GetInt());
+    ModelPart& r_root_output = r_output.GetRootModelPart();
+    const int properties_id = mParameters["properties_id"].GetInt();
+    auto p_properties = r_root_output.HasProperties(properties_id)
+        ? r_output.pGetProperties(properties_id)
+        : r_output.CreateNewProperties(properties_id);
     const auto& r_element_prototype = KratosComponents<Element>::Get(mParameters["element_name"].GetString());
     const auto& r_condition_prototype = KratosComponents<Condition>::Get(mParameters["condition_name"].GetString());
 
-    std::size_t next_node_id = FindMaximumNodeId(r_output) + 1;
-    std::size_t next_element_id = FindMaximumElementId(r_output) + 1;
-    std::size_t next_condition_id = FindMaximumConditionId(r_output) + 1;
+    if (IsUpdate) {
+        // Conditions are regenerated because their owner cell, projection and
+        // orientation may change after the skin moves. Remove them from the
+        // root as well as every submodelpart, then retain the persistent grid.
+        std::vector<std::size_t> surrogate_condition_ids;
+        surrogate_condition_ids.reserve(r_surrogate.NumberOfConditions());
+        for (const auto& r_condition : r_surrogate.Conditions()) {
+            surrogate_condition_ids.push_back(r_condition.Id());
+        }
+        for (const std::size_t condition_id : surrogate_condition_ids) {
+            r_output.RemoveConditionFromAllLevels(condition_id);
+        }
+        r_surrogate.Nodes().clear();
+
+        // FluidDomain is only an active view of BackgroundGrid. Clearing its
+        // pointer containers never destroys the nodes/elements owned by the
+        // root and by BackgroundGrid, hence their historical data survives.
+        r_volume.Elements().clear();
+        r_volume.Nodes().clear();
+    }
+
+    // Entity identifiers are root-wide.
+    std::size_t next_node_id = FindMaximumNodeId(r_root_output) + 1;
+    std::size_t next_element_id = FindMaximumElementId(r_root_output) + 1;
+    std::size_t next_condition_id = FindMaximumConditionId(r_root_output) + 1;
     const std::size_t number_of_grid_nodes_x = number_of_cells[0] + 1;
     std::unordered_map<std::size_t, Node::Pointer> grid_nodes;
     std::vector<Element::Pointer> cell_elements(active_cells.size());
 
+    if (is_moving) {
+        if (!IsUpdate) {
+            mGridNodes.resize(expected_number_of_grid_nodes);
+            mBackgroundElements.resize(expected_number_of_grid_elements);
+
+            for (std::size_t j = 0; j <= number_of_cells[1]; ++j) {
+                for (std::size_t i = 0; i <= number_of_cells[0]; ++i) {
+                    const std::size_t key = i + j * number_of_grid_nodes_x;
+                    auto p_node = r_output.CreateNewNode(
+                        next_node_id++,
+                        lower[0] + i * dx,
+                        lower[1] + j * dy,
+                        lower[2]);
+                    mGridNodes[key] = p_node;
+                    p_background->AddNode(p_node);
+                }
+            }
+
+            for (std::size_t j = 0; j < number_of_cells[1]; ++j) {
+                for (std::size_t i = 0; i < number_of_cells[0]; ++i) {
+                    const IndexArray2D index{i, j};
+                    const std::size_t linear_index =
+                        TopologyUtility2D::LinearIndex(index, number_of_cells);
+                    Element::NodesArrayType nodes;
+                    nodes.push_back(mGridNodes[i + j * number_of_grid_nodes_x]);
+                    nodes.push_back(mGridNodes[i + 1 + j * number_of_grid_nodes_x]);
+                    nodes.push_back(mGridNodes[i + 1 + (j + 1) * number_of_grid_nodes_x]);
+                    nodes.push_back(mGridNodes[i + (j + 1) * number_of_grid_nodes_x]);
+                    auto p_element = r_element_prototype.Create(
+                        next_element_id++, nodes, p_properties);
+                    r_output.AddElement(p_element);
+                    p_background->AddElement(p_element);
+                    mBackgroundElements[linear_index] = p_element;
+                }
+            }
+        }
+        cell_elements = mBackgroundElements;
+    }
+
     auto get_node = [&](const std::size_t i, const std::size_t j) {
         const std::size_t key = i + j * number_of_grid_nodes_x;
+        if (is_moving) {
+            return mGridNodes[key];
+        }
         const auto found = grid_nodes.find(key);
         if (found != grid_nodes.end()) {
             return found->second;
@@ -545,6 +785,16 @@ void SurrogateBoundaryModeler::SetupModelPart2D()
             const IndexArray2D index{i, j};
             const std::size_t linear_index = TopologyUtility2D::LinearIndex(index, number_of_cells);
             if (!active_cells[linear_index]) {
+                continue;
+            }
+
+            if (is_moving) {
+                auto p_element = cell_elements[linear_index];
+                r_volume.AddElement(p_element);
+                const auto& r_geometry = p_element->GetGeometry();
+                for (std::size_t n = 0; n < r_geometry.size(); ++n) {
+                    r_volume.AddNode(r_geometry.pGetPoint(n));
+                }
                 continue;
             }
 
@@ -564,8 +814,6 @@ void SurrogateBoundaryModeler::SetupModelPart2D()
     const int number_of_gauss_points = mParameters["number_of_boundary_gauss_points"].GetInt();
     KRATOS_ERROR_IF(number_of_gauss_points != 2)
         << "The initial 2D face adapter currently supports exactly two Gauss points." << std::endl;
-    SkinSearchPointVectorType projection_candidates(skin_search_points.size());
-    SkinSearchDistanceVectorType projection_candidate_distances(skin_search_points.size());
 
     for (const auto& r_face : boundary_faces) {
         const std::size_t i = r_face.OwnerCell[0];
@@ -605,30 +853,6 @@ void SurrogateBoundaryModeler::SetupModelPart2D()
         }
         p_condition->SetValue(SURROGATE_BOUNDARY_FACE_COORDINATES, face_coordinates);
 
-        const auto integration_method = GeometryData::IntegrationMethod::GI_GAUSS_2;
-        const auto& r_integration_points = p_line_geometry->IntegrationPoints(integration_method);
-        const Matrix& r_N = p_line_geometry->ShapeFunctionsValues(integration_method);
-        Matrix projections(r_integration_points.size(), 3);
-        for (std::size_t g = 0; g < r_integration_points.size(); ++g) {
-            Point surrogate_point(0.0, 0.0, 0.0);
-            for (std::size_t n = 0; n < face_nodes.size(); ++n) {
-                surrogate_point.Coordinates() += r_N(g, n) * face_nodes[n].Coordinates();
-            }
-            const Point projected_point = ProjectOnNearestSkinCondition(
-                surrogate_point,
-                skin_bins,
-                condition_by_search_point,
-                projection_candidates,
-                projection_candidate_distances,
-                maximum_half_segment_length,
-                initial_projection_search_radius,
-                maximum_projection_search_radius,
-                search_tolerance);
-            for (std::size_t d = 0; d < 3; ++d) {
-                projections(g, d) = projected_point[d];
-            }
-        }
-        p_condition->SetValue(SURROGATE_BOUNDARY_PROJECTION, projections);
         KRATOS_INFO_IF("SurrogateBoundaryModeler", mParameters["echo_level"].GetInt() > 1)
             << "condition=" << p_condition->Id()
             << ", owner=(" << i << "," << j << ")"
@@ -644,12 +868,27 @@ void SurrogateBoundaryModeler::SetupModelPart2D()
         }
     }
 
+    // Compute all closest-point data in one pass after the face topology has
+    // been created, so every condition follows the same projection path.
+    UpdateSurrogateBoundaryProjections(
+        r_surrogate.Conditions(),
+        r_skin_conditions,
+        lower,
+        upper,
+        dx,
+        dy,
+        mParameters["project_surrogate_face_end_points"].GetBool());
+
     KRATOS_INFO_IF("SurrogateBoundaryModeler", mParameters["echo_level"].GetInt() > 0)
         << "Classified " << number_of_cells[0] * number_of_cells[1]
         << " cells (" << classification.NumberOfCutCells << " cut, "
         << classification.NumberOfUncutRegions << " uncut regions); created "
         << r_volume.NumberOfElements() << " active elements and "
         << r_surrogate.NumberOfConditions() << " surrogate faces." << std::endl;
+
+    if (is_moving) {
+        mMovingModelIsInitialized = true;
+    }
 }
 
 } // namespace Kratos
