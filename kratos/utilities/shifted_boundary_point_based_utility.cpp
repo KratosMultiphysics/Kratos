@@ -2287,7 +2287,7 @@ namespace Kratos
             case GeometryData::KratosGeometryType::Kratos_Tetrahedra3D4:
                 return [](const GeometryType& rGeometry)->double{return ElementSizeCalculator<3,4>::AverageElementSize(rGeometry);};
             default:
-                KRATOS_ERROR << "Asking for a non-implemented modified shape functions geometry.";
+                KRATOS_ERROR << "Asking for a non-implemented element size function geometry.";
         }
     }
 

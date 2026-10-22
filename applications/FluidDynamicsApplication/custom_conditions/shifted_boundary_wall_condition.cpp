@@ -12,12 +12,9 @@
 
 // System includes
 
-
 // External includes
 
-
 // Project includes
-#include "custom_utilities/fluid_element_utilities.h"
 #include "fluid_dynamics_application_variables.h"
 #include "includes/checks.h"
 #include "includes/define.h"
@@ -25,15 +22,10 @@
 #include "includes/variables.h"
 #include "includes/constitutive_law.h"
 #include "input_output/logger.h"
-#include "utilities/integration_utilities.h"
 
 // Application includes
 #include "shifted_boundary_wall_condition.h"
-#include <algorithm>
-#include <boost/numeric/ublas/vector.hpp>
-#include <cmath>
-#include <cstddef>
-#include <string>
+#include "custom_utilities/fluid_element_utilities.h"
 
 
 namespace Kratos
@@ -149,28 +141,35 @@ int ShiftedBoundaryWallCondition<TDim>::Check(const ProcessInfo& rCurrentProcess
 {
     KRATOS_TRY;
 
-    //TODO check certain variables as in NavierStokesWallCondition? like viscosity?
-    // SLIP_LENGTH and PENALTY_COEFFICIENT and EMBEDDED_CHARACT_LENGTH of ProcessInfo
-    // constitutive law
-    // EMBEDDED_VELOCITY as variable at nodes?
-    // check whether condition has ELEMENT_H, INTEGRATION_WEIGHT, SHAPE_FUNCTIONS_VECTOR, SHAPE_FUNCTIONS_GRADIENT_MATRIX and NORMAL
+    //NOTE that the base check is intentionally not called to avoid calling the base geometry check as there are only nodes, no elements
+    // int check = BaseType::Check(rCurrentProcessInfo);
+    // if (check != 0) {
+    //     return check;
+    // } else {
 
-    /*int check = BaseType::Check(rCurrentProcessInfo);
-    if (check != 0) {
-        return check;
-    } else {
-        // Checks on nodes
-        const auto& r_geom = BaseType::GetGeometry();
-        for (const auto& r_node : r_geom) {
-            if(r_node.SolutionStepsDataHas(DYNAMIC_VISCOSITY) == false){
-                KRATOS_ERROR << "missing DYNAMIC_VISCOSITY variable on solution step data for node " << r_node.Id();
-            }
+    // Check that the nodes contain all required SolutionStepData and Degrees Of Freedom variables
+    for (const auto& r_node : this->GetGeometry()) {
+
+        //TODO remove?
+        if(r_node.SolutionStepsDataHas(DYNAMIC_VISCOSITY) == false){
+            KRATOS_ERROR << "missing DYNAMIC_VISCOSITY variable on solution step data for node " << r_node.Id();
         }
 
-        return check;
-    }*/
+        // Check variables
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(VELOCITY, r_node)
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(PRESSURE, r_node)
 
-    //NOTE that the base check is intentionally not called to avoid calling the base geometry check
+        // Check DOFs
+        KRATOS_CHECK_DOF_IN_NODE(VELOCITY_X, r_node)
+        KRATOS_CHECK_DOF_IN_NODE(VELOCITY_Y, r_node)
+        KRATOS_CHECK_DOF_IN_NODE(VELOCITY_Z, r_node)
+        KRATOS_CHECK_DOF_IN_NODE(PRESSURE, r_node)
+    }
+
+    // TODO check SLIP_LENGTH and PENALTY_COEFFICIENT, PENALTY_COEFFICIENT_TANGENTIAL and DELTA_TIME of ProcessInfo?
+    // TODO check constitutive law ?
+    // TODO check whether condition has ELEMENT_H, INTEGRATION_WEIGHT, SHAPE_FUNCTIONS_VECTOR, SHAPE_FUNCTIONS_GRADIENT_MATRIX and NORMAL and EMBEDDED_VELOCITY ?
+
     return 0;
 
     KRATOS_CATCH("");
@@ -291,7 +290,7 @@ void ShiftedBoundaryWallCondition<TDim>::AddNitscheImposition(
     // 1. Normal penalty: pen * w * (N_i n_di) (N_j n_dj)
 
     // Compute the Nitsche normal imposition penalty coefficient
-    const double pen_coeff_normal = this->ComputeSlipNormalPenaltyCoefficient(
+    const double pen_coeff_normal = this->ComputeNormalPenaltyCoefficient(
         r_N, delta_time, gamma_penalty, parent_size, effective_viscosity);
     const double pen_normal_w = pen_coeff_normal * weight;
 
@@ -337,7 +336,7 @@ void ShiftedBoundaryWallCondition<TDim>::AddNitscheImposition(
     // 3. Tangential penalty
 
     // Compute the Nitsche slip tangential penalty coefficients
-    auto [pen_coeff_tang_1, pen_coeff_tang_2] = this->ComputeSlipTangentialPenaltyCoefficients(
+    auto [pen_coeff_tang_1, pen_coeff_tang_2] = this->ComputeTangentialPenaltyCoefficients(
         r_N, delta_time,
         slip_length, gamma_penalty, gamma_penalty_shear, parent_size, charact_length,
         effective_viscosity);
@@ -358,7 +357,7 @@ void ShiftedBoundaryWallCondition<TDim>::AddNitscheImposition(
     // 4. Tangential Nitsche symmetric counterpart stabilization
 
     // Compute the stabilization coefficients
-    auto [nitsche_coeff_tang_1, nitsche_coeff_tang_2] = this->ComputeSlipTangentialNitscheCoefficients(
+    auto [nitsche_coeff_tang_1, nitsche_coeff_tang_2] = this->ComputeTangentialNitscheCoefficients(
         r_N,
         slip_length, gamma_penalty_shear, parent_size,
         charact_length, effective_viscosity);
@@ -433,7 +432,7 @@ void ShiftedBoundaryWallCondition<3>::CalculateStrainMatrix(
 }
 
 template<std::size_t TDim>
-double ShiftedBoundaryWallCondition<TDim>::ComputeSlipNormalPenaltyCoefficient(
+double ShiftedBoundaryWallCondition<TDim>::ComputeNormalPenaltyCoefficient(
     const Vector& rN,
     const double DeltaTime,
     const double Gamma,
@@ -461,7 +460,7 @@ double ShiftedBoundaryWallCondition<TDim>::ComputeSlipNormalPenaltyCoefficient(
 }
 
 template<std::size_t TDim>
-std::pair<const double, const double> ShiftedBoundaryWallCondition<TDim>::ComputeSlipTangentialPenaltyCoefficients(
+std::pair<const double, const double> ShiftedBoundaryWallCondition<TDim>::ComputeTangentialPenaltyCoefficients(
     const Vector& rN,
     const double DeltaTime,
     const double SlipLength,
@@ -521,7 +520,7 @@ std::pair<const double, const double> ShiftedBoundaryWallCondition<TDim>::Comput
 }
 
 template<std::size_t TDim>
-std::pair<const double, const double> ShiftedBoundaryWallCondition<TDim>::ComputeSlipTangentialNitscheCoefficients(
+std::pair<const double, const double> ShiftedBoundaryWallCondition<TDim>::ComputeTangentialNitscheCoefficients(
     const Vector& rN,
     const double SlipLength,
     const double GammaShear,

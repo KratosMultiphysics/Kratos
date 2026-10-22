@@ -306,7 +306,7 @@ protected:
      * @param EffectiveViscosity effective viscosity
      * @return double the normal penalty coefficient value
      */
-    double ComputeSlipNormalPenaltyCoefficient(
+    double ComputeNormalPenaltyCoefficient(
         const Vector& rN,
         const double DeltaTime,
         const double Gamma,
@@ -322,7 +322,7 @@ protected:
      * @param EffectiveViscosity effective viscosity
      * @return a pair of double containing the two coefficients for the tangential velocity and shear stress terms
      */
-    std::pair<const double, const double> ComputeSlipTangentialPenaltyCoefficients(
+    std::pair<const double, const double> ComputeTangentialPenaltyCoefficients(
         const Vector& rN,
         const double DeltaTime,
         const double SlipLength,
@@ -340,7 +340,7 @@ protected:
      * @param EffectiveViscosity effective viscosity
      * @return a pair of double containing the two coefficients for the tangential velocity and shear stress terms
      */
-    std::pair<const double, const double> ComputeSlipTangentialNitscheCoefficients(
+    std::pair<const double, const double> ComputeTangentialNitscheCoefficients(
         const Vector& rN,
         const double SlipLength,
         const double GammaShear,
