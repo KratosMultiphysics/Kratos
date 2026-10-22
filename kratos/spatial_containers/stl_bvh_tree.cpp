@@ -10,6 +10,13 @@
 //  Main authors:    Pooyan Dadvand
 //
 
+#ifndef INFINITY
+#define INFINITY __builtin_inff()
+#endif
+#ifndef NAN
+#define NAN __builtin_nanf("")
+#endif
+
 // System includes
 #include <cstring>    // memset
 #include <cfloat>     // FLT_MAX

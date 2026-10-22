@@ -13,14 +13,19 @@
 #pragma once
 
 // System includes
+#include <cmath>
+#include <math.h>
 #include <vector>
 #include <cfloat>
 // External includes
 
 // Project includes
 
+#ifndef DBL_EPSILON
+#define DBL_EPSILON __DBL_EPSILON__
+#endif
 #ifndef DBL_MAX
-#define DBL_MAX (1.0/DBL_EPSILON)
+#define DBL_MAX __DBL_MAX__
 #endif
 
 namespace Kratos
