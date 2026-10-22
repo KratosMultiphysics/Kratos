@@ -22,7 +22,7 @@ class ApplyNitscheNavierSlipProcess(KM.Process):
         self.model_part = Model[settings["model_part_name"].GetString()]
         self.avoid_recomputing_normals = settings["avoid_recomputing_normals"].GetBool()
 
-        self.slip_length = 1e10  # TODO settings["slip_length"].GetDouble()
+        self.slip_length = settings["slip_length"].GetDouble()
         self.penalty_coefficient = settings["penalty_coefficient"].GetDouble()
 
     @classmethod
@@ -50,7 +50,7 @@ class ApplyNitscheNavierSlipProcess(KM.Process):
             break
         pts_num = self.model_part.GetCommunicator().GetDataCommunicator().MaxAll(pts_num)
         domain_size = self.model_part.ProcessInfo[KM.DOMAIN_SIZE]
-        cond_reg_name = f"{"NavierStokesNitscheNavierSlipWallCondition"}{domain_size}D{pts_num}N"
+        cond_reg_name = f'{"NavierStokesNitscheNavierSlipWallCondition"}{domain_size}D{pts_num}N'
 
         # Substitute current conditions by the corresponding ones implementing the wall model
         replace_settings = KM.Parameters("""{
