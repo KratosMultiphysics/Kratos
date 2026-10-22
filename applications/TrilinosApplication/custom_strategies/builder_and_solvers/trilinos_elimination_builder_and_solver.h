@@ -918,8 +918,8 @@ public:
         //int source=rank;
         int destination=0;
 
-// 		  vector<int>& neighbours_indices = rThisModelPart[NEIGHBOURS_INDICES];
-        vector<int>& neighbours_indices = rThisModelPart.GetCommunicator().NeighbourIndices();
+// 		  std::vector<int>& neighbours_indices = rThisModelPart[NEIGHBOURS_INDICES];
+        std::vector<int>& neighbours_indices = rThisModelPart.GetCommunicator().NeighbourIndices();
 
 // 		  std::cout << rank << " starting domain loop " << std::endl;
         for (unsigned int i_domain = 0 ; i_domain <  neighbours_indices.size() ; i_domain++)
