@@ -34,6 +34,10 @@ class McWhorter_test(TF.TestFactory):
     file_name = "element_tests/McWhorter_test/McWhorter_test"
     file_parameters = "element_tests/McWhorter_test/ProjectParameters.json"
 
+class two_phase_flow_porouslab_test(TF.TestFactory):
+    file_name = "element_tests/two_phase_flow_porouslab_test/two_phase_flow_porouslab_test"
+    file_parameters = "element_tests/two_phase_flow_porouslab_test/ProjectParameters.json"
+
 def SetTestSuite(suites):
     small_suite = suites['small']
 
@@ -45,7 +49,8 @@ def SetTestSuite(suites):
             interface_isotropic_damage,
             interface_mc_tension_cutoff,
             nodal_discharge_2D,
-            McWhorter_test
+            McWhorter_test,
+            two_phase_flow_porouslab_test
         ])
     )
 
