@@ -476,7 +476,8 @@ void MeshTyingMortarCondition<TDim,TNumNodes, TNumNodesMaster>::CalculateKinemat
     const PointType& rLocalPointDecomp,
     const PointType& rLocalPointParent,
     const GeometryPointType& rGeometryDecomp,
-    const bool DualLM
+    const bool DualLM,
+    const ProcessInfo& rCurrentProcessInfo
     )
 {
     /// SLAVE CONDITION ///
@@ -487,7 +488,9 @@ void MeshTyingMortarCondition<TDim,TNumNodes, TNumNodesMaster>::CalculateKinemat
     /* CALCULATE JACOBIAN AND JACOBIAN DETERMINANT */
     rVariables.DetjSlave = rGeometryDecomp.DeterminantOfJacobian( rLocalPointDecomp );
 
-    KRATOS_ERROR_IF(rVariables.DetjSlave <= 1.0e-12) << "WARNING:: CONDITION ID: " << this->Id() << " INVERTED. DETJ: " << rVariables.DetjSlave << std::endl;
+    const double ref_length = rCurrentProcessInfo.Has(PROBLEM_REFERENCE_LENGTH) ? rCurrentProcessInfo[PROBLEM_REFERENCE_LENGTH] : 1.0;
+
+    KRATOS_ERROR_IF(rVariables.DetjSlave <= 1.0e-18 * ref_length) << "WARNING:: CONDITION ID: " << this->Id() << " INVERTED. DETJ: " << rVariables.DetjSlave << std::endl;
 
     /// MASTER CONDITION ///
     this->MasterShapeFunctionValue( rVariables, rNormalMaster, rLocalPointParent);
