@@ -96,6 +96,8 @@ ConstitutiveLaw::Pointer MohrCoulombLaw::Clone() const
     p_result->mStressVectorFinalized      = mStressVectorFinalized;
     p_result->mStrainVectorFinalized      = mStrainVectorFinalized;
     p_result->mpCoulombImpl               = mpCoulombImpl->Clone();
+    p_result->mYoungsModulusFormulation   = mYoungsModulusFormulation;
+    p_result->mIsModelInitialized         = mIsModelInitialized;
     p_result->mMaxRelativeOvershoot       = mMaxRelativeOvershoot;
     p_result->mMaxNumberOfSubSteps        = mMaxNumberOfSubSteps;
     p_result->mCalculatedNumberOfSubSteps = mCalculatedNumberOfSubSteps;
@@ -147,6 +149,7 @@ int MohrCoulombLaw::Check(const Properties&   rMaterialProperties,
     check_properties.Check(YOUNG_MODULUS);
     constexpr auto max_value_poisson_ratio = 0.5;
     check_properties.Check(POISSON_RATIO, max_value_poisson_ratio);
+    GeoYoungsModulusFormulations::CheckInputData(rMaterialProperties);
 
     if (rMaterialProperties.Has(GEO_MAX_RELATIVE_OVERSHOOT)) {
         check_properties.SingleUseBounds(CheckProperties::Bounds::ExclusiveLowerAndInclusiveUpper)
@@ -191,9 +194,11 @@ void MohrCoulombLaw::InitializeMaterial(const Properties& rMaterialProperties, c
 void MohrCoulombLaw::InitializeMaterialResponseCauchy(Parameters& rValues)
 {
     if (!mIsModelInitialized) {
-        mStressVectorFinalized = rValues.GetStressVector();
-        mStrainVectorFinalized = rValues.GetStrainVector();
-        mIsModelInitialized    = true;
+        mStressVectorFinalized    = rValues.GetStressVector();
+        mStrainVectorFinalized    = rValues.GetStrainVector();
+        mYoungsModulusFormulation = GeoYoungsModulusFormulations::InitializeFormulation(
+            GeoYoungsModulusFormulations::GetYoungsModulusFormulation(rValues.GetMaterialProperties()));
+        mIsModelInitialized = true;
     }
 }
 
@@ -214,10 +219,10 @@ void MohrCoulombLaw::CalculateMaterialResponseCauchy(ConstitutiveLaw::Parameters
 {
     const auto& r_properties = rParameters.GetMaterialProperties();
 
-    const auto elastic_matrix = mpConstitutiveDimension->CalculateElasticConstitutiveTensor(r_properties);
+    const auto elastic_constitutive_tensor = CalculateElasticConstitutiveTensor(r_properties);
 
     if (rParameters.GetOptions().Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
-        rParameters.GetConstitutiveMatrix() = elastic_matrix;
+        rParameters.GetConstitutiveMatrix() = elastic_constitutive_tensor;
     }
     if (!rParameters.GetOptions().Is(ConstitutiveLaw::COMPUTE_STRESS)) {
         return;
@@ -227,7 +232,7 @@ void MohrCoulombLaw::CalculateMaterialResponseCauchy(ConstitutiveLaw::Parameters
 
     // Full elastic predictor over the entire strain increment.
     const Vector full_trial_stress_vector =
-        mStressVectorFinalized + prod(elastic_matrix, total_strain_increment);
+        mStressVectorFinalized + prod(elastic_constitutive_tensor, total_strain_increment);
     const auto& [full_trial_principal_stresses, full_rotation_matrix] =
         StressStrainUtilities::CalculatePrincipalStressesAndRotationMatrix(full_trial_stress_vector);
 
@@ -242,8 +247,8 @@ void MohrCoulombLaw::CalculateMaterialResponseCauchy(ConstitutiveLaw::Parameters
     if (mMaxNumberOfSubSteps > 1) {
         // only calculate the number of sub-steps once per solution step for stability
         if (mCalculatedNumberOfSubSteps == 0) {
-            mCalculatedNumberOfSubSteps =
-                CalculateAdaptiveNumberOfSubSteps(full_trial_principal_stresses, elastic_matrix);
+            mCalculatedNumberOfSubSteps = CalculateAdaptiveNumberOfSubSteps(
+                full_trial_principal_stresses, elastic_constitutive_tensor);
         }
 
         number_of_sub_steps = mCalculatedNumberOfSubSteps;
@@ -261,7 +266,7 @@ void MohrCoulombLaw::CalculateMaterialResponseCauchy(ConstitutiveLaw::Parameters
 
         // elastic predictor from the committed sub-step state
         const Vector trial_stress_vector =
-            committed_stress + prod(elastic_matrix, sub_strain - committed_strain);
+            committed_stress + prod(elastic_constitutive_tensor, sub_strain - committed_strain);
 
         const auto& [trial_principal_stresses, rotation_matrix] =
             StressStrainUtilities::CalculatePrincipalStressesAndRotationMatrix(trial_stress_vector);
@@ -270,8 +275,9 @@ void MohrCoulombLaw::CalculateMaterialResponseCauchy(ConstitutiveLaw::Parameters
             mStressVector = trial_stress_vector;
         } else {
             mpCoulombImpl->SaveKappaOfCoulombYieldSurface();
-            auto mapped_principal_stresses = mpCoulombImpl->DoReturnMapping(
-                trial_principal_stresses, elastic_matrix, Geo::PrincipalStresses::AveragingType::NO_AVERAGING);
+            auto mapped_principal_stresses =
+                mpCoulombImpl->DoReturnMapping(trial_principal_stresses, elastic_constitutive_tensor,
+                                               Geo::PrincipalStresses::AveragingType::NO_AVERAGING);
 
             if (const auto averaging_type = FindAveragingType(mapped_principal_stresses);
                 averaging_type != Geo::PrincipalStresses::AveragingType::NO_AVERAGING) {
@@ -279,7 +285,7 @@ void MohrCoulombLaw::CalculateMaterialResponseCauchy(ConstitutiveLaw::Parameters
                     AveragePrincipalStressComponents(trial_principal_stresses, averaging_type);
                 mpCoulombImpl->RestoreKappaOfCoulombYieldSurface();
                 mapped_principal_stresses = mpCoulombImpl->DoReturnMapping(
-                    averaged_principal_trial_stress_vector, elastic_matrix, averaging_type);
+                    averaged_principal_trial_stress_vector, elastic_constitutive_tensor, averaging_type);
                 mapped_principal_stresses.Values()[1] =
                     mapped_principal_stresses.Values()[AveragingTypeToArrayIndex(averaging_type)];
             }
@@ -295,9 +301,21 @@ void MohrCoulombLaw::CalculateMaterialResponseCauchy(ConstitutiveLaw::Parameters
     rParameters.GetStressVector() = mStressVector;
 }
 
-Vector MohrCoulombLaw::CalculateTrialStressVector(const Vector& rStrainVector, const Properties& rProperties) const
+Matrix MohrCoulombLaw::CalculateElasticConstitutiveTensor(const Properties& rProperties)
 {
-    return mStressVectorFinalized + prod(mpConstitutiveDimension->CalculateElasticConstitutiveTensor(rProperties),
+    const auto [reference_youngs_modulus, poisson_ratio] =
+        ConstitutiveLawUtilities::GetOrCalculateElasticProperties(rProperties);
+    const auto youngs_modulus = GeoYoungsModulusFormulations::GetYoungsModulus(
+        mYoungsModulusFormulation, rProperties, reference_youngs_modulus, mStressVectorFinalized);
+
+    return ConstitutiveLawUtilities::MakeContinuumElasticConstitutiveTensor(
+        youngs_modulus, poisson_ratio, mpConstitutiveDimension->GetStrainSize(),
+        mpConstitutiveDimension->GetNumberOfNormalComponents());
+}
+
+Vector MohrCoulombLaw::CalculateTrialStressVector(const Vector& rStrainVector, const Properties& rProperties)
+{
+    return mStressVectorFinalized + prod(CalculateElasticConstitutiveTensor(rProperties),
                                          rStrainVector - mStrainVectorFinalized);
 }
 
@@ -341,6 +359,8 @@ void MohrCoulombLaw::save(Serializer& rSerializer) const
     rSerializer.save("IsModelInitialized", mIsModelInitialized);
     rSerializer.save("MaxRelativeOvershoot", mMaxRelativeOvershoot);
     rSerializer.save("MaxNumberOfSubSteps", mMaxNumberOfSubSteps);
+    rSerializer.save("YoungsModulusFormulations",
+                     GeoYoungsModulusFormulations::GetYoungsModulusFormulation(mYoungsModulusFormulation));
 }
 
 void MohrCoulombLaw::load(Serializer& rSerializer)
@@ -354,6 +374,9 @@ void MohrCoulombLaw::load(Serializer& rSerializer)
     rSerializer.load("IsModelInitialized", mIsModelInitialized);
     rSerializer.load("MaxRelativeOvershoot", mMaxRelativeOvershoot);
     rSerializer.load("MaxNumberOfSubSteps", mMaxNumberOfSubSteps);
+    std::string youngs_modulus_formulation;
+    rSerializer.load("YoungsModulusFormulations", youngs_modulus_formulation);
+    mYoungsModulusFormulation = GeoYoungsModulusFormulations::InitializeFormulation(youngs_modulus_formulation);
 }
 
 } // Namespace Kratos

@@ -118,6 +118,17 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombLaw_Check, KratosGeoMechanicsFastSuiteWitho
     properties.SetValue(GEO_MAX_NUMBER_OF_SUB_STEPS, 100);
 
     KRATOS_EXPECT_EQ(law.Check(properties, element_geometry, process_info), 0);
+
+    properties.SetValue(GEO_YOUNGS_MODULUS_FORMULATION, "SCHANZ_VERMEER"s);
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        [[maybe_unused]] const auto unused = law.Check(properties, element_geometry, process_info),
+        "GEO_PRESSURE_REFERENCE does not exist in the parameters of material with Id 3.");
+    properties.SetValue(GEO_PRESSURE_REFERENCE, 100.0);
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        [[maybe_unused]] const auto unused = law.Check(properties, element_geometry, process_info),
+        "GEO_STRESS_DEPENDENCY_EXPONENT does not exist in the parameters of material with Id 3.");
+    properties.SetValue(GEO_STRESS_DEPENDENCY_EXPONENT, 0.5);
+    KRATOS_EXPECT_EQ(law.Check(properties, element_geometry, process_info), 0);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateMaterialResponseCauchyAtElasticZone,
@@ -497,6 +508,90 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateConstitutiveMatr
                                                                       {5.77E7, 5.77E7, 1.35E8, 0.},
                                                                       {0., 0., 0., 3.85E7}});
     KRATOS_EXPECT_MATRIX_NEAR(constitutive_matrix, expected_constitutive_matrix, 1.E6);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_SchanzVermeerElasticResponseAndState,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    KRATOS_REGISTER_VARIABLE(YOUNG_MODULUS)
+    KRATOS_REGISTER_VARIABLE(POISSON_RATIO)
+    KRATOS_REGISTER_VARIABLE(GEO_YOUNGS_MODULUS_FORMULATION)
+    KRATOS_REGISTER_VARIABLE(GEO_PRESSURE_REFERENCE)
+    KRATOS_REGISTER_VARIABLE(GEO_STRESS_DEPENDENCY_EXPONENT)
+
+    const auto scoped_registration =
+        ScopedSerializerRegistration{std::make_pair("PlaneStrain"s, PlaneStrain{}),
+                                     std::make_pair("ThreeDimensional"s, ThreeDimensional{}),
+                                     std::make_pair("MohrCoulombLaw"s, MohrCoulombLaw{})};
+
+    for (const auto strain_size : {std::size_t{4}, std::size_t{6}}) {
+        std::unique_ptr<ConstitutiveLawDimension> p_dimension = std::make_unique<PlaneStrain>();
+        if (strain_size == 6) p_dimension = std::make_unique<ThreeDimensional>();
+        auto law = MohrCoulombLaw(std::move(p_dimension));
+
+        Properties properties;
+        properties.SetValue(GEO_DRAINAGE_TYPE, "FULLY_COUPLED"s);
+        properties.SetValue(YOUNG_MODULUS, 1000.0);
+        properties.SetValue(POISSON_RATIO, 0.0);
+        properties.SetValue(GEO_FRICTION_ANGLE, 45.0);
+        properties.SetValue(GEO_COHESION, 100.0);
+        properties.SetValue(GEO_DILATANCY_ANGLE, 0.0);
+        properties.SetValue(GEO_YOUNGS_MODULUS_FORMULATION, "SCHANZ_VERMEER"s);
+        properties.SetValue(GEO_PRESSURE_REFERENCE, 100.0);
+        properties.SetValue(GEO_STRESS_DEPENDENCY_EXPONENT, 1.0);
+
+        Vector strain_vector = ZeroVector(strain_size);
+        Vector stress_vector = ZeroVector(strain_size);
+        std::fill_n(stress_vector.begin(), 3, -300.0);
+        Matrix                      constitutive_matrix;
+        ConstitutiveLaw::Parameters parameters;
+        parameters.SetMaterialProperties(properties);
+        parameters.SetStrainVector(strain_vector);
+        parameters.SetStressVector(stress_vector);
+        parameters.SetConstitutiveMatrix(constitutive_matrix);
+        parameters.Set(ConstitutiveLaw::COMPUTE_STRESS);
+        parameters.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
+        law.InitializeMaterial(properties, Geometry<Node>{}, Vector{});
+        law.InitializeMaterialResponseCauchy(parameters);
+
+        Vector expected_stress = ZeroVector(strain_size);
+        Matrix expected_matrix = ZeroMatrix(strain_size, strain_size);
+        for (std::size_t component = 0; component < strain_size; ++component) {
+            expected_matrix(component, component) = component < 3 ? 2000.0 : 1000.0;
+            if (component < 3) {
+                strain_vector[component]   = -0.001;
+                expected_stress[component] = -302.0;
+            }
+        }
+
+        law.CalculateMaterialResponseCauchy(parameters);
+        KRATOS_EXPECT_VECTOR_NEAR(stress_vector, expected_stress, Defaults::absolute_tolerance);
+        KRATOS_EXPECT_MATRIX_NEAR(constitutive_matrix, expected_matrix, Defaults::absolute_tolerance);
+        law.CalculateMaterialResponseCauchy(parameters);
+        KRATOS_EXPECT_VECTOR_NEAR(stress_vector, expected_stress, Defaults::absolute_tolerance);
+        law.FinalizeMaterialResponseCauchy(parameters);
+
+        auto p_cloned_law = law.Clone();
+        auto serializer   = StreamSerializer{};
+        serializer.save("law"s, p_cloned_law);
+        ConstitutiveLaw::Pointer p_loaded_law;
+        serializer.load("law"s, p_loaded_law);
+
+        for (std::size_t component = 0; component < strain_size; ++component) {
+            expected_matrix(component, component) = component < 3 ? 2010.0 : 1005.0;
+            if (component < 3) {
+                strain_vector[component]   = -0.002;
+                expected_stress[component] = -304.01;
+            }
+        }
+        for (auto* p_law : {static_cast<ConstitutiveLaw*>(&law), p_cloned_law.get(), p_loaded_law.get()}) {
+            stress_vector = ZeroVector(strain_size);
+            p_law->InitializeMaterialResponseCauchy(parameters);
+            p_law->CalculateMaterialResponseCauchy(parameters);
+            KRATOS_EXPECT_VECTOR_NEAR(stress_vector, expected_stress, Defaults::absolute_tolerance);
+            KRATOS_EXPECT_MATRIX_NEAR(constitutive_matrix, expected_matrix, Defaults::absolute_tolerance);
+        }
+    }
 }
 
 KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_WorkingSpaceDimensionDependsOnConstitutiveLawDimension,
