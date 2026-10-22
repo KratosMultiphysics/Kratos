@@ -87,7 +87,7 @@
                 "model_part_name"           : "Structure",
                 "assume_master_slave"       : { "0" : ["Parts_Parts_Auto1"]},
                 "contact_type"              : "Frictionless",
-                "advance_ALM_parameters" : {
+                "advanced_ALM_parameters" : {
                     "manual_ALM"                  : true,
                     "use_scale_factor"            : true,
                     "penalty"                     : 1.0e10,

@@ -96,7 +96,7 @@
                 "contact_model_part"          : { "0" : ["Contact_Part"]},
                 "friction_coefficients"       : { "0" : 1.0e0},
                 "contact_type"                : "Frictional",
-                "advance_ALM_parameters" : {
+                "advanced_ALM_parameters" : {
                     "adapt_penalty"               : false
                 }
             }
