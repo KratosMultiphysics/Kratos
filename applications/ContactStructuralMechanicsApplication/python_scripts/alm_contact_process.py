@@ -111,14 +111,15 @@ class ALMContactProcess(search_base_process.SearchBaseProcess):
                 "logistic_exponent_factor" : 6.0
             },
             "advanced_ALM_parameters" : {
-                "manual_ALM"                  : false,
-                "stiffness_factor"            : 1.0,
-                "penalty_scale_factor"        : 1.0,
-                "use_scale_factor"            : true,
-                "penalty"                     : 1.0e-12,
-                "scale_factor"                : 1.0e0,
-                "adapt_penalty"               : false,
-                "max_gap_factor"              : 1.0e-3
+                "manual_ALM"                            : false,
+                "stiffness_factor"                      : 1.0,
+                "penalty_scale_factor"                  : 1.0,
+                "use_scale_factor"                      : true,
+                "penalty"                               : 1.0e-12,
+                "scale_factor"                          : 1.0e0,
+                "adapt_penalty"                         : false,
+                "max_gap_factor"                        : 1.0e-3,
+                "integration_over_total_area_tolerance" : 1.0e-12
             },
             "alternative_formulations" : {
                 "axisymmetric"                : false
@@ -432,6 +433,12 @@ class ALMContactProcess(search_base_process.SearchBaseProcess):
             alm_var_parameters.AddValue("penalty_scale_factor", self.contact_settings["advanced_ALM_parameters"]["penalty_scale_factor"])
             self.alm_var_process = CSMA.ALMVariablesCalculationProcess(self._get_process_model_part(), KM.NODAL_H, alm_var_parameters)
             self.alm_var_process.Execute() # Here the penalty, scale factor, reference size, etc are computed and stored in the process info
+            
+            process_info[CSMA.INTEGRATION_OVER_TOTAL_AREA_TOLERANCE] = self.contact_settings["advanced_ALM_parameters"]["integration_over_total_area_tolerance"].GetDouble()
+
+            print("  Integration over total area tolerance: ", process_info[CSMA.INTEGRATION_OVER_TOTAL_AREA_TOLERANCE])
+            print("  Reference size: ", process_info[CSMA.PROBLEM_REFERENCE_LENGTH])
+
             # We don't consider scale factor
             if not self.contact_settings["advanced_ALM_parameters"]["use_scale_factor"].GetBool():
                 process_info[KM.SCALE_FACTOR] = 1.0
