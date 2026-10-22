@@ -146,6 +146,14 @@ KRATOS_TEST_CASE_IN_SUITE(DenseBackendArray1dIterators, KratosCoreFastSuite)
 
 KRATOS_TEST_CASE_IN_SUITE(DenseBackendBoundedTypesBasics, KratosCoreFastSuite)
 {
+    // No over-alignment on either backend. The Eigen bounded types are also
+    // plain T[Size1*Size2] blocks; the uBLAS ones store their sizes as members.
+    static_assert(alignof(BoundedMatrix<double, 2, 2>) == alignof(double));
+#ifdef KRATOS_USE_EIGEN_BACKEND
+    static_assert(sizeof(BoundedMatrix<double, 3, 3>) == 9 * sizeof(double));
+    static_assert(sizeof(BoundedVector<double, 4>) == 4 * sizeof(double));
+#endif
+
     BoundedMatrix<double, 2, 3> m;
     KRATOS_EXPECT_EQ(m.size1(), 2);
     KRATOS_EXPECT_EQ(m.size2(), 3);

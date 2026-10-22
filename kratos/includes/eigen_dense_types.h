@@ -2592,11 +2592,4 @@ inline std::ostream& operator<<(std::ostream& rOStream, const EigenBoundedVector
 
 ///@}
 
-// Contiguity contract (see the array_1d layout notes): the bounded types are
-// plain T[N] blocks without over-alignment, so raw-buffer interoperability
-// with the uBLAS storage is preserved.
-static_assert(sizeof(EigenBoundedMatrix<double, 3, 3>) == 9 * sizeof(double), "EigenBoundedMatrix must be layout-compatible with double[Size1*Size2]");
-static_assert(sizeof(EigenBoundedVector<double, 4>) == 4 * sizeof(double), "EigenBoundedVector must be layout-compatible with double[Size]");
-static_assert(alignof(EigenBoundedMatrix<double, 2, 2>) == alignof(double), "The bounded types must not be over-aligned");
-
 } // namespace Kratos
