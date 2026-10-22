@@ -116,6 +116,7 @@
 // Wall laws
 #include "custom_conditions/wall_laws/linear_log_wall_law.h"
 #include "custom_conditions/wall_laws/navier_slip_wall_law.h"
+#include "custom_conditions/wall_laws/nitsche_navier_slip_wall_law.h"
 
 // Adjoint fluid elements
 #include "custom_elements/vms_adjoint_element.h"
@@ -442,6 +443,8 @@ private:
     const NavierStokesWallCondition<3,3,LinearLogWallLaw<3,3>> mNavierStokesLinearLogWallCondition3D;
     const NavierStokesWallCondition<2,2,NavierSlipWallLaw<2,2>> mNavierStokesNavierSlipWallCondition2D;
     const NavierStokesWallCondition<3,3,NavierSlipWallLaw<3,3>> mNavierStokesNavierSlipWallCondition3D;
+    const NavierStokesWallCondition<2,2,NitscheNavierSlipWallLaw<2,2>> mNavierStokesNitscheNavierSlipWallCondition2D;
+    const NavierStokesWallCondition<3,3,NitscheNavierSlipWallLaw<3,3>> mNavierStokesNitscheNavierSlipWallCondition3D;
 
     /// Incompressible Navier-Stokes div-stable wall condition
     const NavierStokesP2P1ContinuousWallCondition<2> mNavierStokesP2P1ContinuousWallCondition2D;
