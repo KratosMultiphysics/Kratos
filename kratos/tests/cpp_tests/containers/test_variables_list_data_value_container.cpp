@@ -135,8 +135,9 @@ KRATOS_TEST_CASE_IN_SUITE(VariablesListDataValueContainerLoadIntoPopulatedContai
     KRATOS_EXPECT_EQ(p_law.use_count(), 1);
 }
 
-// Nodes share one VariablesList, and the first in-place load Add()s the archive's extra variables to it. Later loads
-// must still destruct their old blocks with the layout they were allocated with (the Matrix makes a bad one visible).
+// Nodes share one VariablesList, and an in-place load Add()s the archive's extra variables to it before throwing (adding
+// historical variables to populated containers is not allowed). The containers must still destruct their old blocks
+// with the layout they were allocated with (the Matrix makes a bad one visible under ASan).
 KRATOS_TEST_CASE_IN_SUITE(VariablesListDataValueContainerLoadIntoContainersSharingGrownList, KratosCoreFastSuite) {
     const auto value = [](std::size_t Container, std::size_t Step) { return 10.0 * Container + Step + 1.0; };
 
@@ -168,19 +169,9 @@ KRATOS_TEST_CASE_IN_SUITE(VariablesListDataValueContainerLoadIntoContainersShari
     StreamSerializer serializer;
     serializer.save("Container0", saved_containers[0]);
     serializer.save("Container1", saved_containers[1]);
-    serializer.load("Container0", containers[0]);
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(serializer.load("Container0", containers[0]), "Loading changed the historical variables of a container that already holds data");
     KRATOS_EXPECT_EQ(p_variables_list->DataSize(), p_saved_list->DataSize());
-    serializer.load("Container1", containers[1]);
-
-    for (std::size_t j = 0; j < 2; ++j) {
-        KRATOS_EXPECT_EQ(containers[j].pGetVariablesList(), p_variables_list);
-        KRATOS_EXPECT_EQ(containers[j].QueueSize(), 2);
-        for (std::size_t step = 0; step < 2; ++step) {
-            KRATOS_EXPECT_DOUBLE_EQ(containers[j].GetValue(DISTANCE, step), value(j, step));
-            KRATOS_EXPECT_VECTOR_EQ(containers[j].GetValue(ELEMENTAL_DISTANCES, step), Vector(3, value(j, step)));
-            KRATOS_EXPECT_MATRIX_EQ(containers[j].GetValue(LOCAL_AXES_MATRIX, step), Matrix(2, 2, value(j, step)));
-        }
-    }
+    // containers[1] keeps its block with the old layout; its destruction with the grown list is checked by ASan
 }
 
 }
