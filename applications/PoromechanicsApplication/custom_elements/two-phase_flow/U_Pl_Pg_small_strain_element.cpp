@@ -19,6 +19,46 @@
 namespace Kratos
 {
 
+namespace {
+
+template<class TPropertiesType, class TGeometryType>
+void CalculateDynamicElementalMobility(double& rkrl, double& rkrg, const TPropertiesType& Prop, const TGeometryType& Geom)
+{
+    const double Slr = Prop.Has(RESIDUAL_LIQUID_SATURATION) ? Prop[RESIDUAL_LIQUID_SATURATION] : 0.02;
+    const double Sgr = Prop.Has(RESIDUAL_GAS_SATURATION) ? Prop[RESIDUAL_GAS_SATURATION] : 0.001;
+    const double pb = Prop.Has(GAS_ENTRY_PRESSURE) ? Prop[GAS_ENTRY_PRESSURE] : 5000.0;
+    const double lambda = Prop.Has(PORE_SIZE_FACTOR) ? Prop[PORE_SIZE_FACTOR] : 3.0;
+    const double krmin = Prop.Has(MINIMUM_RELATIVE_PERMEABILITY) ? Prop[MINIMUM_RELATIVE_PERMEABILITY] : 1.0e-9;
+
+    const unsigned int num_nodes = Geom.size();
+    double Sl_sum = 0.0;
+    for (unsigned int i = 0; i < num_nodes; ++i) {
+        const double pc_i = Geom[i].FastGetSolutionStepValue(GAS_PRESSURE) - Geom[i].FastGetSolutionStepValue(LIQUID_PRESSURE);
+        double Sl_i = 1.0 - Sgr;
+        if (pc_i > pb) {
+            Sl_i = (1.0 - Sgr - Slr) * std::pow(pb / pc_i, lambda) + Slr;
+        }
+        Sl_sum += Sl_i;
+    }
+    const double Sl_mean = Sl_sum / static_cast<double>(num_nodes);
+    const double Se_mean = (Sl_mean - Slr) / (1.0 - Sgr - Slr);
+
+    if (Se_mean >= 1.0) {
+        rkrl = 1.0;
+        rkrg = krmin;
+    } else if (Se_mean <= 0.0) {
+        rkrl = krmin;
+        rkrg = 1.0;
+    } else {
+        const double nl = (2.0 + 3.0 * lambda) / lambda;
+        const double ng = (2.0 + lambda) / lambda;
+        rkrl = std::max(krmin, std::pow(Se_mean, nl));
+        rkrg = std::max(krmin, (1.0 - Se_mean) * (1.0 - Se_mean) * (1.0 - std::pow(Se_mean, ng)));
+    }
+}
+
+}
+
 template< unsigned int TDim, unsigned int TNumNodes >
 Element::Pointer UPlPgSmallStrainElement<TDim,TNumNodes>::Create( IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties ) const
 {
@@ -399,6 +439,7 @@ void UPlPgSmallStrainElement<TDim,TNumNodes>::CalculateOnIntegrationPoints( cons
             //Compute Saturation Law variables: Sl, dSldPc, krl and krg
             mSaturationLawVector[GPoint]->CalculateMaterialResponse(SaturationParameters);
 
+
             rOutput[GPoint] = Variables.krl;
         }
 
@@ -432,6 +473,7 @@ void UPlPgSmallStrainElement<TDim,TNumNodes>::CalculateOnIntegrationPoints( cons
 
             //Compute Saturation Law variables: Sl, dSldPc, krl and krg
             mSaturationLawVector[GPoint]->CalculateMaterialResponse(SaturationParameters);
+
 
             rOutput[GPoint] = Variables.krg;
         }
@@ -493,6 +535,9 @@ void UPlPgSmallStrainElement<TDim,TNumNodes>::CalculateOnIntegrationPoints( cons
             //Compute Saturation Law variables: Sl, dSldPc, krl and krg
             mSaturationLawVector[GPoint]->CalculateMaterialResponse(SaturationParameters);
 
+            // Dynamic elemental mobility (PorousLab scheme)
+            CalculateDynamicElementalMobility(Variables.krl, Variables.krg, Prop, Geom);
+
             noalias(GradLiquidPressureTerm) = prod(trans(Variables.GradNpT),Variables.LiquidPressureVector);
             noalias(GradLiquidPressureTerm) += -Variables.LiquidDensity*Variables.BodyAcceleration;
 
@@ -537,6 +582,9 @@ void UPlPgSmallStrainElement<TDim,TNumNodes>::CalculateOnIntegrationPoints( cons
 
             //Compute Saturation Law variables: Sl, dSldPc, krl and krg
             mSaturationLawVector[GPoint]->CalculateMaterialResponse(SaturationParameters);
+
+            // Dynamic elemental mobility (PorousLab scheme)
+            CalculateDynamicElementalMobility(Variables.krl, Variables.krg, Prop, Geom);
 
             noalias(GradGasPressureTerm) = prod(trans(Variables.GradNpT),Variables.GasPressureVector);
             noalias(GradGasPressureTerm) += -Variables.GasDensity*Variables.BodyAcceleration;
@@ -698,6 +746,7 @@ void UPlPgSmallStrainElement<TDim,TNumNodes>::CalculateOnIntegrationPoints( cons
             //Compute Saturation Law variables: Sl, dSldPc, krl and krg
             mSaturationLawVector[GPoint]->CalculateMaterialResponse(SaturationParameters);
 
+
             // Update the density based on the new saturation degree
             this->UpdateDensity(Variables);
 
@@ -783,6 +832,7 @@ void UPlPgSmallStrainElement<TDim,TNumNodes>::CalculateOnIntegrationPoints( cons
             //Compute Saturation Law variables: Sl, dSldPc, krl and krg
             mSaturationLawVector[GPoint]->CalculateMaterialResponse(SaturationParameters);
 
+
             rOutput[GPoint].resize(TDim,TDim,false);
             noalias(rOutput[GPoint]) = Variables.krl*mIntrinsicPermeability;
         }
@@ -817,6 +867,7 @@ void UPlPgSmallStrainElement<TDim,TNumNodes>::CalculateOnIntegrationPoints( cons
 
             //Compute Saturation Law variables: Sl, dSldPc, krl and krg
             mSaturationLawVector[GPoint]->CalculateMaterialResponse(SaturationParameters);
+
 
             rOutput[GPoint].resize(TDim,TDim,false);
             noalias(rOutput[GPoint]) = Variables.krg*mIntrinsicPermeability;
@@ -1039,6 +1090,7 @@ void UPlPgSmallStrainElement<TDim,TNumNodes>::CalculateAndAddMassMatrix(MatrixTy
 template< unsigned int TDim, unsigned int TNumNodes >
 void UPlPgSmallStrainElement<TDim,TNumNodes>::CalculateAll( MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo )
 {
+
     KRATOS_TRY
 
     //Previous definitions
@@ -1066,6 +1118,10 @@ void UPlPgSmallStrainElement<TDim,TNumNodes>::CalculateAll( MatrixType& rLeftHan
     ElementVariables Variables;
     this->InitializeElementVariables(Variables,ConstitutiveParameters,SaturationParameters,Geom,Prop,rCurrentProcessInfo);
 
+    BoundedMatrix<double, TNumNodes, TNumNodes> ElemPermeabilityMatrix = ZeroMatrix(TNumNodes, TNumNodes);
+    array_1d<double, TNumNodes> ElemFluidBodyFlow = ZeroVector(TNumNodes);
+    double ElemVolume = 0.0;
+
     //Loop over integration points
     for( unsigned int GPoint = 0; GPoint < NumGPoints; GPoint++)
     {
@@ -1080,7 +1136,6 @@ void UPlPgSmallStrainElement<TDim,TNumNodes>::CalculateAll( MatrixType& rLeftHan
         //Compute Saturation Law variables: Sl, dSldPc, krl and krg
         mSaturationLawVector[GPoint]->CalculateMaterialResponse(SaturationParameters);
 
-        // Update the density based on the new saturation degree
         this->UpdateDensity(Variables);
 
         //Compute constitutive tensor and stresses
@@ -1089,12 +1144,21 @@ void UPlPgSmallStrainElement<TDim,TNumNodes>::CalculateAll( MatrixType& rLeftHan
         //Compute weighting coefficient for integration
         this->CalculateIntegrationCoefficient(Variables.IntegrationCoefficient, detJContainer[GPoint], integration_points[GPoint].Weight() );
 
-        //Contributions to the left hand side
+        // Accumulate element permeability matrix, fluid body flow and volume
+        noalias(Variables.PDimMatrix) = prod(Variables.GradNpT, mIntrinsicPermeability);
+        noalias(ElemPermeabilityMatrix) += prod(Variables.PDimMatrix, trans(Variables.GradNpT)) * Variables.IntegrationCoefficient;
+        noalias(ElemFluidBodyFlow) += prod(Variables.PDimMatrix, Variables.BodyAcceleration) * Variables.IntegrationCoefficient;
+        ElemVolume += Variables.IntegrationCoefficient;
+
+        //Contributions to the left hand side (mechanics and HM coupling)
         this->CalculateAndAddLHS(rLeftHandSideMatrix, Variables);
 
-        //Contributions to the right hand side
+        //Contributions to the right hand side (mechanics and HM coupling)
         this->CalculateAndAddRHS(rRightHandSideVector, Variables);
     }
+
+    // Add exact PorousLab / CODE_BRIGHT fluid storage and advective terms (Appendices A & B)
+    this->CalculateAndAddFluidTerms(rLeftHandSideMatrix, rRightHandSideVector, Variables, ElemPermeabilityMatrix, ElemFluidBodyFlow, ElemVolume, rCurrentProcessInfo, true);
 
     KRATOS_CATCH( "" )
 }
@@ -1104,6 +1168,7 @@ void UPlPgSmallStrainElement<TDim,TNumNodes>::CalculateAll( MatrixType& rLeftHan
 template< unsigned int TDim, unsigned int TNumNodes >
 void UPlPgSmallStrainElement<TDim,TNumNodes>::CalculateRHS( VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo )
 {
+
     KRATOS_TRY
 
     //Previous definitions
@@ -1130,6 +1195,10 @@ void UPlPgSmallStrainElement<TDim,TNumNodes>::CalculateRHS( VectorType& rRightHa
     ElementVariables Variables;
     this->InitializeElementVariables(Variables,ConstitutiveParameters,SaturationParameters,Geom,Prop,rCurrentProcessInfo);
 
+    BoundedMatrix<double, TNumNodes, TNumNodes> ElemPermeabilityMatrix = ZeroMatrix(TNumNodes, TNumNodes);
+    array_1d<double, TNumNodes> ElemFluidBodyFlow = ZeroVector(TNumNodes);
+    double ElemVolume = 0.0;
+
     //Loop over integration points
     for( unsigned int GPoint = 0; GPoint < NumGPoints; GPoint++)
     {
@@ -1153,9 +1222,19 @@ void UPlPgSmallStrainElement<TDim,TNumNodes>::CalculateRHS( VectorType& rRightHa
         //Compute weighting coefficient for integration
         this->CalculateIntegrationCoefficient(Variables.IntegrationCoefficient, detJContainer[GPoint], integration_points[GPoint].Weight() );
 
-        //Contributions to the right hand side
+        // Accumulate element permeability matrix, fluid body flow and volume
+        noalias(Variables.PDimMatrix) = prod(Variables.GradNpT, mIntrinsicPermeability);
+        noalias(ElemPermeabilityMatrix) += prod(Variables.PDimMatrix, trans(Variables.GradNpT)) * Variables.IntegrationCoefficient;
+        noalias(ElemFluidBodyFlow) += prod(Variables.PDimMatrix, Variables.BodyAcceleration) * Variables.IntegrationCoefficient;
+        ElemVolume += Variables.IntegrationCoefficient;
+
+        //Contributions to the right hand side (mechanics and HM coupling)
         this->CalculateAndAddRHS(rRightHandSideVector, Variables);
     }
+
+    // Add exact PorousLab / CODE_BRIGHT fluid storage and advective terms (Appendices A & B)
+    MatrixType DummyLHS(0, 0);
+    this->CalculateAndAddFluidTerms(DummyLHS, rRightHandSideVector, Variables, ElemPermeabilityMatrix, ElemFluidBodyFlow, ElemVolume, rCurrentProcessInfo, false);
 
     KRATOS_CATCH( "" )
 }
@@ -1168,10 +1247,221 @@ void UPlPgSmallStrainElement<TDim,TNumNodes>::CalculateAndAddLHS(MatrixType& rLe
     this->CalculateAndAddStiffnessMatrix(rLeftHandSideMatrix,rVariables);
 
     this->CalculateAndAddHydromechanicalCouplingMatrix(rLeftHandSideMatrix,rVariables);
+}
 
-    this->CalculateAndAddCompressibilityMatrix(rLeftHandSideMatrix,rVariables);
+//----------------------------------------------------------------------------------------
 
-    this->CalculateAndAddPermeabilityMatrix(rLeftHandSideMatrix,rVariables);
+template< unsigned int TDim, unsigned int TNumNodes >
+void UPlPgSmallStrainElement<TDim,TNumNodes>::CalculateAndAddFluidTerms(
+    MatrixType& rLeftHandSideMatrix,
+    VectorType& rRightHandSideVector,
+    ElementVariables& rVariables,
+    const BoundedMatrix<double, TNumNodes, TNumNodes>& rElemPermeabilityMatrix,
+    const array_1d<double, TNumNodes>& rElemFluidBodyFlow,
+    const double ElemVolume,
+    const ProcessInfo& rCurrentProcessInfo,
+    const bool CalculateLHS)
+{
+    const PropertiesType& Prop = this->GetProperties();
+    const GeometryType& Geom = this->GetGeometry();
+
+    const double Slr = Prop.Has(RESIDUAL_LIQUID_SATURATION) ? Prop[RESIDUAL_LIQUID_SATURATION] : 0.02;
+    const double Sgr = Prop.Has(RESIDUAL_GAS_SATURATION) ? Prop[RESIDUAL_GAS_SATURATION] : 0.001;
+    const double pb = Prop.Has(GAS_ENTRY_PRESSURE) ? Prop[GAS_ENTRY_PRESSURE] : 5000.0;
+    const double lambda = Prop.Has(PORE_SIZE_FACTOR) ? Prop[PORE_SIZE_FACTOR] : 3.0;
+    const double krmin = Prop.Has(MINIMUM_RELATIVE_PERMEABILITY) ? Prop[MINIMUM_RELATIVE_PERMEABILITY] : 1.0e-9;
+    const double phi = Prop.Has(POROSITY) ? Prop[POROSITY] : 0.15;
+    const double mu_l = Prop.Has(DYNAMIC_VISCOSITY_LIQUID) ? Prop[DYNAMIC_VISCOSITY_LIQUID] : 1.0e-3;
+    const double mu_g = Prop.Has(DYNAMIC_VISCOSITY_GAS) ? Prop[DYNAMIC_VISCOSITY_GAS] : 5.0e-3;
+    const double Kl = Prop.Has(BULK_MODULUS_LIQUID) ? Prop[BULK_MODULUS_LIQUID] : 1.0e12;
+    const double Kg = Prop.Has(BULK_MODULUS_GAS) ? Prop[BULK_MODULUS_GAS] : 1.0e12;
+    const double rho_l0 = Prop.Has(DENSITY_LIQUID) ? Prop[DENSITY_LIQUID] : 1000.0;
+    const double rho_g0 = Prop.Has(DENSITY_GAS) ? Prop[DENSITY_GAS] : 1.2;
+    const double p_l_ref = Prop.Has(LIQUID_DENSITY_REF_PRESSURE) ? Prop[LIQUID_DENSITY_REF_PRESSURE] : 0.0;
+    const double p_g_ref = 0.0;
+
+    const double Dt = rCurrentProcessInfo[DELTA_TIME];
+    const double inv_Dt = (Dt > 1.0e-15) ? (1.0 / Dt) : 0.0;
+    const double c_fact = (phi * ElemVolume * inv_Dt) / static_cast<double>(TNumNodes);
+
+    // Nodal values
+    array_1d<double, TNumNodes> pl_nodal;
+    array_1d<double, TNumNodes> pg_nodal;
+    array_1d<double, TNumNodes> Sl_nodal;
+    array_1d<double, TNumNodes> Sg_nodal;
+    array_1d<double, TNumNodes> dSldPc_nodal;
+    array_1d<double, TNumNodes> rho_l_nodal;
+    array_1d<double, TNumNodes> rho_g_nodal;
+
+    array_1d<double, TNumNodes> pl_old_nodal;
+    array_1d<double, TNumNodes> pg_old_nodal;
+    array_1d<double, TNumNodes> Sl_old_nodal;
+    array_1d<double, TNumNodes> Sg_old_nodal;
+    array_1d<double, TNumNodes> rho_l_old_nodal;
+    array_1d<double, TNumNodes> rho_g_old_nodal;
+
+    double Sl_sum = 0.0;
+    double rho_l_sum = 0.0;
+    double rho_g_sum = 0.0;
+
+    for (unsigned int i = 0; i < TNumNodes; ++i) {
+        pl_nodal[i] = Geom[i].FastGetSolutionStepValue(LIQUID_PRESSURE);
+        pg_nodal[i] = Geom[i].FastGetSolutionStepValue(GAS_PRESSURE);
+        const double pc_i = pg_nodal[i] - pl_nodal[i];
+
+        if (pc_i <= pb) {
+            Sl_nodal[i] = 1.0 - Sgr;
+            dSldPc_nodal[i] = 0.0;
+        } else {
+            const double ratio = pb / pc_i;
+            const double p_pow = std::pow(ratio, lambda);
+            Sl_nodal[i] = (1.0 - Sgr - Slr) * p_pow + Slr;
+            dSldPc_nodal[i] = -lambda * (1.0 - Sgr - Slr) * p_pow / pc_i;
+        }
+        Sg_nodal[i] = 1.0 - Sl_nodal[i];
+        rho_l_nodal[i] = rho_l0 * (1.0 + (pl_nodal[i] - p_l_ref) / Kl);
+        rho_g_nodal[i] = rho_g0 * (1.0 + (pg_nodal[i] - p_g_ref) / Kg);
+
+        pl_old_nodal[i] = Geom[i].FastGetSolutionStepValue(LIQUID_PRESSURE, 1);
+        pg_old_nodal[i] = Geom[i].FastGetSolutionStepValue(GAS_PRESSURE, 1);
+        const double pc_old_i = pg_old_nodal[i] - pl_old_nodal[i];
+
+        if (pc_old_i <= pb) {
+            Sl_old_nodal[i] = 1.0 - Sgr;
+        } else {
+            const double ratio = pb / pc_old_i;
+            Sl_old_nodal[i] = (1.0 - Sgr - Slr) * std::pow(ratio, lambda) + Slr;
+        }
+        Sg_old_nodal[i] = 1.0 - Sl_old_nodal[i];
+        rho_l_old_nodal[i] = rho_l0 * (1.0 + (pl_old_nodal[i] - p_l_ref) / Kl);
+        rho_g_old_nodal[i] = rho_g0 * (1.0 + (pg_old_nodal[i] - p_g_ref) / Kg);
+
+        Sl_sum += Sl_nodal[i];
+        rho_l_sum += rho_l_nodal[i];
+        rho_g_sum += rho_g_nodal[i];
+    }
+
+    const double Sl_mean = Sl_sum / static_cast<double>(TNumNodes);
+    const double rho_l_mean = rho_l_sum / static_cast<double>(TNumNodes);
+    const double rho_g_mean = rho_g_sum / static_cast<double>(TNumNodes);
+
+    // Appendix A1: Mass storage terms (Eq. A7)
+    array_1d<double, TNumNodes> RHS_l = ZeroVector(TNumNodes);
+    array_1d<double, TNumNodes> RHS_g = ZeroVector(TNumNodes);
+
+    for (unsigned int i = 0; i < TNumNodes; ++i) {
+        const double r_l_m = c_fact * (rho_l_nodal[i] * Sl_nodal[i] - rho_l_old_nodal[i] * Sl_old_nodal[i]) / rho_l_nodal[i];
+        const double r_g_m = c_fact * (rho_g_nodal[i] * Sg_nodal[i] - rho_g_old_nodal[i] * Sg_old_nodal[i]) / rho_g_nodal[i];
+        RHS_l[i] -= r_l_m;
+        RHS_g[i] -= r_g_m;
+    }
+
+    // Appendix A2: Element-wise relative permeability from mean saturation (Eq. A8, A9, A11)
+    const double Se_mean = (Sl_mean - Slr) / (1.0 - Sgr - Slr);
+    const double dSe_dSl = 1.0 / (1.0 - Sgr - Slr);
+    const double nl = (2.0 + 3.0 * lambda) / lambda;
+    const double ng = (2.0 + lambda) / lambda;
+
+    double krl = 0.0;
+    double krg = 0.0;
+    double dkrl_dSl = 0.0;
+    double dkrg_dSl = 0.0;
+
+    if (Se_mean >= 1.0) {
+        krl = 1.0;
+        krg = krmin;
+    } else if (Se_mean <= 0.0) {
+        krl = krmin;
+        krg = 1.0;
+    } else {
+        krl = std::max(krmin, std::pow(Se_mean, nl));
+        if (krl > krmin) {
+            dkrl_dSl = nl * std::pow(Se_mean, nl - 1.0) * dSe_dSl;
+        }
+
+        krg = std::max(krmin, (1.0 - Se_mean) * (1.0 - Se_mean) * (1.0 - std::pow(Se_mean, ng)));
+        if (krg > krmin) {
+            const double dkrg_dSe = -2.0 * (1.0 - Se_mean) * (1.0 - std::pow(Se_mean, ng))
+                                    - (1.0 - Se_mean) * (1.0 - Se_mean) * ng * std::pow(Se_mean, ng - 1.0);
+            dkrg_dSl = dkrg_dSe * dSe_dSl;
+        }
+    }
+
+    // Advective flow residuals (Eq. A8)
+    const array_1d<double, TNumNodes> K_pl = prod(rElemPermeabilityMatrix, pl_nodal);
+    const array_1d<double, TNumNodes> K_pg = prod(rElemPermeabilityMatrix, pg_nodal);
+
+    noalias(RHS_l) -= (krl / mu_l) * K_pl;
+    noalias(RHS_g) -= (krg / mu_g) * K_pg;
+
+    // Gravity flow residuals (Eq. A9)
+    noalias(RHS_l) += (krl * rho_l_mean / mu_l) * rElemFluidBodyFlow;
+    noalias(RHS_g) += (krg * rho_g_mean / mu_g) * rElemFluidBodyFlow;
+
+    // Assemble RHS
+    PoroElementUtilities::AssemblePlBlockVector< array_1d<double,TNumNodes> >(rRightHandSideVector, RHS_l, TDim, TNumNodes);
+    PoroElementUtilities::AssemblePgBlockVector< array_1d<double,TNumNodes> >(rRightHandSideVector, RHS_g, TDim, TNumNodes);
+
+    if (CalculateLHS) {
+        // Appendix B: Jacobian terms (Eq. B6, B7, B8, B14, B15, B16)
+        BoundedMatrix<double, TNumNodes, TNumNodes> LHS_ll = (krl / mu_l) * rElemPermeabilityMatrix;
+        BoundedMatrix<double, TNumNodes, TNumNodes> LHS_lg = ZeroMatrix(TNumNodes, TNumNodes);
+        BoundedMatrix<double, TNumNodes, TNumNodes> LHS_gl = ZeroMatrix(TNumNodes, TNumNodes);
+        BoundedMatrix<double, TNumNodes, TNumNodes> LHS_gg = (krg / mu_g) * rElemPermeabilityMatrix;
+
+        // Diagonal storage Jacobian (Eq. B14)
+        for (unsigned int i = 0; i < TNumNodes; ++i) {
+            const double C_ll_i = c_fact * (-dSldPc_nodal[i] + (rho_l_old_nodal[i] * Sl_old_nodal[i]) / (rho_l_nodal[i] * rho_l_nodal[i] * Kl));
+            const double C_lg_i = c_fact * ( dSldPc_nodal[i]);
+            const double C_gl_i = c_fact * ( dSldPc_nodal[i]);
+            const double C_gg_i = c_fact * (-dSldPc_nodal[i] + (rho_g_old_nodal[i] * Sg_old_nodal[i]) / (rho_g_nodal[i] * rho_g_nodal[i] * Kg));
+
+            LHS_ll(i, i) += C_ll_i;
+            LHS_lg(i, i) += C_lg_i;
+            LHS_gl(i, i) += C_gl_i;
+            LHS_gg(i, i) += C_gg_i;
+        }
+
+        // Auxiliary mean derivatives (Eq. B6, B7)
+        array_1d<double, TNumNodes> dSl_bar_dpl;
+        array_1d<double, TNumNodes> dSl_bar_dpg;
+        array_1d<double, TNumNodes> drho_l_bar_dpl;
+        array_1d<double, TNumNodes> drho_g_bar_dpg;
+
+        for (unsigned int j = 0; j < TNumNodes; ++j) {
+            dSl_bar_dpl[j] = -dSldPc_nodal[j] / static_cast<double>(TNumNodes);
+            dSl_bar_dpg[j] =  dSldPc_nodal[j] / static_cast<double>(TNumNodes);
+            drho_l_bar_dpl[j] = (rho_l_nodal[j] / Kl) / static_cast<double>(TNumNodes);
+            drho_g_bar_dpg[j] = (rho_g_nodal[j] / Kg) / static_cast<double>(TNumNodes);
+        }
+
+        // Advective derivatives (Eq. B15)
+        noalias(LHS_ll) += (dkrl_dSl / mu_l) * outer_prod(K_pl, dSl_bar_dpl);
+        noalias(LHS_lg) += (dkrl_dSl / mu_l) * outer_prod(K_pl, dSl_bar_dpg);
+        noalias(LHS_gl) += (dkrg_dSl / mu_g) * outer_prod(K_pg, dSl_bar_dpl);
+        noalias(LHS_gg) += (dkrg_dSl / mu_g) * outer_prod(K_pg, dSl_bar_dpg);
+
+        // Gravity derivatives (Eq. B16)
+        for (unsigned int i = 0; i < TNumNodes; ++i) {
+            for (unsigned int j = 0; j < TNumNodes; ++j) {
+                const double d_grav_l_pl = (dkrl_dSl * dSl_bar_dpl[j] * rho_l_mean + krl * drho_l_bar_dpl[j]);
+                const double d_grav_l_pg = (dkrl_dSl * dSl_bar_dpg[j] * rho_l_mean);
+                LHS_ll(i, j) -= (1.0 / mu_l) * rElemFluidBodyFlow[i] * d_grav_l_pl;
+                LHS_lg(i, j) -= (1.0 / mu_l) * rElemFluidBodyFlow[i] * d_grav_l_pg;
+
+                const double d_grav_g_pl = (dkrg_dSl * dSl_bar_dpl[j] * rho_g_mean);
+                const double d_grav_g_pg = (dkrg_dSl * dSl_bar_dpg[j] * rho_g_mean + krg * drho_g_bar_dpg[j]);
+                LHS_gl(i, j) -= (1.0 / mu_g) * rElemFluidBodyFlow[i] * d_grav_g_pl;
+                LHS_gg(i, j) -= (1.0 / mu_g) * rElemFluidBodyFlow[i] * d_grav_g_pg;
+            }
+        }
+
+        // Assemble LHS
+        PoroElementUtilities::AssemblePlPlBlockMatrix< BoundedMatrix<double,TNumNodes,TNumNodes> >(rLeftHandSideMatrix, LHS_ll, TDim, TNumNodes);
+        PoroElementUtilities::AssemblePlPgBlockMatrix< BoundedMatrix<double,TNumNodes,TNumNodes> >(rLeftHandSideMatrix, LHS_lg, TDim, TNumNodes);
+        PoroElementUtilities::AssemblePgPlBlockMatrix< BoundedMatrix<double,TNumNodes,TNumNodes> >(rLeftHandSideMatrix, LHS_gl, TDim, TNumNodes);
+        PoroElementUtilities::AssemblePgPgBlockMatrix< BoundedMatrix<double,TNumNodes,TNumNodes> >(rLeftHandSideMatrix, LHS_gg, TDim, TNumNodes);
+    }
 }
 
 //----------------------------------------------------------------------------------------
@@ -1217,8 +1507,11 @@ void UPlPgSmallStrainElement<TDim,TNumNodes>::CalculateAndAddHydromechanicalCoup
 template< unsigned int TDim, unsigned int TNumNodes >
 void UPlPgSmallStrainElement<TDim,TNumNodes>::CalculateAndAddCompressibilityMatrix(MatrixType& rLeftHandSideMatrix, ElementVariables& rVariables)
 {
-    // Compute auxiliary matrix: Np^T * Np * w * detJ
-    noalias(rVariables.PMatrixAux) = outer_prod(rVariables.Np,rVariables.Np)*rVariables.IntegrationCoefficient;
+    // Diagonal lumped mass capacity matrix
+    noalias(rVariables.PMatrixAux) = ZeroMatrix(TNumNodes, TNumNodes);
+    for(unsigned int i = 0; i < TNumNodes; i++) {
+        rVariables.PMatrixAux(i, i) = rVariables.Np[i] * rVariables.IntegrationCoefficient;
+    }
 
     // Get compressibility coefficients
     double Cll, Clg, Cgl, Cgg;
@@ -1234,12 +1527,12 @@ void UPlPgSmallStrainElement<TDim,TNumNodes>::CalculateAndAddCompressibilityMatr
     noalias(rVariables.PMatrix) = rVariables.DtGasPressureCoefficient * Cgg * rVariables.PMatrixAux;
     PoroElementUtilities::AssemblePgPgBlockMatrix< BoundedMatrix<double,TNumNodes,TNumNodes> >(rLeftHandSideMatrix,rVariables.PMatrix,TDim,TNumNodes);
 }
-
 //----------------------------------------------------------------------------------------
 
 template< unsigned int TDim, unsigned int TNumNodes >
 void UPlPgSmallStrainElement<TDim,TNumNodes>::CalculateAndAddPermeabilityMatrix(MatrixType& rLeftHandSideMatrix, ElementVariables& rVariables)
 {
+
 
     // Compute the auxiliary matrix of the product between: gradNp^T * K * gradNp
     // where gradNp is the gradient of the shape function vector associated with the pressure fields,
@@ -1269,12 +1562,6 @@ void UPlPgSmallStrainElement<TDim,TNumNodes>::CalculateAndAddRHS(VectorType& rRi
     this->CalculateAndAddMixBodyForce(rRightHandSideVector, rVariables);
 
     this->CalculateAndAddHydromechanicalCouplingTerms(rRightHandSideVector, rVariables);
-
-    this->CalculateAndAddCompressibilityFlow(rRightHandSideVector, rVariables);
-
-    this->CalculateAndAddPermeabilityFlow(rRightHandSideVector, rVariables);
-
-    this->CalculateAndAddFluidBodyFlow(rRightHandSideVector, rVariables);
 }
 
 //----------------------------------------------------------------------------------------
@@ -1335,12 +1622,14 @@ void UPlPgSmallStrainElement<TDim,TNumNodes>::CalculateAndAddHydromechanicalCoup
 }
 
 //----------------------------------------------------------------------------------------
-
 template< unsigned int TDim, unsigned int TNumNodes >
 void UPlPgSmallStrainElement<TDim,TNumNodes>::CalculateAndAddCompressibilityFlow(VectorType& rRightHandSideVector, ElementVariables& rVariables)
 {
-    // Compute auxiliary matrix: Np^T * Np * w * detJ
-    noalias(rVariables.PMatrixAux) = outer_prod(rVariables.Np,rVariables.Np)*rVariables.IntegrationCoefficient;
+    // Diagonal lumped mass capacity matrix for residual vector
+    noalias(rVariables.PMatrixAux) = ZeroMatrix(TNumNodes, TNumNodes);
+    for(unsigned int i = 0; i < TNumNodes; i++) {
+        rVariables.PMatrixAux(i, i) = rVariables.Np[i] * rVariables.IntegrationCoefficient;
+    }
 
     // Get compressibility coefficients
     double Cll, Clg, Cgl, Cgg;
@@ -1360,6 +1649,8 @@ void UPlPgSmallStrainElement<TDim,TNumNodes>::CalculateAndAddCompressibilityFlow
 template< unsigned int TDim, unsigned int TNumNodes >
 void UPlPgSmallStrainElement<TDim,TNumNodes>::CalculateAndAddPermeabilityFlow(VectorType& rRightHandSideVector, ElementVariables& rVariables)
 {
+
+
     // Compute the auxiliary matrix of the product between: gradNp^T * K * gradNp
     // where gradNp is the gradient of the shape function vector associated with the pressure fields,
     // and K is the permeability matrix.

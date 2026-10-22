@@ -176,6 +176,15 @@ protected:
 
     void CalculateRHS( VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo ) override;
 
+    void CalculateAndAddFluidTerms(MatrixType& rLeftHandSideMatrix,
+                                   VectorType& rRightHandSideVector,
+                                   ElementVariables& rVariables,
+                                   const BoundedMatrix<double, TNumNodes, TNumNodes>& rElemPermeabilityMatrix,
+                                   const array_1d<double, TNumNodes>& rElemFluidBodyFlow,
+                                   const double ElemVolume,
+                                   const ProcessInfo& rCurrentProcessInfo,
+                                   const bool CalculateLHS);
+
     void CalculateAndAddLHS(MatrixType& rLeftHandSideMatrix, ElementVariables& rVariables);
 
     void CalculateAndAddStiffnessMatrix(MatrixType& rLeftHandSideMatrix, ElementVariables& rVariables);
