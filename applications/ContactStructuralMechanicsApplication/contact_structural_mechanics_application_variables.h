@@ -113,4 +113,9 @@ KRATOS_DEFINE_APPLICATION_VARIABLE( CONTACT_STRUCTURAL_MECHANICS_APPLICATION, do
 /* Frictional laws */
 KRATOS_DEFINE_APPLICATION_VARIABLE( CONTACT_STRUCTURAL_MECHANICS_APPLICATION, FrictionalLaw::Pointer, FRICTIONAL_LAW )                 // The frictional law considered
 KRATOS_DEFINE_APPLICATION_VARIABLE( CONTACT_STRUCTURAL_MECHANICS_APPLICATION, double, TRESCA_FRICTION_THRESHOLD )                      // The threshold value for Tresca frictional contact
+
+// Geometric tolerances
+KRATOS_DEFINE_APPLICATION_VARIABLE( CONTACT_STRUCTURAL_MECHANICS_APPLICATION, double, INTEGRATION_OVER_TOTAL_AREA_TOLERANCE )           // The factor multiplying the problem length in mortar contact conditions to consider the integration over total area
+KRATOS_DEFINE_APPLICATION_VARIABLE( CONTACT_STRUCTURAL_MECHANICS_APPLICATION, double, PROBLEM_REFERENCE_LENGTH )                        // The reference size of the computational geometry
+
 }

@@ -92,6 +92,8 @@ PYBIND11_MODULE(KratosContactStructuralMechanicsApplication, m)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, MAX_GAP_THRESHOLD )                                     // The gap considered as threshold to rescale penalty
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, TYING_VARIABLE )                                        // The variable name for the mesh tying
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, TRESCA_FRICTION_THRESHOLD )                             // The threshold value for Tresca frictional contact
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, INTEGRATION_OVER_TOTAL_AREA_TOLERANCE )                 // The factor multiplying the problem length in mortar contact conditions to consider the integration over total area
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, PROBLEM_REFERENCE_LENGTH )                              // The reference size of the computational geometry
 }
 
 
