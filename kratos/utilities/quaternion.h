@@ -14,6 +14,12 @@
 #if !defined(QUATERNION_H_INCLUDED)
 #define QUATERNION_H_INCLUDED
 
+// System includes
+
+// External includes
+#include <boost/numeric/ublas/vector_expression.hpp>
+
+// Project includes
 #include "includes/global_variables.h"
 #include "includes/serializer.h"
 
