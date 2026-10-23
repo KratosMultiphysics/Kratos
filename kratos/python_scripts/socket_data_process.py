@@ -34,17 +34,7 @@ class SocketCommunicationProcess(KMP.Process):
             "model_part_name": "",
             "host": "127.0.0.1",
             "port": 0,
-            "timeout": 30.0,
-            "recv": {
-                "variable_name": "",
-                "execute_at": "ExecuteInitializeSolutionStep",
-                "historical": true
-            },
-            "send": {
-                "variable_name": "",
-                "execute_at": "ExecuteFinalizeSolutionStep",
-                "historical": true
-            }
+            "timeout": 30.0
         }"""
 
     # For the future
@@ -108,8 +98,7 @@ class SocketCommunicationProcess(KMP.Process):
                     },
                     "required": [
                         "variable_name",
-                        "execute_at",
-                        "historical"
+                        "execute_at"
                     ],
                     "additionalProperties": false
                 }
@@ -128,10 +117,11 @@ class SocketCommunicationProcess(KMP.Process):
 
         defaults = KMP.Parameters(SocketCommunicationProcess.GetDefaultParameters())
 
-        settings.ValidateAndAssignDefaults(defaults)
+        # settings.ValidateAndAssignDefaults(defaults)
         
-        for direction in ("recv", "send"):
-            settings[direction].ValidateAndAssignDefaults(defaults[direction])
+        # for direction in ("recv", "send"):
+        #     if settings[direction]:
+        #         settings[direction].ValidateAndAssignDefaults(defaults[direction])
         
         self.model_part = model[settings["model_part_name"].GetString()]
         self.host = settings["host"].GetString()
@@ -144,7 +134,11 @@ class SocketCommunicationProcess(KMP.Process):
         self.actions = {}
 
         for direction in ("recv", "send"):
+            if direction not in settings.keys():
+                continue
+
             action = settings[direction]
+
             name = action["variable_name"].GetString()    
             hook = action["execute_at"].GetString()
             historical = action["historical"].GetBool()
@@ -267,6 +261,8 @@ class SocketCommunicationProcess(KMP.Process):
                 adaptor.data = data[:, 0] if components == 1 else data
                 adaptor.StoreData()
 
+                print(f"Got some data {adaptor.data}")
+
             if direction == "send":
                 adaptor.CollectData()
                 data = np.asarray(adaptor.data, dtype="<f8").reshape(shape)
@@ -293,6 +289,9 @@ class SocketCommunicationProcess(KMP.Process):
         # TODO: Compare something more robust, like a checksum.
         if reply != header:
             raise ValueError("Socket peer handshake does not match the model part nodes")
+
+
+        print("Handshake Finalized")
 
         # TODO: Exchange initial data...
 
