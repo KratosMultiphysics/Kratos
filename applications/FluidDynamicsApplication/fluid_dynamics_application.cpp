@@ -254,6 +254,7 @@ void KratosFluidDynamicsApplication::Register() {
 
     // Shifted Boundary Method (SBM) variables
     KRATOS_REGISTER_VARIABLE(SBM_BOUNDARY_VELOCITIES)
+    KRATOS_REGISTER_VARIABLE(SBM_USE_SECOND_ORDER_SHIFT)
 
     // Non-Newtonian constitutive relations
     KRATOS_REGISTER_VARIABLE(REGULARIZATION_COEFFICIENT);

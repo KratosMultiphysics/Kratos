@@ -30,7 +30,9 @@ namespace Kratos {
  *          SURROGATE_BOUNDARY_FACE_COORDINATES. In standard SBM mode,
  *          SURROGATE_BOUNDARY_PROJECTION is a 2x3 matrix containing the
  *          true-boundary projections and the trace is obtained by the linear
- *          Taylor shift. In Gap-SBM mode it is a 2x7 boundary-quadrature
+ *          Taylor shift by default. Setting SBM_USE_SECOND_ORDER_SHIFT in
+ *          Properties includes the mixed second-order term on Cartesian Quad4
+ *          cells. In Gap-SBM mode it is a 2x7 boundary-quadrature
  *          matrix [x,y,z,nx,ny,nz,weight]; the extended parent basis is then
  *          evaluated and integrated directly at the reconstructed true
  *          boundary. Prescribed values are stored in SBM_BOUNDARY_VELOCITIES.

@@ -716,7 +716,10 @@ void GapSurrogateBoundaryModeler::SetupGapModelPart2D()
 
             const auto& r_surrogate_point =
                 r_first.SurrogatePoints[r_incident[0].EndpointIndex];
-            const auto true_point = 0.5 * (r_first_true + r_second_true);
+            // Materialize the uBLAS expression. With auto, its reference to
+            // the temporary scalar 0.5 dangles after this statement.
+            const array_1d<double, 3> true_point =
+                0.5 * (r_first_true + r_second_true);
             if (Distance(r_surrogate_point, true_point) <= tolerance) {
                 continue;
             }

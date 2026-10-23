@@ -26,7 +26,10 @@ namespace Kratos {
  *          is how the trace of the parent basis is evaluated:
  *
  *          - Classical SBM integrates on the surrogate face and obtains
- *            TraceShapeFunctions with the first-order Taylor shift.
+ *            TraceShapeFunctions with the first-order Taylor shift. Setting
+ *            SBM_USE_SECOND_ORDER_SHIFT in Properties evaluates the extended
+ *            basis at the projection, including the mixed second-order term
+ *            exactly on Cartesian Quad4 cells. The default is false.
  *          - Gap-SBM integrates on the reconstructed boundary and evaluates
  *            the extended parent basis directly at that point. In this case
  *            ShapeFunctions and TraceShapeFunctions are identical.

@@ -253,6 +253,73 @@ class SbmFluidDirichletConditionTest(KratosUnittest.TestCase):
         )
         self.assertTrue(all(math.isfinite(value) for value in interface_rhs))
 
+    def test_gap_connectors_reach_the_skin_on_odd_grid(self):
+        # Regression for the 23x23 circle case: a dangling uBLAS expression
+        # could move the reconstructed connector endpoint towards the origin.
+        model = KM.Model()
+        skin = model.CreateModelPart("Skin")
+        skin_properties = skin.CreateNewProperties(1)
+        center = (0.5, 0.5)
+        radius = 0.1
+        number_of_segments = 256
+        number_of_cells = 23
+        for i in range(number_of_segments):
+            angle = 2.0 * math.pi * i / number_of_segments
+            skin.CreateNewNode(
+                i + 1,
+                center[0] + radius * math.cos(angle),
+                center[1] + radius * math.sin(angle),
+                0.0,
+            )
+        for i in range(number_of_segments):
+            skin.CreateNewCondition(
+                "LineCondition2D2N",
+                i + 1,
+                [i + 1, (i + 1) % number_of_segments + 1],
+                skin_properties,
+            )
+
+        background = model.CreateModelPart("Background")
+        background.CreateNewProperties(1)
+        settings = KM.Parameters(r'''{
+            "input_model_part_name" : "Skin",
+            "output_model_part_name" : "Background",
+            "lower_point" : [0.0, 0.0, 0.0],
+            "upper_point" : [1.0, 1.0, 0.0],
+            "number_of_elements" : [23, 23, 1],
+            "physical_domain" : "outside",
+            "lambda" : 1.0,
+            "element_name" : "SymbolicStokes2D4N",
+            "condition_name" : "SbmFluidDirichletCondition2D4N",
+            "gap_element_name" : "SymbolicStokes2D4N",
+            "gap_interface_condition_name" : "SbmFluidGapInterfaceCondition2D"
+        }''')
+        modeler = KM.CreateModeler("GapSurrogateBoundaryModeler", model, settings)
+        modeler.SetupModelPart()
+
+        interfaces = background.GetSubModelPart("GapInterfaces")
+        self.assertGreater(interfaces.NumberOfConditions(), 0)
+        # A polygon edge lies between r*cos(pi/n) and r. Connector orientation
+        # may be reversed, but one endpoint must be on this polygonal skin.
+        skin_tolerance = radius * (1.0 - math.cos(math.pi / number_of_segments))
+        maximum_radius = radius + 2.0 * math.sqrt(2.0) / number_of_cells
+        for condition in interfaces.Conditions:
+            connector = condition.GetValue(KM.SURROGATE_BOUNDARY_FACE_COORDINATES)
+            endpoint_radii = [
+                math.hypot(connector[i, 0] - center[0], connector[i, 1] - center[1])
+                for i in range(2)
+            ]
+            self.assertLessEqual(
+                min(abs(value - radius) for value in endpoint_radii),
+                skin_tolerance + 1.0e-12,
+                f"Connector #{condition.Id} does not reach the circular skin.",
+            )
+            self.assertLessEqual(
+                max(endpoint_radii),
+                maximum_radius,
+                f"Connector #{condition.Id} extends far outside the gap.",
+            )
+
     def test_gap_modeler_accepts_triangular_patch_at_skin_corner(self):
         model = KM.Model()
         skin = model.CreateModelPart("Skin")
