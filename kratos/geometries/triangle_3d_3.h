@@ -13,6 +13,7 @@
 //  Contributors:    Hoang Giang Bui
 //                   Josep Maria Carbonell
 //                   Vicente Mataix Ferrandiz
+//                   Alejandro Cornejo
 //
 
 #pragma once
@@ -216,16 +217,6 @@ public:
     ///@}
     ///@name Life Cycle
     ///@{
-
-//     Triangle3D3( const PointType& FirstPoint,
-//                  const PointType& SecondPoint,
-//                  const PointType& ThirdPoint )
-//         : BaseType( PointsArrayType(), &msGeometryData )
-//     {
-//         this->Points().push_back( typename PointType::Pointer( new PointType( FirstPoint ) ) );
-//         this->Points().push_back( typename PointType::Pointer( new PointType( SecondPoint ) ) );
-//         this->Points().push_back( typename PointType::Pointer( new PointType( ThirdPoint ) ) );
-//     }
 
     Triangle3D3( typename PointType::Pointer pFirstPoint,
                  typename PointType::Pointer pSecondPoint,
@@ -433,14 +424,12 @@ public:
      */
     Matrix& PointsLocalCoordinates( Matrix& rResult ) const override
     {
-        rResult.resize( 3, 2 ,false);
-        noalias( rResult ) = ZeroMatrix( 3, 2 );
-        rResult( 0, 0 ) =  0.0;
-        rResult( 0, 1 ) =  0.0;
-        rResult( 1, 0 ) =  1.0;
-        rResult( 1, 1 ) =  0.0;
-        rResult( 2, 0 ) =  0.0;
-        rResult( 2, 1 ) =  1.0;
+        if (rResult.size1() != 3 || rResult.size2() != 2) {
+            rResult.resize(3, 2, false);
+        }
+        rResult.clear();
+        rResult(1, 0) = 1.0;
+        rResult(2, 1) = 1.0;
         return rResult;
     }
 
@@ -457,8 +446,8 @@ public:
         const typename BaseType::LumpingMethods LumpingMethod = BaseType::LumpingMethods::ROW_SUM
         )  const override
     {
-        rResult.resize( 3, false );
-        std::fill( rResult.begin(), rResult.end(), 1.00 / 3.00 );
+        rResult.resize(3, false);
+        std::fill(rResult.begin(), rResult.end(), 1.0 / 3.0);
         return rResult;
     }
 
@@ -501,13 +490,13 @@ public:
      */
     double Area() const override
     {
-        const double a = MathUtils<double>::Norm3(this->GetPoint(0)-this->GetPoint(1));
-        const double b = MathUtils<double>::Norm3(this->GetPoint(1)-this->GetPoint(2));
-        const double c = MathUtils<double>::Norm3(this->GetPoint(2)-this->GetPoint(0));
+        const double a = MathUtils<double>::Norm3(this->GetPoint(0) - this->GetPoint(1));
+        const double b = MathUtils<double>::Norm3(this->GetPoint(1) - this->GetPoint(2));
+        const double c = MathUtils<double>::Norm3(this->GetPoint(2) - this->GetPoint(0));
 
-        const double s = (a+b+c) / 2.0;
+        const double s = (a + b + c) / 2.0;
 
-        return std::sqrt(s*(s-a)*(s-b)*(s-c));
+        return std::sqrt(s * (s - a) * (s - b) * (s - c));
     }
 
     // TODO: Code activated in June 2023
@@ -553,9 +542,9 @@ public:
         const array_1d<double, 3> b = this->GetPoint(1) - this->GetPoint(2);
         const array_1d<double, 3> c = this->GetPoint(2) - this->GetPoint(0);
 
-        const double sa = (a[0]*a[0])+(a[1]*a[1])+(a[2]*a[2]);
-        const double sb = (b[0]*b[0])+(b[1]*b[1])+(b[2]*b[2]);
-        const double sc = (c[0]*c[0])+(c[1]*c[1])+(c[2]*c[2]);
+        const double sa = (a[0] * a[0]) + (a[1] * a[1]) + (a[2] * a[2]);
+        const double sb = (b[0] * b[0]) + (b[1] * b[1]) + (b[2] * b[2]);
+        const double sc = (c[0] * c[0]) + (c[1] * c[1]) + (c[2] * c[2]);
 
         return CalculateMinEdgeLength(sa, sb, sc);
     }
@@ -574,9 +563,9 @@ public:
         const array_1d<double, 3> b = this->GetPoint(1) - this->GetPoint(2);
         const array_1d<double, 3> c = this->GetPoint(2) - this->GetPoint(0);
 
-        const double sa = (a[0]*a[0])+(a[1]*a[1])+(a[2]*a[2]);
-        const double sb = (b[0]*b[0])+(b[1]*b[1])+(b[2]*b[2]);
-        const double sc = (c[0]*c[0])+(c[1]*c[1])+(c[2]*c[2]);
+        const double sa = (a[0] * a[0]) + (a[1] * a[1]) + (a[2] * a[2]);
+        const double sb = (b[0] * b[0]) + (b[1] * b[1]) + (b[2] * b[2]);
+        const double sc = (c[0] * c[0]) + (c[1] * c[1]) + (c[2] * c[2]);
 
         return CalculateMaxEdgeLength(sa, sb, sc);
     }
@@ -592,10 +581,9 @@ public:
     double AverageEdgeLength() const override
     {
         return CalculateAvgEdgeLength(
-        MathUtils<double>::Norm3(this->GetPoint(0)-this->GetPoint(1)),
-        MathUtils<double>::Norm3(this->GetPoint(1)-this->GetPoint(2)),
-        MathUtils<double>::Norm3(this->GetPoint(2)-this->GetPoint(0))
-        );
+            MathUtils<double>::Norm3(this->GetPoint(0) - this->GetPoint(1)),
+            MathUtils<double>::Norm3(this->GetPoint(1) - this->GetPoint(2)),
+            MathUtils<double>::Norm3(this->GetPoint(2) - this->GetPoint(0)));
     }
 
     /** Calculates the circumradius of the geometry.
@@ -608,10 +596,9 @@ public:
     double Circumradius() const override
     {
         return CalculateCircumradius(
-        MathUtils<double>::Norm3(this->GetPoint(0)-this->GetPoint(1)),
-        MathUtils<double>::Norm3(this->GetPoint(1)-this->GetPoint(2)),
-        MathUtils<double>::Norm3(this->GetPoint(2)-this->GetPoint(0))
-        );
+            MathUtils<double>::Norm3(this->GetPoint(0) - this->GetPoint(1)),
+            MathUtils<double>::Norm3(this->GetPoint(1) - this->GetPoint(2)),
+            MathUtils<double>::Norm3(this->GetPoint(2) - this->GetPoint(0)));
     }
 
     /** Calculates the inradius of the geometry.
@@ -624,10 +611,9 @@ public:
     double Inradius() const override
     {
         return CalculateInradius(
-        MathUtils<double>::Norm3(this->GetPoint(0)-this->GetPoint(1)),
-        MathUtils<double>::Norm3(this->GetPoint(1)-this->GetPoint(2)),
-        MathUtils<double>::Norm3(this->GetPoint(2)-this->GetPoint(0))
-        );
+            MathUtils<double>::Norm3(this->GetPoint(0) - this->GetPoint(1)),
+            MathUtils<double>::Norm3(this->GetPoint(1) - this->GetPoint(2)),
+            MathUtils<double>::Norm3(this->GetPoint(2) - this->GetPoint(0)));
     }
 
 
@@ -641,25 +627,23 @@ public:
         double du2 = Distances[2];
 
         // coplanarity robustness check //
-        if (std::abs(du0)<epsilon) du0 = 0.0;
-        if (std::abs(du1)<epsilon) du1 = 0.0;
-        if (std::abs(du2)<epsilon) du2 = 0.0;
+        if (std::abs(du0) < epsilon) du0 = 0.0;
+        if (std::abs(du1) < epsilon) du1 = 0.0;
+        if (std::abs(du2) < epsilon) du2 = 0.0;
 
-        const double du0du1 = du0*du1;
-        const double du0du2 = du0*du2;
+        const double du0du1 = du0 * du1;
+        const double du0du2 = du0 * du2;
 
-        if (du0du1>0.00 && du0du2>0.00)// same sign on all of them + not equal 0 ? //
+        if (du0du1 > 0.0 && du0du2 > 0.0)// same sign on all of them + not equal 0 ? //
             return true;                   // no intersection occurs //
-
         return false;
-
 	}
 
 	int GetMajorAxis(array_1d<double, 3> const& V) const
     {
         int index = static_cast<int>(std::abs(V[0]) < std::abs(V[1]));
         return (std::abs(V[index]) > std::abs(V[2])) ? index : 2;
-	}
+    }
 
     /**
      * @brief Test the intersection with another geometry
@@ -672,16 +656,16 @@ public:
 
         if (geometry_type == GeometryData::KratosGeometryType::Kratos_Line3D2) {
             return LineTriangleOverlap(rThisGeometry[0], rThisGeometry[1]);
-        }
-        else if(geometry_type == GeometryData::KratosGeometryType::Kratos_Triangle3D3) {
+        } else if (geometry_type == GeometryData::KratosGeometryType::Kratos_Triangle3D3) {
             return TriangleTriangleOverlap(rThisGeometry[0], rThisGeometry[1], rThisGeometry[2]);
-        }
-        else if(geometry_type == GeometryData::KratosGeometryType::Kratos_Quadrilateral3D4) {
-            if      ( TriangleTriangleOverlap(rThisGeometry[0], rThisGeometry[1], rThisGeometry[2]) ) return true;
-            else if ( TriangleTriangleOverlap(rThisGeometry[2], rThisGeometry[3], rThisGeometry[0]) ) return true;
-            else return false;
-        }
-        else {
+        } else if (geometry_type == GeometryData::KratosGeometryType::Kratos_Quadrilateral3D4) {
+            if (TriangleTriangleOverlap(rThisGeometry[0], rThisGeometry[1], rThisGeometry[2]))
+                return true;
+            else if (TriangleTriangleOverlap(rThisGeometry[2], rThisGeometry[3], rThisGeometry[0]))
+                return true;
+            else
+                return false;
+        } else {
             KRATOS_ERROR << "Triangle3D3::HasIntersection : Geometry cannot be identified, please, check the intersecting geometry type." << std::endl;
         }
     }
@@ -727,13 +711,11 @@ public:
      */
     double InradiusToCircumradiusQuality() const override
     {
-        constexpr double normFactor = 1.0;
+        const double a = MathUtils<double>::Norm3(this->GetPoint(0) - this->GetPoint(1));
+        const double b = MathUtils<double>::Norm3(this->GetPoint(1) - this->GetPoint(2));
+        const double c = MathUtils<double>::Norm3(this->GetPoint(2) - this->GetPoint(0));
 
-        const double a = MathUtils<double>::Norm3(this->GetPoint(0)-this->GetPoint(1));
-        const double b = MathUtils<double>::Norm3(this->GetPoint(1)-this->GetPoint(2));
-        const double c = MathUtils<double>::Norm3(this->GetPoint(2)-this->GetPoint(0));
-
-        return normFactor * CalculateInradius(a,b,c) / CalculateCircumradius(a,b,c);
+        return CalculateInradius(a, b, c) / CalculateCircumradius(a, b, c);
     };
 
     /** Calculates the inradius to longest edge quality metric.
@@ -748,17 +730,16 @@ public:
      */
     double InradiusToLongestEdgeQuality() const override
     {
-        constexpr double normFactor = 1.0; // TODO: This normalization coefficient is not correct.
 
         const array_1d<double, 3> a = this->GetPoint(0) - this->GetPoint(1);
         const array_1d<double, 3> b = this->GetPoint(1) - this->GetPoint(2);
         const array_1d<double, 3> c = this->GetPoint(2) - this->GetPoint(0);
 
-        const double sa = (a[0]*a[0])+(a[1]*a[1])+(a[2]*a[2]);
-        const double sb = (b[0]*b[0])+(b[1]*b[1])+(b[2]*b[2]);
-        const double sc = (c[0]*c[0])+(c[1]*c[1])+(c[2]*c[2]);
+        const double sa = (a[0] * a[0]) + (a[1] * a[1]) + (a[2] * a[2]);
+        const double sb = (b[0] * b[0]) + (b[1] * b[1]) + (b[2] * b[2]);
+        const double sc = (c[0] * c[0]) + (c[1] * c[1]) + (c[2] * c[2]);
 
-        return normFactor * CalculateInradius(std::sqrt(sa),std::sqrt(sb),std::sqrt(sc)) / CalculateMaxEdgeLength(sa,sb,sc);
+        return CalculateInradius(std::sqrt(sa), std::sqrt(sb), std::sqrt(sc)) / CalculateMaxEdgeLength(sa, sb, sc);
     }
 
     /** Calculates the area to edge length quality metric.
@@ -774,17 +755,16 @@ public:
      */
     double AreaToEdgeLengthRatio() const override
     {
-        constexpr double normFactor = 1.0;
 
         const array_1d<double, 3> a = this->GetPoint(0) - this->GetPoint(1);
         const array_1d<double, 3> b = this->GetPoint(1) - this->GetPoint(2);
         const array_1d<double, 3> c = this->GetPoint(2) - this->GetPoint(0);
 
-        const double sa = (a[0]*a[0])+(a[1]*a[1])+(a[2]*a[2]);
-        const double sb = (b[0]*b[0])+(b[1]*b[1])+(b[2]*b[2]);
-        const double sc = (c[0]*c[0])+(c[1]*c[1])+(c[2]*c[2]);
+        const double sa = (a[0] * a[0]) + (a[1] * a[1]) + (a[2] * a[2]);
+        const double sb = (b[0] * b[0]) + (b[1] * b[1]) + (b[2] * b[2]);
+        const double sc = (c[0] * c[0]) + (c[1] * c[1]) + (c[2] * c[2]);
 
-        return normFactor * Area() / (sa+sb+sc);
+        return Area() / (sa + sb + sc);
     }
 
     /** Calculates the shortest altitude to edge length quality metric.
@@ -799,20 +779,19 @@ public:
      * @return The shortest altitude to edge length quality metric.
      */
     double ShortestAltitudeToEdgeLengthRatio() const override {
-      constexpr double normFactor = 1.0;
 
-      const array_1d<double, 3> a = this->GetPoint(0) - this->GetPoint(1);
-      const array_1d<double, 3> b = this->GetPoint(1) - this->GetPoint(2);
-      const array_1d<double, 3> c = this->GetPoint(2) - this->GetPoint(0);
+        const array_1d<double, 3> a = this->GetPoint(0) - this->GetPoint(1);
+        const array_1d<double, 3> b = this->GetPoint(1) - this->GetPoint(2);
+        const array_1d<double, 3> c = this->GetPoint(2) - this->GetPoint(0);
 
-      const double sa = (a[0]*a[0])+(a[1]*a[1])+(a[2]*a[2]);
-      const double sb = (b[0]*b[0])+(b[1]*b[1])+(b[2]*b[2]);
-      const double sc = (c[0]*c[0])+(c[1]*c[1])+(c[2]*c[2]);
+        const double sa = (a[0] * a[0]) + (a[1] * a[1]) + (a[2] * a[2]);
+        const double sb = (b[0] * b[0]) + (b[1] * b[1]) + (b[2] * b[2]);
+        const double sc = (c[0] * c[0]) + (c[1] * c[1]) + (c[2] * c[2]);
 
-      // Shortest altitude is the one intersecting the largest base.
-      double base = CalculateMaxEdgeLength(sa,sb,sc);
+        // Shortest altitude is the one intersecting the largest base.
+        double base = CalculateMaxEdgeLength(sa, sb, sc);
 
-      return normFactor * (Area() * 2 / base ) / std::sqrt(sa+sb+sc);
+        return (Area() * 2.0 / base) / std::sqrt(sa + sb + sc);
     }
 
     /** Calculates the area to edge length quality metric.
@@ -827,13 +806,12 @@ public:
      * @return The Inradius to Circumradius Quality metric.
      */
     virtual double AreaToEdgeLengthSquareRatio() const {
-      constexpr double normFactor = 1.0;
 
-      const double a = MathUtils<double>::Norm3(this->GetPoint(0)-this->GetPoint(1));
-      const double b = MathUtils<double>::Norm3(this->GetPoint(1)-this->GetPoint(2));
-      const double c = MathUtils<double>::Norm3(this->GetPoint(2)-this->GetPoint(0));
+        const double a = MathUtils<double>::Norm3(this->GetPoint(0) - this->GetPoint(1));
+        const double b = MathUtils<double>::Norm3(this->GetPoint(1) - this->GetPoint(2));
+        const double c = MathUtils<double>::Norm3(this->GetPoint(2) - this->GetPoint(0));
 
-      return normFactor * Area() / std::pow(a+b+c, 2);
+        return Area() / std::pow(a + b + c, 2);
     }
 
     /** Calculates the shortest altitude to longest edge.
@@ -849,7 +827,6 @@ public:
      */
     virtual double ShortestAltitudeToLongestEdge() const
     {
-        constexpr double normFactor = 1.0;
 
         const array_1d<double, 3> a = this->GetPoint(0) - this->GetPoint(1);
         const array_1d<double, 3> b = this->GetPoint(1) - this->GetPoint(2);
@@ -862,7 +839,7 @@ public:
         // Shortest altitude is the one intersecting the largest base (or edge).
         const double base = CalculateMaxEdgeLength(sa,sb,sc);
 
-        return normFactor * (Area() * 2 / base ) / base;
+        return (Area() * 2.0 / base ) / base;
     }
 
     /**
@@ -917,8 +894,8 @@ public:
 
         PointLocalCoordinates( rResult, point_projected );
 
-        if ( (rResult[0] >= (0.0-Tolerance)) && (rResult[0] <= (1.0+Tolerance)) ) {
-            if ( (rResult[1] >= (0.0-Tolerance)) && (rResult[1] <= (1.0+Tolerance)) ) {
+        if ( (rResult[0] >= (-Tolerance)) && (rResult[0] <= (1.0+Tolerance)) ) {
+            if ( (rResult[1] >= (-Tolerance)) && (rResult[1] <= (1.0+Tolerance)) ) {
                 if ( (rResult[0] + rResult[1]) <= (1.0+Tolerance) ) {
                     return true;
                 }
@@ -1024,7 +1001,7 @@ public:
         }
 
         // Clipping to line y=1-x
-        if (sum_coordinates>1.0){
+        if (sum_coordinates > 1.0){
             for(unsigned int i = 0 ; i < 2 ; i++){
                 rProjectionPointLocalCoordinates[i] /= sum_coordinates;
             }
@@ -1109,23 +1086,20 @@ public:
     JacobiansType& Jacobian( JacobiansType& rResult,
                                      IntegrationMethod ThisMethod ) const override
     {
-        Matrix jacobian( 3, 2 );
-        jacobian( 0, 0 ) = -( BaseType::GetPoint( 0 ).X() ) + ( BaseType::GetPoint( 1 ).X() ); //on the Gauss points (J is constant at each element)
-        jacobian( 1, 0 ) = -( BaseType::GetPoint( 0 ).Y() ) + ( BaseType::GetPoint( 1 ).Y() );
-        jacobian( 2, 0 ) = -( BaseType::GetPoint( 0 ).Z() ) + ( BaseType::GetPoint( 1 ).Z() );
-        jacobian( 0, 1 ) = -( BaseType::GetPoint( 0 ).X() ) + ( BaseType::GetPoint( 2 ).X() );
-        jacobian( 1, 1 ) = -( BaseType::GetPoint( 0 ).Y() ) + ( BaseType::GetPoint( 2 ).Y() );
-        jacobian( 2, 1 ) = -( BaseType::GetPoint( 0 ).Z() ) + ( BaseType::GetPoint( 2 ).Z() );
+        Matrix jacobian(3, 2);
+        jacobian(0, 0) = -(BaseType::GetPoint(0).X()) + (BaseType::GetPoint(1).X()); // on the Gauss points (J is constant at each element)
+        jacobian(1, 0) = -(BaseType::GetPoint(0).Y()) + (BaseType::GetPoint(1).Y());
+        jacobian(2, 0) = -(BaseType::GetPoint(0).Z()) + (BaseType::GetPoint(1).Z());
+        jacobian(0, 1) = -(BaseType::GetPoint(0).X()) + (BaseType::GetPoint(2).X());
+        jacobian(1, 1) = -(BaseType::GetPoint(0).Y()) + (BaseType::GetPoint(2).Y());
+        jacobian(2, 1) = -(BaseType::GetPoint(0).Z()) + (BaseType::GetPoint(2).Z());
 
-        if ( rResult.size() != this->IntegrationPointsNumber( ThisMethod ) )
-        {
+        if ( rResult.size() != this->IntegrationPointsNumber( ThisMethod ) ) {
             // KLUDGE: While there is a bug in ublas vector resize, I have to put this beside resizing!!
-            JacobiansType temp( this->IntegrationPointsNumber( ThisMethod ) );
-            rResult.swap( temp );
+            JacobiansType temp(this->IntegrationPointsNumber(ThisMethod));
+            rResult.swap(temp);
         }
-
-        std::fill( rResult.begin(), rResult.end(), jacobian );
-
+        std::fill(rResult.begin(), rResult.end(), jacobian);
         return rResult;
     }
 
@@ -1151,23 +1125,20 @@ public:
                                      IntegrationMethod ThisMethod,
 				     Matrix & DeltaPosition ) const override
     {
-        Matrix jacobian( 3, 2 );
-        jacobian( 0, 0 ) = -( BaseType::GetPoint( 0 ).X() - DeltaPosition(0,0) ) + ( BaseType::GetPoint( 1 ).X() - DeltaPosition(1,0) ); //on the Gauss points (J is constant at each element)
-        jacobian( 1, 0 ) = -( BaseType::GetPoint( 0 ).Y() - DeltaPosition(0,1) ) + ( BaseType::GetPoint( 1 ).Y() - DeltaPosition(1,1) );
-        jacobian( 2, 0 ) = -( BaseType::GetPoint( 0 ).Z() - DeltaPosition(0,2) ) + ( BaseType::GetPoint( 1 ).Z() - DeltaPosition(1,2) );
-        jacobian( 0, 1 ) = -( BaseType::GetPoint( 0 ).X() - DeltaPosition(0,0) ) + ( BaseType::GetPoint( 2 ).X() - DeltaPosition(2,0) );
-        jacobian( 1, 1 ) = -( BaseType::GetPoint( 0 ).Y() - DeltaPosition(0,1) ) + ( BaseType::GetPoint( 2 ).Y() - DeltaPosition(2,1) );
-        jacobian( 2, 1 ) = -( BaseType::GetPoint( 0 ).Z() - DeltaPosition(0,2) ) + ( BaseType::GetPoint( 2 ).Z() - DeltaPosition(2,2) );
+        Matrix jacobian(3, 2);
+        jacobian(0, 0) = -(BaseType::GetPoint(0).X() - DeltaPosition(0, 0)) + (BaseType::GetPoint(1).X() - DeltaPosition(1, 0)); // on the Gauss points (J is constant at each element)
+        jacobian(1, 0) = -(BaseType::GetPoint(0).Y() - DeltaPosition(0, 1)) + (BaseType::GetPoint(1).Y() - DeltaPosition(1, 1));
+        jacobian(2, 0) = -(BaseType::GetPoint(0).Z() - DeltaPosition(0, 2)) + (BaseType::GetPoint(1).Z() - DeltaPosition(1, 2));
+        jacobian(0, 1) = -(BaseType::GetPoint(0).X() - DeltaPosition(0, 0)) + (BaseType::GetPoint(2).X() - DeltaPosition(2, 0));
+        jacobian(1, 1) = -(BaseType::GetPoint(0).Y() - DeltaPosition(0, 1)) + (BaseType::GetPoint(2).Y() - DeltaPosition(2, 1));
+        jacobian(2, 1) = -(BaseType::GetPoint(0).Z() - DeltaPosition(0, 2)) + (BaseType::GetPoint(2).Z() - DeltaPosition(2, 2));
 
-        if ( rResult.size() != this->IntegrationPointsNumber( ThisMethod ) )
-        {
+        if ( rResult.size() != this->IntegrationPointsNumber( ThisMethod ) ) {
             // KLUDGE: While there is a bug in ublas vector resize, I have to put this beside resizing!!
             JacobiansType temp( this->IntegrationPointsNumber( ThisMethod ) );
             rResult.swap( temp );
         }
-
         std::fill( rResult.begin(), rResult.end(), jacobian );
-
         return rResult;
     }
 
@@ -1196,13 +1167,13 @@ public:
                               IndexType IntegrationPointIndex,
                               IntegrationMethod ThisMethod ) const override
     {
-        rResult.resize( 3, 2,false );
-        rResult( 0, 0 ) = -( BaseType::GetPoint( 0 ).X() ) + ( BaseType::GetPoint( 1 ).X() ); //on the Gauss points (J is constant at each element)
-        rResult( 1, 0 ) = -( BaseType::GetPoint( 0 ).Y() ) + ( BaseType::GetPoint( 1 ).Y() );
-        rResult( 2, 0 ) = -( BaseType::GetPoint( 0 ).Z() ) + ( BaseType::GetPoint( 1 ).Z() );
-        rResult( 0, 1 ) = -( BaseType::GetPoint( 0 ).X() ) + ( BaseType::GetPoint( 2 ).X() );
-        rResult( 1, 1 ) = -( BaseType::GetPoint( 0 ).Y() ) + ( BaseType::GetPoint( 2 ).Y() );
-        rResult( 2, 1 ) = -( BaseType::GetPoint( 0 ).Z() ) + ( BaseType::GetPoint( 2 ).Z() );
+        rResult.resize(3, 2, false);
+        rResult(0, 0) = -(BaseType::GetPoint(0).X()) + (BaseType::GetPoint(1).X()); // on the Gauss points (J is constant at each element)
+        rResult(1, 0) = -(BaseType::GetPoint(0).Y()) + (BaseType::GetPoint(1).Y());
+        rResult(2, 0) = -(BaseType::GetPoint(0).Z()) + (BaseType::GetPoint(1).Z());
+        rResult(0, 1) = -(BaseType::GetPoint(0).X()) + (BaseType::GetPoint(2).X());
+        rResult(1, 1) = -(BaseType::GetPoint(0).Y()) + (BaseType::GetPoint(2).Y());
+        rResult(2, 1) = -(BaseType::GetPoint(0).Z()) + (BaseType::GetPoint(2).Z());
         return rResult;
     }
 
@@ -1223,13 +1194,13 @@ public:
      */
     Matrix& Jacobian( Matrix& rResult, const CoordinatesArrayType& rPoint ) const override
     {
-        rResult.resize( 3, 2 ,false);
-        rResult( 0, 0 ) = -( BaseType::GetPoint( 0 ).X() ) + ( BaseType::GetPoint( 1 ).X() );
-        rResult( 1, 0 ) = -( BaseType::GetPoint( 0 ).Y() ) + ( BaseType::GetPoint( 1 ).Y() );
-        rResult( 2, 0 ) = -( BaseType::GetPoint( 0 ).Z() ) + ( BaseType::GetPoint( 1 ).Z() );
-        rResult( 0, 1 ) = -( BaseType::GetPoint( 0 ).X() ) + ( BaseType::GetPoint( 2 ).X() );
-        rResult( 1, 1 ) = -( BaseType::GetPoint( 0 ).Y() ) + ( BaseType::GetPoint( 2 ).Y() );
-        rResult( 2, 1 ) = -( BaseType::GetPoint( 0 ).Z() ) + ( BaseType::GetPoint( 2 ).Z() );
+        rResult.resize(3, 2, false);
+        rResult(0, 0) = -(BaseType::GetPoint(0).X()) + (BaseType::GetPoint(1).X());
+        rResult(1, 0) = -(BaseType::GetPoint(0).Y()) + (BaseType::GetPoint(1).Y());
+        rResult(2, 0) = -(BaseType::GetPoint(0).Z()) + (BaseType::GetPoint(1).Z());
+        rResult(0, 1) = -(BaseType::GetPoint(0).X()) + (BaseType::GetPoint(2).X());
+        rResult(1, 1) = -(BaseType::GetPoint(0).Y()) + (BaseType::GetPoint(2).Y());
+        rResult(2, 1) = -(BaseType::GetPoint(0).Z()) + (BaseType::GetPoint(2).Z());
         return rResult;
     }
 
@@ -1248,15 +1219,13 @@ public:
     Vector& DeterminantOfJacobian( Vector& rResult, IntegrationMethod ThisMethod ) const override
     {
         const unsigned int integration_points_number = msGeometryData.IntegrationPointsNumber( ThisMethod );
-        if(rResult.size() != integration_points_number)
-        {
+        if(rResult.size() != integration_points_number) {
             rResult.resize(integration_points_number,false);
         }
 
-        const double detJ = 2.0*(this->Area());
+        const double detJ = 2.0 * (this->Area());
 
-        for ( unsigned int pnt = 0; pnt < integration_points_number; pnt++ )
-        {
+        for (unsigned int pnt = 0; pnt < integration_points_number; pnt++) {
             rResult[pnt] = detJ;
         }
         return rResult;
@@ -1281,10 +1250,9 @@ public:
      * @see Jacobian
      * @see InverseOfJacobian
      */
-    double DeterminantOfJacobian( IndexType IntegrationPoint,
-                                          IntegrationMethod ThisMethod ) const override
+    double DeterminantOfJacobian(IndexType IntegrationPoint, IntegrationMethod ThisMethod) const override
     {
-        return 2.0*(this->Area());
+        return 2.0 * (this->Area());
     }
 
     /**
@@ -1300,9 +1268,9 @@ public:
      * @see DeterminantOfJacobian
      * @see InverseOfJacobian
      */
-    double DeterminantOfJacobian( const CoordinatesArrayType& rPoint ) const override
+    double DeterminantOfJacobian(const CoordinatesArrayType& rPoint) const override
     {
-        return 2.0*(this->Area());
+        return 2.0 * (this->Area());
     }
 
     ///@}
@@ -1336,9 +1304,9 @@ public:
     GeometriesArrayType GenerateEdges() const override
     {
         GeometriesArrayType edges = GeometriesArrayType();
-        edges.push_back( Kratos::make_shared<EdgeType>( this->pGetPoint( 1 ), this->pGetPoint( 2 ) ) );
-        edges.push_back( Kratos::make_shared<EdgeType>( this->pGetPoint( 2 ), this->pGetPoint( 0 ) ) );
-        edges.push_back( Kratos::make_shared<EdgeType>( this->pGetPoint( 0 ), this->pGetPoint( 1 ) ) );
+        edges.push_back(Kratos::make_shared<EdgeType>(this->pGetPoint(1), this->pGetPoint(2)));
+        edges.push_back(Kratos::make_shared<EdgeType>(this->pGetPoint(2), this->pGetPoint(0)));
+        edges.push_back(Kratos::make_shared<EdgeType>(this->pGetPoint(0), this->pGetPoint(1)));
         return edges;
     }
 
@@ -1370,41 +1338,39 @@ public:
     {
         GeometriesArrayType faces = GeometriesArrayType();
 
-        faces.push_back( Kratos::make_shared<FaceType>( this->pGetPoint( 0 ), this->pGetPoint( 1 ), this->pGetPoint( 2 )) );
+        faces.push_back(Kratos::make_shared<FaceType>(this->pGetPoint(0), this->pGetPoint(1), this->pGetPoint(2)));
         return faces;
     }
 
     //Connectivities of faces required
     void NumberNodesInFaces (DenseVector<unsigned int>& NumberNodesInFaces) const override
     {
-        if(NumberNodesInFaces.size() != 3 )
-            NumberNodesInFaces.resize(3,false);
+        if (NumberNodesInFaces.size() != 3)
+            NumberNodesInFaces.resize(3, false);
         // Linear Triangles have elements of 2 nodes as faces
-        NumberNodesInFaces[0]=2;
-        NumberNodesInFaces[1]=2;
-        NumberNodesInFaces[2]=2;
-
+        NumberNodesInFaces[0] = 2;
+        NumberNodesInFaces[1] = 2;
+        NumberNodesInFaces[2] = 2;
     }
 
     void NodesInFaces (DenseMatrix<unsigned int>& NodesInFaces) const override
     {
         // faces in columns
-        if(NodesInFaces.size1() != 3 || NodesInFaces.size2() != 3)
-            NodesInFaces.resize(3,3,false);
+        if (NodesInFaces.size1() != 3 || NodesInFaces.size2() != 3)
+            NodesInFaces.resize(3, 3, false);
 
-        //face 1
-        NodesInFaces(0,0)=0;//contrary node to the face
-        NodesInFaces(1,0)=1;
-        NodesInFaces(2,0)=2;
-        //face 2
-        NodesInFaces(0,1)=1;//contrary node to the face
-        NodesInFaces(1,1)=2;
-        NodesInFaces(2,1)=0;
-        //face 3
-        NodesInFaces(0,2)=2;//contrary node to the face
-        NodesInFaces(1,2)=0;
-        NodesInFaces(2,2)=1;
-
+        // face 1
+        NodesInFaces(0, 0) = 0; // contrary node to the face
+        NodesInFaces(1, 0) = 1;
+        NodesInFaces(2, 0) = 2;
+        // face 2
+        NodesInFaces(0, 1) = 1; // contrary node to the face
+        NodesInFaces(1, 1) = 2;
+        NodesInFaces(2, 1) = 0;
+        // face 3
+        NodesInFaces(0, 2) = 2; // contrary node to the face
+        NodesInFaces(1, 2) = 0;
+        NodesInFaces(2, 2) = 1;
     }
 
 
@@ -1438,14 +1404,14 @@ public:
     double ShapeFunctionValue( IndexType ShapeFunctionIndex,
                                        const CoordinatesArrayType& rPoint ) const override
     {
-        switch ( ShapeFunctionIndex )
+        switch (ShapeFunctionIndex)
         {
         case 0:
-            return( 1.0 -rPoint[0] - rPoint[1] );
+            return (1.0 - rPoint[0] - rPoint[1]);
         case 1:
-            return( rPoint[0] );
+            return (rPoint[0]);
         case 2:
-            return( rPoint[1] );
+            return (rPoint[1]);
         default:
             KRATOS_ERROR << "Wrong index of shape function!" << *this << std::endl;
         }
@@ -1467,14 +1433,13 @@ public:
 
     Vector& ShapeFunctionsValues (Vector &rResult, const CoordinatesArrayType& rCoordinates) const override
     {
-        if(rResult.size() != 3)
-        {
-            rResult.resize(3,false);
+        if (rResult.size() != 3) {
+            rResult.resize(3, false);
         }
 
-        rResult[0] =  1.0 -rCoordinates[0] - rCoordinates[1];
-        rResult[1] =  rCoordinates[0] ;
-        rResult[2] =  rCoordinates[1] ;
+        rResult[0] = 1.0 - rCoordinates[0] - rCoordinates[1];
+        rResult[1] = rCoordinates[0];
+        rResult[2] = rCoordinates[1];
 
         return rResult;
     }
@@ -1547,14 +1512,11 @@ public:
     virtual ShapeFunctionsGradientsType ShapeFunctionsLocalGradients(
         IntegrationMethod ThisMethod )
     {
-        ShapeFunctionsGradientsType localGradients
-        = CalculateShapeFunctionsIntegrationPointsLocalGradients( ThisMethod );
-        const int integration_points_number
-        = msGeometryData.IntegrationPointsNumber( ThisMethod );
-        ShapeFunctionsGradientsType Result( integration_points_number );
+        ShapeFunctionsGradientsType localGradients = CalculateShapeFunctionsIntegrationPointsLocalGradients(ThisMethod);
+        const int integration_points_number = msGeometryData.IntegrationPointsNumber(ThisMethod);
+        ShapeFunctionsGradientsType Result(integration_points_number);
 
-        for ( int pnt = 0; pnt < integration_points_number; pnt++ )
-        {
+        for (int pnt = 0; pnt < integration_points_number; pnt++) {
             Result[pnt] = localGradients[pnt];
         }
 
@@ -1568,14 +1530,11 @@ public:
     virtual ShapeFunctionsGradientsType ShapeFunctionsLocalGradients()
     {
         IntegrationMethod ThisMethod = msGeometryData.DefaultIntegrationMethod();
-        ShapeFunctionsGradientsType localGradients
-        = CalculateShapeFunctionsIntegrationPointsLocalGradients( ThisMethod );
-        const int integration_points_number
-        = msGeometryData.IntegrationPointsNumber( ThisMethod );
-        ShapeFunctionsGradientsType Result( integration_points_number );
+        ShapeFunctionsGradientsType localGradients = CalculateShapeFunctionsIntegrationPointsLocalGradients(ThisMethod);
+        const int integration_points_number = msGeometryData.IntegrationPointsNumber(ThisMethod);
+        ShapeFunctionsGradientsType Result(integration_points_number);
 
-        for ( int pnt = 0; pnt < integration_points_number; pnt++ )
-        {
+        for (int pnt = 0; pnt < integration_points_number; pnt++) {
             Result[pnt] = localGradients[pnt];
         }
 
@@ -1594,14 +1553,14 @@ public:
     Matrix& ShapeFunctionsLocalGradients( Matrix& rResult,
             const CoordinatesArrayType& rPoint ) const override
     {
-        rResult.resize( 3, 2 ,false);
-        noalias( rResult ) = ZeroMatrix( 3, 2 );
-        rResult( 0, 0 ) = -1.0;
-        rResult( 0, 1 ) = -1.0;
-        rResult( 1, 0 ) =  1.0;
-        rResult( 1, 1 ) =  0.0;
-        rResult( 2, 0 ) =  0.0;
-        rResult( 2, 1 ) =  1.0;
+        if (rResult.size1() != 3 || rResult.size2() != 2) {
+            rResult.resize(3, 2, false);
+        }
+        rResult.clear();
+        rResult(0, 0) = -1.0;
+        rResult(0, 1) = -1.0;
+        rResult(1, 0) = 1.0;
+        rResult(2, 1) = 1.0;
         return rResult;
     }
 
@@ -1618,14 +1577,14 @@ public:
      */
     virtual Matrix& ShapeFunctionsGradients( Matrix& rResult, PointType& rPoint )
     {
-        rResult.resize( 3, 2,false );
-        noalias( rResult ) = ZeroMatrix( 3, 2 );
-        rResult( 0, 0 ) = -1.0;
-        rResult( 0, 1 ) = -1.0;
-        rResult( 1, 0 ) =  1.0;
-        rResult( 1, 1 ) =  0.0;
-        rResult( 2, 0 ) =  0.0;
-        rResult( 2, 1 ) =  1.0;
+        if (rResult.size1() != 3 || rResult.size2() != 2) {
+            rResult.resize(3, 2, false);
+        }
+        rResult.clear();
+        rResult(0, 0) = -1.0;
+        rResult(0, 1) = -1.0;
+        rResult(1, 0) = 1.0;
+        rResult(2, 1) = 1.0;
         return rResult;
     }
 
@@ -1641,26 +1600,22 @@ public:
         {
             // KLUDGE: While there is a bug in
             // ublas vector resize, I have to put this beside resizing!!
-            ShapeFunctionsGradientsType temp( this->PointsNumber() );
-            rResult.swap( temp );
+            ShapeFunctionsGradientsType temp(this->PointsNumber());
+            rResult.swap(temp);
         }
 
-        rResult[0].resize( 2, 2 ,false);
-
-        rResult[1].resize( 2, 2 ,false);
-        rResult[2].resize( 2, 2 ,false);
-        rResult[0]( 0, 0 ) = 0.0;
-        rResult[0]( 0, 1 ) = 0.0;
-        rResult[0]( 1, 0 ) = 0.0;
-        rResult[0]( 1, 1 ) = 0.0;
-        rResult[1]( 0, 0 ) = 0.0;
-        rResult[1]( 0, 1 ) = 0.0;
-        rResult[1]( 1, 0 ) = 0.0;
-        rResult[1]( 1, 1 ) = 0.0;
-        rResult[2]( 0, 0 ) = 0.0;
-        rResult[2]( 0, 1 ) = 0.0;
-        rResult[2]( 1, 0 ) = 0.0;
-        rResult[2]( 1, 1 ) = 0.0;
+        if (rResult[0].size1() != 2 || rResult[0].size2() != 2) {
+            rResult[0].resize(2, 2, false);
+        }
+        if (rResult[1].size1() != 2 || rResult[1].size2() != 2) {
+            rResult[1].resize(2, 2, false);
+        }
+        if (rResult[2].size1() != 2 || rResult[2].size2() != 2) {
+            rResult[2].resize(2, 2, false);
+        }
+        rResult[0].clear();
+        rResult[1].clear();
+        rResult[2].clear();
         return rResult;
     }
 
@@ -1672,39 +1627,28 @@ public:
      */
     ShapeFunctionsThirdDerivativesType& ShapeFunctionsThirdDerivatives( ShapeFunctionsThirdDerivativesType& rResult, const CoordinatesArrayType& rPoint ) const override
     {
-        if ( rResult.size() != this->PointsNumber() )
-        {
+        if ( rResult.size() != this->PointsNumber() ) {
             // KLUDGE: While there is a bug in
             // ublas vector resize, I have to put this beside resizing!!
-//                 ShapeFunctionsGradientsType
             ShapeFunctionsThirdDerivativesType temp( this->PointsNumber() );
-            rResult.swap( temp );
+            rResult.swap(temp);
         }
 
-        for ( IndexType i = 0; i < rResult.size(); i++ )
-        {
-            DenseVector<Matrix> temp( this->PointsNumber() );
-            rResult[i].swap( temp );
+        for ( IndexType i = 0; i < rResult.size(); i++ ) {
+            DenseVector<Matrix> temp(this->PointsNumber());
+            rResult[i].swap(temp);
         }
 
-        rResult[0][0].resize( 2, 2 ,false);
+        rResult[0][0].resize(2, 2, false);
+        rResult[0][1].resize(2, 2, false);
+        rResult[1][0].resize(2, 2, false);
+        rResult[1][1].resize(2, 2, false);
+        rResult[2][0].resize(2, 2, false);
+        rResult[2][1].resize(2, 2, false);
 
-        rResult[0][1].resize( 2, 2 ,false);
-        rResult[1][0].resize( 2, 2 ,false);
-        rResult[1][1].resize( 2, 2 ,false);
-        rResult[2][0].resize( 2, 2 ,false);
-        rResult[2][1].resize( 2, 2 ,false);
-
-        for ( int i = 0; i < 3; i++ )
-        {
-            rResult[i][0]( 0, 0 ) = 0.0;
-            rResult[i][0]( 0, 1 ) = 0.0;
-            rResult[i][0]( 1, 0 ) = 0.0;
-            rResult[i][0]( 1, 1 ) = 0.0;
-            rResult[i][1]( 0, 0 ) = 0.0;
-            rResult[i][1]( 0, 1 ) = 0.0;
-            rResult[i][1]( 1, 0 ) = 0.0;
-            rResult[i][1]( 1, 1 ) = 0.0;
+        for (int i = 0; i < 3; i++) {
+            rResult[i][0].clear();
+            rResult[i][1].clear();
         }
 
         return rResult;
@@ -1779,18 +1723,14 @@ private:
         //number of nodes in current geometry
         const int points_number = 3;
         //setting up return matrix
-        Matrix shape_function_values( integration_points_number, points_number );
+        Matrix shape_function_values(integration_points_number, points_number);
         //loop over all integration points
 
-        for ( int pnt = 0; pnt < integration_points_number; pnt++ )
-        {
-            row( shape_function_values, pnt )[0] = 1.0
-                                                   - integration_points[pnt].X()
-                                                   - integration_points[pnt].Y();
-            row( shape_function_values, pnt )[1] = integration_points[pnt].X();
-            row( shape_function_values, pnt )[2] = integration_points[pnt].Y();
+        for (int pnt = 0; pnt < integration_points_number; pnt++) {
+            row(shape_function_values, pnt)[0] = 1.0 - integration_points[pnt].X() - integration_points[pnt].Y();
+            row(shape_function_values, pnt)[1] = integration_points[pnt].X();
+            row(shape_function_values, pnt)[2] = integration_points[pnt].Y();
         }
-
         return shape_function_values;
     }
 
@@ -1813,28 +1753,22 @@ private:
         //number of integration points
         const int integration_points_number = integration_points.size();
         ShapeFunctionsGradientsType d_shape_f_values( integration_points_number );
-        //initialising container
-        //std::fill(d_shape_f_values.begin(), d_shape_f_values.end(), Matrix(4,2));
         //loop over all integration points
 
-        for ( int pnt = 0; pnt < integration_points_number; pnt++ )
-        {
-            Matrix result( 3, 2 );
-            result( 0, 0 ) = -1.0;
-            result( 0, 1 ) = -1.0;
-            result( 1, 0 ) =  1.0;
-            result( 1, 1 ) =  0.0;
-            result( 2, 0 ) =  0.0;
-            result( 2, 1 ) =  1.0;
+        Matrix result(3, 2);
+        result.clear();
+        result(0, 0) = -1.0;
+        result(0, 1) = -1.0;
+        result(1, 0) = 1.0;
+        result(2, 1) = 1.0;
+
+        for ( int pnt = 0; pnt < integration_points_number; pnt++ ) {
             d_shape_f_values[pnt] = result;
         }
 
         return d_shape_f_values;
     }
 
-    /**
-     * TODO: testing
-     */
     static const IntegrationPointsContainerType AllIntegrationPoints()
     {
         IntegrationPointsContainerType integration_points =
@@ -1906,7 +1840,7 @@ private:
      * @return   The minimum edge length of the geometry with edges a,b,c
      */
     inline double CalculateMinEdgeLength(const double a, const double b, const double c) const {
-      return std::sqrt(std::min({a, b, c}));
+        return std::sqrt(std::min({a, b, c}));
     }
 
     /** Implements the calculus of the maximum edge length
@@ -1919,7 +1853,7 @@ private:
      * @return   The maximum edge length of the geometry with edges a,b,c
      */
     inline double CalculateMaxEdgeLength(const double a, const double b, const double c) const {
-      return std::sqrt(std::max({a, b, c}));
+        return std::sqrt(std::max({a, b, c}));
     }
 
     /** Implements the calculus of the average edge length
@@ -1932,8 +1866,8 @@ private:
      * @return   The average edge length of the geometry with edges a,b,c
      */
     inline double CalculateAvgEdgeLength(const double a, const double b, const double c) const {
-      constexpr double onethird = 1.0 / 3.0;
-      return (a+b+c) * onethird;
+        constexpr double onethird = 1.0 / 3.0;
+        return (a + b + c) * onethird;
     }
 
     /** Implements the calculus of the circumradius
@@ -1946,7 +1880,7 @@ private:
      * @return   The circumradius of the geometry with edges a,b,c
      */
     inline double CalculateCircumradius(const double a, const double b, const double c) const {
-      return (a*b*c) / std::sqrt((a+b+c) * (b+c-a) * (c+a-b) * (a+b-c));
+        return (a * b * c) / std::sqrt((a + b + c) * (b + c - a) * (c + a - b) * (a + b - c));
     }
 
     /** Implements the calculus of the inradius
@@ -1959,7 +1893,7 @@ private:
      * @return   The inradius of the geometry with edges a,b,c
      */
     inline double CalculateInradius(const double a, const double b, const double c) const {
-      return 0.5 * std::sqrt((b+c-a) * (c+a-b) * (a+b-c) / (a+b+c));
+        return 0.5 * std::sqrt((b + c - a) * (c + a - b) * (a + b - c) / (a + b + c));
     }
 
     bool LineTriangleOverlap(
