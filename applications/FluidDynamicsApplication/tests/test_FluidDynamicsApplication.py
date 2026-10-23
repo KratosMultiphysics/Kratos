@@ -55,6 +55,7 @@ from test_compute_y_plus_process import ComputeYPlusProcessTest
 from test_fluid_computation_processes import FluidComputationProcessesTest
 from slip_spurious_tangential_correction_test import SlipSpuriousTangentialCorrectionTest
 from apply_wall_law_process_test import ApplyWallLawProcessTest
+from test_apply_mass_flow_process import ApplyMassFlowProcessTest
 from test_navier_stokes_fractional_vectorial_convection import NavierStokesFractionalVectorialConvectionTest
 
 def AssembleTestSuites():
@@ -95,6 +96,7 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([ComputeYPlusProcessTest]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([SlipSpuriousTangentialCorrectionTest]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([ApplyWallLawProcessTest]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([ApplyMassFlowProcessTest]))
 
     # Create a test suite with the selected tests plus all small tests
     nightSuite = suites['nightly']
