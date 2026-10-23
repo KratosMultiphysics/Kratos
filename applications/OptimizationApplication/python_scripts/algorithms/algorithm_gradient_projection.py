@@ -165,6 +165,14 @@ class AlgorithmGradientProjection(Algorithm):
         self.algorithm_data.GetBufferedData()["search_direction"] = search_direction
         self.algorithm_data.GetBufferedData()["correction"] = correction
 
+        # kkt_norm = max(direction norm, worst violation): the direction norm alone can be zero at an infeasible point.
+        constraint_violation = max(
+            (abs(constraint.GetStandardizedValue()) if constraint.IsEqualityType() else max(value, 0.0)
+             for constraint, value in zip(self._constraints_list, self.__constr_value)),
+            default=0.0)
+        self.algorithm_data.GetBufferedData()["kkt_norm"] = max(
+            numpy.max(numpy.abs(search_direction.data)), constraint_violation)
+
     @time_decorator()
     def ComputeControlUpdate(self, alpha: Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor) -> Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor:
         search_direction: Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor = self.algorithm_data.GetBufferedData()["search_direction"]
