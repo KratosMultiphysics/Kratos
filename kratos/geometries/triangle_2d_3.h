@@ -584,7 +584,7 @@ public:
      * (comment by janosch)
      */
     double DomainSize() const override {
-      return this->Area();
+        return this->Area();
     }
     /// Class Interface
 
@@ -593,11 +593,11 @@ public:
      * @return double value with the minimum edge length
      */
     virtual double Semiperimeter() const {
-      return CalculateSemiperimeter(
-        MathUtils<double>::Norm3(this->GetPoint(0)-this->GetPoint(1)),
-        MathUtils<double>::Norm3(this->GetPoint(1)-this->GetPoint(2)),
-        MathUtils<double>::Norm3(this->GetPoint(2)-this->GetPoint(0))
-      );
+        return CalculateSemiperimeter(
+            MathUtils<double>::Norm3(this->GetPoint(0)-this->GetPoint(1)),
+            MathUtils<double>::Norm3(this->GetPoint(1)-this->GetPoint(2)),
+            MathUtils<double>::Norm3(this->GetPoint(2)-this->GetPoint(0))
+            );
     }
 
     /** This method calculates and returns the minimum edge
@@ -699,13 +699,11 @@ public:
      * @return The inradius to circumradius quality metric.
      */
     double InradiusToCircumradiusQuality() const override {
-      constexpr double normFactor = 1.0;
+        double a = MathUtils<double>::Norm3(this->GetPoint(0)-this->GetPoint(1));
+        double b = MathUtils<double>::Norm3(this->GetPoint(1)-this->GetPoint(2));
+        double c = MathUtils<double>::Norm3(this->GetPoint(2)-this->GetPoint(0));
 
-      double a = MathUtils<double>::Norm3(this->GetPoint(0)-this->GetPoint(1));
-      double b = MathUtils<double>::Norm3(this->GetPoint(1)-this->GetPoint(2));
-      double c = MathUtils<double>::Norm3(this->GetPoint(2)-this->GetPoint(0));
-
-      return normFactor * CalculateInradius(a,b,c) / CalculateCircumradius(a,b,c);
+        return CalculateInradius(a,b,c) / CalculateCircumradius(a,b,c);
     };
 
     /** Calculates the inradius to longest edge quality metric.
@@ -719,17 +717,16 @@ public:
      * @return The inradius to longest edge quality metric.
      */
     double InradiusToLongestEdgeQuality() const override {
-      constexpr double normFactor = 1.0; // TODO: This normalization coefficient is not correct.
 
-      auto a = this->GetPoint(0) - this->GetPoint(1);
-      auto b = this->GetPoint(1) - this->GetPoint(2);
-      auto c = this->GetPoint(2) - this->GetPoint(0);
+        auto a = this->GetPoint(0) - this->GetPoint(1);
+        auto b = this->GetPoint(1) - this->GetPoint(2);
+        auto c = this->GetPoint(2) - this->GetPoint(0);
 
-      double sa = (a[0]*a[0])+(a[1]*a[1])+(a[2]*a[2]);
-      double sb = (b[0]*b[0])+(b[1]*b[1])+(b[2]*b[2]);
-      double sc = (c[0]*c[0])+(c[1]*c[1])+(c[2]*c[2]);
+        double sa = (a[0]*a[0])+(a[1]*a[1])+(a[2]*a[2]);
+        double sb = (b[0]*b[0])+(b[1]*b[1])+(b[2]*b[2]);
+        double sc = (c[0]*c[0])+(c[1]*c[1])+(c[2]*c[2]);
 
-      return normFactor * CalculateInradius(std::sqrt(sa),std::sqrt(sb),std::sqrt(sc)) / CalculateMaxEdgeLength(sa,sb,sc);
+        return CalculateInradius(std::sqrt(sa),std::sqrt(sb),std::sqrt(sc)) / CalculateMaxEdgeLength(sa,sb,sc);
     }
 
     /** Calculates the minimum to maximum edge length quality metric.
@@ -743,17 +740,16 @@ public:
      * @return The Inradius to Circumradius Quality metric.
      */
     double AreaToEdgeLengthRatio() const override {
-      constexpr double normFactor = 1.0;
 
-      auto a = this->GetPoint(0) - this->GetPoint(1);
-      auto b = this->GetPoint(1) - this->GetPoint(2);
-      auto c = this->GetPoint(2) - this->GetPoint(0);
+        auto a = this->GetPoint(0) - this->GetPoint(1);
+        auto b = this->GetPoint(1) - this->GetPoint(2);
+        auto c = this->GetPoint(2) - this->GetPoint(0);
 
-      double sa = (a[0]*a[0])+(a[1]*a[1])+(a[2]*a[2]);
-      double sb = (b[0]*b[0])+(b[1]*b[1])+(b[2]*b[2]);
-      double sc = (c[0]*c[0])+(c[1]*c[1])+(c[2]*c[2]);
+        double sa = (a[0]*a[0])+(a[1]*a[1])+(a[2]*a[2]);
+        double sb = (b[0]*b[0])+(b[1]*b[1])+(b[2]*b[2]);
+        double sc = (c[0]*c[0])+(c[1]*c[1])+(c[2]*c[2]);
 
-      return normFactor * Area() / (sa+sb+sc);
+        return Area() / (sa+sb+sc);
     }
 
     /** Calculates the shortest altitude to edge length quality metric.
@@ -768,20 +764,19 @@ public:
      * @return The shortest altitude to edge length quality metric.
      */
     double ShortestAltitudeToEdgeLengthRatio() const override {
-      constexpr double normFactor = 1.0;
 
-      auto a = this->GetPoint(0) - this->GetPoint(1);
-      auto b = this->GetPoint(1) - this->GetPoint(2);
-      auto c = this->GetPoint(2) - this->GetPoint(0);
+        auto a = this->GetPoint(0) - this->GetPoint(1);
+        auto b = this->GetPoint(1) - this->GetPoint(2);
+        auto c = this->GetPoint(2) - this->GetPoint(0);
 
-      double sa = (a[0]*a[0])+(a[1]*a[1])+(a[2]*a[2]);
-      double sb = (b[0]*b[0])+(b[1]*b[1])+(b[2]*b[2]);
-      double sc = (c[0]*c[0])+(c[1]*c[1])+(c[2]*c[2]);
+        double sa = (a[0]*a[0])+(a[1]*a[1])+(a[2]*a[2]);
+        double sb = (b[0]*b[0])+(b[1]*b[1])+(b[2]*b[2]);
+        double sc = (c[0]*c[0])+(c[1]*c[1])+(c[2]*c[2]);
 
-      // Shortest altitude is the one intersecting the largest base.
-      double base = CalculateMaxEdgeLength(sa,sb,sc);
+        // Shortest altitude is the one intersecting the largest base.
+        double base = CalculateMaxEdgeLength(sa,sb,sc);
 
-      return normFactor * (Area() * 2 / base ) / std::sqrt(sa+sb+sc);
+      return (Area() * 2 / base ) / std::sqrt(sa+sb+sc);
     }
 
     /**
