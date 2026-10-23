@@ -34,7 +34,9 @@ void PrepareLinearConstraintsForQuadraticContactProcess::ExecuteInitialize()
         r_node.Set(MARKER, false);
     }
 
-    std::vector<std::vector<std::size_t>> master_slave_nodes_ids = {{0, 1, 3}, {1, 2, 4}, {2, 0, 5}};
+    std::array<std::array<IndexType, 3>, 3> master_slave_nodes_ids = {{{0, 1, 3},
+                                                                       {1, 2, 4},
+                                                                       {2, 0, 5}}};
     MasterSlaveConstraint::DofPointerVectorType master_dofs(2);
     MasterSlaveConstraint::DofPointerVectorType slave_dofs(1);
 
