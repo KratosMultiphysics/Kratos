@@ -476,11 +476,8 @@ public:
      * (comment by janosch)
      */
     double Length() const override
-    {
-        //return sqrt(fabs( DeterminantOfJacobian(PointType()))*0.5);
-        double length = 0.000;
-        length = 1.1283791670955 * sqrt( fabs( Area() ) );  // (4xA/Pi)^(1/2)
-        return length;
+    { 
+        return 1.1283791670955 * sqrt( std::abs( Area() ) );  // (4xA/Pi)^(1/2);
     }
 
 
