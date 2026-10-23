@@ -12,6 +12,7 @@
 //                   Felix Nagel
 //  contributors:    Hoang Giang Bui
 //                   Josep Maria Carbonell
+//                   Alejandro Cornejo
 //
 
 #pragma once
