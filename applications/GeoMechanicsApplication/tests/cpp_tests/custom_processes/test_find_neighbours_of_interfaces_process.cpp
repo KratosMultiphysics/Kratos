@@ -172,7 +172,6 @@ KRATOS_TEST_CASE_IN_SUITE(FindNeighboursOfInterfacesProcess_OnlyFindsNeighbourWh
     EXPECT_EQ(p_interface_element->GetValue(NEIGHBOUR_ELEMENTS).size(), 0);
 }
 
-
 KRATOS_TEST_CASE_IN_SUITE(FindNeighboursOfInterfacesProcess_DoesNotAlterNeighboursWithoutHigherLocalDimension,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
