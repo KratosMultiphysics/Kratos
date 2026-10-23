@@ -776,7 +776,7 @@ public:
         // Shortest altitude is the one intersecting the largest base.
         double base = CalculateMaxEdgeLength(sa,sb,sc);
 
-      return (Area() * 2 / base ) / std::sqrt(sa+sb+sc);
+      return (Area() * 2.0 / base ) / std::sqrt(sa+sb+sc);
     }
 
     /**
@@ -811,9 +811,9 @@ public:
     {
         this->PointLocalCoordinates( rResult, rPoint );
 
-        if ( (rResult[0] >= (0.0-Tolerance)) && (rResult[0] <= (1.0+Tolerance)) )
+        if ( (rResult[0] >= (-Tolerance)) && (rResult[0] <= (1.0+Tolerance)) )
         {
-            if ( (rResult[1] >= (0.0-Tolerance)) && (rResult[1] <= (1.0+Tolerance)) )
+            if ( (rResult[1] >= (-Tolerance)) && (rResult[1] <= (1.0+Tolerance)) )
             {
                 if ( (rResult[0] + rResult[1]) <= (1.0+Tolerance) )
                 {
@@ -850,17 +850,20 @@ public:
         J(0,1) = this->GetPoint(2).X() - this->GetPoint(0).X();
         J(1,0) = this->GetPoint(1).Y() - this->GetPoint(0).Y();
         J(1,1) = this->GetPoint(2).Y() - this->GetPoint(0).Y();
-        const double det_J = J(0,0)*J(1,1) - J(0,1)*J(1,0);
+        const double det_J = J(0, 0) * J(1, 1) - J(0, 1) * J(1, 0);
+        const double inv_det_J = 1.0 / det_J;
 
         // Compute eta and xi
-        const double eta = (J(1,0)*(point_0.X() - rPoint(0)) +
-                            J(0,0)*(rPoint(1) - point_0.Y())) / det_J;
-        const double xi  = (J(1,1)*(rPoint(0) - point_0.X()) +
-                            J(0,1)*(point_0.Y() - rPoint(1))) / det_J;
+        const double eta = (J(1, 0) * (point_0.X() - rPoint(0)) +
+                            J(0, 0) * (rPoint(1) - point_0.Y())) *
+                           inv_det_J;
+        const double xi = (J(1, 1) * (rPoint(0) - point_0.X()) +
+                           J(0, 1) * (point_0.Y() - rPoint(1))) *
+                          inv_det_J;
 
-        rResult(0) = xi;
-        rResult(1) = eta;
-        rResult(2) = 0.0;
+        rResult[0] = xi;
+        rResult[1] = eta;
+        rResult[2] = 0.0;
 
         return rResult;
     }
@@ -1032,12 +1035,12 @@ public:
 
         double detJ = x10 * y20-y10 * x20;
 
-        DN_DX(0,0) = -y20 + y10;
-        DN_DX(0,1) =  x20 - x10;
-        DN_DX(1,0) =  y20;
-        DN_DX(1,1) = -x20;
-        DN_DX(2,0) = -y10;
-        DN_DX(2,1) =  x10;
+        DN_DX(0, 0) = -y20 + y10;
+        DN_DX(0, 1) = x20 - x10;
+        DN_DX(1, 0) = y20;
+        DN_DX(1, 1) = -x20;
+        DN_DX(2, 0) = -y10;
+        DN_DX(2, 1) = x10;
 
         DN_DX /= detJ;
 
