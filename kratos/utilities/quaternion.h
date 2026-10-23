@@ -17,7 +17,6 @@
 // System includes
 
 // External includes
-#include <boost/numeric/ublas/vector_expression.hpp>
 
 // Project includes
 #include "includes/global_variables.h"
@@ -100,34 +99,16 @@ namespace Kratos
 			return mQuaternionValues[i];
 		}
 
-		template<class AE>
-		BOOST_UBLAS_INLINE
-		Quaternion& operator = (const boost::numeric::ublas::vector_expression<AE> &ae)
+		template<class TVectorType>
+		Quaternion& operator = (const TVectorType& rVector)
 		{
-			SetX(ae()(0));
-			SetY(ae()(1));
-			SetZ(ae()(2));
-			SetW(ae()(3));
+			SetX(rVector(0));
+			SetY(rVector(1));
+			SetZ(rVector(2));
+			SetW(rVector(3));
 
 			return *this;
 		}
-
-#ifdef KRATOS_USE_EIGEN_BACKEND
-		/**
-		Assignment from an Eigen vector expression (the Eigen-backed Kratos::Vector
-		of the Eigen backend), with the same component order as the uBLAS overload.
-		*/
-		template<class TDerived>
-		Quaternion& operator = (const Eigen::MatrixBase<TDerived>& v)
-		{
-			SetX(v[0]);
-			SetY(v[1]);
-			SetZ(v[2]);
-			SetW(v[3]);
-
-			return *this;
-		}
-#endif
 
 		///@}
 

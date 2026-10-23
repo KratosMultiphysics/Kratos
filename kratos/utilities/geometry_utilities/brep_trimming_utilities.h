@@ -11,9 +11,9 @@
 
 // System includes
 #include <list>
+#include <vector>
 
 // External includes
-#include <boost/numeric/ublas/matrix.hpp>
 #include "clipper/include/clipper2/clipper.h"
 
 // Project includes
@@ -124,15 +124,15 @@ namespace Kratos
                 return;
             }
 
-            boost::numeric::ublas::matrix<DPState> dpstates(n, n);
+            std::vector<std::vector<DPState>> dpstates(n, std::vector<DPState>(n));
 
             //init states and visibility
             for (IndexType i = 0; i < (n - 1); i++) {
                 p1 = BrepTrimmingUtilities::IntPointToDoublePoint(points[i], factor);
                 for (IndexType j = i + 1; j < n; j++) {
-                    dpstates(j, i).visible = true;
-                    dpstates(j, i).weight = 0;
-                    dpstates(j, i).best_vertex = -1;
+                    dpstates[j][i].visible = true;
+                    dpstates[j][i].weight = 0;
+                    dpstates[j][i].best_vertex = -1;
                     if (j != (i + 1)) {
                         p2 = BrepTrimmingUtilities::IntPointToDoublePoint(points[j], factor);
 
@@ -142,7 +142,7 @@ namespace Kratos
                         if (i == (n - 1)) p4 = BrepTrimmingUtilities::IntPointToDoublePoint(points[0], factor);
                         else p4 = BrepTrimmingUtilities::IntPointToDoublePoint(points[i + 1], factor);
                         if (!BrepTrimmingUtilities::InCone(p3, p1, p4, p2)) {
-                            dpstates(j, i).visible = false;
+                            dpstates[j][i].visible = false;
                             continue;
                         }
 
@@ -151,7 +151,7 @@ namespace Kratos
                         if (j == (n - 1)) p4 = BrepTrimmingUtilities::IntPointToDoublePoint(points[0], factor);
                         else p4 = BrepTrimmingUtilities::IntPointToDoublePoint(points[j + 1], factor);
                         if (!BrepTrimmingUtilities::InCone(p3, p2, p4, p1)) {
-                            dpstates(j, i).visible = false;
+                            dpstates[j][i].visible = false;
                             continue;
                         }
 
@@ -160,7 +160,7 @@ namespace Kratos
                             if (k == (n - 1)) p4 = BrepTrimmingUtilities::IntPointToDoublePoint(points[0], factor);
                             else p4 = BrepTrimmingUtilities::IntPointToDoublePoint(points[k + 1], factor);
                             if (BrepTrimmingUtilities::Intersects(p1, p2, p3, p4)) {
-                                dpstates(j, i).visible = false;
+                                dpstates[j][i].visible = false;
                                 break;
                             }
                         }
@@ -168,25 +168,25 @@ namespace Kratos
                 }
             }
 
-            dpstates(n - 1, 0).visible = true;
-            dpstates(n - 1, 0).weight = 0;
-            dpstates(n - 1, 0).best_vertex = -1;
+            dpstates[n - 1][0].visible = true;
+            dpstates[n - 1][0].weight = 0;
+            dpstates[n - 1][0].best_vertex = -1;
 
             for (IndexType gap = 2; gap < n; gap++) {
                 for (IndexType i = 0; i < (n - gap); i++) {
                     IndexType j = i + gap;
-                    if (!dpstates(j, i).visible) continue;
+                    if (!dpstates[j][i].visible) continue;
                     best_vertex = -1;
                     for (IndexType k = (i + 1); k < j; k++) {
-                        if (!dpstates(k, i).visible) continue;
-                        if (!dpstates(j, k).visible) continue;
+                        if (!dpstates[k][i].visible) continue;
+                        if (!dpstates[j][k].visible) continue;
 
                         if (k <= (i + 1)) d1 = 0;
                         else d1 = BrepTrimmingUtilities::Distance(BrepTrimmingUtilities::IntPointToDoublePoint(points[i], factor), BrepTrimmingUtilities::IntPointToDoublePoint(points[k], factor));
                         if (j <= (k + 1)) d2 = 0;
                         else d2 = BrepTrimmingUtilities::Distance(BrepTrimmingUtilities::IntPointToDoublePoint(points[k], factor), BrepTrimmingUtilities::IntPointToDoublePoint(points[j], factor));
 
-                        weight = dpstates(k, i).weight + dpstates(j, k).weight + d1 + d2;
+                        weight = dpstates[k][i].weight + dpstates[j][k].weight + d1 + d2;
 
                         if ((best_vertex == -1) || (weight < min_weight)) {
                             best_vertex = k;
@@ -197,8 +197,8 @@ namespace Kratos
                         return;
                     }
 
-                    dpstates(j, i).best_vertex = best_vertex;
-                    dpstates(j, i).weight = min_weight;
+                    dpstates[j][i].best_vertex = best_vertex;
+                    dpstates[j][i].weight = min_weight;
                 }
             }
 
@@ -210,7 +210,7 @@ namespace Kratos
                 diagonal = diagonals.front();
                 diagonals.pop();
 
-                best_vertex = dpstates(diagonal.index2, diagonal.index1).best_vertex;
+                best_vertex = dpstates[diagonal.index2][diagonal.index1].best_vertex;
                 if (best_vertex == -1) {
                     break;
                 }
