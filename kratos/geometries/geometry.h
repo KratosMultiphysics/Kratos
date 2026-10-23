@@ -27,6 +27,7 @@
 // Project includes
 #include "geometries/geometry_data.h"
 #include "geometries/point.h"
+#include "includes/node.h"
 #include "containers/pointer_vector.h"
 #include "containers/data_value_container.h"
 #include "utilities/math_utils.h"
@@ -4347,5 +4348,9 @@ inline std::ostream& operator << ( std::ostream& rOStream,
 
 template<class TPointType>
 const GeometryDimension Geometry<TPointType>::msGeometryDimension(3, 3);
+
+KRATOS_API_EXTERN template class KRATOS_API(KRATOS_CORE) KratosComponents<Geometry<Node>>;
+
+void KRATOS_API(KRATOS_CORE) AddKratosComponent(std::string const& Name, Geometry<Node> const& ThisComponent);
 
 }  // namespace Kratos.
