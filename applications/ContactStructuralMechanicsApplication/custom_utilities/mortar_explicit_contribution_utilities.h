@@ -236,7 +236,8 @@ public:
         const PointType& rLocalPointDecomp,
         const PointType& rLocalPointParent,
         const GeometryPointType& rGeometryDecomp,
-        const bool DualLM = true
+        const bool DualLM = true,
+        const ProcessInfo& rCurrentProcessInfo = ProcessInfo()
         );
 
     /**
@@ -301,7 +302,8 @@ public:
         const PointType& rLocalPointDecomp,
         const PointType& rLocalPointParent,
         const GeometryPointType& rGeometryDecomp,
-        const bool DualLM = true
+        const bool DualLM = true,
+        const ProcessInfo& rCurrentProcessInfo = ProcessInfo()
         );
 
     /**

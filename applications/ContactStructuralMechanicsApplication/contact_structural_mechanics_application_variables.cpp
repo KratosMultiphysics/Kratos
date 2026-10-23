@@ -69,4 +69,9 @@ KRATOS_CREATE_VARIABLE( double, MAX_GAP_THRESHOLD )                             
 /* Frictional laws */
 KRATOS_CREATE_VARIABLE( FrictionalLaw::Pointer, FRICTIONAL_LAW )                  // The frictional law considered
 KRATOS_CREATE_VARIABLE( double, TRESCA_FRICTION_THRESHOLD )                       // The threshold value for Tresca frictional contact
+
+// Geometric tolerances
+KRATOS_CREATE_VARIABLE( double, INTEGRATION_OVER_TOTAL_AREA_TOLERANCE )           // The factor multiplying the problem length in mortar contact conditions to consider the integration over total area
+KRATOS_CREATE_VARIABLE( double, PROBLEM_REFERENCE_LENGTH )                        // The reference size of the computational geometry
+
 }

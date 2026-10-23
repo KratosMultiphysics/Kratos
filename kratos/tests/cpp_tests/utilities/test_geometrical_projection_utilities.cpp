@@ -111,8 +111,8 @@ void TestFastProjectDirection(const TGeometryType& rGeom)
         rGeom,
         point_to_proj,
         projected_point,
-        normal_vector,
-        dir_vector);
+        dir_vector,
+        normal_vector);
 
     KRATOS_EXPECT_DOUBLE_EQ(expected_proj_dist, proj_distance);
     KRATOS_EXPECT_DOUBLE_EQ(projected_point.X(), x_coord);

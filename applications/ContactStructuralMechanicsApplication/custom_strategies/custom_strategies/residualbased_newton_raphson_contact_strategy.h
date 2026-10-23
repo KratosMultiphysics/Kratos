@@ -190,14 +190,14 @@ public:
         mpMyProcesses(pMyProcesses),
         mpPostProcesses(pPostProcesses)
     {
-        KRATOS_TRY;
+        KRATOS_TRY
 
         mConvergenceCriteriaEchoLevel = pNewConvergenceCriteria->GetEchoLevel();
 
         Parameters default_parameters = GetDefaultParameters();
         mThisParameters.ValidateAndAssignDefaults(default_parameters);
 
-        KRATOS_CATCH("");
+        KRATOS_CATCH("ResidualBasedNewtonRaphsonContactStrategy::Constructor");
     }
 
     /**
@@ -229,14 +229,14 @@ public:
         mpMyProcesses(pMyProcesses),
         mpPostProcesses(pPostProcesses)
     {
-        KRATOS_TRY;
+        KRATOS_TRY
 
         mConvergenceCriteriaEchoLevel = pNewConvergenceCriteria->GetEchoLevel();
 
         Parameters default_parameters = GetDefaultParameters();
         mThisParameters.ValidateAndAssignDefaults(default_parameters);
 
-        KRATOS_CATCH("");
+        KRATOS_CATCH("ResidualBasedNewtonRaphsonContactStrategy::Constructor");
     }
 
     /**
@@ -269,14 +269,14 @@ public:
         mpMyProcesses(pMyProcesses),
         mpPostProcesses(pPostProcesses)
     {
-        KRATOS_TRY;
+        KRATOS_TRY
 
         mConvergenceCriteriaEchoLevel = pNewConvergenceCriteria->GetEchoLevel();
 
         Parameters default_parameters = GetDefaultParameters();
         mThisParameters.ValidateAndAssignDefaults(default_parameters);
 
-        KRATOS_CATCH("");
+        KRATOS_CATCH("ResidualBasedNewtonRaphsonContactStrategy::Constructor");
     }
 
     /**
@@ -314,6 +314,8 @@ public:
     {
         KRATOS_TRY
 
+        BaseType::Predict();
+
         // Auxiliary zero array
         const array_1d<double, 3> zero_array = ZeroVector(3);
 
@@ -331,58 +333,9 @@ public:
 
             // Compute the current gap
             ContactUtilities::ComputeExplicitContributionConditions(r_model_part.GetSubModelPart("ComputingContact"));
-
-            // We predict a contact pressure
-            ProcessInfo& r_process_info = r_model_part.GetProcessInfo();
-            const std::size_t step = r_process_info[STEP];
-
-            if (step == 1) {
-                block_for_each(r_nodes_array, [&](Node& rNode) {
-                    noalias(rNode.Coordinates()) += rNode.FastGetSolutionStepValue(DISPLACEMENT);
-                });
-            } else {
-                block_for_each(r_nodes_array, [&](Node& rNode) {
-                    noalias(rNode.Coordinates()) += (rNode.FastGetSolutionStepValue(DISPLACEMENT) - rNode.FastGetSolutionStepValue(DISPLACEMENT, 1));
-                });
-            }
         }
 
-//         BaseType::Predict();  // NOTE: May cause problems in dynamics!!!
-//
-//         // Set to zero the weighted gap // NOTE: This can be done during the search if the predict is deactivated
-//         ModelPart& r_model_part = StrategyBaseType::GetModelPart();
-//         NodesArrayType& nodes_array = r_model_part.GetSubModelPart("Contact").Nodes();
-//
-//         // We predict contact pressure in case of contact problem
-//         if (nodes_array.begin()->SolutionStepsDataHas(WEIGHTED_GAP)) {
-//             VariableUtils().SetVariable(WEIGHTED_GAP, 0.0, nodes_array);
-//
-//             // Compute the current gap
-//             ContactUtilities::ComputeExplicitContributionConditions(r_model_part.GetSubModelPart("ComputingContact"));
-//
-//             // We predict a contact pressure
-//             ProcessInfo& r_process_info = r_model_part.GetProcessInfo();
-//             const double initial_penalty_parameter = r_process_info[INITIAL_PENALTY];
-//
-//             // We iterate over the nodes
-//             const bool is_components = nodes_array.begin()->SolutionStepsDataHas(LAGRANGE_MULTIPLIER_CONTACT_PRESSURE) ? false : true;
-//
-//             block_for_each(r_nodes_array, [&initial_penalty_parameter, &is_components](Node& rNode) {
-//                 const double current_gap = rNode.FastGetSolutionStepValue(WEIGHTED_GAP);
-//                 const double penalty = rNode.Has(INITIAL_PENALTY) ? rNode.GetValue(INITIAL_PENALTY) : initial_penalty_parameter;
-//                 if (current_gap < 0.0) {
-//                     rNode.Set(ACTIVE, true);
-//                     if (is_components) {
-//                         rNode.FastGetSolutionStepValue(LAGRANGE_MULTIPLIER_CONTACT_PRESSURE) = penalty * current_gap;
-//                     } else {
-//                         const array_1d<double, 3>& normal = rNode.FastGetSolutionStepValue(NORMAL);
-//                         rNode.FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER) = penalty * current_gap * normal;
-//                     }
-//                 }
-//             });
-//         }
-
-        KRATOS_CATCH("")
+        KRATOS_CATCH("ResidualBasedNewtonRaphsonContactStrategy::Predict")
     }
 
     /**
@@ -391,7 +344,7 @@ public:
 
     void Initialize() override
     {
-        KRATOS_TRY;
+        KRATOS_TRY
 
         BaseType::Initialize();
         mFinalizeWasPerformed = false;
@@ -401,7 +354,7 @@ public:
         ProcessInfo& r_process_info = r_model_part.GetProcessInfo();
         r_process_info[NL_ITERATION_NUMBER] = 1;
 
-        KRATOS_CATCH("");
+        KRATOS_CATCH("ResidualBasedNewtonRaphsonContactStrategy::Initialize");
     }
 
     /**
@@ -413,13 +366,10 @@ public:
     double Solve() override
     {
         this->Initialize();
-        this->InitializeSolutionStep();
         this->Predict();
+        this->InitializeSolutionStep();
         this->SolveSolutionStep();
         this->FinalizeSolutionStep();
-
-        // TODO: Add something if necessary
-
         return 0.0;
     }
 
@@ -445,7 +395,7 @@ public:
 
     void FinalizeSolutionStep() override
     {
-        KRATOS_TRY;
+        KRATOS_TRY
 
         if (mFinalizeWasPerformed == false) {
             BaseType::FinalizeSolutionStep();
@@ -454,7 +404,7 @@ public:
             mFinalizeWasPerformed = true;
         }
 
-        KRATOS_CATCH("");
+        KRATOS_CATCH("ResidualBasedNewtonRaphsonContactStrategy::FinalizeSolutionStep");
     }
 
     /**
@@ -464,11 +414,8 @@ public:
 
     bool SolveSolutionStep() override
     {
-        KRATOS_TRY;
+        KRATOS_TRY
 
-//         bool is_converged = BaseType::SolveSolutionStep(); // FIXME: Requires to separate the non linear iterations
-
-//         bool is_converged = BaseSolveSolutionStep(); // Direct solution
         bool is_converged = false;
 
         // Getting model part
@@ -520,7 +467,7 @@ public:
 
         return is_converged;
 
-        KRATOS_CATCH("");
+        KRATOS_CATCH("ResidualBasedNewtonRaphsonContactStrategy::SolveSolutionStep");
     }
 
     /**
@@ -614,7 +561,7 @@ protected:
      */
     bool BaseSolveSolutionStep()
     {
-        KRATOS_TRY;
+        KRATOS_TRY
 
         // Pointers needed in the solution
         ModelPart& r_model_part = StrategyBaseType::GetModelPart();
@@ -787,7 +734,7 @@ protected:
 
         return is_converged;
 
-        KRATOS_CATCH("");
+        KRATOS_CATCH("ResidualBasedNewtonRaphsonContactStrategy::BaseSolveSolutionStep");
     }
 
     /**
@@ -795,7 +742,7 @@ protected:
      */
     bool AdaptativeStep()
     {
-        KRATOS_TRY;
+        KRATOS_TRY
 
         bool is_converged = false;
         // Plots a warning if the maximum number of iterations is exceeded
@@ -833,7 +780,6 @@ protected:
                     NodesArrayType& r_nodes_array = r_model_part.Nodes();
                     block_for_each(r_nodes_array, [&](Node& rNode) {
                         rNode.OverwriteSolutionStepData(1, 0);
-//                         rNode.OverwriteSolutionStepData(2, 1);
                     });
 
                     r_process_info.SetCurrentTime(current_time); // Reduces the time step
@@ -900,7 +846,7 @@ protected:
 
         return is_converged;
 
-        KRATOS_CATCH("");
+        KRATOS_CATCH("ResidualBasedNewtonRaphsonContactStrategy::AdaptativeStep");
     }
 
     /**
@@ -917,9 +863,7 @@ protected:
         const bool MoveMesh
         ) override
     {
-        BaseType::UpdateDatabase(A,Dx,b,MoveMesh);
-
-        // TODO: Add something if necessary
+        BaseType::UpdateDatabase(A, Dx, b, MoveMesh);
     }
 
     /**
@@ -975,7 +919,7 @@ protected:
         double& CurrentTime
         )
     {
-        KRATOS_TRY;
+        KRATOS_TRY
 
         const double aux_time = StrategyBaseType::GetModelPart().GetProcessInfo()[TIME];
         AuxDeltaTime = StrategyBaseType::GetModelPart().GetProcessInfo()[DELTA_TIME];
@@ -989,7 +933,7 @@ protected:
 
         return aux_time;
 
-        KRATOS_CATCH("");
+        KRATOS_CATCH("ResidualBasedNewtonRaphsonContactStrategy::SplitTimeStep");
     }
 
     /**
@@ -997,7 +941,7 @@ protected:
      */
     void UnMoveMesh()
     {
-        KRATOS_TRY;
+        KRATOS_TRY
 
         if (StrategyBaseType::GetModelPart().NodesBegin()->SolutionStepsDataHas(DISPLACEMENT_X) == false)
             KRATOS_ERROR << "It is impossible to move the mesh since the DISPLACEMENT var is not in the model_part. Either use SetMoveMeshFlag(False) or add DISPLACEMENT to the list of variables" << std::endl;
@@ -1008,7 +952,7 @@ protected:
             noalias(rNode.Coordinates()) += rNode.FastGetSolutionStepValue(DISPLACEMENT, 1);
         });
 
-        KRATOS_CATCH("");
+        KRATOS_CATCH("ResidualBasedNewtonRaphsonContactStrategy::UnMoveMesh");
     }
 
     /**
