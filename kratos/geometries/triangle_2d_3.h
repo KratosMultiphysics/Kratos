@@ -1090,16 +1090,17 @@ public:
         //workaround by riccardo
         if(rResult.size() != integration_points_number)
         {
-            rResult.resize(integration_points_number,false);
+            rResult.resize(integration_points_number, false);
         }
-        for(unsigned int i=0; i<integration_points_number; i++)
-            rResult[i] = DN_DX;
-
+        
         if(determinants_of_jacobian.size() != integration_points_number )
-            determinants_of_jacobian.resize(integration_points_number,false);
+            determinants_of_jacobian.resize(integration_points_number, false);
 
-        for(unsigned int i=0; i<integration_points_number; i++)
+        for(unsigned int i=0; i<integration_points_number; i++) {
+            rResult[i].resize(3, 2, false);
+            noalias(rResult[i]) = DN_DX;
             determinants_of_jacobian[i] = detJ;
+        }
     }
 
     /**
