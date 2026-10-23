@@ -44,6 +44,7 @@ from shape_optimization_test_factory import sensitivity_heatmap_test
 from wrl_io_test.test_wrl_io import WrlIOTest
 from surface_normal_shape_change_response_test.test_surface_normal_shape_change_response import SurfaceNormalShapeChangeTest
 from face_angle_response_test.test_face_angle_response import FaceAngleTest
+from shape_optimization_test_factory import water_drain_test
 from mapper_plane_symmetry_test.plane_symmetry_test import PlaneSymmetryMapperTest
 from mapper_revolution_test.revolution_test import RevolutionMapperTest
 from shape_optimization_test_factory import direction_damping_test
@@ -94,6 +95,7 @@ def AssembleTestSuites():
     smallSuite.addTest(curvature_8NQuad_test('test_execution'))
     smallSuite.addTest(mapper_adaptive_filter_curvature_test('test_execution'))
     smallSuite.addTest(sensitivity_heatmap_test('test_execution'))
+    smallSuite.addTest(water_drain_test('test_execution'))
 
     # Adding nightly tests (tests that take < 10min)
     nightSuite = suites['nightly']
