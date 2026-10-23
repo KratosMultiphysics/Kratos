@@ -1050,7 +1050,7 @@ void RomAuxiliaryUtilities::ProjectRomSolutionIncrementToNodes(
             // would be accumulated to that one performed in the ROM B&S (see ProjectToFineBasis)
             //FIXME: WE WOULD BE UPDATING THE VALUES TWICE....
             if (!rNode.IsFixed(*p_var)) {
-                rNode.FastGetSolutionStepValue(*p_var) += inner_prod(row(r_rom_basis, i_var++), r_rom_sol_incr);
+                rNode.FastGetSolutionStepValue(*p_var) += inner_prod(subrange(row(r_rom_basis, i_var++), 0, r_rom_sol_incr.size()), r_rom_sol_incr);
             }
 
         }
@@ -1084,7 +1084,8 @@ void RomAuxiliaryUtilities::GetPhiElemental(
                 const auto variable_key = r_dof.GetVariable().Key();
                 const Matrix::size_type row_id = rVarToRowMapping.at(variable_key);
 
-                noalias(row(rPhiElemental, i)) = row(nodal_rom_basis, row_id);
+                // The nodal basis might have more columns than the modes of this solver (zero-padded bases of coupled solvers)
+                noalias(row(rPhiElemental, i)) = subrange(row(nodal_rom_basis, row_id), 0, rPhiElemental.size2());
             }
         }
     }

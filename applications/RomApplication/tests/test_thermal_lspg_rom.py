@@ -48,7 +48,7 @@ class TestThermalLSPGRom(KratosUnittest.TestCase):
             nodal_area = rom_manager.QoI_Run_ROM[0]["nodal_area"]
             expected_output = np.load(expected_output_filename)
 
-            l2 = np.sqrt((sum(nodal_area*((1 - obtained_output/expected_output )**2)))/(sum(nodal_area)))*100
+            l2 = rom_testing_utilities.GetRelativeL2Error(expected_output, obtained_output, nodal_area)
             self.assertLess(l2, self.relative_tolerance)
 
     def testConvDiffDynamicRom2D(self):
@@ -96,7 +96,7 @@ class TestThermalLSPGRom(KratosUnittest.TestCase):
             nodal_area = rom_testing_utilities.GetNodalAreaVector(self.simulation._GetSolver().GetComputingModelPart())
 
             for i in range (n_snapshots):
-                l2 = np.sqrt((sum(nodal_area*((1 - obtained_snapshot_matrix[:,i]/expected_output[:,i] )**2)))/(sum(nodal_area)))*100
+                l2 = rom_testing_utilities.GetRelativeL2Error(expected_output[:,i], obtained_snapshot_matrix[:,i], nodal_area)
                 self.assertLess(l2, self.relative_tolerance)
 
     def tearDown(self):
