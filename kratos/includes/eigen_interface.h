@@ -35,24 +35,6 @@
 // External includes
 #include <Eigen/Core>
 #include <Eigen/Sparse>
-// The boost uBLAS headers are still made available so that the few
-// uBLAS-only helpers spelling boost::numeric::ublas:: explicitly keep
-// compiling; nothing in namespace Kratos refers to them under this backend.
-#include <boost/numeric/ublas/matrix.hpp>
-#include <boost/numeric/ublas/vector.hpp>
-#include <boost/numeric/ublas/vector_proxy.hpp>
-#include <boost/numeric/ublas/vector_sparse.hpp>
-#include <boost/numeric/ublas/vector_expression.hpp>
-#include <boost/numeric/ublas/matrix_proxy.hpp>
-#include <boost/numeric/ublas/symmetric.hpp>
-#include <boost/numeric/ublas/hermitian.hpp>
-#include <boost/numeric/ublas/banded.hpp>
-#include <boost/numeric/ublas/triangular.hpp>
-#include <boost/numeric/ublas/lu.hpp>
-#include <boost/numeric/ublas/io.hpp>
-#include <boost/numeric/ublas/matrix_sparse.hpp>
-#include <boost/numeric/ublas/operation.hpp>
-#include <boost/numeric/ublas/operation_sparse.hpp>
 
 // Project includes
 #include "includes/eigen_dense_types.h"

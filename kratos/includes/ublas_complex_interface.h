@@ -31,20 +31,20 @@ namespace Kratos
 // The complex counterparts of the Eigen-backed real types (the same templates
 // instantiated on std::complex<double>).
 
-typedef DenseVector<std::complex<double>> ComplexVector;
-typedef unit_vector<std::complex<double>> ComplexUnitVector;
-typedef zero_vector<std::complex<double>> ComplexZeroVector;
-typedef scalar_vector<std::complex<double>> ComplexScalarVector;
-typedef vector_range<ComplexVector> ComplexVectorRange;
-typedef vector_slice<ComplexVector> ComplexVectorSlice;
-typedef DenseMatrix<std::complex<double>> ComplexMatrix;
-typedef identity_matrix<std::complex<double>> ComplexIdentityMatrix;
-typedef zero_matrix<std::complex<double>> ComplexZeroMatrix;
-typedef scalar_matrix<std::complex<double>> ComplexScalarMatrix;
-typedef EigenCompressedMatrix<std::complex<double>> ComplexCompressedMatrix;
-typedef matrix_row<ComplexMatrix> ComplexMatrixRow;
-typedef matrix_column<ComplexMatrix> ComplexMatrixColumn;
-typedef matrix_range<ComplexMatrix> ComplexMatrixRange;
+using ComplexVector = DenseVector<std::complex<double>>;
+using ComplexUnitVector = unit_vector<std::complex<double>>;
+using ComplexZeroVector = zero_vector<std::complex<double>>;
+using ComplexScalarVector = scalar_vector<std::complex<double>>;
+using ComplexVectorRange = vector_range<ComplexVector>;
+using ComplexVectorSlice = vector_slice<ComplexVector>;
+using ComplexMatrix = DenseMatrix<std::complex<double>>;
+using ComplexIdentityMatrix = identity_matrix<std::complex<double>>;
+using ComplexZeroMatrix = zero_matrix<std::complex<double>>;
+using ComplexScalarMatrix = scalar_matrix<std::complex<double>>;
+using ComplexCompressedMatrix = EigenCompressedMatrix<std::complex<double>>;
+using ComplexMatrixRow = matrix_row<ComplexMatrix>;
+using ComplexMatrixColumn = matrix_column<ComplexMatrix>;
+using ComplexMatrixRange = matrix_range<ComplexMatrix>;
 
 ///@}
 
@@ -85,32 +85,32 @@ namespace Kratos
 
 using namespace boost::numeric::ublas;
 
-typedef DenseVector<std::complex<double>> ComplexVector;
-typedef unit_vector<std::complex<double>> ComplexUnitVector;
-typedef zero_vector<std::complex<double>> ComplexZeroVector;
-typedef scalar_vector<std::complex<double>> ComplexScalarVector;
-typedef mapped_vector<std::complex<double>> ComplexSparseVector;
-typedef compressed_vector<std::complex<double>> ComplexCompressedVector;
-typedef coordinate_vector<std::complex<double>> ComplexCoordinateVector;
-typedef vector_range<ComplexVector> ComplexVectorRange;
-typedef vector_slice<ComplexVector> ComplexVectorSlice;
-typedef DenseMatrix<std::complex<double>> ComplexMatrix;
-typedef identity_matrix<std::complex<double>> ComplexIdentityMatrix;
-typedef zero_matrix<std::complex<double>> ComplexZeroMatrix;
-typedef scalar_matrix<std::complex<double>> ComplexScalarMatrix;
-typedef triangular_matrix<std::complex<double>> ComplexTriangularMatrix;
-typedef symmetric_matrix<std::complex<double>> ComplexSymmetricMatrix;
-typedef hermitian_matrix<std::complex<double>> ComplexHermitianMatrix;
-typedef banded_matrix<std::complex<double>> ComplexBandedMatrix;
-typedef mapped_matrix<std::complex<double>> ComplexSparseMatrix;
-typedef compressed_matrix<std::complex<double>> ComplexCompressedMatrix;
-typedef coordinate_matrix<std::complex<double>> ComplexCoordinateMatrix;
-typedef matrix_row<ComplexMatrix> ComplexMatrixRow;
-typedef matrix_column<ComplexMatrix> ComplexMatrixColumn;
-typedef matrix_vector_range<ComplexMatrix> ComplexMatrixVectorRange;
-typedef matrix_vector_slice<ComplexMatrix> ComplexMatrixVectorSlice;
-typedef matrix_range<ComplexMatrix> ComplexMatrixRange;
-typedef matrix_slice<ComplexMatrix> ComplexMatrixSlice;
+using ComplexVector = DenseVector<std::complex<double>>;
+using ComplexUnitVector = unit_vector<std::complex<double>>;
+using ComplexZeroVector = zero_vector<std::complex<double>>;
+using ComplexScalarVector = scalar_vector<std::complex<double>>;
+using ComplexSparseVector = mapped_vector<std::complex<double>>;
+using ComplexCompressedVector = compressed_vector<std::complex<double>>;
+using ComplexCoordinateVector = coordinate_vector<std::complex<double>>;
+using ComplexVectorRange = vector_range<ComplexVector>;
+using ComplexVectorSlice = vector_slice<ComplexVector>;
+using ComplexMatrix = DenseMatrix<std::complex<double>>;
+using ComplexIdentityMatrix = identity_matrix<std::complex<double>>;
+using ComplexZeroMatrix = zero_matrix<std::complex<double>>;
+using ComplexScalarMatrix = scalar_matrix<std::complex<double>>;
+using ComplexTriangularMatrix = triangular_matrix<std::complex<double>>;
+using ComplexSymmetricMatrix = symmetric_matrix<std::complex<double>>;
+using ComplexHermitianMatrix = hermitian_matrix<std::complex<double>>;
+using ComplexBandedMatrix = banded_matrix<std::complex<double>>;
+using ComplexSparseMatrix = mapped_matrix<std::complex<double>>;
+using ComplexCompressedMatrix = compressed_matrix<std::complex<double>>;
+using ComplexCoordinateMatrix = coordinate_matrix<std::complex<double>>;
+using ComplexMatrixRow = matrix_row<ComplexMatrix>;
+using ComplexMatrixColumn = matrix_column<ComplexMatrix>;
+using ComplexMatrixVectorRange = matrix_vector_range<ComplexMatrix>;
+using ComplexMatrixVectorSlice = matrix_vector_slice<ComplexMatrix>;
+using ComplexMatrixRange = matrix_range<ComplexMatrix>;
+using ComplexMatrixSlice = matrix_slice<ComplexMatrix>;
 
 ///@}
 

@@ -12,15 +12,6 @@
 
 #pragma once
 
-// The boost::numeric::ublas linear-algebra interface. Under the Eigen backend
-// (KRATOS_USE_EIGEN_BACKEND) the Kratos types are Eigen-backed instead, so
-// this header forwards to the backend-selected interface (the header to
-// include is includes/default_interface.h).
-#ifdef KRATOS_USE_EIGEN_BACKEND
-#include "includes/default_interface.h"
-#else
-
-
 // System includes
 #include <string>
 #include <iostream>
@@ -121,4 +112,3 @@ namespace Kratos
 
 ///@}
 }  // namespace Kratos.
-#endif // KRATOS_USE_EIGEN_BACKEND
