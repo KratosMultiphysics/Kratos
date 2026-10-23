@@ -65,7 +65,8 @@ void TessellateNurbsSkin(
     IndexType condition_id = r_root_model_part.NumberOfConditions() > 0
         ? r_root_model_part.Conditions().back().Id() + 1
         : 1;
-    const Properties::Pointer p_properties = rPolyline.HasProperties(0)
+    // Recursively: ImportNurbsSbmModeler already creates them in the skin
+    const Properties::Pointer p_properties = rPolyline.RecursivelyHasProperties(0)
         ? rPolyline.pGetProperties(0)
         : rPolyline.CreateNewProperties(0);
 
