@@ -202,7 +202,7 @@ public:
         ) const override
     {
         KRATOS_TRY
-        return Kratos::make_shared<LinearMasterSlaveConstraint>(Id, rMasterDofsVector, rSlaveDofsVector, rRelationMatrix, rConstantVector);
+        return Kratos::make_intrusive<LinearMasterSlaveConstraint>(Id, rMasterDofsVector, rSlaveDofsVector, rRelationMatrix, rConstantVector);
         KRATOS_CATCH("");
     }
 
@@ -228,7 +228,7 @@ public:
         ) const override
     {
         KRATOS_TRY
-        return Kratos::make_shared<LinearMasterSlaveConstraint>(Id, rMasterNode, rMasterVariable, rSlaveNode, rSlaveVariable, Weight, Constant);
+        return Kratos::make_intrusive<LinearMasterSlaveConstraint>(Id, rMasterNode, rMasterVariable, rSlaveNode, rSlaveVariable, Weight, Constant);
         KRATOS_CATCH("");
     }
 
@@ -241,7 +241,7 @@ public:
     {
         KRATOS_TRY
 
-        MasterSlaveConstraint::Pointer p_new_const = Kratos::make_shared<LinearMasterSlaveConstraint>(*this);
+        MasterSlaveConstraint::Pointer p_new_const = Kratos::make_intrusive<LinearMasterSlaveConstraint>(*this);
         p_new_const->SetId(NewId);
         p_new_const->SetData(this->GetData());
         p_new_const->Set(Flags(*this));
