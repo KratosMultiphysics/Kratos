@@ -27,26 +27,11 @@
 namespace Kratos
 {
 
-namespace
-{
-
-using IndexType = GsbmLaplacianConditionDirichlet::IndexType;
-using SizeType = GsbmLaplacianConditionDirichlet::SizeType;
-using GeometryType = Geometry<Node>;
-
-/**
- * @brief Shape functions of a facet side shifted along rDistance, by their
- * Taylor expansion up to order Order (S_d operator).
- *
- * @param rSide One side of the facet.
- * @param rDistance Distance vector d from the facet point to the skin.
- * @param Order Order of the Taylor expansion.
- * @return The shifted shape functions.
- */
-Vector ComputeShiftedShapeFunctions(
+Vector GsbmLaplacianConditionDirichlet::CalculateShiftedShapeFunctions(
     const GeometryType& rSide,
+    const Node& rProjectionNode,
     const array_1d<double, 3>& rDistance,
-    const SizeType Order)
+    const SizeType Order) const
 {
     Vector shifted_shape_functions = row(rSide.ShapeFunctionsValues(), 0);
 
@@ -67,7 +52,14 @@ Vector ComputeShiftedShapeFunctions(
     return shifted_shape_functions;
 }
 
-} // namespace
+double GsbmLaplacianConditionDirichlet::CalculateShiftedBoundaryValue(
+    const Node& rProjectionNode,
+    const array_1d<double, 3>& rDistance,
+    const SizeType Order,
+    const Variable<double>& rUnknownVariable) const
+{
+    return rProjectionNode.GetValue(rUnknownVariable);
+}
 
 void GsbmLaplacianConditionDirichlet::CalculateLocalSystem(
     MatrixType& rLeftHandSideMatrix,
@@ -103,15 +95,14 @@ void GsbmLaplacianConditionDirichlet::CalculateLocalSystem(
         return;  // skip early if jump [[\alpha_h]] = 0 (zero contribution)
     }
 
-    KRATOS_ERROR_IF_NOT(Has(NEIGHBOUR_NODES)) << "GsbmLaplacianConditionDirichlet #" << Id()
+    KRATOS_ERROR_IF_NOT(Has(NEIGHBOUR_NODES)) << Info()
         << " is cut but has no projection node (NEIGHBOUR_NODES). Run "
         << "VolumeFractionGsbmProcess first." << std::endl;
 
-    // Distance d to the closest point, and the boundary value g_D there
+    // Distance d to the closest point
     const Node& r_projection_node = GetValue(NEIGHBOUR_NODES)[0];
     const array_1d<double, 3> distance =
         r_projection_node.Coordinates() - r_minus.Center().Coordinates();
-    const double boundary_value = r_projection_node.GetValue(r_unknown_variable);
 
     // Facet measure, and the normal n- pointing from the - to the + side
     const IndexType point_index = 0;
@@ -131,6 +122,11 @@ void GsbmLaplacianConditionDirichlet::CalculateLocalSystem(
     const GeometryType& r_surface = r_minus.GetGeometryParent(0);
     const SizeType p = std::max(r_surface.PolynomialDegree(0), r_surface.PolynomialDegree(1));
     const double beta_1 = GetProperties()[PENALTY_FACTOR] * (p + 1) * (p + 1);
+
+    // Value imposed on the shifted trace: the boundary value g_D
+    const double boundary_value = CalculateShiftedBoundaryValue(
+        r_projection_node, distance, p, r_unknown_variable
+    );
 
     // \gamma = \alpha_h+ / max(\alpha_h+ + \alpha_h-, tol)
     // Average operator: {{.}}_\gamma = \gamma (.)+ + (1 - \gamma) (.)-
@@ -166,10 +162,10 @@ void GsbmLaplacianConditionDirichlet::CalculateLocalSystem(
         gamma * compute_normal_derivatives(r_plus)
     );
 
-    // {{S_d(v_h)}}_\gamma, with the Taylor expansion up to order p
+    // {{S(v_h)}}_\gamma, with the shift of order p
     const Vector average_shifted_value = join(
-        (1.0 - gamma) * ComputeShiftedShapeFunctions(r_minus, distance, p),
-        gamma * ComputeShiftedShapeFunctions(r_plus, distance, p)
+        (1.0 - gamma) * CalculateShiftedShapeFunctions(r_minus, r_projection_node, distance, p),
+        gamma * CalculateShiftedShapeFunctions(r_plus, r_projection_node, distance, p)
     );
 
     // Consistency: -([[v_\alpha]], {{\nabla u_h}}_\gamma)
@@ -177,14 +173,14 @@ void GsbmLaplacianConditionDirichlet::CalculateLocalSystem(
         weight * outer_prod(jump_v_alpha, average_normal_derivative);
 
     // Symmetry: -({{\nabla v_h}}_\gamma,
-    //             [[\alpha_h]] ({{S_d(u_h)}}_\gamma - g_D))
+    //             [[\alpha_h]] ({{S(u_h)}}_\gamma - g_D))
     noalias(rLeftHandSideMatrix) -=
         weight * alpha_jump * outer_prod(average_normal_derivative, average_shifted_value);
     noalias(rRightHandSideVector) -=
         weight * alpha_jump * boundary_value * average_normal_derivative;
 
-    // Penalty (stabilization): (\beta_1 / h |[[\alpha_h]]| {{S_d(v_h)}}_\gamma,
-    //                           {{S_d(u_h)}}_\gamma - g_D)
+    // Penalty (stabilization): (\beta_1 / h |[[\alpha_h]]| {{S(v_h)}}_\gamma,
+    //                           {{S(u_h)}}_\gamma - g_D)
     const double penalty = weight * beta_1 / h * std::abs(alpha_jump);
     noalias(rLeftHandSideMatrix) +=
         penalty * outer_prod(average_shifted_value, average_shifted_value);
@@ -253,8 +249,7 @@ void GsbmLaplacianConditionDirichlet::GetDofList(
 int GsbmLaplacianConditionDirichlet::Check(const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_ERROR_IF_NOT(GetProperties().Has(PENALTY_FACTOR))
-        << "GsbmLaplacianConditionDirichlet #" << Id() << ": no PENALTY_FACTOR (chi) "
-        << "defined in the properties." << std::endl;
+        << Info() << ": no PENALTY_FACTOR (chi) defined in the properties." << std::endl;
     return 0;
 }
 
