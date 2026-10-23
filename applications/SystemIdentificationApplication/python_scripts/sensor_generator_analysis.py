@@ -63,7 +63,8 @@ class SensorGeneratorAnalysis:
         }""")
         sensor_group_params.ValidateAndAssignDefaults(defaults)
 
-        point_locator = Kratos.BruteForcePointLocator(self.model_part)
+        # spatial search built once for all generated points (mesh is in its initial configuration here)
+        bins = Kratos.GeometricalObjectsBins(self.model_part.Elements, 1e-8)
 
         corner_1 = sensor_group_params["bounding_surface_corner_1"].GetVector()
         corner_2 = sensor_group_params["bounding_surface_corner_2"].GetVector()
@@ -83,9 +84,8 @@ class SensorGeneratorAnalysis:
                 for i_z in range(number_of_sensors[2]):
                     z_coord = corner_1[2] + distance[2] * (i_z + 1) / (number_of_sensors[2] + 1)
                     loc = Kratos.Point(x_coord, y_coord, z_coord)
-                    shape_funcs = Kratos.Vector()
-                    elem_id = point_locator.FindElement(loc, shape_funcs, Kratos.Configuration.Initial, 1e-8)
-                    if elem_id != -1 and KratosSI.SensorUtils.IsPointInGeometry(loc, self.model_part.GetElement(elem_id).GetGeometry()):
+                    result = bins.SearchIsInside(loc)
+                    if result.IsObjectFound() and KratosSI.SensorUtils.IsPointInGeometry(loc, self.model_part.GetElement(result.Get().Id).GetGeometry()):
                         current_params = sensor_params.Clone()
                         current_params["location"].SetVector(loc)
                         json_dict = json.loads(current_params.WriteJsonString().replace("<ENTITY_ID>", str(index)))
