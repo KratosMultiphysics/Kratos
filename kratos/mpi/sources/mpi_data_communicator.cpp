@@ -267,6 +267,58 @@ void MPIDataCommunicator::AllGatherv(const std::vector<__VA_ARGS__>& rSendValues
 }
 #endif
 
+#ifndef KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_ASYNC_INTERFACE_FOR_TYPE
+#define KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_ASYNC_INTERFACE_FOR_TYPE(...)                                  \
+DataCommunicatorRequest MPIDataCommunicator::ISend(const __VA_ARGS__& rSendValues,                          \
+    const int SendDestination, const int SendTag) const {                                                   \
+    return ISendDetail(rSendValues, SendDestination, SendTag);                                              \
+}                                                                                                           \
+DataCommunicatorRequest MPIDataCommunicator::ISend(const std::vector<__VA_ARGS__>& rSendValues,             \
+    const int SendDestination, const int SendTag) const {                                                   \
+    return ISendDetail(rSendValues, SendDestination, SendTag);                                              \
+}                                                                                                           \
+DataCommunicatorRequest MPIDataCommunicator::IRecv(__VA_ARGS__& rRecvValues,                                \
+    const int RecvSource, const int RecvTag) const {                                                        \
+    return IRecvDetail(rRecvValues, RecvSource, RecvTag);                                                   \
+}                                                                                                           \
+DataCommunicatorRequest MPIDataCommunicator::IRecv(std::vector<__VA_ARGS__>& rRecvValues,                   \
+    const int RecvSource, const int RecvTag) const {                                                        \
+    return IRecvDetail(rRecvValues, RecvSource, RecvTag);                                                   \
+}                                                                                                           \
+DataCommunicatorRequest MPIDataCommunicator::IBroadcast(__VA_ARGS__& rBuffer, const int SourceRank) const { \
+    return IBroadcastDetail(rBuffer, SourceRank);                                                           \
+}                                                                                                           \
+DataCommunicatorRequest MPIDataCommunicator::IBroadcast(                                                    \
+    std::vector<__VA_ARGS__>& rBuffer, const int SourceRank) const {                                        \
+    return IBroadcastDetail(rBuffer, SourceRank);                                                           \
+}                                                                                                           \
+DataCommunicatorRequest MPIDataCommunicator::ISumAll(                                                       \
+    const __VA_ARGS__& rLocalValue, __VA_ARGS__& rGlobalValue) const {                                      \
+    return IAllReduceDetail(rLocalValue, rGlobalValue, MPI_SUM);                                            \
+}                                                                                                           \
+DataCommunicatorRequest MPIDataCommunicator::ISumAll(                                                       \
+    const std::vector<__VA_ARGS__>& rLocalValues, std::vector<__VA_ARGS__>& rGlobalValues) const {          \
+    return IAllReduceDetail(rLocalValues, rGlobalValues, MPI_SUM);                                          \
+}                                                                                                           \
+DataCommunicatorRequest MPIDataCommunicator::IMinAll(                                                       \
+    const __VA_ARGS__& rLocalValue, __VA_ARGS__& rGlobalValue) const {                                      \
+    return IAllReduceDetail(rLocalValue, rGlobalValue, MPI_MIN);                                            \
+}                                                                                                           \
+DataCommunicatorRequest MPIDataCommunicator::IMinAll(                                                       \
+    const std::vector<__VA_ARGS__>& rLocalValues, std::vector<__VA_ARGS__>& rGlobalValues) const {          \
+    return IAllReduceDetail(rLocalValues, rGlobalValues, MPI_MIN);                                          \
+}                                                                                                           \
+DataCommunicatorRequest MPIDataCommunicator::IMaxAll(                                                       \
+    const __VA_ARGS__& rLocalValue, __VA_ARGS__& rGlobalValue) const {                                      \
+    return IAllReduceDetail(rLocalValue, rGlobalValue, MPI_MAX);                                            \
+}                                                                                                           \
+DataCommunicatorRequest MPIDataCommunicator::IMaxAll(                                                       \
+    const std::vector<__VA_ARGS__>& rLocalValues, std::vector<__VA_ARGS__>& rGlobalValues) const {          \
+    return IAllReduceDetail(rLocalValues, rGlobalValues, MPI_MAX);                                          \
+}                                                                                                           \
+
+#endif
+
 #ifndef KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_PUBLIC_INTERFACE_FOR_TYPE
 #define KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_PUBLIC_INTERFACE_FOR_TYPE(...)      \
 KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_REDUCE_INTERFACE_FOR_TYPE(__VA_ARGS__)      \
@@ -286,6 +338,72 @@ KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_BROADCAST_INTERFACE_FOR_TYPE(__VA_ARGS__)   
 #endif
 
 namespace Kratos {
+
+namespace {
+
+/// MPI implementation of a pending non-blocking operation.
+/** It owns the MPI_Request and the MPIMessage helpers, which hold the contiguous copies of
+ *  non-contiguous data (e.g. std::vector<Vector>) that MPI reads from or writes to until completion.
+ *  Output values are copied back to the user buffer once the operation completes.
+ */
+template<class TDataType>
+class MPIRequestImplementation final : public DataCommunicatorRequest::Implementation
+{
+public:
+    ~MPIRequestImplementation() override
+    {
+        int finalized = 0;
+        MPI_Finalized(&finalized);
+        if (mRequest != MPI_REQUEST_NULL && !finalized) {
+            try {
+                MPI_Wait(&mRequest, MPI_STATUS_IGNORE);
+                Finalize();
+            } catch (...) {
+                // Destructors must not throw
+            }
+        }
+    }
+
+    void Wait() override
+    {
+        const int ierr = MPI_Wait(&mRequest, MPI_STATUS_IGNORE);
+        KRATOS_ERROR_IF_NOT(ierr == MPI_SUCCESS) << "MPI_Wait failed with error code " << ierr << "." << std::endl;
+        Finalize();
+    }
+
+    bool Test() override
+    {
+        int flag = 0;
+        const int ierr = MPI_Test(&mRequest, &flag, MPI_STATUS_IGNORE);
+        KRATOS_ERROR_IF_NOT(ierr == MPI_SUCCESS) << "MPI_Test failed with error code " << ierr << "." << std::endl;
+        if (flag) {
+            Finalize();
+        }
+        return flag;
+    }
+
+    MPIMessage<TDataType> mSendMessage;
+
+    MPIMessage<TDataType> mRecvMessage;
+
+    /// Buffer to update with the received data on completion (nullptr if nothing is received).
+    TDataType* mpRecvValues = nullptr;
+
+    MPI_Request mRequest = MPI_REQUEST_NULL;
+
+private:
+    void Finalize()
+    {
+        if (mpRecvValues) {
+            TDataType& r_recv_values = *mpRecvValues;
+            mpRecvValues = nullptr;
+            mRecvMessage.Update(r_recv_values);
+        }
+    }
+};
+
+} // namespace
+
 // MPIDataCommunicator implementation
 
 // Life cycle
@@ -546,6 +664,43 @@ KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_ALLREDUCE_LOC_IMPLEMENTATION_FOR_TYPE(int)
 KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_ALLREDUCE_LOC_IMPLEMENTATION_FOR_TYPE(unsigned int)
 KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_ALLREDUCE_LOC_IMPLEMENTATION_FOR_TYPE(long unsigned int)
 KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_ALLREDUCE_LOC_IMPLEMENTATION_FOR_TYPE(double)
+
+// Non-blocking (asynchronous) operations
+
+KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_ASYNC_INTERFACE_FOR_TYPE(char)
+KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_ASYNC_INTERFACE_FOR_TYPE(int)
+KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_ASYNC_INTERFACE_FOR_TYPE(unsigned int)
+KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_ASYNC_INTERFACE_FOR_TYPE(long unsigned int)
+KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_ASYNC_INTERFACE_FOR_TYPE(double)
+KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_ASYNC_INTERFACE_FOR_TYPE(array_1d<double, 3>)
+KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_ASYNC_INTERFACE_FOR_TYPE(array_1d<double, 4>)
+KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_ASYNC_INTERFACE_FOR_TYPE(array_1d<double, 6>)
+KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_ASYNC_INTERFACE_FOR_TYPE(array_1d<double, 9>)
+KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_ASYNC_INTERFACE_FOR_TYPE(Vector)
+KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_ASYNC_INTERFACE_FOR_TYPE(Matrix)
+
+DataCommunicatorRequest MPIDataCommunicator::IBarrier() const
+{
+    auto p_request = Kratos::make_unique<MPIRequestImplementation<char>>();
+    const int ierr = MPI_Ibarrier(mComm, &p_request->mRequest);
+    CheckMPIErrorCode(ierr, "MPI_Ibarrier");
+    return DataCommunicatorRequest(std::move(p_request));
+}
+
+DataCommunicatorRequest MPIDataCommunicator::ISend(const std::string& rSendValues, const int SendDestination, const int SendTag) const
+{
+    return ISendDetail(rSendValues, SendDestination, SendTag);
+}
+
+DataCommunicatorRequest MPIDataCommunicator::IRecv(std::string& rRecvValues, const int RecvSource, const int RecvTag) const
+{
+    return IRecvDetail(rRecvValues, RecvSource, RecvTag);
+}
+
+DataCommunicatorRequest MPIDataCommunicator::IBroadcast(std::string& rBuffer, const int SourceRank) const
+{
+    return IBroadcastDetail(rBuffer, SourceRank);
+}
 
 // Broadcast operations
 
@@ -965,6 +1120,72 @@ template<class TDataType> void MPIDataCommunicator::BroadcastDetail(
     if (Rank() != SourceRank) {
         mpi_message.Update(rBuffer);
     }
+}
+
+template<class TDataType> DataCommunicatorRequest MPIDataCommunicator::ISendDetail(
+    const TDataType& rSendValues, const int SendDestination, const int SendTag) const
+{
+    // The request is allocated first, so that the message buffers have a stable address until completion.
+    auto p_request = Kratos::make_unique<MPIRequestImplementation<TDataType>>();
+    auto& r_message = p_request->mSendMessage;
+
+    const int ierr = MPI_Isend(r_message.Buffer(rSendValues), r_message.Size(rSendValues), r_message.DataType(),
+        SendDestination, SendTag, mComm, &p_request->mRequest);
+    CheckMPIErrorCode(ierr, "MPI_Isend");
+
+    return DataCommunicatorRequest(std::move(p_request));
+}
+
+template<class TDataType> DataCommunicatorRequest MPIDataCommunicator::IRecvDetail(
+    TDataType& rRecvValues, const int RecvSource, const int RecvTag) const
+{
+    auto p_request = Kratos::make_unique<MPIRequestImplementation<TDataType>>();
+    auto& r_message = p_request->mRecvMessage;
+
+    const int ierr = MPI_Irecv(r_message.Buffer(rRecvValues), r_message.Size(rRecvValues), r_message.DataType(),
+        RecvSource, RecvTag, mComm, &p_request->mRequest);
+    CheckMPIErrorCode(ierr, "MPI_Irecv");
+    p_request->mpRecvValues = &rRecvValues;
+
+    return DataCommunicatorRequest(std::move(p_request));
+}
+
+template<class TDataType> DataCommunicatorRequest MPIDataCommunicator::IBroadcastDetail(
+    TDataType& rBuffer, const int SourceRank) const
+{
+    auto p_request = Kratos::make_unique<MPIRequestImplementation<TDataType>>();
+    auto& r_message = p_request->mRecvMessage;
+
+    const int ierr = MPI_Ibcast(r_message.Buffer(rBuffer), r_message.Size(rBuffer), r_message.DataType(),
+        SourceRank, mComm, &p_request->mRequest);
+    CheckMPIErrorCode(ierr, "MPI_Ibcast");
+    if (Rank() != SourceRank) {
+        p_request->mpRecvValues = &rBuffer;
+    }
+
+    return DataCommunicatorRequest(std::move(p_request));
+}
+
+template<class TDataType> DataCommunicatorRequest MPIDataCommunicator::IAllReduceDetail(
+    const TDataType& rLocalValues, TDataType& rReducedValues, MPI_Op Operation) const
+{
+    auto p_request = Kratos::make_unique<MPIRequestImplementation<TDataType>>();
+    auto& r_send_message = p_request->mSendMessage;
+    auto& r_recv_message = p_request->mRecvMessage;
+
+    KRATOS_DEBUG_ERROR_IF(r_send_message.Size(rLocalValues) != r_recv_message.Size(rReducedValues))
+    << "Input error in call to MPI_Iallreduce for rank " << Rank() << ": "
+    << "Sending " << r_send_message.Size(rLocalValues) << " values "
+    << "but receiving " << r_recv_message.Size(rReducedValues) << " values." << std::endl;
+
+    const int ierr = MPI_Iallreduce(
+        r_send_message.Buffer(rLocalValues), r_recv_message.Buffer(rReducedValues),
+        r_send_message.Size(rLocalValues), r_send_message.DataType(),
+        Operation, mComm, &p_request->mRequest);
+    CheckMPIErrorCode(ierr, "MPI_Iallreduce");
+    p_request->mpRecvValues = &rReducedValues;
+
+    return DataCommunicatorRequest(std::move(p_request));
 }
 
 template<class TSendDataType, class TRecvDataType> void MPIDataCommunicator::ScatterDetail(
@@ -1653,5 +1874,6 @@ template<class TContainer> inline int MPIDataCommunicator::MPIMessageSize(const 
 #undef KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_BROADCAST_INTERFACE_FOR_TYPE
 #undef KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_SCATTER_INTERFACE_FOR_TYPE
 #undef KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_GATHER_INTERFACE_FOR_TYPE
+#undef KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_ASYNC_INTERFACE_FOR_TYPE
 #undef KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_PUBLIC_INTERFACE_FOR_TYPE
 #undef KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_IMPLEMENTATION_FOR_TYPE

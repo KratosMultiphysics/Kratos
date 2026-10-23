@@ -142,6 +142,30 @@ void AllGatherv(const std::vector<__VA_ARGS__>& rSendValues, std::vector<__VA_AR
     const std::vector<int>& rRecvCounts, const std::vector<int>& rRecvOffsets) const override;
 #endif
 
+#ifndef KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_ASYNC_INTERFACE_FOR_TYPE
+#define KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_ASYNC_INTERFACE_FOR_TYPE(...)                                      \
+DataCommunicatorRequest ISend(const __VA_ARGS__& rSendValues,                                                   \
+    const int SendDestination, const int SendTag = 0) const override;                                           \
+DataCommunicatorRequest ISend(const std::vector<__VA_ARGS__>& rSendValues,                                      \
+    const int SendDestination, const int SendTag = 0) const override;                                           \
+DataCommunicatorRequest IRecv(__VA_ARGS__& rRecvValues,                                                         \
+    const int RecvSource, const int RecvTag = 0) const override;                                                \
+DataCommunicatorRequest IRecv(std::vector<__VA_ARGS__>& rRecvValues,                                            \
+    const int RecvSource, const int RecvTag = 0) const override;                                                \
+DataCommunicatorRequest IBroadcast(__VA_ARGS__& rBuffer, const int SourceRank) const override;                  \
+DataCommunicatorRequest IBroadcast(std::vector<__VA_ARGS__>& rBuffer, const int SourceRank) const override;     \
+DataCommunicatorRequest ISumAll(const __VA_ARGS__& rLocalValue, __VA_ARGS__& rGlobalValue) const override;      \
+DataCommunicatorRequest ISumAll(                                                                                \
+    const std::vector<__VA_ARGS__>& rLocalValues, std::vector<__VA_ARGS__>& rGlobalValues) const override;      \
+DataCommunicatorRequest IMinAll(const __VA_ARGS__& rLocalValue, __VA_ARGS__& rGlobalValue) const override;      \
+DataCommunicatorRequest IMinAll(                                                                                \
+    const std::vector<__VA_ARGS__>& rLocalValues, std::vector<__VA_ARGS__>& rGlobalValues) const override;      \
+DataCommunicatorRequest IMaxAll(const __VA_ARGS__& rLocalValue, __VA_ARGS__& rGlobalValue) const override;      \
+DataCommunicatorRequest IMaxAll(                                                                                \
+    const std::vector<__VA_ARGS__>& rLocalValues, std::vector<__VA_ARGS__>& rGlobalValues) const override;      \
+
+#endif
+
 #ifndef KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_PUBLIC_INTERFACE_FOR_TYPE
 #define KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_PUBLIC_INTERFACE_FOR_TYPE(...)     \
 KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_REDUCE_INTERFACE_FOR_TYPE(__VA_ARGS__)     \
@@ -259,6 +283,28 @@ class KRATOS_API(KRATOS_MPI_CORE) MPIDataCommunicator: public DataCommunicator
     bool OrReduceAll(const bool Value) const override;
 
     Kratos::Flags OrReduceAll(const Kratos::Flags Values, const Kratos::Flags Mask) const override;
+
+    // Non-blocking (asynchronous) operations
+
+    KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_ASYNC_INTERFACE_FOR_TYPE(char)
+    KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_ASYNC_INTERFACE_FOR_TYPE(int)
+    KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_ASYNC_INTERFACE_FOR_TYPE(unsigned int)
+    KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_ASYNC_INTERFACE_FOR_TYPE(long unsigned int)
+    KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_ASYNC_INTERFACE_FOR_TYPE(double)
+    KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_ASYNC_INTERFACE_FOR_TYPE(array_1d<double, 3>)
+    KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_ASYNC_INTERFACE_FOR_TYPE(array_1d<double, 4>)
+    KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_ASYNC_INTERFACE_FOR_TYPE(array_1d<double, 6>)
+    KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_ASYNC_INTERFACE_FOR_TYPE(array_1d<double, 9>)
+    KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_ASYNC_INTERFACE_FOR_TYPE(Vector)
+    KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_ASYNC_INTERFACE_FOR_TYPE(Matrix)
+
+    DataCommunicatorRequest IBarrier() const override;
+
+    DataCommunicatorRequest ISend(const std::string& rSendValues, const int SendDestination, const int SendTag = 0) const override;
+
+    DataCommunicatorRequest IRecv(std::string& rRecvValues, const int RecvSource, const int RecvTag = 0) const override;
+
+    DataCommunicatorRequest IBroadcast(std::string& rBuffer, const int SourceRank) const override;
 
     ///@}
     ///@name Access
@@ -479,6 +525,18 @@ class KRATOS_API(KRATOS_MPI_CORE) MPIDataCommunicator: public DataCommunicator
     template<class TDataType> void BroadcastDetail(
         TDataType& rBuffer, const int SourceRank) const;
 
+    template<class TDataType> DataCommunicatorRequest ISendDetail(
+        const TDataType& rSendValues, const int SendDestination, const int SendTag) const;
+
+    template<class TDataType> DataCommunicatorRequest IRecvDetail(
+        TDataType& rRecvValues, const int RecvSource, const int RecvTag) const;
+
+    template<class TDataType> DataCommunicatorRequest IBroadcastDetail(
+        TDataType& rBuffer, const int SourceRank) const;
+
+    template<class TDataType> DataCommunicatorRequest IAllReduceDetail(
+        const TDataType& rLocalValues, TDataType& rReducedValues, MPI_Op Operation) const;
+
     template<class TSendDataType, class TRecvDataType> void ScatterDetail(
         const TSendDataType& rSendValues, TRecvDataType& rRecvValues, const int SourceRank) const;
 
@@ -634,5 +692,6 @@ inline std::ostream &operator<<(std::ostream &rOStream,
 #undef KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_BROADCAST_INTERFACE_FOR_TYPE
 #undef KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_SCATTER_INTERFACE_FOR_TYPE
 #undef KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_GATHER_INTERFACE_FOR_TYPE
+#undef KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_ASYNC_INTERFACE_FOR_TYPE
 #undef KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_PUBLIC_INTERFACE_FOR_TYPE
 #undef KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_IMPLEMENTATION_FOR_TYPE
