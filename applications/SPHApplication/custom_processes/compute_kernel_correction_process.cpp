@@ -9,8 +9,6 @@ namespace Kratos
         KRATOS_TRY
 
         const bool flag = mrThisParameters["controls"].GetBool();
-        unsigned int iter;
-
         ComputeKernelCorrectionUtilities::ComputeWeightedSums(mrThisModelPart);
         ComputeKernelCorrectionUtilities::ComputeGradientCorrection(mrThisModelPart);
         
