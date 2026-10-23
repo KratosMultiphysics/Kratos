@@ -271,7 +271,15 @@ class TestHromMedRom(KratosUnittest.TestCase):
     def test_run_hrom_on_hrom_model_part(self):
         """Trains a ROM and an HROM with the RomManager on the MED case and checks that the HROM run on the HROM model part
         (written during the HROM training) gives the solution of the HROM run on the full model part."""
-        work_folder = os.path.join(os.path.dirname(os.path.abspath(__file__)), self.work_folder, "RomManager")
+        self._RunHromOnHromModelPart("RomManager")
+
+    def test_run_hrom_on_hrom_model_part_without_nodes_in_a_sub_model_part(self):
+        """As test_run_hrom_on_hrom_model_part, with the HROM elements selected among the neighbours of the load, so that
+        the HROM model part has no node of the fixed sub model part ("fix"), which is used by a boundary condition process."""
+        self._RunHromOnHromModelPart("RomManagerWithoutFixNodes", initial_candidate_elements_model_part_list=["Structure.load"])
+
+    def _RunHromOnHromModelPart(self, folder_name, initial_candidate_elements_model_part_list=None):
+        work_folder = os.path.join(os.path.dirname(os.path.abspath(__file__)), self.work_folder, folder_name)
         self.addCleanup(kratos_utilities.DeleteDirectoryIfExisting, work_folder)
         os.makedirs(work_folder, exist_ok=True)
         # The HROM model part is written next to the input MED file, so the case is run on a copy of it
@@ -293,6 +301,8 @@ class TestHromMedRom(KratosUnittest.TestCase):
 
             with open("rom_manager_parameters.json", 'r') as parameter_file:
                 general_rom_manager_parameters = KratosMultiphysics.Parameters(parameter_file.read())
+            if initial_candidate_elements_model_part_list is not None:
+                general_rom_manager_parameters["HROM"]["initial_candidate_elements_model_part_list"].SetStringArray(initial_candidate_elements_model_part_list)
             rom_manager = RomManager(project_parameters_name="ProjectParameters.json", general_rom_manager_parameters=general_rom_manager_parameters, CustomizeSimulation=CustomizeSimulation)
             mu = [[1.0]]
             CustomizeSimulation.label = "Fit"
