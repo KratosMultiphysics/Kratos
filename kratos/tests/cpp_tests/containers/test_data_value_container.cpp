@@ -13,12 +13,16 @@
 //
 
 // System includes
+#include <sstream>
 #include <unordered_set>
 
 // External includes
 
 // Project includes
 #include "containers/data_value_container.h"
+#include "includes/constitutive_law.h"
+#include "includes/serializer.h"
+#include "includes/stream_serializer.h"
 #include "includes/variables.h"
 #include "testing/testing.h"
 #include "includes/expect.h"
@@ -195,5 +199,122 @@ KRATOS_TEST_CASE_IN_SUITE(DataValueContainerEmplace, KratosCoreFastSuite) {
     vec_2[2] = 0.2;
     KRATOS_EXPECT_VECTOR_EQ(container.GetValue(CONSTRAINT_LABELS), vec_2);
 }
+
+// A non-DataOnly load into a populated container must delete the old values; the law's use count
+// shows whether the container still holds a leaked copy of its pointer.
+KRATOS_TEST_CASE_IN_SUITE(DataValueContainerLoadIntoPopulatedContainer, KratosCoreFastSuite) {
+    auto p_law = Kratos::make_shared<ConstitutiveLaw>();
+    const Vector distances(3, 1.5);
+
+    DataValueContainer container;
+    container.SetValue(CONSTITUTIVE_LAW, p_law);
+    container.SetValue(DENSITY, 2.0);
+    container.SetValue(ELEMENTAL_DISTANCES, distances);
+    KRATOS_EXPECT_EQ(p_law.use_count(), 2);
+
+    for (std::size_t i = 0; i < 2; ++i) {
+        StreamSerializer serializer;
+        serializer.save("Container", container);
+        container.SetValue(DENSITY, -1.0);
+        serializer.load("Container", container);
+
+        KRATOS_EXPECT_EQ(container.Size(), 3);
+        KRATOS_EXPECT_EQ(container.GetValue(DENSITY), 2.0);
+        KRATOS_EXPECT_VECTOR_EQ(container.GetValue(ELEMENTAL_DISTANCES), distances);
+        KRATOS_EXPECT_NE(container.GetValue(CONSTITUTIVE_LAW), nullptr);
+        KRATOS_EXPECT_NE(container.GetValue(CONSTITUTIVE_LAW), p_law);
+    }
+
+    KRATOS_EXPECT_EQ(p_law.use_count(), 1);
+}
+
+namespace {
+
+/// In-memory serializer in DataOnly mode (saves and loads only values, into existing objects).
+class DataOnlyStreamSerializer : public Serializer
+{
+public:
+    DataOnlyStreamSerializer()
+        : Serializer(new std::stringstream(std::ios::binary | std::ios::in | std::ios::out), SERIALIZER_NO_TRACE, true)
+    {}
+};
+
+} // namespace
+
+// roigcarlo's case 1: DataOnly into a container with the same variables in the same order.
+KRATOS_TEST_CASE_IN_SUITE(DataValueContainerDataOnlyLoadSameLayout, KratosCoreFastSuite) {
+    DataValueContainer saved;
+    saved.SetValue(DENSITY, 2.0);
+    saved.SetValue(ELEMENTAL_DISTANCES, Vector(3, 1.5));
+
+    DataValueContainer container;
+    container.SetValue(DENSITY, -1.0);
+    container.SetValue(ELEMENTAL_DISTANCES, Vector(3, -1.0));
+
+    DataOnlyStreamSerializer serializer;
+    serializer.save("Container", saved);
+    serializer.load("Container", container);
+
+    KRATOS_EXPECT_EQ(container.Size(), 2);
+    KRATOS_EXPECT_EQ(container.GetValue(DENSITY), 2.0);
+    KRATOS_EXPECT_VECTOR_EQ(container.GetValue(ELEMENTAL_DISTANCES), Vector(3, 1.5));
+}
+
+// roigcarlo's case 2: DataOnly into a container holding a value added after the save; restoring removes and
+// frees it (the law's use count shows a leaked copy).
+KRATOS_TEST_CASE_IN_SUITE(DataValueContainerDataOnlyLoadSmallerArchive, KratosCoreFastSuite) {
+    auto p_law = Kratos::make_shared<ConstitutiveLaw>();
+
+    DataValueContainer container;
+    container.SetValue(DENSITY, 2.0);
+    container.SetValue(ELEMENTAL_DISTANCES, Vector(3, 1.5));
+
+    DataOnlyStreamSerializer serializer;
+    serializer.save("Container", container);
+    container.SetValue(DENSITY, -1.0);
+    container.SetValue(CONSTITUTIVE_LAW, p_law);
+    KRATOS_EXPECT_EQ(p_law.use_count(), 2);
+    serializer.load("Container", container);
+
+    KRATOS_EXPECT_EQ(container.Size(), 2);
+    KRATOS_EXPECT_FALSE(container.Has(CONSTITUTIVE_LAW));
+    KRATOS_EXPECT_EQ(container.GetValue(DENSITY), 2.0);
+    KRATOS_EXPECT_VECTOR_EQ(container.GetValue(ELEMENTAL_DISTANCES), Vector(3, 1.5));
+    KRATOS_EXPECT_EQ(p_law.use_count(), 1);
+}
+
+// DataOnly with the same variables in another order (and so other types per position): values are restored by name.
+KRATOS_TEST_CASE_IN_SUITE(DataValueContainerDataOnlyLoadReordered, KratosCoreFastSuite) {
+    DataValueContainer saved;
+    saved.SetValue(DENSITY, 2.0);
+    saved.SetValue(ELEMENTAL_DISTANCES, Vector(3, 1.5));
+
+    DataValueContainer container;
+    container.SetValue(ELEMENTAL_DISTANCES, Vector(3, -1.0));
+    container.SetValue(DENSITY, -1.0);
+
+    DataOnlyStreamSerializer serializer;
+    serializer.save("Container", saved);
+    serializer.load("Container", container);
+
+    KRATOS_EXPECT_EQ(container.Size(), 2);
+    KRATOS_EXPECT_EQ(container.GetValue(DENSITY), 2.0);
+    KRATOS_EXPECT_VECTOR_EQ(container.GetValue(ELEMENTAL_DISTANCES), Vector(3, 1.5));
+}
+
+// DataOnly cannot create values, so a saved variable missing from the container is an error.
+KRATOS_TEST_CASE_IN_SUITE(DataValueContainerDataOnlyLoadMissingVariable, KratosCoreFastSuite) {
+    DataValueContainer saved;
+    saved.SetValue(DENSITY, 2.0);
+    saved.SetValue(ELEMENTAL_DISTANCES, Vector(3, 1.5));
+
+    DataValueContainer container;
+    container.SetValue(ELEMENTAL_DISTANCES, Vector(3, -1.0));
+
+    DataOnlyStreamSerializer serializer;
+    serializer.save("Container", saved);
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(serializer.load("Container", container), "DataOnly loading restores values into an existing container, but the variable DENSITY is not in it.");
+}
+
 }
 } // namespace Kratos.

@@ -414,6 +414,8 @@ public:
             free(mpData);
 
         mpData = 0;
+        mpCurrentPosition = 0;
+        mAllocatedDataSize = 0;
     }
 
 
@@ -517,6 +519,7 @@ public:
 
             // Setting data pointer to the allocated memory
             mpData = temp;
+            mAllocatedDataSize = size;
 
             // updating the current position
             mpCurrentPosition = mpData;
@@ -800,6 +803,9 @@ private:
 
     ContainerType mpData;
 
+    /// mpVariablesList->DataSize() when mpData was allocated: the shared list may have grown since (see DestructAllElements)
+    SizeType mAllocatedDataSize = 0;
+
     VariablesList::Pointer mpVariablesList;
 
     ///@}
@@ -813,14 +819,16 @@ private:
 
     inline void Allocate()
     {
-        KRATOS_DEBUG_ERROR_IF(!mpVariablesList) << "This container don't have a variables list assigned. A possible reason is creating a node without a model part." << std::endl;
-        mpData = (BlockType*)malloc(mpVariablesList->DataSize() * sizeof(BlockType) * mQueueSize);
+        KRATOS_ERROR_IF(!mpVariablesList) << "This container don't have a variables list assigned. A possible reason is creating a node without a model part." << std::endl;
+        mAllocatedDataSize = mpVariablesList->DataSize();
+        mpData = (BlockType*)malloc(mAllocatedDataSize * sizeof(BlockType) * mQueueSize);
     }
 
     inline void Reallocate()
     {
-        KRATOS_DEBUG_ERROR_IF(!mpVariablesList) << "This container don't have a variables list assigned. A possible reason is creating a node without a model part." << std::endl;
-        mpData = (BlockType*)realloc(mpData, mpVariablesList->DataSize() * sizeof(BlockType) * mQueueSize);
+        KRATOS_ERROR_IF(!mpVariablesList) << "This container don't have a variables list assigned. A possible reason is creating a node without a model part." << std::endl;
+        mAllocatedDataSize = mpVariablesList->DataSize();
+        mpData = (BlockType*)realloc(mpData, mAllocatedDataSize * sizeof(BlockType) * mQueueSize);
     }
 
     void DestructElements(SizeType ThisIndex)
@@ -836,6 +844,14 @@ private:
         }
     }
 
+    /**
+     * @brief Destructs every stored value with the layout mpData was allocated with.
+     * @details The VariablesList is shared (e.g. by all nodes of a model part) and may have grown since this block was
+     * allocated: an in-place load() that adds the archive's variables to the shared list throws, but by then the list
+     * has grown while the other containers still hold blocks with the old layout. VariablesList::Add only appends, so
+     * the variables with LocalOffset < mAllocatedDataSize are exactly those stored in this block, at unchanged offsets,
+     * which keeps the destruction of those containers safe.
+     */
     void DestructAllElements()
     {
         if(!mpVariablesList)
@@ -844,9 +860,12 @@ private:
         if(mpData == 0)
             return;
 
-        const SizeType size = mpVariablesList->DataSize();
+        const SizeType size = mAllocatedDataSize;
         for(VariablesList::const_iterator it_variable = mpVariablesList->begin(); it_variable != mpVariablesList->end() ; it_variable++) {
-            BlockType*  position = mpData + LocalOffset(*it_variable);
+            const SizeType offset = LocalOffset(*it_variable);
+            if(offset >= size)
+                continue;
+            BlockType*  position = mpData + offset;
             for(SizeType i = 0 ; i < mQueueSize ; i++) {
                 it_variable->Destruct(position + i * size);
             }
@@ -927,7 +946,15 @@ private:
 
     void load(Serializer& rSerializer)
     {
+        // Allocate() below replaces the block, so destruct and free the current one first (with its allocated layout).
+        const bool is_in_place = mpData != 0;
+        const SizeType allocated_data_size = mAllocatedDataSize;
+        Clear();
         rSerializer.load("Variables List", mpVariablesList);
+        KRATOS_ERROR_IF(is_in_place && mpVariablesList->DataSize() != allocated_data_size)
+            << "Loading changed the historical variables of a container that already holds data [ allocated data size = "
+            << allocated_data_size << ", loaded data size = " << mpVariablesList->DataSize() << " ]. Adding historical "
+            << "variables to a model part with nodes is not allowed (see ModelPart::AddNodalSolutionStepVariable).\n";
         rSerializer.load("QueueSize", mQueueSize);
         SizeType queue_index;
         rSerializer.load("QueueIndex", queue_index);

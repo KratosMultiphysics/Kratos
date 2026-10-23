@@ -11,8 +11,10 @@
 //
 
 // System includes
-#include <vector>
+#include <algorithm>
 #include <set>
+#include <unordered_map>
+#include <vector>
 
 // External includes
 
@@ -174,30 +176,47 @@ void PropertiesVariableTensorAdaptor::StoreData()
                 << "Underlying container of the tensor data has changed size [ tensor data = "
                 << this->Info() << ", container size = " << pContainer->size() << " ].\n";
 
-            if constexpr(DataTypeTraits<data_type>::IsDynamic) {
-                // this zero value may be different from the Variable::Zero()
-                // in the case where the variable type is Variable<Vector> or Variable<Matrix>.
-                // Because, in these dynamic data type variables, Variable::Zero will create
-                // a zero sized vector or matrix, which is useless in the StoreData method.
-                // The following method creates correctly sized zero Vector or Matrix
-                // accordingly to be assigned to the entities, if they don't have the specified
-                // variable in their DataValueContainer.
-                const auto& zero = TensorAdaptorUtils::GetZeroValue(*pVariable, this->DataShape());
+            const auto p_shape_begin = r_tensor_shape.data().begin();
+            const auto p_shape_end = p_shape_begin + r_tensor_shape.size();
+            const auto stride = DataTypeTraits<data_type>::Size(p_shape_begin + 1, p_shape_end);
+            const auto p_data_begin = this->ViewData().data();
 
-                ContainerIOUtils::CopyFromContiguousDataArray<data_type>(
-                    *pContainer, this->ViewData(), r_tensor_shape.data().begin(),
-                    r_tensor_shape.data().begin() + r_tensor_shape.size(),
-                    [pVariable, &zero](auto& rEntity) -> auto& {
-                        return rEntity.GetProperties().Emplace(*pVariable, zero);
-                    });
-            } else {
-                ContainerIOUtils::CopyFromContiguousDataArray<data_type>(
-                    *pContainer, this->ViewData(), r_tensor_shape.data().begin(),
-                    r_tensor_shape.data().begin() + r_tensor_shape.size(),
-                    [pVariable](auto& rEntity) -> auto& {
-                        return rEntity.GetProperties().Emplace(*pVariable);
-                    });
+            // group the entities by Properties: entities sharing one must hold equal values, written once
+            std::unordered_map<const Properties*, IndexType> first_entity_indices;
+            std::vector<IndexType> distinct_entity_indices;
+            distinct_entity_indices.reserve(pContainer->size());
+            for (IndexType i = 0; i < pContainer->size(); ++i) {
+                const auto& r_entity = *(pContainer->begin() + i);
+                const auto [p_item, is_new] = first_entity_indices.emplace(&r_entity.GetProperties(), i);
+                if (is_new) {
+                    distinct_entity_indices.push_back(i);
+                } else {
+                    const auto p_first_values = p_data_begin + p_item->second * stride;
+                    KRATOS_ERROR_IF_NOT(std::equal(p_first_values, p_first_values + stride, p_data_begin + i * stride))
+                        << "Entities sharing a properties must have the same " << pVariable->Name()
+                        << " value [ properties id = " << r_entity.GetProperties().Id() << ", entity ids = "
+                        << (pContainer->begin() + p_item->second)->Id() << " and " << r_entity.Id() << " ].\n";
+                }
             }
+
+            // Emplace is not thread safe on one Properties, hence the variable is created serially
+            std::vector<data_type*> values(distinct_entity_indices.size());
+            if constexpr(DataTypeTraits<data_type>::IsDynamic) {
+                // correctly sized zero Vector/Matrix: Variable::Zero() of dynamic types has size zero
+                const auto& zero = TensorAdaptorUtils::GetZeroValue(*pVariable, this->DataShape());
+                for (IndexType k = 0; k < values.size(); ++k) {
+                    values[k] = &(pContainer->begin() + distinct_entity_indices[k])->GetProperties().Emplace(*pVariable, zero);
+                }
+            } else {
+                for (IndexType k = 0; k < values.size(); ++k) {
+                    values[k] = &(pContainer->begin() + distinct_entity_indices[k])->GetProperties().Emplace(*pVariable);
+                }
+            }
+
+            IndexPartition<IndexType>(values.size()).for_each([&](const auto k) {
+                DataTypeTraits<data_type>::CopyFromContiguousData(
+                    *values[k], p_data_begin + distinct_entity_indices[k] * stride, p_shape_begin + 1, p_shape_end);
+            });
         }
     }, this->GetContainer(), mpVariable);
 }

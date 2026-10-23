@@ -123,8 +123,10 @@ public:
      * @details This method is designed to store data even if the variable is not already available in the
      *          entities' properties. If it is not present in the entities' properties, then a correctly shaped zero valued value
      *          will be set and then their relevant components will be overwritten by this method.
+     *          Entities may share a properties: the variable is then created and written once per distinct
+     *          properties, and the entities sharing it must have exactly equal values in the internal data.
      *
-     * @warning If the entities' properties are not unique for each entity, this will result in a race condition.
+     * @throws std::runtime_error If entities sharing a properties have different values.
      */
     void StoreData() override;
 

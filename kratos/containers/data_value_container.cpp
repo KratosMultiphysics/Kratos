@@ -12,6 +12,8 @@
 //
 
 // System includes
+#include <algorithm>
+#include <vector>
 
 // External includes
 
@@ -90,17 +92,45 @@ void DataValueContainer::load(Serializer& rSerializer)
 {
     KRATOS_TRY
 
-    std::size_t size;
-    rSerializer.load("Size", size);
-    mData.resize(size);
     std::string name;
-    for (std::size_t i = 0; i < size; i++) {
-        rSerializer.load("Variable Name", name);
-        mData[i].first = KratosComponents<VariableData>::pGet(name);
-        if (!rSerializer.IsDataOnly()) {
+    if (!rSerializer.IsDataOnly()) {
+        // an in-place load allocates every value anew, so delete the current ones first
+        Clear();
+        std::size_t size;
+        rSerializer.load("Size", size);
+        mData.resize(size);
+        for (std::size_t i = 0; i < size; i++) {
+            rSerializer.load("Variable Name", name);
+            mData[i].first = KratosComponents<VariableData>::pGet(name);
             mData[i].first->Allocate(&(mData[i].second));
+            mData[i].first->Load(rSerializer, mData[i].second);
         }
-        mData[i].first->Load(rSerializer, mData[i].second);
+    } else {
+        // DataOnly loads into the existing values, so they are matched by variable (not by position, which
+        // may differ or hold another type); values not in the archive are deleted to restore the saved state
+        std::size_t size;
+        rSerializer.load("Size", size);
+        std::vector<bool> is_loaded(mData.size(), false);
+        for (std::size_t i = 0; i < size; i++) {
+            rSerializer.load("Variable Name", name);
+            const auto p_variable = KratosComponents<VariableData>::pGet(name);
+            const auto it = std::find_if(mData.begin(), mData.end(), IndexCheck(p_variable->SourceKey()));
+            KRATOS_ERROR_IF(it == mData.end())
+                << "DataOnly loading restores values into an existing container, but the variable " << name
+                << " is not in it.\n";
+            p_variable->Load(rSerializer, it->second);
+            is_loaded[it - mData.begin()] = true;
+        }
+
+        std::size_t number_of_kept_values = 0;
+        for (std::size_t i = 0; i < mData.size(); ++i) {
+            if (is_loaded[i]) {
+                mData[number_of_kept_values++] = mData[i];
+            } else {
+                mData[i].first->Delete(mData[i].second);
+            }
+        }
+        mData.resize(number_of_kept_values);
     }
 
     KRATOS_CATCH("")
