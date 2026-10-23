@@ -1,13 +1,14 @@
 import KratosMultiphysics as Kratos
 from KratosMultiphysics.OptimizationApplication.model_part_controllers.model_part_controller import ModelPartController
+from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem import OptimizationProblem
 
-def Factory(model: Kratos.Model, parameters: Kratos.Parameters, _) -> ModelPartController:
+def Factory(model: Kratos.Model, parameters: Kratos.Parameters, optimization_problem: OptimizationProblem) -> ModelPartController:
     if not parameters.Has("settings"):
         raise RuntimeError(f"MdpaModelPartController instantiation requires a \"settings\" in parameters [ parameters = {parameters}].")
-    return MdpaModelPartController(model, parameters["settings"])
+    return MdpaModelPartController(model, parameters["settings"], optimization_problem)
 
 class MdpaModelPartController(ModelPartController):
-    def __init__(self, model: Kratos.Model, parameters: Kratos.Parameters):
+    def __init__(self, model: Kratos.Model, parameters: Kratos.Parameters, optimization_problem: OptimizationProblem):
         default_settings = Kratos.Parameters("""{
             "model_part_name": "",
             "input_filename" : "",
@@ -31,8 +32,16 @@ class MdpaModelPartController(ModelPartController):
 
         self.model_part = model.CreateModelPart(model_part_name)
         self.read_data = parameters["read_data"].GetBool()
+        self.optimization_problem = optimization_problem
 
     def ImportModelPart(self) -> None:
+        if self.optimization_problem.IsRestarted():
+            # the model part was loaded from the checkpoint. IS_RESTARTED (as RestartUtility sets it)
+            # stops solvers from re-reading materials over the restored constitutive laws.
+            self.model_part.ProcessInfo[Kratos.IS_RESTARTED] = True
+            self.model_part.ProcessInfo[Kratos.LOAD_RESTART] = self.model_part.ProcessInfo[Kratos.STEP] + 1
+            return
+
         if self.read_data:
             Kratos.ModelPartIO(self.input_filename, Kratos.ModelPartIO.READ).ReadModelPart(self.model_part)
         else:

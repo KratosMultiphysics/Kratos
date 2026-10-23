@@ -1,12 +1,14 @@
 # Temporal fix until to avoid list[type] related errors until we move to 3.9 and above.
 from __future__ import annotations
 
+import numpy
 from typing import Optional
 from abc import ABC, abstractmethod
 
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.OptimizationApplication as KratosOA
 from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem import OptimizationProblem
+from KratosMultiphysics.OptimizationApplication.utilities.buffered_dict import BufferedDict
 
 class DesignVariableProjection(ABC):
     """Design variable projection methods to convert given x space values to given y space values
@@ -69,7 +71,7 @@ class DesignVariableProjection(ABC):
         """
 
 class IdentityDesignVariableProjection(DesignVariableProjection):
-    def __init__(self, parameters: Kratos.Parameters, _):
+    def __init__(self, parameters: Kratos.Parameters, _, __ = None):
         default_settings = Kratos.Parameters("""{
             "type"       : "identity_projection"
         }""")
@@ -98,7 +100,7 @@ class IdentityDesignVariableProjection(DesignVariableProjection):
         pass
 
 class SigmoidalDesignVariableProjection(DesignVariableProjection):
-    def __init__(self, parameters: Kratos.Parameters, _):
+    def __init__(self, parameters: Kratos.Parameters, _, __ = None):
         default_parameters = Kratos.Parameters("""{
             "type"          : "sigmoidal_projection",
             "beta_value"    : 5,
@@ -129,7 +131,7 @@ class SigmoidalDesignVariableProjection(DesignVariableProjection):
         pass
 
 class AdaptiveSigmoidalDesignVariableProjection(DesignVariableProjection):
-    def __init__(self, parameters: Kratos.Parameters, optimization_problem: OptimizationProblem):
+    def __init__(self, parameters: Kratos.Parameters, optimization_problem: OptimizationProblem, restart_data: Optional[BufferedDict] = None):
         default_parameters = Kratos.Parameters("""{
             "type"          : "adaptive_sigmoidal_projection",
             "initial_value" : 5,
@@ -140,17 +142,47 @@ class AdaptiveSigmoidalDesignVariableProjection(DesignVariableProjection):
         }""")
 
         parameters.ValidateAndAssignDefaults(default_parameters)
-        self.beta = parameters["initial_value"].GetDouble()
         self.max_beta = parameters["max_value"].GetDouble()
         self.increase_fac = parameters["increase_fac"].GetDouble()
         self.update_period = parameters["update_period"].GetInt()
         self.penalty_factor = parameters["penalty_factor"].GetInt()
-        self.beta_computed_step = 1
 
         self.x_space_values: 'Optional[list[float]]' = None
         self.y_space_values: 'Optional[list[float]]' = None
 
         self.optimization_problem = optimization_problem
+        self.__restart_data = restart_data
+
+        # "beta" grows across iterations, so it lives in restart_data and is read live: the
+        # checkpoint is restored only after this constructor has run.
+        if self.__restart_data is None:
+            self.__beta = parameters["initial_value"].GetDouble()
+            self.__beta_computed_step = 1
+        elif not self.__restart_data.HasValue("beta"):
+            self.__restart_data.SetValue("beta", parameters["initial_value"].GetDouble(), overwrite=True)
+            self.__restart_data.SetValue("beta_computed_step", 1, overwrite=True)
+
+    @property
+    def beta(self) -> float:
+        return self.__restart_data["beta"] if self.__restart_data is not None else self.__beta
+
+    @beta.setter
+    def beta(self, value: float) -> None:
+        if self.__restart_data is not None:
+            self.__restart_data.SetValue("beta", value, overwrite=True)
+        else:
+            self.__beta = value
+
+    @property
+    def beta_computed_step(self) -> int:
+        return self.__restart_data["beta_computed_step"] if self.__restart_data is not None else self.__beta_computed_step
+
+    @beta_computed_step.setter
+    def beta_computed_step(self, value: int) -> None:
+        if self.__restart_data is not None:
+            self.__restart_data.SetValue("beta_computed_step", value, overwrite=True)
+        else:
+            self.__beta_computed_step = value
 
     def SetProjectionSpaces(self, x_space_values: 'list[float]', y_space_values: 'list[float]') -> None:
         self.x_space_values = x_space_values
@@ -173,7 +205,7 @@ class AdaptiveSigmoidalDesignVariableProjection(DesignVariableProjection):
             Kratos.Logger.PrintInfo(self.__class__.__name__, f"Increased beta to {self.beta}.")
 
 class ClampingProjection(DesignVariableProjection):
-    def __init__(self, parameters: Kratos.Parameters, _):
+    def __init__(self, parameters: Kratos.Parameters, _, __ = None):
         default_parameters = Kratos.Parameters("""{
             "type"           : "clamping_projection"
         }""")
@@ -201,7 +233,7 @@ class ClampingProjection(DesignVariableProjection):
         pass
 
 
-def CreateProjection(parameters: Kratos.Parameters, optimization_problem: OptimizationProblem) -> DesignVariableProjection:
+def CreateProjection(parameters: Kratos.Parameters, optimization_problem: OptimizationProblem, restart_data: Optional[BufferedDict] = None) -> DesignVariableProjection:
     if not parameters.Has("type"):
         raise RuntimeError("DesignVariableProjection \"type\" is not present in following parameters:\n" + str(parameters))
 
@@ -215,9 +247,31 @@ def CreateProjection(parameters: Kratos.Parameters, optimization_problem: Optimi
     }
 
     if projection_type in projection_types_map.keys():
-        return projection_types_map[projection_type](parameters, optimization_problem)
+        return projection_types_map[projection_type](parameters, optimization_problem, restart_data)
     else:
         raise RuntimeError(f"Unsupported projected type = \"{projection_type}\" requested. Followings are supported:\n\t" + "\n\t".join(list(projection_types_map.keys())))
+
+def StorePhiFields(restart_data: BufferedDict, physical_phi_field: Kratos.TensorAdaptors.DoubleTensorAdaptor, control_phi_field: Kratos.TensorAdaptors.DoubleTensorAdaptor) -> None:
+    """Saves copies of a projected control's phi fields in restart_data for RestorePhiFields().
+
+    A projection (e.g. clamping) maps every phi beyond its x space to the same physical value, so
+    ProjectBackward() of the checkpointed mesh cannot recover the phi a resumed run must continue from.
+    """
+    restart_data.SetValue("physical_phi", physical_phi_field.data.copy(), overwrite=True)
+    restart_data.SetValue("control_phi", control_phi_field.data.copy(), overwrite=True)
+
+def RestorePhiFields(restart_data: BufferedDict, optimization_problem: OptimizationProblem, physical_phi_field: Kratos.TensorAdaptors.DoubleTensorAdaptor, control_phi_field: Kratos.TensorAdaptors.DoubleTensorAdaptor) -> None:
+    """Overwrites the phi fields in place with the ones StorePhiFields() saved, if the problem is
+    restarted and the checkpoint has them; does nothing otherwise. Call it in the control's
+    Initialize(), after the fields were derived from the mesh and before they are projected forward.
+    """
+    if not optimization_problem.IsRestarted() or not restart_data.HasValue("physical_phi"):
+        return
+    for key, field in (("physical_phi", physical_phi_field), ("control_phi", control_phi_field)):
+        values: numpy.ndarray = restart_data[key]
+        if values.shape != field.data.shape:
+            raise RuntimeError(f"Checkpointed \"{key}\" field shape {values.shape} does not match the control's field shape {field.data.shape}.")
+        field.data[:] = values
 
 # Helper classes
 class TensorAdaptorBoundingManager:

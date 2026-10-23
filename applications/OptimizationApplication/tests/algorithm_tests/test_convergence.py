@@ -325,6 +325,38 @@ class TestConvergence(kratos_unittest.TestCase):
         algorithm_data.GetBufferedData()["std_obj_value"] = 1e-4 / 10
         self.assertTrue(convergence_criterion.IsConverged())
 
+    def _RunWithReinitialization(self, create_criterion, values: 'list[float]', reinit_step: int) -> 'list[tuple[bool, dict]]':
+        """Runs a criterion over values, replacing it at reinit_step by a fresh instance on the same
+        problem (as a restarted run does). Returns IsConverged() and the algorithm's buffered data per step."""
+        optimization_problem = OptimizationProblem()
+        algorithm_data = ComponentDataView("algorithm", optimization_problem)
+        algorithm_data.SetDataBuffer(10)
+        criterion = create_criterion(optimization_problem)
+        criterion.Initialize()
+        results = []
+        for step, value in enumerate(values):
+            if step == reinit_step:
+                criterion = create_criterion(optimization_problem)
+                criterion.Initialize()
+            algorithm_data.GetBufferedData()["std_obj_value"] = value
+            results.append((criterion.IsConverged(), dict(algorithm_data.GetBufferedData().GetMap())))
+            optimization_problem.AdvanceStep()
+        return results
+
+    def test_ConvCriteriaStateSurvivesReinitialization(self):
+        """Patience and avg-abs criteria re-hydrate their evolving state from unbuffered data, so a
+        fresh instance created mid-run (restart) reproduces the uninterrupted run."""
+        values = [1e-4, 1e-4 / 5, 1e-4 / 10, 1e-4 / 15, 1e-4 / 15, 1e-4 / 150, 1e-4 / 10, 1e-4 / 10]
+        creators = [
+            lambda problem: patience_conv_criterion.PatienceConvCriterion(Kratos.Parameters("""{"minimum_itr": 3, "patience_itr": 2}"""), problem),
+            lambda problem: avg_abs_improvement_conv_criterion.AvgAbsImprovementConvCriterion(Kratos.Parameters("""{"tracked_iter": 3, "tolerance": 1e-6}"""), problem)
+        ]
+        for create_criterion in creators:
+            reference = self._RunWithReinitialization(create_criterion, values, len(values))
+            resumed = self._RunWithReinitialization(create_criterion, values, 5)
+            self.assertEqual([r[0] for r in reference], [r[0] for r in resumed])
+            self.assertEqual([r[1] for r in reference], [r[1] for r in resumed])
+
 
 if __name__ == "__main__":
     kratos_unittest.main()

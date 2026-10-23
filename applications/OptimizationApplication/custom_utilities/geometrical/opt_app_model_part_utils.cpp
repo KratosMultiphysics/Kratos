@@ -20,6 +20,7 @@
 // Project includes
 #include "includes/define.h"
 #include "includes/model_part.h"
+#include "includes/global_pointer_variables.h"
 #include "utilities/parallel_utilities.h"
 #include "utilities/reduction_utilities.h"
 
@@ -688,6 +689,53 @@ void OptAppModelPartUtils::GenerateModelPart(
 
     rDestinationModelPart.AddElements(temp_elements.begin(), temp_elements.end());
     rDestinationModelPart.AddNodes(temp_nodes.begin(), temp_nodes.end());
+
+    KRATOS_CATCH("");
+}
+
+OptAppModelPartUtils::NeighbourEntitiesDataBackup OptAppModelPartUtils::ClearNeighbourEntitiesData(const std::vector<ModelPart*>& rModelParts)
+{
+    KRATOS_TRY
+
+    NeighbourEntitiesDataBackup backup;
+    for (auto p_model_part : rModelParts) {
+        for (auto& r_node : p_model_part->Nodes()) {
+            if (r_node.Has(NEIGHBOUR_ELEMENTS)) {
+                backup.mNeighbourElements.emplace_back(&r_node, r_node.GetValue(NEIGHBOUR_ELEMENTS));
+                r_node.GetData().Erase(NEIGHBOUR_ELEMENTS);
+            }
+            if (r_node.Has(NEIGHBOUR_CONDITIONS)) {
+                backup.mNeighbourConditions.emplace_back(&r_node, r_node.GetValue(NEIGHBOUR_CONDITIONS));
+                r_node.GetData().Erase(NEIGHBOUR_CONDITIONS);
+            }
+            if (r_node.Has(NEIGHBOUR_NODES)) {
+                backup.mNeighbourNodes.emplace_back(&r_node, r_node.GetValue(NEIGHBOUR_NODES));
+                r_node.GetData().Erase(NEIGHBOUR_NODES);
+            }
+        }
+    }
+    return backup;
+
+    KRATOS_CATCH("");
+}
+
+void OptAppModelPartUtils::RestoreNeighbourEntitiesData(NeighbourEntitiesDataBackup& rBackup)
+{
+    KRATOS_TRY
+
+    for (auto& r_item : rBackup.mNeighbourElements) {
+        r_item.first->SetValue(NEIGHBOUR_ELEMENTS, r_item.second);
+    }
+    for (auto& r_item : rBackup.mNeighbourConditions) {
+        r_item.first->SetValue(NEIGHBOUR_CONDITIONS, r_item.second);
+    }
+    for (auto& r_item : rBackup.mNeighbourNodes) {
+        r_item.first->SetValue(NEIGHBOUR_NODES, r_item.second);
+    }
+
+    rBackup.mNeighbourElements.clear();
+    rBackup.mNeighbourConditions.clear();
+    rBackup.mNeighbourNodes.clear();
 
     KRATOS_CATCH("");
 }
