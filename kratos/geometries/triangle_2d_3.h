@@ -1049,8 +1049,10 @@ public:
         {
             rResult.resize(integration_points_number,false);
         }
-        for(unsigned int i=0; i<integration_points_number; i++)
-            rResult[i] = DN_DX;
+        for(unsigned int i=0; i<integration_points_number; i++) {
+            rResult[i].resize(3, 2, false);
+            noalias(rResult[i]) = DN_DX;
+        }
     }
 
     void ShapeFunctionsIntegrationPointsGradients(
