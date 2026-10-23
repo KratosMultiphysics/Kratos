@@ -95,8 +95,7 @@ void ContainerComponentIO<TContainerType, TContainerDataIO, TComponents...>::Rem
 template <class TContainerType, class TContainerDataIO, class... TComponents>
 ContainerComponentIO<TContainerType, TContainerDataIO, TComponents...>::ContainerComponentIO(
     Parameters Settings,
-    File::Pointer pFile,
-    const std::string& rLegacySuffix)
+    File::Pointer pFile)
     : mpFile(pFile)
 {
     KRATOS_TRY;
@@ -109,7 +108,7 @@ ContainerComponentIO<TContainerType, TContainerDataIO, TComponents...>::Containe
 
     Settings.AddMissingParameters(default_params);
 
-    mComponentPrefix = Settings["prefix"].GetString() + rLegacySuffix;
+    mComponentPrefix = Settings["prefix"].GetString();
     mComponentNames = Settings["list_of_variables"].GetStringArray();
 
     KRATOS_ERROR_IF(mComponentPrefix == "" || mComponentPrefix == "/")
