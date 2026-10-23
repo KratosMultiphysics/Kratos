@@ -7,22 +7,19 @@ from KratosMultiphysics.compare_two_files_check_process import CompareTwoFilesCh
 
 
 class TestMMAAnalysis(KratosUnittest.TestCase):
+    """Minimises the mass of a shell plate (THICKNESS control, exact gradients) s.t. a strain energy limit."""
+
     def setUp(self):
-        # MMA's asymptote/move-limit heuristics react very sensitively to this problem's
-        # design space (a shell thickness control whose raw, unfiltered representation is
-        # poorly scaled), so tiny floating-point differences from OpenMP's thread-order-
-        # dependent reduction sums get amplified across outer iterations. Pin to a single
-        # thread so the reference CSV comparison is reproducible regardless of the machine's
-        # core count.
+        # Multi-threaded assembly changes the shell results at ~1e-6 (measured spread 5e-6), above the CSV tolerance.
         self.previous_threads = Kratos.ParallelUtilities.GetNumThreads()
         Kratos.ParallelUtilities.SetNumThreads(1)
 
     def tearDown(self):
         Kratos.ParallelUtilities.SetNumThreads(self.previous_threads)
 
-    def test_mma_analysis(self):
+    def _RunAndCompare(self, variant: str) -> None:
         with KratosUnittest.WorkFolderScope(".", __file__):
-            with open("optimization_parameters.json", "r") as file_input:
+            with open(f"optimization_parameters_{variant}.json", "r") as file_input:
                 parameters = Kratos.Parameters(file_input.read())
 
             model = Kratos.Model()
@@ -31,17 +28,24 @@ class TestMMAAnalysis(KratosUnittest.TestCase):
 
             CompareTwoFilesCheckProcess(Kratos.Parameters("""
             {
-                "reference_file_name"   : "summary_orig.csv",
-                "output_file_name"      : "summary.csv",
+                "reference_file_name"   : "summary_orig_""" + variant + """.csv",
+                "output_file_name"      : "summary_""" + variant + """.csv",
                 "remove_output_file"    : true,
                 "comparison_type"       : "csv_file",
                 "tolerance"             : 1e-6,
                 "relative_tolerance"    : 1e-6
             }""")).Execute()
 
+    def test_mma_analysis(self):
+        self._RunAndCompare("mma")
+
+    def test_gcmma_analysis(self):
+        self._RunAndCompare("gcmma")
+
     @classmethod
     def tearDownClass(cls) -> None:
         with KratosUnittest.WorkFolderScope(".", __file__):
+            DeleteFileIfExisting("shell_thin.time")
             DeleteFileIfExisting("Structure.time")
 
 

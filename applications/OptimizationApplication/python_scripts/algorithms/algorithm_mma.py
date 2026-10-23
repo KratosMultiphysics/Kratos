@@ -25,18 +25,29 @@ def Factory(model: Kratos.Model, parameters: Kratos.Parameters, optimization_pro
 
 class AlgorithmMMA(Algorithm):
     """
-        A native implementation of the Method of Moving Asymptotes (MMA) and its
-        globally convergent variant (GCMMA), for constrained optimization problems.
+        Method of Moving Asymptotes (MMA) and its globally convergent variant (GCMMA) for constrained problems:
+        minimize f0(x) s.t. f_i(x) <= 0 (inequalities only), xmin <= x <= xmax.
 
-        Based on: K. Svanberg, "The Method of Moving Asymptotes - A New Method for
-        Structural Optimization", Int. J. Numer. Methods Eng., Vol. 24, 359-373 (1987),
-        and the general conservativeness mechanism of its GCMMA extension.
+        Based on [svanberg-1987-mma] K. Svanberg, Int. J. Numer. Methods Eng. 24, 359-373 (1987) and
+        [svanberg-2007-mma-gcmma-note] K. Svanberg, "MMA and GCMMA - two methods for nonlinear optimization" (2007).
+        Each outer iteration builds a convex separable approximation from the values and gradients at x and solves it
+        (mma_math.SolveSubproblem) for the next design, so there is no line search. "gcmma" repeats the subproblem
+        with a larger conservativeness parameter rho until the approximation lies above the true functions at the new
+        point; gradients are evaluated once per outer iteration.
 
-        Unlike the other native algorithms in this module, MMA solves a convex
-        subproblem at every iteration to obtain the full new design point directly
-        (rather than a search direction plus a separately computed step size), so it
-        does not use "opt_line_search"; both the plain and globally convergent
-        variants are selected via "settings.variant".
+        Requirements and behaviour:
+        - Exact gradients: the gradients passed to MMA must be the true dJ/dphi of the control variables. The explicit
+          filter's BackwardFilterIntegratedField and the implicit filter's MapGradient return mesh-independent
+          sensitivities that are not dJ/dphi, so filtered controls break the approximation (and the GCMMA conservativeness
+          check). Use controls without filters, or exact (consistent) filter gradients.
+        - "control_bounds" holds one {"control", "lower", "upper"} entry per control (finite bounds are needed because the
+          asymptotes and move limits scale with xmax - xmin); the initial design must lie inside them.
+        - Artificial variables y_i cost c_i y_i + 0.5 d_i y_i^2. Svanberg advises f0 in [1, 100], constraints scaled so
+          that their limits are in [1, 100], and c_i = 1e3...1e4; if y > 0 at the solution (a warning is logged and
+          "artificial_variable_max" is stored) increase c by ~100 or rescale the problem.
+        - "gcmma": the control and physical fields of step k are restored to the design x_k before output, but the
+          primal-solution fields (e.g. displacements) come from the last trial evaluation at x_{k+1}.
+        - Sequential only: raises when run with MPI.
     """
 
     @classmethod
@@ -49,36 +60,24 @@ class AlgorithmMMA(Algorithm):
             "controls"   : [],
             "echo_level" : 0,
             "settings"   : {
-                "echo_level"           : 0,
-                "conv_settings"        : {},
-                "variant"              : "mma",
-                "move"                 : 0.5,
-                "asyinit"              : 0.5,
-                "asyincr"              : 1.2,
-                "asydecr"              : 0.7,
-                "asymin"               : 0.01,
-                "asymax"               : 10.0,
-                "albefa"               : 0.1,
-                "controls_lower_bound" : "",
-                "controls_upper_bound" : "",
-                "a0"                   : 1.0,
-                "a"                    : 0.0,
-                "c"                    : 1000.0,
-                "d"                    : 1.0,
-                "subsolve_settings"    : {
-                    "epsilon_init"             : 1.0,
-                    "epsilon_min"              : 1e-7,
-                    "epsilon_reduction_factor" : 0.1,
-                    "residual_tol_factor"      : 0.9,
-                    "fraction_to_boundary"     : 0.99,
-                    "max_newton_iter"          : 50,
-                    "verbose"                  : false
+                "conv_settings"   : {},
+                "variant"         : "mma",
+                "control_bounds"  : [],
+                "move"            : 0.5,
+                "asyinit"         : 0.5,
+                "asyincr"         : 1.2,
+                "asydecr"         : 0.7,
+                "asymin"          : 0.01,
+                "asymax"          : 10.0,
+                "albefa"          : 0.1,
+                "raa0"            : 1e-5,
+                "c"               : 1000.0,
+                "d"               : 1.0,
+                "subsolve_settings": {
+                    "tolerance" : 1e-10,
+                    "max_iter"  : 200
                 },
                 "gcmma_settings": {
-                    "raa_init_factor"      : 0.1,
-                    "raa_init_floor"       : 1e-6,
-                    "raa_increase_factor"  : 2.0,
-                    "raa_max"              : 1e5,
                     "inner_max_iter"       : 15,
                     "conservativeness_tol" : 1e-6
                 }
@@ -101,8 +100,6 @@ class AlgorithmMMA(Algorithm):
 
         settings = parameters["settings"]
         settings.ValidateAndAssignDefaults(self.GetDefaultParameters()["settings"])
-
-        self.echo_level = settings["echo_level"].GetInt()
 
         ComponentDataView("algorithm", self._optimization_problem).SetDataBuffer(self.GetMinimumBufferSize())
 
@@ -129,50 +126,63 @@ class AlgorithmMMA(Algorithm):
         self.asydecr = settings["asydecr"].GetDouble()
         self.asymin = settings["asymin"].GetDouble()
         self.asymax = settings["asymax"].GetDouble()
-        self.albefa = settings["albefa"].GetDouble()
+        self.asymptote_margin = settings["albefa"].GetDouble()
+        self.raa0 = settings["raa0"].GetDouble()
+        if self.raa0 <= 0.0:
+            raise RuntimeError(f"AlgorithmMMA requires \"raa0\" > 0, otherwise variables with zero gradient drift [ raa0 = {self.raa0} ].")
 
-        lower_bound_str = settings["controls_lower_bound"].GetString()
-        upper_bound_str = settings["controls_upper_bound"].GetString()
-        if lower_bound_str == "" or upper_bound_str == "":
-            raise RuntimeError(
-                "AlgorithmMMA requires finite \"controls_lower_bound\" and \"controls_upper_bound\" settings to be "
-                "specified. Unlike unconstrained algorithms, MMA's moving asymptotes and move limits are scaled "
-                "relative to (controls_upper_bound - controls_lower_bound) and are mathematically undefined for an "
-                "unbounded control space.")
-        self.__lower_bound_value = float(lower_bound_str)
-        self.__upper_bound_value = float(upper_bound_str)
+        self.__control_bounds = self.__ReadControlBounds(settings["control_bounds"])
 
-        self.a0 = settings["a0"].GetDouble()
-        self.__a_value = settings["a"].GetDouble()
         self.__c_value = settings["c"].GetDouble()
         self.__d_value = settings["d"].GetDouble()
+        if self.__c_value < 0.0 or self.__d_value <= 0.0:
+            raise RuntimeError(f"AlgorithmMMA requires \"c\" >= 0 and \"d\" > 0 [ c = {self.__c_value}, d = {self.__d_value} ].")
 
-        subsolve_settings = settings["subsolve_settings"]
-        self.subsolve_settings = {
-            "epsilon_init": subsolve_settings["epsilon_init"].GetDouble(),
-            "epsilon_min": subsolve_settings["epsilon_min"].GetDouble(),
-            "epsilon_reduction_factor": subsolve_settings["epsilon_reduction_factor"].GetDouble(),
-            "residual_tol_factor": subsolve_settings["residual_tol_factor"].GetDouble(),
-            "fraction_to_boundary": subsolve_settings["fraction_to_boundary"].GetDouble(),
-            "max_newton_iter": subsolve_settings["max_newton_iter"].GetInt(),
-        }
-        self.verbose = subsolve_settings["verbose"].GetBool()
+        self.__subsolve_tolerance = settings["subsolve_settings"]["tolerance"].GetDouble()
+        self.__subsolve_max_iter = settings["subsolve_settings"]["max_iter"].GetInt()
 
-        gcmma_settings = settings["gcmma_settings"]
-        self.raa_init_factor = gcmma_settings["raa_init_factor"].GetDouble()
-        self.raa_init_floor = gcmma_settings["raa_init_floor"].GetDouble()
-        self.raa_increase_factor = gcmma_settings["raa_increase_factor"].GetDouble()
-        self.raa_max = gcmma_settings["raa_max"].GetDouble()
-        self.inner_max_iter = gcmma_settings["inner_max_iter"].GetInt()
-        self.conservativeness_tol = gcmma_settings["conservativeness_tol"].GetDouble()
+        self.inner_max_iter = settings["gcmma_settings"]["inner_max_iter"].GetInt()
+        self.conservativeness_tol = settings["gcmma_settings"]["conservativeness_tol"].GetDouble()
 
         self._control_field = None
         self._obj_val = None
+        self.__ResetHistory()
+
+    def __ReadControlBounds(self, bounds_settings: Kratos.Parameters) -> 'dict[str, tuple[float, float]]':
+        bounds: 'dict[str, tuple[float, float]]' = {}
+        for entry in bounds_settings.values():
+            if not (entry.Has("control") and entry.Has("lower") and entry.Has("upper")):
+                raise RuntimeError(f"Each \"control_bounds\" entry requires \"control\", \"lower\" and \"upper\" [ entry = {entry} ].")
+            name, lower, upper = entry["control"].GetString(), entry["lower"].GetDouble(), entry["upper"].GetDouble()
+            if name in bounds:
+                raise RuntimeError(f"Duplicated \"control_bounds\" entry for control \"{name}\".")
+            if not lower < upper:
+                raise RuntimeError(f"\"control_bounds\" of control \"{name}\" requires lower < upper [ lower = {lower}, upper = {upper} ].")
+            bounds[name] = (lower, upper)
+
+        control_names = [control.GetName() for control in self.master_control.GetListOfControls()]
+        for name in control_names:
+            if name not in bounds:
+                raise RuntimeError(f"AlgorithmMMA requires a \"control_bounds\" entry for control \"{name}\". Asymptotes and move limits scale with (upper - lower), so unbounded controls are not supported.")
+        for name in bounds:
+            if name not in control_names:
+                raise RuntimeError(f"\"control_bounds\" refers to unknown control \"{name}\" [ controls = {control_names} ].")
+        return bounds
+
+    def __ResetHistory(self) -> None:
+        self.__x_prev: 'np.ndarray | None' = None
+        self.__x_prev2: 'np.ndarray | None' = None
+        self.__lower: 'np.ndarray | None' = None
+        self.__upper: 'np.ndarray | None' = None
+        self.__capped_outer_iterations = 0
+        self.__inner_cap_warned = False
 
     def GetMinimumBufferSize(self) -> int:
         return 2
 
     def Check(self) -> None:
+        if Kratos.ParallelEnvironment.GetDefaultDataCommunicator().Size() > 1:
+            raise RuntimeError("AlgorithmMMA is sequential and does not support MPI runs.")
         self.master_control.Check()
         self._objective.Check()
         CallOnAll(self._constraints_list, StandardizedConstraint.Check)
@@ -188,21 +198,23 @@ class AlgorithmMMA(Algorithm):
         self.algorithm_data = ComponentDataView("algorithm", self._optimization_problem)
         self._convergence_criteria.Initialize()
 
-        n = self._control_field.data.size
+        # Per-control bounds expanded to the layout of the combined control field (one block per control).
+        xmin_blocks, xmax_blocks = [], []
+        for control, ta in zip(self.master_control.GetListOfControls(), self._control_field.GetTensorAdaptors()):
+            lower, upper = self.__control_bounds[control.GetName()]
+            xmin_blocks.append(np.full(ta.data.size, lower))
+            xmax_blocks.append(np.full(ta.data.size, upper))
+        self.xmin = np.concatenate(xmin_blocks)
+        self.xmax = np.concatenate(xmax_blocks)
+
+        x0 = self._control_field.data.reshape(-1)
+        if np.any(x0 < self.xmin) or np.any(x0 > self.xmax):
+            raise RuntimeError(f"The initial control field lies outside \"control_bounds\" [ min(x0 - lower) = {np.min(x0 - self.xmin)}, min(upper - x0) = {np.min(self.xmax - x0)} ].")
+
         m = len(self._constraints_list)
-        self.xmin = np.full(n, self.__lower_bound_value)
-        self.xmax = np.full(n, self.__upper_bound_value)
-        self.a_vec = np.full(m, self.__a_value)
         self.c_vec = np.full(m, self.__c_value)
         self.d_vec = np.full(m, self.__d_value)
-
-        # MMA's own recursion state (previous design points and asymptotes) is kept as
-        # plain instance attributes -- private numerical solver state, not a cross-iteration
-        # CSV-logged quantity -- mirroring how algorithm_adam.py keeps its momentum history.
-        self.xold1 = None
-        self.xold2 = None
-        self.low = None
-        self.upp = None
+        self.__ResetHistory()
 
     def Finalize(self) -> None:
         self.master_control.Finalize()
@@ -211,9 +223,9 @@ class AlgorithmMMA(Algorithm):
         self._convergence_criteria.Finalize()
 
     @time_decorator()
-    def ComputeControlUpdate(self, xmma: np.ndarray) -> None:
+    def ComputeControlUpdate(self, x_new: np.ndarray) -> None:
         update = Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor(self._control_field, perform_collect_data_recursively=False, perform_store_data_recursively=False)
-        update.data[:] = xmma.reshape(update.data.shape) - self._control_field.data
+        update.data[:] = x_new.reshape(update.data.shape) - self._control_field.data
         Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor(update, perform_store_data_recursively=False, copy=False).StoreData()
         self.algorithm_data.GetBufferedData()["control_field_update"] = update
 
@@ -245,128 +257,88 @@ class AlgorithmMMA(Algorithm):
         else:
             raise RuntimeError("Optimization problem hasn't been solved.")
 
-    def __SolvePlainMMA(self, x, f0, df0, f, df, alfa, beta):
-        p0, q0 = mma_math.compute_pq(df0, x, self.low, self.upp)
-        p, q = mma_math.compute_pq(df, x, self.low, self.upp)
-        r = mma_math.compute_r(f, x, p, q, self.low, self.upp)
-        b = -r
-        xmma, _, _, lam, subsolve_residual = mma_math.solve_mma_subproblem(
-            x, alfa, beta, self.low, self.upp, p0, q0, p, q, b, self.a0, self.a_vec, self.c_vec, self.d_vec,
-            self.subsolve_settings, verbose=self.verbose)
-        return xmma, lam, subsolve_residual, 0
+    def __SolveSubproblem(self, p, q, r, alpha, beta):
+        return mma_math.SolveSubproblem(p, q, -r[1:], self.__lower, self.__upper, alpha, beta, self.c_vec, self.d_vec,
+                                        self.__subsolve_tolerance, self.__subsolve_max_iter)
 
-    def __SolveGCMMA(self, x, f0, df0, f, df, alfa, beta):
-        n = x.size
-        m = self.a_vec.size
+    def __SolvePlainMMA(self, x, f, df, alpha, beta):
+        p, q, r = mma_math.ComputeApproximation(x, f, df, self.__lower, self.__upper, self.xmin, self.xmax, self.raa0)
+        x_new, y, lam, residual = self.__SolveSubproblem(p, q, r, alpha, beta)
+        return x_new, y, lam, residual, 0
 
-        raa0 = mma_math.initial_raa(df0, self.xmin, self.xmax, self.raa_init_factor, self.raa_init_floor)
-        raa = mma_math.initial_raa(df, self.xmin, self.xmax, self.raa_init_factor, self.raa_init_floor) \
-            if m > 0 else np.empty(0)
+    def __SolveGCMMA(self, x, f, df, alpha, beta):
+        rho = mma_math.InitialRho(df, self.xmin, self.xmax)
+        for inner_iterations in range(self.inner_max_iter + 1):
+            p, q, r = mma_math.ComputeApproximation(x, f, df, self.__lower, self.__upper, self.xmin, self.xmax, rho)
+            x_new, y, lam, residual = self.__SolveSubproblem(p, q, r, alpha, beta)
+            f_approx = mma_math.EvaluateApproximation(x_new, p, q, r, self.__lower, self.__upper)
 
-        xmma = x
-        lam = np.empty(m)
-        subsolve_residual = 0.0
-        inner_iterations = 0
-        reached_cap = True
-        for inner_iterations in range(1, self.inner_max_iter + 1):
-            p0, q0 = mma_math.compute_pq_gcmma(df0, x, self.xmin, self.xmax, self.low, self.upp, raa0)
-            r0 = mma_math.compute_r(f0, x, p0, q0, self.low, self.upp)
-            if m > 0:
-                p, q = mma_math.compute_pq_gcmma(df, x, self.xmin, self.xmax, self.low, self.upp, raa)
-                r = mma_math.compute_r(f, x, p, q, self.low, self.upp)
-            else:
-                p, q, r = np.empty((0, n)), np.empty((0, n)), np.empty(0)
-            b = -r
-
-            xmma, _, _, lam, subsolve_residual = mma_math.solve_mma_subproblem(
-                x, alfa, beta, self.low, self.upp, p0, q0, p, q, b, self.a0, self.a_vec, self.c_vec, self.d_vec,
-                self.subsolve_settings, verbose=self.verbose)
-
-            f0_approx = mma_math.evaluate_approximation(xmma, p0, q0, r0, self.low, self.upp)
-            f_approx = mma_math.evaluate_approximation(xmma, p, q, r, self.low, self.upp) if m > 0 else np.empty(0)
-
-            # Building the trial field from a raw combined-tensor-adaptor wrapper around
-            # self._control_field would only mutate that wrapper's own top-level buffer, not
-            # each control's underlying storage that MasterControl.Update() (called inside
-            # CalculateStandardizedValue) actually inspects. master_control.GetEmptyField() +
-            # an explicit StoreData() is the pattern this codebase already uses for exactly
-            # this situation (see standardized_NLOPT_objective.py's UpdateMasterControlAndLogFields).
+            # The trial design must be stored in each control (GetEmptyField + StoreData), not only in a combined wrapper.
             trial_field = self.master_control.GetEmptyField()
-            trial_field.data[:] = xmma.reshape(trial_field.data.shape)
+            trial_field.data[:] = x_new.reshape(trial_field.data.shape)
             Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor(trial_field, perform_store_data_recursively=False, copy=False).StoreData()
+            f_true = np.array([self._objective.CalculateStandardizedValue(trial_field, save_value=False)] +
+                              [constraint.CalculateStandardizedValue(trial_field, save_value=False) for constraint in self._constraints_list])
 
-            f0_real = self._objective.CalculateStandardizedValue(trial_field, save_value=False)
-            f_real = np.array([constraint.CalculateStandardizedValue(trial_field, save_value=False)
-                                for constraint in self._constraints_list])
-
-            if mma_math.check_conservativeness(f0_real, f_real, f0_approx, f_approx, self.conservativeness_tol):
-                reached_cap = False
-                break
-
-            # Trial evaluations above never advance the optimization problem's step -- only the
-            # single call at the bottom of the outer Solve() loop does. Do not add an
-            # AdvanceStep() call anywhere in this inner loop.
-            raa0, raa = mma_math.update_raa(raa0, raa, f0_real, f_real, f0_approx, f_approx,
-                                             self.raa_increase_factor, self.raa_max)
-
-        if reached_cap:
-            Kratos.Logger.PrintWarning("AlgorithmMMA", f"GCMMA inner loop reached inner_max_iter="
-                                        f"{self.inner_max_iter} without satisfying conservativeness; "
-                                        "accepting the last trial point anyway.")
-
-        return xmma, lam, subsolve_residual, inner_iterations
+            if mma_math.IsConservative(f_true, f_approx, self.conservativeness_tol):
+                return x_new, y, lam, residual, inner_iterations, True
+            if inner_iterations < self.inner_max_iter:
+                rho_scale = mma_math.RhoScale(x_new, x, self.__lower, self.__upper, self.xmin, self.xmax)
+                rho = mma_math.UpdateRho(rho, f_true, f_approx, rho_scale, self.conservativeness_tol)
+        return x_new, y, lam, residual, self.inner_max_iter, False
 
     @time_decorator()
     def Solve(self) -> bool:
         n = self._control_field.data.size
+        buffered_data = self.algorithm_data.GetBufferedData()
         while not self.converged:
             with OptimizationAlgorithmTimeLogger("AlgorithmMMA", self._optimization_problem.GetStep()):
                 self._InitializeIteration()
 
-                outer_iter = self._optimization_problem.GetStep() + 1
                 x = self._control_field.data.reshape(-1).copy()
 
                 self._obj_val = self._objective.CalculateStandardizedValue(self._control_field)
                 obj_info = self._objective.GetInfo()
-                self.algorithm_data.GetBufferedData()["std_obj_value"] = obj_info["std_value"]
-                self.algorithm_data.GetBufferedData()["rel_obj[%]"] = obj_info["rel_change [%]"]
+                buffered_data["std_obj_value"] = obj_info["std_value"]
+                buffered_data["rel_change[%]"] = obj_info["rel_change [%]"]
                 if "abs_change [%]" in obj_info:
-                    self.algorithm_data.GetBufferedData()["abs_obj[%]"] = obj_info["abs_change [%]"]
-                df0 = self._objective.CalculateStandardizedGradient().data.reshape(-1).copy()
-                f0 = self._obj_val
+                    buffered_data["abs_change[%]"] = obj_info["abs_change [%]"]
+                f_list = [self._obj_val]
+                df_list = [self._objective.CalculateStandardizedGradient().data.reshape(-1).copy()]
 
-                f_list = []
-                df_list = []
                 for constraint in self._constraints_list:
                     value = constraint.CalculateStandardizedValue(self._control_field)
-                    self.algorithm_data.GetBufferedData()[f"std_constr_{constraint.GetResponseName()}_value"] = value
+                    buffered_data[f"std_constr_{constraint.GetResponseName()}_value"] = value
                     f_list.append(value)
                     df_list.append(constraint.CalculateStandardizedGradient().data.reshape(-1).copy())
                 f = np.array(f_list)
-                df = np.array(df_list).reshape(len(f_list), n) if f_list else np.empty((0, n))
+                df = np.array(df_list).reshape(len(f_list), n)
 
-                self.low, self.upp = mma_math.update_asymptotes(
-                    x, self.xold1, self.xold2, self.xmin, self.xmax, self.low, self.upp, outer_iter,
+                self.__lower, self.__upper = mma_math.UpdateAsymptotes(
+                    x, self.__x_prev, self.__x_prev2, self.__lower, self.__upper, self.xmin, self.xmax,
                     self.asyinit, self.asyincr, self.asydecr, self.asymin, self.asymax)
-                alfa, beta = mma_math.compute_move_limits(x, self.low, self.upp, self.xmin, self.xmax, self.albefa, self.move)
+                alpha, beta = mma_math.ComputeMoveLimits(x, self.__lower, self.__upper, self.xmin, self.xmax, self.asymptote_margin, self.move)
 
                 if self.variant == "mma":
-                    xmma, lam, subsolve_residual, inner_iterations = self.__SolvePlainMMA(x, f0, df0, f, df, alfa, beta)
+                    x_new, y, lam, residual, inner_iterations = self.__SolvePlainMMA(x, f, df, alpha, beta)
                 else:
-                    xmma, lam, subsolve_residual, inner_iterations = self.__SolveGCMMA(x, f0, df0, f, df, alfa, beta)
+                    x_new, y, lam, residual, inner_iterations, conservative = self.__SolveGCMMA(x, f, df, alpha, beta)
+                    self.__CheckInnerCap(conservative)
+                    # Trial evaluations left the controls at the trial design; restore x_k for the output of step k.
+                    self.master_control.Update(self._control_field)
+                    buffered_data["gcmma_inner_iterations"] = inner_iterations
 
-                # kkt_norm is the TRUE KKT residual of the original problem at x, using the
-                # real gradients/values just computed above and the dual multipliers lam
-                # returned by the subproblem -- this is what genuinely shrinks as the outer
-                # loop converges, unlike subsolve_residual (the subproblem's own interior-point
-                # residual, which is always driven to ~epsilon_min regardless of outer progress).
-                kkt_norm = mma_math.kkt_residual(x, df0, df, f, self.xmin, self.xmax, lam)
-                self.algorithm_data.GetBufferedData()["kkt_norm"] = kkt_norm
-                self.algorithm_data.GetBufferedData()["subsolve_residual"] = subsolve_residual
-                if self.variant == "gcmma":
-                    self.algorithm_data.GetBufferedData()["gcmma_inner_iterations"] = inner_iterations
+                if residual > 1e-6:
+                    Kratos.Logger.PrintWarning("AlgorithmMMA", f"The MMA subproblem relative dual residual is {residual:.3e}; the subproblem may not be solved accurately. Usually \"c\" is too large relative to the constraint scale.")
+                max_y = float(np.max(y)) if y.size else 0.0
+                if max_y > 1e-6:
+                    Kratos.Logger.PrintWarning("AlgorithmMMA", f"Artificial variables are active (max y = {max_y:.3e}): the subproblem is infeasible within the move limits or \"c\" is too small. Rescale the problem or increase \"c\".")
+                buffered_data["artificial_variable_max"] = max_y
 
-                self.ComputeControlUpdate(xmma)
+                # True KKT residual of the original problem at x (not the subproblem residual, which is always ~0).
+                buffered_data["kkt_norm"] = mma_math.KKTResidual(df[0], df[1:], f[1:], lam, x, self.xmin, self.xmax)
+
+                self.ComputeControlUpdate(x_new)
 
                 self._FinalizeIteration()
 
@@ -376,8 +348,8 @@ class AlgorithmMMA(Algorithm):
 
                 self.UpdateControl()
 
-                self.xold2 = self.xold1
-                self.xold1 = x
+                self.__x_prev2 = self.__x_prev
+                self.__x_prev = x
 
                 ListLogger("Convergence info", self._convergence_criteria.GetInfo())
 
@@ -385,6 +357,15 @@ class AlgorithmMMA(Algorithm):
                     self._optimization_problem.AdvanceStep()
 
         return self.converged
+
+    def __CheckInnerCap(self, conservative: bool) -> None:
+        """Logs each capped GCMMA inner loop; warns once after 3 consecutive capped outer iterations (inexact gradients?)."""
+        self.__capped_outer_iterations = 0 if conservative else self.__capped_outer_iterations + 1
+        if not conservative:
+            Kratos.Logger.PrintInfo("AlgorithmMMA", f"GCMMA inner loop stopped at inner_max_iter = {self.inner_max_iter} without a conservative approximation.")
+        if self.__capped_outer_iterations >= 3 and not self.__inner_cap_warned:
+            self.__inner_cap_warned = True
+            Kratos.Logger.PrintWarning("AlgorithmMMA", f"GCMMA reached inner_max_iter = {self.inner_max_iter} without a conservative approximation in {self.__capped_outer_iterations} consecutive iterations. The gradients are probably not the exact dJ/dphi (e.g. filtered controls).")
 
     def __CreateConvergenceCriteria(self, settings: Kratos.Parameters) -> ConvergenceCriterion:
         default_settings = Kratos.Parameters("""{

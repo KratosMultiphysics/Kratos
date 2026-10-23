@@ -154,10 +154,7 @@ class AlgorithmRelaxedGradientProjection(AlgorithmGradientProjection):
         self.algorithm_data.GetBufferedData().SetValue("correction", correction, overwrite=True)
         self.algorithm_data.GetBufferedData().SetValue("projected_direction", projected_direction, overwrite=True)
 
-        # kkt_norm combines the search direction norm with the worst current constraint
-        # violation: Compute_W_correction returns zero whenever w <= 1 even if the constraint
-        # residual is still nonzero within that buffer, so the direction norm alone can hit
-        # zero at a non-KKT point and falsely satisfy a target/magnitude convergence criterion.
+        # kkt_norm = max(direction norm, worst violation): the direction norm alone can be zero at a non-KKT point.
         constraint_violation = max(
             (abs(constraint.GetStandardizedValue()) if constraint.IsEqualityType()
              else max(constraint.GetStandardizedValue(), 0.0)

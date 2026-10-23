@@ -163,10 +163,7 @@ class AlgorithmGradientProjection(Algorithm):
         self.algorithm_data.GetBufferedData()["search_direction"] = search_direction
         self.algorithm_data.GetBufferedData()["correction"] = correction
 
-        # kkt_norm combines the search direction norm (stationarity) with the worst current
-        # constraint violation (feasibility) -- using the direction norm alone can hit zero
-        # at an infeasible point whenever a violated constraint's gradient is parallel to the
-        # objective's, which would falsely satisfy a target/magnitude convergence criterion.
+        # kkt_norm = max(direction norm, worst violation): the direction norm alone can be zero at an infeasible point.
         constraint_violation = max(
             (abs(constraint.GetStandardizedValue()) if constraint.IsEqualityType() else max(value, 0.0)
              for constraint, value in zip(self._constraints_list, self.__constr_value)),

@@ -1,511 +1,291 @@
-"""Core numerical routines for the Method of Moving Asymptotes (MMA) and its
-globally convergent variant (GCMMA).
+"""Numerical kernels of the Method of Moving Asymptotes (MMA) and its globally convergent variant (GCMMA).
 
-This module implements, from first principles, the separable convex
-approximation scheme described by K. Svanberg, "The Method of Moving
-Asymptotes - A New Method for Structural Optimization", Int. J. Numer.
-Methods Eng., Vol. 24, 359-373 (1987), together with the artificial-variable
-formulation of Section 5 of that paper, and the general conservativeness
-mechanism of GCMMA (Svanberg, 2002).
+Pure numpy, no Kratos dependency. Implemented from:
+    [svanberg-1987-mma]           K. Svanberg, "The method of moving asymptotes - a new method for structural
+                                  optimization", Int. J. Numer. Methods Eng. 24, 359-373 (1987).
+    [svanberg-2007-mma-gcmma-note] K. Svanberg, "MMA and GCMMA - two methods for nonlinear optimization", KTH note (2007).
 
-The convex subproblem generated at every outer iteration is solved with a
-primal-dual interior-point Newton method applied directly to the KKT system
-of the artificial-variable formulation. This is a standard technique for
-convex, separable optimization problems and is not specific to any single
-implementation of MMA.
-
-All arrays are plain 1-D numpy arrays: shape (n,) for design-variable
-indexed quantities, (m,) for constraint-indexed quantities and (m, n) for
-constraint gradient/coefficient matrices. This module has no Kratos
-dependency and can be used and tested standalone.
+Problem solved by the subproblem (standard nonlinear programming, the "a" / "z" extension of the note is not used):
+    minimize    f0(x) + sum_i (c_i y_i + 0.5 d_i y_i^2)
+    subject to  f_i(x) - y_i <= 0,  xmin <= x <= xmax,  y >= 0.
+All arrays are indexed [function, variable]; function 0 is the objective, 1..m are the constraints.
 """
-
-import time
-
 import numpy as np
 
+_TINY = 1e-300
 
-# ---------------------------------------------------------------------------
-# Asymptotes and move limits
-# ---------------------------------------------------------------------------
 
-def update_asymptotes(x, xold1, xold2, xmin, xmax, low_prev, upp_prev, outer_iter,
-                       asyinit=0.5, asyincr=1.2, asydecr=0.7, asymin=0.01, asymax=10.0):
-    """Updates the lower/upper moving asymptotes.
+def UpdateAsymptotes(x: np.ndarray,
+                     x_prev: 'np.ndarray | None',
+                     x_prev2: 'np.ndarray | None',
+                     lower_prev: 'np.ndarray | None',
+                     upper_prev: 'np.ndarray | None',
+                     xmin: np.ndarray,
+                     xmax: np.ndarray,
+                     asyinit: float = 0.5,
+                     asyincr: float = 1.2,
+                     asydecr: float = 0.7,
+                     asymin: float = 0.01,
+                     asymax: float = 10.0) -> 'tuple[np.ndarray, np.ndarray]':
+    """Returns the lower and upper asymptotes (l, u) of the current iteration.
 
-    For the first two outer iterations the fixed-distance rule (paper eq. 9,
-    with s0 = asyinit) is used, since xold1/xold2 are not yet available. For
-    later iterations the oscillation/monotone heuristic of eq. 11-13 is
-    applied: the asymptotes are tightened (asydecr) where the design
-    oscillates, and relaxed (asyincr) where it moves monotonically, then
-    clipped so they never collapse onto x or run away unboundedly.
+    Without two previous points (`x_prev2 is None`) the asymptotes are x -/+ asyinit*(xmax-xmin)
+    [svanberg-2007-mma-gcmma-note p.5, eq. 3.11]. Otherwise they are contracted by asydecr where the variable
+    oscillates and expanded by asyincr where it moves monotonically (eq. 3.12-3.13), then kept within
+    [asymin, asymax]*(xmax-xmin) of x (eq. 3.14).
+    """
+    span = xmax - xmin
+    if x_prev is None or x_prev2 is None or lower_prev is None or upper_prev is None:
+        return x - asyinit * span, x + asyinit * span
+
+    sign = (x - x_prev) * (x_prev - x_prev2)
+    gamma = np.ones_like(x)
+    gamma[sign < 0.0] = asydecr
+    gamma[sign > 0.0] = asyincr
+
+    lower = x - gamma * (x_prev - lower_prev)
+    upper = x + gamma * (upper_prev - x_prev)
+
+    lower = np.clip(lower, x - asymax * span, x - asymin * span)
+    upper = np.clip(upper, x + asymin * span, x + asymax * span)
+    return lower, upper
+
+
+def ComputeMoveLimits(x: np.ndarray,
+                      lower: np.ndarray,
+                      upper: np.ndarray,
+                      xmin: np.ndarray,
+                      xmax: np.ndarray,
+                      asymptote_margin: float = 0.1,
+                      move: float = 0.5) -> 'tuple[np.ndarray, np.ndarray]':
+    """Returns the subproblem bounds (alpha, beta) [svanberg-2007-mma-gcmma-note p.4, eq. 3.6-3.7].
+
+    alpha = max(xmin, l + asymptote_margin (x - l), x - move (xmax - xmin)), beta symmetrically with u and xmax.
+    asymptote_margin is the public "albefa" setting of AlgorithmMMA.
+    """
+    span = xmax - xmin
+    alpha = np.maximum.reduce([xmin, lower + asymptote_margin * (x - lower), x - move * span])
+    beta = np.minimum.reduce([xmax, upper - asymptote_margin * (upper - x), x + move * span])
+    return alpha, beta
+
+
+def ComputeApproximation(x: np.ndarray,
+                         f: np.ndarray,
+                         df: np.ndarray,
+                         lower: np.ndarray,
+                         upper: np.ndarray,
+                         xmin: np.ndarray,
+                         xmax: np.ndarray,
+                         regularisation: 'float | np.ndarray' = 1e-5) -> 'tuple[np.ndarray, np.ndarray, np.ndarray]':
+    """Returns the MMA approximation coefficients (p, q, r) of f_i(x) ~ sum_j p_ij/(u_j-x_j) + q_ij/(x_j-l_j) + r_i.
+
+    p_ij = (u_j-x_j)^2 (max(g,0) + 0.001|g| + reg_i/(xmax_j-xmin_j)), q_ij = (x_j-l_j)^2 (max(-g,0) + 0.001|g| + ...),
+    g = df_ij, and r_i makes the approximation exact at x [svanberg-2007-mma-gcmma-note p.4, eq. 3.3-3.5].
+    The 0.001|g| and reg terms keep p, q > 0, hence a strictly convex subproblem. `regularisation` is raa0 (1e-5) for
+    MMA and the per-function rho_i for GCMMA (p.7, eq. 4.3-4.4); a scalar or an array of length len(f).
 
     Args:
-        x: current design point, shape (n,)
-        xold1: design point one outer iteration ago (unused if outer_iter<=2)
-        xold2: design point two outer iterations ago (unused if outer_iter<=2)
-        xmin, xmax: variable bounds, shape (n,)
-        low_prev, upp_prev: asymptotes from the previous outer iteration
-            (unused if outer_iter<=2)
-        outer_iter: 1-based outer iteration counter
+        x: Current design, shape (n,).
+        f: Function values at x, shape (m+1,).
+        df: Gradients at x, shape (m+1, n).
     """
-    xmami = xmax - xmin
-
-    if outer_iter <= 2:
-        low = x - asyinit * xmami
-        upp = x + asyinit * xmami
-    else:
-        sign_product = (x - xold1) * (xold1 - xold2)
-        factor = np.ones_like(x)
-        factor[sign_product > 0] = asyincr
-        factor[sign_product < 0] = asydecr
-
-        low = x - factor * (xold1 - low_prev)
-        upp = x + factor * (upp_prev - xold1)
-
-        low = np.maximum(low, x - asymax * xmami)
-        low = np.minimum(low, x - asymin * xmami)
-        upp = np.minimum(upp, x + asymax * xmami)
-        upp = np.maximum(upp, x + asymin * xmami)
-
-    return low, upp
+    span = xmax - xmin
+    reg = np.broadcast_to(np.asarray(regularisation, dtype=float), f.shape)[:, None] / span[None, :]
+    magnitude = 0.001 * np.abs(df)
+    p = (upper - x) ** 2 * (np.maximum(df, 0.0) + magnitude + reg)
+    q = (x - lower) ** 2 * (np.maximum(-df, 0.0) + magnitude + reg)
+    r = f - EvaluateApproximation(x, p, q, np.zeros_like(f), lower, upper)
+    return p, q, r
 
 
-def compute_move_limits(x, low, upp, xmin, xmax, albefa=0.1, move=0.5):
-    """Computes the move limits alfa/beta (paper eq. 8, generalized with a
-    move cap and a hard clip to [xmin, xmax])."""
-    xmami = xmax - xmin
-    alfa = np.maximum(np.maximum(low + albefa * (x - low), x - move * xmami), xmin)
-    beta = np.minimum(np.minimum(upp - albefa * (upp - x), x + move * xmami), xmax)
-    return alfa, beta
+def EvaluateApproximation(x: np.ndarray,
+                          p: np.ndarray,
+                          q: np.ndarray,
+                          r: np.ndarray,
+                          lower: np.ndarray,
+                          upper: np.ndarray) -> np.ndarray:
+    """Evaluates all approximated functions at x, shape (m+1,) [svanberg-2007-mma-gcmma-note p.4, eq. 3.2]."""
+    return p @ (1.0 / (upper - x)) + q @ (1.0 / (x - lower)) + r
 
 
-# ---------------------------------------------------------------------------
-# Separable approximation coefficients
-# ---------------------------------------------------------------------------
+def _PrimalFromDual(lam: np.ndarray, p: np.ndarray, q: np.ndarray, lower: np.ndarray, upper: np.ndarray,
+                    alpha: np.ndarray, beta: np.ndarray):
+    """Closed-form minimiser x_j(lam) of the Lagrangian [svanberg-1987-mma p.365, eq. 17-19].
 
-def compute_pq(dfdx, x, low, upp):
-    """Plain-MMA p, q coefficients (paper eq. 2-4).
-
-    `dfdx` may have shape (n,) (objective gradient) or (m, n) (stacked
-    constraint gradients); `x`, `low`, `upp` always have shape (n,). Returns
-    p, q with the same shape as `dfdx`.
+    Returns the clipped x, the unclipped x (to detect the free variables), P_j(lam) and Q_j(lam).
     """
-    pos = np.maximum(dfdx, 0.0)
-    neg = np.maximum(-dfdx, 0.0)
-    p = pos * (upp - x) ** 2
-    q = neg * (x - low) ** 2
-    return p, q
+    big_p = p[0] + lam @ p[1:]
+    big_q = q[0] + lam @ q[1:]
+    root_p = np.sqrt(np.maximum(big_p, _TINY))
+    root_q = np.sqrt(np.maximum(big_q, _TINY))
+    x_free = (root_p * lower + root_q * upper) / (root_p + root_q)
+    return np.clip(x_free, alpha, beta), x_free, big_p, big_q
 
 
-def compute_pq_gcmma(dfdx, x, xmin, xmax, low, upp, raa):
-    """Conservative (curvature-augmented) p, q coefficients for GCMMA.
+def SolveSubproblem(p: np.ndarray,
+                    q: np.ndarray,
+                    b: np.ndarray,
+                    lower: np.ndarray,
+                    upper: np.ndarray,
+                    alpha: np.ndarray,
+                    beta: np.ndarray,
+                    c: np.ndarray,
+                    d: np.ndarray,
+                    tolerance: float = 1e-10,
+                    max_iter: int = 200) -> 'tuple[np.ndarray, np.ndarray, np.ndarray, float]':
+    """Solves the MMA subproblem with the dual method of [svanberg-1987-mma p.364-365, Sec. 4-5].
 
-    Adds a curvature term proportional to raa/(xmax-xmin) on top of the
-    plain-MMA hard positive/negative split, which is the qualitative
-    mechanism GCMMA uses to make its convex approximation deliberately more
-    conservative than plain MMA's.
+    minimize g_0(x) + sum_i (c_i y_i + 0.5 d_i y_i^2) s.t. g_i(x) - y_i <= b_i, alpha <= x <= beta, y >= 0, with
+    g_i(x) = sum_j p_ij/(u_j-x_j) + q_ij/(x_j-l_j). The Lagrangian is minimised in closed form,
+    x_j(lam) clipped to [alpha_j, beta_j] and y_i(lam) = max(0, (lam_i-c_i)/d_i); the concave dual W(lam) is then
+    maximised over lam >= 0 by a projected Newton method with Armijo backtracking (the first trial step stops at the
+    kink lam_i = c_i of the penalty term). Variables at a bound are exactly alpha/beta.
 
-    NOTE: the precise mixing constants used by Svanberg's own GCMMA
-    formulation (2002) have not been verified against that primary source at
-    the time this was written; this uses the straightforward formula above,
-    which is mathematically well defined (curvature grows with raa, always
-    non-negative) but should be revisited against the primary source before
-    being considered final.
-
-    `raa` is either a scalar (for the objective, paired with a 1-D `dfdx`) or
-    a vector of shape (m,) (for the constraints, paired with a 2-D `dfdx`).
-    """
-    xmami = np.maximum(xmax - xmin, 1.0e-5)
-    ux1 = upp - x
-    xl1 = x - low
-    pos = np.maximum(dfdx, 0.0)
-    neg = np.maximum(-dfdx, 0.0)
-
-    if np.ndim(dfdx) == 2:
-        curvature = np.asarray(raa).reshape(-1, 1) / xmami
-    else:
-        curvature = raa / xmami
-
-    p = pos * ux1 ** 2 + curvature * ux1 ** 2
-    q = neg * xl1 ** 2 + curvature * xl1 ** 2
-    return p, q
-
-
-def compute_r(value, x, p, q, low, upp):
-    """Residual constant r (paper eq. 5) such that the approximation matches
-    `value` exactly at `x`. `value` is a scalar (with p, q shape (n,)) or a
-    vector of shape (m,) (with p, q shape (m, n))."""
-    approx_at_x = np.sum(p / (upp - x) + q / (x - low), axis=-1)
-    return value - approx_at_x
-
-
-def evaluate_approximation(x_eval, p, q, r, low, upp):
-    """Evaluates the separable approximation r + sum_j(p_j/(upp_j-x_j) +
-    q_j/(x_j-low_j)) at an arbitrary point `x_eval`."""
-    return r + np.sum(p / (upp - x_eval) + q / (x_eval - low), axis=-1)
-
-
-# ---------------------------------------------------------------------------
-# Primal-dual interior-point subsolve
-# ---------------------------------------------------------------------------
-
-_DEFAULT_SUBSOLVE_SETTINGS = {
-    "epsilon_init": 1.0,
-    "epsilon_min": 1.0e-7,
-    "epsilon_reduction_factor": 0.1,
-    "residual_tol_factor": 0.9,
-    "fraction_to_boundary": 0.99,
-    "max_newton_iter": 50,
-}
-
-
-def _compute_residuals(x, y, z, lam, xsi, eta, mu, zeta, s, p0, q0, p, q, b, low, upp,
-                        alfa, beta, a0, a, c, d, epsilon):
-    ux1 = upp - x
-    xl1 = x - low
-    plam = p0 + lam @ p
-    qlam = q0 + lam @ q
-    gvec = p @ (1.0 / ux1) + q @ (1.0 / xl1)
-
-    rex = plam / ux1 ** 2 - qlam / xl1 ** 2 - xsi + eta
-    rey = c + d * y - lam - mu
-    rez = a0 - a @ lam - zeta
-    relam = gvec - a * z - y + s - b
-    rexsi = xsi * (x - alfa) - epsilon
-    reeta = eta * (beta - x) - epsilon
-    remu = mu * y - epsilon
-    rezet = zeta * z - epsilon
-    res = lam * s - epsilon
-
-    return rex, rey, rez, relam, rexsi, reeta, remu, rezet, res
-
-
-def _residual_norms(*args):
-    parts = _compute_residuals(*args)
-    flat = np.concatenate([np.atleast_1d(part) for part in parts])
-    return float(np.linalg.norm(flat)), float(np.max(np.abs(flat)))
-
-
-def _newton_direction(x, y, z, lam, xsi, eta, mu, zeta, s, p0, q0, p, q, b, low, upp,
-                       alfa, beta, a0, a, c, d, epsilon):
-    ux1 = upp - x
-    xl1 = x - low
-    plam = p0 + lam @ p
-    qlam = q0 + lam @ q
-    GG = p / ux1 ** 2 - q / xl1 ** 2
-
-    (rex, rey, rez, relam, rexsi, reeta, remu, rezet, res) = _compute_residuals(
-        x, y, z, lam, xsi, eta, mu, zeta, s, p0, q0, p, q, b, low, upp, alfa, beta, a0, a, c, d, epsilon)
-
-    # x_j can end up an exact floating-point match for alfa_j/beta_j when that bound is
-    # genuinely active (xsi_j/eta_j is then driven up until x_j - alfa_j or beta_j - x_j
-    # underflows to exact 0.0), producing benign +-inf/NaN terms below. This is expected
-    # and handled by solve_mma_subproblem's backtracking (it never accepts a non-finite
-    # trial state), so the resulting divide-by-zero/invalid-value warnings are suppressed.
-    with np.errstate(divide="ignore", invalid="ignore"):
-        diagx = 2.0 * plam / ux1 ** 3 + 2.0 * qlam / xl1 ** 3 + xsi / (x - alfa) + eta / (beta - x)
-        diagy = d + mu / y
-        diagz = zeta / z
-        diaglam = s / lam
-
-        delx = rex + rexsi / (x - alfa) - reeta / (beta - x)
-        dely = rey + remu / y
-        delz = rez + rezet / z
-        dellam = relam - res / lam
-
-        # The (x, y, z) blocks of the full KKT Jacobian are diagonal (each x_j/y_i only
-        # couples to itself and to lam, never to another x_k/y_l), so dx, dy, dz can be
-        # eliminated analytically, leaving only an (m x m) system to solve for dlam. This
-        # is essential for performance: n is the number of design variables (can be in the
-        # thousands for real topology optimization), while m (number of constraints) is
-        # typically small -- solving an (m x m) system instead of a dense (n+2m+1) x (n+2m+1)
-        # one turns an O(n^3) factorization into O(n*m^2).
-        GG_scaled = GG / diagx  # (m, n): each column j divided by diagx_j
-        schur = GG_scaled @ GG.T + np.diag(1.0 / diagy) + np.outer(a, a) / diagz + np.diag(diaglam)
-        rhs_lam = dellam - GG_scaled @ delx + dely / diagy + a * delz / diagz
-
-        dlam = np.linalg.solve(schur, rhs_lam)
-        dz = (-delz + a @ dlam) / diagz
-        dy = (-dely + dlam) / diagy
-        dx = (-delx - GG.T @ dlam) / diagx
-
-        dxsi = (-rexsi - xsi * dx) / (x - alfa)
-        deta = (-reeta + eta * dx) / (beta - x)
-        dmu = (-remu - mu * dy) / y
-        dzeta = (-rezet - zeta * dz) / z
-        ds = (-res - s * dlam) / lam
-
-    return dx, dy, dz, dlam, dxsi, deta, dmu, dzeta, ds
-
-
-def _max_fraction_to_boundary_step(x, y, z, lam, xsi, eta, mu, zeta, s,
-                                    dx, dy, dz, dlam, dxsi, deta, dmu, dzeta, ds,
-                                    alfa, beta, tau):
-    candidates = [1.0]
-
-    for val, dval in ((y, dy), (lam, dlam), (xsi, dxsi), (eta, deta), (mu, dmu), (s, ds)):
-        mask = dval < 0.0
-        if np.any(mask):
-            candidates.append(np.min(-tau * val[mask] / dval[mask]))
-
-    if dz < 0.0:
-        candidates.append(-tau * z / dz)
-    if dzeta < 0.0:
-        candidates.append(-tau * zeta / dzeta)
-
-    dec = dx < 0.0
-    if np.any(dec):
-        candidates.append(np.min(-tau * (x[dec] - alfa[dec]) / dx[dec]))
-    inc = dx > 0.0
-    if np.any(inc):
-        candidates.append(np.min(tau * (beta[inc] - x[inc]) / dx[inc]))
-
-    return min(candidates)
-
-
-def _solve_unconstrained(alfa, beta, p0, q0, low, upp):
-    """Closed-form solution of the m=0 (no-constraint) subproblem: each
-    variable minimizes its own strictly convex term independently. This is
-    equivalent to the case analysis of paper eq. 17-19 (the rational function
-    p0_j/(upp_j-x_j) + q0_j/(x_j-low_j) is convex with a single interior
-    minimizer, so clipping that minimizer to [alfa_j, beta_j] reproduces the
-    three-case check without branching)."""
-    sqrt_p0 = np.sqrt(p0)
-    sqrt_q0 = np.sqrt(q0)
-    denom = sqrt_p0 + sqrt_q0
-    with np.errstate(divide="ignore", invalid="ignore"):
-        interior = (sqrt_p0 * low + sqrt_q0 * upp) / denom
-    x_star = np.where(denom > 0.0, interior, 0.5 * (alfa + beta))
-    return np.clip(x_star, alfa, beta)
-
-
-def solve_mma_subproblem(x0, alfa, beta, low, upp, p0, q0, p, q, b, a0, a, c, d, settings=None, verbose=False):
-    """Solves the MMA/GCMMA convex subproblem:
-
-        minimize_{x,y,z}   sum_j(p0_j/(upp_j-x_j) + q0_j/(x_j-low_j))
-                            + a0*z + sum_i(c_i*y_i + 0.5*d_i*y_i^2)
-        subject to          sum_j(p_ij/(upp_j-x_j) + q_ij/(x_j-low_j)) - a_i*z - y_i <= b_i
-                             alfa_j <= x_j <= beta_j,  y_i >= 0,  z >= 0
-
-    via a primal-dual interior-point Newton method on the KKT system of this
-    artificial-variable formulation (Svanberg 1987, Section 5).
-
-    If `verbose` is True, prints one line per epsilon level and one line per
-    Newton iteration, each with a wall-clock timestamp and elapsed time, so
-    progress can be observed on large problems.
+    Args:
+        p, q: Coefficients of all functions, shape (m+1, n); row 0 is the objective.
+        b: Right-hand sides of the m constraints (b_i = -r_i).
+        c, d: Artificial-variable costs, shape (m,); d must be > 0.
+        tolerance: Stop when every projected dual gradient component i is below tolerance*max(|b_i|, |g_i(x)|), i.e.
+            relative to the size of each constraint. c must stay commensurate with the constraint scale (Svanberg's
+            scaling advice), otherwise the dual stalls at round-off and the residual stays large.
 
     Returns:
-        xmma, ymma, zmma, lam, subsolve_residual
-
-    Note: `subsolve_residual` measures how precisely *this iteration's convex
-    approximation* was solved (its interior-point continuation always drives
-    it down to roughly `subsolve_settings.epsilon_min`, by construction, on
-    every outer iteration) -- it is a solver-health diagnostic, not a measure
-    of how close the design is to a true optimum of the original problem. For
-    that, use `kkt_residual` with the real (unapproximated) gradients/values
-    at the accepted design point, together with the `lam` returned here.
+        (x, y, lam, dual_residual) where dual_residual is the largest of these per-constraint relative components
+        (1e-6 or less means solved).
     """
-    settings = dict(_DEFAULT_SUBSOLVE_SETTINGS, **(settings or {}))
-    epsilon = settings["epsilon_init"]
-    epsilon_min = settings["epsilon_min"]
-    epsilon_reduction_factor = settings["epsilon_reduction_factor"]
-    residual_tol_factor = settings["residual_tol_factor"]
-    tau = settings["fraction_to_boundary"]
-    max_newton_iter = settings["max_newton_iter"]
-
-    m = a.size
-    n = x0.size
-
+    m = b.size
+    if np.any(d <= 0.0):
+        raise RuntimeError("SolveSubproblem requires d > 0 for every constraint.")
     if m == 0:
-        xmma = _solve_unconstrained(alfa, beta, p0, q0, low, upp)
-        return xmma, np.zeros(0), 0.0, np.zeros(0), 0.0
+        x, _, _, _ = _PrimalFromDual(np.zeros(0), p, q, lower, upper, alpha, beta)
+        return x, np.zeros(0), np.zeros(0), 0.0
 
-    start_time = time.time()
+    p_con, q_con = p[1:], q[1:]
 
-    def _log(message):
-        if verbose:
-            elapsed = time.time() - start_time
-            print(f"[mma_math] {time.strftime('%H:%M:%S')} (+{elapsed:7.2f}s) {message}", flush=True)
+    def Evaluate(lam):
+        x, x_free, big_p, big_q = _PrimalFromDual(lam, p, q, lower, upper, alpha, beta)
+        excess = np.maximum(lam - c, 0.0)
+        g = p_con @ (1.0 / (upper - x)) + q_con @ (1.0 / (x - lower))
+        value = np.sum(big_p / (upper - x) + big_q / (x - lower)) - lam @ b - np.sum(excess ** 2 / (2.0 * d))
+        gradient = g - b - excess / d
+        return value, gradient, x, x_free, big_p, big_q, g
 
-    _log(f"solve_mma_subproblem start: n={n}, m={m}")
+    def ProjectedGradient(lam, gradient):
+        return np.where(lam > 0.0, gradient, np.maximum(gradient, 0.0))
 
-    x = 0.5 * (alfa + beta)
-    y = np.ones(m)
-    z = 1.0
-    lam = np.ones(m)
-    xsi = np.maximum(1.0 / (x - alfa), 1.0)
-    eta = np.maximum(1.0 / (beta - x), 1.0)
-    mu = np.maximum(0.5 * c, 1.0)
-    zeta = 1.0
-    s = np.ones(m)
+    lam = np.zeros(m)
+    scale_b = float(np.max(np.abs(b)))
 
-    epsilon_level = 0
-    while epsilon > epsilon_min:
-        epsilon_level += 1
-        residual_norm, residual_max = _residual_norms(
-            x, y, z, lam, xsi, eta, mu, zeta, s, p0, q0, p, q, b, low, upp, alfa, beta, a0, a, c, d, epsilon)
-        _log(f"epsilon level {epsilon_level}: epsilon={epsilon:.2e}, residual_max={residual_max:.3e}")
+    def Scale(g):
+        return max(scale_b, float(np.max(np.abs(g))), _TINY)
 
-        newton_iter = 0
-        while residual_max > residual_tol_factor * epsilon and newton_iter < max_newton_iter:
-            newton_iter += 1
-            newton_start = time.time()
+    def RelativeResidual(lam, gradient, g):
+        # Per-constraint scale, so a small constraint next to a large one is still solved to its own precision.
+        constraint_scale = np.maximum(np.maximum(np.abs(b), np.abs(g)), 1e-12 * Scale(g))
+        return float(np.max(np.abs(ProjectedGradient(lam, gradient)) / constraint_scale))
 
-            dx, dy, dz, dlam, dxsi, deta, dmu, dzeta, ds = _newton_direction(
-                x, y, z, lam, xsi, eta, mu, zeta, s, p0, q0, p, q, b, low, upp, alfa, beta, a0, a, c, d, epsilon)
+    value, gradient, x, x_free, big_p, big_q, g = Evaluate(lam)
+    for _ in range(max_iter):
+        if RelativeResidual(lam, gradient, g) <= tolerance:
+            break
 
-            steg = _max_fraction_to_boundary_step(
-                x, y, z, lam, xsi, eta, mu, zeta, s, dx, dy, dz, dlam, dxsi, deta, dmu, dzeta, ds, alfa, beta, tau)
+        # Exact Hessian of W on the free variables: -S diag(1/h) S^T - diag(1/d) where y_i > 0 (lam > c, or at the kink
+        # lam = c when ascending).
+        free = (x_free > alpha) & (x_free < beta)
+        slope = p_con / (upper - x) ** 2 - q_con / (x - lower) ** 2
+        curvature = 2.0 * big_p / (upper - x) ** 3 + 2.0 * big_q / (x - lower) ** 3
+        neg_hessian = (slope[:, free] / curvature[free]) @ slope[:, free].T + np.diag(((lam > c) | ((lam == c) & (gradient > 0.0))) / d)
 
-            found_improving_step = False
-            for _ in range(50):
-                x_new = x + steg * dx
-                y_new = y + steg * dy
-                z_new = z + steg * dz
-                lam_new = lam + steg * dlam
-                xsi_new = xsi + steg * dxsi
-                eta_new = eta + steg * deta
-                mu_new = mu + steg * dmu
-                zeta_new = zeta + steg * dzeta
-                s_new = s + steg * ds
-
-                new_norm, new_max = _residual_norms(
-                    x_new, y_new, z_new, lam_new, xsi_new, eta_new, mu_new, zeta_new, s_new,
-                    p0, q0, p, q, b, low, upp, alfa, beta, a0, a, c, d, epsilon)
-                # "new_norm < residual_norm" is already False whenever new_norm is NaN or
-                # +inf (an out-of-range fraction-to-boundary candidate or catastrophic
-                # cancellation in a residual can produce either), so this also serves as
-                # the finiteness check.
-                if new_norm < residual_norm:
-                    found_improving_step = True
-                    break
-                steg *= 0.5
-
-            if not found_improving_step:
-                # Backtracking never found a finite, improving step at this epsilon level
-                # (the primal-dual state would otherwise be corrupted with NaN/Inf) -- stop
-                # refining here and let the outer continuation retry at a smaller epsilon
-                # from the last known-good state, rather than accepting a broken one.
+        at_zero = (lam <= 0.0) & (gradient <= 0.0)
+        movable = ~at_zero
+        step = np.zeros(m)
+        # Levenberg damping relative to the Hessian scale, increased until the Newton step is an ascent direction.
+        reg_scale = max(np.max(np.abs(np.diag(neg_hessian))), Scale(g) / (1.0 + np.max(lam)))
+        sub_hessian, sub_gradient = neg_hessian[np.ix_(movable, movable)], gradient[movable]
+        step[movable] = sub_gradient
+        for reg in (1e-14, 1e-10, 1e-6, 1e-2):
+            try:
+                trial_step = np.linalg.solve(sub_hessian + reg * reg_scale * np.eye(sub_gradient.size), sub_gradient)
+            except np.linalg.LinAlgError:
+                continue
+            if np.all(np.isfinite(trial_step)) and sub_gradient @ trial_step > 0.0:
+                step[movable] = trial_step
                 break
 
-            x, y, z, lam = x_new, y_new, z_new, lam_new
-            xsi, eta, mu, zeta, s = xsi_new, eta_new, mu_new, zeta_new, s_new
-            residual_norm, residual_max = new_norm, new_max
+        # The dual is only piecewise quadratic (kink at lam = c): stop the first trial at the first kink crossed.
+        crossing = (lam - c) * (lam + step - c) < 0.0
+        kink = int(np.argmin(np.where(crossing, (c - lam) / np.where(step == 0.0, 1.0, step), np.inf))) if crossing.any() else -1
+        t = min(1.0, float((c[kink] - lam[kink]) / step[kink])) if kink >= 0 else 1.0
+        accepted = False
+        for trial in range(200):
+            lam_new = np.maximum(lam + t * step, 0.0)
+            if trial == 0 and kink >= 0 and t < 1.0:
+                lam_new[kink] = c[kink]
+            new_value, new_gradient, new_x, new_x_free, new_p, new_q, new_g = Evaluate(lam_new)
+            if new_value >= value + 1e-4 * (gradient @ (lam_new - lam)):
+                accepted = True
+                break
+            t *= 0.5
+        if not accepted:
+            break
+        lam, value, gradient, x, x_free, big_p, big_q, g = (
+            lam_new, new_value, new_gradient, new_x, new_x_free, new_p, new_q, new_g)
 
-            _log(f"  newton iter {newton_iter}: step={steg:.3e}, residual_max={residual_max:.3e}, "
-                 f"iter_time={time.time() - newton_start:.3f}s")
-
-        epsilon *= epsilon_reduction_factor
-
-    _, kkt_max = _residual_norms(
-        x, y, z, lam, xsi, eta, mu, zeta, s, p0, q0, p, q, b, low, upp, alfa, beta, a0, a, c, d, 0.0)
-
-    _log(f"solve_mma_subproblem done: subsolve_residual={kkt_max:.3e}, total_time={time.time() - start_time:.3f}s")
-
-    return x, y, z, lam, kkt_max
+    y = np.maximum(lam - c, 0.0) / d
+    return x, y, lam, RelativeResidual(lam, gradient, g)
 
 
-def kkt_residual(x, df0dx, dfdx, f_value, xmin, xmax, lam):
-    """True KKT residual of the *original*, unapproximated problem at design
-    point `x`, using the real objective/constraint gradients and values and
-    the Lagrange multipliers `lam` returned by the last-solved MMA/GCMMA
-    subproblem.
+def KKTResidual(df0: np.ndarray,
+                df: np.ndarray,
+                f: np.ndarray,
+                lam: np.ndarray,
+                x: np.ndarray,
+                xmin: np.ndarray,
+                xmax: np.ndarray,
+                bound_tolerance: float = 1e-6) -> float:
+    """Returns the KKT residual of the original problem at x: max of stationarity, feasibility, complementarity.
 
-    Combines three standard KKT ingredients for `minimize f0(x) subject to
-    f_i(x) <= 0, xmin <= x <= xmax`:
-      - stationarity: the box-constrained projected-gradient residual of the
-        Lagrangian `grad f0(x) + lam @ grad f(x)` (zero iff x is a KKT point):
-        for each variable strictly interior to [xmin, xmax] the raw gradient
-        component must vanish; at the lower bound only a negative component
-        counts against it (a positive one just means the bound is correctly
-        binding), and symmetrically at the upper bound. This has no arbitrary
-        step-size parameter -- unlike a naive "take a unit step and clip to
-        the box" residual, which saturates at (and gets stuck reporting) a
-        value of order (xmax-xmin) whenever the raw gradient is larger than
-        the box width, regardless of how close x actually is to optimal;
-      - feasibility: how much any f_i(x) exceeds 0;
-      - complementary slackness: how far lam_i * f_i(x) is from 0.
-
-    Deliberately NOT rescaled by the gradient's own norm (e.g. dividing
-    df0dx by ||df0dx||_inf): since the max-abs component of any nonzero
-    vector divided by its own max-abs is always exactly 1, that would make
-    this residual pinned at ~1 for any nonzero gradient and only ever drop
-    to 0 at *exact* convergence -- a binary signal, not a genuinely shrinking
-    one. So this residual is intentionally reported on the same raw scale as
-    the gradients passed in (i.e. the responses' own scaling), and is not
-    directly comparable in magnitude to a differently-normalized residual
-    from another algorithm.
-
-    Unlike the subsolve's own interior-point residual (see
-    `solve_mma_subproblem`), this is not artificially bounded by a fixed
-    solver tolerance -- it genuinely shrinks as the outer MMA/GCMMA
-    iterations converge to a stationary point of the real problem.
+    Stationarity is the inf-norm of the projected gradient of the Lagrangian df0 + lam^T df, where the component of a
+    variable within bound_tolerance*(xmax-xmin) of a bound is zeroed if it pushes outwards. Feasibility is max(f, 0) and
+    complementarity max |lam_i f_i|.
     """
-    grad_lagrangian = df0dx + lam @ dfdx if lam.size else df0dx
-    at_lower = x <= xmin
-    at_upper = x >= xmax
-    projected_grad = np.where(at_lower, np.minimum(grad_lagrangian, 0.0), grad_lagrangian)
-    projected_grad = np.where(at_upper, np.maximum(projected_grad, 0.0), projected_grad)
-    stationarity = np.max(np.abs(projected_grad)) if x.size else 0.0
-
-    if f_value.size:
-        feasibility = np.max(np.maximum(f_value, 0.0))
-        complementarity = np.max(np.abs(lam * f_value))
-    else:
-        feasibility = 0.0
-        complementarity = 0.0
-
-    return max(stationarity, feasibility, complementarity)
+    gradient = df0 + (lam @ df if lam.size else 0.0)
+    tol = bound_tolerance * (xmax - xmin)
+    projected = np.where(((x <= xmin + tol) & (gradient > 0.0)) | ((x >= xmax - tol) & (gradient < 0.0)), 0.0, gradient)
+    residual = float(np.max(np.abs(projected))) if projected.size else 0.0
+    if f.size:
+        residual = max(residual, float(np.max(np.maximum(f, 0.0))), float(np.max(np.abs(lam * f))))
+    return residual
 
 
-def initial_raa(dfdx, xmin, xmax, factor=0.1, floor=1.0e-6):
-    """A scale-aware starting curvature parameter for GCMMA.
+def InitialRho(df: np.ndarray, xmin: np.ndarray, xmax: np.ndarray) -> np.ndarray:
+    """Returns the initial GCMMA parameters rho_i = max(1e-6, 0.1/n sum_j |df_ij| (xmax_j-xmin_j)), shape (m+1,).
 
-    The curvature contributed by `raa` to the p, q coefficients is
-    raa/(xmax-xmin) (see `compute_pq_gcmma`); for that contribution to be a
-    meaningful fraction of the approximation from the first inner iteration
-    (rather than needing dozens of doublings to become numerically
-    significant), `raa` itself should scale with gradient magnitude times
-    variable range -- this is a basic dimensional argument, not a tuned
-    constant. `dfdx` is 1-D (objective, scalar result) or 2-D (constraints,
-    one result per row).
+    [svanberg-2007-mma-gcmma-note p.7, eq. 4.6]
     """
-    xmami = np.maximum(xmax - xmin, 1.0e-5)
-    if np.ndim(dfdx) == 2:
-        scale = factor * np.mean(np.abs(dfdx) * xmami, axis=-1)
-    else:
-        scale = factor * np.mean(np.abs(dfdx) * xmami)
-    return np.maximum(scale, floor)
+    return np.maximum(0.1 / df.shape[1] * (np.abs(df) @ (xmax - xmin)), 1e-6)
 
 
-# ---------------------------------------------------------------------------
-# GCMMA conservativeness bookkeeping
-# ---------------------------------------------------------------------------
-
-def check_conservativeness(f0_real, f_real, f0_approx, f_approx, tol=1.0e-6):
-    """True iff the approximation over-estimates (or matches, within `tol`)
-    both the real objective and every real constraint value at the trial
-    point -- the GCMMA acceptance condition."""
-    if f0_approx < f0_real - tol:
-        return False
-    if np.size(f_real) and np.any(f_approx < f_real - tol):
-        return False
-    return True
+def RhoScale(x_new: np.ndarray, x: np.ndarray, lower: np.ndarray, upper: np.ndarray, xmin: np.ndarray,
+             xmax: np.ndarray) -> float:
+    """Returns d(x_new), the coefficient multiplying rho in the GCMMA approximation [svanberg-2007-mma-gcmma-note p.8, eq. 4.7]."""
+    return float(np.sum((upper - lower) * (x_new - x) ** 2 / ((upper - x_new) * (x_new - lower) * (xmax - xmin))))
 
 
-def update_raa(raa0, raa, f0_real, f_real, f0_approx, f_approx, growth_factor=2.0, raa_max=1.0e5):
-    """Grows the curvature parameters for the objective (raa0) and for every
-    constraint whose approximation under-estimated the real value, via
-    simple geometric backoff. This is a deliberate simplification of
-    Svanberg's own (2002) minimal-sufficient-increase rule, guaranteed to
-    terminate since unbounded curvature growth eventually dominates any
-    bounded nonlinearity on a compact box."""
-    raa0_new = min(raa0 * growth_factor, raa_max) if f0_approx < f0_real else raa0
+def IsConservative(f_true: np.ndarray, f_approx: np.ndarray, tolerance: float = 1e-6) -> bool:
+    """True if f_approx_i >= f_true_i for all i, up to tolerance*max(1, |f_true_i|)
+    [svanberg-2007-mma-gcmma-note p.6]."""
+    return bool(np.all(f_approx >= f_true - tolerance * np.maximum(1.0, np.abs(f_true))))
 
-    raa_new = np.array(raa, dtype=float, copy=True)
-    if np.size(raa_new):
-        violated = f_approx < f_real
-        raa_new[violated] = np.minimum(raa_new[violated] * growth_factor, raa_max)
 
-    return raa0_new, raa_new
+def UpdateRho(rho: np.ndarray, f_true: np.ndarray, f_approx: np.ndarray, rho_scale: float,
+              tolerance: float = 1e-6) -> np.ndarray:
+    """Returns the next rho: min(1.1 (rho + delta), 10 rho) for the non-conservative functions, rho otherwise.
+
+    delta_i = (f_true_i - f_approx_i)/d(x_new) [svanberg-2007-mma-gcmma-note p.8, eq. 4.8-4.9]. A function counts as
+    non-conservative with the same tolerance as IsConservative.
+    """
+    gap = f_true - f_approx
+    violated = gap > tolerance * np.maximum(1.0, np.abs(f_true))
+    delta = gap / rho_scale if rho_scale > 0.0 else np.full_like(gap, np.inf)
+    return np.where(violated, np.minimum(1.1 * (rho + delta), 10.0 * rho), rho)
