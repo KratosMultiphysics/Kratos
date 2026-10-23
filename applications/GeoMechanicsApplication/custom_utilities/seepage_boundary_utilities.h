@@ -20,7 +20,7 @@
 #include "includes/dof.h"
 #include "includes/model_part.h"
 #include "includes/node.h"
-#include "includes/ublas_interface.h"
+#include "includes/default_interface.h"
 
 namespace Kratos::Geo
 {
