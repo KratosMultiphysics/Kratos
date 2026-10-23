@@ -9,13 +9,11 @@
 
 #pragma once
 
-// Std includes
+// System includes
 #include <list>
 
-// System includes
-#include "includes/define.h"
-
 // External includes
+#include <boost/numeric/ublas/matrix.hpp>
 #include "clipper/include/clipper2/clipper.h"
 
 // Project includes
