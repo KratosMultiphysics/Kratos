@@ -339,12 +339,12 @@ KRATOS_TEST_CASE_IN_SUITE(AuxiliarModelPartUtilities_DeepCopyModelPart, KratosCo
     // Now we create the "geometries"
     Triangle3D3<NodeType> triangle_0( PointerVector<NodeType>{nodes_0} );
     Triangle3D3<NodeType> triangle_1( PointerVector<NodeType>{nodes_1} );
-    auto p_geom_1 = r_origin_model_part.CreateNewGeometry("Triangle3D3", 1, triangle_0);
-    auto p_geom_2 = r_origin_model_part.CreateNewGeometry("Triangle3D3", 2, triangle_1);
+    auto p_geom_1 = r_origin_model_part.CreateNewGeometry("Triangle3D3", 1, triangle_0.Points());
+    auto p_geom_2 = r_origin_model_part.CreateNewGeometry("Triangle3D3", 2, triangle_1.Points());
 
     // Now we create the "elements"
-    auto p_elem_1 = r_origin_model_part.CreateNewElement("Element3D3N", 1, triangle_0, p_prop);
-    auto p_elem_2 = r_origin_model_part.CreateNewElement("Element3D3N", 2, triangle_1, p_prop);
+    auto p_elem_1 = r_origin_model_part.CreateNewElement("Element3D3N", 1, triangle_0.Points(), p_prop);
+    auto p_elem_2 = r_origin_model_part.CreateNewElement("Element3D3N", 2, triangle_1.Points(), p_prop);
 
     // Set the variables to the elements
     p_elem_1->SetValue(TEMPERATURE, 1.0);
@@ -354,8 +354,8 @@ KRATOS_TEST_CASE_IN_SUITE(AuxiliarModelPartUtilities_DeepCopyModelPart, KratosCo
     r_sub.AddElements(element_ids);
 
     // Now we create the "conditions"
-    auto p_cond_1 = r_origin_model_part.CreateNewCondition("SurfaceCondition3D3N", 1, triangle_0, p_prop);
-    auto p_cond_2 = r_origin_model_part.CreateNewCondition("SurfaceCondition3D3N", 2, triangle_1, p_prop);
+    auto p_cond_1 = r_origin_model_part.CreateNewCondition("SurfaceCondition3D3N", 1, triangle_0.Points(), p_prop);
+    auto p_cond_2 = r_origin_model_part.CreateNewCondition("SurfaceCondition3D3N", 2, triangle_1.Points(), p_prop);
 
     ModelPart& r_copy_model_part = AuxiliarModelPartUtilities(r_origin_model_part).DeepCopyModelPart("MainCopied");
 
