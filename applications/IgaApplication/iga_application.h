@@ -19,6 +19,8 @@
 //elements
 #include "custom_elements/truss_element.h"
 #include "custom_elements/truss_embedded_edge_element.h"
+#include "custom_elements/isogeometric_beam_element.h"
+#include "custom_elements/embedded_isogeometric_beam_element.h"
 #include "custom_elements/beam_thin_element_2D.h"
 #include "custom_elements/beam_thick_element_2D.h"
 #include "custom_elements/iga_membrane_element.h"
@@ -63,6 +65,9 @@
 #include "custom_modelers/nurbs_geometry_modeler_sbm.h"
 #include "custom_modelers/nurbs_geometry_modeler_gap_sbm.h"
 #include "custom_modelers/import_nurbs_sbm_modeler.h"
+
+//constitutive
+#include "custom_constitutive/bernoulli_beam_elastic_constitutive_law.h"
 
 namespace Kratos {
 
@@ -138,6 +143,8 @@ private:
 
     const TrussElement mTrussElement;
     const TrussEmbeddedEdgeElement mTrussEmbeddedEdgeElement;
+    const IsogeometricBeamElement mIsogeometricBeamElement;
+    const EmbeddedIsogeometricBeamElement mEmbeddedIsogeometricBeamElement;
     const BeamThinElement2D mBeamThinElement2D;
     const BeamThickElement2D mBeamThickElement2D;
     const IgaMembraneElement mIgaMembraneElement;
@@ -182,6 +189,9 @@ private:
     const NurbsGeometryModelerSbm mNurbsGeometryModelerSbm;
     const NurbsGeometryModelerGapSbm mNurbsGeometryModelerGapSbm;
     const ImportNurbsSbmModeler mImportNurbsSbmModeler;
+
+    // Constitutive Laws
+    const BernoulliBeamElasticConstitutiveLaw mBernoulliBeamElasticConstitutiveLaw;
 
     ///@}
     ///@name Private methods

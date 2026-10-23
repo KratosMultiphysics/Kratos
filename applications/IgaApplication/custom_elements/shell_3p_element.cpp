@@ -232,8 +232,18 @@ namespace Kratos
                 }
             } 
         }
+        else if (rVariable == NODAL_MASS) {
+            for (IndexType point_number = 0; point_number < r_integration_points.size(); ++point_number) {
+                double detJ = GetGeometry().DeterminantOfJacobian(point_number);
+                double mass = r_integration_points[point_number].Weight() * detJ * GetProperties()[THICKNESS] * GetProperties()[DENSITY];
+                rOutput[point_number] = mass;
+            }
+        }
         else if (mConstitutiveLawVector[0]->Has(rVariable)) {
             GetValueOnConstitutiveLaw(rVariable, rOutput);
+        }
+        else {
+            KRATOS_WARNING("Shell3pElement ") << "Unknown variable requested: " << rVariable.Name() << std::endl;
         }
     }
 
@@ -247,8 +257,15 @@ namespace Kratos
         const auto& r_integration_points = r_geometry.IntegrationPoints();
 
         if (rOutput.size() != r_integration_points.size())
-        {
+        { 
             rOutput.resize(r_integration_points.size());
+        }
+
+        if (rVariable == INTEGRATION_COORDINATES)
+        {
+            for (IndexType point_number = 0; point_number < r_integration_points.size(); ++point_number) {
+                rOutput[point_number] = r_integration_points[point_number].Coordinates();
+            }
         }
 
         if (rVariable==PK2_STRESS)
@@ -298,7 +315,9 @@ namespace Kratos
     }
 
 
+
     ///@}
+
     ///@name Assembly
     ///@{
 

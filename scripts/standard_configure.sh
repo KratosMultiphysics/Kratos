@@ -20,20 +20,23 @@ export CC=${CC:-gcc}
 export CXX=${CXX:-g++}
 
 # Set variables
-export KRATOS_SOURCE="${KRATOS_SOURCE:-"$( cd "$(dirname "$0")" ; pwd -P )"/..}"
+export KRATOS_SOURCE="/home/maxfried/Kratos"
 export KRATOS_BUILD="${KRATOS_SOURCE}/build"
 export KRATOS_APP_DIR="${KRATOS_SOURCE}/applications"
 # export KRATOS_INSTALL_PYTHON_USING_LINKS=ON
 
 # Set basic configuration
-export KRATOS_BUILD_TYPE=${KRATOS_BUILD_TYPE:-"Release"}
-export PYTHON_EXECUTABLE=${PYTHON_EXECUTABLE:-"/usr/bin/python3"}
+#export KRATOS_BUILD_TYPE=${KRATOS_BUILD_TYPE:-"RelWithDebInfo"}
+#export PYTHON_EXECUTABLE=${PYTHON_EXECUTABLE:-"/home/maxfried/miniforge3/envs/kratos/bin/python"}
+export KRATOS_BUILD_TYPE=${KRATOS_BUILD_TYPE:-"Debug"}
+export PYTHON_EXECUTABLE=${PYTHON_EXECUTABLE:-"/usr/bin/python3-dbg"}
+
 
 # Set applications to compile
 export KRATOS_APPLICATIONS=
 add_app ${KRATOS_APP_DIR}/LinearSolversApplication
 add_app ${KRATOS_APP_DIR}/StructuralMechanicsApplication
-add_app ${KRATOS_APP_DIR}/FluidDynamicsApplication
+#add_app ${KRATOS_APP_DIR}/FluidDynamicsApplication
 add_app ${KRATOS_APP_DIR}/IgaApplication
 
 # Clean
