@@ -38,7 +38,7 @@ TrescaExplicitFlowRule::TrescaExplicitFlowRule(YieldCriterionPointer pYieldCrite
    
 }
 
-//********* ASSIGMENT OPERATOR
+//********* ASSIGNMENT OPERATOR
 TrescaExplicitFlowRule& TrescaExplicitFlowRule::operator=(TrescaExplicitFlowRule const& rOther)
 {
 	J2ExplicitFlowRule::operator=(rOther);
