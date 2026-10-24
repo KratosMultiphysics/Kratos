@@ -74,16 +74,13 @@ void RegisterLinearSolversForSpace()
     static auto MonotonicityPreservingSolverFactory= StandardLinearSolverFactory<SpaceType,LocalSpaceType,MonotonicityPreservingSolverType>();
     KratosComponents<LinearSolverFactory<SpaceType,LocalSpaceType>>::Add("monotonicity_preserving",MonotonicityPreservingSolverFactory );
 
-#ifndef KRATOS_USE_EIGEN_BACKEND
-    // DeflatedCGSolver's utilities are not templated on the space type (they are
-    // bound to the uBLAS CSR matrix and to double precision floats), so it can
-    // only be registered for the uBLAS double space.
-    if constexpr (std::is_same_v<SpaceType, TUblasSparseSpace<double>>) {
+    // DeflatedCGSolver's utilities are bound to double precision floats, so it can
+    // only be registered for the default double space.
+    if constexpr (std::is_same_v<SpaceType, TDefaultSparseSpace<double>>) {
         using DeflatedCGSolverType = DeflatedCGSolver<SpaceType,  LocalSpaceType>;
         static auto DeflatedCGSolverFactory= StandardLinearSolverFactory<SpaceType,LocalSpaceType,DeflatedCGSolverType>();
         KratosComponents<LinearSolverFactory<SpaceType,LocalSpaceType>>::Add("deflated_cg", DeflatedCGSolverFactory);
     }
-#endif
 }
 
 

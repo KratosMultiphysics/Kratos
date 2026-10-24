@@ -26,7 +26,7 @@
 #include "includes/model_part.h"
 #include "utilities/builtin_timer.h"
 #include "custom_utilities/ublas_wrapper.h"
-#include "includes/ublas_interface.h"
+#include "includes/default_interface.h"
 
 // Application includes
 #include "rom_application_variables.h"

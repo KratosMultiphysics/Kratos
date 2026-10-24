@@ -541,7 +541,11 @@ namespace Kratos:: Python
         // matrices/vectors to feed directly into a linear solver should use
         // SparseSpace/SparseMatrix/SparseVector instead of hardcoding the
         // backend-specific names.
+#ifdef KRATOS_USE_EIGEN_BACKEND
+        const std::string sparse_space_name = "EigenSparseSpace";
+#else
         const std::string sparse_space_name = "UblasSparseSpace";
+#endif
         auto sparse_space_binder = CreateSpaceInterface< SparseSpaceType >(m, sparse_space_name.c_str());
         sparse_space_binder.def("TwoNorm", TwoNorm<SparseSpaceType>);
         // the dot product of the argument vectors
