@@ -26,7 +26,8 @@ class ApplyOutletProcess(KratosMultiphysics.Process):
             "h_top"              : 0.0,
             "outlet_inflow_contribution" : false,
             "outlet_inflow_contribution_characteristic_velocity_value" : 0.0,
-            "outlet_inflow_contribution_characteristic_velocity_calculation" : "outlet_average"
+            "outlet_inflow_contribution_characteristic_velocity_calculation" : "outlet_average",
+            "outlet_inflow_contribution_explicit" : false
         }
         """)
 
@@ -49,6 +50,7 @@ class ApplyOutletProcess(KratosMultiphysics.Process):
         pres_settings.RemoveValue("outlet_inflow_contribution")
         pres_settings.RemoveValue("outlet_inflow_contribution_characteristic_velocity_value")
         pres_settings.RemoveValue("outlet_inflow_contribution_characteristic_velocity_calculation")
+        pres_settings.RemoveValue("outlet_inflow_contribution_explicit")
 
         # Create a copy of the PRESSURE settings to set the EXTERNAL_PRESSURE
         ext_pres_settings = pres_settings.Clone()
@@ -85,6 +87,7 @@ class ApplyOutletProcess(KratosMultiphysics.Process):
         self.__outlet_inflow_contribution = settings["outlet_inflow_contribution"].GetBool()
         if self.__outlet_inflow_contribution:
             self.outlet_model_part.ProcessInfo[KratosFluid.OUTLET_INFLOW_CONTRIBUTION_SWITCH] = True
+            self.outlet_model_part.ProcessInfo[KratosFluid.OUTLET_INFLOW_CONTRIBUTION_EXPLICIT] = settings["outlet_inflow_contribution_explicit"].GetBool()
             self.__outlet_char_velocity = None
             self.__outlet_char_velocity_type = settings["outlet_inflow_contribution_characteristic_velocity_calculation"].GetString()
             if self.__outlet_char_velocity_type in ["user_defined", "outlet_average", "outlet_max"]:
