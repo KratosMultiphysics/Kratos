@@ -90,6 +90,67 @@ class ApplyOutletProcessTest(KratosUnittest.TestCase):
         model.GetModelPart("OutletModelPart").ProcessInfo[KratosMultiphysics.TIME] = 1.0
         self.__ExecuteAndCheckOutletProcess(model, outlet_process)
 
+    def testApplyOutletProcessHydrostaticPropertiesDensity(self):
+        # Hydrostatic outlet without DENSITY in the nodal data (e.g. QSVMS): the density is taken from the properties
+        model = self.__CreateHydrostaticModel(nodal_density = False, densities = [1000.0])
+        outlet_process = apply_outlet_process.ApplyOutletProcess(model, self.__GetHydrostaticParameters()["Parameters"])
+        outlet_process.ExecuteInitializeSolutionStep()
+        self.__CheckHydrostaticPressure(model, 1000.0)
+
+    def testApplyOutletProcessHydrostaticNodalDensity(self):
+        # Hydrostatic outlet with DENSITY in the nodal data: the nodal value is used
+        model = self.__CreateHydrostaticModel(nodal_density = True, densities = [1000.0])
+        outlet_process = apply_outlet_process.ApplyOutletProcess(model, self.__GetHydrostaticParameters()["Parameters"])
+        outlet_process.ExecuteInitializeSolutionStep()
+        self.__CheckHydrostaticPressure(model, 1.0)
+
+    def testApplyOutletProcessHydrostaticNonUniqueDensity(self):
+        # Hydrostatic outlet without DENSITY in the nodal data and different densities in the properties
+        model = self.__CreateHydrostaticModel(nodal_density = False, densities = [1000.0, 1.2])
+        outlet_process = apply_outlet_process.ApplyOutletProcess(model, self.__GetHydrostaticParameters()["Parameters"])
+        with self.assertRaisesRegex(Exception, "unique DENSITY"):
+            outlet_process.ExecuteInitializeSolutionStep()
+
+    @classmethod
+    def __CreateHydrostaticModel(cls, nodal_density, densities):
+        # Outlet with the nodes at y = 1 (top) and y = 0 (bottom) and the body force along -y
+        model = KratosMultiphysics.Model()
+        outlet_model_part = model.CreateModelPart("OutletModelPart")
+        outlet_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] = 2
+        for variable in [KratosMultiphysics.PRESSURE, KratosMultiphysics.EXTERNAL_PRESSURE, KratosMultiphysics.BODY_FORCE]:
+            outlet_model_part.AddNodalSolutionStepVariable(variable)
+        if nodal_density:
+            outlet_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DENSITY)
+        for i, density in enumerate(densities):
+            outlet_model_part.CreateNewProperties(i + 1).SetValue(KratosMultiphysics.DENSITY, density)
+        outlet_model_part.CreateNewNode(1, 0.0, 1.0, 0.0)
+        outlet_model_part.CreateNewNode(2, 2.0, 0.0, 0.0)
+        outlet_model_part.CreateNewCondition("LineCondition2D2N", 1, [1, 2], outlet_model_part.CreateNewProperties(0))
+        for node in outlet_model_part.Nodes:
+            node.AddDof(KratosMultiphysics.PRESSURE)
+            node.SetSolutionStepValue(KratosMultiphysics.BODY_FORCE, [0.0, -9.81, 0.0])
+            if nodal_density:
+                node.SetSolutionStepValue(KratosMultiphysics.DENSITY, 1.0)
+        return model
+
+    @classmethod
+    def __GetHydrostaticParameters(cls):
+        return KratosMultiphysics.Parameters("""{
+            "Parameters" : {
+                "model_part_name" : "OutletModelPart",
+                "value" : 0.0,
+                "hydrostatic_outlet" : true,
+                "h_top" : 0.0
+            }
+        }""")
+
+    def __CheckHydrostaticPressure(self, model, density):
+        # Hydrostatic pressure: zero at the top node and density * g * 1.0 at the bottom one (relative tolerance)
+        expected = {1: 0.0, 2: density * 9.81 * 1.0}
+        for node in model.GetModelPart("OutletModelPart").Nodes:
+            self.assertAlmostEqual(node.GetSolutionStepValue(KratosMultiphysics.PRESSURE), expected[node.Id], delta = 1.0e-9 * max(1.0, expected[node.Id]))
+            self.assertAlmostEqual(node.GetSolutionStepValue(KratosMultiphysics.EXTERNAL_PRESSURE), expected[node.Id], delta = 1.0e-9 * max(1.0, expected[node.Id]))
+
     def __ExecuteAndCheckOutletProcess(self, model, outlet_process):
         # Execute and check ExecuteInitializeSolutionStep
         outlet_process.ExecuteInitializeSolutionStep()
