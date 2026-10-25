@@ -140,44 +140,6 @@ public:
 
     ///@}
 
-protected:
-    ///@name Protected Operations
-    ///@{
-
-    /**
-     * @brief Shape functions of a facet side shifted to the skin, S(N): their
-     * Taylor expansion along rDistance (S_d operator).
-     *
-     * @param rSide One side of the facet.
-     * @param rProjectionNode The node at the closest skin point.
-     * @param rDistance Distance vector d from the facet point to the skin.
-     * @param Order Order of the shift.
-     * @return The shifted shape functions.
-     */
-    virtual Vector CalculateShiftedShapeFunctions(
-        const GeometryType& rSide,
-        const Node& rProjectionNode,
-        const array_1d<double, 3>& rDistance,
-        const SizeType Order) const;
-
-    /**
-     * @brief Value imposed on the shifted trace S(u_h): g_D at the closest
-     * skin point.
-     *
-     * @param rProjectionNode The node at the closest skin point.
-     * @param rDistance Distance vector d from the facet point to the skin.
-     * @param Order Order of the shift.
-     * @param rUnknownVariable The unknown, whose value at the node is g_D.
-     * @return The imposed value.
-     */
-    virtual double CalculateShiftedBoundaryValue(
-        const Node& rProjectionNode,
-        const array_1d<double, 3>& rDistance,
-        const SizeType Order,
-        const Variable<double>& rUnknownVariable) const;
-
-    ///@}
-
 private:
     ///@name Serialization
     ///@{
