@@ -65,10 +65,10 @@ class ApplyOutletProcess(KratosMultiphysics.Process):
         elif (ext_pres_settings["variable_name"].GetString() != "EXTERNAL_PRESSURE"):
             raise Exception("Outlet external pressure settings variable_name is not EXTERNAL_PRESSURE.")
         elif (pres_settings["value"].IsString()):
-            if (pres_settings["value"].GetString == ""):
+            if (pres_settings["value"].GetString() == ""):
                 raise Exception("Outlet pressure function string is empty.")
         elif (ext_pres_settings["value"].IsString()):
-            if (ext_pres_settings["value"].GetString == ""):
+            if (ext_pres_settings["value"].GetString() == ""):
                 raise Exception("Outlet external pressure function string is empty.")
 
         self.hydrostatic_outlet = settings["hydrostatic_outlet"].GetBool()
@@ -114,9 +114,10 @@ class ApplyOutletProcess(KratosMultiphysics.Process):
         # Set the characteristic outlet velocity in the outlet model part ProcessInfo
         if self.__outlet_inflow_contribution:
             # If required, update the outlet characteristic velocity
+            # Note that the user defined value is kept
             if self.__outlet_char_velocity_type == "outlet_average":
                 self.__outlet_char_velocity = self.__ComputeOutletAverageVelocity()
-            else:
+            elif self.__outlet_char_velocity_type == "outlet_max":
                 self.__outlet_char_velocity = self.__ComputeOutletMaxVelocity()
             # Save value to be used in the boundary terms integration
             self.outlet_model_part.ProcessInfo[KratosFluid.CHARACTERISTIC_VELOCITY] = self.__outlet_char_velocity
