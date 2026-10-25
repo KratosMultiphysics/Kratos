@@ -48,7 +48,6 @@
 #include "custom_conditions/sbm_laplacian_condition_neumann.h"
 #include "custom_conditions/sbm_laplacian_condition_dirichlet.h"
 #include "custom_conditions/gsbm_laplacian_condition_dirichlet.h"
-#include "custom_conditions/gsbm_laplacian_condition_dirichlet_stabilized.h"
 #include "custom_conditions/gsbm_laplacian_condition_ghost_penalty.h"
 #include "custom_conditions/support_fluid_condition.h"
 #include "custom_conditions/sbm_fluid_condition_dirichlet.h"
@@ -172,8 +171,6 @@ private:
     const SbmLaplacianConditionDirichlet mSbmLaplacianConditionDirichlet;
     const SbmLaplacianConditionNeumann mSbmLaplacianConditionNeumann;
     const GsbmLaplacianConditionDirichlet mGsbmLaplacianConditionDirichlet;
-    const GsbmLaplacianConditionDirichletStabilized
-        mGsbmLaplacianConditionDirichletStabilized;
     const GsbmLaplacianConditionGhostPenalty mGsbmLaplacianConditionGhostPenalty;
     const SupportFluidCondition mSupportFluidCondition;
     const SupportPressureCondition mSupportPressureCondition;
