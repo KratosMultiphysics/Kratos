@@ -377,6 +377,7 @@ void ConnectivityPreserveModeler::DuplicateSubModelParts(
 
         // Execute only if there are geometries in the destination
         if (rDestinationModelPart.NumberOfGeometries() > 0) {
+            ids.clear(); // Otherwise the condition ids are added as geometry ids (only correct if both numberings coincide)
             ids.reserve(i_part->NumberOfGeometries());
             for (const auto& r_geom : i_part->Geometries()) {
                 ids.push_back(r_geom.Id());
