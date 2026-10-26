@@ -614,10 +614,10 @@ void NonLinearTimoshenkoBeamElement3D2N::GetValuesVector(
         values.resize(12, false);
     const auto& r_geom = GetGeometry();
 
-    const auto& r_displ_0    = r_geom[0].FastGetSolutionStepValue(DISPLACEMENT);
-    const auto& r_rotation_0 = r_geom[0].FastGetSolutionStepValue(ROTATION);
-    const auto& r_displ_1    = r_geom[1].FastGetSolutionStepValue(DISPLACEMENT);
-    const auto& r_rotation_1 = r_geom[1].FastGetSolutionStepValue(ROTATION);
+    const auto& r_displ_0    = r_geom[0].FastGetSolutionStepValue(DISPLACEMENT, Step);
+    const auto& r_rotation_0 = r_geom[0].FastGetSolutionStepValue(ROTATION, Step);
+    const auto& r_displ_1    = r_geom[1].FastGetSolutionStepValue(DISPLACEMENT, Step);
+    const auto& r_rotation_1 = r_geom[1].FastGetSolutionStepValue(ROTATION, Step);
 
     for (IndexType i = 0; i < 3; ++i) {
         values[i]     = r_displ_0[i];
@@ -639,10 +639,10 @@ void NonLinearTimoshenkoBeamElement3D2N::GetFirstDerivativesVector(
         values.resize(12, false);
     const auto& r_geom = GetGeometry();
 
-    const auto& r_displ_0    = r_geom[0].FastGetSolutionStepValue(VELOCITY);
-    const auto& r_rotation_0 = r_geom[0].FastGetSolutionStepValue(ANGULAR_VELOCITY);
-    const auto& r_displ_1    = r_geom[1].FastGetSolutionStepValue(VELOCITY);
-    const auto& r_rotation_1 = r_geom[1].FastGetSolutionStepValue(ANGULAR_VELOCITY);
+    const auto& r_displ_0    = r_geom[0].FastGetSolutionStepValue(VELOCITY, Step);
+    const auto& r_rotation_0 = r_geom[0].FastGetSolutionStepValue(ANGULAR_VELOCITY, Step);
+    const auto& r_displ_1    = r_geom[1].FastGetSolutionStepValue(VELOCITY, Step);
+    const auto& r_rotation_1 = r_geom[1].FastGetSolutionStepValue(ANGULAR_VELOCITY, Step);
 
     for (IndexType i = 0; i < 3; ++i) {
         values[i]     = r_displ_0[i];
@@ -664,10 +664,10 @@ void NonLinearTimoshenkoBeamElement3D2N::GetSecondDerivativesVector(
         values.resize(12, false);
     const auto& r_geom = GetGeometry();
 
-    const auto& r_displ_0    = r_geom[0].FastGetSolutionStepValue(ACCELERATION);
-    const auto& r_rotation_0 = r_geom[0].FastGetSolutionStepValue(ANGULAR_ACCELERATION);
-    const auto& r_displ_1    = r_geom[1].FastGetSolutionStepValue(ACCELERATION);
-    const auto& r_rotation_1 = r_geom[1].FastGetSolutionStepValue(ANGULAR_ACCELERATION);
+    const auto& r_displ_0    = r_geom[0].FastGetSolutionStepValue(ACCELERATION, Step);
+    const auto& r_rotation_0 = r_geom[0].FastGetSolutionStepValue(ANGULAR_ACCELERATION, Step);
+    const auto& r_displ_1    = r_geom[1].FastGetSolutionStepValue(ACCELERATION, Step);
+    const auto& r_rotation_1 = r_geom[1].FastGetSolutionStepValue(ANGULAR_ACCELERATION, Step);
 
     for (IndexType i = 0; i < 3; ++i) {
         values[i]     = r_displ_0[i];
