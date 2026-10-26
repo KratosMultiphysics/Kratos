@@ -27,7 +27,7 @@ class ApplyOutletProcess(KratosMultiphysics.Process):
             "outlet_inflow_contribution" : false,
             "outlet_inflow_contribution_characteristic_velocity_value" : 0.0,
             "outlet_inflow_contribution_characteristic_velocity_calculation" : "outlet_average",
-            "outlet_inflow_contribution_explicit" : false
+            "outlet_inflow_contribution_explicit" : true
         }
         """)
 

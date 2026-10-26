@@ -448,8 +448,12 @@ void NavierStokesWallCondition<TDim,TNumNodes,TWallModel...>::ComputeRHSOutletIn
 
     // Compute Gauss pt. density, velocity norm and velocity projection
     // Note that the explicit treatment takes the velocity of the previous step
-    const bool is_explicit = rProcessInfo.Has(OUTLET_INFLOW_CONTRIBUTION_EXPLICIT) && rProcessInfo[OUTLET_INFLOW_CONTRIBUTION_EXPLICIT];
-    const IndexType step = is_explicit ? 1 : 0;
+    IndexType step = 0;
+    if (rProcessInfo.Has(OUTLET_INFLOW_CONTRIBUTION_EXPLICIT)) {
+        if (rProcessInfo[OUTLET_INFLOW_CONTRIBUTION_EXPLICIT]) {
+            step = 1;
+        }
+    }
     array_1d<double, 3> vGauss = ZeroVector(3);
     for (unsigned int i=0; i<TNumNodes; ++i)
     {
