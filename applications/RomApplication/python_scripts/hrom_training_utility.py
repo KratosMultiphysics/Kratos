@@ -349,12 +349,16 @@ class HRomTrainingUtility(object):
             print(hrom_visualization_model_part)
 
             # Write the HROM visualization mesh
-            # Note that it is always written in mdpa format: its skin conditions are new entities (numbered from 1) that
-            # do not exist in the origin model part, so the geometries required by the MED format cannot be taken from it
-            hrom_vis_output_name = "{}HROMVisualization".format(model_part_output_name)
-            model_part_io = KratosMultiphysics.ModelPartIO(hrom_vis_output_name, KratosMultiphysics.IO.WRITE | KratosMultiphysics.IO.MESH_ONLY | KratosMultiphysics.IO.SCIENTIFIC_PRECISION)
-            model_part_io.WriteModelPart(hrom_visualization_model_part)
-            KratosMultiphysics.kratos_utilities.DeleteFileIfExisting("{}.time".format(hrom_vis_output_name))
+            if write_med:
+                hrom_vis_output_name = "{}HROMVisualization.med".format(model_part_output_name)
+                KratosROM.RomAuxiliaryUtilities.AddGeometries(computing_model_part, hrom_visualization_model_part)
+                model_part_io = KratosMed.MedModelPartIO(hrom_vis_output_name, KratosMultiphysics.IO.WRITE)
+                model_part_io.WriteModelPart(hrom_visualization_model_part)
+                del model_part_io
+            else:
+                hrom_vis_output_name = "{}HROMVisualization".format(model_part_output_name)
+                model_part_io = KratosMultiphysics.ModelPartIO(hrom_vis_output_name, KratosMultiphysics.IO.WRITE | KratosMultiphysics.IO.MESH_ONLY | KratosMultiphysics.IO.SCIENTIFIC_PRECISION)
+                model_part_io.WriteModelPart(hrom_visualization_model_part)
             if self.echo_level > 0:
                 KratosMultiphysics.Logger.PrintInfo("HRomTrainingUtility","HROM visualization mesh written in \'{}\'".format(hrom_vis_output_name))
 
