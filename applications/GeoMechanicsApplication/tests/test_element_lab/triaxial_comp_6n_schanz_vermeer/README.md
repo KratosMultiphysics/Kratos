@@ -4,6 +4,8 @@ This staged lab-element test reuses the axisymmetric 2D6N triaxial setup and app
 
 The specimen starts from a uniform in-situ stress state $\sigma_{xx}' = \sigma_{yy}' = \sigma_{zz}' = -100$ [Pa]. During both stages the lateral pressure is kept at -100 [Pa].
 
+`GEO_MAXIMUM_MINOR_PRINCIPAL_STRESS` is set to -1 Pa, providing the required negative stress limit for stiffness regularization. The minor principal effective stress remains more compressive than this limit throughout both stages, so the limit does not change the expected results.
+
 ## Stage 1 - Unloading
 
 The top normal stress is reduced from -100 Pa to -50 Pa.
