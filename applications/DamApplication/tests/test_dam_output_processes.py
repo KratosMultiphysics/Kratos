@@ -9,6 +9,7 @@ import KratosMultiphysics as KM
 import KratosMultiphysics.DamApplication  # noqa: F401
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 from KratosMultiphysics.DamApplication.dam_analysis import DamAnalysis
+from KratosMultiphysics.DamApplication.gid_dam_output_process import GiDDamOutputProcess
 from KratosMultiphysics.gid_output_process import GiDOutputProcess
 from KratosMultiphysics.vtk_output_process import VtkOutputProcess
 
@@ -72,7 +73,7 @@ class TestDamOutputProcesses(KratosUnittest.TestCase):
             "point_data_configuration": []
         }
 
-    def _gid_process(self, output_name):
+    def _gid_process(self, output_name, interval=1.0):
         return {
             "python_module": "gid_output_process",
             "kratos_module": "KratosMultiphysics",
@@ -91,7 +92,7 @@ class TestDamOutputProcesses(KratosUnittest.TestCase):
                         "file_label": "time",
                         "time_label_format": "{:.12f}",
                         "output_control_type": "time",
-                        "output_interval": 1.0,
+                        "output_interval": interval,
                         "body_output": True,
                         "node_output": False,
                         "skin_output": False,
@@ -172,6 +173,27 @@ class TestDamOutputProcesses(KratosUnittest.TestCase):
         self.assertEqual(len(values), number_of_components * number_of_values)
         self.assertTrue(any(abs(value) > 0.0 for value in values))
 
+    def _assert_recording_lifecycle(self, calls, output_steps):
+        expected_counts = {
+            "ExecuteInitialize": 1,
+            "ExecuteBeforeSolutionLoop": 1,
+            "ExecuteInitializeSolutionStep": output_steps,
+            "ExecuteFinalizeSolutionStep": output_steps,
+            "ExecuteBeforeOutputStep": output_steps,
+            "PrintOutput": output_steps,
+            "ExecuteAfterOutputStep": output_steps,
+            "ExecuteFinalize": 1
+        }
+        for call_name, expected_count in expected_counts.items():
+            self.assertEqual(calls.count(call_name), expected_count)
+        self.assertEqual(calls[0], "ExecuteInitialize")
+        self.assertEqual(calls[-1], "ExecuteFinalize")
+
+        for index, call_name in enumerate(calls):
+            if call_name == "PrintOutput":
+                self.assertEqual(calls[index - 1], "ExecuteBeforeOutputStep")
+                self.assertEqual(calls[index + 1], "ExecuteAfterOutputStep")
+
     def test_legacy_gid_only(self):
         with tempfile.TemporaryDirectory() as working_directory:
             parameters = self._load_parameters("legacy_gid")
@@ -211,6 +233,29 @@ class TestDamOutputProcesses(KratosUnittest.TestCase):
                     os.path.join(working_directory, "legacy_multi_{0}.post.res".format(label))))
             self.assertTrue(os.path.exists(
                 os.path.join(working_directory, "_list_legacy_multi_1.post.lst")))
+
+    def test_legacy_gid_cleans_previous_post_files(self):
+        with tempfile.TemporaryDirectory() as working_directory:
+            parameters = self._load_parameters("legacy_cleanup")
+            parameters["output_configuration"] = self._legacy_configuration()
+
+            stale_files = [
+                "stale.post.res",
+                "stale.post.msh",
+                "stale.post.lst",
+                "info.time"
+            ]
+            for file_name in stale_files:
+                with open(os.path.join(working_directory, file_name), "w") as file:
+                    file.write("stale")
+
+            simulation = self._run(parameters, working_directory)
+
+            self.assertIsNotNone(simulation.gid_output)
+            for file_name in stale_files:
+                self.assertFalse(os.path.exists(os.path.join(working_directory, file_name)))
+            self.assertTrue(os.path.exists(
+                os.path.join(working_directory, "legacy_cleanup.post.res")))
 
     def test_vtk_only(self):
         with tempfile.TemporaryDirectory() as working_directory:
@@ -264,6 +309,34 @@ class TestDamOutputProcesses(KratosUnittest.TestCase):
             )
             self.assertEqual(len(self._vtk_files(working_directory)), 2)
 
+    def test_independent_gid_and_vtk_scheduling(self):
+        with tempfile.TemporaryDirectory() as working_directory:
+            parameters = self._load_parameters("independent_schedule")
+            parameters["problem_data"]["start_time"] = 1.5
+            parameters["problem_data"]["time_step"] = 0.5
+            parameters["problem_data"]["end_time"] = 4.0
+            parameters["output_processes"] = {
+                "gid_output": [self._gid_process("scheduled_gid", interval=2.0)],
+                "vtk_output": [self._vtk_process(
+                    os.path.join(working_directory, "VTK_Output"),
+                    interval=3.0
+                )]
+            }
+
+            simulation = self._run(parameters, working_directory)
+
+            self.assertIsNone(simulation.gid_output)
+            self.assertEqual(
+                self._result_tags(os.path.join(working_directory, "scheduled_gid.post.res")),
+                ["2", "4"]
+            )
+            self.assertEqual(
+                [os.path.basename(vtk_file) for vtk_file in self._vtk_files(working_directory)],
+                ["mechanical_computing_domain_0_3.0000000.vtk"]
+            )
+            self.assertFalse(os.path.exists(
+                os.path.join(working_directory, "independent_schedule.post.res")))
+
     def test_standard_gid_and_standard_vtk(self):
         with tempfile.TemporaryDirectory() as working_directory:
             parameters = self._load_parameters("legacy_name")
@@ -302,6 +375,30 @@ class TestDamOutputProcesses(KratosUnittest.TestCase):
             warning.assert_called()
             warning_messages = [str(call) for call in warning.call_args_list]
             self.assertTrue(any("Both 'output_configuration'" in message for message in warning_messages))
+
+    def test_non_gid_process_named_gid_output_keeps_legacy_gid(self):
+        with tempfile.TemporaryDirectory() as working_directory:
+            parameters = self._load_parameters("fake_gid_group")
+            parameters["output_configuration"] = self._legacy_configuration()
+            parameters["output_processes"] = {
+                "gid_output": [{
+                    "python_module": "dam_recording_output_process",
+                    "Parameters": {"record_name": "not_gid"}
+                }]
+            }
+
+            with mock.patch.object(KM.Logger, "PrintWarning") as warning:
+                simulation = self._run(parameters, working_directory)
+
+            self.assertIsInstance(simulation.gid_output, GiDDamOutputProcess)
+            self.assertEqual(len(simulation.list_of_standard_output_processes), 1)
+            self.assertEqual(
+                self._result_tags(os.path.join(working_directory, "fake_gid_group.post.res")),
+                ["0", "1", "2"]
+            )
+            warning_messages = [str(call) for call in warning.call_args_list]
+            self.assertFalse(any(
+                "Both 'output_configuration'" in message for message in warning_messages))
 
     def test_missing_output_blocks(self):
         with tempfile.TemporaryDirectory() as working_directory:
@@ -359,22 +456,35 @@ class TestDamOutputProcesses(KratosUnittest.TestCase):
             simulation = self._run(parameters, working_directory)
 
             self.assertEqual(len(simulation.list_of_standard_output_processes), 1)
-            calls = simulation.list_of_standard_output_processes[0].calls
-            self.assertEqual(calls.count("ExecuteInitialize"), 1)
-            self.assertEqual(calls.count("ExecuteBeforeSolutionLoop"), 1)
-            self.assertEqual(calls.count("ExecuteInitializeSolutionStep"), 2)
-            self.assertEqual(calls.count("ExecuteFinalizeSolutionStep"), 2)
-            self.assertEqual(calls.count("ExecuteBeforeOutputStep"), 2)
-            self.assertEqual(calls.count("PrintOutput"), 2)
-            self.assertEqual(calls.count("ExecuteAfterOutputStep"), 2)
-            self.assertEqual(calls.count("ExecuteFinalize"), 1)
-            self.assertEqual(calls[0], "ExecuteInitialize")
-            self.assertEqual(calls[-1], "ExecuteFinalize")
+            self._assert_recording_lifecycle(
+                simulation.list_of_standard_output_processes[0].calls, 2)
 
-            for index, call_name in enumerate(calls):
-                if call_name == "PrintOutput":
-                    self.assertEqual(calls[index - 1], "ExecuteBeforeOutputStep")
-                    self.assertEqual(calls[index + 1], "ExecuteAfterOutputStep")
+    def test_multiple_output_processes_in_same_group(self):
+        with tempfile.TemporaryDirectory() as working_directory:
+            parameters = self._load_parameters("multiple_group")
+            parameters["output_processes"] = {
+                "recording": [
+                    {
+                        "python_module": "dam_recording_output_process",
+                        "Parameters": {"record_name": "first"}
+                    },
+                    {
+                        "python_module": "dam_recording_output_process",
+                        "Parameters": {"record_name": "second"}
+                    }
+                ]
+            }
+
+            simulation = self._run(parameters, working_directory)
+
+            self.assertEqual(len(simulation.list_of_standard_output_processes), 2)
+            self.assertEqual(
+                [process.settings["record_name"].GetString()
+                 for process in simulation.list_of_standard_output_processes],
+                ["first", "second"]
+            )
+            for process in simulation.list_of_standard_output_processes:
+                self._assert_recording_lifecycle(process.calls, 2)
 
     def test_vtk_temperature_output(self):
         with tempfile.TemporaryDirectory() as working_directory:

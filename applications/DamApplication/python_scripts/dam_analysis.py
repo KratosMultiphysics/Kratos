@@ -233,15 +233,15 @@ class DamAnalysis(AnalysisStage):
 
         # A standard GiD process takes precedence over the legacy output_configuration
         from KratosMultiphysics.gid_output_process import GiDOutputProcess
-        self.has_standard_gid_output = any(
+        has_standard_gid_output = any(
             isinstance(output_process, GiDOutputProcess)
             for output_process in self.list_of_standard_output_processes
         )
-        self.use_legacy_gid_output = (
+        use_legacy_gid_output = (
             self.project_parameters.Has("output_configuration") and
-            not self.has_standard_gid_output
+            not has_standard_gid_output
         )
-        if self.has_standard_gid_output and self.project_parameters.Has("output_configuration"):
+        if has_standard_gid_output and self.project_parameters.Has("output_configuration"):
             KratosMultiphysics.Logger.PrintWarning(
                 "DamAnalysis",
                 "Both 'output_configuration' and a standard GiD process in 'output_processes' "
@@ -249,9 +249,10 @@ class DamAnalysis(AnalysisStage):
                 "'output_configuration' is ignored."
             )
 
-        # Clean previous GiD post files only when GiD output is going to be written.
+        # Standard GiD must clean previous post files before its ExecuteInitialize below.
+        # Legacy GiD keeps its original cleanup point, immediately before construction.
         # In particular, VTK-only runs must not delete existing GiD results.
-        if self.use_legacy_gid_output or self.has_standard_gid_output:
+        if has_standard_gid_output:
             from KratosMultiphysics.DamApplication import dam_cleaning_utility
             dam_cleaning_utility.CleanPreviousFiles(self.problem_path)
 
@@ -321,7 +322,9 @@ class DamAnalysis(AnalysisStage):
 
                 dam_mapping_variables_utility.AddPreviousModelPartThermoMechanical(self.main_model_part,self.post_model_part_mechanical,self.post_model_part_thermal,self.add_displacement,self.add_stress,self.add_temperature,self.add_reference_temperature)
 
-        if self.use_legacy_gid_output:
+        if use_legacy_gid_output:
+            from KratosMultiphysics.DamApplication import dam_cleaning_utility
+            dam_cleaning_utility.CleanPreviousFiles(self.problem_path) # Clean previous post files
             output_settings = self.project_parameters["output_configuration"]
             from KratosMultiphysics.DamApplication.gid_dam_output_process import GiDDamOutputProcess
             self.gid_output = GiDDamOutputProcess(computing_model_part,
