@@ -1098,6 +1098,9 @@ double LinearTimoshenkoBeamElement2D2N::GetCrossArea()
     return (strain_size == 3) ? r_props[CROSS_AREA] : r_props[THICKNESS];
 }
 
+/***********************************************************************************/
+/***********************************************************************************/
+
 void LinearTimoshenkoBeamElement2D2N::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
@@ -1128,6 +1131,84 @@ void LinearTimoshenkoBeamElement2D2N::FinalizeSolutionStep(const ProcessInfo& rC
     }
 
     KRATOS_CATCH("")
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void LinearTimoshenkoBeamElement2D2N::GetValuesVector(Vector &rValues, int Step) const
+{
+    const SizeType number_of_nodes = GetGeometry().size();
+    const SizeType mat_size = GetDoFsPerNode() * number_of_nodes;
+    const SizeType dimension = GetGeometry().WorkingSpaceDimension();
+
+    if (rValues.size() != mat_size)
+        rValues.resize(mat_size, false);
+    const auto& r_geom = GetGeometry();
+
+    SizeType index = 0;
+    for (IndexType i = 0; i < number_of_nodes; ++i) {
+        rValues[index++] = r_geom[i].FastGetSolutionStepValue(DISPLACEMENT_X, Step);
+        rValues[index++] = r_geom[i].FastGetSolutionStepValue(DISPLACEMENT_Y, Step);
+        if (dimension == 3) {
+            rValues[index++] = r_geom[i].FastGetSolutionStepValue(DISPLACEMENT_Z, Step);
+            rValues[index++] = r_geom[i].FastGetSolutionStepValue(ROTATION_X, Step);
+            rValues[index++] = r_geom[i].FastGetSolutionStepValue(ROTATION_Y, Step);
+        }
+        rValues[index++] = r_geom[i].FastGetSolutionStepValue(ROTATION_Z, Step);
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void LinearTimoshenkoBeamElement2D2N::GetFirstDerivativesVector(Vector &rValues, int Step) const
+{
+    const SizeType number_of_nodes = GetGeometry().size();
+    const SizeType mat_size = GetDoFsPerNode() * number_of_nodes;
+    const SizeType dimension = GetGeometry().WorkingSpaceDimension();
+
+    if (rValues.size() != mat_size)
+        rValues.resize(mat_size, false);
+    const auto& r_geom = GetGeometry();
+
+    SizeType index = 0;
+    for (IndexType i = 0; i < number_of_nodes; ++i) {
+        rValues[index++] = r_geom[i].FastGetSolutionStepValue(VELOCITY_X, Step);
+        rValues[index++] = r_geom[i].FastGetSolutionStepValue(VELOCITY_Y);
+        if (dimension == 3) {
+            rValues[index++] = r_geom[i].FastGetSolutionStepValue(VELOCITY_Z, Step);
+            rValues[index++] = r_geom[i].FastGetSolutionStepValue(ANGULAR_VELOCITY_X, Step);
+            rValues[index++] = r_geom[i].FastGetSolutionStepValue(ANGULAR_VELOCITY_Y, Step);
+        }
+        rValues[index++] = r_geom[i].FastGetSolutionStepValue(ANGULAR_VELOCITY_Z, Step);
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void LinearTimoshenkoBeamElement2D2N::GetSecondDerivativesVector(Vector &rValues, int Step) const
+{
+    const SizeType number_of_nodes = GetGeometry().size();
+    const SizeType mat_size = GetDoFsPerNode() * number_of_nodes;
+    const SizeType dimension = GetGeometry().WorkingSpaceDimension();
+
+    if (rValues.size() != mat_size)
+        rValues.resize(mat_size, false);
+    const auto& r_geom = GetGeometry();
+
+    SizeType index = 0;
+    for (IndexType i = 0; i < number_of_nodes; ++i) {
+        rValues[index++] = r_geom[i].FastGetSolutionStepValue(ACCELERATION_X, Step);
+        rValues[index++] = r_geom[i].FastGetSolutionStepValue(ACCELERATION_Y, Step);
+        if (dimension == 3) {
+            rValues[index++] = r_geom[i].FastGetSolutionStepValue(ACCELERATION_Z, Step);
+            rValues[index++] = r_geom[i].FastGetSolutionStepValue(ANGULAR_ACCELERATION_X, Step);
+            rValues[index++] = r_geom[i].FastGetSolutionStepValue(ANGULAR_ACCELERATION_Y, Step);
+        }
+        rValues[index++] = r_geom[i].FastGetSolutionStepValue(ANGULAR_ACCELERATION_Z, Step);
+    }
 }
 
 } // Namespace Kratos
