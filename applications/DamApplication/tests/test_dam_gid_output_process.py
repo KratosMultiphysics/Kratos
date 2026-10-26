@@ -92,6 +92,22 @@ class TestDamGiDOutputProcess(KratosUnittest.TestCase):
             if name == variable_name
         ]
 
+    def _values_after_header(self, result_file, header):
+        with open(result_file, "r") as file:
+            lines = [line.strip() for line in file]
+
+        header_index = lines.index(header)
+        self.assertEqual(lines[header_index + 1], "Values")
+
+        values = {}
+        for line in lines[header_index + 2:]:
+            if line == "End Values":
+                break
+            parts = line.split()
+            if parts:
+                values[int(parts[0])] = [float(value) for value in parts[1:]]
+        return values
+
     def _list_files(self, working_directory):
         return sorted(
             name for name in os.listdir(working_directory)
@@ -248,6 +264,42 @@ class TestDamGiDOutputProcess(KratosUnittest.TestCase):
                             "labels_{0}.post.res".format(output_control_type))),
                         expected_tags)
 
+    def test_fractional_output_labels_preserve_precision(self):
+        with tempfile.TemporaryDirectory() as working_directory:
+            parameters = self._load_parameters(
+                "fractional_labels",
+                self._legacy_configuration(output_interval=1.0 / 3.0),
+                end_time=1.0,
+                time_step=1.0 / 3.0)
+            self._run(parameters, working_directory)
+
+            self.assertEqual(
+                self._result_tags(os.path.join(
+                    working_directory, "fractional_labels.post.res")),
+                ["0", "0.3333333333333333", "0.6666666666666666", "1"])
+
+    def test_scheduling_when_interval_and_time_step_differ(self):
+        cases = [
+            ("coarse_step", 2.0, 1.0, 6.0, ["0", "2", "4", "6"]),
+            ("fine_step", 0.5, 2.0, 5.0, ["0", "2", "4"]),
+            ("skipped_intervals", 5.0, 2.0, 10.0, ["0", "5", "10"])
+        ]
+
+        for name, time_step, interval, end_time, expected_tags in cases:
+            with self.subTest(name=name):
+                with tempfile.TemporaryDirectory() as working_directory:
+                    parameters = self._load_parameters(
+                        name,
+                        self._legacy_configuration(output_interval=interval),
+                        end_time=end_time,
+                        time_step=time_step)
+                    self._run(parameters, working_directory)
+
+                    self.assertEqual(
+                        self._result_tags(os.path.join(
+                            working_directory, name + ".post.res")),
+                        expected_tags)
+
     def test_delayed_and_nonzero_start_scheduling(self):
         cases = [
             ("delayed", 0.0, 3.0, 1.0, 1.0, ["1", "2", "3"]),
@@ -375,6 +427,23 @@ class TestDamGiDOutputProcess(KratosUnittest.TestCase):
                             working_directory, name + ".post.res")),
                         expected_tags)
 
+    def test_nodal_displacement_values(self):
+        with tempfile.TemporaryDirectory() as working_directory:
+            parameters = self._load_parameters(
+                "nodal_values",
+                self._legacy_configuration(),
+                end_time=2.0,
+                time_step=1.0)
+            self._run(parameters, working_directory)
+
+            values = self._values_after_header(
+                os.path.join(working_directory, "nodal_values.post.res"),
+                'Result "DISPLACEMENT" "Kratos" 1 Vector OnNodes')
+            self.assertAlmostEqual(values[4][0], 1.24864e-05, delta=1.0e-8)
+            self.assertAlmostEqual(values[4][1], 8.74018e-06, delta=1.0e-8)
+            self.assertAlmostEqual(values[4][2], 0.0, delta=1.0e-12)
+            self.assertAlmostEqual(values[1][0], 0.0, delta=1.0e-12)
+
     def test_gauss_point_output_is_delegated(self):
         with tempfile.TemporaryDirectory() as working_directory:
             parameters = self._load_parameters(
@@ -396,6 +465,13 @@ class TestDamGiDOutputProcess(KratosUnittest.TestCase):
                 result_content = file.read()
             self.assertIn('GaussPoints "tri1_element_gp"', result_content)
             self.assertIn('GaussPoints "quad4_element_gp"', result_content)
+
+            values = self._values_after_header(
+                result_file,
+                'Result "CAUCHY_STRESS_VECTOR" "Kratos" 1 Matrix OnGaussPoints "tri1_element_gp"')
+            self.assertAlmostEqual(values[1][0], 0.0, delta=1.0e-6)
+            self.assertAlmostEqual(values[1][1], -7726.33, delta=1.0)
+            self.assertAlmostEqual(values[1][2], 5966.27, delta=1.0)
 
     def test_plane_output_is_delegated(self):
         with tempfile.TemporaryDirectory() as working_directory:

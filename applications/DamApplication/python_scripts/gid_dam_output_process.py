@@ -186,5 +186,4 @@ class GiDDamOutputProcess(GiDOutputProcess):
         self._GiDOutputProcess__write_step_to_list(label)
 
     def _get_legacy_pretty_time(self, time):
-        output_time = time / self._dam_output_factor
-        return float(self.time_label_format.format(output_time))
+        return time / self._dam_output_factor
