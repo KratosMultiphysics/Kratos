@@ -73,7 +73,6 @@ TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, ApplyConstantInterpolateLinePre
         "model_part_name": "TestPart",
         "variable_name": "WATER_PRESSURE",
         "is_fixed": true,
-        "is_seepage": false,
         "gravity_direction": 1,
         "out_of_plane_direction": 2,
         "pressure_tension_cut_off": 0.0,
@@ -94,7 +93,6 @@ TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, ApplyConstantInterpolateLinePre
         "model_part_name": "TestPart",
         "variable_name": "WATER_PRESSURE",
         "is_fixed": true,
-        "is_seepage": false,
         "gravity_direction": 1,
         "out_of_plane_direction": 1,
         "pressure_tension_cut_off": 0.0,
@@ -122,7 +120,6 @@ TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, ApplyConstantInterpolateLinePre
         "model_part_name": "TestPart",
         "variable_name": "WATER_PRESSURE",
         "is_fixed": true,
-        "is_seepage": false,
         "gravity_direction": 1,
         "out_of_plane_direction": 2,
         "pressure_tension_cut_off": 100.0,
@@ -141,65 +138,6 @@ TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, ApplyConstantInterpolateLinePre
     }
 }
 
-TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, ApplyConstantInterpolateLinePressureProcess_SeepageBranch)
-{
-    // Arrange
-    Model model;
-    auto& r_model_part = CreateTestModelPart(model);
-
-    // Set up so that CalculatePressure returns a value less than the cut-off for node 1,
-    // and a value greater than or equal to the cut-off for node 2.
-    // We'll do this by setting the initial WATER_PRESSURE and using a high cut-off.
-
-    for (auto& r_node : r_model_part.Nodes()) {
-        r_node.FastGetSolutionStepValue(WATER_PRESSURE) = 0.0;
-    }
-
-    // Set a high cut-off so all nodes will be below the cut-off
-    const auto params_below = Parameters(R"({
-        "model_part_name": "TestPart",
-        "variable_name": "WATER_PRESSURE",
-        "is_fixed": true,
-        "is_seepage": true,
-        "gravity_direction": 1,
-        "out_of_plane_direction": 2,
-        "pressure_tension_cut_off": 100.0,
-        "table": 1
-    })");
-
-    ApplyConstantInterpolateLinePressureProcess process_below(r_model_part, params_below);
-
-    // Act and Assert
-    process_below.ExecuteInitializeSolutionStep();
-
-    // All nodes should be set and fixed (since pressure < cut-off)
-    for (const auto& r_node : r_model_part.Nodes()) {
-        KRATOS_EXPECT_TRUE(r_node.IsFixed(WATER_PRESSURE))
-        // The value is set by CalculatePressure, which in this test setup is 0.0
-        KRATOS_EXPECT_DOUBLE_EQ(r_node.FastGetSolutionStepValue(WATER_PRESSURE), 0.0);
-    }
-
-    // Now set a low cut-off so all nodes will be above the cut-off
-    const auto params_above = Parameters(R"({
-        "model_part_name": "TestPart",
-        "variable_name": "WATER_PRESSURE",
-        "is_fixed": true,
-        "is_seepage": true,
-        "gravity_direction": 1,
-        "out_of_plane_direction": 2,
-        "pressure_tension_cut_off": -100.0,
-        "table": 1
-    })");
-
-    ApplyConstantInterpolateLinePressureProcess process_above(r_model_part, params_above);
-    process_above.ExecuteInitializeSolutionStep();
-
-    // All nodes should be free (since pressure >= cut-off)
-    for (const auto& r_node : r_model_part.Nodes()) {
-        KRATOS_EXPECT_FALSE(r_node.IsFixed(WATER_PRESSURE))
-    }
-}
-
 TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, ApplyConstantInterpolateLinePressureProcess_Info)
 {
     // Arrange
@@ -210,7 +148,6 @@ TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, ApplyConstantInterpolateLinePre
         "model_part_name": "TestPart",
         "variable_name": "WATER_PRESSURE",
         "is_fixed": false,
-        "is_seepage": false,
         "gravity_direction": 1,
         "out_of_plane_direction": 2,
         "pressure_tension_cut_off": 0.0,
@@ -238,7 +175,6 @@ TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel,
     const auto params = Parameters(R"({
         "model_part_name": "TestPart",
         "variable_name": "WATER_PRESSURE",
-        "is_seepage": false,
         "gravity_direction": 1,
         "out_of_plane_direction": 2,
         "pressure_tension_cut_off": 1.0e9,
@@ -271,7 +207,6 @@ TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, ApplyConstantInterpolateLinePre
         "model_part_name": "TestPart",
         "variable_name": "WATER_PRESSURE",
         "is_fixed": false,
-        "is_seepage": false,
         "gravity_direction": 1,
         "out_of_plane_direction": 2,
         "pressure_tension_cut_off": 1.0e9,
@@ -325,7 +260,6 @@ TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel,
         "model_part_name": "Main",
         "variable_name": "WATER_PRESSURE",
         "is_fixed": true,
-        "is_seepage": false,
         "gravity_direction": 1,
         "out_of_plane_direction": 2,
         "pressure_tension_cut_off": 1.0e9

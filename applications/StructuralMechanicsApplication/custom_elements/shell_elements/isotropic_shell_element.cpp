@@ -1090,7 +1090,6 @@ void IsotropicShellElement::CalculateOnIntegrationPoints(const Variable<double >
 
         array_1d<double,9> local_disp;
         array_1d<double,3> local_stress, local_strain, membrane_stress;
-        array_1d<double,6> rotated_stress = ZeroVector(6);
 
         CalculatePureMembraneDisplacement(local_disp,v1,v2,v3);
 

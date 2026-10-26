@@ -7,8 +7,7 @@
 //  Author: Quirin Aumann
 */
 
-#if !defined(KRATOS_EIGEN_DENSE_LLT_SOLVER_H_INCLUDED)
-#define KRATOS_EIGEN_DENSE_LLT_SOLVER_H_INCLUDED
+#pragma once
 
 // External includes
 
@@ -78,5 +77,3 @@ public:
 };
 
 } // namespace Kratos
-
-#endif // defined(KRATOS_EIGEN_DENSE_LLT_SOLVER_H_INCLUDED)

@@ -345,7 +345,6 @@ namespace Kratos
         void InitializeFractionalVelocityModelPartDatabases()
         {
             if (mElementTauNodal) {
-                const array_1d<double, 3> aux_zero_vector = ZeroVector(3);
                 block_for_each(mpFractionalVelocityModelPart->Nodes(), [&](Node &rNode){
                     rNode.SetValue(TAU, 0.0);
                 });

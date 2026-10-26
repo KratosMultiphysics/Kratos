@@ -151,9 +151,13 @@ class TensorAdaptorData:
         return data
 
 class CombinedTensorAdaptorData(TensorAdaptorData):
-    def __init__(self, combined_tensor_adaptor_path: str, combined_tensor_adaptor: Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor, tensor_adaptor_index: int) -> None:
+    def __init__(self, prefix: str, combined_tensor_adaptor_path: str, combined_tensor_adaptor: Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor, tensor_adaptor_index: int) -> None:
         super().__init__(combined_tensor_adaptor_path, combined_tensor_adaptor.GetTensorAdaptors()[tensor_adaptor_index])
         self.tensor_adaptor_index = tensor_adaptor_index
+        self.prefix = prefix
+
+    def GetTensorAdaptorName(self) -> str:
+        return self.prefix + "_" + self.tensor_adaptor_path[self.tensor_adaptor_path.rfind("/")+1:]
 
     def GetTensorAdaptor(self, optimization_problem: OptimizationProblem) -> Kratos.TensorAdaptors.DoubleTensorAdaptor:
         data = optimization_problem.GetProblemDataContainer()[self.tensor_adaptor_path]
@@ -183,6 +187,8 @@ class TensorAdaptorDataManager:
         for component_name in self.list_of_component_names:
             list_of_components.append(GetComponentHavingDataByFullName(component_name, self.optimization_problem))
 
+        list_of_control_names: 'list[str]' = ComponentDataView("algorithm", self.optimization_problem).GetUnBufferedData().GetValue("controls").split(",")
+        
         global_values_map = self.optimization_problem.GetProblemDataContainer().GetMap()
         for global_k, global_v in global_values_map.items():
              # first check whether this is part of requested list of components
@@ -197,7 +203,7 @@ class TensorAdaptorDataManager:
             if found_valid_component:
                 if isinstance(global_v, Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor):
                     for i, _ in enumerate(global_v.GetTensorAdaptors()):
-                        self._AddContainerTensorAdaptor(CombinedTensorAdaptorData(global_k, global_v, i))
+                        self._AddContainerTensorAdaptor(CombinedTensorAdaptorData(list_of_control_names[i], global_k, global_v, i))
                 elif isinstance(global_v, Kratos.TensorAdaptors.DoubleTensorAdaptor) or  \
                      isinstance(global_v, Kratos.TensorAdaptors.IntTensorAdaptor) or \
                      isinstance(global_v, Kratos.TensorAdaptors.BoolTensorAdaptor):

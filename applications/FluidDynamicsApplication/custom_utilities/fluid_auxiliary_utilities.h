@@ -21,7 +21,7 @@
 #include "geometries/geometry.h"
 #include "includes/node.h"
 #include "includes/model_part.h"
-#include "includes/ublas_interface.h"
+#include "includes/default_interface.h"
 #include "modified_shape_functions/modified_shape_functions.h"
 
 // Application includes

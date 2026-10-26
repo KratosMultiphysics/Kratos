@@ -170,3 +170,6 @@ This function joins a vector of strings into a single string, with a specified s
 
 ## Convergence criterion factory
 Class template `ConvergenceCriteriaFactory` provides a blueprint for factories that produce various kinds of convergence criteria based on the given convergence criterion type. It allows for the creation of different convergence criteria, such as displacement-based, residual-based, or water pressure-based criteria. The factory pattern makes it relatively easy to add new convergence criterion types.
+
+## Seepage boundary utilities
+The utility functions provided by class `SeepageBoundaryUtilities` implement the logic that is being used by the [Newton-Raphson strategy with seepage](../custom_strategies/strategies/README.md).

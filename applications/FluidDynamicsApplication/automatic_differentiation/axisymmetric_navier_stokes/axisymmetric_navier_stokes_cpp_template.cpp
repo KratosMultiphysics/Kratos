@@ -282,7 +282,7 @@ void AxisymmetricNavierStokes< AxisymmetricNavierStokesData<2,3> >::ComputeGauss
     const double bdf0 = rData.bdf0;
 
     // Nodal data
-    const BoundedMatrix<double,2,3> v_conv = rData.Velocity - rData.MeshVelocity;
+    const BoundedMatrix<double,3,2> v_conv = rData.Velocity - rData.MeshVelocity;
 
     // Get shape function values
     const auto& N = rData.N;
@@ -317,7 +317,7 @@ void AxisymmetricNavierStokes<AxisymmetricNavierStokesData<2,4>>::ComputeGaussPo
     const double bdf0 = rData.bdf0;
 
     // Nodal data
-    const BoundedMatrix<double,2,4> v_conv = rData.Velocity - rData.MeshVelocity;
+    const BoundedMatrix<double,4,2> v_conv = rData.Velocity - rData.MeshVelocity;
 
     // Get shape function values
     const auto& N = rData.N;
@@ -359,7 +359,7 @@ void AxisymmetricNavierStokes<AxisymmetricNavierStokesData<2,3>>::ComputeGaussPo
     const auto& v_n = rData.Velocity_OldStep1;
     const auto& v_nn = rData.Velocity_OldStep2;
     const auto& v_mesh = rData.MeshVelocity;
-    const BoundedMatrix<double,2,3> v_conv = v - v_mesh;
+    const BoundedMatrix<double,3,2> v_conv = v - v_mesh;
     const auto& f = rData.BodyForce;
 
     // Get shape function values
@@ -402,7 +402,7 @@ void AxisymmetricNavierStokes<AxisymmetricNavierStokesData<2,4>>::ComputeGaussPo
     const auto& v_n = rData.Velocity_OldStep1;
     const auto& v_nn = rData.Velocity_OldStep2;
     const auto& v_mesh = rData.MeshVelocity;
-    const BoundedMatrix<double,2,4> v_conv = v - v_mesh;
+    const BoundedMatrix<double,4,2> v_conv = v - v_mesh;
     const auto& f = rData.BodyForce;
 
     // Get shape function values

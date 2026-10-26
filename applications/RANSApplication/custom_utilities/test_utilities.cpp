@@ -20,8 +20,7 @@
 #include "containers/model.h"
 #include "containers/global_pointers_vector.h"
 #include "includes/checks.h"
-#include "includes/model_part.h"
-#include "includes/ublas_interface.h"
+#include "includes/default_interface.h"
 #include "includes/cfd_variables.h"
 
 // Application includes

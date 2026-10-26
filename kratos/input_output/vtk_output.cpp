@@ -734,7 +734,7 @@ void VtkOutput::WriteGeometricalContainerResults(
         WriteScalarContainerVariable(rContainer, var_to_write, rFileStream);
     } else if (KratosComponents<Variable<Flags>>::Has(rVariableName)){
         const auto& var_to_write = KratosComponents<Variable<Flags>>::Get(rVariableName);
-        WriteScalarContainerVariable(rContainer, var_to_write, rFileStream);
+        WriteFlagsContainerVariable(rContainer, var_to_write, rFileStream);
     } else if (KratosComponents<Variable<array_1d<double, 3>>>::Has(rVariableName)){
         const auto& var_to_write = KratosComponents<Variable<array_1d<double, 3>>>::Get(rVariableName);
         WriteVectorContainerVariable(rContainer, var_to_write, rFileStream);
@@ -909,6 +909,26 @@ void VtkOutput::WriteScalarContainerVariable(
         if (InputOutputUtilities::SkippableEntity(r_entity, "VtkOutput")) continue;
         const double result = r_entity.GetValue(rVariable);
         WriteScalarDataToFile((float)result, rFileStream);
+        if (mFileFormat == VtkOutput::FileFormat::VTK_ASCII) rFileStream <<"\n";
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<typename TContainerType>
+void VtkOutput::WriteFlagsContainerVariable(
+    const TContainerType& rContainer,
+    const Variable<Flags>& rVariable,
+    std::ofstream& rFileStream) const
+{
+    rFileStream << rVariable.Name() << " 1 "
+                << DetermineVtkContainerSize(rContainer) << "  float\n";
+
+    for (const auto& r_entity : rContainer) {
+        if (InputOutputUtilities::SkippableEntity(r_entity, "VtkOutput")) continue;
+        const float result = static_cast<float>(r_entity.GetValue(rVariable).GetRaw());
+        WriteScalarDataToFile(result, rFileStream);
         if (mFileFormat == VtkOutput::FileFormat::VTK_ASCII) rFileStream <<"\n";
     }
 }

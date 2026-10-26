@@ -23,6 +23,7 @@
 
 // Application include
 #include "dam_application_variables.h"
+#include "custom_utilities/nodal_young_modulus_utilities.h"
 
 namespace Kratos
 {
@@ -104,6 +105,10 @@ class DamAzenhaHeatFluxProcess : public Process
 
     void ExecuteBeforeSolutionLoop() override
     {
+
+        // Expose the nodal YOUNG_MODULUS field through the standard
+        // DatabaseAccessor so accessor-aware laws see the aging Young's modulus.
+        NodalYoungModulusUtilities::InstallDatabaseAccessor(mrModelPart);
         KRATOS_TRY;
 
         if (mAging == false)
@@ -213,7 +218,7 @@ class DamAzenhaHeatFluxProcess : public Process
                 const double heat_flux = mConstantRate * f_alpha * exp((-mActivationEnergy) / (mGasConstant * temp_current));
                 it->FastGetSolutionStepValue(var) = heat_flux;
                 it->FastGetSolutionStepValue(ALPHA_HEAT_SOURCE) = mAlphaInitial;
-                it->FastGetSolutionStepValue(NODAL_YOUNG_MODULUS) = sqrt(mAlphaInitial) * mYoungInf;
+                it->FastGetSolutionStepValue(YOUNG_MODULUS) = sqrt(mAlphaInitial) * mYoungInf;
             }
         }
 
@@ -255,7 +260,7 @@ class DamAzenhaHeatFluxProcess : public Process
                 const double heat_flux = mConstantRate * f_alpha * exp((-mActivationEnergy) / (mGasConstant * temp_current));
                 it->FastGetSolutionStepValue(var) = heat_flux;
                 it->FastGetSolutionStepValue(ALPHA_HEAT_SOURCE) = current_alpha;
-                it->FastGetSolutionStepValue(NODAL_YOUNG_MODULUS) = sqrt(current_alpha) * mYoungInf;
+                it->FastGetSolutionStepValue(YOUNG_MODULUS) = sqrt(current_alpha) * mYoungInf;
             }
         }
 

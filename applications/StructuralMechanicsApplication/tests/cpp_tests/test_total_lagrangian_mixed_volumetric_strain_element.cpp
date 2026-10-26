@@ -20,6 +20,7 @@
 #include "geometries/quadrilateral_2d_4.h"
 // #include "includes/gid_io.h"
 #include "processes/structured_mesh_generator_process.h"
+#include "spaces/default_spaces.h"
 #include "solving_strategies/convergencecriterias/mixed_generic_criteria.h"
 #include "solving_strategies/schemes/residualbased_incrementalupdate_static_scheme.h"
 #include "solving_strategies/strategies/residualbased_newton_raphson_strategy.h"
@@ -80,7 +81,7 @@ namespace Kratos::Testing
         const std::vector<double> expected_RHS({58231.8681319,60197.4358974,-0.00451994047619,-19272.1611722,-40923.8095238,0.00872232142857,-38959.7069597,-19273.6263736,0.00227380952381});
         const std::vector<double> expected_LHS_row_0({974614.212454,158304.761905,-325989.010989,-431198.534799,-525956.043956,-325989.010989,-543415.677656,367651.282051,-325989.010989});
         KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(RHS, expected_RHS, tolerance)
-        KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(row(LHS,0), expected_LHS_row_0, tolerance)
+        KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(Vector(row(LHS,0)), expected_LHS_row_0, tolerance)
     }
 
     /**
@@ -136,7 +137,7 @@ namespace Kratos::Testing
         const std::vector<double> expected_RHS({-9223.89014388,32765.8558739,61472.2259113,-0.0199042607315,9223.89014388,0,0,-0.0121052631599,0,-15913.1975817,-14346.5609408,-0.0104141975643,0,-16852.6582922,-47125.6649705,-0.00559382240399});
         const std::vector<double> expected_LHS_row_0({397802.448164,89460.058478,128948.283247,-63772.4886945,-108460.750823,-130555.762838,-130555.762838,-63772.4886945,-131694.761321,57415.1747145,-19744.1123847,-63732.5294656,-157646.936019,-16319.4703547,21351.591975,-63613.9773907});
         KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(RHS, expected_RHS, tolerance)
-        KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(row(LHS,0), expected_LHS_row_0, tolerance)
+        KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(Vector(row(LHS,0)), expected_LHS_row_0, tolerance)
     }
 
     /**
@@ -201,8 +202,8 @@ namespace Kratos::Testing
         }
 
         // Types definition
-        typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
-        typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
+        typedef TDefaultDenseSpace<double> LocalSpaceType;
+        typedef TDefaultSparseSpace<double> SparseSpaceType;
         typedef LinearSolver<SparseSpaceType, LocalSpaceType> LinearSolverType;
         typedef MixedGenericCriteria<SparseSpaceType, LocalSpaceType> MixedGenericCriteriaType;
 

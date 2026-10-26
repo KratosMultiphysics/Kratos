@@ -21,9 +21,8 @@
 
 
 // Project includes
-#include "includes/define.h"
 #include "includes/kratos_application.h"
-#include "includes/ublas_interface.h"
+#include "includes/default_interface.h"
 
 #include "custom_elements/fractional_step_pfem_2_2d.h" //including the file for the element
 #include "custom_elements/fractional_step_pfem_2_3d.h" //including the file for the element

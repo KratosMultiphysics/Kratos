@@ -63,17 +63,8 @@ void ApplyPhreaticLinePressureTableProcess::ExecuteInitializeSolutionStep()
 
     block_for_each(mrModelPart.Nodes(), [&var, &y, this](Node& rNode) {
         const double pressure = PORE_PRESSURE_SIGN_FACTOR * CalculatePressurewithTable(rNode, y);
-        if (mIsSeepage) {
-            if (pressure < PORE_PRESSURE_SIGN_FACTOR * mPressureTensionCutOff) { // Before 0. was used i.s.o. the tension cut off value -> no effect in any test.
-                rNode.FastGetSolutionStepValue(var) = pressure;
-                if (mIsFixed) rNode.Fix(var);
-            } else {
-                if (mIsFixedProvided) rNode.Free(var);
-            }
-        } else {
-            rNode.FastGetSolutionStepValue(var) =
-                std::min(pressure, PORE_PRESSURE_SIGN_FACTOR * mPressureTensionCutOff);
-        }
+        rNode.FastGetSolutionStepValue(var) =
+            std::min(pressure, PORE_PRESSURE_SIGN_FACTOR * mPressureTensionCutOff);
     });
 
     KRATOS_CATCH("")

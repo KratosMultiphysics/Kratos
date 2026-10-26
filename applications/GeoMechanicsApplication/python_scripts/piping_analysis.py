@@ -2,6 +2,7 @@ import KratosMultiphysics as Kratos
 import KratosMultiphysics.StructuralMechanicsApplication
 
 from geomechanics_analysis import GeoMechanicsAnalysis
+from KratosMultiphysics.GeoMechanicsApplication import validation_helpers
 
 class PipingAnalysis(GeoMechanicsAnalysis):
     '''Main script for geomechanics simulations.'''
@@ -153,7 +154,9 @@ if __name__ == '__main__':
     else: # using default name
         parameter_file_name = "ProjectParameters.json"
 
-    with open(parameter_file_name,'r') as parameter_file:
+    path_to_parameter_file = validation_helpers.validated_parameter_path(parameter_file_name)
+
+    with open(path_to_parameter_file,'r') as parameter_file:
         parameters = Kratos.Parameters(parameter_file.read())
 
     model = Kratos.Model()

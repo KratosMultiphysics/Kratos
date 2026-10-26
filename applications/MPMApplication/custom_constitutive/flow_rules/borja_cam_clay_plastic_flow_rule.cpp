@@ -16,7 +16,7 @@
 #include <cmath>
 
 // External includes
-#include "includes/ublas_interface.h"
+#include "includes/default_interface.h"
 #include "includes/mat_variables.h"
 
 // Project includes

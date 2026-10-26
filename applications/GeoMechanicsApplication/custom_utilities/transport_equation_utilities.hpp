@@ -29,17 +29,22 @@ namespace Kratos
 class KRATOS_API(GEO_MECHANICS_APPLICATION) GeoTransportEquationUtilities
 {
 public:
-    template <unsigned int TDim, unsigned int TNumNodes>
+    // The permeability matrix parameter is generic: most elements pass a
+    // TDim x TDim BoundedMatrix, but the piping element passes a 1 x 1
+    // dynamic Matrix (a uBLAS bounded_matrix used to absorb that through its
+    // runtime-size-within-capacity semantics, which the fixed-size Eigen
+    // bounded type does not have). The intermediate product is staged on a
+    // dynamic Matrix for the same reason.
+    template <unsigned int TDim, unsigned int TNumNodes, class TPermeabilityMatrixType>
     static inline BoundedMatrix<double, TNumNodes, TNumNodes> CalculatePermeabilityMatrix(
-        const Matrix&                            rGradNpT,
-        double                                   DynamicViscosityInverse,
-        const BoundedMatrix<double, TDim, TDim>& rMaterialPermeabilityMatrix,
-        double                                   RelativePermeability,
-        double                                   IntegrationCoefficient)
+        const Matrix&                  rGradNpT,
+        double                         DynamicViscosityInverse,
+        const TPermeabilityMatrixType& rMaterialPermeabilityMatrix,
+        double                         RelativePermeability,
+        double                         IntegrationCoefficient)
     {
         return -PORE_PRESSURE_SIGN_FACTOR * DynamicViscosityInverse *
-               prod(rGradNpT, BoundedMatrix<double, TDim, TNumNodes>(
-                                  prod(rMaterialPermeabilityMatrix, trans(rGradNpT)))) *
+               prod(rGradNpT, Matrix(prod(rMaterialPermeabilityMatrix, trans(rGradNpT)))) *
                RelativePermeability * IntegrationCoefficient;
     }
 

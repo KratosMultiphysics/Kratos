@@ -280,6 +280,86 @@ void NodalConcentratedElement::CalculateRightHandSide(VectorType& rRightHandSide
 //***********************************************************************************
 //***********************************************************************************
 
+void NodalConcentratedElement::CalculateInternalForces(
+    VectorType& rInternalForces,
+    const ProcessInfo& rCurrentProcessInfo
+    )
+{
+    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+
+    // Resizing as needed the internal forces vector
+    const unsigned int system_size = dimension;
+
+    if ( rInternalForces.size() != system_size )
+        rInternalForces.resize( system_size, false );
+
+    rInternalForces = ZeroVector( system_size ); //resetting internal forces
+
+    const array_1d<double, 3 >& current_displacement = GetGeometry()[0].FastGetSolutionStepValue(DISPLACEMENT);
+
+    // We get the reference
+    const auto& rconst_this = *this;
+
+    // Compute and add internal forces
+    const array_1d<double, 3 >& nodal_stiffness = rconst_this.GetValue(NODAL_DISPLACEMENT_STIFFNESS);
+    for ( unsigned int j = 0; j < dimension; ++j )
+        rInternalForces[j] += nodal_stiffness[j] * current_displacement[j];
+}
+
+//***********************************************************************************
+//***********************************************************************************
+
+void NodalConcentratedElement::CalculateExternalForces(
+    VectorType& rExternalForces,
+    const ProcessInfo& rCurrentProcessInfo
+    )
+{
+    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+
+    // Resizing as needed the external forces vector
+    const unsigned int system_size = dimension;
+
+    if ( rExternalForces.size() != system_size )
+        rExternalForces.resize( system_size, false );
+
+    rExternalForces = ZeroVector( system_size ); //resetting external forces
+
+    array_1d<double, 3 > volume_acceleration = ZeroVector(3);
+
+    if( GetGeometry()[0].SolutionStepsDataHas(VOLUME_ACCELERATION) )
+        volume_acceleration = GetGeometry()[0].FastGetSolutionStepValue(VOLUME_ACCELERATION);
+
+    // We get the reference
+    const auto& rconst_this = *this;
+
+    // Compute and add external forces
+    const double nodal_mass = rconst_this.GetValue(NODAL_MASS);
+
+    for ( unsigned int j = 0; j < dimension; ++j )
+        rExternalForces[j] += volume_acceleration[j] * nodal_mass;
+}
+
+//***********************************************************************************
+//***********************************************************************************
+
+void NodalConcentratedElement::Calculate(
+    const Variable<Vector>& rVariable,
+    Vector& rOutput,
+    const ProcessInfo& rCurrentProcessInfo
+    )
+{
+    if ( rVariable == INTERNAL_FORCES_VECTOR ) {
+        CalculateInternalForces(rOutput, rCurrentProcessInfo);
+    } else if ( rVariable == EXTERNAL_FORCES_VECTOR ) {
+        CalculateExternalForces(rOutput, rCurrentProcessInfo);
+    } else {
+        KRATOS_ERROR << "Variable " << rVariable.Name() << " not supported in element " << this->Info() << std::endl;
+    }
+}
+
+//***********************************************************************************
+//***********************************************************************************
+
 void NodalConcentratedElement::CalculateLeftHandSide( MatrixType& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo )
 {
     const unsigned int dimension = GetGeometry().WorkingSpaceDimension();

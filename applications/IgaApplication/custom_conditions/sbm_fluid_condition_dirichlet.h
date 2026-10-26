@@ -321,7 +321,6 @@ namespace Kratos
         
         // sbm variables
         Matrix mHsum = ZeroMatrix(1, this->GetGeometry().size());
-        std::vector<Matrix> mShapeFunctionDerivatives;
         array_1d<double, 3> mNormalParameterSpace;
         array_1d<double, 3> mNormalPhysicalSpace;
         Vector mDistanceVector;

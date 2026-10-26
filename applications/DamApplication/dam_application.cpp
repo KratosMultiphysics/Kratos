@@ -41,6 +41,10 @@
 #include "includes/condition.h"
 #include "includes/variables.h"
 
+// Constitutive law used as the serializer-compatibility target for the
+// removed historical LinearElastic3DLawNodal class.
+#include "custom_constitutive/flexible_elastic_isotropic_3d.h"
+
 #include "dam_application.h"
 
 namespace Kratos
@@ -58,23 +62,12 @@ KratosDamApplication::KratosDamApplication()
         mSmallDisplacementInterfaceElement3D6N( 0, Element::GeometryType::Pointer( new PrismInterface3D6 <Node >( Element::GeometryType::PointsArrayType(6)))),
         mSmallDisplacementInterfaceElement3D8N( 0, Element::GeometryType::Pointer( new HexahedraInterface3D8 <Node >( Element::GeometryType::PointsArrayType(8)))),
 
-        mSmallDisplacementThermoMechanicElement2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3 <Node >( Element::GeometryType::PointsArrayType(3)))),
-        mSmallDisplacementThermoMechanicElement2D6N( 0, Element::GeometryType::Pointer( new Triangle2D6 <Node >( Element::GeometryType::PointsArrayType(6)))),
-        mSmallDisplacementThermoMechanicElement2D4N( 0, Element::GeometryType::Pointer( new Quadrilateral2D4 <Node >( Element::GeometryType::PointsArrayType(4)))),
-        mSmallDisplacementThermoMechanicElement2D8N( 0, Element::GeometryType::Pointer( new Quadrilateral2D8 <Node >( Element::GeometryType::PointsArrayType(8)))),
-        mSmallDisplacementThermoMechanicElement2D9N( 0, Element::GeometryType::Pointer( new Quadrilateral2D9 <Node >( Element::GeometryType::PointsArrayType(9)))),
-
-        mSmallDisplacementThermoMechanicElement3D4N( 0, Element::GeometryType::Pointer( new Tetrahedra3D4 <Node >( Element::GeometryType::PointsArrayType(4)))),
-        mSmallDisplacementThermoMechanicElement3D10N( 0, Element::GeometryType::Pointer( new Tetrahedra3D10 <Node >( Element::GeometryType::PointsArrayType(10)))),
-        mSmallDisplacementThermoMechanicElement3D8N( 0, Element::GeometryType::Pointer( new Hexahedra3D8 <Node >( Element::GeometryType::PointsArrayType(8)))),
-        mSmallDisplacementThermoMechanicElement3D20N( 0, Element::GeometryType::Pointer( new Hexahedra3D20 <Node >( Element::GeometryType::PointsArrayType(20)))),
-        mSmallDisplacementThermoMechanicElement3D27N( 0, Element::GeometryType::Pointer( new Hexahedra3D27 <Node >( Element::GeometryType::PointsArrayType(27)))),
-
         mSmallDisplacementElement2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<Node >(Element::GeometryType::PointsArrayType(3)))),
         mSmallDisplacementElement2D4N(0, Element::GeometryType::Pointer(new Quadrilateral2D4<Node >(Element::GeometryType::PointsArrayType(4)))),
         mSmallDisplacementElement2D6N(0, Element::GeometryType::Pointer(new Triangle2D6<Node >(Element::GeometryType::PointsArrayType(6)))),
         mSmallDisplacementElement2D8N(0, Element::GeometryType::Pointer(new Quadrilateral2D8<Node >(Element::GeometryType::PointsArrayType(8)))),
         mSmallDisplacementElement2D9N(0, Element::GeometryType::Pointer(new Quadrilateral2D9<Node >(Element::GeometryType::PointsArrayType(9)))),
+
         mSmallDisplacementElement3D4N(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node >(Element::GeometryType::PointsArrayType(4)))),
         mSmallDisplacementElement3D6N(0, Element::GeometryType::Pointer(new Prism3D6<Node >(Element::GeometryType::PointsArrayType(6)))),
         mSmallDisplacementElement3D8N(0, Element::GeometryType::Pointer(new Hexahedra3D8<Node >(Element::GeometryType::PointsArrayType(8)))),
@@ -115,17 +108,22 @@ void KratosDamApplication::Register()
     KRATOS_REGISTER_ELEMENT( "SmallDisplacementInterfaceElement3D6N", mSmallDisplacementInterfaceElement3D6N )
     KRATOS_REGISTER_ELEMENT( "SmallDisplacementInterfaceElement3D8N", mSmallDisplacementInterfaceElement3D8N )
 
-    KRATOS_REGISTER_ELEMENT( "SmallDisplacementThermoMechanicElement2D3N", mSmallDisplacementThermoMechanicElement2D3N )
-    KRATOS_REGISTER_ELEMENT( "SmallDisplacementThermoMechanicElement2D4N", mSmallDisplacementThermoMechanicElement2D4N )
-    KRATOS_REGISTER_ELEMENT( "SmallDisplacementThermoMechanicElement3D4N", mSmallDisplacementThermoMechanicElement3D4N )
-    KRATOS_REGISTER_ELEMENT( "SmallDisplacementThermoMechanicElement3D8N", mSmallDisplacementThermoMechanicElement3D8N )
+    // Historical thermo-mechanical names are registered against the SAME
+    // StructuralMechanicsApplication SmallDisplacement prototypes as the
+    // mechanical names (one prototype per geometry). Thermal behavior lives in
+    // the constitutive law, so the two historical families converge to one
+    // runtime implementation.
+    KRATOS_REGISTER_ELEMENT( "SmallDisplacementThermoMechanicElement2D3N", mSmallDisplacementElement2D3N )
+    KRATOS_REGISTER_ELEMENT( "SmallDisplacementThermoMechanicElement2D4N", mSmallDisplacementElement2D4N )
+    KRATOS_REGISTER_ELEMENT( "SmallDisplacementThermoMechanicElement3D4N", mSmallDisplacementElement3D4N )
+    KRATOS_REGISTER_ELEMENT( "SmallDisplacementThermoMechanicElement3D8N", mSmallDisplacementElement3D8N )
 
-    KRATOS_REGISTER_ELEMENT( "SmallDisplacementThermoMechanicElement2D6N", mSmallDisplacementThermoMechanicElement2D6N )
-    KRATOS_REGISTER_ELEMENT( "SmallDisplacementThermoMechanicElement2D8N", mSmallDisplacementThermoMechanicElement2D8N )
-    KRATOS_REGISTER_ELEMENT( "SmallDisplacementThermoMechanicElement2D9N", mSmallDisplacementThermoMechanicElement2D9N )
-    KRATOS_REGISTER_ELEMENT( "SmallDisplacementThermoMechanicElement3D10N", mSmallDisplacementThermoMechanicElement3D10N )
-    KRATOS_REGISTER_ELEMENT( "SmallDisplacementThermoMechanicElement3D20N", mSmallDisplacementThermoMechanicElement3D20N )
-    KRATOS_REGISTER_ELEMENT( "SmallDisplacementThermoMechanicElement3D27N", mSmallDisplacementThermoMechanicElement3D27N )
+    KRATOS_REGISTER_ELEMENT( "SmallDisplacementThermoMechanicElement2D6N", mSmallDisplacementElement2D6N )
+    KRATOS_REGISTER_ELEMENT( "SmallDisplacementThermoMechanicElement2D8N", mSmallDisplacementElement2D8N )
+    KRATOS_REGISTER_ELEMENT( "SmallDisplacementThermoMechanicElement2D9N", mSmallDisplacementElement2D9N )
+    KRATOS_REGISTER_ELEMENT( "SmallDisplacementThermoMechanicElement3D10N", mSmallDisplacementElement3D10N )
+    KRATOS_REGISTER_ELEMENT( "SmallDisplacementThermoMechanicElement3D20N", mSmallDisplacementElement3D20N )
+    KRATOS_REGISTER_ELEMENT( "SmallDisplacementThermoMechanicElement3D27N", mSmallDisplacementElement3D27N )
 
     //Register small displacement elements
     KRATOS_REGISTER_ELEMENT("SmallDisplacementSolidElement2D3N", mSmallDisplacementElement2D3N)
@@ -160,13 +158,23 @@ void KratosDamApplication::Register()
     Serializer::Register("ThermalLinearElastic2DPlaneStress",mThermalLinearElastic2DPlaneStress);
     Serializer::Register("ThermalLinearElastic2DPlaneStrain",mThermalLinearElastic2DPlaneStrain);
 
-    Serializer::Register("LinearElastic3DLawNodal",mLinearElastic3DLawNodal);
     Serializer::Register("LinearElastic2DPlaneStressNodal",mLinearElastic2DPlaneStressNodal);
     Serializer::Register("LinearElastic2DPlaneStrainNodal",mLinearElastic2DPlaneStrainNodal);
 
-    Serializer::Register("ThermalLinearElastic3DLawNodal",mThermalLinearElastic3DLawNodal);
-    Serializer::Register("ThermalLinearElastic2DPlaneStressNodal",mThermalLinearElastic2DPlaneStressNodal);
-    Serializer::Register("ThermalLinearElastic2DPlaneStrainNodal",mThermalLinearElastic2DPlaneStrainNodal);
+    // The 3D and thermal nodal Young's modulus behavior is now provided by the
+    // standard/accessor-aware laws; the historical nodal names are kept as
+    // aliases so existing input files keep working.
+    Serializer::Register("ThermalLinearElastic3DLawNodal",mThermalLinearElastic3DLaw);
+    Serializer::Register("ThermalLinearElastic2DPlaneStressNodal",mThermalLinearElastic2DPlaneStress);
+    Serializer::Register("ThermalLinearElastic2DPlaneStrainNodal",mThermalLinearElastic2DPlaneStrain);
+
+    // Serializer-compatibility alias for the removed historical mechanical 3D
+    // nodal law. The old class serialized only the stateless constitutive-law
+    // base, so its archives load into the current accessor-aware standard law.
+    // The canonical save name of FlexibleElasticIsotropic3D is unaffected
+    // (Serializer::Register does not overwrite an existing type-id mapping).
+    FlexibleElasticIsotropic3D flexible_elastic_prototype;
+    Serializer::Register("LinearElastic3DLawNodal", flexible_elastic_prototype);
 
     Serializer::Register("ThermalSimoJuLocalDamage3DLaw",mThermalSimoJuLocalDamage3DLaw);
     Serializer::Register("ThermalSimoJuLocalDamagePlaneStrain2DLaw",mThermalSimoJuLocalDamagePlaneStrain2DLaw);
@@ -214,7 +222,6 @@ void KratosDamApplication::Register()
     KRATOS_REGISTER_VARIABLE( PLACEMENT_TEMPERATURE )
 
     //From Solid
-    KRATOS_REGISTER_VARIABLE(COMPUTE_CONSISTENT_MASS_MATRIX)
 }
 
 }// namespace Kratos.

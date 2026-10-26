@@ -234,8 +234,6 @@ namespace Kratos
       KRATOS_CATCH("");
     };
 
-    /* void CalculateDeltaPosition (Matrix & rDeltaPosition); */
-
     ///@}
     ///@name Access
     ///@{

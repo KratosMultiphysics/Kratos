@@ -23,14 +23,14 @@
 #include "includes/kratos_parameters.h"
 #include "includes/matrix_market_interface.h"
 #include "factories/linear_solver_factory.h"
-#include "spaces/ublas_space.h"
+#include "spaces/default_spaces.h"
 
 namespace Kratos
 {
 
-// Type definitions
-using SparseSpaceType = UblasSpace<double, CompressedMatrix, Vector>;
-using LocalSpaceType  = UblasSpace<double, Matrix, Vector>;
+// Type definitions — follow the configured linear-algebra backend
+using SparseSpaceType  = DefaultSparseSpaceType;
+using LocalSpaceType   = DefaultLocalSpaceType;
 using LinearSolverType = LinearSolver<SparseSpaceType, LocalSpaceType>;
 using SparseMatrixType = typename SparseSpaceType::MatrixType;
 using VectorType       = typename SparseSpaceType::VectorType;

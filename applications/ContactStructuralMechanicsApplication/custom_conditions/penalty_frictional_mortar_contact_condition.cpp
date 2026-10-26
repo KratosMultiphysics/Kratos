@@ -21467,11 +21467,11 @@ void PenaltyMethodFrictionalMortarContactCondition<3,3, false, 4>::CalculateLoca
     // Mortar operators
     const BoundedMatrix<double, 3, 4>& MOperator = rMortarConditionMatrices.MOperator;
     const BoundedMatrix<double, 3, 3>& DOperator = rMortarConditionMatrices.DOperator;
-    const BoundedMatrix<double, 3, 3>& MOperatorold = mPreviousMortarOperators.MOperator;
+    const BoundedMatrix<double, 3, 4>& MOperatorold = mPreviousMortarOperators.MOperator;
     const BoundedMatrix<double, 3, 3>& DOperatorold = mPreviousMortarOperators.DOperator;
 
     // Mortar operators derivatives
-    const array_1d<BoundedMatrix<double, 3, 3>, 21>& DeltaMOperator = rMortarConditionMatrices.DeltaMOperator;
+    const array_1d<BoundedMatrix<double, 3, 4>, 21>& DeltaMOperator = rMortarConditionMatrices.DeltaMOperator;
     const array_1d<BoundedMatrix<double, 3, 3>, 21>& DeltaDOperator = rMortarConditionMatrices.DeltaDOperator;
 
     // We get the friction coefficient
@@ -29594,11 +29594,11 @@ void PenaltyMethodFrictionalMortarContactCondition<3,4, false, 3>::CalculateLoca
     // Mortar operators
     const BoundedMatrix<double, 4, 3>& MOperator = rMortarConditionMatrices.MOperator;
     const BoundedMatrix<double, 4, 4>& DOperator = rMortarConditionMatrices.DOperator;
-    const BoundedMatrix<double, 4, 4>& MOperatorold = mPreviousMortarOperators.MOperator;
+    const BoundedMatrix<double, 4, 3>& MOperatorold = mPreviousMortarOperators.MOperator;
     const BoundedMatrix<double, 4, 4>& DOperatorold = mPreviousMortarOperators.DOperator;
 
     // Mortar operators derivatives
-    const array_1d<BoundedMatrix<double, 4, 4>, 21>& DeltaMOperator = rMortarConditionMatrices.DeltaMOperator;
+    const array_1d<BoundedMatrix<double, 4, 3>, 21>& DeltaMOperator = rMortarConditionMatrices.DeltaMOperator;
     const array_1d<BoundedMatrix<double, 4, 4>, 21>& DeltaDOperator = rMortarConditionMatrices.DeltaDOperator;
 
     // We get the friction coefficient
@@ -66669,11 +66669,11 @@ void PenaltyMethodFrictionalMortarContactCondition<3,3, true, 4>::CalculateLocal
     // Mortar operators
     const BoundedMatrix<double, 3, 4>& MOperator = rMortarConditionMatrices.MOperator;
     const BoundedMatrix<double, 3, 3>& DOperator = rMortarConditionMatrices.DOperator;
-    const BoundedMatrix<double, 3, 3>& MOperatorold = mPreviousMortarOperators.MOperator;
+    const BoundedMatrix<double, 3, 4>& MOperatorold = mPreviousMortarOperators.MOperator;
     const BoundedMatrix<double, 3, 3>& DOperatorold = mPreviousMortarOperators.DOperator;
 
     // Mortar operators derivatives
-    const array_1d<BoundedMatrix<double, 3, 3>, 21>& DeltaMOperator = rMortarConditionMatrices.DeltaMOperator;
+    const array_1d<BoundedMatrix<double, 3, 4>, 21>& DeltaMOperator = rMortarConditionMatrices.DeltaMOperator;
     const array_1d<BoundedMatrix<double, 3, 3>, 21>& DeltaDOperator = rMortarConditionMatrices.DeltaDOperator;
 
     // We get the friction coefficient
@@ -76910,11 +76910,11 @@ void PenaltyMethodFrictionalMortarContactCondition<3,4, true, 3>::CalculateLocal
     // Mortar operators
     const BoundedMatrix<double, 4, 3>& MOperator = rMortarConditionMatrices.MOperator;
     const BoundedMatrix<double, 4, 4>& DOperator = rMortarConditionMatrices.DOperator;
-    const BoundedMatrix<double, 4, 4>& MOperatorold = mPreviousMortarOperators.MOperator;
+    const BoundedMatrix<double, 4, 3>& MOperatorold = mPreviousMortarOperators.MOperator;
     const BoundedMatrix<double, 4, 4>& DOperatorold = mPreviousMortarOperators.DOperator;
 
     // Mortar operators derivatives
-    const array_1d<BoundedMatrix<double, 4, 4>, 21>& DeltaMOperator = rMortarConditionMatrices.DeltaMOperator;
+    const array_1d<BoundedMatrix<double, 4, 3>, 21>& DeltaMOperator = rMortarConditionMatrices.DeltaMOperator;
     const array_1d<BoundedMatrix<double, 4, 4>, 21>& DeltaDOperator = rMortarConditionMatrices.DeltaDOperator;
 
     // We get the friction coefficient
@@ -92035,7 +92035,7 @@ void PenaltyMethodFrictionalMortarContactCondition<3,3, false, 4>::StaticCalcula
     // Mortar operators
     const BoundedMatrix<double, 3, 4>& MOperator = rMortarConditionMatrices.MOperator;
     const BoundedMatrix<double, 3, 3>& DOperator = rMortarConditionMatrices.DOperator;
-    const BoundedMatrix<double, 3, 3>& MOperatorold = rPreviousMortarOperators.MOperator;
+    const BoundedMatrix<double, 3, 4>& MOperatorold = rPreviousMortarOperators.MOperator;
     const BoundedMatrix<double, 3, 3>& DOperatorold = rPreviousMortarOperators.DOperator;
 
 //    // The delta time
@@ -92735,7 +92735,7 @@ void PenaltyMethodFrictionalMortarContactCondition<3,4, false, 3>::StaticCalcula
     // Mortar operators
     const BoundedMatrix<double, 4, 3>& MOperator = rMortarConditionMatrices.MOperator;
     const BoundedMatrix<double, 4, 4>& DOperator = rMortarConditionMatrices.DOperator;
-    const BoundedMatrix<double, 4, 4>& MOperatorold = rPreviousMortarOperators.MOperator;
+    const BoundedMatrix<double, 4, 3>& MOperatorold = rPreviousMortarOperators.MOperator;
     const BoundedMatrix<double, 4, 4>& DOperatorold = rPreviousMortarOperators.DOperator;
 
 //    // The delta time

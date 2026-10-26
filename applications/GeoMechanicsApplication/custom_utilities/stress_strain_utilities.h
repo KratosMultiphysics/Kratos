@@ -19,8 +19,7 @@
 #include "custom_constitutive/p_q.hpp"
 #include "custom_constitutive/principal_stresses.hpp"
 #include "includes/constitutive_law.h"
-#include "includes/define.h"
-#include "includes/ublas_interface.h"
+#include "includes/default_interface.h"
 
 namespace Kratos
 {

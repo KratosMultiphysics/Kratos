@@ -16,6 +16,7 @@
 
 // Project includes
 #include "trilinos_space_experimental.h"
+#include "spaces/default_spaces.h"
 #include "tests/cpp_tests/trilinos_fast_suite.h"
 #include "containers/model.h"
 #include "mpi/includes/mpi_data_communicator.h"
@@ -29,7 +30,7 @@ namespace Kratos::Testing
 using TrilinosSparseMatrix = Tpetra::FECrsMatrix<>;
 using TrilinosSparseVector = Tpetra::FEMultiVector<>;
 using TrilinosSparseSpaceType = TrilinosSpaceExperimental<TrilinosSparseMatrix, TrilinosSparseVector>;
-using TrilinosLocalSpaceType = UblasSpace<double, Matrix, Vector>;
+using TrilinosLocalSpaceType = TDefaultDenseSpace<double>;
 
 using TrilinosSparseMatrixType = TrilinosSparseSpaceType::MatrixType;
 using TrilinosVectorType = TrilinosSparseSpaceType::VectorType;
@@ -1471,18 +1472,29 @@ KRATOS_TEST_CASE_IN_SUITE(TrilinosExperimentalCreateDofUpdater, KratosTrilinosAp
 {
     auto dof_updater = TrilinosSparseSpaceType::CreateDofUpdater();
     KRATOS_EXPECT_NE(nullptr, dof_updater.get());
+
+    // The updater must be the Tpetra-aware one, not the generic core DofUpdater
+    KRATOS_EXPECT_EQ(dof_updater->Info(), "TrilinosDofUpdaterExperimental");
 }
 
-KRATOS_TEST_CASE_IN_SUITE(TrilinosExperimentalGetColumnThrows, KratosTrilinosApplicationMPITestSuite)
+KRATOS_TEST_CASE_IN_SUITE(TrilinosExperimentalGetColumn, KratosTrilinosApplicationMPITestSuite)
 {
     const auto& r_comm = Testing::GetDefaultDataCommunicator();
     const int size = 2 * r_comm.Size();
-    auto matrix = TrilinosCPPTestExperimentalUtilities::GenerateDummySparseMatrix(r_comm, size);
+
+    // Tridiagonal dummy matrix: diagonal(i) = i, off-diagonal (i, i +- 1) = -1
+    auto matrix = TrilinosCPPTestExperimentalUtilities::GenerateDummySparseMatrix(r_comm, size, 0.0, true);
     auto p_col = TrilinosSparseSpaceType::CreateVector(matrix->getDomainMap());
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
-        TrilinosSparseSpaceType::GetColumn(0, *matrix, *p_col),
-        "GetColumn method is not currently implemented"
-    );
+
+    // Extract the column j = 1: expected entries x[0] = -1, x[1] = 1, x[2] = -1 (if size > 2)
+    const int j = 1;
+    TrilinosSparseSpaceType::GetColumn(j, *matrix, *p_col);
+
+    TrilinosLocalVectorType expected = ZeroVector(size);
+    expected[0] = -1.0;
+    expected[1] = static_cast<double>(j);
+    if (size > 2) expected[2] = -1.0;
+    TrilinosCPPTestExperimentalUtilities::CheckSparseVectorFromLocalVector(*p_col, expected);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(TrilinosExperimentalResizeThrows, KratosTrilinosApplicationMPITestSuite)

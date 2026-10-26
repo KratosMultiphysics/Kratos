@@ -3646,7 +3646,7 @@ void SolidShellElementSprism3D6N::CalculateAndAddKuum(
 
     /* Calculate K */
     typedef BoundedMatrix<double,  6, 36 > temp_type;
-    const BoundedMatrix<double, 36, 36 > K = IntegrationWeight * prod(trans(rVariables.B), prod<temp_type>(rVariables.ConstitutiveMatrix, rVariables.B));
+    const BoundedMatrix<double, 36, 36 > K = IntegrationWeight * prod(trans(rVariables.B), temp_type(prod(rVariables.ConstitutiveMatrix, rVariables.B)));
 
     // Compute vector of IDs
     array_1d<IndexType, 18> id_vector;

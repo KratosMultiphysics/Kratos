@@ -87,8 +87,8 @@ void ConstructMatrixStructure(Kratos::unique_ptr<typename MappingSparseSpaceType
         NumNodesOrigin,
         num_non_zero_entries);
 
-    IndexType* p_matrix_row_indices = p_Mdo->index1_data().begin();
-    IndexType* p_matrix_col_indices = p_Mdo->index2_data().begin();
+    MappingSparseSpaceType::MatrixType::index_array_type::value_type* p_matrix_row_indices = p_Mdo->index1_data().begin();
+    MappingSparseSpaceType::MatrixType::index_array_type::value_type* p_matrix_col_indices = p_Mdo->index2_data().begin();
     double*    p_matrix_values       = p_Mdo->value_data().begin();
 
     IndexPartition<IndexType>(NumNodesDestination + 1).for_each([&](IndexType i) {
@@ -170,7 +170,7 @@ void MappingMatrixUtilitiesType::InitializeSystemVector(
     const std::size_t VectorSize)
 {
     // The vectors dont have graphs, that why we don't always have to reinitialize them
-    if (rpVector == nullptr || rpVector->size() != VectorSize) { //if the pointer is not initialized initialize it to an empty vector
+    if (rpVector == nullptr || static_cast<std::size_t>(rpVector->size()) != VectorSize) { //if the pointer is not initialized initialize it to an empty vector
         Kratos::unique_ptr<typename MappingSparseSpaceType::VectorType> p_new_vector = Kratos::make_unique<typename MappingSparseSpaceType::VectorType>(VectorSize);
         rpVector.swap(p_new_vector);
 
