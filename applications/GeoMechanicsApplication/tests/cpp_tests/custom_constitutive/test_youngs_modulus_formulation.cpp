@@ -14,9 +14,9 @@
 #include "geo_mechanics_application_variables.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
 #include "tests/cpp_tests/test_utilities.h"
+#include "utilities/math_utils.h"
 
 #include <cmath>
-#include <numbers>
 
 namespace Kratos::Testing
 {
@@ -261,7 +261,7 @@ KRATOS_TEST_CASE_IN_SUITE(GeoYoungsModulusFormulations_CalculateYoungsModulusSch
     properties.SetValue(GEO_MAXIMUM_MINOR_PRINCIPAL_STRESS, -1.0);
 
     // All principal stresses equal c / tan(phi): the unregularized base would be zero
-    const auto apex = 10.0 / std::tan(30.0 * std::numbers::pi / 180.0);
+    const auto apex = 10.0 / std::tan(MathUtils<>::DegreesToRadians(30.0));
     const auto stress_vector_finalized = UblasUtilities::CreateVector({apex, apex, apex, 0.0, 0.0, 0.0});
 
     constexpr auto reference_youngs_modulus = 20000.0;
