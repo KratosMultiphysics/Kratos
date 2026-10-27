@@ -46,7 +46,7 @@ void FluidPatchCouplingCondition2D::CalculateCouplingMatrix(
     const IndexType local_size = 3 * GetGeometry().PointsNumber();
     rLHS = ZeroMatrix(local_size, local_size);
     const auto& r_parents = GetValue(NEIGHBOUR_ELEMENTS);
-    const auto& r_coordinates = GetValue(FEM_COUPLING_INTERFACE_COORDINATES);
+    const auto& r_coordinates = GetValue(COUPLING_INTERFACE_COORDINATES);
     const double dx = r_coordinates(1, 0) - r_coordinates(0, 0);
     const double dy = r_coordinates(1, 1) - r_coordinates(0, 1);
     const double length = std::hypot(dx, dy);
@@ -251,11 +251,11 @@ int FluidPatchCouplingCondition2D::Check(const ProcessInfo& rProcessInfo) const
     const double coefficient = GetProperties()[PENALTY_COEFFICIENT];
     KRATOS_ERROR_IF(!std::isfinite(coefficient) || (coefficient < 0.0 && coefficient != -1.0))
         << "PENALTY_COEFFICIENT must be non-negative or -1 (penalty-free)." << std::endl;
-    KRATOS_ERROR_IF_NOT(Has(FEM_COUPLING_INTERFACE_COORDINATES))
-        << Info() << " requires FEM_COUPLING_INTERFACE_COORDINATES." << std::endl;
-    const auto& r_coordinates = GetValue(FEM_COUPLING_INTERFACE_COORDINATES);
+    KRATOS_ERROR_IF_NOT(Has(COUPLING_INTERFACE_COORDINATES))
+        << Info() << " requires COUPLING_INTERFACE_COORDINATES." << std::endl;
+    const auto& r_coordinates = GetValue(COUPLING_INTERFACE_COORDINATES);
     KRATOS_ERROR_IF(r_coordinates.size1() != 2 || r_coordinates.size2() != 3)
-        << "FEM_COUPLING_INTERFACE_COORDINATES must be a 2x3 matrix." << std::endl;
+        << "COUPLING_INTERFACE_COORDINATES must be a 2x3 matrix." << std::endl;
     for (IndexType i = 0; i < 2; ++i) {
         for (IndexType d = 0; d < 3; ++d) {
             KRATOS_ERROR_IF(!std::isfinite(r_coordinates(i, d))) << "Non-finite interface coordinate." << std::endl;

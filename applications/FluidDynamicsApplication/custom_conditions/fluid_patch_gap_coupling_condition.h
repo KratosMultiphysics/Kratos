@@ -38,7 +38,7 @@ public:
             return;
         }
         rValues.clear();
-        const auto& points = GetValue(FEM_COUPLING_INTERFACE_COORDINATES);
+        const auto& points = GetValue(COUPLING_INTERFACE_COORDINATES);
         for (const auto& g:LineGaussLegendreIntegrationPoints2::IntegrationPoints()) {
             array_1d<double, 3> point = ZeroVector(3);
             for (std::size_t d = 0; d<3; ++d)

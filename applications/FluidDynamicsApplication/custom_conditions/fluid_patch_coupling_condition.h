@@ -22,7 +22,7 @@ namespace Kratos
  * NEIGHBOUR_ELEMENTS contains two Triangle2D3 or two Quadrilateral2D4 parents.
  * The generic geometry contains their six or eight independent nodes, in
  * parent order. Both registrations share this geometry-driven implementation.
- * FEM_COUPLING_INTERFACE_COORDINATES contains the oriented 2x3 segment; it
+ * COUPLING_INTERFACE_COORDINATES contains the oriented 2x3 segment; it
  * can be a subsegment of either edge for nonmatching interface partitions.
  * No multiplier, pressure penalty, shifted evaluation or gap is introduced.
  */
