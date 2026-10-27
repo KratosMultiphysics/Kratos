@@ -60,6 +60,7 @@ from test_sbm_fluid_dirichlet_condition import SbmFluidDirichletConditionTest
 from test_fluid_patch_coupling_condition import FluidPatchCouplingConditionTest
 from test_fluid_patch_gap_coupling import FluidPatchGapCouplingTest
 from test_moving_fluid_patch_gap import MovingFluidPatchGapTest
+from test_patch_history_transfer import BoundedHistoryTransferTest
 
 def AssembleTestSuites():
     ''' Populates the test suites to run.
@@ -106,7 +107,7 @@ def AssembleTestSuites():
     nightSuite = suites['nightly']
     nightSuite.addTests(smallSuite)
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([FluidPatchGapCouplingTest]))
-    nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([MovingFluidPatchGapTest]))
+    nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([MovingFluidPatchGapTest, BoundedHistoryTransferTest]))
     nightSuite.addTest(ArtificialCompressibilityTest('testArtificialCompressibility'))
     nightSuite.addTest(BuoyancyTest('testEulerian'))
     nightSuite.addTest(BuoyancyTest('testThermalExpansionCoefficient'))

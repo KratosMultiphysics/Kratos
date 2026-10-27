@@ -8,6 +8,7 @@ import math
 import KratosMultiphysics as KM
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 from KratosMultiphysics.FluidDynamicsApplication.rebuild_fluid_patch_gap_process import RebuildFluidPatchGapProcess
+from KratosMultiphysics.FluidDynamicsApplication.patch_history_transfer import transfer_background_histories, OuterHistoryValidity, GapHistory
 from test_fluid_patch_gap_coupling import create_gap_problem, exact_fields, interpolate_nodes
 
 
@@ -26,39 +27,6 @@ def seed_history(node, time, dt, speed, nonlinear):
         node.SetSolutionStepValue(KM.VELOCITY, step, u)
         node.SetSolutionStepValue(KM.PRESSURE, step, p)
 
-
-def transfer_background_histories(inner, nodes, time, dt, speed, nonlinear, fallback=False):
-    """Transfer steps 1 and 2 from historical ALE positions, without extrapolation.
-
-    The locator sees the current mesh. For rigid translation, translating the
-    fixed query forward by speed*k*dt gives the same Q1 local coordinates as
-    searching the actual mesh at t-k*dt. Collect all results before writing.
-    """
-    locator = KM.BinBasedFastPointLocator2D(inner)
-    locator.UpdateSearchDatabase()
-    values, missing = {}, []
-    for node in nodes:
-        for k in (1, 2):
-            found, shape, element = locator.FindPointOnMesh([node.X + speed*k*dt, node.Y, 0.0])
-            if found:
-                source = list(element.GetGeometry())
-                values[node.Id, k] = [sum(shape[i]*source[i].GetSolutionStepValue(KM.VELOCITY, k)[d]
-                                           for i in range(4)) for d in range(3)]
-            else:
-                missing.append((node.Id, k, time-k*dt, node.X, node.Y))
-                if fallback:
-                    values[node.Id, k] = transient_fields(node.X, node.Y, time-k*dt, nonlinear)[0]
-    if missing:
-        message = f"Historical inner patch does not contain (node, step, time, x, y): {missing}"
-        if not fallback:
-            raise RuntimeError(message)
-        KM.Logger.PrintWarning("MovingGapTransfer", message + "; using explicitly requested exact fallback.")
-    for node in nodes:
-        for k in (1, 2):
-            node.SetSolutionStepValue(KM.VELOCITY, k, values[node.Id, k])
-        # A numerical starting guess; BDF2 uses slots 1 and 2 as its histories.
-        node.SetSolutionStepValue(KM.VELOCITY, values[node.Id, 1])
-    return len(missing)
 
 
 def gradient(nodes, point):
@@ -116,8 +84,8 @@ def diagnostics(root, computing, time, nonlinear):
 
 def solve_moving_gap(divisions=12, dt=0.02, steps=6, speed=0.01,
                      coefficient=0.0, nonlinear=False, angle=0.0,
-                     history_mode="exact"):
-    if history_mode not in ("exact", "transfer", "transfer_with_exact_fallback"):
+                     history_mode="exact", bdf1_startup=False):
+    if history_mode not in ("exact", "transfer"):
         raise ValueError("Unknown history mode: " + history_mode)
     model, modeler, computing, settings = create_gap_problem(
         divisions=divisions, inner_divisions=max(4, divisions//2),
@@ -133,21 +101,34 @@ def solve_moving_gap(divisions=12, dt=0.02, steps=6, speed=0.01,
     root.CloneTimeStep(0.0)
     root.ProcessInfo[KM.DYNAMIC_TAU] = 0.0  # Same quasi-static ASGS as the steady MMS.
     for node in root.Nodes:
-        seed_history(node, 0.0, dt, speed if node.Id in inner_ids else 0.0, nonlinear)
+        if bdf1_startup:
+            velocity, pressure, _ = transient_fields(node.X, node.Y, 0.0, nonlinear)
+            node.SetSolutionStepValue(KM.VELOCITY, velocity)
+            node.SetSolutionStepValue(KM.PRESSURE, pressure)
+        else:
+            seed_history(node, 0.0, dt, speed if node.Id in inner_ids else 0.0, nonlinear)
         local_speed = speed if node.Id in inner_ids else 0.0
         for k in range(3):
-            node.SetSolutionStepValue(KM.DISPLACEMENT, k, [-local_speed*k*dt, 0.0, 0.0])
+            node.SetSolutionStepValue(KM.DISPLACEMENT, k, [0.0 if bdf1_startup else -local_speed*k*dt, 0.0, 0.0])
             node.SetSolutionStepValue(KM.MESH_VELOCITY, k, [local_speed, 0.0, 0.0])
     bdf = KM.TimeDiscretization.BDF(2)
     rebuild = RebuildFluidPatchGapProcess(model, [settings])
     previous_nodes = {n.Id for n in computing.Nodes}
+    validity = OuterHistoryValidity(previous_nodes-inner_ids,
+                                    () if bdf1_startup else previous_nodes-inner_ids)
+    gap_history = GapHistory()
+    gap_history.capture(root.GetSubModelPart("Interfaces.Patch_1"), 0.0)
     previous_elements = {e.Id for e in background.Elements if e.Is(KM.ACTIVE)}
     previous_triangles = root.GetSubModelPart("Interfaces.Patch_1.GapTriangles").NumberOfGeometries()
     rows = []
     for step in range(1, steps+1):
         time = step*dt
         root.CloneTimeStep(time)
+        validity.advance()
+        gap_history.advance()
         bdf.ComputeAndSaveBDFCoefficients(root.ProcessInfo)
+        if bdf1_startup and step == 1:
+            root.ProcessInfo[KM.BDF_COEFFICIENTS] = KM.Vector([1.0/dt, -1.0/dt, 0.0])
         for node in inner.Nodes:
             node.X = node.X0 + speed*time
             node.Y = node.Y0
@@ -162,19 +143,21 @@ def solve_moving_gap(divisions=12, dt=0.02, steps=6, speed=0.01,
         current_elements = {e.Id for e in background.Elements if e.Is(KM.ACTIVE)}
         new_nodes = current_nodes-previous_nodes-inner_ids
         # Histories of already-active nodes are untouched after CloneTimeStep.
-        retained = {node_id: [tuple(root.GetNode(node_id).GetSolutionStepValue(KM.VELOCITY, k))
-                              for k in (1, 2)] for node_id in current_nodes & previous_nodes}
-        targets = [root.GetNode(node_id) for node_id in sorted(new_nodes)]
-        missing = 0
+        counts = {"outer": 0, "inner": 0, "gap": 0, "extrapolation": 0, "missing": 0}
+        required_steps = (1,) if root.ProcessInfo[KM.BDF_COEFFICIENTS][2] == 0.0 else (1, 2)
+        # An already-active node can still lack its second BDF history after
+        # a recent activation, so inspect validity separately for each slot.
+        targets = [root.GetNode(node_id) for node_id in sorted(current_nodes-inner_ids)
+                   if any(node_id not in validity.slots[k] for k in required_steps)]
         if history_mode == "exact":
             for node in targets:
-                seed_history(node, time, dt, 0.0, nonlinear)
+                for k in required_steps:
+                    if node.Id not in validity.slots[k]:
+                        u, _, _ = transient_fields(node.X, node.Y, time-k*dt, nonlinear)
+                        node.SetSolutionStepValue(KM.VELOCITY, k, u)
         elif targets:
-            missing = transfer_background_histories(inner, targets, time, dt, speed, nonlinear,
-                fallback=history_mode == "transfer_with_exact_fallback")
-        if any(retained[node_id] != [tuple(root.GetNode(node_id).GetSolutionStepValue(KM.VELOCITY, k))
-                                    for k in (1, 2)] for node_id in retained):
-            raise RuntimeError("Reactivation overwrote a valid BDF history.")
+            counts = transfer_background_histories(
+                inner, targets, time, dt, speed, validity, required_steps, gap_history)
         for node in computing.Nodes:
             u, p, force = transient_fields(node.X, node.Y, time, nonlinear)
             node.SetSolutionStepValue(KM.BODY_FORCE, force)
@@ -207,8 +190,12 @@ def solve_moving_gap(divisions=12, dt=0.02, steps=6, speed=0.01,
             strategy.Clear()
         triangles = root.GetSubModelPart("Interfaces.Patch_1.GapTriangles")
         row.update(time=time, newly_active_nodes=len(new_nodes),
-                   missing_history_samples=missing,
-                   transferred_history_samples=0 if history_mode == "exact" else 2*len(new_nodes)-missing,
+                   missing_history_samples=counts["missing"],
+                   transferred_history_samples=counts["inner"],
+                   interpolated_history_samples=counts["inner"],
+                   outer_history_samples=counts["outer"], gap_history_samples=counts["gap"],
+                   extrapolated_history_samples=counts["extrapolation"],
+                   max_extrapolation_distance=0.0,
                    newly_active_elements=len(current_elements-previous_elements),
                    deactivated_elements=len(previous_elements-current_elements),
                    gap_triangles=triangles.NumberOfGeometries(),
@@ -222,12 +209,20 @@ def solve_moving_gap(divisions=12, dt=0.02, steps=6, speed=0.01,
             raise RuntimeError("Eulerian background moved.")
         KM.Logger.PrintInfo("MovingGapStokes", str(row))
         rows.append(row)
+        validity.mark_solved(current_nodes-inner_ids)
+        gap_history.capture(root.GetSubModelPart("Interfaces.Patch_1"), time)
         previous_nodes, previous_elements = current_nodes, current_elements
         previous_triangles = triangles.NumberOfGeometries()
     return rows
 
 
 class MovingFluidPatchGapTest(KratosUnittest.TestCase):
+    def test_bdf1_startup(self):
+        rows = solve_moving_gap(speed=0.0, steps=2, history_mode="transfer", bdf1_startup=True)
+        for row in rows:
+            self.assertLess(row["free_residual"], 1e-8)
+            self.assertLess(row["velocity_l2"], 1e-8)
+
     def test_historical_q1_transfer_and_outside_rejection(self):
         _, modeler, _, _ = create_gap_problem(ale=True, angle=23.0)
         root = modeler.model_part
@@ -241,21 +236,21 @@ class MovingFluidPatchGapTest(KratosUnittest.TestCase):
         center = parent.GetGeometry().Center()
         new_id = max(n.Id for n in root.Nodes)+1
         target = root.CreateNewNode(new_id, center.X-0.5*speed*dt, center.Y, 0.0)
-        self.assertEqual(transfer_background_histories(inner, [target], time, dt, speed, False), 0)
+        self.assertEqual(transfer_background_histories(inner, [target], time, dt, speed)["inner"], 2)
         for k in (1, 2):
             u = target.GetSolutionStepValue(KM.VELOCITY, k)
             self.assertAlmostEqual(u[0], 2*target.X+3*target.Y+k, delta=1e-10)
             self.assertAlmostEqual(u[1], -target.X+4*target.Y-k, delta=1e-10)
         outside = root.CreateNewNode(new_id+1, -1.0, -1.0, 0.0)
         target.SetSolutionStepValue(KM.VELOCITY, 1, [9.0, 8.0, 0.0])
-        with self.assertRaisesRegex(RuntimeError, "Historical inner patch does not contain"):
-            transfer_background_histories(inner, [target, outside], time, dt, speed, False)
+        with self.assertRaisesRegex(RuntimeError, "Missing .* required velocity histories"):
+            transfer_background_histories(inner, [target, outside], time, dt, speed)
         self.assertAlmostEqual(target.GetSolutionStepValue(KM.VELOCITY, 1)[0], 9.0)
 
     def test_compare_transferred_and_exact_histories(self):
         for nonlinear in (False, True):
             exact = solve_moving_gap(nonlinear=nonlinear, history_mode="exact")
-            numerical = solve_moving_gap(nonlinear=nonlinear, history_mode="transfer_with_exact_fallback")
+            numerical = solve_moving_gap(nonlinear=nonlinear, history_mode="transfer")
             self.assertEqual([r["newly_active_nodes"] for r in exact],
                              [r["newly_active_nodes"] for r in numerical])
             self.assertGreater(sum(r["newly_active_nodes"] for r in numerical), 0)
