@@ -8,6 +8,7 @@ from generalTests import KratosDamGeneralTests
 from test_apply_load_vector_dam_processes import TestApplyLoadVectorDamProcesses
 from test_dam_linear_solver import TestDamLinearSolver
 from test_dam_nodal_young_modulus_process import TestImposeNodalYoungModulusProcess
+from test_dam_nodal_field_processes import TestDamNodalFieldProcesses
 from test_dam_nonlocal_ownership import DamNonlocalOwnershipTest
 from test_dam_process_lifecycle import TestDamProcessLifetime
 from test_dam_analysis_process_lifecycle import TestDamAnalysisProcessLifecycle
@@ -62,6 +63,7 @@ def AssembleTestSuites():
                 TestDamLinearSolver,
                 TestGlobalTangentConsistency,
                 TestImposeNodalYoungModulusProcess,
+                TestDamNodalFieldProcesses,
                 TestSmallDisplacementInterfaceTangent,
             ]
         )
@@ -99,6 +101,7 @@ def AssembleTestSuites():
                 TestDamLinearSolver,
                 TestGlobalTangentConsistency,
                 TestImposeNodalYoungModulusProcess,
+                TestDamNodalFieldProcesses,
                 TestInitialGaussPointOutputBeforeSolve,
                 DamNonlocalOwnershipTest,
                 DamProcessBasedNodalSmoothingTest,
