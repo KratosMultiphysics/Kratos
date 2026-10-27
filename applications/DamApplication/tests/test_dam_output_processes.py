@@ -6,7 +6,7 @@ import tempfile
 from unittest import mock
 
 import KratosMultiphysics as KM
-import KratosMultiphysics.DamApplication  # noqa: F401
+import KratosMultiphysics.DamApplication as KratosDam
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 from KratosMultiphysics.DamApplication.dam_analysis import DamAnalysis
 from KratosMultiphysics.DamApplication.gid_dam_output_process import GiDDamOutputProcess
@@ -16,6 +16,8 @@ from KratosMultiphysics.vtk_output_process import VtkOutputProcess
 TESTS_DIR = os.path.dirname(os.path.abspath(__file__))
 if TESTS_DIR not in sys.path:
     sys.path.insert(0, TESTS_DIR)
+
+import dam_recording_lifecycle_process as recording_lifecycle_process
 
 MECHANICAL_CASE_DIR = os.path.join(TESTS_DIR, "joint_elastic_cohesive_2d_normal")
 MECHANICAL_CASE = os.path.join(MECHANICAL_CASE_DIR, "joint_elastic_cohesive_2d_normal")
@@ -125,15 +127,61 @@ class TestDamOutputProcesses(KratosUnittest.TestCase):
             }
         }
 
-    def _result_tags(self, result_file):
+    def _result_tags(self, result_file, variable_name="DISPLACEMENT"):
         tags = []
-        pattern = re.compile(r'^Result "DISPLACEMENT" "Kratos" (\S+) Vector OnNodes$')
+        pattern = re.compile(
+            r'^Result "' + re.escape(variable_name) +
+            r'" "Kratos" (\S+) (?:Scalar|Vector|Matrix) OnNodes$')
         with open(result_file, "r") as file:
             for line in file:
                 match = pattern.match(line.strip())
                 if match:
                     tags.append(match.group(1))
         return tags
+
+    def _scalar_result_blocks(self, result_file, variable_name):
+        pattern = re.compile(
+            r'^Result "' + re.escape(variable_name) +
+            r'" "[^"]+" (\S+) Scalar OnNodes$')
+        blocks = []
+        current_block = None
+        reading_values = False
+
+        with open(result_file, "r") as file:
+            for line in file:
+                line = line.strip()
+                match = pattern.match(line)
+                if match:
+                    current_block = {"label": match.group(1), "values": {}}
+                    blocks.append(current_block)
+                    reading_values = False
+                    continue
+                if current_block is None:
+                    continue
+                if line == "Values":
+                    reading_values = True
+                    continue
+                if line == "End Values":
+                    current_block = None
+                    reading_values = False
+                    continue
+                if reading_values and line:
+                    parts = line.split()
+                    current_block["values"][int(parts[0])] = float(parts[1])
+        return blocks
+
+    def _vtk_values(self, vtk_file, variable_name):
+        with open(vtk_file, "r") as file:
+            lines = [line.strip() for line in file]
+
+        header_index = next(
+            index for index, line in enumerate(lines)
+            if line.startswith(variable_name + " "))
+        number_of_values = int(lines[header_index].split()[2])
+        return [
+            float(line)
+            for line in lines[header_index + 1: header_index + 1 + number_of_values]
+        ]
 
     def _vtk_files(self, working_directory):
         vtk_directory = os.path.join(working_directory, "VTK_Output")
@@ -193,6 +241,14 @@ class TestDamOutputProcesses(KratosUnittest.TestCase):
             if call_name == "PrintOutput":
                 self.assertEqual(calls[index - 1], "ExecuteBeforeOutputStep")
                 self.assertEqual(calls[index + 1], "ExecuteAfterOutputStep")
+
+    def _find_recording_process(self, processes, record_name):
+        for process in processes:
+            settings = getattr(process, "settings", None)
+            if (settings is not None and settings.Has("record_name") and
+                    settings["record_name"].GetString() == record_name):
+                return process
+        self.fail("Recording process '{}' not found".format(record_name))
 
     def test_legacy_gid_only(self):
         with tempfile.TemporaryDirectory() as working_directory:
@@ -468,6 +524,197 @@ class TestDamOutputProcesses(KratosUnittest.TestCase):
             self._assert_recording_lifecycle(
                 simulation.list_of_standard_output_processes[0].calls, 2)
 
+    def test_standard_output_process_scheduling(self):
+        with tempfile.TemporaryDirectory() as working_directory:
+            parameters = self._load_parameters("standard_scheduling")
+            parameters["output_processes"] = {
+                "recording": [{
+                    "python_module": "dam_recording_output_process",
+                    "Parameters": {
+                        "record_name": "scheduled",
+                        "model_part_name": "MainModelPart",
+                        "output_times": [2.0]
+                    }
+                }]
+            }
+
+            simulation = self._run(parameters, working_directory)
+
+            recording = self._find_recording_process(
+                simulation.list_of_standard_output_processes, "scheduled")
+            calls = recording.calls
+
+            self.assertEqual(calls.count("ExecuteInitialize"), 1)
+            self.assertEqual(calls.count("ExecuteBeforeSolutionLoop"), 1)
+            self.assertEqual(calls.count("ExecuteInitializeSolutionStep"), 2)
+            self.assertEqual(calls.count("ExecuteFinalizeSolutionStep"), 2)
+            self.assertEqual(calls.count("IsOutputStep"), 2)
+            self.assertEqual(calls.count("ExecuteBeforeOutputStep"), 1)
+            self.assertEqual(calls.count("PrintOutput"), 1)
+            self.assertEqual(calls.count("ExecuteAfterOutputStep"), 1)
+            self.assertEqual(calls.count("ExecuteFinalize"), 1)
+            self.assertEqual(recording.print_times, [2.0])
+
+            print_index = calls.index("PrintOutput")
+            self.assertEqual(calls[print_index - 1], "ExecuteBeforeOutputStep")
+            self.assertEqual(calls[print_index + 1], "ExecuteAfterOutputStep")
+            self.assertLess(calls.index("ExecuteBeforeOutputStep"),
+                            print_index)
+            self.assertEqual(calls[-1], "ExecuteFinalize")
+
+    def test_monitoring_device_output_and_nonoutput_steps(self):
+        with tempfile.TemporaryDirectory() as working_directory:
+            parameters = self._load_parameters("device_scheduling")
+            parameters["output_device_list"] = [{
+                "python_module": "dam_recording_output_process",
+                "Parameters": {
+                    "record_name": "device",
+                    "model_part_name": "MainModelPart",
+                    "output_times": [2.0]
+                }
+            }]
+
+            simulation = self._run(parameters, working_directory)
+
+            self.assertEqual(len(simulation.list_of_output_processes), 1)
+            calls = simulation.list_of_output_processes[0].calls
+
+            self.assertEqual(calls.count("ExecuteInitialize"), 1)
+            self.assertEqual(calls.count("ExecuteBeforeSolutionLoop"), 1)
+            self.assertEqual(calls.count("ExecuteInitializeSolutionStep"), 2)
+            self.assertEqual(calls.count("ExecuteFinalizeSolutionStep"), 2)
+            self.assertEqual(calls.count("IsOutputStep"), 2)
+            self.assertEqual(calls.count("ExecuteBeforeOutputStep"), 1)
+            self.assertEqual(calls.count("PrintOutput"), 1)
+            self.assertEqual(calls.count("ExecuteAfterOutputStep"), 1)
+            self.assertEqual(calls.count("ExecuteFinalize"), 1)
+            self.assertEqual(
+                simulation.list_of_output_processes[0].print_times, [2.0])
+
+            print_index = calls.index("PrintOutput")
+            before_index = calls.index("ExecuteBeforeOutputStep")
+            self.assertEqual(calls[print_index - 1], "ExecuteBeforeOutputStep")
+            self.assertEqual(calls[print_index + 1], "ExecuteAfterOutputStep")
+            self.assertLess(before_index, print_index)
+            self.assertEqual(calls[-1], "ExecuteFinalize")
+
+    def test_multiple_output_processes_with_different_frequencies(self):
+        with tempfile.TemporaryDirectory() as working_directory:
+            parameters = self._load_parameters("multiple_frequencies")
+            parameters["output_processes"] = {
+                "recording": [
+                    {
+                        "python_module": "dam_recording_output_process",
+                        "Parameters": {
+                            "record_name": "step_one",
+                            "model_part_name": "MainModelPart",
+                            "output_times": [1.0]
+                        }
+                    },
+                    {
+                        "python_module": "dam_recording_output_process",
+                        "Parameters": {
+                            "record_name": "step_two",
+                            "model_part_name": "MainModelPart",
+                            "output_times": [2.0]
+                        }
+                    }
+                ]
+            }
+            parameters["constraints_process_list"].insert(0, {
+                "python_module": "dam_recording_lifecycle_process",
+                "Parameters": {}
+            })
+
+            simulation = self._run(parameters, working_directory)
+
+            ordinary_calls = recording_lifecycle_process.LAST_PROCESS.calls
+            self.assertEqual(ordinary_calls.count("ExecuteInitialize"), 1)
+            self.assertEqual(ordinary_calls.count("ExecuteBeforeSolutionLoop"), 1)
+            self.assertEqual(ordinary_calls.count("ExecuteInitializeSolutionStep"), 2)
+            self.assertEqual(ordinary_calls.count("ExecuteFinalizeSolutionStep"), 2)
+            self.assertEqual(ordinary_calls.count("ExecuteBeforeOutputStep"), 2)
+            self.assertEqual(ordinary_calls.count("ExecuteAfterOutputStep"), 2)
+            self.assertEqual(ordinary_calls.count("ExecuteFinalize"), 1)
+
+            expected_print_times = {
+                "step_one": [1.0],
+                "step_two": [2.0]
+            }
+            for record_name, expected_times in expected_print_times.items():
+                recording = self._find_recording_process(
+                    simulation.list_of_standard_output_processes, record_name)
+                calls = recording.calls
+
+                self.assertEqual(calls.count("IsOutputStep"), 2)
+                self.assertEqual(calls.count("ExecuteBeforeOutputStep"), 2)
+                self.assertEqual(calls.count("ExecuteAfterOutputStep"), 2)
+                self.assertEqual(calls.count("PrintOutput"), 1)
+                self.assertEqual(recording.print_times, expected_times)
+
+                print_index = calls.index("PrintOutput")
+                self.assertEqual(calls[print_index - 1], "ExecuteBeforeOutputStep")
+                self.assertEqual(calls[print_index + 1], "ExecuteAfterOutputStep")
+
+    def test_no_output_processes_do_not_trigger_output_callbacks(self):
+        with tempfile.TemporaryDirectory() as working_directory:
+            parameters = self._load_parameters("no_output_callbacks")
+            parameters["constraints_process_list"].insert(0, {
+                "python_module": "dam_recording_lifecycle_process",
+                "Parameters": {}
+            })
+
+            self._run(parameters, working_directory)
+
+            calls = recording_lifecycle_process.LAST_PROCESS.calls
+            self.assertEqual(calls.count("ExecuteInitialize"), 1)
+            self.assertEqual(calls.count("ExecuteBeforeSolutionLoop"), 1)
+            self.assertEqual(calls.count("ExecuteInitializeSolutionStep"), 2)
+            self.assertEqual(calls.count("ExecuteFinalizeSolutionStep"), 2)
+            self.assertEqual(calls.count("ExecuteBeforeOutputStep"), 0)
+            self.assertEqual(calls.count("ExecuteAfterOutputStep"), 0)
+            self.assertEqual(calls.count("ExecuteFinalize"), 1)
+
+    def test_gid_vtk_and_monitoring_device_callbacks(self):
+        with tempfile.TemporaryDirectory() as working_directory:
+            parameters = self._load_parameters("mixed_output_callbacks")
+            parameters["output_configuration"] = self._legacy_configuration()
+            parameters["output_processes"] = {
+                "vtk_output": [self._vtk_process(
+                    os.path.join(working_directory, "VTK_Output"))],
+                "recording": [{
+                    "python_module": "dam_recording_output_process",
+                    "Parameters": {
+                        "record_name": "standard",
+                        "model_part_name": "MainModelPart"
+                    }
+                }]
+            }
+            parameters["output_device_list"] = [{
+                "python_module": "dam_recording_output_process",
+                "Parameters": {
+                    "record_name": "device",
+                    "model_part_name": "MainModelPart",
+                    "output_times": [1.0, 2.0]
+                }
+            }]
+
+            simulation = self._run(parameters, working_directory)
+
+            standard_recording = self._find_recording_process(
+                simulation.list_of_standard_output_processes, "standard")
+            self._assert_recording_lifecycle(standard_recording.calls, 2)
+
+            self.assertEqual(len(simulation.list_of_output_processes), 1)
+            device_recording = simulation.list_of_output_processes[0]
+            self._assert_recording_lifecycle(device_recording.calls, 2)
+
+            self.assertEqual(
+                self._result_tags(os.path.join(
+                    working_directory, "mixed_output_callbacks.post.res")),
+                ["0", "1", "2"])
+            self.assertEqual(len(self._vtk_files(working_directory)), 2)
+
     def test_multiple_output_processes_in_same_group(self):
         with tempfile.TemporaryDirectory() as working_directory:
             parameters = self._load_parameters("multiple_group")
@@ -533,3 +780,120 @@ class TestDamOutputProcesses(KratosUnittest.TestCase):
             self._assert_vtk_field(vtk_files[0], "TEMPERATURE")
             self._assert_vtk_field(vtk_files[1], "DISPLACEMENT")
             self._assert_vtk_field(vtk_files[1], "TEMPERATURE")
+
+    def test_property_based_young_modulus_is_not_projected(self):
+        with tempfile.TemporaryDirectory() as working_directory:
+            parameters = self._load_parameters("property_young_modulus")
+            parameters["output_configuration"] = self._legacy_configuration()
+            parameters["output_configuration"]["result_file_configuration"][
+                "nodal_results"] = ["DISPLACEMENT", "YOUNG_MODULUS"]
+            vtk_output_path = os.path.join(working_directory, "VTK_Output")
+            parameters["output_processes"] = {
+                "vtk_output": [self._vtk_process(
+                    vtk_output_path, variables=["YOUNG_MODULUS"])]
+            }
+
+            simulation = self._run(parameters, working_directory)
+
+            self.assertIsInstance(simulation.gid_output, GiDDamOutputProcess)
+            self.assertFalse(any(
+                "YoungModulusOutputProcess" in type(process).__name__
+                for process in simulation.list_of_processes))
+
+            computing_model_part = simulation.solver.GetComputingModelPart()
+            for node in computing_model_part.Nodes:
+                self.assertEqual(node.GetSolutionStepValue(KM.YOUNG_MODULUS), 0.0)
+                self.assertFalse(node.Has(KratosDam.NODAL_YOUNG_MODULUS))
+            for properties in computing_model_part.Properties:
+                if properties.Has(KM.YOUNG_MODULUS):
+                    self.assertAlmostEqual(properties[KM.YOUNG_MODULUS], 1.0e9)
+
+            result_file = os.path.join(
+                working_directory, "property_young_modulus.post.res")
+            self.assertEqual(
+                self._result_tags(result_file, "YOUNG_MODULUS"), ["0", "1", "2"])
+            self.assertEqual(
+                self._result_tags(result_file, "DISPLACEMENT"), ["0", "1", "2"])
+            for block in self._scalar_result_blocks(result_file, "YOUNG_MODULUS"):
+                self.assertEqual(len(block["values"]), 24)
+                for value in block["values"].values():
+                    self.assertEqual(value, 0.0)
+
+            vtk_files = self._vtk_files(working_directory)
+            self.assertEqual(len(vtk_files), 2)
+            for vtk_file in vtk_files:
+                values = self._vtk_values(vtk_file, "YOUNG_MODULUS")
+                self.assertEqual(len(values), 24)
+                for value in values:
+                    self.assertEqual(value, 0.0)
+
+    def test_genuine_nodal_young_modulus_output(self):
+        with tempfile.TemporaryDirectory() as working_directory:
+            parameters = self._load_parameters("nodal_young_modulus")
+            parameters["problem_data"]["end_time"] = 1.0
+            parameters["solver_settings"]["mechanical_solver_settings"][
+                "move_mesh_flag"] = False
+            parameters["constraints_process_list"].insert(0, {
+                "python_module": "impose_nodal_young_modulus_process",
+                "kratos_module": "KratosMultiphysics.DamApplication",
+                "process_name": "ImposeNodalYoungModulusProcess",
+                "Parameters": {
+                    "model_part_name": "MainModelPart.mechanical_computing_domain",
+                    "variable_name": "NODAL_YOUNG_MODULUS",
+                    "Young_Modulus_1": 1.0e9,
+                    "Young_Modulus_2": 1.0e9,
+                    "Young_Modulus_3": 0.0,
+                    "Young_Modulus_4": 0.0
+                }
+            })
+            parameters["output_configuration"] = self._legacy_configuration()
+            parameters["output_configuration"]["result_file_configuration"][
+                "nodal_results"] = ["DISPLACEMENT", "YOUNG_MODULUS"]
+            vtk_output_path = os.path.join(working_directory, "VTK_Output")
+            parameters["output_processes"] = {
+                "vtk_output": [self._vtk_process(
+                    vtk_output_path, variables=["YOUNG_MODULUS"])]
+            }
+
+            simulation = self._run(parameters, working_directory)
+
+            self.assertIsInstance(simulation.gid_output, GiDDamOutputProcess)
+            self.assertFalse(any(
+                "YoungModulusOutputProcess" in type(process).__name__
+                for process in simulation.list_of_processes))
+
+            computing_model_part = simulation.solver.GetComputingModelPart()
+            expected_values = {
+                node.Id: 1.0e9 + 1.0e9 * node.X
+                for node in computing_model_part.Nodes
+            }
+            for node in computing_model_part.Nodes:
+                self.assertAlmostEqual(
+                    node.GetSolutionStepValue(KM.YOUNG_MODULUS),
+                    expected_values[node.Id])
+                self.assertFalse(node.Has(KratosDam.NODAL_YOUNG_MODULUS))
+            for properties in computing_model_part.Properties:
+                if properties.Has(KM.YOUNG_MODULUS):
+                    self.assertTrue(properties.HasAccessor(KM.YOUNG_MODULUS))
+                    self.assertAlmostEqual(properties[KM.YOUNG_MODULUS], 1.0e9)
+
+            result_file = os.path.join(
+                working_directory, "nodal_young_modulus.post.res")
+            young_modulus_blocks = self._scalar_result_blocks(
+                result_file, "YOUNG_MODULUS")
+            self.assertEqual(
+                [float(block["label"]) for block in young_modulus_blocks],
+                [0.0, 1.0])
+            for block in young_modulus_blocks:
+                self.assertEqual(
+                    sorted(block["values"]), sorted(expected_values))
+                for node_id, expected_value in expected_values.items():
+                    self.assertAlmostEqual(
+                        block["values"][node_id], expected_value)
+
+            vtk_files = self._vtk_files(working_directory)
+            self.assertEqual(len(vtk_files), 1)
+            vtk_values = self._vtk_values(vtk_files[0], "YOUNG_MODULUS")
+            self.assertEqual(len(vtk_values), len(expected_values))
+            for value, node in zip(vtk_values, computing_model_part.Nodes):
+                self.assertAlmostEqual(value, expected_values[node.Id])
