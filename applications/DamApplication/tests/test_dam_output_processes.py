@@ -231,8 +231,17 @@ class TestDamOutputProcesses(KratosUnittest.TestCase):
             for label in ("0", "1", "2"):
                 self.assertTrue(os.path.exists(
                     os.path.join(working_directory, "legacy_multi_{0}.post.res".format(label))))
-            self.assertTrue(os.path.exists(
-                os.path.join(working_directory, "_list_legacy_multi_1.post.lst")))
+            list_files = [
+                name for name in os.listdir(working_directory)
+                if name.endswith(".post.lst")
+            ]
+            self.assertEqual(len(list_files), 1)
+            with open(os.path.join(working_directory, list_files[0]), "r") as list_file:
+                list_content = list_file.read()
+            self.assertIn("Multiple\n", list_content)
+            for label in ("0", "1", "2"):
+                self.assertIn(
+                    "legacy_multi_{0}.post.res".format(label), list_content)
 
     def test_legacy_gid_cleans_previous_post_files(self):
         with tempfile.TemporaryDirectory() as working_directory:
