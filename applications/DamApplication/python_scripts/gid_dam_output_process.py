@@ -73,6 +73,36 @@ class GiDDamOutputProcess(GiDOutputProcess):
 
         settings.ValidateAndAssignDefaults(self.legacy_defaults)
 
+        if settings.Has("result_file_configuration"):
+            self._MoveNodalYoungModulusToNonhistorical(settings["result_file_configuration"])
+
+    @staticmethod
+    def _MoveNodalYoungModulusToNonhistorical(result_file_configuration):
+        variable_name = "NODAL_YOUNG_MODULUS"
+
+        if not result_file_configuration.Has("nodal_results"):
+            return
+
+        nodal_results = result_file_configuration["nodal_results"].GetStringArray()
+        if variable_name not in nodal_results:
+            return
+
+        result_file_configuration["nodal_results"].SetStringArray(
+            [name for name in nodal_results if name != variable_name])
+
+        if not result_file_configuration.Has("nodal_nonhistorical_results"):
+            result_file_configuration.AddEmptyArray("nodal_nonhistorical_results")
+        nonhistorical_results = result_file_configuration["nodal_nonhistorical_results"].GetStringArray()
+        if variable_name not in nonhistorical_results:
+            nonhistorical_results.append(variable_name)
+        result_file_configuration["nodal_nonhistorical_results"].SetStringArray(nonhistorical_results)
+
+        KM.Logger.PrintWarning(
+            "GiDDamOutputProcess",
+            "'NODAL_YOUNG_MODULUS' is not a historical variable. It is written as a "
+            "nonhistorical nodal result prepared from element material properties."
+        )
+
     def _translate_parameters(self, model_part, start_time, legacy_param):
         result_file_configuration = legacy_param["result_file_configuration"]
         output_control_type = result_file_configuration["output_control_type"].GetString()

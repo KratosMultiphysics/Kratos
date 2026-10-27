@@ -16,6 +16,10 @@ from test_initial_gp_output_before_solve import TestInitialGaussPointOutputBefor
 from test_process_based_nodal_smoothing import DamProcessBasedNodalSmoothingTest
 from test_dam_output_processes import TestDamOutputProcesses
 from test_dam_gid_output_process import TestDamGiDOutputProcess
+from test_dam_young_modulus_output_process import (
+    TestDamYoungModulusOutputProcess,
+    TestDamYoungModulusOutputIntegration,
+)
 
 
 def AssembleTestSuites():
@@ -74,6 +78,8 @@ def AssembleTestSuites():
                 TestDamProcessLifetime,
                 TestDamOutputProcesses,
                 TestDamGiDOutputProcess,
+                TestDamYoungModulusOutputProcess,
+                TestDamYoungModulusOutputIntegration,
             ]
         )
     )
@@ -104,6 +110,8 @@ def AssembleTestSuites():
                 TestSmallDisplacementInterfaceTangent,
                 TestDamOutputProcesses,
                 TestDamGiDOutputProcess,
+                TestDamYoungModulusOutputProcess,
+                TestDamYoungModulusOutputIntegration,
             ]
         )
     )
