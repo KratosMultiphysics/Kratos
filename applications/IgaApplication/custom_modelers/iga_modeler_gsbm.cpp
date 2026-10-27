@@ -13,6 +13,7 @@
 // System includes
 #include <algorithm>
 #include <array>
+#include <cmath>
 #include <iterator>
 #include <string>
 #include <vector>
@@ -120,6 +121,29 @@ GeometryType::Pointer CreateOneSidedQuadraturePoint(
     );
 }
 
+/**
+ * @brief Finds the knot span of a quadrature point, per direction.
+ *
+ * @param rSpans Knot span boundaries per direction.
+ * @param rQuadraturePoint The quadrature point geometry.
+ * @return The index of the knot span, from 0, per direction.
+ */
+std::vector<IndexType> FindKnotSpanIndices(
+    const std::vector<std::vector<double>>& rSpans,
+    const GeometryType& rQuadraturePoint)
+{
+    const auto& r_point = rQuadraturePoint.IntegrationPoints()[0];
+    std::vector<IndexType> knot_span_indices(rSpans.size());
+
+    for (IndexType dir = 0; dir < rSpans.size(); ++dir) {
+        knot_span_indices[dir] =
+            std::upper_bound(rSpans[dir].begin(), rSpans[dir].end(), r_point[dir])
+            - rSpans[dir].begin() - 1;
+    }
+
+    return knot_span_indices;
+}
+
 } // namespace
 
 void IgaModelerGsbm::SetupModelPart()
@@ -180,7 +204,10 @@ void IgaModelerGsbm::CreateIntegrationDomainPerUnit(
     GeometriesArrayType geometry_list;
     GetGeometryList(geometry_list, rModelPart, rPhysicsParameters);
 
-    if (!rPhysicsParameters.Has("gsbm_parameters"))
+    if (rPhysicsParameters.Has("geometry_names"))
+        // Elements with one space per field: one patch per field, same knots
+        CreateQuadraturePointGeometriesMixed(geometry_list, r_sub_model_part, rPhysicsParameters);
+    else if (!rPhysicsParameters.Has("gsbm_parameters"))
         // Elements on the patch, or body-fitted conditions on one or more BReps
         CreateQuadraturePointGeometries(geometry_list, r_sub_model_part, rPhysicsParameters);
     else if (!reuses_skeleton)
@@ -212,6 +239,16 @@ void IgaModelerGsbm::GetGeometryList(
             << std::endl;
         for (auto& r_facet : rModelPart.GetSubModelPart(skeleton_name).Conditions()) {
             rGeometryList.push_back(r_facet.pGetGeometry());
+        }
+    } else if (type == "element" && rPhysicsParameters.Has("geometry_names")) {
+        // Elements with one space per field: the patch of each field
+        const Parameters geometry_names = rPhysicsParameters["geometry_names"];
+        for (IndexType i = 0; i < geometry_names.size(); ++i) {
+            const std::string geometry_name = geometry_names[i].GetString();
+            KRATOS_ERROR_IF_NOT(rModelPart.HasGeometry(geometry_name))
+                << "IgaModelerGsbm: geometry \"" << geometry_name << "\" not found in "
+                << rModelPart.FullName() << "." << std::endl;
+            rGeometryList.push_back(rModelPart.pGetGeometry(geometry_name));
         }
     } else if (type == "element" || rPhysicsParameters.Has("gsbm_parameters")) {
         // Elements and GSBM facets: the background patch
@@ -274,17 +311,10 @@ void IgaModelerGsbm::CreateQuadraturePointGeometries(
             }
 
             for (auto& r_quadrature_point : geometries) {
-                const auto& r_point = r_quadrature_point.IntegrationPoints()[0];
-                std::vector<IndexType> knot_span_indices(dimension);
-
-                for (IndexType dir = 0; dir < dimension; ++dir) {
-                    knot_span_indices[dir] =
-                        std::upper_bound(spans[dir].begin(), spans[dir].end(), r_point[dir])
-                        - spans[dir].begin() - 1;
-                }
-
                 // Index of the Gauss point's knot span, per direction
-                r_quadrature_point.SetValue(KNOT_SPAN_INDICES, knot_span_indices);
+                r_quadrature_point.SetValue(
+                    KNOT_SPAN_INDICES, FindKnotSpanIndices(spans, r_quadrature_point)
+                );
             }
 
             CreateElements(geometries.ptr_begin(), geometries.ptr_end(), rModelPart, name);
@@ -312,6 +342,97 @@ void IgaModelerGsbm::CreateQuadraturePointGeometries(
             << "Created " << geometries.size() << " " << type << "s of type " << name
             << " in " << rModelPart.FullName() << "." << std::endl;
     }
+}
+
+void IgaModelerGsbm::CreateQuadraturePointGeometriesMixed(
+    GeometriesArrayType& rGeometryList,
+    ModelPart& rModelPart,
+    const Parameters rParameters) const
+{
+    const std::string name = rParameters["name"].GetString();
+    KRATOS_ERROR_IF(rParameters["type"].GetString() != "element") << "IgaModelerGsbm: "
+        << "\"geometry_names\" is only available for elements." << std::endl;
+
+    const int shape_function_derivatives_order =
+        rParameters["shape_function_derivatives_order"].GetInt();
+    KRATOS_ERROR_IF(shape_function_derivatives_order < 2) << "IgaModelerGsbm: "
+        << "shape_function_derivatives_order must be at least 2." << std::endl;
+
+    // One 2D B-spline patch per field
+    std::vector<NurbsSurfaceType*> surfaces;
+    for (auto& r_geometry : rGeometryList) {
+        const auto p_surface = dynamic_cast<NurbsSurfaceType*>(&r_geometry);
+        KRATOS_ERROR_IF(p_surface == nullptr) << "IgaModelerGsbm: geometry #"
+            << r_geometry.Id() << " of \"geometry_names\" is not a 2D NURBS surface."
+            << std::endl;
+        surfaces.push_back(p_surface);
+    }
+
+    // Knot span boundaries, the same in every patch
+    std::vector<std::vector<double>> spans(2);
+    for (IndexType dir = 0; dir < 2; ++dir) {
+        surfaces[0]->SpansLocalSpace(spans[dir], dir);
+        for (const auto p_surface : surfaces) {
+            std::vector<double> surface_spans;
+            p_surface->SpansLocalSpace(surface_spans, dir);
+            const bool is_same = surface_spans.size() == spans[dir].size()
+                && std::equal(surface_spans.begin(), surface_spans.end(), spans[dir].begin(),
+                    [](const double A, const double B) { return std::abs(A - B) < 1.0e-12; });
+            KRATOS_ERROR_IF_NOT(is_same) << "IgaModelerGsbm: the patches of "
+                << "\"geometry_names\" must have the same knot spans." << std::endl;
+        }
+    }
+
+    // Gauss points per span and direction: enough for the highest degree
+    std::array<SizeType, 2> number_of_points{0, 0};
+    for (IndexType dir = 0; dir < 2; ++dir) {
+        for (const auto p_surface : surfaces) {
+            number_of_points[dir] =
+                std::max(number_of_points[dir], p_surface->PolynomialDegree(dir) + 1);
+        }
+        if (rParameters.Has("number_of_integration_points_per_span")) {
+            number_of_points[dir] = rParameters["number_of_integration_points_per_span"].GetInt();
+        }
+    }
+
+    // One Gauss rule for all patches, so their quadrature points coincide
+    GeometryType::IntegrationPointsArrayType integration_points;
+    surfaces[0]->CreateIntegrationPoints(
+        integration_points, number_of_points[0], number_of_points[1]
+    );
+
+    // Quadrature points of every patch
+    std::vector<GeometriesArrayType> quadrature_points(surfaces.size());
+    for (IndexType k = 0; k < surfaces.size(); ++k) {
+        IntegrationInfo integration_info = surfaces[k]->GetDefaultIntegrationInfo();
+        surfaces[k]->CreateQuadraturePointGeometries(
+            quadrature_points[k], shape_function_derivatives_order, integration_points,
+            integration_info
+        );
+    }
+
+    // Per Gauss point: one geometry part per field, in the given order
+    GeometriesArrayType geometries;
+    for (IndexType i = 0; i < integration_points.size(); ++i) {
+        std::vector<GeometryType::Pointer> parts;
+        for (const auto& r_quadrature_points : quadrature_points) {
+            parts.push_back(r_quadrature_points(i));
+        }
+        auto p_geometry = Kratos::make_shared<CouplingGeometry<Node>>(parts);
+
+        // Index of the Gauss point's knot span, per direction
+        p_geometry->SetValue(KNOT_SPAN_INDICES, FindKnotSpanIndices(spans, *parts[0]));
+        geometries.push_back(p_geometry);
+    }
+
+    CreateElements(geometries.ptr_begin(), geometries.ptr_end(), rModelPart, name);
+    for (const auto p_surface : surfaces) {
+        rModelPart.AddNodes(p_surface->Points().ptr_begin(), p_surface->Points().ptr_end());
+    }
+
+    KRATOS_INFO_IF("IgaModelerGsbm", mEchoLevel > 0)
+        << "Created " << geometries.size() << " elements of type " << name << " on "
+        << surfaces.size() << " patches in " << rModelPart.FullName() << "." << std::endl;
 }
 
 void IgaModelerGsbm::CreateQuadraturePointGeometriesGsbm(

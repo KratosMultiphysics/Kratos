@@ -11,7 +11,10 @@
 //
 
 // System includes
+#include <array>
 #include <cmath>
+#include <string>
+#include <utility>
 
 // Project includes
 #include "containers/model.h"
@@ -201,6 +204,83 @@ KRATOS_TEST_CASE_IN_SUITE(IgaModelerGsbmElementsAndFacets, KratosIgaFastSuite)
         KRATOS_EXPECT_NE(r_condition.Id(), it_facet->Id());
         KRATOS_EXPECT_EQ(&r_condition.GetGeometry(), &it_facet->GetGeometry());
         ++it_facet;
+    }
+}
+
+// Three patches on [0, 1] x [0, 0.75] with 4 x 3 knot spans and degrees
+// (3, 2), (2, 3) and (2, 2), one per field as for divergence-conforming
+// Stokes. An entry with "geometry_names" creates one element per Gauss point
+// of a common rule, 4 x 4 per span, enough for degree 3: each geometry has a
+// part per patch, in the given order and at the same point, and the knot span
+// indices of that point. The elements' model part holds every patch's nodes.
+KRATOS_TEST_CASE_IN_SUITE(IgaModelerGsbmElementsMixedSpaces, KratosIgaFastSuite)
+{
+    using IndexType = std::size_t;
+
+    Model model;
+    const ModelPart& r_iga_model_part = model.CreateModelPart("IgaModelPart");
+
+    const std::array<std::pair<std::string, std::array<int, 2>>, 3> patches{{
+        {"VelocityX", {3, 2}}, {"VelocityY", {2, 3}}, {"Pressure", {2, 2}}
+    }};
+    for (const auto& [r_name, r_degrees] : patches) {
+        Parameters parameters(R"({
+            "model_part_name"     : "IgaModelPart",
+            "geometry_name"       : "",
+            "lower_point_xyz"     : [0.0, 0.0, 0.0],
+            "upper_point_xyz"     : [1.0, 0.75, 0.0],
+            "lower_point_uvw"     : [0.0, 0.0, 0.0],
+            "upper_point_uvw"     : [1.0, 0.75, 0.0],
+            "polynomial_order"    : [0, 0],
+            "number_of_knot_spans": [4, 3]
+        })");
+        parameters["geometry_name"].SetString(r_name);
+        parameters["polynomial_order"][0].SetInt(r_degrees[0]);
+        parameters["polynomial_order"][1].SetInt(r_degrees[1]);
+        NurbsGeometryModeler(model, parameters).SetupGeometryModel();
+    }
+
+    const Modeler& r_registered_modeler = KratosComponents<Modeler>::Get("IgaModelerGsbm");
+    r_registered_modeler.Create(model, Parameters(R"({
+        "analysis_model_part_name": "IgaModelPart",
+        "geometry_name"           : "Pressure",
+        "element_condition_list"  : [{
+            "type"                            : "element",
+            "name"                            : "GenericElement",
+            "iga_model_part"                  : "Domain",
+            "shape_function_derivatives_order": 2,
+            "geometry_names"                  : ["VelocityX", "VelocityY", "Pressure"]
+        }]
+    })"))->SetupModelPart();
+
+    // 4 x 3 knot spans with 4 x 4 Gauss points each
+    const ModelPart& r_domain = model.GetModelPart("IgaModelPart.Domain");
+    KRATOS_EXPECT_EQ(r_domain.NumberOfElements(), 192);
+
+    // Control points per patch: (4 + p_u) x (3 + p_v)
+    KRATOS_EXPECT_EQ(r_domain.NumberOfNodes(), 35 + 36 + 30);
+
+    const double tolerance = 1.0e-12;
+    for (const auto& r_element : r_domain.Elements()) {
+        const auto& r_geometry = r_element.GetGeometry();
+        KRATOS_EXPECT_EQ(r_geometry.NumberOfGeometryParts(), 3);
+        const array_1d<double, 3> center = r_geometry.GetGeometryPart(0).Center().Coordinates();
+
+        for (IndexType part = 0; part < 3; ++part) {
+            // A quadrature point of the part's patch, at the same point, with
+            // its (p_u + 1) x (p_v + 1) nonzero basis functions
+            const auto& r_part = r_geometry.GetGeometryPart(part);
+            const auto& [r_name, r_degrees] = patches[part];
+            KRATOS_EXPECT_EQ(&r_part.GetGeometryParent(0), &r_iga_model_part.GetGeometry(r_name));
+            KRATOS_EXPECT_EQ(r_part.size(), (r_degrees[0] + 1) * (r_degrees[1] + 1));
+            KRATOS_EXPECT_VECTOR_NEAR(r_part.Center().Coordinates(), center, tolerance);
+        }
+
+        // Knot span of the point, on the element's own geometry
+        const auto& r_indices = r_geometry.GetValue(KNOT_SPAN_INDICES);
+        KRATOS_EXPECT_EQ(r_indices.size(), 2);
+        KRATOS_EXPECT_EQ(r_indices[0], static_cast<IndexType>(center[0] / 0.25));
+        KRATOS_EXPECT_EQ(r_indices[1], static_cast<IndexType>(center[1] / 0.25));
     }
 }
 

@@ -116,6 +116,13 @@ private:
         ModelPart& rModelPart,
         const Parameters rParameters) const;
 
+    /// Creates elements with one patch per field (from "geometry_names"):
+    /// one geometry per Gauss point, with a quadrature point of every patch
+    void CreateQuadraturePointGeometriesMixed(
+        GeometriesArrayType& rGeometryList,
+        ModelPart& rModelPart,
+        const Parameters rParameters) const;
+
     /// Creates list of rQuadraturePointGeometryList for Gsbm
     void CreateQuadraturePointGeometriesGsbm(
         GeometryType& rBackground,
