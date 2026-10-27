@@ -17,6 +17,8 @@ TESTS_DIR = os.path.dirname(os.path.abspath(__file__))
 if TESTS_DIR not in sys.path:
     sys.path.insert(0, TESTS_DIR)
 
+import dam_recording_lifecycle_process as recording_lifecycle_process
+
 MECHANICAL_CASE_DIR = os.path.join(TESTS_DIR, "joint_elastic_cohesive_2d_normal")
 MECHANICAL_CASE = os.path.join(MECHANICAL_CASE_DIR, "joint_elastic_cohesive_2d_normal")
 CONSTRUCTION_CASE_DIR = os.path.join(TESTS_DIR, "construction")
@@ -239,6 +241,14 @@ class TestDamOutputProcesses(KratosUnittest.TestCase):
             if call_name == "PrintOutput":
                 self.assertEqual(calls[index - 1], "ExecuteBeforeOutputStep")
                 self.assertEqual(calls[index + 1], "ExecuteAfterOutputStep")
+
+    def _find_recording_process(self, processes, record_name):
+        for process in processes:
+            settings = getattr(process, "settings", None)
+            if (settings is not None and settings.Has("record_name") and
+                    settings["record_name"].GetString() == record_name):
+                return process
+        self.fail("Recording process '{}' not found".format(record_name))
 
     def test_legacy_gid_only(self):
         with tempfile.TemporaryDirectory() as working_directory:
@@ -513,6 +523,136 @@ class TestDamOutputProcesses(KratosUnittest.TestCase):
             self.assertEqual(len(simulation.list_of_standard_output_processes), 1)
             self._assert_recording_lifecycle(
                 simulation.list_of_standard_output_processes[0].calls, 2)
+
+    def test_standard_output_process_scheduling(self):
+        with tempfile.TemporaryDirectory() as working_directory:
+            parameters = self._load_parameters("standard_scheduling")
+            parameters["output_processes"] = {
+                "recording": [{
+                    "python_module": "dam_recording_output_process",
+                    "Parameters": {
+                        "record_name": "scheduled",
+                        "model_part_name": "MainModelPart",
+                        "output_times": [2.0]
+                    }
+                }]
+            }
+
+            simulation = self._run(parameters, working_directory)
+
+            recording = self._find_recording_process(
+                simulation.list_of_standard_output_processes, "scheduled")
+            calls = recording.calls
+
+            self.assertEqual(calls.count("ExecuteInitialize"), 1)
+            self.assertEqual(calls.count("ExecuteBeforeSolutionLoop"), 1)
+            self.assertEqual(calls.count("ExecuteInitializeSolutionStep"), 2)
+            self.assertEqual(calls.count("ExecuteFinalizeSolutionStep"), 2)
+            self.assertEqual(calls.count("IsOutputStep"), 2)
+            self.assertEqual(calls.count("ExecuteBeforeOutputStep"), 1)
+            self.assertEqual(calls.count("PrintOutput"), 1)
+            self.assertEqual(calls.count("ExecuteAfterOutputStep"), 1)
+            self.assertEqual(calls.count("ExecuteFinalize"), 1)
+
+            print_index = calls.index("PrintOutput")
+            self.assertEqual(calls[print_index - 1], "ExecuteBeforeOutputStep")
+            self.assertEqual(calls[print_index + 1], "ExecuteAfterOutputStep")
+            self.assertLess(calls.index("ExecuteBeforeOutputStep"),
+                            print_index)
+            self.assertEqual(calls[-1], "ExecuteFinalize")
+
+    def test_monitoring_device_output_and_nonoutput_steps(self):
+        with tempfile.TemporaryDirectory() as working_directory:
+            parameters = self._load_parameters("device_scheduling")
+            parameters["output_device_list"] = [{
+                "python_module": "dam_recording_output_process",
+                "Parameters": {
+                    "record_name": "device",
+                    "model_part_name": "MainModelPart",
+                    "output_times": [2.0]
+                }
+            }]
+
+            simulation = self._run(parameters, working_directory)
+
+            self.assertEqual(len(simulation.list_of_output_processes), 1)
+            calls = simulation.list_of_output_processes[0].calls
+
+            self.assertEqual(calls.count("ExecuteInitialize"), 1)
+            self.assertEqual(calls.count("ExecuteBeforeSolutionLoop"), 1)
+            self.assertEqual(calls.count("ExecuteInitializeSolutionStep"), 2)
+            self.assertEqual(calls.count("ExecuteFinalizeSolutionStep"), 2)
+            self.assertEqual(calls.count("IsOutputStep"), 2)
+            self.assertEqual(calls.count("ExecuteBeforeOutputStep"), 1)
+            self.assertEqual(calls.count("PrintOutput"), 1)
+            self.assertEqual(calls.count("ExecuteAfterOutputStep"), 1)
+            self.assertEqual(calls.count("ExecuteFinalize"), 1)
+
+            print_index = calls.index("PrintOutput")
+            before_index = calls.index("ExecuteBeforeOutputStep")
+            self.assertEqual(calls[print_index - 1], "ExecuteBeforeOutputStep")
+            self.assertEqual(calls[print_index + 1], "ExecuteAfterOutputStep")
+            self.assertLess(before_index, print_index)
+            self.assertEqual(calls[-1], "ExecuteFinalize")
+
+    def test_no_output_processes_do_not_trigger_output_callbacks(self):
+        with tempfile.TemporaryDirectory() as working_directory:
+            parameters = self._load_parameters("no_output_callbacks")
+            parameters["constraints_process_list"].insert(0, {
+                "python_module": "dam_recording_lifecycle_process",
+                "Parameters": {}
+            })
+
+            self._run(parameters, working_directory)
+
+            calls = recording_lifecycle_process.LAST_PROCESS.calls
+            self.assertEqual(calls.count("ExecuteInitialize"), 1)
+            self.assertEqual(calls.count("ExecuteBeforeSolutionLoop"), 1)
+            self.assertEqual(calls.count("ExecuteInitializeSolutionStep"), 2)
+            self.assertEqual(calls.count("ExecuteFinalizeSolutionStep"), 2)
+            self.assertEqual(calls.count("ExecuteBeforeOutputStep"), 0)
+            self.assertEqual(calls.count("ExecuteAfterOutputStep"), 0)
+            self.assertEqual(calls.count("ExecuteFinalize"), 1)
+
+    def test_gid_vtk_and_monitoring_device_callbacks(self):
+        with tempfile.TemporaryDirectory() as working_directory:
+            parameters = self._load_parameters("mixed_output_callbacks")
+            parameters["output_configuration"] = self._legacy_configuration()
+            parameters["output_processes"] = {
+                "vtk_output": [self._vtk_process(
+                    os.path.join(working_directory, "VTK_Output"))],
+                "recording": [{
+                    "python_module": "dam_recording_output_process",
+                    "Parameters": {
+                        "record_name": "standard",
+                        "model_part_name": "MainModelPart"
+                    }
+                }]
+            }
+            parameters["output_device_list"] = [{
+                "python_module": "dam_recording_output_process",
+                "Parameters": {
+                    "record_name": "device",
+                    "model_part_name": "MainModelPart",
+                    "output_times": [1.0, 2.0]
+                }
+            }]
+
+            simulation = self._run(parameters, working_directory)
+
+            standard_recording = self._find_recording_process(
+                simulation.list_of_standard_output_processes, "standard")
+            self._assert_recording_lifecycle(standard_recording.calls, 2)
+
+            self.assertEqual(len(simulation.list_of_output_processes), 1)
+            device_recording = simulation.list_of_output_processes[0]
+            self._assert_recording_lifecycle(device_recording.calls, 2)
+
+            self.assertEqual(
+                self._result_tags(os.path.join(
+                    working_directory, "mixed_output_callbacks.post.res")),
+                ["0", "1", "2"])
+            self.assertEqual(len(self._vtk_files(working_directory)), 2)
 
     def test_multiple_output_processes_in_same_group(self):
         with tempfile.TemporaryDirectory() as working_directory:

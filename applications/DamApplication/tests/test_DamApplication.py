@@ -10,6 +10,7 @@ from test_dam_linear_solver import TestDamLinearSolver
 from test_dam_nodal_young_modulus_process import TestImposeNodalYoungModulusProcess
 from test_dam_nonlocal_ownership import DamNonlocalOwnershipTest
 from test_dam_process_lifecycle import TestDamProcessLifetime
+from test_dam_analysis_process_lifecycle import TestDamAnalysisProcessLifecycle
 from test_global_tangent_consistency import TestGlobalTangentConsistency
 from test_interface_tangent_consistency import TestSmallDisplacementInterfaceTangent
 from test_initial_gp_output_before_solve import TestInitialGaussPointOutputBeforeSolve
@@ -72,6 +73,7 @@ def AssembleTestSuites():
                 DamProcessBasedNodalSmoothingTest,
                 DamNonlocalOwnershipTest,
                 TestDamProcessLifetime,
+                TestDamAnalysisProcessLifecycle,
                 TestDamOutputProcesses,
                 TestDamGiDOutputProcess,
             ]
@@ -101,6 +103,7 @@ def AssembleTestSuites():
                 DamNonlocalOwnershipTest,
                 DamProcessBasedNodalSmoothingTest,
                 TestDamProcessLifetime,
+                TestDamAnalysisProcessLifecycle,
                 TestSmallDisplacementInterfaceTangent,
                 TestDamOutputProcesses,
                 TestDamGiDOutputProcess,
