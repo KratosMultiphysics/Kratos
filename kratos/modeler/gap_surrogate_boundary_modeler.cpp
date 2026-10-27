@@ -19,21 +19,15 @@
 #include <vector>
 
 // Project includes
-#include "geometries/geometry_shape_function_container.h"
-#include "geometries/quadrature_point_geometry.h"
 #include "includes/kratos_components.h"
 #include "includes/variables.h"
 #include "integration/line_gauss_legendre_integration_points.h"
 #include "modeler/gap_surrogate_boundary_modeler.h"
-#include "utilities/math_utils.h"
+#include "utilities/gap_quadrature_utility.h"
 
 namespace Kratos {
 
 namespace {
-
-using QuadratureGeometryType = QuadraturePointGeometry<Node, 2, 2>;
-using ShapeFunctionContainerType =
-    GeometryShapeFunctionContainer<GeometryData::IntegrationMethod>;
 
 struct GapFaceData
 {
@@ -226,91 +220,18 @@ bool ValidateGapPatchAndCheckHasPositiveMeasure(
 }
 
 Geometry<Node>::Pointer CreateGapQuadratureGeometry(
-    const GapFaceData& rFace,
-    const double Tolerance)
+    const GapFaceData& rFace)
 {
-    auto& r_parent_geometry = rFace.pParentElement->GetGeometry();
-    const std::size_t number_of_nodes = r_parent_geometry.size();
-    const auto& r_line_integration_points =
-        LineGaussLegendreIntegrationPoints2::IntegrationPoints();
-    const std::size_t number_of_gap_gauss_points =
-        r_line_integration_points.size() * r_line_integration_points.size();
-
-    Geometry<Node>::IntegrationPointsArrayType integration_points;
-    integration_points.reserve(number_of_gap_gauss_points);
-    Matrix shape_functions(number_of_gap_gauss_points, number_of_nodes);
-    Geometry<Node>::ShapeFunctionsGradientsType local_gradients(
-        number_of_gap_gauss_points);
-
-    std::size_t point_index = 0;
-    for (const auto& r_eta_point : r_line_integration_points) {
-        for (const auto& r_xi_point : r_line_integration_points) {
-            const double xi = r_xi_point.X();
-            const double eta = r_eta_point.X();
-            const Point global_point = InterpolatePatchPoint(rFace, xi, eta);
-            Geometry<Node>::CoordinatesArrayType local_coordinates = ZeroVector(3);
-            r_parent_geometry.PointLocalCoordinates(local_coordinates, global_point);
-
-            Vector N;
-            r_parent_geometry.ShapeFunctionsValues(N, local_coordinates);
-            Matrix DN_De;
-            r_parent_geometry.ShapeFunctionsLocalGradients(DN_De, local_coordinates);
-
-            Matrix jacobian;
-            r_parent_geometry.Jacobian(jacobian, local_coordinates);
-            Matrix inverse_jacobian;
-            double determinant_jacobian = 0.0;
-            MathUtils<double>::InvertMatrix(
-                jacobian, inverse_jacobian, determinant_jacobian);
-            KRATOS_ERROR_IF(std::abs(determinant_jacobian) <= Tolerance)
-                << "GapSurrogateBoundaryModeler found a singular parent "
-                << "element #" << rFace.pParentElement->Id() << "." << std::endl;
-
-            const double signed_patch_jacobian =
-                CalculateSignedPatchJacobian(rFace, xi, eta);
-            const double physical_weight =
-                std::abs(signed_patch_jacobian) *
-                r_xi_point.Weight() * r_eta_point.Weight();
-
-            integration_points.emplace_back(
-                local_coordinates[0],
-                local_coordinates[1],
-                local_coordinates[2],
-                physical_weight / std::abs(determinant_jacobian));
-            for (std::size_t n = 0; n < number_of_nodes; ++n) {
-                shape_functions(point_index, n) = N[n];
-            }
-            local_gradients[point_index] = DN_De;
-            ++point_index;
+    Geometry<Node>::IntegrationPointsArrayType points;
+    for (const auto& r_eta : LineGaussLegendreIntegrationPoints2::IntegrationPoints()) {
+        for (const auto& r_xi : LineGaussLegendreIntegrationPoints2::IntegrationPoints()) {
+            const Point point = InterpolatePatchPoint(rFace, r_xi.X(), r_eta.X());
+            const double weight = std::abs(CalculateSignedPatchJacobian(
+                rFace, r_xi.X(), r_eta.X())) * r_xi.Weight() * r_eta.Weight();
+            points.emplace_back(point.X(), point.Y(), 0.0, weight);
         }
     }
-
-    QuadratureGeometryType::IntegrationPointsContainerType all_integration_points;
-    QuadratureGeometryType::ShapeFunctionsValuesContainerType all_shape_functions;
-    QuadratureGeometryType::ShapeFunctionsLocalGradientsContainerType all_local_gradients;
-    const auto gauss_one = GeometryData::IntegrationMethod::GI_GAUSS_1;
-    const auto gauss_two = GeometryData::IntegrationMethod::GI_GAUSS_2;
-
-    // FluidElement uses GI_GAUSS_2 for assembly, while its constitutive-law
-    // initialization currently requests GI_GAUSS_1. Store the same custom
-    // quadrature under both keys so an unmodified registered fluid element can
-    // be reused for the gap.
-    all_integration_points[static_cast<int>(gauss_one)] = integration_points;
-    all_integration_points[static_cast<int>(gauss_two)] = integration_points;
-    all_shape_functions[static_cast<int>(gauss_one)] = shape_functions;
-    all_shape_functions[static_cast<int>(gauss_two)] = shape_functions;
-    all_local_gradients[static_cast<int>(gauss_one)] = local_gradients;
-    all_local_gradients[static_cast<int>(gauss_two)] = local_gradients;
-
-    ShapeFunctionContainerType shape_function_container(
-        gauss_two,
-        all_integration_points,
-        all_shape_functions,
-        all_local_gradients);
-    return Kratos::make_shared<QuadratureGeometryType>(
-        r_parent_geometry.Points(),
-        shape_function_container,
-        &r_parent_geometry);
+    return GapQuadratureUtility::Create(rFace.pParentElement->GetGeometry(), points);
 }
 
 void SetExactBoundaryQuadrature(GapFaceData& rFace, const double Tolerance)
@@ -661,7 +582,7 @@ void GapSurrogateBoundaryModeler::SetupGapModelPart2D()
             ++number_of_zero_measure_patches;
             continue;
         }
-        auto p_gap_geometry = CreateGapQuadratureGeometry(r_face, tolerance);
+        auto p_gap_geometry = CreateGapQuadratureGeometry(r_face);
         auto p_gap_element = r_gap_element_prototype.Create(
             next_element_id++,
             p_gap_geometry,
