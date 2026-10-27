@@ -124,6 +124,14 @@ public:
         const bool ComputeRHS
         );
 
+    /**
+     * this is called during the assembling process in order
+     * to calculate the elemental mass matrix
+     * @param rMassMatrix the elemental mass matrix
+     * @param rCurrentProcessInfo the current process info instance
+     */
+    void CalculateMassMatrix(Matrix& rMassMatrix, const ProcessInfo& rCurrentProcessInfo) override;
+
     void CalculateOnIntegrationPoints(
         const Variable<double> &rVariable,
         std::vector<double> &rOutput,

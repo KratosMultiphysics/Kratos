@@ -213,14 +213,14 @@ void NonLinearTimoshenkoBeamElement2D2N::CalculateAll(
         if (rLHS.size1() != mat_size || rLHS.size2() != mat_size) {
             rLHS.resize(mat_size, mat_size, false);
         }
-        noalias(rLHS) = ZeroMatrix(mat_size, mat_size);
+        rLHS.clear();
     }
 
     if (ComputeRHS) {
         if (rRHS.size() != mat_size) {
             rRHS.resize(mat_size, false);
         }
-        noalias(rRHS) = ZeroVector(mat_size);
+        rRHS.clear();
     }
 
     const auto& r_integration_points = IntegrationPoints(GetIntegrationMethod());
@@ -425,5 +425,57 @@ void NonLinearTimoshenkoBeamElement2D2N::CalculateOnIntegrationPoints(
 
 /***********************************************************************************/
 /***********************************************************************************/
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void NonLinearTimoshenkoBeamElement2D2N::CalculateMassMatrix(Matrix& rMassMatrix,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_TRY
+
+    const auto &r_props = GetProperties();
+    const auto &r_geometry = GetGeometry();
+    const SizeType number_of_nodes = r_geometry.size();
+    const SizeType mat_size = GetDoFsPerNode() * number_of_nodes;
+
+    if (rMassMatrix.size1() != mat_size || rMassMatrix.size2() != mat_size) {
+        rMassMatrix.resize(mat_size, mat_size, false);
+    }
+    rMassMatrix.clear();
+
+    const auto& r_integration_points = IntegrationPoints(GetMassMatrixIntegrationMethod()); // We need 4 integration points to integrate the mass matrix exactly
+
+    const double length = CalculateLength();
+    const double Phi    = StructuralMechanicsElementUtilities::CalculatePhi(r_props, length);
+    const double J      = 0.5 * length;
+    const double area   = GetCrossArea();
+    const double inertia = r_props[I33];
+    const double density = r_props[DENSITY];
+
+    VectorType N_theta(mat_size), N_u(mat_size), N_shape(mat_size);
+
+    for (SizeType IP = 0; IP < r_integration_points.size(); ++IP) {
+
+        const double xi     = r_integration_points[IP].X();
+        const double weight = r_integration_points[IP].Weight();
+        const double jacobian_weight = weight * J * density;
+
+        GetShapeFunctionsValues(N_shape, length, Phi, xi); // deflection
+        GetNu0ShapeFunctionsValues(N_u, length, Phi, xi); // axial displacement
+        GetNThetaShapeFunctionsValues(N_theta, length, Phi, xi); // rotation
+
+        // u contributions
+        noalias(rMassMatrix) += outer_prod(N_u, N_u) * jacobian_weight * area;
+
+        // v contributions
+        noalias(rMassMatrix) += outer_prod(N_shape, N_shape) * jacobian_weight * area;
+
+        // theta contributions
+        noalias(rMassMatrix) += outer_prod(N_theta, N_theta) * jacobian_weight * inertia;
+    }
+
+    KRATOS_CATCH("CalculateMassMatrix")
+}
 
 } // namespace Kratos
