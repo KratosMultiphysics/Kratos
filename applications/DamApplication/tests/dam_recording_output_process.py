@@ -11,6 +11,7 @@ class RecordingOutputProcess(KratosMultiphysics.OutputProcess):
         self.settings.ValidateAndAssignDefaults(KratosMultiphysics.Parameters(
             '{"record_name": "", "model_part_name": "", "output_times": []}'))
         self.calls = []
+        self.print_times = []
 
     def _record(self, call_name):
         self.calls.append(call_name)
@@ -45,6 +46,10 @@ class RecordingOutputProcess(KratosMultiphysics.OutputProcess):
 
     def PrintOutput(self):
         self._record("PrintOutput")
+        model_part_name = self.settings["model_part_name"].GetString()
+        if model_part_name:
+            self.print_times.append(
+                self.model[model_part_name].ProcessInfo[KratosMultiphysics.TIME])
 
     def ExecuteAfterOutputStep(self):
         self._record("ExecuteAfterOutputStep")

@@ -553,6 +553,7 @@ class TestDamOutputProcesses(KratosUnittest.TestCase):
             self.assertEqual(calls.count("PrintOutput"), 1)
             self.assertEqual(calls.count("ExecuteAfterOutputStep"), 1)
             self.assertEqual(calls.count("ExecuteFinalize"), 1)
+            self.assertEqual(recording.print_times, [2.0])
 
             print_index = calls.index("PrintOutput")
             self.assertEqual(calls[print_index - 1], "ExecuteBeforeOutputStep")
@@ -587,6 +588,8 @@ class TestDamOutputProcesses(KratosUnittest.TestCase):
             self.assertEqual(calls.count("PrintOutput"), 1)
             self.assertEqual(calls.count("ExecuteAfterOutputStep"), 1)
             self.assertEqual(calls.count("ExecuteFinalize"), 1)
+            self.assertEqual(
+                simulation.list_of_output_processes[0].print_times, [2.0])
 
             print_index = calls.index("PrintOutput")
             before_index = calls.index("ExecuteBeforeOutputStep")
@@ -594,6 +597,64 @@ class TestDamOutputProcesses(KratosUnittest.TestCase):
             self.assertEqual(calls[print_index + 1], "ExecuteAfterOutputStep")
             self.assertLess(before_index, print_index)
             self.assertEqual(calls[-1], "ExecuteFinalize")
+
+    def test_multiple_output_processes_with_different_frequencies(self):
+        with tempfile.TemporaryDirectory() as working_directory:
+            parameters = self._load_parameters("multiple_frequencies")
+            parameters["output_processes"] = {
+                "recording": [
+                    {
+                        "python_module": "dam_recording_output_process",
+                        "Parameters": {
+                            "record_name": "step_one",
+                            "model_part_name": "MainModelPart",
+                            "output_times": [1.0]
+                        }
+                    },
+                    {
+                        "python_module": "dam_recording_output_process",
+                        "Parameters": {
+                            "record_name": "step_two",
+                            "model_part_name": "MainModelPart",
+                            "output_times": [2.0]
+                        }
+                    }
+                ]
+            }
+            parameters["constraints_process_list"].insert(0, {
+                "python_module": "dam_recording_lifecycle_process",
+                "Parameters": {}
+            })
+
+            simulation = self._run(parameters, working_directory)
+
+            ordinary_calls = recording_lifecycle_process.LAST_PROCESS.calls
+            self.assertEqual(ordinary_calls.count("ExecuteInitialize"), 1)
+            self.assertEqual(ordinary_calls.count("ExecuteBeforeSolutionLoop"), 1)
+            self.assertEqual(ordinary_calls.count("ExecuteInitializeSolutionStep"), 2)
+            self.assertEqual(ordinary_calls.count("ExecuteFinalizeSolutionStep"), 2)
+            self.assertEqual(ordinary_calls.count("ExecuteBeforeOutputStep"), 2)
+            self.assertEqual(ordinary_calls.count("ExecuteAfterOutputStep"), 2)
+            self.assertEqual(ordinary_calls.count("ExecuteFinalize"), 1)
+
+            expected_print_times = {
+                "step_one": [1.0],
+                "step_two": [2.0]
+            }
+            for record_name, expected_times in expected_print_times.items():
+                recording = self._find_recording_process(
+                    simulation.list_of_standard_output_processes, record_name)
+                calls = recording.calls
+
+                self.assertEqual(calls.count("IsOutputStep"), 2)
+                self.assertEqual(calls.count("ExecuteBeforeOutputStep"), 2)
+                self.assertEqual(calls.count("ExecuteAfterOutputStep"), 2)
+                self.assertEqual(calls.count("PrintOutput"), 1)
+                self.assertEqual(recording.print_times, expected_times)
+
+                print_index = calls.index("PrintOutput")
+                self.assertEqual(calls[print_index - 1], "ExecuteBeforeOutputStep")
+                self.assertEqual(calls[print_index + 1], "ExecuteAfterOutputStep")
 
     def test_no_output_processes_do_not_trigger_output_callbacks(self):
         with tempfile.TemporaryDirectory() as working_directory:
