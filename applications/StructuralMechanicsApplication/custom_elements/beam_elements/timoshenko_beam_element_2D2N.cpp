@@ -48,7 +48,7 @@ void LinearTimoshenkoBeamElement2D2N::Initialize(const ProcessInfo& rCurrentProc
             mConstitutiveLawVector.resize(r_integration_points.size());
         InitializeMaterial();
     }
-    KRATOS_CATCH("")
+    KRATOS_CATCH("Initialize")
 }
 
 /***********************************************************************************/
@@ -69,7 +69,7 @@ void LinearTimoshenkoBeamElement2D2N::InitializeMaterial()
     } else
         KRATOS_ERROR << "A constitutive law needs to be specified for the element with ID " << this->Id() << std::endl;
 
-    KRATOS_CATCH("");
+    KRATOS_CATCH("InitializeMaterial")
 }
 
 /***********************************************************************************/
@@ -95,7 +95,7 @@ Element::Pointer LinearTimoshenkoBeamElement2D2N::Clone(
 
     return p_new_elem;
 
-    KRATOS_CATCH("");
+    KRATOS_CATCH("Clone")
 }
 
 /***********************************************************************************/
@@ -130,7 +130,7 @@ void LinearTimoshenkoBeamElement2D2N::EquationIdVector(
         }
         rResult[local_index++] = r_geometry[i].GetDof(ROTATION_Z, rot_pos + 2).EquationId();
     }
-    KRATOS_CATCH("")
+    KRATOS_CATCH("EquationIdVector")
 }
 
 /***********************************************************************************/
@@ -141,7 +141,7 @@ void LinearTimoshenkoBeamElement2D2N::GetDofList(
     const ProcessInfo& rCurrentProcessInfo
     ) const
 {
-    KRATOS_TRY;
+    KRATOS_TRY
 
     const auto& r_geom = GetGeometry();
     const SizeType number_of_nodes = r_geom.size();
@@ -160,7 +160,7 @@ void LinearTimoshenkoBeamElement2D2N::GetDofList(
         }
         rElementalDofList[index++] = r_geom[i].pGetDof(ROTATION_Z);
     }
-    KRATOS_CATCH("")
+    KRATOS_CATCH("GetDofList")
 }
 
 /***********************************************************************************/
@@ -216,7 +216,7 @@ void LinearTimoshenkoBeamElement2D2N::GetSecondDerivativesShapeFunctionsValues(
     if (rN.size() != 4)
         rN.resize(4, false);
     const double one_plus_phi = 1.0 + Phi;
-    const double L_square = std::pow(Length, 2);
+    const double L_square = Length * Length;
     rN[0] = 6.0 * xi / (one_plus_phi * L_square);
     rN[1] = (-1.0 + 3.0 * xi - Phi) / (one_plus_phi * Length);
     rN[2] = -6.0 * xi / (one_plus_phi * L_square);
@@ -236,8 +236,8 @@ void LinearTimoshenkoBeamElement2D2N::GetThirdDerivativesShapeFunctionsValues(
     if (rN.size() != 4)
         rN.resize(4, false);
     const double one_plus_phi = 1.0 + Phi;
-    const double L_square = std::pow(Length, 2);
-    const double L_cube   = std::pow(Length, 3);
+    const double L_square = Length * Length;
+    const double L_cube   = L_square * Length;
     rN[0] = 12.0  / (one_plus_phi * L_cube);
     rN[1] = 6.0   / (one_plus_phi * L_square);
     rN[2] = -12.0 / (one_plus_phi * L_cube);
@@ -401,10 +401,10 @@ double LinearTimoshenkoBeamElement2D2N::CalculateShearStrain(
     const VectorType& rNodalValues
     ) const
 {
-    VectorType N_derivatives(4), N_theta(4);
+    VectorType N_derivatives(4), N_theta(4), N_s(4);
     GetFirstDerivativesShapeFunctionsValues(N_derivatives, Length, Phi, xi);
     GetNThetaShapeFunctionsValues(N_theta, Length, Phi, xi);
-    const VectorType N_s = N_derivatives - N_theta;
+    noalias(N_s) = N_derivatives - N_theta;
     return N_s[0] * rNodalValues[1] + N_s[1] * rNodalValues[2] + N_s[2] * rNodalValues[4] + 
            N_s[3] * rNodalValues[5];
 }
@@ -439,9 +439,10 @@ array_1d<double, 3> LinearTimoshenkoBeamElement2D2N::GetLocalAxesBodyForce(
 
     const double c = std::cos(angle);
     const double s = std::sin(angle);
-    array_1d<double, 3> local_body_force = ZeroVector(3);
+    array_1d<double, 3> local_body_force;
     local_body_force[0] = c * body_force[0] + s * body_force[1];
     local_body_force[1] = -s * body_force[0] + c * body_force[1];
+    local_body_force[2] = 0.0;
     return local_body_force;
 }
 
