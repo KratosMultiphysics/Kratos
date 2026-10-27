@@ -243,6 +243,15 @@ public:
     }
 
     /**
+     * @brief Returns the used integration method
+     * @return default integration method of the used Geometry
+     */
+    virtual IntegrationMethod GetMassMatrixIntegrationMethod() const
+    {
+        return GeometryData::IntegrationMethod::GI_GAUSS_4;
+    }
+
+    /**
     * element can be integrated using the GP provided by the geometry or custom ones
     * by default, the base element will use the standard integration provided by the geom
     * @return bool to select if use/not use GPs given by the geometry
