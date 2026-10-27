@@ -21,49 +21,24 @@ class ApplyLoadVectorDamProcess(KratosMultiphysics.Process):
 
         variable_name = settings["variable_name"].GetString()
 
+        # The Dam wrapper deliberately ignores "interval": the component
+        # processes keep the standard default interval.
         self.components_process_list = []
 
         self.factor = settings["modulus"].GetDouble()
-        self.direction = [
-            settings["direction"][0].GetDouble(),
-            settings["direction"][1].GetDouble(),
-            settings["direction"][2].GetDouble(),
-        ]
-        self.value = [
-            self.direction[0] * self.factor,
-            self.direction[1] * self.factor,
-            self.direction[2] * self.factor,
-        ]
+        self.direction = [settings["direction"][i].GetDouble() for i in range(3)]
+        self.value = [component * self.factor for component in self.direction]
 
-        if abs(self.value[0]) > 1.0e-15:
-            x_params = KratosMultiphysics.Parameters("{}")
-            x_params.AddValue("model_part_name", settings["model_part_name"])
-            x_params.AddEmptyValue("constrained").SetBool(False)
-            x_params.AddEmptyValue("value").SetDouble(self.value[0])
-            x_params.AddEmptyValue("variable_name").SetString(variable_name + "_X")
-            self.components_process_list.append(
-                AssignScalarVariableProcess(Model, x_params)
-            )
-
-        if abs(self.value[1]) > 1.0e-15:
-            y_params = KratosMultiphysics.Parameters("{}")
-            y_params.AddValue("model_part_name", settings["model_part_name"])
-            y_params.AddEmptyValue("constrained").SetBool(False)
-            y_params.AddEmptyValue("value").SetDouble(self.value[1])
-            y_params.AddEmptyValue("variable_name").SetString(variable_name + "_Y")
-            self.components_process_list.append(
-                AssignScalarVariableProcess(Model, y_params)
-            )
-
-        if abs(self.value[2]) > 1.0e-15:
-            z_params = KratosMultiphysics.Parameters("{}")
-            z_params.AddValue("model_part_name", settings["model_part_name"])
-            z_params.AddEmptyValue("constrained").SetBool(False)
-            z_params.AddEmptyValue("value").SetDouble(self.value[2])
-            z_params.AddEmptyValue("variable_name").SetString(variable_name + "_Z")
-            self.components_process_list.append(
-                AssignScalarVariableProcess(Model, z_params)
-            )
+        for suffix, value in zip("XYZ", self.value):
+            if abs(value) > 1.0e-15:
+                component_params = KratosMultiphysics.Parameters("{}")
+                component_params.AddValue("model_part_name", settings["model_part_name"])
+                component_params.AddEmptyValue("constrained").SetBool(False)
+                component_params.AddEmptyValue("value").SetDouble(value)
+                component_params.AddEmptyValue("variable_name").SetString(variable_name + "_" + suffix)
+                self.components_process_list.append(
+                    AssignScalarVariableProcess(Model, component_params)
+                )
 
     def ExecuteBeforeSolutionLoop(self):
 
