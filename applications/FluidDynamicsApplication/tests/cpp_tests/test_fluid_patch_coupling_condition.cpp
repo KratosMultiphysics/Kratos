@@ -67,7 +67,7 @@ Condition::Pointer create_condition(ModelPart& rModelPart, const double Coeffici
     Matrix coordinates = ZeroMatrix(2, 3);
     coordinates(0, 0) = coordinates(1, 0) = 1.0;
     coordinates(1, 1) = 1.0;
-    p_condition->SetValue(FEM_COUPLING_INTERFACE_COORDINATES, coordinates);
+    p_condition->SetValue(COUPLING_INTERFACE_COORDINATES, coordinates);
     return p_condition;
 }
 } // unnamed namespace
@@ -236,7 +236,7 @@ KRATOS_TEST_CASE_IN_SUITE(FluidPatchCouplingTimeAssemblyAndChecks, FluidDynamics
     p_condition->GetProperties()[PENALTY_COEFFICIENT] = -2.0;
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(p_condition->Check(r_info), "PENALTY_COEFFICIENT");
     p_condition->GetProperties()[PENALTY_COEFFICIENT] = 0.0;
-    auto& r_coordinates = p_condition->GetValue(FEM_COUPLING_INTERFACE_COORDINATES);
+    auto& r_coordinates = p_condition->GetValue(COUPLING_INTERFACE_COORDINATES);
     r_coordinates(0, 0) = r_coordinates(1, 0) = 1.1;
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(p_condition->Check(r_info), "Coupling endpoints");
 }

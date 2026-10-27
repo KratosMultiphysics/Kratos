@@ -129,7 +129,7 @@ def solve_manufactured_problem(coefficient, first_divisions=4,
                                     exact_pressure(node.X, node.Y)))
 
     for condition in root.GetSubModelPart("Coupling").Conditions:
-        segment = condition.GetValue(CFD.FEM_COUPLING_INTERFACE_COORDINATES)
+        segment = condition.GetValue(CFD.COUPLING_INTERFACE_COORDINATES)
         y = 0.5 * (segment[0, 1] + segment[1, 1])
         geometry = list(condition.GetGeometry())
         parent_nodes = len(geometry) // 2
@@ -187,7 +187,7 @@ class FluidPatchCouplingConditionTest(KratosUnittest.TestCase):
             self.assertEqual(condition.GetGeometry().PointsNumber(),
                              2 * parent_nodes)
             segment = condition.GetValue(
-                CFD.FEM_COUPLING_INTERFACE_COORDINATES)
+                CFD.COUPLING_INTERFACE_COORDINATES)
             self.assertAlmostEqual(segment[0, 0], 1.0)
             self.assertAlmostEqual(segment[1, 0], 1.0)
             total_length += segment[1, 1] - segment[0, 1]

@@ -70,8 +70,8 @@ import test_sensitivity_utilities
 import test_file_name_data_collector
 import test_function_parser_utility
 import test_integration_points
-import test_fem_multipatch_modeler
-import test_fem_multipatch_gap_modeler
+import test_multipatch_modeler
+import test_multipatch_gap_modeler
 import test_mls_shape_functions_utility
 import test_model_part_combination_utilities
 import test_force_and_torque_utils
@@ -137,8 +137,8 @@ def AssembleTestSuites():
 
     # Create a test suite with the selected tests (Small tests):
     smallSuite = suites['small']
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_fem_multipatch_modeler.TestFemMultipatchModeler]))
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_fem_multipatch_gap_modeler.TestFemMultipatchGapModeler]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_multipatch_modeler.TestFemMultipatchModeler]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_multipatch_gap_modeler.TestFemMultipatchGapModeler]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_bounding_box.TestBoundingBox]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_print_info_in_file.TestPrintNodalInfoInFile]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_print_info_in_file.TestPrintElementalInfoInFile]))

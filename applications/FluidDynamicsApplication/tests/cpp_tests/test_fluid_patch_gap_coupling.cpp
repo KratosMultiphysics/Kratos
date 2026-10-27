@@ -42,7 +42,7 @@ Condition::Pointer GapCondition(ModelPart& part, const bool Connector, double Pe
     Matrix segment = ZeroMatrix(2, 3);
     segment(0, 0) = segment(1, 0) = 1; segment(1, 1) = 1;
     if (Connector) { segment(0, 1) = 1; segment(1, 0) = 0.8; segment(1, 1) = 1.3; }
-    condition->SetValue(Connector?SURROGATE_BOUNDARY_FACE_COORDINATES:FEM_COUPLING_INTERFACE_COORDINATES, segment);
+    condition->SetValue(Connector?SURROGATE_BOUNDARY_FACE_COORDINATES:COUPLING_INTERFACE_COORDINATES, segment);
     condition->Initialize(part.GetProcessInfo());
     return condition;
 }
@@ -81,7 +81,7 @@ KRATOS_TEST_CASE_IN_SUITE(FluidPatchGapCouplingLinearizationAndSharedNodes, Flui
                 auto fitted = part.CreateNewCondition("FluidPatchCouplingCondition2D8N", 2,
                     {1, 2, 3, 4, 5, 6, 7, 8}, condition->pGetProperties());
                 fitted->SetValue(NEIGHBOUR_ELEMENTS, condition->GetValue(NEIGHBOUR_ELEMENTS));
-                fitted->SetValue(FEM_COUPLING_INTERFACE_COORDINATES, condition->GetValue(FEM_COUPLING_INTERFACE_COORDINATES));
+                fitted->SetValue(COUPLING_INTERFACE_COORDINATES, condition->GetValue(COUPLING_INTERFACE_COORDINATES));
                 KRATOS_EXPECT_EXCEPTION_IS_THROWN(fitted->Check(part.GetProcessInfo()),"Coupling endpoints");
             }
         }

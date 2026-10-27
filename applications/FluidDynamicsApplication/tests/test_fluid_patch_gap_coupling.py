@@ -8,7 +8,7 @@ import math
 import KratosMultiphysics as KM
 import KratosMultiphysics.FluidDynamicsApplication as CFD
 import KratosMultiphysics.KratosUnittest as KratosUnittest
-from KratosMultiphysics.modelers.fem_multipatch_modeler import FemMultipatchModeler
+from KratosMultiphysics.modelers.multipatch_modeler import FemMultipatchModeler
 
 
 def exact_fields(x, y, nonlinear=False):
@@ -38,8 +38,11 @@ def interpolate_nodes(nodes, point):
 
 
 def create_gap_problem(angle=23.0, coefficient=0.0, divisions=12,
-                       inner_divisions=7, nonlinear=False, fitted=False):
+                       inner_divisions=7, nonlinear=False, fitted=False, ale=False,
+                       patch_origin=None):
     origin, size = ([0.25, 0.25], 0.5) if fitted else ([0.33, 0.37], 0.32)
+    if patch_origin is not None:
+        origin = patch_origin
     settings = KM.Parameters(json.dumps({
         "model_part_name": "Fluid", "interface_mode": "gap_sbm",
         "background": {"origin": [0, 0], "dimensions": [1, 1],
@@ -48,12 +51,15 @@ def create_gap_problem(angle=23.0, coefficient=0.0, divisions=12,
         "internal_patches": [{"origin": origin, "dimensions": [size, size],
                               "divisions": [inner_divisions, inner_divisions+1],
                               "element_type": "quadrilateral", "rotation_angle": angle,
-                              "element_name": "SymbolicStokes2D4N"}]}))
+                              "element_name": "SymbolicStokesALE2D4N" if ale else "SymbolicStokes2D4N"}]}))
     model = KM.Model()
     modeler = FemMultipatchModeler(model, settings)
     root = modeler.model_part
     for variable in (KM.VELOCITY, KM.ACCELERATION, KM.PRESSURE, KM.BODY_FORCE):
         root.AddNodalSolutionStepVariable(variable)
+    if ale:
+        root.AddNodalSolutionStepVariable(KM.MESH_VELOCITY)
+        root.AddNodalSolutionStepVariable(KM.DISPLACEMENT)
     root.SetBufferSize(3)
     root.ProcessInfo[KM.DELTA_TIME] = 1.0
     root.ProcessInfo[KM.DYNAMIC_TAU] = 0.0
