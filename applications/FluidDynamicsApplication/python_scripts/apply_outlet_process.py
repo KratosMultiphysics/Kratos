@@ -173,7 +173,7 @@ class ApplyOutletProcess(KratosMultiphysics.Process):
         densities = {properties.GetValue(KratosMultiphysics.DENSITY) for properties in self.outlet_model_part.GetRootModelPart().Properties if properties.Has(KratosMultiphysics.DENSITY)}
         if len(densities) != 1:
             raise Exception(f"The hydrostatic outlet needs a unique DENSITY in the properties if DENSITY is not in the nodal data. Found {sorted(densities)}.")
-        return densities[0]
+        return densities.pop()
 
     def __ComputeOutletAverageVelocity(self):
         # Compute the outlet average velocity
