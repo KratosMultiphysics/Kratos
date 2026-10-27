@@ -50,6 +50,8 @@ namespace Kratos
  * Archives of Comp. Methods in Eng. (2021) 28:2021-2080
  * DOI: https://doi.org/10.1007/s11831-020-09515-0
  * @author Alejandro Cornejo
+ * Complete description of the formulation: https://www.researchgate.net/publication/410677135_High-Accuracy_Locking-Free_Elements_for_Timoshenko_Beam_and_Reissner-Mindlin_Plate_Theories_Using_Irreducible_Formulations
+ * DOI: 10.13140/RG.2.2.28193.16484
  */
 class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) LinearTimoshenkoBeamElement2D2N
     : public Element
@@ -476,6 +478,22 @@ public:
      * Getting method to obtain the second time derivative of variable which defines the degrees of freedom
      */
     void GetSecondDerivativesVector(Vector &values, int Step = 0) const override;
+
+    /**
+     * this is called during the assembling process in order
+     * to calculate the elemental mass matrix
+     * @param rMassMatrix the elemental mass matrix
+     * @param rCurrentProcessInfo the current process info instance
+     */
+    void CalculateMassMatrix(Matrix& rMassMatrix, const ProcessInfo& rCurrentProcessInfo) override;
+
+    /**
+     * this is called during the assembling process in order
+     * to calculate the elemental damping matrix
+     * @param rDampingMatrix the elemental damping matrix
+     * @param rCurrentProcessInfo the current process info instance
+     */
+    void CalculateDampingMatrix(Matrix& CalculateDampingMatrix, const ProcessInfo& rCurrentProcessInfo) override;
 
     ///@}
     ///@name Access

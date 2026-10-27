@@ -1212,4 +1212,25 @@ void LinearTimoshenkoBeamElement2D2N::GetSecondDerivativesVector(Vector &rValues
     }
 }
 
+/***********************************************************************************/
+/***********************************************************************************/
+
+void LinearTimoshenkoBeamElement2D2N::CalculateMassMatrix(Matrix& rMassMatrix,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void LinearTimoshenkoBeamElement2D2N::CalculateDampingMatrix(Matrix& rDampingMatrix, const ProcessInfo& rCurrentProcessInfo)
+{
+
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+
 } // Namespace Kratos
