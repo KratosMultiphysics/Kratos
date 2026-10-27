@@ -181,6 +181,43 @@ KRATOS_TEST_CASE_IN_SUITE(StructuredMeshGeneratorProcessQuadrilateral, KratosCor
     KRATOS_EXPECT_EQ(r_domain_model_part.NumberOfElements(), number_of_divisions * number_of_divisions * 2);
 }
 
+KRATOS_TEST_CASE_IN_SUITE(StructuredMeshGeneratorProcessQuadrilateralElements, KratosCoreFastSuite)
+{
+    Model model;
+    auto& r_model_part = model.CreateModelPart("QuadrilateralMesh");
+    Quadrilateral2D4<Node> geometry(
+        Kratos::make_intrusive<Node>(1, 0.0, 0.0, 0.0),
+        Kratos::make_intrusive<Node>(2, 0.0, 6.0, 0.0),
+        Kratos::make_intrusive<Node>(3, 10.0, 6.0, 0.0),
+        Kratos::make_intrusive<Node>(4, 10.0, 0.0, 0.0));
+    Parameters settings(R"({
+        "element_name": "Element2D4N",
+        "condition_name": "LineCondition",
+        "number_of_divisions": [3, 5, 1],
+        "create_skin_sub_model_part": true,
+        "create_body_sub_model_part": true,
+        "start_node_id": 11,
+        "start_element_id": 21,
+        "elements_properties_id": 7,
+        "conditions_properties_id": 8
+    })");
+    StructuredMeshGeneratorProcess(geometry, r_model_part, settings).Execute();
+    KRATOS_EXPECT_EQ(r_model_part.NumberOfNodes(), 24);
+    KRATOS_EXPECT_EQ(r_model_part.NumberOfElements(), 15);
+    KRATOS_EXPECT_EQ(r_model_part.NodesBegin()->Id(), 11);
+    KRATOS_EXPECT_EQ(r_model_part.ElementsBegin()->Id(), 21);
+    KRATOS_EXPECT_EQ(r_model_part.GetSubModelPart("Body").NumberOfElements(), 15);
+    KRATOS_EXPECT_EQ(r_model_part.GetSubModelPart("Skin").NumberOfConditions(), 16);
+    double area = 0.0;
+    for (const auto& r_element : r_model_part.Elements()) {
+        KRATOS_EXPECT_EQ(r_element.GetGeometry().PointsNumber(), 4);
+        KRATOS_EXPECT_EQ(r_element.GetProperties().Id(), 7);
+        KRATOS_EXPECT_GT(r_element.GetGeometry().DeterminantOfJacobian(0), 0.0);
+        area += r_element.GetGeometry().Area();
+    }
+    KRATOS_EXPECT_NEAR(area, 60.0, 1e-12);
+}
+
 }  // namespace Kratos::Testing.
 
 
