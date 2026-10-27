@@ -1131,7 +1131,7 @@ void LinearTimoshenkoBeamElement2D2N::FinalizeSolutionStep(const ProcessInfo& rC
         mConstitutiveLawVector[integration_point]->FinalizeMaterialResponse(cl_values, mConstitutiveLawVector[integration_point]->GetStressMeasure());
     }
 
-    KRATOS_CATCH("")
+    KRATOS_CATCH("FinalizeSolutionStep")
 }
 
 /***********************************************************************************/
@@ -1218,13 +1218,60 @@ void LinearTimoshenkoBeamElement2D2N::GetSecondDerivativesVector(Vector &rValues
 void LinearTimoshenkoBeamElement2D2N::CalculateMassMatrix(Matrix& rMassMatrix,
     const ProcessInfo& rCurrentProcessInfo)
 {
+    KRATOS_TRY
 
+    const auto &r_props = GetProperties();
+    const auto &r_geometry = GetGeometry();
+    const SizeType number_of_nodes = r_geometry.size();
+    const SizeType mat_size = GetDoFsPerNode() * number_of_nodes;
+
+    if (rMassMatrix.size1() != mat_size || rMassMatrix.size2() != mat_size) {
+        rMassMatrix.resize(mat_size, mat_size, false);
+    }
+    rMassMatrix.clear();
+
+    const auto& r_integration_points = IntegrationPoints(GetMassMatrixIntegrationMethod()); // We need 4 integration points to integrate the mass matrix exactly
+
+    const double length = CalculateLength();
+    const double Phi    = StructuralMechanicsElementUtilities::CalculatePhi(r_props, length);
+    const double J      = 0.5 * length;
+    const double area   = GetCrossArea();
+    const double inertia = r_props[I33];
+    const double density = r_props[DENSITY];
+
+    VectorType global_size_N(mat_size), N_theta(mat_size - number_of_nodes), N_u(number_of_nodes), N_shape(mat_size - number_of_nodes);
+
+    for (SizeType IP = 0; IP < r_integration_points.size(); ++IP) {
+        global_size_N.clear();
+        const double xi     = r_integration_points[IP].X();
+        const double weight = r_integration_points[IP].Weight();
+        const double jacobian_weight = weight * J * density;
+
+        GetShapeFunctionsValues(N_shape, length, Phi, xi); // deflection
+        GetNu0ShapeFunctionsValues(N_u, length, Phi, xi); // axial displacement
+        GetNThetaShapeFunctionsValues(N_theta, length, Phi, xi); // rotation
+
+        // u contributions
+        GlobalSizeAxialVector(global_size_N, N_u);
+        noalias(rMassMatrix) += outer_prod(global_size_N, global_size_N) * jacobian_weight * area;
+
+        // v contributions
+        GlobalSizeVector(global_size_N, N_shape);
+        noalias(rMassMatrix) += outer_prod(global_size_N, global_size_N) * jacobian_weight * area;
+
+        // theta contributions
+        GlobalSizeVector(global_size_N, N_theta);
+        noalias(rMassMatrix) += outer_prod(global_size_N, global_size_N) * jacobian_weight * inertia;
+    }
+
+    KRATOS_CATCH("CalculateMassMatrix")
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
-void LinearTimoshenkoBeamElement2D2N::CalculateDampingMatrix(Matrix& rDampingMatrix, const ProcessInfo& rCurrentProcessInfo)
+void LinearTimoshenkoBeamElement2D2N::CalculateDampingMatrix(Matrix& rDampingMatrix,
+    const ProcessInfo& rCurrentProcessInfo)
 {
 
 }
