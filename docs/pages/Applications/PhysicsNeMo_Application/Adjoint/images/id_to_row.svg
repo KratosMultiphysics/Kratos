@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1100" height="330" viewBox="0 0 1100 330" font-family="Helvetica, Arial, sans-serif">
+  <title>From Kratos's adjoint output to a row-ordered array</title>
+  <desc>Kratos reports a gradient as an entity-id keyed dictionary over an adjoint model part; the bridge converts by id into the application's row order so it lines up with every field and can become a training target.</desc>
+  <defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#555"/></marker></defs>
+  <rect width="1100" height="330" fill="#ffffff"/>
+  <g font-size="12.5" fill="#333">
+    <rect x="20" y="30" width="330" height="200" rx="10" fill="#eaf2fb" stroke="#1f4e79" stroke-width="1.5"/>
+    <text x="185" y="56" text-anchor="middle" font-size="15" font-weight="bold" fill="#1f4e79">what Kratos hands out</text>
+    <text x="35" y="82" font-family="monospace" font-size="11.5">response.CalculateGradient()</text>
+    <text x="35" y="104" font-family="monospace" font-size="11.5">{ 17: [dx, dy, dz],</text>
+    <text x="35" y="120" font-family="monospace" font-size="11.5">   3: [dx, dy, dz],</text>
+    <text x="35" y="136" font-family="monospace" font-size="11.5">  42: [dx, dy, dz], ... }</text>
+    <text x="35" y="162">keyed by entity id, over the ADJOINT model part -</text>
+    <text x="35" y="178">a separate Model for StructuralMechanics, whose</text>
+    <text x="35" y="194">iteration order need not be the primal's</text>
+    <text x="35" y="218" fill="#a03060">never convert by iteration order</text>
+    <rect x="385" y="30" width="330" height="200" rx="10" fill="#f6f6f6" stroke="#666" stroke-width="1.5"/>
+    <text x="550" y="56" text-anchor="middle" font-size="15" font-weight="bold">adjoint_bridge.EvaluateResponse</text>
+    <text x="400" y="82">for each row (node id ascending) look the id up</text>
+    <text x="400" y="98">in the dictionary; missing ids are zero</text>
+    <text x="400" y="122">same row order as graph_bridge, DofFieldMap,</text>
+    <text x="400" y="138">every gather and every exported sample</text>
+    <text x="400" y="164">MakeObjectiveWeights / EvaluateObjective define</text>
+    <text x="400" y="180">the objective once for both adjoints</text>
+    <text x="400" y="206" fill="#a03060" font-size="11.5">Kratos's point_temperature AVERAGES over the traced part;</text>
+    <text x="400" y="222" fill="#a03060" font-size="11.5">weighted_sum SUMS - a factor that looks like a wrong adjoint</text>
+    <rect x="750" y="30" width="330" height="200" rx="10" fill="#eef7ee" stroke="#2e6b2e" stroke-width="1.5"/>
+    <text x="915" y="56" text-anchor="middle" font-size="15" font-weight="bold" fill="#2e6b2e">what the application consumes</text>
+    <text x="765" y="82" font-family="monospace" font-size="11.5">dJ_dX  (N, 3)   row k = node ids[k]</text>
+    <text x="765" y="108">AdjointSensitivityProcess writes it to a nodal</text>
+    <text x="765" y="124">variable (SHAPE_SENSITIVITY by default) -</text>
+    <text x="765" y="140">every exporter then carries it unchanged</text>
+    <text x="765" y="164">CreateNpzDataset(output_keys=[...]) makes it a</text>
+    <text x="765" y="180">gradient-carrying training target;</text>
+    <text x="765" y="196">sobolev_training grades the surrogate on it</text>
+    <text x="765" y="220" fill="#666" font-size="11.5">measured: 4.8x lower gradient error, same model, seed, data</text>
+    <g stroke="#555" stroke-width="1.8">
+      <line x1="350" y1="130" x2="385" y2="130" marker-end="url(#arrow)"/>
+      <line x1="715" y1="130" x2="750" y2="130" marker-end="url(#arrow)"/>
+    </g>
+  </g>
+  <text x="550" y="270" text-anchor="middle" font-size="12.5" fill="#444">Cross-validated: the cantilever's Kratos semi-analytic gradient (a forward difference, which sets the tolerance) agrees with the shipped adjoint to 7e-7,</text>
+  <text x="550" y="288" text-anchor="middle" font-size="12.5" fill="#444">the diffusion square to 8e-9 with the out-of-plane row exactly zero, and full finite differences through real solves are the third opinion.</text>
+  <text x="550" y="314" text-anchor="middle" font-size="12" fill="#666">SurrogateResponseFunction is the mirror image: a trained model where a response function goes, with autograd or the FEM adjoint as its gradient.</text>
+</svg>

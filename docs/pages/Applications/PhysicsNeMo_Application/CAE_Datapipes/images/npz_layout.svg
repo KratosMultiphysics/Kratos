@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1100" height="380" viewBox="0 0 1100 380" font-family="Helvetica, Arial, sans-serif">
+  <title>The CAE datapipe case layout</title>
+  <desc>One case_N.npz written by the CAE exporter, its arrays and shapes, and which of them DoMINO and Transolver pipelines consume.</desc>
+  <defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#555"/></marker></defs>
+  <rect width="1100" height="380" fill="#ffffff"/>
+  <rect x="20" y="20" width="520" height="340" rx="10" fill="#f6f6f6" stroke="#666" stroke-width="1.5"/>
+  <text x="280" y="46" text-anchor="middle" font-size="15" font-weight="bold">case_007.npz - the superset physicsnemo.datapipes.cae reads</text>
+  <g font-family="monospace" font-size="11.5" fill="#333">
+    <text x="35" y="74">stl_coordinates        (Ns, 3)  float   the skin's vertices</text>
+    <text x="35" y="92">stl_faces              (3*T,)   int32   FLATTENED triangle indices</text>
+    <text x="35" y="110">stl_centers            (T, 3)           triangle centroids</text>
+    <text x="35" y="128">stl_areas              (T,)</text>
+    <text x="35" y="146">surface_mesh_centers   (T, 3)           where surface fields live</text>
+    <text x="35" y="164">surface_normals        (T, 3)</text>
+    <text x="35" y="182">surface_fields         (T, Cs)          pressure, wall shear, ...</text>
+    <text x="35" y="200">volume_mesh_centers    (Nv, 3)          the volume nodes</text>
+    <text x="35" y="218">volume_fields          (Nv, Cv)         velocity, pressure, ...</text>
+    <text x="35" y="236">global_params_values   (G,)             in global_params_order</text>
+    <text x="35" y="254">global_params_reference(G,)</text>
+    <text x="35" y="272">bounding_box, bounding_box_surface  (2, 3) each - both mandatory for DoMINO</text>
+  </g>
+  <g font-size="11.5" fill="#444">
+    <text x="35" y="302">Written from the mesh bridge's tessellation of the skin (Conditions by default),</text>
+    <text x="35" y="318">so every triangle knows its parent condition - that is how DoMINO's per-triangle</text>
+    <text x="35" y="334">predictions come back onto Kratos entities. The reader rejects 0-d arrays.</text>
+  </g>
+  <g font-size="12.5" fill="#333">
+    <rect x="580" y="20" width="500" height="160" rx="10" fill="#eef7ee" stroke="#2e6b2e" stroke-width="1.5"/>
+    <text x="830" y="46" text-anchor="middle" font-size="15" font-weight="bold" fill="#2e6b2e">DoMINODataPipe  (CreateDoMINODataPipe)</text>
+    <text x="595" y="72">samples come pre-batched; grid_resolution must equal the model's interp_res</text>
+    <text x="595" y="90">and num_surface_neighbors its num_neighbors_surface</text>
+    <text x="595" y="112">normalize_coordinates defaults False here, True for the public checkpoints -</text>
+    <text x="595" y="128">no error, wrong numbers; the bridge warns</text>
+    <text x="595" y="150" fill="#666" font-size="11.5">DominoInferenceProcess writes one such case per execution into scratch_directory</text>
+    <text x="595" y="166" fill="#666" font-size="11.5">and de-normalizes through scaling_factors.pkl</text>
+    <rect x="580" y="200" width="500" height="160" rx="10" fill="#eef7ee" stroke="#2e6b2e" stroke-width="1.5"/>
+    <text x="830" y="226" text-anchor="middle" font-size="15" font-weight="bold" fill="#2e6b2e">TransolverDataPipe  (CreateTransolverDataPipe)</text>
+    <text x="595" y="252">point tokens from the same file: resolution=None, volume_sample_from_disk=False</text>
+    <text x="595" y="274">CreateCaeDataset wraps either as a plain torch Dataset</text>
+    <text x="595" y="300" fill="#666" font-size="11.5">Parameters.keys() is alphabetical - the order of global_params_values is the</text>
+    <text x="595" y="316" fill="#666" font-size="11.5">explicit global_params_order of the exporter, never the JSON's</text>
+    <text x="595" y="340" fill="#666" font-size="11.5">MPI: fields and topology gathered to rank 0, which writes the serial layout</text>
+  </g>
+  <line x1="540" y1="100" x2="578" y2="100" stroke="#555" stroke-width="1.8" marker-end="url(#arrow)"/>
+  <line x1="540" y1="280" x2="578" y2="280" stroke="#555" stroke-width="1.8" marker-end="url(#arrow)"/>
+</svg>

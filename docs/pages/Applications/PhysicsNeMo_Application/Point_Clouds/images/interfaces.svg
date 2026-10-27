@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1100" height="360" viewBox="0 0 1100 360" font-family="Helvetica, Arial, sans-serif">
+  <title>The point-cloud model interfaces</title>
+  <desc>How PointCloudInferenceProcess arranges the gathered node coordinates and features for each model_interface value, and what each model returns.</desc>
+  <defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#555"/></marker></defs>
+  <rect width="1100" height="360" fill="#ffffff"/>
+  <rect x="20" y="30" width="200" height="120" rx="8" fill="#eaf2fb" stroke="#1f4e79" stroke-width="1.5"/>
+  <text x="120" y="55" text-anchor="middle" font-size="14" font-weight="bold" fill="#1f4e79">gathered per step</text>
+  <g font-size="12" fill="#333" text-anchor="middle">
+    <text x="120" y="80" font-family="monospace">coords (N, 3)</text>
+    <text x="120" y="98">min-max normalized per part</text>
+    <text x="120" y="116" font-family="monospace">feats  (N, C_in)</text>
+    <text x="120" y="134">input_fields concatenated</text>
+  </g>
+  <g stroke="#555" stroke-width="1.6">
+    <line x1="220" y1="60" x2="268" y2="60" marker-end="url(#arrow)"/>
+    <line x1="220" y1="90" x2="268" y2="130" marker-end="url(#arrow)"/>
+    <line x1="220" y1="120" x2="268" y2="200" marker-end="url(#arrow)"/>
+    <line x1="220" y1="140" x2="268" y2="270" marker-end="url(#arrow)"/>
+  </g>
+  <g font-size="12" fill="#333">
+    <rect x="270" y="35" width="810" height="60" rx="6" fill="#ffffff" stroke="#666"/>
+    <text x="282" y="55" font-weight="bold">"generic"</text>
+    <text x="282" y="73" font-family="monospace" font-size="11.5">model(cat([coords, feats], -1)[None])  -&gt;  (1, N, C_out)</text>
+    <text x="282" y="89" fill="#666" font-size="11.5">any point model with coordinates prepended and a batch axis added - a hand-written reference must mirror exactly that</text>
+    <rect x="270" y="105" width="810" height="60" rx="6" fill="#ffffff" stroke="#666"/>
+    <text x="282" y="125" font-weight="bold">"transolver"</text>
+    <text x="282" y="143" font-family="monospace" font-size="11.5">model(feats[None], embedding=coords[None])  -&gt;  (1, N, C_out)</text>
+    <text x="282" y="159" fill="#666" font-size="11.5">Transolver built unstructured (structured_shape=None) needs embedding_dim and use_te=False without TransformerEngine</text>
+    <rect x="270" y="175" width="810" height="60" rx="6" fill="#ffffff" stroke="#666"/>
+    <text x="282" y="195" font-weight="bold">"geotransolver", "flare"</text>
+    <text x="282" y="213" font-family="monospace" font-size="11.5">model(feats, geometry=coords ...)  -&gt;  per-point fields;  pass_geometry=false when built with geometry_dim=None</text>
+    <text x="282" y="229" fill="#666" font-size="11.5">promoted out of experimental in 2.2; upstream's physicsnemo-cfd wrappers normalize in and out themselves, the Kratos path uses the card</text>
+    <rect x="270" y="245" width="810" height="60" rx="6" fill="#ffffff" stroke="#666"/>
+    <text x="282" y="265" font-weight="bold">"figconvnet"</text>
+    <text x="282" y="283" font-family="monospace" font-size="11.5">model(coords[None]) -&gt; (fields (1, N, C_out), scalar (1, 1))   float32 only (Warp kernels)</text>
+    <text x="282" y="299" fill="#666" font-size="11.5">the scalar is the drag-style head; per-point fields go to output_fields, the scalar is logged</text>
+  </g>
+  <text x="550" y="335" text-anchor="middle" font-size="12.5" fill="#444">Every interface ends the same way: the card's output normalization is inverted, the (N, C_out) block is split by field width and scattered onto output_fields.</text>
+</svg>

@@ -1,0 +1,31 @@
+{
+    "side_bar_name": "physicsnemo_application",
+    "landing_page": "General/Overview.md",
+    "additional_menu_options": {
+        "product": "PhysicsNeMo Application",
+        "title": "sidebar"
+    },
+    "custom_entries": [
+        "General",
+        "PhysicsNeMo_Basics",
+        "Tensor_Bridge",
+        "Mesh_Bridge",
+        "Training",
+        "Inference",
+        "Active_Learning",
+        "Super_Resolution",
+        "Graph_Neural_Networks",
+        "Particle_Methods",
+        "Sequence_Models",
+        "Point_Clouds",
+        "CAE_Datapipes",
+        "Reduced_Order_Models",
+        "Adjoint",
+        "Diffusion",
+        "Uncertainty",
+        "Physics_Informed",
+        "CoSimulation",
+        "Distributed",
+        "Examples"
+    ]
+}

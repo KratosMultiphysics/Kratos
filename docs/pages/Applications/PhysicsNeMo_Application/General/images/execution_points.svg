@@ -1,0 +1,134 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1100" height="560" viewBox="0 0 1100 560" font-family="Helvetica, Arial, sans-serif">
+  <title>Where the application's processes run inside an AnalysisStage</title>
+  <desc>The AnalysisStage timeline (Initialize, BeforeSolutionLoop, then the per-step loop InitializeSolutionStep, SolveSolutionStep, FinalizeSolutionStep, BeforeOutputStep, OutputStep, and Finalize) with the process hooks of this application placed under the stage they fire in.</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#1f4e79"/>
+    </marker>
+  </defs>
+  <rect width="1100" height="560" fill="#ffffff"/>
+  <text x="550" y="30" text-anchor="middle" font-size="18" font-weight="bold" fill="#1f4e79">AnalysisStage.Run()</text>
+  <!-- loop bracket -->
+  <rect x="285" y="52" width="620" height="88" rx="10" fill="none" stroke="#1f4e79" stroke-width="1.5" stroke-dasharray="6,4"/>
+  <text x="595" y="150" text-anchor="middle" font-size="12" fill="#1f4e79">solution loop, one iteration per time step</text>
+  <!-- stage boxes -->
+  <g font-size="13" font-weight="bold" fill="#1f4e79">
+    <rect x="20"  y="65" width="120" height="60" rx="6" fill="#eaf2fb" stroke="#1f4e79"/>
+    <text x="80" y="90" text-anchor="middle">Initialize</text>
+    <text x="80" y="108" text-anchor="middle" font-weight="normal" font-size="11" fill="#333">processes created</text>
+    <rect x="155" y="65" width="120" height="60" rx="6" fill="#eaf2fb" stroke="#1f4e79"/>
+    <text x="215" y="90" text-anchor="middle">Before</text>
+    <text x="215" y="106" text-anchor="middle">SolutionLoop</text>
+    <rect x="295" y="65" width="120" height="60" rx="6" fill="#eaf2fb" stroke="#1f4e79"/>
+    <text x="355" y="90" text-anchor="middle">Initialize</text>
+    <text x="355" y="106" text-anchor="middle">SolutionStep</text>
+    <rect x="430" y="65" width="120" height="60" rx="6" fill="#fff4e0" stroke="#c27c0e"/>
+    <text x="490" y="90" text-anchor="middle" fill="#7a4d00">Solve</text>
+    <text x="490" y="106" text-anchor="middle" fill="#7a4d00">SolutionStep</text>
+    <rect x="565" y="65" width="120" height="60" rx="6" fill="#eaf2fb" stroke="#1f4e79"/>
+    <text x="625" y="90" text-anchor="middle">Finalize</text>
+    <text x="625" y="106" text-anchor="middle">SolutionStep</text>
+    <rect x="700" y="65" width="90" height="60" rx="6" fill="#eaf2fb" stroke="#1f4e79"/>
+    <text x="745" y="90" text-anchor="middle">Before</text>
+    <text x="745" y="106" text-anchor="middle">OutputStep</text>
+    <rect x="805" y="65" width="90" height="60" rx="6" fill="#eaf2fb" stroke="#1f4e79"/>
+    <text x="850" y="90" text-anchor="middle">Output</text>
+    <text x="850" y="106" text-anchor="middle">Step</text>
+    <rect x="950" y="65" width="130" height="60" rx="6" fill="#eaf2fb" stroke="#1f4e79"/>
+    <text x="1015" y="90" text-anchor="middle">Finalize</text>
+    <text x="1015" y="108" text-anchor="middle" font-weight="normal" font-size="11" fill="#333">files closed</text>
+  </g>
+  <g stroke="#1f4e79" stroke-width="1.8">
+    <line x1="140" y1="95" x2="153" y2="95" marker-end="url(#arrow)"/>
+    <line x1="275" y1="95" x2="293" y2="95" marker-end="url(#arrow)"/>
+    <line x1="415" y1="95" x2="428" y2="95" marker-end="url(#arrow)"/>
+    <line x1="550" y1="95" x2="563" y2="95" marker-end="url(#arrow)"/>
+    <line x1="685" y1="95" x2="698" y2="95" marker-end="url(#arrow)"/>
+    <line x1="790" y1="95" x2="803" y2="95" marker-end="url(#arrow)"/>
+    <line x1="905" y1="95" x2="948" y2="95" marker-end="url(#arrow)"/>
+  </g>
+  <!-- legend -->
+  <g font-size="12" fill="#333">
+    <rect x="20" y="170" width="14" height="14" fill="#eef7ee" stroke="#2e6b2e"/><text x="40" y="182">inference (writes predictions into Kratos variables)</text>
+    <rect x="360" y="170" width="14" height="14" fill="#f0f0f0" stroke="#666"/><text x="380" y="182">export (writes training data)</text>
+    <rect x="600" y="170" width="14" height="14" fill="#fdf0f5" stroke="#a03060"/><text x="620" y="182">validation, remeshing, adjoint</text>
+  </g>
+  <!-- hooks under each stage -->
+  <g font-size="11.5" fill="#333">
+    <!-- Initialize column x 20..140 -->
+    <rect x="12" y="205" width="136" height="54" rx="5" fill="#f0f0f0" stroke="#666"/>
+    <text x="80" y="222" text-anchor="middle">export processes</text>
+    <text x="80" y="236" text-anchor="middle">open output folders</text>
+    <text x="80" y="250" text-anchor="middle">(ExecuteInitialize)</text>
+    <rect x="12" y="266" width="136" height="54" rx="5" fill="#eef7ee" stroke="#2e6b2e"/>
+    <text x="80" y="283" text-anchor="middle">graph and DoMINO</text>
+    <text x="80" y="297" text-anchor="middle">extract topology once</text>
+    <text x="80" y="311" text-anchor="middle">(models load lazily)</text>
+    <!-- BeforeSolutionLoop x 155..275 -->
+    <rect x="150" y="205" width="130" height="54" rx="5" fill="#eef7ee" stroke="#2e6b2e"/>
+    <text x="215" y="222" text-anchor="middle">hybrid_initialization</text>
+    <text x="215" y="236" text-anchor="middle">one prediction seeds</text>
+    <text x="215" y="250" text-anchor="middle">the solver, once</text>
+    <rect x="150" y="266" width="130" height="54" rx="5" fill="#eef7ee" stroke="#2e6b2e"/>
+    <text x="215" y="283" text-anchor="middle">pinn_solve_process</text>
+    <text x="215" y="297" text-anchor="middle">the PINN solve itself</text>
+    <text x="215" y="311" text-anchor="middle">runs here, no model file</text>
+    <!-- InitializeSolutionStep x 295..415 -->
+    <rect x="288" y="205" width="134" height="68" rx="5" fill="#eef7ee" stroke="#2e6b2e"/>
+    <text x="355" y="222" text-anchor="middle">any inference process</text>
+    <text x="355" y="236" text-anchor="middle">with execution_point</text>
+    <text x="355" y="250" text-anchor="middle" font-family="monospace" font-size="9.5">initialize_solution_step</text>
+    <text x="355" y="264" text-anchor="middle">(predict before solving)</text>
+    <rect x="288" y="280" width="134" height="40" rx="5" fill="#fdf0f5" stroke="#a03060"/>
+    <text x="355" y="297" text-anchor="middle">adjoint_sensitivity</text>
+    <text x="355" y="311" text-anchor="middle">(optional point)</text>
+    <!-- Solve -->
+    <rect x="430" y="205" width="120" height="54" rx="5" fill="#fff4e0" stroke="#c27c0e"/>
+    <text x="490" y="222" text-anchor="middle">the Kratos solver</text>
+    <text x="490" y="236" text-anchor="middle">sees predicted values</text>
+    <text x="490" y="250" text-anchor="middle">like any other data</text>
+    <!-- FinalizeSolutionStep x 565..685 -->
+    <rect x="558" y="205" width="134" height="68" rx="5" fill="#eef7ee" stroke="#2e6b2e"/>
+    <text x="625" y="222" text-anchor="middle">every inference process</text>
+    <text x="625" y="236" text-anchor="middle">by default, each</text>
+    <text x="625" y="250" text-anchor="middle" font-family="monospace" font-size="10.5">output_interval</text>
+    <text x="625" y="264" text-anchor="middle">steps (predict after solving)</text>
+    <rect x="558" y="280" width="134" height="68" rx="5" fill="#f0f0f0" stroke="#666"/>
+    <text x="625" y="297" text-anchor="middle">every export process:</text>
+    <text x="625" y="311" text-anchor="middle">.npz, grid, .pmsh, CAE, Zarr,</text>
+    <text x="625" y="325" text-anchor="middle">USD frame, streaming queue</text>
+    <text x="625" y="339" text-anchor="middle">(each output_interval)</text>
+    <rect x="558" y="355" width="134" height="82" rx="5" fill="#fdf0f5" stroke="#a03060"/>
+    <text x="625" y="372" text-anchor="middle">validation_metrics</text>
+    <text x="625" y="386" text-anchor="middle">(records a row)</text>
+    <text x="625" y="402" text-anchor="middle">adaptive_remesh</text>
+    <text x="625" y="416" text-anchor="middle">(each remesh_interval)</text>
+    <text x="625" y="430" text-anchor="middle">adjoint_sensitivity (default)</text>
+    <!-- BeforeOutputStep -->
+    <rect x="695" y="205" width="100" height="54" rx="5" fill="#fdf0f5" stroke="#a03060"/>
+    <text x="745" y="222" text-anchor="middle">adjoint_sensitivity</text>
+    <text x="745" y="236" text-anchor="middle">(optional point,</text>
+    <text x="745" y="250" text-anchor="middle">before output)</text>
+    <!-- OutputStep -->
+    <rect x="800" y="205" width="100" height="68" rx="5" fill="#fff4e0" stroke="#c27c0e"/>
+    <text x="850" y="222" text-anchor="middle">Kratos output</text>
+    <text x="850" y="236" text-anchor="middle">(vtk, GiD, HDF5)</text>
+    <text x="850" y="250" text-anchor="middle">carries predicted</text>
+    <text x="850" y="264" text-anchor="middle">fields unchanged</text>
+    <!-- Finalize -->
+    <rect x="945" y="205" width="140" height="54" rx="5" fill="#fdf0f5" stroke="#a03060"/>
+    <text x="1015" y="222" text-anchor="middle">validation_metrics</text>
+    <text x="1015" y="236" text-anchor="middle">writes its JSON report</text>
+    <rect x="945" y="266" width="140" height="54" rx="5" fill="#f0f0f0" stroke="#666"/>
+    <text x="1015" y="283" text-anchor="middle">streaming export closes</text>
+    <text x="1015" y="297" text-anchor="middle">the queue; USD export</text>
+    <text x="1015" y="311" text-anchor="middle">saves the stage</text>
+  </g>
+  <!-- footnote -->
+  <g font-size="12" fill="#444">
+    <text x="20" y="480">Rules that follow from the placement:</text>
+    <text x="20" y="500">- a prediction written in FinalizeSolutionStep is what the output step and the next step's history see; one written in InitializeSolutionStep is what the solver starts from.</text>
+    <text x="20" y="518">- exports run after the solve, so they capture converged fields; the streaming exporter hands them to a training loop before the solve is over.</text>
+    <text x="20" y="536">- topology is extracted once and features every step: the graph, DoMINO and export processes cache what depends only on connectivity and re-gather values.</text>
+  </g>
+</svg>

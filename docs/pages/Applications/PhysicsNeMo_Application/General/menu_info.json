@@ -1,0 +1,16 @@
+{
+    "custom_entries": [
+        "Overview.md",
+        "Architecture.md",
+        "Kratos_Concepts_For_ML.md",
+        "Module_Map.md",
+        "From_Scratch.md",
+        "Process_Reference.md",
+        "Installation_And_Environment.md",
+        "Performance.md",
+        "Testing_And_Contributing.md",
+        "Troubleshooting_And_Traps.md",
+        "Glossary.md",
+        "Retrospectives.md"
+    ]
+}
