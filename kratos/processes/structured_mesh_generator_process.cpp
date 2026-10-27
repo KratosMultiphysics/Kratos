@@ -184,7 +184,11 @@ void StructuredMeshGeneratorProcess::Generate2DMesh()
 
     GenerateNodes2D(min_point, max_point);
 
-    GenerateTriangularElements();
+    if (KratosComponents<Element>::Get(mElementName).GetGeometry().PointsNumber() == 4) {
+        GenerateQuadrilateralElements();
+    } else {
+        GenerateTriangularElements();
+    }
 }
 
 void StructuredMeshGeneratorProcess::Generate3DMesh()
@@ -263,6 +267,26 @@ void StructuredMeshGeneratorProcess::GenerateTriangularElements()
     }
 }
 
+void StructuredMeshGeneratorProcess::GenerateQuadrilateralElements()
+{
+    KRATOS_TRY
+
+    std::size_t element_id = mStartElementId;
+    auto p_properties = mrOutputModelPart.CreateNewProperties(mElementPropertiesId);
+    for (std::size_t j = 0; j < mNumberOfDivisions[1]; ++j) {
+        for (std::size_t i = 0; i < mNumberOfDivisions[0]; ++i) {
+            // The input quadrilateral is clockwise; reverse the local cell
+            // ordering to obtain positive physical element Jacobians.
+            const std::vector<ModelPart::IndexType> connectivity{
+                GetNodeId(i, j, 0), GetNodeId(i, j + 1, 0),
+                GetNodeId(i + 1, j + 1, 0), GetNodeId(i + 1, j, 0)};
+            mrOutputModelPart.CreateNewElement(mElementName, element_id++, connectivity, p_properties);
+        }
+    }
+
+    KRATOS_CATCH("")
+}
+
 void StructuredMeshGeneratorProcess::GenerateTetrahedraElements()
 {
     Properties::Pointer p_properties = mrOutputModelPart.CreateNewProperties(mElementPropertiesId);
@@ -326,6 +350,12 @@ int StructuredMeshGeneratorProcess::Check()
 
     KRATOS_CHECK(CheckDomainGeometry());
     KRATOS_CHECK(KratosComponents<Element>::Has(mElementName));
+
+    if (mrGeometry.LocalSpaceDimension() == 2) {
+        const auto number_of_nodes = KratosComponents<Element>::Get(mElementName).GetGeometry().PointsNumber();
+        KRATOS_ERROR_IF(number_of_nodes != 3 && number_of_nodes != 4)
+            << "Structured 2D meshes require three-node triangles or four-node quadrilaterals." << std::endl;
+    }
 
     if ((mrGeometry.GetGeometryType() != GeometryData::KratosGeometryType::Kratos_Quadrilateral2D4) &&
         (mrGeometry.GetGeometryType() != GeometryData::KratosGeometryType::Kratos_Hexahedra3D8))

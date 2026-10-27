@@ -42,7 +42,7 @@ namespace Kratos
 
 /**
  * @brief Auxiliary process to generate a structured mesh from a given Kratos geometry
- * Given a quadrilateral or hexahedral geometry, this process generates a triangular or tetrahedral
+ * Given a quadrilateral or hexahedral geometry, this process generates a triangular, quadrilateral or tetrahedral
  * structured mesh with the user-defined number of divisions at each boundary edge. The process can
  * also provide a model part with the skin entitites. The same can be applied to the body entities.
  */
@@ -179,6 +179,8 @@ private:
     void GenerateNodes3D(Point const& rMinPoint, Point const& rMaxPoint);
 
     void GenerateTriangularElements();
+
+    void GenerateQuadrilateralElements();
 
     void GenerateTetrahedraElements();
 
