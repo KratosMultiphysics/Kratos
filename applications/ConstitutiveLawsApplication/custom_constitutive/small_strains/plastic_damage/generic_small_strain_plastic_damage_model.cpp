@@ -563,7 +563,7 @@ Vector& GenericSmallStrainPlasticDamageModel<TPlasticityIntegratorType, TDamageI
     )
 {
     if (rThisVariable == INTERNAL_VARIABLES) {
-        rValue.resize(3 + VoigtSize);
+        rValue.resize(3 + VoigtSize, true);
         rValue[0] = mPlasticDissipation;
         rValue[1] = mDamage;
         rValue[2] = mUniaxialStress;

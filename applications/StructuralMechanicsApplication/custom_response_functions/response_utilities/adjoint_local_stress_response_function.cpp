@@ -411,7 +411,7 @@ namespace Kratos
         KRATOS_TRY;
 
         if(rResult.size() != rElementalDofList.size()) {
-            rResult.resize(rElementalDofList.size());
+            rResult.resize(rElementalDofList.size(), true);
         }
 
         const unsigned int num_GP = mpTracedElement->GetGeometry().IntegrationPointsNumber(mpTracedElement->GetIntegrationMethod());
@@ -442,7 +442,7 @@ namespace Kratos
         KRATOS_TRY;
 
         if(rResult.size() != rElementalDofList.size()) {
-            rResult.resize(rElementalDofList.size());
+            rResult.resize(rElementalDofList.size(), true);
         }
 
         const unsigned int num_GP = mpTracedElement->GetGeometry().IntegrationPointsNumber(mpTracedElement->GetIntegrationMethod());
@@ -470,7 +470,7 @@ namespace Kratos
         KRATOS_TRY;
 
         if(rResult.size() != rElementalDofList.size()) {
-            rResult.resize(rElementalDofList.size());
+            rResult.resize(rElementalDofList.size(), true);
         }
 
         for(IndexType i = 0; i < rElementalDofList.size(); ++i) {

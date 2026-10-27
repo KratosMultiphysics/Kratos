@@ -280,7 +280,7 @@ void SbmFluidConditionDirichlet::InitializeSbmMemberVariables()
         mpProjectionNode = &candidate_closest_skin_segment_1.GetGeometry()[closestNodeId] ;
     }
 
-    mDistanceVector.resize(3);
+    mDistanceVector.resize(3, true);
     noalias(mDistanceVector) = mpProjectionNode->Coordinates() - r_geometry.Center().Coordinates();
 
     const Matrix& H = r_geometry.ShapeFunctionsValues();

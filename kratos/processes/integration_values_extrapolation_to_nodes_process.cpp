@@ -126,7 +126,7 @@ void IntegrationValuesExtrapolationToNodesProcess::ExecuteFinalizeSolutionStep()
                 // Definition of node coefficient
                 rTls.vector_J = r_this_geometry.DeterminantOfJacobian(rTls.vector_J , this_integration_method );
                 if (rTls.N.size() != number_of_nodes )
-                    rTls.N.resize(number_of_nodes);
+                    rTls.N.resize(number_of_nodes, true);
                 for (IndexType i_gauss_point = 0; i_gauss_point < integration_points_number; ++i_gauss_point) {
                     const double area_coeff = mAreaAverage ? integration_points[i_gauss_point].Weight() * rTls.vector_J[i_gauss_point] : 1.0;
                     const array_1d<double, 3>& r_local_coordinates = integration_points[i_gauss_point].Coordinates();
@@ -324,7 +324,7 @@ void IntegrationValuesExtrapolationToNodesProcess::InitializeMaps()
                 for (IndexType i_gauss_point = 0; i_gauss_point < integration_points_number; ++i_gauss_point) {
                     const array_1d<double, 3>& r_local_coordinates = integration_points[i_gauss_point].Coordinates();
                     if (rTls.N.size() != number_of_nodes )
-                        rTls.N.resize(number_of_nodes);
+                        rTls.N.resize(number_of_nodes, true);
                     r_this_geometry.ShapeFunctionsValues( rTls.N, r_local_coordinates );
                     const double area_coeff = mAreaAverage ? integration_points[i_gauss_point].Weight() * rTls.vector_J[i_gauss_point] : 1.0;
                     for (IndexType i_node = 0; i_node < number_of_nodes; ++i_node) {

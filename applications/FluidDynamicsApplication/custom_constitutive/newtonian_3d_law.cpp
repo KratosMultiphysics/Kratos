@@ -115,7 +115,7 @@ void Newtonian3DLaw::CalculateDerivative(
         // computes derivatives of CAUCHY_STRESS_VECTOR
         // resize and clear the output variable
         if (rOutput.size() != 6) {
-            rOutput.resize(6);
+            rOutput.resize(6, true);
         }
         rOutput.clear();
 

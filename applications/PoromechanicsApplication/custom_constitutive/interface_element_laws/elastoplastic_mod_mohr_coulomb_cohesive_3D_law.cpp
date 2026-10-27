@@ -89,8 +89,8 @@ int ElastoPlasticModMohrCoulombCohesive3DLaw::Check(const Properties& rMaterialP
 
 void ElastoPlasticModMohrCoulombCohesive3DLaw::InitializeMaterial( const Properties& rMaterialProperties,const GeometryType& rElementGeometry,const Vector& rShapeFunctionsValues )
 {
-    mPlasticStrainVector.resize(3);
-    mOldPlasticStrainVector.resize(3);
+    mPlasticStrainVector.resize(3, true);
+    mOldPlasticStrainVector.resize(3, true);
     mPlasticStrainVector[0]    = 0.0;
     mPlasticStrainVector[1]    = 0.0;
     mPlasticStrainVector[2]    = 0.0;

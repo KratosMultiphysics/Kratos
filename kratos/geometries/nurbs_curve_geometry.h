@@ -689,7 +689,7 @@ public:
         }
 
         if (rResult.size() != shape_function_container.NumberOfNonzeroControlPoints())
-            rResult.resize(shape_function_container.NumberOfNonzeroControlPoints());
+            rResult.resize(shape_function_container.NumberOfNonzeroControlPoints(), true);
 
         for (IndexType i = 0; i < shape_function_container.NumberOfNonzeroControlPoints(); i++) {
             rResult[i] = shape_function_container(i, 0);
@@ -777,7 +777,7 @@ public:
             return;
         }
 
-        pShapeFunctionDerivatives->resize(DerivativeOrder);
+        pShapeFunctionDerivatives->resize(DerivativeOrder, true);
 
         for (IndexType derivative_order = 0;
             derivative_order < DerivativeOrder;
