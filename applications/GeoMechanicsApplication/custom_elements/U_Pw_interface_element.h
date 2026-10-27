@@ -56,13 +56,15 @@ public:
                         const PropertiesType::Pointer&              rpProperties,
                         std::unique_ptr<StressStatePolicy>          pStressStatePolicy,
                         IsDiffOrderElement                          IsDiffOrder,
-                        const std::vector<CalculationContribution>& rContributions);
+                        const std::vector<CalculationContribution>& rContributions,
+                        std::unique_ptr<IntegrationCoefficientModifier> pIntegrationCoefficientModifier = nullptr);
 
     UPwInterfaceElement(IndexType                                   NewId,
                         const GeometryType::Pointer&                rpGeometry,
                         std::unique_ptr<StressStatePolicy>          pStressStatePolicy,
                         IsDiffOrderElement                          IsDiffOrder,
-                        const std::vector<CalculationContribution>& rContributions);
+                        const std::vector<CalculationContribution>& rContributions,
+                        std::unique_ptr<IntegrationCoefficientModifier> pIntegrationCoefficientModifier = nullptr);
     Element::Pointer Create(IndexType NewId, const NodesArrayType& rNodes, PropertiesType::Pointer pProperties) const override;
     Element::Pointer Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const override;
 
