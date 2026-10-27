@@ -86,6 +86,7 @@ KratosFluidDynamicsApplication::KratosFluidDynamicsApplication():
     mTimeIntegratedFIC3D4N(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node >(Element::GeometryType::PointsArrayType(4)))),
     mSymbolicStokes2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<Node >(Element::GeometryType::PointsArrayType(3)))),
     mSymbolicStokes2D4N(0, Element::GeometryType::Pointer(new Quadrilateral2D4<Node >(Element::GeometryType::PointsArrayType(4)))),
+    mSymbolicStokesALE2D4N(0, Kratos::make_shared<Quadrilateral2D4<Node>>(Element::GeometryType::PointsArrayType(4))),
     mSymbolicStokes3D4N(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node >(Element::GeometryType::PointsArrayType(4)))),
     mSymbolicStokes3D6N(0, Element::GeometryType::Pointer(new Prism3D6<Node >(Element::GeometryType::PointsArrayType(6)))),
     mSymbolicStokes3D8N(0, Element::GeometryType::Pointer(new Hexahedra3D8<Node >(Element::GeometryType::PointsArrayType(8)))),
@@ -160,6 +161,10 @@ KratosFluidDynamicsApplication::KratosFluidDynamicsApplication():
     mSbmFluidDirichletCondition2D4N(0, Condition::GeometryType::Pointer(new Quadrilateral2D4<Node>(Condition::GeometryType::PointsArrayType(4)))),
     mSbmFluidGapInterfaceCondition2D(0, Condition::GeometryType::Pointer(new Geometry<Node>())),
     mSbmFluidNeumannCondition2D4N(0, Condition::GeometryType::Pointer(new Quadrilateral2D4<Node>(Condition::GeometryType::PointsArrayType(4)))),
+    mFluidPatchCouplingCondition2D6N(0, Kratos::make_shared<Geometry<Node>>()),
+    mFluidPatchCouplingCondition2D8N(0, Kratos::make_shared<Geometry<Node>>()),
+    mFluidPatchGapCouplingCondition2D8N(0, Kratos::make_shared<Geometry<Node>>()),
+    mFluidPatchGapInterfaceCondition2D(0, Kratos::make_shared<Geometry<Node>>()),
     // Low Mach Navier-Stokes elements
     mLowMachNavierStokes2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<Node >(Element::GeometryType::PointsArrayType(3)))),
     mLowMachNavierStokes2D4N(0, Element::GeometryType::Pointer(new Quadrilateral2D4<Node >(Element::GeometryType::PointsArrayType(4)))),
@@ -255,6 +260,7 @@ void KratosFluidDynamicsApplication::Register() {
     // Shifted Boundary Method (SBM) variables
     KRATOS_REGISTER_VARIABLE(SBM_BOUNDARY_VELOCITIES)
     KRATOS_REGISTER_VARIABLE(SBM_USE_SECOND_ORDER_SHIFT)
+    KRATOS_REGISTER_VARIABLE(COUPLING_INTERFACE_COORDINATES)
 
     // Non-Newtonian constitutive relations
     KRATOS_REGISTER_VARIABLE(REGULARIZATION_COEFFICIENT);
@@ -370,6 +376,7 @@ void KratosFluidDynamicsApplication::Register() {
     KRATOS_REGISTER_ELEMENT("TimeIntegratedFIC3D4N",mTimeIntegratedFIC3D4N);
     KRATOS_REGISTER_ELEMENT("SymbolicStokes2D3N",mSymbolicStokes2D3N);
     KRATOS_REGISTER_ELEMENT("SymbolicStokes2D4N",mSymbolicStokes2D4N);
+    KRATOS_REGISTER_ELEMENT("SymbolicStokesALE2D4N",mSymbolicStokesALE2D4N);
     KRATOS_REGISTER_ELEMENT("SymbolicStokes3D4N",mSymbolicStokes3D4N);
     KRATOS_REGISTER_ELEMENT("SymbolicStokes3D6N",mSymbolicStokes3D6N);
     KRATOS_REGISTER_ELEMENT("SymbolicStokes3D8N",mSymbolicStokes3D8N);
@@ -489,6 +496,10 @@ void KratosFluidDynamicsApplication::Register() {
     KRATOS_REGISTER_CONDITION("SbmFluidDirichletCondition2D4N", mSbmFluidDirichletCondition2D4N);
     KRATOS_REGISTER_CONDITION("SbmFluidGapInterfaceCondition2D", mSbmFluidGapInterfaceCondition2D);
     KRATOS_REGISTER_CONDITION("SbmFluidNeumannCondition2D4N", mSbmFluidNeumannCondition2D4N);
+    KRATOS_REGISTER_CONDITION("FluidPatchCouplingCondition2D6N", mFluidPatchCouplingCondition2D6N);
+    KRATOS_REGISTER_CONDITION("FluidPatchCouplingCondition2D8N", mFluidPatchCouplingCondition2D8N);
+    KRATOS_REGISTER_CONDITION("FluidPatchGapCouplingCondition2D8N", mFluidPatchGapCouplingCondition2D8N);
+    KRATOS_REGISTER_CONDITION("FluidPatchGapInterfaceCondition2D", mFluidPatchGapInterfaceCondition2D);
     KRATOS_REGISTER_CONDITION("StokesWallCondition3D", mStokesWallCondition3D);
     KRATOS_REGISTER_CONDITION("StokesWallCondition3D4N", mStokesWallCondition3D4N);
     KRATOS_REGISTER_CONDITION("FSPeriodicCondition2D", mFSPeriodicCondition2D);

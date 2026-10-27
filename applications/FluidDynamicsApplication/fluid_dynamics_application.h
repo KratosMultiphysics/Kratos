@@ -45,6 +45,7 @@
 #include "custom_elements/alternative_d_vms_dem_coupled.h"
 #include "custom_elements/fic.h"
 #include "custom_elements/symbolic_stokes.h"
+#include "custom_elements/symbolic_stokes_ale.h"
 #include "custom_elements/weakly_compressible_navier_stokes.h"
 #include "custom_elements/embedded_fluid_element.h"
 #include "custom_elements/embedded_fluid_element_discontinuous.h"
@@ -73,6 +74,8 @@
 #include "custom_conditions/sbm_fluid_dirichlet_condition.h"
 #include "custom_conditions/sbm_fluid_gap_interface_condition.h"
 #include "custom_conditions/sbm_fluid_neumann_condition.h"
+#include "custom_conditions/fluid_patch_coupling_condition.h"
+#include "custom_conditions/fluid_patch_gap_coupling_condition.h"
 
 #include "custom_elements/dpg_vms.h"
 #include "custom_elements/bingham_fluid.h"
@@ -341,6 +344,7 @@ private:
     const FIC< TimeIntegratedFICData<3,4> > mTimeIntegratedFIC3D4N;
     const SymbolicStokes< SymbolicStokesData<2,3> > mSymbolicStokes2D3N;
     const SymbolicStokes< SymbolicStokesData<2,4> > mSymbolicStokes2D4N;
+    const SymbolicStokesALE2D4N mSymbolicStokesALE2D4N;
     const SymbolicStokes< SymbolicStokesData<3,4> > mSymbolicStokes3D4N;
     const SymbolicStokes< SymbolicStokesData<3,6> > mSymbolicStokes3D6N;
     const SymbolicStokes< SymbolicStokesData<3,8> > mSymbolicStokes3D8N;
@@ -462,6 +466,10 @@ private:
     const SbmFluidDirichletCondition2D4N mSbmFluidDirichletCondition2D4N;
     const SbmFluidGapInterfaceCondition2D mSbmFluidGapInterfaceCondition2D;
     const SbmFluidNeumannCondition2D4N mSbmFluidNeumannCondition2D4N;
+    const FluidPatchCouplingCondition2D mFluidPatchCouplingCondition2D6N;
+    const FluidPatchCouplingCondition2D mFluidPatchCouplingCondition2D8N;
+    const FluidPatchGapCouplingCondition2D mFluidPatchGapCouplingCondition2D8N;
+    const FluidPatchGapInterfaceCondition2D mFluidPatchGapInterfaceCondition2D;
 
     /// Low Mach Navier-Stokes element
     const LowMachNavierStokes<LowMachNavierStokesData<2,3>> mLowMachNavierStokes2D3N;
