@@ -87,10 +87,12 @@ void SbmFluidGapInterfaceCondition2D::Initialize(
             CalculateParentShapeFunctions(
                 r_parent_geometry, global_point, N, DN_DX);
             const IndexType constitutive_index = 2 * g + side;
+            const auto& r_material = UsesPatchCouplingParameters()
+                ? r_neighbours[side].GetProperties() : GetProperties();
             mConstitutiveLaws[constitutive_index] =
-                GetProperties()[CONSTITUTIVE_LAW]->Clone();
+                r_material[CONSTITUTIVE_LAW]->Clone();
             mConstitutiveLaws[constitutive_index]->InitializeMaterial(
-                GetProperties(), r_parent_geometry, N);
+                r_material, r_parent_geometry, N);
         }
     }
     KRATOS_CATCH("")
@@ -233,7 +235,14 @@ void SbmFluidGapInterfaceCondition2D::CalculateAll(
         << Info() << " #" << Id()
         << " has a parent element with zero characteristic length."
         << std::endl;
-    const double penalty = penalty_factor / characteristic_length;
+    double penalty = penalty_factor / characteristic_length;
+    double adjoint_sign = 1.0; // existing nonsymmetric SBM convention
+    if (UsesPatchCouplingParameters()) {
+        adjoint_sign = penalty_factor > 0.0 ? -1.0 : 1.0;
+        penalty = std::max(penalty_factor,0.0) * std::max(
+            r_neighbours[0].GetProperties()[DYNAMIC_VISCOSITY] / first_parent_size,
+            r_neighbours[1].GetProperties()[DYNAMIC_VISCOSITY] / second_parent_size);
+    }
 
     struct SideData
     {
@@ -282,9 +291,11 @@ void SbmFluidGapInterfaceCondition2D::CalculateAll(
             }
 
             ConstitutiveVariables variables;
+            const auto& r_material = UsesPatchCouplingParameters()
+                ? r_neighbours[side].GetProperties() : GetProperties();
             ConstitutiveLaw::Parameters parameters(
                 *r_side.pGeometry,
-                GetProperties(),
+                r_material,
                 rCurrentProcessInfo);
             Flags& r_options = parameters.GetOptions();
             r_options.Set(
@@ -337,7 +348,7 @@ void SbmFluidGapInterfaceCondition2D::CalculateAll(
                     const double velocity_residual =
                         -test_jump_sign * r_test.N[i] *
                             average_traction[i_dim] +
-                        0.5 * inner_prod(test_traction, jump_velocity) +
+                        adjoint_sign * 0.5 * inner_prod(test_traction, jump_velocity) +
                         penalty * test_jump_sign * r_test.N[i] *
                             jump_velocity[i_dim];
                     local_rhs[velocity_row] -=
@@ -364,7 +375,7 @@ void SbmFluidGapInterfaceCondition2D::CalculateAll(
                                     3 * union_j + j_dim) +=
                                     (-0.5 * test_jump_sign * r_test.N[i] *
                                          trial_traction[i_dim] +
-                                     0.5 * trial_jump_sign * r_trial.N[j] *
+                                     adjoint_sign * 0.5 * trial_jump_sign * r_trial.N[j] *
                                          test_traction[j_dim]) *
                                     integration_weight;
                             }
@@ -384,6 +395,8 @@ void SbmFluidGapInterfaceCondition2D::CalculateAll(
                     }
                 }
 
+                // q div(u) bulk convention: the pressure test keeps the
+                // conservative sign, independently of velocity symmetry.
                 const IndexType pressure_row = 3 * union_i + 2;
                 local_rhs[pressure_row] +=
                     0.5 * r_test.N[i] *
@@ -505,18 +518,29 @@ int SbmFluidGapInterfaceCondition2D::Check(
     KRATOS_ERROR_IF(r_connector.size1() != 2 || r_connector.size2() != 3)
         << Info() << " #" << Id() << " expects a 2x3 connector matrix."
         << std::endl;
-    KRATOS_ERROR_IF_NOT(
+    KRATOS_ERROR_IF_NOT(UsesPatchCouplingParameters() || (
         GetProperties().Has(CONSTITUTIVE_LAW) &&
-        GetProperties()[CONSTITUTIVE_LAW] != nullptr)
+        GetProperties()[CONSTITUTIVE_LAW] != nullptr))
         << Info() << " #" << Id() << " requires a fluid CONSTITUTIVE_LAW."
         << std::endl;
     const double penalty_factor = GetProperties().Has(PENALTY_COEFFICIENT)
         ? GetProperties()[PENALTY_COEFFICIENT]
         : 0.0;
-    KRATOS_ERROR_IF(penalty_factor < 0.0)
+    KRATOS_ERROR_IF(!std::isfinite(penalty_factor) ||
+                    (penalty_factor < 0.0 && !(UsesPatchCouplingParameters() && penalty_factor == -1.0)))
         << Info() << " #" << Id()
         << " requires a non-negative penalty factor." << std::endl;
 
+    if (UsesPatchCouplingParameters()) {
+        // Indexed access preserves constness without the indirect iterator.
+        for (IndexType side = 0; side < r_neighbours.size(); ++side) {
+            const auto& r_parent = r_neighbours[side];
+            const auto& r_material = r_parent.GetProperties();
+            KRATOS_ERROR_IF_NOT(r_material.Has(CONSTITUTIVE_LAW) && r_material[CONSTITUTIVE_LAW] != nullptr &&
+                                r_material.Has(DYNAMIC_VISCOSITY) && r_material[DYNAMIC_VISCOSITY] > 0.0)
+                << "Gap connector parents require Newtonian material and positive viscosity." << std::endl;
+        }
+    }
     for (const auto& r_node : GetGeometry()) {
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(VELOCITY, r_node);
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(ACCELERATION, r_node);

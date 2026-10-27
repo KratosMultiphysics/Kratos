@@ -127,6 +127,8 @@ public:
     }
 
 protected:
+    virtual bool UsesPatchCouplingParameters() const { return false; }
+
     SbmFluidGapInterfaceCondition2D() = default;
 
 private:
