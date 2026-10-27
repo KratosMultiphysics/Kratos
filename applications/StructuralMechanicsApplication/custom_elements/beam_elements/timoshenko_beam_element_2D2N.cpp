@@ -454,7 +454,7 @@ void LinearTimoshenkoBeamElement2D2N::CalculateLocalSystem(
     const ProcessInfo& rProcessInfo
     )
 {
-    KRATOS_TRY;
+    KRATOS_TRY
     const auto &r_props = GetProperties();
     const auto &r_geometry = GetGeometry();
     const SizeType number_of_nodes = r_geometry.size();
@@ -464,14 +464,14 @@ void LinearTimoshenkoBeamElement2D2N::CalculateLocalSystem(
     if (rLHS.size1() != mat_size || rLHS.size2() != mat_size) {
         rLHS.resize(mat_size, mat_size, false);
     }
-    noalias(rLHS) = ZeroMatrix(mat_size, mat_size);
+    rLHS.clear();
 
     if (rRHS.size() != mat_size) {
         rRHS.resize(mat_size, false);
     }
-    noalias(rRHS) = ZeroVector(mat_size);
+    rRHS.clear();
 
-    const auto& integration_points = IntegrationPoints(GetIntegrationMethod());
+    const auto& r_integration_points = IntegrationPoints(GetIntegrationMethod());
 
     ConstitutiveLaw::Parameters cl_values(r_geometry, r_props, rProcessInfo);
     auto &r_cl_options = cl_values.GetOptions();
@@ -497,12 +497,12 @@ void LinearTimoshenkoBeamElement2D2N::CalculateLocalSystem(
         N_u(number_of_nodes), N_shape(mat_size-number_of_nodes), N_s(mat_size-number_of_nodes);
 
     // Loop over the integration points
-    for (SizeType IP = 0; IP < integration_points.size(); ++IP) {
-        const auto local_body_forces = GetLocalAxesBodyForce(*this, integration_points, IP);
+    for (SizeType IP = 0; IP < r_integration_points.size(); ++IP) {
+        const auto local_body_forces = GetLocalAxesBodyForce(*this, r_integration_points, IP);
 
         global_size_N.clear();
-        const double xi     = integration_points[IP].X();
-        const double weight = integration_points[IP].Weight();
+        const double xi     = r_integration_points[IP].X();
+        const double weight = r_integration_points[IP].Weight();
         const double jacobian_weight = weight * J;
 
         CalculateGeneralizedStrainsVector(strain_vector, length, Phi, xi, nodal_values);
@@ -578,7 +578,7 @@ void LinearTimoshenkoBeamElement2D2N::CalculateLocalSystem(
     }
     RotateAll(rLHS, rRHS, r_geometry);
 
-    KRATOS_CATCH("CalculateLocalSystem");
+    KRATOS_CATCH("CalculateLocalSystem")
 }
 
 /***********************************************************************************/
@@ -589,7 +589,7 @@ void LinearTimoshenkoBeamElement2D2N::CalculateLeftHandSide(
     const ProcessInfo& rProcessInfo
     )
 {
-    KRATOS_TRY;
+    KRATOS_TRY
     const auto &r_geometry = GetGeometry();
     const auto &r_props = GetProperties();
     const SizeType number_of_nodes = r_geometry.size();
@@ -599,9 +599,9 @@ void LinearTimoshenkoBeamElement2D2N::CalculateLeftHandSide(
     if (rLHS.size1() != mat_size || rLHS.size2() != mat_size) {
         rLHS.resize(mat_size, mat_size, false);
     }
-    noalias(rLHS) = ZeroMatrix(mat_size, mat_size);
+    rLHS.clear();
 
-    const auto& integration_points = IntegrationPoints(GetIntegrationMethod());
+    const auto& r_integration_points = IntegrationPoints(GetIntegrationMethod());
 
     ConstitutiveLaw::Parameters cl_values(r_geometry, r_props, rProcessInfo);
     auto &r_cl_options = cl_values.GetOptions();
@@ -625,10 +625,10 @@ void LinearTimoshenkoBeamElement2D2N::CalculateLeftHandSide(
         N_theta_derivatives(mat_size-number_of_nodes), N_theta(mat_size-number_of_nodes), N_derivatives(mat_size-number_of_nodes), N_s(mat_size-number_of_nodes);
 
     // Loop over the integration points
-    for (SizeType IP = 0; IP < integration_points.size(); ++IP) {
+    for (SizeType IP = 0; IP < r_integration_points.size(); ++IP) {
         global_size_N.clear();
-        const double xi     = integration_points[IP].X();
-        const double weight = integration_points[IP].Weight();
+        const double xi     = r_integration_points[IP].X();
+        const double weight = r_integration_points[IP].Weight();
         const double jacobian_weight = weight * J;
 
         CalculateGeneralizedStrainsVector(strain_vector, length, Phi, xi, nodal_values);
@@ -687,7 +687,7 @@ void LinearTimoshenkoBeamElement2D2N::CalculateLeftHandSide(
     }
 
     RotateLHS(rLHS, r_geometry);
-    KRATOS_CATCH("CalculateLeftHandSide");
+    KRATOS_CATCH("CalculateLeftHandSide")
 }
 
 /***********************************************************************************/
@@ -731,7 +731,7 @@ void LinearTimoshenkoBeamElement2D2N::CalculateInternalAndExternalForcesVector(
     const bool ComputeExternalForces
     )
 {
-    KRATOS_TRY;
+    KRATOS_TRY
     const auto &r_geometry = GetGeometry();
     const auto &r_props = GetProperties();
     const SizeType number_of_nodes = r_geometry.size();
@@ -818,7 +818,7 @@ void LinearTimoshenkoBeamElement2D2N::CalculateInternalAndExternalForcesVector(
     }
 
     RotateRHS(rForces, r_geometry);
-    KRATOS_CATCH("CalculateInternalAndExternalForcesVector");
+    KRATOS_CATCH("CalculateInternalAndExternalForcesVector")
 }
 
 /***********************************************************************************/
