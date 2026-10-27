@@ -1273,7 +1273,19 @@ void LinearTimoshenkoBeamElement2D2N::CalculateMassMatrix(Matrix& rMassMatrix,
 void LinearTimoshenkoBeamElement2D2N::CalculateDampingMatrix(Matrix& rDampingMatrix,
     const ProcessInfo& rCurrentProcessInfo)
 {
+    KRATOS_TRY
 
+    const auto &r_geometry = GetGeometry();
+    const SizeType number_of_nodes = r_geometry.size();
+    const SizeType mat_size = GetDoFsPerNode() * number_of_nodes;
+
+    StructuralMechanicsElementUtilities::CalculateRayleighDampingMatrix(
+        *this,
+        rDampingMatrix,
+        rCurrentProcessInfo,
+        mat_size);
+
+    KRATOS_CATCH("CalculateDampingMatrix")
 }
 
 /***********************************************************************************/
