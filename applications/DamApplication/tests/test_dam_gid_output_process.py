@@ -474,21 +474,39 @@ class TestDamGiDOutputProcess(KratosUnittest.TestCase):
             self.assertAlmostEqual(values[1][2], 5966.27, delta=1.0)
 
     def test_plane_output_is_delegated(self):
+        expected_normal = [1.0, 0.0, 0.0]
+        expected_point = [1.0, 1.0, 0.0]
+
         with tempfile.TemporaryDirectory() as working_directory:
             parameters = self._load_parameters(
                 "plane",
                 self._legacy_configuration(
                     plane_output=[{
-                        "normal": [1.0, 0.0, 0.0],
-                        "point": [1.0, 1.0, 0.0]
+                        "normal": expected_normal,
+                        "point": expected_point
                     }]),
                 end_time=2.0,
                 time_step=1.0)
-            self._run(parameters, working_directory)
 
-            cut_result_file = os.path.join(working_directory, "plane_cuts.post.res")
-            self.assertTrue(os.path.exists(cut_result_file))
-            self.assertEqual(self._result_tags(cut_result_file), ["0", "1", "2"])
+            # The standard process defines the cut plane and then generates the
+            # cut. Intercept the definition to verify the delegated configuration
+            # without running the 3D cutting utility on the 2D test mesh.
+            with mock.patch.object(
+                    GiDOutputProcess,
+                    "_GiDOutputProcess__define_output_plane",
+                    autospec=True) as define_output_plane:
+                simulation = self._run(parameters, working_directory)
+
+            self.assertIsInstance(simulation.gid_output, GiDDamOutputProcess)
+            self.assertEqual(define_output_plane.call_count, 1)
+            process, delegated_plane = define_output_plane.call_args.args
+            self.assertIs(process, simulation.gid_output)
+            self.assertEqual(
+                [delegated_plane["normal"][i].GetDouble() for i in range(3)],
+                expected_normal)
+            self.assertEqual(
+                [delegated_plane["point"][i].GetDouble() for i in range(3)],
+                expected_point)
 
 
 if __name__ == "__main__":
