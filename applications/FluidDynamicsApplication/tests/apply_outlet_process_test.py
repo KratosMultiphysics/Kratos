@@ -3,6 +3,7 @@ import csv
 import KratosMultiphysics
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics.kratos_utilities as KratosUtilities
+import KratosMultiphysics.FluidDynamicsApplication as KratosFluid
 from KratosMultiphysics.FluidDynamicsApplication import apply_outlet_process
 
 class ApplyOutletProcessTest(KratosUnittest.TestCase):
@@ -15,6 +16,7 @@ class ApplyOutletProcessTest(KratosUnittest.TestCase):
         outlet_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL)
         outlet_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PRESSURE)
         outlet_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.EXTERNAL_PRESSURE)
+        outlet_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY)
         outlet_model_part.CreateNewNode(1, 0.0, 1.0, 0.0)
         outlet_model_part.CreateNewNode(2, 2.0, 0.0, 0.0)
         outlet_model_part.CreateNewCondition("LineCondition2D2N", 1, [1, 2], properties)
@@ -89,6 +91,31 @@ class ApplyOutletProcessTest(KratosUnittest.TestCase):
         # Execute and check the outlet process
         model.GetModelPart("OutletModelPart").ProcessInfo[KratosMultiphysics.TIME] = 1.0
         self.__ExecuteAndCheckOutletProcess(model, outlet_process)
+
+    def testApplyOutletProcessUserDefinedCharacteristicVelocity(self):
+        # Set up test with outlet velocities different from the user defined characteristic velocity
+        model = self.__CreateModel()
+        outlet_model_part = model.GetModelPart("OutletModelPart")
+        for node in outlet_model_part.Nodes:
+            node.SetSolutionStepValue(KratosMultiphysics.VELOCITY, [float(node.Id), 0.0, 0.0])
+        settings = self.__GetBlankParameters()
+        settings["Parameters"].AddEmptyValue("value").SetDouble(0.0)
+        settings["Parameters"].AddEmptyValue("outlet_inflow_contribution").SetBool(True)
+        settings["Parameters"].AddEmptyValue("outlet_inflow_contribution_characteristic_velocity_calculation").SetString("user_defined")
+        settings["Parameters"].AddEmptyValue("outlet_inflow_contribution_characteristic_velocity_value").SetDouble(2.5)
+
+        # Check that the user defined value is kept
+        outlet_process = apply_outlet_process.ApplyOutletProcess(model, settings["Parameters"])
+        outlet_process.ExecuteInitializeSolutionStep()
+        self.assertAlmostEqual(outlet_model_part.ProcessInfo[KratosFluid.CHARACTERISTIC_VELOCITY], 2.5)
+
+    def testApplyOutletProcessEmptyString(self):
+        # An empty function string must be rejected
+        model = self.__CreateModel()
+        settings = self.__GetBlankParameters()
+        settings["Parameters"].AddEmptyValue("value").SetString("")
+        with self.assertRaisesRegex(Exception, "function string is empty"):
+            apply_outlet_process.ApplyOutletProcess(model, settings["Parameters"])
 
     def testApplyOutletProcessHydrostaticPropertiesDensity(self):
         # Hydrostatic outlet without DENSITY in the nodal data (e.g. QSVMS): the density is taken from the properties
