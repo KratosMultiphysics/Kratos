@@ -55,7 +55,8 @@ class TestDamGiDOutputProcess(KratosUnittest.TestCase):
     def _legacy_configuration(self, output_control_type="time_s", output_interval=1.0,
                               start_output_results=0.0, multi_file_flag="SingleFile",
                               gauss_point_results=None, skin_output=False,
-                              plane_output=None, post_mode="GiD_PostAscii"):
+                              plane_output=None, post_mode="GiD_PostAscii",
+                              nodal_results=None, nodal_nonhistorical_results=None):
         return {
             "result_file_configuration": {
                 "gidpost_flags": {
@@ -71,7 +72,11 @@ class TestDamGiDOutputProcess(KratosUnittest.TestCase):
                 "node_output": False,
                 "skin_output": skin_output,
                 "plane_output": plane_output or [],
-                "nodal_results": ["DISPLACEMENT"],
+                "nodal_results": (
+                    ["DISPLACEMENT"] if nodal_results is None else nodal_results),
+                "nodal_nonhistorical_results": (
+                    [] if nodal_nonhistorical_results is None
+                    else nodal_nonhistorical_results),
                 "gauss_point_results": gauss_point_results or []
             },
             "point_data_configuration": []
@@ -443,6 +448,134 @@ class TestDamGiDOutputProcess(KratosUnittest.TestCase):
             self.assertAlmostEqual(values[4][1], 8.74018e-06, delta=1.0e-8)
             self.assertAlmostEqual(values[4][2], 0.0, delta=1.0e-12)
             self.assertAlmostEqual(values[1][0], 0.0, delta=1.0e-12)
+
+    def test_legacy_nodal_young_modulus_historical_request_is_translated(self):
+        with tempfile.TemporaryDirectory() as working_directory:
+            parameters = self._load_parameters(
+                "legacy_nodal_young_modulus",
+                self._legacy_configuration(
+                    nodal_results=["DISPLACEMENT", "NODAL_YOUNG_MODULUS"]),
+                end_time=2.0,
+                time_step=1.0)
+
+            with mock.patch.object(KM.Logger, "PrintWarning") as warning:
+                simulation = self._run(parameters, working_directory)
+
+            result_file = os.path.join(
+                working_directory, "legacy_nodal_young_modulus.post.res")
+            self.assertEqual(
+                self._result_tags(result_file, "YOUNG_MODULUS"), ["0", "1", "2"])
+            self.assertEqual(
+                self._result_tags(result_file, "NODAL_YOUNG_MODULUS"), [])
+            self.assertEqual(
+                self._result_tags(result_file, "DISPLACEMENT"), ["0", "1", "2"])
+
+            for label in ("0", "1", "2"):
+                values = self._values_after_header(
+                    result_file,
+                    'Result "YOUNG_MODULUS" "Kratos" {0} Scalar OnNodes'.format(label))
+                self.assertEqual(len(values), 24)
+                for value in values.values():
+                    self.assertAlmostEqual(value[0], 0.0)
+
+            result_configuration = simulation.gid_output.param["result_file_configuration"]
+            nodal_results = result_configuration["nodal_results"].GetStringArray()
+            self.assertIn("YOUNG_MODULUS", nodal_results)
+            self.assertNotIn("NODAL_YOUNG_MODULUS", nodal_results)
+            self.assertNotIn(
+                "NODAL_YOUNG_MODULUS",
+                result_configuration["nodal_nonhistorical_results"].GetStringArray())
+
+            warning_messages = [str(call) for call in warning.call_args_list]
+            self.assertTrue(any(
+                "NODAL_YOUNG_MODULUS" in message for message in warning_messages))
+
+    def test_legacy_nodal_young_modulus_nonhistorical_request_is_translated(self):
+        cases = [
+            ("nonhistorical_only", ["DISPLACEMENT"],
+             ["NODAL_YOUNG_MODULUS"]),
+            ("nonhistorical_with_existing_historical",
+             ["DISPLACEMENT", "YOUNG_MODULUS"],
+             ["NODAL_YOUNG_MODULUS"])
+        ]
+
+        for name, nodal_results, nonhistorical_results in cases:
+            with self.subTest(name=name):
+                with tempfile.TemporaryDirectory() as working_directory:
+                    parameters = self._load_parameters(
+                        name,
+                        self._legacy_configuration(
+                            nodal_results=nodal_results,
+                            nodal_nonhistorical_results=nonhistorical_results),
+                        end_time=2.0,
+                        time_step=1.0)
+
+                    with mock.patch.object(KM.Logger, "PrintWarning"):
+                        simulation = self._run(parameters, working_directory)
+
+                    result_file = os.path.join(working_directory, name + ".post.res")
+                    self.assertEqual(
+                        self._result_tags(result_file, "YOUNG_MODULUS"),
+                        ["0", "1", "2"])
+                    self.assertEqual(
+                        self._result_tags(result_file, "NODAL_YOUNG_MODULUS"), [])
+
+                    values = self._values_after_header(
+                        result_file,
+                        'Result "YOUNG_MODULUS" "Kratos" 0 Scalar OnNodes')
+                    self.assertEqual(len(values), 24)
+                    for value in values.values():
+                        self.assertAlmostEqual(value[0], 0.0)
+
+                    result_configuration = simulation.gid_output.param["result_file_configuration"]
+                    translated_nodal_results = (
+                        result_configuration["nodal_results"].GetStringArray())
+                    self.assertEqual(
+                        translated_nodal_results.count("YOUNG_MODULUS"), 1)
+                    self.assertNotIn(
+                        "NODAL_YOUNG_MODULUS", translated_nodal_results)
+                    self.assertNotIn(
+                        "NODAL_YOUNG_MODULUS",
+                        result_configuration["nodal_nonhistorical_results"].GetStringArray())
+
+    def test_nodal_young_modulus_translation_does_not_modify_input_parameters(self):
+        with tempfile.TemporaryDirectory() as working_directory:
+            input_parameters = KM.Parameters(json.dumps(self._legacy_configuration(
+                nodal_results=["DISPLACEMENT", "NODAL_YOUNG_MODULUS"])))
+            process = GiDDamOutputProcess(
+                self._make_model_part(),
+                os.path.join(working_directory, "input_parameters"),
+                0.0,
+                input_parameters)
+
+            self.assertEqual(
+                input_parameters["result_file_configuration"][
+                    "nodal_results"].GetStringArray(),
+                ["DISPLACEMENT", "NODAL_YOUNG_MODULUS"])
+            self.assertEqual(
+                process.param["result_file_configuration"][
+                    "nodal_results"].GetStringArray(),
+                ["DISPLACEMENT", "YOUNG_MODULUS"])
+
+    def test_nodal_young_modulus_translation_handles_missing_nodal_results(self):
+        configuration = self._legacy_configuration(
+            nodal_nonhistorical_results=["NODAL_YOUNG_MODULUS"])
+        del configuration["result_file_configuration"]["nodal_results"]
+
+        with tempfile.TemporaryDirectory() as working_directory:
+            process = GiDDamOutputProcess(
+                self._make_model_part(),
+                os.path.join(working_directory, "missing_nodal_results"),
+                0.0,
+                KM.Parameters(json.dumps(configuration)))
+
+            result_configuration = process.param["result_file_configuration"]
+            self.assertEqual(
+                result_configuration["nodal_results"].GetStringArray(),
+                ["YOUNG_MODULUS"])
+            self.assertEqual(
+                result_configuration["nodal_nonhistorical_results"].GetStringArray(),
+                [])
 
     def test_gauss_point_output_is_delegated(self):
         with tempfile.TemporaryDirectory() as working_directory:

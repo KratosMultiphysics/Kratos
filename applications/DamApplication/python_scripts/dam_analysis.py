@@ -219,8 +219,6 @@ class DamAnalysis(AnalysisStage):
         self.list_of_processes += KratosMultiphysics.process_factory.KratosProcessFactory(self.model).ConstructListOfProcesses( self.project_parameters["loads_process_list"] )
         self.list_of_processes += KratosMultiphysics.process_factory.KratosProcessFactory(self.model).ConstructListOfProcesses( self.project_parameters["temperature_by_device_list"] )
 
-        self._AddYoungModulusOutputPreparationIfRequested(computing_model_part)
-
         if self.project_parameters.Has("output_device_list"):
             self.list_of_output_processes = KratosMultiphysics.process_factory.KratosProcessFactory(self.model).ConstructListOfProcesses( self.project_parameters["output_device_list"] )
         else:
@@ -365,62 +363,6 @@ class DamAnalysis(AnalysisStage):
             f = open("ProjectParametersOutput.json", 'w')
             f.write(self.project_parameters.PrettyPrintJsonString())
             f.close()
-
-    @staticmethod
-    def _ParametersListContains(parameters_list, variable_name):
-        return any(
-            parameters_list[index].GetString() == variable_name
-            for index in range(parameters_list.size())
-        )
-
-    def _IsYoungModulusOutputRequested(self):
-        variable_name = "NODAL_YOUNG_MODULUS"
-
-        if self.project_parameters.Has("output_configuration"):
-            output_configuration = self.project_parameters["output_configuration"]
-            if output_configuration.Has("result_file_configuration"):
-                result_configuration = output_configuration["result_file_configuration"]
-                for key in ("nodal_results", "nodal_nonhistorical_results"):
-                    if (result_configuration.Has(key) and
-                            self._ParametersListContains(result_configuration[key], variable_name)):
-                        return True
-
-        if self.project_parameters.Has("output_processes"):
-            output_processes = self.project_parameters["output_processes"]
-            for _, process_list in output_processes.items():
-                for index in range(process_list.size()):
-                    process_settings = process_list[index]
-                    if not process_settings.Has("Parameters"):
-                        continue
-                    process_settings = process_settings["Parameters"]
-                    if (process_settings.Has("nodal_data_value_variables") and
-                            self._ParametersListContains(process_settings["nodal_data_value_variables"], variable_name)):
-                        return True
-                    if process_settings.Has("postprocess_parameters"):
-                        postprocess_parameters = process_settings["postprocess_parameters"]
-                        if postprocess_parameters.Has("result_file_configuration"):
-                            result_configuration = postprocess_parameters["result_file_configuration"]
-                            if (result_configuration.Has("nodal_nonhistorical_results") and
-                                    self._ParametersListContains(
-                                        result_configuration["nodal_nonhistorical_results"], variable_name)):
-                                return True
-
-        return False
-
-    def _AddYoungModulusOutputPreparationIfRequested(self, computing_model_part):
-        if not self._IsYoungModulusOutputRequested():
-            return
-
-        from KratosMultiphysics.DamApplication.dam_young_modulus_output_process import DamYoungModulusOutputProcess
-
-        # Do not duplicate a preparation process that the user configured explicitly.
-        if any(isinstance(process, DamYoungModulusOutputProcess) for process in self.list_of_processes):
-            return
-
-        process_settings = KratosMultiphysics.Parameters()
-        process_settings.AddString("model_part_name", computing_model_part.FullName())
-        self.list_of_processes.append(
-            DamYoungModulusOutputProcess(self.model, process_settings))
 
     def RunMainTemporalLoop(self):
 

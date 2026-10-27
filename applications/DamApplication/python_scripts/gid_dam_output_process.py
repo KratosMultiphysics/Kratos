@@ -7,6 +7,14 @@ class GiDDamOutputProcess(GiDOutputProcess):
 
     The legacy Dam settings are translated to the standard GiDOutputProcess
     configuration. Result writing is fully delegated to the standard process.
+
+    The obsolete NODAL_YOUNG_MODULUS output request is translated to the
+    historical YOUNG_MODULUS field. Constant element properties are not
+    projected to nodes.
+
+    Standard GiD/VTK configurations that request the obsolete nonhistorical
+    field must be regenerated or updated manually; only the legacy Dam adapter
+    performs this translation.
     """
 
     legacy_defaults = KM.Parameters('''{
@@ -74,33 +82,47 @@ class GiDDamOutputProcess(GiDOutputProcess):
         settings.ValidateAndAssignDefaults(self.legacy_defaults)
 
         if settings.Has("result_file_configuration"):
-            self._MoveNodalYoungModulusToNonhistorical(settings["result_file_configuration"])
+            self._translate_nodal_young_modulus_output(
+                settings["result_file_configuration"])
 
     @staticmethod
-    def _MoveNodalYoungModulusToNonhistorical(result_file_configuration):
-        variable_name = "NODAL_YOUNG_MODULUS"
+    def _translate_nodal_young_modulus_output(result_file_configuration):
+        """Map the obsolete NODAL_YOUNG_MODULUS request to historical YOUNG_MODULUS.
+
+        Constant element properties are no longer projected to nodes. This keeps
+        old configurations executable while making the historical nodal field the
+        only supported Young's modulus visualization source.
+        """
+        old_name = "NODAL_YOUNG_MODULUS"
+        new_name = "YOUNG_MODULUS"
+
+        nodal_results = (
+            result_file_configuration["nodal_results"].GetStringArray()
+            if result_file_configuration.Has("nodal_results") else [])
+        nonhistorical_results = (
+            result_file_configuration["nodal_nonhistorical_results"].GetStringArray()
+            if result_file_configuration.Has("nodal_nonhistorical_results") else [])
+
+        if old_name not in nodal_results and old_name not in nonhistorical_results:
+            return
+
+        nodal_results = [name for name in nodal_results if name != old_name]
+        nonhistorical_results = [name for name in nonhistorical_results if name != old_name]
+        if new_name not in nodal_results:
+            nodal_results.append(new_name)
 
         if not result_file_configuration.Has("nodal_results"):
-            return
+            result_file_configuration.AddEmptyArray("nodal_results")
+        result_file_configuration["nodal_results"].SetStringArray(nodal_results)
 
-        nodal_results = result_file_configuration["nodal_results"].GetStringArray()
-        if variable_name not in nodal_results:
-            return
-
-        result_file_configuration["nodal_results"].SetStringArray(
-            [name for name in nodal_results if name != variable_name])
-
-        if not result_file_configuration.Has("nodal_nonhistorical_results"):
-            result_file_configuration.AddEmptyArray("nodal_nonhistorical_results")
-        nonhistorical_results = result_file_configuration["nodal_nonhistorical_results"].GetStringArray()
-        if variable_name not in nonhistorical_results:
-            nonhistorical_results.append(variable_name)
-        result_file_configuration["nodal_nonhistorical_results"].SetStringArray(nonhistorical_results)
+        if result_file_configuration.Has("nodal_nonhistorical_results"):
+            result_file_configuration["nodal_nonhistorical_results"].SetStringArray(
+                nonhistorical_results)
 
         KM.Logger.PrintWarning(
             "GiDDamOutputProcess",
-            "'NODAL_YOUNG_MODULUS' is not a historical variable. It is written as a "
-            "nonhistorical nodal result prepared from element material properties."
+            "'NODAL_YOUNG_MODULUS' is obsolete and is interpreted as historical "
+            "'YOUNG_MODULUS'. Constant element properties are not projected to nodes."
         )
 
     def _translate_parameters(self, model_part, start_time, legacy_param):
