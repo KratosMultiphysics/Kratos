@@ -22,8 +22,7 @@
 #include "custom_utilities/global_joint_stress_utility.hpp"
 #include "custom_utilities/transfer_selfweight_stress_utility.hpp"
 #include "custom_utilities/construction_utility.hpp"
-#include "custom_utilities/mapping_variables_2D_utilities.hpp"
-#include "custom_utilities/mapping_variables_3D_utilities.hpp"
+#include "custom_utilities/mapping_variables_utilities.hpp"
 
 
 namespace Kratos
