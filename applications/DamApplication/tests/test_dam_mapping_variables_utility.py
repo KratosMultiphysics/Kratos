@@ -6,7 +6,8 @@ be preserved when the custom cell search is replaced by the Kratos Core point
 locators.
 """
 
-import math
+import os
+import tempfile
 
 import KratosMultiphysics as KM
 import KratosMultiphysics.DamApplication as KratosDam
@@ -674,6 +675,40 @@ class TestDamMappingVariablesUtility(KratosUnittest.TestCase):
         self._AssertAllVariables(
             new.GetNode(1), [1, 2, 3], 2, [0.5, 0.2, 0.3]
         )
+
+    def test_add_previous_results_end_to_end(self):
+        from KratosMultiphysics.DamApplication.dam_analysis import DamAnalysis
+
+        case = os.path.join(
+            os.path.dirname(os.path.abspath(__file__)),
+            "joint_elastic_cohesive_2d_normal",
+            "joint_elastic_cohesive_2d_normal",
+        )
+        with open(case + "_parameters.json", "r") as parameter_file:
+            parameters = KM.Parameters(parameter_file.read())
+
+        parameters["problem_data"]["problem_name"].SetString(
+            "mapping_previous_results"
+        )
+        parameters["problem_data"]["end_time"].SetDouble(0.0)
+        parameters["solver_settings"]["model_import_settings"][
+            "input_filename"
+        ].SetString(case)
+
+        transfer = parameters["transfer_results_process"]
+        transfer["add_previous_results"].SetBool(True)
+        transfer["type_of_results"].SetString("Mechanical")
+        transfer["add_displacement"].SetBool(True)
+        transfer["add_stress"].SetBool(False)
+        transfer["file_name_mechanical"].SetString(case + ".mdpa")
+
+        with tempfile.TemporaryDirectory() as working_directory:
+            with KratosUnittest.WorkFolderScope(working_directory, __file__):
+                model = KM.Model()
+                DamAnalysis(model, parameters).Run()
+
+        model_part = model["MainModelPart"]
+        self.assertEqual(model_part.NumberOfNodes(), 24)
 
     def test_python_mapping_wrapper(self):
         model = KM.Model()
