@@ -23,6 +23,7 @@ def CreateFutureRomAnalysisInstance(cls, global_model, parameters, future_rom_se
             self.future_rom_solver.Initialize()
             self.future_rom_solver.SetDecoder(self._CreateDecoder())
             self.rom_solutions = []
+            self.convergence_histories = []
 
         def _GetFutureRomSettings(self):
             """Settings of the FutureRomSolver. The nonlinear iterations not given take the values of the solver of the analysis
@@ -88,6 +89,7 @@ def CreateFutureRomAnalysisInstance(cls, global_model, parameters, future_rom_se
         def SolveSolutionStep(self):
             is_converged = self.future_rom_solver.SolveSolutionStep()
             self.rom_solutions.append(self.future_rom_solver.GetRomSolution().copy())
+            self.convergence_histories.append(self.future_rom_solver.GetConvergenceHistory())
             return is_converged
 
         def FinalizeSolutionStep(self):

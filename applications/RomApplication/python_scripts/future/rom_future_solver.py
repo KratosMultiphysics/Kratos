@@ -69,7 +69,17 @@ class FutureRomSolver:
         self.max_iterations = settings["max_iterations"].GetInt()
         self.relative_tolerance = settings["relative_tolerance"].GetDouble()
         self.absolute_tolerance = settings["absolute_tolerance"].GetDouble()
+        self.residual_relative_tolerance = settings["residual_relative_tolerance"].GetDouble()
+        self.residual_absolute_tolerance = settings["residual_absolute_tolerance"].GetDouble()
         self.echo_level = settings["echo_level"].GetInt()
+        self.convergence_history = []
+
+        # Convergence criterion: "displacement_criterion" (increment of the free DOFs, "relative_tolerance" and "absolute_tolerance")
+        # or "reduced_residual_criterion" (RHS of the projected system, "residual_relative_tolerance" and "residual_absolute_tolerance")
+        self.convergence_criterion = settings["convergence_criterion"].GetString()
+        if self.convergence_criterion not in ("displacement_criterion", "reduced_residual_criterion"):
+            err_msg = "Unknown value \'{}\' for \'convergence_criterion\'. Available options are \'displacement_criterion\' and \'reduced_residual_criterion\'.".format(self.convergence_criterion)
+            raise Exception(err_msg)
 
         # Values of the fixed DOFs given by the decoder: "basis" (u0 + Phi q, as the free ones) or "prescribed" (the values imposed
         # by the conditions, see FixedDofsDecoder). The projection does not use the rows of the fixed DOFs in either case
@@ -105,8 +115,11 @@ class FutureRomSolver:
             "projection_backend" : "numpy",
             "fixed_dofs_decoding" : "basis",
             "max_iterations" : 10,
+            "convergence_criterion" : "displacement_criterion",
             "relative_tolerance" : 1.0e-9,
             "absolute_tolerance" : 1.0e-9,
+            "residual_relative_tolerance" : 1.0e-9,
+            "residual_absolute_tolerance" : 1.0e-9,
             "echo_level" : 0
         }""")
 
@@ -125,13 +138,18 @@ class FutureRomSolver:
 
     def SolveSolutionStep(self):
         """Newton-Raphson iteration on the reduced coordinates. Returns True if converged.
-        The convergence criterion is the one of the legacy displacement criterion, on the increment of the free DOFs (Phi dq)."""
+        With the "displacement_criterion" the convergence is checked after each solve on the increment of the free DOFs (J dq), as
+        the legacy displacement criterion does. With the "reduced_residual_criterion" it is checked before each solve on the reduced
+        residual (the RHS of the projected system), relative to the one of the first iteration of the step or absolute (divided by
+        the square root of the number of ROM DOFs), as the legacy residual criterion does on the full residual. The step then ends
+        without a further update, and the system is built once more after the last iteration to check it.
+        The history of the iterations of the step is kept (see GetConvergenceHistory)."""
+        self.convergence_history = []
         is_converged = False
-        iteration = 0
         free_dofs = numpy.array([not dof.IsFixed() for dof in self.GetEffectiveDofSet()])
-        while iteration < self.max_iterations and not is_converged:
-            iteration += 1
-
+        check_residual = self.convergence_criterion == "reduced_residual_criterion"
+        initial_residual_norm = None
+        for iteration in range(1, self.max_iterations + (2 if check_residual else 1)):
             # u = D(q)
             self.projector.SetSolution(self.decoder.Decode(self.q))
 
@@ -139,23 +157,57 @@ class FutureRomSolver:
             self.scheme.InitializeNonLinIteration(self.strategy_data)
             self.projector.BuildEffectiveSystem()
             phi = self.decoder.Jacobian(self.q)
-            self.projector.Project(phi)
+            _, reduced_rhs = self.projector.Project(phi)
+            residual_norm = float(numpy.linalg.norm(reduced_rhs))
+            if initial_residual_norm is None:
+                initial_residual_norm = residual_norm
+            history = {"iteration": iteration, "reduced_residual_norm": residual_norm}
+            self.convergence_history.append(history)
+
+            if check_residual:
+                ratio, absolute_norm = self._ResidualCriterionNorms(residual_norm, initial_residual_norm, len(reduced_rhs))
+                history.update({"residual_ratio": ratio, "residual_absolute_norm": absolute_norm})
+                is_converged = ratio <= self.residual_relative_tolerance or absolute_norm < self.residual_absolute_tolerance
+                self._PrintIteration(history)
+                if is_converged or iteration > self.max_iterations:
+                    self.scheme.FinalizeNonLinIteration(self.strategy_data)
+                    break
 
             # Solve and update the reduced coordinates
             dq = self.projector.SolveReduced()
             self.q = self.q + dq
             self.scheme.FinalizeNonLinIteration(self.strategy_data)
 
-            # Check convergence
             ratio, absolute_norm = self._DisplacementCriterionNorms((phi @ dq)[free_dofs], self.decoder.Decode(self.q)[free_dofs])
-            is_converged = ratio <= self.relative_tolerance or absolute_norm < self.absolute_tolerance
-            if self.echo_level > 0:
-                KratosMultiphysics.Logger.PrintInfo("FutureRomSolver", "Iteration {}: ratio = {}, absolute norm = {}".format(iteration, ratio, absolute_norm))
+            history.update({"reduced_increment_norm": float(numpy.linalg.norm(dq)), "displacement_ratio": ratio, "displacement_absolute_norm": absolute_norm})
+            if not check_residual:
+                is_converged = ratio <= self.relative_tolerance or absolute_norm < self.absolute_tolerance
+                self._PrintIteration(history)
+                if is_converged:
+                    break
 
         # Leave the database at the last reduced coordinates
         self.projector.SetSolution(self.decoder.Decode(self.q))
 
         return is_converged
+
+    def GetConvergenceHistory(self):
+        """History of the iterations of the last step: one dict per build of the system with the "iteration", the norm of the reduced
+        residual before the solve ("reduced_residual_norm") and, if a solve followed, the norm of the increment of the reduced
+        coordinates ("reduced_increment_norm") and the displacement criterion values. With the "reduced_residual_criterion", also
+        its values; its last entry, where it is checked without a further solve, has no increment."""
+        return self.convergence_history
+
+    def _PrintIteration(self, history):
+        if self.echo_level > 0:
+            KratosMultiphysics.Logger.PrintInfo("FutureRomSolver", ", ".join(f"{key} = {value}" for key, value in history.items()))
+
+    @staticmethod
+    def _ResidualCriterionNorms(residual_norm, initial_residual_norm, number_of_rom_dofs):
+        """Ratio to the reduced residual of the first iteration of the step and absolute norm, as the legacy ResidualCriteria on the full residual"""
+        epsilon = numpy.finfo(float).eps
+        ratio = 0.0 if residual_norm < epsilon else residual_norm / max(initial_residual_norm, epsilon)
+        return ratio, residual_norm / numpy.sqrt(max(number_of_rom_dofs, 1))
 
     @staticmethod
     def _DisplacementCriterionNorms(du, u):

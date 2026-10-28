@@ -127,6 +127,55 @@ class TestFutureRom(KratosUnittest.TestCase):
             expected_output = rom_testing_utilities.GetScalarNodalResults(default_model_part, KratosMultiphysics.TEMPERATURE)
             self._CheckResults(obtained_output, expected_output, 1.0e-12)
 
+    def _RunFutureRomWithSettings(self, parameters_filename, future_rom_settings):
+        from KratosMultiphysics.RomApplication.future.future_rom_analysis import CreateFutureRomAnalysisInstance
+
+        with open(parameters_filename,'r') as parameter_file:
+            parameters = KratosMultiphysics.Parameters(parameter_file.read())
+        analysis_stage_module_name = parameters["analysis_stage"].GetString()
+        analysis_stage_class_name = ''.join(x.title() for x in analysis_stage_module_name.split('.')[-1].split('_'))
+        analysis_stage_class = getattr(importlib.import_module(analysis_stage_module_name), analysis_stage_class_name)
+        simulation = CreateFutureRomAnalysisInstance(analysis_stage_class, KratosMultiphysics.Model(), parameters, KratosMultiphysics.Parameters(future_rom_settings))
+        simulation.Run()
+        return simulation
+
+    @KratosUnittest.skipIfApplicationsNotAvailable("StructuralMechanicsApplication")
+    def testStructuralStaticTotalLagrangianRomConvergenceHistory(self):
+        # Reduced residual history of the Newton iterations on the geometrically nonlinear cantilever (displacement criterion): one
+        # entry per iteration, quadratic convergence at the end of each step and a final reduced residual 1e-9 below the first one
+        with KratosUnittest.WorkFolderScope("future_rom_test_files/TotalLagrangianROM/", __file__):
+            for projection_backend in ["numpy", "cpp"]:
+                with self.subTest(projection_backend=projection_backend):
+                    simulation = self._RunFutureRomWithSettings("ProjectParameters.json", f'{{"projection_backend": "{projection_backend}", "max_iterations": 20}}')
+                    self.assertEqual(len(simulation.convergence_histories), 3)
+                    for history in simulation.convergence_histories:
+                        residuals = [entry["reduced_residual_norm"] for entry in history]
+                        self.assertEqual([entry["iteration"] for entry in history], list(range(1, len(history) + 1)))
+                        self.assertTrue(all("reduced_increment_norm" in entry for entry in history))
+                        self.assertGreater(len(residuals), 2)
+                        self.assertLess(residuals[-1], 1.0e-3 * residuals[-2])
+                        self.assertLess(residuals[-1], 1.0e-9 * residuals[0])
+
+    @KratosUnittest.skipIfApplicationsNotAvailable("StructuralMechanicsApplication")
+    def testStructuralStaticTotalLagrangianRomReducedResidualCriterion(self):
+        # Convergence on the reduced residual: the same solution as with the displacement criterion, each step ends when the reduced
+        # residual meets the tolerance, checked without a further solve
+        with KratosUnittest.WorkFolderScope("future_rom_test_files/TotalLagrangianROM/", __file__):
+            for projection_backend in ["numpy", "cpp"]:
+                with self.subTest(projection_backend=projection_backend):
+                    settings = f'{{"projection_backend": "{projection_backend}", "max_iterations": 20}}'
+                    expected_model_part = self._RunFutureRomWithSettings("ProjectParameters.json", settings)._GetSolver().GetComputingModelPart()
+                    expected_output = rom_testing_utilities.GetVectorNodalResults(expected_model_part, KratosMultiphysics.DISPLACEMENT)
+
+                    settings = f'{{"projection_backend": "{projection_backend}", "max_iterations": 20, "convergence_criterion": "reduced_residual_criterion", "residual_relative_tolerance": 1.0e-9}}'
+                    simulation = self._RunFutureRomWithSettings("ProjectParameters.json", settings)
+                    obtained_output = rom_testing_utilities.GetVectorNodalResults(simulation._GetSolver().GetComputingModelPart(), KratosMultiphysics.DISPLACEMENT)
+                    self._CheckResults(obtained_output, expected_output, 1.0e-10)
+                    for history in simulation.convergence_histories:
+                        self.assertLessEqual(history[-1]["residual_ratio"], 1.0e-9)
+                        self.assertNotIn("reduced_increment_norm", history[-1])
+                        self.assertTrue(all(entry["residual_ratio"] > 1.0e-9 and "reduced_increment_norm" in entry for entry in history[:-1]))
+
 
 ##########################################################################################
 
