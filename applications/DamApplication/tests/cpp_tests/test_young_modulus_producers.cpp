@@ -40,6 +40,9 @@
 #include "custom_processes/dam_random_fields_variable_process.hpp"
 #include "custom_processes/dam_chemo_mechanical_aging_young_process.hpp"
 #include "custom_processes/dam_azenha_heat_source_process.hpp"
+#include "custom_processes/dam_nodal_reference_temperature_process.hpp"
+#include "custom_processes/dam_input_table_nodal_young_modulus_process.hpp"
+#include "custom_processes/dam_nodal_young_modulus_process.hpp"
 
 namespace Kratos
 {
@@ -177,6 +180,170 @@ KRATOS_TEST_CASE_IN_SUITE(AzenhaHeatFluxAgingWritesNodalYoungModulus, KratosDamF
     auto& r_props = *r_mp.pGetProperties(1);
     KRATOS_EXPECT_TRUE(r_props.HasAccessor(YOUNG_MODULUS));
     KRATOS_EXPECT_NEAR(InterpolatedYoungViaAccessor(r_props, *Geometry<Node>::Pointer(new Line2D2<Node>(pts)), r_mp.GetProcessInfo()), expected, 1.0e-12);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(NodalReferenceTemperatureAssignsInitialValue, KratosDamFastSuite)
+{
+    Model model;
+    Geometry<Node>::PointsArrayType pts;
+    ModelPart& r_mp = BuildYoungModulusModel(model, pts);
+
+    // The table must be ignored when no input file is selected.
+    Table<double, double> table;
+    table.PushBack(1.0, 100.0);
+    table.PushBack(2.0, 200.0);
+
+    Parameters params(R"({
+        "model_part_name" : "M",
+        "variable_name" : "TEMPERATURE",
+        "initial_value" : 12.5,
+        "input_file_name" : "- No file"
+    })");
+    DamNodalReferenceTemperatureProcess process(r_mp, table, params);
+
+    process.ExecuteBeforeSolutionLoop();
+    KRATOS_EXPECT_DOUBLE_EQ(r_mp.pGetNode(1)->FastGetSolutionStepValue(TEMPERATURE), 12.5);
+    KRATOS_EXPECT_DOUBLE_EQ(r_mp.pGetNode(2)->FastGetSolutionStepValue(TEMPERATURE), 12.5);
+
+    // The same initial value is re-applied at every solution step.
+    r_mp.pGetNode(1)->FastGetSolutionStepValue(TEMPERATURE) = 0.0;
+    r_mp.pGetNode(2)->FastGetSolutionStepValue(TEMPERATURE) = 0.0;
+    process.ExecuteInitializeSolutionStep();
+    KRATOS_EXPECT_DOUBLE_EQ(r_mp.pGetNode(1)->FastGetSolutionStepValue(TEMPERATURE), 12.5);
+    KRATOS_EXPECT_DOUBLE_EQ(r_mp.pGetNode(2)->FastGetSolutionStepValue(TEMPERATURE), 12.5);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(NodalReferenceTemperatureAssignsTableValuesByNodeId, KratosDamFastSuite)
+{
+    Model model;
+    Geometry<Node>::PointsArrayType pts;
+    ModelPart& r_mp = BuildYoungModulusModel(model, pts);
+
+    Table<double, double> table;
+    table.PushBack(1.0, 100.0);
+    table.PushBack(2.0, 250.0);
+
+    Parameters params(R"({
+        "model_part_name" : "M",
+        "variable_name" : "TEMPERATURE",
+        "initial_value" : 7.0,
+        "input_file_name" : "nodal_temperatures.txt"
+    })");
+    DamNodalReferenceTemperatureProcess process(r_mp, table, params);
+
+    process.ExecuteBeforeSolutionLoop();
+    KRATOS_EXPECT_DOUBLE_EQ(r_mp.pGetNode(1)->FastGetSolutionStepValue(TEMPERATURE), 100.0);
+    KRATOS_EXPECT_DOUBLE_EQ(r_mp.pGetNode(2)->FastGetSolutionStepValue(TEMPERATURE), 250.0);
+
+    r_mp.pGetNode(1)->FastGetSolutionStepValue(TEMPERATURE) = 0.0;
+    r_mp.pGetNode(2)->FastGetSolutionStepValue(TEMPERATURE) = 0.0;
+    process.ExecuteInitializeSolutionStep();
+    KRATOS_EXPECT_DOUBLE_EQ(r_mp.pGetNode(1)->FastGetSolutionStepValue(TEMPERATURE), 100.0);
+    KRATOS_EXPECT_DOUBLE_EQ(r_mp.pGetNode(2)->FastGetSolutionStepValue(TEMPERATURE), 250.0);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(InputTableNodalYoungModulusAssignsInitialValueAndInstallsAccessor, KratosDamFastSuite)
+{
+    Model model;
+    Geometry<Node>::PointsArrayType pts;
+    ModelPart& r_mp = BuildYoungModulusModel(model, pts);
+
+    Table<double, double> table; // ignored with the "- No file" marker
+    table.PushBack(1.0, 100.0);
+    table.PushBack(2.0, 200.0);
+
+    Parameters params(R"({
+        "model_part_name" : "M",
+        "variable_name" : "NODAL_YOUNG_MODULUS",
+        "initial_value" : 3.0e7,
+        "input_file_name" : "- No file"
+    })");
+    DamInputTableNodalYoungModulusProcess process(r_mp, table, params);
+
+    process.ExecuteBeforeSolutionLoop();
+    KRATOS_EXPECT_DOUBLE_EQ(r_mp.pGetNode(1)->FastGetSolutionStepValue(YOUNG_MODULUS), 3.0e7);
+    KRATOS_EXPECT_DOUBLE_EQ(r_mp.pGetNode(2)->FastGetSolutionStepValue(YOUNG_MODULUS), 3.0e7);
+    KRATOS_EXPECT_DOUBLE_EQ(r_mp.pGetNode(1)->FastGetSolutionStepValue(NODAL_YOUNG_MODULUS), 0.0);
+
+    auto& r_props = *r_mp.pGetProperties(1);
+    KRATOS_EXPECT_TRUE(r_props.HasAccessor(YOUNG_MODULUS));
+    Line2D2<Node> geometry(pts);
+    KRATOS_EXPECT_NEAR(InterpolatedYoungViaAccessor(r_props, geometry, r_mp.GetProcessInfo()), 3.0e7, 1.0e-12);
+
+    // Repeated initialization must be idempotent (values and accessor).
+    process.ExecuteBeforeSolutionLoop();
+    KRATOS_EXPECT_DOUBLE_EQ(r_mp.pGetNode(1)->FastGetSolutionStepValue(YOUNG_MODULUS), 3.0e7);
+    KRATOS_EXPECT_TRUE(r_props.HasAccessor(YOUNG_MODULUS));
+    KRATOS_EXPECT_NEAR(InterpolatedYoungViaAccessor(r_props, geometry, r_mp.GetProcessInfo()), 3.0e7, 1.0e-12);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(InputTableNodalYoungModulusAssignsTableValuesByNodeId, KratosDamFastSuite)
+{
+    Model model;
+    Geometry<Node>::PointsArrayType pts;
+    ModelPart& r_mp = BuildYoungModulusModel(model, pts);
+
+    Table<double, double> table;
+    table.PushBack(1.0, 1.0e7);
+    table.PushBack(2.0, 2.0e7);
+
+    Parameters params(R"({
+        "model_part_name" : "M",
+        "variable_name" : "YOUNG_MODULUS",
+        "initial_value" : -1.0,
+        "input_file_name" : "nodal_young_modulus.txt"
+    })");
+    DamInputTableNodalYoungModulusProcess process(r_mp, table, params);
+
+    process.ExecuteBeforeSolutionLoop();
+    KRATOS_EXPECT_DOUBLE_EQ(r_mp.pGetNode(1)->FastGetSolutionStepValue(YOUNG_MODULUS), 1.0e7);
+    KRATOS_EXPECT_DOUBLE_EQ(r_mp.pGetNode(2)->FastGetSolutionStepValue(YOUNG_MODULUS), 2.0e7);
+
+    auto& r_props = *r_mp.pGetProperties(1);
+    Line2D2<Node> geometry(pts);
+    KRATOS_EXPECT_TRUE(r_props.HasAccessor(YOUNG_MODULUS));
+    KRATOS_EXPECT_NEAR(InterpolatedYoungViaAccessor(r_props, geometry, r_mp.GetProcessInfo()), 1.5e7, 1.0e-12);
+
+    // The per-node field is re-applied at every solution step.
+    r_mp.pGetNode(1)->FastGetSolutionStepValue(YOUNG_MODULUS) = 0.0;
+    r_mp.pGetNode(2)->FastGetSolutionStepValue(YOUNG_MODULUS) = 0.0;
+    process.ExecuteInitializeSolutionStep();
+    KRATOS_EXPECT_DOUBLE_EQ(r_mp.pGetNode(1)->FastGetSolutionStepValue(YOUNG_MODULUS), 1.0e7);
+    KRATOS_EXPECT_DOUBLE_EQ(r_mp.pGetNode(2)->FastGetSolutionStepValue(YOUNG_MODULUS), 2.0e7);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(NodalYoungModulusAssignsLinearFieldAndInstallsAccessor, KratosDamFastSuite)
+{
+    Model model;
+    Geometry<Node>::PointsArrayType pts;
+    ModelPart& r_mp = BuildYoungModulusModel(model, pts);
+
+    Parameters params(R"({
+        "model_part_name" : "M",
+        "variable_name" : "NODAL_YOUNG_MODULUS",
+        "Young_Modulus_1" : 1.0,
+        "Young_Modulus_2" : 2.0,
+        "Young_Modulus_3" : 3.0,
+        "Young_Modulus_4" : 4.0
+    })");
+    DamNodalYoungModulusProcess process(r_mp, params);
+
+    // Nodes are at (0,0,0) and (1,0,0): E = E_1 + E_2 * x.
+    process.ExecuteBeforeSolutionLoop();
+    KRATOS_EXPECT_DOUBLE_EQ(r_mp.pGetNode(1)->FastGetSolutionStepValue(YOUNG_MODULUS), 1.0);
+    KRATOS_EXPECT_DOUBLE_EQ(r_mp.pGetNode(2)->FastGetSolutionStepValue(YOUNG_MODULUS), 3.0);
+    KRATOS_EXPECT_DOUBLE_EQ(r_mp.pGetNode(1)->FastGetSolutionStepValue(NODAL_YOUNG_MODULUS), 0.0);
+
+    auto& r_props = *r_mp.pGetProperties(1);
+    Line2D2<Node> geometry(pts);
+    KRATOS_EXPECT_TRUE(r_props.HasAccessor(YOUNG_MODULUS));
+    KRATOS_EXPECT_NEAR(InterpolatedYoungViaAccessor(r_props, geometry, r_mp.GetProcessInfo()), 2.0, 1.0e-12);
+
+    r_mp.pGetNode(1)->FastGetSolutionStepValue(YOUNG_MODULUS) = 0.0;
+    r_mp.pGetNode(2)->FastGetSolutionStepValue(YOUNG_MODULUS) = 0.0;
+    process.ExecuteInitializeSolutionStep();
+    KRATOS_EXPECT_DOUBLE_EQ(r_mp.pGetNode(1)->FastGetSolutionStepValue(YOUNG_MODULUS), 1.0);
+    KRATOS_EXPECT_DOUBLE_EQ(r_mp.pGetNode(2)->FastGetSolutionStepValue(YOUNG_MODULUS), 3.0);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(ConstructionPreservesConstantAndNodalYoungModulusMaterials, KratosDamFastSuite)

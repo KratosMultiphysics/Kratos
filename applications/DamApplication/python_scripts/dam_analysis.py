@@ -271,7 +271,7 @@ class DamAnalysis(AnalysisStage):
 
         # Initialize processes
         for self.process in self.list_of_processes:
-            self.process.ExecuteBeforeSolutionLoop()
+            self.process.ExecuteInitialize()
 
         for self.output_process in self.list_of_output_processes:
             self.output_process.ExecuteInitialize()
@@ -418,11 +418,29 @@ class DamAnalysis(AnalysisStage):
             for self.output_process in self.list_of_output_processes:
                 self.output_process.ExecuteFinalizeSolutionStep()
 
-            for self.process in self.list_of_processes:
-                self.process.ExecuteBeforeOutputStep()
+            standard_output_flags = [
+                (output_process, output_process.IsOutputStep())
+                for output_process in self.list_of_standard_output_processes
+            ]
+            output_device_flags = [
+                (output_process, output_process.IsOutputStep())
+                for output_process in self.list_of_output_processes
+            ]
+            legacy_gid_output_step = (
+                self.gid_output is not None and self.gid_output.IsOutputStep()
+            )
+            has_output_step = (
+                legacy_gid_output_step or
+                any(flag for _, flag in standard_output_flags) or
+                any(flag for _, flag in output_device_flags)
+            )
 
-            for self.output_process in self.list_of_output_processes:
-                self.output_process.ExecuteBeforeOutputStep()
+            if has_output_step:
+                for self.process in self.list_of_processes:
+                    self.process.ExecuteBeforeOutputStep()
+
+                for self.output_process in self.list_of_output_processes:
+                    self.output_process.ExecuteBeforeOutputStep()
 
             # selfweight utility
             if self.consider_selfweight:
@@ -435,33 +453,36 @@ class DamAnalysis(AnalysisStage):
                     self.transfer_utility = transfer_selfweight_stress_utility.TransferSelfweightStressToMainModelPartUtility()
                     self.transfer_utility.TransferInitialStress(self.main_model_part, self.domain_size)
 
-            standard_output_flags = [
-                (output_process, output_process.IsOutputStep())
-                for output_process in self.list_of_standard_output_processes
-            ]
-            has_standard_output_step = any(flag for _, flag in standard_output_flags)
-            if has_standard_output_step:
+            if has_output_step:
                 for output_process, _ in standard_output_flags:
                     output_process.ExecuteBeforeOutputStep()
 
-            # Write legacy GiD results
-            if self.gid_output is not None and self.gid_output.IsOutputStep():
-                self.PrintOutput()
+                if self.gid_output is not None:
+                    self.gid_output.ExecuteBeforeOutputStep()
 
-            if has_standard_output_step:
+                # Write legacy GiD results
+                if legacy_gid_output_step:
+                    self.PrintOutput()
+
                 for output_process, flag in standard_output_flags:
                     if flag:
                         output_process.PrintOutput()
+
+                for output_process, flag in output_device_flags:
+                    if flag:
+                        output_process.PrintOutput()
+
+                for self.process in self.list_of_processes:
+                    self.process.ExecuteAfterOutputStep()
+
+                for self.output_process in self.list_of_output_processes:
+                    self.output_process.ExecuteAfterOutputStep()
+
                 for output_process, _ in standard_output_flags:
                     output_process.ExecuteAfterOutputStep()
 
-            for self.process in self.list_of_processes:
-                self.process.ExecuteAfterOutputStep()
-
-            for self.output_process in self.list_of_output_processes:
-                self.output_process.ExecuteAfterOutputStep()
-                if self.output_process.IsOutputStep():
-                    self.output_process.PrintOutput()
+                if self.gid_output is not None:
+                    self.gid_output.ExecuteAfterOutputStep()
 
             if self.consider_construction:
                 #  After initialize solution
