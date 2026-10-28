@@ -26,14 +26,14 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceIntegrationCoefficientModifier_WithPerimeterP
     // Arrange
     const auto modifier = IntegrationCoefficientModifierForInterfaceElement{};
     const Geometry<Node>::IntegrationPointType integration_point(0.0, 0.0, 0.0, 0.5);
-    const double integration_coefficient = 2.0;
-    auto p_properties = std::make_shared<Properties>();
+    const auto                                 integration_coefficient = 2.0;
+    auto                                       p_properties = std::make_shared<Properties>();
     p_properties->SetValue(GEO_CONTACT_SURFACE_PERIMETER, 5.0);
     PointerVector<Node> nodes;
     nodes.push_back(make_intrusive<Node>(0, 0.0, 0.0, 0.0));
     nodes.push_back(make_intrusive<Node>(1, 1.0, 0.0, 0.0));
     const auto p_geometry = std::make_shared<Line2D2<Node>>(nodes);
-    const auto element = Element{1, p_geometry, p_properties};
+    const auto element    = Element{1, p_geometry, p_properties};
 
     // Act
     const auto modified_coefficient = modifier(integration_coefficient, integration_point, element);
@@ -49,13 +49,13 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceIntegrationCoefficientModifier_WithoutPerimet
     // Arrange
     const auto modifier = IntegrationCoefficientModifierForInterfaceElement{};
     const Geometry<Node>::IntegrationPointType integration_point(0.0, 0.0, 0.0, 0.5);
-    const double integration_coefficient = 2.0;
-    auto p_properties = std::make_shared<Properties>();
-    PointerVector<Node> nodes;
+    const double                               integration_coefficient = 2.0;
+    auto                                       p_properties = std::make_shared<Properties>();
+    PointerVector<Node>                        nodes;
     nodes.push_back(make_intrusive<Node>(0, 0.0, 0.0, 0.0));
     nodes.push_back(make_intrusive<Node>(1, 1.0, 0.0, 0.0));
     const auto p_geometry = std::make_shared<Line2D2<Node>>(nodes);
-    const auto element = Element{1, p_geometry, p_properties};
+    const auto element    = Element{1, p_geometry, p_properties};
 
     // Act
     const auto modified_coefficient = modifier(integration_coefficient, integration_point, element);
@@ -81,8 +81,8 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceIntegrationCoefficientCalculator_WithModifier
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
-    const auto interface_integration_coefficient_calculator =
-        IntegrationCoefficientsCalculator{std::make_unique<IntegrationCoefficientModifierForInterfaceElement>()};
+    const auto interface_integration_coefficient_calculator = IntegrationCoefficientsCalculator{
+        std::make_unique<IntegrationCoefficientModifierForInterfaceElement>()};
     const Geometry<Node>::IntegrationPointType       integration_point(0.0, 0.0, 0.0, 0.5);
     const Geometry<Node>::IntegrationPointsArrayType integration_points{integration_point};
     const auto                                       detJs        = Vector{ScalarVector{1, 2.0}};

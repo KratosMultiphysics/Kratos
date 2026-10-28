@@ -5,19 +5,16 @@
 namespace Kratos
 {
 
-double IntegrationCoefficientModifierForInterfaceElement::operator()(
-    double                           IntegrationCoefficient,
-    const Geo::IntegrationPointType& rIntegrationPoint,
-    const Element&                   rElement) const
+double IntegrationCoefficientModifierForInterfaceElement::operator()(double IntegrationCoefficient,
+                                                                     const Geo::IntegrationPointType& rIntegrationPoint,
+                                                                     const Element& rElement) const
 {
-    auto& properties = rElement.GetProperties();
-    
-    if (!properties.Has(GEO_CONTACT_SURFACE_PERIMETER)) {
-        return IntegrationCoefficient;
+    auto& r_properties = rElement.GetProperties();
+    if (r_properties.Has(GEO_CONTACT_SURFACE_PERIMETER)) {
+        return IntegrationCoefficient * r_properties[GEO_CONTACT_SURFACE_PERIMETER];
     }
-    
-    double perimeter = properties[GEO_CONTACT_SURFACE_PERIMETER];
-    return IntegrationCoefficient * perimeter;
+
+    return IntegrationCoefficient;
 }
 
 std::unique_ptr<IntegrationCoefficientModifier> IntegrationCoefficientModifierForInterfaceElement::Clone() const

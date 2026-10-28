@@ -3,10 +3,7 @@
         "name": "Orchestrators.KratosMultiphysics.SequentialOrchestrator",
         "settings": {
             "echo_level": 0,
-            "execution_list": [
-                "1_Initial_stage",
-                "2_Wall_installation"
-            ],
+            "execution_list": ["1_Initial_stage", "2_Wall_installation"],
             "load_from_checkpoint": null,
             "stage_checkpoints": false
         }
@@ -54,8 +51,8 @@
                     "scheme_type": "Newmark",
                     "strategy_type": "newton_raphson",
                     "convergence_criterion": "residual_criterion",
-                    "residual_relative_tolerance": 0.0001,
-                    "residual_absolute_tolerance": 1e-09,
+                    "residual_relative_tolerance": 1.0e-04,
+                    "residual_absolute_tolerance": 1.0e-09,
                     "min_iterations": 6,
                     "max_iterations": 15,
                     "number_cycles": 1,
@@ -108,26 +105,10 @@
                             "Parameters": {
                                 "model_part_name": "PorousDomain.Bottom_Fixed",
                                 "variable_name": "DISPLACEMENT",
-                                "active": [
-                                    true,
-                                    true,
-                                    false
-                                ],
-                                "is_fixed": [
-                                    true,
-                                    true,
-                                    false
-                                ],
-                                "value": [
-                                    0.0,
-                                    0.0,
-                                    0.0
-                                ],
-                                "table": [
-                                    0,
-                                    0,
-                                    0
-                                ]
+                                "active": [true, true, false],
+                                "is_fixed": [true, true, false],
+                                "value": [0.0, 0.0, 0.0],
+                                "table": [0, 0, 0]
                             }
                         },
                         {
@@ -137,26 +118,10 @@
                             "Parameters": {
                                 "model_part_name": "PorousDomain.Left_Edge",
                                 "variable_name": "DISPLACEMENT",
-                                "active": [
-                                    true,
-                                    false,
-                                    false
-                                ],
-                                "is_fixed": [
-                                    true,
-                                    false,
-                                    false
-                                ],
-                                "value": [
-                                    0.0,
-                                    0.0,
-                                    0.0
-                                ],
-                                "table": [
-                                    0,
-                                    0,
-                                    0
-                                ]
+                                "active": [true, false, false],
+                                "is_fixed": [true, false, false],
+                                "value": [0.0, 0.0, 0.0],
+                                "table": [0, 0, 0]
                             }
                         },
                         {
@@ -166,26 +131,10 @@
                             "Parameters": {
                                 "model_part_name": "PorousDomain.Right_Edge",
                                 "variable_name": "DISPLACEMENT",
-                                "active": [
-                                    true,
-                                    false,
-                                    false
-                                ],
-                                "is_fixed": [
-                                    true,
-                                    false,
-                                    false
-                                ],
-                                "value": [
-                                    0.0,
-                                    0.0,
-                                    0.0
-                                ],
-                                "table": [
-                                    0,
-                                    0,
-                                    0
-                                ]
+                                "active": [true, false, false],
+                                "is_fixed": [true, false, false],
+                                "value": [0.0, 0.0, 0.0],
+                                "table": [0, 0, 0]
                             }
                         }
                     ],
@@ -197,21 +146,9 @@
                             "Parameters": {
                                 "model_part_name": "PorousDomain.porous_computational_model_part",
                                 "variable_name": "VOLUME_ACCELERATION",
-                                "active": [
-                                    false,
-                                    true,
-                                    false
-                                ],
-                                "value": [
-                                    0.0,
-                                    -9.81,
-                                    0.0
-                                ],
-                                "table": [
-                                    0,
-                                    0,
-                                    0
-                                ]
+                                "active": [false, true, false],
+                                "value": [0.0, -9.81, 0.0],
+                                "table": [0, 0, 0]
                             }
                         }
                     ]
@@ -290,8 +227,8 @@
                     "scheme_type": "Newmark",
                     "strategy_type": "newton_raphson",
                     "convergence_criterion": "residual_criterion",
-                    "residual_relative_tolerance": 0.0001,
-                    "residual_absolute_tolerance": 1e-09,
+                    "residual_relative_tolerance": 1.0e-04,
+                    "residual_absolute_tolerance": 1.0e-09,
                     "min_iterations": 6,
                     "max_iterations": 15,
                     "number_cycles": 1,
@@ -344,26 +281,10 @@
                             "Parameters": {
                                 "model_part_name": "PorousDomain.Bottom_Fixed",
                                 "variable_name": "DISPLACEMENT",
-                                "active": [
-                                    true,
-                                    true,
-                                    false
-                                ],
-                                "is_fixed": [
-                                    true,
-                                    true,
-                                    false
-                                ],
-                                "value": [
-                                    0.0,
-                                    0.0,
-                                    0.0
-                                ],
-                                "table": [
-                                    0,
-                                    0,
-                                    0
-                                ]
+                                "active": [true, true, false],
+                                "is_fixed": [true, true, false],
+                                "value": [0.0, 0.0, 0.0],
+                                "table": [0, 0, 0]
                             }
                         },
                         {
@@ -373,26 +294,10 @@
                             "Parameters": {
                                 "model_part_name": "PorousDomain.Left_Edge",
                                 "variable_name": "DISPLACEMENT",
-                                "active": [
-                                    true,
-                                    false,
-                                    false
-                                ],
-                                "is_fixed": [
-                                    true,
-                                    false,
-                                    false
-                                ],
-                                "value": [
-                                    0.0,
-                                    0.0,
-                                    0.0
-                                ],
-                                "table": [
-                                    0,
-                                    0,
-                                    0
-                                ]
+                                "active": [true, false, false],
+                                "is_fixed": [true, false, false],
+                                "value": [0.0, 0.0, 0.0],
+                                "table": [0, 0, 0]
                             }
                         },
                         {
@@ -402,26 +307,10 @@
                             "Parameters": {
                                 "model_part_name": "PorousDomain.Right_Edge",
                                 "variable_name": "DISPLACEMENT",
-                                "active": [
-                                    true,
-                                    false,
-                                    false
-                                ],
-                                "is_fixed": [
-                                    true,
-                                    false,
-                                    false
-                                ],
-                                "value": [
-                                    0.0,
-                                    0.0,
-                                    0.0
-                                ],
-                                "table": [
-                                    0,
-                                    0,
-                                    0
-                                ]
+                                "active": [true, false, false],
+                                "is_fixed": [true, false, false],
+                                "value": [0.0, 0.0, 0.0],
+                                "table": [0, 0, 0]
                             }
                         }
                     ],
@@ -433,21 +322,9 @@
                             "Parameters": {
                                 "model_part_name": "PorousDomain.porous_computational_model_part",
                                 "variable_name": "VOLUME_ACCELERATION",
-                                "active": [
-                                    false,
-                                    true,
-                                    false
-                                ],
-                                "value": [
-                                    0.0,
-                                    -9.81,
-                                    0.0
-                                ],
-                                "table": [
-                                    0,
-                                    0,
-                                    0
-                                ]
+                                "active": [false, true, false],
+                                "value": [0.0, -9.81, 0.0],
+                                "table": [0, 0, 0]
                             }
                         }
                     ]

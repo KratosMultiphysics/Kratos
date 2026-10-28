@@ -9,21 +9,23 @@
                 },
                 "Variables": {
                     "GEO_DRAINAGE_TYPE": "CONSTANT_PW_FIELD",
-                    "YOUNG_MODULUS": 20000000.0,
+                    "YOUNG_MODULUS": 2.0e+07,
                     "POISSON_RATIO": 0.3,
-                    "DENSITY_SOLID": 1834.8623853211009,
-                    "DENSITY_WATER": 1019.367991845056,
+                    "DENSITY_SOLID": 1.8348623853211e+03,
+                    "DENSITY_WATER": 1.01936799184506e+03,
                     "POROSITY": 0.3,
-                    "BULK_MODULUS_SOLID": 10000000000.0,
-                    "BULK_MODULUS_FLUID": 2200000000.0,
-                    "DYNAMIC_VISCOSITY": 0.001,
-                    "PERMEABILITY_XX": 1e-05,
-                    "PERMEABILITY_YY": 1e-05,
+                    "BULK_MODULUS_SOLID": 1.0e+10,
+                    "BULK_MODULUS_FLUID": 2.2e+09,
+                    "DYNAMIC_VISCOSITY": 1.0e-03,
+                    "PERMEABILITY_XX": 1.0e-05,
+                    "PERMEABILITY_YY": 1.0e-05,
                     "PERMEABILITY_XY": 0.0,
-                    "GEO_COHESION": 1000.0,
+                    "GEO_COHESION": 1.0e+03,
                     "GEO_FRICTION_ANGLE": 30.0
                 },
-                "Tables": {}
+                "Tables": {
+
+                }
             }
         },
         {
@@ -34,14 +36,16 @@
                     "name": "TimoshenkoBeamElasticConstitutiveLaw"
                 },
                 "Variables": {
-                    "YOUNG_MODULUS": 210000000000.0,
+                    "YOUNG_MODULUS": 2.1e+11,
                     "POISSON_RATIO": 0.0,
-                    "DENSITY": 7850.0,
-                    "CROSS_AREA": 0.015,
-                    "I33": 0.0003,
-                    "AREA_EFFECTIVE_Y": 0.0075
+                    "DENSITY": 7.85e+03,
+                    "CROSS_AREA": 1.5e-02,
+                    "I33": 3.0e-04,
+                    "AREA_EFFECTIVE_Y": 7.5e-03
                 },
-                "Tables": {}
+                "Tables": {
+
+                }
             }
         },
         {
@@ -52,12 +56,14 @@
                     "name": "TrussConstitutiveLaw"
                 },
                 "Variables": {
-                    "YOUNG_MODULUS": 210000000000.0,
-                    "CROSS_AREA": 0.049380000000000005,
-                    "DENSITY": 7850.0,
+                    "YOUNG_MODULUS": 2.1e+11,
+                    "CROSS_AREA": 4.938e-02,
+                    "DENSITY": 7.85e+03,
                     "TRUSS_PRESTRESS_PK2": 0.0
                 },
-                "Tables": {}
+                "Tables": {
+
+                }
             }
         },
         {
@@ -68,12 +74,14 @@
                     "name": "TrussConstitutiveLaw"
                 },
                 "Variables": {
-                    "YOUNG_MODULUS": 210000000000.0,
-                    "CROSS_AREA": 0.0049380000000000005,
-                    "DENSITY": 7850.0,
-                    "TRUSS_PRESTRESS_PK2": 100000.0
+                    "YOUNG_MODULUS": 2.1e+11,
+                    "CROSS_AREA": 4.938e-03,
+                    "DENSITY": 7.85e+03,
+                    "TRUSS_PRESTRESS_PK2": 1.0e+05
                 },
-                "Tables": {}
+                "Tables": {
+
+                }
             }
         },
         {
@@ -85,14 +93,16 @@
                 },
                 "Variables": {
                     "GEO_DRAINAGE_TYPE": "CONSTANT_PW_FIELD",
-                    "INTERFACE_NORMAL_STIFFNESS": 769230769.2307693,
-                    "INTERFACE_SHEAR_STIFFNESS": 76923076.92307693,
+                    "INTERFACE_NORMAL_STIFFNESS": 7.69230769230769e+08,
+                    "INTERFACE_SHEAR_STIFFNESS": 7.69230769230769e+07,
                     "GEO_CONTACT_SURFACE_PERIMETER": 0.1,
                     "GEO_COHESION": 800.0,
                     "GEO_FRICTION_ANGLE": 24.79128089714489,
                     "GEO_DILATANCY_ANGLE": 0.0
                 },
-                "Tables": {}
+                "Tables": {
+
+                }
             }
         }
     ]

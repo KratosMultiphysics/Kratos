@@ -9,7 +9,7 @@ import KratosMultiphysics as Kratos
 
 class KratosGeoMechanicsInterfaceTests(KratosUnittest.TestCase):
     def test_run(self):
-        file_path = test_helper.get_file_path("grounded_anchor")
+        file_path = test_helper.get_file_path("grouted_anchor")
 
         with open(
             os.path.join(file_path, "ProjectParameters.json"), "r"

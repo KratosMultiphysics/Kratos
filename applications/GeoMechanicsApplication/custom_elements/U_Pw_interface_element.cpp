@@ -120,8 +120,13 @@ UPwInterfaceElement::UPwInterfaceElement(IndexType                          NewI
                                          IsDiffOrderElement                 IsDiffOrder,
                                          const std::vector<CalculationContribution>& rContributions,
                                          std::unique_ptr<IntegrationCoefficientModifier> pIntegrationCoefficientModifier)
-    : UPwInterfaceElement(
-          NewId, rpGeometry, nullptr /* no properties */, std::move(pStressStatePolicy), IsDiffOrder, rContributions, std::move(pIntegrationCoefficientModifier))
+    : UPwInterfaceElement(NewId,
+                          rpGeometry,
+                          nullptr /* no properties */,
+                          std::move(pStressStatePolicy),
+                          IsDiffOrder,
+                          rContributions,
+                          std::move(pIntegrationCoefficientModifier))
 {
 }
 
@@ -149,9 +154,9 @@ Element::Pointer UPwInterfaceElement::Create(IndexType               NewId,
                                              PropertiesType::Pointer pProperties) const
 {
     const auto is_diff_order = mpOptionalPressureGeometry ? IsDiffOrderElement::Yes : IsDiffOrderElement::No;
-    return make_intrusive<UPwInterfaceElement>(
-        NewId, pGeometry, pProperties, mpStressStatePolicy->Clone(), is_diff_order, mContributions,
-        mIntegrationCoefficientsCalculator.CloneModifier());
+    return make_intrusive<UPwInterfaceElement>(NewId, pGeometry, pProperties,
+                                               mpStressStatePolicy->Clone(), is_diff_order, mContributions,
+                                               mIntegrationCoefficientsCalculator.CloneModifier());
 }
 
 void UPwInterfaceElement::EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo&) const
