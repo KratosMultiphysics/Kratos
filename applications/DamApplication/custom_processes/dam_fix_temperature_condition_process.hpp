@@ -95,26 +95,7 @@ class DamFixTemperatureConditionProcess : public Process
 
         KRATOS_TRY;
 
-        const Variable<double>& var = KratosComponents<Variable<double>>::Get(mVariableName);
-        const int nnodes = mrModelPart.GetMesh(0).Nodes().size();
-
-        if (nnodes != 0)
-        {
-            ModelPart::NodesContainerType::iterator it_begin = mrModelPart.GetMesh(0).NodesBegin();
-
-            #pragma omp parallel for
-            for (int i = 0; i < nnodes; i++)
-            {
-                ModelPart::NodesContainerType::iterator it = it_begin + i;
-
-                if (mIsFixed)
-                {
-                    it->Fix(var);
-                }
-
-                it->FastGetSolutionStepValue(var) = mTemperature;
-            }
-        }
+        AssignPrescribedValue(GetVariable());
 
         KRATOS_CATCH("");
     }
@@ -126,35 +107,16 @@ class DamFixTemperatureConditionProcess : public Process
 
         KRATOS_TRY;
 
-        const Variable<double>& var = KratosComponents<Variable<double>>::Get(mVariableName);
+        const Variable<double>& var = GetVariable();
 
         // Getting the values of table in case that it exist
         if (mTableId != 0)
         {
-            double time = mrModelPart.GetProcessInfo()[TIME];
-            time = time / mTimeUnitConverter;
+            const double time = mrModelPart.GetProcessInfo()[TIME] / mTimeUnitConverter;
             mTemperature = mpTable->GetValue(time);
         }
 
-        const int nnodes = mrModelPart.GetMesh(0).Nodes().size();
-
-        if (nnodes != 0)
-        {
-            ModelPart::NodesContainerType::iterator it_begin = mrModelPart.GetMesh(0).NodesBegin();
-
-            #pragma omp parallel for
-            for (int i = 0; i < nnodes; i++)
-            {
-                ModelPart::NodesContainerType::iterator it = it_begin + i;
-
-                if (mIsFixed)
-                {
-                    it->Fix(var);
-                }
-
-                it->FastGetSolutionStepValue(var) = mTemperature;
-            }
-        }
+        AssignPrescribedValue(var);
 
         KRATOS_CATCH("");
     }
@@ -166,7 +128,7 @@ class DamFixTemperatureConditionProcess : public Process
 
         KRATOS_TRY;
 
-        const Variable<double>& var = KratosComponents<Variable<double>>::Get(mVariableName);
+        const Variable<double>& var = GetVariable();
 
         const int nnodes = mrModelPart.GetMesh(0).Nodes().size();
 
@@ -220,6 +182,34 @@ class DamFixTemperatureConditionProcess : public Process
     //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
   private:
+    const Variable<double>& GetVariable() const
+    {
+        return KratosComponents<Variable<double>>::Get(mVariableName);
+    }
+
+    void AssignPrescribedValue(const Variable<double>& rVariable)
+    {
+        const int nnodes = mrModelPart.GetMesh(0).Nodes().size();
+
+        if (nnodes != 0)
+        {
+            ModelPart::NodesContainerType::iterator it_begin = mrModelPart.GetMesh(0).NodesBegin();
+
+            #pragma omp parallel for
+            for (int i = 0; i < nnodes; i++)
+            {
+                ModelPart::NodesContainerType::iterator it = it_begin + i;
+
+                if (mIsFixed)
+                {
+                    it->Fix(rVariable);
+                }
+
+                it->FastGetSolutionStepValue(rVariable) = mTemperature;
+            }
+        }
+    }
+
     /// Assignment operator.
     DamFixTemperatureConditionProcess &operator=(DamFixTemperatureConditionProcess const &rOther);
 

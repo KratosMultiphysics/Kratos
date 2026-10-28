@@ -16,40 +16,22 @@ class ApplyConstraintVectorDamTableProcess(KratosMultiphysics.Process):
         model_part = Model[settings["model_part_name"].GetString()]
         variable_name = settings["variable_name"].GetString()
 
+        # The Dam wrapper deliberately ignores "interval": the component
+        # processes keep their standard default interval (the table process does
+        # not use it either).
         self.components_process_list = []
 
-        x_params = KratosMultiphysics.Parameters("{}")
-        x_params.AddValue("model_part_name",settings["model_part_name"])
-        x_params.AddValue("constrained",settings["constrained"][0])
-        x_params.AddValue("value",settings["value"][0])
-        x_params.AddEmptyValue("variable_name").SetString(variable_name+"_X")
-        if settings["Value_Table"][0].GetInt() == 0:
-            self.components_process_list.append(AssignScalarVariableProcess(Model, x_params))
-        else:
-            x_params.AddValue("table",settings["Value_Table"][0])
-            self.components_process_list.append(KratosDam.ApplyComponentTableProcessDam(model_part, x_params))
-
-        y_params = KratosMultiphysics.Parameters("{}")
-        y_params.AddValue("model_part_name",settings["model_part_name"])
-        y_params.AddValue("constrained",settings["constrained"][1])
-        y_params.AddValue("value",settings["value"][1])
-        y_params.AddEmptyValue("variable_name").SetString(variable_name+"_Y")
-        if settings["Value_Table"][1].GetInt() == 0:
-            self.components_process_list.append(AssignScalarVariableProcess(Model, y_params))
-        else:
-            y_params.AddValue("table",settings["Value_Table"][1])
-            self.components_process_list.append(KratosDam.ApplyComponentTableProcessDam(model_part, y_params))
-
-        z_params = KratosMultiphysics.Parameters("{}")
-        z_params.AddValue("model_part_name",settings["model_part_name"])
-        z_params.AddValue("constrained",settings["constrained"][2])
-        z_params.AddValue("value",settings["value"][2])
-        z_params.AddEmptyValue("variable_name").SetString(variable_name+"_Z")
-        if settings["Value_Table"][2].GetInt() == 0:
-            self.components_process_list.append(AssignScalarVariableProcess(Model, z_params))
-        else:
-            z_params.AddValue("table",settings["Value_Table"][2])
-            self.components_process_list.append(KratosDam.ApplyComponentTableProcessDam(model_part, z_params))
+        for i, suffix in enumerate("XYZ"):
+            component_params = KratosMultiphysics.Parameters("{}")
+            component_params.AddValue("model_part_name", settings["model_part_name"])
+            component_params.AddValue("constrained", settings["constrained"][i])
+            component_params.AddValue("value", settings["value"][i])
+            component_params.AddEmptyValue("variable_name").SetString(variable_name + "_" + suffix)
+            if settings["Value_Table"][i].GetInt() == 0:
+                self.components_process_list.append(AssignScalarVariableProcess(Model, component_params))
+            else:
+                component_params.AddValue("table", settings["Value_Table"][i])
+                self.components_process_list.append(KratosDam.ApplyComponentTableProcessDam(model_part, component_params))
 
     def ExecuteBeforeSolutionLoop(self):
 
