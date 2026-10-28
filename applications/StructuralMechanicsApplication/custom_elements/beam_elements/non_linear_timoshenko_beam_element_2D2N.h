@@ -137,6 +137,15 @@ public:
         std::vector<double> &rOutput,
         const ProcessInfo &rProcessInfo) override;
 
+    /**
+     * @brief Returns the used integration method
+     * @return default integration method of the used Geometry
+     */
+    IntegrationMethod GetMassMatrixIntegrationMethod() const override
+    {
+        return GeometryData::IntegrationMethod::GI_GAUSS_2;
+    }
+
     ///@}
     ///@name Serialization
     ///@{

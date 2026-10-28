@@ -444,7 +444,7 @@ void NonLinearTimoshenkoBeamElement2D2N::CalculateMassMatrix(Matrix& rMassMatrix
     }
     rMassMatrix.clear();
 
-    const auto& r_integration_points = IntegrationPoints(GetIntegrationMethod()); // We need 4 integration points to integrate the mass matrix exactly
+    const auto& r_integration_points = IntegrationPoints(GetMassMatrixIntegrationMethod()); // We need 4 integration points to integrate the mass matrix exactly
 
     const double length = CalculateLength();
     const double Phi    = StructuralMechanicsElementUtilities::CalculatePhi(r_props, length);
@@ -474,6 +474,7 @@ void NonLinearTimoshenkoBeamElement2D2N::CalculateMassMatrix(Matrix& rMassMatrix
         // theta contributions
         noalias(rMassMatrix) += outer_prod(N_theta, N_theta) * jacobian_weight * inertia;
     }
+    RotateLHS(rMassMatrix, r_geometry);
 
     KRATOS_CATCH("CalculateMassMatrix")
 }

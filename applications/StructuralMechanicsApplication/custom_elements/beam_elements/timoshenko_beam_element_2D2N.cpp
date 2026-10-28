@@ -1176,7 +1176,7 @@ void LinearTimoshenkoBeamElement2D2N::GetFirstDerivativesVector(Vector &rValues,
     SizeType index = 0;
     for (IndexType i = 0; i < number_of_nodes; ++i) {
         rValues[index++] = r_geom[i].FastGetSolutionStepValue(VELOCITY_X, Step);
-        rValues[index++] = r_geom[i].FastGetSolutionStepValue(VELOCITY_Y);
+        rValues[index++] = r_geom[i].FastGetSolutionStepValue(VELOCITY_Y, Step);
         if (dimension == 3) {
             rValues[index++] = r_geom[i].FastGetSolutionStepValue(VELOCITY_Z, Step);
             rValues[index++] = r_geom[i].FastGetSolutionStepValue(ANGULAR_VELOCITY_X, Step);
@@ -1263,6 +1263,7 @@ void LinearTimoshenkoBeamElement2D2N::CalculateMassMatrix(Matrix& rMassMatrix,
         GlobalSizeVector(global_size_N, N_theta);
         noalias(rMassMatrix) += outer_prod(global_size_N, global_size_N) * jacobian_weight * inertia;
     }
+    RotateLHS(rMassMatrix, r_geometry);
 
     KRATOS_CATCH("CalculateMassMatrix")
 }
