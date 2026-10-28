@@ -11,16 +11,11 @@
 //
 
 // System includes
-#include <algorithm>
-#include <array>
-#include <cmath>
-#include <limits>
-#include <unordered_map>
-#include <vector>
 
 // Project includes
 #include "includes/kratos_components.h"
 #include "includes/variables.h"
+#include "includes/cfd_variables.h"
 #include "integration/line_gauss_legendre_integration_points.h"
 #include "utilities/gap_construction_utility.h"
 #include "utilities/gap_quadrature_utility.h"
@@ -423,6 +418,9 @@ void GapConstructionUtility::Build(
             next_element_id++,
             p_gap_geometry,
             r_face.pBoundaryCondition->pGetProperties());
+        if (r_face.pParentElement->Has(C_SMAGORINSKY)) {
+            p_gap_element->SetValue(C_SMAGORINSKY, r_face.pParentElement->GetValue(C_SMAGORINSKY));
+        }
         p_gap_element->SetValue(
             NEIGHBOUR_ELEMENTS,
             GlobalPointersVector<Element>({r_face.pParentElement}));
