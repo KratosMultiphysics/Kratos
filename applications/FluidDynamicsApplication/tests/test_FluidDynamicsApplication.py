@@ -60,6 +60,9 @@ from test_sbm_fluid_dirichlet_condition import SbmFluidDirichletConditionTest
 from test_fluid_patch_coupling_condition import FluidPatchCouplingConditionTest
 from test_fluid_patch_gap_coupling import FluidPatchGapCouplingTest
 from test_moving_fluid_patch_gap import MovingFluidPatchGapTest
+from test_time_integrated_qsvms_q1 import TimeIntegratedQSVMSQ1Test
+from test_moving_gap_navier_stokes_solver import MovingGapNavierStokesSolverTest
+from test_moving_gap_navier_stokes import MovingGapNavierStokesTest
 from test_patch_history_transfer import BoundedHistoryTransferTest
 
 def AssembleTestSuites():
@@ -108,6 +111,9 @@ def AssembleTestSuites():
     nightSuite.addTests(smallSuite)
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([FluidPatchGapCouplingTest]))
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([MovingFluidPatchGapTest, BoundedHistoryTransferTest]))
+    nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TimeIntegratedQSVMSQ1Test]))
+    nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([MovingGapNavierStokesSolverTest]))
+    nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([MovingGapNavierStokesTest]))
     nightSuite.addTest(ArtificialCompressibilityTest('testArtificialCompressibility'))
     nightSuite.addTest(BuoyancyTest('testEulerian'))
     nightSuite.addTest(BuoyancyTest('testThermalExpansionCoefficient'))
