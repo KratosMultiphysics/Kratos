@@ -25,10 +25,10 @@
                         "name": "Operations.KratosMultiphysics.GeoMechanicsApplication.DeactivateModelPartOperation",
                         "Parameters": {
                             "model_part_name_list": [
-                                "PorousDomain.sheetpile_1",
-                                "PorousDomain.Sheetpile_as_anchor",
-                                "PorousDomain.Grout_soil_interface_soil",
-                                "PorousDomain.Anchor_1"
+                                "PorousDomain.Sheetpile",
+                                "PorousDomain.Anchor_grouted",
+                                "PorousDomain.Grout_soil_interface",
+                                "PorousDomain.Anchor_free"
                             ]
                         }
                     }
@@ -82,18 +82,18 @@
                         "materials_filename": "MaterialParameters.json"
                     },
                     "problem_domain_sub_model_part_list": [
-                        "soil",
-                        "sheetpile_1",
-                        "Sheetpile_as_anchor",
-                        "Anchor_1",
-                        "Grout_soil_interface_soil"
+                        "Soil",
+                        "Sheetpile",
+                        "Anchor_grouted",
+                        "Anchor_free",
+                        "Grout_soil_interface"
                     ],
                     "body_domain_sub_model_part_list": [
-                        "soil",
-                        "sheetpile_1",
-                        "Sheetpile_as_anchor",
-                        "Anchor_1",
-                        "Grout_soil_interface_soil"
+                        "Soil",
+                        "Sheetpile",
+                        "Anchor_grouted",
+                        "Anchor_free",
+                        "Grout_soil_interface"
                     ]
                 },
                 "processes": {
@@ -201,10 +201,10 @@
                         "name": "Operations.KratosMultiphysics.GeoMechanicsApplication.ActivateModelPartOperation",
                         "Parameters": {
                             "model_part_name_list": [
-                                "PorousDomain.sheetpile_1",
-                                "PorousDomain.Sheetpile_as_anchor",
-                                "PorousDomain.Grout_soil_interface_soil",
-                                "PorousDomain.Anchor_1"
+                                "PorousDomain.Sheetpile",
+                                "PorousDomain.Anchor_grouted",
+                                "PorousDomain.Grout_soil_interface",
+                                "PorousDomain.Anchor_free"
                             ]
                         }
                     }
@@ -258,18 +258,18 @@
                         "materials_filename": "MaterialParameters.json"
                     },
                     "problem_domain_sub_model_part_list": [
-                        "soil",
-                        "sheetpile_1",
-                        "Sheetpile_as_anchor",
-                        "Anchor_1",
-                        "Grout_soil_interface_soil"
+                        "Soil",
+                        "Sheetpile",
+                        "Anchor_grouted",
+                        "Anchor_free",
+                        "Grout_soil_interface"
                     ],
                     "body_domain_sub_model_part_list": [
-                        "soil",
-                        "sheetpile_1",
-                        "Sheetpile_as_anchor",
-                        "Anchor_1",
-                        "Grout_soil_interface_soil"
+                        "Soil",
+                        "Sheetpile",
+                        "Anchor_grouted",
+                        "Anchor_free",
+                        "Grout_soil_interface"
                     ]
                 },
                 "processes": {

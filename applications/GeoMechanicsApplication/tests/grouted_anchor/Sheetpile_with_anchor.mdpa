@@ -365,7 +365,7 @@ Begin Elements Geo_UPwLineInterfacePlaneStrainDiffOrderElement3Plus3N
       111          0     5    16    18   232   233   235 
 End Elements
 
-Begin SubModelPart soil
+Begin SubModelPart Soil
     Begin SubModelPartNodes
             1
             2
@@ -701,7 +701,7 @@ Begin SubModelPart soil
     End SubModelPartElements
 End SubModelPart
 
-Begin SubModelPart sheetpile_1
+Begin SubModelPart Sheetpile
     Begin SubModelPartNodes
             1
             2
@@ -724,7 +724,7 @@ Begin SubModelPart sheetpile_1
     End SubModelPartElements
 End SubModelPart
 
-Begin SubModelPart Sheetpile_as_anchor
+Begin SubModelPart Anchor_grouted
     Begin SubModelPartNodes
           231
           232
@@ -738,7 +738,7 @@ Begin SubModelPart Sheetpile_as_anchor
     End SubModelPartElements
 End SubModelPart
 
-Begin SubModelPart Anchor_1
+Begin SubModelPart Anchor_free
     Begin SubModelPartNodes
             2
             231
@@ -748,7 +748,7 @@ Begin SubModelPart Anchor_1
     End SubModelPartElements
 End SubModelPart
 
-Begin SubModelPart Grout_soil_interface_soil
+Begin SubModelPart Grout_soil_interface
     Begin SubModelPartNodes
             4
             5
