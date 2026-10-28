@@ -27,6 +27,7 @@ from test_initial_gp_output_before_solve import TestInitialGaussPointOutputBefor
 from test_process_based_nodal_smoothing import DamProcessBasedNodalSmoothingTest
 from test_dam_output_processes import TestDamOutputProcesses
 from test_dam_gid_output_process import TestDamGiDOutputProcess
+from test_dam_mapping_variables_utility import TestDamMappingVariablesUtility
 
 
 def AssembleTestSuites():
@@ -90,6 +91,7 @@ def AssembleTestSuites():
                 TestDamAnalysisProcessLifecycle,
                 TestDamOutputProcesses,
                 TestDamGiDOutputProcess,
+                TestDamMappingVariablesUtility,
             ]
         )
     )
@@ -125,6 +127,7 @@ def AssembleTestSuites():
                 TestSmallDisplacementInterfaceTangent,
                 TestDamOutputProcesses,
                 TestDamGiDOutputProcess,
+                TestDamMappingVariablesUtility,
             ]
         )
     )
