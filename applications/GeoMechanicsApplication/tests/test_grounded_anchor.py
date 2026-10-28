@@ -20,3 +20,7 @@ class KratosGeoMechanicsInterfaceTests(KratosUnittest.TestCase):
         os.chdir(file_path)
         helper_utilities.run_orchestrator(project_parameters)
         os.chdir(cwd)
+
+
+if __name__ == "__main__":
+    KratosUnittest.main()
