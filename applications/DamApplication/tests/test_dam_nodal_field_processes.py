@@ -1,3 +1,4 @@
+import json
 import os
 import tempfile
 
@@ -47,11 +48,11 @@ class TestDamNodalFieldProcesses(KratosUnittest.TestCase):
                     "model_part_name" : "main",
                     "variable_name"   : "TEMPERATURE",
                     "initial_value"   : %.15g,
-                    "input_file_name" : "%s"
+                    "input_file_name" : %s
                 }
             }
             """
-            % (initial_value, input_file_name)
+            % (initial_value, json.dumps(input_file_name))
         )
 
     def _InputTableYoungSettings(self, input_file_name, initial_value, variable_name):
@@ -60,15 +61,15 @@ class TestDamNodalFieldProcesses(KratosUnittest.TestCase):
             {
                 "Parameters" : {
                     "model_part_name" : "main",
-                    "variable_name"   : "%s",
+                    "variable_name"   : %s,
                     "initial_value"   : %.15g,
                     "min_value"       : 0.0,
                     "max_value"       : 0.0,
-                    "input_file_name" : "%s"
+                    "input_file_name" : %s
                 }
             }
             """
-            % (variable_name, initial_value, input_file_name)
+            % (json.dumps(variable_name), initial_value, json.dumps(input_file_name))
         )
 
     def _NodalValues(self, variable):
