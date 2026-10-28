@@ -50,6 +50,8 @@ void AddFutureUtilitiesToPython(pybind11::module& m)
             "Solves the reduced system of the last projection and returns the increment of the reduced coordinates.")
         .def("SetSolution", &RomProjectorType::SetSolution, py::arg("solution"),
             "Sets the provided solution vector in the free DOFs.")
+        .def("ProjectEntityResiduals", &RomProjectorType::ProjectEntityResiduals, py::arg("phi"),
+            "Projects the residual of each element and condition (elements first) onto the basis phi, one row per entity.")
         ;
 
     using StaticSchemeType = Future::StaticScheme<Future::SerialLinearAlgebraTraits>;

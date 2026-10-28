@@ -13,6 +13,7 @@
 #pragma once
 
 // System includes
+#include <limits>
 #include <vector>
 
 // External includes
@@ -220,6 +221,73 @@ public:
         });
 
         mpScheme->Update(*mpStrategyData);
+
+        KRATOS_CATCH("")
+    }
+
+    /**
+     * @brief Projects the residual of each element and condition onto the provided basis
+     * Row k is Phi_k^T r_k, with r_k the local RHS of the k-th entity of the model part of the scheme (the elements first, then
+     * the conditions) and Phi_k the rows of the basis of its DOFs, taken as zero for the fixed DOFs as in Project. The rows of the
+     * inactive entities are zero. These are the residual snapshots of the HROM training (see HRomTrainingUtility).
+     * Note that the master-slave constraints are not supported.
+     * @param rPhi Basis (Jacobian of the decoder), with one row per effective DOF and one column per ROM DOF
+     * @return EigenDynamicMatrix The projected residuals, with one row per entity and one column per ROM DOF
+     */
+    EigenDynamicMatrix ProjectEntityResiduals(const Eigen::Ref<const EigenDynamicMatrix>& rPhi) const
+    {
+        KRATOS_TRY
+
+        auto& r_model_part = mpScheme->GetModelPart();
+        const auto& r_dof_set = *(mpStrategyData->pGetDofSet());
+        const auto& r_eff_dof_set = *(mpStrategyData->pGetEffectiveDofSet());
+        KRATOS_ERROR_IF(static_cast<IndexType>(rPhi.rows()) != r_eff_dof_set.size()) << "The basis has " << rPhi.rows()
+            << " rows but there are " << r_eff_dof_set.size() << " effective DOFs." << std::endl;
+
+        // Row of the basis of each DOF, by its equation id (the one of the local systems), or -1 for the fixed DOFs
+        constexpr auto non_effective_id = std::numeric_limits<typename DofType::EquationIdType>::max();
+        std::vector<int> basis_rows(r_dof_set.size());
+        const auto dof_begin = r_dof_set.begin();
+        IndexPartition<IndexType>(r_dof_set.size()).for_each([&](IndexType Index){
+            const auto it_dof = dof_begin + Index;
+            KRATOS_ERROR_IF(it_dof->EffectiveEquationId() == non_effective_id) << "The DOF " << it_dof->GetVariable().Name() << " of node "
+                << it_dof->Id() << " is not an effective one. The master-slave constraints are not supported." << std::endl;
+            basis_rows[it_dof->EquationId()] = it_dof->IsFixed() ? -1 : static_cast<int>(it_dof->EffectiveEquationId());
+        });
+
+        const IndexType n_elements = r_model_part.NumberOfElements();
+        const IndexType n_conditions = r_model_part.NumberOfConditions();
+        EigenDynamicMatrix projected_residuals = EigenDynamicMatrix::Zero(n_elements + n_conditions, rPhi.cols());
+        const auto& r_process_info = r_model_part.GetProcessInfo();
+
+        struct TLS
+        {
+            Vector LocalVector;
+            Element::EquationIdVectorType LocalEqIds;
+        };
+        const auto project_entity_residual = [&](auto& rEntity, const IndexType Row, TLS& rTLS){
+            if (rEntity.IsActive()) {
+                rEntity.CalculateRightHandSide(rTLS.LocalVector, r_process_info);
+                rEntity.EquationIdVector(rTLS.LocalEqIds, r_process_info);
+                auto projected_residual = projected_residuals.row(Row);
+                for (IndexType i = 0; i < rTLS.LocalEqIds.size(); ++i) {
+                    const int basis_row = basis_rows[rTLS.LocalEqIds[i]];
+                    if (basis_row >= 0) {
+                        projected_residual.noalias() += rTLS.LocalVector[i] * rPhi.row(basis_row);
+                    }
+                }
+            }
+        };
+        const auto elements_begin = r_model_part.ElementsBegin();
+        IndexPartition<IndexType>(n_elements).for_each(TLS(), [&](IndexType Index, TLS& rTLS){
+            project_entity_residual(*(elements_begin + Index), Index, rTLS);
+        });
+        const auto conditions_begin = r_model_part.ConditionsBegin();
+        IndexPartition<IndexType>(n_conditions).for_each(TLS(), [&](IndexType Index, TLS& rTLS){
+            project_entity_residual(*(conditions_begin + Index), n_elements + Index, rTLS);
+        });
+
+        return projected_residuals;
 
         KRATOS_CATCH("")
     }
