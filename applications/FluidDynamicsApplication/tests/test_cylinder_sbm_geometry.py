@@ -23,9 +23,13 @@ class CylinderSbmGeometryTest(KratosUnittest.TestCase):
         model = KM.Model()
         part = model.CreateModelPart('Patch')
         part.AddNodalSolutionStepVariable(KM.VELOCITY)
+        part.AddNodalSolutionStepVariable(KM.PRESSURE)
+        part.AddNodalSolutionStepVariable(KM.ACCELERATION)
         part.SetBufferSize(3)
         properties = part.CreateNewProperties(1)
         properties[KM.CONSTITUTIVE_LAW] = CFD.Newtonian2DLaw()
+        properties[KM.DYNAMIC_VISCOSITY] = 1.0
+        part.ProcessInfo[KM.BDF_COEFFICIENTS] = KM.Vector([1., -1., 0.])
         for j in range(7):
             for i in range(7):
                 part.CreateNewNode(1+j*7+i, i, j, 0.0)
@@ -39,6 +43,17 @@ class CylinderSbmGeometryTest(KratosUnittest.TestCase):
         self.assertGreater(sum(e.IsNot(KM.ACTIVE) for e in part.Elements), 0)
         conditions = part.GetSubModelPart('CylinderBoundary').Conditions
         self.assertGreater(len(conditions), 0)
+        for node in part.Nodes:
+            node.SetSolutionStepValue(KM.PRESSURE, 2.0)
+        for condition in conditions:
+            condition.Initialize(part.ProcessInfo)
+        records = cylinder._records
+        cylinder._records = records[:1]
+        face = records[0][0].GetValue(KM.SURROGATE_BOUNDARY_FACE_COORDINATES)
+        force = cylinder.calculate_force(part.ProcessInfo)
+        self.assertAlmostEqual(force[0], 2.0*(face[1, 1]-face[0, 1]))
+        self.assertAlmostEqual(force[1], -2.0*(face[1, 0]-face[0, 0]))
+        cylinder._records = records
         cylinder.update((.25, -.1), (.5, -.2))
         for condition in conditions:
             projection = condition.GetValue(KM.SURROGATE_BOUNDARY_PROJECTION)
@@ -65,6 +80,9 @@ class CylinderSbmGeometryTest(KratosUnittest.TestCase):
         lifecycle.velocities = [(0.0, 0.0)]
         self.assertAlmostEqual(lifecycle._translation(0, .25)[0], .1)
         self.assertAlmostEqual(lifecycle._translation(0, .75)[0], -.1)
+        lifecycle.motions[0]['phase'] = -math.pi/2
+        self.assertAlmostEqual(lifecycle._translation(0, .25)[0], .1)
+        self.assertAlmostEqual(lifecycle._translation(0, .5)[0], .2)
 
 
 if __name__ == '__main__':
