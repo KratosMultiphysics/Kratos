@@ -57,6 +57,7 @@ from slip_spurious_tangential_correction_test import SlipSpuriousTangentialCorre
 from apply_wall_law_process_test import ApplyWallLawProcessTest
 from test_navier_stokes_fractional_vectorial_convection import NavierStokesFractionalVectorialConvectionTest
 from test_sbm_fluid_dirichlet_condition import SbmFluidDirichletConditionTest
+from test_cylinder_sbm_geometry import CylinderSbmGeometryTest
 from test_fluid_patch_coupling_condition import FluidPatchCouplingConditionTest
 from test_fluid_patch_gap_coupling import FluidPatchGapCouplingTest
 from test_moving_fluid_patch_gap import MovingFluidPatchGapTest
@@ -104,6 +105,7 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([SlipSpuriousTangentialCorrectionTest]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([ApplyWallLawProcessTest]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([SbmFluidDirichletConditionTest]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([CylinderSbmGeometryTest]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([FluidPatchCouplingConditionTest]))
 
     # Create a test suite with the selected tests plus all small tests

@@ -17,6 +17,7 @@ import csv
 import json
 from pathlib import Path
 from tempfile import TemporaryDirectory
+from types import SimpleNamespace
 from unittest.mock import patch
 
 import KratosMultiphysics.KratosUnittest as KratosUnittest
@@ -26,6 +27,78 @@ from KratosMultiphysics.FluidDynamicsApplication import patch_history_transfer
 
 
 class TestHistoryDiagnostics(KratosUnittest.TestCase):
+    def test_multiple_patch_history_uses_each_translation(self):
+        class Node:
+            Id, X, Y = 7, 0., 0.
+            def __init__(self):
+                self.values = {}
+            def SetSolutionStepValue(self, variable, *args):
+                self.values[args[0] if len(args) == 2 else 0] = args[-1]
+            def GetSolutionStepValue(self, variable, slot):
+                return self.values[slot]
+        class Source:
+            def GetSolutionStepValue(self, variable, slot):
+                return [2., 3., 0.]
+        class Element:
+            Id = 42
+            def GetGeometry(self):
+                return [Source() for _ in range(4)]
+        class Locator:
+            def __init__(self, patch):
+                self.patch = patch
+            def UpdateSearchDatabase(self):
+                pass
+            def FindPointOnMesh(self, point):
+                calls.append(self.patch.name)
+                if self.patch.name == 2 and abs(point[1] - .2) < 1e-12:
+                    return True, [.25]*4, Element()
+                return False, None, None
+        node = Node()
+        calls = []
+        first = SimpleNamespace(name=1, Elements=[], Nodes=[SimpleNamespace(X=10., Y=10.)])
+        # A rotated square's bounding box includes its extrema, including the query.
+        second = SimpleNamespace(name=2, Elements=[], Nodes=[SimpleNamespace(X=x, Y=y) for x, y in
+                                               ((0., .2), (.1, .1), (0., 0.), (-.1, .1))])
+        with patch.object(patch_history_transfer.KM, 'BinBasedFastPointLocator2D', Locator):
+            counts = patch_history_transfer.transfer_background_histories(
+                first, [node], 1., .1, (1., 0.), required_steps=(1,),
+                inner_patches=[first, second], velocities=[(1., 0.), (0., 2.)],
+                gap_histories=[None, None])
+        self.assertEqual(counts['inner'], 1)
+        self.assertEqual(calls, [2])
+        self.assertEqual(node.values[1], [2., 3., 0.])
+
+    def test_historical_displacement_overrides_constant_velocity(self):
+        class Node:
+            Id, X, Y = 7, 0., 0.
+            def __init__(self):
+                self.values = {}
+            def SetSolutionStepValue(self, variable, *args):
+                self.values[args[0] if len(args) == 2 else 0] = args[-1]
+            def GetSolutionStepValue(self, variable, slot):
+                return self.values[slot]
+        class Source:
+            def GetSolutionStepValue(self, variable, slot):
+                return [1., 2., 0.]
+        class Element:
+            Id = 5
+            def GetGeometry(self):
+                return [Source()] * 4
+        class Locator:
+            def __init__(self, part): pass
+            def UpdateSearchDatabase(self): pass
+            def FindPointOnMesh(self, point):
+                self_point.append(point)
+                return True, [.25]*4, Element()
+        self_point = []
+        part = SimpleNamespace(Elements=[], Nodes=[SimpleNamespace(X=0., Y=0.),
+                                                   SimpleNamespace(X=1., Y=1.)])
+        with patch.object(patch_history_transfer.KM, 'BinBasedFastPointLocator2D', Locator):
+            patch_history_transfer.transfer_background_histories(
+                part, [Node()], 1., .1, (10., 0.), required_steps=(1,),
+                displacement_offsets=[{1: (.3, .4)}])
+        self.assertEqual(self_point, [[.3, .4, 0.]])
+
     def test_step_observer_records_historical_location_and_validity(self):
         class Node:
             Id, X, Y = 7, 0.5, 0.5
@@ -70,7 +143,8 @@ class TestHistoryDiagnostics(KratosUnittest.TestCase):
         observations = []
         with patch.object(patch_history_transfer.KM, 'BinBasedFastPointLocator2D', Locator):
             counts = patch_history_transfer.transfer_background_histories(
-                object(), [node], 1., .1, (0., 0.), Validity(), (1, 2), Gap(),
+                SimpleNamespace(Elements=[], Nodes=[SimpleNamespace(X=.25, Y=.25)]),
+                [node], 1., .1, (0., 0.), Validity(), (1, 2), Gap(),
                 observer=lambda node, slot, source, parent, shape: observations.append((slot, source)))
         self.assertEqual(observations, [(1, 'outer'), (2, 'gap')])
         self.assertEqual(counts['outer'], 1)
