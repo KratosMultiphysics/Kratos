@@ -87,6 +87,7 @@
                     "GEO_DRAINAGE_TYPE": "CONSTANT_PW_FIELD",
                     "INTERFACE_NORMAL_STIFFNESS": 769230769.2307693,
                     "INTERFACE_SHEAR_STIFFNESS": 76923076.92307693,
+                    "GEO_CONTACT_SURFACE_PERIMETER": 0.1,
                     "GEO_COHESION": 800.0,
                     "GEO_FRICTION_ANGLE": 24.79128089714489,
                     "GEO_DILATANCY_ANGLE": 0.0
