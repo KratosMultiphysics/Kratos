@@ -392,6 +392,16 @@ public:
         ModelPart& rDestinationModelPart);
 
     /**
+     * @brief Adds to the HROM visualization model part the geometries of its own conditions.
+     * @details The skin conditions of the visualization model part (see SetHRomVolumetricVisualizationModelPart) are new entities
+     * whose geometries do not exist in the origin model part. Each condition geometry takes the id of its condition and is added
+     * to the model part and to the sub model parts containing the condition. This is required to write the visualization model
+     * part in geometry-based formats (e.g. MED).
+     * @param rHRomVisualizationModelPart The HROM visualization model part.
+     */
+    static void AddHRomVisualizationGeometries(ModelPart& rHRomVisualizationModelPart);
+
+    /**
      * @brief Assigns a valid properties object to the entities (elements and conditions) that do not have one.
      * @details Entities created from geometries (e.g. by the CreateEntitiesFromGeometriesModeler) are created
      * without properties. Some operations, such as writing an mdpa file, require the entities to have a valid
@@ -445,6 +455,8 @@ public:
     static void RecursiveVisualizationSubModelPartCreation(
         const ModelPart& rOriginSubModelPart,
         ModelPart& rDestinationModelPart);
+
+    static void RecursiveVisualizationGeometriesAddition(ModelPart& rModelPart);
 
     ///@}
 

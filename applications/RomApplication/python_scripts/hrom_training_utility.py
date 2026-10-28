@@ -351,7 +351,7 @@ class HRomTrainingUtility(object):
             # Write the HROM visualization mesh
             if write_med:
                 hrom_vis_output_name = "{}HROMVisualization.med".format(model_part_output_name)
-                KratosROM.RomAuxiliaryUtilities.AddGeometries(computing_model_part, hrom_visualization_model_part)
+                KratosROM.RomAuxiliaryUtilities.AddHRomVisualizationGeometries(hrom_visualization_model_part)
                 model_part_io = KratosMed.MedModelPartIO(hrom_vis_output_name, KratosMultiphysics.IO.WRITE)
                 model_part_io.WriteModelPart(hrom_visualization_model_part)
                 del model_part_io
@@ -359,6 +359,7 @@ class HRomTrainingUtility(object):
                 hrom_vis_output_name = "{}HROMVisualization".format(model_part_output_name)
                 model_part_io = KratosMultiphysics.ModelPartIO(hrom_vis_output_name, KratosMultiphysics.IO.WRITE | KratosMultiphysics.IO.MESH_ONLY | KratosMultiphysics.IO.SCIENTIFIC_PRECISION)
                 model_part_io.WriteModelPart(hrom_visualization_model_part)
+                KratosMultiphysics.kratos_utilities.DeleteFileIfExisting("{}.time".format(hrom_vis_output_name))
             if self.echo_level > 0:
                 KratosMultiphysics.Logger.PrintInfo("HRomTrainingUtility","HROM visualization mesh written in \'{}\'".format(hrom_vis_output_name))
 

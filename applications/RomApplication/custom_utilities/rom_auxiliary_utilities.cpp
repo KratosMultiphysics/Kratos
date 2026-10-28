@@ -12,6 +12,7 @@
 
 // System includes
 #include <algorithm>
+#include <set>
 
 // External includes
 
@@ -654,27 +655,50 @@ void RomAuxiliaryUtilities::RecursiveVisualizationSubModelPartCreation(
     }
     r_vis_sub_mp.AddNodes(nodes_to_add);
 
+    // Note that the visualization conditions are new entities (their ids are not the origin ones)
+    // Hence these are matched by their sorted node ids with the conditions and geometries of the origin sub model part
+    const auto sorted_node_ids = [](const GeometryType& rGeometry){
+        std::vector<IndexType> node_ids;
+        node_ids.reserve(rGeometry.PointsNumber());
+        for (const auto& r_node : rGeometry) {
+            node_ids.push_back(r_node.Id());
+        }
+        std::sort(node_ids.begin(), node_ids.end());
+        return node_ids;
+    };
+    std::set<std::vector<IndexType>> origin_faces;
+    for (const auto& r_condition : rOriginSubModelPart.Conditions()) {
+        origin_faces.insert(sorted_node_ids(r_condition.GetGeometry()));
+    }
+    for (const auto& r_geometry : rOriginSubModelPart.Geometries()) {
+        origin_faces.insert(sorted_node_ids(r_geometry));
+    }
+
     std::vector<IndexType> conditions_to_add;
     conditions_to_add.reserve(rDestinationModelPart.NumberOfConditions());
     for (const auto& r_condition : rDestinationModelPart.Conditions()) {
-        if (rOriginSubModelPart.HasCondition(r_condition.Id())) {
+        if (origin_faces.find(sorted_node_ids(r_condition.GetGeometry())) != origin_faces.end()) {
             conditions_to_add.push_back(r_condition.Id());
         }
     }
     r_vis_sub_mp.AddConditions(conditions_to_add);
 
-    std::vector<IndexType> elements_to_add;
-    elements_to_add.reserve(rDestinationModelPart.NumberOfElements());
-    for (const auto& r_element : rDestinationModelPart.Elements()) {
-        if (rOriginSubModelPart.HasElement(r_element.Id())) {
-            elements_to_add.push_back(r_element.Id());
-        }
-    }
-    r_vis_sub_mp.AddElements(elements_to_add);
-
     // Recursively check sub model parts
     for (const auto& r_sub_mp : rOriginSubModelPart.SubModelParts()) {
         RecursiveVisualizationSubModelPartCreation(r_sub_mp, r_vis_sub_mp);
+    }
+}
+
+void RomAuxiliaryUtilities::RecursiveVisualizationGeometriesAddition(ModelPart& rModelPart)
+{
+    for (auto& r_sub_mp : rModelPart.SubModelParts()) {
+        std::vector<IndexType> geometries_to_add;
+        geometries_to_add.reserve(r_sub_mp.NumberOfConditions());
+        for (const auto& r_condition : r_sub_mp.Conditions()) {
+            geometries_to_add.push_back(r_condition.GetGeometry().Id());
+        }
+        r_sub_mp.AddGeometries(geometries_to_add);
+        RecursiveVisualizationGeometriesAddition(r_sub_mp);
     }
 }
 
@@ -1170,6 +1194,21 @@ void RomAuxiliaryUtilities::AddGeometries(
     for (const auto& r_map : smp_geoms) {
         rDestinationModelPart.GetSubModelPart(r_map.first).AddGeometries(r_map.second);
     }
+
+    KRATOS_CATCH("")
+}
+
+void RomAuxiliaryUtilities::AddHRomVisualizationGeometries(ModelPart& rHRomVisualizationModelPart)
+{
+    KRATOS_TRY
+
+    // The skin geometries are created with the visualization model part (these are not in the origin one), so these can be renumbered
+    for (auto& r_condition : rHRomVisualizationModelPart.Conditions()) {
+        auto p_geometry = r_condition.pGetGeometry();
+        p_geometry->SetId(r_condition.Id());
+        rHRomVisualizationModelPart.AddGeometry(p_geometry);
+    }
+    RecursiveVisualizationGeometriesAddition(rHRomVisualizationModelPart);
 
     KRATOS_CATCH("")
 }
