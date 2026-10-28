@@ -1,12 +1,19 @@
-// License: BSD License (kratos/license.txt)
+//     |  /           |
+//     ' /   __| _` | __|  _ \   __|
+//     . \  |   (   | |   (   |\__ `
+//    _|\_\_|  \__,_|\__|\___/ ____/
+//                    Multi-Physics
+//
+//   Fluid Dynamics Application
+//
+//   License:         BSD License
+//                    Kratos default license: kratos/license.txt
+//
+//   Main author:     Nicolò Antonelli
+//
 
 // System includes
-#include <algorithm>
-#include <array>
-#include <cmath>
-#include <map>
-#include <set>
-#include <vector>
+
 
 // Project includes
 #include "custom_processes/create_fluid_patch_coupling_conditions_process.h"
@@ -187,7 +194,7 @@ void CreateFluidPatchCouplingConditionsProcess::Execute()
         parents(0) = GlobalPointer<Element>(r_segment.mpFirst.get());
         parents(1) = GlobalPointer<Element>(r_segment.mpSecond.get());
         p_condition->SetValue(NEIGHBOUR_ELEMENTS, parents);
-        p_condition->SetValue(FEM_COUPLING_INTERFACE_COORDINATES, r_segment.mCoordinates);
+        p_condition->SetValue(COUPLING_INTERFACE_COORDINATES, r_segment.mCoordinates);
         r_interface.AddNodes(node_ids);
         p_condition->Set(ACTIVE, true);
     }

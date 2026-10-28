@@ -1,9 +1,17 @@
-// License: BSD License (kratos/license.txt)
-#include <algorithm>
-#include <cmath>
+//     |  /           |
+//     ' /   __| _` | __|  _ \   __|
+//     . \  |   (   | |   (   |\__ `
+//    _|\_\_|  \__,_|\__|\___/ ____/
+//                    Multi-Physics
+//
+//   License:         BSD License
+//                    Kratos default license: kratos/license.txt
+//
+//   Main author:     Nicolò Antonelli
+//
+
 #include <limits>
 #include <map>
-#include <set>
 #include "utilities/multipatch_gap_utilities.h"
 #include "utilities/gap_quadrature_utility.h"
 #include "geometries/line_2d_2.h"

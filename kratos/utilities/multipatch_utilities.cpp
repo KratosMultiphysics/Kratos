@@ -7,8 +7,6 @@
 //  License: BSD License (kratos/license.txt)
 
 // System includes
-#include <algorithm>
-#include <cmath>
 
 // Project includes
 #include "utilities/multipatch_utilities.h"

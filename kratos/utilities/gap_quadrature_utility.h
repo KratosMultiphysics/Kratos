@@ -1,4 +1,15 @@
-// License: BSD License (kratos/license.txt)
+//     |  /           |
+//     ' /   __| _` | __|  _ \   __|
+//     . \  |   (   | |   (   |\__ `
+//    _|\_\_|  \__,_|\__|\___/ ____/
+//                    Multi-Physics
+//
+//   License:         BSD License
+//                    Kratos default license: kratos/license.txt
+//
+//   Main author:     Nicolò Antonelli
+//
+
 #pragma once
 
 #include "includes/model_part.h"

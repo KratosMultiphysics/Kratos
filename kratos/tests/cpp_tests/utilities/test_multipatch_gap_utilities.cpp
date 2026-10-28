@@ -1,7 +1,17 @@
-// License: BSD License (kratos/license.txt)
+//     |  /           |
+//     ' /   __| _` | __|  _ \   __|
+//     . \  |   (   | |   (   |\__ `
+//    _|\_\_|  \__,_|\__|\___/ ____/
+//                    Multi-Physics
+//
+//   License:         BSD License
+//                    Kratos default license: kratos/license.txt
+//
+//   Main author:     Nicolò Antonelli
+//
+
 #include <array>
 #include <vector>
-#include <cmath>
 #include "testing/testing.h"
 #include "containers/model.h"
 #include "geometries/quadrilateral_2d_4.h"

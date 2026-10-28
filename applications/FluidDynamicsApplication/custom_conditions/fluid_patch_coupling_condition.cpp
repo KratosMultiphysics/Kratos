@@ -1,10 +1,18 @@
-// License: BSD License (kratos/license.txt)
+//     |  /           |
+//     ' /   __| _` | __|  _ \   __|
+//     . \  |   (   | |   (   |\__ `
+//    _|\_\_|  \__,_|\__|\___/ ____/
+//                    Multi-Physics
+//
+//   Fluid Dynamics Application
+//
+//   License:         BSD License
+//                    Kratos default license: kratos/license.txt
+//
+//   Main author:     Nicolò Antonelli
+//
 
 // System includes
-#include <algorithm>
-#include <array>
-#include <cmath>
-#include <set>
 
 // Project includes
 #include "custom_conditions/fluid_patch_coupling_condition.h"

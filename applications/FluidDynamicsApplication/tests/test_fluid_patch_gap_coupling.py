@@ -1,3 +1,17 @@
+#     |  /           |
+#     ' /   __| _` | __|  _ \   __|
+#     . \  |   (   | |   (   |\__ `
+#    _|\_\_|  \__,_|\__|\___/ ____/
+#                    Multi-Physics
+#
+#   Fluid Dynamics Application
+#
+#   License:         BSD License
+#                    Kratos default license: kratos/license.txt
+#
+#   Main author:     Nicolò Antonelli
+#
+
 """Assembled steady Stokes tests for positive-gap Q1 multipatch coupling.
 
 No exact values are prescribed on either side of the internal interface.

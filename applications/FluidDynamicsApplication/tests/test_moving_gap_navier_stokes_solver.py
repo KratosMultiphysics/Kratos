@@ -1,3 +1,17 @@
+#     |  /           |
+#     ' /   __| _` | __|  _ \   __|
+#     . \  |   (   | |   (   |\__ `
+#    _|\_\_|  \__,_|\__|\___/ ____/
+#                    Multi-Physics
+#
+#   Fluid Dynamics Application
+#
+#   License:         BSD License
+#                    Kratos default license: kratos/license.txt
+#
+#   Main author:     Nicolò Antonelli
+#
+
 """Configuration checks for the QSVMS Picard strategy."""
 import KratosMultiphysics as KM
 import KratosMultiphysics.KratosUnittest as KratosUnittest

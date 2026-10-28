@@ -1,3 +1,15 @@
+#     |  /           |
+#     ' /   __| _` | __|  _ \   __|
+#     . \  |   (   | |   (   |\__ `
+#    _|\_\_|  \__,_|\__|\___/ ____/
+#                    Multi-Physics
+#
+#   License:         BSD License
+#                    Kratos default license: kratos/license.txt
+#
+#   Main author:     Nicolò Antonelli
+#
+
 """Python access to the C++ FEM multipatch geometry operations."""
 
 import KratosMultiphysics as KM

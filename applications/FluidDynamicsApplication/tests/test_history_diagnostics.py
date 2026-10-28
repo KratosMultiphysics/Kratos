@@ -1,3 +1,17 @@
+#     |  /           |
+#     ' /   __| _` | __|  _ \   __|
+#     . \  |   (   | |   (   |\__ `
+#    _|\_\_|  \__,_|\__|\___/ ____/
+#                    Multi-Physics
+#
+#   Fluid Dynamics Application
+#
+#   License:         BSD License
+#                    Kratos default license: kratos/license.txt
+#
+#   Main author:     Nicolò Antonelli
+#
+
 """Focused tests of history classification and diagnostic output."""
 import csv
 import json

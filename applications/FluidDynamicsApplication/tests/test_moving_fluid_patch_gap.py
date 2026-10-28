@@ -1,3 +1,17 @@
+#     |  /           |
+#     ' /   __| _` | __|  _ \   __|
+#     . \  |   (   | |   (   |\__ `
+#    _|\_\_|  \__,_|\__|\___/ ____/
+#                    Multi-Physics
+#
+#   Fluid Dynamics Application
+#
+#   License:         BSD License
+#                    Kratos default license: kratos/license.txt
+#
+#   Main author:     Nicolò Antonelli
+#
+
 """Transient Stokes MMS: translating ALE square and fixed Eulerian background.
 
 Run this file with KratosUnittest, or import solve_moving_gap for diagnostics.
