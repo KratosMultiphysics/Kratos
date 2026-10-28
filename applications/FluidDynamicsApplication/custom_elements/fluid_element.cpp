@@ -922,6 +922,7 @@ template class FluidElement< QSVMSData<2,4> >;
 template class FluidElement< QSVMSData<3,8> >;
 
 template class FluidElement< TimeIntegratedQSVMSData<2,3> >;
+template class FluidElement< TimeIntegratedQSVMSData<2,4> >;
 template class FluidElement< TimeIntegratedQSVMSData<3,4> >;
 
 template class FluidElement< AxisymmetricNavierStokesData<2,3> >;
