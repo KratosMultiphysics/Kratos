@@ -1,5 +1,5 @@
 import KratosMultiphysics
-import KratosMultiphysics.DamApplication as KratosDam
+import KratosMultiphysics.PoromechanicsApplication as KratosPoro
 from KratosMultiphysics.assign_scalar_variable_process import AssignScalarVariableProcess
 
 def Factory(settings, Model):
@@ -29,18 +29,20 @@ class ApplyLoadVectorDamTableProcess(KratosMultiphysics.Process):
             if abs(value) > 1.0e-15:
                 component_params = KratosMultiphysics.Parameters("{}")
                 component_params.AddValue("model_part_name", settings["model_part_name"])
-                component_params.AddEmptyValue("constrained").SetBool(False)
                 component_params.AddEmptyValue("value").SetDouble(value)
                 component_params.AddEmptyValue("variable_name").SetString(variable_name + "_" + suffix)
                 if settings["table"].GetInt() == 0:
+                    component_params.AddEmptyValue("constrained").SetBool(False)
                     self.components_process_list.append(AssignScalarVariableProcess(Model, component_params))
                 else:
+                    component_params.AddEmptyValue("is_fixed").SetBool(False)
                     component_params.AddValue("table", settings["table"])
-                    self.components_process_list.append(KratosDam.ApplyComponentTableProcessDam(model_part, component_params))
+                    self.components_process_list.append(KratosPoro.ApplyComponentTableProcess(model_part, component_params))
 
     def ExecuteBeforeSolutionLoop(self):
 
         for component in self.components_process_list:
+            component.ExecuteInitialize()
             component.ExecuteBeforeSolutionLoop()
 
     def ExecuteInitializeSolutionStep(self):
