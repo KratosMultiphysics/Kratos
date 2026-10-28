@@ -69,8 +69,11 @@ namespace Kratos
             normal *= -1.0;
             MPMMathUtilities<double>::Normalize(normal);
             const double penetration = MathUtils<double>::Dot(displacement, normal);
-            array_1d<double,3> force = (- penetration * penalty_coefficient * nodal_condition_area) * normal;
-            AtomicAdd(r_geom[i_node].FastGetSolutionStepValue(REACTION), force);
+            if (!this->Is(CONTACT) || penetration < 0.0) {
+                array_1d<double,3> force = (- penetration * penalty_coefficient * nodal_condition_area) * normal;
+                AtomicAdd(r_geom[i_node].FastGetSolutionStepValue(REACTION), force);
+            }
+            // std::cout << "REACTION, NODE ID: " << r_geom[i_node].Id() << std::endl;
         }
 
         KRATOS_CATCH("");
@@ -238,6 +241,7 @@ namespace Kratos
         if (CalculateStiffnessMatrixFlag) {
 
             noalias(rLeftHandSideMatrix) = ZeroMatrix(LocalSize, LocalSize);
+            // std::cout << "compute lhs" << std::endl;
 
             for (std::size_t i_node = 0; i_node < TNumNodes; ++i_node) {
                 if (apply_constraint[i_node]) {
@@ -258,6 +262,7 @@ namespace Kratos
         if (CalculateResidualVectorFlag) {
 
             noalias(rRightHandSideVector) = ZeroVector(LocalSize);
+            // std::cout << "compute rhs" << std::endl;
 
             for (std::size_t i_node = 0; i_node < TNumNodes; ++i_node) {
                 if (apply_constraint[i_node]) {
