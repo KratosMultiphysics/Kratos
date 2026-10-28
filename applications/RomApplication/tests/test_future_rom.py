@@ -1,4 +1,7 @@
 import importlib
+import shutil
+import tempfile
+from pathlib import Path
 
 import numpy as np
 
@@ -135,6 +138,27 @@ class TestFutureRom(KratosUnittest.TestCase):
                     expected_output = [full_model_part.GetNode(node.Id).GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT) for node in hrom_model_part.Nodes]
                     obtained_output = [node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT) for node in hrom_model_part.Nodes]
                     self._CheckResults(obtained_output, expected_output, 1.0e-12)
+
+    @KratosUnittest.skipIfApplicationsNotAvailable("StructuralMechanicsApplication")
+    def testStructuralStaticTotalLagrangianHRomAllWeightsOne(self):
+        # HROM with all the elements and conditions and all the weights equal to 1: it assembles the system of the ROM, so it must
+        # give the solution of the ROM (geometrically nonlinear cantilever). Run in a copy of the case, as the HROM weights are written
+        with tempfile.TemporaryDirectory() as case_folder:
+            shutil.copytree(Path(__file__).parent / "future_rom_test_files/TotalLagrangianROM", case_folder, dirs_exist_ok=True)
+            with KratosUnittest.WorkFolderScope(case_folder, __file__):
+                for projection_backend in ["numpy", "cpp"]:
+                    with self.subTest(projection_backend=projection_backend):
+                        rom_model_part = self._RunFutureRom("ProjectParameters.json", projection_backend, max_iterations=20)
+                        expected_output = rom_testing_utilities.GetVectorNodalResults(rom_model_part, KratosMultiphysics.DISPLACEMENT)
+
+                        root_model_part = rom_model_part.GetRootModelPart()
+                        for name, entities in [("Element", root_model_part.Elements), ("Condition", root_model_part.Conditions)]:
+                            entity_ids = [entity.Id for entity in entities]
+                            np.save(f"rom_data/HROM_{name}Ids.npy", np.array(entity_ids))
+                            np.save(f"rom_data/HROM_{name}Weights.npy", np.ones(len(entity_ids)))
+                        hrom_model_part = self._RunFutureRom("ProjectParameters.json", projection_backend, max_iterations=20, run_hrom=True)
+                        obtained_output = rom_testing_utilities.GetVectorNodalResults(hrom_model_part, KratosMultiphysics.DISPLACEMENT)
+                        self._CheckResults(obtained_output, expected_output, 1.0e-12)
 
     @KratosUnittest.skipIfApplicationsNotAvailable("ConvectionDiffusionApplication")
     def testConvDiffStationaryRom2D(self):
