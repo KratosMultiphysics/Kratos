@@ -25,6 +25,10 @@ namespace Kratos {
 class KRATOS_API(KRATOS_CORE) FemMultipatchGapUtilities
 {
 public:
+    // TODO: to remove temporary timing instrumentation after profiling.
+    static void ResetProfilingTimes();
+    static std::array<double, 2> GetProfilingTimes();
+    static void EnableProfiling(bool Enabled);
     using Coordinates = array_1d<double, 3>;
     struct Segment {
         Element::Pointer pFirst;

@@ -10,6 +10,7 @@
 //   Main author:     Nicolò Antonelli
 //
 
+#include <chrono>
 #include <limits>
 #include <map>
 #include "utilities/multipatch_gap_utilities.h"
@@ -20,6 +21,10 @@
 
 namespace Kratos {
 namespace {
+// TODO: to remove temporary timing instrumentation after profiling.
+thread_local bool profiling_enabled = false;
+thread_local double projection_time = 0.0, triangulation_time = 0.0;
+using ProfileClock = std::chrono::steady_clock;
 using Utility = FemMultipatchGapUtilities;
 using C = Utility::Coordinates;
 using Polygon = std::vector<C>;
@@ -297,6 +302,10 @@ FemMultipatchUtilities::OwnerMapType FemMultipatchGapUtilities::UpdateActivation
     KRATOS_CATCH("")
 }
 
+void FemMultipatchGapUtilities::ResetProfilingTimes() { projection_time = triangulation_time = 0.0; }
+std::array<double, 2> FemMultipatchGapUtilities::GetProfilingTimes() { return {projection_time, triangulation_time}; }
+void FemMultipatchGapUtilities::EnableProfiling(bool Enabled) { profiling_enabled = Enabled; }
+
 FemMultipatchGapUtilities::GapData FemMultipatchGapUtilities::Build(
     ModelPart& rBackground, ModelPart& rInner, const double Tolerance)
 {
@@ -327,7 +336,9 @@ FemMultipatchGapUtilities::GapData FemMultipatchGapUtilities::Build(
         const std::size_t index = result.Surrogate.size();
         result.Surrogate.push_back({e.pParent, nullptr, e.pStart->Coordinates(), e.pEnd->Coordinates()});
         for (const auto& node:{e.pStart, e.pEnd}) {
+            const auto profile_start = profiling_enabled ? ProfileClock::now() : ProfileClock::time_point{};
             projections.emplace(node->Id(), project_to_contour(node->Coordinates(), boundary, lengths));
+            if (profiling_enabled) projection_time += std::chrono::duration<double>(ProfileClock::now()-profile_start).count();
             incident[node->Id()].push_back(index);
         }
         const auto p0 = projections.at(e.pStart->Id()), p1 = projections.at(e.pEnd->Id());
@@ -367,7 +378,10 @@ FemMultipatchGapUtilities::GapData FemMultipatchGapUtilities::Build(
             distance(p0.Point, p1.Point));
         KRATOS_ERROR_IF(area(polygon)>area_tolerance)
             << "Gap projection reverses orientation; invalid additive gap." << std::endl;
-        for (const auto& triangle:triangulate(polygon, Tolerance)) {
+        const auto profile_start = profiling_enabled ? ProfileClock::now() : ProfileClock::time_point{};
+        const auto triangles = triangulate(polygon, Tolerance);
+        if (profiling_enabled) triangulation_time += std::chrono::duration<double>(ProfileClock::now()-profile_start).count();
+        for (const auto& triangle:triangles) {
             result.Cells.push_back({e.pParent, triangle, quadrature(*e.pParent, triangle)});
         }
     }

@@ -31,44 +31,60 @@ class MovingGapLifecycle:
     """Coordinate BDF mesh motion, gap rebuilding and numerical history transfer.
 
     The model must already contain the initial computing part and coupling.
-    This lifecycle supports a single rigidly translating inner patch, a fixed
+    Pass one settings/velocity pair or lists of pairs. This lifecycle supports
+    rigidly translating inner patches, a fixed
     background, fixed time step and a three-step buffer. The caller must set
     initial nodal fluid values and the DELTA_TIME before creating the object.
     """
 
     def __init__(self, model, coupling_settings, velocity, dt, *,
                  tolerance=1e-10, bdf1_startup=True, history_diagnostics=None,
-                 geometry_name='Interfaces', computing_name='Computing'):
-        if len(velocity) != 2 or not all(math.isfinite(v) for v in velocity):
-            raise ValueError('translation velocity must contain two finite values')
+                 geometry_name='Interfaces', computing_name='Computing', motions=None, cylinder=None):
+        settings = coupling_settings if isinstance(coupling_settings, (list, tuple)) else [coupling_settings]
+        velocities = list(velocity) if velocity and isinstance(velocity[0], (list, tuple)) else [velocity]
+        if len(settings) != len(velocities) or not all(
+            len(v) == 2 and all(math.isfinite(x) for x in v) for v in velocities
+        ):
+            raise ValueError('Each inner patch requires two finite translation velocity components.')
         if not math.isfinite(dt) or dt <= 0:
             raise ValueError('time step must be finite and positive')
-        self.velocity = tuple(velocity)
+        self.velocities = [tuple(v) for v in velocities]
+        self.motions = list(motions) if motions is not None else [None] * len(settings)
+        if len(self.motions) != len(settings):
+            raise ValueError('Each patch requires a motion specification.')
+        for motion in self.motions:
+            if motion is not None:
+                if motion['type'] != 'sinusoidal' or not all(
+                        math.isfinite(motion[key]) for key in ('amplitude', 'frequency')) or motion['frequency'] < 0.0:
+                    raise ValueError('Sinusoidal motion requires finite amplitude and non-negative frequency.')
         self.dt = dt
         self.bdf1_startup = bdf1_startup
         self.rebuild = RebuildFluidPatchGapProcess(
-            model, [coupling_settings], geometry_name=geometry_name,
+            model, settings, geometry_name=geometry_name,
             computing_name=computing_name, tolerance=tolerance)
         self.root = self.rebuild.root
         self.background = self.rebuild.background
-        self.inner = self.rebuild.inner[0]
+        self.inner_patches = self.rebuild.inner
+        self.cylinder = cylinder
         self.computing = self.root.GetSubModelPart(computing_name)
         self._initial_time = self.root.ProcessInfo[KM.TIME]
         self._last_time = self._initial_time
         # Preserve the initial position and displacement, including restart offsets.
         self._initial_motion = {
             node.Id: (node.X, node.Y, tuple(node.GetSolutionStepValue(KM.DISPLACEMENT)))
-            for node in self.inner.Nodes
+            for patch in self.inner_patches for node in patch.Nodes
         }
-        self.inner_ids = {node.Id for node in self.inner.Nodes}
+        self.inner_ids = {node.Id for patch in self.inner_patches for node in patch.Nodes}
         previous = {node.Id for node in self.computing.Nodes} - self.inner_ids
         self.validity = OuterHistoryValidity(previous, () if bdf1_startup else previous)
-        self.gap_history = GapHistory()
-        self.gap_history.capture(self._get_gap_geometry(), self._initial_time)
+        self.gap_histories = [GapHistory() for patch in self.inner_patches]
+        for i, history in enumerate(self.gap_histories):
+            history.capture(self._get_gap_geometry(i), self._initial_time)
         self.bdf = KM.TimeDiscretization.BDF(2)
         self.previous_nodes = {node.Id for node in self.computing.Nodes}
         self.previous_elements = {e.Id for e in self.background.Elements if e.Is(KM.ACTIVE)}
-        self.previous_triangles = self._get_gap_geometry().GetSubModelPart('GapTriangles').NumberOfGeometries()
+        self.previous_triangles = sum(self._get_gap_geometry(i).GetSubModelPart('GapTriangles').NumberOfGeometries()
+                                      for i in range(len(self.inner_patches)))
         self.step = 0
         self._pending = False
         self._failed = False
@@ -80,18 +96,26 @@ class MovingGapLifecycle:
             # by this lifecycle. Older computation provenance is unavailable.
             self._computed_slots = [set(), None, None]
 
-    def _get_gap_geometry(self):
-        return self.rebuild.GetPatchGeometry(0)
+    def _get_gap_geometry(self, index):
+        return self.rebuild.GetPatchGeometry(index)
+
+    def _translation(self, index, time):
+        motion = self.motions[index]
+        if motion is None:
+            elapsed = time - self._initial_time
+            return tuple(v * elapsed for v in self.velocities[index])
+        omega = 2.0 * math.pi * motion['frequency']
+        return (motion['amplitude'] * (math.sin(omega * time) - math.sin(omega * self._initial_time)), 0.0)
 
     def _snapshot_geometry(self):
         """Copy geometry before the next rebuild deletes its gap entities."""
         def vertices(geometry):
             return tuple((float(node.X), float(node.Y)) for node in geometry)
-        interface = self._get_gap_geometry()
+        interfaces = [self._get_gap_geometry(i) for i in range(len(self.inner_patches))]
         return {
-            'inner': [(e.Id, vertices(e.GetGeometry())) for e in self.inner.Elements],
+            'inner': [(e.Id, vertices(e.GetGeometry())) for patch in self.inner_patches for e in patch.Elements],
             'active_outer': [(e.Id, vertices(e.GetGeometry())) for e in self.background.Elements if e.Is(KM.ACTIVE)],
-            'gap': [(g.Id, vertices(g)) for g in interface.GetSubModelPart('GapTriangles').Geometries]
+            'gap': [(g.Id, vertices(g)) for interface in interfaces for g in interface.GetSubModelPart('GapTriangles').Geometries]
         }
 
     def prepare_solution_step(self, time, *, exact_history=None):
@@ -113,7 +137,8 @@ class MovingGapLifecycle:
         self.step += 1
         self.root.CloneTimeStep(time)
         self.validity.advance()
-        self.gap_history.advance()
+        for history in self.gap_histories:
+            history.advance()
         if self.diagnostics:
             self._geometry_slots = [None, self._geometry_slots[0], self._geometry_slots[1]]
             self._activity_slots = [None, self._activity_slots[0], self._activity_slots[1]]
@@ -122,16 +147,25 @@ class MovingGapLifecycle:
         if self.bdf1_startup and self.step == 1:
             self.root.ProcessInfo[KM.BDF_COEFFICIENTS] = KM.Vector([1/self.dt, -1/self.dt, 0.])
         coefficients = self.root.ProcessInfo[KM.BDF_COEFFICIENTS]
-        for node in self.inner.Nodes:
-            x, y, displacement = self._initial_motion[node.Id]
-            elapsed = time-self._initial_time
-            node.X = x + self.velocity[0]*elapsed
-            node.Y = y + self.velocity[1]*elapsed
-            node.SetSolutionStepValue(KM.DISPLACEMENT, [displacement[0]+self.velocity[0]*elapsed,
-                displacement[1]+self.velocity[1]*elapsed, displacement[2]])
-            mesh_velocity = [sum(coefficients[k]*node.GetSolutionStepValue(KM.DISPLACEMENT, k)[d]
-                                 for k in range(3)) for d in range(2)]
-            node.SetSolutionStepValue(KM.MESH_VELOCITY, [*mesh_velocity, 0.])
+        for index, patch in enumerate(self.inner_patches):
+            translation = self._translation(index, time)
+            for node in patch.Nodes:
+                x, y, displacement = self._initial_motion[node.Id]
+                node.X = x + translation[0]
+                node.Y = y + translation[1]
+                node.SetSolutionStepValue(KM.DISPLACEMENT, [displacement[0]+translation[0],
+                    displacement[1]+translation[1], displacement[2]])
+                mesh_velocity = [sum(coefficients[k]*node.GetSolutionStepValue(KM.DISPLACEMENT, k)[d]
+                                     for k in range(3)) for d in range(2)]
+                node.SetSolutionStepValue(KM.MESH_VELOCITY, [*mesh_velocity, 0.])
+            if self.cylinder is not None and self.cylinder.patch.FullName() == patch.FullName():
+                motion = self.motions[index]
+                if motion is None:
+                    body_velocity = self.velocities[index]
+                else:
+                    omega = 2.0 * math.pi * motion['frequency']
+                    body_velocity = (motion['amplitude'] * omega * math.cos(omega*time), 0.0)
+                self.cylinder.update(translation, body_velocity)
         self.rebuild.Execute()
         self.computing = self.rebuild.computing
         current_nodes = {node.Id for node in self.computing.Nodes}
@@ -163,9 +197,16 @@ class MovingGapLifecycle:
                         observe(node, k, 'outer', None, None)
         elif targets:
             try:
+                offsets = []
+                for i in range(len(self.inner_patches)):
+                    current = self._translation(i, time)
+                    offsets.append({k: tuple(current[d] - self._translation(i, time-k*self.dt)[d]
+                                             for d in range(2)) for k in required})
                 counts = transfer_background_histories(
-                    self.inner, targets, time, self.dt, self.velocity, self.validity,
-                    required, self.gap_history, observer=observe if self.diagnostics else None)
+                    self.inner_patches[0], targets, time, self.dt, self.velocities[0], self.validity,
+                    required, observer=observe if self.diagnostics else None,
+                    inner_patches=self.inner_patches, velocities=self.velocities, gap_histories=self.gap_histories,
+                    displacement_offsets=offsets)
             except Exception:
                 if self.diagnostics:
                     self.diagnostics.write_step(self.step, time, samples, events, committed=False)
@@ -179,13 +220,14 @@ class MovingGapLifecycle:
                 for slot in required:
                     observe(node, slot, 'outer', None, None)
             self.diagnostics.write_step(self.step, time, samples, events)
-        triangles = self._get_gap_geometry().GetSubModelPart('GapTriangles')
+        triangles = [g for i in range(len(self.inner_patches))
+                     for g in self._get_gap_geometry(i).GetSubModelPart('GapTriangles').Geometries]
         result = {'newly_active_nodes': len(current_nodes-self.previous_nodes-self.inner_ids),
                   'newly_active_elements': len(current_elements-self.previous_elements),
                   'deactivated_elements': len(self.previous_elements-current_elements),
-                  'gap_triangles': triangles.NumberOfGeometries(),
-                  'gap_triangle_change': triangles.NumberOfGeometries()-self.previous_triangles,
-                  'gap_area': sum(g.Area() for g in triangles.Geometries),
+                  'gap_triangles': len(triangles),
+                  'gap_triangle_change': len(triangles)-self.previous_triangles,
+                  'gap_area': sum(g.Area() for g in triangles),
                   'missing_history_samples': counts['missing'],
                   'transferred_history_samples': counts['inner'],
                   'interpolated_history_samples': counts['inner'],
@@ -193,7 +235,7 @@ class MovingGapLifecycle:
                   'extrapolated_history_samples': counts['extrapolation']}
         self._current_nodes = current_nodes
         self._current_elements = current_elements
-        self._current_triangles = triangles.NumberOfGeometries()
+        self._current_triangles = len(triangles)
         self._pending = True
         self._failed = False
         return self.computing, result
@@ -204,7 +246,8 @@ class MovingGapLifecycle:
             raise RuntimeError('Prepare and solve a step before finalizing it.')
         if not math.isclose(time, self.root.ProcessInfo[KM.TIME], rel_tol=1e-12, abs_tol=1e-12):
             raise ValueError('Finalization time must match the prepared time step.')
-        self.gap_history.capture(self._get_gap_geometry(), time)
+        for i, history in enumerate(self.gap_histories):
+            history.capture(self._get_gap_geometry(i), time)
         self.validity.mark_solved(self._current_nodes-self.inner_ids)
         if self.diagnostics:
             self._computed_slots[0] = set(self._current_nodes-self.inner_ids)

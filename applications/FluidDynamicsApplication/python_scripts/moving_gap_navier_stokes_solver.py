@@ -63,6 +63,11 @@ class MovingGapNavierStokesSolver(MovingGapStokesSolver):
         coupling = self.settings['coupling_settings']
         if not coupling.Has('formulation') or coupling['formulation'].GetString() != 'qsvms':
             raise ValueError('Moving Navier–Stokes requires coupling formulation "qsvms".')
+        patches = self.settings['patches']
+        for i in range(patches.size()):
+            patch_coupling = patches[i]['coupling_settings']
+            if not patch_coupling.Has('formulation') or patch_coupling['formulation'].GetString() != 'qsvms':
+                raise ValueError('Every moving Navier–Stokes patch requires formulation "qsvms".')
         self._converged = False
         super().Initialize()
 
