@@ -15,5 +15,4 @@ Run:
 ~~~py
 python generate_mesh_tying_mortar_condition.py
 ~~~
-Then  file "_mesh_tying_mortar_condition.cpp_" is generated automatically. Such file should be copied within the "_custom_conditions_" folder of the
-**ContactStructuralMechanicsApplication**. The corresponding header file "_mesh_tying_mortar_condition.h_", which implements the element is already stored in the custom_elements folder.
+Then the file "_mesh_tying_mortar_condition.cpp_" would be generated; the template it expects (`mesh_tying_mortar_condition_template.cpp`) is no longer kept, so this script cannot run any more and is preserved only as a record of the original derivation. The hand-written condition lives in `custom_conditions/mesh_tying_mortar_condition.h/.cpp`.
