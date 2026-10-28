@@ -378,6 +378,27 @@ class RomManager(object):
         self._LaunchRunHROM(mu_run, use_full_model_part, nn_rom_interface, rbf_rom_interface)
 
 
+    def CreateHROMModelPart(self, mu_train=[None]):
+        """Recomputes the entities added to the ECM selection with the current 'HROM' settings, the HROM summary and the HROM
+        model part, from the HROM elements and weights stored by Fit. No simulation is run (the ECM is not run again)."""
+        in_database_elems, _ = self.data_base.check_if_in_database("HROM_Elements", mu_train)
+        in_database_weights, _ = self.data_base.check_if_in_database("HROM_Weights", mu_train)
+        if not (in_database_elems and in_database_weights):
+            raise Exception("No HROM elements and weights found in the database for these training parameters. Run Fit with the 'HROM' stage first.")
+        train_hrom_flags = {
+            ("galerkin", "linear"): "trainHROMGalerkin", ("galerkin", "ann_enhanced"): "trainHROMGalerkin_ANN", ("galerkin", "rbf_enhanced"): "trainHROMGalerkin_RBF",
+            ("lspg", "linear"): "trainHROMLSPG", ("lspg", "ann_enhanced"): "trainHROMlspg_ANN", ("lspg", "rbf_enhanced"): "trainHROMlspg_RBF",
+            ("petrov_galerkin", "linear"): "trainHROMPetrovGalerkin"}
+        key = (self.general_rom_manager_parameters["projection_strategy"].GetString(), self.general_rom_manager_parameters["type_of_decoder"].GetString())
+        if key not in train_hrom_flags:
+            raise Exception(f"HROM is not available for the '{key[0]}' projection strategy with the '{key[1]}' decoder.")
+        self._LoadSolutionBasis(mu_train)
+        self._ChangeRomFlags(simulation_to_run = train_hrom_flags[key])
+        nn_rom_interface = NN_ROM_Interface(mu_train, self.data_base) if key[1] == "ann_enhanced" else None
+        rbf_rom_interface = RBF_ROM_Interface(mu_train, self.data_base) if key[1] == "rbf_enhanced" else None
+        # The HROM elements and weights are in the database, so only the added entities and the HROM model part are computed
+        self._LaunchTrainHROM(mu_train, nn_rom_interface=nn_rom_interface, rbf_rom_interface=rbf_rom_interface)
+
     def ExportAnnEnhancedRom(self, mu_train=[None], export_folder="rom_data_standalone"):
         """
         Exports the ANN-enhanced ROM trained with 'mu_train' to a folder that can be run without the RomManager and its database.
@@ -1013,6 +1034,7 @@ class RomManager(object):
         f["hrom_settings"]["include_nodal_neighbouring_elements_model_parts_list"] = self.general_rom_manager_parameters["HROM"]["include_nodal_neighbouring_elements_model_parts_list"].GetStringArray()
         f["hrom_settings"]["include_minimum_condition"] = self.general_rom_manager_parameters["HROM"]["include_minimum_condition"].GetBool()
         f["hrom_settings"]["include_condition_parents"] = self.general_rom_manager_parameters["HROM"]["include_condition_parents"].GetBool()
+        f["hrom_settings"]["include_element_children"] = self.general_rom_manager_parameters["HROM"]["include_element_children"].GetBool()
         f["hrom_settings"]["echo_level"] = self.general_rom_manager_parameters["HROM"]["echo_level"].GetInt()
 
     def _ChangeRomFlags(self, simulation_to_run = 'ROM'):
@@ -1039,6 +1061,11 @@ class RomManager(object):
                 f['coupled_solvers'] = coupled_solvers
             else:
                 f.pop('coupled_solvers', None)
+            # Number of modes of the (zero-padded) basis of each coupled solver with a linear decoder and segregated bases
+            if self._UsesSegregatedBases() and self.general_rom_manager_parameters["type_of_decoder"].GetString() == "linear":
+                f['coupled_solvers_number_of_rom_dofs'] = self._GetCoupledSolversNumberOfRomDofs(parameters_file_folder)
+            else:
+                f.pop('coupled_solvers_number_of_rom_dofs', None)
             self._AddHromParametersToRomParameters(f)
             if simulation_to_run=='GalerkinROM':
                 f['projection_strategy']="galerkin"
@@ -1246,8 +1273,9 @@ class RomManager(object):
         """
         Validates the 'coupled_solvers' and completes the 'ROM' and 'HROM' settings of each of them with the general ones.
         The snapshots contain the 'nodal_unknowns' of all the coupled solvers. Linear decoders use a single (monolithic) ROM basis
-        shared by all of them, computed with the smallest 'svd_truncation_tolerance' among them. ANN-enhanced and RBF-enhanced decoders
-        use a basis (and a network or RBF) per coupled solver, each computed with its own 'svd_truncation_tolerance' (see _UsesSegregatedBases).
+        shared by all of them, computed with the smallest 'svd_truncation_tolerance' among them, unless 'coupled_solvers_segregated_bases' is set.
+        Segregated bases (and ANN-enhanced and RBF-enhanced decoders, with a network or RBF each) use a basis per coupled solver, each computed
+        with its own 'svd_truncation_tolerance' (see _UsesSegregatedBases).
         """
         coupled_solvers = self.general_rom_manager_parameters["coupled_solvers"]
         for i in range(coupled_solvers.size()):
@@ -1317,8 +1345,20 @@ class RomManager(object):
         return [coupled_solver["sub_solver_name"].GetString() for coupled_solver in self._GetCoupledSolvers()]
 
     def _UsesSegregatedBases(self):
-        """True if each coupled solver has its own ROM basis: coupled solvers with an ANN-enhanced or RBF-enhanced decoder (one network or RBF per solver)."""
-        return self.general_rom_manager_parameters["type_of_decoder"].GetString() in ("ann_enhanced", "rbf_enhanced") and len(self._GetCoupledSolvers()) > 0
+        """True if each coupled solver has its own ROM basis: coupled solvers with an ANN-enhanced or RBF-enhanced decoder (one network or RBF per solver),
+        or with a linear decoder if 'coupled_solvers_segregated_bases' is set."""
+        if len(self._GetCoupledSolvers()) == 0:
+            return False
+        return self.general_rom_manager_parameters["type_of_decoder"].GetString() in ("ann_enhanced", "rbf_enhanced") or self.general_rom_manager_parameters["coupled_solvers_segregated_bases"].GetBool()
+
+    def _GetCoupledSolversNumberOfRomDofs(self, rom_basis_output_folder):
+        """Number of modes of the basis of each coupled solver: the bases are stored from the first column on, zero-padded up to the largest one."""
+        basis = np.load(Path(rom_basis_output_folder) / "RightBasisMatrix.npy")
+        number_of_rom_dofs = {}
+        for coupled_solver in self._GetCoupledSolvers():
+            nonzero_columns = np.flatnonzero(np.any(basis[self._GetCoupledSolverRows(coupled_solver, basis.shape[0]), :] != 0.0, axis=0))
+            number_of_rom_dofs[coupled_solver["sub_solver_name"].GetString()] = int(nonzero_columns[-1]) + 1 if nonzero_columns.size else 0
+        return number_of_rom_dofs
 
     def _GetCoupledSolverRows(self, coupled_solver, number_of_rows):
         """Rows of the 'nodal_unknowns' of a coupled solver in the snapshots and basis matrices, which store the (alphabetically sorted) unknowns of all the coupled solvers node by node."""
@@ -1391,7 +1431,7 @@ class RomManager(object):
         """
         nodal_unknowns = [name for coupled_solver in self._GetCoupledSolvers() for name in coupled_solver["ROM"]["nodal_unknowns"].GetStringArray()]
         if len(nodal_unknowns) != len(set(nodal_unknowns)):
-            raise Exception(f"The coupled solvers share 'nodal_unknowns' ({nodal_unknowns}). With ann_enhanced and rbf_enhanced decoders each of the 'coupled_solvers' needs its own 'nodal_unknowns' in its 'ROM' settings.")
+            raise Exception(f"The coupled solvers share 'nodal_unknowns' ({nodal_unknowns}). With segregated bases (ann_enhanced and rbf_enhanced decoders, or 'coupled_solvers_segregated_bases') each of the 'coupled_solvers' needs its own 'nodal_unknowns' in its 'ROM' settings.")
         bases = []
         for coupled_solver in self._GetCoupledSolvers():
             rows = self._GetCoupledSolverRows(coupled_solver, snapshots_matrix.shape[0])
@@ -1531,6 +1571,7 @@ class RomManager(object):
             "save_vtk_output": false,                    // false, true #if true, it must exits previously in the ProjectParameters.json
             "output_name": "id",                         // "id" , "mu"
             "store_nonconverged_fom_solutions": false,
+            "coupled_solvers_segregated_bases": false,   // true: linear decoders use a basis per coupled solver (ann_enhanced and rbf_enhanced always do)
             "coupled_solvers": [],                       // [] for a single solver. e.g. [{"sub_solver_name": "fluid_solver", "ROM": {"model_part_name": "FluidModelPart"}, "HROM": {}}, {"sub_solver_name": "thermal_solver", "ROM": {"model_part_name": "ThermalModelPart"}, "HROM": {}}]
             "ROM":{
                 "svd_truncation_tolerance": 1e-5,
@@ -1597,6 +1638,7 @@ class RomManager(object):
                 "include_nodal_neighbouring_elements_model_parts_list":[],   //The elements around the nodes of these submodel parts will be considered in the HROM model part (e.g. the parents of the included conditions, required by the fluid solvers)
                 "include_minimum_condition": false,       // if true, keep at least one condition per submodelpart
                 "include_condition_parents": false,       // if true, when a condition is chosen by the ECM algorithm, the parent element is also included
+                "include_element_children": false,        // if true, the conditions attached to the HROM elements are also included (e.g. so that the boundaries they touch have conditions)
                 "echo_level" : 0                          // if >0, get hrom training status promts
             }
         }""")

@@ -11,7 +11,7 @@
 //
 
 // System includes
-
+#include <algorithm>
 
 // External includes
 
@@ -702,6 +702,51 @@ std::vector<IndexType> RomAuxiliaryUtilities::GetHRomConditionParentsIds(
     return parent_ids;
 }
 
+std::vector<IndexType> RomAuxiliaryUtilities::GetHRomElementChildrenIds(
+    const ModelPart& rModelPart,
+    const std::map<std::string, std::map<IndexType, double>>& rHRomWeights)
+{
+    const auto& r_elem_weights = rHRomWeights.at("Elements");
+    const auto& r_cond_weights = rHRomWeights.at("Conditions");
+
+    // Elements of the HROM attached to each of their nodes
+    std::unordered_map<IndexType, std::vector<IndexType>> node_hrom_elements;
+    for (const auto& r_elem_weight : r_elem_weights) {
+        for (const auto& r_node : rModelPart.GetElement(r_elem_weight.first).GetGeometry()) {
+            node_hrom_elements[r_node.Id()].push_back(r_elem_weight.first);
+        }
+    }
+
+    // A condition is a child of an HROM element if all its nodes belong to that element
+    std::vector<IndexType> children_ids;
+    for (const auto& r_cond : rModelPart.Conditions()) {
+        if (r_cond_weights.find(r_cond.Id()) != r_cond_weights.end()) {
+            continue;
+        }
+        const auto& r_geom = r_cond.GetGeometry();
+        const auto it_first_node = node_hrom_elements.find(r_geom[0].Id());
+        if (it_first_node == node_hrom_elements.end()) {
+            continue;
+        }
+        for (const IndexType elem_id : it_first_node->second) {
+            bool is_child = true;
+            for (const auto& r_node : r_geom) {
+                const auto it_node = node_hrom_elements.find(r_node.Id());
+                if (it_node == node_hrom_elements.end() || std::find(it_node->second.begin(), it_node->second.end(), elem_id) == it_node->second.end()) {
+                    is_child = false;
+                    break;
+                }
+            }
+            if (is_child) {
+                children_ids.push_back(r_cond.Id());
+                break;
+            }
+        }
+    }
+
+    return children_ids;
+}
+
 std::vector<IndexType> RomAuxiliaryUtilities::GetHRomConditionParentsIds(
     ModelPart& rModelPart,
     const std::vector<IndexType>& rConditionIds)
@@ -1005,7 +1050,7 @@ void RomAuxiliaryUtilities::ProjectRomSolutionIncrementToNodes(
             // would be accumulated to that one performed in the ROM B&S (see ProjectToFineBasis)
             //FIXME: WE WOULD BE UPDATING THE VALUES TWICE....
             if (!rNode.IsFixed(*p_var)) {
-                rNode.FastGetSolutionStepValue(*p_var) += inner_prod(row(r_rom_basis, i_var++), r_rom_sol_incr);
+                rNode.FastGetSolutionStepValue(*p_var) += inner_prod(subrange(row(r_rom_basis, i_var++), 0, r_rom_sol_incr.size()), r_rom_sol_incr);
             }
 
         }
@@ -1039,7 +1084,8 @@ void RomAuxiliaryUtilities::GetPhiElemental(
                 const auto variable_key = r_dof.GetVariable().Key();
                 const Matrix::size_type row_id = rVarToRowMapping.at(variable_key);
 
-                noalias(row(rPhiElemental, i)) = row(nodal_rom_basis, row_id);
+                // The nodal basis might have more columns than the modes of this solver (zero-padded bases of coupled solvers)
+                noalias(row(rPhiElemental, i)) = subrange(row(nodal_rom_basis, row_id), 0, rPhiElemental.size2());
             }
         }
     }
