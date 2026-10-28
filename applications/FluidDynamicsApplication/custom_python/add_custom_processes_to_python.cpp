@@ -28,6 +28,8 @@
 #include "custom_processes/boussinesq_force_process.h"
 #include "custom_processes/calculate_levelset_consistent_nodal_gradient_process.h"
 #include "custom_processes/compute_pressure_coefficient_process.h"
+#include "custom_processes/create_fluid_patch_coupling_conditions_process.h"
+#include "custom_processes/create_fluid_patch_gap_coupling_conditions_process.h"
 #include "custom_processes/distance_modification_process.h"
 #include "custom_processes/distance_smoothing_process.h"
 #include "custom_processes/embedded_nodes_initialization_process.h"
@@ -63,6 +65,23 @@ void AddCustomProcessesToPython(pybind11::module& m)
     typedef TDefaultSparseSpace<double> SparseSpaceType;
     typedef TDefaultDenseSpace<double> LocalSpaceType;
     typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
+
+    py::class_<CreateFluidPatchGapCouplingConditionsProcess,
+               CreateFluidPatchGapCouplingConditionsProcess::Pointer, Process>(
+        m, "CreateFluidPatchGapCouplingConditionsProcess")
+        .def(py::init<Model&, Parameters>(), py::arg("model"), py::arg("settings"),
+             py::keep_alive<1, 2>(), "Create steady Q1 Stokes gap volume and coupling entities without new DOFs.")
+        .def("Execute", &CreateFluidPatchGapCouplingConditionsProcess::Execute,
+             "Build the positive gap, gap connectors and fitted-inner coupling; execute once.");
+
+    py::class_<CreateFluidPatchCouplingConditionsProcess,
+               CreateFluidPatchCouplingConditionsProcess::Pointer, Process>(
+        m, "CreateFluidPatchCouplingConditionsProcess")
+        .def(py::init<Model&, Parameters>(), py::arg("model"), py::arg("settings"),
+             py::keep_alive<1, 2>(),
+             "Create fitted Nitsche coupling conditions between independent P1 or Q1 patches.")
+        .def("Execute", &CreateFluidPatchCouplingConditionsProcess::Execute,
+             "Intersect common boundary edges and create one condition per integration segment.");
 
     py::class_<SpalartAllmarasTurbulenceModel< SparseSpaceType, LocalSpaceType, LinearSolverType >, SpalartAllmarasTurbulenceModel< SparseSpaceType, LocalSpaceType, LinearSolverType >::Pointer, Process>
     (m,"SpalartAllmarasTurbulenceModel")
