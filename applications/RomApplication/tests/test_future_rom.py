@@ -28,6 +28,11 @@ class TestFutureRom(KratosUnittest.TestCase):
         return simulation._GetSolver().GetComputingModelPart()
 
     def _RunFutureRom(self, parameters_filename, projection_backend, max_iterations=None, run_hrom=False, parameters=None):
+        simulation = self._CreateFutureRomSimulation(parameters_filename, projection_backend, max_iterations, run_hrom, parameters)
+        simulation.Run()
+        return simulation._GetSolver().GetComputingModelPart()
+
+    def _CreateFutureRomSimulation(self, parameters_filename, projection_backend, max_iterations=None, run_hrom=False, parameters=None, train_hrom=False):
         from KratosMultiphysics.RomApplication.future.future_rom_analysis import CreateFutureRomAnalysisInstance
 
         if parameters is None:
@@ -42,9 +47,8 @@ class TestFutureRom(KratosUnittest.TestCase):
         if max_iterations is not None: # Otherwise taken from the solver settings of the case
             future_rom_settings.AddInt("max_iterations", max_iterations)
         future_rom_settings.AddBool("run_hrom", run_hrom)
-        simulation = CreateFutureRomAnalysisInstance(analysis_stage_class, KratosMultiphysics.Model(), parameters, future_rom_settings)
-        simulation.Run()
-        return simulation._GetSolver().GetComputingModelPart()
+        future_rom_settings.AddBool("train_hrom", train_hrom)
+        return CreateFutureRomAnalysisInstance(analysis_stage_class, KratosMultiphysics.Model(), parameters, future_rom_settings)
 
     def _CheckResults(self, obtained_output, expected_output, relative_tolerance):
         obtained_output = np.array(obtained_output)
@@ -159,6 +163,47 @@ class TestFutureRom(KratosUnittest.TestCase):
                         hrom_model_part = self._RunFutureRom("ProjectParameters.json", projection_backend, max_iterations=20, run_hrom=True)
                         obtained_output = rom_testing_utilities.GetVectorNodalResults(hrom_model_part, KratosMultiphysics.DISPLACEMENT)
                         self._CheckResults(obtained_output, expected_output, 1.0e-12)
+
+    @KratosUnittest.skipIfApplicationsNotAvailable("StructuralMechanicsApplication")
+    def testStructuralStaticTotalLagrangianHRomTraining(self):
+        # HROM training of the Future ROM on the geometrically nonlinear cantilever: the residual snapshots must be the ones of the
+        # legacy training (ProjectedResidualsOutputProcess) and the trained HROM must give the solution of the ROM. Run in a copy of
+        # the case, as the training writes the HROM weights and the HROM model part
+        with tempfile.TemporaryDirectory() as case_folder:
+            shutil.copytree(Path(__file__).parent / "future_rom_test_files/TotalLagrangianROM", case_folder, dirs_exist_ok=True)
+            with KratosUnittest.WorkFolderScope(case_folder, __file__):
+                with open("ProjectParameters.json",'r') as parameter_file:
+                    parameters = KratosMultiphysics.Parameters(parameter_file.read())
+                parameters["output_processes"].AddEmptyArray("rom_output")
+                parameters["output_processes"]["rom_output"].Append(KratosMultiphysics.Parameters("""{
+                    "python_module" : "projected_residuals_output_process",
+                    "kratos_module" : "KratosMultiphysics.RomApplication",
+                    "process_name"  : "ProjectedResidualsOutputProcess",
+                    "Parameters"    : {
+                        "model_part_name" : "Structure",
+                        "output_path"     : "rom_data/Residuals"
+                    }
+                }"""))
+                self._RunLegacyRom(None, parameters=parameters)
+                end_time = parameters["problem_data"]["end_time"].GetDouble()
+                time_step = parameters["solver_settings"]["time_stepping"]["time_step"].GetDouble()
+                legacy_snapshots = [np.load(f"rom_data/Residuals/Residual_{step}.npy") for step in range(1, round(end_time / time_step) + 1)]
+
+                for projection_backend in ["numpy", "cpp"]:
+                    with self.subTest(projection_backend=projection_backend):
+                        simulation = self._CreateFutureRomSimulation("ProjectParameters.json", projection_backend, max_iterations=20, train_hrom=True)
+                        simulation.Run()
+                        self.assertEqual(len(simulation.hrom_residual_snapshots), len(legacy_snapshots))
+                        for future_snapshot, legacy_snapshot in zip(simulation.hrom_residual_snapshots, legacy_snapshots):
+                            self._CheckResults(future_snapshot, legacy_snapshot, 1.0e-10)
+                        rom_model_part = simulation._GetSolver().GetComputingModelPart()
+                        expected_output = rom_testing_utilities.GetVectorNodalResults(rom_model_part, KratosMultiphysics.DISPLACEMENT)
+
+                        self.assertLess(len(np.load("rom_data/HROM_ElementIds.npy")), rom_model_part.NumberOfElements())
+                        self.assertTrue(Path("cantileverHROM.mdpa").exists())
+                        hrom_model_part = self._RunFutureRom("ProjectParameters.json", projection_backend, max_iterations=20, run_hrom=True)
+                        obtained_output = rom_testing_utilities.GetVectorNodalResults(hrom_model_part, KratosMultiphysics.DISPLACEMENT)
+                        self._CheckResults(obtained_output, expected_output, 1.0e-6)
 
     @KratosUnittest.skipIfApplicationsNotAvailable("ConvectionDiffusionApplication")
     def testConvDiffStationaryRom2D(self):

@@ -101,6 +101,13 @@ public:
         noalias(rRightHandSideVector) = b - prod(A,x);
     }
 
+    void CalculateRightHandSide(VectorType& rRightHandSideVector,
+                                const ProcessInfo& rCurrentProcessInfo) override
+    {
+        MatrixType lhs;
+        CalculateLocalSystem(lhs, rRightHandSideVector, rCurrentProcessInfo);
+    }
+
 private:
     static constexpr IndexType NumNodes = 2;
 };
@@ -212,6 +219,55 @@ KRATOS_TEST_CASE_IN_SUITE(FutureRomProjectorGalerkin, RomApplicationFastSuite)
     KRATOS_EXPECT_NEAR(r_model_part.GetNode(1).FastGetSolutionStepValue(TEMPERATURE), 300.0, 1e-8);
     KRATOS_EXPECT_NEAR(r_model_part.GetNode(2).FastGetSolutionStepValue(TEMPERATURE), 301.5, 1e-8);
     KRATOS_EXPECT_NEAR(r_model_part.GetNode(3).FastGetSolutionStepValue(TEMPERATURE), 302.0, 1e-8);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(FutureRomProjectorEntityResiduals, RomApplicationFastSuite)
+{
+    using namespace FutureRomProjectorTestingInternal;
+
+    Model model{};
+    ModelPart& r_model_part = FillModel(model);
+    r_model_part.GetNode(3).FastGetSolutionStepValue(TEMPERATURE) = 302.0;
+
+    Parameters scheme_settings(R"(
+    {
+        "build_settings" : {
+            "name" : "block_builder"
+        }
+    }
+    )");
+    auto p_scheme = Kratos::make_shared<SchemeType>(r_model_part, scheme_settings);
+    auto p_strategy_data = Kratos::make_shared<StrategyDataType>();
+    p_scheme->Initialize(*p_strategy_data);
+    p_scheme->InitializeSolutionStep(*p_strategy_data);
+    p_scheme->InitializeNonLinIteration(*p_strategy_data);
+
+    // Basis with the modes 1 and x
+    const std::size_t n_dofs = 3;
+    RomProjectorType::EigenDynamicMatrix phi(n_dofs, 2);
+    for (const auto& r_node : r_model_part.Nodes()) {
+        const std::size_t eq_id = r_node.GetDof(TEMPERATURE).EffectiveEquationId();
+        phi(eq_id, 0) = 1.0;
+        phi(eq_id, 1) = r_node.X();
+    }
+
+    RomProjectorType rom_projector(p_scheme, p_strategy_data);
+    const RomProjectorType::EigenDynamicMatrix projected_residuals = rom_projector.ProjectEntityResiduals(phi);
+
+    // Element 1 (nodes 1 and 2, the first one fixed): r = (0.5 - (300 - 300), 0.5 - (300 - 300)), only the second row is kept
+    // Element 2 (nodes 2 and 3): r = (0.5 - (300 - 302), 0.5 - (302 - 300)) = (2.5, -1.5)
+    KRATOS_EXPECT_EQ(projected_residuals.rows(), 2);
+    KRATOS_EXPECT_EQ(projected_residuals.cols(), 2);
+    KRATOS_EXPECT_NEAR(projected_residuals(0, 0), 0.5, 1e-12);
+    KRATOS_EXPECT_NEAR(projected_residuals(0, 1), 0.5, 1e-12);
+    KRATOS_EXPECT_NEAR(projected_residuals(1, 0), 1.0, 1e-12);
+    KRATOS_EXPECT_NEAR(projected_residuals(1, 1), 2.5 * 1.0 - 1.5 * 2.0, 1e-12);
+
+    // The sum of the projected residuals of the entities is the reduced RHS
+    rom_projector.BuildEffectiveSystem();
+    rom_projector.Project(phi);
+    const RomProjectorType::EigenDynamicVector entity_residuals_sum = projected_residuals.colwise().sum().transpose();
+    KRATOS_EXPECT_NEAR((entity_residuals_sum - rom_projector.GetReducedRhs()).norm(), 0.0, 1e-12);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(FutureRomProjectorEquationIdPermutation, RomApplicationFastSuite)

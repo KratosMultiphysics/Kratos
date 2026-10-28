@@ -4,6 +4,7 @@ from pathlib import Path
 import numpy
 
 import KratosMultiphysics
+from KratosMultiphysics.RomApplication.hrom_training_utility import HRomTrainingUtility
 from KratosMultiphysics.RomApplication.future.rom_decoders import FixedDofsDecoder, LinearDecoder
 from KratosMultiphysics.RomApplication.future.rom_future_solver import FutureRomSolver
 
@@ -14,6 +15,9 @@ def CreateFutureRomAnalysisInstance(cls, global_model, parameters, future_rom_se
 
         The parent analysis stage sets up the model part, the DOFs and the processes. Its solver
         is not called in the solution steps.
+
+        With "train_hrom" the residual of each entity is projected onto the Jacobian of the decoder at the end of each step, and the
+        HROM weights are computed from these snapshots when the simulation finishes (see _TrainHRom).
         """
 
         def Initialize(self):
@@ -25,6 +29,7 @@ def CreateFutureRomAnalysisInstance(cls, global_model, parameters, future_rom_se
             if self.future_rom_solver.run_hrom:
                 self._SetHRomEntities()
             self.rom_solutions = []
+            self.hrom_residual_snapshots = []
 
         def _SetHRomEntities(self):
             """HROM entities and weights from the files saved by the HROM training (one column of weights per set, e.g. per physics)."""
@@ -36,6 +41,23 @@ def CreateFutureRomAnalysisInstance(cls, global_model, parameters, future_rom_se
             element_ids = numpy.load(folder / "HROM_ElementIds.npy")
             condition_ids = numpy.load(folder / "HROM_ConditionIds.npy")
             self.future_rom_solver.SetHRomEntities(element_ids, Weights("Element", len(element_ids)), condition_ids, Weights("Condition", len(condition_ids)))
+
+        def _TrainHRom(self):
+            """HROM weights from the residual snapshots (ECM) and HROM model part, by the HRomTrainingUtility with the "hrom_settings"
+            of the RomParameters.json. The weights are saved in the ROM folder as numpy files, the ones read by _SetHRomEntities."""
+            folder = Path(rom_basis_output_folder)
+            with open(folder / "RomParameters.json", 'r') as parameter_file:
+                rom_parameters = KratosMultiphysics.Parameters(parameter_file.read())
+            rom_parameters.AddString("rom_basis_output_name", "RomParameters")
+            rom_parameters.AddString("rom_basis_output_folder", str(folder))
+            if rom_parameters["hrom_settings"].Has("hrom_format") and rom_parameters["hrom_settings"]["hrom_format"].GetString() != "numpy":
+                raise Exception("The HROM training of the Future ROM requires 'hrom_format' set to 'numpy'.")
+            if self.project_parameters.Has("modelers"):
+                rom_parameters["hrom_settings"].AddValue("modelers", self.project_parameters["modelers"])
+            hrom_training_utility = HRomTrainingUtility(self._GetSolver(), rom_parameters)
+            hrom_training_utility.time_step_residual_matrix_container = self.hrom_residual_snapshots
+            hrom_training_utility.CalculateAndSaveHRomWeights()
+            hrom_training_utility.CreateHRomModelParts()
 
         def _GetFutureRomSettings(self):
             """Settings of the FutureRomSolver. The nonlinear iterations not given take the values of the solver of the analysis
@@ -105,8 +127,15 @@ def CreateFutureRomAnalysisInstance(cls, global_model, parameters, future_rom_se
 
         def FinalizeSolutionStep(self):
             self.future_rom_solver.FinalizeSolutionStep()
+            if self.future_rom_solver.train_hrom:
+                self.hrom_residual_snapshots.append(self.future_rom_solver.GetProjectedEntityResiduals())
 
             for process in self._GetListOfProcesses():
                 process.ExecuteFinalizeSolutionStep()
+
+        def Finalize(self):
+            super().Finalize()
+            if self.future_rom_solver.train_hrom:
+                self._TrainHRom()
 
     return FutureRomAnalysis(global_model, parameters)

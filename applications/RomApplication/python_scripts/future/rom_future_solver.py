@@ -81,6 +81,11 @@ class FutureRomSolver:
         # The HROM scheme only assembles the HROM entities, scaled by their weights (see SetHRomEntities)
         self.run_hrom = settings["run_hrom"].GetBool()
         self.hrom_weights_set = settings["hrom_weights_set"].GetInt()
+
+        # The HROM training collects the projected residuals of the entities of the ROM (see GetProjectedEntityResiduals)
+        self.train_hrom = settings["train_hrom"].GetBool()
+        if self.train_hrom and self.run_hrom:
+            raise Exception("The HROM training ('train_hrom') requires the ROM, so 'run_hrom' must be false.")
         if self.run_hrom:
             self.scheme = KratosROM.Future.HRomStaticScheme(self.model_part, settings["scheme_settings"])
         else:
@@ -111,6 +116,7 @@ class FutureRomSolver:
             "projection_backend" : "numpy",
             "run_hrom" : false,
             "hrom_weights_set" : 0,
+            "train_hrom" : false,
             "fixed_dofs_decoding" : "basis",
             "max_iterations" : 10,
             "relative_tolerance" : 1.0e-9,
@@ -184,6 +190,11 @@ class FutureRomSolver:
 
     def FinalizeSolutionStep(self):
         self.scheme.FinalizeSolutionStep(self.strategy_data)
+
+    def GetProjectedEntityResiduals(self):
+        """Residual of each element and condition (elements first) at the current solution, projected onto the Jacobian of the
+        decoder: the residual snapshots of the HROM training. Computed in C++ whatever the projection backend."""
+        return KratosROM.Future.RomProjector(self.scheme, self.strategy_data).ProjectEntityResiduals(self.decoder.Jacobian(self.q))
 
     def GetRomSolution(self):
         return self.q
