@@ -14,6 +14,7 @@
 
 // System includes
 #include <unordered_set>
+#include <vector>
 
 // External includes
 
@@ -135,43 +136,105 @@ KRATOS_TEST_CASE_IN_SUITE(VariablesListDataValueContainerLoadIntoPopulatedContai
     KRATOS_EXPECT_EQ(p_law.use_count(), 1);
 }
 
-// Nodes share one VariablesList, and an in-place load Add()s the archive's extra variables to it before throwing (adding
-// historical variables to populated containers is not allowed). The containers must still destruct their old blocks
-// with the layout they were allocated with (the Matrix makes a bad one visible under ASan).
-KRATOS_TEST_CASE_IN_SUITE(VariablesListDataValueContainerLoadIntoContainersSharingGrownList, KratosCoreFastSuite) {
-    const auto value = [](std::size_t Container, std::size_t Step) { return 10.0 * Container + Step + 1.0; };
-
+// Nodes share one VariablesList. An in-place load of an archive with other historical variables must throw without
+// growing the shared list, so every container still destructs its block with the layout it was allocated with. The
+// rejected container keeps its block and values.
+KRATOS_TEST_CASE_IN_SUITE(VariablesListDataValueContainerLoadDifferentListIntoSharedList, KratosCoreFastSuite) {
     auto p_saved_list = Kratos::make_intrusive<VariablesList>();
     p_saved_list->Add(DISTANCE);
     p_saved_list->Add(ELEMENTAL_DISTANCES);
     p_saved_list->Add(LOCAL_AXES_MATRIX);
-    std::vector<VariablesListDataValueContainer> saved_containers;
-    saved_containers.reserve(2);
+    VariablesListDataValueContainer saved_container(p_saved_list, 2);
+    saved_container.SetValue(LOCAL_AXES_MATRIX, Matrix(2, 2, 1.0), 0);
 
     auto p_variables_list = Kratos::make_intrusive<VariablesList>();
     p_variables_list->Add(DISTANCE);
     p_variables_list->Add(ELEMENTAL_DISTANCES);
     std::vector<VariablesListDataValueContainer> containers;
     containers.reserve(2);
-
     for (std::size_t j = 0; j < 2; ++j) {
-        saved_containers.emplace_back(p_saved_list, 2);
         containers.emplace_back(p_variables_list, 2);
         for (std::size_t step = 0; step < 2; ++step) {
-            saved_containers[j].SetValue(DISTANCE, value(j, step), step);
-            saved_containers[j].SetValue(ELEMENTAL_DISTANCES, Vector(3, value(j, step)), step);
-            saved_containers[j].SetValue(LOCAL_AXES_MATRIX, Matrix(2, 2, value(j, step)), step);
             containers[j].SetValue(DISTANCE, -1.0, step);
             containers[j].SetValue(ELEMENTAL_DISTANCES, Vector(5, -1.0), step);
         }
     }
 
     StreamSerializer serializer;
-    serializer.save("Container0", saved_containers[0]);
-    serializer.save("Container1", saved_containers[1]);
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(serializer.load("Container0", containers[0]), "Loading changed the historical variables of a container that already holds data");
-    KRATOS_EXPECT_EQ(p_variables_list->DataSize(), p_saved_list->DataSize());
-    // containers[1] keeps its block with the old layout; its destruction with the grown list is checked by ASan
+    serializer.save("Container", saved_container);
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(serializer.load("Container", containers[0]), "The archive does not match this VariablesList");
+    KRATOS_EXPECT_EQ(p_variables_list->size(), 2);
+    for (std::size_t j = 0; j < 2; ++j) {
+        for (std::size_t step = 0; step < 2; ++step) {
+            KRATOS_EXPECT_EQ(containers[j].GetValue(DISTANCE, step), -1.0);
+            KRATOS_EXPECT_VECTOR_EQ(containers[j].GetValue(ELEMENTAL_DISTANCES, step), Vector(5, -1.0));
+        }
+    }
+    // the containers destruct their blocks (Vector values) with the unchanged list when they go out of scope
+}
+
+// Nodes of a model part without historical variables share an empty list and hold empty blocks. An in-place load of an
+// archive with historical variables must throw without adding them to the list, since no block can hold them.
+KRATOS_TEST_CASE_IN_SUITE(VariablesListDataValueContainerLoadIntoSharedEmptyList, KratosCoreFastSuite) {
+    auto p_saved_list = Kratos::make_intrusive<VariablesList>();
+    p_saved_list->Add(DISTANCE);
+    p_saved_list->Add(LOCAL_AXES_MATRIX);
+    VariablesListDataValueContainer saved_container(p_saved_list, 2);
+    saved_container.SetValue(LOCAL_AXES_MATRIX, Matrix(3, 3, 1.0), 0);
+    StreamSerializer serializer;
+    serializer.save("Container", saved_container);
+
+    auto p_variables_list = Kratos::make_intrusive<VariablesList>();
+    std::vector<VariablesListDataValueContainer> containers;
+    containers.reserve(2);
+    containers.emplace_back(p_variables_list, 2);
+    containers.emplace_back(p_variables_list, 2);
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(serializer.load("Container", containers[0]), "The archive does not match this VariablesList");
+    KRATOS_EXPECT_TRUE(p_variables_list->IsEmpty());
+    KRATOS_EXPECT_EQ(p_variables_list->DataSize(), 0);
+    KRATOS_EXPECT_FALSE(containers[1].Has(LOCAL_AXES_MATRIX));
+
+    // the same holds for a container that is the only owner of its list
+    VariablesListDataValueContainer container(Kratos::make_intrusive<VariablesList>(), 2);
+    StreamSerializer other_serializer;
+    other_serializer.save("Container", saved_container);
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(other_serializer.load("Container", container), "The archive does not match this VariablesList");
+    KRATOS_EXPECT_TRUE(container.GetVariablesList().IsEmpty());
+    // destructing the containers with a grown list would destruct a Matrix in each of their empty blocks
+}
+
+// A saved list is loaded once per archive, so a container that shares it in the archive gets the list it was loaded into.
+// An in-place load accepts that list only if it has the container's layout.
+KRATOS_TEST_CASE_IN_SUITE(VariablesListDataValueContainerLoadListLoadedIntoAnotherList, KratosCoreFastSuite) {
+    auto p_saved_list = Kratos::make_intrusive<VariablesList>();
+    p_saved_list->Add(DISTANCE);
+    VariablesListDataValueContainer saved_container(p_saved_list);
+    saved_container.SetValue(DISTANCE, 2.0);
+    const auto load_twice = [&saved_container](VariablesListDataValueContainer& rFirst, VariablesListDataValueContainer& rSecond) {
+        StreamSerializer serializer;
+        serializer.save("First", saved_container);
+        serializer.save("Second", saved_container);
+        serializer.load("First", rFirst);
+        serializer.load("Second", rSecond);
+    };
+
+    auto p_list = Kratos::make_intrusive<VariablesList>();
+    p_list->Add(DISTANCE);
+    VariablesListDataValueContainer first(p_list);
+    auto p_same_layout_list = Kratos::make_intrusive<VariablesList>();
+    p_same_layout_list->Add(DISTANCE);
+    VariablesListDataValueContainer second(p_same_layout_list);
+    load_twice(first, second);
+    KRATOS_EXPECT_EQ(second.GetValue(DISTANCE), 2.0);
+
+    auto p_other_list = Kratos::make_intrusive<VariablesList>();
+    p_other_list->Add(DISTANCE);
+    p_other_list->Add(TEMPERATURE);
+    VariablesListDataValueContainer other(p_other_list);
+    other.SetValue(TEMPERATURE, -1.0);
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(load_twice(first, other), "An in-place load cannot change the historical variables");
+    KRATOS_EXPECT_EQ(other.pGetVariablesList(), p_other_list);
+    KRATOS_EXPECT_EQ(other.GetValue(TEMPERATURE), -1.0);
 }
 
 }

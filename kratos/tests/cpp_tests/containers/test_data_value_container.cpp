@@ -241,7 +241,7 @@ public:
 
 } // namespace
 
-// roigcarlo's case 1: DataOnly into a container with the same variables in the same order.
+// DataOnly into a container with the same variables in the same order.
 KRATOS_TEST_CASE_IN_SUITE(DataValueContainerDataOnlyLoadSameLayout, KratosCoreFastSuite) {
     DataValueContainer saved;
     saved.SetValue(DENSITY, 2.0);
@@ -260,9 +260,8 @@ KRATOS_TEST_CASE_IN_SUITE(DataValueContainerDataOnlyLoadSameLayout, KratosCoreFa
     KRATOS_EXPECT_VECTOR_EQ(container.GetValue(ELEMENTAL_DISTANCES), Vector(3, 1.5));
 }
 
-// roigcarlo's case 2: DataOnly into a container holding a value added after the save; restoring removes and
-// frees it (the law's use count shows a leaked copy).
-KRATOS_TEST_CASE_IN_SUITE(DataValueContainerDataOnlyLoadSmallerArchive, KratosCoreFastSuite) {
+// DataOnly cannot delete values, so a container holding a value added after the save is an error (nothing is deleted).
+KRATOS_TEST_CASE_IN_SUITE(DataValueContainerDataOnlyLoadExtraValueInContainer, KratosCoreFastSuite) {
     auto p_law = Kratos::make_shared<ConstitutiveLaw>();
 
     DataValueContainer container;
@@ -271,16 +270,13 @@ KRATOS_TEST_CASE_IN_SUITE(DataValueContainerDataOnlyLoadSmallerArchive, KratosCo
 
     DataOnlyStreamSerializer serializer;
     serializer.save("Container", container);
-    container.SetValue(DENSITY, -1.0);
     container.SetValue(CONSTITUTIVE_LAW, p_law);
     KRATOS_EXPECT_EQ(p_law.use_count(), 2);
-    serializer.load("Container", container);
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(serializer.load("Container", container), "the sizes differ [ archive size = 2, container size = 3 ]");
 
-    KRATOS_EXPECT_EQ(container.Size(), 2);
-    KRATOS_EXPECT_FALSE(container.Has(CONSTITUTIVE_LAW));
-    KRATOS_EXPECT_EQ(container.GetValue(DENSITY), 2.0);
-    KRATOS_EXPECT_VECTOR_EQ(container.GetValue(ELEMENTAL_DISTANCES), Vector(3, 1.5));
-    KRATOS_EXPECT_EQ(p_law.use_count(), 1);
+    KRATOS_EXPECT_EQ(container.Size(), 3);
+    KRATOS_EXPECT_TRUE(container.Has(CONSTITUTIVE_LAW));
+    KRATOS_EXPECT_EQ(p_law.use_count(), 2);
 }
 
 // DataOnly with the same variables in another order (and so other types per position): values are restored by name.
@@ -302,8 +298,23 @@ KRATOS_TEST_CASE_IN_SUITE(DataValueContainerDataOnlyLoadReordered, KratosCoreFas
     KRATOS_EXPECT_VECTOR_EQ(container.GetValue(ELEMENTAL_DISTANCES), Vector(3, 1.5));
 }
 
-// DataOnly cannot create values, so a saved variable missing from the container is an error.
+// DataOnly cannot create values, so a saved variable missing from a container of the same size is an error.
 KRATOS_TEST_CASE_IN_SUITE(DataValueContainerDataOnlyLoadMissingVariable, KratosCoreFastSuite) {
+    DataValueContainer saved;
+    saved.SetValue(DENSITY, 2.0);
+    saved.SetValue(ELEMENTAL_DISTANCES, Vector(3, 1.5));
+
+    DataValueContainer container;
+    container.SetValue(ELEMENTAL_DISTANCES, Vector(3, -1.0));
+    container.SetValue(TEMPERATURE, -1.0);
+
+    DataOnlyStreamSerializer serializer;
+    serializer.save("Container", saved);
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(serializer.load("Container", container), "DataOnly loading restores values into an existing container, but the variable DENSITY is not in it.");
+}
+
+// DataOnly cannot create values, so the archive may not hold more values than the container.
+KRATOS_TEST_CASE_IN_SUITE(DataValueContainerDataOnlyLoadMissingValueInContainer, KratosCoreFastSuite) {
     DataValueContainer saved;
     saved.SetValue(DENSITY, 2.0);
     saved.SetValue(ELEMENTAL_DISTANCES, Vector(3, 1.5));
@@ -313,7 +324,7 @@ KRATOS_TEST_CASE_IN_SUITE(DataValueContainerDataOnlyLoadMissingVariable, KratosC
 
     DataOnlyStreamSerializer serializer;
     serializer.save("Container", saved);
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(serializer.load("Container", container), "DataOnly loading restores values into an existing container, but the variable DENSITY is not in it.");
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(serializer.load("Container", container), "the sizes differ [ archive size = 2, container size = 1 ]");
 }
 
 }

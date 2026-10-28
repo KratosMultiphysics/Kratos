@@ -11,8 +11,7 @@
 //
 
 // System includes
-#include <algorithm>
-#include <set>
+#include <string>
 #include <unordered_map>
 #include <vector>
 
@@ -24,6 +23,25 @@
 #include "properties_variable_tensor_adaptor.h"
 
 namespace Kratos {
+
+namespace {
+
+/// Throws if two entities of the container share a Properties (StoreData would then race and overwrite values).
+template<class TContainerType>
+void CheckUniqueProperties(const TContainerType& rContainer, const std::string& rVariableName)
+{
+    std::unordered_map<const Properties*, std::size_t> properties_to_entity_id;
+    properties_to_entity_id.reserve(rContainer.size());
+    for (const auto& r_entity : rContainer) {
+        const auto [it, is_new] = properties_to_entity_id.emplace(&r_entity.GetProperties(), r_entity.Id());
+        KRATOS_ERROR_IF_NOT(is_new)
+            << "The container's entities' properties are not unique, which is required for the variable " << rVariableName
+            << " [ properties id = " << r_entity.GetProperties().Id() << ", entity ids = " << it->second << " and "
+            << r_entity.Id() << " ].\n";
+    }
+}
+
+} // namespace
 
 template<class TContainerPointerType>
 PropertiesVariableTensorAdaptor::PropertiesVariableTensorAdaptor(
@@ -111,19 +129,7 @@ void PropertiesVariableTensorAdaptor::Check() const
                     << "The entity with id = " << rEntity.Id() << " does not have the variable " << pVariable->Name() << ".\n";
             });
 
-            // here we have to check for the uniqueness of the variable as well, because
-            // otherwise, when StoreData method is called, it can lead to race conditions.
-            using variable_type = BareType<decltype(*pVariable)>;
-
-            std::vector<typename variable_type::Type*> memory_locations(pContainer->size());
-            IndexPartition(pContainer->size()).for_each([&pVariable, &memory_locations, &pContainer](const auto Index) {
-                memory_locations[Index] = &(pContainer->begin() + Index)->GetProperties().GetValue(*pVariable);
-            });
-
-            std::set<typename variable_type::Type*> unique_memory_locations(memory_locations.begin(), memory_locations.end());
-            KRATOS_ERROR_IF_NOT(unique_memory_locations.size() == memory_locations.size())
-                << "The container's entities' properties does not have unique memory locations assigned for variable "
-                << pVariable->Name() << " .";
+            CheckUniqueProperties(*pContainer, pVariable->Name());
         }
     }, this->GetContainer(), mpVariable);
 
@@ -176,47 +182,33 @@ void PropertiesVariableTensorAdaptor::StoreData()
                 << "Underlying container of the tensor data has changed size [ tensor data = "
                 << this->Info() << ", container size = " << pContainer->size() << " ].\n";
 
-            const auto p_shape_begin = r_tensor_shape.data().begin();
-            const auto p_shape_end = p_shape_begin + r_tensor_shape.size();
-            const auto stride = DataTypeTraits<data_type>::Size(p_shape_begin + 1, p_shape_end);
-            const auto p_data_begin = this->ViewData().data();
+            // shared properties would race here (and silently drop part of the field), so they are rejected
+            CheckUniqueProperties(*pContainer, pVariable->Name());
 
-            // group the entities by Properties: entities sharing one must hold equal values, written once
-            std::unordered_map<const Properties*, IndexType> first_entity_indices;
-            std::vector<IndexType> distinct_entity_indices;
-            distinct_entity_indices.reserve(pContainer->size());
-            for (IndexType i = 0; i < pContainer->size(); ++i) {
-                const auto& r_entity = *(pContainer->begin() + i);
-                const auto [p_item, is_new] = first_entity_indices.emplace(&r_entity.GetProperties(), i);
-                if (is_new) {
-                    distinct_entity_indices.push_back(i);
-                } else {
-                    const auto p_first_values = p_data_begin + p_item->second * stride;
-                    KRATOS_ERROR_IF_NOT(std::equal(p_first_values, p_first_values + stride, p_data_begin + i * stride))
-                        << "Entities sharing a properties must have the same " << pVariable->Name()
-                        << " value [ properties id = " << r_entity.GetProperties().Id() << ", entity ids = "
-                        << (pContainer->begin() + p_item->second)->Id() << " and " << r_entity.Id() << " ].\n";
-                }
-            }
-
-            // Emplace is not thread safe on one Properties, hence the variable is created serially
-            std::vector<data_type*> values(distinct_entity_indices.size());
             if constexpr(DataTypeTraits<data_type>::IsDynamic) {
-                // correctly sized zero Vector/Matrix: Variable::Zero() of dynamic types has size zero
+                // this zero value may be different from the Variable::Zero()
+                // in the case where the variable type is Variable<Vector> or Variable<Matrix>.
+                // Because, in these dynamic data type variables, Variable::Zero will create
+                // a zero sized vector or matrix, which is useless in the StoreData method.
+                // The following method creates correctly sized zero Vector or Matrix
+                // accordingly to be assigned to the entities, if they don't have the specified
+                // variable in their DataValueContainer.
                 const auto& zero = TensorAdaptorUtils::GetZeroValue(*pVariable, this->DataShape());
-                for (IndexType k = 0; k < values.size(); ++k) {
-                    values[k] = &(pContainer->begin() + distinct_entity_indices[k])->GetProperties().Emplace(*pVariable, zero);
-                }
-            } else {
-                for (IndexType k = 0; k < values.size(); ++k) {
-                    values[k] = &(pContainer->begin() + distinct_entity_indices[k])->GetProperties().Emplace(*pVariable);
-                }
-            }
 
-            IndexPartition<IndexType>(values.size()).for_each([&](const auto k) {
-                DataTypeTraits<data_type>::CopyFromContiguousData(
-                    *values[k], p_data_begin + distinct_entity_indices[k] * stride, p_shape_begin + 1, p_shape_end);
-            });
+                ContainerIOUtils::CopyFromContiguousDataArray<data_type>(
+                    *pContainer, this->ViewData(), r_tensor_shape.data().begin(),
+                    r_tensor_shape.data().begin() + r_tensor_shape.size(),
+                    [pVariable, &zero](auto& rEntity) -> auto& {
+                        return rEntity.GetProperties().Emplace(*pVariable, zero);
+                    });
+            } else {
+                ContainerIOUtils::CopyFromContiguousDataArray<data_type>(
+                    *pContainer, this->ViewData(), r_tensor_shape.data().begin(),
+                    r_tensor_shape.data().begin() + r_tensor_shape.size(),
+                    [pVariable](auto& rEntity) -> auto& {
+                        return rEntity.GetProperties().Emplace(*pVariable);
+                    });
+            }
         }
     }, this->GetContainer(), mpVariable);
 }

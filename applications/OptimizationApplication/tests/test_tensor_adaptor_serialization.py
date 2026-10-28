@@ -19,29 +19,25 @@ class TestPropertiesVariableTensorAdaptorSerialization(kratos_unittest.TestCase)
         self.assertEqual(loaded_model_part.NumberOfProperties(), 2)
         self.assertEqual([element.Properties.GetValue(Kratos.DENSITY) for element in loaded_model_part.Elements], [11.0, 22.0])
 
-    def test_CombinedTensorAdaptorWithPropertiesVariableChildSharedProperties(self):
-        # many elements on one Properties without DENSITY: StoreData() must create it once, not race on it
+    def test_PropertiesVariableTensorAdaptorSharedProperties(self):
+        # entities sharing one Properties are rejected: StoreData would race on it and drop part of the field
         model = Kratos.Model()
         model_part = self._CreateTriangleElements(model, 100, shared_properties=True)
         properties = model_part.GetProperties(1)
         self.assertFalse(properties.Has(Kratos.DENSITY))
 
-        original = KratosOA.TensorAdaptors.PropertiesVariableTensorAdaptor(model_part.Elements, Kratos.DENSITY)
-        original.ViewData()[:] = 11.0
-        original.StoreData()
-        self.assertEqual(properties.GetValue(Kratos.DENSITY), 11.0)
+        adaptor = KratosOA.TensorAdaptors.PropertiesVariableTensorAdaptor(model_part.Elements, Kratos.DENSITY)
+        adaptor.ViewData()[:] = 11.0
+        with self.assertRaisesRegex(RuntimeError, "unique"):
+            adaptor.StoreData()
+        self.assertFalse(properties.Has(Kratos.DENSITY))
 
-        # entities sharing a Properties cannot hold different values
-        original.ViewData()[57] = 12.0
-        with self.assertRaisesRegex(RuntimeError, "DENSITY"):
-            original.StoreData()
-        self.assertEqual(properties.GetValue(Kratos.DENSITY), 11.0)
-        original.ViewData()[57] = 11.0
-
-        loaded_model_part = self._CheckCombinedPropertiesTensorAdaptorRoundTrip(model, original)
-        self.assertEqual(loaded_model_part.NumberOfProperties(), 1)
-        self.assertTrue(all(element.Properties.Id == 1 for element in loaded_model_part.Elements))
-        self.assertEqual(loaded_model_part.GetProperties(1).GetValue(Kratos.DENSITY), 11.0)
+        properties.SetValue(Kratos.DENSITY, 1.0)
+        with self.assertRaisesRegex(RuntimeError, "unique"):
+            adaptor.Check()
+        with self.assertRaisesRegex(RuntimeError, "unique"):
+            adaptor.StoreData()
+        self.assertEqual(properties.GetValue(Kratos.DENSITY), 1.0)
 
     @staticmethod
     def _CreateTriangleElements(model: Kratos.Model, number_of_elements: int, shared_properties: bool) -> Kratos.ModelPart:

@@ -12,6 +12,7 @@
 //
 
 // System includes
+#include <algorithm>
 
 // External includes 
 
@@ -48,13 +49,15 @@ namespace Kratos
 
     void VariablesList::load(Serializer& rSerializer)
     {
+        // The archive is read into a temporary list, so that a rejected archive leaves this list unchanged
+        VariablesList loaded_list;
         std::size_t size;
         rSerializer.load("Size", size);
         std::string name;
         for (std::size_t i = 0; i < size; i++)
         {
             rSerializer.load("VariableName", name);
-            Add(*KratosComponents<VariableData>::pGet(name));
+            loaded_list.Add(*KratosComponents<VariableData>::pGet(name));
         }
         rSerializer.load("DofSize", size);
         for (std::size_t i = 0; i < size; i++)
@@ -66,15 +69,53 @@ namespace Kratos
             if(has_reaction){
                 std::string reaction_name;
                 rSerializer.load("DofReactionName", reaction_name);
-                AddDof(KratosComponents<VariableData>::pGet(name), KratosComponents<VariableData>::pGet(reaction_name));
+                loaded_list.AddDof(KratosComponents<VariableData>::pGet(name),
+                                   KratosComponents<VariableData>::pGet(reaction_name));
 
             }
             else{
-                AddDof(KratosComponents<VariableData>::pGet(name), nullptr);
+                loaded_list.AddDof(KratosComponents<VariableData>::pGet(name), nullptr);
             }
 
         }
 
+        // Only an empty list that nothing else references (e.g. a new one) takes the archive as it is
+        if (mVariables.empty() && mDofVariables.empty() && use_count() <= 1) {
+            swap(loaded_list);
+            return;
+        }
+
+        // Otherwise containers may hold data blocks with this layout, so the variables must match exactly. They are
+        // compared by key: an inline constexpr variable has one instance per shared library.
+        const auto is_same = [](const VariableData* pA, const VariableData* pB) { return *pA == *pB; };
+        const auto& r_loaded_dofs = loaded_list.mDofVariables;
+        const auto& r_loaded_reactions = loaded_list.mDofReactions;
+        // Each Dof stores its index in this list, so the common dofs must keep their order. Extra loaded dofs are appended
+        // (restart adds the dofs after loading); extra current dofs (added after the save) leave the loaded indices valid.
+        const std::size_t common_dofs = std::min(mDofVariables.size(), r_loaded_dofs.size());
+        const bool is_matching = std::equal(mVariables.begin(), mVariables.end(), loaded_list.mVariables.begin(),
+                                            loaded_list.mVariables.end(), is_same)
+            && std::equal(mDofVariables.begin(), mDofVariables.begin() + common_dofs, r_loaded_dofs.begin(), is_same);
+        KRATOS_ERROR_IF_NOT(is_matching)
+            << "The archive does not match this VariablesList, which may be shared by data containers: it must hold "
+            << "the same variables and start with the same dofs, in the same order [ current variables = "
+            << this->size() << ", loaded variables = " << loaded_list.size() << ", current dofs = "
+            << mDofVariables.size() << ", loaded dofs = " << r_loaded_dofs.size() << " ].\n";
+        for (std::size_t i = 0; i < common_dofs; ++i) {
+            KRATOS_ERROR_IF(mDofReactions[i] != nullptr && r_loaded_reactions[i] != nullptr
+                            && !is_same(mDofReactions[i], r_loaded_reactions[i]))
+                << "The archive gives the dof " << mDofVariables[i]->Name() << " the reaction "
+                << r_loaded_reactions[i]->Name() << ", but this VariablesList has "
+                << mDofReactions[i]->Name() << ".\n";
+        }
+
+        for (std::size_t i = 0; i < r_loaded_dofs.size(); ++i) {
+            if (i >= mDofVariables.size()) {
+                AddDof(r_loaded_dofs[i], r_loaded_reactions[i]);
+            } else if (mDofReactions[i] == nullptr) {
+                mDofReactions[i] = r_loaded_reactions[i];
+            }
+        }
     }
 
     

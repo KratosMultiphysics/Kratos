@@ -388,6 +388,30 @@ class TestSerializer(KratosUnittest.TestCase):
         variable_ta.StoreData()
         self.assertEqual([list(node.GetValue(KratosMultiphysics.VELOCITY)) for node in model_part.Nodes], [[7.0] * 3] * 3)
 
+    def test_TensorAdaptorLoadIntoNodesWithoutHistoricalVariables(self):
+        # The nodes of a model part without historical variables share an empty variables list. An in-place load of
+        # nodes with historical variables must raise without adding them to it, as the other nodes can't hold them.
+        model = KratosMultiphysics.Model()
+        saved_model_part = model.CreateModelPart("Saved")
+        saved_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.TEMPERATURE)
+        saved_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.LOCAL_AXES_MATRIX)
+        model_part = model.CreateModelPart("Test")
+        sub_model_part = model_part.CreateSubModelPart("Sub")
+        for i in range(3):
+            node = saved_model_part.CreateNewNode(i + 1, float(i), 0.0, 0.0)
+            node.SetSolutionStepValue(KratosMultiphysics.LOCAL_AXES_MATRIX, KratosMultiphysics.Matrix(3, 3, 1.0))
+            sub_model_part.CreateNewNode(i + 1, float(i), 0.0, 0.0)
+            model_part.CreateNewNode(i + 4, float(i), 1.0, 0.0) # not in the archive
+
+        ta = KratosMultiphysics.TensorAdaptors
+        serializer = KratosMultiphysics.StreamSerializer()
+        serializer.Save("Variable", ta.VariableTensorAdaptor(saved_model_part.Nodes, KratosMultiphysics.VELOCITY))
+        with self.assertRaisesRegex(RuntimeError, "The archive does not match this VariablesList"):
+            serializer.Load("Variable", ta.VariableTensorAdaptor(sub_model_part.Nodes, KratosMultiphysics.VELOCITY))
+        self.assertFalse(model_part.HasNodalSolutionStepVariable(KratosMultiphysics.TEMPERATURE))
+        self.assertFalse(model_part.HasNodalSolutionStepVariable(KratosMultiphysics.LOCAL_AXES_MATRIX))
+        model.DeleteModelPart("Test") # destructs every node's data with the (unchanged) empty list
+
     def test_UninitializedTensorAdaptor(self):
         # A default-constructed TA is only a load target: its default storage's PointerWrapper
         # raises on any data access, including the ones made through str(), Check() and CollectData().

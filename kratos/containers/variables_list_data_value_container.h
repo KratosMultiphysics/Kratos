@@ -14,6 +14,7 @@
 #pragma once
 
 // System includes
+#include <algorithm>
 #include <string>
 #include <iostream>
 #include <cstddef>
@@ -415,7 +416,6 @@ public:
 
         mpData = 0;
         mpCurrentPosition = 0;
-        mAllocatedDataSize = 0;
     }
 
 
@@ -519,7 +519,6 @@ public:
 
             // Setting data pointer to the allocated memory
             mpData = temp;
-            mAllocatedDataSize = size;
 
             // updating the current position
             mpCurrentPosition = mpData;
@@ -803,9 +802,6 @@ private:
 
     ContainerType mpData;
 
-    /// mpVariablesList->DataSize() when mpData was allocated: the shared list may have grown since (see DestructAllElements)
-    SizeType mAllocatedDataSize = 0;
-
     VariablesList::Pointer mpVariablesList;
 
     ///@}
@@ -820,15 +816,13 @@ private:
     inline void Allocate()
     {
         KRATOS_ERROR_IF(!mpVariablesList) << "This container don't have a variables list assigned. A possible reason is creating a node without a model part." << std::endl;
-        mAllocatedDataSize = mpVariablesList->DataSize();
-        mpData = (BlockType*)malloc(mAllocatedDataSize * sizeof(BlockType) * mQueueSize);
+        mpData = (BlockType*)malloc(mpVariablesList->DataSize() * sizeof(BlockType) * mQueueSize);
     }
 
     inline void Reallocate()
     {
         KRATOS_ERROR_IF(!mpVariablesList) << "This container don't have a variables list assigned. A possible reason is creating a node without a model part." << std::endl;
-        mAllocatedDataSize = mpVariablesList->DataSize();
-        mpData = (BlockType*)realloc(mpData, mAllocatedDataSize * sizeof(BlockType) * mQueueSize);
+        mpData = (BlockType*)realloc(mpData, mpVariablesList->DataSize() * sizeof(BlockType) * mQueueSize);
     }
 
     void DestructElements(SizeType ThisIndex)
@@ -844,14 +838,6 @@ private:
         }
     }
 
-    /**
-     * @brief Destructs every stored value with the layout mpData was allocated with.
-     * @details The VariablesList is shared (e.g. by all nodes of a model part) and may have grown since this block was
-     * allocated: an in-place load() that adds the archive's variables to the shared list throws, but by then the list
-     * has grown while the other containers still hold blocks with the old layout. VariablesList::Add only appends, so
-     * the variables with LocalOffset < mAllocatedDataSize are exactly those stored in this block, at unchanged offsets,
-     * which keeps the destruction of those containers safe.
-     */
     void DestructAllElements()
     {
         if(!mpVariablesList)
@@ -860,12 +846,9 @@ private:
         if(mpData == 0)
             return;
 
-        const SizeType size = mAllocatedDataSize;
+        const SizeType size = mpVariablesList->DataSize();
         for(VariablesList::const_iterator it_variable = mpVariablesList->begin(); it_variable != mpVariablesList->end() ; it_variable++) {
-            const SizeType offset = LocalOffset(*it_variable);
-            if(offset >= size)
-                continue;
-            BlockType*  position = mpData + offset;
+            BlockType*  position = mpData + LocalOffset(*it_variable);
             for(SizeType i = 0 ; i < mQueueSize ; i++) {
                 it_variable->Destruct(position + i * size);
             }
@@ -946,24 +929,33 @@ private:
 
     void load(Serializer& rSerializer)
     {
-        // Allocate() below replaces the block, so destruct and free the current one first (with its allocated layout).
-        const bool is_in_place = mpData != 0;
-        const SizeType allocated_data_size = mAllocatedDataSize;
-        Clear();
-        rSerializer.load("Variables List", mpVariablesList);
-        KRATOS_ERROR_IF(is_in_place && mpVariablesList->DataSize() != allocated_data_size)
-            << "Loading changed the historical variables of a container that already holds data [ allocated data size = "
-            << allocated_data_size << ", loaded data size = " << mpVariablesList->DataSize() << " ]. Adding historical "
-            << "variables to a model part with nodes is not allowed (see ModelPart::AddNodalSolutionStepVariable).\n";
-        rSerializer.load("QueueSize", mQueueSize);
+        // Load the list through a second pointer, so that a rejected load leaves this container unchanged. The extra
+        // reference also makes VariablesList::load validate (never fill) the current list while the old block uses it.
+        VariablesList::Pointer p_loaded_list = mpVariablesList;
+        rSerializer.load("Variables List", p_loaded_list);
+        if (mpData != 0 && mpVariablesList && p_loaded_list != mpVariablesList) {
+            // The pointer tracking gave another list loaded from this archive: adopting it must keep this layout
+            const auto is_same = [](const VariableData* pA, const VariableData* pB) { return *pA == *pB; };
+            KRATOS_ERROR_IF_NOT(std::equal(mpVariablesList->ptr_begin(), mpVariablesList->ptr_end(),
+                                           p_loaded_list->ptr_begin(), p_loaded_list->ptr_end(), is_same))
+                << "An in-place load cannot change the historical variables of a container holding data [ current "
+                << "variables = " << mpVariablesList->size() << ", loaded variables = " << p_loaded_list->size()
+                << " ].\n";
+        }
+        SizeType queue_size;
+        rSerializer.load("QueueSize", queue_size);
         SizeType queue_index;
         rSerializer.load("QueueIndex", queue_index);
+        KRATOS_ERROR_IF(queue_index > queue_size) << "Invalid Queue index loaded : " << queue_index << std::endl;
+
+        // Only now destruct and free the old block, with its list (which the load above did not change)
+        Clear();
+        mpVariablesList = p_loaded_list;
+        mQueueSize = queue_size;
         Allocate();
 
         // Setting the current position at the begining of data
-        if(queue_index > mQueueSize)
-            KRATOS_THROW_ERROR(std::invalid_argument, "Invalid Queue index loaded : ", queue_index)
-            mpCurrentPosition = mpData + queue_index * mpVariablesList->DataSize();
+        mpCurrentPosition = mpData + queue_index * mpVariablesList->DataSize();
 
         std::string name;
         for(SizeType i = 0 ; i < mQueueSize ; i++)

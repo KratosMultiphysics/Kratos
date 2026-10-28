@@ -13,7 +13,6 @@
 
 // System includes
 #include <algorithm>
-#include <vector>
 
 // External includes
 
@@ -106,11 +105,13 @@ void DataValueContainer::load(Serializer& rSerializer)
             mData[i].first->Load(rSerializer, mData[i].second);
         }
     } else {
-        // DataOnly loads into the existing values, so they are matched by variable (not by position, which
-        // may differ or hold another type); values not in the archive are deleted to restore the saved state
+        // DataOnly restores a checkpoint into an identical structure (no value is created or deleted), so values
+        // are matched by variable (not by position, which may hold another type) and any mismatch is an error
         std::size_t size;
         rSerializer.load("Size", size);
-        std::vector<bool> is_loaded(mData.size(), false);
+        KRATOS_ERROR_IF(size != mData.size())
+            << "DataOnly loading restores values into an existing container, but the sizes differ [ archive size = "
+            << size << ", container size = " << mData.size() << " ].\n";
         for (std::size_t i = 0; i < size; i++) {
             rSerializer.load("Variable Name", name);
             const auto p_variable = KratosComponents<VariableData>::pGet(name);
@@ -119,18 +120,7 @@ void DataValueContainer::load(Serializer& rSerializer)
                 << "DataOnly loading restores values into an existing container, but the variable " << name
                 << " is not in it.\n";
             p_variable->Load(rSerializer, it->second);
-            is_loaded[it - mData.begin()] = true;
         }
-
-        std::size_t number_of_kept_values = 0;
-        for (std::size_t i = 0; i < mData.size(); ++i) {
-            if (is_loaded[i]) {
-                mData[number_of_kept_values++] = mData[i];
-            } else {
-                mData[i].first->Delete(mData[i].second);
-            }
-        }
-        mData.resize(number_of_kept_values);
     }
 
     KRATOS_CATCH("")
