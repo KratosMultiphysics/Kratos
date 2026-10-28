@@ -26,6 +26,26 @@ from KratosMultiphysics.FluidDynamicsApplication import patch_history_transfer
 
 
 class TestHistoryDiagnostics(KratosUnittest.TestCase):
+    def test_step_observer_records_historical_location_and_validity(self):
+        class Node:
+            Id, X, Y = 7, 0.5, 0.5
+        class Validity:
+            slots = [set(), {7}, set()]
+        square = ((0., 0.), (1., 0.), (1., 1.), (0., 1.))
+        geometry = {'inner': [(3, square)], 'active_outer': [], 'gap': []}
+        with TemporaryDirectory() as directory:
+            diagnostics = HistoryDiagnostics(directory)
+            samples = []
+            observe = diagnostics.make_observer(
+                2, 1.2, .1, {7}, Validity(), [None, geometry, None],
+                [set(), {7}, None], [set(), {7}, None], samples)
+            observe(Node(), 1, 'outer', None, None)
+            self.assertEqual(samples[0]['location'], 'inner')
+            self.assertAlmostEqual(samples[0]['historical_time'], 1.1)
+            self.assertTrue(samples[0]['valid_previous'])
+            self.assertTrue(samples[0]['computed_previous'])
+            self.assertTrue(samples[0]['suspicious'])
+
     def test_transfer_observer_reports_outer_and_gap_without_changing_values(self):
         class Node:
             Id, X, Y = 7, .25, .25
