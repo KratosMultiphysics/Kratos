@@ -21,7 +21,7 @@
 
 // Project includes
 #include "includes/define.h"
-#include "includes/ublas_interface.h"
+#include "includes/default_interface.h"
 
 // Application includes
 #include "rom_application_variables.h"

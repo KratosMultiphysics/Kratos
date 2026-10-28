@@ -18,7 +18,6 @@
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
 
 using namespace Kratos;
-using namespace boost::numeric::ublas;
 
 namespace
 {
