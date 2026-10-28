@@ -95,7 +95,8 @@ public:
     ///@{
 
     /// Shifted Nitsche terms of the GSBM Poisson problem on a facet, in
-    /// residual form; zero on uncut facets
+    /// residual form; zero on uncut facets. ADJOINT_FACTOR (-1 by default),
+    /// PENALTY_FACTOR (0) and SHIFT_ORDER (p) select the variant
     void CalculateLocalSystem(
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
@@ -125,7 +126,7 @@ public:
     ///@name Check
     ///@{
 
-    /// Checks that PENALTY_FACTOR is provided in the properties
+    /// Checks that SHIFT_ORDER, if given, is not negative
     int Check(const ProcessInfo& rCurrentProcessInfo) const override;
 
     ///@}

@@ -20,6 +20,8 @@
 
 // Project includes
 #include "custom_conditions/gsbm_laplacian_condition_dirichlet.h"
+#include "geometries/nurbs_shape_function_utilities/nurbs_curve_shape_functions.h"
+#include "geometries/nurbs_surface_geometry.h"
 #include "iga_application_variables.h"
 #include "includes/convection_diffusion_settings.h"
 #include "includes/global_pointer_variables.h"
@@ -34,15 +36,7 @@ namespace
 using IndexType = GsbmLaplacianConditionDirichlet::IndexType;
 using SizeType = GsbmLaplacianConditionDirichlet::SizeType;
 using GeometryType = GsbmLaplacianConditionDirichlet::GeometryType;
-
-constexpr IndexType LaplacianOrder = 2;
-
-/// \tau_d = - t^q / q!
-double ComputeTau(const array_1d<double, 3>& rDistance)
-{
-    return - std::pow(norm_2(rDistance), LaplacianOrder)
-           / MathUtils<double>::Factorial(LaplacianOrder);
-}
+using NurbsSurfaceType = NurbsSurfaceGeometry<3, PointerVector<Node>>;
 
 /**
  * @brief Taylor coefficient of a multi-index
@@ -69,21 +63,21 @@ double ComputeTaylorCoefficient(
     return power / factorial;
 }
 
-/// Whether u'_h is added: USE_RESIDUAL_TERMS, off by default
-bool UsesSubscale(const Properties& rProperties)
-{
-    return rProperties.Has(USE_RESIDUAL_TERMS) ? rProperties[USE_RESIDUAL_TERMS] : false;
-}
-
 /**
- * @brief Shape functions of a facet side shifted to the true boundary
+ * @brief Shape functions of a facet side shifted to the true boundary, from
+ *        the side's 1D B-spline bases
  *
  *     S_d^m[N] = \sum_{|\boldsymbol\alpha| \le m} c_\boldsymbol\alpha
- *                \partial^{\boldsymbol\alpha} N(\tilde{x})
+ *                \partial^{\boldsymbol\alpha} N(\tilde{x}),
+ *                \alpha_u \le p_u, \alpha_v \le p_v
+ *
+ * m = p_u + p_v is the full Taylor series, the span's polynomial at
+ * \tilde{x} + d. The 1D derivatives never exceed the degree, so every order m
+ * is available.
  *
  * @param rSide One side of the facet.
  * @param rDistance Distance vector d from the facet point to the skin.
- * @param Order Order of the shift.
+ * @param Order Order m of the shift.
  * @return The shifted shape functions.
  */
 Vector ComputeShiftedShapeFunctions(
@@ -91,113 +85,37 @@ Vector ComputeShiftedShapeFunctions(
     const array_1d<double, 3>& rDistance,
     const SizeType Order)
 {
-    Vector shifted_shape_functions = row(rSide.ShapeFunctionsValues(), 0);
+    const auto& r_surface = dynamic_cast<const NurbsSurfaceType&>(rSide.GetGeometryParent(0));
+    const SizeType p_u = r_surface.PolynomialDegree(0);
+    const SizeType p_v = r_surface.PolynomialDegree(1);
 
-    for (IndexType k = 1; k <= Order; ++k) {
-        // Derivatives of order k: column i is \partial_x^(k-i) \partial_y^i N
-        const Matrix& r_derivatives = rSide.ShapeFunctionDerivatives(
-            k, 0, rSide.GetDefaultIntegrationMethod()
-        );
+    // 1D bases of the side's span at its point, derivatives up to the degree
+    const auto& r_indices = rSide.GetValue(KNOT_SPAN_INDICES);
+    const auto& r_point = rSide.IntegrationPoints()[0];
+    NurbsCurveShapeFunction shape_functions_u(p_u, p_u);
+    shape_functions_u.ComputeBSplineShapeFunctionValuesAtSpan(
+        r_surface.KnotsU(), r_indices[0] + p_u - 1, r_point.X()
+    );
+    NurbsCurveShapeFunction shape_functions_v(p_v, p_v);
+    shape_functions_v.ComputeBSplineShapeFunctionValuesAtSpan(
+        r_surface.KnotsV(), r_indices[1] + p_v - 1, r_point.Y()
+    );
 
-        // S_d^m, \boldsymbol\alpha = (k - i, i)
-        for (IndexType i = 0; i <= k; ++i) {
-            const double factor = ComputeTaylorCoefficient(rDistance, {k - i, i});
-            noalias(shifted_shape_functions) += factor * column(r_derivatives, i);
+    // c_{(i, j)} N_a^{(i)} N_b^{(j)} for N_{a + b (p_u + 1)}, uv = xy
+    Vector shifted_shape_functions = ZeroVector(rSide.size());
+    for (IndexType i = 0; i <= std::min(p_u, Order); ++i) {
+        for (IndexType j = 0; j <= std::min(p_v, Order - i); ++j) {
+            const double factor = ComputeTaylorCoefficient(rDistance, {i, j});
+            for (IndexType b = 0; b <= p_v; ++b) {
+                for (IndexType a = 0; a <= p_u; ++a) {
+                    shifted_shape_functions[a + b * (p_u + 1)] +=
+                        factor * shape_functions_u(a, i) * shape_functions_v(b, j);
+                }
+            }
         }
     }
 
     return shifted_shape_functions;
-}
-
-/**
- * @brief Shifted subscale of a facet side's shape functions
- *
- *     u'_h[N] = \tau_d \sum_{k=q}^{m} \binom{k}{q}^{-1}
- *               \sum_{|\boldsymbol\beta| = k-q} c_\boldsymbol\beta
- *               \partial^{\boldsymbol\beta} \Delta N(\tilde{x})
- *
- * @param rSide One side of the facet.
- * @param rDistance Distance vector d from the facet point to the skin.
- * @param Order Order of the shift.
- * @return The shifted subscale of the shape functions.
- */
-Vector ComputeShiftedSubscaleShapeFunctions(
-    const GeometryType& rSide,
-    const array_1d<double, 3>& rDistance,
-    const SizeType Order)
-{
-    const IndexType q = LaplacianOrder;
-    const double tau = ComputeTau(rDistance);
-    Vector shifted_subscale = ZeroVector(rSide.size());
-
-    // u'_h[N] at \tilde{x}: \tau_d \sum_k (q!/k!) \mathsf D_d^{k-q} \Delta N
-    for (IndexType k = q; k <= Order; ++k) {
-        // Derivatives of order k: column i is \partial_x^(k-i) \partial_y^i N
-        const Matrix& r_derivatives = rSide.ShapeFunctionDerivatives(
-            k, 0, rSide.GetDefaultIntegrationMethod()
-        );
-
-        // \tau_d \binom{k}{q}^{-1}
-        const double weight = tau * MathUtils<double>::Factorial(q)
-            * MathUtils<double>::Factorial(k - q) / MathUtils<double>::Factorial(k);
-
-        for (IndexType i = 0; i <= k - q; ++i) {
-            // \boldsymbol\beta = (k-q-i, i); \Delta: columns i and i + 2
-            const double factor = weight * ComputeTaylorCoefficient(rDistance, {k - q - i, i});
-            noalias(shifted_subscale) +=
-                factor * (column(r_derivatives, i) + column(r_derivatives, i + 2));
-        }
-    }
-
-    return shifted_subscale;
-}
-
-/**
- * @brief Shifted subscale of the source
- *
- *     u'_h[f] = \tau_d \sum_{k=q}^{m} \binom{k}{q}^{-1}
- *               \sum_{|\boldsymbol\beta| = k-q} c_\boldsymbol\beta
- *               \partial^{\boldsymbol\beta} f(\tilde{x})
- *
- * @param rSourceDerivatives f and its Cartesian derivatives at \tilde{x}: order
- * n at offset n (n + 1) / 2, entry i being \partial_x^(n-i) \partial_y^i f.
- * @param rDistance Distance vector d from the facet point to the skin.
- * @param Order Order of the shift.
- * @return The shifted subscale of the source.
- */
-double ComputeShiftedSubscaleSource(
-    const Vector& rSourceDerivatives,
-    const array_1d<double, 3>& rDistance,
-    const SizeType Order)
-{
-    const IndexType q = LaplacianOrder;
-    if (Order < q) {
-        return 0.0;  // no Taylor term of order q or higher
-    }
-
-    // \partial^{\boldsymbol\beta} f(\tilde{x}), |\boldsymbol\beta| <= m - q
-    const SizeType f_size = (Order - q + 1) * (Order - q + 2) / 2;
-    KRATOS_ERROR_IF(rSourceDerivatives.size() < f_size) << "GsbmLaplacianConditionDirichlet: "
-        << "VOLUME_SOURCE_DERIVATIVES at a cut facet point needs f and its Cartesian "
-        << "derivatives of orders 0 to " << Order - q << " (size " << f_size
-        << "), but it has size " << rSourceDerivatives.size() << "." << std::endl;
-
-    // u'_h[f] at \tilde{x}: \tau_d \sum_k (q!/k!) \mathsf D_d^{k-q} f
-    const double tau = ComputeTau(rDistance);
-    double shifted_subscale = 0.0;
-    for (IndexType k = q; k <= Order; ++k) {
-        // \tau_d \binom{k}{q}^{-1}
-        const double weight = tau * MathUtils<double>::Factorial(q)
-            * MathUtils<double>::Factorial(k - q) / MathUtils<double>::Factorial(k);
-        const IndexType offset = (k - q) * (k - q + 1) / 2;  // |\boldsymbol\beta| = k - q
-        for (IndexType i = 0; i <= k - q; ++i) {
-            // \boldsymbol\beta = (k - q - i, i)
-            const double factor = weight * ComputeTaylorCoefficient(rDistance, {k - q - i, i});
-            shifted_subscale += factor * rSourceDerivatives[offset + i];
-        }
-    }
-
-    return shifted_subscale;
 }
 
 } // namespace
@@ -251,31 +169,18 @@ void GsbmLaplacianConditionDirichlet::CalculateLocalSystem(
                         * r_minus.DeterminantOfJacobian(point_index);
     const array_1d<double, 3> normal = r_minus.UnitNormal(point_index);
 
-    // Characteristic size h: the smallest knot span size of both sides
-    const Vector& r_sizes_minus = r_minus.GetValue(KNOT_SPAN_SIZES);
-    const Vector& r_sizes_plus = r_plus.GetValue(KNOT_SPAN_SIZES);
-    const double h = std::min(
-        *std::min_element(r_sizes_minus.begin(), r_sizes_minus.end()),
-        *std::min_element(r_sizes_plus.begin(), r_sizes_plus.end())
-    );
-
-    // Degree p of the background patch, and \beta_1 = \chi (p + 1)^2
+    // Degree p of the background patch, and shift order m: SHIFT_ORDER, p by
+    // default
     const GeometryType& r_surface = r_minus.GetGeometryParent(0);
     const SizeType p = std::max(r_surface.PolynomialDegree(0), r_surface.PolynomialDegree(1));
-    const double beta_1 = GetProperties()[PENALTY_FACTOR] * (p + 1) * (p + 1);
+    const SizeType m = GetProperties().Has(SHIFT_ORDER)
+        ? static_cast<SizeType>(GetProperties()[SHIFT_ORDER])
+        : p;
 
-    // Shifted trace S(N) on each side, \mathsf S_d^m[N], and imposed value g_D
-    Vector shifted_minus = ComputeShiftedShapeFunctions(r_minus, distance, p);
-    Vector shifted_plus = ComputeShiftedShapeFunctions(r_plus, distance, p);
-    double boundary_value = r_projection_node.GetValue(r_unknown_variable);
-
-    // Shifted subscale: plus u'_h[N] on the trace, minus u'_h[f] on the value
-    if (UsesSubscale(GetProperties())) {
-        noalias(shifted_minus) += ComputeShiftedSubscaleShapeFunctions(r_minus, distance, p);
-        noalias(shifted_plus) += ComputeShiftedSubscaleShapeFunctions(r_plus, distance, p);
-        boundary_value -=
-            ComputeShiftedSubscaleSource(GetValue(VOLUME_SOURCE_DERIVATIVES), distance, p);
-    }
+    // Shifted trace \mathsf S_d^m[N] on each side, and imposed value g_D
+    const Vector shifted_minus = ComputeShiftedShapeFunctions(r_minus, distance, m);
+    const Vector shifted_plus = ComputeShiftedShapeFunctions(r_plus, distance, m);
+    const double boundary_value = r_projection_node.GetValue(r_unknown_variable);
 
     // \gamma = \alpha_h+ / max(\alpha_h+ + \alpha_h-, tol)
     // Average operator: {{.}}_\gamma = \gamma (.)+ + (1 - \gamma) (.)-
@@ -311,7 +216,7 @@ void GsbmLaplacianConditionDirichlet::CalculateLocalSystem(
         gamma * compute_normal_derivatives(r_plus)
     );
 
-    // {{S(v_h)}}_\gamma, with the shift of order p
+    // {{S(v_h)}}_\gamma
     const Vector average_shifted_value = join(
         (1.0 - gamma) * shifted_minus, gamma * shifted_plus
     );
@@ -320,19 +225,34 @@ void GsbmLaplacianConditionDirichlet::CalculateLocalSystem(
     noalias(rLeftHandSideMatrix) -=
         weight * outer_prod(jump_v_alpha, average_normal_derivative);
 
-    // Symmetry: -({{\nabla v_h}}_\gamma,
-    //             [[\alpha_h]] ({{S(u_h)}}_\gamma - g_D))
-    noalias(rLeftHandSideMatrix) -=
-        weight * alpha_jump * outer_prod(average_normal_derivative, average_shifted_value);
+    // Adjoint: -\theta ({{\nabla v_h}}_\gamma,
+    //                   [[\alpha_h]] ({{S(u_h)}}_\gamma - g_D)),
+    // \theta = ADJOINT_FACTOR: -1 skew-symmetric (default), 1 symmetric
+    const double theta =
+        GetProperties().Has(ADJOINT_FACTOR) ? GetProperties()[ADJOINT_FACTOR] : -1.0;
+    noalias(rLeftHandSideMatrix) -= theta * weight * alpha_jump
+        * outer_prod(average_normal_derivative, average_shifted_value);
     noalias(rRightHandSideVector) -=
-        weight * alpha_jump * boundary_value * average_normal_derivative;
+        theta * weight * alpha_jump * boundary_value * average_normal_derivative;
 
-    // Penalty (stabilization): (\beta_1 / h |[[\alpha_h]]| {{S(v_h)}}_\gamma,
-    //                           {{S(u_h)}}_\gamma - g_D)
-    const double penalty = weight * beta_1 / h * std::abs(alpha_jump);
-    noalias(rLeftHandSideMatrix) +=
-        penalty * outer_prod(average_shifted_value, average_shifted_value);
-    noalias(rRightHandSideVector) += penalty * boundary_value * average_shifted_value;
+    // Penalty, if \chi = PENALTY_FACTOR > 0 (none by default):
+    // (\chi (p + 1)^2 / h |[[\alpha_h]]| {{S(v_h)}}_\gamma,
+    //  {{S(u_h)}}_\gamma - g_D)
+    const double chi = GetProperties().Has(PENALTY_FACTOR) ? GetProperties()[PENALTY_FACTOR] : 0.0;
+    if (chi > 0.0) {
+        // Characteristic size h: the smallest knot span size of both sides
+        const Vector& r_sizes_minus = r_minus.GetValue(KNOT_SPAN_SIZES);
+        const Vector& r_sizes_plus = r_plus.GetValue(KNOT_SPAN_SIZES);
+        const double h = std::min(
+            *std::min_element(r_sizes_minus.begin(), r_sizes_minus.end()),
+            *std::min_element(r_sizes_plus.begin(), r_sizes_plus.end())
+        );
+
+        const double penalty = weight * chi * (p + 1) * (p + 1) / h * std::abs(alpha_jump);
+        noalias(rLeftHandSideMatrix) +=
+            penalty * outer_prod(average_shifted_value, average_shifted_value);
+        noalias(rRightHandSideVector) += penalty * boundary_value * average_shifted_value;
+    }
 
     // Residual form, as LaplacianElement: subtract the current solution's part
     Vector current_values(number_of_dofs);
@@ -396,8 +316,8 @@ void GsbmLaplacianConditionDirichlet::GetDofList(
 
 int GsbmLaplacianConditionDirichlet::Check(const ProcessInfo& rCurrentProcessInfo) const
 {
-    KRATOS_ERROR_IF_NOT(GetProperties().Has(PENALTY_FACTOR))
-        << Info() << ": no PENALTY_FACTOR (chi) defined in the properties." << std::endl;
+    KRATOS_ERROR_IF(GetProperties().Has(SHIFT_ORDER) && GetProperties()[SHIFT_ORDER] < 0)
+        << Info() << ": SHIFT_ORDER must not be negative." << std::endl;
     return 0;
 }
 
