@@ -315,6 +315,7 @@ private:
     const AlternativeQSVMSDEMCoupled< QSVMSDEMCoupledData<3,8> > mAlternativeQSVMSDEMCoupled3D8N;
     const AlternativeQSVMSDEMCoupled< QSVMSDEMCoupledData<3,27> > mAlternativeQSVMSDEMCoupled3D27N;
     const QSVMS< TimeIntegratedQSVMSData<2,3> > mTimeIntegratedQSVMS2D3N;
+    const QSVMS< TimeIntegratedQSVMSData<2,4> > mTimeIntegratedQSVMS2D4N;
     const QSVMS< TimeIntegratedQSVMSData<3,4> > mTimeIntegratedQSVMS3D4N;
     const AxisymmetricNavierStokes< AxisymmetricNavierStokesData<2,3> > mAxisymmetricNavierStokes2D3N;
     const AxisymmetricNavierStokes< AxisymmetricNavierStokesData<2,4> > mAxisymmetricNavierStokes2D4N;
