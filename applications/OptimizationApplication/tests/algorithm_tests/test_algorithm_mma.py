@@ -80,7 +80,7 @@ class _FieldRecorder(Kratos.OutputProcess):
     def PrintOutput(self):
         data = ComponentDataView("algorithm", self.optimization_problem).GetBufferedData()
         physical = [element.Properties[Kratos.DENSITY] for element in self.model_part.Elements]
-        self.records.append((physical, list(data["control_field"].data), data["gcmma_inner_iterations"]))
+        self.records.append((physical, list(data["control_field"].data), data["gcmma_inner_iterations"] if data.HasValue("gcmma_inner_iterations") else 0))
 
 
 def _Run(parameters, recorder=False):
@@ -168,6 +168,51 @@ class TestAlgorithmMMAConstrained(kratos_unittest.TestCase):
         for physical, control_field, _ in records:
             self.assertVectorAlmostEqual(physical, control_field, 12)
 
+    def test_returned_field_is_last_evaluated(self):
+        # Not converged before max_iter, so the last iteration must not move the control field to x_{k+1}.
+        constraint = '{"response_expression": "mass_A * mass_B", "type": ">=", "scaling": 1.0, "scaled_ref_value": 9.0}'
+        for variant in ("mma", "gcmma"):
+            with self.subTest(variant=variant):
+                model, optimization_problem = _CreateModelAndComponents()
+                optimization_problem.AddProcess("output_processes", _FieldRecorder(model, optimization_problem))
+                algorithm = AlgorithmMMA(model, _Parameters(variant, "mass", constraint, max_iter=2, extra_settings=', "move": 0.3'), optimization_problem)
+                algorithm.Initialize()
+                algorithm.Solve()
+                algorithm.Finalize()
+                physical, last_output, _ = optimization_problem.GetListOfProcesses("output_processes")[0].records[-1]
+                self.assertVectorAlmostEqual(algorithm.GetCurrentControlField().data, last_output, 12)
+                self.assertVectorAlmostEqual(algorithm.GetCurrentControlField().data, physical, 12)
+                self.assertAlmostEqual(algorithm.GetOptimizedObjectiveValue(), 1.5 * physical[0] + 3.0 * physical[1], 10)
+
+    def test_gcmma_trial_does_not_leak_response_state(self):
+        # Two responses share one piece of model state (ProcessInfo TIME): each gradient must see the state its own
+        # value evaluation wrote, even when GCMMA trial evaluations ran in between.
+        class StateResponse(MassResponseFunction):
+            def __init__(self, name, model, factor, seen):
+                super().__init__(name, model, Kratos.Parameters("""{"evaluated_model_part_names": ["test"]}"""))
+                self.factor, self.seen = factor, seen
+            def CalculateValue(self):
+                self.model_part.ProcessInfo[Kratos.TIME] = self.factor
+                return super().CalculateValue()
+            def CalculateGradient(self, physical_variable_gradient_map):
+                self.seen.append((self.GetName(), self.model_part.ProcessInfo[Kratos.TIME]))
+                super().CalculateGradient(physical_variable_gradient_map)
+
+        model, optimization_problem = _CreateModelAndComponents()
+        seen = []
+        optimization_problem.AddComponent(StateResponse("obj_r", model, 1.0, seen))
+        optimization_problem.AddComponent(StateResponse("constr_r", model, 2.0, seen))
+        constraint = '{"response_expression": "constr_r", "type": ">=", "scaling": 1.0, "scaled_ref_value": 20.0}'
+        parameters = _Parameters("gcmma", "obj_r", constraint, max_iter=6, extra_settings=', "move": 0.9')
+        algorithm = AlgorithmMMA(model, parameters, optimization_problem)
+        algorithm.Initialize()
+        algorithm.Solve()
+        algorithm.Finalize()
+        factors = {"obj_r": 1.0, "constr_r": 2.0}
+        self.assertGreater(len(seen), 6)
+        for name, state in seen:
+            self.assertEqual(state, factors[name], msg=f"gradient of {name} saw state {state}")
+
     def test_zero_gradient_control_does_not_move(self):
         # mass_A does not depend on control_b: with the regularisation of p, q it must stay at its initial value.
         constraint = '{"response_expression": "mass", "type": ">=", "scaling": 1.0, "scaled_ref_value": 5.0}'
@@ -216,6 +261,27 @@ class TestAlgorithmMMAValidation(kratos_unittest.TestCase):
         equality = '{"response_expression": "mass", "type": "=", "scaling": 1.0, "scaled_ref_value": 5.0}'
         with self.assertRaisesRegex(RuntimeError, "inequality constraints only"):
             self._Create(_Parameters("mma", "mass", equality))
+
+    def test_partial_nested_settings(self):
+        algorithm, _, _ = self._Create(_Parameters("gcmma", "mass", extra_settings=', "subsolve_settings": {"tolerance": 1e-8}, "gcmma_settings": {"inner_max_iter": 3}'))
+        settings = algorithm.parameters["settings"]
+        self.assertEqual(settings["subsolve_settings"]["max_iter"].GetInt(), 200)
+        self.assertEqual(settings["subsolve_settings"]["tolerance"].GetDouble(), 1e-8)
+        self.assertEqual(settings["gcmma_settings"]["conservativeness_tol"].GetDouble(), 1e-6)
+        self.assertEqual(algorithm.inner_max_iter, 3)
+
+    def test_duplicate_constraint_response(self):
+        lower = '{"response_expression": "mass", "type": ">=", "scaling": 1.0, "scaled_ref_value": 5.0}'
+        upper = '{"response_expression": "mass", "type": "<=", "scaling": 1.0, "scaled_ref_value": 20.0}'
+        with self.assertRaisesRegex(RuntimeError, "1.0\\*mass"):
+            self._Create(_Parameters("mma", "mass_A", lower + "," + upper))
+        # the suggested workaround works and keeps the two-sided bound
+        upper = '{"response_expression": "1.0*mass", "type": "<=", "scaling": 1.0, "scaled_ref_value": 20.0}'
+        algorithm, optimization_problem, _ = _Run(_Parameters("mma", "mass_A", lower + "," + upper, max_iter=3))
+        self.assertEqual(len(algorithm._constraints_list), 2)
+        buffered_data = ComponentDataView("algorithm", optimization_problem).GetBufferedData()
+        self.assertTrue(buffered_data.HasValue("std_constr_mass_value"))
+        self.assertTrue(buffered_data.HasValue("std_constr_Eval_(1.0*mass)_value"))
 
     def test_invalid_artificial_coefficients(self):
         with self.assertRaisesRegex(RuntimeError, "\"d\" > 0"):

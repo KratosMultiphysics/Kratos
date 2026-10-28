@@ -5,6 +5,7 @@ from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem i
 from KratosMultiphysics.OptimizationApplication.algorithms.standardized_objective import StandardizedObjective
 from KratosMultiphysics.OptimizationApplication.algorithms.standardized_constraint import StandardizedConstraint
 from KratosMultiphysics.OptimizationApplication.controls.master_control import MasterControl
+from KratosMultiphysics.OptimizationApplication.responses.response_routine import ResponseRoutine
 from KratosMultiphysics.OptimizationApplication.algorithms.algorithm import Algorithm
 from KratosMultiphysics.OptimizationApplication.algorithms import mma_math
 from KratosMultiphysics.OptimizationApplication.utilities.component_data_view import ComponentDataView
@@ -47,6 +48,9 @@ class AlgorithmMMA(Algorithm):
           "artificial_variable_max" is stored) increase c by ~100 or rescale the problem.
         - "gcmma": the control and physical fields of step k are restored to the design x_k before output, but the
           primal-solution fields (e.g. displacements) come from the last trial evaluation at x_{k+1}.
+        - On the last iteration (converged) the control field is not updated to x_{k+1}: the returned field and
+          objective value belong to the last evaluated design x_k.
+        - Two constraints on the same response are rejected (use an equivalent expression such as "1.0*mass").
         - Sequential only: raises when run with MPI.
     """
 
@@ -99,7 +103,11 @@ class AlgorithmMMA(Algorithm):
             self.master_control.AddControl(control)
 
         settings = parameters["settings"]
-        settings.ValidateAndAssignDefaults(self.GetDefaultParameters()["settings"])
+        default_settings = self.GetDefaultParameters()["settings"]
+        settings.ValidateAndAssignDefaults(default_settings)
+        # Nested blocks are completed one by one: "conv_settings" is open, so RecursivelyValidate... would reject its keys.
+        settings["subsolve_settings"].ValidateAndAssignDefaults(default_settings["subsolve_settings"])
+        settings["gcmma_settings"].ValidateAndAssignDefaults(default_settings["gcmma_settings"])
 
         ComponentDataView("algorithm", self._optimization_problem).SetDataBuffer(self.GetMinimumBufferSize())
 
@@ -111,6 +119,10 @@ class AlgorithmMMA(Algorithm):
             constraint = StandardizedConstraint(constraint_param, self.master_control, self._optimization_problem)
             if constraint.IsEqualityType():
                 raise RuntimeError("AlgorithmMMA supports inequality constraints only.")
+            if constraint.GetResponseName() in [other.GetResponseName() for other in self._constraints_list]:
+                raise RuntimeError(f"AlgorithmMMA does not support two constraints on the same response \"{constraint.GetResponseName()}\" "
+                                   f"(output keys and response data would collide). Use an equivalent expression for the "
+                                   f"second one, e.g. \"1.0*{constraint.GetResponseName()}\".")
             self._optimization_problem.AddComponent(constraint)
             self._constraints_list.append(constraint)
 
@@ -326,6 +338,8 @@ class AlgorithmMMA(Algorithm):
                     self.__CheckInnerCap(conservative)
                     # Trial evaluations left the controls at the trial design; restore x_k for the output of step k.
                     self.master_control.Update(self._control_field)
+                    # Cached values are dropped too: responses sharing state would otherwise give gradients from the trial design.
+                    CallOnAll([self._objective, *self._constraints_list], ResponseRoutine.ResetCachedValue)
                     buffered_data["gcmma_inner_iterations"] = inner_iterations
 
                 if residual > 1e-6:
@@ -346,7 +360,8 @@ class AlgorithmMMA(Algorithm):
 
                 self.Output()
 
-                self.UpdateControl()
+                if not self.converged:
+                    self.UpdateControl()
 
                 self.__x_prev2 = self.__x_prev
                 self.__x_prev = x

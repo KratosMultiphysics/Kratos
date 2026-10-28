@@ -6,16 +6,9 @@ from KratosMultiphysics.OptimizationApplication.optimization_analysis import Opt
 from KratosMultiphysics.compare_two_files_check_process import CompareTwoFilesCheckProcess
 
 
+@KratosUnittest.skipIfApplicationsNotAvailable("StructuralMechanicsApplication")
 class TestMMAAnalysis(KratosUnittest.TestCase):
     """Minimises the mass of a shell plate (THICKNESS control, exact gradients) s.t. a strain energy limit."""
-
-    def setUp(self):
-        # Multi-threaded assembly changes the shell results at ~1e-6 (measured spread 5e-6), above the CSV tolerance.
-        self.previous_threads = Kratos.ParallelUtilities.GetNumThreads()
-        Kratos.ParallelUtilities.SetNumThreads(1)
-
-    def tearDown(self):
-        Kratos.ParallelUtilities.SetNumThreads(self.previous_threads)
 
     def _RunAndCompare(self, variant: str) -> None:
         with KratosUnittest.WorkFolderScope(".", __file__):
@@ -26,14 +19,16 @@ class TestMMAAnalysis(KratosUnittest.TestCase):
             analysis = OptimizationAnalysis(model, parameters)
             analysis.Run()
 
+            # Linear solver (pardiso/sparse_lu/skyline) and thread count change the MMA slack variable by up to 2e-5 and
+            # the near-zero std constraint values (strain energy ~4e4 minus its limit) by ~1e-3 absolute.
             CompareTwoFilesCheckProcess(Kratos.Parameters("""
             {
                 "reference_file_name"   : "summary_orig_""" + variant + """.csv",
                 "output_file_name"      : "summary_""" + variant + """.csv",
                 "remove_output_file"    : true,
                 "comparison_type"       : "csv_file",
-                "tolerance"             : 1e-6,
-                "relative_tolerance"    : 1e-6
+                "tolerance"             : 1e-2,
+                "relative_tolerance"    : 1e-5
             }""")).Execute()
 
     def test_mma_analysis(self):

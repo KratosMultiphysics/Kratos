@@ -3,12 +3,16 @@ import numpy as np
 import KratosMultiphysics as Kratos
 
 import KratosMultiphysics.KratosUnittest as kratos_unittest
-from KratosMultiphysics.OptimizationApplication.algorithms.algorithm_gradient_projection import AlgorithmGradientProjection
-from KratosMultiphysics.OptimizationApplication.algorithms.algorithm_relaxed_gradient_projection import AlgorithmRelaxedGradientProjection
+from KratosMultiphysics.kratos_utilities import CheckIfApplicationsAvailable
 from KratosMultiphysics.OptimizationApplication.utilities.component_data_view import ComponentDataView
 from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem import OptimizationProblem
 from KratosMultiphysics.OptimizationApplication.responses.mass_response_function import MassResponseFunction
 from KratosMultiphysics.OptimizationApplication.controls.material.material_properties_control import MaterialPropertiesControl
+
+# The GP algorithms import LinearSolversApplication at module level, so they are imported only when it is available.
+if CheckIfApplicationsAvailable("LinearSolversApplication"):
+    from KratosMultiphysics.OptimizationApplication.algorithms.algorithm_gradient_projection import AlgorithmGradientProjection
+    from KratosMultiphysics.OptimizationApplication.algorithms.algorithm_relaxed_gradient_projection import AlgorithmRelaxedGradientProjection
 
 
 def _CreateModelAndProblem():
@@ -37,17 +41,19 @@ def _CreateModelAndProblem():
 
 @kratos_unittest.skipIfApplicationsNotAvailable("LinearSolversApplication")
 class TestGradientProjectionKKTNorm(kratos_unittest.TestCase):
-    """Objective and constraint gradients are parallel (both a mass) and the constraint mass <= 1 is violated at the
-    start (mass = 15). GP: the projected direction vanishes, so kkt_norm has to equal the violation. RGP: the
-    correction term is added to the direction. In both cases kkt_norm = max(|search_direction|_inf, violation)."""
+    """Objective and constraint gradients are parallel (both a mass), start at mass = 15.
+    Violated mass <= 1: GP's projected direction vanishes, so kkt_norm has to equal the violation; RGP adds the
+    correction term to the direction. Active mass <= 15 / mass >= 15: kkt_norm must see the sign of the inequality
+    multiplier (dual feasibility). GP: kkt_norm = max(|g - N lambda_clipped|_inf, violation); RGP:
+    kkt_norm = max(|search_direction|_inf, violation)."""
 
-    def _Run(self, algorithm_class, extra_settings="", constraint_settings=""):
+    def _Run(self, algorithm_class, extra_settings="", constraint_settings="", constraint_type="<=", reference=1.0, check_violated=True):
         model, optimization_problem = _CreateModelAndProblem()
         parameters = Kratos.Parameters("""{
             "module"     : "KratosMultiphysics.OptimizationApplication.algorithms",
             "type"       : "gradient_projection",
             "objective"  : {"response_expression": "mass", "type": "minimization", "scaling": 1.0},
-            "constraints": [{"response_expression": "mass_copy", "type": "<=", "scaled_ref_value": 1.0""" + constraint_settings + """}],
+            "constraints": [{"response_expression": "mass_copy", "type": \"""" + constraint_type + """\", "scaled_ref_value": """ + str(reference) + constraint_settings + """}],
             "controls"   : ["control1"],
             "settings"   : {
                 "line_search"  : {"type": "const_step", "init_step": 0.1, "gradient_scaling": "inf_norm"},
@@ -60,7 +66,8 @@ class TestGradientProjectionKKTNorm(kratos_unittest.TestCase):
         algorithm.Finalize()
         data = ComponentDataView("algorithm", optimization_problem).GetBufferedData()
         violation = algorithm._constraints_list[0].GetStandardizedValue()
-        self.assertGreater(violation, 10.0)
+        if check_violated:
+            self.assertGreater(violation, 10.0)
         search_direction = data["search_direction"].data
         return data["kkt_norm"], search_direction, violation
 
@@ -78,6 +85,25 @@ class TestGradientProjectionKKTNorm(kratos_unittest.TestCase):
         kkt_norm, search_direction, violation = self._Run(AlgorithmRelaxedGradientProjection)
         self.assertAlmostEqual(kkt_norm, max(np.max(np.abs(search_direction)), violation), 12)
         self.assertGreaterEqual(kkt_norm, violation)
+
+    def _KKTNormAtActiveConstraint(self, algorithm_class, constraint_type):
+        # mass = 15 at the start, so mass_copy <= / >= 15 is active (not violated); grad(mass) = [1.5, 3], parallel to the constraint gradient.
+        kkt_norm, _, violation = self._Run(algorithm_class, constraint_type=constraint_type, reference=15.0, check_violated=False)
+        self.assertLess(abs(violation), 1e-12)
+        return kkt_norm
+
+    def test_gradient_projection_dual_infeasible(self):
+        # Minimising mass with mass <= 15 active: the multiplier has the wrong sign (the constraint should be released),
+        # the projected direction is 0, but the point is not KKT: kkt_norm = |grad|_inf = 3.
+        self.assertAlmostEqual(self._KKTNormAtActiveConstraint(AlgorithmGradientProjection, "<="), 3.0, 12)
+
+    def test_gradient_projection_kkt_point(self):
+        # With mass >= 15 the multiplier is admissible and the stationarity residual vanishes.
+        self.assertLess(self._KKTNormAtActiveConstraint(AlgorithmGradientProjection, ">="), 1e-12)
+
+    def test_relaxed_gradient_projection_dual_infeasible(self):
+        # RGP already clips the multiplier in its projection (the direction is non-zero), so kkt_norm is not 0 either.
+        self.assertAlmostEqual(self._KKTNormAtActiveConstraint(AlgorithmRelaxedGradientProjection, "<="), 1.0, 12)
 
 
 if __name__ == "__main__":

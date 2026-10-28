@@ -124,9 +124,11 @@ class AlgorithmGradientProjection(Algorithm):
         search_direction = Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor(obj_grad, perform_collect_data_recursively=False, perform_store_data_recursively=False)
         correction = Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor(obj_grad, perform_collect_data_recursively=False, perform_store_data_recursively=False)
 
+        # stationarity residual used for kkt_norm: |g|_inf without active constraints, else |g - N lambda_clipped|_inf.
         if not number_of_active_constraints:
             search_direction.data[:] *= -1.0
             correction.data[:] = 0.0
+            stationarity = numpy.max(numpy.abs(search_direction.data))
         else:
             constraint_violations = Kratos.Vector(number_of_active_constraints)
             for i, active_constraint in enumerate(active_constraints_list):
@@ -150,8 +152,15 @@ class AlgorithmGradientProjection(Algorithm):
             # solve for inverse of ntn
             self.linear_solver.Solve(ntn, ntn_inverse, identity_matrix)
 
-            search_direction.data[:] = - (obj_grad.data[:] - self._CollectiveListVectorProduct(constr_grad, ntn_inverse * self._CollectiveListCollectiveProduct(constr_grad, obj_grad)).data)
+            multipliers = ntn_inverse * self._CollectiveListCollectiveProduct(constr_grad, obj_grad)
+            search_direction.data[:] = - (obj_grad.data[:] - self._CollectiveListVectorProduct(constr_grad, multipliers).data)
             correction.data[:] = - self._CollectiveListVectorProduct(constr_grad, ntn_inverse * constraint_violations).data
+
+            # Inequality multipliers must satisfy mu = -lambda >= 0: a positive lambda means the constraint should be released.
+            clipped_multipliers = Kratos.Vector(number_of_active_constraints)
+            for i, active_constraint in enumerate(active_constraints_list):
+                clipped_multipliers[i] = multipliers[i] if active_constraint.IsEqualityType() else min(multipliers[i], 0.0)
+            stationarity = numpy.max(numpy.abs(obj_grad.data - self._CollectiveListVectorProduct(constr_grad, clipped_multipliers).data))
 
         correction_norm = numpy.linalg.norm(correction.data.ravel())
         if correction_norm > self.correction_size:
@@ -163,13 +172,13 @@ class AlgorithmGradientProjection(Algorithm):
         self.algorithm_data.GetBufferedData()["search_direction"] = search_direction
         self.algorithm_data.GetBufferedData()["correction"] = correction
 
-        # kkt_norm = max(direction norm, worst violation): the direction norm alone can be zero at an infeasible point.
+        # kkt_norm = max(stationarity residual, worst violation): the projected direction alone vanishes at infeasible
+        # points (parallel gradients) and at points where an active inequality has a wrong-sign multiplier.
         constraint_violation = max(
             (abs(constraint.GetStandardizedValue()) if constraint.IsEqualityType() else max(value, 0.0)
              for constraint, value in zip(self._constraints_list, self.__constr_value)),
             default=0.0)
-        self.algorithm_data.GetBufferedData()["kkt_norm"] = max(
-            numpy.max(numpy.abs(search_direction.data)), constraint_violation)
+        self.algorithm_data.GetBufferedData()["kkt_norm"] = max(stationarity, constraint_violation)
 
     @time_decorator()
     def ComputeControlUpdate(self, alpha: Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor) -> Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor:

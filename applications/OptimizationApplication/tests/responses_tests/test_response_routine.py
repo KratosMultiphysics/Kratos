@@ -134,5 +134,26 @@ class TestResponseRoutine(kratos_unittest.TestCase):
         control_4_gradient = gradient.GetTensorAdaptors()[3]
         self.assertEqual(numpy.linalg.norm(control_4_gradient.data, ord=numpy.inf), 0.0)
 
+    def test_ResetCachedValue(self):
+        control_field = self.master_control.GetEmptyField()
+        for ta in control_field.GetTensorAdaptors():
+            KratosOA.TensorAdaptors.PropertiesVariableTensorAdaptor(ta, Kratos.DENSITY, copy=False).CollectData()
+        Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor(control_field, perform_collect_data_recursively=False, copy=False).CollectData()
+
+        evaluations = []
+        original_calculate_value = self.response.CalculateValue
+        self.response.CalculateValue = lambda: evaluations.append(1) or original_calculate_value()
+        try:
+            self.response_routine.ResetCachedValue()   # start from an empty cache, independent of the other tests
+            value = self.response_routine.CalculateValue(control_field)
+            self.response_routine.CalculateValue(control_field)
+            self.assertEqual(len(evaluations), 1)   # unchanged control field: cached
+
+            self.response_routine.ResetCachedValue()
+            self.assertEqual(self.response_routine.CalculateValue(control_field), value)
+            self.assertEqual(len(evaluations), 2)   # same field, but the cache was dropped
+        finally:
+            self.response.CalculateValue = original_calculate_value
+
 if __name__ == "__main__":
     kratos_unittest.main()
