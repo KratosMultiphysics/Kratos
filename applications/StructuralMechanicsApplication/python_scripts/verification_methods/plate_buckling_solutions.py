@@ -26,6 +26,8 @@ def _SineIntegrals(size: int) -> dict:
     odd = (m + p) % 2 == 1
     I01 = np.zeros((size, size))
     I01[odd] = 2.0 * m[odd] * p[odd] / (m[odd]**2 - p[odd]**2)
+    Ic = np.zeros((size, size))
+    Ic[odd] = -4.0 * m[odd] * p[odd] / (np.pi**2 * (m[odd]**2 - p[odd]**2)**2)
     return {(0, 0): np.eye(size) / 2.0,
             (1, 1): np.diag((k * np.pi)**2 / 2.0),
             (2, 0): np.diag(-(k * np.pi)**2 / 2.0),
@@ -33,13 +35,17 @@ def _SineIntegrals(size: int) -> dict:
             (2, 2): np.diag((k * np.pi)**4 / 2.0),
             (0, 1): I01,
             (1, 0): I01.T,
-            (2, 1): -(m * np.pi)**2 * I01}
+            (2, 1): -(m * np.pi)**2 * I01, "centered": Ic}
 
 
 def RitzSSSS(D: np.ndarray, a: float, b: float, N0x: float, N0y: float, N0xy: float,
-             n_terms: int = 20) -> tuple[float, np.ndarray | None]:
-    """Ritz method with n_terms x n_terms sine functions, including D16, D26 and shear.
-    Returns (Lambda, W) with the mode coefficients W[m-1, n-1]; (inf, None) if nothing buckles."""
+             n_terms: int = 20, dN0x: float = 0.0, dN0y: float = 0.0) -> tuple[float, np.ndarray | None]:
+    """Ritz method with n_terms x n_terms sine functions, including D16, D26, shear and linear load gradients.
+
+    N0x(eta) = N0x + dN0x (eta - 1/2): N_xx varying across the width (in-plane bending)
+    N0y(xi)  = N0y + dN0y (xi - 1/2):  N_yy varying along the length
+    Returns (Lambda, W) with the mode coefficients W[m-1, n-1]; (inf, None) if nothing buckles.
+    """
     D11, D12, D22, D16, D26, D66 = D[0, 0], D[0, 1], D[1, 1], D[0, 2], D[1, 2], D[2, 2]
     ref = np.sqrt(D11 * D22)
     alpha = (a / b) * (D22 / D11)**0.25
@@ -50,6 +56,8 @@ def RitzSSSS(D: np.ndarray, a: float, b: float, N0x: float, N0y: float, N0xy: fl
     nxx = N0x * b**2 / (np.pi**2 * ref)
     nyy = N0y * a**2 / (np.pi**2 * ref)
     nxy = N0xy * a * b / (np.pi**2 * ref)
+    nxx_grad = dN0x * b**2 / (np.pi**2 * ref)
+    nyy_grad = dN0y * a**2 / (np.pi**2 * ref)
 
     I = _SineIntegrals(n_terms)
     K = (1.0 / (2.0 * alpha**2) * np.kron(I[2, 2], I[0, 0])
@@ -58,13 +66,13 @@ def RitzSSSS(D: np.ndarray, a: float, b: float, N0x: float, N0y: float, N0xy: fl
          + (1.0 - zeta) * beta  * np.kron(I[1, 1], I[1, 1])
          + 2.0 * gamma / alpha  * np.kron(I[2, 1], I[0, 1])
          + 2.0 * delta * alpha  * np.kron(I[0, 1], I[2, 1]))
-    G = (np.pi**2 / 2.0 * nxx * np.kron(I[1, 1], I[0, 0])
-         + np.pi**2 / 2.0 * nyy * np.kron(I[0, 0], I[1, 1])
+    G = (np.pi**2 / 2.0 * np.kron(I[1, 1], nxx * I[0, 0] + nxx_grad * I["centered"])
+         + np.pi**2 / 2.0 * np.kron(nyy * I[0, 0] + nyy_grad * I["centered"], I[1, 1])
          + np.pi**2       * nxy * np.kron(I[1, 0], I[0, 1]))
     K = 0.5 * (K + K.T)     # only the symmetric part belongs to the strain energy
     G = 0.5 * (G + G.T)
 
-    # K is positive definite: solve G v = mu K v for the largest mu only, Lambda = 1 / mu
+
     size = n_terms**2
     mu, v = scipy.linalg.eigh(G, K, subset_by_index=[size - 1, size - 1])
     if mu[0] <= 0.0:

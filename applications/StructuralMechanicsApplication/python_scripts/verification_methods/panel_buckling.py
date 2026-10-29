@@ -1,10 +1,10 @@
 import numpy as np
 import KratosMultiphysics
-from KratosMultiphysics.StructuralMechanicsApplication.handbook_methods.analysis_result import AnalysisResult
-from KratosMultiphysics.StructuralMechanicsApplication.handbook_methods.method_base import HandbookMethod
+from KratosMultiphysics.StructuralMechanicsApplication.verification_methods.analysis_result import AnalysisResult
+from KratosMultiphysics.StructuralMechanicsApplication.verification_methods.method_base import VerificationMethod
 import KratosMultiphysics.StructuralMechanicsApplication as SMA
 
-class PanelUniaxialBuckling(HandbookMethod):
+class PanelUniaxialBuckling(VerificationMethod):
     """Currently limited to isotropic simply supported panels.
 
     Returns:
@@ -56,7 +56,7 @@ class PanelUniaxialBuckling(HandbookMethod):
 
         return AnalysisResult(self.name, self.category, rf, output_variable=SMA.RESPONSE_VALUE)
 
-class PanelBiaxialBuckling(HandbookMethod):
+class PanelBiaxialBuckling(VerificationMethod):
     name = "panel_biaxial_buckling"
     category = "stability"
 

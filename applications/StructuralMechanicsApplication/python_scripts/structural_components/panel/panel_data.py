@@ -8,14 +8,12 @@ class PanelGeometry:
     z_axis: np.ndarray
     a: float # Dimension along local panel x coordinate
     b: float # Dimension along local panel y coordinate
-    aspect_ratio: float
-    thickness: float
-    curvature_type: str = "flat"
+    material_axis_offset: float
 
-@dataclass
-class PanelMaterial:
-    young_modulus: float
-    poisson_ratio: float
+    @property
+    def rotation_matrix(self) -> np.ndarray:
+        """Rows are the panel axes: v_panel = R @ v_global, T_panel = R @ T_global @ R.T"""
+        return np.vstack((self.x_axis, self.y_axis, self.z_axis))
 
 @dataclass
 class PanelCompositeMaterial:
@@ -46,23 +44,6 @@ class PanelCompositeMaterial:
     degradationfactor_E_tr_B  : float
     degradationfactor_G_patr_B: float
 
-
-@dataclass
-class PanelResponse:
-    sigma_xx: float # stress along local panel x coordinate
-    sigma_yy: float # stress along local panel y coordinate
-    tau_xy: float
-    stress_tensor: np.ndarray
-
-@dataclass
-class PanelLoadState:
-    has_x_compression: bool
-    has_y_compression: bool
-    has_shear: bool
-    is_uniaxial_compression: bool
-    is_biaxial_compression: bool
-    is_shear_dominant: bool
-
 @dataclass
 class PanelCompositeResponse:
     #TODO: Add responses that are necessary for Puck analysis
@@ -82,24 +63,11 @@ class PanelCompositeResponse:
     num_elements  : int
 
 @dataclass
-class PanelSJTUGeometry:
-    x_axis: np.ndarray              # along the longer panel edge
-    y_axis: np.ndarray              # z_axis x x_axis
-    z_axis: np.ndarray              # panel normal, oriented like the element normals
-    a: float                        # dimension along x_axis
-    b: float                        # dimension along y_axis
-    material_axis_offset: float     # angle [rad] from x_axis to LOCAL_MATERIAL_AXIS_1 about z_axis
-
-    @property
-    def rotation_matrix(self) -> np.ndarray:
-        """Rows are the panel axes: v_panel = R @ v_global, T_panel = R @ T_global @ R.T"""
-        return np.vstack((self.x_axis, self.y_axis, self.z_axis))
-
-@dataclass
 class PanelLoads:
     """Running loads per element in the panel frame. Kratos sign convention: tension positive."""
     element_ids: np.ndarray # (n,)
     element_areas: np.ndarray # (n,)
+    centroids: np.ndarray # (n, 2): xi = x/a, eta = y/b in [0, 1]
     N: np.ndarray # (n, 3): N_xx, N_yy, N_xy [force/length]
     M: np.ndarray # (n, 3): M_xx, M_yy, M_xy [moment/length]
 
@@ -107,3 +75,14 @@ class PanelLoads:
     def N_average(self) -> np.ndarray:
         """Area-weighted panel average (N_xx, N_yy, N_xy), input for buckling."""
         return self.element_areas @ self.N / self.element_areas.sum()
+
+    @property
+    def N_linear(self) -> np.ndarray:
+        """Area-weighted least-squares fit N(xi, eta) = c0 + c1 (xi - 1/2) + c2 (eta - 1/2).
+
+        Returns (3, 3): rows c0, c1, c2; columns N_xx, N_yy, N_xy.
+        """
+        basis = np.column_stack((np.ones(len(self.N)), self.centroids - 0.5))
+        sqrt_w = np.sqrt(self.element_areas)[:, None]
+        coefficients, *_ = np.linalg.lstsq(sqrt_w * basis, sqrt_w * self.N, rcond=None)
+        return coefficients

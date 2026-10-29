@@ -12,13 +12,13 @@
 #Therefore, this is not fully covered by the test
 
 import numpy as np
-from KratosMultiphysics.StructuralMechanicsApplication.handbook_methods.analysis_result import AnalysisResult
-from KratosMultiphysics.StructuralMechanicsApplication.handbook_methods.method_base import HandbookMethod
+from KratosMultiphysics.StructuralMechanicsApplication.verification_methods.analysis_result import AnalysisResult
+from KratosMultiphysics.StructuralMechanicsApplication.verification_methods.method_base import VerificationMethod
 import KratosMultiphysics.StructuralMechanicsApplication as SMA
 
 
 
-class PuckAnalysis(HandbookMethod):
+class PuckAnalysis(VerificationMethod):
     name = "puck"
     category = "strength"
 

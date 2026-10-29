@@ -1,11 +1,11 @@
 import numpy as np
 import KratosMultiphysics
-from KratosMultiphysics.StructuralMechanicsApplication.handbook_methods.method_base import HandbookMethod
-from KratosMultiphysics.StructuralMechanicsApplication.handbook_methods.analysis_result import AnalysisResult
-from KratosMultiphysics.StructuralMechanicsApplication.handbook_methods.plate_buckling_solutions import (NavierSpeciallyOrthotropic,
+from KratosMultiphysics.StructuralMechanicsApplication.verification_methods.method_base import VerificationMethod
+from KratosMultiphysics.StructuralMechanicsApplication.verification_methods.analysis_result import AnalysisResult
+from KratosMultiphysics.StructuralMechanicsApplication.verification_methods.plate_buckling_solutions import (NavierSpeciallyOrthotropic,
                                                                                                        RitzSSSS)
 
-class PanelBuckling(HandbookMethod):
+class PanelBuckling(VerificationMethod):
     """Buckling of flat rectangular panels under the panel-averaged running loads.
 
     Navier (exact) for specially orthotropic plates without shear, Ritz otherwise.

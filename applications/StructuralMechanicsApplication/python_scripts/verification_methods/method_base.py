@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 
-class HandbookMethod(ABC):
+class VerificationMethod(ABC):
     name: str
     category: str
 

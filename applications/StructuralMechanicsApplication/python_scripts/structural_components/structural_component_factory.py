@@ -1,10 +1,8 @@
 import KratosMultiphysics
 from KratosMultiphysics.StructuralMechanicsApplication.structural_components.panel.panel import Panel
-from KratosMultiphysics.StructuralMechanicsApplication.structural_components.panel.panel_sjtu import PanelSJTU
 
 _COMPONENT_TYPES = {
-    "panel": Panel,
-    "panelsjtu": PanelSJTU
+    "panel": Panel
 }
 
 def CreateStructuralComponent(modelpart: KratosMultiphysics.ModelPart, component_definition: KratosMultiphysics.Parameters):

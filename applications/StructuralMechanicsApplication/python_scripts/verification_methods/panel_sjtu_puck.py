@@ -1,10 +1,10 @@
 import numpy as np
 import KratosMultiphysics
-from KratosMultiphysics.StructuralMechanicsApplication.handbook_methods.method_base import HandbookMethod
-from KratosMultiphysics.StructuralMechanicsApplication.handbook_methods.analysis_result import AnalysisResult
-from KratosMultiphysics.StructuralMechanicsApplication.handbook_methods.puck import PuckAnalysis
+from KratosMultiphysics.StructuralMechanicsApplication.verification_methods.method_base import VerificationMethod
+from KratosMultiphysics.StructuralMechanicsApplication.verification_methods.analysis_result import AnalysisResult
+from KratosMultiphysics.StructuralMechanicsApplication.verification_methods.puck import PuckAnalysis
 
-class PuckFirstPlyFailure(HandbookMethod):
+class PuckFirstPlyFailure(VerificationMethod):
     """Puck first-ply failure from CLT ply stresses, evaluated per element at the top and bottom face of each ply.
 
     RF = min(RF_FF, RF_IFF). No degradation, no last-ply failure.

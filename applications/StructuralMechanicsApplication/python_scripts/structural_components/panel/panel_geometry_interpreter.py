@@ -1,117 +1,110 @@
-import KratosMultiphysics
-from KratosMultiphysics.StructuralMechanicsApplication.structural_components.panel.panel_data import PanelGeometry
 import numpy as np
+from collections import Counter
+import KratosMultiphysics
+import KratosMultiphysics.StructuralMechanicsApplication as SMA
+from KratosMultiphysics.StructuralMechanicsApplication.structural_components.panel.panel_data import PanelGeometry
 
 class PanelGeometryInterpreter:
+    """Coordinate system and dimensions of a flat, rectangular panel from its shell elements.
+
+    z_axis: plane normal, oriented like the element normals (ply angles are defined about it)
+    x_axis: along the longer edge; for square panels the edge closest to the material axis
+    """
+    curvature_tolerance_degrees = 1.0       # warning if element normals deviate more from the panel normal
+    material_axis_tolerance_degrees = 1.0   # material axes of all elements must agree within this angle
+    rectangle_tolerance = 0.01              # relative deviation of the element area from a * b
 
     def Interpret(self, sub_model_part) -> PanelGeometry:
-        points = self._GetPoints(sub_model_part)
-        self.centered_points = self._GetCenteredPoints(points)
-        panel_base_vectors = self._CalculatePanelCoordinateSystem(self.centered_points)
-        self._CheckCurvature(sub_model_part, panel_base_vectors[-1])
-        length, width = self._GetPanelDimensions(self.centered_points, panel_base_vectors)
+        centered_points = self._GetCenteredPoints(sub_model_part)
+        process_info = sub_model_part.ProcessInfo
 
-        KratosMultiphysics.Logger.PrintInfo(
-        "Panel Dimensions",
-        f"a {length:.2f}, b {width:.2f}")
-        aspect_ratio = length / width
-        thickness = self._ComputeAverageThickness(sub_model_part)
-        return PanelGeometry( panel_base_vectors[0], panel_base_vectors[1], panel_base_vectors[2], length, width, aspect_ratio, thickness)
+        z_axis = self._GetPanelNormal(sub_model_part, centered_points, process_info)
+        self._CheckCurvature(sub_model_part, z_axis)
 
-    def _GetPoints(self, sub_model_part) -> np.ndarray:
-        points = np.array([[node.X0, node.Y0, node.Z0] for node in sub_model_part.Nodes], dtype=float)
-        return points
+        material_axis = self._GetMaterialAxis(sub_model_part, z_axis, process_info)
+        x_axis = self._GetEdgeDirectionClosestTo(sub_model_part, material_axis, z_axis)
+        y_axis = np.cross(z_axis, x_axis)
 
-    def _GetCenteredPoints(self, points):
-        centroid = centroid = np.mean(points, axis=0)
-        centered_points = points-centroid
-        return centered_points
+        a, b = self._GetPanelDimensions(centered_points, x_axis, y_axis)
+        if b > a * (1.0 + 1e-6):
+            # convention a >= b: rotate the in-plane axes by 90 deg about z_axis
+            x_axis, y_axis = -y_axis, x_axis
+            a, b = b, a
 
-    def _CalculatePanelCoordinateSystem(self, points: np.ndarray) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
-        """Calculates local panel base vectors using singular value decomposition.
+        material_axis_offset = np.arctan2(np.dot(np.cross(x_axis, material_axis), z_axis),
+                                          np.dot(x_axis, material_axis))
+        self._CheckRectangular(sub_model_part, a, b)
 
-        Args:
-            points (np.ndarray): Contains node coordinates.
+        KratosMultiphysics.Logger.PrintInfo("Panel",
+            f"'{sub_model_part.Name}': a={a:.4g}, b={b:.4g}, x={np.round(x_axis, 4)}, "
+            f"z={np.round(z_axis, 4)}, material axis offset={np.degrees(material_axis_offset):.2f} deg")
 
-        Returns:
-            tuple[np.ndarray, np.ndarray, np.ndarray]: Contains base vectors (ex, ey, ez)
-        """
-        centered_points = self._GetCenteredPoints(points)
+        return PanelGeometry(x_axis, y_axis, z_axis, a, b, material_axis_offset)
+
+    @staticmethod
+    def _GetCenteredPoints(sub_model_part) -> np.ndarray:
+        points = np.array([[node.X0, node.Y0, node.Z0] for node in sub_model_part.Nodes])
+        return points - points.mean(axis=0)
+
+    @staticmethod
+    def _GetPanelNormal(sub_model_part, centered_points, process_info) -> np.ndarray:
         _, _, vh = np.linalg.svd(centered_points, full_matrices=False)
-        ez = vh[-1]
-        ex = vh[0]
-        ey = np.cross(ez, ex)
+        z_axis = vh[-1]
+        element = next(iter(sub_model_part.Elements))
+        element_normal = np.array(element.CalculateOnIntegrationPoints(KratosMultiphysics.LOCAL_AXIS_3, process_info)[0])
+        return z_axis if np.dot(z_axis, element_normal) > 0.0 else -z_axis
 
-        return (ex, ey, ez)
+    def _CheckCurvature(self, sub_model_part, z_axis) -> None:
+        normals = np.array([self._GetElementNormal(element) for element in sub_model_part.Elements])
+        max_angle = np.degrees(np.arccos(np.clip(np.abs(normals @ z_axis), 0.0, 1.0)).max())
+        if max_angle > self.curvature_tolerance_degrees:
+            KratosMultiphysics.Logger.PrintWarning("Panel",
+                f"'{sub_model_part.Name}' appears to be curved: element normals deviate up to {max_angle:.2f} deg.")
 
-    def _GetPanelDimensions(self, centered_points, base_vectors):
-        """Calculates the panel dimensions using the PCA-based panel base vectors,
-
-        Args:
-            centered_points (np.ndarray): points (node coordinates) - centroid
-            base_vectors (tuple[np.ndarray, np.ndarray, np.ndarray]): (ex, ey, ez)
-
-        Returns:
-            length, width: Panel dimensions
-        """
-        ex = base_vectors[0]
-        ey = base_vectors[1]
-        length_coordinates = centered_points @ ex
-        width_coordinates = centered_points @ ey
-
-        length = np.ptp(length_coordinates)
-        width = np.ptp(width_coordinates)
-
-        return length, width
-
-    def _ComputeAverageThickness(self, sub_model_part) -> float:
-        """Loops through the elements that are part of the panel submodelpart and calculates the average thickness.
-
-        Args:
-            sub_model_part: Panel submodelpart containing the shell elements.
-
-        Returns:
-            float: Average thickness of the panel
-        """
-        total_area = sum(element.GetGeometry().Area() for element in sub_model_part.Elements)
-
-        weighted_thickness = sum(
-            element.GetGeometry().Area() * element.Properties.GetValue(KratosMultiphysics.THICKNESS)
-            for element in sub_model_part.Elements
-        )
-
-        return weighted_thickness / total_area
-
-    def _GetElementNormal(self, element) -> np.ndarray:
+    @staticmethod
+    def _GetElementNormal(element) -> np.ndarray:
         geometry = element.GetGeometry()
-        number_of_integration_points = geometry.IntegrationPointsNumber()
-
-        normals = np.array([geometry.UnitNormal(i) for i in range(number_of_integration_points)])
-
-        normal = np.mean(normals, axis=0)
+        normals = np.array([geometry.UnitNormal(i) for i in range(geometry.IntegrationPointsNumber())])
+        normal = normals.mean(axis=0)
         return normal / np.linalg.norm(normal)
 
-    def _CheckCurvature(self, sub_model_part, ez: np.ndarray) -> None:
-        """Warn if element normals deviate from the average panel normal.
+    def _GetMaterialAxis(self, sub_model_part, z_axis, process_info) -> np.ndarray:
+        axes = np.array([element.CalculateOnIntegrationPoints(SMA.LOCAL_MATERIAL_AXIS_1, process_info)[0]
+                         for element in sub_model_part.Elements])
+        axes -= np.outer(axes @ z_axis, z_axis)
+        axes /= np.linalg.norm(axes, axis=1)[:, None]
+        if np.min(axes @ axes[0]) < np.cos(np.radians(self.material_axis_tolerance_degrees)):
+            raise RuntimeError(f"Panel '{sub_model_part.Name}': elements have different material axes, "
+                               f"ply angles would refer to different directions.")
+        return axes[0]
 
-        The check compares each element normal with the PCA-based panel normal direction. A large maximum angle indivates that the panel is curved or otherwise not well represented by a single flat local coordinate system.
+    @staticmethod
+    def _GetEdgeDirectionClosestTo(sub_model_part, reference, z_axis) -> np.ndarray:
+        """Boundary edges are used by one element only; returns the one most parallel to the reference."""
+        edge_count = Counter()
+        for element in sub_model_part.Elements:
+            ids = [node.Id for node in element.GetGeometry()]
+            for i in range(len(ids)):
+                edge_count[frozenset((ids[i], ids[(i + 1) % len(ids)]))] += 1
+        boundary_edges = [tuple(edge) for edge, count in edge_count.items() if count == 1]
 
-        Args:
-            sub_model_part: Panel submodelpart containing the shell elements.
-            ez (np.ndarray): PCA-based average panel normal direction.
-        """
-        #TODO: Just gives a warning right now. Curved panels should eventually be handled by a dedicated geometry interpretation algorithm.
-        angle_tolerance_degrees = 1.0
+        directions = []
+        for i, j in boundary_edges:
+            node_i, node_j = sub_model_part.GetNode(i), sub_model_part.GetNode(j)
+            d = np.array([node_j.X0 - node_i.X0, node_j.Y0 - node_i.Y0, node_j.Z0 - node_i.Z0])
+            d -= np.dot(d, z_axis) * z_axis
+            directions.append(d / np.linalg.norm(d))
+        directions = np.array(directions)
 
-        element_normals = np.array([self._GetElementNormal(element) for element in sub_model_part.Elements])
+        x_axis = directions[np.argmax(np.abs(directions @ reference))]
+        return x_axis if np.dot(x_axis, reference) > 0.0 else -x_axis
 
-        cos_angles = np.abs(element_normals @ ez)
-        max_angle_degrees = np.degrees(np.arccos(np.clip(cos_angles, -1.0, 1.0)).max())
+    @staticmethod
+    def _GetPanelDimensions(centered_points, x_axis, y_axis) -> tuple[float, float]:
+        return float(np.ptp(centered_points @ x_axis)), float(np.ptp(centered_points @ y_axis))
 
-        if max_angle_degrees > angle_tolerance_degrees:
-            KratosMultiphysics.Logger.PrintWarning(
-            "Panel",
-            f"Panel submodelpart '{sub_model_part.Name}' appears to be curved. "
-            f"Maximum element-normal deviation from the average panel normal is "
-            f"{max_angle_degrees:.2f} degrees."
-        )
+    def _CheckRectangular(self, sub_model_part, a, b) -> None:
+        area = sum(element.GetGeometry().Area() for element in sub_model_part.Elements)
+        if abs(area - a * b) > self.rectangle_tolerance * a * b:
+            raise RuntimeError(f"Panel '{sub_model_part.Name}' is not rectangular in the panel coordinate system: "
+                               f"element area {area:.4g} vs a*b {a * b:.4g}.")

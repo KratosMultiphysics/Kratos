@@ -21,20 +21,6 @@ class Schema_Validation:
             "properties": {
                 "type": {"const": "Panel"},
                 "submodelpart": {"type": "string"},
-                #"panel_origin_node": {"type": "integer"},
-                #"corner_node_x" : {"type": "integer"},
-                #"corner_node_y" : {"type": "integer"},
-                "boundary_conditions" : {"type": "string"},
-                "analysis_methods"  :   {"type": "array", "items": {"type": "string"}}
-            },
-            "required": ["type", "submodelpart"]
-        }
-
-        self.panel_sjtu_schema = {
-            "type": "object",
-            "properties": {
-                "type": {"const": "PanelSJTU"},
-                "submodelpart": {"type": "string"},
                 "boundary_conditions": {"enum": ["SSSS"]},
                 "material_type": {"enum": ["isotropic", "composite"]},
                 "analysis_methods": {"type": "array", "items": {"type": "string"}},
@@ -57,8 +43,7 @@ class Schema_Validation:
     def create_type_schemas(self):
         self.type_schemas = {
             "Panel": self.panel_schema,
-            "Column": self.column_schema,
-            "PanelSJTU": self.panel_sjtu_schema
+            "Column": self.column_schema
         }
 
     def validate_structural_component_input(self):
