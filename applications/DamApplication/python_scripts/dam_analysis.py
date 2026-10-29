@@ -53,6 +53,13 @@ class DamAnalysis(AnalysisStage):
         self.problem_path = os.getcwd()
         self.echo_level = self.project_parameters["solver_settings"]["echo_level"].GetInt()
         self.buffer_size = self.project_parameters["solver_settings"]["buffer_size"].GetInt()
+        if self.project_parameters["problem_data"].Has("consider_selfweight"):
+            if self.project_parameters["problem_data"]["consider_selfweight"].GetBool():
+                raise Exception(
+                    "The legacy SelfWeight workflow has been removed. "
+                    "'problem_data.consider_selfweight' must not be true; "
+                    "use standard gravity/body-force loading instead."
+                )
         self.consider_construction = self.project_parameters["problem_data"]["consider_construction"].GetBool()
         self.use_streamline_utility = self.project_parameters["problem_data"]["streamlines_utility"].GetBool()
         self.delta_time = self.project_parameters["problem_data"]["time_step"].GetDouble()
