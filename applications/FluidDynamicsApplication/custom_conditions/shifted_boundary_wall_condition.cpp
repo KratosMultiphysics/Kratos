@@ -150,11 +150,6 @@ int ShiftedBoundaryWallCondition<TDim>::Check(const ProcessInfo& rCurrentProcess
     // Check that the nodes contain all required SolutionStepData and Degrees Of Freedom variables
     for (const auto& r_node : this->GetGeometry()) {
 
-        //TODO remove?
-        if(r_node.SolutionStepsDataHas(DYNAMIC_VISCOSITY) == false){
-            KRATOS_ERROR << "missing DYNAMIC_VISCOSITY variable on solution step data for node " << r_node.Id();
-        }
-
         // Check variables
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(VELOCITY, r_node)
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(PRESSURE, r_node)
