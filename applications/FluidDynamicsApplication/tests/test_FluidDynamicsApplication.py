@@ -58,6 +58,7 @@ from apply_wall_law_process_test import ApplyWallLawProcessTest
 from test_navier_stokes_fractional_vectorial_convection import NavierStokesFractionalVectorialConvectionTest
 from test_sbm_fluid_dirichlet_condition import SbmFluidDirichletConditionTest
 from test_cylinder_sbm_geometry import CylinderSbmGeometryTest
+from moving_gap_navier_stokes.test_cylinder_forces import CylinderForceValidation
 from test_fluid_patch_coupling_condition import FluidPatchCouplingConditionTest
 from test_fluid_patch_gap_coupling import FluidPatchGapCouplingTest
 from test_moving_fluid_patch_gap import MovingFluidPatchGapTest
@@ -115,6 +116,7 @@ def AssembleTestSuites():
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([MovingFluidPatchGapTest, BoundedHistoryTransferTest]))
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TimeIntegratedQSVMSQ1Test]))
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([MovingGapNavierStokesSolverTest]))
+    nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([CylinderForceValidation]))
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([MovingGapNavierStokesTest]))
     nightSuite.addTest(ArtificialCompressibilityTest('testArtificialCompressibility'))
     nightSuite.addTest(BuoyancyTest('testEulerian'))

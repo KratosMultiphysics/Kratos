@@ -58,6 +58,24 @@ class FemMultipatchModeler(KM.Modeler):
         self.patch_settings = [background]
         self.boxes = [self._bounds(background)]
         for patch in self.settings["internal_patches"].values():
+            patch = patch.Clone()
+            if patch.Has('cylinder'): # to delete
+                cylinder = patch['cylinder']
+                center = list(cylinder['center'].GetVector())
+                radius = cylinder['radius'].GetDouble()
+                clearance = cylinder['clearance'].GetDouble()
+                dimensions = list(patch['dimensions'].GetVector())
+                if (len(center) != 2 or len(dimensions) != 2 or
+                        not all(math.isfinite(x) for x in center + dimensions + [radius, clearance]) or
+                        radius <= 0.0 or clearance < 0.0 or
+                        min(dimensions) <= 2.0 * (radius + clearance)):
+                    raise ValueError('Cylinder and clearance must fit strictly inside the inner patch.')
+                origin = KM.Vector([center[i] - 0.5 * dimensions[i] for i in range(2)])
+                if patch.Has('origin'):
+                    patch['origin'].SetVector(origin)
+                else:
+                    patch.AddVector('origin', origin)
+                patch.RemoveValue('cylinder')
             patch = self._read_box(patch)
             if self.interface_mode == "fitted":
                 if abs(patch["rotation_angle"].GetDouble()) > self.tolerance:

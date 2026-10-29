@@ -55,7 +55,7 @@ class MovingGapLifecycle:
         for motion in self.motions:
             if motion is not None:
                 if motion['type'] != 'sinusoidal' or not all(
-                        math.isfinite(motion[key]) for key in ('amplitude', 'frequency')) or motion['frequency'] < 0.0:
+                        math.isfinite(motion.get(key, 0.0)) for key in ('amplitude', 'frequency', 'phase')) or motion['frequency'] < 0.0:
                     raise ValueError('Sinusoidal motion requires finite amplitude and non-negative frequency.')
         self.dt = dt
         self.bdf1_startup = bdf1_startup
@@ -105,7 +105,8 @@ class MovingGapLifecycle:
             elapsed = time - self._initial_time
             return tuple(v * elapsed for v in self.velocities[index])
         omega = 2.0 * math.pi * motion['frequency']
-        return (motion['amplitude'] * (math.sin(omega * time) - math.sin(omega * self._initial_time)), 0.0)
+        phase = motion.get('phase', 0.0)
+        return (motion['amplitude'] * (math.sin(omega * time + phase) - math.sin(omega * self._initial_time + phase)), 0.0)
 
     def _snapshot_geometry(self):
         """Copy geometry before the next rebuild deletes its gap entities."""
@@ -164,7 +165,7 @@ class MovingGapLifecycle:
                     body_velocity = self.velocities[index]
                 else:
                     omega = 2.0 * math.pi * motion['frequency']
-                    body_velocity = (motion['amplitude'] * omega * math.cos(omega*time), 0.0)
+                    body_velocity = (motion['amplitude'] * omega * math.cos(omega*time + motion.get('phase', 0.0)), 0.0)
                 self.cylinder.update(translation, body_velocity)
         self.rebuild.Execute()
         self.computing = self.rebuild.computing

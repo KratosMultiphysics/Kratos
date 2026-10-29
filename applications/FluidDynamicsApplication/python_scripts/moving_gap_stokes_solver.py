@@ -44,9 +44,10 @@ class MovingGapStokesSolver(PythonSolver):
             "echo_level": 0,
             "time_step": 0.01,
             "translation_velocity": [0.0, 0.0],
-            "motion": {"type": "constant", "amplitude": 0.0, "frequency": 0.0},
+            "motion": {"type": "constant", "amplitude": 0.0, "frequency": 0.0, "phase": 0.0},
             "cylinder": {"enabled": false, "patch_index": 0, "center": [0.5, 0.5],
-                         "radius": 0.1, "clearance": 0.0, "penalty_coefficient": 0.0},
+                         "radius": 0.1, "clearance": 0.0, "penalty_coefficient": 0.0,
+                         "mode": "sbm", "boundary_divisions": 128},
             "patches": [],
             "bdf1_startup": true,
             "geometry_model_part_name": "Interfaces",
@@ -97,7 +98,8 @@ class MovingGapStokesSolver(PythonSolver):
                 motions.append(None)
             elif motion['type'].GetString() == 'sinusoidal':
                 motions.append({'type': 'sinusoidal', 'amplitude': motion['amplitude'].GetDouble(),
-                                'frequency': motion['frequency'].GetDouble()})
+                                'frequency': motion['frequency'].GetDouble(),
+                                'phase': motion['phase'].GetDouble() if motion.Has('phase') else 0.0})
             else:
                 raise ValueError('Motion type must be constant or sinusoidal.')
         cylinder = None
@@ -109,10 +111,15 @@ class MovingGapStokesSolver(PythonSolver):
             index = cylinder_settings['patch_index'].GetInt()
             if index < 0 or index >= len(pairs):
                 raise ValueError('Cylinder patch index is out of range.')
+            if cylinder_settings['mode'].GetString() == 'gap_sbm' and (
+                not pairs[index].Has('formulation') or pairs[index]['formulation'].GetString() != 'qsvms'
+            ):
+                raise ValueError('Cylinder gap_sbm requires the QSVMS formulation.')
             inner = self.model.GetModelPart(pairs[index]['inner_model_part_name'].GetString())
             cylinder = CylinderSbmGeometry(inner, list(cylinder_settings['center'].GetVector()),
                 cylinder_settings['radius'].GetDouble(), cylinder_settings['clearance'].GetDouble(),
-                cylinder_settings['penalty_coefficient'].GetDouble())
+                cylinder_settings['penalty_coefficient'].GetDouble(),
+                cylinder_settings['mode'].GetString(), cylinder_settings['boundary_divisions'].GetInt())
             rebuild = RebuildFluidPatchGapProcess(self.model, pairs,
                 geometry_name=self.settings['geometry_model_part_name'].GetString(),
                 computing_name=self.settings['computing_model_part_name'].GetString(),
@@ -186,3 +193,9 @@ class MovingGapStokesSolver(PythonSolver):
         if self._lifecycle is None:
             raise RuntimeError('Initialize the solver first.')
         return self._lifecycle.computing
+
+    def CalculateCylinderForce(self):
+        """Return the discrete SBM force on the configured cylinder."""
+        if self._lifecycle is None or self._lifecycle.cylinder is None:
+            raise RuntimeError('Initialize a solver with a cylinder before requesting its force.')
+        return self._lifecycle.cylinder.calculate_force(self._lifecycle.root.ProcessInfo)

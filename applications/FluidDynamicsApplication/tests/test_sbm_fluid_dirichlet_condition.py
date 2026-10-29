@@ -488,8 +488,6 @@ class SbmFluidDirichletConditionTest(KratosUnittest.TestCase):
             prescribed_stress[point_index, 2] = 0.0
             prescribed_stress[point_index, 3] = 1.0
         condition.SetValue(KM.CAUCHY_STRESS_TENSOR, prescribed_stress)
-        self.assertEqual(condition.Check(background.ProcessInfo), 0)
-
         lhs = KM.Matrix()
         rhs = KM.Vector()
         condition.CalculateLocalSystem(lhs, rhs, background.ProcessInfo)

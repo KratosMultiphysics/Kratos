@@ -1,4 +1,5 @@
 python_modelers_to_be_registered = [
+    "modelers.multipatch_modeler.FemMultipatchModeler",
     "modelers.delete_model_parts_modeler.DeleteModelPartsModeler",
     "modelers.import_mdpa_modeler.ImportMDPAModeler"
 ]

@@ -19,6 +19,30 @@ from KratosMultiphysics.FluidDynamicsApplication.patch_history_transfer import t
 
 
 class CylinderSbmGeometryTest(KratosUnittest.TestCase):
+    def test_gap_mode_creates_gap_entities(self):
+        if not hasattr(KM, 'GapConstructionUtility'):
+            self.skipTest('Requires rebuilt GapConstructionUtility Python binding.')
+        model = KM.Model()
+        part = model.CreateModelPart('Patch')
+        properties = part.CreateNewProperties(1)
+        properties[KM.CONSTITUTIVE_LAW] = CFD.Newtonian2DLaw()
+        properties[KM.DYNAMIC_VISCOSITY] = 1.0
+        for j in range(13):
+            for i in range(13):
+                part.CreateNewNode(1+j*13+i, i/12, j/12, 0.)
+        for j in range(12):
+            for i in range(12):
+                n = 1+j*13+i
+                element = part.CreateNewElement('TimeIntegratedQSVMS2D4N', 1+j*12+i,
+                                                [n, n+1, n+14, n+13], properties)
+                element.Set(KM.ACTIVE, True)
+        cylinder = CylinderSbmGeometry(part, (.5, .5), .16, .05, 0., 'gap_sbm', 64)
+        self.assertGreater(part.GetSubModelPart('CylinderGapVolumes').NumberOfElements(), 0)
+        self.assertGreater(part.GetSubModelPart('CylinderGapInterfaces').NumberOfConditions(), 0)
+        for condition in part.GetSubModelPart('CylinderBoundary').Conditions:
+            self.assertEqual(condition.GetValue(KM.SURROGATE_BOUNDARY_PROJECTION).Size2(), 7)
+        cylinder.update((.1, .2), (.3, .4))
+
     def test_projection_and_translation(self):
         model = KM.Model()
         part = model.CreateModelPart('Patch')
@@ -60,7 +84,9 @@ class CylinderSbmGeometryTest(KratosUnittest.TestCase):
             face = condition.GetValue(KM.SURROGATE_BOUNDARY_FACE_COORDINATES)
             velocity = condition.GetValue(CFD.SBM_BOUNDARY_VELOCITIES)
             for i in range(2):
-                self.assertAlmostEqual(math.hypot(projection[i, 0]-3.25, projection[i, 1]-2.9), 1.3)
+                distance = math.hypot(projection[i, 0]-3.25, projection[i, 1]-2.9)
+                self.assertLessEqual(distance, 1.3 + 1e-12)
+                self.assertGreaterEqual(distance, 1.3*math.cos(math.pi/128)-1e-12)
                 self.assertAlmostEqual(velocity[i, 0], .5)
                 self.assertAlmostEqual(velocity[i, 1], -.2)
             dx, dy = face[1, 0]-face[0, 0], face[1, 1]-face[0, 1]

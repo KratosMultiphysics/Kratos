@@ -15,6 +15,7 @@
 
 // External includes
 #include <pybind11/numpy.h>
+#include <pybind11/stl.h>
 
 // Project includes
 #include "includes/define_python.h"
@@ -22,6 +23,9 @@
 #include "python/add_geometrical_utilities_to_python.h"
 
 //Geometrical utilities
+#include "utilities/multipatch_utilities.h"
+#include "utilities/multipatch_gap_utilities.h"
+#include "utilities/gap_construction_utility.h"
 #include "utilities/normal_calculation_utils.h"
 #include "utilities/body_normal_calculation_utils.h"
 #include "utilities/body_distance_calculation_utils.h"
@@ -210,6 +214,14 @@ void AuxiliaryCalculateMLSShapeFunctionsAndGradients(
 
 void AddGeometricalUtilitiesToPython(pybind11::module &m)
 {
+    pybind11::class_<GapConstructionUtility>(m, "GapConstructionUtility")
+        .def_static("AssignParents", &GapConstructionUtility::AssignParents)
+        .def_static("Build", &GapConstructionUtility::Build,
+                    pybind11::arg("output"), pybind11::arg("surrogate"),
+                    pybind11::arg("gap_elements"), pybind11::arg("gap_interfaces"),
+                    pybind11::arg("element_name"), pybind11::arg("interface_condition_name"),
+                    pybind11::arg("tolerance"), pybind11::arg("echo_level") = 0,
+                    "Construct additive gap elements and connector conditions from surrogate faces.");
     namespace py = pybind11;
 
     py::class_<NormalCalculationUtils > (m,"NormalCalculationUtils")
@@ -488,6 +500,39 @@ void AddGeometricalUtilitiesToPython(pybind11::module &m)
         .def("AssignMasterSlaveConstraintsToNodes", [](AssignMasterSlaveConstraintsToNeighboursUtility& rAssignMasterSlaveConstraintsToNeighboursUtility, NodesContainerType pNodes, double const Radius, ModelPart& rComputingModelPart, const std::vector<std::reference_wrapper<const Kratos::Variable<double>>>& rVariableList, double const MinNumOfNeighNodes){
             return rAssignMasterSlaveConstraintsToNeighboursUtility.AssignMasterSlaveConstraintsToNodes(pNodes, Radius, rComputingModelPart, rVariableList, MinNumOfNeighNodes);})
         ;
+
+    // FEM multipatch mesh activation, boundary extraction and quadrature.
+    py::class_<FemMultipatchUtilities, FemMultipatchUtilities::Pointer>(m, "FemMultipatchUtilities")
+        .def(py::init<ModelPart&>(), py::arg("background"), py::keep_alive<1, 2>(),
+            "Cache edge adjacency for a background of P1 triangles or Q1 quadrilaterals.")
+        .def("RebuildTopology", &FemMultipatchUtilities::RebuildTopology,
+            "Rebuild cached topology after changing background elements or connectivity.")
+        .def("UpdateBackgroundActivation", &FemMultipatchUtilities::UpdateBackgroundActivation,
+            py::arg("boxes"), py::arg("tolerance"),
+            "Set ACTIVE for aligned boxes; return inactive element IDs and one-based patch indices.")
+        .def("ExtractSurrogateEdges", &FemMultipatchUtilities::ExtractSurrogateEdges,
+            py::arg("inactive_owners"),
+            "Return oriented background edge node IDs grouped by internal patch index.")
+        .def_static("GetGaussPointsWithWeights", &FemMultipatchUtilities::GetGaussPointsWithWeights,
+            py::arg("model_part"), py::arg("active_only") = true,
+            "Return element IDs, physical Gauss coordinates and physical weights.")
+        .def_static("GetGaussPoints", &FemMultipatchUtilities::GetGaussPoints,
+            py::arg("model_part"), py::arg("active_only") = true,
+            "Return element IDs and actual global quadrature coordinates from element geometries.");
+
+    py::class_<FemMultipatchGapUtilities>(m, "FemMultipatchGapUtilities")
+        // TODO: to remove temporary timing instrumentation after profiling.
+        .def_static("ResetProfilingTimes", &FemMultipatchGapUtilities::ResetProfilingTimes)
+        .def_static("GetProfilingTimes", &FemMultipatchGapUtilities::GetProfilingTimes)
+        .def_static("EnableProfiling", &FemMultipatchGapUtilities::EnableProfiling)
+        .def_static("UpdateActivation", &FemMultipatchGapUtilities::UpdateActivation,
+            py::arg("background"), py::arg("inner_patches"), py::arg("tolerance") = 1e-10,
+            "Retain cells but deactivate conservative Q1 holes from fitted contours.")
+        .def_static("CreateGeometry", &FemMultipatchGapUtilities::CreateGeometry,
+            py::arg("background"), py::arg("inner"), py::arg("interface"),
+            py::arg("tolerance") = 1e-10,
+            "Build positive gap quadrature and separate boundary/interface views without DOFs.");
+
 }
 
 } // namespace Kratos::Python.
