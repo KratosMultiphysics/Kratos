@@ -88,11 +88,11 @@ public:
 
     void CalculateDampingMatrix(MatrixType& rDampingMatrix, const ProcessInfo& rCurrentProcessInfo) override;
 
-    void GetValuesVector(Vector& rValues, int Step = 0) const override;
+    void GetValuesVector(Vector& rValues, int Step) const override;
 
-    void GetFirstDerivativesVector(Vector& rValues, int Step = 0) const override;
+    void GetFirstDerivativesVector(Vector& rValues, int Step) const override;
 
-    void GetSecondDerivativesVector(Vector& rValues, int Step = 0) const override;
+    void GetSecondDerivativesVector(Vector& rValues, int Step) const override;
 
     void CalculateOnIntegrationPoints(const Variable<double>& rVariable,
                                       std::vector<double>&    rOutput,

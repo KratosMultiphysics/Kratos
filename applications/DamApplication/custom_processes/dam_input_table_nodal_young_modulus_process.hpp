@@ -23,6 +23,8 @@
 
 // Application include
 #include "dam_application_variables.h"
+#include "custom_utilities/dam_nodal_field_utilities.h"
+#include "custom_utilities/nodal_young_modulus_utilities.h"
 
 namespace Kratos
 {
@@ -69,6 +71,13 @@ public:
         mInitialValue = rParameters["initial_value"].GetDouble();
         mInputFile = rParameters["input_file_name"].GetString();
 
+        // The GiD interface writes "- No file" / "- Add new file" when no
+        // per-node input file is selected. This process has always compared the
+        // name exactly; the behavior is kept as is.
+        mbUseTable = !(mInputFile.empty() ||
+                       mInputFile == "- No file" ||
+                       mInputFile == "- Add new file");
+
         KRATOS_CATCH("");
     }
 
@@ -91,36 +100,11 @@ public:
 
         KRATOS_TRY;
 
-        const Variable<double>& var = KratosComponents<Variable<double>>::Get(mVariableName);
-        const int nnodes = mrModelPart.GetMesh(0).Nodes().size();
+        AssignYoungModulus();
 
-        if(nnodes != 0)
-        {
-            ModelPart::NodesContainerType::iterator it_begin = mrModelPart.GetMesh(0).NodesBegin();
-
-            if ((mInputFile == "") || (mInputFile == "- No file") || (mInputFile == "- Add new file"))
-            {
-                #pragma omp parallel for
-                for(int i = 0; i<nnodes; i++)
-                {
-                    ModelPart::NodesContainerType::iterator it = it_begin + i;
-
-                    it->FastGetSolutionStepValue(var) = mInitialValue;
-
-                }
-            }
-            else
-            {
-                #pragma omp parallel for
-                for(int i = 0; i<nnodes; i++)
-                {
-                    ModelPart::NodesContainerType::iterator it = it_begin + i;
-
-                    it->FastGetSolutionStepValue(var) = mrTable.GetValue(it->Id());
-
-                }
-            }
-        }
+        // Expose the nodal YOUNG_MODULUS field through the standard
+        // DatabaseAccessor (see DamNodalYoungModulusProcess).
+        NodalYoungModulusUtilities::InstallDatabaseAccessor(mrModelPart);
 
         KRATOS_CATCH("");
     }
@@ -132,37 +116,7 @@ public:
 
         KRATOS_TRY;
 
-        const Variable<double>& var = KratosComponents<Variable<double>>::Get(mVariableName);
-        const int nnodes = mrModelPart.GetMesh(0).Nodes().size();
-
-
-        if(nnodes != 0)
-        {
-            ModelPart::NodesContainerType::iterator it_begin = mrModelPart.GetMesh(0).NodesBegin();
-
-            if ((mInputFile == "") || (mInputFile == "- No file") || (mInputFile == "- Add new file"))
-            {
-                #pragma omp parallel for
-                for(int i = 0; i<nnodes; i++)
-                {
-                    ModelPart::NodesContainerType::iterator it = it_begin + i;
-
-                    it->FastGetSolutionStepValue(var) = mInitialValue;
-
-                }
-            }
-            else
-            {
-                #pragma omp parallel for
-                for(int i = 0; i<nnodes; i++)
-                {
-                    ModelPart::NodesContainerType::iterator it = it_begin + i;
-
-                    it->FastGetSolutionStepValue(var) = mrTable.GetValue(it->Id());
-
-                }
-            }
-        }
+        AssignYoungModulus();
 
         KRATOS_CATCH("");
     }
@@ -197,10 +151,21 @@ protected:
     std::string mVariableName;
     double mInitialValue;
     std::string mInputFile;
+    bool mbUseTable = false;
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 private:
+
+    void AssignYoungModulus()
+    {
+        // The nodal field is stored as the standard YOUNG_MODULUS; the historical
+        // variable_name is accepted for input compatibility.
+        const Variable<double>& var =
+            NodalYoungModulusUtilities::ResolveYoungModulusVariable(mVariableName);
+        DamNodalFieldUtilities::SetHistoricalValuesFromTableOrConstant(
+            mrModelPart, var, mInitialValue, mrTable, mbUseTable);
+    }
 
     /// Assignment operator.
     DamInputTableNodalYoungModulusProcess& operator=(DamInputTableNodalYoungModulusProcess const& rOther);

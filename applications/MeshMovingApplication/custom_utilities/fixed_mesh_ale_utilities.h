@@ -30,7 +30,7 @@
 #include "solving_strategies/schemes/residualbased_incrementalupdate_static_scheme.h"
 #include "solving_strategies/strategies/residualbased_linear_strategy.h"
 #include "solving_strategies/strategies/implicit_solving_strategy.h"
-#include "spaces/ublas_space.h"
+#include "spaces/default_spaces.h"
 
 // Application includes
 
@@ -82,8 +82,8 @@ public:
     ///@{
 
     typedef Element::NodesArrayType NodesArrayType;
-    typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
-    typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
+    typedef TDefaultDenseSpace<double> LocalSpaceType;
+    typedef TDefaultSparseSpace<double> SparseSpaceType;
     typedef LinearSolver<SparseSpaceType, LocalSpaceType> LinearSolverType;
     typedef LinearSolverFactory<SparseSpaceType, LocalSpaceType> LinearSolverFactoryType;
     typedef ResidualBasedIncrementalUpdateStaticScheme<SparseSpaceType, LocalSpaceType> SchemeType;

@@ -46,8 +46,6 @@ class SbmSolidTests(KratosUnittest.TestCase):
                     "model_part_name" : "IgaModelPart",
                     "lower_point_xyz": [0.0,0.0,0.0],
                     "upper_point_xyz": [2.0,2.0,0.0],
-                    "lower_point_uvw": [0.0,0.0,0.0],
-                    "upper_point_uvw": [2.0,2.0,0.0],
                     "polynomial_order" : [3, 3],
                     "number_of_knot_spans" : [5,5],
                     "lambda_outer": 0.5,
@@ -70,7 +68,8 @@ class SbmSolidTests(KratosUnittest.TestCase):
                             "name": "SbmSolidCondition",
                             "shape_function_derivatives_order": 8, 
                             "sbm_parameters": {
-                                "is_inner" : false
+                                "is_inner" : false,
+                                "projection_type" : "linealized"
                             }
                         }
                     ] // element condition list
@@ -170,8 +169,6 @@ class SbmSolidTests(KratosUnittest.TestCase):
                     "model_part_name" : "IgaModelPart",
                     "lower_point_xyz": [0.0,0.0,0.0],
                     "upper_point_xyz": [2.0,2.0,0.0],
-                    "lower_point_uvw": [0.0,0.0,0.0],
-                    "upper_point_uvw": [2.0,2.0,0.0],
                     "polynomial_order" : [3, 3],
                     "number_of_knot_spans" : [5,5],
                     "lambda_outer": 0.5,
@@ -194,7 +191,8 @@ class SbmSolidTests(KratosUnittest.TestCase):
                             "name": "SbmLoadSolidCondition",
                             "shape_function_derivatives_order": 4, 
                             "sbm_parameters": {
-                                "is_inner" : false
+                                "is_inner" : false,
+                                "projection_type" : "linealized"
                             }
                         }
                     ] // element condition list

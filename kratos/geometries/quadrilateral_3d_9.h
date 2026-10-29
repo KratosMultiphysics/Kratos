@@ -424,7 +424,7 @@ public:
      */
     double Length() const override
     {
-        Vector d = this->Points()[2] - this->Points()[0];
+        const array_1d<double, 3> d = this->Points()[2] - this->Points()[0];
         return( std::sqrt( d[0]*d[0] + d[1]*d[1] + d[2]*d[2] ) );
     }
 

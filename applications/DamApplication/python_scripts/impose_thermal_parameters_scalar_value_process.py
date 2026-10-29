@@ -16,35 +16,26 @@ class ImposeThemalParametersScalarValueProcess(KratosMultiphysics.Process):
 
         self.components_process_list = []
 
-        if settings["ThermalDensity"].GetDouble() != 0:
+        # Parameter name and assigned variable, in the original order. A zero
+        # value means "do not create a process for this variable".
+        thermal_parameters = (
+            ("ThermalDensity", "DENSITY"),
+            ("Conductivity", "CONDUCTIVITY"),
+            ("SpecificHeat", "SPECIFIC_HEAT"),
+        )
 
-            thermal_density = KratosMultiphysics.Parameters("{}")
-            thermal_density.AddValue("model_part_name", settings["model_part_name"])
-            thermal_density.AddValue("value", settings["ThermalDensity"])
-            thermal_density.AddEmptyValue("constrained").SetBool(False)
-            thermal_density.AddEmptyValue("variable_name").SetString("DENSITY")
-
-            self.components_process_list.append(AssignScalarVariableProcess(Model, thermal_density))
-
-        if settings["Conductivity"].GetDouble() != 0:
-
-            conductivity = KratosMultiphysics.Parameters("{}")
-            conductivity.AddValue("model_part_name", settings["model_part_name"])
-            conductivity.AddValue("value", settings["Conductivity"])
-            conductivity.AddEmptyValue("constrained").SetBool(False)
-            conductivity.AddEmptyValue("variable_name").SetString("CONDUCTIVITY")
-
-            self.components_process_list.append(AssignScalarVariableProcess(Model, conductivity))
-
-        if settings["SpecificHeat"].GetDouble() != 0:
-
-            specific_heat = KratosMultiphysics.Parameters("{}")
-            specific_heat.AddValue("model_part_name", settings["model_part_name"])
-            specific_heat.AddValue("value", settings["SpecificHeat"])
-            specific_heat.AddEmptyValue("constrained").SetBool(False)
-            specific_heat.AddEmptyValue("variable_name").SetString("SPECIFIC_HEAT")
-
-            self.components_process_list.append(AssignScalarVariableProcess(Model, specific_heat))
+        for parameter_name, variable_name in thermal_parameters:
+            if settings[parameter_name].GetDouble() != 0:
+                component_params = KratosMultiphysics.Parameters("{}")
+                component_params.AddValue("model_part_name", settings["model_part_name"])
+                component_params.AddValue("value", settings[parameter_name])
+                component_params.AddEmptyValue("constrained").SetBool(False)
+                component_params.AddEmptyValue("variable_name").SetString(variable_name)
+                # Preserve the legacy apply-once behavior of ApplyConstantScalarValueProcess.
+                component_params.AddValue("interval", KratosMultiphysics.Parameters("[0.0, 0.0]"))
+                self.components_process_list.append(
+                    AssignScalarVariableProcess(Model, component_params)
+                )
 
 
     def ExecuteBeforeSolutionLoop(self):
@@ -56,4 +47,3 @@ class ImposeThemalParametersScalarValueProcess(KratosMultiphysics.Process):
 
         for component in self.components_process_list:
             component.ExecuteInitializeSolutionStep()
-

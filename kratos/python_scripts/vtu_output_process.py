@@ -2,7 +2,7 @@ from pathlib import Path
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.kratos_utilities as kratos_utils
 
-def Factory(parameters: Kratos.Parameters, model: Kratos.Model):
+def Factory(parameters: Kratos.Parameters, model: Kratos.Model) -> Kratos.OutputProcess:
     if not isinstance(parameters, Kratos.Parameters):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
     if not isinstance(model, Kratos.Model):
@@ -17,6 +17,7 @@ class VtuOutputProcess(Kratos.OutputProcess):
         {
             "model_part_name"                   : "PLEASE_SPECIFY_MODEL_PART_NAME",
             "file_format"                       : "binary",
+            "echo_level"                        : 0,
             "output_precision"                  : 7,
             "output_control_type"               : "step",
             "output_interval"                   : 1.0,
@@ -24,6 +25,7 @@ class VtuOutputProcess(Kratos.OutputProcess):
             "output_path"                       : "VTU_Output",
             "save_output_files_in_folder"       : true,
             "write_deformed_configuration"      : false,
+            "write_ids"                         : false,
             "nodal_solution_step_data_variables": [],
             "nodal_data_value_variables"        : [],
             "nodal_flags"                       : [],
@@ -40,7 +42,9 @@ class VtuOutputProcess(Kratos.OutputProcess):
         parameters.ValidateAndAssignDefaults(self.GetDefaultParameters())
 
         self.model_part = model[parameters["model_part_name"].GetString()]
+        self.echo_level = parameters["echo_level"].GetInt()
         self.write_deformed_configuration = parameters["write_deformed_configuration"].GetBool()
+        self.write_ids = parameters["write_ids"].GetBool()
         self.output_precision = parameters["output_precision"].GetInt()
         self.output_sub_model_parts = parameters["output_sub_model_parts"].GetBool()
 
@@ -57,8 +61,12 @@ class VtuOutputProcess(Kratos.OutputProcess):
             self.writer_format = Kratos.VtuOutput.ASCII
         elif file_format == "binary":
             self.writer_format = Kratos.VtuOutput.BINARY
+        elif file_format == "raw":
+            self.writer_format = Kratos.VtuOutput.RAW
+        elif file_format == "compressed_raw":
+            self.writer_format = Kratos.VtuOutput.COMPRESSED_RAW
         else:
-            raise RuntimeError(f"Unsupported file format requested [ requested format = {file_format} ]. Supported file formats:\n\tascii\n\tbinary")
+            raise RuntimeError(f"Unsupported file format requested [ requested format = {file_format} ]. Supported file formats:\n\tascii\n\tbinary\n\traw\n\tcompressed_raw")
 
         if parameters["save_output_files_in_folder"].GetBool():
             self.output_path = Path(parameters["output_path"].GetString())
@@ -70,46 +78,30 @@ class VtuOutputProcess(Kratos.OutputProcess):
         else:
             self.output_path = Path(".")
 
-        self.vtu_output_ios: 'list[Kratos.VtuOutput]' = []
-
         self.__controller = Kratos.OutputController(model, parameters)
 
     def ExecuteInitialize(self) -> None:
-        # check and create all the vtu outputs
-        self.vtu_output_ios.append(Kratos.VtuOutput(self.model_part, not self.write_deformed_configuration, self.writer_format, self.output_precision))
+        self.vtu_output = Kratos.VtuOutput(self.model_part, not self.write_deformed_configuration, self.writer_format, self.output_precision, self.output_sub_model_parts, self.write_ids, self.echo_level)
 
-        if self.output_sub_model_parts:
-            for sub_model_part in self.model_part.SubModelParts:
-                self.vtu_output_ios.append(Kratos.VtuOutput(sub_model_part, not self.write_deformed_configuration, self.writer_format, self.output_precision))
+        for variable in self.nodal_solution_step_data_variables:
+            self.vtu_output.AddVariable(Kratos.KratosGlobals.GetVariable(variable), Kratos.Globals.DataLocation.NodeHistorical)
+        for variable in self.nodal_data_value_variables:
+            self.vtu_output.AddVariable(Kratos.KratosGlobals.GetVariable(variable), Kratos.Globals.DataLocation.NodeNonHistorical)
+        for variable in self.condition_data_value_variables:
+            self.vtu_output.AddVariable(Kratos.KratosGlobals.GetVariable(variable), Kratos.Globals.DataLocation.Condition)
+        for variable in self.element_data_value_variables:
+            self.vtu_output.AddVariable(Kratos.KratosGlobals.GetVariable(variable), Kratos.Globals.DataLocation.Element)
 
-        for vtu_output_io in self.vtu_output_ios:
-            self.__AddData(vtu_output_io)
+        for flag in self.nodal_flags:
+            self.vtu_output.AddFlag(flag, Kratos.KratosGlobals.GetFlag(flag), Kratos.Globals.DataLocation.NodeNonHistorical)
+        for flag in self.condition_flags:
+            self.vtu_output.AddFlag(flag, Kratos.KratosGlobals.GetFlag(flag), Kratos.Globals.DataLocation.Condition)
+        for flag in self.element_flags:
+            self.vtu_output.AddFlag(flag, Kratos.KratosGlobals.GetFlag(flag), Kratos.Globals.DataLocation.Element)
 
     def PrintOutput(self) -> None:
-        current_suffix = self.__controller.GetCurrentControlValue()
-
-        for vtu_output in self.vtu_output_ios:
-            vtu_output.PrintOutput(f"{self.output_path / vtu_output.GetModelPart().FullName()}_{current_suffix}")
-
+        self.vtu_output.PrintOutput(f"{self.output_path / self.model_part.FullName()}")
         self.__controller.Update()
 
     def IsOutputStep(self) -> bool:
         return self.__controller.Evaluate()
-
-    def __AddData(self, vtu_output_io: Kratos.VtuOutput) -> None:
-        for variable in self.nodal_solution_step_data_variables:
-            vtu_output_io.AddHistoricalVariable(Kratos.KratosGlobals.GetVariable(variable))
-        for variable in self.nodal_data_value_variables:
-            vtu_output_io.AddNonHistoricalVariable(Kratos.KratosGlobals.GetVariable(variable), Kratos.VtuOutput.NODES)
-        for variable in self.condition_data_value_variables:
-            vtu_output_io.AddNonHistoricalVariable(Kratos.KratosGlobals.GetVariable(variable), Kratos.VtuOutput.CONDITIONS)
-        for variable in self.element_data_value_variables:
-            vtu_output_io.AddNonHistoricalVariable(Kratos.KratosGlobals.GetVariable(variable), Kratos.VtuOutput.ELEMENTS)
-
-        for flag in self.nodal_flags:
-            vtu_output_io.AddFlagVariable(flag, Kratos.KratosGlobals.GetFlag(flag), Kratos.VtuOutput.NODES)
-        for flag in self.condition_flags:
-            vtu_output_io.AddFlagVariable(flag, Kratos.KratosGlobals.GetFlag(flag), Kratos.VtuOutput.CONDITIONS)
-        for flag in self.element_flags:
-            vtu_output_io.AddFlagVariable(flag, Kratos.KratosGlobals.GetFlag(flag), Kratos.VtuOutput.ELEMENTS)
-

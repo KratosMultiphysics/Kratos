@@ -111,7 +111,7 @@ void ConnectivityIdsTensorAdaptor::Check() const {
           CheckContainer(*p_container);
         }
       },
-      *mpContainer);
+      this->GetContainer());
 }
 
 TensorAdaptor<int>::Pointer ConnectivityIdsTensorAdaptor::Clone() const
@@ -121,7 +121,7 @@ TensorAdaptor<int>::Pointer ConnectivityIdsTensorAdaptor::Clone() const
 
 void ConnectivityIdsTensorAdaptor::CollectData() {
 
-  const auto &shape = mpStorage->Shape();
+  const auto &shape = this->Shape();
 
   const std::size_t num_nodes = shape[1];
 
@@ -132,7 +132,7 @@ void ConnectivityIdsTensorAdaptor::CollectData() {
           CollectIds(this->ViewData(), *p_container, num_nodes);
         }
       },
-      *mpContainer);
+      this->GetContainer());
 }
 
 void ConnectivityIdsTensorAdaptor::StoreData() {
@@ -143,7 +143,17 @@ void ConnectivityIdsTensorAdaptor::StoreData() {
 }
 
 std::string ConnectivityIdsTensorAdaptor::Info() const {
-  return "ConnectivityIdsTensorAdaptor";
+  return "ConnectivityIdsTensorAdaptor: " + BaseType::Info();
+}
+
+void ConnectivityIdsTensorAdaptor::save(Serializer& rSerializer) const
+{
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, BaseType);
+}
+
+void ConnectivityIdsTensorAdaptor::load(Serializer& rSerializer)
+{
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, BaseType);
 }
 
 } // namespace Kratos

@@ -11,8 +11,7 @@
 //
 
 
-#if !defined(KRATOS_UPDATED_LAGRANGIAN_UP_H_INCLUDED )
-#define  KRATOS_UPDATED_LAGRANGIAN_UP_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -370,14 +369,15 @@ protected:
 
 
     /**
-     * Calculation of the constitutive coefficient for pressure of the Element
+     * Calculation of the volumetric strain function for the pressure equation
      */
-    virtual double& CalculatePUCoefficient(double& rCoefficient, GeneralVariables & rVariables);
+    virtual double CalculateVolumetricStrainFunction(GeneralVariables & rVariables);
 
     /**
-     * Calculation of the constitutive coefficient derivative for pressure  of the Element
+     * Calculation of the linearization factor of the volumetric strain function
      */
-    virtual double& CalculatePUDeltaCoefficient(double& rCoefficient, GeneralVariables & rVariables);
+    virtual double CalculateFunctionFromLinearizationOfVolumetricStrain(GeneralVariables & rVariables);
+
 
     /**
      * Get the Historical Deformation Gradient to calculate after finalize the step
@@ -463,4 +463,3 @@ private:
 ///@}
 
 } // namespace Kratos.
-#endif // KRATOS_UPDATED_LAGRANGIAN_H_INCLUDED  defined

@@ -115,7 +115,6 @@ class KratosGeoMechanicsAbsorbingBoundaryColumnTests(KratosUnittest.TestCase):
             dt = t2 - t1
             velocity_part_two = (res[t2][node_nbr][direction] - res[t1][node_nbr][direction])/dt
 
-            # assert velocities
             self.assertAlmostEqual(velocity_part_two, self.expected_velocity, 2)
 
     def calculate_expected_p_wave_velocity(self):

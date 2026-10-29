@@ -176,6 +176,20 @@ public:
         ) override;
 
     /**
+     * Calculate a Vector Variable on the Element
+     * @param rVariable: the variable to calculate (INTERNAL_FORCES_VECTOR or EXTERNAL_FORCES_VECTOR)
+     * @param rOutput: the calculated vector
+     * @param rCurrentProcessInfo: the current process info instance
+     */
+    void Calculate(
+        const Variable<Vector>& rVariable,
+        Vector& rOutput,
+        const ProcessInfo& rCurrentProcessInfo
+        ) override;
+
+    using Element::Calculate;
+
+    /**
      * This calculates just the LHS
      * @param rLeftHandSideMatrix: the elemental left hand side matrix
      * @param rRightHandSideVector: the elemental right hand side
@@ -311,6 +325,27 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
+
+    /**
+     * Calculates the internal forces (Fint = K * u)
+     * @param rInternalForces: the elemental internal forces vector
+     * @param rCurrentProcessInfo: the current process info instance
+     */
+    void CalculateInternalForces(
+        VectorType& rInternalForces,
+        const ProcessInfo& rCurrentProcessInfo
+        );
+
+    /**
+     * Calculates the external forces (Fext = m * VOLUME_ACCELERATION)
+     * @param rExternalForces: the elemental external forces vector
+     * @param rCurrentProcessInfo: the current process info instance
+     */
+    void CalculateExternalForces(
+        VectorType& rExternalForces,
+        const ProcessInfo& rCurrentProcessInfo
+        );
+
     ///@}
     ///@name Private  Access
     ///@{

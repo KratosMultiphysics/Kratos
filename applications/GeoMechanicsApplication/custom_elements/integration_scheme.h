@@ -19,6 +19,8 @@
 namespace Kratos
 {
 
+class Serializer;
+
 class IntegrationScheme
 {
 public:
@@ -26,6 +28,11 @@ public:
 
     [[nodiscard]] virtual std::size_t GetNumberOfIntegrationPoints() const                    = 0;
     [[nodiscard]] virtual const Geo::IntegrationPointVectorType& GetIntegrationPoints() const = 0;
+
+private:
+    friend Serializer;
+    virtual void save(Serializer& rSerializer) const = 0;
+    virtual void load(Serializer& rSerializer)       = 0;
 };
 
 } // namespace Kratos

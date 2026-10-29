@@ -199,7 +199,7 @@ public:
         }
 
         // Store results for next iteration
-        boost::numeric::ublas::noalias(mPreviousDx) = Dx;
+        TSparseSpace::Copy(Dx, mPreviousDx);
         mOldOmega = Omega;
     }
 

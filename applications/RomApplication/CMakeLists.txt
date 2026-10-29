@@ -7,8 +7,9 @@ include(pybind11Tools)
 
 kratos_add_dependency(${KRATOS_SOURCE_DIR}/applications/LinearSolversApplication)
 
-set(KRATOS_LINEAR_SOLVERS_APPLICATION_LIB_INC 
-    "${KRATOS_SOURCE_DIR}/applications/LinearSolversApplication/external_libraries/eigen3"
+# Eigen is a system dependency resolved globally by the root CMakeLists.txt
+# (see cmake_modules/KratosEigen.cmake); only spectra1 remains app-local.
+set(KRATOS_LINEAR_SOLVERS_APPLICATION_LIB_INC
     "${KRATOS_SOURCE_DIR}/applications/LinearSolversApplication/external_libraries/spectra1/include"
 )
 

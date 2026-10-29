@@ -17,7 +17,7 @@
 
 // Project includes
 #include "utilities/math_utils.h"
-#include "includes/ublas_interface.h"  // Provides ZeroVector and Vector
+#include "includes/default_interface.h"  // Provides ZeroVector and Vector
 
 namespace Kratos
 {

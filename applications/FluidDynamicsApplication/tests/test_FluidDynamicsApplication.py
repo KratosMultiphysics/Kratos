@@ -46,6 +46,7 @@ from test_fluid_auxiliary_utilities import FluidAuxiliaryUtilitiesTest
 from test_navier_stokes_compressible_explicit_solver import NavierStokesCompressibleExplicitSolverTest
 from two_fluid_mass_conservation_source_test import TwoFluidMassConservationTest
 from apply_compressible_navier_stokes_boundary_conditions_process_test import ApplyMachDependentBoundaryConditionsTest
+from apply_outlet_process_test import ApplyOutletProcessTest
 if sympy_available:
     from compressible_navier_stokes_symbolic_generator_formulation_test import CompressibleNavierStokesSymbolicGeneratorFormulationTest
 from compressible_slip_wall_process_test import TestCompressibleSlipWallProcess
@@ -88,6 +89,7 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestAdjointMonolithicWallCondition]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestAdjointMonolithicWallCondition]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([ApplyMachDependentBoundaryConditionsTest]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([ApplyOutletProcessTest]))
     #smallSuite.addTest(BuoyancyTest('testBFECC')) # I'm skipping this one, it varies too much between runs JC.
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestCompressibleSlipWallProcess]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([ComputePressureCoefficientProcessTest]))
@@ -137,6 +139,7 @@ def AssembleTestSuites():
 
     # For very long tests that should not be in nightly and you can use to validate
     validationSuite = suites['validation']
+    validationSuite.addTests(nightSuite)
     validationSuite.addTest(BuoyancyTest('validationEulerian'))
     validationSuite.addTest(AdjointVMSSensitivity2D('testCylinder'))
     validationSuite.addTest(AdjointVMSSensitivity2D('testSteadyCylinder'))

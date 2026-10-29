@@ -32,7 +32,7 @@
         "block_builder":                      true,
         "solution_type":                      "Dynamic",
         "scheme_type":                        "Newmark",
-        "reset_displacements":                false,
+        "reset_totals":                       false,
         "newmark_beta":                       0.25,
         "newmark_gamma":                      0.5,
         "newmark_theta":                      0.5,
@@ -48,7 +48,6 @@
         "reduction_factor":                   1,
         "increase_factor":                    1,
         "desired_iterations":                 4,
-        "calculate_reactions":                true,
         "rotation_dofs":                      true,
         "linear_solver_settings":             {
             "solver_type":   "amgcl",

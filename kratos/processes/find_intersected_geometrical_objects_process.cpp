@@ -245,7 +245,7 @@ void FindIntersectedGeometricalObjectsProcess::GenerateOctree()
 
     // Adding mrModelPart2 to the octree
     for (auto it_node = mrModelPartIntersecting.NodesBegin(); it_node != mrModelPartIntersecting.NodesEnd(); it_node++) {
-        mpOctree->Insert(it_node->Coordinates().data().data());
+        mpOctree->Insert(&(it_node->Coordinates()[0]));
     }
 
     // Add entities
@@ -309,7 +309,7 @@ void  FindIntersectedGeometricalObjectsProcess::SetOctreeBoundingBox()
     }
 
     // TODO: Octree needs refactoring to work with BoundingBox. Pooyan.
-    mpOctree->SetBoundingBox(low.data().data(), high.data().data());
+    mpOctree->SetBoundingBox(&low[0], &high[0]);
 }
 
 /***********************************************************************************/

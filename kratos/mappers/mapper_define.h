@@ -18,15 +18,15 @@
 // External includes
 
 // Project includes
-#include "spaces/ublas_space.h"
+#include "spaces/default_spaces.h"
 
 namespace Kratos {
 
 namespace MapperDefinitions {
 
-    typedef TUblasDenseSpace<double> DenseSpaceType;
+    typedef TDefaultDenseSpace<double> DenseSpaceType;
 
-    typedef TUblasSparseSpace<double> SparseSpaceType;
+    typedef TDefaultSparseSpace<double> SparseSpaceType;
 
 }  // namespace MapperDefinitions.
 

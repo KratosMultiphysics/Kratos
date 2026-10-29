@@ -22,15 +22,16 @@
 #include "factories/linear_solver_factory.h"
 #include "factories/preconditioner_factory.h"
 #include "factories/register_factories.h"
+#include "spaces/default_spaces.h"
 
 namespace Kratos::Python
 {
 
-using SpaceType = UblasSpace<double, CompressedMatrix, boost::numeric::ublas::vector<double>>;
-using LocalSpaceType = UblasSpace<double, Matrix, Vector>;
+using SpaceType = DefaultSparseSpaceType;
+using LocalSpaceType = DefaultLocalSpaceType;
 using LinearSolverType = LinearSolver<SpaceType, LocalSpaceType>;
-using ComplexSpaceType = TUblasSparseSpace<std::complex<double>>;
-using ComplexLocalSpaceType = TUblasDenseSpace<std::complex<double>>;
+using ComplexSpaceType = DefaultComplexSparseSpaceType;
+using ComplexLocalSpaceType = DefaultComplexLocalSpaceType;
 
 using LinearSolverFactoryType = LinearSolverFactory<SpaceType, LocalSpaceType>;
 using ComplexLinearSolverFactoryType = LinearSolverFactory<ComplexSpaceType, ComplexLocalSpaceType>;

@@ -4,7 +4,6 @@ import importlib
 import KratosMultiphysics
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics.kratos_utilities as kratos_utilities
-from KratosMultiphysics.RomApplication.calculate_rom_basis_output_process import CalculateRomBasisOutputProcess
 
 if kratos_utilities.CheckIfApplicationsAvailable("StructuralMechanicsApplication"):
     import KratosMultiphysics.StructuralMechanicsApplication

@@ -160,7 +160,13 @@ protected:
     void InitializeElementVariables(ElementVariables& rVariables,ConstitutiveLaw::Parameters& rConstitutiveParameters,
                                     const GeometryType& Geom, const PropertiesType& Prop, const ProcessInfo& CurrentProcessInfo);
 
-    void CalculateRotationMatrix(BoundedMatrix<double,TDim,TDim>& rRotationMatrix, const GeometryType& Geom);
+    void CalculateCurrentRotationMatrix(BoundedMatrix<double,TDim,TDim>& rRotationMatrix, const GeometryType& Geom);
+
+    void CalculateReferenceRotationMatrix(BoundedMatrix<double,TDim,TDim>& rRotationMatrix, const GeometryType& Geom);
+
+    void CalculateReferenceJacobianDeterminants(Vector& rDetJContainer, const GeometryType& Geom);
+
+    GeometryType::Pointer CreateReferenceGeometry(const GeometryType& Geom) const;
 
     void CalculateJointWidth(double& rJointWidth,const double& NormalRelDisp,const double& InitialJointWidth,const unsigned int& GPoint);
 

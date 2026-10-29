@@ -34,6 +34,7 @@ double TensionCutoff::YieldFunctionValue(const Geo::PrincipalStresses& rPrincipa
     return rPrincipalStresses.Values()[0] - mTensileStrength;
 }
 
+// NOLINTBEGIN(readability-convert-member-functions-to-static)
 Vector TensionCutoff::DerivativeOfFlowFunction(const Geo::SigmaTau&,
                                                Geo::PrincipalStresses::AveragingType AveragingType) const
 {
@@ -42,7 +43,6 @@ Vector TensionCutoff::DerivativeOfFlowFunction(const Geo::SigmaTau&,
     case LOWEST_PRINCIPAL_STRESSES:
         return UblasUtilities::CreateVector({0.5, 0.5});
     case NO_AVERAGING:
-        return UblasUtilities::CreateVector({1.0, 1.0});
     case HIGHEST_PRINCIPAL_STRESSES:
         return UblasUtilities::CreateVector({1.0, 1.0});
     default:
@@ -50,6 +50,9 @@ Vector TensionCutoff::DerivativeOfFlowFunction(const Geo::SigmaTau&,
     }
 }
 
+// NOLINTEND(readability-convert-member-functions-to-static)
+
+// NOLINTBEGIN(readability-convert-member-functions-to-static)
 Vector TensionCutoff::DerivativeOfFlowFunction(const Geo::PrincipalStresses&,
                                                Geo::PrincipalStresses::AveragingType AveragingType) const
 {
@@ -58,13 +61,14 @@ Vector TensionCutoff::DerivativeOfFlowFunction(const Geo::PrincipalStresses&,
     case LOWEST_PRINCIPAL_STRESSES:
         return UblasUtilities::CreateVector({0.5, 0.5, 0.0});
     case NO_AVERAGING:
-        return UblasUtilities::CreateVector({1.0, 0.0, 0.0});
     case HIGHEST_PRINCIPAL_STRESSES:
         return UblasUtilities::CreateVector({1.0, 0.0, 0.0});
     default:
         KRATOS_ERROR << "Unsupported Averaging Type: " << static_cast<std::size_t>(AveragingType) << "\n";
     }
 }
+
+// NOLINTEND(readability-convert-member-functions-to-static)
 
 double TensionCutoff::CalculatePlasticMultiplier(const Geo::SigmaTau& rTrialSigmaTau,
                                                  const Vector&        rDerivativeOfFlowFunction,

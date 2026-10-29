@@ -24,6 +24,7 @@
 // ------------------------------------------------------------------------------
 #include "includes/define.h"
 #include "includes/kratos_parameters.h"
+#include "spaces/default_spaces.h"
 #include "processes/process.h"
 #include "custom_responses/general/mass_opt_response.h"
 #include "custom_responses/structural/linear_strain_energy_opt_response.h"
@@ -44,8 +45,8 @@ void  AddCustomResponsesToPython(pybind11::module& m)
 {
     namespace py = pybind11;
 
-    typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
-    typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
+    typedef TDefaultSparseSpace<double> SparseSpaceType;
+    typedef TDefaultDenseSpace<double> LocalSpaceType;
     typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
 
     // ================================================================

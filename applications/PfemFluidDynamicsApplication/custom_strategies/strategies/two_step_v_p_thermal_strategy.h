@@ -235,7 +235,7 @@ namespace Kratos
 
       KRATOS_INFO("\nSolution with two_step_vp_thermal_strategy at t=") << currentTime << "s" << std::endl;
 
-      if ((timeIntervalChanged == true && currentTime > 10 * timeInterval) || stepsWithChangedDt > 0)
+      if ((timeIntervalChanged && currentTime > 10 * timeInterval) || stepsWithChangedDt > 0)
       {
         maxNonLinearIterations *= 2;
       }
@@ -266,7 +266,7 @@ namespace Kratos
 
         this->UpdateTopology(rModelPart, BaseType::GetEchoLevel());
 
-        if (fixedTimeStep == false)
+        if (!fixedTimeStep)
         {
           continuityConverged = this->SolveContinuityIteration(it, maxNonLinearIterations, pressureNorm);
         }
@@ -285,7 +285,7 @@ namespace Kratos
 
           break;
         }
-        if (fixedTimeStep == true)
+        if (fixedTimeStep)
         {
           break;
         }

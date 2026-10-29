@@ -177,7 +177,10 @@ namespace
         expected_DN_DX(10,0) = 0; expected_DN_DX(10,1) = -1.81337432138;
         expected_DN_DX(11,0) = 0; expected_DN_DX(11,1) = 0.378925461641;
         KRATOS_EXPECT_VECTOR_NEAR(r_N, expected_N, tolerance);
-        KRATOS_EXPECT_MATRIX_NEAR(r_DN_DX, expected_DN_DX, tolerance);
+        // The RBF gradients come out of an ill-conditioned dense solve, so the
+        // rounding order of the linear-algebra backend shows up at ~1e-8
+        const double gradient_tolerance = 1.0e-7;
+        KRATOS_EXPECT_MATRIX_NEAR(r_DN_DX, expected_DN_DX, gradient_tolerance);
     }
 
     KRATOS_TEST_CASE_IN_SUITE(ShiftedBoundaryMeshlessInterfaceUtilityGradientBased, KratosCoreFastSuite)

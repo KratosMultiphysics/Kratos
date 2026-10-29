@@ -25,7 +25,7 @@ _KRATOS Multiphysics_ ("Kratos") is a framework for building parallel, multi-dis
 - Getting Kratos its easy with the pip packages:
 
 ```console
-pip install KratosMultiphysics-all
+pip install KratosMultiphysics[all]
 ```
 
 - You can also check our Github page and Python Project

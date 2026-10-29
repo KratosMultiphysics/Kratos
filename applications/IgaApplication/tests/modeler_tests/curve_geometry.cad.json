@@ -1,0 +1,43 @@
+{
+  "tolerances": {
+    "model_tolerance": 0.001
+  },
+  "version_number": 1,
+  "breps": [
+    {
+      "brep_id": 1,
+      "faces": [],
+      "edges": [
+        {
+          "brep_id": 2,
+          "3d_curve": {
+            "degree": 2,
+            "knot_vector": [0, 0, 0, 5, 10, 10, 10],
+            "active_range": [0, 10],
+            "control_points": [
+              [
+                1,
+                [0.0, 0.0, 0.0, 1.0]
+              ],
+              [
+                2,
+                [2.5, 2.0, 0.0, 1.0]
+              ],
+              [
+                3,
+                [7.5, 2.0, 0.0, 1.0]
+              ],
+              [
+                4,
+                [10.0, 0.0, 0.0, 1.0]
+              ]
+            ]
+          },
+          "topology": [],
+          "embedded_points": []
+        }
+      ],
+      "vertices": []
+    }
+  ]
+}
