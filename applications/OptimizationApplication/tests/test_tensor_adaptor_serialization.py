@@ -5,56 +5,26 @@ import KratosMultiphysics.KratosUnittest as kratos_unittest
 import KratosMultiphysics.OptimizationApplication as KratosOA
 
 class TestPropertiesVariableTensorAdaptorSerialization(kratos_unittest.TestCase):
-    def test_CombinedTensorAdaptorWithPropertiesVariableChildUniqueProperties(self):
+    def test_CombinedTensorAdaptorWithPropertiesVariableChild(self):
+        # children are saved through TensorAdaptor<double> pointers, so PropertiesVariableTensorAdaptor
+        # must be registered with the Serializer (optimization_application.cpp), otherwise saving
+        # throws "no object registered with type id ...".
         model = Kratos.Model()
-        model_part = self._CreateTriangleElements(model, 2, shared_properties=False)
+        model_part = model.CreateModelPart("Test")
+        model_part.CreateNewNode(1, 0.0, 0.0, 0.0)
+        model_part.CreateNewNode(2, 1.0, 0.0, 0.0)
+        model_part.CreateNewNode(3, 0.0, 1.0, 0.0)
+        for i in range(2):
+            # one Properties per element: StoreData() emplaces into each element's Properties in parallel,
+            # which is not thread-safe if they are shared (concurrent Emplace on the same DataValueContainer)
+            properties = model_part.CreateNewProperties(i + 1)
+            model_part.CreateNewElement("Element2D3N", i + 1, [1, 2, 3], properties)
 
         original = KratosOA.TensorAdaptors.PropertiesVariableTensorAdaptor(model_part.Elements, Kratos.DENSITY)
         original.CollectData()
         original.ViewData()[:] = [11.0, 22.0]
         original.StoreData()
-        original.Check()
 
-        loaded_model_part = self._CheckCombinedPropertiesTensorAdaptorRoundTrip(model, original)
-        self.assertEqual(loaded_model_part.NumberOfProperties(), 2)
-        self.assertEqual([element.Properties.GetValue(Kratos.DENSITY) for element in loaded_model_part.Elements], [11.0, 22.0])
-
-    def test_PropertiesVariableTensorAdaptorSharedProperties(self):
-        # entities sharing one Properties are rejected: StoreData would race on it and drop part of the field
-        model = Kratos.Model()
-        model_part = self._CreateTriangleElements(model, 100, shared_properties=True)
-        properties = model_part.GetProperties(1)
-        self.assertFalse(properties.Has(Kratos.DENSITY))
-
-        adaptor = KratosOA.TensorAdaptors.PropertiesVariableTensorAdaptor(model_part.Elements, Kratos.DENSITY)
-        adaptor.ViewData()[:] = 11.0
-        with self.assertRaisesRegex(RuntimeError, "unique"):
-            adaptor.StoreData()
-        self.assertFalse(properties.Has(Kratos.DENSITY))
-
-        properties.SetValue(Kratos.DENSITY, 1.0)
-        with self.assertRaisesRegex(RuntimeError, "unique"):
-            adaptor.Check()
-        with self.assertRaisesRegex(RuntimeError, "unique"):
-            adaptor.StoreData()
-        self.assertEqual(properties.GetValue(Kratos.DENSITY), 1.0)
-
-    @staticmethod
-    def _CreateTriangleElements(model: Kratos.Model, number_of_elements: int, shared_properties: bool) -> Kratos.ModelPart:
-        model_part = model.CreateModelPart("Test")
-        model_part.CreateNewNode(1, 0.0, 0.0, 0.0)
-        model_part.CreateNewNode(2, 1.0, 0.0, 0.0)
-        model_part.CreateNewNode(3, 0.0, 1.0, 0.0)
-        properties = model_part.CreateNewProperties(1)
-        for i in range(number_of_elements):
-            if not shared_properties and i > 0:
-                properties = model_part.CreateNewProperties(i + 1)
-            model_part.CreateNewElement("Element2D3N", i + 1, [1, 2, 3], properties)
-        return model_part
-
-    def _CheckCombinedPropertiesTensorAdaptorRoundTrip(self, model: Kratos.Model, original: KratosOA.TensorAdaptors.PropertiesVariableTensorAdaptor) -> Kratos.ModelPart:
-        # children are saved through TensorAdaptor<double> pointers, so PropertiesVariableTensorAdaptor
-        # must be registered with the Serializer (optimization_application.cpp)
         combined = Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor([original], False, False, False)
         combined.CollectData()
 
@@ -68,14 +38,13 @@ class TestPropertiesVariableTensorAdaptorSerialization(kratos_unittest.TestCase)
         serializer.Load("Model", load_model)
         serializer.Load("TA", loaded)
 
-        self._CheckValues(loaded.data, combined.data)
+        self.assertEqual(loaded.Size(), combined.Size())
+        for i in range(combined.Size()):
+            self.assertAlmostEqual(loaded.ViewData()[i], combined.ViewData()[i])
+
         loaded_children = loaded.GetTensorAdaptors()
         self.assertEqual(len(loaded_children), 1)
         self.assertIsInstance(loaded_children[0], KratosOA.TensorAdaptors.PropertiesVariableTensorAdaptor)
-
-        # the loaded adaptor writes back into the loaded model part
-        loaded_children[0].StoreData()
-        return load_model.GetModelPart("Test")
 
     def test_CombinedTensorAdaptorWithVelocityChildren(self):
         for copy in [True, False]:

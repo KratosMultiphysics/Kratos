@@ -79,22 +79,23 @@ namespace Kratos
 
         }
 
-        // Only an empty list that nothing else references (e.g. a new one) takes the archive as it is
-        if (mVariables.empty() && mDofVariables.empty() && use_count() <= 1) {
-            swap(loaded_list);
-            return;
-        }
-
-        // Otherwise containers may hold data blocks with this layout, so the variables must match exactly. They are
-        // compared by key: an inline constexpr variable has one instance per shared library.
+        // An unreferenced list may be extended, so the archive must start with its variables. A shared list holds data
+        // blocks with this layout and must match exactly (also an empty one referenced only by sub model parts).
+        // Compared by key, as an inline constexpr variable has one instance per shared library.
         const auto is_same = [](const VariableData* pA, const VariableData* pB) { return *pA == *pB; };
         const auto& r_loaded_dofs = loaded_list.mDofVariables;
         const auto& r_loaded_reactions = loaded_list.mDofReactions;
-        // Each Dof stores its index in this list, so the common dofs must keep their order. Extra loaded dofs are appended
-        // (restart adds the dofs after loading); extra current dofs (added after the save) leave the loaded indices valid.
+        const bool is_unreferenced = use_count() <= 1;
+        const std::size_t current_size = mVariables.size();
+        const bool is_matching_variables = is_unreferenced
+            ? current_size <= loaded_list.mVariables.size()
+              && std::equal(mVariables.begin(), mVariables.end(), loaded_list.mVariables.begin(), is_same)
+            : std::equal(mVariables.begin(), mVariables.end(), loaded_list.mVariables.begin(),
+                         loaded_list.mVariables.end(), is_same);
+        // Each Dof stores its index in this list, so the common dofs must keep their order. Extra loaded dofs are
+        // appended (restart adds dofs after loading); extra current dofs (added later) keep the loaded indices valid.
         const std::size_t common_dofs = std::min(mDofVariables.size(), r_loaded_dofs.size());
-        const bool is_matching = std::equal(mVariables.begin(), mVariables.end(), loaded_list.mVariables.begin(),
-                                            loaded_list.mVariables.end(), is_same)
+        const bool is_matching = is_matching_variables
             && std::equal(mDofVariables.begin(), mDofVariables.begin() + common_dofs, r_loaded_dofs.begin(), is_same);
         KRATOS_ERROR_IF_NOT(is_matching)
             << "The archive does not match this VariablesList, which may be shared by data containers: it must hold "
@@ -109,6 +110,9 @@ namespace Kratos
                 << mDofReactions[i]->Name() << ".\n";
         }
 
+        for (std::size_t i = current_size; i < loaded_list.mVariables.size(); ++i) {
+            Add(*loaded_list.mVariables[i]);
+        }
         for (std::size_t i = 0; i < r_loaded_dofs.size(); ++i) {
             if (i >= mDofVariables.size()) {
                 AddDof(r_loaded_dofs[i], r_loaded_reactions[i]);

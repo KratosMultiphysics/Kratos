@@ -946,7 +946,7 @@ private:
         rSerializer.load("QueueSize", queue_size);
         SizeType queue_index;
         rSerializer.load("QueueIndex", queue_index);
-        KRATOS_ERROR_IF(queue_index > queue_size) << "Invalid Queue index loaded : " << queue_index << std::endl;
+        KRATOS_ERROR_IF(queue_index >= queue_size && !(queue_size == 0 && queue_index == 0)) << "Invalid Queue index loaded : " << queue_index << std::endl;
 
         // Only now destruct and free the old block, with its list (which the load above did not change)
         Clear();

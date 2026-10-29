@@ -11,9 +11,8 @@
 //
 
 // System includes
-#include <string>
-#include <unordered_map>
 #include <vector>
+#include <set>
 
 // External includes
 
@@ -23,25 +22,6 @@
 #include "properties_variable_tensor_adaptor.h"
 
 namespace Kratos {
-
-namespace {
-
-/// Throws if two entities of the container share a Properties (StoreData would then race and overwrite values).
-template<class TContainerType>
-void CheckUniqueProperties(const TContainerType& rContainer, const std::string& rVariableName)
-{
-    std::unordered_map<const Properties*, std::size_t> properties_to_entity_id;
-    properties_to_entity_id.reserve(rContainer.size());
-    for (const auto& r_entity : rContainer) {
-        const auto [it, is_new] = properties_to_entity_id.emplace(&r_entity.GetProperties(), r_entity.Id());
-        KRATOS_ERROR_IF_NOT(is_new)
-            << "The container's entities' properties are not unique, which is required for the variable " << rVariableName
-            << " [ properties id = " << r_entity.GetProperties().Id() << ", entity ids = " << it->second << " and "
-            << r_entity.Id() << " ].\n";
-    }
-}
-
-} // namespace
 
 template<class TContainerPointerType>
 PropertiesVariableTensorAdaptor::PropertiesVariableTensorAdaptor(
@@ -129,7 +109,19 @@ void PropertiesVariableTensorAdaptor::Check() const
                     << "The entity with id = " << rEntity.Id() << " does not have the variable " << pVariable->Name() << ".\n";
             });
 
-            CheckUniqueProperties(*pContainer, pVariable->Name());
+            // here we have to check for the uniqueness of the variable as well, because
+            // otherwise, when StoreData method is called, it can lead to race conditions.
+            using variable_type = BareType<decltype(*pVariable)>;
+
+            std::vector<typename variable_type::Type*> memory_locations(pContainer->size());
+            IndexPartition(pContainer->size()).for_each([&pVariable, &memory_locations, &pContainer](const auto Index) {
+                memory_locations[Index] = &(pContainer->begin() + Index)->GetProperties().GetValue(*pVariable);
+            });
+
+            std::set<typename variable_type::Type*> unique_memory_locations(memory_locations.begin(), memory_locations.end());
+            KRATOS_ERROR_IF_NOT(unique_memory_locations.size() == memory_locations.size())
+                << "The container's entities' properties does not have unique memory locations assigned for variable "
+                << pVariable->Name() << " .";
         }
     }, this->GetContainer(), mpVariable);
 
@@ -181,9 +173,6 @@ void PropertiesVariableTensorAdaptor::StoreData()
             KRATOS_ERROR_IF_NOT(r_tensor_shape[0] == pContainer->size())
                 << "Underlying container of the tensor data has changed size [ tensor data = "
                 << this->Info() << ", container size = " << pContainer->size() << " ].\n";
-
-            // shared properties would race here (and silently drop part of the field), so they are rejected
-            CheckUniqueProperties(*pContainer, pVariable->Name());
 
             if constexpr(DataTypeTraits<data_type>::IsDynamic) {
                 // this zero value may be different from the Variable::Zero()

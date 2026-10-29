@@ -40,7 +40,7 @@ namespace Kratos {
  * - @ref ModelPart::ElementsContainerType
  *
  * @section PropertiesVariableTensorAdaptor_usage Usage
- * - Use @ref Check to verify that the variable exists in the entities' properties and that the entities have unique properties before collecting/storing data.
+ * - Use @ref Check to verify that the variable exists and they are holding unique memory locations in the entities' properties before collecting/storing data.
  * - Use @ref CollectData to fill internal data from Kratos data structures entities' properties.
  * - Use @ref StoreData to write internal data back to the container's entities' properties, adding the variable if necessary.
  *
@@ -124,7 +124,7 @@ public:
      *          entities' properties. If it is not present in the entities' properties, then a correctly shaped zero valued value
      *          will be set and then their relevant components will be overwritten by this method.
      *
-     * @throws std::runtime_error If the entities do not have unique properties.
+     * @warning If the entities' properties are not unique for each entity, this will result in a race condition.
      */
     void StoreData() override;
 

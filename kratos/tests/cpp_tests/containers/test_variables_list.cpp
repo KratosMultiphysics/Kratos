@@ -72,11 +72,11 @@ VariablesList::Pointer CreateSavedDofsList()
     return p_list;
 }
 
-void LoadSavedDofsList(VariablesList::Pointer pList)
+void LoadSavedDofsList(VariablesList::Pointer& rpList)
 {
     StreamSerializer serializer;
     serializer.save("List", CreateSavedDofsList());
-    serializer.load("List", pList);
+    serializer.load("List", rpList);
 }
 
 } // namespace
@@ -137,6 +137,39 @@ KRATOS_TEST_CASE_IN_SUITE(VariablesListLoadRejectsMismatchingArchive, KratosCore
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(LoadSavedDofsList(p_other_reaction_list), "The archive gives the dof DISPLACEMENT_Z the reaction REACTION_Z, but this VariablesList has REACTION_Y.");
     KRATOS_EXPECT_EQ(p_other_reaction_list->pGetDofReaction(0), nullptr);
     KRATOS_EXPECT_EQ(p_other_reaction_list->pGetDofReaction(2), &REACTION_Y);
+}
+
+// An unreferenced list is extended by an archive starting with its variables, a shared one must match exactly.
+KRATOS_TEST_CASE_IN_SUITE(VariablesListLoadExtendsUnreferencedList, KratosCoreFastSuite) {
+    auto p_list = Kratos::make_intrusive<VariablesList>();
+    p_list->Add(DISPLACEMENT);
+    LoadSavedDofsList(p_list);
+
+    KRATOS_EXPECT_EQ(p_list->size(), 2);
+    KRATOS_EXPECT_TRUE(*(p_list->begin()) == DISPLACEMENT);
+    KRATOS_EXPECT_TRUE(*(p_list->begin() + 1) == TEMPERATURE);
+    KRATOS_EXPECT_EQ(p_list->GetDofVariable(0), DISPLACEMENT_X);
+    KRATOS_EXPECT_EQ(p_list->pGetDofReaction(0), &REACTION_X);
+    KRATOS_EXPECT_EQ(p_list->GetDofVariable(2), DISPLACEMENT_Z);
+    KRATOS_EXPECT_EQ(p_list->pGetDofReaction(2), &REACTION_Z);
+
+    // an empty unreferenced list takes the whole archive
+    auto p_empty_list = Kratos::make_intrusive<VariablesList>();
+    LoadSavedDofsList(p_empty_list);
+    KRATOS_EXPECT_EQ(p_empty_list->size(), 2);
+    KRATOS_EXPECT_EQ(p_empty_list->GetDofVariable(1), DISPLACEMENT_Y);
+    KRATOS_EXPECT_EQ(p_empty_list->pGetDofReaction(2), &REACTION_Z);
+
+    // a shared list rejects it and stays unchanged
+    auto p_shared_list = Kratos::make_intrusive<VariablesList>();
+    p_shared_list->Add(DISPLACEMENT);
+    const auto data_size = p_shared_list->DataSize();
+    auto p_other_owner = p_shared_list;
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(LoadSavedDofsList(p_shared_list), "The archive does not match this VariablesList");
+    KRATOS_EXPECT_EQ(p_shared_list->size(), 1);
+    KRATOS_EXPECT_EQ(p_shared_list->DataSize(), data_size);
+    KRATOS_EXPECT_TRUE(p_shared_list->Has(DISPLACEMENT));
+    KRATOS_EXPECT_FALSE(p_shared_list->Has(TEMPERATURE));
 }
 
 }
