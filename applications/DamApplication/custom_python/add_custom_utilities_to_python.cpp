@@ -20,7 +20,7 @@
 
 #include "custom_utilities/streamlines_output_3D_utilities.hpp"
 #include "custom_utilities/global_joint_stress_utility.hpp"
-#include "custom_utilities/transfer_selfweight_stress_utility.hpp"
+#include "custom_utilities/transfer_initial_stress_utility.hpp"
 #include "custom_utilities/construction_utility.hpp"
 #include "custom_utilities/mapping_variables_utilities.hpp"
 
@@ -88,11 +88,10 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
     .def(py::init<ModelPart&, Parameters>())
     .def("ComputingGlobalStress",&GlobalJointStressUtility::ComputingGlobalStress);
 
-    py::class_< TransferSelfweightStressUtility >
-    (m ,"TransferSelfweightStressUtility")
+    py::class_< TransferInitialStressUtility >
+    (m ,"TransferInitialStressUtility")
     .def(py::init<>())
-    .def("Transfer",&TransferSelfweightStressUtility::Transfer)
-    .def("TransferInitialStress",&TransferSelfweightStressUtility::TransferInitialStress);
+    .def("TransferInitialStress",&TransferInitialStressUtility::TransferInitialStress);
 
     py::class_< ConstructionUtility >
     (m, "ConstructionUtility")
