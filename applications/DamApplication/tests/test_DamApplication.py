@@ -9,6 +9,9 @@ from test_apply_load_vector_dam_processes import TestApplyLoadVectorDamProcesses
 from test_apply_constraint_vector_dam_processes import (
     TestApplyConstraintVectorDamProcesses,
 )
+from test_impose_water_loads_condition_process import (
+    TestImposeWaterLoadsConditionProcess,
+)
 from test_dam_linear_solver import TestDamLinearSolver
 from test_dam_nodal_young_modulus_process import TestImposeNodalYoungModulusProcess
 from test_dam_nodal_field_processes import TestDamNodalFieldProcesses
@@ -67,6 +70,7 @@ def AssembleTestSuites():
             [
                 TestApplyLoadVectorDamProcesses,
                 TestApplyConstraintVectorDamProcesses,
+                TestImposeWaterLoadsConditionProcess,
                 TestDamLinearSolver,
                 TestGlobalTangentConsistency,
                 TestImposeNodalYoungModulusProcess,
@@ -107,6 +111,7 @@ def AssembleTestSuites():
                 KratosDamGeneralTests,
                 TestApplyLoadVectorDamProcesses,
                 TestApplyConstraintVectorDamProcesses,
+                TestImposeWaterLoadsConditionProcess,
                 TestDamLinearSolver,
                 TestGlobalTangentConsistency,
                 TestImposeNodalYoungModulusProcess,
