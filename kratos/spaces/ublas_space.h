@@ -8,8 +8,21 @@
 //                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
-//  Collaborator:    Vicente Mataix Ferrandiz
+//                   Vicente Mataix Ferrandiz
 //
+
+#pragma once
+
+// The linear-algebra spaces built on the boost::numeric::ublas containers.
+// Under the Eigen backend (KRATOS_USE_EIGEN_BACKEND) the uBLAS containers are
+// not the Kratos types any more, so the space is replaced by the Eigen-backed
+// default spaces (spaces/eigen_space.h through spaces/default_spaces.h).
+
+#ifdef KRATOS_USE_EIGEN_BACKEND
+
+#include "spaces/default_spaces.h"
+
+#else // uBLAS backend
 
 #pragma once
 
@@ -1146,3 +1159,5 @@ private:
 
 
 } // namespace Kratos.
+
+#endif // KRATOS_USE_EIGEN_BACKEND
