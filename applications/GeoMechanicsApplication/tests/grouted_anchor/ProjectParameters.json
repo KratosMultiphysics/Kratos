@@ -3,7 +3,7 @@
         "name": "Orchestrators.KratosMultiphysics.SequentialOrchestrator",
         "settings": {
             "echo_level": 0,
-            "execution_list": ["1_Initial_stage", "2_Wall_installation"],
+            "execution_list": ["1_Initial_stage"],
             "load_from_checkpoint": null,
             "stage_checkpoints": false
         }
@@ -19,25 +19,12 @@
                             "model_part_name": "PorousDomain"
                         }
                     }
-                ],
-                "operations": [
-                    {
-                        "name": "Operations.KratosMultiphysics.GeoMechanicsApplication.DeactivateModelPartOperation",
-                        "Parameters": {
-                            "model_part_name_list": [
-                                "PorousDomain.Sheetpile",
-                                "PorousDomain.Anchor_grouted",
-                                "PorousDomain.Grout_soil_interface",
-                                "PorousDomain.Anchor_free"
-                            ]
-                        }
-                    }
                 ]
             },
             "stage_settings": {
                 "analysis_stage": "Stages.KratosMultiphysics.GeoMechanicsApplication.GeoMechanicsAnalysis",
                 "problem_data": {
-                    "problem_name": "Sheetpile_with_anchor_1_Initial_stage",
+                    "problem_name": "Sheetpile_with_anchor",
                     "start_time": 0.0,
                     "end_time": 1.0,
                     "echo_level": 1,
@@ -99,181 +86,17 @@
                 "processes": {
                     "constraints_process_list": [
                         {
-                            "python_module": "apply_vector_constraint_table_process",
+                            "python_module": "apply_scalar_constraint_table_process",
                             "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
-                            "process_name": "ApplyVectorConstraintTableProcess",
+                            "process_name": "ApplyScalarConstraintTableProcess",
                             "Parameters": {
-                                "model_part_name": "PorousDomain.Bottom_Fixed",
-                                "variable_name": "DISPLACEMENT",
-                                "active": [true, true, false],
-                                "is_fixed": [true, true, false],
-                                "value": [0.0, 0.0, 0.0],
-                                "table": [0, 0, 0]
+                                "model_part_name": "PorousDomain.Soil",
+                                "variable_name": "WATER_PRESSURE",
+                                "is_fixed": true,
+                                "value": 0.0,
+                                "table": 0
                             }
                         },
-                        {
-                            "python_module": "apply_vector_constraint_table_process",
-                            "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
-                            "process_name": "ApplyVectorConstraintTableProcess",
-                            "Parameters": {
-                                "model_part_name": "PorousDomain.Left_Edge",
-                                "variable_name": "DISPLACEMENT",
-                                "active": [true, false, false],
-                                "is_fixed": [true, false, false],
-                                "value": [0.0, 0.0, 0.0],
-                                "table": [0, 0, 0]
-                            }
-                        },
-                        {
-                            "python_module": "apply_vector_constraint_table_process",
-                            "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
-                            "process_name": "ApplyVectorConstraintTableProcess",
-                            "Parameters": {
-                                "model_part_name": "PorousDomain.Right_Edge",
-                                "variable_name": "DISPLACEMENT",
-                                "active": [true, false, false],
-                                "is_fixed": [true, false, false],
-                                "value": [0.0, 0.0, 0.0],
-                                "table": [0, 0, 0]
-                            }
-                        }
-                    ],
-                    "loads_process_list": [
-                        {
-                            "python_module": "apply_vector_constraint_table_process",
-                            "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
-                            "process_name": "ApplyVectorConstraintTableProcess",
-                            "Parameters": {
-                                "model_part_name": "PorousDomain.porous_computational_model_part",
-                                "variable_name": "VOLUME_ACCELERATION",
-                                "active": [false, true, false],
-                                "value": [0.0, -9.81, 0.0],
-                                "table": [0, 0, 0]
-                            }
-                        }
-                    ]
-                },
-                "output_processes": {
-                    "gid_output": [
-                        {
-                            "python_module": "gid_output_process",
-                            "kratos_module": "KratosMultiphysics",
-                            "process_name": "GiDOutputProcess",
-                            "Parameters": {
-                                "model_part_name": "PorousDomain.porous_computational_model_part",
-                                "output_name": "Sheetpile_with_anchor_1_Initial_stage",
-                                "postprocess_parameters": {
-                                    "result_file_configuration": {
-                                        "gidpost_flags": {
-                                            "WriteDeformedMeshFlag": "WriteUndeformed",
-                                            "WriteConditionsFlag": "WriteElementsOnly",
-                                            "GiDPostMode": "GiD_PostAscii",
-                                            "MultiFileFlag": "SingleFile"
-                                        },
-                                        "file_label": "step",
-                                        "output_control_type": "step",
-                                        "body_output": true,
-                                        "node_output": false,
-                                        "skin_output": false,
-                                        "plane_output": [],
-                                        "nodal_results": [
-                                            "DISPLACEMENT",
-                                            "TOTAL_DISPLACEMENT",
-                                            "WATER_PRESSURE"
-                                        ],
-                                        "gauss_point_results": [
-                                            "CAUCHY_STRESS_TENSOR",
-                                            "HYDRAULIC_HEAD"
-                                        ]
-                                    },
-                                    "point_data_configuration": []
-                                }
-                            }
-                        }
-                    ]
-                }
-            }
-        },
-        "2_Wall_installation": {
-            "stage_preprocess": {
-                "operations": [
-                    {
-                        "name": "Operations.KratosMultiphysics.GeoMechanicsApplication.ActivateModelPartOperation",
-                        "Parameters": {
-                            "model_part_name_list": [
-                                "PorousDomain.Sheetpile",
-                                "PorousDomain.Anchor_grouted",
-                                "PorousDomain.Grout_soil_interface",
-                                "PorousDomain.Anchor_free"
-                            ]
-                        }
-                    }
-                ]
-            },
-            "stage_settings": {
-                "analysis_stage": "Stages.KratosMultiphysics.GeoMechanicsApplication.GeoMechanicsAnalysis",
-                "problem_data": {
-                    "problem_name": "Sheetpile_with_anchor_2_Wall_installation",
-                    "start_time": 1.0,
-                    "end_time": 2.0,
-                    "echo_level": 1,
-                    "parallel_type": "OpenMP",
-                    "number_of_threads": 1
-                },
-                "solver_settings": {
-                    "solver_type": "U_Pw",
-                    "model_part_name": "PorousDomain",
-                    "solution_type": "static",
-                    "scheme_type": "Newmark",
-                    "strategy_type": "newton_raphson",
-                    "convergence_criterion": "residual_criterion",
-                    "residual_relative_tolerance": 1.0e-04,
-                    "residual_absolute_tolerance": 1.0e-09,
-                    "min_iterations": 6,
-                    "max_iterations": 15,
-                    "number_cycles": 1,
-                    "reduction_factor": 0.5,
-                    "increase_factor": 2.0,
-                    "time_stepping": {
-                        "time_step": 1.0
-                    },
-                    "buffer_size": 2,
-                    "echo_level": 1,
-                    "reset_totals": false,
-                    "clear_storage": false,
-                    "compute_reactions": true,
-                    "move_mesh_flag": false,
-                    "reform_dofs_at_each_step": false,
-                    "block_builder": true,
-                    "linear_solver_settings": {
-                        "solver_type": "skyline_lu_factorization",
-                        "scaling": true
-                    },
-                    "domain_size": 2,
-                    "rotation_dofs": true,
-                    "model_import_settings": {
-                        "input_type": "use_input_model_part"
-                    },
-                    "material_import_settings": {
-                        "materials_filename": "MaterialParameters.json"
-                    },
-                    "problem_domain_sub_model_part_list": [
-                        "Soil",
-                        "Sheetpile",
-                        "Anchor_grouted",
-                        "Anchor_free",
-                        "Grout_soil_interface"
-                    ],
-                    "body_domain_sub_model_part_list": [
-                        "Soil",
-                        "Sheetpile",
-                        "Anchor_grouted",
-                        "Anchor_free",
-                        "Grout_soil_interface"
-                    ]
-                },
-                "processes": {
-                    "constraints_process_list": [
                         {
                             "python_module": "apply_vector_constraint_table_process",
                             "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
@@ -337,7 +160,7 @@
                             "process_name": "GiDOutputProcess",
                             "Parameters": {
                                 "model_part_name": "PorousDomain.porous_computational_model_part",
-                                "output_name": "Sheetpile_with_anchor_2_Wall_installation",
+                                "output_name": "Sheetpile_with_anchor",
                                 "postprocess_parameters": {
                                     "result_file_configuration": {
                                         "gidpost_flags": {

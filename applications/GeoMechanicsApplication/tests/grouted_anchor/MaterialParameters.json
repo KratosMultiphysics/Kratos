@@ -22,9 +22,6 @@
                     "PERMEABILITY_XY": 0.0,
                     "GEO_COHESION": 1.0e+03,
                     "GEO_FRICTION_ANGLE": 30.0
-                },
-                "Tables": {
-
                 }
             }
         },
@@ -42,9 +39,6 @@
                     "CROSS_AREA": 1.5e-02,
                     "I33": 3.0e-04,
                     "AREA_EFFECTIVE_Y": 7.5e-03
-                },
-                "Tables": {
-
                 }
             }
         },
@@ -60,9 +54,6 @@
                     "CROSS_AREA": 4.938e-02,
                     "DENSITY": 7.85e+03,
                     "TRUSS_PRESTRESS_PK2": 0.0
-                },
-                "Tables": {
-
                 }
             }
         },
@@ -77,10 +68,7 @@
                     "YOUNG_MODULUS": 2.1e+11,
                     "CROSS_AREA": 4.938e-03,
                     "DENSITY": 7.85e+03,
-                    "TRUSS_PRESTRESS_PK2": 1.0e+05
-                },
-                "Tables": {
-
+                    "TRUSS_PRESTRESS_PK2": 0.0
                 }
             }
         },
@@ -95,13 +83,10 @@
                     "GEO_DRAINAGE_TYPE": "CONSTANT_PW_FIELD",
                     "INTERFACE_NORMAL_STIFFNESS": 7.69230769230769e+08,
                     "INTERFACE_SHEAR_STIFFNESS": 7.69230769230769e+07,
-                    "GEO_CONTACT_SURFACE_PERIMETER": 0.1,
+                    "GEO_CONTACT_SURFACE_PERIMETER": 1.0,
                     "GEO_COHESION": 800.0,
                     "GEO_FRICTION_ANGLE": 24.79128089714489,
                     "GEO_DILATANCY_ANGLE": 0.0
-                },
-                "Tables": {
-
                 }
             }
         }
