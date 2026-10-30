@@ -29,5 +29,6 @@
     "DamApplication",
     "PoromechanicsApplication",
     "OptimizationApplication",
-    "MedApplication"
+    "MedApplication",
+    "KaHIPApplication"
 ]
