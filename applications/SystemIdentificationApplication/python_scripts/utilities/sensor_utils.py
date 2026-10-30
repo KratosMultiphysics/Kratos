@@ -38,6 +38,10 @@ def CreateSensors(sensor_model_part: Kratos.ModelPart, domain_model_part: Kratos
         except:
             pass
 
+    # One spatial search over the domain elements, shared by all sensors, so each sensor's Create
+    # locates its element(s) without a linear search. Built lazily since empty bins are not searchable.
+    domain_bins: 'typing.Optional[Kratos.GeometricalObjectsBins]' = None
+
     list_of_sensors: 'list[KratosSI.Sensors.Sensor]' = []
     for parameters in list_of_parameters:
         if not parameters.Has("type"):
@@ -47,7 +51,13 @@ def CreateSensors(sensor_model_part: Kratos.ModelPart, domain_model_part: Kratos
         if not sensor_type_name in dict_of_sensor_types.keys():
             raise RuntimeError(f"Unsupported sensor type = \"{sensor_type_name}\" requested. Followings are supported:\n\t" + "\n\t".join(dict_of_sensor_types.keys()))
 
-        sensor: KratosSI.Sensors.Sensor = dict_of_sensor_types[sensor_type_name].Create(domain_model_part, sensor_model_part, len(list_of_sensors) + 1, parameters)
+        if domain_bins is None:
+            if domain_model_part.NumberOfElements() == 0:
+                raise RuntimeError(f"The domain model part \"{domain_model_part.FullName()}\" has no elements to locate the sensors in.")
+            # same local coordinate tolerance as the former brute force point locator
+            domain_bins = Kratos.GeometricalObjectsBins(domain_model_part.Elements, 1e-6)
+
+        sensor: KratosSI.Sensors.Sensor = dict_of_sensor_types[sensor_type_name].Create(domain_model_part, sensor_model_part, len(list_of_sensors) + 1, parameters, domain_bins)
         list_of_sensors.append(sensor)
 
     return list_of_sensors
