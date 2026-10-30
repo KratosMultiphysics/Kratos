@@ -134,9 +134,17 @@ class DamAnalysis(AnalysisStage):
 
     def Initialize(self):
 
+        import KratosMultiphysics.process_factory
+        is_restart = self.project_parameters["solver_settings"]["model_import_settings"]["input_type"].GetString() == "rest"
+        if is_restart and self.project_parameters["solver_settings"]["solver_type"].GetString() != "dam_mechanical_solver":
+            raise RuntimeError("Dam restart currently supports only dam_mechanical_solver")
         self.solver.AddVariables() # Add problem variables
         self.solver.ImportModelPart() # Read model_part (note: the buffer_size is set here)
         self.solver.AddDofs() # Add degrees of freedom
+        if is_restart:
+            self._CheckMechanicalRestart()
+            self.time = self.main_model_part.ProcessInfo[KratosMultiphysics.TIME]
+            self.start_time = self.time / self.time_unit_converter
 
         #DamModel = KratosMultiphysics.Model() # Creation of Kratos model
         #DamModel.AddModelPart(self.main_model_part)
@@ -158,7 +166,6 @@ class DamAnalysis(AnalysisStage):
             self.construction_utilities.Initialize()
 
         # Construct processes to be applied
-        import KratosMultiphysics.process_factory
         self.list_of_processes = KratosMultiphysics.process_factory.KratosProcessFactory(self.model).ConstructListOfProcesses( self.project_parameters["constraints_process_list"] )
         self.list_of_processes += KratosMultiphysics.process_factory.KratosProcessFactory(self.model).ConstructListOfProcesses( self.project_parameters["loads_process_list"] )
         self.list_of_processes += KratosMultiphysics.process_factory.KratosProcessFactory(self.model).ConstructListOfProcesses( self.project_parameters["temperature_by_device_list"] )
@@ -174,6 +181,12 @@ class DamAnalysis(AnalysisStage):
             output_processes = self.project_parameters["output_processes"]
             for _, process_list in output_processes.items():
                 self.list_of_standard_output_processes += KratosMultiphysics.process_factory.KratosProcessFactory(self.model).ConstructListOfProcesses(process_list)
+
+        from KratosMultiphysics.save_restart_process import SaveRestartProcess
+        self._restart_step_counting = is_restart or any(
+            isinstance(process, SaveRestartProcess)
+            for process in self.list_of_standard_output_processes + self.list_of_output_processes
+        )
 
         # A standard GiD process takes precedence over the legacy output_configuration
         from KratosMultiphysics.gid_output_process import GiDOutputProcess
@@ -196,7 +209,7 @@ class DamAnalysis(AnalysisStage):
         # Standard GiD must clean previous post files before its ExecuteInitialize below.
         # Legacy GiD keeps its original cleanup point, immediately before construction.
         # In particular, VTK-only runs must not delete existing GiD results.
-        if has_standard_gid_output:
+        if has_standard_gid_output and not is_restart:
             from KratosMultiphysics.DamApplication import dam_cleaning_utility
             dam_cleaning_utility.CleanPreviousFiles(self.problem_path)
 
@@ -224,15 +237,16 @@ class DamAnalysis(AnalysisStage):
             self.output_process.ExecuteInitialize()
 
         # Set TIME and DELTA_TIME and fill the previous steps of the buffer with the initial conditions
-        self.time = self.time - (self.buffer_size-1)*self.delta_time
-        self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.TIME, self.time)
-        for step in range(self.buffer_size-1):
-            self.time = self.time + self.delta_time
-            self.main_model_part.CloneTimeStep(self.time)
+        if not is_restart:
+            self.time = self.time - (self.buffer_size-1)*self.delta_time
+            self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.TIME, self.time)
+            for step in range(self.buffer_size-1):
+                self.time = self.time + self.delta_time
+                self.main_model_part.CloneTimeStep(self.time)
 
 
         ## Initialize Mapping Variables Utility
-        if self.add_previous_results:
+        if self.add_previous_results and not is_restart:
 
             from KratosMultiphysics.DamApplication import dam_mapping_variables_utility
             dam_mapping_variables_utility = dam_mapping_variables_utility.MappingVariablesUtility(self.domain_size)
@@ -268,7 +282,8 @@ class DamAnalysis(AnalysisStage):
 
         if use_legacy_gid_output:
             from KratosMultiphysics.DamApplication import dam_cleaning_utility
-            dam_cleaning_utility.CleanPreviousFiles(self.problem_path) # Clean previous post files
+            if not is_restart:
+                dam_cleaning_utility.CleanPreviousFiles(self.problem_path) # Clean previous post files
             output_settings = self.project_parameters["output_configuration"]
             from KratosMultiphysics.DamApplication.gid_dam_output_process import GiDDamOutputProcess
             self.gid_output = GiDDamOutputProcess(computing_model_part,
@@ -308,12 +323,77 @@ class DamAnalysis(AnalysisStage):
             f.write(self.project_parameters.PrettyPrintJsonString())
             f.close()
 
+    def _CheckMechanicalRestart(self):
+        settings = self.project_parameters["solver_settings"]["mechanical_solver_settings"]
+        if (self.domain_size != 2 or self.consider_construction or self.add_previous_results or self.use_streamline_utility or
+                settings["solution_type"].GetString() != "Quasi-Static" or
+                settings["strategy_type"].GetString() != "Newton-Raphson" or
+                settings["scheme_type"].GetString() != "Newmark" or
+                settings["nonlocal_damage"].GetBool() or settings["move_mesh_flag"].GetBool()):
+            raise RuntimeError("Dam restart supports only 2D quasistatic local elasticity with a fixed mesh and no previous-results mapping or construction")
+        if (self.main_model_part.GetBufferSize() != self.buffer_size or
+                abs(self.main_model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME] - self.delta_time) > 1.e-12 * max(1., abs(self.delta_time)) or
+                abs(self.main_model_part.ProcessInfo[KratosDam.TIME_UNIT_CONVERTER] - self.time_unit_converter) > 1.e-12):
+            raise RuntimeError("Dam restart requires the saved buffer size, time step and time scale")
+        if self.main_model_part.ProcessInfo[KratosMultiphysics.STEP] < 1:
+            raise RuntimeError("Dam restart requires a checkpoint with an advanced STEP counter")
+        if (self.main_model_part.ProcessInfo.Has(KratosDam.USE_PROCESS_BASED_LOCAL_EQUIVALENT_STRAIN) and
+                self.main_model_part.ProcessInfo[KratosDam.USE_PROCESS_BASED_LOCAL_EQUIVALENT_STRAIN]):
+            raise RuntimeError("Dam restart does not support nonlocal checkpoints")
+        part = self.solver.GetComputingModelPart()
+        if part.NumberOfConditions() or not part.NumberOfElements():
+            raise RuntimeError("Dam restart supports solid elements without conditions")
+        for element in part.Elements:
+            properties = element.Properties
+            if (not element.Info().startswith("Small Displacement Solid Element") or
+                    len(element.GetGeometry()) != 4 or
+                    not properties.Has(KratosMultiphysics.CONSTITUTIVE_LAW_NAME) or
+                    properties.GetValue(KratosMultiphysics.CONSTITUTIVE_LAW_NAME) != "LinearElasticPlaneStrain2DLaw" or
+                    not isinstance(properties.GetValue(KratosMultiphysics.CONSTITUTIVE_LAW), KratosStructural.LinearElasticPlaneStrain2DLaw)):
+                raise RuntimeError("Dam restart supports only Q4 small-displacement elements with LinearElasticPlaneStrain2DLaw")
+        if not part.NumberOfNodes():
+            raise RuntimeError("Dam restart requires a nonempty solid model")
+        base_y = min(node.Y0 for node in part.Nodes)
+        for node in part.Nodes:
+            on_base = abs(node.Y0 - base_y) <= 1.e-12
+            if (node.IsFixed(KratosMultiphysics.DISPLACEMENT_X) != on_base or
+                    node.IsFixed(KratosMultiphysics.DISPLACEMENT_Y) != on_base):
+                raise RuntimeError("Dam restart requires fixed displacement on the horizontal base only")
+        for key in ("constraints_process_list", "temperature_by_device_list", "output_device_list"):
+            if self.project_parameters.Has(key) and self.project_parameters[key].size():
+                raise RuntimeError("Dam restart does not support processes in " + key)
+        if self.project_parameters.Has("output_processes"):
+            for _, process_list in self.project_parameters["output_processes"].items():
+                for process in process_list.values():
+                    if (process["python_module"].GetString() != "save_restart_process" or
+                            not process.Has("kratos_module") or
+                            process["kratos_module"].GetString() != "KratosMultiphysics"):
+                        raise RuntimeError("Dam restart supports only the standard save_restart_process as an output process")
+        for process in self.project_parameters["loads_process_list"].values():
+            params = process["Parameters"]
+            if (process["python_module"].GetString() != "assign_vector_variable_process" or
+                    not process.Has("kratos_module") or
+                    process["kratos_module"].GetString() != "KratosMultiphysics" or
+                    params["variable_name"].GetString() != "VOLUME_ACCELERATION" or
+                    not params.Has("constrained") or not params["constrained"].IsBool() or
+                    params["constrained"].GetBool() or not params.Has("interval") or
+                    KratosMultiphysics.IntervalUtility(params).IsInInterval(self.main_model_part.ProcessInfo[KratosMultiphysics.TIME])):
+                raise RuntimeError("Dam restart supports only future, unconstrained VOLUME_ACCELERATION assignments")
+            if not params.Has("value") or any(not value.IsNumber() and not value.IsNull() for value in params["value"].values()):
+                raise RuntimeError("Dam restart supports only constant acceleration components")
+        if self.project_parameters.Has("output_configuration"):
+            for name in os.listdir(self.problem_path):
+                if name.endswith((".post.res", ".post.msh", ".post.bin", ".post.lst")):
+                    raise RuntimeError("Dam restart GiD output requires a separate directory without existing GiD files")
+
     def RunMainTemporalLoop(self):
 
         while( (self.time+self.tol) <= self.end_time ):
 
             # Update temporal variables
             self.time = self.time + self.delta_time
+            if self._restart_step_counting:
+                self.main_model_part.ProcessInfo[KratosMultiphysics.STEP] += 1
             self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DELTA_TIME, self.delta_time)
             self.main_model_part.CloneTimeStep(self.time)
 

@@ -30,7 +30,11 @@ class DamMechanicalSolver(object):
             "model_import_settings":{
                 "input_type": "mdpa",
                 "input_filename": "unknown_name",
-                "input_file_label": 0
+                "input_file_label": 0,
+                "restart_load_file_label": "",
+                "load_restart_files_from_folder": true,
+                "input_output_path": "",
+                "serializer_trace": "no_trace"
             },
             "buffer_size": 2,
             "echo_level": 0,
@@ -150,6 +154,17 @@ class DamMechanicalSolver(object):
             # Create computing_model_part, set constitutive law and buffer size
             self._ExecuteAfterReading()
 
+        elif self.settings["model_import_settings"]["input_type"].GetString() == "rest":
+            from KratosMultiphysics.restart_utility import RestartUtility
+            restart_settings = self.settings["model_import_settings"].Clone()
+            restart_settings.RemoveValue("input_type")
+            restart_settings.RemoveValue("input_file_label")
+            if restart_settings["restart_load_file_label"].GetString() == "":
+                raise ValueError("restart_load_file_label must be specified for a Dam restart")
+            RestartUtility(self.main_model_part, restart_settings).LoadRestart()
+            self.mechanical_model_part_name = "mechanical_computing_domain"
+            if not self.main_model_part.HasSubModelPart(self.mechanical_model_part_name):
+                raise RuntimeError("Dam restart is missing the mechanical computing model part")
         else:
             raise Exception("Other input options are not yet implemented.")
 

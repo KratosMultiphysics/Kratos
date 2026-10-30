@@ -42,3 +42,55 @@ interface keep working without changes.
 - VTK output is currently limited to safe nodal results. Gauss-point output for
   mixed element types and `Variable<Matrix>` results are not supported reliably
   by the standard VTK process and are not enabled automatically.
+
+## Mechanical restart ##
+
+Mechanical `DamAnalysis` supports a deliberately limited restart path using
+Kratos' standard `save_restart_process` and `RestartUtility`. For example, add
+`save_restart_process` under `output_processes` in the original analysis:
+
+```json
+"output_processes": {
+    "restart": [{
+        "python_module": "save_restart_process",
+        "kratos_module": "KratosMultiphysics",
+        "Parameters": {
+            "model_part_name": "MainModelPart",
+            "output_path": "checkpoints",
+            "restart_save_frequency": 0.0
+        }
+    }]
+}
+```
+
+For continuation, use a separate working directory with no existing GiD
+`.post.*` files and set `model_import_settings` to, for example:
+
+```json
+{
+    "input_type": "rest",
+    "input_filename": "/path/to/original/MainModelPart",
+    "input_output_path": "checkpoints",
+    "restart_load_file_label": "1.0"
+}
+```
+
+The label identifies the checkpoint time. The saved buffer size, time step and
+time scale must match the continuation settings. Checkpoint-enabled and
+restarted analyses advance the Kratos `STEP` counter, which is preserved on
+restart. GiD restart output is written in the new working directory; an existing
+GiD result in that directory causes an error before output initialization.
+
+The supported configuration is `dam_mechanical_solver`, 2D quasi-static
+Newton-Raphson/Newmark with a fixed mesh, Q4 SMA small-displacement elements
+and `LinearElasticPlaneStrain2DLaw`. All nodes on the horizontal base must be
+fixed in X and Y, with no other displacement fixities. The checkpoint must not
+contain conditions or nonlocal state. Construction, previous-results mapping,
+streamlines, constraint processes, output devices and arbitrary output processes
+are not supported on restart. The only supported load processes are standard
+`assign_vector_variable_process` assignments of constant, unconstrained
+`VOLUME_ACCELERATION` components with intervals inactive at the restored time.
+Existing gravity and fixed DOFs must therefore already be present in the
+checkpoint. These restrictions are checked explicitly; they do not change mdpa
+analyses without checkpoint output. Thermomechanical, coupled, interface,
+nonlocal and history-dependent restart are not validated by this path.

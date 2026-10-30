@@ -26,6 +26,7 @@ from test_interface_tangent_consistency import TestSmallDisplacementInterfaceTan
 from test_initial_gp_output_before_solve import TestInitialGaussPointOutputBeforeSolve
 from test_dam_thermo_mechanic_initial_output import TestDamThermoMechanicInitialOutput
 from test_dam_initial_stress_handling import TestDamInitialStressHandling
+from test_dam_standard_restart import TestDamStandardRestart
 from test_process_based_nodal_smoothing import DamProcessBasedNodalSmoothingTest
 from test_dam_output_processes import TestDamOutputProcesses
 from test_dam_gid_output_process import TestDamGiDOutputProcess
@@ -89,6 +90,7 @@ def AssembleTestSuites():
                 TestInitialGaussPointOutputBeforeSolve,
                 TestDamThermoMechanicInitialOutput,
                 TestDamInitialStressHandling,
+                TestDamStandardRestart,
                 DamProcessBasedNodalSmoothingTest,
                 DamNonlocalOwnershipTest,
                 TestDamProcessLifetime,
@@ -126,6 +128,7 @@ def AssembleTestSuites():
                 TestInitialGaussPointOutputBeforeSolve,
                 TestDamThermoMechanicInitialOutput,
                 TestDamInitialStressHandling,
+                TestDamStandardRestart,
                 DamNonlocalOwnershipTest,
                 DamProcessBasedNodalSmoothingTest,
                 TestDamProcessLifetime,
