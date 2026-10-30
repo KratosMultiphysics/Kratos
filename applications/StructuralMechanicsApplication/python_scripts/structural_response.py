@@ -431,6 +431,7 @@ class AdjointResponseFunction(ResponseFunctionInterface):
             "adjoint_linear_strain_energy" : "StrainEnergy",
             "adjoint_local_stress" : "LocalStress",
             "adjoint_max_stress" : "MaxStress",
+            "adjoint_KS_max_stress" : "KSMaxStress",
             "adjoint_nodal_reaction" : "NodalReaction"
         }
         response_type = self.response_settings["response_type"].GetString()
