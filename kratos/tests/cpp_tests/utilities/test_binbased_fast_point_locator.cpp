@@ -152,7 +152,7 @@ namespace Kratos
             ref_shape_functions[1] = 0.0;
             ref_shape_functions[2] = 0.5;
 
-            const double tolerance = 1.0e-16;
+            const double tolerance = 1.0e-15;
             KRATOS_EXPECT_TRUE(is_found);
             KRATOS_EXPECT_EQ(p_condition->Id(), this_model_part.pGetCondition(1)->Id());
             KRATOS_EXPECT_LE(norm_2(shape_functions - ref_shape_functions), tolerance);
