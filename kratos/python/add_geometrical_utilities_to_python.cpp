@@ -531,7 +531,15 @@ void AddGeometricalUtilitiesToPython(pybind11::module &m)
         .def_static("CreateGeometry", &FemMultipatchGapUtilities::CreateGeometry,
             py::arg("background"), py::arg("inner"), py::arg("interface"),
             py::arg("tolerance") = 1e-10,
-            "Build positive gap quadrature and separate boundary/interface views without DOFs.");
+            "Build positive gap quadrature and separate boundary/interface views without DOFs.")
+        .def_static("CreateHorizontalPhaseGeometry", &FemMultipatchGapUtilities::CreateHorizontalPhaseGeometry,
+            py::arg("phase"), py::arg("interface"), py::arg("interface_height"),
+            py::arg("negative_side"), py::arg("tolerance") = 1e-10,
+            "Create the open horizontal gap geometry for one complete-element phase patch.")
+        .def_static("CreateLevelSetPhaseGeometry", &FemMultipatchGapUtilities::CreateLevelSetPhaseGeometry,
+            py::arg("phase"), py::arg("interface"), py::arg("contour"),
+            py::arg("negative_side"), py::arg("tolerance") = 1e-10,
+            "Create a phase gap for an increasing-x polygonal level-set contour.");
 
 }
 

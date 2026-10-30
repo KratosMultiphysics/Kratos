@@ -73,7 +73,7 @@ void SbmFluidGapInterfaceCondition2D::Initialize(
     const Matrix& r_connector =
         GetValue(SURROGATE_BOUNDARY_FACE_COORDINATES);
     const auto& r_integration_points =
-        LineGaussLegendreIntegrationPoints2::IntegrationPoints();
+        LineGaussLegendreIntegrationPoints3::IntegrationPoints();
     mConstitutiveLaws.resize(2 * r_integration_points.size());
 
     for (IndexType g = 0; g < r_integration_points.size(); ++g) {
@@ -195,7 +195,7 @@ void SbmFluidGapInterfaceCondition2D::CalculateAll(
     MatrixType local_lhs = ZeroMatrix(local_size, local_size);
     VectorType local_rhs = ZeroVector(local_size);
     const auto& r_integration_points =
-        LineGaussLegendreIntegrationPoints2::IntegrationPoints();
+        LineGaussLegendreIntegrationPoints3::IntegrationPoints();
     KRATOS_ERROR_IF(
         mConstitutiveLaws.size() != 2 * r_integration_points.size())
         << Info() << " #" << Id() << " has not been initialized."

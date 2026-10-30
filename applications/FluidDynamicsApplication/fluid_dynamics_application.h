@@ -470,6 +470,7 @@ private:
     const FluidPatchCouplingCondition2D mFluidPatchCouplingCondition2D6N;
     const FluidPatchCouplingCondition2D mFluidPatchCouplingCondition2D8N;
     const FluidPatchGapCouplingCondition2D mFluidPatchGapCouplingCondition2D8N;
+    const FluidTwoPhaseGapCouplingCondition2D mFluidTwoPhaseGapCouplingCondition2D8N;
     const FluidPatchGapInterfaceCondition2D mFluidPatchGapInterfaceCondition2D;
 
     /// Low Mach Navier-Stokes element

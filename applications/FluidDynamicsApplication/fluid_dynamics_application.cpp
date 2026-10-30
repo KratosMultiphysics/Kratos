@@ -165,6 +165,7 @@ KratosFluidDynamicsApplication::KratosFluidDynamicsApplication():
     mFluidPatchCouplingCondition2D6N(0, Kratos::make_shared<Geometry<Node>>()),
     mFluidPatchCouplingCondition2D8N(0, Kratos::make_shared<Geometry<Node>>()),
     mFluidPatchGapCouplingCondition2D8N(0, Kratos::make_shared<Geometry<Node>>()),
+    mFluidTwoPhaseGapCouplingCondition2D8N(0, Kratos::make_shared<Geometry<Node>>()),
     mFluidPatchGapInterfaceCondition2D(0, Kratos::make_shared<Geometry<Node>>()),
     // Low Mach Navier-Stokes elements
     mLowMachNavierStokes2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<Node >(Element::GeometryType::PointsArrayType(3)))),
@@ -501,6 +502,7 @@ void KratosFluidDynamicsApplication::Register() {
     KRATOS_REGISTER_CONDITION("FluidPatchCouplingCondition2D6N", mFluidPatchCouplingCondition2D6N);
     KRATOS_REGISTER_CONDITION("FluidPatchCouplingCondition2D8N", mFluidPatchCouplingCondition2D8N);
     KRATOS_REGISTER_CONDITION("FluidPatchGapCouplingCondition2D8N", mFluidPatchGapCouplingCondition2D8N);
+    KRATOS_REGISTER_CONDITION("FluidTwoPhaseGapCouplingCondition2D8N", mFluidTwoPhaseGapCouplingCondition2D8N);
     KRATOS_REGISTER_CONDITION("FluidPatchGapInterfaceCondition2D", mFluidPatchGapInterfaceCondition2D);
     KRATOS_REGISTER_CONDITION("StokesWallCondition3D", mStokesWallCondition3D);
     KRATOS_REGISTER_CONDITION("StokesWallCondition3D4N", mStokesWallCondition3D4N);

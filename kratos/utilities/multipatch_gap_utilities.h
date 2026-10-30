@@ -52,6 +52,19 @@ public:
         ModelPart& rBackground, const std::vector<ModelPart*>& rInnerPatches,
         double Tolerance);
     static GapData Build(ModelPart& rBackground, ModelPart& rInner, double Tolerance);
+    /// Build an open horizontal interface from a complete-element phase patch.
+    /// NegativeSide selects the phase below the interface. The patch must have
+    /// one straight, horizontal surrogate edge chain spanning the tank.
+    static GapData BuildHorizontalPhase(
+        ModelPart& rPhase, double InterfaceHeight, bool NegativeSide, double Tolerance);
+    static void CreateHorizontalPhaseGeometry(ModelPart& rPhase, ModelPart& rInterface,
+        double InterfaceHeight, bool NegativeSide, double Tolerance);
+    /// Reconstruct one phase from a wall-to-wall, increasing-x polygonal level set.
+    /// rPhase contains only complete active Cartesian Q1 cells of that phase.
+    static GapData BuildLevelSetPhase(ModelPart& rPhase, const Matrix& rContour,
+        bool NegativeSide, double Tolerance);
+    static void CreateLevelSetPhaseGeometry(ModelPart& rPhase, ModelPart& rInterface,
+        const Matrix& rContour, bool NegativeSide, double Tolerance);
     /// Materialize independent views: TrueBoundary, SurrogateBoundary,
     /// GapVolumes, GapTriangles, PhysicalInterfaces, GapInterfaces.
     static void CreateGeometry(ModelPart& rBackground, ModelPart& rInner,

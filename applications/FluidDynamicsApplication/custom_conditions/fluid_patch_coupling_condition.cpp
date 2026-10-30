@@ -80,10 +80,10 @@ void FluidPatchCouplingCondition2D::CalculateCouplingMatrix(
     }
     const double alpha = std::max(coefficient, 0.0) * penalty_scale; // P1 and Q1 have order one
 
-    // Two-point line quadrature integrates trace products on each common
-    // subsegment. It is exact for P1 and affine Q1 parents; distorted Q1
-    // parents use the physical gradients evaluated at each Gauss point.
-    for (const auto& r_point : LineGaussLegendreIntegrationPoints2::IntegrationPoints()) {
+    // Cartesian Q1 traces along an inclined segment can be quadratic;
+    // their products require three-point quadrature. General distorted Q1
+    // mappings need not yield polynomial integrands.
+    for (const auto& r_point : LineGaussLegendreIntegrationPoints3::IntegrationPoints()) {
         const Point global_point = interface_point(r_coordinates, r_point.X());
         const double weight = 0.5 * length * r_point.Weight();
         Matrix jump = ZeroMatrix(2, local_size);
@@ -275,6 +275,8 @@ int FluidPatchCouplingCondition2D::Check(const ProcessInfo& rProcessInfo) const
     const double length = std::hypot(dx, dy);
     KRATOS_ERROR_IF(length <= 0.0) << "Zero-length coupling segment." << std::endl;
     const array_1d<double, 2> normal{dy / length, -dx / length};
+    KRATOS_ERROR_IF(UsesSecondParentExtension() && normal[1] <= 0.0)
+        << "The two-phase interface normal must point from the lower to the upper phase." << std::endl;
     const Point midpoint = interface_point(r_coordinates, 0.0);
     std::set<IndexType> node_ids;
     for (IndexType side = 0; side < 2; ++side) {
@@ -291,7 +293,10 @@ int FluidPatchCouplingCondition2D::Check(const ProcessInfo& rProcessInfo) const
         const auto center = r_geometry.Center();
         const double normal_distance = normal[0] * (center.X() - midpoint.X())
                                      + normal[1] * (center.Y() - midpoint.Y());
-        KRATOS_ERROR_IF((side == 0 && !UsesBackgroundExtension() && normal_distance >= 0.0) || (side == 1 && normal_distance <= 0.0))
+        // For a piecewise-linear height contour, the extrapolated tangent of
+        // one subsegment need not separate the center of its phase parent.
+        KRATOS_ERROR_IF((side == 0 && !UsesBackgroundExtension() && normal_distance >= 0.0) ||
+                        (side == 1 && !UsesSecondParentExtension() && normal_distance <= 0.0))
             << "The interface normal must point from parent A to parent B." << std::endl;
         std::array<Vector, 2> endpoint_values;
         for (IndexType endpoint = 0; endpoint < 2; ++endpoint) {
@@ -300,7 +305,7 @@ int FluidPatchCouplingCondition2D::Check(const ProcessInfo& rProcessInfo) const
                 r_coordinates(endpoint, 0), r_coordinates(endpoint, 1), 0.0));
             r_geometry.ShapeFunctionsValues(endpoint_values[endpoint], local);
             for (const double value : endpoint_values[endpoint]) {
-                KRATOS_ERROR_IF(!(side == 0 && UsesBackgroundExtension()) &&
+                KRATOS_ERROR_IF(!(side == 0 && UsesBackgroundExtension()) && !(side == 1 && UsesSecondParentExtension()) &&
                                 (value < -1e-9 || value > 1.0 + 1e-9))
                     << "Coupling endpoints must lie on both parent edges; gaps are not supported." << std::endl;
             }
@@ -336,7 +341,8 @@ int FluidPatchCouplingCondition2D::Check(const ProcessInfo& rProcessInfo) const
             KRATOS_CHECK_DOF_IN_NODE(VELOCITY_Y, r_node);
             KRATOS_CHECK_DOF_IN_NODE(PRESSURE, r_node);
         }
-        KRATOS_ERROR_IF(!common_edge && !(side == 0 && UsesBackgroundExtension())) << "Interface segment must belong to a single edge of each parent." << std::endl;
+        KRATOS_ERROR_IF(!common_edge && !(side == 0 && UsesBackgroundExtension()) &&
+                        !(side == 1 && UsesSecondParentExtension())) << "Interface segment must belong to a single edge of each parent." << std::endl;
     }
     return 0;
     KRATOS_CATCH("")

@@ -76,6 +76,7 @@ public:
 protected:
     /// Only the dedicated Gap-SBM condition may extrapolate the background.
     virtual bool UsesBackgroundExtension() const { return false; }
+    virtual bool UsesSecondParentExtension() const { return false; }
 
     FluidPatchCouplingCondition2D() = default;
 

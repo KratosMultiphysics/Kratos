@@ -205,6 +205,9 @@ Geometry<Node>::Pointer CreateGapQuadratureGeometry(
 
 void SetExactBoundaryQuadrature(GapFaceData& rFace, const double Tolerance)
 {
+    // This rule integrates the straight segment between the projected
+    // endpoints. If those endpoints lie on different skin edges, the segment
+    // is a chord and does not reproduce the intervening skin vertex.
     const auto true_tangent = rFace.TruePoints[1] - rFace.TruePoints[0];
     const double true_length = std::hypot(true_tangent[0], true_tangent[1]);
 
@@ -417,7 +420,7 @@ void GapConstructionUtility::Build(
         auto p_gap_element = r_gap_element_prototype.Create(
             next_element_id++,
             p_gap_geometry,
-            r_face.pBoundaryCondition->pGetProperties());
+            r_face.pParentElement->pGetProperties());
         if (r_face.pParentElement->Has(C_SMAGORINSKY)) {
             p_gap_element->SetValue(C_SMAGORINSKY, r_face.pParentElement->GetValue(C_SMAGORINSKY));
         }

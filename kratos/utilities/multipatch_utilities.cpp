@@ -128,7 +128,7 @@ FemMultipatchUtilities::GaussPointsType FemMultipatchUtilities::GetGaussPoints(
 
     GaussPointsType result;
     for (const auto& r_element : rModelPart.Elements()) {
-        if (ActiveOnly && !r_element.Is(ACTIVE)) {
+        if (ActiveOnly && r_element.IsDefined(ACTIVE) && r_element.IsNot(ACTIVE)) {
             continue;
         }
         const auto& r_geometry = r_element.GetGeometry();

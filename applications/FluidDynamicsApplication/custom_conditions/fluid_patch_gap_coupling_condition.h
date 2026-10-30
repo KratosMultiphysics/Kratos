@@ -51,11 +51,11 @@ public:
             return;
         }
         rValues.clear();
-        const auto& points = GetValue(COUPLING_INTERFACE_COORDINATES);
-        for (const auto& g:LineGaussLegendreIntegrationPoints2::IntegrationPoints()) {
+        const auto& r_points = GetValue(COUPLING_INTERFACE_COORDINATES);
+        for (const auto& r_gauss_point:LineGaussLegendreIntegrationPoints3::IntegrationPoints()) {
             array_1d<double, 3> point = ZeroVector(3);
             for (std::size_t d = 0; d<3; ++d)
-                point[d] = 0.5*((1-g.X())*points(0, d)+(1+g.X())*points(1, d));
+                point[d] = 0.5*((1-r_gauss_point.X())*r_points(0, d)+(1+r_gauss_point.X())*r_points(1, d));
             rValues.push_back(point);
         }
     }
@@ -68,6 +68,32 @@ private:
     { KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, FluidPatchCouplingCondition2D); }
     void load(Serializer& rSerializer) override
     { KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, FluidPatchCouplingCondition2D); }
+};
+
+/// Two independent phase parents are extended to the same physical interface.
+class KRATOS_API(FLUID_DYNAMICS_APPLICATION) FluidTwoPhaseGapCouplingCondition2D
+    : public FluidPatchGapCouplingCondition2D
+{
+public:
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(FluidTwoPhaseGapCouplingCondition2D);
+    using FluidPatchGapCouplingCondition2D::FluidPatchGapCouplingCondition2D;
+    Condition::Pointer Create(IndexType Id, GeometryType::Pointer pGeometry,
+                              PropertiesType::Pointer pProperties) const override
+    { return Kratos::make_intrusive<FluidTwoPhaseGapCouplingCondition2D>(Id, pGeometry, pProperties); }
+    Condition::Pointer Create(IndexType Id, const NodesArrayType& rNodes,
+                              PropertiesType::Pointer pProperties) const override
+    { return Create(Id, Kratos::make_shared<Geometry<Node>>(rNodes), pProperties); }
+    std::string Info() const override { return "FluidTwoPhaseGapCouplingCondition2D"; }
+protected:
+    bool UsesSecondParentExtension() const override { return true; }
+private:
+    FluidTwoPhaseGapCouplingCondition2D()
+        : FluidPatchGapCouplingCondition2D(0, Kratos::make_shared<Geometry<Node>>()) {}
+    friend class Serializer;
+    void save(Serializer& rSerializer) const override
+    { KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, FluidPatchGapCouplingCondition2D); }
+    void load(Serializer& rSerializer) override
+    { KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, FluidPatchGapCouplingCondition2D); }
 };
 
 /** @brief Reuse the existing shared-node gap connector assembly with the
@@ -98,11 +124,11 @@ public:
             return;
         }
         rValues.clear();
-        const auto& points = GetValue(SURROGATE_BOUNDARY_FACE_COORDINATES);
-        for (const auto& g:LineGaussLegendreIntegrationPoints2::IntegrationPoints()) {
+        const auto& r_points = GetValue(SURROGATE_BOUNDARY_FACE_COORDINATES);
+        for (const auto& r_gauss_point:LineGaussLegendreIntegrationPoints3::IntegrationPoints()) {
             array_1d<double, 3> point = ZeroVector(3);
             for (std::size_t d = 0; d<3; ++d)
-                point[d] = 0.5*((1-g.X())*points(0, d)+(1+g.X())*points(1, d));
+                point[d] = 0.5*((1-r_gauss_point.X())*r_points(0, d)+(1+r_gauss_point.X())*r_points(1, d));
             rValues.push_back(point);
         }
     }

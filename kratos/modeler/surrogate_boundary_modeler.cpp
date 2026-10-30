@@ -599,11 +599,17 @@ void SurrogateBoundaryModeler::SetupModelPart2D(const bool IsUpdate)
     KRATOS_ERROR_IF(lower.size() != 3 || upper.size() != 3 || divisions_vector.size() != 3)
         << "lower_point, upper_point and number_of_elements must have three entries." << std::endl;
 
+    for (std::size_t d = 0; d < 2; ++d) {
+        KRATOS_ERROR_IF(!std::isfinite(divisions_vector[d]) || divisions_vector[d] < 1.0 ||
+                        divisions_vector[d] > std::numeric_limits<int>::max() ||
+                        std::floor(divisions_vector[d]) != divisions_vector[d])
+            << "number_of_elements must contain positive integers in x and y." << std::endl;
+        KRATOS_ERROR_IF(!std::isfinite(lower[d]) || !std::isfinite(upper[d]))
+            << "Domain bounds must be finite." << std::endl;
+    }
     const IndexArray2D number_of_cells{
-        static_cast<std::size_t>(std::lround(divisions_vector[0])),
-        static_cast<std::size_t>(std::lround(divisions_vector[1]))};
-    KRATOS_ERROR_IF(number_of_cells[0] == 0 || number_of_cells[1] == 0)
-        << "number_of_elements must be positive in x and y." << std::endl;
+        static_cast<std::size_t>(divisions_vector[0]),
+        static_cast<std::size_t>(divisions_vector[1])};
     KRATOS_ERROR_IF(upper[0] <= lower[0] || upper[1] <= lower[1])
         << "upper_point must be greater than lower_point in x and y." << std::endl;
 
@@ -643,7 +649,7 @@ void SurrogateBoundaryModeler::SetupModelPart2D(const bool IsUpdate)
     KRATOS_ERROR_IF(!physical_domain_is_inside && mParameters["physical_domain"].GetString() != "outside")
         << "physical_domain must be either 'inside' or 'outside'." << std::endl;
     const double lambda = mParameters["lambda"].GetDouble();
-    KRATOS_ERROR_IF(lambda < 0.0 || lambda > 1.0) << "lambda must lie in [0,1]." << std::endl;
+    KRATOS_ERROR_IF(!std::isfinite(lambda) || lambda < 0.0 || lambda > 1.0) << "lambda must lie in [0,1]." << std::endl;
     const int samples_per_direction = mParameters["classification_samples_per_direction"].GetInt();
     KRATOS_ERROR_IF(samples_per_direction < 1)
         << "classification_samples_per_direction must be positive." << std::endl;
