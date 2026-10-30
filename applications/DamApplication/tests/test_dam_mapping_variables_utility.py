@@ -710,6 +710,58 @@ class TestDamMappingVariablesUtility(KratosUnittest.TestCase):
         model_part = model["MainModelPart"]
         self.assertEqual(model_part.NumberOfNodes(), 24)
 
+    def test_initial_stress_transfer_adds_initial_to_nodal_stress(self):
+        from KratosMultiphysics.DamApplication import (
+            transfer_initial_stress_utility,
+        )
+
+        cases = (
+            (2, [(0.0, 0.0, 0.0), (1.0, 0.0, 0.0)]),
+            (3, [(0.0, 0.0, 0.0), (1.0, 0.0, 0.0)]),
+        )
+        for dimension, coordinates in cases:
+            with self.subTest(dimension=dimension):
+                model = KM.Model()
+                model_part = model.CreateModelPart("initial_stress")
+                _AddMappingVariables(model_part)
+
+                expected_stress = {}
+                for node_id, coordinate in enumerate(coordinates, start=1):
+                    node = model_part.CreateNewNode(node_id, *coordinate)
+                    stress = KM.Matrix(dimension, dimension)
+                    initial_stress = KM.Matrix(dimension, dimension)
+                    for i in range(dimension):
+                        for j in range(dimension):
+                            stress[i, j] = _StressComponent(node_id, i, j)
+                            initial_stress[i, j] = (
+                                -0.5 * _StressComponent(node_id, i, j) + 1.0
+                            )
+                    node.SetSolutionStepValue(
+                        NODAL_CAUCHY_STRESS_TENSOR, stress
+                    )
+                    node.SetSolutionStepValue(
+                        INITIAL_NODAL_CAUCHY_STRESS_TENSOR, initial_stress
+                    )
+                    expected_stress[node_id] = stress + initial_stress
+
+                transfer = (
+                    transfer_initial_stress_utility
+                    .TransferInitialStressToMainModelPartUtility()
+                )
+                transfer.TransferInitialStress(model_part, dimension)
+
+                for node in model_part.Nodes:
+                    stress = node.GetSolutionStepValue(
+                        NODAL_CAUCHY_STRESS_TENSOR
+                    )
+                    for i in range(dimension):
+                        for j in range(dimension):
+                            self.assertAlmostEqual(
+                                stress[i, j],
+                                expected_stress[node.Id][i, j],
+                                delta=_RELATIVE_TOLERANCE,
+                            )
+
     def test_python_mapping_wrapper(self):
         model = KM.Model()
         old = _CreateOldModelPart(

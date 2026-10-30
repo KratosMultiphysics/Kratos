@@ -26,10 +26,6 @@ class DamAnalysis(AnalysisStage):
         self.DefineParallelType()
         self.DefineVariables()
 
-        if self.consider_selfweight:
-           self.model_selfweight = KratosMultiphysics.Model()
-           self.PreviousSelfweightProblem()
-
         self.CreateModelPart()
 
         if self.add_previous_results:
@@ -57,7 +53,13 @@ class DamAnalysis(AnalysisStage):
         self.problem_path = os.getcwd()
         self.echo_level = self.project_parameters["solver_settings"]["echo_level"].GetInt()
         self.buffer_size = self.project_parameters["solver_settings"]["buffer_size"].GetInt()
-        self.consider_selfweight = self.project_parameters["problem_data"]["consider_selfweight"].GetBool()
+        if self.project_parameters["problem_data"].Has("consider_selfweight"):
+            if self.project_parameters["problem_data"]["consider_selfweight"].GetBool():
+                raise Exception(
+                    "The legacy SelfWeight workflow has been removed. "
+                    "'problem_data.consider_selfweight' must not be true; "
+                    "use standard gravity/body-force loading instead."
+                )
         self.consider_construction = self.project_parameters["problem_data"]["consider_construction"].GetBool()
         self.use_streamline_utility = self.project_parameters["problem_data"]["streamlines_utility"].GetBool()
         self.delta_time = self.project_parameters["problem_data"]["time_step"].GetDouble()
@@ -122,64 +124,6 @@ class DamAnalysis(AnalysisStage):
         full_module_name = python_module_name + "." + self.project_parameters["solver_settings"]["solver_type"].GetString()
         solver_module = import_module(full_module_name)
         self.solver = solver_module.CreateSolver(self.main_model_part, self.project_parameters["solver_settings"])
-
-    def PreviousSelfweightProblem(self):
-        # Parsing parmeters of Selfweight Problem
-        self_parameter_file = open("ProjectParametersSelfWeight.json",'r')
-        SelfWeightProjectParameters = KratosMultiphysics.Parameters( self_parameter_file.read())
-
-        ## Creating Selfweight model part --------------------------------------------------------------
-        self.self_weight_model_part = self.model_selfweight.CreateModelPart("SelfWeight")
-        self.self_weight_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, self.domain_size)
-        self.self_weight_model_part.ProcessInfo.SetValue(KratosMultiphysics.TIME, self.time)
-        self.self_weight_model_part.ProcessInfo.SetValue(KratosMultiphysics.DELTA_TIME, self.delta_time)
-        self.self_weight_model_part.ProcessInfo.SetValue(KratosDam.TIME_UNIT_CONVERTER, self.time_unit_converter)
-
-        ## Construct the solver for selfweight problem -------------------------------------------------
-        selfweight_solver_module = __import__(SelfWeightProjectParameters["solver_settings"]["solver_type"].GetString())
-        selfweight_solver = selfweight_solver_module.CreateSolver(self.self_weight_model_part, SelfWeightProjectParameters["solver_settings"])
-        selfweight_solver.AddVariables()
-        selfweight_solver.ImportModelPart()
-        selfweight_solver.AddDofs()
-
-        ## Kratos Selfweight Model ---------------------------------------------------------------------
-        #DamSelfWeightModel = KratosMultiphysics.Model()
-        #DamSelfWeightModel.AddModelPart(self.self_weight_model_part)
-
-        ## Initialize ----------------------------------------------------------------------------------
-
-        # Construct processes to be applied
-        import KratosMultiphysics.process_factory
-        self_list_of_processes = process_factory.KratosProcessFactory(DamSelfWeightModel).ConstructListOfProcesses( SelfWeightProjectParameters["constraints_process_list"] )
-        self_list_of_processes += process_factory.KratosProcessFactory(DamSelfWeightModel).ConstructListOfProcesses( SelfWeightProjectParameters["loads_process_list"] )
-
-        # Initialize processes
-        for process in self_list_of_processes:
-            process.ExecuteBeforeSolutionLoop()
-
-        # Set TIME and DELTA_TIME and fill the previous steps of the buffer with the initial conditions
-        self_time = self.time - (self.buffer_size-1) * self.delta_time
-        self.self_weight_model_part.ProcessInfo.SetValue(KratosMultiphysics.TIME, self.time)
-        for step in range(self.buffer_size-1):
-            self_time = self_time + self.delta_time
-            self.self_weight_model_part.CloneTimeStep(self_time)
-
-        # Initialize the solver
-        selfweight_solver.Initialize()
-
-        # ExecuteBeforeSolutionLoop
-        for process in self_list_of_processes:
-            process.ExecuteBeforeSolutionLoop()
-
-        # Solving selfweight problem
-        selfweight_solver.Solve()
-
-        # Cleaning selfweight solver
-        selfweight_solver.Clear()
-
-        # Initialize transfer_selfweight_stress_utility
-        from KratosMultiphysics.DamApplication import transfer_selfweight_stress_utility
-        self.transfer_utility = transfer_selfweight_stress_utility.TransferSelfweightStressToMainModelPartUtility()
 
     def Run(self):
         self.Initialize()
@@ -442,15 +386,11 @@ class DamAnalysis(AnalysisStage):
                 for self.output_process in self.list_of_output_processes:
                     self.output_process.ExecuteBeforeOutputStep()
 
-            # selfweight utility
-            if self.consider_selfweight:
-                self.transfer_utility.Transfer(self.self_weight_model_part, self.main_model_part, self.domain_size)
-
             # add previous results utility
             if self.add_previous_results and self.add_stress:
                 if self.type_of_results == "Mechanical" or self.type_of_results == "Thermo-Mechanical":
-                    from KratosMultiphysics.DamApplication import transfer_selfweight_stress_utility
-                    self.transfer_utility = transfer_selfweight_stress_utility.TransferSelfweightStressToMainModelPartUtility()
+                    from KratosMultiphysics.DamApplication import transfer_initial_stress_utility
+                    self.transfer_utility = transfer_initial_stress_utility.TransferInitialStressToMainModelPartUtility()
                     self.transfer_utility.TransferInitialStress(self.main_model_part, self.domain_size)
 
             if has_output_step:
