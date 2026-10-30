@@ -95,12 +95,9 @@ def  AuxiliaryExplicitContactSettings():
     return contact_settings
 
 def  AuxiliarySetSettings(settings, contact_settings):
-    mortar_type = contact_settings["mortar_type"].GetString()
-    if "Frictional" in mortar_type:
-        if not settings["buffer_size"].GetInt() < 3:
-            KM.Logger.PrintInfo("Reform Buffer Size", "Buffer size requires a size of at least 3. Switching to 3")
-            settings["buffer_size"].SetInt(3)
-
+    # NOTE: The frictional conditions used to read DISPLACEMENT at buffer position 2 (previous increment) to build the
+    # previous configuration of the non-objective slip, which required a buffer size of 3. The previous configuration is
+    # now taken directly from buffer position 1, so the default buffer size of 2 is enough for every mortar_type
     return settings
 
 def  AuxiliaryMPCSetSettings(settings, contact_settings):
