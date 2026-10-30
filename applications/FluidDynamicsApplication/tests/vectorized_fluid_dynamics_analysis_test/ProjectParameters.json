@@ -1,0 +1,107 @@
+{
+    "analysis_stage"   : "KratosMultiphysics.FluidDynamicsApplication.fluid_dynamics_analysis",
+    "problem_data"     : {
+        "problem_name"  : "lid_driven_cavity_10x10",
+        "parallel_type" : "gpu",
+        "precision"     : "float32",
+        "echo_level"    : 0,
+        "start_time"    : 0.0,
+        "end_time"      : 5.0
+    },
+    "output_processes" : {
+        "gid_output" : []
+    },
+    "solver_settings"  : {
+        "model_part_name": "FluidModelPart",
+        "domain_size": 2,
+        "material_import_settings": {
+            "materials_filename": "FluidMaterials.json"
+        },
+        "echo_level": 0,
+        "compute_reactions": false,
+        "time_stepping": {
+            "time_step": 0.1,
+            "max_cfl_number": 0.75,
+            "max_fourier_number": 0.75
+        },
+        "linear_solver_settings": {
+            "tolerance": 1.0e-3,
+            "max_iteration": 500
+        }
+    },
+    "processes"        : {
+        "initial_conditions_process_list"  : [],
+        "boundary_conditions_process_list" : [{
+            "python_module" : "apply_noslip_process",
+            "kratos_module" : "KratosMultiphysics.FluidDynamicsApplication",
+            "process_name"  : "ApplyNoSlipProcess",
+            "Parameters"    : {
+                "model_part_name" : "FluidModelPart.Left"
+            }
+        },{
+            "python_module" : "apply_noslip_process",
+            "kratos_module" : "KratosMultiphysics.FluidDynamicsApplication",
+            "process_name"  : "ApplyNoSlipProcess",
+            "Parameters"    : {
+                "model_part_name" : "FluidModelPart.Right"
+            }
+        },{
+            "python_module" : "apply_noslip_process",
+            "kratos_module" : "KratosMultiphysics.FluidDynamicsApplication",
+            "process_name"  : "ApplyNoSlipProcess",
+            "Parameters"    : {
+                "model_part_name" : "FluidModelPart.Bottom"
+            }
+        },{
+            "python_module" : "assign_vector_variable_process",
+            "kratos_module" : "KratosMultiphysics",
+            "process_name"  : "AssignVectorVariableProcess",
+            "Parameters"    : {
+                "model_part_name" : "FluidModelPart.Top",
+                "variable_name"   : "VELOCITY",
+                "interval"        : [0.0,"End"],
+                "constrained"     : [true,true,true],
+                "value"           : [1.0,0.0,0.0]
+            }
+        },{
+            "python_module" : "assign_scalar_variable_process",
+            "kratos_module" : "KratosMultiphysics",
+            "process_name"  : "AssignScalarVariableProcess",
+            "Parameters"    : {
+                "model_part_name" : "FluidModelPart.TopRightCorner",
+                "variable_name"   : "PRESSURE",
+                "interval"        : [0.0,"End"],
+                "constrained"     : true,
+                "value"           : 0.0
+            }
+        }],
+        "gravity"                          : [],
+        "auxiliar_process_list"            : [],
+        "json_check_process_list"          : []
+    },
+    "modelers"         : [{
+        "name"       : "Modelers.KratosMultiphysics.ImportMDPAModeler",
+        "parameters" : {
+            "input_filename"  : "lid_driven_cavity_10x10",
+            "model_part_name" : "FluidModelPart"
+        }
+    },{
+        "name"       : "Modelers.KratosMultiphysics.CreateEntitiesFromGeometriesModeler",
+        "parameters" : {
+            "elements_list"   : [{
+                "model_part_name" : "FluidModelPart.Fluid",
+                "element_name"    : "Element2D3N"
+            }],
+            "conditions_list" : [{
+                "model_part_name" : "FluidModelPart.Left",
+                "condition_name"  : "WallCondition2D2N"
+            },{
+                "model_part_name" : "FluidModelPart.Right",
+                "condition_name"  : "WallCondition2D2N"
+            },{
+                "model_part_name" : "FluidModelPart.Bottom",
+                "condition_name"  : "WallCondition2D2N"
+            }]
+        }
+    }]
+}
