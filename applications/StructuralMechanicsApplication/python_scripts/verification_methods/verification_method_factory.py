@@ -1,9 +1,7 @@
-from KratosMultiphysics.StructuralMechanicsApplication.verification_methods.panel_sjtu_puck import PuckFirstPlyFailure
 from KratosMultiphysics.StructuralMechanicsApplication.verification_methods.plate_buckling import PlateBuckling
 
 _METHOD_TYPES = {
-    "plate_buckling": PlateBuckling,
-    "puck": PuckFirstPlyFailure
+    "plate_buckling": PlateBuckling
 }
 
 def CreateVerificationMethod(name: str):
