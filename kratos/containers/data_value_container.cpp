@@ -12,6 +12,7 @@
 //
 
 // System includes
+#include <algorithm>
 
 // External includes
 
@@ -90,17 +91,36 @@ void DataValueContainer::load(Serializer& rSerializer)
 {
     KRATOS_TRY
 
-    std::size_t size;
-    rSerializer.load("Size", size);
-    mData.resize(size);
     std::string name;
-    for (std::size_t i = 0; i < size; i++) {
-        rSerializer.load("Variable Name", name);
-        mData[i].first = KratosComponents<VariableData>::pGet(name);
-        if (!rSerializer.IsDataOnly()) {
+    if (!rSerializer.IsDataOnly()) {
+        // an in-place load allocates every value anew, so delete the current ones first
+        Clear();
+        std::size_t size;
+        rSerializer.load("Size", size);
+        mData.resize(size);
+        for (std::size_t i = 0; i < size; i++) {
+            rSerializer.load("Variable Name", name);
+            mData[i].first = KratosComponents<VariableData>::pGet(name);
             mData[i].first->Allocate(&(mData[i].second));
+            mData[i].first->Load(rSerializer, mData[i].second);
         }
-        mData[i].first->Load(rSerializer, mData[i].second);
+    } else {
+        // DataOnly restores a checkpoint into an identical structure (no value is created or deleted), so values
+        // are matched by variable (not by position, which may hold another type) and any mismatch is an error
+        std::size_t size;
+        rSerializer.load("Size", size);
+        KRATOS_ERROR_IF(size != mData.size())
+            << "DataOnly loading restores values into an existing container, but the sizes differ [ archive size = "
+            << size << ", container size = " << mData.size() << " ].\n";
+        for (std::size_t i = 0; i < size; i++) {
+            rSerializer.load("Variable Name", name);
+            const auto p_variable = KratosComponents<VariableData>::pGet(name);
+            const auto it = std::find_if(mData.begin(), mData.end(), IndexCheck(p_variable->SourceKey()));
+            KRATOS_ERROR_IF(it == mData.end())
+                << "DataOnly loading restores values into an existing container, but the variable " << name
+                << " is not in it.\n";
+            p_variable->Load(rSerializer, it->second);
+        }
     }
 
     KRATOS_CATCH("")

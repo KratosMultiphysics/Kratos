@@ -19,6 +19,7 @@
 
 // Project includes
 #include "containers/variables_list_data_value_container.h"
+#include "includes/stream_serializer.h"
 #include "includes/variables.h"
 #include "testing/testing.h"
 
@@ -56,6 +57,127 @@ KRATOS_TEST_CASE_IN_SUITE(VariablesListGetDofInfo, KratosCoreFastSuite) {
     KRATOS_EXPECT_EQ(variables_list.GetDofVariable(dof_index), DISPLACEMENT_Y);
     KRATOS_EXPECT_EQ(variables_list.pGetDofReaction(dof_index), &REACTION_Y);
 
+}
+
+namespace {
+
+VariablesList::Pointer CreateSavedDofsList()
+{
+    auto p_list = Kratos::make_intrusive<VariablesList>();
+    p_list->Add(DISPLACEMENT);
+    p_list->Add(TEMPERATURE);
+    p_list->AddDof(&DISPLACEMENT_X, &REACTION_X);
+    p_list->AddDof(&DISPLACEMENT_Y);
+    p_list->AddDof(&DISPLACEMENT_Z, &REACTION_Z);
+    return p_list;
+}
+
+void LoadSavedDofsList(VariablesList::Pointer& rpList)
+{
+    StreamSerializer serializer;
+    serializer.save("List", CreateSavedDofsList());
+    serializer.load("List", rpList);
+}
+
+// Loaded reactions are the instances registered by the core, so they are compared by key: on Windows each shared
+// library has its own instance of an inline constexpr variable.
+bool HasDofReaction(const VariablesList& rList, const int DofIndex, const VariableData& rReaction)
+{
+    const auto p_reaction = rList.pGetDofReaction(DofIndex);
+    return p_reaction != nullptr && *p_reaction == rReaction;
+}
+
+} // namespace
+
+// Restart adds the variables before loading and the dofs after it, so the archive's dofs are added to a list with the
+// same variables. Variables are compared by key, since each shared library has its own instance of a variable.
+KRATOS_TEST_CASE_IN_SUITE(VariablesListLoadAddsDofsToListWithVariables, KratosCoreFastSuite) {
+    const Variable<double> temperature_instance(TEMPERATURE);
+    auto p_list = Kratos::make_intrusive<VariablesList>();
+    p_list->Add(DISPLACEMENT);
+    p_list->Add(temperature_instance);
+    LoadSavedDofsList(p_list);
+
+    KRATOS_EXPECT_EQ(p_list->size(), 2);
+    KRATOS_EXPECT_EQ(p_list->GetDofVariable(0), DISPLACEMENT_X);
+    KRATOS_EXPECT_TRUE(HasDofReaction(*p_list, 0, REACTION_X));
+    KRATOS_EXPECT_EQ(p_list->GetDofVariable(1), DISPLACEMENT_Y);
+    KRATOS_EXPECT_EQ(p_list->pGetDofReaction(1), nullptr);
+    KRATOS_EXPECT_EQ(p_list->GetDofVariable(2), DISPLACEMENT_Z);
+    KRATOS_EXPECT_TRUE(HasDofReaction(*p_list, 2, REACTION_Z));
+
+    // a missing reaction is taken from the archive, and a dof added after the save is kept
+    auto p_list_with_dofs = Kratos::make_intrusive<VariablesList>();
+    p_list_with_dofs->Add(DISPLACEMENT);
+    p_list_with_dofs->Add(TEMPERATURE);
+    p_list_with_dofs->AddDof(&DISPLACEMENT_X);
+    p_list_with_dofs->AddDof(&DISPLACEMENT_Y);
+    p_list_with_dofs->AddDof(&DISPLACEMENT_Z, &REACTION_Z);
+    p_list_with_dofs->AddDof(&TEMPERATURE);
+    LoadSavedDofsList(p_list_with_dofs);
+
+    KRATOS_EXPECT_TRUE(HasDofReaction(*p_list_with_dofs, 0, REACTION_X));
+    KRATOS_EXPECT_EQ(p_list_with_dofs->pGetDofReaction(1), nullptr);
+    KRATOS_EXPECT_TRUE(HasDofReaction(*p_list_with_dofs, 2, REACTION_Z));
+    KRATOS_EXPECT_EQ(p_list_with_dofs->GetDofVariable(3), TEMPERATURE);
+}
+
+// A load into a list with variables validates the archive before changing anything.
+KRATOS_TEST_CASE_IN_SUITE(VariablesListLoadRejectsMismatchingArchive, KratosCoreFastSuite) {
+    auto p_reordered_list = Kratos::make_intrusive<VariablesList>();
+    p_reordered_list->Add(TEMPERATURE);
+    p_reordered_list->Add(DISPLACEMENT);
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(LoadSavedDofsList(p_reordered_list), "The archive does not match this VariablesList");
+
+    auto p_reordered_dofs_list = Kratos::make_intrusive<VariablesList>();
+    p_reordered_dofs_list->Add(DISPLACEMENT);
+    p_reordered_dofs_list->Add(TEMPERATURE);
+    p_reordered_dofs_list->AddDof(&DISPLACEMENT_Y);
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(LoadSavedDofsList(p_reordered_dofs_list), "start with the same dofs, in the same order");
+
+    // the first dof would get a reaction if the archive were applied while checking it
+    auto p_other_reaction_list = Kratos::make_intrusive<VariablesList>();
+    p_other_reaction_list->Add(DISPLACEMENT);
+    p_other_reaction_list->Add(TEMPERATURE);
+    p_other_reaction_list->AddDof(&DISPLACEMENT_X);
+    p_other_reaction_list->AddDof(&DISPLACEMENT_Y);
+    p_other_reaction_list->AddDof(&DISPLACEMENT_Z, &REACTION_Y);
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(LoadSavedDofsList(p_other_reaction_list), "The archive gives the dof DISPLACEMENT_Z the reaction REACTION_Z, but this VariablesList has REACTION_Y.");
+    KRATOS_EXPECT_EQ(p_other_reaction_list->pGetDofReaction(0), nullptr);
+    KRATOS_EXPECT_EQ(p_other_reaction_list->pGetDofReaction(2), &REACTION_Y);
+}
+
+// An unreferenced list is extended by an archive starting with its variables, a shared one must match exactly.
+KRATOS_TEST_CASE_IN_SUITE(VariablesListLoadExtendsUnreferencedList, KratosCoreFastSuite) {
+    auto p_list = Kratos::make_intrusive<VariablesList>();
+    p_list->Add(DISPLACEMENT);
+    LoadSavedDofsList(p_list);
+
+    KRATOS_EXPECT_EQ(p_list->size(), 2);
+    KRATOS_EXPECT_TRUE(*(p_list->begin()) == DISPLACEMENT);
+    KRATOS_EXPECT_TRUE(*(p_list->begin() + 1) == TEMPERATURE);
+    KRATOS_EXPECT_EQ(p_list->GetDofVariable(0), DISPLACEMENT_X);
+    KRATOS_EXPECT_TRUE(HasDofReaction(*p_list, 0, REACTION_X));
+    KRATOS_EXPECT_EQ(p_list->GetDofVariable(2), DISPLACEMENT_Z);
+    KRATOS_EXPECT_TRUE(HasDofReaction(*p_list, 2, REACTION_Z));
+
+    // an empty unreferenced list takes the whole archive
+    auto p_empty_list = Kratos::make_intrusive<VariablesList>();
+    LoadSavedDofsList(p_empty_list);
+    KRATOS_EXPECT_EQ(p_empty_list->size(), 2);
+    KRATOS_EXPECT_EQ(p_empty_list->GetDofVariable(1), DISPLACEMENT_Y);
+    KRATOS_EXPECT_TRUE(HasDofReaction(*p_empty_list, 2, REACTION_Z));
+
+    // a shared list rejects it and stays unchanged
+    auto p_shared_list = Kratos::make_intrusive<VariablesList>();
+    p_shared_list->Add(DISPLACEMENT);
+    const auto data_size = p_shared_list->DataSize();
+    auto p_other_owner = p_shared_list;
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(LoadSavedDofsList(p_shared_list), "The archive does not match this VariablesList");
+    KRATOS_EXPECT_EQ(p_shared_list->size(), 1);
+    KRATOS_EXPECT_EQ(p_shared_list->DataSize(), data_size);
+    KRATOS_EXPECT_TRUE(p_shared_list->Has(DISPLACEMENT));
+    KRATOS_EXPECT_FALSE(p_shared_list->Has(TEMPERATURE));
 }
 
 }
