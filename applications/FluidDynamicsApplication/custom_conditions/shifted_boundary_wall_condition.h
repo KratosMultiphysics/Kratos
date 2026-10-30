@@ -315,6 +315,8 @@ protected:
 
     /**
      * This function computes the penalty coefficients for the Nitsche tangential penalization
+     * @param rN the current Gauss pt. shape functions vector
+     * @param DeltaTime time step size
      * @param SlipLength slip length for Navier-slip (zero for no-slip)
      * @param Gamma Nitsche penalty constant (gamma)
      * @param GammaShear Nitsche penalty constant for slip (gamma)
@@ -329,14 +331,14 @@ protected:
         const double Gamma,
         const double GammaShear,
         const double ParentSize,
-        const double CharactLength,
         const double EffectiveViscosity) const;
 
     /**
      * This function computes the coefficients for the tangential Nitsche stabilization
+     * @param rN the current Gauss pt. shape functions vector
      * @param SlipLength slip length for Navier-slip (zero for no-slip)
      * @param GammaShear Nitsche penalty constant (gamma)
-     * @param CharactLength characteristic length of the problem
+     * @param ParentSize size/ volume of the parent element
      * @param EffectiveViscosity effective viscosity
      * @return a pair of double containing the two coefficients for the tangential velocity and shear stress terms
      */
@@ -345,7 +347,6 @@ protected:
         const double SlipLength,
         const double GammaShear,
         const double ParentSize,
-        const double CharactLength,
         const double EffectiveViscosity) const;
 
     ///@}

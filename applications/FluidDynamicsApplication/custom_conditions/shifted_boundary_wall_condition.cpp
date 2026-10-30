@@ -161,9 +161,9 @@ int ShiftedBoundaryWallCondition<TDim>::Check(const ProcessInfo& rCurrentProcess
         KRATOS_CHECK_DOF_IN_NODE(PRESSURE, r_node)
     }
 
-    // TODO check SLIP_LENGTH and PENALTY_COEFFICIENT, PENALTY_COEFFICIENT_TANGENTIAL and DELTA_TIME of ProcessInfo?
+    // TODO check PENALTY_COEFFICIENT, PENALTY_COEFFICIENT_TANGENTIAL and DELTA_TIME of ProcessInfo?
     // TODO check constitutive law ?
-    // TODO check whether condition has ELEMENT_H, INTEGRATION_WEIGHT, SHAPE_FUNCTIONS_VECTOR, SHAPE_FUNCTIONS_GRADIENT_MATRIX and NORMAL and EMBEDDED_VELOCITY ?
+    // TODO check whether condition has ELEMENT_H, INTEGRATION_WEIGHT, SHAPE_FUNCTIONS_VECTOR, SHAPE_FUNCTIONS_GRADIENT_MATRIX and NORMAL and EMBEDDED_VELOCITY and SLIP_LENGTH?
 
     return 0;
 
@@ -192,16 +192,18 @@ void ShiftedBoundaryWallCondition<TDim>::AddNitscheImposition(
     // Get the velocity of the immersed boundary at the skin integration point (for moving boundaries)
     const auto& r_embedded_velocity = GetValue(EMBEDDED_VELOCITY);
 
+    // Set slip length from condition data
+    const double slip_length    = GetValue(NAVIER_SLIP_LENGTH);
+
     // Set whether the shear stress term is adjoint consistent (1.0) or adjoint inconsistent (-1.0) for Nitsche imposition
     // NOTE that adjoint inconsistent formulation enjoys improved inf-sup stability for any value of the penalty constant (gamma) according to Winter et al. (2018)
     constexpr double adjoint_consistency = -1.0;
 
     // Get process data
-    const double slip_length            = rCurrentProcessInfo.GetValue(SLIP_LENGTH);
+    // const double slip_length            = rCurrentProcessInfo.GetValue(SLIP_LENGTH);
     const double gamma_penalty          = 1.0 / rCurrentProcessInfo.GetValue(PENALTY_COEFFICIENT);
     const double gamma_penalty_shear    = 1.0 / rCurrentProcessInfo.GetValue(PENALTY_COEFFICIENT_TANGENTIAL);
     const double delta_time             = rCurrentProcessInfo.GetValue(DELTA_TIME);
-    const double charact_length         = rCurrentProcessInfo.GetValue(EMBEDDED_CHARACT_LENGTH);
 
     // Obtain the previous iteration velocity and pressure solution for all cloud nodes
     // and the embedded nodal velocity EMBEDDED_VELOCITY to account for a moving boundary (FM-ALE)
@@ -333,8 +335,7 @@ void ShiftedBoundaryWallCondition<TDim>::AddNitscheImposition(
     // Compute the Nitsche slip tangential penalty coefficients
     auto [pen_coeff_tang_1, pen_coeff_tang_2] = this->ComputeTangentialPenaltyCoefficients(
         r_N, delta_time,
-        slip_length, gamma_penalty, gamma_penalty_shear, parent_size, charact_length,
-        effective_viscosity);
+        slip_length, gamma_penalty, gamma_penalty_shear, parent_size, effective_viscosity);
     const double pen_tang_w_1 = pen_coeff_tang_1 * weight;
     const double pen_tang_w_2 = pen_coeff_tang_2 * weight;
 
@@ -354,8 +355,7 @@ void ShiftedBoundaryWallCondition<TDim>::AddNitscheImposition(
     // Compute the stabilization coefficients
     auto [nitsche_coeff_tang_1, nitsche_coeff_tang_2] = this->ComputeTangentialNitscheCoefficients(
         r_N,
-        slip_length, gamma_penalty_shear, parent_size,
-        charact_length, effective_viscosity);
+        slip_length, gamma_penalty_shear, parent_size, effective_viscosity);
     const double nitsche_tang_w_1 = nitsche_coeff_tang_1 * weight * adjoint_consistency * 2.0;
     const double nitsche_tang_w_2 = nitsche_coeff_tang_2 * weight * adjoint_consistency * 2.0;
 
@@ -462,7 +462,6 @@ std::pair<const double, const double> ShiftedBoundaryWallCondition<TDim>::Comput
     const double Gamma,
     const double GammaShear,
     const double ParentSize,
-    const double CharactLength,
     const double EffectiveViscosity) const
 {
     // Get the velocity and density for the integration point
@@ -520,7 +519,6 @@ std::pair<const double, const double> ShiftedBoundaryWallCondition<TDim>::Comput
     const double SlipLength,
     const double GammaShear,
     const double ParentSize,
-    const double CharactLength,
     const double EffectiveViscosity) const
 {
     // Get the velocity and density for the integration point

@@ -314,9 +314,10 @@ namespace Kratos
             "skin_model_part_name" : "",
             "boundary_sub_model_part_name" : "",
             "boundary_wall_condition_name" : "",
-            "extension_operator_type" : "MLS",
+            "extension_operator_type"      : "MLS",
             "mls_extension_operator_order" : 1,
-            "enclosed_area" : "none"
+            "enclosed_area" : "none",
+            "slip_length"   : 0.0
         })" );
 
         return default_parameters;
@@ -380,6 +381,9 @@ namespace Kratos
         } else if (enclosed_area == "negative") {
             mNegativeSideIsEnclosed = true;
         }
+
+        // Set slip length for Navier-slip boundary condition
+        mSlipLength = ThisParameters["slip_length"].GetDouble();
     }
 
     void ShiftedBoundaryPointBasedUtility::ResetFlags()
@@ -1922,6 +1926,7 @@ namespace Kratos
         p_cond->SetValue(SHAPE_FUNCTIONS_VECTOR, rSkinPtShapeFunctionValuesExtended);
         p_cond->SetValue(SHAPE_FUNCTIONS_GRADIENT_MATRIX, rSkinPtShapeFunctionDerivativesExtended);
         p_cond->SetValue(EMBEDDED_VELOCITY, rSkinPtVelocity);
+        p_cond->SetValue(NAVIER_SLIP_LENGTH, mSlipLength);
 
         return true;
     }

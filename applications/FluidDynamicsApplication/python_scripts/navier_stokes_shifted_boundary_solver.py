@@ -48,8 +48,8 @@ class ShiftedBoundaryFormulation(object):
             "boundary_model_parts"           : [],
             "enclosed_areas"                 : [],
             "deactivate_unstable_clusters"   : false,
-            "slip_length"                    : 1.0e8,
-            "charact_length"                 : 1.0,
+            "slip_length"                    : 0.0,
+            "slip_lengths"                   : [],
             "penalty_coefficient"            : 10.0,
             "penalty_coefficient_tangential" : 10.0,
             "dynamic_tau"                    : 1.0,
@@ -65,38 +65,45 @@ class ShiftedBoundaryFormulation(object):
         self.condition_name = "NavierStokesWallCondition"
         self.boundary_wall_condition_name = "ShiftedBoundaryWallCondition"
         self.boundary_sub_model_part_name = "ShiftedBoundaryConditions"
-        self.level_set_type = formulation_settings["level_set_type"].GetString()
-        if self.level_set_type != "point-based":
-            err_msg = 'Provided level set type is unknown. Only available type for Navier-Stokes SBM is \'point-based\'.'
-            raise Exception(err_msg)
         self.element_integrates_in_time = True
         self.element_has_nodal_properties = True
         self.historical_nodal_properties_variables_list = [KM.DENSITY]
         self.non_historical_nodal_properties_variables_list = [KM.SOUND_VELOCITY]
 
-        self.process_info_data[KM.DYNAMIC_TAU] = formulation_settings["dynamic_tau"].GetDouble()
-        self.process_info_data[KM.PENALTY_COEFFICIENT] = formulation_settings["penalty_coefficient"].GetDouble()
-        self.process_info_data[KM.PENALTY_COEFFICIENT_TANGENTIAL] = formulation_settings["penalty_coefficient_tangential"].GetDouble()
-        self.process_info_data[KM_CFD.SLIP_LENGTH] = formulation_settings["slip_length"].GetDouble()
-        self.process_info_data[KM_CFD.EMBEDDED_CHARACT_LENGTH] = formulation_settings["charact_length"].GetDouble()
-
-        # Get names of boundary model parts, whether they enclose an area
+        # Get names of boundary model parts and whether they enclose an area
         self.skin_model_part_names = formulation_settings["boundary_model_parts"].GetStringArray()
         self.enclosed_areas = formulation_settings["enclosed_areas"].GetStringArray()
-        if len(self.enclosed_areas) == 0:
+        if len(self.enclosed_areas) != len(self.skin_model_part_names):
+            KM.Logger.PrintInfo(self.__class__.__name__, "\'enclosed_area\' is set to \'none\' for all boundary model parts.")
             self.enclosed_areas = ['none'] * len(self.skin_model_part_names)
         else:
-            if len(self.enclosed_areas) != len(self.skin_model_part_names):
-                err_msg = 'Provided array of \'enclosed_areas\' must have the same length as \'boundary_model_parts\'.'
-                raise Exception(err_msg)
-            else:
-                for area in self.enclosed_areas:
-                    if area not in ["none", "negative", "positive"]:
-                        err_msg = 'Provided enclosed area designation is unknown. Available designations are \'none\', \'negative\' and \'positive\'.'
-                        raise Exception(err_msg)
+            for area in self.enclosed_areas:
+                if area not in ["none", "negative", "positive"]:
+                    err_msg = 'Provided enclosed area designation is unknown. Available designations are \'none\', \'negative\' and \'positive\'.'
+                    raise Exception(err_msg)
 
         # Decide whether enclosed volumes of the fluid domain created by embedded geometries should be deactivated if no degree of freedom is fixed (unstable)
         self.deactivate_unstable_clusters = formulation_settings["deactivate_unstable_clusters"].GetBool()
+
+        # Get slip length for Navier-slip boundary condition or multiple slip lengths for multiple boundary model parts
+        self.process_info_data[KM_CFD.SLIP_LENGTH] = formulation_settings["slip_length"].GetDouble()
+        self.slip_lengths = formulation_settings["slip_lengths"].GetVector()
+        if len(self.slip_lengths) != len(self.skin_model_part_names):
+            global_slip_length = self.process_info_data[KM_CFD.SLIP_LENGTH]
+            KM.Logger.PrintInfo(self.__class__.__name__, "Global slip length will be used for all boundary model parts. Slip length = " + str(global_slip_length))
+            self.slip_lengths = [global_slip_length] * len(self.skin_model_part_names)
+
+        # Get penalty coefficients for Nitsche imposition of Navier-slip boundary condition
+        self.process_info_data[KM.PENALTY_COEFFICIENT] = formulation_settings["penalty_coefficient"].GetDouble()
+        self.process_info_data[KM.PENALTY_COEFFICIENT_TANGENTIAL] = formulation_settings["penalty_coefficient_tangential"].GetDouble()
+        # Get setting for Navier-Stokes formulation
+        self.process_info_data[KM.DYNAMIC_TAU] = formulation_settings["dynamic_tau"].GetDouble()
+
+        # Get and check level set type
+        self.level_set_type = formulation_settings["level_set_type"].GetString()
+        if self.level_set_type != "point-based":
+            err_msg = 'Provided level set type is unknown. Only available type for Navier-Stokes SBM is \'point-based\'.'
+            raise Exception(err_msg)
 
         # (De-)activate post-processing routines for skin integration points and nodes
         self.postprocess_skin_points = formulation_settings["postprocess_skin_points"].GetBool()
@@ -164,7 +171,6 @@ class NavierStokesShiftedBoundaryMonolithicSolver(FluidSolver):
                 }
             }
         }""")
-
         default_settings.AddMissingParameters(super(NavierStokesShiftedBoundaryMonolithicSolver, cls).GetDefaultParameters())
         return default_settings
 
@@ -217,6 +223,7 @@ class NavierStokesShiftedBoundaryMonolithicSolver(FluidSolver):
         self.element_name = self.shifted_boundary_formulation.element_name
         self.condition_name = self.shifted_boundary_formulation.condition_name
         self.sbm_wall_condition_name = self.shifted_boundary_formulation.boundary_wall_condition_name + str(self.settings["domain_size"].GetInt()) + "D"
+        self.slip_lengths = self.shifted_boundary_formulation.slip_lengths
         self.level_set_type = self.shifted_boundary_formulation.level_set_type
         self.element_integrates_in_time = self.shifted_boundary_formulation.element_integrates_in_time
         self.element_has_nodal_properties = self.shifted_boundary_formulation.element_has_nodal_properties
@@ -323,7 +330,7 @@ class NavierStokesShiftedBoundaryMonolithicSolver(FluidSolver):
             if not self.GetComputingModelPart().HasSubModelPart(self.boundary_sub_model_part_name):
                 self.GetComputingModelPart().CreateSubModelPart(self.boundary_sub_model_part_name)
 
-            # Set the shifted-boundary formulation configuration
+            # Set the shifted-boundary formulation configuration (process info)
             self.__SetShiftedBoundaryFormulation()
 
         # Create shifted-boundary utility
@@ -542,15 +549,16 @@ class NavierStokesShiftedBoundaryMonolithicSolver(FluidSolver):
         # Create a boundary utility for all skin model part names
         time_prev = datetime.datetime.now().replace(microsecond=0)
         self.sbm_utilities = []
-        for skin_model_part_name, enclosed_area in zip(self.skin_model_part_names, self.enclosed_areas):
+        for skin_model_part_name, enclosed_area, slip_length in zip(self.skin_model_part_names, self.enclosed_areas, self.slip_lengths):
             # Adapt settings
             settings.AddEmptyValue("skin_model_part_name").SetString(skin_model_part_name)
             settings.AddEmptyValue("enclosed_area").SetString(enclosed_area)
+            settings.AddEmptyValue("slip_length").SetDouble(slip_length)
 
             # Create boundary utility
             sbm_utility = KM.ShiftedBoundaryPointBasedUtility(self.model, settings)
             self.sbm_utilities.append(sbm_utility)
-            KM.Logger.PrintInfo(self.__class__.__name__, "New shifted-boundary point-based utility created for skin model part '" + skin_model_part_name + "'.")
+            KM.Logger.PrintInfo(self.__class__.__name__, "New shifted-boundary point-based utility created for skin model part '" + skin_model_part_name + "' with slip length = " + str(slip_length) + ".")
 
         if len(self.sbm_utilities) == 0:
             KM.Logger.PrintWarning('No shifted-boundary interface utility was created because no skin model part name was given.')

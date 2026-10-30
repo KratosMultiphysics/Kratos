@@ -568,6 +568,9 @@ protected:
     bool mEnclosedPressureIsSet = false;
     std::size_t mEnclosedNodeId = 0;
 
+    // Slip length for Navier-slip boundary condition
+    double mSlipLength = 0.0;
+
     /// @brief Protected empty constructor for derived classes
     //ShiftedBoundaryPointBasedUtility() {}
 
