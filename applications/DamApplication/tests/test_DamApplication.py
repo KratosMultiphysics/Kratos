@@ -6,14 +6,28 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 # Import the tests o test_classes to create the suits
 from generalTests import KratosDamGeneralTests
 from test_apply_load_vector_dam_processes import TestApplyLoadVectorDamProcesses
+from test_apply_constraint_vector_dam_processes import (
+    TestApplyConstraintVectorDamProcesses,
+)
+from test_impose_water_loads_condition_process import (
+    TestImposeWaterLoadsConditionProcess,
+)
 from test_dam_linear_solver import TestDamLinearSolver
 from test_dam_nodal_young_modulus_process import TestImposeNodalYoungModulusProcess
+from test_dam_nodal_field_processes import TestDamNodalFieldProcesses
+from test_impose_thermal_parameters_scalar_value_process import (
+    TestImposeThermalParametersScalarValueProcess,
+)
 from test_dam_nonlocal_ownership import DamNonlocalOwnershipTest
 from test_dam_process_lifecycle import TestDamProcessLifetime
+from test_dam_analysis_process_lifecycle import TestDamAnalysisProcessLifecycle
 from test_global_tangent_consistency import TestGlobalTangentConsistency
 from test_interface_tangent_consistency import TestSmallDisplacementInterfaceTangent
 from test_initial_gp_output_before_solve import TestInitialGaussPointOutputBeforeSolve
 from test_process_based_nodal_smoothing import DamProcessBasedNodalSmoothingTest
+from test_dam_output_processes import TestDamOutputProcesses
+from test_dam_gid_output_process import TestDamGiDOutputProcess
+from test_dam_mapping_variables_utility import TestDamMappingVariablesUtility
 
 
 def AssembleTestSuites():
@@ -56,9 +70,13 @@ def AssembleTestSuites():
         KratosUnittest.TestLoader().loadTestsFromTestCases(
             [
                 TestApplyLoadVectorDamProcesses,
+                TestApplyConstraintVectorDamProcesses,
+                TestImposeWaterLoadsConditionProcess,
                 TestDamLinearSolver,
                 TestGlobalTangentConsistency,
                 TestImposeNodalYoungModulusProcess,
+                TestDamNodalFieldProcesses,
+                TestImposeThermalParametersScalarValueProcess,
                 TestSmallDisplacementInterfaceTangent,
             ]
         )
@@ -70,6 +88,10 @@ def AssembleTestSuites():
                 DamProcessBasedNodalSmoothingTest,
                 DamNonlocalOwnershipTest,
                 TestDamProcessLifetime,
+                TestDamAnalysisProcessLifecycle,
+                TestDamOutputProcesses,
+                TestDamGiDOutputProcess,
+                TestDamMappingVariablesUtility,
             ]
         )
     )
@@ -90,14 +112,22 @@ def AssembleTestSuites():
             [
                 KratosDamGeneralTests,
                 TestApplyLoadVectorDamProcesses,
+                TestApplyConstraintVectorDamProcesses,
+                TestImposeWaterLoadsConditionProcess,
                 TestDamLinearSolver,
                 TestGlobalTangentConsistency,
                 TestImposeNodalYoungModulusProcess,
+                TestDamNodalFieldProcesses,
+                TestImposeThermalParametersScalarValueProcess,
                 TestInitialGaussPointOutputBeforeSolve,
                 DamNonlocalOwnershipTest,
                 DamProcessBasedNodalSmoothingTest,
                 TestDamProcessLifetime,
+                TestDamAnalysisProcessLifecycle,
                 TestSmallDisplacementInterfaceTangent,
+                TestDamOutputProcesses,
+                TestDamGiDOutputProcess,
+                TestDamMappingVariablesUtility,
             ]
         )
     )

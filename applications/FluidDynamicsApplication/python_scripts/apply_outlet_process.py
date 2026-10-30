@@ -65,13 +65,14 @@ class ApplyOutletProcess(KratosMultiphysics.Process):
         elif (ext_pres_settings["variable_name"].GetString() != "EXTERNAL_PRESSURE"):
             raise Exception("Outlet external pressure settings variable_name is not EXTERNAL_PRESSURE.")
         elif (pres_settings["value"].IsString()):
-            if (pres_settings["value"].GetString == ""):
+            if (pres_settings["value"].GetString() == ""):
                 raise Exception("Outlet pressure function string is empty.")
         elif (ext_pres_settings["value"].IsString()):
-            if (ext_pres_settings["value"].GetString == ""):
+            if (ext_pres_settings["value"].GetString() == ""):
                 raise Exception("Outlet external pressure function string is empty.")
 
         self.hydrostatic_outlet = settings["hydrostatic_outlet"].GetBool()
+        self.__hydrostatic_density = None
         self.h_top = settings["h_top"].GetDouble()
 
         # Set the OUTLET flag in the outlet model part nodes and conditions
@@ -114,9 +115,10 @@ class ApplyOutletProcess(KratosMultiphysics.Process):
         # Set the characteristic outlet velocity in the outlet model part ProcessInfo
         if self.__outlet_inflow_contribution:
             # If required, update the outlet characteristic velocity
+            # Note that the user defined value is kept
             if self.__outlet_char_velocity_type == "outlet_average":
                 self.__outlet_char_velocity = self.__ComputeOutletAverageVelocity()
-            else:
+            elif self.__outlet_char_velocity_type == "outlet_max":
                 self.__outlet_char_velocity = self.__ComputeOutletMaxVelocity()
             # Save value to be used in the boundary terms integration
             self.outlet_model_part.ProcessInfo[KratosFluid.CHARACTERISTIC_VELOCITY] = self.__outlet_char_velocity
@@ -151,16 +153,28 @@ class ApplyOutletProcess(KratosMultiphysics.Process):
             body_force_proj = body_force_dir[0]*node.X + body_force_dir[1]*node.Y + body_force_dir[2]*node.Z    # Iteration node body force projection
             min_proj = min(min_proj, body_force_proj)
 
+        # Get the density from the nodes if the nodal DENSITY is available (e.g. two-fluid), otherwise from the properties
+        nodal_density = self.outlet_model_part.HasNodalSolutionStepVariable(KratosMultiphysics.DENSITY)
+        if not nodal_density and self.__hydrostatic_density is None:
+            self.__hydrostatic_density = self.__GetPropertiesDensity()
+
         # Add the hydrostatic component to the current PRESSURE and EXTERNAL_PRESSURE values
         for node in self.outlet_model_part.Nodes:
             body_force_proj = body_force_dir[0]*node.X + body_force_dir[1]*node.Y + body_force_dir[2]*node.Z    # Iteration node body force projection
-            rho = node.GetSolutionStepValue(KratosMultiphysics.DENSITY, 0)                                      # Nodal density value
+            rho = node.GetSolutionStepValue(KratosMultiphysics.DENSITY, 0) if nodal_density else self.__hydrostatic_density
             hyd_pres = rho*body_force_norm*(self.h_top + (body_force_proj-min_proj))                            # Iteration node hydrostatic pressure
             cur_pres = node.GetSolutionStepValue(KratosMultiphysics.EXTERNAL_PRESSURE, 0)                       # Iteration node imposed external pressure
 
             node.SetSolutionStepValue(KratosMultiphysics.PRESSURE, 0, hyd_pres+cur_pres)                        # Add the hydrostatic component to the PRESSURE value
             node.SetSolutionStepValue(KratosMultiphysics.EXTERNAL_PRESSURE, 0, hyd_pres+cur_pres)               # Add the hydrostatic component to the EXTERNAL_PRESSURE value
 
+
+    def __GetPropertiesDensity(self):
+        # Get the DENSITY of the properties of the model part (it must be unique)
+        densities = {properties.GetValue(KratosMultiphysics.DENSITY) for properties in self.outlet_model_part.GetRootModelPart().Properties if properties.Has(KratosMultiphysics.DENSITY)}
+        if len(densities) != 1:
+            raise Exception(f"The hydrostatic outlet needs a unique DENSITY in the properties if DENSITY is not in the nodal data. Found {sorted(densities)}.")
+        return densities.pop()
 
     def __ComputeOutletAverageVelocity(self):
         # Compute the outlet average velocity
