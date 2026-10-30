@@ -387,7 +387,16 @@ class DamAnalysis(AnalysisStage):
                     self.output_process.ExecuteBeforeOutputStep()
 
             # add previous results utility
-            if self.add_previous_results and self.add_stress:
+            # Only the smoothing schemes recompute NODAL_CAUCHY_STRESS_TENSOR.
+            # When displacement is mapped, that recomputation already contains
+            # the initial state. When only stress is transferred, the imported
+            # initial stress is added after each smoothing reset. UP/P schemes
+            # never reset the field, so the value assigned by the mapping
+            # utility already remains valid and must not be added again.
+            recomputes_nodal_cauchy_stress = getattr(
+                self.solver, "_recomputes_nodal_cauchy_stress", False)
+            if (self.add_previous_results and self.add_stress and
+                    recomputes_nodal_cauchy_stress and not self.add_displacement):
                 if self.type_of_results == "Mechanical" or self.type_of_results == "Thermo-Mechanical":
                     from KratosMultiphysics.DamApplication import transfer_initial_stress_utility
                     self.transfer_utility = transfer_initial_stress_utility.TransferInitialStressToMainModelPartUtility()
