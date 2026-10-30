@@ -415,6 +415,12 @@ class DamThermoMechanicSolver(object):
                 damp_factor_m = -0.01
             scheme = KratosDam.BossakDisplacementSmoothingScheme(damp_factor_m,rayleigh_m,rayleigh_k)
 
+        self._recomputes_nodal_cauchy_stress = isinstance(
+            scheme,
+            (KratosDam.IncrementalUpdateStaticSmoothingScheme,
+             KratosDam.IncrementalUpdateStaticDampedSmoothingScheme,
+             KratosDam.BossakDisplacementSmoothingScheme))
+
         return scheme
 
     def _ConstructConvergenceCriterion(self, convergence_criterion):
