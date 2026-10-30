@@ -202,9 +202,6 @@ bool MCPlasticFlowRule::CalculateConsistencyCondition(RadialReturnVariables& rRe
     const double dilatancy_coefficient = (1 + std::sin(dilatancy_angle))/(1 - std::sin(dilatancy_angle));
     const double cohesion_coefficient  = 2 * cohesion * std::sqrt(friction_coefficient);
 
-    // Stress coordinate of the criterions apex
-    const double apex = cohesion_coefficient/(friction_coefficient-1);
-
     // Compute elastic matrix which takes account only for normal stresses
     BoundedMatrix<double,3,3> D = ZeroMatrix(3,3);
     this->ComputeElasticMatrix_3X3(rReturnMappingVariables, D, rProp);
@@ -217,27 +214,32 @@ bool MCPlasticFlowRule::CalculateConsistencyCondition(RadialReturnVariables& rRe
     R_p[1] = (D(1,0)*dilatancy_coefficient - D(1,2) )/den_p;
     R_p[2] = (D(2,0)*dilatancy_coefficient - D(2,2) )/den_p;
 
-    // Vector from predictor stress to the apex
-    BoundedVector<double,3> sigma_P_apex = ZeroVector(3);
-    sigma_P_apex[0] = rPrincipalStress[0] - apex;
-    sigma_P_apex[1] = rPrincipalStress[1] - apex;
-    sigma_P_apex[2] = rPrincipalStress[2] - apex;
+    // Use finite points (0,0,-C) and (0,-C,-C) on the edges, with C = cohesion_coefficient.
+    // This also applies to the Tresca prism, which has no apex.
+    BoundedVector<double,3> sigma_P_line1 = ZeroVector(3);
+    sigma_P_line1[0] = rPrincipalStress[0];
+    sigma_P_line1[1] = rPrincipalStress[1];
+    sigma_P_line1[2] = rPrincipalStress[2] + cohesion_coefficient;
+    BoundedVector<double,3> sigma_P_line2 = ZeroVector(3);
+    sigma_P_line2[0] = rPrincipalStress[0];
+    sigma_P_line2[1] = rPrincipalStress[1] + cohesion_coefficient;
+    sigma_P_line2[2] = rPrincipalStress[2] + cohesion_coefficient;
 
     // Boundary plane between region I and II: evaluated as the cross product between R_p and R1, the direction of line 1
     BoundedVector<double,3> NI_II = ZeroVector(3);
     NI_II[0] = R_p[1] * friction_coefficient - R_p[2];
     NI_II[1] = R_p[2] - R_p[0] * friction_coefficient;
     NI_II[2] = R_p[0] - R_p[1];
-    const double pI_II = NI_II[0] * sigma_P_apex[0] + NI_II[1] * sigma_P_apex[1] + NI_II[2] * sigma_P_apex[2];
+    const double pI_II = NI_II[0] * sigma_P_line1[0] + NI_II[1] * sigma_P_line1[1] + NI_II[2] * sigma_P_line1[2];
 
     // Boundary plane between region I and III: evaluated as the cross product between R_p and R2, the direction of line 2
     BoundedVector<double,3> NI_III = ZeroVector(3);
     NI_III[0] = R_p[1] * friction_coefficient - R_p[2] * friction_coefficient;
     NI_III[1] = R_p[2] - R_p[0] * friction_coefficient;
     NI_III[2] = R_p[0] * friction_coefficient - R_p[1];
-    const double pI_III = NI_III[0] * sigma_P_apex[0] + NI_III[1] * sigma_P_apex[1] + NI_III[2] * sigma_P_apex[2];
+    const double pI_III = NI_III[0] * sigma_P_line2[0] + NI_III[1] * sigma_P_line2[1] + NI_III[2] * sigma_P_line2[2];
 
-    // t-parameters for region determination
+    // Edge parameterizations: (t1,t1,k*t1-C) and (t2,k*t2-C,k*t2-C), with k = friction_coefficient.
     // Secondary surface in region II a = [0 k -1], b  = [0 m -1] -- needed to calculate t1
     double den_p2 = friction_coefficient * (D(1,1) * dilatancy_coefficient - D(1,2)) - D(1,2) * dilatancy_coefficient + D(2,2);
     if (std::abs(den_p2) < 1.e-9) den_p2 = 1.e-9;
@@ -251,7 +253,7 @@ bool MCPlasticFlowRule::CalculateConsistencyCondition(RadialReturnVariables& rRe
     N2[1] = R_p[2]*R_p2[0] - R_p[0]*R_p2[2];
     N2[2] = R_p[0]*R_p2[1] - R_p[1]*R_p2[0];
 
-    const double num1 = N2[0] * sigma_P_apex[0] + N2[1] * sigma_P_apex[1] + N2[2] * sigma_P_apex[2];
+    const double num1 = N2[0] * sigma_P_line1[0] + N2[1] * sigma_P_line1[1] + N2[2] * sigma_P_line1[2];
     double den_1 = N2[0] + N2[1] + friction_coefficient * N2[2];
     if (std::abs(den_1) < 1.e-9) den_1 = 1.e-9;
     const double t1 = num1 / den_1 ;
@@ -269,15 +271,17 @@ bool MCPlasticFlowRule::CalculateConsistencyCondition(RadialReturnVariables& rRe
     N3[1] = R_p[2]*R_p3[0] - R_p[0]*R_p3[2];
     N3[2] = R_p[0]*R_p3[1] - R_p[1]*R_p3[0];
 
-    const double num2 = N3[0] * sigma_P_apex[0] + N3[1] * sigma_P_apex[1] + N3[2] * sigma_P_apex[2];
+    const double num2 = N3[0] * sigma_P_line2[0] + N3[1] * sigma_P_line2[1] + N3[2] * sigma_P_line2[2];
     double den_2 = N3[0] + friction_coefficient * N3[1] + friction_coefficient * N3[2];
     if (std::abs(den_2) < 1.e-9) den_2 = 1.e-9;
     const double t2 = num2 / den_2 ;
 
     // rRegion detection and return determination
-    // Return mapping to the apex
-    if(t1 > 0 || t2 > 0) //check: both the conditions have to be satisfied
+    // Return mapping to the apex; for Tresca, k = 1 and this region cannot be reached.
+    if((friction_coefficient - 1) * t1 > cohesion_coefficient ||
+       (friction_coefficient - 1) * t2 > cohesion_coefficient)
     {
+        const double apex = cohesion_coefficient/(friction_coefficient-1);
         rRegion = 4;
         rPrincipalStressUpdated[0] = apex;
         rPrincipalStressUpdated[1] = apex;
@@ -288,9 +292,9 @@ bool MCPlasticFlowRule::CalculateConsistencyCondition(RadialReturnVariables& rRe
     else if(pI_II < 0)
     {
         rRegion = 2;
-        rPrincipalStressUpdated[0] = t1 + apex;
-        rPrincipalStressUpdated[1] = t1 + apex;
-        rPrincipalStressUpdated[2] = t1 * friction_coefficient + apex;
+        rPrincipalStressUpdated[0] = t1;
+        rPrincipalStressUpdated[1] = t1;
+        rPrincipalStressUpdated[2] = t1 * friction_coefficient - cohesion_coefficient;
     }
 
     // Return mapping to the yield surface
@@ -307,9 +311,9 @@ bool MCPlasticFlowRule::CalculateConsistencyCondition(RadialReturnVariables& rRe
     else
     {
         rRegion = 3;
-        rPrincipalStressUpdated[0] = t2 + apex;
-        rPrincipalStressUpdated[1] = t2 * friction_coefficient + apex;
-        rPrincipalStressUpdated[2] = t2 * friction_coefficient + apex;
+        rPrincipalStressUpdated[0] = t2;
+        rPrincipalStressUpdated[1] = t2 * friction_coefficient - cohesion_coefficient;
+        rPrincipalStressUpdated[2] = t2 * friction_coefficient - cohesion_coefficient;
     }
 
     return true;
