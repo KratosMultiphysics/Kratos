@@ -14,6 +14,7 @@
 #include "spaces/default_spaces.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
 
+#include <memory>
 #include <string>
 
 using namespace Kratos;
@@ -142,6 +143,33 @@ KRATOS_TEST_CASE_IN_SUITE(Create_Throws_WhenConvergenceCriterionIsUnknown, Krato
 {
     const auto invalid_parameters = Parameters{R"({"convergence_criterion" : "something_unknown" })"};
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(ConvergenceCriteriaFactoryType::Create(invalid_parameters), "The convergence_criterion (something_unknown) is unknown, supported criteria are: and_criterion, displacement_and_water_pressure_criterion, displacement_criterion, or_criterion, residual_criterion, water_pressure_criterion");
+}
+
+KRATOS_TEST_CASE_IN_SUITE(CreateResidualCriterion_SelectsMaskForStrategy, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    const auto newton_settings =
+        Parameters{R"({"convergence_criterion": "residual_criterion", "strategy_type": "newton_raphson"})"};
+    const auto quasi_newton_settings =
+        Parameters{R"({"convergence_criterion": "residual_criterion", "strategy_type": "quasi_newton"})"};
+    const auto reduced_newton_settings =
+        Parameters{R"({"convergence_criterion": "residual_criterion", "strategy_type": "newton_raphson", "residual_representation": "constraint_reduced"})"};
+
+    const auto p_newton_criterion = std::dynamic_pointer_cast<ResidualCriterionType>(
+        ConvergenceCriteriaFactoryType::Create(newton_settings));
+    const auto p_quasi_newton_criterion = std::dynamic_pointer_cast<ResidualCriterionType>(
+        ConvergenceCriteriaFactoryType::Create(quasi_newton_settings));
+    const auto p_reduced_newton_criterion = std::dynamic_pointer_cast<ResidualCriterionType>(
+        ConvergenceCriteriaFactoryType::Create(reduced_newton_settings));
+
+    KRATOS_EXPECT_NE(p_newton_criterion, nullptr);
+    KRATOS_EXPECT_NE(p_quasi_newton_criterion, nullptr);
+    KRATOS_EXPECT_NE(p_reduced_newton_criterion, nullptr);
+    KRATOS_EXPECT_TRUE(p_newton_criterion->GetResidualRepresentation() ==
+                       ResidualCriterionType::ResidualRepresentation::Raw);
+    KRATOS_EXPECT_TRUE(p_quasi_newton_criterion->GetResidualRepresentation() ==
+                       ResidualCriterionType::ResidualRepresentation::ConstraintReduced);
+    KRATOS_EXPECT_TRUE(p_reduced_newton_criterion->GetResidualRepresentation() ==
+                       ResidualCriterionType::ResidualRepresentation::ConstraintReduced);
 }
 
 } // namespace Kratos::Testing
