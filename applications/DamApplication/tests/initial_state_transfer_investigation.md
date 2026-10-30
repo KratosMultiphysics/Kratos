@@ -114,3 +114,57 @@ these five). The Dam C++ fast suite passes 48 of 49 tests; the known
 completed successfully with its supplied input and zero-RHS warnings. This run
 checks execution only; no independent numerical comparison against a baseline
 was performed. The original simulation files were not modified.
+
+## Lifecycle and pointwise assignment follow-up
+
+A test-only Python process now invokes `SetInitialStateProcess2D` once from
+`ExecuteBeforeSolutionLoop`, after the Dam thermomechanical solver initializes.
+A real DamAnalysis writes the configured nonzero state into its ASCII GiD t=0
+frame; the same stress is present in the next frame after the thermal and
+mechanical solvers run. This is a fully constrained, zero-temperature-increment
+case. It confirms the hook and output ordering, but it does not validate the
+requested gravity equilibrium, load increment, or thermal diffusion response in
+DamAnalysis. The adapter is test-only, not a supported production input format.
+It does not execute the core process at each solution step.
+
+A C++ Q4 test obtains the individual law pointers through
+`CalculateOnIntegrationPoints(CONSTITUTIVE_LAW)` and assigns one core
+`InitialState` per integration point. A nonuniform reference displacement field
+produces different Gauss-point stresses; the test reproduces all four stresses,
+the element internal-force residual and tangent, and the point stresses and
+internal force after an identical prescribed displacement increment. Tolerance
+is 1e-9 absolute. This is an element-level comparison, not a solved gravity
+continuation or a test of reactions. No element or law changes are required for
+C++ pointwise assignment. The Python `CalculateOnIntegrationPoints` overloads do
+not expose the law-pointer vector, and the Python `ConstitutiveLaw` binding does
+not expose `SetInitialState` or the `InitialState` class.
+
+Assignment and transport are separate: output can record Gauss-point stresses,
+but these output files are not a validated general initial-state import path.
+Same-mesh transfer needs identification by element ID, integration rule and
+point order, compatible materials and stress measures, and validation of state
+sizes and equilibrium. `SetValuesOnIntegrationPoints` delegates to individual
+law `Has`/`SetValue` implementations and cannot be assumed to populate
+`InitialState`. GeoMechanics' staged process directly captures point stresses
+and sets law states in C++, but it reinitializes material and is not established
+as a Dam import mechanism. Nodal mapping and Gauss-to-node extrapolation do not
+provide a guaranteed equilibrated Gauss-point state on a new mesh. Restart is a
+separate same-mesh option whose history completeness still requires testing.
+
+A rerun of the supplied `TestTranferUtility2D.gid` case from a temporary copy
+produced a GiD result file byte-identical to the preceding temporary run. An
+instrumented copy isolated all ten zero-RHS warnings to the thermal solver. The
+builder emits that warning when its assembled RHS has exactly zero norm; the
+output temperatures are zero initially and remain zero for all 11 frames, and
+this case has no applied thermal temperature or heat-flux load in its process
+lists. These observations are consistent with a stationary zero thermal state,
+but they do not establish mechanical equilibrium or validate every inactive or
+constrained degree of freedom. The original case files were not modified.
+
+The updated Dam small suite passes 137 tests. The rebuilt Dam C++ fast suite
+passes 49 of 50, with the existing `UPCouplingPreservesExpectedSign` failure.
+Production integration still requires a validated input path for per-element or
+per-point values, explicit supported element/law checks, and end-to-end gravity,
+reaction, incremental-load and thermomechanical lifecycle tests. The current
+benchmark's absolute tolerances are documented above; relative error acceptance
+criteria remain to be added to the end-to-end continuation tests.

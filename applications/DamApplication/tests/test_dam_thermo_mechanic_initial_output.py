@@ -1,5 +1,6 @@
 import json
 import os
+import shutil
 import subprocess
 import tempfile
 
@@ -265,13 +266,20 @@ class TestDamThermoMechanicInitialOutput(KratosUnittest.TestCase):
             "output_device_list": []
         }
 
-    def _run_analysis(self, parameters, with_previous_results=False):
+    def _run_analysis(self, parameters, with_previous_results=False, fixed_nodes=False, read_step=None):
         with tempfile.TemporaryDirectory() as working_directory:
             with open(os.path.join(working_directory, "mini.mdpa"), "w") as mdpa_file:
                 mdpa_file.write(_MDPA)
+                if fixed_nodes:
+                    for variable in ("DISPLACEMENT_X", "DISPLACEMENT_Y", "TEMPERATURE"):
+                        mdpa_file.write("\nBegin NodalData {}\n".format(variable))
+                        mdpa_file.write("1 1 0.0\n2 1 0.0\n3 1 0.0\nEnd NodalData\n")
             if with_previous_results:
                 with open(os.path.join(working_directory, "mini_mechanical.mdpa"), "w") as mdpa_file:
                     mdpa_file.write(_PREVIOUS_MDPA)
+            shutil.copyfile(
+                os.path.join(os.path.dirname(__file__), "dam_test_set_initial_state_process.py"),
+                os.path.join(working_directory, "dam_test_set_initial_state_process.py"))
             with open(os.path.join(working_directory, "parameters.json"), "w") as parameter_file:
                 json.dump(parameters, parameter_file, indent=4)
             with open(os.path.join(working_directory, "run_case.py"), "w") as run_file:
@@ -298,13 +306,15 @@ class TestDamThermoMechanicInitialOutput(KratosUnittest.TestCase):
             if "NODAL_CAUCHY_STRESS_TENSOR" in nodal_results:
                 nodal_stress = self._read_nodal_values(
                     result_file, "NODAL_CAUCHY_STRESS_TENSOR")
+            if read_step is not None:
+                return gauss_point_values, self._read_gauss_point_frame(result_file, read_step)
             return gauss_point_values, nodal_stress
 
-    def _read_gauss_point_frame(self, result_file):
+    def _read_gauss_point_frame(self, result_file, time=0):
         with open(result_file, "r") as file:
             lines = [line.strip() for line in file]
 
-        header = 'Result "CAUCHY_STRESS_TENSOR" "Kratos" 0 Matrix OnGaussPoints "tri1_element_gp"'
+        header = 'Result "CAUCHY_STRESS_TENSOR" "Kratos" {} Matrix OnGaussPoints "tri1_element_gp"'.format(time)
         self.assertIn(header, lines)
         header_index = lines.index(header)
         self.assertEqual(lines[header_index + 1], "Values")
@@ -347,6 +357,25 @@ class TestDamThermoMechanicInitialOutput(KratosUnittest.TestCase):
         self.assertEqual(len(values[0]), 6)
         for value in values[0]:
             self.assertLess(abs(value), 1.0e-9)
+
+    def test_constitutive_initial_state_in_actual_initial_gid_frame(self):
+        parameters = self._base_parameters("initial_constitutive_state")
+        parameters["constraints_process_list"].append({
+            "python_module": "dam_test_set_initial_state_process",
+            "Parameters": {
+                "model_part_name": "MainModelPart.Parts_Concrete",
+                "initial_stress": [100.0, -200.0, 30.0]
+            }
+        })
+        parameters["problem_data"]["end_time"] = 1.0
+        values, first_step = self._run_analysis(parameters, fixed_nodes=True, read_step=1)
+        self.assertEqual(len(values), 1)
+        self.assertEqual(len(first_step), 1)
+        for initial, after_step in zip(values[0], first_step[0]):
+            self.assertAlmostEqual(initial, after_step, delta=1.e-8)
+        # GiD tensor order: xx, yy, zz, xy, yz, xz.
+        for actual, expected in zip(values[0], (100., -200., 0., 30., 0., 0.)):
+            self.assertAlmostEqual(actual, expected, delta=1.e-8)
 
     def test_initial_stress_transfer_drives_constitutive_response(self):
         parameters = self._base_parameters(
