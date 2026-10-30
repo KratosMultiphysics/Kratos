@@ -11,6 +11,8 @@
 //
 
 // System includes
+#include <functional>
+#include <memory>
 
 // External includes
 #include <pybind11/stl.h>
@@ -22,6 +24,101 @@
 #include "includes/parallel_environment.h"
 
 namespace Kratos::Python {
+
+/// Python handle to a non-blocking DataCommunicator operation.
+/** Python arguments are converted to temporary C++ objects, which would be destroyed before the operation
+ *  completes. This class keeps copies of the communicated buffers alive for the lifetime of the request
+ *  and gives access to the received (or reduced) values once the operation is completed.
+ */
+class PythonDataCommunicatorRequest
+{
+public:
+    PythonDataCommunicatorRequest(
+        DataCommunicatorRequest&& rRequest,
+        std::shared_ptr<void> pBuffers,
+        std::function<pybind11::object()> ResultGetter = nullptr)
+        : mpBuffers(std::move(pBuffers)),
+          mResultGetter(std::move(ResultGetter)),
+          mRequest(std::move(rRequest))
+    {
+    }
+
+    void Wait()
+    {
+        mRequest.Wait();
+    }
+
+    bool Test()
+    {
+        return mRequest.Test();
+    }
+
+    bool IsCompleted() const
+    {
+        return mRequest.IsCompleted();
+    }
+
+    pybind11::object GetResult() const
+    {
+        KRATOS_ERROR_IF_NOT(IsCompleted())
+        << "The result of a non-blocking operation is only available once it is completed (call Wait or Test first)." << std::endl;
+        return mResultGetter ? mResultGetter() : pybind11::none();
+    }
+
+private:
+    // Declaration order matters: mRequest is destroyed first, so that a pending
+    // operation is completed while the buffers it uses are still alive.
+    std::shared_ptr<void> mpBuffers;
+    std::function<pybind11::object()> mResultGetter;
+    DataCommunicatorRequest mRequest;
+};
+
+template<class TValue>
+PythonDataCommunicatorRequest PythonISend(
+    const DataCommunicator& rSelf,
+    const TValue& rSendValues,
+    const int SendDestination,
+    const int SendTag)
+{
+    auto p_send_values = std::make_shared<TValue>(rSendValues);
+    auto request = rSelf.ISend(*p_send_values, SendDestination, SendTag);
+    return PythonDataCommunicatorRequest(std::move(request), p_send_values);
+}
+
+template<class TValue>
+PythonDataCommunicatorRequest PythonIRecv(
+    const DataCommunicator& rSelf,
+    TValue RecvValues,
+    const int RecvSource,
+    const int RecvTag)
+{
+    auto p_recv_values = std::make_shared<TValue>(std::move(RecvValues));
+    auto request = rSelf.IRecv(*p_recv_values, RecvSource, RecvTag);
+    return PythonDataCommunicatorRequest(std::move(request), p_recv_values, [p_recv_values]() { return pybind11::cast(*p_recv_values); });
+}
+
+template<class TValue>
+PythonDataCommunicatorRequest PythonIBroadcast(
+    const DataCommunicator& rSelf,
+    const TValue& rValues,
+    const int SourceRank)
+{
+    auto p_values = std::make_shared<TValue>(rValues);
+    auto request = rSelf.IBroadcast(*p_values, SourceRank);
+    return PythonDataCommunicatorRequest(std::move(request), p_values, [p_values]() { return pybind11::cast(*p_values); });
+}
+
+template<class TValue, class TOperation>
+PythonDataCommunicatorRequest PythonIAllReduce(
+    const DataCommunicator& rSelf,
+    const TValue& rLocalValues,
+    TOperation&& rOperation)
+{
+    // The global buffer is initialized with the local values to have the right size.
+    auto p_values = std::make_shared<std::pair<TValue, TValue>>(rLocalValues, rLocalValues);
+    auto request = rOperation(rSelf, p_values->first, p_values->second);
+    return PythonDataCommunicatorRequest(std::move(request), p_values, [p_values]() { return pybind11::cast(p_values->second); });
+}
 
 template<class TValue>
 std::vector<TValue> VectorBroadcastWrapper(
@@ -130,12 +227,61 @@ void AddDataCommunicatorMethodForDataType(
     rDataCommunicatorModule.def(("AllGatherv" + plural_arg_text).c_str(), py::overload_cast<const std::vector<TDataType>&>(&DataCommunicator::AllGatherv, py::const_), py::arg(list_of_values.c_str()));
 
     rDataCommunicatorModule.def("SynchronizeShape", [](const DataCommunicator& rSelf, TDataType& rValue) { rSelf.SynchronizeShape(rValue); return rValue; }, py::arg(value_text.c_str()));
+
+    // Non-blocking (asynchronous) operations
+    if constexpr (std::is_same_v<TDataType, double> || std::is_same_v<TDataType, int>) {
+        using VectorType = std::vector<TDataType>;
+
+        rDataCommunicatorModule.def("ISend", &PythonISend<TDataType>, py::arg(value_text.c_str()), py::arg("send_destination"), py::arg("send_tag") = 0);
+        rDataCommunicatorModule.def(("ISend" + plural_arg_text).c_str(), &PythonISend<VectorType>, py::arg(list_of_values.c_str()), py::arg("send_destination"), py::arg("send_tag") = 0);
+
+        rDataCommunicatorModule.def(("IRecv" + arg_text).c_str(), [](const DataCommunicator& rSelf, const int RecvSource, const int RecvTag) {
+            return PythonIRecv<TDataType>(rSelf, TDataType{}, RecvSource, RecvTag);
+        }, py::arg("recv_source"), py::arg("recv_tag") = 0);
+        rDataCommunicatorModule.def(("IRecv" + plural_arg_text).c_str(), [](const DataCommunicator& rSelf, const std::size_t NumberOfValues, const int RecvSource, const int RecvTag) {
+            return PythonIRecv<VectorType>(rSelf, VectorType(NumberOfValues), RecvSource, RecvTag);
+        }, py::arg("number_of_values"), py::arg("recv_source"), py::arg("recv_tag") = 0);
+
+        rDataCommunicatorModule.def("IBroadcast", &PythonIBroadcast<TDataType>, py::arg(value_text.c_str()), py::arg("source_rank"));
+        rDataCommunicatorModule.def(("IBroadcast" + plural_arg_text).c_str(), &PythonIBroadcast<VectorType>, py::arg(list_of_values.c_str()), py::arg("source_rank"));
+
+        rDataCommunicatorModule.def("ISumAll", [](const DataCommunicator& rSelf, const TDataType& rLocalValue) {
+            return PythonIAllReduce(rSelf, rLocalValue, [](const DataCommunicator& rComm, const TDataType& rLocal, TDataType& rGlobal) { return rComm.ISumAll(rLocal, rGlobal); });
+        }, py::arg(value_text.c_str()));
+        rDataCommunicatorModule.def(("ISumAll" + plural_arg_text).c_str(), [](const DataCommunicator& rSelf, const VectorType& rLocalValues) {
+            return PythonIAllReduce(rSelf, rLocalValues, [](const DataCommunicator& rComm, const VectorType& rLocal, VectorType& rGlobal) { return rComm.ISumAll(rLocal, rGlobal); });
+        }, py::arg(list_of_values.c_str()));
+        rDataCommunicatorModule.def("IMinAll", [](const DataCommunicator& rSelf, const TDataType& rLocalValue) {
+            return PythonIAllReduce(rSelf, rLocalValue, [](const DataCommunicator& rComm, const TDataType& rLocal, TDataType& rGlobal) { return rComm.IMinAll(rLocal, rGlobal); });
+        }, py::arg(value_text.c_str()));
+        rDataCommunicatorModule.def(("IMinAll" + plural_arg_text).c_str(), [](const DataCommunicator& rSelf, const VectorType& rLocalValues) {
+            return PythonIAllReduce(rSelf, rLocalValues, [](const DataCommunicator& rComm, const VectorType& rLocal, VectorType& rGlobal) { return rComm.IMinAll(rLocal, rGlobal); });
+        }, py::arg(list_of_values.c_str()));
+        rDataCommunicatorModule.def("IMaxAll", [](const DataCommunicator& rSelf, const TDataType& rLocalValue) {
+            return PythonIAllReduce(rSelf, rLocalValue, [](const DataCommunicator& rComm, const TDataType& rLocal, TDataType& rGlobal) { return rComm.IMaxAll(rLocal, rGlobal); });
+        }, py::arg(value_text.c_str()));
+        rDataCommunicatorModule.def(("IMaxAll" + plural_arg_text).c_str(), [](const DataCommunicator& rSelf, const VectorType& rLocalValues) {
+            return PythonIAllReduce(rSelf, rLocalValues, [](const DataCommunicator& rComm, const VectorType& rLocal, VectorType& rGlobal) { return rComm.IMaxAll(rLocal, rGlobal); });
+        }, py::arg(list_of_values.c_str()));
+    }
 }
 
 
 void AddDataCommunicatorToPython(pybind11::module &m)
 {
     namespace py = pybind11;
+
+    py::class_<PythonDataCommunicatorRequest>(m, "DataCommunicatorRequest")
+    .def("Wait", &PythonDataCommunicatorRequest::Wait)
+    .def("Test", &PythonDataCommunicatorRequest::Test)
+    .def("IsCompleted", &PythonDataCommunicatorRequest::IsCompleted)
+    .def("GetResult", &PythonDataCommunicatorRequest::GetResult)
+    .def_static("WaitAll", [](const py::list& rRequests) {
+        for (const auto& r_request : rRequests) {
+            r_request.cast<PythonDataCommunicatorRequest&>().Wait();
+        }
+    }, py::arg("list_of_requests"))
+    ;
 
     auto data_communicator_module = py::class_<DataCommunicator, DataCommunicator::Pointer>(m,"DataCommunicator");
 
@@ -153,6 +299,14 @@ void AddDataCommunicatorToPython(pybind11::module &m)
     data_communicator_module.def("Barrier", &DataCommunicator::Barrier)
     // SendRecv
     .def("SendRecvString",(std::string (DataCommunicator::*)(const std::string&, const int, const int) const) &DataCommunicator::SendRecv)
+    // Non-blocking (asynchronous) operations
+    .def("IBarrier", [](const DataCommunicator& rSelf) {
+        return PythonDataCommunicatorRequest(rSelf.IBarrier(), nullptr);
+    })
+    .def("ISendString", &PythonISend<std::string>, py::arg("send_string"), py::arg("send_destination"), py::arg("send_tag") = 0)
+    .def("IRecvString", [](const DataCommunicator& rSelf, const std::size_t Length, const int RecvSource, const int RecvTag) {
+        return PythonIRecv<std::string>(rSelf, std::string(Length, ' '), RecvSource, RecvTag);
+    }, py::arg("length"), py::arg("recv_source"), py::arg("recv_tag") = 0)
     // Broadcast
     .def("Broadcast", [](DataCommunicator& rSelf, std::string& rSourceMessage, const int SourceRank){
         rSelf.Broadcast(rSourceMessage, SourceRank);
