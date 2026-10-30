@@ -242,6 +242,16 @@ if configured to scan this path).
 | `python-conventions.instructions.md` | `**/*.py`, `**/custom_python/**/*.cpp` |
 | `testing.instructions.md` | `**/tests/**`, `test_*.cpp`, `test_*.py`, `benchmark_*.cpp` |
 
+### Application-specific conventions
+
+Some applications have their own `AGENTS.md` and `agents/` folder. Inside that application, read
+them after this file; their rules take precedence over the general ones above.
+
+| Application | Entry point |
+|-------------|-------------|
+| GeoMechanicsApplication | `applications/GeoMechanicsApplication/AGENTS.md` |
+
+
 ---
 
 ## Tool-Specific Extras
