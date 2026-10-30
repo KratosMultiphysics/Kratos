@@ -76,7 +76,7 @@ const Parameters GapSurrogateBoundaryModeler::GetDefaultParameters() const
         "lambda" : 1.0,
         "classification_samples_per_direction" : 3,
         "element_name" : "Element2D4N",
-        "condition_name" : "LineCondition2D2N",
+        "condition_name" : "PrismCondition2D4N",
         "properties_id" : 1,
         "number_of_boundary_gauss_points" : 2,
         "project_surrogate_face_end_points" : true,
