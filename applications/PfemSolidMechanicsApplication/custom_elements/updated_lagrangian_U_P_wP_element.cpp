@@ -63,7 +63,7 @@ namespace Kratos
    }
 
 
-   //*******************************ASSIGMENT OPERATOR***********************************
+   //******************************ASSIGNMENT OPERATOR***********************************
    //************************************************************************************
 
    UpdatedLagrangianUPwPElement&  UpdatedLagrangianUPwPElement::operator=(UpdatedLagrangianUPwPElement const& rOther)
@@ -753,7 +753,7 @@ namespace Kratos
       // VectorType Fh=rRightHandSideVector;
       // std::cout<<" Element "<<this->Id()<<" "<<std::endl;
 
-      //use of this variable for the complete parameter: (deffault: 4)
+      //use of this variable for the complete parameter: (default: 4)
       double AlphaStabilization  = 4.0;
       double StabilizationFactor = GetProperties()[STABILIZATION_FACTOR_P];
       AlphaStabilization *= StabilizationFactor;
@@ -1255,7 +1255,7 @@ namespace Kratos
    }
 
    // GET THE (GEOMETRICAL) SIZE FOR THE STABILIZATION TERM
-   // this size is recomended from Sun, Ostien and Salinger (IJNAMG, 2013)
+   // this size is recommended from Sun, Ostien and Salinger (IJNAMG, 2013)
 
    double UpdatedLagrangianUPwPElement::GetElementSize( const Matrix& rDN_DX)
    {
