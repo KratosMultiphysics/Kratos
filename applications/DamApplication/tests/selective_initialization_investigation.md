@@ -247,11 +247,11 @@ Each selective test creates its own temporary source/output directories and
 leaves input files alone. Setting `DAM_SELECTIVE_RESULTS` optionally retains the
 full source/destination arrays outside the checkpoint directories.
 
-Validation on 2026-10-30: the seven focused tests passed, including the rejection
-subcases, the source-preservation check and the variable-registration
-regression; the Dam small suite passed **147 tests** with the selective tests
-included. Full source/destination arrays are recorded in
-`/tmp/dam_selective_results_production/horizontal.json` and `thermal.json`.
+Validation on 2026-10-30: the eight focused tests passed, including the rejection
+subcases, the source-preservation and destination-state checks and the
+variable-registration regression; the Dam small suite passed **148 tests** with
+the selective tests included. Full source/destination arrays are recorded in
+`/tmp/dam_selective_results_final/horizontal.json` and `thermal.json`.
 
 The original regression input was read from exactly
 `/home/cimne/Simulaciones/00_DEBBUGING_TESTS/DamApplication/TestTranferUtility2D.gid/`
