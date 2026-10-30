@@ -217,6 +217,7 @@ protected:
 
         // Variables including all integration points
         Matrix CurrentDisp;
+
     };
 
 public:

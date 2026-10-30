@@ -223,6 +223,11 @@ class MPMSolver(PythonSolver):
                 KratosMultiphysics.Logger.PrintInfo("::[MPMSolver]:: ","WARNING: No stabilization considered for a mixed formulation.")
             elif (stabilization =="ppp"): #Polynomial Pressure Projection stabilization
                 stabilization_type = 1
+            elif (stabilization == "asgs"):
+                stabilization_type = 2
+            else:
+                err_msg = 'Unsupported stabilization "{}". Available options are: "none", "ppp", "asgs".'.format(stabilization)
+                raise Exception(err_msg)
             self.grid_model_part.ProcessInfo.SetValue(KratosMPM.STABILIZATION_TYPE, stabilization_type)
 
         # Assigning extra information to the main model part
