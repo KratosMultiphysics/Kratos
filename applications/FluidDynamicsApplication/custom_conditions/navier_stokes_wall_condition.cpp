@@ -23,6 +23,7 @@
 #include "navier_stokes_wall_condition.h"
 #include "wall_laws/linear_log_wall_law.h"
 #include "wall_laws/navier_slip_wall_law.h"
+#include "wall_laws/nitsche_navier_slip_wall_law.h"
 
 namespace Kratos
 {
@@ -610,5 +611,7 @@ template class NavierStokesWallCondition<2,2,LinearLogWallLaw<2,2>>;
 template class NavierStokesWallCondition<3,3,LinearLogWallLaw<3,3>>;
 template class NavierStokesWallCondition<2,2,NavierSlipWallLaw<2,2>>;
 template class NavierStokesWallCondition<3,3,NavierSlipWallLaw<3,3>>;
+template class NavierStokesWallCondition<2,2,NitscheNavierSlipWallLaw<2,2>>;
+template class NavierStokesWallCondition<3,3,NitscheNavierSlipWallLaw<3,3>>;
 
 } // namespace Kratos
