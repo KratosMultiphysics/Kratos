@@ -24,6 +24,7 @@ set( KRATOS_DAM_APPLICATION_CORE_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/dam_application_variables.cpp
 
     # Utilities
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/selective_initial_stress_utility.cpp
 
     # Pocesses
 

@@ -163,6 +163,14 @@ class DamAnalysis(AnalysisStage):
         self.list_of_processes += KratosMultiphysics.process_factory.KratosProcessFactory(self.model).ConstructListOfProcesses( self.project_parameters["loads_process_list"] )
         self.list_of_processes += KratosMultiphysics.process_factory.KratosProcessFactory(self.model).ConstructListOfProcesses( self.project_parameters["temperature_by_device_list"] )
 
+        if self.add_previous_results and any(
+                getattr(process, "transfers_initial_stress", False)
+                for process in self.list_of_processes):
+            raise RuntimeError(
+                "SelectiveInitialStressProcess cannot be combined with "
+                "'transfer_results_process.add_previous_results'. Use only one "
+                "initial-state transfer mechanism per analysis.")
+
         if self.project_parameters.Has("output_device_list"):
             self.list_of_output_processes = KratosMultiphysics.process_factory.KratosProcessFactory(self.model).ConstructListOfProcesses( self.project_parameters["output_device_list"] )
         else:

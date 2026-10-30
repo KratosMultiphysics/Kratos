@@ -23,6 +23,7 @@
 #include "custom_utilities/transfer_initial_stress_utility.hpp"
 #include "custom_utilities/construction_utility.hpp"
 #include "custom_utilities/mapping_variables_utilities.hpp"
+#include "custom_utilities/selective_initial_stress_utility.h"
 
 
 namespace Kratos
@@ -116,6 +117,12 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
     .def(py::init<>())
     .def("MappingThermalModelParts",&MappingVariables3DUtilities::MappingThermalModelParts)
     .def("MappingMechanicalModelParts",&MappingVariables3DUtilities::MappingMechanicalModelParts);
+
+    py::class_< SelectiveInitialStressUtility >
+    (m, "SelectiveInitialStressUtility")
+    .def_static("AssignInitialStresses",
+        &SelectiveInitialStressUtility::AssignInitialStresses,
+        py::arg("source_model_part"), py::arg("destination_model_part"));
 }
 
 }  // namespace Python.
