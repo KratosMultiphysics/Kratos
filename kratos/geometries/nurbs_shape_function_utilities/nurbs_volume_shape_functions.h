@@ -69,14 +69,9 @@ public:
      *          Thus, for DerivativesOrder 0 the return value is 1, for 1 the return value is 4, ...
      * @return  NumberOfShapeFunctionRows.
      */
-    static inline SizeType NumberOfShapeFunctionRows(const SizeType DerivativeOrder)
+    static constexpr inline SizeType NumberOfShapeFunctionRows(const SizeType DerivativeOrder) noexcept
     {
-        IndexType number_of_shape_function_rows = 0.0;
-        for( IndexType i = 0; i < DerivativeOrder + 1; ++i){
-            number_of_shape_function_rows += (1 + i) * (2 + i) / 2;
-        }
-
-        return number_of_shape_function_rows;
+        return (1 + DerivativeOrder) * (2 + DerivativeOrder) * (3 + DerivativeOrder) / 6;
     }
     /**
      * @brief   Returns the index of the shape function row for the given derivative indices.
