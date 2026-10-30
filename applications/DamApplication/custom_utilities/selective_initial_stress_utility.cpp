@@ -80,7 +80,6 @@ void CheckThermalDatum(const Node& rNode)
 
 struct PointData
 {
-    IndexType ElementId;
     std::vector<Vector> Stresses;
     std::vector<ConstitutiveLaw::Pointer> Laws;
 };
@@ -144,10 +143,7 @@ void SelectiveInitialStressUtility::AssignInitialStresses(
             << "SelectiveInitialStressUtility: expected four integration points for element "
             << element_id << ", found " << num_points << "." << std::endl;
 
-        KRATOS_ERROR_IF(r_source_geometry.size() != 4 || r_destination_geometry.size() != 4)
-            << "SelectiveInitialStressUtility: expected four nodes per element "
-            << element_id << "." << std::endl;
-        for (std::size_t i = 0; i < 4; ++i) {
+        for (std::size_t i = 0; i < r_destination_geometry.size(); ++i) {
             const auto& r_source_node = r_source_geometry[i];
             const auto& r_destination_node = r_destination_geometry[i];
             KRATOS_ERROR_IF(r_source_node.Id() != r_destination_node.Id())
@@ -249,7 +245,7 @@ void SelectiveInitialStressUtility::AssignInitialStresses(
             }
         }
 
-        point_data.push_back({element_id, std::move(stresses), std::move(destination_laws)});
+        point_data.push_back({std::move(stresses), std::move(destination_laws)});
     }
 
     // All checks passed. Assign the selected stresses as initial states.

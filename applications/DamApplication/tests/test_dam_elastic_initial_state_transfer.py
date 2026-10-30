@@ -17,6 +17,7 @@ class TestDamElasticInitialStateTransfer(KratosUnittest.TestCase):
         model = KM.Model()
         part = model.CreateModelPart("body", 2)
         for variable in (KM.DISPLACEMENT, KM.REACTION, KM.VOLUME_ACCELERATION,
+                         KM.VELOCITY, KM.ACCELERATION,
                          KM.TEMPERATURE, Dam.NODAL_REFERENCE_TEMPERATURE,
                          Poro.NODAL_CAUCHY_STRESS_TENSOR,
                          Dam.INITIAL_NODAL_CAUCHY_STRESS_TENSOR):

@@ -213,6 +213,13 @@ reference-temperature process separately, ordered before stress assignment.
 Incompatible support/loading cannot be cured by a data copy; the validated
 tests check the free-DOF equilibrium after assignment.
 
+Stress assignment is not a load generator. The new analysis must supply loads
+and boundary conditions compatible with the imported field. Importing gravity
+stresses without the corresponding gravity body force leaves the free DOFs
+unbalanced and produces an artificial initial displacement. The validated
+benchmark retains the same gravity load in the destination, and the negative
+test removes it to show the resulting residual.
+
 No changes are needed to destination model import, buffer filling, time
 advancement, output scheduling, thermal solver initialization or restart
 continuation. No SelfWeight, UP/P, interface, damage or nonlocal changes are

@@ -345,6 +345,38 @@ class TestDamSelectiveInitialization(KratosUnittest.TestCase):
         Dam.SelectiveInitialStressUtility.AssignInitialStresses(source, target)
         self.assertEqual(snapshot(source), before)
 
+    def test_destination_keeps_its_own_state_fields(self):
+        import test_dam_elastic_initial_state_transfer as elastic_tests
+        fixture = elastic_tests.TestDamElasticInitialStateTransfer()
+        source_model, source, source_strategy = fixture._body(quadrilaterals=True)
+        source_strategy.Solve()
+        for node in source.Nodes:
+            node.SetSolutionStepValue(KM.VELOCITY, [13., 14., 15.])
+            node.SetSolutionStepValue(KM.ACCELERATION, [16., 17., 18.])
+        source.ProcessInfo[KM.TIME] = 99.
+        source.ProcessInfo[KM.STEP] = 11
+
+        model, target, strategy = fixture._body(quadrilaterals=True)
+        for node in target.Nodes:
+            node.SetSolutionStepValue(KM.VOLUME_ACCELERATION, [1., 2., 3.])
+            node.SetSolutionStepValue(KM.REACTION, [4., 5., 6.])
+            node.SetSolutionStepValue(KM.VELOCITY, [7., 8., 9.])
+            node.SetSolutionStepValue(KM.ACCELERATION, [10., 11., 12.])
+        target.ProcessInfo[KM.TIME] = 42.
+        target.ProcessInfo[KM.STEP] = 7
+
+        Dam.SelectiveInitialStressUtility.AssignInitialStresses(source, target)
+
+        for node in target.Nodes:
+            self._compare(node.GetSolutionStepValue(KM.VOLUME_ACCELERATION), [1., 2., 3.])
+            self._compare(node.GetSolutionStepValue(KM.REACTION), [4., 5., 6.])
+            self._compare(node.GetSolutionStepValue(KM.VELOCITY), [7., 8., 9.])
+            self._compare(node.GetSolutionStepValue(KM.ACCELERATION), [10., 11., 12.])
+            self.assertEqual(node.GetSolutionStepValue(KM.TEMPERATURE), 30.)
+            self.assertEqual(node.GetSolutionStepValue(Dam.NODAL_REFERENCE_TEMPERATURE), 20.)
+        self.assertEqual(target.ProcessInfo[KM.TIME], 42.)
+        self.assertEqual(target.ProcessInfo[KM.STEP], 7)
+
     def test_existing_reference_temperature_process(self):
         with tempfile.TemporaryDirectory(prefix='dam_reference_temperature_') as tmp:
             settings = self._parameters(thermal=True, increment='none', temperature_offset=10.)

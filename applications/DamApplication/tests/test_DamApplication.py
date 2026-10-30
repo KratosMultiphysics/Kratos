@@ -108,6 +108,7 @@ def AssembleTestSuites():
     smallSuite.addTest(TestDamSelectiveInitialization("test_rejects_unsupported_states_and_requires_gravity"))
     smallSuite.addTest(TestDamSelectiveInitialization("test_rejects_combination_with_previous_results_transfer"))
     smallSuite.addTest(TestDamSelectiveInitialization("test_does_not_modify_source_state"))
+    smallSuite.addTest(TestDamSelectiveInitialization("test_destination_keeps_its_own_state_fields"))
     smallSuite.addTest(TestDamSelectiveInitialization("test_existing_reference_temperature_process"))
     smallSuite.addTest(TestDamSelectiveInitialization("test_use_process_based_local_equivalent_strain_is_registered"))
 
@@ -155,6 +156,7 @@ def AssembleTestSuites():
     allSuite.addTest(TestDamSelectiveInitialization("test_rejects_unsupported_states_and_requires_gravity"))
     allSuite.addTest(TestDamSelectiveInitialization("test_rejects_combination_with_previous_results_transfer"))
     allSuite.addTest(TestDamSelectiveInitialization("test_does_not_modify_source_state"))
+    allSuite.addTest(TestDamSelectiveInitialization("test_destination_keeps_its_own_state_fields"))
     allSuite.addTest(TestDamSelectiveInitialization("test_existing_reference_temperature_process"))
     allSuite.addTest(TestDamSelectiveInitialization("test_use_process_based_local_equivalent_strain_is_registered"))
 

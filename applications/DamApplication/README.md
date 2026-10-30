@@ -81,5 +81,20 @@ the reference field with the existing
 `impose_nodal_reference_temperature_process`. The current temperature always
 belongs to the new analysis and may be computed by its thermal solver.
 
+The process assigns stresses only. It does not derive or apply the loads that
+equilibrated the source stresses, so the new loads and boundary conditions must
+be compatible with the imported field. In particular, importing gravity-induced
+stresses without the corresponding body-force (gravity) loading leaves the free
+degrees of freedom unbalanced and produces an artificial initial displacement.
+Keep the body forces, tractions and supports that equilibrate the source
+stresses; the validated benchmark retains the same gravity load in the new
+analysis.
+
+The process never assigns or transfers `TEMPERATURE` or
+`NODAL_REFERENCE_TEMPERATURE`. For the thermoelastic law it only reads both
+fields to enforce `T == T_ref` at the moment of import. The reference field
+remains the responsibility of `impose_nodal_reference_temperature_process`, and
+the current temperature remains owned and evolved by the new analysis.
+
 `transfer_results_process.add_previous_results` must remain false when this
 process is used; DamAnalysis rejects the combination explicitly.
