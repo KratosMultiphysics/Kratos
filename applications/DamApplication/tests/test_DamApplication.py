@@ -24,6 +24,7 @@ from test_dam_analysis_process_lifecycle import TestDamAnalysisProcessLifecycle
 from test_global_tangent_consistency import TestGlobalTangentConsistency
 from test_interface_tangent_consistency import TestSmallDisplacementInterfaceTangent
 from test_initial_gp_output_before_solve import TestInitialGaussPointOutputBeforeSolve
+from test_dam_thermo_mechanic_initial_output import TestDamThermoMechanicInitialOutput
 from test_process_based_nodal_smoothing import DamProcessBasedNodalSmoothingTest
 from test_dam_output_processes import TestDamOutputProcesses
 from test_dam_gid_output_process import TestDamGiDOutputProcess
@@ -85,6 +86,7 @@ def AssembleTestSuites():
         KratosUnittest.TestLoader().loadTestsFromTestCases(
             [
                 TestInitialGaussPointOutputBeforeSolve,
+                TestDamThermoMechanicInitialOutput,
                 DamProcessBasedNodalSmoothingTest,
                 DamNonlocalOwnershipTest,
                 TestDamProcessLifetime,
@@ -120,6 +122,7 @@ def AssembleTestSuites():
                 TestDamNodalFieldProcesses,
                 TestImposeThermalParametersScalarValueProcess,
                 TestInitialGaussPointOutputBeforeSolve,
+                TestDamThermoMechanicInitialOutput,
                 DamNonlocalOwnershipTest,
                 DamProcessBasedNodalSmoothingTest,
                 TestDamProcessLifetime,
