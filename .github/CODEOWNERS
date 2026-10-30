@@ -34,3 +34,4 @@
 /applications/MPMApplication/                          @KratosMultiphysics/mpm
 /applications/RomApplication/                          @KratosMultiphysics/rom
 /applications/GeoMechanicsApplication/                 @KratosMultiphysics/geomechanics
+/applications/RailwayApplication                       @KratosMultiphysics/railways
