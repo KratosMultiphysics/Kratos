@@ -170,6 +170,77 @@ KRATOS_TEST_CASE_IN_SUITE(GeometricalObjectsBinsSearchNearestInRadius, KratosCor
     KRATOS_EXPECT_TRUE(id == 3);
 }
 
+/** Checks bins search in bounding box
+*/
+KRATOS_TEST_CASE_IN_SUITE(GeometricalObjectsBinsSearchInBoundingBox, KratosCoreFastSuite)
+{
+    Model current_model;
+
+    // Generate the cube skin
+    ModelPart& r_skin_part = CppTestsUtilities::CreateCubeSkinModelPart(current_model);
+
+    GeometricalObjectsBins bins(r_skin_part.ElementsBegin(), r_skin_part.ElementsEnd());
+
+    std::vector<GeometricalObjectsBins::ResultType> results;
+    Point center_point{0.00,0.00,0.00};
+
+    const double limit_1 = 0.29;
+    Point point_min{-limit_1,-limit_1,-limit_1};
+    Point point_max{limit_1,limit_1,limit_1};
+    bins.SearchInBoundingBox(center_point, point_min, point_max, results);
+    KRATOS_EXPECT_EQ(results.size(), 0);
+
+    const double limit_2 = 0.3;
+    point_min.X() = -limit_2;
+    point_min.Y() = -limit_2;
+    point_min.Z() = -limit_2;
+    point_max.X() = limit_2;
+    point_max.Y() = limit_2;
+    point_max.Z() = limit_2;
+    bins.SearchInBoundingBox(center_point, point_min, point_max, results);
+    KRATOS_EXPECT_EQ(results.size(), 4);
+
+    const double limit_3 = 0.4;
+    point_min.X() = -limit_3;
+    point_min.Y() = -limit_3;
+    point_min.Z() = -limit_3;
+    point_max.X() = limit_3;
+    point_max.Y() = limit_3;
+    point_max.Z() = limit_3;
+    bins.SearchInBoundingBox(center_point, point_min, point_max, results);
+    KRATOS_EXPECT_EQ(results.size(), 4);
+
+    const double limit_4 = 0.6;
+    point_min.X() = -limit_4;
+    point_min.Y() = -limit_4;
+    point_min.Z() = -limit_4;
+    point_max.X() = limit_4;
+    point_max.Y() = limit_4;
+    point_max.Z() = limit_4;
+    bins.SearchInBoundingBox(center_point, point_min, point_max, results);
+    KRATOS_EXPECT_EQ(results.size(), 8);
+
+    const double limit_5 = 0.7;
+    point_min.X() = -limit_5;
+    point_min.Y() = -limit_5;
+    point_min.Z() = -limit_5;
+    point_max.X() = limit_5;
+    point_max.Y() = limit_5;
+    point_max.Z() = limit_5;
+    bins.SearchInBoundingBox(center_point, point_min, point_max, results);
+    KRATOS_EXPECT_EQ(results.size(), 8);
+
+    const double limit_6 = 0.9;
+    point_min.X() = -limit_6;
+    point_min.Y() = -limit_6;
+    point_min.Z() = -limit_6;
+    point_max.X() = limit_6;
+    point_max.Y() = limit_6;
+    point_max.Z() = limit_6;
+    bins.SearchInBoundingBox(center_point, point_min, point_max, results);
+    KRATOS_EXPECT_EQ(results.size(), 12);
+}
+
 /** Checks bins search nearest
 */
 KRATOS_TEST_CASE_IN_SUITE(GeometricalObjectsBinsSearchNearest, KratosCoreFastSuite) 
