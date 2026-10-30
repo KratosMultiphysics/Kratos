@@ -249,6 +249,11 @@ class DamThermoMechanicSolver(object):
         self.Thermal_Solver.Check()
         self.Mechanical_Solver.Check()
 
+        # Initialize the strategies (elements, scheme, convergence criterion) now, so
+        # that the constitutive laws are ready before the first gauss-point output
+        self.Thermal_Solver.Initialize()
+        self.Mechanical_Solver.Initialize()
+
         print ("Initialization DamThermoMechanicSolver finished")
 
     def GetComputingModelPart(self):
@@ -409,6 +414,12 @@ class DamThermoMechanicSolver(object):
             else:
                 damp_factor_m = -0.01
             scheme = KratosDam.BossakDisplacementSmoothingScheme(damp_factor_m,rayleigh_m,rayleigh_k)
+
+        self._recomputes_nodal_cauchy_stress = isinstance(
+            scheme,
+            (KratosDam.IncrementalUpdateStaticSmoothingScheme,
+             KratosDam.IncrementalUpdateStaticDampedSmoothingScheme,
+             KratosDam.BossakDisplacementSmoothingScheme))
 
         return scheme
 
