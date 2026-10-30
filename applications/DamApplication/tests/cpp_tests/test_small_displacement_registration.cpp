@@ -308,5 +308,74 @@ KRATOS_TEST_CASE_IN_SUITE(HistoricalSmallDisplacementMdpaLoadsWithSMAElements, K
               << "elements resolve to the SMA runtime." << std::endl;
 }
 
+
+KRATOS_TEST_CASE_IN_SUITE(InitialStateAssignsNonuniformQuadrilateralGaussStresses, KratosDamFastSuite)
+{
+    Model model;
+    ModelPart* p_reference_part = nullptr;
+    ModelPart* p_continuation_part = nullptr;
+    auto p_reference = CreateRegisteredElement(model, "reference", "SmallDisplacementElement2D4N",
+        "ThermalLinearElastic2DPlaneStrain", p_reference_part, true);
+    auto p_continuation = CreateRegisteredElement(model, "continuation", "SmallDisplacementElement2D4N",
+        "ThermalLinearElastic2DPlaneStrain", p_continuation_part, true);
+    p_reference->GetProperties()[THERMAL_EXPANSION] = 0.0;
+    p_continuation->GetProperties()[THERMAL_EXPANSION] = 0.0;
+
+    // Bilinear displacement yields a genuinely varying stress within the Q4.
+    for (auto& r_node : p_reference_part->Nodes()) {
+        auto& r_u = r_node.FastGetSolutionStepValue(DISPLACEMENT);
+        r_u[0] = 0.001 * r_node.X0() * r_node.Y0();
+        r_u[1] = -0.002 * r_node.Y0();
+    }
+    std::vector<Vector> reference_stresses;
+    p_reference->CalculateOnIntegrationPoints(CAUCHY_STRESS_VECTOR, reference_stresses,
+                                               p_reference_part->GetProcessInfo());
+    KRATOS_EXPECT_EQ(reference_stresses.size(), 4);
+    KRATOS_EXPECT_GT(norm_2(reference_stresses[0] - reference_stresses[2]), 1.0);
+
+    std::vector<ConstitutiveLaw::Pointer> laws;
+    p_continuation->CalculateOnIntegrationPoints(CONSTITUTIVE_LAW, laws,
+                                                  p_continuation_part->GetProcessInfo());
+    KRATOS_EXPECT_EQ(laws.size(), reference_stresses.size());
+    for (std::size_t i = 0; i < laws.size(); ++i) {
+        laws[i]->SetInitialState(Kratos::make_intrusive<InitialState>(
+            ZeroVector(3), reference_stresses[i], ZeroMatrix(2, 2)));
+    }
+    std::vector<Vector> transferred_stresses;
+    p_continuation->CalculateOnIntegrationPoints(CAUCHY_STRESS_VECTOR, transferred_stresses,
+                                                  p_continuation_part->GetProcessInfo());
+    for (std::size_t i = 0; i < laws.size(); ++i) {
+        KRATOS_EXPECT_VECTOR_NEAR(reference_stresses[i], transferred_stresses[i], 1.0e-9);
+    }
+    Matrix lhs_reference, lhs_continuation;
+    Vector rhs_reference, rhs_continuation;
+    p_reference->CalculateLocalSystem(lhs_reference, rhs_reference, p_reference_part->GetProcessInfo());
+    p_continuation->CalculateLocalSystem(lhs_continuation, rhs_continuation, p_continuation_part->GetProcessInfo());
+    KRATOS_EXPECT_VECTOR_NEAR(rhs_reference, rhs_continuation, 1.0e-9);
+    KRATOS_EXPECT_MATRIX_NEAR(lhs_reference, lhs_continuation, 1.0e-9);
+
+    // Apply the same displacement increment from their respective datums.
+    for (auto& r_node : p_reference_part->Nodes()) {
+        auto& r_u = r_node.FastGetSolutionStepValue(DISPLACEMENT);
+        r_u[0] += 0.0003 * r_node.Y0();
+        r_u[1] += 0.0001 * r_node.X0();
+    }
+    for (auto& r_node : p_continuation_part->Nodes()) {
+        auto& r_u = r_node.FastGetSolutionStepValue(DISPLACEMENT);
+        r_u[0] = 0.0003 * r_node.Y0();
+        r_u[1] = 0.0001 * r_node.X0();
+    }
+    p_reference->CalculateOnIntegrationPoints(CAUCHY_STRESS_VECTOR, reference_stresses,
+                                               p_reference_part->GetProcessInfo());
+    p_continuation->CalculateOnIntegrationPoints(CAUCHY_STRESS_VECTOR, transferred_stresses,
+                                                  p_continuation_part->GetProcessInfo());
+    for (std::size_t i = 0; i < laws.size(); ++i) {
+        KRATOS_EXPECT_VECTOR_NEAR(reference_stresses[i], transferred_stresses[i], 1.0e-9);
+    }
+    p_reference->CalculateLocalSystem(lhs_reference, rhs_reference, p_reference_part->GetProcessInfo());
+    p_continuation->CalculateLocalSystem(lhs_continuation, rhs_continuation, p_continuation_part->GetProcessInfo());
+    KRATOS_EXPECT_VECTOR_NEAR(rhs_reference, rhs_continuation, 1.0e-9);
+}
+
 } // namespace Testing
 } // namespace Kratos
