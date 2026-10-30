@@ -347,10 +347,7 @@
             }],
             "print_output_process" : [
                 // {
-                //     "python_module"   : "json_output_process",
-                //     "kratos_module" : "KratosMultiphysics",
-                //     "help"                  : "",
-                //     "process_name"          : "JsonOutputProcess",
+                //     "name" : "Processes.KratosMultiphysics.JsonOutputProcess",
                 //     "Parameters"            : {
                 //         "output_variables" : ["FLUID_FRACTION"],
                 //         "output_file_name" : "CFD_DEM_two_way_tests/two_way_test_results.json",

@@ -72,9 +72,7 @@ def GetDefaultInputParameters():
                 "end_time"      : 1
             },
             "_json_output_process"  : [{
-            "python_module" : "json_output_process",
-            "kratos_module" : "KratosMultiphysics",
-            "process_name"  : "JsonOutputProcess",
+            "name" : "Processes.KratosMultiphysics.JsonOutputProcess",
             "Parameters"    : {
                 "output_variables"     : ["DISPLACEMENT_X","DISPLACEMENT_Y"],
                 "output_file_name"     : "candelier_results.json",
