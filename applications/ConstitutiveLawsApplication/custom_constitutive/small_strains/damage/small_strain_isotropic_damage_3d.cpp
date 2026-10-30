@@ -93,7 +93,7 @@ Vector& SmallStrainIsotropicDamage3D::GetValue(
     )
 {
     if(rThisVariable == INTERNAL_VARIABLES){
-        rValue.resize(1);
+        rValue.resize(1, true);
         rValue[0] = mStrainVariable;
     }
 

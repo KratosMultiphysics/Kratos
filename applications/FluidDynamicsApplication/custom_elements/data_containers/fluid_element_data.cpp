@@ -22,10 +22,10 @@ void FluidElementData<TDim, TNumNodes, TElementIntegratesInTime>::Initialize(
     ConstitutiveLawValues = ConstitutiveLaw::Parameters(rElement.GetGeometry(),rElement.GetProperties(),rProcessInfo);
 
     if (StrainRate.size() != StrainSize) {
-        StrainRate.resize(StrainSize);
+        StrainRate.resize(StrainSize, true);
     }
     if (ShearStress.size() != StrainSize) {
-        ShearStress.resize(StrainSize);
+        ShearStress.resize(StrainSize, true);
     }
     if (C.size1() != StrainSize || C.size2() != StrainSize) {
         C.resize(StrainSize,StrainSize,false);

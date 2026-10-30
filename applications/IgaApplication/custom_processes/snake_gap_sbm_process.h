@@ -795,7 +795,7 @@ void BernsteinBasis(const int p, const double t, std::vector<double>& B) const
 void BuildBezierKnots(const int p, Vector& rKnots) const
 {
     const int nkn = 2*(p+1);
-    if ((int)rKnots.size() != nkn) rKnots.resize(nkn);
+    if ((int)rKnots.size() != nkn) rKnots.resize(nkn, true);
     for (int i=0; i<=p;   ++i) rKnots[i]      = 0.0;
     for (int i=p+1;i<nkn;++i) rKnots[i]      = 1.0;
 }

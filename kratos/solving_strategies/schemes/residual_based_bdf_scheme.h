@@ -136,7 +136,7 @@ public:
 
         // We resize the BDF coefficients
         if (mBDF.size() != (mOrder + 1))
-            mBDF.resize(mOrder + 1);
+            mBDF.resize(mOrder + 1, true);
     }
 
     /** Copy Constructor.

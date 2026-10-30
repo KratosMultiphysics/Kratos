@@ -132,7 +132,7 @@ public:
 
         //resizing as needed the RHS
         if (rRightHandSideVector.size() != mat_size)
-            rRightHandSideVector.resize(mat_size);
+            rRightHandSideVector.resize(mat_size, true);
         rRightHandSideVector = ZeroVector(mat_size);
 
         CalculateAll(temp, rRightHandSideVector, rCurrentProcessInfo, CalculateStiffnessMatrixFlag, CalculateResidualVectorFlag);
@@ -179,7 +179,7 @@ public:
 
         //resizing as needed the RHS
         if (rRightHandSideVector.size() != mat_size)
-            rRightHandSideVector.resize(mat_size);
+            rRightHandSideVector.resize(mat_size, true);
         rRightHandSideVector = ZeroVector(mat_size);
 
         CalculateAll(rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo, CalculateStiffnessMatrixFlag, CalculateResidualVectorFlag);

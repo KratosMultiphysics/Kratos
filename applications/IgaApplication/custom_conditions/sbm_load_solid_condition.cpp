@@ -130,7 +130,7 @@ void SbmLoadSolidCondition::InitializeSbmMemberVariables()
         // The modeler already applies the inner/outer orientation.
         mTrueNormal = mpProjectionNode->GetValue(NORMAL);
             
-        mDistanceVector.resize(3);
+        mDistanceVector.resize(3, true);
         noalias(mDistanceVector) = mpProjectionNode->Coordinates() - r_geometry.Center().Coordinates();
 
         // dot product n dot n_tilde
@@ -155,7 +155,7 @@ void SbmLoadSolidCondition::InitializeSbmMemberVariables()
         closestNodeId = 0;
     }
     mpProjectionNode = &candidate_closest_skin_segment_1.GetGeometry()[closestNodeId] ;
-    mDistanceVector.resize(3);
+    mDistanceVector.resize(3, true);
     noalias(mDistanceVector) = mpProjectionNode->Coordinates() - r_geometry.Center().Coordinates();
 
     // calculate the integration weight
@@ -207,7 +207,7 @@ void SbmLoadSolidCondition::CalculateLocalSystem(
     const SizeType mat_size = GetGeometry().size() * 2;
 
     if (rRightHandSideVector.size() != mat_size)
-        rRightHandSideVector.resize(mat_size);
+        rRightHandSideVector.resize(mat_size, true);
     noalias(rRightHandSideVector) = ZeroVector(mat_size);
 
     if (rLeftHandSideMatrix.size1() != mat_size)

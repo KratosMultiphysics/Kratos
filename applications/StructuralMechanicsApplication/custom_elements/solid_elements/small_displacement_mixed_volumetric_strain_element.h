@@ -152,8 +152,8 @@ protected:
             const SizeType StrainSize)
         {
             // Array allocation
-            BodyForce.resize(Dimension);
-            VolumetricStrainGradient.resize(Dimension);
+            BodyForce.resize(Dimension, true);
+            VolumetricStrainGradient.resize(Dimension, true);
 
             // Initialize the subscale acceleration to zero for the static case
             // Note that the zero value is only overwritten in the dynamic case

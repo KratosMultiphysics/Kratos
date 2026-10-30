@@ -236,7 +236,7 @@ public:
             if (rLeftHandSideMatrix.size1() != LocalSize)
                 rLeftHandSideMatrix.resize(LocalSize,LocalSize);
             if (rRightHandSideVector.size() != LocalSize)
-                rRightHandSideVector.resize(LocalSize);
+                rRightHandSideVector.resize(LocalSize, true);
 
             noalias(rLeftHandSideMatrix) = ZeroMatrix(LocalSize,LocalSize);
             noalias(rRightHandSideVector) = ZeroVector(LocalSize);
@@ -253,7 +253,7 @@ public:
             if (rLeftHandSideMatrix.size1() != LocalSize)
                 rLeftHandSideMatrix.resize(LocalSize,LocalSize);
             if (rRightHandSideVector.size() != LocalSize)
-                rRightHandSideVector.resize(LocalSize);
+                rRightHandSideVector.resize(LocalSize, true);
 
             noalias(rLeftHandSideMatrix) = ZeroMatrix(LocalSize,LocalSize);
             noalias(rRightHandSideVector) = ZeroVector(LocalSize);

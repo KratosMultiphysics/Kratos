@@ -89,8 +89,8 @@ int ElastoPlasticMohrCoulombCohesive3DLaw::Check(const Properties& rMaterialProp
 
 void ElastoPlasticMohrCoulombCohesive3DLaw::InitializeMaterial( const Properties& rMaterialProperties,const GeometryType& rElementGeometry,const Vector& rShapeFunctionsValues )
 {
-    mPlasticStrainVector.resize(3);
-    mOldPlasticStrainVector.resize(3);
+    mPlasticStrainVector.resize(3, true);
+    mOldPlasticStrainVector.resize(3, true);
     mPlasticStrainVector[0]    = 0.0;
     mPlasticStrainVector[1]    = 0.0;
     mPlasticStrainVector[2]    = 0.0;
@@ -234,8 +234,8 @@ void ElastoPlasticMohrCoulombCohesive3DLaw::InitializeElastoPlasticConstitutiveL
     rEPlasticVariables.YieldFunction_MC     = 0.0;
     rEPlasticVariables.YieldFunction_CutOff = 0.0;
     // Initialize the size of the vectors to the yield surface and plastic potential surface of the Mohr-Coulomb criteria
-    rEPlasticVariables.n_MC.resize(VoigtSize);
-    rEPlasticVariables.np_MC.resize(VoigtSize);
+    rEPlasticVariables.n_MC.resize(VoigtSize, true);
+    rEPlasticVariables.np_MC.resize(VoigtSize, true);
     // Initialize the size of the vectors to the yield surface and plastic potential surface of the cut-off criteria
     rEPlasticVariables.n_TC  = ZeroVector(VoigtSize);
     rEPlasticVariables.np_TC = ZeroVector(VoigtSize);

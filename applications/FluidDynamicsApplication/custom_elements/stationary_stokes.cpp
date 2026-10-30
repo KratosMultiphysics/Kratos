@@ -205,7 +205,7 @@ void StationaryStokes<TDim>::GetFirstDerivativesVector(Vector &rValues, int Step
     const unsigned int LocalSize = (TDim + 1) * NumNodes;
 
     if (rValues.size() != LocalSize)
-        rValues.resize(LocalSize);
+        rValues.resize(LocalSize, true);
 
     unsigned int Index = 0;
 

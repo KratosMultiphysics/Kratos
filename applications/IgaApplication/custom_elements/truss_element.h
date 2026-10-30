@@ -119,7 +119,7 @@ public:
         const SizeType nb_dofs = nb_nodes * 3;
 
         if (rRightHandSideVector.size() != nb_dofs)
-            rRightHandSideVector.resize(nb_dofs);
+            rRightHandSideVector.resize(nb_dofs, true);
         noalias(rRightHandSideVector) = ZeroVector(nb_dofs);
 
         MatrixType left_hand_side_matrix;
@@ -156,7 +156,7 @@ public:
         const SizeType nb_dofs = nb_nodes * 3;
 
         if (rRightHandSideVector.size() != nb_dofs)
-            rRightHandSideVector.resize(nb_dofs);
+            rRightHandSideVector.resize(nb_dofs, true);
         noalias(rRightHandSideVector) = ZeroVector(nb_dofs);
 
         if (rLeftHandSideMatrix.size1() != nb_dofs && rLeftHandSideMatrix.size2() != nb_dofs)

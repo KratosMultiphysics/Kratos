@@ -1131,7 +1131,7 @@ public:
 
         if (Tensor.size1()==2)
         {
-            StrainVector.resize(3);
+            StrainVector.resize(3, true);
             noalias(StrainVector) = ZeroVector(3);
             StrainVector(0) = Tensor(0,0);
             StrainVector(1) = Tensor(1,1);
@@ -1139,7 +1139,7 @@ public:
         }
         else if (Tensor.size1()==3)
         {
-            StrainVector.resize(6);
+            StrainVector.resize(6, true);
             noalias(StrainVector) = ZeroVector(6);
             StrainVector(0) = Tensor(0,0);
             StrainVector(1) = Tensor(1,1);

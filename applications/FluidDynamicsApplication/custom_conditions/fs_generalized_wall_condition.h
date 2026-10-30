@@ -325,7 +325,7 @@ public:
 			}
 			if (rRightHandSideVector.size() != LocalSize)
 			{
-				rRightHandSideVector.resize(LocalSize);
+				rRightHandSideVector.resize(LocalSize, true);
 			}
 
 			noalias(rLeftHandSideMatrix) = ZeroMatrix(LocalSize, LocalSize);
@@ -345,7 +345,7 @@ public:
 			}
 			if (rRightHandSideVector.size() != LocalSize)
 			{
-				rRightHandSideVector.resize(LocalSize);
+				rRightHandSideVector.resize(LocalSize, true);
 			}
 
 			noalias(rLeftHandSideMatrix) = ZeroMatrix(LocalSize, LocalSize);

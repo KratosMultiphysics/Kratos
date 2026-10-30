@@ -6568,7 +6568,7 @@ void ModelPartIO::SwapStreamSource(Kratos::shared_ptr<std::iostream> newStream)
 
 inline void ModelPartIO::CreatePartition(unsigned int NumberOfThreads,const int number_of_rows, DenseVector<unsigned int>& partitions)
 {
-    partitions.resize(NumberOfThreads+1);
+    partitions.resize(NumberOfThreads+1, true);
     int partition_size = number_of_rows / NumberOfThreads;
     partitions[0] = 0;
     partitions[NumberOfThreads] = number_of_rows;

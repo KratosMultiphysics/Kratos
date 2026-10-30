@@ -451,7 +451,7 @@ Vector& GenericSmallStrainKinematicPlasticity<TConstLawIntegratorType>::GetValue
     )
 {
     if (rThisVariable == INTERNAL_VARIABLES) {
-        rValue.resize(1 + VoigtSize);
+        rValue.resize(1 + VoigtSize, true);
         rValue[0] = mPlasticDissipation;
         for (std::size_t i=0; i < VoigtSize; ++i)
             rValue[i + 1] = mPlasticStrain[i];

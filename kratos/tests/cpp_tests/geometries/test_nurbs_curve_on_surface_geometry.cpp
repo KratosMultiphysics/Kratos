@@ -592,8 +592,8 @@ typedef Node NodeType;
     {
         // Create a Nurbs curve on a Nurbs surface
         std::vector<Vector> brep_coordinates(2);
-        brep_coordinates[0].resize(2); 
-        brep_coordinates[1].resize(2); 
+        brep_coordinates[0].resize(2, true); 
+        brep_coordinates[1].resize(2, true); 
         
         brep_coordinates[0][0] = 0.0;
         brep_coordinates[0][1] = 0.0;
@@ -628,8 +628,8 @@ typedef Node NodeType;
     {
         // Create a Nurbs curve on a Nurbs surface
         std::vector<Vector> brep_coordinates(2);
-        brep_coordinates[0].resize(2); 
-        brep_coordinates[1].resize(2); 
+        brep_coordinates[0].resize(2, true); 
+        brep_coordinates[1].resize(2, true); 
         
         brep_coordinates[0][0] = 1.0;
         brep_coordinates[0][1] = 0.0;
@@ -662,8 +662,8 @@ typedef Node NodeType;
     {
         // Create a Nurbs curve on a Nurbs surface
         std::vector<Vector> brep_coordinates(2);
-        brep_coordinates[0].resize(2); 
-        brep_coordinates[1].resize(2); 
+        brep_coordinates[0].resize(2, true); 
+        brep_coordinates[1].resize(2, true); 
         
         brep_coordinates[0][0] = 1.0;
         brep_coordinates[0][1] = 1.0;
@@ -695,8 +695,8 @@ typedef Node NodeType;
     {
         // Create a Nurbs curve on a Nurbs surface
         std::vector<Vector> brep_coordinates(2);
-        brep_coordinates[0].resize(2); 
-        brep_coordinates[1].resize(2); 
+        brep_coordinates[0].resize(2, true); 
+        brep_coordinates[1].resize(2, true); 
         
         brep_coordinates[0][0] = 1.0;
         brep_coordinates[0][1] = 1.0;
@@ -726,7 +726,7 @@ typedef Node NodeType;
 
         std::vector<Vector> expected_cps(4);
         
-        expected_cps[0].resize(2); expected_cps[1].resize(2); expected_cps[2].resize(2); expected_cps[3].resize(2);
+        expected_cps[0].resize(2, true); expected_cps[1].resize(2, true); expected_cps[2].resize(2, true); expected_cps[3].resize(2, true);
 
         expected_cps[0][0] = 1.0; expected_cps[0][1] = 1.0; 
         expected_cps[1][0] = 2.0; expected_cps[1][1] = 1.0; 
@@ -758,8 +758,8 @@ typedef Node NodeType;
     {
         // Create a Nurbs curve on a Nurbs surface
         std::vector<Vector> brep_coordinates(2);
-        brep_coordinates[0].resize(2); 
-        brep_coordinates[1].resize(2); 
+        brep_coordinates[0].resize(2, true); 
+        brep_coordinates[1].resize(2, true); 
         
         brep_coordinates[0][0] = 1.0;
         brep_coordinates[0][1] = 0.0;
@@ -789,7 +789,7 @@ typedef Node NodeType;
 
         std::vector<Vector> expected_cps(4);
         
-        expected_cps[0].resize(2); expected_cps[1].resize(2); expected_cps[2].resize(2); expected_cps[3].resize(2);
+        expected_cps[0].resize(2, true); expected_cps[1].resize(2, true); expected_cps[2].resize(2, true); expected_cps[3].resize(2, true);
 
         expected_cps[0][0] = 1.0; expected_cps[0][1] = 0.0; 
         expected_cps[1][0] = 2.0; expected_cps[1][1] = 0.0; 

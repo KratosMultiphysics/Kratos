@@ -108,7 +108,7 @@ namespace Kratos
             const SizeType mat_size = GetGeometry().size() * 3;
 
             if (rRightHandSideVector.size() != mat_size)
-                rRightHandSideVector.resize(mat_size);
+                rRightHandSideVector.resize(mat_size, true);
             noalias(rRightHandSideVector) = ZeroVector(mat_size);
 
             MatrixType left_hand_side_matrix;
@@ -155,7 +155,7 @@ namespace Kratos
             const SizeType mat_size = GetGeometry().size() * 3;
 
             if (rRightHandSideVector.size() != mat_size)
-                rRightHandSideVector.resize(mat_size);
+                rRightHandSideVector.resize(mat_size, true);
             noalias(rRightHandSideVector) = ZeroVector(mat_size);
 
             if (rLeftHandSideMatrix.size1() != mat_size)

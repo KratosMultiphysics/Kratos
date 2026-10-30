@@ -46,7 +46,7 @@ void NurbsCurveRefinementUtilities::KnotRefinement(
 
     Vector weights_old = rGeometry.Weights();
     if (weights_old.size() != nb_cp_old) {
-        weights_old.resize(nb_cp_old);
+        weights_old.resize(nb_cp_old, true);
         std::fill(weights_old.begin(), weights_old.end(), 1.0);
     }
 
@@ -217,7 +217,7 @@ void NurbsCurveRefinementUtilities::DegreeElevation(
 
     Vector weights_old = rGeometry.Weights();
     if (weights_old.size() != nb_cp_old) {
-        weights_old.resize(nb_cp_old);
+        weights_old.resize(nb_cp_old, true);
         std::fill(weights_old.begin(), weights_old.end(), 1.0);
     }
 

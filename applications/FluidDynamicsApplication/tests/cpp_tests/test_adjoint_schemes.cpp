@@ -431,7 +431,7 @@ void ResizeOutput(
     Vector& rOutput,
     const unsigned int Size)
 {
-    rOutput.resize(Size);
+    rOutput.resize(Size, true);
 }
 
 template<class TOutputType, class TResponseFunctor>

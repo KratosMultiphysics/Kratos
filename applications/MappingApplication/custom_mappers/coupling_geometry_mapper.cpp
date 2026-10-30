@@ -326,7 +326,7 @@ void CouplingGeometryMapper<TSparseSpace, TDenseSpace>::EnforceConsistencyWithSc
     SparseSpaceType::Mult(rInterfaceMatrixSlave, unit_vector, slave_row_sums_vector);
 
     // Get row sum vector of projected matrix
-    unit_vector.resize(SparseSpaceType::Size2(rInterfaceMatrixProjected));
+    unit_vector.resize(SparseSpaceType::Size2(rInterfaceMatrixProjected), true);
     SparseSpaceType::Set(unit_vector, 1.0);
     SparseSpaceType::VectorType projected_row_sums_vector(SparseSpaceType::Size1(rInterfaceMatrixProjected));
     SparseSpaceType::Mult(rInterfaceMatrixProjected, unit_vector, projected_row_sums_vector);

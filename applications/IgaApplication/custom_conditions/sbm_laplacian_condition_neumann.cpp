@@ -43,7 +43,7 @@ void SbmLaplacianConditionNeumann::CalculateLocalSystem(
     const std::size_t mat_size = GetGeometry().size() * 1;
 
     if (rRightHandSideVector.size() != mat_size)
-        rRightHandSideVector.resize(mat_size);
+        rRightHandSideVector.resize(mat_size, true);
     noalias(rRightHandSideVector) = ZeroVector(mat_size);
 
     if (rLeftHandSideMatrix.size1() != mat_size)
@@ -88,7 +88,7 @@ void SbmLaplacianConditionNeumann::InitializeSbmMemberVariables()
         KRATOS_ERROR_IF(r_projection_nodes.size() != 1)
             << "Expected one projection node in condition #" << Id() << std::endl;
         mpProjectionNode = &r_projection_nodes[0];
-        mDistanceVector.resize(3);
+        mDistanceVector.resize(3, true);
         noalias(mDistanceVector) = mpProjectionNode->Coordinates() - r_geometry.Center().Coordinates();
         // The modeler already applies the inner/outer orientation.
         mTrueNormal = mpProjectionNode->GetValue(NORMAL);
@@ -114,7 +114,7 @@ void SbmLaplacianConditionNeumann::InitializeSbmMemberVariables()
     }
     mpProjectionNode = &candidate_closest_skin_segment_1.GetGeometry()[closestNodeId] ;
 
-    mDistanceVector.resize(3);
+    mDistanceVector.resize(3, true);
     noalias(mDistanceVector) = mpProjectionNode->Coordinates() - r_geometry.Center().Coordinates();
 
     // loopIdentifier is inner or outer

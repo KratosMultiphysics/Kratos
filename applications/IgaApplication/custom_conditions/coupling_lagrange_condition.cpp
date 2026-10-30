@@ -82,10 +82,10 @@ namespace Kratos
             const Matrix N_slave = r_geometry_slave.ShapeFunctionsValues();
 
             Vector H;
-            H.resize(number_of_nodes_master + number_of_nodes_slave);
+            H.resize(number_of_nodes_master + number_of_nodes_slave, true);
 
             Vector H_lambda;
-            H_lambda.resize(number_of_nodes_master);
+            H_lambda.resize(number_of_nodes_master, true);
             H_lambda = ZeroVector(number_of_nodes_master);
 
             for (IndexType i = 0; i < number_of_nodes_master; ++i)
