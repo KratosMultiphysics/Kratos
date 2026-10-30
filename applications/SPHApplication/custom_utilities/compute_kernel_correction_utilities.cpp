@@ -67,14 +67,13 @@ void ComputeKernelCorrectionUtilities::ComputeGradientCorrection(ModelPart& rThi
             Vector X_AB_target(domain_size);
             const auto& JPcoords = r_geom_neigh[0].Coordinates();
             for (IndexType d = 0; d < domain_size; d++){
-                X_AB_target[d] = IPcoords[d] - JPcoords[d];
+                X_AB_target[d] = JPcoords[d];
             }
             
             const double volume = r_geom_neigh[0].GetValue(VOLUME);
 
             Vector dckernel = dkernel[index] / vw_kernel - kernel[index] * vw_dkernel / (vw_kernel * vw_kernel);
-            noalias(gradient_L_aux) += volume * outer_prod(dckernel, - X_AB_target);
-
+            noalias(gradient_L_aux) += volume * outer_prod(dckernel, X_AB_target);
         }
 
         Matrix inv_gradient_L(domain_size, domain_size);
@@ -127,14 +126,12 @@ bool ComputeKernelCorrectionUtilities::VerifyKernelCorrection(ModelPart& rThisMo
     for (auto& IP : rElem){
 
         const auto& r_neighbours = IP.GetValue(NEIGHBOURS);
-        const auto& IPcoords = IP.GetGeometry()[0].Coordinates();
+        auto& IPcoords = IP.GetGeometry()[0].Coordinates();
 
         // Initializing the controls 
         double control1 = 0.0;
-        Matrix control3(domain_size, domain_size);
-        noalias(control3) = ZeroMatrix(domain_size, domain_size);
-        Vector control2(domain_size);
-        noalias(control2) = ZeroVector(domain_size);
+        Vector control2(domain_size); control2.clear(); 
+        Matrix control3(domain_size, domain_size); control3.clear();
 
         std::vector<double> kernel;
         std::vector<Vector> dkernel;
@@ -158,8 +155,7 @@ bool ComputeKernelCorrectionUtilities::VerifyKernelCorrection(ModelPart& rThisMo
 
             control1 += volume * kernel[index];
             noalias(control2) += volume * dkernel[index];
-            noalias(control3) += volume * outer_prod(dkernel[index], - X_AB_target);
-            
+            noalias(control3) += volume * outer_prod(- X_AB_target, dkernel[index]);
         }
 
         if (std::abs(control1 - 1.0) > tol){
