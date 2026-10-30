@@ -16,6 +16,7 @@
 #include "custom_utilities/stress_strain_utilities.h"
 #include "geo_mechanics_application_variables.h"
 
+#include <algorithm>
 #include <cmath>
 #include <limits>
 #include <type_traits>
@@ -44,8 +45,10 @@ void GeoYoungsModulusFormulations::CheckInputData(const Properties& rMaterialPro
                                                CheckProperties::Bounds::AllExclusive);
         check_properties.Check(GEO_PRESSURE_REFERENCE);
         check_properties.Check(GEO_STRESS_DEPENDENCY_EXPONENT);
-        check_properties.Check(GEO_COHESION);
+        check_properties.SingleUseBounds(CheckProperties::Bounds::InclusiveLowerAndExclusiveUpper).Check(GEO_COHESION);
         check_properties.Check(GEO_FRICTION_ANGLE);
+        check_properties.Check(GEO_MAXIMUM_MINOR_PRINCIPAL_STRESS,
+                               -std::numeric_limits<double>::infinity(), 0.0);
     }
 }
 
@@ -89,8 +92,11 @@ double GeoYoungsModulusFormulations::CalculateYoungsModulusSchanzVermeer(const P
     const auto friction_angle_rad = ConstitutiveLawUtilities::GetFrictionAngleInRadians(rProperties);
     const auto stress_shift = rProperties[GEO_COHESION] / std::tan(friction_angle_rad);
 
-    const auto base = (stress_shift - CalculateMinorPrincipalEffectiveStress(rStressVectorFinalized)) /
-                      (stress_shift + reference_pressure);
+    // Regularization: the minor principal stress is not allowed to exceed GEO_MAXIMUM_MINOR_PRINCIPAL_STRESS
+    // (< 0, compression is negative), which keeps the base positive at the tensile apex.
+    const auto minor_principal_stress = std::min(CalculateMinorPrincipalEffectiveStress(rStressVectorFinalized),
+                                                 rProperties[GEO_MAXIMUM_MINOR_PRINCIPAL_STRESS]);
+    const auto base = (stress_shift - minor_principal_stress) / (stress_shift + reference_pressure);
 
     KRATOS_ERROR_IF_NOT(base > epsilon)
         << "Non-positive base for std::pow ("
