@@ -204,6 +204,54 @@ KRATOS_TEST_CASE_IN_SUITE(NavierStokesWallCondition2D2NOutletInflow, FluidDynami
     KRATOS_EXPECT_MATRIX_NEAR(LHS, ZeroMatrix(6,6), 1.0e-12)
 }
 
+KRATOS_TEST_CASE_IN_SUITE(NavierStokesWallCondition3D3NOutletInflowExplicit, FluidDynamicsApplicationFastSuite)
+{
+    // Create the test model part
+    Model model;
+    std::size_t buffer_size = 2;
+    auto& r_model_part = model.CreateModelPart("TestModelPart",buffer_size);
+
+    // Create the testing condition
+    auto p_test_condition = CreateTestingNavierStokesWallCondition3D3N("NavierStokesWallCondition3D3N", r_model_part);
+
+    // Set the testing nodal values
+    // Note that the current velocity has no inflow, so the contribution only comes from the previous step one
+    array_1d<double,3> aux_v = ZeroVector(3);
+    for (auto& r_node: r_model_part.Nodes()) {
+        aux_v[0] = r_node.Id();
+        aux_v[1] = 2.0*r_node.Id();
+        aux_v[2] = 0.01*(3.0 - 2.0*r_node.Id());
+        r_node.FastGetSolutionStepValue(VELOCITY, 1) = aux_v;
+        aux_v[2] = 1.0;
+        r_node.FastGetSolutionStepValue(VELOCITY) = aux_v;
+    }
+
+    // Activate the explicit outlet inflow contribution and set required values
+    p_test_condition->Set(OUTLET, true);
+    auto& r_process_info = r_model_part.GetProcessInfo();
+    r_process_info.SetValue(CHARACTERISTIC_VELOCITY, 1.0);
+    r_process_info.SetValue(OUTLET_INFLOW_CONTRIBUTION_SWITCH, true);
+    r_process_info.SetValue(OUTLET_INFLOW_CONTRIBUTION_EXPLICIT, true);
+
+    // Calculate the RHS and LHS
+    Vector RHS;
+    Matrix LHS;
+    p_test_condition->CalculateLocalSystem(LHS, RHS, r_process_info);
+
+    // Reference: implicit contribution with the previous step velocity as current one
+    r_process_info.SetValue(OUTLET_INFLOW_CONTRIBUTION_EXPLICIT, false);
+    for (auto& r_node: r_model_part.Nodes()) {
+        r_node.FastGetSolutionStepValue(VELOCITY) = r_node.FastGetSolutionStepValue(VELOCITY, 1);
+    }
+    Vector expected_RHS;
+    p_test_condition->CalculateRightHandSide(expected_RHS, r_process_info);
+
+    // Check results
+    KRATOS_EXPECT_GT(norm_2(expected_RHS), 1.0e-3);
+    KRATOS_EXPECT_VECTOR_NEAR(RHS, expected_RHS, 1.0e-12)
+    KRATOS_EXPECT_MATRIX_NEAR(LHS, ZeroMatrix(12,12), 1.0e-12)
+}
+
 KRATOS_TEST_CASE_IN_SUITE(NavierStokesWallCondition2D2NSlipTangentialCorrection, FluidDynamicsApplicationFastSuite)
 {
     // Create the test model part
