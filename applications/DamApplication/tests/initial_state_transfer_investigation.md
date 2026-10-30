@@ -168,3 +168,71 @@ per-point values, explicit supported element/law checks, and end-to-end gravity,
 reaction, incremental-load and thermomechanical lifecycle tests. The current
 benchmark's absolute tolerances are documented above; relative error acceptance
 criteria remain to be added to the end-to-end continuation tests.
+
+## Solved quadrilateral gravity continuation and restart
+
+The C++ `QuadrilateralGravityPerGaussPointInitialStateContinuation` regression
+now extends the previous element-level pointwise experiment to a complete
+assembled solve. It uses the same 1 x 2 body, two Q4 elements, material,
+constraints, gravity, and horizontal acceleration increment described above.
+Stage A stores each four-point stress vector under its element ID and point
+index. Stage B initializes its constitutive laws, starts with zero
+nodal displacement, and calls core `ConstitutiveLaw::SetInitialState` separately
+for every point; gravity and constraints are retained.
+
+The test checks pointwise stress, separately reconstructed internal and
+external force vectors, the assembled RHS, support reactions, first-solve
+stress and displacement, and the response to the horizontal load increment.
+It uses `abs_error <= 1e-10 + 1e-10 * abs(reference)` for stresses and forces,
+and `1e-12 + 1e-10 * abs(reference)` for displacements. Stage A has a maximum
+free-DOF residual of 8.88e-15 and vertical reactions summing to 40. Stage B's
+maximum first-solve displacement is 6.50e-18, and the maximum error in the
+incremental displacement compared with Stage A is 1.74e-18. The displacement
+comparison is between increments, because Stage B uses a new datum. The
+maximum assembled RHS difference after the increment is 1.42e-14, the
+continuation free-DOF residual is 5.55e-15, and the maximum Gauss-point stress
+difference is 1.92e-14. All pointwise
+stresses and reactions pass their stated tolerances. This demonstrates a valid
+same-mesh elastic case, not arbitrary input-field equilibration.
+
+A separate Python regression serializes the complete Model using Kratos
+`StreamSerializer` after quadrilateral gravity equilibrium, reloads it with
+`IS_RESTARTED` set, and compares displacement, stress and residual before and
+after applying the horizontal increment. It passes the existing 1e-10 absolute
+checks. This is an in-memory serializer experiment using an SMA linear strategy,
+not an end-to-end DamAnalysis restart. SMA's base solid element serializes both
+its integration method and constitutive-law vector and skips material
+reinitialization when `IS_RESTARTED` is set. Core's `RestartUtility` supplies a
+file-based save/load mechanism and marks the loaded model as restarted. The
+current Dam mechanical and thermomechanical solvers, however, accept only mdpa
+input in `ImportModelPart`, and their `SaveRestart` methods are empty; a normal
+DamAnalysis restart has not been established here.
+
+The existing `RestartLocalDamage3DContinuation` and
+`RestartNonlocalSimoJuContinuation` C++ tests pass for the examined thermal
+Simo-Ju damage laws, as do the multi-properties rebinding and frozen legacy
+damage-element tests. These are element/law serialization tests with prescribed
+history and, for nonlocal damage, explicitly supplied nonlocal driving; they do
+not prove a complete DamAnalysis restart or preservation of every law and
+nonlocal neighborhood state. Exact continuation with the original displacement
+reference and complete history is the restart use case. An import of prescribed
+stresses with zero displacement serves a different use case: it creates a new
+mechanical datum and requires an equilibrated, compatible stress field.
+
+For a prospective import, the minimum evidence is a matching mesh and reference
+configuration, element identity and connectivity, element formulation and
+integration rule, point ordering, stress measure and component convention,
+material/law and parameter compatibility, consistent loads and constraints, and
+explicit rejection of unsupported history-dependent or thermomechanical cases.
+Assignment can reuse the law pointers and `InitialState` demonstrated in this
+test. Data transport and compatibility validation are not supplied by the
+per-element core process, the current Python bindings, or the Dam nodal mapper.
+A generic same-mesh importer could be considered after validating a durable
+export format and the real DamAnalysis lifecycle; it should not perform
+interpolation. For exact same-mesh continuation, investigate wiring the existing
+restart mechanism into DamAnalysis before creating a separate stress importer.
+No production integration is proposed as validated by these tests alone.
+
+After this follow-up, the Dam small suite passes 138 tests. The rebuilt Dam C++
+fast suite passes 50 of 51; `UPCouplingPreservesExpectedSign` remains the known
+pre-existing failure.
