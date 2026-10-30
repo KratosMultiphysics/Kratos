@@ -322,7 +322,7 @@ public:
                     new_model_part.Nodes()(triangle_nodes[2])
                 );
                 ++triangle_ID;
-                Condition::Pointer p_condition = rReferenceCondition.Create(triangle_ID, geometry, properties);
+                Condition::Pointer p_condition = rReferenceCondition.Create(triangle_ID, geometry.Points(), properties);
                 new_model_part.Conditions().push_back(p_condition); //and done! added a new triangloe to the new model part
             }
         }
@@ -1097,7 +1097,7 @@ public:
                     new_model_part.Nodes()(TriangleNodesArray[2])
                 );
 
-                Condition::Pointer p_condition = rReferenceCondition.Create(triangle_id_int + 1 + elements_before + total_existing_elements, geom, properties); //creating the element using the reference element. notice we are using the first element to avoid overriting nodes created by other cutting planes
+                Condition::Pointer p_condition = rReferenceCondition.Create(triangle_id_int + 1 + elements_before + total_existing_elements, geom.Points(), properties); //creating the element using the reference element. notice we are using the first element to avoid overriting nodes created by other cutting planes
                 new_model_part.Conditions().push_back(p_condition);
                 ++triangle_id_int;
 
@@ -1250,7 +1250,7 @@ public:
                         new_model_part.Nodes()(nodes_for_2triang[index * 3 + 2])
                     );
 
-                    Condition::Pointer p_condition = rReferenceCondition.Create(triangle_id_int + 1 + elements_before + total_existing_elements, geom, properties);
+                    Condition::Pointer p_condition = rReferenceCondition.Create(triangle_id_int + 1 + elements_before + total_existing_elements, geom.Points(), properties);
 
                     new_model_part.Conditions().push_back(p_condition);
                     ++triangle_id_int;

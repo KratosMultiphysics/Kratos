@@ -66,7 +66,7 @@ namespace Kratos
 					Condition const& rReferenceCondition = KratosComponents<Condition>::Get("FixedVelocity2D");         //condition type
 					Point2D<Node > geometry(Node::Pointer( *inode.base() ));//mr_model_part.Nodes().(inode->Id()));//Node::Pointer( *inode.base() ));
 					Properties::Pointer properties = mr_model_part.GetMesh().pGetProperties(0); 		//this will allow us later to turn this layer on/off in GID
-					Condition::Pointer p_condition = rReferenceCondition.Create(condition_number, geometry, properties); 
+					Condition::Pointer p_condition = rReferenceCondition.Create(condition_number, geometry.Points(), properties); 
 					mr_model_part.Conditions().push_back(p_condition);
 					++condition_number;
 				}
@@ -129,7 +129,7 @@ namespace Kratos
 					Condition const& rReferenceCondition = KratosComponents<Condition>::Get("FixedVelocity3D");         //condition type
 					Point3D<Node > geometry(Node::Pointer( *inode.base() ));//mr_model_part.Nodes().(inode->Id()));//Node::Pointer( *inode.base() ));
 					Properties::Pointer properties = mr_model_part.GetMesh().pGetProperties(0); 		//this will allow us later to turn this layer on/off in GID
-					Condition::Pointer p_condition = rReferenceCondition.Create(condition_number, geometry, properties); 
+					Condition::Pointer p_condition = rReferenceCondition.Create(condition_number, geometry.Points(), properties); 
 					mr_model_part.Conditions().push_back(p_condition);
 					++condition_number;
 				}
@@ -193,7 +193,7 @@ namespace Kratos
 					Condition const& rReferenceCondition = KratosComponents<Condition>::Get("FixedPressure2D");         //condition type
 					Point2D<Node > geometry(Node::Pointer( *inode.base() ));//mr_model_part.Nodes().(inode->Id()));//Node::Pointer( *inode.base() ));
 					Properties::Pointer properties = mr_model_part.GetMesh().pGetProperties(0); 		//this will allow us later to turn this layer on/off in GID
-					Condition::Pointer p_condition = rReferenceCondition.Create(condition_number, geometry, properties); 
+					Condition::Pointer p_condition = rReferenceCondition.Create(condition_number, geometry.Points(), properties); 
 					mr_model_part.Conditions().push_back(p_condition);
 					++condition_number;
 				}
@@ -256,7 +256,7 @@ namespace Kratos
 					Condition const& rReferenceCondition = KratosComponents<Condition>::Get("FixedPressure3D");         //condition type
 					Point3D<Node > geometry(Node::Pointer( *inode.base() ));//mr_model_part.Nodes().(inode->Id()));//Node::Pointer( *inode.base() ));
 					Properties::Pointer properties = mr_model_part.GetMesh().pGetProperties(0); 		//this will allow us later to turn this layer on/off in GID
-					Condition::Pointer p_condition = rReferenceCondition.Create(condition_number, geometry, properties); 
+					Condition::Pointer p_condition = rReferenceCondition.Create(condition_number, geometry.Points(), properties); 
 					mr_model_part.Conditions().push_back(p_condition);
 					++condition_number;
 				}
@@ -317,7 +317,7 @@ namespace Kratos
 					Condition const& rReferenceCondition = KratosComponents<Condition>::Get("WaterFixedVelocity2D");         //condition type
 					Point2D<Node > geometry(Node::Pointer( *inode.base() ));//mr_model_part.Nodes().(inode->Id()));//Node::Pointer( *inode.base() ));
 					Properties::Pointer properties = mr_model_part.GetMesh().pGetProperties(0); 		//this will allow us later to turn this layer on/off in GID
-					Condition::Pointer p_condition = rReferenceCondition.Create(condition_number, geometry, properties); 
+					Condition::Pointer p_condition = rReferenceCondition.Create(condition_number, geometry.Points(), properties); 
 					mr_model_part.Conditions().push_back(p_condition);
 					++condition_number;
 				}
