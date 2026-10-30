@@ -224,7 +224,7 @@ KRATOS_TEST_CASE_IN_SUITE(GeoYoungsModulusFormulations_CheckInputData_FailsMissi
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         GeoYoungsModulusFormulations::CheckInputData(properties),
         "GEO_MAXIMUM_MINOR_PRINCIPAL_STRESS in the parameters of material with Id 0 has an "
-        "invalid value: 0 is out of the range (-inf, 0).")
+        "invalid value: 0 is out of the range (-, 0).")
 
     properties.SetValue(GEO_MAXIMUM_MINOR_PRINCIPAL_STRESS, -1.0);
     EXPECT_NO_THROW(GeoYoungsModulusFormulations::CheckInputData(properties));
