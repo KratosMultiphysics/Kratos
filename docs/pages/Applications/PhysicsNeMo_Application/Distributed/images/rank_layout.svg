@@ -1,0 +1,54 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1100" height="440" viewBox="0 0 1100 440" font-family="Helvetica, Arial, sans-serif">
+  <title>What each rank holds, and the three distributed patterns</title>
+  <desc>A partitioned model part with owned and ghost nodes, and the three things the application does across ranks: gather to rank 0 for export, halo-partitioned subgraphs for data-parallel graph training, and one ShardTensor for domain parallelism.</desc>
+  <defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#555"/></marker></defs>
+  <rect width="1100" height="440" fill="#ffffff"/>
+  <!-- partitioned mesh sketch -->
+  <g font-size="12.5" fill="#333">
+    <rect x="20" y="30" width="330" height="190" rx="10" fill="#eaf2fb" stroke="#1f4e79" stroke-width="1.5"/>
+    <text x="185" y="56" text-anchor="middle" font-size="15" font-weight="bold" fill="#1f4e79">a partitioned ModelPart</text>
+    <g stroke="#1f4e79" stroke-width="1">
+      <line x1="50" y1="80" x2="320" y2="80"/><line x1="50" y1="120" x2="320" y2="120"/><line x1="50" y1="160" x2="320" y2="160"/>
+      <line x1="50" y1="80" x2="50" y2="160"/><line x1="104" y1="80" x2="104" y2="160"/><line x1="158" y1="80" x2="158" y2="160"/><line x1="212" y1="80" x2="212" y2="160"/><line x1="266" y1="80" x2="266" y2="160"/><line x1="320" y1="80" x2="320" y2="160"/>
+    </g>
+    <rect x="50" y="80" width="108" height="80" fill="#c27c0e" fill-opacity="0.15"/>
+    <rect x="212" y="80" width="108" height="80" fill="#2e6b2e" fill-opacity="0.15"/>
+    <g fill="#c27c0e"><circle cx="50" cy="80" r="4"/><circle cx="104" cy="80" r="4"/><circle cx="50" cy="120" r="4"/><circle cx="104" cy="120" r="4"/><circle cx="50" cy="160" r="4"/><circle cx="104" cy="160" r="4"/><circle cx="158" cy="80" r="4"/><circle cx="158" cy="120" r="4"/><circle cx="158" cy="160" r="4"/></g>
+    <g fill="#2e6b2e"><circle cx="266" cy="80" r="4"/><circle cx="320" cy="80" r="4"/><circle cx="266" cy="120" r="4"/><circle cx="320" cy="120" r="4"/><circle cx="266" cy="160" r="4"/><circle cx="320" cy="160" r="4"/><circle cx="212" cy="80" r="4"/><circle cx="212" cy="120" r="4"/><circle cx="212" cy="160" r="4"/></g>
+    <text x="104" y="180" text-anchor="middle" font-size="11" fill="#7a4d00">rank 0 owns</text>
+    <text x="266" y="180" text-anchor="middle" font-size="11" fill="#2e6b2e">rank 1 owns</text>
+    <text x="185" y="198" text-anchor="middle" font-size="10.5" fill="#444">interface nodes: owned by one rank, a ghost on the other;</text>
+    <text x="185" y="211" text-anchor="middle" font-size="10.5" fill="#444">elements are owned, never ghosted</text>
+  </g>
+  <!-- three patterns -->
+  <g font-size="12.5" fill="#333">
+    <rect x="385" y="30" width="695" height="180" rx="10" fill="#f6f6f6" stroke="#666" stroke-width="1.5"/>
+    <text x="732" y="56" text-anchor="middle" font-size="15" font-weight="bold">1. Gather to rank 0 - the exporters</text>
+    <text x="400" y="82">GatherFieldToRank0: owned rows only (ghost-free), concatenated and re-sorted by id on rank 0 =</text>
+    <text x="400" y="98">the serial layout, so a distributed run writes byte-identical samples.</text>
+    <text x="400" y="122">GatherModelPartToRank0: a shadow model part rebuilt on rank 0 with the full topology, for the</text>
+    <text x="400" y="138">mesh, CAE and USD exporters; re-gathered every step deliberately, so moving meshes stay correct.</text>
+    <text x="400" y="164" fill="#a03060">GlobalNumberOfNodes() and every gather are collectives: call them on all ranks, never inside a rank-0 guard.</text>
+    <text x="400" y="190" fill="#666" font-size="11.5">Metis is not needed by the test suite: a per-rank-slab fixture plus ParallelFillCommunicator builds the partition.</text>
+  </g>
+  <g font-size="12.5" fill="#333">
+    <rect x="20" y="230" width="520" height="190" rx="10" fill="#f6f6f6" stroke="#666" stroke-width="1.5"/>
+    <text x="280" y="256" text-anchor="middle" font-size="15" font-weight="bold">2. Halo-partitioned graphs - data-parallel training</text>
+    <text x="35" y="282">BuildGraph on a distributed part is quietly wrong: rank subgraphs overlap</text>
+    <text x="35" y="298">(local + ghost nodes) and neighbourhoods are truncated at the interface.</text>
+    <text x="35" y="322">BuildHaloSubgraph: owned nodes plus the halo of elements touching them,</text>
+    <text x="35" y="338">exchanging connectivity and coordinates across ranks. Owned sets partition</text>
+    <text x="35" y="354">the nodes exactly; one-hop aggregation matches the serial run everywhere.</text>
+    <text x="35" y="378" fill="#a03060">Edge ownership follows ELEMENT ownership - a min-rule on node ranks drops edges.</text>
+    <text x="35" y="402" fill="#666" font-size="11.5">DDP over gloo coexists with a live Kratos MPI run; gradients bit-identical across ranks.</text>
+    <rect x="560" y="230" width="520" height="190" rx="10" fill="#f6f6f6" stroke="#666" stroke-width="1.5"/>
+    <text x="820" y="256" text-anchor="middle" font-size="15" font-weight="bold">3. One ShardTensor - domain parallelism</text>
+    <text x="575" y="282">ShardKratosField: each rank's owned rows become one uneven shard of a</text>
+    <text x="575" y="298">single tensor over a 1-D DeviceMesh built explicitly on CPU (or CUDA).</text>
+    <text x="575" y="322">ShardGridAlongAxis: a replicated grid split into halo-exchanging slabs,</text>
+    <text x="575" y="338">so a 3x3 convolution equals the serial one. WriteShardedField: owners</text>
+    <text x="575" y="354">first, then the ghost refresh.</text>
+    <text x="575" y="378" fill="#a03060">The backward of a mean already leaves the serial gradient on every rank.</text>
+    <text x="575" y="402" fill="#666" font-size="11.5">Verified at np = 2 and 3 over gloo; NCCL needs two GPUs and is untested here.</text>
+  </g>
+</svg>

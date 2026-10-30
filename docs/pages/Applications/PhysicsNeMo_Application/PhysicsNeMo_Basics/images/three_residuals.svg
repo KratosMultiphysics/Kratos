@@ -1,0 +1,75 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1100" height="500" viewBox="0 0 1100 500" font-family="Helvetica, Arial, sans-serif">
+  <title>Three things called residual</title>
+  <desc>A predicted field feeds three different residual notions: the strong-form PDE residual (approximate, differentiable), the assembled solver residual (exact, not differentiable), and the differentiable discrete residual (exact and differentiable). Each column names what it is good for and which module provides it.</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#555"/>
+    </marker>
+  </defs>
+  <rect width="1100" height="500" fill="#ffffff"/>
+  <rect x="400" y="15" width="300" height="50" rx="8" fill="#eaf2fb" stroke="#1f4e79" stroke-width="1.5"/>
+  <text x="550" y="37" text-anchor="middle" font-size="15" font-weight="bold" fill="#1f4e79">a predicted field u on the Kratos nodes</text>
+  <text x="550" y="56" text-anchor="middle" font-size="12" fill="#333">from a surrogate, a PINN, or an upsampler</text>
+  <g stroke="#555" stroke-width="1.8">
+    <line x1="470" y1="65" x2="200" y2="98" marker-end="url(#arrow)"/>
+    <line x1="550" y1="65" x2="550" y2="98" marker-end="url(#arrow)"/>
+    <line x1="630" y1="65" x2="900" y2="98" marker-end="url(#arrow)"/>
+  </g>
+  <g font-size="13" fill="#333">
+    <!-- column 1 -->
+    <rect x="20" y="100" width="340" height="300" rx="10" fill="#eef7ee" stroke="#2e6b2e" stroke-width="1.5"/>
+    <text x="190" y="126" text-anchor="middle" font-size="15" font-weight="bold" fill="#2e6b2e">1. PDE residual (strong form)</text>
+    <text x="190" y="150" text-anchor="middle">substitute u into the equations as written,</text>
+    <text x="190" y="167" text-anchor="middle">evaluated by physicsnemo.sym's PhysicsInformer</text>
+    <text x="35" y="198" font-weight="bold">differentiable</text><text x="150" y="198" fill="#2e6b2e" font-weight="bold">yes</text>
+    <text x="35" y="218" font-weight="bold">exact</text><text x="150" y="218" fill="#a03060" font-weight="bold">no</text>
+    <text x="175" y="218" font-size="12" fill="#666">not the discrete system</text>
+    <text x="35" y="238" font-weight="bold">needs</text><text x="150" y="238">coordinates only; mesh-free</text>
+    <text x="35" y="258" font-weight="bold">derivatives</text><text x="150" y="258">autodiff, least squares, FD, spectral</text>
+    <text x="35" y="290" font-weight="bold" fill="#2e6b2e">use it as</text>
+    <text x="35" y="308">a training loss term, a PINN solve,</text>
+    <text x="35" y="324">inverse coefficient recovery</text>
+    <text x="35" y="356" font-family="monospace" font-size="11.5">physics.physics_informed</text>
+    <text x="35" y="372" font-family="monospace" font-size="11.5">processes.inference.pinn_solve_process</text>
+    <text x="35" y="390" font-size="11.5" fill="#666">builtin diffusion, convection-diffusion, elasticity, Navier-Stokes</text>
+    <!-- column 2 -->
+    <rect x="380" y="100" width="340" height="300" rx="10" fill="#eaf2fb" stroke="#1f4e79" stroke-width="1.5"/>
+    <text x="550" y="126" text-anchor="middle" font-size="15" font-weight="bold" fill="#1f4e79">2. Assembled solver residual</text>
+    <text x="550" y="150" text-anchor="middle">hand u to Kratos's own builder and assemble</text>
+    <text x="550" y="167" text-anchor="middle">the right-hand side of the real discrete system</text>
+    <text x="395" y="198" font-weight="bold">differentiable</text><text x="510" y="198" fill="#a03060" font-weight="bold">no</text>
+    <text x="535" y="198" font-size="12" fill="#666">numbers, no gradient</text>
+    <text x="395" y="218" font-weight="bold">exact</text><text x="510" y="218" fill="#2e6b2e" font-weight="bold">yes</text>
+    <text x="535" y="218" font-size="12" fill="#666">the physics' actual verdict</text>
+    <text x="395" y="238" font-weight="bold">needs</text><text x="510" y="238">the solver's elements and DOFs</text>
+    <text x="395" y="258" font-weight="bold">cost</text><text x="510" y="258">one BuildRHS, cheap</text>
+    <text x="395" y="290" font-weight="bold" fill="#1f4e79">use it as</text>
+    <text x="395" y="308">a score: query strategies, epoch callbacks,</text>
+    <text x="395" y="324">validation, adaptive-remeshing size fields</text>
+    <text x="395" y="356" font-family="monospace" font-size="11.5">physics.solver_residuals.ResidualEvaluator</text>
+    <text x="395" y="372" font-family="monospace" font-size="11.5">active_learning.query_strategies</text>
+    <text x="395" y="390" font-size="11.5" fill="#666">free-DOF rows; transient schemes via scheme=</text>
+    <!-- column 3 -->
+    <rect x="740" y="100" width="340" height="300" rx="10" fill="#fff4e0" stroke="#c27c0e" stroke-width="1.5"/>
+    <text x="910" y="126" text-anchor="middle" font-size="15" font-weight="bold" fill="#7a4d00">3. Differentiable discrete residual</text>
+    <text x="910" y="150" text-anchor="middle">the same assembly as a torch.autograd.Function:</text>
+    <text x="910" y="167" text-anchor="middle">forward BuildRHS, backward the tangent transposed</text>
+    <text x="755" y="198" font-weight="bold">differentiable</text><text x="870" y="198" fill="#2e6b2e" font-weight="bold">yes</text>
+    <text x="895" y="198" font-size="12" fill="#666">a matvec, no solve</text>
+    <text x="755" y="218" font-weight="bold">exact</text><text x="870" y="218" fill="#2e6b2e" font-weight="bold">yes</text>
+    <text x="895" y="218" font-size="12" fill="#666">gradcheck-pinned on real cases</text>
+    <text x="755" y="238" font-weight="bold">needs</text><text x="870" y="238">the tangent K, built once</text>
+    <text x="755" y="258" font-weight="bold">cost</text><text x="870" y="258">the highest of the three</text>
+    <text x="755" y="290" font-weight="bold" fill="#7a4d00">use it as</text>
+    <text x="755" y="308">an exact loss, physics-refined superresolution,</text>
+    <text x="755" y="324">adjoint sensitivities and shape gradients</text>
+    <text x="755" y="356" font-family="monospace" font-size="11.5">physics.differentiable_residual</text>
+    <text x="755" y="372" font-family="monospace" font-size="11.5">physics.sensitivity_utils</text>
+    <text x="755" y="390" font-size="11.5" fill="#666">Bossak/Newmark: K + M(1-alpha)c0 + D c1</text>
+  </g>
+  <g font-size="12.5" fill="#444">
+    <text x="20" y="435" font-weight="bold">Which one:</text>
+    <text x="110" y="435">a physics term in the loss with no solver in the loop, use 1.  Ranking where a trained surrogate is untrustworthy, use 2.</text>
+    <text x="110" y="455">The exact discretization's gradient in the loss, or a design sensitivity, use 3.  A perfectly good FE solution has a non-zero strong-form residual, so 1 never reaches zero on it.</text>
+  </g>
+</svg>

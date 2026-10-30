@@ -1,0 +1,70 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1100" height="420" viewBox="0 0 1100 420" font-family="Helvetica, Arial, sans-serif">
+  <title>The provenance round trip</title>
+  <desc>A Kratos hexahedron becomes six tetrahedra whose points and cells remember their origin; a prediction on the tetrahedral mesh is scattered back exactly onto the original nodes and, aggregated, onto the original element.</desc>
+  <defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#555"/></marker></defs>
+  <rect width="1100" height="420" fill="#ffffff"/>
+  <g font-size="12.5" fill="#333">
+    <rect x="20" y="30" width="280" height="200" rx="10" fill="#eaf2fb" stroke="#1f4e79" stroke-width="1.5"/>
+    <text x="160" y="56" text-anchor="middle" font-size="15" font-weight="bold" fill="#1f4e79">Kratos element 42, a hexahedron</text>
+    <!-- hex sketch -->
+    <g stroke="#1f4e79" stroke-width="1.6" fill="none">
+      <polygon points="70,190 170,190 170,110 70,110"/>
+      <polygon points="110,160 210,160 210,80 110,80"/>
+      <line x1="70" y1="190" x2="110" y2="160"/><line x1="170" y1="190" x2="210" y2="160"/><line x1="170" y1="110" x2="210" y2="80"/><line x1="70" y1="110" x2="110" y2="80"/>
+    </g>
+    <g font-size="10" fill="#1f4e79" font-weight="bold">
+      <text x="62" y="202">7</text><text x="174" y="202">12</text><text x="176" y="106">9</text><text x="60" y="106">3</text>
+      <text x="100" y="172">21</text><text x="214" y="166">5</text><text x="214" y="76">18</text><text x="100" y="76">30</text>
+    </g>
+    <text x="160" y="222" text-anchor="middle" font-size="11.5" fill="#444">node ids as they are; smallest id per face picks the diagonal</text>
+    <rect x="410" y="30" width="280" height="200" rx="10" fill="#eef7ee" stroke="#2e6b2e" stroke-width="1.5"/>
+    <text x="550" y="56" text-anchor="middle" font-size="15" font-weight="bold" fill="#2e6b2e">six tetrahedra, one Mesh</text>
+    <g stroke="#2e6b2e" stroke-width="1.4" fill="none">
+      <polygon points="460,190 560,190 560,110 460,110"/>
+      <polygon points="500,160 600,160 600,80 500,80"/>
+      <line x1="460" y1="190" x2="500" y2="160"/><line x1="560" y1="190" x2="600" y2="160"/><line x1="560" y1="110" x2="600" y2="80"/><line x1="460" y1="110" x2="500" y2="80"/>
+      <g stroke="#c27c0e" stroke-dasharray="4,3">
+        <line x1="460" y1="190" x2="560" y2="110"/><line x1="500" y1="160" x2="600" y2="80"/><line x1="460" y1="190" x2="500" y2="80"/><line x1="560" y1="190" x2="600" y2="80"/><line x1="460" y1="110" x2="500" y2="80"/><line x1="460" y1="190" x2="600" y2="80"/>
+      </g>
+    </g>
+    <text x="550" y="222" text-anchor="middle" font-size="11.5" fill="#444">shared faces triangulate identically from both sides</text>
+    <rect x="800" y="30" width="280" height="200" rx="10" fill="#fff4e0" stroke="#c27c0e" stroke-width="1.5"/>
+    <text x="940" y="56" text-anchor="middle" font-size="15" font-weight="bold" fill="#7a4d00">MeshProvenanceMap</text>
+    <g font-family="monospace" font-size="10.5">
+      <text x="812" y="82">simplex_points   (P, 3)</text>
+      <text x="812" y="100">simplex_cells    (C, 4)</text>
+      <text x="812" y="122">point_provenance (P,)  node id or -1</text>
+      <text x="812" y="140">cell_provenance  (C, 2) element, sub-cell</text>
+      <text x="812" y="162">synthetic_*      curved-mode parents,</text>
+      <text x="812" y="178">                 local coords, weights</text>
+    </g>
+    <text x="940" y="206" text-anchor="middle" font-size="11.5" fill="#444">numpy only - no torch needed to build or use it</text>
+    <text x="940" y="222" text-anchor="middle" font-size="11.5" fill="#444">cached per process, invalidated on coordinate change</text>
+    <g stroke="#555" stroke-width="1.8">
+      <line x1="300" y1="130" x2="410" y2="130" marker-end="url(#arrow)"/>
+      <line x1="690" y1="130" x2="800" y2="130" marker-end="url(#arrow)"/>
+    </g>
+    <text x="355" y="120" text-anchor="middle" font-size="11.5">tessellate</text>
+    <text x="745" y="120" text-anchor="middle" font-size="11.5">remember</text>
+  </g>
+  <!-- scatter back -->
+  <g font-size="12.5" fill="#333">
+    <rect x="20" y="260" width="1060" height="140" rx="10" fill="#f6f6f6" stroke="#666" stroke-width="1.5"/>
+    <text x="32" y="284" font-size="14" font-weight="bold">Scatter-back: a prediction on the simplicial mesh returns to the original entities</text>
+    <rect x="35" y="300" width="300" height="86" rx="6" fill="#ffffff" stroke="#666"/>
+    <text x="45" y="320" font-weight="bold" fill="#2e6b2e">nodal field on the simplex points</text>
+    <text x="45" y="338">real points: written to their node, exactly -</text>
+    <text x="45" y="354">node and point are a bijection there</text>
+    <text x="45" y="370">synthetic (curved) points: dropped</text>
+    <rect x="365" y="300" width="330" height="86" rx="6" fill="#ffffff" stroke="#666"/>
+    <text x="375" y="320" font-weight="bold" fill="#2e6b2e">cell field on the tetrahedra</text>
+    <text x="375" y="338">aggregated per source element with a reduction:</text>
+    <text x="375" y="354">mean, weighted_mean (by sub-cell volume), first</text>
+    <text x="375" y="370">Gauss-point fields never return: element only</text>
+    <rect x="725" y="300" width="340" height="86" rx="6" fill="#ffffff" stroke="#666"/>
+    <text x="735" y="320" font-weight="bold" fill="#2e6b2e">surface predictions (DoMINO, NIM)</text>
+    <text x="735" y="338">per-triangle values collapse onto the parent</text>
+    <text x="735" y="354">condition or element through cell_provenance;</text>
+    <text x="735" y="370">the NIM samples its own points: nearest neighbour</text>
+  </g>
+</svg>

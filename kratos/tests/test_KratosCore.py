@@ -111,6 +111,7 @@ import test_vtu_output
 import test_ensight_output_process
 import test_materials_input_with_accessors
 import test_csv_database_io
+import test_pyvista_utilities
 
 # Import modules required for sequential orchestrator test
 from test_sequential_orchestrator import EmptyAnalysisStage
@@ -246,6 +247,8 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_vtu_output.TestVtuOutput3D]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_ensight_output_process.TestEnsightOutputProcess]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_materials_input_with_accessors.TestMaterialsInputWithAccessors]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_pyvista_utilities.TestPyVistaUtilities]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_pyvista_utilities.TestPyVistaAnimationOutputProcess]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_csv_database_io.TestCSVDatabaseIO]))
 
     if sympy_available:

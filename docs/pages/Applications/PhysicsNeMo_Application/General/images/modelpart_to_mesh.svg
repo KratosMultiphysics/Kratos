@@ -1,0 +1,84 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1100" height="540" viewBox="0 0 1100 540" font-family="Helvetica, Arial, sans-serif">
+  <title>How a Kratos ModelPart maps onto a PhysicsNeMo DomainMesh</title>
+  <desc>Left: the ModelPart with nodes, elements, conditions, sub-model-parts and ProcessInfo. Right: the DomainMesh with an interior Mesh, named boundary meshes and global data. Arrows in the middle name the conversion each part goes through.</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#555"/>
+    </marker>
+  </defs>
+  <rect width="1100" height="540" fill="#ffffff"/>
+  <!-- ModelPart -->
+  <rect x="20" y="20" width="360" height="500" rx="10" fill="#eaf2fb" stroke="#1f4e79" stroke-width="1.5"/>
+  <text x="200" y="48" text-anchor="middle" font-size="18" font-weight="bold" fill="#1f4e79">ModelPart "Fluid"</text>
+  <g font-size="13" fill="#333">
+    <rect x="35" y="65" width="330" height="96" rx="6" fill="#ffffff" stroke="#1f4e79"/>
+    <text x="45" y="85" font-weight="bold" fill="#1f4e79">Nodes</text>
+    <text x="45" y="104">Id, X0 (reference) and X (current) coordinates</text>
+    <text x="45" y="122">historical: VELOCITY (buffered), PRESSURE</text>
+    <text x="45" y="140">non-historical: NODAL_AREA, SDF, ...</text>
+    <rect x="35" y="172" width="330" height="60" rx="6" fill="#ffffff" stroke="#1f4e79"/>
+    <text x="45" y="192" font-weight="bold" fill="#1f4e79">Elements</text>
+    <text x="45" y="211">tetrahedra, hexahedra, prisms, quadratic geometries</text>
+    <text x="45" y="227">element data, Gauss-point data (read-only outward)</text>
+    <rect x="35" y="243" width="330" height="44" rx="6" fill="#ffffff" stroke="#1f4e79"/>
+    <text x="45" y="263" font-weight="bold" fill="#1f4e79">Conditions</text>
+    <text x="45" y="280">surface entities carrying boundary conditions</text>
+    <rect x="35" y="298" width="330" height="60" rx="6" fill="#ffffff" stroke="#1f4e79"/>
+    <text x="45" y="318" font-weight="bold" fill="#1f4e79">SubModelParts</text>
+    <text x="45" y="336">"Inlet", "Walls", "Outlet" - share the parent's nodes</text>
+    <text x="45" y="352">and hold the conditions of that patch</text>
+    <rect x="35" y="369" width="330" height="44" rx="6" fill="#ffffff" stroke="#1f4e79"/>
+    <text x="45" y="389" font-weight="bold" fill="#1f4e79">ProcessInfo</text>
+    <text x="45" y="406">TIME, STEP, DELTA_TIME, DOMAIN_SIZE</text>
+    <rect x="35" y="424" width="330" height="80" rx="6" fill="#ffffff" stroke="#1f4e79"/>
+    <text x="45" y="444" font-weight="bold" fill="#1f4e79">Communicator (MPI)</text>
+    <text x="45" y="463">LocalMesh: owned nodes and elements</text>
+    <text x="45" y="480">GhostMesh: nodes owned by another rank</text>
+    <text x="45" y="497">no element halo</text>
+  </g>
+  <!-- DomainMesh -->
+  <rect x="720" y="20" width="360" height="500" rx="10" fill="#eef7ee" stroke="#2e6b2e" stroke-width="1.5"/>
+  <text x="900" y="48" text-anchor="middle" font-size="18" font-weight="bold" fill="#2e6b2e">DomainMesh</text>
+  <g font-size="13" fill="#333">
+    <rect x="735" y="65" width="330" height="170" rx="6" fill="#ffffff" stroke="#2e6b2e"/>
+    <text x="745" y="85" font-weight="bold" fill="#2e6b2e">interior: Mesh[3, 3]</text>
+    <text x="745" y="106" font-family="monospace" font-size="12">points      (n_points, 3)</text>
+    <text x="745" y="124" font-family="monospace" font-size="12">cells       (n_cells, 4)   tetrahedra only</text>
+    <text x="745" y="146" font-family="monospace" font-size="12">point_data  VELOCITY (n_points, 3)</text>
+    <text x="745" y="164" font-family="monospace" font-size="12">            PRESSURE (n_points,)</text>
+    <text x="745" y="186" font-family="monospace" font-size="12">cell_data   per-simplex fields</text>
+    <text x="745" y="208" font-family="monospace" font-size="12">global_data TIME, STEP, case parameters</text>
+    <text x="745" y="226" font-size="12" fill="#666">plus a lazy cache of normals, adjacency, ...</text>
+    <rect x="735" y="246" width="330" height="118" rx="6" fill="#ffffff" stroke="#2e6b2e"/>
+    <text x="745" y="266" font-weight="bold" fill="#2e6b2e">boundaries: dict of Mesh[2, 3]</text>
+    <text x="745" y="287" font-family="monospace" font-size="12">"Inlet"   triangles + their point_data</text>
+    <text x="745" y="305" font-family="monospace" font-size="12">"Walls"   triangles + their point_data</text>
+    <text x="745" y="323" font-family="monospace" font-size="12">"Outlet"  ...</text>
+    <text x="745" y="348" font-size="12" fill="#666">every boundary is its own mesh; points are copies</text>
+    <rect x="735" y="375" width="330" height="60" rx="6" fill="#ffffff" stroke="#2e6b2e"/>
+    <text x="745" y="395" font-weight="bold" fill="#2e6b2e">global_data</text>
+    <text x="745" y="414" font-family="monospace" font-size="12">TIME, reynolds_number, ...  (0-d tensors)</text>
+    <rect x="735" y="446" width="330" height="58" rx="6" fill="#ffffff" stroke="#2e6b2e"/>
+    <text x="745" y="466" font-weight="bold" fill="#2e6b2e">one tensorclass</text>
+    <text x="745" y="485" font-size="12">.to("cuda"), .save("case.pmsh"), immutable in place</text>
+  </g>
+  <!-- conversion arrows -->
+  <g font-size="12" fill="#444">
+    <line x1="380" y1="110" x2="720" y2="110" stroke="#555" stroke-width="1.8" marker-end="url(#arrow)"/>
+    <text x="550" y="100" text-anchor="middle">node Id  to  row: ids sorted, one row per node</text>
+    <text x="550" y="126" text-anchor="middle" fill="#777">Variable  to  point_data key "VARIABLE__location"</text>
+    <line x1="380" y1="200" x2="720" y2="200" stroke="#555" stroke-width="1.8" marker-end="url(#arrow)"/>
+    <text x="550" y="176" text-anchor="middle">tessellation (smallest-id diagonal) + provenance map</text>
+    <text x="550" y="192" text-anchor="middle" fill="#777">hex 5 or 6 tets, prism 3, pyramid 2, quad 2 triangles</text>
+    <line x1="380" y1="328" x2="720" y2="300" stroke="#555" stroke-width="1.8" marker-end="url(#arrow)"/>
+    <text x="550" y="300" text-anchor="middle">sub-model-part Conditions  to  a named boundary mesh</text>
+    <line x1="380" y1="390" x2="720" y2="400" stroke="#555" stroke-width="1.8" marker-end="url(#arrow)"/>
+    <text x="550" y="386" text-anchor="middle">ProcessInfo and case parameters  to  global_data</text>
+    <line x1="380" y1="470" x2="720" y2="470" stroke="#555" stroke-width="1.8" marker-end="url(#arrow)"/>
+    <text x="550" y="460" text-anchor="middle">owned rows per rank, gathered to rank 0 for export</text>
+    <text x="550" y="486" text-anchor="middle" fill="#777">or one ShardTensor across the ranks</text>
+    <line x1="720" y1="238" x2="380" y2="238" stroke="#b05a00" stroke-width="1.8" stroke-dasharray="6,4" marker-end="url(#arrow)"/>
+    <text x="550" y="258" text-anchor="middle" fill="#b05a00">predictions scattered back onto the original entities</text>
+    <text x="550" y="274" text-anchor="middle" fill="#b05a00">exact on real nodes; cells aggregated per source element</text>
+  </g>
+</svg>
