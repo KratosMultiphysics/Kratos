@@ -1,8 +1,13 @@
+import json
+import os
+import tempfile
+
 import KratosMultiphysics as KM
 import KratosMultiphysics.DamApplication as Dam
 import KratosMultiphysics.PoromechanicsApplication as Poro
 import KratosMultiphysics.StructuralMechanicsApplication as SMA
 import KratosMultiphysics.KratosUnittest as KratosUnittest
+from KratosMultiphysics.restart_utility import RestartUtility
 
 
 class TestDamElasticInitialStateTransfer(KratosUnittest.TestCase):
@@ -44,13 +49,18 @@ class TestDamElasticInitialStateTransfer(KratosUnittest.TestCase):
         name = "SmallDisplacementElement2D" + ("4N" if quadrilaterals else "3N")
         for element_id, nodes in enumerate(connectivity, 1):
             part.CreateNewElement(name, element_id, nodes, properties)
+        strategy = self._make_strategy(part)
+        return model, part, strategy
+
+    @staticmethod
+    def _make_strategy(part):
         builder = KM.ResidualBasedBlockBuilderAndSolver(KM.SkylineLUFactorizationSolver())
         scheme = KM.ResidualBasedIncrementalUpdateStaticScheme()
         strategy = KM.ResidualBasedLinearStrategy(part, scheme, builder, True, False, False, False)
         strategy.SetEchoLevel(0)
         strategy.Initialize()
         strategy.Check()
-        return model, part, strategy
+        return strategy
 
     @staticmethod
     def _values(part, variable):
@@ -87,6 +97,13 @@ class TestDamElasticInitialStateTransfer(KratosUnittest.TestCase):
     def _assert_close(self, actual, expected, tolerance=1.e-10):
         self.assertEqual(len(actual), len(expected))
         self.assertLessEqual(max((abs(a - b) for a, b in zip(actual, expected)), default=0.), tolerance)
+
+    def _assert_restart_close(self, actual, expected):
+        self._assert_close(actual, expected, tolerance=1.e-10)
+        scale = max((abs(value) for value in expected), default=0.)
+        error = max((abs(a - b) for a, b in zip(actual, expected)), default=0.)
+        if scale > 1.e-10:
+            self.assertLessEqual(error / scale, 1.e-10)
 
     @staticmethod
     def _flatten(values):
@@ -177,6 +194,117 @@ class TestDamElasticInitialStateTransfer(KratosUnittest.TestCase):
 
     def test_triangle_thermoelastic_continuation(self):
         self._continuation(thermal=True)
+
+    def test_quadrilateral_restart_preserves_equilibrium_and_increment(self):
+        model, part, strategy = self._body(quadrilaterals=True)
+        strategy.Solve()
+        displacement = self._displacements(part)
+        stress = self._flatten(self._values(part, KM.CAUCHY_STRESS_VECTOR))
+        residual = self._residual(part)
+        part.ProcessInfo[KM.IS_RESTARTED] = True
+        archive = KM.StreamSerializer()
+        archive.Save("Model", model)
+        restored_model = KM.Model()
+        archive.Load("Model", restored_model)
+        restored = restored_model.GetModelPart("body")
+        self._assert_close(self._displacements(restored), displacement)
+        self._assert_close(self._flatten(self._values(restored, KM.CAUCHY_STRESS_VECTOR)), stress)
+        self._assert_close(self._residual(restored), residual)
+        restored_strategy = self._make_strategy(restored)
+        self._assert_close(self._flatten(self._values(restored, KM.CAUCHY_STRESS_VECTOR)), stress)
+        for model_part in (part, restored):
+            for node in model_part.Nodes:
+                node.SetSolutionStepValue(KM.VOLUME_ACCELERATION, [2., -10., 0.])
+        strategy.Solve()
+        restored_strategy.Solve()
+        self._assert_close(self._displacements(restored), self._displacements(part))
+        self._assert_close(self._flatten(self._values(restored, KM.CAUCHY_STRESS_VECTOR)),
+                           self._flatten(self._values(part, KM.CAUCHY_STRESS_VECTOR)))
+        self._assert_close(self._residual(restored), self._residual(part))
+        for restored_node, reference_node in zip(restored.Nodes, part.Nodes):
+            self._assert_close(list(restored_node.GetSolutionStepValue(KM.REACTION)),
+                               list(reference_node.GetSolutionStepValue(KM.REACTION)))
+
+    def test_file_restart_utility_preserves_gravity_and_time(self):
+        model, part, strategy = self._body(quadrilaterals=True)
+        part.CloneTimeStep(4.0)
+        part.ProcessInfo[KM.STEP] = 4
+        strategy.Solve()
+        displacement = self._displacements(part)
+        stress = self._flatten(self._values(part, KM.CAUCHY_STRESS_VECTOR))
+        residual = self._residual(part)
+        with tempfile.TemporaryDirectory() as directory:
+            name = os.path.join(directory, "gravity")
+            settings = KM.Parameters(json.dumps({
+                "input_filename": name,
+                "save_restart_files_in_folder": False,
+                "load_restart_files_from_folder": False,
+                "restart_load_file_label": "4.0"
+            }))
+            RestartUtility(part, settings.Clone()).SaveRestart()
+            loaded_model = KM.Model()
+            loaded = loaded_model.CreateModelPart("body")
+            RestartUtility(loaded, settings.Clone()).LoadRestart()
+            self.assertTrue(loaded.ProcessInfo[KM.IS_RESTARTED])
+            self.assertAlmostEqual(loaded.ProcessInfo[KM.TIME], 4.0)
+            self.assertEqual(loaded.ProcessInfo[KM.STEP], 4)
+            self._assert_restart_close(self._displacements(loaded), displacement)
+            self._assert_restart_close(self._flatten(self._values(loaded, KM.CAUCHY_STRESS_VECTOR)), stress)
+            self._assert_restart_close(self._residual(loaded), residual)
+            loaded_strategy = self._make_strategy(loaded)
+            self._assert_restart_close(self._flatten(self._values(loaded, KM.CAUCHY_STRESS_VECTOR)), stress)
+            loaded_strategy.Solve()
+            self._assert_restart_close(self._displacements(loaded), displacement)
+            for model_part in (part, loaded):
+                for node in model_part.Nodes:
+                    node.SetSolutionStepValue(KM.VOLUME_ACCELERATION, [2., -10., 0.])
+            strategy.Solve()
+            loaded_strategy.Solve()
+            self._assert_restart_close(self._displacements(loaded), self._displacements(part))
+            self._assert_restart_close(self._flatten(self._values(loaded, KM.CAUCHY_STRESS_VECTOR)),
+                               self._flatten(self._values(part, KM.CAUCHY_STRESS_VECTOR)))
+            self._assert_restart_close(self._residual(loaded), self._residual(part))
+
+    def test_thermoelastic_file_restart_preserves_temperature_gradient(self):
+        model, part, strategy = self._body(quadrilaterals=True, thermal=True)
+        for node in part.Nodes:
+            node.SetSolutionStepValue(KM.TEMPERATURE, 25.0 + 5.0 * node.Y0)
+            node.SetSolutionStepValue(Dam.NODAL_REFERENCE_TEMPERATURE, 18.0 + node.Y0)
+        part.CloneTimeStep(4.0)
+        part.ProcessInfo[KM.STEP] = 4
+        strategy.Solve()
+        with tempfile.TemporaryDirectory() as directory:
+            settings = KM.Parameters(json.dumps({
+                "input_filename": os.path.join(directory, "thermal"),
+                "save_restart_files_in_folder": False,
+                "load_restart_files_from_folder": False,
+                "restart_load_file_label": "4.0"
+            }))
+            RestartUtility(part, settings.Clone()).SaveRestart()
+            loaded_model = KM.Model()
+            loaded = loaded_model.CreateModelPart("body")
+            RestartUtility(loaded, settings.Clone()).LoadRestart()
+            self.assertAlmostEqual(loaded.ProcessInfo[KM.TIME], 4.0)
+            self.assertEqual(loaded.ProcessInfo[KM.STEP], 4)
+            for reference_node, loaded_node in zip(part.Nodes, loaded.Nodes):
+                for variable in (KM.TEMPERATURE, Dam.NODAL_REFERENCE_TEMPERATURE):
+                    self.assertAlmostEqual(reference_node.GetSolutionStepValue(variable),
+                                           loaded_node.GetSolutionStepValue(variable))
+            self._assert_restart_close(self._displacements(loaded), self._displacements(part))
+            self._assert_restart_close(self._flatten(self._values(loaded, KM.CAUCHY_STRESS_VECTOR)),
+                               self._flatten(self._values(part, KM.CAUCHY_STRESS_VECTOR)))
+            loaded_strategy = self._make_strategy(loaded)
+            for model_part in (part, loaded):
+                for node in model_part.Nodes:
+                    node.SetSolutionStepValue(KM.TEMPERATURE,
+                                              node.GetSolutionStepValue(KM.TEMPERATURE) + 2.0 * node.Y0)
+                    node.SetSolutionStepValue(KM.VOLUME_ACCELERATION, [2., -10., 0.])
+            strategy.Solve()
+            loaded_strategy.Solve()
+            self._assert_restart_close(self._displacements(loaded), self._displacements(part))
+            self._assert_restart_close(self._flatten(self._values(loaded, KM.CAUCHY_STRESS_VECTOR)),
+                               self._flatten(self._values(part, KM.CAUCHY_STRESS_VECTOR)))
+            self._assert_restart_close(self._residual(loaded), self._residual(part))
 
     def test_quadrilateral_displacement_and_combined_continuation(self):
         self._continuation(quadrilaterals=True)

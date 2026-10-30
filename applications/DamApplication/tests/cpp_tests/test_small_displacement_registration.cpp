@@ -19,6 +19,7 @@
 #include <cstddef>
 #include <fstream>
 #include <iostream>
+#include <map>
 #include <string>
 #include <vector>
 
@@ -32,6 +33,11 @@
 #include "includes/model_part_io.h"
 #include "includes/variables.h"
 #include "utilities/math_utils.h"
+#include "spaces/default_spaces.h"
+#include "linear_solvers/skyline_lu_factorization_solver.h"
+#include "solving_strategies/schemes/residualbased_incrementalupdate_static_scheme.h"
+#include "solving_strategies/builder_and_solvers/residualbased_block_builder_and_solver.h"
+#include "solving_strategies/strategies/residualbased_linear_strategy.h"
 
 // Application includes
 #include "dam_application_variables.h"
@@ -375,6 +381,239 @@ KRATOS_TEST_CASE_IN_SUITE(InitialStateAssignsNonuniformQuadrilateralGaussStresse
     p_reference->CalculateLocalSystem(lhs_reference, rhs_reference, p_reference_part->GetProcessInfo());
     p_continuation->CalculateLocalSystem(lhs_continuation, rhs_continuation, p_continuation_part->GetProcessInfo());
     KRATOS_EXPECT_VECTOR_NEAR(rhs_reference, rhs_continuation, 1.0e-9);
+}
+
+
+namespace {
+using GravitySparseSpace = TDefaultSparseSpace<double>;
+using GravityDenseSpace = TDefaultDenseSpace<double>;
+using GravitySolver = LinearSolver<GravitySparseSpace, GravityDenseSpace>;
+using GravityStrategy = ResidualBasedLinearStrategy<GravitySparseSpace, GravityDenseSpace, GravitySolver>;
+
+ModelPart& MakeGravityBody(Model& rModel, const std::string& rName)
+{
+    auto& r_part = rModel.CreateModelPart(rName, 2);
+    r_part.AddNodalSolutionStepVariable(DISPLACEMENT);
+    r_part.AddNodalSolutionStepVariable(REACTION);
+    r_part.AddNodalSolutionStepVariable(VOLUME_ACCELERATION);
+    auto& r_info = r_part.GetProcessInfo();
+    r_info[DOMAIN_SIZE] = 2;
+    r_info[DELTA_TIME] = 1.0;
+    r_info[IS_RESTARTED] = false;
+    const double coordinates[6][2] = {{0., 0.}, {1., 0.}, {0., 1.},
+                                       {1., 1.}, {0., 2.}, {1., 2.}};
+    for (std::size_t i = 0; i < 6; ++i) {
+        auto p_node = r_part.CreateNewNode(i + 1, coordinates[i][0], coordinates[i][1], 0.);
+        p_node->AddDof(DISPLACEMENT_X, REACTION_X);
+        p_node->AddDof(DISPLACEMENT_Y, REACTION_Y);
+        p_node->AddDof(DISPLACEMENT_Z, REACTION_Z);
+        if (i < 2) {
+            p_node->Fix(DISPLACEMENT_X);
+            p_node->Fix(DISPLACEMENT_Y);
+        }
+        auto& r_acceleration = p_node->FastGetSolutionStepValue(VOLUME_ACCELERATION);
+        r_acceleration = ZeroVector(3);
+        r_acceleration[1] = -10.;
+    }
+    auto p_properties = r_part.CreateNewProperties(1);
+    (*p_properties)[YOUNG_MODULUS] = 10000.;
+    (*p_properties)[POISSON_RATIO] = 0.2;
+    (*p_properties)[DENSITY] = 2.;
+    (*p_properties)[THICKNESS] = 1.;
+    p_properties->SetValue(CONSTITUTIVE_LAW,
+        KratosComponents<ConstitutiveLaw>::Get("LinearElasticPlaneStrain2DLaw").Clone());
+    r_part.CreateNewElement("SmallDisplacementElement2D4N", 1, {1, 2, 4, 3}, p_properties);
+    r_part.CreateNewElement("SmallDisplacementElement2D4N", 2, {3, 4, 6, 5}, p_properties);
+    return r_part;
+}
+
+GravityStrategy::Pointer MakeGravityStrategy(ModelPart& rPart)
+{
+    auto p_solver = Kratos::make_shared<SkylineLUFactorizationSolver<GravitySparseSpace, GravityDenseSpace>>();
+    auto p_builder = Kratos::make_shared<ResidualBasedBlockBuilderAndSolver<GravitySparseSpace, GravityDenseSpace, GravitySolver>>(p_solver);
+    auto p_scheme = Kratos::make_shared<ResidualBasedIncrementalUpdateStaticScheme<GravitySparseSpace, GravityDenseSpace>>();
+    auto p_strategy = Kratos::make_shared<GravityStrategy>(rPart, p_scheme, p_builder, true, false, false, false);
+    p_strategy->SetEchoLevel(0);
+    p_strategy->Initialize();
+    p_strategy->Check();
+    return p_strategy;
+}
+
+std::vector<Vector> GravityStresses(ModelPart& rPart)
+{
+    std::vector<Vector> result;
+    for (auto& r_element : rPart.Elements()) {
+        std::vector<Vector> values;
+        r_element.CalculateOnIntegrationPoints(CAUCHY_STRESS_VECTOR, values, rPart.GetProcessInfo());
+        result.insert(result.end(), values.begin(), values.end());
+    }
+    return result;
+}
+
+Vector GravityResidual(ModelPart& rPart)
+{
+    Vector result = ZeroVector(2 * rPart.NumberOfNodes());
+    for (auto& r_element : rPart.Elements()) {
+        Matrix lhs;
+        Vector rhs;
+        r_element.CalculateLocalSystem(lhs, rhs, rPart.GetProcessInfo());
+        for (std::size_t i = 0; i < r_element.GetGeometry().size(); ++i) {
+            const auto node_id = r_element.GetGeometry()[i].Id();
+            for (std::size_t j = 0; j < 2; ++j) {
+                result[2 * (node_id - 1) + j] += rhs[2 * i + j];
+            }
+        }
+    }
+    return result;
+}
+
+Vector GravityDisplacements(ModelPart& rPart)
+{
+    Vector result = ZeroVector(2 * rPart.NumberOfNodes());
+    for (const auto& r_node : rPart.Nodes()) {
+        for (std::size_t j = 0; j < 2; ++j) {
+            result[2 * (r_node.Id() - 1) + j] = r_node.FastGetSolutionStepValue(DISPLACEMENT)[j];
+        }
+    }
+    return result;
+}
+
+void CompareGravityVectors(const Vector& rActual, const Vector& rExpected,
+                           const double AbsoluteTolerance, const double RelativeTolerance)
+{
+    KRATOS_EXPECT_EQ(rActual.size(), rExpected.size());
+    for (std::size_t i = 0; i < rExpected.size(); ++i) {
+        KRATOS_EXPECT_NEAR(rActual[i], rExpected[i], AbsoluteTolerance + RelativeTolerance * std::abs(rExpected[i]));
+    }
+}
+
+void CompareGravityStresses(const std::vector<Vector>& rActual, const std::vector<Vector>& rExpected)
+{
+    KRATOS_EXPECT_EQ(rActual.size(), rExpected.size());
+    for (std::size_t i = 0; i < rExpected.size(); ++i) {
+        CompareGravityVectors(rActual[i], rExpected[i], 1.0e-10, 1.0e-10);
+    }
+}
+
+void SetHorizontalAcceleration(ModelPart& rPart, const double Acceleration)
+{
+    for (auto& r_node : rPart.Nodes()) {
+        r_node.FastGetSolutionStepValue(VOLUME_ACCELERATION)[0] = Acceleration;
+    }
+}
+} // namespace
+
+KRATOS_TEST_CASE_IN_SUITE(QuadrilateralGravityPerGaussPointInitialStateContinuation, KratosDamFastSuite)
+{
+    Model reference_model;
+    auto& r_reference = MakeGravityBody(reference_model, "reference");
+    auto p_reference_strategy = MakeGravityStrategy(r_reference);
+    p_reference_strategy->Solve();
+    const auto initial_stresses = GravityStresses(r_reference);
+    std::map<ModelPart::IndexType, std::vector<Vector>> stresses_by_element;
+    for (auto& r_element : r_reference.Elements()) {
+        r_element.CalculateOnIntegrationPoints(CAUCHY_STRESS_VECTOR,
+            stresses_by_element[r_element.Id()], r_reference.GetProcessInfo());
+    }
+    const Vector initial_displacements = GravityDisplacements(r_reference);
+    const Vector initial_residual = GravityResidual(r_reference);
+    KRATOS_EXPECT_EQ(initial_stresses.size(), 8);
+    KRATOS_EXPECT_GT(norm_2(initial_stresses[0] - initial_stresses[2]), 1.0);
+    for (std::size_t i = 4; i < initial_residual.size(); ++i) {
+        KRATOS_EXPECT_NEAR(initial_residual[i], 0., 1.0e-10);
+    }
+    KRATOS_EXPECT_NEAR(initial_residual[1] + initial_residual[3], -40., 1.0e-10);
+    for (std::size_t i = 0; i < 2; ++i) {
+        const auto& r_reaction = r_reference.GetNode(i + 1).FastGetSolutionStepValue(REACTION);
+        KRATOS_EXPECT_NEAR(r_reaction[0], -initial_residual[2 * i], 1.0e-10);
+        KRATOS_EXPECT_NEAR(r_reaction[1], -initial_residual[2 * i + 1], 1.0e-10);
+    }
+
+    Model continuation_model;
+    auto& r_continuation = MakeGravityBody(continuation_model, "continuation");
+    auto p_continuation_strategy = MakeGravityStrategy(r_continuation);
+    for (auto& r_element : r_continuation.Elements()) {
+        std::vector<ConstitutiveLaw::Pointer> laws;
+        r_element.CalculateOnIntegrationPoints(CONSTITUTIVE_LAW, laws, r_continuation.GetProcessInfo());
+        const auto& r_stresses = stresses_by_element.at(r_element.Id());
+        KRATOS_EXPECT_EQ(laws.size(), 4);
+        KRATOS_EXPECT_EQ(laws.size(), r_stresses.size());
+        for (std::size_t point = 0; point < laws.size(); ++point) {
+            laws[point]->SetInitialState(Kratos::make_intrusive<InitialState>(
+                ZeroVector(3), r_stresses[point], ZeroMatrix(2, 2)));
+        }
+    }
+    CompareGravityStresses(GravityStresses(r_continuation), initial_stresses);
+    const Vector continuation_initial_residual = GravityResidual(r_continuation);
+    CompareGravityVectors(continuation_initial_residual, initial_residual, 1.0e-10, 1.0e-10);
+    CompareGravityVectors(GravityDisplacements(r_continuation), ZeroVector(12), 1.0e-12, 1.0e-10);
+    // Separate external and internal force contributions by evaluating the
+    // same state with gravity switched off, then restore the original load.
+    for (auto& r_node : r_reference.Nodes()) {
+        r_node.FastGetSolutionStepValue(VOLUME_ACCELERATION)[1] = 0.;
+    }
+    for (auto& r_node : r_continuation.Nodes()) {
+        r_node.FastGetSolutionStepValue(VOLUME_ACCELERATION)[1] = 0.;
+    }
+    const Vector reference_minus_internal = GravityResidual(r_reference);
+    const Vector continuation_minus_internal = GravityResidual(r_continuation);
+    CompareGravityVectors(continuation_minus_internal, reference_minus_internal, 1.0e-10, 1.0e-10);
+    CompareGravityVectors(continuation_initial_residual - continuation_minus_internal,
+                          initial_residual - reference_minus_internal, 1.0e-10, 1.0e-10);
+    for (auto& r_node : r_reference.Nodes()) {
+        r_node.FastGetSolutionStepValue(VOLUME_ACCELERATION)[1] = -10.;
+    }
+    for (auto& r_node : r_continuation.Nodes()) {
+        r_node.FastGetSolutionStepValue(VOLUME_ACCELERATION)[1] = -10.;
+    }
+    p_continuation_strategy->Solve();
+    const double first_solve_displacement = norm_inf(GravityDisplacements(r_continuation));
+    CompareGravityVectors(GravityDisplacements(r_continuation), ZeroVector(12), 1.0e-12, 1.0e-10);
+    CompareGravityStresses(GravityStresses(r_continuation), initial_stresses);
+    CompareGravityVectors(GravityResidual(r_continuation), initial_residual, 1.0e-10, 1.0e-10);
+    for (std::size_t i = 0; i < 2; ++i) {
+        const auto& r_reference_reaction = r_reference.GetNode(i + 1).FastGetSolutionStepValue(REACTION);
+        const auto& r_actual_reaction = r_continuation.GetNode(i + 1).FastGetSolutionStepValue(REACTION);
+        for (std::size_t j = 0; j < 2; ++j) {
+            KRATOS_EXPECT_NEAR(r_actual_reaction[j], r_reference_reaction[j], 1.0e-10);
+        }
+    }
+
+    SetHorizontalAcceleration(r_reference, 2.);
+    SetHorizontalAcceleration(r_continuation, 2.);
+    p_reference_strategy->Solve();
+    p_continuation_strategy->Solve();
+    const Vector reference_increment = GravityDisplacements(r_reference) - initial_displacements;
+    const auto reference_increment_stresses = GravityStresses(r_reference);
+    const auto continuation_increment_stresses = GravityStresses(r_continuation);
+    double maximum_stress_error = 0.;
+    for (std::size_t point = 0; point < reference_increment_stresses.size(); ++point) {
+        maximum_stress_error = std::max(maximum_stress_error,
+            norm_inf(continuation_increment_stresses[point] - reference_increment_stresses[point]));
+    }
+    CompareGravityVectors(GravityDisplacements(r_continuation), reference_increment, 1.0e-12, 1.0e-10);
+    CompareGravityStresses(continuation_increment_stresses, reference_increment_stresses);
+    const Vector increment_reference_residual = GravityResidual(r_reference);
+    const Vector increment_continuation_residual = GravityResidual(r_continuation);
+    CompareGravityVectors(increment_continuation_residual, increment_reference_residual, 1.0e-10, 1.0e-10);
+    for (std::size_t i = 4; i < increment_reference_residual.size(); ++i) {
+        KRATOS_EXPECT_NEAR(increment_reference_residual[i], 0., 1.0e-10);
+        KRATOS_EXPECT_NEAR(increment_continuation_residual[i], 0., 1.0e-10);
+    }
+    KRATOS_INFO("QuadrilateralGravity")
+        << " initial reference free residual: " << norm_inf(subrange(initial_residual, 4, initial_residual.size()))
+        << "; first solve displacement: " << first_solve_displacement
+        << "; incremental displacement error: " << norm_inf(GravityDisplacements(r_continuation) - reference_increment)
+        << "; incremental stress difference: " << maximum_stress_error
+        << "; incremental continuation free residual: " << norm_inf(subrange(increment_continuation_residual, 4, increment_continuation_residual.size()))
+        << "; incremental residual difference: " << norm_inf(increment_continuation_residual - increment_reference_residual) << std::endl;
+    for (std::size_t i = 0; i < 2; ++i) {
+        const auto& r_reference_reaction = r_reference.GetNode(i + 1).FastGetSolutionStepValue(REACTION);
+        const auto& r_actual_reaction = r_continuation.GetNode(i + 1).FastGetSolutionStepValue(REACTION);
+        for (std::size_t j = 0; j < 2; ++j) {
+            KRATOS_EXPECT_NEAR(r_actual_reaction[j], r_reference_reaction[j], 1.0e-10);
+        }
+    }
 }
 
 } // namespace Testing
