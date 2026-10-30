@@ -178,6 +178,10 @@ void KratosContactStructuralMechanicsApplication::Register()
     KRATOS_REGISTER_VARIABLE( FRICTIONAL_LAW )                                        // The frictional law considered
     KRATOS_REGISTER_VARIABLE( TRESCA_FRICTION_THRESHOLD )                             // The threshold value for Tresca frictional contact
 
+    /* Geometric tolerances */
+    KRATOS_REGISTER_VARIABLE( INTEGRATION_OVER_TOTAL_AREA_TOLERANCE )                 // The factor multiplying the problem length in mortar contact conditions to consider the integration over total area
+    KRATOS_REGISTER_VARIABLE( PROBLEM_REFERENCE_LENGTH )                              // The reference size of the computational geometry
+
     // CONDITIONS
     // Mesh tying mortar condition
     KRATOS_REGISTER_CONDITION( "MeshTyingMortarCondition2D2N", mMeshTyingMortarCondition2D2N );
