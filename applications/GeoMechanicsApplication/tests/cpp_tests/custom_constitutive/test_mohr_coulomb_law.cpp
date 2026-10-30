@@ -128,6 +128,9 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombLaw_Check, KratosGeoMechanicsFastSuiteWitho
         [[maybe_unused]] const auto unused = law.Check(properties, element_geometry, process_info),
         "GEO_STRESS_DEPENDENCY_EXPONENT does not exist in the parameters of material with Id 3.");
     properties.SetValue(GEO_STRESS_DEPENDENCY_EXPONENT, 0.5);
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        [[maybe_unused]] const auto unused = law.Check(properties, element_geometry, process_info), "GEO_MAXIMUM_MINOR_PRINCIPAL_STRESS does not exist in the parameters of material with Id 3.");
+    properties.SetValue(GEO_MAXIMUM_MINOR_PRINCIPAL_STRESS, -1.0);
     KRATOS_EXPECT_EQ(law.Check(properties, element_geometry, process_info), 0);
 }
 
@@ -1208,6 +1211,76 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_SubStepping, KratosGeoMec
     // Check that the error without sub-stepping is much larger than the error with sub-stepping, both errors are checked to show the added value
     KRATOS_EXPECT_NEAR(error_no_sub_step, 6.848975256, 1e-8);
     KRATOS_EXPECT_NEAR(error_with_sub_step, 0.18363803, 1e-8);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(MohrCoulombLaw_SchanzVermeerStiffnessIsDefinedAfterTensionApexReturn,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    constexpr auto cohesion                   = 10.0;
+    constexpr auto friction_angle             = 35.0;
+    constexpr auto youngs_modulus             = 1.0e6;
+    constexpr auto poisson_ratio              = 0.25;
+    constexpr auto p_ref                      = 100.0;
+    constexpr auto exponent                   = 0.5;
+    constexpr auto max_minor_principal_stress = -1.0;
+
+    Properties properties;
+    properties.SetValue(GEO_DRAINAGE_TYPE, "FULLY_COUPLED");
+    properties.SetValue(GEO_COHESION, cohesion);
+    properties.SetValue(GEO_FRICTION_ANGLE, friction_angle);
+    properties.SetValue(GEO_DILATANCY_ANGLE, 20.0);
+    properties.SetValue(GEO_ENABLE_TENSION_CUT_OFF, false);
+    properties.SetValue(YOUNG_MODULUS, youngs_modulus);
+    properties.SetValue(POISSON_RATIO, poisson_ratio);
+    properties.SetValue(GEO_YOUNGS_MODULUS_FORMULATION, "SCHANZ_VERMEER"s);
+    properties.SetValue(GEO_PRESSURE_REFERENCE, p_ref);
+    properties.SetValue(GEO_STRESS_DEPENDENCY_EXPONENT, exponent);
+    properties.SetValue(GEO_MAXIMUM_MINOR_PRINCIPAL_STRESS, max_minor_principal_stress);
+
+    auto       law                         = MohrCoulombLaw(std::make_unique<PlaneStrain>());
+    const auto dummy_element_geometry      = Geometry<Node>{};
+    const auto dummy_shape_function_values = Vector{};
+    law.InitializeMaterial(properties, dummy_element_geometry, dummy_shape_function_values);
+
+    ConstitutiveLaw::Parameters parameters;
+    parameters.Set(ConstitutiveLaw::COMPUTE_STRESS);
+    parameters.SetMaterialProperties(properties);
+    Vector strain_vector = ZeroVector(4);
+    Vector stress_vector = ZeroVector(4);
+    parameters.SetStrainVector(strain_vector);
+    parameters.SetStressVector(stress_vector);
+    law.InitializeMaterialResponseCauchy(parameters);
+
+    // Act: a large tensile strain increment is returned to the tensile apex and finalized
+    strain_vector = UblasUtilities::CreateVector({1.0e-3, 1.0e-3, 0.0, 0.0});
+    parameters.SetStrainVector(strain_vector);
+    law.CalculateMaterialResponseCauchy(parameters);
+    law.FinalizeMaterialResponseCauchy(parameters);
+
+    // Assert: all principal stresses are at the apex
+    const auto apex = cohesion / std::tan(MathUtils<>::DegreesToRadians(friction_angle));
+    Vector     finalized_stress;
+    law.GetValue(CAUCHY_STRESS_VECTOR, finalized_stress);
+    KRATOS_EXPECT_VECTOR_NEAR(finalized_stress, UblasUtilities::CreateVector({apex, apex, apex, 0.0}),
+                              Defaults::absolute_tolerance * 1.0e3);
+
+    // Act: unload towards compression, which must not throw
+    strain_vector = ZeroVector(4);
+    parameters.SetStrainVector(strain_vector);
+    EXPECT_NO_THROW(law.CalculateMaterialResponseCauchy(parameters));
+
+    // Assert: the stiffness is evaluated with the regularized minor principal stress
+    const auto stiffness =
+        youngs_modulus * std::pow((apex - max_minor_principal_stress) / (apex + p_ref), exponent);
+    constexpr auto strain_increment = -1.0e-3;
+    // lambda = 0.4 E and G = 0.4 E for a Poisson's ratio of 0.25
+    const auto expected_stress = UblasUtilities::CreateVector(
+        {apex + 1.6 * stiffness * strain_increment, apex + 1.6 * stiffness * strain_increment,
+         apex + 0.8 * stiffness * strain_increment, 0.0});
+    Vector unloaded_stress;
+    law.GetValue(CAUCHY_STRESS_VECTOR, unloaded_stress);
+    KRATOS_EXPECT_VECTOR_NEAR(unloaded_stress, expected_stress, Defaults::absolute_tolerance * 1.0e3);
 }
 
 } // namespace Kratos::Testing
