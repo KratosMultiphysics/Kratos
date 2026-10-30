@@ -65,6 +65,26 @@ KRATOS_TEST_CASE_IN_SUITE(GetModelPartsFromSettings_ListOfModelParts, KratosGeoM
     KRATOS_EXPECT_EQ(model_parts[1].get().Name(), "Part2");
 }
 
+KRATOS_TEST_CASE_IN_SUITE(GetModelPartsFromSettings_SingleComputingModelPart, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    Model model;
+    model.CreateModelPart("Main");
+
+    Parameters settings(R"(
+        {
+            "computing_model_part_name": "Main"
+        })");
+
+    // Act
+    const auto model_parts = ProcessUtilities::GetModelPartsFromSettings(
+        model, settings, "TestProcess", {"computing_model_part_name"});
+
+    // Assert
+    ASSERT_EQ(model_parts.size(), 1);
+    KRATOS_EXPECT_EQ(model_parts[0].get().Name(), "Main");
+}
+
 KRATOS_TEST_CASE_IN_SUITE(GetModelPartsFromSettings_CheckForDuplicatedNames, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
@@ -245,6 +265,41 @@ KRATOS_TEST_CASE_IN_SUITE(AddProcessesSubModelPartList_AddsFilledListBasedOnCons
 
     const auto actual_modelpart_names = solver_settings["processes_sub_model_part_list"].GetStringArray();
     const std::vector<std::string> expected_modelpart_names = {"BottomFixed", "Sides", "Soil", "TopLoad"};
+    EXPECT_EQ(actual_modelpart_names, expected_modelpart_names);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(AddProcessesSubModelPartList_AddsFilledListBasedOnProcessWithNameApplyPeriodicConditionProcess,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    const Parameters project_parameters(R"(
+      {
+         "processes":
+         {
+            "constraints_process_list": [
+            {
+                "process_name": "ApplyPeriodicConditionProcess",
+                "Parameters":    {
+                    "computing_model_part_name": "PorousDomain.Sides"
+                }
+            }]
+         },
+         "solver_settings": {
+             "model_part_name": "PorousDomain"
+         }
+      })");
+
+    auto solver_settings = project_parameters["solver_settings"];
+
+    // Act
+    ProcessUtilities::AddProcessesSubModelPartListToSolverSettings(project_parameters, solver_settings);
+
+    // Assert
+    const auto& r_list = solver_settings["processes_sub_model_part_list"];
+    KRATOS_EXPECT_EQ(r_list.size(), 1);
+
+    const auto actual_modelpart_names = solver_settings["processes_sub_model_part_list"].GetStringArray();
+    const std::vector<std::string> expected_modelpart_names = {"Sides"};
     EXPECT_EQ(actual_modelpart_names, expected_modelpart_names);
 }
 
