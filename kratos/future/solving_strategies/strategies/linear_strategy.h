@@ -238,10 +238,10 @@ public:
             p_eff_lin_sys->SetAdditionalData(this->GetModelPart(), r_eff_dof_set);
             rp_linear_solver->PrepareAdditionalData(*p_eff_lin_sys);
         }
-        rp_linear_solver->Initialize(*p_eff_lin_sys);
-        rp_linear_solver->InitializeSolutionStep(*p_eff_lin_sys);
+        rp_linear_solver->Initialize(*p_eff_lin_sys); //TODO: Check if this is needed at each iteration (only if the effective linear system changes the size, e.g., changing the Dirichlet BCs in elimination or the constraints set)
+        rp_linear_solver->InitializeSolutionStep(*p_eff_lin_sys); //TODO: Check if this is needed at each iteration (only if the effective linear system changes the size, e.g., changing the Dirichlet BCs in elimination or the constraints set)
         rp_linear_solver->PerformSolutionStep(*p_eff_lin_sys);
-        rp_linear_solver->FinalizeSolutionStep(*p_eff_lin_sys);
+        rp_linear_solver->FinalizeSolutionStep(*p_eff_lin_sys); //TODO: Check if this is needed at each iteration (only if the effective linear system changes the size, e.g., changing the Dirichlet BCs in elimination or the constraints set)
 
         // Debugging info
         this->EchoInfo();
