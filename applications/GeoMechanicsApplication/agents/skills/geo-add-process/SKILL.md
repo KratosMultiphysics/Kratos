@@ -26,9 +26,12 @@ Create `custom_processes/<name>.h` and `custom_processes/<name>.cpp`:
 - GeoMechanics header block with the real author names, `#pragma once`.
 - `class KRATOS_API(GEO_MECHANICS_APPLICATION) <Name> : public Process` with
   `KRATOS_CLASS_POINTER_DEFINITION(<Name>);`.
-- Constructor `<Name>(Model& rModel, Parameters Settings)`. Get the model parts with
+- Inspect the process requirements and nearby implementations to choose the constructor
+  signature and model/model-part access pattern. When the process uses `model_part_name` or
+  `model_part_name_list`, prefer a `<Name>(Model& rModel, Parameters Settings)` constructor
+  that gets the model parts with
   `ProcessUtilities::GetModelPartsFromSettings(rModel, mSettings, Info())` from
-  `custom_utilities/process_utilities.h` (reads `model_part_name` or `model_part_name_list`).
+  `custom_utilities/process_utilities.h`.
 - Override only the stage methods the process needs, plus `int Check() override` when it has
   input to validate and `[[nodiscard]] std::string Info() const override`.
 - Validate input with `KRATOS_ERROR_IF` / `CheckProperties` and messages that name the
@@ -59,12 +62,14 @@ extend a `*CppRoute` Python test.
 ## 5. Tests
 
 - C++: `tests/cpp_tests/custom_processes/test_<name>.cpp` (see
-  `test_apply_k0_procedure_process.cpp`). Cover the main effect, each `Check()` error with
-  `KRATOS_EXPECT_EXCEPTION_IS_THROWN`, and one edge case. Use
+  `test_apply_k0_procedure_process.cpp`). Cover the process behaviour and relevant edge cases
+  or invalid inputs (test `Check()` errors with `KRATOS_EXPECT_EXCEPTION_IS_THROWN`); do not
+  duplicate coverage already provided by existing tests. Use
   `KratosGeoMechanicsFastSuiteWithoutKernel` unless the kernel is needed.
-- Python: a case folder `tests/<case_name>/` with `ProjectParameters.json` (4-space indent),
-  `MaterialParameters.json`, the mesh and a `README.md`; a test class in `tests/test_<topic>.py`;
-  and an entry in the right list of `tests/test_GeoMechanicsApplication.py`.
+- Python: reuse existing case data where suitable. Otherwise add a case folder
+  `tests/<case_name>/` with `ProjectParameters.json` (4-space indent),
+  `MaterialParameters.json`, the mesh and a `README.md`. Add a test class in
+  `tests/test_<topic>.py` and an entry in the right list of `tests/test_GeoMechanicsApplication.py`.
 
 ## 6. Documentation
 

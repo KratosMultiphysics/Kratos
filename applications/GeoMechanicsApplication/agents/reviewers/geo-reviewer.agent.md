@@ -97,5 +97,6 @@ Verdict: APPROVED | APPROVED WITH COMMENTS | CHANGES REQUESTED
 ```
 
 Use ERROR for violations of a written rule or a physics or registration mistake, and WARNING
-for style and best-practice points.
+for style and best-practice points. In the Description, explain the concrete issue and its
+consequence.
 

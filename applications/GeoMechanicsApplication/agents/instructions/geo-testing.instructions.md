@@ -23,7 +23,7 @@ Choose the suite (fixture):
 
 | Suite | Header | Use when |
 |-------|--------|----------|
-| `KratosGeoMechanicsFastSuiteWithoutKernel` | `tests/cpp_tests/geo_mechanics_fast_suite_without_kernel.h` | Default. The test builds its own objects and only needs the variables registered in `geo_mechanics_fast_suite_without_kernel.cpp`. About 500 of the test cases use it |
+| `KratosGeoMechanicsFastSuiteWithoutKernel` | `tests/cpp_tests/geo_mechanics_fast_suite_without_kernel.h` | Default. The test builds its own objects and only needs the variables registered in `geo_mechanics_fast_suite_without_kernel.cpp` |
 | `KratosGeoMechanicsFastSuite` | `tests/cpp_tests/geo_mechanics_fast_suite.h` | The test needs the Kratos kernel with the GeoMechanics and LinearSolvers applications loaded (registered elements, conditions, laws, processes, Python-free model setup through the registry) |
 | `KratosGeoMechanicsIntegrationSuite` | `tests/cpp_tests/geo_mechanics_fast_suite.h` | Slow tests that run a whole analysis. Excluded by `run_cpp_unit_tests.py --onlyFastSuite` |
 

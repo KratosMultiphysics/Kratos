@@ -41,4 +41,3 @@ From it, find:
    class to the right list in `tests/test_GeoMechanicsApplication.py`.
 5. Report the files created and the command that runs only the new tests (see
    `agents/skills/geo-build-and-test/SKILL.md`).
-

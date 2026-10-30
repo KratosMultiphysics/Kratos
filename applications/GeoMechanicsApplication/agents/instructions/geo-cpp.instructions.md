@@ -75,8 +75,8 @@ The `.clang-format` file says `Standard: c++17`; that only affects formatting.
 
 ## Input checks
 
-- Element, condition and law `Check()` functions use `CheckProperties` and `CheckUtilities`
-  from `custom_utilities/check_utilities.hpp`, as in `Pw_element.cpp`:
+- In element, condition and law `Check()` functions, use `CheckProperties` and `CheckUtilities`
+  from `custom_utilities/check_utilities.hpp` when validating properties, as in `Pw_element.cpp`:
 
   ```cpp
   const CheckProperties check_properties(r_properties, "material properties at element",
@@ -111,7 +111,6 @@ The `.clang-format` file says `Standard: c++17`; that only affects formatting.
 - Prefer `std::ranges` algorithms (`std::ranges::transform`, `find_if`, `adjacent_find`, ...)
   over raw index loops when they make the intent clearer. Mark pure query functions
   `[[nodiscard]]`.
-
 
 
 

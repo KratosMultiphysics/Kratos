@@ -72,6 +72,13 @@ C compressibility, H permeability) are defined in `custom_elements/README.md` an
 ## Strategies and schemes
 
 Time integration schemes derive from `GeoMechanicsTimeIntegrationScheme`
-(`custom_strategies/schemes/README.md`). New schemes implement the same steps
-(`SetTimeFactors`, derivative update, system contributions) and get a README section.
+(`custom_strategies/schemes/README.md`).
+
+- Derive new schemes from the appropriate existing scheme and override only the operations
+  required by the new formulation. Reuse inherited time-factor, derivative-update and
+  system-contribution implementations where applicable, and add a README section for the new
+  scheme.
+- In load stepping (`LoadSteppingScheme`), time represents load progression rather than
+  physical transient evolution. Do not combine the load-stepping scheme with time-dependent
+  processes.
 

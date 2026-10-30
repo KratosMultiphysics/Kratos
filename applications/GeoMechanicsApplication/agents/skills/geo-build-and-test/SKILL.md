@@ -63,7 +63,16 @@ Then the whole fast set (both fast suites, no integration tests):
 
 ## Run Python tests
 
-Set `PYTHONPATH` to `bin/<BuildType>` and the library path as above. Run from
+The Python test commands need this environment; without it, `import KratosMultiphysics` fails.
+If you use your own shell aliases or wrapper scripts that set it up, those work too.
+
+```powershell
+$env:PYTHONPATH = "<kratos_root>\bin\Release"
+$env:PATH = "<kratos_root>\bin\Release\libs;$env:PATH"
+Set-Location <kratos_root>\applications\GeoMechanicsApplication\tests
+```
+
+On Linux, set `PYTHONPATH` and `LD_LIBRARY_PATH` in the same way. Run from
 `applications/GeoMechanicsApplication/tests/` so the test modules and data are found.
 
 - One test class or method:
@@ -80,4 +89,3 @@ Set `KRATOS_GEO_MAKE_TEST_PLOTS=ON` only when you want the result plots that som
 3. The full fast C++ set passes.
 4. The Python tests that use the changed code pass; for a change in a shared element, law or
    process, the `small` suite passes.
-

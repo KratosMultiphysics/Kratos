@@ -72,7 +72,5 @@ Keep the wrapper free of logic. Parameter validation and defaults belong in the 
 
   Most GeoMechanics processes take `Model&` (or `ModelPart&`) and `Parameters`; match the
   C++ constructor.
-- Docstrings: the root convention asks for docstrings on newly introduced bindings. None of the
-  current GeoMechanics bindings has one. Add a docstring to new bindings; do not flag the
-  existing ones in reviews.
-
+- Docstrings: the root convention asks for docstrings on newly introduced bindings. Add a
+  docstring to new bindings; do not flag the existing ones in reviews.
