@@ -1,0 +1,147 @@
+thesis_figure,thesis_page,caption,section,file,bytes
+4.26,125,Types of bounding volumes. a) The radius search (Bounding Spheres (BS)). b) Axis-Aligned Bound-,Contact_Search,thesis_fig_4_26.png,139020
+4.27a,126,Poor search results obtained with the Bounding Sphere approach,Contact_Search,thesis_fig_4_27a.png,35785
+4.29,127,OBB from surfaces build comparison,Contact_Search,thesis_fig_4_29.png,131238
+4.30,127,Separating axis theorem,Contact_Search,thesis_fig_4_30.png,44580
+4.32,128,Space subdivision approaches,Contact_Search,thesis_fig_4_32.png,54701
+4.33,129,Tree structures,Contact_Search,thesis_fig_4_33.png,79674
+4.34,130,Consistent gap example. Circular surface vs plane,Contact_Search,thesis_fig_4_34.png,243481
+4.35,131,Consistent gap example. Double curvature surfaces,Contact_Search,thesis_fig_4_35.png,556670
+4.36,131,Self-contact normals descrimination,Contact_Search,thesis_fig_4_36.png,31189
+4.37,133,"Self-contact detection simplest case, two parallel planes",Contact_Search,thesis_fig_4_37.png,87922
+4.38,134,Self-contact detection for simple tubular case,Contact_Search,thesis_fig_4_38.png,188581
+4.39,134,Self-contact detection for tubular case,Contact_Search,thesis_fig_4_39.png,198259
+4.40,135,S-shape profile mesh (tetrahedra),Contact_Search,thesis_fig_4_40.png,353333
+4.41,135,S-shape profile resulting self-contact simulation,Contact_Search,thesis_fig_4_41.png,396609
+5.11,205,Gears example mesh,Examples,thesis_fig_5_11.png,246931
+5.12,205,"Detail solution for the displacement, VM stress and plastic dissipation",Examples,thesis_fig_5_12.png,186379
+5.13,206,Overall solution for the displacement and the VM stress,Examples,thesis_fig_5_13.png,571752
+6.1,211,Adaptive mesh techniques applied on a contact patch test,Examples,thesis_fig_6_1.png,339686
+6.19,233,Hertz geometry considered. Example here,Examples,thesis_fig_6_19.png,262600
+6.22,235,Punch test geometry considered. Solution t = 0.5s. Example here,Examples,thesis_fig_6_22.png,95102
+6.23,236,Punch test solution for VM stress and contact stress Hessian at t = 1.0s,Examples,thesis_fig_6_23.png,295831
+6.27,237,SPR contact interface example for linear triangles. Inspired[ArtWS98; BookZZT13],Examples,thesis_fig_6_27.png,46329
+6.30,239,Error solution,Examples,thesis_fig_6_30.png,371616
+6.32,240,Workflow for Level set/Hessian metric remesh,Examples,thesis_fig_6_32.png,174480
+6.33,241,Workflow for SPR metric remesh,Examples,thesis_fig_6_33.png,168751
+6.38,243,Hertz solution step 1,Examples,thesis_fig_6_38.png,248573
+6.41,244,Hertz solution step 10,Examples,thesis_fig_6_41.png,363702
+6.46,246,Initial mesh in contacting cylinders,Examples,thesis_fig_6_46.png,271256
+6.47,246,Contacting cylinders solution at t = 0.35s,Examples,thesis_fig_6_47.png,180576
+6.53,248,Contacting cylinders solution at t = 1.4s,Examples,thesis_fig_6_53.png,170367
+6.54,248,Contacting cylinders perspective solution at t = 1.4s,Examples,thesis_fig_6_54.png,390272
+7.1,261,Cylinder punch case,Examples,thesis_fig_7_1.png,268381
+7.2,262,Mesh considered in the cylinder punch case,Examples,thesis_fig_7_2.png,490768
+7.3,262,Solution for cylinder punch test,Examples,thesis_fig_7_3.png,54845
+7.4,263,Spherical punch case,Examples,thesis_fig_7_4.png,188286
+7.5,263,3D solution for the case µ1 = 0.04 and µ2 = 0.04,Examples,thesis_fig_7_5.png,530088
+7.6,264,Solution for spherical punch test,Examples,thesis_fig_7_6.png,47031
+4.3,88,Basic definition of the contact problem,General,thesis_fig_4_3.png,37407
+4.10,96,Friction cone for variants of,Theory,thesis_fig_4_10.png,30246
+4.100,170,Intersection and clipping procedure during mortar segmentation,Theory,thesis_fig_4_100.png,41897
+4.101,170,Detail on intersection on mortar segmentation,Theory,thesis_fig_4_101.png,12010
+4.102,172,Convergence plot for the Jacobian derivatives for the 3D linear triangle,Theory,thesis_fig_4_102.png,33525
+4.106,175,Convergence plot for the shape function derivatives for the 3D linear triangle,Theory,thesis_fig_4_106.png,52781
+4.108,176,Convergence plot for the dual shape function derivatives for the 3D linear triangle,Theory,thesis_fig_4_108.png,34069
+4.11,97,Definition of the contact problem,Theory,thesis_fig_4_11.png,71658
+4.110,177,Normal average for a 3D geometry,Theory,thesis_fig_4_110.png,228542
+4.111,178,Convergence plot for the normal vector derivatives for the 3D linear triangle,Theory,thesis_fig_4_111.png,39187
+4.12,98,KKT conditions of non-penetration.,Theory,thesis_fig_4_12.png,3715
+4.13,102,Condition number study for the ALM,Theory,thesis_fig_4_13.png,150351
+4.14,103,Condition number study graphic representation,Theory,thesis_fig_4_14.png,335590
+4.15,105,Dual shape functions for the 2D linear line,Theory,thesis_fig_4_15.png,11365
+4.16,106,Dual shape functions for the 3D linear triangle,Theory,thesis_fig_4_16.png,333006
+4.17,107,Dual shape functions for the 3D bilinear quadrilateral,Theory,thesis_fig_4_17.png,466280
+4.18,112,Example of convergence check in the frictionless contact,Theory,thesis_fig_4_18.png,107961
+4.19,112,"Nodal NCP function, or Lagrangian (L) contri-",Theory,thesis_fig_4_19.png,169508
+4.20,113,Coulomb’s schematic depiction of frictional contact conditions in tangential direction,Theory,thesis_fig_4_20.png,4964
+4.21,114,Graphical representation of Coulombs frictional conditions for 3D contact problem. Inspired [PhDYas11],Theory,thesis_fig_4_21.png,112909
+4.22,118,Augmented Lagrangian function for the frictional contact problem. Corresponding to (4.61b),Theory,thesis_fig_4_22.png,195042
+4.23,123,Example of convergence check in the frictional contact,Theory,thesis_fig_4_23.png,126027
+4.24,123,NCP for the frictional contact problem.,Theory,thesis_fig_4_24.png,156436
+4.4,89,Contact states. Based on[PhDYas11],Theory,thesis_fig_4_4.png,94947
+4.5,90,NTN. Inspired[PhDYas11],Theory,thesis_fig_4_5.png,38913
+4.6,90,NTS. Inspired[PhDYas11],Theory,thesis_fig_4_6.png,28749
+4.7,91,CDM. Inspired[PhDYas11],Theory,thesis_fig_4_7.png,30374
+4.8,91,STS. Inspired[PhDYas11],Theory,thesis_fig_4_8.png,32312
+4.9,92,3D segmentation between two triangles,Theory,thesis_fig_4_9.png,18285
+4.92,162,Line validation geometries,Theory,thesis_fig_4_92.png,7055
+4.93,163,Convergence plot for the Jacobian derivatives for the 2D linear line,Theory,thesis_fig_4_93.png,30098
+4.95,164,Integration segment for a linear line,Theory,thesis_fig_4_95.png,10672
+4.96,165,Convergence plot for the shape function derivatives for the 2D linear line,Theory,thesis_fig_4_96.png,39989
+4.97,166,Convergence plot for the dual shape function derivatives for the 2D linear line,Theory,thesis_fig_4_97.png,31322
+4.98,167,Normal average for a 2D line. Proposed by Taylor and Papadopoulos[ArtPT92],Theory,thesis_fig_4_98.png,5859
+4.99,168,Convergence plot for the normal derivatives for the 2D linear line,Theory,thesis_fig_4_99.png,28379
+A.1,286,Exact segmentation method for integration. Figure inspired on Popp[PhDPop12],Theory,thesis_fig_A_1.png,54416
+A.2,286,Collocation method for integration. Figure inspired on Popp[PhDPop12],Theory,thesis_fig_A_2.png,67356
+A.3,287,Taylor patch test[ArtTP],Theory,thesis_fig_A_3.png,31136
+A.4,287,Displacement on Taylor test,Theory,thesis_fig_A_4.png,87664
+A.5,288,Compared solution for the augmented contact pressure,Theory,thesis_fig_A_5.png,72977
+A.6,288,Convergence of the solution for different number of GP,Theory,thesis_fig_A_6.png,67704
+A.7,292,Mesh tying example,Theory,thesis_fig_A_7.png,138356
+A.8,292,Solution for mesh tying example,Theory,thesis_fig_A_8.png,487863
+C.1,306,AD concept,Theory,thesis_fig_C_1.png,13471
+C.2,307,NR representation for a SDOF,Theory,thesis_fig_C_2.png,21582
+C.3,310,AD workflow in a UML diagram,Theory,thesis_fig_C_3.png,106238
+D.12,328,"Solution for a NL SDOF problem solved with PM, comparing different values of ε. Moved wall",Theory,thesis_fig_D_12.png,75218
+D.16,332,Solution for a NL SDOF solved with ALM. ε = 0.5. Moved wall,Theory,thesis_fig_D_16.png,276675
+D.20,335,Graphic representation of (D.26),Theory,thesis_fig_D_20.png,155713
+D.3,317,Lagrangian function for the contact problem,Theory,thesis_fig_D_3.png,99524
+D.4,320,Augmented Lagrangian function for the contact problem,Theory,thesis_fig_D_4.png,165812
+D.5,321,Patch tests solutions obtained with Master -Slave elimination method,Theory,thesis_fig_D_5.png,162895
+D.6,323,Simplified contact problem within spring and a wall,Theory,thesis_fig_D_6.png,40035
+D.7,323,"Solution for a SDOF solved with PM, comparing different values of ε",Theory,thesis_fig_D_7.png,71141
+D.8,324,Solution for a SDOF solved with LMM,Theory,thesis_fig_D_8.png,309333
+E.1,340,Mapping concepts,Theory,thesis_fig_E_1.png,110714
+E.2,343,Non-matching mesh of triangles,Theory,thesis_fig_E_2.png,230582
+E.3,344,Scalar solution for non-matching mesh of triangles,Theory,thesis_fig_E_3.png,220612
+E.4,344,Vector solution for non-matching mesh of triangles,Theory,thesis_fig_E_4.png,210439
+4.49,139,Setup for the 2D sphere-plane Hertz benchmark,Usage,thesis_fig_4_49.png,154992
+4.50,140,Solution compared for different mesh sizes for the 2D Hertz plane-sphere contact,Usage,thesis_fig_4_50.png,107670
+4.51,140,Error compared for different mesh sizes for the 2D Hertz plane-sphere contact,Usage,thesis_fig_4_51.png,96270
+4.64,147,Evolution of displacement and energy compared with analytical solution,Usage,thesis_fig_4_64.png,78056
+4.42,135,Geometries of the simplest patch test,Validation,thesis_fig_4_42.png,32992
+4.43,136,Solution for the frictionless simplest patch test,Validation,thesis_fig_4_43.png,94951
+4.44,136,Geometry and solution for the frictional simplest patch test,Validation,thesis_fig_4_44.png,203201
+4.45,137,Solution for the Taylor patch test in 2D,Validation,thesis_fig_4_45.png,88715
+4.46,137,Solution for the Taylor patch test in 3D,Validation,thesis_fig_4_46.png,184020
+4.47,138,Friction problem from Dong[ArtDon99],Validation,thesis_fig_4_47.png,141176
+4.48,138,Solution for pure friction problem,Validation,thesis_fig_4_48.png,121067
+4.52,141,Setup for the two cylinders Hertz benchmark,Validation,thesis_fig_4_52.png,347423
+4.53,141,Solution for the two cylinders frictionless Hertz benchmark,Validation,thesis_fig_4_53.png,716059
+4.54,142,Solution for the two cylinders frictional Hertz benchmark,Validation,thesis_fig_4_54.png,43521
+4.55,142,Mesh considered for 3D Hertz plane-sphere,Validation,thesis_fig_4_55.png,201580
+4.56,143,Solution for the 3D Hertz plane-sphere contact,Validation,thesis_fig_4_56.png,459380
+4.57,143,Solution compared for different mesh sizes for the 3D Hertz plane-sphere contact,Validation,thesis_fig_4_57.png,70013
+4.58,143,Error compared for different mesh sizes for the 3D Hertz plane-sphere contact,Validation,thesis_fig_4_58.png,71293
+4.60,144,Solution for two hemispheres Hertz contact,Validation,thesis_fig_4_60.png,677152
+4.61,145,Teeth layers model,Validation,thesis_fig_4_61.png,463257
+4.62,145,Solution for teeth layers model,Validation,thesis_fig_4_62.png,920856
+4.63,146,Energy conservation test. Cylinder inside ring. The example can be found in here,Validation,thesis_fig_4_63.png,421108
+4.65,147,Solution of the problem at certains times. The time is specified in each subfigure,Validation,thesis_fig_4_65.png,479097
+4.66,148,Double arc benchmark,Validation,thesis_fig_4_66.png,113314
+4.67,148,Double arc meshes,Validation,thesis_fig_4_67.png,226064
+4.68,149,Displacement solution for frictionless in double arc benchmark,Validation,thesis_fig_4_68.png,366006
+4.69,149,Compared solution for frictionless in double arc benchmark,Validation,thesis_fig_4_69.png,50544
+4.70,150,Displacement solution for frictional in double arc benchmark,Validation,thesis_fig_4_70.png,353228
+4.71,150,Compared solution for frictional in double arc benchmark,Validation,thesis_fig_4_71.png,46484
+4.72,151,Arc pressing block,Validation,thesis_fig_4_72.png,415191
+4.73,151,Solution for different stiffness between the arc and the block,Validation,thesis_fig_4_73.png,212422
+4.74,152,Mesh for hyperelastic tubes,Validation,thesis_fig_4_74.png,311385
+4.75,152,Displacement solution for hyperelastic tubes,Validation,thesis_fig_4_75.png,704289
+4.76,153,Slice solution for hyperelastic tubes,Validation,thesis_fig_4_76.png,271657
+4.77,153,Contacting cylinders mesh,Validation,thesis_fig_4_77.png,282242
+4.78,154,Solution for contacting cylinders with horizontal movement,Validation,thesis_fig_4_78.png,288360
+4.79,154,Frictionless reaction solution in the lower cylinder for the horizontal movement,Validation,thesis_fig_4_79.png,30743
+4.80,154,Solution for contacting cylinders with vertical movement,Validation,thesis_fig_4_80.png,119405
+4.81,155,Reaction solution in the lower cylinder for the vertical movement,Validation,thesis_fig_4_81.png,21585
+4.82,155,Press fit problem,Validation,thesis_fig_4_82.png,135974
+4.83,156,Solution for 2D press fit compared with reference,Validation,thesis_fig_4_83.png,28338
+4.84,156,Press fit 2D solution,Validation,thesis_fig_4_84.png,120894
+4.85,157,Press fit 3D solution,Validation,thesis_fig_4_85.png,290257
+4.86,158,Circular ironing test,Validation,thesis_fig_4_86.png,293418
+4.87,158,Circular ironing test solution,Validation,thesis_fig_4_87.png,459632
+4.88,159,Comparison between the frictionless solutions of the shallow and the circular ironing,Validation,thesis_fig_4_88.png,36924
+4.89,159,Shallow ironing test,Validation,thesis_fig_4_89.png,281576
+4.90,160,"Shallow ironing test solution, comparing frictional and frictionless cases",Validation,thesis_fig_4_90.png,502762
+4.91,160,Reaction solution for shallow ironing test,Validation,thesis_fig_4_91.png,108462

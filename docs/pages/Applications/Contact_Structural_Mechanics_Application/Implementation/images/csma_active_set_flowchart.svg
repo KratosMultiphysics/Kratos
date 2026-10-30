@@ -1,0 +1,86 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 1140" width="1600" height="1140">
+<style>text{font-family:Helvetica,Arial,sans-serif;fill:#1f2937}.title{font-size:30px;font-weight:bold}.sub{font-size:17px;fill:#6b7280}
+.h{font-size:18px;font-weight:bold}.b{font-size:14px}.s{font-size:13px;fill:#6b7280}.d{font-size:15px;font-weight:bold;text-anchor:middle}.foot{font-size:13px;fill:#6b7280}.lab{font-size:13px;fill:#6b7280;font-style:italic}.m{font-size:16px}</style>
+<defs><marker id="ar" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#6b7280"/></marker></defs>
+<rect width="1600" height="1140" fill="#ffffff"/>
+<text x="30" y="44" class="title">Semi-smooth Newton: how the active and stick/slip sets are updated</text>
+<text x="30" y="72" class="sub">ActiveSetUtilities (custom_utilities/active_set_utilities.cpp) called from the mortar convergence criteria after every Newton iteration — thesis §4.3.3.6 (eq. 4.41–4.44) and §4.3.4.5 (eq. 4.79)</text>
+<rect x="30" y="100" width="1540" height="96" rx="10" fill="#f8fafc" stroke="#6b7280" stroke-width="2"/>
+<text x="44" y="126" class="h" fill="#6b7280">Input of every check (per slave node, after Build &amp; Solve of iteration i)</text>
+<text x="44" y="150" class="b">weighted gap  g̃n = n·(D x¹ − M x²)  (WEIGHTED_GAP, recomputed by ComputeExplicitContributionConditions) · weighted slip g̃τ (WEIGHTED_SLIP, frictional) · multiplier λn</text>
+<text x="44" y="169" class="b">   (LAGRANGE_MULTIPLIER_CONTACT_PRESSURE) or λ (VECTOR_LAGRANGE_MULTIPLIER)</text>
+<text x="44" y="188" class="b">parameters: ε = INITIAL_PENALTY (nodal or ProcessInfo), k = SCALE_FACTOR, TANGENT_FACTOR, μ = FRICTION_COEFFICIENT (nodal), SLIP_THRESHOLD, pure_slip flag of the criterion</text>
+<rect x="30" y="230" width="740" height="100" rx="10" fill="#eff6ff" stroke="#2563eb" stroke-width="2"/>
+<text x="44" y="256" class="h" fill="#2563eb">1 · Augmented normal pressure λ̄n (thesis eq. 4.42; NCP eq. 4.44)</text>
+<text x="44" y="280" class="b">ALM scalar / components / frictional:   λ̄n = k λn + ε g̃n        (λn = n·λ for vector LM)</text>
+<text x="44" y="299" class="b">Penalty frictionless / frictional:          λ̄n = ε g̃n              (no multiplier)</text>
+<text x="44" y="318" class="s">stored in AUGMENTED_NORMAL_CONTACT_PRESSURE (non-historical, also used for post-processing)</text>
+<polygon points="400,365.0 550.0,410 400,455.0 250.0,410" fill="#eff6ff" stroke="#2563eb" stroke-width="2"/>
+<text x="400" y="406.0" class="d" fill="#2563eb">λ̄n &lt; 0 ?</text>
+<text x="400" y="424.0" class="d" fill="#2563eb">(compression)</text>
+<line x1="400" y1="330" x2="400" y2="363" stroke="#6b7280" stroke-width="2" marker-end="url(#ar)"/>
+<rect x="30" y="500" width="350" height="150" rx="10" fill="#f0fdfa" stroke="#0d9488" stroke-width="2"/>
+<text x="44" y="526" class="h" fill="#0d9488">ACTIVE</text>
+<text x="44" y="550" class="b">node.Set(ACTIVE, true)</text>
+<text x="44" y="569" class="b">ALM: λn := λ̄n / k written back (prediction</text>
+<text x="44" y="588" class="b">   of the multiplier for the next</text>
+<text x="44" y="607" class="b">   iteration)</text>
+<text x="44" y="626" class="s">counts as a change if it was inactive →</text>
+<text x="44" y="645" class="s">   ACTIVE_SET_CONVERGED = false</text>
+<rect x="420" y="500" width="350" height="150" rx="10" fill="#fef2f2" stroke="#dc2626" stroke-width="2"/>
+<text x="434" y="526" class="h" fill="#dc2626">INACTIVE</text>
+<text x="434" y="550" class="b">node.Set(ACTIVE, false)</text>
+<text x="434" y="569" class="b">ALM: multiplier regularised by the −k²/ε λn</text>
+<text x="434" y="588" class="b">   term of the inactive branch (→ 0)</text>
+<text x="434" y="607" class="b">penalty: no contribution at all</text>
+<text x="434" y="626" class="s">change if it was active →</text>
+<text x="434" y="645" class="s">   ACTIVE_SET_CONVERGED = false</text>
+<line x1="320" y1="435" x2="230" y2="498" stroke="#6b7280" stroke-width="2" marker-end="url(#ar)"/>
+<text x="215.0" y="460.5" class="lab">yes</text>
+<line x1="480" y1="435" x2="570" y2="498" stroke="#6b7280" stroke-width="2" marker-end="url(#ar)"/>
+<text x="531.0" y="460.5" class="lab">no</text>
+<rect x="810" y="230" width="760" height="120" rx="10" fill="#f5f3ff" stroke="#7c3aed" stroke-width="2"/>
+<text x="824" y="256" class="h" fill="#7c3aed">2 · Frictional only: augmented tangent pressure  λ̄τ  (thesis eq. 4.79, Coulomb cone)</text>
+<text x="824" y="280" class="b">ALM frictional:  λ̄τ = k λτ + TANGENT_FACTOR · ε · g̃τ   (with slip_augmentation_coefficient</text>
+<text x="824" y="299" class="b">   scaling ε on slip nodes)</text>
+<text x="824" y="318" class="b">Penalty frictional:  λ̄τ = TANGENT_FACTOR · ε · g̃τ</text>
+<text x="824" y="337" class="s">stored in AUGMENTED_TANGENT_CONTACT_PRESSURE; only evaluated for ACTIVE nodes (λ̄n &lt; 0)</text>
+<polygon points="1190,365.0 1430.0,410 1190,455.0 950.0,410" fill="#f5f3ff" stroke="#7c3aed" stroke-width="2"/>
+<text x="1190" y="406.0" class="d" fill="#7c3aed">‖λ̄τ‖ &gt; threshold · μ|λ̄n| ?</text>
+<text x="1190" y="424.0" class="d" fill="#7c3aed">threshold = 1 (stick) / 1 − SLIP_THRESHOLD (slip)</text>
+<line x1="1190" y1="350" x2="1190" y2="363" stroke="#6b7280" stroke-width="2" marker-end="url(#ar)"/>
+<rect x="810" y="500" width="365" height="150" rx="10" fill="#f0fdfa" stroke="#0d9488" stroke-width="2"/>
+<text x="824" y="526" class="h" fill="#0d9488">STICK   (SLIP flag unset)</text>
+<text x="824" y="550" class="b">‖λ̄τ‖ ≤ μ |λ̄n| : inside the Coulomb cone</text>
+<text x="824" y="569" class="b">tangential multiplier keeps the stick branch</text>
+<text x="824" y="588" class="b">   of the condition</text>
+<text x="824" y="607" class="s">pure_slip = true forces SLIP anyway (warning</text>
+<text x="824" y="626" class="s">   at echo level &gt; 0)</text>
+<rect x="1205" y="500" width="365" height="150" rx="10" fill="#fffbeb" stroke="#d97706" stroke-width="2"/>
+<text x="1219" y="526" class="h" fill="#d97706">SLIP   (SLIP flag set)</text>
+<text x="1219" y="550" class="b">‖λ̄τ‖ &gt; μ |λ̄n| : on the cone surface</text>
+<text x="1219" y="569" class="b">λ̄τ := −μ λ̄n · λτ/‖λτ‖  (slip direction),</text>
+<text x="1219" y="588" class="b">   ALM: λ := n λ̄n/k + λ̄τ/k</text>
+<text x="1219" y="607" class="s">change of state → SLIP_SET_CONVERGED = false</text>
+<line x1="1080" y1="435" x2="1000" y2="498" stroke="#6b7280" stroke-width="2" marker-end="url(#ar)"/>
+<text x="990.0" y="460.5" class="lab">no</text>
+<line x1="1300" y1="435" x2="1370" y2="498" stroke="#6b7280" stroke-width="2" marker-end="url(#ar)"/>
+<text x="1341.0" y="460.5" class="lab">yes</text>
+<rect x="30" y="690" width="1540" height="170" rx="10" fill="#f8fafc" stroke="#6b7280" stroke-width="2"/>
+<text x="44" y="716" class="h" fill="#6b7280">3 · Convergence decision (MortarAndConvergenceCriteria = user criterion AND mortar criterion)</text>
+<text x="44" y="740" class="b">residuals / increments of displacements and multipliers below the tolerances (contact_displacement_* / contact_residual_* / frictional_stick_* / frictional_slip_*)   AND   no node changed its ACTIVE state</text>
+<text x="44" y="759" class="b">   (ACTIVE_SET_CONVERGED)   AND   no node changed its SLIP state (SLIP_SET_CONVERGED, frictional)</text>
+<text x="44" y="778" class="b">thesis Algorithm 2 (frictionless) / Algorithm 3 (frictional): the sets and the residuals must converge together. Not converged → next Newton iteration with the updated flags (the conditions pick the</text>
+<text x="44" y="797" class="b">   branch of their generated LHS/RHS from GetActiveInactiveValue: 2^i encoding of ACTIVE, 3^i encoding of ACTIVE/SLIP).</text>
+<text x="44" y="816" class="s">INTERACTION set (default): one Newton loop for everything (full semi-smooth Newton). simplified_semi_smooth_newton: the sets are frozen during an inner Newton loop and rechecked afterwards, up to</text>
+<text x="44" y="835" class="s">   inner_loop_iterations times.</text>
+<rect x="30" y="890" width="1540" height="180" rx="10" fill="#eff6ff" stroke="#2563eb" stroke-width="2"/>
+<text x="44" y="916" class="h" fill="#2563eb">Functions (ActiveSetUtilities) and the criteria that call them</text>
+<text x="44" y="940" class="b">ComputeALMFrictionlessActiveSet → ALMFrictionlessMortarConvergenceCriteria · ComputeALMFrictionlessComponentsActiveSet → ALMFrictionlessComponentsMortarConvergenceCriteria ·</text>
+<text x="44" y="959" class="b">   ComputeALMFrictionalActiveSet(pure_slip, echo) → ALMFrictionalMortarConvergenceCriteria</text>
+<text x="44" y="978" class="b">ComputePenaltyFrictionlessActiveSet → PenaltyFrictionlessMortarConvergenceCriteria · ComputePenaltyFrictionalActiveSet(pure_slip, echo) → PenaltyFrictionalMortarConvergenceCriteria · the frictional</text>
+<text x="44" y="997" class="b">   functions return [active-set changes, stick/slip changes]</text>
+<text x="44" y="1016" class="s">All are called from BaseMortarConvergenceCriteria::PostCriteria; the MPC route uses MPCContactCriteria (reaction mapping) instead. The search process gives the initial guess of ACTIVE from the gap and</text>
+<text x="44" y="1035" class="s">   active_check_factor.</text>
+<text x="30" y="1122" class="foot">ContactStructuralMechanicsApplication · Kratos Multiphysics</text>
+</svg>
