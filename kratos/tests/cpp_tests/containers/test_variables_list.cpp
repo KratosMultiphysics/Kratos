@@ -79,6 +79,14 @@ void LoadSavedDofsList(VariablesList::Pointer& rpList)
     serializer.load("List", rpList);
 }
 
+// Loaded reactions are the instances registered by the core, so they are compared by key: on Windows each shared
+// library has its own instance of an inline constexpr variable.
+bool HasDofReaction(const VariablesList& rList, const int DofIndex, const VariableData& rReaction)
+{
+    const auto p_reaction = rList.pGetDofReaction(DofIndex);
+    return p_reaction != nullptr && *p_reaction == rReaction;
+}
+
 } // namespace
 
 // Restart adds the variables before loading and the dofs after it, so the archive's dofs are added to a list with the
@@ -92,11 +100,11 @@ KRATOS_TEST_CASE_IN_SUITE(VariablesListLoadAddsDofsToListWithVariables, KratosCo
 
     KRATOS_EXPECT_EQ(p_list->size(), 2);
     KRATOS_EXPECT_EQ(p_list->GetDofVariable(0), DISPLACEMENT_X);
-    KRATOS_EXPECT_EQ(p_list->pGetDofReaction(0), &REACTION_X);
+    KRATOS_EXPECT_TRUE(HasDofReaction(*p_list, 0, REACTION_X));
     KRATOS_EXPECT_EQ(p_list->GetDofVariable(1), DISPLACEMENT_Y);
     KRATOS_EXPECT_EQ(p_list->pGetDofReaction(1), nullptr);
     KRATOS_EXPECT_EQ(p_list->GetDofVariable(2), DISPLACEMENT_Z);
-    KRATOS_EXPECT_EQ(p_list->pGetDofReaction(2), &REACTION_Z);
+    KRATOS_EXPECT_TRUE(HasDofReaction(*p_list, 2, REACTION_Z));
 
     // a missing reaction is taken from the archive, and a dof added after the save is kept
     auto p_list_with_dofs = Kratos::make_intrusive<VariablesList>();
@@ -108,9 +116,9 @@ KRATOS_TEST_CASE_IN_SUITE(VariablesListLoadAddsDofsToListWithVariables, KratosCo
     p_list_with_dofs->AddDof(&TEMPERATURE);
     LoadSavedDofsList(p_list_with_dofs);
 
-    KRATOS_EXPECT_EQ(p_list_with_dofs->pGetDofReaction(0), &REACTION_X);
+    KRATOS_EXPECT_TRUE(HasDofReaction(*p_list_with_dofs, 0, REACTION_X));
     KRATOS_EXPECT_EQ(p_list_with_dofs->pGetDofReaction(1), nullptr);
-    KRATOS_EXPECT_EQ(p_list_with_dofs->pGetDofReaction(2), &REACTION_Z);
+    KRATOS_EXPECT_TRUE(HasDofReaction(*p_list_with_dofs, 2, REACTION_Z));
     KRATOS_EXPECT_EQ(p_list_with_dofs->GetDofVariable(3), TEMPERATURE);
 }
 
@@ -149,16 +157,16 @@ KRATOS_TEST_CASE_IN_SUITE(VariablesListLoadExtendsUnreferencedList, KratosCoreFa
     KRATOS_EXPECT_TRUE(*(p_list->begin()) == DISPLACEMENT);
     KRATOS_EXPECT_TRUE(*(p_list->begin() + 1) == TEMPERATURE);
     KRATOS_EXPECT_EQ(p_list->GetDofVariable(0), DISPLACEMENT_X);
-    KRATOS_EXPECT_EQ(p_list->pGetDofReaction(0), &REACTION_X);
+    KRATOS_EXPECT_TRUE(HasDofReaction(*p_list, 0, REACTION_X));
     KRATOS_EXPECT_EQ(p_list->GetDofVariable(2), DISPLACEMENT_Z);
-    KRATOS_EXPECT_EQ(p_list->pGetDofReaction(2), &REACTION_Z);
+    KRATOS_EXPECT_TRUE(HasDofReaction(*p_list, 2, REACTION_Z));
 
     // an empty unreferenced list takes the whole archive
     auto p_empty_list = Kratos::make_intrusive<VariablesList>();
     LoadSavedDofsList(p_empty_list);
     KRATOS_EXPECT_EQ(p_empty_list->size(), 2);
     KRATOS_EXPECT_EQ(p_empty_list->GetDofVariable(1), DISPLACEMENT_Y);
-    KRATOS_EXPECT_EQ(p_empty_list->pGetDofReaction(2), &REACTION_Z);
+    KRATOS_EXPECT_TRUE(HasDofReaction(*p_empty_list, 2, REACTION_Z));
 
     // a shared list rejects it and stays unchanged
     auto p_shared_list = Kratos::make_intrusive<VariablesList>();
