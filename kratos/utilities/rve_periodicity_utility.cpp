@@ -186,7 +186,7 @@ MasterSlaveConstraint::Pointer RVEPeriodicityUtility::GenerateConstraint(
     for (IndexType i = 0; i < rMasterIds.size(); ++i)
         master_dofs.push_back(mrModelPart.pGetNode(rMasterIds[i])->pGetDof(rVar));
 
-    auto pconstraint = Kratos::make_shared<LinearMasterSlaveConstraint>(rConstraintId, master_dofs, slave_dofs, rRelationMatrix, rTranslationVector);
+    auto pconstraint = Kratos::make_intrusive<LinearMasterSlaveConstraint>(rConstraintId, master_dofs, slave_dofs, rRelationMatrix, rTranslationVector);
     rConstraintId++;
     return pconstraint;
 }
