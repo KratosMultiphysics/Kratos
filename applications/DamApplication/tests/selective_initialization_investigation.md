@@ -8,16 +8,19 @@ stress field with **zero initial displacement**, using standard constitutive
 increments of an uninterrupted calculation. This is selective initialization,
 not restart continuation.
 
-The working prototype uses two independent Models, core `RestartUtility`, a
-small **test-only** C++ bridge, and ordinary process callbacks. No destination
-restart path, solver initialization changes, new serializer, nodal stress
-mapping, or displacement transfer are needed. Existing reference-temperature
-functionality works without a new process.
+The validated workflow is implemented in production as
+`SelectiveInitialStressUtility` plus the thin
+`selective_initial_stress_process`. It uses two independent Models, core
+`RestartUtility`, and ordinary process callbacks. No destination restart path,
+solver initialization changes, new serializer, nodal stress mapping, or
+displacement transfer are needed. Existing reference-temperature functionality
+works without a new process.
 
 The work is on `dam/initial-state-transfer` in
 `/tmp/kratos-selective-initial-state`. The original checkout remains on
 `dam/enable-standard-restart`, with all its uncommitted changes preserved.
-Nothing has been committed. The earlier investigation and benchmarks remain.
+The investigation and the production implementation are recorded in separate
+commits. The earlier investigation and benchmarks remain in the history.
 
 ## Architecture and minimum data
 
@@ -59,7 +62,7 @@ reference-field use case. If already available as node-ID/value data, the
 existing reference-temperature process is sufficient; restart is unnecessary.
 Current `TEMPERATURE` always belongs to the destination thermal problem.
 
-## Why a small C++ bridge is needed
+## Why a small C++ utility is needed
 
 The existing benchmark showed that assigning the first stress to every Q4
 point with `SetInitialStateProcess` causes stress error 4.018, free residual
@@ -67,26 +70,25 @@ point with `SetInitialStateProcess` causes stress error 4.018, free residual
 represent this field. The C++ interfaces already support distinct point states,
 but Python does not expose the law-pointer vector or `SetInitialState`.
 
-`selective_initial_state_probe/bridge.cpp` therefore demonstrates only the
-missing connection. It is a separately compiled investigation module, **not a
-registered production utility or supported input API**. It uses existing C++
-element and law interfaces and owns no serialization, mesh search, interpolation
-or restart logic. It validates all elements before assigning any states.
+`SelectiveInitialStressUtility` therefore provides only the missing connection.
+It is a registered Dam utility, not a general transfer framework. It uses
+existing C++ element and law interfaces and owns no serialization, mesh search,
+interpolation or restart logic. It validates every element and integration
+point before assigning any state.
 
-The prototype explicitly rejects incompatible meshes/materials/integration
+The utility explicitly rejects incompatible meshes/materials/integration
 rules/laws, moved meshes, nonzero destination displacement, an already assigned
-initial state, and a thermoelastic destination initially having `T != T_ref`.
-The latter restriction makes the initial thermal datum unambiguous. Validated
-scope is two-dimensional, fixed-mesh, four-point Q4 SMA small-displacement
-plane strain, using `LinearElasticPlaneStrain2DLaw` or Dam
+initial state, malformed stress vectors, and a thermoelastic destination
+initially having `T != T_ref`. The latter restriction makes the initial thermal
+datum unambiguous. Validated scope is two-dimensional, fixed-mesh, four-point Q4
+SMA small-displacement plane strain, using `LinearElasticPlaneStrain2DLaw` or Dam
 `ThermalLinearElastic2DPlaneStrain`. Other configurations are not enabled.
 
 One independent production prerequisite is included: registration of
 `USE_PROCESS_BASED_LOCAL_EQUIVALENT_STRAIN`. Dam writes this variable to
 ProcessInfo; an unregistered variable made a real Dam checkpoint unsafe to
-load. The existing rebuilt Dam library with this registration was used for the
-runs. Its relevant element/law sources match this branch. No conventional
-restart lifecycle implementation was merged into this branch.
+load. No conventional restart lifecycle implementation was merged into this
+branch.
 
 ## Numerical validation through normal DamAnalysis
 
@@ -149,8 +151,8 @@ Later steps prove the states survive the first solve without being reassigned.
 
 ## Existing reference-temperature functionality and constitutive convention
 
-The separate `test_existing_reference_temperature_process` needs no bridge or
-restart. It uses the existing `impose_nodal_reference_temperature_process` with
+The separate `test_existing_reference_temperature_process` needs no stress import
+or restart. It uses the existing `impose_nodal_reference_temperature_process` with
 a node-ID/value file assigning `T_ref = 20 + 2*y`, and destination current
 `T = 30 + 2*y`. All mechanical DOFs are restrained for an analytical check;
 thermal top/bottom nodes are prescribed and the middle row is solved. Neither
@@ -162,7 +164,7 @@ For alpha=1e-5 and delta T=10 this is `[0.00012,0.00012,0]`; the restrained stre
 is `[-5/3,-5/3,0]`. All eight points match these values at t=0 and all three
 steps to the stated tolerance. Reference values persist and reactions are
 computed on the first solve. This test is registered in the normal small/all
-suites; no compiled investigation module is needed for it.
+suites; no additional compiled module is needed for it.
 
 The existing reference process assigns values in `ExecuteBeforeSolutionLoop`
 and every `ExecuteInitializeSolutionStep`. Its `interval` setting does not gate
@@ -185,72 +187,64 @@ If preserving the exact imported total stress at t=0 while `T != T_ref` is later
 supported, the necessary offset at zero displacement is
 `initial_strain = -thermal_strain(t0)`. Alternatively, leaving the offset zero
 intentionally superposes an immediate thermal stress and may require a new
-equilibrium solve. These are different semantics; the prototype rejects the
+equilibrium solve. These are different semantics; the utility rejects the
 ambiguous case rather than silently choosing. Transferring displacements would
 require a different offset and is outside this stress-only interface.
 
-## Smallest production proposal
+## Production implementation
 
-After review of this evidence, promote a narrow same-mesh stress assignment
-operation and thin Python binding, with the checks demonstrated by the probe.
-A short Python Process should own source `RestartUtility` loading, target
-selection, once-only invocation in `ExecuteBeforeSolutionLoop`, and source
-lifetime. Keep stress assignment in C++; do not expose mutable source laws to
-Python or clone them into the destination. Validate the destination analysis
-configuration as quasistatic, fixed mesh, local elasticity before enabling it.
+The implementation is deliberately narrow:
 
-Keep source and destination mechanical model-part names explicit. Allow only
-stress transfer in the first version, require zero initial displacement and,
-for thermoelastic import, initially equal T and T_ref. Use the existing
+- `custom_utilities/selective_initial_stress_utility.{h,cpp}` validates the
+  complete source/destination pair and assigns one `InitialState` per
+  integration point. It owns no serialization or mapping logic.
+- `custom_python/add_custom_utilities_to_python.cpp` exposes the single
+  `AssignInitialStresses` operation.
+- `python_scripts/selective_initial_stress_process.py` owns source
+  `RestartUtility` loading, explicit source/destination model-part selection,
+  once-only invocation in `ExecuteBeforeSolutionLoop`, and source lifetime.
+- `DamAnalysis` rejects an accidental combination with
+  `transfer_results_process.add_previous_results`.
+
+Source and destination mechanical model-part names stay explicit. Only stress
+transfer is supported, zero initial displacement is required, and thermoelastic
+import requires initially equal T and T_ref. Use the existing
 reference-temperature process separately, ordered before stress assignment.
-Validate the free-DOF initial equilibrium against destination loads and
-constraints; incompatible support/loading cannot be cured by a data copy.
-The first implementation should fail clearly when preservation of equilibrium
-is requested but the normalized residual exceeds its specified tolerance.
+Incompatible support/loading cannot be cured by a data copy; the validated
+tests check the free-DOF equilibrium after assignment.
 
-No changes are needed to DamAnalysis ordering, destination model import, buffer
-filling, time advancement, output scheduling, thermal solver initialization or
-restart continuation. No SelfWeight, UP/P, interface, damage or nonlocal changes
-are proposed. Reuse standard body-force processes, core restart/save processes,
-core `InitialState`, SMA elements, existing Dam thermoelastic laws and the
-existing reference-temperature process. Avoid new nodal stress storage,
-Gauss-to-node extrapolation, mapping searches, general transfer infrastructure
-and custom checkpoint formats. Existing previous-results mapping remains intact.
+No changes are needed to destination model import, buffer filling, time
+advancement, output scheduling, thermal solver initialization or restart
+continuation. No SelfWeight, UP/P, interface, damage or nonlocal changes are
+included. The implementation reuses standard body-force processes, core
+restart/save processes, core `InitialState`, SMA elements, existing Dam
+thermoelastic laws and the existing reference-temperature process. It avoids
+new nodal stress storage, Gauss-to-node extrapolation, mapping searches, general
+transfer infrastructure and custom checkpoint formats. Existing
+previous-results mapping remains intact and is explicitly mutually exclusive.
 
 ## Reproduction and evidence
 
-The focused bridge is intentionally outside normal application CMake targets.
-From this worktree, using this machine's existing Python 3.14 Kratos build:
+The production tests are part of the standard DamApplication suites. They use
+the registered utility and process and require no manually compiled bridge.
+From a build that includes this branch:
 
 ```bash
-g++ -shared -fPIC -O0 -std=c++20 -fopenmp \
-  -DBOOST_UBLAS_MOVE_SEMANTICS -DKRATOS_PYTHON -DKRATOS_SMP_OPENMP \
-  -I/usr/include/python3.14 -Ikratos -Iexternal_libraries -I/usr/include/eigen3 \
-  -Iapplications/DamApplication -Iapplications/PoromechanicsApplication \
-  -Iapplications/StructuralMechanicsApplication -Iapplications/ConstitutiveLawsApplication \
-  applications/DamApplication/tests/selective_initial_state_probe/bridge.cpp \
-  -L/home/cimne/Kratos/bin/Release/libs \
-  -lKratosCore -lKratosStructuralMechanicsCore -lKratosConstitutiveLawsCore \
-  -L/home/cimne/Kratos/build/Release/applications/DamApplication -lKratosDamCore \
-  -o /tmp/dam_selective_state_probe.so
-
-PYTHONPATH=/tmp:/home/cimne/Kratos/bin/Release \
-LD_LIBRARY_PATH=/home/cimne/Kratos/build/Release/applications/DamApplication:/home/cimne/Kratos/bin/Release/libs \
-OMP_NUM_THREADS=1 DAM_SELECTIVE_RESULTS=/tmp/dam_selective_results \
-python3 applications/DamApplication/tests/test_dam_selective_initialization.py
+cd applications/DamApplication/tests
+PYTHONPATH=<dam-python-scripts>:<kratos-install> \
+LD_LIBRARY_PATH=<dam-build>:<kratos-install>/libs \
+OMP_NUM_THREADS=1 python3 test_DamApplication.py -l small
 ```
 
-The child analyses explicitly use this worktree's Dam scripts. Rebuild the Dam
-core with the variable registration first if using a different build; the probe
-must use ABI-compatible libraries. The test fails clearly if the bridge is not
-built, rather than silently skipping the selective validation.
+Each selective test creates its own temporary source/output directories and
+leaves input files alone. Setting `DAM_SELECTIVE_RESULTS` optionally retains the
+full source/destination arrays outside the checkpoint directories.
 
-Validation on 2026-10-30: all four focused tests passed, including the rejection
-subcases; the Dam small suite passed **141 tests** using an isolated Python
-runtime with this worktree's Dam scripts. Full source/destination arrays are
-recorded in `/tmp/dam_selective_results/horizontal.json` and `thermal.json`;
-logs are `/tmp/dam_selective_test.log` and `/tmp/dam_selective_small.log`.
-Each run uses temporary source/output directories and leaves input files alone.
+Validation on 2026-10-30: the seven focused tests passed, including the rejection
+subcases, the source-preservation check and the variable-registration
+regression; the Dam small suite passed **147 tests** with the selective tests
+included. Full source/destination arrays are recorded in
+`/tmp/dam_selective_results_production/horizontal.json` and `thermal.json`.
 
 The original regression input was read from exactly
 `/home/cimne/Simulaciones/00_DEBBUGING_TESTS/DamApplication/TestTranferUtility2D.gid/`

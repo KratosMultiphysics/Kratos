@@ -42,3 +42,44 @@ interface keep working without changes.
 - VTK output is currently limited to safe nodal results. Gauss-point output for
   mixed element types and `Variable<Matrix>` results are not supported reliably
   by the standard VTK process and are not enabled automatically.
+
+## Selective initial stresses from a previous calculation ##
+
+A new analysis can start from selected Gauss-point stresses of an earlier
+calculation without restarting the earlier ModelPart. The source checkpoint is
+loaded into an isolated `Model`, only the Cauchy stresses are copied, and each
+destination constitutive law receives its own `InitialState`. Displacements,
+reactions, velocities, accelerations, time, step counters, loads, boundary
+conditions and temperature fields remain those of the new analysis.
+
+Add the process to `loads_process_list` (or `constraints_process_list`):
+
+```json
+{
+    "python_module": "selective_initial_stress_process",
+    "kratos_module": "KratosMultiphysics.DamApplication",
+    "Parameters": {
+        "model_part_name": "MainModelPart.Parts_Concrete",
+        "source_model_part_name": "Parts_Concrete",
+        "source_root_model_part_name": "MainModelPart",
+        "restart_settings": {
+            "input_filename": "previous_case/MainModelPart",
+            "input_output_path": "checkpoints",
+            "restart_load_file_label": "1.0"
+        }
+    }
+}
+```
+
+The process runs once in `ExecuteBeforeSolutionLoop`, after solver
+initialization and before the initial GiD output. It requires the original
+zero-displacement datum and a same-mesh source. Supported configurations are
+2D fixed-mesh Q4 `SmallDisplacementElement2D4N` with
+`LinearElasticPlaneStrain2DLaw` or `ThermalLinearElastic2DPlaneStrain`. For the
+thermoelastic law, `T == T_ref` is required at the moment of import; prescribe
+the reference field with the existing
+`impose_nodal_reference_temperature_process`. The current temperature always
+belongs to the new analysis and may be computed by its thermal solver.
+
+`transfer_results_process.add_previous_results` must remain false when this
+process is used; DamAnalysis rejects the combination explicitly.

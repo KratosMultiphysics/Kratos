@@ -1,7 +1,8 @@
 """Selective stress initialization: real DamAnalysis, independent source Model.
 
-The stress tests require the explicitly built investigation-only C++ bridge.
-See selective_initialization_investigation.md for the build/run commands.
+The stress tests use the production DamApplication utility and process. The
+source checkpoint is loaded into an isolated Model; the destination is a fresh
+DamAnalysis that keeps its own geometry, time, step, loads and constraints.
 """
 import json
 import os
@@ -96,7 +97,10 @@ def snapshot(part):
     for name, variable in (('displacement', KM.DISPLACEMENT), ('reaction', KM.REACTION),
                            ('velocity', KM.VELOCITY), ('acceleration', KM.ACCELERATION),
                            ('body_force', KM.VOLUME_ACCELERATION)):
-        result[name] = [list(n.GetSolutionStepValue(variable)) for n in part.Nodes]
+        if part.HasNodalSolutionStepVariable(variable):
+            result[name] = [list(n.GetSolutionStepValue(variable)) for n in part.Nodes]
+        else:
+            result[name] = [[0., 0., 0.]] * len(part.Nodes)
     result['previous_displacement'] = [list(n.GetSolutionStepValue(KM.DISPLACEMENT, 1)) for n in part.Nodes]
     if part.HasNodalSolutionStepVariable(Dam.NODAL_REFERENCE_TEMPERATURE):
         result['reference_temperature'] = [n.GetSolutionStepValue(Dam.NODAL_REFERENCE_TEMPERATURE) for n in part.Nodes]
@@ -153,14 +157,20 @@ class TestDamSelectiveInitialization(KratosUnittest.TestCase):
                 'DISPLACEMENT', 'TEMPERATURE', 'NODAL_REFERENCE_TEMPERATURE']
         if source:
             settings['loads_process_list'].append({
-                'python_module': 'selective_initial_state_probe.process',
-                'Parameters': {'model_part_name': 'MainModelPart.Parts_Concrete',
-                               'restart': {'input_filename': str(source / 'MainModelPart'),
-                                           'input_output_path': 'checkpoints',
-                                           'restart_load_file_label': '1.0'}}})
+                'python_module': 'selective_initial_stress_process',
+                'kratos_module': 'KratosMultiphysics.DamApplication',
+                'Parameters': {
+                    'model_part_name': 'MainModelPart.Parts_Concrete',
+                    'source_model_part_name': 'Parts_Concrete',
+                    'source_root_model_part_name': 'MainModelPart',
+                    'restart_settings': {
+                        'input_filename': str(source / 'MainModelPart'),
+                        'input_output_path': 'checkpoints',
+                        'restart_load_file_label': '1.0'}}})
         return settings
 
-    def _run(self, directory, settings, thermal=False, offset=0., fully_fixed=False, reference_shift=0.):
+    def _run(self, directory, settings, thermal=False, offset=0., fully_fixed=False,
+             reference_shift=0., expected_error=None):
         directory.mkdir(parents=True, exist_ok=True)
         mdpa = _MDPA
         if thermal:
@@ -186,10 +196,14 @@ class TestDamSelectiveInitialization(KratosUnittest.TestCase):
         (directory / 'parameters.json').write_text(json.dumps(settings))
         tests = Path(__file__).resolve().parent
         import sys
-        result = subprocess.run([sys.executable, str(tests / 'selective_initial_state_probe/run.py'),
+        result = subprocess.run([sys.executable, str(tests / 'selective_initial_stress/run.py'),
                                  str(tests.parent / 'python_scripts')], cwd=directory,
                                 stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, timeout=120)
         (directory / 'run.log').write_text(result.stdout)
+        if expected_error is not None:
+            self.assertNotEqual(result.returncode, 0, result.stdout)
+            self.assertIn(expected_error, result.stdout)
+            return None
         self.assertEqual(result.returncode, 0, result.stdout)
         return json.loads((directory / 'snapshots.json').read_text())
 
@@ -202,7 +216,6 @@ class TestDamSelectiveInitialization(KratosUnittest.TestCase):
         return error
 
     def _selective(self, thermal=False):
-        import dam_selective_state_probe  # Fail clearly if the test bridge was not built.
         with tempfile.TemporaryDirectory(prefix='dam_selective_') as tmp:
             root = Path(tmp)
             increment = 'thermal' if thermal else 'horizontal'
@@ -219,9 +232,6 @@ class TestDamSelectiveInitialization(KratosUnittest.TestCase):
             for key in ('displacement', 'reaction', 'velocity', 'acceleration', 'previous_displacement'):
                 self._compare(initial[key], [[0., 0., 0.]] * 6, atol=0.)
             self._compare(initial['coordinates'], reference['initial']['coordinates'], atol=0.)
-            loaded = json.loads((root / 'new/loaded_source.json').read_text())
-            for key in ('stress', 'displacement', 'reaction', 'velocity', 'acceleration', 'time', 'step'):
-                self._compare(loaded[key], base[key])
             self._compare(initial['residual'][4:], [0.] * 8)
             self.assertAlmostEqual(sum(base['external'][1::2]), -40., delta=1.e-10)
             self.assertAlmostEqual(sum(r[1] for r in base['reaction']), 40., delta=1.e-10)
@@ -278,17 +288,17 @@ class TestDamSelectiveInitialization(KratosUnittest.TestCase):
     def test_selective_gravity_and_temperature_increment(self):
         self._selective(thermal=True)
 
-    def test_probe_rejects_unsupported_states_and_requires_gravity(self):
-        from dam_selective_state_probe import assign_stresses
+    def test_rejects_unsupported_states_and_requires_gravity(self):
         import test_dam_elastic_initial_state_transfer as elastic_tests
         import KratosMultiphysics.StructuralMechanicsApplication as SMA
         fixture = elastic_tests.TestDamElasticInitialStateTransfer()
         source_model, source, source_strategy = fixture._body(quadrilaterals=True)
         source_strategy.Solve()
-        for defect, message in (('mesh', 'Mesh mismatch'), ('material', 'Material mismatch'),
-                                ('rule', 'Integration rule mismatch'),
-                                ('law', 'Unsupported constitutive law'),
-                                ('displacement', 'zero displacement')):
+        for defect, message in (('mesh', 'coordinates differ'),
+                                ('material', 'material mismatch'),
+                                ('rule', 'integration rule'),
+                                ('law', 'unsupported constitutive law'),
+                                ('displacement', 'nonzero displacement')):
             with self.subTest(defect=defect):
                 model, target, strategy = fixture._body(quadrilaterals=True)
                 if defect == 'mesh':
@@ -305,18 +315,35 @@ class TestDamSelectiveInitialization(KratosUnittest.TestCase):
                     for element in target.Elements:
                         element.Initialize(target.ProcessInfo)
                 with self.assertRaisesRegex(RuntimeError, message):
-                    assign_stresses(source, target)
+                    Dam.SelectiveInitialStressUtility.AssignInitialStresses(source, target)
                 if defect != 'displacement':
                     for element in fixture._values(target, KM.CAUCHY_STRESS_VECTOR):
                         for point in element:
                             self._compare(point, [0., 0., 0.])
         model, target, strategy = fixture._body(quadrilaterals=True)
-        assign_stresses(source, target)
-        with self.assertRaisesRegex(RuntimeError, 'already has initial state'):
-            assign_stresses(source, target)
+        Dam.SelectiveInitialStressUtility.AssignInitialStresses(source, target)
+        with self.assertRaisesRegex(RuntimeError, 'already has an initial state'):
+            Dam.SelectiveInitialStressUtility.AssignInitialStresses(source, target)
         for node in target.Nodes:
             node.SetSolutionStepValue(KM.VOLUME_ACCELERATION, [0., 0., 0.])
         self.assertGreater(max(abs(v) for v in fixture._residual(target)[4:]), 1.)
+
+    def test_rejects_combination_with_previous_results_transfer(self):
+        with tempfile.TemporaryDirectory(prefix='dam_selective_conflict_') as tmp:
+            settings = self._parameters(source=Path(tmp) / 'unused_source')
+            settings['transfer_results_process']['add_previous_results'] = True
+            self._run(Path(tmp) / 'run', settings,
+                      expected_error='cannot be combined with')
+
+    def test_does_not_modify_source_state(self):
+        import test_dam_elastic_initial_state_transfer as elastic_tests
+        fixture = elastic_tests.TestDamElasticInitialStateTransfer()
+        source_model, source, source_strategy = fixture._body(quadrilaterals=True)
+        source_strategy.Solve()
+        before = snapshot(source)
+        model, target, strategy = fixture._body(quadrilaterals=True)
+        Dam.SelectiveInitialStressUtility.AssignInitialStresses(source, target)
+        self.assertEqual(snapshot(source), before)
 
     def test_existing_reference_temperature_process(self):
         with tempfile.TemporaryDirectory(prefix='dam_reference_temperature_') as tmp:
@@ -332,6 +359,23 @@ class TestDamSelectiveInitialization(KratosUnittest.TestCase):
                 self._compare(state['displacement'], [[0., 0., 0.]] * 6)
             self._compare(result['initial']['reaction'], [[0., 0., 0.]] * 6)
             self.assertGreater(max(abs(v) for row in result['steps'][0]['reaction'] for v in row), 0.1)
+
+    def test_use_process_based_local_equivalent_strain_is_registered(self):
+        # Dam writes this variable to ProcessInfo. Without the C++ registration the
+        # core serializer cannot resolve it when loading a real Dam checkpoint.
+        variable = KM.KratosGlobals.GetVariable("USE_PROCESS_BASED_LOCAL_EQUIVALENT_STRAIN")
+        self.assertEqual(variable.Name(), "USE_PROCESS_BASED_LOCAL_EQUIVALENT_STRAIN")
+        with tempfile.TemporaryDirectory(prefix='dam_variable_registration_') as tmp:
+            part = KM.Model().CreateModelPart("MainModelPart")
+            part.ProcessInfo[Dam.USE_PROCESS_BASED_LOCAL_EQUIVALENT_STRAIN] = True
+            path = str(Path(tmp) / "checkpoint")
+            KM.FileSerializer(path, KM.SerializerTraceType.SERIALIZER_NO_TRACE).Save(
+                "MainModelPart", part)
+            loaded = KM.Model().CreateModelPart("MainModelPart")
+            KM.FileSerializer(path, KM.SerializerTraceType.SERIALIZER_NO_TRACE).Load(
+                "MainModelPart", loaded)
+            self.assertTrue(
+                loaded.ProcessInfo[Dam.USE_PROCESS_BASED_LOCAL_EQUIVALENT_STRAIN])
 
 
 if __name__ == '__main__':

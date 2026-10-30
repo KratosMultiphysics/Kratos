@@ -1,4 +1,8 @@
-"""Child process isolates serializer failures and uses this worktree's scripts."""
+"""Child harness for the selective initial-stress regression tests.
+
+The child process isolates serializer failures and uses the DamApplication
+scripts from the source tree under test.
+"""
 import json
 from pathlib import Path
 import sys
@@ -20,6 +24,7 @@ initial = snapshot(part)
 steps = []
 solve = simulation.solver.Solve
 
+
 def recording_solve():
     solve()
     # Distinct checkpoint metadata proves that destination STEP is not imported.
@@ -27,6 +32,7 @@ def recording_solve():
     if parameters.Has("output_processes"):
         part.ProcessInfo[KM.STEP] = 41 + len(steps)
     steps.append(snapshot(part))
+
 
 simulation.solver.Solve = recording_solve
 simulation.RunMainTemporalLoop()
