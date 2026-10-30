@@ -10,7 +10,7 @@ from KratosMultiphysics.OptimizationApplication.utilities.logger_utilities impor
 from KratosMultiphysics.OptimizationApplication.utilities.component_data_view import ComponentDataView
 from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem import OptimizationProblem
 from KratosMultiphysics.OptimizationApplication.filtering.filter import Factory as FilterFactory
-from KratosMultiphysics.OptimizationApplication.utilities.opt_projection import CreateProjection
+from KratosMultiphysics.OptimizationApplication.utilities.opt_projection import CreateProjection, StorePhiFields, RestorePhiFields
 
 def Factory(model: Kratos.Model, parameters: Kratos.Parameters, optimization_problem: OptimizationProblem) -> Control:
     if not parameters.Has("name"):
@@ -57,7 +57,9 @@ class ShellThicknessControl(Control):
         self.output_all_fields = self.parameters["output_all_fields"].GetBool()
         self.physical_thicknesses = self.parameters["physical_thicknesses"].GetVector()
 
-        self.thickness_projection = CreateProjection(parameters["thickness_projection_settings"], self.optimization_problem)
+        thickness_projection_restart_data = ComponentDataView(f"{self.GetName()}:thickness_projection", optimization_problem).GetUnBufferedData()
+        self.thickness_projection = CreateProjection(parameters["thickness_projection_settings"], self.optimization_problem, thickness_projection_restart_data)
+        self.phi_restart_data = ComponentDataView(f"{self.GetName()}:phi", optimization_problem).GetUnBufferedData()
 
         self.consider_recursive_property_update = parameters["consider_recursive_property_update"].GetBool()
 
@@ -88,6 +90,7 @@ class ShellThicknessControl(Control):
 
         # take the physical and control field the same
         self.control_phi_field = self.filter.UnfilterField(self.physical_phi_field)
+        RestorePhiFields(self.phi_restart_data, self.optimization_problem, self.physical_phi_field, self.control_phi_field)
 
         # now update the physical thickness field
         self._UpdateAndOutputFields(self.GetEmptyField())
@@ -166,6 +169,8 @@ class ShellThicknessControl(Control):
 
         # compute and store projection derivatives for consistent filtering of the sensitivities
         self.projection_derivative_field = self.thickness_projection.ForwardProjectionGradient(self.physical_phi_field)
+
+        StorePhiFields(self.phi_restart_data, self.physical_phi_field, self.control_phi_field)
 
         # now output the fields
         un_buffered_data = ComponentDataView(self, self.optimization_problem).GetUnBufferedData()

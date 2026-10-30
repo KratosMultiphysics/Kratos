@@ -68,6 +68,14 @@ class PatienceConvCriterion(ConvergenceCriterion):
         component = GetComponentHavingDataByFullName(self.__component_name, self.__optimization_problem)
         self.__component_data_view = ComponentDataView(component, self.__optimization_problem)
 
+        # on a restart, re-hydrate the evolving state that IsConverged() mirrors into unbuffered data
+        unbuffered_data = self.__component_data_view.GetUnBufferedData()
+        prefix = f"{self.__value_name.split(':')[0]}_pat_itr_{self.__patience_itr}"
+        if self.__optimization_problem.GetStep() > 0 and unbuffered_data.HasValue(f"{prefix}_best_value"):
+            self.__best_value = unbuffered_data[f"{prefix}_best_value"]
+            self.__patience_step = unbuffered_data[f"{prefix}_patience_step"]
+            self.__init_value = unbuffered_data[f"{prefix}_init_value"]
+
     @time_decorator()
     def IsConverged(self) -> bool:
         step = self.__optimization_problem.GetStep()
@@ -93,8 +101,14 @@ class PatienceConvCriterion(ConvergenceCriterion):
         else:
             self.__conv = False
 
-        self.__component_data_view.GetBufferedData().SetValue(f"{self.__value_name.split(':')[0]}_pat_itr_{self.__patience_itr}_best_value", self.__best_value)
-        self.__component_data_view.GetBufferedData().SetValue(f"{self.__value_name.split(':')[0]}_pat_itr_{self.__patience_itr}_patience_step", self.__patience_step)
+        prefix = f"{self.__value_name.split(':')[0]}_pat_itr_{self.__patience_itr}"
+        unbuffered_data = self.__component_data_view.GetUnBufferedData()
+        unbuffered_data.SetValue(f"{prefix}_best_value", self.__best_value, overwrite=True)
+        unbuffered_data.SetValue(f"{prefix}_patience_step", self.__patience_step, overwrite=True)
+        unbuffered_data.SetValue(f"{prefix}_init_value", self.__init_value, overwrite=True)
+        buffered_data = self.__component_data_view.GetBufferedData()
+        buffered_data.SetValue(f"{prefix}_best_value", self.__best_value)
+        buffered_data.SetValue(f"{prefix}_patience_step", self.__patience_step)
 
         return self.__conv
 

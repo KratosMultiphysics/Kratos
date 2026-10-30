@@ -1,3 +1,4 @@
+import os
 from datetime import datetime
 from typing import Union, Any
 
@@ -106,8 +107,11 @@ class OptimizationProblemAsciiOutputProcess(Kratos.OutputProcess):
         if not self.initialized_headers:
             # now get the buffered data headers
             self.list_of_headers = self._GetHeaders(lambda x: x.GetBufferedData())
-            # write the ehader information
-            self._WriteHeaders()
+            if self.optimization_problem.IsRestarted() and os.path.isfile(self.output_file_name):
+                self._TruncateToRestoredStep()
+            else:
+                # write the ehader information
+                self._WriteHeaders()
             self.initialized_headers = True
 
         if self._IsWritingProcess():
@@ -136,6 +140,34 @@ class OptimizationProblemAsciiOutputProcess(Kratos.OutputProcess):
             return data_communicator.Rank() == 0
         else:
             return True
+
+    def _TruncateToRestoredStep(self) -> None:
+        """Keeps the existing file of a restarted run up to the restored step and drops the rest.
+
+        Header/comment lines and complete step rows with a step below the current (first resumed)
+        step are kept; later rows, a partially written last row and "# End of file" are dropped, so
+        the resumed run appends to it without rewriting the header.
+        """
+        if not self._IsWritingProcess():
+            return
+
+        current_step = self.optimization_problem.GetStep()
+        kept_lines: 'list[str]' = []
+        with open(self.output_file_name, "r") as file_input:
+            for line in file_input:
+                if line.startswith("#"):
+                    if not line.startswith("# End of file"):
+                        kept_lines.append(line)
+                    continue
+                try:
+                    step = int(line.split(",", 1)[0])
+                except ValueError:
+                    continue
+                if step < current_step and line.endswith("\n"):
+                    kept_lines.append(line)
+
+        with open(self.output_file_name, "w") as file_output:
+            file_output.writelines(kept_lines)
 
     def _WriteHeaders(self):
         if (self._IsWritingProcess()):

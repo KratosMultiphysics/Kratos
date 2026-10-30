@@ -123,6 +123,8 @@ class ExternalResponseFunctionControl(Control):
                 if self.filter:
                     self.filter.Update()
                 return True
+        # re-publish the point values: the design may have reached the mesh in an earlier Update()
+        self._OutputPointValues()
         return False
 
     def _UpdateAndOutputFields(self, update: Kratos.TensorAdaptors.DoubleTensorAdaptor) -> None:
@@ -135,10 +137,7 @@ class ExternalResponseFunctionControl(Control):
         self.physical_phi_field.data[:] += filtered_update.data
         Kratos.TensorAdaptors.VariableTensorAdaptor(self.physical_phi_field, self.design_variable, copy=False).StoreData()
 
-        # add the values of the control to the optimization problem.
-        component_data_view = ComponentDataView(self, self.optimization_problem)
-        for i, v in enumerate(self.physical_phi_field.data):
-            component_data_view.GetBufferedData().SetValue(f"{self.model_part.FullName()}_point_{i+1}", float(v))
+        self._OutputPointValues()
 
         # now output the fields
         un_buffered_data = ComponentDataView(self, self.optimization_problem).GetUnBufferedData()
@@ -147,3 +146,13 @@ class ExternalResponseFunctionControl(Control):
             un_buffered_data.SetValue(f"{self.GetName()}_{self.design_variable.Name()}_update", update.Clone(), overwrite=True)
             un_buffered_data.SetValue(f"{self.GetName()}_{self.design_variable.Name()}_filtered_update", filtered_update.Clone(), overwrite=True)
             un_buffered_data.SetValue(f"{self.GetName()}_{self.design_variable.Name()}_control_phi", self.control_phi_field.Clone(), overwrite=True)
+
+    def _OutputPointValues(self) -> None:
+        """Writes the current physical value of every design point into the buffered data.
+
+        Overwrites existing values: Algorithm.SaveRestartFile() applies the next design within the
+        same step, and the following no-op Update() then re-publishes it for the new step.
+        """
+        buffered_data = ComponentDataView(self, self.optimization_problem).GetBufferedData()
+        for i, v in enumerate(self.physical_phi_field.data):
+            buffered_data.SetValue(f"{self.model_part.FullName()}_point_{i+1}", float(v), overwrite=True)

@@ -28,6 +28,8 @@ class AlgorithmGradientProjection(Algorithm):
         A classical steepest descent algorithm to solve unconstrained optimization problems.
     """
 
+    SUPPORTS_RESTART = True
+
     @classmethod
     def GetDefaultParameters(cls):
         return Kratos.Parameters("""{
@@ -236,6 +238,8 @@ class AlgorithmGradientProjection(Algorithm):
                 self.Output()
 
                 self.UpdateControl()
+
+                self.SaveRestartFile()
 
                 ListLogger("Convergence info", self._convergence_criteria.GetInfo())
 

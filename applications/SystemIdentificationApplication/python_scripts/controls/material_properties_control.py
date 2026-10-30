@@ -11,7 +11,7 @@ from KratosMultiphysics.OptimizationApplication.utilities.logger_utilities impor
 from KratosMultiphysics.OptimizationApplication.utilities.component_data_view import ComponentDataView
 from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem import OptimizationProblem
 from KratosMultiphysics.OptimizationApplication.filtering.filter import Factory as FilterFactory
-from KratosMultiphysics.OptimizationApplication.utilities.opt_projection import CreateProjection
+from KratosMultiphysics.OptimizationApplication.utilities.opt_projection import CreateProjection, StorePhiFields, RestorePhiFields
 
 def Factory(model: Kratos.Model, parameters: Kratos.Parameters, optimization_problem: OptimizationProblem) -> Control:
     if not parameters.Has("name"):
@@ -92,7 +92,9 @@ class MaterialPropertiesControl(Control):
 
         control_variable_bounds = parameters["control_variable_bounds"].GetVector()
 
-        self.projection = CreateProjection(parameters["projection_settings"], self.optimization_problem)
+        projection_restart_data = ComponentDataView(f"{self.GetName()}:projection", optimization_problem).GetUnBufferedData()
+        self.projection = CreateProjection(parameters["projection_settings"], self.optimization_problem, projection_restart_data)
+        self.phi_restart_data = ComponentDataView(f"{self.GetName()}:phi", optimization_problem).GetUnBufferedData()
         
         # initialize the projections
         self.projection.SetProjectionSpaces([0, 1], control_variable_bounds)
@@ -124,6 +126,7 @@ class MaterialPropertiesControl(Control):
 
         # compute the control phi field
         self.control_phi_field = self.filter.UnfilterField(self.physical_phi_field)
+        RestorePhiFields(self.phi_restart_data, self.optimization_problem, self.physical_phi_field, self.control_phi_field)
 
         self._UpdateAndOutputFields(self.GetEmptyField())
 
@@ -201,6 +204,8 @@ class MaterialPropertiesControl(Control):
         # compute and store projection derivatives for consistent filtering of the sensitivities
         # this is dphi/dphysical -> physical_phi_derivative_field
         self.physical_phi_derivative_field = self.projection.ForwardProjectionGradient(self.physical_phi_field)
+
+        StorePhiFields(self.phi_restart_data, self.physical_phi_field, self.control_phi_field)
 
         # now output the fields
         un_buffered_data = ComponentDataView(self, self.optimization_problem).GetUnBufferedData()
