@@ -423,7 +423,7 @@ protected:
         const SizeType num_dofs_per_node = (mHasRotationDofs) ?  2 * dimension : dimension;
         const SizeType num_dofs = num_nodes * num_dofs_per_node;
         Vector initial_state_variables;
-        initial_state_variables.resize(num_dofs, true);
+        initial_state_variables.resize(num_dofs, false);
 
         Vector particular_solution = ZeroVector(num_dofs);
         if(this->Has(ADJOINT_PARTICULAR_DISPLACEMENT)) {

@@ -519,7 +519,7 @@ void FractionalStep<TDim>::CalculateLocalFractionalVelocitySystem(MatrixType& rL
     rLeftHandSideMatrix = ZeroMatrix(LocalSize,LocalSize);
 
     if( rRightHandSideVector.size() != LocalSize )
-        rRightHandSideVector.resize(LocalSize, true);
+        rRightHandSideVector.resize(LocalSize, false);
 
     rRightHandSideVector = ZeroVector(LocalSize);
 
@@ -619,7 +619,7 @@ void FractionalStep<TDim>::CalculateLocalPressureSystem(MatrixType& rLeftHandSid
     rLeftHandSideMatrix = ZeroMatrix(NumNodes,NumNodes);
 
     if( rRightHandSideVector.size() != NumNodes )
-        rRightHandSideVector.resize(NumNodes, true);
+        rRightHandSideVector.resize(NumNodes, false);
 
     rRightHandSideVector = ZeroVector(NumNodes);
 
@@ -734,7 +734,7 @@ void FractionalStep<TDim>::CalculateEndOfStepSystem(MatrixType& rLeftHandSideMat
     rLeftHandSideMatrix = ZeroMatrix(LocalSize,LocalSize);
 
     if( rRightHandSideVector.size() != LocalSize )
-        rRightHandSideVector.resize(LocalSize, true);
+        rRightHandSideVector.resize(LocalSize, false);
 
     rRightHandSideVector = ZeroVector(LocalSize);
 
@@ -999,7 +999,7 @@ void FractionalStep<TDim>::GetPressureValues(Vector& rValues,
     const GeometryType& rGeom = this->GetGeometry();
     const SizeType NumNodes = rGeom.PointsNumber();
 
-    if (rValues.size() != NumNodes) rValues.resize(NumNodes, true);
+    if (rValues.size() != NumNodes) rValues.resize(NumNodes, false);
 
     for (SizeType i = 0; i < NumNodes; ++i)
         rValues[i] = rGeom[i].FastGetSolutionStepValue(PRESSURE,Step);
@@ -1013,7 +1013,7 @@ void FractionalStep<2>::GetVelocityValues(Vector& rValues,
     const SizeType NumNodes = rGeom.PointsNumber();
     const SizeType LocalSize = 2*NumNodes;
 
-    if (rValues.size() != LocalSize) rValues.resize(LocalSize, true);
+    if (rValues.size() != LocalSize) rValues.resize(LocalSize, false);
 
     SizeType Index = 0;
 
@@ -1032,7 +1032,7 @@ void FractionalStep<3>::GetVelocityValues(Vector& rValues,
     const SizeType NumNodes = rGeom.PointsNumber();
     const SizeType LocalSize = 3*NumNodes;
 
-    if (rValues.size() != LocalSize) rValues.resize(LocalSize, true);
+    if (rValues.size() != LocalSize) rValues.resize(LocalSize, false);
 
     SizeType Index = 0;
 

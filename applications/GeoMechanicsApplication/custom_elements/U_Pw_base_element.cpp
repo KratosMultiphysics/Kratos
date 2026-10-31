@@ -117,7 +117,7 @@ void UPwBaseElement::Initialize(const ProcessInfo& rCurrentProcessInfo)
     if (mStressVector.size() != number_of_integration_points) {
         mStressVector.resize(number_of_integration_points);
         for (auto& r_stress_vector : mStressVector) {
-            r_stress_vector.resize(GetStressStatePolicy().GetVoigtSize(), true);
+            r_stress_vector.resize(GetStressStatePolicy().GetVoigtSize(), false);
             std::fill(r_stress_vector.begin(), r_stress_vector.end(), 0.0);
         }
     }

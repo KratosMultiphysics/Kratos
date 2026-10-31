@@ -442,7 +442,7 @@ private:
             double coeff = 1.0 / (Dt * rho * rho + Dt * rho);
 
             Vector& BDFcoeffs = rCurrentProcessInfo[BDF_COEFFICIENTS];
-            BDFcoeffs.resize(3, true);
+            BDFcoeffs.resize(3, false);
             BDFcoeffs[0] = coeff * (rho * rho + 2.0 * rho); //coefficient for step n+1
             BDFcoeffs[1] = -coeff * (rho * rho + 2.0 * rho + 1.0); //coefficient for step n
             BDFcoeffs[2] = coeff;
@@ -450,7 +450,7 @@ private:
         else
         {
             Vector& BDFcoeffs = rCurrentProcessInfo[BDF_COEFFICIENTS];
-            BDFcoeffs.resize(2, true);
+            BDFcoeffs.resize(2, false);
             BDFcoeffs[0] = 1.0 / Dt; //coefficient for step n+1
             BDFcoeffs[1] = -1.0 / Dt; //coefficient for step n
         }

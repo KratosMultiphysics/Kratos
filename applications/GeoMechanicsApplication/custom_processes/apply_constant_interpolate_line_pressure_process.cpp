@@ -470,7 +470,7 @@ bool ApplyConstantInterpolateLinePressureProcess::IsMoreThanOneElementWithThisEd
     std::vector<vector<int>> ElementIDs;
     ElementIDs.resize(rFaceIDs.size());
     for (auto& r_element_id : ElementIDs) {
-        r_element_id.resize(nMaxElements, true);
+        r_element_id.resize(nMaxElements, false);
         std::ranges::fill(r_element_id, ID_UNDEFINED);
     }
 

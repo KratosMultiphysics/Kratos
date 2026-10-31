@@ -67,7 +67,7 @@ void UPwFaceLoadInterfaceCondition<TDim, TNumNodes>::Initialize(const ProcessInf
 template <>
 void UPwFaceLoadInterfaceCondition<2, 2>::CalculateInitialGap(const GeometryType& Geom)
 {
-    mInitialGap.resize(1, true);
+    mInitialGap.resize(1, false);
 
     array_1d<double, 3> Vx;
     noalias(Vx)    = Geom.GetPoint(1) - Geom.GetPoint(0);
@@ -77,7 +77,7 @@ void UPwFaceLoadInterfaceCondition<2, 2>::CalculateInitialGap(const GeometryType
 template <>
 void UPwFaceLoadInterfaceCondition<3, 4>::CalculateInitialGap(const GeometryType& Geom)
 {
-    mInitialGap.resize(2, true);
+    mInitialGap.resize(2, false);
 
     array_1d<double, 3> Vx;
     noalias(Vx)    = Geom.GetPoint(3) - Geom.GetPoint(0);

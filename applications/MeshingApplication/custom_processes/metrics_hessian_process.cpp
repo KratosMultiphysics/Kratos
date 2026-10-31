@@ -240,7 +240,7 @@ void ComputeHessianSolMetricProcess::CalculateAuxiliarHessian()
         if (fe.DN_DX.size1() != number_of_nodes || fe.DN_DX.size2() != dimension)
             fe.DN_DX.resize(number_of_nodes, dimension);
         if (fe.N.size() != number_of_nodes)
-            fe.N.resize(number_of_nodes, true);
+            fe.N.resize(number_of_nodes, false);
         if (fe.J0.size1() != dimension || fe.J0.size2() != local_space_dimension)
             fe.J0.resize(dimension, local_space_dimension);
 

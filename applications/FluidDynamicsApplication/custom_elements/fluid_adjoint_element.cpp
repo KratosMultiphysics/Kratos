@@ -315,7 +315,7 @@ void FluidAdjointElement<TDim, TNumNodes, TAdjointElementData>::GetSecondDerivat
     int Step) const
 {
     if (rValues.size() != TElementLocalSize) {
-        rValues.resize(TElementLocalSize, true);
+        rValues.resize(TElementLocalSize, false);
     }
 
     const auto& r_geometry = this->GetGeometry();
@@ -504,7 +504,7 @@ void FluidAdjointElement<TDim, TNumNodes, TAdjointElementData>::Calculate(
 
     if (rVariable == PRIMAL_RELAXED_SECOND_DERIVATIVE_VALUES) {
         if (rOutput.size() != TElementLocalSize) {
-            rOutput.resize(TElementLocalSize, true);
+            rOutput.resize(TElementLocalSize, false);
         }
 
         IndexType local_index = 0;

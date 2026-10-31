@@ -35,10 +35,10 @@ void CheckJacobianDimension(GeometryType::JacobiansType &rInvJ0,
   const auto& r_integration_points = rGeometry.IntegrationPoints(this_integration_method);
 
   if (rInvJ0.size() != r_integration_points.size()) {
-    rInvJ0.resize(r_integration_points.size(), true);
+    rInvJ0.resize(r_integration_points.size(), false);
   }
   if (rDetJ0.size() != r_integration_points.size()) {
-    rDetJ0.resize(r_integration_points.size(), true);
+    rDetJ0.resize(r_integration_points.size(), false);
   }
 
   KRATOS_CATCH("");

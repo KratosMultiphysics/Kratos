@@ -33,7 +33,7 @@ namespace Kratos
         if (reference_TransShear.size() != r_number_of_integration_points)
             reference_TransShear.resize(r_number_of_integration_points);
         if (m_dA_vector.size() != r_number_of_integration_points)
-            m_dA_vector.resize(r_number_of_integration_points, true);
+            m_dA_vector.resize(r_number_of_integration_points, false);
         if (m_cart_deriv.size() != r_number_of_integration_points)
             m_cart_deriv.resize(r_number_of_integration_points);
 

@@ -206,21 +206,21 @@ public:
 
     void GetValuesVector(Vector& values, int Step = 0) const override
     {
-        values.resize(2, true);
+        values.resize(2, false);
         values[0] = this->GetGeometry()[0].FastGetSolutionStepValue(DISPLACEMENT_X, Step);
         values[1] = this->GetGeometry()[1].FastGetSolutionStepValue(DISPLACEMENT_X, Step);
     }
 
     void GetFirstDerivativesVector(Vector& values, int Step = 0) const override
     {
-        values.resize(2, true);
+        values.resize(2, false);
         values[0] = this->GetGeometry()[0].FastGetSolutionStepValue(VELOCITY_X, Step);
         values[1] = this->GetGeometry()[1].FastGetSolutionStepValue(VELOCITY_X, Step);
     }
 
     void GetSecondDerivativesVector(Vector& values, int Step = 0) const override
     {
-        values.resize(2, true);
+        values.resize(2, false);
         values[0] = this->GetGeometry()[0].FastGetSolutionStepValue(ACCELERATION_X, Step);
         values[1] = this->GetGeometry()[1].FastGetSolutionStepValue(ACCELERATION_X, Step);
     }
@@ -307,19 +307,19 @@ public:
 
     void GetValuesVector(Vector& values, int Step = 0) const override
     {
-        values.resize(1, true);
+        values.resize(1, false);
         values[0] = this->GetGeometry()[0].FastGetSolutionStepValue(DISPLACEMENT_X, Step);
     }
 
     void GetFirstDerivativesVector(Vector& values, int Step = 0) const override
     {
-        values.resize(1, true);
+        values.resize(1, false);
         values[0] = this->GetGeometry()[0].FastGetSolutionStepValue(VELOCITY_X, Step);
     }
 
     void GetSecondDerivativesVector(Vector& values, int Step = 0) const override
     {
-        values.resize(1, true);
+        values.resize(1, false);
         values[0] = this->GetGeometry()[0].FastGetSolutionStepValue(ACCELERATION_X, Step);
     }
 
@@ -471,21 +471,21 @@ public:
 
     void GetValuesVector(Vector& values, int Step = 0) const override
     {
-        values.resize(2, true);
+        values.resize(2, false);
         values[0] = this->GetGeometry()[0].FastGetSolutionStepValue(ADJOINT_VECTOR_1_X, Step);
         values[1] = this->GetGeometry()[1].FastGetSolutionStepValue(ADJOINT_VECTOR_1_X, Step);
     }
 
     void GetFirstDerivativesVector(Vector& values, int Step = 0) const override
     {
-        values.resize(2, true);
+        values.resize(2, false);
         values[0] = this->GetGeometry()[0].FastGetSolutionStepValue(ADJOINT_VECTOR_2_X, Step);
         values[1] = this->GetGeometry()[1].FastGetSolutionStepValue(ADJOINT_VECTOR_2_X, Step);
     }
 
     void GetSecondDerivativesVector(Vector& values, int Step = 0) const override
     {
-        values.resize(2, true);
+        values.resize(2, false);
         values[0] = this->GetGeometry()[0].FastGetSolutionStepValue(ADJOINT_VECTOR_3_X, Step);
         values[1] = this->GetGeometry()[1].FastGetSolutionStepValue(ADJOINT_VECTOR_3_X, Step);
     }
@@ -649,19 +649,19 @@ public:
 
     void GetValuesVector(Vector& values, int Step = 0) const override
     {
-        values.resize(1, true);
+        values.resize(1, false);
         values[0] = this->GetGeometry()[0].FastGetSolutionStepValue(ADJOINT_VECTOR_1_X, Step);
     }
 
     void GetFirstDerivativesVector(Vector& values, int Step = 0) const override
     {
-        values.resize(1, true);
+        values.resize(1, false);
         values[0] = this->GetGeometry()[0].FastGetSolutionStepValue(ADJOINT_VECTOR_2_X, Step);
     }
 
     void GetSecondDerivativesVector(Vector& values, int Step = 0) const override
     {
-        values.resize(1, true);
+        values.resize(1, false);
         values[0] = this->GetGeometry()[0].FastGetSolutionStepValue(ADJOINT_VECTOR_3_X, Step);
     }
 

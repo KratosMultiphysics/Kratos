@@ -136,7 +136,7 @@ private:
     {
         auto num_nodes = rGeometry.PointsNumber();
         if (rNodalDistances.size() != num_nodes) {
-            rNodalDistances.resize(num_nodes, true);
+            rNodalDistances.resize(num_nodes, false);
             noalias(rNodalDistances) = ZeroVector(num_nodes);
         }
 
@@ -164,7 +164,7 @@ private:
     {
         auto num_nodes = rGeometry.PointsNumber();
         if (rNodalDistances.size() != num_nodes) {
-            rNodalDistances.resize(num_nodes, true);
+            rNodalDistances.resize(num_nodes, false);
             noalias(rNodalDistances) = ZeroVector(num_nodes);
         }
 

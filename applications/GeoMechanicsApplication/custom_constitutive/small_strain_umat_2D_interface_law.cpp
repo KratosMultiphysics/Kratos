@@ -102,7 +102,7 @@ Vector& SmallStrainUMAT2DInterfaceLaw::GetValue(const Variable<Vector>& rThisVar
     if (rThisVariable == STATE_VARIABLES) {
         SmallStrainUMATLaw::GetValue(rThisVariable, rValue);
     } else if (rThisVariable == CAUCHY_STRESS_VECTOR || rThisVariable == GEO_EFFECTIVE_TRACTION_VECTOR) {
-        if (rValue.size() != VoigtSize) rValue.resize(VoigtSize, true);
+        if (rValue.size() != VoigtSize) rValue.resize(VoigtSize, false);
 
         rValue[1] = mStressVectorFinalized[2];
         rValue[0] = mStressVectorFinalized[5];

@@ -82,12 +82,12 @@ public:
     {
         mDerivativeOrder = DerivativeOrder;
 
-        mValues.resize((PolynomialDegree + 1) * (mDerivativeOrder + 1), true);
-        mLeft.resize(PolynomialDegree, true);
-        mRight.resize(PolynomialDegree, true);
-        mNdu.resize((PolynomialDegree + 1) * (PolynomialDegree + 1), true);
-        mA.resize(PolynomialDegree + 1, true);
-        mB.resize(PolynomialDegree + 1, true);
+        mValues.resize((PolynomialDegree + 1) * (mDerivativeOrder + 1), false);
+        mLeft.resize(PolynomialDegree, false);
+        mRight.resize(PolynomialDegree, false);
+        mNdu.resize((PolynomialDegree + 1) * (PolynomialDegree + 1), false);
+        mA.resize(PolynomialDegree + 1, false);
+        mB.resize(PolynomialDegree + 1, false);
 
         mPolynomialDegree = PolynomialDegree;
     }

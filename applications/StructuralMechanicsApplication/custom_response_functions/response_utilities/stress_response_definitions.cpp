@@ -471,7 +471,7 @@ void StressCalculation::CalculateStressOnGPSmallDisplacement(Element& rElement,
             std::vector<double> tmp_stress_vector(rOutput.size());
             rElement.CalculateOnIntegrationPoints(VON_MISES_STRESS, tmp_stress_vector, rCurrentProcessInfo);
             if (rOutput.size() != tmp_stress_vector.size())
-                rOutput.resize(tmp_stress_vector.size(), true);
+                rOutput.resize(tmp_stress_vector.size(), false);
             for (size_t i=0; i<tmp_stress_vector.size(); i++)
                 rOutput[i] = tmp_stress_vector[i];
             break;

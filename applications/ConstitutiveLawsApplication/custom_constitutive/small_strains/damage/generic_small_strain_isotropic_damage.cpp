@@ -365,7 +365,7 @@ Vector& GenericSmallStrainIsotropicDamage<TConstLawIntegratorType>::GetValue(
     )
 {
     if(rThisVariable == INTERNAL_VARIABLES){
-        rValue.resize(2, true);
+        rValue.resize(2, false);
         rValue[0] = mDamage;
         rValue[1] = mThreshold;
     }

@@ -248,7 +248,7 @@ void DVMSDEMCoupled<TElementData>::CalculateOnIntegrationPoints(
         this->UpdateIntegrationPointData(data, g, gauss_weights[g], row(shape_functions, g),shape_derivatives[g]);
         if (rVariable == NODAL_WEIGHTS){
             if (rOutput[g].size() != mWeightsVector[g].size())
-                rOutput[g].resize(mWeightsVector[g].size(), true);
+                rOutput[g].resize(mWeightsVector[g].size(), false);
             rOutput[g] = mWeightsVector[g];
         }
     }
@@ -297,7 +297,7 @@ void DVMSDEMCoupled<TElementData>::SetValuesOnIntegrationPoints(
 
     for (unsigned int g = 0; g < number_of_integration_points; g++ ) {
         if (rVariable == NODAL_WEIGHTS){
-            mWeightsVector[g].resize(rValues[g].size(), true);
+            mWeightsVector[g].resize(rValues[g].size(), false);
             mWeightsVector[g] = rValues[g];
         }
     }
@@ -567,7 +567,7 @@ void DVMSDEMCoupled<TElementData>::Initialize(const ProcessInfo& rCurrentProcess
 
     if (mPredictedSubscaleVelocity.size() != number_of_gauss_points)
     {
-        mPredictedSubscaleVelocity.resize(number_of_gauss_points, true);
+        mPredictedSubscaleVelocity.resize(number_of_gauss_points, false);
         for (unsigned int g = 0; g < number_of_gauss_points; g++)
             mPredictedSubscaleVelocity[g] = ZeroVector(3);
     }
@@ -576,7 +576,7 @@ void DVMSDEMCoupled<TElementData>::Initialize(const ProcessInfo& rCurrentProcess
     // and we want to keep the loaded values in that case.
     if (mOldSubscaleVelocity.size() != number_of_gauss_points)
     {
-        mOldSubscaleVelocity.resize(number_of_gauss_points, true);
+        mOldSubscaleVelocity.resize(number_of_gauss_points, false);
         for (unsigned int g = 0; g < number_of_gauss_points; g++)
             mOldSubscaleVelocity[g] = ZeroVector(3);
     }

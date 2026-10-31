@@ -194,7 +194,7 @@ public:
         const SizeType mat_size = number_of_nodes * 3;
 
         if (rRightHandSideVector.size() != mat_size)
-            rRightHandSideVector.resize(mat_size, true);
+            rRightHandSideVector.resize(mat_size, false);
         noalias(rRightHandSideVector) = ZeroVector(mat_size);
 
         MatrixType left_hand_side_matrix;
@@ -243,7 +243,7 @@ public:
         const SizeType mat_size = number_of_nodes * 3;
 
         if (rRightHandSideVector.size() != mat_size)
-            rRightHandSideVector.resize(mat_size, true);
+            rRightHandSideVector.resize(mat_size, false);
         noalias(rRightHandSideVector) = ZeroVector(mat_size);
 
         if (rLeftHandSideMatrix.size1() != mat_size)

@@ -301,7 +301,7 @@ namespace Kratos
             if (m_A_ab_covariant_vector.size() != r_number_of_integration_points)
                 m_A_ab_covariant_vector.resize(r_number_of_integration_points);
             if (m_dA_vector.size() != r_number_of_integration_points)
-                m_dA_vector.resize(r_number_of_integration_points, true);
+                m_dA_vector.resize(r_number_of_integration_points, false);
             if (m_T_vector.size() != r_number_of_integration_points)
                 m_T_vector.resize(r_number_of_integration_points);
             if (m_T_hat_vector.size() != r_number_of_integration_points)
@@ -555,7 +555,7 @@ namespace Kratos
         if (m_A_ab_covariant_vector.size() != r_number_of_integration_points)
             m_A_ab_covariant_vector.resize(r_number_of_integration_points);
         if (m_dA_vector.size() != r_number_of_integration_points)
-            m_dA_vector.resize(r_number_of_integration_points, true);
+            m_dA_vector.resize(r_number_of_integration_points, false);
         if (m_T_vector.size() != r_number_of_integration_points)
             m_T_vector.resize(r_number_of_integration_points);
         if (m_T_hat_vector.size() != r_number_of_integration_points)

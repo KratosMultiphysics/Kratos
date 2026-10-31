@@ -68,7 +68,7 @@ void BDF::ComputeAndSaveBDFCoefficients(ProcessInfo &rProcessInfo) const
     const unsigned int n_coefs = bdf_coeffs.size();
     auto &r_proc_inf_bdf_coeffs = rProcessInfo[BDF_COEFFICIENTS];
     if (r_proc_inf_bdf_coeffs.size() != n_coefs) {
-        r_proc_inf_bdf_coeffs.resize(n_coefs, true);
+        r_proc_inf_bdf_coeffs.resize(n_coefs, false);
     }
 
     // Save the computed BDF coefficients in the model part ProcessInfo

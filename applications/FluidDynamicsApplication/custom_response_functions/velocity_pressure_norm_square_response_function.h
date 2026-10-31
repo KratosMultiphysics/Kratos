@@ -381,7 +381,7 @@ private:
         const IndexType local_size = domain_size * number_of_nodes;
 
         if (rResponseGradient.size() != local_size) {
-            rResponseGradient.resize(local_size, true);
+            rResponseGradient.resize(local_size, false);
         }
 
         if (rEntity.Is(STRUCTURE)) {

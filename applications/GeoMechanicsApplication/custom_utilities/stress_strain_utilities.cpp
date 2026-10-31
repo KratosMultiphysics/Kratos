@@ -255,7 +255,7 @@ std::vector<Vector> StressStrainUtilities::CalculateStressVectorsFromStrainVecto
         auto law_parameters = ConstitutiveLaw::Parameters{};
         law_parameters.SetStrainVector(Strain);
         auto result = Vector{};
-        result.resize(rpLaw->GetStrainSize(), true);
+        result.resize(rpLaw->GetStrainSize(), false);
         law_parameters.SetStressVector(result);
         law_parameters.SetMaterialProperties(rProperties);
         law_parameters.Set(ConstitutiveLaw::COMPUTE_STRESS);

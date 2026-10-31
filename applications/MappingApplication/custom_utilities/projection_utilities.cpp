@@ -166,7 +166,7 @@ PairingIndex ProjectOnLine(const GeometryType& rGeometry,
             rProjectionDistance = dist_2;
         }
 
-        rShapeFunctionValues.resize(1, true);
+        rShapeFunctionValues.resize(1, false);
         rShapeFunctionValues[0] = 1.0;
     }
 
@@ -422,7 +422,7 @@ bool ComputeProjection(const GeometryType& rGeometry,
         KRATOS_WARNING_ONCE("Mapper") << "Unsupported type of geometry for projection, trying to use an approximation (Nearest Neighbor)" << std::endl;
 
         if (rShapeFunctionValues.size() != 1) {
-            rShapeFunctionValues.resize(1, true);
+            rShapeFunctionValues.resize(1, false);
         }
         rShapeFunctionValues[0] = 1.0;
 

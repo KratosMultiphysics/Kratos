@@ -888,7 +888,7 @@ class ResidualBasedNewtonRaphsonStrategy
     * using the equation ID associated with each DOF.
     */
     void GetCurrentSolution(DofsArrayType& rDofSet, Vector& this_solution) {
-        this_solution.resize(rDofSet.size(), true);
+        this_solution.resize(rDofSet.size(), false);
         block_for_each(rDofSet, [&](const auto& r_dof) {
             this_solution[r_dof.EquationId()] = r_dof.GetSolutionStepValue();
         });

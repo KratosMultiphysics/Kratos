@@ -39,8 +39,8 @@ void ElastoPlasticModMohrCoulombCohesive2DLaw::GetLawFeatures(Features& rFeature
 
 void ElastoPlasticModMohrCoulombCohesive2DLaw::InitializeMaterial( const Properties& rMaterialProperties,const GeometryType& rElementGeometry,const Vector& rShapeFunctionsValues )
 {
-    mPlasticStrainVector.resize(2, true);
-    mOldPlasticStrainVector.resize(2, true);
+    mPlasticStrainVector.resize(2, false);
+    mOldPlasticStrainVector.resize(2, false);
     mPlasticStrainVector[0]    = 0.0;
     mPlasticStrainVector[1]    = 0.0;
     mOldPlasticStrainVector[0] = 0.0;
