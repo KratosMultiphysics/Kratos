@@ -127,6 +127,77 @@ double ComputePolynomialDerivative(
     return value;
 }
 
+/// The cut patch of GsbmLaplacianCutPatchTest, with its volume fractions
+ModelPart& CreateCutPatchModelPart(Model& rModel)
+{
+    ModelPart& r_iga_model_part = rModel.CreateModelPart("IgaModelPart");
+    r_iga_model_part.AddNodalSolutionStepVariable(TEMPERATURE);
+    r_iga_model_part.AddNodalSolutionStepVariable(CONDUCTIVITY);
+    r_iga_model_part.AddNodalSolutionStepVariable(HEAT_FLUX);
+
+    auto p_settings = Kratos::make_shared<ConvectionDiffusionSettings>();
+    p_settings->SetUnknownVariable(TEMPERATURE);
+    p_settings->SetDiffusionVariable(CONDUCTIVITY);
+    p_settings->SetVolumeSourceVariable(HEAT_FLUX);
+    p_settings->SetGradientVariable(TEMPERATURE_GRADIENT);
+    p_settings->SetDensityVariable(DENSITY);
+    p_settings->SetSpecificHeatVariable(SPECIFIC_HEAT);
+    r_iga_model_part.GetProcessInfo().SetValue(CONVECTION_DIFFUSION_SETTINGS, p_settings);
+
+    NurbsGeometryModeler nurbs_modeler(rModel, Parameters(R"({
+        "model_part_name"     : "IgaModelPart",
+        "geometry_name"       : "background",
+        "lower_point_xyz"     : [0.0, 0.0, 0.0],
+        "upper_point_xyz"     : [1.0, 1.0, 0.0],
+        "lower_point_uvw"     : [0.0, 0.0, 0.0],
+        "upper_point_uvw"     : [1.0, 1.0, 0.0],
+        "polynomial_order"    : [2, 3],
+        "number_of_knot_spans": [8, 8]
+    })"));
+    nurbs_modeler.SetupGeometryModel();
+
+    // Elements, Dirichlet conditions on the skeleton, and ghost penalty
+    // conditions sharing its facets
+    const Modeler& r_registered_modeler = KratosComponents<Modeler>::Get("IgaModelerGsbm");
+    const auto p_gsbm_modeler = r_registered_modeler.Create(rModel, Parameters(R"({
+        "analysis_model_part_name": "IgaModelPart",
+        "geometry_name"           : "background",
+        "element_condition_list"  : [{
+            "type"                            : "element",
+            "name"                            : "GsbmLaplacianElement",
+            "iga_model_part"                  : "Domain",
+            "shape_function_derivatives_order": 2
+        }, {
+            "type"                            : "condition",
+            "name"                            : "GsbmLaplacianConditionDirichlet",
+            "iga_model_part"                  : "Dirichlet",
+            "shape_function_derivatives_order": 4,
+            "gsbm_parameters"                 : {}
+        }, {
+            "type"                            : "condition",
+            "name"                            : "GsbmLaplacianConditionGhostPenalty",
+            "iga_model_part"                  : "GhostPenalty",
+            "gsbm_parameters"                 : {"skeleton_model_part": "Dirichlet"}
+        }]
+    })"));
+    p_gsbm_modeler->SetupModelPart();
+
+    CreateSkinLoop(
+        rModel.CreateModelPart("Skin"),
+        {{0.25, 0.2}, {0.8, 0.2}, {0.8, 0.8}, {0.25, 0.8}}
+    );
+    VolumeFractionGsbmProcess gsbm_process(rModel, Parameters(R"({
+        "model_part_name"                   : "IgaModelPart",
+        "geometry_name"                     : "background",
+        "elements_model_part_name"          : "IgaModelPart.Domain",
+        "skeleton_model_part_name"          : "IgaModelPart.Dirichlet",
+        "skin_model_part_outer_initial_name": "Skin"
+    })"));
+    gsbm_process.ExecuteInitialize();
+
+    return r_iga_model_part;
+}
+
 } // namespace
 
 // Cut patch test: the domain is the rectangle [0.25, 0.8] x [0.2, 0.8] on the
@@ -152,68 +223,7 @@ KRATOS_TEST_CASE_IN_SUITE(GsbmLaplacianCutPatchTest, KratosIgaFastSuite)
 
     for (const bool symmetric : {false, true}) {
         Model model;
-        ModelPart& r_iga_model_part = model.CreateModelPart("IgaModelPart");
-        r_iga_model_part.AddNodalSolutionStepVariable(TEMPERATURE);
-        r_iga_model_part.AddNodalSolutionStepVariable(CONDUCTIVITY);
-        r_iga_model_part.AddNodalSolutionStepVariable(HEAT_FLUX);
-
-        auto p_settings = Kratos::make_shared<ConvectionDiffusionSettings>();
-        p_settings->SetUnknownVariable(TEMPERATURE);
-        p_settings->SetDiffusionVariable(CONDUCTIVITY);
-        p_settings->SetVolumeSourceVariable(HEAT_FLUX);
-        p_settings->SetGradientVariable(TEMPERATURE_GRADIENT);
-        r_iga_model_part.GetProcessInfo().SetValue(CONVECTION_DIFFUSION_SETTINGS, p_settings);
-
-        NurbsGeometryModeler nurbs_modeler(model, Parameters(R"({
-            "model_part_name"     : "IgaModelPart",
-            "geometry_name"       : "background",
-            "lower_point_xyz"     : [0.0, 0.0, 0.0],
-            "upper_point_xyz"     : [1.0, 1.0, 0.0],
-            "lower_point_uvw"     : [0.0, 0.0, 0.0],
-            "upper_point_uvw"     : [1.0, 1.0, 0.0],
-            "polynomial_order"    : [2, 3],
-            "number_of_knot_spans": [8, 8]
-        })"));
-        nurbs_modeler.SetupGeometryModel();
-
-        // Elements, Dirichlet conditions on the skeleton, and ghost penalty
-        // conditions sharing its facets
-        const Modeler& r_registered_modeler = KratosComponents<Modeler>::Get("IgaModelerGsbm");
-        const auto p_gsbm_modeler = r_registered_modeler.Create(model, Parameters(R"({
-            "analysis_model_part_name": "IgaModelPart",
-            "geometry_name"           : "background",
-            "element_condition_list"  : [{
-                "type"                            : "element",
-                "name"                            : "GsbmLaplacianElement",
-                "iga_model_part"                  : "Domain",
-                "shape_function_derivatives_order": 2
-            }, {
-                "type"                            : "condition",
-                "name"                            : "GsbmLaplacianConditionDirichlet",
-                "iga_model_part"                  : "Dirichlet",
-                "shape_function_derivatives_order": 4,
-                "gsbm_parameters"                 : {}
-            }, {
-                "type"                            : "condition",
-                "name"                            : "GsbmLaplacianConditionGhostPenalty",
-                "iga_model_part"                  : "GhostPenalty",
-                "gsbm_parameters"                 : {"skeleton_model_part": "Dirichlet"}
-            }]
-        })"));
-        p_gsbm_modeler->SetupModelPart();
-
-        CreateSkinLoop(
-            model.CreateModelPart("Skin"),
-            {{0.25, 0.2}, {0.8, 0.2}, {0.8, 0.8}, {0.25, 0.8}}
-        );
-        VolumeFractionGsbmProcess gsbm_process(model, Parameters(R"({
-            "model_part_name"                   : "IgaModelPart",
-            "geometry_name"                     : "background",
-            "elements_model_part_name"          : "IgaModelPart.Domain",
-            "skeleton_model_part_name"          : "IgaModelPart.Dirichlet",
-            "skin_model_part_outer_initial_name": "Skin"
-        })"));
-        gsbm_process.ExecuteInitialize();
+        ModelPart& r_iga_model_part = CreateCutPatchModelPart(model);
 
         // Every facet case occurs: inside, void, cut, and a full jump of alpha
         std::array<IndexType, 4> number_of_facets{0, 0, 0, 0};
@@ -282,6 +292,96 @@ KRATOS_TEST_CASE_IN_SUITE(GsbmLaplacianCutPatchTest, KratosIgaFastSuite)
             }
             KRATOS_EXPECT_NEAR(
                 solution, exact_solution(r_geometry.Center().Coordinates()), tolerance
+            );
+        }
+    }
+}
+
+// Transient patch test: the cut patch of GsbmLaplacianCutPatchTest with
+// rho c = 1 and u = q + t r, with q the quadratic of that test, r = x - y and
+// f = d_t u - Lap(u) = r + 2. After a stationary solve at t = 0 (f = 2), which
+// gives q, two steps of BDF1 and one of BDF2 reproduce u exactly, since both
+// schemes are exact for solutions linear in time.
+KRATOS_TEST_CASE_IN_SUITE(GsbmLaplacianTransientPatchTest, KratosIgaFastSuite)
+{
+    using SparseSpaceType = TDefaultSparseSpace<double>;
+    using LocalSpaceType = TDefaultDenseSpace<double>;
+    using LinearSolverType = SkylineLUFactorizationSolver<SparseSpaceType, LocalSpaceType>;
+    using SchemeType = ResidualBasedIncrementalUpdateStaticScheme<SparseSpaceType, LocalSpaceType>;
+    using StrategyType = ResidualBasedLinearStrategy<
+        SparseSpaceType, LocalSpaceType, LinearSolver<SparseSpaceType, LocalSpaceType>
+    >;
+
+    Model model;
+    ModelPart& r_iga_model_part = CreateCutPatchModelPart(model);
+    r_iga_model_part.SetBufferSize(3);
+
+    const auto exact_solution = [](const array_1d<double, 3>& rPoint, const double Time) {
+        const double x = rPoint[0];
+        const double y = rPoint[1];
+        return 1.0 + x * x - 2.0 * y * y + 3.0 * x * y + Time * (x - y);
+    };
+
+    // Unit conductivity and heat capacity, kappa = 0.5 and the default method
+    auto p_properties = r_iga_model_part.CreateNewProperties(1);
+    p_properties->SetValue(CONDUCTIVITY, 1.0);
+    p_properties->SetValue(DENSITY, 1.0);
+    p_properties->SetValue(SPECIFIC_HEAT, 1.0);
+    p_properties->SetValue(GHOST_PENALTY_FACTOR, 0.5);
+    for (auto& r_element : r_iga_model_part.Elements()) {
+        r_element.SetProperties(p_properties);
+    }
+    for (auto& r_condition : r_iga_model_part.Conditions()) {
+        r_condition.SetProperties(p_properties);
+    }
+    for (auto& r_node : r_iga_model_part.Nodes()) {
+        r_node.AddDof(TEMPERATURE);
+    }
+
+    StrategyType strategy(
+        r_iga_model_part,
+        Kratos::make_shared<SchemeType>(),
+        Kratos::make_shared<LinearSolverType>()
+    );
+
+    // Stationary at t = 0, then BDF1, BDF1 and BDF2 with dt = 0.1
+    const double delta_time = 0.1;
+    const std::vector<std::vector<double>> bdf_coefficients{
+        {}, {1.0 / delta_time, -1.0 / delta_time}, {1.0 / delta_time, -1.0 / delta_time},
+        {1.5 / delta_time, -2.0 / delta_time, 0.5 / delta_time}
+    };
+    for (IndexType step = 0; step < bdf_coefficients.size(); ++step) {
+        const double time = step * delta_time;
+        if (step > 0) {
+            r_iga_model_part.CloneTimeStep(time);
+            const auto& r_step_coefficients = bdf_coefficients[step];
+            Vector coefficients(r_step_coefficients.size());
+            std::copy(r_step_coefficients.begin(), r_step_coefficients.end(), coefficients.begin());
+            r_iga_model_part.GetProcessInfo().SetValue(BDF_COEFFICIENTS, coefficients);
+        }
+
+        // Source f = 2 at t = 0 and 2 + x - y after, u_D at the closest points
+        for (auto& r_element : r_iga_model_part.Elements()) {
+            const auto center = r_element.GetGeometry().Center();
+            r_element.SetValue(HEAT_FLUX, 2.0 + (step > 0 ? center[0] - center[1] : 0.0));
+        }
+        for (auto& r_node : model.GetModelPart("Skin.projection_data").Nodes()) {
+            r_node.SetValue(TEMPERATURE, exact_solution(r_node.Coordinates(), time));
+        }
+
+        strategy.Solve();
+
+        // Solution at every Gauss point of the patch, inside and outside Omega
+        const double tolerance = 1.0e-10;
+        for (const auto& r_element : r_iga_model_part.Elements()) {
+            const auto& r_geometry = r_element.GetGeometry();
+            const Matrix& r_N = r_geometry.ShapeFunctionsValues();
+            double solution = 0.0;
+            for (IndexType i = 0; i < r_geometry.size(); ++i) {
+                solution += r_N(0, i) * r_geometry[i].FastGetSolutionStepValue(TEMPERATURE);
+            }
+            KRATOS_EXPECT_NEAR(
+                solution, exact_solution(r_geometry.Center().Coordinates(), time), tolerance
             );
         }
     }

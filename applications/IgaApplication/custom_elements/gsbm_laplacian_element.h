@@ -90,12 +90,14 @@ public:
         return Kratos::make_intrusive<GsbmLaplacianElement>(NewId, pGeom, pProperties);
     }
 
-    /// Left hand side of LaplacianElement, weighted by the volume fraction
+    /// Left hand side of LaplacianElement, plus the BDF time term if the
+    /// ProcessInfo has BDF_COEFFICIENTS, weighted by the volume fraction
     void CalculateLeftHandSide(
         MatrixType& rLeftHandSideMatrix,
         const ProcessInfo& rCurrentProcessInfo) override;
 
-    /// Right hand side of LaplacianElement, weighted by the volume fraction
+    /// Right hand side of LaplacianElement, plus the BDF time term if the
+    /// ProcessInfo has BDF_COEFFICIENTS, weighted by the volume fraction
     void CalculateRightHandSide(
         VectorType& rRightHandSideVector,
         const ProcessInfo& rCurrentProcessInfo) override;
@@ -105,7 +107,8 @@ public:
         MatrixType& rMassMatrix,
         const ProcessInfo& rCurrentProcessInfo) override;
 
-    /// Checks LaplacianElement's requirements and that VOLUME_FRACTION is set
+    /// Checks LaplacianElement's requirements, that VOLUME_FRACTION is set and,
+    /// with BDF_COEFFICIENTS, the heat capacity and the buffer size
     int Check(const ProcessInfo& rCurrentProcessInfo) const override;
 
     ///@}
