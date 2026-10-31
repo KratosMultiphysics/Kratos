@@ -182,12 +182,12 @@ KRATOS_TEST_CASE_IN_SUITE(_ConstitutiveLaw_SmallStrainIsotropicDamageTractionOnl
 
     // Update properties for this test
     material_properties.SetValue(HARDENING_CURVE, 1);
-    stress_limits.resize(3);
+    stress_limits.resize(3, false);
     stress_limits(0) = 1.5;
     stress_limits(1) = 2.0;
     stress_limits(2) = 3.0;
     material_properties.SetValue(STRESS_LIMITS, stress_limits);
-    hardening_params.resize(3);
+    hardening_params.resize(3, false);
     hardening_params(0) = 0.6;
     hardening_params(1) = 0.4;
     hardening_params(2) = 0.0;

@@ -40,7 +40,7 @@ namespace Kratos {
 
             Vector weights_old = rGeometry.Weights();
             if (weights_old.size() != rGeometry.size()) {
-                weights_old.resize(rGeometry.size());
+                weights_old.resize(rGeometry.size(), false);
                 std::fill(weights_old.begin(), weights_old.end(), 1.0);
             }
 
@@ -54,11 +54,11 @@ namespace Kratos {
 
             // Resize reference variables
             if (rKnotsURefined.size() != nb_knots_u_refined) {
-                rKnotsURefined.resize(nb_knots_u_refined);
+                rKnotsURefined.resize(nb_knots_u_refined, false);
             }
             rKnotsURefined = ZeroVector(nb_knots_u_refined);
             if (rWeightsRefined.size() != nb_cp_u_refined * nb_cp_v) {
-                rWeightsRefined.resize(nb_cp_u_refined * nb_cp_v);
+                rWeightsRefined.resize(nb_cp_u_refined * nb_cp_v, false);
             }
             rWeightsRefined = ZeroVector(nb_cp_u_refined * nb_cp_v);
             if (rPointsRefined.size() != nb_cp_u_refined * nb_cp_v) {
@@ -202,7 +202,7 @@ namespace Kratos {
 
             Vector weights_old = rGeometry.Weights();
             if (weights_old.size() != rGeometry.size()) {
-                weights_old.resize(rGeometry.size());
+                weights_old.resize(rGeometry.size(), false);
                 std::fill(weights_old.begin(), weights_old.end(), 1.0);
             }
 
@@ -216,11 +216,11 @@ namespace Kratos {
 
             // Resize reference variables
             if (rKnotsVRefined.size() != nb_knots_v_refined) {
-                rKnotsVRefined.resize(nb_knots_v_refined);
+                rKnotsVRefined.resize(nb_knots_v_refined, false);
             }
             rKnotsVRefined = ZeroVector(nb_knots_v_refined);
             if (rWeightsRefined.size() != nb_cp_v_refined * nb_cp_u) {
-                rWeightsRefined.resize(nb_cp_v_refined * nb_cp_u);
+                rWeightsRefined.resize(nb_cp_v_refined * nb_cp_u, false);
             }
             rWeightsRefined = ZeroVector(nb_cp_v_refined * nb_cp_u);
             if (rPointsRefined.size() != nb_cp_v_refined * nb_cp_u) {
@@ -360,7 +360,7 @@ namespace Kratos {
 
             Vector weights_old = rGeometry.Weights();
             if (weights_old.size() != rGeometry.size()) {
-                weights_old.resize(rGeometry.size());
+                weights_old.resize(rGeometry.size(), false);
                 std::fill(weights_old.begin(), weights_old.end(), 1.0);
             }
 
@@ -379,11 +379,11 @@ namespace Kratos {
 
             // Resize reference variables
             if (rKnotsURefined.size() != nb_knots_u_refined) {
-                rKnotsURefined.resize(nb_knots_u_refined);
+                rKnotsURefined.resize(nb_knots_u_refined, false);
             }
             rKnotsURefined = ZeroVector(nb_knots_u_refined);
             if (rWeightsRefined.size() != nb_cp_u_refined * nb_cp_v) {
-                rWeightsRefined.resize(nb_cp_u_refined * nb_cp_v);
+                rWeightsRefined.resize(nb_cp_u_refined * nb_cp_v, false);
             }
             rWeightsRefined = ZeroVector(nb_cp_u_refined * nb_cp_v);
             if (rPointsRefined.size() != nb_cp_u_refined * nb_cp_v) {
@@ -742,7 +742,7 @@ namespace Kratos {
 
             Vector weights_old = rGeometry.Weights();
             if (weights_old.size() != rGeometry.size()) {
-                weights_old.resize(rGeometry.size());
+                weights_old.resize(rGeometry.size(), false);
                 std::fill(weights_old.begin(), weights_old.end(), 1.0);
             }
 
@@ -761,11 +761,11 @@ namespace Kratos {
 
             // Resize reference variables
             if (rKnotsVRefined.size() != nb_knots_v_refined) {
-                rKnotsVRefined.resize(nb_knots_v_refined);
+                rKnotsVRefined.resize(nb_knots_v_refined, false);
             }
             rKnotsVRefined = ZeroVector(nb_knots_v_refined);
             if (rWeightsRefined.size() != nb_cp_v_refined * nb_cp_u) {
-                rWeightsRefined.resize(nb_cp_v_refined * nb_cp_u);
+                rWeightsRefined.resize(nb_cp_v_refined * nb_cp_u, false);
             }
             rWeightsRefined = ZeroVector(nb_cp_v_refined * nb_cp_u);
             if (rPointsRefined.size() != nb_cp_v_refined * nb_cp_u) {

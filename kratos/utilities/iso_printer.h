@@ -112,7 +112,7 @@ public:
     IsosurfacePrinterApplication(ModelPart& model_part) :  mr_model_part(model_part)
     {
         int nnodes = mr_model_part.Nodes().size(); //both local nodes and the ones belonging to other CPU
-        m_used_nodes.resize(nnodes);
+        m_used_nodes.resize(nnodes, false);
         for (int index = 0; index!=nnodes; ++index) m_used_nodes[index]=false; //starting as zero (no needed nodes)
         //smallest_edge=1.0;
     } //

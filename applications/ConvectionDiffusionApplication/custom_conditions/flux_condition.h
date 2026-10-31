@@ -57,7 +57,7 @@ public:
         rGeometry.DeterminantOfJacobian(DetJ,GeometryData::IntegrationMethod::GI_GAUSS_2);
 
         mShapeFunctionValues.resize(NumGauss,TNodeNumber);
-        mIntegrationWeights.resize(NumGauss);
+        mIntegrationWeights.resize(NumGauss, false);
 
         noalias(mShapeFunctionValues) = rGeometry.ShapeFunctionsValues(GeometryData::IntegrationMethod::GI_GAUSS_2);
 

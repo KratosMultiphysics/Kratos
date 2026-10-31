@@ -97,7 +97,7 @@ Vector& SmallStrainUMAT2DPlaneStrainLaw::GetValue(const Variable<Vector>& rThisV
     if (rThisVariable == STATE_VARIABLES) {
         SmallStrainUMATLaw::GetValue(rThisVariable, rValue);
     } else if (rThisVariable == CAUCHY_STRESS_VECTOR) {
-        if (rValue.size() != VoigtSize) rValue.resize(VoigtSize);
+        if (rValue.size() != VoigtSize) rValue.resize(VoigtSize, false);
         for (unsigned int i = 0; i < VoigtSize; ++i) {
             rValue[i] = mStressVectorFinalized[i];
         }

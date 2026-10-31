@@ -40,7 +40,7 @@ namespace Kratos
         if (m_B_11_covariant_vector.size() != r_number_of_integration_points)
             m_B_11_covariant_vector.resize(r_number_of_integration_points);
         if (m_dL_vector.size() != r_number_of_integration_points)
-            m_dL_vector.resize(r_number_of_integration_points);
+            m_dL_vector.resize(r_number_of_integration_points, false);
 
         KinematicVariables kinematic_variables(GetGeometry().WorkingSpaceDimension());
 
@@ -254,7 +254,7 @@ namespace Kratos
 
         const Matrix& r_DN_De = GetGeometry().ShapeFunctionLocalGradient(IntegrationPointIndex);
 
-        if (rB.size() != mat_size) rB.resize(mat_size);
+        if (rB.size() != mat_size) rB.resize(mat_size, false);
         noalias(rB) = ZeroVector(mat_size);
 
         for (IndexType i = 0; i < number_of_control_points; i++)
@@ -281,7 +281,7 @@ namespace Kratos
         const std::size_t number_of_control_points = GetGeometry().size();
         const std::size_t mat_size = number_of_control_points * 3;
 
-        if (rB.size() != mat_size) rB.resize(mat_size);
+        if (rB.size() != mat_size) rB.resize(mat_size, false);
         noalias(rB) = ZeroVector(mat_size);
 
         array_1d<double, 2> H = ZeroVector(2);
@@ -319,7 +319,7 @@ namespace Kratos
         const Matrix& r_N = GetGeometry().ShapeFunctionsValues();
         const Matrix& r_DN_De = GetGeometry().ShapeFunctionLocalGradient(IntegrationPointIndex);
 
-        if (rB.size() != mat_size) rB.resize(mat_size);
+        if (rB.size() != mat_size) rB.resize(mat_size, false);
         noalias(rB) = ZeroVector(mat_size);
 
         for (IndexType i = 0; i < number_of_control_points; i++)

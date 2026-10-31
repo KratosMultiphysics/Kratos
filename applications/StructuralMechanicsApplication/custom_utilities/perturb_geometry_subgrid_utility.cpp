@@ -118,7 +118,7 @@ int PerturbGeometrySubgridUtility::CreateRandomFieldVectors(){
 
     // Construct Correlation vector
     DenseVectorType correlation_vector;
-    correlation_vector.resize(num_nodes_reduced_space);
+    correlation_vector.resize(num_nodes_reduced_space, false);
     // Generate random field over full domain
     BuiltinTimer assemble_random_field_time;
     #pragma omp parallel for firstprivate(correlation_vector)

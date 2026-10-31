@@ -170,7 +170,7 @@ public:
     {
         if (rVariable == NORMAL) {
             if( rOutput.size() != mNormal.size()){
-                rOutput.resize(mNormal.size());
+                rOutput.resize(mNormal.size(), false);
             }
 
             if (mNormal.size() == 0) KRATOS_ERROR << "[QUADRATURE_POINT_IN_SURFACE_GEOMETRY]:: Normal not defined" << std::endl;

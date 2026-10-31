@@ -845,7 +845,7 @@ public:
             ShapeFunctionsLocalGradientsContainerType shape_function_gradients;
 
             integration_points[0] = rIntegrationPoints;
-            shape_function_gradients[0].resize(rIntegrationPoints.size());
+            shape_function_gradients[0].resize(rIntegrationPoints.size(), false);
             shape_function_values[0].resize(rIntegrationPoints.size(), num_nonzero_cps);
 
             for( IndexType i_point = 0; i_point < num_points; ++i_point){
@@ -1129,7 +1129,7 @@ public:
 
 
         if (rResult.size() != shape_function_container.NumberOfNonzeroControlPoints())
-            rResult.resize(shape_function_container.NumberOfNonzeroControlPoints());
+            rResult.resize(shape_function_container.NumberOfNonzeroControlPoints(), false);
 
         for (IndexType i = 0; i < shape_function_container.NumberOfNonzeroControlPoints(); ++i) {
             rResult[i] = shape_function_container(i, 0);

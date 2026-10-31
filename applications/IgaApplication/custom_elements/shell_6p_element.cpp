@@ -84,7 +84,7 @@ namespace Kratos
 
         // Prepare memory
         if (mDifferentialAreaVector.size() != number_of_integration_points)
-            mDifferentialAreaVector.resize(number_of_integration_points);
+            mDifferentialAreaVector.resize(number_of_integration_points, false);
         if (mNormalVectorDerivatives.size() != number_of_integration_points)
             mNormalVectorDerivatives.resize(number_of_integration_points);
         if (mNormalVector.size() != number_of_integration_points)
@@ -167,7 +167,7 @@ namespace Kratos
         const IndexType mat_size = GetGeometry().size() * 6;
 
         if (rRightHandSideVector.size() != mat_size)
-            rRightHandSideVector.resize(mat_size);
+            rRightHandSideVector.resize(mat_size, false);
         noalias(rRightHandSideVector) = ZeroVector(mat_size);
 
         if (rLeftHandSideMatrix.size1() != mat_size)
@@ -201,7 +201,7 @@ namespace Kratos
         const IndexType mat_size = number_of_nodes * 6;
 
         if (rRightHandSideVector.size() != mat_size)
-            rRightHandSideVector.resize(mat_size);
+            rRightHandSideVector.resize(mat_size, false);
         noalias(rRightHandSideVector) = ZeroVector(mat_size);
 
         MatrixType left_hand_side_matrix;

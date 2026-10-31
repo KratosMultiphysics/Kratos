@@ -109,7 +109,7 @@ Vector& SmallStrainUDSM2DInterfaceLaw::GetValue(const Variable<Vector>& rVariabl
     if (rVariable == STATE_VARIABLES) {
         SmallStrainUDSMLaw::GetValue(rVariable, rValue);
     } else if (rVariable == CAUCHY_STRESS_VECTOR || rVariable == GEO_EFFECTIVE_TRACTION_VECTOR) {
-        rValue.resize(GetStrainSize());
+        rValue.resize(GetStrainSize(), false);
 
         auto& r_sig0 = GetSig0();
         rValue[1]    = r_sig0[2];

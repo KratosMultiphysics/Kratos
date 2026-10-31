@@ -329,7 +329,7 @@ private:
         const IndexType skip_size = block_size - domain_size - 1;
 
         if (rResponseGradient.size() != rResidualGradient.size2()) {
-            rResponseGradient.resize(rResidualGradient.size2());
+            rResponseGradient.resize(rResidualGradient.size2(), true);
         }
 
         if (rEntity.Is(STRUCTURE)) {
@@ -381,7 +381,7 @@ private:
         const IndexType local_size = domain_size * number_of_nodes;
 
         if (rResponseGradient.size() != local_size) {
-            rResponseGradient.resize(local_size);
+            rResponseGradient.resize(local_size, false);
         }
 
         if (rEntity.Is(STRUCTURE)) {

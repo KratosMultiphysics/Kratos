@@ -92,7 +92,7 @@ Vector& SmallStrainIsotropicDamageImplex3D::GetValue(
     )
 {
     if (rThisVariable == INTERNAL_VARIABLES) {
-        rValue.resize(2);
+        rValue.resize(2, false);
         rValue[0] = mStrainVariable;
         rValue[1] = mStrainVariablePrevious;
     }

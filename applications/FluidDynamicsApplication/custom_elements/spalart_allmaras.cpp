@@ -286,7 +286,7 @@ void SpalartAllmaras::GetValuesVector(Vector &rValues, int Step) const
     const SizeType NumNodes = this->GetGeometry().PointsNumber();
 
     if(rValues.size() != NumNodes)
-        rValues.resize(NumNodes);
+        rValues.resize(NumNodes, false);
 
     for(SizeType i = 0; i < NumNodes; i++)
     {
@@ -475,7 +475,7 @@ void SpalartAllmaras::EvaluateConvection(Vector &rResult,
     const SizeType Dim = this->GetGeometry().WorkingSpaceDimension();
     const SizeType NumNodes = this->GetGeometry().PointsNumber();
 
-    if(rResult.size() != NumNodes) rResult.resize(NumNodes);
+    if(rResult.size() != NumNodes) rResult.resize(NumNodes, false);
 
     for (SizeType i = 0; i < NumNodes; i++)
     {

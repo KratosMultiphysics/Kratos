@@ -348,9 +348,9 @@ void PreComputeExplicitConstraintMassAndInertia(
 
         // Resizing vectors
         if (slave_solution_vector.size() != transformation_matrix.size1())
-            slave_solution_vector.resize(transformation_matrix.size1());
+            slave_solution_vector.resize(transformation_matrix.size1(), false);
         if (master_solution_vector.size() != transformation_matrix.size2())
-            master_solution_vector.resize(transformation_matrix.size2());
+            master_solution_vector.resize(transformation_matrix.size2(), false);
 
         std::size_t counter = 0;
         for (auto& r_dof_slave : it_const->GetSlaveDofsVector()) {

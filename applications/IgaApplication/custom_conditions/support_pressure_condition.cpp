@@ -37,7 +37,7 @@ const ProcessInfo& rCurrentProcessInfo)
     const std::size_t mat_size = number_of_nodes * (mDim+1);
 
     if (rRightHandSideVector.size() != mat_size)
-        rRightHandSideVector.resize(mat_size);
+        rRightHandSideVector.resize(mat_size, false);
     noalias(rRightHandSideVector) = ZeroVector(mat_size);
 
     if (rLeftHandSideMatrix.size1() != mat_size)

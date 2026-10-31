@@ -83,7 +83,7 @@ namespace Kratos
 
         Vector r_weights = r_nurbs_surface_geom->Weights();
         if (r_weights.size() == 0) {
-            r_weights.resize(r_nurbs_surface_geom->size());
+            r_weights.resize(r_nurbs_surface_geom->size(), false);
             std::fill(r_weights.begin(), r_weights.end(), 1.0);
         }
         Vector control_point = ZeroVector(4);
@@ -167,7 +167,7 @@ namespace Kratos
 
             Vector r_weights = p_curve->Weights();
             if (r_weights.size() == 0) {
-                r_weights.resize(p_curve->size());
+                r_weights.resize(p_curve->size(), false);
                 std::fill(r_weights.begin(), r_weights.end(), 1.0);
             }
             Vector control_points = ZeroVector(4);
