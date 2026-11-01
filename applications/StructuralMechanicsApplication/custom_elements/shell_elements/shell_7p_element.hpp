@@ -66,8 +66,6 @@ public:
     // runs once per Newton iteration
     void InitializeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo) override;
 
-    void FinalizeNonLinearIteration(const ProcessInfo& CurrentProcessInfo) override;
-
     void CalculateLocalSystem(
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,

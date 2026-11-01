@@ -182,11 +182,6 @@ void Shell7pElement::InitializeNonLinearIteration(const ProcessInfo& rCurrentPro
     KRATOS_CATCH( "" )
 }
 
-void Shell7pElement::FinalizeNonLinearIteration(const ProcessInfo& CurrentProcessInfo)
-{
-
-}
-
 void Shell7pElement::GetEASModeConfiguration(array_1d<SizeType,3>& rEasModesPerKinematicVariableSet, SizeType& rNumEasModes) const
 {
     // number of EAS modes for the set of kinematic varables: [ [konstant a11,a12,a22, linear b11,b12,b22] Modes, [konstant a13,a23, linear b13,b23] Modes, [b33 linear] Modes ]
@@ -221,25 +216,6 @@ void Shell7pElement::CalculateRightHandSide(
     if (rRightHandSideVector.size() != number_dofs) {
         rRightHandSideVector.resize(number_dofs, false);
     }
-
-    //MatrixType LHS;
-    //CalculateLeftHandSide(LHS, rCurrentProcessInfo);
-//
-    //Vector current_displacement_values = ZeroVector(number_dofs);
-    //for (SizeType i_node = 0; i_node < number_of_nodes; ++i_node) {
-    //    const SizeType index = 6 * i_node;
-    //    const auto& v_dof = r_geom[i_node].FastGetSolutionStepValue(DISPLACEMENT);
-    //    const auto& w_dof = r_geom[i_node].FastGetSolutionStepValue(DIFFERENCE_DIRECTOR);
-//
-    //    current_displacement_values[index] = v_dof[0];
-    //    current_displacement_values[index + 1] = v_dof[1];
-    //    current_displacement_values[index + 2] = v_dof[2];
-    //    current_displacement_values[index + 3] = w_dof[0];
-    //    current_displacement_values[index + 4] = w_dof[1];
-    //    current_displacement_values[index + 5] = w_dof[2];
-    //}
-//
-    //noalias(rRightHandSideVector) = -prod(LHS, current_displacement_values);
     VectorType internal_force_vector;
     CalculateInternalForces(internal_force_vector, rCurrentProcessInfo);
 
@@ -491,14 +467,6 @@ void Shell7pElement::CalculateInternalForces(VectorType& rInternalForceVector, c
         // shear correction factor betta=0.7 for stress resultants m_13 and m_23
         stress_resultants[8] *= 6.0/5.0 * 0.7;
         stress_resultants[10] *= 6.0/5.0 * 0.7;
-        // Dmatrix(2,2) *= 5.0/6.0;
-        // Dmatrix(2,4) *= 5.0/6.0;
-        // Dmatrix(4,2) *= 5.0/6.0;
-        // Dmatrix(4,4) *= 5.0/6.0;
-        // Dmatrix(8,8) *= 0.7;
-        // Dmatrix(8,10) *= 0.7;
-        // Dmatrix(10,8) *= 0.7;
-        // Dmatrix(10,10) *= 0.7;
 
         double weight = integration_weight_i * detJ_surface;
         rInternalForceVector += prod(trans(Bop), stress_resultants) * weight; 
@@ -610,9 +578,6 @@ void Shell7pElement::CalculateLeftHandSide(
     ans_points[3][0] =  1.0; ans_points[3][1] =  0.0;
     array_1d<double,2> N13_ansq;
     array_1d<double,2> N23_ansq;
-
-    //array_1d<Vector,4> funct_q;                        
-    //array_1d<Matrix,4> deriv_q;
 
     Matrix N_ans = ZeroMatrix(n_ans_points, number_of_nodes);   // N_ans(p,i) = N_i at point p
     array_1d<Matrix,4> DN_ans;                                  // DN_ansp=dNi/dxi (DN_ans[p](i, 0)), DN_ansp=dNi/deta (DN_ans[p](i, 1))
@@ -805,15 +770,6 @@ void Shell7pElement::CalculateLeftHandSide(
         // shear correction factor betta=0.7 for stress resultants m_13 and m_23
         stress_resultants[8] *= 6.0/5.0 * 0.7;
         stress_resultants[10] *= 6.0/5.0 * 0.7;
-        // double f_s = 1.0; // thickness*thickness/(thickness*thickness + 0.12*std::sqrt(A_element));
-        // Dmatrix(2,2) *= 5.0/6.0 * f_s; 
-        // Dmatrix(2,4) *= 5.0/6.0 * f_s; 
-        // Dmatrix(4,2) *= 5.0/6.0 * f_s;        // separate function ApplyShearCorrections()?
-        // Dmatrix(4,4) *= 5.0/6.0 * f_s;
-        // Dmatrix(8,8) *= 0.7 * f_s;     
-        // Dmatrix(8,10) *= 0.7 * f_s;
-        // Dmatrix(10,8) *= 0.7 * f_s;
-        // Dmatrix(10,10) *= 0.7 * f_s;
 
         double weight = integration_weight_i * detJ_surface; // * thickness*0.5; 
         noalias(DB) = prod(Dmatrix, Bop);
@@ -1184,18 +1140,7 @@ const ConstitutiveLawType& option, const double& Theta3, const double& fact, arr
             stress_resultants[i] += PK2_stress[i]*fact;
             stress_resultants[i6] += PK2_stress[i]*Theta3*fact;
         }
-        // StressPreintegration(CC, PK2_stress, GL_strain, stress_resultants, gmkonr, option, Theta3, fact);
-
     }
-
-       //D(2,2) *= 5.0/6.0;    // shear correction factor alpha=5/6 for n13,n23
-       //D(2,4) *= 5.0/6.0;
-       //D(4,2) *= 5.0/6.0;
-       //D(4,4) *= 5.0/6.0;
-       //D(8,8) *= 0.7;        // shear correction factor betta=0.7 for m13,m23
-       //D(8,10) *= 0.7;
-       //D(10,8) *= 0.7;
-       //D(10,10) *= 0.7;
  else {
     const double Ebar = E*(1.0-nu)/((1.0+nu)*(1.0-2.0*nu));
     const double hbar = thickness*thickness*thickness/12.0;
