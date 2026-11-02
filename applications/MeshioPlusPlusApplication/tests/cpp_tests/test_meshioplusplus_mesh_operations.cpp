@@ -146,10 +146,15 @@ KRATOS_TEST_CASE_IN_SUITE(MeshioPlusPlusMeshOperationsGetSupportedOperations, Kr
                                    "optimize_volume", "point_data_to_cell_data", "partition",
                                    "quality", "refine", "remesh", "remesh_volume", "reorder",
                                    "repair", "segment", "slice", "smooth", "sobolev_deform", "split", "stats",
-                                   "subdivide", "tensor_invariants", "tessellate", "transform", "voxelize"}) {
+                                   "subdivide", "tensor_invariants", "tessellate", "transform", "voxelize",
+                                   "adapt", "boundary_layer", "check_conformity", "discretize_levelset",
+                                   "error_size", "extrude", "find_intersections", "mesh_domain",
+                                   "metric_from_hessian", "mirror", "move", "octree", "octree_mesh",
+                                   "refine_patches", "revolve", "select", "tet_to_poly", "tetrahedralize",
+                                   "thickness"}) {
         KRATOS_EXPECT_TRUE(std::find(operations.begin(), operations.end(), name) != operations.end());
     }
-    KRATOS_EXPECT_EQ(operations.size(), 49);
+    KRATOS_EXPECT_EQ(operations.size(), 68);
     KRATOS_EXPECT_TRUE(std::is_sorted(operations.begin(), operations.end()));
 }
 
@@ -2469,11 +2474,13 @@ KRATOS_TEST_CASE_IN_SUITE(MeshioPlusPlusMeshOperationsFitCad, KratosMeshioPlusPl
     PopulateClosedCubeSkin(r_source);
     auto& r_destination = model.CreateModelPart("destination");
 
+    // Since meshio++ v17.9.0 "cad_backend" : "auto" falls back to the native backend without
+    // OpenCASCADE, so only an explicit "occt" is refused in such a build.
     if (!meshioplusplus::fit_cad_has_occt()) {
+        auto& r_refused = model.CreateModelPart("refused");
         KRATOS_EXPECT_EXCEPTION_IS_THROWN(
-            MeshioPlusPlusMeshOperations::Execute(r_source, OperationSettings("fit_cad"), r_destination),
+            MeshioPlusPlusMeshOperations::Execute(r_source, OperationSettings("fit_cad", R"({"cad_backend" : "occt"})"), r_refused),
             "OpenCASCADE");
-        return;
     }
 
     // The cube is six planes, sewn into one valid unit-volume solid
@@ -2600,6 +2607,492 @@ KRATOS_TEST_CASE_IN_SUITE(MeshioPlusPlusMeshOperationsBlendSteps, KratosMeshioPl
     auto& r_refused = model.CreateModelPart("refused");
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         MeshioPlusPlusMeshOperations::BlendSteps(r_first, r_square, 0.5, Parameters(R"({})"), r_refused), "");
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+KRATOS_TEST_CASE_IN_SUITE(MeshioPlusPlusMeshOperationsGetCapabilities, KratosMeshioPlusPlusFastSuite)
+{
+    const Parameters capabilities = MeshioPlusPlusMeshOperations::GetCapabilities();
+    for (const std::string key : {"occt", "netgen", "mmg", "mmg_elas"}) {
+        KRATOS_EXPECT_TRUE(capabilities.Has(key));
+    }
+    KRATOS_EXPECT_EQ(capabilities["occt"].GetBool(), meshioplusplus::fit_cad_has_occt());
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+KRATOS_TEST_CASE_IN_SUITE(MeshioPlusPlusMeshOperationsOptimizeVolumeObjectives, KratosMeshioPlusPlusFastSuite)
+{
+    Model model;
+    auto& r_source = model.CreateModelPart("source");
+    PopulateCubeOfTetrahedra(r_source);
+    auto& r_refined = model.CreateModelPart("refined");
+    MeshioPlusPlusMeshOperations::Execute(r_source, OperationSettings("refine"), r_refined);
+
+    // "worst" (the default since meshio++'s v18.0.0 tag) never lowers the least dihedral angle
+    auto& r_worst = model.CreateModelPart("worst");
+    const Parameters worst = MeshioPlusPlusMeshOperations::Execute(
+        r_refined, OperationSettings("optimize_volume"), r_worst);
+    for (const std::string key : {"number_of_edge_removals", "number_of_multi_face_removals",
+                                  "number_of_worst_smoothed", "min_dihedral_before", "min_dihedral_after"}) {
+        KRATOS_EXPECT_TRUE(worst.Has(key));
+    }
+    KRATOS_EXPECT_GE(worst["min_dihedral_after"].GetDouble(), worst["min_dihedral_before"].GetDouble() - 1e-12);
+
+    // "energy" is the former behaviour, which may lower the least quality (why "worst" became
+    // the default); it still keeps the cell budget
+    auto& r_energy = model.CreateModelPart("energy");
+    const Parameters energy = MeshioPlusPlusMeshOperations::Execute(
+        r_refined, OperationSettings("optimize_volume", R"({"optimize_objective" : "energy"})"), r_energy);
+    KRATOS_EXPECT_EQ(energy["number_of_edge_removals"].GetInt(), 0);
+    KRATOS_EXPECT_EQ(r_energy.NumberOfElements(), r_refined.NumberOfElements());
+
+    auto& r_unknown = model.CreateModelPart("unknown");
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(MeshioPlusPlusMeshOperations::Execute(
+        r_refined, OperationSettings("optimize_volume", R"({"optimize_objective" : "best"})"), r_unknown), "worst");
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+KRATOS_TEST_CASE_IN_SUITE(MeshioPlusPlusMeshOperationsSegmentPrimitiveMethod, KratosMeshioPlusPlusFastSuite)
+{
+    Model model;
+    auto& r_source = model.CreateModelPart("source");
+    PopulateClosedCubeSkin(r_source);
+    auto& r_destination = model.CreateModelPart("destination");
+
+    // Each face of the cube is one plane: six patches, whatever the angles say
+    const Parameters report = MeshioPlusPlusMeshOperations::Execute(
+        r_source, OperationSettings("segment", R"({"segment_method" : "primitive"})"), r_destination);
+    KRATOS_EXPECT_EQ(report["number_of_patches"].GetInt(), 6);
+
+    auto& r_unknown = model.CreateModelPart("unknown");
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(MeshioPlusPlusMeshOperations::Execute(
+        r_source, OperationSettings("segment", R"({"segment_method" : "curvature"})"), r_unknown),
+        "expected one of angle, primitive");
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+KRATOS_TEST_CASE_IN_SUITE(MeshioPlusPlusMeshOperationsTetrahedralizeOctree, KratosMeshioPlusPlusFastSuite)
+{
+    Model model;
+    auto& r_source = model.CreateModelPart("source");
+    PopulateClosedCubeSkin(r_source);
+    auto& r_destination = model.CreateModelPart("destination");
+
+    const Parameters report = MeshioPlusPlusMeshOperations::Execute(r_source,
+        OperationSettings("tetrahedralize", R"({"tet_backend" : "octree", "tet_max_size" : 0.25})"), r_destination);
+    KRATOS_EXPECT_EQ(report["backend"].GetString(), "octree");
+    KRATOS_EXPECT_GT(report["number_of_tetrahedra"].GetInt(), 0);
+    KRATOS_EXPECT_GT(r_destination.NumberOfElements(), 0);
+    KRATOS_EXPECT_NEAR(report["volume"].GetDouble(), 1.0, 0.1);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+KRATOS_TEST_CASE_IN_SUITE(MeshioPlusPlusMeshOperationsTetrahedralizeNetgen, KratosMeshioPlusPlusFastSuite)
+{
+    Model model;
+    auto& r_source = model.CreateModelPart("source");
+    PopulateClosedCubeSkin(r_source);
+    auto& r_destination = model.CreateModelPart("destination");
+
+    const auto settings = OperationSettings("tetrahedralize", R"({"tet_backend" : "netgen"})");
+    if (!MeshioPlusPlusMeshOperations::GetCapabilities()["netgen"].GetBool()) {
+        KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+            MeshioPlusPlusMeshOperations::Execute(r_source, settings, r_destination), "Netgen");
+        return;
+    }
+    // Netgen keeps the surface's triangles
+    const Parameters report = MeshioPlusPlusMeshOperations::Execute(r_source, settings, r_destination);
+    KRATOS_EXPECT_EQ(report["backend"].GetString(), "netgen");
+    KRATOS_EXPECT_TRUE(report["boundary_preserved"].GetBool());
+    KRATOS_EXPECT_NEAR(report["volume"].GetDouble(), 1.0, 1e-9);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+KRATOS_TEST_CASE_IN_SUITE(MeshioPlusPlusMeshOperationsExtrude, KratosMeshioPlusPlusFastSuite)
+{
+    Model model;
+    auto& r_source = model.CreateModelPart("source");
+    PopulateTriangulatedSquare(r_source);
+    auto& r_destination = model.CreateModelPart("destination");
+
+    // Two triangles swept in two layers: four wedges
+    const Parameters report = MeshioPlusPlusMeshOperations::Execute(
+        r_source, OperationSettings("extrude", R"({"extrude_layers" : 2})"), r_destination);
+    KRATOS_EXPECT_EQ(report["wedges"].GetInt(), 4);
+    KRATOS_EXPECT_EQ(r_destination.NumberOfElements(), 4);
+    KRATOS_EXPECT_EQ(r_destination.NumberOfNodes(), 12);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+KRATOS_TEST_CASE_IN_SUITE(MeshioPlusPlusMeshOperationsRevolve, KratosMeshioPlusPlusFastSuite)
+{
+    Model model;
+    auto& r_source = model.CreateModelPart("source");
+    PopulateTriangulatedSquare(r_source);
+    auto& r_destination = model.CreateModelPart("destination");
+
+    // Around the y axis through x = -1, clear of the square: a full ring of wedges
+    const Parameters report = MeshioPlusPlusMeshOperations::Execute(r_source, OperationSettings("revolve",
+        R"({"revolve_axis_point" : [-1.0, 0.0, 0.0], "revolve_axis" : [0.0, 1.0, 0.0], "revolve_layers" : 8})"),
+        r_destination);
+    KRATOS_EXPECT_TRUE(report["full_revolution"].GetBool());
+    KRATOS_EXPECT_EQ(report["number_of_cells"].GetInt(), 16);
+    KRATOS_EXPECT_EQ(r_destination.NumberOfElements(), 16);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+KRATOS_TEST_CASE_IN_SUITE(MeshioPlusPlusMeshOperationsMirror, KratosMeshioPlusPlusFastSuite)
+{
+    Model model;
+    auto& r_source = model.CreateModelPart("source");
+    PopulateCubeOfTetrahedra(r_source);
+    auto& r_destination = model.CreateModelPart("destination");
+
+    // Across x = 0 keeping the original: twice the tetrahedra, the four nodes on the plane welded
+    const Parameters report = MeshioPlusPlusMeshOperations::Execute(
+        r_source, OperationSettings("mirror", R"({"mirror_keep_original" : true})"), r_destination);
+    KRATOS_EXPECT_EQ(report["points_on_plane"].GetInt(), 4);
+    KRATOS_EXPECT_EQ(r_destination.NumberOfElements(), 12);
+    KRATOS_EXPECT_EQ(r_destination.NumberOfNodes(), 12);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+KRATOS_TEST_CASE_IN_SUITE(MeshioPlusPlusMeshOperationsOctree, KratosMeshioPlusPlusFastSuite)
+{
+    Model model;
+    auto& r_source = model.CreateModelPart("source");
+    PopulateClosedCubeSkin(r_source);
+    auto& r_destination = model.CreateModelPart("destination");
+
+    const Parameters report = MeshioPlusPlusMeshOperations::Execute(r_source,
+        OperationSettings("octree", R"({"octree_max_level" : 2, "padding_relative" : 0.1})"), r_destination);
+    KRATOS_EXPECT_EQ(report["dimension"].GetInt(), 3);
+    KRATOS_EXPECT_GT(report["number_of_leaves"].GetInt(), 0);
+    KRATOS_EXPECT_GT(r_destination.NumberOfElements(), 0);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+KRATOS_TEST_CASE_IN_SUITE(MeshioPlusPlusMeshOperationsOctreeMesh, KratosMeshioPlusPlusFastSuite)
+{
+    Model model;
+    auto& r_source = model.CreateModelPart("source");
+    PopulateClosedCubeSkin(r_source);
+    auto& r_destination = model.CreateModelPart("destination");
+
+    const Parameters report = MeshioPlusPlusMeshOperations::Execute(r_source,
+        OperationSettings("octree_mesh", R"({"max_size" : 0.25})"), r_destination);
+    KRATOS_EXPECT_EQ(report["output"].GetString(), "tet");
+    KRATOS_EXPECT_GT(report["tetrahedra"].GetInt(), 0);
+    KRATOS_EXPECT_EQ(report["inverted"].GetInt(), 0);
+    KRATOS_EXPECT_GT(r_destination.NumberOfElements(), 0);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+KRATOS_TEST_CASE_IN_SUITE(MeshioPlusPlusMeshOperationsRefinePatches, KratosMeshioPlusPlusFastSuite)
+{
+    Model model;
+    auto& r_source = model.CreateModelPart("source");
+    PopulateClosedCubeSkin(r_source);
+    auto& r_destination = model.CreateModelPart("destination");
+
+    const Parameters report = MeshioPlusPlusMeshOperations::Execute(
+        r_source, OperationSettings("refine_patches"), r_destination);
+    KRATOS_EXPECT_EQ(report["number_of_patches"].GetInt(), 6);
+    KRATOS_EXPECT_NEAR(report["explained_area_fraction"].GetDouble(), 1.0, 1e-9);
+    KRATOS_EXPECT_EQ(r_destination.NumberOfElements(), 12);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+KRATOS_TEST_CASE_IN_SUITE(MeshioPlusPlusMeshOperationsSelectByBox, KratosMeshioPlusPlusFastSuite)
+{
+    Model model;
+    auto& r_source = model.CreateModelPart("source");
+    PopulateCubeOfTetrahedra(r_source);
+    auto& r_destination = model.CreateModelPart("destination");
+
+    // Every tetrahedron whose centroid lies below the x = 0.5 plane
+    const Parameters report = MeshioPlusPlusMeshOperations::Execute(r_source, OperationSettings("select", R"({
+        "select_name" : "left", "select_mode" : "centroid", "select_box" : true,
+        "box_min" : [-1.0, -1.0, -1.0], "box_max" : [0.5, 2.0, 2.0]})"), r_destination);
+    KRATOS_EXPECT_GT(report["number_of_selected"].GetInt(), 0);
+    KRATOS_EXPECT_LT(report["number_of_selected"].GetInt(), 6);
+    KRATOS_EXPECT_EQ(r_destination.NumberOfElements(), 6);
+    KRATOS_EXPECT_TRUE(r_destination.HasSubModelPart("left"));
+    KRATOS_EXPECT_EQ(static_cast<int>(r_destination.GetSubModelPart("left").NumberOfElements()),
+                     report["number_of_selected"].GetInt());
+
+    auto& r_unnamed = model.CreateModelPart("unnamed");
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(MeshioPlusPlusMeshOperations::Execute(
+        r_source, OperationSettings("select", R"({"select_box" : true})"), r_unnamed), "select_name");
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+KRATOS_TEST_CASE_IN_SUITE(MeshioPlusPlusMeshOperationsCheckConformity, KratosMeshioPlusPlusFastSuite)
+{
+    Model model;
+    auto& r_source = model.CreateModelPart("source");
+    PopulateCubeOfTetrahedra(r_source);
+    auto& r_destination = model.CreateModelPart("destination");
+
+    const Parameters report = MeshioPlusPlusMeshOperations::Execute(
+        r_source, OperationSettings("check_conformity"), r_destination);
+    KRATOS_EXPECT_TRUE(report["conforming"].GetBool());
+    KRATOS_EXPECT_EQ(report["hanging_nodes"].GetInt(), 0);
+    KRATOS_EXPECT_EQ(report["boundary_facets"].GetInt(), 12);
+    // Report-only: the destination is left untouched
+    KRATOS_EXPECT_EQ(r_destination.NumberOfNodes(), 0);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+KRATOS_TEST_CASE_IN_SUITE(MeshioPlusPlusMeshOperationsFindIntersections, KratosMeshioPlusPlusFastSuite)
+{
+    Model model;
+    auto& r_first = model.CreateModelPart("first");
+    PopulateClosedCubeSkin(r_first);
+
+    // A closed cube does not intersect itself
+    auto& r_self = model.CreateModelPart("self");
+    const Parameters self = MeshioPlusPlusMeshOperations::Execute(
+        r_first, OperationSettings("find_intersections"), r_self);
+    KRATOS_EXPECT_TRUE(self["clean"].GetBool());
+    KRATOS_EXPECT_EQ(self["number_of_pairs"].GetInt(), 0);
+
+    // Two unit cubes, the second shifted by (0.5, 0.25, 0.25), interpenetrate
+    auto& r_second = model.CreateModelPart("second");
+    PopulateClosedCubeSkin(r_second);
+    for (auto& r_node : r_second.Nodes()) {
+        r_node.X() += 0.5; r_node.X0() += 0.5;
+        r_node.Y() += 0.25; r_node.Y0() += 0.25;
+        r_node.Z() += 0.25; r_node.Z0() += 0.25;
+    }
+    auto& r_segments = model.CreateModelPart("segments");
+    const Parameters pair = MeshioPlusPlusMeshOperations::FindIntersections(
+        r_first, r_second, Parameters(R"({})"), r_segments);
+    KRATOS_EXPECT_FALSE(pair["clean"].GetBool());
+    KRATOS_EXPECT_GT(pair["number_of_pairs"].GetInt(), 0);
+    KRATOS_EXPECT_EQ(static_cast<int>(pair["pairs"].size()), pair["number_of_pairs"].GetInt());
+    KRATOS_EXPECT_GT(r_segments.NumberOfNodes(), 0);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+KRATOS_TEST_CASE_IN_SUITE(MeshioPlusPlusMeshOperationsThickness, KratosMeshioPlusPlusFastSuite)
+{
+    Model model;
+    auto& r_source = model.CreateModelPart("source");
+    PopulateClosedCubeSkin(r_source);
+    auto& r_destination = model.CreateModelPart("destination");
+
+    // Inward from every face of the unit cube, the far wall is one unit away
+    const Parameters report = MeshioPlusPlusMeshOperations::Execute(
+        r_source, OperationSettings("thickness", R"({"output" : "DISTANCE"})"), r_destination);
+    KRATOS_EXPECT_EQ(report["direction"].GetString(), "inward");
+    KRATOS_EXPECT_EQ(report["number_of_hits"].GetInt(), 12);
+    KRATOS_EXPECT_NEAR(report["min"].GetDouble(), 1.0, 1e-9);
+    KRATOS_EXPECT_NEAR(report["max"].GetDouble(), 1.0, 1e-9);
+    for (const auto& r_element : r_destination.Elements()) {
+        KRATOS_EXPECT_NEAR(r_element.GetValue(DISTANCE), 1.0, 1e-9);
+    }
+
+    // Outward to a second, parallel wall 0.5 above the top face, wound to face the cube (a wall
+    // counts only when it faces the ray): the top face's two triangles hit it
+    auto& r_wall = model.CreateModelPart("wall");
+    r_wall.CreateNewNode(1, -1.0, -1.0, 1.5);
+    r_wall.CreateNewNode(2, 2.0, -1.0, 1.5);
+    r_wall.CreateNewNode(3, 2.0, 2.0, 1.5);
+    r_wall.CreateNewNode(4, -1.0, 2.0, 1.5);
+    auto p_properties = r_wall.CreateNewProperties(1);
+    r_wall.CreateNewElement("Element2D3N", 1, {1, 3, 2}, p_properties);
+    r_wall.CreateNewElement("Element2D3N", 2, {1, 4, 3}, p_properties);
+    auto& r_clearance = model.CreateModelPart("clearance");
+    const Parameters clearance = MeshioPlusPlusMeshOperations::Thickness(
+        r_source, r_wall, Parameters(R"({"thickness_direction" : "outward"})"), r_clearance);
+    KRATOS_EXPECT_EQ(clearance["direction"].GetString(), "outward");
+    KRATOS_EXPECT_EQ(clearance["number_of_hits"].GetInt(), 2);
+    KRATOS_EXPECT_NEAR(clearance["min"].GetDouble(), 0.5, 1e-9);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+KRATOS_TEST_CASE_IN_SUITE(MeshioPlusPlusMeshOperationsErrorSize, KratosMeshioPlusPlusFastSuite)
+{
+    Model model;
+    auto& r_source = model.CreateModelPart("source");
+    PopulateCubeOfTetrahedra(r_source);
+    for (auto& r_element : r_source.Elements()) {
+        r_element.SetValue(TEMPERATURE, 0.1 * static_cast<double>(r_element.Id()));
+    }
+    auto& r_destination = model.CreateModelPart("destination");
+
+    const Parameters report = MeshioPlusPlusMeshOperations::Execute(r_source, OperationSettings("error_size", R"({
+        "element_data_value_variables" : ["TEMPERATURE"], "error_array" : "TEMPERATURE",
+        "target_error" : 0.1, "output" : "DISTANCE"})"), r_destination);
+    KRATOS_EXPECT_EQ(report["number_of_cells"].GetInt(), 6);
+    KRATOS_EXPECT_GT(report["min_size"].GetDouble(), 0.0);
+    for (const auto& r_node : r_destination.Nodes()) {
+        KRATOS_EXPECT_GT(r_node.GetValue(DISTANCE), 0.0);
+    }
+
+    auto& r_no_array = model.CreateModelPart("no_array");
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(MeshioPlusPlusMeshOperations::Execute(
+        r_source, OperationSettings("error_size"), r_no_array), "error_array");
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+KRATOS_TEST_CASE_IN_SUITE(MeshioPlusPlusMeshOperationsTetToPolyRoundTrip, KratosMeshioPlusPlusFastSuite)
+{
+    Model model;
+    auto& r_source = model.CreateModelPart("source");
+    PopulateCubeOfTetrahedra(r_source);
+    auto& r_destination = model.CreateModelPart("destination");
+    const auto path = TestFilePath(".vtu");
+    RemoveIfExists(path);
+
+    // No ModelPart holds a polyhedron: without a file the operation refuses by name
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(MeshioPlusPlusMeshOperations::Execute(
+        r_source, OperationSettings("tet_to_poly"), r_destination), "output_file");
+
+    Parameters settings = OperationSettings("tet_to_poly");
+    settings.AddString("output_file", path.string());
+    const Parameters report = MeshioPlusPlusMeshOperations::Execute(r_source, settings, r_destination);
+    KRATOS_EXPECT_GT(report["number_of_new_points"].GetInt(), 0);
+    KRATOS_EXPECT_EQ(report["output_format"].GetString(), "vtu");
+    KRATOS_EXPECT_EQ(r_destination.NumberOfNodes(), 0);
+    KRATOS_EXPECT_TRUE(std::filesystem::exists(path));
+
+    // Read back with "poly_to_tet" the polyhedra arrive as tetrahedra
+    auto& r_read = model.CreateModelPart("read");
+    MeshioPlusPlusIO(path.string(), Parameters(R"({"poly_to_tet" : true})")).ReadModelPart(r_read);
+    KRATOS_EXPECT_GT(r_read.NumberOfElements(), 0);
+    RemoveIfExists(path);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+KRATOS_TEST_CASE_IN_SUITE(MeshioPlusPlusMeshOperationsBoundaryLayer, KratosMeshioPlusPlusFastSuite)
+{
+    Model model;
+    auto& r_source = model.CreateModelPart("source");
+    PopulateClosedCubeSkin(r_source);
+    auto& r_destination = model.CreateModelPart("destination");
+
+    const Parameters report = MeshioPlusPlusMeshOperations::Execute(r_source, OperationSettings("boundary_layer",
+        R"({"bl_first_height" : 0.02, "bl_number_of_layers" : 2})"), r_destination);
+    KRATOS_EXPECT_EQ(report["wedges"].GetInt(), 24);
+    KRATOS_EXPECT_GT(report["min_scaled_jacobian"].GetDouble(), 0.0);
+    KRATOS_EXPECT_GT(r_destination.NumberOfElements(), 0);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+KRATOS_TEST_CASE_IN_SUITE(MeshioPlusPlusMeshOperationsMmgAdapt, KratosMeshioPlusPlusFastSuite)
+{
+    Model model;
+    auto& r_source = model.CreateModelPart("source");
+    PopulateCubeOfTetrahedra(r_source);
+    auto& r_destination = model.CreateModelPart("destination");
+
+    const auto settings = OperationSettings("adapt", R"({"mmg_hmax" : 0.3, "mmg_verbose" : -1})");
+    if (!MeshioPlusPlusMeshOperations::GetCapabilities()["mmg"].GetBool()) {
+        KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+            MeshioPlusPlusMeshOperations::Execute(r_source, settings, r_destination), "MMG");
+        return;
+    }
+    const Parameters report = MeshioPlusPlusMeshOperations::Execute(r_source, settings, r_destination);
+    KRATOS_EXPECT_TRUE(report["success"].GetBool());
+    KRATOS_EXPECT_GT(report["number_of_elements_out"].GetInt(), report["number_of_elements_in"].GetInt());
+    KRATOS_EXPECT_GT(r_destination.NumberOfElements(), r_source.NumberOfElements());
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+KRATOS_TEST_CASE_IN_SUITE(MeshioPlusPlusMeshOperationsMmgMoveNeedsElas, KratosMeshioPlusPlusFastSuite)
+{
+    if (MeshioPlusPlusMeshOperations::GetCapabilities()["mmg_elas"].GetBool()) {
+        return;
+    }
+    Model model;
+    auto& r_source = model.CreateModelPart("source");
+    PopulateCubeOfTetrahedra(r_source);
+    for (auto& r_node : r_source.Nodes()) {
+        r_node.SetValue(DISPLACEMENT, array_1d<double, 3>(3, 0.0));
+    }
+    auto& r_destination = model.CreateModelPart("destination");
+    // Without MMG at all the message names MMG; with an MMG lacking ELAS it names ELAS
+    const std::string missing = MeshioPlusPlusMeshOperations::GetCapabilities()["mmg"].GetBool() ? "ELAS" : "MMG";
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(MeshioPlusPlusMeshOperations::Execute(r_source, OperationSettings("move",
+        R"({"displacement_array" : "DISPLACEMENT", "nodal_data_value_variables" : ["DISPLACEMENT"]})"), r_destination), missing);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+KRATOS_TEST_CASE_IN_SUITE(MeshioPlusPlusMeshOperationsPrimitive, KratosMeshioPlusPlusFastSuite)
+{
+    Model model;
+
+    auto& r_box = model.CreateModelPart("box");
+    const Parameters box = MeshioPlusPlusMeshOperations::Primitive(
+        Parameters(R"({"primitive" : "box", "dims" : [2, 2, 2]})"), r_box);
+    KRATOS_EXPECT_EQ(box["number_of_elements"].GetInt(), 8);
+    KRATOS_EXPECT_EQ(r_box.NumberOfNodes(), 27);
+
+    // Left out, a setting takes the shape's own default (a disk's "n" is 8)
+    auto& r_disk = model.CreateModelPart("disk");
+    MeshioPlusPlusMeshOperations::Primitive(Parameters(R"({"primitive" : "disk"})"), r_disk);
+    KRATOS_EXPECT_GT(r_disk.NumberOfElements(), 0);
+
+    auto& r_ball = model.CreateModelPart("ball");
+    MeshioPlusPlusMeshOperations::Primitive(Parameters(R"({"primitive" : "ball", "radius" : 2.0})"), r_ball);
+    KRATOS_EXPECT_GT(r_ball.NumberOfElements(), 0);
+
+    // A square with a square hole, triangulated
+    auto& r_polygon = model.CreateModelPart("polygon");
+    const Parameters polygon = MeshioPlusPlusMeshOperations::Primitive(Parameters(R"({"primitive" : "polygon",
+        "loops" : [[[0.0, 0.0], [4.0, 0.0], [4.0, 4.0], [0.0, 4.0]],
+                   [[1.0, 1.0], [1.0, 3.0], [3.0, 3.0], [3.0, 1.0]]]})"), r_polygon);
+    KRATOS_EXPECT_GT(polygon["number_of_elements"].GetInt(), 0);
+
+    auto& r_bad = model.CreateModelPart("bad");
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(MeshioPlusPlusMeshOperations::Primitive(
+        Parameters(R"({"primitive" : "box", "radious" : 1.0})"), r_bad), "radious");
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(MeshioPlusPlusMeshOperations::Primitive(
+        Parameters(R"({"primitive" : "dodecahedral_thing"})"), r_bad), "Unknown primitive");
 }
 
 } // namespace Kratos::Testing
