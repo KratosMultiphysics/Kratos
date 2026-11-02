@@ -132,6 +132,50 @@ public:
         Parameters Settings
         );
 
+    /**
+     * @brief Meshes the faces of a B-rep (Kratos CAD JSON, STEP, IGES) into the destination.
+     * @details meshio++'s mesh_cad_surface (v17.13.0 onwards): a conforming triangle mesh of
+     * every face, trimmed, plus the edges as line cells, with one sub model part "face:<k>" per
+     * face. Settings: "target_size", "max_chordal_deviation", "min_points_per_edge",
+     * "geometric_tolerance", "edges", "strict", "max_points"; quality: "min_angle",
+     * "smooth_iterations", "smooth_method" (laplacian, odt), "grading", "curvature_deviation",
+     * "cells_across_gaps", "metric" (mean, varying), "pole_rings", "reparam_condition_number",
+     * "order" (1, 2 or 3: curved elements); sizes: "face_sizes"/"edge_sizes" ([[id, size], ...]),
+     * "virtual_edges"; extras: "model_tolerances", "virtual_faces", "lop_corners", "untangle",
+     * "quads" (none, dominant, all), "quad_pairs" (matching, greedy). "face_ids_variable" and
+     * "edge_ids_variable" name registered int Variables that receive every entity's CAD face and
+     * edge (meshio++'s "cad:face"/"cad:edge", which no Variable can be named).
+     * @param rFileName The B-rep file.
+     * @param Settings The settings.
+     * @param rDestination The (empty) model part to fill.
+     * @return The counts, the angle statistics and histogram, and a status per face.
+     */
+    static Parameters MeshCad(
+        const std::string& rFileName,
+        Parameters Settings,
+        ModelPart& rDestination
+        );
+
+    /**
+     * @brief Projects a mesh's points back onto the B-rep it was meshed from.
+     * @details meshio++'s project_to_cad: each point onto the face (or edge) its entities name,
+     * after a refinement or smoothing moved it off. The faces and edges are read from the
+     * registered int Variables "face_ids_variable" (required) and "edge_ids_variable" that
+     * @ref MeshCad wrote. Settings: "max_distance" (0: no limit), "trim_samples".
+     * @param rSource The mesh to project.
+     * @param rFileName The B-rep file.
+     * @param Settings The settings.
+     * @param rDestination The model part receiving the projected mesh (expected empty).
+     * @return The projected, on-edge, corner, ambiguous, too-far and failed counts and the
+     * largest move.
+     */
+    static Parameters ProjectToCad(
+        const ModelPart& rSource,
+        const std::string& rFileName,
+        Parameters Settings,
+        ModelPart& rDestination
+        );
+
     ///@}
 }; // Class MeshioPlusPlusIgaUtilities
 

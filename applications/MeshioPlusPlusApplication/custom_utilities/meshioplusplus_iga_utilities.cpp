@@ -31,7 +31,11 @@
 #include "meshioplusplus/formats/iges.hpp"
 #include "meshioplusplus/formats/mfem.hpp"
 #include "meshioplusplus/formats/step.hpp"
+#include "meshioplusplus/operations/data_common.hpp"
+#include "meshioplusplus/operations/data_manage.hpp"
 #include "meshioplusplus/operations/iga.hpp"
+#include "meshioplusplus/operations/mesh_cad.hpp"
+#include "meshioplusplus/operations/project_to_cad.hpp"
 
 // Project includes
 #include "custom_utilities/meshioplusplus_iga_utilities.h"
@@ -202,6 +206,23 @@ Matrix ToMatrix(
     return result;
 }
 
+/***********************************************************************************/
+/***********************************************************************************/
+
+/// The (face or edge id, target size) pairs of a "face_sizes"/"edge_sizes" list of [id, size].
+std::vector<std::pair<std::int64_t, double>> ReadSizes(const Parameters& rSettings, const std::string& rKey)
+{
+    std::vector<std::pair<std::int64_t, double>> sizes;
+    for (std::size_t i = 0; i < rSettings[rKey].size(); ++i) {
+        const Vector entry = rSettings[rKey][i].GetVector();
+        KRATOS_ERROR_IF(entry.size() != 2)
+            << "Every \"" << rKey << "\" entry is [id, size]" << std::endl;
+        sizes.emplace_back(static_cast<std::int64_t>(entry[0]), entry[1]);
+    }
+    return sizes;
+}
+
+
 } // namespace
 
 /***********************************************************************************/
@@ -221,7 +242,37 @@ Parameters MeshioPlusPlusIgaUtilities::GetDefaultParameters()
         "edges"                  : true,
         "index"                  : 0,
         "parameters"             : [[0.0, 0.0]],
-        "derivatives"            : 0
+        "derivatives"            : 0,
+
+        "target_size"            : 0.0,
+        "max_chordal_deviation"  : 0.0,
+        "min_points_per_edge"    : 0,
+        "geometric_tolerance"    : 0.0,
+        "strict"                 : false,
+        "max_points"             : 50000000,
+        "min_angle"              : 0.0,
+        "smooth_iterations"      : 0,
+        "smooth_method"          : "laplacian",
+        "grading"                : 0.0,
+        "curvature_deviation"    : 0.0,
+        "cells_across_gaps"      : 0.0,
+        "metric"                 : "mean",
+        "pole_rings"             : 0,
+        "reparam_condition_number" : 0.0,
+        "order"                  : 1,
+        "face_sizes"             : [],
+        "edge_sizes"             : [],
+        "virtual_edges"          : false,
+        "model_tolerances"       : false,
+        "virtual_faces"          : false,
+        "lop_corners"            : false,
+        "untangle"               : false,
+        "quads"                  : "none",
+        "quad_pairs"             : "matching",
+        "face_ids_variable"      : "",
+        "edge_ids_variable"      : "",
+
+        "max_distance"           : 0.0
     })");
 }
 
@@ -379,6 +430,205 @@ Parameters MeshioPlusPlusIgaUtilities::Evaluate(
         result.AddMatrix("field_" + field_names[i], ToMatrix(r_field, n, r_field.Size() / std::max<std::size_t>(n, 1)));
     }
     return result;
+
+    KRATOS_CATCH("")
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+Parameters MeshioPlusPlusIgaUtilities::MeshCad(
+    const std::string& rFileName,
+    Parameters Settings,
+    ModelPart& rDestination
+    )
+{
+    KRATOS_TRY
+
+    KRATOS_ERROR_IF(rDestination.IsDistributed())
+        << "MeshioPlusPlusIgaUtilities does not support distributed model parts" << std::endl;
+    KRATOS_ERROR_IF(rDestination.NumberOfNodes() > 0)
+        << "The destination model part \"" << rDestination.FullName() << "\" must be empty" << std::endl;
+    Settings.AddMissingParameters(GetDefaultParameters());
+
+    const IgaModel model = ReadModel(rFileName, Settings);
+    KRATOS_ERROR_IF_NOT(std::holds_alternative<mio::BrepInfo>(model))
+        << "MeshCad meshes a B-rep (cad_json, step or iges); \"" << rFileName << "\" is a NURBS mesh" << std::endl;
+
+    mio::MeshCadSurfaceOptions options;
+    options.mTargetSize = Settings["target_size"].GetDouble();
+    options.mMaxChordalDeviation = Settings["max_chordal_deviation"].GetDouble();
+    options.mMinPointsPerEdge = Settings["min_points_per_edge"].GetInt();
+    options.mGeometricTolerance = Settings["geometric_tolerance"].GetDouble();
+    options.mEdges = Settings["edges"].GetBool();
+    options.mStrict = Settings["strict"].GetBool();
+    options.mMaxPoints = Settings["max_points"].GetInt();
+    options.mMinAngleDeg = Settings["min_angle"].GetDouble();
+    options.mSmoothIterations = Settings["smooth_iterations"].GetInt();
+    const std::string smooth_method = Settings["smooth_method"].GetString();
+    KRATOS_ERROR_IF(smooth_method != "laplacian" && smooth_method != "odt")
+        << "\"smooth_method\" is \"laplacian\" or \"odt\", not \"" << smooth_method << "\"" << std::endl;
+    options.mSmoothMethod = smooth_method == "odt" ? mio::MeshCadSmoothing::Odt : mio::MeshCadSmoothing::Laplacian;
+    options.mGrading = Settings["grading"].GetDouble();
+    options.mCurvatureDeviation = Settings["curvature_deviation"].GetDouble();
+    options.mCellsAcrossGaps = Settings["cells_across_gaps"].GetDouble();
+    const std::string metric = Settings["metric"].GetString();
+    KRATOS_ERROR_IF(metric != "mean" && metric != "varying")
+        << "\"metric\" is \"mean\" or \"varying\", not \"" << metric << "\"" << std::endl;
+    options.mMetric = metric == "varying" ? mio::MeshCadMetric::Varying : mio::MeshCadMetric::Mean;
+    options.mPoleRings = Settings["pole_rings"].GetInt();
+    options.mReparamConditionNumber = Settings["reparam_condition_number"].GetDouble();
+    options.mOrder = Settings["order"].GetInt();
+
+    mio::MeshCadSizeSources sources;
+    sources.mFaceSizes = ReadSizes(Settings, "face_sizes");
+    sources.mEdgeSizes = ReadSizes(Settings, "edge_sizes");
+    sources.mVirtualEdges = Settings["virtual_edges"].GetBool();
+
+    mio::MeshCadSurfaceExtras extras;
+    extras.mModelTolerances = Settings["model_tolerances"].GetBool();
+    extras.mVirtualFaces = Settings["virtual_faces"].GetBool();
+    extras.mLopCorners = Settings["lop_corners"].GetBool();
+    extras.mUntangle = Settings["untangle"].GetBool();
+    const std::string quads = Settings["quads"].GetString();
+    KRATOS_ERROR_IF(quads != "none" && quads != "dominant" && quads != "all")
+        << "\"quads\" is \"none\", \"dominant\" or \"all\", not \"" << quads << "\"" << std::endl;
+    extras.mQuads = quads == "all" ? mio::MeshCadQuads::All
+                  : quads == "dominant" ? mio::MeshCadQuads::Dominant : mio::MeshCadQuads::None;
+    const std::string quad_pairs = Settings["quad_pairs"].GetString();
+    KRATOS_ERROR_IF(quad_pairs != "matching" && quad_pairs != "greedy")
+        << "\"quad_pairs\" is \"matching\" or \"greedy\", not \"" << quad_pairs << "\"" << std::endl;
+    extras.mQuadPairs = quad_pairs == "greedy" ? mio::MeshCadQuadPairs::Greedy : mio::MeshCadQuadPairs::Matching;
+
+    mio::MeshCadSizeReport size_report;
+    mio::MeshCadSurfaceExtrasReport extras_report;
+    mio::MeshCadSurfaceResult result = mio::mesh_cad_surface(
+        std::get<mio::BrepInfo>(model), options, sources, extras, &size_report, &extras_report);
+
+    // The face and edge of every cell are colon-namespaced ("cad:face", "cad:edge"), which no
+    // Kratos Variable is; naming a registered int Variable carries them onto the entities, which
+    // is what ProjectToCad reads back. The per-face sub model parts "face:<k>" come through anyway.
+    const std::string face_ids_variable = Settings["face_ids_variable"].GetString();
+    if (!face_ids_variable.empty() && mio::data_has(result.mMesh, mio::DataLocation::Cell, mio::kMeshCadFaceName)) {
+        result.mMesh = mio::data_rename(result.mMesh, mio::DataLocation::Cell, mio::kMeshCadFaceName, face_ids_variable);
+    }
+    const std::string edge_ids_variable = Settings["edge_ids_variable"].GetString();
+    if (!edge_ids_variable.empty() && mio::data_has(result.mMesh, mio::DataLocation::Cell, mio::kMeshCadEdgeName)) {
+        result.mMesh = mio::data_rename(result.mMesh, mio::DataLocation::Cell, mio::kMeshCadEdgeName, edge_ids_variable);
+    }
+    Internals::MeshToModelPart(result.mMesh, rDestination);
+
+    Parameters report(R"({})");
+    report.AddInt("number_of_nodes", static_cast<int>(rDestination.NumberOfNodes()));
+    report.AddInt("number_of_elements", static_cast<int>(rDestination.NumberOfElements()));
+    report.AddInt("number_of_conditions", static_cast<int>(rDestination.NumberOfConditions()));
+    report.AddInt("number_of_points", static_cast<int>(result.mNumPoints));
+    report.AddInt("number_of_triangles", static_cast<int>(result.mNumTriangles));
+    report.AddInt("number_of_edge_segments", static_cast<int>(result.mNumEdgeSegments));
+    report.AddInt("number_of_faces", static_cast<int>(result.mNumFaces));
+    report.AddInt("number_of_failed_faces", static_cast<int>(result.mNumFailed));
+    report.AddInt("number_of_edges", static_cast<int>(result.mNumEdges));
+    report.AddInt("open_edges", static_cast<int>(result.mNumOpenEdges));
+    report.AddInt("non_manifold_edges", static_cast<int>(result.mNumNonManifoldEdges));
+    report.AddInt("misoriented_edges", static_cast<int>(result.mNumMisorientedEdges));
+    report.AddInt("degenerate_dropped", static_cast<int>(result.mNumDegenerateDropped));
+    report.AddInt("refinement_points", static_cast<int>(result.mNumRefinementPoints));
+    report.AddInt("faces_below_bound", static_cast<int>(result.mNumFacesBelowBound));
+    report.AddInt("smoothed", static_cast<int>(result.mNumSmoothed));
+    report.AddInt("curved_straightened", static_cast<int>(result.mNumCurvedStraightened));
+    report.AddDouble("tolerance", result.mTolerance);
+    report.AddDouble("min_angle", result.mMinAngleDeg);
+    report.AddDouble("max_angle", result.mMaxAngleDeg);
+    report.AddDouble("min_edge", result.mMinEdge);
+    report.AddDouble("max_edge", result.mMaxEdge);
+    report.AddDouble("max_edge_gap", result.mMaxEdgeGap);
+    Parameters histogram(R"([])");
+    for (const auto count : result.mAngleHistogram) {
+        histogram.Append(static_cast<int>(count));
+    }
+    report.AddValue("angle_histogram", histogram);
+    Parameters faces(R"([])");
+    for (const auto& r_face : result.mFaces) {
+        Parameters face(R"({})");
+        face.AddInt("face", static_cast<int>(r_face.mFace));
+        face.AddInt("id", static_cast<int>(r_face.mId));
+        face.AddString("status", mio::mesh_cad_face_status_name(r_face.mStatus));
+        face.AddString("reason", r_face.mReason);
+        face.AddInt("number_of_triangles", static_cast<int>(r_face.mNumTriangles));
+        face.AddDouble("min_angle", r_face.mMinAngleDeg);
+        face.AddDouble("max_angle", r_face.mMaxAngleDeg);
+        face.AddBool("below_bound", r_face.mBelowBound);
+        faces.Append(face);
+    }
+    report.AddValue("faces", faces);
+    report.AddInt("untangled", static_cast<int>(extras_report.mNumUntangled));
+    report.AddInt("quadrilaterals", static_cast<int>(extras_report.mNumQuads));
+    report.AddInt("leftover_triangles", static_cast<int>(extras_report.mNumLeftoverTriangles));
+    report.AddInt("reparametrised_faces", static_cast<int>(extras_report.mReparametrised.size()));
+    report.AddInt("merged_faces", static_cast<int>(extras_report.mMergedFaces.size()));
+    report.AddInt("lopped_corners", static_cast<int>(extras_report.mLoppedCorners.size()));
+    report.AddStringArray("warnings", result.mWarnings);
+    return report;
+
+    KRATOS_CATCH("")
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+Parameters MeshioPlusPlusIgaUtilities::ProjectToCad(
+    const ModelPart& rSource,
+    const std::string& rFileName,
+    Parameters Settings,
+    ModelPart& rDestination
+    )
+{
+    KRATOS_TRY
+
+    KRATOS_ERROR_IF(rSource.IsDistributed() || rDestination.IsDistributed())
+        << "MeshioPlusPlusIgaUtilities does not support distributed model parts" << std::endl;
+    Settings.AddMissingParameters(GetDefaultParameters());
+
+    const std::string face_ids_variable = Settings["face_ids_variable"].GetString();
+    KRATOS_ERROR_IF(face_ids_variable.empty())
+        << "ProjectToCad needs \"face_ids_variable\": the registered int Variable holding each "
+        << "entity's CAD face, as MeshCad wrote it" << std::endl;
+    const std::string edge_ids_variable = Settings["edge_ids_variable"].GetString();
+
+    const IgaModel model = ReadModel(rFileName, Settings);
+    KRATOS_ERROR_IF_NOT(std::holds_alternative<mio::BrepInfo>(model))
+        << "ProjectToCad projects onto a B-rep (cad_json, step or iges); \"" << rFileName
+        << "\" is a NURBS mesh" << std::endl;
+
+    Internals::FieldDataSelection selection;
+    selection.ElementDataValueVariables = {face_ids_variable};
+    selection.ConditionDataValueVariables = {face_ids_variable};
+    if (!edge_ids_variable.empty()) {
+        selection.ElementDataValueVariables.push_back(edge_ids_variable);
+        selection.ConditionDataValueVariables.push_back(edge_ids_variable);
+    }
+    const mio::Mesh mesh = Internals::ModelPartToMeshWithData(rSource, true, true, false, selection);
+
+    mio::ProjectToCadOptions options;
+    options.mFaceArray = face_ids_variable;
+    options.mEdgeArray = edge_ids_variable;
+    options.mMaxDistance = Settings["max_distance"].GetDouble();
+    options.mTrimSamples = Settings["trim_samples"].GetInt();
+    mio::ProjectToCadResult result = mio::project_to_cad(mesh, std::get<mio::BrepInfo>(model), options);
+    Internals::MeshToModelPart(result.mMesh, rDestination);
+
+    Parameters report(R"({})");
+    report.AddInt("projected", static_cast<int>(result.mNumProjected));
+    report.AddInt("on_edges", static_cast<int>(result.mNumOnEdges));
+    report.AddInt("on_curves", static_cast<int>(result.mNumOnCurves));
+    report.AddInt("corners", static_cast<int>(result.mNumCorners));
+    report.AddInt("ambiguous", static_cast<int>(result.mNumAmbiguous));
+    report.AddInt("too_far", static_cast<int>(result.mNumTooFar));
+    report.AddInt("failed", static_cast<int>(result.mNumFailed));
+    report.AddInt("outside_trim", static_cast<int>(result.mNumOutsideTrim));
+    report.AddDouble("max_move", result.mMaxMove);
+    report.AddStringArray("warnings", result.mWarnings);
+    return report;
 
     KRATOS_CATCH("")
 }
