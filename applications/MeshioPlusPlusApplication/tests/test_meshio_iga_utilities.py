@@ -65,6 +65,66 @@ class TestMeshioPlusPlusIgaUtilities(KratosUnittest.TestCase):
         for node in destination.Nodes:
             self.assertAlmostEqual(node.Z, 0.0, 12)
 
+    def _Background(self, name):
+        """A triangulated unit square over the CAD square, for MeshCad's background fields."""
+        background = self.model.CreateModelPart(name)
+        KratosMeshioPlusPlus.MeshioPlusPlusMeshOperations.Primitive(KratosMultiphysics.Parameters(
+            '{"primitive" : "rectangle", "dims" : [8, 8], "cell_type" : "triangle"}'), background)
+        return background
+
+    @staticmethod
+    def _MinimumEdge(model_part, x_range):
+        lengths = []
+        for entities in (model_part.Elements, model_part.Conditions):
+            for entity in entities:
+                nodes = entity.GetNodes()
+                if len(nodes) != 3 or not all(x_range[0] <= n.X <= x_range[1] for n in nodes):
+                    continue
+                for a, b in ((0, 1), (1, 2), (2, 0)):
+                    lengths.append(((nodes[a].X - nodes[b].X) ** 2 + (nodes[a].Y - nodes[b].Y) ** 2) ** 0.5)
+        return min(lengths)
+
+    def test_mesh_cad_with_a_background_size_field(self):
+        utilities = KratosMeshioPlusPlus.MeshioPlusPlusIgaUtilities
+        background = self._Background("SizeBackground")
+        for node in background.Nodes:
+            node.SetValue(KratosMultiphysics.DISTANCE, 0.04 if node.X < 0.5 else 0.4)
+
+        plain = self.model.CreateModelPart("MeshedPlain")
+        plain_report = utilities.MeshCad(self.square, KratosMultiphysics.Parameters('{"target_size" : 0.4}'), plain)
+        graded = self.model.CreateModelPart("MeshedGraded")
+        settings = KratosMultiphysics.Parameters('{"target_size" : 0.4, "background_size_variable" : "DISTANCE"}')
+        graded_report = utilities.MeshCad(self.square, settings, graded, background)
+        self.assertGreater(graded_report["number_of_triangles"].GetInt(), plain_report["number_of_triangles"].GetInt())
+        # Finer where the background asks for it
+        self.assertLess(self._MinimumEdge(graded, (0.0, 0.4)), self._MinimumEdge(graded, (0.6, 1.0)))
+
+        with self.assertRaisesRegex(RuntimeError, "background_size_variable"):
+            utilities.MeshCad(self.square, KratosMultiphysics.Parameters("{}"),
+                              self.model.CreateModelPart("NoVariable"), background)
+        with self.assertRaisesRegex(RuntimeError, "need a background"):
+            utilities.MeshCad(self.square, settings, self.model.CreateModelPart("NoBackground"))
+
+    def test_mesh_cad_with_a_background_metric(self):
+        utilities = KratosMeshioPlusPlus.MeshioPlusPlusIgaUtilities
+        background = self._Background("MetricBackground")
+        hessian = KratosMultiphysics.Vector([400.0, 0.0, 0.0, 0.0, 4.0, 0.0, 0.0, 0.0, 0.0])
+        for node in background.Nodes:
+            node.SetValue(KratosMultiphysics.RECOVERED_STRESS, hessian)
+
+        plain = self.model.CreateModelPart("MetricPlain")
+        plain_report = utilities.MeshCad(self.square, KratosMultiphysics.Parameters('{"target_size" : 0.2}'), plain)
+        anisotropic = self.model.CreateModelPart("MetricAnisotropic")
+        settings = KratosMultiphysics.Parameters(
+            '{"target_size" : 0.2, "background_hessian_variable" : "RECOVERED_STRESS", "metric_error" : 0.01}')
+        report = utilities.MeshCad(self.square, settings, anisotropic, background)
+        self.assertEqual(report["number_of_failed_faces"].GetInt(), 0)
+        self.assertNotEqual(report["number_of_triangles"].GetInt(), plain_report["number_of_triangles"].GetInt())
+
+        settings["metric_error"].SetDouble(0.0)
+        with self.assertRaisesRegex(RuntimeError, "metric_error"):
+            utilities.MeshCad(self.square, settings, self.model.CreateModelPart("NoError"), background)
+
     def test_project_to_cad_moves_points_back_onto_the_face(self):
         meshed = self.model.CreateModelPart("MeshedForProjection")
         settings = KratosMultiphysics.Parameters('{"target_size" : 0.25, "face_ids_variable" : "RIGID_BODY_ID"}')
