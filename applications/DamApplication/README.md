@@ -81,8 +81,11 @@ must match between source and destination. Supported constitutive laws are
 `LinearElastic3DLaw`, together with the Dam thermoelastic laws
 `ThermalLinearElastic2DPlaneStrain`, `ThermalLinearElastic2DPlaneStress` and
 `ThermalLinearElastic3DLaw`. Damage, plasticity and other history-dependent
-laws are rejected. For the thermoelastic laws, `T == T_ref` is required at the
-moment of import; prescribe
+laws are rejected. Mechanical nodal-Young's-modulus and flexible linear-elastic
+variants are not enabled; their material compatibility is nodal/accessor-based
+and requires separate validation. Dam's thermal nodal aliases map to the
+supported thermal laws. For the thermoelastic laws, `T == T_ref` is required at
+the moment of import; prescribe
 the reference field with the existing
 `impose_nodal_reference_temperature_process`. The current temperature always
 belongs to the new analysis and may be computed by its thermal solver.

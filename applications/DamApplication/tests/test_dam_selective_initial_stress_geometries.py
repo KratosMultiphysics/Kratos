@@ -284,8 +284,12 @@ class TestDamSelectiveInitialStressGeometries(KratosUnittest.TestCase):
             ('Q4_thermal_plane_strain', 'Q4', True, False),
             ('Q4_thermal_plane_stress', 'Q4', True, True),
             ('T6_thermal_plane_strain', 'T6', True, False),
+            ('Q8_thermal_plane_strain', 'Q8', True, False),
+            ('Q9_thermal_plane_strain', 'Q9', True, False),
             ('H8_thermal_3d', 'H8', True, False),
             ('T10_thermal_3d', 'T10', True, False),
+            ('H20_thermal_3d', 'H20', True, False),
+            ('H27_thermal_3d', 'H27', True, False),
         )
         for label, geometry_name, thermal, plane_stress in cases:
             with self.subTest(case=label):
@@ -321,6 +325,43 @@ class TestDamSelectiveInitialStressGeometries(KratosUnittest.TestCase):
                 for node in destination.Nodes:
                     self.assertEqual(node.GetSolutionStepValue(
                         Dam.NODAL_REFERENCE_TEMPERATURE), 20.0)
+
+    def test_non_default_integration_rules(self):
+        cases = (
+            ('Q4_order3', 'Q4', 3, 9),
+            ('H8_order3', 'H8', 3, 27),
+        )
+        for label, geometry_name, order, expected_points in cases:
+            with self.subTest(case=label):
+                geometry = GEOMETRIES[geometry_name]
+                dim = geometry['dim']
+                law = self._law(dim)
+                source_model, source, source_nodes, source_element = self._build(
+                    geometry, law, integration_order=order)
+                self._set_quadratic_displacement(
+                    source_nodes, geometry['coords'], dim)
+                source_stress = self._stresses(source_element, source)
+                self.assertEqual(len(source_stress), expected_points)
+                self.assertGreater(max(
+                    abs(point[j] - source_stress[0][j])
+                    for point in source_stress
+                    for j in range(len(point))), 1.e-6)
+
+                destination_model, destination, destination_nodes, destination_element = \
+                    self._build(geometry, law, integration_order=order)
+                Dam.SelectiveInitialStressUtility.AssignInitialStresses(
+                    source, destination)
+                self._assert_stresses_close(
+                    self._stresses(destination_element, destination), source_stress)
+                for node in destination_nodes:
+                    for value in node.GetSolutionStepValue(KM.DISPLACEMENT):
+                        self.assertEqual(value, 0.0)
+
+                default_destination_model, default_destination, _, _ = self._build(
+                    geometry, law)
+                with self.assertRaisesRegex(RuntimeError, 'integration rules differ'):
+                    Dam.SelectiveInitialStressUtility.AssignInitialStresses(
+                        source, default_destination)
 
     def test_source_mesh_motion_uses_reference_coordinates(self):
         geometry = GEOMETRIES['Q4']
@@ -366,9 +407,15 @@ class TestDamSelectiveInitialStressGeometries(KratosUnittest.TestCase):
                     for node in source.Nodes]
                 self.assertGreater(max(abs(value) for displacement in gravity_displacement
                                        for value in displacement), 1.e-8)
+                self.assertGreater(max(abs(value) for point in gravity_stress
+                                       for value in point), 1.e-6)
 
                 destination_model, destination, destination_nodes, destination_element = \
                     self._build(geometry, law, body=body, fixed_ids=fixed_ids)
+                free_dofs = sum(
+                    1 for node in destination.Nodes for d in range(dim)
+                    if not node.IsFixed(DISPLACEMENT_DOFS[d]))
+                self.assertGreater(free_dofs, 0)
                 destination_strategy = self._make_strategy(destination)
                 Dam.SelectiveInitialStressUtility.AssignInitialStresses(
                     source, destination)
@@ -420,7 +467,13 @@ class TestDamSelectiveInitialStressGeometries(KratosUnittest.TestCase):
                 destination_increment = [
                     value for node in destination.Nodes
                     for value in node.GetSolutionStepValue(KM.DISPLACEMENT)]
+                self.assertGreater(max(abs(value) for value in source_increment), 1.e-8)
                 self.assertGreater(max(abs(value) for value in destination_increment), 1.e-8)
+                increment_stress = self._stresses(source_element, source)
+                self.assertGreater(max(
+                    abs(point[j] - gravity_stress[i][j])
+                    for i, point in enumerate(increment_stress)
+                    for j in range(len(point))), 1.e-6)
                 for expected, actual in zip(source_increment, destination_increment):
                     self._assert_close(actual, expected)
                 self._assert_stresses_close(
