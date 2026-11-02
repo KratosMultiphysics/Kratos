@@ -37,10 +37,10 @@ def WriteFile(file_name, data):
     temporary = path.with_name(path.name + ".tmp")
     if str(path).endswith(".gz"):
         with gzip.open(temporary, "wt", encoding="utf-8") as stream:
-            json.dump(data, stream, separators=(",", ":"))
+            json.dump(data, stream, separators=(",", ":"), allow_nan=False)
     else:
         with open(temporary, "w", encoding="utf-8") as stream:
-            json.dump(data, stream, separators=(",", ":"))
+            json.dump(data, stream, separators=(",", ":"), allow_nan=False)
     os.replace(temporary, path)
 
 
@@ -211,6 +211,22 @@ def _check_finite(value, message):
     _require(isinstance(value, (int, float)) and math.isfinite(value), message)
 
 
+def _integer_keys(values, label):
+    result = set()
+    for key in values:
+        try:
+            integer_key = int(key)
+        except (TypeError, ValueError):
+            raise RuntimeError(
+                "{} contains a non-integer ID key '{}'.".format(label, key))
+        if str(integer_key) != str(key):
+            raise RuntimeError(
+                "{} contains a non-canonical integer ID key '{}'.".format(
+                    label, key))
+        result.add(integer_key)
+    return result
+
+
 def ValidateFile(data):
     _require(isinstance(data, dict), "Dam initial-state file must contain a JSON object.")
     _require(data.get("format") == FILE_FORMAT,
@@ -308,7 +324,7 @@ def ValidateFile(data):
                  "Invalid or missing stress_source.")
         stresses = data.get("initial_stresses")
         _require(isinstance(stresses, dict), "initial_stresses must be an object.")
-        _require(set(int(key) for key in stresses) == element_ids,
+        _require(_integer_keys(stresses, "initial_stresses") == element_ids,
                  "initial_stresses must contain exactly the file's element IDs.")
         for element in elements:
             element_id = element["id"]
@@ -328,7 +344,7 @@ def ValidateFile(data):
         if field in fields:
             values = data.get(field)
             _require(isinstance(values, dict), "{} must be an object.".format(field))
-            _require(set(int(key) for key in values) == node_ids,
+            _require(_integer_keys(values, field) == node_ids,
                      "{} must contain exactly the file's node IDs.".format(field))
             for value in values.values():
                 _check_finite(value, "Non-finite {} value.".format(variable_name))

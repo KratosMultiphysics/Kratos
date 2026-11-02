@@ -441,6 +441,15 @@ class TestDamInitialStateImportExport(KratosUnittest.TestCase):
             with self.assertRaisesRegex(RuntimeError, "stress-vector size"):
                 dam_initial_state_file.ReadFile(str(corrupted_path))
 
+            corrupted = json.loads(temperature_file.read_text())
+            first_key = next(iter(corrupted["temperature"]))
+            corrupted["temperature"]["not-an-id"] = corrupted["temperature"].pop(
+                first_key)
+            corrupted_path = tmp / "corrupted_key.json"
+            corrupted_path.write_text(json.dumps(corrupted))
+            with self.assertRaisesRegex(RuntimeError, "non-integer"):
+                dam_initial_state_file.ReadFile(str(corrupted_path))
+
             model, part, _, _ = helper._build(geometry, law)
             self._load(model, path, True, False, False)
             with self.assertRaisesRegex(RuntimeError, "already has an initial state"):

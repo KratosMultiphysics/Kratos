@@ -376,6 +376,8 @@ contains the evolved total Cauchy stress, including accumulated thermal stress.
 Stage C reproduces that total stress at zero displacement through the
 initial-strain compensation. This is a different interpretation from the
 gravity-prestress workflow above, where only the stored prestress is carried.
+If that Stage B import also includes `reference_temperature`, remove or disable
+the reference-temperature process exactly as in Stage C.
 
 ### Stage C: new independent analysis ###
 

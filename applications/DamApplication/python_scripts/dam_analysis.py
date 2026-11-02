@@ -179,19 +179,21 @@ class DamAnalysis(AnalysisStage):
                for process in self.list_of_processes):
             reference_processes = [
                 process for process in self.list_of_processes
-                if getattr(process, "assigns_reference_temperature", False)]
+                if (getattr(process, "assigns_reference_temperature", False) or
+                    isinstance(
+                        process,
+                        KratosDam.DamNodalReferenceTemperatureProcess))]
             if reference_processes:
                 raise RuntimeError(
                     "Cannot import NODAL_REFERENCE_TEMPERATURE while a process "
-                    "that assigns it is active. Remove the reference-temperature "
-                    "process from 'constraints_process_list' or disable it for "
-                    "this analysis.")
+                    "that assigns it is active. Remove or disable the "
+                    "reference-temperature process for this analysis.")
 
         if self.add_previous_results and any(
                 getattr(process, "transfers_initial_stress", False)
                 for process in self.list_of_processes):
             raise RuntimeError(
-                "SelectiveInitialStressProcess cannot be combined with "
+                "An initial-state transfer process cannot be combined with "
                 "'transfer_results_process.add_previous_results'. Use only one "
                 "initial-state transfer mechanism per analysis.")
 
