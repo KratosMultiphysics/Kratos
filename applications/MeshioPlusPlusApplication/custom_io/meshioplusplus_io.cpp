@@ -25,6 +25,7 @@
 // External includes
 #include "meshioplusplus/mesh.hpp"
 #include "meshioplusplus/registry.hpp"
+#include "meshioplusplus/backends/kratos_names.hpp"
 #include "meshioplusplus/write_options.hpp"
 #include "meshioplusplus/detail/provenance.hpp"
 #include "meshioplusplus/formats/abaqus_fil.hpp"
@@ -42,6 +43,7 @@
 #include "meshioplusplus/formats/lsdyna_binout.hpp"
 #include "meshioplusplus/formats/lsdyna_d3plot.hpp"
 #include "meshioplusplus/formats/marc.hpp"
+#include "meshioplusplus/formats/mdpa.hpp"
 #include "meshioplusplus/formats/mfem.hpp"
 #include "meshioplusplus/formats/nastran_h5.hpp"
 #include "meshioplusplus/formats/nastran_op2.hpp"
@@ -254,6 +256,42 @@ std::pair<std::string, std::string> SplitStemAndExtension(const std::filesystem:
         }
     }
     return {rPath.stem().string(), rPath.extension().string()};
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+/// The Kratos entity name and kind of every cell block of a mesh staged from a model part, in
+/// block order, for write_mdpa's MdpaInfo. The two-argument write_mdpa only knows the names its
+/// own reader kept, so a model part written to .mdpa would otherwise lose its entity names
+/// (PointLoadCondition3D1N becomes Element3D1N) and its conditions of a dimension that also has
+/// an element name. The KRATOS backend cuts its blocks as runs of (cell type, node count,
+/// effective name) over the elements and then the conditions; the same walk recovers them.
+mio::MdpaInfo BuildMdpaEntityNames(const mio::Mesh& rMesh)
+{
+    mio::MdpaInfo info;
+    const auto& r_model_part = rMesh.GetModelPart();
+    const auto collect = [&info](const auto& rEntities, const bool IsCondition) {
+        const auto effective_name = [IsCondition](const auto& rEntity) {
+            if (rEntity.HasName()) {
+                return rEntity.Name();
+            }
+            return IsCondition ? mio::kratos_condition_name(rEntity.Type())
+                               : mio::kratos_element_name(rEntity.Type());
+        };
+        const mio::GeometricalEntity* p_first = nullptr;
+        for (const auto& r_entity : rEntities) {
+            if (p_first == nullptr || p_first->Type() != r_entity.Type() ||
+                p_first->NumberOfNodes() != r_entity.NumberOfNodes() ||
+                effective_name(*p_first) != effective_name(r_entity)) {
+                info.mEntityNames.push_back(mio::MdpaEntityName{effective_name(r_entity), IsCondition});
+                p_first = &r_entity;
+            }
+        }
+    };
+    collect(r_model_part.Elements(), false);
+    collect(r_model_part.Conditions(), true);
+    return info;
 }
 
 /***********************************************************************************/
@@ -1734,6 +1772,15 @@ void MeshioPlusPlusIO::WriteStatic(
         // write); a Fortran file is always binary.
         mio::write_ensight(rPath.string(), mesh, /*binary=*/true, /*fortran=*/true);
         return;
+    }
+    if (rFormatName == "mdpa") {
+        // The model part's own entity names and kinds; a mesh whose blocks do not line up with
+        // them (ragged blocks) keeps the derived names of the two-argument write.
+        const mio::MdpaInfo info = BuildMdpaEntityNames(mesh);
+        if (info.mEntityNames.size() == mesh.NumCellBlocks()) {
+            mio::write_mdpa(rPath.string(), mesh, info);
+            return;
+        }
     }
     if (rFormatName == "step") {
         mio::write_step(rPath.string(), mesh, BuildStepOptions(mParameters));
