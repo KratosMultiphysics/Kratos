@@ -2658,4 +2658,31 @@ KRATOS_TEST_CASE_IN_SUITE(MeshioPlusPlusIOResultsWriteOptions, KratosMeshioPlusP
     RemoveIfExists(binout_path);
 }
 
+/***********************************************************************************/
+/***********************************************************************************/
+
+KRATOS_TEST_CASE_IN_SUITE(MeshioPlusPlusIOMdpaWriteKeepsEntityNamesAndKinds, KratosMeshioPlusPlusFastSuite)
+{
+    // A model part written to .mdpa keeps its own entity names and which ones are conditions:
+    // the triangle condition used to come out as "Begin Elements Element3D3N"
+    Model model;
+    auto& r_model_part = model.CreateModelPart("write");
+    PopulateTetrahedraModelPart(r_model_part);
+    const auto file_path = TestFilePath(".mdpa");
+    MeshioPlusPlusIO(file_path, Parameters(R"({"time_series" : "single_file"})")).WriteModelPart(r_model_part);
+    std::ifstream file(file_path);
+    std::stringstream buffer;
+    buffer << file.rdbuf();
+    const std::string written = buffer.str();
+    KRATOS_EXPECT_TRUE(written.find("Begin Elements Element3D4N") != std::string::npos);
+    KRATOS_EXPECT_TRUE(written.find("Begin Conditions SurfaceCondition3D3N") != std::string::npos);
+    KRATOS_EXPECT_TRUE(written.find("Element3D3N") == std::string::npos);
+
+    auto& r_read = model.CreateModelPart("read");
+    MeshioPlusPlusIO(file_path).ReadModelPart(r_read);
+    RemoveIfExists(file_path);
+    KRATOS_EXPECT_EQ(r_read.NumberOfElements(), 2);
+    KRATOS_EXPECT_EQ(r_read.NumberOfConditions(), 1);
+}
+
 } // namespace Kratos::Testing
