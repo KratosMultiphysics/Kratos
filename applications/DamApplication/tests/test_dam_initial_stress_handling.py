@@ -20,6 +20,8 @@ if TESTS_DIR not in sys.path:
 
 import test_interface_tangent_consistency as interface_test
 
+# Purely mechanical transfer case: use a non-thermal law because the Dam
+# mechanical solver does not register TEMPERATURE on the model part.
 _MDPA = """Begin ModelPartData
 End ModelPartData
 
@@ -30,8 +32,7 @@ Begin Properties 1
     DENSITY 2400.0
     YOUNG_MODULUS 26000000000.0
     POISSON_RATIO 0.2
-    THERMAL_EXPANSION 1.0e-5
-    CONSTITUTIVE_LAW_NAME ThermalLinearElastic2DPlaneStrain
+    CONSTITUTIVE_LAW_NAME LinearElasticPlaneStrain2DLaw
 End Properties
 
 Begin Nodes
