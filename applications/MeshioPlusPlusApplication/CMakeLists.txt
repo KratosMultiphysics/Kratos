@@ -18,7 +18,7 @@ include(pybind11Tools)
 #
 # Upgrading from a meshio++ older than v16.16.0 requires rebuilding this application once: the
 # C++ variants' SOVERSION is the ABI version, so the library this application needs is
-# libmeshioplusplus_core_kratos.so.30 rather than an earlier .so.N.
+# libmeshioplusplus_core_kratos.so.37 rather than an earlier .so.N.
 #
 # then point this configure at it with -Dmeshioplusplus_DIR=<prefix>/lib/cmake/meshioplusplus
 #
@@ -96,6 +96,26 @@ include(pybind11Tools)
 # iga_evaluate/iga_refine/iga_sample (v16.43.0), the cad_json, iges and neuroglancer formats, and the
 # solver results writers that came in v17.3.0 (they need no code: the registry serves them).
 #
+# ABI 30 -> 37 is a rebuild, and most of its steps reach this application. 31 (v17.9.0) grows
+# SegmentOptions (96 -> 112 bytes) with mMethod/mTolerance, the primitive segmentation that
+# "segment", "fit_primitives" and "fit_cad" pass by value; 32 (v17.11.0) and 33 (v17.12.0) grow
+# FitCadOptions (56 -> 224 -> 288 bytes) and FitCadResult with the backend choice, the segmentation
+# refinement and the freeform modes. 34 (v17.15.0), 35 (v17.22.0) and 36 (v17.23.0) grow the
+# mesh_cad structs (MeshCadSurfaceOptions, MeshCadSizeSources, MeshCadSurfaceExtras) that
+# MeshioPlusPlusIgaUtilities.MeshCad now fills, and 36 also VoxelOptions (mPlane, the 2-D variant),
+# OctreeMeshOptions and FitCadOptions again. 37 (the v18.0.0 tag) grows OptimizeVolumeOptions
+# (40 -> 48 bytes) with mObjective/mMaxRingSize and changes optimize_volume's default output: the
+# "worst" objective raises the least dihedral angle, "energy" is the former behaviour byte for byte.
+# The rest of the window is additive: octree (v17.8.0), primitives (v17.10.0), refine_patches and
+# octree_mesh (v17.11.0-v17.12.0), mesh_cad (v17.13.0), the mmg, tetrahedralize, extrude, mirror,
+# check_conformity, boundary_layer, project_to_cad and error_size operations and the medit_sol
+# format (v17.23.0), find_intersections and thickness (v18.0.0), select and tet_to_poly/poly_to_tet
+# (the v18.0.0 tag), and the per-format write options of step, xplt, abaqus_fil, lsdyna_binout and
+# vtx (v17.4.0-v17.9.0). v18.0.0 also moved OpenCASCADE, Netgen and MMG behind a runtime provider
+# registry; the built-in providers register themselves the first time an accessor is asked, so a
+# C++ consumer calls nothing, and the capability queries (fit_cad_has_occt, mmg_available,
+# tetrahedralize_has_netgen) answer at run time.
+#
 # A single ABI rather than a window, deliberately. Supporting several meant a
 # MESHIOPLUSPLUS_VERSION_AT_LEAST guard per feature, and the operations this application now
 # exposes (remesh v10.10.0, optimize_volume v10.14.0, estimate_error v10.2.0, the gid format
@@ -116,25 +136,28 @@ include(pybind11Tools)
 # Getting it wrong is not silent: the C++ variants' SOVERSION is the ABI version, and every
 # consumer translation unit carries a link-time sentinel naming it, so a header/library skew is
 # a link error rather than memory corruption. See meshio++'s doc/abi.md for the criterion.
+# A meshio++ linked against a static OpenCASCADE (its build/build-occt.sh default) carries
+# Threads::Threads in core_kratos's link interface, while its package config only finds Threads
+# for TecIO builds; finding it here first keeps such an install usable.
+find_package(Threads)
 find_package(meshioplusplus CONFIG REQUIRED COMPONENTS CXX)
 
-if(NOT MESHIOPLUSPLUS_ABI_VERSION EQUAL 30)
+if(NOT MESHIOPLUSPLUS_ABI_VERSION EQUAL 37)
     message(FATAL_ERROR
-        "MeshioPlusPlusApplication needs meshio++ ABI 30, but the install at "
+        "MeshioPlusPlusApplication needs meshio++ ABI 37, but the install at "
         "'${meshioplusplus_DIR}' reports ABI ${MESHIOPLUSPLUS_ABI_VERSION} "
-        "(release ${meshioplusplus_VERSION}). ABI 30 is meshio++ v17.2.0 onwards, "
-        "which includes v17.3.0.")
+        "(release ${meshioplusplus_VERSION}). ABI 37 is the meshio++ v18.0.0 tag onwards.")
 endif()
 
-if(meshioplusplus_VERSION VERSION_LESS 17.3.0)
+if(meshioplusplus_VERSION VERSION_LESS 18.0.0)
     message(FATAL_ERROR
-        "MeshioPlusPlusApplication needs meshio++ v17.3.0 or newer (for the tessellate, fit_cad "
-        "and iga_* operations, the cad_json, iges and neuroglancer formats, the BrepInfo overloads "
-        "of read_mdpa and the NurbsInfo ones of read_mfem and write_mfem, and the segment and "
-        "fit_primitives operations, MdpaInfo's sub model part geometry and constraint ids, "
-        "check_quality, feature_edges, hausdorff_distance, edit_regions, match_periodic_nodes, "
-        "blend_steps and the agglomerate coplanar/sphericity options), but the install at "
-        "'${meshioplusplus_DIR}' is release ${meshioplusplus_VERSION}.")
+        "MeshioPlusPlusApplication needs meshio++ v18.0.0 or newer (for the select, tet_to_poly, "
+        "poly_to_tet, find_intersections, thickness, tetrahedralize, boundary_layer, extrude, "
+        "revolve, mirror, octree, octree_mesh, refine_patches, check_conformity, error_size and "
+        "MMG operations, the primitives generators, mesh_cad_surface and project_to_cad, the "
+        "optimize_volume objectives, the medit_sol format and the step, xplt, abaqus_fil, "
+        "lsdyna_binout and vtx write options), but the install at '${meshioplusplus_DIR}' is "
+        "release ${meshioplusplus_VERSION}.")
 endif()
 
 if(NOT TARGET meshioplusplus::core_kratos)
@@ -150,7 +173,8 @@ message(STATUS "meshio++ ${meshioplusplus_VERSION} (ABI ${MESHIOPLUSPLUS_ABI_VER
                "parallel '${MESHIOPLUSPLUS_PARALLEL_BACKEND}', HDF5 '${MESHIOPLUSPLUS_WITH_HDF5}', "
                "netCDF '${MESHIOPLUSPLUS_WITH_NETCDF}', ADIOS2 '${MESHIOPLUSPLUS_WITH_ADIOS2}', "
                "TecIO '${MESHIOPLUSPLUS_WITH_TECIO}', bzip2 '${MESHIOPLUSPLUS_WITH_BZIP2}', "
-               "OpenCASCADE '${MESHIOPLUSPLUS_WITH_OCCT}'")
+               "OpenCASCADE '${MESHIOPLUSPLUS_WITH_OCCT}', Netgen '${MESHIOPLUSPLUS_WITH_NETGEN}', "
+               "MMG '${MESHIOPLUSPLUS_WITH_MMG}'")
 
 include_directories( ${KRATOS_SOURCE_DIR}/kratos )
 
@@ -249,8 +273,22 @@ set(MESHIOPLUSPLUS_RUNTIME_DIRS "")
 if(MESHIOPLUSPLUS_LIB_DIR)
     list(APPEND MESHIOPLUSPLUS_RUNTIME_DIRS "${MESHIOPLUSPLUS_LIB_DIR}")
 endif()
+# Its private shared dependencies count too: the linker resolves them when linking an executable
+# (the gtest one), and the loader when importing the module. MMG arrives as a link-dependent
+# imported target, Netgen as the plain library paths its Find module reports.
 get_target_property(MESHIOPLUSPLUS_LINKED meshioplusplus::core_kratos INTERFACE_LINK_LIBRARIES)
-foreach(MESHIOPLUSPLUS_DEPENDENCY IN LISTS MESHIOPLUSPLUS_LINKED)
+get_target_property(MESHIOPLUSPLUS_LINK_DEPENDENT meshioplusplus::core_kratos IMPORTED_LINK_DEPENDENT_LIBRARIES_RELEASE)
+if(NOT MESHIOPLUSPLUS_LINK_DEPENDENT)
+    get_target_property(MESHIOPLUSPLUS_LINK_DEPENDENT meshioplusplus::core_kratos IMPORTED_LINK_DEPENDENT_LIBRARIES)
+endif()
+set(MESHIOPLUSPLUS_DEPENDENCIES "")
+foreach(MESHIOPLUSPLUS_LIST IN ITEMS MESHIOPLUSPLUS_LINKED MESHIOPLUSPLUS_LINK_DEPENDENT NETGEN_LIBRARIES)
+    if(${MESHIOPLUSPLUS_LIST})
+        list(APPEND MESHIOPLUSPLUS_DEPENDENCIES ${${MESHIOPLUSPLUS_LIST}})
+    endif()
+endforeach()
+foreach(MESHIOPLUSPLUS_DEPENDENCY IN LISTS MESHIOPLUSPLUS_DEPENDENCIES)
+    set(MESHIOPLUSPLUS_DEPENDENCY_LOCATION "")
     if(TARGET "${MESHIOPLUSPLUS_DEPENDENCY}")
         get_target_property(MESHIOPLUSPLUS_DEPENDENCY_TYPE "${MESHIOPLUSPLUS_DEPENDENCY}" TYPE)
         if(MESHIOPLUSPLUS_DEPENDENCY_TYPE STREQUAL "SHARED_LIBRARY")
@@ -258,12 +296,14 @@ foreach(MESHIOPLUSPLUS_DEPENDENCY IN LISTS MESHIOPLUSPLUS_LINKED)
             if(NOT MESHIOPLUSPLUS_DEPENDENCY_LOCATION)
                 get_target_property(MESHIOPLUSPLUS_DEPENDENCY_LOCATION "${MESHIOPLUSPLUS_DEPENDENCY}" IMPORTED_LOCATION)
             endif()
-            if(MESHIOPLUSPLUS_DEPENDENCY_LOCATION)
-                get_filename_component(MESHIOPLUSPLUS_DEPENDENCY_DIR "${MESHIOPLUSPLUS_DEPENDENCY_LOCATION}" DIRECTORY)
-                if(NOT MESHIOPLUSPLUS_DEPENDENCY_DIR IN_LIST CMAKE_CXX_IMPLICIT_LINK_DIRECTORIES)
-                    list(APPEND MESHIOPLUSPLUS_RUNTIME_DIRS "${MESHIOPLUSPLUS_DEPENDENCY_DIR}")
-                endif()
-            endif()
+        endif()
+    elseif(IS_ABSOLUTE "${MESHIOPLUSPLUS_DEPENDENCY}" AND MESHIOPLUSPLUS_DEPENDENCY MATCHES "\\.so")
+        set(MESHIOPLUSPLUS_DEPENDENCY_LOCATION "${MESHIOPLUSPLUS_DEPENDENCY}")
+    endif()
+    if(MESHIOPLUSPLUS_DEPENDENCY_LOCATION)
+        get_filename_component(MESHIOPLUSPLUS_DEPENDENCY_DIR "${MESHIOPLUSPLUS_DEPENDENCY_LOCATION}" DIRECTORY)
+        if(NOT MESHIOPLUSPLUS_DEPENDENCY_DIR IN_LIST CMAKE_CXX_IMPLICIT_LINK_DIRECTORIES)
+            list(APPEND MESHIOPLUSPLUS_RUNTIME_DIRS "${MESHIOPLUSPLUS_DEPENDENCY_DIR}")
         endif()
     endif()
 endforeach()
@@ -274,6 +314,9 @@ if(MESHIOPLUSPLUS_RUNTIME_DIRS AND NOT WIN32)
     if(TARGET KratosMeshioPlusPlusCoreTest)
         set_property(TARGET KratosMeshioPlusPlusCoreTest APPEND PROPERTY
             INSTALL_RPATH "${MESHIOPLUSPLUS_RUNTIME_DIRS}")
+        foreach(MESHIOPLUSPLUS_RUNTIME_DIR IN LISTS MESHIOPLUSPLUS_RUNTIME_DIRS)
+            target_link_options(KratosMeshioPlusPlusCoreTest PRIVATE "LINKER:-rpath-link,${MESHIOPLUSPLUS_RUNTIME_DIR}")
+        endforeach()
     endif()
 endif()
 
