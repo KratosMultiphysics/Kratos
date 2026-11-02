@@ -11,6 +11,7 @@
 
 // System includes
 #include <cmath>
+#include <utility>
 
 // External includes
 
@@ -222,29 +223,9 @@ void StrainSensor::CalculateGradient(
     rResponseGradient.clear();
 
     if (rAdjointElement.Id() == mElementId) {
-        // FD on a private clone (nodes without dofs, so nothing shared is written): this runs in the parallel adjoint
-        // assembly, and perturbing the shared nodes corrupts the elements other threads assemble at the same time.
-        const auto& r_shared_geometry = rAdjointElement.GetGeometry();
-        Element::NodesArrayType cloned_nodes;
-        cloned_nodes.reserve(r_shared_geometry.size());
-        for (const auto& r_node : r_shared_geometry) {
-            auto p_node = Kratos::make_intrusive<Node>(r_node.Id(), r_node.Coordinates());
-            p_node->GetInitialPosition() = r_node.GetInitialPosition();
-            p_node->SolutionStepData() = r_node.SolutionStepData();
-            p_node->GetData() = r_node.GetData();
-            p_node->Flags::operator=(r_node);
-            cloned_nodes.push_back(p_node);
-        }
-        auto p_element = rAdjointElement.Create(rAdjointElement.Id(), cloned_nodes, rAdjointElement.pGetProperties());
-        if (rProcessInfo[IS_RESTARTED]) {
-            // restarted runs skip the element initialization, which the clone still needs
-            ProcessInfo initialization_info(rProcessInfo);
-            initialization_info[IS_RESTARTED] = false;
-            p_element->Initialize(initialization_info);
-        } else {
-            p_element->Initialize(rProcessInfo);
-        }
-        auto& r_element = *p_element;
+        // FD swaps a dof-free deep copy of each node into the element's geometry (no element copy, nothing shared
+        // is written); the adjoint element and its wrapped primal element share this geometry.
+        auto& r_element = const_cast<Element&>(rAdjointElement);
 
         std::vector<Matrix> perturbed_strains, ref_strains;
         r_element.CalculateOnIntegrationPoints(mrStrainVariable, ref_strains, rProcessInfo);
@@ -262,7 +243,25 @@ void StrainSensor::CalculateGradient(
 
         IndexType local_index = 0;
         for (IndexType i_node = 0; i_node < r_geometry.size(); ++i_node) {
-            auto& r_node = r_geometry[i_node];
+            // copy without dofs: Node::operator= and the copy ctor write the shared VariablesList
+            const auto& r_original_node = r_geometry[i_node];
+            auto p_node_copy = Kratos::make_intrusive<Node>(r_original_node.Id(), r_original_node.Coordinates());
+            p_node_copy->GetInitialPosition() = r_original_node.GetInitialPosition();
+            p_node_copy->SolutionStepData() = r_original_node.SolutionStepData();
+            p_node_copy->GetData() = r_original_node.GetData();
+            p_node_copy->Flags::operator=(r_original_node);
+
+            auto& r_node = *p_node_copy; // the copy (taken before the swap exchanges the pointers)
+
+            // swaps the original node back on scope exit, also if the strain computation throws
+            struct NodeSwapGuard {
+                Element::GeometryType& rGeometry;
+                IndexType Index;
+                Node::Pointer& rpNode;
+                NodeSwapGuard(Element::GeometryType& rGeom, IndexType I, Node::Pointer& rpCopy)
+                    : rGeometry(rGeom), Index(I), rpNode(rpCopy) { std::swap(rGeometry(Index), rpNode); }
+                ~NodeSwapGuard() { std::swap(rGeometry(Index), rpNode); }
+            } swap_guard(r_geometry, i_node, p_node_copy);
 
             for (const auto& p_dof : elemental_dofs) {
                 if (p_dof->GetVariable() == ADJOINT_DISPLACEMENT_X) {

@@ -705,15 +705,22 @@ class TestStrainSensorThreadSafety(UnitTest.TestCase):
             assemblies.append(
                 {(dof.Id(), dof.GetVariable().Name()): rhs[dof.EquationId] for dof in builder.GetDofSet()})
         displacement_after = [list(node.GetSolutionStepValue(Kratos.DISPLACEMENT)) for node in model_part.Nodes]
-        return assemblies, displacement_before, displacement_after
+        # FD swaps node copies into the element geometries: they must hold the model part's own nodes again
+        for node in adjoint_model_part.Nodes:
+            node.SetValue(Kratos.NODAL_MASS, float(node.Id))
+        original_nodes_restored = all(
+            node.GetValue(Kratos.NODAL_MASS) == float(node.Id)
+            for element in adjoint_model_part.Elements for node in element.GetGeometry())
+        return assemblies, displacement_before, displacement_after, original_nodes_restored
 
     def test_CalculateGradientThreadCount(self):
         initial_threads = Kratos.ParallelUtilities.GetNumThreads()
         try:
-            serial, _, _ = self._AssembleAdjointRhs(1, 1)
-            parallel, before, after = self._AssembleAdjointRhs(max(8, initial_threads), 3)
+            serial, _, _, restored_serial = self._AssembleAdjointRhs(1, 1)
+            parallel, before, after, restored_parallel = self._AssembleAdjointRhs(max(8, initial_threads), 3)
         finally:
             Kratos.ParallelUtilities.SetNumThreads(initial_threads)
+        self.assertTrue(restored_serial and restored_parallel)
         self.assertEqual(before, after)      # the shared nodal displacements are untouched
         reference = serial[0]
         scale = max(abs(v) for v in reference.values())
