@@ -72,6 +72,8 @@ public:
     /// <skin>.tessellation, and projected onto exactly with SBM's
     /// ProjectToNurbsSkin. Skin loops must be counterclockwise, holes
     /// included, as in SBM.
+    /// With weight_approach "binary", VOLUME_FRACTION is 1 on the knot spans
+    /// fully inside and 0 on the others: the SBM as a GSBM.
     /// Assumes uv = xy
     void ExecuteInitialize() override;
 

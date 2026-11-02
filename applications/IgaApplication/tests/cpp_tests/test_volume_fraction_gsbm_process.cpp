@@ -584,4 +584,65 @@ KRATOS_TEST_CASE_IN_SUITE(VolumeFractionGsbmProcessMovingSkin, KratosIgaFastSuit
     );
 }
 
+// Binary weights: the ellipse of VolumeFractionGsbmProcessMovingSkin with
+// weight_approach "binary", against the true fractions. The weights must be 1
+// on the knot spans fully inside and 0 on the others, cut ones included, with
+// a projection node on the facets where they differ. Any other weight_approach
+// must raise an error.
+KRATOS_TEST_CASE_IN_SUITE(VolumeFractionGsbmProcessBinaryWeights, KratosIgaFastSuite)
+{
+    const array_1d<double, 3> center{0.5, 0.5, 0.0};
+    const std::array<double, 2> axes{0.25, 0.1875};
+    Parameters process_parameters(R"({
+        "model_part_name"                   : "IgaModelPart",
+        "geometry_name"                     : "background",
+        "elements_model_part_name"          : "IgaModelPart.Domain",
+        "skeleton_model_part_name"          : "IgaModelPart.Facets",
+        "skin_model_part_outer_initial_name": "Skin"
+    })");
+
+    Model fractions_model;
+    CreateEllipseModel(fractions_model, center, axes);
+    VolumeFractionGsbmProcess(fractions_model, process_parameters.Clone()).ExecuteInitialize();
+
+    process_parameters.AddString("weight_approach", "binary");
+    Model model;
+    CreateEllipseModel(model, center, axes);
+    VolumeFractionGsbmProcess(model, process_parameters.Clone()).ExecuteInitialize();
+
+    // 1 on the knot spans fully inside and 0 on the others, cut ones included
+    IndexType number_of_cut_spans = 0;
+    auto it_fractions_element = fractions_model.GetModelPart("IgaModelPart.Domain").ElementsBegin();
+    for (const auto& r_element : model.GetModelPart("IgaModelPart.Domain").Elements()) {
+        const double fraction = (it_fractions_element++)->GetValue(VOLUME_FRACTION);
+        number_of_cut_spans += fraction > 0.0 && fraction < 1.0;
+        KRATOS_EXPECT_EQ(r_element.GetValue(VOLUME_FRACTION), fraction == 1.0 ? 1.0 : 0.0);
+    }
+    KRATOS_EXPECT_GT(number_of_cut_spans, 0);
+
+    // Same on both sides of the facets, a projection node where they differ
+    IndexType number_of_cut_facets = 0;
+    for (const auto& r_facet : model.GetModelPart("IgaModelPart.Facets").Conditions()) {
+        const auto& r_geometry = r_facet.GetGeometry();
+        const double alpha_minus = r_geometry.GetGeometryPart(0).GetValue(VOLUME_FRACTION);
+        const double alpha_plus = r_geometry.GetGeometryPart(1).GetValue(VOLUME_FRACTION);
+        KRATOS_EXPECT_TRUE(alpha_minus == 0.0 || alpha_minus == 1.0);
+        KRATOS_EXPECT_TRUE(alpha_plus == 0.0 || alpha_plus == 1.0);
+        KRATOS_EXPECT_EQ(r_facet.Has(NEIGHBOUR_NODES), alpha_minus != alpha_plus);
+        number_of_cut_facets += alpha_minus != alpha_plus;
+    }
+    KRATOS_EXPECT_GT(number_of_cut_facets, 0);
+    KRATOS_EXPECT_EQ(
+        model.GetModelPart("Skin.ellipse.projection_data").NumberOfNodes(), number_of_cut_facets
+    );
+
+    process_parameters["weight_approach"].SetString("other");
+    Model wrong_model;
+    CreateEllipseModel(wrong_model, center, axes);
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        VolumeFractionGsbmProcess(wrong_model, process_parameters).ExecuteInitialize(),
+        "weight_approach"
+    );
+}
+
 } // namespace Kratos::Testing

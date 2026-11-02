@@ -285,9 +285,25 @@ void VolumeFractionGsbmProcess::ExecuteInitialize()
     const ModelPart& r_inner_skin = get_polyline(inner_skin_name);
 
     // Get the volume fraction of every knot span
-    const Matrix volume_fractions = VolumeFractionUtilities::ComputeKnotSpanVolumeFractions(
+    Matrix volume_fractions = VolumeFractionUtilities::ComputeKnotSpanVolumeFractions(
         r_outer_skin, r_inner_skin, spans[0], spans[1]
     );
+
+    // Binary weights, the SBM as a GSBM:
+    // 1 on the knot spans fully inside, 0 on the others
+    const std::string& r_weight_approach = mParameters["weight_approach"].GetString();
+    KRATOS_ERROR_IF(r_weight_approach != "standard" && r_weight_approach != "binary")
+        << "VolumeFractionGsbmProcess: weight_approach is \"standard\" or \"binary\", not \""
+        << r_weight_approach << "\"." << std::endl;
+    if (r_weight_approach == "binary") {
+        const double full_tolerance = std::sqrt(std::numeric_limits<double>::epsilon());
+        for (IndexType i = 0; i < volume_fractions.size1(); ++i) {
+            for (IndexType j = 0; j < volume_fractions.size2(); ++j) {
+                double& r_alpha = volume_fractions(i, j);
+                r_alpha = std::abs(r_alpha - 1.0) <= full_tolerance ? 1.0 : 0.0;
+            }
+        }
+    }
 
     // Lambda for volume fraction assignment
     const auto assign_volume_fraction = [&volume_fractions](GeometryType& rGeometry) {
@@ -467,7 +483,8 @@ const Parameters VolumeFractionGsbmProcess::GetDefaultParameters() const
         "skin_model_part_outer_initial_name" : "",
         "skin_model_part_inner_initial_name" : "",
         "tessellation_tolerance"             : 1.0e-8,
-        "update_each_step"                   : false
+        "update_each_step"                   : false,
+        "weight_approach"                    : "standard"
     })");
 }
 

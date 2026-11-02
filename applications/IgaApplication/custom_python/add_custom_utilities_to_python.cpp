@@ -12,6 +12,7 @@
 
 // External includes
 #include <pybind11/pybind11.h>
+#include <pybind11/stl.h>
 
 // Project includes
 #include "includes/define.h"
@@ -23,6 +24,7 @@
 #include "custom_utilities/director_utilities.h"
 #include "custom_utilities/iga_flags.h"
 #include "custom_utilities/compute_interface_traction_shell_3p.h"
+#include "custom_utilities/volume_fraction_utilities.h"
 
 
 namespace Kratos {
@@ -52,6 +54,12 @@ void AddCustomUtilitiesToPython(
         .def_static(
             "ComputeAndSetInterfaceTraction",
             &ComputeInterfaceTractionShell3pUtility::ComputeAndSetInterfaceTraction)
+        ;
+
+    pybind11::class_< VolumeFractionUtilities >(m, "VolumeFractionUtilities")
+        .def_static(
+            "ComputeKnotSpanVolumeFractions",
+            &VolumeFractionUtilities::ComputeKnotSpanVolumeFractions)
         ;
 }
 
