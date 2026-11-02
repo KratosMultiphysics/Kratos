@@ -91,6 +91,16 @@ class IntegrationValuesExtrapolationToNodesProcess; // forward declaration (gaus
  * into one model part, one sub model part per piece, unless "select_piece"
  * picks one ("piece", negative counting from the end); "ghosts" : "drop"
  * removes the halo cells of a pvtu/pvtp/pvd written with ghost layers.
+ * "poly_to_tet" decomposes the polyhedra and polygons of a file (an OpenFOAM case, say) into
+ * tetrahedra and triangles on the read, since no Kratos geometry is a general polyhedron.
+ *
+ * Write options of their own (meshio++ v17.4.0-v17.9.0): "step_faces" (auto, planar, fitted,
+ * facet: how the STEP writer turns facets into faces; auto merges coplanar facets, or writes the
+ * fitted primitives of a fit_primitives result) and "step_tolerance"; "xplt_compress";
+ * "abaqus_fil_big_endian" and "abaqus_fil_marker_size" (the binary .fil layout, with
+ * "file_format" : "binary"); "binout_split_size", "binout_word_size" and "binout_big_endian";
+ * "vtx_mesh_policy" (update, reuse); "openfoam_region_family", which with "openfoam_region"
+ * also lists the region under that solver family in constant/regionProperties.
  *
  * @ref GetNumberOfTimeSteps / @ref GetTimeValues / @ref GetTimeStepIndex query a
  * transient input file's step count and time values without a full read, for
@@ -196,6 +206,7 @@ public:
         MDPA,             /// Kratos native .mdpa
         MED,              /// salome MED .med (requires HDF5)
         MEDIT,            /// Medit .mesh/.meshb
+        MEDIT_SOL,        /// Medit solution .sol/.solb (point and cell data beside a Medit mesh)
         MFEM,             /// MFEM .mesh (chosen for a .mesh starting with "MFEM "; see "mfem_grid_functions")
         MFF,              /// MFF .mff
         MFM,              /// MFM .mfm

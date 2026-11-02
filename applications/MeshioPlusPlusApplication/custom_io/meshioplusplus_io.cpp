@@ -71,6 +71,7 @@
 #include "meshioplusplus/formats/xplt.hpp"
 #include "meshioplusplus/operations/sdf.hpp"
 #include "meshioplusplus/operations/sniff.hpp"
+#include "meshioplusplus/operations/tet_poly.hpp"
 
 // Project includes
 #include "custom_io/meshioplusplus_io.h"
@@ -166,6 +167,7 @@ bool IsSeriesFormat(const std::string& rFormatName)
     X(MDPA, "mdpa")                         \
     X(MED, "med")                           \
     X(MEDIT, "medit")                       \
+    X(MEDIT_SOL, "medit_sol")               \
     X(MFEM, "mfem")                         \
     X(MFF, "mff")                           \
     X(MFM, "mfm")                           \
@@ -253,6 +255,89 @@ std::pair<std::string, std::string> SplitStemAndExtension(const std::filesystem:
     }
     return {rPath.stem().string(), rPath.extension().string()};
 }
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+/// The STEP writer's face construction ("step_faces": auto, planar, fitted, facet) and the
+/// fitted-face tolerance ("step_tolerance", 0 for meshio++'s own).
+mio::StepWriteOptions BuildStepOptions(const Parameters& rParameters)
+{
+    const std::string faces = rParameters["step_faces"].GetString();
+    mio::StepWriteOptions options;
+    if (faces == "auto") {
+        options.mFaces = mio::StepFaces::Auto;
+    } else if (faces == "planar") {
+        options.mFaces = mio::StepFaces::Planar;
+    } else if (faces == "fitted") {
+        options.mFaces = mio::StepFaces::Fitted;
+    } else if (faces == "facet") {
+        options.mFaces = mio::StepFaces::Facet;
+    } else {
+        KRATOS_ERROR << "\"step_faces\" is \"auto\", \"planar\", \"fitted\" or \"facet\", not \""
+                     << faces << "\"" << std::endl;
+    }
+    options.mTolerance = rParameters["step_tolerance"].GetDouble();
+    return options;
+}
+
+/// The Abaqus .fil layout: "file_format" : "binary" for the binary one, whose byte order and
+/// Fortran record-marker size are "abaqus_fil_big_endian" and "abaqus_fil_marker_size".
+mio::AbaqusFilWriteOptions BuildAbaqusFilOptions(const Parameters& rParameters)
+{
+    mio::AbaqusFilWriteOptions options;
+    options.mBinary = rParameters["file_format"].GetString() == "binary";
+    options.mBigEndian = rParameters["abaqus_fil_big_endian"].GetBool();
+    options.mMarkerSize = rParameters["abaqus_fil_marker_size"].GetInt();
+    return options;
+}
+
+/// The LS-DYNA binout family: split over binout0000, binout0001, ... past "binout_split_size"
+/// bytes (0: one file), 4- or 8-byte words ("binout_word_size") and the byte order.
+mio::LsdynaBinoutWriteOptions BuildBinoutOptions(const Parameters& rParameters)
+{
+    mio::LsdynaBinoutWriteOptions options;
+    options.mSplitSize = static_cast<std::size_t>(rParameters["binout_split_size"].GetInt());
+    options.mWordSize = rParameters["binout_word_size"].GetInt();
+    options.mBigEndian = rParameters["binout_big_endian"].GetBool();
+    return options;
+}
+
+/// The FEBio plot file: "xplt_compress" deflates the states (needs a zlib build of meshio++).
+mio::XpltWriteOptions BuildXpltOptions(const Parameters& rParameters)
+{
+    mio::XpltWriteOptions options;
+    options.mCompress = rParameters["xplt_compress"].GetBool();
+    return options;
+}
+
+/// Lists "Region" under "Family" in a multi-region OpenFOAM case's constant/regionProperties,
+/// keeping whatever the file already lists (meshio++ replaces the file, so it is merged here).
+void RegisterOpenFoamRegion(
+    const std::string& rCasePath,
+    const std::string& rFamily,
+    const std::string& rRegion
+    )
+{
+    const std::filesystem::path case_path(rCasePath);
+    const std::filesystem::path case_directory = std::filesystem::is_directory(case_path)
+        ? case_path : case_path.parent_path();
+    std::vector<mio::OpenFoamRegionGroup> groups;
+    if (std::filesystem::exists(case_directory / "constant" / "regionProperties")) {
+        groups = mio::read_openfoam_region_properties(rCasePath);
+    }
+    auto it_group = std::find_if(groups.begin(), groups.end(),
+        [&rFamily](const mio::OpenFoamRegionGroup& rGroup) { return rGroup.mFamily == rFamily; });
+    if (it_group == groups.end()) {
+        groups.push_back(mio::OpenFoamRegionGroup{rFamily, {rRegion}});
+    } else if (std::find(it_group->mRegions.begin(), it_group->mRegions.end(), rRegion) == it_group->mRegions.end()) {
+        it_group->mRegions.push_back(rRegion);
+    }
+    mio::write_openfoam_region_properties(rCasePath, groups);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
 
 /// Resolves the GiD on-disk flavour. "auto" lets meshio++ infer it from the extension, except
 /// that a "file_format" : "binary" - the ascii/binary axis every other format uses - is honored
@@ -723,6 +808,7 @@ Parameters MeshioPlusPlusIO::GetDefaultParameters()
         "select_piece"                                : false,
         "piece"                                       : 0,
         "ghosts"                                      : "keep",
+        "poly_to_tet"                                 : false,
         "mfem_grid_functions"                         : [],
         "patran_result_files"                         : [],
         "z88_results"                                 : true,
@@ -753,6 +839,16 @@ Parameters MeshioPlusPlusIO::GetDefaultParameters()
         "z88_stubs"                                   : false,
         "radioss_stubs"                               : false,
         "ensight_fortran"                             : false,
+        "step_faces"                                  : "auto",
+        "step_tolerance"                              : 0.0,
+        "xplt_compress"                               : false,
+        "abaqus_fil_big_endian"                       : false,
+        "abaqus_fil_marker_size"                      : 4,
+        "binout_split_size"                           : 0,
+        "binout_word_size"                            : 8,
+        "binout_big_endian"                           : false,
+        "vtx_mesh_policy"                             : "update",
+        "openfoam_region_family"                      : "",
         "d3plot_double"                               : false,
         "d3plot_max_file_bytes"                       : 1073741824,
         "gltf_settings"                               : {
@@ -1047,6 +1143,13 @@ void MeshioPlusPlusIO::ReadModelPart(ModelPart& rThisModelPart)
         }
         return mio::registry_read(mFileName.string(), format_name, read_options);
     }();
+
+    // "poly_to_tet" decomposes the polyhedra and polygons a file may hold (an OpenFOAM case, a
+    // tet_to_poly result) into tetrahedra and triangles - a polyhedron that already is a
+    // tetrahedron becomes exactly that one - since no Kratos geometry is a general polyhedron.
+    if (mParameters["poly_to_tet"].GetBool()) {
+        mesh = mio::poly_to_tet(mesh).mMesh;
+    }
 
     if (format_name == "mdpa" && mMdpaInfoRead) {
         const Parameters info = GetMdpaInfo();
@@ -1583,6 +1686,12 @@ void MeshioPlusPlusIO::WriteStatic(
         const std::string openfoam_region = mParameters["openfoam_region"].GetString();
         if (!openfoam_region.empty()) {
             mio::write_openfoam_region(rPath.string(), mesh, mio::OpenFoamInfo(), options, openfoam_region);
+            // "openfoam_region_family" also lists the region in constant/regionProperties
+            // (fluid, solid, ... - the family the solver expects it under)
+            const std::string family = mParameters["openfoam_region_family"].GetString();
+            if (!family.empty()) {
+                RegisterOpenFoamRegion(rPath.string(), family, openfoam_region);
+            }
         } else {
             mio::write_openfoam(rPath.string(), mesh, mio::OpenFoamInfo(), options);
         }
@@ -1624,6 +1733,22 @@ void MeshioPlusPlusIO::WriteStatic(
         // Fortran record markers around every record (what Fortran-based solvers read and
         // write); a Fortran file is always binary.
         mio::write_ensight(rPath.string(), mesh, /*binary=*/true, /*fortran=*/true);
+        return;
+    }
+    if (rFormatName == "step") {
+        mio::write_step(rPath.string(), mesh, BuildStepOptions(mParameters));
+        return;
+    }
+    if (rFormatName == "xplt") {
+        mio::write_xplt(rPath.string(), mesh, BuildXpltOptions(mParameters));
+        return;
+    }
+    if (rFormatName == "abaqus_fil") {
+        mio::write_abaqus_fil(rPath.string(), mesh, BuildAbaqusFilOptions(mParameters));
+        return;
+    }
+    if (rFormatName == "lsdyna_binout") {
+        mio::write_lsdyna_binout(rPath.string(), mesh, BuildBinoutOptions(mParameters));
         return;
     }
     if (file_format == "raw_appended") {
@@ -1829,13 +1954,14 @@ void MeshioPlusPlusIO::WriteSeriesStep(
         const std::string path = ComposeOutputPath(rTargetSuffix, "").string();
         if (rFormatName == "abaqus_fil") {
             p_writer = std::make_unique<SeriesWriterAdapter<mio::AbaqusFilSeriesWriter>>(
-                path, mParameters["file_format"].GetString() == "binary");
+                path, BuildAbaqusFilOptions(mParameters));
         } else if (rFormatName == "ansys_rst") {
             p_writer = std::make_unique<SeriesWriterAdapter<mio::AnsysRstSeriesWriter>>(path);
         } else if (rFormatName == "frd") {
             p_writer = std::make_unique<SeriesWriterAdapter<mio::FrdSeriesWriter>>(path);
         } else if (rFormatName == "lsdyna_binout") {
-            p_writer = std::make_unique<SeriesWriterAdapter<mio::LsdynaBinoutSeriesWriter>>(path);
+            p_writer = std::make_unique<SeriesWriterAdapter<mio::LsdynaBinoutSeriesWriter>>(
+                path, BuildBinoutOptions(mParameters));
         } else if (rFormatName == "lsdyna_d3plot") {
             // "d3plot_double" writes 8-byte words; the family is split over d3plot, d3plot01, ...
             // once a member would pass "d3plot_max_file_bytes"
@@ -1860,14 +1986,21 @@ void MeshioPlusPlusIO::WriteSeriesStep(
         } else if (rFormatName == "radioss_th") {
             p_writer = std::make_unique<SeriesWriterAdapter<mio::RadiossThSeriesWriter>>(path);
         } else if (rFormatName == "xplt") {
-            p_writer = std::make_unique<SeriesWriterAdapter<mio::XpltSeriesWriter>>(path);
+            p_writer = std::make_unique<SeriesWriterAdapter<mio::XpltSeriesWriter>>(
+                path, BuildXpltOptions(mParameters));
 #ifdef MESHIOPLUSPLUS_HAS_HDF5
         } else if (rFormatName == "nastran_h5") {
             p_writer = std::make_unique<SeriesWriterAdapter<mio::NastranH5SeriesWriter>>(path);
 #endif
 #ifdef MESHIOPLUSPLUS_HAS_ADIOS2
         } else if (rFormatName == "vtx") {
-            p_writer = std::make_unique<SeriesWriterAdapter<mio::VtxSeriesWriter>>(path);
+            // "vtx_mesh_policy" : "reuse" writes the geometry once for a mesh that does not
+            // change; "update" (the default) writes it with every step that changes it.
+            const std::string policy = mParameters["vtx_mesh_policy"].GetString();
+            KRATOS_ERROR_IF(policy != "update" && policy != "reuse")
+                << "\"vtx_mesh_policy\" is \"update\" or \"reuse\", not \"" << policy << "\"" << std::endl;
+            p_writer = std::make_unique<SeriesWriterAdapter<mio::VtxSeriesWriter>>(
+                path, policy == "reuse" ? mio::VtxMeshPolicy::Reuse : mio::VtxMeshPolicy::Update);
 #endif
 #ifdef MESHIOPLUSPLUS_HAS_TECIO
         } else if (rFormatName == "szplt") {
