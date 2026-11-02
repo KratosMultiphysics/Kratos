@@ -268,6 +268,66 @@ class TestHromMedRom(KratosUnittest.TestCase):
                 for condition in smp.Conditions:
                     self.assertIsNotNone(condition.Properties)
 
+    def test_hrom_visualization_model_part_med(self):
+        """Writes the HROM visualization model part in MED format and checks that the faces and groups read back are the skin
+        faces of the origin model part, for conditions on part of the skin, on the whole skin and with point conditions."""
+        with KratosUnittest.WorkFolderScope(self.work_folder, __file__):
+            from KratosMultiphysics.model_parameters_factory import KratosModelParametersFactory
+
+            def SortedNodeIds(geometries):
+                return {tuple(sorted(node.Id for node in geometry)) for geometry in geometries}
+
+            surface_parts = ["side_1", "bottom", "fix", "top", "side_2", "load"]
+            conditions_lists = {
+                "part of the skin" : [("load", "SurfaceCondition3D6N")],
+                "whole skin" : [(name, "SurfaceCondition3D6N") for name in surface_parts],
+                "point conditions first" : [("load_points", "PointCondition3D1N")] + [(name, "SurfaceCondition3D6N") for name in surface_parts]}
+            for case, conditions_list in conditions_lists.items():
+                with self.subTest(case=case):
+                    # Origin model part from the MED file, with the conditions created from the geometries of the given groups
+                    model = KratosMultiphysics.Model()
+                    origin_model_part = model.CreateModelPart("OriginPart")
+                    KratosMultiphysics.MedApplication.MedModelPartIO(MED_TEST_FILE, KratosMultiphysics.IO.READ).ReadModelPart(origin_model_part)
+                    modeler_settings = KratosMultiphysics.Parameters("""[{
+                        "name" : "Modelers.KratosMultiphysics.CreateEntitiesFromGeometriesModeler",
+                        "parameters" : {
+                            "elements_list" : [{"model_part_name" : "OriginPart", "element_name" : "Element3D10N"}],
+                            "conditions_list" : []
+                        }
+                    }]""")
+                    for name, condition_name in conditions_list:
+                        condition_settings = KratosMultiphysics.Parameters("{}")
+                        condition_settings.AddString("model_part_name", f"OriginPart.{name}")
+                        condition_settings.AddString("condition_name", condition_name)
+                        modeler_settings[0]["parameters"]["conditions_list"].Append(condition_settings)
+                    modelers = KratosModelParametersFactory(model).ConstructListOfItems(modeler_settings)
+                    for modeler in modelers:
+                        modeler.SetupGeometryModel()
+                    for modeler in modelers:
+                        modeler.PrepareGeometryModel()
+                    for modeler in modelers:
+                        modeler.SetupModelPart()
+
+                    # Visualization model part written in MED format and read back
+                    visualization_model = KratosMultiphysics.Model()
+                    visualization_model_part = visualization_model.CreateModelPart("OriginPartHROMVisualization")
+                    KratosROM.RomAuxiliaryUtilities.SetHRomVolumetricVisualizationModelPart(origin_model_part, visualization_model_part)
+                    KratosROM.RomAuxiliaryUtilities.AddHRomVisualizationGeometries(visualization_model_part)
+                    output_file_name = os.path.abspath("OriginPartHROMVisualization.med")
+                    self.addCleanup(kratos_utilities.DeleteFileIfExisting, output_file_name)
+                    model_part_io = KratosMultiphysics.MedApplication.MedModelPartIO(output_file_name, KratosMultiphysics.IO.WRITE)
+                    model_part_io.WriteModelPart(visualization_model_part)
+                    del model_part_io
+                    read_model_part = KratosMultiphysics.Model().CreateModelPart("ReadPart")
+                    KratosMultiphysics.MedApplication.MedModelPartIO(output_file_name, KratosMultiphysics.IO.READ).ReadModelPart(read_model_part)
+
+                    # The faces are the skin of the mesh (the faces of the surface groups) and each group keeps its faces
+                    skin = set().union(*[SortedNodeIds(origin_model_part.GetSubModelPart(name).Geometries) for name in surface_parts])
+                    self.assertEqual(read_model_part.NumberOfGeometries(), len(skin))
+                    self.assertEqual(SortedNodeIds(read_model_part.Geometries), skin)
+                    for name in surface_parts:
+                        self.assertEqual(SortedNodeIds(read_model_part.GetSubModelPart(name).Geometries), SortedNodeIds(origin_model_part.GetSubModelPart(name).Geometries))
+
     def test_run_hrom_on_hrom_model_part(self):
         """Trains a ROM and an HROM with the RomManager on the MED case and checks that the HROM run on the HROM model part
         (written during the HROM training) gives the solution of the HROM run on the full model part."""
@@ -298,6 +358,7 @@ class TestHromMedRom(KratosUnittest.TestCase):
             CustomizeSimulation.label = "Fit"
             rom_manager.Fit(mu)
             self.assertTrue(os.path.isfile("tetrahedral_10NHROM.med"))
+            self.assertTrue(os.path.isfile("tetrahedral_10NHROMVisualization.med"))
             self.assertTrue(os.path.isfile("rom_data/HROM_GeometryIds.csv"))
 
             for label, use_full_model_part in [("full model part", True), ("HROM model part", False)]:
