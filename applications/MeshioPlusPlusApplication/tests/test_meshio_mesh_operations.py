@@ -95,7 +95,11 @@ class TestMeshioPlusPlusMeshOperations(KratosUnittest.TestCase):
                          "optimize_volume", "estimate_error", "hessian", "data_integrate",
                          "curvature", "repair", "sobolev_deform", "compute_normals",
                          "tensor_invariants", "check_quality", "feature_edges", "edit_regions",
-                         "segment", "fit_primitives", "tessellate", "fit_cad"):
+                         "segment", "fit_primitives", "tessellate", "fit_cad",
+                         "tetrahedralize", "octree_mesh", "boundary_layer", "extrude", "revolve",
+                         "mirror", "octree", "refine_patches", "select", "check_conformity",
+                         "find_intersections", "thickness", "error_size", "tet_to_poly",
+                         "metric_from_hessian", "adapt", "discretize_levelset", "mesh_domain", "move"):
             self.assertIn(expected, operations)
 
     def test_unknown_operation_raises(self):
@@ -972,6 +976,87 @@ class TestMeshioPlusPlusMeshOperations(KratosUnittest.TestCase):
             self.assertGreater(destination.NumberOfNodes(), 0)
             self.assertIn("ISO-10303-21", Path(step_path).read_text()[:200])
             self.assertTrue(Path(json_path).stat().st_size > 0)
+
+    def test_capabilities(self):
+        capabilities = KratosMeshioPlusPlus.MeshioPlusPlusMeshOperations.GetCapabilities()
+        for key in ("occt", "netgen", "mmg", "mmg_elas"):
+            self.assertTrue(capabilities.Has(key))
+
+    def test_optimize_volume_worst_objective_never_lowers_the_least_dihedral(self):
+        destination, report = self._Execute("optimize_volume")
+        self.assertGreaterEqual(report["min_dihedral_after"].GetDouble(), report["min_dihedral_before"].GetDouble() - 1e-12)
+        self.assertTrue(report.Has("number_of_edge_removals"))
+        self.assertEqual(destination.NumberOfElements(), self.source.NumberOfElements())
+
+    def test_tetrahedralize_a_cube_skin(self):
+        skin = self.model.CreateModelPart("TetSkin")
+        _CreateClosedCubeSkin(skin)
+        settings = KratosMultiphysics.Parameters('{"tet_backend" : "octree", "tet_max_size" : 0.25}')
+        destination, report = self._Execute("tetrahedralize", settings, skin)
+        self.assertEqual(report["backend"].GetString(), "octree")
+        self.assertGreater(destination.NumberOfElements(), 0)
+        self.assertAlmostEqual(report["volume"].GetDouble(), 1.0, delta=0.1)
+
+    def test_extrude_a_square_into_wedges(self):
+        square = self.model.CreateModelPart("ExtrudeSquare")
+        _CreateTriangulatedSquare(square)
+        settings = KratosMultiphysics.Parameters('{"extrude_layers" : 3, "extrude_direction" : [0.0, 0.0, 0.5]}')
+        destination, report = self._Execute("extrude", settings, square)
+        self.assertEqual(report["wedges"].GetInt(), 6)
+        self.assertEqual(destination.NumberOfElements(), 6)
+        # "extrude_direction" is the whole sweep, split into the layers
+        self.assertAlmostEqual(max(node.Z for node in destination.Nodes), 0.5)
+
+    def test_select_writes_a_sub_model_part(self):
+        settings = KratosMultiphysics.Parameters("""{
+            "select_name" : "top", "select_mode" : "any", "select_sphere" : true,
+            "select_sphere_center" : [1.0, 1.0, 1.0], "select_sphere_radius" : 0.1}""")
+        destination, report = self._Execute("select", settings)
+        self.assertTrue(destination.HasSubModelPart("top"))
+        # Every tetrahedron touches the corner (1, 1, 1): the shared diagonal ends there
+        self.assertEqual(report["number_of_selected"].GetInt(), 6)
+
+    def test_thickness_and_find_intersections_of_two_surfaces(self):
+        first = self.model.CreateModelPart("FirstSkin")
+        second = self.model.CreateModelPart("SecondSkin")
+        _CreateClosedCubeSkin(first)
+        _CreateClosedCubeSkin(second)
+        for node in second.Nodes:
+            node.X += 2.0
+            node.X0 += 2.0
+        operations = KratosMeshioPlusPlus.MeshioPlusPlusMeshOperations
+
+        # Apart: no intersection, and a unit gap between the facing walls
+        segments = self.model.CreateModelPart("Segments")
+        report = operations.FindIntersections(first, second, KratosMultiphysics.Parameters("{}"), segments)
+        self.assertTrue(report["clean"].GetBool())
+        clearance = self.model.CreateModelPart("Clearance")
+        report = operations.Thickness(first, second,
+            KratosMultiphysics.Parameters('{"thickness_direction" : "outward", "output" : "DISTANCE"}'), clearance)
+        self.assertAlmostEqual(report["min"].GetDouble(), 1.0, 9)
+
+    def test_primitive_shapes(self):
+        operations = KratosMeshioPlusPlus.MeshioPlusPlusMeshOperations
+        box = self.model.CreateModelPart("PrimitiveBox")
+        report = operations.Primitive(KratosMultiphysics.Parameters('{"primitive" : "box", "dims" : [3, 1, 1]}'), box)
+        self.assertEqual(report["number_of_elements"].GetInt(), 3)
+        torus = self.model.CreateModelPart("PrimitiveTorus")
+        operations.Primitive(KratosMultiphysics.Parameters('{"primitive" : "torus", "nu" : 8, "nv" : 4}'), torus)
+        self.assertEqual(torus.NumberOfElements(), 32)
+        with self.assertRaisesRegex(RuntimeError, "Unknown primitive"):
+            operations.Primitive(KratosMultiphysics.Parameters('{"primitive" : "teapot"}'),
+                                 self.model.CreateModelPart("PrimitiveTeapot"))
+
+    def test_mmg_adapt(self):
+        capabilities = KratosMeshioPlusPlus.MeshioPlusPlusMeshOperations.GetCapabilities()
+        settings = KratosMultiphysics.Parameters('{"mmg_hmax" : 0.3}')
+        if not capabilities["mmg"].GetBool():
+            with self.assertRaisesRegex(RuntimeError, "MMG"):
+                self._Execute("adapt", settings)
+            self.skipTest("meshio++ was built without MMG")
+        destination, report = self._Execute("adapt", settings)
+        self.assertTrue(report["success"].GetBool())
+        self.assertGreater(destination.NumberOfElements(), self.source.NumberOfElements())
 
     def test_hausdorff_distance_between_two_cube_skins(self):
         first = self.model.CreateModelPart("SkinA")
