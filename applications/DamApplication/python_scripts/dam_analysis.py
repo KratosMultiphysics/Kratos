@@ -163,6 +163,18 @@ class DamAnalysis(AnalysisStage):
         self.list_of_processes += KratosMultiphysics.process_factory.KratosProcessFactory(self.model).ConstructListOfProcesses( self.project_parameters["loads_process_list"] )
         self.list_of_processes += KratosMultiphysics.process_factory.KratosProcessFactory(self.model).ConstructListOfProcesses( self.project_parameters["temperature_by_device_list"] )
 
+        for attribute in ("transfers_initial_stress",
+                          "transfers_initial_temperature",
+                          "transfers_reference_temperature"):
+            transferring_processes = [
+                process for process in self.list_of_processes
+                if getattr(process, attribute, False)]
+            if len(transferring_processes) > 1:
+                raise RuntimeError(
+                    "More than one process transfers the same initial-state field "
+                    "('{}'). Use only one initial-state processor per field.".format(
+                        attribute))
+
         if self.add_previous_results and any(
                 getattr(process, "transfers_initial_stress", False)
                 for process in self.list_of_processes):

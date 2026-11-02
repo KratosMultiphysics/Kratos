@@ -12,6 +12,8 @@
 
 // System includes
 #include <cmath>
+#include <map>
+#include <string>
 #include <typeinfo>
 #include <vector>
 
@@ -137,6 +139,18 @@ struct PointData
     std::vector<Vector> Stresses;
     std::vector<ConstitutiveLaw::Pointer> Laws;
 };
+
+void AssignPointData(const std::vector<PointData>& rPointData)
+{
+    for (const auto& r_data : rPointData) {
+        for (std::size_t i = 0; i < r_data.Laws.size(); ++i) {
+            auto& r_law = *r_data.Laws[i];
+            r_law.SetInitialState(Kratos::make_intrusive<InitialState>(
+                ZeroVector(r_data.Stresses[i].size()), r_data.Stresses[i],
+                IdentityMatrix(r_law.WorkingSpaceDimension())));
+        }
+    }
+}
 } // namespace
 
 void SelectiveInitialStressUtility::AssignInitialStresses(
@@ -338,16 +352,236 @@ void SelectiveInitialStressUtility::AssignInitialStresses(
     }
 
     // All checks passed. Assign the selected stresses as initial states.
-    for (const auto& r_data : point_data) {
-        for (std::size_t i = 0; i < r_data.Laws.size(); ++i) {
-            auto& r_law = *r_data.Laws[i];
-            r_law.SetInitialState(Kratos::make_intrusive<InitialState>(
-                ZeroVector(r_data.Stresses[i].size()), r_data.Stresses[i],
-                IdentityMatrix(r_law.WorkingSpaceDimension())));
-        }
-    }
+    AssignPointData(point_data);
 
     KRATOS_CATCH("SelectiveInitialStressUtility::AssignInitialStresses")
+}
+
+// -----------------------------------------------------------------------------
+// Lightweight initial-state file support
+// -----------------------------------------------------------------------------
+
+std::map<IndexType, std::vector<Vector>> SelectiveInitialStressUtility::GetCurrentCauchyStresses(
+    ModelPart& rModelPart)
+{
+    KRATOS_TRY
+    std::map<IndexType, std::vector<Vector>> result;
+
+    for (auto& r_element : rModelPart.Elements()) {
+        KRATOS_ERROR_IF(typeid(r_element) != typeid(SmallDisplacement))
+            << "SelectiveInitialStressUtility: only SmallDisplacement solid elements are supported "
+            << "for element " << r_element.Id() << "." << std::endl;
+        auto& r_geometry = r_element.GetGeometry();
+        KRATOS_ERROR_IF(!IsSupportedGeometry(r_geometry.GetGeometryType()))
+            << "SelectiveInitialStressUtility: unsupported geometry for element "
+            << r_element.Id() << "." << std::endl;
+
+        std::vector<ConstitutiveLaw::Pointer> laws;
+        std::vector<Vector> stresses;
+        r_element.CalculateOnIntegrationPoints(
+            CONSTITUTIVE_LAW, laws, rModelPart.GetProcessInfo());
+        r_element.CalculateOnIntegrationPoints(
+            CAUCHY_STRESS_VECTOR, stresses, rModelPart.GetProcessInfo());
+        KRATOS_ERROR_IF(laws.size() != stresses.size())
+            << "SelectiveInitialStressUtility: constitutive-law and stress integration-point "
+            << "counts differ for element " << r_element.Id() << "." << std::endl;
+        for (std::size_t i = 0; i < stresses.size(); ++i) {
+            KRATOS_ERROR_IF(!laws[i] || !IsSupportedLaw(*laws[i]))
+                << "SelectiveInitialStressUtility: unsupported constitutive law at element "
+                << r_element.Id() << ", integration point " << i << "." << std::endl;
+            KRATOS_ERROR_IF(stresses[i].size() != laws[i]->GetStrainSize())
+                << "SelectiveInitialStressUtility: stress-vector size "
+                << stresses[i].size() << " does not match strain size "
+                << laws[i]->GetStrainSize() << " at element " << r_element.Id()
+                << ", integration point " << i << "." << std::endl;
+            for (const double component : stresses[i]) {
+                KRATOS_ERROR_IF(!std::isfinite(component))
+                    << "SelectiveInitialStressUtility: non-finite Cauchy stress at element "
+                    << r_element.Id() << ", integration point " << i << "." << std::endl;
+            }
+        }
+        result.emplace(r_element.Id(), std::move(stresses));
+    }
+
+    return result;
+    KRATOS_CATCH("SelectiveInitialStressUtility::GetCurrentCauchyStresses")
+}
+
+std::map<IndexType, std::vector<Vector>> SelectiveInitialStressUtility::GetStoredInitialStresses(
+    ModelPart& rModelPart)
+{
+    KRATOS_TRY
+    std::map<IndexType, std::vector<Vector>> result;
+
+    for (auto& r_element : rModelPart.Elements()) {
+        KRATOS_ERROR_IF(typeid(r_element) != typeid(SmallDisplacement))
+            << "SelectiveInitialStressUtility: only SmallDisplacement solid elements are supported "
+            << "for element " << r_element.Id() << "." << std::endl;
+        auto& r_geometry = r_element.GetGeometry();
+        KRATOS_ERROR_IF(!IsSupportedGeometry(r_geometry.GetGeometryType()))
+            << "SelectiveInitialStressUtility: unsupported geometry for element "
+            << r_element.Id() << "." << std::endl;
+
+        std::vector<ConstitutiveLaw::Pointer> laws;
+        r_element.CalculateOnIntegrationPoints(
+            CONSTITUTIVE_LAW, laws, rModelPart.GetProcessInfo());
+        std::vector<Vector> stresses;
+        stresses.reserve(laws.size());
+        for (std::size_t i = 0; i < laws.size(); ++i) {
+            KRATOS_ERROR_IF(!laws[i] || !IsSupportedLaw(*laws[i]))
+                << "SelectiveInitialStressUtility: unsupported constitutive law at element "
+                << r_element.Id() << ", integration point " << i << "." << std::endl;
+            KRATOS_ERROR_IF(!laws[i]->HasInitialState())
+                << "SelectiveInitialStressUtility: element " << r_element.Id()
+                << ", integration point " << i
+                << " has no stored InitialState. 'stored_initial_stress' cannot be exported."
+                << std::endl;
+            const Vector& r_initial_stress =
+                laws[i]->GetInitialState().GetInitialStressVector();
+            KRATOS_ERROR_IF(r_initial_stress.size() != laws[i]->GetStrainSize())
+                << "SelectiveInitialStressUtility: stored initial stress size "
+                << r_initial_stress.size() << " does not match strain size "
+                << laws[i]->GetStrainSize() << " at element " << r_element.Id()
+                << ", integration point " << i << "." << std::endl;
+            for (const double component : r_initial_stress) {
+                KRATOS_ERROR_IF(!std::isfinite(component))
+                    << "SelectiveInitialStressUtility: non-finite stored initial stress at element "
+                    << r_element.Id() << ", integration point " << i << "." << std::endl;
+            }
+            stresses.push_back(r_initial_stress);
+        }
+        result.emplace(r_element.Id(), std::move(stresses));
+    }
+
+    return result;
+    KRATOS_CATCH("SelectiveInitialStressUtility::GetStoredInitialStresses")
+}
+
+namespace
+{
+std::vector<PointData> BuildStoredPointData(
+    ModelPart& rDestinationModelPart,
+    const std::map<IndexType, std::vector<Vector>>& rStresses,
+    const bool CheckThermalDatumForImport)
+{
+    KRATOS_ERROR_IF(rStresses.size() != rDestinationModelPart.NumberOfElements())
+        << "SelectiveInitialStressUtility: imported stress map contains "
+        << rStresses.size() << " elements but the destination contains "
+        << rDestinationModelPart.NumberOfElements() << "." << std::endl;
+
+    std::vector<PointData> point_data;
+    point_data.reserve(rDestinationModelPart.NumberOfElements());
+    for (auto& r_element : rDestinationModelPart.Elements()) {
+        const IndexType element_id = r_element.Id();
+        const auto it_stress = rStresses.find(element_id);
+        KRATOS_ERROR_IF(it_stress == rStresses.end())
+            << "SelectiveInitialStressUtility: imported stresses do not contain element "
+            << element_id << "." << std::endl;
+        KRATOS_ERROR_IF(typeid(r_element) != typeid(SmallDisplacement))
+            << "SelectiveInitialStressUtility: only SmallDisplacement solid elements are supported "
+            << "for element " << element_id << "." << std::endl;
+        auto& r_geometry = r_element.GetGeometry();
+        KRATOS_ERROR_IF(!IsSupportedGeometry(r_geometry.GetGeometryType()))
+            << "SelectiveInitialStressUtility: unsupported geometry for element "
+            << element_id << "." << std::endl;
+
+        for (const auto& r_node : r_geometry) {
+            CheckZeroDisplacement(r_node);
+        }
+
+        std::vector<ConstitutiveLaw::Pointer> laws;
+        r_element.CalculateOnIntegrationPoints(
+            CONSTITUTIVE_LAW, laws, rDestinationModelPart.GetProcessInfo());
+        const auto& r_stresses = it_stress->second;
+        KRATOS_ERROR_IF(laws.size() != r_stresses.size())
+            << "SelectiveInitialStressUtility: imported stress count "
+            << r_stresses.size() << " does not match the integration-point count "
+            << laws.size() << " of element " << element_id << "." << std::endl;
+
+        bool has_thermal_law = false;
+        bool has_nonthermal_law = false;
+        for (std::size_t i = 0; i < laws.size(); ++i) {
+            KRATOS_ERROR_IF(!laws[i] || !IsSupportedLaw(*laws[i]))
+                << "SelectiveInitialStressUtility: unsupported constitutive law at element "
+                << element_id << ", integration point " << i << "." << std::endl;
+            KRATOS_ERROR_IF(r_stresses[i].size() != laws[i]->GetStrainSize())
+                << "SelectiveInitialStressUtility: imported stress size "
+                << r_stresses[i].size() << " does not match strain size "
+                << laws[i]->GetStrainSize() << " at element " << element_id
+                << ", integration point " << i << "." << std::endl;
+            KRATOS_ERROR_IF(laws[i]->HasInitialState())
+                << "SelectiveInitialStressUtility: destination element " << element_id
+                << ", integration point " << i
+                << " already has an initial state. The initial state is applied only once."
+                << std::endl;
+            for (const double component : r_stresses[i]) {
+                KRATOS_ERROR_IF(!std::isfinite(component))
+                    << "SelectiveInitialStressUtility: non-finite imported stress at element "
+                    << element_id << ", integration point " << i << "." << std::endl;
+            }
+            const bool is_thermal = IsThermalLaw(*laws[i]);
+            has_thermal_law = has_thermal_law || is_thermal;
+            has_nonthermal_law = has_nonthermal_law || !is_thermal;
+        }
+        KRATOS_ERROR_IF(has_thermal_law && has_nonthermal_law)
+            << "SelectiveInitialStressUtility: mixed thermal and non-thermal constitutive laws "
+            << "are not supported for element " << element_id << "." << std::endl;
+        if (has_thermal_law && CheckThermalDatumForImport) {
+            for (const auto& r_node : r_geometry) {
+                CheckThermalDatum(r_node);
+            }
+        }
+        point_data.push_back({r_stresses, std::move(laws)});
+    }
+    return point_data;
+}
+} // namespace
+
+void SelectiveInitialStressUtility::ValidateStoredInitialStresses(
+    ModelPart& rDestinationModelPart,
+    const std::map<IndexType, std::vector<Vector>>& rStresses)
+{
+    KRATOS_TRY
+    BuildStoredPointData(rDestinationModelPart, rStresses, false);
+    KRATOS_CATCH("SelectiveInitialStressUtility::ValidateStoredInitialStresses")
+}
+
+void SelectiveInitialStressUtility::AssignStoredInitialStresses(
+    ModelPart& rDestinationModelPart,
+    const std::map<IndexType, std::vector<Vector>>& rStresses)
+{
+    KRATOS_TRY
+    AssignPointData(BuildStoredPointData(rDestinationModelPart, rStresses, true));
+    KRATOS_CATCH("SelectiveInitialStressUtility::AssignStoredInitialStresses")
+}
+
+std::string SelectiveInitialStressUtility::GetIntegrationMethodName(const Element& rElement)
+{
+    switch (rElement.GetIntegrationMethod()) {
+        case GeometryData::IntegrationMethod::GI_GAUSS_1: return "GI_GAUSS_1";
+        case GeometryData::IntegrationMethod::GI_GAUSS_2: return "GI_GAUSS_2";
+        case GeometryData::IntegrationMethod::GI_GAUSS_3: return "GI_GAUSS_3";
+        case GeometryData::IntegrationMethod::GI_GAUSS_4: return "GI_GAUSS_4";
+        case GeometryData::IntegrationMethod::GI_GAUSS_5: return "GI_GAUSS_5";
+        default: return "UNSUPPORTED";
+    }
+}
+
+std::vector<Vector> SelectiveInitialStressUtility::GetIntegrationPointCoordinates(
+    const Element& rElement)
+{
+    const auto& r_points = rElement.GetGeometry().IntegrationPoints(
+        rElement.GetIntegrationMethod());
+    std::vector<Vector> result;
+    result.reserve(r_points.size());
+    for (const auto& r_point : r_points) {
+        Vector coordinates(3);
+        for (std::size_t i = 0; i < 3; ++i) {
+            coordinates[i] = r_point.Coordinates()[i];
+        }
+        result.push_back(std::move(coordinates));
+    }
+    return result;
 }
 
 } // namespace Kratos

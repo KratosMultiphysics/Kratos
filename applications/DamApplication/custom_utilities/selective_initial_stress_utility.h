@@ -14,6 +14,9 @@
 #define KRATOS_SELECTIVE_INITIAL_STRESS_UTILITY_H_INCLUDED
 
 // Project includes
+#include <map>
+#include <vector>
+
 #include "includes/model_part.h"
 
 namespace Kratos
@@ -42,6 +45,54 @@ public:
     static void AssignInitialStresses(
         ModelPart& rSourceModelPart,
         ModelPart& rDestinationModelPart);
+
+    /**
+     * @brief Returns the current Cauchy stress vector at every integration point.
+     * @param rModelPart Model part whose elements are queried.
+     * @return Stresses keyed by element ID.
+     */
+    static std::map<IndexType, std::vector<Vector>> GetCurrentCauchyStresses(
+        ModelPart& rModelPart);
+
+    /**
+     * @brief Returns the stress stored in each constitutive-law InitialState.
+     * @details Missing or malformed stored states are rejected; this method never
+     *          falls back to the current Cauchy stress.
+     * @param rModelPart Model part whose elements are queried.
+     * @return Stored initial stresses keyed by element ID.
+     */
+    static std::map<IndexType, std::vector<Vector>> GetStoredInitialStresses(
+        ModelPart& rModelPart);
+
+    /**
+     * @brief Returns the actual integration-method name of an element.
+     */
+    static std::string GetIntegrationMethodName(const Element& rElement);
+
+    /**
+     * @brief Returns the integration-point local coordinates of an element.
+     */
+    static std::vector<Vector> GetIntegrationPointCoordinates(const Element& rElement);
+
+    /**
+     * @brief Validates stored initial stresses against the destination laws
+     *        without modifying any constitutive state.
+     * @param rDestinationModelPart Fresh destination model part.
+     * @param rStresses Imported stresses keyed by destination element ID.
+     */
+    static void ValidateStoredInitialStresses(
+        ModelPart& rDestinationModelPart,
+        const std::map<IndexType, std::vector<Vector>>& rStresses);
+
+    /**
+     * @brief Assigns imported per-integration-point stresses to the destination
+     *        constitutive InitialState objects.
+     * @param rDestinationModelPart Fresh destination model part.
+     * @param rStresses Imported stresses keyed by destination element ID.
+     */
+    static void AssignStoredInitialStresses(
+        ModelPart& rDestinationModelPart,
+        const std::map<IndexType, std::vector<Vector>>& rStresses);
 };
 
 } // namespace Kratos

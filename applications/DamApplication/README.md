@@ -107,3 +107,216 @@ the current temperature remains owned and evolved by the new analysis.
 
 `transfer_results_process.add_previous_results` must remain false when this
 process is used; DamAnalysis rejects the combination explicitly.
+
+## Lightweight initial-state import/export ##
+
+`save_dam_initial_state_process` and `load_dam_initial_state_process` provide
+a small, versioned alternative to a full Kratos restart. The file may contain
+only:
+
+- Gauss-point initial stress vectors (one vector per element integration point).
+- Nodal `TEMPERATURE`.
+- Nodal `NODAL_REFERENCE_TEMPERATURE`.
+
+It never stores displacements, reactions, velocity, acceleration, time, step
+counters, loads or unrelated constitutive history. Import always leaves the
+destination at its own zero displacement and independent solution history.
+
+The file is JSON (optionally compressed with a `.gz` suffix). It contains node
+IDs/reference coordinates, element IDs/connectivity, geometry types, the actual
+integration method and local point ordering, material/law metadata, field
+presence and the selected stress vectors. This is enough to validate an identical
+mesh and reject incompatible files before changing the destination.
+
+### Saving ###
+
+```json
+{
+    "python_module": "save_dam_initial_state_process",
+    "kratos_module": "KratosMultiphysics.DamApplication",
+    "Parameters": {
+        "model_part_name": "MainModelPart.Parts_Concrete",
+        "save_initial_stresses": true,
+        "save_initial_temperature": false,
+        "save_reference_temperature": false,
+        "stress_source": "current_cauchy",
+        "output_file_name": "stage_a_initial_state.json"
+    }
+}
+```
+
+The process writes during `ExecuteFinalize`, before the solver is cleared.
+
+`stress_source` has two explicit modes:
+
+- `current_cauchy`: exports the current total Cauchy stress at every Gauss point.
+- `stored_initial_stress`: exports the stress held in each constitutive
+  `InitialState`. Missing or malformed stored states are rejected; it never
+  falls back to the current Cauchy stress.
+
+### Loading ###
+
+```json
+{
+    "python_module": "load_dam_initial_state_process",
+    "kratos_module": "KratosMultiphysics.DamApplication",
+    "Parameters": {
+        "model_part_name": "MainModelPart.Parts_Concrete",
+        "input_file_name": "stage_b_initial_state.json",
+        "transfer_initial_stresses": true,
+        "transfer_initial_temperature": true,
+        "transfer_reference_temperature": false,
+        "reference_temperature_policy": "initial_temperature"
+    }
+}
+```
+
+The three transfer flags are independent. Stresses reuse the existing
+validated `InitialState` assignment and its geometry/law restrictions.
+Temperatures are assigned by node ID to all solution-step buffer entries, after
+solver initialization and before the first solve. A second processor that
+transfers the same field is rejected by `DamAnalysis`.
+
+### Reference-temperature alternatives ###
+
+- `preserve` (default): import the stored reference field when
+  `transfer_reference_temperature` is true. If stresses and a thermoelastic law
+  are imported, the resulting `T` and `T_ref` must be equal at every node;
+  otherwise the import is rejected. No thermal compensation is applied.
+- `initial_temperature`: use the imported initial temperature as the new
+  reference temperature. This requires `transfer_initial_temperature=true` and
+  forbids `transfer_reference_temperature=true`. It explicitly resets the
+  thermal datum at the imported instant; the original reference field is not
+  preserved. With stresses, this makes `T == T_ref` and avoids an immediate
+  thermal strain.
+
+Importing a temperature field that differs from the preserved reference is
+allowed only when stresses are not transferred. In every case the user must
+ensure that the destination loads and supports equilibrate the imported stresses.
+
+### Stage A: gravity stress export ###
+
+Use a normal mechanical or thermoelastic DamAnalysis with the constitutive law
+that the later stages will use, and gravity active. At the end of the analysis:
+
+```json
+"loads_process_list": [
+    {
+        "python_module": "assign_vector_variable_process",
+        "kratos_module": "KratosMultiphysics",
+        "Parameters": {
+            "model_part_name": "MainModelPart.Parts_Concrete",
+            "variable_name": "VOLUME_ACCELERATION",
+            "constrained": false,
+            "value": [0.0, -10.0, 0.0]
+        }
+    },
+    {
+        "python_module": "save_dam_initial_state_process",
+        "kratos_module": "KratosMultiphysics.DamApplication",
+        "Parameters": {
+            "model_part_name": "MainModelPart.Parts_Concrete",
+            "save_initial_stresses": true,
+            "save_initial_temperature": false,
+            "save_reference_temperature": false,
+            "stress_source": "current_cauchy",
+            "output_file_name": "stage_a_gravity.json"
+        }
+    }
+]
+```
+
+### Stage B: prestressed transient thermomechanical analysis ###
+
+Start with the same mesh and law, import the Stage A stresses, initialize the
+temperature/reference fields with the existing Dam processes, and apply the
+thermal loading normally. At the end, export the stored prestress and the final
+temperature fields:
+
+```json
+"loads_process_list": [
+    {
+        "python_module": "assign_vector_variable_process",
+        "kratos_module": "KratosMultiphysics",
+        "Parameters": {
+            "model_part_name": "MainModelPart.Parts_Concrete",
+            "variable_name": "VOLUME_ACCELERATION",
+            "constrained": false,
+            "value": [0.0, -10.0, 0.0]
+        }
+    },
+    {
+        "python_module": "load_dam_initial_state_process",
+        "kratos_module": "KratosMultiphysics.DamApplication",
+        "Parameters": {
+            "model_part_name": "MainModelPart.Parts_Concrete",
+            "input_file_name": "stage_a_gravity.json",
+            "transfer_initial_stresses": true,
+            "transfer_initial_temperature": false,
+            "transfer_reference_temperature": false,
+            "reference_temperature_policy": "preserve"
+        }
+    },
+    {
+        "python_module": "save_dam_initial_state_process",
+        "kratos_module": "KratosMultiphysics.DamApplication",
+        "Parameters": {
+            "model_part_name": "MainModelPart.Parts_Concrete",
+            "save_initial_stresses": true,
+            "save_initial_temperature": true,
+            "save_reference_temperature": true,
+            "stress_source": "stored_initial_stress",
+            "output_file_name": "stage_b_final.json"
+        }
+    }
+]
+```
+
+The existing `impose_nodal_reference_temperature_process` and the thermal
+boundary processes remain in `constraints_process_list`. The saved
+`stored_initial_stress` is the imported gravity prestress, not the evolved total
+Cauchy stress.
+
+### Stage C: new independent analysis ###
+
+Import all three fields. When the Stage B final temperature differs from its
+reference field and stresses are required, use the explicit
+`initial_temperature` policy:
+
+```json
+"loads_process_list": [
+    {
+        "python_module": "assign_vector_variable_process",
+        "kratos_module": "KratosMultiphysics",
+        "Parameters": {
+            "model_part_name": "MainModelPart.Parts_Concrete",
+            "variable_name": "VOLUME_ACCELERATION",
+            "constrained": false,
+            "value": [0.0, -10.0, 0.0]
+        }
+    },
+    {
+        "python_module": "load_dam_initial_state_process",
+        "kratos_module": "KratosMultiphysics.DamApplication",
+        "Parameters": {
+            "model_part_name": "MainModelPart.Parts_Concrete",
+            "input_file_name": "stage_b_final.json",
+            "transfer_initial_stresses": true,
+            "transfer_initial_temperature": true,
+            "transfer_reference_temperature": false,
+            "reference_temperature_policy": "initial_temperature"
+        }
+    }
+]
+```
+
+The destination starts with zero displacement, the imported gravity prestress
+and the Stage B temperature as both current and reference temperature. Subsequent
+mechanical or thermal loading belongs to this new analysis and is not inherited
+from Stage B.
+
+The file format is versioned and validated before any destination field is
+changed. Different meshes, connectivity, reference coordinates, integration
+rules, materials, laws, stress dimensions, or missing stored initial states are
+rejected explicitly. Damage, plasticity, history-dependent laws, different-mesh
+mapping and MPI configurations remain outside this validated scope.

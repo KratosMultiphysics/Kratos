@@ -122,7 +122,25 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
     (m, "SelectiveInitialStressUtility")
     .def_static("AssignInitialStresses",
         &SelectiveInitialStressUtility::AssignInitialStresses,
-        py::arg("source_model_part"), py::arg("destination_model_part"));
+        py::arg("source_model_part"), py::arg("destination_model_part"))
+    .def_static("GetCurrentCauchyStresses",
+        &SelectiveInitialStressUtility::GetCurrentCauchyStresses,
+        py::arg("model_part"))
+    .def_static("GetStoredInitialStresses",
+        &SelectiveInitialStressUtility::GetStoredInitialStresses,
+        py::arg("model_part"))
+    .def_static("ValidateStoredInitialStresses",
+        &SelectiveInitialStressUtility::ValidateStoredInitialStresses,
+        py::arg("destination_model_part"), py::arg("stresses"))
+    .def_static("AssignStoredInitialStresses",
+        &SelectiveInitialStressUtility::AssignStoredInitialStresses,
+        py::arg("destination_model_part"), py::arg("stresses"))
+    .def_static("GetIntegrationMethodName",
+        &SelectiveInitialStressUtility::GetIntegrationMethodName,
+        py::arg("element"))
+    .def_static("GetIntegrationPointCoordinates",
+        &SelectiveInitialStressUtility::GetIntegrationPointCoordinates,
+        py::arg("element"));
 }
 
 }  // namespace Python.
