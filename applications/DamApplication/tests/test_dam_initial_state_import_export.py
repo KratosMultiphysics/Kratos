@@ -96,7 +96,7 @@ class TestDamInitialStateImportExport(KratosUnittest.TestCase):
                 "reference_temperature_policy": policy}})
 
     def _run_full(self, directory, settings, thermal, probe_stored=True,
-                  expected_error=None):
+                  expected_error=None, temperature_offset=0.0):
         """Writes a case and executes a real, unmodified DamAnalysis.Run()."""
         directory.mkdir(parents=True, exist_ok=True)
         if thermal:
@@ -114,8 +114,9 @@ class TestDamInitialStateImportExport(KratosUnittest.TestCase):
             mdpa += ("\nBegin SubModelPart Thermal_Boundary\nBegin SubModelPartNodes\n"
                      "1\n2\n5\n6\nEnd SubModelPartNodes\nEnd SubModelPart\n")
             mdpa += "\nBegin NodalData TEMPERATURE\n"
-            mdpa += "".join("{} 0 {}\n".format(i, 20 + 2 * ((i - 1) // 2))
-                            for i in range(1, 7))
+            mdpa += "".join("{} 0 {}\n".format(
+                i, 20 + 2 * ((i - 1) // 2) + temperature_offset)
+                for i in range(1, 7))
             mdpa += "End NodalData\n"
             for variable, value in (("DENSITY", 2.), ("SPECIFIC_HEAT", 1.),
                                     ("CONDUCTIVITY", 1.)):
@@ -324,23 +325,25 @@ class TestDamInitialStateImportExport(KratosUnittest.TestCase):
             path = Path(tmp) / "state.json"
             self._save(export_model, path, True, True, True, "stored_initial_stress")
 
-            import_model, import_part, import_nodes, _ = helper._build(geometry, law)
-            initial_temperature = [
-                node.GetSolutionStepValue(KM.TEMPERATURE) for node in import_nodes]
-            initial_reference = [
-                node.GetSolutionStepValue(Dam.NODAL_REFERENCE_TEMPERATURE)
-                for node in import_nodes]
-            with self.assertRaisesRegex(RuntimeError, "T/T_ref compatibility"):
-                self._load(import_model, path, True, True, True, "preserve")
-            for index, node in enumerate(import_nodes):
+            import_model, import_part, import_nodes, import_element = helper._build(
+                geometry, law)
+            self._load(import_model, path, True, True, True, "preserve")
+            for node in import_nodes:
+                self.assertEqual(node.GetSolutionStepValue(KM.TEMPERATURE), 25.0)
                 self.assertEqual(
-                    node.GetSolutionStepValue(KM.TEMPERATURE),
-                    initial_temperature[index])
-                self.assertEqual(
-                    node.GetSolutionStepValue(Dam.NODAL_REFERENCE_TEMPERATURE),
-                    initial_reference[index])
-            with self.assertRaisesRegex(RuntimeError, "has no stored InitialState"):
-                Dam.SelectiveInitialStressUtility.GetStoredInitialStresses(import_part)
+                    node.GetSolutionStepValue(Dam.NODAL_REFERENCE_TEMPERATURE), 20.0)
+                for value in node.GetSolutionStepValue(KM.DISPLACEMENT):
+                    self.assertEqual(value, 0.0)
+            imported = Dam.SelectiveInitialStressUtility.GetStoredInitialStresses(
+                import_part)
+            actual = {
+                str(import_element.Id):
+                helper._stresses(import_element, import_part)}
+            self.assertEqual(
+                self._stress_map_error(
+                    actual,
+                    {str(key): value for key, value in imported.items()}),
+                0.0)
 
             import_model, import_part, import_nodes, _ = helper._build(geometry, law)
             self._load(import_model, path, False, True, True, "preserve")
@@ -777,16 +780,35 @@ class TestDamInitialStateImportExport(KratosUnittest.TestCase):
                 root / "preserve_conflict", settings, thermal=True,
                 expected_error="Cannot import NODAL_REFERENCE_TEMPERATURE")
 
-            # preserve with stresses rejects T != T_ref before applying anything.
+            # preserve with stresses now supports T != T_ref. The imported
+            # stored prestress is reproduced at zero displacement while both
+            # temperature fields remain unchanged.
             settings = workflow._parameters(thermal=True, increment="thermal")
             settings["constraints_process_list"] = \
                 settings["constraints_process_list"][1:]
             self._add_load(
                 settings, stage_b_file, True, True, True, "preserve")
-            self._run_full(
-                root / "preserve_reject", settings, thermal=True,
-                expected_error="T/T_ref compatibility")
-            self.assertFalse((root / "preserve_reject" / "probe.json").exists())
+            preserve_stress_probe = self._run_full(
+                root / "preserve_stress", settings, thermal=True)
+            preserved_stress_initial = preserve_stress_probe["initial"]
+            for index, node_id in enumerate(preserved_stress_initial["nodes"]):
+                self.assertEqual(
+                    preserved_stress_initial["temperature"][index],
+                    data_b["temperature"][str(node_id)])
+                self.assertEqual(
+                    preserved_stress_initial["reference_temperature"][index],
+                    data_b["reference_temperature"][str(node_id)])
+            self.assertEqual(
+                max(abs(value) for displacement in
+                    preserved_stress_initial["displacement"]
+                    for value in displacement), 0.0)
+            self.assertEqual(self._stress_map_error(
+                preserved_stress_initial["cauchy_stress"],
+                data_b["initial_stresses"]), 0.0)
+            self.assertGreater(max(
+                abs(value) for values in
+                preserved_stress_initial["thermal_strain"].values()
+                for point in values for value in point), 1.e-8)
 
             # Mechanical -> thermoelastic transfer is rejected, not relaxed.
             settings = workflow._parameters(thermal=True, increment="thermal")
@@ -795,6 +817,220 @@ class TestDamInitialStateImportExport(KratosUnittest.TestCase):
             self._run_full(
                 root / "mismatch", settings, thermal=True,
                 expected_error="constitutive law mismatch")
+
+    def test_total_stress_import_with_independent_temperatures(self):
+        """A->B->C total-stress transfer with T != T_ref and preserve policy."""
+        workflow = workflow_tests.TestDamSelectiveInitialization()
+        with tempfile.TemporaryDirectory(prefix="dam_total_stress_") as tmp:
+            root = Path(tmp)
+            stage_a_file = root / "stage_a.json"
+            stage_b_file = root / "stage_b.json"
+
+            # Stage A: nonuniform T and T_ref, T != T_ref, gravity plus thermal
+            # stress. Export the equilibrated total Cauchy stress.
+            settings_a = workflow._parameters(
+                thermal=True, increment="none", temperature_offset=5.0)
+            settings_a["problem_data"]["end_time"] = 1.0
+            self._add_save(
+                settings_a, stage_a_file, "current_cauchy", True, True, True)
+            stage_a_probe = self._run_full(
+                root / "A", settings_a, thermal=True, probe_stored=False,
+                temperature_offset=5.0)
+
+            data_a = json.loads(stage_a_file.read_text())
+            final_a = stage_a_probe["steps"][-1]
+            self.assertEqual(data_a["fields"], [
+                "initial_stresses", "temperature", "reference_temperature"])
+            self.assertEqual(data_a["stress_source"], "current_cauchy")
+            self.assertAlmostEqual(final_a["time"], 1.0, delta=1.e-12)
+            self.assertLess(final_a["free_residual_max"], 1.e-10)
+            self.assertGreater(max(
+                abs(temperature - reference) for temperature, reference in zip(
+                    final_a["temperature"], final_a["reference_temperature"])),
+                1.0)
+            self.assertEqual(self._stress_map_error(
+                data_a["initial_stresses"], final_a["cauchy_stress"]), 0.0)
+            for index, node_id in enumerate(final_a["nodes"]):
+                self.assertEqual(
+                    data_a["temperature"][str(node_id)],
+                    final_a["temperature"][index])
+                self.assertEqual(
+                    data_a["reference_temperature"][str(node_id)],
+                    final_a["reference_temperature"][index])
+
+            # Stage B: preserve both imported temperature fields, compensate the
+            # initial thermal strain, then apply a +5 K boundary increment.
+            settings_b = workflow._parameters(
+                thermal=True, increment="none", temperature_offset=5.0)
+            settings_b["constraints_process_list"] = \
+                settings_b["constraints_process_list"][1:]
+            base = "20+2*y+5"
+            settings_b["constraints_process_list"][0]["Parameters"]["value"] = (
+                base + "+5 if t>0.5 else " + base)
+            settings_b["problem_data"]["end_time"] = 3.0
+            self._add_load(
+                settings_b, stage_a_file, True, True, True, "preserve")
+            self._add_save(
+                settings_b, stage_b_file, "current_cauchy", True, True, True)
+            stage_b_probe = self._run_full(
+                root / "B", settings_b, thermal=True,
+                temperature_offset=5.0)
+
+            data_b = json.loads(stage_b_file.read_text())
+            initial_b = stage_b_probe["initial"]
+            final_b = stage_b_probe["steps"][-1]
+            self.assertEqual(initial_b["temperature"], final_a["temperature"])
+            self.assertEqual(
+                initial_b["reference_temperature"],
+                final_a["reference_temperature"])
+            self.assertGreater(max(
+                abs(temperature - reference) for temperature, reference in zip(
+                    initial_b["temperature"],
+                    initial_b["reference_temperature"])),
+                1.0)
+            self.assertEqual(
+                max(abs(value) for displacement in initial_b["displacement"]
+                    for value in displacement), 0.0)
+            self.assertLess(initial_b["free_residual_max"], 1.e-10)
+            self.assertEqual(self._stress_map_error(
+                initial_b["cauchy_stress"], final_a["cauchy_stress"]), 0.0)
+            self.assertGreater(max(
+                abs(value) for values in initial_b["thermal_strain"].values()
+                for point in values for value in point), 1.e-8)
+            self.assertEqual(
+                final_b["reference_temperature"],
+                initial_b["reference_temperature"])
+            self.assertGreater(max(
+                abs(a - b) for a, b in zip(
+                    final_b["temperature"], initial_b["temperature"])), 1.0)
+            self.assertGreater(self._stress_map_error(
+                final_b["cauchy_stress"], initial_b["cauchy_stress"]), 0.1)
+            self.assertEqual(data_b["stress_source"], "current_cauchy")
+            for index, node_id in enumerate(final_b["nodes"]):
+                self.assertEqual(
+                    data_b["temperature"][str(node_id)],
+                    final_b["temperature"][index])
+                self.assertEqual(
+                    data_b["reference_temperature"][str(node_id)],
+                    final_b["reference_temperature"][index])
+
+            # Continuous reference: identical source at t=1, then the same +5 K
+            # increment. Compare increments after the transfer instant.
+            settings_r = workflow._parameters(
+                thermal=True, increment="none", temperature_offset=5.0)
+            base = "20+2*y+5"
+            settings_r["constraints_process_list"][1]["Parameters"]["value"] = (
+                base + "+5 if t>1.5 else " + base)
+            settings_r["problem_data"]["end_time"] = 4.0
+            reference_probe = self._run_full(
+                root / "Reference", settings_r, thermal=True,
+                probe_stored=False, temperature_offset=5.0)
+            reference_at_one = next(
+                step for step in reference_probe["steps"]
+                if abs(step["time"] - 1.0) < 1.e-12)
+            self.assertEqual(
+                reference_at_one["temperature"], final_a["temperature"])
+            self.assertEqual(
+                reference_at_one["reference_temperature"],
+                final_a["reference_temperature"])
+            self.assertEqual(self._stress_map_error(
+                reference_at_one["cauchy_stress"], final_a["cauchy_stress"]), 0.0)
+            self.assertEqual(
+                self._max_error(
+                    reference_at_one["displacement"], final_a["displacement"]),
+                0.0)
+
+            def stress_increment(values, base_values):
+                return {
+                    key: [[a - b for a, b in zip(point, base_point)]
+                          for point, base_point in zip(
+                              values[key], base_values[key])]
+                    for key in values}
+
+            for step in stage_b_probe["steps"]:
+                reference_step = next(
+                    reference for reference in reference_probe["steps"]
+                    if abs(reference["time"] - (step["time"] + 1.0)) < 1.e-12)
+                displacement_increment = [
+                    [a - b for a, b in zip(displacement, base_displacement)]
+                    for displacement, base_displacement in zip(
+                        step["displacement"], initial_b["displacement"])]
+                reference_displacement_increment = [
+                    [a - b for a, b in zip(displacement, base_displacement)]
+                    for displacement, base_displacement in zip(
+                        reference_step["displacement"],
+                        reference_at_one["displacement"])]
+                self.assertLess(self._max_error(
+                    displacement_increment,
+                    reference_displacement_increment), 1.e-10)
+                self.assertLess(self._stress_map_error(
+                    stress_increment(
+                        step["cauchy_stress"], initial_b["cauchy_stress"]),
+                    stress_increment(
+                        reference_step["cauchy_stress"],
+                        reference_at_one["cauchy_stress"])), 1.e-10)
+
+            # Stage C: import the Stage B total stress and both temperature
+            # fields, then apply a mechanical increment.
+            settings_c = workflow._parameters(
+                thermal=True, increment="none", temperature_offset=5.0)
+            settings_c["constraints_process_list"] = \
+                settings_c["constraints_process_list"][1:]
+            settings_c["constraints_process_list"][0]["Parameters"]["value"] = (
+                "20+2*y+5+5")
+            settings_c["problem_data"]["end_time"] = 2.0
+            settings_c["loads_process_list"].append({
+                "python_module": "assign_vector_variable_process",
+                "kratos_module": "KratosMultiphysics",
+                "Parameters": {
+                    "model_part_name": "MainModelPart.Parts_Concrete",
+                    "variable_name": "VOLUME_ACCELERATION",
+                    "constrained": False,
+                    "interval": [0.5, "End"],
+                    "value": [2.0, -10.0, 0.0]}})
+            self._add_load(
+                settings_c, stage_b_file, True, True, True, "preserve")
+            stage_c_probe = self._run_full(
+                root / "C", settings_c, thermal=True,
+                temperature_offset=5.0)
+
+            initial_c = stage_c_probe["initial"]
+            final_c = stage_c_probe["steps"][-1]
+            self.assertEqual(initial_c["temperature"], final_b["temperature"])
+            self.assertEqual(
+                initial_c["reference_temperature"],
+                final_b["reference_temperature"])
+            self.assertGreater(max(
+                abs(temperature - reference) for temperature, reference in zip(
+                    initial_c["temperature"],
+                    initial_c["reference_temperature"])),
+                1.0)
+            self.assertEqual(
+                max(abs(value) for displacement in initial_c["displacement"]
+                    for value in displacement), 0.0)
+            self.assertLess(initial_c["free_residual_max"], 1.e-10)
+            self.assertEqual(self._stress_map_error(
+                initial_c["cauchy_stress"], data_b["initial_stresses"]), 0.0)
+            self.assertEqual(self._stress_map_error(
+                initial_c["stored_initial_stress"],
+                data_b["initial_stresses"]), 0.0)
+            self.assertGreater(max(
+                abs(value) for values in initial_c["thermal_strain"].values()
+                for point in values for value in point), 1.e-8)
+            self.assertEqual(
+                final_c["reference_temperature"],
+                initial_c["reference_temperature"])
+            self.assertGreater(
+                max(abs(value) for displacement in final_c["displacement"]
+                    for value in displacement), 1.e-8)
+            self.assertGreater(self._stress_map_error(
+                final_c["cauchy_stress"], initial_c["cauchy_stress"]), 1.e-4)
+            self.assertEqual(self._stress_map_error(
+                final_c["stored_initial_stress"],
+                data_b["initial_stresses"]), 0.0)
+            self.assertAlmostEqual(
+                sum(reaction[1] for reaction in final_c["reaction"]), 40.0,
+                delta=1.e-8)
 
     @staticmethod
     def _flatten_stress(data):

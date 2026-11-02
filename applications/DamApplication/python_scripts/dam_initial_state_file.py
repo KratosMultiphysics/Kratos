@@ -488,32 +488,23 @@ def ValidateDestination(part, data, transfer_stresses, transfer_temperature,
                     "Destination node {} has a nonzero displacement in buffer step {}."
                     .format(node.Id, step))
 
+    thermal_law_present = any(
+        material["law"] in THERMAL_LAWS for material in data["materials"])
+    if transfer_stresses and thermal_law_present:
+        if not part.HasNodalSolutionStepVariable(KM.TEMPERATURE):
+            raise RuntimeError(
+                "TEMPERATURE is not defined on the destination model part; "
+                "thermal-strain compensation for imported stresses is impossible.")
+        if not part.HasNodalSolutionStepVariable(
+                KratosDam.NODAL_REFERENCE_TEMPERATURE):
+            raise RuntimeError(
+                "NODAL_REFERENCE_TEMPERATURE is not defined on the destination "
+                "model part; thermal-strain compensation for imported stresses "
+                "is impossible.")
+
     if transfer_stresses:
         KratosDam.SelectiveInitialStressUtility.ValidateStoredInitialStresses(
-            part, _stress_values(data))
-
-    if transfer_temperature or transfer_reference_temperature:
-        temperature = _field_values(data, "temperature") if transfer_temperature else None
-        reference = (_field_values(data, "reference_temperature")
-                     if transfer_reference_temperature else None)
-        thermal_law_present = any(
-            material["law"] in THERMAL_LAWS for material in data["materials"])
-        if transfer_stresses and thermal_law_present:
-            for node in part.Nodes:
-                proposed_temperature = (
-                    temperature[node.Id] if transfer_temperature
-                    else node.GetSolutionStepValue(KM.TEMPERATURE))
-                if reference_policy == "initial_temperature":
-                    proposed_reference = proposed_temperature
-                else:
-                    proposed_reference = (
-                        reference[node.Id] if transfer_reference_temperature
-                        else node.GetSolutionStepValue(
-                            KratosDam.NODAL_REFERENCE_TEMPERATURE))
-                _compare_value(
-                    proposed_temperature, proposed_reference,
-                    "T/T_ref compatibility at node {} (stress import requires equality)"
-                    .format(node.Id), 1.e-12)
+            part, _stress_values(data), True)
     return data
 
 
@@ -539,6 +530,6 @@ def ApplyTemperatures(part, data, transfer_temperature,
                     KratosDam.NODAL_REFERENCE_TEMPERATURE, step, value)
 
 
-def ApplyStresses(part, data):
+def ApplyStresses(part, data, compensate_initial_thermal_strain=True):
     KratosDam.SelectiveInitialStressUtility.AssignStoredInitialStresses(
-        part, _stress_values(data))
+        part, _stress_values(data), compensate_initial_thermal_strain)

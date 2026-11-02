@@ -79,20 +79,30 @@ public:
      *        without modifying any constitutive state.
      * @param rDestinationModelPart Fresh destination model part.
      * @param rStresses Imported stresses keyed by destination element ID.
+     * @param CompensateInitialThermalStrain When true, an initial strain equal to
+     *        minus the current thermoelastic strain is prepared for each Gauss
+     *        point, so the imported stress is reproduced at zero displacement even
+     *        when T != T_ref.
      */
     static void ValidateStoredInitialStresses(
         ModelPart& rDestinationModelPart,
-        const std::map<IndexType, std::vector<Vector>>& rStresses);
+        const std::map<IndexType, std::vector<Vector>>& rStresses,
+        const bool CompensateInitialThermalStrain = false);
 
     /**
      * @brief Assigns imported per-integration-point stresses to the destination
      *        constitutive InitialState objects.
      * @param rDestinationModelPart Fresh destination model part.
      * @param rStresses Imported stresses keyed by destination element ID.
+     * @param CompensateInitialThermalStrain When true, the constitutive initial
+     *        strain is set to minus the current thermoelastic strain. This makes
+     *        the imported stress the initial total stress at zero displacement
+     *        while preserving the imported temperature and reference fields.
      */
     static void AssignStoredInitialStresses(
         ModelPart& rDestinationModelPart,
-        const std::map<IndexType, std::vector<Vector>>& rStresses);
+        const std::map<IndexType, std::vector<Vector>>& rStresses,
+        const bool CompensateInitialThermalStrain = false);
 };
 
 } // namespace Kratos

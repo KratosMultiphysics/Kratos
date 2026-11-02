@@ -84,3 +84,8 @@ class LoadDamInitialStateProcess(KM.Process):
             KM.Logger.PrintInfo(
                 "LoadDamInitialStateProcess",
                 "Loaded Dam initial-state file '{}'.".format(self.input_file_name))
+            if self.transfer_initial_stresses:
+                KM.Logger.PrintInfo(
+                    "LoadDamInitialStateProcess",
+                    "Imported stresses are interpreted as '{}'.".format(
+                        data["stress_source"]))

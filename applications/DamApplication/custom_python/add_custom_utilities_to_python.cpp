@@ -131,10 +131,12 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         py::arg("model_part"))
     .def_static("ValidateStoredInitialStresses",
         &SelectiveInitialStressUtility::ValidateStoredInitialStresses,
-        py::arg("destination_model_part"), py::arg("stresses"))
+        py::arg("destination_model_part"), py::arg("stresses"),
+        py::arg("compensate_initial_thermal_strain") = false)
     .def_static("AssignStoredInitialStresses",
         &SelectiveInitialStressUtility::AssignStoredInitialStresses,
-        py::arg("destination_model_part"), py::arg("stresses"))
+        py::arg("destination_model_part"), py::arg("stresses"),
+        py::arg("compensate_initial_thermal_strain") = false)
     .def_static("GetIntegrationMethodName",
         &SelectiveInitialStressUtility::GetIntegrationMethodName,
         py::arg("element"))

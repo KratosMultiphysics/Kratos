@@ -137,6 +137,7 @@ void CheckThermalDatum(const Node& rNode)
 struct PointData
 {
     std::vector<Vector> Stresses;
+    std::vector<Vector> InitialStrains;
     std::vector<ConstitutiveLaw::Pointer> Laws;
 };
 
@@ -145,11 +146,46 @@ void AssignPointData(const std::vector<PointData>& rPointData)
     for (const auto& r_data : rPointData) {
         for (std::size_t i = 0; i < r_data.Laws.size(); ++i) {
             auto& r_law = *r_data.Laws[i];
+            Vector initial_strain(r_data.Stresses[i].size(), 0.0);
+            if (r_data.InitialStrains.size() == r_data.Stresses.size()) {
+                initial_strain = r_data.InitialStrains[i];
+            }
             r_law.SetInitialState(Kratos::make_intrusive<InitialState>(
-                ZeroVector(r_data.Stresses[i].size()), r_data.Stresses[i],
+                initial_strain, r_data.Stresses[i],
                 IdentityMatrix(r_law.WorkingSpaceDimension())));
         }
     }
+}
+
+Vector ComputeThermalStrain(
+    const Element& rElement,
+    ConstitutiveLaw& rLaw,
+    const ProcessInfo& rProcessInfo,
+    const std::size_t IntegrationPoint)
+{
+    const auto& r_geometry = rElement.GetGeometry();
+    ConstitutiveLaw::Parameters values(
+        r_geometry, rElement.GetProperties(), rProcessInfo);
+
+    const Matrix& r_shape_functions =
+        r_geometry.ShapeFunctionsValues(rElement.GetIntegrationMethod());
+    Vector shape_functions(r_geometry.size(), 0.0);
+    for (std::size_t i = 0; i < r_geometry.size(); ++i) {
+        shape_functions[i] = r_shape_functions(IntegrationPoint, i);
+    }
+    values.SetShapeFunctionsValues(shape_functions);
+
+    Vector strain(rLaw.GetStrainSize(), 0.0);
+    values.SetStrainVector(strain);
+
+    Vector thermal_strain;
+    rLaw.CalculateValue(values, THERMAL_STRAIN_VECTOR, thermal_strain);
+    KRATOS_ERROR_IF(thermal_strain.size() != rLaw.GetStrainSize())
+        << "SelectiveInitialStressUtility: thermal-strain size "
+        << thermal_strain.size() << " does not match strain size "
+        << rLaw.GetStrainSize() << " at element " << rElement.Id()
+        << ", integration point " << IntegrationPoint << "." << std::endl;
+    return thermal_strain;
 }
 } // namespace
 
@@ -348,7 +384,8 @@ void SelectiveInitialStressUtility::AssignInitialStresses(
             }
         }
 
-        point_data.push_back({std::move(stresses), std::move(destination_laws)});
+        point_data.push_back({std::move(stresses), std::vector<Vector>(),
+                              std::move(destination_laws)});
     }
 
     // All checks passed. Assign the selected stresses as initial states.
@@ -462,7 +499,7 @@ namespace
 std::vector<PointData> BuildStoredPointData(
     ModelPart& rDestinationModelPart,
     const std::map<IndexType, std::vector<Vector>>& rStresses,
-    const bool CheckThermalDatumForImport)
+    const bool CompensateInitialThermalStrain)
 {
     KRATOS_ERROR_IF(rStresses.size() != rDestinationModelPart.NumberOfElements())
         << "SelectiveInitialStressUtility: imported stress map contains "
@@ -526,12 +563,24 @@ std::vector<PointData> BuildStoredPointData(
         KRATOS_ERROR_IF(has_thermal_law && has_nonthermal_law)
             << "SelectiveInitialStressUtility: mixed thermal and non-thermal constitutive laws "
             << "are not supported for element " << element_id << "." << std::endl;
-        if (has_thermal_law && CheckThermalDatumForImport) {
+
+        std::vector<Vector> initial_strains;
+        if (has_thermal_law && CompensateInitialThermalStrain) {
+            initial_strains.reserve(laws.size());
+            for (std::size_t i = 0; i < laws.size(); ++i) {
+                Vector initial_strain = ComputeThermalStrain(
+                    r_element, *laws[i], rDestinationModelPart.GetProcessInfo(), i);
+                initial_strain *= -1.0;
+                initial_strains.push_back(std::move(initial_strain));
+            }
+        }
+        if (has_thermal_law && !CompensateInitialThermalStrain) {
             for (const auto& r_node : r_geometry) {
                 CheckThermalDatum(r_node);
             }
         }
-        point_data.push_back({r_stresses, std::move(laws)});
+        point_data.push_back(
+            {r_stresses, std::move(initial_strains), std::move(laws)});
     }
     return point_data;
 }
@@ -539,19 +588,23 @@ std::vector<PointData> BuildStoredPointData(
 
 void SelectiveInitialStressUtility::ValidateStoredInitialStresses(
     ModelPart& rDestinationModelPart,
-    const std::map<IndexType, std::vector<Vector>>& rStresses)
+    const std::map<IndexType, std::vector<Vector>>& rStresses,
+    const bool CompensateInitialThermalStrain)
 {
     KRATOS_TRY
-    BuildStoredPointData(rDestinationModelPart, rStresses, false);
+    BuildStoredPointData(
+        rDestinationModelPart, rStresses, CompensateInitialThermalStrain);
     KRATOS_CATCH("SelectiveInitialStressUtility::ValidateStoredInitialStresses")
 }
 
 void SelectiveInitialStressUtility::AssignStoredInitialStresses(
     ModelPart& rDestinationModelPart,
-    const std::map<IndexType, std::vector<Vector>>& rStresses)
+    const std::map<IndexType, std::vector<Vector>>& rStresses,
+    const bool CompensateInitialThermalStrain)
 {
     KRATOS_TRY
-    AssignPointData(BuildStoredPointData(rDestinationModelPart, rStresses, true));
+    AssignPointData(BuildStoredPointData(
+        rDestinationModelPart, rStresses, CompensateInitialThermalStrain));
     KRATOS_CATCH("SelectiveInitialStressUtility::AssignStoredInitialStresses")
 }
 

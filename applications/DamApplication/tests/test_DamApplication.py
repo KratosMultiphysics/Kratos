@@ -127,6 +127,7 @@ def AssembleTestSuites():
     smallSuite.addTest(TestDamInitialStateImportExport("test_negative_file_validation"))
     smallSuite.addTest(TestDamInitialStateImportExport("test_complete_gravity_thermal_workflow"))
     smallSuite.addTest(TestDamInitialStateImportExport("test_complete_workflow_through_dam_analysis_run"))
+    smallSuite.addTest(TestDamInitialStateImportExport("test_total_stress_import_with_independent_temperatures"))
 
     # Create a test suit with the selected tests
     # nightSuite will contain the following tests:
@@ -190,6 +191,7 @@ def AssembleTestSuites():
     allSuite.addTest(TestDamInitialStateImportExport("test_negative_file_validation"))
     allSuite.addTest(TestDamInitialStateImportExport("test_complete_gravity_thermal_workflow"))
     allSuite.addTest(TestDamInitialStateImportExport("test_complete_workflow_through_dam_analysis_run"))
+    allSuite.addTest(TestDamInitialStateImportExport("test_total_stress_import_with_independent_temperatures"))
 
     return suites
 

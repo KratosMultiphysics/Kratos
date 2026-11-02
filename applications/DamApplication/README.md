@@ -84,11 +84,13 @@ must match between source and destination. Supported constitutive laws are
 laws are rejected. Mechanical nodal-Young's-modulus and flexible linear-elastic
 variants are not enabled; their material compatibility is nodal/accessor-based
 and requires separate validation. Dam's thermal nodal aliases map to the
-supported thermal laws. For the thermoelastic laws, `T == T_ref` is required at
-the moment of import; prescribe
+supported thermal laws. For this checkpoint-based process, the thermoelastic
+laws require `T == T_ref` at the moment of import; prescribe
 the reference field with the existing
 `impose_nodal_reference_temperature_process`. The current temperature always
-belongs to the new analysis and may be computed by its thermal solver.
+belongs to the new analysis and may be computed by its thermal solver. The
+lightweight file-based `load_dam_initial_state_process` below supports
+`T != T_ref` through initial-strain compensation.
 
 The process assigns stresses only. It does not derive or apply the loads that
 equilibrated the source stresses, so the new loads and boundary conditions must
@@ -179,16 +181,61 @@ transfers the same field is rejected by `DamAnalysis`.
 
 ### Reference-temperature alternatives ###
 
-- `preserve` (default): import the stored reference field when
-  `transfer_reference_temperature` is true. If stresses and a thermoelastic law
-  are imported, the resulting `T` and `T_ref` must be equal at every node;
-  otherwise the import is rejected. No thermal compensation is applied.
-- `initial_temperature`: use the imported initial temperature as the new
-  reference temperature. This requires `transfer_initial_temperature=true` and
-  forbids `transfer_reference_temperature=true`. It explicitly resets the
-  thermal datum at the imported instant; the original reference field is not
-  preserved. With stresses, this makes `T == T_ref` and avoids an immediate
-  thermal strain.
+- `preserve` (default): import `TEMPERATURE` and
+  `NODAL_REFERENCE_TEMPERATURE` exactly as stored, including when they differ.
+  When stresses are imported together with a supported thermoelastic law, the
+  import additionally stores an initial strain
+  `epsilon_init = -epsilon_th(T, T_ref)` in the constitutive `InitialState`.
+  This cancels the initial thermal contribution, so the imported stress is
+  reproduced at zero displacement without spurious thermal stress or double
+  counting. Later thermal increments are measured relative to the imported
+  instant, `epsilon_th(t) - epsilon_th(0)`. Both temperature fields remain
+  unchanged.
+- `initial_temperature`: optional explicit datum reset. It sets
+  `NODAL_REFERENCE_TEMPERATURE = TEMPERATURE` at import, so the source reference
+  field is intentionally discarded. It requires
+  `transfer_initial_temperature=true` and forbids
+  `transfer_reference_temperature=true`. Use it only when changing the stored
+  reference field is intended; it is not required for construction analyses.
+
+### Independent temperatures and initial-strain compensation ###
+
+For a supported thermoelastic law the constitutive response is
+
+```
+sigma = C : (epsilon_total - epsilon_th - epsilon_init) + sigma_init
+epsilon_th = alpha_eff * (T - T_ref)
+```
+
+The import sets `epsilon_init = -epsilon_th(T0, T_ref0)` and
+`sigma_init = sigma_imported`. At zero displacement `epsilon_total = 0`, hence
+`sigma = sigma_imported`: the initial thermal term is cancelled exactly and the
+imported stress becomes the initial total stress. The compensation vector is
+zero for non-thermal laws.
+
+`epsilon_th` is evaluated with the same element geometry, integration method,
+shape functions, material properties and Dam thermal law used by the solver, so
+the plane-stress, plane-strain and 3D factors are respected. It is computed at
+every Gauss point before any constitutive state is changed. The calculation is
+not a stress correction and does not alter the imported stress or either
+temperature field.
+
+The source mode recorded in the file determines the physical interpretation:
+
+- `stress_source = "stored_initial_stress"`: the imported values are the
+  previously stored gravity prestress. They become the initial total stress at
+  the imported instant. This is not an exact transfer of accumulated
+  construction thermal stresses; only the stored prestress is carried.
+- `stress_source = "current_cauchy"`: the imported values are the final total
+  Cauchy stresses of the source thermomechanical analysis, including its
+  accumulated thermal stress. With the compensation above they are reproduced
+  exactly at zero displacement. This is the appropriate choice for continuing a
+  staged construction state.
+
+The load process prints the interpretation when `echo_level > 0`. In both modes
+the destination must retain the gravity, tractions and supports that equilibrated
+the imported stress field; otherwise the free degrees of freedom are not in
+equilibrium and an initial displacement develops.
 
 When the reference temperature is imported (either policy), the existing
 reference-temperature process must be removed or disabled. The standard
@@ -200,16 +247,10 @@ combination is also rejected. Temperature itself is never re-applied by the
 import: thermal boundary processes and the thermal solver remain responsible for
 its evolution.
 
-The `initial_temperature` policy is a deliberate datum reset: the Stage B final
-temperature becomes the zero-thermal-strain reference for Stage C. At
-initialization `T == T_ref`, so no artificial thermal stress is generated. All
-later thermal strain is measured from that imported instant, not from the
-original Stage A reference. The source reference field is intentionally
-discarded and must not be used to reconstruct a past thermal history.
-
-Importing a temperature field that differs from the preserved reference is
-allowed only when stresses are not transferred. In every case the user must
-ensure that the destination loads and supports equilibrate the imported stresses.
+The `initial_temperature` policy remains an explicit alternative datum reset: it
+makes the imported temperature the new zero-thermal-strain reference and
+discards the source reference field. It is not a workaround for independent
+temperatures; the default `preserve` policy handles `T != T_ref` directly.
 
 ### Stage A: gravity stress export ###
 
@@ -247,6 +288,12 @@ analysis:
     }
 ]
 ```
+
+For a total-stress transfer, Stage A may instead be any equilibrated
+thermomechanical state. Export it with `stress_source = "current_cauchy"`,
+`save_initial_temperature = true` and `save_reference_temperature = true`. The
+import reproduces that total Cauchy stress at zero displacement while preserving
+both temperature fields.
 
 ### Stage compatibility ###
 
@@ -323,11 +370,17 @@ originally imposed prestress is the constitutive `InitialState`, which is why
 Stage B must export with `stress_source = "stored_initial_stress"` rather than
 reading the current total stress again.
 
+For a total-stress transfer, replace `stress_source = "stored_initial_stress"`
+with `"current_cauchy"` in the Stage B save process. The saved field then
+contains the evolved total Cauchy stress, including accumulated thermal stress.
+Stage C reproduces that total stress at zero displacement through the
+initial-strain compensation. This is a different interpretation from the
+gravity-prestress workflow above, where only the stored prestress is carried.
+
 ### Stage C: new independent analysis ###
 
-Import all three fields. When the Stage B final temperature differs from its
-reference field and stresses are required, use the explicit
-`initial_temperature` policy:
+Import all three fields with the default `preserve` policy. Both temperature
+fields are kept exactly as stored, including `T != T_ref`:
 
 ```json
 "loads_process_list": [
@@ -349,23 +402,29 @@ reference field and stresses are required, use the explicit
             "input_file_name": "stage_b_final.json",
             "transfer_initial_stresses": true,
             "transfer_initial_temperature": true,
-            "transfer_reference_temperature": false,
-            "reference_temperature_policy": "initial_temperature"
+            "transfer_reference_temperature": true,
+            "reference_temperature_policy": "preserve"
         }
     }
 ]
 ```
 
-The destination starts with zero displacement, the imported gravity prestress
-and the Stage B temperature as both current and reference temperature. Subsequent
-mechanical or thermal loading belongs to this new analysis and is not inherited
-from Stage B.
+The destination starts with zero displacement, the imported stress as the
+initial total stress, and both imported temperature fields unchanged. An initial
+strain cancels the initial thermal contribution, so no artificial thermal stress
+or double counting appears. Subsequent mechanical or thermal loading belongs to
+this new analysis; thermal increments are measured from the imported instant.
 
-`initial_temperature` is used here because the Stage B final temperature differs
-from its reference field. Importing the original reference together with the
-stresses would be rejected by the `T == T_ref` rule. Remove or disable the
-existing reference-temperature process for this analysis: `DamAnalysis` rejects
-importing the reference field while a process that assigns it is active.
+Remove or disable the existing reference-temperature process for this analysis:
+`DamAnalysis` rejects importing the reference field while a process that assigns
+it is active.
+
+If changing the stored reference field is intended, the explicit
+`initial_temperature` policy remains available: set
+`"transfer_reference_temperature": false` and
+`"reference_temperature_policy": "initial_temperature"`. It sets
+`T_ref = T` and discards the source reference field, so it is a deliberate datum
+reset rather than the default construction workflow.
 
 The file format is versioned and validated before any destination field is
 changed. Different meshes, connectivity, reference coordinates, integration
