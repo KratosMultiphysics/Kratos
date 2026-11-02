@@ -19,12 +19,31 @@
 #include <array>
 #include <cmath>
 #include <cstdint>
+#include <initializer_list>
+#include <optional>
+#include <set>
 
 // External includes
 #include "meshioplusplus/mesh.hpp"
+#include "meshioplusplus/registry.hpp"
 #include "meshioplusplus/skin.hpp"
 #include "meshioplusplus/detail/provenance.hpp"
 #include "meshioplusplus/operations/agglomerate.hpp"
+#include "meshioplusplus/operations/boundary_layer.hpp"
+#include "meshioplusplus/operations/check_conformity.hpp"
+#include "meshioplusplus/operations/error_size.hpp"
+#include "meshioplusplus/operations/extrude.hpp"
+#include "meshioplusplus/operations/find_intersections.hpp"
+#include "meshioplusplus/operations/mirror.hpp"
+#include "meshioplusplus/operations/mmg.hpp"
+#include "meshioplusplus/operations/octree.hpp"
+#include "meshioplusplus/operations/octree_mesh.hpp"
+#include "meshioplusplus/operations/primitives.hpp"
+#include "meshioplusplus/operations/refine_patches.hpp"
+#include "meshioplusplus/operations/select.hpp"
+#include "meshioplusplus/operations/tet_poly.hpp"
+#include "meshioplusplus/operations/tetrahedralize.hpp"
+#include "meshioplusplus/operations/thickness.hpp"
 #include "meshioplusplus/operations/blend.hpp"
 #include "meshioplusplus/formats/cad_json.hpp"
 #include "meshioplusplus/operations/feature_edges.hpp"
@@ -55,6 +74,7 @@
 #include "meshioplusplus/operations/interpolate.hpp"
 #include "meshioplusplus/operations/isosurface.hpp"
 #include "meshioplusplus/operations/merge.hpp"
+#include "meshioplusplus/operations/mesh_cad.hpp"
 #include "meshioplusplus/operations/neighbors.hpp"
 #include "meshioplusplus/operations/normals.hpp"
 #include "meshioplusplus/operations/optimize_volume.hpp"
@@ -83,6 +103,7 @@
 // Project includes
 #include "custom_utilities/meshioplusplus_mesh_operations.h"
 #include "custom_utilities/meshioplusplus_conversion_utilities.h"
+#include "includes/global_variables.h"
 #include "containers/model.h"
 
 namespace mio = meshioplusplus;
@@ -103,7 +124,11 @@ const std::vector<std::string>& OperationNames()
             "extract_surface", "feature_edges", "fit_cad", "fit_primitives", "gradient", "hessian", "isosurface", "optimize_volume", "partition",
             "point_data_to_cell_data", "quality", "check_quality", "refine", "remesh", "remesh_volume", "reorder",
             "repair", "segment", "slice", "smooth", "sobolev_deform", "split", "stats", "subdivide",
-            "tensor_invariants", "tessellate", "transform", "voxelize"
+            "tensor_invariants", "tessellate", "transform", "voxelize",
+            "adapt", "boundary_layer", "check_conformity", "discretize_levelset", "error_size",
+            "extrude", "find_intersections", "mesh_domain", "metric_from_hessian", "mirror", "move",
+            "octree", "octree_mesh", "refine_patches", "revolve", "select", "tet_to_poly",
+            "tetrahedralize", "thickness"
         };
         std::sort(sorted_names.begin(), sorted_names.end());
         return sorted_names;
@@ -149,6 +174,70 @@ std::uint32_t ReadFitTypes(Parameters Settings, const std::string& rKey)
 /***********************************************************************************/
 
 /**
+ * @brief The enum value a setting names, among the (name, value) pairs it accepts.
+ * @details For the meshio++ enums that have no public `*_from_name` parser of their own; the
+ * names are the ones meshio++'s command line and pipeline accept.
+ */
+template <class TEnum>
+TEnum ReadEnum(
+    const Parameters& rSettings,
+    const std::string& rKey,
+    std::initializer_list<std::pair<const char*, TEnum>> Values
+    )
+{
+    const std::string name = rSettings[rKey].GetString();
+    std::string accepted;
+    for (const auto& r_value : Values) {
+        if (name == r_value.first) {
+            return r_value.second;
+        }
+        accepted += (accepted.empty() ? "" : ", ") + std::string(r_value.first);
+    }
+    KRATOS_ERROR << "Unknown \"" << rKey << "\" value \"" << name << "\"; expected one of "
+                 << accepted << std::endl;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+/// A meshio++ point as a Kratos Vector, for a report.
+Vector ToVector(const std::array<double, 3>& rPoint)
+{
+    Vector result(3);
+    for (std::size_t i = 0; i < 3; ++i) {
+        result[i] = rPoint[i];
+    }
+    return result;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+/// Adds a double to a report only when it is finite: meshio++ reports "not measured" as NaN,
+/// which a JSON document cannot hold.
+void AddFiniteDouble(Parameters& rReport, const std::string& rKey, const double Value)
+{
+    if (std::isfinite(Value)) {
+        rReport.AddDouble(rKey, Value);
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+/// The plane of a 2-D skin for "voxelize" and "octree" ("plane": auto picks the axis of zero
+/// extent, z first); ignored by their 3-D variants.
+mio::detail::PlanarPlane ReadPlanarPlane(const Parameters& rSettings)
+{
+    return ReadEnum<mio::detail::PlanarPlane>(rSettings, "plane",
+        {{"auto", mio::detail::PlanarPlane::Auto}, {"xy", mio::detail::PlanarPlane::XY},
+         {"xz", mio::detail::PlanarPlane::XZ}, {"yz", mio::detail::PlanarPlane::YZ}});
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+/**
  * @brief The segment options of a "segment" or "fit_primitives" operation.
  * @details "feature_angle" and "region" are the settings feature_edges and refine already use.
  */
@@ -160,6 +249,38 @@ mio::SegmentOptions ReadSegmentOptions(Parameters Settings)
     options.mCurvatureTolerance = Settings["curvature_tolerance"].GetDouble();
     options.mMinPatchCells = Settings["min_patch_cells"].GetInt();
     options.mRegion = Settings["region"].GetString();
+    options.mPrefix = Settings["patch_prefix"].GetString();
+    options.mMethod = ReadEnum<mio::SegmentMethod>(Settings, "segment_method",
+        {{"angle", mio::SegmentMethod::Angle}, {"primitive", mio::SegmentMethod::Primitive}});
+    options.mTolerance = Settings["segment_tolerance"].GetDouble();
+    return options;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+/**
+ * @brief The options of "refine_patches", also embedded in "fit_cad"'s
+ * "cad_refine_segmentation".
+ * @details "feature_angle", "fit_types", "fit_relative" and "patch_prefix" are the settings
+ * segment and fit_primitives already use; a negative "refine_patches_seed" keeps meshio++'s own.
+ */
+mio::RefinePatchesOptions ReadRefinePatchesOptions(Parameters Settings)
+{
+    mio::RefinePatchesOptions options;
+    options.mTolerance = Settings["refine_patches_tolerance"].GetDouble();
+    options.mNormalWeight = Settings["refine_patches_normal_weight"].GetDouble();
+    options.mEpsilon = Settings["refine_patches_epsilon"].GetDouble();
+    options.mFeatureAngleDeg = Settings["feature_angle"].GetDouble();
+    options.mMaxIterations = Settings["refine_patches_max_iterations"].GetInt();
+    options.mMinPatchCells = Settings["refine_patches_min_patch_cells"].GetInt();
+    if (Settings["refine_patches_seed"].GetInt() >= 0) {
+        options.mRansacSeed = static_cast<std::uint64_t>(Settings["refine_patches_seed"].GetInt());
+    }
+    options.mTypes = ReadFitTypes(Settings, "fit_types");
+    options.mRelative = Settings["fit_relative"].GetBool();
+    options.mAllowSplit = Settings["refine_patches_allow_split"].GetBool();
+    options.mAllowMerge = Settings["refine_patches_allow_merge"].GetBool();
     options.mPrefix = Settings["patch_prefix"].GetString();
     return options;
 }
@@ -224,6 +345,27 @@ mio::SurfaceDistanceOptions BuildSurfaceDistanceOptions(const Parameters& rSetti
 /***********************************************************************************/
 /***********************************************************************************/
 
+/// The "bounds" setting (xlo, ylo, zlo, xhi, yhi, zhi): an empty array leaves it unset, the
+/// input's bounding box then being used.
+std::optional<std::array<double, 6>> ReadBounds(const Parameters& rSettings)
+{
+    const Vector bounds = rSettings["bounds"].GetVector();
+    if (bounds.size() == 0) {
+        return std::nullopt;
+    }
+    KRATOS_ERROR_IF(bounds.size() != 6)
+        << "\"bounds\" needs six entries (xlo, ylo, zlo, xhi, yhi, zhi), got "
+        << bounds.size() << std::endl;
+    std::array<double, 6> value{};
+    for (std::size_t i = 0; i < 6; ++i) {
+        value[i] = bounds[i];
+    }
+    return value;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 /// Reads the lattice settings "voxelize" and "compute_sdf" share. Both spell "unset" as an
 /// empty array / a non-positive scalar, since meshio++ takes std::optional there and setting
 /// neither (or both) of resolution/cell size is its own named error.
@@ -249,17 +391,7 @@ void ReadLatticeSettings(const Parameters& rSettings, TOptions& rOptions)
     if (cell_size > 0.0) {
         rOptions.mCellSize = cell_size;
     }
-    const Vector bounds = rSettings["bounds"].GetVector();
-    if (bounds.size() > 0) {
-        KRATOS_ERROR_IF(bounds.size() != 6)
-            << "\"bounds\" needs six entries (xlo, ylo, zlo, xhi, yhi, zhi), got "
-            << bounds.size() << std::endl;
-        std::array<double, 6> value{};
-        for (std::size_t i = 0; i < 6; ++i) {
-            value[i] = bounds[i];
-        }
-        rOptions.mBounds = value;
-    }
+    rOptions.mBounds = ReadBounds(rSettings);
     rOptions.mPadding = rSettings["padding"].GetDouble();
     rOptions.mPaddingRelative = rSettings["padding_relative"].GetDouble();
     rOptions.mMaxCells = rSettings["max_cells"].GetInt();
@@ -392,6 +524,165 @@ std::vector<std::uint8_t> ReadFrozenFlags(Parameters Settings)
         frozen.push_back(Settings[i].GetBool() ? std::uint8_t(1) : std::uint8_t(0));
     }
     return frozen;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+/// The criteria of "select"; each "select_*" switch turns one on, and the ones on intersect.
+mio::SelectOptions ReadSelectOptions(Parameters Settings)
+{
+    mio::SelectOptions options;
+    options.mName = Settings["select_name"].GetString();
+    KRATOS_ERROR_IF(options.mName.empty())
+        << "The \"select\" operation needs a \"select_name\" (the sub model part it writes)" << std::endl;
+    options.mKind = mio::region_kind_from_name(Settings["select_kind"].GetString());
+    options.mTag = Settings["select_tag"].GetInt();
+    options.mMode = mio::select_mode_from_name(Settings["select_mode"].GetString());
+    options.mBoundaryOnly = Settings["select_boundary_only"].GetBool();
+    options.mBox = Settings["select_box"].GetBool();
+    options.mBoxLo = ReadVector3(Settings, "box_min");
+    options.mBoxHi = ReadVector3(Settings, "box_max");
+    options.mPlane = Settings["select_plane"].GetBool();
+    options.mPlanePoint = ReadVector3(Settings, "origin");
+    options.mPlaneNormal = ReadVector3(Settings, "normal");
+    options.mSphere = Settings["select_sphere"].GetBool();
+    options.mSphereCenter = ReadVector3(Settings, "select_sphere_center");
+    options.mSphereRadius = Settings["select_sphere_radius"].GetDouble();
+    options.mWhereArray = Settings["select_where_array"].GetString();
+    options.mWhereOp = mio::refine_compare_from_name(Settings["select_where_op"].GetString());
+    options.mWhereValue = Settings["select_where_value"].GetDouble();
+    options.mQualityMetric = Settings["select_quality_metric"].GetString();
+    options.mQualityOp = mio::refine_compare_from_name(Settings["select_quality_op"].GetString());
+    options.mQualityValue = Settings["select_quality_value"].GetDouble();
+    options.mComponent = Settings["select_component"].GetInt();
+    options.mSeed = Settings["select_seed"].GetBool();
+    options.mSeedPoint = ReadVector3(Settings, "select_seed_point");
+    options.mFeatureAngleDeg = Settings["feature_angle"].GetDouble();
+    options.mNormalToleranceDeg = Settings["normal_tolerance"].GetDouble();
+    return options;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+/// The options of "find_intersections"; "region" restricts the first surface (a sub model part).
+mio::FindIntersectionsOptions ReadFindIntersectionsOptions(Parameters Settings)
+{
+    mio::FindIntersectionsOptions options;
+    options.mRegion = Settings["region"].GetString();
+    options.mRegionB = Settings["intersections_region_b"].GetString();
+    options.mAttachFlags = false;
+    options.mSegments = true;
+    options.mMaxPairs = Settings["intersections_max_pairs"].GetInt();
+    return options;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+/// The report of "find_intersections": the counts, and the intersecting cell pairs as
+/// container positions of the cells written to meshio++ (elements, then conditions).
+Parameters FindIntersectionsReport(const mio::FindIntersectionsResult& rResult)
+{
+    Parameters report(R"({})");
+    report.AddBool("clean", rResult.mClean);
+    report.AddInt("number_of_pairs", static_cast<int>(rResult.mNumPairs));
+    report.AddInt("number_of_triangle_pairs", static_cast<int>(rResult.mNumTrianglePairs));
+    report.AddInt("number_of_coplanar", static_cast<int>(rResult.mNumCoplanar));
+    report.AddInt("number_of_segments", static_cast<int>(rResult.mNumSegments));
+    report.AddInt("number_of_cells_first", static_cast<int>(rResult.mNumCellsA));
+    report.AddInt("number_of_cells_second", static_cast<int>(rResult.mNumCellsB));
+    report.AddBool("truncated", rResult.mTruncated);
+    Parameters pairs(R"([])");
+    for (const auto& r_pair : rResult.mPairs) {
+        Parameters entry(R"([])");
+        entry.Append(static_cast<int>(r_pair[0]));
+        entry.Append(static_cast<int>(r_pair[1]));
+        pairs.Append(entry);
+    }
+    report.AddValue("pairs", pairs);
+    report.AddStringArray("warnings", rResult.mWarnings);
+    return report;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+/// The options of "thickness"; "region" restricts the measured surface (a sub model part).
+mio::ThicknessOptions ReadThicknessOptions(Parameters Settings)
+{
+    mio::ThicknessOptions options;
+    options.mDirection = ReadEnum<mio::ThicknessDirection>(Settings, "thickness_direction",
+        {{"auto", mio::ThicknessDirection::Auto}, {"inward", mio::ThicknessDirection::Inward},
+         {"outward", mio::ThicknessDirection::Outward}});
+    options.mMaxDistance = Settings["thickness_max_distance"].GetDouble();
+    options.mThreshold = Settings["thickness_threshold"].GetDouble();
+    options.mRegion = Settings["region"].GetString();
+    options.mRegionTarget = Settings["thickness_region_target"].GetString();
+    options.mAttach = true;
+    return options;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+/// The report of "thickness": the least, largest and mean distance over the rays that hit.
+Parameters ThicknessReport(const mio::ThicknessResult& rResult)
+{
+    Parameters report(R"({})");
+    report.AddString("direction", rResult.mDirection == mio::ThicknessDirection::Outward ? "outward" : "inward");
+    report.AddInt("number_of_cells", static_cast<int>(rResult.mNumCells));
+    report.AddInt("number_of_hits", static_cast<int>(rResult.mNumHit));
+    report.AddInt("number_of_misses", static_cast<int>(rResult.mNumMissed));
+    report.AddInt("number_below_threshold", static_cast<int>(rResult.mNumBelow));
+    report.AddDouble("min", rResult.mMin);
+    report.AddDouble("max", rResult.mMax);
+    report.AddDouble("mean", rResult.mMean);
+    report.AddInt("min_cell", static_cast<int>(rResult.mMinCell));
+    report.AddVector("min_point", ToVector(rResult.mMinPoint));
+    report.AddDouble("max_distance", rResult.mMaxDistance);
+    report.AddStringArray("warnings", rResult.mWarnings);
+    return report;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+/// The MMG parameters every MMG operation shares ("mmg_*"; -1 keeps MMG's own default).
+/// "frozen" lists the points MMG must keep, "mmg_required" the regions, and "mmg_local" holds
+/// {"region", "hmin", "hmax", "hausd"} per-region overrides.
+mio::MmgParameters ReadMmgParameters(Parameters Settings)
+{
+    mio::MmgParameters parameters;
+    parameters.mHmin = Settings["mmg_hmin"].GetDouble();
+    parameters.mHmax = Settings["mmg_hmax"].GetDouble();
+    parameters.mHausd = Settings["mmg_hausd"].GetDouble();
+    parameters.mHgrad = Settings["mmg_hgrad"].GetDouble();
+    parameters.mHgradreq = Settings["mmg_hgradreq"].GetDouble();
+    parameters.mAngleDetection = Settings["mmg_angle_detection"].GetDouble();
+    parameters.mOptim = Settings["mmg_optim"].GetBool();
+    parameters.mNoInsert = Settings["mmg_noinsert"].GetBool();
+    parameters.mNoSwap = Settings["mmg_noswap"].GetBool();
+    parameters.mNoMove = Settings["mmg_nomove"].GetBool();
+    parameters.mNoSurf = Settings["mmg_nosurf"].GetBool();
+    parameters.mNreg = Settings["mmg_nreg"].GetBool();
+    parameters.mOpnbdy = Settings["mmg_opnbdy"].GetBool();
+    parameters.mMem = Settings["mmg_mem"].GetInt();
+    parameters.mVerbose = Settings["mmg_verbose"].GetInt();
+    parameters.mFrozen = ReadFrozenFlags(Settings["frozen"]);
+    parameters.mRequired = Settings["mmg_required"].GetStringArray();
+    for (std::size_t i = 0; i < Settings["mmg_local"].size(); ++i) {
+        Parameters local = Settings["mmg_local"][i];
+        local.AddMissingParameters(Parameters(R"({"region": "", "hmin": -1.0, "hmax": -1.0, "hausd": -1.0})"));
+        mio::MmgLocalParameter entry;
+        entry.mRegion = local["region"].GetString();
+        entry.mHmin = local["hmin"].GetDouble();
+        entry.mHmax = local["hmax"].GetDouble();
+        entry.mHausd = local["hausd"].GetDouble();
+        parameters.mLocal.push_back(entry);
+    }
+    return parameters;
 }
 
 /***********************************************************************************/
@@ -556,6 +847,19 @@ mio::AffineTransform ReadAffineTransform(Parameters Settings)
 std::vector<std::string> MeshioPlusPlusMeshOperations::GetSupportedOperations()
 {
     return OperationNames();
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+Parameters MeshioPlusPlusMeshOperations::GetCapabilities()
+{
+    Parameters capabilities(R"({})");
+    capabilities.AddBool("occt", mio::fit_cad_has_occt());
+    capabilities.AddBool("netgen", mio::tetrahedralize_has_netgen());
+    capabilities.AddBool("mmg", mio::mmg_available());
+    capabilities.AddBool("mmg_elas", mio::mmg_has_elas());
+    return capabilities;
 }
 
 /***********************************************************************************/
@@ -795,7 +1099,205 @@ Parameters MeshioPlusPlusMeshOperations::GetDefaultParameters()
         "max_inverted"                                 : 0,
         "max_degenerate"                               : 0,
 
-        "write_mdpa_ids"                               : false
+        "write_mdpa_ids"                               : false,
+
+        "segment_method"                               : "angle",
+        "segment_tolerance"                            : 1.0e-3,
+
+        "refine_patches_tolerance"                     : 1.0e-3,
+        "refine_patches_normal_weight"                 : 1.0,
+        "refine_patches_epsilon"                       : 1.0e-3,
+        "refine_patches_max_iterations"                : 10,
+        "refine_patches_min_patch_cells"               : 3,
+        "refine_patches_seed"                          : -1,
+        "refine_patches_allow_split"                   : true,
+        "refine_patches_allow_merge"                   : true,
+
+        "cad_backend"                                  : "auto",
+        "cad_merge_faces"                              : true,
+        "cad_refine_segmentation"                      : false,
+        "cad_freeform_general"                         : false,
+        "cad_freeform_tolerance"                       : 0.0,
+        "cad_freeform_smoothing"                       : 1.0e-12,
+        "cad_max_freeform_poles"                       : 40,
+        "cad_max_freeform_iterations"                  : 30,
+        "cad_max_freeform_splits"                      : 2,
+        "cad_sew_tolerance"                            : 0.0,
+        "cad_extend_surfaces"                          : false,
+        "cad_snap_junctions"                           : false,
+        "cad_face_deviation"                           : false,
+        "cad_freeform_mode"                            : "legacy",
+        "cad_freeform_parameterization"                : "auto",
+        "cad_extraordinary_vertex"                     : "g1x",
+        "cad_local_refine"                             : "knots",
+        "cad_freeform_g1_tolerance"                    : 1.0,
+        "cad_freeform_max_control_points"              : 400,
+        "cad_layout_target_patch_size"                 : 0.1,
+        "cad_layout_max_valence_deviation"             : 2,
+        "cad_resegment_rounds"                         : 2,
+        "cad_layout_snap_to_features"                  : true,
+        "cad_validate_by_sampling"                     : true,
+        "cad_constrain_primitives"                     : false,
+
+        "optimize_objective"                           : "worst",
+        "max_ring_size"                                : 7,
+
+        "plane"                                        : "auto",
+
+        "tet_backend"                                  : "auto",
+        "tet_max_size"                                 : 0.0,
+        "tet_max_volume"                               : 0.0,
+        "tet_grading"                                  : 0.3,
+        "tet_optimize_steps"                           : 3,
+        "tet_max_cells"                                : 50000000,
+        "tet_face_array"                               : "cad:face",
+
+        "bl_first_height"                              : 0.0,
+        "bl_growth"                                    : 1.2,
+        "bl_number_of_layers"                          : 3,
+        "bl_reverse"                                   : false,
+        "bl_collision_fraction"                        : 0.45,
+        "bl_smooth_iterations"                         : 5,
+        "bl_max_shrink"                                : 6,
+        "bl_collapse"                                  : "points",
+        "bl_normal_smooth_iterations"                  : 0,
+        "bl_front_check"                               : true,
+
+        "extrude_direction"                            : [0.0, 0.0, 1.0],
+        "extrude_layers"                               : 1,
+        "extrude_ratio"                                : 1.0,
+        "extrude_offsets"                              : [],
+        "revolve_axis_point"                           : [0.0, 0.0, 0.0],
+        "revolve_axis"                                 : [0.0, 1.0, 0.0],
+        "revolve_angle"                                : 360.0,
+        "revolve_layers"                               : 16,
+        "revolve_tolerance"                            : 1.0e-9,
+        "record_layers"                                : false,
+
+        "mirror_normal"                                : [1.0, 0.0, 0.0],
+        "mirror_keep_original"                         : false,
+        "mirror_weld"                                  : true,
+        "mirror_tolerance"                             : 1.0e-9,
+        "reflect_vector_data"                          : false,
+
+        "octree_root_cells"                            : [1, 1, 1],
+        "octree_min_level"                             : 0,
+        "octree_max_level"                             : 4,
+        "octree_dimension"                             : 0,
+        "octree_sample_distance"                       : 0.0,
+        "octree_balance"                               : "face",
+        "octree_attach_distance"                       : false,
+        "octree_even_odd"                              : false,
+        "octree_transition"                            : "hanging",
+        "octree_snap"                                  : false,
+        "octree_surface_level"                         : -1,
+        "octree_curvature_threshold"                   : 0.0,
+        "octree_feature_angle"                         : 0.0,
+        "octree_size_array"                            : "",
+
+        "octree_mesh_output"                           : "tetra",
+        "min_size"                                     : 0.0,
+        "max_size"                                     : 0.0,
+        "octree_mesh_max_level"                        : -1,
+        "octree_mesh_padding_relative"                 : 0.1,
+        "octree_mesh_curvature_angle"                  : 15.0,
+        "octree_mesh_corner_angle"                     : 30.0,
+        "octree_mesh_feature_size"                     : 0.0,
+        "octree_mesh_gap_cells"                        : 2.0,
+        "octree_mesh_gap_outside"                      : false,
+        "octree_mesh_size_array"                       : "",
+        "octree_mesh_surface_region"                   : "",
+        "octree_mesh_grading_layers"                   : 1,
+        "octree_mesh_skin_grading"                     : "graded",
+        "octree_mesh_surface_size"                     : 0.0,
+        "octree_mesh_winding_threshold"                : 0.5,
+        "octree_mesh_winding_beta"                     : 2.0,
+        "octree_mesh_conformity"                       : "stuffing",
+        "octree_mesh_alpha_long"                       : 0.24799,
+        "octree_mesh_alpha_short"                      : 0.40173,
+        "octree_mesh_fit_iterations"                   : 5,
+        "octree_mesh_dihedral_floor_guard"             : true,
+        "octree_mesh_fill"                             : "inside",
+        "octree_mesh_keep_outside"                     : false,
+        "octree_mesh_attach_distance"                  : true,
+        "octree_mesh_attach_quality"                   : false,
+        "octree_mesh_pillow"                           : true,
+        "octree_mesh_hex_grading"                      : "uniform",
+        "octree_mesh_untangle_iterations"              : 50,
+        "octree_mesh_max_tets"                         : 100000000,
+
+        "select_name"                                  : "",
+        "select_kind"                                  : "cell",
+        "select_tag"                                   : -1,
+        "select_mode"                                  : "all",
+        "select_boundary_only"                         : true,
+        "select_box"                                   : false,
+        "select_plane"                                 : false,
+        "select_sphere"                                : false,
+        "select_sphere_center"                         : [0.0, 0.0, 0.0],
+        "select_sphere_radius"                         : 0.0,
+        "select_where_array"                           : "",
+        "select_where_op"                              : "<",
+        "select_where_value"                           : 0.0,
+        "select_quality_metric"                        : "",
+        "select_quality_op"                            : "<",
+        "select_quality_value"                         : 0.0,
+        "select_component"                             : -1,
+        "select_seed"                                  : false,
+        "select_seed_point"                            : [0.0, 0.0, 0.0],
+
+        "conformity_tolerance"                         : 1.0e-9,
+
+        "intersections_region_b"                       : "",
+        "intersections_max_pairs"                      : 0,
+
+        "thickness_direction"                          : "auto",
+        "thickness_max_distance"                       : 0.0,
+        "thickness_threshold"                          : 0.0,
+        "thickness_region_target"                      : "",
+
+        "error_array"                                  : "",
+        "target_error"                                 : 0.0,
+        "error_order"                                  : 1.0,
+
+        "output_file"                                  : "",
+        "output_format"                                : "",
+        "tet_poly_feature_angle"                       : 1.0,
+        "point_data_to_cell_data"                      : false,
+        "record_vertex_ids"                            : false,
+
+        "mmg_hmin"                                     : -1.0,
+        "mmg_hmax"                                     : -1.0,
+        "mmg_hausd"                                    : -1.0,
+        "mmg_hgrad"                                    : -1.0,
+        "mmg_hgradreq"                                 : -1.0,
+        "mmg_angle_detection"                          : 45.0,
+        "mmg_optim"                                    : false,
+        "mmg_noinsert"                                 : false,
+        "mmg_noswap"                                   : false,
+        "mmg_nomove"                                   : false,
+        "mmg_nosurf"                                   : false,
+        "mmg_nreg"                                     : false,
+        "mmg_opnbdy"                                   : false,
+        "mmg_mem"                                      : -1,
+        "mmg_verbose"                                  : -1,
+        "mmg_required"                                 : [],
+        "mmg_local"                                    : [],
+        "mmg_hsiz"                                     : -1.0,
+        "size_array"                                   : "",
+        "metric_array"                                 : "",
+        "level_set_array"                              : "",
+        "isovalue"                                     : 0.0,
+        "remove_small_components"                      : -1.0,
+        "mmg_materials"                                : [],
+        "mmg_holes"                                    : [],
+        "displacement_array"                           : "",
+        "moving_regions"                               : [],
+        "lagrangian"                                   : 1,
+        "hessian_array"                                : "",
+        "metric_error"                                 : 1.0e-2,
+        "metric_hmin"                                  : 1.0e-3,
+        "metric_hmax"                                  : 1.0
     })");
 
     return params;
@@ -1027,14 +1529,23 @@ Parameters MeshioPlusPlusMeshOperations::Execute(
         options.mPreserveBoundary = Settings["preserve_boundary"].GetBool();
         options.mMinImprovement = Settings["min_improvement"].GetDouble();
         options.mFrozen = ReadFrozenFlags(Settings["frozen"]);
+        // "worst" (meshio++'s default since the v18.0.0 tag) raises the least dihedral angle and
+        // never lowers it; "energy" is the former behaviour, byte for byte.
+        options.mObjective = mio::optimize_volume_objective_from_name(Settings["optimize_objective"].GetString());
+        options.mMaxRingSize = Settings["max_ring_size"].GetInt();
         mio::OptimizeVolumeResult result = mio::optimize_volume(mesh, options);
         report.AddInt("number_of_flips", static_cast<int>(result.mNumFlips));
         report.AddInt("number_of_2_3_flips", static_cast<int>(result.mNum23Flips));
         report.AddInt("number_of_3_2_flips", static_cast<int>(result.mNum32Flips));
+        report.AddInt("number_of_edge_removals", static_cast<int>(result.mNumEdgeRemovals));
+        report.AddInt("number_of_multi_face_removals", static_cast<int>(result.mNumMultiFaceRemovals));
+        report.AddInt("number_of_worst_smoothed", static_cast<int>(result.mNumWorstSmoothed));
         report.AddInt("number_of_vertices_moved", static_cast<int>(result.mNumVerticesMoved));
         report.AddInt("number_of_tets", static_cast<int>(result.mNumTets));
         report.AddDouble("min_quality_before", result.mMinQualityBefore);
         report.AddDouble("min_quality_after", result.mMinQualityAfter);
+        report.AddDouble("min_dihedral_before", result.mMinDihedralBefore);
+        report.AddDouble("min_dihedral_after", result.mMinDihedralAfter);
         StoreResult(result.mMesh, rDestination);
 
     } else if (operation == "smooth") {
@@ -1157,9 +1668,16 @@ Parameters MeshioPlusPlusMeshOperations::Execute(
         // fit_cad needs the closed skin that segment and fit_primitives annotated; their
         // colon-namespaced arrays cannot ride on a model part, so all three run back to back
         // here, with the segment and fit_* settings.
-        KRATOS_ERROR_IF_NOT(mio::fit_cad_has_occt())
-            << "The \"fit_cad\" operation needs a meshio++ built with OpenCASCADE "
-            << "(-DMESHIOPLUSPLUS_WITH_OCCT=ON)" << std::endl;
+        //
+        // "cad_backend" : "auto" uses OpenCASCADE when meshio++ has it and its native backend
+        // otherwise (since v17.9.0); only an explicit "occt" needs the kernel.
+        const auto backend = ReadEnum<mio::FitCadBackend>(Settings, "cad_backend",
+            {{"auto", mio::FitCadBackend::Auto}, {"occt", mio::FitCadBackend::Occt},
+             {"native", mio::FitCadBackend::Native}});
+        KRATOS_ERROR_IF(backend == mio::FitCadBackend::Occt && !mio::fit_cad_has_occt())
+            << "The \"fit_cad\" operation with \"cad_backend\" : \"occt\" needs a meshio++ built "
+            << "with OpenCASCADE (-DMESHIOPLUSPLUS_WITH_OCCT=ON); \"auto\" or \"native\" use the "
+            << "native backend instead" << std::endl;
         const mio::SegmentResult segmented = mio::segment(mesh, ReadSegmentOptions(Settings));
         mio::FitPrimitivesOptions fit_options;
         fit_options.mPatchData = mio::kSegmentPatchName;
@@ -1181,6 +1699,39 @@ Parameters MeshioPlusPlusMeshOperations::Execute(
         options.mFreeformSplit = Settings["cad_freeform_split"].GetBool();
         options.mFillets = Settings["cad_fillets"].GetBool();
         options.mThreads = Settings["cad_threads"].GetBool();
+        options.mMergeFaces = Settings["cad_merge_faces"].GetBool();
+        options.mBackend = backend;
+        options.mRefineSegmentation = Settings["cad_refine_segmentation"].GetBool();
+        options.mRefine = ReadRefinePatchesOptions(Settings);
+        options.mFreeformGeneral = Settings["cad_freeform_general"].GetBool();
+        options.mFreeformTolerance = Settings["cad_freeform_tolerance"].GetDouble();
+        options.mFreeformSmoothing = Settings["cad_freeform_smoothing"].GetDouble();
+        options.mMaxFreeformPoles = Settings["cad_max_freeform_poles"].GetInt();
+        options.mMaxFreeformIterations = Settings["cad_max_freeform_iterations"].GetInt();
+        options.mMaxFreeformSplits = Settings["cad_max_freeform_splits"].GetInt();
+        options.mSewTolerance = Settings["cad_sew_tolerance"].GetDouble();
+        options.mExtendSurfaces = Settings["cad_extend_surfaces"].GetBool();
+        options.mSnapJunctions = Settings["cad_snap_junctions"].GetBool();
+        options.mFaceDeviation = Settings["cad_face_deviation"].GetBool();
+        options.mFreeformMode = ReadEnum<mio::FitCadFreeformMode>(Settings, "cad_freeform_mode",
+            {{"legacy", mio::FitCadFreeformMode::Legacy}, {"adaptive", mio::FitCadFreeformMode::Adaptive},
+             {"network", mio::FitCadFreeformMode::Network}, {"auto", mio::FitCadFreeformMode::Auto}});
+        options.mFreeformParameterization = ReadEnum<mio::FitCadParameterization>(Settings, "cad_freeform_parameterization",
+            {{"auto", mio::FitCadParameterization::Auto}, {"projection", mio::FitCadParameterization::Projection},
+             {"lscm", mio::FitCadParameterization::Lscm}, {"harmonic", mio::FitCadParameterization::Harmonic}});
+        options.mExtraordinaryVertex = ReadEnum<mio::FitCadExtraordinaryVertex>(Settings, "cad_extraordinary_vertex",
+            {{"g0", mio::FitCadExtraordinaryVertex::G0}, {"g1", mio::FitCadExtraordinaryVertex::G1},
+             {"g1x", mio::FitCadExtraordinaryVertex::G1x}, {"g1xx", mio::FitCadExtraordinaryVertex::G1xx}});
+        options.mLocalRefine = ReadEnum<mio::FitCadLocalRefine>(Settings, "cad_local_refine",
+            {{"knots", mio::FitCadLocalRefine::Knots}, {"thb", mio::FitCadLocalRefine::Thb}});
+        options.mFreeformG1ToleranceDeg = Settings["cad_freeform_g1_tolerance"].GetDouble();
+        options.mFreeformMaxControlPoints = Settings["cad_freeform_max_control_points"].GetInt();
+        options.mLayoutTargetPatchSize = Settings["cad_layout_target_patch_size"].GetDouble();
+        options.mLayoutMaxValenceDeviation = Settings["cad_layout_max_valence_deviation"].GetInt();
+        options.mResegmentRounds = Settings["cad_resegment_rounds"].GetInt();
+        options.mLayoutSnapToFeatures = Settings["cad_layout_snap_to_features"].GetBool();
+        options.mValidateBySurfaceSampling = Settings["cad_validate_by_sampling"].GetBool();
+        options.mConstrainPrimitives = Settings["cad_constrain_primitives"].GetBool();
         mio::FitCadResult result = mio::fit_cad(fitted.mMesh, Settings["cad_step_path"].GetString(), options);
         const std::string cad_json_path = Settings["cad_json_path"].GetString();
         if (!cad_json_path.empty()) {
@@ -1216,6 +1767,50 @@ Parameters MeshioPlusPlusMeshOperations::Execute(
         report.AddInt("rounded_threads", static_cast<int>(result.mNumRoundedThread));
         report.AddInt("tapered_threads", static_cast<int>(result.mNumTaperedThread));
         report.AddInt("variable_pitch_threads", static_cast<int>(result.mNumVariablePitchThread));
+        report.AddString("backend", result.mBackend == mio::FitCadBackend::Native ? "native" : "occt");
+        report.AddBool("closed", result.mClosed);
+        report.AddBool("brep_checked", result.mBrepChecked);
+        AddFiniteDouble(report, "hausdorff_max", result.mHausdorffMax);
+        AddFiniteDouble(report, "hausdorff_rms", result.mHausdorffRms);
+        report.AddBool("refined", result.mRefined);
+        report.AddBool("refinement_kept", result.mRefinementKept);
+        report.AddInt("refine_iterations", static_cast<int>(result.mRefineIterations));
+        report.AddInt("refine_splits", static_cast<int>(result.mNumRefineSplits));
+        report.AddInt("refine_merges", static_cast<int>(result.mNumRefineMerges));
+        report.AddDouble("initial_explained_area_fraction", result.mInitialExplainedAreaFraction);
+        report.AddDouble("explained_area_fraction", result.mExplainedAreaFraction);
+        report.AddInt("freeform_general_faces", static_cast<int>(result.mNumFreeformGeneral));
+        report.AddInt("freeform_refinements", static_cast<int>(result.mNumFreeformRefinements));
+        report.AddDouble("average_freeform_poles", result.mAvgFreeformPoles);
+        report.AddInt("extended_edges", static_cast<int>(result.mNumExtendedEdges));
+        report.AddInt("snapped_junctions", static_cast<int>(result.mNumSnappedJunctions));
+        report.AddInt("freeform_adaptive_faces", static_cast<int>(result.mNumFreeformAdaptive));
+        report.AddInt("network_patches", static_cast<int>(result.mNumNetworkPatches));
+        report.AddInt("network_edges", static_cast<int>(result.mNumNetworkEdges));
+        report.AddInt("extraordinary_vertices", static_cast<int>(result.mNumExtraordinaryVertices));
+        report.AddInt("resegmented_patches", static_cast<int>(result.mNumResegmented));
+        report.AddInt("escalations", static_cast<int>(result.mNumEscalations));
+        report.AddDouble("facet_area_fraction", result.mFacetAreaFraction);
+        report.AddDouble("max_g1_angle", result.mMaxG1AngleDeg);
+        report.AddDouble("max_freeform_distance", result.mMaxFreeformDistance);
+        report.AddDouble("rms_freeform_distance", result.mRmsFreeformDistance);
+        report.AddInt("constrained_primitives", static_cast<int>(result.mNumConstrainedPrimitives));
+        report.AddInt("constraint_groups", static_cast<int>(result.mNumConstraintGroups));
+        // One entry per face of the solid: the patch it came from, its kind and how well it fits.
+        Parameters faces(R"([])");
+        for (const auto& r_face : result.mFaces) {
+            Parameters face(R"({})");
+            face.AddInt("patch", static_cast<int>(r_face.mPatch));
+            face.AddInt("face", static_cast<int>(r_face.mFace));
+            face.AddInt("kind", static_cast<int>(r_face.mKind));
+            face.AddInt("demotion_reason", static_cast<int>(r_face.mDemotionReason));
+            face.AddInt("number_of_control_points", static_cast<int>(r_face.mNumControl));
+            AddFiniteDouble(face, "max_distance", r_face.mMaxDist);
+            AddFiniteDouble(face, "rms_distance", r_face.mRmsDist);
+            AddFiniteDouble(face, "max_g1_angle", r_face.mMaxG1AngleDeg);
+            faces.Append(face);
+        }
+        report.AddValue("faces", faces);
         StoreResult(result.mMesh, rDestination);
 
     } else if (operation == "fit_primitives") {
@@ -1450,6 +2045,7 @@ Parameters MeshioPlusPlusMeshOperations::Execute(
         ReadLatticeSettings(Settings, options);
         options.mFill = mio::voxel_fill_from_name(Settings["fill"].GetString());
         options.mAttachOccupancy = Settings["attach_occupancy"].GetBool();
+        options.mPlane = ReadPlanarPlane(Settings);
         mio::VoxelResult result = mio::voxelize(mesh, options);
         report.AddInt("number_of_occupied", static_cast<int>(result.mNumOccupied));
         AppendLatticeReport(report, result.mDims, result.mOrigin, result.mSpacing);
@@ -1650,6 +2246,454 @@ Parameters MeshioPlusPlusMeshOperations::Execute(
         }
         report.AddValue("checks", checks);
         return report;
+
+    } else if (operation == "tetrahedralize") {
+        // Fills a closed triangle surface with tetrahedra: Netgen keeps the surface's triangles,
+        // the native octree backend fits it ("auto" takes Netgen when meshio++ has it).
+        mio::TetrahedralizeOptions options;
+        options.mBackend = ReadEnum<mio::TetrahedralizeBackend>(Settings, "tet_backend",
+            {{"auto", mio::TetrahedralizeBackend::Auto}, {"netgen", mio::TetrahedralizeBackend::Netgen},
+             {"octree", mio::TetrahedralizeBackend::Octree}});
+        options.mMaxSize = Settings["tet_max_size"].GetDouble();
+        options.mMaxVolume = Settings["tet_max_volume"].GetDouble();
+        options.mGrading = Settings["tet_grading"].GetDouble();
+        options.mOptimizeSteps = Settings["tet_optimize_steps"].GetInt();
+        options.mMaxCells = Settings["tet_max_cells"].GetInt();
+        options.mFaceArray = Settings["tet_face_array"].GetString();
+        mio::TetrahedralizeResult result = mio::tetrahedralize(mesh, options);
+        report.AddString("backend", result.mBackend);
+        report.AddInt("number_of_tetrahedra", static_cast<int>(result.mNumTetrahedra));
+        report.AddInt("number_of_points", static_cast<int>(result.mNumPoints));
+        report.AddInt("number_of_new_points", static_cast<int>(result.mNumNewPoints));
+        report.AddInt("number_of_regions", static_cast<int>(result.mNumRegions));
+        report.AddInt("number_of_boundary_triangles", static_cast<int>(result.mNumBoundaryTriangles));
+        report.AddBool("boundary_preserved", result.mBoundaryPreserved);
+        report.AddDouble("hausdorff_to_surface", result.mHausdorffToSurface);
+        report.AddDouble("min_dihedral", result.mMinDihedralDeg);
+        report.AddDouble("max_dihedral", result.mMaxDihedralDeg);
+        report.AddDouble("volume", result.mVolume);
+        report.AddStringArray("warnings", result.mWarnings);
+        StoreResult(result.mMesh, rDestination);
+
+    } else if (operation == "boundary_layer") {
+        // Grows prism (wedge) layers from a surface, the near-wall mesh of a CFD model.
+        mio::BoundaryLayerOptions options;
+        options.mFirstHeight = Settings["bl_first_height"].GetDouble();
+        options.mGrowth = Settings["bl_growth"].GetDouble();
+        options.mNumLayers = Settings["bl_number_of_layers"].GetInt();
+        options.mReverse = Settings["bl_reverse"].GetBool();
+        options.mCollisionFraction = Settings["bl_collision_fraction"].GetDouble();
+        options.mSmoothIterations = Settings["bl_smooth_iterations"].GetInt();
+        options.mMaxShrink = Settings["bl_max_shrink"].GetInt();
+        options.mCollapse = ReadEnum<mio::BoundaryLayerCollapse>(Settings, "bl_collapse",
+            {{"points", mio::BoundaryLayerCollapse::Points}, {"layers", mio::BoundaryLayerCollapse::Layers}});
+        options.mNormalSmoothIterations = Settings["bl_normal_smooth_iterations"].GetInt();
+        options.mFrontCheck = Settings["bl_front_check"].GetBool();
+        mio::BoundaryLayerResult result = mio::boundary_layer(mesh, options);
+        report.AddInt("number_of_cells", static_cast<int>(result.mNumCells));
+        report.AddInt("wedges", static_cast<int>(result.mNumWedges));
+        report.AddInt("hexahedra", static_cast<int>(result.mNumHexahedra));
+        report.AddInt("pyramids", static_cast<int>(result.mNumPyramids));
+        report.AddInt("tetrahedra", static_cast<int>(result.mNumTetrahedra));
+        report.AddInt("shrunk_points", static_cast<int>(result.mNumShrunk));
+        report.AddInt("collapsed_points", static_cast<int>(result.mNumCollapsed));
+        report.AddInt("not_visible_points", static_cast<int>(result.mNumNotVisible));
+        report.AddInt("fewer_layers_points", static_cast<int>(result.mNumFewerLayers));
+        report.AddInt("front_crossings", static_cast<int>(result.mNumFrontCrossings));
+        report.AddDouble("min_scaled_jacobian", result.mMinScaledJacobian);
+        report.AddDouble("min_thickness", result.mMinThickness);
+        report.AddDouble("max_thickness", result.mMaxThickness);
+        report.AddBool("cap_closed", result.mCapClosed);
+        report.AddStringArray("warnings", result.mWarnings);
+        StoreResult(result.mMesh, rDestination);
+
+    } else if (operation == "extrude" || operation == "revolve") {
+        // Sweeps a surface (or a curve) into a volume (or a surface): along a direction in
+        // layers ("extrude_direction" is the whole displacement, split into the layers), or
+        // around an axis.
+        mio::SweepResult result;
+        if (operation == "extrude") {
+            mio::ExtrudeOptions options;
+            options.mDirection = ReadVector3(Settings, "extrude_direction");
+            options.mNumLayers = Settings["extrude_layers"].GetInt();
+            options.mRatio = Settings["extrude_ratio"].GetDouble();
+            const Vector offsets = Settings["extrude_offsets"].GetVector();
+            options.mOffsets.assign(offsets.begin(), offsets.end());
+            options.mRecordLayers = Settings["record_layers"].GetBool();
+            options.mMaxCells = Settings["max_cells"].GetInt();
+            result = mio::extrude(mesh, options);
+        } else {
+            mio::RevolveOptions options;
+            options.mAxisPoint = ReadVector3(Settings, "revolve_axis_point");
+            options.mAxis = ReadVector3(Settings, "revolve_axis");
+            options.mAngle = Settings["revolve_angle"].GetDouble();
+            options.mNumLayers = Settings["revolve_layers"].GetInt();
+            options.mTolerance = Settings["revolve_tolerance"].GetDouble();
+            options.mRecordLayers = Settings["record_layers"].GetBool();
+            options.mMaxCells = Settings["max_cells"].GetInt();
+            result = mio::revolve(mesh, options);
+        }
+        report.AddInt("number_of_cells", static_cast<int>(result.mNumCells));
+        report.AddInt("hexahedra", static_cast<int>(result.mNumHexahedra));
+        report.AddInt("wedges", static_cast<int>(result.mNumWedges));
+        report.AddInt("pyramids", static_cast<int>(result.mNumPyramids));
+        report.AddInt("tetrahedra", static_cast<int>(result.mNumTetrahedra));
+        report.AddInt("quadrilaterals", static_cast<int>(result.mNumQuads));
+        report.AddInt("triangles", static_cast<int>(result.mNumTriangles));
+        report.AddInt("flipped", static_cast<int>(result.mNumFlipped));
+        report.AddInt("on_axis", static_cast<int>(result.mNumOnAxis));
+        report.AddDouble("min_scaled_jacobian", result.mMinScaledJacobian);
+        report.AddBool("full_revolution", result.mFull);
+        report.AddStringArray("warnings", result.mWarnings);
+        StoreResult(result.mMesh, rDestination);
+
+    } else if (operation == "mirror") {
+        // "mirror_normal" rather than the shared "normal": upstream's default plane is x = 0,
+        // where "slice" and "crop_halfspace" default to z, and one key cannot carry both.
+        mio::MirrorOptions options;
+        options.mOrigin = ReadVector3(Settings, "origin");
+        options.mNormal = ReadVector3(Settings, "mirror_normal");
+        options.mKeepOriginal = Settings["mirror_keep_original"].GetBool();
+        options.mWeld = Settings["mirror_weld"].GetBool();
+        options.mTolerance = Settings["mirror_tolerance"].GetDouble();
+        options.mReflectVectorData = Settings["reflect_vector_data"].GetBool();
+        mio::MirrorResult result = mio::mirror(mesh, options);
+        report.AddInt("flipped_cells", static_cast<int>(result.mNumFlippedCells));
+        report.AddInt("points_on_plane", static_cast<int>(result.mNumPointsOnPlane));
+        report.AddInt("dropped_cells", static_cast<int>(result.mNumDroppedCells));
+        report.AddInt("dropped_sides", static_cast<int>(result.mNumDroppedSides));
+        report.AddStringArray("warnings", result.mWarnings);
+        StoreResult(result.mMesh, rDestination);
+
+    } else if (operation == "octree") {
+        // An adaptive octree (quadtree for a planar skin) refined toward the input surface. The
+        // lattice keys ("bounds", "padding", "padding_relative", "max_cells", "fill", "sdf_*")
+        // are voxelize's; its octree:* arrays are colon-namespaced and stay behind.
+        mio::OctreeOptions options;
+        const Vector root_cells = Settings["octree_root_cells"].GetVector();
+        KRATOS_ERROR_IF(root_cells.size() != 3)
+            << "\"octree_root_cells\" needs three entries, got " << root_cells.size() << std::endl;
+        options.mRootCells = {{static_cast<std::int64_t>(root_cells[0]), static_cast<std::int64_t>(root_cells[1]),
+                               static_cast<std::int64_t>(root_cells[2])}};
+        options.mMinLevel = Settings["octree_min_level"].GetInt();
+        options.mMaxLevel = Settings["octree_max_level"].GetInt();
+        options.mBounds = ReadBounds(Settings);
+        options.mPadding = Settings["padding"].GetDouble();
+        options.mPaddingRelative = Settings["padding_relative"].GetDouble();
+        options.mDimension = Settings["octree_dimension"].GetInt();
+        options.mSampleDistance = Settings["octree_sample_distance"].GetDouble();
+        options.mBalance = mio::octree_balance_from_name(Settings["octree_balance"].GetString());
+        options.mFill = mio::voxel_fill_from_name(Settings["fill"].GetString());
+        options.mAttachDistance = Settings["octree_attach_distance"].GetBool();
+        options.mEvenOdd = Settings["octree_even_odd"].GetBool();
+        options.mMaxCells = Settings["max_cells"].GetInt();
+        options.mDistance = BuildSurfaceDistanceOptions(Settings);
+        options.mTransition = mio::octree_transition_from_name(Settings["octree_transition"].GetString());
+        options.mSnap = Settings["octree_snap"].GetBool();
+        options.mSurfaceLevel = Settings["octree_surface_level"].GetInt();
+        options.mCurvatureThreshold = Settings["octree_curvature_threshold"].GetDouble();
+        options.mFeatureAngle = Settings["octree_feature_angle"].GetDouble();
+        options.mSizeArray = Settings["octree_size_array"].GetString();
+        options.mPlane = ReadPlanarPlane(Settings);
+        mio::OctreeResult result = mio::octree(mesh, options);
+        report.AddInt("dimension", static_cast<int>(result.mDimension));
+        report.AddVector("origin", ToVector(result.mOrigin));
+        report.AddDouble("root_size", result.mRootSize);
+        report.AddInt("number_of_leaves", static_cast<int>(result.mNumLeaves));
+        report.AddInt("hanging", static_cast<int>(result.mNumHanging));
+        report.AddInt("finest_level", static_cast<int>(result.mFinestLevel));
+        report.AddInt("snapped", static_cast<int>(result.mNumSnapped));
+        report.AddInt("refused", static_cast<int>(result.mNumRefused));
+        RenameResultArray(result.mMesh, mio::DataLocation::Point, mio::kSdfDistanceName,
+                          Settings["output"].GetString());
+        StoreResult(result.mMesh, rDestination);
+
+    } else if (operation == "octree_mesh") {
+        // Meshes the volume a skin encloses from a graded octree: tetrahedra (isosurface stuffing
+        // or cleaving), hexahedra, or the castellated cells.
+        mio::OctreeMeshOptions options;
+        options.mOutput = mio::octree_mesh_output_from_name(Settings["octree_mesh_output"].GetString());
+        options.mMinSize = Settings["min_size"].GetDouble();
+        options.mMaxSize = Settings["max_size"].GetDouble();
+        options.mMaxLevel = Settings["octree_mesh_max_level"].GetInt();
+        options.mBounds = ReadBounds(Settings);
+        options.mPadding = Settings["padding"].GetDouble();
+        options.mPaddingRelative = Settings["octree_mesh_padding_relative"].GetDouble();
+        options.mCurvatureAngle = Settings["octree_mesh_curvature_angle"].GetDouble();
+        options.mFeatureAngle = Settings["feature_angle"].GetDouble();
+        options.mCornerAngle = Settings["octree_mesh_corner_angle"].GetDouble();
+        options.mFeatureSize = Settings["octree_mesh_feature_size"].GetDouble();
+        options.mGapCells = Settings["octree_mesh_gap_cells"].GetDouble();
+        options.mGapOutside = Settings["octree_mesh_gap_outside"].GetBool();
+        options.mSizeArray = Settings["octree_mesh_size_array"].GetString();
+        options.mSurfaceRegion = Settings["octree_mesh_surface_region"].GetString();
+        options.mGradingLayers = Settings["octree_mesh_grading_layers"].GetInt();
+        options.mSkinGrading = mio::octree_mesh_skin_grading_from_name(Settings["octree_mesh_skin_grading"].GetString());
+        options.mSurfaceSize = Settings["octree_mesh_surface_size"].GetDouble();
+        options.mWindingThreshold = Settings["octree_mesh_winding_threshold"].GetDouble();
+        options.mWindingBeta = Settings["octree_mesh_winding_beta"].GetDouble();
+        options.mConformity = mio::octree_mesh_conformity_from_name(Settings["octree_mesh_conformity"].GetString());
+        options.mAlphaLong = Settings["octree_mesh_alpha_long"].GetDouble();
+        options.mAlphaShort = Settings["octree_mesh_alpha_short"].GetDouble();
+        options.mPreserveFeatures = Settings["preserve_features"].GetBool();
+        options.mFitIterations = Settings["octree_mesh_fit_iterations"].GetInt();
+        options.mDihedralFloorGuard = Settings["octree_mesh_dihedral_floor_guard"].GetBool();
+        options.mFill = mio::octree_mesh_fill_from_name(Settings["octree_mesh_fill"].GetString());
+        options.mKeepOutside = Settings["octree_mesh_keep_outside"].GetBool();
+        options.mAttachDistance = Settings["octree_mesh_attach_distance"].GetBool();
+        options.mAttachQuality = Settings["octree_mesh_attach_quality"].GetBool();
+        options.mPillow = Settings["octree_mesh_pillow"].GetBool();
+        options.mHexGrading = mio::octree_mesh_hex_grading_from_name(Settings["octree_mesh_hex_grading"].GetString());
+        options.mUntangleIterations = Settings["octree_mesh_untangle_iterations"].GetInt();
+        options.mMaxCells = Settings["max_cells"].GetInt();
+        options.mMaxTets = Settings["octree_mesh_max_tets"].GetInt();
+        mio::OctreeMeshResult result = mio::octree_mesh(mesh, options);
+        report.AddString("output", mio::octree_mesh_output_name(result.mOutput));
+        report.AddVector("origin", ToVector(result.mOrigin));
+        report.AddDouble("root_size", result.mRootSize);
+        report.AddInt("max_level", static_cast<int>(result.mMaxLevel));
+        report.AddInt("finest_level", static_cast<int>(result.mFinestLevel));
+        report.AddInt("surface_level", static_cast<int>(result.mSurfaceLevel));
+        report.AddDouble("min_size", result.mMinSize);
+        report.AddDouble("max_size", result.mMaxSize);
+        report.AddInt("number_of_leaves", static_cast<int>(result.mNumLeaves));
+        Parameters leaves_per_level(R"([])");
+        for (const auto leaves : result.mLeavesPerLevel) {
+            leaves_per_level.Append(static_cast<int>(leaves));
+        }
+        report.AddValue("leaves_per_level", leaves_per_level);
+        report.AddInt("number_of_points", static_cast<int>(result.mNumPoints));
+        report.AddInt("number_of_cells", static_cast<int>(result.mNumCells));
+        report.AddInt("hexahedra", static_cast<int>(result.mNumHexahedra));
+        report.AddInt("tetrahedra", static_cast<int>(result.mNumTetrahedra));
+        report.AddInt("inside_cells", static_cast<int>(result.mNumInside));
+        report.AddInt("boundary_cells", static_cast<int>(result.mNumBoundaryCells));
+        report.AddInt("surrogate_faces", static_cast<int>(result.mNumSurrogateFaces));
+        report.AddInt("hanging", static_cast<int>(result.mNumHanging));
+        report.AddInt("cut_points", static_cast<int>(result.mNumCutPoints));
+        report.AddInt("warped", static_cast<int>(result.mNumWarped));
+        report.AddInt("warp_refused", static_cast<int>(result.mNumWarpRefused));
+        report.AddDouble("min_dihedral", result.mMinDihedral);
+        report.AddDouble("max_dihedral", result.mMaxDihedral);
+        report.AddDouble("min_scaled_jacobian", result.mMinScaledJacobian);
+        report.AddInt("inverted", static_cast<int>(result.mNumInverted));
+        report.AddDouble("hausdorff_to_skin", result.mHausdorffToSkin);
+        report.AddInt("open_boundary_edges", static_cast<int>(result.mNumBoundaryEdgesOpen));
+        report.AddInt("non_manifold_boundary_edges", static_cast<int>(result.mNumNonManifoldBoundaryEdges));
+        report.AddInt("corners", static_cast<int>(result.mNumCorners));
+        report.AddInt("corners_snapped", static_cast<int>(result.mNumCornersSnapped));
+        report.AddInt("feature_chains", static_cast<int>(result.mNumFeatureChains));
+        report.AddInt("feature_chains_missed", static_cast<int>(result.mNumFeatureChainsMissed));
+        report.AddInt("feature_moves", static_cast<int>(result.mNumFeatureMoves));
+        report.AddInt("optimized_moves", static_cast<int>(result.mNumOptimizedMoves));
+        report.AddInt("flips", static_cast<int>(result.mNumFlips));
+        report.AddBool("guarantee_applies", result.mGuaranteeApplies);
+        report.AddInt("winding_rechecks", static_cast<int>(result.mNumWindingRechecks));
+        report.AddInt("winding_skipped", static_cast<int>(result.mNumWindingSkipped));
+        report.AddStringArray("warnings", result.mWarnings);
+        RenameResultArray(result.mMesh, mio::DataLocation::Point, mio::kSdfDistanceName,
+                          Settings["output"].GetString());
+        StoreResult(result.mMesh, rDestination);
+
+    } else if (operation == "refine_patches") {
+        // Improves a segmentation by Lloyd iterations over primitive proxies. It reads the
+        // "segment:patch" cell data that no model part can carry, so the segmentation runs here
+        // first, with the segment settings (the "fit_primitives" shape); the refined patches come
+        // back as sub model parts <patch_prefix>:<k>.
+        const mio::SegmentResult segmented = mio::segment(mesh, ReadSegmentOptions(Settings));
+        mio::RefinePatchesResult result = mio::refine_patches(segmented.mMesh, ReadRefinePatchesOptions(Settings));
+        report.AddInt("number_of_patches", static_cast<int>(result.mNumPatches));
+        report.AddInt("iterations", static_cast<int>(result.mNumIterations));
+        report.AddInt("splits", static_cast<int>(result.mNumSplits));
+        report.AddInt("merges", static_cast<int>(result.mNumMerges));
+        report.AddInt("absorbed", static_cast<int>(result.mNumAbsorbed));
+        report.AddInt("primitive_patches", static_cast<int>(result.mNumPrimitive));
+        report.AddInt("freeform_patches", static_cast<int>(result.mNumFreeform));
+        report.AddInt("facet_patches", static_cast<int>(result.mNumFacets));
+        report.AddDouble("tolerance", result.mTolerance);
+        report.AddDouble("explained_area_fraction", result.mExplainedAreaFraction);
+        report.AddDouble("initial_explained_area_fraction", result.mInitialExplainedAreaFraction);
+        report.AddDouble("hausdorff_max", result.mHausdorffMax);
+        report.AddDouble("hausdorff_rms", result.mHausdorffRms);
+        report.AddDouble("initial_energy", result.mInitialEnergy);
+        report.AddDouble("energy", result.mEnergy);
+        report.AddInt("stop", static_cast<int>(result.mStop));
+        StoreResult(result.mMesh, rDestination);
+
+    } else if (operation == "select") {
+        // Writes one named region - a sub model part of the destination - chosen by geometry,
+        // data, quality, connectivity or growth from a seed; the criteria intersect.
+        mio::SelectResult result = mio::select_region(mesh, ReadSelectOptions(Settings));
+        report.AddInt("number_of_candidates", static_cast<int>(result.mNumCandidates));
+        report.AddInt("number_of_selected", static_cast<int>(result.mNumSelected));
+        report.AddInt("number_grown", static_cast<int>(result.mNumGrown));
+        report.AddInt("number_of_components", static_cast<int>(result.mNumComponents));
+        StoreResult(result.mMesh, rDestination);
+
+    } else if (operation == "check_conformity") {
+        // Report-only, like "check_quality": its per-point flags are colon-namespaced.
+        mio::ConformityOptions options;
+        options.mTolerance = Settings["conformity_tolerance"].GetDouble();
+        options.mAttachFlags = false;
+        const mio::ConformityResult result = mio::check_conformity(mesh, options);
+        report.AddBool("conforming", result.mConforming);
+        report.AddInt("dimension", static_cast<int>(result.mDimension));
+        report.AddInt("hanging_nodes", static_cast<int>(result.mNumHangingNodes));
+        report.AddInt("t_junctions", static_cast<int>(result.mNumTJunctions));
+        report.AddInt("partial_overlaps", static_cast<int>(result.mNumPartialOverlaps));
+        report.AddInt("unwelded_facets", static_cast<int>(result.mNumUnweldedFacets));
+        report.AddInt("boundary_facets", static_cast<int>(result.mNumBoundaryFacets));
+        report.AddInt("non_manifold_facets", static_cast<int>(result.mNumNonManifoldFacets));
+        report.AddString("interface_mode", result.mInterfaceMode);
+        report.AddStringArray("warnings", result.mWarnings);
+        return report;
+
+    } else if (operation == "find_intersections") {
+        // Where a surface intersects itself: the cell pairs in the report, the crossing
+        // segments (line cells) in the destination.
+        mio::FindIntersectionsResult result = mio::find_intersections(mesh, ReadFindIntersectionsOptions(Settings));
+        report = FindIntersectionsReport(result);
+        StoreResult(result.mSegments, rDestination);
+
+    } else if (operation == "thickness") {
+        // Wall thickness per facet, by a ray from each centroid along its normal; "output"
+        // renames "thickness:distance" to a registered variable.
+        mio::ThicknessResult result = mio::thickness(mesh, ReadThicknessOptions(Settings));
+        report = ThicknessReport(result);
+        RenameResultArray(result.mMesh, mio::DataLocation::Cell, mio::kThicknessDistanceName,
+                          Settings["output"].GetString());
+        StoreResult(result.mMesh, rDestination);
+
+    } else if (operation == "error_size") {
+        // A target point size from a cell error indicator (the input "adapt" and "remesh" read);
+        // "error_array" names a registered variable the field data settings carried in.
+        mio::ErrorSizeOptions options;
+        options.mErrorArray = Settings["error_array"].GetString();
+        KRATOS_ERROR_IF(options.mErrorArray.empty())
+            << "The \"error_size\" operation needs an \"error_array\"" << std::endl;
+        options.mTargetError = Settings["target_error"].GetDouble();
+        options.mOrder = Settings["error_order"].GetDouble();
+        options.mMinSize = Settings["min_size"].GetDouble();
+        options.mMaxSize = Settings["max_size"].GetDouble();
+        if (!Settings["output"].GetString().empty()) {
+            options.mOutputName = Settings["output"].GetString();
+        }
+        options.mOverwrite = Settings["output_overwrite"].GetBool();
+        mio::ErrorSizeResult result = mio::error_size(mesh, options);
+        report.AddInt("number_of_cells", static_cast<int>(result.mNumCells));
+        report.AddInt("skipped", static_cast<int>(result.mNumSkipped));
+        report.AddInt("clamped", static_cast<int>(result.mNumClamped));
+        report.AddDouble("min_size", result.mMinSize);
+        report.AddDouble("max_size", result.mMaxSize);
+        StoreResult(result.mMesh, rDestination);
+
+    } else if (operation == "tet_to_poly") {
+        // The median dual of a tetrahedral mesh, one polyhedron per vertex. No ModelPart can
+        // hold a polyhedron (and simplexifying would undo the conversion), so the result goes to
+        // "output_file" and the destination is left untouched.
+        const std::string output_file = Settings["output_file"].GetString();
+        KRATOS_ERROR_IF(output_file.empty())
+            << "The \"tet_to_poly\" operation produces polyhedra, which a Kratos ModelPart cannot "
+            << "hold; set \"output_file\" (and optionally \"output_format\") to write them" << std::endl;
+        mio::TetToPolyOptions options;
+        options.mFeatureAngleDeg = Settings["tet_poly_feature_angle"].GetDouble();
+        options.mPointDataToCellData = Settings["point_data_to_cell_data"].GetBool();
+        options.mRecordVertexIds = Settings["record_vertex_ids"].GetBool();
+        const mio::TetToPolyResult result = mio::tet_to_poly(mesh, options);
+        const std::string format = mio::resolve_write_format(output_file, Settings["output_format"].GetString());
+        mio::registry_writers().at(format)(output_file, result.mMesh);
+        report.AddInt("number_of_new_points", static_cast<int>(result.mNumNewPoints));
+        report.AddInt("number_of_boundary_faces", static_cast<int>(result.mNumBoundaryFaces));
+        report.AddInt("number_of_split_vertices", static_cast<int>(result.mNumSplitVertices));
+        report.AddString("output_file", output_file);
+        report.AddString("output_format", format);
+        return report;
+
+    } else if (operation == "adapt" || operation == "discretize_levelset" || operation == "mesh_domain"
+               || operation == "move") {
+        // The MMG remeshers (mmg2d, mmgs, mmg3d chosen by the mesh). The size, metric, level set
+        // and displacement arrays are registered variable names the field data settings carried
+        // in. Without MMG (or, for "move", without its ELAS add-on) meshio++ refuses by name.
+        const mio::MmgParameters parameters = ReadMmgParameters(Settings);
+        mio::MmgReport mmg_report;
+        mio::Mesh result_mesh;
+        if (operation == "adapt") {
+            mio::AdaptOptions options;
+            options.mParameters = parameters;
+            options.mHsiz = Settings["mmg_hsiz"].GetDouble();
+            options.mSize = Settings["size_array"].GetString();
+            options.mMetric = Settings["metric_array"].GetString();
+            mio::AdaptResult result = mio::adapt(mesh, options);
+            mmg_report = std::move(result.mReport);
+            result_mesh = std::move(result.mMesh);
+        } else if (operation == "discretize_levelset") {
+            mio::DiscretizeLevelsetOptions options;
+            options.mParameters = parameters;
+            options.mLevelSet = Settings["level_set_array"].GetString();
+            options.mIsovalue = Settings["isovalue"].GetDouble();
+            options.mRemoveSmallComponents = Settings["remove_small_components"].GetDouble();
+            for (std::size_t i = 0; i < Settings["mmg_materials"].size(); ++i) {
+                Parameters material = Settings["mmg_materials"][i];
+                material.AddMissingParameters(Parameters(R"({"ref": 0, "split": true, "ref_inside": 3, "ref_outside": 2})"));
+                mio::MmgMaterial entry;
+                entry.mRef = material["ref"].GetInt();
+                entry.mSplit = material["split"].GetBool();
+                entry.mRefInside = material["ref_inside"].GetInt();
+                entry.mRefOutside = material["ref_outside"].GetInt();
+                options.mMaterials.push_back(entry);
+            }
+            mio::DiscretizeLevelsetResult result = mio::discretize_levelset(mesh, options);
+            mmg_report = std::move(result.mReport);
+            result_mesh = std::move(result.mMesh);
+        } else if (operation == "mesh_domain") {
+            mio::MeshDomainOptions options;
+            options.mParameters = parameters;
+            options.mHsiz = Settings["mmg_hsiz"].GetDouble();
+            options.mSize = Settings["size_array"].GetString();
+            const Vector holes = Settings["mmg_holes"].GetVector();
+            options.mHoles.assign(holes.begin(), holes.end());
+            mio::MeshDomainResult result = mio::mesh_domain(mesh, options);
+            report.AddInt("number_of_subdomains", static_cast<int>(result.mNumSubdomains));
+            report.AddInt("number_of_holes", static_cast<int>(result.mNumHoles));
+            mmg_report = std::move(result.mReport);
+            result_mesh = std::move(result.mMesh);
+        } else {
+            mio::MoveOptions options;
+            options.mParameters = parameters;
+            options.mDisplacement = Settings["displacement_array"].GetString();
+            options.mMoving = Settings["moving_regions"].GetStringArray();
+            options.mLagrangian = Settings["lagrangian"].GetInt();
+            mio::AdaptResult result = mio::move(mesh, options);
+            mmg_report = std::move(result.mReport);
+            result_mesh = std::move(result.mMesh);
+        }
+        report.AddBool("success", mmg_report.mStatus == mio::MmgStatus::Success);
+        report.AddString("library", mmg_report.mLibrary);
+        report.AddInt("number_of_points_in", static_cast<int>(mmg_report.mNumPointsIn));
+        report.AddInt("number_of_points_out", static_cast<int>(mmg_report.mNumPointsOut));
+        report.AddInt("number_of_elements_in", static_cast<int>(mmg_report.mNumElementsIn));
+        report.AddInt("number_of_elements_out", static_cast<int>(mmg_report.mNumElementsOut));
+        AddFiniteDouble(report, "min_quality", mmg_report.mQuality.mMin);
+        AddFiniteDouble(report, "max_quality", mmg_report.mQuality.mMax);
+        AddFiniteDouble(report, "mean_quality", mmg_report.mQuality.mMean);
+        report.AddStringArray("warnings", mmg_report.mWarnings);
+        StoreResult(result_mesh, rDestination);
+
+    } else if (operation == "metric_from_hessian") {
+        // The anisotropic metric "adapt" reads, from a recovered Hessian ("hessian" first, with
+        // "output" naming its result); needs no MMG.
+        mio::MetricFromHessianOptions options;
+        options.mHessian = Settings["hessian_array"].GetString();
+        KRATOS_ERROR_IF(options.mHessian.empty())
+            << "The \"metric_from_hessian\" operation needs a \"hessian_array\"" << std::endl;
+        options.mError = Settings["metric_error"].GetDouble();
+        options.mHmin = Settings["metric_hmin"].GetDouble();
+        options.mHmax = Settings["metric_hmax"].GetDouble();
+        if (!Settings["output"].GetString().empty()) {
+            options.mOutput = Settings["output"].GetString();
+        }
+        mio::Mesh result = mio::metric_from_hessian(mesh, options);
+        StoreResult(result, rDestination);
 
     } else {
         std::ostringstream supported;
@@ -1877,6 +2921,271 @@ Parameters MeshioPlusPlusMeshOperations::Grid(
 
     Parameters report(R"({})");
     AppendLatticeReport(report, counts, origin, spacing);
+    report.AddInt("number_of_nodes", static_cast<int>(rDestination.NumberOfNodes()));
+    report.AddInt("number_of_elements", static_cast<int>(rDestination.NumberOfElements()));
+    report.AddInt("number_of_conditions", static_cast<int>(rDestination.NumberOfConditions()));
+    return report;
+
+    KRATOS_CATCH("")
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+Parameters MeshioPlusPlusMeshOperations::FindIntersections(
+    const ModelPart& rFirst,
+    const ModelPart& rSecond,
+    Parameters Settings,
+    ModelPart& rDestination
+    )
+{
+    KRATOS_TRY
+
+    KRATOS_ERROR_IF(rFirst.IsDistributed() || rSecond.IsDistributed())
+        << "The meshio++ operations do not support distributed model parts" << std::endl;
+
+    Settings.ValidateAndAssignDefaults(Parameters(R"({
+        "region"                  : "",
+        "intersections_region_b"  : "",
+        "intersections_max_pairs" : 0
+    })"));
+
+    const mio::Mesh first = Internals::ModelPartToMesh(rFirst);
+    const mio::Mesh second = Internals::ModelPartToMesh(rSecond);
+    mio::FindIntersectionsResult result = mio::find_intersections(first, second, ReadFindIntersectionsOptions(Settings));
+    Parameters report = FindIntersectionsReport(result);
+    StoreResult(result.mSegments, rDestination);
+    return report;
+
+    KRATOS_CATCH("")
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+Parameters MeshioPlusPlusMeshOperations::Thickness(
+    const ModelPart& rSource,
+    const ModelPart& rTarget,
+    Parameters Settings,
+    ModelPart& rDestination
+    )
+{
+    KRATOS_TRY
+
+    KRATOS_ERROR_IF(rSource.IsDistributed() || rTarget.IsDistributed())
+        << "The meshio++ operations do not support distributed model parts" << std::endl;
+
+    Settings.ValidateAndAssignDefaults(Parameters(R"({
+        "thickness_direction"     : "auto",
+        "thickness_max_distance"  : 0.0,
+        "thickness_threshold"     : 0.0,
+        "region"                  : "",
+        "thickness_region_target" : "",
+        "output"                  : ""
+    })"));
+
+    const mio::Mesh source = Internals::ModelPartToMesh(rSource);
+    const mio::Mesh target = Internals::ModelPartToMesh(rTarget);
+    mio::ThicknessResult result = mio::thickness(source, target, ReadThicknessOptions(Settings));
+    Parameters report = ThicknessReport(result);
+    RenameResultArray(result.mMesh, mio::DataLocation::Cell, mio::kThicknessDistanceName,
+                      Settings["output"].GetString());
+    StoreResult(result.mMesh, rDestination);
+    return report;
+
+    KRATOS_CATCH("")
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+Parameters MeshioPlusPlusMeshOperations::Primitive(
+    Parameters Settings,
+    ModelPart& rDestination
+    )
+{
+    KRATOS_TRY
+
+    // Every generator keeps its own upstream defaults (a disk's "n" is 8, a ball's 4), so a
+    // setting left out is not filled from one shared table: it falls back per shape.
+    static const std::set<std::string> accepted_keys = {
+        "primitive", "dims", "size", "origin", "center", "cell_type", "split", "order", "complete",
+        "max_cells", "radius", "inner_radius", "outer_radius", "major_radius", "minor_radius",
+        "height", "width", "edge", "n", "nu", "nv", "nr", "nz", "nt", "nxy", "ntheta", "ncap",
+        "subdivisions", "sides", "rings", "angle", "pitch", "turns", "num_twists", "ratio", "seed",
+        "start", "end", "name", "types", "pairs", "loops", "target_size", "min_angle", "max_points"};
+    for (auto it = Settings.begin(); it != Settings.end(); ++it) {
+        KRATOS_ERROR_IF(accepted_keys.count(it.name()) == 0)
+            << "Unknown \"" << it.name() << "\" setting for MeshioPlusPlusMeshOperations.Primitive" << std::endl;
+    }
+    KRATOS_ERROR_IF_NOT(Settings.Has("primitive"))
+        << "MeshioPlusPlusMeshOperations.Primitive needs a \"primitive\" (box, disk, ball, ...)" << std::endl;
+
+    const auto real = [&Settings](const char* pKey, const double Default) {
+        return Settings.Has(pKey) ? Settings[pKey].GetDouble() : Default;
+    };
+    const auto integer = [&Settings](const char* pKey, const std::int64_t Default) {
+        return Settings.Has(pKey) ? static_cast<std::int64_t>(Settings[pKey].GetInt()) : Default;
+    };
+    const auto text = [&Settings](const char* pKey, const std::string& rDefault) {
+        return Settings.Has(pKey) ? Settings[pKey].GetString() : rDefault;
+    };
+    const auto vector3 = [&Settings](const char* pKey) {
+        std::array<double, 3> value{{0.0, 0.0, 0.0}};
+        return Settings.Has(pKey) ? ReadVector3(Settings, pKey) : value;
+    };
+    const auto pair_of = [&Settings](const char* pKey, const std::array<double, 2>& rDefault) {
+        if (!Settings.Has(pKey)) {
+            return rDefault;
+        }
+        const Vector value = Settings[pKey].GetVector();
+        KRATOS_ERROR_IF(value.size() != 2) << "\"" << pKey << "\" needs two entries" << std::endl;
+        return std::array<double, 2>{{value[0], value[1]}};
+    };
+    const auto triple_of = [&Settings](const char* pKey, const std::array<double, 3>& rDefault) {
+        return Settings.Has(pKey) ? ReadVector3(Settings, pKey) : rDefault;
+    };
+    const auto counts = [&Settings](const char* pKey, const std::size_t Size, const std::int64_t Default) {
+        std::array<std::int64_t, 3> value{{Default, Default, Default}};
+        if (Settings.Has(pKey)) {
+            const Vector read = Settings[pKey].GetVector();
+            KRATOS_ERROR_IF(read.size() != Size) << "\"" << pKey << "\" needs " << Size << " entries" << std::endl;
+            for (std::size_t i = 0; i < Size; ++i) {
+                value[i] = static_cast<std::int64_t>(read[i]);
+            }
+        }
+        return value;
+    };
+
+    const std::string name = Settings["primitive"].GetString();
+    const int order = static_cast<int>(integer("order", 1));
+    const std::int64_t max_cells = integer("max_cells", 20000000);
+    const bool complete = Settings.Has("complete") && Settings["complete"].GetBool();
+    const auto center = vector3("center");
+    const auto origin = vector3("origin");
+
+    mio::Mesh result;
+    if (name == "rectangle") {
+        const auto dims = counts("dims", 2, 1);
+        result = mio::rectangle({{dims[0], dims[1]}}, pair_of("size", {{1.0, 1.0}}), origin,
+                                text("cell_type", "quad"), text("split", "zigzag"), order, max_cells, complete);
+    } else if (name == "box") {
+        result = mio::box(counts("dims", 3, 1), triple_of("size", {{1.0, 1.0, 1.0}}), origin,
+                          text("cell_type", "hexahedron"), order, max_cells, complete);
+    } else if (name == "box_surface") {
+        result = mio::box_surface(counts("dims", 3, 1), triple_of("size", {{1.0, 1.0, 1.0}}), origin,
+                                  text("cell_type", "quad"), order, max_cells, complete);
+    } else if (name == "disk") {
+        result = mio::disk(real("radius", 1.0), integer("n", 8), center, text("cell_type", "quad"), order, max_cells, complete);
+    } else if (name == "uv_sphere") {
+        result = mio::uv_sphere(real("radius", 1.0), integer("nu", 16), integer("nv", 8), center,
+                                text("cell_type", "triangle"), order, max_cells, complete);
+    } else if (name == "icosa_sphere") {
+        result = mio::icosa_sphere(real("radius", 1.0), integer("subdivisions", 2), center, order, max_cells, complete);
+    } else if (name == "tetra_sphere") {
+        result = mio::tetra_sphere(real("radius", 1.0), integer("subdivisions", 3), center, order, max_cells, complete);
+    } else if (name == "octa_sphere") {
+        result = mio::octa_sphere(real("radius", 1.0), integer("subdivisions", 2), center, order, max_cells, complete);
+    } else if (name == "cube_sphere") {
+        result = mio::cube_sphere(real("radius", 1.0), integer("n", 4), center, text("cell_type", "quad"), order, max_cells, complete);
+    } else if (name == "geo_sphere") {
+        result = mio::geo_sphere(real("radius", 1.0), integer("n", 4), center, order, max_cells, complete);
+    } else if (name == "cylinder") {
+        result = mio::cylinder(real("radius", 1.0), real("height", 1.0), integer("nxy", 8), integer("nz", 8), center,
+                               text("cell_type", "hexahedron"), order, max_cells, complete);
+    } else if (name == "reference_triangle") {
+        result = mio::reference_triangle(integer("n", 4), pair_of("size", {{1.0, 1.0}}), origin, order, max_cells, complete);
+    } else if (name == "ngon") {
+        result = mio::ngon(integer("sides", 6), real("radius", 1.0), integer("rings", 1), center, order, max_cells, complete);
+    } else if (name == "annulus") {
+        result = mio::annulus(real("inner_radius", 0.5), real("outer_radius", 1.0), integer("ntheta", 16), integer("nr", 4),
+                              real("angle", 2.0 * Globals::Pi), center, text("cell_type", "quad"), order, max_cells, complete);
+    } else if (name == "lshape") {
+        result = mio::lshape(integer("n", 4), real("size", 2.0), center, text("cell_type", "quad"), order, max_cells, complete);
+    } else if (name == "plate_with_hole") {
+        result = mio::plate_with_hole(real("radius", 0.25), real("size", 1.0), integer("nt", 8), integer("nr", 4), center,
+                                      text("cell_type", "quad"), order, max_cells, complete);
+    } else if (name == "honeycomb") {
+        const auto dims = counts("dims", 2, 4);
+        result = mio::honeycomb({{dims[0], dims[1]}}, real("edge", 1.0), origin, max_cells);
+    } else if (name == "line") {
+        result = mio::line(integer("n", 8), triple_of("start", {{0.0, 0.0, 0.0}}), triple_of("end", {{1.0, 0.0, 0.0}}),
+                           order, max_cells, complete);
+    } else if (name == "circle") {
+        result = mio::circle(real("radius", 1.0), integer("n", 16), center, order, max_cells, complete);
+    } else if (name == "helix") {
+        result = mio::helix(real("radius", 1.0), real("pitch", 1.0), real("turns", 2.0), integer("n", 32), center,
+                            order, max_cells, complete);
+    } else if (name == "sphere_points") {
+        result = mio::sphere_points(integer("n", 100), real("radius", 1.0), center, max_cells);
+    } else if (name == "box_points") {
+        result = mio::box_points(integer("n", 100), triple_of("size", {{1.0, 1.0, 1.0}}), origin,
+                                 static_cast<std::uint64_t>(integer("seed", 0)), max_cells);
+    } else if (name == "torus") {
+        result = mio::torus(real("major_radius", 1.0), real("minor_radius", 0.25), integer("nu", 32), integer("nv", 16),
+                            center, text("cell_type", "quad"), order, max_cells, complete);
+    } else if (name == "moebius") {
+        result = mio::moebius(real("radius", 1.0), real("width", 0.5), integer("nu", 32), integer("nv", 4),
+                              integer("num_twists", 1), center, text("cell_type", "quad"), order, max_cells, complete);
+    } else if (name == "tube") {
+        result = mio::tube(real("radius", 1.0), real("height", 1.0), integer("ntheta", 16), integer("nz", 4), center,
+                           text("cell_type", "quad"), order, max_cells, complete);
+    } else if (name == "cone") {
+        result = mio::cone(real("radius", 1.0), real("height", 1.0), integer("ntheta", 16), integer("nz", 4), center,
+                           text("cell_type", "quad"), order, max_cells, complete);
+    } else if (name == "capsule") {
+        result = mio::capsule(real("radius", 0.5), real("height", 1.0), integer("ntheta", 16), integer("nz", 4),
+                              integer("ncap", 4), center, text("cell_type", "quad"), order, max_cells, complete);
+    } else if (name == "platonic") {
+        result = mio::platonic(text("name", "icosahedron"), real("radius", 1.0), center, max_cells);
+    } else if (name == "ball") {
+        result = mio::ball(real("radius", 1.0), integer("n", 4), center, text("cell_type", "hexahedron"), order, max_cells, complete);
+    } else if (name == "spherical_shell") {
+        result = mio::spherical_shell(real("inner_radius", 0.5), real("outer_radius", 1.0), integer("n", 4), integer("nr", 2),
+                                      real("ratio", 1.0), center, order, max_cells, complete);
+    } else if (name == "pipe") {
+        result = mio::pipe(real("inner_radius", 0.5), real("outer_radius", 1.0), real("height", 1.0), integer("ntheta", 16),
+                           integer("nr", 2), integer("nz", 4), real("ratio", 1.0), center, order, max_cells, complete);
+    } else if (name == "fichera") {
+        result = mio::fichera(integer("n", 2), real("size", 2.0), center, text("cell_type", "hexahedron"), order, max_cells, complete);
+    } else if (name == "solid_torus") {
+        result = mio::solid_torus(real("major_radius", 1.0), real("minor_radius", 0.25), integer("n", 4), integer("nu", 32),
+                                  center, order, max_cells, complete);
+    } else if (name == "reference_cells") {
+        result = mio::reference_cells(Settings.Has("types") ? Settings["types"].GetStringArray() : std::vector<std::string>{},
+                                      Settings.Has("pairs") && Settings["pairs"].GetBool());
+    } else if (name == "polygon") {
+        // A constrained Delaunay triangulation of planar loops: the first is the outer boundary,
+        // the rest holes, each a list of [x, y] points.
+        KRATOS_ERROR_IF_NOT(Settings.Has("loops"))
+            << "The \"polygon\" primitive needs \"loops\": a list of [[x, y], ...] point lists" << std::endl;
+        std::vector<std::vector<std::array<double, 2>>> loops;
+        for (std::size_t i_loop = 0; i_loop < Settings["loops"].size(); ++i_loop) {
+            std::vector<std::array<double, 2>> loop;
+            for (std::size_t i_point = 0; i_point < Settings["loops"][i_loop].size(); ++i_point) {
+                const Vector point = Settings["loops"][i_loop][i_point].GetVector();
+                KRATOS_ERROR_IF(point.size() != 2) << "Every \"loops\" point needs two coordinates" << std::endl;
+                loop.push_back({{point[0], point[1]}});
+            }
+            loops.push_back(std::move(loop));
+        }
+        mio::TriangulatePolygon2dOptions options;
+        options.mTargetSize = real("target_size", 0.0);
+        options.mMinAngleDeg = real("min_angle", 0.0);
+        options.mMaxPoints = integer("max_points", 1000000);
+        result = mio::triangulate_polygon_2d(loops, options);
+    } else {
+        KRATOS_ERROR << "Unknown primitive \"" << name << "\". Supported primitives are: annulus, ball, box, "
+                     << "box_points, box_surface, capsule, circle, cone, cube_sphere, cylinder, disk, fichera, "
+                     << "geo_sphere, helix, honeycomb, icosa_sphere, line, lshape, moebius, ngon, octa_sphere, "
+                     << "pipe, plate_with_hole, platonic, polygon, rectangle, reference_cells, "
+                     << "reference_triangle, solid_torus, sphere_points, spherical_shell, tetra_sphere, "
+                     << "torus, tube, uv_sphere" << std::endl;
+    }
+    Internals::MeshToModelPart(result, rDestination);
+
+    Parameters report(R"({})");
+    report.AddString("primitive", name);
     report.AddInt("number_of_nodes", static_cast<int>(rDestination.NumberOfNodes()));
     report.AddInt("number_of_elements", static_cast<int>(rDestination.NumberOfElements()));
     report.AddInt("number_of_conditions", static_cast<int>(rDestination.NumberOfConditions()));

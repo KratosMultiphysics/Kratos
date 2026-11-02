@@ -78,6 +78,17 @@ namespace Kratos
  * colon-namespaced and so do not reach the destination. "tessellate" (the "tessellate_*"
  * settings) subdivides the quadratic cells into linear triangles and tetrahedra.
  *
+ * @note Since meshio++ v18.0.0: "tetrahedralize" (Netgen or the native octree backend),
+ * "octree_mesh", "boundary_layer", "extrude", "revolve", "mirror", "octree", "refine_patches"
+ * (segments first, as "fit_primitives" does), "select" (writes one sub model part),
+ * "check_conformity" (report-only), "find_intersections" and "thickness" (also in their
+ * two-surface forms @ref FindIntersections and @ref Thickness), "error_size",
+ * "metric_from_hessian" and the MMG remeshers "adapt", "discretize_levelset", "mesh_domain" and
+ * "move" (which refuse by name in a meshio++ without MMG, or for "move" without its ELAS add-on).
+ * "tet_to_poly" produces polyhedra, which no ModelPart can hold: it writes "output_file" and
+ * leaves the destination untouched. Its inverse, `poly_to_tet`, is the "poly_to_tet" read
+ * setting of @ref MeshioPlusPlusIO, since a polyhedral mesh can only come from a file.
+ *
  * @ref Execute optionally carries field data through the operation, using the same
  * "nodal_solution_step_data_variables" / "nodal_data_value_variables" / "nodal_flags" /
  * "element_data_value_variables" / "element_flags" / "condition_data_value_variables" /
@@ -120,6 +131,15 @@ public:
      * @return The default parameters.
      */
     static Parameters GetDefaultParameters();
+
+    /**
+     * @brief Which optional meshio++ backends the linked library can use.
+     * @details Answered at run time since meshio++ v18.0.0 (its provider registry): "occt"
+     * (STEP/IGES reading and fit_cad's OpenCASCADE backend), "netgen" (tetrahedralize's Netgen
+     * backend), "mmg" (adapt, discretize_levelset, mesh_domain) and "mmg_elas" (move).
+     * @return The flags.
+     */
+    static Parameters GetCapabilities();
 
     /**
      * @brief Applies a meshio++ operation to a model part.
@@ -244,6 +264,69 @@ public:
      * @return The lattice report ("dims", "origin", "spacing" and the entity counts).
      */
     static Parameters Grid(
+        Parameters Settings,
+        ModelPart& rDestination
+        );
+
+    /**
+     * @brief Builds one of meshio++'s parametric shapes from nothing (the @ref Grid shape).
+     * @details "primitive" names the shape: rectangle, box, box_surface, disk, ngon, annulus,
+     * lshape, plate_with_hole, honeycomb, reference_triangle, reference_cells, line, circle,
+     * helix, uv_sphere, icosa_sphere, tetra_sphere, octa_sphere, cube_sphere, geo_sphere,
+     * sphere_points, box_points, cylinder, tube, cone, capsule, torus, moebius, platonic, ball,
+     * spherical_shell, pipe, fichera, solid_torus, or "polygon" - the constrained Delaunay
+     * triangulation of planar "loops" (outer boundary first, then holes; "target_size",
+     * "min_angle", "max_points"). The other settings are the shape's own parameters, each with
+     * meshio++'s per-shape default when left out: "dims", "size", "origin", "center", "cell_type",
+     * "split", "order" (1 linear, 2 and above the Lagrange family), "complete", "max_cells",
+     * "radius", "inner_radius", "outer_radius", "major_radius", "minor_radius", "height", "width",
+     * "edge", "n", "nu", "nv", "nr", "nz", "nt", "nxy", "ntheta", "ncap", "subdivisions",
+     * "sides", "rings", "angle" (radians), "pitch", "turns", "num_twists", "ratio", "seed",
+     * "start", "end", "name" (platonic), "types" and "pairs" (reference_cells).
+     * @param Settings The shape and its parameters.
+     * @param rDestination The model part receiving the shape (expected empty).
+     * @return The shape name and the entity counts.
+     */
+    static Parameters Primitive(
+        Parameters Settings,
+        ModelPart& rDestination
+        );
+
+    /**
+     * @brief Where two surfaces interpenetrate or touch, by exact triangle-triangle tests.
+     * @details The two-surface form of the "find_intersections" operation, not reachable through
+     * @ref Execute because it takes two meshes. Settings: "region" and "intersections_region_b"
+     * (restrict each surface to a sub model part), "intersections_max_pairs" (0: every pair).
+     * @param rFirst The first surface.
+     * @param rSecond The second surface.
+     * @param Settings The settings.
+     * @param rDestination The model part receiving the crossing segments as line entities.
+     * @return The counts, the "clean" verdict and the intersecting cell pairs.
+     */
+    static Parameters FindIntersections(
+        const ModelPart& rFirst,
+        const ModelPart& rSecond,
+        Parameters Settings,
+        ModelPart& rDestination
+        );
+
+    /**
+     * @brief The clearance from every facet of one surface to a second one, by a ray along each
+     * facet's normal.
+     * @details The two-surface form of the "thickness" operation, not reachable through
+     * @ref Execute because it takes two meshes. Settings: "thickness_direction" (auto, inward,
+     * outward; auto is outward for two surfaces), "thickness_max_distance", "thickness_threshold"
+     * (counts the facets below it), "region", "thickness_region_target", and "output" (renames
+     * "thickness:distance" to a registered variable so it reaches the destination's elements).
+     * @param rSource The surface measured.
+     * @param rTarget The surface the rays look for.
+     * @param Settings The settings.
+     * @param rDestination The model part receiving the measured surface (expected empty).
+     * @return The least, largest and mean distance and where the least was measured.
+     */
+    static Parameters Thickness(
+        const ModelPart& rSource,
+        const ModelPart& rTarget,
         Parameters Settings,
         ModelPart& rDestination
         );
