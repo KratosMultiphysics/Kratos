@@ -14,11 +14,16 @@ class MeshioOperationModeler(KratosMultiphysics.Modeler):
     "sobolev_deform", "voxelize", "compute_sdf", "split", "partition", "stats", "quality", and
     the data operations "data_calc", "data_condition", "data_manage", "data_info",
     "data_integrate", "tensor_invariants", "point_data_to_cell_data",
-    "cell_data_to_point_data". Query what this build supports with
+    "cell_data_to_point_data", and since meshio++ v18.0.0 "tetrahedralize", "octree_mesh",
+    "boundary_layer", "extrude", "revolve", "mirror", "octree", "refine_patches", "select",
+    "check_conformity", "find_intersections", "thickness", "error_size", "tet_to_poly",
+    "metric_from_hessian" and the MMG remeshers "adapt", "discretize_levelset", "mesh_domain"
+    and "move". Query what this build supports with
     KratosMeshioPlusPlus.MeshioPlusPlusMeshOperations.GetSupportedOperations(), and the
     available settings with GetDefaultParameters(). "interpolate" is not reachable here - it
     needs two source model parts; see MeshioInterpolateModeler. Nor are "Grid" (no source at
-    all), "DistanceToSurface", "Shrinkwrap" (both two sources) and "CheckSurfaceWatertight"
+    all), "Primitive" (no source either), "DistanceToSurface", "Shrinkwrap", "FindIntersections",
+    "Thickness" (all two sources) and "CheckSurfaceWatertight"
     (report-only); call those on MeshioPlusPlusMeshOperations directly.
 
     Field data (nodal/elemental/conditional variables, flags and ids) can be carried through
