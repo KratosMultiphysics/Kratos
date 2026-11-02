@@ -179,10 +179,15 @@ void AddCustomUtilitiesToPython(pybind11::module& m)
             "Points (and with \"derivatives\" : 1 first derivatives and normals) of patch/face "
             "\"index\" at the \"parameters\" matrix; a face also reports which points lie inside "
             "its trimming loops.")
-        .def_static("MeshCad", &MeshioPlusPlusIgaUtilities::MeshCad,
+        .def_static("MeshCad", py::overload_cast<const std::string&, Parameters, ModelPart&>(&MeshioPlusPlusIgaUtilities::MeshCad),
             py::arg("file_name"), py::arg("settings"), py::arg("destination_model_part"),
             "Meshes the faces of a B-rep (CAD JSON, STEP, IGES) into a conforming surface mesh, one "
             "sub model part \"face:<k>\" per face (meshio++'s mesh_cad_surface).")
+        .def_static("MeshCad", py::overload_cast<const std::string&, Parameters, ModelPart&, const ModelPart&>(&MeshioPlusPlusIgaUtilities::MeshCad),
+            py::arg("file_name"), py::arg("settings"), py::arg("destination_model_part"),
+            py::arg("background_model_part"),
+            "MeshCad with the size (\"background_size_variable\") and/or anisotropic metric "
+            "(\"background_hessian_variable\", \"metric_error\") taken from a background model part's nodes.")
         .def_static("ProjectToCad", &MeshioPlusPlusIgaUtilities::ProjectToCad,
             py::arg("source_model_part"), py::arg("file_name"), py::arg("settings"),
             py::arg("destination_model_part"),
