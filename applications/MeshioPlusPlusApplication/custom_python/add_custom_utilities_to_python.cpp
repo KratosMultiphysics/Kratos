@@ -89,6 +89,26 @@ void AddCustomUtilitiesToPython(pybind11::module& m)
             "Builds a regular hexahedron lattice from \"dims\"/\"origin\"/\"spacing\". Not "
             "reachable through Execute: it takes no source model part, being the only "
             "generator rather than a transformation.")
+        .def_static("Primitive", &MeshioPlusPlusMeshOperations::Primitive,
+            py::arg("settings"), py::arg("destination_model_part"),
+            "Builds one of meshio++'s parametric shapes (\"primitive\": box, disk, ball, torus, "
+            "pipe, ... or \"polygon\", a constrained triangulation of planar \"loops\"); every "
+            "parameter left out takes that shape's own default.")
+        .def_static("FindIntersections", &MeshioPlusPlusMeshOperations::FindIntersections,
+            py::arg("first_model_part"), py::arg("second_model_part"), py::arg("settings"),
+            py::arg("destination_model_part"),
+            "Where two surfaces interpenetrate or touch (exact triangle-triangle tests): the cell "
+            "pairs in the report, the crossing segments in destination_model_part.")
+        .def_static("Thickness", &MeshioPlusPlusMeshOperations::Thickness,
+            py::arg("source_model_part"), py::arg("target_model_part"), py::arg("settings"),
+            py::arg("destination_model_part"),
+            "The clearance from every facet of source_model_part to target_model_part, by a ray "
+            "along each facet's normal. Set \"output\" to a registered Variable name to get the "
+            "per-element distance back: meshio++ names it \"thickness:distance\".")
+        .def_static("GetCapabilities", &MeshioPlusPlusMeshOperations::GetCapabilities,
+            "Which optional meshio++ backends this build can use: \"occt\" (STEP/IGES reading, "
+            "fit_cad's OpenCASCADE backend), \"netgen\" (tetrahedralize), \"mmg\" (adapt, "
+            "discretize_levelset, mesh_domain) and \"mmg_elas\" (move).")
         .def_static("DistanceToSurface", &MeshioPlusPlusMeshOperations::DistanceToSurface,
             py::arg("query_model_part"), py::arg("surface_model_part"), py::arg("settings"),
             py::arg("destination_model_part"),
@@ -159,6 +179,15 @@ void AddCustomUtilitiesToPython(pybind11::module& m)
             "Points (and with \"derivatives\" : 1 first derivatives and normals) of patch/face "
             "\"index\" at the \"parameters\" matrix; a face also reports which points lie inside "
             "its trimming loops.")
+        .def_static("MeshCad", &MeshioPlusPlusIgaUtilities::MeshCad,
+            py::arg("file_name"), py::arg("settings"), py::arg("destination_model_part"),
+            "Meshes the faces of a B-rep (CAD JSON, STEP, IGES) into a conforming surface mesh, one "
+            "sub model part \"face:<k>\" per face (meshio++'s mesh_cad_surface).")
+        .def_static("ProjectToCad", &MeshioPlusPlusIgaUtilities::ProjectToCad,
+            py::arg("source_model_part"), py::arg("file_name"), py::arg("settings"),
+            py::arg("destination_model_part"),
+            "Projects a mesh's points back onto the B-rep faces and edges named by the "
+            "\"face_ids_variable\"/\"edge_ids_variable\" MeshCad wrote.")
         ;
 }
 
