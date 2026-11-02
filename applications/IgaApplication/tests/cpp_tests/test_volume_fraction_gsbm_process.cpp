@@ -129,6 +129,47 @@ array_1d<double, 3> ClosestPointOnRectangleBoundary(
     return closest_point;
 }
 
+/// Background, elements, facets and the ellipse around rCenter
+void CreateEllipseModel(
+    Model& rModel,
+    const array_1d<double, 3>& rCenter,
+    const std::array<double, 2>& rAxes)
+{
+    rModel.CreateModelPart("IgaModelPart");
+    NurbsGeometryModeler nurbs_modeler(rModel, Parameters(R"({
+        "model_part_name"     : "IgaModelPart",
+        "geometry_name"       : "background",
+        "lower_point_xyz"     : [0.0, 0.0, 0.0],
+        "upper_point_xyz"     : [1.0, 1.0, 0.0],
+        "lower_point_uvw"     : [0.0, 0.0, 0.0],
+        "upper_point_uvw"     : [1.0, 1.0, 0.0],
+        "polynomial_order"    : [2, 2],
+        "number_of_knot_spans": [8, 8]
+    })"));
+    nurbs_modeler.SetupGeometryModel();
+
+    const Modeler& r_registered_modeler = KratosComponents<Modeler>::Get("IgaModelerGsbm");
+    const auto p_gsbm_modeler = r_registered_modeler.Create(rModel, Parameters(R"({
+        "analysis_model_part_name": "IgaModelPart",
+        "geometry_name"           : "background",
+        "element_condition_list"  : [{
+            "type"                            : "element",
+            "name"                            : "GenericElement",
+            "iga_model_part"                  : "Domain",
+            "shape_function_derivatives_order": 2
+        }, {
+            "type"                            : "condition",
+            "name"                            : "GenericCondition",
+            "iga_model_part"                  : "Facets",
+            "shape_function_derivatives_order": 3,
+            "gsbm_parameters"                 : {}
+        }]
+    })"));
+    p_gsbm_modeler->SetupModelPart();
+
+    CreateNurbsEllipse(rModel.CreateModelPart("Skin"), rCenter, rAxes, "ellipse");
+}
+
 } // namespace
 
 // Background patch [0, 1] x [0, 0.75] with 4 x 3 knot spans of size 0.25 and
@@ -462,6 +503,84 @@ KRATOS_TEST_CASE_IN_SUITE(VolumeFractionGsbmProcessNurbsEllipse, KratosIgaFastSu
         model.GetModelPart("OuterSkin.ellipse.projection_data").NumberOfNodes()
             + model.GetModelPart("InnerSkin.hole.projection_data").NumberOfNodes(),
         number_of_cut_facets
+    );
+}
+
+// Moving skin: an ellipse with semi-axes 0.25 and 0.1875 around (0.5, 0.5) on
+// the background of VolumeFractionGsbmProcessNurbsEllipse, moved rigidly by
+// (13, 9) / 128 after the first call, off the knot lines (all exact in binary).
+// With update_each_step, the next step must give what a fresh process gives
+// at the new position: the same volume fractions, the same cut facets and
+// closest points, one projection node per cut facet and a single tessellation.
+KRATOS_TEST_CASE_IN_SUITE(VolumeFractionGsbmProcessMovingSkin, KratosIgaFastSuite)
+{
+    const array_1d<double, 3> start{0.5, 0.5, 0.0};
+    const array_1d<double, 3> end{0.6015625, 0.5703125, 0.0};
+    const std::array<double, 2> axes{0.25, 0.1875};
+
+    const Parameters process_parameters(R"({
+        "model_part_name"                   : "IgaModelPart",
+        "geometry_name"                     : "background",
+        "elements_model_part_name"          : "IgaModelPart.Domain",
+        "skeleton_model_part_name"          : "IgaModelPart.Facets",
+        "skin_model_part_outer_initial_name": "Skin",
+        "update_each_step"                  : true
+    })");
+
+    // At the start, then moved by its control points, for the next step
+    Model model;
+    CreateEllipseModel(model, start, axes);
+    VolumeFractionGsbmProcess gsbm_process(model, process_parameters.Clone());
+    gsbm_process.ExecuteInitialize();
+    for (auto& r_control_point : model.GetModelPart("Skin").GetGeometry(0)) {
+        r_control_point.X() += end[0] - start[0];
+        r_control_point.Y() += end[1] - start[1];
+    }
+    gsbm_process.ExecuteInitializeSolutionStep();
+
+    // A fresh process with the ellipse at the end
+    Model reference_model;
+    CreateEllipseModel(reference_model, end, axes);
+    VolumeFractionGsbmProcess reference_process(reference_model, process_parameters.Clone());
+    reference_process.ExecuteInitialize();
+
+    const ModelPart& r_elements = model.GetModelPart("IgaModelPart.Domain");
+    const ModelPart& r_reference_elements = reference_model.GetModelPart("IgaModelPart.Domain");
+    KRATOS_EXPECT_EQ(r_elements.NumberOfElements(), r_reference_elements.NumberOfElements());
+    auto it_reference_element = r_reference_elements.ElementsBegin();
+    for (const auto& r_element : r_elements.Elements()) {
+        KRATOS_EXPECT_NEAR(
+            r_element.GetValue(VOLUME_FRACTION),
+            (it_reference_element++)->GetValue(VOLUME_FRACTION), 1.0e-14
+        );
+    }
+
+    // Cut facets, and their projection nodes, only where the reference has them
+    const ModelPart& r_projection_data = model.GetModelPart("Skin.ellipse.projection_data");
+    const ModelPart& r_facets = model.GetModelPart("IgaModelPart.Facets");
+    const ModelPart& r_reference_facets = reference_model.GetModelPart("IgaModelPart.Facets");
+    IndexType number_of_cut_facets = 0;
+    auto it_reference_facet = r_reference_facets.ConditionsBegin();
+    for (const auto& r_facet : r_facets.Conditions()) {
+        const auto& r_reference_facet = *(it_reference_facet++);
+        KRATOS_EXPECT_EQ(r_facet.Has(IDENTIFIER), r_reference_facet.Has(IDENTIFIER));
+        KRATOS_EXPECT_EQ(r_facet.Has(NEIGHBOUR_NODES), r_reference_facet.Has(NEIGHBOUR_NODES));
+        if (!r_facet.Has(NEIGHBOUR_NODES) || !r_reference_facet.Has(NEIGHBOUR_NODES)) {
+            continue;
+        }
+        ++number_of_cut_facets;
+        const Node& r_node = r_facet.GetValue(NEIGHBOUR_NODES)[0];
+        KRATOS_EXPECT_TRUE(r_projection_data.HasNode(r_node.Id()));
+        KRATOS_EXPECT_VECTOR_NEAR(
+            r_node.Coordinates(),
+            r_reference_facet.GetValue(NEIGHBOUR_NODES)[0].Coordinates(), 1.0e-12
+        );
+    }
+    KRATOS_EXPECT_GT(number_of_cut_facets, 0);
+    KRATOS_EXPECT_EQ(r_projection_data.NumberOfNodes(), number_of_cut_facets);
+    KRATOS_EXPECT_EQ(
+        model.GetModelPart("Skin").NumberOfNodes(),
+        reference_model.GetModelPart("Skin").NumberOfNodes()
     );
 }
 

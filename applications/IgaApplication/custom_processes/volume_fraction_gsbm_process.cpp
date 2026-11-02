@@ -405,6 +405,56 @@ void VolumeFractionGsbmProcess::ExecuteInitialize()
     KRATOS_CATCH("")
 }
 
+void VolumeFractionGsbmProcess::ExecuteInitializeSolutionStep()
+{
+    KRATOS_TRY
+
+    if (!mParameters["update_each_step"].GetBool()) {
+        return;
+    }
+
+    // The links of the cut facets to their projection nodes, and the nodes
+    ModelPart& r_facets = mpModel->GetModelPart(
+        mParameters["skeleton_model_part_name"].GetString()
+    );
+    for (auto& r_facet : r_facets.Conditions()) {
+        if (r_facet.Has(NEIGHBOUR_NODES)) {
+            for (auto& r_node : r_facet.GetValue(NEIGHBOUR_NODES)) {
+                r_node.Set(TO_ERASE, true);
+            }
+            r_facet.GetData().Erase(NEIGHBOUR_NODES);
+            r_facet.GetData().Erase(IDENTIFIER);
+        }
+    }
+
+    // The tessellations, rebuilt from the curves where they are now
+    for (const std::string key : {
+        "skin_model_part_outer_initial_name", "skin_model_part_inner_initial_name"
+    }) {
+        const std::string& r_name = mParameters[key].GetString();
+        if (r_name.empty()) {
+            continue;
+        }
+        ModelPart& r_skin = mpModel->GetModelPart(r_name);
+        if (r_skin.HasSubModelPart("tessellation")) {
+            ModelPart& r_tessellation = r_skin.GetSubModelPart("tessellation");
+            for (auto& r_node : r_tessellation.Nodes()) {
+                r_node.Set(TO_ERASE, true);
+            }
+            for (auto& r_condition : r_tessellation.Conditions()) {
+                r_condition.Set(TO_ERASE, true);
+            }
+            r_skin.GetRootModelPart().RemoveConditionsFromAllLevels(TO_ERASE);
+            r_skin.RemoveSubModelPart("tessellation");
+        }
+        r_skin.GetRootModelPart().RemoveNodesFromAllLevels(TO_ERASE);
+    }
+
+    ExecuteInitialize();
+
+    KRATOS_CATCH("")
+}
+
 const Parameters VolumeFractionGsbmProcess::GetDefaultParameters() const
 {
     return Parameters(R"(
@@ -416,7 +466,8 @@ const Parameters VolumeFractionGsbmProcess::GetDefaultParameters() const
         "skeleton_model_part_name"           : "",
         "skin_model_part_outer_initial_name" : "",
         "skin_model_part_inner_initial_name" : "",
-        "tessellation_tolerance"             : 1.0e-8
+        "tessellation_tolerance"             : 1.0e-8,
+        "update_each_step"                   : false
     })");
 }
 

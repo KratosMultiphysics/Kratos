@@ -75,6 +75,11 @@ public:
     /// Assumes uv = xy
     void ExecuteInitialize() override;
 
+    /// With update_each_step, for moving skins: removes the projection nodes,
+    /// the cut facets' NEIGHBOUR_NODES and IDENTIFIER, and the tessellations,
+    /// then runs ExecuteInitialize for the skins where they are now
+    void ExecuteInitializeSolutionStep() override;
+
     ///@}
     ///@name Input and output
     ///@{
