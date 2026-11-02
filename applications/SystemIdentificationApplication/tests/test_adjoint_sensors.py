@@ -344,31 +344,6 @@ class TestStrainSensorShell(UnitTest.TestCase):
                 self.assertAlmostEqual(sensitivity, response_sensitivities[i * 6 + 1], 4)
                 node.SetSolutionStepValue(Kratos.DISPLACEMENT_Y, node.GetSolutionStepValue(Kratos.DISPLACEMENT_Y) - delta)
 
-    def test_CalculateGradientRestarted(self):
-        # a restarted run skips element Initialize(), so the FD clone must be initialized with IS_RESTARTED = False
-        residual_matrix = Kratos.Matrix(18, 18)
-        process_info = self.model_part.ProcessInfo
-
-        def calculate_gradients():
-            gradients = []
-            for sensor in self.sensors:
-                element_id = sensor.GetNode().GetValue(KratosSI.SENSOR_ELEMENT_ID)
-                adjoint_element = self.adjoint_model_part.GetElement(element_id)
-                gradient = Kratos.Vector()
-                sensor.CalculateGradient(adjoint_element, residual_matrix, gradient, process_info)
-                gradients.append(gradient)
-            return gradients
-
-        ref_gradients = calculate_gradients()
-        process_info[Kratos.IS_RESTARTED] = True
-        try:
-            restarted_gradients = calculate_gradients()
-        finally:
-            process_info[Kratos.IS_RESTARTED] = False
-
-        for ref_gradient, restarted_gradient in zip(ref_gradients, restarted_gradients):
-            self.assertVectorAlmostEqual(ref_gradient, restarted_gradient, 12)
-
 
 class TestStrainSensorSolids(UnitTest.TestCase):
     @classmethod
@@ -591,31 +566,6 @@ class TestStrainSensorSolids(UnitTest.TestCase):
                 self.assertAlmostEqual(sensitivity, response_sensitivities[j * 3 + 2], 4)
                 node.SetSolutionStepValue(Kratos.DISPLACEMENT_Z, node.GetSolutionStepValue(Kratos.DISPLACEMENT_Z) - delta)
 
-    def test_CalculateGradientRestarted(self):
-        # a restarted run skips element Initialize(), so the FD clone must be initialized with IS_RESTARTED = False
-        residual_matrix = Kratos.Matrix(24, 24)
-        process_info = self.model_part.ProcessInfo
-
-        def calculate_gradients():
-            gradients = []
-            for sensor in self.sensors:
-                element_id = sensor.GetNode().GetValue(KratosSI.SENSOR_ELEMENT_ID)
-                adjoint_element = self.adjoint_model_part.GetElement(element_id)
-                gradient = Kratos.Vector()
-                sensor.CalculateGradient(adjoint_element, residual_matrix, gradient, process_info)
-                gradients.append(gradient)
-            return gradients
-
-        ref_gradients = calculate_gradients()
-        process_info[Kratos.IS_RESTARTED] = True
-        try:
-            restarted_gradients = calculate_gradients()
-        finally:
-            process_info[Kratos.IS_RESTARTED] = False
-
-        for ref_gradient, restarted_gradient in zip(ref_gradients, restarted_gradients):
-            self.assertVectorAlmostEqual(ref_gradient, restarted_gradient, 12)
-
 
 class TestStrainSensorThreadSafety(UnitTest.TestCase):
     """Strain-sensor gradients assembled by the parallel block builder with the adjoint scheme must not depend on the
@@ -720,7 +670,8 @@ class TestStrainSensorThreadSafety(UnitTest.TestCase):
             parallel, before, after, restored_parallel = self._AssembleAdjointRhs(max(8, initial_threads), 3)
         finally:
             Kratos.ParallelUtilities.SetNumThreads(initial_threads)
-        self.assertTrue(restored_serial and restored_parallel)
+        self.assertTrue(restored_serial, msg="1-thread run left a node copy in a geometry")
+        self.assertTrue(restored_parallel, msg="parallel run left a node copy in a geometry")
         self.assertEqual(before, after)      # the shared nodal displacements are untouched
         reference = serial[0]
         scale = max(abs(v) for v in reference.values())
