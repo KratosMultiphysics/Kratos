@@ -8,7 +8,7 @@ if(${TRILINOS_EXCLUDE_ML_SOLVER} MATCHES ON)
     add_definitions(-DTRILINOS_EXCLUDE_ML_SOLVER)
     message("**** WARNING: Manually disabled ML-Solver ****")
 elseif(NOT HAVE_ML OR NOT HAVE_AZTECOO)
-    # The ML wrapper includes AztecOO.h, so it needs both packages
+    # The ML wrapper includes AztecOO.h, so it needs both packages.
     add_definitions(-DTRILINOS_EXCLUDE_ML_SOLVER)
     message("**** WARNING: ML-Solver could not be found (it needs ML and AztecOO) and will be disabled ****")
 endif(${TRILINOS_EXCLUDE_ML_SOLVER} MATCHES ON)
