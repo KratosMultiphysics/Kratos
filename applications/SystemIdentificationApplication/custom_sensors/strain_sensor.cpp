@@ -222,23 +222,35 @@ void StrainSensor::CalculateGradient(
     rResponseGradient.clear();
 
     if (rAdjointElement.Id() == mElementId) {
-        // FD on a private clone (Node copy deep-copies step data and dofs): this runs in the parallel adjoint assembly,
-        // and perturbing the shared nodes corrupts the elements other threads assemble at the same time.
+        // FD on a private clone (nodes without dofs, so nothing shared is written): this runs in the parallel adjoint
+        // assembly, and perturbing the shared nodes corrupts the elements other threads assemble at the same time.
         const auto& r_shared_geometry = rAdjointElement.GetGeometry();
         Element::NodesArrayType cloned_nodes;
         cloned_nodes.reserve(r_shared_geometry.size());
         for (const auto& r_node : r_shared_geometry) {
-            cloned_nodes.push_back(Kratos::make_intrusive<Node>(r_node));
+            auto p_node = Kratos::make_intrusive<Node>(r_node.Id(), r_node.Coordinates());
+            p_node->GetInitialPosition() = r_node.GetInitialPosition();
+            p_node->SolutionStepData() = r_node.SolutionStepData();
+            p_node->GetData() = r_node.GetData();
+            p_node->Flags::operator=(r_node);
+            cloned_nodes.push_back(p_node);
         }
         auto p_element = rAdjointElement.Create(rAdjointElement.Id(), cloned_nodes, rAdjointElement.pGetProperties());
-        p_element->Initialize(rProcessInfo);
+        if (rProcessInfo[IS_RESTARTED]) {
+            // restarted runs skip the element initialization, which the clone still needs
+            ProcessInfo initialization_info(rProcessInfo);
+            initialization_info[IS_RESTARTED] = false;
+            p_element->Initialize(initialization_info);
+        } else {
+            p_element->Initialize(rProcessInfo);
+        }
         auto& r_element = *p_element;
 
         std::vector<Matrix> perturbed_strains, ref_strains;
         r_element.CalculateOnIntegrationPoints(mrStrainVariable, ref_strains, rProcessInfo);
 
         Element::DofsVectorType elemental_dofs;
-        r_element.GetDofList(elemental_dofs, rProcessInfo);
+        rAdjointElement.GetDofList(elemental_dofs, rProcessInfo);
 
         const double delta = rProcessInfo[PERTURBATION_SIZE];
         auto& r_geometry = r_element.GetGeometry();
