@@ -222,10 +222,8 @@ void StrainSensor::CalculateGradient(
     rResponseGradient.clear();
 
     if (rAdjointElement.Id() == mElementId) {
-        // The finite differences below perturb nodal DISPLACEMENT/ROTATION. They work on a private copy of the
-        // element on cloned nodes (the Node copy constructor deep-copies the solution step data and the dofs),
-        // because this runs inside the parallel adjoint assembly: perturbing the shared nodes corrupts the
-        // elements that other threads assemble at the same time.
+        // FD on a private clone (Node copy deep-copies step data and dofs): this runs in the parallel adjoint assembly,
+        // and perturbing the shared nodes corrupts the elements other threads assemble at the same time.
         const auto& r_shared_geometry = rAdjointElement.GetGeometry();
         Element::NodesArrayType cloned_nodes;
         cloned_nodes.reserve(r_shared_geometry.size());
