@@ -190,14 +190,36 @@ transfers the same field is rejected by `DamAnalysis`.
   preserved. With stresses, this makes `T == T_ref` and avoids an immediate
   thermal strain.
 
+When the reference temperature is imported (either policy), the existing
+reference-temperature process must be removed or disabled. The standard
+`impose_nodal_reference_temperature_process` assigns its own reference field at
+every step and would silently replace the imported datum, so `DamAnalysis`
+rejects the combination before the solution loop with a clear error. If several
+processes are configured to transfer the same initial-state field, that
+combination is also rejected. Temperature itself is never re-applied by the
+import: thermal boundary processes and the thermal solver remain responsible for
+its evolution.
+
+The `initial_temperature` policy is a deliberate datum reset: the Stage B final
+temperature becomes the zero-thermal-strain reference for Stage C. At
+initialization `T == T_ref`, so no artificial thermal stress is generated. All
+later thermal strain is measured from that imported instant, not from the
+original Stage A reference. The source reference field is intentionally
+discarded and must not be used to reconstruct a past thermal history.
+
 Importing a temperature field that differs from the preserved reference is
 allowed only when stresses are not transferred. In every case the user must
 ensure that the destination loads and supports equilibrate the imported stresses.
 
 ### Stage A: gravity stress export ###
 
-Use a normal mechanical or thermoelastic DamAnalysis with the constitutive law
-that the later stages will use, and gravity active. At the end of the analysis:
+Run Stage A with the same supported thermoelastic constitutive law that Stages B
+and C use, with `TEMPERATURE == NODAL_REFERENCE_TEMPERATURE` and no imposed
+thermal gradient or temperature increment. Under those conditions the
+thermoelastic law has zero thermal strain and the thermoelastic gravity solution
+coincides with the purely mechanical one (verified to machine precision in the
+regression suite). Keep gravity as the only mechanical loading. At the end of the
+analysis:
 
 ```json
 "loads_process_list": [
@@ -225,6 +247,20 @@ that the later stages will use, and gravity active. At the end of the analysis:
     }
 ]
 ```
+
+### Stage compatibility ###
+
+The lightweight file validates the exact constitutive identity, not just
+physically equivalent elastic parameters. Source and destination must have the
+same element type, geometry type, connectivity/order, integration method and
+local integration-point ordering, plus the same constitutive-law class name,
+strain size, working dimension, `YOUNG_MODULUS`, `POISSON_RATIO`, `DENSITY`,
+`THICKNESS` (2D) and `THERMAL_EXPANSION` (thermoelastic laws). Importing a file
+written with `LinearElasticPlaneStrain2DLaw` into a
+`ThermalLinearElastic2DPlaneStrain` model is therefore rejected with a clear
+constitutive-law mismatch. This is intentional: the stored `InitialState`
+semantics, thermal-strain formulation and exported metadata must be identical
+between stages. Use the thermoelastic law in Stage A as well.
 
 ### Stage B: prestressed transient thermomechanical analysis ###
 
@@ -277,6 +313,16 @@ boundary processes remain in `constraints_process_list`. The saved
 `stored_initial_stress` is the imported gravity prestress, not the evolved total
 Cauchy stress.
 
+Do not use `MECHANICAL_STRESS_TENSOR` (or `MECHANICAL_STRESS_VECTOR`) to recover
+the gravity prestress once thermal loading is active. In the thermoelastic laws,
+the constitutive output is assembled as `C * epsilon_total`, not
+`C * (epsilon_total - epsilon_thermal)`; the element output path likewise does
+not reconstruct a gravity-only field. Under thermal loading it therefore differs
+from the original gravity Cauchy stress. The only reliable source of the
+originally imposed prestress is the constitutive `InitialState`, which is why
+Stage B must export with `stress_source = "stored_initial_stress"` rather than
+reading the current total stress again.
+
 ### Stage C: new independent analysis ###
 
 Import all three fields. When the Stage B final temperature differs from its
@@ -314,6 +360,12 @@ The destination starts with zero displacement, the imported gravity prestress
 and the Stage B temperature as both current and reference temperature. Subsequent
 mechanical or thermal loading belongs to this new analysis and is not inherited
 from Stage B.
+
+`initial_temperature` is used here because the Stage B final temperature differs
+from its reference field. Importing the original reference together with the
+stresses would be rejected by the `T == T_ref` rule. Remove or disable the
+existing reference-temperature process for this analysis: `DamAnalysis` rejects
+importing the reference field while a process that assigns it is active.
 
 The file format is versioned and validated before any destination field is
 changed. Different meshes, connectivity, reference coordinates, integration

@@ -175,6 +175,18 @@ class DamAnalysis(AnalysisStage):
                     "('{}'). Use only one initial-state processor per field.".format(
                         attribute))
 
+        if any(getattr(process, "transfers_reference_temperature", False)
+               for process in self.list_of_processes):
+            reference_processes = [
+                process for process in self.list_of_processes
+                if getattr(process, "assigns_reference_temperature", False)]
+            if reference_processes:
+                raise RuntimeError(
+                    "Cannot import NODAL_REFERENCE_TEMPERATURE while a process "
+                    "that assigns it is active. Remove the reference-temperature "
+                    "process from 'constraints_process_list' or disable it for "
+                    "this analysis.")
+
         if self.add_previous_results and any(
                 getattr(process, "transfers_initial_stress", False)
                 for process in self.list_of_processes):
