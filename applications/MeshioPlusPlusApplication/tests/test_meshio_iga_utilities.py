@@ -54,6 +54,35 @@ class TestMeshioPlusPlusIgaUtilities(KratosUnittest.TestCase):
         with self.assertRaisesRegex(RuntimeError, "must be empty"):
             KratosMeshioPlusPlus.MeshioPlusPlusIgaUtilities.Sample(self.square, settings, destination)
 
+    def test_mesh_cad(self):
+        destination = self.model.CreateModelPart("MeshedCad")
+        settings = KratosMultiphysics.Parameters('{"target_size" : 0.25, "face_ids_variable" : "RIGID_BODY_ID"}')
+        report = KratosMeshioPlusPlus.MeshioPlusPlusIgaUtilities.MeshCad(self.square, settings, destination)
+        self.assertEqual(report["number_of_faces"].GetInt(), 1)
+        self.assertEqual(report["number_of_failed_faces"].GetInt(), 0)
+        self.assertEqual(report["faces"][0]["status"].GetString(), "ok")
+        self.assertGreater(report["number_of_triangles"].GetInt(), 2)
+        for node in destination.Nodes:
+            self.assertAlmostEqual(node.Z, 0.0, 12)
+
+    def test_project_to_cad_moves_points_back_onto_the_face(self):
+        meshed = self.model.CreateModelPart("MeshedForProjection")
+        settings = KratosMultiphysics.Parameters('{"target_size" : 0.25, "face_ids_variable" : "RIGID_BODY_ID"}')
+        KratosMeshioPlusPlus.MeshioPlusPlusIgaUtilities.MeshCad(self.square, settings, meshed)
+        for node in meshed.Nodes:
+            node.Z += 0.01
+            node.Z0 += 0.01
+        projected = self.model.CreateModelPart("Projected")
+        report = KratosMeshioPlusPlus.MeshioPlusPlusIgaUtilities.ProjectToCad(meshed, self.square, settings, projected)
+        self.assertGreater(report["projected"].GetInt(), 0)
+        self.assertAlmostEqual(report["max_move"].GetDouble(), 0.01, 9)
+        for node in projected.Nodes:
+            self.assertAlmostEqual(node.Z, 0.0, 9)
+
+        with self.assertRaisesRegex(RuntimeError, "face_ids_variable"):
+            KratosMeshioPlusPlus.MeshioPlusPlusIgaUtilities.ProjectToCad(
+                meshed, self.square, KratosMultiphysics.Parameters("{}"), self.model.CreateModelPart("NoIds"))
+
     def test_refine_elevates_and_subdivides_without_moving_the_geometry(self):
         refined_file = str(Path(self.temp_dir.name) / "refined.cad.json")
         settings = KratosMultiphysics.Parameters('{"subdivisions" : [2, 3, 1], "elevate" : [1, 1, 0]}')
