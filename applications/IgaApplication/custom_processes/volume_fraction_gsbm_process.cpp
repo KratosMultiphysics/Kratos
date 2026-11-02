@@ -21,6 +21,7 @@
 // External includes
 
 // Project includes
+#include "custom_conditions/gsbm_laplacian_condition_ghost_penalty.h"
 #include "custom_modelers/iga_modeler_sbm.h"
 #include "custom_processes/volume_fraction_gsbm_process.h"
 #include "custom_utilities/volume_fraction_utilities.h"
@@ -305,31 +306,51 @@ void VolumeFractionGsbmProcess::ExecuteInitialize()
         }
     }
 
-    // Lambda for volume fraction assignment
+    // Lambda for volume fraction assignment, which returns the volume fraction
     const auto assign_volume_fraction = [&volume_fractions](GeometryType& rGeometry) {
         KRATOS_ERROR_IF_NOT(rGeometry.Has(KNOT_SPAN_INDICES))
             << "VolumeFractionGsbmProcess: an entity has no KNOT_SPAN_INDICES. Elements and "
             << "facets must be the ones created by IgaModelerGsbm." << std::endl;
         const auto& r_indices = rGeometry.GetValue(KNOT_SPAN_INDICES);
-        rGeometry.SetValue(VOLUME_FRACTION, volume_fractions(r_indices[0], r_indices[1]));
+        const double alpha = volume_fractions(r_indices[0], r_indices[1]);
+        rGeometry.SetValue(VOLUME_FRACTION, alpha);
+        return alpha;
     };
 
-    // Get the elements and assign volume fractions
+    // Entities that add nothing are not ACTIVE, so the builder skips them. The
+    // sparsity pattern keeps their entries, for when the skin reaches them
+
+    // Get the elements and assign volume fractions: alpha scales their local
+    // systems, so those of empty knot spans add nothing
     ModelPart& r_elements = mpModel->GetModelPart(
         mParameters["elements_model_part_name"].GetString()
     );
     for (auto& r_element : r_elements.Elements()) {
-        assign_volume_fraction(r_element.GetGeometry());
+        r_element.Set(ACTIVE, assign_volume_fraction(r_element.GetGeometry()) > 0.0);
     }
 
-    // Get the facets and assign volume fractions
+    // Get the facets and assign volume fractions: their shifted boundary terms
+    // are only where alpha jumps
     ModelPart& r_facets = mpModel->GetModelPart(
         mParameters["skeleton_model_part_name"].GetString()
     );
     for (auto& r_facet : r_facets.Conditions()) {
-        for (IndexType side = 0; side < 2; ++side) {
-            // Part 0: - side (lower span); part 1: + side (upper span)
-            assign_volume_fraction(r_facet.GetGeometry().GetGeometryPart(side));
+        // Part 0: - side (lower span); part 1: + side (upper span)
+        const double alpha_minus = assign_volume_fraction(r_facet.GetGeometry().GetGeometryPart(0));
+        const double alpha_plus = assign_volume_fraction(r_facet.GetGeometry().GetGeometryPart(1));
+        r_facet.Set(ACTIVE, alpha_minus != alpha_plus);
+    }
+
+    // The ghost penalty conditions, which share the geometries of the facets
+    const std::string& r_ghost_penalty_name =
+        mParameters["ghost_penalty_model_part_name"].GetString();
+    if (!r_ghost_penalty_name.empty()) {
+        for (auto& r_condition : mpModel->GetModelPart(r_ghost_penalty_name).Conditions()) {
+            const auto& r_geometry = r_condition.GetGeometry();
+            r_condition.Set(ACTIVE, GsbmLaplacianConditionGhostPenalty::IsPenalized(
+                r_geometry.GetGeometryPart(0).GetValue(VOLUME_FRACTION),
+                r_geometry.GetGeometryPart(1).GetValue(VOLUME_FRACTION)
+            ));
         }
     }
 
@@ -480,6 +501,7 @@ const Parameters VolumeFractionGsbmProcess::GetDefaultParameters() const
         "geometry_name"                      : "",
         "elements_model_part_name"           : "",
         "skeleton_model_part_name"           : "",
+        "ghost_penalty_model_part_name"      : "",
         "skin_model_part_outer_initial_name" : "",
         "skin_model_part_inner_initial_name" : "",
         "tessellation_tolerance"             : 1.0e-8,

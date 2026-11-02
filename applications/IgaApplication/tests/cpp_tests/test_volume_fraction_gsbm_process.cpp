@@ -163,6 +163,13 @@ void CreateEllipseModel(
             "iga_model_part"                  : "Facets",
             "shape_function_derivatives_order": 3,
             "gsbm_parameters"                 : {}
+        }, {
+            "type"                            : "condition",
+            "name"                            : "GenericCondition",
+            "iga_model_part"                  : "GhostPenalty",
+            "gsbm_parameters"                 : {
+                "skeleton_model_part": "Facets"
+            }
         }]
     })"));
     p_gsbm_modeler->SetupModelPart();
@@ -582,6 +589,90 @@ KRATOS_TEST_CASE_IN_SUITE(VolumeFractionGsbmProcessMovingSkin, KratosIgaFastSuit
         model.GetModelPart("Skin").NumberOfNodes(),
         reference_model.GetModelPart("Skin").NumberOfNodes()
     );
+}
+
+// The ellipse of VolumeFractionGsbmProcessMovingSkin, where it starts and where
+// it moves to. The entities that add nothing must not be ACTIVE: the elements of
+// empty knot spans, the facets without a jump in the volume fraction and the
+// ghost penalty conditions with \beta_2 = 0. All others must be ACTIVE, so that
+// an entity the skin reaches turns back on.
+KRATOS_TEST_CASE_IN_SUITE(VolumeFractionGsbmProcessActiveEntities, KratosIgaFastSuite)
+{
+    const array_1d<double, 3> start{0.5, 0.5, 0.0};
+    const array_1d<double, 3> end{0.6015625, 0.5703125, 0.0};
+    const std::array<double, 2> axes{0.25, 0.1875};
+
+    Model model;
+    CreateEllipseModel(model, start, axes);
+    VolumeFractionGsbmProcess gsbm_process(model, Parameters(R"({
+        "model_part_name"                   : "IgaModelPart",
+        "geometry_name"                     : "background",
+        "elements_model_part_name"          : "IgaModelPart.Domain",
+        "skeleton_model_part_name"          : "IgaModelPart.Facets",
+        "ghost_penalty_model_part_name"     : "IgaModelPart.GhostPenalty",
+        "skin_model_part_outer_initial_name": "Skin",
+        "update_each_step"                  : true
+    })"));
+    const ModelPart& r_elements = model.GetModelPart("IgaModelPart.Domain");
+    const ModelPart& r_facets = model.GetModelPart("IgaModelPart.Facets");
+    const ModelPart& r_ghost_penalty = model.GetModelPart("IgaModelPart.GhostPenalty");
+
+    const auto check_entities = [&]() {
+        IndexType inactive_elements = 0;
+        for (const auto& r_element : r_elements.Elements()) {
+            KRATOS_EXPECT_EQ(r_element.IsActive(), r_element.GetValue(VOLUME_FRACTION) > 0.0);
+            inactive_elements += !r_element.IsActive();
+        }
+        KRATOS_EXPECT_GT(inactive_elements, 0);
+
+        IndexType inactive_facets = 0;
+        for (const auto& r_facet : r_facets.Conditions()) {
+            const auto& r_geometry = r_facet.GetGeometry();
+            KRATOS_EXPECT_EQ(r_facet.IsActive(),
+                r_geometry.GetGeometryPart(0).GetValue(VOLUME_FRACTION)
+                != r_geometry.GetGeometryPart(1).GetValue(VOLUME_FRACTION));
+            inactive_facets += !r_facet.IsActive();
+        }
+        KRATOS_EXPECT_GT(inactive_facets, 0);
+
+        IndexType inactive_ghost_penalties = 0;
+        for (const auto& r_condition : r_ghost_penalty.Conditions()) {
+            const auto& r_geometry = r_condition.GetGeometry();
+            const double alpha_minus = r_geometry.GetGeometryPart(0).GetValue(VOLUME_FRACTION);
+            const double alpha_plus = r_geometry.GetGeometryPart(1).GetValue(VOLUME_FRACTION);
+            KRATOS_EXPECT_EQ(r_condition.IsActive(),
+                0.5 * (alpha_minus + alpha_plus) < 1.0 && std::abs(alpha_minus - alpha_plus) < 1.0);
+            inactive_ghost_penalties += !r_condition.IsActive();
+        }
+        KRATOS_EXPECT_GT(inactive_ghost_penalties, 0);
+    };
+
+    gsbm_process.ExecuteInitialize();
+    check_entities();
+
+    std::vector<bool> active_at_start;
+    for (const auto& r_element : r_elements.Elements()) {
+        active_at_start.push_back(r_element.IsActive());
+    }
+
+    for (auto& r_control_point : model.GetModelPart("Skin").GetGeometry(0)) {
+        r_control_point.X() += end[0] - start[0];
+        r_control_point.Y() += end[1] - start[1];
+    }
+    gsbm_process.ExecuteInitializeSolutionStep();
+    check_entities();
+
+    // Elements turned on and off as the ellipse moved
+    IndexType turned_on = 0;
+    IndexType turned_off = 0;
+    auto it_active_at_start = active_at_start.begin();
+    for (const auto& r_element : r_elements.Elements()) {
+        const bool was_active = *(it_active_at_start++);
+        turned_on += !was_active && r_element.IsActive();
+        turned_off += was_active && !r_element.IsActive();
+    }
+    KRATOS_EXPECT_GT(turned_on, 0);
+    KRATOS_EXPECT_GT(turned_off, 0);
 }
 
 // Binary weights: the ellipse of VolumeFractionGsbmProcessMovingSkin with

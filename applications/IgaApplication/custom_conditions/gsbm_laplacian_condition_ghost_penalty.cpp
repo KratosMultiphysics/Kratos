@@ -98,9 +98,7 @@ void GsbmLaplacianConditionGhostPenalty::CalculateLocalSystem(
     const double alpha_minus = r_minus.GetValue(VOLUME_FRACTION);
     const double alpha_plus = r_plus.GetValue(VOLUME_FRACTION);
 
-    // \beta_2 = \kappa if {{\alpha_h}} < 1 and |[[\alpha_h]]| < 1, else 0
-    const double alpha_average = 0.5 * (alpha_minus + alpha_plus);
-    if (alpha_average >= 1.0 || std::abs(alpha_minus - alpha_plus) >= 1.0) {
+    if (!IsPenalized(alpha_minus, alpha_plus)) {
         return;  // skip early if \beta_2 = 0 (zero contribution)
     }
 

@@ -13,6 +13,7 @@
 #pragma once
 
 // System includes
+#include <cmath>
 
 // External includes
 
@@ -93,6 +94,15 @@ public:
     ///@}
     ///@name Operations
     ///@{
+
+    /// Whether a facet is penalized: \beta_2 = \kappa if {{\alpha_h}} < 1 and
+    /// |[[\alpha_h]]| < 1, else 0
+    static bool IsPenalized(
+        const double AlphaMinus,
+        const double AlphaPlus)
+    {
+        return 0.5 * (AlphaMinus + AlphaPlus) < 1.0 && std::abs(AlphaMinus - AlphaPlus) < 1.0;
+    }
 
     /// Ghost penalty of the GSBM Poisson problem on a facet
     void CalculateLocalSystem(
