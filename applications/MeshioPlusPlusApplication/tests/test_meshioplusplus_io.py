@@ -36,6 +36,51 @@ class TestMeshioPlusPlusIO(KratosUnittest.TestCase):
     def setUp(self):
         self.model = KratosMultiphysics.Model()
 
+    @KratosUnittest.skipUnless(kratos_utils.CheckIfApplicationsAvailable("StructuralMechanicsApplication"),
+                               "StructuralMechanicsApplication is not compiled")
+    def testStructuralLoadConditionsRoundTrip(self):
+        # The point, line and surface load conditions of StructuralMechanicsApplication map to
+        # meshio++ cell types since v17.9.0; before, a model part holding them could not be written.
+        import KratosMultiphysics.StructuralMechanicsApplication  # registers the conditions
+        model_part = self.model.CreateModelPart("Loads")
+        _PopulateModelPart(model_part)
+        model_part.RemoveConditionFromAllLevels(1)
+        model_part.CreateNewNode(6, 1.0, 0.0, -1.0)
+        model_part.CreateNewNode(7, 0.0, 0.0, -1.0)
+        props = model_part.GetProperties(1)
+        model_part.CreateNewCondition("PointLoadCondition3D1N", 1, [5], props)
+        model_part.CreateNewCondition("LineLoadCondition3D2N", 2, [1, 2], props)
+        model_part.CreateNewCondition("SurfaceLoadCondition3D3N", 3, [1, 2, 3], props)
+        model_part.CreateNewCondition("SurfaceLoadCondition3D4N", 4, [1, 2, 6, 7], props)
+
+        single_file = KratosMultiphysics.Parameters('{"time_series" : "single_file"}')
+        with tempfile.TemporaryDirectory() as temp_dir:
+            # mdpa keeps the registered names
+            mdpa = str(Path(temp_dir) / "loads.mdpa")
+            KratosMeshioPlusPlus.MeshioPlusPlusIO(mdpa, single_file).WriteModelPart(model_part)
+            deck = Path(mdpa).read_text()
+            for name in ("PointLoadCondition3D1N", "LineLoadCondition3D2N",
+                         "SurfaceLoadCondition3D3N", "SurfaceLoadCondition3D4N"):
+                self.assertIn("Begin Conditions " + name, deck)
+            from_mdpa = self.model.CreateModelPart("LoadsFromMdpa")
+            KratosMeshioPlusPlus.MeshioPlusPlusIO(mdpa).ReadModelPart(from_mdpa)
+            self.assertEqual(from_mdpa.NumberOfConditions(), 4)
+            self.assertEqual(from_mdpa.NumberOfElements(), 2)
+
+            # vtu keeps the cell types: one vertex, line, triangle and quad condition
+            vtu = str(Path(temp_dir) / "loads.vtu")
+            KratosMeshioPlusPlus.MeshioPlusPlusIO(vtu, single_file).WriteModelPart(model_part)
+            from_vtu = self.model.CreateModelPart("LoadsFromVtu")
+            KratosMeshioPlusPlus.MeshioPlusPlusIO(vtu).ReadModelPart(from_vtu)
+            self.assertEqual(from_vtu.NumberOfConditions(), 4)
+            self.assertEqual(sorted(len(c.GetNodes()) for c in from_vtu.Conditions), [1, 2, 3, 4])
+
+        # ... and an operation carries them through
+        destination = self.model.CreateModelPart("LoadsCleaned")
+        settings = KratosMultiphysics.Parameters('{"operation" : "clean"}')
+        KratosMeshioPlusPlus.MeshioPlusPlusMeshOperations.Execute(model_part, settings, destination)
+        self.assertEqual(destination.NumberOfConditions(), 4)
+
     def testFormatIntrospection(self):
         supported = KratosMeshioPlusPlus.MeshioPlusPlusIO.GetSupportedFormats()
         for name in ("vtu", "vtk", "gmsh", "stl", "obj", "xdmf", "ensight", "vtp", "triangle"):
