@@ -2532,4 +2532,130 @@ KRATOS_TEST_CASE_IN_SUITE(MeshioPlusPlusIOFemapTimeSeries, KratosMeshioPlusPlusF
     RemoveIfExists(file_path);
 }
 
+/***********************************************************************************/
+/***********************************************************************************/
+
+KRATOS_TEST_CASE_IN_SUITE(MeshioPlusPlusIOWriteStepFaces, KratosMeshioPlusPlusFastSuite)
+{
+    // "step_faces" (meshio++ v17.9.0): "planar" merges the cube's coplanar facets into its six
+    // faces, "facet" writes one face per triangle, the only behaviour before v17.9.0
+    Model model;
+    auto& r_model_part = model.CreateModelPart("cube");
+    auto p_properties = r_model_part.CreateNewProperties(1);
+    r_model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
+    r_model_part.CreateNewNode(2, 1.0, 0.0, 0.0);
+    r_model_part.CreateNewNode(3, 1.0, 1.0, 0.0);
+    r_model_part.CreateNewNode(4, 0.0, 1.0, 0.0);
+    r_model_part.CreateNewNode(5, 0.0, 0.0, 1.0);
+    r_model_part.CreateNewNode(6, 1.0, 0.0, 1.0);
+    r_model_part.CreateNewNode(7, 1.0, 1.0, 1.0);
+    r_model_part.CreateNewNode(8, 0.0, 1.0, 1.0);
+    const std::vector<std::vector<std::size_t>> connectivities = {
+        {1, 3, 2}, {1, 4, 3}, {5, 6, 7}, {5, 7, 8}, {1, 2, 6}, {1, 6, 5},
+        {3, 4, 8}, {3, 8, 7}, {2, 3, 7}, {2, 7, 6}, {1, 5, 8}, {1, 8, 4}};
+    for (std::size_t i = 0; i < connectivities.size(); ++i) {
+        r_model_part.CreateNewElement("Element2D3N", i + 1, connectivities[i], p_properties);
+    }
+
+    const auto count_faces = [](const std::filesystem::path& rPath) {
+        std::ifstream file(rPath);
+        std::stringstream buffer;
+        buffer << file.rdbuf();
+        const std::string content = buffer.str();
+        std::size_t count = 0;
+        for (std::size_t position = content.find("ADVANCED_FACE("); position != std::string::npos;
+             position = content.find("ADVANCED_FACE(", position + 1)) {
+            ++count;
+        }
+        return count;
+    };
+
+    const auto file_path = TestFilePath(".step");
+    for (const auto& [faces, expected] : std::vector<std::pair<std::string, std::size_t>>{{"planar", 6}, {"facet", 12}}) {
+        Parameters settings(R"({"time_series" : "single_file"})");
+        settings.AddString("step_faces", faces);
+        MeshioPlusPlusIO(file_path, settings).WriteModelPart(r_model_part);
+        KRATOS_EXPECT_EQ(count_faces(file_path), expected);
+        RemoveIfExists(file_path);
+    }
+
+    Parameters bad(R"({"time_series" : "single_file", "step_faces" : "curved"})");
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(MeshioPlusPlusIO(file_path, bad).WriteModelPart(r_model_part), "step_faces");
+    RemoveIfExists(file_path);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+KRATOS_TEST_CASE_IN_SUITE(MeshioPlusPlusIOFormatsAbi37, KratosMeshioPlusPlusFastSuite)
+{
+    // medit_sol, the Medit solution file (.sol/.solb) meshio++ v17.23.0 added both ways
+    const auto read_formats = MeshioPlusPlusIO::GetSupportedReadFormats();
+    const auto write_formats = MeshioPlusPlusIO::GetSupportedWriteFormats();
+    KRATOS_EXPECT_TRUE(std::find(read_formats.begin(), read_formats.end(), "medit_sol") != read_formats.end());
+    KRATOS_EXPECT_TRUE(std::find(write_formats.begin(), write_formats.end(), "medit_sol") != write_formats.end());
+    KRATOS_EXPECT_EQ(static_cast<int>(MeshioPlusPlusIO::FormatFromString("medit_sol")),
+                     static_cast<int>(MeshioPlusPlusIO::Format::MEDIT_SOL));
+    KRATOS_EXPECT_EQ(MeshioPlusPlusIO::FormatName(MeshioPlusPlusIO::Format::MEDIT_SOL), "medit_sol");
+    KRATOS_EXPECT_TRUE(MeshioPlusPlusIO::IsFormatAvailable(MeshioPlusPlusIO::Format::MEDIT_SOL));
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+KRATOS_TEST_CASE_IN_SUITE(MeshioPlusPlusIOReadsMdpaEndWithName, KratosMeshioPlusPlusFastSuite)
+{
+    // Kratos decks may close a block with its entity name ("End Elements // Element2D3N"),
+    // which the mdpa reader accepts since meshio++ v17.9.0
+    const auto file_path = TestFilePath(".mdpa");
+    {
+        std::ofstream deck(file_path);
+        deck << "Begin Properties 0\n"
+             << "End Properties\n\n"
+             << "Begin Nodes\n"
+             << "    1   0.0   0.0   0.0\n"
+             << "    2   1.0   0.0   0.0\n"
+             << "    3   0.0   1.0   0.0\n"
+             << "End Nodes\n\n"
+             << "Begin Elements Element2D3N\n"
+             << "    1   0   1   2   3\n"
+             << "End Elements // Element2D3N\n";
+    }
+
+    Model model;
+    auto& r_model_part = model.CreateModelPart("read_back");
+    MeshioPlusPlusIO(file_path).ReadModelPart(r_model_part);
+    RemoveIfExists(file_path);
+    KRATOS_EXPECT_EQ(r_model_part.NumberOfNodes(), 3);
+    KRATOS_EXPECT_EQ(r_model_part.NumberOfElements(), 1);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+KRATOS_TEST_CASE_IN_SUITE(MeshioPlusPlusIOResultsWriteOptions, KratosMeshioPlusPlusFastSuite)
+{
+    // The per-format write options of meshio++ v17.4.0-v17.5.0 reach the files
+    Model model;
+    auto& r_model_part = model.CreateModelPart("write");
+    PopulateTetrahedraModelPart(r_model_part);
+
+    // xplt: a compressed plot file is written (and read back) like an uncompressed one
+    const auto xplt_path = TestFilePath(".xplt");
+    MeshioPlusPlusIO(xplt_path, Parameters(R"({"time_series" : "single_file", "xplt_compress" : true})"))
+        .WriteModelPart(r_model_part);
+    KRATOS_EXPECT_TRUE(std::filesystem::exists(xplt_path));
+    auto& r_xplt = model.CreateModelPart("xplt");
+    MeshioPlusPlusIO(xplt_path).ReadModelPart(r_xplt);
+    KRATOS_EXPECT_EQ(r_xplt.NumberOfNodes(), r_model_part.NumberOfNodes());
+    RemoveIfExists(xplt_path);
+
+    // binout: 4-byte words
+    const auto binout_path = TestFilePath(".binout");
+    MeshioPlusPlusIO(binout_path, Parameters(R"({"time_series" : "single_file", "format" : "lsdyna_binout", "binout_word_size" : 4})"))
+        .WriteModelPart(r_model_part);
+    KRATOS_EXPECT_TRUE(std::filesystem::exists(binout_path));
+    RemoveIfExists(binout_path);
+}
+
 } // namespace Kratos::Testing
