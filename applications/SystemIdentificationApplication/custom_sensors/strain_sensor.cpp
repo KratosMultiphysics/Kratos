@@ -222,7 +222,20 @@ void StrainSensor::CalculateGradient(
     rResponseGradient.clear();
 
     if (rAdjointElement.Id() == mElementId) {
-        auto& r_element = const_cast<Element&>(rAdjointElement);
+        // The finite differences below perturb nodal DISPLACEMENT/ROTATION. They work on a private copy of the
+        // element on cloned nodes (the Node copy constructor deep-copies the solution step data and the dofs),
+        // because this runs inside the parallel adjoint assembly: perturbing the shared nodes corrupts the
+        // elements that other threads assemble at the same time.
+        const auto& r_shared_geometry = rAdjointElement.GetGeometry();
+        Element::NodesArrayType cloned_nodes;
+        cloned_nodes.reserve(r_shared_geometry.size());
+        for (const auto& r_node : r_shared_geometry) {
+            cloned_nodes.push_back(Kratos::make_intrusive<Node>(r_node));
+        }
+        auto p_element = rAdjointElement.Create(rAdjointElement.Id(), cloned_nodes, rAdjointElement.pGetProperties());
+        p_element->Initialize(rProcessInfo);
+        auto& r_element = *p_element;
+
         std::vector<Matrix> perturbed_strains, ref_strains;
         r_element.CalculateOnIntegrationPoints(mrStrainVariable, ref_strains, rProcessInfo);
 
