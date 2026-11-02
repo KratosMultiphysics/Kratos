@@ -74,9 +74,15 @@ Add the process to `loads_process_list` (or `constraints_process_list`):
 The process runs once in `ExecuteBeforeSolutionLoop`, after solver
 initialization and before the initial GiD output. It requires the original
 zero-displacement datum and a same-mesh source. Supported configurations are
-2D fixed-mesh Q4 `SmallDisplacementElement2D4N` with
-`LinearElasticPlaneStrain2DLaw` or `ThermalLinearElastic2DPlaneStrain`. For the
-thermoelastic law, `T == T_ref` is required at the moment of import; prescribe
+the Dam `SmallDisplacement` solid elements T3/T6/Q4/Q8/Q9 in 2D and
+T4/T10/P6/P15/H8/H20/H27 in 3D. The actual element integration rule is used and
+must match between source and destination. Supported constitutive laws are
+`LinearElasticPlaneStrain2DLaw`, `LinearElasticPlaneStress2DLaw` and
+`LinearElastic3DLaw`, together with the Dam thermoelastic laws
+`ThermalLinearElastic2DPlaneStrain`, `ThermalLinearElastic2DPlaneStress` and
+`ThermalLinearElastic3DLaw`. Damage, plasticity and other history-dependent
+laws are rejected. For the thermoelastic laws, `T == T_ref` is required at the
+moment of import; prescribe
 the reference field with the existing
 `impose_nodal_reference_temperature_process`. The current temperature always
 belongs to the new analysis and may be computed by its thermal solver.

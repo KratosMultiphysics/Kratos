@@ -297,7 +297,7 @@ class TestDamSelectiveInitialization(KratosUnittest.TestCase):
         for defect, message in (('mesh', 'coordinates differ'),
                                 ('material', 'material mismatch'),
                                 ('rule', 'integration rule'),
-                                ('law', 'unsupported constitutive law'),
+                                ('law', 'constitutive laws differ'),
                                 ('displacement', 'nonzero displacement')):
             with self.subTest(defect=defect):
                 model, target, strategy = fixture._body(quadrilaterals=True)
@@ -334,6 +334,12 @@ class TestDamSelectiveInitialization(KratosUnittest.TestCase):
             settings['transfer_results_process']['add_previous_results'] = True
             self._run(Path(tmp) / 'run', settings,
                       expected_error='cannot be combined with')
+
+    def test_rejects_missing_source_checkpoint(self):
+        with tempfile.TemporaryDirectory(prefix='dam_selective_missing_') as tmp:
+            settings = self._parameters(source=Path(tmp) / 'missing_source')
+            self._run(Path(tmp) / 'run', settings,
+                      expected_error='Restart file not found')
 
     def test_does_not_modify_source_state(self):
         import test_dam_elastic_initial_state_transfer as elastic_tests

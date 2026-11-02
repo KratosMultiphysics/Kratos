@@ -25,6 +25,10 @@ namespace Kratos
 /// displacements, reactions, time, step counters, loads or any other source
 /// variable, and it does not restart the destination analysis. All elements are
 /// validated before any destination constitutive law is modified.
+/// Supported geometries are the 2D T3/T6/Q4/Q8/Q9 and 3D T4/T10/P6/P15/H8/H20/H27
+/// SmallDisplacement solid elements, with linear elastic or linear thermoelastic
+/// constitutive laws. The actual element integration rule is used and must match
+/// between source and destination.
 class KRATOS_API(DAM_APPLICATION) SelectiveInitialStressUtility
 {
 public:
