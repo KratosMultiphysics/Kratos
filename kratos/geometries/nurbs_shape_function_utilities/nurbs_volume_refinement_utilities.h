@@ -75,7 +75,7 @@ public:
         SizeType r = rKnotsUToInsert.size();
         // Initialize new containers
         SizeType new_num_of_knots_u = old_num_of_knots_u + r;
-        rKnotsURefined.resize(new_num_of_knots_u, true);
+        rKnotsURefined.resize(new_num_of_knots_u, false);
 
         SizeType new_num_of_cp_u = old_num_of_cp_u + r;
         rPointsRefined.resize(new_num_of_cp_u*old_num_of_cp_v*old_num_of_cp_w);
@@ -214,7 +214,7 @@ public:
         SizeType r = rKnotsVToInsert.size();
         // Initialize new containers
         SizeType new_num_of_knots_v = old_num_of_knots_v + r;
-        rKnotsVRefined.resize(new_num_of_knots_v, true);
+        rKnotsVRefined.resize(new_num_of_knots_v, false);
 
         SizeType new_num_of_cp_v = old_num_of_cp_v + r;
         rPointsRefined.resize(old_num_of_cp_u*new_num_of_cp_v*old_num_of_cp_w);
@@ -354,7 +354,7 @@ public:
         SizeType r = rKnotsWToInsert.size();
         // Initialize new containers
         SizeType new_num_of_knots_w = old_num_of_knots_w + r;
-        rKnotsWRefined.resize(new_num_of_knots_w, true);
+        rKnotsWRefined.resize(new_num_of_knots_w, false);
 
         SizeType new_num_of_cp_w = old_num_of_cp_w + r;
         rPointsRefined.resize(old_num_of_cp_u*old_num_of_cp_v*new_num_of_cp_w);
