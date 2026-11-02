@@ -157,6 +157,28 @@ public:
         );
 
     /**
+     * @brief @ref MeshCad with size and metric fields taken from a background model part.
+     * @details "background_size_variable" names a registered double nodal variable
+     * (non-historical) of @p rBackground holding the target size at its nodes, interpolated at
+     * the nearest point of the background's surface (a volume background is skinned).
+     * "background_hessian_variable" names a registered 9-component nodal variable (a Vector or
+     * array_1d<double, 9>; the "hessian" operation's result renamed through "output") whose
+     * metric, for the interpolation error "metric_error" (positive), drives an anisotropic mesh.
+     * At least one must be named.
+     * @param rFileName The B-rep file.
+     * @param Settings The settings of @ref MeshCad plus the background ones.
+     * @param rDestination The (empty) model part to fill.
+     * @param rBackground The background model part.
+     * @return As @ref MeshCad.
+     */
+    static Parameters MeshCad(
+        const std::string& rFileName,
+        Parameters Settings,
+        ModelPart& rDestination,
+        const ModelPart& rBackground
+        );
+
+    /**
      * @brief Projects a mesh's points back onto the B-rep it was meshed from.
      * @details meshio++'s project_to_cad: each point onto the face (or edge) its entities name,
      * after a refinement or smoothing moved it off. The faces and edges are read from the

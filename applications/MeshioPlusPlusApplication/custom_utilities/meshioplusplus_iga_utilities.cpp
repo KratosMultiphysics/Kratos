@@ -271,6 +271,9 @@ Parameters MeshioPlusPlusIgaUtilities::GetDefaultParameters()
         "quad_pairs"             : "matching",
         "face_ids_variable"      : "",
         "edge_ids_variable"      : "",
+        "background_size_variable"    : "",
+        "background_hessian_variable" : "",
+        "metric_error"           : 0.0,
 
         "max_distance"           : 0.0
     })");
@@ -437,10 +440,17 @@ Parameters MeshioPlusPlusIgaUtilities::Evaluate(
 /***********************************************************************************/
 /***********************************************************************************/
 
-Parameters MeshioPlusPlusIgaUtilities::MeshCad(
+namespace
+{
+
+/// MeshCad with an optional background model part: its "background_size_variable" nodal values
+/// are the size field (MeshCadSizeSources::pBackground) and its "background_hessian_variable" ones a
+/// Hessian whose metric drives the mesh (pMetricBackground, with "metric_error").
+Parameters MeshCadImpl(
     const std::string& rFileName,
     Parameters Settings,
-    ModelPart& rDestination
+    ModelPart& rDestination,
+    const ModelPart* pBackground
     )
 {
     KRATOS_TRY
@@ -449,7 +459,7 @@ Parameters MeshioPlusPlusIgaUtilities::MeshCad(
         << "MeshioPlusPlusIgaUtilities does not support distributed model parts" << std::endl;
     KRATOS_ERROR_IF(rDestination.NumberOfNodes() > 0)
         << "The destination model part \"" << rDestination.FullName() << "\" must be empty" << std::endl;
-    Settings.AddMissingParameters(GetDefaultParameters());
+    Settings.AddMissingParameters(MeshioPlusPlusIgaUtilities::GetDefaultParameters());
 
     const IgaModel model = ReadModel(rFileName, Settings);
     KRATOS_ERROR_IF_NOT(std::holds_alternative<mio::BrepInfo>(model))
@@ -484,6 +494,37 @@ Parameters MeshioPlusPlusIgaUtilities::MeshCad(
     sources.mFaceSizes = ReadSizes(Settings, "face_sizes");
     sources.mEdgeSizes = ReadSizes(Settings, "edge_sizes");
     sources.mVirtualEdges = Settings["virtual_edges"].GetBool();
+
+    const std::string size_variable = Settings["background_size_variable"].GetString();
+    const std::string hessian_variable = Settings["background_hessian_variable"].GetString();
+    mio::Mesh background;
+    if (pBackground != nullptr) {
+        KRATOS_ERROR_IF(size_variable.empty() && hessian_variable.empty())
+            << "MeshCad was given a background model part, but neither \"background_size_variable\" "
+            << "nor \"background_hessian_variable\" names the nodal data to take from it" << std::endl;
+        Internals::FieldDataSelection selection;
+        for (const auto& r_name : {size_variable, hessian_variable}) {
+            if (!r_name.empty()) {
+                selection.NodalDataValueVariables.push_back(r_name);
+            }
+        }
+        background = Internals::ModelPartToMeshWithData(*pBackground, true, true, false, selection);
+        if (!size_variable.empty()) {
+            sources.pBackground = &background;
+            sources.mBackgroundArray = size_variable;
+        }
+        if (!hessian_variable.empty()) {
+            KRATOS_ERROR_IF(Settings["metric_error"].GetDouble() <= 0.0)
+                << "\"background_hessian_variable\" needs a positive \"metric_error\"" << std::endl;
+            sources.pMetricBackground = &background;
+            sources.mMetricArray = hessian_variable;
+            sources.mMetricError = Settings["metric_error"].GetDouble();
+        }
+    } else {
+        KRATOS_ERROR_IF(!size_variable.empty() || !hessian_variable.empty())
+            << "\"background_size_variable\" and \"background_hessian_variable\" need a background "
+            << "model part (the four-argument MeshCad)" << std::endl;
+    }
 
     mio::MeshCadSurfaceExtras extras;
     extras.mModelTolerances = Settings["model_tolerances"].GetBool();
@@ -571,6 +612,35 @@ Parameters MeshioPlusPlusIgaUtilities::MeshCad(
     return report;
 
     KRATOS_CATCH("")
+}
+
+} // namespace
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+Parameters MeshioPlusPlusIgaUtilities::MeshCad(
+    const std::string& rFileName,
+    Parameters Settings,
+    ModelPart& rDestination
+    )
+{
+    return MeshCadImpl(rFileName, Settings, rDestination, nullptr);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+Parameters MeshioPlusPlusIgaUtilities::MeshCad(
+    const std::string& rFileName,
+    Parameters Settings,
+    ModelPart& rDestination,
+    const ModelPart& rBackground
+    )
+{
+    KRATOS_ERROR_IF(rBackground.IsDistributed())
+        << "MeshioPlusPlusIgaUtilities does not support distributed model parts" << std::endl;
+    return MeshCadImpl(rFileName, Settings, rDestination, &rBackground);
 }
 
 /***********************************************************************************/
