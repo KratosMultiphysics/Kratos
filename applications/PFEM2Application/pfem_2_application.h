@@ -32,6 +32,7 @@
 #include "custom_elements/nonewtonian_2fluid_2d.h" //including the file for the element
 #include "custom_elements/nonewtonian_2fluid_3d.h" //including the file for the element
 #include "custom_elements/monolithic_2fluid_2d_modified.h" //including the file for the element
+#include "custom_elements/monolithic_2fluid_2d_aux.h" //including the file for the element
 #include "custom_elements/monolithic_2fluid_2d_partintegration.h" //including the file for the element
 #include "custom_elements/monolithic_2fluid_3d_partintegration.h" //including the file for the element
 //#include "custom_elements/vel_enriched_2fluid_2d.h"
@@ -223,6 +224,7 @@ namespace Kratos
 
     /////////
     const MonolithicPFEM22DModified mMonolithicPFEM22DModified;
+    const MonolithicPFEM22DAux mMonolithicPFEM22DAux;
     /////////
 
 

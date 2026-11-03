@@ -4038,10 +4038,108 @@ namespace Kratos
             KRATOS_CATCH("")
         }
 
-		void PreReseed_Temperature_RK2_WitSubstepping(int minimum_number_of_particles)
+
+		void PreReseed_Temperature_RK4_WithSubstepping(int minimum_number_of_particles)
         {
-            PreReseed_Temperature_RK2_WithSubstepping(minimum_number_of_particles);
+            KRATOS_TRY
+
+			KRATOS_WATCH("PreReseed_Temperature_RK4_WithSubstepping has been called")
+
+            ProcessInfo& CurrentProcessInfo = mr_model_part.GetProcessInfo();
+            const int max_results = 10000;
+
+            //tools for the paralelization
+            unsigned int number_of_threads = OpenMPUtils::GetNumThreads();
+            vector<unsigned int> elem_partition;
+            int number_of_rows=mr_model_part.Elements().size();
+            elem_partition.resize(number_of_threads + 1);
+            int elem_partition_size = number_of_rows / number_of_threads;
+            elem_partition[0] = 0;
+            elem_partition[number_of_threads] = number_of_rows;
+            for (unsigned int i = 1; i < number_of_threads; i++)
+            elem_partition[i] = elem_partition[i - 1] + elem_partition_size;
+
+			const bool local_use_mesh_velocity_to_convect = false;
+
+            #pragma omp parallel firstprivate(elem_partition)
+            {
+                ResultContainerType results(max_results);
+                int k = OpenMPUtils::ThisThread();
+                ModelPart::ElementsContainerType::iterator it_begin = mr_model_part.ElementsBegin() +  elem_partition[k];
+                ModelPart::ElementsContainerType::iterator it_end = mr_model_part.ElementsBegin() + elem_partition[k+1] ;
+                BoundedMatrix<double, (TDim+1), 3 > pos;
+                BoundedMatrix<double, (TDim+1) , (TDim+1) > N;
+                unsigned int freeparticle=0; //we start with the first position in the particles array
+
+                for (ModelPart::ElementsContainerType::iterator ielem = it_begin; ielem != it_end; ielem++)
+                {
+                    results.resize(max_results);
+                    int & number_of_particles_in_elem=ielem->GetValue(NUMBER_OF_FLUID_PARTICLES);
+                    if (number_of_particles_in_elem<(minimum_number_of_particles))
+                    {
+						Geometry<Node >& geom = ielem->GetGeometry();
+                        ComputeGaussPointPositionsForPreReseed(geom, pos, N);
+						
+                        for (unsigned int j = 0; j < (pos.size1()); j++)
+                        {
+                            bool keep_looking = true;
+                            while(keep_looking && freeparticle < mparticles_vector.size())
+                            {
+                                if (mparticles_vector[freeparticle].GetEraseFlag()==true)
+                                {
+                                    #pragma omp critical
+                                    {
+                                        if (mparticles_vector[freeparticle].GetEraseFlag()==true)
+                                        {
+                                            mparticles_vector[freeparticle].GetEraseFlag()=false;
+                                            keep_looking=false;
+                                        }
+                                    }
+                                    if (keep_looking==false)
+                                        break;
+                                    else
+                                        freeparticle++;
+                                }
+                                else
+                                {
+                                        freeparticle++;
+                                }
+                            }
+                            if (keep_looking || freeparticle >= mparticles_vector.size())
+                            {
+                                break;
+                            }
+
+                            PFEM_Particle_Fluid pparticle(pos(j,0),pos(j,1),pos(j,2));
+
+                            array_1d<double,TDim+1>aux2_N;
+                            bool is_found = CalculatePosition(geom,pos(j,0),pos(j,1),pos(j,2),aux2_N);
+                            if (is_found==false)
+                            {
+                                KRATOS_WATCH(aux2_N);
+                            }
+
+                            pparticle.GetElementId()=ielem->Id();   
+                            pparticle.GetEraseFlag()=false;
+
+                            ResultIteratorType result_begin = results.begin();
+                            Element::Pointer pelement( *ielem.base() );
+                            MoveParticle_inverse_way_Temperature_RK4_WithSubstepping(pparticle, pelement, result_begin, max_results, local_use_mesh_velocity_to_convect);
+
+                            //and we copy it to the array:
+                            mparticles_vector[freeparticle] =  pparticle;
+
+                            pparticle.GetEraseFlag()=false;
+
+                            number_of_particles_in_elem++;
+                          }
+                      }
+                  }
+            }
+
+            KRATOS_CATCH("")
         }
+
 
 		//**************************************************************************************************************
 		//**************************************************************************************************************
@@ -6653,7 +6751,7 @@ namespace Kratos
 
 		void MoveParticle_inverse_way(
 			PFEM_Particle_Fluid &pparticle,
-			Element::Pointer &pelement, // NOT A REFERENCE!! WE SHALL NOT OVERWRITE THE ELEMENT IT BELONGS TO!
+			Element::Pointer pelement, // NOT A REFERENCE!! WE SHALL NOT OVERWRITE THE ELEMENT IT BELONGS TO!
 			ResultIteratorType result_begin,
 			const unsigned int MaxNumberOfResults,
 			const bool use_mesh_velocity_to_convect)
@@ -6752,7 +6850,7 @@ namespace Kratos
 
 		void MoveParticle_inverse_way_Temperature(
 			PFEM_Particle_Fluid &pparticle,
-			Element::Pointer &pelement, // NOT A REFERENCE!! WE SHALL NOT OVERWRITE THE ELEMENT IT BELONGS TO!
+			Element::Pointer pelement, // NOT A REFERENCE!! WE SHALL NOT OVERWRITE THE ELEMENT IT BELONGS TO!
 			ResultIteratorType result_begin,
 			const unsigned int MaxNumberOfResults,
 			const bool use_mesh_velocity_to_convect)
@@ -6835,7 +6933,7 @@ namespace Kratos
 
 		void MoveParticle_inverse_way_Temperature_RK2_WithSubstepping(
 			PFEM_Particle_Fluid &pparticle,
-			Element::Pointer &pelement, // NOT A REFERENCE!! WE SHALL NOT OVERWRITE THE ELEMENT IT BELONGS TO!
+			Element::Pointer pelement, // NOT A REFERENCE!! WE SHALL NOT OVERWRITE THE ELEMENT IT BELONGS TO!
 			ResultIteratorType result_begin,
 			const unsigned int MaxNumberOfResults,
 			const bool use_mesh_velocity_to_convect)
@@ -6937,6 +7035,188 @@ namespace Kratos
 						pos_mid,
 						next_pos,
 						N_mid,
+						neighb_elems,
+						b_temp);
+
+					particle_temperature = b_temp;
+					break; // Stop further backward integration
+				}
+			}
+
+			pparticle.GetTemperature() = particle_temperature;
+		}
+
+		void MoveParticle_inverse_way_Temperature_RK4_WithSubstepping(
+			PFEM_Particle_Fluid &pparticle,
+			Element::Pointer pelement, // Passed by value so local backward stepping does not alter caller's element
+			ResultIteratorType result_begin,
+			const unsigned int MaxNumberOfResults,
+			const bool use_mesh_velocity_to_convect)
+		{
+			ProcessInfo &CurrentProcessInfo = mr_model_part.GetProcessInfo();
+			const double delta_t = CurrentProcessInfo[DELTA_TIME];
+
+			array_1d<double, 3> position = pparticle.Coordinates();
+			array_1d<double, TDim + 1> N;
+
+			bool is_found = FindNodeOnMesh(position, N, pelement, result_begin, MaxNumberOfResults);
+			if (!is_found)
+			{
+				return;
+			}
+
+			Geometry<Node> &geom = pelement->GetGeometry();
+			array_1d<double, 3> vel = ZeroVector(3);
+			double particle_temperature = 0.0;
+
+			for (unsigned int j = 0; j <= TDim; ++j)
+			{
+				noalias(vel) += geom[j].FastGetSolutionStepValue(VELOCITY) * N[j];
+				particle_temperature += geom[j].FastGetSolutionStepValue(TEMPERATURE) * N[j];
+			}
+
+			unsigned int nsubsteps = static_cast<unsigned int>(10.0 * (delta_t * pelement->GetValue(VELOCITY_OVER_ELEM_SIZE)));
+			if (nsubsteps < 1)
+				nsubsteps = 1;
+			const double substep_dt = delta_t / static_cast<double>(nsubsteps);
+
+			for (unsigned int i = 0; i < nsubsteps; ++i)
+			{
+				// RK4 Stage 1: k1 = -u(position) * substep_dt
+				array_1d<double, 3> k1 = -vel * substep_dt;
+				array_1d<double, 3> pos_stage2 = position + 0.5 * k1;
+				array_1d<double, TDim + 1> N_stage2;
+				Element::Pointer elem_stage2 = pelement;
+
+				bool is_stage2_found = FindNodeOnMesh(pos_stage2, N_stage2, elem_stage2, result_begin, MaxNumberOfResults);
+				if (!is_stage2_found)
+				{
+					// Particle stepped outside the mesh during stage 1 predictor!
+					GlobalPointersVector<Element> &neighb_elems = pelement->GetValue(NEIGHBOUR_ELEMENTS);
+					double b_temp = 0.0;
+
+					InterpolateBoundaryConditionAtExitTemperature(
+						pelement->GetGeometry(),
+						position,
+						pos_stage2,
+						N,
+						neighb_elems,
+						b_temp);
+
+					particle_temperature = b_temp;
+					break; // Stop further backward integration
+				}
+
+				// Velocity at stage 2
+				Geometry<Node> &geom_stage2 = elem_stage2->GetGeometry();
+				array_1d<double, 3> vel_stage2 = ZeroVector(3);
+				for (unsigned int j = 0; j <= TDim; ++j)
+				{
+					noalias(vel_stage2) += geom_stage2[j].FastGetSolutionStepValue(VELOCITY) * N_stage2[j];
+				}
+
+				// RK4 Stage 2: k2 = -u(pos_stage2) * substep_dt
+				array_1d<double, 3> k2 = -vel_stage2 * substep_dt;
+				array_1d<double, 3> pos_stage3 = position + 0.5 * k2;
+				array_1d<double, TDim + 1> N_stage3;
+				Element::Pointer elem_stage3 = elem_stage2;
+
+				bool is_stage3_found = FindNodeOnMesh(pos_stage3, N_stage3, elem_stage3, result_begin, MaxNumberOfResults);
+				if (!is_stage3_found)
+				{
+					// Particle stepped outside the mesh during stage 2 predictor!
+					GlobalPointersVector<Element> &neighb_elems = elem_stage2->GetValue(NEIGHBOUR_ELEMENTS);
+					double b_temp = 0.0;
+
+					InterpolateBoundaryConditionAtExitTemperature(
+						elem_stage2->GetGeometry(),
+						pos_stage2,
+						pos_stage3,
+						N_stage2,
+						neighb_elems,
+						b_temp);
+
+					particle_temperature = b_temp;
+					break; // Stop further backward integration
+				}
+
+				// Velocity at stage 3
+				Geometry<Node> &geom_stage3 = elem_stage3->GetGeometry();
+				array_1d<double, 3> vel_stage3 = ZeroVector(3);
+				for (unsigned int j = 0; j <= TDim; ++j)
+				{
+					noalias(vel_stage3) += geom_stage3[j].FastGetSolutionStepValue(VELOCITY) * N_stage3[j];
+				}
+
+				// RK4 Stage 3: k3 = -u(pos_stage3) * substep_dt
+				array_1d<double, 3> k3 = -vel_stage3 * substep_dt;
+				array_1d<double, 3> pos_stage4 = position + k3;
+				array_1d<double, TDim + 1> N_stage4;
+				Element::Pointer elem_stage4 = elem_stage3;
+
+				bool is_stage4_found = FindNodeOnMesh(pos_stage4, N_stage4, elem_stage4, result_begin, MaxNumberOfResults);
+				if (!is_stage4_found)
+				{
+					// Particle stepped outside the mesh during stage 3 predictor!
+					GlobalPointersVector<Element> &neighb_elems = elem_stage3->GetValue(NEIGHBOUR_ELEMENTS);
+					double b_temp = 0.0;
+
+					InterpolateBoundaryConditionAtExitTemperature(
+						elem_stage3->GetGeometry(),
+						pos_stage3,
+						pos_stage4,
+						N_stage3,
+						neighb_elems,
+						b_temp);
+
+					particle_temperature = b_temp;
+					break; // Stop further backward integration
+				}
+
+				// Velocity at stage 4
+				Geometry<Node> &geom_stage4 = elem_stage4->GetGeometry();
+				array_1d<double, 3> vel_stage4 = ZeroVector(3);
+				for (unsigned int j = 0; j <= TDim; ++j)
+				{
+					noalias(vel_stage4) += geom_stage4[j].FastGetSolutionStepValue(VELOCITY) * N_stage4[j];
+				}
+
+				// RK4 Stage 4: k4 = -u(pos_stage4) * substep_dt
+				array_1d<double, 3> k4 = -vel_stage4 * substep_dt;
+
+				// Final RK4 position update: next_pos = position + (1/6)*(k1 + 2*k2 + 2*k3 + k4)
+				array_1d<double, 3> next_pos = position + (1.0 / 6.0) * (k1 + 2.0 * k2 + 2.0 * k3 + k4);
+				array_1d<double, TDim + 1> next_N;
+				Element::Pointer next_element = elem_stage4;
+
+				bool is_next_found = FindNodeOnMesh(next_pos, next_N, next_element, result_begin, MaxNumberOfResults);
+				if (is_next_found)
+				{
+					position = next_pos;
+					N = next_N;
+					pelement = next_element;
+					Geometry<Node> &current_geom = pelement->GetGeometry();
+
+					vel = ZeroVector(3);
+					particle_temperature = 0.0;
+
+					for (unsigned int j = 0; j <= TDim; ++j)
+					{
+						noalias(vel) += current_geom[j].FastGetSolutionStepValue(VELOCITY) * N[j];
+						particle_temperature += current_geom[j].FastGetSolutionStepValue(TEMPERATURE) * N[j];
+					}
+				}
+				else
+				{
+					// Particle stepped outside the mesh during the full step!
+					GlobalPointersVector<Element> &neighb_elems = elem_stage4->GetValue(NEIGHBOUR_ELEMENTS);
+					double b_temp = 0.0;
+
+					InterpolateBoundaryConditionAtExitTemperature(
+						elem_stage4->GetGeometry(),
+						pos_stage4,
+						next_pos,
+						N_stage4,
 						neighb_elems,
 						b_temp);
 

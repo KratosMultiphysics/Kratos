@@ -49,7 +49,8 @@ namespace Kratos
         mMonolithicAutoSlipInlet3D    ( 0, Element::GeometryType::Pointer( new Triangle3D3<Node >(  Element::GeometryType::PointsArrayType (3 ) ) ) ),
 
 		/////////
-        mMonolithicPFEM22DModified ( 0, Element::GeometryType::Pointer( new Triangle2D3<Node >(  Element::GeometryType::PointsArrayType (3 ) ) ) )
+        mMonolithicPFEM22DModified ( 0, Element::GeometryType::Pointer( new Triangle2D3<Node >(  Element::GeometryType::PointsArrayType (3 ) ) ) ),
+        mMonolithicPFEM22DAux ( 0, Element::GeometryType::Pointer( new Triangle2D3<Node >(  Element::GeometryType::PointsArrayType (3 ) ) ) )
         /////////
 
  	{}
@@ -70,6 +71,7 @@ namespace Kratos
 
 		/////////
         KRATOS_REGISTER_ELEMENT("MonolithicPFEM22DModified", mMonolithicPFEM22DModified); 
+        KRATOS_REGISTER_ELEMENT("MonolithicPFEM22DAux", mMonolithicPFEM22DAux); 
         /////////
 
  		KRATOS_REGISTER_CONDITION("FixedVelocity2D", mFixedVelocity2D);

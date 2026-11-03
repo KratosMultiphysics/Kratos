@@ -16,6 +16,7 @@ set( KRATOS_QUIET_WATER_APPLICATION_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/monolithic_2fluid_2d.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/monolithic_2fluid_3d.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/monolithic_2fluid_2d_modified.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/monolithic_2fluid_2d_aux.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/nonewtonian_2fluid_2d.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/nonewtonian_2fluid_3d.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/monolithic_2fluid_2d_partintegration.cpp
