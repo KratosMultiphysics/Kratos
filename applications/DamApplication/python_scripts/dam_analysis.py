@@ -26,10 +26,6 @@ class DamAnalysis(AnalysisStage):
         self.DefineParallelType()
         self.DefineVariables()
 
-        if self.consider_selfweight:
-           self.model_selfweight = KratosMultiphysics.Model()
-           self.PreviousSelfweightProblem()
-
         self.CreateModelPart()
 
         if self.add_previous_results:
@@ -57,7 +53,13 @@ class DamAnalysis(AnalysisStage):
         self.problem_path = os.getcwd()
         self.echo_level = self.project_parameters["solver_settings"]["echo_level"].GetInt()
         self.buffer_size = self.project_parameters["solver_settings"]["buffer_size"].GetInt()
-        self.consider_selfweight = self.project_parameters["problem_data"]["consider_selfweight"].GetBool()
+        if self.project_parameters["problem_data"].Has("consider_selfweight"):
+            if self.project_parameters["problem_data"]["consider_selfweight"].GetBool():
+                raise Exception(
+                    "The legacy SelfWeight workflow has been removed. "
+                    "'problem_data.consider_selfweight' must not be true; "
+                    "use standard gravity/body-force loading instead."
+                )
         self.consider_construction = self.project_parameters["problem_data"]["consider_construction"].GetBool()
         self.use_streamline_utility = self.project_parameters["problem_data"]["streamlines_utility"].GetBool()
         self.delta_time = self.project_parameters["problem_data"]["time_step"].GetDouble()
@@ -123,64 +125,6 @@ class DamAnalysis(AnalysisStage):
         solver_module = import_module(full_module_name)
         self.solver = solver_module.CreateSolver(self.main_model_part, self.project_parameters["solver_settings"])
 
-    def PreviousSelfweightProblem(self):
-        # Parsing parmeters of Selfweight Problem
-        self_parameter_file = open("ProjectParametersSelfWeight.json",'r')
-        SelfWeightProjectParameters = KratosMultiphysics.Parameters( self_parameter_file.read())
-
-        ## Creating Selfweight model part --------------------------------------------------------------
-        self.self_weight_model_part = self.model_selfweight.CreateModelPart("SelfWeight")
-        self.self_weight_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, self.domain_size)
-        self.self_weight_model_part.ProcessInfo.SetValue(KratosMultiphysics.TIME, self.time)
-        self.self_weight_model_part.ProcessInfo.SetValue(KratosMultiphysics.DELTA_TIME, self.delta_time)
-        self.self_weight_model_part.ProcessInfo.SetValue(KratosDam.TIME_UNIT_CONVERTER, self.time_unit_converter)
-
-        ## Construct the solver for selfweight problem -------------------------------------------------
-        selfweight_solver_module = __import__(SelfWeightProjectParameters["solver_settings"]["solver_type"].GetString())
-        selfweight_solver = selfweight_solver_module.CreateSolver(self.self_weight_model_part, SelfWeightProjectParameters["solver_settings"])
-        selfweight_solver.AddVariables()
-        selfweight_solver.ImportModelPart()
-        selfweight_solver.AddDofs()
-
-        ## Kratos Selfweight Model ---------------------------------------------------------------------
-        #DamSelfWeightModel = KratosMultiphysics.Model()
-        #DamSelfWeightModel.AddModelPart(self.self_weight_model_part)
-
-        ## Initialize ----------------------------------------------------------------------------------
-
-        # Construct processes to be applied
-        import KratosMultiphysics.process_factory
-        self_list_of_processes = process_factory.KratosProcessFactory(DamSelfWeightModel).ConstructListOfProcesses( SelfWeightProjectParameters["constraints_process_list"] )
-        self_list_of_processes += process_factory.KratosProcessFactory(DamSelfWeightModel).ConstructListOfProcesses( SelfWeightProjectParameters["loads_process_list"] )
-
-        # Initialize processes
-        for process in self_list_of_processes:
-            process.ExecuteBeforeSolutionLoop()
-
-        # Set TIME and DELTA_TIME and fill the previous steps of the buffer with the initial conditions
-        self_time = self.time - (self.buffer_size-1) * self.delta_time
-        self.self_weight_model_part.ProcessInfo.SetValue(KratosMultiphysics.TIME, self.time)
-        for step in range(self.buffer_size-1):
-            self_time = self_time + self.delta_time
-            self.self_weight_model_part.CloneTimeStep(self_time)
-
-        # Initialize the solver
-        selfweight_solver.Initialize()
-
-        # ExecuteBeforeSolutionLoop
-        for process in self_list_of_processes:
-            process.ExecuteBeforeSolutionLoop()
-
-        # Solving selfweight problem
-        selfweight_solver.Solve()
-
-        # Cleaning selfweight solver
-        selfweight_solver.Clear()
-
-        # Initialize transfer_selfweight_stress_utility
-        from KratosMultiphysics.DamApplication import transfer_selfweight_stress_utility
-        self.transfer_utility = transfer_selfweight_stress_utility.TransferSelfweightStressToMainModelPartUtility()
-
     def Run(self):
         self.Initialize()
 
@@ -219,7 +163,78 @@ class DamAnalysis(AnalysisStage):
         self.list_of_processes += KratosMultiphysics.process_factory.KratosProcessFactory(self.model).ConstructListOfProcesses( self.project_parameters["loads_process_list"] )
         self.list_of_processes += KratosMultiphysics.process_factory.KratosProcessFactory(self.model).ConstructListOfProcesses( self.project_parameters["temperature_by_device_list"] )
 
-        self.list_of_output_processes = KratosMultiphysics.process_factory.KratosProcessFactory(self.model).ConstructListOfProcesses( self.project_parameters["output_device_list"] )
+        for attribute in ("transfers_initial_stress",
+                          "transfers_initial_temperature",
+                          "transfers_reference_temperature"):
+            transferring_processes = [
+                process for process in self.list_of_processes
+                if getattr(process, attribute, False)]
+            if len(transferring_processes) > 1:
+                raise RuntimeError(
+                    "More than one process transfers the same initial-state field "
+                    "('{}'). Use only one initial-state processor per field.".format(
+                        attribute))
+
+        if any(getattr(process, "transfers_reference_temperature", False)
+               for process in self.list_of_processes):
+            reference_processes = [
+                process for process in self.list_of_processes
+                if (getattr(process, "assigns_reference_temperature", False) or
+                    isinstance(
+                        process,
+                        KratosDam.DamNodalReferenceTemperatureProcess))]
+            if reference_processes:
+                raise RuntimeError(
+                    "Cannot import NODAL_REFERENCE_TEMPERATURE while a process "
+                    "that assigns it is active. Remove or disable the "
+                    "reference-temperature process for this analysis.")
+
+        if self.add_previous_results and any(
+                getattr(process, "transfers_initial_stress", False)
+                for process in self.list_of_processes):
+            raise RuntimeError(
+                "An initial-state transfer process cannot be combined with "
+                "'transfer_results_process.add_previous_results'. Use only one "
+                "initial-state transfer mechanism per analysis.")
+
+        if self.project_parameters.Has("output_device_list"):
+            self.list_of_output_processes = KratosMultiphysics.process_factory.KratosProcessFactory(self.model).ConstructListOfProcesses( self.project_parameters["output_device_list"] )
+        else:
+            self.list_of_output_processes = []
+
+        # Construct standard output processes from the optional output_processes block
+        self.list_of_standard_output_processes = []
+        if self.project_parameters.Has("output_processes"):
+            output_processes = self.project_parameters["output_processes"]
+            for _, process_list in output_processes.items():
+                self.list_of_standard_output_processes += KratosMultiphysics.process_factory.KratosProcessFactory(self.model).ConstructListOfProcesses(process_list)
+
+        # A standard GiD process takes precedence over the legacy output_configuration
+        from KratosMultiphysics.gid_output_process import GiDOutputProcess
+        has_standard_gid_output = any(
+            isinstance(output_process, GiDOutputProcess)
+            for output_process in self.list_of_standard_output_processes
+        )
+        use_legacy_gid_output = (
+            self.project_parameters.Has("output_configuration") and
+            not has_standard_gid_output
+        )
+        if has_standard_gid_output and self.project_parameters.Has("output_configuration"):
+            KratosMultiphysics.Logger.PrintWarning(
+                "DamAnalysis",
+                "Both 'output_configuration' and a standard GiD process in 'output_processes' "
+                "are present. The standard GiD process is used and the legacy "
+                "'output_configuration' is ignored."
+            )
+
+        # Standard GiD must clean previous post files before its ExecuteInitialize below.
+        # Legacy GiD keeps its original cleanup point, immediately before construction.
+        # In particular, VTK-only runs must not delete existing GiD results.
+        if has_standard_gid_output:
+            from KratosMultiphysics.DamApplication import dam_cleaning_utility
+            dam_cleaning_utility.CleanPreviousFiles(self.problem_path)
+
+        self.gid_output = None
 
         # Print list of constructed processes
         if(self.echo_level>1):
@@ -229,11 +244,17 @@ class DamAnalysis(AnalysisStage):
             for self.output_process in self.list_of_output_processes:
                 print(self.output_process)
 
+            for self.output_process in self.list_of_standard_output_processes:
+                print(self.output_process)
+
         # Initialize processes
         for self.process in self.list_of_processes:
-            self.process.ExecuteBeforeSolutionLoop()
+            self.process.ExecuteInitialize()
 
         for self.output_process in self.list_of_output_processes:
+            self.output_process.ExecuteInitialize()
+
+        for self.output_process in self.list_of_standard_output_processes:
             self.output_process.ExecuteInitialize()
 
         # Set TIME and DELTA_TIME and fill the previous steps of the buffer with the initial conditions
@@ -279,22 +300,16 @@ class DamAnalysis(AnalysisStage):
 
                 dam_mapping_variables_utility.AddPreviousModelPartThermoMechanical(self.main_model_part,self.post_model_part_mechanical,self.post_model_part_thermal,self.add_displacement,self.add_stress,self.add_temperature,self.add_reference_temperature)
 
-        output_settings = self.project_parameters["output_configuration"]
-        #if self.parallel_type == "OpenMP":
-        from KratosMultiphysics.DamApplication import dam_cleaning_utility
-        dam_cleaning_utility.CleanPreviousFiles(self.problem_path) # Clean previous post files
-        from KratosMultiphysics.DamApplication.gid_dam_output_process import GiDDamOutputProcess
-        self.gid_output = GiDDamOutputProcess(computing_model_part,
-                                              self.problem_name,
-                                              self.start_time,
-                                              output_settings)
-        #else:
-            #from gid_output_process_mpi import GiDOutputProcessMPI
-            #self.gid_output = GiDOutputProcessMPI(computing_model_part,
-                                                  #self.problem_name,
-                                                  #self.start_time,
-                                                  #output_settings)
-        self.gid_output.ExecuteInitialize()
+        if use_legacy_gid_output:
+            from KratosMultiphysics.DamApplication import dam_cleaning_utility
+            dam_cleaning_utility.CleanPreviousFiles(self.problem_path) # Clean previous post files
+            output_settings = self.project_parameters["output_configuration"]
+            from KratosMultiphysics.DamApplication.gid_dam_output_process import GiDDamOutputProcess
+            self.gid_output = GiDDamOutputProcess(computing_model_part,
+                                                  self.problem_name,
+                                                  self.start_time,
+                                                  output_settings)
+            self.gid_output.ExecuteInitialize()
 
         self.solver.Initialize() # Initialize the solver
 
@@ -309,7 +324,11 @@ class DamAnalysis(AnalysisStage):
         for self.output_process in self.list_of_output_processes:
             self.output_process.ExecuteBeforeSolutionLoop()
 
-        self.gid_output.ExecuteBeforeSolutionLoop() # Set results when they are written in a single file
+        for self.output_process in self.list_of_standard_output_processes:
+            self.output_process.ExecuteBeforeSolutionLoop()
+
+        if self.gid_output is not None:
+            self.gid_output.ExecuteBeforeSolutionLoop() # Set results when they are written in a single file
 
         # Initialize streamlines_output_utility
         self.UseStreamlineUtility = False
@@ -353,13 +372,23 @@ class DamAnalysis(AnalysisStage):
                 self.output_process.ExecuteInitializeSolutionStep()
 
             # ExecuteInitializeSolutionStep
-            self.gid_output.ExecuteInitializeSolutionStep()
+            for self.output_process in self.list_of_standard_output_processes:
+                self.output_process.ExecuteInitializeSolutionStep()
+
+            if self.gid_output is not None:
+                self.gid_output.ExecuteInitializeSolutionStep()
+
             self.solver.Solve() # Solve step
 
             # streamlines_output_utility
             if self.UseStreamlineUtility:
                 self.streamline_utility.ComputeOutputStep(self.main_model_part, self.domain_size)
-            self.gid_output.ExecuteFinalizeSolutionStep()
+
+            if self.gid_output is not None:
+                self.gid_output.ExecuteFinalizeSolutionStep()
+
+            for self.output_process in self.list_of_standard_output_processes:
+                self.output_process.ExecuteFinalizeSolutionStep()
 
             for self.process in self.list_of_processes:
                 self.process.ExecuteFinalizeSolutionStep()
@@ -367,34 +396,76 @@ class DamAnalysis(AnalysisStage):
             for self.output_process in self.list_of_output_processes:
                 self.output_process.ExecuteFinalizeSolutionStep()
 
-            for self.process in self.list_of_processes:
-                self.process.ExecuteBeforeOutputStep()
+            standard_output_flags = [
+                (output_process, output_process.IsOutputStep())
+                for output_process in self.list_of_standard_output_processes
+            ]
+            output_device_flags = [
+                (output_process, output_process.IsOutputStep())
+                for output_process in self.list_of_output_processes
+            ]
+            legacy_gid_output_step = (
+                self.gid_output is not None and self.gid_output.IsOutputStep()
+            )
+            has_output_step = (
+                legacy_gid_output_step or
+                any(flag for _, flag in standard_output_flags) or
+                any(flag for _, flag in output_device_flags)
+            )
 
-            for self.output_process in self.list_of_output_processes:
-                self.output_process.ExecuteBeforeOutputStep()
+            if has_output_step:
+                for self.process in self.list_of_processes:
+                    self.process.ExecuteBeforeOutputStep()
 
-            # selfweight utility
-            if self.consider_selfweight:
-                self.transfer_utility.Transfer(self.self_weight_model_part, self.main_model_part, self.domain_size)
+                for self.output_process in self.list_of_output_processes:
+                    self.output_process.ExecuteBeforeOutputStep()
 
             # add previous results utility
-            if self.add_previous_results and self.add_stress:
+            # Only the smoothing schemes recompute NODAL_CAUCHY_STRESS_TENSOR.
+            # When displacement is mapped, that recomputation already contains
+            # the initial state. When only stress is transferred, the imported
+            # initial stress is added after each smoothing reset. UP/P schemes
+            # never reset the field, so the value assigned by the mapping
+            # utility already remains valid and must not be added again.
+            recomputes_nodal_cauchy_stress = getattr(
+                self.solver, "_recomputes_nodal_cauchy_stress", False)
+            if (self.add_previous_results and self.add_stress and
+                    recomputes_nodal_cauchy_stress and not self.add_displacement):
                 if self.type_of_results == "Mechanical" or self.type_of_results == "Thermo-Mechanical":
-                    from KratosMultiphysics.DamApplication import transfer_selfweight_stress_utility
-                    self.transfer_utility = transfer_selfweight_stress_utility.TransferSelfweightStressToMainModelPartUtility()
+                    from KratosMultiphysics.DamApplication import transfer_initial_stress_utility
+                    self.transfer_utility = transfer_initial_stress_utility.TransferInitialStressToMainModelPartUtility()
                     self.transfer_utility.TransferInitialStress(self.main_model_part, self.domain_size)
 
-            # Write GiD results
-            if self.gid_output.IsOutputStep():
-                self.PrintOutput()
+            if has_output_step:
+                for output_process, _ in standard_output_flags:
+                    output_process.ExecuteBeforeOutputStep()
 
-            for self.process in self.list_of_processes:
-                self.process.ExecuteAfterOutputStep()
+                if self.gid_output is not None:
+                    self.gid_output.ExecuteBeforeOutputStep()
 
-            for self.output_process in self.list_of_output_processes:
-                self.output_process.ExecuteAfterOutputStep()
-                if self.output_process.IsOutputStep():
-                    self.output_process.PrintOutput()
+                # Write legacy GiD results
+                if legacy_gid_output_step:
+                    self.PrintOutput()
+
+                for output_process, flag in standard_output_flags:
+                    if flag:
+                        output_process.PrintOutput()
+
+                for output_process, flag in output_device_flags:
+                    if flag:
+                        output_process.PrintOutput()
+
+                for self.process in self.list_of_processes:
+                    self.process.ExecuteAfterOutputStep()
+
+                for self.output_process in self.list_of_output_processes:
+                    self.output_process.ExecuteAfterOutputStep()
+
+                for output_process, _ in standard_output_flags:
+                    output_process.ExecuteAfterOutputStep()
+
+                if self.gid_output is not None:
+                    self.gid_output.ExecuteAfterOutputStep()
 
             if self.consider_construction:
                 #  After initialize solution
@@ -410,7 +481,8 @@ class DamAnalysis(AnalysisStage):
                     self.save_utility.SaveThermalVariables(self.problem_name, self.project_parameters, self.main_model_part, self.save_intermediate_variables_step)
 
     def PrintOutput(self):
-        self.gid_output.PrintOutput()
+        if self.gid_output is not None:
+            self.gid_output.PrintOutput()
 
     def Finalize(self):
         # Save final results in an auxiliary .mdpa
@@ -422,7 +494,11 @@ class DamAnalysis(AnalysisStage):
         if self.save_final_thermal_variables:
             self.save_utility.SaveFinalThermalVariables(self.problem_name, self.project_parameters, self.main_model_part)
 
-        self.gid_output.ExecuteFinalize() # Finalizing output files
+        if self.gid_output is not None:
+            self.gid_output.ExecuteFinalize() # Finalizing output files
+
+        for self.output_process in self.list_of_standard_output_processes:
+            self.output_process.ExecuteFinalize()
 
         for self.process in self.list_of_processes:
             self.process.ExecuteFinalize()
