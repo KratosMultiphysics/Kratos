@@ -1,5 +1,5 @@
 {
-	"wheel_name": "KratosGeoMechanicsApplication",
+	"wheel_name": "DeltaresReleaseGeoMechanicsApplication",
 	"included_modules": ["GeoMechanicsApplication"],
 	"included_binaries": ["KratosGeoMechanicsApplication.*", "KratosGeoMechanicsCore.*", "libKratosGeoMechanicsCore.*"],
     "excluded_binaries": [],
