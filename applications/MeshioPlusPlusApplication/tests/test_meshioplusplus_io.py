@@ -36,6 +36,62 @@ class TestMeshioPlusPlusIO(KratosUnittest.TestCase):
     def setUp(self):
         self.model = KratosMultiphysics.Model()
 
+    def testLengthUnitIsStatedOnWriteAndReportedOnRead(self):
+        # meshio++ v18.1.0 records a mesh's length unit (metres per unit) for the formats that
+        # carry one: a Radioss deck names it in /BEGIN. The field data name is colon-namespaced
+        # and never reaches the model part, hence GetLengthUnit()
+        single_file = '{"time_series" : "single_file"%s}'
+        model_part = self.model.CreateModelPart("Unit")
+        _PopulateModelPart(model_part)
+        with tempfile.TemporaryDirectory() as temp_dir:
+            for unit in (0.001, 0.0254):
+                path = str(Path(temp_dir) / "unit.rad")
+                settings = KratosMultiphysics.Parameters(single_file % (', "length_unit" : %s' % unit))
+                KratosMeshioPlusPlus.MeshioPlusPlusIO(path, settings).WriteModelPart(model_part)
+                reader = KratosMeshioPlusPlus.MeshioPlusPlusIO(path)
+                reader.ReadModelPart(self.model.CreateModelPart("UnitRead%d" % round(unit * 10000)))
+                self.assertAlmostEqual(reader.GetLengthUnit(), unit, 12)
+
+            # No unit stated, none read back
+            path = str(Path(temp_dir) / "none.vtu")
+            KratosMeshioPlusPlus.MeshioPlusPlusIO(path, KratosMultiphysics.Parameters(single_file % "")).WriteModelPart(model_part)
+            reader = KratosMeshioPlusPlus.MeshioPlusPlusIO(path)
+            self.assertEqual(reader.GetLengthUnit(), 0.0)
+            reader.ReadModelPart(self.model.CreateModelPart("NoUnitRead"))
+            self.assertEqual(reader.GetLengthUnit(), 0.0)
+
+        with self.assertRaisesRegex(RuntimeError, "length_unit"):
+            with tempfile.TemporaryDirectory() as temp_dir:
+                settings = KratosMultiphysics.Parameters(single_file % ', "length_unit" : -1.0')
+                KratosMeshioPlusPlus.MeshioPlusPlusIO(str(Path(temp_dir) / "bad.vtu"), settings).WriteModelPart(model_part)
+
+    def testCompressedFilesAreReadTransparently(self):
+        # meshio++ v18.1.0 strips the compression suffix to infer the format, decompresses to a
+        # private temporary file and reads that
+        import bz2
+        import gzip
+        model_part = self.model.CreateModelPart("ToCompress")
+        _PopulateModelPart(model_part)
+        single_file = KratosMultiphysics.Parameters('{"time_series" : "single_file"}')
+        with tempfile.TemporaryDirectory() as temp_dir:
+            plain = Path(temp_dir) / "mesh.vtu"
+            KratosMeshioPlusPlus.MeshioPlusPlusIO(str(plain), single_file).WriteModelPart(model_part)
+            for suffix, opener in ((".gz", gzip.open), (".bz2", bz2.open)):
+                compressed = Path(temp_dir) / ("mesh.vtu" + suffix)
+                with opener(compressed, "wb") as out:
+                    out.write(plain.read_bytes())
+                read_back = self.model.CreateModelPart("Compressed" + suffix.strip("."))
+                try:
+                    KratosMeshioPlusPlus.MeshioPlusPlusIO(str(compressed)).ReadModelPart(read_back)
+                except RuntimeError as error:
+                    # A codec the meshio++ build lacks is named in the error
+                    self.assertIn("MESHIOPLUSPLUS_WITH_", str(error))
+                    self.assertNotEqual(suffix, ".gz")
+                    continue
+                self.assertEqual(read_back.NumberOfNodes(), model_part.NumberOfNodes())
+                self.assertEqual(read_back.NumberOfElements(), model_part.NumberOfElements())
+                self.assertEqual(read_back.NumberOfConditions(), model_part.NumberOfConditions())
+
     @KratosUnittest.skipUnless(kratos_utils.CheckIfApplicationsAvailable("StructuralMechanicsApplication"),
                                "StructuralMechanicsApplication is not compiled")
     def testStructuralLoadConditionsRoundTrip(self):
