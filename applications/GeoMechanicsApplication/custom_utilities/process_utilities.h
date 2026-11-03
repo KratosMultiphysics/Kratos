@@ -29,10 +29,7 @@ class KRATOS_API(GEO_MECHANICS_APPLICATION) ProcessUtilities
 {
 public:
     static std::vector<std::reference_wrapper<ModelPart>> GetModelPartsFromSettings(
-        Model&             rModel,
-        const Parameters&  rProcessSettings,
-        const std::string& rProcessInfo,
-        const std::vector<std::string>& rModelPartNameKeys = {"model_part_name"s, "model_part_name_list"s});
+        Model& rModel, const Parameters& rProcessSettings, const std::string& rProcessInfo);
 
     static void AddProcessesSubModelPartListToSolverSettings(const Parameters& rProjectParameters,
                                                              Parameters&       rSolverSettings);
