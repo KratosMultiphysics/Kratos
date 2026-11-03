@@ -103,9 +103,14 @@ include(pybind11Tools)
 # refinement and the freeform modes. 34 (v17.15.0), 35 (v17.22.0) and 36 (v17.23.0) grow the
 # mesh_cad structs (MeshCadSurfaceOptions, MeshCadSizeSources, MeshCadSurfaceExtras) that
 # MeshioPlusPlusIgaUtilities.MeshCad now fills, and 36 also VoxelOptions (mPlane, the 2-D variant),
-# OctreeMeshOptions and FitCadOptions again. 37 (the v18.0.0 tag) grows OptimizeVolumeOptions
+# OctreeMeshOptions and FitCadOptions again. 37 (the v18.0.0 tag, held by v18.1.0) grows OptimizeVolumeOptions
 # (40 -> 48 bytes) with mObjective/mMaxRingSize and changes optimize_volume's default output: the
 # "worst" objective raises the least dihedral angle, "energy" is the former behaviour byte for byte.
+# v18.1.0 holds ABI 37 (the v18.0.0 tag is already ABI 37, and v18.1.0 adds only headers): the
+# release floor moves for parameterize, geodesic_distance, laplacian_eigenmodes, morph, untangle,
+# prepare_metric, convert_coordinates, convex_hull, delaunay_2d, estimate_normals,
+# reconstruct_surface, register_rigid and adjacency, and for the length units (field data
+# "meshio:length_unit") and compressed input the registry now serves.
 # The rest of the window is additive: octree (v17.8.0), primitives (v17.10.0), refine_patches and
 # octree_mesh (v17.11.0-v17.12.0), mesh_cad (v17.13.0), the mmg, tetrahedralize, extrude, mirror,
 # check_conformity, boundary_layer, project_to_cad and error_size operations and the medit_sol
@@ -146,12 +151,15 @@ if(NOT MESHIOPLUSPLUS_ABI_VERSION EQUAL 37)
     message(FATAL_ERROR
         "MeshioPlusPlusApplication needs meshio++ ABI 37, but the install at "
         "'${meshioplusplus_DIR}' reports ABI ${MESHIOPLUSPLUS_ABI_VERSION} "
-        "(release ${meshioplusplus_VERSION}). ABI 37 is the meshio++ v18.0.0 tag onwards.")
+        "(release ${meshioplusplus_VERSION}). ABI 37 is the meshio++ v18.0.0 tag onwards, and v18.1.0 holds it.")
 endif()
 
-if(meshioplusplus_VERSION VERSION_LESS 18.0.0)
+if(meshioplusplus_VERSION VERSION_LESS 18.1.0)
     message(FATAL_ERROR
-        "MeshioPlusPlusApplication needs meshio++ v18.0.0 or newer (for the select, tet_to_poly, "
+        "MeshioPlusPlusApplication needs meshio++ v18.1.0 or newer (for the parameterize, "
+        "geodesic_distance, laplacian_eigenmodes, morph, untangle, prepare_metric, "
+        "convert_coordinates, convex_hull, delaunay_2d, estimate_normals, reconstruct_surface, "
+        "register_rigid and adjacency operations on top of v18.0.0's select, tet_to_poly, "
         "poly_to_tet, find_intersections, thickness, tetrahedralize, boundary_layer, extrude, "
         "revolve, mirror, octree, octree_mesh, refine_patches, check_conformity, error_size and "
         "MMG operations, the primitives generators, mesh_cad_surface and project_to_cad, the "
