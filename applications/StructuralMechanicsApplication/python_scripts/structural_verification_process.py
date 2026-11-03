@@ -11,7 +11,7 @@ def Factory(settings: KratosMultiphysics.Parameters, model: KratosMultiphysics.M
     return StructuralVerificationProcess(model, settings["Parameters"])
 
 class StructuralVerificationProcess(KratosMultiphysics.Process):
-    """Runs handbook methods on structural components and stores the reserve factors."""
+    """Runs verification methods on structural components and stores the reserve factors."""
 
     def __init__(self, model: KratosMultiphysics.Model, settings: KratosMultiphysics.Parameters):
         super().__init__()

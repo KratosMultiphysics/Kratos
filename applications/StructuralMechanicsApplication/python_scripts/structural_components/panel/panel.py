@@ -9,7 +9,7 @@ class Panel(StructuralComponent):
     """Flat, rectangular panel of shell elements.
 
     Provides geometry, laminate and running loads in the panel coordinate system.
-    The data is extracted by dedicated classes; handbook methods evaluate it.
+    The data is extracted by dedicated classes; verification methods evaluate it.
     """
 
     def __init__(self, sub_model_part, boundary_conditions: str, material_type: str, metadata):
@@ -40,6 +40,4 @@ class Panel(StructuralComponent):
         
         self.loads = PanelResponseExtractor().ExtractRunningLoads(self.sub_model_part, 
                                                                   self.geometry)
-        print(self.loads.N_average)
-        print(self.loads.N_linear)
 

@@ -3,7 +3,8 @@
         "type"  :   "Panel",
         "submodelpart": "Shell_gesamt",
         "boundary_conditions" : "SSSS",
-        "analysis_methods"   :   ["PuckAnalysis"],
+        "material_type": "composite",
+        "analysis_methods"   :   ["puck"],
         "metadata" : {
             "criterion" : "last_ply_failure",
 

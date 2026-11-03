@@ -1,7 +1,9 @@
 from KratosMultiphysics.StructuralMechanicsApplication.verification_methods.plate_buckling import PlateBuckling
+from KratosMultiphysics.StructuralMechanicsApplication.verification_methods.puck import PuckAnalysis
 
 _METHOD_TYPES = {
-    "plate_buckling": PlateBuckling
+    "plate_buckling": PlateBuckling,
+    "puck": PuckAnalysis
 }
 
 def CreateVerificationMethod(name: str):

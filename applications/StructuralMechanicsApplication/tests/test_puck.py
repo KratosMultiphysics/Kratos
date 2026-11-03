@@ -2,24 +2,19 @@ import KratosMultiphysics
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 from KratosMultiphysics.StructuralMechanicsApplication.structural_mechanics_analysis import StructuralMechanicsAnalysis
+from KratosMultiphysics.StructuralMechanicsApplication.structural_verification_process import StructuralVerificationProcess
 
 
 class TestPuck(KratosUnittest.TestCase):
 
 
-    def _GetStressAnalysisProcess(self, simulation):
+    def _GetPuckResult(self, simulation):
         for process in simulation._GetListOfProcesses():
-            if hasattr(process, "structural_components"):
-                return process
+            if isinstance(process, StructuralVerificationProcess):
+                return process.results[("Shell_gesamt", "puck")]
 
-        self.fail("Could not find StressAnalysisProcess with structural_components.")
+        self.fail("Could not find StructuralVerificationProcess.")
 
-    def _GetPuckResult(self, component):
-        for result in component.analysis_results:
-            if result.method_name == "puck":
-                return result
-
-        self.fail("Could not find Puck analysis result.")
 
     def _CreateParametersWithPuckCriterion(self, criterion):
         with open("ProjectParameters.json", "r") as parameter_file:
@@ -40,9 +35,7 @@ class TestPuck(KratosUnittest.TestCase):
     def _CheckPuckRF_IFF(self, criterion, indices, expected_RF_IFF):
         model, simulation = self._RunPuckAnalysis(criterion)
 
-        stress_analysis_process = self._GetStressAnalysisProcess(simulation)
-        component = stress_analysis_process.structural_components[0]
-        puck_result = self._GetPuckResult(component)
+        puck_result = self._GetPuckResult(simulation)
 
         RF_IFF = puck_result.metadata["RF_IFF"]
 
@@ -63,9 +56,7 @@ class TestPuck(KratosUnittest.TestCase):
     def _CheckPuckRF_FF(self, criterion, indices, expected_RF_FF):
         model, simulation = self._RunPuckAnalysis(criterion)
 
-        stress_analysis_process = self._GetStressAnalysisProcess(simulation)
-        component = stress_analysis_process.structural_components[0]
-        puck_result = self._GetPuckResult(component)
+        puck_result = self._GetPuckResult(simulation)
 
         RF_FF = puck_result.metadata["RF_FF"]
 
@@ -77,9 +68,7 @@ class TestPuck(KratosUnittest.TestCase):
     def _CheckPuck_DegradationIFF(self, criterion, indices, expected_Puck_DegradationIFF):
         model, simulation = self._RunPuckAnalysis(criterion)
 
-        stress_analysis_process = self._GetStressAnalysisProcess(simulation)
-        component = stress_analysis_process.structural_components[0]
-        puck_result = self._GetPuckResult(component)
+        puck_result = self._GetPuckResult(simulation)
 
         Puck_DegradationIFF= puck_result.metadata["Puck_DegradationIFF"]
 

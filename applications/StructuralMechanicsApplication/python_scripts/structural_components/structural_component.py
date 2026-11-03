@@ -1,4 +1,3 @@
-import numpy as np
 from abc import ABC, abstractmethod
 
 class StructuralComponent(ABC):
@@ -6,7 +5,6 @@ class StructuralComponent(ABC):
     def __init__(self, sub_model_part, metadata):
         self.sub_model_part = sub_model_part
         self.metadata = metadata
-        self.analysis_results = {}
 
     @property
     def name(self) -> str:

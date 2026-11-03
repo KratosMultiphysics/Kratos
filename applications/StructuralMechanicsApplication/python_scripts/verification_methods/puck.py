@@ -15,16 +15,88 @@ import numpy as np
 from KratosMultiphysics.StructuralMechanicsApplication.verification_methods.analysis_result import AnalysisResult
 from KratosMultiphysics.StructuralMechanicsApplication.verification_methods.method_base import VerificationMethod
 import KratosMultiphysics.StructuralMechanicsApplication as SMA
+from dataclasses import dataclass
 
-
+@dataclass
+class PuckInput:
+    """Flat per-face arrays in the layout of the Puck routines: element, then ply (top to bottom), then top/bottom face."""
+    element_id: np.ndarray
+    ply_id: np.ndarray
+    ply_side: np.ndarray            # 0 = top, 1 = bottom face of the ply
+    ply_angle: np.ndarray           # [deg] in the panel frame
+    ply_thickness: np.ndarray       # per element and ply (not per face)
+    sigma_1: np.ndarray
+    sigma_2: np.ndarray
+    tau_21: np.ndarray
+    force_x: np.ndarray             # per element, panel frame
+    force_y: np.ndarray
+    force_xy: np.ndarray
+    moment_x: np.ndarray
+    moment_y: np.ndarray
+    moment_xy: np.ndarray
+    R_pa_t: np.ndarray
+    R_pa_c: np.ndarray
+    R_tr_t: np.ndarray
+    R_tr_c: np.ndarray
+    R_trpa: np.ndarray
+    p_trtr_c: np.ndarray
+    p_trpa_t: np.ndarray
+    p_trpa_c: np.ndarray
+    E_pa: np.ndarray
+    E_tr: np.ndarray
+    nu_12: np.ndarray
+    G_trpa: np.ndarray
+    plies_element: int
+    num_elements: int
 
 class PuckAnalysis(VerificationMethod):
     name = "puck"
     category = "strength"
+    default_inclinations = {"p_trtr_c": 0.25, "p_trpa_t": 0.25, "p_trpa_c": 0.25}
+    default_degradation_factors = {"E_tr_A": 0.0, "G_patr_A": 0.0, "E_tr_B": 0.5, "G_patr_B": 0.5}
+
+    def _CreatePuckInput(self, panel) -> PuckInput:
+        laminate, loads = panel.laminate, panel.loads
+        plies = laminate.plies
+        n_elements, n_plies = len(loads.element_ids), len(plies)
+        stresses = laminate.PlyStresses(loads.N, loads.M).reshape(-1, 3)     # (element, ply, face) flattened
+
+        def PerFace(values):
+            return np.tile(np.repeat(np.asarray(values, dtype=float), 2), n_elements)
+
+        inclinations = self._MetadataValues(panel.metadata, "puck_parameters", self.default_inclinations)
+        return PuckInput(
+            element_id=np.repeat(loads.element_ids, 2 * n_plies),
+            ply_id=np.tile(np.repeat(np.arange(1, n_plies + 1), 2), n_elements),
+            ply_side=np.tile([0, 1], n_elements * n_plies),
+            ply_angle=PerFace([ply.angle for ply in plies]),
+            ply_thickness=np.tile([ply.thickness for ply in plies], n_elements),
+            sigma_1=stresses[:, 0], sigma_2=stresses[:, 1], tau_21=stresses[:, 2],
+            force_x=loads.N[:, 0], force_y=loads.N[:, 1], force_xy=loads.N[:, 2],
+            moment_x=loads.M[:, 0], moment_y=loads.M[:, 1], moment_xy=loads.M[:, 2],
+            R_pa_t=PerFace([ply.strength.R_pa_t for ply in plies]),
+            R_pa_c=PerFace([ply.strength.R_pa_c for ply in plies]),
+            R_tr_t=PerFace([ply.strength.R_tr_t for ply in plies]),
+            R_tr_c=PerFace([ply.strength.R_tr_c for ply in plies]),
+            R_trpa=PerFace([ply.strength.R_trpa for ply in plies]),
+            p_trtr_c=PerFace([inclinations["p_trtr_c"]] * n_plies),
+            p_trpa_t=PerFace([inclinations["p_trpa_t"]] * n_plies),
+            p_trpa_c=PerFace([inclinations["p_trpa_c"]] * n_plies),
+            E_pa=PerFace([ply.E1 for ply in plies]), E_tr=PerFace([ply.E2 for ply in plies]),
+            nu_12=PerFace([ply.nu12 for ply in plies]), G_trpa=PerFace([ply.G12 for ply in plies]),
+            plies_element=n_plies, num_elements=n_elements)
+
+    @staticmethod
+    def _MetadataValues(metadata, group: str, defaults: dict) -> dict:
+        values = dict(defaults)
+        if metadata is not None and metadata.Has(group):
+            for key in values:
+                if metadata[group].Has(key):
+                    values[key] = metadata[group][key].GetDouble()
+        return values
 
     def IsApplicable(self, structural_component):
-        #TODO: Aufräumen
-        return structural_component.mat_type == "orthotropic"
+        return structural_component.material_type == "composite"
         
 
 
@@ -517,48 +589,52 @@ class PuckAnalysis(VerificationMethod):
 
     def PuckAnalysis(self, structural_component):
 
-# initialize variables
-        ElementID = np.array(structural_component.material.element_id)
-        PlyID = np.array(structural_component.material.ply_id)
-        topbot = np.array(structural_component.material.ply_side) # 0 für Top und 1 für Bottom Seite der Lage
+        # initialize variables
+        data = self._CreatePuckInput(structural_component)
 
-        PlyAngle = np.array(structural_component.material.ply_angle)
-        PlyThickness = np.array(structural_component.material.ply_thickness)
+        ElementID = data.element_id
+        PlyID = data.ply_id
+        topbot = data.ply_side # 0 für Top und 1 für Bottom Seite der Lage
 
-        sigma_1 = np.array(structural_component.response.sigma_1)
-        sigma_2 = np.array(structural_component.response.sigma_2)
-        tau_21 = np.array(structural_component.response.tau_21)
+        PlyAngle = data.ply_angle
+        PlyThickness = data.ply_thickness
 
-        force_x = np.array(structural_component.response.force_x)
-        force_y = np.array(structural_component.response.force_y)
-        force_xy = np.array(structural_component.response.force_xy)
+        sigma_1 = data.sigma_1
+        sigma_2 = data.sigma_2
+        tau_21 = data.tau_21
 
-        moment_x = np.array(structural_component.response.moment_x)
-        moment_y = np.array(structural_component.response.moment_y)
-        moment_xy = np.array(structural_component.response.moment_xy)
+        force_x = data.force_x
+        force_y = data.force_y
+        force_xy = data.force_xy
 
-        R_pa_t = np.array(structural_component.material.strength_R_pa_t)
-        R_pa_c = np.array(structural_component.material.strength_R_pa_c)
-        R_tr_t = np.array(structural_component.material.strength_R_tr_t)
-        R_tr_c = np.array(structural_component.material.strength_R_tr_c)
-        R_trpa = np.array(structural_component.material.strength_R_trpa)
+        moment_x = data.moment_x
+        moment_y = data.moment_y
+        moment_xy = data.moment_xy
 
-        p_trtr_c = np.array(structural_component.material.inclination_p_trtr_c)
-        p_trpa_t = np.array(structural_component.material.inclination_p_trpa_t)
-        p_trpa_c = np.array(structural_component.material.inclination_p_trpa_c)
+        R_pa_t = data.R_pa_t
+        R_pa_c = data.R_pa_c
+        R_tr_t = data.R_tr_t
+        R_tr_c = data.R_tr_c
+        R_trpa = data.R_trpa
 
-        E_pa   = np.array(structural_component.material.youngs_modul_E_pa)
-        E_tr   = np.array(structural_component.material.youngs_modul_E_tr)
-        nu_12  = np.array(structural_component.material.poissons_ratio_nu_12)
-        G_trpa = np.array(structural_component.material.shear_modulus_G_trpa)
+        p_trtr_c = data.p_trtr_c
+        p_trpa_t = data.p_trpa_t
+        p_trpa_c = data.p_trpa_c
 
-        plies_element = int(structural_component.response.plies_element)
-        num_elements  = int(structural_component.response.num_elements)
+        E_pa   = data.E_pa
+        E_tr   = data.E_tr
+        nu_12  = data.nu_12
+        G_trpa = data.G_trpa
 
-        E_tr_A   = structural_component.material.degradationfactor_E_tr_A
-        G_patr_A = structural_component.material.degradationfactor_G_patr_A
-        E_tr_B   = structural_component.material.degradationfactor_E_tr_B
-        G_patr_B = structural_component.material.degradationfactor_G_patr_B
+        plies_element = data.plies_element
+        num_elements  = data.num_elements
+
+        degradation_factors = self._MetadataValues(structural_component.metadata, "degradation_factors",
+                                                   self.default_degradation_factors)
+        E_tr_A   = degradation_factors["E_tr_A"]
+        G_patr_A = degradation_factors["G_patr_A"]
+        E_tr_B   = degradation_factors["E_tr_B"]
+        G_patr_B = degradation_factors["G_patr_B"]
 
 # start fiber fracture calculation
         RF_FF,f_E_FF,failure_mode_FF = self.PuckFF(sigma_1, R_pa_t, R_pa_c)
