@@ -44,12 +44,13 @@ class Ply:
                          [Qb16, Qb26, Qb66]])
 
     @property
-    def T(self) -> np.ndarray:
-        """Stress transformation from panel (x, y) to ply (1, 2) coordinates: sigma_12 = T @ sigma_xy."""
+    def T_strain(self) -> np.ndarray:
+        """Engineering strain transformation from panel (x, y) to ply (1, 2) coordinates: eps_12 = T_strain @ eps_xy."""
         c, s = np.cos(np.radians(self.angle)), np.sin(np.radians(self.angle))
-        return np.array([[c * c,  s * s,  2.0 * c * s],
-                            [s * s,  c * c, -2.0 * c * s],
-                            [-c * s, c * s,  c * c - s * s]])
+        return np.array([[c * c,        s * s,        c * s],
+                         [s * s,        c * c,       -c * s],
+                         [-2.0 * c * s, 2.0 * c * s,  c * c - s * s]])
+
 
 
 class Laminate:
@@ -98,7 +99,7 @@ class Laminate:
         strains = np.linalg.solve(self.ABD, np.hstack((N, M)).T).T     # (n, 6): eps_0, kappa
         stresses = np.empty((N.shape[0], len(self.plies), 2, 3))
         for k, ply in enumerate(self.plies):
-            to_ply = ply.T @ ply.Q_bar
+            to_ply = ply.Q @ ply.T_strain
             for side, z in enumerate((self.z_top[k], self.z_bottom[k])):
                 stresses[:, k, side] = (strains[:, :3] + z * strains[:, 3:]) @ to_ply.T
         return stresses
