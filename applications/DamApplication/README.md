@@ -109,8 +109,14 @@ The process writes during `ExecuteFinalize`, before the solver is cleared.
 The three transfer flags are independent. Stresses reuse the existing
 validated `InitialState` assignment and its geometry/law restrictions.
 Temperatures are assigned by node ID to all solution-step buffer entries, after
-solver initialization and before the first solve. A second processor that
-transfers the same field is rejected by `DamAnalysis`.
+solver initialization and before the first solve.
+
+Multiple import processes are supported for multi-part models. Each process and
+each initial-state file covers one structural part. Stress transfers must target
+disjoint element sets, and shared-node `TEMPERATURE` and
+`NODAL_REFERENCE_TEMPERATURE` values must agree between processes. DamAnalysis
+validates all configured imports together before any field is assigned; conflicts
+are rejected without leaving a partially modified model.
 
 ### Reference-temperature alternatives ###
 
@@ -174,11 +180,12 @@ When the reference temperature is imported (either policy), the existing
 reference-temperature process must be removed or disabled. The standard
 `impose_nodal_reference_temperature_process` assigns its own reference field at
 every step and would silently replace the imported datum, so `DamAnalysis`
-rejects the combination before the solution loop with a clear error. If several
-processes are configured to transfer the same initial-state field, that
-combination is also rejected. Temperature itself is never re-applied by the
-import: thermal boundary processes and the thermal solver remain responsible for
-its evolution.
+rejects the combination before the solution loop with a clear error. Multiple
+processes may import the same field for different parts, provided stress element
+sets are disjoint and shared-node temperature and reference-temperature values
+agree; combined validation runs before assignment. Temperature itself is never
+re-applied by the import: thermal boundary processes and the thermal solver
+remain responsible for its evolution.
 
 The `initial_temperature` policy remains an explicit alternative datum reset: it
 makes the imported temperature the new zero-thermal-strain reference and
