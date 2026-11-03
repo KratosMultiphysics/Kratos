@@ -68,6 +68,9 @@ void AddCustomIOToPython(pybind11::module& m)
             "geometries, Mesh blocks, sub model part data, text ModelPartData, raw blocks such as "
             "Constraints, and the SubModelPartGeometries/SubModelPartConstraints id lists) as "
             "counts and names. 'recognised' is False until an .mdpa was read.")
+        .def("GetLengthUnit", &MeshioPlusPlusIO::GetLengthUnit,
+            "The length unit the last read file stated, in metres per unit (0 when it stated none): "
+            "UNV, Radioss, USD, CGNS and MED files carry one, STEP and IGES are always 0.001.")
         .def("GetBrepInfo", &MeshioPlusPlusIO::GetBrepInfo,
             "A summary of the NURBS boundary representation the last read kept (read with "
             "'keep_brep' for CAD JSON, STEP and IGES, or 'mdpa_cad_json' for a deck): counts of "
