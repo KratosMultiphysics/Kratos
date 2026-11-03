@@ -22,14 +22,27 @@
 #include <initializer_list>
 #include <optional>
 #include <set>
+#include <unordered_map>
 
 // External includes
 #include "meshioplusplus/mesh.hpp"
 #include "meshioplusplus/registry.hpp"
 #include "meshioplusplus/skin.hpp"
 #include "meshioplusplus/detail/provenance.hpp"
+#include "meshioplusplus/operations/adjacency.hpp"
 #include "meshioplusplus/operations/agglomerate.hpp"
 #include "meshioplusplus/operations/boundary_layer.hpp"
+#include "meshioplusplus/operations/coordinates.hpp"
+#include "meshioplusplus/operations/eigenmodes.hpp"
+#include "meshioplusplus/operations/geodesic.hpp"
+#include "meshioplusplus/operations/hull.hpp"
+#include "meshioplusplus/operations/metric.hpp"
+#include "meshioplusplus/operations/morph.hpp"
+#include "meshioplusplus/operations/parameterize.hpp"
+#include "meshioplusplus/operations/point_normals.hpp"
+#include "meshioplusplus/operations/reconstruct_surface.hpp"
+#include "meshioplusplus/operations/registration.hpp"
+#include "meshioplusplus/operations/untangle.hpp"
 #include "meshioplusplus/operations/check_conformity.hpp"
 #include "meshioplusplus/operations/error_size.hpp"
 #include "meshioplusplus/operations/extrude.hpp"
@@ -128,7 +141,10 @@ const std::vector<std::string>& OperationNames()
             "adapt", "boundary_layer", "check_conformity", "discretize_levelset", "error_size",
             "extrude", "find_intersections", "mesh_domain", "metric_from_hessian", "mirror", "move",
             "octree", "octree_mesh", "refine_patches", "revolve", "select", "tet_to_poly",
-            "tetrahedralize", "thickness"
+            "tetrahedralize", "thickness",
+            "convert_coordinates", "convex_hull", "delaunay_2d", "estimate_normals", "geodesic_distance",
+            "laplacian_eigenmodes", "morph", "parameterize", "prepare_metric", "reconstruct_surface",
+            "untangle"
         };
         std::sort(sorted_names.begin(), sorted_names.end());
         return sorted_names;
@@ -208,6 +224,45 @@ Vector ToVector(const std::array<double, 3>& rPoint)
         result[i] = rPoint[i];
     }
     return result;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+/// The mesh point each node of a model part becomes: meshio++ gets the points in container order.
+std::unordered_map<std::size_t, std::size_t> NodePositions(const ModelPart& rSource)
+{
+    std::unordered_map<std::size_t, std::size_t> positions;
+    positions.reserve(rSource.NumberOfNodes());
+    std::size_t position = 0;
+    for (const auto& r_node : rSource.Nodes()) {
+        positions.emplace(r_node.Id(), position++);
+    }
+    return positions;
+}
+
+/// A per-point mask (1 for a node of the sub model part @p rName) in the staged mesh's point order.
+std::vector<std::uint8_t> SubModelPartNodeMask(const ModelPart& rSource, const std::string& rName)
+{
+    KRATOS_ERROR_IF_NOT(rSource.HasSubModelPart(rName))
+        << "The source model part \"" << rSource.FullName() << "\" has no sub model part \"" << rName << "\"" << std::endl;
+    const auto positions = NodePositions(rSource);
+    std::vector<std::uint8_t> mask(rSource.NumberOfNodes(), std::uint8_t(0));
+    for (const auto& r_node : rSource.GetSubModelPart(rName).Nodes()) {
+        mask[positions.at(r_node.Id())] = std::uint8_t(1);
+    }
+    return mask;
+}
+
+/// Writes a result that no ModelPart can hold (polyhedra) or whose data a model part cannot carry
+/// (the "uv" of a parameterization, 2 components) to "output_file", in "output_format" or the
+/// format its name resolves to. Returns the format used.
+std::string WriteOutputFile(const mio::Mesh& rMesh, const Parameters& rSettings)
+{
+    const std::string output_file = rSettings["output_file"].GetString();
+    const std::string format = mio::resolve_write_format(output_file, rSettings["output_format"].GetString());
+    mio::registry_writers().at(format)(output_file, rMesh);
+    return format;
 }
 
 /***********************************************************************************/
@@ -1297,7 +1352,66 @@ Parameters MeshioPlusPlusMeshOperations::GetDefaultParameters()
         "hessian_array"                                : "",
         "metric_error"                                 : 1.0e-2,
         "metric_hmin"                                  : 1.0e-3,
-        "metric_hmax"                                  : 1.0
+        "metric_hmax"                                  : 1.0,
+
+        "uv_padding"                                   : 0.02,
+        "uv_max_depth"                                 : 8,
+        "uv_max_stretch"                               : 2.0,
+
+        "geodesic_sources"                             : [],
+        "geodesic_source_region"                       : "",
+        "geodesic_time_factor"                         : 1.0,
+        "geodesic_tolerance"                           : 1.0e-10,
+        "geodesic_max_iterations"                      : 0,
+
+        "eigen_number_of_modes"                        : 10,
+        "eigen_tolerance"                              : 1.0e-8,
+        "eigen_max_iterations"                         : 0,
+
+        "morph_array"                                  : "",
+        "morph_fix_boundary"                           : true,
+        "morph_constrained_region"                     : "",
+        "morph_stiffening"                             : 1.0,
+        "morph_steps"                                  : 1,
+        "morph_allow_inverted"                         : false,
+        "morph_tolerance"                              : 1.0e-10,
+        "morph_max_iterations"                         : 0,
+
+        "untangle_fix_boundary"                        : true,
+        "untangle_rings"                               : 2,
+        "untangle_smooth"                              : false,
+        "untangle_max_sweeps"                          : 100,
+
+        "metric_arrays"                                : [],
+        "metric_target_vertices"                       : 0.0,
+        "metric_norm"                                  : 2.0,
+        "prepare_metric_hmin"                          : 0.0,
+        "prepare_metric_hmax"                          : 0.0,
+        "metric_gradation"                             : 0.0,
+        "metric_max_sweeps"                            : 100,
+
+        "coordinates_system"                           : "cylindrical",
+        "coordinates_axis"                             : [0.0, 0.0, 1.0],
+        "coordinates_origin"                           : [0.0, 0.0, 0.0],
+        "coordinates_reference"                        : [1.0, 0.0, 0.0],
+        "coordinates_arrays"                           : [],
+        "coordinates_inverse"                          : false,
+        "coordinates_record"                           : true,
+
+        "hull_dimension"                               : 0,
+
+        "normals_k"                                    : 16,
+        "normals_orientation"                          : "consistent",
+        "normals_viewpoint"                            : [0.0, 0.0, 0.0],
+        "normals_record_variation"                     : false,
+
+        "reconstruct_normals_array"                    : "normals",
+        "reconstruct_k"                                : 8,
+        "reconstruct_cell_size"                        : 0.0,
+        "reconstruct_resolution"                       : 0,
+        "reconstruct_max_distance"                     : 0.0,
+        "reconstruct_estimate_normals"                 : true,
+        "reconstruct_normals_k"                        : 16
     })");
 
     return params;
@@ -2600,8 +2714,7 @@ Parameters MeshioPlusPlusMeshOperations::Execute(
         options.mPointDataToCellData = Settings["point_data_to_cell_data"].GetBool();
         options.mRecordVertexIds = Settings["record_vertex_ids"].GetBool();
         const mio::TetToPolyResult result = mio::tet_to_poly(mesh, options);
-        const std::string format = mio::resolve_write_format(output_file, Settings["output_format"].GetString());
-        mio::registry_writers().at(format)(output_file, result.mMesh);
+        const std::string format = WriteOutputFile(result.mMesh, Settings);
         report.AddInt("number_of_new_points", static_cast<int>(result.mNumNewPoints));
         report.AddInt("number_of_boundary_faces", static_cast<int>(result.mNumBoundaryFaces));
         report.AddInt("number_of_split_vertices", static_cast<int>(result.mNumSplitVertices));
@@ -2694,6 +2807,250 @@ Parameters MeshioPlusPlusMeshOperations::Execute(
         }
         mio::Mesh result = mio::metric_from_hessian(mesh, options);
         StoreResult(result, rDestination);
+
+    } else if (operation == "parameterize") {
+        // A UV atlas of a triangle surface: discs cut where needed, flattened (LSCM or mean value
+        // coordinates) and packed into the unit square. The surface comes back split at its
+        // seams, so it has more nodes than the input. meshio++ names the result "uv", two
+        // components, which no Kratos Variable is: "output" names a registered 3-component
+        // variable that receives (u, v, 0), and "output_file" (an .obj, .glb or .usd, which store
+        // texture coordinates) writes the result with its "uv" as it is.
+        mio::ParameterizeOptions options;
+        options.mPadding = Settings["uv_padding"].GetDouble();
+        options.mMaxDepth = Settings["uv_max_depth"].GetInt();
+        options.mMaxStretch = Settings["uv_max_stretch"].GetDouble();
+        mio::ParameterizeResult result = mio::parameterize(mesh, options);
+        report.AddInt("number_of_charts", static_cast<int>(result.mNumCharts));
+        report.AddInt("number_of_flipped", static_cast<int>(result.mNumFlipped));
+        report.AddInt("number_of_seam_points", static_cast<int>(result.mNumSeamPoints));
+        report.AddDouble("stretch", result.mStretch);
+        report.AddDouble("packing_efficiency", result.mPackingEfficiency);
+        if (!Settings["output_file"].GetString().empty()) {
+            report.AddString("output_format", WriteOutputFile(result.mMesh, Settings));
+        }
+        const std::string uv_output = Settings["output"].GetString();
+        if (!uv_output.empty() && result.mMesh.HasPointData(mio::kUvName)) {
+            const mio::NDArray& r_uv = result.mMesh.PointData(mio::kUvName);
+            const std::size_t number_of_points = r_uv.Shape().empty() ? 0 : r_uv.Shape()[0];
+            mio::NDArray uv3 = mio::NDArray::Uninit(mio::DType::Float64, {number_of_points, std::size_t(3)});
+            const double* p_uv = r_uv.As<double>();
+            double* p_uv3 = uv3.As<double>();
+            for (std::size_t i = 0; i < number_of_points; ++i) {
+                p_uv3[3 * i] = p_uv[2 * i];
+                p_uv3[3 * i + 1] = p_uv[2 * i + 1];
+                p_uv3[3 * i + 2] = 0.0;
+            }
+            result.mMesh.AddPointData(uv_output, std::move(uv3));
+        }
+        StoreResult(result.mMesh, rDestination);
+
+    } else if (operation == "geodesic_distance") {
+        // The distance along a triangle surface from the source nodes (node Ids in
+        // "geodesic_sources" and/or the nodes of the sub model part "geodesic_source_region") to
+        // every node, by the heat method; "output" names a registered scalar Variable (DISTANCE).
+        mio::GeodesicOptions options;
+        const auto positions = NodePositions(rSource);
+        const Vector sources = Settings["geodesic_sources"].GetVector();
+        for (std::size_t i = 0; i < sources.size(); ++i) {
+            const auto it = positions.find(static_cast<std::size_t>(sources[i]));
+            KRATOS_ERROR_IF(it == positions.end())
+                << "\"geodesic_sources\" lists node " << static_cast<std::size_t>(sources[i])
+                << ", which is not in the source model part" << std::endl;
+            options.mSources.push_back(static_cast<std::int64_t>(it->second));
+        }
+        options.mSourceRegion = Settings["geodesic_source_region"].GetString();
+        options.mTimeFactor = Settings["geodesic_time_factor"].GetDouble();
+        options.mTolerance = Settings["geodesic_tolerance"].GetDouble();
+        options.mMaxIterations = Settings["geodesic_max_iterations"].GetInt();
+        mio::GeodesicResult result = mio::geodesic_distance(mesh, options);
+        report.AddInt("number_of_sources", static_cast<int>(result.mNumSources));
+        report.AddInt("number_unreached", static_cast<int>(result.mNumUnreached));
+        report.AddInt("number_degenerate", static_cast<int>(result.mNumDegenerate));
+        report.AddDouble("max_distance", result.mMaxDistance);
+        report.AddDouble("time_step", result.mTimeStep);
+        report.AddInt("heat_iterations", static_cast<int>(result.mHeatIterations));
+        report.AddInt("poisson_iterations", static_cast<int>(result.mPoissonIterations));
+        report.AddBool("converged", result.mConverged);
+        RenameResultArray(result.mMesh, mio::DataLocation::Point, mio::kGeodesicDistanceName,
+                          Settings["output"].GetString());
+        StoreResult(result.mMesh, rDestination);
+
+    } else if (operation == "laplacian_eigenmodes") {
+        // The lowest eigenpairs of a triangle surface's Laplace-Beltrami operator: the
+        // eigenvalues in the report, the M-orthonormal modes as point data - "output" names a
+        // registered Vector Variable (one component per mode) to get them back.
+        mio::EigenmodeOptions options;
+        options.mNumModes = Settings["eigen_number_of_modes"].GetInt();
+        options.mTolerance = Settings["eigen_tolerance"].GetDouble();
+        options.mMaxIterations = Settings["eigen_max_iterations"].GetInt();
+        mio::EigenmodeResult result = mio::laplacian_eigenmodes(mesh, options);
+        Vector eigenvalues(result.mEigenvalues.size());
+        for (std::size_t i = 0; i < result.mEigenvalues.size(); ++i) {
+            eigenvalues[i] = result.mEigenvalues[i];
+        }
+        report.AddVector("eigenvalues", eigenvalues);
+        report.AddInt("iterations", static_cast<int>(result.mIterations));
+        report.AddDouble("max_residual", result.mMaxResidual);
+        report.AddBool("converged", result.mConverged);
+        report.AddInt("number_degenerate", static_cast<int>(result.mNumDegenerate));
+        RenameResultArray(result.mMesh, mio::DataLocation::Point, mio::kLaplacianModesName,
+                          Settings["output"].GetString());
+        StoreResult(result.mMesh, rDestination);
+
+    } else if (operation == "morph") {
+        // Boundary-driven mesh morphing: the constrained nodes (the boundary, or the sub model
+        // part "morph_constrained_region") take the displacement held by the registered 3-component
+        // variable "morph_array" and every other node its harmonic extension, with stiffening of
+        // the small cells and an inversion guard.
+        mio::MorphOptions options;
+        options.mArray = Settings["morph_array"].GetString();
+        KRATOS_ERROR_IF(options.mArray.empty())
+            << "The \"morph\" operation needs a \"morph_array\" (a registered variable, carried in with "
+            << "\"nodal_data_value_variables\")" << std::endl;
+        options.mFixBoundary = Settings["morph_fix_boundary"].GetBool();
+        if (!Settings["morph_constrained_region"].GetString().empty()) {
+            options.mConstrained = SubModelPartNodeMask(rSource, Settings["morph_constrained_region"].GetString());
+        }
+        options.mStiffening = Settings["morph_stiffening"].GetDouble();
+        options.mSteps = Settings["morph_steps"].GetInt();
+        options.mAllowInverted = Settings["morph_allow_inverted"].GetBool();
+        options.mTolerance = Settings["morph_tolerance"].GetDouble();
+        options.mMaxIterations = Settings["morph_max_iterations"].GetInt();
+        mio::MorphResult result = mio::morph(mesh, options);
+        report.AddInt("number_constrained", static_cast<int>(result.mNumConstrained));
+        report.AddInt("number_free", static_cast<int>(result.mNumFree));
+        report.AddInt("number_inverted", static_cast<int>(result.mNumInverted));
+        report.AddInt("iterations", static_cast<int>(result.mIterations));
+        report.AddDouble("max_displacement", result.mMaxDisplacement);
+        report.AddBool("converged", result.mConverged);
+        StoreResult(result.mMesh, rDestination);
+
+    } else if (operation == "untangle") {
+        // Repairs inverted tetrahedra and hexahedra by node-by-node descent on a regularised
+        // signed-volume functional, keeping the connectivity; "frozen" lists the nodes (a bool per
+        // node in container order) that must not move.
+        mio::UntangleOptions options;
+        options.mFixBoundary = Settings["untangle_fix_boundary"].GetBool();
+        options.mFrozen = ReadFrozenFlags(Settings["frozen"]);
+        options.mRings = Settings["untangle_rings"].GetInt();
+        options.mSmooth = Settings["untangle_smooth"].GetBool();
+        options.mMaxSweeps = Settings["untangle_max_sweeps"].GetInt();
+        mio::UntangleResult result = mio::untangle(mesh, options);
+        report.AddInt("number_inverted_before", static_cast<int>(result.mNumInvertedBefore));
+        report.AddInt("number_inverted_after", static_cast<int>(result.mNumInvertedAfter));
+        report.AddDouble("min_quality_before", result.mMinQualityBefore);
+        report.AddDouble("min_quality_after", result.mMinQualityAfter);
+        report.AddInt("sweeps", static_cast<int>(result.mSweeps));
+        report.AddInt("moves", static_cast<int>(result.mMoves));
+        StoreResult(result.mMesh, rDestination);
+
+    } else if (operation == "prepare_metric") {
+        // Intersects anisotropic metric fields ("metric_arrays", registered 6-component (3-D) or
+        // 3-component (2-D) symmetric-tensor variables carried in with the field data settings), normalises them to a target vertex count,
+        // clamps the sizes and grades them, without MMG; "output" names the registered variable
+        // that receives the result ("metric" otherwise, which a model part cannot hold).
+        mio::PrepareMetricOptions options;
+        options.mArrays = Settings["metric_arrays"].GetStringArray();
+        KRATOS_ERROR_IF(options.mArrays.empty())
+            << "The \"prepare_metric\" operation needs \"metric_arrays\"" << std::endl;
+        if (!Settings["output"].GetString().empty()) {
+            options.mOutput = Settings["output"].GetString();
+        }
+        options.mTargetVertices = Settings["metric_target_vertices"].GetDouble();
+        options.mNorm = Settings["metric_norm"].GetDouble();
+        options.mHmin = Settings["prepare_metric_hmin"].GetDouble();
+        options.mHmax = Settings["prepare_metric_hmax"].GetDouble();
+        options.mGradation = Settings["metric_gradation"].GetDouble();
+        options.mMaxSweeps = Settings["metric_max_sweeps"].GetInt();
+        mio::PrepareMetricResult result = mio::prepare_metric(mesh, options);
+        report.AddDouble("complexity_before", result.mComplexityBefore);
+        report.AddDouble("complexity_after", result.mComplexityAfter);
+        report.AddInt("number_graded", static_cast<int>(result.mNumGraded));
+        report.AddInt("sweeps", static_cast<int>(result.mSweeps));
+        StoreResult(result.mMesh, rDestination);
+
+    } else if (operation == "convert_coordinates") {
+        // Vector and tensor fields (the registered variables in "coordinates_arrays") in
+        // cylindrical or spherical components about an axis, or back to Cartesian with
+        // "coordinates_inverse"; the coordinates themselves are recorded as "coords:cylindrical" /
+        // "coords:spherical" point data, which "output" lands on a registered 3-component variable.
+        mio::CoordinateOptions options;
+        options.mSystem = mio::coordinate_system_from_name(Settings["coordinates_system"].GetString());
+        options.mAxis = ReadVector3(Settings, "coordinates_axis");
+        options.mOrigin = ReadVector3(Settings, "coordinates_origin");
+        options.mReference = ReadVector3(Settings, "coordinates_reference");
+        options.mArrays = Settings["coordinates_arrays"].GetStringArray();
+        options.mInverse = Settings["coordinates_inverse"].GetBool();
+        options.mRecordCoordinates = Settings["coordinates_record"].GetBool();
+        mio::CoordinateResult result = mio::convert_coordinates(mesh, options);
+        report.AddInt("number_of_arrays", static_cast<int>(result.mNumArrays));
+        report.AddInt("number_singular", static_cast<int>(result.mNumSingular));
+        RenameResultArray(result.mMesh, mio::DataLocation::Point,
+                          options.mSystem == mio::CoordinateSystem::Spherical ? mio::kSphericalCoordsName
+                                                                              : mio::kCylindricalCoordsName,
+                          Settings["output"].GetString());
+        StoreResult(result.mMesh, rDestination);
+
+    } else if (operation == "convex_hull") {
+        // The convex hull of the nodes: a closed outward triangle surface (3-D) or a line loop (2-D).
+        mio::ConvexHullOptions options;
+        options.mDimension = Settings["hull_dimension"].GetInt();
+        mio::ConvexHullResult result = mio::convex_hull(mesh, options);
+        report.AddInt("dimension", static_cast<int>(result.mDimension));
+        report.AddInt("number_of_vertices", static_cast<int>(result.mNumVertices));
+        report.AddInt("number_of_facets", static_cast<int>(result.mNumFacets));
+        report.AddDouble("area", result.mArea);
+        report.AddDouble("volume", result.mVolume);
+        report.AddDouble("perimeter", result.mPerimeter);
+        StoreResult(result.mMesh, rDestination);
+
+    } else if (operation == "delaunay_2d") {
+        // The Delaunay triangulation of the nodes' x and y, keeping every node and its z.
+        mio::Delaunay2dResult result = mio::delaunay_2d(mesh);
+        report.AddInt("number_of_triangles", static_cast<int>(result.mNumTriangles));
+        report.AddInt("number_of_duplicates", static_cast<int>(result.mNumDuplicates));
+        report.AddInt("number_of_boundary_edges", static_cast<int>(result.mNumBoundary));
+        StoreResult(result.mMesh, rDestination);
+
+    } else if (operation == "estimate_normals") {
+        // Normals of a point cloud from a plane fitted to each node's "normals_k" nearest
+        // neighbours, oriented consistently (Hoppe et al.), towards a viewpoint or not at all;
+        // "output" : "NORMAL" brings them back as the registered variable.
+        mio::PointNormalsOptions options;
+        options.mK = Settings["normals_k"].GetInt();
+        options.mOrientation = mio::normal_orientation_from_name(Settings["normals_orientation"].GetString());
+        options.mViewpoint = ReadVector3(Settings, "normals_viewpoint");
+        options.mRecordVariation = Settings["normals_record_variation"].GetBool();
+        mio::PointNormalsResult result = mio::estimate_normals(mesh, options);
+        report.AddInt("number_degenerate", static_cast<int>(result.mNumDegenerate));
+        report.AddInt("number_of_components", static_cast<int>(result.mNumComponents));
+        RenameResultArray(result.mMesh, mio::DataLocation::Point, "normals", Settings["output"].GetString());
+        StoreResult(result.mMesh, rDestination);
+
+    } else if (operation == "reconstruct_surface") {
+        // A triangle surface through an oriented point cloud (Hoppe et al. 1992). The normals are
+        // the registered variable named by "reconstruct_normals_array" (carried in with
+        // "nodal_data_value_variables", NORMAL say), or estimated when the cloud has none.
+        mio::ReconstructSurfaceOptions options;
+        options.mNormalsName = Settings["reconstruct_normals_array"].GetString();
+        options.mK = Settings["reconstruct_k"].GetInt();
+        options.mCellSize = Settings["reconstruct_cell_size"].GetDouble();
+        options.mResolution = Settings["reconstruct_resolution"].GetInt();
+        options.mMaxDistance = Settings["reconstruct_max_distance"].GetDouble();
+        options.mEstimateNormals = Settings["reconstruct_estimate_normals"].GetBool();
+        options.mNormalsK = Settings["reconstruct_normals_k"].GetInt();
+        options.mMaxCells = Settings["max_cells"].GetInt();
+        mio::ReconstructSurfaceResult result = mio::reconstruct_surface(mesh, options);
+        report.AddInt("number_of_samples", static_cast<int>(result.mNumSamples));
+        report.AddDouble("spacing", result.mSpacing);
+        report.AddDouble("cell_size", result.mCellSize);
+        report.AddDouble("max_distance", result.mMaxDistance);
+        report.AddInt("number_of_lattice_points", static_cast<int>(result.mNumLatticePoints));
+        report.AddInt("number_undefined", static_cast<int>(result.mNumUndefined));
+        report.AddInt("number_of_triangles", static_cast<int>(result.mNumTriangles));
+        report.AddInt("number_of_components", static_cast<int>(result.mNumComponents));
+        report.AddBool("estimated_normals", result.mEstimatedNormals);
+        StoreResult(result.mMesh, rDestination);
 
     } else {
         std::ostringstream supported;
@@ -3190,6 +3547,140 @@ Parameters MeshioPlusPlusMeshOperations::Primitive(
     report.AddInt("number_of_elements", static_cast<int>(rDestination.NumberOfElements()));
     report.AddInt("number_of_conditions", static_cast<int>(rDestination.NumberOfConditions()));
     return report;
+
+    KRATOS_CATCH("")
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+Parameters MeshioPlusPlusMeshOperations::RegisterRigid(
+    const ModelPart& rSource,
+    const ModelPart& rTarget,
+    Parameters Settings,
+    ModelPart& rDestination
+    )
+{
+    KRATOS_TRY
+
+    KRATOS_ERROR_IF(rSource.IsDistributed() || rTarget.IsDistributed())
+        << "The meshio++ operations do not support distributed model parts" << std::endl;
+
+    Settings.AddMissingParameters(GetDefaultParameters());
+    Settings.AddMissingParameters(Parameters(R"({
+        "registration_method"         : "point_to_point",
+        "registration_max_iterations" : 50,
+        "registration_tolerance"      : 1.0e-10,
+        "registration_max_distance"   : 0.0,
+        "registration_initial"        : [[1.0, 0.0, 0.0, 0.0], [0.0, 1.0, 0.0, 0.0], [0.0, 0.0, 1.0, 0.0], [0.0, 0.0, 0.0, 1.0]]
+    })"));
+
+    mio::RegistrationOptions options;
+    options.mMethod = mio::registration_method_from_name(Settings["registration_method"].GetString());
+    options.mMaxIterations = Settings["registration_max_iterations"].GetInt();
+    options.mTolerance = Settings["registration_tolerance"].GetDouble();
+    options.mMaxDistance = Settings["registration_max_distance"].GetDouble();
+    const Matrix initial = Settings["registration_initial"].GetMatrix();
+    KRATOS_ERROR_IF(initial.size1() != 4 || initial.size2() != 4)
+        << "\"registration_initial\" needs a 4 x 4 matrix" << std::endl;
+    for (std::size_t i = 0; i < 4; ++i) {
+        for (std::size_t j = 0; j < 4; ++j) {
+            options.mInitial[4 * i + j] = initial(i, j);
+        }
+    }
+
+    // The field data settings apply to both meshes: a "point_to_plane" cloud target needs its
+    // normals, carried in as a registered variable named "normals" or staged under that name.
+    const auto selection = BuildFieldDataSelection(Settings);
+    const bool use_deformed = Settings["use_deformed_configuration"].GetBool();
+    mio::Mesh source = Internals::ModelPartToMeshWithData(rSource, true, true, use_deformed, selection);
+    const mio::Mesh target = Internals::ModelPartToMeshWithData(rTarget, true, true, use_deformed, selection);
+    const mio::RegistrationResult result = mio::register_rigid(source, target, options);
+
+    // The destination receives the source moved by the transform
+    Internals::MeshToModelPart(source, rDestination);
+    for (auto& r_node : rDestination.Nodes()) {
+        const array_1d<double, 3> p = r_node.GetInitialPosition().Coordinates();
+        for (std::size_t i = 0; i < 3; ++i) {
+            r_node.Coordinates()[i] = result.mMatrix[4 * i] * p[0] + result.mMatrix[4 * i + 1] * p[1]
+                                    + result.mMatrix[4 * i + 2] * p[2] + result.mMatrix[4 * i + 3];
+            r_node.GetInitialPosition().Coordinates()[i] = r_node.Coordinates()[i];
+        }
+    }
+
+    Parameters report(R"({})");
+    Matrix matrix(4, 4);
+    for (std::size_t i = 0; i < 4; ++i) {
+        for (std::size_t j = 0; j < 4; ++j) {
+            matrix(i, j) = result.mMatrix[4 * i + j];
+        }
+    }
+    report.AddMatrix("matrix", matrix);
+    report.AddDouble("initial_rms", result.mInitialRms);
+    report.AddDouble("rms", result.mRms);
+    report.AddInt("iterations", static_cast<int>(result.mIterations));
+    report.AddInt("number_of_pairs", static_cast<int>(result.mNumPairs));
+    report.AddBool("converged", result.mConverged);
+    return report;
+
+    KRATOS_CATCH("")
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+std::pair<std::vector<std::size_t>, std::vector<std::size_t>> MeshioPlusPlusMeshOperations::Adjacency(
+    const ModelPart& rSource,
+    Parameters Settings
+    )
+{
+    KRATOS_TRY
+
+    KRATOS_ERROR_IF(rSource.IsDistributed())
+        << "The meshio++ operations do not support distributed model parts" << std::endl;
+
+    Settings.ValidateAndAssignDefaults(Parameters(R"({
+        "adjacency_kind" : "node",
+        "output_file"    : "",
+        "graph_format"   : ""
+    })"));
+
+    const mio::Mesh mesh = Internals::ModelPartToMesh(rSource);
+    const mio::AdjacencyKind kind = mio::adjacency_kind_from_name(Settings["adjacency_kind"].GetString());
+    const mio::Adjacency graph = mio::adjacency(mesh, kind);
+
+    const std::string output_file = Settings["output_file"].GetString();
+    if (!output_file.empty()) {
+        const std::string graph_format = Settings["graph_format"].GetString();
+        mio::write_graph(output_file, graph,
+                         graph_format.empty() ? mio::graph_format_for_path(output_file)
+                                              : mio::graph_format_from_name(graph_format));
+    }
+
+    // Vertices are nodes (kinds node and clique) or cells (kind cell). A node vertex is reported
+    // as the node Id, in container order; a cell as its position, elements then conditions.
+    std::vector<std::size_t> node_ids;
+    if (kind != mio::AdjacencyKind::Cell) {
+        node_ids.reserve(rSource.NumberOfNodes());
+        for (const auto& r_node : rSource.Nodes()) {
+            node_ids.push_back(r_node.Id());
+        }
+    }
+    const auto convert = [&node_ids, kind](const mio::NDArray& rArray) {
+        std::vector<std::size_t> values(rArray.Size());
+        const std::int64_t* p_values = rArray.As<std::int64_t>();
+        for (std::size_t i = 0; i < values.size(); ++i) {
+            values[i] = kind == mio::AdjacencyKind::Cell ? static_cast<std::size_t>(p_values[i])
+                                                          : node_ids[static_cast<std::size_t>(p_values[i])];
+        }
+        return values;
+    };
+    std::vector<std::size_t> indptr(graph.mIndptr.Size());
+    const std::int64_t* p_indptr = graph.mIndptr.As<std::int64_t>();
+    for (std::size_t i = 0; i < indptr.size(); ++i) {
+        indptr[i] = static_cast<std::size_t>(p_indptr[i]);
+    }
+    return {std::move(indptr), convert(graph.mIndices)};
 
     KRATOS_CATCH("")
 }

@@ -78,6 +78,11 @@ namespace Kratos
  * colon-namespaced and so do not reach the destination. "tessellate" (the "tessellate_*"
  * settings) subdivides the quadratic cells into linear triangles and tetrahedra.
  *
+ * @note Since meshio++ v18.1.0: "parameterize" (a UV atlas), "geodesic_distance",
+ * "laplacian_eigenmodes", "morph" (boundary-driven morphing), "untangle", "prepare_metric",
+ * "convert_coordinates", "convex_hull", "delaunay_2d", "estimate_normals" and
+ * "reconstruct_surface" (point clouds), plus @ref RegisterRigid and @ref Adjacency.
+ *
  * @note Since meshio++ v18.0.0: "tetrahedralize" (Netgen or the native octree backend),
  * "octree_mesh", "boundary_layer", "extrude", "revolve", "mirror", "octree", "refine_patches"
  * (segments first, as "fit_primitives" does), "select" (writes one sub model part),
@@ -329,6 +334,45 @@ public:
         const ModelPart& rTarget,
         Parameters Settings,
         ModelPart& rDestination
+        );
+
+    /**
+     * @brief Rigid registration (iterative closest points) of one model part onto another.
+     * @details Not reachable through @ref Execute: it takes two meshes and returns a transform.
+     * Settings: "registration_method" ("point_to_point", Horn's closed form, or "point_to_plane",
+     * which needs the target's normals - a registered variable named "normals", or one carried in
+     * under that name), "registration_max_iterations", "registration_tolerance",
+     * "registration_max_distance" (outlier rejection, 0 for none) and "registration_initial" (a
+     * 4 x 4 matrix), plus the shared field data settings. A target without cells is a point cloud.
+     * @param rSource The model part to move.
+     * @param rTarget The model part to register onto.
+     * @param Settings The settings.
+     * @param rDestination The model part receiving the source moved by the transform (expected empty).
+     * @return "matrix" (4 x 4, the transform), "initial_rms", "rms", "iterations",
+     * "number_of_pairs" and "converged".
+     */
+    static Parameters RegisterRigid(
+        const ModelPart& rSource,
+        const ModelPart& rTarget,
+        Parameters Settings,
+        ModelPart& rDestination
+        );
+
+    /**
+     * @brief The graph of a model part's mesh in compressed sparse row form.
+     * @details "adjacency_kind" : "node" (the nodes of a cell edge), "clique" (nodes sharing a
+     * cell: the sparsity pattern of a finite element matrix) or "cell" (cells sharing a facet:
+     * the dual graph a partitioner cuts). "output_file" also writes the graph as a METIS
+     * `.graph` or Scotch `.grf` file ("graph_format" : "metis"/"scotch", else from the
+     * extension). Not an @ref Execute operation: it produces a graph, not a mesh.
+     * @param rSource The model part.
+     * @param Settings The settings.
+     * @return (indptr, indices): a node graph has one row per node in container order and lists
+     * node Ids; a cell graph has one row per cell (elements, then conditions) and lists positions.
+     */
+    static std::pair<std::vector<std::size_t>, std::vector<std::size_t>> Adjacency(
+        const ModelPart& rSource,
+        Parameters Settings = Parameters(R"({})")
         );
 
     /**
