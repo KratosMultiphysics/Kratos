@@ -18,12 +18,14 @@ class MeshioOperationModeler(KratosMultiphysics.Modeler):
     "boundary_layer", "extrude", "revolve", "mirror", "octree", "refine_patches", "select",
     "check_conformity", "find_intersections", "thickness", "error_size", "tet_to_poly",
     "metric_from_hessian" and the MMG remeshers "adapt", "discretize_levelset", "mesh_domain"
-    and "move". Query what this build supports with
+    and "move", and since v18.1.0 "parameterize", "geodesic_distance", "laplacian_eigenmodes",
+    "morph", "untangle", "prepare_metric", "convert_coordinates", "convex_hull", "delaunay_2d",
+    "estimate_normals" and "reconstruct_surface". Query what this build supports with
     KratosMeshioPlusPlus.MeshioPlusPlusMeshOperations.GetSupportedOperations(), and the
     available settings with GetDefaultParameters(). "interpolate" is not reachable here - it
     needs two source model parts; see MeshioInterpolateModeler. Nor are "Grid" (no source at
     all), "Primitive" (no source either), "DistanceToSurface", "Shrinkwrap", "FindIntersections",
-    "Thickness" (all two sources) and "CheckSurfaceWatertight"
+    "Thickness", "RegisterRigid" (all two sources), "Adjacency" (a graph) and "CheckSurfaceWatertight"
     (report-only); call those on MeshioPlusPlusMeshOperations directly.
 
     Field data (nodal/elemental/conditional variables, flags and ids) can be carried through
