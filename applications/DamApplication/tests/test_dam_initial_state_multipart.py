@@ -21,23 +21,23 @@ class _Part:
 
 
 class _Process:
-    """Minimal stand-in for LoadDamInitialStateProcess."""
+    """Minimal stand-in for ImportDamInitialStateProcess."""
 
     def __init__(self, name, file_name, element_ids, temperature=None,
-                 reference=None, stresses=True, transfer_temperature=False,
-                 transfer_reference=False, policy="preserve"):
+                 reference=None, stresses=True, import_temperature=False,
+                 import_reference=False, policy="preserve"):
         self.input_file_name = file_name
         self.model_part = _Part(name, element_ids)
-        self.transfer_initial_stresses = stresses
-        self.transfer_initial_temperature = transfer_temperature
-        self.transfer_reference_temperature = transfer_reference
+        self.import_stresses = stresses
+        self.import_temperature = import_temperature
+        self.import_reference_temperature = import_reference
         self.reference_temperature_policy = policy
         fields = []
         if stresses:
             fields.append("initial_stresses")
-        if transfer_temperature or policy == "initial_temperature":
+        if import_temperature or policy == "initial_temperature":
             fields.append("temperature")
-        if transfer_reference:
+        if import_reference:
             fields.append("reference_temperature")
         self._data = {
             "fields": fields,
@@ -67,30 +67,30 @@ class TestDamInitialStateMultipart(KratosUnittest.TestCase):
     def test_compatible_shared_temperature_is_allowed(self):
         concrete = _Process(
             "Parts_Concrete", "concrete.json", [1],
-            temperature={2: 20.0}, transfer_temperature=True)
+            temperature={2: 20.0}, import_temperature=True)
         soil = _Process(
             "Parts_Soil", "soil.json", [2],
-            temperature={2: 20.0}, transfer_temperature=True)
+            temperature={2: 20.0}, import_temperature=True)
         dam_initial_state_file.ValidateCombinedImports([concrete, soil])
 
     def test_conflicting_shared_temperature_is_rejected(self):
         concrete = _Process(
             "Parts_Concrete", "concrete.json", [1],
-            temperature={2: 20.0}, transfer_temperature=True)
+            temperature={2: 20.0}, import_temperature=True)
         soil = _Process(
             "Parts_Soil", "soil.json", [2],
-            temperature={2: 25.0}, transfer_temperature=True)
+            temperature={2: 25.0}, import_temperature=True)
         with self.assertRaisesRegex(RuntimeError, "shared node 2 receives TEMPERATURE"):
             dam_initial_state_file.ValidateCombinedImports([concrete, soil])
 
     def test_initial_temperature_policy_conflicts_with_reference_field(self):
         concrete = _Process(
             "Parts_Concrete", "concrete.json", [1],
-            temperature={2: 20.0}, transfer_temperature=True,
+            temperature={2: 20.0}, import_temperature=True,
             policy="initial_temperature")
         soil = _Process(
             "Parts_Soil", "soil.json", [2],
-            reference={2: 15.0}, stresses=False, transfer_reference=True)
+            reference={2: 15.0}, stresses=False, import_reference=True)
         with self.assertRaisesRegex(
                 RuntimeError, "NODAL_REFERENCE_TEMPERATURE"):
             dam_initial_state_file.ValidateCombinedImports([concrete, soil])
@@ -98,10 +98,10 @@ class TestDamInitialStateMultipart(KratosUnittest.TestCase):
     def test_different_fields_on_shared_node_do_not_conflict(self):
         concrete = _Process(
             "Parts_Concrete", "concrete.json", [1],
-            temperature={2: 20.0}, transfer_temperature=True)
+            temperature={2: 20.0}, import_temperature=True)
         soil = _Process(
             "Parts_Soil", "soil.json", [2],
-            reference={2: 15.0}, stresses=False, transfer_reference=True)
+            reference={2: 15.0}, stresses=False, import_reference=True)
         dam_initial_state_file.ValidateCombinedImports([concrete, soil])
 
 

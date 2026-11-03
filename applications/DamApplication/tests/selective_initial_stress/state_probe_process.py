@@ -19,7 +19,6 @@ class StateProbeProcess(KM.Process):
         super().__init__()
         self.model_part = model[settings["model_part_name"].GetString()]
         self.output_file_name = settings["output_file_name"].GetString()
-        self.probe_stored = settings["probe_stored_initial_stress"].GetBool()
         self.records = {}
 
     def ExecuteBeforeSolutionLoop(self):
@@ -87,9 +86,4 @@ class StateProbeProcess(KM.Process):
             if not node_map[node_id].IsFixed(
                 KM.DISPLACEMENT_X if component == 0 else KM.DISPLACEMENT_Y)]
         record["free_residual_max"] = (max(free_residual) if free_residual else 0.0)
-        if self.probe_stored:
-            record["stored_initial_stress"] = {
-                str(element_id): [list(value) for value in values]
-                for element_id, values in
-                Dam.SelectiveInitialStressUtility.GetStoredInitialStresses(part).items()}
         return record

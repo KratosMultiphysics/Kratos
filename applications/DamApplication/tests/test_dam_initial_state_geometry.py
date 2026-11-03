@@ -183,8 +183,8 @@ class GeometryFixture:
 
     @staticmethod
     def _assign(source, destination):
-        stresses = Dam.SelectiveInitialStressUtility.GetCurrentCauchyStresses(source)
-        Dam.SelectiveInitialStressUtility.AssignStoredInitialStresses(
+        stresses = Dam.DamInitialStateTransferUtility.GetFinalCauchyStresses(source)
+        Dam.DamInitialStateTransferUtility.AssignInitialStresses(
             destination, stresses)
 
     @staticmethod
