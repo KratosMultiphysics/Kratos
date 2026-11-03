@@ -58,19 +58,31 @@ class LoadDamInitialStateProcess(KM.Process):
             "echo_level": 0
         }""")
 
+    def PrevalidateInitialState(self):
+        """Reads and validates the file without modifying the destination.
+
+        DamAnalysis calls this for every configured import before any process
+        applies fields, so overlapping element/node assignments can be rejected
+        globally before the model is modified.
+        """
+        if not hasattr(self, "_data"):
+            data = dam_initial_state_file.ReadFile(self.input_file_name)
+            dam_initial_state_file.ValidateDestination(
+                self.model_part,
+                data,
+                self.transfer_initial_stresses,
+                self.transfer_initial_temperature,
+                self.transfer_reference_temperature,
+                self.reference_temperature_policy)
+            self._data = data
+        return self._data
+
     def ExecuteBeforeSolutionLoop(self):
         if self._applied:
             raise RuntimeError(
                 "LoadDamInitialStateProcess: the initial state was already applied. "
                 "The process must run only once.")
-        data = dam_initial_state_file.ReadFile(self.input_file_name)
-        dam_initial_state_file.ValidateDestination(
-            self.model_part,
-            data,
-            self.transfer_initial_stresses,
-            self.transfer_initial_temperature,
-            self.transfer_reference_temperature,
-            self.reference_temperature_policy)
+        data = self.PrevalidateInitialState()
         dam_initial_state_file.ApplyTemperatures(
             self.model_part,
             data,

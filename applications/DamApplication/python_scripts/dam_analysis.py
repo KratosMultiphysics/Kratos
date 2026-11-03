@@ -163,17 +163,23 @@ class DamAnalysis(AnalysisStage):
         self.list_of_processes += KratosMultiphysics.process_factory.KratosProcessFactory(self.model).ConstructListOfProcesses( self.project_parameters["loads_process_list"] )
         self.list_of_processes += KratosMultiphysics.process_factory.KratosProcessFactory(self.model).ConstructListOfProcesses( self.project_parameters["temperature_by_device_list"] )
 
-        for attribute in ("transfers_initial_stress",
-                          "transfers_initial_temperature",
-                          "transfers_reference_temperature"):
-            transferring_processes = [
-                process for process in self.list_of_processes
-                if getattr(process, attribute, False)]
-            if len(transferring_processes) > 1:
-                raise RuntimeError(
-                    "More than one process transfers the same initial-state field "
-                    "('{}'). Use only one initial-state processor per field.".format(
-                        attribute))
+        json_import_processes = [
+            process for process in self.list_of_processes
+            if hasattr(process, "PrevalidateInitialState")]
+        restart_stress_processes = [
+            process for process in self.list_of_processes
+            if type(process).__name__ == "SelectiveInitialStressProcess"]
+
+        if len(restart_stress_processes) > 1:
+            raise RuntimeError(
+                "Only one restart-checkpoint initial-stress transfer is supported.")
+        if restart_stress_processes and any(
+                getattr(process, "transfers_initial_stress", False)
+                for process in json_import_processes):
+            raise RuntimeError(
+                "A restart-checkpoint stress transfer cannot be combined with "
+                "a JSON initial-state stress import. Use only one stress source "
+                "per destination part.")
 
         if any(getattr(process, "transfers_reference_temperature", False)
                for process in self.list_of_processes):
@@ -189,9 +195,8 @@ class DamAnalysis(AnalysisStage):
                     "that assigns it is active. Remove or disable the "
                     "reference-temperature process for this analysis.")
 
-        if self.add_previous_results and any(
-                getattr(process, "transfers_initial_stress", False)
-                for process in self.list_of_processes):
+        if self.add_previous_results and (
+                json_import_processes or restart_stress_processes):
             raise RuntimeError(
                 "An initial-state transfer process cannot be combined with "
                 "'transfer_results_process.add_previous_results'. Use only one "
@@ -316,6 +321,13 @@ class DamAnalysis(AnalysisStage):
         if self.consider_construction:
             # Execute initialize solution
             self.construction_utilities.BeforeSolutionLoop()
+
+        # Validate every configured initial-state import before any process
+        # applies fields. This rejects overlapping stress elements and
+        # conflicting shared-node temperatures without modifying the model.
+        if json_import_processes:
+            from KratosMultiphysics.DamApplication import dam_initial_state_file
+            dam_initial_state_file.ValidateCombinedImports(json_import_processes)
 
         # ExecuteBeforeSolutionLoop
         for self.process in self.list_of_processes:

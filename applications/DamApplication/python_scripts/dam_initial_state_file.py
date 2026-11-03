@@ -524,6 +524,84 @@ def ValidateDestination(part, data, transfer_stresses, transfer_temperature,
     return data
 
 
+SHARED_NODE_TOLERANCE = 1.e-9
+
+
+def _shared_values_agree(first, second, tolerance=SHARED_NODE_TOLERANCE):
+    scale = max(1.0, abs(first), abs(second))
+    return abs(first - second) <= tolerance * scale
+
+
+def _describe_import(process):
+    return "'{}' (part '{}')".format(
+        process.input_file_name, process.model_part.Name)
+
+
+def ValidateCombinedImports(processes):
+    """Validates multiple initial-state imports before any field is applied.
+
+    Stress imports must target disjoint destination element sets. Nodal fields
+    may overlap only when every shared node receives the same value (within a
+    relative tolerance). All files and destinations are validated first; this
+    function never modifies the model.
+    """
+    if not processes:
+        return
+
+    entries = []
+    for process in processes:
+        entries.append((process, process.PrevalidateInitialState()))
+
+    stress_owner = {}
+    temperature_values = {}
+    reference_values = {}
+
+    def check_shared_value(field, assignments, node_id, value, process):
+        if node_id in assignments:
+            other_value, other_process = assignments[node_id]
+            if not _shared_values_agree(value, other_value):
+                raise RuntimeError(
+                    "Dam initial-state import conflict: shared node {} receives "
+                    "{} = {} from {} and {} from {}. Shared-node imports must "
+                    "agree within relative tolerance {}.".format(
+                        node_id, field, other_value,
+                        _describe_import(other_process), value,
+                        _describe_import(process), SHARED_NODE_TOLERANCE))
+        else:
+            assignments[node_id] = (value, process)
+
+    for process, data in entries:
+        if process.transfer_initial_stresses:
+            for element in process.model_part.Elements:
+                element_id = element.Id
+                if element_id in stress_owner:
+                    raise RuntimeError(
+                        "Dam initial-state import conflict: element {} is assigned "
+                        "initial stresses by both {} and {}. Stress imports must "
+                        "target disjoint element sets.".format(
+                            element_id, _describe_import(stress_owner[element_id]),
+                            _describe_import(process)))
+                stress_owner[element_id] = process
+
+        if process.transfer_initial_temperature:
+            for node_id, value in data["temperature"].items():
+                check_shared_value(
+                    "TEMPERATURE", temperature_values, int(node_id),
+                    float(value), process)
+
+        if process.reference_temperature_policy == "initial_temperature":
+            reference_source = data["temperature"]
+        elif process.transfer_reference_temperature:
+            reference_source = data["reference_temperature"]
+        else:
+            reference_source = None
+        if reference_source is not None:
+            for node_id, value in reference_source.items():
+                check_shared_value(
+                    "NODAL_REFERENCE_TEMPERATURE", reference_values,
+                    int(node_id), float(value), process)
+
+
 def ApplyTemperatures(part, data, transfer_temperature,
                       transfer_reference_temperature, reference_policy):
     temperature = _field_values(data, "temperature") if transfer_temperature else None
