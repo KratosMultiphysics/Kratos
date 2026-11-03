@@ -91,6 +91,11 @@ class IntegrationValuesExtrapolationToNodesProcess; // forward declaration (gaus
  * into one model part, one sub model part per piece, unless "select_piece"
  * picks one ("piece", negative counting from the end); "ghosts" : "drop"
  * removes the halo cells of a pvtu/pvtp/pvd written with ghost layers.
+ * Since meshio++ v18.1.0 a compressed file (`.gz`, `.bz2`, `.xz`, `.zst`, a single-member `.zip`) is
+ * read as the file inside it, the format taken from the name with the suffix stripped; a codec the
+ * build lacks is named in the error. @ref GetLengthUnit reports the unit a read file stated and
+ * "length_unit" states one on a write.
+ *
  * "poly_to_tet" decomposes the polyhedra and polygons of a file (an OpenFOAM case, say) into
  * tetrahedra and triangles on the read, since no Kratos geometry is a general polyhedron.
  *
@@ -498,6 +503,18 @@ public:
     Parameters GetBrepInfo() const;
 
     /**
+     * @brief The length unit the last read file stated, in metres per unit.
+     * @details meshio++ v18.1.0 records it as `field_data["meshio:length_unit"]` for the formats
+     * that carry one - UNV (dataset 164), Radioss (`/BEGIN`), USD (`metersPerUnit`), CGNS
+     * (`DimensionalUnits`), MED and, always in millimetres, STEP and IGES - a colon-namespaced
+     * name that never reaches a model part, hence this accessor. "length_unit" does the opposite
+     * on a write: it states the unit the model part's coordinates are in, for the writers that
+     * record one.
+     * @return metres per unit, or 0 when the last read stated none (or nothing was read).
+     */
+    double GetLengthUnit() const;
+
+    /**
      * @brief Writes the B-rep the last read kept as Kratos CAD JSON.
      * @details The exact trimmed NURBS geometry (faces, loops, edges, vertices, knot vectors,
      * weights) a `"keep_brep"` / `"mdpa_cad_json"` read held back, not the sampled cells - so a
@@ -535,6 +552,7 @@ private:
 
     meshioplusplus::BrepInfo mBrepInfo; /// The B-rep of the last CAD JSON/STEP/IGES (or ".mdpa" sidecar) read
     bool mBrepInfoRead = false;         /// Whether mBrepInfo was filled by a read
+    double mLengthUnit = 0.0;           /// The length unit (metres per unit) the last read stated, 0 if none
 
     // Transient write state ("does the output buffer already exist?")
     IndexType mOutputStep = 0; /// Number of WriteModelPart calls performed

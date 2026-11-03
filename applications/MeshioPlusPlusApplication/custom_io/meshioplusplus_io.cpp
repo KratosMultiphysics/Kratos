@@ -27,6 +27,7 @@
 #include "meshioplusplus/registry.hpp"
 #include "meshioplusplus/backends/kratos_names.hpp"
 #include "meshioplusplus/write_options.hpp"
+#include "meshioplusplus/detail/length_unit.hpp"
 #include "meshioplusplus/detail/provenance.hpp"
 #include "meshioplusplus/formats/abaqus_fil.hpp"
 #include "meshioplusplus/formats/ansys.hpp"
@@ -847,6 +848,7 @@ Parameters MeshioPlusPlusIO::GetDefaultParameters()
         "piece"                                       : 0,
         "ghosts"                                      : "keep",
         "poly_to_tet"                                 : false,
+        "length_unit"                                 : 0.0,
         "mfem_grid_functions"                         : [],
         "patran_result_files"                         : [],
         "z88_results"                                 : true,
@@ -1210,6 +1212,13 @@ void MeshioPlusPlusIO::ReadModelPart(ModelPart& rThisModelPart)
     // cell data and never synthesizes it from entity properties ids.
     if (format_name == "mdpa") {
         mesh.ExcludeTagSubModelPartKey("gmsh:physical");
+    }
+
+    // The unit the file states; the field data name is colon-namespaced, so the model part
+    // never carries it
+    mLengthUnit = mesh.HasFieldData(mio::detail::kLengthUnitName) ? mio::detail::mesh_length_unit(mesh) : 0.0;
+    if (mLengthUnit < 0.0) {
+        mLengthUnit = 0.0;
     }
 
     // "read_field_data" also carries the file's point/cell data onto the new nodes, elements
@@ -1670,9 +1679,27 @@ std::vector<mio::XdmfTimeSeriesWriter::NamedArray> MeshioPlusPlusIO::CollectCell
 
 mio::Mesh MeshioPlusPlusIO::BuildMeshWithData(const ModelPart& rThisModelPart) const
 {
-    return Internals::ModelPartToMeshWithData(
+    mio::Mesh mesh = Internals::ModelPartToMeshWithData(
         rThisModelPart, WritesElements(), WritesConditions(),
         mParameters["write_deformed_configuration"].GetBool(), GetFieldDataSelection());
+    // "length_unit" (metres per unit) is stated on the mesh for the writers that record one
+    const double length_unit = mParameters["length_unit"].GetDouble();
+    KRATOS_ERROR_IF(length_unit < 0.0) << "\"length_unit\" must be positive (metres per unit), or 0 to state none" << std::endl;
+    if (length_unit > 0.0) {
+        // A mesh staged from a model part builds its point/cell stage lazily and adding data
+        // drops the model part it was built from, so build the stage first
+        static_cast<void>(mesh.NumFieldData());
+        mio::detail::set_mesh_length_unit(mesh, length_unit);
+    }
+    return mesh;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+double MeshioPlusPlusIO::GetLengthUnit() const
+{
+    return mLengthUnit;
 }
 
 /***********************************************************************************/
