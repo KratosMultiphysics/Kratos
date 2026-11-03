@@ -166,20 +166,6 @@ class DamAnalysis(AnalysisStage):
         json_import_processes = [
             process for process in self.list_of_processes
             if hasattr(process, "PrevalidateInitialState")]
-        restart_stress_processes = [
-            process for process in self.list_of_processes
-            if type(process).__name__ == "SelectiveInitialStressProcess"]
-
-        if len(restart_stress_processes) > 1:
-            raise RuntimeError(
-                "Only one restart-checkpoint initial-stress transfer is supported.")
-        if restart_stress_processes and any(
-                getattr(process, "transfers_initial_stress", False)
-                for process in json_import_processes):
-            raise RuntimeError(
-                "A restart-checkpoint stress transfer cannot be combined with "
-                "a JSON initial-state stress import. Use only one stress source "
-                "per destination part.")
 
         if any(getattr(process, "transfers_reference_temperature", False)
                for process in self.list_of_processes):
@@ -195,8 +181,7 @@ class DamAnalysis(AnalysisStage):
                     "that assigns it is active. Remove or disable the "
                     "reference-temperature process for this analysis.")
 
-        if self.add_previous_results and (
-                json_import_processes or restart_stress_processes):
+        if self.add_previous_results and json_import_processes:
             raise RuntimeError(
                 "An initial-state transfer process cannot be combined with "
                 "'transfer_results_process.add_previous_results'. Use only one "

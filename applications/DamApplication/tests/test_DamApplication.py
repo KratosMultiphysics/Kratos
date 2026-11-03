@@ -27,8 +27,8 @@ from test_initial_gp_output_before_solve import TestInitialGaussPointOutputBefor
 from test_dam_thermo_mechanic_initial_output import TestDamThermoMechanicInitialOutput
 from test_dam_initial_stress_handling import TestDamInitialStressHandling
 from test_dam_elastic_initial_state_transfer import TestDamElasticInitialStateTransfer
-from test_dam_selective_initialization import TestDamSelectiveInitialization
-from test_dam_selective_initial_stress_geometries import TestDamSelectiveInitialStressGeometries
+from test_dam_initial_state_workflow import TestDamInitialStateWorkflow
+from test_dam_initial_state_geometry import TestDamInitialStateGeometry
 from test_dam_initial_state_import_export import TestDamInitialStateImportExport
 from test_process_based_nodal_smoothing import DamProcessBasedNodalSmoothingTest
 from test_dam_output_processes import TestDamOutputProcesses
@@ -105,21 +105,14 @@ def AssembleTestSuites():
         )
     )
 
-    smallSuite.addTest(TestDamSelectiveInitialization("test_selective_gravity_stresses"))
-    smallSuite.addTest(TestDamSelectiveInitialization("test_selective_gravity_and_temperature_increment"))
-    smallSuite.addTest(TestDamSelectiveInitialization("test_rejects_unsupported_states_and_requires_gravity"))
-    smallSuite.addTest(TestDamSelectiveInitialization("test_rejects_combination_with_previous_results_transfer"))
-    smallSuite.addTest(TestDamSelectiveInitialization("test_rejects_missing_source_checkpoint"))
-    smallSuite.addTest(TestDamSelectiveInitialization("test_does_not_modify_source_state"))
-    smallSuite.addTest(TestDamSelectiveInitialization("test_destination_keeps_its_own_state_fields"))
-    smallSuite.addTest(TestDamSelectiveInitialization("test_existing_reference_temperature_process"))
-    smallSuite.addTest(TestDamSelectiveInitialization("test_use_process_based_local_equivalent_strain_is_registered"))
-    smallSuite.addTest(TestDamSelectiveInitialStressGeometries("test_checkpoint_stress_transfer_all_geometries"))
-    smallSuite.addTest(TestDamSelectiveInitialStressGeometries("test_source_mesh_motion_uses_reference_coordinates"))
-    smallSuite.addTest(TestDamSelectiveInitialStressGeometries("test_non_default_integration_rules"))
-    smallSuite.addTest(TestDamSelectiveInitialStressGeometries("test_plane_stress_and_thermal_laws"))
-    smallSuite.addTest(TestDamSelectiveInitialStressGeometries("test_equilibrium_and_incremental_response_all_geometries"))
-    smallSuite.addTest(TestDamSelectiveInitialStressGeometries("test_rejects_incompatible_configurations"))
+    smallSuite.addTests(
+        KratosUnittest.TestLoader().loadTestsFromTestCases(
+            [
+                TestDamInitialStateWorkflow,
+                TestDamInitialStateGeometry,
+            ]
+        )
+    )
     smallSuite.addTest(TestDamInitialStateImportExport("test_file_roundtrip_2d_3d"))
     smallSuite.addTest(TestDamInitialStateImportExport("test_independent_field_selection"))
     smallSuite.addTest(TestDamInitialStateImportExport("test_stored_initial_stress_persistence"))
@@ -168,21 +161,14 @@ def AssembleTestSuites():
         )
     )
 
-    allSuite.addTest(TestDamSelectiveInitialization("test_selective_gravity_stresses"))
-    allSuite.addTest(TestDamSelectiveInitialization("test_selective_gravity_and_temperature_increment"))
-    allSuite.addTest(TestDamSelectiveInitialization("test_rejects_unsupported_states_and_requires_gravity"))
-    allSuite.addTest(TestDamSelectiveInitialization("test_rejects_combination_with_previous_results_transfer"))
-    allSuite.addTest(TestDamSelectiveInitialization("test_rejects_missing_source_checkpoint"))
-    allSuite.addTest(TestDamSelectiveInitialization("test_does_not_modify_source_state"))
-    allSuite.addTest(TestDamSelectiveInitialization("test_destination_keeps_its_own_state_fields"))
-    allSuite.addTest(TestDamSelectiveInitialization("test_existing_reference_temperature_process"))
-    allSuite.addTest(TestDamSelectiveInitialization("test_use_process_based_local_equivalent_strain_is_registered"))
-    allSuite.addTest(TestDamSelectiveInitialStressGeometries("test_checkpoint_stress_transfer_all_geometries"))
-    allSuite.addTest(TestDamSelectiveInitialStressGeometries("test_source_mesh_motion_uses_reference_coordinates"))
-    allSuite.addTest(TestDamSelectiveInitialStressGeometries("test_non_default_integration_rules"))
-    allSuite.addTest(TestDamSelectiveInitialStressGeometries("test_plane_stress_and_thermal_laws"))
-    allSuite.addTest(TestDamSelectiveInitialStressGeometries("test_equilibrium_and_incremental_response_all_geometries"))
-    allSuite.addTest(TestDamSelectiveInitialStressGeometries("test_rejects_incompatible_configurations"))
+    allSuite.addTests(
+        KratosUnittest.TestLoader().loadTestsFromTestCases(
+            [
+                TestDamInitialStateWorkflow,
+                TestDamInitialStateGeometry,
+            ]
+        )
+    )
 
     allSuite.addTest(TestDamInitialStateImportExport("test_file_roundtrip_2d_3d"))
     allSuite.addTest(TestDamInitialStateImportExport("test_independent_field_selection"))

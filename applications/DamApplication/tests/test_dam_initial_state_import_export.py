@@ -20,8 +20,8 @@ from KratosMultiphysics.DamApplication.save_dam_initial_state_process import (
     SaveDamInitialStateProcess)
 from KratosMultiphysics.DamApplication.load_dam_initial_state_process import (
     LoadDamInitialStateProcess)
-import test_dam_selective_initialization as workflow_tests
-import test_dam_selective_initial_stress_geometries as geometry_tests
+import test_dam_initial_state_workflow as workflow_tests
+import test_dam_initial_state_geometry as geometry_tests
 
 
 class TestDamInitialStateImportExport(KratosUnittest.TestCase):
@@ -67,6 +67,12 @@ class TestDamInitialStateImportExport(KratosUnittest.TestCase):
             for actual_point, expected_point in zip(
                 actual[element_id], expected[element_id])
             for a, b in zip(actual_point, expected_point))
+
+    @staticmethod
+    def _assign_stresses(source, destination):
+        stresses = Dam.SelectiveInitialStressUtility.GetCurrentCauchyStresses(source)
+        Dam.SelectiveInitialStressUtility.AssignStoredInitialStresses(
+            destination, stresses)
 
     @staticmethod
     def _add_save(settings, file_name, stress_source, stresses=True,
@@ -155,7 +161,7 @@ class TestDamInitialStateImportExport(KratosUnittest.TestCase):
         return json.loads(probe_file.read_text())
 
     def test_file_roundtrip_2d_3d(self):
-        helper = geometry_tests.TestDamSelectiveInitialStressGeometries()
+        helper = geometry_tests.GeometryFixture()
         for name in ("Q4", "H8"):
             with self.subTest(geometry=name):
                 geometry = geometry_tests.GEOMETRIES[name]
@@ -166,8 +172,7 @@ class TestDamInitialStateImportExport(KratosUnittest.TestCase):
                     source_nodes, geometry["coords"], dim)
                 export_model, export_part, export_nodes, export_element = helper._build(
                     geometry, law)
-                Dam.SelectiveInitialStressUtility.AssignInitialStresses(
-                    source, export_part)
+                self._assign_stresses(source, export_part)
                 temperature = {node.Id: 20.0 + node.Id for node in export_nodes}
                 for node in export_nodes:
                     node.SetSolutionStepValue(KM.TEMPERATURE, temperature[node.Id])
@@ -201,14 +206,14 @@ class TestDamInitialStateImportExport(KratosUnittest.TestCase):
                             self.assertEqual(value, 0.0)
 
     def test_independent_field_selection(self):
-        helper = geometry_tests.TestDamSelectiveInitialStressGeometries()
+        helper = geometry_tests.GeometryFixture()
         geometry = geometry_tests.GEOMETRIES["Q4"]
         law = helper._law(2)
         source_model, source, source_nodes, _ = helper._build(geometry, law)
         helper._set_quadratic_displacement(source_nodes, geometry["coords"], 2)
         export_model, export_part, export_nodes, export_element = helper._build(
             geometry, law)
-        Dam.SelectiveInitialStressUtility.AssignInitialStresses(source, export_part)
+        self._assign_stresses(source, export_part)
         for node in export_nodes:
             node.SetSolutionStepValue(KM.TEMPERATURE, 20.0 + node.Id)
             node.SetSolutionStepValue(
@@ -244,13 +249,13 @@ class TestDamInitialStateImportExport(KratosUnittest.TestCase):
                     30.0 + node.Id, delta=1.e-14)
 
     def test_stored_initial_stress_persistence(self):
-        helper = geometry_tests.TestDamSelectiveInitialStressGeometries()
+        helper = geometry_tests.GeometryFixture()
         geometry = geometry_tests.GEOMETRIES["Q4"]
         law = helper._law(2, thermal=True)
         source_model, source, source_nodes, _ = helper._build(geometry, law)
         helper._set_quadratic_displacement(source_nodes, geometry["coords"], 2)
         model, part, nodes, element = helper._build(geometry, law)
-        Dam.SelectiveInitialStressUtility.AssignInitialStresses(source, part)
+        self._assign_stresses(source, part)
         stored_before = Dam.SelectiveInitialStressUtility.GetStoredInitialStresses(part)
         current_before = helper._stresses(element, part)
 
@@ -310,13 +315,13 @@ class TestDamInitialStateImportExport(KratosUnittest.TestCase):
                         loaded_part), stored_before), 0.0)
 
     def test_reference_temperature_policies(self):
-        helper = geometry_tests.TestDamSelectiveInitialStressGeometries()
+        helper = geometry_tests.GeometryFixture()
         geometry = geometry_tests.GEOMETRIES["Q4"]
         law = helper._law(2, thermal=True)
         source_model, source, source_nodes, _ = helper._build(geometry, law)
         helper._set_quadratic_displacement(source_nodes, geometry["coords"], 2)
         export_model, export_part, export_nodes, _ = helper._build(geometry, law)
-        Dam.SelectiveInitialStressUtility.AssignInitialStresses(source, export_part)
+        self._assign_stresses(source, export_part)
         for node in export_nodes:
             node.SetSolutionStepValue(KM.TEMPERATURE, 25.0)
             node.SetSolutionStepValue(Dam.NODAL_REFERENCE_TEMPERATURE, 20.0)
@@ -371,13 +376,13 @@ class TestDamInitialStateImportExport(KratosUnittest.TestCase):
                 self._load(import_model, path, True, False, False, "initial_temperature")
 
     def test_negative_file_validation(self):
-        helper = geometry_tests.TestDamSelectiveInitialStressGeometries()
+        helper = geometry_tests.GeometryFixture()
         geometry = geometry_tests.GEOMETRIES["Q4"]
         law = helper._law(2)
         source_model, source, source_nodes, _ = helper._build(geometry, law)
         helper._set_quadratic_displacement(source_nodes, geometry["coords"], 2)
         export_model, export_part, _, _ = helper._build(geometry, law)
-        Dam.SelectiveInitialStressUtility.AssignInitialStresses(source, export_part)
+        self._assign_stresses(source, export_part)
 
         with tempfile.TemporaryDirectory(prefix="dam_state_negative_") as tmp:
             tmp = Path(tmp)
@@ -456,7 +461,7 @@ class TestDamInitialStateImportExport(KratosUnittest.TestCase):
                 self._load(model, path, True, False, False)
 
     def test_complete_gravity_thermal_workflow(self):
-        workflow = workflow_tests.TestDamSelectiveInitialization()
+        workflow = workflow_tests.TestDamInitialStateWorkflow()
         with tempfile.TemporaryDirectory(prefix="dam_state_workflow_") as tmp:
             root = Path(tmp)
             stage_a = root / "stage_a.json"
@@ -578,7 +583,7 @@ class TestDamInitialStateImportExport(KratosUnittest.TestCase):
 
     def test_complete_workflow_through_dam_analysis_run(self):
         """Three real DamAnalysis.Run() executions plus policy/compatibility cases."""
-        workflow = workflow_tests.TestDamSelectiveInitialization()
+        workflow = workflow_tests.TestDamInitialStateWorkflow()
         with tempfile.TemporaryDirectory(prefix="dam_state_full_run_") as tmp:
             root = Path(tmp)
             mechanical_file = root / "mechanical.json"
@@ -829,7 +834,7 @@ class TestDamInitialStateImportExport(KratosUnittest.TestCase):
 
     def test_total_stress_import_with_independent_temperatures(self):
         """A->B->C total-stress transfer with T != T_ref and preserve policy."""
-        workflow = workflow_tests.TestDamSelectiveInitialization()
+        workflow = workflow_tests.TestDamInitialStateWorkflow()
         with tempfile.TemporaryDirectory(prefix="dam_total_stress_") as tmp:
             root = Path(tmp)
             stage_a_file = root / "stage_a.json"

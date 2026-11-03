@@ -120,9 +120,6 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
 
     py::class_< SelectiveInitialStressUtility >
     (m, "SelectiveInitialStressUtility")
-    .def_static("AssignInitialStresses",
-        &SelectiveInitialStressUtility::AssignInitialStresses,
-        py::arg("source_model_part"), py::arg("destination_model_part"))
     .def_static("GetCurrentCauchyStresses",
         &SelectiveInitialStressUtility::GetCurrentCauchyStresses,
         py::arg("model_part"))

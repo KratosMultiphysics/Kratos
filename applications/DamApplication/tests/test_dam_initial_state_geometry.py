@@ -1,18 +1,13 @@
-"""Selective initial stress transfer for the supported 2D and 3D Dam geometries.
+"""Initial-state stress assignment for the supported 2D and 3D Dam geometries.
 
-The tests use the production utility and the normal RestartUtility checkpoint
-mechanism. Source and destination always share an identical mesh; only the
-Gauss-point stresses are transferred.
+Source and destination always share an identical mesh; only the Gauss-point
+stresses are extracted and assigned through the lightweight initial-state
+utility used by the JSON/gzip import/export processes.
 """
-import json
-import tempfile
-from pathlib import Path
-
 import KratosMultiphysics as KM
 import KratosMultiphysics.StructuralMechanicsApplication as SMA
 import KratosMultiphysics.DamApplication as Dam
 import KratosMultiphysics.KratosUnittest as KratosUnittest
-from KratosMultiphysics.restart_utility import RestartUtility
 
 
 GEOMETRIES = {
@@ -89,7 +84,7 @@ DISPLACEMENT_DOFS = (KM.DISPLACEMENT_X, KM.DISPLACEMENT_Y, KM.DISPLACEMENT_Z)
 REACTION_DOFS = (KM.REACTION_X, KM.REACTION_Y, KM.REACTION_Z)
 
 
-class TestDamSelectiveInitialStressGeometries(KratosUnittest.TestCase):
+class GeometryFixture:
 
     @staticmethod
     def _law(dim, thermal=False, plane_stress=False):
@@ -187,16 +182,10 @@ class TestDamSelectiveInitialStressGeometries(KratosUnittest.TestCase):
                 self.assertEqual(value, 0.0)
 
     @staticmethod
-    def _restart_settings(directory):
-        return KM.Parameters(json.dumps({
-            'input_filename': str(directory / 'MainModelPart'),
-            'input_output_path': 'checkpoints',
-            'restart_save_frequency': 0.0,
-            'save_restart_files_in_folder': True,
-            'restart_control_type': 'time',
-            'restart_load_file_label': '1.0',
-            'load_restart_files_from_folder': True,
-            'echo_level': 0}))
+    def _assign(source, destination):
+        stresses = Dam.SelectiveInitialStressUtility.GetCurrentCauchyStresses(source)
+        Dam.SelectiveInitialStressUtility.AssignStoredInitialStresses(
+            destination, stresses)
 
     @staticmethod
     def _make_strategy(part):
@@ -218,65 +207,51 @@ class TestDamSelectiveInitialStressGeometries(KratosUnittest.TestCase):
                 residual[dim * (node.Id - 1) + d] += right_hand_side[dim * i + d]
         return residual
 
-    def test_checkpoint_stress_transfer_all_geometries(self):
+class TestDamInitialStateGeometry(GeometryFixture, KratosUnittest.TestCase):
+
+    def test_stress_assignment_all_geometries(self):
         for name, geometry in GEOMETRIES.items():
             with self.subTest(geometry=name):
                 dim = geometry['dim']
                 law = self._law(dim)
-                with tempfile.TemporaryDirectory(prefix='dam_geom_') as tmp:
-                    tmp = Path(tmp)
-                    source_model, source, source_nodes, source_element = self._build(
-                        geometry, law)
-                    self._set_quadratic_displacement(
-                        source_nodes, geometry['coords'], dim)
-                    source_stress = self._stresses(source_element, source)
-                    self.assertEqual(len(source_stress), geometry['gps'])
-                    self.assertEqual(len(source_stress[0]), 3 if dim == 2 else 6)
+                source_model, source, source_nodes, source_element = self._build(
+                    geometry, law)
+                self._set_quadratic_displacement(
+                    source_nodes, geometry['coords'], dim)
+                source_stress = self._stresses(source_element, source)
+                self.assertEqual(len(source_stress), geometry['gps'])
+                self.assertEqual(len(source_stress[0]), 3 if dim == 2 else 6)
 
-                    if dim == 2:
-                        self.assertGreater(
-                            max(abs(point[2]) for point in source_stress), 1.e-6)
-                    else:
-                        self.assertGreater(max(
-                            abs(point[3]) + abs(point[4]) + abs(point[5])
-                            for point in source_stress), 1.e-6)
-                    if geometry['gps'] > 1:
-                        self.assertGreater(max(
-                            abs(point[j] - source_stress[0][j])
-                            for point in source_stress
-                            for j in range(len(point))), 1.e-6)
+                if dim == 2:
+                    self.assertGreater(
+                        max(abs(point[2]) for point in source_stress), 1.e-6)
+                else:
+                    self.assertGreater(max(
+                        abs(point[3]) + abs(point[4]) + abs(point[5])
+                        for point in source_stress), 1.e-6)
+                if geometry['gps'] > 1:
+                    self.assertGreater(max(
+                        abs(point[j] - source_stress[0][j])
+                        for point in source_stress
+                        for j in range(len(point))), 1.e-6)
 
-                    settings = self._restart_settings(tmp)
-                    source.ProcessInfo[KM.TIME] = 1.0
-                    source.ProcessInfo[KM.STEP] = 1
-                    RestartUtility(source, settings).SaveRestart()
+                destination_model, destination, destination_nodes, destination_element = \
+                    self._build(geometry, law)
+                for node in destination_nodes:
+                    for value in node.GetSolutionStepValue(KM.DISPLACEMENT):
+                        self.assertEqual(value, 0.0)
 
-                    loaded_model, loaded, _, loaded_element = self._build(
-                        geometry, law)
-                    RestartUtility(loaded, settings).LoadRestart()
-                    loaded_stress = self._stresses(loaded_element, loaded)
-                    self._assert_stresses_close(loaded_stress, source_stress)
-
-                    destination_model, destination, destination_nodes, destination_element = \
-                        self._build(geometry, law)
-                    for node in destination_nodes:
-                        for value in node.GetSolutionStepValue(KM.DISPLACEMENT):
-                            self.assertEqual(value, 0.0)
-
-                    Dam.SelectiveInitialStressUtility.AssignInitialStresses(
-                        loaded, destination)
-                    destination_stress = self._stresses(
-                        destination_element, destination)
-                    self._assert_stresses_close(destination_stress, source_stress)
-                    self._assert_stresses_close(
-                        self._stresses(loaded_element, loaded), loaded_stress)
-                    for node in destination_nodes:
-                        for value in node.GetSolutionStepValue(KM.DISPLACEMENT):
-                            self.assertEqual(value, 0.0)
-                        self.assertEqual(
-                            node.GetSolutionStepValue(KM.TEMPERATURE), 20.0)
-                        self.assertEqual(node.GetSolutionStepValue(
-                            Dam.NODAL_REFERENCE_TEMPERATURE), 20.0)
+                self._assign(source, destination)
+                destination_stress = self._stresses(
+                    destination_element, destination)
+                self._assert_stresses_close(destination_stress, source_stress)
+                for node in destination_nodes:
+                    for value in node.GetSolutionStepValue(KM.DISPLACEMENT):
+                        self.assertEqual(value, 0.0)
+                    self.assertEqual(
+                        node.GetSolutionStepValue(KM.TEMPERATURE), 20.0)
+                    self.assertEqual(node.GetSolutionStepValue(
+                        Dam.NODAL_REFERENCE_TEMPERATURE), 20.0)
 
     def test_plane_stress_and_thermal_laws(self):
         cases = (
@@ -306,8 +281,7 @@ class TestDamSelectiveInitialStressGeometries(KratosUnittest.TestCase):
                     geometry, law)
                 thermal_reference_model, thermal_reference, _, thermal_reference_element = \
                     self._build(geometry, law)
-                Dam.SelectiveInitialStressUtility.AssignInitialStresses(
-                    source, destination)
+                self._assign(source, destination)
                 self._assert_stresses_close(
                     self._stresses(destination_element, destination), source_stress)
 
@@ -349,21 +323,14 @@ class TestDamSelectiveInitialStressGeometries(KratosUnittest.TestCase):
 
                 destination_model, destination, destination_nodes, destination_element = \
                     self._build(geometry, law, integration_order=order)
-                Dam.SelectiveInitialStressUtility.AssignInitialStresses(
-                    source, destination)
+                self._assign(source, destination)
                 self._assert_stresses_close(
                     self._stresses(destination_element, destination), source_stress)
                 for node in destination_nodes:
                     for value in node.GetSolutionStepValue(KM.DISPLACEMENT):
                         self.assertEqual(value, 0.0)
 
-                default_destination_model, default_destination, _, _ = self._build(
-                    geometry, law)
-                with self.assertRaisesRegex(RuntimeError, 'integration rules differ'):
-                    Dam.SelectiveInitialStressUtility.AssignInitialStresses(
-                        source, default_destination)
-
-    def test_source_mesh_motion_uses_reference_coordinates(self):
+    def test_source_mesh_motion_stress_extraction(self):
         geometry = GEOMETRIES['Q4']
         law = self._law(2)
         source_model, source, source_nodes, source_element = self._build(
@@ -378,8 +345,7 @@ class TestDamSelectiveInitialStressGeometries(KratosUnittest.TestCase):
 
         destination_model, destination, _, destination_element = self._build(
             geometry, law)
-        Dam.SelectiveInitialStressUtility.AssignInitialStresses(
-            source, destination)
+        self._assign(source, destination)
         self._assert_stresses_close(
             self._stresses(destination_element, destination), source_stress)
 
@@ -417,8 +383,7 @@ class TestDamSelectiveInitialStressGeometries(KratosUnittest.TestCase):
                     if not node.IsFixed(DISPLACEMENT_DOFS[d]))
                 self.assertGreater(free_dofs, 0)
                 destination_strategy = self._make_strategy(destination)
-                Dam.SelectiveInitialStressUtility.AssignInitialStresses(
-                    source, destination)
+                self._assign(source, destination)
                 destination_strategy.Solve()
                 self.assertLess(max(abs(value) for node in destination_nodes
                                     for value in node.GetSolutionStepValue(KM.DISPLACEMENT)),
@@ -486,98 +451,43 @@ class TestDamSelectiveInitialStressGeometries(KratosUnittest.TestCase):
                     for e, a in zip(expected, actual):
                         self._assert_close(a, e)
 
-    def test_rejects_incompatible_configurations(self):
+    def test_rejects_unsupported_assignment_configurations(self):
         geometry = GEOMETRIES['Q4']
         law = self._law(2)
         source_model, source, _, _ = self._build(geometry, law)
 
         destination_model, destination, _, destination_element = self._build(
-            geometry, law)
-        destination.Nodes[4].X0 += 0.1
-        with self.assertRaisesRegex(RuntimeError, 'reference coordinates differ'):
-            Dam.SelectiveInitialStressUtility.AssignInitialStresses(source, destination)
-        self._assert_zero_stresses(destination_element, destination)
-
-        destination_model, destination, _, destination_element = self._build(
-            geometry, law, connectivity=[2, 3, 4, 1])
-        with self.assertRaisesRegex(RuntimeError, 'node ordering mismatch'):
-            Dam.SelectiveInitialStressUtility.AssignInitialStresses(source, destination)
-        self._assert_zero_stresses(destination_element, destination)
-
-        destination_model, destination, _, destination_element = self._build(
-            geometry, law, element_id=2)
-        with self.assertRaisesRegex(RuntimeError, 'does not contain element'):
-            Dam.SelectiveInitialStressUtility.AssignInitialStresses(source, destination)
-        self._assert_zero_stresses(destination_element, destination)
-
-        destination_model, destination, _, destination_element = self._build(
-            geometry, law, integration_order=1)
-        with self.assertRaisesRegex(RuntimeError, 'integration rules differ'):
-            Dam.SelectiveInitialStressUtility.AssignInitialStresses(source, destination)
-        self._assert_zero_stresses(destination_element, destination)
+            geometry, Dam.ThermalSimoJuLocalDamagePlaneStrain2DLaw())
+        with self.assertRaisesRegex(RuntimeError, 'unsupported constitutive law'):
+            self._assign(source, destination)
 
         destination_model, destination, _, destination_element = self._build(
             geometry, law)
-        destination.Properties[1][KM.YOUNG_MODULUS] *= 2.0
-        with self.assertRaisesRegex(RuntimeError, 'material mismatch'):
-            Dam.SelectiveInitialStressUtility.AssignInitialStresses(source, destination)
-        self._assert_zero_stresses(destination_element, destination)
+        destination.Nodes[1].SetSolutionStepValue(
+            KM.DISPLACEMENT, [0.1, 0.0, 0.0])
+        with self.assertRaisesRegex(RuntimeError, 'nonzero displacement'):
+            self._assign(source, destination)
+
+        destination_model, destination, _, destination_element = self._build(
+            geometry, law)
+        self._assign(source, destination)
+        with self.assertRaisesRegex(RuntimeError, 'already has an initial state'):
+            self._assign(source, destination)
 
         destination_model, destination, _, destination_element = self._build(
             geometry, law)
         destination.CreateNewElement(
             geometry['element'], 2, [1, 2, 3, 4], destination.Properties[1])
-        with self.assertRaisesRegex(RuntimeError, 'element count mismatch'):
-            Dam.SelectiveInitialStressUtility.AssignInitialStresses(source, destination)
-        self._assert_zero_stresses(destination_element, destination)
-
-        destination_model, destination, _, destination_element = self._build(
-            geometry, law)
-        destination.CreateNewNode(5, 2.0, 2.0, 0.0)
-        with self.assertRaisesRegex(RuntimeError, 'node count mismatch'):
-            Dam.SelectiveInitialStressUtility.AssignInitialStresses(source, destination)
-        self._assert_zero_stresses(destination_element, destination)
-
-        destination_model, destination, _, destination_element = self._build(
-            geometry, self._law(2, plane_stress=True))
-        with self.assertRaisesRegex(RuntimeError, 'constitutive laws differ'):
-            Dam.SelectiveInitialStressUtility.AssignInitialStresses(source, destination)
-        self._assert_zero_stresses(destination_element, destination)
-
-        destination_model, destination, _, destination_element = self._build(
-            geometry, Dam.ThermalSimoJuLocalDamagePlaneStrain2DLaw())
-        with self.assertRaisesRegex(RuntimeError, 'unsupported constitutive law'):
-            Dam.SelectiveInitialStressUtility.AssignInitialStresses(source, destination)
-
-        destination_model, destination, _, destination_element = self._build(
-            geometry, self._law(2), connectivity=[1, 2, 3, 4])
-        destination.Nodes[1].SetSolutionStepValue(KM.DISPLACEMENT, [0.1, 0.0, 0.0])
-        with self.assertRaisesRegex(RuntimeError, 'nonzero displacement'):
-            Dam.SelectiveInitialStressUtility.AssignInitialStresses(source, destination)
-
-        dimension_source_model, dimension_source, _, _ = self._build(
-            geometry, SMA.LinearElastic3DLaw())
-        destination_model, destination, _, destination_element = self._build(
-            geometry, SMA.LinearElastic3DLaw())
-        with self.assertRaisesRegex(RuntimeError, 'dimensions differ'):
-            Dam.SelectiveInitialStressUtility.AssignInitialStresses(
-                dimension_source, destination)
-
-        destination_model, destination, _, destination_element = self._build(
-            geometry, law)
-        Dam.SelectiveInitialStressUtility.AssignInitialStresses(source, destination)
-        with self.assertRaisesRegex(RuntimeError, 'already has an initial state'):
-            Dam.SelectiveInitialStressUtility.AssignInitialStresses(source, destination)
+        with self.assertRaisesRegex(RuntimeError, 'imported stress map contains'):
+            self._assign(source, destination)
 
         unsupported_source_model, unsupported_source, _, _ = self._build(
             UNSUPPORTED_T10_2D, self._law(2))
         unsupported_destination_model, unsupported_destination, _, unsupported_element = \
             self._build(UNSUPPORTED_T10_2D, self._law(2))
         with self.assertRaisesRegex(RuntimeError, 'unsupported geometry'):
-            Dam.SelectiveInitialStressUtility.AssignInitialStresses(
-                unsupported_source, unsupported_destination)
+            self._assign(unsupported_source, unsupported_destination)
         self._assert_zero_stresses(unsupported_element, unsupported_destination)
-
 
 if __name__ == '__main__':
     KratosUnittest.main()

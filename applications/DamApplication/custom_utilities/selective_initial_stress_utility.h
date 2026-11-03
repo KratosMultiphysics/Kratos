@@ -22,30 +22,17 @@
 namespace Kratos
 {
 
-/// @brief Assigns selected Gauss-point stresses from a source model part to the
-///        constitutive initial state of an independent destination model part.
-/// @details This is a same-mesh, stress-only operation. It does not transfer
-/// displacements, reactions, time, step counters, loads or any other source
-/// variable, and it does not restart the destination analysis. All elements are
-/// validated before any destination constitutive law is modified.
+/// @brief Extracts and assigns Gauss-point initial stresses for lightweight
+///        Dam initial-state files.
+/// @details All elements are validated before any destination constitutive law
+/// is modified. Displacements, reactions, time, step counters, loads and any
+/// other source variable are never transferred.
 /// Supported geometries are the 2D T3/T6/Q4/Q8/Q9 and 3D T4/T10/P6/P15/H8/H20/H27
 /// SmallDisplacement solid elements, with linear elastic or linear thermoelastic
-/// constitutive laws. The actual element integration rule is used and must match
-/// between source and destination.
+/// constitutive laws. The actual element integration rule is used.
 class KRATOS_API(DAM_APPLICATION) SelectiveInitialStressUtility
 {
 public:
-    /**
-     * @brief Validates the source/destination pair and assigns one InitialState
-     *        per integration point using the source Cauchy stress.
-     * @param rSourceModelPart Source model part loaded from a restart checkpoint.
-     * @param rDestinationModelPart Fresh model part owned by the new analysis.
-     * @throws If the configuration is outside the supported validated scope.
-     */
-    static void AssignInitialStresses(
-        ModelPart& rSourceModelPart,
-        ModelPart& rDestinationModelPart);
-
     /**
      * @brief Returns the current Cauchy stress vector at every integration point.
      * @param rModelPart Model part whose elements are queried.
