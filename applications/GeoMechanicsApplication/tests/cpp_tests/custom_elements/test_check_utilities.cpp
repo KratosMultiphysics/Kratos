@@ -18,6 +18,8 @@
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
 #include "tests/cpp_tests/stub_constitutive_law.h"
 
+#include <limits>
+
 using namespace Kratos;
 
 namespace
@@ -151,6 +153,28 @@ KRATOS_TEST_CASE_IN_SUITE(CheckUtilities_CheckPropertiesThatPrintsPropertyId, Kr
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         check_properties.SingleUseBounds(CheckProperties::Bounds::ExclusiveLowerAndInclusiveUpper).Check(DENSITY),
         "DENSITY in the property with Id 0 has an invalid value: 0 is out of the range (0, -).")
+}
+
+KRATOS_TEST_CASE_IN_SUITE(CheckUtilities_CheckPropertiesWithUnboundedLowerLimit, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    Properties properties;
+    const CheckProperties check_properties(properties, "property", CheckProperties::Bounds::AllExclusive);
+    constexpr auto lower_bound = -std::numeric_limits<double>::infinity();
+
+    properties.SetValue(GEO_MAXIMUM_MINOR_PRINCIPAL_STRESS, -1.0);
+    EXPECT_NO_THROW(check_properties.Check(GEO_MAXIMUM_MINOR_PRINCIPAL_STRESS, lower_bound, 0.0));
+
+    properties.SetValue(GEO_MAXIMUM_MINOR_PRINCIPAL_STRESS, 0.0);
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        check_properties.Check(GEO_MAXIMUM_MINOR_PRINCIPAL_STRESS, lower_bound, 0.0),
+        "GEO_MAXIMUM_MINOR_PRINCIPAL_STRESS in the property with Id 0 has an "
+        "invalid value: 0 is out of the range (-, 0).")
+
+    properties.SetValue(GEO_MAXIMUM_MINOR_PRINCIPAL_STRESS, 1.0);
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        check_properties.Check(GEO_MAXIMUM_MINOR_PRINCIPAL_STRESS, lower_bound, 0.0),
+        "GEO_MAXIMUM_MINOR_PRINCIPAL_STRESS in the property with Id 0 has an "
+        "invalid value: 1 is out of the range (-, 0).")
 }
 
 KRATOS_TEST_CASE_IN_SUITE(CheckUtilities_CheckPropertiesThatPrintsElementId, KratosGeoMechanicsFastSuiteWithoutKernel)
