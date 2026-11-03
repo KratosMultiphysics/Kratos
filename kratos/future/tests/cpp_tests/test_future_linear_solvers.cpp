@@ -17,6 +17,7 @@
 #include "future/linear_operators/linear_operator.h"
 #include "future/linear_solvers/amgcl_solver.h"
 #include "future/linear_solvers/cg_solver.h"
+#include "future/linear_solvers/eigen_sparse_lu_solver.h"
 #include "future/linear_solvers/skyline_lu_factorization_solver.h"
 
 namespace Kratos::Testing
@@ -72,6 +73,51 @@ KRATOS_TEST_CASE_IN_SUITE(FutureLinearSolversSkylineLUFactorizationSolver, Krato
     // Check the obtained results
     std::vector<double> ref_sol = {0.487946221604, 0.979601298099, 0.836810384794, 0.93973110802, 0.602225312935};
     KRATOS_EXPECT_VECTOR_NEAR(p_sol->data(), ref_sol, 1e-12);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(FutureLinearSolversEigenSparseLU, KratosCoreFutureSuite)
+{
+    // Set up the system to be solved
+    auto p_LHS = Kratos::make_shared<CsrMatrix<> >();
+    auto p_RHS = Kratos::make_shared<SystemVector<> >();
+    const std::size_t system_size = SetLinearSystem(*p_LHS, *p_RHS);
+    auto p_sol = Kratos::make_shared<SystemVector<> >(system_size);
+    Future::LinearSystem<Future::SerialLinearAlgebraTraits> linear_system(p_LHS, p_RHS, p_sol);
+
+    // Set the linear solver to be tested
+    Future::LinearSolver<Future::SerialLinearAlgebraTraits>::UniquePointer p_linear_solver = Kratos::make_unique<Future::EigenSparseLUSolver<Future::SerialLinearAlgebraTraits>>();
+
+    // Solve the problem
+    p_linear_solver->Initialize(linear_system);
+    p_linear_solver->InitializeSolutionStep(linear_system);
+    p_linear_solver->PerformSolutionStep(linear_system);
+    p_linear_solver->FinalizeSolutionStep(linear_system);
+
+    // Check the obtained results
+    std::vector<double> ref_sol = {0.487946221604, 0.979601298099, 0.836810384794, 0.93973110802, 0.602225312935};
+    KRATOS_EXPECT_VECTOR_NEAR(p_sol->data(), ref_sol, 1e-12);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(FutureLinearSolversEigenSparseLUSingularMatrix, KratosCoreFutureSuite)
+{
+    // Set up a singular system: the factorization must fail with an error
+    auto p_LHS = Kratos::make_shared<CsrMatrix<> >();
+    typename CsrMatrix<double>::MatrixMapType matrix_map;
+    matrix_map[{0, 0}] = 1.0; matrix_map[{0, 1}] = 1.0;
+    matrix_map[{1, 0}] = 1.0; matrix_map[{1, 1}] = 1.0;
+    *p_LHS = CsrMatrix<double>(matrix_map);
+    auto p_RHS = Kratos::make_shared<SystemVector<> >(2);
+    (*p_RHS)[0] = 1.0; (*p_RHS)[1] = 1.0;
+    auto p_sol = Kratos::make_shared<SystemVector<> >(2);
+    Future::LinearSystem<Future::SerialLinearAlgebraTraits> linear_system(p_LHS, p_RHS, p_sol);
+
+    // Set the linear solver to be tested
+    Future::LinearSolver<Future::SerialLinearAlgebraTraits>::UniquePointer p_linear_solver = Kratos::make_unique<Future::EigenSparseLUSolver<Future::SerialLinearAlgebraTraits>>();
+
+    // The factorization of the singular matrix must raise a Kratos error
+    p_linear_solver->Initialize(linear_system);
+    p_linear_solver->InitializeSolutionStep(linear_system);
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(p_linear_solver->PerformSolutionStep(linear_system), "the LHS matrix is singular");
 }
 
 KRATOS_TEST_CASE_IN_SUITE(FutureLinearSolversCGSolver, KratosCoreFutureSuite)
