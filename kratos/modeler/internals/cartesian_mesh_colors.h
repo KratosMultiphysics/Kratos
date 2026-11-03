@@ -150,12 +150,14 @@ namespace Kratos
 
     Point GetPoint(double I, double J, double K) const {
         // The coordinates of the point are interpolated between those of floor(I, J, K) and ceil(I, J, K)
-        std::size_t i(I), j(J), k(K);
-        std::vector<double> start{mNodalCoordinates[0][i], mNodalCoordinates[1][j], mNodalCoordinates[2][k]};
-        return Point(
-            start[0] + (I-i)*(mNodalCoordinates[0][i+1]-start[0]),
-            start[1] + (J-j)*(mNodalCoordinates[1][j+1]-start[1]),
-            start[2] + (K-k)*(mNodalCoordinates[2][k+1]-start[2]));
+        // The neighbouring node is only accessed if there is a fractional part, as the last node has no ceil node.
+        auto interpolate = [this](std::size_t Dim, double Index) {
+            const std::size_t i = Index;
+            const double start = mNodalCoordinates[Dim][i];
+            const double fraction = Index - i;
+            return fraction > 0.0 ? start + fraction*(mNodalCoordinates[Dim][i+1] - start) : start;
+        };
+        return Point(interpolate(0, I), interpolate(1, J), interpolate(2, K));
     }
 
     Point GetCenterOfElement(std::size_t I, std::size_t J, std::size_t K) const {

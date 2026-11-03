@@ -576,6 +576,8 @@ public:
     }
 
     KRATOS_SERIALIZATION_DIRECT_LOAD(bool)
+    KRATOS_SERIALIZATION_DIRECT_LOAD(unsigned char)
+    KRATOS_SERIALIZATION_DIRECT_LOAD(signed char)
     KRATOS_SERIALIZATION_DIRECT_LOAD(int)
     KRATOS_SERIALIZATION_DIRECT_LOAD(long)
     KRATOS_SERIALIZATION_DIRECT_LOAD(double)
@@ -825,6 +827,8 @@ public:
     }
 
     KRATOS_SERIALIZATION_DIRECT_SAVE(bool)
+    KRATOS_SERIALIZATION_DIRECT_SAVE(unsigned char)
+    KRATOS_SERIALIZATION_DIRECT_SAVE(signed char)
     KRATOS_SERIALIZATION_DIRECT_SAVE(int)
     KRATOS_SERIALIZATION_DIRECT_SAVE(long)
     KRATOS_SERIALIZATION_DIRECT_SAVE(double)
@@ -1236,8 +1240,7 @@ private:
 
         KRATOS_SERIALIZER_MODE_ASCII
 
-        *mpBuffer >> rData;
-        mNumberOfLines++;
+        ReadAscii(rData);
 
         KRATOS_SERIALIZER_MODE_END
     }
@@ -1252,9 +1255,40 @@ private:
 
         KRATOS_SERIALIZER_MODE_ASCII
 
-        *mpBuffer << rData << std::endl;
+        WriteAscii(rData);
 
         KRATOS_SERIALIZER_MODE_END
+    }
+
+    // iostream treats (un)signed char as a character: a whitespace byte (e.g. 32 = ' ') would be
+    // skipped on read, corrupting the value and the rest of the stream. Stream them as integers.
+    template<class TDataType>
+    void ReadAscii(TDataType& rData)
+    {
+        if constexpr (std::is_same_v<TDataType, unsigned char>) {
+            unsigned int temp;
+            *mpBuffer >> temp;
+            rData = static_cast<unsigned char>(temp);
+        } else if constexpr (std::is_same_v<TDataType, signed char>) {
+            int temp;
+            *mpBuffer >> temp;
+            rData = static_cast<signed char>(temp);
+        } else {
+            *mpBuffer >> rData;
+        }
+        mNumberOfLines++;
+    }
+
+    template<class TDataType>
+    void WriteAscii(TDataType const& rData)
+    {
+        if constexpr (std::is_same_v<TDataType, unsigned char>) {
+            *mpBuffer << static_cast<unsigned int>(rData) << std::endl;
+        } else if constexpr (std::is_same_v<TDataType, signed char>) {
+            *mpBuffer << static_cast<int>(rData) << std::endl;
+        } else {
+            *mpBuffer << rData << std::endl;
+        }
     }
 
     template<class TDataType>
@@ -1373,9 +1407,7 @@ private:
 
         for(; First != Last ; First++)
         {
-            *mpBuffer >> *First;
-            mNumberOfLines++;
-
+            ReadAscii(*First);
         }
 
         KRATOS_SERIALIZER_MODE_END
@@ -1393,7 +1425,7 @@ private:
         KRATOS_SERIALIZER_MODE_ASCII
 
         for(; First != Last ; First++)
-            *mpBuffer << *First << std::endl;
+            WriteAscii(*First);
 
         KRATOS_SERIALIZER_MODE_END
     }

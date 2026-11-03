@@ -25,6 +25,7 @@
 // Application includes
 #include "custom_python/add_custom_modelers_to_python.h"
 #include "custom_modelers/hrom_visualization_mesh_modeler.h"
+#include "custom_modelers/hrom_create_entities_from_geometries_modeler.h"
 
 namespace Kratos {
 
@@ -36,6 +37,10 @@ void AddCustomModelersToPython(py::module& m)
 {
 
     py::class_<HRomVisualizationMeshModeler, typename HRomVisualizationMeshModeler::Pointer, Modeler>(m, "HRomVisualizationMeshModeler")
+        .def(py::init<Model&, Parameters>())
+    ;
+
+    py::class_<HRomCreateEntitiesFromGeometriesModeler, typename HRomCreateEntitiesFromGeometriesModeler::Pointer, CreateEntitiesFromGeometriesModeler>(m, "HRomCreateEntitiesFromGeometriesModeler")
         .def(py::init<Model&, Parameters>())
     ;
 

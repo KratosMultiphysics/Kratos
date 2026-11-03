@@ -79,8 +79,8 @@ Required material parameters:
 - `POISSON_RATIO`: Poisson's ratio <!--(used if no unloading-reloading Poisson is supplied)-->
 - `GEO_PRESSURE_REFERENCE`: reference pressure $p_{ref}$
 - `GEO_STRESS_DEPENDENCY_EXPONENT`: stiffness exponent $m$
-- `GEO_COHESION` and `GEO_FRICTION_ANGLE`: used to compute the stress shift term
-  
+- `GEO_COHESION` and `GEO_FRICTION_ANGLE`: used to compute the stress shift term. Zero cohesion is allowed, negative is not
+- `GEO_MAXIMUM_MINOR_PRINCIPAL_STRESS`: negative (compression is negative) upper limit $\sigma_{3,max}'$ for the minor principal stress used in the formula, see section 1.2.3  
 <!--
 Optional material parameters:
 
@@ -92,12 +92,13 @@ Optional material parameters:
 The Young's modulus used in the elastic tensor is computed as:
 
 ```math
-E = E^{ref} \left(\frac{s - \sigma_3'}{s + p_{ref}}\right)^m
+E = E^{ref} \left(\frac{s - \min(\sigma_3', \sigma_{3,max}')}{s + p_{ref}}\right)^m
 ```
 
 with:
 
-- $\sigma_3'$: minor principal effective stress from the finalized stress state
+- $\sigma_3'$: minor principal effective stress from the finalized stress state (compression negative)
+- $\sigma_{3,max}'$: `GEO_MAXIMUM_MINOR_PRINCIPAL_STRESS`, a negative value
 - $p_{ref}$: reference pressure (`GEO_PRESSURE_REFERENCE`)
 - $m$: stiffness exponent (`GEO_STRESS_DEPENDENCY_EXPONENT`)
 - $s$: stress shift term
@@ -109,6 +110,8 @@ s = c \cot(\phi)
 ```
 
 where $c$ is `GEO_COHESION` and $\phi$ is `GEO_FRICTION_ANGLE`.
+
+The limit $\sigma_{3,max}'$ regularizes the stiffness near the tensile apex. When the tension cut-off is disabled, a return to the apex gives $\sigma_1' = \sigma_2' = \sigma_3' = s$, so without the limit the base would be zero and the stiffness undefined. Since $\sigma_{3,max}' < 0$, the numerator is always positive, also for zero cohesion ($s = 0$). Stresses that are more compressive than $\sigma_{3,max}'$ are not affected. Choose a small magnitude, compared to $p_{ref}$, to keep the stiffness at the apex small.
 
 
 ## 2. Mohr-Coulomb with tension cutoff

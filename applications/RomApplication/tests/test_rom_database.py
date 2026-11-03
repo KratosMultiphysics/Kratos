@@ -40,7 +40,7 @@ class TestRomDatabase(KratosUnittest.TestCase):
             query = "SELECT name FROM sqlite_master WHERE type='table';"
             tables = pd.read_sql_query(query, conn)
             expected_tables = [
-                'FOM','HROM','HROM_Elements','HROM_Weights','LeftBasis','Neural_Network','NonconvergedFOM','NonconvergedHROM','NonconvergedROM',
+                'FOM','HROM','HROM_Elements','HROM_Weights','LeftBasis','Neural_Network','RBF','NonconvergedFOM','NonconvergedHROM','NonconvergedROM',
                 'PetrovGalerkinSnapshots','QoI_FOM','QoI_HROM','QoI_ROM','ROM','ResidualsProjected','RightBasis','SingularValues_Residuals','SingularValues_Solution'
             ]
             self.assertEqual(sorted(tables['name']), sorted(expected_tables), "Not all expected tables were created.")
