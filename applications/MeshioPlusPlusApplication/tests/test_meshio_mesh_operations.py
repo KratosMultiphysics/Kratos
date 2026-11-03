@@ -99,7 +99,10 @@ class TestMeshioPlusPlusMeshOperations(KratosUnittest.TestCase):
                          "tetrahedralize", "octree_mesh", "boundary_layer", "extrude", "revolve",
                          "mirror", "octree", "refine_patches", "select", "check_conformity",
                          "find_intersections", "thickness", "error_size", "tet_to_poly",
-                         "metric_from_hessian", "adapt", "discretize_levelset", "mesh_domain", "move"):
+                         "metric_from_hessian", "adapt", "discretize_levelset", "mesh_domain", "move",
+                         "parameterize", "geodesic_distance", "laplacian_eigenmodes", "morph", "untangle",
+                         "prepare_metric", "convert_coordinates", "convex_hull", "delaunay_2d",
+                         "estimate_normals", "reconstruct_surface"):
             self.assertIn(expected, operations)
 
     def test_unknown_operation_raises(self):
@@ -1046,6 +1049,56 @@ class TestMeshioPlusPlusMeshOperations(KratosUnittest.TestCase):
         with self.assertRaisesRegex(RuntimeError, "Unknown primitive"):
             operations.Primitive(KratosMultiphysics.Parameters('{"primitive" : "teapot"}'),
                                  self.model.CreateModelPart("PrimitiveTeapot"))
+
+    def test_parameterize_writes_the_atlas_where_a_model_part_cannot_hold_it(self):
+        square = self.model.CreateModelPart("UvSquare")
+        _CreateTriangulatedSquare(square)
+        with tempfile.TemporaryDirectory() as temp_dir:
+            path = str(Path(temp_dir) / "atlas.obj")
+            settings = KratosMultiphysics.Parameters('{"output_file" : "%s"}' % path)
+            _, report = self._Execute("parameterize", settings, square)
+            self.assertEqual(report["output_format"].GetString(), "obj")
+            self.assertEqual(report["number_of_flipped"].GetInt(), 0)
+            # OBJ stores texture coordinates: one vt line per (u, v)
+            self.assertIn("\nvt ", Path(path).read_text())
+
+    def test_geodesic_distance_from_a_sub_model_part(self):
+        skin = self.model.CreateModelPart("GeodesicSkin")
+        _CreateClosedCubeSkin(skin)
+        corner = skin.CreateSubModelPart("Corner")
+        corner.AddNodes([1])
+        settings = KratosMultiphysics.Parameters('{"geodesic_source_region" : "Corner", "output" : "DISTANCE"}')
+        destination, report = self._Execute("geodesic_distance", settings, skin)
+        self.assertEqual(report["number_of_sources"].GetInt(), 1)
+        self.assertAlmostEqual(destination.GetNode(1).GetValue(KratosMultiphysics.DISTANCE), 0.0, 6)
+        self.assertGreater(destination.GetNode(7).GetValue(KratosMultiphysics.DISTANCE), 1.7)
+
+    def test_register_rigid_recovers_a_rotation(self):
+        source = self.model.CreateModelPart("RegisterSource")
+        target = self.model.CreateModelPart("RegisterTarget")
+        _CreateClosedCubeSkin(source)
+        _CreateClosedCubeSkin(target)
+        angle = 0.1
+        for node in target.Nodes:
+            x, y = node.X, node.Y
+            node.X = math.cos(angle) * x - math.sin(angle) * y
+            node.Y = math.sin(angle) * x + math.cos(angle) * y
+            node.X0, node.Y0 = node.X, node.Y
+        destination = self.model.CreateModelPart("Registered")
+        report = KratosMeshioPlusPlus.MeshioPlusPlusMeshOperations.RegisterRigid(
+            source, target, KratosMultiphysics.Parameters('{"registration_max_iterations" : 200}'), destination)
+        matrix = report["matrix"].GetMatrix()
+        self.assertAlmostEqual(matrix[0, 0], math.cos(angle), 4)
+        self.assertAlmostEqual(matrix[1, 0], math.sin(angle), 4)
+        self.assertLess(report["rms"].GetDouble(), report["initial_rms"].GetDouble())
+
+    def test_adjacency_of_the_cell_graph(self):
+        indptr, indices = KratosMeshioPlusPlus.MeshioPlusPlusMeshOperations.Adjacency(
+            self.source, KratosMultiphysics.Parameters('{"adjacency_kind" : "cell"}'))
+        self.assertEqual(len(indptr), self.source.NumberOfElements() + 1)
+        # Six tetrahedra in a ring around the diagonal: each shares a face with two neighbours
+        self.assertEqual([indptr[i + 1] - indptr[i] for i in range(6)], [2] * 6)
+        self.assertEqual(len(indices), 12)
 
     def test_mmg_adapt(self):
         capabilities = KratosMeshioPlusPlus.MeshioPlusPlusMeshOperations.GetCapabilities()
