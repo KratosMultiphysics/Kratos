@@ -109,6 +109,16 @@ void AddCustomUtilitiesToPython(pybind11::module& m)
             "Which optional meshio++ backends this build can use: \"occt\" (STEP/IGES reading, "
             "fit_cad's OpenCASCADE backend), \"netgen\" (tetrahedralize), \"mmg\" (adapt, "
             "discretize_levelset, mesh_domain) and \"mmg_elas\" (move).")
+        .def_static("RegisterRigid", &MeshioPlusPlusMeshOperations::RegisterRigid,
+            py::arg("source_model_part"), py::arg("target_model_part"), py::arg("settings"),
+            py::arg("destination_model_part"),
+            "Rigid registration (iterative closest points, point-to-point or point-to-plane) of "
+            "source_model_part onto target_model_part. The report's \"matrix\" is the 4 x 4 transform; "
+            "destination_model_part receives the source moved by it.")
+        .def_static("Adjacency", &MeshioPlusPlusMeshOperations::Adjacency,
+            py::arg("model_part"), py::arg("settings") = Parameters(R"({})"),
+            "The (indptr, indices) CSR graph of the mesh: \"adjacency_kind\" node, clique or cell; "
+            "\"output_file\" also writes it as a METIS or Scotch graph file.")
         .def_static("DistanceToSurface", &MeshioPlusPlusMeshOperations::DistanceToSurface,
             py::arg("query_model_part"), py::arg("surface_model_part"), py::arg("settings"),
             py::arg("destination_model_part"),
