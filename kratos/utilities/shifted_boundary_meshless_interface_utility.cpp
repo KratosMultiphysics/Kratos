@@ -94,7 +94,7 @@ namespace
     {
         const std::size_t n_nodes = rGeometry.PointsNumber();
         if (rNodalDistances.size() != n_nodes) {
-            rNodalDistances.resize(n_nodes);
+            rNodalDistances.resize(n_nodes, false);
         }
         std::size_t i = 0;
         for (const auto& r_node : rGeometry) {

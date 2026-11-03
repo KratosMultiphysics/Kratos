@@ -151,7 +151,7 @@ void TestLaplacianElement::GetValuesVector( Vector& rValues, int Step ) const
     //GIVES THE VECTOR WITH THE DOFS VARIABLES OF THE ELEMENT (i.e. ELEMENT DISPLACEMENTS)
     const auto& r_geometry = this->GetGeometry();
     if (rValues.size() != r_geometry.size()) {
-        rValues.resize( r_geometry.size());
+        rValues.resize( r_geometry.size(), false);
     }
 
     unsigned int counter = 0;
