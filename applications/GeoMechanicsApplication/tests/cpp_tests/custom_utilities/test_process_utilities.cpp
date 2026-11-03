@@ -150,10 +150,10 @@ TEST_P(ModelPartsTest, GetModelPartsFromSettings_EmptyList_Throws)
 
     const auto& param = GetParam();
 
-    KRATOS_CHECK_EXCEPTION_IS_THROWN(
-        param.factory(model, settings),
-        "The parameters 'model_part_name' or 'model_part_name_list' needs to contain at least one model part name for " +
-            param.name);
+    KRATOS_CHECK_EXCEPTION_IS_THROWN(param.factory(model, settings),
+                                     "The parameters 'model_part_name' or 'model_part_name_list' "
+                                     "needs to contain at least one model part name for " +
+                                         param.name);
 }
 
 static const std::vector<NamedFactory> ProcessesAndOperations = {
