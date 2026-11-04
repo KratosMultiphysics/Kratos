@@ -168,6 +168,21 @@ checks use the existing multi-part validation. Structural-part separation relies
 on using separate source files/processes per part; material records that are
 identical within one file are treated as the same material.
 
+A multi-part source must represent the intended mechanical connection. When the
+physical model has a connected material interface, build the source as one model
+part with shared interface nodes and export each structural part from it. Two
+independent source blocks describe a different boundary-value problem at the
+interface and can produce large apparent interface stress differences even when
+the source mesh is fine; those differences are not a mapping defect. A
+connected coarse source transferred to a finer destination can also differ from
+the finer reference where the coarse source under-resolves a stress
+concentration. Re-equilibration closes the destination residual but does not
+recreate stress information that the source discretization never contained, so
+the final stress need not equal the finer reference. For a fine source
+transferred to a coarser destination, differences that remain after
+re-equilibration are coarse-discretization limitations, not interpolation
+errors.
+
 Mapping between different discretizations does not preserve the discrete
 equilibrium of the source mesh exactly. The helper
 `dam_initial_state_mapping.EvaluateMechanicalResidual` provides a read-only
@@ -179,6 +194,13 @@ in 3D) DOFs are included; temperature-only entities are skipped. Nodal loads
 that are not represented by a condition and master-slave constraints are not
 included. The import process does not modify mapped stresses or solve for a
 correction automatically. The same diagnostic handles 2D and 3D model parts.
+
+Three different error sources must not be conflated: the analytic interpolation
+error of the reconstruction (small, and exact for representable fields), the
+initial mechanical residual after a nonmatching transfer (not required to be
+zero), and the difference between coarse and fine discretizations (which can
+remain after re-equilibration whenever the source and destination resolve the
+stress field differently).
 
 ### Multi-part models ###
 

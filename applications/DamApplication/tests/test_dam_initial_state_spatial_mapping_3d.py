@@ -1021,29 +1021,138 @@ class TestDamInitialStateSpatialMapping3D(KratosUnittest.TestCase):
         self.assertLess(stress_error / max(scale, 1.0), 0.5)
         self.assertAlmostEqual(final["reaction_sum"][1], weight, places=6)
 
+    def test_sequential_abc_thermomechanical_3d(self):
+        """Genuine A -> B -> C: B imports A, is heated, and C imports B."""
+        law = Dam.ThermalLinearElastic3DLaw()
+        body = [0.0, -9.81, 0.0]
+        weight = 2000.0 * 9.81 * 2.0
+
+        def build(model, name, mesh, temperature, reference_temperature):
+            return _build_part(
+                model, name, mesh, law, body=body, fixed_bottom=True,
+                density=2000.0, young_modulus=1.e7, poisson_ratio=0.25,
+                thermal_expansion=1.e-5, temperature=temperature,
+                reference_temperature=reference_temperature)
+
+        def export(part, path):
+            ExportDamFinalStateProcess(
+                part.GetModel(), KM.Parameters(json.dumps({
+                    "model_part_name": part.Name,
+                    "export_stresses": True,
+                    "export_temperature": True,
+                    "export_reference_temperature": True,
+                    "output_file_name": str(path),
+                    "echo_level": 0}))).ExecuteFinalize()
+
+        def make_process(model, name, path):
+            return ImportDamInitialStateProcess(
+                model, KM.Parameters(json.dumps({
+                    "model_part_name": name,
+                    "input_file_name": str(path),
+                    "import_stresses": True,
+                    "import_temperature": True,
+                    "import_reference_temperature": True,
+                    "reference_temperature_policy": "preserve",
+                    "transfer_method": "spatial_mapping"})))
+
+        # Stage A: gravity on the source mesh at T = T_ref.
+        a_model = KM.Model()
+        a_part = build(a_model, "A", _hex8_mesh(2, 4, 2), 20.0, 20.0)
+        _make_strategy(a_part).Solve()
+        path_a = self._state_file("A.json")
+        export(a_part, path_a)
+
+        # Stage B: import A into a different mesh and solve gravity.
+        b_model = KM.Model()
+        b_part = build(b_model, "B", _hex8_mesh(3, 6, 3), 20.0, 20.0)
+        b_strategy = _make_strategy(b_part)
+        b_process = make_process(b_model, "B", path_a)
+        b_process.PrevalidateInitialState()
+        b_process.ExecuteBeforeSolutionLoop()
+        for node in b_part.Nodes:
+            for displacement in node.GetSolutionStepValue(KM.DISPLACEMENT):
+                self.assertEqual(displacement, 0.0)
+        b_strategy.Solve()
+
+        # Stage B thermal phase: apply T = 30, T_ref = 20 and re-solve.
+        for node in b_part.Nodes:
+            node.SetSolutionStepValue(KM.TEMPERATURE, 30.0)
+            node.SetSolutionStepValue(Dam.NODAL_REFERENCE_TEMPERATURE, 20.0)
+        b_strategy.Solve()
+        self.assertGreater(
+            math.sqrt(sum(value * value for value in _displacements(b_part))),
+            0.0)
+        path_b = self._state_file("B.json")
+        export(b_part, path_b)
+
+        # Stage C: import the B thermal state into another mesh.
+        c_model = KM.Model()
+        c_part = build(c_model, "C", _hex8_mesh(2, 4, 2), 30.0, 20.0)
+        c_strategy = _make_strategy(c_part)
+        c_process = make_process(c_model, "C", path_b)
+        c_process.PrevalidateInitialState()
+        c_process.ExecuteBeforeSolutionLoop()
+        for node in c_part.Nodes:
+            for displacement in node.GetSolutionStepValue(KM.DISPLACEMENT):
+                self.assertEqual(displacement, 0.0)
+            self.assertAlmostEqual(
+                node.GetSolutionStepValue(KM.TEMPERATURE), 30.0, places=10)
+            self.assertAlmostEqual(
+                node.GetSolutionStepValue(
+                    Dam.NODAL_REFERENCE_TEMPERATURE), 20.0, places=10)
+        initial = dam_initial_state_mapping.EvaluateMechanicalResidual(
+            c_part, force_scale=weight)
+        c_strategy.Solve()
+        final = dam_initial_state_mapping.EvaluateMechanicalResidual(
+            c_part, force_scale=weight)
+
+        reference_model = KM.Model()
+        reference = build(
+            reference_model, "reference", _hex8_mesh(2, 4, 2), 30.0, 20.0)
+        _make_strategy(reference).Solve()
+        reference_stress = _stresses(reference)
+        scale = max(
+            abs(value) for points in reference_stress.values()
+            for point in points for value in point)
+
+        self.assertLess(initial["free_residual_norm"], 0.2 * weight)
+        self.assertLess(final["free_residual_norm"], 1.e-6 * weight)
+        self.assertAlmostEqual(final["reaction_sum"][1], weight, places=6)
+        self.assertLessEqual(
+            _max_error(_stresses(c_part), reference_stress), 0.25 * scale)
+
     def test_multipart_gravity_interface_3d(self):
         body = [0.0, -9.81, 0.0]
         concrete_density = 2400.0
         soil_density = 1800.0
         weight = 9.81 * (concrete_density + soil_density)
-        concrete_mesh = _hex8_mesh(1, 2, 1, lx=0.5)
-        soil_mesh = _shift_mesh(_hex8_mesh(1, 2, 1, lx=0.5), 0.5)
 
+        def material_blocks():
+            return [
+                ("Parts_Concrete", lambda x, y, z: x < 0.5,
+                 {"law": SMA.LinearElastic3DLaw(),
+                  "young_modulus": 1.e7, "poisson_ratio": 0.2,
+                  "density": concrete_density}),
+                ("Parts_Soil", lambda x, y, z: x >= 0.5,
+                 {"law": SMA.LinearElastic3DLaw(),
+                  "young_modulus": 5.e6, "poisson_ratio": 0.25,
+                  "density": soil_density})]
+
+        # The source must be mechanically connected at the interface, exactly
+        # like the intended destination model. Two disconnected block models
+        # would describe a different physical problem at the interface.
+        source_model = KM.Model()
+        source, source_parts = _build_two_material_part(
+            source_model, "source", _hex8_mesh(2, 2, 1),
+            material_blocks(), body=body, fixed_bottom=True,
+            temperature=30.0, reference_temperature=20.0)
+        _make_strategy(source).Solve()
         source_paths = {}
-        for name, mesh, density, modulus, poisson in (
-                ("Concrete", concrete_mesh, concrete_density, 1.e7, 0.2),
-                ("Soil", soil_mesh, soil_density, 5.e6, 0.25)):
-            model = KM.Model()
-            part = _build_part(
-                model, name, mesh, SMA.LinearElastic3DLaw(), body=body,
-                fixed_bottom=True, density=density, young_modulus=modulus,
-                poisson_ratio=poisson, temperature=30.0,
-                reference_temperature=20.0)
-            _make_strategy(part).Solve()
+        for name in ("Parts_Concrete", "Parts_Soil"):
             path = self._state_file(name + ".json")
             ExportDamFinalStateProcess(
-                model, KM.Parameters(json.dumps({
-                    "model_part_name": name,
+                source_model, KM.Parameters(json.dumps({
+                    "model_part_name": "source." + name,
                     "export_stresses": True,
                     "export_temperature": True,
                     "export_reference_temperature": True,
@@ -1054,23 +1163,14 @@ class TestDamInitialStateSpatialMapping3D(KratosUnittest.TestCase):
         destination_model = KM.Model()
         destination, destination_parts = _build_two_material_part(
             destination_model, "destination", _hex8_mesh(2, 4, 2),
-            [("Parts_Concrete", lambda x, y, z: x < 0.5,
-              {"law": SMA.LinearElastic3DLaw(),
-               "young_modulus": 1.e7, "poisson_ratio": 0.2,
-               "density": concrete_density}),
-             ("Parts_Soil", lambda x, y, z: x >= 0.5,
-              {"law": SMA.LinearElastic3DLaw(),
-               "young_modulus": 5.e6, "poisson_ratio": 0.25,
-               "density": soil_density})],
-            body=body, fixed_bottom=True, temperature=30.0,
-            reference_temperature=20.0)
+            material_blocks(), body=body, fixed_bottom=True,
+            temperature=30.0, reference_temperature=20.0)
         strategy = _make_strategy(destination)
         processes = []
-        for name, subpart in (("Concrete", "Parts_Concrete"),
-                              ("Soil", "Parts_Soil")):
+        for name in ("Parts_Concrete", "Parts_Soil"):
             processes.append(ImportDamInitialStateProcess(
                 destination_model, KM.Parameters(json.dumps({
-                    "model_part_name": "destination." + subpart,
+                    "model_part_name": "destination." + name,
                     "input_file_name": str(source_paths[name]),
                     "import_stresses": True,
                     "import_temperature": True,
@@ -1081,6 +1181,14 @@ class TestDamInitialStateSpatialMapping3D(KratosUnittest.TestCase):
         dam_initial_state_file.ValidateCombinedImports(processes)
         for process in processes:
             process.ExecuteBeforeSolutionLoop()
+
+        reference_model = KM.Model()
+        reference, _ = _build_two_material_part(
+            reference_model, "reference", _hex8_mesh(2, 4, 2),
+            material_blocks(), body=body, fixed_bottom=True,
+            temperature=30.0, reference_temperature=20.0)
+        _make_strategy(reference).Solve()
+        reference_stress = _stresses(reference)
 
         interface_nodes = [
             node for node in destination.Nodes if abs(node.X0 - 0.5) < 1.e-14]
@@ -1100,6 +1208,12 @@ class TestDamInitialStateSpatialMapping3D(KratosUnittest.TestCase):
         self.assertLess(initial["normalized_free_residual_norm"], 0.25)
         self.assertLess(final["free_residual_norm"], 1.e-6 * weight)
         self.assertAlmostEqual(final["reaction_sum"][1], weight, places=6)
+        scale = max(
+            abs(value) for points in reference_stress.values()
+            for point in points for value in point)
+        self.assertLessEqual(
+            _max_error(_stresses(destination), reference_stress),
+            1.e-8 * scale)
         for node_id in [node.Id for node in interface_nodes]:
             node = destination.Nodes[node_id]
             if (node.IsFixed(KM.DISPLACEMENT_X) or
