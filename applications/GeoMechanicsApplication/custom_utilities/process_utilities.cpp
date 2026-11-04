@@ -17,6 +17,8 @@
 #include "custom_utilities/string_utilities.h"
 #include "includes/kratos_parameters.h"
 
+using namespace std::string_literals;
+
 namespace
 {
 
