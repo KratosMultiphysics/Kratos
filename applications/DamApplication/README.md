@@ -97,7 +97,8 @@ after solver initialization and before the first solve.
         "import_stresses": true,
         "import_temperature": true,
         "import_reference_temperature": true,
-        "reference_temperature_policy": "preserve"
+        "reference_temperature_policy": "preserve",
+        "transfer_method": "matching_mesh"
     }
 }
 ```
@@ -106,6 +107,49 @@ The three import flags are independent. Imported stresses are assigned at every
 Gauss point through the constitutive `InitialState`. Nodal temperatures are
 assigned to all solution-step buffer entries. Displacements, reactions,
 velocities, accelerations, time and step counters are never transferred.
+
+### Nonmatching 2D meshes ###
+
+`transfer_method` selects how the source fields are transferred:
+
+- `matching_mesh` (default): the original exact transfer. Source and destination
+  must have the same nodes, elements, connectivity and integration rules.
+- `spatial_mapping`: transfer between different discretizations of the same 2D
+  physical domain. Source and destination may have different node and element
+  IDs, counts, connectivity, element types and integration rules.
+
+`spatial_mapping` rebuilds the source geometry from the JSON version 2 metadata
+and locates every destination point with the Kratos Core point locator using the
+Dam bounding-box search configuration. Gauss-point stresses are reconstructed
+element-locally from the source Gauss-point values, without global nodal
+smoothing, so material interfaces are preserved. `TEMPERATURE` and
+`NODAL_REFERENCE_TEMPERATURE` are interpolated independently with the containing
+source element shape functions.
+
+The 2D spatial mapping supports `Triangle2D3`, `Triangle2D6`,
+`Quadrilateral2D4`, `Quadrilateral2D8` and `Quadrilateral2D9` source elements,
+mixed source/destination element types and Gauss rules from `GI_GAUSS_1` to
+`GI_GAUSS_5`. It requires:
+
+- the same physical domain, coordinate system and units;
+- compatible materials and constitutive laws (identical properties in this
+  version);
+- zero destination displacement;
+- destination points inside the source domain. Points outside the source domain
+  are rejected; no extrapolation or zero default is used.
+
+Each source file and import process covers one structural part. A locator is
+built per source material, so stresses are never interpolated between different
+materials. Shared-node temperature consistency and disjoint stress-element
+checks use the existing multi-part validation.
+
+Mapping between different discretizations does not preserve the discrete
+equilibrium of the source mesh exactly. The helper
+`dam_initial_state_mapping.EvaluateMechanicalResidual` provides a read-only
+diagnostic of the destination free-DOF residual and reaction sums after loads
+and supports have been initialized. The import process does not modify mapped
+stresses or solve for a correction automatically. 3D spatial mapping is not
+implemented in this version.
 
 ### Multi-part models ###
 

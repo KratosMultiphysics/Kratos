@@ -23,6 +23,7 @@
 #include "custom_utilities/transfer_initial_stress_utility.hpp"
 #include "custom_utilities/construction_utility.hpp"
 #include "custom_utilities/mapping_variables_utilities.hpp"
+#include "custom_utilities/dam_initial_state_spatial_search_utility.h"
 #include "custom_utilities/dam_initial_state_transfer_utility.h"
 
 
@@ -117,6 +118,21 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
     .def(py::init<>())
     .def("MappingThermalModelParts",&MappingVariables3DUtilities::MappingThermalModelParts)
     .def("MappingMechanicalModelParts",&MappingVariables3DUtilities::MappingMechanicalModelParts);
+
+    using SpatialSearch2DType = DamInitialStateSpatialSearchUtility<2>;
+    py::class_< SpatialSearch2DType >
+    (m, "DamInitialStateSpatialSearch2D")
+    .def(py::init<ModelPart&>(), py::arg("source_model_part"))
+    .def("UpdateSearchDatabase", &SpatialSearch2DType::UpdateSearchDatabase)
+    .def("FindPoint", [](SpatialSearch2DType& rSelf,
+                         const array_1d<double, 3>& rCoordinates,
+                         const double Tolerance) {
+            SpatialSearch2DType::Result result =
+                rSelf.FindPoint(rCoordinates, Tolerance);
+            return py::make_tuple(result.Found, result.ShapeFunctions,
+                                  result.pElement, result.LocalCoordinates);
+        },
+        py::arg("coordinates"), py::arg("tolerance") = 1.0e-9);
 
     py::class_< DamInitialStateTransferUtility >
     (m, "DamInitialStateTransferUtility")
