@@ -103,6 +103,11 @@ after solver initialization and before the first solve.
 }
 ```
 
+`transfer_method` defaults to `matching_mesh`. Set it to `spatial_mapping`
+whenever the destination mesh differs from the source (different node or element
+IDs, connectivity, element type or integration rule). `matching_mesh` remains
+the correct choice only for identically matching meshes.
+
 The three import flags are independent. Imported stresses are assigned at every
 Gauss point through the constitutive `InitialState`. Nodal temperatures are
 assigned to all solution-step buffer entries. Displacements, reactions,
@@ -297,7 +302,8 @@ final total Cauchy stresses together with the final nodal temperature fields:
             "import_stresses": true,
             "import_temperature": false,
             "import_reference_temperature": false,
-            "reference_temperature_policy": "preserve"
+            "reference_temperature_policy": "preserve",
+            "transfer_method": "spatial_mapping"
         }
     },
     {
@@ -329,14 +335,18 @@ increment:
         "import_stresses": true,
         "import_temperature": true,
         "import_reference_temperature": true,
-        "reference_temperature_policy": "preserve"
+        "reference_temperature_policy": "preserve",
+        "transfer_method": "spatial_mapping"
     }
 }
 ```
 
-The imported total stresses are reproduced at zero displacement, the final
-temperature fields are preserved, and the initial residual matches the source
-equilibrium state.
+The imported total stresses are reproduced at zero displacement and the final
+temperature fields are preserved. For `matching_mesh`, the initial residual
+matches the source equilibrium state. For `spatial_mapping` between different
+discretizations, the initial residual generally does not match the source
+equilibrium state; it is a mapped, generally non-equilibrium state and is
+reduced by the subsequent solution.
 
 ### Compatibility ###
 
@@ -346,6 +356,12 @@ equilibrium state.
   renamed. Compatibility aliases are not provided.
 - The legacy `.mdpa` nodal mapping and standard Kratos restart remain separate
   and unchanged.
-- The file validates element type, geometry, connectivity, integration rule,
-  material/law metadata and reference coordinates before modifying the
-  destination.
+- `matching_mesh` requires exact matching of the source and destination mesh
+  metadata: element type, geometry type, connectivity and order, integration
+  rule, material/law metadata, and reference coordinates. It validates all of
+  them before modifying the destination.
+- `spatial_mapping` permits different node and element IDs, connectivity,
+  supported geometry types, element types and integration rules. It validates
+  source/destination dimension compatibility, supported geometries and laws,
+  material compatibility, zero destination displacement, source-domain coverage
+  and shared-node/material consistency before modifying the destination.
