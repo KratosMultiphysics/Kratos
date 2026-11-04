@@ -593,13 +593,23 @@ def _CollectModelPartTree(part):
     return parts
 
 
-def _HasDisplacementDofs(node):
-    return (node.HasDofFor(KM.DISPLACEMENT_X) and
-            node.HasDofFor(KM.DISPLACEMENT_Y))
+def _MechanicalDofRows(entity, process_info):
+    """Returns (local row, node ID, component) for displacement X/Y DOFs.
 
-
-def _IsMechanicalEntity(entity):
-    return all(_HasDisplacementDofs(node) for node in entity.GetGeometry())
+    The entity's own DOF list is authoritative. A thermal entity has only
+    TEMPERATURE DOFs and therefore yields no rows, even when its nodes also
+    carry displacement DOFs. A mixed DOF list contributes only its displacement
+    rows, using the same local ordering as CalculateLocalSystem.
+    """
+    dofs = entity.GetDofList(process_info)
+    rows = []
+    for local_index, dof in enumerate(dofs):
+        name = dof.GetVariable().Name()
+        if name == "DISPLACEMENT_X":
+            rows.append((local_index, dof.Id(), 0))
+        elif name == "DISPLACEMENT_Y":
+            rows.append((local_index, dof.Id(), 1))
+    return rows, len(dofs)
 
 
 def _EntityResidual(entity, process_info):
@@ -657,7 +667,9 @@ def EvaluateMechanicalResidual(part, force_scale=None):
                     "coordinates or fixity across model parts.".format(node.Id))
 
     mechanical_nodes = [
-        node for node in nodes_by_id.values() if _HasDisplacementDofs(node)]
+        node for node in nodes_by_id.values()
+        if node.HasDofFor(KM.DISPLACEMENT_X) and
+        node.HasDofFor(KM.DISPLACEMENT_Y)]
     if not mechanical_nodes:
         raise RuntimeError(
             "EvaluateMechanicalResidual: no mechanical displacement nodes found.")
@@ -665,24 +677,34 @@ def EvaluateMechanicalResidual(part, force_scale=None):
     residual = [0.0] * (2 * len(mechanical_nodes))
 
     for element in elements.values():
-        if not _IsMechanicalEntity(element):
+        rows, number_of_dofs = _MechanicalDofRows(element, part.ProcessInfo)
+        if not rows:
             continue
         right_hand_side = _EntityResidual(element, part.ProcessInfo)
-        if right_hand_side.Size() < 2 * element.GetGeometry().PointsNumber():
+        if right_hand_side.Size() == 0:
             continue
-        for i, node in enumerate(element.GetGeometry()):
-            residual[2 * index[node.Id]] += right_hand_side[2 * i]
-            residual[2 * index[node.Id] + 1] += right_hand_side[2 * i + 1]
+        if right_hand_side.Size() != number_of_dofs:
+            raise RuntimeError(
+                "EvaluateMechanicalResidual: element {} has {} DOFs but an "
+                "RHS of size {}.".format(
+                    element.Id, number_of_dofs, right_hand_side.Size()))
+        for local_index, node_id, component in rows:
+            residual[2 * index[node_id] + component] += right_hand_side[local_index]
 
     for condition in conditions.values():
-        if not _IsMechanicalEntity(condition):
+        rows, number_of_dofs = _MechanicalDofRows(condition, part.ProcessInfo)
+        if not rows:
             continue
         right_hand_side = _EntityResidual(condition, part.ProcessInfo)
-        if right_hand_side.Size() < 2 * condition.GetGeometry().PointsNumber():
+        if right_hand_side.Size() == 0:
             continue
-        for i, node in enumerate(condition.GetGeometry()):
-            residual[2 * index[node.Id]] += right_hand_side[2 * i]
-            residual[2 * index[node.Id] + 1] += right_hand_side[2 * i + 1]
+        if right_hand_side.Size() != number_of_dofs:
+            raise RuntimeError(
+                "EvaluateMechanicalResidual: condition {} has {} DOFs but an "
+                "RHS of size {}.".format(
+                    condition.Id, number_of_dofs, right_hand_side.Size()))
+        for local_index, node_id, component in rows:
+            residual[2 * index[node_id] + component] += right_hand_side[local_index]
 
     free_residual = []
     reaction = [0.0, 0.0]

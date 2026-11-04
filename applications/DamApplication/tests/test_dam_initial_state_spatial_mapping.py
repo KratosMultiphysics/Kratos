@@ -8,6 +8,7 @@ import KratosMultiphysics as KM
 import KratosMultiphysics.DamApplication as Dam
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics.StructuralMechanicsApplication as SMA
+import KratosMultiphysics.ConvectionDiffusionApplication as CDA
 
 Dam.__path__.insert(0, str(Path(__file__).resolve().parents[1] / "python_scripts"))
 
@@ -921,6 +922,81 @@ class TestDamInitialStateSpatialMapping(KratosUnittest.TestCase):
         self.assertAlmostEqual(
             max(abs(value) for value in diagnostic["free_residual"]),
             7.0, places=10)
+
+    def test_equilibrium_diagnostic_filters_thermal_conditions(self):
+        model = KM.Model()
+        part = _build_part(
+            model, "part", _q4_mesh(1, 2),
+            SMA.LinearElasticPlaneStrain2DLaw())
+        for node in part.Nodes:
+            node.AddDof(KM.TEMPERATURE)
+        settings = KM.ConvectionDiffusionSettings()
+        settings.SetUnknownVariable(KM.TEMPERATURE)
+        settings.SetSurfaceSourceVariable(KM.FACE_HEAT_FLUX)
+        part.ProcessInfo.SetValue(KM.CONVECTION_DIFFUSION_SETTINGS, settings)
+        properties = part.GetProperties(1)
+        properties[CDA.AMBIENT_TEMPERATURE] = 100.0
+        properties[CDA.CONVECTION_COEFFICIENT] = 10.0
+        properties[KM.EMISSIVITY] = 0.0
+        top_nodes = [node.Id for node in part.Nodes if abs(node.Y - 2.0) < 1.e-14]
+        thermal = part.CreateNewCondition(
+            "ThermalFace2D2N", 1, sorted(top_nodes), properties)
+        thermal_rhs = KM.Vector()
+        thermal.CalculateRightHandSide(thermal_rhs, part.ProcessInfo)
+        self.assertGreater(max(abs(value) for value in thermal_rhs), 1.0)
+
+        line_load = part.CreateNewCondition(
+            "LineLoadCondition2D2N", 2, sorted(top_nodes), properties)
+        line_load.SetValue(SMA.LINE_LOAD, [0.0, -5.0, 0.0])
+        diagnostic = dam_initial_state_mapping.EvaluateMechanicalResidual(part)
+        self.assertAlmostEqual(
+            diagnostic["max_free_residual"], 2.5, places=10)
+        for node_id in top_nodes:
+            self.assertAlmostEqual(
+                diagnostic["residual_by_node"][node_id][1], -2.5, places=10)
+
+    def test_mechanical_dof_row_filter_handles_mixed_order(self):
+        model = KM.Model()
+        part = _build_part(
+            model, "part", _q4_mesh(1, 1),
+            SMA.LinearElasticPlaneStrain2DLaw())
+        node = next(iter(part.Nodes))
+        node.AddDof(KM.TEMPERATURE)
+
+        class _Entity:
+            def __init__(self, dofs):
+                self.dofs = dofs
+
+            def GetDofList(self, process_info):
+                return self.dofs
+
+        entity = _Entity([
+            node.GetDof(KM.DISPLACEMENT_X),
+            node.GetDof(KM.TEMPERATURE),
+            node.GetDof(KM.DISPLACEMENT_Y)])
+        rows, number_of_dofs = \
+            dam_initial_state_mapping._MechanicalDofRows(
+                entity, part.ProcessInfo)
+        self.assertEqual(number_of_dofs, 3)
+        self.assertEqual(rows, [(0, node.Id, 0), (2, node.Id, 1)])
+
+    def test_equilibrium_diagnostic_is_read_only(self):
+        model = KM.Model()
+        part = _build_part(
+            model, "part", _q4_mesh(2, 4),
+            SMA.LinearElasticPlaneStrain2DLaw())
+        _assign_analytic_stresses(
+            part, _constant_function([100.0, -50.0, 30.0]))
+        before_stress = _stresses(part)
+        before_displacement = _displacements(part)
+        before_temperature = [
+            node.GetSolutionStepValue(KM.TEMPERATURE) for node in part.Nodes]
+        dam_initial_state_mapping.EvaluateMechanicalResidual(part)
+        self.assertEqual(_stresses(part), before_stress)
+        self.assertEqual(_displacements(part), before_displacement)
+        self.assertEqual(
+            [node.GetSolutionStepValue(KM.TEMPERATURE) for node in part.Nodes],
+            before_temperature)
 
     def test_equilibrium_diagnostic_traverses_subparts(self):
         model = KM.Model()

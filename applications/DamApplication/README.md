@@ -158,10 +158,11 @@ equilibrium of the source mesh exactly. The helper
 diagnostic of the destination free-DOF residual and reaction sums after loads
 and supports have been initialized. It traverses the model-part tree and
 assembles mechanical elements and conditions into one residual by shared node
-ID. Nodal loads that are not represented by a condition and master-slave
-constraints are not included. The import process does not modify mapped stresses
-or solve for a correction automatically. 3D spatial mapping is not implemented
-in this version.
+ID. Only entities whose local DOF list contains displacement `X`/`Y` DOFs are
+included; temperature-only entities are skipped. Nodal loads that are not
+represented by a condition and master-slave constraints are not included. The
+import process does not modify mapped stresses or solve for a correction
+automatically. 3D spatial mapping is not implemented in this version.
 
 ### Multi-part models ###
 
