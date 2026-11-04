@@ -34,6 +34,9 @@ from test_dam_initial_state_multipart import TestDamInitialStateMultipart
 from test_dam_initial_state_spatial_mapping import (
     TestDamInitialStateSpatialMapping,
 )
+from test_dam_initial_state_spatial_mapping_3d import (
+    TestDamInitialStateSpatialMapping3D,
+)
 from test_process_based_nodal_smoothing import DamProcessBasedNodalSmoothingTest
 from test_dam_output_processes import TestDamOutputProcesses
 from test_dam_gid_output_process import TestDamGiDOutputProcess
@@ -116,6 +119,7 @@ def AssembleTestSuites():
                 TestDamInitialStateGeometry,
                 TestDamInitialStateMultipart,
                 TestDamInitialStateSpatialMapping,
+                TestDamInitialStateSpatialMapping3D,
             ]
         )
     )
@@ -171,6 +175,7 @@ def AssembleTestSuites():
                 TestDamInitialStateGeometry,
                 TestDamInitialStateMultipart,
                 TestDamInitialStateSpatialMapping,
+                TestDamInitialStateSpatialMapping3D,
             ]
         )
     )

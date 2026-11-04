@@ -184,13 +184,15 @@ def _build_part(model, name, mesh, law, integration_order=None,
                 thermal_expansion=None, body=None,
                 temperature=20.0, reference_temperature=20.0,
                 young_modulus=1.e4, poisson_ratio=0.2, density=2.0,
-                fixed_bottom=False):
+                fixed_bottom=False, dimension=None):
+    if dimension is None:
+        dimension = int(mesh.get("dimension", 2))
     part = model.CreateModelPart(name, 2)
     for variable in (KM.DISPLACEMENT, KM.REACTION, KM.VOLUME_ACCELERATION,
                      KM.CAUCHY_STRESS_VECTOR, KM.GREEN_LAGRANGE_STRAIN_VECTOR,
                      KM.TEMPERATURE, Dam.NODAL_REFERENCE_TEMPERATURE):
         part.AddNodalSolutionStepVariable(variable)
-    part.ProcessInfo[KM.DOMAIN_SIZE] = 2
+    part.ProcessInfo[KM.DOMAIN_SIZE] = dimension
     part.ProcessInfo[KM.DELTA_TIME] = 1.0
     for node_id, (x, y, z) in mesh["nodes"].items():
         node = part.CreateNewNode(node_id, x, y, z)
@@ -201,6 +203,8 @@ def _build_part(model, name, mesh, law, integration_order=None,
         if fixed_bottom and abs(y) < 1.e-14:
             node.Fix(KM.DISPLACEMENT_X)
             node.Fix(KM.DISPLACEMENT_Y)
+            if dimension == 3:
+                node.Fix(KM.DISPLACEMENT_Z)
         if body is not None:
             node.SetSolutionStepValue(KM.VOLUME_ACCELERATION, body)
         node.SetSolutionStepValue(KM.TEMPERATURE, temperature)
@@ -210,7 +214,8 @@ def _build_part(model, name, mesh, law, integration_order=None,
     properties[KM.YOUNG_MODULUS] = young_modulus
     properties[KM.POISSON_RATIO] = poisson_ratio
     properties[KM.DENSITY] = density
-    properties[KM.THICKNESS] = 1.0
+    if dimension == 2:
+        properties[KM.THICKNESS] = 1.0
     if thermal_expansion is not None:
         properties[Dam.THERMAL_EXPANSION] = thermal_expansion
     if integration_order is not None:
@@ -225,6 +230,7 @@ def _build_part(model, name, mesh, law, integration_order=None,
 
 
 def _integrations(part):
+    dimension = int(part.ProcessInfo[KM.DOMAIN_SIZE])
     result = {}
     for element in part.Elements:
         local_points = \
@@ -234,17 +240,19 @@ def _integrations(part):
         coordinates = []
         for local in local_points:
             point = geometry.GlobalCoordinates(KM.Array3(local))
-            coordinates.append([float(point[0]), float(point[1])])
+            coordinates.append(
+                [float(point[index]) for index in range(dimension)])
         result[element.Id] = coordinates
     return result
 
 
 def _assign_analytic_stresses(part, function, compensate=False):
+    integrations = _integrations(part)
     stresses = {}
     for element in part.Elements:
         values = []
-        for x, y in _integrations(part)[element.Id]:
-            values.append([float(value) for value in function(x, y)])
+        for coordinates in integrations[element.Id]:
+            values.append([float(value) for value in function(*coordinates)])
         stresses[element.Id] = values
     Dam.DamInitialStateTransferUtility.AssignInitialStresses(
         part, stresses, compensate)
@@ -263,9 +271,10 @@ def _make_strategy(part):
 
 
 def _displacements(part):
+    dimension = int(part.ProcessInfo[KM.DOMAIN_SIZE])
     return [
         value for node in part.Nodes
-        for value in list(node.GetSolutionStepValue(KM.DISPLACEMENT))[:2]]
+        for value in list(node.GetSolutionStepValue(KM.DISPLACEMENT))[:dimension]]
 
 
 def _shift_mesh(mesh, dx):
@@ -276,6 +285,7 @@ def _shift_mesh(mesh, dx):
         "elements": list(mesh["elements"]),
         "geometry_type": mesh["geometry_type"],
         "element": mesh["element"],
+        "dimension": mesh.get("dimension", 2),
     }
 
 
@@ -298,19 +308,22 @@ def _renumber_mesh(mesh, node_offset, element_offset):
             for element_id, connectivity in mesh["elements"]],
         "geometry_type": mesh["geometry_type"],
         "element": mesh["element"],
+        "dimension": mesh.get("dimension", 2),
     }
 
 
 def _build_two_material_part(model, name, mesh, materials, body=None,
                              fixed_bottom=False, temperature=20.0,
-                             reference_temperature=20.0):
-    """materials: list of (subpart_name, predicate(x, y), properties_dict)."""
+                             reference_temperature=20.0, dimension=None):
+    """materials: list of (subpart_name, predicate(*centroid), properties_dict)."""
+    if dimension is None:
+        dimension = int(mesh.get("dimension", 2))
     part = model.CreateModelPart(name, 2)
     for variable in (KM.DISPLACEMENT, KM.REACTION, KM.VOLUME_ACCELERATION,
                      KM.CAUCHY_STRESS_VECTOR, KM.GREEN_LAGRANGE_STRAIN_VECTOR,
                      KM.TEMPERATURE, Dam.NODAL_REFERENCE_TEMPERATURE):
         part.AddNodalSolutionStepVariable(variable)
-    part.ProcessInfo[KM.DOMAIN_SIZE] = 2
+    part.ProcessInfo[KM.DOMAIN_SIZE] = dimension
     part.ProcessInfo[KM.DELTA_TIME] = 1.0
     for node_id, (x, y, z) in mesh["nodes"].items():
         node = part.CreateNewNode(node_id, x, y, z)
@@ -321,6 +334,8 @@ def _build_two_material_part(model, name, mesh, materials, body=None,
         if fixed_bottom and abs(y) < 1.e-14:
             node.Fix(KM.DISPLACEMENT_X)
             node.Fix(KM.DISPLACEMENT_Y)
+            if dimension == 3:
+                node.Fix(KM.DISPLACEMENT_Z)
         if body is not None:
             node.SetSolutionStepValue(KM.VOLUME_ACCELERATION, body)
         node.SetSolutionStepValue(KM.TEMPERATURE, temperature)
@@ -330,11 +345,11 @@ def _build_two_material_part(model, name, mesh, materials, body=None,
     for index, (subpart_name, predicate, values) in enumerate(materials, 1):
         selected = []
         for element_id, connectivity in mesh["elements"]:
-            x = sum(mesh["nodes"][node][0] for node in connectivity) \
-                / len(connectivity)
-            y = sum(mesh["nodes"][node][1] for node in connectivity) \
-                / len(connectivity)
-            if predicate(x, y):
+            centroid = [
+                sum(mesh["nodes"][node][axis] for node in connectivity) /
+                len(connectivity)
+                for axis in range(dimension)]
+            if predicate(*centroid):
                 selected.append((element_id, connectivity))
         if not selected:
             raise RuntimeError(
@@ -349,7 +364,8 @@ def _build_two_material_part(model, name, mesh, materials, body=None,
         properties[KM.YOUNG_MODULUS] = values["young_modulus"]
         properties[KM.POISSON_RATIO] = values["poisson_ratio"]
         properties[KM.DENSITY] = values.get("density", 2.0)
-        properties[KM.THICKNESS] = 1.0
+        if dimension == 2:
+            properties[KM.THICKNESS] = 1.0
         properties[KM.CONSTITUTIVE_LAW] = values["law"]
         for element_id, connectivity in selected:
             element = part.CreateNewElement(
@@ -1341,22 +1357,28 @@ class TestDamInitialStateSpatialMapping(KratosUnittest.TestCase):
         with self.assertRaisesRegex(RuntimeError, "already has an initial state"):
             second.PrevalidateInitialState()
 
-    def test_spatial_mapping_rejects_3d_source(self):
+    def test_spatial_mapping_rejects_dimension_mismatch(self):
+        source_mesh = {
+            "nodes": {
+                1: [0.0, 0.0, 0.0], 2: [1.0, 0.0, 0.0],
+                3: [1.0, 1.0, 0.0], 4: [0.0, 1.0, 0.0],
+                5: [0.0, 0.0, 1.0], 6: [1.0, 0.0, 1.0],
+                7: [1.0, 1.0, 1.0], 8: [0.0, 1.0, 1.0]},
+            "elements": [(1, [1, 2, 3, 4, 5, 6, 7, 8])],
+            "element": "SmallDisplacementElement3D8N",
+            "geometry_type": 3, "dimension": 3}
         source_model = KM.Model()
         source = _build_part(
-            source_model, "source", _q4_mesh(1, 2),
-            SMA.LinearElasticPlaneStrain2DLaw())
+            source_model, "source", source_mesh, SMA.LinearElastic3DLaw())
         _assign_analytic_stresses(
-            source, _constant_function([100.0, -50.0, 30.0]))
+            source, lambda x, y, z: [100.0, -50.0, 30.0, 11.0, -7.0, 5.0])
         path = self._state_file("state.json")
-        data = _write_state(path, source, stresses=True)
-        data["dimension"] = 3
-        dam_initial_state_file.WriteFile(path, data)
+        _write_state(path, source, stresses=True)
 
         destination_model = KM.Model()
         _build_part(destination_model, "destination", _q4_mesh(2, 4),
                     SMA.LinearElasticPlaneStrain2DLaw())
-        with self.assertRaisesRegex(RuntimeError, "2D source files only"):
+        with self.assertRaisesRegex(RuntimeError, "dimensions differ"):
             _import(destination_model, "destination", path, stresses=True)
 
     def test_incomplete_file_is_rejected(self):

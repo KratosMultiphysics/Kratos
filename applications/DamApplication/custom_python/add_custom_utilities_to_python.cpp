@@ -73,6 +73,32 @@ void ActiveHeatFluxAzenha(
     rThisUtil.ActiveHeatFluxAzenha(AzenhaParameters);
 }
 
+/// @brief Registers the shared Dam point-locator template for one dimension.
+/// @details The search, containment check, shape functions and error handling
+/// live once in DamInitialStateSpatialSearchUtility<TDim>. Only the Python class
+/// name differs between the 2D and 3D adapters.
+template <SizeType TDim>
+void AddInitialStateSpatialSearchToPython(
+    pybind11::module& rModule,
+    const char* pClassName)
+{
+    namespace py = pybind11;
+    using SpatialSearchType = DamInitialStateSpatialSearchUtility<TDim>;
+
+    py::class_<SpatialSearchType>(rModule, pClassName)
+        .def(py::init<ModelPart&>(), py::arg("source_model_part"))
+        .def("UpdateSearchDatabase", &SpatialSearchType::UpdateSearchDatabase)
+        .def("FindPoint", [](SpatialSearchType& rSelf,
+                             const array_1d<double, 3>& rCoordinates,
+                             const double Tolerance) {
+            typename SpatialSearchType::Result result =
+                rSelf.FindPoint(rCoordinates, Tolerance);
+            return py::make_tuple(result.Found, result.ShapeFunctions,
+                                  result.pElement, result.LocalCoordinates);
+        },
+        py::arg("coordinates"), py::arg("tolerance") = 1.0e-9);
+}
+
 
 void  AddCustomUtilitiesToPython(pybind11::module& m)
 {
@@ -119,20 +145,10 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
     .def("MappingThermalModelParts",&MappingVariables3DUtilities::MappingThermalModelParts)
     .def("MappingMechanicalModelParts",&MappingVariables3DUtilities::MappingMechanicalModelParts);
 
-    using SpatialSearch2DType = DamInitialStateSpatialSearchUtility<2>;
-    py::class_< SpatialSearch2DType >
-    (m, "DamInitialStateSpatialSearch2D")
-    .def(py::init<ModelPart&>(), py::arg("source_model_part"))
-    .def("UpdateSearchDatabase", &SpatialSearch2DType::UpdateSearchDatabase)
-    .def("FindPoint", [](SpatialSearch2DType& rSelf,
-                         const array_1d<double, 3>& rCoordinates,
-                         const double Tolerance) {
-            SpatialSearch2DType::Result result =
-                rSelf.FindPoint(rCoordinates, Tolerance);
-            return py::make_tuple(result.Found, result.ShapeFunctions,
-                                  result.pElement, result.LocalCoordinates);
-        },
-        py::arg("coordinates"), py::arg("tolerance") = 1.0e-9);
+    AddInitialStateSpatialSearchToPython<2>(
+        m, "DamInitialStateSpatialSearch2D");
+    AddInitialStateSpatialSearchToPython<3>(
+        m, "DamInitialStateSpatialSearch3D");
 
     py::class_< DamInitialStateTransferUtility >
     (m, "DamInitialStateTransferUtility")
