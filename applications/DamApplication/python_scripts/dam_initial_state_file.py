@@ -14,7 +14,7 @@ import KratosMultiphysics.DamApplication as KratosDam
 
 
 FILE_FORMAT = "dam_initial_state"
-FILE_VERSION = 1
+FILE_VERSION = 2
 SUPPORTED_LAWS = {
     "LinearElasticPlaneStrain2DLaw",
     "LinearElasticPlaneStress2DLaw",
@@ -28,9 +28,6 @@ THERMAL_LAWS = {
     "ThermalLinearElastic2DPlaneStress",
     "ThermalLinearElastic3DLaw",
 }
-STRESS_SOURCES = ("current_cauchy", "stored_initial_stress")
-
-
 def WriteFile(file_name, data):
     path = Path(file_name)
     path.parent.mkdir(parents=True, exist_ok=True)
@@ -74,7 +71,7 @@ def _integration_info(element):
                     order, element.Id))
     else:
         order = 0
-    method_name = KratosDam.SelectiveInitialStressUtility.GetIntegrationMethodName(element)
+    method_name = KratosDam.DamInitialStateTransferUtility.GetIntegrationMethodName(element)
     if method_name == "UNSUPPORTED":
         raise RuntimeError(
             "Unsupported integration method on element {}.".format(element.Id))
@@ -82,7 +79,7 @@ def _integration_info(element):
     key = "{}|{}".format(geometry_type, method_name)
     points = [
         list(point) for point in
-        KratosDam.SelectiveInitialStressUtility.GetIntegrationPointCoordinates(element)]
+        KratosDam.DamInitialStateTransferUtility.GetIntegrationPointCoordinates(element)]
     return key, order, method_name, points
 
 
@@ -104,17 +101,13 @@ def _material_record(element, name):
     return record
 
 
-def BuildFileData(part, save_stresses, save_temperature, save_reference_temperature,
-                  stress_source="current_cauchy"):
-    if not (save_stresses or save_temperature or save_reference_temperature):
+def BuildFileData(part, export_stresses, export_temperature,
+                  export_reference_temperature):
+    if not (export_stresses or export_temperature or export_reference_temperature):
         raise RuntimeError("At least one initial-state field must be selected for export.")
-    if save_stresses and stress_source not in STRESS_SOURCES:
-        raise RuntimeError(
-            "Unsupported stress_source '{}'. Use one of {}.".format(
-                stress_source, STRESS_SOURCES))
-    if save_temperature and not part.HasNodalSolutionStepVariable(KM.TEMPERATURE):
+    if export_temperature and not part.HasNodalSolutionStepVariable(KM.TEMPERATURE):
         raise RuntimeError("TEMPERATURE is not defined on the exported model part.")
-    if (save_reference_temperature and
+    if (export_reference_temperature and
             not part.HasNodalSolutionStepVariable(KratosDam.NODAL_REFERENCE_TEMPERATURE)):
         raise RuntimeError(
             "NODAL_REFERENCE_TEMPERATURE is not defined on the exported model part.")
@@ -123,11 +116,11 @@ def BuildFileData(part, save_stresses, save_temperature, save_reference_temperat
         raise RuntimeError("DOMAIN_SIZE is not defined on the exported model part.")
     dimension = int(part.ProcessInfo[KM.DOMAIN_SIZE])
     fields = []
-    if save_stresses:
+    if export_stresses:
         fields.append("initial_stresses")
-    if save_temperature:
+    if export_temperature:
         fields.append("temperature")
-    if save_reference_temperature:
+    if export_reference_temperature:
         fields.append("reference_temperature")
 
     nodes = []
@@ -181,20 +174,16 @@ def BuildFileData(part, save_stresses, save_temperature, save_reference_temperat
         "materials": materials,
         "integration_rules": integration_rules,
     }
-    if save_stresses:
-        data["stress_source"] = stress_source
-        if stress_source == "current_cauchy":
-            stresses = KratosDam.SelectiveInitialStressUtility.GetCurrentCauchyStresses(part)
-        else:
-            stresses = KratosDam.SelectiveInitialStressUtility.GetStoredInitialStresses(part)
+    if export_stresses:
+        stresses = KratosDam.DamInitialStateTransferUtility.GetFinalCauchyStresses(part)
         data["initial_stresses"] = {
             str(element_id): [list(value) for value in values]
             for element_id, values in stresses.items()}
-    if save_temperature:
+    if export_temperature:
         data["temperature"] = {
             str(node.Id): node.GetSolutionStepValue(KM.TEMPERATURE)
             for node in part.Nodes}
-    if save_reference_temperature:
+    if export_reference_temperature:
         data["reference_temperature"] = {
             str(node.Id): node.GetSolutionStepValue(KratosDam.NODAL_REFERENCE_TEMPERATURE)
             for node in part.Nodes}
@@ -320,8 +309,6 @@ def ValidateFile(data):
         element_material[element_id] = element["material"]
 
     if "initial_stresses" in fields:
-        _require(data.get("stress_source") in STRESS_SOURCES,
-                 "Invalid or missing stress_source.")
         stresses = data.get("initial_stresses")
         _require(isinstance(stresses, dict), "initial_stresses must be an object.")
         _require(_integer_keys(stresses, "initial_stresses") == element_ids,
@@ -376,32 +363,32 @@ def _compare_value(actual, expected, label, tolerance=1.e-12):
                 label, actual, expected))
 
 
-def ValidateDestination(part, data, transfer_stresses, transfer_temperature,
-                        transfer_reference_temperature, reference_policy):
-    if not (transfer_stresses or transfer_temperature or transfer_reference_temperature):
+def ValidateDestination(part, data, import_stresses, import_temperature,
+                        import_reference_temperature, reference_temperature_policy):
+    if not (import_stresses or import_temperature or import_reference_temperature):
         raise RuntimeError("At least one initial-state field must be selected for import.")
-    if reference_policy not in ("preserve", "initial_temperature"):
+    if reference_temperature_policy not in ("preserve", "initial_temperature"):
         raise RuntimeError(
-            "Unsupported reference_temperature_policy '{}'.".format(reference_policy))
-    if reference_policy == "initial_temperature":
-        if not transfer_temperature:
+            "Unsupported reference_temperature_policy '{}'.".format(reference_temperature_policy))
+    if reference_temperature_policy == "initial_temperature":
+        if not import_temperature:
             raise RuntimeError(
                 "reference_temperature_policy='initial_temperature' requires "
-                "transfer_initial_temperature=true.")
-        if transfer_reference_temperature:
+                "import_temperature=true.")
+        if import_reference_temperature:
             raise RuntimeError(
                 "Cannot both import reference_temperature and replace it with the "
                 "imported initial temperature.")
-    if transfer_stresses and "initial_stresses" not in data["fields"]:
+    if import_stresses and "initial_stresses" not in data["fields"]:
         raise RuntimeError("The file does not contain initial_stresses.")
-    if transfer_temperature and "temperature" not in data["fields"]:
+    if import_temperature and "temperature" not in data["fields"]:
         raise RuntimeError("The file does not contain temperature.")
-    if (transfer_reference_temperature and
+    if (import_reference_temperature and
             "reference_temperature" not in data["fields"]):
         raise RuntimeError("The file does not contain reference_temperature.")
-    if transfer_temperature and not part.HasNodalSolutionStepVariable(KM.TEMPERATURE):
+    if import_temperature and not part.HasNodalSolutionStepVariable(KM.TEMPERATURE):
         raise RuntimeError("TEMPERATURE is not defined on the destination model part.")
-    if (transfer_reference_temperature and
+    if (import_reference_temperature and
             not part.HasNodalSolutionStepVariable(KratosDam.NODAL_REFERENCE_TEMPERATURE)):
         raise RuntimeError(
             "NODAL_REFERENCE_TEMPERATURE is not defined on the destination model part.")
@@ -506,7 +493,7 @@ def ValidateDestination(part, data, transfer_stresses, transfer_temperature,
 
     thermal_law_present = any(
         material["law"] in THERMAL_LAWS for material in data["materials"])
-    if transfer_stresses and thermal_law_present:
+    if import_stresses and thermal_law_present:
         if not part.HasNodalSolutionStepVariable(KM.TEMPERATURE):
             raise RuntimeError(
                 "TEMPERATURE is not defined on the destination model part; "
@@ -518,28 +505,106 @@ def ValidateDestination(part, data, transfer_stresses, transfer_temperature,
                 "model part; thermal-strain compensation for imported stresses "
                 "is impossible.")
 
-    if transfer_stresses:
-        KratosDam.SelectiveInitialStressUtility.ValidateStoredInitialStresses(
+    if import_stresses:
+        KratosDam.DamInitialStateTransferUtility.ValidateInitialStresses(
             part, _stress_values(data), True)
     return data
 
 
-def ApplyTemperatures(part, data, transfer_temperature,
-                      transfer_reference_temperature, reference_policy):
-    temperature = _field_values(data, "temperature") if transfer_temperature else None
+SHARED_NODE_TOLERANCE = 1.e-9
+
+
+def _shared_values_agree(first, second, tolerance=SHARED_NODE_TOLERANCE):
+    scale = max(1.0, abs(first), abs(second))
+    return abs(first - second) <= tolerance * scale
+
+
+def _describe_import(process):
+    return "'{}' (part '{}')".format(
+        process.input_file_name, process.model_part.Name)
+
+
+def ValidateCombinedImports(processes):
+    """Validates multiple initial-state imports before any field is applied.
+
+    Stress imports must target disjoint destination element sets. Nodal fields
+    may overlap only when every shared node receives the same value (within a
+    relative tolerance). All files and destinations are validated first; this
+    function never modifies the model.
+    """
+    if not processes:
+        return
+
+    entries = []
+    for process in processes:
+        entries.append((process, process.PrevalidateInitialState()))
+
+    stress_owner = {}
+    temperature_values = {}
+    reference_values = {}
+
+    def check_shared_value(field, assignments, node_id, value, process):
+        if node_id in assignments:
+            other_value, other_process = assignments[node_id]
+            if not _shared_values_agree(value, other_value):
+                raise RuntimeError(
+                    "Dam initial-state import conflict: shared node {} receives "
+                    "{} = {} from {} and {} from {}. Shared-node imports must "
+                    "agree within relative tolerance {}.".format(
+                        node_id, field, other_value,
+                        _describe_import(other_process), value,
+                        _describe_import(process), SHARED_NODE_TOLERANCE))
+        else:
+            assignments[node_id] = (value, process)
+
+    for process, data in entries:
+        if process.import_stresses:
+            for element in process.model_part.Elements:
+                element_id = element.Id
+                if element_id in stress_owner:
+                    raise RuntimeError(
+                        "Dam initial-state import conflict: element {} is assigned "
+                        "initial stresses by both {} and {}. Stress imports must "
+                        "target disjoint element sets.".format(
+                            element_id, _describe_import(stress_owner[element_id]),
+                            _describe_import(process)))
+                stress_owner[element_id] = process
+
+        if process.import_temperature:
+            for node_id, value in data["temperature"].items():
+                check_shared_value(
+                    "TEMPERATURE", temperature_values, int(node_id),
+                    float(value), process)
+
+        if process.reference_temperature_policy == "initial_temperature":
+            reference_source = data["temperature"]
+        elif process.import_reference_temperature:
+            reference_source = data["reference_temperature"]
+        else:
+            reference_source = None
+        if reference_source is not None:
+            for node_id, value in reference_source.items():
+                check_shared_value(
+                    "NODAL_REFERENCE_TEMPERATURE", reference_values,
+                    int(node_id), float(value), process)
+
+
+def ApplyTemperatures(part, data, import_temperature,
+                      import_reference_temperature, reference_temperature_policy):
+    temperature = _field_values(data, "temperature") if import_temperature else None
     reference = (_field_values(data, "reference_temperature")
-                 if transfer_reference_temperature else None)
+                 if import_reference_temperature else None)
     for node in part.Nodes:
-        if transfer_temperature:
+        if import_temperature:
             value = temperature[node.Id]
             for step in range(node.GetBufferSize()):
                 node.SetSolutionStepValue(KM.TEMPERATURE, step, value)
-        if reference_policy == "initial_temperature":
+        if reference_temperature_policy == "initial_temperature":
             value = temperature[node.Id]
             for step in range(node.GetBufferSize()):
                 node.SetSolutionStepValue(
                     KratosDam.NODAL_REFERENCE_TEMPERATURE, step, value)
-        elif transfer_reference_temperature:
+        elif import_reference_temperature:
             value = reference[node.Id]
             for step in range(node.GetBufferSize()):
                 node.SetSolutionStepValue(
@@ -547,5 +612,5 @@ def ApplyTemperatures(part, data, transfer_temperature,
 
 
 def ApplyStresses(part, data, compensate_initial_thermal_strain=True):
-    KratosDam.SelectiveInitialStressUtility.AssignStoredInitialStresses(
+    KratosDam.DamInitialStateTransferUtility.AssignInitialStresses(
         part, _stress_values(data), compensate_initial_thermal_strain)
