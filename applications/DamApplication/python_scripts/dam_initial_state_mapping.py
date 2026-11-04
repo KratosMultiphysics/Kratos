@@ -85,6 +85,9 @@ def _canonical_material(record):
             normalized[key] = float("{:.12g}".format(value))
         else:
             normalized[key] = value
+    # THERMAL_EXPANSION does not participate in a non-thermal elastic law.
+    if normalized.get("law") not in dam_initial_state_file.THERMAL_LAWS:
+        normalized.pop("thermal_expansion", None)
     return json.dumps(normalized, sort_keys=True)
 
 
@@ -179,6 +182,9 @@ class _SourceGeometry:
             properties[KM.CONSTITUTIVE_LAW] = _law_instance(material["law"])
 
             for element in group["elements"]:
+                # These temporary elements provide geometry and integration-rule
+                # identity only. Their constitutive state is never used; source
+                # stresses come from the JSON file.
                 element_name = GEOMETRY_TYPE_TO_ELEMENT[element["geometry_type"]]
                 part.CreateNewElement(
                     element_name, element["id"], element["connectivity"],
@@ -467,7 +473,7 @@ def _agree(first, second):
     return abs(first - second) <= tolerance * scale
 
 
-def _map_nodal_fields(part, data, source, import_temperature,
+def _map_nodal_fields(part, data, source, material_keys, import_temperature,
                       import_reference_temperature,
                       reference_temperature_policy):
     fields = []
@@ -480,7 +486,7 @@ def _map_nodal_fields(part, data, source, import_temperature,
 
     node_groups = {}
     for element in part.Elements:
-        key = _destination_material_key(element)
+        key = material_keys[element.Id]
         if key not in source.groups:
             raise RuntimeError(
                 "Destination element {} material is not present in the source "
@@ -541,11 +547,11 @@ def _map_nodal_fields(part, data, source, import_temperature,
     return mapped
 
 
-def _map_stresses(part, data, source):
+def _map_stresses(part, data, source, material_keys):
     mapped = {}
     missing = []
     for element in part.Elements:
-        material_key = _destination_material_key(element)
+        material_key = material_keys[element.Id]
         if material_key not in source.groups:
             raise RuntimeError(
                 "Destination element {} material is not present in the source "
@@ -580,30 +586,107 @@ def _map_stresses(part, data, source):
     return mapped
 
 
+def _CollectModelPartTree(part):
+    parts = [part]
+    for name in part.GetSubModelPartNames():
+        parts.extend(_CollectModelPartTree(part.GetSubModelPart(name)))
+    return parts
+
+
+def _HasDisplacementDofs(node):
+    return (node.HasDofFor(KM.DISPLACEMENT_X) and
+            node.HasDofFor(KM.DISPLACEMENT_Y))
+
+
+def _IsMechanicalEntity(entity):
+    return all(_HasDisplacementDofs(node) for node in entity.GetGeometry())
+
+
+def _EntityResidual(entity, process_info):
+    left_hand_side, right_hand_side = KM.Matrix(), KM.Vector()
+    entity.CalculateLocalSystem(left_hand_side, right_hand_side, process_info)
+    if right_hand_side.Size() == 0:
+        entity.CalculateRightHandSide(right_hand_side, process_info)
+    return right_hand_side
+
+
 def EvaluateMechanicalResidual(part, force_scale=None):
     """Evaluates a 2D mechanical residual diagnostic at the current state.
 
-    The function is read-only. It must be called after the mechanical loads and
-    supports have been initialized; the import process deliberately does not
-    call it because the process ordering is analysis-dependent. The assembled
-    element RHS is external minus internal force. Free entries measure the
-    unbalanced force; fixed entries are reported as reaction sums where the
-    nodal REACTION variable is available.
+    The function is read-only. It must be called after mechanical loads,
+    supports and imported states have been initialized; the import process
+    deliberately does not call it because process ordering is analysis-dependent.
+
+    The supplied model part and all its sub-model-parts are traversed. Mechanical
+    elements and conditions are assembled into one nodal residual by node ID.
+    Conditions are included, so pressure, surface and point-load conditions are
+    represented. Nodal loads that are not represented by a condition are not
+    included. Master-slave constraints are not eliminated; the raw element and
+    condition residual is reported. Shared interface nodes must be the same node
+    objects (same ID); a shared ID with inconsistent coordinates or fixity is
+    rejected.
+
+    The assembled element/condition RHS is external minus internal force. Free
+    entries measure the unbalanced force; nodal REACTION values are summed where
+    available. The result is only physically meaningful when the model part
+    actually represents the intended mechanical connection between its parts.
     """
-    nodes = list(part.Nodes)
-    index = {node.Id: i for i, node in enumerate(nodes)}
-    residual = [0.0] * (2 * len(nodes))
-    for element in part.Elements:
-        left_hand_side, right_hand_side = KM.Matrix(), KM.Vector()
-        element.CalculateLocalSystem(
-            left_hand_side, right_hand_side, part.ProcessInfo)
+    parts = _CollectModelPartTree(part)
+    nodes_by_id = {}
+    elements = {}
+    conditions = {}
+    for current in parts:
+        for element in current.Elements:
+            elements.setdefault(element.Id, element)
+        for condition in current.Conditions:
+            conditions.setdefault(condition.Id, condition)
+        for node in current.Nodes:
+            if node.Id not in nodes_by_id:
+                nodes_by_id[node.Id] = node
+                continue
+            other = nodes_by_id[node.Id]
+            scale = max(1.0, abs(node.X0), abs(node.Y0), abs(other.X0), abs(other.Y0))
+            if (abs(node.X0 - other.X0) > 1.e-12 * scale or
+                    abs(node.Y0 - other.Y0) > 1.e-12 * scale or
+                    node.IsFixed(KM.DISPLACEMENT_X) !=
+                    other.IsFixed(KM.DISPLACEMENT_X) or
+                    node.IsFixed(KM.DISPLACEMENT_Y) !=
+                    other.IsFixed(KM.DISPLACEMENT_Y)):
+                raise RuntimeError(
+                    "EvaluateMechanicalResidual: node {} has inconsistent "
+                    "coordinates or fixity across model parts.".format(node.Id))
+
+    mechanical_nodes = [
+        node for node in nodes_by_id.values() if _HasDisplacementDofs(node)]
+    if not mechanical_nodes:
+        raise RuntimeError(
+            "EvaluateMechanicalResidual: no mechanical displacement nodes found.")
+    index = {node.Id: i for i, node in enumerate(mechanical_nodes)}
+    residual = [0.0] * (2 * len(mechanical_nodes))
+
+    for element in elements.values():
+        if not _IsMechanicalEntity(element):
+            continue
+        right_hand_side = _EntityResidual(element, part.ProcessInfo)
+        if right_hand_side.Size() < 2 * element.GetGeometry().PointsNumber():
+            continue
         for i, node in enumerate(element.GetGeometry()):
+            residual[2 * index[node.Id]] += right_hand_side[2 * i]
+            residual[2 * index[node.Id] + 1] += right_hand_side[2 * i + 1]
+
+    for condition in conditions.values():
+        if not _IsMechanicalEntity(condition):
+            continue
+        right_hand_side = _EntityResidual(condition, part.ProcessInfo)
+        if right_hand_side.Size() < 2 * condition.GetGeometry().PointsNumber():
+            continue
+        for i, node in enumerate(condition.GetGeometry()):
             residual[2 * index[node.Id]] += right_hand_side[2 * i]
             residual[2 * index[node.Id] + 1] += right_hand_side[2 * i + 1]
 
     free_residual = []
     reaction = [0.0, 0.0]
-    for i, node in enumerate(nodes):
+    for i, node in enumerate(mechanical_nodes):
         if not node.IsFixed(KM.DISPLACEMENT_X):
             free_residual.append(residual[2 * i])
         if not node.IsFixed(KM.DISPLACEMENT_Y):
@@ -621,6 +704,9 @@ def EvaluateMechanicalResidual(part, force_scale=None):
             (abs(value) for value in free_residual), default=0.0),
         "free_residual_norm": free_residual_norm,
         "reaction_sum": reaction,
+        "residual_by_node": {
+            node.Id: [residual[2 * i], residual[2 * i + 1]]
+            for i, node in enumerate(mechanical_nodes)},
     }
     if force_scale is not None and force_scale > 0.0:
         result["normalized_free_residual_norm"] = (
@@ -635,16 +721,20 @@ def BuildSpatialMappedData(part, data, import_stresses, import_temperature,
                            reference_temperature_policy):
     """Maps the selected source fields to destination IDs without modifying the model."""
     source = _SourceGeometry(data)
+    material_keys = {
+        element.Id: _destination_material_key(element)
+        for element in part.Elements}
     mapped = {"fields": list(data["fields"])}
 
     nodal = _map_nodal_fields(
-        part, data, source, import_temperature, import_reference_temperature,
-        reference_temperature_policy)
+        part, data, source, material_keys, import_temperature,
+        import_reference_temperature, reference_temperature_policy)
     for field, values in nodal.items():
         mapped[field] = values
 
     if import_stresses:
-        mapped["initial_stresses"] = _map_stresses(part, data, source)
+        mapped["initial_stresses"] = _map_stresses(
+            part, data, source, material_keys)
         if len(mapped["initial_stresses"]) != part.NumberOfElements():
             raise RuntimeError(
                 "Spatial mapping did not produce stresses for every destination "

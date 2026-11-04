@@ -138,18 +138,30 @@ mixed source/destination element types and Gauss rules from `GI_GAUSS_1` to
 - destination points inside the source domain. Points outside the source domain
   are rejected; no extrapolation or zero default is used.
 
+Stress reconstruction is limited by the information stored at the source Gauss
+points. A `Triangle2D3` with one point is reconstructed as a constant field. On
+a curved `Triangle2D6`, the default three-point rule is insufficient for a
+global linear field; use a richer rule such as `GI_GAUSS_4` if that accuracy is
+required. `Quadrilateral2D8`/`Quadrilateral2D9` use nine points and the
+biquadratic reconstruction space.
+
 Each source file and import process covers one structural part. A locator is
 built per source material, so stresses are never interpolated between different
 materials. Shared-node temperature consistency and disjoint stress-element
-checks use the existing multi-part validation.
+checks use the existing multi-part validation. Structural-part separation relies
+on using separate source files/processes per part; material records that are
+identical within one file are treated as the same material.
 
 Mapping between different discretizations does not preserve the discrete
 equilibrium of the source mesh exactly. The helper
 `dam_initial_state_mapping.EvaluateMechanicalResidual` provides a read-only
 diagnostic of the destination free-DOF residual and reaction sums after loads
-and supports have been initialized. The import process does not modify mapped
-stresses or solve for a correction automatically. 3D spatial mapping is not
-implemented in this version.
+and supports have been initialized. It traverses the model-part tree and
+assembles mechanical elements and conditions into one residual by shared node
+ID. Nodal loads that are not represented by a condition and master-slave
+constraints are not included. The import process does not modify mapped stresses
+or solve for a correction automatically. 3D spatial mapping is not implemented
+in this version.
 
 ### Multi-part models ###
 

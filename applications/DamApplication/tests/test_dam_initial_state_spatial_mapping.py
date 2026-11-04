@@ -131,6 +131,54 @@ def _q9_mesh(nx, ny, lx=1.0, ly=2.0):
             "element": "SmallDisplacementElement2D9N"}
 
 
+def _distort(mesh, amplitude, phase=0.0):
+    nodes = {}
+    for node_id, (x, y, z) in mesh["nodes"].items():
+        if 0.0 < x < 1.0 and 0.0 < y < 2.0:
+            x += amplitude * math.sin(phase + 7.0 * y + 3.0 * x)
+            y += amplitude * math.sin(phase + 5.0 * x + 2.0 * y)
+        nodes[node_id] = [x, y, z]
+    return {**mesh, "nodes": nodes}
+
+
+def _curved_q8_mesh():
+    return {
+        "nodes": {
+            1: [0.0, 0.0, 0.0], 2: [1.0, 0.0, 0.0],
+            3: [1.0, 1.0, 0.0], 4: [0.0, 1.0, 0.0],
+            5: [0.5, -0.1, 0.0], 6: [1.1, 0.5, 0.0],
+            7: [0.5, 1.1, 0.0], 8: [-0.1, 0.5, 0.0]},
+        "elements": [(1, [1, 2, 3, 4, 5, 6, 7, 8])],
+        "geometry_type": 9, "element": "SmallDisplacementElement2D8N"}
+
+
+def _curved_q9_mesh():
+    mesh = _curved_q8_mesh()
+    mesh["nodes"][9] = [0.55, 0.45, 0.0]
+    mesh["elements"] = [(1, list(range(1, 10)))]
+    mesh["geometry_type"] = 10
+    mesh["element"] = "SmallDisplacementElement2D9N"
+    return mesh
+
+
+def _curved_t6_mesh():
+    return {
+        "nodes": {
+            1: [0.0, 0.0, 0.0], 2: [1.0, 0.0, 0.0], 3: [0.0, 1.0, 0.0],
+            4: [0.5, -0.1, 0.0], 5: [0.6, 0.6, 0.0],
+            6: [-0.1, 0.5, 0.0]},
+        "elements": [(1, [1, 2, 3, 4, 5, 6])],
+        "geometry_type": 17, "element": "SmallDisplacementElement2D6N"}
+
+
+def _triangle_t3_mesh():
+    return {
+        "nodes": {1: [0.0, 0.0, 0.0], 2: [1.0, 0.0, 0.0],
+                  3: [0.0, 1.0, 0.0]},
+        "elements": [(1, [1, 2, 3])],
+        "geometry_type": 16, "element": "SmallDisplacementElement2D3N"}
+
+
 def _build_part(model, name, mesh, law, integration_order=None,
                 thermal_expansion=None, body=None,
                 temperature=20.0, reference_temperature=20.0,
@@ -230,6 +278,14 @@ def _shift_mesh(mesh, dx):
     }
 
 
+def _scale_mesh(mesh, x0, x1, y0, y1):
+    base = _q4_mesh(4, 4, lx=1.0, ly=1.0)
+    nodes = {
+        node_id: [x0 + (x1 - x0) * x, y0 + (y1 - y0) * y, z]
+        for node_id, (x, y, z) in base["nodes"].items()}
+    return {**base, "nodes": nodes}
+
+
 def _renumber_mesh(mesh, node_offset, element_offset):
     return {
         "nodes": {
@@ -244,7 +300,9 @@ def _renumber_mesh(mesh, node_offset, element_offset):
     }
 
 
-def _build_two_material_part(model, name, mesh, materials):
+def _build_two_material_part(model, name, mesh, materials, body=None,
+                             fixed_bottom=False, temperature=20.0,
+                             reference_temperature=20.0):
     """materials: list of (subpart_name, predicate(x, y), properties_dict)."""
     part = model.CreateModelPart(name, 2)
     for variable in (KM.DISPLACEMENT, KM.REACTION, KM.VOLUME_ACCELERATION,
@@ -259,6 +317,14 @@ def _build_two_material_part(model, name, mesh, materials):
                               (KM.DISPLACEMENT_Y, KM.REACTION_Y),
                               (KM.DISPLACEMENT_Z, KM.REACTION_Z)):
             node.AddDof(dof, reaction)
+        if fixed_bottom and abs(y) < 1.e-14:
+            node.Fix(KM.DISPLACEMENT_X)
+            node.Fix(KM.DISPLACEMENT_Y)
+        if body is not None:
+            node.SetSolutionStepValue(KM.VOLUME_ACCELERATION, body)
+        node.SetSolutionStepValue(KM.TEMPERATURE, temperature)
+        node.SetSolutionStepValue(
+            Dam.NODAL_REFERENCE_TEMPERATURE, reference_temperature)
     subparts = {}
     for index, (subpart_name, predicate, values) in enumerate(materials, 1):
         selected = []
@@ -285,8 +351,9 @@ def _build_two_material_part(model, name, mesh, materials):
         properties[KM.THICKNESS] = 1.0
         properties[KM.CONSTITUTIVE_LAW] = values["law"]
         for element_id, connectivity in selected:
-            element = subpart.CreateNewElement(
+            element = part.CreateNewElement(
                 mesh["element"], element_id, connectivity, properties)
+            subpart.AddElements([element_id])
             element.Initialize(part.ProcessInfo)
         subparts[subpart_name] = subpart
     return part, subparts
@@ -457,6 +524,109 @@ class TestDamInitialStateSpatialMapping(KratosUnittest.TestCase):
             _q4_mesh(4, 8), SMA.LinearElasticPlaneStrain2DLaw(),
             _linear_function, tolerance=1.e-8)
 
+    def test_linear_stress_distorted_q4(self):
+        self._roundtrip(
+            _distort(_q4_mesh(2, 4), 0.03, 0.0),
+            SMA.LinearElasticPlaneStrain2DLaw(),
+            _distort(_q4_mesh(4, 8), 0.03, 1.0),
+            SMA.LinearElasticPlaneStrain2DLaw(),
+            _linear_function, tolerance=1.e-8)
+
+    def test_linear_stress_distorted_t6(self):
+        self._roundtrip(
+            _distort(_t6_mesh(2, 4), 0.02, 0.0),
+            SMA.LinearElasticPlaneStrain2DLaw(),
+            _distort(_t6_mesh(4, 8), 0.02, 1.0),
+            SMA.LinearElasticPlaneStrain2DLaw(),
+            _linear_function, source_order=4, tolerance=1.e-8)
+
+    def test_linear_stress_distorted_q9(self):
+        self._roundtrip(
+            _distort(_q9_mesh(2, 4), 0.02, 0.0),
+            SMA.LinearElasticPlaneStrain2DLaw(),
+            _distort(_q9_mesh(4, 8), 0.02, 1.0),
+            SMA.LinearElasticPlaneStrain2DLaw(),
+            _linear_function, tolerance=1.e-8)
+
+    def test_linear_stress_curved_q8(self):
+        self._roundtrip(
+            _curved_q8_mesh(), SMA.LinearElasticPlaneStrain2DLaw(),
+            _scale_mesh(None, 0.2, 0.8, 0.2, 0.8),
+            SMA.LinearElasticPlaneStrain2DLaw(),
+            _linear_function, tolerance=1.e-8)
+
+    def test_linear_stress_curved_q9(self):
+        self._roundtrip(
+            _curved_q9_mesh(), SMA.LinearElasticPlaneStrain2DLaw(),
+            _scale_mesh(None, 0.2, 0.8, 0.2, 0.8),
+            SMA.LinearElasticPlaneStrain2DLaw(),
+            _linear_function, tolerance=1.e-8)
+
+    def test_linear_stress_curved_t6(self):
+        self._roundtrip(
+            _curved_t6_mesh(), SMA.LinearElasticPlaneStrain2DLaw(),
+            _triangle_t3_mesh(), SMA.LinearElasticPlaneStrain2DLaw(),
+            _linear_function, source_order=4, tolerance=1.e-8)
+
+    def test_linear_stress_q4_to_t6(self):
+        self._roundtrip(
+            _q4_mesh(4, 8), SMA.LinearElasticPlaneStrain2DLaw(),
+            _t6_mesh(1, 2), SMA.LinearElasticPlaneStrain2DLaw(),
+            _linear_function, tolerance=1.e-8)
+
+    def test_linear_stress_q4_to_q8(self):
+        self._roundtrip(
+            _q4_mesh(4, 8), SMA.LinearElasticPlaneStrain2DLaw(),
+            _q8_mesh(1, 2), SMA.LinearElasticPlaneStrain2DLaw(),
+            _linear_function, tolerance=1.e-8)
+
+    def test_linear_stress_q4_to_q9(self):
+        self._roundtrip(
+            _q4_mesh(4, 8), SMA.LinearElasticPlaneStrain2DLaw(),
+            _q9_mesh(1, 2), SMA.LinearElasticPlaneStrain2DLaw(),
+            _linear_function, tolerance=1.e-8)
+
+    def test_boundary_nodes_within_tolerance(self):
+        source_model = KM.Model()
+        source = _build_part(
+            source_model, "source", _q4_mesh(1, 2),
+            SMA.LinearElasticPlaneStrain2DLaw(), temperature=20.0)
+        path = self._state_file("boundary.json")
+        _write_state(path, source, stresses=False, temperature=True)
+        destination_mesh = _q4_mesh(2, 4)
+        shifted = {
+            node_id: [x + 2.e-10, y, z]
+            for node_id, (x, y, z) in destination_mesh["nodes"].items()}
+        destination_mesh = {**destination_mesh, "nodes": shifted}
+        destination_model = KM.Model()
+        destination = _build_part(
+            destination_model, "destination", destination_mesh,
+            SMA.LinearElasticPlaneStrain2DLaw())
+        _import(destination_model, "destination", path, stresses=False,
+                temperature=True)
+        for node in destination.Nodes:
+            self.assertAlmostEqual(
+                node.GetSolutionStepValue(KM.TEMPERATURE), 20.0, places=10)
+
+    def test_clearly_outside_boundary_is_rejected(self):
+        source_model = KM.Model()
+        source = _build_part(
+            source_model, "source", _q4_mesh(1, 2),
+            SMA.LinearElasticPlaneStrain2DLaw(), temperature=20.0)
+        path = self._state_file("boundary.json")
+        _write_state(path, source, stresses=False, temperature=True)
+        destination_mesh = _q4_mesh(2, 4)
+        shifted = {
+            node_id: [x + 1.e-6, y, z]
+            for node_id, (x, y, z) in destination_mesh["nodes"].items()}
+        destination_mesh = {**destination_mesh, "nodes": shifted}
+        destination_model = KM.Model()
+        _build_part(destination_model, "destination", destination_mesh,
+                    SMA.LinearElasticPlaneStrain2DLaw())
+        with self.assertRaisesRegex(RuntimeError, "outside the source domain"):
+            _import(destination_model, "destination", path, stresses=False,
+                    temperature=True)
+
     def test_reduced_q4_integration_constant(self):
         self._roundtrip(
             _q4_mesh(1, 2), SMA.LinearElasticPlaneStrain2DLaw(),
@@ -569,6 +739,29 @@ class TestDamInitialStateSpatialMapping(KratosUnittest.TestCase):
                 node.GetSolutionStepValue(KM.TEMPERATURE), 20.0)
             for value in node.GetSolutionStepValue(KM.DISPLACEMENT):
                 self.assertEqual(value, 0.0)
+
+    def test_thermal_expansion_is_irrelevant_for_mechanical_law(self):
+        source_model = KM.Model()
+        source = _build_part(
+            source_model, "source", _q4_mesh(1, 2),
+            SMA.LinearElasticPlaneStrain2DLaw(),
+            thermal_expansion=1.e-5)
+        _assign_analytic_stresses(
+            source, _constant_function([100.0, -50.0, 30.0]))
+        path = self._state_file("state.json")
+        _write_state(path, source, stresses=True)
+
+        destination_model = KM.Model()
+        destination = _build_part(
+            destination_model, "destination", _q4_mesh(2, 4),
+            SMA.LinearElasticPlaneStrain2DLaw())
+        _import(destination_model, "destination", path, stresses=True)
+        for element in destination.Elements:
+            for point in element.CalculateOnIntegrationPoints(
+                    KM.CAUCHY_STRESS_VECTOR, destination.ProcessInfo):
+                self.assertAlmostEqual(point[0], 100.0, places=8)
+                self.assertAlmostEqual(point[1], -50.0, places=8)
+                self.assertAlmostEqual(point[2], 30.0, places=8)
 
     def test_material_incompatibility_is_rejected(self):
         source_model = KM.Model()
@@ -714,6 +907,54 @@ class TestDamInitialStateSpatialMapping(KratosUnittest.TestCase):
         self.assertAlmostEqual(coarse["reaction_y"], 40.0, places=6)
         self.assertAlmostEqual(fine["reaction_y"], 40.0, places=6)
 
+    def test_equilibrium_diagnostic_includes_conditions(self):
+        model = KM.Model()
+        part = _build_part(
+            model, "part", _q4_mesh(1, 2),
+            SMA.LinearElasticPlaneStrain2DLaw())
+        loaded_node = max(part.Nodes, key=lambda node: node.Y)
+        condition = part.CreateNewCondition(
+            "PointLoadCondition2D1N", 1, [loaded_node.Id],
+            part.GetProperties(1))
+        condition.SetValue(SMA.POINT_LOAD, [3.0, 7.0, 0.0])
+        diagnostic = dam_initial_state_mapping.EvaluateMechanicalResidual(part)
+        self.assertAlmostEqual(
+            max(abs(value) for value in diagnostic["free_residual"]),
+            7.0, places=10)
+
+    def test_equilibrium_diagnostic_traverses_subparts(self):
+        model = KM.Model()
+        root = model.CreateModelPart("root", 2)
+        for variable in (KM.DISPLACEMENT, KM.REACTION, KM.VOLUME_ACCELERATION):
+            root.AddNodalSolutionStepVariable(variable)
+        root.ProcessInfo[KM.DOMAIN_SIZE] = 2
+        mesh = _q4_mesh(1, 2)
+        for node_id, (x, y, z) in mesh["nodes"].items():
+            node = root.CreateNewNode(node_id, x, y, z)
+            for dof, reaction in ((KM.DISPLACEMENT_X, KM.REACTION_X),
+                                  (KM.DISPLACEMENT_Y, KM.REACTION_Y),
+                                  (KM.DISPLACEMENT_Z, KM.REACTION_Z)):
+                node.AddDof(dof, reaction)
+            if y == 0.0:
+                node.Fix(KM.DISPLACEMENT_X)
+                node.Fix(KM.DISPLACEMENT_Y)
+            node.SetSolutionStepValue(KM.VOLUME_ACCELERATION, [0.0, -10.0, 0.0])
+        subpart = root.CreateSubModelPart("body")
+        subpart.AddNodes(sorted(mesh["nodes"]))
+        properties = subpart.CreateNewProperties(1)
+        properties[KM.YOUNG_MODULUS] = 1.e4
+        properties[KM.POISSON_RATIO] = 0.2
+        properties[KM.DENSITY] = 2.0
+        properties[KM.THICKNESS] = 1.0
+        properties[KM.CONSTITUTIVE_LAW] = SMA.LinearElasticPlaneStrain2DLaw()
+        for element_id, connectivity in mesh["elements"]:
+            element = subpart.CreateNewElement(
+                "SmallDisplacementElement2D4N", element_id, connectivity,
+                properties)
+            element.Initialize(root.ProcessInfo)
+        diagnostic = dam_initial_state_mapping.EvaluateMechanicalResidual(root)
+        self.assertGreater(diagnostic["free_residual_norm"], 1.0)
+
     def test_multipart_material_interface(self):
         concrete_mesh = _q4_mesh(2, 4)
         soil_mesh = _shift_mesh(_q4_mesh(2, 4), 1.0)
@@ -781,6 +1022,89 @@ class TestDamInitialStateSpatialMapping(KratosUnittest.TestCase):
                 for actual, expected in zip(point, soil_value):
                     self.assertAlmostEqual(actual, expected, places=8)
 
+    def test_two_material_gravity_spatial_mapping(self):
+        body = [0.0, -10.0, 0.0]
+        source_mesh = _q4_mesh(8, 16, lx=2.0, ly=2.0)
+        destination_mesh = _q4_mesh(16, 32, lx=2.0, ly=2.0)
+        materials = [
+            ("Parts_Concrete", lambda x, y: x < 1.0,
+             {"law": SMA.LinearElasticPlaneStrain2DLaw(),
+              "young_modulus": 1.e4, "poisson_ratio": 0.2}),
+            ("Parts_Soil", lambda x, y: x >= 1.0,
+             {"law": SMA.LinearElasticPlaneStrain2DLaw(),
+              "young_modulus": 5.e3, "poisson_ratio": 0.25}),
+        ]
+        source_model = KM.Model()
+        source_root, source_parts = _build_two_material_part(
+            source_model, "source", source_mesh, materials, body=body,
+            fixed_bottom=True)
+        _make_strategy(source_root).Solve()
+        paths = {}
+        for name, _, _ in materials:
+            paths[name] = self._state_file(name + "_gravity.json.gz")
+            ExportDamFinalStateProcess(
+                source_model, KM.Parameters(json.dumps({
+                    "model_part_name": "source." + name,
+                    "export_stresses": True,
+                    "output_file_name": str(paths[name]),
+                    "echo_level": 0}))).ExecuteFinalize()
+
+        reference_model = KM.Model()
+        reference_root, _ = _build_two_material_part(
+            reference_model, "reference", destination_mesh, materials,
+            body=body, fixed_bottom=True)
+        _make_strategy(reference_root).Solve()
+        reference_stress = _stresses(reference_root)
+        reference_u = _displacements(reference_root)
+        reference_norm = math.sqrt(
+            sum(value * value for value in reference_u))
+
+        destination_model = KM.Model()
+        destination_root, destination_parts = _build_two_material_part(
+            destination_model, "destination", destination_mesh, materials,
+            body=body, fixed_bottom=True)
+        destination_strategy = _make_strategy(destination_root)
+        processes = []
+        for name, _, _ in materials:
+            processes.append(ImportDamInitialStateProcess(
+                destination_model, KM.Parameters(json.dumps({
+                    "model_part_name": "destination." + name,
+                    "input_file_name": str(paths[name]),
+                    "import_stresses": True,
+                    "transfer_method": "spatial_mapping"}))))
+        for process in processes:
+            process.PrevalidateInitialState()
+        dam_initial_state_file.ValidateCombinedImports(processes)
+        for process in processes:
+            process.ExecuteBeforeSolutionLoop()
+        for node in destination_root.Nodes:
+            for value in node.GetSolutionStepValue(KM.DISPLACEMENT):
+                self.assertEqual(value, 0.0)
+
+        initial = dam_initial_state_mapping.EvaluateMechanicalResidual(
+            destination_root, force_scale=80.0)
+        before = _displacements(destination_root)
+        destination_strategy.Solve()
+        after = _displacements(destination_root)
+        correction = [
+            after[i] - before[i] for i in range(len(before))]
+        correction_norm = math.sqrt(
+            sum(value * value for value in correction))
+        self.assertLess(correction_norm, 0.05 * reference_norm)
+        self.assertLess(initial["free_residual_norm"], 0.2 * 80.0)
+        self.assertLess(_max_error(_stresses(destination_root),
+                                   reference_stress), 1.e-6)
+        final = dam_initial_state_mapping.EvaluateMechanicalResidual(
+            destination_root, force_scale=80.0)
+        self.assertAlmostEqual(final["reaction_sum"][1], 80.0, places=6)
+        interface_nodes = [
+            nid for nid, (x, y, z) in destination_mesh["nodes"].items()
+            if abs(x - 1.0) < 1.e-14 and y > 1.e-14]
+        interface = max(
+            math.hypot(*final["residual_by_node"][nid])
+            for nid in interface_nodes)
+        self.assertLess(interface, 1.e-8 * 80.0)
+
     def test_shared_node_temperature_consistency(self):
         self._shared_node_case(20.0, 20.0, expect_conflict=False)
         self._shared_node_case(20.0, 25.0, expect_conflict=True)
@@ -842,6 +1166,62 @@ class TestDamInitialStateSpatialMapping(KratosUnittest.TestCase):
             for node in destination_parts["Parts_Concrete"].Nodes:
                 self.assertAlmostEqual(
                     node.GetSolutionStepValue(KM.TEMPERATURE), 20.0, places=10)
+
+    def test_shared_node_linear_temperature_nonmatching_interfaces(self):
+        concrete_model = KM.Model()
+        concrete = _build_part(
+            concrete_model, "Concrete", _q4_mesh(2, 4),
+            SMA.LinearElasticPlaneStrain2DLaw())
+        for node in concrete.Nodes:
+            node.SetSolutionStepValue(KM.TEMPERATURE, 20.0 + 0.1 * node.Y)
+        concrete_path = self._state_file("concrete_linear_temperature.json")
+        _write_state(concrete_path, concrete, stresses=False, temperature=True)
+
+        soil_model = KM.Model()
+        soil = _build_part(
+            soil_model, "Soil", _shift_mesh(_q4_mesh(2, 4), 1.0),
+            SMA.LinearElasticPlaneStrain2DLaw(),
+            young_modulus=5.e3, poisson_ratio=0.25)
+        for node in soil.Nodes:
+            node.SetSolutionStepValue(KM.TEMPERATURE, 20.0 + 0.1 * node.Y)
+        soil_path = self._state_file("soil_linear_temperature.json")
+        _write_state(soil_path, soil, stresses=False, temperature=True)
+
+        destination_model = KM.Model()
+        destination_mesh = _q4_mesh(16, 16, lx=2.0, ly=2.0)
+        _build_two_material_part(
+            destination_model, "destination", destination_mesh,
+            [("Parts_Concrete", lambda x, y: x < 1.0,
+              {"law": SMA.LinearElasticPlaneStrain2DLaw(),
+               "young_modulus": 1.e4, "poisson_ratio": 0.2}),
+             ("Parts_Soil", lambda x, y: x >= 1.0,
+              {"law": SMA.LinearElasticPlaneStrain2DLaw(),
+               "young_modulus": 5.e3, "poisson_ratio": 0.25})])
+        concrete_process = ImportDamInitialStateProcess(
+            destination_model, KM.Parameters(json.dumps({
+                "model_part_name": "destination.Parts_Concrete",
+                "input_file_name": str(concrete_path),
+                "import_stresses": False,
+                "import_temperature": True,
+                "transfer_method": "spatial_mapping"})))
+        soil_process = ImportDamInitialStateProcess(
+            destination_model, KM.Parameters(json.dumps({
+                "model_part_name": "destination.Parts_Soil",
+                "input_file_name": str(soil_path),
+                "import_stresses": False,
+                "import_temperature": True,
+                "transfer_method": "spatial_mapping"})))
+        concrete_process.PrevalidateInitialState()
+        soil_process.PrevalidateInitialState()
+        dam_initial_state_file.ValidateCombinedImports(
+            [concrete_process, soil_process])
+        concrete_process.ExecuteBeforeSolutionLoop()
+        soil_process.ExecuteBeforeSolutionLoop()
+        for node in destination_model["destination"].Nodes:
+            if abs(node.X - 1.0) < 1.e-14:
+                self.assertAlmostEqual(
+                    node.GetSolutionStepValue(KM.TEMPERATURE),
+                    20.0 + 0.1 * node.Y, places=9)
 
     def test_nonzero_destination_displacement_is_rejected(self):
         source_model = KM.Model()

@@ -86,6 +86,8 @@ public:
     }
 
 private:
+    // Conservative upper bound for the dynamic-bin cell occupancy. The Core
+    // locator requires the caller-supplied candidate buffer to exceed it.
     static constexpr std::size_t mMaxNumberOfResults = 10000;
 
     LocatorType mLocator;
