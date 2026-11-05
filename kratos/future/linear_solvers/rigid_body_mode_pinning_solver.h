@@ -458,9 +458,11 @@ private:
         // The unconstrained modes of all components are stacked compactly in mComponentModes
         // (at most m rows per component); the offsets record where each component's rows start
         const std::size_t num_components = rWork.component_size.size();
-        mComponentModes.resize(num_components * mNumRigidBodyModes, mNumRigidBodyModes, false);
+        const std::size_t m = mNumRigidBodyModes;
+        mComponentModes.resize(num_components * m, m, false);
         mComponentModeOffsets.resize(num_components + 1, false);
         mComponentModeOffsets[0] = 0;
+        ResetMatrix(mComponentModeGrams, num_components * m, m);
 
         Matrix unconstrained; /// Unconstrained modes of the current component, as rows (r x M)
         for (std::size_t c = 0; c < num_components; ++c) {
@@ -474,6 +476,24 @@ private:
                 }
                 if (r > 0) {
                     GreedyPinComponent(c, r, unconstrained, rWork);
+                    // Precompute the Gram Z_eff^T Z_eff = U^T G_c U of the unconstrained modes
+                    // (symmetric: the upper triangle is formed and mirrored) and store it in the
+                    // M x M block of the component, so the rigid body filter in
+                    // PerformSolutionStep does not have to re-form it
+                    for (std::size_t a = 0; a < r; ++a) {
+                        for (std::size_t b = a; b < r; ++b) {
+                            double s = 0.0;
+                            for (std::size_t p = 0; p < m; ++p) {
+                                for (std::size_t q = 0; q < m; ++q) {
+                                    s += unconstrained(a, p) * mComponentG(c * m + p, q) * unconstrained(b, q);
+                                }
+                            }
+                            mComponentModeGrams(c * m + a, b) = s;
+                            if (a != b) {
+                                mComponentModeGrams(c * m + b, a) = s;
+                            }
+                        }
+                    }
                 }
             }
             mComponentModeOffsets[c + 1] = mComponentModeOffsets[c] + r;
@@ -527,7 +547,8 @@ private:
     /**
      * @brief Accumulates per component H_c = sum_i R_i R_i^T (R_i = sum_j A_ij Z_j) and G_c = sum_i Z_i Z_i^T.
      * @details R is never stored: each row of A is contracted with Z on the fly. The G_c blocks
-     *          are kept in mComponentG, since the rigid body filter reuses them in PerformSolutionStep.
+     *          are kept in mComponentG, since they are needed for the selection of the
+     *          unconstrained modes and for the precomputation of their Gram in ComputePinningMask.
      */
     void AccumulateComponentGrams(const MatrixType& rA, PinningWork& rWork)
     {
@@ -745,12 +766,13 @@ private:
      *              x <- x - Z_eff (Z_eff^T Z_eff)^-1 Z_eff^T x
      *          removes the rigid body content and the result no longer depends on the DOFs
      *          that were pinned. Z_eff is never stored: the Gram Z_eff^T Z_eff = U^T G_c U is
-     *          formed from the per-component Gram G_c = Z_c^T Z_c accumulated during pinning
-     *          and the stored modes, the right hand side Z_eff^T x = U^T (Z_c^T x) is
-     *          accumulated row by row over the DOFs of the component, and the r x r system
-     *          (r <= M) is solved by pivoted elimination before the correction is applied
-     *          in a second pass. The small work arrays are allocated once and reused across
-     *          components.
+     *          precomputed at pinning time (from the per-component Gram G_c = Z_c^T Z_c and
+     *          the stored modes) and kept in mComponentModeGrams, so this filter only copies
+     *          it into a scratch matrix (the pivoted elimination overwrites it); the right
+     *          hand side Z_eff^T x = U^T (Z_c^T x) is accumulated row by row over the DOFs
+     *          of the component, and the r x r system (r <= M) is solved by pivoted
+     *          elimination before the correction is applied in a second pass. The small work
+     *          arrays are allocated once and reused across components.
      */
     void FilterRigidBodyContent(VectorType& rX) const
     {
@@ -772,18 +794,11 @@ private:
             }
             const std::size_t mode_base = mComponentModeOffsets[c];
 
-            // gram = Z_eff^T Z_eff = U^T G_c U, from the Gram stored at pinning time
-            Matrix g_c;
-            g_c = subrange(mComponentG, c * M, (c + 1) * M, 0, M);
+            // Copy the gram = Z_eff^T Z_eff precomputed at pinning time into the scratch matrix:
+            // the pivoted elimination overwrites its matrix argument
             for (std::size_t a = 0; a < r; ++a) {
                 for (std::size_t b = 0; b < r; ++b) {
-                    double s = 0.0;
-                    for (std::size_t p = 0; p < M; ++p) {
-                        for (std::size_t q = 0; q < M; ++q) {
-                            s += mComponentModes(mode_base + a, p) * g_c(p, q) * mComponentModes(mode_base + b, q);
-                        }
-                    }
-                    gram(a, b) = s;
+                    gram(a, b) = mComponentModeGrams(c * M + a, b);
                 }
             }
 
@@ -999,6 +1014,7 @@ private:
     Matrix mComponentModes;                         /// Unconstrained modes of all components, stacked compactly as rows
     DenseVector<std::size_t> mComponentModeOffsets; /// Row offsets of the per-component modes inside mComponentModes
     Matrix mComponentG;                             /// Stacked (n_comp*M x M) blocks Z_c^T Z_c
+    Matrix mComponentModeGrams;                     /// Stacked (n_comp*M x M) blocks: the top-left r x r holds the Gram Z_eff^T Z_eff of the component's unconstrained modes, precomputed at pinning time
 
     ///@}
 
