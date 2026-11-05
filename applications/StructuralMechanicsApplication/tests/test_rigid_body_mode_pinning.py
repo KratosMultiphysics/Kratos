@@ -53,12 +53,6 @@ class TestRigidBodyModePinning(KratosUnittest.TestCase):
             node.SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y, 0, -5.0e-5 * x + 2.0e-4 * y)
 
     def _rigid_body_vectors(self, mp, node_ids, n_dofs):
-        """The global rigid body vectors (tx, ty, rotation) of one free component."""
-        dof_index = {}
-        for node in mp.Nodes:
-            dof_index[(node.Id, KratosMultiphysics.DISPLACEMENT_X)] = node.GetDof(KratosMultiphysics.DISPLACEMENT_X).EquationId
-            dof_index[(node.Id, KratosMultiphysics.DISPLACEMENT_Y)] = node.GetDof(KratosMultiphysics.DISPLACEMENT_Y).EquationId
-
         tx = np.zeros(n_dofs)
         ty = np.zeros(n_dofs)
         rotation = np.zeros(n_dofs)
@@ -66,10 +60,12 @@ class TestRigidBodyModePinning(KratosUnittest.TestCase):
             if node.Id not in node_ids:
                 continue
             x0, y0 = node.X0, node.Y0
-            tx[dof_index[(node.Id, KratosMultiphysics.DISPLACEMENT_X)]] = 1.0
-            ty[dof_index[(node.Id, KratosMultiphysics.DISPLACEMENT_Y)]] = 1.0
-            rotation[dof_index[(node.Id, KratosMultiphysics.DISPLACEMENT_X)]] = -y0
-            rotation[dof_index[(node.Id, KratosMultiphysics.DISPLACEMENT_Y)]] = x0
+            dx_eqid = node.GetDof(KratosMultiphysics.DISPLACEMENT_X).EquationId
+            dy_eqid = node.GetDof(KratosMultiphysics.DISPLACEMENT_Y).EquationId
+            tx[dx_eqid] = 1.0
+            ty[dy_eqid] = 1.0
+            rotation[dx_eqid] = -y0
+            rotation[dy_eqid] = x0
         return [tx, ty, rotation]
 
     def _build_system(self, mp, process_info, scheme, dof_set):
@@ -93,6 +89,7 @@ class TestRigidBodyModePinning(KratosUnittest.TestCase):
         A = KratosMultiphysics.CsrMatrix(graph)
         A.SetValue(0.0)
         b = KratosMultiphysics.SystemVector(n_dofs)
+        b.SetValue(0.0)
 
         K = KratosMultiphysics.Matrix()
         f = KratosMultiphysics.Vector()
