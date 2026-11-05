@@ -1,0 +1,78 @@
+{
+    "analysis_stage": "KratosMultiphysics.StructuralMechanicsApplication.structural_mechanics_analysis",
+    "problem_data": {
+        "problem_name": "plane_stress_q8",
+        "parallel_type": "OpenMP",
+        "echo_level": 1,
+        "start_time": 0.0,
+        "end_time": 1.0
+    },
+    "solver_settings": {
+        "solver_type": "Static",
+        "model_part_name": "Structure",
+        "domain_size": 2,
+        "analysis_type": "linear",
+        "echo_level": 0,
+        "model_import_settings": {
+            "input_type": "mdpa",
+            "input_filename": "plate"
+        },
+        "material_import_settings": {
+            "materials_filename": "Materials.json"
+        },
+        "time_stepping": {
+            "time_step": 1.0
+        },
+        "compute_reactions": true,
+        "move_mesh_flag": false,
+        "linear_solver_settings": {
+            "solver_type": "skyline_lu_factorization"
+        }
+    },
+    "processes": {
+        "constraints_process_list": [
+            {
+                "python_module": "assign_vector_variable_process",
+                "kratos_module": "KratosMultiphysics",
+                "Parameters": {
+                    "model_part_name": "Structure.Fixed",
+                    "variable_name": "DISPLACEMENT",
+                    "constrained": [
+                        true,
+                        true,
+                        false
+                    ],
+                    "value": [
+                        0.0,
+                        0.0,
+                        null
+                    ],
+                    "interval": [
+                        0.0,
+                        "End"
+                    ]
+                }
+            }
+        ],
+        "loads_process_list": [
+            {
+                "python_module": "assign_vector_variable_to_conditions_process",
+                "kratos_module": "KratosMultiphysics",
+                "Parameters": {
+                    "model_part_name": "Structure.Loaded",
+                    "variable_name": "LINE_LOAD",
+                    "value": [
+                        200.0,
+                        0.0,
+                        0.0
+                    ],
+                    "interval": [
+                        0.0,
+                        "End"
+                    ]
+                }
+            }
+        ]
+    },
+    "output_processes": {}
+}

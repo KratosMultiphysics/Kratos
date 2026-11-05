@@ -1,0 +1,5097 @@
+{
+  "schema_version": 1,
+  "verified_date": "2026-11-04",
+  "index_base": 0,
+  "scope": "Standard continuum geometry GI_GAUSS_1 through GI_GAUSS_5 rules; plane stress and plane strain share the 2D tables.",
+  "center_definition": "Reference-element volume/area centroid mapped through the geometry, not the physical centroid of an arbitrary distorted element.",
+  "weight_definition": "Raw weight stored by Kratos IntegrationPoint.Weight(), without Jacobian, thickness, or axisymmetric factor.",
+  "python_api_note": "Element.GetIntegrationPoints() returns global coordinates in active-rule order. It does not return local coordinates or raw weights.",
+  "families": {
+    "triangle": {
+      "local_dimension": 2,
+      "center_local_coordinates": [
+        0.3333333333333333,
+        0.3333333333333333,
+        0.0
+      ],
+      "source_file": "kratos/integration/triangle_gauss_legendre_integration_points.h",
+      "source_sha256": "d1508eb673dc27fdd73cc569886ce8db70277cdfa6da2f61162ffaa083551aac",
+      "source_url": "https://github.com/KratosMultiphysics/Kratos/blob/master/kratos/integration/triangle_gauss_legendre_integration_points.h",
+      "rules": {
+        "GI_GAUSS_1": {
+          "integration_order_property": 1,
+          "number_of_points": 1,
+          "center_index": 0,
+          "points": [
+            {
+              "index": 0,
+              "gp_number": 1,
+              "local_coordinates": [
+                0.3333333333333333,
+                0.3333333333333333,
+                0.0
+              ],
+              "weight": 0.5
+            }
+          ]
+        },
+        "GI_GAUSS_2": {
+          "integration_order_property": 2,
+          "number_of_points": 3,
+          "center_index": null,
+          "points": [
+            {
+              "index": 0,
+              "gp_number": 1,
+              "local_coordinates": [
+                0.16666666666666666,
+                0.16666666666666666,
+                0.0
+              ],
+              "weight": 0.16666666666666666
+            },
+            {
+              "index": 1,
+              "gp_number": 2,
+              "local_coordinates": [
+                0.6666666666666666,
+                0.16666666666666666,
+                0.0
+              ],
+              "weight": 0.16666666666666666
+            },
+            {
+              "index": 2,
+              "gp_number": 3,
+              "local_coordinates": [
+                0.16666666666666666,
+                0.6666666666666666,
+                0.0
+              ],
+              "weight": 0.16666666666666666
+            }
+          ]
+        },
+        "GI_GAUSS_3": {
+          "integration_order_property": 3,
+          "number_of_points": 4,
+          "center_index": 3,
+          "points": [
+            {
+              "index": 0,
+              "gp_number": 1,
+              "local_coordinates": [
+                0.2,
+                0.2,
+                0.0
+              ],
+              "weight": 0.2604166666666667
+            },
+            {
+              "index": 1,
+              "gp_number": 2,
+              "local_coordinates": [
+                0.6000000000000001,
+                0.2,
+                0.0
+              ],
+              "weight": 0.2604166666666667
+            },
+            {
+              "index": 2,
+              "gp_number": 3,
+              "local_coordinates": [
+                0.2,
+                0.6000000000000001,
+                0.0
+              ],
+              "weight": 0.2604166666666667
+            },
+            {
+              "index": 3,
+              "gp_number": 4,
+              "local_coordinates": [
+                0.3333333333333333,
+                0.3333333333333333,
+                0.0
+              ],
+              "weight": -0.28125
+            }
+          ]
+        },
+        "GI_GAUSS_4": {
+          "integration_order_property": 4,
+          "number_of_points": 6,
+          "center_index": null,
+          "points": [
+            {
+              "index": 0,
+              "gp_number": 1,
+              "local_coordinates": [
+                0.091576213509771,
+                0.091576213509771,
+                0.0
+              ],
+              "weight": 0.054975871827661
+            },
+            {
+              "index": 1,
+              "gp_number": 2,
+              "local_coordinates": [
+                0.816847572980459,
+                0.091576213509771,
+                0.0
+              ],
+              "weight": 0.054975871827661
+            },
+            {
+              "index": 2,
+              "gp_number": 3,
+              "local_coordinates": [
+                0.091576213509771,
+                0.816847572980459,
+                0.0
+              ],
+              "weight": 0.054975871827661
+            },
+            {
+              "index": 3,
+              "gp_number": 4,
+              "local_coordinates": [
+                0.445948490915965,
+                0.445948490915965,
+                0.0
+              ],
+              "weight": 0.1116907948390055
+            },
+            {
+              "index": 4,
+              "gp_number": 5,
+              "local_coordinates": [
+                0.10810301816807,
+                0.445948490915965,
+                0.0
+              ],
+              "weight": 0.1116907948390055
+            },
+            {
+              "index": 5,
+              "gp_number": 6,
+              "local_coordinates": [
+                0.445948490915965,
+                0.10810301816807,
+                0.0
+              ],
+              "weight": 0.1116907948390055
+            }
+          ]
+        },
+        "GI_GAUSS_5": {
+          "integration_order_property": 5,
+          "number_of_points": 12,
+          "center_index": null,
+          "points": [
+            {
+              "index": 0,
+              "gp_number": 1,
+              "local_coordinates": [
+                0.8738219710169955,
+                0.06308901449150223,
+                0.0
+              ],
+              "weight": 0.02542245318510341
+            },
+            {
+              "index": 1,
+              "gp_number": 2,
+              "local_coordinates": [
+                0.06308901449150223,
+                0.8738219710169955,
+                0.0
+              ],
+              "weight": 0.02542245318510341
+            },
+            {
+              "index": 2,
+              "gp_number": 3,
+              "local_coordinates": [
+                0.06308901449150223,
+                0.06308901449150223,
+                0.0
+              ],
+              "weight": 0.02542245318510341
+            },
+            {
+              "index": 3,
+              "gp_number": 4,
+              "local_coordinates": [
+                0.5014265096581791,
+                0.24928674517091043,
+                0.0
+              ],
+              "weight": 0.058393137863189684
+            },
+            {
+              "index": 4,
+              "gp_number": 5,
+              "local_coordinates": [
+                0.24928674517091043,
+                0.5014265096581791,
+                0.0
+              ],
+              "weight": 0.058393137863189684
+            },
+            {
+              "index": 5,
+              "gp_number": 6,
+              "local_coordinates": [
+                0.24928674517091043,
+                0.24928674517091043,
+                0.0
+              ],
+              "weight": 0.058393137863189684
+            },
+            {
+              "index": 6,
+              "gp_number": 7,
+              "local_coordinates": [
+                0.053145049844816945,
+                0.3103524510337844,
+                0.0
+              ],
+              "weight": 0.041425537809186785
+            },
+            {
+              "index": 7,
+              "gp_number": 8,
+              "local_coordinates": [
+                0.3103524510337844,
+                0.053145049844816945,
+                0.0
+              ],
+              "weight": 0.041425537809186785
+            },
+            {
+              "index": 8,
+              "gp_number": 9,
+              "local_coordinates": [
+                0.053145049844816945,
+                0.6365024991213987,
+                0.0
+              ],
+              "weight": 0.041425537809186785
+            },
+            {
+              "index": 9,
+              "gp_number": 10,
+              "local_coordinates": [
+                0.3103524510337844,
+                0.6365024991213987,
+                0.0
+              ],
+              "weight": 0.041425537809186785
+            },
+            {
+              "index": 10,
+              "gp_number": 11,
+              "local_coordinates": [
+                0.6365024991213987,
+                0.053145049844816945,
+                0.0
+              ],
+              "weight": 0.041425537809186785
+            },
+            {
+              "index": 11,
+              "gp_number": 12,
+              "local_coordinates": [
+                0.6365024991213987,
+                0.3103524510337844,
+                0.0
+              ],
+              "weight": 0.041425537809186785
+            }
+          ]
+        }
+      }
+    },
+    "quadrilateral": {
+      "local_dimension": 2,
+      "center_local_coordinates": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "source_file": "kratos/integration/quadrilateral_gauss_legendre_integration_points.h",
+      "source_sha256": "4650651bd72186be6e191a630981beb0263ccb902580892c5d473d86e44f2dc0",
+      "source_url": "https://github.com/KratosMultiphysics/Kratos/blob/master/kratos/integration/quadrilateral_gauss_legendre_integration_points.h",
+      "rules": {
+        "GI_GAUSS_1": {
+          "integration_order_property": 1,
+          "number_of_points": 1,
+          "center_index": 0,
+          "points": [
+            {
+              "index": 0,
+              "gp_number": 1,
+              "local_coordinates": [
+                0.0,
+                0.0,
+                0.0
+              ],
+              "weight": 4.0
+            }
+          ]
+        },
+        "GI_GAUSS_2": {
+          "integration_order_property": 2,
+          "number_of_points": 4,
+          "center_index": null,
+          "points": [
+            {
+              "index": 0,
+              "gp_number": 1,
+              "local_coordinates": [
+                -0.5773502691896258,
+                -0.5773502691896258,
+                0.0
+              ],
+              "weight": 1.0
+            },
+            {
+              "index": 1,
+              "gp_number": 2,
+              "local_coordinates": [
+                0.5773502691896258,
+                -0.5773502691896258,
+                0.0
+              ],
+              "weight": 1.0
+            },
+            {
+              "index": 2,
+              "gp_number": 3,
+              "local_coordinates": [
+                0.5773502691896258,
+                0.5773502691896258,
+                0.0
+              ],
+              "weight": 1.0
+            },
+            {
+              "index": 3,
+              "gp_number": 4,
+              "local_coordinates": [
+                -0.5773502691896258,
+                0.5773502691896258,
+                0.0
+              ],
+              "weight": 1.0
+            }
+          ]
+        },
+        "GI_GAUSS_3": {
+          "integration_order_property": 3,
+          "number_of_points": 9,
+          "center_index": 4,
+          "points": [
+            {
+              "index": 0,
+              "gp_number": 1,
+              "local_coordinates": [
+                -0.7745966692414834,
+                -0.7745966692414834,
+                0.0
+              ],
+              "weight": 0.30864197530864196
+            },
+            {
+              "index": 1,
+              "gp_number": 2,
+              "local_coordinates": [
+                0.0,
+                -0.7745966692414834,
+                0.0
+              ],
+              "weight": 0.49382716049382713
+            },
+            {
+              "index": 2,
+              "gp_number": 3,
+              "local_coordinates": [
+                0.7745966692414834,
+                -0.7745966692414834,
+                0.0
+              ],
+              "weight": 0.30864197530864196
+            },
+            {
+              "index": 3,
+              "gp_number": 4,
+              "local_coordinates": [
+                -0.7745966692414834,
+                0.0,
+                0.0
+              ],
+              "weight": 0.49382716049382713
+            },
+            {
+              "index": 4,
+              "gp_number": 5,
+              "local_coordinates": [
+                0.0,
+                0.0,
+                0.0
+              ],
+              "weight": 0.7901234567901234
+            },
+            {
+              "index": 5,
+              "gp_number": 6,
+              "local_coordinates": [
+                0.7745966692414834,
+                0.0,
+                0.0
+              ],
+              "weight": 0.49382716049382713
+            },
+            {
+              "index": 6,
+              "gp_number": 7,
+              "local_coordinates": [
+                -0.7745966692414834,
+                0.7745966692414834,
+                0.0
+              ],
+              "weight": 0.30864197530864196
+            },
+            {
+              "index": 7,
+              "gp_number": 8,
+              "local_coordinates": [
+                0.0,
+                0.7745966692414834,
+                0.0
+              ],
+              "weight": 0.49382716049382713
+            },
+            {
+              "index": 8,
+              "gp_number": 9,
+              "local_coordinates": [
+                0.7745966692414834,
+                0.7745966692414834,
+                0.0
+              ],
+              "weight": 0.30864197530864196
+            }
+          ]
+        },
+        "GI_GAUSS_4": {
+          "integration_order_property": 4,
+          "number_of_points": 16,
+          "center_index": null,
+          "points": [
+            {
+              "index": 0,
+              "gp_number": 1,
+              "local_coordinates": [
+                -0.8611363115940526,
+                -0.8611363115940526,
+                0.0
+              ],
+              "weight": 0.121002993285602
+            },
+            {
+              "index": 1,
+              "gp_number": 2,
+              "local_coordinates": [
+                -0.8611363115940526,
+                -0.3399810435848563,
+                0.0
+              ],
+              "weight": 0.22685185185185183
+            },
+            {
+              "index": 2,
+              "gp_number": 3,
+              "local_coordinates": [
+                -0.8611363115940526,
+                0.3399810435848563,
+                0.0
+              ],
+              "weight": 0.22685185185185183
+            },
+            {
+              "index": 3,
+              "gp_number": 4,
+              "local_coordinates": [
+                -0.8611363115940526,
+                0.8611363115940526,
+                0.0
+              ],
+              "weight": 0.121002993285602
+            },
+            {
+              "index": 4,
+              "gp_number": 5,
+              "local_coordinates": [
+                -0.3399810435848563,
+                -0.8611363115940526,
+                0.0
+              ],
+              "weight": 0.22685185185185183
+            },
+            {
+              "index": 5,
+              "gp_number": 6,
+              "local_coordinates": [
+                -0.3399810435848563,
+                -0.3399810435848563,
+                0.0
+              ],
+              "weight": 0.42529330301069423
+            },
+            {
+              "index": 6,
+              "gp_number": 7,
+              "local_coordinates": [
+                -0.3399810435848563,
+                0.3399810435848563,
+                0.0
+              ],
+              "weight": 0.42529330301069423
+            },
+            {
+              "index": 7,
+              "gp_number": 8,
+              "local_coordinates": [
+                -0.3399810435848563,
+                0.8611363115940526,
+                0.0
+              ],
+              "weight": 0.22685185185185183
+            },
+            {
+              "index": 8,
+              "gp_number": 9,
+              "local_coordinates": [
+                0.3399810435848563,
+                -0.8611363115940526,
+                0.0
+              ],
+              "weight": 0.22685185185185183
+            },
+            {
+              "index": 9,
+              "gp_number": 10,
+              "local_coordinates": [
+                0.3399810435848563,
+                -0.3399810435848563,
+                0.0
+              ],
+              "weight": 0.42529330301069423
+            },
+            {
+              "index": 10,
+              "gp_number": 11,
+              "local_coordinates": [
+                0.3399810435848563,
+                0.3399810435848563,
+                0.0
+              ],
+              "weight": 0.42529330301069423
+            },
+            {
+              "index": 11,
+              "gp_number": 12,
+              "local_coordinates": [
+                0.3399810435848563,
+                0.8611363115940526,
+                0.0
+              ],
+              "weight": 0.22685185185185183
+            },
+            {
+              "index": 12,
+              "gp_number": 13,
+              "local_coordinates": [
+                0.8611363115940526,
+                -0.8611363115940526,
+                0.0
+              ],
+              "weight": 0.121002993285602
+            },
+            {
+              "index": 13,
+              "gp_number": 14,
+              "local_coordinates": [
+                0.8611363115940526,
+                -0.3399810435848563,
+                0.0
+              ],
+              "weight": 0.22685185185185183
+            },
+            {
+              "index": 14,
+              "gp_number": 15,
+              "local_coordinates": [
+                0.8611363115940526,
+                0.3399810435848563,
+                0.0
+              ],
+              "weight": 0.22685185185185183
+            },
+            {
+              "index": 15,
+              "gp_number": 16,
+              "local_coordinates": [
+                0.8611363115940526,
+                0.8611363115940526,
+                0.0
+              ],
+              "weight": 0.121002993285602
+            }
+          ]
+        },
+        "GI_GAUSS_5": {
+          "integration_order_property": 5,
+          "number_of_points": 25,
+          "center_index": 12,
+          "points": [
+            {
+              "index": 0,
+              "gp_number": 1,
+              "local_coordinates": [
+                -0.906179845938664,
+                -0.906179845938664,
+                0.0
+              ],
+              "weight": 0.056134348862428594
+            },
+            {
+              "index": 1,
+              "gp_number": 2,
+              "local_coordinates": [
+                -0.906179845938664,
+                -0.538469310105683,
+                0.0
+              ],
+              "weight": 0.11339999999999985
+            },
+            {
+              "index": 2,
+              "gp_number": 3,
+              "local_coordinates": [
+                -0.906179845938664,
+                0.0,
+                0.0
+              ],
+              "weight": 0.13478507238752088
+            },
+            {
+              "index": 3,
+              "gp_number": 4,
+              "local_coordinates": [
+                -0.906179845938664,
+                0.538469310105683,
+                0.0
+              ],
+              "weight": 0.11339999999999985
+            },
+            {
+              "index": 4,
+              "gp_number": 5,
+              "local_coordinates": [
+                -0.906179845938664,
+                0.906179845938664,
+                0.0
+              ],
+              "weight": 0.056134348862428594
+            },
+            {
+              "index": 5,
+              "gp_number": 6,
+              "local_coordinates": [
+                -0.538469310105683,
+                -0.906179845938664,
+                0.0
+              ],
+              "weight": 0.11339999999999985
+            },
+            {
+              "index": 6,
+              "gp_number": 7,
+              "local_coordinates": [
+                -0.538469310105683,
+                -0.538469310105683,
+                0.0
+              ],
+              "weight": 0.2290854042239907
+            },
+            {
+              "index": 7,
+              "gp_number": 8,
+              "local_coordinates": [
+                -0.538469310105683,
+                0.0,
+                0.0
+              ],
+              "weight": 0.2722865325507505
+            },
+            {
+              "index": 8,
+              "gp_number": 9,
+              "local_coordinates": [
+                -0.538469310105683,
+                0.538469310105683,
+                0.0
+              ],
+              "weight": 0.2290854042239907
+            },
+            {
+              "index": 9,
+              "gp_number": 10,
+              "local_coordinates": [
+                -0.538469310105683,
+                0.906179845938664,
+                0.0
+              ],
+              "weight": 0.11339999999999985
+            },
+            {
+              "index": 10,
+              "gp_number": 11,
+              "local_coordinates": [
+                0.0,
+                -0.906179845938664,
+                0.0
+              ],
+              "weight": 0.13478507238752088
+            },
+            {
+              "index": 11,
+              "gp_number": 12,
+              "local_coordinates": [
+                0.0,
+                -0.538469310105683,
+                0.0
+              ],
+              "weight": 0.2722865325507505
+            },
+            {
+              "index": 12,
+              "gp_number": 13,
+              "local_coordinates": [
+                0.0,
+                0.0,
+                0.0
+              ],
+              "weight": 0.3236345679012347
+            },
+            {
+              "index": 13,
+              "gp_number": 14,
+              "local_coordinates": [
+                0.0,
+                0.538469310105683,
+                0.0
+              ],
+              "weight": 0.2722865325507505
+            },
+            {
+              "index": 14,
+              "gp_number": 15,
+              "local_coordinates": [
+                0.0,
+                0.906179845938664,
+                0.0
+              ],
+              "weight": 0.13478507238752088
+            },
+            {
+              "index": 15,
+              "gp_number": 16,
+              "local_coordinates": [
+                0.538469310105683,
+                -0.906179845938664,
+                0.0
+              ],
+              "weight": 0.11339999999999985
+            },
+            {
+              "index": 16,
+              "gp_number": 17,
+              "local_coordinates": [
+                0.538469310105683,
+                -0.538469310105683,
+                0.0
+              ],
+              "weight": 0.2290854042239907
+            },
+            {
+              "index": 17,
+              "gp_number": 18,
+              "local_coordinates": [
+                0.538469310105683,
+                0.0,
+                0.0
+              ],
+              "weight": 0.2722865325507505
+            },
+            {
+              "index": 18,
+              "gp_number": 19,
+              "local_coordinates": [
+                0.538469310105683,
+                0.538469310105683,
+                0.0
+              ],
+              "weight": 0.2290854042239907
+            },
+            {
+              "index": 19,
+              "gp_number": 20,
+              "local_coordinates": [
+                0.538469310105683,
+                0.906179845938664,
+                0.0
+              ],
+              "weight": 0.11339999999999985
+            },
+            {
+              "index": 20,
+              "gp_number": 21,
+              "local_coordinates": [
+                0.906179845938664,
+                -0.906179845938664,
+                0.0
+              ],
+              "weight": 0.056134348862428594
+            },
+            {
+              "index": 21,
+              "gp_number": 22,
+              "local_coordinates": [
+                0.906179845938664,
+                -0.538469310105683,
+                0.0
+              ],
+              "weight": 0.11339999999999985
+            },
+            {
+              "index": 22,
+              "gp_number": 23,
+              "local_coordinates": [
+                0.906179845938664,
+                0.0,
+                0.0
+              ],
+              "weight": 0.13478507238752088
+            },
+            {
+              "index": 23,
+              "gp_number": 24,
+              "local_coordinates": [
+                0.906179845938664,
+                0.538469310105683,
+                0.0
+              ],
+              "weight": 0.11339999999999985
+            },
+            {
+              "index": 24,
+              "gp_number": 25,
+              "local_coordinates": [
+                0.906179845938664,
+                0.906179845938664,
+                0.0
+              ],
+              "weight": 0.056134348862428594
+            }
+          ]
+        }
+      }
+    },
+    "tetrahedron": {
+      "local_dimension": 3,
+      "center_local_coordinates": [
+        0.25,
+        0.25,
+        0.25
+      ],
+      "source_file": "kratos/integration/tetrahedron_gauss_legendre_integration_points.h",
+      "source_sha256": "f862b9e3988499d09e4b20078af7e8a51e5df77434afc6f1bbaec444a000efd4",
+      "source_url": "https://github.com/KratosMultiphysics/Kratos/blob/master/kratos/integration/tetrahedron_gauss_legendre_integration_points.h",
+      "rules": {
+        "GI_GAUSS_1": {
+          "integration_order_property": 1,
+          "number_of_points": 1,
+          "center_index": 0,
+          "points": [
+            {
+              "index": 0,
+              "gp_number": 1,
+              "local_coordinates": [
+                0.25,
+                0.25,
+                0.25
+              ],
+              "weight": 0.16666666666666666
+            }
+          ]
+        },
+        "GI_GAUSS_2": {
+          "integration_order_property": 2,
+          "number_of_points": 4,
+          "center_index": null,
+          "points": [
+            {
+              "index": 0,
+              "gp_number": 1,
+              "local_coordinates": [
+                0.5854102,
+                0.1381966,
+                0.1381966
+              ],
+              "weight": 0.041666666666666664
+            },
+            {
+              "index": 1,
+              "gp_number": 2,
+              "local_coordinates": [
+                0.1381966,
+                0.5854102,
+                0.1381966
+              ],
+              "weight": 0.041666666666666664
+            },
+            {
+              "index": 2,
+              "gp_number": 3,
+              "local_coordinates": [
+                0.1381966,
+                0.1381966,
+                0.5854102
+              ],
+              "weight": 0.041666666666666664
+            },
+            {
+              "index": 3,
+              "gp_number": 4,
+              "local_coordinates": [
+                0.1381966,
+                0.1381966,
+                0.1381966
+              ],
+              "weight": 0.041666666666666664
+            }
+          ]
+        },
+        "GI_GAUSS_3": {
+          "integration_order_property": 3,
+          "number_of_points": 8,
+          "center_index": null,
+          "points": [
+            {
+              "index": 0,
+              "gp_number": 1,
+              "local_coordinates": [
+                0.015835909865720057,
+                0.3280546967114267,
+                0.3280546967114267
+              ],
+              "weight": 0.02308799441864369
+            },
+            {
+              "index": 1,
+              "gp_number": 2,
+              "local_coordinates": [
+                0.3280546967114267,
+                0.015835909865720057,
+                0.3280546967114267
+              ],
+              "weight": 0.02308799441864369
+            },
+            {
+              "index": 2,
+              "gp_number": 3,
+              "local_coordinates": [
+                0.3280546967114267,
+                0.3280546967114267,
+                0.015835909865720057
+              ],
+              "weight": 0.02308799441864369
+            },
+            {
+              "index": 3,
+              "gp_number": 4,
+              "local_coordinates": [
+                0.3280546967114267,
+                0.3280546967114267,
+                0.3280546967114267
+              ],
+              "weight": 0.02308799441864369
+            },
+            {
+              "index": 4,
+              "gp_number": 5,
+              "local_coordinates": [
+                0.679143178201208,
+                0.10695227393293068,
+                0.10695227393293068
+              ],
+              "weight": 0.018578672248022975
+            },
+            {
+              "index": 5,
+              "gp_number": 6,
+              "local_coordinates": [
+                0.10695227393293068,
+                0.679143178201208,
+                0.10695227393293068
+              ],
+              "weight": 0.018578672248022975
+            },
+            {
+              "index": 6,
+              "gp_number": 7,
+              "local_coordinates": [
+                0.10695227393293068,
+                0.10695227393293068,
+                0.679143178201208
+              ],
+              "weight": 0.018578672248022975
+            },
+            {
+              "index": 7,
+              "gp_number": 8,
+              "local_coordinates": [
+                0.10695227393293068,
+                0.10695227393293068,
+                0.10695227393293068
+              ],
+              "weight": 0.018578672248022975
+            }
+          ]
+        },
+        "GI_GAUSS_4": {
+          "integration_order_property": 4,
+          "number_of_points": 14,
+          "center_index": null,
+          "points": [
+            {
+              "index": 0,
+              "gp_number": 1,
+              "local_coordinates": [
+                0.7217942490673264,
+                0.09273525031089122,
+                0.09273525031089122
+              ],
+              "weight": 0.012248840519393659
+            },
+            {
+              "index": 1,
+              "gp_number": 2,
+              "local_coordinates": [
+                0.09273525031089122,
+                0.7217942490673264,
+                0.09273525031089122
+              ],
+              "weight": 0.012248840519393659
+            },
+            {
+              "index": 2,
+              "gp_number": 3,
+              "local_coordinates": [
+                0.09273525031089122,
+                0.09273525031089122,
+                0.7217942490673264
+              ],
+              "weight": 0.012248840519393659
+            },
+            {
+              "index": 3,
+              "gp_number": 4,
+              "local_coordinates": [
+                0.09273525031089122,
+                0.09273525031089122,
+                0.09273525031089122
+              ],
+              "weight": 0.012248840519393659
+            },
+            {
+              "index": 4,
+              "gp_number": 5,
+              "local_coordinates": [
+                0.06734224221009817,
+                0.3108859192633006,
+                0.3108859192633006
+              ],
+              "weight": 0.018781320953002643
+            },
+            {
+              "index": 5,
+              "gp_number": 6,
+              "local_coordinates": [
+                0.3108859192633006,
+                0.06734224221009817,
+                0.3108859192633006
+              ],
+              "weight": 0.018781320953002643
+            },
+            {
+              "index": 6,
+              "gp_number": 7,
+              "local_coordinates": [
+                0.3108859192633006,
+                0.3108859192633006,
+                0.06734224221009817
+              ],
+              "weight": 0.018781320953002643
+            },
+            {
+              "index": 7,
+              "gp_number": 8,
+              "local_coordinates": [
+                0.3108859192633006,
+                0.3108859192633006,
+                0.3108859192633006
+              ],
+              "weight": 0.018781320953002643
+            },
+            {
+              "index": 8,
+              "gp_number": 9,
+              "local_coordinates": [
+                0.04550370412564965,
+                0.04550370412564965,
+                0.45449629587435036
+              ],
+              "weight": 0.007091003462846911
+            },
+            {
+              "index": 9,
+              "gp_number": 10,
+              "local_coordinates": [
+                0.04550370412564965,
+                0.45449629587435036,
+                0.04550370412564965
+              ],
+              "weight": 0.007091003462846911
+            },
+            {
+              "index": 10,
+              "gp_number": 11,
+              "local_coordinates": [
+                0.04550370412564965,
+                0.45449629587435036,
+                0.45449629587435036
+              ],
+              "weight": 0.007091003462846911
+            },
+            {
+              "index": 11,
+              "gp_number": 12,
+              "local_coordinates": [
+                0.45449629587435036,
+                0.04550370412564965,
+                0.04550370412564965
+              ],
+              "weight": 0.007091003462846911
+            },
+            {
+              "index": 12,
+              "gp_number": 13,
+              "local_coordinates": [
+                0.45449629587435036,
+                0.04550370412564965,
+                0.45449629587435036
+              ],
+              "weight": 0.007091003462846911
+            },
+            {
+              "index": 13,
+              "gp_number": 14,
+              "local_coordinates": [
+                0.45449629587435036,
+                0.45449629587435036,
+                0.04550370412564965
+              ],
+              "weight": 0.007091003462846911
+            }
+          ]
+        },
+        "GI_GAUSS_5": {
+          "integration_order_property": 5,
+          "number_of_points": 24,
+          "center_index": null,
+          "points": [
+            {
+              "index": 0,
+              "gp_number": 1,
+              "local_coordinates": [
+                0.35619138622025437,
+                0.2146028712599152,
+                0.2146028712599152
+              ],
+              "weight": 0.006653791709644939
+            },
+            {
+              "index": 1,
+              "gp_number": 2,
+              "local_coordinates": [
+                0.2146028712599152,
+                0.35619138622025437,
+                0.2146028712599152
+              ],
+              "weight": 0.006653791709644939
+            },
+            {
+              "index": 2,
+              "gp_number": 3,
+              "local_coordinates": [
+                0.2146028712599152,
+                0.2146028712599152,
+                0.35619138622025437
+              ],
+              "weight": 0.006653791709644939
+            },
+            {
+              "index": 3,
+              "gp_number": 4,
+              "local_coordinates": [
+                0.2146028712599152,
+                0.2146028712599152,
+                0.2146028712599152
+              ],
+              "weight": 0.006653791709644939
+            },
+            {
+              "index": 4,
+              "gp_number": 5,
+              "local_coordinates": [
+                0.877978124396166,
+                0.04067395853461135,
+                0.04067395853461135
+              ],
+              "weight": 0.0016795351758909704
+            },
+            {
+              "index": 5,
+              "gp_number": 6,
+              "local_coordinates": [
+                0.04067395853461135,
+                0.877978124396166,
+                0.04067395853461135
+              ],
+              "weight": 0.0016795351758909704
+            },
+            {
+              "index": 6,
+              "gp_number": 7,
+              "local_coordinates": [
+                0.04067395853461135,
+                0.04067395853461135,
+                0.877978124396166
+              ],
+              "weight": 0.0016795351758909704
+            },
+            {
+              "index": 7,
+              "gp_number": 8,
+              "local_coordinates": [
+                0.04067395853461135,
+                0.04067395853461135,
+                0.04067395853461135
+              ],
+              "weight": 0.0016795351758909704
+            },
+            {
+              "index": 8,
+              "gp_number": 9,
+              "local_coordinates": [
+                0.03298632957317347,
+                0.3223378901422755,
+                0.3223378901422755
+              ],
+              "weight": 0.009226196923987899
+            },
+            {
+              "index": 9,
+              "gp_number": 10,
+              "local_coordinates": [
+                0.3223378901422755,
+                0.03298632957317347,
+                0.3223378901422755
+              ],
+              "weight": 0.009226196923987899
+            },
+            {
+              "index": 10,
+              "gp_number": 11,
+              "local_coordinates": [
+                0.3223378901422755,
+                0.3223378901422755,
+                0.03298632957317347
+              ],
+              "weight": 0.009226196923987899
+            },
+            {
+              "index": 11,
+              "gp_number": 12,
+              "local_coordinates": [
+                0.3223378901422755,
+                0.3223378901422755,
+                0.3223378901422755
+              ],
+              "weight": 0.009226196923987899
+            },
+            {
+              "index": 12,
+              "gp_number": 13,
+              "local_coordinates": [
+                0.6030056647916492,
+                0.2696723314583158,
+                0.06366100187501753
+              ],
+              "weight": 0.008035714285714285
+            },
+            {
+              "index": 13,
+              "gp_number": 14,
+              "local_coordinates": [
+                0.6030056647916492,
+                0.06366100187501753,
+                0.2696723314583158
+              ],
+              "weight": 0.008035714285714285
+            },
+            {
+              "index": 14,
+              "gp_number": 15,
+              "local_coordinates": [
+                0.6030056647916492,
+                0.06366100187501753,
+                0.06366100187501753
+              ],
+              "weight": 0.008035714285714285
+            },
+            {
+              "index": 15,
+              "gp_number": 16,
+              "local_coordinates": [
+                0.06366100187501753,
+                0.6030056647916492,
+                0.2696723314583158
+              ],
+              "weight": 0.008035714285714285
+            },
+            {
+              "index": 16,
+              "gp_number": 17,
+              "local_coordinates": [
+                0.06366100187501753,
+                0.6030056647916492,
+                0.06366100187501753
+              ],
+              "weight": 0.008035714285714285
+            },
+            {
+              "index": 17,
+              "gp_number": 18,
+              "local_coordinates": [
+                0.06366100187501753,
+                0.06366100187501753,
+                0.6030056647916492
+              ],
+              "weight": 0.008035714285714285
+            },
+            {
+              "index": 18,
+              "gp_number": 19,
+              "local_coordinates": [
+                0.2696723314583158,
+                0.6030056647916492,
+                0.06366100187501753
+              ],
+              "weight": 0.008035714285714285
+            },
+            {
+              "index": 19,
+              "gp_number": 20,
+              "local_coordinates": [
+                0.2696723314583158,
+                0.06366100187501753,
+                0.6030056647916492
+              ],
+              "weight": 0.008035714285714285
+            },
+            {
+              "index": 20,
+              "gp_number": 21,
+              "local_coordinates": [
+                0.2696723314583158,
+                0.06366100187501753,
+                0.06366100187501753
+              ],
+              "weight": 0.008035714285714285
+            },
+            {
+              "index": 21,
+              "gp_number": 22,
+              "local_coordinates": [
+                0.06366100187501753,
+                0.2696723314583158,
+                0.6030056647916492
+              ],
+              "weight": 0.008035714285714285
+            },
+            {
+              "index": 22,
+              "gp_number": 23,
+              "local_coordinates": [
+                0.06366100187501753,
+                0.2696723314583158,
+                0.06366100187501753
+              ],
+              "weight": 0.008035714285714285
+            },
+            {
+              "index": 23,
+              "gp_number": 24,
+              "local_coordinates": [
+                0.06366100187501753,
+                0.06366100187501753,
+                0.2696723314583158
+              ],
+              "weight": 0.008035714285714285
+            }
+          ]
+        }
+      }
+    },
+    "hexahedron": {
+      "local_dimension": 3,
+      "center_local_coordinates": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "source_file": "kratos/integration/hexahedron_gauss_legendre_integration_points.h",
+      "source_sha256": "5b0300ca6ba7868e5a2f50f90e18fe20b4dc8162466034809fac08b1d55c1cd6",
+      "source_url": "https://github.com/KratosMultiphysics/Kratos/blob/master/kratos/integration/hexahedron_gauss_legendre_integration_points.h",
+      "rules": {
+        "GI_GAUSS_1": {
+          "integration_order_property": 1,
+          "number_of_points": 1,
+          "center_index": 0,
+          "points": [
+            {
+              "index": 0,
+              "gp_number": 1,
+              "local_coordinates": [
+                0.0,
+                0.0,
+                0.0
+              ],
+              "weight": 8.0
+            }
+          ]
+        },
+        "GI_GAUSS_2": {
+          "integration_order_property": 2,
+          "number_of_points": 8,
+          "center_index": null,
+          "points": [
+            {
+              "index": 0,
+              "gp_number": 1,
+              "local_coordinates": [
+                -0.5773502691896258,
+                -0.5773502691896258,
+                -0.5773502691896258
+              ],
+              "weight": 1.0
+            },
+            {
+              "index": 1,
+              "gp_number": 2,
+              "local_coordinates": [
+                0.5773502691896258,
+                -0.5773502691896258,
+                -0.5773502691896258
+              ],
+              "weight": 1.0
+            },
+            {
+              "index": 2,
+              "gp_number": 3,
+              "local_coordinates": [
+                0.5773502691896258,
+                0.5773502691896258,
+                -0.5773502691896258
+              ],
+              "weight": 1.0
+            },
+            {
+              "index": 3,
+              "gp_number": 4,
+              "local_coordinates": [
+                -0.5773502691896258,
+                0.5773502691896258,
+                -0.5773502691896258
+              ],
+              "weight": 1.0
+            },
+            {
+              "index": 4,
+              "gp_number": 5,
+              "local_coordinates": [
+                -0.5773502691896258,
+                -0.5773502691896258,
+                0.5773502691896258
+              ],
+              "weight": 1.0
+            },
+            {
+              "index": 5,
+              "gp_number": 6,
+              "local_coordinates": [
+                0.5773502691896258,
+                -0.5773502691896258,
+                0.5773502691896258
+              ],
+              "weight": 1.0
+            },
+            {
+              "index": 6,
+              "gp_number": 7,
+              "local_coordinates": [
+                0.5773502691896258,
+                0.5773502691896258,
+                0.5773502691896258
+              ],
+              "weight": 1.0
+            },
+            {
+              "index": 7,
+              "gp_number": 8,
+              "local_coordinates": [
+                -0.5773502691896258,
+                0.5773502691896258,
+                0.5773502691896258
+              ],
+              "weight": 1.0
+            }
+          ]
+        },
+        "GI_GAUSS_3": {
+          "integration_order_property": 3,
+          "number_of_points": 27,
+          "center_index": 13,
+          "points": [
+            {
+              "index": 0,
+              "gp_number": 1,
+              "local_coordinates": [
+                -0.7745966692414834,
+                -0.7745966692414834,
+                -0.7745966692414834
+              ],
+              "weight": 0.17146776406035666
+            },
+            {
+              "index": 1,
+              "gp_number": 2,
+              "local_coordinates": [
+                0.0,
+                -0.7745966692414834,
+                -0.7745966692414834
+              ],
+              "weight": 0.27434842249657065
+            },
+            {
+              "index": 2,
+              "gp_number": 3,
+              "local_coordinates": [
+                0.7745966692414834,
+                -0.7745966692414834,
+                -0.7745966692414834
+              ],
+              "weight": 0.17146776406035666
+            },
+            {
+              "index": 3,
+              "gp_number": 4,
+              "local_coordinates": [
+                -0.7745966692414834,
+                0.0,
+                -0.7745966692414834
+              ],
+              "weight": 0.27434842249657065
+            },
+            {
+              "index": 4,
+              "gp_number": 5,
+              "local_coordinates": [
+                0.0,
+                0.0,
+                -0.7745966692414834
+              ],
+              "weight": 0.438957475994513
+            },
+            {
+              "index": 5,
+              "gp_number": 6,
+              "local_coordinates": [
+                0.7745966692414834,
+                0.0,
+                -0.7745966692414834
+              ],
+              "weight": 0.27434842249657065
+            },
+            {
+              "index": 6,
+              "gp_number": 7,
+              "local_coordinates": [
+                -0.7745966692414834,
+                0.7745966692414834,
+                -0.7745966692414834
+              ],
+              "weight": 0.17146776406035666
+            },
+            {
+              "index": 7,
+              "gp_number": 8,
+              "local_coordinates": [
+                0.0,
+                0.7745966692414834,
+                -0.7745966692414834
+              ],
+              "weight": 0.27434842249657065
+            },
+            {
+              "index": 8,
+              "gp_number": 9,
+              "local_coordinates": [
+                0.7745966692414834,
+                0.7745966692414834,
+                -0.7745966692414834
+              ],
+              "weight": 0.17146776406035666
+            },
+            {
+              "index": 9,
+              "gp_number": 10,
+              "local_coordinates": [
+                -0.7745966692414834,
+                -0.7745966692414834,
+                0.0
+              ],
+              "weight": 0.27434842249657065
+            },
+            {
+              "index": 10,
+              "gp_number": 11,
+              "local_coordinates": [
+                0.0,
+                -0.7745966692414834,
+                0.0
+              ],
+              "weight": 0.438957475994513
+            },
+            {
+              "index": 11,
+              "gp_number": 12,
+              "local_coordinates": [
+                0.7745966692414834,
+                -0.7745966692414834,
+                0.0
+              ],
+              "weight": 0.27434842249657065
+            },
+            {
+              "index": 12,
+              "gp_number": 13,
+              "local_coordinates": [
+                -0.7745966692414834,
+                0.0,
+                0.0
+              ],
+              "weight": 0.438957475994513
+            },
+            {
+              "index": 13,
+              "gp_number": 14,
+              "local_coordinates": [
+                0.0,
+                0.0,
+                0.0
+              ],
+              "weight": 0.7023319615912208
+            },
+            {
+              "index": 14,
+              "gp_number": 15,
+              "local_coordinates": [
+                0.7745966692414834,
+                0.0,
+                0.0
+              ],
+              "weight": 0.438957475994513
+            },
+            {
+              "index": 15,
+              "gp_number": 16,
+              "local_coordinates": [
+                -0.7745966692414834,
+                0.7745966692414834,
+                0.0
+              ],
+              "weight": 0.27434842249657065
+            },
+            {
+              "index": 16,
+              "gp_number": 17,
+              "local_coordinates": [
+                0.0,
+                0.7745966692414834,
+                0.0
+              ],
+              "weight": 0.438957475994513
+            },
+            {
+              "index": 17,
+              "gp_number": 18,
+              "local_coordinates": [
+                0.7745966692414834,
+                0.7745966692414834,
+                0.0
+              ],
+              "weight": 0.27434842249657065
+            },
+            {
+              "index": 18,
+              "gp_number": 19,
+              "local_coordinates": [
+                -0.7745966692414834,
+                -0.7745966692414834,
+                0.7745966692414834
+              ],
+              "weight": 0.17146776406035666
+            },
+            {
+              "index": 19,
+              "gp_number": 20,
+              "local_coordinates": [
+                0.0,
+                -0.7745966692414834,
+                0.7745966692414834
+              ],
+              "weight": 0.27434842249657065
+            },
+            {
+              "index": 20,
+              "gp_number": 21,
+              "local_coordinates": [
+                0.7745966692414834,
+                -0.7745966692414834,
+                0.7745966692414834
+              ],
+              "weight": 0.17146776406035666
+            },
+            {
+              "index": 21,
+              "gp_number": 22,
+              "local_coordinates": [
+                -0.7745966692414834,
+                0.0,
+                0.7745966692414834
+              ],
+              "weight": 0.27434842249657065
+            },
+            {
+              "index": 22,
+              "gp_number": 23,
+              "local_coordinates": [
+                0.0,
+                0.0,
+                0.7745966692414834
+              ],
+              "weight": 0.438957475994513
+            },
+            {
+              "index": 23,
+              "gp_number": 24,
+              "local_coordinates": [
+                0.7745966692414834,
+                0.0,
+                0.7745966692414834
+              ],
+              "weight": 0.27434842249657065
+            },
+            {
+              "index": 24,
+              "gp_number": 25,
+              "local_coordinates": [
+                -0.7745966692414834,
+                0.7745966692414834,
+                0.7745966692414834
+              ],
+              "weight": 0.17146776406035666
+            },
+            {
+              "index": 25,
+              "gp_number": 26,
+              "local_coordinates": [
+                0.0,
+                0.7745966692414834,
+                0.7745966692414834
+              ],
+              "weight": 0.27434842249657065
+            },
+            {
+              "index": 26,
+              "gp_number": 27,
+              "local_coordinates": [
+                0.7745966692414834,
+                0.7745966692414834,
+                0.7745966692414834
+              ],
+              "weight": 0.17146776406035666
+            }
+          ]
+        },
+        "GI_GAUSS_4": {
+          "integration_order_property": 4,
+          "number_of_points": 64,
+          "center_index": null,
+          "points": [
+            {
+              "index": 0,
+              "gp_number": 1,
+              "local_coordinates": [
+                -0.8611363115940526,
+                -0.8611363115940526,
+                -0.8611363115940526
+              ],
+              "weight": 0.04209147749053146
+            },
+            {
+              "index": 1,
+              "gp_number": 2,
+              "local_coordinates": [
+                -0.33998104358485626,
+                -0.8611363115940526,
+                -0.8611363115940526
+              ],
+              "weight": 0.07891151579507055
+            },
+            {
+              "index": 2,
+              "gp_number": 3,
+              "local_coordinates": [
+                0.33998104358485626,
+                -0.8611363115940526,
+                -0.8611363115940526
+              ],
+              "weight": 0.07891151579507055
+            },
+            {
+              "index": 3,
+              "gp_number": 4,
+              "local_coordinates": [
+                0.8611363115940526,
+                -0.8611363115940526,
+                -0.8611363115940526
+              ],
+              "weight": 0.04209147749053146
+            },
+            {
+              "index": 4,
+              "gp_number": 5,
+              "local_coordinates": [
+                -0.8611363115940526,
+                -0.33998104358485626,
+                -0.8611363115940526
+              ],
+              "weight": 0.07891151579507055
+            },
+            {
+              "index": 5,
+              "gp_number": 6,
+              "local_coordinates": [
+                -0.33998104358485626,
+                -0.33998104358485626,
+                -0.8611363115940526
+              ],
+              "weight": 0.1479403360567813
+            },
+            {
+              "index": 6,
+              "gp_number": 7,
+              "local_coordinates": [
+                0.33998104358485626,
+                -0.33998104358485626,
+                -0.8611363115940526
+              ],
+              "weight": 0.1479403360567813
+            },
+            {
+              "index": 7,
+              "gp_number": 8,
+              "local_coordinates": [
+                0.8611363115940526,
+                -0.33998104358485626,
+                -0.8611363115940526
+              ],
+              "weight": 0.07891151579507055
+            },
+            {
+              "index": 8,
+              "gp_number": 9,
+              "local_coordinates": [
+                -0.8611363115940526,
+                0.33998104358485626,
+                -0.8611363115940526
+              ],
+              "weight": 0.07891151579507055
+            },
+            {
+              "index": 9,
+              "gp_number": 10,
+              "local_coordinates": [
+                -0.33998104358485626,
+                0.33998104358485626,
+                -0.8611363115940526
+              ],
+              "weight": 0.1479403360567813
+            },
+            {
+              "index": 10,
+              "gp_number": 11,
+              "local_coordinates": [
+                0.33998104358485626,
+                0.33998104358485626,
+                -0.8611363115940526
+              ],
+              "weight": 0.1479403360567813
+            },
+            {
+              "index": 11,
+              "gp_number": 12,
+              "local_coordinates": [
+                0.8611363115940526,
+                0.33998104358485626,
+                -0.8611363115940526
+              ],
+              "weight": 0.07891151579507055
+            },
+            {
+              "index": 12,
+              "gp_number": 13,
+              "local_coordinates": [
+                -0.8611363115940526,
+                0.8611363115940526,
+                -0.8611363115940526
+              ],
+              "weight": 0.04209147749053146
+            },
+            {
+              "index": 13,
+              "gp_number": 14,
+              "local_coordinates": [
+                -0.33998104358485626,
+                0.8611363115940526,
+                -0.8611363115940526
+              ],
+              "weight": 0.07891151579507055
+            },
+            {
+              "index": 14,
+              "gp_number": 15,
+              "local_coordinates": [
+                0.33998104358485626,
+                0.8611363115940526,
+                -0.8611363115940526
+              ],
+              "weight": 0.07891151579507055
+            },
+            {
+              "index": 15,
+              "gp_number": 16,
+              "local_coordinates": [
+                0.8611363115940526,
+                0.8611363115940526,
+                -0.8611363115940526
+              ],
+              "weight": 0.04209147749053146
+            },
+            {
+              "index": 16,
+              "gp_number": 17,
+              "local_coordinates": [
+                -0.8611363115940526,
+                -0.8611363115940526,
+                -0.33998104358485626
+              ],
+              "weight": 0.07891151579507055
+            },
+            {
+              "index": 17,
+              "gp_number": 18,
+              "local_coordinates": [
+                -0.33998104358485626,
+                -0.8611363115940526,
+                -0.33998104358485626
+              ],
+              "weight": 0.1479403360567813
+            },
+            {
+              "index": 18,
+              "gp_number": 19,
+              "local_coordinates": [
+                0.33998104358485626,
+                -0.8611363115940526,
+                -0.33998104358485626
+              ],
+              "weight": 0.1479403360567813
+            },
+            {
+              "index": 19,
+              "gp_number": 20,
+              "local_coordinates": [
+                0.8611363115940526,
+                -0.8611363115940526,
+                -0.33998104358485626
+              ],
+              "weight": 0.07891151579507055
+            },
+            {
+              "index": 20,
+              "gp_number": 21,
+              "local_coordinates": [
+                -0.8611363115940526,
+                -0.33998104358485626,
+                -0.33998104358485626
+              ],
+              "weight": 0.1479403360567813
+            },
+            {
+              "index": 21,
+              "gp_number": 22,
+              "local_coordinates": [
+                -0.33998104358485626,
+                -0.33998104358485626,
+                -0.33998104358485626
+              ],
+              "weight": 0.277352966953913
+            },
+            {
+              "index": 22,
+              "gp_number": 23,
+              "local_coordinates": [
+                0.33998104358485626,
+                -0.33998104358485626,
+                -0.33998104358485626
+              ],
+              "weight": 0.277352966953913
+            },
+            {
+              "index": 23,
+              "gp_number": 24,
+              "local_coordinates": [
+                0.8611363115940526,
+                -0.33998104358485626,
+                -0.33998104358485626
+              ],
+              "weight": 0.1479403360567813
+            },
+            {
+              "index": 24,
+              "gp_number": 25,
+              "local_coordinates": [
+                -0.8611363115940526,
+                0.33998104358485626,
+                -0.33998104358485626
+              ],
+              "weight": 0.1479403360567813
+            },
+            {
+              "index": 25,
+              "gp_number": 26,
+              "local_coordinates": [
+                -0.33998104358485626,
+                0.33998104358485626,
+                -0.33998104358485626
+              ],
+              "weight": 0.277352966953913
+            },
+            {
+              "index": 26,
+              "gp_number": 27,
+              "local_coordinates": [
+                0.33998104358485626,
+                0.33998104358485626,
+                -0.33998104358485626
+              ],
+              "weight": 0.277352966953913
+            },
+            {
+              "index": 27,
+              "gp_number": 28,
+              "local_coordinates": [
+                0.8611363115940526,
+                0.33998104358485626,
+                -0.33998104358485626
+              ],
+              "weight": 0.1479403360567813
+            },
+            {
+              "index": 28,
+              "gp_number": 29,
+              "local_coordinates": [
+                -0.8611363115940526,
+                0.8611363115940526,
+                -0.33998104358485626
+              ],
+              "weight": 0.07891151579507055
+            },
+            {
+              "index": 29,
+              "gp_number": 30,
+              "local_coordinates": [
+                -0.33998104358485626,
+                0.8611363115940526,
+                -0.33998104358485626
+              ],
+              "weight": 0.1479403360567813
+            },
+            {
+              "index": 30,
+              "gp_number": 31,
+              "local_coordinates": [
+                0.33998104358485626,
+                0.8611363115940526,
+                -0.33998104358485626
+              ],
+              "weight": 0.1479403360567813
+            },
+            {
+              "index": 31,
+              "gp_number": 32,
+              "local_coordinates": [
+                0.8611363115940526,
+                0.8611363115940526,
+                -0.33998104358485626
+              ],
+              "weight": 0.07891151579507055
+            },
+            {
+              "index": 32,
+              "gp_number": 33,
+              "local_coordinates": [
+                -0.8611363115940526,
+                -0.8611363115940526,
+                0.33998104358485626
+              ],
+              "weight": 0.07891151579507055
+            },
+            {
+              "index": 33,
+              "gp_number": 34,
+              "local_coordinates": [
+                -0.33998104358485626,
+                -0.8611363115940526,
+                0.33998104358485626
+              ],
+              "weight": 0.1479403360567813
+            },
+            {
+              "index": 34,
+              "gp_number": 35,
+              "local_coordinates": [
+                0.33998104358485626,
+                -0.8611363115940526,
+                0.33998104358485626
+              ],
+              "weight": 0.1479403360567813
+            },
+            {
+              "index": 35,
+              "gp_number": 36,
+              "local_coordinates": [
+                0.8611363115940526,
+                -0.8611363115940526,
+                0.33998104358485626
+              ],
+              "weight": 0.07891151579507055
+            },
+            {
+              "index": 36,
+              "gp_number": 37,
+              "local_coordinates": [
+                -0.8611363115940526,
+                -0.33998104358485626,
+                0.33998104358485626
+              ],
+              "weight": 0.1479403360567813
+            },
+            {
+              "index": 37,
+              "gp_number": 38,
+              "local_coordinates": [
+                -0.33998104358485626,
+                -0.33998104358485626,
+                0.33998104358485626
+              ],
+              "weight": 0.277352966953913
+            },
+            {
+              "index": 38,
+              "gp_number": 39,
+              "local_coordinates": [
+                0.33998104358485626,
+                -0.33998104358485626,
+                0.33998104358485626
+              ],
+              "weight": 0.277352966953913
+            },
+            {
+              "index": 39,
+              "gp_number": 40,
+              "local_coordinates": [
+                0.8611363115940526,
+                -0.33998104358485626,
+                0.33998104358485626
+              ],
+              "weight": 0.1479403360567813
+            },
+            {
+              "index": 40,
+              "gp_number": 41,
+              "local_coordinates": [
+                -0.8611363115940526,
+                0.33998104358485626,
+                0.33998104358485626
+              ],
+              "weight": 0.1479403360567813
+            },
+            {
+              "index": 41,
+              "gp_number": 42,
+              "local_coordinates": [
+                -0.33998104358485626,
+                0.33998104358485626,
+                0.33998104358485626
+              ],
+              "weight": 0.277352966953913
+            },
+            {
+              "index": 42,
+              "gp_number": 43,
+              "local_coordinates": [
+                0.33998104358485626,
+                0.33998104358485626,
+                0.33998104358485626
+              ],
+              "weight": 0.277352966953913
+            },
+            {
+              "index": 43,
+              "gp_number": 44,
+              "local_coordinates": [
+                0.8611363115940526,
+                0.33998104358485626,
+                0.33998104358485626
+              ],
+              "weight": 0.1479403360567813
+            },
+            {
+              "index": 44,
+              "gp_number": 45,
+              "local_coordinates": [
+                -0.8611363115940526,
+                0.8611363115940526,
+                0.33998104358485626
+              ],
+              "weight": 0.07891151579507055
+            },
+            {
+              "index": 45,
+              "gp_number": 46,
+              "local_coordinates": [
+                -0.33998104358485626,
+                0.8611363115940526,
+                0.33998104358485626
+              ],
+              "weight": 0.1479403360567813
+            },
+            {
+              "index": 46,
+              "gp_number": 47,
+              "local_coordinates": [
+                0.33998104358485626,
+                0.8611363115940526,
+                0.33998104358485626
+              ],
+              "weight": 0.1479403360567813
+            },
+            {
+              "index": 47,
+              "gp_number": 48,
+              "local_coordinates": [
+                0.8611363115940526,
+                0.8611363115940526,
+                0.33998104358485626
+              ],
+              "weight": 0.07891151579507055
+            },
+            {
+              "index": 48,
+              "gp_number": 49,
+              "local_coordinates": [
+                -0.8611363115940526,
+                -0.8611363115940526,
+                0.8611363115940526
+              ],
+              "weight": 0.04209147749053146
+            },
+            {
+              "index": 49,
+              "gp_number": 50,
+              "local_coordinates": [
+                -0.33998104358485626,
+                -0.8611363115940526,
+                0.8611363115940526
+              ],
+              "weight": 0.07891151579507055
+            },
+            {
+              "index": 50,
+              "gp_number": 51,
+              "local_coordinates": [
+                0.33998104358485626,
+                -0.8611363115940526,
+                0.8611363115940526
+              ],
+              "weight": 0.07891151579507055
+            },
+            {
+              "index": 51,
+              "gp_number": 52,
+              "local_coordinates": [
+                0.8611363115940526,
+                -0.8611363115940526,
+                0.8611363115940526
+              ],
+              "weight": 0.04209147749053146
+            },
+            {
+              "index": 52,
+              "gp_number": 53,
+              "local_coordinates": [
+                -0.8611363115940526,
+                -0.33998104358485626,
+                0.8611363115940526
+              ],
+              "weight": 0.07891151579507055
+            },
+            {
+              "index": 53,
+              "gp_number": 54,
+              "local_coordinates": [
+                -0.33998104358485626,
+                -0.33998104358485626,
+                0.8611363115940526
+              ],
+              "weight": 0.1479403360567813
+            },
+            {
+              "index": 54,
+              "gp_number": 55,
+              "local_coordinates": [
+                0.33998104358485626,
+                -0.33998104358485626,
+                0.8611363115940526
+              ],
+              "weight": 0.1479403360567813
+            },
+            {
+              "index": 55,
+              "gp_number": 56,
+              "local_coordinates": [
+                0.8611363115940526,
+                -0.33998104358485626,
+                0.8611363115940526
+              ],
+              "weight": 0.07891151579507055
+            },
+            {
+              "index": 56,
+              "gp_number": 57,
+              "local_coordinates": [
+                -0.8611363115940526,
+                0.33998104358485626,
+                0.8611363115940526
+              ],
+              "weight": 0.07891151579507055
+            },
+            {
+              "index": 57,
+              "gp_number": 58,
+              "local_coordinates": [
+                -0.33998104358485626,
+                0.33998104358485626,
+                0.8611363115940526
+              ],
+              "weight": 0.1479403360567813
+            },
+            {
+              "index": 58,
+              "gp_number": 59,
+              "local_coordinates": [
+                0.33998104358485626,
+                0.33998104358485626,
+                0.8611363115940526
+              ],
+              "weight": 0.1479403360567813
+            },
+            {
+              "index": 59,
+              "gp_number": 60,
+              "local_coordinates": [
+                0.8611363115940526,
+                0.33998104358485626,
+                0.8611363115940526
+              ],
+              "weight": 0.07891151579507055
+            },
+            {
+              "index": 60,
+              "gp_number": 61,
+              "local_coordinates": [
+                -0.8611363115940526,
+                0.8611363115940526,
+                0.8611363115940526
+              ],
+              "weight": 0.04209147749053146
+            },
+            {
+              "index": 61,
+              "gp_number": 62,
+              "local_coordinates": [
+                -0.33998104358485626,
+                0.8611363115940526,
+                0.8611363115940526
+              ],
+              "weight": 0.07891151579507055
+            },
+            {
+              "index": 62,
+              "gp_number": 63,
+              "local_coordinates": [
+                0.33998104358485626,
+                0.8611363115940526,
+                0.8611363115940526
+              ],
+              "weight": 0.07891151579507055
+            },
+            {
+              "index": 63,
+              "gp_number": 64,
+              "local_coordinates": [
+                0.8611363115940526,
+                0.8611363115940526,
+                0.8611363115940526
+              ],
+              "weight": 0.04209147749053146
+            }
+          ]
+        },
+        "GI_GAUSS_5": {
+          "integration_order_property": 5,
+          "number_of_points": 125,
+          "center_index": 62,
+          "points": [
+            {
+              "index": 0,
+              "gp_number": 1,
+              "local_coordinates": [
+                -0.906179845938664,
+                -0.906179845938664,
+                -0.906179845938664
+              ],
+              "weight": 0.013299736420632648
+            },
+            {
+              "index": 1,
+              "gp_number": 2,
+              "local_coordinates": [
+                -0.5384693101056831,
+                -0.906179845938664,
+                -0.906179845938664
+              ],
+              "weight": 0.026867508765371844
+            },
+            {
+              "index": 2,
+              "gp_number": 3,
+              "local_coordinates": [
+                0.0,
+                -0.906179845938664,
+                -0.906179845938664
+              ],
+              "weight": 0.03193420735284829
+            },
+            {
+              "index": 3,
+              "gp_number": 4,
+              "local_coordinates": [
+                0.5384693101056831,
+                -0.906179845938664,
+                -0.906179845938664
+              ],
+              "weight": 0.026867508765371844
+            },
+            {
+              "index": 4,
+              "gp_number": 5,
+              "local_coordinates": [
+                0.906179845938664,
+                -0.906179845938664,
+                -0.906179845938664
+              ],
+              "weight": 0.013299736420632648
+            },
+            {
+              "index": 5,
+              "gp_number": 6,
+              "local_coordinates": [
+                -0.906179845938664,
+                -0.5384693101056831,
+                -0.906179845938664
+              ],
+              "weight": 0.026867508765371844
+            },
+            {
+              "index": 6,
+              "gp_number": 7,
+              "local_coordinates": [
+                -0.5384693101056831,
+                -0.5384693101056831,
+                -0.906179845938664
+              ],
+              "weight": 0.05427649123462816
+            },
+            {
+              "index": 7,
+              "gp_number": 8,
+              "local_coordinates": [
+                0.0,
+                -0.5384693101056831,
+                -0.906179845938664
+              ],
+              "weight": 0.064512
+            },
+            {
+              "index": 8,
+              "gp_number": 9,
+              "local_coordinates": [
+                0.5384693101056831,
+                -0.5384693101056831,
+                -0.906179845938664
+              ],
+              "weight": 0.05427649123462816
+            },
+            {
+              "index": 9,
+              "gp_number": 10,
+              "local_coordinates": [
+                0.906179845938664,
+                -0.5384693101056831,
+                -0.906179845938664
+              ],
+              "weight": 0.026867508765371844
+            },
+            {
+              "index": 10,
+              "gp_number": 11,
+              "local_coordinates": [
+                -0.906179845938664,
+                0.0,
+                -0.906179845938664
+              ],
+              "weight": 0.03193420735284829
+            },
+            {
+              "index": 11,
+              "gp_number": 12,
+              "local_coordinates": [
+                -0.5384693101056831,
+                0.0,
+                -0.906179845938664
+              ],
+              "weight": 0.064512
+            },
+            {
+              "index": 12,
+              "gp_number": 13,
+              "local_coordinates": [
+                0.0,
+                0.0,
+                -0.906179845938664
+              ],
+              "weight": 0.07667773006934522
+            },
+            {
+              "index": 13,
+              "gp_number": 14,
+              "local_coordinates": [
+                0.5384693101056831,
+                0.0,
+                -0.906179845938664
+              ],
+              "weight": 0.064512
+            },
+            {
+              "index": 14,
+              "gp_number": 15,
+              "local_coordinates": [
+                0.906179845938664,
+                0.0,
+                -0.906179845938664
+              ],
+              "weight": 0.03193420735284829
+            },
+            {
+              "index": 15,
+              "gp_number": 16,
+              "local_coordinates": [
+                -0.906179845938664,
+                0.5384693101056831,
+                -0.906179845938664
+              ],
+              "weight": 0.026867508765371844
+            },
+            {
+              "index": 16,
+              "gp_number": 17,
+              "local_coordinates": [
+                -0.5384693101056831,
+                0.5384693101056831,
+                -0.906179845938664
+              ],
+              "weight": 0.05427649123462816
+            },
+            {
+              "index": 17,
+              "gp_number": 18,
+              "local_coordinates": [
+                0.0,
+                0.5384693101056831,
+                -0.906179845938664
+              ],
+              "weight": 0.064512
+            },
+            {
+              "index": 18,
+              "gp_number": 19,
+              "local_coordinates": [
+                0.5384693101056831,
+                0.5384693101056831,
+                -0.906179845938664
+              ],
+              "weight": 0.05427649123462816
+            },
+            {
+              "index": 19,
+              "gp_number": 20,
+              "local_coordinates": [
+                0.906179845938664,
+                0.5384693101056831,
+                -0.906179845938664
+              ],
+              "weight": 0.026867508765371844
+            },
+            {
+              "index": 20,
+              "gp_number": 21,
+              "local_coordinates": [
+                -0.906179845938664,
+                0.906179845938664,
+                -0.906179845938664
+              ],
+              "weight": 0.013299736420632648
+            },
+            {
+              "index": 21,
+              "gp_number": 22,
+              "local_coordinates": [
+                -0.5384693101056831,
+                0.906179845938664,
+                -0.906179845938664
+              ],
+              "weight": 0.026867508765371844
+            },
+            {
+              "index": 22,
+              "gp_number": 23,
+              "local_coordinates": [
+                0.0,
+                0.906179845938664,
+                -0.906179845938664
+              ],
+              "weight": 0.03193420735284829
+            },
+            {
+              "index": 23,
+              "gp_number": 24,
+              "local_coordinates": [
+                0.5384693101056831,
+                0.906179845938664,
+                -0.906179845938664
+              ],
+              "weight": 0.026867508765371844
+            },
+            {
+              "index": 24,
+              "gp_number": 25,
+              "local_coordinates": [
+                0.906179845938664,
+                0.906179845938664,
+                -0.906179845938664
+              ],
+              "weight": 0.013299736420632648
+            },
+            {
+              "index": 25,
+              "gp_number": 26,
+              "local_coordinates": [
+                -0.906179845938664,
+                -0.906179845938664,
+                -0.5384693101056831
+              ],
+              "weight": 0.026867508765371844
+            },
+            {
+              "index": 26,
+              "gp_number": 27,
+              "local_coordinates": [
+                -0.5384693101056831,
+                -0.906179845938664,
+                -0.5384693101056831
+              ],
+              "weight": 0.05427649123462816
+            },
+            {
+              "index": 27,
+              "gp_number": 28,
+              "local_coordinates": [
+                0.0,
+                -0.906179845938664,
+                -0.5384693101056831
+              ],
+              "weight": 0.064512
+            },
+            {
+              "index": 28,
+              "gp_number": 29,
+              "local_coordinates": [
+                0.5384693101056831,
+                -0.906179845938664,
+                -0.5384693101056831
+              ],
+              "weight": 0.05427649123462816
+            },
+            {
+              "index": 29,
+              "gp_number": 30,
+              "local_coordinates": [
+                0.906179845938664,
+                -0.906179845938664,
+                -0.5384693101056831
+              ],
+              "weight": 0.026867508765371844
+            },
+            {
+              "index": 30,
+              "gp_number": 31,
+              "local_coordinates": [
+                -0.906179845938664,
+                -0.5384693101056831,
+                -0.5384693101056831
+              ],
+              "weight": 0.05427649123462816
+            },
+            {
+              "index": 31,
+              "gp_number": 32,
+              "local_coordinates": [
+                -0.5384693101056831,
+                -0.5384693101056831,
+                -0.5384693101056831
+              ],
+              "weight": 0.10964684245453882
+            },
+            {
+              "index": 32,
+              "gp_number": 33,
+              "local_coordinates": [
+                0.0,
+                -0.5384693101056831,
+                -0.5384693101056831
+              ],
+              "weight": 0.1303241410696483
+            },
+            {
+              "index": 33,
+              "gp_number": 34,
+              "local_coordinates": [
+                0.5384693101056831,
+                -0.5384693101056831,
+                -0.5384693101056831
+              ],
+              "weight": 0.10964684245453882
+            },
+            {
+              "index": 34,
+              "gp_number": 35,
+              "local_coordinates": [
+                0.906179845938664,
+                -0.5384693101056831,
+                -0.5384693101056831
+              ],
+              "weight": 0.05427649123462816
+            },
+            {
+              "index": 35,
+              "gp_number": 36,
+              "local_coordinates": [
+                -0.906179845938664,
+                0.0,
+                -0.5384693101056831
+              ],
+              "weight": 0.064512
+            },
+            {
+              "index": 36,
+              "gp_number": 37,
+              "local_coordinates": [
+                -0.5384693101056831,
+                0.0,
+                -0.5384693101056831
+              ],
+              "weight": 0.1303241410696483
+            },
+            {
+              "index": 37,
+              "gp_number": 38,
+              "local_coordinates": [
+                0.0,
+                0.0,
+                -0.5384693101056831
+              ],
+              "weight": 0.15490078296220483
+            },
+            {
+              "index": 38,
+              "gp_number": 39,
+              "local_coordinates": [
+                0.5384693101056831,
+                0.0,
+                -0.5384693101056831
+              ],
+              "weight": 0.1303241410696483
+            },
+            {
+              "index": 39,
+              "gp_number": 40,
+              "local_coordinates": [
+                0.906179845938664,
+                0.0,
+                -0.5384693101056831
+              ],
+              "weight": 0.064512
+            },
+            {
+              "index": 40,
+              "gp_number": 41,
+              "local_coordinates": [
+                -0.906179845938664,
+                0.5384693101056831,
+                -0.5384693101056831
+              ],
+              "weight": 0.05427649123462816
+            },
+            {
+              "index": 41,
+              "gp_number": 42,
+              "local_coordinates": [
+                -0.5384693101056831,
+                0.5384693101056831,
+                -0.5384693101056831
+              ],
+              "weight": 0.10964684245453882
+            },
+            {
+              "index": 42,
+              "gp_number": 43,
+              "local_coordinates": [
+                0.0,
+                0.5384693101056831,
+                -0.5384693101056831
+              ],
+              "weight": 0.1303241410696483
+            },
+            {
+              "index": 43,
+              "gp_number": 44,
+              "local_coordinates": [
+                0.5384693101056831,
+                0.5384693101056831,
+                -0.5384693101056831
+              ],
+              "weight": 0.10964684245453882
+            },
+            {
+              "index": 44,
+              "gp_number": 45,
+              "local_coordinates": [
+                0.906179845938664,
+                0.5384693101056831,
+                -0.5384693101056831
+              ],
+              "weight": 0.05427649123462816
+            },
+            {
+              "index": 45,
+              "gp_number": 46,
+              "local_coordinates": [
+                -0.906179845938664,
+                0.906179845938664,
+                -0.5384693101056831
+              ],
+              "weight": 0.026867508765371844
+            },
+            {
+              "index": 46,
+              "gp_number": 47,
+              "local_coordinates": [
+                -0.5384693101056831,
+                0.906179845938664,
+                -0.5384693101056831
+              ],
+              "weight": 0.05427649123462816
+            },
+            {
+              "index": 47,
+              "gp_number": 48,
+              "local_coordinates": [
+                0.0,
+                0.906179845938664,
+                -0.5384693101056831
+              ],
+              "weight": 0.064512
+            },
+            {
+              "index": 48,
+              "gp_number": 49,
+              "local_coordinates": [
+                0.5384693101056831,
+                0.906179845938664,
+                -0.5384693101056831
+              ],
+              "weight": 0.05427649123462816
+            },
+            {
+              "index": 49,
+              "gp_number": 50,
+              "local_coordinates": [
+                0.906179845938664,
+                0.906179845938664,
+                -0.5384693101056831
+              ],
+              "weight": 0.026867508765371844
+            },
+            {
+              "index": 50,
+              "gp_number": 51,
+              "local_coordinates": [
+                -0.906179845938664,
+                -0.906179845938664,
+                0.0
+              ],
+              "weight": 0.03193420735284829
+            },
+            {
+              "index": 51,
+              "gp_number": 52,
+              "local_coordinates": [
+                -0.5384693101056831,
+                -0.906179845938664,
+                0.0
+              ],
+              "weight": 0.064512
+            },
+            {
+              "index": 52,
+              "gp_number": 53,
+              "local_coordinates": [
+                0.0,
+                -0.906179845938664,
+                0.0
+              ],
+              "weight": 0.07667773006934522
+            },
+            {
+              "index": 53,
+              "gp_number": 54,
+              "local_coordinates": [
+                0.5384693101056831,
+                -0.906179845938664,
+                0.0
+              ],
+              "weight": 0.064512
+            },
+            {
+              "index": 54,
+              "gp_number": 55,
+              "local_coordinates": [
+                0.906179845938664,
+                -0.906179845938664,
+                0.0
+              ],
+              "weight": 0.03193420735284829
+            },
+            {
+              "index": 55,
+              "gp_number": 56,
+              "local_coordinates": [
+                -0.906179845938664,
+                -0.5384693101056831,
+                0.0
+              ],
+              "weight": 0.064512
+            },
+            {
+              "index": 56,
+              "gp_number": 57,
+              "local_coordinates": [
+                -0.5384693101056831,
+                -0.5384693101056831,
+                0.0
+              ],
+              "weight": 0.1303241410696483
+            },
+            {
+              "index": 57,
+              "gp_number": 58,
+              "local_coordinates": [
+                0.0,
+                -0.5384693101056831,
+                0.0
+              ],
+              "weight": 0.15490078296220483
+            },
+            {
+              "index": 58,
+              "gp_number": 59,
+              "local_coordinates": [
+                0.5384693101056831,
+                -0.5384693101056831,
+                0.0
+              ],
+              "weight": 0.1303241410696483
+            },
+            {
+              "index": 59,
+              "gp_number": 60,
+              "local_coordinates": [
+                0.906179845938664,
+                -0.5384693101056831,
+                0.0
+              ],
+              "weight": 0.064512
+            },
+            {
+              "index": 60,
+              "gp_number": 61,
+              "local_coordinates": [
+                -0.906179845938664,
+                0.0,
+                0.0
+              ],
+              "weight": 0.07667773006934522
+            },
+            {
+              "index": 61,
+              "gp_number": 62,
+              "local_coordinates": [
+                -0.5384693101056831,
+                0.0,
+                0.0
+              ],
+              "weight": 0.15490078296220483
+            },
+            {
+              "index": 62,
+              "gp_number": 63,
+              "local_coordinates": [
+                0.0,
+                0.0,
+                0.0
+              ],
+              "weight": 0.184112109739369
+            },
+            {
+              "index": 63,
+              "gp_number": 64,
+              "local_coordinates": [
+                0.5384693101056831,
+                0.0,
+                0.0
+              ],
+              "weight": 0.15490078296220483
+            },
+            {
+              "index": 64,
+              "gp_number": 65,
+              "local_coordinates": [
+                0.906179845938664,
+                0.0,
+                0.0
+              ],
+              "weight": 0.07667773006934522
+            },
+            {
+              "index": 65,
+              "gp_number": 66,
+              "local_coordinates": [
+                -0.906179845938664,
+                0.5384693101056831,
+                0.0
+              ],
+              "weight": 0.064512
+            },
+            {
+              "index": 66,
+              "gp_number": 67,
+              "local_coordinates": [
+                -0.5384693101056831,
+                0.5384693101056831,
+                0.0
+              ],
+              "weight": 0.1303241410696483
+            },
+            {
+              "index": 67,
+              "gp_number": 68,
+              "local_coordinates": [
+                0.0,
+                0.5384693101056831,
+                0.0
+              ],
+              "weight": 0.15490078296220483
+            },
+            {
+              "index": 68,
+              "gp_number": 69,
+              "local_coordinates": [
+                0.5384693101056831,
+                0.5384693101056831,
+                0.0
+              ],
+              "weight": 0.1303241410696483
+            },
+            {
+              "index": 69,
+              "gp_number": 70,
+              "local_coordinates": [
+                0.906179845938664,
+                0.5384693101056831,
+                0.0
+              ],
+              "weight": 0.064512
+            },
+            {
+              "index": 70,
+              "gp_number": 71,
+              "local_coordinates": [
+                -0.906179845938664,
+                0.906179845938664,
+                0.0
+              ],
+              "weight": 0.03193420735284829
+            },
+            {
+              "index": 71,
+              "gp_number": 72,
+              "local_coordinates": [
+                -0.5384693101056831,
+                0.906179845938664,
+                0.0
+              ],
+              "weight": 0.064512
+            },
+            {
+              "index": 72,
+              "gp_number": 73,
+              "local_coordinates": [
+                0.0,
+                0.906179845938664,
+                0.0
+              ],
+              "weight": 0.07667773006934522
+            },
+            {
+              "index": 73,
+              "gp_number": 74,
+              "local_coordinates": [
+                0.5384693101056831,
+                0.906179845938664,
+                0.0
+              ],
+              "weight": 0.064512
+            },
+            {
+              "index": 74,
+              "gp_number": 75,
+              "local_coordinates": [
+                0.906179845938664,
+                0.906179845938664,
+                0.0
+              ],
+              "weight": 0.03193420735284829
+            },
+            {
+              "index": 75,
+              "gp_number": 76,
+              "local_coordinates": [
+                -0.906179845938664,
+                -0.906179845938664,
+                0.5384693101056831
+              ],
+              "weight": 0.026867508765371844
+            },
+            {
+              "index": 76,
+              "gp_number": 77,
+              "local_coordinates": [
+                -0.5384693101056831,
+                -0.906179845938664,
+                0.5384693101056831
+              ],
+              "weight": 0.05427649123462816
+            },
+            {
+              "index": 77,
+              "gp_number": 78,
+              "local_coordinates": [
+                0.0,
+                -0.906179845938664,
+                0.5384693101056831
+              ],
+              "weight": 0.064512
+            },
+            {
+              "index": 78,
+              "gp_number": 79,
+              "local_coordinates": [
+                0.5384693101056831,
+                -0.906179845938664,
+                0.5384693101056831
+              ],
+              "weight": 0.05427649123462816
+            },
+            {
+              "index": 79,
+              "gp_number": 80,
+              "local_coordinates": [
+                0.906179845938664,
+                -0.906179845938664,
+                0.5384693101056831
+              ],
+              "weight": 0.026867508765371844
+            },
+            {
+              "index": 80,
+              "gp_number": 81,
+              "local_coordinates": [
+                -0.906179845938664,
+                -0.5384693101056831,
+                0.5384693101056831
+              ],
+              "weight": 0.05427649123462816
+            },
+            {
+              "index": 81,
+              "gp_number": 82,
+              "local_coordinates": [
+                -0.5384693101056831,
+                -0.5384693101056831,
+                0.5384693101056831
+              ],
+              "weight": 0.10964684245453882
+            },
+            {
+              "index": 82,
+              "gp_number": 83,
+              "local_coordinates": [
+                0.0,
+                -0.5384693101056831,
+                0.5384693101056831
+              ],
+              "weight": 0.1303241410696483
+            },
+            {
+              "index": 83,
+              "gp_number": 84,
+              "local_coordinates": [
+                0.5384693101056831,
+                -0.5384693101056831,
+                0.5384693101056831
+              ],
+              "weight": 0.10964684245453882
+            },
+            {
+              "index": 84,
+              "gp_number": 85,
+              "local_coordinates": [
+                0.906179845938664,
+                -0.5384693101056831,
+                0.5384693101056831
+              ],
+              "weight": 0.05427649123462816
+            },
+            {
+              "index": 85,
+              "gp_number": 86,
+              "local_coordinates": [
+                -0.906179845938664,
+                0.0,
+                0.5384693101056831
+              ],
+              "weight": 0.064512
+            },
+            {
+              "index": 86,
+              "gp_number": 87,
+              "local_coordinates": [
+                -0.5384693101056831,
+                0.0,
+                0.5384693101056831
+              ],
+              "weight": 0.1303241410696483
+            },
+            {
+              "index": 87,
+              "gp_number": 88,
+              "local_coordinates": [
+                0.0,
+                0.0,
+                0.5384693101056831
+              ],
+              "weight": 0.15490078296220483
+            },
+            {
+              "index": 88,
+              "gp_number": 89,
+              "local_coordinates": [
+                0.5384693101056831,
+                0.0,
+                0.5384693101056831
+              ],
+              "weight": 0.1303241410696483
+            },
+            {
+              "index": 89,
+              "gp_number": 90,
+              "local_coordinates": [
+                0.906179845938664,
+                0.0,
+                0.5384693101056831
+              ],
+              "weight": 0.064512
+            },
+            {
+              "index": 90,
+              "gp_number": 91,
+              "local_coordinates": [
+                -0.906179845938664,
+                0.5384693101056831,
+                0.5384693101056831
+              ],
+              "weight": 0.05427649123462816
+            },
+            {
+              "index": 91,
+              "gp_number": 92,
+              "local_coordinates": [
+                -0.5384693101056831,
+                0.5384693101056831,
+                0.5384693101056831
+              ],
+              "weight": 0.10964684245453882
+            },
+            {
+              "index": 92,
+              "gp_number": 93,
+              "local_coordinates": [
+                0.0,
+                0.5384693101056831,
+                0.5384693101056831
+              ],
+              "weight": 0.1303241410696483
+            },
+            {
+              "index": 93,
+              "gp_number": 94,
+              "local_coordinates": [
+                0.5384693101056831,
+                0.5384693101056831,
+                0.5384693101056831
+              ],
+              "weight": 0.10964684245453882
+            },
+            {
+              "index": 94,
+              "gp_number": 95,
+              "local_coordinates": [
+                0.906179845938664,
+                0.5384693101056831,
+                0.5384693101056831
+              ],
+              "weight": 0.05427649123462816
+            },
+            {
+              "index": 95,
+              "gp_number": 96,
+              "local_coordinates": [
+                -0.906179845938664,
+                0.906179845938664,
+                0.5384693101056831
+              ],
+              "weight": 0.026867508765371844
+            },
+            {
+              "index": 96,
+              "gp_number": 97,
+              "local_coordinates": [
+                -0.5384693101056831,
+                0.906179845938664,
+                0.5384693101056831
+              ],
+              "weight": 0.05427649123462816
+            },
+            {
+              "index": 97,
+              "gp_number": 98,
+              "local_coordinates": [
+                0.0,
+                0.906179845938664,
+                0.5384693101056831
+              ],
+              "weight": 0.064512
+            },
+            {
+              "index": 98,
+              "gp_number": 99,
+              "local_coordinates": [
+                0.5384693101056831,
+                0.906179845938664,
+                0.5384693101056831
+              ],
+              "weight": 0.05427649123462816
+            },
+            {
+              "index": 99,
+              "gp_number": 100,
+              "local_coordinates": [
+                0.906179845938664,
+                0.906179845938664,
+                0.5384693101056831
+              ],
+              "weight": 0.026867508765371844
+            },
+            {
+              "index": 100,
+              "gp_number": 101,
+              "local_coordinates": [
+                -0.906179845938664,
+                -0.906179845938664,
+                0.906179845938664
+              ],
+              "weight": 0.013299736420632648
+            },
+            {
+              "index": 101,
+              "gp_number": 102,
+              "local_coordinates": [
+                -0.5384693101056831,
+                -0.906179845938664,
+                0.906179845938664
+              ],
+              "weight": 0.026867508765371844
+            },
+            {
+              "index": 102,
+              "gp_number": 103,
+              "local_coordinates": [
+                0.0,
+                -0.906179845938664,
+                0.906179845938664
+              ],
+              "weight": 0.03193420735284829
+            },
+            {
+              "index": 103,
+              "gp_number": 104,
+              "local_coordinates": [
+                0.5384693101056831,
+                -0.906179845938664,
+                0.906179845938664
+              ],
+              "weight": 0.026867508765371844
+            },
+            {
+              "index": 104,
+              "gp_number": 105,
+              "local_coordinates": [
+                0.906179845938664,
+                -0.906179845938664,
+                0.906179845938664
+              ],
+              "weight": 0.013299736420632648
+            },
+            {
+              "index": 105,
+              "gp_number": 106,
+              "local_coordinates": [
+                -0.906179845938664,
+                -0.5384693101056831,
+                0.906179845938664
+              ],
+              "weight": 0.026867508765371844
+            },
+            {
+              "index": 106,
+              "gp_number": 107,
+              "local_coordinates": [
+                -0.5384693101056831,
+                -0.5384693101056831,
+                0.906179845938664
+              ],
+              "weight": 0.05427649123462816
+            },
+            {
+              "index": 107,
+              "gp_number": 108,
+              "local_coordinates": [
+                0.0,
+                -0.5384693101056831,
+                0.906179845938664
+              ],
+              "weight": 0.064512
+            },
+            {
+              "index": 108,
+              "gp_number": 109,
+              "local_coordinates": [
+                0.5384693101056831,
+                -0.5384693101056831,
+                0.906179845938664
+              ],
+              "weight": 0.05427649123462816
+            },
+            {
+              "index": 109,
+              "gp_number": 110,
+              "local_coordinates": [
+                0.906179845938664,
+                -0.5384693101056831,
+                0.906179845938664
+              ],
+              "weight": 0.026867508765371844
+            },
+            {
+              "index": 110,
+              "gp_number": 111,
+              "local_coordinates": [
+                -0.906179845938664,
+                0.0,
+                0.906179845938664
+              ],
+              "weight": 0.03193420735284829
+            },
+            {
+              "index": 111,
+              "gp_number": 112,
+              "local_coordinates": [
+                -0.5384693101056831,
+                0.0,
+                0.906179845938664
+              ],
+              "weight": 0.064512
+            },
+            {
+              "index": 112,
+              "gp_number": 113,
+              "local_coordinates": [
+                0.0,
+                0.0,
+                0.906179845938664
+              ],
+              "weight": 0.07667773006934522
+            },
+            {
+              "index": 113,
+              "gp_number": 114,
+              "local_coordinates": [
+                0.5384693101056831,
+                0.0,
+                0.906179845938664
+              ],
+              "weight": 0.064512
+            },
+            {
+              "index": 114,
+              "gp_number": 115,
+              "local_coordinates": [
+                0.906179845938664,
+                0.0,
+                0.906179845938664
+              ],
+              "weight": 0.03193420735284829
+            },
+            {
+              "index": 115,
+              "gp_number": 116,
+              "local_coordinates": [
+                -0.906179845938664,
+                0.5384693101056831,
+                0.906179845938664
+              ],
+              "weight": 0.026867508765371844
+            },
+            {
+              "index": 116,
+              "gp_number": 117,
+              "local_coordinates": [
+                -0.5384693101056831,
+                0.5384693101056831,
+                0.906179845938664
+              ],
+              "weight": 0.05427649123462816
+            },
+            {
+              "index": 117,
+              "gp_number": 118,
+              "local_coordinates": [
+                0.0,
+                0.5384693101056831,
+                0.906179845938664
+              ],
+              "weight": 0.064512
+            },
+            {
+              "index": 118,
+              "gp_number": 119,
+              "local_coordinates": [
+                0.5384693101056831,
+                0.5384693101056831,
+                0.906179845938664
+              ],
+              "weight": 0.05427649123462816
+            },
+            {
+              "index": 119,
+              "gp_number": 120,
+              "local_coordinates": [
+                0.906179845938664,
+                0.5384693101056831,
+                0.906179845938664
+              ],
+              "weight": 0.026867508765371844
+            },
+            {
+              "index": 120,
+              "gp_number": 121,
+              "local_coordinates": [
+                -0.906179845938664,
+                0.906179845938664,
+                0.906179845938664
+              ],
+              "weight": 0.013299736420632648
+            },
+            {
+              "index": 121,
+              "gp_number": 122,
+              "local_coordinates": [
+                -0.5384693101056831,
+                0.906179845938664,
+                0.906179845938664
+              ],
+              "weight": 0.026867508765371844
+            },
+            {
+              "index": 122,
+              "gp_number": 123,
+              "local_coordinates": [
+                0.0,
+                0.906179845938664,
+                0.906179845938664
+              ],
+              "weight": 0.03193420735284829
+            },
+            {
+              "index": 123,
+              "gp_number": 124,
+              "local_coordinates": [
+                0.5384693101056831,
+                0.906179845938664,
+                0.906179845938664
+              ],
+              "weight": 0.026867508765371844
+            },
+            {
+              "index": 124,
+              "gp_number": 125,
+              "local_coordinates": [
+                0.906179845938664,
+                0.906179845938664,
+                0.906179845938664
+              ],
+              "weight": 0.013299736420632648
+            }
+          ]
+        }
+      }
+    },
+    "prism": {
+      "local_dimension": 3,
+      "center_local_coordinates": [
+        0.3333333333333333,
+        0.3333333333333333,
+        0.5
+      ],
+      "source_file": "kratos/integration/prism_gauss_legendre_integration_points.h",
+      "source_sha256": "c47bc32546ace43dddadb67f2168d0ab6d4911ebac3dc91fadf6837336e11add",
+      "source_url": "https://github.com/KratosMultiphysics/Kratos/blob/master/kratos/integration/prism_gauss_legendre_integration_points.h",
+      "rules": {
+        "GI_GAUSS_1": {
+          "integration_order_property": 1,
+          "number_of_points": 3,
+          "center_index": null,
+          "points": [
+            {
+              "index": 0,
+              "gp_number": 1,
+              "local_coordinates": [
+                0.6666666666666666,
+                0.16666666666666666,
+                0.5
+              ],
+              "weight": 0.16666666666666666
+            },
+            {
+              "index": 1,
+              "gp_number": 2,
+              "local_coordinates": [
+                0.16666666666666666,
+                0.6666666666666666,
+                0.5
+              ],
+              "weight": 0.16666666666666666
+            },
+            {
+              "index": 2,
+              "gp_number": 3,
+              "local_coordinates": [
+                0.16666666666666666,
+                0.16666666666666666,
+                0.5
+              ],
+              "weight": 0.16666666666666666
+            }
+          ]
+        },
+        "GI_GAUSS_2": {
+          "integration_order_property": 2,
+          "number_of_points": 6,
+          "center_index": null,
+          "points": [
+            {
+              "index": 0,
+              "gp_number": 1,
+              "local_coordinates": [
+                0.6666666666666666,
+                0.16666666666666666,
+                0.2113248654051871
+              ],
+              "weight": 0.08333333333333333
+            },
+            {
+              "index": 1,
+              "gp_number": 2,
+              "local_coordinates": [
+                0.16666666666666666,
+                0.6666666666666666,
+                0.2113248654051871
+              ],
+              "weight": 0.08333333333333333
+            },
+            {
+              "index": 2,
+              "gp_number": 3,
+              "local_coordinates": [
+                0.16666666666666666,
+                0.16666666666666666,
+                0.2113248654051871
+              ],
+              "weight": 0.08333333333333333
+            },
+            {
+              "index": 3,
+              "gp_number": 4,
+              "local_coordinates": [
+                0.6666666666666666,
+                0.16666666666666666,
+                0.7886751345948129
+              ],
+              "weight": 0.08333333333333333
+            },
+            {
+              "index": 4,
+              "gp_number": 5,
+              "local_coordinates": [
+                0.16666666666666666,
+                0.6666666666666666,
+                0.7886751345948129
+              ],
+              "weight": 0.08333333333333333
+            },
+            {
+              "index": 5,
+              "gp_number": 6,
+              "local_coordinates": [
+                0.16666666666666666,
+                0.16666666666666666,
+                0.7886751345948129
+              ],
+              "weight": 0.08333333333333333
+            }
+          ]
+        },
+        "GI_GAUSS_3": {
+          "integration_order_property": 3,
+          "number_of_points": 9,
+          "center_index": null,
+          "points": [
+            {
+              "index": 0,
+              "gp_number": 1,
+              "local_coordinates": [
+                0.6666666666666666,
+                0.16666666666666666,
+                0.11270166537925831
+              ],
+              "weight": 0.046296296296296294
+            },
+            {
+              "index": 1,
+              "gp_number": 2,
+              "local_coordinates": [
+                0.16666666666666666,
+                0.6666666666666666,
+                0.11270166537925831
+              ],
+              "weight": 0.046296296296296294
+            },
+            {
+              "index": 2,
+              "gp_number": 3,
+              "local_coordinates": [
+                0.16666666666666666,
+                0.16666666666666666,
+                0.11270166537925831
+              ],
+              "weight": 0.046296296296296294
+            },
+            {
+              "index": 3,
+              "gp_number": 4,
+              "local_coordinates": [
+                0.6666666666666666,
+                0.16666666666666666,
+                0.5
+              ],
+              "weight": 0.07407407407407407
+            },
+            {
+              "index": 4,
+              "gp_number": 5,
+              "local_coordinates": [
+                0.16666666666666666,
+                0.6666666666666666,
+                0.5
+              ],
+              "weight": 0.07407407407407407
+            },
+            {
+              "index": 5,
+              "gp_number": 6,
+              "local_coordinates": [
+                0.16666666666666666,
+                0.16666666666666666,
+                0.5
+              ],
+              "weight": 0.07407407407407407
+            },
+            {
+              "index": 6,
+              "gp_number": 7,
+              "local_coordinates": [
+                0.6666666666666666,
+                0.16666666666666666,
+                0.8872983346207417
+              ],
+              "weight": 0.046296296296296294
+            },
+            {
+              "index": 7,
+              "gp_number": 8,
+              "local_coordinates": [
+                0.16666666666666666,
+                0.6666666666666666,
+                0.8872983346207417
+              ],
+              "weight": 0.046296296296296294
+            },
+            {
+              "index": 8,
+              "gp_number": 9,
+              "local_coordinates": [
+                0.16666666666666666,
+                0.16666666666666666,
+                0.8872983346207417
+              ],
+              "weight": 0.046296296296296294
+            }
+          ]
+        },
+        "GI_GAUSS_4": {
+          "integration_order_property": 4,
+          "number_of_points": 12,
+          "center_index": null,
+          "points": [
+            {
+              "index": 0,
+              "gp_number": 1,
+              "local_coordinates": [
+                0.6666666666666666,
+                0.16666666666666666,
+                0.06943184420297371
+              ],
+              "weight": 0.02898790376145449
+            },
+            {
+              "index": 1,
+              "gp_number": 2,
+              "local_coordinates": [
+                0.16666666666666666,
+                0.6666666666666666,
+                0.06943184420297371
+              ],
+              "weight": 0.02898790376145449
+            },
+            {
+              "index": 2,
+              "gp_number": 3,
+              "local_coordinates": [
+                0.16666666666666666,
+                0.16666666666666666,
+                0.06943184420297371
+              ],
+              "weight": 0.02898790376145449
+            },
+            {
+              "index": 3,
+              "gp_number": 4,
+              "local_coordinates": [
+                0.6666666666666666,
+                0.16666666666666666,
+                0.33000947820757187
+              ],
+              "weight": 0.054345429571878844
+            },
+            {
+              "index": 4,
+              "gp_number": 5,
+              "local_coordinates": [
+                0.16666666666666666,
+                0.6666666666666666,
+                0.33000947820757187
+              ],
+              "weight": 0.054345429571878844
+            },
+            {
+              "index": 5,
+              "gp_number": 6,
+              "local_coordinates": [
+                0.16666666666666666,
+                0.16666666666666666,
+                0.33000947820757187
+              ],
+              "weight": 0.054345429571878844
+            },
+            {
+              "index": 6,
+              "gp_number": 7,
+              "local_coordinates": [
+                0.6666666666666666,
+                0.16666666666666666,
+                0.6699905217924281
+              ],
+              "weight": 0.054345429571878844
+            },
+            {
+              "index": 7,
+              "gp_number": 8,
+              "local_coordinates": [
+                0.16666666666666666,
+                0.6666666666666666,
+                0.6699905217924281
+              ],
+              "weight": 0.054345429571878844
+            },
+            {
+              "index": 8,
+              "gp_number": 9,
+              "local_coordinates": [
+                0.16666666666666666,
+                0.16666666666666666,
+                0.6699905217924281
+              ],
+              "weight": 0.054345429571878844
+            },
+            {
+              "index": 9,
+              "gp_number": 10,
+              "local_coordinates": [
+                0.6666666666666666,
+                0.16666666666666666,
+                0.9305681557970263
+              ],
+              "weight": 0.02898790376145449
+            },
+            {
+              "index": 10,
+              "gp_number": 11,
+              "local_coordinates": [
+                0.16666666666666666,
+                0.6666666666666666,
+                0.9305681557970263
+              ],
+              "weight": 0.02898790376145449
+            },
+            {
+              "index": 11,
+              "gp_number": 12,
+              "local_coordinates": [
+                0.16666666666666666,
+                0.16666666666666666,
+                0.9305681557970263
+              ],
+              "weight": 0.02898790376145449
+            }
+          ]
+        },
+        "GI_GAUSS_5": {
+          "integration_order_property": 5,
+          "number_of_points": 15,
+          "center_index": null,
+          "points": [
+            {
+              "index": 0,
+              "gp_number": 1,
+              "local_coordinates": [
+                0.6666666666666666,
+                0.16666666666666666,
+                0.046910077030668004
+              ],
+              "weight": 0.019743907088015756
+            },
+            {
+              "index": 1,
+              "gp_number": 2,
+              "local_coordinates": [
+                0.16666666666666666,
+                0.6666666666666666,
+                0.046910077030668004
+              ],
+              "weight": 0.019743907088015756
+            },
+            {
+              "index": 2,
+              "gp_number": 3,
+              "local_coordinates": [
+                0.16666666666666666,
+                0.16666666666666666,
+                0.046910077030668004
+              ],
+              "weight": 0.019743907088015756
+            },
+            {
+              "index": 3,
+              "gp_number": 4,
+              "local_coordinates": [
+                0.6666666666666666,
+                0.16666666666666666,
+                0.23076534494715845
+              ],
+              "weight": 0.03988572254161387
+            },
+            {
+              "index": 4,
+              "gp_number": 5,
+              "local_coordinates": [
+                0.16666666666666666,
+                0.6666666666666666,
+                0.23076534494715845
+              ],
+              "weight": 0.03988572254161387
+            },
+            {
+              "index": 5,
+              "gp_number": 6,
+              "local_coordinates": [
+                0.16666666666666666,
+                0.16666666666666666,
+                0.23076534494715845
+              ],
+              "weight": 0.03988572254161387
+            },
+            {
+              "index": 6,
+              "gp_number": 7,
+              "local_coordinates": [
+                0.6666666666666666,
+                0.16666666666666666,
+                0.5
+              ],
+              "weight": 0.047407407407407405
+            },
+            {
+              "index": 7,
+              "gp_number": 8,
+              "local_coordinates": [
+                0.16666666666666666,
+                0.6666666666666666,
+                0.5
+              ],
+              "weight": 0.047407407407407405
+            },
+            {
+              "index": 8,
+              "gp_number": 9,
+              "local_coordinates": [
+                0.16666666666666666,
+                0.16666666666666666,
+                0.5
+              ],
+              "weight": 0.047407407407407405
+            },
+            {
+              "index": 9,
+              "gp_number": 10,
+              "local_coordinates": [
+                0.6666666666666666,
+                0.16666666666666666,
+                0.7692346550528415
+              ],
+              "weight": 0.03988572254161387
+            },
+            {
+              "index": 10,
+              "gp_number": 11,
+              "local_coordinates": [
+                0.16666666666666666,
+                0.6666666666666666,
+                0.7692346550528415
+              ],
+              "weight": 0.03988572254161387
+            },
+            {
+              "index": 11,
+              "gp_number": 12,
+              "local_coordinates": [
+                0.16666666666666666,
+                0.16666666666666666,
+                0.7692346550528415
+              ],
+              "weight": 0.03988572254161387
+            },
+            {
+              "index": 12,
+              "gp_number": 13,
+              "local_coordinates": [
+                0.6666666666666666,
+                0.16666666666666666,
+                0.953089922969332
+              ],
+              "weight": 0.019743907088015756
+            },
+            {
+              "index": 13,
+              "gp_number": 14,
+              "local_coordinates": [
+                0.16666666666666666,
+                0.6666666666666666,
+                0.953089922969332
+              ],
+              "weight": 0.019743907088015756
+            },
+            {
+              "index": 14,
+              "gp_number": 15,
+              "local_coordinates": [
+                0.16666666666666666,
+                0.16666666666666666,
+                0.953089922969332
+              ],
+              "weight": 0.019743907088015756
+            }
+          ]
+        }
+      }
+    },
+    "pyramid": {
+      "local_dimension": 3,
+      "center_local_coordinates": [
+        0.0,
+        0.0,
+        -0.5
+      ],
+      "source_file": "kratos/integration/pyramid_gauss_legendre_integration_points.h",
+      "source_sha256": "69c6c5013aaf0b3907813d63c048e8d2f6a59b4b818e4451a46d90c19f4a39a3",
+      "source_url": "https://github.com/KratosMultiphysics/Kratos/blob/master/kratos/integration/pyramid_gauss_legendre_integration_points.h",
+      "rules": {
+        "GI_GAUSS_1": {
+          "integration_order_property": 1,
+          "number_of_points": 1,
+          "center_index": 0,
+          "points": [
+            {
+              "index": 0,
+              "gp_number": 1,
+              "local_coordinates": [
+                0.0,
+                0.0,
+                -0.5
+              ],
+              "weight": 4.7407407407407405
+            }
+          ]
+        },
+        "GI_GAUSS_2": {
+          "integration_order_property": 2,
+          "number_of_points": 5,
+          "center_index": null,
+          "points": [
+            {
+              "index": 0,
+              "gp_number": 1,
+              "local_coordinates": [
+                0.5842373946721772,
+                0.5842373946721772,
+                -0.6666666666666666
+              ],
+              "weight": 0.81
+            },
+            {
+              "index": 1,
+              "gp_number": 2,
+              "local_coordinates": [
+                -0.5842373946721772,
+                0.5842373946721772,
+                -0.6666666666666666
+              ],
+              "weight": 0.81
+            },
+            {
+              "index": 2,
+              "gp_number": 3,
+              "local_coordinates": [
+                0.5842373946721772,
+                -0.5842373946721772,
+                -0.6666666666666666
+              ],
+              "weight": 0.81
+            },
+            {
+              "index": 3,
+              "gp_number": 4,
+              "local_coordinates": [
+                -0.5842373946721772,
+                -0.5842373946721772,
+                -0.6666666666666666
+              ],
+              "weight": 0.81
+            },
+            {
+              "index": 4,
+              "gp_number": 5,
+              "local_coordinates": [
+                0.0,
+                0.0,
+                0.4
+              ],
+              "weight": 4.62962962962963
+            }
+          ]
+        },
+        "GI_GAUSS_3": {
+          "integration_order_property": 3,
+          "number_of_points": 8,
+          "center_index": null,
+          "points": [
+            {
+              "index": 0,
+              "gp_number": 1,
+              "local_coordinates": [
+                0.5773502691896257,
+                0.5773502691896257,
+                0.08830368802245057
+              ],
+              "weight": 0.9700392164449294
+            },
+            {
+              "index": 1,
+              "gp_number": 2,
+              "local_coordinates": [
+                -0.5773502691896257,
+                0.5773502691896257,
+                0.08830368802245057
+              ],
+              "weight": 0.9700392164449294
+            },
+            {
+              "index": 2,
+              "gp_number": 3,
+              "local_coordinates": [
+                0.5773502691896257,
+                -0.5773502691896257,
+                0.08830368802245057
+              ],
+              "weight": 0.9700392164449294
+            },
+            {
+              "index": 3,
+              "gp_number": 4,
+              "local_coordinates": [
+                -0.5773502691896257,
+                -0.5773502691896257,
+                0.08830368802245057
+              ],
+              "weight": 0.9700392164449294
+            },
+            {
+              "index": 4,
+              "gp_number": 5,
+              "local_coordinates": [
+                0.5773502691896257,
+                0.5773502691896257,
+                -0.7549703546891172
+              ],
+              "weight": 0.6040348576291448
+            },
+            {
+              "index": 5,
+              "gp_number": 6,
+              "local_coordinates": [
+                -0.5773502691896257,
+                0.5773502691896257,
+                -0.7549703546891172
+              ],
+              "weight": 0.6040348576291448
+            },
+            {
+              "index": 6,
+              "gp_number": 7,
+              "local_coordinates": [
+                0.5773502691896257,
+                -0.5773502691896257,
+                -0.7549703546891172
+              ],
+              "weight": 0.6040348576291448
+            },
+            {
+              "index": 7,
+              "gp_number": 8,
+              "local_coordinates": [
+                -0.5773502691896257,
+                -0.5773502691896257,
+                -0.7549703546891172
+              ],
+              "weight": 0.6040348576291448
+            }
+          ]
+        },
+        "GI_GAUSS_4": {
+          "integration_order_property": 4,
+          "number_of_points": 18,
+          "center_index": null,
+          "points": [
+            {
+              "index": 0,
+              "gp_number": 1,
+              "local_coordinates": [
+                0.7745966692414834,
+                0.7745966692414834,
+                0.08830368802245057
+              ],
+              "weight": 0.2993948198904103
+            },
+            {
+              "index": 1,
+              "gp_number": 2,
+              "local_coordinates": [
+                -0.7745966692414834,
+                0.7745966692414834,
+                0.08830368802245057
+              ],
+              "weight": 0.2993948198904103
+            },
+            {
+              "index": 2,
+              "gp_number": 3,
+              "local_coordinates": [
+                0.7745966692414834,
+                -0.7745966692414834,
+                0.08830368802245057
+              ],
+              "weight": 0.2993948198904103
+            },
+            {
+              "index": 3,
+              "gp_number": 4,
+              "local_coordinates": [
+                -0.7745966692414834,
+                -0.7745966692414834,
+                0.08830368802245057
+              ],
+              "weight": 0.2993948198904103
+            },
+            {
+              "index": 4,
+              "gp_number": 5,
+              "local_coordinates": [
+                0.7745966692414834,
+                0.0,
+                0.08830368802245057
+              ],
+              "weight": 0.4790317118246565
+            },
+            {
+              "index": 5,
+              "gp_number": 6,
+              "local_coordinates": [
+                -0.7745966692414834,
+                0.0,
+                0.08830368802245057
+              ],
+              "weight": 0.4790317118246565
+            },
+            {
+              "index": 6,
+              "gp_number": 7,
+              "local_coordinates": [
+                0.0,
+                0.7745966692414834,
+                0.08830368802245057
+              ],
+              "weight": 0.4790317118246565
+            },
+            {
+              "index": 7,
+              "gp_number": 8,
+              "local_coordinates": [
+                0.0,
+                -0.7745966692414834,
+                0.08830368802245057
+              ],
+              "weight": 0.4790317118246565
+            },
+            {
+              "index": 8,
+              "gp_number": 9,
+              "local_coordinates": [
+                0.0,
+                0.0,
+                0.08830368802245057
+              ],
+              "weight": 0.7664507389194504
+            },
+            {
+              "index": 9,
+              "gp_number": 10,
+              "local_coordinates": [
+                0.7745966692414834,
+                0.7745966692414834,
+                -0.7549703546891172
+              ],
+              "weight": 0.18643051161393356
+            },
+            {
+              "index": 10,
+              "gp_number": 11,
+              "local_coordinates": [
+                -0.7745966692414834,
+                0.7745966692414834,
+                -0.7549703546891172
+              ],
+              "weight": 0.18643051161393356
+            },
+            {
+              "index": 11,
+              "gp_number": 12,
+              "local_coordinates": [
+                0.7745966692414834,
+                -0.7745966692414834,
+                -0.7549703546891172
+              ],
+              "weight": 0.18643051161393356
+            },
+            {
+              "index": 12,
+              "gp_number": 13,
+              "local_coordinates": [
+                -0.7745966692414834,
+                -0.7745966692414834,
+                -0.7549703546891172
+              ],
+              "weight": 0.18643051161393356
+            },
+            {
+              "index": 13,
+              "gp_number": 14,
+              "local_coordinates": [
+                0.7745966692414834,
+                0.0,
+                -0.7549703546891172
+              ],
+              "weight": 0.29828881858229367
+            },
+            {
+              "index": 14,
+              "gp_number": 15,
+              "local_coordinates": [
+                -0.7745966692414834,
+                0.0,
+                -0.7549703546891172
+              ],
+              "weight": 0.29828881858229367
+            },
+            {
+              "index": 15,
+              "gp_number": 16,
+              "local_coordinates": [
+                0.0,
+                0.7745966692414834,
+                -0.7549703546891172
+              ],
+              "weight": 0.29828881858229367
+            },
+            {
+              "index": 16,
+              "gp_number": 17,
+              "local_coordinates": [
+                0.0,
+                -0.7745966692414834,
+                -0.7549703546891172
+              ],
+              "weight": 0.29828881858229367
+            },
+            {
+              "index": 17,
+              "gp_number": 18,
+              "local_coordinates": [
+                0.0,
+                0.0,
+                -0.7549703546891172
+              ],
+              "weight": 0.4772621097316699
+            }
+          ]
+        },
+        "GI_GAUSS_5": {
+          "integration_order_property": 5,
+          "number_of_points": 27,
+          "center_index": null,
+          "points": [
+            {
+              "index": 0,
+              "gp_number": 1,
+              "local_coordinates": [
+                0.7745966692414834,
+                0.7745966692414834,
+                -0.8540119518537005
+              ],
+              "weight": 0.11287470009663707
+            },
+            {
+              "index": 1,
+              "gp_number": 2,
+              "local_coordinates": [
+                -0.7745966692414834,
+                0.7745966692414834,
+                -0.8540119518537005
+              ],
+              "weight": 0.11287470009663707
+            },
+            {
+              "index": 2,
+              "gp_number": 3,
+              "local_coordinates": [
+                0.7745966692414834,
+                -0.7745966692414834,
+                -0.8540119518537005
+              ],
+              "weight": 0.11287470009663707
+            },
+            {
+              "index": 3,
+              "gp_number": 4,
+              "local_coordinates": [
+                -0.7745966692414834,
+                -0.7745966692414834,
+                -0.8540119518537005
+              ],
+              "weight": 0.11287470009663707
+            },
+            {
+              "index": 4,
+              "gp_number": 5,
+              "local_coordinates": [
+                0.7745966692414834,
+                0.0,
+                -0.8540119518537005
+              ],
+              "weight": 0.1805995201546193
+            },
+            {
+              "index": 5,
+              "gp_number": 6,
+              "local_coordinates": [
+                -0.7745966692414834,
+                0.0,
+                -0.8540119518537005
+              ],
+              "weight": 0.1805995201546193
+            },
+            {
+              "index": 6,
+              "gp_number": 7,
+              "local_coordinates": [
+                0.0,
+                0.7745966692414834,
+                -0.8540119518537005
+              ],
+              "weight": 0.1805995201546193
+            },
+            {
+              "index": 7,
+              "gp_number": 8,
+              "local_coordinates": [
+                0.0,
+                -0.7745966692414834,
+                -0.8540119518537005
+              ],
+              "weight": 0.1805995201546193
+            },
+            {
+              "index": 8,
+              "gp_number": 9,
+              "local_coordinates": [
+                0.0,
+                0.0,
+                -0.8540119518537005
+              ],
+              "weight": 0.2889592322473909
+            },
+            {
+              "index": 9,
+              "gp_number": 10,
+              "local_coordinates": [
+                0.7745966692414834,
+                0.7745966692414834,
+                -0.3059924679232962
+              ],
+              "weight": 0.211713439795844
+            },
+            {
+              "index": 10,
+              "gp_number": 11,
+              "local_coordinates": [
+                -0.7745966692414834,
+                0.7745966692414834,
+                -0.3059924679232962
+              ],
+              "weight": 0.211713439795844
+            },
+            {
+              "index": 11,
+              "gp_number": 12,
+              "local_coordinates": [
+                0.7745966692414834,
+                -0.7745966692414834,
+                -0.3059924679232962
+              ],
+              "weight": 0.211713439795844
+            },
+            {
+              "index": 12,
+              "gp_number": 13,
+              "local_coordinates": [
+                -0.7745966692414834,
+                -0.7745966692414834,
+                -0.3059924679232962
+              ],
+              "weight": 0.211713439795844
+            },
+            {
+              "index": 13,
+              "gp_number": 14,
+              "local_coordinates": [
+                0.7745966692414834,
+                0.0,
+                -0.3059924679232962
+              ],
+              "weight": 0.33874150367335043
+            },
+            {
+              "index": 14,
+              "gp_number": 15,
+              "local_coordinates": [
+                -0.7745966692414834,
+                0.0,
+                -0.3059924679232962
+              ],
+              "weight": 0.33874150367335043
+            },
+            {
+              "index": 15,
+              "gp_number": 16,
+              "local_coordinates": [
+                0.0,
+                0.7745966692414834,
+                -0.3059924679232962
+              ],
+              "weight": 0.33874150367335043
+            },
+            {
+              "index": 16,
+              "gp_number": 17,
+              "local_coordinates": [
+                0.0,
+                -0.7745966692414834,
+                -0.3059924679232962
+              ],
+              "weight": 0.33874150367335043
+            },
+            {
+              "index": 17,
+              "gp_number": 18,
+              "local_coordinates": [
+                0.0,
+                0.0,
+                -0.3059924679232962
+              ],
+              "weight": 0.5419864058773607
+            },
+            {
+              "index": 18,
+              "gp_number": 19,
+              "local_coordinates": [
+                0.7745966692414834,
+                0.7745966692414834,
+                0.41000441977699675
+              ],
+              "weight": 0.21244889714455584
+            },
+            {
+              "index": 19,
+              "gp_number": 20,
+              "local_coordinates": [
+                -0.7745966692414834,
+                0.7745966692414834,
+                0.41000441977699675
+              ],
+              "weight": 0.21244889714455584
+            },
+            {
+              "index": 20,
+              "gp_number": 21,
+              "local_coordinates": [
+                0.7745966692414834,
+                -0.7745966692414834,
+                0.41000441977699675
+              ],
+              "weight": 0.21244889714455584
+            },
+            {
+              "index": 21,
+              "gp_number": 22,
+              "local_coordinates": [
+                -0.7745966692414834,
+                -0.7745966692414834,
+                0.41000441977699675
+              ],
+              "weight": 0.21244889714455584
+            },
+            {
+              "index": 22,
+              "gp_number": 23,
+              "local_coordinates": [
+                0.7745966692414834,
+                0.0,
+                0.41000441977699675
+              ],
+              "weight": 0.33991823543128935
+            },
+            {
+              "index": 23,
+              "gp_number": 24,
+              "local_coordinates": [
+                -0.7745966692414834,
+                0.0,
+                0.41000441977699675
+              ],
+              "weight": 0.33991823543128935
+            },
+            {
+              "index": 24,
+              "gp_number": 25,
+              "local_coordinates": [
+                0.0,
+                0.7745966692414834,
+                0.41000441977699675
+              ],
+              "weight": 0.33991823543128935
+            },
+            {
+              "index": 25,
+              "gp_number": 26,
+              "local_coordinates": [
+                0.0,
+                -0.7745966692414834,
+                0.41000441977699675
+              ],
+              "weight": 0.33991823543128935
+            },
+            {
+              "index": 26,
+              "gp_number": 27,
+              "local_coordinates": [
+                0.0,
+                0.0,
+                0.41000441977699675
+              ],
+              "weight": 0.543869176690063
+            }
+          ]
+        }
+      }
+    }
+  },
+  "elements": [
+    {
+      "geometry_type": "Triangle2D3",
+      "example_element_name": "SmallDisplacementElement2D3N",
+      "local_dimension": 2,
+      "number_of_nodes": 3,
+      "interpolation_order": 1,
+      "family": "triangle",
+      "default_rule": "GI_GAUSS_1",
+      "source_file": "kratos/geometries/triangle_2d_3.h",
+      "source_sha256": "5eabe3c8f50cbc816c2ba0a012e6dfd183f4db096c23cb5473c7e876b1375507"
+    },
+    {
+      "geometry_type": "Triangle2D6",
+      "example_element_name": "SmallDisplacementElement2D6N",
+      "local_dimension": 2,
+      "number_of_nodes": 6,
+      "interpolation_order": 2,
+      "family": "triangle",
+      "default_rule": "GI_GAUSS_2",
+      "source_file": "kratos/geometries/triangle_2d_6.h",
+      "source_sha256": "7fff2ebc6434cf704e7365f6ba00c174a6c781cb4d8cc5bd3fa1f52cf4346d4a"
+    },
+    {
+      "geometry_type": "Triangle2D10",
+      "example_element_name": "SmallDisplacementElement2D10N",
+      "local_dimension": 2,
+      "number_of_nodes": 10,
+      "interpolation_order": 3,
+      "family": "triangle",
+      "default_rule": "GI_GAUSS_4",
+      "source_file": "kratos/geometries/triangle_2d_10.h",
+      "source_sha256": "346839533c73e5f96cedd6bc642778f2529c877d007302452210de5c6a70a2b4"
+    },
+    {
+      "geometry_type": "Triangle2D15",
+      "example_element_name": "SmallDisplacementElement2D15N",
+      "local_dimension": 2,
+      "number_of_nodes": 15,
+      "interpolation_order": 4,
+      "family": "triangle",
+      "default_rule": "GI_GAUSS_5",
+      "source_file": "kratos/geometries/triangle_2d_15.h",
+      "source_sha256": "c3e0922d00534fe81168b5b3eee317766a5dccb6067ab2fd0cf22a36289bcae4"
+    },
+    {
+      "geometry_type": "Quadrilateral2D4",
+      "example_element_name": "SmallDisplacementElement2D4N",
+      "local_dimension": 2,
+      "number_of_nodes": 4,
+      "interpolation_order": 1,
+      "family": "quadrilateral",
+      "default_rule": "GI_GAUSS_2",
+      "source_file": "kratos/geometries/quadrilateral_2d_4.h",
+      "source_sha256": "3a79c38bcbd3f31faa8f1d4a5dc1b0925e3916459b0e8547f741a0fc81c85d96"
+    },
+    {
+      "geometry_type": "Quadrilateral2D8",
+      "example_element_name": "SmallDisplacementElement2D8N",
+      "local_dimension": 2,
+      "number_of_nodes": 8,
+      "interpolation_order": 2,
+      "family": "quadrilateral",
+      "default_rule": "GI_GAUSS_3",
+      "source_file": "kratos/geometries/quadrilateral_2d_8.h",
+      "source_sha256": "56c8f79d6fa3335ddf1f19f8d224d00b6553aa23d6f487677fd748515fef5446"
+    },
+    {
+      "geometry_type": "Quadrilateral2D9",
+      "example_element_name": "SmallDisplacementElement2D9N",
+      "local_dimension": 2,
+      "number_of_nodes": 9,
+      "interpolation_order": 2,
+      "family": "quadrilateral",
+      "default_rule": "GI_GAUSS_3",
+      "source_file": "kratos/geometries/quadrilateral_2d_9.h",
+      "source_sha256": "fbcdd17c6b9d5a7218fb5b9c776b0ff189770eb69bc9474f2e9a05ac01f253b2"
+    },
+    {
+      "geometry_type": "Tetrahedra3D4",
+      "example_element_name": "SmallDisplacementElement3D4N",
+      "local_dimension": 3,
+      "number_of_nodes": 4,
+      "interpolation_order": 1,
+      "family": "tetrahedron",
+      "default_rule": "GI_GAUSS_1",
+      "source_file": "kratos/geometries/tetrahedra_3d_4.h",
+      "source_sha256": "9f1a0d78fa6d496a9f81dfbb38ad33a22407172b5856f1868783e7961bd19a7c"
+    },
+    {
+      "geometry_type": "Tetrahedra3D10",
+      "example_element_name": "SmallDisplacementElement3D10N",
+      "local_dimension": 3,
+      "number_of_nodes": 10,
+      "interpolation_order": 2,
+      "family": "tetrahedron",
+      "default_rule": "GI_GAUSS_2",
+      "source_file": "kratos/geometries/tetrahedra_3d_10.h",
+      "source_sha256": "56e8a78f674776040103b5168f7f5c08275caf0989e122653cbe056943cebe5a"
+    },
+    {
+      "geometry_type": "Hexahedra3D8",
+      "example_element_name": "SmallDisplacementElement3D8N",
+      "local_dimension": 3,
+      "number_of_nodes": 8,
+      "interpolation_order": 1,
+      "family": "hexahedron",
+      "default_rule": "GI_GAUSS_2",
+      "source_file": "kratos/geometries/hexahedra_3d_8.h",
+      "source_sha256": "9852c989d4e241e6c17e54728e9550e9272a5130435a852e941f8c5211d8764d"
+    },
+    {
+      "geometry_type": "Hexahedra3D20",
+      "example_element_name": "SmallDisplacementElement3D20N",
+      "local_dimension": 3,
+      "number_of_nodes": 20,
+      "interpolation_order": 2,
+      "family": "hexahedron",
+      "default_rule": "GI_GAUSS_3",
+      "source_file": "kratos/geometries/hexahedra_3d_20.h",
+      "source_sha256": "598a34a046ab0de6815ada1505ba4a3f25815c0dbec7f370e21eafe532009da8"
+    },
+    {
+      "geometry_type": "Hexahedra3D27",
+      "example_element_name": "SmallDisplacementElement3D27N",
+      "local_dimension": 3,
+      "number_of_nodes": 27,
+      "interpolation_order": 2,
+      "family": "hexahedron",
+      "default_rule": "GI_GAUSS_3",
+      "source_file": "kratos/geometries/hexahedra_3d_27.h",
+      "source_sha256": "e54ccfa697cb09748b4599286f95a18942689e387fc5a42857a36ed09d913bce"
+    },
+    {
+      "geometry_type": "Prism3D6",
+      "example_element_name": "SmallDisplacementElement3D6N",
+      "local_dimension": 3,
+      "number_of_nodes": 6,
+      "interpolation_order": 1,
+      "family": "prism",
+      "default_rule": "GI_GAUSS_2",
+      "source_file": "kratos/geometries/prism_3d_6.h",
+      "source_sha256": "7fc0f698461a5a1b3b0fe967f5b9e977e1c9a78c717bc3de5c84a89136618898"
+    },
+    {
+      "geometry_type": "Prism3D15",
+      "example_element_name": "SmallDisplacementElement3D15N",
+      "local_dimension": 3,
+      "number_of_nodes": 15,
+      "interpolation_order": 2,
+      "family": "prism",
+      "default_rule": "GI_GAUSS_3",
+      "source_file": "kratos/geometries/prism_3d_15.h",
+      "source_sha256": "61627dc073a5a9f7401d471ba1d65e742e90c41d07a785a74bb02771242c5670"
+    },
+    {
+      "geometry_type": "Pyramid3D5",
+      "example_element_name": "SmallDisplacementElement3D5N",
+      "local_dimension": 3,
+      "number_of_nodes": 5,
+      "interpolation_order": 1,
+      "family": "pyramid",
+      "default_rule": "GI_GAUSS_2",
+      "source_file": "kratos/geometries/pyramid_3d_5.h",
+      "source_sha256": "bbba7336e4fe795a3732fd416fc19f9f010f10cb66055b5fded9879660f543ec"
+    },
+    {
+      "geometry_type": "Pyramid3D13",
+      "example_element_name": "SmallDisplacementElement3D13N",
+      "local_dimension": 3,
+      "number_of_nodes": 13,
+      "interpolation_order": 2,
+      "family": "pyramid",
+      "default_rule": "GI_GAUSS_2",
+      "source_file": "kratos/geometries/pyramid_3d_13.h",
+      "source_sha256": "d5f882a327d6972a17d093d995c33a40669cf6e5b32aad5a190c20b673f85e1f"
+    }
+  ],
+  "validation": {
+    "rule_count": 30,
+    "point_count": 461,
+    "checks": [
+      "Parsed point count matches C++ IntegrationPointsNumber()",
+      "Reference measures and first moments match each reference geometry",
+      "Pyramid measures include canonical collapsed-mapping determinant (1-zeta)^2/4",
+      "Center matching uses local-coordinate tolerance 1e-12"
+    ]
+  }
+}

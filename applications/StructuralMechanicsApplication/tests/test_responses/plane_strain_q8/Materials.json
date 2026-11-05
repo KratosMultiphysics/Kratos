@@ -1,0 +1,21 @@
+{
+    "properties": [
+        {
+            "model_part_name": "Structure.Plate",
+            "properties_id": 1,
+            "Material": {
+                "name": "Steel",
+                "constitutive_law": {
+                    "name": "LinearElasticPlaneStrain2DLaw"
+                },
+                "Variables": {
+                    "YOUNG_MODULUS": 210000.0,
+                    "POISSON_RATIO": 0.3,
+                    "DENSITY": 7.85e-09,
+                    "THICKNESS": 2.0
+                },
+                "Tables": {}
+            }
+        }
+    ]
+}
