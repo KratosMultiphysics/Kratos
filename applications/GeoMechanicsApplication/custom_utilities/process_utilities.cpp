@@ -56,7 +56,8 @@ std::set<std::string, std::less<>> ExtractModelPartNames(const auto&      rProce
             return r_process["Parameters"].Has(rKey);
         };
         const auto number_of_provided_keys = std::ranges::count_if(rModelPartNameKeys, has_name_key);
-        if (number_of_provided_keys < 1) continue;
+        if (number_of_provided_keys < 1 && r_process["Parameters"].Has("slave_model_part_name"))
+            continue;
         const auto model_part_names = GetProcessModelPartNames(r_process["Parameters"], {}, rModelPartNameKeys);
         for (auto model_part_name : model_part_names) {
             if (model_part_name == RootName) continue;

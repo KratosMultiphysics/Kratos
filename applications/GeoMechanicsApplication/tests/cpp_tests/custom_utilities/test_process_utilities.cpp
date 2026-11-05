@@ -277,7 +277,9 @@ KRATOS_TEST_CASE_IN_SUITE(AddProcessesSubModelPartList_AddsFilledListBasedOnProc
             {
                 "process_name": "ApplyPeriodicConditionProcess",
                 "Parameters":    {
-                    "computing_model_part_name": "PorousDomain.Sides"
+                    "computing_model_part_name": "PorousDomain.computing_model_part",
+                    "master_model_part_name": "PorousDomain.MasterSide",
+                    "slave_model_part_name": "PorousDomain.SlaveSide"
                 }
             }]
          },
