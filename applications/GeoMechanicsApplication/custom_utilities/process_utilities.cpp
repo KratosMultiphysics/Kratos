@@ -49,15 +49,22 @@ std::set<std::string, std::less<>> ExtractModelPartNames(const auto&      rProce
                                                          std::string_view Prefix,
                                                          const std::vector<std::string>& rModelPartNameKeys)
 {
+    const auto process_to_ignore_name_keys =
+        std::vector{"AssignAverageMasterSlaveConstraintsProcess"s, "ApplyPeriodicConditionProcess"s,
+                    "SkinDetectionProcess"s};
+
     std::set<std::string, std::less<>> result;
     for (const auto& r_process : rProcessList) {
         if (!r_process.Has("Parameters")) continue;
         auto has_name_key = [&r_process](const std::string& rKey) {
             return r_process["Parameters"].Has(rKey);
         };
-        const auto number_of_provided_keys = std::ranges::count_if(rModelPartNameKeys, has_name_key);
-        if (number_of_provided_keys < 1 && r_process["Parameters"].Has("slave_model_part_name"))
-            continue;
+        if (std::ranges::count_if(rModelPartNameKeys, has_name_key) < 1) {
+            if (std::ranges::any_of(process_to_ignore_name_keys, [&r_process](const auto& rKey) {
+                return r_process["process_name"].GetString() == rKey;
+            }))
+                continue;
+        }
         const auto model_part_names = GetProcessModelPartNames(r_process["Parameters"], {}, rModelPartNameKeys);
         for (auto model_part_name : model_part_names) {
             if (model_part_name == RootName) continue;
