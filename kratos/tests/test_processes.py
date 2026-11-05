@@ -2587,166 +2587,72 @@ class TestProcesses(KratosUnittest.TestCase):
             # If no matching element is found for the expected_weights, the test fails
             self.assertTrue(matching_found, "No matching element found for expected_weights: {}".format(expected_weights))
 
-    def test_assign_average_master_slave_constraints_process(self):
-        # Set up the model
-        current_model = KratosMultiphysics.Model()
-        model_part = current_model.CreateModelPart("ThermalModelPart")
+    def _check_average_master_slave_constraints(
+            self, master_slave_model_parts, constraint_ids, number_of_masters, expected_weight):
+        model = KratosMultiphysics.Model()
+        model_part = model.CreateModelPart("ThermalModelPart")
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.TEMPERATURE)
-        model_part_io = KratosMultiphysics.ModelPartIO(GetFilePath("auxiliar_files_for_python_unittest/mdpa_files/test_assign_average_master_slave_constraints_process"))
+
+        model_part_io = KratosMultiphysics.ModelPartIO(GetFilePath(
+            "auxiliar_files_for_python_unittest/mdpa_files/"
+            "test_assign_average_master_slave_constraints_process"))
         model_part_io.ReadModelPart(model_part)
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.TEMPERATURE, model_part)
 
-        # Set up process parameters
-        settings = KratosMultiphysics.Parameters(
-            """
-            {
-                "process_list" : [
-                    {
-                        "python_module": "assign_average_master_slave_constraints_process",
-                        "kratos_module": "KratosMultiphysics",
-                        "process_name": "AssignAverageMasterSlaveConstraintsProcess",
-                        "Parameters": {
-                            "computing_model_part_name": "ThermalModelPart",
-                            "master_model_part_name": "ThermalModelPart.GENERIC_Master",
-                            "slave_model_part_name": "ThermalModelPart.GENERIC_Slave",
-                            "reform_constraints_at_each_step":  false,
-                            "variable_name": "TEMPERATURE"
-                        }
+        settings = KratosMultiphysics.Parameters('{"process_list": []}')
+        for master_name, slave_name in master_slave_model_parts:
+            process_settings = KratosMultiphysics.Parameters(
+                """
+                {
+                    "python_module": "assign_average_master_slave_constraints_process",
+                    "kratos_module": "KratosMultiphysics",
+                    "process_name": "AssignAverageMasterSlaveConstraintsProcess",
+                    "Parameters": {
+                        "computing_model_part_name": "ThermalModelPart",
+                        "master_model_part_name": "",
+                        "slave_model_part_name": "",
+                        "reform_constraints_at_each_step": false,
+                        "variable_name": "TEMPERATURE"
                     }
-                    ]
                 }
-            """
-        )
+                """)
+            process_settings["Parameters"]["master_model_part_name"].SetString(master_name)
+            process_settings["Parameters"]["slave_model_part_name"].SetString(slave_name)
+            settings["process_list"].Append(process_settings)
 
-        # Create and execute processes
-        list_of_processes = process_factory.KratosProcessFactory(current_model).ConstructListOfProcesses(settings["process_list"])
-        for process in list_of_processes:
+        processes = process_factory.KratosProcessFactory(model).ConstructListOfProcesses(
+            settings["process_list"])
+        for process in processes:
             process.ExecuteInitialize()
             process.ExecuteInitializeSolutionStep()
 
-        # Define expected constraint weights
-        expected_constraint_weights = [
-            [0.125, 0.125, 0.125, 0.125, 0.125, 0.125, 0.125, 0.125],
-            [0.125, 0.125, 0.125, 0.125, 0.125, 0.125, 0.125, 0.125],
-            [0.125, 0.125, 0.125, 0.125, 0.125, 0.125, 0.125, 0.125],
-        ]
-
-        # Obtain constraint weights from the model
-        obtained_constraint_weights = []
-        contraints_to_validate = [1, 5, 8]
-        for i, id in enumerate(contraints_to_validate):
-            const = model_part.GetMasterSlaveConstraint(id)
-            output_constraint_weights = KratosMultiphysics.Matrix()
+        expected_weights = [expected_weight] * number_of_masters
+        for constraint_id in constraint_ids:
+            constraint = model_part.GetMasterSlaveConstraint(constraint_id)
+            matrix = KratosMultiphysics.Matrix()
             constants = KratosMultiphysics.Vector()
-            const.CalculateLocalSystem(output_constraint_weights, constants, KratosMultiphysics.ProcessInfo())
+            constraint.CalculateLocalSystem(matrix, constants, KratosMultiphysics.ProcessInfo())
+            obtained_weights = [matrix[0, j] for j in range(number_of_masters)]
+            self.assertVectorAlmostEqual(expected_weights, obtained_weights, delta=1e-6)
 
-            obtained_weights = [output_constraint_weights[0, j] for j in range(8)]
-            obtained_constraint_weights.append(obtained_weights)
 
-        # Define a function to check if two weight lists match within a specified tolerance
-        def check_matching_weights(expected_weights, obtained_weights, delta=1e-6):
-            return all(abs(ew - ow) <= delta for ew, ow in zip(expected_weights, obtained_weights))
+    def test_assign_average_master_slave_constraints_process(self):
+        self._check_average_master_slave_constraints(
+            [("ThermalModelPart.GENERIC_Master", "ThermalModelPart.GENERIC_Slave")],
+            [1, 5, 8],
+            number_of_masters=8,
+            expected_weight=0.125)
 
-        # Compare each expected_weights to obtained_weights, ensuring that there is a match
-        for expected_weights in expected_constraint_weights:
-            matching_found = False
-
-            for obtained_weights in obtained_constraint_weights:
-                if check_matching_weights(expected_weights, obtained_weights):
-                    for ew, ow in zip(expected_weights, obtained_weights):
-                        self.assertAlmostEqual(ew, ow, delta=1e-6)  # Assert the weights are equal within the specified tolerance
-                    matching_found = True
-                    break
-
-        # If no matching element is found for the expected_weights, the test fails
-        self.assertTrue(matching_found, "No matching element found for expected_weights: {}".format(expected_weights))
 
     def test_double_assign_average_master_slave_constraints_process(self):
-        # Set up the model
-        current_model = KratosMultiphysics.Model()
-        model_part = current_model.CreateModelPart("ThermalModelPart")
-        model_part.AddNodalSolutionStepVariable(KratosMultiphysics.TEMPERATURE)
-        model_part_io = KratosMultiphysics.ModelPartIO(GetFilePath("auxiliar_files_for_python_unittest/mdpa_files/test_assign_average_master_slave_constraints_process"))
-        model_part_io.ReadModelPart(model_part)
-        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.TEMPERATURE, model_part)
-
-        # Set up process parameters
-        settings = KratosMultiphysics.Parameters(
-            """
-            {
-                "process_list" : [
-                    {
-                        "python_module": "assign_average_master_slave_constraints_process",
-                        "kratos_module": "KratosMultiphysics",
-                        "process_name": "AssignAverageMasterSlaveConstraintsProcess",
-                        "Parameters": {
-                            "computing_model_part_name": "ThermalModelPart",
-                            "master_model_part_name": "ThermalModelPart.Master_lower_right",
-                            "slave_model_part_name": "ThermalModelPart.Slave_lower_right",
-                            "reform_constraints_at_each_step":  false,
-                            "variable_name": "TEMPERATURE"
-                        }
-                    },
-                    {
-                        "python_module": "assign_average_master_slave_constraints_process",
-                        "kratos_module": "KratosMultiphysics",
-                        "process_name": "AssignAverageMasterSlaveConstraintsProcess",
-                        "Parameters": {
-                            "computing_model_part_name": "ThermalModelPart",
-                            "master_model_part_name": "ThermalModelPart.Master_upper_left",
-                            "slave_model_part_name": "ThermalModelPart.Slave_upper_left",
-                            "reform_constraints_at_each_step":  false,
-                            "variable_name": "TEMPERATURE"
-                        }
-                    }
-                ]
-            }
-            """
-        )
-
-        # Create and execute processes
-        list_of_processes = process_factory.KratosProcessFactory(current_model).ConstructListOfProcesses(settings["process_list"])
-        for process in list_of_processes:
-            process.ExecuteInitialize()
-            process.ExecuteInitializeSolutionStep()
-
-        # Define expected constraint weights
-        expected_constraint_weights = [
-            [0.25, 0.25, 0.25, 0.25],
-            [0.25, 0.25, 0.25, 0.25],
-            [0.25, 0.25, 0.25, 0.25],
-            [0.25, 0.25, 0.25, 0.25],
-        ]
-
-        # Obtain constraint weights from the model
-        obtained_constraint_weights = []
-        contraints_to_validate = [1, 4, 5, 8]
-        for i, id in enumerate(contraints_to_validate):
-            const = model_part.GetMasterSlaveConstraint(id)
-            output_constraint_weights = KratosMultiphysics.Matrix()
-            constants = KratosMultiphysics.Vector()
-            const.CalculateLocalSystem(output_constraint_weights, constants, KratosMultiphysics.ProcessInfo())
-
-            obtained_weights = [output_constraint_weights[0, j] for j in range(4)]
-            obtained_constraint_weights.append(obtained_weights)
-
-        # Define a function to check if two weight lists match within a specified tolerance
-        def check_matching_weights(expected_weights, obtained_weights, delta=1e-6):
-            return all(abs(ew - ow) <= delta for ew, ow in zip(expected_weights, obtained_weights))
-
-        # Compare each expected_weights to obtained_weights, ensuring that there is a match
-        for expected_weights in expected_constraint_weights:
-            matching_found = False
-
-            for obtained_weights in obtained_constraint_weights:
-                if check_matching_weights(expected_weights, obtained_weights):
-                    for ew, ow in zip(expected_weights, obtained_weights):
-                        self.assertAlmostEqual(ew, ow, delta=1e-6)  # Assert the weights are equal within the specified tolerance
-                    matching_found = True
-                    break
-
-        # If no matching element is found for the expected_weights, the test fails
-        self.assertTrue(matching_found, "No matching element found for expected_weights: {}".format(expected_weights))
+        self._check_average_master_slave_constraints(
+            [
+                ("ThermalModelPart.Master_lower_right", "ThermalModelPart.Slave_lower_right"),
+                ("ThermalModelPart.Master_upper_left", "ThermalModelPart.Slave_upper_left"),
+            ],
+            [1, 4, 5, 8],
+            number_of_masters=4,
+            expected_weight=0.25)
 
 def SetNodalValuesForPointOutputProcesses(model_part):
     time = model_part.ProcessInfo[KratosMultiphysics.TIME]
