@@ -280,7 +280,7 @@ public:
         mNumRigidBodyModes = (domain_size == 2) ? 3 : 6;
 
         mRigidBodyModes.resize(r_A.size1(), mNumRigidBodyModes, false);
-        std::fill(mRigidBodyModes.data().begin(), mRigidBodyModes.data().begin() + mRigidBodyModes.size1() * mRigidBodyModes.size2(), 0.0);
+        mRigidBodyModes.clear();
 
         mDofNodeId.resize(r_A.size1(), false);
         std::fill(mDofNodeId.data().begin(), mDofNodeId.data().begin() + r_A.size1(), std::size_t(-1));
@@ -452,7 +452,7 @@ private:
         GroupDofsByComponent(rWork);
 
         rWork.pinned.resize(n, false);
-        std::fill(rWork.pinned.data().begin(), rWork.pinned.data().begin() + n, 0);
+        rWork.pinned.clear();
         rWork.num_pinned = 0;
 
         // The unconstrained modes of all components are stacked compactly in mComponentModes
@@ -536,7 +536,7 @@ private:
         }
 
         rWork.component_size.resize(num_components, false);
-        std::fill(rWork.component_size.data().begin(), rWork.component_size.data().begin() + num_components, 0);
+        rWork.component_size.clear();
         for (std::size_t i = 0; i < n; ++i) {
             ++rWork.component_size[rWork.dof_component[i]];
         }
@@ -565,7 +565,7 @@ private:
         for (std::size_t i = 0; i < rA.size1(); ++i) {
             const std::size_t c = rWork.dof_component[i];
 
-            std::fill(row_residual.data().begin(), row_residual.data().begin() + m, 0.0);
+            row_residual.clear();
             for (std::size_t k = r_row_ptr[i]; k < r_row_ptr[i + 1]; ++k) {
                 noalias(row_residual) += r_vals[k] * row(mRigidBodyModes, r_col_idx[k]);
             }
@@ -803,7 +803,7 @@ private:
             }
 
             // pass 1: rhs_a = u_a . (Z_c^T x), with Z_c^T x accumulated row by row
-            std::fill(z_cx.data().begin(), z_cx.data().begin() + M, 0.0);
+            z_cx.clear();
             for (std::size_t idx = mComponentOffsets[c]; idx < mComponentOffsets[c + 1]; ++idx) {
                 const std::size_t i = mComponentDofs[idx];
                 const double x_i = rX[i];
@@ -823,7 +823,7 @@ private:
             const std::size_t rank = SolveSmallSystem(gram, rhs, gamma, r);
 
             // mode_combo = U^T gamma: the mode combination of the removed rigid displacement
-            std::fill(mode_combo.data().begin(), mode_combo.data().begin() + M, 0.0);
+            mode_combo.clear();
             for (std::size_t a = 0; a < rank; ++a) {
                 for (std::size_t b = 0; b < M; ++b) {
                     mode_combo[b] += mComponentModes(mode_base + a, b) * gamma[a];
@@ -913,7 +913,7 @@ private:
     static void ResetMatrix(Matrix& rMatrix, const std::size_t Rows, const std::size_t Cols)
     {
         rMatrix.resize(Rows, Cols, false);
-        std::fill(rMatrix.data().begin(), rMatrix.data().begin() + Rows * Cols, 0.0);
+        rMatrix.clear();
     }
 
     /**
