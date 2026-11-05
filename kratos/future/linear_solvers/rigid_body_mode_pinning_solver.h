@@ -16,7 +16,6 @@
 #include <limits>
 #include <numeric>
 #include <sstream>
-#include <vector>
 
 // External includes
 #include <span/span.hpp>
@@ -24,7 +23,10 @@
 // Project includes
 #include "includes/ublas_interface.h"
 #include "includes/variables.h"
+#include "input_output/logger.h"
+#include "future/linear_solvers/eigen_sparse_lu_solver.h"
 #include "future/linear_solvers/linear_solver.h"
+#include "future/linear_solvers/skyline_lu_factorization_solver.h"
 
 namespace Kratos::Future
 {
@@ -41,13 +43,25 @@ namespace Kratos::Future
  *          (accumulated row by row, never stored) and the unconstrained modes are the
  *          eigenvectors of the Gram matrix R_c^T R_c with (numerically) zero residual.
  *          A greedy pivoted Gram-Schmidt on the rows of Z_eff selects exactly rank(Z_eff)
- *          DOFs which are pinned to zero. Pinning is applied IN PLACE on A and b:
- *          the off-diagonal entries of pinned rows/columns are set to zero and the diagonal
- *          is kept, so the sparsity pattern of A is never changed and no dense matrix of
- *          the size of A is built.
+ *          DOFs which are pinned to zero. Pinning is applied IN PLACE on A and b in
+ *          InitializeSolutionStep, before the wrapped solver factorizes: the off-diagonal
+ *          entries of pinned rows/columns are set to zero and the diagonal is kept, so the
+ *          sparsity pattern of A is never changed and no dense matrix of the size of A
+ *          is built.
+ *          After the wrapped solver performs the solve, the rigid body content of the
+ *          unconstrained components is projected out of the solution
+ *          (x <- x - Z_eff (Z_eff^T Z_eff)^-1 Z_eff^T x, with Z_eff = Z_c U_c the part of Z
+ *          corresponding to the unconstrained modes of the component), so the returned
+ *          displacement is the unique minimal-norm one, independent of the DOFs that
+ *          were pinned.
  *          Number of rigid body modes: 3 in 2D (u_x, u_y, theta_z), 6 in 3D.
+ * @details The Parameters constructor builds the wrapped solver from the "inner_solver_type"
+ *          parameter (currently "skyline_lu_factorization" and "eigen_sparse_lu").
+ *          With "echo_level" > 0 the number of connected components and the number of pinned
+ *          DOFs is printed; with "echo_level" > 1 the pinned DOFs (dof id and node id) are
+ *          listed.
  * @note The rows of A are modified in place (as ScalingSolver does): the matrix must be
- *       re-assembled before the next call to PerformSolutionStep.
+ *       re-assembled before the next call to InitializeSolutionStep.
  * @note The small 3x3/6x6 eigen-decomposition is a cyclic Jacobi routine, since Eigen is not
  *       part of the Kratos external libraries.
  * @tparam TLinearAlgebra The version of the linear algebra to be used
@@ -100,6 +114,45 @@ public:
             mpLinearSolver(pLinearSolver),
             mTolerance(Tolerance)
     {
+        this->mEchoLevel = 0;
+    }
+
+    /**
+     * @brief Constructor from parameters
+     * @details The wrapped solver is selected through the "inner_solver_type" parameter
+     *          (currently "skyline_lu_factorization" and "eigen_sparse_lu"); the validated
+     *          settings are passed to it, so any inner-solver parameter may be set here.
+     * @param Settings The configuration parameters
+     */
+    RigidBodyModePinningSolver(Parameters Settings = Parameters(R"({})"))
+        : BaseType()
+    {
+        // Validate and assign default parameters
+        Settings.ValidateAndAssignDefaults(GetDefaultParameters());
+
+        // Assign the validated settings
+        this->AssignSettings(Settings);
+
+        mTolerance = Settings["tolerance"].GetDouble();
+
+        // Build the wrapped solver: the pinning-specific parameters ("inner_solver_type", "tolerance")
+        // are not part of the inner solver defaults and would fail its validation
+        Parameters inner_settings = BaseType::GetDefaultParameters();
+        inner_settings.SetValue("dx_tag", Settings.GetValue("dx_tag"));
+        inner_settings.SetValue("rhs_tag", Settings.GetValue("rhs_tag"));
+        inner_settings.SetValue("lhs_tag", Settings.GetValue("lhs_tag"));
+        inner_settings.SetValue("multiple_solve", Settings.GetValue("multiple_solve"));
+        inner_settings.SetValue("echo_level", Settings.GetValue("echo_level"));
+
+        const std::string inner_solver_type = Settings["inner_solver_type"].GetString();
+        if (inner_solver_type == "skyline_lu_factorization") {
+            mpLinearSolver = Kratos::make_shared<SkylineLUFactorizationSolver<TLinearAlgebra>>(inner_settings);
+        } else if (inner_solver_type == "eigen_sparse_lu") {
+            mpLinearSolver = Kratos::make_shared<EigenSparseLUSolver<TLinearAlgebra>>(inner_settings);
+        } else {
+            KRATOS_ERROR << "RigidBodyModePinningSolver: unknown \"inner_solver_type\" \"" << inner_solver_type
+                         << "\" (expected \"skyline_lu_factorization\" or \"eigen_sparse_lu\")." << std::endl;
+        }
     }
 
     /// Copy constructor.
@@ -125,37 +178,64 @@ public:
         mpLinearSolver->Initialize(rLinearSystem);
     }
 
-    /// Delegates the initialization of the solution step to the wrapped solver
-    void InitializeSolutionStep(LinearSystemType& rLinearSystem) override
-    {
-        mpLinearSolver->InitializeSolutionStep(rLinearSystem);
-    }
-
     /**
-     * @brief Pins the rigid body modes of the unconstrained components in place and solves.
+     * @brief Pins the rigid body modes of the unconstrained components in place and
+     *        delegates the initialization of the solution step to the wrapped solver.
+     * @details The pinning is applied before delegating, so a wrapped direct solver
+     *          factorizes the already-pinned matrix in its own InitializeSolutionStep.
      * @param rLinearSystem The linear system to be solved (the matrix and the vectors are
      *                      modified in place: pinned rows/columns are zeroed off-diagonal,
      *                      pinned entries of the rhs and of the initial guess are set to zero)
      */
-    bool PerformSolutionStep(LinearSystemType& rLinearSystem) override
+    void InitializeSolutionStep(LinearSystemType& rLinearSystem) override
     {
-        if (!rLinearSystem.IsConsistent(SparseMatrixTag::LHS, DenseVectorTag::RHS, DenseVectorTag::Dx)) {
-            return false;
+        if (rLinearSystem.IsConsistent(SparseMatrixTag::LHS, DenseVectorTag::RHS, DenseVectorTag::Dx)) {
+            auto& r_lin_op = *rLinearSystem.pGetLinearOperator(SparseMatrixTag::LHS);
+            KRATOS_ERROR_IF(r_lin_op.IsMatrixFree()) << "RigidBodyModePinningSolver cannot be used with matrix-free linear operators." << std::endl;
+            auto& rA = r_lin_op.GetMatrix();
+            auto& rX = *rLinearSystem.pGetVector(DenseVectorTag::Dx);
+            auto& rB = *rLinearSystem.pGetVector(DenseVectorTag::RHS);
+
+            KRATOS_ERROR_IF(mRigidBodyModes.size1() != rA.size1() || mNumRigidBodyModes == 0)
+                << "RigidBodyModePinningSolver: PrepareAdditionalData must be called before InitializeSolutionStep (node data missing)" << std::endl;
+
+            // The work arrays are transient: they live only for the duration of this call
+            PinningWork work;
+            ComputePinningMask(rA, work);
+            ApplyPinning(rA, rX, rB, work);
+
+            // Echo the pinning summary
+            KRATOS_INFO_IF("RigidBodyModePinningSolver", this->mEchoLevel > 0)
+                << "Pinned " << work.num_pinned << " dofs of " << work.component_size.size()
+                << " connected components (the unconstrained rigid body modes were removed)." << std::endl;
+            if (this->mEchoLevel > 1) {
+                std::stringstream buffer;
+                for (std::size_t p = 0; p < work.pinned.size(); ++p) {
+                    if (work.pinned[p]) {
+                        buffer << "  dof " << p << " (node " << mDofNodeId[p] << ")" << '\n';
+                    }
+                }
+                KRATOS_INFO("RigidBodyModePinningSolver") << "Pinned dofs (dof id, node id):\n" << buffer.str() << std::endl;
+            }
         }
 
-        auto& r_lin_op = *rLinearSystem.pGetLinearOperator(SparseMatrixTag::LHS);
-        KRATOS_ERROR_IF(r_lin_op.IsMatrixFree()) << "RigidBodyModePinningSolver cannot be used with matrix-free linear operators." << std::endl;
-        auto& rA = r_lin_op.GetMatrix();
-        auto& rX = *rLinearSystem.pGetVector(DenseVectorTag::Dx);
-        auto& rB = *rLinearSystem.pGetVector(DenseVectorTag::RHS);
+        mpLinearSolver->InitializeSolutionStep(rLinearSystem);
+    }
 
-        KRATOS_ERROR_IF(mRigidBodyModes.size1() != rA.size1() || mNumRigidBodyModes == 0)
-            << "RigidBodyModePinningSolver: PrepareAdditionalData must be called before PerformSolutionStep (node data missing)" << std::endl;
-
-        ComputePinningMask(rA);
-        ApplyPinning(rA, rX, rB);
-
-        return mpLinearSolver->PerformSolutionStep(rLinearSystem);
+    /**
+     * @brief Delegates the solution of the system to the wrapped solver and removes the
+     *        rigid body content of the solution.
+     * @details After a successful solve, the rigid body content of the unconstrained
+     *          components is projected out of the solution, so the returned solution is
+     *          the unique minimal-norm one, independent of the DOFs that were pinned.
+     */
+    bool PerformSolutionStep(LinearSystemType& rLinearSystem) override
+    {
+        const bool success = mpLinearSolver->PerformSolutionStep(rLinearSystem);
+        if (success && mNumRigidBodyModes != 0) {
+            FilterRigidBodyContent(*rLinearSystem.pGetVector(DenseVectorTag::Dx));
+        }
+        return success;
     }
 
     /// Delegates the finalization of the solution step to the wrapped solver
@@ -168,6 +248,18 @@ public:
     void Clear() override
     {
         mpLinearSolver->Clear();
+    }
+
+    Parameters GetDefaultParameters() const override
+    {
+        Parameters default_parameters(R"({
+            "solver_type" : "rigid_body_mode_pinning",
+            "inner_solver_type" : "skyline_lu_factorization",
+            "tolerance" : 1.0e-6
+        })");
+        default_parameters.AddMissingParameters(BaseType::GetDefaultParameters());
+
+        return default_parameters;
     }
 
     /**
@@ -190,10 +282,14 @@ public:
         mRigidBodyModes.resize(r_A.size1(), mNumRigidBodyModes, false);
         std::fill(mRigidBodyModes.data().begin(), mRigidBodyModes.data().begin() + mRigidBodyModes.size1() * mRigidBodyModes.size2(), 0.0);
 
+        mDofNodeId.resize(r_A.size1(), false);
+        std::fill(mDofNodeId.data().begin(), mDofNodeId.data().begin() + r_A.size1(), std::size_t(-1));
+
         for (const auto& r_node : r_model_part.Nodes()) {
             for (const auto& p_dof : r_node.GetDofs()) {
                 const std::size_t eq_id = p_dof->EquationId();
                 if (eq_id < r_A.size1()) {
+                    mDofNodeId[eq_id] = r_node.Id();
                     FillRigidBodyModeRow(p_dof->GetVariable(), r_node.X0(), r_node.Y0(), r_node.Z0(), row(mRigidBodyModes, eq_id));
                 }
             }
@@ -246,6 +342,21 @@ public:
     ///@}
 
 private:
+    ///@name Type Definitions
+    ///@{
+
+    /// Transient work arrays for one pinning computation: allocated in InitializeSolutionStep
+    /// and living only for the duration of that call
+    struct PinningWork
+    {
+        DenseVector<std::size_t> dof_component;     /// Component id of each DOF
+        DenseVector<std::size_t> component_size;    /// Number of DOFs per component
+        Matrix component_h;                         /// Stacked (n_comp*M x M) blocks R_c^T R_c
+        DenseVector<char> pinned;                   /// Flag of pinned DOFs
+        std::size_t num_pinned = 0;                 /// Number of pinned DOFs
+    };
+
+    ///@}
     ///@name Private Static Helpers
     ///@{
 
@@ -263,7 +374,7 @@ private:
         return Kratos::span<double>(rStacked.data().begin() + Component * M * M, M * M);
     }
 
-    static std::size_t Find(std::vector<std::size_t>& rParent, std::size_t i)
+    static std::size_t Find(DenseVector<std::size_t>& rParent, std::size_t i)
     {
         while (rParent[i] != i) {
             rParent[i] = rParent[rParent[i]]; // path halving
@@ -272,7 +383,7 @@ private:
         return i;
     }
 
-    static void Unite(std::vector<std::size_t>& rParent, const std::size_t I, const std::size_t J)
+    static void Unite(DenseVector<std::size_t>& rParent, const std::size_t I, const std::size_t J)
     {
         const std::size_t ri = Find(rParent, I);
         const std::size_t rj = Find(rParent, J);
@@ -329,28 +440,43 @@ private:
     ///@{
 
     /**
-     * @brief Computes the pinned DOFs (mPinned / mPinnedDofs) from the current matrix A.
-     * @details Works on the unmodified matrix. All buffers are reused between calls.
+     * @brief Computes the pinned DOFs (rWork.pinned) from the current matrix A.
+     * @details Works on the unmodified matrix; all work arrays are provided by the caller
+     *          through rWork.
      */
-    void ComputePinningMask(const MatrixType& rA)
+    void ComputePinningMask(const MatrixType& rA, PinningWork& rWork)
     {
         const std::size_t n = rA.size1();
-        const double global_k_norm = ComputeConnectedComponents(rA);
-        AccumulateComponentGrams(rA);
-        GroupDofsByComponent();
+        const double global_k_norm = ComputeConnectedComponents(rA, rWork);
+        AccumulateComponentGrams(rA, rWork);
+        GroupDofsByComponent(rWork);
 
-        mPinned.assign(n, 0);
-        mPinnedDofs.clear();
+        rWork.pinned.resize(n, false);
+        std::fill(rWork.pinned.data().begin(), rWork.pinned.data().begin() + n, 0);
+        rWork.num_pinned = 0;
 
-        for (std::size_t c = 0; c < mNumComponents; ++c) {
-            if (mComponentSize[c] == 0) {
-                continue;
+        // The unconstrained modes of all components are stacked compactly in mComponentModes
+        // (at most m rows per component); the offsets record where each component's rows start
+        const std::size_t num_components = rWork.component_size.size();
+        mComponentModes.resize(num_components * mNumRigidBodyModes, mNumRigidBodyModes, false);
+        mComponentModeOffsets.resize(num_components + 1, false);
+        mComponentModeOffsets[0] = 0;
+
+        Matrix unconstrained; /// Unconstrained modes of the current component, as rows (r x M)
+        for (std::size_t c = 0; c < num_components; ++c) {
+            std::size_t r = 0;
+            if (rWork.component_size[c] > 0) {
+                const double est_kc_norm = global_k_norm * std::sqrt(static_cast<double>(rWork.component_size[c]) / static_cast<double>(n));
+                r = ComputeUnconstrainedModes(c, est_kc_norm, rWork, unconstrained);
+                const std::size_t base = mComponentModeOffsets[c];
+                for (std::size_t a = 0; a < r; ++a) {
+                    row(mComponentModes, base + a) = row(unconstrained, a);
+                }
+                if (r > 0) {
+                    GreedyPinComponent(c, r, unconstrained, rWork);
+                }
             }
-            const double est_kc_norm = global_k_norm * std::sqrt(static_cast<double>(mComponentSize[c]) / static_cast<double>(n));
-            const std::size_t r = ComputeUnconstrainedModes(c, est_kc_norm);
-            if (r > 0) {
-                GreedyPinComponent(c, r);
-            }
+            mComponentModeOffsets[c + 1] = mComponentModeOffsets[c] + r;
         }
     }
 
@@ -358,40 +484,41 @@ private:
      * @brief Splits the sparsity graph of A in connected components (union-find on nonzero entries).
      * @return The Frobenius norm of A
      */
-    double ComputeConnectedComponents(const MatrixType& rA)
+    double ComputeConnectedComponents(const MatrixType& rA, PinningWork& rWork)
     {
         const std::size_t n = rA.size1();
         const auto& r_row_ptr = rA.index1_data();
         const auto& r_col_idx = rA.index2_data();
         const auto& r_vals = rA.value_data();
 
-        mParent.resize(n);
-        std::iota(mParent.begin(), mParent.end(), std::size_t(0));
+        DenseVector<std::size_t> parent(n);
+        std::iota(parent.begin(), parent.end(), std::size_t(0));
 
         double k_norm2 = 0.0;
         for (std::size_t i = 0; i < n; ++i) {
             for (std::size_t k = r_row_ptr[i]; k < r_row_ptr[i + 1]; ++k) {
                 if (r_vals[k] != 0.0) {
                     k_norm2 += r_vals[k] * r_vals[k];
-                    Unite(mParent, i, r_col_idx[k]);
+                    Unite(parent, i, r_col_idx[k]);
                 }
             }
         }
 
-        std::vector<std::size_t> root_to_component(n, npos);
-        mDofComponent.resize(n);
-        mNumComponents = 0;
+        DenseVector<std::size_t> root_to_component(n, npos);
+        rWork.dof_component.resize(n, false);
+        std::size_t num_components = 0;
         for (std::size_t i = 0; i < n; ++i) {
-            const std::size_t root = Find(mParent, i);
+            const std::size_t root = Find(parent, i);
             if (root_to_component[root] == npos) {
-                root_to_component[root] = mNumComponents++;
+                root_to_component[root] = num_components++;
             }
-            mDofComponent[i] = root_to_component[root];
+            rWork.dof_component[i] = root_to_component[root];
         }
 
-        mComponentSize.assign(mNumComponents, 0);
+        rWork.component_size.resize(num_components, false);
+        std::fill(rWork.component_size.data().begin(), rWork.component_size.data().begin() + num_components, 0);
         for (std::size_t i = 0; i < n; ++i) {
-            ++mComponentSize[mDofComponent[i]];
+            ++rWork.component_size[rWork.dof_component[i]];
         }
 
         return std::sqrt(k_norm2);
@@ -399,45 +526,53 @@ private:
 
     /**
      * @brief Accumulates per component H_c = sum_i R_i R_i^T (R_i = sum_j A_ij Z_j) and G_c = sum_i Z_i Z_i^T.
-     * @details R is never stored: each row of A is contracted with Z on the fly.
+     * @details R is never stored: each row of A is contracted with Z on the fly. The G_c blocks
+     *          are kept in mComponentG, since the rigid body filter reuses them in PerformSolutionStep.
      */
-    void AccumulateComponentGrams(const MatrixType& rA)
+    void AccumulateComponentGrams(const MatrixType& rA, PinningWork& rWork)
     {
         const std::size_t m = mNumRigidBodyModes;
+        const std::size_t num_components = rWork.component_size.size();
         const auto& r_row_ptr = rA.index1_data();
         const auto& r_col_idx = rA.index2_data();
         const auto& r_vals = rA.value_data();
 
-        ResetMatrix(mComponentH, mNumComponents * m, m);
-        ResetMatrix(mComponentG, mNumComponents * m, m);
-        mRowResidual.resize(m, false);
+        ResetMatrix(rWork.component_h, num_components * m, m);
+        ResetMatrix(mComponentG, num_components * m, m);
+        Vector row_residual(m);
 
         for (std::size_t i = 0; i < rA.size1(); ++i) {
-            const std::size_t c = mDofComponent[i];
+            const std::size_t c = rWork.dof_component[i];
 
-            std::fill(mRowResidual.begin(), mRowResidual.end(), 0.0);
+            std::fill(row_residual.data().begin(), row_residual.data().begin() + m, 0.0);
             for (std::size_t k = r_row_ptr[i]; k < r_row_ptr[i + 1]; ++k) {
-                noalias(mRowResidual) += r_vals[k] * row(mRigidBodyModes, r_col_idx[k]);
+                noalias(row_residual) += r_vals[k] * row(mRigidBodyModes, r_col_idx[k]);
             }
 
-            AddOuterProduct(Kratos::span<const double>(mRowResidual.data().begin(), m), BlockSpan(mComponentH, c, m));
+            AddOuterProduct(Kratos::span<const double>(row_residual.data().begin(), m), BlockSpan(rWork.component_h, c, m));
             AddOuterProduct(RowSpan(mRigidBodyModes, i), BlockSpan(mComponentG, c, m));
         }
     }
 
     /// Groups the DOF indices by component (counting sort), so each component can be visited directly
-    void GroupDofsByComponent()
+    void GroupDofsByComponent(const PinningWork& rWork)
     {
-        const std::size_t n = mDofComponent.size();
-        mComponentOffsets.assign(mNumComponents + 1, 0);
-        for (std::size_t c = 0; c < mNumComponents; ++c) {
-            mComponentOffsets[c + 1] = mComponentOffsets[c] + mComponentSize[c];
+        const std::size_t n = rWork.dof_component.size();
+        const std::size_t num_components = rWork.component_size.size();
+
+        mComponentOffsets.resize(num_components + 1, false);
+        mComponentOffsets[0] = 0;
+        for (std::size_t c = 0; c < num_components; ++c) {
+            mComponentOffsets[c + 1] = mComponentOffsets[c] + rWork.component_size[c];
         }
 
-        mComponentDofs.resize(n);
-        std::vector<std::size_t> cursor(mComponentOffsets.begin(), mComponentOffsets.end() - 1);
+        mComponentDofs.resize(n, false);
+        DenseVector<std::size_t> cursor(num_components);
+        for (std::size_t c = 0; c < num_components; ++c) {
+            cursor[c] = mComponentOffsets[c];
+        }
         for (std::size_t i = 0; i < n; ++i) {
-            mComponentDofs[cursor[mDofComponent[i]]++] = i;
+            mComponentDofs[cursor[rWork.dof_component[i]]++] = i;
         }
     }
 
@@ -445,42 +580,57 @@ private:
      * @brief Selects the unconstrained rigid body modes of component c.
      * @details Eigen-decomposes H_c and keeps the eigenvectors whose residual is negligible
      *          relative to the (estimated) stiffness scale of the component.
-     *          The kept vectors are stored as rows of mUnconstrained (first r rows).
+     *          The kept vectors are stored as rows of rUnconstrained (r rows).
      * @return The number r of unconstrained modes
      */
-    std::size_t ComputeUnconstrainedModes(const std::size_t c, const double EstKcNorm)
+    std::size_t ComputeUnconstrainedModes(
+        const std::size_t c,
+        const double EstKcNorm,
+        const PinningWork& rWork,
+        Matrix& rUnconstrained)
     {
         const std::size_t m = mNumRigidBodyModes;
         const double eps = std::numeric_limits<double>::epsilon();
 
         // eigen-decomposition of H_c
-        mWorkH = subrange(mComponentH, c * m, (c + 1) * m, 0, m);
-        JacobiEigenDecomposition(mWorkH, mLambda, mWorkV);
+        Matrix work_h;
+        work_h = subrange(rWork.component_h, c * m, (c + 1) * m, 0, m);
+        Vector lambda;
+        Matrix work_v;
+        JacobiEigenDecomposition(work_h, lambda, work_v);
 
-        mOrder.resize(m);
-        std::iota(mOrder.begin(), mOrder.end(), std::size_t(0));
-        std::sort(mOrder.begin(), mOrder.end(), [&](const std::size_t a, const std::size_t b) { return mLambda[a] < mLambda[b]; });
+        DenseVector<std::size_t> order(m);
+        std::iota(order.begin(), order.end(), std::size_t(0));
+        std::sort(order.begin(), order.end(), [&](const std::size_t a, const std::size_t b) { return lambda[a] < lambda[b]; });
 
-        mWorkG = subrange(mComponentG, c * m, (c + 1) * m, 0, m);
+        Matrix work_g;
+        work_g = subrange(mComponentG, c * m, (c + 1) * m, 0, m);
 
-        mSelectedModes.clear();
-        mMode.resize(m, false);
-        for (const std::size_t k : mOrder) {
-            mMode = column(mWorkV, k);
-
-            const double res_norm = std::sqrt(std::max(mLambda[k], 0.0));
-            const double mode_z_norm = std::sqrt(std::max(inner_prod(mMode, prod(mWorkG, mMode)), 0.0));
+        // true for the eigenvectors with (numerically) zero residual
+        const auto is_unconstrained = [&](const std::size_t k)
+        {
+            Vector mode;
+            mode = column(work_v, k);
+            const double res_norm = std::sqrt(std::max(lambda[k], 0.0));
+            const double mode_z_norm = std::sqrt(std::max(inner_prod(mode, prod(work_g, mode)), 0.0));
             const double scale = std::max(EstKcNorm * mode_z_norm, eps);
+            return res_norm / scale < mTolerance;
+        };
 
-            if (res_norm / scale < mTolerance) {
-                mSelectedModes.push_back(k);
+        std::size_t r = 0;
+        for (const std::size_t k : order) {
+            if (is_unconstrained(k)) {
+                ++r;
             }
         }
 
-        const std::size_t r = mSelectedModes.size();
-        mUnconstrained.resize(r, m, false);
-        for (std::size_t a = 0; a < r; ++a) {
-            row(mUnconstrained, a) = column(mWorkV, mSelectedModes[a]);
+        rUnconstrained.resize(r, m, false);
+        std::size_t a = 0;
+        for (std::size_t k = 0; k < m; ++k) {
+            if (is_unconstrained(k)) {
+                row(rUnconstrained, a) = column(work_v, k);
+                ++a;
+            }
         }
         return r;
     }
@@ -490,13 +640,13 @@ private:
      * @details Pins, in component c, the DOFs whose effective rows add the largest new direction
      *          until the rank r of Z_eff is exhausted. Equivalent to a pivoted QR on Z_eff^T.
      */
-    void GreedyPinComponent(const std::size_t c, const std::size_t r)
+    void GreedyPinComponent(const std::size_t c, const std::size_t r, const Matrix& rUnconstrained, PinningWork& rWork)
     {
         const double rank_rel_tol = 1.0e-8;
 
-        mTrialRow.resize(r, false);
-        mBestRow.resize(r, false);
-        mQBasis.resize(r, r, false);
+        Vector trial_row(r);
+        Vector best_row(r);
+        Matrix q_basis(r, r, false);
 
         std::size_t n_q = 0;
         double max_norm2_0 = 0.0;
@@ -505,16 +655,16 @@ private:
             std::size_t best_dof = npos;
             for (std::size_t idx = mComponentOffsets[c]; idx < mComponentOffsets[c + 1]; ++idx) {
                 const std::size_t i = mComponentDofs[idx];
-                if (mPinned[i]) {
+                if (rWork.pinned[i]) {
                     continue;
                 }
-                ComputeEffectiveRow(i, mTrialRow);
-                ProjectOutSelected(mTrialRow, n_q);
-                const double norm2 = inner_prod(mTrialRow, mTrialRow);
+                ComputeEffectiveRow(i, trial_row, rUnconstrained);
+                ProjectOutSelected(trial_row, n_q, q_basis);
+                const double norm2 = inner_prod(trial_row, trial_row);
                 if (norm2 > best) {
                     best = norm2;
                     best_dof = i;
-                    mBestRow = mTrialRow;
+                    best_row = trial_row;
                 }
             }
 
@@ -528,29 +678,29 @@ private:
                 break; // remaining rows are linearly dependent: rank reached
             }
 
-            mPinned[best_dof] = 1;
-            mPinnedDofs.push_back(best_dof);
+            rWork.pinned[best_dof] = 1;
+            ++rWork.num_pinned;
 
             const double inv_norm = 1.0 / std::sqrt(best);
             for (std::size_t a = 0; a < r; ++a) {
-                mQBasis(n_q, a) = mBestRow[a] * inv_norm;
+                q_basis(n_q, a) = best_row[a] * inv_norm;
             }
             ++n_q;
         }
     }
 
     /// w[a] = u_a . Z_i for the first r unconstrained modes u_a
-    void ComputeEffectiveRow(const std::size_t I, Vector& rW) const
+    void ComputeEffectiveRow(const std::size_t I, Vector& rW, const Matrix& rUnconstrained) const
     {
-        noalias(rW) = prod(mUnconstrained, row(mRigidBodyModes, I));
+        noalias(rW) = prod(rUnconstrained, row(mRigidBodyModes, I));
     }
 
     /// Removes from w the components along the first n_q orthonormal directions (two passes)
-    void ProjectOutSelected(Vector& rW, const std::size_t n_q) const
+    void ProjectOutSelected(Vector& rW, const std::size_t n_q, const Matrix& rQBasis) const
     {
         for (int pass = 0; pass < 2; ++pass) {
             for (std::size_t qk = 0; qk < n_q; ++qk) {
-                const auto q_row = row(mQBasis, qk);
+                const auto q_row = row(rQBasis, qk);
                 noalias(rW) -= inner_prod(q_row, rW) * q_row;
             }
         }
@@ -560,9 +710,9 @@ private:
      * @brief Applies the pinning in place: zero the off-diagonal entries of pinned rows and columns
      *        (diagonal kept, so the pattern is unchanged), zero the pinned rhs and initial guess.
      */
-    void ApplyPinning(MatrixType& rA, VectorType& rX, VectorType& rB) const
+    void ApplyPinning(MatrixType& rA, VectorType& rX, VectorType& rB, const PinningWork& rWork) const
     {
-        if (mPinnedDofs.empty()) {
+        if (rWork.num_pinned == 0) {
             return;
         }
 
@@ -573,16 +723,175 @@ private:
         for (std::size_t i = 0; i < rA.size1(); ++i) {
             for (std::size_t k = r_row_ptr[i]; k < r_row_ptr[i + 1]; ++k) {
                 const std::size_t j = r_col_idx[k];
-                if (j != i && (mPinned[i] || mPinned[j])) {
+                if (j != i && (rWork.pinned[i] || rWork.pinned[j])) {
                     r_vals[k] = 0.0;
                 }
             }
         }
 
-        for (const std::size_t p : mPinnedDofs) {
-            rB[p] = 0.0;
-            rX[p] = 0.0;
+        for (std::size_t p = 0; p < rWork.pinned.size(); ++p) {
+            if (rWork.pinned[p]) {
+                rB[p] = 0.0;
+                rX[p] = 0.0;
+            }
         }
+    }
+
+    /**
+     * @brief Removes the rigid body content of the unconstrained components from rX.
+     * @details For each component c with r unconstrained modes u_a (rows of mComponentModes)
+     *          the effective mode matrix Z_eff = Z_c U_c (n_c x r) spans the null space of the
+     *          pinned system on that component, so the projection
+     *              x <- x - Z_eff (Z_eff^T Z_eff)^-1 Z_eff^T x
+     *          removes the rigid body content and the result no longer depends on the DOFs
+     *          that were pinned. Z_eff is never stored: the Gram Z_eff^T Z_eff = U^T G_c U is
+     *          formed from the per-component Gram G_c = Z_c^T Z_c accumulated during pinning
+     *          and the stored modes, the right hand side Z_eff^T x = U^T (Z_c^T x) is
+     *          accumulated row by row over the DOFs of the component, and the r x r system
+     *          (r <= M) is solved by pivoted elimination before the correction is applied
+     *          in a second pass. The small work arrays are allocated once and reused across
+     *          components.
+     */
+    void FilterRigidBodyContent(VectorType& rX) const
+    {
+        const std::size_t M = mNumRigidBodyModes;
+        if (mComponentModeOffsets.size() < 2 || mRigidBodyModes.size1() != rX.size()) {
+            return; // no pinning was computed for this system
+        }
+
+        Matrix gram(M, M, false);     /// Z_eff^T Z_eff of the current component (destroyed by the elimination)
+        Vector z_cx(M, false);        /// Z_c^T x of the current component
+        Vector rhs(M, false);         /// Z_eff^T x
+        Vector gamma(M, false);       /// (Z_eff^T Z_eff)^-1 Z_eff^T x
+        Vector mode_combo(M, false);  /// M-vector combination of the removed rigid displacement
+
+        for (std::size_t c = 0; c + 1 < mComponentModeOffsets.size(); ++c) {
+            const std::size_t r = mComponentModeOffsets[c + 1] - mComponentModeOffsets[c];
+            if (r == 0) {
+                continue;
+            }
+            const std::size_t mode_base = mComponentModeOffsets[c];
+
+            // gram = Z_eff^T Z_eff = U^T G_c U, from the Gram stored at pinning time
+            Matrix g_c;
+            g_c = subrange(mComponentG, c * M, (c + 1) * M, 0, M);
+            for (std::size_t a = 0; a < r; ++a) {
+                for (std::size_t b = 0; b < r; ++b) {
+                    double s = 0.0;
+                    for (std::size_t p = 0; p < M; ++p) {
+                        for (std::size_t q = 0; q < M; ++q) {
+                            s += mComponentModes(mode_base + a, p) * g_c(p, q) * mComponentModes(mode_base + b, q);
+                        }
+                    }
+                    gram(a, b) = s;
+                }
+            }
+
+            // pass 1: rhs_a = u_a . (Z_c^T x), with Z_c^T x accumulated row by row
+            std::fill(z_cx.data().begin(), z_cx.data().begin() + M, 0.0);
+            for (std::size_t idx = mComponentOffsets[c]; idx < mComponentOffsets[c + 1]; ++idx) {
+                const std::size_t i = mComponentDofs[idx];
+                const double x_i = rX[i];
+                for (std::size_t b = 0; b < M; ++b) {
+                    z_cx[b] += x_i * mRigidBodyModes(i, b);
+                }
+            }
+            for (std::size_t a = 0; a < r; ++a) {
+                double s = 0.0;
+                for (std::size_t p = 0; p < M; ++p) {
+                    s += mComponentModes(mode_base + a, p) * z_cx[p];
+                }
+                rhs[a] = s;
+            }
+
+            // solve the small system gram * gamma = rhs
+            const std::size_t rank = SolveSmallSystem(gram, rhs, gamma, r);
+
+            // mode_combo = U^T gamma: the mode combination of the removed rigid displacement
+            std::fill(mode_combo.data().begin(), mode_combo.data().begin() + M, 0.0);
+            for (std::size_t a = 0; a < rank; ++a) {
+                for (std::size_t b = 0; b < M; ++b) {
+                    mode_combo[b] += mComponentModes(mode_base + a, b) * gamma[a];
+                }
+            }
+
+            // pass 2: remove Z_i . mode_combo from the solution of the DOFs of c
+            for (std::size_t idx = mComponentOffsets[c]; idx < mComponentOffsets[c + 1]; ++idx) {
+                const std::size_t i = mComponentDofs[idx];
+                double s = 0.0;
+                for (std::size_t b = 0; b < M; ++b) {
+                    s += mRigidBodyModes(i, b) * mode_combo[b];
+                }
+                rX[i] -= s;
+            }
+        }
+    }
+
+    /**
+     * @brief Solves the small dense system G * x = b by partial-pivoting Gaussian elimination.
+     * @details G (r x r) and b (r x 1) are overwritten. If G is rank deficient the
+     *          elimination stops and the remaining components of x are set to zero.
+     * @return The number of pivots found
+     */
+    static std::size_t SolveSmallSystem(Matrix& rG, Vector& rB, Vector& rX, const std::size_t r)
+    {
+        double scale = 0.0;
+        for (std::size_t p = 0; p < r; ++p) {
+            for (std::size_t q = 0; q < r; ++q) {
+                scale = std::max(scale, std::abs(rG(p, q)));
+            }
+        }
+        const double rank_tol = 1.0e-12 * scale;
+
+        std::size_t rank = 0;
+        for (std::size_t col = 0; col < r; ++col) {
+            std::size_t pivot = col;
+            double best = std::abs(rG(col, col));
+            for (std::size_t k = col + 1; k < r; ++k) {
+                const double candidate = std::abs(rG(k, col));
+                if (candidate > best) {
+                    best = candidate;
+                    pivot = k;
+                }
+            }
+            if (best <= rank_tol) {
+                break; // G is rank deficient from this column on
+            }
+
+            if (pivot != col) {
+                for (std::size_t q = 0; q < r; ++q) {
+                    std::swap(rG(col, q), rG(pivot, q));
+                }
+                std::swap(rB[col], rB[pivot]);
+            }
+
+            const double inv_pivot = 1.0 / rG(col, col);
+            for (std::size_t k = col + 1; k < r; ++k) {
+                const double factor = rG(k, col) * inv_pivot;
+                if (factor != 0.0) {
+                    for (std::size_t q = col + 1; q < r; ++q) {
+                        rG(k, q) -= factor * rG(col, q);
+                    }
+                    rB[k] -= factor * rB[col];
+                }
+                rG(k, col) = 0.0;
+            }
+            ++rank;
+        }
+
+        for (std::size_t k = r; k > 0; --k) {
+            const std::size_t i = k - 1;
+            if (i < rank) {
+                double s = rB[i];
+                for (std::size_t q = i + 1; q < rank; ++q) {
+                    s -= rG(i, q) * rX[q];
+                }
+                rX[i] = s / rG(i, i);
+            } else {
+                rX[i] = 0.0;
+            }
+        }
+        return rank;
     }
 
     /// Resizes a matrix to rows x cols and sets all its entries to zero (no reallocation if sizes match)
@@ -680,31 +989,16 @@ private:
     typename BaseType::Pointer mpLinearSolver; /// Pointer to the internal linear solver
     double mTolerance = 1.0e-6;                /// Relative tolerance to detect unconstrained rigid body modes
     std::size_t mNumRigidBodyModes = 0;        /// 3 in 2D, 6 in 3D
+    Matrix mRigidBodyModes;                    /// Z (n x M), built in PrepareAdditionalData
+    DenseVector<std::size_t> mDofNodeId;       /// Node id of each DOF (std::size_t(-1) if unknown), built in PrepareAdditionalData
 
-    Matrix mRigidBodyModes;        /// Z (n x M), built in PrepareAdditionalData
-    Matrix mComponentH;            /// Stacked (n_comp*M x M) blocks R_c^T R_c
-    Matrix mComponentG;            /// Stacked (n_comp*M x M) blocks Z_c^T Z_c
-    Matrix mUnconstrained;         /// Unconstrained modes of the current component, as rows (r x M)
-    Matrix mWorkG;                 /// Work matrix: Z_c^T Z_c of the current component
-    std::vector<std::size_t> mSelectedModes; /// Indices of the unconstrained eigenvectors of the current component
-    Matrix mWorkH;                 /// Work matrix for the eigen-decomposition
-    Matrix mWorkV;                 /// Eigenvectors of the work matrix
-    Matrix mQBasis;                /// Orthonormal basis of the selected rows (greedy selection)
-    Vector mLambda;                /// Eigenvalues
-    Vector mRowResidual;           /// Work vector: R_i of the current row
-    Vector mTrialRow;              /// Work vector: candidate effective row
-    Vector mBestRow;               /// Work vector: best effective row of the current step
-    Vector mMode;                  /// Work vector: eigenvector under test
-
-    std::vector<std::size_t> mParent;           /// Union-find buffer (connected components)
-    std::vector<std::size_t> mDofComponent;     /// Component id of each DOF
-    std::vector<std::size_t> mComponentSize;    /// Number of DOFs per component
-    std::vector<std::size_t> mComponentOffsets; /// CSR-like offsets of the DOFs grouped by component
-    std::vector<std::size_t> mComponentDofs;    /// DOFs grouped by component
-    std::vector<std::size_t> mOrder;            /// Sorting permutation of the eigenvalues
-    std::vector<char> mPinned;                  /// Flag of pinned DOFs
-    std::vector<std::size_t> mPinnedDofs;       /// List of pinned DOFs
-    std::size_t mNumComponents = 0;             /// Number of connected components
+    /// Pinning state of the current system: filled in InitializeSolutionStep, consumed by the
+    /// rigid body filter in PerformSolutionStep
+    DenseVector<std::size_t> mComponentDofs;        /// DOFs grouped by component
+    DenseVector<std::size_t> mComponentOffsets;     /// CSR-like offsets of the DOFs grouped by component
+    Matrix mComponentModes;                         /// Unconstrained modes of all components, stacked compactly as rows
+    DenseVector<std::size_t> mComponentModeOffsets; /// Row offsets of the per-component modes inside mComponentModes
+    Matrix mComponentG;                             /// Stacked (n_comp*M x M) blocks Z_c^T Z_c
 
     ///@}
 

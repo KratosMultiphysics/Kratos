@@ -65,7 +65,7 @@ class TestEigenSparseLUSolver(KratosUnittest.TestCase):
         ls = KratosMultiphysics.Future.LinearSystem(A, b, x, "singular_system")
         solver = KratosMultiphysics.Future.EigenSparseLUSolver()
         with self.assertRaisesRegex(RuntimeError, "the LHS matrix is singular"):
-            solver.PerformSolutionStep(ls)
+            solver.InitializeSolutionStep(ls)
 
 if __name__ == '__main__':
     KratosUnittest.main()

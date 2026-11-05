@@ -91,6 +91,8 @@ void AddLinearSolversToPython(py::module& m)
     using RigidBodyModePinningSolverType = Future::RigidBodyModePinningSolver<SerialLinearAlgebraTraits>;
     py::class_<RigidBodyModePinningSolverType, RigidBodyModePinningSolverType::Pointer, LinearSolverType>(m, "RigidBodyModePinningSolver")
         .def(py::init<typename LinearSolverType::Pointer, double>(), py::arg("p_linear_solver"), py::arg("tolerance") = 1.0e-6)
+        .def(py::init<>())
+        .def(py::init<Parameters>())
         // .def("__str__", PrintObject<RigidBodyModePinningSolverType>)
     ;
 

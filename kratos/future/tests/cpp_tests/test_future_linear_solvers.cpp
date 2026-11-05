@@ -18,6 +18,7 @@
 #include "future/linear_solvers/amgcl_solver.h"
 #include "future/linear_solvers/cg_solver.h"
 #include "future/linear_solvers/eigen_sparse_lu_solver.h"
+#include "future/linear_solvers/rigid_body_mode_pinning_solver.h"
 #include "future/linear_solvers/skyline_lu_factorization_solver.h"
 
 namespace Kratos::Testing
@@ -114,10 +115,31 @@ KRATOS_TEST_CASE_IN_SUITE(FutureLinearSolversEigenSparseLUSingularMatrix, Kratos
     // Set the linear solver to be tested
     Future::LinearSolver<Future::SerialLinearAlgebraTraits>::UniquePointer p_linear_solver = Kratos::make_unique<Future::EigenSparseLUSolver<Future::SerialLinearAlgebraTraits>>();
 
-    // The factorization of the singular matrix must raise a Kratos error
+    // The factorization of the singular matrix must raise a Kratos error in InitializeSolutionStep
     p_linear_solver->Initialize(linear_system);
-    p_linear_solver->InitializeSolutionStep(linear_system);
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(p_linear_solver->PerformSolutionStep(linear_system), "the LHS matrix is singular");
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(p_linear_solver->InitializeSolutionStep(linear_system), "the LHS matrix is singular");
+}
+
+KRATOS_TEST_CASE_IN_SUITE(FutureLinearSolversRigidBodyModePinningParameters, KratosCoreFutureSuite)
+{
+    // Default construction builds the default inner solver (skyline LU)
+    Future::RigidBodyModePinningSolver<Future::SerialLinearAlgebraTraits> default_solver;
+
+    // Construction from explicit parameters (inner solver and tolerance)
+    const Parameters pinning_settings(R"({
+        "solver_type" : "rigid_body_mode_pinning",
+        "inner_solver_type" : "eigen_sparse_lu",
+        "tolerance" : 1.0e-4
+    })");
+    Future::RigidBodyModePinningSolver<Future::SerialLinearAlgebraTraits> parameter_solver(pinning_settings);
+
+    // An unknown inner solver type must raise a Kratos error
+    const Parameters bad_settings(R"({
+        "inner_solver_type" : "not_a_solver"
+    })");
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        Future::RigidBodyModePinningSolver<Future::SerialLinearAlgebraTraits> bad_solver(bad_settings),
+        "unknown \"inner_solver_type\"");
 }
 
 KRATOS_TEST_CASE_IN_SUITE(FutureLinearSolversCGSolver, KratosCoreFutureSuite)

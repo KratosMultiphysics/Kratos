@@ -52,6 +52,26 @@ class TestRigidBodyModePinning(KratosUnittest.TestCase):
             node.SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X, 0, shift + 1.0e-4 * x + 3.0e-5 * y)
             node.SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y, 0, -5.0e-5 * x + 2.0e-4 * y)
 
+    def _rigid_body_vectors(self, mp, node_ids, n_dofs):
+        """The global rigid body vectors (tx, ty, rotation) of one free component."""
+        dof_index = {}
+        for node in mp.Nodes:
+            dof_index[(node.Id, KratosMultiphysics.DISPLACEMENT_X)] = node.GetDof(KratosMultiphysics.DISPLACEMENT_X).EquationId
+            dof_index[(node.Id, KratosMultiphysics.DISPLACEMENT_Y)] = node.GetDof(KratosMultiphysics.DISPLACEMENT_Y).EquationId
+
+        tx = np.zeros(n_dofs)
+        ty = np.zeros(n_dofs)
+        rotation = np.zeros(n_dofs)
+        for node in mp.Nodes:
+            if node.Id not in node_ids:
+                continue
+            x0, y0 = node.X0, node.Y0
+            tx[dof_index[(node.Id, KratosMultiphysics.DISPLACEMENT_X)]] = 1.0
+            ty[dof_index[(node.Id, KratosMultiphysics.DISPLACEMENT_Y)]] = 1.0
+            rotation[dof_index[(node.Id, KratosMultiphysics.DISPLACEMENT_X)]] = -y0
+            rotation[dof_index[(node.Id, KratosMultiphysics.DISPLACEMENT_Y)]] = x0
+        return [tx, ty, rotation]
+
     def _build_system(self, mp, process_info, scheme, dof_set):
         """Assembles the global system directly into a CsrMatrix."""
         scheme.Initialize(mp)
@@ -105,12 +125,18 @@ class TestRigidBodyModePinning(KratosUnittest.TestCase):
         self.assertGreater(max(abs(b_ref[i]) for i in range(n_dofs)), 0.0)
 
         linear_solver = KratosMultiphysics.Future.RigidBodyModePinningSolver(
-            KratosMultiphysics.Future.SkylineLUFactorizationSolver(), 1.0e-6)
+            KratosMultiphysics.Parameters("""{
+                "solver_type": "rigid_body_mode_pinning",
+                "inner_solver_type": "skyline_lu_factorization",
+                "tolerance": 1.0e-6,
+                "echo_level": 1
+            }"""))
         linear_system = KratosMultiphysics.Future.LinearSystem(A, b, dx, "rigid_body_pinning")
         linear_system.SetAdditionalData(mp, dof_set)
 
         linear_solver.Initialize(linear_system)
         linear_solver.PrepareAdditionalData(linear_system)
+        linear_solver.InitializeSolutionStep(linear_system)
         self.assertTrue(linear_solver.PerformSolutionStep(linear_system))
 
         # the pinning must have actually modified the matrix (zeroed pinned off-diagonal entries)
@@ -133,6 +159,13 @@ class TestRigidBodyModePinning(KratosUnittest.TestCase):
         # it produces must be significantly smaller.
         pinned_norm = np.linalg.norm(dx) 
 
+        # the solution must be independent of the dofs that were pinned: its rigid body
+        # content (the 3 rigid body vectors of each free component) must be filtered out
+        dx_array = np.array(dx)
+        for node_ids in ((1, 2, 3, 4), (5, 6, 7, 8)):
+            for mode in self._rigid_body_vectors(mp, node_ids, n_dofs):
+                self.assertLess(abs(float(dx_array @ mode)), 1.0e-9 * pinned_norm)
+
         dx_unpinned = KratosMultiphysics.SystemVector(n_dofs)
         unpinned_solver = KratosMultiphysics.Future.SkylineLUFactorizationSolver()
         unpinned_system = KratosMultiphysics.Future.LinearSystem(
@@ -142,6 +175,16 @@ class TestRigidBodyModePinning(KratosUnittest.TestCase):
         
         unpinned_norm = np.linalg.norm(np.array(dx_unpinned))
         self.assertGreater(unpinned_norm, 2.0 * pinned_norm)
+
+    def test_parameters_constructor(self):
+        # the default constructor builds the default inner solver (skyline LU)
+        self.assertIsNotNone(KratosMultiphysics.Future.RigidBodyModePinningSolver())
+        self.assertIsNotNone(KratosMultiphysics.Future.RigidBodyModePinningSolver(
+            KratosMultiphysics.Parameters('{"inner_solver_type": "eigen_sparse_lu", "tolerance": 1.0e-4}')))
+        # an unknown inner solver type must raise an error
+        with self.assertRaisesRegex(RuntimeError, "unknown"):
+            KratosMultiphysics.Future.RigidBodyModePinningSolver(
+                KratosMultiphysics.Parameters('{"inner_solver_type": "not_a_solver"}'))
 
 
 if __name__ == '__main__':

@@ -31,12 +31,14 @@ namespace Kratos::Future
  * @class EigenSparseLUSolver
  * @ingroup KratosCore
  * @brief Direct linear solver based on the SparseLU factorization of the Eigen library.
- * @details The LHS matrix of the linear system is converted to an Eigen sparse matrix,
- *          factorized with Eigen::SparseLU (with column pivoting) and the solution is
- *          obtained by back-substitution. The factorization is performed inside
- *          PerformSolutionStep (as in SkylineLUFactorizationSolver), so the solver is
- *          self-contained: it does not matter which of the Initialize hooks is called
- *          before the solve. A singular LHS matrix raises a Kratos error.
+ * @details The LHS matrix of the linear system is exposed to Eigen through a
+ *          Eigen::Map: the values are mapped in place (zero copy) and only the index
+ *          arrays are copied, because the CsrMatrix index type is unsigned while Eigen
+ *          requires a signed storage index. The factorization (Eigen::SparseLU, with
+ *          column pivoting) is performed inside InitializeSolutionStep, so
+ *          PerformSolutionStep is a cheap back-substitution that can be repeated
+ *          (e.g. for multiple right-hand sides) without refactoring. A singular
+ *          LHS matrix raises a Kratos error.
  * @tparam TLinearAlgebra The version of the linear algebra to be used
  * @author Thomas Oberbichler
  */
@@ -78,8 +80,11 @@ public:
     /// Eigen index type (Eigen requires a signed storage index, unlike the CsrMatrix)
     using EigenIndexType = std::make_signed_t<IndexType>;
 
-    /// Eigen sparse matrix type (column major)
-    using EigenSparseMatrixType = Eigen::SparseMatrix<DataType, Eigen::ColMajor, EigenIndexType>;
+    /// Eigen sparse matrix type (row major, to match the CsrMatrix layout)
+    using EigenSparseMatrixType = Eigen::SparseMatrix<DataType, Eigen::RowMajor, EigenIndexType>;
+
+    /// Read-only Eigen view of a CsrMatrix
+    using EigenSparseMapType = Eigen::Map<const EigenSparseMatrixType>;
 
     /// Eigen dense vector type
     using EigenVectorType = Eigen::Matrix<DataType, Eigen::Dynamic, 1>;
@@ -120,9 +125,35 @@ public:
     ///@{
 
     /**
-     * @brief Factorizes the LHS matrix and solves the linear system.
+     * @brief Factorizes the LHS matrix of the linear system.
+     * @details The factorization is performed here (and not in PerformSolutionStep) so that
+     *          the back-substitution can be performed multiple times at a low cost.
      * @param rLinearSystem The linear system to be solved
-     * @return @p true after a successful factorization and back-substitution
+     */
+    void InitializeSolutionStep(LinearSystemType& rLinearSystem) override
+    {
+        if (!rLinearSystem.IsConsistent(SparseMatrixTag::LHS, DenseVectorTag::RHS, DenseVectorTag::Dx)) {
+            return;
+        }
+
+        auto& r_lin_op = *rLinearSystem.pGetLinearOperator(SparseMatrixTag::LHS);
+        KRATOS_ERROR_IF(r_lin_op.IsMatrixFree()) << "EigenSparseLUSolver cannot be used with matrix-free linear operators." << std::endl;
+        const auto& r_A = r_lin_op.GetMatrix();
+
+        // Factorize (the map is read-only: Eigen copies the matrix into its own storage)
+        const EigenSparseMapType eigen_A = ToEigenSparseMap(r_A);
+        mEigenSparseLUSolver.compute(eigen_A);
+        KRATOS_ERROR_IF(mEigenSparseLUSolver.info() != Eigen::Success)
+            << "EigenSparseLUSolver: the LHS matrix is singular and the factorization failed." << std::endl;
+
+        mFactorized = true;
+    }
+
+    /**
+     * @brief Solves the linear system by back-substitution with the factorization
+     *        computed in InitializeSolutionStep.
+     * @param rLinearSystem The linear system to be solved
+     * @return @p true after a successful back-substitution
      */
     bool PerformSolutionStep(LinearSystemType& rLinearSystem) override
     {
@@ -130,18 +161,11 @@ public:
             return false;
         }
 
-        auto& r_lin_op = *rLinearSystem.pGetLinearOperator(SparseMatrixTag::LHS);
+        KRATOS_ERROR_IF(!mFactorized)
+            << "EigenSparseLUSolver: InitializeSolutionStep must be called before PerformSolutionStep (the LHS matrix is not factorized)." << std::endl;
+
         auto& rX = *rLinearSystem.pGetVector(DenseVectorTag::Dx);
         auto& rB = *rLinearSystem.pGetVector(DenseVectorTag::RHS);
-
-        KRATOS_ERROR_IF(r_lin_op.IsMatrixFree()) << "EigenSparseLUSolver cannot be used with matrix-free linear operators." << std::endl;
-        const auto& r_A = r_lin_op.GetMatrix();
-
-        // Factorize
-        const EigenSparseMatrixType eigen_A = ToEigenSparseMatrix(r_A);
-        mEigenSparseLUSolver.compute(eigen_A);
-        KRATOS_ERROR_IF(mEigenSparseLUSolver.info() != Eigen::Success)
-            << "EigenSparseLUSolver: the LHS matrix is singular and the factorization failed." << std::endl;
 
         // Back-substitute
         const EigenVectorType eigen_B = ToEigenVector(rB);
@@ -198,29 +222,22 @@ private:
     ///@{
 
     Eigen::SparseLU<EigenSparseMatrixType> mEigenSparseLUSolver; /// The Eigen factorization
+    bool mFactorized = false;                                    /// True once the LHS matrix has been factorized
+    std::vector<EigenIndexType> mIndex1; /// Copy of the CsrMatrix row pointers, in the Eigen index type
+    std::vector<EigenIndexType> mIndex2; /// Copy of the CsrMatrix column indices, in the Eigen index type
 
     ///@}
     ///@name Private Operations
     ///@{
 
-    /// Converts a CsrMatrix to an Eigen column-major sparse matrix
-    static EigenSparseMatrixType ToEigenSparseMatrix(const MatrixType& rA)
+    /// Exposes a CsrMatrix as a read-only Eigen map: the values are mapped in place and only
+    /// the index arrays are copied (the CsrMatrix index type is unsigned, Eigen requires signed)
+    EigenSparseMapType ToEigenSparseMap(const MatrixType& rA)
     {
-        const auto& r_row_ptr = rA.index1_data();
-        const auto& r_col_idx = rA.index2_data();
-        const auto& r_vals = rA.value_data();
-
-        std::vector<Eigen::Triplet<DataType, EigenIndexType>> triplets;
-        triplets.reserve(r_row_ptr[rA.size1()]);
-        for (std::size_t i = 0; i < rA.size1(); ++i) {
-            for (IndexType k = r_row_ptr[i]; k < r_row_ptr[i + 1]; ++k) {
-                triplets.emplace_back(static_cast<EigenIndexType>(i), static_cast<EigenIndexType>(r_col_idx[k]), r_vals[k]);
-            }
-        }
-
-        EigenSparseMatrixType result(rA.size1(), rA.size2());
-        result.setFromTriplets(triplets.begin(), triplets.end());
-        return result;
+        mIndex1.assign(rA.index1_data().begin(), rA.index1_data().end());
+        mIndex2.assign(rA.index2_data().begin(), rA.index2_data().end());
+        return EigenSparseMapType(rA.size1(), rA.size2(), mIndex2.size(),
+                                  mIndex1.data(), mIndex2.data(), rA.value_data().data());
     }
 
     /// Converts a SystemVector to an Eigen dense vector
