@@ -673,6 +673,17 @@ KRATOS_TEST_CASE_IN_SUITE(VolumeFractionGsbmProcessActiveEntities, KratosIgaFast
     }
     KRATOS_EXPECT_GT(turned_on, 0);
     KRATOS_EXPECT_GT(turned_off, 0);
+
+    // With the unweighted GRAD_DIV_FACTOR, those of empty spans stay ACTIVE
+    auto p_properties = model.GetModelPart("IgaModelPart").CreateNewProperties(1);
+    p_properties->SetValue(GRAD_DIV_FACTOR, 1.0);
+    for (auto& r_element : model.GetModelPart("IgaModelPart.Domain").Elements()) {
+        r_element.SetProperties(p_properties);
+    }
+    gsbm_process.ExecuteInitializeSolutionStep();
+    for (const auto& r_element : r_elements.Elements()) {
+        KRATOS_EXPECT_TRUE(r_element.IsActive());
+    }
 }
 
 // Binary weights: the ellipse of VolumeFractionGsbmProcessMovingSkin with

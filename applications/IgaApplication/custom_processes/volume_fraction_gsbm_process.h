@@ -75,7 +75,8 @@ public:
     /// With weight_approach "binary", VOLUME_FRACTION is 1 on the knot spans
     /// fully inside and 0 on the others: the SBM as a GSBM.
     /// Entities that add nothing are set not ACTIVE: the elements of empty knot
-    /// spans, the facets without a jump in VOLUME_FRACTION and, with
+    /// spans (unless their properties, set before this, have GRAD_DIV_FACTOR),
+    /// the facets without a jump in VOLUME_FRACTION and, with
     /// ghost_penalty_model_part_name, the ghost penalty conditions with
     /// \beta_2 = 0. So skeleton_model_part_name must hold the conditions of the
     /// shifted boundary terms, as elements must be scaled by VOLUME_FRACTION.

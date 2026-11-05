@@ -321,12 +321,14 @@ void VolumeFractionGsbmProcess::ExecuteInitialize()
     // sparsity pattern keeps their entries, for when the skin reaches them
 
     // Get the elements and assign volume fractions: alpha scales their local
-    // systems, so those of empty knot spans add nothing
+    // systems, so those of empty knot spans add nothing, except for grad-div
     ModelPart& r_elements = mpModel->GetModelPart(
         mParameters["elements_model_part_name"].GetString()
     );
     for (auto& r_element : r_elements.Elements()) {
-        r_element.Set(ACTIVE, assign_volume_fraction(r_element.GetGeometry()) > 0.0);
+        const double alpha = assign_volume_fraction(r_element.GetGeometry());
+        r_element.Set(ACTIVE, alpha > 0.0
+            || (r_element.HasProperties() && r_element.GetProperties().Has(GRAD_DIV_FACTOR)));
     }
 
     // Get the facets and assign volume fractions: their shifted boundary terms

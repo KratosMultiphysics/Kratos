@@ -420,8 +420,15 @@ void IgaModelerGsbm::CreateQuadraturePointGeometriesMixed(
         }
         auto p_geometry = Kratos::make_shared<CouplingGeometry<Node>>(parts);
 
-        // Index of the Gauss point's knot span, per direction
-        p_geometry->SetValue(KNOT_SPAN_INDICES, FindKnotSpanIndices(spans, *parts[0]));
+        // Index and size of the Gauss point's knot span, per direction
+        const std::vector<IndexType> knot_span_indices = FindKnotSpanIndices(spans, *parts[0]);
+        Vector knot_span_sizes(2);
+        for (IndexType dir = 0; dir < 2; ++dir) {
+            knot_span_sizes[dir] =
+                spans[dir][knot_span_indices[dir] + 1] - spans[dir][knot_span_indices[dir]];
+        }
+        p_geometry->SetValue(KNOT_SPAN_INDICES, knot_span_indices);
+        p_geometry->SetValue(KNOT_SPAN_SIZES, knot_span_sizes);
         geometries.push_back(p_geometry);
     }
 
