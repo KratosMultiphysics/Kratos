@@ -266,3 +266,74 @@ class FiniteDifferenceVelocityPressureNormSquareShapeSensitivityAnalysis:
 
         kratos_parameters["output_processes"].AddEmptyList("response_function_outputs")
         kratos_parameters["output_processes"]["response_function_outputs"].Append(response_parameters)
+
+class FiniteDifferenceDomainIntegratedShapeSensitivityAnalysis:
+    @staticmethod
+    def ComputeSensitivity(node_ids, step_size,
+                           kratos_parameters,
+                           norm_model_part_name,
+                           primal_problem_solving_method,
+                           primal_output_process_inclusion_method,
+                           is_steady = False):
+
+        FiniteDifferenceDomainIntegratedShapeSensitivityAnalysis._AddResponseFunctionOutput(
+            kratos_parameters, norm_model_part_name)
+
+        def compute_drag(kratos_parameters):
+            primal_problem_solving_method(kratos_parameters)
+            return FiniteDifferenceDomainIntegratedShapeSensitivityAnalysis._ObjectiveValueEvaluation(is_steady)
+
+        sensitivities = ComputeFiniteDifferenceSensitivity(node_ids, step_size,
+                                                           kratos_parameters, compute_drag, primal_output_process_inclusion_method)
+
+        DeleteFileIfExisting(
+            "domain_integrated_response_output.dat")
+        return sensitivities
+
+    @staticmethod
+    def _ObjectiveValueEvaluation(is_steady):
+        with open("domain_integrated_response_output.dat", "r") as file_input:
+            lines = file_input.readlines()
+
+        value = 0.0
+        total_time = 0.0
+        delta_time = 0.0
+        for line in reversed(lines[2:]):
+            data = line.strip().split(",")
+            delta_time = float(data[0]) - total_time
+            total_time = float(data[0])
+            value += float(data[1])
+            if (is_steady):
+                break
+
+        return value * abs(delta_time)
+
+    @staticmethod
+    def _AddResponseFunctionOutput(kratos_parameters, norm_model_part_name):
+        response_parameters = Kratos.Parameters(R'''
+        {
+            "python_module": "response_function_output_process",
+            "kratos_module": "KratosMultiphysics.FluidDynamicsApplication",
+            "process_name": "ResponseFunctionOutputProcess",
+            "Parameters": {
+                "response_type": "domain_integrated",
+                "model_part_name": "<PARENT_MODEL_PART>",
+                "response_settings": {
+                    "variable_name": "VELOCITY_POTENTIAL"
+                },
+                "output_file_settings": {
+                    "file_name": "domain_integrated_response_output"
+                }
+            }
+        }
+        ''')
+        # seperator_index = norm_model_part_name.rfind('.')
+        response_parameters["Parameters"]["model_part_name"].SetString(
+            norm_model_part_name)
+        # response_parameters["Parameters"]["response_settings"]["main_model_part_name"].SetString(
+        #     norm_model_part_name[:seperator_index])
+        # response_parameters["Parameters"]["response_settings"]["norm_model_part_name"].SetString(
+        #     norm_model_part_name)
+
+        kratos_parameters["output_processes"].AddEmptyList("response_function_outputs")
+        kratos_parameters["output_processes"]["response_function_outputs"].Append(response_parameters)
