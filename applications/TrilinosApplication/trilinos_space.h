@@ -14,6 +14,9 @@
 #pragma once
 
 // System includes
+#include <algorithm>
+#include <numeric>
+#include <vector>
 
 // External includes
 
@@ -1433,6 +1436,210 @@ public:
 
         rX.Comm().Barrier();
         KRATOS_CATCH("")
+    }
+
+    /**
+     * @brief Returns the raw MPI communicator handle from an Epetra communicator.
+     * @details Needed by solvers that call MPI or Fortran libraries (e.g. MUMPS)
+     *          directly and must pass the communicator as an MPI_Comm.
+     * @param rComm The Epetra MPI communicator.
+     * @return The underlying MPI_Comm handle.
+     */
+    static MPI_Comm GetMpiComm(const CommunicatorType& rComm)
+    {
+        return rComm.Comm();
+    }
+
+    /**
+     * @brief Creates a map that places all @p GlobalSize elements on rank 0 and
+     *        assigns zero elements to every other rank.
+     * @details This "serial" (root-only) map is the building block for gather/
+     *          scatter operations where a direct solver needs all data on one rank.
+     * @param rComm     The Epetra communicator.
+     * @param GlobalSize Total number of global elements.
+     * @return Shared pointer to the newly created serial map.
+     */
+    static MapPointerType CreateSerialMap(const CommunicatorType& rComm, IndexType GlobalSize)
+    {
+        const int n_local = (rComm.MyPID() == 0) ? static_cast<int>(GlobalSize) : 0;
+        return Kratos::make_shared<MapType>(static_cast<int>(GlobalSize), n_local, 0, rComm);
+    }
+
+    /**
+     * @brief Creates a new vector by importing @p rSource into the layout described
+     *        by @p pTargetMap.
+     * @details Uses an Epetra_Import to redistribute data between the two maps.
+     *          Entries in @p pTargetMap that are not present in @p rSource.Map()
+     *          are left at their initialized (zero) value.
+     * @param rSource    The source vector (arbitrary distributed map).
+     * @param pTargetMap The target map for the new vector.
+     * @return Shared pointer to the newly created vector.
+     */
+    static VectorPointerType ImportVector(const VectorType& rSource, const MapPointerType& pTargetMap)
+    {
+        auto p_result = Kratos::make_shared<VectorType>(*pTargetMap);
+        Epetra_Import importer(*pTargetMap, rSource.Map());
+        const int ierr = p_result->Import(rSource, importer, Insert);
+        KRATOS_ERROR_IF(ierr != 0) << "Epetra vector import failure " << ierr << std::endl;
+        return p_result;
+    }
+
+    /**
+     * @brief Gathers the full distributed vector @p rSource to rank 0.
+     * @details All global values of @p rSource are collected into a serial vector
+     *          owned entirely by rank 0.  Non-root ranks receive an empty (zero-row)
+     *          vector that is nonetheless a valid Epetra object.
+     * @param rSource The distributed source vector.
+     * @param rComm   The Epetra communicator shared by all participating ranks.
+     * @return Shared pointer to the gathered serial vector (non-empty only on rank 0).
+     */
+    static VectorPointerType GatherToRank0(const VectorType& rSource, const CommunicatorType& rComm)
+    {
+        return ImportVector(rSource, CreateSerialMap(rComm, Size(rSource)));
+    }
+
+    /**
+     * @brief Scatters values from the serial vector @p pSerial (on rank 0) back to
+     *        the distributed vector @p rDest.
+     * @details Each rank receives the subset of the solution that belongs to its
+     *          portion of @p rDest.Map().  The serial vector must have been created
+     *          with a map returned by CreateSerialMap() for the same global size.
+     * @param pSerial Pointer to the serial (root-only) source vector.
+     * @param rDest   The distributed destination vector (overwritten).
+     */
+    static void ScatterFromRank0(const VectorPointerType& pSerial, VectorType& rDest)
+    {
+        Epetra_Import importer(rDest.Map(), pSerial->Map());
+        const int ierr = rDest.Import(*pSerial, importer, Insert);
+        KRATOS_ERROR_IF(ierr != 0) << "Epetra vector scatter failure " << ierr << std::endl;
+    }
+
+    /**
+     * @brief Gathers all global values of the distributed vector @p rSource into a
+     *        flat @c std::vector<double> on rank 0.
+     * @details Non-root ranks receive an empty buffer.  The call is collective: all
+     *          ranks must participate even though only rank 0 stores the result.
+     *          This is the preferred interface for solvers (e.g. MUMPS) that require
+     *          a contiguous raw-pointer array on the host process, because the
+     *          returned buffer owns its storage independently of the Epetra object.
+     * @param rSource The distributed source vector.
+     * @param rComm   The Epetra communicator (must match rSource).
+     * @param rBuffer Output buffer filled on rank 0; cleared on other ranks.
+     */
+    static void GatherToBuffer(
+        const VectorType& rSource,
+        const CommunicatorType& rComm,
+        std::vector<double>& rBuffer)
+    {
+        auto p_serial = GatherToRank0(rSource, rComm); // collective
+        if (rComm.MyPID() == 0) {
+            const IndexType n_global = Size(rSource);
+            rBuffer.resize(n_global);
+            const double* values = p_serial->Values();
+            std::copy(values, values + static_cast<int>(n_global), rBuffer.begin());
+        } else {
+            rBuffer.clear();
+        }
+    }
+
+    /**
+     * @brief Scatters values from the rank-0 buffer @p rBuffer back to the
+     *        distributed vector @p rDest.
+     * @details The buffer must contain exactly @c Size(rDest) entries on rank 0 and
+     *          be empty on all other ranks.  After the call every rank owns its
+     *          share of the global solution.  The call is collective.
+     * @param rComm   The Epetra communicator.
+     * @param rBuffer Source buffer (non-empty only on rank 0).
+     * @param rDest   Destination distributed vector (overwritten).
+     */
+    static void ScatterFromBuffer(
+        const CommunicatorType& rComm,
+        const std::vector<double>& rBuffer,
+        VectorType& rDest)
+    {
+        const IndexType n_global = Size(rDest);
+        auto p_serial_map = CreateSerialMap(rComm, n_global);
+        auto p_serial = Kratos::make_shared<VectorType>(*p_serial_map);
+        if (rComm.MyPID() == 0) {
+            KRATOS_ERROR_IF(rBuffer.size() != n_global)
+                << "ScatterFromBuffer: buffer size " << rBuffer.size()
+                << " ≠ global vector size " << n_global << std::endl;
+            double* values = (*p_serial)[0]; // zeroth-column pointer
+            std::copy(rBuffer.begin(), rBuffer.end(), values);
+        }
+        ScatterFromRank0(p_serial, rDest);
+    }
+
+    /**
+     * @brief Returns a raw pointer to the contiguous local data of the vector.
+     * @details For Epetra_FEVector (a single-column Epetra_MultiVector) this is
+     *          equivalent to the zeroth-column pointer returned by
+     *          Epetra_MultiVector::Values().  The pointer is valid as long as @p rV
+     *          is alive and has not been reallocated.
+     * @param rV The vector whose local data pointer is requested.
+     * @return Pointer to the first local element of the vector.
+     */
+    static double* GetRawValuesPtr(VectorType& rV)
+    {
+        return rV.Values();
+    }
+
+    /**
+     * @brief Returns the number of locally owned rows of the matrix @p rA.
+     * @param rA The distributed sparse matrix.
+     * @return Number of rows owned by the calling rank.
+     */
+    static IndexType GetNumLocalRows(const MatrixType& rA)
+    {
+        return static_cast<IndexType>(rA.NumMyRows());
+    }
+
+    /**
+     * @brief Extracts the locally owned non-zeros of @p rA as COO triplets using
+     *        0-based global indices.
+     * @details Each MPI rank populates only its own rows.  The three output vectors
+     *          are resized and filled; any previous content is discarded.
+     *          When @p LowerTriangularOnly is set, only entries with
+     *          global_row ≥ global_col are emitted — this is the format expected
+     *          by MUMPS (and similar) for symmetric matrices.
+     * @param rA                The distributed sparse matrix.
+     * @param rIRowIndices      Output: 0-based global row indices.
+     * @param rIColIndices      Output: 0-based global column indices.
+     * @param rValues           Output: corresponding non-zero values.
+     * @param LowerTriangularOnly When @c true, restrict to the lower triangle.
+     */
+    static void GetLocalCOO(
+        const MatrixType& rA,
+        std::vector<IndexType>& rIRowIndices,
+        std::vector<IndexType>& rIColIndices,
+        std::vector<double>& rValues,
+        const bool LowerTriangularOnly = false)
+    {
+        const int n_local_rows    = rA.NumMyRows();
+        const Epetra_Map& row_map = rA.RowMap();
+        const Epetra_Map& col_map = rA.ColMap();
+
+        rIRowIndices.clear();
+        rIColIndices.clear();
+        rValues.clear();
+
+        for (int i_local = 0; i_local < n_local_rows; ++i_local) {
+            const IndexType global_row = static_cast<IndexType>(row_map.GID(i_local));
+            int     num_entries;
+            double* values;
+            int*    col_inds;
+            const int ierr = rA.ExtractMyRowView(i_local, num_entries, values, col_inds);
+            KRATOS_ERROR_IF(ierr != 0) << "Epetra failure extracting local row "
+                << i_local << " (code " << ierr << ")" << std::endl;
+            for (int k = 0; k < num_entries; ++k) {
+                const IndexType global_col = static_cast<IndexType>(col_map.GID(col_inds[k]));
+                if (!LowerTriangularOnly || global_row >= global_col) {
+                    rIRowIndices.push_back(global_row);
+                    rIColIndices.push_back(global_col);
+                    rValues.push_back(values[k]);
+                }
+            }
+        }
     }
 
     /**
