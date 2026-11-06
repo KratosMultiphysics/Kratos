@@ -156,6 +156,15 @@ class AlgorithmRelaxedGradientProjection(AlgorithmGradientProjection):
         self.algorithm_data.GetBufferedData().SetValue("correction", correction, overwrite=True)
         self.algorithm_data.GetBufferedData().SetValue("projected_direction", projected_direction, overwrite=True)
 
+        # kkt_norm = max(direction norm, worst violation): the direction norm alone can be zero at a non-KKT point.
+        constraint_violation = max(
+            (abs(constraint.GetStandardizedValue()) if constraint.IsEqualityType()
+             else max(constraint.GetStandardizedValue(), 0.0)
+             for constraint in self._constraints_list),
+            default=0.0)
+        self.algorithm_data.GetBufferedData().SetValue(
+            "kkt_norm", max(numpy.max(numpy.abs(search_direction.data)), constraint_violation), overwrite=True)
+
     def ComputeBufferCoefficients(self):
         active_constraints_list = self.GetActiveConstraintsList()
         number_of_active_constraints = len(active_constraints_list)
