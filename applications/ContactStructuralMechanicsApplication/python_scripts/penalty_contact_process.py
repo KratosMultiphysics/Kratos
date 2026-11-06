@@ -71,7 +71,7 @@ class PenaltyContactProcess(alm_contact_process.ALMContactProcess):
                 "dynamic_search"                      : false,
                 "static_check_movement"               : false,
                 "database_step_update"                : 1,
-                "normal_orientation_threshold"        : 1.0e-1,
+                "normal_orientation_threshold"        : 1.0e-8,
                 "consider_gap_threshold"              : false,
                 "debug_mode"                          : false,
                 "predict_correct_lagrange_multiplier" : false,
@@ -92,7 +92,7 @@ class PenaltyContactProcess(alm_contact_process.ALMContactProcess):
                 "max_gap_factor"           : 1.0e2,
                 "logistic_exponent_factor" : 6.0
             },
-            "advance_ALM_parameters" : {
+            "advanced_ALM_parameters" : {
                 "manual_ALM"                  : false,
                 "stiffness_factor"            : 1.0,
                 "penalty_scale_factor"        : 1.0,
@@ -229,22 +229,22 @@ class PenaltyContactProcess(alm_contact_process.ALMContactProcess):
         # We call the process info
         process_info = self.main_model_part.ProcessInfo
 
-        if not self.contact_settings["advance_ALM_parameters"]["manual_ALM"].GetBool():
+        if not self.contact_settings["advanced_ALM_parameters"]["manual_ALM"].GetBool():
             # We compute NODAL_H that can be used in the search and some values computation
             self.find_nodal_h = KM.FindNodalHProcess(self.main_model_part)
             self.find_nodal_h.Execute()
 
             # Computing the scale factors or the penalty parameters (StiffnessFactor * E_mean/h_mean)
             alm_var_parameters = KM.Parameters("""{}""")
-            alm_var_parameters.AddValue("stiffness_factor", self.contact_settings["advance_ALM_parameters"]["stiffness_factor"])
-            alm_var_parameters.AddValue("penalty_scale_factor", self.contact_settings["advance_ALM_parameters"]["penalty_scale_factor"])
+            alm_var_parameters.AddValue("stiffness_factor", self.contact_settings["advanced_ALM_parameters"]["stiffness_factor"])
+            alm_var_parameters.AddValue("penalty_scale_factor", self.contact_settings["advanced_ALM_parameters"]["penalty_scale_factor"])
             self.alm_var_process = CSMA.ALMVariablesCalculationProcess(self._get_process_model_part(), KM.NODAL_H, alm_var_parameters)
             self.alm_var_process.Execute()
             # We rescale, the process is designed for ALM formulation
             process_info[KM.INITIAL_PENALTY] = 1.0e4 * process_info[KM.INITIAL_PENALTY]
         else:
             # We set the values in the process info
-            process_info[KM.INITIAL_PENALTY] = self.contact_settings["advance_ALM_parameters"]["penalty"].GetDouble()
+            process_info[KM.INITIAL_PENALTY] = self.contact_settings["advanced_ALM_parameters"]["penalty"].GetDouble()
 
         # We set a minimum value
         if process_info[KM.INITIAL_PENALTY] < sys.float_info.epsilon:
