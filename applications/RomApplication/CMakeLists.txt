@@ -17,6 +17,11 @@ include_directories( ${KRATOS_SOURCE_DIR}/kratos )
 include_directories( ${KRATOS_SOURCE_DIR}/applications/LinearSolversApplication )
 include_directories( ${KRATOS_LINEAR_SOLVERS_APPLICATION_LIB_INC} )
 
+## Utilities based on Kratos::Future are only compiled if the core provides it
+if(${KRATOS_USE_FUTURE} MATCHES ON)
+    add_definitions( -DKRATOS_USE_FUTURE )
+endif(${KRATOS_USE_FUTURE} MATCHES ON)
+
 ## RomApplication Core sources
 file(GLOB_RECURSE KRATOS_ROM_APPLICATION_CORE
     ${CMAKE_CURRENT_SOURCE_DIR}/rom_application.cpp
