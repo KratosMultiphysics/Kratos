@@ -7,6 +7,7 @@ from KratosMultiphysics.kratos_utilities import DeleteFileIfExisting
 from testing_utilities import MedModelPartIOTestCase, GetMedPath, get_num_geometries_by_type
 
 from pathlib import Path
+import tempfile
 
 
 class TestMedModelPartIO(MedModelPartIOTestCase):
@@ -252,11 +253,10 @@ class TestMedModelPartIO(MedModelPartIOTestCase):
         self.mp_read_1.CreateSubModelPart("empty")
         self.mp_read_1.GetSubModelPart("fixed").CreateSubModelPart("empty_child")
 
-        med_temp_path = GetMedPath(Path("empty_sub_model_parts")).with_suffix(".med.tmp")
-        DeleteFileIfExisting(med_temp_path)
-        self.addCleanup(DeleteFileIfExisting, med_temp_path)
-        KratosMed.MedModelPartIO(med_temp_path, KM.IO.WRITE).WriteModelPart(self.mp_read_1)
-        KratosMed.MedModelPartIO(med_temp_path, KM.IO.READ).ReadModelPart(self.mp_read_2)
+        with tempfile.TemporaryDirectory() as temp_dir:
+            med_temp_path = Path(temp_dir) / "empty_sub_model_parts.med"
+            KratosMed.MedModelPartIO(med_temp_path, KM.IO.WRITE).WriteModelPart(self.mp_read_1)
+            KratosMed.MedModelPartIO(med_temp_path, KM.IO.READ).ReadModelPart(self.mp_read_2)
 
         self.assertTrue(self.mp_read_2.HasSubModelPart("empty"))
         self.assertTrue(self.mp_read_2.HasSubModelPart("fixed.empty_child"))
