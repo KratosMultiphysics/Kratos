@@ -123,9 +123,11 @@ private:
         ModelPart& rModelPart,
         const Parameters rParameters) const;
 
-    /// Creates list of rQuadraturePointGeometryList for Gsbm
+    /// Creates the GSBM facets on the background patch or, from
+    /// "geometry_names", on one patch per field: then each facet side is a
+    /// coupling of one point per patch
     void CreateQuadraturePointGeometriesGsbm(
-        GeometryType& rBackground,
+        GeometriesArrayType& rBackgrounds,
         ModelPart& rModelPart,
         const Parameters rParameters) const;
 
