@@ -13,112 +13,19 @@
 // System includes
 #include <algorithm>
 #include <cmath>
-#include <initializer_list>
 #include <limits>
 
 // External includes
 
 // Project includes
 #include "custom_conditions/gsbm_laplacian_condition_dirichlet.h"
-#include "geometries/nurbs_shape_function_utilities/nurbs_curve_shape_functions.h"
-#include "geometries/nurbs_surface_geometry.h"
+#include "custom_utilities/shifted_boundary_utilities.h"
 #include "iga_application_variables.h"
 #include "includes/convection_diffusion_settings.h"
 #include "includes/global_pointer_variables.h"
-#include "utilities/math_utils.h"
 
 namespace Kratos
 {
-
-namespace
-{
-
-using IndexType = GsbmLaplacianConditionDirichlet::IndexType;
-using SizeType = GsbmLaplacianConditionDirichlet::SizeType;
-using GeometryType = GsbmLaplacianConditionDirichlet::GeometryType;
-using NurbsSurfaceType = NurbsSurfaceGeometry<3, PointerVector<Node>>;
-
-/**
- * @brief Taylor coefficient of a multi-index
- *
- *     c_\boldsymbol\alpha = \mathbf{d}^{\boldsymbol\alpha} / \boldsymbol\alpha!
- *
- * @param rDistance Distance vector d from the facet point to the skin.
- * @param MultiIndex The multi-index \boldsymbol\alpha, one entry per direction.
- * @return The coefficient c_\boldsymbol\alpha.
- */
-double ComputeTaylorCoefficient(
-    const array_1d<double, 3>& rDistance,
-    const std::initializer_list<IndexType> MultiIndex)
-{
-    double power = 1.0;
-    IndexType factorial = 1;
-
-    // \prod_j{ d_j^{\alpha_j} / \alpha_j! }
-    for (IndexType j = 0; const IndexType alpha_j : MultiIndex) {
-        power *= std::pow(rDistance[j], alpha_j);
-        factorial *= MathUtils<double>::Factorial(alpha_j);
-        ++j;
-    }
-    return power / factorial;
-}
-
-/**
- * @brief Shape functions of a facet side shifted to the true boundary, from
- *        the side's 1D B-spline bases
- *
- *     S_d^m[N] = \sum_{|\boldsymbol\alpha| \le m} c_\boldsymbol\alpha
- *                \partial^{\boldsymbol\alpha} N(\tilde{x}),
- *                \alpha_u \le p_u, \alpha_v \le p_v
- *
- * m = p_u + p_v is the full Taylor series, the span's polynomial at
- * \tilde{x} + d. The 1D derivatives never exceed the degree, so every order m
- * is available.
- *
- * @param rSide One side of the facet.
- * @param rDistance Distance vector d from the facet point to the skin.
- * @param Order Order m of the shift.
- * @return The shifted shape functions.
- */
-Vector ComputeShiftedShapeFunctions(
-    const GeometryType& rSide,
-    const array_1d<double, 3>& rDistance,
-    const SizeType Order)
-{
-    const auto& r_surface = dynamic_cast<const NurbsSurfaceType&>(rSide.GetGeometryParent(0));
-    const SizeType p_u = r_surface.PolynomialDegree(0);
-    const SizeType p_v = r_surface.PolynomialDegree(1);
-
-    // 1D bases of the side's span at its point, derivatives up to the degree
-    const auto& r_indices = rSide.GetValue(KNOT_SPAN_INDICES);
-    const auto& r_point = rSide.IntegrationPoints()[0];
-    NurbsCurveShapeFunction shape_functions_u(p_u, p_u);
-    shape_functions_u.ComputeBSplineShapeFunctionValuesAtSpan(
-        r_surface.KnotsU(), r_indices[0] + p_u - 1, r_point.X()
-    );
-    NurbsCurveShapeFunction shape_functions_v(p_v, p_v);
-    shape_functions_v.ComputeBSplineShapeFunctionValuesAtSpan(
-        r_surface.KnotsV(), r_indices[1] + p_v - 1, r_point.Y()
-    );
-
-    // c_{(i, j)} N_a^{(i)} N_b^{(j)} for N_{a + b (p_u + 1)}, uv = xy
-    Vector shifted_shape_functions = ZeroVector(rSide.size());
-    for (IndexType i = 0; i <= std::min(p_u, Order); ++i) {
-        for (IndexType j = 0; j <= std::min(p_v, Order - i); ++j) {
-            const double factor = ComputeTaylorCoefficient(rDistance, {i, j});
-            for (IndexType b = 0; b <= p_v; ++b) {
-                for (IndexType a = 0; a <= p_u; ++a) {
-                    shifted_shape_functions[a + b * (p_u + 1)] +=
-                        factor * shape_functions_u(a, i) * shape_functions_v(b, j);
-                }
-            }
-        }
-    }
-
-    return shifted_shape_functions;
-}
-
-} // namespace
 
 void GsbmLaplacianConditionDirichlet::CalculateLocalSystem(
     MatrixType& rLeftHandSideMatrix,
@@ -178,8 +85,12 @@ void GsbmLaplacianConditionDirichlet::CalculateLocalSystem(
         : p;
 
     // Shifted trace \mathsf S_d^m[N] on each side, and imposed value g_D
-    const Vector shifted_minus = ComputeShiftedShapeFunctions(r_minus, distance, m);
-    const Vector shifted_plus = ComputeShiftedShapeFunctions(r_plus, distance, m);
+    const Vector shifted_minus = ShiftedBoundaryUtilities::ComputeShiftedShapeFunctions(
+        r_minus, r_minus.GetValue(KNOT_SPAN_INDICES), distance, m
+    );
+    const Vector shifted_plus = ShiftedBoundaryUtilities::ComputeShiftedShapeFunctions(
+        r_plus, r_plus.GetValue(KNOT_SPAN_INDICES), distance, m
+    );
     const double boundary_value = r_projection_node.GetValue(r_unknown_variable);
 
     // \gamma = \alpha_h+ / max(\alpha_h+ + \alpha_h-, tol)

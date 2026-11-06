@@ -18,54 +18,12 @@
 
 // Project includes
 #include "custom_conditions/gsbm_laplacian_condition_ghost_penalty.h"
+#include "custom_utilities/shifted_boundary_utilities.h"
 #include "iga_application_variables.h"
 #include "includes/convection_diffusion_settings.h"
-#include "utilities/math_utils.h"
 
 namespace Kratos
 {
-
-namespace
-{
-
-using IndexType = GsbmLaplacianConditionGhostPenalty::IndexType;
-using SizeType = GsbmLaplacianConditionGhostPenalty::SizeType;
-using GeometryType = Geometry<Node>;
-
-/**
- * @brief Derivatives of order Order of a facet side's shape functions along
- * the unit vector rDirection.
- *
- * @param rSide One side of the facet.
- * @param rDirection Unit vector of the derivatives.
- * @param Order Order of the derivatives.
- * @return The directional derivatives of the shape functions.
- */
-Vector ComputeDirectionalDerivatives(
-    const GeometryType& rSide,
-    const array_1d<double, 3>& rDirection,
-    const SizeType Order)
-{
-    // Order-th derivatives: column k is Order - k times in x and k times in y
-    const Matrix& r_derivatives = rSide.ShapeFunctionDerivatives(
-        Order, 0, rSide.GetDefaultIntegrationMethod()
-    );
-    Vector directional_derivatives = ZeroVector(rSide.size());
-
-    for (IndexType k = 0; k <= Order; ++k) {
-        // D_s^n N = (s . \nabla)^n N = \sum_k binom(n, k) s_x^(n-k) s_y^k
-        //           * (column k), with n = Order and s = rDirection
-        const double binomial = MathUtils<double>::Factorial(Order)
-            / (MathUtils<double>::Factorial(Order - k) * MathUtils<double>::Factorial(k));
-        const double factor =
-            binomial * std::pow(rDirection[0], Order - k) * std::pow(rDirection[1], k);
-        noalias(directional_derivatives) += factor * column(r_derivatives, k);
-    }
-
-    return directional_derivatives;
-}
-
-} // namespace
 
 void GsbmLaplacianConditionGhostPenalty::CalculateLocalSystem(
     MatrixType& rLeftHandSideMatrix,
@@ -124,9 +82,13 @@ void GsbmLaplacianConditionGhostPenalty::CalculateLocalSystem(
     // [[D_n^{p_n} v_h]] . n- = D_n^{p_n} v_h- - D_n^{p_n} v_h+
     Vector jump_normal_derivative(number_of_dofs);
     noalias(subrange(jump_normal_derivative, 0, number_of_minus_dofs)) =
-        ComputeDirectionalDerivatives(r_minus, normal, p_normal);
+        ShiftedBoundaryUtilities::ComputeDirectionalDerivatives(
+            r_minus, r_minus.GetValue(KNOT_SPAN_INDICES), normal, p_normal
+        );
     noalias(subrange(jump_normal_derivative, number_of_minus_dofs, number_of_dofs)) =
-        -ComputeDirectionalDerivatives(r_plus, normal, p_normal);
+        -ShiftedBoundaryUtilities::ComputeDirectionalDerivatives(
+            r_plus, r_plus.GetValue(KNOT_SPAN_INDICES), normal, p_normal
+        );
 
     // Ghost penalty: (\kappa h^(2p_n-1) [[D_n^{p_n} v_h]], [[D_n^{p_n} u_h]])
     const double kappa = GetProperties()[GHOST_PENALTY_FACTOR];
