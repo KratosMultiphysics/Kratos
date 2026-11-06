@@ -332,9 +332,11 @@ KRATOS_TEST_CASE_IN_SUITE(ParallelRuleOfMixturesClonePreservesPlasticDamageDissi
     ASSERT_EQ(r_source_layers.size(), 2);
     ASSERT_NE(r_source_layers[0], nullptr);
     ASSERT_NE(r_source_layers[1], nullptr);
-    ASSERT_TRUE(typeid(*r_source_layers[0]) == typeid(r_plastic_damage_law));
-    ASSERT_TRUE(typeid(*r_source_layers[1]) == typeid(r_isotropic_damage_law));
-    const double accepted_dissipation = get_damage_dissipation(*r_source_layers[0]);
+    const auto& r_plastic_damage_layer = *r_source_layers[0];
+    const auto& r_isotropic_damage_layer = *r_source_layers[1];
+    ASSERT_TRUE(typeid(r_plastic_damage_layer) == typeid(r_plastic_damage_law));
+    ASSERT_TRUE(typeid(r_isotropic_damage_layer) == typeid(r_isotropic_damage_law));
+    const double accepted_dissipation = get_damage_dissipation(r_plastic_damage_layer);
     ASSERT_GT(accepted_dissipation, 0.0);
     ASSERT_LT(accepted_dissipation, damage_dissipation_saturation);
 
@@ -346,7 +348,9 @@ KRATOS_TEST_CASE_IN_SUITE(ParallelRuleOfMixturesClonePreservesPlasticDamageDissi
     for (std::size_t i = 0; i < r_source_layers.size(); ++i) {
         ASSERT_NE(r_cloned_layers[i], nullptr);
         KRATOS_EXPECT_NE(r_cloned_layers[i].get(), r_source_layers[i].get());
-        KRATOS_EXPECT_TRUE(typeid(*r_cloned_layers[i]) == typeid(*r_source_layers[i]));
+        const auto& r_cloned_layer = *r_cloned_layers[i];
+        const auto& r_source_layer = *r_source_layers[i];
+        KRATOS_EXPECT_TRUE(typeid(r_cloned_layer) == typeid(r_source_layer));
     }
     const std::vector<double> expected_factors{0.25, 0.75};
     KRATOS_EXPECT_EQ(p_source_mixture->GetCombinationFactors(), expected_factors);
