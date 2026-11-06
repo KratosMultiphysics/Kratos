@@ -25,16 +25,18 @@ std::string GeoStringUtilities::ToLower(const std::string& rString)
     return result;
 }
 
-std::string GeoStringUtilities::Join(const std::vector<std::string>& rStrings, const std::string& rSeparator)
+std::string GeoStringUtilities::Join(const std::vector<std::string>& rStrings,
+                                     const std::string&              rSeparator,
+                                     const std::string&              rClampCharacter)
 {
     if (rStrings.empty()) return {};
 
     auto oss = std::ostringstream{};
     auto it  = rStrings.begin();
-    oss << *it;
+    oss << rClampCharacter << *it << rClampCharacter;
     ++it;
     for (; it != rStrings.end(); ++it) {
-        oss << rSeparator << *it;
+        oss << rSeparator << rClampCharacter << *it << rClampCharacter;
     }
 
     return oss.str();
