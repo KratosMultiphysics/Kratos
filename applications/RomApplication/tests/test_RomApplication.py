@@ -26,7 +26,9 @@ from test_rom_database import TestRomDatabase
 from test_numpy_output_process import TestNumpyOutputProcess
 from test_coupled_fluid_thermal_rom import TestCoupledFluidThermalRom
 from test_coupled_thermo_mechanical_rom import TestCoupledThermoMechanicalRom
+from test_rbf_enhanced_rom import TestRbfEnhancedRom
 from test_projected_residuals_output_process import TestProjectedResidualsOutputProcess
+from test_hrom_med_rom import TestHromMedRom
 
 def AssembleTestSuites():
     ''' Populates the test suites to run.
@@ -68,7 +70,9 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestNumpyOutputProcess]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestCoupledFluidThermalRom]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestCoupledThermoMechanicalRom]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestRbfEnhancedRom]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestProjectedResidualsOutputProcess]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestHromMedRom]))
 
 
 

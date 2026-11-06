@@ -93,10 +93,10 @@ class RomResidualsOutputProcess(KratosMultiphysics.OutputProcess):
             res_mat = self.__rom_residuals_utility.GetProjectedResidualsOntoJPhi(jacobian_phi_product)
         elif self.projection_strategy == "petrov_galerkin":
             res_mat = self.__rom_residuals_utility.GetProjectedResidualsOntoPsi()
-        elif self.projection_strategy == "galerkin_ann":
+        elif self.projection_strategy in ("galerkin_ann", "galerkin_rbf"):
             tangent_operator = self.solver._GetBuilderAndSolver().GetTangentOperatorV()
             res_mat = self.__rom_residuals_utility.GetProjectedResidualsOntoV(tangent_operator)
-        elif self.projection_strategy == "lspg_ann":
+        elif self.projection_strategy in ("lspg_ann", "lspg_rbf"):
             J_times_tangent_operator = self._GetJacobianVMultiplication()
             res_mat = self.__rom_residuals_utility.GetProjectedResidualsOntoV(J_times_tangent_operator)
         else:

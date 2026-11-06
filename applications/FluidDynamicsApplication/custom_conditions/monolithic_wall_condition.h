@@ -16,6 +16,7 @@
 // System includes
 #include <string>
 #include <iostream>
+#include <mutex>
 
 
 // External includes
@@ -222,7 +223,7 @@ public:
             rLeftHandSideMatrix.resize(LocalSize,LocalSize);
 
         if (rRightHandSideVector.size() != LocalSize)
-            rRightHandSideVector.resize(LocalSize);
+            rRightHandSideVector.resize(LocalSize, false);
 
         noalias(rLeftHandSideMatrix) = ZeroMatrix(LocalSize,LocalSize);
         noalias(rRightHandSideVector) = ZeroVector(LocalSize);
@@ -256,7 +257,7 @@ public:
         const SizeType LocalSize = BlockSize * TNumNodes;
 
         if (rRightHandSideVector.size() != LocalSize)
-            rRightHandSideVector.resize(LocalSize);
+            rRightHandSideVector.resize(LocalSize, false);
 
         noalias(rRightHandSideVector) = ZeroVector(LocalSize);
     }
@@ -316,6 +317,16 @@ public:
                         KRATOS_THROW_ERROR(std::invalid_argument,"missing VELOCITY component degree of freedom on node ",this->GetGeometry()[i].Id());
                     if(this->GetGeometry()[i].HasDofFor(PRESSURE) == false)
                         KRATOS_THROW_ERROR(std::invalid_argument,"missing PRESSURE component degree of freedom on node ",this->GetGeometry()[i].Id());
+                }
+
+                // The outlet inflow contribution is not implemented in this condition
+                // Note that the warning is printed once (KRATOS_WARNING_ONCE does nothing in release builds)
+                if (this->Is(OUTLET) && rCurrentProcessInfo.Has(OUTLET_INFLOW_CONTRIBUTION_SWITCH) && rCurrentProcessInfo[OUTLET_INFLOW_CONTRIBUTION_SWITCH]) {
+                    static std::once_flag outlet_inflow_warning;
+                    std::call_once(outlet_inflow_warning, [](){
+                        KRATOS_WARNING("MonolithicWallCondition") << "The outlet inflow contribution (\"outlet_inflow_contribution\") is not implemented in this condition and is ignored. "
+                            << "It is available in the formulations using the NavierStokesWallCondition (e.g. \"qsvms\", \"dvms\", \"fic\" or \"weakly_compressible\")." << std::endl;
+                    });
                 }
 
             return Check;

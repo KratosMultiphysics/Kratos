@@ -58,6 +58,7 @@ public:
     ///@name Type Definitions
     ///@{
     typedef unsigned int IndexType;
+    using ColorsVectorType = DenseVector<double>;
 
     /// Pointer definition of ModelPartGraphUtilities
     KRATOS_CLASS_POINTER_DEFINITION(ModelPartGraphUtilities);
@@ -108,7 +109,7 @@ public:
     VariableUtils.SetSolutionStepValue(model_part.Nodes(), colors) to set the value on the nodes in the modelpart for which it was
     */
 
-    static std::pair<IndexType, DenseVector<double>> ComputeConnectedComponents(
+    static std::pair<IndexType, ColorsVectorType> ComputeConnectedComponents(
         const ModelPart::NodesContainerType& rNodes,
         const DenseVector<IndexType>& rRowIndices,
         const DenseVector<IndexType>& rColIndices
@@ -116,7 +117,7 @@ public:
 
     //similar to the previous version, except that a "active_nodes" array needs to be passed
     //the "active_nodes" array needs to be initialized without gaps in the same order in which the nodes are passed in the rNodes array
-    static std::pair<IndexType, DenseVector<double>> ComputeConnectedComponentsWithActiveNodesCheck(
+    static std::pair<IndexType, ColorsVectorType> ComputeConnectedComponentsWithActiveNodesCheck(
         const ModelPart::NodesContainerType& rNodes,
         const DenseVector<IndexType>& rRowIndices,
         const DenseVector<IndexType>& rColIndices,
@@ -126,7 +127,7 @@ public:
     static std::vector<IndexType> ApplyMinimalScalarFixity(
         ModelPart::NodesContainerType& rNodes,
         const Variable<double>& rVar,
-        const DenseVector<double>& colors,
+        const ColorsVectorType& colors,
         const IndexType ncolors
         );
 

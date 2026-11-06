@@ -196,9 +196,9 @@ double StrainSensor::CalculateValue(ModelPart& rModelPart)
         r_element.CalculateOnIntegrationPoints(mrStrainVariable, strains, rModelPart.GetProcessInfo());
 
         for (const auto& strain : strains) {
-            KRATOS_ERROR_IF(strain.data().size() <= mStrainIndex)
-                << "The size of the strain " << strain.data().size() << " does not contain the index = " << mStrainIndex << ".";
-            directional_strain += *(strain.data().begin() + mStrainIndex);
+            KRATOS_ERROR_IF(strain.size1() * strain.size2() <= mStrainIndex)
+                << "The size of the strain " << strain.size1() * strain.size2() << " does not contain the index = " << mStrainIndex << ".";
+            directional_strain += strain.data()[mStrainIndex]; // flat row-major access, valid for both backends
         }
 
         directional_strain /= strains.size();
@@ -427,8 +427,8 @@ double StrainSensor::CalculateStrainDirectionalSensitivity(
 
     double strain_sensitivity = 0.0;
     for (IndexType j = 0; j < rPerturbedStrains.size(); ++j) {
-        strain_sensitivity += (*(rPerturbedStrains[j].data().begin() + mStrainIndex) -
-                               *(rRefStrains[j].data().begin() + mStrainIndex)) /
+        strain_sensitivity += (rPerturbedStrains[j].data()[mStrainIndex] -
+                               rRefStrains[j].data()[mStrainIndex]) /
                               Perturbation;
     }
 
