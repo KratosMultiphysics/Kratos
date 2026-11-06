@@ -33,7 +33,8 @@ SmallStrainIsotropicDamage3D::SmallStrainIsotropicDamage3D()
 //************************************************************************************
 
 SmallStrainIsotropicDamage3D::SmallStrainIsotropicDamage3D(const SmallStrainIsotropicDamage3D &rOther)
-    : ElasticIsotropic3D(rOther)
+    : ElasticIsotropic3D(rOther),
+      mStrainVariable(rOther.mStrainVariable)
 {
 }
 
@@ -42,7 +43,7 @@ SmallStrainIsotropicDamage3D::SmallStrainIsotropicDamage3D(const SmallStrainIsot
 
 ConstitutiveLaw::Pointer SmallStrainIsotropicDamage3D::Clone() const
 {
-    return Kratos::make_shared<SmallStrainIsotropicDamage3D>(SmallStrainIsotropicDamage3D(*this));
+    return Kratos::make_shared<SmallStrainIsotropicDamage3D>(*this);
 }
 
 //********************************DESTRUCTOR******************************************
