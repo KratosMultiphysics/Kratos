@@ -30,7 +30,7 @@
 #include "solving_strategies/builder_and_solvers/p_multigrid/linear_multifreedom_constraint.hpp" // LinearMultifreedomConstraint
 
 // Geometries definition
-#include "geometries/register_kratos_components_for_geometry.h"
+#include "geometries/geometry.h"
 #include "geometries/line_2d_2.h"
 #include "geometries/line_2d_3.h"
 #include "geometries/line_3d_2.h"
