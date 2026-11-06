@@ -56,6 +56,13 @@ class MagnitudeReductionConvCriterion(ConvergenceCriterion):
         component = GetComponentHavingDataByFullName(self.__component_name, self.__optimization_problem)
         self.__component_data_view = ComponentDataView(component, self.__optimization_problem)
 
+        # "target_value" is normally computed once, the first time IsConverged() sees step == 0.
+        # On a restart that first call never happens again in this process, so re-hydrate it here.
+        target_key = f"{self.__value_name.split(':')[0]}_conv_target"
+        unbuffered_data = self.__component_data_view.GetUnBufferedData()
+        if self.__optimization_problem.GetStep() > 0 and unbuffered_data.HasValue(target_key):
+            self.__target_value = unbuffered_data[target_key]
+
     @time_decorator()
     def IsConverged(self) -> bool:
         iter = self.__optimization_problem.GetStep()

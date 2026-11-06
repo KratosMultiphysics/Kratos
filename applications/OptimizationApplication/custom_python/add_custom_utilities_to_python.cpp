@@ -46,7 +46,10 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         .def("ApplyOnScalarField", &SymmetryUtility::ApplyOnScalarField)
         ;
 
-    m.def_submodule("OptAppModelPartUtils")
+    auto opt_app_model_part_utils = m.def_submodule("OptAppModelPartUtils");
+    // opaque holder returned by ClearNeighbourEntitiesData
+    py::class_<OptAppModelPartUtils::NeighbourEntitiesDataBackup>(opt_app_model_part_utils, "NeighbourEntitiesDataBackup");
+    opt_app_model_part_utils
         .def("LogModelPartStatus", &OptAppModelPartUtils::LogModelPartStatus, py::arg("model_part"), py::arg("status_to_log"))
         .def("GetModelPartStatusLog", &OptAppModelPartUtils::GetModelPartStatusLog, py::arg("model_part"))
         .def("CheckModelPartStatus", &OptAppModelPartUtils::CheckModelPartStatus, py::arg("model_part"), py::arg("status_to_check"))
@@ -83,6 +86,10 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
             "echo_level"_a = 0)
         .def("RemoveModelPartsWithCommonReferenceEntitiesBetweenReferenceListAndExaminedList", &OptAppModelPartUtils::RemoveModelPartsWithCommonReferenceEntitiesBetweenReferenceListAndExaminedList,
             "model_parts_list"_a)
+        .def("ClearNeighbourEntitiesData", &OptAppModelPartUtils::ClearNeighbourEntitiesData,
+            "model_parts_list"_a)
+        .def("RestoreNeighbourEntitiesData", &OptAppModelPartUtils::RestoreNeighbourEntitiesData,
+            "backup"_a)
         .def("GenerateModelPart",
             [](ModelPart::ConditionsContainerType& rOriginConditions, ModelPart& rDestinationModelPart, const std::string& rElementName) {
                 OptAppModelPartUtils::GenerateModelPart(rOriginConditions, rDestinationModelPart, KratosComponents<Element>::Get(rElementName));
