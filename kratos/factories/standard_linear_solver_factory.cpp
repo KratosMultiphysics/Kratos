@@ -27,6 +27,7 @@
 #include "linear_solvers/fallback_linear_solver.h"
 #include "linear_solvers/monotonicity_preserving_solver.h"
 #include "linear_solvers/skyline_lu_custom_scalar_solver.h"
+#include "linear_solvers/rigid_body_mode_pinning_solver.h"
 #include "spaces/default_spaces.h"
 
 namespace Kratos {
@@ -73,6 +74,10 @@ void RegisterLinearSolversForSpace()
     using MonotonicityPreservingSolverType = MonotonicityPreservingSolver<SpaceType,  LocalSpaceType>;
     static auto MonotonicityPreservingSolverFactory= StandardLinearSolverFactory<SpaceType,LocalSpaceType,MonotonicityPreservingSolverType>();
     KratosComponents<LinearSolverFactory<SpaceType,LocalSpaceType>>::Add("monotonicity_preserving",MonotonicityPreservingSolverFactory );
+
+    using RigidBodyModePinningSolverType = RigidBodyModePinningSolver<SpaceType,  LocalSpaceType>;
+    static auto RigidBodyModePinningSolverFactory= StandardLinearSolverFactory<SpaceType,LocalSpaceType,RigidBodyModePinningSolverType>();
+    KratosComponents<LinearSolverFactory<SpaceType,LocalSpaceType>>::Add("rigid_body_mode_pinning",RigidBodyModePinningSolverFactory );
 
 #ifndef KRATOS_USE_EIGEN_BACKEND
     // DeflatedCGSolver's utilities are not templated on the space type (they are
