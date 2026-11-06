@@ -18,7 +18,7 @@
 // External includes
 
 // Project includes
-#include "includes/ublas_interface.h"
+#include "includes/default_interface.h"
 #include "integration/integration_point.h"
 #include "geometries/geometry_dimension.h"
 #include "geometries/geometry_shape_function_container.h"

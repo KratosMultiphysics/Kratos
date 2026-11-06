@@ -66,7 +66,6 @@ namespace Kratos
                     x( i_node , 1 ) = pPrimalElement->GetGeometry()[i_node].Y();
             }
             auto p = PotentialFlowUtilities::GetPotentialOnNormalElement<2,3>(*pPrimalElement);
-            BoundedMatrix<double, Dim*NumNodes, NumNodes> test = ZeroMatrix(Dim*NumNodes, NumNodes);
 
             const double crOutput0 =             x(0,0) - x(1,0);
             const double crOutput1 =             -x(2,1);

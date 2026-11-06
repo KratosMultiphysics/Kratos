@@ -858,7 +858,7 @@ public:
 
     ///************************************************************************************************
 
-    void GenerateElements (ModelPart& this_model_part, ModelPart& new_model_part, const boost::numeric::ublas::vector<array_1d<int, 4 > >& Position_Node, vector<int> Elems_In_Isosurface, compressed_matrix<int>& Coord, Variable<double>& variable, int surface_number)
+    void GenerateElements (ModelPart& this_model_part, ModelPart& new_model_part, const boost::numeric::ublas::vector<array_1d<int, 2 > >& Position_Node, vector<int> Elems_In_Isosurface, compressed_matrix<int>& Coord, Variable<double>& variable, int surface_number)
     {
         array_1d<double, 3 > temp_vector1;
         array_1d<double, 3 > temp_vector2;
@@ -1204,7 +1204,7 @@ public:
 
     }
 
-    void GenerateElements (ModelPart& this_model_part, ModelPart& new_model_part, const boost::numeric::ublas::vector<array_1d<int, 4 > >& Position_Node, vector<int> Elems_In_Isosurface, compressed_matrix<int>& Coord, Variable<array_1d<double, 3 > >& variable, int surface_number)
+    void GenerateElements (ModelPart& this_model_part, ModelPart& new_model_part, const boost::numeric::ublas::vector<array_1d<int, 2 > >& Position_Node, vector<int> Elems_In_Isosurface, compressed_matrix<int>& Coord, Variable<array_1d<double, 3 > >& variable, int surface_number)
     {
         array_1d<double, 3 > temp_vector1;
         array_1d<double, 3 > temp_vector2;

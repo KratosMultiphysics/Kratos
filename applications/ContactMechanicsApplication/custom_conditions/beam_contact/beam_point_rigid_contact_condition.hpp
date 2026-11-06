@@ -10,17 +10,14 @@
 #define  KRATOS_BEAM_POINT_RIGID_CONTACT_CONDITION_H_INCLUDED
 
 
-
 // System includes
 
 // External includes
-#include "boost/smart_ptr.hpp"
 
 // Project includes
-#include "includes/define.h"
 #include "includes/serializer.h"
 #include "includes/condition.h"
-#include "includes/ublas_interface.h"
+#include "includes/default_interface.h"
 #include "includes/variables.h"
 #include "utilities/beam_math_utilities.hpp"
 

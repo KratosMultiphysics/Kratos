@@ -19,7 +19,7 @@
 #include "geometries/geometry.h"
 #include "includes/node.h"
 #include "includes/model_part.h"
-#include "includes/ublas_interface.h"
+#include "includes/default_interface.h"
 #include "includes/global_pointer_variables.h"
 #include "modified_shape_functions/modified_shape_functions.h"
 #include "../../FluidDynamicsApplication/custom_utilities/fluid_auxiliary_utilities.h"

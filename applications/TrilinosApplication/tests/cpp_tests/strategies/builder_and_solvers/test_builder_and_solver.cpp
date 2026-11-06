@@ -21,7 +21,7 @@
 
 // Project includes
 #include "tests/cpp_tests/trilinos_fast_suite.h"
-#include "spaces/ublas_space.h"
+#include "spaces/default_spaces.h"
 #include "../../trilinos_cpp_test_utilities.h"
 #include "containers/model.h"
 #include "mpi/includes/mpi_data_communicator.h"
@@ -49,7 +49,7 @@ namespace Kratos::Testing
     /// Initial definitons
     using GeometryType = Geometry<Node>;
     using TrilinosSparseSpaceType = TrilinosSpace<Epetra_FECrsMatrix, Epetra_FEVector>;
-    using TrilinosLocalSpaceType = UblasSpace<double, Matrix, Vector>;
+    using TrilinosLocalSpaceType = TDefaultDenseSpace<double>;
 
     /// Linear solvers Trilinos definitions
     using TrilinosLinearSolverType = LinearSolver<TrilinosSparseSpaceType, TrilinosLocalSpaceType>;

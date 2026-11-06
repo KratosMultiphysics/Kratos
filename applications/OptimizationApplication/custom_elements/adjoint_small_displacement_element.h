@@ -18,11 +18,10 @@
 // External includes
 
 // Project includes
-#include "includes/define.h"
 #include "includes/element.h"
 #include "utilities/integration_utilities.h"
 #include "utilities/geometry_utilities.h"
-#include "includes/ublas_interface.h"
+#include "includes/default_interface.h"
 #include "includes/variables.h"
 #include "optimization_application_variables.h"
 

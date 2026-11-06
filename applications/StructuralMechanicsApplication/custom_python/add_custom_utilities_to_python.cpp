@@ -15,7 +15,7 @@
 
 // Project includes
 #include "custom_python/add_custom_utilities_to_python.h"
-#include "spaces/ublas_space.h"
+#include "spaces/default_spaces.h"
 
 //Utilities
 #include "custom_utilities/rayleigh_damping_coefficients_utilities.h"
@@ -30,8 +30,9 @@ void AddCustomUtilitiesToPython(pybind11::module& m)
 {
     namespace py = pybind11;
 
-    typedef UblasSpace<double, CompressedMatrix, boost::numeric::ublas::vector<double>> SparseSpaceType;
-    typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
+    // The real system space follows the configure-time selected linear-algebra backend
+    typedef TDefaultSparseSpace<double> SparseSpaceType;
+    typedef TDefaultDenseSpace<double> LocalSpaceType;
 
     // Base types
     typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverTypeSparse;

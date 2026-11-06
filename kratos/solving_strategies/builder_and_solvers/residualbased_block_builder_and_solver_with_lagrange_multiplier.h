@@ -271,7 +271,7 @@ public:
 
         // Resize to the proper size
         const SizeType total_system_size = (BaseType::mOptions.Is(DOUBLE_LAGRANGE_MULTIPLIER)) ? BaseType::mEquationSystemSize + 2 * BaseType::mSlaveIds.size() : BaseType::mEquationSystemSize + BaseType::mSlaveIds.size();
-        if (rDx.size() != total_system_size) {
+        if (static_cast<SizeType>(rDx.size()) != total_system_size) {
             rDx.resize(total_system_size,  false);
             TSparseSpace::SetToZero(rDx);
         }
@@ -307,7 +307,7 @@ public:
 
         // Resize to the proper size
         const SizeType total_system_size = (BaseType::mOptions.Is(DOUBLE_LAGRANGE_MULTIPLIER)) ? BaseType::mEquationSystemSize + 2 * BaseType::mSlaveIds.size() : BaseType::mEquationSystemSize + BaseType::mSlaveIds.size();
-        if (rDx.size() != total_system_size) {
+        if (static_cast<SizeType>(rDx.size()) != total_system_size) {
             rDx.resize(total_system_size,  false);
             TSparseSpace::SetToZero(rDx);
         }
@@ -469,7 +469,7 @@ public:
             if (k_factor == 0.0) {
                 // Zero out the whole row, except the diagonal
                 for (std::size_t j = col_begin; j < col_end; ++j)
-                    if (Acol_indices[j] != Index )
+                    if (static_cast<std::size_t>(Acol_indices[j]) != Index )
                         Avalues[j] = 0.0;
 
                 // Zero out the RHS

@@ -19,6 +19,7 @@ def run_modelers(current_model, modelers_list):
 
 
 class TestNurbsGeometryModelerGapSbm(KratosUnittest.TestCase):
+    # Checks Gap-SBM quadrature results for a circular NURBS boundary.
     def test_quadrature_points_gap_sbm_on_circle(self):
         current_model = KM.Model()
 
@@ -58,8 +59,6 @@ class TestNurbsGeometryModelerGapSbm(KratosUnittest.TestCase):
                         "echo_level": 0,
                         "lower_point_xyz": [0,0,0.0],
                         "upper_point_xyz": [2,2,0.0],
-                        "lower_point_uvw": [0,0,0.0],
-                        "upper_point_uvw": [2,2,0.0],
                         "polynomial_order" : [1,1],
                         "number_of_knot_spans" : [63, 63],
                         "number_of_inner_loops": 1,
@@ -120,6 +119,7 @@ class TestNurbsGeometryModelerGapSbm(KratosUnittest.TestCase):
             self.assertAlmostEqual(center_point[1], expected[1], places=12)
             self.assertAlmostEqual(center_point[2], expected[2], places=12)
 
+    # Checks Gap-SBM quadrature results for a square boundary with layers.
     def test_quadrature_points_gap_sbm_on_square_layers(self):
         current_model = KM.Model()
 
@@ -171,8 +171,6 @@ class TestNurbsGeometryModelerGapSbm(KratosUnittest.TestCase):
                         "model_part_name" : "IgaModelPart",
                         "lower_point_xyz": [-1,-1,0.0],
                         "upper_point_xyz": [2,2,0.0],
-                        "lower_point_uvw": [-1,-1,0.0],
-                        "upper_point_uvw": [2,2,0.0],
                         "polynomial_order" : [2,2],
                         "number_of_knot_spans" : [13, 13],
                         "number_of_inner_loops": 0,

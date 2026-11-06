@@ -17,7 +17,7 @@
 // External includes
 
 // Project includes
-#include "includes/ublas_interface.h"
+#include "includes/default_interface.h"
 #include "utilities/divide_triangle_3d_3.h"
 
 namespace Kratos::Internals {
@@ -136,7 +136,7 @@ private:
     {
         auto num_nodes = rGeometry.PointsNumber();
         if (rNodalDistances.size() != num_nodes) {
-            rNodalDistances.resize(num_nodes);
+            rNodalDistances.resize(num_nodes, false);
             noalias(rNodalDistances) = ZeroVector(num_nodes);
         }
 
@@ -164,7 +164,7 @@ private:
     {
         auto num_nodes = rGeometry.PointsNumber();
         if (rNodalDistances.size() != num_nodes) {
-            rNodalDistances.resize(num_nodes);
+            rNodalDistances.resize(num_nodes, false);
             noalias(rNodalDistances) = ZeroVector(num_nodes);
         }
 

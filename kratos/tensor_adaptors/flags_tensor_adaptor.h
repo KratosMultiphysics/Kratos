@@ -84,6 +84,12 @@ public:
 
     FlagsTensorAdaptor(const FlagsTensorAdaptor& rOther) = default;
 
+    /**
+     * @brief Construct an empty, invalid instance.
+     * @details Only intended for @ref Serializer::load to construct into before populating via @ref load.
+     */
+    FlagsTensorAdaptor() = default;
+
     // Destructor
     ~FlagsTensorAdaptor() override = default;
 
@@ -122,6 +128,16 @@ private:
     ///@{
 
     Flags mFlags;
+
+    ///@}
+    ///@name Serialization
+    ///@{
+
+    friend class Serializer;
+
+    void save(Serializer& rSerializer) const override;
+
+    void load(Serializer& rSerializer) override;
 
     ///@}
 };

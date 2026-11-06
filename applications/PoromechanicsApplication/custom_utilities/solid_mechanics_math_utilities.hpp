@@ -1131,7 +1131,7 @@ public:
 
         if (Tensor.size1()==2)
         {
-            StrainVector.resize(3);
+            StrainVector.resize(3, false);
             noalias(StrainVector) = ZeroVector(3);
             StrainVector(0) = Tensor(0,0);
             StrainVector(1) = Tensor(1,1);
@@ -1139,7 +1139,7 @@ public:
         }
         else if (Tensor.size1()==3)
         {
-            StrainVector.resize(6);
+            StrainVector.resize(6, false);
             noalias(StrainVector) = ZeroVector(6);
             StrainVector(0) = Tensor(0,0);
             StrainVector(1) = Tensor(1,1);
@@ -1166,7 +1166,7 @@ public:
       Matrix A(input);
       pmatrix pm(A.size1());
       int singular = lu_factorize(A,pm);
-      inverse.assign( IdentityMatrix(A.size1()));
+      inverse = IdentityMatrix(A.size1());
       lu_substitute(A, pm, inverse);
       return singular;
     }

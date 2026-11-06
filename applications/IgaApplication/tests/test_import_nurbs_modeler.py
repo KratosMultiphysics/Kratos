@@ -29,19 +29,19 @@ class TestImportNurbsModeler(KratosUnittest.TestCase):
             "link_layer_to_condition_name": [
             {
                 "layer_name" : "left",
-                "condition_name" : "SBMSolid2DCondition"
+                "condition_name" : "SbmSolidCondition"
             },
             {
                 "layer_name" : "right",
-                "condition_name" : "SBMSolid2DCondition"
+                "condition_name" : "SbmSolidCondition"
             },
             {
                 "layer_name" : "top",
-                "condition_name" : "SBMLoadSolid2DCondition"
+                "condition_name" : "SbmLoadSolidCondition"
             },
             {
                 "layer_name" : "bottom",
-                "condition_name" : "SBMLoadSolid2DCondition"
+                "condition_name" : "SbmLoadSolidCondition"
             }
             ]
             }
@@ -87,11 +87,11 @@ class TestImportNurbsModeler(KratosUnittest.TestCase):
             "link_layer_to_condition_name": [
             {
                 "layer_name" : "Layer0",
-                "condition_name" : "Load2DCondition"
+                "condition_name" : "SbmLoadSolidCondition"
             },
             {
                 "layer_name" : "Layer1",
-                "condition_name" : "Solid2DCondition"
+                "condition_name" : "SbmSolidCondition"
             }
             ]
             }
@@ -125,6 +125,62 @@ class TestImportNurbsModeler(KratosUnittest.TestCase):
             self.assertAlmostEqual(geom.Center().Y, nurbs_curve_center[i][1])
             i += 1
 
+
+    def _make_square_modeler_settings(self):
+        return KratosMultiphysics.Parameters(
+            """ [{
+                "modeler_name": "ImportNurbsSbmModeler",
+                "Parameters": {
+                    "input_filename": "import_nurbs_test/square_nurbs.json",
+                    "model_part_name": "square_nurbs_model_part",
+                    "link_layer_to_condition_name": [
+                        {"layer_name": "bottom", "condition_name": "SbmSolidCondition"},
+                        {"layer_name": "right", "condition_name": "SbmSolidCondition"},
+                        {"layer_name": "top", "condition_name": "SbmSolidCondition"},
+                        {"layer_name": "left", "condition_name": "SbmSolidCondition"}
+                    ]
+                }
+            }] """)
+
+    def test_missing_layer_mapping_for_nurbs_curve(self):
+        modelers_list = self._make_square_modeler_settings()
+        layers = modelers_list[0]["Parameters"]["link_layer_to_condition_name"]
+        layers[0]["layer_name"].SetString("other")
+
+        message = (
+            'NURBS geometry layer "bottom" has no entry in '
+            '"link_layer_to_condition_name"'
+        )
+        with self.assertRaisesRegex(RuntimeError, message):
+            run_modelers(KratosMultiphysics.Model(), modelers_list)
+
+    def test_missing_condition_name_for_nurbs_layer(self):
+        modelers_list = self._make_square_modeler_settings()
+        layers = modelers_list[0]["Parameters"]["link_layer_to_condition_name"]
+        layers[0].RemoveValue("condition_name")
+
+        with self.assertRaisesRegex(RuntimeError, 'layer "bottom" has no "condition_name"'):
+            run_modelers(KratosMultiphysics.Model(), modelers_list)
+
+    def test_empty_condition_name_for_nurbs_layer(self):
+        modelers_list = self._make_square_modeler_settings()
+        layers = modelers_list[0]["Parameters"]["link_layer_to_condition_name"]
+        layers[0]["condition_name"].SetString("")
+
+        message = 'Empty "condition_name" for NURBS geometry layer "bottom"'
+        with self.assertRaisesRegex(RuntimeError, message):
+            run_modelers(KratosMultiphysics.Model(), modelers_list)
+
+    def test_imports_curve_with_unregistered_condition_name(self):
+        modelers_list = self._make_square_modeler_settings()
+        layers = modelers_list[0]["Parameters"]["link_layer_to_condition_name"]
+        layers[0]["condition_name"].SetString("UnknownSbmCondition")
+
+        current_model = KratosMultiphysics.Model()
+        run_modelers(current_model, modelers_list)
+
+        self.assertEqual(
+            current_model.GetModelPart("square_nurbs_model_part").NumberOfGeometries(), 4)
 
 
 if __name__ == '__main__':

@@ -59,6 +59,7 @@ git clone https://github.com/KratosMultiphysics/Kratos Kratos
   * C++17 compiler
   * CMake
   * Boost (dependencies are header-only, no compilation of boost libraries required)
+  * Eigen (header-only; see [Eigen](#eigen) below for how it is located)
 
 Additionally, Visual Studio is required to compile in *Windows*.
 
@@ -67,7 +68,7 @@ Additionally, Visual Studio is required to compile in *Windows*.
     The command below will install all the packages needed.
 
     ```Shell
-    sudo apt-get install python3-dev gcc g++ cmake libboost-all-dev
+    sudo apt-get install python3-dev gcc g++ cmake libboost-all-dev libeigen3-dev
     ```
     Newer versions of boost can be downloaded in:
 
@@ -259,6 +260,22 @@ Additionally, Visual Studio is required to compile in *Windows*.
 
 Some applications have additional dependencies. Please check the `README` files of the applications that are compiled
 
+### Eigen
+
+*Eigen* is a header-only linear-algebra library used by some applications (e.g. *LinearSolversApplication* and *RomApplication*). *Kratos* no longer ships a copy of Eigen; instead it is located automatically from one of the following sources, in order of priority:
+
+1. **`EIGEN3_ROOT`** — a user-provided root directory (environment variable or `-DEIGEN3_ROOT=...`), mirroring how `BOOST_ROOT` is handled.
+2. **OS install** — a system-wide Eigen, e.g. `libeigen3-dev` on Ubuntu/Debian (headers under `/usr/include/eigen3`).
+3. **Automatic download** — as a last resort, the pinned version (default `5.0.0`, change with `-DKRATOS_EIGEN_VERSION=...`) is downloaded and extracted into the build tree.
+
+On *GNU/Linux* you can install it with:
+
+```Shell
+sudo apt-get install libeigen3-dev
+```
+
+If you prefer to point *Kratos* at a specific Eigen checkout, set `EIGEN3_ROOT` to the directory that contains the `Eigen` folder (e.g. the root of an Eigen source tree).
+
 ## Basic Configuration
 
 You can find the new kratos configuration file in *Kratos* `scripts` folder: `standard_configure.sh` for *GNU/Linux*, `standard_configure_mac.sh` for *MacOS*, `standard_configure.bat` for *Windows* and others. In the special case of *Windows* using *MinGW* you will need to copy two scripts (`standard_configure_MINGW.bat` and `standard_configure_MINGW.sh`) both are required, but only the `.bat` file is invoked.
@@ -287,6 +304,14 @@ Path to the python executable that *Kratos* will use. We recommend that you manu
 `BOOST_ROOT`
 
 Don't use this unless you have problems during the compilation. Path to boost root directory, set it if you downloaded but without using `apt-get`.
+
+`EIGEN3_ROOT`
+
+Don't use this unless you have problems during the compilation. Path to the Eigen root directory (the folder that contains the `Eigen` header folder). Only needed if Eigen is not installed on the system and you do not want to rely on the automatic download.
+
+`KRATOS_EIGEN_VERSION`
+
+Version of Eigen to download automatically when Eigen is not found on the system. Defaults to `5.0.0`.
 
 ## Configuration scripts examples
 

@@ -28,15 +28,13 @@
 // External includes
 #include <boost/range/iterator_range.hpp>
 #include <boost/property_tree/json_parser.hpp>
+#include <amgcl/coarsening/rigid_body_modes.hpp>
 
 // Project includes
 #include "future/containers/linear_system.h"
 #include "future/linear_solvers/linear_solver.h"
-#include "includes/define.h"
 #include "includes/kratos_parameters.h"
-#include "includes/ublas_interface.h"
-
-#include <amgcl/coarsening/rigid_body_modes.hpp>
+#include "includes/default_interface.h"
 
 namespace Kratos::Future
 {

@@ -49,7 +49,7 @@ bool MKLUtilities::CheckThreadNumber(const int NumberOfMKLThreads)
     const int number_of_threads_mkl = GetNumThreads();
     if (NumberOfMKLThreads > 0) { // Manual setting
         if (number_of_threads_mkl != NumberOfMKLThreads) {
-            KRATOS_WARNING("MKLUtilities") << "The number of threads in MKL is: " << NumberOfMKLThreads << " instead of " << number_of_threads_mkl << std::endl;
+            KRATOS_WARNING("MKLUtilities") << "The number of threads in MKL is: " << number_of_threads_mkl << " instead of " << NumberOfMKLThreads << std::endl;
             return false;
         }
         return true;
@@ -110,12 +110,11 @@ std::optional<int> MKLUtilities::ComputeMKLThreadCount(const int NumberOfMKLThre
 {
     // Check first if it is needed to set the number of threads
     if (!CheckThreadNumber(NumberOfMKLThreads)) {
-        int number_of_threads_used;
+        int number_of_threads_used = 0;
         if (NumberOfMKLThreads > 0) {
             number_of_threads_used = NumberOfMKLThreads;
         } else if (static_cast<int>(MKLThreadSetting::Minimal) == NumberOfMKLThreads) {
-            const int number_of_threads_mkl = GetNumThreads();
-            number_of_threads_used = std::min(number_of_threads_mkl, number_of_threads_used);
+            number_of_threads_used = std::min(GetNumThreads(), ParallelUtilities::GetNumThreads());
         } else if (static_cast<int>(MKLThreadSetting::Consistent) == NumberOfMKLThreads) {
             number_of_threads_used = ParallelUtilities::GetNumThreads();
         } else {

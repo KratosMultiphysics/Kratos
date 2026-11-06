@@ -1,0 +1,620 @@
+// KRATOS  ___|  |                   |                   |
+//       \___ \  __|  __| |   |  __| __| |   |  __| _` | |
+//             | |   |    |   | (    |   |   | |   (   | |
+//       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
+//
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
+//
+//  Main authors:    DamApplication developers
+//
+
+// Every historical Dam small-displacement registration name creates a
+// StructuralMechanicsApplication SmallDisplacement runtime element, so old .mdpa
+// inputs and binary restarts keep working unchanged.
+
+// System includes
+#include <algorithm>
+#include <cmath>
+#include <cstddef>
+#include <fstream>
+#include <iostream>
+#include <map>
+#include <string>
+#include <vector>
+
+// Project includes
+#include "dam_fast_suite.h"
+#include "containers/model.h"
+#include "includes/constitutive_law.h"
+#include "includes/element.h"
+#include "includes/kratos_components.h"
+#include "includes/model_part.h"
+#include "includes/model_part_io.h"
+#include "includes/variables.h"
+#include "utilities/math_utils.h"
+#include "spaces/default_spaces.h"
+#include "linear_solvers/skyline_lu_factorization_solver.h"
+#include "solving_strategies/schemes/residualbased_incrementalupdate_static_scheme.h"
+#include "solving_strategies/builder_and_solvers/residualbased_block_builder_and_solver.h"
+#include "solving_strategies/strategies/residualbased_linear_strategy.h"
+
+// Application includes
+#include "dam_application_variables.h"
+#include "structural_mechanics_application_variables.h"
+#include "custom_constitutive/thermal_linear_elastic_3D_law.hpp"
+#include "custom_constitutive/thermal_linear_elastic_2D_plane_strain.hpp"
+// StructuralMechanics small-displacement element (the runtime type behind the
+// historical names).
+#include "custom_elements/solid_elements/small_displacement.h"
+
+namespace Kratos
+{
+namespace Testing
+{
+
+namespace
+{
+
+/// Material data.
+constexpr double sdr_test_young_modulus = 2.0e7;
+constexpr double sdr_test_poisson_ratio = 0.2;
+constexpr double sdr_test_density = 2400.0;
+constexpr double sdr_test_thickness = 0.15;
+
+/// Builds a model part with one element of the given registered name, created
+/// from the registered prototype geometry (scaled/translated).
+Element::Pointer CreateRegisteredElement(
+    Model& rModel,
+    const std::string& rModelPartName,
+    const std::string& rElementName,
+    const std::string& rLawName,
+    ModelPart*& rOutModelPart,
+    const bool rIs2d)
+{
+    KRATOS_TRY;
+    ModelPart& r_model_part = rModel.CreateModelPart(rModelPartName, 2);
+    ProcessInfo& r_pi = r_model_part.GetProcessInfo();
+    r_pi[DOMAIN_SIZE] = rIs2d ? 2 : 3;
+    r_pi[SPACE_DIMENSION] = rIs2d ? 2 : 3;
+    r_pi[IS_RESTARTED] = false;
+    r_pi[DELTA_TIME] = 1.0;
+    r_pi[IS_CONVERGED] = true;
+
+    for (auto& v : std::vector<const VariableData*>{&DISPLACEMENT, &VELOCITY, &ACCELERATION,
+                    &VOLUME_ACCELERATION, &TEMPERATURE, &NODAL_REFERENCE_TEMPERATURE,
+                    &INITIAL_STRESS_TENSOR}) {
+        r_model_part.AddNodalSolutionStepVariable(*v);
+    }
+
+    const Element& r_prototype = KratosComponents<Element>::Get(rElementName);
+    const auto& r_proto_geom = r_prototype.GetGeometry();
+    Matrix local_coordinates;
+    r_proto_geom.PointsLocalCoordinates(local_coordinates);
+    const std::size_t number_of_nodes = local_coordinates.size1();
+    const double scale = 2.0;
+    const double offset_x = 0.5, offset_y = 1.0, offset_z = 0.25;
+
+    for (std::size_t i = 0; i < number_of_nodes; ++i) {
+        Node::Pointer p_node = r_model_part.CreateNewNode(
+            i + 1,
+            scale * local_coordinates(i, 0) + offset_x,
+            scale * local_coordinates(i, 1) + offset_y,
+            (local_coordinates.size2() > 2 ? scale * local_coordinates(i, 2) + offset_z : 0.0));
+        p_node->AddDof(DISPLACEMENT_X);
+        p_node->AddDof(DISPLACEMENT_Y);
+        p_node->AddDof(DISPLACEMENT_Z);
+        p_node->FastGetSolutionStepValue(TEMPERATURE) = 20.0;
+        p_node->FastGetSolutionStepValue(NODAL_REFERENCE_TEMPERATURE) = 20.0;
+        Matrix z3(3, 3);
+        noalias(z3) = ZeroMatrix(3, 3);
+        p_node->FastGetSolutionStepValue(INITIAL_STRESS_TENSOR) = z3;
+    }
+
+    auto p_props = r_model_part.CreateNewProperties(1);
+    (*p_props)[YOUNG_MODULUS] = sdr_test_young_modulus;
+    (*p_props)[POISSON_RATIO] = sdr_test_poisson_ratio;
+    (*p_props)[DENSITY] = sdr_test_density;
+    if (rIs2d)
+        (*p_props)[THICKNESS] = sdr_test_thickness;
+    if (rLawName == "ThermalLinearElastic3DLaw")
+        p_props->SetValue(CONSTITUTIVE_LAW, ConstitutiveLaw::Pointer(new ThermalLinearElastic3DLaw()));
+    else
+        p_props->SetValue(CONSTITUTIVE_LAW, ConstitutiveLaw::Pointer(new ThermalLinearElastic2DPlaneStrain()));
+
+    std::vector<ModelPart::IndexType> element_nodes(number_of_nodes);
+    for (std::size_t i = 0; i < number_of_nodes; ++i)
+        element_nodes[i] = i + 1;
+    r_model_part.CreateNewElement(rElementName, 1, element_nodes, p_props);
+
+    Element::Pointer p_element = r_model_part.pGetElement(1);
+    p_element->Initialize(r_pi);
+    rOutModelPart = &r_model_part;
+    return p_element;
+    KRATOS_CATCH("");
+}
+
+/// True if the runtime type is the StructuralMechanics SmallDisplacement class
+/// (mangled "N6Kratos17SmallDisplacementE").
+bool IsSmaRuntime(const Element& rElement)
+{
+    // Runtime identity is checked against the StructuralMechanicsApplication
+    // SmallDisplacement class directly (typeid identity is ABI-portable),
+    // instead of matching a compiler-specific mangled-name substring.
+    return typeid(rElement) == typeid(SmallDisplacement);
+}
+
+/// True if the runtime type is one of the removed Dam legacy classes (must
+/// never appear in production runs). The removed classes are identified by
+/// their declared names, which appear in both Itanium and MSVC typeid strings.
+bool IsLegacyRuntime(const Element& rElement)
+{
+    const std::string name = typeid(rElement).name();
+    return name.find("SmallDisplacementThermoMechanicElement") != std::string::npos ||
+           name.find("SmallDisplacementElement") != std::string::npos ||
+           name.find("SolidElement") != std::string::npos;
+}
+
+} // namespace
+
+//************************************************************************************
+// 1. All 22 historical names create SMA runtime elements.
+//************************************************************************************
+
+KRATOS_TEST_CASE_IN_SUITE(HistoricalSmallDisplacementAliasesCreateSMAElements, KratosDamFastSuite)
+{
+    // (name, 2D flag)
+    const std::vector<std::pair<std::string, bool>> names = {
+        {"SmallDisplacementSolidElement2D3N", true},
+        {"SmallDisplacementSolidElement2D4N", true},
+        {"SmallDisplacementSolidElement2D6N", true},
+        {"SmallDisplacementSolidElement2D8N", true},
+        {"SmallDisplacementSolidElement2D9N", true},
+        {"SmallDisplacementSolidElement3D4N", false},
+        {"SmallDisplacementSolidElement3D6N", false},
+        {"SmallDisplacementSolidElement3D8N", false},
+        {"SmallDisplacementSolidElement3D10N", false},
+        {"SmallDisplacementSolidElement3D15N", false},
+        {"SmallDisplacementSolidElement3D20N", false},
+        {"SmallDisplacementSolidElement3D27N", false},
+        {"SmallDisplacementThermoMechanicElement2D3N", true},
+        {"SmallDisplacementThermoMechanicElement2D4N", true},
+        {"SmallDisplacementThermoMechanicElement2D6N", true},
+        {"SmallDisplacementThermoMechanicElement2D8N", true},
+        {"SmallDisplacementThermoMechanicElement2D9N", true},
+        {"SmallDisplacementThermoMechanicElement3D4N", false},
+        {"SmallDisplacementThermoMechanicElement3D8N", false},
+        {"SmallDisplacementThermoMechanicElement3D10N", false},
+        {"SmallDisplacementThermoMechanicElement3D20N", false},
+        {"SmallDisplacementThermoMechanicElement3D27N", false},
+    };
+
+    for (const auto& entry : names) {
+        const std::string& name = entry.first;
+        const bool is2d = entry.second;
+        Model model;
+        ModelPart* p_mp = nullptr;
+        Element::Pointer p_elem = CreateRegisteredElement(
+            model, name, name, is2d ? "ThermalLinearElastic2DPlaneStrain" : "ThermalLinearElastic3DLaw", p_mp, is2d);
+
+        const std::size_t expected_nodes = p_elem->GetGeometry().PointsNumber();
+        KRATOS_EXPECT_TRUE(IsSmaRuntime(*p_elem));
+        KRATOS_EXPECT_FALSE(IsLegacyRuntime(*p_elem));
+        KRATOS_EXPECT_EQ(expected_nodes,
+                         KratosComponents<Element>::Get(name).GetGeometry().PointsNumber());
+        KRATOS_EXPECT_EQ(p_elem->GetProperties()[YOUNG_MODULUS], sdr_test_young_modulus);
+        Element& r_elem_ref = *p_elem;
+        std::cout << "[registration] " << name << " -> runtime=" << typeid(r_elem_ref).name()
+                  << " npoints=" << expected_nodes << std::endl;
+    }
+    std::cout << "[registration] All 22 historical registrations create SMA runtime elements." << std::endl;
+}
+
+//************************************************************************************
+// 2. Full generic API surface through a historical name.
+//************************************************************************************
+
+KRATOS_TEST_CASE_IN_SUITE(HistoricalAliasExposesFullElementAPISurface, KratosDamFastSuite)
+{
+    // A historical Dam name must expose the full generic element API of the SMA
+    // runtime element it creates.
+    Model model;
+    ModelPart* p_mech_mp = nullptr;
+    Element::Pointer p_mech = CreateRegisteredElement(model, "ConvMech", "SmallDisplacementSolidElement3D8N", "ThermalLinearElastic3DLaw", p_mech_mp, false);
+
+    KRATOS_EXPECT_TRUE(IsSmaRuntime(*p_mech));
+
+    // Full generic API surface.
+    KRATOS_EXPECT_EQ(p_mech->Check(p_mech_mp->GetProcessInfo()), 0);
+    Element::Pointer p_clone = p_mech->Clone(2, p_mech->GetGeometry().Points());
+    KRATOS_EXPECT_EQ(p_clone->GetGeometry().PointsNumber(), 8u);
+
+    p_mech->InitializeSolutionStep(p_mech_mp->GetProcessInfo());
+    p_mech->InitializeNonLinearIteration(p_mech_mp->GetProcessInfo());
+    Matrix lhs_mech, mass_mech, damping_mech;
+    Vector rhs_mech;
+    p_mech->CalculateLocalSystem(lhs_mech, rhs_mech, p_mech_mp->GetProcessInfo());
+    p_mech->CalculateMassMatrix(mass_mech, p_mech_mp->GetProcessInfo());
+    p_mech->CalculateDampingMatrix(damping_mech, p_mech_mp->GetProcessInfo());
+    p_mech->FinalizeNonLinearIteration(p_mech_mp->GetProcessInfo());
+    p_mech_mp->GetProcessInfo()[IS_CONVERGED] = true;
+    p_mech->FinalizeSolutionStep(p_mech_mp->GetProcessInfo());
+
+    // Integration-point outputs + CONSTITUTIVE_LAW pointer.
+    std::vector<Vector> v_out;
+    p_mech->CalculateOnIntegrationPoints(CAUCHY_STRESS_VECTOR, v_out, p_mech_mp->GetProcessInfo());
+    std::vector<Matrix> m_out;
+    p_mech->CalculateOnIntegrationPoints(CAUCHY_STRESS_TENSOR, m_out, p_mech_mp->GetProcessInfo());
+    std::vector<double> s_out;
+    p_mech->CalculateOnIntegrationPoints(INTEGRATION_WEIGHT, s_out, p_mech_mp->GetProcessInfo());
+    std::vector<ConstitutiveLaw::Pointer> law_out;
+    p_mech->CalculateOnIntegrationPoints(CONSTITUTIVE_LAW, law_out, p_mech_mp->GetProcessInfo());
+    KRATOS_EXPECT_EQ(v_out.size(), law_out.size());
+    KRATOS_EXPECT_EQ(m_out.size(), law_out.size());
+    KRATOS_EXPECT_EQ(s_out.size(), law_out.size());
+    KRATOS_EXPECT_EQ(law_out.size(), 8u);
+    KRATOS_EXPECT_TRUE(law_out[0] != nullptr);
+
+    std::cout << "[registration] historical names expose the full generic SMA element API "
+              << "surface (Check, Clone, lifecycle, local system, mass, damping, "
+              << "integration-point outputs)." << std::endl;
+}
+
+//************************************************************************************
+
+
+//************************************************************************************
+// 4. Unmodified committed .mdpa smoke test.
+//************************************************************************************
+
+KRATOS_TEST_CASE_IN_SUITE(HistoricalSmallDisplacementMdpaLoadsWithSMAElements, KratosDamFastSuite)
+{
+    // Load a committed Dam .mdpa unchanged: the historical
+    // SmallDisplacementThermoMechanicElement2D3N elements must now be SMA at
+    // runtime (the interface elements remain unchanged).
+    const std::string source_dir = std::string(__FILE__);
+    const std::string repo_root = source_dir.substr(0, source_dir.find("applications/DamApplication"));
+    // ModelPartIO appends the ".mdpa" extension to the given filename.
+    const std::string mdpa_path = repo_root +
+        "applications/DamApplication/tests/joint_elastic_cohesive_2d_normal/"
+        "joint_elastic_cohesive_2d_normal";
+
+    Model model;
+    ModelPart& r_mp = model.CreateModelPart("MdpaSmoke", 2);
+    r_mp.GetProcessInfo()[DOMAIN_SIZE] = 2;
+    r_mp.GetProcessInfo()[SPACE_DIMENSION] = 2;
+    r_mp.GetProcessInfo()[IS_RESTARTED] = false;
+    r_mp.AddNodalSolutionStepVariable(DISPLACEMENT);
+    r_mp.AddNodalSolutionStepVariable(VELOCITY);
+    r_mp.AddNodalSolutionStepVariable(ACCELERATION);
+    r_mp.AddNodalSolutionStepVariable(TEMPERATURE);
+    r_mp.AddNodalSolutionStepVariable(NODAL_REFERENCE_TEMPERATURE);
+
+    ModelPartIO(mdpa_path).ReadModelPart(r_mp);
+
+    KRATOS_EXPECT_EQ(r_mp.NumberOfElements(), 25u);   // 20 solid + 5 interface
+
+    std::size_t sma_count = 0, interface_count = 0, legacy_count = 0;
+    for (auto& r_elem : r_mp.Elements()) {
+        const std::string runtime = typeid(r_elem).name();
+        if (IsSmaRuntime(r_elem))
+            ++sma_count;
+        else if (runtime.find("SmallDisplacementInterfaceElement") != std::string::npos)
+            ++interface_count;
+        else if (IsLegacyRuntime(r_elem))
+            ++legacy_count;
+    }
+    std::cout << "[registration] unmodified .mdpa: SMA elements=" << sma_count
+              << " interface=" << interface_count
+              << " legacy=" << legacy_count << std::endl;
+    KRATOS_EXPECT_EQ(sma_count, 20u);
+    KRATOS_EXPECT_EQ(interface_count, 5u);
+    KRATOS_EXPECT_EQ(legacy_count, 0u);
+    std::cout << "[registration] committed .mdpa loads unchanged; historical solid "
+              << "elements resolve to the SMA runtime." << std::endl;
+}
+
+
+KRATOS_TEST_CASE_IN_SUITE(InitialStateAssignsNonuniformQuadrilateralGaussStresses, KratosDamFastSuite)
+{
+    Model model;
+    ModelPart* p_reference_part = nullptr;
+    ModelPart* p_continuation_part = nullptr;
+    auto p_reference = CreateRegisteredElement(model, "reference", "SmallDisplacementElement2D4N",
+        "ThermalLinearElastic2DPlaneStrain", p_reference_part, true);
+    auto p_continuation = CreateRegisteredElement(model, "continuation", "SmallDisplacementElement2D4N",
+        "ThermalLinearElastic2DPlaneStrain", p_continuation_part, true);
+    p_reference->GetProperties()[THERMAL_EXPANSION] = 0.0;
+    p_continuation->GetProperties()[THERMAL_EXPANSION] = 0.0;
+
+    // Bilinear displacement yields a genuinely varying stress within the Q4.
+    for (auto& r_node : p_reference_part->Nodes()) {
+        auto& r_u = r_node.FastGetSolutionStepValue(DISPLACEMENT);
+        r_u[0] = 0.001 * r_node.X0() * r_node.Y0();
+        r_u[1] = -0.002 * r_node.Y0();
+    }
+    std::vector<Vector> reference_stresses;
+    p_reference->CalculateOnIntegrationPoints(CAUCHY_STRESS_VECTOR, reference_stresses,
+                                               p_reference_part->GetProcessInfo());
+    KRATOS_EXPECT_EQ(reference_stresses.size(), 4);
+    KRATOS_EXPECT_GT(norm_2(reference_stresses[0] - reference_stresses[2]), 1.0);
+
+    std::vector<ConstitutiveLaw::Pointer> laws;
+    p_continuation->CalculateOnIntegrationPoints(CONSTITUTIVE_LAW, laws,
+                                                  p_continuation_part->GetProcessInfo());
+    KRATOS_EXPECT_EQ(laws.size(), reference_stresses.size());
+    for (std::size_t i = 0; i < laws.size(); ++i) {
+        laws[i]->SetInitialState(Kratos::make_intrusive<InitialState>(
+            ZeroVector(3), reference_stresses[i], ZeroMatrix(2, 2)));
+    }
+    std::vector<Vector> transferred_stresses;
+    p_continuation->CalculateOnIntegrationPoints(CAUCHY_STRESS_VECTOR, transferred_stresses,
+                                                  p_continuation_part->GetProcessInfo());
+    for (std::size_t i = 0; i < laws.size(); ++i) {
+        KRATOS_EXPECT_VECTOR_NEAR(reference_stresses[i], transferred_stresses[i], 1.0e-9);
+    }
+    Matrix lhs_reference, lhs_continuation;
+    Vector rhs_reference, rhs_continuation;
+    p_reference->CalculateLocalSystem(lhs_reference, rhs_reference, p_reference_part->GetProcessInfo());
+    p_continuation->CalculateLocalSystem(lhs_continuation, rhs_continuation, p_continuation_part->GetProcessInfo());
+    KRATOS_EXPECT_VECTOR_NEAR(rhs_reference, rhs_continuation, 1.0e-9);
+    KRATOS_EXPECT_MATRIX_NEAR(lhs_reference, lhs_continuation, 1.0e-9);
+
+    // Apply the same displacement increment from their respective datums.
+    for (auto& r_node : p_reference_part->Nodes()) {
+        auto& r_u = r_node.FastGetSolutionStepValue(DISPLACEMENT);
+        r_u[0] += 0.0003 * r_node.Y0();
+        r_u[1] += 0.0001 * r_node.X0();
+    }
+    for (auto& r_node : p_continuation_part->Nodes()) {
+        auto& r_u = r_node.FastGetSolutionStepValue(DISPLACEMENT);
+        r_u[0] = 0.0003 * r_node.Y0();
+        r_u[1] = 0.0001 * r_node.X0();
+    }
+    p_reference->CalculateOnIntegrationPoints(CAUCHY_STRESS_VECTOR, reference_stresses,
+                                               p_reference_part->GetProcessInfo());
+    p_continuation->CalculateOnIntegrationPoints(CAUCHY_STRESS_VECTOR, transferred_stresses,
+                                                  p_continuation_part->GetProcessInfo());
+    for (std::size_t i = 0; i < laws.size(); ++i) {
+        KRATOS_EXPECT_VECTOR_NEAR(reference_stresses[i], transferred_stresses[i], 1.0e-9);
+    }
+    p_reference->CalculateLocalSystem(lhs_reference, rhs_reference, p_reference_part->GetProcessInfo());
+    p_continuation->CalculateLocalSystem(lhs_continuation, rhs_continuation, p_continuation_part->GetProcessInfo());
+    KRATOS_EXPECT_VECTOR_NEAR(rhs_reference, rhs_continuation, 1.0e-9);
+}
+
+
+namespace {
+using GravitySparseSpace = TDefaultSparseSpace<double>;
+using GravityDenseSpace = TDefaultDenseSpace<double>;
+using GravitySolver = LinearSolver<GravitySparseSpace, GravityDenseSpace>;
+using GravityStrategy = ResidualBasedLinearStrategy<GravitySparseSpace, GravityDenseSpace, GravitySolver>;
+
+ModelPart& MakeGravityBody(Model& rModel, const std::string& rName)
+{
+    auto& r_part = rModel.CreateModelPart(rName, 2);
+    r_part.AddNodalSolutionStepVariable(DISPLACEMENT);
+    r_part.AddNodalSolutionStepVariable(REACTION);
+    r_part.AddNodalSolutionStepVariable(VOLUME_ACCELERATION);
+    auto& r_info = r_part.GetProcessInfo();
+    r_info[DOMAIN_SIZE] = 2;
+    r_info[DELTA_TIME] = 1.0;
+    r_info[IS_RESTARTED] = false;
+    const double coordinates[6][2] = {{0., 0.}, {1., 0.}, {0., 1.},
+                                       {1., 1.}, {0., 2.}, {1., 2.}};
+    for (std::size_t i = 0; i < 6; ++i) {
+        auto p_node = r_part.CreateNewNode(i + 1, coordinates[i][0], coordinates[i][1], 0.);
+        p_node->AddDof(DISPLACEMENT_X, REACTION_X);
+        p_node->AddDof(DISPLACEMENT_Y, REACTION_Y);
+        p_node->AddDof(DISPLACEMENT_Z, REACTION_Z);
+        if (i < 2) {
+            p_node->Fix(DISPLACEMENT_X);
+            p_node->Fix(DISPLACEMENT_Y);
+        }
+        auto& r_acceleration = p_node->FastGetSolutionStepValue(VOLUME_ACCELERATION);
+        r_acceleration = ZeroVector(3);
+        r_acceleration[1] = -10.;
+    }
+    auto p_properties = r_part.CreateNewProperties(1);
+    (*p_properties)[YOUNG_MODULUS] = 10000.;
+    (*p_properties)[POISSON_RATIO] = 0.2;
+    (*p_properties)[DENSITY] = 2.;
+    (*p_properties)[THICKNESS] = 1.;
+    p_properties->SetValue(CONSTITUTIVE_LAW,
+        KratosComponents<ConstitutiveLaw>::Get("LinearElasticPlaneStrain2DLaw").Clone());
+    r_part.CreateNewElement("SmallDisplacementElement2D4N", 1, {1, 2, 4, 3}, p_properties);
+    r_part.CreateNewElement("SmallDisplacementElement2D4N", 2, {3, 4, 6, 5}, p_properties);
+    return r_part;
+}
+
+GravityStrategy::Pointer MakeGravityStrategy(ModelPart& rPart)
+{
+    auto p_solver = Kratos::make_shared<SkylineLUFactorizationSolver<GravitySparseSpace, GravityDenseSpace>>();
+    auto p_builder = Kratos::make_shared<ResidualBasedBlockBuilderAndSolver<GravitySparseSpace, GravityDenseSpace, GravitySolver>>(p_solver);
+    auto p_scheme = Kratos::make_shared<ResidualBasedIncrementalUpdateStaticScheme<GravitySparseSpace, GravityDenseSpace>>();
+    auto p_strategy = Kratos::make_shared<GravityStrategy>(rPart, p_scheme, p_builder, true, false, false, false);
+    p_strategy->SetEchoLevel(0);
+    p_strategy->Initialize();
+    p_strategy->Check();
+    return p_strategy;
+}
+
+std::vector<Vector> GravityStresses(ModelPart& rPart)
+{
+    std::vector<Vector> result;
+    for (auto& r_element : rPart.Elements()) {
+        std::vector<Vector> values;
+        r_element.CalculateOnIntegrationPoints(CAUCHY_STRESS_VECTOR, values, rPart.GetProcessInfo());
+        result.insert(result.end(), values.begin(), values.end());
+    }
+    return result;
+}
+
+Vector GravityResidual(ModelPart& rPart)
+{
+    Vector result = ZeroVector(2 * rPart.NumberOfNodes());
+    for (auto& r_element : rPart.Elements()) {
+        Matrix lhs;
+        Vector rhs;
+        r_element.CalculateLocalSystem(lhs, rhs, rPart.GetProcessInfo());
+        for (std::size_t i = 0; i < r_element.GetGeometry().size(); ++i) {
+            const auto node_id = r_element.GetGeometry()[i].Id();
+            for (std::size_t j = 0; j < 2; ++j) {
+                result[2 * (node_id - 1) + j] += rhs[2 * i + j];
+            }
+        }
+    }
+    return result;
+}
+
+Vector GravityDisplacements(ModelPart& rPart)
+{
+    Vector result = ZeroVector(2 * rPart.NumberOfNodes());
+    for (const auto& r_node : rPart.Nodes()) {
+        for (std::size_t j = 0; j < 2; ++j) {
+            result[2 * (r_node.Id() - 1) + j] = r_node.FastGetSolutionStepValue(DISPLACEMENT)[j];
+        }
+    }
+    return result;
+}
+
+void CompareGravityVectors(const Vector& rActual, const Vector& rExpected,
+                           const double AbsoluteTolerance, const double RelativeTolerance)
+{
+    KRATOS_EXPECT_EQ(rActual.size(), rExpected.size());
+    for (std::size_t i = 0; i < rExpected.size(); ++i) {
+        KRATOS_EXPECT_NEAR(rActual[i], rExpected[i], AbsoluteTolerance + RelativeTolerance * std::abs(rExpected[i]));
+    }
+}
+
+void CompareGravityStresses(const std::vector<Vector>& rActual, const std::vector<Vector>& rExpected)
+{
+    KRATOS_EXPECT_EQ(rActual.size(), rExpected.size());
+    for (std::size_t i = 0; i < rExpected.size(); ++i) {
+        CompareGravityVectors(rActual[i], rExpected[i], 1.0e-10, 1.0e-10);
+    }
+}
+
+void SetHorizontalAcceleration(ModelPart& rPart, const double Acceleration)
+{
+    for (auto& r_node : rPart.Nodes()) {
+        r_node.FastGetSolutionStepValue(VOLUME_ACCELERATION)[0] = Acceleration;
+    }
+}
+} // namespace
+
+KRATOS_TEST_CASE_IN_SUITE(QuadrilateralGravityPerGaussPointInitialStateContinuation, KratosDamFastSuite)
+{
+    Model reference_model;
+    auto& r_reference = MakeGravityBody(reference_model, "reference");
+    auto p_reference_strategy = MakeGravityStrategy(r_reference);
+    p_reference_strategy->Solve();
+    const auto initial_stresses = GravityStresses(r_reference);
+    std::map<ModelPart::IndexType, std::vector<Vector>> stresses_by_element;
+    for (auto& r_element : r_reference.Elements()) {
+        r_element.CalculateOnIntegrationPoints(CAUCHY_STRESS_VECTOR,
+            stresses_by_element[r_element.Id()], r_reference.GetProcessInfo());
+    }
+    const Vector initial_displacements = GravityDisplacements(r_reference);
+    const Vector initial_residual = GravityResidual(r_reference);
+    KRATOS_EXPECT_EQ(initial_stresses.size(), 8);
+    KRATOS_EXPECT_GT(norm_2(initial_stresses[0] - initial_stresses[2]), 1.0);
+    for (std::size_t i = 4; i < initial_residual.size(); ++i) {
+        KRATOS_EXPECT_NEAR(initial_residual[i], 0., 1.0e-10);
+    }
+    KRATOS_EXPECT_NEAR(initial_residual[1] + initial_residual[3], -40., 1.0e-10);
+    for (std::size_t i = 0; i < 2; ++i) {
+        const auto& r_reaction = r_reference.GetNode(i + 1).FastGetSolutionStepValue(REACTION);
+        KRATOS_EXPECT_NEAR(r_reaction[0], -initial_residual[2 * i], 1.0e-10);
+        KRATOS_EXPECT_NEAR(r_reaction[1], -initial_residual[2 * i + 1], 1.0e-10);
+    }
+
+    Model continuation_model;
+    auto& r_continuation = MakeGravityBody(continuation_model, "continuation");
+    auto p_continuation_strategy = MakeGravityStrategy(r_continuation);
+    for (auto& r_element : r_continuation.Elements()) {
+        std::vector<ConstitutiveLaw::Pointer> laws;
+        r_element.CalculateOnIntegrationPoints(CONSTITUTIVE_LAW, laws, r_continuation.GetProcessInfo());
+        const auto& r_stresses = stresses_by_element.at(r_element.Id());
+        KRATOS_EXPECT_EQ(laws.size(), 4);
+        KRATOS_EXPECT_EQ(laws.size(), r_stresses.size());
+        for (std::size_t point = 0; point < laws.size(); ++point) {
+            laws[point]->SetInitialState(Kratos::make_intrusive<InitialState>(
+                ZeroVector(3), r_stresses[point], ZeroMatrix(2, 2)));
+        }
+    }
+    CompareGravityStresses(GravityStresses(r_continuation), initial_stresses);
+    const Vector continuation_initial_residual = GravityResidual(r_continuation);
+    CompareGravityVectors(continuation_initial_residual, initial_residual, 1.0e-10, 1.0e-10);
+    CompareGravityVectors(GravityDisplacements(r_continuation), ZeroVector(12), 1.0e-12, 1.0e-10);
+    // Separate external and internal force contributions by evaluating the
+    // same state with gravity switched off, then restore the original load.
+    for (auto& r_node : r_reference.Nodes()) {
+        r_node.FastGetSolutionStepValue(VOLUME_ACCELERATION)[1] = 0.;
+    }
+    for (auto& r_node : r_continuation.Nodes()) {
+        r_node.FastGetSolutionStepValue(VOLUME_ACCELERATION)[1] = 0.;
+    }
+    const Vector reference_minus_internal = GravityResidual(r_reference);
+    const Vector continuation_minus_internal = GravityResidual(r_continuation);
+    CompareGravityVectors(continuation_minus_internal, reference_minus_internal, 1.0e-10, 1.0e-10);
+    CompareGravityVectors(continuation_initial_residual - continuation_minus_internal,
+                          initial_residual - reference_minus_internal, 1.0e-10, 1.0e-10);
+    for (auto& r_node : r_reference.Nodes()) {
+        r_node.FastGetSolutionStepValue(VOLUME_ACCELERATION)[1] = -10.;
+    }
+    for (auto& r_node : r_continuation.Nodes()) {
+        r_node.FastGetSolutionStepValue(VOLUME_ACCELERATION)[1] = -10.;
+    }
+    p_continuation_strategy->Solve();
+    const double first_solve_displacement = norm_inf(GravityDisplacements(r_continuation));
+    CompareGravityVectors(GravityDisplacements(r_continuation), ZeroVector(12), 1.0e-12, 1.0e-10);
+    CompareGravityStresses(GravityStresses(r_continuation), initial_stresses);
+    CompareGravityVectors(GravityResidual(r_continuation), initial_residual, 1.0e-10, 1.0e-10);
+    for (std::size_t i = 0; i < 2; ++i) {
+        const auto& r_reference_reaction = r_reference.GetNode(i + 1).FastGetSolutionStepValue(REACTION);
+        const auto& r_actual_reaction = r_continuation.GetNode(i + 1).FastGetSolutionStepValue(REACTION);
+        for (std::size_t j = 0; j < 2; ++j) {
+            KRATOS_EXPECT_NEAR(r_actual_reaction[j], r_reference_reaction[j], 1.0e-10);
+        }
+    }
+
+    SetHorizontalAcceleration(r_reference, 2.);
+    SetHorizontalAcceleration(r_continuation, 2.);
+    p_reference_strategy->Solve();
+    p_continuation_strategy->Solve();
+    const Vector reference_increment = GravityDisplacements(r_reference) - initial_displacements;
+    const auto reference_increment_stresses = GravityStresses(r_reference);
+    const auto continuation_increment_stresses = GravityStresses(r_continuation);
+    double maximum_stress_error = 0.;
+    for (std::size_t point = 0; point < reference_increment_stresses.size(); ++point) {
+        maximum_stress_error = std::max(maximum_stress_error,
+            norm_inf(continuation_increment_stresses[point] - reference_increment_stresses[point]));
+    }
+    CompareGravityVectors(GravityDisplacements(r_continuation), reference_increment, 1.0e-12, 1.0e-10);
+    CompareGravityStresses(continuation_increment_stresses, reference_increment_stresses);
+    const Vector increment_reference_residual = GravityResidual(r_reference);
+    const Vector increment_continuation_residual = GravityResidual(r_continuation);
+    CompareGravityVectors(increment_continuation_residual, increment_reference_residual, 1.0e-10, 1.0e-10);
+    for (std::size_t i = 4; i < increment_reference_residual.size(); ++i) {
+        KRATOS_EXPECT_NEAR(increment_reference_residual[i], 0., 1.0e-10);
+        KRATOS_EXPECT_NEAR(increment_continuation_residual[i], 0., 1.0e-10);
+    }
+    KRATOS_INFO("QuadrilateralGravity")
+        << " initial reference free residual: " << norm_inf(subrange(initial_residual, 4, initial_residual.size()))
+        << "; first solve displacement: " << first_solve_displacement
+        << "; incremental displacement error: " << norm_inf(GravityDisplacements(r_continuation) - reference_increment)
+        << "; incremental stress difference: " << maximum_stress_error
+        << "; incremental continuation free residual: " << norm_inf(subrange(increment_continuation_residual, 4, increment_continuation_residual.size()))
+        << "; incremental residual difference: " << norm_inf(increment_continuation_residual - increment_reference_residual) << std::endl;
+    for (std::size_t i = 0; i < 2; ++i) {
+        const auto& r_reference_reaction = r_reference.GetNode(i + 1).FastGetSolutionStepValue(REACTION);
+        const auto& r_actual_reaction = r_continuation.GetNode(i + 1).FastGetSolutionStepValue(REACTION);
+        for (std::size_t j = 0; j < 2; ++j) {
+            KRATOS_EXPECT_NEAR(r_actual_reaction[j], r_reference_reaction[j], 1.0e-10);
+        }
+    }
+}
+
+} // namespace Testing
+} // namespace Kratos

@@ -893,7 +893,7 @@ public:
             if (k_factor == 0.0) {
                 // Zero out the whole row, except the diagonal
                 for (std::size_t j = col_begin; j < col_end; ++j)
-                    if (Acol_indices[j] != Index )
+                    if (static_cast<std::size_t>(Acol_indices[j]) != Index)
                         Avalues[j] = 0.0;
 
                 // Zero out the RHS
@@ -1717,7 +1717,7 @@ private:
 
     inline void CreatePartition(unsigned int number_of_threads, const int number_of_rows, DenseVector<unsigned int>& partitions)
     {
-        partitions.resize(number_of_threads + 1);
+        partitions.resize(number_of_threads + 1, false);
         int partition_size = number_of_rows / number_of_threads;
         partitions[0] = 0;
         partitions[number_of_threads] = number_of_rows;

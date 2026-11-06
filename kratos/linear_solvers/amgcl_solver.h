@@ -201,7 +201,8 @@ public:
             "max_levels"                     : -1,
             "pre_sweeps"                     : 1,
             "post_sweeps"                    : 1,
-            "use_gpgpu"                      : false
+            "use_gpgpu"                      : false,
+            "direct_settings"                : {}
         })");
     }
 

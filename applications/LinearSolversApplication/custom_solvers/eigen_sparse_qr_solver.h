@@ -7,19 +7,17 @@
 //  Author: Thomas Oberbichler
 */
 
-#if !defined(KRATOS_EIGEN_SPARSE_QR_SOLVER_H_INCLUDED)
-#define KRATOS_EIGEN_SPARSE_QR_SOLVER_H_INCLUDED
+#pragma once
 
 // External includes
 #include <Eigen/Sparse>
 #include <Eigen/OrderingMethods>
 
 // Project includes
-#include "includes/define.h"
 #include "linear_solvers_define.h"
 #include "linear_solvers/direct_solver.h"
 #include "spaces/ublas_space.h"
-#include "includes/ublas_interface.h"
+#include "includes/default_interface.h"
 #include "includes/ublas_complex_interface.h"
 
 namespace Kratos {
@@ -75,5 +73,3 @@ public:
 };
 
 } // namespace Kratos
-
-#endif // defined(KRATOS_EIGEN_SPARSE_QR_SOLVER_H_INCLUDED)

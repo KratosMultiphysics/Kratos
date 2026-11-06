@@ -404,7 +404,7 @@ Vector& GenericSmallStrainOrthotropicDamage<TConstLawIntegratorType>::GetValue(
     )
 {
     if (rThisVariable == INTERNAL_VARIABLES) {
-        rValue.resize(6);
+        rValue.resize(6, false);
         rValue[0] = mDamages[0];
         rValue[1] = mDamages[1];
         rValue[2] = mDamages[2];

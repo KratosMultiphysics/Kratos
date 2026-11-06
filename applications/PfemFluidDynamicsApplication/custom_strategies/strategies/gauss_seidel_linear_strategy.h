@@ -225,44 +225,7 @@ namespace Kratos
         }
 
         //*********************************************************************************
-        /**OPERATIONS ACCESSIBLE FROM THE INPUT:*/
 
-        /**
-    operation to predict the solution ... if it is not called a trivial predictor is used in which the
-    values of the solution step of interest are assumed equal to the old values
-     */
-        /* void Predict() */
-        /* { */
-        /*     KRATOS_TRY */
-        /*     //OPERATIONS THAT SHOULD BE DONE ONCE - internal check to avoid repetitions */
-        /*     //if the operations needed were already performed this does nothing */
-        /*     //if(mInitializeWasPerformed == false) */
-        /*     //{ */
-        /*     //	Initialize(); */
-        /*     //	mInitializeWasPerformed = true; */
-        /*     //} */
-
-        /*     ////initialize solution step */
-        /*     //if (mSolutionStepIsInitialized == false) */
-        /*     //	InitializeSolutionStep(); */
-
-        /*     TSystemMatrixType& mA = *mpA; */
-        /*     TSystemVectorType& mDx = *mpDx; */
-        /*     TSystemVectorType& mb = *mpb; */
-
-        /*     DofsArrayType& rDofSet = GetBuilderAndSolver()->GetDofSet(); */
-
-        /*     this->GetScheme()->Predict(BaseType::GetModelPart(), rDofSet, mA, mDx, mb); */
-
-        /*     KRATOS_CATCH("") */
-        /* } */
-
-        //*********************************************************************************
-        /**
-    the problem of interest is solved
-    a double containing norm(Dx) is returned if CalculateNormDxFlag == true, else 0 is returned
-     */
-        //**********************************************************************
 
         double Solve() override
         {
@@ -276,7 +239,7 @@ namespace Kratos
             TSystemVectorType &mDx = *mpDx;
             TSystemVectorType &mb = *mpb;
 
-            if (BaseType::mRebuildLevel > 0 || BaseType::mStiffnessMatrixIsBuilt == false)
+            if (BaseType::mRebuildLevel > 0 || !BaseType::mStiffnessMatrixIsBuilt)
             {
                 TSparseSpace::SetToZero(mA);
                 TSparseSpace::SetToZero(mDx);
@@ -321,7 +284,7 @@ namespace Kratos
 
             //calculate if needed the norm of Dx
             double normDx = 0.00;
-            if (mCalculateNormDxFlag == true)
+            if (mCalculateNormDxFlag)
             {
                 normDx = TSparseSpace::TwoNorm(mDx);
             }
@@ -487,15 +450,15 @@ namespace Kratos
             typename TSchemeType::Pointer pScheme = GetScheme();
 
             //Initialize The Scheme - OPERATIONS TO BE DONE ONCE
-            if (pScheme->SchemeIsInitialized() == false)
+            if (!pScheme->SchemeIsInitialized())
                 pScheme->Initialize(BaseType::GetModelPart());
 
             //Initialize The Elements - OPERATIONS TO BE DONE ONCE
-            if (pScheme->ElementsAreInitialized() == false)
+            if (!pScheme->ElementsAreInitialized())
                 pScheme->InitializeElements(BaseType::GetModelPart());
 
             //Initialize The Conditions - OPERATIONS TO BE DONE ONCE
-            if (pScheme->ConditionsAreInitialized() == false)
+            if (!pScheme->ConditionsAreInitialized())
                 pScheme->InitializeConditions(BaseType::GetModelPart());
 
             if (BaseType::GetEchoLevel() > 2)
@@ -519,7 +482,7 @@ namespace Kratos
 
             //OPERATIONS THAT SHOULD BE DONE ONCE - internal check to avoid repetitions
             //if the operations needed were already performed this does nothing
-            if (mInitializeWasPerformed == false)
+            if (!mInitializeWasPerformed)
             {
                 Initialize();
                 mInitializeWasPerformed = true;

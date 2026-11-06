@@ -102,7 +102,7 @@ KRATOS_TEST_CASE_IN_SUITE(CheckOfBackboneLawThrowsWhenStrainsAreNotAscending, Kr
     const auto geometry     = Geometry<Node>{};
     const auto process_info = ProcessInfo{};
 
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN([[maybe_unused]] const auto rv = backbone_law.Check(properties, geometry, process_info), "Error: Values in STRAINS_OF_PIECEWISE_LINEAR_LAW are not ascending: 0.02 (at index 3) does not exceed 0.03 (at index 2)")
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN([[maybe_unused]] const auto rv = backbone_law.Check(properties, geometry, process_info), "Invalid sequence in 'STRAINS_OF_PIECEWISE_LINEAR_LAW': values must be strictly increasing. Found 0.02 at index 3, which is not greater than the previous value 0.03 at index 2.")
 }
 
 KRATOS_TEST_CASE_IN_SUITE(CheckOfBackboneLawThrowsWhenYoungsModulusIsSmallerThanAnyOfBackboneStiffnesses,

@@ -202,9 +202,6 @@ void MovingLoadCondition< TDim, TNumNodes>::CalculateAll(
 
         }
 
-        array_1d<double, TDim> load_first_node = ZeroVector(TDim);
-        array_1d<double, TDim> load_end_node = ZeroVector(TDim);
-
         BoundedMatrix<double, TDim, TNumNodes> local_load_matrix = ZeroMatrix(TDim, TNumNodes);
         BoundedMatrix<double, TDim, TNumNodes> global_load_matrix = ZeroMatrix(TDim, TNumNodes);
 

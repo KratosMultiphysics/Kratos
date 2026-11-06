@@ -60,6 +60,8 @@ class TestFluidLSPGRom(KratosUnittest.TestCase):
                 self.assertLess(l2, self.relative_tolerance)
         
     def testFluidLSPGHRom2D(self):
+        # A relative change of 1e-14 in the node coordinates changes the results by 7e-12
+        self.relative_tolerance = 1.0e-10
         self.work_folder = "fluid_dynamics_test_files/LSPGHROM/"
         parameters_filename = "ProjectParametersHROM.json"
         expected_output_filename = "ExpectedOutputLSPGHROM.npy"

@@ -214,8 +214,6 @@ namespace Kratos
 
     void InitializeElementalVariables(ElementalVariables &rElementalVariables) override;
 
-    /* virtual void CalculateDeltaPosition (Matrix & rDeltaPosition); */
-
     ///@}
     ///@name Access
     ///@{
