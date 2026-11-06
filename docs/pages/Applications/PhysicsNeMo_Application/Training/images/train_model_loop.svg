@@ -1,0 +1,62 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1100" height="430" viewBox="0 0 1100 430" font-family="Helvetica, Arial, sans-serif">
+  <title>What TrainModel does</title>
+  <desc>Dataset to loader to forward pass, the data loss plus extra loss terms, epoch callbacks, OOD-guard calibration and the checkpoint with its card, with the optional streaming and warm-restart entry points.</desc>
+  <defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#555"/></marker></defs>
+  <rect width="1100" height="430" fill="#ffffff"/>
+  <g font-size="12.5" fill="#333">
+    <rect x="20" y="60" width="170" height="90" rx="8" fill="#f6f6f6" stroke="#666"/>
+    <text x="105" y="84" text-anchor="middle" font-weight="bold">dataset</text>
+    <text x="105" y="104" text-anchor="middle">CreateNpzDataset,</text>
+    <text x="105" y="120" text-anchor="middle">CreateMeshDataset, ...</text>
+    <text x="105" y="136" text-anchor="middle">or a streaming dataset</text>
+    <rect x="220" y="60" width="150" height="90" rx="8" fill="#f6f6f6" stroke="#666"/>
+    <text x="295" y="84" text-anchor="middle" font-weight="bold">DataLoader</text>
+    <text x="295" y="104" text-anchor="middle">batch_size, shuffle</text>
+    <text x="295" y="120" text-anchor="middle">(streaming: epochs 1,</text>
+    <text x="295" y="136" text-anchor="middle">no shuffle)</text>
+    <rect x="400" y="60" width="150" height="90" rx="8" fill="#eef7ee" stroke="#2e6b2e"/>
+    <text x="475" y="84" text-anchor="middle" font-weight="bold" fill="#2e6b2e">model.forward</text>
+    <text x="475" y="104" text-anchor="middle">torch.nn.Module or</text>
+    <text x="475" y="120" text-anchor="middle">physicsnemo.Module,</text>
+    <text x="475" y="136" text-anchor="middle">on "device"</text>
+    <rect x="580" y="40" width="240" height="130" rx="8" fill="#fff4e0" stroke="#c27c0e"/>
+    <text x="700" y="64" text-anchor="middle" font-weight="bold" fill="#7a4d00">loss</text>
+    <text x="700" y="84" text-anchor="middle">data loss ("mse", on target_channels)</text>
+    <text x="700" y="102" text-anchor="middle">+ extra_loss_terms: PDE residual,</text>
+    <text x="700" y="118" text-anchor="middle">exact discrete residual, Sobolev term</text>
+    <text x="700" y="136" text-anchor="middle">+ concrete-dropout regularizer</text>
+    <text x="700" y="156" text-anchor="middle" fill="#666" font-size="11.5">a 4-argument term also receives the targets</text>
+    <rect x="850" y="60" width="230" height="90" rx="8" fill="#f6f6f6" stroke="#666"/>
+    <text x="965" y="84" text-anchor="middle" font-weight="bold">optimizer step</text>
+    <text x="965" y="104" text-anchor="middle">"adam", learning_rate;</text>
+    <text x="965" y="120" text-anchor="middle">loss.item() into the history</text>
+    <text x="965" y="136" text-anchor="middle">that TrainModel returns</text>
+    <g stroke="#555" stroke-width="1.8">
+      <line x1="190" y1="105" x2="218" y2="105" marker-end="url(#arrow)"/>
+      <line x1="370" y1="105" x2="398" y2="105" marker-end="url(#arrow)"/>
+      <line x1="550" y1="105" x2="578" y2="105" marker-end="url(#arrow)"/>
+      <line x1="820" y1="105" x2="848" y2="105" marker-end="url(#arrow)"/>
+    </g>
+    <path d="M 965 150 L 965 190 L 475 190 L 475 150" stroke="#555" stroke-width="1.5" fill="none" stroke-dasharray="5,4" marker-end="url(#arrow)"/>
+    <text x="720" y="205" text-anchor="middle" fill="#666" font-size="11.5">repeat for "epochs"; every epoch the epoch_callbacks run in eval() under no_grad (score against the real residual; they cannot train)</text>
+  </g>
+  <g font-size="12.5" fill="#333">
+    <rect x="20" y="240" width="330" height="80" rx="8" fill="#eaf2fb" stroke="#1f4e79"/>
+    <text x="185" y="264" text-anchor="middle" font-weight="bold" fill="#1f4e79">before the loop: warm_restart</text>
+    <text x="185" y="284" text-anchor="middle">shrink_and_perturb_ on the model after .to(device)</text>
+    <text x="185" y="300" text-anchor="middle">and before the optimizer is built (float params, dim &gt; 1)</text>
+    <rect x="385" y="240" width="330" height="80" rx="8" fill="#eaf2fb" stroke="#1f4e79"/>
+    <text x="550" y="264" text-anchor="middle" font-weight="bold" fill="#1f4e79">during the loop: ood_guard</text>
+    <text x="550" y="284" text-anchor="middle">the guard collects the training inputs (channels last)</text>
+    <text x="550" y="300" text-anchor="middle">and is saved as a sidecar next to the checkpoint</text>
+    <rect x="750" y="240" width="330" height="80" rx="8" fill="#eaf2fb" stroke="#1f4e79"/>
+    <text x="915" y="264" text-anchor="middle" font-weight="bold" fill="#1f4e79">after the loop: SaveTrainedModel(card=)</text>
+    <text x="915" y="284" text-anchor="middle">.mdlus or TorchScript, FSDP2 shards gathered first,</text>
+    <text x="915" y="300" text-anchor="middle">plus surrogate.card.json with fields and normalization</text>
+  </g>
+  <g font-size="12" fill="#444">
+    <text x="20" y="360">Three things the loop does not decide for you: the layout of a sample (one row per entity, columns per field - match CreateNpzDataset's), the normalization of the</text>
+    <text x="20" y="378">targets (do it, then record it in the card), and target_channels when a dataset carries more columns than the model predicts - torch broadcasts instead of raising.</text>
+    <text x="20" y="410" fill="#666">Not yet in the loop: AMP, CUDA-graph capture, resumable optimizer checkpoints, experiment trackers - see the roadmap.</text>
+  </g>
+</svg>
