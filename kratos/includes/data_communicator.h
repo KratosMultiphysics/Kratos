@@ -22,7 +22,7 @@
 // Project includes
 #include "containers/array_1d.h"
 #include "containers/flags.h"
-#include "includes/define.h"
+#include "includes/data_communicator_request.h"
 #include "includes/mpi_serializer.h"
 
 // Using a macro instead of a function to get the correct line in the error message.
@@ -282,6 +282,74 @@ virtual void AllGatherv(const std::vector<__VA_ARGS__>& rSendValues, std::vector
     KRATOS_DATA_COMMUNICATOR_DEBUG_SIZE_CHECK(rRecvOffsets.size(), 1, "AllGatherv (offset check)");                         \
     rRecvValues = rSendValues;                                                                                              \
 }
+#endif
+
+// Non-blocking (asynchronous) operations. Wrappers for MPI_Isend, MPI_Irecv, MPI_Ibcast and MPI_Iallreduce.
+/* All methods return a DataCommunicatorRequest, and the operation is only guaranteed to be finished once
+ * DataCommunicatorRequest::Wait() returned (or DataCommunicatorRequest::Test() returned true).
+ * Until then, the buffers passed as arguments must be kept alive and must not be modified (nor read, for output buffers).
+ * Output buffers must be sized in advance (including the shape of each entry for dynamic types such as Vector or Matrix),
+ * since no size or shape information is communicated. For the same reason, ISend should be paired with IRecv.
+ * The serial versions complete immediately.
+ */
+#ifndef KRATOS_BASE_DATA_COMMUNICATOR_DECLARE_ASYNC_INTERFACE_FOR_TYPE
+#define KRATOS_BASE_DATA_COMMUNICATOR_DECLARE_ASYNC_INTERFACE_FOR_TYPE(...)                                                 \
+virtual DataCommunicatorRequest ISend(                                                                                      \
+    const __VA_ARGS__& rSendValues, const int SendDestination, const int SendTag = 0) const {                               \
+    KRATOS_ERROR_IF(Rank() != SendDestination)                                                                              \
+    << "Communication between different ranks is not possible with a serial DataCommunicator." << std::endl;                \
+    return DataCommunicatorRequest();                                                                                       \
+}                                                                                                                           \
+virtual DataCommunicatorRequest ISend(                                                                                      \
+    const std::vector<__VA_ARGS__>& rSendValues, const int SendDestination, const int SendTag = 0) const {                  \
+    KRATOS_ERROR_IF(Rank() != SendDestination)                                                                              \
+    << "Communication between different ranks is not possible with a serial DataCommunicator." << std::endl;                \
+    return DataCommunicatorRequest();                                                                                       \
+}                                                                                                                           \
+virtual DataCommunicatorRequest IRecv(__VA_ARGS__& rRecvValues, const int RecvSource, const int RecvTag = 0) const {        \
+    KRATOS_ERROR << "Calling serial DataCommunicator::IRecv, which has no meaningful return." << std::endl;                 \
+}                                                                                                                           \
+virtual DataCommunicatorRequest IRecv(                                                                                      \
+    std::vector<__VA_ARGS__>& rRecvValues, const int RecvSource, const int RecvTag = 0) const {                             \
+    KRATOS_ERROR << "Calling serial DataCommunicator::IRecv, which has no meaningful return." << std::endl;                 \
+}                                                                                                                           \
+virtual DataCommunicatorRequest IBroadcast(__VA_ARGS__& rBuffer, const int SourceRank) const {                              \
+    return DataCommunicatorRequest();                                                                                       \
+}                                                                                                                           \
+virtual DataCommunicatorRequest IBroadcast(std::vector<__VA_ARGS__>& rBuffer, const int SourceRank) const {                 \
+    return DataCommunicatorRequest();                                                                                       \
+}                                                                                                                           \
+virtual DataCommunicatorRequest ISumAll(const __VA_ARGS__& rLocalValue, __VA_ARGS__& rGlobalValue) const {                  \
+    rGlobalValue = rLocalValue;                                                                                             \
+    return DataCommunicatorRequest();                                                                                       \
+}                                                                                                                           \
+virtual DataCommunicatorRequest ISumAll(                                                                                    \
+    const std::vector<__VA_ARGS__>& rLocalValues, std::vector<__VA_ARGS__>& rGlobalValues) const {                          \
+    KRATOS_DATA_COMMUNICATOR_DEBUG_SIZE_CHECK(rLocalValues.size(), rGlobalValues.size(), "ISumAll");                        \
+    rGlobalValues = rLocalValues;                                                                                           \
+    return DataCommunicatorRequest();                                                                                       \
+}                                                                                                                           \
+virtual DataCommunicatorRequest IMinAll(const __VA_ARGS__& rLocalValue, __VA_ARGS__& rGlobalValue) const {                  \
+    rGlobalValue = rLocalValue;                                                                                             \
+    return DataCommunicatorRequest();                                                                                       \
+}                                                                                                                           \
+virtual DataCommunicatorRequest IMinAll(                                                                                    \
+    const std::vector<__VA_ARGS__>& rLocalValues, std::vector<__VA_ARGS__>& rGlobalValues) const {                          \
+    KRATOS_DATA_COMMUNICATOR_DEBUG_SIZE_CHECK(rLocalValues.size(), rGlobalValues.size(), "IMinAll");                        \
+    rGlobalValues = rLocalValues;                                                                                           \
+    return DataCommunicatorRequest();                                                                                       \
+}                                                                                                                           \
+virtual DataCommunicatorRequest IMaxAll(const __VA_ARGS__& rLocalValue, __VA_ARGS__& rGlobalValue) const {                  \
+    rGlobalValue = rLocalValue;                                                                                             \
+    return DataCommunicatorRequest();                                                                                       \
+}                                                                                                                           \
+virtual DataCommunicatorRequest IMaxAll(                                                                                    \
+    const std::vector<__VA_ARGS__>& rLocalValues, std::vector<__VA_ARGS__>& rGlobalValues) const {                          \
+    KRATOS_DATA_COMMUNICATOR_DEBUG_SIZE_CHECK(rLocalValues.size(), rGlobalValues.size(), "IMaxAll");                        \
+    rGlobalValues = rLocalValues;                                                                                           \
+    return DataCommunicatorRequest();                                                                                       \
+}                                                                                                                           \
+
 #endif
 
 #ifndef KRATOS_BASE_DATA_COMMUNICATOR_DECLARE_PUBLIC_INTERFACE_FOR_TYPE
@@ -574,6 +642,66 @@ class KRATOS_API(KRATOS_CORE) DataCommunicator
     void Recv(TObject& rRecvObject, const int RecvSource, const int RecvTag = 0) const
     {
         this->RecvImpl(rRecvObject, RecvSource, RecvTag);
+    }
+
+    // Non-blocking (asynchronous) operations
+
+    KRATOS_BASE_DATA_COMMUNICATOR_DECLARE_ASYNC_INTERFACE_FOR_TYPE(char)
+    KRATOS_BASE_DATA_COMMUNICATOR_DECLARE_ASYNC_INTERFACE_FOR_TYPE(int)
+    KRATOS_BASE_DATA_COMMUNICATOR_DECLARE_ASYNC_INTERFACE_FOR_TYPE(unsigned int)
+    KRATOS_BASE_DATA_COMMUNICATOR_DECLARE_ASYNC_INTERFACE_FOR_TYPE(long unsigned int)
+    KRATOS_BASE_DATA_COMMUNICATOR_DECLARE_ASYNC_INTERFACE_FOR_TYPE(double)
+    KRATOS_BASE_DATA_COMMUNICATOR_DECLARE_ASYNC_INTERFACE_FOR_TYPE(array_1d<double, 3>)
+    KRATOS_BASE_DATA_COMMUNICATOR_DECLARE_ASYNC_INTERFACE_FOR_TYPE(array_1d<double, 4>)
+    KRATOS_BASE_DATA_COMMUNICATOR_DECLARE_ASYNC_INTERFACE_FOR_TYPE(array_1d<double, 6>)
+    KRATOS_BASE_DATA_COMMUNICATOR_DECLARE_ASYNC_INTERFACE_FOR_TYPE(array_1d<double, 9>)
+    KRATOS_BASE_DATA_COMMUNICATOR_DECLARE_ASYNC_INTERFACE_FOR_TYPE(Vector)
+    KRATOS_BASE_DATA_COMMUNICATOR_DECLARE_ASYNC_INTERFACE_FOR_TYPE(Matrix)
+
+    /// Start a barrier without blocking.
+    /** This is a wrapper for MPI_Ibarrier. The barrier is only passed once the returned request completes.
+     *  @return The request tracking the operation.
+     */
+    virtual DataCommunicatorRequest IBarrier() const
+    {
+        return DataCommunicatorRequest();
+    }
+
+    /// Start sending a string to another rank without blocking.
+    /** This is a wrapper for MPI_Isend.
+     *  @param[in] rSendValues String to send to rank SendDestination (must be kept alive and unchanged until completion).
+     *  @param[in] SendDestination Rank the string will be sent to.
+     *  @param[in] SendTag Message tag for sent values.
+     *  @return The request tracking the operation.
+     */
+    virtual DataCommunicatorRequest ISend(const std::string& rSendValues, const int SendDestination, const int SendTag = 0) const
+    {
+        KRATOS_ERROR_IF(Rank() != SendDestination)
+        << "Communication between different ranks is not possible with a serial DataCommunicator." << std::endl;
+        return DataCommunicatorRequest();
+    }
+
+    /// Start receiving a string from another rank without blocking.
+    /** This is a wrapper for MPI_Irecv.
+     *  @param[out] rRecvValues Received string (must be resized to the expected length in advance).
+     *  @param[in] RecvSource Rank the string is expected from.
+     *  @param[in] RecvTag Message tag for received values.
+     *  @return The request tracking the operation.
+     */
+    virtual DataCommunicatorRequest IRecv(std::string& rRecvValues, const int RecvSource, const int RecvTag = 0) const
+    {
+        KRATOS_ERROR << "Calling serial DataCommunicator::IRecv, which has no meaningful return." << std::endl;
+    }
+
+    /// Start synchronizing a string to the value held by the broadcasting rank without blocking.
+    /** This is a wrapper for MPI_Ibcast.
+     *  @param[in/out] rBuffer The broadcast string (input on SourceRank, output on all other ranks, which must have the same length in advance).
+     *  @param[in] SourceRank The rank transmitting the value.
+     *  @return The request tracking the operation.
+     */
+    virtual DataCommunicatorRequest IBroadcast(std::string& rBuffer, const int SourceRank) const
+    {
+        return DataCommunicatorRequest();
     }
 
     ///@}
@@ -1056,5 +1184,6 @@ inline std::ostream &operator<<(std::ostream &rOStream,
 #undef KRATOS_BASE_DATA_COMMUNICATOR_DECLARE_BROADCAST_INTERFACE_FOR_TYPE
 #undef KRATOS_BASE_DATA_COMMUNICATOR_DECLARE_SCATTER_INTERFACE_FOR_TYPE
 #undef KRATOS_BASE_DATA_COMMUNICATOR_DECLARE_GATHER_INTERFACE_FOR_TYPE
+#undef KRATOS_BASE_DATA_COMMUNICATOR_DECLARE_ASYNC_INTERFACE_FOR_TYPE
 #undef KRATOS_BASE_DATA_COMMUNICATOR_DECLARE_PUBLIC_INTERFACE_FOR_TYPE
 #undef KRATOS_BASE_DATA_COMMUNICATOR_DECLARE_IMPLEMENTATION_FOR_TYPE
