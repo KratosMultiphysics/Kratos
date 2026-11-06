@@ -495,7 +495,7 @@ namespace Kratos
 
                 Tetrahedra3D4<Node > geom( pn1,pn2,pn3,pn4  );
 
-                Element::Pointer p_element = rReferenceElement.Create(id, geom, properties);
+                Element::Pointer p_element = rReferenceElement.Create(id, geom.Points(), properties);
                 (rModelPart.Elements()).push_back(p_element);
 
             }

@@ -381,7 +381,7 @@ void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::CheckContactMod
             r_cond.Set(TO_ERASE, true);
 
             // Creating new condition
-            Condition::Pointer p_new_cond = r_cond.Clone(total_number_conditions + r_cond.Id(), r_cond.GetGeometry());
+            Condition::Pointer p_new_cond = r_cond.Clone(total_number_conditions + r_cond.Id(), r_cond.GetGeometry().Points());
             auxiliary_conditions_vector.push_back(p_new_cond);
 
             p_new_cond->SetData(r_cond.GetData()); // TODO: Remove when fixed on the core

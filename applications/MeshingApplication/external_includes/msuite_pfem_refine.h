@@ -349,7 +349,7 @@ public:
                     *((nodes_begin + ei[1]).base()),
                     *((nodes_begin + ei[0]).base())
                 );
-                Condition::Pointer p_cond = rReferenceBoundaryCondition.Create(id, geom, properties);
+                Condition::Pointer p_cond = rReferenceBoundaryCondition.Create(id, geom.Points(), properties);
                 (ThisModelPart.Conditions()).push_back(p_cond);
 
             }

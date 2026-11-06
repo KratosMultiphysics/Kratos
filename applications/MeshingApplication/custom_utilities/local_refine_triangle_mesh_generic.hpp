@@ -138,7 +138,7 @@ public:
                         );
 
                         typename TGeometricalObjectType::Pointer p_object;
-                        p_object = it->Create(current_id, rGeom, it->pGetProperties());
+                        p_object = it->Create(current_id, rGeom.Points(), it->pGetProperties());
                         p_object->Initialize(rCurrentProcessInfo);
                         p_object->InitializeSolutionStep(rCurrentProcessInfo);
                         p_object->FinalizeSolutionStep(rCurrentProcessInfo);
@@ -163,7 +163,7 @@ public:
                         );
 
                         typename TGeometricalObjectType::Pointer p_object;
-                        p_object = it->Create(current_id, rGeom, it->pGetProperties());
+                        p_object = it->Create(current_id, rGeom.Points(), it->pGetProperties());
                         p_object->Initialize(rCurrentProcessInfo);
                         p_object->InitializeSolutionStep(rCurrentProcessInfo);
                         p_object->FinalizeSolutionStep(rCurrentProcessInfo);
