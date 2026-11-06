@@ -120,6 +120,9 @@ public:
     using TSystemMatrixPointerType = typename BaseType::TSystemMatrixPointerType;
     using TSystemVectorPointerType = typename BaseType::TSystemVectorPointerType;
 
+    /// Definition of the linear algebra library
+    static constexpr TrilinosLinearAlgebraLibrary LinearAlgebraLibrary = TSparseSpace::LinearAlgebraLibrary();
+
     ///@}
     ///@name Life Cycle
     ///@{
@@ -761,10 +764,15 @@ public:
         KRATOS_TRY
 
         // Resizing the system vectors and matrix
-        if (rpA == nullptr || TSparseSpace::Size1(*rpA) == 0 || BaseType::GetReshapeMatrixFlag()) { // If the matrix is not initialized
+        if (TSparseSpace::IsNull(rpA) || TSparseSpace::Size1(*rpA) == 0 || BaseType::GetReshapeMatrixFlag()) { // If the matrix is not initialized
             ConstructMatrixStructure(pScheme, rpA, rpDx, rpb, rModelPart);
-        } else if (BaseType::mpReactionsVector == nullptr && this->mCalculateReactionsFlag) {
-            TSystemVectorPointerType pNewReactionsVector = TSystemVectorPointerType(new TSystemVectorType(rpDx->Map()));
+        } else if (TSparseSpace::IsNull(BaseType::mpReactionsVector) && this->mCalculateReactionsFlag) {
+            TSystemVectorPointerType pNewReactionsVector = TSparseSpace::CreateEmptyVectorPointer();
+            if constexpr (LinearAlgebraLibrary == TrilinosLinearAlgebraLibrary::EPETRA) {
+                pNewReactionsVector = TSystemVectorPointerType(new TSystemVectorType(rpDx->Map()));
+            } else {
+                KRATOS_ERROR << "ResizeAndInitializeVectors not implemented for this linear algebra library" << std::endl;
+            }
             BaseType::mpReactionsVector.swap(pNewReactionsVector);
         } else {
             if (TSparseSpace::Size1(*rpA) == 0 ||
@@ -800,6 +808,7 @@ public:
         // Refresh RHS to have the correct reactions
         BuildRHS(pScheme, rModelPart, rb);
 
+        if constexpr (LinearAlgebraLibrary == TrilinosLinearAlgebraLibrary::EPETRA) {
         // Initialize the Epetra importer
         // TODO: this part of the code has been pasted until a better solution
         // is found
@@ -861,6 +870,9 @@ public:
             const double react_val = temp_RHS[pDofImporter->TargetMap().LID(i)];
             (dof_iterator->GetSolutionStepReactionValue()) = -react_val;
         }
+        } else {
+            KRATOS_ERROR << "CalculateReactions only implemented for Epetra" << std::endl;
+        }
     }
 
     /**
@@ -885,19 +897,20 @@ public:
     {
         KRATOS_TRY
 
-        // loop over all dofs to find the fixed ones
+        // Loop over all dofs to find the fixed ones
         std::vector<int> global_ids(BaseType::mDofSet.size());
         std::vector<int> is_dirichlet(BaseType::mDofSet.size());
 
-        IndexType i = 0;
+        IndexType i_dof = 0;
         for (const auto& dof : BaseType::mDofSet) {
             const int global_id = dof.EquationId();
-            global_ids[i] = global_id;
-            is_dirichlet[i] = dof.IsFixed();
-            ++i;
+            global_ids[i_dof] = global_id;
+            is_dirichlet[i_dof] = dof.IsFixed();
+            ++i_dof;
         }
 
-        // here we construct and fill a vector "fixed local" which cont
+        if constexpr (LinearAlgebraLibrary == TrilinosLinearAlgebraLibrary::EPETRA) {
+            // Here we construct and fill a vector "fixed local" which cont
         Epetra_Map localmap(-1, global_ids.size(), global_ids.data(), 0, rA.Comm());
         Epetra_IntVector fixed_local(Copy, localmap, is_dirichlet.data());
 
@@ -940,6 +953,9 @@ public:
                         vals[j] = 0.0;
                 }
             }
+        }
+        } else {
+            KRATOS_ERROR << "Only Epetra_MpiComm is supported for now" << std::endl;
         }
 
         KRATOS_CATCH("");
@@ -1371,6 +1387,11 @@ protected:
             // Reset flag
             mConstraintsAssembled = false;
 
+            // Finalize assembly after all structure is built
+            if (!TSparseSpace::IsNull(mpT)) {
+                TSparseSpace::GlobalAssemble(*mpT);
+            }
+
             STOP_TIMER("ConstraintsRelationMatrixStructure", 0)
         }
     }
@@ -1638,6 +1659,9 @@ protected:
             BaseType::mpReactionsVector.swap(pNewReactionsVector);
         }
 
+        // Finalize assembly after all structure is built
+        TSparseSpace::GlobalAssemble(*rpA);
+
         STOP_TIMER("MatrixStructure", 0)
     }
 
@@ -1721,7 +1745,7 @@ private:
                 temp_primary[i] = mFirstMyId + i;
             }
 
-            if constexpr (TSparseSpace::LinearAlgebraLibrary() == TrilinosLinearAlgebraLibrary::EPETRA) {
+            if constexpr (LinearAlgebraLibrary == TrilinosLinearAlgebraLibrary::EPETRA) {
                 mpMap = Kratos::make_shared<Epetra_Map>(-1, mLocalSystemSize, temp_primary.data(), 0, mrComm);
             } else {
                 KRATOS_ERROR << "The map generation is only implemented for Epetra" << std::endl;
