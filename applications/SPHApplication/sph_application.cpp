@@ -1,3 +1,15 @@
+//  ____  ____  _   _                   _ _           _   _             
+// / ___||  _ \| | | | __ _ _ __  _ __ | (_) ___ __ _| |_(_) ___  _ __  
+// \___ \| |_) | |_| |/ _` | '_ \| '_ \| | |/ __/ _` | __| |/ _ \| '_ \ 
+//  ___) |  __/|  _  | (_| | |_) | |_) | | | (_| (_| | |_| | (_) | | | |
+// |____/|_|   |_| |_|\__,_| .__/| .__/|_|_|\___\__,_|\__|_|\___/|_| |_|
+//                         |_|   |_|                                    
+
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
+
+//  Main authors:    Marco Pilotto
+
 // System includes
 
 
@@ -26,8 +38,9 @@ KratosSPHApplication::KratosSPHApplication():
     mSmallDisplacementCubicParticle3D(0, Element::GeometryType::Pointer(new Point3D<NodeType >(Element::GeometryType::PointsArrayType(1)))),
 
     mTotalLagrangianDisplacementCubicParticle2D(0, Element::GeometryType::Pointer(new Point2D<NodeType >(Element::GeometryType::PointsArrayType(1)))),
-    mTotalLagrangianDisplacementCubicParticle3D(0, Element::GeometryType::Pointer(new Point3D<NodeType >(Element::GeometryType::PointsArrayType(1))))
-    
+    mTotalLagrangianDisplacementCubicParticle3D(0, Element::GeometryType::Pointer(new Point3D<NodeType >(Element::GeometryType::PointsArrayType(1)))),
+    mTotalLagrangianMixedStrainCubicParticle2D(0, Element::GeometryType::Pointer(new Point2D<NodeType >(Element::GeometryType::PointsArrayType(1)))),
+    mTotalLagrangianMixedStrainCubicParticle3D(0, Element::GeometryType::Pointer(new Point3D<NodeType >(Element::GeometryType::PointsArrayType(1))))
 
     /* CONDITION */
     
@@ -44,7 +57,18 @@ void KratosSPHApplication::Register()
 
     KRATOS_REGISTER_ELEMENT("TotalLagrangianDisplacementCubicParticle2D", mTotalLagrangianDisplacementCubicParticle2D)
     KRATOS_REGISTER_ELEMENT("TotalLagrangianDisplacementCubicParticle3D", mTotalLagrangianDisplacementCubicParticle3D)
+    KRATOS_REGISTER_ELEMENT("TotalLagrangianMixedStrainCubicParticle2D", mTotalLagrangianMixedStrainCubicParticle2D)
+    KRATOS_REGISTER_ELEMENT("TotalLagrangianMixedStrainCubicParticle3D", mTotalLagrangianMixedStrainCubicParticle3D)
 
+
+
+    // VARIABLES
+
+    KRATOS_REGISTER_3D_TENSOR_VARIABLE_WITH_COMPONENTS(MIXED_DEFORMATION_GRADIENT)
+    KRATOS_REGISTER_3D_TENSOR_VARIABLE_WITH_COMPONENTS(MIXED_DEFORMATION_GRADIENT_DOT)
+    KRATOS_REGISTER_3D_TENSOR_VARIABLE_WITH_COMPONENTS(MIXED_REACTION_DEFORMATION_GRADIENT)
+
+    KRATOS_REGISTER_VARIABLE(DISSIPATION_COEFFICIENT)
 
 }
 
