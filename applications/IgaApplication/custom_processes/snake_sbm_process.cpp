@@ -348,8 +348,8 @@ void SnakeSbmProcess::CreateTheSnakeCoordinates(
     starting_pos_uv[1] = knot_vector_v[0];
 
     std::vector<Vector> parameter_external_coordinates(2);
-    parameter_external_coordinates[0].resize(2);
-    parameter_external_coordinates[1].resize(2);
+    parameter_external_coordinates[0].resize(2, false);
+    parameter_external_coordinates[1].resize(2, false);
 
     parameter_external_coordinates[0][0] = knot_vector_u[0];
     parameter_external_coordinates[1][0] = knot_vector_v[0];
@@ -1906,9 +1906,9 @@ void SnakeSbmProcess::CreateTheSnakeCoordinates3D(
 
     // Set PARAMETER_SPACE_CORNERS
     std::vector<Vector> parameter_external_coordinates(3);
-    parameter_external_coordinates[0].resize(2); // U
-    parameter_external_coordinates[1].resize(2); // V
-    parameter_external_coordinates[2].resize(2); // W
+    parameter_external_coordinates[0].resize(2, false); // U
+    parameter_external_coordinates[1].resize(2, false); // V
+    parameter_external_coordinates[2].resize(2, false); // W
 
     parameter_external_coordinates[0][0] = knot_vector_u[0];
     parameter_external_coordinates[1][0] = knot_vector_v[0];

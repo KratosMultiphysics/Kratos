@@ -14,6 +14,7 @@
                     "POISSON_RATIO": 0.0,
                     "GEO_PRESSURE_REFERENCE": 50.0,
                     "GEO_STRESS_DEPENDENCY_EXPONENT": 1.0,
+                    "GEO_MAXIMUM_MINOR_PRINCIPAL_STRESS": -1.0,
                     "GEO_COHESION": 1.0e+03,
                     "GEO_FRICTION_ANGLE": 20.0,
                     "DENSITY_SOLID": 2.0e+03,

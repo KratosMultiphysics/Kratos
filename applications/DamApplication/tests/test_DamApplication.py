@@ -24,6 +24,13 @@ from test_dam_analysis_process_lifecycle import TestDamAnalysisProcessLifecycle
 from test_global_tangent_consistency import TestGlobalTangentConsistency
 from test_interface_tangent_consistency import TestSmallDisplacementInterfaceTangent
 from test_initial_gp_output_before_solve import TestInitialGaussPointOutputBeforeSolve
+from test_dam_thermo_mechanic_initial_output import TestDamThermoMechanicInitialOutput
+from test_dam_initial_stress_handling import TestDamInitialStressHandling
+from test_dam_elastic_initial_state_transfer import TestDamElasticInitialStateTransfer
+from test_dam_initial_state_workflow import TestDamInitialStateWorkflow
+from test_dam_initial_state_geometry import TestDamInitialStateGeometry
+from test_dam_initial_state_import_export import TestDamInitialStateImportExport
+from test_dam_initial_state_multipart import TestDamInitialStateMultipart
 from test_process_based_nodal_smoothing import DamProcessBasedNodalSmoothingTest
 from test_dam_output_processes import TestDamOutputProcesses
 from test_dam_gid_output_process import TestDamGiDOutputProcess
@@ -85,6 +92,9 @@ def AssembleTestSuites():
         KratosUnittest.TestLoader().loadTestsFromTestCases(
             [
                 TestInitialGaussPointOutputBeforeSolve,
+                TestDamThermoMechanicInitialOutput,
+                TestDamInitialStressHandling,
+                TestDamElasticInitialStateTransfer,
                 DamProcessBasedNodalSmoothingTest,
                 DamNonlocalOwnershipTest,
                 TestDamProcessLifetime,
@@ -95,6 +105,21 @@ def AssembleTestSuites():
             ]
         )
     )
+
+    smallSuite.addTests(
+        KratosUnittest.TestLoader().loadTestsFromTestCases(
+            [
+                TestDamInitialStateWorkflow,
+                TestDamInitialStateGeometry,
+                TestDamInitialStateMultipart,
+            ]
+        )
+    )
+    smallSuite.addTest(TestDamInitialStateImportExport("test_file_roundtrip_2d_3d"))
+    smallSuite.addTest(TestDamInitialStateImportExport("test_independent_field_selection"))
+    smallSuite.addTest(TestDamInitialStateImportExport("test_reference_temperature_policies"))
+    smallSuite.addTest(TestDamInitialStateImportExport("test_negative_file_validation"))
+    smallSuite.addTest(TestDamInitialStateImportExport("test_total_stress_import_with_independent_temperatures"))
 
     # Create a test suit with the selected tests
     # nightSuite will contain the following tests:
@@ -120,6 +145,9 @@ def AssembleTestSuites():
                 TestDamNodalFieldProcesses,
                 TestImposeThermalParametersScalarValueProcess,
                 TestInitialGaussPointOutputBeforeSolve,
+                TestDamThermoMechanicInitialOutput,
+                TestDamInitialStressHandling,
+                TestDamElasticInitialStateTransfer,
                 DamNonlocalOwnershipTest,
                 DamProcessBasedNodalSmoothingTest,
                 TestDamProcessLifetime,
@@ -131,6 +159,22 @@ def AssembleTestSuites():
             ]
         )
     )
+
+    allSuite.addTests(
+        KratosUnittest.TestLoader().loadTestsFromTestCases(
+            [
+                TestDamInitialStateWorkflow,
+                TestDamInitialStateGeometry,
+                TestDamInitialStateMultipart,
+            ]
+        )
+    )
+
+    allSuite.addTest(TestDamInitialStateImportExport("test_file_roundtrip_2d_3d"))
+    allSuite.addTest(TestDamInitialStateImportExport("test_independent_field_selection"))
+    allSuite.addTest(TestDamInitialStateImportExport("test_reference_temperature_policies"))
+    allSuite.addTest(TestDamInitialStateImportExport("test_negative_file_validation"))
+    allSuite.addTest(TestDamInitialStateImportExport("test_total_stress_import_with_independent_temperatures"))
 
     return suites
 
