@@ -31,6 +31,7 @@
         "include_nodal_neighbouring_elements_model_parts_list": [],
         "include_minimum_condition": false,
         "include_condition_parents": false,
+        "include_element_children": false,
         "echo_level": 0
     },
     "nodal_modes": {},

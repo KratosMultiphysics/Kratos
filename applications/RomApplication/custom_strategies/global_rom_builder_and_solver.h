@@ -251,7 +251,8 @@ public:
             const auto& r_node = rModelPart.GetNode(r_dof.Id());
             const Matrix& r_rom_nodal_basis = r_node.GetValue(ROM_BASIS);
             const Matrix::size_type row_id = mMapPhi.at(r_dof.GetVariable().Key());
-            rDx[r_dof.EquationId()] = inner_prod(row(r_rom_nodal_basis, row_id), rRomUnkowns);
+            // The nodal basis might have more columns than the modes of this solver (zero-padded bases of coupled solvers)
+            rDx[r_dof.EquationId()] = inner_prod(subrange(row(r_rom_nodal_basis, row_id), 0, rRomUnkowns.size()), rRomUnkowns);
         });
     }
 
@@ -267,10 +268,10 @@ public:
             const Matrix::size_type row_id = mMapPhi.at(r_dof.GetVariable().Key());
             if (r_dof.IsFixed())
             {
-                noalias(row(rPhiGlobal, r_dof.EquationId())) = ZeroVector(r_rom_nodal_basis.size2());
+                noalias(row(rPhiGlobal, r_dof.EquationId())) = ZeroVector(rPhiGlobal.size2());
             }
             else{
-                noalias(row(rPhiGlobal, r_dof.EquationId())) = row(r_rom_nodal_basis, row_id);
+                noalias(row(rPhiGlobal, r_dof.EquationId())) = subrange(row(r_rom_nodal_basis, row_id), 0, rPhiGlobal.size2());
             }
         });
     }

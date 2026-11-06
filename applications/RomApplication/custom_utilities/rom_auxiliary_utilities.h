@@ -145,6 +145,18 @@ public:
         const ModelPart& rModelPart,
         const std::map<std::string, std::map<IndexType, double>>& rHRomWeights);
 
+    /**
+     * @brief Return the ids of the conditions attached to the HROM elements that are not in the HROM yet
+     * A condition is attached to (i.e. a child of) an HROM element if all its nodes belong to that element.
+     * This only uses the element and condition geometries, so no neighbours need to be computed beforehand.
+     * @param rModelPart Complete model part (all elements and conditions)
+     * @param rHRomWeights Map containing the current HROM conditions and elements weights
+     * @return std::vector<IndexType> List containing the ids of the conditions to be added to the HROM
+     */
+    static std::vector<IndexType> GetHRomElementChildrenIds(
+        const ModelPart& rModelPart,
+        const std::map<std::string, std::map<IndexType, double>>& rHRomWeights);
+
 
     /**
      * @brief Finds the parent elements for specified condition IDs and decrements their IDs for zero-based indexing.
@@ -380,6 +392,16 @@ public:
         ModelPart& rDestinationModelPart);
 
     /**
+     * @brief Adds to the HROM visualization model part the geometries of its own conditions.
+     * @details The skin conditions of the visualization model part (see SetHRomVolumetricVisualizationModelPart) are new entities
+     * whose geometries do not exist in the origin model part. Each condition geometry takes the id of its condition and is added
+     * to the model part and to the sub model parts containing the condition. This is required to write the visualization model
+     * part in geometry-based formats (e.g. MED).
+     * @param rHRomVisualizationModelPart The HROM visualization model part.
+     */
+    static void AddHRomVisualizationGeometries(ModelPart& rHRomVisualizationModelPart);
+
+    /**
      * @brief Assigns a valid properties object to the entities (elements and conditions) that do not have one.
      * @details Entities created from geometries (e.g. by the CreateEntitiesFromGeometriesModeler) are created
      * without properties. Some operations, such as writing an mdpa file, require the entities to have a valid
@@ -433,6 +455,8 @@ public:
     static void RecursiveVisualizationSubModelPartCreation(
         const ModelPart& rOriginSubModelPart,
         ModelPart& rDestinationModelPart);
+
+    static void RecursiveVisualizationGeometriesAddition(ModelPart& rModelPart);
 
     ///@}
 

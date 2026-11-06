@@ -14,9 +14,11 @@ class TestPropertiesVariableTensorAdaptorSerialization(kratos_unittest.TestCase)
         model_part.CreateNewNode(1, 0.0, 0.0, 0.0)
         model_part.CreateNewNode(2, 1.0, 0.0, 0.0)
         model_part.CreateNewNode(3, 0.0, 1.0, 0.0)
-        properties = model_part.CreateNewProperties(1)
-        model_part.CreateNewElement("Element2D3N", 1, [1, 2, 3], properties)
-        model_part.CreateNewElement("Element2D3N", 2, [1, 2, 3], properties)
+        for i in range(2):
+            # one Properties per element: StoreData() emplaces into each element's Properties in parallel,
+            # which is not thread-safe if they are shared (concurrent Emplace on the same DataValueContainer)
+            properties = model_part.CreateNewProperties(i + 1)
+            model_part.CreateNewElement("Element2D3N", i + 1, [1, 2, 3], properties)
 
         original = KratosOA.TensorAdaptors.PropertiesVariableTensorAdaptor(model_part.Elements, Kratos.DENSITY)
         original.CollectData()

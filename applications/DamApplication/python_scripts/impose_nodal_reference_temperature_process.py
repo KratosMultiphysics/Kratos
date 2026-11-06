@@ -31,6 +31,7 @@ class ImposeNodalReferenceTemperatureProcess(KratosMultiphysics.Process):
                         self.table.AddRow(float(file_1[0]), float(file_1[1]))
 
         self.process = KratosDam.DamNodalReferenceTemperatureProcess(model_part, self.table, settings)
+        self.assigns_reference_temperature = True
 
 
     def ExecuteBeforeSolutionLoop(self):
