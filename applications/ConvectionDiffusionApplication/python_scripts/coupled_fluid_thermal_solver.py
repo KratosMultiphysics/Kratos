@@ -51,6 +51,15 @@ class CoupledFluidThermalSolver(PythonSolver):
         ## Get domain size
         self.domain_size = self.settings["domain_size"].GetInt()
 
+        ## The thermal conditions share the geometries (and so the data container) of the fluid ones
+        ## Hence the thermal solver must not reassign the NEIGHBOUR_ELEMENTS, as the fluid conditions retrieve their properties from these
+        thermal_settings = self.settings["thermal_solver_settings"]
+        if not thermal_settings.Has("assign_neighbour_elements_to_conditions"):
+            thermal_settings.AddEmptyValue("assign_neighbour_elements_to_conditions")
+        elif thermal_settings["assign_neighbour_elements_to_conditions"].GetBool():
+            KratosMultiphysics.Logger.PrintWarning("CoupledFluidThermalSolver", "'assign_neighbour_elements_to_conditions' is set to false in the thermal solver settings. The thermal conditions share the geometries of the fluid ones, whose parents must be the fluid elements.")
+        thermal_settings["assign_neighbour_elements_to_conditions"].SetBool(False)
+
         ## Create subdomain solvers
         self.fluid_solver = python_solvers_wrapper_fluid.CreateSolverByParameters(self.model, self.settings["fluid_solver_settings"],"OpenMP")
         self.thermal_solver = python_solvers_wrapper_convection_diffusion.CreateSolverByParameters(self.model,self.settings["thermal_solver_settings"],"OpenMP")
