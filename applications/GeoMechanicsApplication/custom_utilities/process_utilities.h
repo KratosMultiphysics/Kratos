@@ -15,7 +15,6 @@
 
 // Project includes
 #include "includes/model_part.h"
-
 #include <string>
 
 namespace Kratos
