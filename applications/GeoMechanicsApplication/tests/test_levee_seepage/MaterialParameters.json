@@ -8,21 +8,20 @@
                     "name": "GeoLinearElasticPlaneStrain2DLaw"
                 },
                 "Variables": {
-                    "GEO_DRAINAGE_TYPE": "CONSTANT_PW_FIELD",
-                    "YOUNG_MODULUS": 45000000,
-                    "POISSON_RATIO": 0.25,
-                    "DENSITY_SOLID": 1.93679918450561e+03,
-                    "DENSITY_WATER": 1.01936799184506e+03,
-                    "POROSITY": 0.1,
-                    "BULK_MODULUS_SOLID": 1.0e+10,
-                    "BULK_MODULUS_FLUID": 2.2e+09,
+                    "GEO_DRAINAGE_TYPE": "FULLY_COUPLED",
+                    "DENSITY_WATER": 1.01937e+03,
+                    "POROSITY": 0.3333,
                     "DYNAMIC_VISCOSITY": 1.0e-03,
-                    "PERMEABILITY_XX": 5.78703703703704e-05,
-                    "PERMEABILITY_YY": 5.78703703703704e-05,
+                    "PERMEABILITY_XX": 1.15740741e-12,
+                    "PERMEABILITY_YY": 1.15740741e-12,
                     "PERMEABILITY_XY": 0.0,
-                    "GEO_COHESION": 0,
-                    "GEO_FRICTION_ANGLE": 36,
-                    "BIOT_COEFFICIENT": 0.997
+                    "RETENTION_LAW": "VanGenuchtenLaw",
+                    "SATURATED_SATURATION": 1.0,
+                    "RESIDUAL_SATURATION": 6.20347394540943e-02,
+                    "VAN_GENUCHTEN_AIR_ENTRY_PRESSURE": 2.61096605744125e+03,
+                    "VAN_GENUCHTEN_GN": 1.3774,
+                    "VAN_GENUCHTEN_GL": 1.25,
+                    "MINIMUM_RELATIVE_PERMEABILITY": 1.0e-04
                 }
             }
         },
@@ -35,20 +34,19 @@
                 },
                 "Variables": {
                     "GEO_DRAINAGE_TYPE": "FULLY_COUPLED",
-                    "YOUNG_MODULUS": 12000000,
-                    "POISSON_RATIO": 0.33,
-                    "DENSITY_SOLID": 1.78389398572885e+03,
-                    "DENSITY_WATER": 1.01936799184506e+03,
-                    "POROSITY": 0.1,
-                    "BULK_MODULUS_SOLID": 1.0e+10,
-                    "BULK_MODULUS_FLUID": 2.2e+09,
+                    "DENSITY_WATER": 1.01937e+03,
+                    "POROSITY": 0.3333,
                     "DYNAMIC_VISCOSITY": 1.0e-03,
-                    "PERMEABILITY_XX": 5.78703703703704e-09,
-                    "PERMEABILITY_YY": 5.78703703703704e-09,
+                    "PERMEABILITY_XX": 1.15740741e-12,
+                    "PERMEABILITY_YY": 1.15740741e-12,
                     "PERMEABILITY_XY": 0.0,
-                    "GEO_COHESION": 15000,
-                    "GEO_FRICTION_ANGLE": 25,
-                    "BIOT_COEFFICIENT": 0.9988235294117647
+                    "RETENTION_LAW": "VanGenuchtenLaw",
+                    "SATURATED_SATURATION": 1.0,
+                    "RESIDUAL_SATURATION": 6.20347394540943e-02,
+                    "VAN_GENUCHTEN_AIR_ENTRY_PRESSURE": 2.61096605744125e+03,
+                    "VAN_GENUCHTEN_GN": 1.3774,
+                    "VAN_GENUCHTEN_GL": 1.25,
+                    "MINIMUM_RELATIVE_PERMEABILITY": 1.0e-04
                 }
             }
         },
@@ -61,20 +59,19 @@
                 },
                 "Variables": {
                     "GEO_DRAINAGE_TYPE": "FULLY_COUPLED",
-                    "YOUNG_MODULUS": 4000000,
-                    "POISSON_RATIO": 0.35,
-                    "DENSITY_SOLID": 1.52905198776758e+03,
-                    "DENSITY_WATER": 1.01936799184506e+03,
-                    "POROSITY": 0.1,
-                    "BULK_MODULUS_SOLID": 1.0e+10,
-                    "BULK_MODULUS_FLUID": 2.2e+09,
+                    "DENSITY_WATER": 1.01937e+03,
+                    "POROSITY": 0.3333,
                     "DYNAMIC_VISCOSITY": 1.0e-03,
-                    "PERMEABILITY_XX": 1.15740740740741e-09,
-                    "PERMEABILITY_YY": 1.15740740740741e-09,
+                    "PERMEABILITY_XX": 1.15740741e-12,
+                    "PERMEABILITY_YY": 1.15740741e-12,
                     "PERMEABILITY_XY": 0.0,
-                    "GEO_COHESION": 5000,
-                    "GEO_FRICTION_ANGLE": 22,
-                    "BIOT_COEFFICIENT": 0.9995555555555555
+                    "RETENTION_LAW": "VanGenuchtenLaw",
+                    "SATURATED_SATURATION": 1.0,
+                    "RESIDUAL_SATURATION": 6.20347394540943e-02,
+                    "VAN_GENUCHTEN_AIR_ENTRY_PRESSURE": 2.61096605744125e+03,
+                    "VAN_GENUCHTEN_GN": 1.3774,
+                    "VAN_GENUCHTEN_GL": 1.25,
+                    "MINIMUM_RELATIVE_PERMEABILITY": 1.0e-04
                 }
             }
         },
@@ -87,20 +84,19 @@
                 },
                 "Variables": {
                     "GEO_DRAINAGE_TYPE": "FULLY_COUPLED",
-                    "YOUNG_MODULUS": 12000000,
-                    "POISSON_RATIO": 0.33,
-                    "DENSITY_SOLID": 1.78389398572885e+03,
-                    "DENSITY_WATER": 1.01936799184506e+03,
-                    "POROSITY": 0.1,
-                    "BULK_MODULUS_SOLID": 1.0e+10,
-                    "BULK_MODULUS_FLUID": 2.2e+09,
+                    "DENSITY_WATER": 1.01937e+03,
+                    "POROSITY": 0.3333,
                     "DYNAMIC_VISCOSITY": 1.0e-03,
-                    "PERMEABILITY_XX": 5.78703703703704e-09,
-                    "PERMEABILITY_YY": 5.78703703703704e-09,
+                    "PERMEABILITY_XX": 1.15740741e-12,
+                    "PERMEABILITY_YY": 1.15740741e-12,
                     "PERMEABILITY_XY": 0.0,
-                    "GEO_COHESION": 15000,
-                    "GEO_FRICTION_ANGLE": 25,
-                    "BIOT_COEFFICIENT": 0.9988235294117647
+                    "RETENTION_LAW": "VanGenuchtenLaw",
+                    "SATURATED_SATURATION": 1.0,
+                    "RESIDUAL_SATURATION": 6.20347394540943e-02,
+                    "VAN_GENUCHTEN_AIR_ENTRY_PRESSURE": 2.61096605744125e+03,
+                    "VAN_GENUCHTEN_GN": 1.3774,
+                    "VAN_GENUCHTEN_GL": 1.25,
+                    "MINIMUM_RELATIVE_PERMEABILITY": 1.0e-04
                 }
             }
         }
