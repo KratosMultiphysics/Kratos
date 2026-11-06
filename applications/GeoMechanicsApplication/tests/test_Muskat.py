@@ -34,7 +34,7 @@ class KratosGeoMechanicsMuskatTests(KratosGeoUnittest.TestCase):
 
         reader = GiDOutputFileReader()
         output_data = reader.read_output_from(
-            os.path.join(file_path, "Muskat_Dirichlet.post.res")
+            os.path.join(file_path, "Muskat_Seepage.post.res")
         )
         if test_helper.want_test_plots():
             self._create_effective_saturation_plot(
@@ -66,7 +66,7 @@ class KratosGeoMechanicsMuskatTests(KratosGeoUnittest.TestCase):
         for node in simulation.model.GetModelPart(
             "PorousDomain.porous_computational_model_part"
         ).Nodes:
-            if abs(node.X - 1.52) < 0.01:
+            if abs(node.X - 1.62) < 0.01:
                 y_coord_by_id_for_right_boundary_nodes[node.Id] = node.Y
         saturations = GiDOutputFileReader.nodal_values_at_time(
             "EFFECTIVE_SATURATION",
@@ -136,7 +136,7 @@ class KratosGeoMechanicsMuskatTests(KratosGeoUnittest.TestCase):
         for node in simulation.model.GetModelPart(
             "PorousDomain.porous_computational_model_part"
         ).Nodes:
-            if abs(node.X - 1.52) < 0.01:
+            if abs(node.X - 1.62) < 0.01:
                 y_coord_by_id_for_right_boundary_nodes[node.Id] = node.Y
         fluxes = GiDOutputFileReader.nodal_values_at_time(
             "FLUID_FLUX_VECTOR",
@@ -304,6 +304,19 @@ class KratosGeoMechanicsMuskatTests(KratosGeoUnittest.TestCase):
         }
         self._assert_muskat_results(
             "Muskat", "saturated_hydrostatic", expected_results_for_variables
+        )
+
+    def test_muskat_saturated_with_seepage(self):
+        expected_results_for_variables = {
+            "WATER_PRESSURE": [
+            ],
+            "EFFECTIVE_SATURATION": [
+            ],
+            "FLUID_FLUX_VECTOR": [
+            ],
+        }
+        self._assert_muskat_results(
+            "Muskat", "van_genuchten_with_seepage", expected_results_for_variables
         )
 
 
