@@ -206,12 +206,22 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawHighCycleFatigueClonePreservesHistory, 
     KRATOS_EXPECT_DOUBLE_EQ(read_private_history(*p_source, "ReferenceDamage"), damage);
     KRATOS_EXPECT_DOUBLE_EQ(read_private_history(*p_source, "CFactor"), c_factor);
 
+    // The time-advance process writes this state through SetValue.
+    constexpr double previous_cycle_time = 2.0;
+    constexpr double cycle_period = 0.25;
+    p_source->SetValue(PREVIOUS_CYCLE, previous_cycle_time, process_info);
+    p_source->SetValue(CYCLE_PERIOD, cycle_period, process_info);
+    p_source->SetValue(PREVIOUS_CYCLE_DAMAGE, damage, process_info);
+
     const auto p_clone = p_source->Clone();
     KRATOS_EXPECT_NE(p_clone.get(), p_source.get());
     KRATOS_EXPECT_DOUBLE_EQ(read_private_history(*p_clone, "ReferenceDamage"), damage);
     KRATOS_EXPECT_DOUBLE_EQ(read_private_history(*p_clone, "CFactor"), c_factor);
     KRATOS_EXPECT_DOUBLE_EQ(read_scalar(*p_clone, CYCLES_TO_FAILURE), cycles_to_failure);
     KRATOS_EXPECT_DOUBLE_EQ(read_scalar(*p_clone, THRESHOLD_STRESS), read_scalar(*p_source, THRESHOLD_STRESS));
+    KRATOS_EXPECT_DOUBLE_EQ(read_scalar(*p_clone, PREVIOUS_CYCLE), previous_cycle_time);
+    KRATOS_EXPECT_DOUBLE_EQ(read_scalar(*p_clone, CYCLE_PERIOD), cycle_period);
+    KRATOS_EXPECT_DOUBLE_EQ(read_scalar(*p_clone, PREVIOUS_CYCLE_DAMAGE), damage);
 
     for (const double axial_strain : {valley, peak}) {
         const Vector source_response = advance(*p_source, axial_strain);
