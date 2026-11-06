@@ -28,20 +28,6 @@
 
 namespace Kratos {
 
-namespace {
-
-/// @brief Swaps a node pointer into a geometry slot and swaps it back on destruction.
-struct NodeSwapGuard {
-    NodeSwapGuard(Element::GeometryType& rGeometry, IndexType Index, Node::Pointer& rpNode)
-        : mrGeometry(rGeometry), mIndex(Index), mrpNode(rpNode) { std::swap(mrGeometry(mIndex), mrpNode); }
-    ~NodeSwapGuard() { std::swap(mrGeometry(mIndex), mrpNode); }
-    Element::GeometryType& mrGeometry;
-    IndexType mIndex;
-    Node::Pointer& mrpNode;
-};
-
-} // namespace
-
 /// Constructor.
 StrainSensor::StrainSensor(
     const std::string& rName,
@@ -267,7 +253,8 @@ void StrainSensor::CalculateGradient(
 
             auto& r_node = *p_node_copy; // the copy (taken before the swap exchanges the pointers)
 
-            NodeSwapGuard swap_guard(r_geometry, i_node, p_node_copy);
+            // put the copy into the geometry; p_node_copy now holds the original node
+            std::swap(r_geometry(i_node), p_node_copy);
 
             for (const auto& p_dof : elemental_dofs) {
                 if (p_dof->GetVariable() == ADJOINT_DISPLACEMENT_X) {
@@ -298,6 +285,9 @@ void StrainSensor::CalculateGradient(
                     KRATOS_ERROR << "Unsupported dof " << p_dof->GetVariable().Name();
                 }
             }
+
+            // put the original node back into the geometry
+            std::swap(r_geometry(i_node), p_node_copy);
         }
     }
 
