@@ -1,0 +1,254 @@
+{
+    "orchestrator": {
+        "name": "Orchestrators.KratosMultiphysics.SequentialOrchestrator",
+        "settings": {
+            "echo_level": 0,
+            "execution_list": [
+                "find_equilibrium"
+            ],
+            "load_from_checkpoint": null,
+            "stage_checkpoints": false
+        }
+    },
+    "stages": {
+        "find_equilibrium": {
+            "stage_preprocess": {
+                "modelers": [
+                    {
+                        "name": "Modelers.KratosMultiphysics.ImportMDPAModeler",
+                        "Parameters": {
+                            "input_filename": "mesh",
+                            "model_part_name": "PorousDomain"
+                        }
+                    }
+                ]
+            },
+            "stage_settings": {
+                "analysis_stage": "Stages.KratosMultiphysics.GeoMechanicsApplication.GeoMechanicsAnalysis",
+                "problem_data": {
+                    "problem_name": "levee_seepage_find_equilibrium",
+                    "start_time": 0.0,
+                    "end_time": 1.0,
+                    "echo_level": 1,
+                    "parallel_type": "OpenMP",
+                    "number_of_threads": 1
+                },
+                "solver_settings": {
+                    "solver_type": "Pw",
+                    "model_part_name": "PorousDomain",
+                    "solution_type": "Steady_State_Groundwater_Flow",
+                    "time_stepping": {
+                        "time_step": 1.0,
+                        "max_delta_time_factor": 1000.0
+                    },
+                    "buffer_size": 2,
+                    "echo_level": 1,
+                    "clear_storage": false,
+                    "compute_reactions": true,
+                    "move_mesh_flag": false,
+                    "reform_dofs_at_each_step": true,
+                    "block_builder": true,
+                    "linear_solver_settings": {
+                        "solver_type": "LinearSolversApplication.sparse_lu",
+                        "scaling": true
+                    },
+                    "strategy_type": "newton_raphson_with_seepage",
+                    "convergence_criterion": "residual_criterion",
+                    "residual_relative_tolerance": 0.01,
+                    "residual_absolute_tolerance": 1e-09,
+                    "min_iterations": 6,
+                    "max_iterations": 30,
+                    "number_cycles": 1,
+                    "reduction_factor": 1.0,
+                    "increase_factor": 1.0,
+                    "domain_size": 2,
+                    "rotation_dofs": false,
+                    "model_import_settings": {
+                        "input_type": "use_input_model_part"
+                    },
+                    "material_import_settings": {
+                        "materials_filename": "MaterialParameters.json"
+                    },
+                    "problem_domain_sub_model_part_list": [
+                        "Sand_layer",
+                        "Clay_layer",
+                        "Core_levee",
+                        "Cap_levee"
+                    ],
+                    "body_domain_sub_model_part_list": [
+                        "Sand_layer",
+                        "Clay_layer",
+                        "Core_levee",
+                        "Cap_levee"
+                    ]
+                },
+                "processes": {
+                    "constraints_process_list": [
+                        {
+                            "python_module": "apply_scalar_constraint_table_process",
+                            "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
+                            "process_name": "ApplyScalarConstraintTableProcess",
+                            "Parameters": {
+                                "model_part_name": "PorousDomain",
+                                "variable_name": "WATER_PRESSURE",
+                                "is_fixed": false,
+                                "table": [
+                                    0,
+                                    0,
+                                    0,
+                                    0
+                                ],
+                                "fluid_pressure_type": "Phreatic_Multi_Line",
+                                "gravity_direction": 1,
+                                "out_of_plane_direction": 2,
+                                "x_coordinates": [
+                                    -36.0,
+                                    -2.0,
+                                    15.0,
+                                    54.0
+                                ],
+                                "y_coordinates": [
+                                    5.0,
+                                    5.0,
+                                    -0.5,
+                                    -0.5
+                                ],
+                                "z_coordinates": [
+                                    0.0,
+                                    0.0,
+                                    0.0,
+                                    0.0
+                                ],
+                                "specific_weight": 10000.0
+                            }
+                        },
+                        {
+                            "python_module": "apply_scalar_constraint_table_process",
+                            "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
+                            "process_name": "ApplyScalarConstraintTableProcess",
+                            "Parameters": {
+                                "model_part_name": "PorousDomain.River_head",
+                                "variable_name": "WATER_PRESSURE",
+                                "is_fixed": true,
+                                "table": 0,
+                                "fluid_pressure_type": "Hydrostatic",
+                                "gravity_direction": 1,
+                                "reference_coordinate": 5.0,
+                                "specific_weight": 10000.0,
+                                "pressure_tension_cut_off": 100000.0
+                            }
+                        },
+                        {
+                            "python_module": "apply_scalar_constraint_table_process",
+                            "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
+                            "process_name": "ApplyScalarConstraintTableProcess",
+                            "Parameters": {
+                                "model_part_name": "PorousDomain.Polder_head",
+                                "variable_name": "WATER_PRESSURE",
+                                "is_fixed": true,
+                                "table": 0,
+                                "fluid_pressure_type": "Hydrostatic",
+                                "gravity_direction": 1,
+                                "reference_coordinate": -0.5,
+                                "specific_weight": 10000.0,
+                                "pressure_tension_cut_off": 100000.0
+                            }
+                        }
+                    ],
+                    "loads_process_list": [
+                        {
+                            "python_module": "apply_vector_constraint_table_process",
+                            "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
+                            "process_name": "ApplyVectorConstraintTableProcess",
+                            "Parameters": {
+                                "model_part_name": "PorousDomain.porous_computational_model_part",
+                                "variable_name": "VOLUME_ACCELERATION",
+                                "active": [
+                                    false,
+                                    true,
+                                    false
+                                ],
+                                "value": [
+                                    0.0,
+                                    -9.81,
+                                    0.0
+                                ],
+                                "table": [
+                                    0,
+                                    0,
+                                    0
+                                ]
+                            }
+                        },
+                        {
+                            "python_module": "apply_seepage_boundary_process",
+                            "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
+                            "process_name": "ApplySeepageBoundaryProcess",
+                            "Parameters": {
+                                "model_part_name": "PorousDomain.Seepage_face_1"
+                            }
+                        }
+                    ],
+                    "auxiliary_process_list": [
+                        {
+                            "python_module": "geo_extrapolate_integration_point_values_to_nodes_process",
+                            "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
+                            "process_name": "GeoExtrapolateIntegrationPointValuesToNodesProcess",
+                            "Parameters": {
+                                "model_part_name_list": [
+                                    "PorousDomain.Sand_layer",
+                                    "PorousDomain.Clay_layer",
+                                    "PorousDomain.Core_levee",
+                                    "PorousDomain.Cap_levee"
+                                ],
+                                "list_of_variables": [
+                                    "EFFECTIVE_SATURATION",
+                                    "FLUID_FLUX_VECTOR"
+                                ]
+                            }
+                        }
+                    ]
+                },
+                "output_processes": {
+                    "gid_output": [
+                        {
+                            "python_module": "gid_output_process",
+                            "kratos_module": "KratosMultiphysics",
+                            "process_name": "GiDOutputProcess",
+                            "Parameters": {
+                                "model_part_name": "PorousDomain.porous_computational_model_part",
+                                "output_name": "levee_seepage_find_equilibrium",
+                                "postprocess_parameters": {
+                                    "result_file_configuration": {
+                                        "gidpost_flags": {
+                                            "WriteDeformedMeshFlag": "WriteUndeformed",
+                                            "WriteConditionsFlag": "WriteElementsOnly",
+                                            "GiDPostMode": "GiD_PostAscii",
+                                            "MultiFileFlag": "SingleFile"
+                                        },
+                                        "file_label": "step",
+                                        "output_control_type": "step",
+                                        "body_output": true,
+                                        "node_output": false,
+                                        "skin_output": false,
+                                        "plane_output": [],
+                                        "nodal_results": [
+                                            "WATER_PRESSURE",
+                                            "EFFECTIVE_SATURATION",
+                                            "FLUID_FLUX_VECTOR",
+                                            "NODAL_WATER_FLOW_RATE"
+                                        ],
+                                        "gauss_point_results": [
+                                            "HYDRAULIC_HEAD"
+                                        ]
+                                    },
+                                    "point_data_configuration": []
+                                }
+                            }
+                        }
+                    ]
+                }
+            }
+        }
+    }
+}
