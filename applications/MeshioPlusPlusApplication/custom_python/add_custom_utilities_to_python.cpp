@@ -1,0 +1,209 @@
+//  ██████   ██████ ██████████  █████████  █████   █████ █████    ███████
+// ░░██████ ██████ ░░███░░░░░█ ███░░░░░███░░███   ░░███ ░░███   ███░░░░░███      ███         ███
+//  ░███░█████░███  ░███  █ ░ ░███    ░░░  ░███    ░███  ░███  ███     ░░███    ░███        ░███
+//  ░███░░███ ░███  ░██████   ░░█████████  ░███████████  ░███ ░███      ░███ ███████████ ███████████
+//  ░███ ░░░  ░███  ░███░░█    ░░░░░░░░███ ░███░░░░░███  ░███ ░███      ░███░░░░░███░░░ ░░░░░███░░░
+//  ░███      ░███  ░███ ░   █ ███    ░███ ░███    ░███  ░███ ░░███     ███     ░███        ░███
+//  █████     █████ ██████████░░█████████  █████   █████ █████ ░░░███████░      ░░░         ░░░
+// ░░░░░     ░░░░░ ░░░░░░░░░░  ░░░░░░░░░  ░░░░░   ░░░░░ ░░░░░    ░░░░░░░                        Application
+//
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
+//
+//  Main authors:    Vicente Mataix Ferrandiz
+//
+
+// System includes
+#include <vector>
+
+// External includes
+#include <pybind11/stl.h>
+
+// Project includes
+#include "custom_python/add_custom_utilities_to_python.h"
+#include "custom_utilities/meshioplusplus_iga_utilities.h"
+#include "custom_utilities/meshioplusplus_mesh_operations.h"
+#include "includes/model_part.h"
+
+namespace Kratos::Python
+{
+
+void AddCustomUtilitiesToPython(pybind11::module& m)
+{
+    namespace py = pybind11;
+
+    py::class_<MeshioPlusPlusMeshOperations, MeshioPlusPlusMeshOperations::Pointer>(
+        m, "MeshioPlusPlusMeshOperations",
+        "The meshio++ mesh and data operations (clean, transform, split, refine, decimate, "
+        "smooth, reorder, partition, crop, slice, isosurface, quality, stats, data_calc, "
+        "data_condition, data_manage, data_info, point_data_to_cell_data, "
+        "cell_data_to_point_data, curvature, repair, sobolev_deform, ...) exposed as Kratos "
+        "utilities. Every operation is driven by Parameters keyed by an \"operation\" name "
+        "mirroring the meshio++ command line verbs. Field data (nodal/elemental/conditional "
+        "variables and flags) can be carried through with the same settings MeshioPlusPlusIO "
+        "uses; see GetDefaultParameters.")
+        .def_static("GetSupportedOperations", &MeshioPlusPlusMeshOperations::GetSupportedOperations,
+            "The names accepted by the \"operation\" setting of Execute.")
+        .def_static("GetDefaultParameters", &MeshioPlusPlusMeshOperations::GetDefaultParameters,
+            "The default settings shared by every operation.")
+        .def_static("Execute", &MeshioPlusPlusMeshOperations::Execute,
+            py::arg("source_model_part"), py::arg("settings"), py::arg("destination_model_part"),
+            "Applies an operation, filling the destination model part (or, for \"split\" and "
+            "\"partition\", one sub model part per piece). Returns the operation's report.")
+        .def_static("Merge",
+            [](const py::list& rSources, Parameters Settings, ModelPart& rDestination) {
+                std::vector<const ModelPart*> sources;
+                sources.reserve(rSources.size());
+                for (const auto& r_item : rSources) {
+                    sources.push_back(r_item.cast<const ModelPart*>());
+                }
+                return MeshioPlusPlusMeshOperations::Merge(sources, Settings, rDestination);
+            },
+            py::arg("source_model_parts"), py::arg("settings"), py::arg("destination_model_part"),
+            "Merges several model parts into one, optionally welding coincident nodes.")
+        .def_static("Interpolate", &MeshioPlusPlusMeshOperations::Interpolate,
+            py::arg("source_model_part"), py::arg("target_model_part"), py::arg("settings"),
+            py::arg("destination_model_part"),
+            "Samples source_model_part's field data onto target_model_part's geometry, "
+            "filling destination_model_part with the target's topology plus the interpolated "
+            "arrays. Not reachable through Execute: unlike every other operation this needs "
+            "two independent meshes.")
+        .def_static("ConservativeInterpolate", &MeshioPlusPlusMeshOperations::ConservativeInterpolate,
+            py::arg("source_model_part"), py::arg("target_model_part"), py::arg("settings"),
+            py::arg("destination_model_part"),
+            "The conservative sibling of Interpolate: redistributes by intersected cell measure "
+            "so the summed quantity is preserved, rather than sampling point values. The right "
+            "choice for an extensive field (a mass, a heat load), the wrong one for an intensive "
+            "one (a temperature). Also needs two independent meshes, so also not reachable "
+            "through Execute.")
+        .def_static("Shrinkwrap", &MeshioPlusPlusMeshOperations::Shrinkwrap,
+            py::arg("source_model_part"), py::arg("target_model_part"), py::arg("settings"),
+            py::arg("destination_model_part"),
+            "Projects source_model_part's points onto target_model_part's surface, optionally "
+            "offset along the hit feature's pseudonormal - a fit, not a smoothing (one "
+            "projection, no iteration). Needs two independent meshes, so also not reachable "
+            "through Execute. Set \"output\" to a registered Variable name to get the "
+            "pre-move distance back: meshio++ names it \"shrinkwrap:distance\".")
+        .def_static("Grid", &MeshioPlusPlusMeshOperations::Grid,
+            py::arg("settings"), py::arg("destination_model_part"),
+            "Builds a regular hexahedron lattice from \"dims\"/\"origin\"/\"spacing\". Not "
+            "reachable through Execute: it takes no source model part, being the only "
+            "generator rather than a transformation.")
+        .def_static("Primitive", &MeshioPlusPlusMeshOperations::Primitive,
+            py::arg("settings"), py::arg("destination_model_part"),
+            "Builds one of meshio++'s parametric shapes (\"primitive\": box, disk, ball, torus, "
+            "pipe, ... or \"polygon\", a constrained triangulation of planar \"loops\"); every "
+            "parameter left out takes that shape's own default.")
+        .def_static("FindIntersections", &MeshioPlusPlusMeshOperations::FindIntersections,
+            py::arg("first_model_part"), py::arg("second_model_part"), py::arg("settings"),
+            py::arg("destination_model_part"),
+            "Where two surfaces interpenetrate or touch (exact triangle-triangle tests): the cell "
+            "pairs in the report, the crossing segments in destination_model_part.")
+        .def_static("Thickness", &MeshioPlusPlusMeshOperations::Thickness,
+            py::arg("source_model_part"), py::arg("target_model_part"), py::arg("settings"),
+            py::arg("destination_model_part"),
+            "The clearance from every facet of source_model_part to target_model_part, by a ray "
+            "along each facet's normal. Set \"output\" to a registered Variable name to get the "
+            "per-element distance back: meshio++ names it \"thickness:distance\".")
+        .def_static("GetCapabilities", &MeshioPlusPlusMeshOperations::GetCapabilities,
+            "Which optional meshio++ backends this build can use: \"occt\" (STEP/IGES reading, "
+            "fit_cad's OpenCASCADE backend), \"netgen\" (tetrahedralize), \"mmg\" (adapt, "
+            "discretize_levelset, mesh_domain) and \"mmg_elas\" (move).")
+        .def_static("RegisterRigid", &MeshioPlusPlusMeshOperations::RegisterRigid,
+            py::arg("source_model_part"), py::arg("target_model_part"), py::arg("settings"),
+            py::arg("destination_model_part"),
+            "Rigid registration (iterative closest points, point-to-point or point-to-plane) of "
+            "source_model_part onto target_model_part. The report's \"matrix\" is the 4 x 4 transform; "
+            "destination_model_part receives the source moved by it.")
+        .def_static("Adjacency", &MeshioPlusPlusMeshOperations::Adjacency,
+            py::arg("model_part"), py::arg("settings") = Parameters(R"({})"),
+            "The (indptr, indices) CSR graph of the mesh: \"adjacency_kind\" node, clique or cell; "
+            "\"output_file\" also writes it as a METIS or Scotch graph file.")
+        .def_static("DistanceToSurface", &MeshioPlusPlusMeshOperations::DistanceToSurface,
+            py::arg("query_model_part"), py::arg("surface_model_part"), py::arg("settings"),
+            py::arg("destination_model_part"),
+            "Attaches the signed distance from query_model_part to surface_model_part. Set "
+            "\"output\" to a registered Variable name (DISTANCE, say) to get the result back: "
+            "meshio++ names it \"sdf:distance\", which no Kratos Variable can be.")
+        .def_static("CheckSurfaceWatertight", &MeshioPlusPlusMeshOperations::CheckSurfaceWatertight,
+            py::arg("surface_model_part"),
+            "Reports whether a surface is watertight, with the boundary-edge, non-manifold, "
+            "inconsistent-winding and degenerate-triangle counts behind the verdict.")
+        .def_static("Diff", &MeshioPlusPlusMeshOperations::Diff,
+            py::arg("first_model_part"), py::arg("second_model_part"),
+            py::arg("settings") = Parameters(R"({})"),
+            "Compares two model parts with absolute and relative tolerances.")
+        .def_static("ComputeStatistics", &MeshioPlusPlusMeshOperations::ComputeStatistics,
+            py::arg("model_part"),
+            "Bounding box, per-cell-type counts, area, signed/unsigned volume, inverted cells.")
+        .def_static("ComputeQuality", &MeshioPlusPlusMeshOperations::ComputeQuality,
+            py::arg("model_part"),
+            "Per-cell quality metrics summarized per metric, plus inverted/degenerate counts.")
+        .def_static("ComputeBandwidth", &MeshioPlusPlusMeshOperations::ComputeBandwidth,
+            py::arg("model_part"),
+            "The bandwidth of the node adjacency graph (what \"reorder\" reduces).")
+        .def_static("NeighborPairs", &MeshioPlusPlusMeshOperations::NeighborPairs,
+            py::arg("model_part"), py::arg("settings"),
+            "The radius (\"method\": \"radius\", \"radius\") or k-nearest (\"method\": "
+            "\"k_nearest\", \"k\") neighbour pairs of the nodes, as a list of (node id, node id) "
+            "tuples grouped by source: each radius pair once, k-nearest pairs directed. Also "
+            "\"box\" (periodic sides), \"cell_size\" and \"use_deformed_configuration\".")
+        .def_static("HausdorffDistance", &MeshioPlusPlusMeshOperations::HausdorffDistance,
+            py::arg("first_model_part"), py::arg("second_model_part"),
+            py::arg("settings") = Parameters(R"({})"),
+            "The sampled Hausdorff distance between two surfaces (a volume contributes its skin): "
+            "the one-sided maxima, means and RMS, sample counts and worst points. Settings: "
+            "\"face_samples\", \"region_first\", \"region_second\", \"grid_cell_size\".")
+        .def_static("MatchPeriodicNodes", &MeshioPlusPlusMeshOperations::MatchPeriodicNodes,
+            py::arg("model_part"), py::arg("settings"),
+            "Pairs every node of the \"slave\" region with the node of the \"master\" region that "
+            "the transform (\"translation\", \"rotation_axis\"/\"rotation_angle\" or \"matrix\") "
+            "maps it onto, within \"tolerance\", as a list of (slave node id, master node id) "
+            "tuples ascending by slave.")
+        .def_static("BlendSteps", &MeshioPlusPlusMeshOperations::BlendSteps,
+            py::arg("first_model_part"), py::arg("second_model_part"), py::arg("weight"),
+            py::arg("settings"), py::arg("destination_model_part"),
+            "The first model part with its floating-point data linearly blended toward the second "
+            "by weight; both must share topology. \"blend_points\" also blends the coordinates.")
+        ;
+
+    py::class_<MeshioPlusPlusIgaUtilities, MeshioPlusPlusIgaUtilities::Pointer>(
+        m, "MeshioPlusPlusIgaUtilities",
+        "The isogeometric layer of meshio++: describe, sample, refine and evaluate the NURBS "
+        "models of Kratos CAD JSON, STEP, IGES and MFEM NURBS files. A NURBS model has no "
+        "ModelPart representation, so every function takes the model from a file.")
+        .def_static("GetDefaultParameters", &MeshioPlusPlusIgaUtilities::GetDefaultParameters,
+            "The default settings shared by the functions of this class.")
+        .def_static("Describe", &MeshioPlusPlusIgaUtilities::Describe,
+            py::arg("file_name"), py::arg("settings") = Parameters(R"({})"),
+            "Kind (brep or nurbs), patch, face, edge and vertex counts and the degrees of every patch.")
+        .def_static("Sample", &MeshioPlusPlusIgaUtilities::Sample,
+            py::arg("file_name"), py::arg("settings"), py::arg("destination_model_part"),
+            "Samples the model into Lagrange cells and fills the (empty) destination model part.")
+        .def_static("Refine", &MeshioPlusPlusIgaUtilities::Refine,
+            py::arg("input_file_name"), py::arg("output_file_name"), py::arg("settings"),
+            "Exact h- (\"subdivisions\") and p- (\"elevate\") refinement; a B-rep is written as "
+            "Kratos CAD JSON, an MFEM NURBS mesh as an MFEM NURBS mesh. Returns the Describe of the result.")
+        .def_static("Evaluate", &MeshioPlusPlusIgaUtilities::Evaluate,
+            py::arg("file_name"), py::arg("settings"),
+            "Points (and with \"derivatives\" : 1 first derivatives and normals) of patch/face "
+            "\"index\" at the \"parameters\" matrix; a face also reports which points lie inside "
+            "its trimming loops.")
+        .def_static("MeshCad", py::overload_cast<const std::string&, Parameters, ModelPart&>(&MeshioPlusPlusIgaUtilities::MeshCad),
+            py::arg("file_name"), py::arg("settings"), py::arg("destination_model_part"),
+            "Meshes the faces of a B-rep (CAD JSON, STEP, IGES) into a conforming surface mesh, one "
+            "sub model part \"face:<k>\" per face (meshio++'s mesh_cad_surface).")
+        .def_static("MeshCad", py::overload_cast<const std::string&, Parameters, ModelPart&, const ModelPart&>(&MeshioPlusPlusIgaUtilities::MeshCad),
+            py::arg("file_name"), py::arg("settings"), py::arg("destination_model_part"),
+            py::arg("background_model_part"),
+            "MeshCad with the size (\"background_size_variable\") and/or anisotropic metric "
+            "(\"background_hessian_variable\", \"metric_error\") taken from a background model part's nodes.")
+        .def_static("ProjectToCad", &MeshioPlusPlusIgaUtilities::ProjectToCad,
+            py::arg("source_model_part"), py::arg("file_name"), py::arg("settings"),
+            py::arg("destination_model_part"),
+            "Projects a mesh's points back onto the B-rep faces and edges named by the "
+            "\"face_ids_variable\"/\"edge_ids_variable\" MeshCad wrote.")
+        ;
+}
+
+} // namespace Kratos::Python
