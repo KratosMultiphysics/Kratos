@@ -227,10 +227,10 @@ protected:
         ConstitutiveVariables(const SizeType StrainSize)
         {
             if (StrainVector.size() != StrainSize)
-                StrainVector.resize(StrainSize);
+                StrainVector.resize(StrainSize, false);
 
             if (StressVector.size() != StrainSize)
-                StressVector.resize(StrainSize);
+                StressVector.resize(StrainSize, false);
 
             if (D.size1() != StrainSize || D.size2() != StrainSize)
                 D.resize(StrainSize, StrainSize);
