@@ -4,7 +4,7 @@ import KratosMultiphysics
 # HDF5 imports
 import KratosMultiphysics.HDF5Application as HDF5Application
 from KratosMultiphysics.HDF5Application.core.file_io import OpenHDF5File
-from KratosMultiphysics.HDF5Application.core.utils import EvaluatePattern
+from KratosMultiphysics.HDF5Application.core.pattern import EvaluatePattern
 
 
 def Factory(parameters: KratosMultiphysics.Parameters,
@@ -121,7 +121,7 @@ class PointSetOutputProcess(KratosMultiphysics.OutputProcess):
             "search_configuration"  : "initial",
             "search_tolerance"      : 1e-6,
             "coordinates_prefix"    : "/<model_part_name>_point_set_output",
-            "variables_prefix"      : "/<model_part_name>_point_set_output/step_<step>",
+            "variables_prefix"      : "/<model_part_name>_point_set_output/step_<step>/",
             "file_parameters"       : {
                 "file_name"         : "",
                 "file_access_mode"  : "truncate",
