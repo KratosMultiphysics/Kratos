@@ -337,6 +337,46 @@ catch(...) { Block KRATOS_THROW_ERROR(std::runtime_error, "Unknown error", MoreI
 #define KRATOS_DEFINE_3D_APPLICATION_VARIABLE_WITH_COMPONENTS_WITH_TIME_DERIVATIVE(application, name, variable_derivative) \
     KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS_WITH_TIME_DERIVATIVE(name, variable_derivative)
 
+// Variables with adjoint (primal to adjoint link only). The adjoint variable must be defined before the primal one.
+// For variables with components, the components of the primal are linked to the matching components of the adjoint.
+#undef KRATOS_DEFINE_VARIABLE_WITH_ADJOINT
+#define KRATOS_DEFINE_VARIABLE_WITH_ADJOINT(type, name, adjoint_variable) \
+    inline constexpr Variable<type> name = Variable<type>(#name, nullptr, &adjoint_variable);
+
+#undef KRATOS_DEFINE_APPLICATION_VARIABLE_WITH_ADJOINT
+#define KRATOS_DEFINE_APPLICATION_VARIABLE_WITH_ADJOINT(application, type, name, adjoint_variable) \
+    KRATOS_DEFINE_VARIABLE_WITH_ADJOINT(type, name, adjoint_variable)
+
+#undef KRATOS_DEFINE_VARIABLE_WITH_TIME_DERIVATIVE_AND_ADJOINT
+#define KRATOS_DEFINE_VARIABLE_WITH_TIME_DERIVATIVE_AND_ADJOINT(type, name, variable_derivative, adjoint_variable) \
+    inline constexpr Variable<type> name = Variable<type>(#name, &variable_derivative, &adjoint_variable);
+
+#undef KRATOS_DEFINE_APPLICATION_VARIABLE_WITH_TIME_DERIVATIVE_AND_ADJOINT
+#define KRATOS_DEFINE_APPLICATION_VARIABLE_WITH_TIME_DERIVATIVE_AND_ADJOINT(application, type, name, variable_derivative, adjoint_variable) \
+    KRATOS_DEFINE_VARIABLE_WITH_TIME_DERIVATIVE_AND_ADJOINT(type, name, variable_derivative, adjoint_variable)
+
+#undef KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS_WITH_ADJOINT
+#define KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS_WITH_ADJOINT(name, adjoint_variable) \
+    inline constexpr Variable<Kratos::array_1d<double, 3>> name = Variable<Kratos::array_1d<double, 3>>(#name, nullptr, &adjoint_variable); \
+    inline constexpr Variable<double> KRATOS_CAT_(name, X) = Variable<double>(KRATOS_CAT_STR(name, X), &name, 0, nullptr, &KRATOS_CAT_(adjoint_variable, X)); \
+    inline constexpr Variable<double> KRATOS_CAT_(name, Y) = Variable<double>(KRATOS_CAT_STR(name, Y), &name, 1, nullptr, &KRATOS_CAT_(adjoint_variable, Y)); \
+    inline constexpr Variable<double> KRATOS_CAT_(name, Z) = Variable<double>(KRATOS_CAT_STR(name, Z), &name, 2, nullptr, &KRATOS_CAT_(adjoint_variable, Z));
+
+#undef KRATOS_DEFINE_3D_APPLICATION_VARIABLE_WITH_COMPONENTS_WITH_ADJOINT
+#define KRATOS_DEFINE_3D_APPLICATION_VARIABLE_WITH_COMPONENTS_WITH_ADJOINT(application, name, adjoint_variable) \
+    KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS_WITH_ADJOINT(name, adjoint_variable)
+
+#undef KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS_WITH_TIME_DERIVATIVE_AND_ADJOINT
+#define KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS_WITH_TIME_DERIVATIVE_AND_ADJOINT(name, variable_derivative, adjoint_variable) \
+    inline constexpr Variable<Kratos::array_1d<double, 3>> name = Variable<Kratos::array_1d<double, 3>>(#name, &variable_derivative, &adjoint_variable); \
+    inline constexpr Variable<double> KRATOS_CAT_(name, X) = Variable<double>(KRATOS_CAT_STR(name, X), &name, 0, &KRATOS_CAT_(variable_derivative, X), &KRATOS_CAT_(adjoint_variable, X)); \
+    inline constexpr Variable<double> KRATOS_CAT_(name, Y) = Variable<double>(KRATOS_CAT_STR(name, Y), &name, 1, &KRATOS_CAT_(variable_derivative, Y), &KRATOS_CAT_(adjoint_variable, Y)); \
+    inline constexpr Variable<double> KRATOS_CAT_(name, Z) = Variable<double>(KRATOS_CAT_STR(name, Z), &name, 2, &KRATOS_CAT_(variable_derivative, Z), &KRATOS_CAT_(adjoint_variable, Z));
+
+#undef KRATOS_DEFINE_3D_APPLICATION_VARIABLE_WITH_COMPONENTS_WITH_TIME_DERIVATIVE_AND_ADJOINT
+#define KRATOS_DEFINE_3D_APPLICATION_VARIABLE_WITH_COMPONENTS_WITH_TIME_DERIVATIVE_AND_ADJOINT(application, name, variable_derivative, adjoint_variable) \
+    KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS_WITH_TIME_DERIVATIVE_AND_ADJOINT(name, variable_derivative, adjoint_variable)
+
 #undef KRATOS_DEFINE_SYMMETRIC_2D_TENSOR_VARIABLE_WITH_COMPONENTS_WITH_TIME_DERIVATIVE
 #define KRATOS_DEFINE_SYMMETRIC_2D_TENSOR_VARIABLE_WITH_COMPONENTS_WITH_TIME_DERIVATIVE(name, variable_derivative) \
     inline constexpr Variable<Kratos::array_1d<double, 3>> name = Variable<Kratos::array_1d<double, 3>>(#name, &variable_derivative); \

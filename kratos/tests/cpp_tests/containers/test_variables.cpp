@@ -117,5 +117,55 @@ KRATOS_TEST_CASE_IN_SUITE(VariablesKeyConstexpr, KratosCoreFastSuite) {
     KRATOS_EXPECT_EQ(func_variable_data(TEMPERATURE), 3);
 }
 
+KRATOS_TEST_CASE_IN_SUITE(VariablesAdjoint, KratosCoreFastSuite) {
+    // Scalar link
+    KRATOS_EXPECT_TRUE(PRESSURE.HasAdjointVariable());
+    KRATOS_EXPECT_EQ(PRESSURE.GetAdjointVariable(), ADJOINT_PRESSURE);
+    KRATOS_EXPECT_TRUE(TEMPERATURE.HasAdjointVariable());
+    KRATOS_EXPECT_EQ(TEMPERATURE.GetAdjointVariable(), ADJOINT_TEMPERATURE);
+
+    // The link is primal to adjoint only
+    KRATOS_EXPECT_FALSE(ADJOINT_PRESSURE.HasAdjointVariable());
+    KRATOS_EXPECT_FALSE(ADJOINT_DISPLACEMENT.HasAdjointVariable());
+
+    // Array variable and automatic linking of the components
+    KRATOS_EXPECT_EQ(DISPLACEMENT.GetAdjointVariable(), ADJOINT_DISPLACEMENT);
+    KRATOS_EXPECT_EQ(DISPLACEMENT_X.GetAdjointVariable(), ADJOINT_DISPLACEMENT_X);
+    KRATOS_EXPECT_EQ(DISPLACEMENT_Y.GetAdjointVariable(), ADJOINT_DISPLACEMENT_Y);
+    KRATOS_EXPECT_EQ(DISPLACEMENT_Z.GetAdjointVariable(), ADJOINT_DISPLACEMENT_Z);
+    KRATOS_EXPECT_EQ(VELOCITY_X.GetAdjointVariable(), ADJOINT_VELOCITY_X);
+    KRATOS_EXPECT_EQ(ROTATION_Z.GetAdjointVariable(), ADJOINT_ROTATION_Z);
+    KRATOS_EXPECT_EQ(ANGULAR_VELOCITY.GetAdjointVariable(), ADJOINT_ANGULAR_VELOCITY);
+
+    // The time derivative chain is kept for primal and adjoint variables
+    KRATOS_EXPECT_EQ(DISPLACEMENT.GetTimeDerivative(), VELOCITY);
+    KRATOS_EXPECT_EQ(DISPLACEMENT_X.GetTimeDerivative(), VELOCITY_X);
+    KRATOS_EXPECT_EQ(ADJOINT_DISPLACEMENT.GetTimeDerivative(), ADJOINT_VELOCITY);
+    KRATOS_EXPECT_EQ(ADJOINT_VELOCITY.GetTimeDerivative(), ADJOINT_ACCELERATION);
+    KRATOS_EXPECT_EQ(ADJOINT_VELOCITY_Y.GetTimeDerivative(), ADJOINT_ACCELERATION_Y);
+    KRATOS_EXPECT_EQ(VELOCITY.GetTimeDerivative(), ACCELERATION);
+
+    // Variables without adjoint
+    KRATOS_EXPECT_FALSE(ACCELERATION.HasAdjointVariable());
+    KRATOS_EXPECT_FALSE(DENSITY.HasAdjointVariable());
+    KRATOS_EXPECT_FALSE(ACCELERATION_X.HasAdjointVariable());
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        ACCELERATION.GetAdjointVariable(),
+        "Adjoint variable for Variable \"ACCELERATION\" was not assigned");
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        DENSITY.GetAdjointVariable(),
+        "Adjoint variable for Variable \"DENSITY\" was not assigned");
+
+    // Both getters are usable in constant expressions
+    static_assert(&DISPLACEMENT.GetAdjointVariable() == &ADJOINT_DISPLACEMENT);
+    static_assert(&DISPLACEMENT_X.GetAdjointVariable() == &ADJOINT_DISPLACEMENT_X);
+    static_assert(&DISPLACEMENT.GetTimeDerivative() == &VELOCITY);
+    static_assert(&ADJOINT_VELOCITY.GetTimeDerivative() == &ADJOINT_ACCELERATION);
+
+    // Copy keeps the link
+    const Variable<double> copy_pressure(PRESSURE);
+    KRATOS_EXPECT_EQ(copy_pressure.GetAdjointVariable(), ADJOINT_PRESSURE);
+}
+
 }
 } // namespace Kratos.
