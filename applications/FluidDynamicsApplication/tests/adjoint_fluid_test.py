@@ -90,10 +90,7 @@ class AdjointFluidTest(UnitTest.TestCase):
     def _AddJsonOutputProcess(kratos_parameters, output_file_name):
         process_settings = Kratos.Parameters(R'''
         {
-            "python_module": "json_output_process",
-            "kratos_module": "KratosMultiphysics",
-            "help": "",
-            "process_name": "JsonOutputProcess",
+            "name" : "Processes.KratosMultiphysics.JsonOutputProcess",
             "Parameters": {
                 "output_variables": [
                         "VELOCITY_X",

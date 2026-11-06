@@ -9,7 +9,6 @@ from KratosMultiphysics.FreeSurfaceApplication.free_surface_analysis import Free
 # Importing post-process
 from KratosMultiphysics.vtk_output_process import VtkOutputProcess
 from KratosMultiphysics.gid_output_process import GiDOutputProcess
-from KratosMultiphysics.json_output_process import JsonOutputProcess
 from KratosMultiphysics.from_json_check_result_process import FromJsonCheckResultProcess
 
 class KratosFreeSurfaceGeneralTests(KratosUnittest.TestCase):
@@ -63,7 +62,7 @@ class KratosFreeSurfaceGeneralTests(KratosUnittest.TestCase):
         }""")
         json_output_settings["model_part_name"].SetString(parameters["solver_settings"]["model_part_name"].GetString() + '.Results')
         json_output_settings["output_file_name"].SetString(results_filename)
-        self.json_output = JsonOutputProcess(model, json_output_settings)
+        self.json_output = KratosMultiphysics.JsonOutputProcess(model, json_output_settings)
         self.json_output.ExecuteInitialize()
         self.json_output.ExecuteBeforeSolutionLoop()
         self.json_output.ExecuteFinalizeSolutionStep()

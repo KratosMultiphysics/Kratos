@@ -3,7 +3,6 @@ import KratosMultiphysics.ContactStructuralMechanicsApplication as CSMA
 
 # Some imports
 from KratosMultiphysics import from_json_check_result_process
-#from KratosMultiphysics import json_output_process
 from KratosMultiphysics.gid_output_process import GiDOutputProcess
 
 import KratosMultiphysics.KratosUnittest as KratosUnittest
@@ -135,7 +134,7 @@ class TestDynamicSearch(KratosUnittest.TestCase):
 
         #out_parameters["output_file_name"].SetString(input_filename + "_dynamic_search.json")
 
-        #out = json_output_process.JsonOutputProcess(self.model, out_parameters)
+        #out = KM.JsonOutputProcess(self.model, out_parameters)
         #out.ExecuteInitialize()
         #out.ExecuteBeforeSolutionLoop()
         #out.ExecuteFinalizeSolutionStep()
