@@ -527,6 +527,19 @@ public:
         rShapeFunctionsValues.resize(num_nonzero, false);
         for (SizeType j = 0; j < num_nonzero; ++j)
             rShapeFunctionsValues[j] = shape_function_container(j, 0);
+
+        if (pShapeFunctionDerivatives != nullptr && DerivativeOrder > 0) {
+            pShapeFunctionDerivatives->resize(DerivativeOrder);
+            IndexType deriv_flat_index = 1;
+            for (IndexType nd = 0; nd < DerivativeOrder; ++nd) {
+                (*pShapeFunctionDerivatives)[nd].resize(num_nonzero, nd + 2);
+                for (IndexType k = 0; k < nd + 2; ++k)
+                    for (IndexType j = 0; j < num_nonzero; ++j)
+                        (*pShapeFunctionDerivatives)[nd](j, k) =
+                            shape_function_container(j, deriv_flat_index + k);
+                deriv_flat_index += nd + 2;
+            }
+        }
     }
 
     void ShapeFunctionsValuesAndCPNodes(
