@@ -15,7 +15,8 @@ class CustomHook(BuildHookInterface):
             build_data["infer_tag"] = False
             build_data["tag"] = f"cp{py_version}-cp{py_version}-manylinux_2_34_x86_64"
         elif sys.platform == "darwin":
-            build_data["infer_tag"] = True
+            # MacOs: No change needed.
+            build_data["infer_tag"] = False
         else:
             build_data["infer_tag"] = True
 
