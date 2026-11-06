@@ -122,6 +122,8 @@ class FutureRomSolver:
         self.scheme.InitializeSolutionStep(self.strategy_data)
         # The conditions of the step are already applied, so the decoder can read the prescribed values of the fixed DOFs
         self.decoder.InitializeSolutionStep()
+        # A single decoder keeps the reduced coordinates; a LocalRomDecoder may switch model and encode the current state in it
+        self.q = numpy.array(self.decoder.UpdateReducedCoordinates(self.q, self.GetEffectiveDofSet()), dtype=numpy.float64)
 
     def SolveSolutionStep(self):
         """Newton-Raphson iteration on the reduced coordinates. Returns True if converged.
