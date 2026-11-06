@@ -91,17 +91,18 @@ Geo::KappaDependentFunction MakeDilatancyAngleCalculator(const Properties& rMate
             MathUtils<>::DegreesToRadians(rMaterialProperties[GEO_DILATANCY_ANGLE]));
     }
 
+    if (hardening_type == "linear") {
+        return FunctionObjectUtilities::MakeLinearFunction(
+            MathUtils<>::DegreesToRadians(rMaterialProperties[GEO_DILATANCY_ANGLE]),
+            rMaterialProperties[GEO_DILATANCY_ANGLE_FUNCTION_COEFFICIENTS][0]);
+    }
+
     if (hardening_type == "exponential") {
         return FunctionObjectUtilities::MakeExponentialFunction(
             MathUtils<>::DegreesToRadians(rMaterialProperties[GEO_DILATANCY_ANGLE]),
             rMaterialProperties[GEO_DILATANCY_ANGLE_FUNCTION_COEFFICIENTS]);
     }
 
-    if (hardening_type == "linear") {
-        return FunctionObjectUtilities::MakeLinearFunction(
-            MathUtils<>::DegreesToRadians(rMaterialProperties[GEO_DILATANCY_ANGLE]),
-            rMaterialProperties[GEO_DILATANCY_ANGLE_FUNCTION_COEFFICIENTS][0]);
-    }
     KRATOS_ERROR << "Cannot create a kappa-dependent function for the dilatancy angle of material "
                  << rMaterialProperties.Id() << ": unknown hardening type '" << hardening_type << "'\n";
 }

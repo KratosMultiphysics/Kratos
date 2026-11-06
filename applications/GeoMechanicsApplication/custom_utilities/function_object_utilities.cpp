@@ -26,10 +26,10 @@ Geo::KappaDependentFunction FunctionObjectUtilities::MakeLinearFunction(double V
     return [Value, Coefficient](double Kappa) { return Value + Coefficient * Kappa; };
 }
 
-Geo::KappaDependentFunction FunctionObjectUtilities::MakeExponentialFunction(double Value, const Vector& Coefficient)
+Geo::KappaDependentFunction FunctionObjectUtilities::MakeExponentialFunction(double Value, const Vector& rCoefficients)
 {
-    return [Value, Coefficient](double Kappa) {
-        return Coefficient[0] + (Value - Coefficient[0]) * std::exp(-Coefficient[1] * Kappa);
+    return [Value, rCoefficients](double Kappa) {
+        return rCoefficients[0] + (Value - rCoefficients[0]) * std::exp(-rCoefficients[1] * Kappa);
     };
 }
 

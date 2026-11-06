@@ -10,8 +10,8 @@
                 "Variables": {
                     "IGNORE_UNDRAINED": false,
                     "BIOT_COEFFICIENT": 1.0,
-                    "DENSITY_SOLID": 2.242609582059123e+03,
-                    "DENSITY_WATER": 1.019367991845056e+03,
+                    "DENSITY_SOLID": 2.24260958205912e+03,
+                    "DENSITY_WATER": 1.01936799184506e+03,
                     "POROSITY": 0.5,
                     "BULK_MODULUS_SOLID": 2.0e+10,
                     "BULK_MODULUS_FLUID": 2.2e+09,
@@ -27,9 +27,9 @@
                     "UDSM_NUMBER": 1,
                     "IS_FORTRAN_UDSM": true,
                     "UMAT_PARAMETERS": [
-                        4.998729486706428e-02,
+                        4.99872948670643e-02,
                         0.19999260891644746,
-                        1.999926089164475e-02,
+                        1.99992608916447e-02,
                         8.64e+04,
                         1.5
                     ],

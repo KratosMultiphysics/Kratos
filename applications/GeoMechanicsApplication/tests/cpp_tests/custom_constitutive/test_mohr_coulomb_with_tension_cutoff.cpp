@@ -844,8 +844,8 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateMaterialResponse
     law.InitializeMaterial(properties, dummy_element_geometry, dummy_shape_function_values);
 
     // Arrange
-    const double c_res = 10.0;
-    const double a_c   = 0.0;
+    constexpr auto c_res = 10.0;
+    constexpr auto a_c   = 0.0;
     properties.SetValue(GEO_COHESION_FUNCTION_COEFFICIENTS, UblasUtilities::CreateVector({c_res, a_c}));
     parameters.SetMaterialProperties(properties);
 
@@ -859,8 +859,8 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateMaterialResponse
     KRATOS_EXPECT_VECTOR_NEAR(calculated_result, expected_result, Defaults::absolute_tolerance);
 
     // Arrange
-    const double a_phi   = 15.0;
-    const double phi_res = 0.0;
+    constexpr auto a_phi   = 15.0;
+    constexpr auto phi_res = 0.0;
     properties.SetValue(GEO_FRICTION_ANGLE_FUNCTION_COEFFICIENTS,
                         UblasUtilities::CreateVector({a_phi, phi_res}));
     properties.SetValue(GEO_COHESION_FUNCTION_COEFFICIENTS, UblasUtilities::CreateVector({0.0, 0.0}));
@@ -875,8 +875,8 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateMaterialResponse
     KRATOS_EXPECT_VECTOR_NEAR(calculated_result, expected_result, Defaults::absolute_tolerance);
 
     // Arrange
-    const double a_psi   = 20.0;
-    const double psi_res = 0.0;
+    constexpr auto a_psi   = 20.0;
+    constexpr auto psi_res = 0.0;
     properties.SetValue(GEO_DILATANCY_ANGLE_FUNCTION_COEFFICIENTS,
                         UblasUtilities::CreateVector({a_psi, psi_res}));
     properties.SetValue(GEO_FRICTION_ANGLE_FUNCTION_COEFFICIENTS, UblasUtilities::CreateVector({0.0, 0.0}));
