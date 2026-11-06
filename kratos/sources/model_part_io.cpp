@@ -4495,7 +4495,11 @@ void ModelPartIO::WriteSubModelPartBlock(
         const std::string sub_model_part_name = sub_model_part_names[i_sub];
         ModelPart& r_sub_model_part = rMainModelPart.GetSubModelPart(sub_model_part_name);
 
-        (*mpStream) << InitialTabulation << "Begin SubModelPart\t" << sub_model_part_name << std::endl;
+        // The name of the model part may contain spaces, so we write it in quotes and make break the reading, replace spaces with "_"
+        std::string formatted_name = sub_model_part_name;
+        std::replace(formatted_name.begin(), formatted_name.end(), ' ', '_');
+
+        (*mpStream) << InitialTabulation << "Begin SubModelPart\t" << formatted_name << std::endl;
 
         // Submodelpart data section
         (*mpStream) << InitialTabulation << "\tBegin SubModelPartData" << std::endl;
