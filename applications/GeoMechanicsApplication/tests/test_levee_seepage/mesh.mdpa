@@ -1985,7 +1985,7 @@ Begin SubModelPart Polder_head
     End SubModelPartNodes
 End SubModelPart
 
-Begin SubModelPart Seepage_face_1
+Begin SubModelPart SeepageBoundary
     Begin SubModelPartNodes
             9
            10

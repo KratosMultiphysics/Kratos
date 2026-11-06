@@ -11,20 +11,19 @@
                     "GEO_DRAINAGE_TYPE": "CONSTANT_PW_FIELD",
                     "YOUNG_MODULUS": 45000000,
                     "POISSON_RATIO": 0.25,
-                    "DENSITY_SOLID": 1936.7991845056065,
-                    "DENSITY_WATER": 1019.367991845056,
+                    "DENSITY_SOLID": 1.93679918450561e+03,
+                    "DENSITY_WATER": 1.01936799184506e+03,
                     "POROSITY": 0.1,
-                    "BULK_MODULUS_SOLID": 10000000000.0,
-                    "BULK_MODULUS_FLUID": 2200000000.0,
-                    "DYNAMIC_VISCOSITY": 0.001,
-                    "PERMEABILITY_XX": 5.787037037037037e-05,
-                    "PERMEABILITY_YY": 5.787037037037037e-05,
+                    "BULK_MODULUS_SOLID": 1.0e+10,
+                    "BULK_MODULUS_FLUID": 2.2e+09,
+                    "DYNAMIC_VISCOSITY": 1.0e-03,
+                    "PERMEABILITY_XX": 5.78703703703704e-05,
+                    "PERMEABILITY_YY": 5.78703703703704e-05,
                     "PERMEABILITY_XY": 0.0,
                     "GEO_COHESION": 0,
                     "GEO_FRICTION_ANGLE": 36,
                     "BIOT_COEFFICIENT": 0.997
-                },
-                "Tables": {}
+                }
             }
         },
         {
@@ -38,20 +37,19 @@
                     "GEO_DRAINAGE_TYPE": "FULLY_COUPLED",
                     "YOUNG_MODULUS": 12000000,
                     "POISSON_RATIO": 0.33,
-                    "DENSITY_SOLID": 1783.893985728848,
-                    "DENSITY_WATER": 1019.367991845056,
+                    "DENSITY_SOLID": 1.78389398572885e+03,
+                    "DENSITY_WATER": 1.01936799184506e+03,
                     "POROSITY": 0.1,
-                    "BULK_MODULUS_SOLID": 10000000000.0,
-                    "BULK_MODULUS_FLUID": 2200000000.0,
-                    "DYNAMIC_VISCOSITY": 0.001,
-                    "PERMEABILITY_XX": 5.787037037037037e-09,
-                    "PERMEABILITY_YY": 5.787037037037037e-09,
+                    "BULK_MODULUS_SOLID": 1.0e+10,
+                    "BULK_MODULUS_FLUID": 2.2e+09,
+                    "DYNAMIC_VISCOSITY": 1.0e-03,
+                    "PERMEABILITY_XX": 5.78703703703704e-09,
+                    "PERMEABILITY_YY": 5.78703703703704e-09,
                     "PERMEABILITY_XY": 0.0,
                     "GEO_COHESION": 15000,
                     "GEO_FRICTION_ANGLE": 25,
                     "BIOT_COEFFICIENT": 0.9988235294117647
-                },
-                "Tables": {}
+                }
             }
         },
         {
@@ -65,20 +63,19 @@
                     "GEO_DRAINAGE_TYPE": "FULLY_COUPLED",
                     "YOUNG_MODULUS": 4000000,
                     "POISSON_RATIO": 0.35,
-                    "DENSITY_SOLID": 1529.051987767584,
-                    "DENSITY_WATER": 1019.367991845056,
+                    "DENSITY_SOLID": 1.52905198776758e+03,
+                    "DENSITY_WATER": 1.01936799184506e+03,
                     "POROSITY": 0.1,
-                    "BULK_MODULUS_SOLID": 10000000000.0,
-                    "BULK_MODULUS_FLUID": 2200000000.0,
-                    "DYNAMIC_VISCOSITY": 0.001,
-                    "PERMEABILITY_XX": 1.1574074074074074e-09,
-                    "PERMEABILITY_YY": 1.1574074074074074e-09,
+                    "BULK_MODULUS_SOLID": 1.0e+10,
+                    "BULK_MODULUS_FLUID": 2.2e+09,
+                    "DYNAMIC_VISCOSITY": 1.0e-03,
+                    "PERMEABILITY_XX": 1.15740740740741e-09,
+                    "PERMEABILITY_YY": 1.15740740740741e-09,
                     "PERMEABILITY_XY": 0.0,
                     "GEO_COHESION": 5000,
                     "GEO_FRICTION_ANGLE": 22,
                     "BIOT_COEFFICIENT": 0.9995555555555555
-                },
-                "Tables": {}
+                }
             }
         },
         {
@@ -92,20 +89,19 @@
                     "GEO_DRAINAGE_TYPE": "FULLY_COUPLED",
                     "YOUNG_MODULUS": 12000000,
                     "POISSON_RATIO": 0.33,
-                    "DENSITY_SOLID": 1783.893985728848,
-                    "DENSITY_WATER": 1019.367991845056,
+                    "DENSITY_SOLID": 1.78389398572885e+03,
+                    "DENSITY_WATER": 1.01936799184506e+03,
                     "POROSITY": 0.1,
-                    "BULK_MODULUS_SOLID": 10000000000.0,
-                    "BULK_MODULUS_FLUID": 2200000000.0,
-                    "DYNAMIC_VISCOSITY": 0.001,
-                    "PERMEABILITY_XX": 5.787037037037037e-09,
-                    "PERMEABILITY_YY": 5.787037037037037e-09,
+                    "BULK_MODULUS_SOLID": 1.0e+10,
+                    "BULK_MODULUS_FLUID": 2.2e+09,
+                    "DYNAMIC_VISCOSITY": 1.0e-03,
+                    "PERMEABILITY_XX": 5.78703703703704e-09,
+                    "PERMEABILITY_YY": 5.78703703703704e-09,
                     "PERMEABILITY_XY": 0.0,
                     "GEO_COHESION": 15000,
                     "GEO_FRICTION_ANGLE": 25,
                     "BIOT_COEFFICIENT": 0.9988235294117647
-                },
-                "Tables": {}
+                }
             }
         }
     ]

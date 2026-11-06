@@ -3,9 +3,7 @@
         "name": "Orchestrators.KratosMultiphysics.SequentialOrchestrator",
         "settings": {
             "echo_level": 0,
-            "execution_list": [
-                "find_equilibrium"
-            ],
+            "execution_list": ["find_equilibrium"],
             "load_from_checkpoint": null,
             "stage_checkpoints": false
         }
@@ -36,10 +34,17 @@
                 "solver_settings": {
                     "solver_type": "Pw",
                     "model_part_name": "PorousDomain",
+                    "domain_size": 2,
+                    "model_import_settings": {
+                        "input_type": "use_input_model_part"
+                    },
+                    "material_import_settings": {
+                        "materials_filename": "MaterialParameters.json"
+                    },
                     "solution_type": "Steady_State_Groundwater_Flow",
                     "time_stepping": {
                         "time_step": 1.0,
-                        "max_delta_time_factor": 1000.0
+                        "max_delta_time_factor": 1.0e+03
                     },
                     "buffer_size": 2,
                     "echo_level": 1,
@@ -54,21 +59,14 @@
                     },
                     "strategy_type": "newton_raphson_with_seepage",
                     "convergence_criterion": "residual_criterion",
-                    "residual_relative_tolerance": 0.01,
-                    "residual_absolute_tolerance": 1e-09,
+                    "residual_relative_tolerance": 1.0e-03,
+                    "residual_absolute_tolerance": 1.0e-15,
                     "min_iterations": 6,
-                    "max_iterations": 30,
+                    "max_iterations": 300,
                     "number_cycles": 1,
                     "reduction_factor": 1.0,
                     "increase_factor": 1.0,
-                    "domain_size": 2,
                     "rotation_dofs": false,
-                    "model_import_settings": {
-                        "input_type": "use_input_model_part"
-                    },
-                    "material_import_settings": {
-                        "materials_filename": "MaterialParameters.json"
-                    },
                     "problem_domain_sub_model_part_list": [
                         "Sand_layer",
                         "Clay_layer",
@@ -92,34 +90,14 @@
                                 "model_part_name": "PorousDomain",
                                 "variable_name": "WATER_PRESSURE",
                                 "is_fixed": false,
-                                "table": [
-                                    0,
-                                    0,
-                                    0,
-                                    0
-                                ],
+                                "table": [0, 0, 0, 0],
                                 "fluid_pressure_type": "Phreatic_Multi_Line",
                                 "gravity_direction": 1,
                                 "out_of_plane_direction": 2,
-                                "x_coordinates": [
-                                    -36.0,
-                                    -2.0,
-                                    15.0,
-                                    54.0
-                                ],
-                                "y_coordinates": [
-                                    5.0,
-                                    5.0,
-                                    -0.5,
-                                    -0.5
-                                ],
-                                "z_coordinates": [
-                                    0.0,
-                                    0.0,
-                                    0.0,
-                                    0.0
-                                ],
-                                "specific_weight": 10000.0
+                                "x_coordinates": [-36.0, -2.0, 15.0, 54.0],
+                                "y_coordinates": [5.0, 5.0, -0.5, -0.5],
+                                "z_coordinates": [0.0, 0.0, 0.0, 0.0],
+                                "specific_weight": 1.0e+04
                             }
                         },
                         {
@@ -134,8 +112,8 @@
                                 "fluid_pressure_type": "Hydrostatic",
                                 "gravity_direction": 1,
                                 "reference_coordinate": 5.0,
-                                "specific_weight": 10000.0,
-                                "pressure_tension_cut_off": 100000.0
+                                "specific_weight": 1.0e+04,
+                                "pressure_tension_cut_off": 1.0e+05
                             }
                         },
                         {
@@ -150,8 +128,8 @@
                                 "fluid_pressure_type": "Hydrostatic",
                                 "gravity_direction": 1,
                                 "reference_coordinate": -0.5,
-                                "specific_weight": 10000.0,
-                                "pressure_tension_cut_off": 100000.0
+                                "specific_weight": 1.0e+04,
+                                "pressure_tension_cut_off": 1.0e+05
                             }
                         }
                     ],
@@ -163,21 +141,9 @@
                             "Parameters": {
                                 "model_part_name": "PorousDomain.porous_computational_model_part",
                                 "variable_name": "VOLUME_ACCELERATION",
-                                "active": [
-                                    false,
-                                    true,
-                                    false
-                                ],
-                                "value": [
-                                    0.0,
-                                    -9.81,
-                                    0.0
-                                ],
-                                "table": [
-                                    0,
-                                    0,
-                                    0
-                                ]
+                                "active": [false, true, false],
+                                "value": [0.0, -9.81, 0.0],
+                                "table": [0, 0, 0]
                             }
                         },
                         {
@@ -185,7 +151,7 @@
                             "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
                             "process_name": "ApplySeepageBoundaryProcess",
                             "Parameters": {
-                                "model_part_name": "PorousDomain.Seepage_face_1"
+                                "model_part_name": "PorousDomain.SeepageBoundary"
                             }
                         }
                     ],
@@ -201,10 +167,7 @@
                                     "PorousDomain.Core_levee",
                                     "PorousDomain.Cap_levee"
                                 ],
-                                "list_of_variables": [
-                                    "EFFECTIVE_SATURATION",
-                                    "FLUID_FLUX_VECTOR"
-                                ]
+                                "list_of_variables": ["EFFECTIVE_SATURATION", "FLUID_FLUX_VECTOR"]
                             }
                         }
                     ]
@@ -231,18 +194,14 @@
                                         "body_output": true,
                                         "node_output": false,
                                         "skin_output": false,
-                                        "plane_output": [],
                                         "nodal_results": [
                                             "WATER_PRESSURE",
                                             "EFFECTIVE_SATURATION",
                                             "FLUID_FLUX_VECTOR",
                                             "NODAL_WATER_FLOW_RATE"
                                         ],
-                                        "gauss_point_results": [
-                                            "HYDRAULIC_HEAD"
-                                        ]
-                                    },
-                                    "point_data_configuration": []
+                                        "gauss_point_results": ["HYDRAULIC_HEAD"]
+                                    }
                                 }
                             }
                         }
