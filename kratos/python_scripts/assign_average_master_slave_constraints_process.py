@@ -58,7 +58,7 @@ class AssignAverageMasterSlaveConstraintsProcess(KM.Process):
         # If constraints are reformed at each step, remove them at the end of each step
         if self.reform_constraints_at_each_step:
             self.__RemoveConstraints()
-    
+
     def __AverageMultiPointConstraint(self, variable):
         """Assigns constraints that make the value of a variable in the slave part
         to be the average of the values in the master part."""
@@ -77,7 +77,10 @@ class AssignAverageMasterSlaveConstraintsProcess(KM.Process):
             master_dofs_container.append(node.GetDof(variable))
         
         # Loop over all slave nodes to assign the constraints
-        counter = self.computing_model_part.NumberOfMasterSlaveConstraints() + 1
+        max_id = 0
+        for constraint in self.computing_model_part.MasterSlaveConstraints:
+            max_id = max(constraint.Id, max_id)
+        counter = max_id + 1
         for node in self.slave_model_part.Nodes:
             slave_dof_container = [node.GetDof(variable)]
             self.computing_model_part.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", counter, master_dofs_container, slave_dof_container, weights_vector, constant_vector)
