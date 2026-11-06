@@ -25,6 +25,25 @@ class RomDecoder:
         """Called once the conditions of the step are applied (fixed DOFs and their values)."""
         pass
 
+    def Encode(self, u, max_iterations=20, tolerance=1.0e-12):
+        """Returns the reduced coordinates q whose decoded vector D(q) is closest to u (least squares), the inverse of Decode on its
+        manifold. The base class solves it by Gauss-Newton with the Jacobian, starting from q = 0; decoders with an explicit inverse
+        (e.g. LinearDecoder) override it."""
+        u = numpy.asarray(u, dtype=numpy.float64)
+        q = numpy.zeros(self.NumberOfRomDofs())
+        for _ in range(max_iterations):
+            dq = numpy.linalg.lstsq(self.Jacobian(q), u - self.Decode(q), rcond=None)[0]
+            q = q + dq
+            if numpy.linalg.norm(dq) <= tolerance * max(numpy.linalg.norm(q), 1.0):
+                break
+        return q
+
+    def UpdateReducedCoordinates(self, q, dof_set):
+        """Called by the solver at the start of each step, after InitializeSolutionStep, with the reduced coordinates of the last step
+        and the DOF set (its values are the current state). Returns the reduced coordinates to start the step from. A single decoder
+        keeps them; a decoder made of several local models (LocalRomDecoder) may switch model here and encode the state in the new one."""
+        return q
+
 
 class LinearDecoder(RomDecoder):
     """Affine decoder u = u0 + Phi q (standard POD basis)."""
@@ -46,6 +65,12 @@ class LinearDecoder(RomDecoder):
 
     def Jacobian(self, q):
         return self.phi
+
+    def Encode(self, u, **kwargs):
+        """Least squares reduced coordinates of u: (Phi^T Phi)^-1 Phi^T (u - u0), which is Phi^T (u - u0) for an orthonormal basis"""
+        if not hasattr(self, "_gram"):
+            self._gram = self.phi.T @ self.phi
+        return numpy.linalg.solve(self._gram, self.phi.T @ (numpy.asarray(u, dtype=numpy.float64) - self.u0))
 
 
 class FixedDofsDecoder(RomDecoder):
