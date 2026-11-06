@@ -1,4 +1,4 @@
-﻿//    |  /           |
+//    |  /           |
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
@@ -532,16 +532,14 @@ namespace Kratos
         noalias(rKinematicVariables.a3) = rKinematicVariables.a3_tilde / rKinematicVariables.dA;
 
         //GetCovariantMetric
-        rKinematicVariables.a_ab_covariant[0] = pow(rKinematicVariables.a1[0], 2) + pow(rKinematicVariables.a1[1], 2) + pow(rKinematicVariables.a1[2], 2);
-        rKinematicVariables.a_ab_covariant[1] = pow(rKinematicVariables.a2[0], 2) + pow(rKinematicVariables.a2[1], 2) + pow(rKinematicVariables.a2[2], 2);
-        rKinematicVariables.a_ab_covariant[2] = rKinematicVariables.a1[0] * rKinematicVariables.a2[0] + rKinematicVariables.a1[1] * rKinematicVariables.a2[1] + rKinematicVariables.a1[2] * rKinematicVariables.a2[2];
+        rKinematicVariables.a_ab_covariant[0] = norm_2_square(rKinematicVariables.a1); 
+        rKinematicVariables.a_ab_covariant[1] = norm_2_square(rKinematicVariables.a2);
+        rKinematicVariables.a_ab_covariant[2] = inner_prod(rKinematicVariables.a1, rKinematicVariables.a2);
 
         Matrix H = ZeroMatrix(3, 3);
         CalculateHessian(H, GetGeometry().ShapeFunctionDerivatives(2, IntegrationPointIndex, GetGeometry().GetDefaultIntegrationMethod()));
 
-        rKinematicVariables.b_ab_covariant[0] = H(0, 0) * rKinematicVariables.a3[0] + H(1, 0) * rKinematicVariables.a3[1] + H(2, 0) * rKinematicVariables.a3[2];
-        rKinematicVariables.b_ab_covariant[1] = H(0, 1) * rKinematicVariables.a3[0] + H(1, 1) * rKinematicVariables.a3[1] + H(2, 1) * rKinematicVariables.a3[2];
-        rKinematicVariables.b_ab_covariant[2] = H(0, 2) * rKinematicVariables.a3[0] + H(1, 2) * rKinematicVariables.a3[1] + H(2, 2) * rKinematicVariables.a3[2];
+        rKinematicVariables.b_ab_covariant = prod(trans(H) , rKinematicVariables.a3);
     }
 
     /* Computes the transformation matrix T from the contravariant curvilinear basis to
@@ -694,21 +692,18 @@ namespace Kratos
             rB.resize(3, mat_size);
         noalias(rB) = ZeroMatrix(3, mat_size);
 
-        for (IndexType r = 0; r < mat_size; r++)
+        for (IndexType node = 0; node < number_of_control_points; node++)
         {
             // local node number kr and dof direction dirr
-            IndexType kr = r / 3;
-            IndexType dirr = r % 3;
+            IndexType index = 3*node;
 
-            array_1d<double, 3> dE_curvilinear;
+            Matrix dE_curvilinear(3,3);
             // strain
-            dE_curvilinear[0] = r_DN_De(kr, 0) * rActualKinematic.a1(dirr);
-            dE_curvilinear[1] = r_DN_De(kr, 1) * rActualKinematic.a2(dirr);
-            dE_curvilinear[2] = 0.5 * (r_DN_De(kr, 0) * rActualKinematic.a2(dirr) + rActualKinematic.a1(dirr) * r_DN_De(kr, 1));
+            project(dE_curvilinear,range(0,0),range(0,2)) = r_DN_De(node, 0)*trans(rActualKinematic.a1);
+            project(dE_curvilinear,range(1,1),range(0,2)) = r_DN_De(node, 1)*trans(rActualKinematic.a2);
+            project(dE_curvilinear,range(2,2),range(0,2)) = 0.5 * (r_DN_De(node, 0) * trans(rActualKinematic.a2) + trans(rActualKinematic.a1) * r_DN_De(node, 1));
 
-            rB(0, r) = m_T_vector[IntegrationPointIndex](0, 0) * dE_curvilinear[0] + m_T_vector[IntegrationPointIndex](0, 1) * dE_curvilinear[1] + m_T_vector[IntegrationPointIndex](0, 2) * dE_curvilinear[2];
-            rB(1, r) = m_T_vector[IntegrationPointIndex](1, 0) * dE_curvilinear[0] + m_T_vector[IntegrationPointIndex](1, 1) * dE_curvilinear[1] + m_T_vector[IntegrationPointIndex](1, 2) * dE_curvilinear[2];
-            rB(2, r) = m_T_vector[IntegrationPointIndex](2, 0) * dE_curvilinear[0] + m_T_vector[IntegrationPointIndex](2, 1) * dE_curvilinear[1] + m_T_vector[IntegrationPointIndex](2, 2) * dE_curvilinear[2];
+            project(rB, range(0, 0), range(index, index + 2)) = prod(m_T_vector[IntegrationPointIndex], dE_curvilinear);
         }
     }
 
@@ -737,47 +732,32 @@ namespace Kratos
         Matrix H = ZeroMatrix(3, 3);
         CalculateHessian(H, GetGeometry().ShapeFunctionDerivatives(2, IntegrationPointIndex));
 
-        for (IndexType i = 0; i < number_of_control_points; i++)
+        for (IndexType node = 0; node < number_of_control_points; node++)
         {
-            IndexType index = 3 * i;
-            //first line
-            da3(0, 0) = 0;
-            da3(0, 1) = -r_DN_De(i, 0) * rActualKinematic.a2[2] + r_DN_De(i, 1) * rActualKinematic.a1[2];
-            da3(0, 2) = r_DN_De(i, 0) * rActualKinematic.a2[1] - r_DN_De(i, 1) * rActualKinematic.a1[1];
+            IndexType index = 3 * node;
 
-            //second line
-            da3(1, 0) = r_DN_De(i, 0) * rActualKinematic.a2[2] - r_DN_De(i, 1) * rActualKinematic.a1[2];
-            da3(1, 1) = 0;
-            da3(1, 2) = -r_DN_De(i, 0) * rActualKinematic.a2[0] + r_DN_De(i, 1) * rActualKinematic.a1[0];
+            da3(0, 1) = -r_DN_De(node, 0) * rActualKinematic.a2[2] + r_DN_De(node, 1) * rActualKinematic.a1[2];
+            da3(0, 2) =  r_DN_De(node, 0) * rActualKinematic.a2[1] - r_DN_De(node, 1) * rActualKinematic.a1[1];
+            da3(1, 2) = -r_DN_De(node, 0) * rActualKinematic.a2[0] + r_DN_De(node, 1) * rActualKinematic.a1[0];
 
-            //third line
-            da3(2, 0) = -r_DN_De(i, 0) * rActualKinematic.a2[1] + r_DN_De(i, 1) * rActualKinematic.a1[1];
-            da3(2, 1) = r_DN_De(i, 0) * rActualKinematic.a2[0] - r_DN_De(i, 1) * rActualKinematic.a1[0];
-            da3(2, 2) = 0;
+            da3(1, 0) = -da3(0, 1);
+            da3(2, 0) = -da3(0, 2);
+            da3(2, 1) = -da3(1, 2);
 
+
+            noalias(dn) = da3 * inv_dA -prod(trans(da3), rActualKinematic.a3_tilde);
             for (IndexType j = 0; j < 3; j++)
             {
                 double a3da3la3 = (rActualKinematic.a3_tilde[0] * da3(j, 0) + rActualKinematic.a3_tilde[1] * da3(j, 1) + rActualKinematic.a3_tilde[2] * da3(j, 2)) * inv_dA3;
 
-                dn(j, 0) = da3(j, 0) * inv_dA - rActualKinematic.a3_tilde[0] * a3da3la3;
-                dn(j, 1) = da3(j, 1) * inv_dA - rActualKinematic.a3_tilde[1] * a3da3la3;
-                dn(j, 2) = da3(j, 2) * inv_dA - rActualKinematic.a3_tilde[2] * a3da3la3;
+                dn(j, 0) -=   rActualKinematic.a3_tilde[0] * a3da3la3;
+                dn(j, 1) -=   rActualKinematic.a3_tilde[1] * a3da3la3;
+                dn(j, 2) -=   rActualKinematic.a3_tilde[2] * a3da3la3;
             }
 
-            // curvature vector [K11,K22,K12] referred to curvilinear coordinate system
-            b(0, index) = 0 - (r_DDN_DDe(i, 0) * rActualKinematic.a3[0] + H(0, 0) * dn(0, 0) + H(1, 0) * dn(0, 1) + H(2, 0) * dn(0, 2));
-            b(0, index + 1) = 0 - (r_DDN_DDe(i, 0) * rActualKinematic.a3[1] + H(0, 0) * dn(1, 0) + H(1, 0) * dn(1, 1) + H(2, 0) * dn(1, 2));
-            b(0, index + 2) = 0 - (r_DDN_DDe(i, 0) * rActualKinematic.a3[2] + H(0, 0) * dn(2, 0) + H(1, 0) * dn(2, 1) + H(2, 0) * dn(2, 2));
-
-            //second line
-            b(1, index) = 0 - (r_DDN_DDe(i, 2) * rActualKinematic.a3[0] + H(0, 1) * dn(0, 0) + H(1, 1) * dn(0, 1) + H(2, 1) * dn(0, 2));
-            b(1, index + 1) = 0 - (r_DDN_DDe(i, 2) * rActualKinematic.a3[1] + H(0, 1) * dn(1, 0) + H(1, 1) * dn(1, 1) + H(2, 1) * dn(1, 2));
-            b(1, index + 2) = 0 - (r_DDN_DDe(i, 2) * rActualKinematic.a3[2] + H(0, 1) * dn(2, 0) + H(1, 1) * dn(2, 1) + H(2, 1) * dn(2, 2));
-
-            //third line
-            b(2, index) = 0 - (r_DDN_DDe(i, 1) * rActualKinematic.a3[0] + H(0, 2) * dn(0, 0) + H(1, 2) * dn(0, 1) + H(2, 2) * dn(0, 2));
-            b(2, index + 1) = 0 - (r_DDN_DDe(i, 1) * rActualKinematic.a3[1] + H(0, 2) * dn(1, 0) + H(1, 2) * dn(1, 1) + H(2, 2) * dn(1, 2));
-            b(2, index + 2) = 0 - (r_DDN_DDe(i, 1) * rActualKinematic.a3[2] + H(0, 2) * dn(2, 0) + H(1, 2) * dn(2, 1) + H(2, 2) * dn(2, 2));
+            project(b, range(0, 0), range(index, index + 2)) = -(r_DDN_DDe(node, 0)* trans(rActualKinematic.a3) + prod(dn, column(H, 0)));
+            project(b, range(1, 1), range(index, index + 2)) = -(r_DDN_DDe(node, 2)* trans(rActualKinematic.a3) + prod(dn, column(H, 1)));
+            project(b, range(2, 2), range(index, index + 2)) = -(r_DDN_DDe(node, 1)* trans(rActualKinematic.a3) + prod(dn, column(H, 2)));
         }
 
         noalias(rB) = -prod(m_T_vector[IntegrationPointIndex], b);
