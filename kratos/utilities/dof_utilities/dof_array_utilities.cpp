@@ -128,6 +128,7 @@ void DofArrayUtilities::SetUpEffectiveDofArray(
         for (IndexType i_const = 0; i_const < n_constraints; ++i_const) {
             // Get current constraint master and slave DOFs
             auto it_const = it_const_begin + i_const;
+            //FIXME: shouldn't we check here that the constraint is active?
             const auto& r_slave_dofs = it_const->GetSlaveDofsVector();
             const auto& r_master_dofs = it_const->GetMasterDofsVector();
 
@@ -167,44 +168,6 @@ void DofArrayUtilities::SetUpEffectiveDofArray(
     }
 
     KRATOS_CATCH("");
-}
-
-void DofArrayUtilities::SetDofEquationIds(const DofsArrayType &rDofArray)
-{
-    // Set up the DOFs equation global ids
-    IndexPartition<IndexType>(rDofArray.size()).for_each([&](IndexType Index) {
-        auto it_dof = rDofArray.begin() + Index;
-        it_dof->SetEquationId(Index);
-    });
-}
-
-void DofArrayUtilities::SetEffectiveDofEquationIds(
-    const DofsArrayType& rDofArray,
-    DofsArrayType& rEffectiveDofArray)
-{
-    // Check if the effective and "standard" containers are the same
-    // We do it with the addresses to avoid checking the content (i.e., each DOF one-by-one)
-    if (&rEffectiveDofArray == &rDofArray) {
-        // Set the DOFs' effective equation global ids to match the standard ones
-        IndexPartition<IndexType>(rEffectiveDofArray.size()).for_each([&](IndexType Index) {
-            auto it_dof = rEffectiveDofArray.begin() + Index;
-            it_dof->SetEffectiveEquationId(it_dof->EquationId());
-        });
-    } else {
-        // Initialize all DOFs effective equation ids to the maximum allowable value
-        // Note that this makes possible to distingish the effective DOFs from the non-effective ones
-        IndexPartition<IndexType>(rDofArray.size()).for_each([&](IndexType Index) {
-            auto it_dof = rDofArray.begin() + Index;
-            it_dof->SetEffectiveEquationId(std::numeric_limits<typename Node::DofType::EquationIdType>::max());
-        });
-
-        // Set the effective DOFs equation ids
-        // Note that in here we assume the effective DOFs to be already sorted
-        IndexPartition<IndexType>(rEffectiveDofArray.size()).for_each([&](IndexType Index) {
-            auto it_dof = rEffectiveDofArray.begin() + Index;
-            it_dof->SetEffectiveEquationId(Index);
-        });
-    }
 }
 
 }  // namespace Kratos.
