@@ -95,6 +95,9 @@ public:
         return Kratos::make_intrusive<GsbmStokesElement>(NewId, pGeom, pProperties);
     }
 
+    /// Unknown of a geometry part: VELOCITY_X, VELOCITY_Y or PRESSURE
+    static const Variable<double>& GetFieldVariable(const IndexType Part);
+
     /// Clones the constitutive law of the properties
     void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
 

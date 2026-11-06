@@ -29,13 +29,6 @@ namespace Kratos
 namespace
 {
 
-/// Unknown of a geometry part: VELOCITY_X, VELOCITY_Y or PRESSURE
-const Variable<double>& GetFieldVariable(const std::size_t Part)
-{
-    const std::array<const Variable<double>*, 3> variables{&VELOCITY_X, &VELOCITY_Y, &PRESSURE};
-    return *variables[Part];
-}
-
 /// The factor of an optional term in the properties, 0 if it is not given
 double GetOptionalFactor(const Properties& rProperties, const Variable<double>& rVariable)
 {
@@ -43,6 +36,12 @@ double GetOptionalFactor(const Properties& rProperties, const Variable<double>& 
 }
 
 } // namespace
+
+const Variable<double>& GsbmStokesElement::GetFieldVariable(const IndexType Part)
+{
+    const std::array<const Variable<double>*, 3> variables{&VELOCITY_X, &VELOCITY_Y, &PRESSURE};
+    return *variables[Part];
+}
 
 void GsbmStokesElement::Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
