@@ -12,6 +12,7 @@
 
 // System includes
 #include <algorithm>
+#include <array>
 #include <cmath>
 #include <initializer_list>
 
@@ -64,9 +65,9 @@ double ComputeTaylorCoefficient(
  *        a band of orders, from the 1D B-spline bases of its knot span
  *
  *     Factor \sum_{\boldsymbol\alpha} c_\boldsymbol\alpha(x)
- *     \partial^{\boldsymbol\alpha} N,
+ *     \partial^{\boldsymbol\alpha + \boldsymbol\beta} N,
  *     MinimumOrder \le |\boldsymbol\alpha| \le MaximumOrder,
- *     \alpha_u \le p_u, \alpha_v \le p_v
+ *     \alpha_u + \beta_u \le p_u, \alpha_v + \beta_v \le p_v
  *
  * @param rPoint A point of a B-spline surface.
  * @param rKnotSpanIndices Knot span of the point, one index per direction.
@@ -74,6 +75,7 @@ double ComputeTaylorCoefficient(
  * @param MinimumOrder Smallest order |\boldsymbol\alpha| of the sum.
  * @param MaximumOrder Largest order |\boldsymbol\alpha| of the sum.
  * @param Factor Factor of the sum.
+ * @param rOffset Offset \boldsymbol\beta of the derivatives, zero by default.
  * @return The sum for each shape function.
  */
 Vector ComputeTaylorSum(
@@ -82,7 +84,8 @@ Vector ComputeTaylorSum(
     const array_1d<double, 3>& rVector,
     const SizeType MinimumOrder,
     const SizeType MaximumOrder,
-    const double Factor)
+    const double Factor,
+    const std::array<IndexType, 2>& rOffset = {0, 0})
 {
     const auto& r_surface = dynamic_cast<const NurbsSurfaceType&>(rPoint.GetGeometryParent(0));
     const SizeType p_u = r_surface.PolynomialDegree(0);
@@ -99,18 +102,18 @@ Vector ComputeTaylorSum(
         r_surface.KnotsV(), rKnotSpanIndices[1] + p_v - 1, r_point.Y()
     );
 
-    // c_{(i, j)} N_a^{(i)} N_b^{(j)} for N_{a + b (p_u + 1)}, uv = xy
+    // c_{(i, j)} N_a^{(i + \beta_u)} N_b^{(j + \beta_v)}, for N_{a + b (p_u+1)}
     Vector taylor_sum = ZeroVector(rPoint.size());
-    for (IndexType i = 0; i <= std::min(p_u, MaximumOrder); ++i) {
-        for (IndexType j = 0; j <= std::min(p_v, MaximumOrder - i); ++j) {
+    for (IndexType i = 0; i + rOffset[0] <= p_u && i <= MaximumOrder; ++i) {
+        for (IndexType j = 0; j + rOffset[1] <= p_v && i + j <= MaximumOrder; ++j) {
             if (i + j < MinimumOrder) {
                 continue;  // below the orders of the sum
             }
             const double factor = Factor * ComputeTaylorCoefficient(rVector, {i, j});
             for (IndexType b = 0; b <= p_v; ++b) {
                 for (IndexType a = 0; a <= p_u; ++a) {
-                    taylor_sum[a + b * (p_u + 1)] +=
-                        factor * shape_functions_u(a, i) * shape_functions_v(b, j);
+                    taylor_sum[a + b * (p_u + 1)] += factor * shape_functions_u(a, i + rOffset[0])
+                        * shape_functions_v(b, j + rOffset[1]);
                 }
             }
         }
@@ -130,6 +133,20 @@ Vector ShiftedBoundaryUtilities::ComputeDirectionalDerivatives(
     // D_s^n N = n! \sum_{|\alpha| = n} c_\alpha(s) \partial^\alpha N
     const double factorial = static_cast<double>(MathUtils<double>::Factorial(Order));
     return ComputeTaylorSum(rPoint, rKnotSpanIndices, rDirection, Order, Order, factorial);
+}
+
+Vector ShiftedBoundaryUtilities::ComputeDirectionalDerivatives(
+    const GeometryType& rPoint,
+    const std::vector<IndexType>& rKnotSpanIndices,
+    const array_1d<double, 3>& rDirection,
+    const SizeType Order,
+    const IndexType PartialDirection)
+{
+    // D_s^n \partial_j N = n! \sum c_\alpha(s) \partial^{\alpha+e_j} N
+    const double factorial = static_cast<double>(MathUtils<double>::Factorial(Order));
+    std::array<IndexType, 2> offset{0, 0};
+    offset[PartialDirection] = 1;
+    return ComputeTaylorSum(rPoint, rKnotSpanIndices, rDirection, Order, Order, factorial, offset);
 }
 
 Vector ShiftedBoundaryUtilities::ComputeShiftedShapeFunctions(

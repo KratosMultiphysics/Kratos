@@ -66,6 +66,28 @@ public:
         const SizeType Order);
 
     /**
+     * @brief Derivatives of a partial derivative of a point's shape functions
+     *        along a unit vector, from the 1D B-spline bases of its knot span
+     *
+     *     D_s^n \partial_j N = n! \sum_{|\boldsymbol\alpha| = n}
+     *                         c_\boldsymbol\alpha(s)
+     *                         \partial^{\boldsymbol\alpha + e_j} N
+     *
+     * @param rPoint A point of a B-spline surface.
+     * @param rKnotSpanIndices Knot span of the point, one index per direction.
+     * @param rDirection Unit vector s of the derivatives.
+     * @param Order Order n of the derivatives.
+     * @param PartialDirection Direction j of the partial derivative.
+     * @return The directional derivatives of the partial derivatives.
+     */
+    static Vector ComputeDirectionalDerivatives(
+        const GeometryType& rPoint,
+        const std::vector<IndexType>& rKnotSpanIndices,
+        const array_1d<double, 3>& rDirection,
+        const SizeType Order,
+        const IndexType PartialDirection);
+
+    /**
      * @brief Shape functions of a point shifted to the true boundary, from the
      *        1D B-spline bases of its knot span
      *
