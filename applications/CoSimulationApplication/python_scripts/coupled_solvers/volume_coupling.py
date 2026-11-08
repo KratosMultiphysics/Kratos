@@ -8,7 +8,9 @@ def Create(settings, models, solver_name):
 class DemFemVolumeCoupledSolver(CoSimulationCoupledSolver):
     def SolveSolutionStep(self):
 
-    
+        # Particle to FEM mesh location mapping must be updated each time step 
+        # or on specific intervals for dynamic problems. In such cases call UpdateInterface() 
+        # on the stored mappers at the start of every coupling step.
         for coupling_op in self.coupling_operations_dict.values():
             #print(coupling_op)
             if isinstance(coupling_op,ComputeDemMomentum):
