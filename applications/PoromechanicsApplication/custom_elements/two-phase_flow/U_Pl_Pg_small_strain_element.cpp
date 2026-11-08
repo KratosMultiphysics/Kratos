@@ -1121,6 +1121,8 @@ void UPlPgSmallStrainElement<TDim,TNumNodes>::CalculateAll( MatrixType& rLeftHan
     BoundedMatrix<double, TNumNodes, TNumNodes> ElemPermeabilityMatrix = ZeroMatrix(TNumNodes, TNumNodes);
     array_1d<double, TNumNodes> ElemFluidBodyFlow = ZeroVector(TNumNodes);
     double ElemVolume = 0.0;
+    array_1d<double, TNumNodes> ElemVolumetricFlow = ZeroVector(TNumNodes);
+    BoundedMatrix<double, TNumNodes*TDim, TNumNodes> ElemCouplingMatrix = ZeroMatrix(TNumNodes*TDim, TNumNodes);
 
     //Loop over integration points
     for( unsigned int GPoint = 0; GPoint < NumGPoints; GPoint++)
@@ -1150,6 +1152,12 @@ void UPlPgSmallStrainElement<TDim,TNumNodes>::CalculateAll( MatrixType& rLeftHan
         noalias(ElemFluidBodyFlow) += prod(Variables.PDimMatrix, Variables.BodyAcceleration) * Variables.IntegrationCoefficient;
         ElemVolume += Variables.IntegrationCoefficient;
 
+        // Volumetric strain flow and coupling matrix Q = \int B^T m Np d\Omega
+        const array_1d<double, TNumNodes*TDim> Bu_m = prod(trans(Variables.B), Variables.VoigtVector);
+        const double devdt = inner_prod(Bu_m, Variables.VelocityVector);
+        noalias(ElemVolumetricFlow) += Variables.Np * devdt * Variables.IntegrationCoefficient;
+        noalias(ElemCouplingMatrix) += outer_prod(Bu_m, Variables.Np) * Variables.IntegrationCoefficient;
+
         //Contributions to the left hand side (mechanics and HM coupling)
         this->CalculateAndAddLHS(rLeftHandSideMatrix, Variables);
 
@@ -1158,7 +1166,7 @@ void UPlPgSmallStrainElement<TDim,TNumNodes>::CalculateAll( MatrixType& rLeftHan
     }
 
     // Add exact PorousLab / CODE_BRIGHT fluid storage and advective terms (Appendices A & B)
-    this->CalculateAndAddFluidTerms(rLeftHandSideMatrix, rRightHandSideVector, Variables, ElemPermeabilityMatrix, ElemFluidBodyFlow, ElemVolume, rCurrentProcessInfo, true);
+    this->CalculateAndAddFluidTerms(rLeftHandSideMatrix, rRightHandSideVector, Variables, ElemPermeabilityMatrix, ElemFluidBodyFlow, ElemVolume, rCurrentProcessInfo, true, ElemVolumetricFlow, ElemCouplingMatrix);
 
     KRATOS_CATCH( "" )
 }
@@ -1198,6 +1206,8 @@ void UPlPgSmallStrainElement<TDim,TNumNodes>::CalculateRHS( VectorType& rRightHa
     BoundedMatrix<double, TNumNodes, TNumNodes> ElemPermeabilityMatrix = ZeroMatrix(TNumNodes, TNumNodes);
     array_1d<double, TNumNodes> ElemFluidBodyFlow = ZeroVector(TNumNodes);
     double ElemVolume = 0.0;
+    array_1d<double, TNumNodes> ElemVolumetricFlow = ZeroVector(TNumNodes);
+    BoundedMatrix<double, TNumNodes*TDim, TNumNodes> ElemCouplingMatrix = ZeroMatrix(TNumNodes*TDim, TNumNodes);
 
     //Loop over integration points
     for( unsigned int GPoint = 0; GPoint < NumGPoints; GPoint++)
@@ -1228,13 +1238,19 @@ void UPlPgSmallStrainElement<TDim,TNumNodes>::CalculateRHS( VectorType& rRightHa
         noalias(ElemFluidBodyFlow) += prod(Variables.PDimMatrix, Variables.BodyAcceleration) * Variables.IntegrationCoefficient;
         ElemVolume += Variables.IntegrationCoefficient;
 
+        // Volumetric strain flow and coupling matrix Q = \int B^T m Np d\Omega
+        const array_1d<double, TNumNodes*TDim> Bu_m = prod(trans(Variables.B), Variables.VoigtVector);
+        const double devdt = inner_prod(Bu_m, Variables.VelocityVector);
+        noalias(ElemVolumetricFlow) += Variables.Np * devdt * Variables.IntegrationCoefficient;
+        noalias(ElemCouplingMatrix) += outer_prod(Bu_m, Variables.Np) * Variables.IntegrationCoefficient;
+
         //Contributions to the right hand side (mechanics and HM coupling)
         this->CalculateAndAddRHS(rRightHandSideVector, Variables);
     }
 
     // Add exact PorousLab / CODE_BRIGHT fluid storage and advective terms (Appendices A & B)
     MatrixType DummyLHS(0, 0);
-    this->CalculateAndAddFluidTerms(DummyLHS, rRightHandSideVector, Variables, ElemPermeabilityMatrix, ElemFluidBodyFlow, ElemVolume, rCurrentProcessInfo, false);
+    this->CalculateAndAddFluidTerms(DummyLHS, rRightHandSideVector, Variables, ElemPermeabilityMatrix, ElemFluidBodyFlow, ElemVolume, rCurrentProcessInfo, false, ElemVolumetricFlow, ElemCouplingMatrix);
 
     KRATOS_CATCH( "" )
 }
@@ -1260,10 +1276,16 @@ void UPlPgSmallStrainElement<TDim,TNumNodes>::CalculateAndAddFluidTerms(
     const array_1d<double, TNumNodes>& rElemFluidBodyFlow,
     const double ElemVolume,
     const ProcessInfo& rCurrentProcessInfo,
-    const bool CalculateLHS)
+    const bool CalculateLHS,
+    const array_1d<double, TNumNodes>& rElemVolumetricFlow,
+    const BoundedMatrix<double, TNumNodes*TDim, TNumNodes>& rElemCouplingMatrix)
 {
     const PropertiesType& Prop = this->GetProperties();
     const GeometryType& Geom = this->GetGeometry();
+
+    const bool is_liakopoulos = Prop.Has(SATURATION_LAW_NAME) && (Prop[SATURATION_LAW_NAME] == "LiakopoulosLaw");
+    const bool is_ideal_gas = Prop.Has(GAS_MOLAR_WEIGHT) && (Prop[GAS_MOLAR_WEIGHT] > 0.0) &&
+                              Prop.Has(TEMPERATURE) && (Prop[TEMPERATURE] > 0.0);
 
     const double Slr = Prop.Has(RESIDUAL_LIQUID_SATURATION) ? Prop[RESIDUAL_LIQUID_SATURATION] : 0.02;
     const double Sgr = Prop.Has(RESIDUAL_GAS_SATURATION) ? Prop[RESIDUAL_GAS_SATURATION] : 0.001;
@@ -1274,11 +1296,14 @@ void UPlPgSmallStrainElement<TDim,TNumNodes>::CalculateAndAddFluidTerms(
     const double mu_l = Prop.Has(DYNAMIC_VISCOSITY_LIQUID) ? Prop[DYNAMIC_VISCOSITY_LIQUID] : 1.0e-3;
     const double mu_g = Prop.Has(DYNAMIC_VISCOSITY_GAS) ? Prop[DYNAMIC_VISCOSITY_GAS] : 5.0e-3;
     const double Kl = Prop.Has(BULK_MODULUS_LIQUID) ? Prop[BULK_MODULUS_LIQUID] : 1.0e12;
-    const double Kg = Prop.Has(BULK_MODULUS_GAS) ? Prop[BULK_MODULUS_GAS] : 1.0e12;
+    const double Kg = is_ideal_gas ? 1.0e25 : (Prop.Has(BULK_MODULUS_GAS) ? Prop[BULK_MODULUS_GAS] : 1.0e12);
     const double rho_l0 = Prop.Has(DENSITY_LIQUID) ? Prop[DENSITY_LIQUID] : 1000.0;
     const double rho_g0 = Prop.Has(DENSITY_GAS) ? Prop[DENSITY_GAS] : 1.2;
     const double p_l_ref = Prop.Has(LIQUID_DENSITY_REF_PRESSURE) ? Prop[LIQUID_DENSITY_REF_PRESSURE] : 0.0;
     const double p_g_ref = 0.0;
+
+    const double R_gas = 8.3144621;
+    const double inv_RT = is_ideal_gas ? (Prop[GAS_MOLAR_WEIGHT] / (R_gas * Prop[TEMPERATURE])) : 0.0;
 
     const double Dt = rCurrentProcessInfo[DELTA_TIME];
     const double inv_Dt = (Dt > 1.0e-15) ? (1.0 / Dt) : 0.0;
@@ -1309,32 +1334,69 @@ void UPlPgSmallStrainElement<TDim,TNumNodes>::CalculateAndAddFluidTerms(
         pg_nodal[i] = Geom[i].FastGetSolutionStepValue(GAS_PRESSURE);
         const double pc_i = pg_nodal[i] - pl_nodal[i];
 
-        if (pc_i <= pb) {
-            Sl_nodal[i] = 1.0 - Sgr;
-            dSldPc_nodal[i] = 0.0;
+        if (is_liakopoulos) {
+            const double a_ret = 1.9722e-11;
+            const double b_ret = 2.4279;
+            const double Slmin = 0.2;
+            if (pc_i <= 0.0) {
+                Sl_nodal[i] = 1.0;
+                dSldPc_nodal[i] = 0.0;
+            } else {
+                Sl_nodal[i] = std::max(Slmin, 1.0 - a_ret * std::pow(pc_i, b_ret));
+                const double pc_max = std::pow((1.0 - Slmin) / a_ret, 1.0 / b_ret);
+                if (pc_i >= pc_max) {
+                    dSldPc_nodal[i] = 0.0;
+                } else {
+                    dSldPc_nodal[i] = -a_ret * b_ret * std::pow(pc_i, b_ret - 1.0);
+                }
+            }
         } else {
-            const double ratio = pb / pc_i;
-            const double p_pow = std::pow(ratio, lambda);
-            Sl_nodal[i] = (1.0 - Sgr - Slr) * p_pow + Slr;
-            dSldPc_nodal[i] = -lambda * (1.0 - Sgr - Slr) * p_pow / pc_i;
+            if (pc_i <= pb) {
+                Sl_nodal[i] = 1.0 - Sgr;
+                dSldPc_nodal[i] = 0.0;
+            } else {
+                const double ratio = pb / pc_i;
+                const double p_pow = std::pow(ratio, lambda);
+                Sl_nodal[i] = (1.0 - Sgr - Slr) * p_pow + Slr;
+                dSldPc_nodal[i] = -lambda * (1.0 - Sgr - Slr) * p_pow / pc_i;
+            }
         }
         Sg_nodal[i] = 1.0 - Sl_nodal[i];
         rho_l_nodal[i] = rho_l0 * (1.0 + (pl_nodal[i] - p_l_ref) / Kl);
-        rho_g_nodal[i] = rho_g0 * (1.0 + (pg_nodal[i] - p_g_ref) / Kg);
+        if (is_ideal_gas) {
+            rho_g_nodal[i] = pg_nodal[i] * inv_RT;
+        } else {
+            rho_g_nodal[i] = rho_g0 * (1.0 + (pg_nodal[i] - p_g_ref) / Kg);
+        }
 
         pl_old_nodal[i] = Geom[i].FastGetSolutionStepValue(LIQUID_PRESSURE, 1);
         pg_old_nodal[i] = Geom[i].FastGetSolutionStepValue(GAS_PRESSURE, 1);
         const double pc_old_i = pg_old_nodal[i] - pl_old_nodal[i];
 
-        if (pc_old_i <= pb) {
-            Sl_old_nodal[i] = 1.0 - Sgr;
+        if (is_liakopoulos) {
+            const double a_ret = 1.9722e-11;
+            const double b_ret = 2.4279;
+            const double Slmin = 0.2;
+            if (pc_old_i <= 0.0) {
+                Sl_old_nodal[i] = 1.0;
+            } else {
+                Sl_old_nodal[i] = std::max(Slmin, 1.0 - a_ret * std::pow(pc_old_i, b_ret));
+            }
         } else {
-            const double ratio = pb / pc_old_i;
-            Sl_old_nodal[i] = (1.0 - Sgr - Slr) * std::pow(ratio, lambda) + Slr;
+            if (pc_old_i <= pb) {
+                Sl_old_nodal[i] = 1.0 - Sgr;
+            } else {
+                const double ratio = pb / pc_old_i;
+                Sl_old_nodal[i] = (1.0 - Sgr - Slr) * std::pow(ratio, lambda) + Slr;
+            }
         }
         Sg_old_nodal[i] = 1.0 - Sl_old_nodal[i];
         rho_l_old_nodal[i] = rho_l0 * (1.0 + (pl_old_nodal[i] - p_l_ref) / Kl);
-        rho_g_old_nodal[i] = rho_g0 * (1.0 + (pg_old_nodal[i] - p_g_ref) / Kg);
+        if (is_ideal_gas) {
+            rho_g_old_nodal[i] = pg_old_nodal[i] * inv_RT;
+        } else {
+            rho_g_old_nodal[i] = rho_g0 * (1.0 + (pg_old_nodal[i] - p_g_ref) / Kg);
+        }
 
         Sl_sum += Sl_nodal[i];
         rho_l_sum += rho_l_nodal[i];
@@ -1356,34 +1418,71 @@ void UPlPgSmallStrainElement<TDim,TNumNodes>::CalculateAndAddFluidTerms(
         RHS_g[i] -= r_g_m;
     }
 
-    // Appendix A2: Element-wise relative permeability from mean saturation (Eq. A8, A9, A11)
-    const double Se_mean = (Sl_mean - Slr) / (1.0 - Sgr - Slr);
-    const double dSe_dSl = 1.0 / (1.0 - Sgr - Slr);
-    const double nl = (2.0 + 3.0 * lambda) / lambda;
-    const double ng = (2.0 + lambda) / lambda;
-
+    // Relative permeability computation
     double krl = 0.0;
     double krg = 0.0;
     double dkrl_dSl = 0.0;
     double dkrg_dSl = 0.0;
 
-    if (Se_mean >= 1.0) {
-        krl = 1.0;
-        krg = krmin;
-    } else if (Se_mean <= 0.0) {
-        krl = krmin;
-        krg = 1.0;
-    } else {
-        krl = std::max(krmin, std::pow(Se_mean, nl));
-        if (krl > krmin) {
-            dkrl_dSl = nl * std::pow(Se_mean, nl - 1.0) * dSe_dSl;
+    if (is_liakopoulos) {
+        const double a_perm = 2.207;
+        const double b_perm = 1.0121;
+        const double Slmin = 0.2;
+        if (Sl_mean <= Slmin) {
+            krl = krmin;
+            dkrl_dSl = 0.0;
+        } else if (Sl_mean >= 1.0) {
+            krl = 1.0;
+            dkrl_dSl = 0.0;
+        } else {
+            krl = std::max(krmin, 1.0 - a_perm * std::pow(1.0 - Sl_mean, b_perm));
+            dkrl_dSl = a_perm * b_perm * std::pow(1.0 - Sl_mean, b_perm - 1.0);
         }
 
-        krg = std::max(krmin, (1.0 - Se_mean) * (1.0 - Se_mean) * (1.0 - std::pow(Se_mean, ng)));
-        if (krg > krmin) {
-            const double dkrg_dSe = -2.0 * (1.0 - Se_mean) * (1.0 - std::pow(Se_mean, ng))
-                                    - (1.0 - Se_mean) * (1.0 - Se_mean) * ng * std::pow(Se_mean, ng - 1.0);
+        const double S_lr = 0.2;
+        const double S_gr = 0.0;
+        const double lam = 3.0;
+        const double Se_mean = (Sl_mean - S_lr) / (1.0 - S_lr - S_gr);
+        const double dSe_dSl = 1.0 / (1.0 - S_lr - S_gr);
+        const double n_g = (2.0 + lam) / lam;
+        const double k_rg_min = Prop.Has(MINIMUM_RELATIVE_PERMEABILITY) ? Prop[MINIMUM_RELATIVE_PERMEABILITY] : 1.0e-4;
+
+        if (Se_mean >= 1.0) {
+            krg = k_rg_min;
+            dkrg_dSl = 0.0;
+        } else if (Se_mean <= 0.0) {
+            krg = 1.0;
+            dkrg_dSl = 0.0;
+        } else {
+            krg = std::max(k_rg_min, (1.0 - Se_mean) * (1.0 - Se_mean) * (1.0 - std::pow(Se_mean, n_g)));
+            const double dkrg_dSe = -2.0 * (1.0 - Se_mean) * (1.0 - std::pow(Se_mean, n_g))
+                                    - (1.0 - Se_mean) * (1.0 - Se_mean) * n_g * std::pow(Se_mean, n_g - 1.0);
             dkrg_dSl = dkrg_dSe * dSe_dSl;
+        }
+    } else {
+        const double Se_mean = (Sl_mean - Slr) / (1.0 - Sgr - Slr);
+        const double dSe_dSl = 1.0 / (1.0 - Sgr - Slr);
+        const double nl = (2.0 + 3.0 * lambda) / lambda;
+        const double ng = (2.0 + lambda) / lambda;
+
+        if (Se_mean >= 1.0) {
+            krl = 1.0;
+            krg = krmin;
+        } else if (Se_mean <= 0.0) {
+            krl = krmin;
+            krg = 1.0;
+        } else {
+            krl = std::max(krmin, std::pow(Se_mean, nl));
+            if (krl > krmin) {
+                dkrl_dSl = nl * std::pow(Se_mean, nl - 1.0) * dSe_dSl;
+            }
+
+            krg = std::max(krmin, (1.0 - Se_mean) * (1.0 - Se_mean) * (1.0 - std::pow(Se_mean, ng)));
+            if (krg > krmin) {
+                const double dkrg_dSe = -2.0 * (1.0 - Se_mean) * (1.0 - std::pow(Se_mean, ng))
+                                        - (1.0 - Se_mean) * (1.0 - Se_mean) * ng * std::pow(Se_mean, ng - 1.0);
+                dkrg_dSl = dkrg_dSe * dSe_dSl;
+            }
         }
     }
 
@@ -1454,6 +1553,28 @@ void UPlPgSmallStrainElement<TDim,TNumNodes>::CalculateAndAddFluidTerms(
                 LHS_gl(i, j) -= (1.0 / mu_g) * rElemFluidBodyFlow[i] * d_grav_g_pl;
                 LHS_gg(i, j) -= (1.0 / mu_g) * rElemFluidBodyFlow[i] * d_grav_g_pg;
             }
+        }
+
+        // Volumetric strain forces cross-derivatives wrt pressures (PorousLab lines 284-287)
+        if (norm_2(rElemVolumetricFlow) > 1.0e-15) {
+            noalias(LHS_ll) += outer_prod(rElemVolumetricFlow, dSl_bar_dpl);
+            noalias(LHS_lg) += outer_prod(rElemVolumetricFlow, dSl_bar_dpg);
+            noalias(LHS_gl) -= outer_prod(rElemVolumetricFlow, dSl_bar_dpl);
+            noalias(LHS_gg) -= outer_prod(rElemVolumetricFlow, dSl_bar_dpg);
+        }
+
+        // Mechanical derivatives wrt pressures (PorousLab lines 262-263: Q * pc * dSlmdpl' and Q * pc * dSlmdpg')
+        if (is_liakopoulos) {
+            array_1d<double, TNumNodes> pc_nodal;
+            for (unsigned int i = 0; i < TNumNodes; ++i) {
+                pc_nodal[i] = pg_nodal[i] - pl_nodal[i];
+            }
+            const array_1d<double, TNumNodes*TDim> Q_pc = prod(rElemCouplingMatrix, pc_nodal);
+            const BoundedMatrix<double, TNumNodes*TDim, TNumNodes> dFiu_dPl = outer_prod(Q_pc, dSl_bar_dpl);
+            const BoundedMatrix<double, TNumNodes*TDim, TNumNodes> dFiu_dPg = outer_prod(Q_pc, dSl_bar_dpg);
+
+            PoroElementUtilities::AssembleUPlBlockMatrix(rLeftHandSideMatrix, dFiu_dPl);
+            PoroElementUtilities::AssembleUPgBlockMatrix(rLeftHandSideMatrix, dFiu_dPg);
         }
 
         // Assemble LHS
@@ -2177,10 +2298,20 @@ void UPlPgSmallStrainElement<TDim,TNumNodes>::GetCompressibilityCoefficients(dou
 template< unsigned int TDim, unsigned int TNumNodes >
 void UPlPgSmallStrainElement<TDim,TNumNodes>::UpdateDensity(ElementVariables& rVariables)
 {
+    const PropertiesType& Prop = this->GetProperties();
+    if (Prop.Has(GAS_MOLAR_WEIGHT) && (Prop[GAS_MOLAR_WEIGHT] > 0.0) &&
+        Prop.Has(TEMPERATURE) && (Prop[TEMPERATURE] > 0.0))
+    {
+        const double R_gas = 8.3144621;
+        const double M_gas = Prop[GAS_MOLAR_WEIGHT];
+        const double T_gas = Prop[TEMPERATURE];
+        const double current_gas_density = (inner_prod(rVariables.Np, rVariables.GasPressureVector)) * M_gas / (R_gas * T_gas);
+        rVariables.GasDensity = current_gas_density;
+    }
+
     // Update the density based on the new saturation degree
     rVariables.Density = rVariables.Porosity * (rVariables.Sl * rVariables.LiquidDensity + (1.0 - rVariables.Sl) * rVariables.GasDensity) + 
                             (1.0 - rVariables.Porosity) * rVariables.SolidDensity;
-
 }
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------

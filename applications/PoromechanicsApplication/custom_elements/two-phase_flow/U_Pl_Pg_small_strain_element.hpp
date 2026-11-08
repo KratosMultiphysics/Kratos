@@ -183,7 +183,9 @@ protected:
                                    const array_1d<double, TNumNodes>& rElemFluidBodyFlow,
                                    const double ElemVolume,
                                    const ProcessInfo& rCurrentProcessInfo,
-                                   const bool CalculateLHS);
+                                   const bool CalculateLHS,
+                                   const array_1d<double, TNumNodes>& rElemVolumetricFlow,
+                                   const BoundedMatrix<double, TNumNodes*TDim, TNumNodes>& rElemCouplingMatrix);
 
     void CalculateAndAddLHS(MatrixType& rLeftHandSideMatrix, ElementVariables& rVariables);
 
