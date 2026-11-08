@@ -19,8 +19,6 @@
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
 #include "tests/cpp_tests/test_utilities.h"
 
-#include <boost/numeric/ublas/assignment.hpp>
-
 using namespace Kratos;
 
 namespace Kratos::Testing
@@ -30,9 +28,8 @@ KRATOS_TEST_CASE_IN_SUITE(ExtrapolationUtilities_CalculateNodalVectors, KratosGe
     // Arrange
     const auto p_element = ElementSetupUtilities::Create2D3NElement();
 
-    Vector cauchy_stress(4);
-    cauchy_stress <<= 1000.0, 2000.0, 3000.0, 4000.0;
-    const auto          delta_stress = Vector(4, 1000.0);
+    const auto cauchy_stress = UblasUtilities::CreateVector({1000.0, 2000.0, 3000.0, 4000.0});
+    const auto delta_stress  = Vector(4, 1000.0);
     std::vector<Vector> cauchy_stress_vectors;
     cauchy_stress_vectors.push_back(cauchy_stress);
     cauchy_stress_vectors.emplace_back(cauchy_stress + delta_stress);
@@ -90,9 +87,8 @@ KRATOS_TEST_CASE_IN_SUITE(ExtrapolationUtilities_CalculateNodalVectorsForTriangl
 {
     const auto p_element = ElementSetupUtilities::Create2D6NElement();
 
-    Vector cauchy_stress(4);
-    cauchy_stress <<= 1000.0, 2000.0, 3000.0, 4000.0;
-    const auto          delta_stress = Vector(4, 1000.0);
+    const auto cauchy_stress = UblasUtilities::CreateVector({1000.0, 2000.0, 3000.0, 4000.0});
+    const auto delta_stress  = Vector(4, 1000.0);
     std::vector<Vector> cauchy_stress_vectors;
     cauchy_stress_vectors.push_back(cauchy_stress);
     cauchy_stress_vectors.emplace_back(cauchy_stress + delta_stress);
@@ -195,6 +191,19 @@ KRATOS_TEST_CASE_IN_SUITE(ExtrapolationUtilities_CalculateExtrapolationMatrixOf4
                                                                              {0.0, 0.0, 0.0, 1.0}});
     // clang-format on
 
+    KRATOS_EXPECT_MATRIX_NEAR(extrapolation_matrix, expected_extrapolation_matrix, Defaults::absolute_tolerance)
+}
+
+KRATOS_TEST_CASE_IN_SUITE(ExtrapolationUtilities_CalculateExtrapolationMatrixOflinearTrussElement2D2N,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    const auto nodes = ElementSetupUtilities::GenerateNodes({{0.0, 0.0, 0.0}, {1.0, 0.0, 0.0}});
+    auto       p_element =
+        ElementSetupUtilities::CreateLinearTrussElement2D2N(nodes, std::make_shared<Properties>());
+
+    const auto extrapolation_matrix = ExtrapolationUtilities::CalculateExtrapolationMatrix(*p_element);
+
+    const auto expected_extrapolation_matrix = UblasUtilities::CreateMatrix({{1.0}, {1.0}});
     KRATOS_EXPECT_MATRIX_NEAR(extrapolation_matrix, expected_extrapolation_matrix, Defaults::absolute_tolerance)
 }
 

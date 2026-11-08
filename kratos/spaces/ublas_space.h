@@ -185,6 +185,17 @@ public:
         return VectorPointerType(new TVectorType(0));
     }
 
+    /**
+     * @brief This method returns true if the pointer is null
+     * @param pPointer The pointer considered
+     * @return True if the pointer is null
+     */
+    template<class TPointerType>
+    inline static bool IsNull(const TPointerType& pPointer)
+    {
+        return !static_cast<bool>(pPointer);
+    }
+
     /// return size of vector rV
 
     static IndexType Size(VectorType const& rV)
@@ -1042,7 +1053,7 @@ private:
 
     static void CreatePartition(unsigned int number_of_threads, const int number_of_rows, DenseVector<unsigned int>& partitions)
     {
-        partitions.resize(number_of_threads + 1);
+        partitions.resize(number_of_threads + 1, false);
         int partition_size = number_of_rows / number_of_threads;
         partitions[0] = 0;
         partitions[number_of_threads] = number_of_rows;

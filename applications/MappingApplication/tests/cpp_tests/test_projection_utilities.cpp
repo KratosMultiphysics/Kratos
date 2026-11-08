@@ -167,8 +167,6 @@ GeometryType::Pointer GenerateBrepSplineSurface2d()
     control_points_surface.push_back(Kratos::make_intrusive<NodeType>(15, 2.75, 0.75, 0));
     control_points_surface.push_back(Kratos::make_intrusive<NodeType>(16, 3, 1, 0));
 
-
-
     // Assign the surface's knot vectors
     Vector knot_vector_u_surface = ZeroVector(5);
     knot_vector_u_surface[0] = 0.0;
@@ -195,6 +193,132 @@ GeometryType::Pointer GenerateBrepSplineSurface2d()
     auto brep_surface = Kratos::make_shared<BrepSurface<PointerVector<NodeType>, false, PointerVector<Point>>>(nurbs_surface);
 
     return brep_surface;
+}
+
+Kratos::Geometry<Kratos::Node>::Pointer GenerateReferenceQuarterSphereGeometry()
+{
+    using NodeType = Kratos::Node;
+    using NurbsGeomType = Kratos::NurbsSurfaceGeometry<3, Kratos::PointerVector<NodeType>>;
+    using BrepSurfaceType = Kratos::BrepSurface<PointerVector<Node>, false, PointerVector<Point>>;
+
+    NurbsGeomType::PointsArrayType points;
+    points.reserve(36);
+
+    IndexType id = 1;
+    auto Add = [&](double x, double y, double z) {
+        points.push_back(Kratos::make_intrusive<NodeType>(id++, x, y, z));
+    };
+
+    Add(0.0, -7.500000000000000e-02, 0.0);
+    Add(1.260557702650798e-02, -7.500000000000000e-02, 0.0);
+    Add(3.897300454513554e-02, -6.844963719002463e-02, 0.0);
+    Add(6.844963719002463e-02, -3.897300454513554e-02, 0.0);
+    Add(7.500000000000000e-02, -1.260557702650798e-02, 0.0);
+    Add(7.500000000000000e-02, 0.0, 0.0);
+
+    Add(0.0, -7.500000000000000e-02, 1.430576773729096e-02);
+    Add(1.260557702650798e-02, -7.500000000000000e-02, 1.430576773729096e-02);
+    Add(3.897300454513554e-02, -6.844963719002463e-02, 1.305632815123102e-02);
+    Add(6.844963719002464e-02, -3.897300454513555e-02, 7.433850013961258e-03);
+    Add(7.500000000000000e-02, -1.260557702650798e-02, 2.404432761810054e-03);
+    Add(7.500000000000000e-02, 0.0, 0.0);
+
+    Add(0.0, -6.746212024587489e-02, 4.484848098349960e-02);
+    Add(1.260557702650798e-02, -6.746212024587490e-02, 4.484848098349960e-02);
+    Add(3.897300454513555e-02, -6.157010206533272e-02, 4.093149669125690e-02);
+    Add(6.844963719002464e-02, -3.505602025289285e-02, 2.330506737616474e-02);
+    Add(7.500000000000000e-02, -1.133865270841226e-02, 7.537879754125100e-03);
+    Add(7.500000000000000e-02, 0.0, 0.0);
+
+    Add(0.0, -4.484848098349960e-02, 6.746212024587489e-02);
+    Add(1.260557702650798e-02, -4.484848098349960e-02, 6.746212024587490e-02);
+    Add(3.897300454513555e-02, -4.093149669125690e-02, 6.157010206533272e-02);
+    Add(6.844963719002464e-02, -2.330506737616474e-02, 3.505602025289285e-02);
+    Add(7.500000000000000e-02, -7.537879754125100e-03, 1.133865270841226e-02);
+    Add(7.500000000000000e-02, 0.0, 0.0);
+
+    Add(0.0, -1.430576773729096e-02, 7.500000000000000e-02);
+    Add(1.260557702650798e-02, -1.430576773729096e-02, 7.500000000000000e-02);
+    Add(3.897300454513554e-02, -1.305632815123102e-02, 6.844963719002463e-02);
+    Add(6.844963719002464e-02, -7.433850013961258e-03, 3.897300454513555e-02);
+    Add(7.500000000000000e-02, -2.404432761810054e-03, 1.260557702650798e-02);
+    Add(7.500000000000000e-02, 0.0, 0.0);
+
+    Add(0.0, 0.0, 7.500000000000000e-02);
+    Add(1.260557702650798e-02, 0.0, 7.500000000000000e-02);
+    Add(3.897300454513554e-02, 0.0, 6.844963719002463e-02);
+    Add(6.844963719002463e-02, 0.0, 3.897300454513554e-02);
+    Add(7.500000000000000e-02, 0.0, 1.260557702650798e-02);
+    Add(7.500000000000000e-02, 0.0, 0.0);
+
+    Vector knot_vector_u = ZeroVector(8);
+    knot_vector_u[0] = 0.0; knot_vector_u[1] = 0.0; knot_vector_u[2] = 0.0;
+    knot_vector_u[3] = 3.333333333333333e-01;
+    knot_vector_u[4] = 6.666666666666666e-01;
+    knot_vector_u[5] = 1.0; knot_vector_u[6] = 1.0; knot_vector_u[7] = 1.0;
+
+    Vector knot_vector_v = ZeroVector(9);
+    knot_vector_v[0] = 0.0; knot_vector_v[1] = 0.0; knot_vector_v[2] = 0.0; knot_vector_v[3] = 0.0;
+    knot_vector_v[4] = 0.5;
+    knot_vector_v[5] = 1.0; knot_vector_v[6] = 1.0; knot_vector_v[7] = 1.0; knot_vector_v[8] = 1.0;
+
+    const int p = 3;
+    const int q = 4;
+
+    Vector weights = ZeroVector(36);
+    weights[0] = 1.0;
+    weights[1] = 9.349126180414551e-01;
+    weights[2] = 8.481294420967285e-01;
+    weights[3] = 8.481294420967285e-01;
+    weights[4] = 9.349126180414551e-01;
+    weights[5] = 1.0;
+
+    weights[6] = 9.267766952966369e-01;
+    weights[7] = 8.664552265395866e-01;
+    weights[8] = 7.860266015301863e-01;
+    weights[9] = 7.860266015301862e-01;
+    weights[10] = 8.664552265395866e-01;
+    weights[11] = 9.267766952966369e-01;
+
+    weights[12] = 8.291456223588194e-01;
+    weights[13] = 7.751787045370954e-01;
+    weights[14] = 7.032228141081300e-01;
+    weights[15] = 7.032228141081300e-01;
+    weights[16] = 7.751787045370954e-01;
+    weights[17] = 8.291456223588194e-01;
+
+    weights[18] = 8.291456223588194e-01;
+    weights[19] = 7.751787045370954e-01;
+    weights[20] = 7.032228141081300e-01;
+    weights[21] = 7.032228141081300e-01;
+    weights[22] = 7.751787045370954e-01;
+    weights[23] = 8.291456223588194e-01;
+
+    weights[24] = 9.267766952966369e-01;
+    weights[25] = 8.664552265395866e-01;
+    weights[26] = 7.860266015301863e-01;
+    weights[27] = 7.860266015301862e-01;
+    weights[28] = 8.664552265395866e-01;
+    weights[29] = 9.267766952966369e-01;
+
+    weights[30] = 1.0;
+    weights[31] = 9.349126180414551e-01;
+    weights[32] = 8.481294420967285e-01;
+    weights[33] = 8.481294420967285e-01;
+    weights[34] = 9.349126180414551e-01;
+    weights[35] = 1.0;
+
+    auto p_nurbs_surface = Kratos::make_shared<NurbsGeomType>(points, p, q, knot_vector_u, knot_vector_v, weights);
+
+    // empty trimming
+    static BrepSurfaceType::BrepCurveOnSurfaceLoopArrayType outer_loops;
+    static BrepSurfaceType::BrepCurveOnSurfaceLoopArrayType inner_loops;
+
+    outer_loops.clear();
+    inner_loops.clear();
+
+    auto p_brep = Kratos::make_shared<BrepSurfaceType>(p_nurbs_surface, outer_loops, inner_loops);
+    return p_brep;
 }
 
 GeometryType::GeometriesArrayType CreateQuadraturePointsGeometries(
@@ -603,6 +727,35 @@ KRATOS_TEST_CASE_IN_SUITE(ProjectionUtils_Nurbs_Surface_Inside, KratosMappingApp
     const std::array<int, 16> set_eq_ids {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15};
     const std::array<double, 9> exp_sf_values {0.02, 0.02, 0, 0.32, 0.32, 0, 0.16, 0.16, 0};
     const std::array<int, 9> exp_eq_ids {1, 2, 3, 5, 6, 7, 9, 10, 11};
+
+    GeometryType::Pointer surface = brep_surface->pGetGeometryPart(GeometryType::BACKGROUND_GEOMETRY_INDEX);
+    SetEqIdsOnNodes(*surface, set_eq_ids);
+    
+    Vector sf_values;
+    sf_values.clear();
+    std::vector<int> eq_ids;
+    double proj_dist = 0.0;
+
+    qp_geometries(0)->SetGeometryParent(brep_surface.get());
+    TestComputeProjection(*qp_geometries(0), point_to_project, local_coord_tol, exp_sf_values, exp_eq_ids, proj_dist, pairing_index, compute_approximation, full_projection);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(ProjectionUtils_Nurbs_Surface_High_Polynomial_Degree_Inside, KratosMappingApplicationSerialTestSuite)
+{
+    const auto brep_surface = GenerateReferenceQuarterSphereGeometry();
+    GeometryType::GeometriesArrayType qp_geometries = CreateQuadraturePointsGeometries(brep_surface);
+
+    const Point point_to_project(0.053033008588991, -0.053033008588991, 0.0);
+    const double local_coord_tol = 1e-6;
+    ProjectionUtilities::PairingIndex pairing_index = ProjectionUtilities::PairingIndex::Surface_Inside;
+    const bool compute_approximation = false;
+    const bool full_projection = true;
+
+    const std::array<int, 36> set_eq_ids {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,
+                                         16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29,
+                                         30, 31, 32, 33, 34, 35};
+    const std::array<double, 20> exp_sf_values {0.0342287,0.465771,0.465771,0.0342287,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
+    const std::array<int, 20> exp_eq_ids {1, 2, 3, 4, 7, 8, 9, 10, 13, 14, 15, 16, 19, 20, 21, 22, 25, 26, 27, 28};
 
     GeometryType::Pointer surface = brep_surface->pGetGeometryPart(GeometryType::BACKGROUND_GEOMETRY_INDEX);
     SetEqIdsOnNodes(*surface, set_eq_ids);

@@ -119,17 +119,18 @@ void SbmLoadSolidCondition::InitializeSbmMemberVariables()
     auto& r_geometry = this->GetGeometry();
     std::string loopIdentifier = this->GetValue(IDENTIFIER);
 
-    // NURBS case
-    if (this->GetValue(NEIGHBOUR_NODES).size() != 0) 
+    // Exact projection supplied by the NURBS modeler.
+    if (this->Has(NEIGHBOUR_NODES) && !this->Has(NEIGHBOUR_CONDITIONS))
     {
-        mpProjectionNode = &r_geometry.GetValue(NEIGHBOUR_NODES)[0];
+        auto& r_projection_nodes = this->GetValue(NEIGHBOUR_NODES);
+        KRATOS_ERROR_IF(r_projection_nodes.size() != 1)
+            << "Expected one projection node in condition #" << Id() << std::endl;
+        mpProjectionNode = &r_projection_nodes[0];
 
+        // The modeler already applies the inner/outer orientation.
         mTrueNormal = mpProjectionNode->GetValue(NORMAL);
-
-        if (loopIdentifier == "inner")
-            mTrueNormal = -mTrueNormal;
             
-        mDistanceVector.resize(3);
+        mDistanceVector.resize(3, false);
         noalias(mDistanceVector) = mpProjectionNode->Coordinates() - r_geometry.Center().Coordinates();
 
         // dot product n dot n_tilde
@@ -154,7 +155,7 @@ void SbmLoadSolidCondition::InitializeSbmMemberVariables()
         closestNodeId = 0;
     }
     mpProjectionNode = &candidate_closest_skin_segment_1.GetGeometry()[closestNodeId] ;
-    mDistanceVector.resize(3);
+    mDistanceVector.resize(3, false);
     noalias(mDistanceVector) = mpProjectionNode->Coordinates() - r_geometry.Center().Coordinates();
 
     // calculate the integration weight
@@ -206,7 +207,7 @@ void SbmLoadSolidCondition::CalculateLocalSystem(
     const SizeType mat_size = GetGeometry().size() * 2;
 
     if (rRightHandSideVector.size() != mat_size)
-        rRightHandSideVector.resize(mat_size);
+        rRightHandSideVector.resize(mat_size, false);
     noalias(rRightHandSideVector) = ZeroVector(mat_size);
 
     if (rLeftHandSideMatrix.size1() != mat_size)

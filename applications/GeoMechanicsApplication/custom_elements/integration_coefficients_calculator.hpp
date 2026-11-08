@@ -14,7 +14,7 @@
 
 #include "geo_aliases.h"
 #include "geometries/geometry.h"
-#include "includes/ublas_interface.h"
+#include "includes/default_interface.h"
 
 namespace Kratos
 {
@@ -66,7 +66,7 @@ private:
 
     friend class Serializer;
     void save(const Serializer& rSerializer) const;
-    void load(const Serializer& rSerializer) const;
+    void load(const Serializer& rSerializer);
 };
 
 } // namespace Kratos

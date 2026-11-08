@@ -44,12 +44,6 @@ void ActivateModelPartOperation::Execute()
     for (const auto& r_model_part : mrModelParts) {
         // Activate the elements of the model part
         VariableUtils().SetFlag(ACTIVE, true, r_model_part.get().Elements());
-
-        // Activate the nodes of the model part
-        VariableUtils().SetFlag(ACTIVE, true, r_model_part.get().Nodes());
-
-        // Activate the conditions of the model part
-        VariableUtils().SetFlag(ACTIVE, true, r_model_part.get().Conditions());
     }
 
     KRATOS_CATCH("")

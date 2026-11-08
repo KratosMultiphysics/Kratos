@@ -24,6 +24,7 @@
 #include "testing/testing.h"
 
 #ifdef KRATOS_USE_FUTURE
+#include "future/containers/define_linear_algebra_serial.h"
 #include "future/linear_solvers/amgcl_solver.h"
 #include "future/linear_solvers/skyline_lu_factorization_solver.h"
 #include "future/solving_strategies/schemes/static_scheme.h"
@@ -49,21 +50,22 @@ KRATOS_TEST_CASE_IN_SUITE(StaticSchemeBuild1D, KratosCoreFastSuite)
             "name" : "block_builder"
         }
     })");
-    using SchemeType = Future::StaticScheme<CsrMatrix<>, SystemVector<>, SparseContiguousRowGraph<>>;
+    using SchemeType = Future::StaticScheme<Future::SerialLinearAlgebraTraits>;
     auto p_scheme = Kratos::make_unique<SchemeType>(r_test_model_part, scheme_settings);
 
     // Set up the matrix graph and arrays
     // Note that in a standard case this happens at the strategy level
-    Future::LinearSystemContainer<CsrMatrix<>, SystemVector<>> linear_system_container;
+    Future::ImplicitStrategyData<Future::SerialLinearAlgebraTraits> strategy_data_container;
 
     // Call the initialize solution step (note that this sets all the arrays above)
-    p_scheme->Initialize(linear_system_container);
-    p_scheme->InitializeSolutionStep(linear_system_container);
+    p_scheme->Initialize(strategy_data_container);
+    p_scheme->InitializeSolutionStep(strategy_data_container);
 
     // Call the build
-    auto p_lhs = linear_system_container.pLhs;
-    auto p_rhs = linear_system_container.pRhs;
-    p_scheme->Build(*p_lhs, *p_rhs);
+    const auto p_linear_system = strategy_data_container.pGetLinearSystem();
+    auto& r_lhs = *(p_linear_system->pGetMatrix(Future::LinearSystemTags::SparseMatrixTag::LHS));
+    auto& r_rhs = *(p_linear_system->pGetVector(Future::LinearSystemTags::DenseVectorTag::RHS));
+    p_scheme->Build(r_lhs, r_rhs);
 
     // Check resultant matrices
     const double tol = 1.0e-12;
@@ -72,12 +74,12 @@ KRATOS_TEST_CASE_IN_SUITE(StaticSchemeBuild1D, KratosCoreFastSuite)
     expected_lhs(0,0) = 1.0; expected_lhs(0,1) = -1.0; expected_lhs(0,2) = 0.0;
     expected_lhs(1,0) = -1.0; expected_lhs(1,1) = 2.0; expected_lhs(1,2) = -1.0;
     expected_lhs(2,0) = 0.0; expected_lhs(2,1) = -1.0; expected_lhs(2,2) = 1.0;
-    KRATOS_CHECK_VECTOR_NEAR((*p_rhs), expected_rhs, tol); // Note that as there are not non-zero entries in the sparse vector we can use the standard macro
-    for (unsigned int i = 0; i < p_lhs->size1(); ++i) {
-        for (unsigned int j = 0; j < p_lhs->size2(); ++j) {
+    KRATOS_CHECK_VECTOR_NEAR(r_rhs, expected_rhs, tol); // Note that as there are not non-zero entries in the sparse vector we can use the standard macro
+    for (unsigned int i = 0; i < r_lhs.size1(); ++i) {
+        for (unsigned int j = 0; j < r_lhs.size2(); ++j) {
             const double expected_val = expected_lhs(i,j);
             if (std::abs(expected_val) > tol) {
-                KRATOS_CHECK_NEAR(p_lhs->operator()(i,j), expected_val, tol); // Note that we check if the expected value is non-zero as this is a CSR matrix
+                KRATOS_CHECK_NEAR(r_lhs(i,j), expected_val, tol); // Note that we check if the expected value is non-zero as this is a CSR matrix
             }
         }
     }
@@ -109,57 +111,58 @@ KRATOS_TEST_CASE_IN_SUITE(StaticSchemeBuild2D, KratosCoreFastSuite)
             "name" : "block_builder"
         }
     })");
-    using SchemeType = Future::StaticScheme<CsrMatrix<>, SystemVector<>, SparseContiguousRowGraph<>>;
+    using SchemeType = Future::StaticScheme<Future::SerialLinearAlgebraTraits>;
     auto p_scheme = Kratos::make_unique<SchemeType>(r_test_model_part, scheme_settings);
 
     // Set up the matrix graph and arrays
     // Note that in a standard case this happens at the strategy level
-    Future::LinearSystemContainer<CsrMatrix<>, SystemVector<>> linear_system_container;
+    Future::ImplicitStrategyData<Future::SerialLinearAlgebraTraits> strategy_data_container;
 
     // Call the initialize solution step (note that this sets all the arrays above)
-    p_scheme->Initialize(linear_system_container);
-    p_scheme->InitializeSolutionStep(linear_system_container);
+    p_scheme->Initialize(strategy_data_container);
+    p_scheme->InitializeSolutionStep(strategy_data_container);
 
     // Call the build
-    auto p_lhs = linear_system_container.pLhs;
-    auto p_rhs = linear_system_container.pRhs;
+    const auto p_linear_system = strategy_data_container.pGetLinearSystem();
+    auto& r_lhs = *(p_linear_system->pGetMatrix(Future::LinearSystemTags::SparseMatrixTag::LHS));
+    auto& r_rhs = *(p_linear_system->pGetVector(Future::LinearSystemTags::DenseVectorTag::RHS));
 
     sleep(30);
 
     BuiltinTimer timer_build;
     for(unsigned int i=0; i<20; ++i)
-        p_scheme->Build(*p_lhs, *p_rhs);
+        p_scheme->Build(r_lhs, r_rhs);
     std::cout << "Build time: " << timer_build << std::endl;
 
-    p_lhs->SetValue(0.0);
-    p_rhs->SetValue(0.0);
+    r_lhs.SetValue(0.0);
+    r_rhs.SetValue(0.0);
 
     sleep(30);
 
     BuiltinTimer timer_build_safe;
     for(unsigned int i=0; i<20; ++i)
-        p_scheme->BuildWithSafeAssemble(*p_lhs, *p_rhs);
+        p_scheme->BuildWithSafeAssemble(r_lhs, r_rhs);
     std::cout << "Build w/ safe assemble time: " << timer_build_safe << std::endl;
 
 #ifdef KRATOS_USE_TBB
-    p_lhs->SetValue(0.0);
-    p_rhs->SetValue(0.0);
+    r_lhs.SetValue(0.0);
+    r_rhs.SetValue(0.0);
 
     sleep(30);
 
     BuiltinTimer timer_build_thread_local;
     for(unsigned int i=0; i<20; ++i)
-        p_scheme->BuildWithThreadLocal(*p_lhs, *p_rhs);
+        p_scheme->BuildWithThreadLocal(r_lhs, r_rhs);
     std::cout << "Build w/ thread local: " << timer_build_thread_local << std::endl;
 
-    p_lhs->SetValue(0.0);
-    p_rhs->SetValue(0.0);
+    r_lhs.SetValue(0.0);
+    r_rhs.SetValue(0.0);
 
     sleep(30);
 
     BuiltinTimer timer_build_local_allocation;
     for(unsigned int i=0; i<20; ++i)
-    p_scheme->BuildWithLocalAllocation(*p_lhs, *p_rhs);
+        p_scheme->BuildWithLocalAllocation(r_lhs, r_rhs);
     std::cout << "Build w/ local allocation: " << timer_build_local_allocation << std::endl;
 #endif
 

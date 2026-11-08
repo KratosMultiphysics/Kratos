@@ -16,9 +16,10 @@
 // External includes
 
 // Project includes
-#include "future/linear_solvers/direct_solver.h"
-#include "includes/define.h"
 #include "includes/kratos_parameters.h"
+#include "future/containers/linear_system.h"
+#include "future/linear_operators/linear_operator.h"
+#include "future/linear_solvers/direct_solver.h"
 
 namespace Kratos::Future
 {
@@ -27,10 +28,6 @@ template< class TMatrixType, class TVectorType >
 class LUSkylineFactorization
 {
 public:
-
-    using VectorType = TVectorType;
-
-    using SparseMatrixType = TMatrixType;
 
     using DataType = typename TMatrixType::DataType;
 
@@ -64,7 +61,7 @@ public:
     //**********************************************************************************
     //**********************************************************************************
 
-    void copyFromCSRMatrix(SparseMatrixType& A)
+    void copyFromCSRMatrix(const TMatrixType& A)
     {
         int i, j, newi, newj, indexj, ordering, *invperm;
         double entry;
@@ -424,8 +421,8 @@ public:
     /* bugfix janosch void backForwardSolve(int vector_size, Vector<double>& b, Vector<double>& x) // n, b, x*/
     void backForwardSolve(
         int vector_size,
-        const VectorType& b,
-        VectorType& x) // n, b, x
+        const TVectorType& b,
+        TVectorType& x) // n, b, x
     {
         // y = L^-1 * perm[b] ;
         // y = U^-1 * y ;
@@ -487,61 +484,88 @@ public:
 
 
 
-template<class TMatrixType, class TVectorType>
-class SkylineLUFactorizationSolver : public Future::DirectSolver<TMatrixType, TVectorType>
+template<class TLinearAlgebra>
+class SkylineLUFactorizationSolver : public Future::DirectSolver<TLinearAlgebra>
 {
 public:
+
+    ///@name Type Definitions
+    ///@{
 
     /// Counted pointer of SkylineLUFactorizationSolver
     KRATOS_CLASS_POINTER_DEFINITION(SkylineLUFactorizationSolver);
 
-    typedef Future::DirectSolver<TMatrixType, TVectorType> BaseType;
-
-    using VectorType = TVectorType;
-
-    using SparseMatrixType = TMatrixType;
+    using BaseType = Future::DirectSolver<TLinearAlgebra>;
 
     using DenseMatrixType = typename BaseType::DenseMatrixType;
 
-    /// Default constructor
-    SkylineLUFactorizationSolver() = default;
+    using MatrixType = typename TLinearAlgebra::MatrixType;
 
-    SkylineLUFactorizationSolver(Parameters settings)
-    : BaseType(settings)
+    using VectorType = typename TLinearAlgebra::VectorType;
+
+    using DataType = typename TLinearAlgebra::DataType;
+
+    using IndexType = typename TLinearAlgebra::IndexType;
+
+    using LinearSystemType = LinearSystem<TLinearAlgebra>;
+
+    using DenseVectorTag = typename LinearSystemTags::DenseVectorTag;
+
+    using SparseMatrixTag = typename LinearSystemTags::SparseMatrixTag;
+
+    ///@}
+    ///@name Life Cycle
+    ///@{
+
+    /// Default constructor
+    SkylineLUFactorizationSolver(Parameters Settings = Parameters(R"({})"))
+        : BaseType()
     {
+        // Validate and assign default parameters
+        Settings.ValidateAndAssignDefaults(GetDefaultParameters());
+
+        // Assign the validated settings
+        this->AssignSettings(Settings);
     }
 
     /// Copy constructor
     SkylineLUFactorizationSolver(const SkylineLUFactorizationSolver& Other) = delete;
 
-    /// Assignment operator
-    SkylineLUFactorizationSolver& operator=(const SkylineLUFactorizationSolver& Other) = delete;
-
     /// Destructor.
     ~SkylineLUFactorizationSolver() override = default;
 
-    /** Normal solve method.
-    Solves the linear system Ax=b and puts the result on SystemVector& rX.
-    rX is also th initial guess for iterative methods.
-    @param rA. System matrix
-    @param rX. Solution vector.
-    @param rB. Right hand side vector.
-    */
-    bool Solve(
-        SparseMatrixType& rA,
-        VectorType& rX,
-        VectorType& rB) override
+    ///@}
+    ///@name Operators
+    ///@{
+
+    /// Assignment operator
+    SkylineLUFactorizationSolver& operator=(const SkylineLUFactorizationSolver& Other) = delete;
+
+    ///@}
+    ///@name Operations
+    ///@{
+
+    //TODO: This Solve method should be split into Initialize, InitializeSolutionStep, SolveSolutionStep, FinalizeSolutionStep, ...
+    bool PerformSolutionStep(LinearSystemType& rLinearSystem) override
     {
-        if(this->IsNotConsistent(rA, rX, rB))
+        if (!rLinearSystem.IsConsistent(SparseMatrixTag::LHS, DenseVectorTag::RHS, DenseVectorTag::Dx)) {
             return false;
+        }
+
+        auto& r_lin_op = *(rLinearSystem.pGetLinearOperator(SparseMatrixTag::LHS));
+        auto& rX = *rLinearSystem.pGetVector(DenseVectorTag::Dx);
+        auto& rB = *rLinearSystem.pGetVector(DenseVectorTag::RHS);
 
         const int size = rX.size();
 
         // define an object to store skyline matrix and factorization
-        LUSkylineFactorization<TMatrixType, TVectorType> myFactorization;
+        //TODO: We should add a setting to decide if the factorization is done each iteration or only once per time step
+        LUSkylineFactorization<MatrixType, VectorType> myFactorization;
 
         // copy myMatrix into skyline format
-        myFactorization.copyFromCSRMatrix(rA);
+        KRATOS_ERROR_IF(r_lin_op.IsMatrixFree()) << "SkylineLUFactorizationSolver cannot be used with matrix-free linear operators." << std::endl;
+        const auto& r_A = *(r_lin_op.pGetMatrix());
+        myFactorization.copyFromCSRMatrix(r_A);
 
         // factorize it
         myFactorization.factorize();
@@ -552,51 +576,74 @@ public:
         return true;
     }
 
-    /** Multi solve method for solving a set of linear systems with same coefficient matrix.
-    Solves the linear system Ax=b and puts the result on SystemVector& rX.
-    rX is also th initial guess for iterative methods.
-    @param rA. System matrix
-    @param rX. Solution vector.
-    @param rB. Right hand side vector.
-    */
-    bool Solve(
-        SparseMatrixType& rA,
-        DenseMatrixType& rX,
-        DenseMatrixType& rB) override
+    //TODO: This Solve method should be split into Initialize, InitializeSolutionStep, SolveSolutionStep, FinalizeSolutionStep, ...
+    //TODO: Implement this method once we have the dense matrix version of the linear system
+    // bool Solve(
+    //     LinearOperatorPointerType pLinearOperator,
+    //     DenseMatrixType& rX,
+    //     DenseMatrixType& rB) override
+    // {
+    //     const int size1 = rX.size1();
+    //     const int size2 = rX.size2();
+
+    //     bool is_solved = true;
+
+    //     VectorType x(size1);
+    //     VectorType b(size1);
+
+    //     // define an object to store skyline matrix and factorization
+    //     LUSkylineFactorization<CsrMatrixType, VectorType> myFactorization;
+
+    //     // copy myMatrix into skyline format
+    //     KRATOS_ERROR_IF(pLinearOperator->IsMatrixFree()) << "SkylineLUFactorizationSolver cannot be used with matrix-free linear operators." << std::endl;
+    //     const auto& r_A = pLinearOperator->GetMatrix();
+    //     myFactorization.copyFromCSRMatrix(r_A);
+    //     // factorize it
+    //     myFactorization.factorize();
+
+    //     for(int i = 0 ; i < size2 ; i++)
+    //     {
+    //         for (IndexType i_row = 0; i_row < size1; ++i_row) {
+    //             x[i_row] = rX(i_row,i);
+    //             b[i_row] = rB(i_row,i);
+    //         }
+
+    //         // and back solve
+    //         myFactorization.backForwardSolve(size1, b, x);
+
+    //         for (IndexType i_row = 0; i_row < size1; ++i_row) {
+    //             rX(i_row,i) = x[i_row];
+    //             rB(i_row,i) = b[i_row];
+    //         }
+    //     }
+
+    //     return is_solved;
+    // }
+
+    Parameters GetDefaultParameters() const override
     {
-        const int size1 = rX.size1();
-        const int size2 = rX.size2();
+        Parameters default_parameters( R"({
+            "solver_type" : "skyline_lu_factorization",
+            "factorize_at_each_step" : true
+        })");
+        default_parameters.AddMissingParameters(BaseType::GetDefaultParameters());
 
-        bool is_solved = true;
-
-        VectorType x(size1);
-        VectorType b(size1);
-
-        // define an object to store skyline matrix and factorization
-        LUSkylineFactorization<TMatrixType, TVectorType> myFactorization;
-        // copy myMatrix into skyline format
-        myFactorization.copyFromCSRMatrix(rA);
-        // factorize it
-        myFactorization.factorize();
-
-        for(int i = 0 ; i < size2 ; i++)
-        {
-            for (IndexType i_row = 0; i_row < size1; ++i_row) {
-                x[i_row] = rX(i_row,i);
-                b[i_row] = rB(i_row,i);
-            }
-
-            // and back solve
-            myFactorization.backForwardSolve(size1, b, x);
-
-            for (IndexType i_row = 0; i_row < size1; ++i_row) {
-                rX(i_row,i) = x[i_row];
-                rB(i_row,i) = b[i_row];
-            }
-        }
-
-        return is_solved;
+        return default_parameters;
     }
+
+    ///@}
+    ///@name Access
+    ///@{
+
+
+    ///@}
+    ///@name Inquiry
+    ///@{
+
+
+    ///@}
+    ///@name Input and output
+    ///@{
 
     /// Print information about this object.
     void  PrintInfo(std::ostream& rOStream) const override
@@ -609,23 +656,107 @@ public:
     {
     }
 
+    ///@}
+
+protected:
+    ///@name Protected static Member Variables
+    ///@{
+
+
+    ///@}
+    ///@name Protected member Variables
+    ///@{
+
+
+    ///@}
+    ///@name Protected Operators
+    ///@{
+
+
+    ///@}
+    ///@name Protected Operations
+    ///@{
+
+    void AssignSettings(const Parameters& Settings) override
+    {
+        // Assign base class settings
+        BaseType::AssignSettings(Settings);
+
+        // Assign input settings to member variables
+        mFactorizeAtEachStep = Settings["factorize_at_each_step"].GetBool();
+    }
+
+    ///@}
+    ///@name Protected  Access
+    ///@{
+
+
+    ///@}
+    ///@name Protected Inquiry
+    ///@{
+
+
+    ///@}
+    ///@name Protected LifeCycle
+    ///@{
+
+
+    ///@}
+
+private:
+    ///@name Static Member Variables
+    ///@{
+
+
+    ///@}
+    ///@name Member Variables
+    ///@{
+
+    bool mFactorizeAtEachStep;
+
+    ///@}
+    ///@name Private Operators
+    ///@{
+
+
+    ///@}
+    ///@name Private Operations
+    ///@{
+
+
+    ///@}
+    ///@name Private  Access
+    ///@{
+
+
+    ///@}
+    ///@name Private Inquiry
+    ///@{
+
+
+    ///@}
+    ///@name Un accessible methods
+    ///@{
+
+
+    ///@}
 }; // Class SkylineLUFactorizationSolver
 
 
 /// input stream function
-template<class TMatrixType, class TVectorType>
+template<class TLinearAlgebra>
 inline std::istream& operator >> (
     std::istream& rIStream,
-    SkylineLUFactorizationSolver<TMatrixType,TVectorType>& rThis)
+    SkylineLUFactorizationSolver<TLinearAlgebra>& rThis)
 {
     return rIStream;
 }
 
 /// output stream function
-template<class TMatrixType, class TVectorType>
+template<class TLinearAlgebra>
 inline std::ostream& operator << (
     std::ostream& rOStream,
-    const SkylineLUFactorizationSolver<TMatrixType, TVectorType>& rThis)
+    const SkylineLUFactorizationSolver<TLinearAlgebra>& rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;

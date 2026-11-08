@@ -21,11 +21,11 @@
 #include "processes/process.h"
 #include "includes/model_part.h"
 
-#include "spaces/ublas_space.h"
+#include "spaces/default_spaces.h"
 #include "linear_solvers/linear_solver.h"
 
 #include "custom_utilities/fluid_auxiliary_utilities.h"
-#include "custom_utilities/drag_utilities.h"
+#include "custom_utilities/flow_forces_and_moments_utilities.h"
 #include "custom_utilities/dynamic_smagorinsky_utilities.h"
 #include "custom_utilities/estimate_dt_utilities.h"
 #include "custom_utilities/fluid_characteristic_numbers_utilities.h"
@@ -51,8 +51,8 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
 {
     namespace py = pybind11;
 
-    typedef UblasSpace<double, CompressedMatrix, boost::numeric::ublas::vector<double> > SparseSpaceType;
-    typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
+    typedef TDefaultSparseSpace<double> SparseSpaceType;
+    typedef TDefaultDenseSpace<double> LocalSpaceType;
     typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
 
     // Dynamic Smagorinsky utilitites
@@ -152,10 +152,10 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         ;
 
     // Calculate embedded drag utilities
-    py::class_< DragUtilities> (m,"DragUtilities")
+    py::class_< FlowForcesAndMomentsUtilities> (m,"FlowForcesAndMomentsUtilities")
         .def(py::init<>())
-        .def("CalculateBodyFittedDrag", &DragUtilities::CalculateBodyFittedDrag)
-        .def("CalculateEmbeddedDrag", &DragUtilities::CalculateEmbeddedDrag)
+        .def("CalculateBodyFittedFlowForcesAndMoments", &FlowForcesAndMomentsUtilities::CalculateBodyFittedFlowForcesAndMoments)
+        .def("CalculateEmbeddedFlowForcesAndMoments", &FlowForcesAndMomentsUtilities::CalculateEmbeddedFlowForcesAndMoments)
         ;
 
     py::class_<

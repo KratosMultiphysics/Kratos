@@ -58,9 +58,6 @@ public:
     /// The size type definition
     using SizeType = std::size_t;
 
-    /// Static definition of the dimension
-    static constexpr SizeType Dimension = N_DIM_2D;
-
     /// Counted pointer of GeoLinearElasticPlaneStrain2DLaw
     KRATOS_CLASS_POINTER_DEFINITION(LinearElastic2DInterfaceLaw);
 

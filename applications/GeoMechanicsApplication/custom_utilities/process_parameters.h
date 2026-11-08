@@ -22,7 +22,7 @@ struct KRATOS_API(GEO_MECHANICS_APPLICATION) ProcessParameters {
     std::string name;
     Parameters  parameters;
 
-    ProcessParameters(const std::string& rName, const Parameters& rParameters);
+    ProcessParameters(std::string Name, Parameters Settings);
 
     bool operator==(const ProcessParameters& rhs) const;
 };

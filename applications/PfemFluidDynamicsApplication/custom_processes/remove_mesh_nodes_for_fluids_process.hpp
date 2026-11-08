@@ -41,7 +41,7 @@ namespace Kratos
 
 	/// Remove Mesh Nodes Process for 2D and 3D cases
 	/** The process labels the nodes to be erased (TO_ERASE)
-	if they are too close (mRemoveOnDistance == true)
+	if they are too close (mRemoveOnDistance)
 	if the error of the patch they belong is very small (REMOVE_NODES_ON_ERROR)
 	In the interior of the domain or in the boundary (REMOVE_BOUNDARY_NODES) ...
 
@@ -133,7 +133,7 @@ namespace Kratos
 					some_node_is_removed = RemoveNodesOnDistance(inside_nodes_removed, boundary_nodes_removed, nodes_removed_inlet_zone);
 				}
 
-				if (some_node_is_removed || mrRemesh.UseBoundingBox == true)
+				if (some_node_is_removed || mrRemesh.UseBoundingBox)
 					this->CleanRemovedNodes(mrModelPart);
 			}
 
@@ -225,7 +225,7 @@ namespace Kratos
 
 					/////////////////////////////////////////// here for BOUNDING BOX ///////////////////////////////////////////
 					bool boundingBox = mrRemesh.UseBoundingBox;
-					if (boundingBox == true && i_node->IsNot(RIGID))
+					if (boundingBox && i_node->IsNot(RIGID))
 					{
 						const ProcessInfo &rCurrentProcessInfo = mrModelPart.GetProcessInfo();
 						double currentTime = rCurrentProcessInfo[TIME];
@@ -865,7 +865,7 @@ namespace Kratos
 				double finalTime = mrRemesh.RefiningBoxFinalTime[index];
 				bool refiningBox = mrRemesh.UseRefiningBox[index];
 
-				if (refiningBox == true && currentTime > initialTime && currentTime < finalTime)
+				if (refiningBox && currentTime > initialTime && currentTime < finalTime)
 				{
 					double baricenterX = 0.25 * (eElement[0].X() + eElement[1].X() + eElement[2].X() + eElement[3].X());
 					double baricenterY = 0.25 * (eElement[0].Y() + eElement[1].Y() + eElement[2].Y() + eElement[3].Y());
@@ -1126,7 +1126,7 @@ namespace Kratos
 			bool refiningBox = false;
 			for (SizeType index = 0; index < mrRemesh.UseRefiningBox.size(); index++)
 			{
-				if (mrRemesh.UseRefiningBox[index] == true && currentTime > mrRemesh.RefiningBoxInitialTime[index] && currentTime < mrRemesh.RefiningBoxFinalTime[index])
+				if (mrRemesh.UseRefiningBox[index] && currentTime > mrRemesh.RefiningBoxInitialTime[index] && currentTime < mrRemesh.RefiningBoxFinalTime[index])
 				{
 					refiningBox = true;
 				}
@@ -1175,7 +1175,7 @@ namespace Kratos
 					}
 				}
 
-				if (refiningBox == true)
+				if (refiningBox)
 				{
 					array_1d<double, 3> NodeCoordinates = in->Coordinates();
 					if (dimension == 2)
@@ -1269,7 +1269,7 @@ namespace Kratos
 					{
 						radius = 0.5 * meshSize;
 					}
-					else if (interfaceElement == true)
+					else if (interfaceElement)
 					{
 						if (dimension == 2)
 							radius = 0.54 * meshSize; // 10% less than normal nodes
@@ -1462,7 +1462,7 @@ namespace Kratos
 			}
 
 			bool longDamBreak = false; // to attivate in case of long dam breaks to avoid separated elements in the water front
-			if (longDamBreak == true && freeSurfaceNodes > 2 && rigidNodes > 1)
+			if (longDamBreak && freeSurfaceNodes > 2 && rigidNodes > 1)
 			{
 				ControlForLongDamBreakProblems3D(eElement, inletElement, inside_nodes_removed, nodes_removed_inlet_zone);
 			}

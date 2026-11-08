@@ -80,6 +80,9 @@ public:
     /// A vector of indexes (signed)
     using SignedIndexVectorType = DenseVector<SignedIndexType>;
 
+    /// The index type of the CSR storage arrays of the compressed matrix
+    using CompressedMatrixIndexType = CompressedMatrix::index_array_type::value_type;
+
     ///@}
     ///@name Life Cycle
     ///@{
@@ -147,12 +150,12 @@ public:
             return void();
 
         // Get access to A, B and C data
-        const IndexType* index1_a = A.index1_data().begin();
-        const IndexType* index2_a = A.index2_data().begin();
-        const typename AMatrix::value_type* values_a = A.value_data().begin();
-        const IndexType* index1_b = B.index1_data().begin();
-        const IndexType* index2_b = B.index2_data().begin();
-        const typename BMatrix::value_type* values_b = B.value_data().begin();
+        const auto* index1_a = A.index1_data().begin();
+        const auto* index2_a = A.index2_data().begin();
+        const auto* values_a = A.value_data().begin();
+        const auto* index1_b = B.index1_data().begin();
+        const auto* index2_b = B.index2_data().begin();
+        const auto* values_b = B.value_data().begin();
         IndexType* c_ptr = new IndexType[nrows + 1];
 
         c_ptr[0] = 0;
@@ -251,9 +254,7 @@ public:
         )
     {
         using AIndex = typename AMatrix::index_array_type::value_type;
-        using AValue = typename AMatrix::value_type;
         using BIndex = typename BMatrix::index_array_type::value_type;
-        using BValue = typename BMatrix::value_type;
         using CIndex = typename CMatrix::index_array_type::value_type;
         using CValue = typename CMatrix::value_type;
 
@@ -266,12 +267,12 @@ public:
             return void();
 
         // Get access to A and B data
-        const AIndex* index1_a = A.index1_data().begin();
-        const AIndex* index2_a = A.index2_data().begin();
-        const AValue* values_a = A.value_data().begin();
-        const BIndex* index1_b = B.index1_data().begin();
-        const BIndex* index2_b = B.index2_data().begin();
-        const BValue* values_b = B.value_data().begin();
+        const auto* index1_a = A.index1_data().begin();
+        const auto* index2_a = A.index2_data().begin();
+        const auto* values_a = A.value_data().begin();
+        const auto* index1_b = B.index1_data().begin();
+        const auto* index2_b = B.index2_data().begin();
+        const auto* values_b = B.value_data().begin();
 
         // Definition of TLS
         struct TLS_max {
@@ -382,12 +383,12 @@ public:
         KRATOS_ERROR_IF_NOT(ncols == B.size2()) << "The second matrix has a wrong number of columns" << std::endl;
 
         // Get access to A and B data
-        const IndexType* index1_a = A.index1_data().begin();
-        const IndexType* index2_a = A.index2_data().begin();
-        const double* values_a = A.value_data().begin();
-        const IndexType* index1_b = B.index1_data().begin();
-        const IndexType* index2_b = B.index2_data().begin();
-        const double* values_b = B.value_data().begin();
+        const auto* index1_a = A.index1_data().begin();
+        const auto* index2_a = A.index2_data().begin();
+        const auto* values_a = A.value_data().begin();
+        const auto* index1_b = B.index1_data().begin();
+        const auto* index2_b = B.index2_data().begin();
+        const auto* values_b = B.value_data().begin();
 
         IndexType* new_a_ptr = new IndexType[nrows + 1];
         new_a_ptr[0] = 0;
@@ -495,9 +496,9 @@ public:
         using ValueType = typename AMatrix::value_type;
 
         // Get access to B data
-        const IndexType* index1 = rB.index1_data().begin();
-        const IndexType* index2 = rB.index2_data().begin();
-        const ValueType* data = rB.value_data().begin();
+        const auto* index1 = rB.index1_data().begin();
+        const auto* index2 = rB.index2_data().begin();
+        const auto* data = rB.value_data().begin();
         const SizeType transpose_nonzero_values = rB.value_data().end() - rB.value_data().begin();
 
         const SizeType size_system_1 = rB.size1();
@@ -587,9 +588,9 @@ public:
         const TSize nonzero_values = CPtr[NRows];
 
         C = CMatrix(NRows, NCols, nonzero_values);
-        IndexType* index1_c = C.index1_data().begin();
-        IndexType* index2_c = C.index2_data().begin();
-        ValueType* values_c = C.value_data().begin();
+        auto* index1_c = C.index1_data().begin();
+        auto* index2_c = C.index2_data().begin();
+        auto* values_c = C.value_data().begin();
 
         index1_c[0] = 0;
         for (TSize i = 0; i < NRows; i++) {
@@ -797,8 +798,8 @@ public:
 
         // Fill the new matrix
         double* Matrix_values = rMatrix.value_data().begin();
-        IndexType* Matrix_index1 = rMatrix.index1_data().begin();
-        IndexType* Matrix_index2 = rMatrix.index2_data().begin();
+        CompressedMatrixIndexType* Matrix_index1 = rMatrix.index1_data().begin();
+        CompressedMatrixIndexType* Matrix_index2 = rMatrix.index2_data().begin();
 
         Matrix_index1[0] = 0;
         for (IndexType i = 0; i < nrows; ++i) {
@@ -850,7 +851,7 @@ public:
         )
     {
         // Get access to aux_K data
-        const IndexType* aux_matrix_index1 = rMatrix.index1_data().begin();
+        const CompressedMatrixIndexType* aux_matrix_index1 = rMatrix.index1_data().begin();
 
         const IndexType row_begin = aux_matrix_index1[CurrentRow];
         const IndexType row_end   = aux_matrix_index1[CurrentRow + 1];
@@ -869,9 +870,10 @@ public:
      * @param RowEnd The last column computed
      * @param InitialIndexColumn The initial column index of the auxiliary block in the final matrix
      */
+    template<class TIndexType>
     static inline void ComputeAuxiliarValuesBlocks(
         const CompressedMatrix& rMatrix,
-        IndexType* AuxIndex2,
+        TIndexType* AuxIndex2,
         double* AuxVals,
         const int CurrentRow,
         IndexType& RowEnd,
@@ -881,8 +883,8 @@ public:
     {
         // Get access to aux_K data
         const double* aux_values = rMatrix.value_data().begin();
-        const IndexType* aux_Matrix_index1 = rMatrix.index1_data().begin();
-        const IndexType* aux_Matrix_index2 = rMatrix.index2_data().begin();
+        const CompressedMatrixIndexType* aux_Matrix_index1 = rMatrix.index1_data().begin();
+        const CompressedMatrixIndexType* aux_Matrix_index2 = rMatrix.index2_data().begin();
 
         const IndexType aux_Matrix_row_begin = aux_Matrix_index1[CurrentRow];
         const IndexType aux_Matrix_row_end   = aux_Matrix_index1[CurrentRow + 1];

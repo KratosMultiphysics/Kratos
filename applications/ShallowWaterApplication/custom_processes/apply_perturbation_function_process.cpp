@@ -30,7 +30,7 @@ template<class TVarType>
 ApplyPerturbationFunctionProcess<TVarType>::ApplyPerturbationFunctionProcess(
     ModelPart& rThisModelPart,
     NodePointerType pNode,
-    TVarType& rThisVariable,
+    const TVarType& rThisVariable,
     Parameters& rThisParameters
 ) : Process(), mrModelPart(rThisModelPart), mrVariable(rThisVariable)
 {
@@ -43,7 +43,7 @@ template<class TVarType>
 ApplyPerturbationFunctionProcess<TVarType>::ApplyPerturbationFunctionProcess(
     ModelPart& rThisModelPart,
     NodesArrayType& rSourcePoints,
-    TVarType& rThisVariable,
+    const TVarType& rThisVariable,
     Parameters& rThisParameters
 ) : Process(), mrModelPart(rThisModelPart), mrVariable(rThisVariable)
 {

@@ -1,0 +1,7 @@
+Per_elem scalar values for the EnSight6 geometry. Conditional variable: YOUNG_MODULUS
+part	2
+tria3
+	0.000000e+00	7.580000e-01	
+part	3
+tria3
+	1.516000e+00	2.274000e+00	

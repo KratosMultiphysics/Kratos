@@ -42,10 +42,12 @@ class HRomTrainingUtility(object):
         self.rom_settings = custom_settings["rom_settings"].Clone()
         self.rom_settings.RemoveValue("rom_bns_settings") #Removing because the inner rom settings are specific for each builder and solver.
         self.hrom_visualization_model_part = settings["create_hrom_visualization_model_part"].GetBool()
+        self.modelers_list = settings["modelers"]
         self.projection_strategy = settings["projection_strategy"].GetString()
         self.hrom_output_format = settings["hrom_format"].GetString()
         self.include_minimum_condition = settings["include_minimum_condition"].GetBool()
         self.include_condition_parents = settings["include_condition_parents"].GetBool()
+        self.include_element_children = settings["include_element_children"].GetBool()
         self.num_of_right_rom_dofs = self.rom_settings["number_of_rom_dofs"].GetInt()
         self.constraint_sum_weights =  settings["constraint_sum_weights"].GetBool()
 
@@ -115,14 +117,14 @@ class HRomTrainingUtility(object):
         self.element_id_to_numpy_index_mapping = {}
         self.numpy_index_to_element_id_mapping = {}
         for index, element in enumerate(root_model_part.Elements):
-            self.numpy_index_to_element_id_mapping[index] = element.Id-1 #FIXME -1
-            self.element_id_to_numpy_index_mapping[element.Id-1] = index #FIXME -1
-
+            self.numpy_index_to_element_id_mapping[index] = element.Id
+            self.element_id_to_numpy_index_mapping[element.Id] = index
         self.condition_id_to_numpy_index_mapping = {}
         self.numpy_index_to_condition_id_mapping = {}
         for index, condition in enumerate(root_model_part.Conditions):
-            self.numpy_index_to_condition_id_mapping[index+number_of_elements] = condition.Id -1 +number_of_elements  #FIXME -1 #FIXME +number_of_elements We should remove redundant fixes
-            self.condition_id_to_numpy_index_mapping[condition.Id-1] = index+number_of_elements #FIXME -1
+            flat_index = index + number_of_elements
+            self.numpy_index_to_condition_id_mapping[flat_index] = condition.Id
+            self.condition_id_to_numpy_index_mapping[condition.Id] = flat_index
 
 
     def map_condition_ids_to_numpy_indexes(self, this_modelpart_condition_ids):
@@ -139,49 +141,48 @@ class HRomTrainingUtility(object):
         return np.array(this_modelpart_indexes_numpy)
 
 
-    def map_numpy_indexes_to_element_and_conditions_ids(self,indexes,number_of_elements):
+    def map_numpy_indexes_to_element_and_conditions_ids(self, indexes, number_of_elements):
+        element_mask = indexes < number_of_elements
+        condition_mask = indexes >= number_of_elements
 
-        kratos_indexes = []
-        for i in range(np.size(indexes)):
-            if indexes[i]<=number_of_elements-1:
-                kratos_indexes.append(self.numpy_index_to_element_id_mapping[indexes[i]])
-            else:
-                kratos_indexes.append(self.numpy_index_to_condition_id_mapping[indexes[i]])
+        element_ids = [self.numpy_index_to_element_id_mapping[i] for i in indexes[element_mask]]
+        condition_ids = [self.numpy_index_to_condition_id_mapping[i] for i in indexes[condition_mask]]
 
-        return np.array(kratos_indexes) #FIXME -1
-
+        return np.array(element_ids), np.array(condition_ids), element_mask, condition_mask
 
 
     def AppendCurrentStepResiduals(self):
-        # Get the computing model part from the solver implementing the problem physics
-        computing_model_part = self.solver.GetComputingModelPart()
+        pass
+        #deprecated method. Use the ProjectedResidualsOutputProcess
+        # # Get the computing model part from the solver implementing the problem physics
+        # computing_model_part = self.solver.GetComputingModelPart()
 
-        # If not created yet, create the ROM residuals utility
-        # Note that this ensures that the residuals utility is created in the first residuals append call
-        # If not, it might happen that the solver scheme is created by the ROM residuals call rather than by the solver one
-        if not hasattr(self, '__rom_residuals_utility'):
-            self.__rom_residuals_utility = KratosROM.RomResidualsUtility(
-                computing_model_part,
-                self.rom_settings,
-                self.solver._GetScheme())
+        # # If not created yet, create the ROM residuals utility
+        # # Note that this ensures that the residuals utility is created in the first residuals append call
+        # # If not, it might happen that the solver scheme is created by the ROM residuals call rather than by the solver one
+        # if not hasattr(self, '__rom_residuals_utility'):
+        #     self.__rom_residuals_utility = KratosROM.RomResidualsUtility(
+        #         computing_model_part,
+        #         self.rom_settings,
+        #         self.solver._GetScheme())
 
-            if self.echo_level > 0 : KratosMultiphysics.Logger.PrintInfo("HRomTrainingUtility","RomResidualsUtility created.")
+        #     if self.echo_level > 0 : KratosMultiphysics.Logger.PrintInfo("HRomTrainingUtility","RomResidualsUtility created.")
 
-        # Generate the matrix of projected residuals
-        if self.echo_level > 0 : KratosMultiphysics.Logger.PrintInfo("HRomTrainingUtility","Generating matrix of projected residuals.")
-        if (self.projection_strategy=="galerkin"):
-                res_mat = self.__rom_residuals_utility.GetProjectedResidualsOntoPhi()
-        elif (self.projection_strategy=="lspg"):
-                jacobian_phi_product = self.GetJacobianPhiMultiplication(computing_model_part)
-                res_mat = self.__rom_residuals_utility.GetProjectedResidualsOntoJPhi(jacobian_phi_product)
-        elif (self.projection_strategy=="petrov_galerkin"):
-                res_mat = self.__rom_residuals_utility.GetProjectedResidualsOntoPsi()
-        else:
-            err_msg = f"Projection strategy \'{self.projection_strategy}\' for HROM is not supported."
-            raise Exception(err_msg)
+        # # Generate the matrix of projected residuals
+        # if self.echo_level > 0 : KratosMultiphysics.Logger.PrintInfo("HRomTrainingUtility","Generating matrix of projected residuals.")
+        # if (self.projection_strategy=="galerkin"):
+        #         res_mat = self.__rom_residuals_utility.GetProjectedResidualsOntoPhi()
+        # elif (self.projection_strategy=="lspg"):
+        #         jacobian_phi_product = self.GetJacobianPhiMultiplication(computing_model_part)
+        #         res_mat = self.__rom_residuals_utility.GetProjectedResidualsOntoJPhi(jacobian_phi_product)
+        # elif (self.projection_strategy=="petrov_galerkin"):
+        #         res_mat = self.__rom_residuals_utility.GetProjectedResidualsOntoPsi()
+        # else:
+        #     err_msg = f"Projection strategy \'{self.projection_strategy}\' for HROM is not supported."
+        #     raise Exception(err_msg)
 
-        np_res_mat = np.asarray(res_mat)
-        self.time_step_residual_matrix_container.append(np_res_mat)
+        # np_res_mat = np.asarray(res_mat)
+        # self.time_step_residual_matrix_container.append(np_res_mat)
 
     def GetJacobianPhiMultiplication(self, computing_model_part):
         jacobian_matrix = KratosMultiphysics.CompressedMatrix()
@@ -213,16 +214,71 @@ class HRomTrainingUtility(object):
         # Note that in here we are assuming this naming convention for the ROM json file
         self.AppendHRomWeightsToRomParameters()
 
+    @staticmethod
+    def GetImportingSolverSettings(solver_settings):
+        """Settings of the solver that imports the model part. In coupled problems only the first sub-solver imports it,
+        and the thermal one copies it (ConnectivityPreserveModeler, same entity ids), so the HROM model part of the coupled
+        problem is the one of that sub-solver."""
+        importing_sub_solvers = {"ThermallyCoupled": "fluid_solver_settings", "ThermoMechanicallyCoupled": "structural_solver_settings"}
+        solver_type = solver_settings["solver_type"].GetString() if solver_settings.Has("solver_type") else ""
+        if solver_type in importing_sub_solvers:
+            return solver_settings[importing_sub_solvers[solver_type]]
+        return solver_settings
+
     def CreateHRomModelParts(self):
         # Get solver data
-        model_part_name = self.solver.settings["model_part_name"].GetString()
-        model_part_output_name = self.solver.settings["model_import_settings"]["input_filename"].GetString()
+        importing_solver_settings = self.GetImportingSolverSettings(self.solver.settings)
+        model_part_name = importing_solver_settings["model_part_name"].GetString()
+
+        # Detect whether the input is geometry based (i.e. the entities are created from the geometries by the modelers).
+        # This is the case when the modelers list contains both an importer (i.e. a modeler with an 'input_filename')
+        # and a modeler creating the entities from the geometries.
+        geometry_importer_modeler = None
+        has_entities_from_geometries_modeler = False
+        for modeler in self.modelers_list.values():
+            if not modeler.Has("parameters"):
+                continue
+            modeler_name = modeler["name"].GetString() if modeler.Has("name") else ""
+            if "CreateEntitiesFromGeometriesModeler" in modeler_name:
+                has_entities_from_geometries_modeler = True
+            modeler_parameters = modeler["parameters"]
+            if modeler_parameters.Has("input_filename"):
+                geometry_importer_modeler = modeler_parameters
+
+        is_geometry_based = has_entities_from_geometries_modeler and geometry_importer_modeler is not None
+
         # computing_model_part = self.solver.GetComputingModelPart()
         #computing_model_part = self.solver.GetComputingModelPart().GetRootModelPart() #TODO: DECIDE WHICH ONE WE SHOULD USE?¿?¿ MOST PROBABLY THE ROOT FOR THOSE CASES IN WHICH THE COMPUTING IS CUSTOM (e.g. CFD)
-        aux_model = KratosMultiphysics.Model()
-        computing_model_part = aux_model.CreateModelPart("main")
-        model_part_io = KratosMultiphysics.ModelPartIO(model_part_output_name)
-        model_part_io.ReadModelPart(computing_model_part)
+        base_model = KratosMultiphysics.Model()
+        write_med = False
+        if is_geometry_based:
+            # Geometry based input (e.g. MED), the entities are created from the geometries by the modelers
+            input_filename = geometry_importer_modeler["input_filename"].GetString()
+            write_med = Path(input_filename).suffix.lower() == ".med"
+            model_part_output_name = str(Path(input_filename).with_suffix(""))
+            self._CreateModelPartFromModelers(base_model)
+            computing_model_part = base_model.GetModelPart(geometry_importer_modeler["model_part_name"].GetString())
+            # Entities created from geometries have no properties, which is required to write the mdpa format
+            KratosROM.RomAuxiliaryUtilities.AssignPropertiesToEntitiesIfMissing(computing_model_part)
+            if write_med:
+                import KratosMultiphysics.MedApplication as KratosMed
+        else:
+            # Mesh based input (mdpa), the model part is imported from the same input as the origin one
+            # This is given in the 'model_import_settings' or in the importer modeler (e.g. the ImportMDPAModeler)
+            model_import_settings = importing_solver_settings["model_import_settings"]
+            if model_import_settings.Has("input_filename"):
+                model_part_output_name = model_import_settings["input_filename"].GetString()
+            elif geometry_importer_modeler is not None:
+                input_path = Path(geometry_importer_modeler["input_filename"].GetString())
+                model_part_output_name = str(input_path.with_suffix("") if input_path.suffix.lower() == ".mdpa" else input_path)
+            else:
+                KratosMultiphysics.Logger.PrintWarning(
+                    "HRomTrainingUtility",
+                    "No 'input_filename' found neither in the 'modelers' list nor in 'model_import_settings'. Skipping the HROM model part creation.")
+                return
+            computing_model_part = base_model.CreateModelPart("main")
+            model_part_io = KratosMultiphysics.ModelPartIO(model_part_output_name)
+            model_part_io.ReadModelPart(computing_model_part)
 
         # Create a new model with the HROM main model part
         # This is intentionally done in order to completely emulate the origin model part
@@ -248,13 +304,36 @@ class HRomTrainingUtility(object):
         if self.echo_level > 0:
             KratosMultiphysics.Logger.PrintInfo("HRomTrainingUtility","HROM computing model part \'{}\' created.".format(hrom_main_model_part.FullName()))
 
-        # Output the HROM model part in mdpa format
-        hrom_output_name = "{}HROM".format(model_part_output_name)
-        model_part_io = KratosMultiphysics.ModelPartIO(hrom_output_name, KratosMultiphysics.IO.WRITE | KratosMultiphysics.IO.MESH_ONLY | KratosMultiphysics.IO.SCIENTIFIC_PRECISION)
-        model_part_io.WriteModelPart(hrom_main_model_part)
-        KratosMultiphysics.kratos_utilities.DeleteFileIfExisting("{}.time".format(hrom_output_name))
+        # Output the HROM model part
+        if is_geometry_based:
+            # The entities share their geometries with the origin model part, so these need to be added to the
+            # HROM model part before writing it (both MED and mdpa with geometries are geometry based formats)
+            KratosROM.RomAuxiliaryUtilities.AddGeometries(computing_model_part, hrom_main_model_part)
+            # Store the geometry id to entity id map so that the original entity numbering can be recovered
+            # when the HROM model part is read back (see HRomCreateEntitiesFromGeometriesModeler)
+            geometry_ids_list = [[element.GetGeometry().Id, element.Id] for element in hrom_main_model_part.Elements]
+            geometry_ids_list += [[condition.GetGeometry().Id, condition.Id] for condition in hrom_main_model_part.Conditions]
+            np.savetxt(f"{self.rom_basis_output_folder}/HROM_GeometryIds.csv", geometry_ids_list, fmt="%d", delimiter=",")
+            if write_med:
+                # Output the HROM model part in MED format
+                hrom_output_name = "{}HROM.med".format(model_part_output_name)
+                model_part_io = KratosMed.MedModelPartIO(hrom_output_name, KratosMultiphysics.IO.WRITE)
+                model_part_io.WriteModelPart(hrom_main_model_part)
+                del model_part_io
+            else:
+                # Output the HROM model part in mdpa format (with the geometries)
+                hrom_output_name = "{}HROM".format(model_part_output_name)
+                model_part_io = KratosMultiphysics.ModelPartIO(hrom_output_name, KratosMultiphysics.IO.WRITE | KratosMultiphysics.IO.MESH_ONLY | KratosMultiphysics.IO.SCIENTIFIC_PRECISION)
+                model_part_io.WriteModelPart(hrom_main_model_part)
+                KratosMultiphysics.kratos_utilities.DeleteFileIfExisting("{}.time".format(hrom_output_name))
+        else:
+            # Output the HROM model part in mdpa format
+            hrom_output_name = "{}HROM".format(model_part_output_name)
+            model_part_io = KratosMultiphysics.ModelPartIO(hrom_output_name, KratosMultiphysics.IO.WRITE | KratosMultiphysics.IO.MESH_ONLY | KratosMultiphysics.IO.SCIENTIFIC_PRECISION)
+            model_part_io.WriteModelPart(hrom_main_model_part)
+            KratosMultiphysics.kratos_utilities.DeleteFileIfExisting("{}.time".format(hrom_output_name))
         if self.echo_level > 0:
-            KratosMultiphysics.Logger.PrintInfo("HRomTrainingUtility","HROM mesh written in \'{}.mdpa\'".format(hrom_output_name))
+            KratosMultiphysics.Logger.PrintInfo("HRomTrainingUtility","HROM mesh written in \'{}\'".format(hrom_output_name))
 
         #TODO: Make this optional
         #TODO: Move this out of here
@@ -270,12 +349,37 @@ class HRomTrainingUtility(object):
             print(hrom_visualization_model_part)
 
             # Write the HROM visualization mesh
-            hrom_vis_output_name = "{}HROMVisualization".format(model_part_output_name)
-            model_part_io = KratosMultiphysics.ModelPartIO(hrom_vis_output_name, KratosMultiphysics.IO.WRITE | KratosMultiphysics.IO.MESH_ONLY | KratosMultiphysics.IO.SCIENTIFIC_PRECISION)
-            model_part_io.WriteModelPart(hrom_visualization_model_part)
-            KratosMultiphysics.kratos_utilities.DeleteFileIfExisting("{}.time".format(hrom_vis_output_name))
+            if write_med:
+                hrom_vis_output_name = "{}HROMVisualization.med".format(model_part_output_name)
+                KratosROM.RomAuxiliaryUtilities.AddHRomVisualizationGeometries(hrom_visualization_model_part)
+                model_part_io = KratosMed.MedModelPartIO(hrom_vis_output_name, KratosMultiphysics.IO.WRITE)
+                model_part_io.WriteModelPart(hrom_visualization_model_part)
+                del model_part_io
+            else:
+                hrom_vis_output_name = "{}HROMVisualization".format(model_part_output_name)
+                model_part_io = KratosMultiphysics.ModelPartIO(hrom_vis_output_name, KratosMultiphysics.IO.WRITE | KratosMultiphysics.IO.MESH_ONLY | KratosMultiphysics.IO.SCIENTIFIC_PRECISION)
+                model_part_io.WriteModelPart(hrom_visualization_model_part)
+                KratosMultiphysics.kratos_utilities.DeleteFileIfExisting("{}.time".format(hrom_vis_output_name))
             if self.echo_level > 0:
-                KratosMultiphysics.Logger.PrintInfo("HRomTrainingUtility","HROM visualization mesh written in \'{}.mdpa\'".format(hrom_vis_output_name))
+                KratosMultiphysics.Logger.PrintInfo("HRomTrainingUtility","HROM visualization mesh written in \'{}\'".format(hrom_vis_output_name))
+
+    def _CreateModelPartFromModelers(self, model):
+        """Run the modelers to create the model part from the geometry based input (e.g. MED).
+
+        The list of modelers is expected to follow the standard format:
+        "modelers" : [{
+            "name" : "geometry_import",
+            "parameters" : { ... }
+        },{ ... }]
+        """
+        from KratosMultiphysics.model_parameters_factory import KratosModelParametersFactory
+        modelers = KratosModelParametersFactory(model).ConstructListOfItems(self.modelers_list)
+        for modeler in modelers:
+            modeler.SetupGeometryModel()
+        for modeler in modelers:
+            modeler.PrepareGeometryModel()
+        for modeler in modelers:
+            modeler.SetupModelPart()
 
     @classmethod
     def __GetHRomTrainingDefaultSettings(cls):
@@ -285,6 +389,7 @@ class HRomTrainingUtility(object):
             "element_selection_svd_truncation_tolerance": 1.0e-6,
             "echo_level" : 0,
             "create_hrom_visualization_model_part" : false,
+            "modelers": [],
             "projection_strategy": "galerkin",
             "include_conditions_model_parts_list": [],
             "include_elements_model_parts_list": [],
@@ -293,6 +398,7 @@ class HRomTrainingUtility(object):
             "include_nodal_neighbouring_elements_model_parts_list":[],
             "include_minimum_condition": false,
             "include_condition_parents": false,
+            "include_element_children": false,
             "constraint_sum_weights": true,
             "svd_type": "numpy_rsvd"
         }""")
@@ -328,107 +434,61 @@ class HRomTrainingUtility(object):
 
 
     def AppendHRomWeightsToRomParameters(self):
+        """Saves the HROM weights: the entities selected by the ECM (with their weights) plus, with a null weight, the ones
+        added by the HROM settings. These are added in stages (see HROM_Summary.json):
+        1. the ones requested by the user ('include_conditions_model_parts_list', 'include_elements_model_parts_list' and
+           'include_nodal_neighbouring_elements_model_parts_list')
+        2. the conditions attached to the HROM elements ('include_element_children')
+        3. a condition for each submodelpart with conditions but none in the HROM ('include_minimum_condition')
+        4. the parent elements of the HROM conditions ('include_condition_parents')
+        """
         number_of_elements = self.solver.GetComputingModelPart().GetRootModelPart().NumberOfElements()
         weights = np.squeeze(self.hyper_reduction_element_selector.w)
         indexes = self.hyper_reduction_element_selector.z
-        indexes = self.map_numpy_indexes_to_element_and_conditions_ids(indexes,number_of_elements)
+        element_ids, condition_ids, element_mask, condition_mask = self.map_numpy_indexes_to_element_and_conditions_ids(indexes, number_of_elements)
+        hrom_weights = self.__CreateDictionaryWithRomElementsAndWeights(weights, element_ids, condition_ids, element_mask, condition_mask)
 
-        # Create dictionary with HROM weights (Only used for the expansion of the selected Conditions to include their parent Elements)
-        hrom_weights = self.__CreateDictionaryWithRomElementsAndWeights(weights,indexes,number_of_elements)
+        # Entities added in each stage (the ECM selection first), used for the HROM summary
+        self.__hrom_stages = [{"stage": "ecm", "elements": [int(i) for i in element_ids], "conditions": [int(i) for i in condition_ids]}]
+        ecm_weights = np.reshape(weights, (len(indexes), -1))
+        ecm_sets = [{"elements": int(np.count_nonzero(ecm_weights[element_mask, i])), "conditions": int(np.count_nonzero(ecm_weights[condition_mask, i]))} for i in range(ecm_weights.shape[1])]
 
-        # Get the root model part
-        root_model_part = self.solver.GetComputingModelPart().GetRootModelPart()
+        # Stage 1: entities requested by the user
+        weights, indexes = self.__AddUserRequestedEntities(hrom_weights, weights, indexes, number_of_elements)
 
-        # Add conditions
-        for model_part_name in self.include_conditions_model_parts_list:
-            # Check if the sub model part exists
-            if self.solver.model.HasModelPart(model_part_name):
-                conditions_to_include_model_part = self.solver.model.GetModelPart(model_part_name)
+        # Stage 2: conditions attached to the HROM elements
+        if self.include_element_children:
+            element_children = KratosROM.RomAuxiliaryUtilities.GetHRomElementChildrenIds(
+                self.solver.GetComputingModelPart().GetRootModelPart(),
+                hrom_weights)
+            weights, indexes = self.__AddStageEntities("include_element_children", hrom_weights, weights, indexes, number_of_elements, condition_ids=element_children)
 
-                # Call the GetConditionIdsNotInHRomModelPart function
-                new_conditions = KratosROM.RomAuxiliaryUtilities.GetConditionIdsNotInHRomModelPart(
-                    conditions_to_include_model_part, # The model part containing the conditions to be included
-                    hrom_weights)
-
-                # Add the new conditions to the conditions dict with a null weight
-                for condition_id in new_conditions:
-                    hrom_weights["Conditions"][condition_id] = 0.0
-
-                # If needed, update your weights and indexes using __AddSelectedConditionsWithZeroWeights function with the new_conditions
-                weights, indexes = self.__AddSelectedConditionsWithZeroWeights(weights, indexes, new_conditions, number_of_elements)
-
-        # Add elements
-        for model_part_name in self.include_elements_model_parts_list:
-            # Check if the sub model part exists
-            if self.solver.model.HasModelPart(model_part_name):
-                elements_to_include_model_part = self.solver.model.GetModelPart(model_part_name)
-
-                # Call the GetElementIdsNotInHRomModelPart function
-                new_elements = KratosROM.RomAuxiliaryUtilities.GetElementIdsNotInHRomModelPart(
-                    elements_to_include_model_part, # The model part containing the elements to be included
-                    hrom_weights)
-
-                # Add the new elements to the elements dict with a null weight
-                for element_id in new_elements:
-                    hrom_weights["Elements"][element_id] = 0.0
-
-                # If needed, update your weights and indexes using __AddSelectedElementsWithZeroWeights function with the new_elements
-                weights, indexes = self.__AddSelectedElementsWithZeroWeights(weights, indexes, new_elements)
-
-        # Add nodal neighbouring elements
-        for model_part_name in self.include_nodal_neighbouring_elements_model_parts_list:
-            # Check if the sub model part exists
-            if self.solver.model.HasModelPart(model_part_name):
-                nodal_neighbours_model_part = self.solver.model.GetModelPart(model_part_name)
-
-                # Call the GetNodalNeighbouringElementIdsNotInHRom function
-                new_nodal_neighbours = KratosROM.RomAuxiliaryUtilities.GetNodalNeighbouringElementIdsNotInHRom(
-                    root_model_part, # The complete model part
-                    nodal_neighbours_model_part, # The model part containing the nodal neighbouring elements to be included
-                    hrom_weights)
-
-                # Add the new nodal neighbouring elements to the elements dict with a null weight
-                for element_id in new_nodal_neighbours:
-                    hrom_weights["Elements"][element_id] = 0.0
-
-                # If needed, update your weights and indexes using __AddSelectedElementsWithZeroWeights function with the new_nodal_neighbours
-                weights, indexes = self.__AddSelectedElementsWithZeroWeights(weights, indexes, new_nodal_neighbours)
-
-        # If required, keep at least one condition per submodelpart
+        # Stage 3: if required, keep at least one condition per submodelpart
         # This might be required by those BCs involving the faces (e.g. slip BCs)
         if self.include_minimum_condition:
-            # Get the HROM conditions to be added
             minimum_conditions = KratosROM.RomAuxiliaryUtilities.GetHRomMinimumConditionsIds(
                 self.solver.GetComputingModelPart().GetRootModelPart(), #TODO: I think this one should be the root
                 hrom_weights["Conditions"])
+            weights, indexes = self.__AddStageEntities("include_minimum_condition", hrom_weights, weights, indexes, number_of_elements, condition_ids=minimum_conditions)
 
-            # Add the selected conditions to the conditions dict with a null weight
-            for cond_id in minimum_conditions:
-                hrom_weights["Conditions"][cond_id] = 0.0
-            weights, indexes = self.__AddSelectedConditionsWithZeroWeights(weights, indexes, minimum_conditions, number_of_elements)
-
-        # If required, add the HROM conditions parent elements
-        # Note that we add these with zero weight so their future assembly will have no effect
+        # Stage 4: if required, add the HROM conditions parent elements
         if self.include_condition_parents:
             KratosMultiphysics.Logger.PrintWarning("HRomTrainingUtility", 'Make sure you set "assign_neighbour_elements_to_conditions": true in the solver_settings to have a parent element for each condition.')
-
-            # Get the HROM condition parents from the current HROM weights
             missing_condition_parents = KratosROM.RomAuxiliaryUtilities.GetHRomConditionParentsIds(
                 self.solver.GetComputingModelPart().GetRootModelPart(), #TODO: I think this one should be the root
                 hrom_weights)
+            weights, indexes = self.__AddStageEntities("include_condition_parents", hrom_weights, weights, indexes, number_of_elements, element_ids=missing_condition_parents)
 
-            # Add the missing parents to the elements dict with a null weight
-            for parent_id in missing_condition_parents:
-                hrom_weights["Elements"][parent_id] = 0.0
-            weights, indexes = self.__AddSelectedElementsWithZeroWeights(weights,indexes, missing_condition_parents)
+        # Regenerate masks and IDs with the final updated indexes array
+        element_ids, condition_ids, element_mask, condition_mask = self.map_numpy_indexes_to_element_and_conditions_ids(indexes, number_of_elements)
 
-        if self.hrom_output_format=="numpy":
-            element_indexes = np.where(indexes < number_of_elements)[0]
-            condition_indexes = np.where(indexes >= number_of_elements)[0]
-            np.save(self.rom_basis_output_folder / "HROM_ElementWeights.npy", weights[element_indexes])
-            np.save(self.rom_basis_output_folder / "HROM_ConditionWeights.npy", weights[condition_indexes])
-            np.save(self.rom_basis_output_folder / "HROM_ElementIds.npy", indexes[element_indexes])  # FIXME fix the -1 in the indexes of numpy and ids of Kratos
-            np.save(self.rom_basis_output_folder / "HROM_ConditionIds.npy", indexes[condition_indexes] - number_of_elements)  # FIXME fix the -1 in the indexes of numpy and ids of Kratos
+        if self.hrom_output_format == "numpy":
+            # One column per set of HROM weights (e.g. one per physics in coupled problems)
+            weights_matrix = weights.reshape(len(weights),-1)
+            np.save(self.rom_basis_output_folder / "HROM_ElementWeights.npy", weights_matrix[element_mask])
+            np.save(self.rom_basis_output_folder / "HROM_ConditionWeights.npy", weights_matrix[condition_mask])
+            np.save(self.rom_basis_output_folder / "HROM_ElementIds.npy", element_ids)
+            np.save(self.rom_basis_output_folder / "HROM_ConditionIds.npy", condition_ids)
 
         elif self.hrom_output_format=="json":
             with (self.rom_basis_output_folder / self.rom_basis_output_name).with_suffix('.json').open('r') as f:
@@ -440,72 +500,175 @@ class HRomTrainingUtility(object):
 
         if self.echo_level > 0 : KratosMultiphysics.Logger.PrintInfo("HRomTrainingUtility","\'RomParameters.json\' file updated with HROM weights.")
 
-    def __AddSelectedElementsWithZeroWeights(self, original_weights,original_elements, elements_to_add):
+        # Stage 5: summary of what has been added and of the resulting HROM model part
+        self.__WriteHRomSummary(hrom_weights, ecm_sets)
 
-        added_elements_ids = np.array(elements_to_add)
-        updated_elements = np.r_[original_elements, added_elements_ids]
-        updated_weights = np.r_[original_weights, np.zeros(added_elements_ids.shape)]
+    def RecomputeHRomModelPart(self):
+        """Recomputes the entities added to the ECM selection with the current HROM settings, the HROM summary and the HROM
+        model part from the HROM weights in the ROM folder. This is cheap, as the ECM is not run again: its selection is
+        taken from these weights (the entities with a nonzero weight, as the added ones have a null weight)."""
+        if self.hrom_output_format != "numpy":
+            raise Exception("Recomputing the HROM model part requires the 'numpy' HROM format.")
+        element_ids = np.load(self.rom_basis_output_folder / "HROM_ElementIds.npy")
+        condition_ids = np.load(self.rom_basis_output_folder / "HROM_ConditionIds.npy")
+        element_weights = np.load(self.rom_basis_output_folder / "HROM_ElementWeights.npy")
+        condition_weights = np.load(self.rom_basis_output_folder / "HROM_ConditionWeights.npy")
+        number_of_sets = max(element_weights.reshape(len(element_ids),-1).shape[1] if len(element_ids) else 1, condition_weights.reshape(len(condition_ids),-1).shape[1] if len(condition_ids) else 1)
+        element_weights = element_weights.reshape(len(element_ids), number_of_sets)
+        condition_weights = condition_weights.reshape(len(condition_ids), number_of_sets)
+        ecm_elements = np.any(element_weights != 0.0, axis=1)
+        ecm_conditions = np.any(condition_weights != 0.0, axis=1)
+        indexes = np.r_[self.map_element_ids_to_numpy_indexes(element_ids[ecm_elements]), self.map_condition_ids_to_numpy_indexes(condition_ids[ecm_conditions])].astype(int)
+        weights = np.r_[element_weights[ecm_elements], condition_weights[ecm_conditions]]
+        self.hyper_reduction_element_selector.z = indexes
+        self.hyper_reduction_element_selector.w = weights
+        self.AppendHRomWeightsToRomParameters()
+        self.CreateHRomModelParts()
+
+    def __AddStageEntities(self, stage, hrom_weights, weights, indexes, number_of_elements, element_ids=[], condition_ids=[]):
+        """Adds the given elements and conditions (the ones not in the HROM yet, once) with a null weight, and records them as added by the given stage"""
+        element_ids = [i for i in dict.fromkeys(int(i) for i in element_ids) if i not in hrom_weights["Elements"]]
+        condition_ids = [i for i in dict.fromkeys(int(i) for i in condition_ids) if i not in hrom_weights["Conditions"]]
+        for element_id in element_ids:
+            hrom_weights["Elements"][element_id] = 0.0
+        for condition_id in condition_ids:
+            hrom_weights["Conditions"][condition_id] = 0.0
+        if element_ids:
+            weights, indexes = self.__AddSelectedElementsWithZeroWeights(weights, indexes, element_ids)
+        if condition_ids:
+            weights, indexes = self.__AddSelectedConditionsWithZeroWeights(weights, indexes, condition_ids, number_of_elements)
+        self.__hrom_stages.append({"stage": stage, "elements": element_ids, "conditions": condition_ids})
+        return weights, indexes
+
+    def __AddUserRequestedEntities(self, hrom_weights, weights, indexes, number_of_elements):
+        """Stage 1: adds the entities of the model parts given in the HROM settings"""
+        root_model_part = self.solver.GetComputingModelPart().GetRootModelPart()
+        new_conditions = []
+        for model_part_name in self.include_conditions_model_parts_list:
+            if self.solver.model.HasModelPart(model_part_name):
+                new_conditions += KratosROM.RomAuxiliaryUtilities.GetConditionIdsNotInHRomModelPart(
+                    self.solver.model.GetModelPart(model_part_name), # The model part containing the conditions to be included
+                    hrom_weights)
+        if self.include_conditions_model_parts_list:
+            weights, indexes = self.__AddStageEntities("include_conditions_model_parts_list", hrom_weights, weights, indexes, number_of_elements, condition_ids=new_conditions)
+
+        new_elements = []
+        for model_part_name in self.include_elements_model_parts_list:
+            if self.solver.model.HasModelPart(model_part_name):
+                new_elements += KratosROM.RomAuxiliaryUtilities.GetElementIdsNotInHRomModelPart(
+                    self.solver.model.GetModelPart(model_part_name), # The model part containing the elements to be included
+                    hrom_weights)
+        if self.include_elements_model_parts_list:
+            weights, indexes = self.__AddStageEntities("include_elements_model_parts_list", hrom_weights, weights, indexes, number_of_elements, element_ids=new_elements)
+
+        new_nodal_neighbours = []
+        for model_part_name in self.include_nodal_neighbouring_elements_model_parts_list:
+            if self.solver.model.HasModelPart(model_part_name):
+                new_nodal_neighbours += KratosROM.RomAuxiliaryUtilities.GetNodalNeighbouringElementIdsNotInHRom(
+                    root_model_part, # The complete model part
+                    self.solver.model.GetModelPart(model_part_name), # The model part containing the nodal neighbouring elements to be included
+                    hrom_weights)
+        if self.include_nodal_neighbouring_elements_model_parts_list:
+            weights, indexes = self.__AddStageEntities("include_nodal_neighbouring_elements_model_parts_list", hrom_weights, weights, indexes, number_of_elements, element_ids=new_nodal_neighbours)
+
+        return weights, indexes
+
+    def __WriteHRomSummary(self, hrom_weights, ecm_sets):
+        """Stage 5: writes HROM_Summary.json with the entities added by each stage (and the setting to change to remove them),
+        the coverage of the submodelparts with conditions and the size of the HROM model part, and prints a table with them"""
+        root_model_part = self.solver.GetComputingModelPart().GetRootModelPart()
+        ecm_stage = self.__hrom_stages[0]
+
+        # Stage that added each condition, to know which one covers each submodelpart
+        condition_stage = {}
+        for stage in self.__hrom_stages:
+            for condition_id in stage["conditions"]:
+                condition_stage.setdefault(condition_id, stage["stage"])
+        stage_order = [stage["stage"] for stage in self.__hrom_stages]
+        coverage = {}
+        def AddCoverage(model_part):
+            if model_part.NumberOfConditions() == 0:
+                return
+            stages = [condition_stage[condition.Id] for condition in model_part.Conditions if condition.Id in condition_stage]
+            coverage[model_part.FullName()] = {
+                "conditions": model_part.NumberOfConditions(),
+                "hrom_conditions": len(stages),
+                "covered_by": min(stages, key=stage_order.index) if stages else "none"}
+            for sub_model_part in model_part.SubModelParts:
+                AddCoverage(sub_model_part)
+        AddCoverage(root_model_part)
+
+        # Size of the HROM model part (its nodes are the ones of its entities)
+        hrom_nodes = set()
+        for element_id in hrom_weights["Elements"]:
+            hrom_nodes.update(node.Id for node in root_model_part.GetElement(element_id).GetGeometry())
+        for condition_id in hrom_weights["Conditions"]:
+            hrom_nodes.update(node.Id for node in root_model_part.GetCondition(condition_id).GetGeometry())
+
+        summary = {
+            "full_model_part": {"name": root_model_part.Name, "nodes": root_model_part.NumberOfNodes(), "elements": root_model_part.NumberOfElements(), "conditions": root_model_part.NumberOfConditions()},
+            "hrom_model_part": {"nodes": len(hrom_nodes), "elements": len(hrom_weights["Elements"]), "conditions": len(hrom_weights["Conditions"])},
+            "ecm": {"elements": len(ecm_stage["elements"]), "conditions": len(ecm_stage["conditions"]), "weights_sets": ecm_sets},
+            "added": [{"setting": stage["stage"], "elements": len(stage["elements"]), "conditions": len(stage["conditions"])} for stage in self.__hrom_stages[1:]],
+            "submodelparts_with_conditions": coverage}
+        with (self.rom_basis_output_folder / "HROM_Summary.json").open('w') as f:
+            json.dump(summary, f, indent=4)
+
+        lines = [f"HROM model part: {summary['hrom_model_part']['elements']} of {summary['full_model_part']['elements']} elements, {summary['hrom_model_part']['conditions']} of {summary['full_model_part']['conditions']} conditions, {summary['hrom_model_part']['nodes']} of {summary['full_model_part']['nodes']} nodes"]
+        lines.append(f"  ECM selection: {summary['ecm']['elements']} elements, {summary['ecm']['conditions']} conditions")
+        for added in summary["added"]:
+            lines.append(f"  added by '{added['setting']}': {added['elements']} elements, {added['conditions']} conditions")
+        uncovered = [name for name, entry in coverage.items() if entry["covered_by"] == "none"]
+        if uncovered:
+            lines.append(f"  submodelparts with conditions but none in the HROM: {', '.join(uncovered)}")
+        KratosMultiphysics.Logger.PrintInfo("HRomTrainingUtility", "\n".join(lines))
+
+    def __AddSelectedElementsWithZeroWeights(self, original_weights, original_elements, elements_to_add):
+        added_numpy_indexes = [self.element_id_to_numpy_index_mapping[i] for i in elements_to_add]
+        updated_elements = np.r_[original_elements, added_numpy_indexes]
+        updated_weights = np.r_[original_weights, np.zeros((len(elements_to_add),) + original_weights.shape[1:])]
 
         return updated_weights, updated_elements
 
     def __AddSelectedConditionsWithZeroWeights(self, original_weights, original_conditions, conditions_to_add, number_of_elements):
-
-        added_conditions_ids = np.array(conditions_to_add)+number_of_elements
-        updated_conditions = np.r_[original_conditions, added_conditions_ids]
-        updated_weights = np.r_[original_weights, np.zeros(added_conditions_ids.shape)]
+        added_numpy_indexes = [self.condition_id_to_numpy_index_mapping[i] for i in conditions_to_add]
+        updated_conditions = np.r_[original_conditions, added_numpy_indexes]
+        updated_weights = np.r_[original_weights, np.zeros((len(conditions_to_add),) + original_weights.shape[1:])]
 
         return updated_weights, updated_conditions
 
-    def __CreateDictionaryWithRomElementsAndWeights(self, weights = None, indexes=None, number_of_elements = None):
 
-        if number_of_elements is None:
-            number_of_elements = self.solver.GetComputingModelPart().NumberOfElements()
+    def __CreateDictionaryWithRomElementsAndWeights(self, weights=None, element_ids=None, condition_ids=None, element_mask=None, condition_mask=None):
+        hrom_weights = {"Elements": {}, "Conditions": {}}
         if weights is None:
-            weights = np.r_[np.load(self.rom_basis_output_folder / "HROM_ElementWeights.npy"), np.load(self.rom_basis_output_folder / "HROM_ConditionWeights.npy")]
-        if indexes is None:
-            indexes = np.r_[np.load(self.rom_basis_output_folder / "HROM_ElementIds.npy"), np.load(self.rom_basis_output_folder / "HROM_ConditionIds.npy") + number_of_elements]
-        hrom_weights = {}
-        hrom_weights["Elements"] = {}
-        hrom_weights["Conditions"] = {}
-
-        if type(indexes)==np.int64 or type(indexes)==np.int32:
-            # Only one element found !
-            if indexes <= number_of_elements-1:
-                hrom_weights["Elements"][int(indexes)] = float(weights)
-            else:
-                hrom_weights["Conditions"][int(indexes)-number_of_elements] = float(weights)
+            elem_weights = np.load(self.rom_basis_output_folder / "HROM_ElementWeights.npy")
+            cond_weights = np.load(self.rom_basis_output_folder / "HROM_ConditionWeights.npy")
+            element_ids = np.load(self.rom_basis_output_folder / "HROM_ElementIds.npy")
+            condition_ids = np.load(self.rom_basis_output_folder / "HROM_ConditionIds.npy")
         else:
-            # Many elements found
-            for j in range (len(indexes)):
-                if indexes[j] <=  number_of_elements -1:
-                    hrom_weights["Elements"][int(indexes[j])] = float(weights[j])
-                else:
-                    hrom_weights["Conditions"][int(indexes[j])-number_of_elements] = float(weights[j])
+            elem_weights = weights[element_mask]
+            cond_weights = weights[condition_mask]
+
+        # With several sets of weights (i.e. several columns) the first one is stored (only the ids are used from here on)
+        for i, elem_id in enumerate(element_ids):
+            hrom_weights["Elements"][int(elem_id)] = float(np.ravel(elem_weights[i])[0])
+
+        for i, cond_id in enumerate(condition_ids):
+            hrom_weights["Conditions"][int(cond_id)] = float(np.ravel(cond_weights[i])[0])
 
         return hrom_weights
 
+
     def __CreateListsWithRomElements(self):
-        number_of_elements = self.solver.GetComputingModelPart().NumberOfElements()
-
-        # Load combined indexes for elements and conditions
         element_ids = np.load(self.rom_basis_output_folder / "HROM_ElementIds.npy")
-        condition_ids = np.load(self.rom_basis_output_folder / "HROM_ConditionIds.npy") + number_of_elements
-
-        # Combine element and condition IDs
-        combined_indexes = np.r_[element_ids, condition_ids]
-
-        # Separate element and condition indexes
-        element_mask = combined_indexes < number_of_elements
-        condition_mask = ~element_mask
+        condition_ids = np.load(self.rom_basis_output_folder / "HROM_ConditionIds.npy")
 
         # Extract unique element and condition indexes
-        unique_element_ids = np.unique(combined_indexes[element_mask], return_inverse=False)
-        unique_condition_ids = np.unique(combined_indexes[condition_mask] - number_of_elements, return_inverse=False)
+        unique_element_ids = np.unique(element_ids)
+        unique_condition_ids = np.unique(condition_ids)
 
         # Convert to Python lists
         unique_element_ids_list = unique_element_ids.astype(int).tolist()
         unique_condition_ids_list = unique_condition_ids.astype(int).tolist()
 
         return unique_element_ids_list, unique_condition_ids_list
-
-

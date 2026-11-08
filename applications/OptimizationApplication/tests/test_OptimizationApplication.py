@@ -32,10 +32,8 @@ import test_external_response_function
 import test_model_part_utils
 import test_model_part_controllers
 import test_connectivity_preserving_model_part_controller
-import test_container_expression_utils
-import test_container_expression
-import test_collective_expressions
 import test_sigmoidal_projection
+import test_smooth_clamper
 import test_buffered_dict
 import control.test_master_control
 import control.material.test_material_properties_control
@@ -45,7 +43,8 @@ import control.material.test_simp_control
 import filtering.implicit_filters_tests
 import filtering.explicit_filters_tests
 import test_component_data_view
-import process_tests.test_optimization_problem_vtu_output_process
+import test_tensor_adaptor_serialization
+import process_tests.test_optimization_problem_field_output_process
 import process_tests.test_optimization_problem_ascii_output_process
 import process_tests.test_optimization_problem_graph_output_process
 import algorithm_tests.test_convergence
@@ -54,6 +53,7 @@ import algorithm_tests.test_algorithm_steepest_descent
 import algorithm_tests.analysis_based_tests.algorithm_steepest_descent_qnbb.test_steepest_descent_analysis
 import algorithm_tests.analysis_based_tests.algorithm_steepest_descent.test_steepest_descent_analysis
 import algorithm_tests.analysis_based_tests.algorithm_nesterov_accelerated_gradient.test_nestervo_accelerated_gradient_analysis
+import algorithm_tests.analysis_based_tests.algorithm_adam.test_adam_analysis
 import algorithm_tests.analysis_based_tests.algorithm_gradient_projection.test_gradient_projection
 import algorithm_tests.analysis_based_tests.algorithm_relaxed_gradient_projection.test_relaxed_gradient_projection
 import algorithm_tests.nlopt_tests.mma_shell_thickness_opt.test_mma_optimizer
@@ -85,12 +85,12 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([symmetry_utilities_tests.symmetry_tests.SymmetryUtilitiesTest]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_buffered_dict.TestBufferedDict]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_component_data_view.TestComponentDataView]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_tensor_adaptor_serialization.TestPropertiesVariableTensorAdaptorSerialization]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_optimization_info.TestOptimizationInfo]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_optimization_utils.TestOptimizationUtils]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_model_part_utils.TestOptAppModelPartUtils]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_model_part_utils.TestModelPartUtilities]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_response_utilities.TestResponseUtilities]))
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_container_expression_utils.TestContainerExpressionUtils]))
 
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([responses_tests.test_response_routine.TestResponseRoutine]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([responses_tests.test_standardized_responses.TestStandardizedObjective]))
@@ -106,11 +106,8 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([responses_tests.test_discrete_value_residual_response_function.TestDiscreteValueResidualResponseFunctionLogarithm]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_external_response_function.TestExternalResponseFunction]))
 
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_container_expression.TestConditionPropertiesExpression]))
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_container_expression.TestElementPropertiesExpression]))
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_collective_expressions.TestCollectiveExpressions]))
-
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_sigmoidal_projection.TestSigmoidalProjection]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_smooth_clamper.TestSmoothClamper]))
 
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_model_part_controllers.TestMdpaModelPartController]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_connectivity_preserving_model_part_controller.TestConnectivityPreservingModelPartController]))
@@ -125,7 +122,7 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([filtering.implicit_filters_tests.HelmholtzAnalysisTest]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([filtering.explicit_filters_tests.TestExplicitFilterConsistency]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([filtering.explicit_filters_tests.TestExplicitFilterReference]))
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([process_tests.test_optimization_problem_vtu_output_process.TestOptimizationProblemVtuOutputProcess]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([process_tests.test_optimization_problem_field_output_process.TestOptimizationProblemFieldOutputProcess]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([process_tests.test_optimization_problem_ascii_output_process.TestOptimizationProblemAsciiOutputProcess]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([process_tests.test_optimization_problem_graph_output_process.TestOptimizationProblemGraphOutputProcess]))
 
@@ -138,6 +135,7 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([algorithm_tests.analysis_based_tests.algorithm_gradient_projection.test_gradient_projection.TestGradientProjectionAnalysis]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([algorithm_tests.analysis_based_tests.algorithm_relaxed_gradient_projection.test_relaxed_gradient_projection.TestRelaxedGradientProjectionAnalysis]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([algorithm_tests.analysis_based_tests.algorithm_nesterov_accelerated_gradient.test_nestervo_accelerated_gradient_analysis.TestNesterovAcceleratedGradientAnalysis]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([algorithm_tests.analysis_based_tests.algorithm_adam.test_adam_analysis.TestAdamAnalysis]))
 
 
 

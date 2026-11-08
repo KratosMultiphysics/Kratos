@@ -7,7 +7,7 @@
               "name"             :  "GeoLinearElasticPlaneStrain2DLaw" 
           },
           "Variables": {
-              "IGNORE_UNDRAINED"         :  true,
+              "GEO_DRAINAGE_TYPE"        :  "CONSTANT_PW_FIELD",
               "YOUNG_MODULUS"            :  10000,
               "POISSON_RATIO"            :  0.2,
               "DENSITY_SOLID"            :  2.65,
@@ -19,7 +19,6 @@
               "PERMEABILITY_YY"          :  4.5e-13,
               "PERMEABILITY_XY"          :  0.0,
               "DYNAMIC_VISCOSITY"        :  8.90e-7,
-              "THICKNESS"                :  1.0,
               "K0_MAIN_DIRECTION"        :  1,
               "K0_NC"                    :  0.6,
               "BIOT_COEFFICIENT"         :  1.0,
@@ -37,7 +36,7 @@
               "name"             :  "GeoLinearElasticPlaneStrain2DLaw" 
           },
           "Variables": {
-              "IGNORE_UNDRAINED"         :  true,
+              "GEO_DRAINAGE_TYPE"        :  "CONSTANT_PW_FIELD",
               "YOUNG_MODULUS"            :  10000,
               "POISSON_RATIO"            :  0.2,
               "DENSITY_SOLID"            :  2.65,
@@ -49,7 +48,6 @@
               "PERMEABILITY_YY"          :  4.5e-13,
               "PERMEABILITY_XY"          :  0.0,
               "DYNAMIC_VISCOSITY"        :  8.90e-7,
-              "THICKNESS"                :  1.0,
               "K0_MAIN_DIRECTION"        :  1,
               "K0_NC"                    :  0.6,
               "BIOT_COEFFICIENT"         :  1.0,

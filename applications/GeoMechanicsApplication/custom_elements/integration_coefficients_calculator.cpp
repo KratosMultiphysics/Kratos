@@ -27,7 +27,7 @@ void IntegrationCoefficientsCalculator::save(const Serializer&) const
     // No data members to be saved (yet)
 }
 
-void IntegrationCoefficientsCalculator::load(const Serializer&) const
+void IntegrationCoefficientsCalculator::load(const Serializer&)
 {
     // No data members to be loaded (yet)
 }

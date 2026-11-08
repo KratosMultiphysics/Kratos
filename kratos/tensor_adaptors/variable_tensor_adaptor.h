@@ -88,12 +88,25 @@ public:
         VariablePointerType pVariable,
         const bool Copy = true);
 
+    VariableTensorAdaptor(const VariableTensorAdaptor& rOther) = default;
+
+    /**
+     * @brief Construct an empty, invalid instance.
+     * @details Only intended for @ref Serializer::load to construct into before populating via @ref load.
+     */
+    VariableTensorAdaptor() = default;
+
     // Destructor
     ~VariableTensorAdaptor() override = default;
 
     ///@}
     ///@name Public operations
     ///@{
+
+    /**
+     * @brief Clones the existing tensor adaptor.
+     */
+    TensorAdaptor::Pointer Clone() const override;
 
     /**
      * @brief Execution of this check is only required if this VariableTensorAdaptor
@@ -137,6 +150,16 @@ private:
     ///@{
 
     VariablePointerType mpVariable;
+
+    ///@}
+    ///@name Serialization
+    ///@{
+
+    friend class Serializer;
+
+    void save(Serializer& rSerializer) const override;
+
+    void load(Serializer& rSerializer) override;
 
     ///@}
 };

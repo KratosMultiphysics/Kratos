@@ -52,8 +52,7 @@ private:
     [[nodiscard]] static double GetAndCheckC(const Properties& rModelPartProperties);
 
     static void SetCPhiAtElement(Element& rElement, double ReducedPhi, double ReducedC);
-
-    static void SetValueAtElement(Element& rElement, const Variable<Vector>& rVariable, const Vector& rValue);
+    static void InitializeParametersForInternalMohrCoulombModel(Element& rElement);
 
     [[nodiscard]] bool IsStepRestarted() const;
 };

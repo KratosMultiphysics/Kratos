@@ -21,6 +21,7 @@
 
 // Application includes
 #include "custom_conditions/sbm_laplacian_condition_dirichlet.h"
+#include "includes/global_pointer_variables.h"
 
 
 namespace Kratos
@@ -42,7 +43,7 @@ void SbmLaplacianConditionDirichlet::CalculateLocalSystem(
     const SizeType mat_size = GetGeometry().size() * 1;
 
     if (rRightHandSideVector.size() != mat_size)
-        rRightHandSideVector.resize(mat_size);
+        rRightHandSideVector.resize(mat_size, false);
     noalias(rRightHandSideVector) = ZeroVector(mat_size);
 
     if (rLeftHandSideMatrix.size1() != mat_size)
@@ -89,6 +90,9 @@ void SbmLaplacianConditionDirichlet::InitializeMemberVariables()
     }
     // Compute the normals
     mNormalParameterSpace = - r_geometry.Normal(0, GetIntegrationMethod());
+    if(mDim == 3) {
+        r_geometry.Calculate(NORMAL, mNormalParameterSpace);
+    }
     mNormalParameterSpace = mNormalParameterSpace / MathUtils<double>::Norm(mNormalParameterSpace);
     mNormalPhysicalSpace = mNormalParameterSpace;
 }
@@ -96,10 +100,20 @@ void SbmLaplacianConditionDirichlet::InitializeMemberVariables()
 void SbmLaplacianConditionDirichlet::InitializeSbmMemberVariables()
 {
     const auto& r_geometry = this->GetGeometry();
+    if (this->Has(NEIGHBOUR_NODES) && !this->Has(NEIGHBOUR_CONDITIONS)) {
+        auto& r_projection_nodes = this->GetValue(NEIGHBOUR_NODES);
+        KRATOS_ERROR_IF(r_projection_nodes.size() != 1)
+            << "Expected one projection node in condition #" << Id() << std::endl;
+        mpProjectionNode = &r_projection_nodes[0];
+        mDistanceVector.resize(3, false);
+        noalias(mDistanceVector) = mpProjectionNode->Coordinates() - r_geometry.Center().Coordinates();
+        return;
+    }
+
     // Retrieve projection
     Condition candidate_closest_skin_segment_1 = this->GetValue(NEIGHBOUR_CONDITIONS)[0] ;
     // Find the closest node in condition
-    int closestNodeId;
+    int closestNodeId = 0;
     if (mDim > 2) {
         double incumbent_dist = 1e16;
         // Loop over the three nodes of the closest skin element
@@ -114,7 +128,7 @@ void SbmLaplacianConditionDirichlet::InitializeSbmMemberVariables()
     }
     mpProjectionNode = &candidate_closest_skin_segment_1.GetGeometry()[closestNodeId] ;
 
-    mDistanceVector.resize(3);
+    mDistanceVector.resize(3, false);
     noalias(mDistanceVector) = mpProjectionNode->Coordinates() - r_geometry.Center().Coordinates();
 }
 
@@ -145,21 +159,8 @@ void SbmLaplacianConditionDirichlet::CalculateLeftHandSide(
     // Calculating the PHYSICAL SPACE derivatives (it is avoided storing them to minimize storage)
     noalias(DN_DX) = r_DN_De[0]; // prod(r_DN_De[0],InvJ0);
 
-    GeometryType::JacobiansType J0;
-    r_geometry.Jacobian(J0,r_geometry.GetDefaultIntegrationMethod());
-    // Jacobian matrix cause J0 is  3x2 and we need 3x3
-    Matrix jacobian_matrix = ZeroMatrix(3,3);
-    jacobian_matrix(0,0) = J0[0](0,0);
-    jacobian_matrix(0,1) = J0[0](0,1);
-    jacobian_matrix(1,0) = J0[0](1,0);
-    jacobian_matrix(1,1) = J0[0](1,1);
-    jacobian_matrix(2,2) = 1.0; // 2D case
+    const double det_J0 = std::abs(r_geometry.DeterminantOfJacobian(0, r_geometry.GetDefaultIntegrationMethod()));
 
-    array_1d<double, 3> tangent_parameter_space;
-    r_geometry.Calculate(LOCAL_TANGENT, tangent_parameter_space); // Gives the result in the parameter space !!
-    Vector determinant_factor = prod(jacobian_matrix, tangent_parameter_space);
-    determinant_factor[2] = 0.0; // 2D case
-    const double det_J0 = norm_2(determinant_factor);
 
     Matrix DN_dot_n = ZeroMatrix(1, number_of_nodes);
     Vector DN_dot_n_vec = ZeroVector(number_of_nodes);
@@ -182,11 +183,11 @@ void SbmLaplacianConditionDirichlet::CalculateLeftHandSide(
 
     // Assembly
     // -(GRAD_w * n, u + GRAD_u * d + ...)
-    noalias(rLeftHandSideMatrix) -= mNitschePenalty * prod(trans(DN_dot_n), H_sum)  * r_integration_points[0].Weight() * std::abs(det_J0) ;
+    noalias(rLeftHandSideMatrix) -= mNitschePenalty * prod(trans(DN_dot_n), H_sum)  * r_integration_points[0].Weight() * det_J0 ;
     // -(w,GRAD_u * n) from integration by parts -> Fundamental !! 
-    noalias(rLeftHandSideMatrix) -= prod(trans(H), DN_dot_n)                        * r_integration_points[0].Weight() * std::abs(det_J0) ;
+    noalias(rLeftHandSideMatrix) -= prod(trans(H), DN_dot_n)                        * r_integration_points[0].Weight() * det_J0 ;
     // SBM terms (Taylor Expansion) + alpha * (w + GRAD_w * d + ..., u + GRAD_u * d + ...)
-    noalias(rLeftHandSideMatrix) += prod(trans(H_sum), H_sum) * penalty_integration * std::abs(det_J0);
+    noalias(rLeftHandSideMatrix) += prod(trans(H_sum), H_sum) * penalty_integration * det_J0;
 }
 
 
@@ -211,21 +212,8 @@ void SbmLaplacianConditionDirichlet::CalculateRightHandSide(
     // Initialize DN_DX
     Matrix DN_DX(number_of_nodes,mDim);
 
-    GeometryType::JacobiansType J0;
-    r_geometry.Jacobian(J0,r_geometry.GetDefaultIntegrationMethod());
-    // Jacobian matrix cause J0 is  3x2 and we need 3x3
-    Matrix jacobian_matrix = ZeroMatrix(3,3);
-    jacobian_matrix(0,0) = J0[0](0,0);
-    jacobian_matrix(0,1) = J0[0](0,1);
-    jacobian_matrix(1,0) = J0[0](1,0);
-    jacobian_matrix(1,1) = J0[0](1,1);
-    jacobian_matrix(2,2) = 1.0; // 2D case
-
-    array_1d<double, 3> tangent_parameter_space;
-    r_geometry.Calculate(LOCAL_TANGENT, tangent_parameter_space); // Gives the result in the parameter space !!
-    Vector determinant_factor = prod(jacobian_matrix, tangent_parameter_space);
-    determinant_factor[2] = 0.0; // 2D case
-    const double det_J0 = norm_2(determinant_factor);
+    const double det_J0 = std::abs(r_geometry.DeterminantOfJacobian(0, r_geometry.GetDefaultIntegrationMethod()));
+    
 
     // Differential area
     double penalty_integration = mPenalty * r_integration_points[0].Weight();
@@ -255,9 +243,9 @@ void SbmLaplacianConditionDirichlet::CalculateRightHandSide(
     // Assembly
     const double u_D_scalar = mpProjectionNode->GetValue(r_unknown_var);
 
-    noalias(rRightHandSideVector) += H_sum_vec * u_D_scalar * penalty_integration * std::abs(det_J0);
+    noalias(rRightHandSideVector) += H_sum_vec * u_D_scalar * penalty_integration * det_J0;
     // Dirichlet BCs
-    noalias(rRightHandSideVector) -= mNitschePenalty * DN_dot_n_vec * u_D_scalar * r_integration_points[0].Weight() * std::abs(det_J0) ;
+    noalias(rRightHandSideVector) -= mNitschePenalty * DN_dot_n_vec * u_D_scalar * r_integration_points[0].Weight() * det_J0 ;
 
 
     Vector temperature_old_iteration(number_of_nodes);
@@ -265,10 +253,10 @@ void SbmLaplacianConditionDirichlet::CalculateRightHandSide(
         temperature_old_iteration[i] = r_geometry[i].GetSolutionStepValue(r_unknown_var);
     }
     // Corresponding RHS
-    noalias(rRightHandSideVector) += mNitschePenalty * DN_dot_n_vec * inner_prod(H_sum_vec,temperature_old_iteration)  * r_integration_points[0].Weight() * std::abs(det_J0);
+    noalias(rRightHandSideVector) += mNitschePenalty * DN_dot_n_vec * inner_prod(H_sum_vec,temperature_old_iteration)  * r_integration_points[0].Weight() * det_J0;
     // Assembly of the integration by parts term -(w,GRAD_u * n) -> Fundamental !!
-    noalias(rRightHandSideVector) += H_vec * inner_prod(DN_dot_n_vec,temperature_old_iteration) * r_integration_points[0].Weight() * std::abs(det_J0) ;
-    noalias(rRightHandSideVector) -= H_sum_vec * inner_prod(H_sum_vec,temperature_old_iteration) * penalty_integration * std::abs(det_J0) ;
+    noalias(rRightHandSideVector) += H_vec * inner_prod(DN_dot_n_vec,temperature_old_iteration) * r_integration_points[0].Weight() * det_J0 ;
+    noalias(rRightHandSideVector) -= H_sum_vec * inner_prod(H_sum_vec,temperature_old_iteration) * penalty_integration * det_J0 ;
 
 }
 
@@ -312,15 +300,17 @@ void SbmLaplacianConditionDirichlet::ComputeTaylorExpansionContribution(Vector& 
                 
                 int countDerivativeId = 0;
                 // Loop over blocks of derivatives in x
-                for (IndexType k_x = n; k_x >= 0; k_x--) {
+                for (int k_x = static_cast<int>(n); k_x >= 0; --k_x) {
                     // Loop over the possible derivatives in y
-                    for (IndexType k_y = n - k_x; k_y >= 0; k_y--) {
+                    for (int k_y = static_cast<int>(n) - k_x; k_y >= 0; --k_y) {
                         
                         // derivatives in z
-                        IndexType k_z = n - k_x - k_y;
+                        int k_z = static_cast<int>(n) - k_x - k_y;
                         double derivative = r_shape_function_derivatives(i,countDerivativeId); 
 
-                        H_taylor_term += ComputeTaylorTerm3D(derivative, mDistanceVector[0], k_x, mDistanceVector[1], k_y, mDistanceVector[2], k_z);
+                        H_taylor_term += ComputeTaylorTerm3D(derivative, mDistanceVector[0], static_cast<IndexType>(k_x),
+                                                             mDistanceVector[1], static_cast<IndexType>(k_y),
+                                                             mDistanceVector[2], static_cast<IndexType>(k_z));
                         countDerivativeId++;
                     }
                 }

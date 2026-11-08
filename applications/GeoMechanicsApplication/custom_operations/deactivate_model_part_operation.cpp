@@ -48,12 +48,6 @@ void DeactivateModelPartOperation::Execute()
         // Reset the elements' constitutive law (e.g., excavation)
         block_for_each(r_model_part.get().Elements(),
                        [](Element& rElement) { rElement.ResetConstitutiveLaw(); });
-
-        // Deactivate the nodes of the model part
-        VariableUtils().SetFlag(ACTIVE, false, r_model_part.get().Nodes());
-
-        // Deactivate the conditions of the model part
-        VariableUtils().SetFlag(ACTIVE, false, r_model_part.get().Conditions());
     }
 
     KRATOS_CATCH("")

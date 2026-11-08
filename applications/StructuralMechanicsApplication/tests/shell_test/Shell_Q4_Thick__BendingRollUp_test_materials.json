@@ -5,7 +5,7 @@
             "Material": {
                     "name": "Material",
                     "constitutive_law": {
-                            "name": "LinearElasticPlaneStress2DLaw"
+                            "name": "ReissnerMindlinShellElasticConstitutiveLaw"
                     },
                     "Variables": {
                             "YOUNG_MODULUS": 200.0e9,

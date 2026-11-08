@@ -624,9 +624,11 @@ CrBeamElement2D2N::CreateElementStiffnessMatrix_Total() const
 
     BoundedMatrix<double, msElementSize, msLocalSize> S =
         CalculateTransformationS();
-    BoundedMatrix<double, msElementSize, msElementSize> K_d_element =
-        prod(K_d, Matrix(trans(S)));
-    K_d_element = prod(S, K_d_element);
+    // the intermediate product has (local x element) shape
+    const BoundedMatrix<double, msLocalSize, msElementSize> K_d_intermediate =
+        prod(K_d, trans(S));
+    const BoundedMatrix<double, msElementSize, msElementSize> K_d_element =
+        prod(S, K_d_intermediate);
 
     // total K
     BoundedMatrix<double, msElementSize, msElementSize> K_total =

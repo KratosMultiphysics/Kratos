@@ -20,7 +20,8 @@
         "properties_id": 5,
         "Material": {
             "Variables": {
-                "PENALTY_FACTOR": 10000000
+                "PENALTY_FACTOR": 10000000,
+                "PENALTY_ROTATION_FACTOR": 10000000
             },
             "Tables": {}
         }

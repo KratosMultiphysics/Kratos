@@ -22,7 +22,7 @@
 #include "includes/kratos_parameters.h"
 #include "includes/model_part.h"
 #include "includes/mortar_classes.h"
-#include "spaces/ublas_space.h"
+#include "spaces/default_spaces.h"
 #include "linear_solvers/linear_solver.h"
 #include "utilities/atomic_utilities.h"
 #include "utilities/exact_mortar_segmentation_utility.h"
@@ -109,10 +109,10 @@ public:
     using DecompositionType = typename std::conditional<TDim == 2, LineType, TriangleType>::type;
 
     /// Type definition for sparse space type
-    using SparseSpaceType = UblasSpace<double, CompressedMatrix, Vector>;
+    using SparseSpaceType = TDefaultSparseSpace<double>;
 
     /// Type definition for local space type
-    using LocalSpaceType = UblasSpace<double, Matrix, Vector>;
+    using LocalSpaceType = TDefaultDenseSpace<double>;
 
     /// Type definition for matrix
     using MatrixType = typename SparseSpaceType::MatrixType;
@@ -183,7 +183,7 @@ public:
     SimpleMortarMapperProcess(
         ModelPart& rOriginModelPart,
         ModelPart& rDestinationModelPart,
-        TVarType& rThisVariable,
+        const TVarType& rThisVariable,
         Parameters ThisParameters = Parameters(R"({})" ),
         LinearSolverType::Pointer pThisLinearSolver = nullptr
         );
@@ -255,8 +255,8 @@ public:
      * @param Flag The flags to special settings. Right now does nothing
      */
     void Map(
-        TVarType& rOriginVariable,
-        TVarType& rDestinationVariable,
+        const TVarType& rOriginVariable,
+        const TVarType& rDestinationVariable,
         const Flags Flag = Flags()
         )
     {

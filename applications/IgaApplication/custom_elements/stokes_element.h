@@ -17,9 +17,8 @@
 // External includes
 
 // Project includes
-#include "includes/define.h"
 #include "includes/element.h"
-#include "includes/ublas_interface.h"
+#include "includes/default_interface.h"
 #include "includes/variables.h"
 #include "iga_application_variables.h"
 
@@ -228,10 +227,10 @@ protected:
         ConstitutiveVariables(const SizeType StrainSize)
         {
             if (StrainVector.size() != StrainSize)
-                StrainVector.resize(StrainSize);
+                StrainVector.resize(StrainSize, false);
 
             if (StressVector.size() != StrainSize)
-                StressVector.resize(StrainSize);
+                StressVector.resize(StrainSize, false);
 
             if (D.size1() != StrainSize || D.size2() != StrainSize)
                 D.resize(StrainSize, StrainSize);
@@ -306,13 +305,24 @@ private:
         Matrix& BDerivativeDy,
         const ShapeDerivativesType& r_DDN_DDX) const;
 
+    void CalculateBDerivativeDx3D(
+        Matrix& BDerivativeDx,
+        const ShapeDerivativesType& r_DDN_DDX) const;
+
+    void CalculateBDerivativeDy3D(
+        Matrix& BDerivativeDy,
+        const ShapeDerivativesType& r_DDN_DDX) const;
+
+    void CalculateBDerivativeDz3D(
+        Matrix& BDerivativeDz,
+        const ShapeDerivativesType& r_DDN_DDX) const;
+
     void GetSolutionCoefficientVector(
         Vector& rValues) const;
 
     ///@}
     ///@name Member Variables
     ///@{
-
 
     ///@}
     ///@name Serialization

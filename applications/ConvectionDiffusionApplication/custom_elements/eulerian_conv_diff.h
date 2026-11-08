@@ -12,24 +12,18 @@
 #if !defined(KRATOS_EULERIAN_CONVECTION_DIFFUSION_ELEMENT_INCLUDED )
 #define  KRATOS_EULERIAN_CONVECTION_DIFFUSION_ELEMENT_INCLUDED
 
-
 // System includes
-
 
 // External includes
 
-
 // Project includes
-#include "includes/define.h"
 #include "includes/element.h"
-#include "includes/ublas_interface.h"
+#include "includes/default_interface.h"
 #include "includes/variables.h"
 #include "includes/cfd_variables.h"
 #include "includes/serializer.h"
 #include "utilities/math_utils.h"
 #include "utilities/geometry_utilities.h"
-
-
 
 namespace Kratos
 {
@@ -119,6 +113,7 @@ protected:
         double density;
         double beta;
         double div_v;
+        double crosswind_constant;
 
         array_1d<double,TNumNodes> phi;
         array_1d<double,TNumNodes> phi_old;

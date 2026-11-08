@@ -842,6 +842,12 @@ public:
         PointLocalCoordinates( rResult, rPoint );
 
         if ( std::abs( rResult[0] ) <= (1.0 + Tolerance) ) {
+            // Check if point is too far away from the line, if so, return false
+            const double distance = this->CalculateDistance(rPoint, Tolerance);
+            const double length = Length();
+            if (distance > std::max(Tolerance, 1e-6 * length)) { 
+                return false;
+            }
             return true;
         }
 
@@ -880,7 +886,6 @@ public:
 
         // Project point
         const double tolerance = 1e-14; // Tolerance
-
         const double length = Length();
 
         const double length_1 = std::sqrt( std::pow(rPoint[0] - r_first_point[0], 2)

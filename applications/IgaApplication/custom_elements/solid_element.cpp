@@ -135,7 +135,6 @@ void SolidElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
     const unsigned int number_of_control_points = r_geometry.size();
 
      // reading integration points and local gradients
-    const Matrix& N_gausspoint = r_geometry.ShapeFunctionsValues(this->GetIntegrationMethod());
     const GeometryType::ShapeFunctionsGradientsType& r_DN_De = r_geometry.ShapeFunctionsLocalGradients(this->GetIntegrationMethod());
     const unsigned int dim = r_DN_De[0].size2();
     const SizeType mat_size = number_of_control_points * dim;
@@ -169,8 +168,6 @@ void SolidElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
     
     // Calculating the cartesian derivatives (it is avoided storing them to minimize storage)
     noalias(DN_DX) = prod(r_DN_De[0],InvJ0);
-
-    auto N = row(N_gausspoint,0); // these are the N which correspond to the gauss point "i_point"
 
     Matrix B = ZeroMatrix(dim,mat_size);
     CalculateB(B, DN_DX);

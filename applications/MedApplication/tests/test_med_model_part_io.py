@@ -7,6 +7,7 @@ from KratosMultiphysics.kratos_utilities import DeleteFileIfExisting
 from testing_utilities import MedModelPartIOTestCase, GetMedPath, get_num_geometries_by_type
 
 from pathlib import Path
+import tempfile
 
 
 class TestMedModelPartIO(MedModelPartIOTestCase):
@@ -39,7 +40,7 @@ class TestMedModelPartIO(MedModelPartIOTestCase):
             med_io_read_2.ReadModelPart(self.mp_read_2)
 
             KratosMed.MedTestingUtilities.CheckModelPartsAreEqual(
-                self.mp_read_1, self.mp_read_2, check_sub_model_parts=False  # until writing of SMPs is implemented
+                self.mp_read_1, self.mp_read_2, check_sub_model_parts=True
             )
 
     def test_empty_med_file(self):
@@ -242,6 +243,24 @@ class TestMedModelPartIO(MedModelPartIOTestCase):
                 self.assertTrue(0.0 <= node.Z0 <= 200.0)
 
         self._execute_tests(Path("hexahedral_27N"), mp_check_fct)
+
+    def test_write_read_empty_sub_model_parts(self):
+        # SubModelParts without nodes and geometries must also be kept
+        for node_id, coords in enumerate([(0, 0, 0), (1, 0, 0), (0, 1, 0), (0, 0, 1)], start=1):
+            self.mp_read_1.CreateNewNode(node_id, *coords)
+        self.mp_read_1.CreateNewGeometry("Tetrahedra3D4", 1, [1, 2, 3, 4])
+        self.mp_read_1.CreateSubModelPart("fixed").AddNodes([1, 2, 3])
+        self.mp_read_1.CreateSubModelPart("empty")
+        self.mp_read_1.GetSubModelPart("fixed").CreateSubModelPart("empty_child")
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            med_temp_path = Path(temp_dir) / "empty_sub_model_parts.med"
+            KratosMed.MedModelPartIO(med_temp_path, KM.IO.WRITE).WriteModelPart(self.mp_read_1)
+            KratosMed.MedModelPartIO(med_temp_path, KM.IO.READ).ReadModelPart(self.mp_read_2)
+
+        self.assertTrue(self.mp_read_2.HasSubModelPart("empty"))
+        self.assertTrue(self.mp_read_2.HasSubModelPart("fixed.empty_child"))
+        KratosMed.MedTestingUtilities.CheckModelPartsAreEqual(self.mp_read_1, self.mp_read_2, check_sub_model_parts=True)
 
 
 def write_vtk(model_part, name):

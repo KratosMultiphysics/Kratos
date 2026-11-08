@@ -21,7 +21,7 @@
 
 namespace Kratos::Python
 {
-void AddCustomProcessesToPython(pybind11::module& m);
+void AddCustomProcessesToPython(const pybind11::module& m);
 } // namespace Kratos::Python
 
 #endif // KRATOS_ADD_CUSTOM_PROCESSES_TO_PYTHON_H_INCLUDED  defined

@@ -142,6 +142,12 @@ public:
     ///@{
 
     /**
+     * @brief Construct an empty, invalid instance.
+     * @details Only intended for @ref Serializer::load to construct into before populating via @ref load.
+     */
+    CombinedTensorAdaptor();
+
+    /**
      * @brief Construct a new Combined Tensor Adaptor given list of @ref TensorAdaptor instances by raveling them.
      * @details This will construct a @ref CombinedTensorAdaptor by reveling all the tensor adaptors given in @p rTensorAdaptorVector.
      *          Final shape of the CombinedTensorAdaptor will be summation of @ref TensorAdaptor::Size() values from each tensor adaptor
@@ -156,7 +162,8 @@ public:
     CombinedTensorAdaptor(
         const TensorAdaptorVectorType& rTensorAdaptorVector,
         const bool PerformCollectDataRecursively = true,
-        const bool PerformStoreDataRecursively = true);
+        const bool PerformStoreDataRecursively = true,
+        const bool Copy = true);
 
     /**
      * @brief Construct a new Combined Tensor Adaptor  given list of @ref TensorAdaptor instances along the specified @p Axis.
@@ -189,7 +196,8 @@ public:
         const TensorAdaptorVectorType& rTensorAdaptorVector,
         const unsigned int Axis,
         const bool PerformCollectDataRecursively = true,
-        const bool PerformStoreDataRecursively = true);
+        const bool PerformStoreDataRecursively = true,
+        const bool Copy = true);
 
     /**
      * @brief Construct a new Combined Tensor Adaptor based on an existing @p rOther.
@@ -210,6 +218,11 @@ public:
     ///@}
     ///@name Public operations
     ///@{
+
+    /**
+     * @brief Clones the existing tensor adaptor.
+     */
+    typename TensorAdaptor<TDataType>::Pointer Clone() const override;
 
     /**
      * @brief Check if the necessary data is present in the underlying container.
@@ -248,13 +261,23 @@ private:
     ///@name Private member variables
     ///@{
 
-    const bool mPerformCollectDataRecursively;
+    bool mPerformCollectDataRecursively;
 
-    const bool mPerformStoreDataRecursively;
+    bool mPerformStoreDataRecursively;
 
-    const int mAxis;
+    int mAxis;
 
     TensorAdaptorVectorType mTensorAdaptors;
+
+    ///@}
+    ///@name Serialization
+    ///@{
+
+    friend class Serializer;
+
+    void save(Serializer& rSerializer) const override;
+
+    void load(Serializer& rSerializer) override;
 
     ///@}
 };

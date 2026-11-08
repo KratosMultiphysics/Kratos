@@ -4,10 +4,15 @@ about: Adding or modifying **documentation** or **code style**.
 
 ---
 
-**Description**
+## **Description**
+
 A brief description of the changes.
 
-**Changelog**
+### **Key changes**
+
+Detail of the key changes.
+
+## **Changelog**
 Please summarize the change in one line to generate the changelog:
 E.g.
 - Added doc for X

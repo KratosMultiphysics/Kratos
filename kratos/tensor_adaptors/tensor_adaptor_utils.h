@@ -26,6 +26,7 @@
 #include "includes/model_part.h"
 #include "utilities/data_type_traits.h"
 #include "utilities/container_io_utils.h"
+#include "tensor_adaptors/tensor_adaptor.h"
 
 namespace Kratos {
 
@@ -56,6 +57,26 @@ public:
     ///@}
     ///@name Public static operations
     ///@{
+
+    /**
+     * @brief Serializes a @ref VariablePointerType (variant index + variable name).
+     * @details Shared by every TensorAdaptor subtype that stores a @ref VariablePointerType, so the
+     *          variant-index dispatch is written once. See @ref LoadVariablePointer for the inverse.
+     */
+    static void SaveVariablePointer(
+        Serializer& rSerializer,
+        const std::string& rTag,
+        const VariablePointerType& rVariable);
+
+    /**
+     * @brief Deserializes a @ref VariablePointerType saved by @ref SaveVariablePointer.
+     * @details Reconstructs the pointer via @ref KratosComponents, matching @ref VariablesList::load's
+     *          by-name variable lookup.
+     */
+    static void LoadVariablePointer(
+        Serializer& rSerializer,
+        const std::string& rTag,
+        VariablePointerType& rVariable);
 
     /**
      * @brief Computes the shape of a tensor represented by a container of data elements.
@@ -255,6 +276,20 @@ public:
         data_type_traits::CopyFromContiguousData(zero, zeros.data());
         return zero;
     }
+
+    /**
+     * @brief Get the Nodal Neighbours Count Tensor Adaptor for nodes in specified model part
+     * @details This method returns number of conditions (if @p TContainerType is of @ref ModelPart::ConditionsContainerType ) or
+     *          number of elements (if @p TContainerType is of @ref ModelPart::ElementsContainerType ) around nodes in the @p rModelPart .
+     *
+     *          Returning @ref TensorAdaptor will be having the @p rModelPart nodes as the container.
+     *
+     * @tparam TContainerType
+     * @param rModelPart                    Model part on which the nodal neighbour count will be done.
+     * @return TensorAdaptor<int>::Pointer  Tensor adaptor containing the number of neighbours for each node.
+     */
+    template<class TContainerType>
+    static TensorAdaptor<int>::Pointer CreateNodalNeighboursCountTensorAdaptor(ModelPart& rModelPart);
 
     ///@}
 };

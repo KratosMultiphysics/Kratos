@@ -22,7 +22,7 @@ namespace Kratos
 class KRATOS_API(GEO_MECHANICS_APPLICATION) ThreeDimensional : public ConstitutiveLawDimension
 {
 public:
-    [[nodiscard]] Matrix CalculateElasticMatrix(const Properties& rProperties) const override;
+    [[nodiscard]] Matrix CalculateElasticConstitutiveTensor(const Properties& rProperties) const override;
     [[nodiscard]] std::unique_ptr<ConstitutiveLawDimension> Clone() const override;
     [[nodiscard]] std::size_t                               GetStrainSize() const override;
     [[nodiscard]] std::size_t                               GetDimension() const override;

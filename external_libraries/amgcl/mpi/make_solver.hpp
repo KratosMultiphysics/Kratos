@@ -32,11 +32,15 @@ THE SOFTWARE.
  */
 
 #include <iostream>
-
-#include <boost/property_tree/ptree.hpp>
 #include <memory>
 
 #include <mpi.h>
+
+// If asked explicitly, or if boost is available, enable
+// using boost::propert_tree::ptree as amgcl parameters:
+#ifndef AMGCL_NO_BOOST
+#  include <boost/property_tree/ptree.hpp>
+#endif
 
 #include <amgcl/util.hpp>
 #include <amgcl/mpi/inner_product.hpp>

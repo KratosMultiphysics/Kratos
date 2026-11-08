@@ -23,7 +23,7 @@
 #include "includes/define.h"
 #include "containers/model.h"
 #include "includes/model_part.h"
-#include "spaces/ublas_space.h"
+#include "spaces/default_spaces.h"
 
 /* Element include */
 #include "tests/test_utilities/test_element.h"
@@ -59,8 +59,8 @@ namespace Kratos
         // TODO: Create test for the other components
         typedef Node NodeType;
         typedef Geometry<NodeType> GeometryType;
-        typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
-        typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
+        typedef TDefaultSparseSpace<double> SparseSpaceType;
+        typedef TDefaultDenseSpace<double> LocalSpaceType;
 
         // The direct solver
         typedef Reorderer<SparseSpaceType,  LocalSpaceType > ReordererType;

@@ -24,7 +24,19 @@
 #include "geometries/triangle_2d_3.h"
 #include "geometries/tetrahedra_3d_4.h"
 
+#ifdef INCLUDE_MMG
+#include "custom_modelers/mmg/mmg_modeler.h"
+#endif
+
 namespace Kratos {
+
+#ifdef INCLUDE_MMG
+namespace {
+    const MmgModeler<MMGLibrary::MMG2D> sMmgModeler2D;
+    const MmgModeler<MMGLibrary::MMG3D> sMmgModeler3D;
+    const MmgModeler<MMGLibrary::MMGS>  sMmgModelerSurface;
+}
+#endif
 
 KratosMeshingApplication::KratosMeshingApplication()
     : KratosApplication("MeshingApplication"),
@@ -56,6 +68,12 @@ void KratosMeshingApplication::Register() {
 
     KRATOS_REGISTER_ELEMENT("TestElement2D", mTestElement2D);
     KRATOS_REGISTER_ELEMENT("TestElement3D", mTestElement3D);
+
+#ifdef INCLUDE_MMG
+    KRATOS_REGISTER_MODELER("MmgModeler2D",      sMmgModeler2D);
+    KRATOS_REGISTER_MODELER("MmgModeler3D",      sMmgModeler3D);
+    KRATOS_REGISTER_MODELER("MmgModelerSurface", sMmgModelerSurface);
+#endif
 }
 
 }  // namespace Kratos.

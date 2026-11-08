@@ -21,7 +21,7 @@
 
 // Project includes
 #include "includes/serializer.h"
-#include "includes/ublas_interface.h"
+#include "includes/default_interface.h"
 
 namespace Kratos
 {
@@ -591,6 +591,12 @@ public:
      * @return The vector value
      */
     Vector GetVector() const;
+
+    /**
+ * @brief This method returns the vector of vectors contained in the current Parameter
+ * @return The vector of vectors value
+ */
+    std::vector<Vector> GetVectorArray() const;
 
     /**
      * @brief This method returns the matrix contained in the current Parameter

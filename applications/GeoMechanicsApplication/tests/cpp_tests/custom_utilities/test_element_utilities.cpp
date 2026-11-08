@@ -16,12 +16,50 @@
 #include "geometries/line_2d_2.h"
 #include "includes/node.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
+#include "tests/cpp_tests/test_utilities.h"
 
 using namespace Kratos;
 
+namespace
+{
+struct Line2D2NGeometryWithVelocityVectorData {
+    Model                          model;
+    std::unique_ptr<Line2D2<Node>> p_geometry;
+    array_1d<double, 3>            velocity_vector{1.0, 0.5, -0.5};
+
+    Line2D2NGeometryWithVelocityVectorData()
+    {
+        ModelPart& r_model_part = model.CreateModelPart("Main");
+        r_model_part.AddNodalSolutionStepVariable(VELOCITY);
+        PointerVector<Node> nodes;
+        nodes.push_back(r_model_part.CreateNewNode(1, 0.0, 0.0, 0.0));
+        nodes.push_back(r_model_part.CreateNewNode(2, 5.0, 0.0, 0.0));
+        p_geometry = std::make_unique<Line2D2<Node>>(nodes);
+        for (auto& node : *p_geometry) {
+            node.FastGetSolutionStepValue(VELOCITY) = velocity_vector;
+        }
+    }
+
+    [[nodiscard]] Vector ExpectedVelocity2DFlat() const
+    {
+        auto result            = Vector(4);
+        subrange(result, 0, 2) = subrange(velocity_vector, 0, 2);
+        subrange(result, 2, 4) = subrange(velocity_vector, 0, 2);
+        return result;
+    }
+
+    [[nodiscard]] Vector ExpectedVelocity3DFlat() const
+    {
+        auto result            = Vector(6);
+        subrange(result, 0, 3) = velocity_vector;
+        subrange(result, 3, 6) = velocity_vector;
+        return result;
+    }
+};
+} // namespace
+
 namespace Kratos::Testing
 {
-
 KRATOS_TEST_CASE_IN_SUITE(ElementUtilities_ReturnsCorrectListOfShapeFunctionsValuesAtIntegrationPoints,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
@@ -44,6 +82,97 @@ KRATOS_TEST_CASE_IN_SUITE(ElementUtilities_ReturnsCorrectListOfShapeFunctionsVal
     for (std::size_t i = 0; i < expected_shape_function_values.size(); ++i) {
         KRATOS_CHECK_VECTOR_NEAR(expected_shape_function_values[i], shape_function_values[i], 1e-6);
     }
+}
+
+KRATOS_TEST_CASE_IN_SUITE(ElementUtilities_GetNodalVariableVector_Returns2DFlatVector, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    const auto     test_data       = Line2D2NGeometryWithVelocityVectorData();
+    constexpr auto dimension_2D    = std::size_t{2};
+    const auto     number_of_nodes = test_data.p_geometry->PointsNumber();
+
+    // Act
+    const auto actual_values_in_2D = GeoElementUtilities::GetNodalVariableVector(
+        *test_data.p_geometry, VELOCITY, dimension_2D, dimension_2D * number_of_nodes);
+
+    // Assert
+    KRATOS_EXPECT_VECTOR_NEAR(actual_values_in_2D, test_data.ExpectedVelocity2DFlat(),
+                              Testing::Defaults::relative_tolerance)
+}
+
+KRATOS_TEST_CASE_IN_SUITE(ElementUtilities_GetNodalVariableVector_Returns3DFlatVector, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    const auto     test_data       = Line2D2NGeometryWithVelocityVectorData();
+    constexpr auto dimension_3D    = std::size_t{3};
+    const auto     number_of_nodes = test_data.p_geometry->PointsNumber();
+
+    // Act
+    const auto actual_values_in_2D = GeoElementUtilities::GetNodalVariableVector(
+        *test_data.p_geometry, VELOCITY, dimension_3D, dimension_3D * number_of_nodes);
+
+    // Assert
+    KRATOS_EXPECT_VECTOR_NEAR(actual_values_in_2D, test_data.ExpectedVelocity3DFlat(),
+                              Testing::Defaults::relative_tolerance)
+}
+
+KRATOS_TEST_CASE_IN_SUITE(ElementUtilities_GetNodalVariableVector_Returns2DFlatArray, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    const auto     test_data       = Line2D2NGeometryWithVelocityVectorData();
+    constexpr auto dimension_2D    = std::size_t{2};
+    const auto     number_of_nodes = std::size_t{2};
+
+    // Act
+    auto actual_values_in_2D = array_1d<double, dimension_2D * number_of_nodes>();
+    GeoElementUtilities::GetNodalVariableVector<dimension_2D, number_of_nodes>(
+        actual_values_in_2D, *test_data.p_geometry, VELOCITY);
+
+    // Assert
+    ASSERT_EQ(number_of_nodes, test_data.p_geometry->PointsNumber());
+    KRATOS_EXPECT_VECTOR_NEAR(actual_values_in_2D, test_data.ExpectedVelocity2DFlat(),
+                              Testing::Defaults::relative_tolerance)
+}
+
+KRATOS_TEST_CASE_IN_SUITE(ElementUtilities_GetNodalVariableVector_Returns3DFlatArray, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    const auto     test_data       = Line2D2NGeometryWithVelocityVectorData();
+    constexpr auto dimension_3D    = std::size_t{3};
+    const auto     number_of_nodes = std::size_t{2};
+
+    // Act
+    auto actual_values_in_3D = array_1d<double, dimension_3D * number_of_nodes>();
+    GeoElementUtilities::GetNodalVariableVector<dimension_3D, number_of_nodes>(
+        actual_values_in_3D, *test_data.p_geometry, VELOCITY);
+
+    // Assert
+    ASSERT_EQ(number_of_nodes, test_data.p_geometry->PointsNumber());
+    KRATOS_EXPECT_VECTOR_NEAR(actual_values_in_3D, test_data.ExpectedVelocity3DFlat(),
+                              Testing::Defaults::relative_tolerance)
+}
+
+KRATOS_TEST_CASE_IN_SUITE(ElementUtilities_GetNodalVariableVector_ChecksDimension, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    const auto     test_data       = Line2D2NGeometryWithVelocityVectorData();
+    constexpr auto wrong_dimension = std::size_t{4};
+    const auto     number_of_nodes = test_data.p_geometry->PointsNumber();
+    // Act and Assert
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(GeoElementUtilities::GetNodalVariableVector(
+                                          *test_data.p_geometry, VELOCITY, wrong_dimension, number_of_nodes),
+                                      "Incorrect dimension value (4).");
+}
+
+KRATOS_TEST_CASE_IN_SUITE(ElementUtilities_GetNodalVariableVector_ChecksDOFs, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    const auto     test_data       = Line2D2NGeometryWithVelocityVectorData();
+    constexpr auto dimension_2D    = std::size_t{2};
+    const auto     number_of_nodes = test_data.p_geometry->PointsNumber();
+    // Act and Assert
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        GeoElementUtilities::GetNodalVariableVector(*test_data.p_geometry, VELOCITY, dimension_2D, number_of_nodes), "Mismatch between requested number of DOFs (2) and computed number of DOFs from nodal values (4).");
 }
 
 class ParametrizedVectorAssignAndAssembleFixture

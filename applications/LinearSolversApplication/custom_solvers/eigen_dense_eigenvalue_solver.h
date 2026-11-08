@@ -16,15 +16,15 @@
 // Project includes
 #include "includes/define.h"
 #include "linear_solvers_define.h"
-#include "spaces/ublas_space.h"
+#include "spaces/default_spaces.h"
 #include "utilities/builtin_timer.h"
 #include "linear_solvers/linear_solver.h"
 
 namespace Kratos {
 
 template <typename TScalar = double,
-          class TSparseSpaceType = TUblasDenseSpace<TScalar>,
-          class TDenseSpaceType = TUblasDenseSpace<TScalar>>
+          class TSparseSpaceType = TDefaultDenseSpace<TScalar>,
+          class TDenseSpaceType = TDefaultDenseSpace<TScalar>>
 class DenseEigenvalueSolver :
     public LinearSolver<TSparseSpaceType, TDenseSpaceType>
 {

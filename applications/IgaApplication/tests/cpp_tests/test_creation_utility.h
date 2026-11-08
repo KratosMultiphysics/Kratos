@@ -12,6 +12,7 @@
 #define  KRATOS_IGA_TEST_CREATION_UTILITY
 
 #include "geometries/geometry.h"
+#include "geometries/nurbs_volume_geometry.h"
 #include "geometries/nurbs_surface_geometry.h"
 #include "geometries/nurbs_curve_on_surface_geometry.h"
 
@@ -31,6 +32,7 @@ namespace TestCreationUtility
     typedef PointerVector<NodeType> NodeVector;
     typedef Geometry<NodeType> GeometryType;
     typedef NurbsSurfaceGeometry<3, NodeVector> NurbsSurfaceType;
+    typedef NurbsVolumeGeometry<NodeVector> NurbsVolumeType;
 
     ///@}
     ///@name Operations
@@ -179,6 +181,60 @@ namespace TestCreationUtility
 
         rModelPart.AddGeometry(p_nurbs_surface);
         rModelPart.AddGeometry(p_curve_nurbs_surface);
+
+        return result_geometries(0);
+    }
+
+    inline typename NurbsVolumeType::Pointer GenerateRectangularNurbsVolumeP2(
+        ModelPart& rModelPart,
+        const double LengthX = 2.0,
+        const double LengthY = 1.0,
+        const double LengthZ = 0.5)
+    {
+        constexpr SizeType polynomial_degree = 2;
+        Vector knot_u = ZeroVector(2 * (polynomial_degree + 1));
+        Vector knot_v = ZeroVector(2 * (polynomial_degree + 1));
+        Vector knot_w = ZeroVector(2 * (polynomial_degree + 1));
+
+        for (IndexType i = polynomial_degree + 1; i < knot_u.size(); ++i) {
+            knot_u[i] = 1.0;
+            knot_v[i] = 1.0;
+            knot_w[i] = 1.0;
+        }
+
+        NodeVector points((polynomial_degree + 1) * (polynomial_degree + 1) * (polynomial_degree + 1));
+
+        IndexType node_id = 1;
+        for (IndexType k = 0; k < polynomial_degree + 1; ++k) {
+            for (IndexType j = 0; j < polynomial_degree + 1; ++j) {
+                for (IndexType i = 0; i < polynomial_degree + 1; ++i) {
+                    const double x = LengthX * static_cast<double>(i) / static_cast<double>(polynomial_degree);
+                    const double y = LengthY * static_cast<double>(j) / static_cast<double>(polynomial_degree);
+                    const double z = LengthZ * static_cast<double>(k) / static_cast<double>(polynomial_degree);
+                    points(node_id - 1) = rModelPart.CreateNewNode(node_id, x, y, z);
+                    ++node_id;
+                }
+            }
+        }
+
+        return Kratos::make_shared<NurbsVolumeType>(
+            points, polynomial_degree, polynomial_degree, polynomial_degree, knot_u, knot_v, knot_w);
+    }
+
+    inline typename Geometry<NodeType>::Pointer GetQuadraturePointGeometryFromRectangularVolumeP2(
+        ModelPart& rModelPart,
+        IntegrationPoint<3> IntegrationPoint)
+    {
+        typename GeometryType::IntegrationPointsArrayType integration_points(1);
+        integration_points[0] = IntegrationPoint;
+        typename GeometryType::GeometriesArrayType result_geometries;
+
+        auto p_nurbs_volume = GenerateRectangularNurbsVolumeP2(rModelPart);
+        p_nurbs_volume->SetId(1);
+        IntegrationInfo integration_info = p_nurbs_volume->GetDefaultIntegrationInfo();
+        p_nurbs_volume->CreateQuadraturePointGeometries(
+            result_geometries, 2, integration_points, integration_info);
+        rModelPart.AddGeometry(p_nurbs_volume);
 
         return result_geometries(0);
     }

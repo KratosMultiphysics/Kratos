@@ -74,12 +74,25 @@ public:
         ProcessInfo::Pointer pProcessInfo,
         const bool Copy = true);
 
+    EquationIdsTensorAdaptor(const EquationIdsTensorAdaptor& rOther) = default;
+
+    /**
+     * @brief Construct an empty, invalid instance.
+     * @details Only intended for @ref Serializer::load to construct into before populating via @ref load.
+     */
+    EquationIdsTensorAdaptor() = default;
+
     // Destructor
     ~EquationIdsTensorAdaptor() override = default;
 
     ///@}
     ///@name Public operations
     ///@{
+
+    /**
+     * @brief Clones the existing tensor adaptor.
+     */
+    TensorAdaptor::Pointer Clone() const override;
 
     /**
      * @brief Fill the internal data from Kratos data structures
@@ -105,6 +118,16 @@ private:
     ///@{
 
     ProcessInfo::Pointer mpProcessInfo;
+
+    ///@}
+    ///@name Serialization
+    ///@{
+
+    friend class Serializer;
+
+    void save(Serializer& rSerializer) const override;
+
+    void load(Serializer& rSerializer) override;
 
     ///@}
 };

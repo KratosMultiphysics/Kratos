@@ -149,19 +149,49 @@ public:
     {
         double max_length = 0.0;
 
-        const auto& r_coord_1 = rGeometry[0].GetInitialPosition();
-        const auto& r_coord_2 = rGeometry[1].GetInitialPosition();
-        const auto& r_coord_3 = rGeometry[2].GetInitialPosition();
+        if (rGeometry.PointsNumber() == 3) {
+            const auto& r_coord_1 = rGeometry[0].GetInitialPosition();
+            const auto& r_coord_2 = rGeometry[1].GetInitialPosition();
+            const auto& r_coord_3 = rGeometry[2].GetInitialPosition();
 
-        const double length_12 = norm_2(r_coord_2 - r_coord_1);
-        const double length_23 = norm_2(r_coord_3 - r_coord_2);
-        const double length_31 = norm_2(r_coord_1 - r_coord_3);
+            const double length_12 = norm_2(r_coord_2 - r_coord_1);
+            const double length_23 = norm_2(r_coord_3 - r_coord_2);
+            const double length_31 = norm_2(r_coord_1 - r_coord_3);
 
-        max_length = std::max(length_12, length_23);
-        max_length = std::max(max_length, length_31);
+            max_length = std::max(length_12, length_23);
+            max_length = std::max(max_length, length_31);
 
+        } else if (rGeometry.PointsNumber() == 4) {
+            const auto& r_coord_1 = rGeometry[0].GetInitialPosition();
+            const auto& r_coord_2 = rGeometry[1].GetInitialPosition();
+            const auto& r_coord_3 = rGeometry[2].GetInitialPosition();
+            const auto& r_coord_4 = rGeometry[3].GetInitialPosition();
+
+            const double length_12 = norm_2(r_coord_2 - r_coord_1);
+            const double length_23 = norm_2(r_coord_3 - r_coord_2);
+            const double length_34 = norm_2(r_coord_4 - r_coord_3);
+            const double length_41 = norm_2(r_coord_1 - r_coord_4);
+
+            max_length = std::max(length_12, length_23);
+            max_length = std::max(max_length, length_34);
+            max_length = std::max(max_length, length_41);
+        } else {
+            KRATOS_ERROR << "GetMaxReferenceEdgeLength not implemented for geometries with " << rGeometry.PointsNumber() << " nodes." << std::endl;
+        }
         return max_length;
     }
+
+    /**
+     * @brief Returns the value of a specified variable (double)
+     * @param rParameterValues the needed parameters for the CL calculation
+     * @param rThisVariable the variable to be returned
+     * @param rValue a reference to the returned value
+     * @param rValue output: the value of the specified variable
+     */
+    double& CalculateValue(
+        ConstitutiveLaw::Parameters& rParameterValues,
+        const Variable<double>& rThisVariable,
+        double& rValue) override;
 
 protected:
 

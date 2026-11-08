@@ -28,7 +28,7 @@ Serializer::RegisteredObjectsContainerType Serializer::msRegisteredObjects;
 
 Serializer::RegisteredObjectsNameContainerType Serializer::msRegisteredObjectsName;
 
-VariableData* Serializer::GetVariableData(std::string const & VariableName)
+const VariableData* Serializer::GetVariableData(std::string const & VariableName)
 {
     return KratosComponents<VariableData>::pGet(VariableName);
 }
@@ -45,7 +45,7 @@ void Serializer::SeekBegin() {
     mpBuffer->seekg(0, mpBuffer->beg);
 }
 
-/// Sets the pointer of the stream buffer at tht end 
+/// Sets the pointer of the stream buffer at tht end
 void Serializer::SeekEnd() {
     mpBuffer->seekg(0, mpBuffer->end);
 }

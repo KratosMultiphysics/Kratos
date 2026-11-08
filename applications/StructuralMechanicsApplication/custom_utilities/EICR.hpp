@@ -320,7 +320,7 @@ public:
             noalias(Hi) += eta * prod(omega, omega);
 
             range i_range(index + 3, index + 6);
-            project(H, i_range, i_range) = Hi;
+            noalias(project(H, i_range, i_range)) = Hi;
         }
 
         return H;
@@ -396,7 +396,7 @@ public:
 
             noalias(Li) = prod(LiTemp1, project(rH, i_range, i_range));
 
-            project(L, i_range, i_range) = Li;
+            noalias(project(L, i_range, i_range)) = Li;
         }
 
         return L;

@@ -85,12 +85,25 @@ public:
         const int StepIndex = 0,
         const bool Copy = true);
 
+    HistoricalVariableTensorAdaptor(const HistoricalVariableTensorAdaptor& rOther) = default;
+
+    /**
+     * @brief Construct an empty, invalid instance.
+     * @details Only intended for @ref Serializer::load to construct into before populating via @ref load.
+     */
+    HistoricalVariableTensorAdaptor() : mStepIndex(0) {}
+
     // Destructor
     ~HistoricalVariableTensorAdaptor() override = default;
 
     ///@}
     ///@name Public operations
     ///@{
+
+    /**
+     * @brief Clones the existing tensor adaptor.
+     */
+    TensorAdaptor::Pointer Clone() const override;
 
     /**
      * @brief Checks if the given variable is available and the buffer size is enough in each node.
@@ -126,7 +139,17 @@ private:
 
     VariablePointerType mpVariable;
 
-    const int mStepIndex;
+    int mStepIndex;
+
+    ///@}
+    ///@name Serialization
+    ///@{
+
+    friend class Serializer;
+
+    void save(Serializer& rSerializer) const override;
+
+    void load(Serializer& rSerializer) override;
 
     ///@}
 };

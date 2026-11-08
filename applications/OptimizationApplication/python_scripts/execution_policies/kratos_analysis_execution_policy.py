@@ -95,39 +95,39 @@ class KratosAnalysisExecutionPolicy(ExecutionPolicy):
         unbuffered_data = ComponentDataView(self, self.optimization_problem).GetUnBufferedData()
         for model_part in self.model_parts:
             for variable in self.nodal_solution_step_data_variables:
-                nodal_field = Kratos.Expression.NodalExpression(model_part)
-                Kratos.Expression.VariableExpressionIO.Read(nodal_field, variable, True)
-                unbuffered_data.SetValue(variable.Name(), nodal_field.Clone(), overwrite=True)
+                nodal_field = Kratos.TensorAdaptors.HistoricalVariableTensorAdaptor(model_part.Nodes, variable)
+                nodal_field.CollectData()
+                unbuffered_data.SetValue(variable.Name(), nodal_field, overwrite=True)
             for variable in self.nodal_data_value_variables:
-                nodal_field = Kratos.Expression.NodalExpression(model_part)
-                Kratos.Expression.VariableExpressionIO.Read(nodal_field, variable, False)
-                unbuffered_data.SetValue(variable.Name(), nodal_field.Clone(), overwrite=True)
+                nodal_field = Kratos.TensorAdaptors.VariableTensorAdaptor(model_part.Nodes, variable)
+                nodal_field.CollectData()
+                unbuffered_data.SetValue(variable.Name(), nodal_field, overwrite=True)
 
             for variable in self.element_data_value_variables:
-                elem_field = Kratos.Expression.ElementExpression(model_part)
-                Kratos.Expression.VariableExpressionIO.Read(elem_field, variable)
-                unbuffered_data.SetValue(variable.Name(), elem_field.Clone(), overwrite=True)
+                elem_field = Kratos.TensorAdaptors.VariableTensorAdaptor(model_part.Elements, variable)
+                elem_field.CollectData()
+                unbuffered_data.SetValue(variable.Name(), elem_field, overwrite=True)
             for variable in self.element_properties_value_variables:
-                elem_field = Kratos.Expression.ElementExpression(model_part)
-                KratosOA.PropertiesVariableExpressionIO.Read(elem_field, variable)
-                unbuffered_data.SetValue(variable.Name(), elem_field.Clone(), overwrite=True)
+                elem_field = KratosOA.TensorAdaptors.PropertiesVariableTensorAdaptor(model_part.Elements, variable)
+                elem_field.CollectData()
+                unbuffered_data.SetValue(variable.Name(), elem_field, overwrite=True)
             for variable in self.element_integration_point_value_variables:
-                elem_field = Kratos.Expression.ElementExpression(model_part)
-                Kratos.Expression.IntegrationPointExpressionIO.Read(elem_field, variable)
-                unbuffered_data.SetValue(variable.Name(), elem_field.Clone(), overwrite=True)
+                elem_field = Kratos.TensorAdaptors.GaussPointVariableTensorAdaptor(model_part.Elements, variable, model_part.ProcessInfo)
+                elem_field.CollectData()
+                unbuffered_data.SetValue(variable.Name(), elem_field, overwrite=True)
 
             for variable in self.condition_data_value_variables:
-                cond_field = Kratos.Expression.ConditionExpression(model_part)
-                Kratos.Expression.VariableExpressionIO.Read(cond_field, variable)
-                unbuffered_data.SetValue(variable.Name(), cond_field.Clone(), overwrite=True)
+                cond_field = Kratos.TensorAdaptors.VariableTensorAdaptor(model_part.Conditions, variable)
+                cond_field.CollectData()
+                unbuffered_data.SetValue(variable.Name(), cond_field, overwrite=True)
             for variable in self.condition_properties_value_variables:
-                cond_field = Kratos.Expression.ConditionExpression(model_part)
-                KratosOA.PropertiesVariableExpressionIO.Read(cond_field, variable)
-                unbuffered_data.SetValue(variable.Name(), cond_field.Clone(), overwrite=True)
+                cond_field = KratosOA.TensorAdaptors.PropertiesVariableTensorAdaptor(model_part.Conditions, variable)
+                cond_field.CollectData()
+                unbuffered_data.SetValue(variable.Name(), cond_field, overwrite=True)
             for variable in self.condition_integration_point_value_variables:
-                cond_field = Kratos.Expression.ConditionExpression(model_part)
-                Kratos.Expression.IntegrationPointExpressionIO.Read(cond_field, variable)
-                unbuffered_data.SetValue(variable.Name(), cond_field.Clone(), overwrite=True)
+                cond_field = Kratos.TensorAdaptors.GaussPointVariableTensorAdaptor(model_part.Conditions, variable, model_part.ProcessInfo)
+                cond_field.CollectData()
+                unbuffered_data.SetValue(variable.Name(), cond_field, overwrite=True)
 
     @staticmethod
     def __GetVariablesList(variable_names_list: 'list[str]') -> 'list[Any]':

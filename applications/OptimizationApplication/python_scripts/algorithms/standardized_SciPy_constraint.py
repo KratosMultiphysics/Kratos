@@ -1,5 +1,4 @@
 import KratosMultiphysics as Kratos
-import KratosMultiphysics.OptimizationApplication as KratosOA
 from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem import OptimizationProblem
 from KratosMultiphysics.OptimizationApplication.responses.response_routine import ResponseRoutine
 from KratosMultiphysics.OptimizationApplication.controls.master_control import MasterControl
@@ -52,8 +51,8 @@ class StandardizedSciPyConstraint(ResponseRoutine):
 
     def CalculateStandardizedValue(self, x:np.array, save_data: bool = True) -> float:
         control_field = self.GetMasterControl().GetEmptyField()
-        shape = [c.GetItemShape() for c in control_field.GetContainerExpressions()]
-        KratosOA.CollectiveExpressionIO.Read(control_field, x, shape)
+        control_field.data[:] = x
+        Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor(control_field, perform_store_data_recursively=False, copy=False).StoreData()
 
         with TimeLogger(f"StandardizedObjective::Calculate {self.GetResponseName()} value", None, "Finished"):
             response_value = self.CalculateValue(control_field)
@@ -81,36 +80,36 @@ class StandardizedSciPyConstraint(ResponseRoutine):
         self.CalculateStandardizedValue(x, False)  # Compute new primal if x has changed. Does nothing if x the same.
 
         with TimeLogger(f"StandardizedObjective::Calculate {self.GetResponseName()} gradients", None, "Finished"):
-            gradient_collective_expression = self.CalculateGradient()
+            gradient_combined_tensor_adaptor = self.CalculateGradient()
             if save_field:
                 # save the physical gradients for post processing in unbuffered data container.
                 for physical_var, physical_gradient in self.GetRequiredPhysicalGradients().items():
-                    for physical_gradient_expression in physical_gradient.GetContainerExpressions():
-                        variable_name = f"d{self.GetResponseName()}_d{physical_var.Name()}_{physical_gradient_expression.GetModelPart().Name}"
+                    for physical_gradient_ta in physical_gradient.GetTensorAdaptors():
+                        variable_name = f"d{self.GetResponseName()}_d{physical_var.Name()}"
                         if self.__unbuffered_data.HasValue(variable_name): del self.__unbuffered_data[variable_name]
                         # cloning is a cheap operation, it only moves underlying pointers
                         # does not create additional memory.
-                        self.__unbuffered_data[variable_name] = physical_gradient_expression.Clone()
+                        self.__unbuffered_data[variable_name] = physical_gradient_ta.Clone()
 
                 # save the filtered gradients for post processing in unbuffered data container.
-                for gradient_container_expression, control in zip(gradient_collective_expression.GetContainerExpressions(), self.GetMasterControl().GetListOfControls()):
-                    variable_name = f"d{self.GetResponseName()}_d{control.GetName()}_{physical_gradient_expression.GetModelPart().Name}"
+                for gradient_ta, control in zip(gradient_combined_tensor_adaptor.GetTensorAdaptors(), self.GetMasterControl().GetListOfControls()):
+                    variable_name = f"d{self.GetResponseName()}_d{control.GetName()}"
                     if self.__unbuffered_data.HasValue(variable_name): del self.__unbuffered_data[variable_name]
                     # cloning is a cheap operation, it only moves underlying pointers
                     # does not create additional memory.
-                    self.__unbuffered_data[variable_name] = gradient_container_expression.Clone()
-                    
-        return gradient_collective_expression.Evaluate().reshape(-1)
+                    self.__unbuffered_data[variable_name] = gradient_ta.Clone()
+
+        return gradient_combined_tensor_adaptor.data.reshape(-1)
 
     def GetValue(self, step_index: int = 0) -> float:
         return self.__buffered_data.GetValue("value", step_index)
 
     def GetStandardizedValue(self, step_index: int = 0) -> float:
         return self.GetValue(step_index) - self.GetStandardizedReferenceValue()
-    
+
     def GetUpperBound(self):
         return self.upper_bound
-    
+
     def GetLowerBound(self):
         return self.lower_bound
 

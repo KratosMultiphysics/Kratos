@@ -116,7 +116,7 @@ namespace Kratos
 		ModelPart::ElementIterator ElemEnd;
 		OpenMPUtils::PartitionedIterators(mrModelPart.Elements(), ElemBegin, ElemEnd);
 		double ModelPartVolume = 0;
-		if (mUnactiveSliverElements == true)
+		if (mUnactiveSliverElements)
 		{
 			MesherUtilities MesherUtils;
 			ModelPartVolume = MesherUtils.ComputeModelPartVolume(mrModelPart);
@@ -129,7 +129,7 @@ namespace Kratos
 			unsigned int numNodes = itElem->GetGeometry().size();
 
 			// ELIMINATION CHECK FOR SLIVERS
-			if (mUnactiveSliverElements == true && numNodes == (dimension + 1))
+			if (mUnactiveSliverElements && numNodes == (dimension + 1))
 			{
 				double ElementalVolume = 0;
 				if (dimension == 2)
@@ -152,15 +152,9 @@ namespace Kratos
 				{
 					sliverEliminationCriteria = true;
 					sliversDetectedFromVolume++;
-					// std::cout << "RESET ACTIVE FOR THIS SLIVER! \t";
-					// std::cout << "its volume is " << ElementalVolume << " vs CriticalVolume " << CriticalVolume <<"number of elements= "<<mrModelPart.Elements().size()<<std::endl;
-					// for (unsigned int i = 0; i < numNodes; i++)
-					// {
-					// 	itElem->GetGeometry()[i].Set(ACTIVE,true);
-					// }
 				}
 
-				if (sliverEliminationCriteria == false && dimension == 3)
+				if (!sliverEliminationCriteria && dimension == 3)
 				{
 
 					array_1d<double, 3> nodeA = itElem->GetGeometry()[0].Coordinates();
@@ -229,7 +223,7 @@ namespace Kratos
 			}
 
 			// ELIMINATION CHECK FOR PEAK ELEMENTS (those annoying elements created by pfem remeshing and placed bewteen the free-surface and the walls)
-			if (mUnactivePeakElements == true && sliverEliminationCriteria == false)
+			if (mUnactivePeakElements && !sliverEliminationCriteria)
 			{
 				double scalarProduct = 1.0;
 				bool doNotErase = false;
@@ -246,7 +240,7 @@ namespace Kratos
 						doNotErase = true;
 						// break;
 					}
-					else if (itElem->GetGeometry()[i].Is(RIGID) && itElem->GetGeometry()[i].IsNot(SOLID) && itElem->GetGeometry()[i].Is(FREE_SURFACE) && doNotErase == false)
+					else if (itElem->GetGeometry()[i].Is(RIGID) && itElem->GetGeometry()[i].IsNot(SOLID) && itElem->GetGeometry()[i].Is(FREE_SURFACE) && !doNotErase)
 					{
 						peakElementsEliminationCriteria = true;
 						const array_1d<double, 3> &wallVelocity = itElem->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY);
@@ -327,7 +321,7 @@ namespace Kratos
 				}
 			}
 			// ELIMINATION CHECK FOR ELEMENTS FORMED BY WALL PARTICLES ONLY (this is included for computational efficiency purpose also in the previous peak element check)
-			else if (mUnactivePeakElements == false)
+			else if (!mUnactivePeakElements)
 			{
 				unsigned int elementRigidNodes = 0;
 				for (unsigned int i = 0; i < numNodes; i++)
@@ -346,7 +340,7 @@ namespace Kratos
 				}
 			}
 
-			if (sliverEliminationCriteria == true || peakElementsEliminationCriteria == true || wallElementsEliminationCriteria == true)
+			if (sliverEliminationCriteria || peakElementsEliminationCriteria || wallElementsEliminationCriteria)
 			{
 				(itElem)->Set(ACTIVE, false);
 			}

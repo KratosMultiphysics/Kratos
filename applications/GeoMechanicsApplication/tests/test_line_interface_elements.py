@@ -164,7 +164,7 @@ class KratosGeoMechanicsInterfaceElementTests(KratosUnittest.TestCase):
 
         os.chdir(initial_cwd)
 
-    def assert_results_of_multi_stage_test_with_reset_displacement(self, stage, displacement_vector):
+    def assert_results_of_multi_stage_test_with_reset_totals(self, stage, displacement_vector):
         expected_displacement_vectors = [[0.0, 0.0, 0.0]] * 3  # the first three nodes have been fixed
         expected_displacement_vectors += [displacement_vector] * 3  # the last three nodes have prescribed non-zero displacements
         self.assertVectorsAlmostEqual(test_helper.get_displacement(stage), expected_displacement_vectors)
@@ -175,8 +175,8 @@ class KratosGeoMechanicsInterfaceElementTests(KratosUnittest.TestCase):
         self.assertVectorsAlmostEqual(test_helper.get_on_integration_points(stage, KratosGeo.GEO_RELATIVE_DISPLACEMENT_VECTOR)[0],
                                       expected_relative_displacement_vectors)
 
-    def test_multi_stage_3_plus_3_line_interface_element_with_neumann_conditions_and_reset_displacements(self):
-        file_path = test_helper.get_file_path(os.path.join('line_interface_elements', 'Neumann_multi_stage_reset_displacements'))
+    def test_multi_stage_3_plus_3_line_interface_element_with_neumann_conditions_and_reset_totals(self):
+        file_path = test_helper.get_file_path(os.path.join('line_interface_elements', 'Neumann_multi_stage_reset_totals'))
 
         initial_directory = os.getcwd()
         os.chdir(file_path)
@@ -187,7 +187,7 @@ class KratosGeoMechanicsInterfaceElementTests(KratosUnittest.TestCase):
             stage = test_helper.make_geomechanics_analysis(self.model, os.path.join(file_path, file_name))
             stage.Run()
 
-            self.assert_results_of_multi_stage_test_with_reset_displacement(stage, displacement_vector)
+            self.assert_results_of_multi_stage_test_with_reset_totals(stage, displacement_vector)
 
         os.chdir(initial_directory)
 

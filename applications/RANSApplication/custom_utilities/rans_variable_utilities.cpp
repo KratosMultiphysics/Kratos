@@ -123,7 +123,7 @@ void GetNodalVariablesVector(
     const int number_of_nodes = rNodes.size();
 
     if (static_cast<int>(rValues.size()) != number_of_nodes) {
-        rValues.resize(number_of_nodes);
+        rValues.resize(number_of_nodes, false);
     }
 
     IndexPartition<int>(number_of_nodes).for_each([&](const int i_node) {
@@ -140,7 +140,7 @@ void GetNodalArray(
     std::size_t number_of_nodes = r_geometry.PointsNumber();
 
     if (rNodalValues.size() != number_of_nodes) {
-        rNodalValues.resize(number_of_nodes);
+        rNodalValues.resize(number_of_nodes, false);
     }
 
     for (std::size_t i_node = 0; i_node < number_of_nodes; ++i_node) {

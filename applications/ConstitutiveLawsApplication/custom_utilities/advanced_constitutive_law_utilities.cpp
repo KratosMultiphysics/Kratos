@@ -1034,6 +1034,48 @@ BoundedMatrix<double, 3, 3> AdvancedConstitutiveLawUtilities<TVoigtSize>::Calcul
     return P / 3.0;
 }
 
+/***********************************************************************************/
+/***********************************************************************************/
+
+template <SizeType TVoigtSize>
+double AdvancedConstitutiveLawUtilities<TVoigtSize>::GetMaxReferenceEdgeLengthForShell(
+    const GeometryType& rGeometry
+    )
+{
+    double max_length = 0.0;
+
+    if (rGeometry.PointsNumber() == 3) {
+        const auto& r_coord_1 = rGeometry[0].GetInitialPosition();
+        const auto& r_coord_2 = rGeometry[1].GetInitialPosition();
+        const auto& r_coord_3 = rGeometry[2].GetInitialPosition();
+
+        const double length_12 = norm_2(r_coord_2 - r_coord_1);
+        const double length_23 = norm_2(r_coord_3 - r_coord_2);
+        const double length_31 = norm_2(r_coord_1 - r_coord_3);
+
+        max_length = std::max({length_12, length_23, length_31});
+
+    } else if (rGeometry.PointsNumber() == 4) {
+        const auto& r_coord_1 = rGeometry[0].GetInitialPosition();
+        const auto& r_coord_2 = rGeometry[1].GetInitialPosition();
+        const auto& r_coord_3 = rGeometry[2].GetInitialPosition();
+        const auto& r_coord_4 = rGeometry[3].GetInitialPosition();
+
+        const double length_12 = norm_2(r_coord_2 - r_coord_1);
+        const double length_23 = norm_2(r_coord_3 - r_coord_2);
+        const double length_34 = norm_2(r_coord_4 - r_coord_3);
+        const double length_41 = norm_2(r_coord_1 - r_coord_4);
+
+        max_length = std::max({length_12, length_23, length_34, length_41});
+    } else {
+        KRATOS_ERROR << "This shell constitutive law is compatible with elements of 3 and 4 nodes only..." << std::endl;
+    }
+
+    return max_length;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
 
 template class AdvancedConstitutiveLawUtilities<3>;
 template class AdvancedConstitutiveLawUtilities<6>;

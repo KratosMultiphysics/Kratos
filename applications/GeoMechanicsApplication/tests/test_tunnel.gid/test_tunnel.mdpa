@@ -3145,7 +3145,7 @@ Begin Nodes
 End Nodes
 
 
-Begin Elements GeoCrBeamElementLinear2D2N
+Begin Elements LinearTimoshenkoBeamElement2D2N
   1  1  1537 1535
   2  1  1535 1533
   3  1  1533 1531

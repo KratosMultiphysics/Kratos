@@ -38,17 +38,33 @@ namespace {
 } // namespace
 
 template<class TDataType>
+CombinedTensorAdaptor<TDataType>::CombinedTensorAdaptor()
+    : mPerformCollectDataRecursively(true),
+      mPerformStoreDataRecursively(true),
+      mAxis(-1)
+{
+}
+
+template<class TDataType>
 CombinedTensorAdaptor<TDataType>::CombinedTensorAdaptor(
     const TensorAdaptorVectorType& rTensorAdaptorVector,
     const unsigned int Axis,
     const bool PerformCollectDataRecursively,
-    const bool PerformStoreDataRecursively)
+    const bool PerformStoreDataRecursively,
+    const bool Copy)
     : mPerformCollectDataRecursively(PerformCollectDataRecursively),
       mPerformStoreDataRecursively(PerformStoreDataRecursively),
-      mAxis(Axis),
-      mTensorAdaptors(rTensorAdaptorVector)
+      mAxis(Axis)
 {
     KRATOS_TRY
+
+    for (const auto& p_tensor_adaptor : rTensorAdaptorVector) {
+        if (Copy) {
+            mTensorAdaptors.push_back(p_tensor_adaptor->Clone());
+        } else {
+            mTensorAdaptors.push_back(p_tensor_adaptor);
+        }
+    }
 
     // It is not allowed to create combined tensor adaptors with empty list of tensor adaptors vector
     KRATOS_ERROR_IF(rTensorAdaptorVector.empty())
@@ -110,13 +126,21 @@ template<class TDataType>
 CombinedTensorAdaptor<TDataType>::CombinedTensorAdaptor(
     const TensorAdaptorVectorType& rTensorAdaptorVector,
     const bool PerformCollectDataRecursively,
-    const bool PerformStoreDataRecursively)
+    const bool PerformStoreDataRecursively,
+    const bool Copy)
     : mPerformCollectDataRecursively(PerformCollectDataRecursively),
       mPerformStoreDataRecursively(PerformStoreDataRecursively),
-      mAxis(-1), // represent that this combined tensor adaptor is used with ravel
-      mTensorAdaptors(rTensorAdaptorVector)
+      mAxis(-1) // represent that this combined tensor adaptor is used with ravel
 {
     KRATOS_TRY
+
+    for (const auto& p_tensor_adaptor : rTensorAdaptorVector) {
+        if (Copy) {
+            mTensorAdaptors.push_back(p_tensor_adaptor->Clone());
+        } else {
+            mTensorAdaptors.push_back(p_tensor_adaptor);
+        }
+    }
 
     // this combined tensor will have everything raveled. Therefore, it will only have one dimension.
     DenseVector<unsigned int> tensor_shape(1);
@@ -141,9 +165,25 @@ CombinedTensorAdaptor<TDataType>::CombinedTensorAdaptor(
     : BaseType(rOther, Copy),
       mPerformCollectDataRecursively(PerformCollectDataRecursively),
       mPerformStoreDataRecursively(PerformStoreDataRecursively),
-      mAxis(rOther.mAxis),
-      mTensorAdaptors(rOther.mTensorAdaptors)
+      mAxis(rOther.mAxis)
 {
+    KRATOS_TRY
+
+    for (const auto& p_tensor_adaptor : rOther.mTensorAdaptors) {
+        if (Copy) {
+            mTensorAdaptors.push_back(p_tensor_adaptor->Clone());
+        } else {
+            mTensorAdaptors.push_back(p_tensor_adaptor);
+        }
+    }
+
+    KRATOS_CATCH("");
+}
+
+template<class TDataType>
+typename TensorAdaptor<TDataType>::Pointer CombinedTensorAdaptor<TDataType>::Clone() const
+{
+    return Kratos::make_shared<CombinedTensorAdaptor<TDataType>>(*this, this->mPerformCollectDataRecursively, this->mPerformStoreDataRecursively);
 }
 
 template<class TDataType>
@@ -313,6 +353,45 @@ std::string CombinedTensorAdaptor<TDataType>::Info() const
     }
     info << "\n]";
     return info.str();
+}
+
+template<class TDataType>
+void CombinedTensorAdaptor<TDataType>::save(Serializer& rSerializer) const
+{
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, BaseType);
+
+    rSerializer.save("PerformCollectDataRecursively", mPerformCollectDataRecursively);
+    rSerializer.save("PerformStoreDataRecursively", mPerformStoreDataRecursively);
+    rSerializer.save("Axis", mAxis);
+
+    const std::size_t size = mTensorAdaptors.size();
+    rSerializer.save("Size", size);
+    for (std::size_t i = 0; i < size; ++i) {
+        rSerializer.save("TA", mTensorAdaptors[i]);
+    }
+}
+
+template<class TDataType>
+void CombinedTensorAdaptor<TDataType>::load(Serializer& rSerializer)
+{
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, BaseType);
+
+    rSerializer.load("PerformCollectDataRecursively", mPerformCollectDataRecursively);
+    rSerializer.load("PerformStoreDataRecursively", mPerformStoreDataRecursively);
+    rSerializer.load("Axis", mAxis);
+
+    std::size_t size;
+    rSerializer.load("Size", size);
+    // load(shared_ptr&) creates the saved type only for a null target, otherwise it loads through the
+    // existing child's type, so clear stale children first. DataOnly mode is the opposite: it reads
+    // nothing into a null target and relies on prebuilt children, so keep them.
+    if (!rSerializer.IsDataOnly()) {
+        mTensorAdaptors.clear();
+    }
+    mTensorAdaptors.resize(size);
+    for (std::size_t i = 0; i < size; ++i) {
+        rSerializer.load("TA", mTensorAdaptors[i]);
+    }
 }
 
 // template instantiations

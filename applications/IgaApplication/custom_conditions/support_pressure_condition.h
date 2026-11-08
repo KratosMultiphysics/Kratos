@@ -33,7 +33,6 @@ public:
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(SupportPressureCondition);
 
     /// Size types
-    typedef std::size_t SizeType;
     typedef std::size_t IndexType;
 
     /// Type for shape function derivatives container

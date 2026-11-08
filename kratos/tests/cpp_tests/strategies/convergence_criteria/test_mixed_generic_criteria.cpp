@@ -22,14 +22,14 @@
 #include "includes/define.h"
 #include "includes/model_part.h"
 #include "solving_strategies/convergencecriterias/mixed_generic_criteria.h"
-#include "spaces/ublas_space.h"
+#include "spaces/default_spaces.h"
 
 namespace Kratos::Testing
 {
 using NodeType = Node;
 using GeometryType = Geometry<NodeType>;
-using LocalSpaceType = UblasSpace<double, Matrix, Vector>;
-using SparseSpaceType = UblasSpace<double, CompressedMatrix, Vector>;
+using LocalSpaceType = TDefaultDenseSpace<double>;
+using SparseSpaceType = TDefaultSparseSpace<double>;
 
 using DofsArrayType = ModelPart::DofsArrayType;
 
@@ -74,8 +74,8 @@ KRATOS_TEST_CASE_IN_SUITE(MixedGenericCriteriaDoubleDouble, KratosCoreFastSuite)
     // Create the mixed generic criteria
     const double rel_tol = 1.0e-3;
     const double abs_tol = 1.0e-5;
-    VariableData* p_pres = &PRESSURE;
-    VariableData* p_temp = &TEMPERATURE;
+    const VariableData* p_pres = &PRESSURE;
+    const VariableData* p_temp = &TEMPERATURE;
     ConvergenceVariableListType convergence_settings;
     convergence_settings.push_back(std::make_tuple(p_pres, rel_tol, abs_tol));
     convergence_settings.push_back(std::make_tuple(p_temp, rel_tol, abs_tol));
@@ -133,8 +133,8 @@ KRATOS_TEST_CASE_IN_SUITE(MixedGenericCriteriaDoubleVector, KratosCoreFastSuite)
     // Create the mixed generic criteria
     const double rel_tol = 1.0e-3;
     const double abs_tol = 1.0e-5;
-    VariableData* p_pres = &PRESSURE;
-    VariableData* p_temp = &VELOCITY;
+    const VariableData* p_pres = &PRESSURE;
+    const VariableData* p_temp = &VELOCITY;
     ConvergenceVariableListType convergence_settings;
     convergence_settings.push_back(std::make_tuple(p_pres, rel_tol, abs_tol));
     convergence_settings.push_back(std::make_tuple(p_temp, rel_tol, abs_tol));

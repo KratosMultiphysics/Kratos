@@ -190,7 +190,7 @@ struct inner_product_impl<
     typedef typename value_type<V1>::type real;
     static real get(const V1 &x, const V2 &y)
     {
-        return x.dot(y);
+        return y.dot(x);
     }
 };
 

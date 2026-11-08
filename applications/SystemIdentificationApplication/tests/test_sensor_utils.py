@@ -1,3 +1,4 @@
+import numpy as np
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.SystemIdentificationApplication as KratosSI
 import KratosMultiphysics.KratosUnittest as UnitTest
@@ -73,35 +74,45 @@ class TestSensorUtils(UnitTest.TestCase):
 
         cls.sensors = CreateSensors(cls.sensor_model_part, cls.model_part, parameters)
 
-        nodal_exp = Kratos.Expression.NodalExpression(cls.model_part)
-        Kratos.Expression.VariableExpressionIO.Read(nodal_exp, Kratos.DISPLACEMENT, True)
+        nodal_ta = Kratos.TensorAdaptors.HistoricalVariableTensorAdaptor(cls.model_part.Nodes, Kratos.DISPLACEMENT)
+        nodal_ta.CollectData()
 
-        elemental_exp = Kratos.Expression.ElementExpression(cls.model_part)
-        Kratos.Expression.VariableExpressionIO.Read(elemental_exp, Kratos.PRESSURE)
+        elemental_ta = Kratos.TensorAdaptors.VariableTensorAdaptor(cls.model_part.Elements, Kratos.PRESSURE)
+        elemental_ta.CollectData()
 
         for sensor in cls.sensors:
-            sensor.AddContainerExpression("nodal_exp", nodal_exp * (sensor.GetNode().Id))
-            sensor.AddContainerExpression("element_exp", elemental_exp * (sensor.GetNode(). Id ** 2))
+            ta = nodal_ta.Clone()
+            ta.data[:] *= sensor.GetNode().Id
+            sensor.AddTensorAdaptor("nodal_ta", ta)
+
+            ta = elemental_ta.Clone()
+            ta.data[:] *= sensor.GetNode(). Id ** 2
+            sensor.AddTensorAdaptor("element_ta", ta)
 
     def test_CreateSensorView(self):
         n_nodes = self.model_part.NumberOfNodes()
         for sensor in self.sensors:
-            nodal_sensor_view: KratosSI.Sensors.NodalSensorView = KratosSI.SensorUtils.CreateSensorView(sensor, "nodal_exp")
-            self.assertAlmostEqual((3 * n_nodes * (n_nodes + 1) / 2 + 3 * n_nodes) * sensor.GetNode().Id, Kratos.Expression.Utils.Sum(nodal_sensor_view.GetContainerExpression()))
+            nodal_sensor_view = KratosSI.Sensors.SensorView(sensor, "nodal_ta")
+            self.assertAlmostEqual((3 * n_nodes * (n_nodes + 1) / 2 + 3 * n_nodes) * sensor.GetNode().Id, np.sum(nodal_sensor_view.GetTensorAdaptor().data))
 
-            element_sensor_view: KratosSI.Sensors.ElementSensorView = KratosSI.SensorUtils.CreateSensorView(sensor, "element_exp")
-            self.assertAlmostEqual(110 * sensor.GetNode().Id ** 2, Kratos.Expression.Utils.Sum(element_sensor_view.GetContainerExpression()))
+            element_sensor_view = KratosSI.Sensors.SensorView(sensor, "element_ta")
+            self.assertAlmostEqual(110 * sensor.GetNode().Id ** 2, np.sum(element_sensor_view.GetTensorAdaptor().data))
 
-    def test_SensorViewAuxiliaryExps(self):
+    def test_SensorViewAuxiliaryTensorAdaptors(self):
         for sensor in self.sensors:
-            nodal_sensor_view: KratosSI.Sensors.NodalSensorView = KratosSI.SensorUtils.CreateSensorView(sensor, "nodal_exp")
-            nodal_sensor_view.AddAuxiliaryExpression("mapped_id", nodal_sensor_view.GetContainerExpression() * sensor.GetNode().Id)
-            nodal_sensor_view.AddAuxiliaryExpression("mapped_id_square", nodal_sensor_view.GetContainerExpression() * sensor.GetNode().Id ** 2)
+            nodal_sensor_view = KratosSI.Sensors.SensorView(sensor, "nodal_ta")
+            ta = nodal_sensor_view.GetTensorAdaptor().Clone()
+            ta.data[:] *= sensor.GetNode().Id
+            nodal_sensor_view.AddAuxiliaryTensorAdaptor("mapped_id", ta)
+
+            ta = nodal_sensor_view.GetTensorAdaptor().Clone()
+            ta.data[:] *= sensor.GetNode().Id ** 2
+            nodal_sensor_view.AddAuxiliaryTensorAdaptor("mapped_id_square", ta)
 
             self.assertIn("mapped_id", nodal_sensor_view.GetAuxiliarySuffixes())
             self.assertIn("mapped_id_square", nodal_sensor_view.GetAuxiliarySuffixes())
-            self.assertEqual(Kratos.Expression.Utils.NormInf(nodal_sensor_view.GetAuxiliaryExpression("mapped_id") - nodal_sensor_view.GetContainerExpression() * sensor.GetNode().Id), 0.0)
-            self.assertEqual(Kratos.Expression.Utils.NormInf(nodal_sensor_view.GetAuxiliaryExpression("mapped_id_square") - nodal_sensor_view.GetContainerExpression() * sensor.GetNode().Id ** 2), 0.0)
+            self.assertEqual(np.linalg.norm(nodal_sensor_view.GetAuxiliaryTensorAdaptor("mapped_id").data - nodal_sensor_view.GetTensorAdaptor().data[:] * sensor.GetNode().Id), 0.0)
+            self.assertEqual(np.linalg.norm(nodal_sensor_view.GetAuxiliaryTensorAdaptor("mapped_id_square").data - nodal_sensor_view.GetTensorAdaptor().data[:] * sensor.GetNode().Id ** 2), 0.0)
 
     def test_SetGetSensors(self):
         opt_prob = OptimizationProblem()

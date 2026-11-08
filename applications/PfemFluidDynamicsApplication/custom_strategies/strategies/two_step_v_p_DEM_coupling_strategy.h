@@ -209,6 +209,7 @@ namespace Kratos
       ModelPart &rModelPart = BaseType::GetModelPart();
       ProcessInfo &rCurrentProcessInfo = rModelPart.GetProcessInfo();
       const double TimeStep = rCurrentProcessInfo[DELTA_TIME];
+      const double HalfTimeStep = 0.5*TimeStep;
 
       for (ModelPart::NodeIterator i = rModelPart.NodesBegin();
            i != rModelPart.NodesEnd(); ++i)
@@ -226,14 +227,9 @@ namespace Kratos
           const double &previousFluidFraction = (i)->FastGetSolutionStepValue(FLUID_FRACTION_OLD);
           double &currentFluidFractionRate = (i)->FastGetSolutionStepValue(FLUID_FRACTION_RATE);
 
-          /* if( i->IsFixed(DISPLACEMENT_X) == false ) */
-          CurrentDisplacement[0] = 0.5 * TimeStep * (CurrentVelocity[0] + PreviousVelocity[0]) + PreviousDisplacement[0];
-
-          /* if( i->IsFixed(DISPLACEMENT_Y) == false ) */
-          CurrentDisplacement[1] = 0.5 * TimeStep * (CurrentVelocity[1] + PreviousVelocity[1]) + PreviousDisplacement[1];
-
-          /* if( i->IsFixed(DISPLACEMENT_Z) == false ) */
-          CurrentDisplacement[2] = 0.5 * TimeStep * (CurrentVelocity[2] + PreviousVelocity[2]) + PreviousDisplacement[2];
+          CurrentDisplacement[0] = HalfTimeStep * (CurrentVelocity[0] + PreviousVelocity[0]) + PreviousDisplacement[0];
+          CurrentDisplacement[1] = HalfTimeStep * (CurrentVelocity[1] + PreviousVelocity[1]) + PreviousDisplacement[1];
+          CurrentDisplacement[2] = HalfTimeStep * (CurrentVelocity[2] + PreviousVelocity[2]) + PreviousDisplacement[2];
 
           currentFluidFractionRate = (currentFluidFraction - previousFluidFraction) / TimeStep;
         }

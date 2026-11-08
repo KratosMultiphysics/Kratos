@@ -17,7 +17,7 @@
 // External includes
 
 // Project includes
-#include "includes/ublas_interface.h"
+#include "includes/default_interface.h"
 #include "includes/element.h"
 
 // Application includes
@@ -54,7 +54,8 @@ public:
         Node::Pointer pNode,
         const array_1d<double, 3>& rDirection,
         const Element& rElement,
-        const double Weight);
+        const double Weight,
+        const double ErrorThreshold = Sensor::DefaultErrorThreshold);
 
     /// Destructor.
     ~DisplacementSensor() override = default;

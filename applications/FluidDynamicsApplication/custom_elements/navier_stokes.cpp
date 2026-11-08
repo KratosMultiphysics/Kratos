@@ -1032,10 +1032,6 @@ void NavierStokes<3>::ComputeGaussPointRHSContribution(
     const array_1d<double,nnodes>& N = data.N;
     const BoundedMatrix<double,nnodes,dim>& DN = data.DN_DX;
 
-    // Auxiliary variables used in the calculation of the RHS
-    const array_1d<double,dim> f_gauss = prod(trans(f), N);
-    const array_1d<double,dim> grad_p = prod(trans(DN), p);
-
     // Stabilization parameters
     constexpr double stab_c1 = 4.0;
     constexpr double stab_c2 = 2.0;
@@ -1135,10 +1131,6 @@ void NavierStokes<2>::ComputeGaussPointRHSContribution(
     const array_1d<double,nnodes>& N = data.N;
     const BoundedMatrix<double,nnodes,dim>& DN = data.DN_DX;
 
-    // Auxiliary variables used in the calculation of the RHS
-    const array_1d<double,dim> f_gauss = prod(trans(f), N);
-    const array_1d<double,dim> grad_p = prod(trans(DN), p);
-
     // Stabilization parameters
     constexpr double stab_c1 = 4.0;
     constexpr double stab_c2 = 2.0;
@@ -1213,8 +1205,6 @@ double NavierStokes<3>::SubscaleErrorEstimate(const ElementDataStruct& data)
     // Auxiliary variables used in the calculation of the error estimator
     array_1d<double,dim> v_s_gauss;
     const array_1d<double,dim> v_gauss = prod(trans(v), N);
-    const array_1d<double,dim> f_gauss = prod(trans(f), N);
-    const array_1d<double,dim> grad_p = prod(trans(DN), p);
 
     // Stabilization parameters
     constexpr double stab_c1 = 4.0;
@@ -1268,8 +1258,6 @@ double NavierStokes<2>::SubscaleErrorEstimate(const ElementDataStruct& data)
     // Auxiliary variables used in the calculation of the error estimator
     array_1d<double,dim> v_s_gauss;
     const array_1d<double,dim> v_gauss = prod(trans(v), N);
-    const array_1d<double,dim> f_gauss = prod(trans(f), N);
-    const array_1d<double,dim> grad_p = prod(trans(DN), p);
 
     // Stabilization parameters
     constexpr double stab_c1 = 4.0;

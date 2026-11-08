@@ -551,11 +551,12 @@ public:
             // between the current and previous step
             rStiffnessMatrix = rStiffnessMatrixPrevious - rStiffnessMatrix;
 
-            // Symmetrice matrices if enabled
-            // The ublas transpose function is called manually, because it is missing in the corresponding space
+            // Symmetrize matrices if enabled
+            // Unqualified trans() resolves to the uBLAS template or the Eigen
+            // compat overload depending on the configured backend matrix type
             if( mMakeMatricesSymmetricFlag ){
-                rStiffnessMatrix = 0.5 * ( rStiffnessMatrix + boost::numeric::ublas::trans(rStiffnessMatrix) );
-                rStiffnessMatrixPrevious = 0.5 * ( rStiffnessMatrixPrevious + boost::numeric::ublas::trans(rStiffnessMatrixPrevious) );
+                rStiffnessMatrix = 0.5 * ( rStiffnessMatrix + trans(rStiffnessMatrix) );
+                rStiffnessMatrixPrevious = 0.5 * ( rStiffnessMatrixPrevious + trans(rStiffnessMatrixPrevious) );
             }
 
             this->pGetEigenSolver()->GetLinearSystemSolver()->Solve(

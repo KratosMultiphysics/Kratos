@@ -19,18 +19,18 @@ namespace Kratos
 {
 using namespace std::string_literals;
 
-CalculateTotalMotionProcess::CalculateTotalMotionProcess(ModelPart& rModelPart, const Parameters& rParameters)
+CalculateTotalMotionProcess::CalculateTotalMotionProcess(ModelPart& rModelPart, const Parameters& rSettings)
     : Process(Flags()), mrModelPart{rModelPart}
 {
-    if (rParameters["variable_name"].GetString() == "DISPLACEMENT") {
+    if (rSettings["variable_name"].GetString() == "DISPLACEMENT") {
         mResultsVariableName     = "TOTAL_DISPLACEMENT";
         mIncrementalVariableName = "INCREMENTAL_DISPLACEMENT";
-    } else if (rParameters["variable_name"].GetString() == "ROTATION") {
+    } else if (rSettings["variable_name"].GetString() == "ROTATION") {
         mResultsVariableName     = "TOTAL_ROTATION";
         mIncrementalVariableName = "INCREMENTAL_ROTATION";
 
     } else {
-        KRATOS_ERROR << "Invalid variable name: " << rParameters["variable_name"].GetString()
+        KRATOS_ERROR << "Invalid variable name: " << rSettings["variable_name"].GetString()
                      << ". Expected DISPLACEMENT or ROTATION." << std::endl;
     }
 }

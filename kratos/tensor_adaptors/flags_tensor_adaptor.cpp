@@ -83,6 +83,11 @@ void FlagsTensorAdaptor::Check() const
     KRATOS_CATCH("");
 }
 
+TensorAdaptor<int>::Pointer FlagsTensorAdaptor::Clone() const
+{
+    return Kratos::make_shared<FlagsTensorAdaptor>(*this);
+}
+
 void FlagsTensorAdaptor::CollectData()
 {
     std::visit([this](auto pContainer) {
@@ -147,6 +152,18 @@ std::string FlagsTensorAdaptor::Info() const
     info << "FlagsTensorAdaptor:";
     info << " " << BaseType::Info();
     return info.str();
+}
+
+void FlagsTensorAdaptor::save(Serializer& rSerializer) const
+{
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, BaseType);
+    rSerializer.save("Flags", mFlags);
+}
+
+void FlagsTensorAdaptor::load(Serializer& rSerializer)
+{
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, BaseType);
+    rSerializer.load("Flags", mFlags);
 }
 
 // template instantiations

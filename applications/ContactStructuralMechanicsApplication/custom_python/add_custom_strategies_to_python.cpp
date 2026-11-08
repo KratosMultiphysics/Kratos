@@ -19,7 +19,7 @@
 #include "includes/define_python.h"
 #include "custom_python/process_factory_utility.h"
 #include "custom_python/add_custom_strategies_to_python.h"
-#include "spaces/ublas_space.h"
+#include "spaces/default_spaces.h"
 
 /* Strategies */
 #include "solving_strategies/strategies/implicit_solving_strategy.h"
@@ -69,8 +69,8 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
     using ProcessesListType = ProcessFactoryUtility::Pointer;
     using ConditionNumberUtilityPointerType = ConditionNumberUtility::Pointer;
 
-    using SparseSpaceType = UblasSpace<double, CompressedMatrix, Vector>;
-    using LocalSpaceType = UblasSpace<double, Matrix, Vector>;
+    using SparseSpaceType = TDefaultSparseSpace<double>;
+    using LocalSpaceType = TDefaultDenseSpace<double>;
     using BaseSchemeType = Scheme<SparseSpaceType, LocalSpaceType>;
 
     // Base types

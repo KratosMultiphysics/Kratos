@@ -29,17 +29,22 @@ namespace Kratos
 class KRATOS_API(GEO_MECHANICS_APPLICATION) GeoTransportEquationUtilities
 {
 public:
-    template <unsigned int TDim, unsigned int TNumNodes>
+    // The permeability matrix parameter is generic: most elements pass a
+    // TDim x TDim BoundedMatrix, but the piping element passes a 1 x 1
+    // dynamic Matrix (a uBLAS bounded_matrix used to absorb that through its
+    // runtime-size-within-capacity semantics, which the fixed-size Eigen
+    // bounded type does not have). The intermediate product is staged on a
+    // dynamic Matrix for the same reason.
+    template <unsigned int TDim, unsigned int TNumNodes, class TPermeabilityMatrixType>
     static inline BoundedMatrix<double, TNumNodes, TNumNodes> CalculatePermeabilityMatrix(
-        const Matrix&                            rGradNpT,
-        double                                   DynamicViscosityInverse,
-        const BoundedMatrix<double, TDim, TDim>& rMaterialPermeabilityMatrix,
-        double                                   RelativePermeability,
-        double                                   IntegrationCoefficient)
+        const Matrix&                  rGradNpT,
+        double                         DynamicViscosityInverse,
+        const TPermeabilityMatrixType& rMaterialPermeabilityMatrix,
+        double                         RelativePermeability,
+        double                         IntegrationCoefficient)
     {
         return -PORE_PRESSURE_SIGN_FACTOR * DynamicViscosityInverse *
-               prod(rGradNpT, BoundedMatrix<double, TDim, TNumNodes>(
-                                  prod(rMaterialPermeabilityMatrix, trans(rGradNpT)))) *
+               prod(rGradNpT, Matrix(prod(rMaterialPermeabilityMatrix, trans(rGradNpT)))) *
                RelativePermeability * IntegrationCoefficient;
     }
 
@@ -55,8 +60,7 @@ public:
 
         std::vector<array_1d<double, TDim>> fluid_fluxes;
         fluid_fluxes.reserve(number_of_integration_points);
-        array_1d<double, TNumNodes> pressure_vector;
-        VariablesUtilities::GetNodalValues(rGeometry, WATER_PRESSURE, pressure_vector.begin());
+        const auto pressure_vector = VariablesUtilities::GetNodalValues<TNumNodes>(rGeometry, WATER_PRESSURE);
         Matrix N_container(number_of_integration_points, TNumNodes);
         N_container = rGeometry.ShapeFunctionsValues(IntegrationMethod);
         BoundedMatrix<double, TDim, TDim> permeability_matrix;
@@ -175,6 +179,12 @@ public:
                                                                         const std::vector<double>& DerivativesOfSaturation,
                                                                         const Properties& rProperties);
 
+    [[nodiscard]] static std::vector<double> CalculateInverseBiotModuli(const std::vector<double>& rBiotCoefficients,
+                                                                        const std::vector<double>& rDegreesOfSaturation,
+                                                                        const std::vector<double>& DerivativesOfSaturation,
+                                                                        double BulkModulusFluid,
+                                                                        const Properties& rProperties);
+
     [[nodiscard]] static double CalculateBulkModulus(const Matrix& rConstitutiveMatrix);
 
     [[nodiscard]] static std::vector<double> CalculateBiotCoefficients(const std::vector<Matrix>& rConstitutiveMatrices,
@@ -192,6 +202,7 @@ private:
     [[nodiscard]] static double CalculateInverseBiotModulus(double BiotCoefficient,
                                                             double DegreeOfSaturation,
                                                             double DerivativeOfSaturation,
+                                                            double BulkModulusFluid,
                                                             const Properties& rProperties);
 
     [[nodiscard]] static double CalculatePermeabilityUpdateFactor(const Vector&     rStrainVector,

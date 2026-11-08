@@ -1,5 +1,4 @@
 import KratosMultiphysics as Kratos
-import KratosMultiphysics.OptimizationApplication as KratosOA
 from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem import OptimizationProblem
 from KratosMultiphysics.OptimizationApplication.utilities.logger_utilities import time_decorator
 from KratosMultiphysics.OptimizationApplication.algorithms.algorithm_steepest_descent import AlgorithmSteepestDescent
@@ -37,17 +36,25 @@ class AlgorithmNesterovAcceleratedGradient(AlgorithmSteepestDescent):
         self.eta = self.parameters["settings"]["eta"].GetDouble()
 
     @time_decorator()
-    def ComputeControlUpdate(self, alpha):
+    def ComputeControlUpdate(self, alpha: Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor):
         # compute the correction part from momentum point
-        search_direction = self.algorithm_data.GetBufferedData()["search_direction"]
-        update = KratosOA.ExpressionUtils.Scale(search_direction, alpha)
+        search_direction: Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor = self.algorithm_data.GetBufferedData()["search_direction"]
+        update = Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor(search_direction, perform_collect_data_recursively=False, perform_store_data_recursively=False)
+        update.data[:] *= alpha.data[:]
+        update.StoreData()
         # add momentum to the correction update to compute new momentum point.
         if self.prev_update:
-            mom_update = update + self.prev_update * self.eta
-            self.algorithm_data.GetBufferedData()["control_field_update"] = update + mom_update * self.eta
+            mom_update = Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor(update, perform_store_data_recursively=False)
+            mom_update.data[:] += self.prev_update.data * self.eta
+            mom_update.StoreData()
+            control_field_update = Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor(mom_update, perform_store_data_recursively=False)
+            control_field_update.data[:] = update.data + mom_update.data * self.eta
+            control_field_update.StoreData()
+            self.algorithm_data.GetBufferedData()["control_field_update"] = control_field_update
             self.prev_update = mom_update
         else:
-            self.algorithm_data.GetBufferedData()["control_field_update"] = update * (1 + self.eta)
+            control_field_update = Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor(update, perform_store_data_recursively=False)
+            control_field_update.data[:] = update.data * (1 + self.eta)
+            control_field_update.StoreData()
+            self.algorithm_data.GetBufferedData()["control_field_update"] = control_field_update
             self.prev_update = update
-
-        self.prev_update = KratosOA.ExpressionUtils.Collapse(self.prev_update)

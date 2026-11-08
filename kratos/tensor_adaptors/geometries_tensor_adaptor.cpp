@@ -54,6 +54,8 @@ DenseVector<unsigned int> GeometriesTensorAdaptor::GetShape(
             return ZeroVector(3); // N_elem, N_gauss, N_node
         if (Datum == GeometriesTensorAdaptor::DatumType::ShapeFunctionDerivatives)
             return ZeroVector(4); // N_elem, N_gauss, N_node, Dim
+        if (Datum == GeometriesTensorAdaptor::DatumType::Normals)
+            return ZeroVector(3); // N_elem, N_gauss, Dim
         if (Datum == GeometriesTensorAdaptor::DatumType::Jacobians)
             return ZeroVector(4); // N_elem, N_gauss, Dim, LocalDim
         if (Datum == GeometriesTensorAdaptor::DatumType::IntegrationWeights)
@@ -89,6 +91,13 @@ DenseVector<unsigned int> GeometriesTensorAdaptor::GetShape(
         shape[1] = n_gauss;
         shape[2] = n_node;
         shape[3] = working_dim;
+        return shape;
+    } else if (Datum == GeometriesTensorAdaptor::DatumType::Normals) {
+        // [N_elem, N_gauss, WorkingDim]
+        DenseVector<unsigned int> shape(3);
+        shape[0] = n_elem;
+        shape[1] = n_gauss;
+        shape[2] = 3;
         return shape;
     } else if (Datum == GeometriesTensorAdaptor::DatumType::Jacobians) {
         // [N_elem, N_gauss, WorkingDim, LocalDim]
@@ -170,26 +179,38 @@ void GeometriesTensorAdaptor::CollectShapeFunctionsDerivatives(
     IndexPartition<std::size_t>(n_elem).for_each([&](std::size_t i) {
         const auto& r_geometry = GetGeometry(*(rContainer.begin() + i));
 
-        Geometry<Node>::ShapeFunctionsGradientsType DN_De;
-        r_geometry.ShapeFunctionsIntegrationPointsGradients(DN_De, Method);
-
-        Geometry<Node>::JacobiansType J;
-        r_geometry.Jacobian(J, Method);
+        Geometry<Node>::ShapeFunctionsGradientsType DN_Dx;
+        r_geometry.ShapeFunctionsIntegrationPointsGradients(DN_Dx, Method);
 
         for (std::size_t g = 0; g < n_gauss; ++g) {
-            Matrix InvJ;
-            double DetJ;
-            const Matrix& J_g = J[g];
-            MathUtils<double>::GeneralizedInvertMatrix(J_g, InvJ, DetJ);
-
-            const Matrix& DN_De_g = DN_De[g];
-            Matrix DN_DX_g = prod(DN_De_g, InvJ);
-
             for (std::size_t n = 0; n < n_node; ++n) {
                 for (std::size_t k = 0; k < dim; ++k) {
                     pData[i * n_gauss * n_node * dim + g * n_node * dim +
-                          n * dim + k] = DN_DX_g(n, k);
+                          n * dim + k] = DN_Dx[g](n, k);
                 }
+            }
+        }
+    });
+}
+
+template <class TContainerType>
+void GeometriesTensorAdaptor::CollectNormals(
+    double* pData,
+    const TContainerType& rContainer,
+    GeometryData::IntegrationMethod Method,
+    const DenseVector<unsigned int>& Shape)
+{
+    const std::size_t n_geom = Shape[0];
+    const std::size_t n_gauss = Shape[1];
+
+    array_1d<double, 3> tls_normal;
+    IndexPartition<std::size_t>(n_geom).for_each(tls_normal, [&](std::size_t i, array_1d<double, 3>& rTLS) {
+        const auto& r_geometry = GetGeometry(*(rContainer.begin() + i));
+
+        for (std::size_t g = 0; g < n_gauss; ++g) {
+            rTLS = r_geometry.Normal(g, Method);
+            for (std::size_t d = 0; d < 3; ++d) {
+                pData[i * n_gauss * 3 + g * 3 + d] = rTLS[d];
             }
         }
     });
@@ -239,6 +260,8 @@ void GeometriesTensorAdaptor::FillData(double* pData,
     } else if (Datum ==
                GeometriesTensorAdaptor::DatumType::ShapeFunctionDerivatives) {
         CollectShapeFunctionsDerivatives(pData, rContainer, Method, Shape);
+    } else if (Datum == GeometriesTensorAdaptor::DatumType::Normals) {
+        CollectNormals(pData, rContainer, Method, Shape);
     } else if (Datum == GeometriesTensorAdaptor::DatumType::Jacobians) {
         CollectJacobians(pData, rContainer, Method, Shape);
     } else if (Datum == GeometriesTensorAdaptor::DatumType::IntegrationWeights) {
@@ -297,13 +320,15 @@ GeometriesTensorAdaptor::GeometriesTensorAdaptor(
     *mpContainer);
 }
 
+TensorAdaptor<double>::Pointer GeometriesTensorAdaptor::Clone() const
+{
+    return Kratos::make_shared<GeometriesTensorAdaptor>(*this);
+}
+
 void GeometriesTensorAdaptor::Check() const {}
 
 void GeometriesTensorAdaptor::CollectData()
 {
-    if (!mpStorage)
-        return;
-
     std::visit(
         [this](auto &&p_container)
     {
@@ -312,10 +337,10 @@ void GeometriesTensorAdaptor::CollectData()
         {
             auto method = GetIntegrationMethod(*p_container, mIntegrationMethod);
             FillData(this->ViewData().data(), *p_container, mDatum, method,
-                     mpStorage->Shape());
+                     this->Shape());
         }
     },
-    *mpContainer);
+    this->GetContainer());
 }
 
 void GeometriesTensorAdaptor::StoreData()
@@ -326,7 +351,25 @@ void GeometriesTensorAdaptor::StoreData()
 
 std::string GeometriesTensorAdaptor::Info() const
 {
-    return "GeometriesTensorAdaptor";
+    return "GeometriesTensorAdaptor: " + BaseType::Info();
+}
+
+void GeometriesTensorAdaptor::save(Serializer& rSerializer) const
+{
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, BaseType);
+    rSerializer.save("Datum", static_cast<int>(mDatum));
+    rSerializer.save("IntegrationMethod", static_cast<int>(mIntegrationMethod));
+}
+
+void GeometriesTensorAdaptor::load(Serializer& rSerializer)
+{
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, BaseType);
+    int datum, integration_method;
+    rSerializer.load("Datum", datum);
+    rSerializer.load("IntegrationMethod", integration_method);
+    mDatum = static_cast<DatumType>(datum);
+    mIntegrationMethod = static_cast<GeometryData::IntegrationMethod>(integration_method);
 }
 
 } // namespace Kratos
+

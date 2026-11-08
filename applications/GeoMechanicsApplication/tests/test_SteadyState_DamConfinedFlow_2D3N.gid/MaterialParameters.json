@@ -7,7 +7,7 @@
               "name"             :  "GeoLinearElasticPlaneStrain2DLaw" 
           },
           "Variables": {
-              "IGNORE_UNDRAINED"         :  false,
+              "GEO_DRAINAGE_TYPE"        :  "FULLY_COUPLED",
               "BIOT_COEFFICIENT"         :  1.0,
               "YOUNG_MODULUS"            :  1e9,
               "POISSON_RATIO"            :  0.0,

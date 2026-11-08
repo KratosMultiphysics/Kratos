@@ -7,22 +7,23 @@
 //
 //  License:         geo_mechanics_application/license.txt
 //
-//
 //  Main authors:    Anne van de Graaf
 //
 
-#include "custom_constitutive/geo_sigma_tau.hpp"
+#include "custom_constitutive/sigma_tau.hpp"
 #include "custom_utilities/ublas_utilities.h"
 #include "includes/expect.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite_without_kernel.h"
 #include "tests/cpp_tests/test_utilities.h"
+
+#include <vector>
 
 namespace Kratos::Testing
 {
 
 TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, SigmaTau_HasZeroesAsValuesWhenDefaultConstructed)
 {
-    KRATOS_EXPECT_VECTOR_NEAR(Geo::SigmaTau().Values(), Vector(2, 0.0), Defaults::absolute_tolerance);
+    KRATOS_EXPECT_VECTOR_NEAR(Geo::SigmaTau().Values(), (std::vector{0.0, 0.0}), Defaults::absolute_tolerance);
     EXPECT_NEAR(Geo::SigmaTau{}.Sigma(), 0.0, Defaults::absolute_tolerance);
     EXPECT_NEAR(Geo::SigmaTau{}.Tau(), 0.0, Defaults::absolute_tolerance);
 }
@@ -32,8 +33,9 @@ class TestSigmaTauFixture : public ::testing::Test
 {
 };
 
-using TestVectorTypes = ::testing::Types<Vector, BoundedVector<double, 2>, std::vector<double>>;
-TYPED_TEST_SUITE(TestSigmaTauFixture, TestVectorTypes);
+using VectorTypesForTypedSigmaTauTest =
+    ::testing::Types<Vector, BoundedVector<double, 2>, std::vector<double>>;
+TYPED_TEST_SUITE(TestSigmaTauFixture, VectorTypesForTypedSigmaTauTest);
 
 TYPED_TEST(TestSigmaTauFixture, SigmaTau_CanBeConstructedFromAnyVectorWithSizeOf2)
 {
@@ -43,12 +45,12 @@ TYPED_TEST(TestSigmaTauFixture, SigmaTau_CanBeConstructedFromAnyVectorWithSizeOf
     initialization_vector[1]   = 2.0;
 
     // Act
-    const auto sigma_tau = Geo::SigmaTau{initialization_vector};
+    const auto traction = Geo::SigmaTau{initialization_vector};
 
     // Assert
-    KRATOS_EXPECT_VECTOR_NEAR(sigma_tau.Values(), initialization_vector, Defaults::absolute_tolerance);
-    EXPECT_NEAR(sigma_tau.Sigma(), initialization_vector[0], Defaults::absolute_tolerance);
-    EXPECT_NEAR(sigma_tau.Tau(), initialization_vector[1], Defaults::absolute_tolerance);
+    KRATOS_EXPECT_VECTOR_NEAR(traction.Values(), initialization_vector, Defaults::absolute_tolerance);
+    EXPECT_NEAR(traction.Sigma(), initialization_vector[0], Defaults::absolute_tolerance);
+    EXPECT_NEAR(traction.Tau(), initialization_vector[1], Defaults::absolute_tolerance);
 }
 
 TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel,
@@ -67,48 +69,72 @@ TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel,
     EXPECT_THROW(Geo::SigmaTau{too_long}, Exception);
 }
 
-TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, SigmaTau_CanBeConstructedFromAStdInitializerListWithSize2)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, SigmaTau_CanBeConstructedFromAVectorExpression)
+{
+    // Arrange
+    const auto     some_matrix = UblasUtilities::CreateMatrix({{1.0, 2.0}, {3.0, 4.0}});
+    const auto     some_vector = UblasUtilities::CreateVector({2.0, 3.0});
+    constexpr auto some_scalar = 1.5;
+
+    // Act & Assert
+    // The following code won't compile when the template constructor of class `SigmaTau` (which receives
+    // a vector-like object) uses `std::ranges` algorithms when a UBlas vector expression is given.
+    KRATOS_EXPECT_VECTOR_NEAR(Geo::SigmaTau{some_scalar * prod(some_matrix, some_vector)}.Values(),
+                              (std::vector{12.0, 27.0}), Defaults::absolute_tolerance);
+}
+
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, SigmaTau_CanBeConstructedFromFromTwoValues)
 {
     EXPECT_NEAR((Geo::SigmaTau{1.0, 2.0}.Sigma()), 1.0, Defaults::absolute_tolerance);
     EXPECT_NEAR((Geo::SigmaTau{1.0, 2.0}.Tau()), 2.0, Defaults::absolute_tolerance);
 }
 
-TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel,
-       SigmaTau_RaisesADebugErrorWhenAttemptingToConstructFromAnStdInitializerListWithSizeUnequalTo2)
-{
-#ifndef KRATOS_DEBUG
-    GTEST_SKIP() << "This test requires a debug build";
-#endif
-
-    EXPECT_THROW(Geo::SigmaTau{1.0}, Exception);
-    EXPECT_THROW((Geo::SigmaTau{2.0, 3.0, 4.0}), Exception);
-}
-
 TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, SigmaTau_ComponentsCanBeModifiedDirectly)
 {
     // Arrange
-    auto sigma_tau = Geo::SigmaTau{1.0, 2.0};
+    auto traction = Geo::SigmaTau{1.0, 2.0};
 
     // Act
-    sigma_tau.Sigma() = 3.0;
+    traction.Sigma() = 3.0;
 
     // Assert
-    KRATOS_EXPECT_VECTOR_NEAR(sigma_tau.Values(), (std::vector{3.0, 2.0}), Defaults::absolute_tolerance);
+    KRATOS_EXPECT_VECTOR_NEAR(traction.Values(), (std::vector{3.0, 2.0}), Defaults::absolute_tolerance);
 
     // Act
-    sigma_tau.Tau() = 4.0;
+    traction.Tau() = 4.0;
 
     // Assert
-    KRATOS_EXPECT_VECTOR_NEAR(sigma_tau.Values(), (std::vector{3.0, 4.0}), Defaults::absolute_tolerance);
+    KRATOS_EXPECT_VECTOR_NEAR(traction.Values(), (std::vector{3.0, 4.0}), Defaults::absolute_tolerance);
 }
 
 TYPED_TEST(TestSigmaTauFixture, SigmaTau_CanBeCopiedToAnyVectorTypeWithSizeOf2)
 {
     // Arrange
-    const auto sigma_tau = Geo::SigmaTau{1.0, 2.0};
+    const auto traction = Geo::SigmaTau{1.0, 2.0};
 
     // Act & Assert
-    KRATOS_EXPECT_VECTOR_NEAR(sigma_tau.CopyTo<TypeParam>(), (std::vector{1.0, 2.0}), Defaults::absolute_tolerance);
+    KRATOS_EXPECT_VECTOR_NEAR(traction.CopyTo<TypeParam>(), (std::vector{1.0, 2.0}), Defaults::absolute_tolerance);
+}
+
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, SigmaTau_SupportsCompoundAssignment)
+{
+    // Arrange
+    auto traction = Geo::SigmaTau{1.0, 2.0};
+
+    // Act
+    traction += Geo::SigmaTau{3.0, 4.0};
+
+    // Assert
+    KRATOS_EXPECT_VECTOR_NEAR(traction.Values(), (std::vector{4.0, 6.0}), Defaults::absolute_tolerance);
+}
+
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, SigmaTau_SupportsAdditionOfTwoInstances)
+{
+    // Arrange & Act
+    const auto summed_traction = Geo::SigmaTau{1.0, 3.0} + Geo::SigmaTau{2.0, 4.0};
+
+    // Assert
+    KRATOS_EXPECT_VECTOR_NEAR(summed_traction.Values(), (std::vector{3.0, 7.0}), Defaults::absolute_tolerance);
 }
 
 } // namespace Kratos::Testing

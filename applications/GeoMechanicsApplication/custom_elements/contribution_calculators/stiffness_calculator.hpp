@@ -17,8 +17,8 @@
 #include "custom_utilities/stress_strain_utilities.h"
 #include "geo_aliases.h"
 #include "includes/constitutive_law.h"
+#include "includes/default_interface.h"
 #include "includes/properties.h"
-#include "includes/ublas_interface.h"
 
 #include <utility>
 
@@ -71,8 +71,8 @@ public:
         const auto stresses = StressStrainUtilities::CalculateStressVectorsFromStrainVectors(
             mInputProvider.GetStrains(), mInputProvider.GetProcessInfo(),
             mInputProvider.GetElementProperties(), mInputProvider.GetConstitutiveLaws());
-        return BoundedVector<double, MatrixSize>{-GeoEquationOfMotionUtilities::CalculateInternalForceVector(
-            mInputProvider.GetBMatrices(), stresses, mInputProvider.GetIntegrationCoefficients())};
+        return {-1.0 * GeoEquationOfMotionUtilities::CalculateInternalForceVector(
+                           mInputProvider.GetBMatrices(), stresses, mInputProvider.GetIntegrationCoefficients())};
     }
 
     std::pair<std::optional<typename BaseType::LHSMatrixType>, typename BaseType::RHSVectorType> LocalSystemContribution() override
@@ -86,13 +86,13 @@ private:
         const auto& r_properties                  = mInputProvider.GetElementProperties();
         const auto& r_process_info                = mInputProvider.GetProcessInfo();
         auto        calculate_constitutive_matrix = [&r_properties, &r_process_info](
-                                                 const auto& rp_constitutive_law, auto rRelativeDisplacement) {
-            auto result = Matrix{rp_constitutive_law->GetStrainSize(), rp_constitutive_law->GetStrainSize()};
+                                                 const auto& rpConstitutiveLaw, auto rRelativeDisplacement) {
+            auto result = Matrix{rpConstitutiveLaw->GetStrainSize(), rpConstitutiveLaw->GetStrainSize()};
             auto law_parameters = ConstitutiveLaw::Parameters{};
             law_parameters.SetMaterialProperties(r_properties);
             law_parameters.SetStrainVector(rRelativeDisplacement);
             law_parameters.SetProcessInfo(r_process_info);
-            rp_constitutive_law->CalculateValue(law_parameters, CONSTITUTIVE_MATRIX, result);
+            rpConstitutiveLaw->CalculateValue(law_parameters, CONSTITUTIVE_MATRIX, result);
             return result;
         };
         auto result = std::vector<Matrix>{};

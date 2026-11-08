@@ -21,12 +21,14 @@
 #include "custom_constitutive/truss_constitutive_law.h"
 #include "custom_constitutive/beam_constitutive_law.h"
 #include "custom_constitutive/elastic_isotropic_3d.h"
+#include "custom_constitutive/flexible_elastic_isotropic_3d.h"
 #include "custom_constitutive/axisym_elastic_isotropic.h"
 #include "custom_constitutive/linear_plane_stress.h"
 #include "custom_constitutive/linear_plane_strain.h"
 #include "custom_constitutive/user_provided_linear_elastic_law.h"
 #include "custom_constitutive/timoshenko_beam_elastic_constitutive_law.h"
 #include "custom_constitutive/timoshenko_plane_strain_beam_elastic_constitutive_law.h"
+#include "custom_constitutive/reissner_mindlin_shell_elastic_constitutive_law.h"
 
 
 namespace Kratos::Python {
@@ -55,6 +57,10 @@ void  AddCustomConstitutiveLawsToPython(pybind11::module& m)
     (m, "LinearElastic3DLaw").def(py::init<>() )
     ;
 
+    py::class_< FlexibleElasticIsotropic3D, typename FlexibleElasticIsotropic3D::Pointer, ConstitutiveLaw >
+    (m, "FlexibleLinearElastic3DLaw").def(py::init<>() )
+    ;
+
     py::class_< AxisymElasticIsotropic, typename AxisymElasticIsotropic::Pointer, ConstitutiveLaw >
     (m, "LinearElasticAxisym2DLaw").def(py::init<>() )
     ;
@@ -73,6 +79,10 @@ void  AddCustomConstitutiveLawsToPython(pybind11::module& m)
 
     py::class_< TimoshenkoBeamPlaneStrainElasticConstitutiveLaw, typename TimoshenkoBeamPlaneStrainElasticConstitutiveLaw::Pointer, ConstitutiveLaw >
     (m, "TimoshenkoBeamPlaneStrainElasticConstitutiveLaw").def(py::init<>() )
+    ;
+
+    py::class_< ReissnerMindlinShellElasticConstitutiveLaw, typename ReissnerMindlinShellElasticConstitutiveLaw::Pointer, ConstitutiveLaw >
+    (m, "ReissnerMindlinShellElasticConstitutiveLaw").def(py::init<>() )
     ;
 }
 

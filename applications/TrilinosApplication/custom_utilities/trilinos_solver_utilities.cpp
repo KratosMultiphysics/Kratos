@@ -12,6 +12,7 @@
 
 // External includes
 #include "Epetra_MpiComm.h"
+#include "Teuchos_DefaultMpiComm.hpp"
 
 // Project includes
 #include "trilinos_solver_utilities.h"
@@ -34,6 +35,12 @@ MPI_Comm GetMPICommFromEpetraComm(const Epetra_Comm& rEpetraComm)
     // see https://github.com/trilinos/Trilinos/issues/10122#issuecomment-1021614956
     const Epetra_MpiComm& r_epetra_mpi_comm = dynamic_cast<const Epetra_MpiComm&>(rEpetraComm); // cannot use static_cast due to virtual inheritance
     return r_epetra_mpi_comm.Comm();
+}
+
+MPI_Comm GetMPICommFromTeuchosComm(const Teuchos::Comm<int>& rTeuchosComm)
+{
+    const auto& r_teuchos_mpi_comm = dynamic_cast<const Teuchos::MpiComm<int>&>(rTeuchosComm);
+    return *(r_teuchos_mpi_comm.getRawMpiComm());
 }
 
 }  // namespace TrilinosSolverUtilities.

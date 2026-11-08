@@ -24,8 +24,8 @@ namespace Kratos
 {
 using namespace std::string_literals;
 
-SetParameterFieldProcess::SetParameterFieldProcess(ModelPart& rModelPart, const Parameters& rSettings)
-    : Process(), mrModelPart(rModelPart), mParameters(rSettings)
+SetParameterFieldProcess::SetParameterFieldProcess(ModelPart& rModelPart, Parameters Settings)
+    : Process(), mrModelPart{rModelPart}, mParameters{std::move(Settings)}
 {
     // function type: python, cpp, input
     const Parameters default_parameters(R"(
@@ -117,7 +117,7 @@ void SetParameterFieldProcess::SetParameterFieldUsingParametersClass(const Varia
     IndexType       i           = 0;
     for (Element& r_element : mrModelPart.Elements()) {
         Vector sub_vector;
-        sub_vector.resize(vector_size);
+        sub_vector.resize(vector_size, false);
         for (IndexType j = 0; j < vector_size; j++) {
             sub_vector[j] = r_data_matrix(i, j);
         }

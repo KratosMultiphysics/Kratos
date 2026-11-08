@@ -80,6 +80,11 @@ NodePositionTensorAdaptor::NodePositionTensorAdaptor(
     KRATOS_CATCH("");
 }
 
+TensorAdaptor<double>::Pointer NodePositionTensorAdaptor::Clone() const
+{
+    return Kratos::make_shared<NodePositionTensorAdaptor>(*this);
+}
+
 void NodePositionTensorAdaptor::CollectData()
 {
     KRATOS_TRY
@@ -160,6 +165,20 @@ std::string NodePositionTensorAdaptor::Info() const
     }
     info << BaseType::Info();
     return info.str();
+}
+
+void NodePositionTensorAdaptor::save(Serializer& rSerializer) const
+{
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, BaseType);
+    rSerializer.save("Configuration", static_cast<int>(mConfiguration));
+}
+
+void NodePositionTensorAdaptor::load(Serializer& rSerializer)
+{
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, BaseType);
+    int configuration;
+    rSerializer.load("Configuration", configuration);
+    mConfiguration = static_cast<Globals::Configuration>(configuration);
 }
 
 } // namespace Kratos

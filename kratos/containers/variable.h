@@ -80,46 +80,25 @@ public:
     /**
      * @brief Constructor with specific name and zero value
      * @param NewName The name to be assigned to the new variable
-     * @param Zero The value to be assigned to the variable as zero. In case of not definition will take the value given by the constructor of the time
      * @param pTimeDerivativeVariable Pointer to the time derivative variable
      */
-    explicit Variable(
-        const std::string& NewName,
-        const TDataType Zero = TDataType(),
-        const VariableType* pTimeDerivativeVariable = nullptr
-        )
+    constexpr explicit Variable(
+        const std::string_view& NewName,
+        const VariableType* pTimeDerivativeVariable = nullptr)
         : VariableData(NewName, sizeof(TDataType)),
-          mZero(Zero),
-          mpTimeDerivativeVariable(pTimeDerivativeVariable)
-    {}
-    /**
-     * @brief Constructor with specific name and zero value
-     * @param NewName The name to be assigned to the new variable
-     * @param pTimeDerivativeVariable Pointer to the time derivative variable
-     */
-    explicit Variable(
-        const std::string& NewName,
-        const VariableType* pTimeDerivativeVariable
-        )
-        : VariableData(NewName, sizeof(TDataType)),
-          mZero(TDataType()),
           mpTimeDerivativeVariable(pTimeDerivativeVariable)
     {}
 
     /**
      * @brief Constructor for creating a component of other variable
      * @param rNewName The name to be assigned to the compoenent
-     * @param Zero The value to be assigned to the variable as zero. In case of not definition will take the value given by the constructor of the time
      */
-    template<typename TSourceVariableType>
-    explicit Variable(
-        const std::string& rNewName,
-        TSourceVariableType* pSourceVariable,
-        char ComponentIndex,
-        const TDataType Zero = TDataType()
-        )
-        : VariableData(rNewName, sizeof(TDataType), pSourceVariable, ComponentIndex),
-          mZero(Zero)
+    template <typename TSourceVariableType>
+    constexpr explicit Variable(
+        const std::string_view& NewName,
+        const TSourceVariableType* pSourceVariable,
+        char ComponentIndex)
+        : VariableData(NewName, sizeof(TDataType), pSourceVariable, ComponentIndex)
     {}
 
     /**
@@ -128,16 +107,13 @@ public:
      * @param pTimeDerivativeVariable Pointer to the time derivative variable
      * @param Zero The value to be assigned to the variable as zero. In case of not definition will take the value given by the constructor of the time
      */
-    template<typename TSourceVariableType>
-    explicit Variable(
-        const std::string& rNewName,
+    template <typename TSourceVariableType>
+    constexpr explicit Variable(
+        const std::string_view& NewName,
         TSourceVariableType* pSourceVariable,
         char ComponentIndex,
-        const VariableType* pTimeDerivativeVariable,
-        const TDataType Zero = TDataType()
-        )
-        : VariableData(rNewName, sizeof(TDataType), pSourceVariable, ComponentIndex),
-          mZero(Zero),
+        const VariableType* pTimeDerivativeVariable)
+        : VariableData(NewName, sizeof(TDataType), pSourceVariable, ComponentIndex),
           mpTimeDerivativeVariable(pTimeDerivativeVariable)
     {}
 
@@ -146,16 +122,16 @@ public:
      * @brief Copy constructor.
      * @param rOtherVariable The old variable to be copied
      */
-    explicit Variable(const VariableType& rOtherVariable) :
-        VariableData(rOtherVariable),
-        mZero(rOtherVariable.mZero),
-        mpTimeDerivativeVariable(rOtherVariable.mpTimeDerivativeVariable)
+    constexpr explicit Variable(
+        const VariableType& rOtherVariable)
+        : VariableData(rOtherVariable),
+          mpTimeDerivativeVariable(rOtherVariable.mpTimeDerivativeVariable)
     {
         // Here we don't register as we asume that the origin is already registered
     }
 
     /// Destructor.
-    ~Variable() override {}
+    constexpr ~Variable() override {}
 
     ///@}
     ///@name Operators
@@ -438,13 +414,11 @@ private:
     ///@name Static Member Variables
     ///@{
 
-    static const VariableType msStaticObject;               /// Definition of the static variable
+    static const inline TDataType mZero = TDataType{};      /// The zero type contains the null value of the current variable type
 
     ///@}
     ///@name Member Variables
     ///@{
-
-    TDataType mZero;                                        /// The zero type contains the null value of the current variable type
 
     const VariableType* mpTimeDerivativeVariable = nullptr; /// Definition of the pointer to the variable for the time derivative
 
@@ -473,34 +447,6 @@ private:
     }
 
     ///@}
-    ///@name Serialization
-    ///@{
-
-    friend class Serializer;
-
-    /**
-     * The save operation which copies the database of the class
-     * @param rSerializer The serializer used to preserve the information
-     */
-    void save(Serializer& rSerializer) const override
-    {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, VariableData );
-        rSerializer.save("Zero",mZero);
-        rSerializer.save("TimeDerivativeVariable",mpTimeDerivativeVariable);
-    }
-
-    /**
-     * The load operation which restores the database of the class
-     * @param rSerializer The serializer used to preserve the information
-     */
-    void load(Serializer& rSerializer) override
-    {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, VariableData );
-        rSerializer.load("Zero",mZero);
-        rSerializer.load("TimeDerivativeVariable",mpTimeDerivativeVariable);
-    }
-
-    ///@}
     ///@name Private  Access
     ///@{
 
@@ -516,7 +462,7 @@ private:
 
     /** Default constructor is un accessible due to the fact that
     each variable must have a name defined.*/
-    Variable() {}
+    constexpr Variable() {}
 
     ///@}
 

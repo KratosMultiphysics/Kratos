@@ -716,11 +716,11 @@ class ResidualBasedNewtonRaphsonStrategy
         }
 
         // Clearing the system of equations
-        if (mpA != nullptr)
+        if (!SparseSpaceType::IsNull(mpA))
             SparseSpaceType::Clear(mpA);
-        if (mpDx != nullptr)
+        if (!SparseSpaceType::IsNull(mpDx))
             SparseSpaceType::Clear(mpDx);
-        if (mpb != nullptr)
+        if (!SparseSpaceType::IsNull(mpb))
             SparseSpaceType::Clear(mpb);
 
         // Clearing scheme
@@ -888,7 +888,7 @@ class ResidualBasedNewtonRaphsonStrategy
     * using the equation ID associated with each DOF.
     */
     void GetCurrentSolution(DofsArrayType& rDofSet, Vector& this_solution) {
-        this_solution.resize(rDofSet.size());
+        this_solution.resize(rDofSet.size(), false);
         block_for_each(rDofSet, [&](const auto& r_dof) {
             this_solution[r_dof.EquationId()] = r_dof.GetSolutionStepValue();
         });
