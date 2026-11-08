@@ -28,6 +28,7 @@ set( KRATOS_POROMECHANICS_APPLICATION_CORE_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_saturation/saturation_law.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_saturation/brooksandcorey_law.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_saturation/vangenuchten_law.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_saturation/liakopoulos_law.cpp
 
     # Constitutive Laws
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/continuum_laws/custom_flow_rules/local_damage_flow_rule.cpp

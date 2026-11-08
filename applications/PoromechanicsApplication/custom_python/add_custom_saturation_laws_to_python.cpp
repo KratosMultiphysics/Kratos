@@ -22,6 +22,7 @@
 //Saturation laws
 #include "custom_saturation/brooksandcorey_law.hpp"
 #include "custom_saturation/vangenuchten_law.hpp"
+#include "custom_saturation/liakopoulos_law.hpp"
 
 namespace Kratos
 {
@@ -39,6 +40,9 @@ void  AddCustomSaturationLawsToPython(pybind11::module& m)
     .def( py::init<>() );
     py::class_< VanGenuchtenLaw, VanGenuchtenLaw::Pointer, SaturationLaw >
     (m, "VanGenuchtenLaw", py::module_local())
+    .def( py::init<>() ) ;
+    py::class_< LiakopoulosLaw, LiakopoulosLaw::Pointer, SaturationLaw >
+    (m, "LiakopoulosLaw", py::module_local())
     .def( py::init<>() ) ;
 
 }
