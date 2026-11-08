@@ -150,16 +150,18 @@ public:
         const int NNodes = static_cast<int>(r_model_part.Nodes().size());
         ModelPart::NodesContainerType::iterator node_begin = r_model_part.NodesBegin();
 
-        // Initialize INITIAL_STRESS_TENSOR
+        // Initialize INITIAL_STRESS_TENSOR if not set
+        const unsigned int domain_dim = r_model_part.GetProcessInfo().Has(DOMAIN_SIZE) ? r_model_part.GetProcessInfo()[DOMAIN_SIZE] : 3;
         #pragma omp parallel for
         for(int i = 0; i < NNodes; i++)
         {
             ModelPart::NodesContainerType::iterator itNode = node_begin + i;
 
             Matrix& rInitialStress = itNode->FastGetSolutionStepValue(INITIAL_STRESS_TENSOR);
-            if(rInitialStress.size1() != 3)
-                rInitialStress.resize(3,3,false);
-            noalias(rInitialStress) = ZeroMatrix(3,3);
+            if(rInitialStress.size1() == 0) {
+                rInitialStress.resize(domain_dim, domain_dim, false);
+                noalias(rInitialStress) = ZeroMatrix(domain_dim, domain_dim);
+            }
         }
 
         BaseType::mSchemeIsInitialized = true;
@@ -199,6 +201,11 @@ public:
         TSystemVectorType& b) override
     {
         KRATOS_TRY
+
+        mDeltaTime = r_model_part.GetProcessInfo()[DELTA_TIME];
+        r_model_part.GetProcessInfo().SetValue(VELOCITY_COEFFICIENT, 1.0 / (mTheta_u * mDeltaTime));
+        r_model_part.GetProcessInfo().SetValue(DT_LIQUID_PRESSURE_COEFFICIENT, 1.0 / (mTheta_pl * mDeltaTime));
+        r_model_part.GetProcessInfo().SetValue(DT_GAS_PRESSURE_COEFFICIENT, 1.0 / (mTheta_pg * mDeltaTime));
 
         const ProcessInfo& rCurrentProcessInfo = r_model_part.GetProcessInfo();
 
