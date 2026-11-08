@@ -1,0 +1,215 @@
+{
+    "problem_data": {
+        "problem_name": "Liakopoulos_Kratos",
+        "start_time": 0.0,
+        "end_time": 7200.0,
+        "echo_level": 1,
+        "parallel_type": "OpenMP"
+    },
+    "solver_settings": {
+        "solver_type": "poromechanics_U_Pl_Pg_solver",
+        "model_part_name": "PorousModelPart",
+        "domain_size": 2,
+        "start_time": 0.0,
+        "time_step": 0.1,
+        "model_import_settings": {
+            "input_type": "mdpa",
+            "input_filename": "/Users/janchauncey/Documents/Repos/Kratos/applications/PoromechanicsApplication/test_examples/Liakopoulos_Kratos/Liakopoulos_Kratos"
+        },
+        "material_import_settings": {
+            "materials_filename": "/Users/janchauncey/Documents/Repos/Kratos/applications/PoromechanicsApplication/test_examples/Liakopoulos_Kratos/PoroMaterials.json"
+        },
+        "buffer_size": 2,
+        "echo_level": 1,
+        "clear_storage": false,
+        "compute_reactions": false,
+        "move_mesh_flag": false,
+        "reform_dofs_at_each_step": false,
+        "nodal_smoothing": false,
+        "block_builder": false,
+        "solution_type": "implicit_quasi_static",
+        "scheme_type": "Newmark",
+        "newmark_beta": 0.25,
+        "newmark_gamma": 0.5,
+        "newmark_theta_u": 1.0,
+        "newmark_theta_pl": 1.0,
+        "newmark_theta_pg": 1.0,
+        "rayleigh_alpha": 0.0,
+        "rayleigh_beta": 0.0,
+        "strategy_type": "newton_raphson",
+        "convergence_criterion": "And_criterion",
+        "displacement_relative_tolerance": 1e-06,
+        "displacement_absolute_tolerance": 1e-08,
+        "residual_relative_tolerance": 1e-06,
+        "residual_absolute_tolerance": 1e-06,
+        "max_iteration": 30,
+        "linear_solver_settings": {
+            "solver_type": "LinearSolversApplication.sparse_lu"
+        },
+        "problem_domain_sub_model_part_list": [
+            "Body_Part-auto-1"
+        ],
+        "processes_sub_model_part_list": [
+            "Bottom_Displacement",
+            "Lateral_Displacement",
+            "Bottom_Pressure",
+            "Top_Gas_Pressure",
+            "Domain_Initial_Pl",
+            "Domain_Initial_Pg"
+        ],
+        "body_domain_sub_model_part_list": [
+            "Body_Part-auto-1"
+        ]
+    },
+    "processes": {
+        "constraints_process_list": [
+            {
+                "python_module": "apply_vector_constraint_table_process",
+                "kratos_module": "KratosMultiphysics.PoromechanicsApplication",
+                "Parameters": {
+                    "model_part_name": "PorousModelPart.Bottom_Displacement",
+                    "variable_name": "DISPLACEMENT",
+                    "active": [
+                        false,
+                        true,
+                        false
+                    ],
+                    "is_fixed": [
+                        false,
+                        true,
+                        false
+                    ],
+                    "value": [
+                        0.0,
+                        0.0,
+                        0.0
+                    ],
+                    "table": [
+                        0,
+                        0,
+                        0
+                    ]
+                }
+            },
+            {
+                "python_module": "apply_vector_constraint_table_process",
+                "kratos_module": "KratosMultiphysics.PoromechanicsApplication",
+                "Parameters": {
+                    "model_part_name": "PorousModelPart.Lateral_Displacement",
+                    "variable_name": "DISPLACEMENT",
+                    "active": [
+                        true,
+                        false,
+                        false
+                    ],
+                    "is_fixed": [
+                        true,
+                        false,
+                        false
+                    ],
+                    "value": [
+                        0.0,
+                        0.0,
+                        0.0
+                    ],
+                    "table": [
+                        0,
+                        0,
+                        0
+                    ]
+                }
+            },
+            {
+                "python_module": "apply_scalar_constraint_table_process",
+                "kratos_module": "KratosMultiphysics.PoromechanicsApplication",
+                "Parameters": {
+                    "model_part_name": "PorousModelPart.Bottom_Pressure",
+                    "variable_name": "LIQUID_PRESSURE",
+                    "is_fixed": true,
+                    "value": 101225.0,
+                    "table": 0,
+                    "hydrostatic": false
+                }
+            },
+            {
+                "python_module": "apply_scalar_constraint_table_process",
+                "kratos_module": "KratosMultiphysics.PoromechanicsApplication",
+                "Parameters": {
+                    "model_part_name": "PorousModelPart.Bottom_Pressure",
+                    "variable_name": "GAS_PRESSURE",
+                    "is_fixed": true,
+                    "value": 101325.0,
+                    "table": 0,
+                    "hydrostatic": false
+                }
+            },
+            {
+                "python_module": "apply_scalar_constraint_table_process",
+                "kratos_module": "KratosMultiphysics.PoromechanicsApplication",
+                "Parameters": {
+                    "model_part_name": "PorousModelPart.Top_Gas_Pressure",
+                    "variable_name": "GAS_PRESSURE",
+                    "is_fixed": true,
+                    "value": 101325.0,
+                    "table": 0,
+                    "hydrostatic": false
+                }
+            },
+            {
+                "python_module": "apply_scalar_constraint_table_process",
+                "kratos_module": "KratosMultiphysics.PoromechanicsApplication",
+                "Parameters": {
+                    "model_part_name": "PorousModelPart.Domain_Initial_Pl",
+                    "variable_name": "LIQUID_PRESSURE",
+                    "is_fixed": false,
+                    "value": 101225.0,
+                    "table": 0,
+                    "hydrostatic": false
+                }
+            },
+            {
+                "python_module": "apply_scalar_constraint_table_process",
+                "kratos_module": "KratosMultiphysics.PoromechanicsApplication",
+                "Parameters": {
+                    "model_part_name": "PorousModelPart.Domain_Initial_Pg",
+                    "variable_name": "GAS_PRESSURE",
+                    "is_fixed": false,
+                    "value": 101325.0,
+                    "table": 0,
+                    "hydrostatic": false
+                }
+            }
+        ],
+        "loads_process_list": [
+            {
+                "python_module": "apply_vector_constraint_table_process",
+                "kratos_module": "KratosMultiphysics.PoromechanicsApplication",
+                "Parameters": {
+                    "model_part_name": "PorousModelPart.Body_Part-auto-1",
+                    "variable_name": "VOLUME_ACCELERATION",
+                    "active": [
+                        false,
+                        true,
+                        false
+                    ],
+                    "is_fixed": [
+                        false,
+                        false,
+                        false
+                    ],
+                    "value": [
+                        0.0,
+                        -9.806,
+                        0.0
+                    ],
+                    "table": [
+                        0,
+                        0,
+                        0
+                    ]
+                }
+            }
+        ],
+        "auxiliar_process_list": []
+    }
+}
