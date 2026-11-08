@@ -159,4 +159,21 @@ Vector ShiftedBoundaryUtilities::ComputeShiftedShapeFunctions(
     return ComputeTaylorSum(rPoint, rKnotSpanIndices, rDistance, 0, Order, 1.0);
 }
 
+Matrix ShiftedBoundaryUtilities::ComputeShiftedGradients(
+    const GeometryType& rPoint,
+    const std::vector<IndexType>& rKnotSpanIndices,
+    const array_1d<double, 3>& rDistance,
+    const SizeType Order)
+{
+    // S_d^m[\partial_j N] = \sum c_\alpha(d) \partial^{\alpha+e_j} N
+    Matrix shifted_gradients(rPoint.size(), 2);
+    for (IndexType j = 0; j < 2; ++j) {
+        std::array<IndexType, 2> offset{0, 0};
+        offset[j] = 1;
+        column(shifted_gradients, j) =
+            ComputeTaylorSum(rPoint, rKnotSpanIndices, rDistance, 0, Order, 1.0, offset);
+    }
+    return shifted_gradients;
+}
+
 } // namespace Kratos

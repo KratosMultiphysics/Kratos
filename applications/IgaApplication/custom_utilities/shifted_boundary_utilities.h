@@ -111,6 +111,27 @@ public:
         const array_1d<double, 3>& rDistance,
         const SizeType Order);
 
+    /**
+     * @brief Gradients of a point's shape functions shifted to the true
+     *        boundary, from the 1D B-spline bases of its knot span
+     *
+     *     S_d^m[\partial_j N] = \sum_{|\boldsymbol\alpha| \le m}
+     *                           c_\boldsymbol\alpha(d)
+     *                           \partial^{\boldsymbol\alpha + e_j} N(\tilde{x})
+     *
+     * @param rPoint A point of a B-spline surface, on a facet side.
+     * @param rKnotSpanIndices Knot span of the point, one index per direction.
+     * @param rDistance Distance vector d from the facet point to the skin.
+     * @param Order Order m of the shift.
+     * @return The shifted gradients, one row per shape function and one
+     *         column per direction, as the shape function local gradients.
+     */
+    static Matrix ComputeShiftedGradients(
+        const GeometryType& rPoint,
+        const std::vector<IndexType>& rKnotSpanIndices,
+        const array_1d<double, 3>& rDistance,
+        const SizeType Order);
+
     ///@}
 };
 
