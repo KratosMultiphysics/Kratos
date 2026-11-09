@@ -24,12 +24,14 @@
 #include "testing/testing.h"
 #include "custom_modelers/nurbs_geometry_modeler.h"
 #include "custom_processes/volume_fraction_gsbm_process.h"
+#include "custom_utilities/shifted_boundary_utilities.h"
 #include "geometries/nurbs_surface_geometry.h"
 #include "iga_application_variables.h"
 #include "includes/cfd_variables.h"
 #include "includes/constitutive_law.h"
 #include "includes/global_pointer_variables.h"
 #include "includes/kratos_components.h"
+#include "utilities/math_utils.h"
 
 namespace Kratos::Testing
 {
@@ -142,8 +144,8 @@ double IntegrateShiftedPower(const int Exponent)
     return (std::pow(0.45, Exponent + 1) - std::pow(-0.3, Exponent + 1)) / (Exponent + 1);
 }
 
-/// Viscosity \mu of the Neumann tests
-constexpr double NeumannTestViscosity = 0.7;
+/// Viscosity \mu of the tests on a cut patch
+constexpr double StokesCutTestViscosity = 0.7;
 
 /// Linear viscous law \sigma = D \varepsilon, D = \mu diag(2, 2, 1) in Voigt
 /// [xx, yy, xy]: Newtonian2DLaw without its volumetric part, which the IGA
@@ -185,15 +187,15 @@ private:
     double mViscosity;
 };
 
-/// \sigma = 2 \mu \varepsilon(u) - p I of the exact fields of the Neumann
+/// \sigma = 2 \mu \varepsilon(u) - p I of the exact fields of the cut patch
 /// tests: u = curl \psi, \psi = (x - 0.4)^2 (y - 0.6)^2, and
 /// p = (x - 0.3)(y - 0.7)
-BoundedMatrix<double, 2, 2> ComputeNeumannTestStress(const array_1d<double, 3>& rPoint)
+BoundedMatrix<double, 2, 2> ComputeStokesCutTestStress(const array_1d<double, 3>& rPoint)
 {
     const double x = rPoint[0] - 0.4;
     const double y = rPoint[1] - 0.6;
     const double pressure = (rPoint[0] - 0.3) * (rPoint[1] - 0.7);
-    const double mu = NeumannTestViscosity;
+    const double mu = StokesCutTestViscosity;
 
     BoundedMatrix<double, 2, 2> stress;
     stress(0, 0) = 8.0 * mu * x * y - pressure;
@@ -204,12 +206,13 @@ BoundedMatrix<double, 2, 2> ComputeNeumannTestStress(const array_1d<double, 3>& 
 }
 
 /// The divergence-conforming patches (2, 1), (1, 2) and (1, 1) on [0, 1]^2
-/// with 6 x 6 knot spans, with GsbmStokesElement and GsbmStokesConditionNeumann
-/// for the fluid inside a 64-gon of radius 0.3 at (0.5, 0.5), so the spans
-/// along the patch border are void. The test law, the full Taylor series
-/// SHIFT_ORDER = 3, and the exact fields u_x = 2 (x - 0.4)^2 (y - 0.6),
+/// with 6 x 6 knot spans, with GsbmStokesElement, the given condition on the
+/// skeleton and GsbmStokesConditionGhostPenalty sharing it, for the fluid
+/// inside a 64-gon of radius 0.3 at (0.5, 0.5), so the spans along the patch
+/// border are void. The test law, the full Taylor series SHIFT_ORDER = 3, and
+/// the exact fields u_x = 2 (x - 0.4)^2 (y - 0.6),
 /// u_y = -2 (x - 0.4)(y - 0.6)^2 and p = (x - 0.3)(y - 0.7)
-ModelPart& CreateStokesNeumannModelPart(Model& rModel)
+ModelPart& CreateStokesCutModelPart(Model& rModel, const std::string& rConditionName)
 {
     ModelPart& r_iga_model_part = rModel.CreateModelPart("IgaModelPart");
     r_iga_model_part.AddNodalSolutionStepVariable(VELOCITY);
@@ -236,7 +239,7 @@ ModelPart& CreateStokesNeumannModelPart(Model& rModel)
     }
 
     const Modeler& r_registered_modeler = KratosComponents<Modeler>::Get("IgaModelerGsbm");
-    r_registered_modeler.Create(rModel, Parameters(R"({
+    Parameters modeler_parameters(R"({
         "analysis_model_part_name": "IgaModelPart",
         "geometry_name"           : "Pressure",
         "element_condition_list"  : [{
@@ -247,13 +250,20 @@ ModelPart& CreateStokesNeumannModelPart(Model& rModel)
             "geometry_names"                  : ["VelocityX", "VelocityY", "Pressure"]
         }, {
             "type"                            : "condition",
-            "name"                            : "GsbmStokesConditionNeumann",
-            "iga_model_part"                  : "Neumann",
+            "name"                            : "",
+            "iga_model_part"                  : "Boundary",
             "shape_function_derivatives_order": 3,
             "gsbm_parameters"                 : {},
             "geometry_names"                  : ["VelocityX", "VelocityY", "Pressure"]
+        }, {
+            "type"                            : "condition",
+            "name"                            : "GsbmStokesConditionGhostPenalty",
+            "iga_model_part"                  : "GhostPenalty",
+            "gsbm_parameters"                 : {"skeleton_model_part": "Boundary"}
         }]
-    })"))->SetupModelPart();
+    })");
+    modeler_parameters["element_condition_list"][1]["name"].SetString(rConditionName);
+    r_registered_modeler.Create(rModel, modeler_parameters)->SetupModelPart();
 
     // 64-gon counterclockwise around the fluid, turned off the knot lines
     ModelPart& r_skin = rModel.CreateModelPart("Skin");
@@ -273,7 +283,7 @@ ModelPart& CreateStokesNeumannModelPart(Model& rModel)
         "model_part_name"                   : "IgaModelPart",
         "geometry_name"                     : "Pressure",
         "elements_model_part_name"          : "IgaModelPart.Domain",
-        "skeleton_model_part_name"          : "IgaModelPart.Neumann",
+        "skeleton_model_part_name"          : "IgaModelPart.Boundary",
         "skin_model_part_outer_initial_name": "Skin"
     })")).ExecuteInitialize();
 
@@ -285,17 +295,24 @@ ModelPart& CreateStokesNeumannModelPart(Model& rModel)
 
     auto p_properties = r_iga_model_part.CreateNewProperties(1);
     p_properties->SetValue(
-        CONSTITUTIVE_LAW, Kratos::make_shared<GsbmStokesTestViscousLaw>(NeumannTestViscosity)
+        CONSTITUTIVE_LAW, Kratos::make_shared<GsbmStokesTestViscousLaw>(StokesCutTestViscosity)
     );
     p_properties->SetValue(SHIFT_ORDER, 3);
+    p_properties->SetValue(DYNAMIC_VISCOSITY, StokesCutTestViscosity);
+    p_properties->SetValue(GHOST_PENALTY_FACTOR, 0.5);
+    p_properties->SetValue(PRESSURE_GHOST_PENALTY_FACTOR, 0.1);
     const ProcessInfo& r_process_info = r_iga_model_part.GetProcessInfo();
     for (auto& r_element : rModel.GetModelPart("IgaModelPart.Domain").Elements()) {
         r_element.SetProperties(p_properties);
         r_element.Initialize(r_process_info);
     }
-    for (auto& r_condition : rModel.GetModelPart("IgaModelPart.Neumann").Conditions()) {
+    for (auto& r_condition : rModel.GetModelPart("IgaModelPart.Boundary").Conditions()) {
         r_condition.SetProperties(p_properties);
         r_condition.Initialize(r_process_info);
+    }
+
+    for (auto& r_condition : rModel.GetModelPart("IgaModelPart.GhostPenalty").Conditions()) {
+        r_condition.SetProperties(p_properties);
     }
 
     SetProductCoefficients(r_iga_model_part, "VelocityX", VELOCITY_X, 2.0, {0.4, 0.6}, false);
@@ -310,7 +327,7 @@ ModelPart& CreateStokesNeumannModelPart(Model& rModel)
 void SetNeumannTestData(Model& rModel, const array_1d<double, 3>& rPerturbation)
 {
     for (auto& r_node : rModel.GetModelPart("Skin.projection_data").Nodes()) {
-        const BoundedMatrix<double, 2, 2> stress = ComputeNeumannTestStress(r_node.Coordinates());
+        const BoundedMatrix<double, 2, 2> stress = ComputeStokesCutTestStress(r_node.Coordinates());
         const double pressure = (r_node.X() - 0.3) * (r_node.Y() - 0.7);
         const array_1d<double, 3>& r_normal = r_node.GetValue(NORMAL);
 
@@ -322,6 +339,63 @@ void SetNeumannTestData(Model& rModel, const array_1d<double, 3>& rPerturbation)
         r_node.SetValue(PRESSURE, pressure);
         r_node.SetValue(NORMAL_STRESS, normal_stress);
     }
+}
+
+/// Imposed velocity g = u + Perturbation of the exact fields at the projection
+/// nodes
+void SetDirichletTestData(Model& rModel, const array_1d<double, 3>& rPerturbation)
+{
+    for (auto& r_node : rModel.GetModelPart("Skin.projection_data").Nodes()) {
+        array_1d<double, 3> velocity = rPerturbation;
+        const double x = r_node.X() - 0.4;
+        const double y = r_node.Y() - 0.6;
+        velocity[0] += 2.0 * x * x * y;
+        velocity[1] -= 2.0 * x * y * y;
+        r_node.SetValue(VELOCITY, velocity);
+    }
+}
+
+/// Body force f = -\mu \Delta u + \nabla p of the exact fields at the Gauss
+/// point of each element: f_x = -4 \mu (y - 0.6) + (y - 0.7) and
+/// f_y = 4 \mu (x - 0.4) + (x - 0.3)
+void SetStokesCutTestBodyForce(Model& rModel)
+{
+    const double mu = StokesCutTestViscosity;
+    for (auto& r_element : rModel.GetModelPart("IgaModelPart.Domain").Elements()) {
+        const array_1d<double, 3> point =
+            r_element.GetGeometry().GetGeometryPart(0).Center().Coordinates();
+        array_1d<double, 3> body_force = ZeroVector(3);
+        body_force[0] = -4.0 * mu * (point[1] - 0.6) + (point[1] - 0.7);
+        body_force[1] = 4.0 * mu * (point[0] - 0.4) + (point[0] - 0.3);
+        r_element.SetValue(BODY_FORCE, body_force);
+    }
+}
+
+/// Adds the right hand side of an entity to the residual of each of its dofs
+template<class TEntity>
+void AddStokesCutTestResidual(
+    std::map<const Dof<double>*, double>& rResidual,
+    TEntity& rEntity,
+    const ProcessInfo& rProcessInfo)
+{
+    Matrix left_hand_side;
+    Vector right_hand_side;
+    rEntity.CalculateLocalSystem(left_hand_side, right_hand_side, rProcessInfo);
+    Element::DofsVectorType dofs;
+    rEntity.GetDofList(dofs, rProcessInfo);
+    for (IndexType i = 0; i < dofs.size(); ++i) {
+        rResidual[dofs[i]] += right_hand_side[i];
+    }
+}
+
+/// Largest absolute value of the residuals
+double GetLargestStokesCutTestResidual(const std::map<const Dof<double>*, double>& rResidual)
+{
+    double largest = 0.0;
+    for (const auto& r_entry : rResidual) {
+        largest = std::max(largest, std::abs(r_entry.second));
+    }
+    return largest;
 }
 
 } // namespace
@@ -465,7 +539,7 @@ KRATOS_TEST_CASE_IN_SUITE(GsbmStokesConditionGhostPenaltyCheck, KratosIgaFastSui
     );
 }
 
-// Shifted traction on each cut facet of CreateStokesNeumannModelPart, with
+// Shifted traction on each cut facet of CreateStokesCutModelPart, with
 // the data PRESSURE = p and NORMAL_STRESS = 2 \mu \varepsilon n + \delta at
 // the closest point. The full Taylor series is exact for the exact fields, so
 // the right hand side of each velocity row is w j N_i (\sigma(\tilde x) n-
@@ -474,7 +548,7 @@ KRATOS_TEST_CASE_IN_SUITE(GsbmStokesConditionGhostPenaltyCheck, KratosIgaFastSui
 KRATOS_TEST_CASE_IN_SUITE(GsbmStokesConditionNeumannShiftedTraction, KratosIgaFastSuite)
 {
     Model model;
-    ModelPart& r_iga_model_part = CreateStokesNeumannModelPart(model);
+    ModelPart& r_iga_model_part = CreateStokesCutModelPart(model, "GsbmStokesConditionNeumann");
     const ProcessInfo& r_process_info = r_iga_model_part.GetProcessInfo();
 
     array_1d<double, 3> perturbation = ZeroVector(3);
@@ -483,7 +557,7 @@ KRATOS_TEST_CASE_IN_SUITE(GsbmStokesConditionNeumannShiftedTraction, KratosIgaFa
     SetNeumannTestData(model, perturbation);
 
     IndexType number_of_cut_facets = 0;
-    for (auto& r_facet : model.GetModelPart("IgaModelPart.Neumann").Conditions()) {
+    for (auto& r_facet : model.GetModelPart("IgaModelPart.Boundary").Conditions()) {
         const auto& r_geometry = r_facet.GetGeometry();
         const std::array<double, 2> alpha{
             r_geometry.GetGeometryPart(0).GetValue(VOLUME_FRACTION),
@@ -507,7 +581,7 @@ KRATOS_TEST_CASE_IN_SUITE(GsbmStokesConditionNeumannShiftedTraction, KratosIgaFa
         const array_1d<double, 3>& r_skin_normal =
             r_facet.GetValue(NEIGHBOUR_NODES)[0].GetValue(NORMAL);
         const BoundedMatrix<double, 2, 2> stress =
-            ComputeNeumannTestStress(r_reference.Center().Coordinates());
+            ComputeStokesCutTestStress(r_reference.Center().Coordinates());
         std::array<double, 2> traction;
         for (IndexType c = 0; c < 2; ++c) {
             traction[c] = stress(c, 0) * normal[0] + stress(c, 1) * normal[1]
@@ -534,7 +608,7 @@ KRATOS_TEST_CASE_IN_SUITE(GsbmStokesConditionNeumannShiftedTraction, KratosIgaFa
     KRATOS_EXPECT_GT(number_of_cut_facets, 0);
 }
 
-// Discrete integration by parts of GSBM on CreateStokesNeumannModelPart: with
+// Discrete integration by parts of GSBM on CreateStokesCutModelPart: with
 // exact data and the body force f = -\mu \Delta u + \nabla p, the residuals of
 // the elements and the Neumann conditions add up to zero in every row
 // (momentum, continuity and void). The facet terms are -([[v_\alpha]],
@@ -543,51 +617,262 @@ KRATOS_TEST_CASE_IN_SUITE(GsbmStokesConditionNeumannShiftedTraction, KratosIgaFa
 KRATOS_TEST_CASE_IN_SUITE(GsbmStokesConditionNeumannConsistency, KratosIgaFastSuite)
 {
     Model model;
-    ModelPart& r_iga_model_part = CreateStokesNeumannModelPart(model);
+    ModelPart& r_iga_model_part = CreateStokesCutModelPart(model, "GsbmStokesConditionNeumann");
     const ProcessInfo& r_process_info = r_iga_model_part.GetProcessInfo();
     SetNeumannTestData(model, ZeroVector(3));
 
-    // f = (-4 \mu (y - 0.6) + (y - 0.7), 4 \mu (x - 0.4) + (x - 0.3))
-    const double mu = NeumannTestViscosity;
-    ModelPart& r_domain = model.GetModelPart("IgaModelPart.Domain");
-    for (auto& r_element : r_domain.Elements()) {
-        const array_1d<double, 3> point =
-            r_element.GetGeometry().GetGeometryPart(0).Center().Coordinates();
-        array_1d<double, 3> body_force = ZeroVector(3);
-        body_force[0] = -4.0 * mu * (point[1] - 0.6) + (point[1] - 0.7);
-        body_force[1] = 4.0 * mu * (point[0] - 0.4) + (point[0] - 0.3);
-        r_element.SetValue(BODY_FORCE, body_force);
-    }
+    SetStokesCutTestBodyForce(model);
 
-    // Residual of each dof, summed over the entities, and its largest value
     std::map<const Dof<double>*, double> residual;
-    const auto add_residual = [&](auto& rEntity) {
-        Matrix left_hand_side;
-        Vector right_hand_side;
-        rEntity.CalculateLocalSystem(left_hand_side, right_hand_side, r_process_info);
-        Element::DofsVectorType dofs;
-        rEntity.GetDofList(dofs, r_process_info);
-        for (IndexType i = 0; i < dofs.size(); ++i) {
-            residual[dofs[i]] += right_hand_side[i];
-        }
-    };
-    const auto get_largest_residual = [&]() {
-        double largest = 0.0;
-        for (const auto& r_entry : residual) {
-            largest = std::max(largest, std::abs(r_entry.second));
-        }
-        return largest;
+    for (auto& r_element : model.GetModelPart("IgaModelPart.Domain").Elements()) {
+        AddStokesCutTestResidual(residual, r_element, r_process_info);
+    }
+    KRATOS_EXPECT_GT(GetLargestStokesCutTestResidual(residual), 1.0e-4);
+
+    for (auto& r_facet : model.GetModelPart("IgaModelPart.Boundary").Conditions()) {
+        AddStokesCutTestResidual(residual, r_facet, r_process_info);
+    }
+    KRATOS_EXPECT_NEAR(GetLargestStokesCutTestResidual(residual), 0.0, 1.0e-12);
+}
+
+// Terms of the Dirichlet condition on each cut facet of
+// CreateStokesCutModelPart, with g = u + \delta at the closest point. The full
+// Taylor series is exact for the exact fields, so S(u) - g = -\delta, and each
+// term of the right hand side is known: the consistency w j N_i (\sigma n-)_c,
+// with j = \alpha- on the - side and -\alpha+ on the + side, the adjoint
+// -\theta w [[\alpha]] V_i . \delta, the q term
+// -w [[\alpha]] {{N_p}} n- . \delta on the pressure rows, and the penalty
+// pen {{S N_i}} \delta_c. V_i, the viscous traction of the test function, is
+// written out by hand.
+KRATOS_TEST_CASE_IN_SUITE(GsbmStokesConditionDirichletFacetTerms, KratosIgaFastSuite)
+{
+    struct Variant
+    {
+        double Theta;
+        double Chi;
+        bool WithPressure;
     };
 
-    for (auto& r_element : r_domain.Elements()) {
-        add_residual(r_element);
-    }
-    KRATOS_EXPECT_GT(get_largest_residual(), 1.0e-4);
+    const double mu = StokesCutTestViscosity;
+    const double h = 1.0 / 6.0;
+    array_1d<double, 3> delta = ZeroVector(3);
+    delta[0] = 0.3;
+    delta[1] = -0.2;
 
-    for (auto& r_facet : model.GetModelPart("IgaModelPart.Neumann").Conditions()) {
-        add_residual(r_facet);
+    const std::array<Variant, 4> variants{{
+        {-1.0, 0.0, true}, {1.0, 10.0, true}, {-1.0, 0.0, false}, {1.0, 10.0, false}
+    }};
+    for (const Variant& r_variant : variants) {
+        Model model;
+        ModelPart& r_iga_model_part =
+            CreateStokesCutModelPart(model, "GsbmStokesConditionDirichlet");
+        const ProcessInfo& r_process_info = r_iga_model_part.GetProcessInfo();
+        Properties& r_properties = r_iga_model_part.GetProperties(1);
+        r_properties.SetValue(ADJOINT_FACTOR, r_variant.Theta);
+        r_properties.SetValue(PENALTY_FACTOR, r_variant.Chi);
+        r_properties.SetValue(ADJOINT_ON_PRESSURE, r_variant.WithPressure);
+        SetDirichletTestData(model, delta);
+
+        IndexType number_of_cut_facets = 0;
+        for (auto& r_facet : model.GetModelPart("IgaModelPart.Boundary").Conditions()) {
+            const auto& r_geometry = r_facet.GetGeometry();
+            const std::array<double, 2> alpha{
+                r_geometry.GetGeometryPart(0).GetValue(VOLUME_FRACTION),
+                r_geometry.GetGeometryPart(1).GetValue(VOLUME_FRACTION)
+            };
+            if (alpha[0] == alpha[1]) {
+                continue;
+            }
+            ++number_of_cut_facets;
+            KRATOS_EXPECT_EQ(r_facet.Check(r_process_info), 0);
+
+            Matrix left_hand_side;
+            Vector right_hand_side;
+            r_facet.CalculateLocalSystem(left_hand_side, right_hand_side, r_process_info);
+
+            const auto& r_reference = r_geometry.GetGeometryPart(0).GetGeometryPart(0);
+            const double weight =
+                r_reference.IntegrationPoints()[0].Weight() * r_reference.DeterminantOfJacobian(0);
+            const array_1d<double, 3> normal = r_reference.UnitNormal(0);
+            const array_1d<double, 3> center = r_reference.Center().Coordinates();
+            const array_1d<double, 3> distance =
+                r_facet.GetValue(NEIGHBOUR_NODES)[0].Coordinates() - center;
+            const BoundedMatrix<double, 2, 2> stress = ComputeStokesCutTestStress(center);
+
+            const double gamma = alpha[1] / (alpha[0] + alpha[1]);
+            const double alpha_jump = alpha[0] - alpha[1];
+            const double penalty =
+                weight * r_variant.Chi * 9.0 * mu / h * std::abs(alpha_jump);
+
+            // u_x, u_y and p of the - side, then of the + side
+            Vector expected = ZeroVector(right_hand_side.size());
+            IndexType dof = 0;
+            for (IndexType side = 0; side < 2; ++side) {
+                const auto& r_side = r_geometry.GetGeometryPart(side);
+                const double jump_factor = side == 0 ? alpha[0] : -alpha[1];
+                const double average_factor = side == 0 ? 1.0 - gamma : gamma;
+
+                for (IndexType part = 0; part < 3; ++part) {
+                    const auto& r_part = r_side.GetGeometryPart(part);
+                    const Matrix& r_N = r_part.ShapeFunctionsValues();
+                    if (part == 2) {
+                        for (IndexType i = 0; i < r_part.size(); ++i, ++dof) {
+                            if (r_variant.WithPressure) {
+                                expected[dof] = -weight * alpha_jump * average_factor * r_N(0, i)
+                                    * (normal[0] * delta[0] + normal[1] * delta[1]);
+                            }
+                        }
+                        continue;
+                    }
+
+                    const Matrix& r_DN = r_part.ShapeFunctionsLocalGradients()[0];
+                    const Vector shifted = ShiftedBoundaryUtilities::ComputeShiftedShapeFunctions(
+                        r_part, r_side.GetValue(KNOT_SPAN_INDICES), distance, 3
+                    );
+                    for (IndexType i = 0; i < r_part.size(); ++i, ++dof) {
+                        // (V_i)_m = \mu (\delta_{mc} grad N . n- + n-_c d_m N)
+                        const double normal_derivative =
+                            r_DN(i, 0) * normal[0] + r_DN(i, 1) * normal[1];
+                        double viscous_along_delta = 0.0;
+                        for (IndexType m = 0; m < 2; ++m) {
+                            viscous_along_delta += average_factor * mu * delta[m]
+                                * ((m == part ? normal_derivative : 0.0)
+                                    + normal[part] * r_DN(i, m));
+                        }
+
+                        expected[dof] = weight * jump_factor * r_N(0, i)
+                                * (stress(part, 0) * normal[0] + stress(part, 1) * normal[1])
+                            - r_variant.Theta * weight * alpha_jump * viscous_along_delta
+                            + penalty * average_factor * shifted[i] * delta[part];
+                    }
+                }
+            }
+            KRATOS_EXPECT_VECTOR_NEAR(right_hand_side, expected, 1.0e-10);
+        }
+        KRATOS_EXPECT_GT(number_of_cut_facets, 0);
     }
-    KRATOS_EXPECT_NEAR(get_largest_residual(), 0.0, 1.0e-12);
+}
+
+// Discrete integration by parts of GSBM with the Dirichlet condition: with
+// exact data and the body force of the exact fields, the residuals of the
+// elements and the conditions add up to zero in every row, with and without
+// the q term, as S(u) = g leaves only the consistency term.
+KRATOS_TEST_CASE_IN_SUITE(GsbmStokesConditionDirichletConsistency, KratosIgaFastSuite)
+{
+    for (const bool with_pressure : {true, false}) {
+        Model model;
+        ModelPart& r_iga_model_part =
+            CreateStokesCutModelPart(model, "GsbmStokesConditionDirichlet");
+        const ProcessInfo& r_process_info = r_iga_model_part.GetProcessInfo();
+        Properties& r_properties = r_iga_model_part.GetProperties(1);
+        r_properties.SetValue(ADJOINT_FACTOR, 1.0);
+        r_properties.SetValue(PENALTY_FACTOR, 10.0);
+        r_properties.SetValue(ADJOINT_ON_PRESSURE, with_pressure);
+        SetDirichletTestData(model, ZeroVector(3));
+        SetStokesCutTestBodyForce(model);
+
+        std::map<const Dof<double>*, double> residual;
+        for (auto& r_element : model.GetModelPart("IgaModelPart.Domain").Elements()) {
+            AddStokesCutTestResidual(residual, r_element, r_process_info);
+        }
+        KRATOS_EXPECT_GT(GetLargestStokesCutTestResidual(residual), 1.0e-4);
+
+        for (auto& r_facet : model.GetModelPart("IgaModelPart.Boundary").Conditions()) {
+            AddStokesCutTestResidual(residual, r_facet, r_process_info);
+        }
+        KRATOS_EXPECT_NEAR(GetLargestStokesCutTestResidual(residual), 0.0, 1.0e-11);
+    }
+}
+
+// First solve of the GSBM Stokes problem: element, ghost penalty and Dirichlet
+// condition from zero nodal values, assembled into a dense system, recover the
+// exact fields in every coefficient, void included, with the q term and the
+// standard ghost and without it and the ghost on the divergence. All-Dirichlet
+// leaves the constant pressure free, so one pressure coefficient in the void
+// is pinned to its exact value.
+KRATOS_TEST_CASE_IN_SUITE(GsbmStokesConditionDirichletSolve, KratosIgaFastSuite)
+{
+    using NurbsSurfaceType = NurbsSurfaceGeometry<3, PointerVector<Node>>;
+
+    for (const bool with_pressure : {true, false}) {
+        Model model;
+        ModelPart& r_iga_model_part =
+            CreateStokesCutModelPart(model, "GsbmStokesConditionDirichlet");
+        const ProcessInfo& r_process_info = r_iga_model_part.GetProcessInfo();
+        Properties& r_properties = r_iga_model_part.GetProperties(1);
+        r_properties.SetValue(ADJOINT_ON_PRESSURE, with_pressure);
+        r_properties.SetValue(PRESSURE_GHOST_PENALTY_ON_DIVERGENCE, !with_pressure);
+        SetDirichletTestData(model, ZeroVector(3));
+        SetStokesCutTestBodyForce(model);
+
+        // A row per dof of the entities, in the order they are met
+        std::map<Dof<double>*, IndexType> rows;
+        const auto add_dofs = [&](auto& rEntity) {
+            Element::DofsVectorType dofs;
+            rEntity.GetDofList(dofs, r_process_info);
+            for (Dof<double>* p_dof : dofs) {
+                rows.emplace(p_dof, rows.size());
+            }
+        };
+        for (auto& r_element : model.GetModelPart("IgaModelPart.Domain").Elements()) {
+            add_dofs(r_element);
+        }
+        for (const std::string name : {"IgaModelPart.Boundary", "IgaModelPart.GhostPenalty"}) {
+            for (auto& r_condition : model.GetModelPart(name).Conditions()) {
+                add_dofs(r_condition);
+            }
+        }
+
+        // The exact coefficients, then zero nodal values
+        const std::size_t number_of_dofs = rows.size();
+        Vector exact(number_of_dofs);
+        for (const auto& [p_dof, row_index] : rows) {
+            exact[row_index] = p_dof->GetSolutionStepValue();
+            p_dof->GetSolutionStepValue() = 0.0;
+        }
+
+        // Dense system of all the entities
+        Matrix system = ZeroMatrix(number_of_dofs, number_of_dofs);
+        Vector load = ZeroVector(number_of_dofs);
+        const auto assemble = [&](auto& rEntity) {
+            Matrix left_hand_side;
+            Vector right_hand_side;
+            rEntity.CalculateLocalSystem(left_hand_side, right_hand_side, r_process_info);
+            Element::DofsVectorType dofs;
+            rEntity.GetDofList(dofs, r_process_info);
+            for (IndexType i = 0; i < dofs.size(); ++i) {
+                load[rows.at(dofs[i])] += right_hand_side[i];
+                for (IndexType j = 0; j < dofs.size(); ++j) {
+                    system(rows.at(dofs[i]), rows.at(dofs[j])) += left_hand_side(i, j);
+                }
+            }
+        };
+        for (auto& r_element : model.GetModelPart("IgaModelPart.Domain").Elements()) {
+            assemble(r_element);
+        }
+        for (const std::string name : {"IgaModelPart.Boundary", "IgaModelPart.GhostPenalty"}) {
+            for (auto& r_condition : model.GetModelPart(name).Conditions()) {
+                assemble(r_condition);
+            }
+        }
+
+        // Pressure coefficient of the corner (0, 0) of the patch, in the void
+        auto& r_pressure =
+            dynamic_cast<NurbsSurfaceType&>(r_iga_model_part.GetGeometry("Pressure"));
+        const IndexType pinned = rows.at(r_pressure[0].pGetDof(PRESSURE));
+        noalias(row(system, pinned)) = ZeroVector(number_of_dofs);
+        system(pinned, pinned) = 1.0;
+        load[pinned] = exact[pinned];
+
+        Vector solution;
+        MathUtils<double>::Solve(system, solution, load);
+
+        double largest_error = 0.0;
+        for (IndexType i = 0; i < number_of_dofs; ++i) {
+            largest_error = std::max(largest_error, std::abs(solution[i] - exact[i]));
+        }
+        KRATOS_EXPECT_NEAR(largest_error, 0.0, 1.0e-8);
+    }
 }
 
 } // namespace Kratos::Testing

@@ -82,6 +82,8 @@ KratosIgaApplication::KratosIgaApplication()
         new Geometry<Node>(Condition::GeometryType::PointsArrayType(1))))
     , mGsbmStokesConditionNeumann(0, Condition::GeometryType::Pointer(
         new Geometry<Node>(Condition::GeometryType::PointsArrayType(1))))
+    , mGsbmStokesConditionDirichlet(0, Condition::GeometryType::Pointer(
+        new Geometry<Node>(Condition::GeometryType::PointsArrayType(1))))
     , mSupportFluidCondition(0, Element::GeometryType::Pointer(
         new Geometry<Node>(Element::GeometryType::PointsArrayType(1))))
     , mSupportPressureCondition(0, Condition::GeometryType::Pointer(
@@ -145,6 +147,7 @@ KRATOS_INFO("") << "    KRATOS  _____ _____\n"
         "GsbmStokesConditionGhostPenalty", mGsbmStokesConditionGhostPenalty
     )
     KRATOS_REGISTER_CONDITION("GsbmStokesConditionNeumann", mGsbmStokesConditionNeumann)
+    KRATOS_REGISTER_CONDITION("GsbmStokesConditionDirichlet", mGsbmStokesConditionDirichlet)
     KRATOS_REGISTER_CONDITION("SupportFluidCondition", mSupportFluidCondition)
     KRATOS_REGISTER_CONDITION("SupportPressureCondition", mSupportPressureCondition)
     KRATOS_REGISTER_CONDITION("SbmFluidConditionDirichlet", mSbmFluidConditionDirichlet)
@@ -263,6 +266,7 @@ KRATOS_INFO("") << "    KRATOS  _____ _____\n"
     KRATOS_REGISTER_VARIABLE(PSPG_FACTOR)
     KRATOS_REGISTER_VARIABLE(CURVATURE_DERIVATIVES)
     KRATOS_REGISTER_VARIABLE(ADJOINT_FACTOR)
+    KRATOS_REGISTER_VARIABLE(ADJOINT_ON_PRESSURE)
     KRATOS_REGISTER_VARIABLE(SHIFT_ORDER)
 }
 
