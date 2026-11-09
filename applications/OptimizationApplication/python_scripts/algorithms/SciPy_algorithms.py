@@ -94,6 +94,7 @@ class SciPyAlgorithms(Algorithm):
         self.__control_field = self.master_control.GetControlField()
         self.algorithm_data = ComponentDataView("algorithm", self._optimization_problem)
         self.algorithm_data.SetDataBuffer(self.GetMinimumBufferSize())
+        self.algorithm_data.GetUnBufferedData().SetValue("controls", ",".join([control.GetName() for control in self.master_control.GetListOfControls()]))
 
         # create nlopt optimizer
         self.x0 = self.__control_field.data.reshape(-1)

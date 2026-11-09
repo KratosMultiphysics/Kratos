@@ -60,7 +60,7 @@ void ContactSPRErrorProcess<TDim>::CalculatePatch(
         std::vector<array_1d<double,3>> coordinates_vector(1);
 
         // Our interest is to assemble the system A and b to solve a local problem for the element and estimate the new element size
-        CompressedMatrix A = ZeroMatrix(SigmaSize * (TDim + 1), SigmaSize * (TDim + 1));
+        Matrix A = ZeroMatrix(SigmaSize * (TDim + 1), SigmaSize * (TDim + 1)); // dense local system (MathUtils::Solve takes a dense matrix)
         BoundedMatrix<double, SigmaSize * (TDim+1),1> b = ZeroMatrix(SigmaSize * (TDim+1), 1);
         BoundedMatrix<double, SigmaSize, SigmaSize * (TDim+1)> p_k = ZeroMatrix(SigmaSize, SigmaSize * (TDim+1));
         BoundedMatrix<double, 1, SigmaSize> N_k = ZeroMatrix(1, SigmaSize);

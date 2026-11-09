@@ -536,25 +536,23 @@ namespace Kratos:: Python
         //********************************************************************
         //********************************************************************
 
-        using UblasSparseSpaceInterfaceType = TUblasSparseSpace<double>;
-        auto sparse_space_binder = CreateSpaceInterface< UblasSparseSpaceInterfaceType >(m,"UblasSparseSpace");
-        sparse_space_binder.def("TwoNorm", TwoNorm<UblasSparseSpaceInterfaceType>);
-        // The dot product of two vectors
-        sparse_space_binder.def("Dot", Dot<UblasSparseSpaceInterfaceType>);
-        sparse_space_binder.def("TransposeMult", TransposeMult<UblasSparseSpaceInterfaceType>);
-        // Size functions
-        sparse_space_binder.def("Size", &UblasSparseSpaceInterfaceType::Size);
-        sparse_space_binder.def("Size1", &UblasSparseSpaceInterfaceType::Size1);
-        sparse_space_binder.def("Size2", &UblasSparseSpaceInterfaceType::Size2);
-        // Information functions
-        sparse_space_binder.def("IsDistributed", &UblasSparseSpaceInterfaceType::IsDistributed);
-        sparse_space_binder.def("FastestDirectSolverList", &UblasSparseSpaceInterfaceType::FastestDirectSolverList);
-
-        m.attr("SparseSpace") = m.attr("UblasSparseSpace");
-        m.attr("SparseMatrix") = m.attr("CompressedMatrix");
-        m.attr("SparseVector") = m.attr("Vector");
-
-        m.attr("SparseSpace") = m.attr("UblasSparseSpace");
+        // The sparse space of the strategies (the configure-time selected
+        // backend), plus backend-agnostic aliases: scripts that build system
+        // matrices/vectors to feed directly into a linear solver should use
+        // SparseSpace/SparseMatrix/SparseVector instead of hardcoding the
+        // backend-specific names.
+        const std::string sparse_space_name = "UblasSparseSpace";
+        auto sparse_space_binder = CreateSpaceInterface< SparseSpaceType >(m, sparse_space_name.c_str());
+        sparse_space_binder.def("TwoNorm", TwoNorm<SparseSpaceType>);
+        // the dot product of the argument vectors
+        sparse_space_binder.def("Dot", Dot<SparseSpaceType>);
+        sparse_space_binder.def("TransposeMult", TransposeMult<SparseSpaceType>);
+        sparse_space_binder.def("Size", &SparseSpaceType::Size);
+        sparse_space_binder.def("Size1", &SparseSpaceType::Size1);
+        sparse_space_binder.def("Size2", &SparseSpaceType::Size2);
+        sparse_space_binder.def("IsDistributed", &SparseSpaceType::IsDistributed);
+        sparse_space_binder.def("FastestDirectSolverList", &SparseSpaceType::FastestDirectSolverList);
+        m.attr("SparseSpace") = m.attr(sparse_space_name.c_str());
         m.attr("SparseMatrix") = m.attr("CompressedMatrix");
         m.attr("SparseVector") = m.attr("Vector");
 

@@ -10,15 +10,14 @@
 //  Main authors:    Vicente Mataix Ferrandiz
 //
 
-#if !defined(KRATOS_FEAST_CONDITION_NUMBER_UTILITY )
-#define  KRATOS_FEAST_CONDITION_NUMBER_UTILITY
+#pragma once
 
 // System includes
 
 // External includes
 
 // Project includes
-#include "spaces/ublas_space.h"
+#include "spaces/default_spaces.h"
 #include "linear_solvers/linear_solver.h"
 #ifdef USE_EIGEN_FEAST
     #include "custom_solvers/feast_eigensystem_solver.h"
@@ -50,8 +49,8 @@ namespace Kratos
 /**
  * Regular matrix: A*A^H=A^H*A
  */
-template<class TSparseSpace = UblasSpace<double, CompressedMatrix, Vector>,
-         class TDenseSpace = UblasSpace<double, Matrix, Vector>
+template<class TSparseSpace = TDefaultSparseSpace<double>,
+         class TDenseSpace = TDefaultDenseSpace<double>
          >
 class FEASTConditionNumberUtility
 {
@@ -247,6 +246,3 @@ private:
 ///@{
 
 }  /* namespace Kratos.*/
-
-#endif /* KRATOS_FEAST_CONDITION_NUMBER_UTILITY  defined */
-

@@ -379,11 +379,6 @@ void WeakSlidingElement3D3N::AddExplicitContribution(
 
     if (rRHSVariable == RESIDUAL_VECTOR && rDestinationVariable == FORCE_RESIDUAL) {
 
-        BoundedVector<double, msLocalSize> damping_residual_contribution = ZeroVector(msLocalSize);
-        Vector current_nodal_velocities = ZeroVector(msLocalSize);
-        GetFirstDerivativesVector(current_nodal_velocities);
-        ProcessInfo temp_process_information; // cant pass const ProcessInfo
-
         for (size_t i = 0; i < msNumberOfNodes; ++i) {
             size_t index = msDimension * i;
             array_1d<double, 3>& r_force_residual = GetGeometry()[i].FastGetSolutionStepValue(FORCE_RESIDUAL);

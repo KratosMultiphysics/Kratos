@@ -329,7 +329,7 @@ void ParallelFillCommunicator::InitializeParallelCommunicationMeshes(
     KRATOS_TRY;
     // Allocate space needed in the communicator.
     rModelPart.GetCommunicator().SetNumberOfColors(rColors.size());
-    rModelPart.GetCommunicator().NeighbourIndices().resize(rColors.size());
+    rModelPart.GetCommunicator().NeighbourIndices().resize(rColors.size(), false);
     for (unsigned color = 0; color < rColors.size(); ++color) {
         rModelPart.GetCommunicator().LocalMesh(color).Nodes().clear();
         rModelPart.GetCommunicator().GhostMesh(color).Nodes().clear();
@@ -456,7 +456,7 @@ void ParallelFillCommunicator::ComputeCommunicationPlanSubModelPart(
 
     // Allocate space needed in the communicator.
     r_communicator.SetNumberOfColors(rColors.size());
-    r_communicator.NeighbourIndices().resize(rColors.size());
+    r_communicator.NeighbourIndices().resize(rColors.size(), false);
     for (unsigned color = 0; color < rColors.size(); ++color) {
         r_communicator.LocalMesh(color).Nodes().clear();
         r_communicator.GhostMesh(color).Nodes().clear();

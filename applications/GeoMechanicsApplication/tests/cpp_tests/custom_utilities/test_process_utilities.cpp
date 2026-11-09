@@ -65,7 +65,7 @@ KRATOS_TEST_CASE_IN_SUITE(GetModelPartsFromSettings_ListOfModelParts, KratosGeoM
     KRATOS_EXPECT_EQ(model_parts[1].get().Name(), "Part2");
 }
 
-KRATOS_TEST_CASE_IN_SUITE(GetModelPartsFromSettings_SingleComputingModelPart, KratosGeoMechanicsFastSuiteWithoutKernel)
+KRATOS_TEST_CASE_IN_SUITE(GetModelPartsFromSettings_ThrowsForComputingModelPart, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
     Model model;
@@ -76,13 +76,10 @@ KRATOS_TEST_CASE_IN_SUITE(GetModelPartsFromSettings_SingleComputingModelPart, Kr
             "computing_model_part_name": "Main"
         })");
 
-    // Act
-    const auto model_parts = ProcessUtilities::GetModelPartsFromSettings(
-        model, settings, "TestProcess", {"computing_model_part_name"});
-
-    // Assert
-    KRATOS_EXPECT_EQ(model_parts.size(), 1);
-    KRATOS_EXPECT_EQ(model_parts[0].get().Name(), "Main");
+    // Act and Assert
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        ProcessUtilities::GetModelPartsFromSettings(model, settings, "TestProcess"),
+        "Please specify 'model_part_name' or 'model_part_name_list' for TestProcess")
 }
 
 KRATOS_TEST_CASE_IN_SUITE(GetModelPartsFromSettings_CheckForDuplicatedNames, KratosGeoMechanicsFastSuiteWithoutKernel)
@@ -139,9 +136,7 @@ TEST_P(ModelPartsTest, GetModelPartsFromSettings_MissingParameters_Throws)
 
     KRATOS_CHECK_EXCEPTION_IS_THROWN(
         param.factory(model, settings),
-        "Please specify any of 'model_part_name' or 'model_part_name_list' "
-        "for " +
-            param.name);
+        "Please specify 'model_part_name' or 'model_part_name_list' for " + param.name);
 }
 
 TEST_P(ModelPartsTest, GetModelPartsFromSettings_EmptyList_Throws)
@@ -155,10 +150,10 @@ TEST_P(ModelPartsTest, GetModelPartsFromSettings_EmptyList_Throws)
 
     const auto& param = GetParam();
 
-    KRATOS_CHECK_EXCEPTION_IS_THROWN(
-        param.factory(model, settings),
-        "The parameters 'model_part_name_list' needs to contain at least one model part name for " +
-            param.name);
+    KRATOS_CHECK_EXCEPTION_IS_THROWN(param.factory(model, settings),
+                                     "The parameters 'model_part_name' or 'model_part_name_list' "
+                                     "needs to contain at least one model part name for " +
+                                         param.name);
 }
 
 static const std::vector<NamedFactory> ProcessesAndOperations = {
@@ -268,6 +263,37 @@ KRATOS_TEST_CASE_IN_SUITE(AddProcessesSubModelPartList_AddsFilledListBasedOnCons
     const auto actual_modelpart_names = solver_settings["processes_sub_model_part_list"].GetStringArray();
     const std::vector<std::string> expected_modelpart_names = {"BottomFixed", "Sides", "Soil", "TopLoad"};
     EXPECT_EQ(actual_modelpart_names, expected_modelpart_names);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(AddProcessesSubModelPartList_AddsFilledListBasedOnProcessWithNameApplyPeriodicConditionProcess,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    const Parameters project_parameters(R"(
+      {
+         "processes":
+         {
+            "constraints_process_list": [
+            {
+                "process_name": "ApplyPeriodicConditionProcess",
+                "Parameters":    {
+                    "computing_model_part_name": "PorousDomain.computing_model_part"
+                }
+            }]
+         },
+         "solver_settings": {
+             "model_part_name": "PorousDomain"
+         }
+      })");
+
+    auto solver_settings = project_parameters["solver_settings"];
+
+    // Act
+    ProcessUtilities::AddProcessesSubModelPartListToSolverSettings(project_parameters, solver_settings);
+
+    // Assert
+    const auto& r_list = solver_settings["processes_sub_model_part_list"];
+    KRATOS_EXPECT_EQ(r_list.size(), 0);
 }
 
 } // namespace Kratos::Testing

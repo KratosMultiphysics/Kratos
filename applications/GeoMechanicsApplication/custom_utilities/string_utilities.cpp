@@ -27,16 +27,16 @@ std::string GeoStringUtilities::ToLower(const std::string& rString)
 
 std::string GeoStringUtilities::Join(const std::vector<std::string>& rStrings,
                                      const std::string&              rSeparator,
-                                     const std::string&              rClampCharacter)
+                                     const std::string&              rNameWrapper)
 {
     if (rStrings.empty()) return {};
 
     auto oss = std::ostringstream{};
     auto it  = rStrings.begin();
-    oss << rClampCharacter << *it << rClampCharacter;
+    oss << rNameWrapper << *it << rNameWrapper;
     ++it;
     for (; it != rStrings.end(); ++it) {
-        oss << rSeparator << rClampCharacter << *it << rClampCharacter;
+        oss << rSeparator << rNameWrapper << *it << rNameWrapper;
     }
 
     return oss.str();

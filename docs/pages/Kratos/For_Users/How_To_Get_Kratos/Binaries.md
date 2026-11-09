@@ -11,7 +11,7 @@ summary:
 Kratos binaries are available for Linux and Windows and can be optained with `pip`:
 
 ```console
-pip install KratosMultiphysics-all
+pip install KratosMultiphysics[all]
 ```
 
 # Pip Packages
@@ -20,7 +20,7 @@ The following Kratos Pakcages ara avaialable
 
 ## Core
 
-- KratosMultiphysics-all: Kratos core and all its dependencies
+- KratosMultiphysics[all]: Kratos core and all its dependencies
 - KratosMultiphysics: Kratos Core
 
 ## Applications

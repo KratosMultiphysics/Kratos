@@ -152,7 +152,7 @@ public:
         mShapeFunctionsU.ResizeDataContainers(PolynomialDegreeU, DerivativeOrder);
         mShapeFunctionsV.ResizeDataContainers(PolynomialDegreeV, DerivativeOrder);
         mShapeFunctionsW.ResizeDataContainers(PolynomialDegreeW, DerivativeOrder);
-        mShapeFunctionValues.resize(number_of_nonzero_control_points * number_of_shape_function_rows);
+        mShapeFunctionValues.resize(number_of_nonzero_control_points * number_of_shape_function_rows, false);
         // mWeightedSums.resize(number_of_shape_function_rows);
 
         mDerivativeOrder = DerivativeOrder;

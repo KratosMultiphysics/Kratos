@@ -148,6 +148,54 @@ KRATOS_TEST_CASE_IN_SUITE(SerializerUnsignedInt, KratosCoreFastSuite)
     TestObjectSerialization(object_to_be_saved, object_to_be_loaded);
 }
 
+KRATOS_TEST_CASE_IN_SUITE(SerializerUnsignedChar, KratosCoreFastSuite)
+{
+    unsigned char object_to_be_saved = 42;
+    unsigned char object_to_be_loaded;
+
+    TestObjectSerialization(object_to_be_saved, object_to_be_loaded);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(SerializerSignedChar, KratosCoreFastSuite)
+{
+    signed char object_to_be_saved = -42;
+    signed char object_to_be_loaded;
+
+    TestObjectSerialization(object_to_be_saved, object_to_be_loaded);
+}
+
+// ASCII (trace) mode used to write (un)signed char as a raw character, so on read operator>> skipped
+// whitespace bytes such as 32 (' '), corrupting the value and misaligning the stream.
+template<class TCharType>
+void TestCharAsciiTraceSerialization(const std::vector<TCharType>& rValues)
+{
+    StreamSerializer serializer(Serializer::SERIALIZER_TRACE_ALL);
+
+    for (const auto value : rValues) {
+        serializer.save("Value", value);
+    }
+    serializer.save("Sentinel", 12345);
+
+    for (const auto value : rValues) {
+        TCharType loaded_value;
+        serializer.load("Value", loaded_value);
+        KRATOS_EXPECT_EQ(static_cast<int>(loaded_value), static_cast<int>(value));
+    }
+    int loaded_sentinel;
+    serializer.load("Sentinel", loaded_sentinel);
+    KRATOS_EXPECT_EQ(loaded_sentinel, 12345);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(SerializerUnsignedCharAsciiTrace, KratosCoreFastSuite)
+{
+    TestCharAsciiTraceSerialization<unsigned char>({0, 32, 200, 255});
+}
+
+KRATOS_TEST_CASE_IN_SUITE(SerializerSignedCharAsciiTrace, KratosCoreFastSuite)
+{
+    TestCharAsciiTraceSerialization<signed char>({-128, 32, 127});
+}
+
 KRATOS_TEST_CASE_IN_SUITE(SerializerStdString, KratosCoreFastSuite)
 {
     std::string object_to_be_saved = "MyStringToBeSerialized";

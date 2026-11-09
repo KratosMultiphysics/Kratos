@@ -117,7 +117,7 @@ private:
     Vector                                             mDeltaStrainVector;
     Vector                                             mStrainVectorFinalized;
     bool                                               mIsModelInitialized = false;
-    GeoYoungsModulusFormulations::YoungsModulusVariant mFormulation;
+    GeoYoungsModulusFormulations::YoungsModulusVariant mYoungsModulusFormulation;
 
     friend class Serializer;
     void save(Serializer& rSerializer) const override;
