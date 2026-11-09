@@ -3015,6 +3015,7 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
     def _UpdateFunctionalDerivativesVariable(self):
         for node in self._GetLocalMeshNodes():
             node.SetValue(KratosMultiphysics.FUNCTIONAL_DERIVATIVE, self.functional_derivatives_wrt_design[self.nodes_ids_global_to_local_partition_dictionary[node.Id]][0])
+        self._GetMainModelPart().GetCommunicator().SynchronizeNonHistoricalVariable(KratosMultiphysics.FUNCTIONAL_DERIVATIVE)
 
     def _UpdateConstraintsDerivativesVariable(self):
         self._UpdateVolumeConstraintDerivativesVariable()
