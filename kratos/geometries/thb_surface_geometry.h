@@ -1809,8 +1809,6 @@ private:
         const auto [elevated_knots_v, M_p_v] = ComputeDegreeElevationMatrix1D(previous_level.KnotsV, p_v);
         const SizeType num_cps_u_coarse   = previous_level.KnotsU.size() - p_u + 1;
         const SizeType num_cps_v_coarse   = previous_level.KnotsV.size() - p_v + 1;
-        const SizeType num_cps_u_elevated = M_p_u.size1();
-        const SizeType num_cps_v_elevated = M_p_v.size1();
 
         // Step 2: bisect the elevated knot vectors.
         const Vector bisected_knots_u = BisectKnots(elevated_knots_u);
