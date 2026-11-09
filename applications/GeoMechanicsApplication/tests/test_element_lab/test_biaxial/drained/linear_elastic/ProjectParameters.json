@@ -106,6 +106,18 @@
                     "variable_name": "DISPLACEMENT_X",
                     "reform_constraints_at_each_step": false
                 }
+            },
+            {
+                "python_module": "assign_average_master_slave_constraints_process",
+                "kratos_module": "KratosMultiphysics",
+                "process_name": "AssignAverageMasterSlaveConstraintsProcess",
+                "Parameters": {
+                    "computing_model_part_name": "PorousDomain.porous_computational_model_part",
+                    "master_model_part_name": "PorousDomain.MasterX05",
+                    "slave_model_part_name": "PorousDomain.SlaveX05",
+                    "variable_name": "DISPLACEMENT_X",
+                    "reform_constraints_at_each_step": false
+                }
             }
         ],
         "loads_process_list": [

@@ -126,3 +126,15 @@ Begin SubModelPart SlaveX1
     End SubModelPartNodes
 End SubModelPart
 
+Begin SubModelPart MasterX05
+    Begin SubModelPartNodes
+            4
+    End SubModelPartNodes
+End SubModelPart
+
+Begin SubModelPart SlaveX05
+    Begin SubModelPartNodes
+            2
+            8
+    End SubModelPartNodes
+End SubModelPart
