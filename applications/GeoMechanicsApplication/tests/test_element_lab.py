@@ -71,7 +71,12 @@ class KratosGeoMechanicsLabElementTests(KratosGeoUnittest.TestCase):
         self._run_biaxial_regression_test(file_path, 'biaxial_test_output.post.res', 4)
 
     def _run_biaxial_regression_test(self, file_path, output_file_name, precision_places):
-        test_helper.run_kratos(file_path)
+        common_file_path = test_helper.get_file_path(
+            os.path.join('test_element_lab', 'test_biaxial', 'common'))
+        run_multiple_stages.run_stages(
+            file_path, 1,
+            filename_pattern="ProjectParameters.json",
+            input_path=common_file_path)
         reader = GiDOutputFileReader()
         result = reader.read_output_from(os.path.join(file_path, output_file_name))
         time = 1.0
