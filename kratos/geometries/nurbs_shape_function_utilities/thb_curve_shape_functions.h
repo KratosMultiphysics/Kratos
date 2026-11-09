@@ -149,14 +149,18 @@ public:
                 // Multi-level truncation: subtract active fine-level contributions.
                 // Entries can target any FineLevel from l+1 to num_levels-1;
                 // skip levels beyond the active range (those B-splines are zero here).
+                const double w_i = AllLevels[l].Weights.empty() ? 1.0 : AllLevels[l].Weights[flat_index];
                 for (const auto& TruncationEntry : rGeometry.GetTruncationData(l, flat_index)) {
                     if (TruncationEntry.FineLevel > ActiveLevel) continue;
                     const auto& FinerLevelCache = level_caches[TruncationEntry.FineLevel];
                     auto position_iterator = FinerLevelCache.flat_index_to_local_position.find(TruncationEntry.FineFlatIndex);
                     if (position_iterator == FinerLevelCache.flat_index_to_local_position.end()) continue;
                     const SizeType local_position = position_iterator->second;
+                    const double w_j = AllLevels[TruncationEntry.FineLevel].Weights.empty()
+                        ? 1.0 : AllLevels[TruncationEntry.FineLevel].Weights[TruncationEntry.FineFlatIndex];
+                    const double scaled_coeff = TruncationEntry.Coefficient * (w_i / w_j);
                     for (SizeType row = 0; row < number_of_shape_function_rows; ++row)
-                        truncated_value[row] -= TruncationEntry.Coefficient
+                        truncated_value[row] -= scaled_coeff
                             * FinerLevelCache.values[row * FinerLevelCache.number_of_nonzero_control_points + local_position];
                 }
 
