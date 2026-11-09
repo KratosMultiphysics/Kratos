@@ -1,0 +1,53 @@
+{
+    "properties": [
+        {
+            "model_part_name": "PorousModelPart.Body_Part-auto-1",
+            "properties_id": 1,
+            "Material": {
+                "constitutive_law": {
+                    "name": "LinearElasticPlaneStrainSolid2DLaw"
+                },
+                "Variables": {
+                    "SATURATION_LAW_NAME": "PiecewiseLinearLaw",
+                    "YOUNG_MODULUS": 1.0e10,
+                    "POISSON_RATIO": 0.2,
+                    "DENSITY_SOLID": 2000.0,
+                    "DENSITY_LIQUID": 1000.0,
+                    "DENSITY_GAS": 1000.0,
+                    "POROSITY": 0.2,
+                    "BULK_MODULUS_SOLID": 1.0e99,
+                    "BULK_MODULUS_LIQUID": 1.0e99,
+                    "BULK_MODULUS_GAS": 1.0e99,
+                    "PERMEABILITY_XX": 1.0e-7,
+                    "PERMEABILITY_YY": 1.0e-7,
+                    "PERMEABILITY_ZZ": 1.0e-7,
+                    "PERMEABILITY_XY": 0.0,
+                    "PERMEABILITY_YZ": 0.0,
+                    "PERMEABILITY_ZX": 0.0,
+                    "DYNAMIC_VISCOSITY_LIQUID": 0.001,
+                    "DYNAMIC_VISCOSITY_GAS": 0.001,
+                    "BIOT_COEFFICIENT": 1.0,
+                    "RESIDUAL_LIQUID_SATURATION": 0.2,
+                    "RESIDUAL_GAS_SATURATION": 0.2,
+                    "PORE_SIZE_FACTOR": 2.0,
+                    "GAS_ENTRY_PRESSURE": 0.0,
+                    "MINIMUM_RELATIVE_PERMEABILITY": 0.0001,
+                    "GAS_HENRY_SOLUBILITY_COEFF": 0.0,
+                    "GAS_MOLAR_WEIGHT": 0.0,
+                    "TEMPERATURE": 0.0,
+                    "TORTUOSITY_COEFF": 0.0,
+                    "GAS_DIFFUSION_COEFF": 0.0,
+                    "LIQUID_DENSITY_REF_PRESSURE": 0.0,
+                    "THICKNESS": 1.0,
+                    "DAMAGE_THRESHOLD": 0.0001,
+                    "STRENGTH_RATIO": 10.0,
+                    "FRACTURE_ENERGY": 100.0,
+                    "RESIDUAL_STRENGTH": 0.8,
+                    "SOFTENING_SLOPE": 9000.0
+                },
+                "Tables": {}
+            }
+        }
+    ]
+}
+

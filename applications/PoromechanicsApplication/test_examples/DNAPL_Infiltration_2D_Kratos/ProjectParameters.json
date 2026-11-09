@@ -1,0 +1,150 @@
+{
+    "problem_data": {
+        "problem_name": "DNAPL_Infiltration_2D_Kratos",
+        "start_time": 0.0,
+        "end_time": 2000.0,
+        "echo_level": 1,
+        "parallel_type": "OpenMP"
+    },
+    "solver_settings": {
+        "solver_type": "poromechanics_U_Pl_Pg_solver",
+        "model_part_name": "PorousModelPart",
+        "domain_size": 2,
+        "start_time": 0.0,
+        "time_step": 1.0,
+        "model_import_settings": {
+            "input_type": "mdpa",
+            "input_filename": "/Users/janchauncey/Documents/Repos/Kratos/applications/PoromechanicsApplication/test_examples/DNAPL_Infiltration_2D_Kratos/DNAPL_Infiltration"
+        },
+        "material_import_settings": {
+            "materials_filename": "/Users/janchauncey/Documents/Repos/Kratos/applications/PoromechanicsApplication/test_examples/DNAPL_Infiltration_2D_Kratos/PoroMaterials.json"
+        },
+        "buffer_size": 2,
+        "echo_level": 1,
+        "clear_storage": false,
+        "compute_reactions": false,
+        "move_mesh_flag": false,
+        "reform_dofs_at_each_step": false,
+        "nodal_smoothing": false,
+        "gp_to_nodal_variable_list": ["LIQUID_SATURATION_DEGREE", "GAS_SATURATION_DEGREE"],
+        "gp_to_nodal_variable_extrapolate_non_historical": true,
+        "block_builder": false,
+        "solution_type": "implicit_quasi_static",
+        "scheme_type": "Newmark",
+        "newmark_beta": 0.25,
+        "newmark_gamma": 0.5,
+        "newmark_theta_u": 1.0,
+        "newmark_theta_pl": 1.0,
+        "newmark_theta_pg": 1.0,
+        "rayleigh_alpha": 0.0,
+        "rayleigh_beta": 0.0,
+        "strategy_type": "newton_raphson",
+        "convergence_criterion": "Or_criterion",
+        "displacement_relative_tolerance": 1.0e-4,
+        "displacement_absolute_tolerance": 1.0e-6,
+        "residual_relative_tolerance": 1.0e-4,
+        "residual_absolute_tolerance": 1.0e-6,
+        "max_iteration": 30,
+        "linear_solver_settings": {
+            "solver_type": "LinearSolversApplication.sparse_lu"
+        },
+        "problem_domain_sub_model_part_list": [
+            "Body_Part_Matrix",
+            "Body_Part_Lens"
+        ],
+        "processes_sub_model_part_list": [
+            "Solid_Displacement",
+            "Lateral_Borders",
+            "Infiltration_Zone",
+            "Domain_Initial"
+        ],
+        "body_domain_sub_model_part_list": [
+            "Body_Part_Matrix",
+            "Body_Part_Lens"
+        ],
+        "loads_sub_model_part_list": [
+            "Infiltration_Zone"
+        ],
+        "loads_variable_list": [
+            "NORMAL_GAS_FLUX"
+        ]
+    },
+    "processes": {
+        "constraints_process_list": [
+            {
+                "python_module": "apply_vector_constraint_table_process",
+                "kratos_module": "KratosMultiphysics.PoromechanicsApplication",
+                "Parameters": {
+                    "model_part_name": "PorousModelPart.Solid_Displacement",
+                    "variable_name": "DISPLACEMENT",
+                    "active": [
+                        true,
+                        true,
+                        false
+                    ],
+                    "is_fixed": [
+                        true,
+                        true,
+                        false
+                    ],
+                    "value": [
+                        0.0,
+                        0.0,
+                        0.0
+                    ],
+                    "table": [
+                        0,
+                        0,
+                        0
+                    ]
+                }
+            },
+            {
+                "python_module": "apply_vector_constraint_table_process",
+                "kratos_module": "KratosMultiphysics.PoromechanicsApplication",
+                "Parameters": {
+                    "model_part_name": "PorousModelPart.Domain_Initial",
+                    "variable_name": "VOLUME_ACCELERATION",
+                    "active": [
+                        false,
+                        true,
+                        false
+                    ],
+                    "is_fixed": [
+                        false,
+                        false,
+                        false
+                    ],
+                    "value": [
+                        0.0,
+                        -9.81,
+                        0.0
+                    ],
+                    "table": [
+                        0,
+                        0,
+                        0
+                    ]
+                }
+            }
+        ],
+        "loads_process_list": [
+            {
+                "python_module": "apply_scalar_constraint_table_process",
+                "kratos_module": "KratosMultiphysics.PoromechanicsApplication",
+                "Parameters": {
+                    "model_part_name": "PorousModelPart.Infiltration_Zone",
+                    "variable_name": "NORMAL_GAS_FLUX",
+                    "is_fixed": false,
+                    "value": 5.13698630137e-05,
+                    "table": 0,
+                    "hydrostatic": false,
+                    "gravity_direction": 2,
+                    "reference_coordinate": 0.0,
+                    "specific_weight": 10000.0
+                }
+            }
+        ]
+    }
+}
+
