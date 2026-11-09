@@ -1284,6 +1284,7 @@ void UPlPgSmallStrainElement<TDim,TNumNodes>::CalculateAndAddFluidTerms(
     const GeometryType& Geom = this->GetGeometry();
 
     const bool is_liakopoulos = Prop.Has(SATURATION_LAW_NAME) && (Prop[SATURATION_LAW_NAME] == "LiakopoulosLaw");
+    const bool is_piecewise_linear = Prop.Has(SATURATION_LAW_NAME) && (Prop[SATURATION_LAW_NAME] == "PiecewiseLinearLaw");
     const bool is_ideal_gas = Prop.Has(GAS_MOLAR_WEIGHT) && (Prop[GAS_MOLAR_WEIGHT] > 0.0) &&
                               Prop.Has(TEMPERATURE) && (Prop[TEMPERATURE] > 0.0);
 
@@ -1350,10 +1351,24 @@ void UPlPgSmallStrainElement<TDim,TNumNodes>::CalculateAndAddFluidTerms(
                     dSldPc_nodal[i] = -a_ret * b_ret * std::pow(pc_i, b_ret - 1.0);
                 }
             }
+        } else if (is_piecewise_linear) {
+            const double Slmin = Slr;
+            const double Slmax = 1.0 - Sgr;
+            const double pc_min = 0.0;
+            const double pc_max = (pb > 0.0) ? pb : 1.0;
+            const double slope = -(Slmax - Slmin) / (pc_max - pc_min);
+            if (pc_i <= pc_min) {
+                Sl_nodal[i] = Slmax;
+            } else if (pc_i >= pc_max) {
+                Sl_nodal[i] = Slmin;
+            } else {
+                Sl_nodal[i] = Slmax + slope * (pc_i - pc_min);
+            }
+            dSldPc_nodal[i] = slope;
         } else {
             if (pc_i <= pb) {
                 Sl_nodal[i] = 1.0 - Sgr;
-                dSldPc_nodal[i] = 0.0;
+                dSldPc_nodal[i] = -lambda * (1.0 - Sgr - Slr) / pb;
             } else {
                 const double ratio = pb / pc_i;
                 const double p_pow = std::pow(ratio, lambda);
@@ -1381,6 +1396,19 @@ void UPlPgSmallStrainElement<TDim,TNumNodes>::CalculateAndAddFluidTerms(
                 Sl_old_nodal[i] = 1.0;
             } else {
                 Sl_old_nodal[i] = std::max(Slmin, 1.0 - a_ret * std::pow(pc_old_i, b_ret));
+            }
+        } else if (is_piecewise_linear) {
+            const double Slmin = Slr;
+            const double Slmax = 1.0 - Sgr;
+            const double pc_min = 0.0;
+            const double pc_max = (pb > 0.0) ? pb : 1.0;
+            const double slope = -(Slmax - Slmin) / (pc_max - pc_min);
+            if (pc_old_i <= pc_min) {
+                Sl_old_nodal[i] = Slmax;
+            } else if (pc_old_i >= pc_max) {
+                Sl_old_nodal[i] = Slmin;
+            } else {
+                Sl_old_nodal[i] = Slmax + slope * (pc_old_i - pc_min);
             }
         } else {
             if (pc_old_i <= pb) {
