@@ -272,7 +272,9 @@ namespace Kratos
 
         static double Distance(array_1d<double, 2> point_1, array_1d<double, 2> point_2)
         {
-            return sqrt(point_1[0] * point_2[0] + point_1[1] * point_2[1]);
+            const double dx = point_1[0] - point_2[0];
+            const double dy = point_1[1] - point_2[1];
+            return sqrt(dx * dx + dy * dy);
         }
 
         static double GetAreaOfTriangle(const Matrix& triangle)
