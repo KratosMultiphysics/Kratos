@@ -22,10 +22,11 @@ class KratosGeoMechanicsLeveeSeepageTests(KratosUnittest.TestCase):
     FLUX_RELATIVE_TOLERANCE = 0.085 # percentage
     SATURATION_TOLERANCE = 0.075
 
-    def _read_reference(self, file_path, filename, columns):
-        path = os.path.join(file_path, filename)
-        self.assertTrue(os.path.isfile(path), f"Missing commercial FE reference: {path}")
-        with open(path, newline="") as csv_file:
+    def _read_reference(self, filename, columns):
+        self.assertTrue(
+            os.path.isfile(filename), f"Missing commercial FE reference: {filename}"
+        )
+        with open(filename, newline="") as csv_file:
             reader = csv.DictReader(csv_file, skipinitialspace=True)
             self.assertTrue(
                 set(columns).issubset(reader.fieldnames or []),
@@ -106,28 +107,28 @@ class KratosGeoMechanicsLeveeSeepageTests(KratosUnittest.TestCase):
 
     def test_levee_seepage(self):
         file_path = test_helper.get_file_path('test_levee_seepage')
-        expected_phreatic = self._read_reference(
-            file_path, "expected_phreatic_line.csv", ("X", "Y")
-        )
-        expected_flux = self._read_reference(
-            file_path, "expected_flux_at_x_20.csv", ("Y", "Flux")
-        )
-        expected_saturation = self._read_reference(
-            file_path, "expected_saturation_at_x_4.csv", ("Y", "Effective Saturation")
-        )
-        self.assertTrue(all(flux >= 0.0 for _, flux in expected_flux))
-        self.assertTrue(all(0.0 <= value <= 1.0 for _, value in expected_saturation))
-
         with KratosUnittest.WorkFolderScope(file_path, __file__):
+            expected_phreatic = self._read_reference(
+                "expected_phreatic_line.csv", ("X", "Y")
+            )
+            expected_flux = self._read_reference(
+                "expected_flux_at_x_20.csv", ("Y", "Flux")
+            )
+            expected_saturation = self._read_reference(
+                "expected_saturation_at_x_4.csv", ("Y", "Effective Saturation")
+            )
             with open("ProjectParameters.json", "r") as f:
                 project_parameters = Kratos.Parameters(f.read())
             project = helper_utilities.run_orchestrator(project_parameters)
+            output_data = GiDOutputFileReader().read_output_from(
+                "levee_seepage_find_equilibrium.post.res"
+            )
+
+        self.assertTrue(all(flux >= 0.0 for _, flux in expected_flux))
+        self.assertTrue(all(0.0 <= value <= 1.0 for _, value in expected_saturation))
 
         model_part = project.GetModel().GetModelPart(
             "PorousDomain.porous_computational_model_part"
-        )
-        output_data = GiDOutputFileReader().read_output_from(
-            os.path.join(file_path, "levee_seepage_find_equilibrium.post.res")
         )
         node_ids = [node.Id for node in model_part.Nodes]
         pressures, fluxes, saturations = (

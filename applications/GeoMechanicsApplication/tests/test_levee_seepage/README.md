@@ -12,10 +12,12 @@ hydraulic material parameters.
 
 - The initial phreatic line passes through (-36, 5), (-2, 5), (15, -0.5)
   and (54, -0.5), with coordinates in metres.
-- The river head is prescribed at Y = 5 m.
-- The polder head is prescribed at Y = -0.5 m.
+- The river head is prescribed at y = 5 m.
+- The polder head is prescribed at y = -0.5 m.
 - A seepage boundary is applied to `SeepageBoundary`.
-- Gravity acts in the negative Y direction.
+- Gravity acts in the negative y direction.
+
+![Levee seepage model](levee_seepage_model.png)
 
 ## Reference results
 
@@ -29,29 +31,26 @@ The commercial FE reference data is extracted and put in 3 csv files:
 
 ## Assertions
 
-The test runs the orchestrator from this folder, so the mesh and material file
-paths resolve correctly. It reads `levee_seepage_find_equilibrium.post.res`
+The test runs the orchestrator and reads the GiD output file `levee_seepage_find_equilibrium.post.res`
 and compares results at every supplied reference coordinate:
 
 - **Phreatic line:** interpolate the water-pressure profile along the actual
-  mesh at each reference X and find its p = 0 crossing. Compare the resulting
-  elevation with reference Y using an absolute tolerance of **0.15 m**.
+  mesh at each reference x and find its p = 0 crossing. Compare the resulting
+  elevation with reference y using an absolute tolerance of **0.15 m**.
   A missing crossing, more than one crossing, or an entirely zero-pressure
-  interval fails explicitly. Use reference X coordinates where the phreatic
+  interval fails explicitly. Use reference x coordinates where the phreatic
   elevation is uniquely defined.
-- **Flux magnitude at X = 20 m:** interpolate the three components of the nodal
+- **Flux magnitude at x = 20 m:** interpolate the three components of the nodal
   `FLUID_FLUX_VECTOR` at each reference elevation, then calculate the magnitude
   and convert from m/s to m/day. Compare using a relative tolerance of **0.085**
   (8.5%). A zero reference flux requires an exactly zero calculated magnitude;
   no absolute flux tolerance has been agreed.
-- **Effective saturation at X = 4 m:** interpolate the nodal
+- **Effective saturation at x = 4 m:** interpolate the nodal
   `EFFECTIVE_SATURATION` at each reference elevation and compare using an
   absolute tolerance of **0.075** in fractional units.
 
-Interpolation follows the piecewise-linear three-node triangular mesh, not a
-separate Delaunay triangulation. Reference elevations must lie within the mesh;
-the test does not extrapolate. Flux and saturation are integration-point
-results extrapolated to nodes by the configured auxiliary process.
+Flux and saturation are integration-point results extrapolated to nodes by the configured auxiliary process. 
+In this extrapolation process values may show inphysical behaviour such as effective saturation slightly exceeding 1, especially where the mesh is coarse or the saturation gradient is steep. This does not indicate a failure of the simulation.
 
 ## Plots and running the test
 
@@ -62,9 +61,8 @@ GeoMechanicsApplication and LinearSolversApplication, run:
 python applications\GeoMechanicsApplication\tests\test_levee_seepage.py
 ```
 
-As in the Muskat case, setting `$env:KRATOS_GEO_MAKE_TEST_PLOTS = "on"` enables comparison
+Setting `set KRATOS_GEO_MAKE_TEST_PLOTS=on` enables comparison
 plots. The test creates `phreatic_line.svg`, `fluxes_for_x_20.svg` and
 `saturation_for_x_4.svg` in this folder before the numerical comparisons.
-The phreatic-line plot samples the Kratos line at the reference X coordinates.
-The other plots show the interpolated vertical mesh profiles and reference
-points.
+The phreatic-line plot samples the Kratos line at the reference x coordinates.
+The other plots show the interpolated vertical mesh profiles at x = 20 m and x = 4 m, respectively for the flux and effective saturation comparisons.
