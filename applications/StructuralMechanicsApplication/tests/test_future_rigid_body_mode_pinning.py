@@ -173,6 +173,99 @@ class TestRigidBodyModePinning(KratosUnittest.TestCase):
         unpinned_norm = np.linalg.norm(np.array(dx_unpinned))
         self.assertGreater(unpinned_norm, 2.0 * pinned_norm)
 
+    def _convert_to_current_interface(self, A_csr, b_system, n_dofs):
+        """Builds the system arrays of the current interface from the CSR system.
+
+        The CompressedMatrix is constructed from the CSR arrays (row pointers,
+        column indices and values) of the future-built CsrMatrix.
+        """
+        A = KratosMultiphysics.CompressedMatrix(
+            A_csr.index1_data(), A_csr.index2_data(), A_csr.value_data())
+        b = KratosMultiphysics.Vector(b_system)
+        return A, b
+
+    def test_rigid_body_mode_pinning_current_interface(self):
+        """Same system as test_rigid_body_mode_pinning_free_floating_bodies, but solved through the current (old) linear solver interface."""
+        mp = self._create_model_part()
+        process_info = mp.ProcessInfo
+
+        # dof set and equation ids (the dof set is needed as additional data of the linear system)
+        dof_set = KratosMultiphysics.DofsArrayType()
+        KratosMultiphysics.BlockBuildDofArrayUtility.SetUpDofArray(mp, dof_set)
+        KratosMultiphysics.DofArrayUtilities.SetDofEquationIds(dof_set)
+
+        scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
+
+        # the system is built with the future mechanism and then converted to
+        # the current interface (CompressedMatrix + Vector) via its CSR arrays
+        A_csr, b_csr, n_dofs = self._build_system(mp, process_info, scheme, dof_set)
+        A, b = self._convert_to_current_interface(A_csr, b_csr, n_dofs)
+        x = KratosMultiphysics.Vector(n_dofs)
+        KratosMultiphysics.SparseSpace().SetToZeroVector(x)
+
+        # keep a copy of the original system: the solver modifies A and b in place
+        A_ref = KratosMultiphysics.CompressedMatrix(A)
+        b_ref = KratosMultiphysics.Vector(b)
+
+        # right hand side b = K u_ref belongs to the range of K, so the system is consistent
+        self.assertGreater(max(abs(b_ref[i]) for i in range(n_dofs)), 0.0)
+
+        linear_solver = KratosMultiphysics.LinearSolverFactory().Create(
+            KratosMultiphysics.Parameters("""{
+                "solver_type": "rigid_body_mode_pinning",
+                "inner_solver_settings" : {
+                    "solver_type": "skyline_lu_factorization"
+                },
+                "tolerance": 1.0e-6,
+                "echo_level": 1
+            }"""))
+        linear_solver.Initialize(A, x, b)
+        linear_solver.ProvideAdditionalData(A, x, b, dof_set, mp)
+        linear_solver.InitializeSolutionStep(A, x, b)
+        self.assertTrue(linear_solver.PerformSolutionStep(A, x, b))
+
+        # the pinning must have actually modified the matrix (zeroed pinned off-diagonal entries)
+        self.assertNotEqual(list(A.value_data()), list(A_ref.value_data()))
+
+        for i in range(n_dofs):
+            self.assertTrue(abs(x[i]) < 1.0e10)
+
+        # residual of the original (unpinned) system must vanish
+        residual = KratosMultiphysics.Vector(n_dofs)
+        KratosMultiphysics.SparseSpace().SetToZeroVector(residual)
+        KratosMultiphysics.SparseSpace().Mult(A_ref, x, residual)
+        KratosMultiphysics.SparseSpace().UnaliasedAdd(residual, -1.0, b_ref) # residual -= b
+        residual_norm = np.linalg.norm(np.array(residual))
+
+        rhs_norm = np.linalg.norm(np.array(b_ref))
+        self.assertLess(residual_norm / rhs_norm, 1.0e-8)
+
+        # A is singular (each free component contributes 3 rigid-body modes), so a plain
+        # LU solve does not detect the singularity and returns a solution polluted by the
+        # arbitrary rigid-body content, whose norm is much larger than the one of the
+        # pinned system. The pinning solver removes the rigid-body modes, so the solution
+        # it produces must be significantly smaller.
+        pinned_norm = np.linalg.norm(np.array(x))
+
+        # the solution must be independent of the dofs that were pinned: its rigid body
+        # content (the 3 rigid body vectors of each free component) must be filtered out
+        dx_array = np.array(x)
+        for node_ids in ((1, 2, 3, 4), (5, 6, 7, 8)):
+            for mode in self._rigid_body_vectors(mp, node_ids, n_dofs):
+                self.assertLess(abs(float(dx_array @ mode)), 1.0e-9 * pinned_norm)
+
+        # reference: the plain LU solve of the unpinned system produces a solution of a
+        # much larger norm, since it contains the arbitrary rigid body content
+        dx_unpinned = KratosMultiphysics.Vector(n_dofs)
+        KratosMultiphysics.SparseSpace().SetToZeroVector(dx_unpinned)
+        unpinned_solver = KratosMultiphysics.LinearSolverFactory().Create(
+            KratosMultiphysics.Parameters("""{"solver_type": "skyline_lu_factorization"}"""))
+        A_unpinned = KratosMultiphysics.CompressedMatrix(A_ref)
+        b_unpinned = KratosMultiphysics.Vector(b_ref)
+        unpinned_solver.Solve(A_unpinned, dx_unpinned, b_unpinned)
+        unpinned_norm = np.linalg.norm(np.array(dx_unpinned))
+        self.assertGreater(unpinned_norm, 2.0 * pinned_norm)
+
     def test_parameters_constructor(self):
         # the default constructor builds the default inner solver (skyline LU)
         self.assertIsNotNone(KratosMultiphysics.Future.RigidBodyModePinningSolver())

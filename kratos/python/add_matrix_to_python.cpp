@@ -14,6 +14,7 @@
 
 // External includes
 #include <pybind11/complex.h>
+#include <pybind11/numpy.h>
 
 // Project includes
 #include "includes/define_python.h"
@@ -135,6 +136,46 @@ namespace Kratos::Python
         // Eigen one): backend-agnostic scripts building a sparse matrix through
         // __setitem__ must call this before using it.
         compressed_matrix_binder.def("Compress", [](CompressedMatrix& rA){ rA.complete_index1_data(); });
+        // Construct from CSR arrays (row pointers, column indices and values).
+        // The arrays are used to populate the underlying compressed matrix,
+        // which is compressed afterwards. Rows and columns are inferred from
+        // the arrays: rows as size(index1_data) - 1 and columns as max(index2_data) + 1.
+        compressed_matrix_binder.def(py::init(
+            [](const py::array_t<std::size_t>& rIndex1Data,
+               const py::array_t<std::size_t>& rIndex2Data,
+               const py::array_t<double>& rValueData)
+            {
+                auto index1_data = rIndex1Data.unchecked();
+                auto index2_data = rIndex2Data.unchecked();
+                auto value_data = rValueData.unchecked();
+
+                KRATOS_ERROR_IF(index1_data.size() < 2)
+                    << "The index1_data array must contain at least two entries (empty matrix)." << std::endl;
+                KRATOS_ERROR_IF(index2_data.size() != value_data.size())
+                    << "The index2_data and value_data arrays must have the same size." << std::endl;
+
+                const CompressedMatrix::size_type nnz = value_data.size();
+
+                const CompressedMatrix::size_type size1 = index1_data.size() - 1;
+                CompressedMatrix::size_type size2 = 0;
+                for (std::size_t i_data = 0; i_data < index2_data.size(); ++i_data) {
+                    size2 = std::max(size2, index2_data(i_data) + 1);
+                }
+
+                // The entries are provided in CSR order (ascending rows and
+                // ascending column indices within each row), so they can be
+                // appended in order. The number of nnz is known, so the value
+                // storage is reserved up front (avoids reallocations)
+                CompressedMatrix matrix(size1, size2, nnz);
+                for (std::size_t i = 0; i < size1; ++i) {
+                    for (std::size_t i_data = index1_data(i); i_data < index1_data(i + 1); ++i_data) {
+                        matrix.push_back(i, index2_data(i_data), value_data(i_data));
+                    }
+                }
+                matrix.complete_index1_data();
+
+                return matrix;
+            }), py::arg("index1_data"), py::arg("index2_data"), py::arg("value_data"));
         compressed_matrix_binder.def("value_data", [](const CompressedMatrix& rA) ->  std::vector<double>
                                                     {return std::vector<double>(
                                                         rA.value_data().begin(),
