@@ -22,6 +22,7 @@
 #include "custom_saturation/brooksandcorey_law.hpp"
 #include "custom_saturation/vangenuchten_law.hpp"
 #include "custom_saturation/liakopoulos_law.hpp"
+#include "custom_saturation/piecewise_linear_law.hpp"
 
 // Application includes
 #include "poromechanics_application_variables.h"
@@ -49,6 +50,9 @@ public:
 
             if (SaturationLawName == "LiakopoulosLaw")
                 return Kratos::make_unique<LiakopoulosLaw>();
+
+            if (SaturationLawName == "PiecewiseLinearLaw")
+                return Kratos::make_unique<PiecewiseLinearLaw>();
 
             KRATOS_ERROR << "Undefined SATURATION_LAW_NAME name" << SaturationLawName << std::endl;
 
