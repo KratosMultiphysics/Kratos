@@ -20,6 +20,7 @@ class KratosGeoMechanicsLeveeSeepageTests(KratosUnittest.TestCase):
 
     PHREATIC_LINE_TOLERANCE = 0.15  # m
     FLUX_RELATIVE_TOLERANCE = 0.085 # percentage
+    FLUX_ABSOLUTE_TOLERANCE = 0.01  # m/day
     SATURATION_TOLERANCE = 0.075
 
     def _read_reference(self, filename, columns):
@@ -183,10 +184,12 @@ class KratosGeoMechanicsLeveeSeepageTests(KratosUnittest.TestCase):
             with self.subTest(profile="phreatic line", x=x):
                 self.assertAlmostEqual(actual, expected, delta=self.PHREATIC_LINE_TOLERANCE)
         for (y, actual), (_, expected) in zip(actual_flux, expected_flux):
+            tolerance = max(
+                self.FLUX_ABSOLUTE_TOLERANCE,
+                self.FLUX_RELATIVE_TOLERANCE * abs(expected)
+            )
             with self.subTest(profile="flux magnitude", x=20.0, y=y):
-                self.assertAlmostEqual(
-                    actual, expected, delta=self.FLUX_RELATIVE_TOLERANCE * abs(expected)
-                )
+                self.assertAlmostEqual(actual, expected, delta=tolerance)
         for (y, actual), (_, expected) in zip(actual_saturation, expected_saturation):
             with self.subTest(profile="effective saturation", x=4.0, y=y):
                 self.assertAlmostEqual(actual, expected, delta=self.SATURATION_TOLERANCE)

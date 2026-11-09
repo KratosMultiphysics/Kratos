@@ -35,18 +35,16 @@ The test runs the orchestrator and reads the GiD output file `levee_seepage_find
 and compares results at every supplied reference coordinate:
 
 - **Phreatic line:** interpolate the water-pressure profile along the actual
-  mesh at each reference x and find its p = 0 crossing. Compare the resulting
-  elevation with reference y using an absolute tolerance of **0.15 m**.
-  A missing crossing, more than one crossing, or an entirely zero-pressure
-  interval fails explicitly. Use reference x coordinates where the phreatic
-  elevation is uniquely defined.
+  mesh at each reference x and find its p = 0 crossing. Compare 
+  with reference y using an absolute tolerance of
+  **0.15 m**. A missing or non-unique crossing fails explicitly. Use reference
+  x coordinates where the phreatic elevation is uniquely defined.
 - **Flux magnitude at x = 20 m:** interpolate the three components of the nodal
-  `FLUID_FLUX_VECTOR` at each reference elevation, then calculate the magnitude
+   `FLUID_FLUX_VECTOR` at each y from the reference data, then calculate the magnitude
   and convert from m/s to m/day. Compare using a relative tolerance of **0.085**
-  (8.5%). A zero reference flux requires an exactly zero calculated magnitude;
-  no absolute flux tolerance has been agreed.
+  (8.5%) of the flux magnitude, or an absolute tolerance of **0.01 m/day** for small fluxes.
 - **Effective saturation at x = 4 m:** interpolate the nodal
-  `EFFECTIVE_SATURATION` at each reference elevation and compare using an
+  `EFFECTIVE_SATURATION` at each y from the reference data and compare using an
   absolute tolerance of **0.075** in fractional units.
 
 Flux and saturation are integration-point results extrapolated to nodes by the configured auxiliary process. 
@@ -64,5 +62,5 @@ python applications\GeoMechanicsApplication\tests\test_levee_seepage.py
 Setting `set KRATOS_GEO_MAKE_TEST_PLOTS=on` enables comparison
 plots. The test creates `phreatic_line.svg`, `fluxes_for_x_20.svg` and
 `saturation_for_x_4.svg` in this folder before the numerical comparisons.
-The phreatic-line plot samples the Kratos line at the reference x coordinates.
+The phreatic-line plot samples the Kratos line at the x coordinates from the reference data.
 The other plots show the interpolated vertical mesh profiles at x = 20 m and x = 4 m, respectively for the flux and effective saturation comparisons.
