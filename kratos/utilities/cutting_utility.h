@@ -529,7 +529,7 @@ public:
         }
 
         ///* New Id de los Nodos
-        List_New_Nodes.resize(number_of_new_nodes);
+        List_New_Nodes.resize(number_of_new_nodes, false);
         //int total_node = pNodes.size();
         if (new_model_part.Nodes().size()!=0)  //it means this is not the first plane that has to be created
         {
@@ -556,7 +556,7 @@ public:
         }
 
         ///* setting edges -2 to the new id of the new node
-        Position_Node.resize(number_of_new_nodes);
+        Position_Node.resize(number_of_new_nodes, false);
         unsigned int index = 0;
         for (i1_t i1 = Coord.begin1(); i1 != Coord.end1(); ++i1)
         {
@@ -594,7 +594,7 @@ public:
         double dist_node_intersect;
         double weight;
         DenseVector< array_1d<double, 3 > > Coordinate_New_Node;
-        Coordinate_New_Node.resize(Position_Node.size());
+        Coordinate_New_Node.resize(Position_Node.size(), false);
         //unsigned int step_data_size = this_model_part.GetNodalSolutionStepDataSize();
         //Node ::DofsContainerType& reference_dofs = (this_model_part.NodesBegin())->GetDofs();
 

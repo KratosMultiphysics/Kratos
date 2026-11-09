@@ -392,6 +392,7 @@ protected:
      * This method calculates and adds an extra numerical contribution to the RHS in order
      * to prevent uncontrolled system energy growth coming from inflow in free-boundaries.
      * More information can be found in Dong et al. 2014 (https://doi.org/10.1016/j.jcp.2013.12.042).
+     * If OUTLET_INFLOW_CONTRIBUTION_EXPLICIT is true, the contribution is computed with the previous step velocity.
      * @param rRHS Reference to RHS vector
      * @param rData Condition data container
      * @param rProcessInfo Reference to the ProcessInfo container

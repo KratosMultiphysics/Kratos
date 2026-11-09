@@ -156,7 +156,8 @@ class TestRbfEnhancedRom(KratosUnittest.TestCase):
     def testFluidGalerkinRbfEnhancedHRom2D(self):
         # The HROM of the enhanced decoders is not exact (the tangent operator changes with the solution); the ANN-enhanced one gives ~1e-3 here
         self.tolerance = 1.0e-6
-        self.hrom_tolerance = 1.0e-3
+        # The round-off (e.g. the number of threads) can change the elements selected in the HROM training: ROMvsHROM from 4e-4 to 9e-4
+        self.hrom_tolerance = 1.0e-2
         self._FitHromAndCheck("galerkin")
 
     def testFluidLSPGRbfEnhancedHRom2D(self):
