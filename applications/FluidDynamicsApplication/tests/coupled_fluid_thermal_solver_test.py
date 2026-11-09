@@ -101,5 +101,30 @@ class CoupledFluidThermalSolverTest(UnitTest.TestCase):
         self.assertAlmostEqual((rhs_with[0] - rhs_without[0]) + (rhs_with[3] - rhs_without[3]), expected_force_x, 12)
         self.assertAlmostEqual((rhs_with[1] - rhs_without[1]) + (rhs_with[4] - rhs_without[4]), 0.0, 12)
 
+    def testDifferentAssignNeighbourElementsSettings(self):
+        # The fluid and thermal conditions share the geometries, so different parents settings are not allowed
+        settings = KratosMultiphysics.Parameters("""{
+            "solver_type" : "ThermallyCoupled",
+            "domain_size" : 2,
+            "fluid_solver_settings" : {
+                "solver_type" : "Monolithic",
+                "model_part_name" : "FluidModelPart",
+                "domain_size" : 2,
+                "formulation" : {"element_type" : "qsvms"},
+                "assign_neighbour_elements_to_conditions" : true
+            },
+            "thermal_solver_settings" : {
+                "solver_type" : "transient",
+                "analysis_type" : "linear",
+                "model_part_name" : "ThermalModelPart",
+                "domain_size" : 2,
+                "assign_neighbour_elements_to_conditions" : false
+            }
+        }""")
+        model = KratosMultiphysics.Model()
+        model.CreateModelPart("FluidModelPart")
+        with self.assertRaisesRegex(Exception, "assign_neighbour_elements_to_conditions"):
+            coupled_fluid_thermal_solver.CreateSolver(model, settings)
+
 if __name__ == '__main__':
     UnitTest.main()
