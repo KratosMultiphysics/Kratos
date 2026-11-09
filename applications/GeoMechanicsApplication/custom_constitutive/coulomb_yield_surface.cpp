@@ -23,8 +23,6 @@
 #include "geo_mechanics_application_variables.h"
 #include "includes/serializer.h"
 
-#include <cmath>
-
 namespace
 {
 
@@ -282,7 +280,19 @@ void CoulombYieldSurface::CheckHardeningCoefficients(const Variable<Vector>& rCo
 {
     rChecker.CheckAvailability(rCoefficientsVariable);
 
+    const auto hardening_type = GetCoulombHardeningTypeFrom(mMaterialProperties);
+    const auto expected_size  = [&]() -> std::size_t {
+        if (hardening_type == "linear") return 1;
+        if (hardening_type == "exponential") return 2;
+        KRATOS_ERROR << "Unknown Coulomb hardening type '" << hardening_type << "' for material "
+                     << mMaterialProperties.Id() << ".";
+    }();
+
     const auto& coefficients = mMaterialProperties[rCoefficientsVariable];
+    KRATOS_ERROR_IF(coefficients.size() != expected_size)
+        << rCoefficientsVariable.Name() << " must contain exactly " << expected_size
+        << " coefficient(s) for Coulomb hardening type '" << hardening_type
+        << "'. Actual size: " << coefficients.size() << " (material " << mMaterialProperties.Id() << ").";
     for (auto i = std::size_t{0}; i < coefficients.size(); ++i) {
         KRATOS_ERROR_IF(coefficients[i] < 0.0) << "Entry " << i << " in " << rCoefficientsVariable.Name()
                                                << " out of range. Value: " << coefficients[i];
