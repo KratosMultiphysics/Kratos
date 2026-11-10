@@ -3,6 +3,7 @@ import numpy
 import KratosMultiphysics
 import KratosMultiphysics.RomApplication as KratosROM
 from KratosMultiphysics import scipy_conversion_tools
+from KratosMultiphysics.RomApplication.future.rom_decoders import FixedDofsDecoder
 
 
 class NumpyRomProjector:
@@ -71,7 +72,7 @@ class FutureRomSolver:
         self.absolute_tolerance = settings["absolute_tolerance"].GetDouble()
         self.echo_level = settings["echo_level"].GetInt()
 
-        # Values of the fixed DOFs given by the decoder: "basis" (u0 + Phi q, as the free ones) or "prescribed" (the values imposed
+        # Values of the fixed DOFs given by the decoder: "basis" (D(q), as the free ones) or "prescribed" (the values imposed
         # by the conditions, see FixedDofsDecoder). The projection does not use the rows of the fixed DOFs in either case
         self.fixed_dofs_decoding = settings["fixed_dofs_decoding"].GetString()
         if self.fixed_dofs_decoding not in ("basis", "prescribed"):
@@ -122,7 +123,11 @@ class FutureRomSolver:
         self.scheme.Initialize(self.strategy_data)
 
     def SetDecoder(self, decoder):
-        """Sets the decoder. Its rows must follow the effective DOF set, which is available after Initialize."""
+        """Sets the decoder (e.g. CreateDecoder(rom_data_folder, self.GetEffectiveDofSet())). Its rows must follow the effective
+        DOF set, which is available after Initialize. With "fixed_dofs_decoding": "prescribed", it is wrapped in a FixedDofsDecoder."""
+        if self.fixed_dofs_decoding == "prescribed":
+            # The fixed DOFs take their prescribed values instead of the ones of the decoder
+            decoder = FixedDofsDecoder(decoder, self.GetEffectiveDofSet())
         self.decoder = decoder
         self.q = numpy.zeros(self.decoder.NumberOfRomDofs())
 
