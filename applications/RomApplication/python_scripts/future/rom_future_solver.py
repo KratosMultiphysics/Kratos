@@ -71,7 +71,7 @@ class FutureRomSolver:
         self.absolute_tolerance = settings["absolute_tolerance"].GetDouble()
         self.echo_level = settings["echo_level"].GetInt()
 
-        # Values of the fixed DOFs given by the decoder: "basis" (u0 + Phi q, as the free ones) or "prescribed" (the values imposed
+        # Values of the fixed DOFs given by the decoder: "basis" (D(q), as the free ones) or "prescribed" (the values imposed
         # by the conditions, see FixedDofsDecoder). The projection does not use the rows of the fixed DOFs in either case
         self.fixed_dofs_decoding = settings["fixed_dofs_decoding"].GetString()
         if self.fixed_dofs_decoding not in ("basis", "prescribed"):
@@ -114,7 +114,11 @@ class FutureRomSolver:
         self.scheme.Initialize(self.strategy_data)
 
     def SetDecoder(self, decoder):
-        """Sets the decoder. Its rows must follow the effective DOF set, which is available after Initialize."""
+        """Sets the decoder (e.g. CreateDecoder(rom_data_folder, self.GetEffectiveDofSet())). Its rows must follow the effective
+        DOF set, which is available after Initialize. With "fixed_dofs_decoding": "prescribed", the decoder of its WithPrescribedFixedDofs."""
+        if self.fixed_dofs_decoding == "prescribed":
+            # The fixed DOFs take their prescribed values instead of the ones of the decoder
+            decoder = decoder.WithPrescribedFixedDofs(self.GetEffectiveDofSet())
         self.decoder = decoder
         self.q = numpy.zeros(self.decoder.NumberOfRomDofs())
 
@@ -123,7 +127,7 @@ class FutureRomSolver:
         # The conditions of the step are already applied, so the decoder can read the prescribed values of the fixed DOFs
         self.decoder.InitializeSolutionStep()
         # A single decoder keeps the reduced coordinates; a LocalRomDecoder may switch model and encode the current state in it
-        self.q = numpy.array(self.decoder.UpdateReducedCoordinates(self.q, self.GetEffectiveDofSet()), dtype=numpy.float64)
+        self.q = numpy.array(self.decoder.UpdateReducedCoordinates(self.q, self.GetEffectiveDofSet(), self.model_part.ProcessInfo), dtype=numpy.float64)
 
     def SolveSolutionStep(self):
         """Newton-Raphson iteration on the reduced coordinates. Returns True if converged.
