@@ -246,7 +246,7 @@ ModelPart& CreateStokesCutModelPart(Model& rModel, const std::string& rCondition
             "type"                            : "element",
             "name"                            : "GsbmStokesElement",
             "iga_model_part"                  : "Domain",
-            "shape_function_derivatives_order": 2,
+            "shape_function_derivatives_order": 3,
             "geometry_names"                  : ["VelocityX", "VelocityY", "Pressure"]
         }, {
             "type"                            : "condition",
@@ -341,33 +341,127 @@ void SetNeumannTestData(Model& rModel, const array_1d<double, 3>& rPerturbation)
     }
 }
 
-/// Imposed velocity g = u + Perturbation of the exact fields at the projection
-/// nodes
-void SetDirichletTestData(Model& rModel, const array_1d<double, 3>& rPerturbation)
+/// Velocity u of the exact fields of the cut patch tests
+array_1d<double, 3> ComputeStokesCutTestVelocity(const array_1d<double, 3>& rPoint)
+{
+    const double x = rPoint[0] - 0.4;
+    const double y = rPoint[1] - 0.6;
+
+    array_1d<double, 3> velocity = ZeroVector(3);
+    velocity[0] = 2.0 * x * x * y;
+    velocity[1] = -2.0 * x * y * y;
+    return velocity;
+}
+
+/// Imposed velocity g = Scale u + Perturbation of the exact fields at the
+/// projection nodes
+void SetDirichletTestData(
+    Model& rModel,
+    const array_1d<double, 3>& rPerturbation,
+    const double Scale = 1.0)
 {
     for (auto& r_node : rModel.GetModelPart("Skin.projection_data").Nodes()) {
-        array_1d<double, 3> velocity = rPerturbation;
-        const double x = r_node.X() - 0.4;
-        const double y = r_node.Y() - 0.6;
-        velocity[0] += 2.0 * x * x * y;
-        velocity[1] -= 2.0 * x * y * y;
+        const array_1d<double, 3> velocity =
+            Scale * ComputeStokesCutTestVelocity(r_node.Coordinates()) + rPerturbation;
         r_node.SetValue(VELOCITY, velocity);
     }
 }
 
-/// Body force f = -\mu \Delta u + \nabla p of the exact fields at the Gauss
-/// point of each element: f_x = -4 \mu (y - 0.6) + (y - 0.7) and
-/// f_y = 4 \mu (x - 0.4) + (x - 0.3)
-void SetStokesCutTestBodyForce(Model& rModel)
+/// Body force MassDensity u + Scale f, with f = -\mu \Delta u + \nabla p of
+/// the exact fields, at the Gauss point of each element: f_x =
+/// -4 \mu (y - 0.6) + (y - 0.7) and f_y = 4 \mu (x - 0.4) + (x - 0.3)
+void SetStokesCutTestBodyForce(
+    Model& rModel,
+    const double Scale = 1.0,
+    const double MassDensity = 0.0)
 {
     const double mu = StokesCutTestViscosity;
     for (auto& r_element : rModel.GetModelPart("IgaModelPart.Domain").Elements()) {
         const array_1d<double, 3> point =
             r_element.GetGeometry().GetGeometryPart(0).Center().Coordinates();
-        array_1d<double, 3> body_force = ZeroVector(3);
-        body_force[0] = -4.0 * mu * (point[1] - 0.6) + (point[1] - 0.7);
-        body_force[1] = 4.0 * mu * (point[0] - 0.4) + (point[0] - 0.3);
+        array_1d<double, 3> body_force = MassDensity * ComputeStokesCutTestVelocity(point);
+        body_force[0] += Scale * (-4.0 * mu * (point[1] - 0.6) + (point[1] - 0.7));
+        body_force[1] += Scale * (4.0 * mu * (point[0] - 0.4) + (point[0] - 0.3));
         r_element.SetValue(BODY_FORCE, body_force);
+    }
+}
+
+/// Calls a function on the elements, and on the boundary and ghost conditions
+template<class TFunction>
+void ForEachStokesCutTestEntity(Model& rModel, const TFunction& rFunction)
+{
+    for (auto& r_element : rModel.GetModelPart("IgaModelPart.Domain").Elements()) {
+        rFunction(r_element);
+    }
+    for (const std::string name : {"IgaModelPart.Boundary", "IgaModelPart.GhostPenalty"}) {
+        for (auto& r_condition : rModel.GetModelPart(name).Conditions()) {
+            rFunction(r_condition);
+        }
+    }
+}
+
+/// A row per dof of the entities, in the order they are met
+std::map<Dof<double>*, IndexType> GetStokesCutTestRows(
+    Model& rModel,
+    const ProcessInfo& rProcessInfo)
+{
+    std::map<Dof<double>*, IndexType> rows;
+    ForEachStokesCutTestEntity(rModel, [&](auto& rEntity) {
+        Element::DofsVectorType dofs;
+        rEntity.GetDofList(dofs, rProcessInfo);
+        for (Dof<double>* p_dof : dofs) {
+            rows.emplace(p_dof, rows.size());
+        }
+    });
+    return rows;
+}
+
+/// Pressure dof of the corner (0, 0) of the patch, in the void
+Dof<double>* GetStokesCutTestPinnedDof(Model& rModel)
+{
+    using NurbsSurfaceType = NurbsSurfaceGeometry<3, PointerVector<Node>>;
+    auto& r_pressure = dynamic_cast<NurbsSurfaceType&>(
+        rModel.GetModelPart("IgaModelPart").GetGeometry("Pressure")
+    );
+    return r_pressure[0].pGetDof(PRESSURE);
+}
+
+/// Solves the dense system of the entities for the increment of the dofs, with
+/// the pinned pressure dof set to PinnedValue, as all-Dirichlet leaves the
+/// constant pressure free, and updates them
+void SolveStokesCutTestIncrement(
+    Model& rModel,
+    const std::map<Dof<double>*, IndexType>& rRows,
+    const ProcessInfo& rProcessInfo,
+    const double PinnedValue)
+{
+    const std::size_t number_of_dofs = rRows.size();
+    Matrix system = ZeroMatrix(number_of_dofs, number_of_dofs);
+    Vector load = ZeroVector(number_of_dofs);
+    ForEachStokesCutTestEntity(rModel, [&](auto& rEntity) {
+        Matrix left_hand_side;
+        Vector right_hand_side;
+        rEntity.CalculateLocalSystem(left_hand_side, right_hand_side, rProcessInfo);
+        Element::DofsVectorType dofs;
+        rEntity.GetDofList(dofs, rProcessInfo);
+        for (IndexType i = 0; i < dofs.size(); ++i) {
+            load[rRows.at(dofs[i])] += right_hand_side[i];
+            for (IndexType j = 0; j < dofs.size(); ++j) {
+                system(rRows.at(dofs[i]), rRows.at(dofs[j])) += left_hand_side(i, j);
+            }
+        }
+    });
+
+    Dof<double>* p_pinned_dof = GetStokesCutTestPinnedDof(rModel);
+    const IndexType pinned = rRows.at(p_pinned_dof);
+    noalias(row(system, pinned)) = ZeroVector(number_of_dofs);
+    system(pinned, pinned) = 1.0;
+    load[pinned] = PinnedValue - p_pinned_dof->GetSolutionStepValue();
+
+    Vector increment;
+    MathUtils<double>::Solve(system, increment, load);
+    for (const auto& [p_dof, row_index] : rRows) {
+        p_dof->GetSolutionStepValue() += increment[row_index];
     }
 }
 
@@ -792,8 +886,6 @@ KRATOS_TEST_CASE_IN_SUITE(GsbmStokesConditionDirichletConsistency, KratosIgaFast
 // is pinned to its exact value.
 KRATOS_TEST_CASE_IN_SUITE(GsbmStokesConditionDirichletSolve, KratosIgaFastSuite)
 {
-    using NurbsSurfaceType = NurbsSurfaceGeometry<3, PointerVector<Node>>;
-
     for (const bool with_pressure : {true, false}) {
         Model model;
         ModelPart& r_iga_model_part =
@@ -805,74 +897,107 @@ KRATOS_TEST_CASE_IN_SUITE(GsbmStokesConditionDirichletSolve, KratosIgaFastSuite)
         SetDirichletTestData(model, ZeroVector(3));
         SetStokesCutTestBodyForce(model);
 
-        // A row per dof of the entities, in the order they are met
-        std::map<Dof<double>*, IndexType> rows;
-        const auto add_dofs = [&](auto& rEntity) {
-            Element::DofsVectorType dofs;
-            rEntity.GetDofList(dofs, r_process_info);
-            for (Dof<double>* p_dof : dofs) {
-                rows.emplace(p_dof, rows.size());
-            }
-        };
-        for (auto& r_element : model.GetModelPart("IgaModelPart.Domain").Elements()) {
-            add_dofs(r_element);
-        }
-        for (const std::string name : {"IgaModelPart.Boundary", "IgaModelPart.GhostPenalty"}) {
-            for (auto& r_condition : model.GetModelPart(name).Conditions()) {
-                add_dofs(r_condition);
-            }
-        }
-
         // The exact coefficients, then zero nodal values
-        const std::size_t number_of_dofs = rows.size();
-        Vector exact(number_of_dofs);
+        const auto rows = GetStokesCutTestRows(model, r_process_info);
+        Vector exact(rows.size());
         for (const auto& [p_dof, row_index] : rows) {
             exact[row_index] = p_dof->GetSolutionStepValue();
             p_dof->GetSolutionStepValue() = 0.0;
         }
 
-        // Dense system of all the entities
-        Matrix system = ZeroMatrix(number_of_dofs, number_of_dofs);
-        Vector load = ZeroVector(number_of_dofs);
-        const auto assemble = [&](auto& rEntity) {
-            Matrix left_hand_side;
-            Vector right_hand_side;
-            rEntity.CalculateLocalSystem(left_hand_side, right_hand_side, r_process_info);
-            Element::DofsVectorType dofs;
-            rEntity.GetDofList(dofs, r_process_info);
-            for (IndexType i = 0; i < dofs.size(); ++i) {
-                load[rows.at(dofs[i])] += right_hand_side[i];
-                for (IndexType j = 0; j < dofs.size(); ++j) {
-                    system(rows.at(dofs[i]), rows.at(dofs[j])) += left_hand_side(i, j);
-                }
-            }
-        };
-        for (auto& r_element : model.GetModelPart("IgaModelPart.Domain").Elements()) {
-            assemble(r_element);
-        }
-        for (const std::string name : {"IgaModelPart.Boundary", "IgaModelPart.GhostPenalty"}) {
-            for (auto& r_condition : model.GetModelPart(name).Conditions()) {
-                assemble(r_condition);
-            }
-        }
-
-        // Pressure coefficient of the corner (0, 0) of the patch, in the void
-        auto& r_pressure =
-            dynamic_cast<NurbsSurfaceType&>(r_iga_model_part.GetGeometry("Pressure"));
-        const IndexType pinned = rows.at(r_pressure[0].pGetDof(PRESSURE));
-        noalias(row(system, pinned)) = ZeroVector(number_of_dofs);
-        system(pinned, pinned) = 1.0;
-        load[pinned] = exact[pinned];
-
-        Vector solution;
-        MathUtils<double>::Solve(system, solution, load);
+        const double pinned_value = exact[rows.at(GetStokesCutTestPinnedDof(model))];
+        SolveStokesCutTestIncrement(model, rows, r_process_info, pinned_value);
 
         double largest_error = 0.0;
-        for (IndexType i = 0; i < number_of_dofs; ++i) {
-            largest_error = std::max(largest_error, std::abs(solution[i] - exact[i]));
+        for (const auto& [p_dof, row_index] : rows) {
+            largest_error = std::max(
+                largest_error, std::abs(p_dof->GetSolutionStepValue() - exact[row_index])
+            );
         }
         KRATOS_EXPECT_NEAR(largest_error, 0.0, 1.0e-8);
     }
+}
+
+// Transient solve of the GSBM Stokes problem on CreateStokesCutModelPart: the
+// fields (1 + t) u and (1 + t) p, linear in time, with density 2 and the body
+// force \rho u + (1 + t) f. From their values at t = 0, a step of BDF1 and two
+// of BDF2, exact for fields linear in time, recover every coefficient, void
+// included, also with PSPG, whose residual has to include the time term.
+KRATOS_TEST_CASE_IN_SUITE(GsbmStokesElementTransientSolve, KratosIgaFastSuite)
+{
+    const double delta_time = 0.1;
+    const double density = 2.0;
+
+    for (const double pspg_factor : {0.0, 0.4}) {
+        Model model;
+        ModelPart& r_iga_model_part =
+            CreateStokesCutModelPart(model, "GsbmStokesConditionDirichlet");
+        r_iga_model_part.SetBufferSize(3);
+        ProcessInfo& r_process_info = r_iga_model_part.GetProcessInfo();
+        r_iga_model_part.GetProperties(1).SetValue(DENSITY, density);
+        r_iga_model_part.GetProperties(1).SetValue(PSPG_FACTOR, pspg_factor);
+
+        const auto rows = GetStokesCutTestRows(model, r_process_info);
+        Vector initial(rows.size());
+        for (const auto& [p_dof, row_index] : rows) {
+            initial[row_index] = p_dof->GetSolutionStepValue();
+        }
+
+        const std::vector<std::vector<double>> bdf_coefficients{
+            {1.0 / delta_time, -1.0 / delta_time},
+            {1.5 / delta_time, -2.0 / delta_time, 0.5 / delta_time},
+            {1.5 / delta_time, -2.0 / delta_time, 0.5 / delta_time}
+        };
+        for (IndexType step = 0; step < bdf_coefficients.size(); ++step) {
+            const double time = (step + 1) * delta_time;
+            const double scale = 1.0 + time;
+            r_iga_model_part.CloneTimeStep(time);
+
+            const auto& r_step_coefficients = bdf_coefficients[step];
+            Vector coefficients(r_step_coefficients.size());
+            std::copy(
+                r_step_coefficients.begin(), r_step_coefficients.end(), coefficients.begin()
+            );
+            r_process_info.SetValue(BDF_COEFFICIENTS, coefficients);
+
+            SetDirichletTestData(model, ZeroVector(3), scale);
+            SetStokesCutTestBodyForce(model, scale, density);
+
+            const double pinned_value =
+                scale * initial[rows.at(GetStokesCutTestPinnedDof(model))];
+            SolveStokesCutTestIncrement(model, rows, r_process_info, pinned_value);
+
+            double largest_error = 0.0;
+            for (const auto& [p_dof, row_index] : rows) {
+                largest_error = std::max(
+                    largest_error,
+                    std::abs(p_dof->GetSolutionStepValue() - scale * initial[row_index])
+                );
+            }
+            KRATOS_EXPECT_NEAR(largest_error, 0.0, 1.0e-8);
+        }
+    }
+}
+
+// With BDF_COEFFICIENTS, Check needs DENSITY and a buffer as long as the
+// coefficients
+KRATOS_TEST_CASE_IN_SUITE(GsbmStokesElementTransientCheck, KratosIgaFastSuite)
+{
+    Model model;
+    ModelPart& r_iga_model_part = CreateStokesCutModelPart(model, "GsbmStokesConditionDirichlet");
+    r_iga_model_part.SetBufferSize(3);
+    ProcessInfo& r_process_info = r_iga_model_part.GetProcessInfo();
+    Properties& r_properties = r_iga_model_part.GetProperties(1);
+    auto& r_element = model.GetModelPart("IgaModelPart.Domain").Elements().front();
+
+    r_process_info.SetValue(BDF_COEFFICIENTS, Vector(3, 1.0));
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(r_element.Check(r_process_info), "needs DENSITY");
+
+    r_properties.SetValue(DENSITY, 1.0);
+    KRATOS_EXPECT_EQ(r_element.Check(r_process_info), 0);
+
+    r_process_info.SetValue(BDF_COEFFICIENTS, Vector(4, 1.0));
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(r_element.Check(r_process_info), "buffer size is smaller");
 }
 
 } // namespace Kratos::Testing

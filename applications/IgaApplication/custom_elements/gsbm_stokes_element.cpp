@@ -101,9 +101,18 @@ void GsbmStokesElement::CalculateLocalSystem(
 
     // Optional PSPG
     const double pspg_factor = GetOptionalFactor(GetProperties(), PSPG_FACTOR);
-    if (pspg_factor > 0.0) {
+    const double pspg_tau = pspg_factor > 0.0 ? CalculatePspgTau(pspg_factor) : 0.0;
+    if (pspg_tau > 0.0) {
         AddPspgTerms(
-            rLeftHandSideMatrix, rRightHandSideVector, GetValue(BODY_FORCE), D, pspg_factor, weight
+            rLeftHandSideMatrix, rRightHandSideVector, GetValue(BODY_FORCE), D, pspg_tau, weight
+        );
+    }
+
+    // Optional time term
+    if (rCurrentProcessInfo.Has(BDF_COEFFICIENTS)) {
+        AddTimeTerms(
+            rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo[BDF_COEFFICIENTS],
+            pspg_tau, weight
         );
     }
 
@@ -175,6 +184,15 @@ int GsbmStokesElement::Check(const ProcessInfo& rCurrentProcessInfo) const
     KRATOS_ERROR_IF(!GetProperties().Has(CONSTITUTIVE_LAW)
         || GetProperties()[CONSTITUTIVE_LAW] == nullptr)
         << Info() << ": no CONSTITUTIVE_LAW in the properties." << std::endl;
+
+    // What the time term needs
+    if (rCurrentProcessInfo.Has(BDF_COEFFICIENTS)) {
+        KRATOS_ERROR_IF_NOT(GetProperties().Has(DENSITY)) << Info()
+            << ": the time term needs DENSITY in the properties." << std::endl;
+        KRATOS_ERROR_IF(GetGeometry().GetGeometryPart(VelocityXPart)[0].GetBufferSize()
+            < rCurrentProcessInfo[BDF_COEFFICIENTS].size()) << Info()
+            << ": the buffer size is smaller than the number of BDF coefficients." << std::endl;
+    }
 
     // What PSPG's \tau needs
     if (GetOptionalFactor(GetProperties(), PSPG_FACTOR) > 0.0) {
@@ -356,12 +374,19 @@ void GsbmStokesElement::AddContinuityTerms(
         Weight * pressure_current * divergence;
 }
 
+double GsbmStokesElement::CalculatePspgTau(const double Factor) const
+{
+    const Vector& r_sizes = GetValue(KNOT_SPAN_SIZES);
+    const double h = *std::min_element(r_sizes.begin(), r_sizes.end());
+    return Factor * h * h / (4.0 * GetProperties()[DYNAMIC_VISCOSITY]);
+}
+
 void GsbmStokesElement::AddPspgTerms(
     MatrixType& rLeftHandSideMatrix,
     VectorType& rRightHandSideVector,
     const array_1d<double, 3>& rBodyForce,
     const Matrix& rD,
-    const double Factor,
+    const double Tau,
     const double Weight) const
 {
     const GeometryType& r_velocity_x = GetGeometry().GetGeometryPart(VelocityXPart);
@@ -369,11 +394,6 @@ void GsbmStokesElement::AddPspgTerms(
     const GeometryType& r_pressure = GetGeometry().GetGeometryPart(PressurePart);
     const SizeType n_x = r_velocity_x.size();
     const SizeType n_u = n_x + r_velocity_y.size();
-
-    // \tau = Factor h^2 / (4 \mu), with h the smallest knot span size
-    const Vector& r_sizes = GetValue(KNOT_SPAN_SIZES);
-    const double h = *std::min_element(r_sizes.begin(), r_sizes.end());
-    const double tau = Factor * h * h / (4.0 * GetProperties()[DYNAMIC_VISCOSITY]);
 
     // Second derivatives of the velocity spaces, columns [xx, xy, yy]
     const Matrix& r_DDN_x = r_velocity_x.ShapeFunctionDerivatives(
@@ -413,7 +433,7 @@ void GsbmStokesElement::AddPspgTerms(
     }
 
     // (\nabla q, \tau (\nabla p - \nabla . \sigma - f)), in the pressure rows
-    const double factor = Weight * tau;
+    const double factor = Weight * Tau;
     for (IndexType i = 0; i < r_pressure.size(); ++i) {
         for (IndexType m = 0; m < 2; ++m) {
             const double row_factor = factor * r_DN_p(i, m);
@@ -450,6 +470,55 @@ void GsbmStokesElement::AddGradDivTerms(
         Factor * Weight * outer_prod(divergence, divergence);
     noalias(subrange(rRightHandSideVector, 0, n_u)) -=
         Factor * Weight * div_u_current * divergence;
+}
+
+void GsbmStokesElement::AddTimeTerms(
+    MatrixType& rLeftHandSideMatrix,
+    VectorType& rRightHandSideVector,
+    const Vector& rCoefficients,
+    const double PspgTau,
+    const double Weight) const
+{
+    const double density = GetProperties()[DENSITY];
+    const GeometryType& r_pressure = GetGeometry().GetGeometryPart(PressurePart);
+    const Matrix& r_DN_p = r_pressure.ShapeFunctionsLocalGradients()[0];
+    const SizeType n_u = GetGeometry().GetGeometryPart(VelocityXPart).size()
+        + GetGeometry().GetGeometryPart(VelocityYPart).size();
+    const SizeType number_of_dofs = n_u + r_pressure.size();
+
+    IndexType begin = 0;
+    for (IndexType c = 0; c < 2; ++c) {
+        const GeometryType& r_velocity = GetGeometry().GetGeometryPart(c);
+        const auto& r_variable = GetFieldVariable(c);
+        const SizeType n = r_velocity.size();
+        const Vector N = row(r_velocity.ShapeFunctionsValues(), 0);
+
+        // \partial_t u_c = \sum_k c_k u_c^{n+1-k} at the Gauss point
+        double time_derivative = 0.0;
+        for (IndexType k = 0; k < rCoefficients.size(); ++k) {
+            for (IndexType i = 0; i < n; ++i) {
+                time_derivative += rCoefficients[k] * N[i]
+                    * r_velocity[i].FastGetSolutionStepValue(r_variable, k);
+            }
+        }
+
+        // (v_c, \rho \partial_t u_c)
+        noalias(subrange(rLeftHandSideMatrix, begin, begin + n, begin, begin + n)) +=
+            Weight * density * rCoefficients[0] * outer_prod(N, N);
+        noalias(subrange(rRightHandSideVector, begin, begin + n)) -=
+            Weight * density * time_derivative * N;
+
+        // (\partial_c q, \tau \rho \partial_t u_c), PSPG's residual
+        if (PspgTau > 0.0) {
+            const double pspg_factor = Weight * PspgTau * density;
+            noalias(subrange(rLeftHandSideMatrix, n_u, number_of_dofs, begin, begin + n)) +=
+                pspg_factor * rCoefficients[0] * outer_prod(column(r_DN_p, c), N);
+            noalias(subrange(rRightHandSideVector, n_u, number_of_dofs)) -=
+                pspg_factor * time_derivative * column(r_DN_p, c);
+        }
+
+        begin += n;
+    }
 }
 
 } // namespace Kratos

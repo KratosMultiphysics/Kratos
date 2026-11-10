@@ -102,9 +102,10 @@ public:
     void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
 
     /// Galerkin Stokes terms at the Gauss point in residual form, with one
-    /// geometry part per field (u_x, u_y and p), and PSPG if PSPG_FACTOR is
-    /// given, weighted by the volume fraction; and grad-div if GRAD_DIV_FACTOR
-    /// is given, not weighted. PSPG reads second derivatives, so it needs
+    /// geometry part per field (u_x, u_y and p), PSPG if PSPG_FACTOR is given
+    /// and the time term if the process info has BDF_COEFFICIENTS, weighted by
+    /// the volume fraction; and grad-div if GRAD_DIV_FACTOR is given, not
+    /// weighted. PSPG reads second derivatives, so it needs
     /// shape_function_derivatives_order = 3 in the modeler
     void CalculateLocalSystem(
         MatrixType& rLeftHandSideMatrix,
@@ -136,7 +137,8 @@ public:
     ///@{
 
     /// Checks the geometry parts, VOLUME_FRACTION, the constitutive law, the
-    /// dofs and, with PSPG_FACTOR, DYNAMIC_VISCOSITY and KNOT_SPAN_SIZES
+    /// dofs, with PSPG_FACTOR, DYNAMIC_VISCOSITY and KNOT_SPAN_SIZES, and with
+    /// BDF_COEFFICIENTS, DENSITY and the buffer size
     int Check(const ProcessInfo& rCurrentProcessInfo) const override;
 
     ///@}
@@ -195,13 +197,16 @@ private:
         const Matrix& rB,
         const double Weight) const;
 
+    /// \tau = Factor h^2 / (4 \mu) of PSPG, h the smallest knot span size
+    double CalculatePspgTau(const double Factor) const;
+
     /// PSPG (grad q, tau (grad p - div sigma - f)), with its residual
     void AddPspgTerms(
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
         const array_1d<double, 3>& rBodyForce,
         const Matrix& rD,
-        const double Factor,
+        const double Tau,
         const double Weight) const;
 
     /// Grad-div (beta_div div v, div u), with its residual
@@ -210,6 +215,16 @@ private:
         VectorType& rRightHandSideVector,
         const Matrix& rB,
         const double Factor,
+        const double Weight) const;
+
+    /// Time term (v + \tau \nabla q, \rho \partial_t u), with
+    /// \partial_t u = \sum_k c_k u^{n+1-k}, and its residual; \tau = 0 without
+    /// PSPG
+    void AddTimeTerms(
+        MatrixType& rLeftHandSideMatrix,
+        VectorType& rRightHandSideVector,
+        const Vector& rCoefficients,
+        const double PspgTau,
         const double Weight) const;
 
     ///@}
