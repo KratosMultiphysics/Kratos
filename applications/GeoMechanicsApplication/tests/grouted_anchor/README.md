@@ -42,4 +42,4 @@ The test (`test_grouted_anchor.py`) runs the stage with the sequential orchestra
 | 4    | -0.00286768        | -0.109109          |
 | 5    | 7.98339e-05        | -0.10327           |
 
-The Z-displacement is 0 for all nodes. These values are regression results rather than analytical solutions.
+These five nodes are displayed in the schematic. The Z-displacement is 0 for all nodes. These values are regression results rather than analytical solutions.

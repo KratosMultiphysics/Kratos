@@ -24,14 +24,14 @@
      inkscape:pagecheckerboard="0"
      inkscape:deskcolor="#d1d1d1"
      inkscape:document-units="mm"
-     inkscape:zoom="1.0537282"
-     inkscape:cx="-188.85326"
-     inkscape:cy="290.87198"
-     inkscape:window-width="3440"
-     inkscape:window-height="1369"
-     inkscape:window-x="-8"
-     inkscape:window-y="-8"
-     inkscape:window-maximized="1"
+     inkscape:zoom="2.1074564"
+     inkscape:cx="182.68468"
+     inkscape:cy="245.31943"
+     inkscape:window-width="1718"
+     inkscape:window-height="1360"
+     inkscape:window-x="-7"
+     inkscape:window-y="0"
+     inkscape:window-maximized="0"
      inkscape:current-layer="svg111" />
   <path
      d="M 0,0 H 163.72853 V 217.85295 Z M 0,0 163.72853,217.85295 H 0 Z"
@@ -683,6 +683,14 @@
      transform="rotate(-90)"
      id="text99"
      style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:4.23333px;font-family:Arial, Helvetica, sans-serif;-inkscape-font-specification:'Arial, Helvetica, sans-serif, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal">-8</text>
+  <text
+     x="43.21043"
+     y="92.284332"
+     font-size="1.94"
+     fill="#41505f"
+     text-anchor="middle"
+     id="text99-6"
+     style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:5.35684px;font-family:Arial, Helvetica, sans-serif;-inkscape-font-specification:'Arial, Helvetica, sans-serif, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke-width:1.26539">1</text>
   <text
      x="-102.358"
      y="6.9512029"
@@ -1598,4 +1606,36 @@
          id="path6-5-7-8-37-2" />
     </g>
   </g>
+  <text
+     x="41.970699"
+     y="37.800869"
+     font-size="1.94"
+     fill="#41505f"
+     text-anchor="middle"
+     id="text99-6-3"
+     style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:5.35684px;font-family:Arial, Helvetica, sans-serif;-inkscape-font-specification:'Arial, Helvetica, sans-serif, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke-width:1.26539">2</text>
+  <text
+     x="57.155624"
+     y="55.143051"
+     font-size="1.94"
+     fill="#41505f"
+     text-anchor="middle"
+     id="text99-6-3-2"
+     style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:5.35684px;font-family:Arial, Helvetica, sans-serif;-inkscape-font-specification:'Arial, Helvetica, sans-serif, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke-width:1.26539">4</text>
+  <text
+     x="87.016647"
+     y="84.398369"
+     font-size="1.94"
+     fill="#41505f"
+     text-anchor="middle"
+     id="text99-6-3-2-0"
+     style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:5.35684px;font-family:Arial, Helvetica, sans-serif;-inkscape-font-specification:'Arial, Helvetica, sans-serif, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke-width:1.26539">5</text>
+  <text
+     x="41.701862"
+     y="25.055443"
+     font-size="1.94"
+     fill="#41505f"
+     text-anchor="middle"
+     id="text99-6-3-0"
+     style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:5.35684px;font-family:Arial, Helvetica, sans-serif;-inkscape-font-specification:'Arial, Helvetica, sans-serif, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke-width:1.26539">3</text>
 </svg>
