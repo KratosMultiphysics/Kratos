@@ -1,3 +1,4 @@
+import importlib
 import json
 import pathlib
 
@@ -19,10 +20,13 @@ def GetRomParameters(rom_data_folder):
 
 
 def GetTypeOfDecoder(rom_parameters):
-    """The 'type_of_decoder' of the RomParameters.json. If not given, the one of the legacy 'projection_strategy' (e.g. "galerkin_ann"
-    for "ann_enhanced" and "galerkin_rbf" for "rbf_enhanced", as written by the RomManager), else "linear"."""
+    """The 'type_of_decoder' of the RomParameters.json. If not given, "local_roms" if it has "local_roms" (see LocalRomDecoder), else
+    the one of the legacy 'projection_strategy' (e.g. "galerkin_ann" for "ann_enhanced" and "galerkin_rbf" for "rbf_enhanced", as written
+    by the RomManager), else "linear"."""
     if "type_of_decoder" in rom_parameters:
         return rom_parameters["type_of_decoder"]
+    if "local_roms" in rom_parameters:
+        return "local_roms"
     projection_strategy = rom_parameters.get("projection_strategy", "")
     for suffix, type_of_decoder in (("_ann", "ann_enhanced"), ("_rbf", "rbf_enhanced")):
         if projection_strategy.endswith(suffix):
@@ -43,6 +47,8 @@ def GetBasisRows(rom_data_folder, dof_set):
 def CreateDecoder(rom_data_folder, dof_set):
     """The decoder saved in a ROM folder, with its rows in the order of the DOFs of dof_set: the class registered for the type of
     decoder of its RomParameters.json (see GetTypeOfDecoder), built with its FromRomData."""
+    # Decoders defined in other modules register themselves when imported
+    importlib.import_module("KratosMultiphysics.RomApplication.future.rom_local_decoder")
     type_of_decoder = GetTypeOfDecoder(GetRomParameters(rom_data_folder))
     if type_of_decoder not in _DECODERS:
         err_msg = "Unknown 'type_of_decoder' \'{}\' in {}. Available options are: {}.".format(type_of_decoder, rom_data_folder, ", ".join("\'{}\'".format(name) for name in _DECODERS))
@@ -81,6 +87,31 @@ class RomDecoder:
         """Called once the conditions of the step are applied (fixed DOFs and their values)."""
         pass
 
+    def Encode(self, u, max_iterations=20, tolerance=1.0e-12):
+        """Returns the reduced coordinates q whose decoded vector D(q) is closest to u (least squares), the inverse of Decode on its
+        manifold. The base class solves it by Gauss-Newton with the Jacobian, starting from q = 0; decoders with an explicit inverse
+        (e.g. LinearDecoder) override it."""
+        u = numpy.asarray(u, dtype=numpy.float64)
+        q = numpy.zeros(self.NumberOfRomDofs())
+        for _ in range(max_iterations):
+            dq = numpy.linalg.lstsq(self.Jacobian(q), u - self.Decode(q), rcond=None)[0]
+            q = q + dq
+            if numpy.linalg.norm(dq) <= tolerance * max(numpy.linalg.norm(q), 1.0):
+                break
+        return q
+
+    def UpdateReducedCoordinates(self, q, dof_set, process_info):
+        """Called by the solver at the start of each step, after InitializeSolutionStep, with the reduced coordinates of the last step,
+        the DOF set (its values are the current state) and the process info of the step. Returns the reduced coordinates to start the
+        step from. A single decoder keeps them; a decoder made of several local models (LocalRomDecoder) may switch model here and
+        encode the state in the new one."""
+        return q
+
+    def WithPrescribedFixedDofs(self, dof_set):
+        """The decoder giving the prescribed values on the fixed DOFs of dof_set ("fixed_dofs_decoding": "prescribed"): wrapped in a
+        FixedDofsDecoder. A decoder made of others (e.g. LocalRomDecoder) wraps each of them instead."""
+        return FixedDofsDecoder(self, dof_set)
+
 
 class LinearDecoder(RomDecoder):
     """Affine decoder u = u0 + Phi q (standard POD basis)."""
@@ -113,6 +144,12 @@ class LinearDecoder(RomDecoder):
 
     def Jacobian(self, q):
         return self.phi
+
+    def Encode(self, u, **kwargs):
+        """Least squares reduced coordinates of u: (Phi^T Phi)^-1 Phi^T (u - u0), which is Phi^T (u - u0) for an orthonormal basis"""
+        if not hasattr(self, "_gram"):
+            self._gram = self.phi.T @ self.phi
+        return numpy.linalg.solve(self._gram, self.phi.T @ (numpy.asarray(u, dtype=numpy.float64) - self.u0))
 
 
 RegisterDecoder("linear", LinearDecoder)

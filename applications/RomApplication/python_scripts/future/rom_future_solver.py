@@ -3,7 +3,6 @@ import numpy
 import KratosMultiphysics
 import KratosMultiphysics.RomApplication as KratosROM
 from KratosMultiphysics import scipy_conversion_tools
-from KratosMultiphysics.RomApplication.future.rom_decoders import FixedDofsDecoder
 
 
 class NumpyRomProjector:
@@ -116,10 +115,10 @@ class FutureRomSolver:
 
     def SetDecoder(self, decoder):
         """Sets the decoder (e.g. CreateDecoder(rom_data_folder, self.GetEffectiveDofSet())). Its rows must follow the effective
-        DOF set, which is available after Initialize. With "fixed_dofs_decoding": "prescribed", it is wrapped in a FixedDofsDecoder."""
+        DOF set, which is available after Initialize. With "fixed_dofs_decoding": "prescribed", the decoder of its WithPrescribedFixedDofs."""
         if self.fixed_dofs_decoding == "prescribed":
             # The fixed DOFs take their prescribed values instead of the ones of the decoder
-            decoder = FixedDofsDecoder(decoder, self.GetEffectiveDofSet())
+            decoder = decoder.WithPrescribedFixedDofs(self.GetEffectiveDofSet())
         self.decoder = decoder
         self.q = numpy.zeros(self.decoder.NumberOfRomDofs())
 
@@ -127,6 +126,8 @@ class FutureRomSolver:
         self.scheme.InitializeSolutionStep(self.strategy_data)
         # The conditions of the step are already applied, so the decoder can read the prescribed values of the fixed DOFs
         self.decoder.InitializeSolutionStep()
+        # A single decoder keeps the reduced coordinates; a LocalRomDecoder may switch model and encode the current state in it
+        self.q = numpy.array(self.decoder.UpdateReducedCoordinates(self.q, self.GetEffectiveDofSet(), self.model_part.ProcessInfo), dtype=numpy.float64)
 
     def SolveSolutionStep(self):
         """Newton-Raphson iteration on the reduced coordinates. Returns True if converged.
