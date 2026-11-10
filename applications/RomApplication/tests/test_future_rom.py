@@ -239,6 +239,26 @@ class TestFutureRom(KratosUnittest.TestCase):
                         obtained_output = rom_testing_utilities.GetVectorNodalResults(hrom_model_part, KratosMultiphysics.DISPLACEMENT)
                         self._CheckResults(obtained_output, expected_output, 1.0e-6)
 
+    @KratosUnittest.skipIfApplicationsNotAvailable("StructuralMechanicsApplication")
+    def testStructuralStaticTotalLagrangianHRomNoConditions(self):
+        # HROM with all the elements and no condition selected, with the empty weights saved as 1D and as 2D (one column per set) arrays:
+        # the load of the cantilever is applied by its conditions only, so the HROM gives a null displacement
+        with tempfile.TemporaryDirectory() as case_folder:
+            shutil.copytree(Path(__file__).parent / "future_rom_test_files/TotalLagrangianROM", case_folder, dirs_exist_ok=True)
+            with KratosUnittest.WorkFolderScope(case_folder, __file__):
+                model_part = KratosMultiphysics.Model().CreateModelPart("cantilever")
+                KratosMultiphysics.ModelPartIO("cantilever", KratosMultiphysics.IO.READ | KratosMultiphysics.IO.SKIP_TIMER).ReadModelPart(model_part)
+                element_ids = np.array([element.Id for element in model_part.Elements])
+                np.save("rom_data/HROM_ElementIds.npy", element_ids)
+                np.save("rom_data/HROM_ConditionIds.npy", np.array([], dtype=int))
+                for empty_weights in [np.ones(0), np.ones((0, 1))]:
+                    with self.subTest(empty_weights_shape=empty_weights.shape):
+                        np.save("rom_data/HROM_ElementWeights.npy", np.ones((len(element_ids),) + empty_weights.shape[1:]))
+                        np.save("rom_data/HROM_ConditionWeights.npy", empty_weights)
+                        hrom_model_part = self._RunFutureRom("ProjectParameters.json", "cpp", max_iterations=20, run_hrom=True)
+                        obtained_output = rom_testing_utilities.GetVectorNodalResults(hrom_model_part, KratosMultiphysics.DISPLACEMENT)
+                        self.assertLess(np.abs(obtained_output).max(), 1.0e-12)
+
     @KratosUnittest.skipIfApplicationsNotAvailable("ConvectionDiffusionApplication")
     def testConvDiffStationaryRom2D(self):
         with KratosUnittest.WorkFolderScope("thermal_static_test_files/ROM/", __file__):
