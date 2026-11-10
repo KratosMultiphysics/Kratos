@@ -1,0 +1,24 @@
+{
+    "properties": [
+        {
+            "model_part_name": "Structure.solid",
+            "properties_id": 1,
+            "Material": {
+                "constitutive_law": {
+                    "name": "SmallStrainJ2PlasticityPlaneStrain2DLaw"
+                },
+                "Variables": {
+                    "DENSITY": 1.0,
+                    "YOUNG_MODULUS": 10000.0,
+                    "POISSON_RATIO": 0.3,
+                    "THICKNESS": 1.0,
+                    "YIELD_STRESS": 10.0,
+                    "ISOTROPIC_HARDENING_MODULUS": 1000.0,
+                    "EXPONENTIAL_SATURATION_YIELD_STRESS": 10.0,
+                    "HARDENING_EXPONENT": 1.0
+                },
+                "Tables": {}
+            }
+        }
+    ]
+}
