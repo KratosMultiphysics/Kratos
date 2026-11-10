@@ -29,6 +29,7 @@ def CreateFutureRomAnalysisInstance(cls, global_model, parameters, future_rom_se
                 self._SetHRomEntities()
             self.rom_solutions = []
             self.hrom_residual_snapshots = []
+            self.convergence_histories = []
 
         def _SetHRomEntities(self):
             """HROM entities and weights from the files saved by the HROM training (one column of weights per set, e.g. per physics)."""
@@ -101,6 +102,7 @@ def CreateFutureRomAnalysisInstance(cls, global_model, parameters, future_rom_se
         def SolveSolutionStep(self):
             is_converged = self.future_rom_solver.SolveSolutionStep()
             self.rom_solutions.append(self.future_rom_solver.GetRomSolution().copy())
+            self.convergence_histories.append(self.future_rom_solver.GetConvergenceHistory())
             return is_converged
 
         def FinalizeSolutionStep(self):
