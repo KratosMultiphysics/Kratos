@@ -160,6 +160,7 @@ class TestFutureRom(KratosUnittest.TestCase):
                         obtained_output = rom_testing_utilities.GetVectorNodalResults(hrom_model_part, KratosMultiphysics.DISPLACEMENT)
                         self._CheckResults(obtained_output, expected_output, 1.0e-12)
 
+    @KratosUnittest.skipIfApplicationsNotAvailable("StructuralMechanicsApplication")
     def testStructuralStaticTotalLagrangianHRomNoConditions(self):
         # HROM with all the elements and no condition selected, with the empty weights saved as 1D and as 2D (one column per set) arrays:
         # the load of the cantilever is applied by its conditions only, so the HROM gives a null displacement
