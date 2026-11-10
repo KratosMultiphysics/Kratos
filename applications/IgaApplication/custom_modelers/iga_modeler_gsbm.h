@@ -131,6 +131,14 @@ private:
         ModelPart& rModelPart,
         const Parameters rParameters) const;
 
+    /// Creates conditions on the given sides of the background patch or, from
+    /// "geometry_names", of one patch per field: one-sided points of the span
+    /// inside, with the outward normal
+    void CreateQuadraturePointGeometriesOnSides(
+        GeometriesArrayType& rGeometryList,
+        ModelPart& rModelPart,
+        const Parameters rParameters) const;
+
     /// Creates GSBM conditions on the skeleton of an earlier entry
     void CreateConditionsOnGsbmSkeleton(
         GeometriesArrayType& rFacets,

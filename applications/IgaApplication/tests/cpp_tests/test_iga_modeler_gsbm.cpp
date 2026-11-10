@@ -458,4 +458,141 @@ KRATOS_TEST_CASE_IN_SUITE(IgaModelerGsbmFacetsMixedSpaces, KratosIgaFastSuite)
     KRATOS_EXPECT_GT(number_of_cut_facets, 0);
 }
 
+// The patches of the tests above, now with conditions on their four sides:
+// each condition has a part per patch, in the given order and at the same
+// point of the side, with the outward normal, each the basis of its patch's
+// span inside, and the knot span indices and sizes of that span. The rule
+// along the sides has 4 points per span, enough for degree 3. An unknown side
+// is rejected.
+KRATOS_TEST_CASE_IN_SUITE(IgaModelerGsbmSidesMixedSpaces, KratosIgaFastSuite)
+{
+    using IndexType = std::size_t;
+    using NurbsSurfaceType = NurbsSurfaceGeometry<3, PointerVector<Node>>;
+
+    Model model;
+    const ModelPart& r_iga_model_part = model.CreateModelPart("IgaModelPart");
+
+    const std::array<std::pair<std::string, std::array<int, 2>>, 3> patches{{
+        {"VelocityX", {3, 2}}, {"VelocityY", {2, 3}}, {"Pressure", {2, 2}}
+    }};
+    for (const auto& [r_name, r_degrees] : patches) {
+        Parameters parameters(R"({
+            "model_part_name"     : "IgaModelPart",
+            "geometry_name"       : "",
+            "lower_point_xyz"     : [0.0, 0.0, 0.0],
+            "upper_point_xyz"     : [1.0, 0.75, 0.0],
+            "lower_point_uvw"     : [0.0, 0.0, 0.0],
+            "upper_point_uvw"     : [1.0, 0.75, 0.0],
+            "polynomial_order"    : [0, 0],
+            "number_of_knot_spans": [4, 3]
+        })");
+        parameters["geometry_name"].SetString(r_name);
+        parameters["polynomial_order"][0].SetInt(r_degrees[0]);
+        parameters["polynomial_order"][1].SetInt(r_degrees[1]);
+        NurbsGeometryModeler(model, parameters).SetupGeometryModel();
+    }
+
+    const Modeler& r_registered_modeler = KratosComponents<Modeler>::Get("IgaModelerGsbm");
+    r_registered_modeler.Create(model, Parameters(R"({
+        "analysis_model_part_name": "IgaModelPart",
+        "geometry_name"           : "Pressure",
+        "element_condition_list"  : [{
+            "type"                            : "condition",
+            "name"                            : "GenericCondition",
+            "iga_model_part"                  : "Sides",
+            "shape_function_derivatives_order": 2,
+            "geometry_names"                  : ["VelocityX", "VelocityY", "Pressure"],
+            "sides"                           : ["left", "right", "bottom", "top"]
+        }]
+    })"))->SetupModelPart();
+
+    // Left and right: 3 spans; bottom and top: 4 spans; 4 points per span
+    const ModelPart& r_sides = model.GetModelPart("IgaModelPart.Sides");
+    KRATOS_EXPECT_EQ(r_sides.NumberOfConditions(), 2 * 12 + 2 * 16);
+    KRATOS_EXPECT_EQ(r_sides.NumberOfNodes(), 35 + 36 + 30);
+
+    const double tolerance = 1.0e-10;
+    const double offset = 1.0e-9;
+    const double limit_tolerance = 1.0e-6;
+    double length = 0.0;
+    for (const auto& r_condition : r_sides.Conditions()) {
+        const auto& r_geometry = r_condition.GetGeometry();
+        KRATOS_EXPECT_EQ(r_geometry.NumberOfGeometryParts(), 3);
+        const auto& r_reference = r_geometry.GetGeometryPart(0);
+        const array_1d<double, 3> center = r_reference.Center().Coordinates();
+        const array_1d<double, 3> normal = r_reference.UnitNormal(0);
+        length +=
+            r_reference.IntegrationPoints()[0].Weight() * r_reference.DeterminantOfJacobian(0);
+
+        // The outward normal of the side the point lies on
+        array_1d<double, 3> expected_normal = ZeroVector(3);
+        if (std::abs(center[0]) < tolerance) {
+            expected_normal[0] = -1.0;
+        } else if (std::abs(center[0] - 1.0) < tolerance) {
+            expected_normal[0] = 1.0;
+        } else if (std::abs(center[1]) < tolerance) {
+            expected_normal[1] = -1.0;
+        } else {
+            KRATOS_EXPECT_NEAR(center[1], 0.75, tolerance);
+            expected_normal[1] = 1.0;
+        }
+        KRATOS_EXPECT_VECTOR_NEAR(normal, expected_normal, tolerance);
+
+        // Knot span inside the patch, just off the side, with its sizes
+        const double u_in = center[0] - offset * normal[0];
+        const double v_in = center[1] - offset * normal[1];
+        const auto& r_knot_span_indices = r_geometry.GetValue(KNOT_SPAN_INDICES);
+        KRATOS_EXPECT_EQ(r_knot_span_indices.size(), 2);
+        KRATOS_EXPECT_EQ(r_knot_span_indices[0], static_cast<IndexType>(u_in / 0.25));
+        KRATOS_EXPECT_EQ(r_knot_span_indices[1], static_cast<IndexType>(v_in / 0.25));
+        const Vector& r_knot_span_sizes = r_geometry.GetValue(KNOT_SPAN_SIZES);
+        KRATOS_EXPECT_NEAR(r_knot_span_sizes[0], 0.25, tolerance);
+        KRATOS_EXPECT_NEAR(r_knot_span_sizes[1], 0.25, tolerance);
+
+        for (IndexType part = 0; part < 3; ++part) {
+            // A point of the part's patch, at the same point and normal
+            const auto& r_part = r_geometry.GetGeometryPart(part);
+            const auto& [r_name, r_degrees] = patches[part];
+            const auto& r_surface = dynamic_cast<const NurbsSurfaceType&>(
+                r_iga_model_part.GetGeometry(r_name)
+            );
+            KRATOS_EXPECT_EQ(&r_part.GetGeometryParent(0), &r_surface);
+            KRATOS_EXPECT_VECTOR_NEAR(r_part.Center().Coordinates(), center, tolerance);
+            KRATOS_EXPECT_VECTOR_NEAR(r_part.UnitNormal(0), normal, tolerance);
+
+            // Its patch's basis just inside the side
+            NurbsSurfaceShapeFunction reference(r_degrees[0], r_degrees[1], 0);
+            reference.ComputeBSplineShapeFunctionValues(
+                r_surface.KnotsU(), r_surface.KnotsV(), u_in, v_in
+            );
+            const auto control_point_indices = reference.ControlPointIndices(
+                r_surface.NumberOfControlPointsU(), r_surface.NumberOfControlPointsV()
+            );
+            KRATOS_EXPECT_EQ(r_part.size(), control_point_indices.size());
+            const Matrix& r_N = r_part.ShapeFunctionsValues();
+            for (IndexType i = 0; i < r_part.size(); ++i) {
+                KRATOS_EXPECT_EQ(
+                    r_part[i].Id(), r_surface.pGetPoint(control_point_indices[i])->Id()
+                );
+                KRATOS_EXPECT_NEAR(r_N(0, i), reference(i, 0), limit_tolerance);
+            }
+        }
+    }
+    KRATOS_EXPECT_NEAR(length, 2 * 0.75 + 2 * 1.0, tolerance);
+
+    // An unknown side
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(r_registered_modeler.Create(model, Parameters(R"({
+        "analysis_model_part_name": "IgaModelPart",
+        "geometry_name"           : "Pressure",
+        "element_condition_list"  : [{
+            "type"                            : "condition",
+            "name"                            : "GenericCondition",
+            "iga_model_part"                  : "UnknownSides",
+            "shape_function_derivatives_order": 2,
+            "geometry_names"                  : ["VelocityX", "VelocityY", "Pressure"],
+            "sides"                           : ["middle"]
+        }]
+    })"))->SetupModelPart(), "side \"middle\" not defined");
+}
+
 } // namespace Kratos::Testing

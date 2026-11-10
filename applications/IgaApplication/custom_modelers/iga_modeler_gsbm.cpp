@@ -15,6 +15,7 @@
 #include <array>
 #include <cmath>
 #include <iterator>
+#include <map>
 #include <string>
 #include <vector>
 
@@ -330,6 +331,9 @@ void IgaModelerGsbm::CreateIntegrationDomainPerUnit(
     else if (rPhysicsParameters.Has("gsbm_parameters"))
         // GSBM facets: on the background patch, or on one patch per field
         CreateQuadraturePointGeometriesGsbm(geometry_list, r_sub_model_part, rPhysicsParameters);
+    else if (rPhysicsParameters.Has("sides"))
+        // Conditions on sides of the background patch, or of a patch per field
+        CreateQuadraturePointGeometriesOnSides(geometry_list, r_sub_model_part, rPhysicsParameters);
     else if (rPhysicsParameters.Has("geometry_names"))
         // Elements with one space per field: one patch per field, same knots
         CreateQuadraturePointGeometriesMixed(geometry_list, r_sub_model_part, rPhysicsParameters);
@@ -359,7 +363,7 @@ void IgaModelerGsbm::GetGeometryList(
             rGeometryList.push_back(r_facet.pGetGeometry());
         }
     } else if (rPhysicsParameters.Has("geometry_names")) {
-        // Elements and GSBM facets with one space per field: each field's patch
+        // Elements, GSBM facets and sides with one space per field: each patch
         const Parameters geometry_names = rPhysicsParameters["geometry_names"];
         for (IndexType i = 0; i < geometry_names.size(); ++i) {
             const std::string geometry_name = geometry_names[i].GetString();
@@ -368,8 +372,9 @@ void IgaModelerGsbm::GetGeometryList(
                 << rModelPart.FullName() << "." << std::endl;
             rGeometryList.push_back(rModelPart.pGetGeometry(geometry_name));
         }
-    } else if (type == "element" || rPhysicsParameters.Has("gsbm_parameters")) {
-        // Elements and GSBM facets: the background patch
+    } else if (type == "element" || rPhysicsParameters.Has("gsbm_parameters")
+        || rPhysicsParameters.Has("sides")) {
+        // Elements, GSBM facets and sides: the background patch
         const std::string& r_geometry_name = mParameters["geometry_name"].GetString();
         KRATOS_ERROR_IF_NOT(rModelPart.HasGeometry(r_geometry_name))
             << "IgaModelerGsbm: geometry \"" << r_geometry_name << "\" not found in "
@@ -469,7 +474,8 @@ void IgaModelerGsbm::CreateQuadraturePointGeometriesMixed(
 {
     const std::string name = rParameters["name"].GetString();
     KRATOS_ERROR_IF(rParameters["type"].GetString() != "element") << "IgaModelerGsbm: "
-        << "\"geometry_names\" is only available for elements and GSBM facets." << std::endl;
+        << "\"geometry_names\" is only available for elements, GSBM facets and sides."
+        << std::endl;
 
     const int shape_function_derivatives_order =
         rParameters["shape_function_derivatives_order"].GetInt();
@@ -690,6 +696,117 @@ void IgaModelerGsbm::CreateQuadraturePointGeometriesGsbm(
 
     KRATOS_INFO_IF("IgaModelerGsbm", mEchoLevel > 0)
         << "Created " << quadrature_geometries.size() << " facet conditions of type "
+        << name << " on " << surfaces.size() << " patches in " << rModelPart.FullName()
+        << "." << std::endl;
+}
+
+void IgaModelerGsbm::CreateQuadraturePointGeometriesOnSides(
+    GeometriesArrayType& rGeometryList,
+    ModelPart& rModelPart,
+    const Parameters rParameters) const
+{
+    KRATOS_ERROR_IF(rParameters["type"].GetString() != "condition")
+        << "IgaModelerGsbm: entries with \"sides\" create conditions on the patch "
+        << "sides, so they require type \"condition\"." << std::endl;
+
+    const std::string name = rParameters["name"].GetString();
+
+    const int shape_function_derivatives_order =
+        rParameters["shape_function_derivatives_order"].GetInt();
+    KRATOS_ERROR_IF(shape_function_derivatives_order < 2) << "IgaModelerGsbm: "
+        << "shape_function_derivatives_order must be at least 2." << std::endl;
+    const SizeType number_of_shape_function_derivatives =
+        static_cast<SizeType>(shape_function_derivatives_order);
+
+    // The background patch, or one patch per field, with the same knot spans
+    const std::vector<NurbsSurfaceType*> surfaces = GetNurbsSurfaces(rGeometryList);
+    for (const auto p_surface : surfaces) {
+        KRATOS_ERROR_IF(p_surface->IsRational())
+            << "IgaModelerGsbm: the patch is rational. Only B-spline surfaces are "
+            << "supported." << std::endl;
+    }
+    std::array<std::vector<double>, 2> spans;
+    for (IndexType dir = 0; dir < 2; ++dir) {
+        surfaces[0]->SpansLocalSpace(spans[dir], dir);
+    }
+
+    // Gauss points per span along the sides: enough for the highest degree
+    std::array<SizeType, 2> number_of_points{0, 0};
+    for (IndexType dir = 0; dir < 2; ++dir) {
+        for (const auto p_surface : surfaces) {
+            number_of_points[dir] =
+                std::max(number_of_points[dir], p_surface->PolynomialDegree(dir) + 1);
+        }
+        if (rParameters.Has("number_of_integration_points_per_span")) {
+            number_of_points[dir] = rParameters["number_of_integration_points_per_span"].GetInt();
+        }
+    }
+
+    // Basis of each patch, evaluated at one span at a time
+    std::vector<NurbsSurfaceShapeFunction> shape_function_containers;
+    for (const auto p_surface : surfaces) {
+        shape_function_containers.emplace_back(
+            p_surface->PolynomialDegreeU(), p_surface->PolynomialDegreeV(),
+            number_of_shape_function_derivatives
+        );
+    }
+
+    // Per side: the direction normal to it, whether the span inside lies above
+    // it, and the tangent such that Normal() points out of the patch
+    struct Side
+    {
+        IndexType Direction;
+        bool IsUpperSide;
+        std::array<double, 2> Tangent;
+    };
+    const std::map<std::string, Side> sides{
+        {"left", {0, true, {0.0, 1.0}}},
+        {"right", {0, false, {0.0, -1.0}}},
+        {"bottom", {1, true, {-1.0, 0.0}}},
+        {"top", {1, false, {1.0, 0.0}}}
+    };
+
+    GeometriesArrayType quadrature_geometries;
+    const Parameters side_names = rParameters["sides"];
+    for (IndexType i = 0; i < side_names.size(); ++i) {
+        const std::string side_name = side_names[i].GetString();
+        KRATOS_ERROR_IF(sides.find(side_name) == sides.end()) << "IgaModelerGsbm: side \""
+            << side_name << "\" not defined. Available sides are \"left\", \"right\", "
+            << "\"bottom\" and \"top\"." << std::endl;
+        const Side& r_side = sides.at(side_name);
+        const IndexType dir = r_side.Direction;
+        const IndexType other = 1 - dir;
+
+        // Gauss points along the side
+        IntegrationPointUtilities::IntegrationPointsArrayType line_points;
+        IntegrationPointUtilities::CreateIntegrationPoints1DGauss(
+            line_points, spans[other], number_of_points[other]
+        );
+
+        for (const auto& r_line_point : line_points) {
+            // Parametric coordinates of the side point
+            std::array<double, 2> uv;
+            uv[dir] = r_side.IsUpperSide ? spans[dir].front() : spans[dir].back();
+            uv[other] = r_line_point[0];
+
+            // The point seen from the span inside the patch
+            quadrature_geometries.push_back(CreateKnotLinePoint(
+                surfaces, shape_function_containers, number_of_shape_function_derivatives,
+                spans, uv, dir, r_side.IsUpperSide, r_line_point.Weight(), r_side.Tangent
+            ));
+        }
+    }
+
+    CreateConditions(
+        quadrature_geometries.ptr_begin(), quadrature_geometries.ptr_end(),
+        rModelPart, name
+    );
+    for (const auto p_surface : surfaces) {
+        rModelPart.AddNodes(p_surface->Points().ptr_begin(), p_surface->Points().ptr_end());
+    }
+
+    KRATOS_INFO_IF("IgaModelerGsbm", mEchoLevel > 0)
+        << "Created " << quadrature_geometries.size() << " side conditions of type "
         << name << " on " << surfaces.size() << " patches in " << rModelPart.FullName()
         << "." << std::endl;
 }
