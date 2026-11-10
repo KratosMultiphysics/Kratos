@@ -200,6 +200,40 @@ class TestFutureRom(KratosUnittest.TestCase):
         decoder = QuadraticTermDecoder()
         self.assertLess(np.linalg.norm(decoder.Encode(decoder.Decode(q)) - q), 1.0e-10 * np.linalg.norm(q))
 
+    def testLocalRomDecoderPrescribedFixedDofs(self):
+        # With "fixed_dofs_decoding": "prescribed" each local model gives the prescribed values on the fixed DOFs, so that a switch
+        # encodes the state on the free DOFs only (the fixed ones are not represented by the models)
+        from KratosMultiphysics.RomApplication.future.rom_decoders import FixedDofsDecoder, LinearDecoder
+        from KratosMultiphysics.RomApplication.future.rom_local_decoder import ConstantSelector, LocalRomDecoder
+
+        class Dof:
+            def __init__(self, is_fixed):
+                self.is_fixed = is_fixed
+            def IsFixed(self):
+                return self.is_fixed
+
+        class DofSet(list):
+            def __init__(self, dofs, values):
+                super().__init__(dofs)
+                self.values = values
+            def GetValues(self):
+                return list(self.values)
+
+        rng = np.random.default_rng(0)
+        fixed = np.array([True, False, False, True, False, False, False, False])
+        u = rng.standard_normal(len(fixed))
+        dof_set = DofSet([Dof(is_fixed) for is_fixed in fixed], u)
+        models = [LinearDecoder(rng.standard_normal((len(fixed), n)), rng.standard_normal(len(fixed))) for n in (2, 3)]
+        decoder = LocalRomDecoder(models, ConstantSelector(1)).WithPrescribedFixedDofs(dof_set)
+        self.assertIsInstance(decoder, LocalRomDecoder)
+        self.assertTrue(all(isinstance(model, FixedDofsDecoder) for model in decoder.models))
+
+        q = decoder.UpdateReducedCoordinates(np.zeros(2), dof_set, None)
+        self.assertEqual(decoder.GetActiveModel(), 1)
+        expected_q = np.linalg.lstsq(models[1].phi[~fixed], (u - models[1].u0)[~fixed], rcond=None)[0]
+        self.assertLess(np.linalg.norm(q - expected_q), 1.0e-10 * np.linalg.norm(expected_q))
+        self.assertTrue(np.array_equal(decoder.Decode(q)[fixed], u[fixed]))
+
     def _RunTotalLagrangian(self, rom_folder=None, time_step=None):
         # The cantilever of testStructuralStaticTotalLagrangianRom2D: the FOM (rom_folder None) or the Future ROM of the given folder.
         # Returns the displacements of each step (one column per step, rows node by node) and the model of each step
