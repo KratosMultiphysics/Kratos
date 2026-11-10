@@ -4,11 +4,16 @@ import numpy
 
 import KratosMultiphysics
 from KratosMultiphysics.RomApplication.hrom_training_utility import HRomTrainingUtility
-from KratosMultiphysics.RomApplication.future.rom_decoders import CreateDecoder
+from KratosMultiphysics.RomApplication.future.rom_decoders import CreateDecoder, GetBasisRows
 from KratosMultiphysics.RomApplication.future.rom_future_solver import FutureRomSolver
 
 
 def CreateFutureRomAnalysisInstance(cls, global_model, parameters, future_rom_settings=None, rom_basis_output_folder="rom_data"):
+    return CreateFutureRomAnalysisClass(cls, future_rom_settings, rom_basis_output_folder)(global_model, parameters)
+
+
+def CreateFutureRomAnalysisClass(cls, future_rom_settings=None, rom_basis_output_folder="rom_data"):
+    """The FutureRomAnalysis class on top of the analysis stage cls (see CreateFutureRomAnalysisInstance), e.g. to derive from it."""
     class FutureRomAnalysis(cls):
         """Makes a standard Kratos analysis stage solve its steps with the FutureRomSolver.
 
@@ -17,10 +22,6 @@ def CreateFutureRomAnalysisInstance(cls, global_model, parameters, future_rom_se
 
         With "train_hrom" the residual of each entity is projected onto the Jacobian of the decoder at the end of each step, and the
         HROM weights are computed from these snapshots when the simulation finishes (see _TrainHRom).
-
-        With "save_rom_solutions" the reduced coordinates of each step are saved in the ROM folder (RomSolutions.npy). With
-        "replay_rom_solutions" they are read from there and imposed in each step instead of solving it (FutureRomSolver.ImposeRomSolution):
-        e.g. the HROM training of a solved run, or of another range of entities, without solving it again.
         """
 
         def Initialize(self):
@@ -33,8 +34,6 @@ def CreateFutureRomAnalysisInstance(cls, global_model, parameters, future_rom_se
                 self._SetHRomEntities()
             self.rom_solutions = []
             self.hrom_residual_snapshots = []
-            if self.future_rom_solver.replay_rom_solutions:
-                self.rom_solutions_to_replay = numpy.load(Path(rom_basis_output_folder) / "RomSolutions.npy")
 
         def _SetHRomEntities(self):
             """HROM entities and weights from the files saved by the HROM training (one column of weights per set, e.g. per physics)."""
@@ -110,13 +109,6 @@ def CreateFutureRomAnalysisInstance(cls, global_model, parameters, future_rom_se
             self.future_rom_solver.InitializeSolutionStep()
 
         def SolveSolutionStep(self):
-            if self.future_rom_solver.replay_rom_solutions:
-                step = len(self.rom_solutions)
-                if step >= len(self.rom_solutions_to_replay):
-                    raise Exception("The replayed RomSolutions.npy has {} steps, the simulation asks for step {}.".format(len(self.rom_solutions_to_replay), step + 1))
-                self.future_rom_solver.ImposeRomSolution(self.rom_solutions_to_replay[step])
-                self.rom_solutions.append(self.future_rom_solver.GetRomSolution().copy())
-                return True
             is_converged = self.future_rom_solver.SolveSolutionStep()
             self.rom_solutions.append(self.future_rom_solver.GetRomSolution().copy())
             return is_converged
@@ -131,9 +123,39 @@ def CreateFutureRomAnalysisInstance(cls, global_model, parameters, future_rom_se
 
         def Finalize(self):
             super().Finalize()
-            if self.future_rom_solver.save_rom_solutions:
-                numpy.save(Path(rom_basis_output_folder) / "RomSolutions.npy", numpy.array(self.rom_solutions))
             if self.future_rom_solver.train_hrom:
                 self._TrainHRom()
 
-    return FutureRomAnalysis(global_model, parameters)
+    return FutureRomAnalysis
+
+
+def TrainHRomFromSnapshots(cls, global_model, parameters, snapshots, future_rom_settings=None, rom_basis_output_folder="rom_data"):
+    """HROM training of the Future ROM without solving it: the solution of each step is the one of the given full order snapshots (e.g.
+    of the FOM), encoded by the decoder (see FutureRomSolver.SetStepFromFullSolution), and the residuals are projected at it as with
+    "train_hrom". The HROM weights are saved in the ROM folder when the simulation finishes.
+    snapshots: matrix (or .npy file, read memory mapped) with one column per step and the rows of the bases of the ROM folder (nodes of
+    NodeIds.npy times 'nodal_unknowns', as the snapshots of the RomManager). Returns the simulation, already run."""
+    settings = future_rom_settings.Clone() if future_rom_settings is not None else KratosMultiphysics.Parameters("{}")
+    if settings.Has("train_hrom"):
+        settings["train_hrom"].SetBool(True)
+    else:
+        settings.AddBool("train_hrom", True)
+    if not isinstance(snapshots, numpy.ndarray):
+        snapshots = numpy.load(snapshots, mmap_mode="r")
+
+    class FutureRomAnalysisFromSnapshots(CreateFutureRomAnalysisClass(cls, settings, rom_basis_output_folder)):
+        def Initialize(self):
+            super().Initialize()
+            self.snapshot_rows = GetBasisRows(rom_basis_output_folder, self.future_rom_solver.GetEffectiveDofSet())
+
+        def SolveSolutionStep(self):
+            step = len(self.rom_solutions)
+            if step >= snapshots.shape[1]:
+                raise Exception("The snapshots have {} steps, the simulation asks for step {}.".format(snapshots.shape[1], step + 1))
+            self.future_rom_solver.SetStepFromFullSolution(numpy.asarray(snapshots[self.snapshot_rows, step], dtype=numpy.float64))
+            self.rom_solutions.append(self.future_rom_solver.GetRomSolution().copy())
+            return True
+
+    simulation = FutureRomAnalysisFromSnapshots(global_model, parameters)
+    simulation.Run()
+    return simulation
