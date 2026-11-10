@@ -128,18 +128,22 @@ KRATOS_TEST_CASE_IN_SUITE(FutureLinearSolversRigidBodyModePinningParameters, Kra
     // Construction from explicit parameters (inner solver and tolerance)
     const Parameters pinning_settings(R"({
         "solver_type" : "rigid_body_mode_pinning",
-        "inner_solver_type" : "eigen_sparse_lu",
+        "inner_solver_settings" : {
+            "solver_type" : "eigen_sparse_lu"
+        },
         "tolerance" : 1.0e-4
     })");
     Future::RigidBodyModePinningSolver<Future::SerialLinearAlgebraTraits> parameter_solver(pinning_settings);
 
     // An unknown inner solver type must raise a Kratos error
     const Parameters bad_settings(R"({
-        "inner_solver_type" : "not_a_solver"
+        "inner_solver_settings" : {
+            "solver_type" : "not_a_solver"
+        }
     })");
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         Future::RigidBodyModePinningSolver<Future::SerialLinearAlgebraTraits> bad_solver(bad_settings),
-        "unknown \"inner_solver_type\"");
+        "unknown \"solver_type\" in \"inner_solver_settings\"");
 }
 
 KRATOS_TEST_CASE_IN_SUITE(FutureLinearSolversCGSolver, KratosCoreFutureSuite)

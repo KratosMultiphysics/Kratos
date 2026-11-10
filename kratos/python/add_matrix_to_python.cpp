@@ -149,16 +149,21 @@ namespace Kratos::Python
                 auto index2_data = rIndex2Data.unchecked();
                 auto value_data = rValueData.unchecked();
 
-                KRATOS_ERROR_IF(index1_data.size() < 2)
+                // The unchecked accessors report their extent as (signed) ssize_t
+                // Note that the entries themselves are (unsigned) std::size_t
+                const std::size_t num_index1_entries = static_cast<std::size_t>(index1_data.size());
+                const std::size_t num_entries = static_cast<std::size_t>(index2_data.size());
+
+                KRATOS_ERROR_IF(num_index1_entries < 2)
                     << "The index1_data array must contain at least two entries (empty matrix)." << std::endl;
-                KRATOS_ERROR_IF(index2_data.size() != value_data.size())
+                KRATOS_ERROR_IF(num_entries != static_cast<std::size_t>(value_data.size()))
                     << "The index2_data and value_data arrays must have the same size." << std::endl;
 
-                const CompressedMatrix::size_type nnz = value_data.size();
+                const CompressedMatrix::size_type nnz = num_entries;
 
-                const CompressedMatrix::size_type size1 = index1_data.size() - 1;
+                const CompressedMatrix::size_type size1 = num_index1_entries - 1;
                 CompressedMatrix::size_type size2 = 0;
-                for (std::size_t i_data = 0; i_data < index2_data.size(); ++i_data) {
+                for (std::size_t i_data = 0; i_data < num_entries; ++i_data) {
                     size2 = std::max(size2, index2_data(i_data) + 1);
                 }
 

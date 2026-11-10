@@ -124,7 +124,9 @@ class TestRigidBodyModePinning(KratosUnittest.TestCase):
         linear_solver = KratosMultiphysics.Future.RigidBodyModePinningSolver(
             KratosMultiphysics.Parameters("""{
                 "solver_type": "rigid_body_mode_pinning",
-                "inner_solver_type": "skyline_lu_factorization",
+                "inner_solver_settings": {
+                    "solver_type": "skyline_lu_factorization"
+                },
                 "tolerance": 1.0e-6,
                 "echo_level": 1
             }"""))
@@ -270,11 +272,11 @@ class TestRigidBodyModePinning(KratosUnittest.TestCase):
         # the default constructor builds the default inner solver (skyline LU)
         self.assertIsNotNone(KratosMultiphysics.Future.RigidBodyModePinningSolver())
         self.assertIsNotNone(KratosMultiphysics.Future.RigidBodyModePinningSolver(
-            KratosMultiphysics.Parameters('{"inner_solver_type": "eigen_sparse_lu", "tolerance": 1.0e-4}')))
+            KratosMultiphysics.Parameters('{"inner_solver_settings": {"solver_type": "eigen_sparse_lu"}, "tolerance": 1.0e-4}')))
         # an unknown inner solver type must raise an error
         with self.assertRaisesRegex(RuntimeError, "unknown"):
             KratosMultiphysics.Future.RigidBodyModePinningSolver(
-                KratosMultiphysics.Parameters('{"inner_solver_type": "not_a_solver"}'))
+                KratosMultiphysics.Parameters('{"inner_solver_settings": {"solver_type": "not_a_solver"}}'))
 
 
 if __name__ == '__main__':
