@@ -213,7 +213,7 @@ void AssignMasterSlaveConstraintsToNeighboursUtility::AssignMasterSlaveConstrain
         // Create MasterSlaveConstraints
         shape_matrix.resize(1, r_n_container.size());
         noalias(row(shape_matrix, 0)) = r_n_container; // Shape functions matrix
-        constant_vector.resize(r_n_container.size());
+        constant_vector.resize(r_n_container.size(), true);
         IndexType it = i.fetch_add(1) * rVariableList.size(); // Atomically increment the counter and get the previous value
 
         for (std::size_t j = 0; j < rVariableList.size(); ++j) {

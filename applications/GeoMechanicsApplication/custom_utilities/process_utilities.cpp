@@ -14,36 +14,58 @@
 // Project includes
 #include "process_utilities.h"
 #include "containers/model.h"
+#include "custom_utilities/string_utilities.h"
 #include "includes/kratos_parameters.h"
+
+using namespace std::string_literals;
 
 namespace
 {
 
 std::vector<std::string> GetProcessModelPartNames(const Kratos::Parameters& rProcessSettings,
-                                                  const std::string&        rProcessInfo)
+                                                  const std::string&        rProcessInfo,
+                                                  const std::vector<std::string>& rModelPartNameKeys)
 {
-    KRATOS_ERROR_IF_NOT(rProcessSettings.Has("model_part_name") ||
-                        rProcessSettings.Has("model_part_name_list"))
-        << "Please specify 'model_part_name' or 'model_part_name_list' for " << rProcessInfo;
+    auto has_name_key = [&rProcessSettings](const std::string& rKey) {
+        return rProcessSettings.Has(rKey);
+    };
+    const auto number_of_provided_keys = std::ranges::count_if(rModelPartNameKeys, has_name_key);
+    KRATOS_ERROR_IF(number_of_provided_keys < 1)
+        << "Please specify " << Kratos::GeoStringUtilities::Join(rModelPartNameKeys, " or "s, "'"s)
+        << " for " << rProcessInfo;
 
-    KRATOS_ERROR_IF(rProcessSettings.Has("model_part_name") &&
-                    rProcessSettings.Has("model_part_name_list"))
-        << "The parameters 'model_part_name' and 'model_part_name_list' are mutually exclusive for "
-        << rProcessInfo;
+    KRATOS_ERROR_IF(number_of_provided_keys > 1)
+        << "The parameters " << Kratos::GeoStringUtilities::Join(rModelPartNameKeys, " and "s, "'"s)
+        << " are mutually exclusive for " << rProcessInfo;
 
-    return rProcessSettings.Has("model_part_name_list")
-               ? rProcessSettings["model_part_name_list"].GetStringArray()
-               : std::vector{rProcessSettings["model_part_name"].GetString()};
+    const auto& r_name_key    = *std::ranges::find_if(rModelPartNameKeys, has_name_key);
+    const auto  name_or_names = rProcessSettings[r_name_key];
+    return name_or_names.IsStringArray() ? name_or_names.GetStringArray()
+                                         : std::vector{name_or_names.GetString()};
 }
 
 std::set<std::string, std::less<>> ExtractModelPartNames(const auto&      rProcessList,
                                                          std::string_view RootName,
-                                                         std::string_view Prefix)
+                                                         std::string_view Prefix,
+                                                         const std::vector<std::string>& rModelPartNameKeys)
 {
+    const auto process_to_ignore_name_keys =
+        std::vector{"AssignAverageMasterSlaveConstraintsProcess"s, "ApplyPeriodicConditionProcess"s,
+                    "SkinDetectionProcess"s};
+
     std::set<std::string, std::less<>> result;
     for (const auto& r_process : rProcessList) {
         if (!r_process.Has("Parameters")) continue;
-        const auto model_part_names = GetProcessModelPartNames(r_process["Parameters"], {});
+        auto has_name_key = [&r_process](const std::string& rKey) {
+            return r_process["Parameters"].Has(rKey);
+        };
+        if (std::ranges::count_if(rModelPartNameKeys, has_name_key) < 1) {
+            if (std::ranges::any_of(process_to_ignore_name_keys, [&r_process](const auto& rKey) {
+                return r_process["process_name"].GetString() == rKey;
+            }))
+                continue;
+        }
+        const auto model_part_names = GetProcessModelPartNames(r_process["Parameters"], {}, rModelPartNameKeys);
         for (auto model_part_name : model_part_names) {
             if (model_part_name == RootName) continue;
             if (model_part_name.starts_with(Prefix)) model_part_name.erase(0, Prefix.size());
@@ -59,10 +81,11 @@ namespace Kratos
 std::vector<std::reference_wrapper<ModelPart>> ProcessUtilities::GetModelPartsFromSettings(
     Model& rModel, const Parameters& rProcessSettings, const std::string& rProcessInfo)
 {
-    const auto model_part_names = GetProcessModelPartNames(rProcessSettings, rProcessInfo);
-    KRATOS_ERROR_IF(model_part_names.empty()) << "The parameters 'model_part_name_list' needs "
-                                                 "to contain at least one model part name for "
-                                              << rProcessInfo << ".";
+    const auto model_part_name_keys = std::vector{"model_part_name"s, "model_part_name_list"s};
+    const auto model_part_names = GetProcessModelPartNames(rProcessSettings, rProcessInfo, model_part_name_keys);
+    KRATOS_ERROR_IF(model_part_names.empty())
+        << "The parameters " << Kratos::GeoStringUtilities::Join(model_part_name_keys, " or "s, "'"s)
+        << " needs to contain at least one model part name for " << rProcessInfo << ".";
 
     std::vector<std::reference_wrapper<ModelPart>> result;
     result.reserve(model_part_names.size());
@@ -83,10 +106,12 @@ void ProcessUtilities::AddProcessesSubModelPartListToSolverSettings(const Parame
     std::set<std::string, std::less<>> domain_condition_names;
     const auto                         root_name = rSolverSettings["model_part_name"].GetString();
     const auto                         prefix    = root_name + ".";
+    const auto model_part_name_keys = std::vector{"model_part_name"s, "model_part_name_list"s};
 
     if (rProjectParameters.Has("processes")) {
-        for (const auto& r_process : rProjectParameters["processes"]) {
-            const auto modelpart_names = ExtractModelPartNames(r_process, root_name, prefix);
+        for (const auto& r_process_list : rProjectParameters["processes"]) {
+            const auto modelpart_names =
+                ExtractModelPartNames(r_process_list, root_name, prefix, model_part_name_keys);
             domain_condition_names.insert(modelpart_names.begin(), modelpart_names.end());
         }
     }

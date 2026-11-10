@@ -244,7 +244,55 @@ public:
 
         BaseType::Build(pScheme, rModelPart, rA, rb);
 
-        BaseType::ApplyDirichletConditions(pScheme, rModelPart, rA, rDx, rb);
+        if (BaseType::mHromSimulation) {
+            ApplyDirichletConditionsHROM(rA, rb);
+        } else {
+            BaseType::ApplyDirichletConditions(pScheme, rModelPart, rA, rDx, rb);
+        }
+    }
+
+    /**
+     * @brief Applies the Dirichlet conditions to a hyper-reduced system.
+     * @details The rows and columns of the fixed DOFs are zeroed out, as well as their RHS. Unlike the base class method, the rows
+     * without LHS contributions are left untouched. In a hyper-reduced system these are not spurious: they belong to the DOFs that
+     * are not in any selected element, whose RHS holds the contributions of the selected conditions (e.g. the loads).
+     * @param rA System matrix
+     * @param rb RHS vector
+     */
+    void ApplyDirichletConditionsHROM(
+        TSystemMatrixType& rA,
+        TSystemVectorType& rb
+    ){
+        const std::size_t system_size = rA.size1();
+        std::vector<bool> is_fixed(system_size);
+        for (const auto& r_dof : BaseType::GetDofSet()) {
+            is_fixed[r_dof.EquationId()] = r_dof.IsFixed();
+        }
+
+        auto* a_values = rA.value_data().begin();
+        const auto* a_row_indices = rA.index1_data().begin();
+        const auto* a_col_indices = rA.index2_data().begin();
+
+        IndexPartition<std::size_t>(system_size).for_each([&](std::size_t Index){
+            const std::size_t col_begin = a_row_indices[Index];
+            const std::size_t col_end = a_row_indices[Index+1];
+            if (is_fixed[Index]) {
+                // Zero out the whole row, except the diagonal, and the RHS
+                for (std::size_t j = col_begin; j < col_end; ++j) {
+                    if (static_cast<std::size_t>(a_col_indices[j]) != Index) {
+                        a_values[j] = 0.0;
+                    }
+                }
+                rb[Index] = 0.0;
+            } else {
+                // Zero out the columns of the fixed DOFs
+                for (std::size_t j = col_begin; j < col_end; ++j) {
+                    if (is_fixed[a_col_indices[j]]) {
+                        a_values[j] = 0.0;
+                    }
+                }
+            }
+        });
     }
 
     void BuildWithComplementaryMeshAndApplyDirichletConditions(
@@ -264,7 +312,7 @@ public:
 
         BuildWithComplementaryMesh(pScheme, rModelPart, rAComp, rBComp);
 
-        BaseType::ApplyDirichletConditions(pScheme, rModelPart, rAComp, rDx, rBComp);
+        ApplyDirichletConditionsHROM(rAComp, rBComp);
 
         // Check if the selected DOFs have been initialized
         if (!mIsSelectedDofsInitialized) {

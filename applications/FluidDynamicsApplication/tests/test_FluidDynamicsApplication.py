@@ -27,6 +27,7 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 # Import the tests o test_classes to create the suites
 from artificial_compressibility_test import ArtificialCompressibilityTest
 from buoyancy_test import BuoyancyTest
+from coupled_fluid_thermal_solver_test import CoupledFluidThermalSolverTest
 from couette_flow_test import CouetteFlowTest
 from darcy_channel_test import DarcyChannelTest
 from embedded_piston_test import EmbeddedPistonTest
@@ -53,6 +54,7 @@ from test_fluid_auxiliary_utilities import FluidAuxiliaryUtilitiesTest
 from test_navier_stokes_compressible_explicit_solver import NavierStokesCompressibleExplicitSolverTest
 from two_fluid_mass_conservation_source_test import TwoFluidMassConservationTest
 from apply_compressible_navier_stokes_boundary_conditions_process_test import ApplyMachDependentBoundaryConditionsTest
+from apply_outlet_process_test import ApplyOutletProcessTest
 if sympy_available:
     from compressible_navier_stokes_symbolic_generator_formulation_test import CompressibleNavierStokesSymbolicGeneratorFormulationTest
 from compressible_slip_wall_process_test import TestCompressibleSlipWallProcess
@@ -102,6 +104,7 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestAdjointMonolithicWallCondition]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestAdjointMonolithicWallCondition]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([ApplyMachDependentBoundaryConditionsTest]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([ApplyOutletProcessTest]))
     #smallSuite.addTest(BuoyancyTest('testBFECC')) # I'm skipping this one, it varies too much between runs JC.
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestCompressibleSlipWallProcess]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([ComputePressureCoefficientProcessTest]))
@@ -113,6 +116,7 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestBufferPoolNumPy]))
     if HAS_CUPY:
         smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestBufferPoolCuPy]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([CoupledFluidThermalSolverTest]))
 
     # Create a test suite with the selected tests plus all small tests
     nightSuite = suites['nightly']
