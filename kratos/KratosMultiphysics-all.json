@@ -3,7 +3,7 @@
 	"included_modules": [],
 	"included_binaries": [],
 	"dependencies": [
-        "KratosMultiphysics==${KRATOS_VERSION}",
+        "DeltaresReleaseMultiphysics==${KRATOS_VERSION}",
         "KratosContactStructuralMechanicsApplication==${KRATOS_VERSION}",
         "KratosConvectionDiffusionApplication==${KRATOS_VERSION}",
         "KratosConstitutiveLawsApplication==${KRATOS_VERSION}",
@@ -12,14 +12,14 @@
         "KratosDamApplication==${KRATOS_VERSION}",
         "KratosFluidDynamicsApplication==${KRATOS_VERSION}",
         "KratosFSIApplication==${KRATOS_VERSION}",
-        "KratosLinearSolversApplication==${KRATOS_VERSION}",
+        "DeltaresReleaseLinearSolversApplication==${KRATOS_VERSION}",
         "KratosMappingApplication==${KRATOS_VERSION}",
         "KratosMeshingApplication==${KRATOS_VERSION}",
         "KratosMPMApplication==${KRATOS_VERSION}",
         "KratosPoroMechanicsApplication==${KRATOS_VERSION}",
         "KratosShallowWaterApplication==${KRATOS_VERSION}",
-        "KratosStructuralMechanicsApplication==${KRATOS_VERSION}",
-        "KratosGeoMechanicsApplication==${KRATOS_VERSION}"
+        "DeltaresReleaseStructuralMechanicsApplication==${KRATOS_VERSION}",
+        "DeltaresReleaseGeoMechanicsApplication==${KRATOS_VERSION}"
     ],
 	"author": "Kratos Team",
 	"author_email": "kratos@listas.cimne.upc.edu",

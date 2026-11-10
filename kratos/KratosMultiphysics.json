@@ -1,5 +1,5 @@
 {
-	"wheel_name": "KratosMultiphysics",
+	"wheel_name": "DeltaresReleaseMultiphysics",
     "included_modules":  ["response_functions", "mpi", "modelers", "orchestrators"],
 	"included_binaries": ["Kratos.*", "KratosCore.*", "KratosCore.*", "KratosMPICore.*", "KratosMPI.*", "z.*", "zlib.*", "libz.*"],
 	"dependencies": ["numpy"],
