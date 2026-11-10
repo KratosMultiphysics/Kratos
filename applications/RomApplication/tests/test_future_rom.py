@@ -32,7 +32,7 @@ class TestFutureRom(KratosUnittest.TestCase):
         simulation.Run()
         return simulation._GetSolver().GetComputingModelPart()
 
-    def _CreateFutureRomSimulation(self, parameters_filename, projection_backend, max_iterations=None, run_hrom=False, parameters=None, train_hrom=False):
+    def _CreateFutureRomSimulation(self, parameters_filename, projection_backend, max_iterations=None, run_hrom=False, parameters=None, train_hrom=False, extra_settings=None):
         from KratosMultiphysics.RomApplication.future.future_rom_analysis import CreateFutureRomAnalysisInstance
 
         if parameters is None:
@@ -48,6 +48,8 @@ class TestFutureRom(KratosUnittest.TestCase):
             future_rom_settings.AddInt("max_iterations", max_iterations)
         future_rom_settings.AddBool("run_hrom", run_hrom)
         future_rom_settings.AddBool("train_hrom", train_hrom)
+        for name, value in (extra_settings or {}).items():
+            future_rom_settings.AddBool(name, value)
         return CreateFutureRomAnalysisInstance(analysis_stage_class, KratosMultiphysics.Model(), parameters, future_rom_settings)
 
     def _CheckResults(self, obtained_output, expected_output, relative_tolerance):
@@ -201,6 +203,38 @@ class TestFutureRom(KratosUnittest.TestCase):
 
                         self.assertLess(len(np.load("rom_data/HROM_ElementIds.npy")), rom_model_part.NumberOfElements())
                         self.assertTrue(Path("cantileverHROM.mdpa").exists())
+                        hrom_model_part = self._RunFutureRom("ProjectParameters.json", projection_backend, max_iterations=20, run_hrom=True)
+                        obtained_output = rom_testing_utilities.GetVectorNodalResults(hrom_model_part, KratosMultiphysics.DISPLACEMENT)
+                        self._CheckResults(obtained_output, expected_output, 1.0e-6)
+
+    @KratosUnittest.skipIfApplicationsNotAvailable("StructuralMechanicsApplication")
+    def testStructuralStaticTotalLagrangianHRomTrainingReplay(self):
+        # HROM training by replay: the ROM run saves its reduced coordinates; the replay imposes them in each step without solving and
+        # gives the residual snapshots of the run, and its trained HROM gives the solution of the ROM
+        with tempfile.TemporaryDirectory() as case_folder:
+            shutil.copytree(Path(__file__).parent / "future_rom_test_files/TotalLagrangianROM", case_folder, dirs_exist_ok=True)
+            with KratosUnittest.WorkFolderScope(case_folder, __file__):
+                for projection_backend in ["numpy", "cpp"]:
+                    with self.subTest(projection_backend=projection_backend):
+                        run = self._CreateFutureRomSimulation("ProjectParameters.json", projection_backend, max_iterations=20, train_hrom=True, extra_settings={"save_rom_solutions": True})
+                        run.Run()
+                        rom_model_part = run._GetSolver().GetComputingModelPart()
+                        expected_output = rom_testing_utilities.GetVectorNodalResults(rom_model_part, KratosMultiphysics.DISPLACEMENT)
+                        self.assertEqual(np.load("rom_data/RomSolutions.npy").shape, (len(run.rom_solutions), len(run.rom_solutions[0])))
+
+                        replay = self._CreateFutureRomSimulation("ProjectParameters.json", projection_backend, train_hrom=True, extra_settings={"replay_rom_solutions": True})
+                        replay.Initialize()
+                        def NoSolve():
+                            raise Exception("The replay must not solve.")
+                        replay.future_rom_solver.SolveSolutionStep = NoSolve
+                        replay.RunSolutionLoop()
+                        replay.Finalize()
+                        self.assertEqual(len(replay.hrom_residual_snapshots), len(run.hrom_residual_snapshots))
+                        for replayed, solved in zip(replay.hrom_residual_snapshots, run.hrom_residual_snapshots):
+                            self._CheckResults(replayed, solved, 1.0e-12)
+                        replayed_output = rom_testing_utilities.GetVectorNodalResults(replay._GetSolver().GetComputingModelPart(), KratosMultiphysics.DISPLACEMENT)
+                        self._CheckResults(replayed_output, expected_output, 1.0e-12)
+
                         hrom_model_part = self._RunFutureRom("ProjectParameters.json", projection_backend, max_iterations=20, run_hrom=True)
                         obtained_output = rom_testing_utilities.GetVectorNodalResults(hrom_model_part, KratosMultiphysics.DISPLACEMENT)
                         self._CheckResults(obtained_output, expected_output, 1.0e-6)

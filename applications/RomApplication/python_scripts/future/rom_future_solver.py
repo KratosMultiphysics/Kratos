@@ -87,6 +87,11 @@ class FutureRomSolver:
         self.train_hrom = settings["train_hrom"].GetBool()
         if self.train_hrom and self.run_hrom:
             raise Exception("The HROM training ('train_hrom') requires the ROM, so 'run_hrom' must be false.")
+
+        # The reduced coordinates of each step can be saved and replayed (see ImposeRomSolution): the HROM training of a replay gives the
+        # residual snapshots of the run without solving
+        self.save_rom_solutions = settings["save_rom_solutions"].GetBool()
+        self.replay_rom_solutions = settings["replay_rom_solutions"].GetBool()
         if self.run_hrom:
             self.scheme = KratosROM.Future.HRomStaticScheme(self.model_part, settings["scheme_settings"])
         else:
@@ -118,6 +123,8 @@ class FutureRomSolver:
             "run_hrom" : false,
             "hrom_weights_set" : 0,
             "train_hrom" : false,
+            "save_rom_solutions" : false,
+            "replay_rom_solutions" : false,
             "fixed_dofs_decoding" : "basis",
             "max_iterations" : 10,
             "relative_tolerance" : 1.0e-9,
@@ -206,6 +213,15 @@ class FutureRomSolver:
 
     def SetRomSolution(self, q):
         self.q = numpy.array(q, dtype=numpy.float64)
+
+    def ImposeRomSolution(self, q):
+        """Instead of SolveSolutionStep: the step at the given reduced coordinates, as after a converged iteration, without building or
+        solving any system. The DOFs take u = D(q) and the scheme does its nonlinear iteration operations at it, so that the state of the
+        entities (and the residuals of the HROM training, see GetProjectedEntityResiduals) are the ones of the solved step."""
+        self.SetRomSolution(q)
+        self.projector.SetSolution(self.decoder.Decode(self.q))
+        self.scheme.InitializeNonLinIteration(self.strategy_data)
+        self.scheme.FinalizeNonLinIteration(self.strategy_data)
 
     def GetEffectiveDofSet(self):
         return self.strategy_data.GetEffectiveDofSet()
