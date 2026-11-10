@@ -477,6 +477,16 @@ namespace Kratos {
                 double GlobalJointNormal[3];
                 mContinuumConstitutiveLawArray[i]->GetGlobalJointNormal(GlobalJointNormal);
 
+                const double norm = sqrt(
+                    GlobalJointNormal[0] * GlobalJointNormal[0]
+                    + GlobalJointNormal[1] * GlobalJointNormal[1]
+                    + GlobalJointNormal[2] * GlobalJointNormal[2]);
+                KRATOS_ERROR_IF(norm <= 1.0e-15)
+                    << "The smooth-joint normal direction must be non-zero." << std::endl;
+                GlobalJointNormal[0] /= norm;
+                GlobalJointNormal[1] /= norm;
+                GlobalJointNormal[2] /= norm;
+
                 //normal
                 double joint_gap =
                     data_buffer.mOtherToMeVector[0] * GlobalJointNormal[0]
@@ -489,8 +499,7 @@ namespace Kratos {
                     this->mInitialDistanceJoint[data_buffer.mpOtherParticle->Id()] = std::abs(joint_gap);
                 }
                 
-                double indentation_abs = mInitialDistanceJoint[data_buffer.mpOtherParticle->Id()] - std::abs(joint_gap);
-                indentation = joint_sign * indentation_abs;
+                indentation = mInitialDistanceJoint[data_buffer.mpOtherParticle->Id()] - std::abs(joint_gap);
                 
                 //tangential
                 double vn = RelVel[0] * GlobalJointNormal[0] + RelVel[1] * GlobalJointNormal[1] + RelVel[2] * GlobalJointNormal[2];
@@ -510,20 +519,12 @@ namespace Kratos {
                     DeltDisp[k] -= un * GlobalJointNormal[k];
                 }
 
-                const double norm = sqrt(GlobalJointNormal[0]*GlobalJointNormal[0] + GlobalJointNormal[1]*GlobalJointNormal[1] + GlobalJointNormal[2]*GlobalJointNormal[2]);
-
-                if (norm > 0.0) {
-                    GlobalJointNormal[0] = GlobalJointNormal[0]/norm;
-                    GlobalJointNormal[1] = GlobalJointNormal[1]/norm;
-                    GlobalJointNormal[2] = GlobalJointNormal[2]/norm;
-                }
-
                 double JointLocal[3][3];
 
-                // ez = joint normal
-                JointLocal[2][0] = GlobalJointNormal[0];
-                JointLocal[2][1] = GlobalJointNormal[1];
-                JointLocal[2][2] = GlobalJointNormal[2];
+                // Orient ez towards element1, while keeping compression positive in the constitutive law.
+                JointLocal[2][0] = joint_sign * GlobalJointNormal[0];
+                JointLocal[2][1] = joint_sign * GlobalJointNormal[1];
+                JointLocal[2][2] = joint_sign * GlobalJointNormal[2];
 
                 // ex = any vector perpendicular to ez (we take the one more perpendicular to ez)
                 double ref[3] = {1.0, 0.0, 0.0};
@@ -531,7 +532,7 @@ namespace Kratos {
                     ref[0] = 0.0; ref[1] = 1.0; ref[2] = 0.0;
                 }
 
-                GeometryFunctions::CrossProduct(ref, GlobalJointNormal, JointLocal[0]);
+                GeometryFunctions::CrossProduct(ref, JointLocal[2], JointLocal[0]);
                 GeometryFunctions::normalize(JointLocal[0]);
 
                 // ey = ez × ex

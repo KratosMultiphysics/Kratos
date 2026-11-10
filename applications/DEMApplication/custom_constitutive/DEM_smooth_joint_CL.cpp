@@ -30,6 +30,12 @@ void DEM_smooth_joint::Initialize(SphericContinuumParticle* element1,
         GlobalJointNormal[0] = (*mpProperties)[JOINT_NORMAL_DIRECTION_X];
         GlobalJointNormal[1] = (*mpProperties)[JOINT_NORMAL_DIRECTION_Y];
         GlobalJointNormal[2] = (*mpProperties)[JOINT_NORMAL_DIRECTION_Z];
+        const double joint_normal_norm = DEM_MODULUS_3(GlobalJointNormal);
+        KRATOS_ERROR_IF(joint_normal_norm <= 1.0e-15)
+            << "The smooth-joint normal direction must be non-zero." << std::endl;
+        GlobalJointNormal[0] /= joint_normal_norm;
+        GlobalJointNormal[1] /= joint_normal_norm;
+        GlobalJointNormal[2] /= joint_normal_norm;
         array_1d<double, 3> GlobalOtherToMeVector;
         array_1d<double, 3> LocalOtherToMeVector;
         noalias(GlobalOtherToMeVector) = element1->GetGeometry()[0].Coordinates() - element2->GetGeometry()[0].Coordinates();
@@ -163,6 +169,14 @@ void DEM_smooth_joint::Check(Properties::Pointer pProp) const {
         pProp->GetValue(JOINT_FRICTION_COEFF) = 0.0;
     }
 
+    const double joint_normal_norm = std::sqrt(
+        pProp->GetValue(JOINT_NORMAL_DIRECTION_X) * pProp->GetValue(JOINT_NORMAL_DIRECTION_X)
+        + pProp->GetValue(JOINT_NORMAL_DIRECTION_Y) * pProp->GetValue(JOINT_NORMAL_DIRECTION_Y)
+        + pProp->GetValue(JOINT_NORMAL_DIRECTION_Z) * pProp->GetValue(JOINT_NORMAL_DIRECTION_Z));
+
+    KRATOS_ERROR_IF(joint_normal_norm <= 1.0e-15)
+        << "The smooth-joint normal direction must be non-zero." << std::endl;
+
     if (!pProp->Has(IS_UNBREAKABLE)) {
         KRATOS_WARNING("DEM")<<std::endl;
         KRATOS_WARNING("DEM")<<"WARNING: Variable IS_UNBREAKABLE was not present in the properties when using DEM_smooth_joint_CL. False value assigned by default."<<std::endl;
@@ -227,6 +241,12 @@ void DEM_smooth_joint::CalculateElasticConstants(double& kn_el, double& kt_el, d
     mGlobalJointNormal[0] = (*mpProperties)[JOINT_NORMAL_DIRECTION_X]; // X = -1 * sin(alpha) 
     mGlobalJointNormal[1] = (*mpProperties)[JOINT_NORMAL_DIRECTION_Y]; // Y = cos(alpha)
     mGlobalJointNormal[2] = (*mpProperties)[JOINT_NORMAL_DIRECTION_Z]; // Z = 0
+    const double joint_normal_norm = DEM_MODULUS_3(mGlobalJointNormal);
+    KRATOS_ERROR_IF(joint_normal_norm <= 1.0e-15)
+        << "The smooth-joint normal direction must be non-zero." << std::endl;
+    mGlobalJointNormal[0] /= joint_normal_norm;
+    mGlobalJointNormal[1] /= joint_normal_norm;
+    mGlobalJointNormal[2] /= joint_normal_norm;
     array_1d<double, 3> OtherToMeVector;
     noalias(OtherToMeVector) = element1->GetGeometry()[0].Coordinates() - element2->GetGeometry()[0].Coordinates();
     double LocalCoordSystem[3][3];
@@ -428,18 +448,23 @@ void DEM_smooth_joint::CalculateTangentialForces(double OldLocalElasticContactFo
         JointLocalElasticContactForce[0] -= kt_el * mAccumulatedJointTangentialLocalDisplacement[0]; // 0: first tangential
         JointLocalElasticContactForce[1] -= kt_el * mAccumulatedJointTangentialLocalDisplacement[1]; // 1: second tangential
     } else {
-        mAccumulatedJointTangentialLocalDisplacement[0] += LocalRelVel[0];
-        mAccumulatedJointTangentialLocalDisplacement[1] += LocalRelVel[1];
+        mAccumulatedJointTangentialLocalDisplacement[0] += LocalDeltDisp[0];
+        mAccumulatedJointTangentialLocalDisplacement[1] += LocalDeltDisp[1];
         JointLocalElasticContactForce[0] -= kt_el * mAccumulatedJointTangentialLocalDisplacement[0]; // 0: first tangential
         JointLocalElasticContactForce[1] -= kt_el * mAccumulatedJointTangentialLocalDisplacement[1]; // 1: second tangential
         current_tangential_force_module = sqrt(JointLocalElasticContactForce[0] * JointLocalElasticContactForce[0]
                                                  + JointLocalElasticContactForce[1] * JointLocalElasticContactForce[1]);
-        double friction_force = (*mpProperties)[JOINT_FRICTION_COEFF] * LocalElasticContactForce[2];
+        const double friction_force = std::max(0.0, (*mpProperties)[JOINT_FRICTION_COEFF] * LocalElasticContactForce[2]);
         if (current_tangential_force_module > friction_force){
             if (current_tangential_force_module > 0.0){
                 const double fraction = friction_force / current_tangential_force_module;
                 JointLocalElasticContactForce[0] *= fraction;
                 JointLocalElasticContactForce[1] *= fraction;
+
+                if (kt_el > 0.0) {
+                    mAccumulatedJointTangentialLocalDisplacement[0] = -JointLocalElasticContactForce[0] / kt_el;
+                    mAccumulatedJointTangentialLocalDisplacement[1] = -JointLocalElasticContactForce[1] / kt_el;
+                }
             }
         }
     }
@@ -523,10 +548,14 @@ void DEM_smooth_joint::CheckFailure(const int i_neighbour_count,
                 && !(*mpProperties)[IS_UNBREAKABLE]) 
         { //for normal
             failure_type = 4; // failure in tension
+            mAccumulatedJointTangentialLocalDisplacement[0] = 0.0;
+            mAccumulatedJointTangentialLocalDisplacement[1] = 0.0;
         }
         else if(( std::abs(contact_tau) > bond_current_tau_max) && !(*mpProperties)[IS_UNBREAKABLE]) 
         { //for tangential 
             failure_type = 2; // failure in shear
+            mAccumulatedJointTangentialLocalDisplacement[0] = 0.0;
+            mAccumulatedJointTangentialLocalDisplacement[1] = 0.0;
         }   
     } 
 
