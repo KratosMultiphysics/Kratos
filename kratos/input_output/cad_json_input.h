@@ -165,15 +165,27 @@ private:
         // THB refinement creates new nodes; starting IDs above this max
         IndexType max_json_cp_id = 0;
         for (IndexType brep_i = 0; brep_i < rParameters.size(); ++brep_i) {
-            if (!rParameters[brep_i].Has("faces")) continue;
-            const Parameters faces = rParameters[brep_i]["faces"];
-            for (IndexType face_i = 0; face_i < faces.size(); ++face_i) {
-                if (!faces[face_i].Has("surface")) continue;
-                const Parameters surf = faces[face_i]["surface"];
-                if (!surf.Has("control_points")) continue;
-                const Parameters cps = surf["control_points"];
-                for (IndexType cps_i = 0; cps_i < cps.size(); ++cps_i)
-                    max_json_cp_id = std::max(max_json_cp_id, (IndexType)cps[cps_i][0].GetInt());
+            if (rParameters[brep_i].Has("faces")) {
+                const Parameters faces = rParameters[brep_i]["faces"];
+                for (IndexType face_i = 0; face_i < faces.size(); ++face_i) {
+                    if (!faces[face_i].Has("surface")) continue;
+                    const Parameters surf = faces[face_i]["surface"];
+                    if (!surf.Has("control_points")) continue;
+                    const Parameters cps = surf["control_points"];
+                    for (IndexType cps_i = 0; cps_i < cps.size(); ++cps_i)
+                        max_json_cp_id = std::max(max_json_cp_id, (IndexType)cps[cps_i][0].GetInt());
+                }
+            }
+            if (rParameters[brep_i].Has("edges")) {
+                const Parameters edges = rParameters[brep_i]["edges"];
+                for (IndexType edge_i = 0; edge_i < edges.size(); ++edge_i) {
+                    if (!edges[edge_i].Has("3d_curve")) continue;
+                    const Parameters curve = edges[edge_i]["3d_curve"];
+                    if (!curve.Has("control_points")) continue;
+                    const Parameters cps = curve["control_points"];
+                    for (IndexType cps_i = 0; cps_i < cps.size(); ++cps_i)
+                        max_json_cp_id = std::max(max_json_cp_id, (IndexType)cps[cps_i][0].GetInt());
+                }
             }
         }
         const IndexType next_node_id_hint = (max_json_cp_id > 0) ? max_json_cp_id + 1 : 0;
