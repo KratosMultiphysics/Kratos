@@ -237,7 +237,7 @@ void TetrahedralMeshOrientationCheck::Execute()
         GeometryType& r_geometry = it_elem->GetGeometry();
         if (SupportedElement(r_geometry)){ //acceptable quadratic geoms
             IndexType n_boundaries = BoundariesEntitiesNumber(r_geometry);
-            aux.resize(NumberOfNodesInEachBoundary(r_geometry));
+            aux.resize(NumberOfNodesInEachBoundary(r_geometry), false);
             NodesOfBoundaries(r_geometry, boundaries_nodes); //getting the nodes of each of the n_boundaries of the element
             const array_1d<double,3> elem_center = r_geometry.Center();
             const SizeType first_node_id_of_elem = r_geometry[0].Id();

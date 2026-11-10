@@ -163,6 +163,30 @@ class DamAnalysis(AnalysisStage):
         self.list_of_processes += KratosMultiphysics.process_factory.KratosProcessFactory(self.model).ConstructListOfProcesses( self.project_parameters["loads_process_list"] )
         self.list_of_processes += KratosMultiphysics.process_factory.KratosProcessFactory(self.model).ConstructListOfProcesses( self.project_parameters["temperature_by_device_list"] )
 
+        initial_state_import_processes = [
+            process for process in self.list_of_processes
+            if hasattr(process, "PrevalidateInitialState")]
+
+        if any(getattr(process, "imports_reference_temperature", False)
+               for process in self.list_of_processes):
+            reference_processes = [
+                process for process in self.list_of_processes
+                if (getattr(process, "assigns_reference_temperature", False) or
+                    isinstance(
+                        process,
+                        KratosDam.DamNodalReferenceTemperatureProcess))]
+            if reference_processes:
+                raise RuntimeError(
+                    "Cannot import NODAL_REFERENCE_TEMPERATURE while a process "
+                    "that assigns it is active. Remove or disable the "
+                    "reference-temperature process for this analysis.")
+
+        if self.add_previous_results and initial_state_import_processes:
+            raise RuntimeError(
+                "An initial-state transfer process cannot be combined with "
+                "'transfer_results_process.add_previous_results'. Use only one "
+                "initial-state transfer mechanism per analysis.")
+
         if self.project_parameters.Has("output_device_list"):
             self.list_of_output_processes = KratosMultiphysics.process_factory.KratosProcessFactory(self.model).ConstructListOfProcesses( self.project_parameters["output_device_list"] )
         else:
@@ -282,6 +306,13 @@ class DamAnalysis(AnalysisStage):
         if self.consider_construction:
             # Execute initialize solution
             self.construction_utilities.BeforeSolutionLoop()
+
+        # Validate every configured initial-state import before any process
+        # applies fields. This rejects overlapping stress elements and
+        # conflicting shared-node temperatures without modifying the model.
+        if initial_state_import_processes:
+            from KratosMultiphysics.DamApplication import dam_initial_state_file
+            dam_initial_state_file.ValidateCombinedImports(initial_state_import_processes)
 
         # ExecuteBeforeSolutionLoop
         for self.process in self.list_of_processes:

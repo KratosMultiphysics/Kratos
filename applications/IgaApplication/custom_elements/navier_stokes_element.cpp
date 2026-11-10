@@ -748,7 +748,7 @@ void NavierStokesElement::GetFirstDerivativesVector(Vector &rValues, int Step) c
     const unsigned int local_size = (mDim + 1) * number_of_control_points;
 
     if (rValues.size() != local_size)
-        rValues.resize(local_size);
+        rValues.resize(local_size, false);
 
     unsigned int index = 0;
 

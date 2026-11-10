@@ -223,7 +223,7 @@ Vector& ElasticIsotropic3D::CalculateValue(
         AddInitialStrainVectorContribution<StrainVectorType>(r_strain_vector);
 
         if (rValue.size() != GetStrainSize()) {
-            rValue.resize(GetStrainSize());
+            rValue.resize(GetStrainSize(), false);
         }
         noalias(rValue) = r_strain_vector;
 
@@ -244,7 +244,7 @@ Vector& ElasticIsotropic3D::CalculateValue(
 
         this->CalculateMaterialResponsePK2(rParameterValues);
         if (rValue.size() != GetStrainSize()) {
-            rValue.resize(GetStrainSize());
+            rValue.resize(GetStrainSize(), false);
         }
         noalias(rValue) = rParameterValues.GetStressVector();
 
@@ -256,7 +256,7 @@ Vector& ElasticIsotropic3D::CalculateValue(
     } else if (rThisVariable == INITIAL_STRAIN_VECTOR) {
         if (this->HasInitialState()) {
 	    if (rValue.size() != GetStrainSize()) {
-	        rValue.resize(GetStrainSize());
+	        rValue.resize(GetStrainSize(), false);
 	    }
 	    noalias(rValue) = GetInitialState().GetInitialStrainVector();
         } else {
