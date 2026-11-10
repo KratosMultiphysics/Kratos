@@ -17,7 +17,7 @@ hydraulic material parameters.
 - A seepage boundary is applied to `SeepageBoundary`.
 - Gravity acts in the negative y direction.
 
-![Levee seepage model](levee_seepage_model.png)
+![Levee seepage model](levee_seepage_model.svg)
 
 ## Reference results
 
