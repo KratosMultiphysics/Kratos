@@ -142,34 +142,27 @@ public:
     /// @brief Default constructor
     explicit ImplicitScheme() = default;
 
+    /// @brief Constructor with model part only
+    /// @details Sets up the model part, leaving the settings at their default values.
+    /// This constructor is to be used by the parameterized constructors (of this class and of the derived ones),
+    /// which perform the validation of the parameters in the constructor body, so that it is carried out
+    /// against the default parameters of the most derived class.
+    /// @param rModelPart Reference to the model part
+    explicit ImplicitScheme(ModelPart& rModelPart)
+        : mpModelPart(&rModelPart)
+    {
+    }
+
     /// @brief Constructor with parameters
     /// @param rModelPart Reference to the model part
     /// @param ThisParameters Parameters object encapsulating the settings
     explicit ImplicitScheme(
         ModelPart& rModelPart,
         Parameters ThisParameters)
-        : mpModelPart(&rModelPart)
+        : ImplicitScheme(rModelPart)
     {
-        // Validate default parameters
-        ThisParameters = this->ValidateAndAssignParameters(ThisParameters, this->GetDefaultParameters());
-        this->AssignSettings(ThisParameters);
-
-        // Set up the assembly helper
-        Parameters build_settings = ThisParameters["build_settings"];
-        build_settings.AddInt("echo_level", ThisParameters["echo_level"].GetInt());
-        if (build_settings.Has("name")) {
-            const std::string builder_type = build_settings["name"].GetString();
-            if (builder_type == "block_builder") {
-                mpBuilder = Kratos::make_unique<BlockBuilderType>(rModelPart, build_settings); // TODO: Use the registry in here
-            } else if (builder_type == "elimination_builder") {
-                mpBuilder = Kratos::make_unique<EliminationBuilderType>(rModelPart, build_settings); // TODO: Use the registry in here
-            } else {
-                KRATOS_ERROR << "Wrong builder type \'" << builder_type << "\'. Available options are \'block_builder\' and \'elimination_builder\'." << std::endl;
-            }
-        } else {
-            KRATOS_WARNING("ImplicitScheme") << "Builder type not provided. Defaulting to \'block_builder\'." << std::endl;
-            mpBuilder = Kratos::make_unique<BlockBuilderType>(rModelPart, build_settings); // TODO: Use the registry in here
-        }
+        // Validate the parameters against the default ones and assign the settings
+        this->ValidateAndAssignSettings(ThisParameters);
     }
 
     /// @brief Copy constructor
@@ -1534,6 +1527,24 @@ protected:
     }
 
     /**
+     * @brief This method validates the parameters against the default ones, assigns the settings and sets up the assembly helper
+     * @details This method is called from the parameterized constructors in the constructor body, so that the
+     * validation is carried out against the default parameters of the most derived class.
+     * @param ThisParameters The parameters to be validated and assigned
+     */
+    virtual void ValidateAndAssignSettings(Parameters ThisParameters)
+    {
+        // Validate the parameters against the default ones
+        ThisParameters = this->ValidateAndAssignParameters(ThisParameters, this->GetDefaultParameters());
+
+        // Assign the settings to the member variables
+        this->AssignSettings(ThisParameters);
+
+        // Set up the assembly helper according to the validated settings
+        this->SetUpBuilder(ThisParameters);
+    }
+
+    /**
      * @brief This method validate and assign default parameters
      * @param rParameters Parameters to be validated
      * @param DefaultParameters The default parameters
@@ -1556,6 +1567,30 @@ protected:
         mMoveMesh = ThisParameters["move_mesh"].GetBool();
         mEchoLevel = ThisParameters["echo_level"].GetInt();
         mReformDofsAtEachStep = ThisParameters["reform_dofs_at_each_step"].GetBool();
+    }
+
+    /**
+     * @brief This method sets up the assembly helper (builder) according to the given settings
+     * @param ThisParameters The validated parameters containing the build settings
+     */
+    void SetUpBuilder(const Parameters ThisParameters)
+    {
+        // Set up the assembly helper
+        Parameters build_settings = ThisParameters["build_settings"];
+        build_settings.AddInt("echo_level", ThisParameters["echo_level"].GetInt());
+        if (build_settings.Has("name")) {
+            const std::string builder_type = build_settings["name"].GetString();
+            if (builder_type == "block_builder") {
+                mpBuilder = Kratos::make_unique<BlockBuilderType>(this->GetModelPart(), build_settings); // TODO: Use the registry in here
+            } else if (builder_type == "elimination_builder") {
+                mpBuilder = Kratos::make_unique<EliminationBuilderType>(this->GetModelPart(), build_settings); // TODO: Use the registry in here
+            } else {
+                KRATOS_ERROR << "Wrong builder type \'" << builder_type << "\'. Available options are \'block_builder\' and \'elimination_builder\'." << std::endl;
+            }
+        } else {
+            KRATOS_WARNING("ImplicitScheme") << "Builder type not provided. Defaulting to \'block_builder\'." << std::endl;
+            mpBuilder = Kratos::make_unique<BlockBuilderType>(this->GetModelPart(), build_settings); // TODO: Use the registry in here
+        }
     }
 
     ///@}

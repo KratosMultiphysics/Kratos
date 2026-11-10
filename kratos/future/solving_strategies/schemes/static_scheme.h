@@ -83,6 +83,7 @@ struct StaticThreadLocalStorage
  * @class StaticScheme
  * @ingroup KratosCore
  * @brief This class provides the implementation of the static scheme
+ * @tparam TLinearAlgebra The linear algebra type
  * @author Ruben Zorrilla
  */
 template<class TLinearAlgebra>
@@ -135,19 +136,19 @@ public:
     explicit StaticScheme(
         ModelPart& rModelPart,
         Parameters ThisParameters)
-        : BaseType(rModelPart, ThisParameters)
+        : BaseType(rModelPart)
     {
-        // Validate default parameters
-        ThisParameters = this->ValidateAndAssignParameters(ThisParameters, this->GetDefaultParameters());
-        this->AssignSettings(ThisParameters);
+        // Validate the parameters against the default ones and assign the settings
+        this->ValidateAndAssignSettings(ThisParameters);
     }
 
-    /// @brief Copy constructor
-    /// @param rOther Other StaticScheme
-    explicit StaticScheme(StaticScheme& rOther)
-    {
-        //TODO: Check this... particularly the mpBuilder pointer
-    }
+    //TODO: Check this!
+    // /// @brief Copy constructor
+    // /// @param rOther Other StaticScheme
+    // explicit StaticScheme(StaticScheme& rOther)
+    // {
+    //     //TODO: Check this... particularly the mpBuilder pointer
+    // }
 
     /// @brief Destructor
     virtual ~StaticScheme() = default;

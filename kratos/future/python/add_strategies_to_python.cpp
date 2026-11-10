@@ -24,6 +24,7 @@
 #include "future/containers/define_linear_algebra_serial.h"
 #include "future/python/add_strategies_to_python.h"
 #include "future/solving_strategies/builders/builder.h"
+#include "future/solving_strategies/schemes/bdf_scheme.h"
 #include "future/solving_strategies/schemes/implicit_scheme.h"
 #include "future/solving_strategies/schemes/static_scheme.h"
 #include "future/solving_strategies/strategies/strategy.h"
@@ -118,6 +119,13 @@ void AddStrategiesToPython(py::module& m)
     using StaticSchemeType = Future::StaticScheme<Future::SerialLinearAlgebraTraits>;
     py::class_<StaticSchemeType, typename StaticSchemeType::Pointer, ImplicitSchemeType>(m, "StaticScheme")
         .def(py::init<ModelPart&, Parameters>())
+    ;
+
+    using BDFSchemeType = Future::BDFScheme<Future::SerialLinearAlgebraTraits>;
+    py::class_<BDFSchemeType, typename BDFSchemeType::Pointer, ImplicitSchemeType>(m, "BDFScheme")
+        .def(py::init<ModelPart&, Parameters>())
+        .def("GetOrder", &BDFSchemeType::GetOrder)
+        .def("GetBDFCoefficients", &BDFSchemeType::GetBDFCoefficients)
     ;
 
     py::class_<Strategy, typename Strategy::Pointer>(m, "Strategy")
