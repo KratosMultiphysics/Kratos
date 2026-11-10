@@ -30,7 +30,12 @@ def CreateFutureRomAnalysisInstance(cls, global_model, parameters, future_rom_se
             folder = Path(rom_basis_output_folder)
             weights_set = self.future_rom_solver.hrom_weights_set
             def Weights(name, number_of_entities):
-                weights = numpy.load(folder / f"HROM_{name}Weights.npy").reshape(number_of_entities, -1)
+                weights = numpy.load(folder / f"HROM_{name}Weights.npy")
+                if weights.size == 0:
+                    # No entity of this kind selected (reshape cannot infer the number of sets)
+                    weights = weights.reshape(0, weights.shape[1] if weights.ndim > 1 else 1)
+                else:
+                    weights = weights.reshape(number_of_entities, -1)
                 return weights[:, weights_set]
             element_ids = numpy.load(folder / "HROM_ElementIds.npy")
             condition_ids = numpy.load(folder / "HROM_ConditionIds.npy")
