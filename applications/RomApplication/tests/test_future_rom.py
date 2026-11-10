@@ -119,19 +119,18 @@ class TestFutureRom(KratosUnittest.TestCase):
     @KratosUnittest.skipIfApplicationsNotAvailable("StructuralMechanicsApplication")
     def testStructuralStaticQuadraticDecoder2D(self):
         # Beam clamped at both ends with two independent loads: the membrane stretching makes the axial displacement quadratic in
-        # the deflections. With 2 modes the quadratic decoder is about 18 times more accurate than the linear one
-        from KratosMultiphysics.RomApplication.future.rom_decoders import QuadraticDecoder
+        # the deflections. With 2 modes the quadratic decoder is about 18 times more accurate than the linear one. The quadratic
+        # decoder is the one of the ROM folder ("type_of_decoder": "quadratic"); the linear one of the same basis is given as factory
+        from KratosMultiphysics.RomApplication.future.rom_decoders import LinearDecoder
         with KratosUnittest.WorkFolderScope("future_rom_test_files/QuadraticClampedBeamROM/", __file__):
-            def QuadraticDecoderFactory(rows, u0):
-                return QuadraticDecoder(np.load("rom_data/RightBasisMatrix.npy")[rows, :], np.load("rom_data/QuadraticMatrix.npy")[rows, :], u0)
             def RelativeError(model_part):
                 obtained_output = np.array([node.GetSolutionStepValue(variable) for node in model_part.Nodes for variable in [KratosMultiphysics.DISPLACEMENT_X, KratosMultiphysics.DISPLACEMENT_Y]])
                 expected_output = np.load("ExpectedOutputFOM.npy")
                 return np.linalg.norm(obtained_output - expected_output) / np.linalg.norm(expected_output)
             for projection_backend in ["numpy", "cpp"]:
                 with self.subTest(projection_backend=projection_backend):
-                    linear_error = RelativeError(self._RunFutureRom("ProjectParameters.json", projection_backend))
-                    quadratic_error = RelativeError(self._RunFutureRom("ProjectParameters.json", projection_backend, decoder_factory=QuadraticDecoderFactory))
+                    linear_error = RelativeError(self._RunFutureRom("ProjectParameters.json", projection_backend, decoder_factory=LinearDecoder.FromRomData))
+                    quadratic_error = RelativeError(self._RunFutureRom("ProjectParameters.json", projection_backend))
                     self.assertLess(quadratic_error, 3.0e-2)
                     self.assertLess(quadratic_error, 0.1 * linear_error)
 

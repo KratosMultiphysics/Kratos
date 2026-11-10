@@ -158,6 +158,14 @@ class QuadraticDecoder(RomDecoder):
             raise Exception("The shape of 'h' {} must be (rows of 'phi', {}).".format(self.h.shape, len(self.i)))
         self.u0 = numpy.zeros(self.phi.shape[0]) if u0 is None else numpy.array(u0, dtype=numpy.float64)
 
+    @classmethod
+    def FromRomData(cls, rom_data_folder, dof_set):
+        """From the basis of the ROM folder (as LinearDecoder.FromRomData) and the matrix H of the same rows (QuadraticMatrix.npy,
+        one column per product q_i q_j, i <= j), taking the current values of the DOFs (the initial state) as origin."""
+        linear_decoder = LinearDecoder.FromRomData(rom_data_folder, dof_set)
+        h = numpy.load(pathlib.Path(rom_data_folder) / "QuadraticMatrix.npy")[GetBasisRows(rom_data_folder, dof_set), :]
+        return cls(linear_decoder.phi, h, linear_decoder.u0)
+
     def NumberOfRomDofs(self):
         return self.phi.shape[1]
 
@@ -171,6 +179,9 @@ class QuadraticDecoder(RomDecoder):
         features_jacobian[features, self.i] += q[self.j]
         features_jacobian[features, self.j] += q[self.i]
         return self.phi + self.h @ features_jacobian
+
+
+RegisterDecoder("quadratic", QuadraticDecoder)
 
 
 def QuadraticFeatures(q):

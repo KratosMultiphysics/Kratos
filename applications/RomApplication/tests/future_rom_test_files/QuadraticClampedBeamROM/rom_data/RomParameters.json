@@ -4,6 +4,7 @@
     "run_hrom": false,
     "rom_format": "numpy",
     "projection_strategy": "galerkin",
+    "type_of_decoder": "quadratic",
     "assembling_strategy": "global",
     "nodal_modes": {},
     "rom_settings": {
