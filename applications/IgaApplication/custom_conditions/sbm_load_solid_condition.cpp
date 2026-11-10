@@ -211,7 +211,7 @@ void SbmLoadSolidCondition::CalculateLocalSystem(
     noalias(rRightHandSideVector) = ZeroVector(mat_size);
 
     if (rLeftHandSideMatrix.size1() != mat_size)
-        rLeftHandSideMatrix.resize(mat_size, mat_size);
+        rLeftHandSideMatrix.resize(mat_size, mat_size, true);
     noalias(rLeftHandSideMatrix) = ZeroMatrix(mat_size, mat_size);
 
     CalculateLeftHandSide(rLeftHandSideMatrix,rCurrentProcessInfo);
@@ -523,7 +523,7 @@ void SbmLoadSolidCondition::CalculateRightHandSide(
         const SizeType mat_size = number_of_control_points * 2;
 
         if (rB.size1() != 3 || rB.size2() != mat_size)
-            rB.resize(3, mat_size);
+            rB.resize(3, mat_size, true);
         noalias(rB) = ZeroMatrix(3, mat_size);
 
         for (IndexType r = 0; r < mat_size; r++)
@@ -659,7 +659,7 @@ void SbmLoadSolidCondition::ComputeGradientTaylorExpansionContribution(const Vec
 
     if (grad_H_sum.size1() != 3 || grad_H_sum.size2() != number_of_control_points)
     {
-        grad_H_sum.resize(3, number_of_control_points);
+        grad_H_sum.resize(3, number_of_control_points, true);
     }
 
     // Neumann (Taylor expansion of the gradient)

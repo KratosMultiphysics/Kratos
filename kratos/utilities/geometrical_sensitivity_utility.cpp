@@ -57,7 +57,7 @@ void GeometricalSensitivityUtility::CalculateSensitivity(ShapeParameter Deriv, d
 
     MatrixType cofactorJ_deriv = CalculateCofactorOfJacobianSensitivity(Deriv);
     if (rDN_DX_Deriv.size1() != mrDN_De.size1() || rDN_DX_Deriv.size2() != mCofactorJ.size1())
-        rDN_DX_Deriv.resize(mrDN_De.size1(), mCofactorJ.size1());
+        rDN_DX_Deriv.resize(mrDN_De.size1(), mCofactorJ.size1(), true);
     noalias(rDN_DX_Deriv) = (1.0 / mDetJ) * prod(mrDN_De, trans(cofactorJ_deriv));
     rDN_DX_Deriv += -(rDetJ_Deriv / (mDetJ * mDetJ)) * prod(mrDN_De, trans(mCofactorJ));
 

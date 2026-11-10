@@ -643,7 +643,7 @@ void StokesElement::CalculateB(
 
     // Resize B matrix to Voigt strain size and appropriate number of columns.
     if (rB.size1() != strain_size || rB.size2() != mat_size)
-        rB.resize(strain_size, mat_size);
+        rB.resize(strain_size, mat_size, true);
 
     noalias(rB) = ZeroMatrix(strain_size, mat_size);
 
@@ -681,7 +681,7 @@ void StokesElement::CalculateBDerivativeDx(
 
     // Resize B matrix to 3 rows (strain vector size) and appropriate number of columns
     if (BDerivativeDx.size1() != 3 || BDerivativeDx.size2() != mat_size)
-        BDerivativeDx.resize(3, mat_size);
+        BDerivativeDx.resize(3, mat_size, true);
 
     noalias(BDerivativeDx) = ZeroMatrix(3, mat_size);
 
@@ -703,7 +703,7 @@ void StokesElement::CalculateBDerivativeDy(
 
     // Resize B matrix to 3 rows (strain vector size) and appropriate number of columns
     if (BDerivativeDy.size1() != 3 || BDerivativeDy.size2() != mat_size)
-        BDerivativeDy.resize(3, mat_size);
+        BDerivativeDy.resize(3, mat_size, true);
 
     noalias(BDerivativeDy) = ZeroMatrix(3, mat_size);
 
@@ -725,7 +725,7 @@ void StokesElement::CalculateBDerivativeDx3D(
 
     // Voigt size = 6 in 3D
     if (BDerivativeDx.size1() != 6 || BDerivativeDx.size2() != mat_size)
-        BDerivativeDx.resize(6, mat_size);
+        BDerivativeDx.resize(6, mat_size, true);
 
     noalias(BDerivativeDx) = ZeroMatrix(6, mat_size);
 
@@ -769,7 +769,7 @@ void StokesElement::CalculateBDerivativeDy3D(
     const SizeType mat_size = number_of_control_points * 3;
 
     if (BDerivativeDy.size1() != 6 || BDerivativeDy.size2() != mat_size)
-        BDerivativeDy.resize(6, mat_size);
+        BDerivativeDy.resize(6, mat_size, true);
 
     noalias(BDerivativeDy) = ZeroMatrix(6, mat_size);
 
@@ -812,7 +812,7 @@ void StokesElement::CalculateBDerivativeDz3D(
     const SizeType mat_size = number_of_control_points * 3;
 
     if (BDerivativeDz.size1() != 6 || BDerivativeDz.size2() != mat_size)
-        BDerivativeDz.resize(6, mat_size);
+        BDerivativeDz.resize(6, mat_size, true);
 
     noalias(BDerivativeDz) = ZeroMatrix(6, mat_size);
 

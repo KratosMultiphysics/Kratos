@@ -473,7 +473,7 @@ void SolidElement::CalculateB(
         const SizeType mat_size = number_of_control_points * 2;
 
         if (rB.size1() != 3 || rB.size2() != mat_size)
-            rB.resize(3, mat_size);
+            rB.resize(3, mat_size, true);
         noalias(rB) = ZeroMatrix(3, mat_size);
 
         for (IndexType r = 0; r < mat_size; r++)

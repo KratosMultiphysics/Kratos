@@ -41,7 +41,7 @@ const ProcessInfo& rCurrentProcessInfo)
     noalias(rRightHandSideVector) = ZeroVector(mat_size);
 
     if (rLeftHandSideMatrix.size1() != mat_size)
-        rLeftHandSideMatrix.resize(mat_size, mat_size);
+        rLeftHandSideMatrix.resize(mat_size, mat_size, true);
     noalias(rLeftHandSideMatrix) = ZeroMatrix(mat_size, mat_size);
 
     CalculateLeftHandSide(rLeftHandSideMatrix,rCurrentProcessInfo);
@@ -57,7 +57,7 @@ void SupportPressureCondition::CalculateLeftHandSide(
     const std::size_t mat_size = GetGeometry().size() * (mDim+1);
 
     if (rLeftHandSideMatrix.size1() != mat_size || rLeftHandSideMatrix.size2() != mat_size)
-        rLeftHandSideMatrix.resize(mat_size, mat_size);
+        rLeftHandSideMatrix.resize(mat_size, mat_size, true);
     noalias(rLeftHandSideMatrix) = ZeroMatrix(mat_size, mat_size);
 }
 
@@ -156,7 +156,7 @@ void SupportPressureCondition::CalculateB(
 
     // Resize B matrix to Voigt strain size and appropriate number of columns.
     if (rB.size1() != strain_size || rB.size2() != mat_size)
-        rB.resize(strain_size, mat_size);
+        rB.resize(strain_size, mat_size, true);
 
     noalias(rB) = ZeroMatrix(strain_size, mat_size);
 

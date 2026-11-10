@@ -321,7 +321,7 @@ public:
 
 			if (rLeftHandSideMatrix.size1() != LocalSize)
 			{
-				rLeftHandSideMatrix.resize(LocalSize, LocalSize);
+				rLeftHandSideMatrix.resize(LocalSize, LocalSize, true);
 			}
 			if (rRightHandSideVector.size() != LocalSize)
 			{
@@ -341,7 +341,7 @@ public:
 
 			if (rLeftHandSideMatrix.size1() != LocalSize)
 			{
-				rLeftHandSideMatrix.resize(LocalSize, LocalSize);
+				rLeftHandSideMatrix.resize(LocalSize, LocalSize, true);
 			}
 			if (rRightHandSideVector.size() != LocalSize)
 			{

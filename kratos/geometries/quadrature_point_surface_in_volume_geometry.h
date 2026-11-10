@@ -157,7 +157,7 @@ public:
     {
         if (rVariable == LOCAL_TANGENT_MATRIX) {
             if( rOutput.size1() != mLocalTangents.size1() || rOutput.size2() != mLocalTangents.size2() ){
-                rOutput.resize(mLocalTangents.size1(),mLocalTangents.size2());
+                rOutput.resize(mLocalTangents.size1(),mLocalTangents.size2(), true);
             }
             rOutput = mLocalTangents;
         }

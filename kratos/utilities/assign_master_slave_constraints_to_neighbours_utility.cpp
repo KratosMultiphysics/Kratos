@@ -127,7 +127,7 @@ void AssignMasterSlaveConstraintsToNeighboursUtility::GetDofsAndCoordinatesForCl
         dofs.resize(CloudOfNodesArray.size());
 
     // Resize rCloudOfNodesCoordinates to match the size of the cloud of nodes
-    rCloudOfNodesCoordinates.resize(CloudOfNodesArray.size(), 3);
+    rCloudOfNodesCoordinates.resize(CloudOfNodesArray.size(), 3, true);
 
     // Loop over the cloud of nodes
     for (std::size_t i = 0; i < CloudOfNodesArray.size(); i++) {
@@ -211,7 +211,7 @@ void AssignMasterSlaveConstraintsToNeighboursUtility::AssignMasterSlaveConstrain
         RBFShapeFunctionsUtility::CalculateShapeFunctions(r_cloud_of_nodes_coordinates, r_slave_coordinates, r_n_container);
 
         // Create MasterSlaveConstraints
-        shape_matrix.resize(1, r_n_container.size());
+        shape_matrix.resize(1, r_n_container.size(), true);
         noalias(row(shape_matrix, 0)) = r_n_container; // Shape functions matrix
         constant_vector.resize(r_n_container.size(), true);
         IndexType it = i.fetch_add(1) * rVariableList.size(); // Atomically increment the counter and get the previous value

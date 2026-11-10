@@ -126,7 +126,7 @@ protected:
                 StressVector.resize(StrainSize, false);
 
             if (D.size1() != StrainSize || D.size2() != StrainSize)
-                D.resize(StrainSize, StrainSize);
+                D.resize(StrainSize, StrainSize, true);
 
             noalias(StrainVector) = ZeroVector(StrainSize);
             noalias(StressVector) = ZeroVector(StrainSize);

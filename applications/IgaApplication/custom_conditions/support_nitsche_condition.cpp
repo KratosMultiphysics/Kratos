@@ -126,7 +126,7 @@ namespace Kratos
 
         //Transformation matrix T
         if (rT.size1() != 3 && rT.size2() != 3)
-            rT.resize(3, 3);
+            rT.resize(3, 3, true);
         noalias(rT) = ZeroMatrix(3, 3);
 
         rT(0, 0) = pow(G(0, 0), 2);
@@ -143,7 +143,7 @@ namespace Kratos
 
         //Transformation matrix T from local cartesian basis to the covariant one
         if (rT_hat.size1() != 3 && rT_hat.size2() != 3)
-            rT_hat.resize(3, 3);
+            rT_hat.resize(3, 3, true);
         noalias(rT_hat) = ZeroMatrix(3, 3);
 
         rT_hat(0, 0) = pow(G(0, 0), 2);
