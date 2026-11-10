@@ -1,0 +1,100 @@
+{
+    "analysis_stage": "KratosMultiphysics.StructuralMechanicsApplication.structural_mechanics_analysis",
+    "output_processes": {},
+    "problem_data": {
+        "echo_level": 0,
+        "end_time": 4.0,
+        "parallel_type": "OpenMP",
+        "problem_name": "beam",
+        "start_time": 0.0
+    },
+    "processes": {
+        "constraints_process_list": [
+            {
+                "Parameters": {
+                    "constrained": [
+                        true,
+                        true,
+                        true
+                    ],
+                    "interval": [
+                        0.0,
+                        "End"
+                    ],
+                    "model_part_name": "Structure.fix",
+                    "value": [
+                        0.0,
+                        0.0,
+                        0.0
+                    ],
+                    "variable_name": "DISPLACEMENT"
+                },
+                "kratos_module": "KratosMultiphysics",
+                "python_module": "assign_vector_variable_process"
+            }
+        ],
+        "list_other_processes": [],
+        "loads_process_list": [
+            {
+                "Parameters": {
+                    "direction": [
+                        0.0,
+                        -1.0,
+                        0.0
+                    ],
+                    "interval": [
+                        0.0,
+                        "End"
+                    ],
+                    "model_part_name": "Structure.load_1",
+                    "modulus": "7.0*t",
+                    "variable_name": "POINT_LOAD"
+                },
+                "kratos_module": "KratosMultiphysics",
+                "python_module": "assign_vector_by_direction_to_condition_process"
+            },
+            {
+                "Parameters": {
+                    "direction": [
+                        0.0,
+                        -1.0,
+                        0.0
+                    ],
+                    "interval": [
+                        0.0,
+                        "End"
+                    ],
+                    "model_part_name": "Structure.load_2",
+                    "modulus": "-3.0*t",
+                    "variable_name": "POINT_LOAD"
+                },
+                "kratos_module": "KratosMultiphysics",
+                "python_module": "assign_vector_by_direction_to_condition_process"
+            }
+        ]
+    },
+    "solver_settings": {
+        "analysis_type": "non_linear",
+        "convergence_criterion": "displacement_criterion",
+        "displacement_absolute_tolerance": 1e-12,
+        "displacement_relative_tolerance": 1e-10,
+        "domain_size": 2,
+        "echo_level": 0,
+        "linear_solver_settings": {
+            "solver_type": "LinearSolversApplication.sparse_lu"
+        },
+        "material_import_settings": {
+            "materials_filename": "StructuralMaterials.json"
+        },
+        "max_iteration": 30,
+        "model_import_settings": {
+            "input_filename": "beam",
+            "input_type": "mdpa"
+        },
+        "model_part_name": "Structure",
+        "solver_type": "Static",
+        "time_stepping": {
+            "time_step": 1.0
+        }
+    }
+}
