@@ -97,26 +97,6 @@ public:
         DofsArrayType& rEffectiveDofArray,
         const unsigned int EchoLevel = 0);
 
-    /**
-     * @brief Set the Dof Equation Ids
-     * This function sets the equation id for each DOF in the given DOFs array
-     * @param rDofArray The already filled and sorted DOF array
-     */
-    static void SetDofEquationIds(const DofsArrayType& rDofArray);
-
-    /**
-     * @brief Set the Effective Dof Equation Ids
-     * This function sets the effective equation ids in the effective DOF array
-     * If the effective DOF array matches the DOF array (i.e., all DOFs are effective), the effective equation ids are set as the equation ids.
-     * If there are non-effective DOFs, the effective equation id of the non-effective DOFs is initialized to the maximum value.
-     * This effectively makes possible to distinguish a non-effective DOF by checking its effective equation id
-     * @param rDofArray The already filled and sorted DOF array
-     * @param rEffectiveDofArray The effective DOFs array in which the effective DOF id are set
-     */
-    static void SetEffectiveDofEquationIds(
-        const DofsArrayType& rDofArray,
-        DofsArrayType& rEffectiveDofArray);
-
     ///@}
 }; // Class DofArrayUtilities
 
