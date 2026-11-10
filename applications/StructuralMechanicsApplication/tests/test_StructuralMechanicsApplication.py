@@ -87,6 +87,7 @@ from test_linear_thin_shell_adjoint_element_3d3n import TestShellThinAdjointElem
 from test_truss_adjoint_element_3d2n import TestTrussAdjointElement as TTestTrussAdjointElement
 from test_truss_adjoint_element_3d2n import TestTrussLinearAdjointElement as TTestTrussLinearAdjointElement
 from test_small_displacement_adjoint_element_3d10n import TestSmallDisplacementAdjointElement3D10N as TTestSmallDisplacementAdjointElement3D10N
+from test_small_displacement_adjoint_element_3d10n import TestSmallDisplacementAdjointElement3D10NTwoElements as TTestSmallDisplacementAdjointElement3D10NTwoElements
 from adjoint_sensitivity_analysis_test_factory import TestAdjointSensitivityAnalysisBeamStructureLocalStress as TTestAdjointSensitivityAnalysisBeamStructureLocalStress
 from adjoint_sensitivity_analysis_test_factory import TestAdjointSensitivityAnalysisBeamStructureNodalDisplacement as TTestAdjointSensitivityAnalysisBeamStructureNodalDisplacement
 from adjoint_sensitivity_analysis_test_factory import TestAdjointSensitivityAnalysisBeamStructureStrainEnergy as TTestAdjointSensitivityAnalysisBeamStructureStrainEnergy
@@ -352,6 +353,7 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestTrussAdjointElement]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestTrussLinearAdjointElement]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestSmallDisplacementAdjointElement3D10N]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestSmallDisplacementAdjointElement3D10NTwoElements]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestAdjointLoadingConditions]))
     # RVE tests
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestRVESimplestTest]))
