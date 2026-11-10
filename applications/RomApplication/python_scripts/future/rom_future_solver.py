@@ -207,5 +207,19 @@ class FutureRomSolver:
     def SetRomSolution(self, q):
         self.q = numpy.array(q, dtype=numpy.float64)
 
+    def SetStepFromRomSolution(self, q):
+        """Instead of SolveSolutionStep: the step at the given reduced coordinates, as after a converged iteration, without building or
+        solving any system. The DOFs take u = D(q) and the scheme does its nonlinear iteration operations at it (e.g. the update of the
+        time derivatives), so that the residuals of the entities (see GetProjectedEntityResiduals) are the ones of that state."""
+        self.SetRomSolution(q)
+        self.projector.SetSolution(self.decoder.Decode(self.q))
+        self.scheme.InitializeNonLinIteration(self.strategy_data)
+        self.scheme.FinalizeNonLinIteration(self.strategy_data)
+
+    def SetStepFromFullSolution(self, u):
+        """As SetStepFromRomSolution, at the reduced coordinates of the given full order solution (rows in the order of the effective DOF
+        set), encoded by the decoder from the current ones (see RomDecoder.Encode)."""
+        self.SetStepFromRomSolution(self.decoder.Encode(u, self.q))
+
     def GetEffectiveDofSet(self):
         return self.strategy_data.GetEffectiveDofSet()

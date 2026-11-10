@@ -206,6 +206,65 @@ class TestFutureRom(KratosUnittest.TestCase):
                         self._CheckResults(obtained_output, expected_output, 1.0e-6)
 
     @KratosUnittest.skipIfApplicationsNotAvailable("StructuralMechanicsApplication")
+    def testStructuralStaticTotalLagrangianHRomTrainingFromSnapshots(self):
+        # HROM training from full order snapshots (rows of the basis, one column per step), without solving the ROM:
+        #  - the snapshots of the ROM itself: the same reduced coordinates and residual snapshots as the training of the solved ROM
+        #  - the FOM snapshots: their projection on the basis, and the trained HROM gives the ROM solution
+        from unittest import mock
+        from KratosMultiphysics.RomApplication.future.future_rom_analysis import TrainHRomFromSnapshots
+        from KratosMultiphysics.RomApplication.future.rom_future_solver import FutureRomSolver
+
+        with tempfile.TemporaryDirectory() as case_folder:
+            shutil.copytree(Path(__file__).parent / "future_rom_test_files/TotalLagrangianROM", case_folder, dirs_exist_ok=True)
+            with KratosUnittest.WorkFolderScope(case_folder, __file__):
+                with open("ProjectParameters.json", "r") as parameter_file:
+                    parameters = KratosMultiphysics.Parameters(parameter_file.read())
+                analysis_stage_module_name = parameters["analysis_stage"].GetString()
+                analysis_stage_class_name = ''.join(x.title() for x in analysis_stage_module_name.split('.')[-1].split('_'))
+                analysis_stage_class = getattr(importlib.import_module(analysis_stage_module_name), analysis_stage_class_name)
+                node_ids = np.load("rom_data/NodeIds.npy")
+
+                class FomAnalysis(analysis_stage_class):
+                    """Saves the snapshots in the rows of the basis"""
+                    def FinalizeSolutionStep(self):
+                        super().FinalizeSolutionStep()
+                        model_part = self._GetSolver().GetComputingModelPart()
+                        variables = (KratosMultiphysics.DISPLACEMENT_X, KratosMultiphysics.DISPLACEMENT_Y)
+                        self.snapshots.append([model_part.GetNode(int(i)).GetSolutionStepValue(variable) for i in node_ids for variable in variables])
+                fom = FomAnalysis(KratosMultiphysics.Model(), parameters.Clone())
+                fom.snapshots = []
+                fom.Run()
+                np.save("fom_snapshots.npy", np.array(fom.snapshots).T)
+
+                for projection_backend in ["numpy", "cpp"]:
+                    with self.subTest(projection_backend=projection_backend):
+                        future_rom_settings = KratosMultiphysics.Parameters("""{}""")
+                        future_rom_settings.AddString("projection_backend", projection_backend)
+                        future_rom_settings.AddInt("max_iterations", 20)
+                        rom = self._CreateFutureRomSimulation("ProjectParameters.json", projection_backend, max_iterations=20, train_hrom=True)
+                        rom.Run()
+                        expected_output = rom_testing_utilities.GetVectorNodalResults(rom._GetSolver().GetComputingModelPart(), KratosMultiphysics.DISPLACEMENT)
+                        # The ROM states in the rows of the basis (the initial state is zero)
+                        basis = np.load("rom_data/RightBasisMatrix.npy")[:, :rom.future_rom_solver.decoder.NumberOfRomDofs()]
+                        rom_snapshots = basis @ np.array(rom.rom_solutions).T
+
+                        for snapshots in [rom_snapshots, "fom_snapshots.npy"]:
+                            with mock.patch.object(FutureRomSolver, "SolveSolutionStep", side_effect=Exception("The ROM must not be solved.")):
+                                training = TrainHRomFromSnapshots(analysis_stage_class, KratosMultiphysics.Model(), parameters.Clone(), snapshots, future_rom_settings)
+                            if isinstance(snapshots, str):
+                                for obtained, fom_snapshot in zip(training.rom_solutions, fom.snapshots):
+                                    self._CheckResults(obtained, np.linalg.lstsq(basis, fom_snapshot, rcond=None)[0], 1.0e-10)
+                            else:
+                                for obtained, expected in zip(training.rom_solutions, rom.rom_solutions):
+                                    self._CheckResults(obtained, expected, 1.0e-12)
+                                for obtained, expected in zip(training.hrom_residual_snapshots, rom.hrom_residual_snapshots):
+                                    self._CheckResults(obtained, expected, 1.0e-10)
+
+                            hrom_model_part = self._RunFutureRom("ProjectParameters.json", projection_backend, max_iterations=20, run_hrom=True)
+                            obtained_output = rom_testing_utilities.GetVectorNodalResults(hrom_model_part, KratosMultiphysics.DISPLACEMENT)
+                            self._CheckResults(obtained_output, expected_output, 1.0e-6)
+
+    @KratosUnittest.skipIfApplicationsNotAvailable("StructuralMechanicsApplication")
     def testStructuralStaticTotalLagrangianHRomNoConditions(self):
         # HROM with all the elements and no condition selected, with the empty weights saved as 1D and as 2D (one column per set) arrays:
         # the load of the cantilever is applied by its conditions only, so the HROM gives a null displacement
@@ -280,6 +339,34 @@ class TestFutureRom(KratosUnittest.TestCase):
             obtained_output = rom_testing_utilities.GetScalarNodalResults(model_part, KratosMultiphysics.TEMPERATURE)
             expected_output = rom_testing_utilities.GetScalarNodalResults(default_model_part, KratosMultiphysics.TEMPERATURE)
             self._CheckResults(obtained_output, expected_output, 1.0e-12)
+
+    def testDecoderEncode(self):
+        # Encode inverts Decode: the linear decoder by least squares on the basis, any other one by Gauss-Newton (base class, checked
+        # with a quadratic decoder). For a vector out of the decoder range the linear one gives the least squares fit
+        from KratosMultiphysics.RomApplication.future.rom_decoders import LinearDecoder, RomDecoder
+
+        class QuadraticDecoder(RomDecoder):
+            """u = u0 + Phi q + Psi (q * q)"""
+            def __init__(self, phi, psi, u0):
+                self.phi, self.psi, self.u0 = phi, psi, u0
+            def NumberOfRomDofs(self):
+                return self.phi.shape[1]
+            def Decode(self, q):
+                return self.u0 + self.phi @ q + self.psi @ (q * q)
+            def Jacobian(self, q):
+                return self.phi + 2.0 * self.psi * q
+
+        rng = np.random.default_rng(0)
+        phi, psi, u0 = rng.standard_normal((20, 3)), 0.1 * rng.standard_normal((20, 3)), rng.standard_normal(20)
+        q = np.array([0.5, -1.0, 2.0])
+
+        linear = LinearDecoder(phi, u0)
+        self.assertTrue(np.allclose(linear.Encode(linear.Decode(q)), q, rtol=0.0, atol=1.0e-12))
+        u = rng.standard_normal(20)
+        self.assertLess(np.abs(phi.T @ (linear.Decode(linear.Encode(u)) - u)).max(), 1.0e-12)
+
+        quadratic = QuadraticDecoder(phi, psi, u0)
+        self.assertTrue(np.allclose(quadratic.Encode(quadratic.Decode(q), q + 0.1), q, rtol=0.0, atol=1.0e-12))
 
     def testCreateDecoder(self):
         # The decoder is built from the ROM folder alone (no analysis stage, no solver): its rows follow the given DOFs,
