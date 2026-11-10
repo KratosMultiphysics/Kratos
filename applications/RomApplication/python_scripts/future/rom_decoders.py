@@ -191,12 +191,17 @@ class RbfEnhancedDecoder(RomDecoder):
         return numpy.ascontiguousarray(self.phi_inf + self.phi_sup_weighted @ rbf_gradient)
 
     @classmethod
-    def FromNumpyFiles(cls, rom_data_folder, kernel, epsilon, rows):
-        """From the files of a standalone legacy RBF-enhanced ROM (RightBasisMatrix.npy, SingularValues.npy, rbf_weights.npy and
-        rbf_centers.npy, see RBF_ROM_Interface.FromNumpyFiles), with the rows of the basis in the order of the effective DOF set"""
+    def FromRomData(cls, rom_data_folder, dof_set):
+        """From the files of a standalone legacy RBF-enhanced ROM (RightBasisMatrix.npy, SingularValues.npy, rbf_weights.npy,
+        rbf_centers.npy and the "kernel" and "epsilon" of the "rbf_enhanced_settings" of the RomParameters.json, see
+        RBF_ROM_Interface.FromNumpyFiles)."""
         folder = pathlib.Path(rom_data_folder)
-        return cls(numpy.load(folder / "RightBasisMatrix.npy")[rows, :], numpy.load(folder / "SingularValues.npy"),
-                   numpy.load(folder / "rbf_weights.npy"), numpy.load(folder / "rbf_centers.npy"), kernel, epsilon)
+        rbf_settings = GetRomParameters(folder)["rbf_enhanced_settings"]
+        return cls(numpy.load(folder / "RightBasisMatrix.npy")[GetBasisRows(folder, dof_set), :], numpy.load(folder / "SingularValues.npy"),
+                   numpy.load(folder / "rbf_weights.npy"), numpy.load(folder / "rbf_centers.npy"), rbf_settings["kernel"], rbf_settings["epsilon"])
+
+
+RegisterDecoder("rbf_enhanced", RbfEnhancedDecoder)
 
 
 class FixedDofsDecoder(RomDecoder):
