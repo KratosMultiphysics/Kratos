@@ -734,7 +734,8 @@ class TestDamInitialStateSpatialMapping3D(KratosUnittest.TestCase):
         model = KM.Model()
         part = _build_part(
             model, "part", _hex8_mesh(1, 1, 1),
-            SMA.LinearElastic3DLaw())
+            SMA.LinearElastic3DLaw(),
+            extra_variables=(KM.FACE_HEAT_FLUX,))
         for node in part.Nodes:
             node.AddDof(KM.TEMPERATURE)
         settings = KM.ConvectionDiffusionSettings()

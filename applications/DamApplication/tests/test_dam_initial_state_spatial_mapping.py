@@ -184,13 +184,14 @@ def _build_part(model, name, mesh, law, integration_order=None,
                 thermal_expansion=None, body=None,
                 temperature=20.0, reference_temperature=20.0,
                 young_modulus=1.e4, poisson_ratio=0.2, density=2.0,
-                fixed_bottom=False, dimension=None):
+                fixed_bottom=False, dimension=None, extra_variables=()):
     if dimension is None:
         dimension = int(mesh.get("dimension", 2))
     part = model.CreateModelPart(name, 2)
-    for variable in (KM.DISPLACEMENT, KM.REACTION, KM.VOLUME_ACCELERATION,
-                     KM.CAUCHY_STRESS_VECTOR, KM.GREEN_LAGRANGE_STRAIN_VECTOR,
-                     KM.TEMPERATURE, Dam.NODAL_REFERENCE_TEMPERATURE):
+    variables = (KM.DISPLACEMENT, KM.REACTION, KM.VOLUME_ACCELERATION,
+                 KM.CAUCHY_STRESS_VECTOR, KM.GREEN_LAGRANGE_STRAIN_VECTOR,
+                 KM.TEMPERATURE, Dam.NODAL_REFERENCE_TEMPERATURE)
+    for variable in variables + tuple(extra_variables):
         part.AddNodalSolutionStepVariable(variable)
     part.ProcessInfo[KM.DOMAIN_SIZE] = dimension
     part.ProcessInfo[KM.DELTA_TIME] = 1.0
@@ -943,7 +944,8 @@ class TestDamInitialStateSpatialMapping(KratosUnittest.TestCase):
         model = KM.Model()
         part = _build_part(
             model, "part", _q4_mesh(1, 2),
-            SMA.LinearElasticPlaneStrain2DLaw())
+            SMA.LinearElasticPlaneStrain2DLaw(),
+            extra_variables=(KM.FACE_HEAT_FLUX,))
         for node in part.Nodes:
             node.AddDof(KM.TEMPERATURE)
         settings = KM.ConvectionDiffusionSettings()
