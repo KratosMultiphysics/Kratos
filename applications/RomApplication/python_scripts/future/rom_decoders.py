@@ -173,12 +173,16 @@ class AnnEnhancedDecoder(TorchDecoder):
         super().__init__(Function, n_inf)
 
     @classmethod
-    def FromNumpyFiles(cls, rom_data_folder, modes, rows):
-        """From the files of a standalone legacy ANN-enhanced ROM (RightBasisMatrix.npy, SingularValues.npy and model_weights.npy,
-        see NN_ROM_Interface.FromNumpyFiles), with the rows of the basis in the order of the effective DOF set"""
+    def FromRomData(cls, rom_data_folder, dof_set):
+        """From the files of a standalone legacy ANN-enhanced ROM (RightBasisMatrix.npy, SingularValues.npy, model_weights.npy and the
+        "modes" [n_inf, n_sup] of the "ann_enhanced_settings" of the RomParameters.json, see NN_ROM_Interface.FromNumpyFiles)."""
         folder = pathlib.Path(rom_data_folder)
-        return cls(numpy.load(folder / "RightBasisMatrix.npy")[rows, :], numpy.load(folder / "SingularValues.npy"),
+        modes = GetRomParameters(folder)["ann_enhanced_settings"]["modes"]
+        return cls(numpy.load(folder / "RightBasisMatrix.npy")[GetBasisRows(folder, dof_set), :], numpy.load(folder / "SingularValues.npy"),
                    numpy.load(folder / "model_weights.npy", allow_pickle=True), modes)
+
+
+RegisterDecoder("ann_enhanced", AnnEnhancedDecoder)
 
 
 class FixedDofsDecoder(RomDecoder):
