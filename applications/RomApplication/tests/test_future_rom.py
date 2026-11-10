@@ -485,6 +485,170 @@ class TestFutureRom(KratosUnittest.TestCase):
                 self.assertLess(np.abs(decoder.Jacobian(q) - finite_differences).max(), 1.0e-8)
 
 
+    def testDecoderEncode(self):
+        # Encode inverts Decode on the manifold of the decoder: exactly for the linear decoder (any full rank basis, with origin),
+        # by Gauss-Newton for the others (base class)
+        from KratosMultiphysics.RomApplication.future.rom_decoders import LinearDecoder, RomDecoder
+        rng = np.random.default_rng(0)
+        phi, u0, q = rng.standard_normal((40, 3)), rng.standard_normal(40), rng.standard_normal(3)
+        decoder = LinearDecoder(phi, u0)
+        self.assertLess(np.linalg.norm(decoder.Encode(decoder.Decode(q)) - q), 1.0e-12 * np.linalg.norm(q))
+
+        class QuadraticTermDecoder(RomDecoder):
+            def NumberOfRomDofs(self):
+                return 3
+            def Decode(self, q):
+                return phi @ q + 0.1 * u0 * (q @ q)
+            def Jacobian(self, q):
+                return phi + 0.2 * np.outer(u0, q)
+        decoder = QuadraticTermDecoder()
+        self.assertLess(np.linalg.norm(decoder.Encode(decoder.Decode(q)) - q), 1.0e-10 * np.linalg.norm(q))
+
+    def testLocalRomDecoderPrescribedFixedDofs(self):
+        # With "fixed_dofs_decoding": "prescribed" each local model gives the prescribed values on the fixed DOFs, so that a switch
+        # encodes the state on the free DOFs only (the fixed ones are not represented by the models)
+        from KratosMultiphysics.RomApplication.future.rom_decoders import FixedDofsDecoder, LinearDecoder
+        from KratosMultiphysics.RomApplication.future.rom_local_decoder import ConstantSelector, LocalRomDecoder
+
+        class Dof:
+            def __init__(self, is_fixed):
+                self.is_fixed = is_fixed
+            def IsFixed(self):
+                return self.is_fixed
+
+        class DofSet(list):
+            def __init__(self, dofs, values):
+                super().__init__(dofs)
+                self.values = values
+            def GetValues(self):
+                return list(self.values)
+
+        rng = np.random.default_rng(0)
+        fixed = np.array([True, False, False, True, False, False, False, False])
+        u = rng.standard_normal(len(fixed))
+        dof_set = DofSet([Dof(is_fixed) for is_fixed in fixed], u)
+        models = [LinearDecoder(rng.standard_normal((len(fixed), n)), rng.standard_normal(len(fixed))) for n in (2, 3)]
+        decoder = LocalRomDecoder(models, ConstantSelector(1)).WithPrescribedFixedDofs(dof_set)
+        self.assertIsInstance(decoder, LocalRomDecoder)
+        self.assertTrue(all(isinstance(model, FixedDofsDecoder) for model in decoder.models))
+
+        q = decoder.UpdateReducedCoordinates(np.zeros(2), dof_set, None)
+        self.assertEqual(decoder.GetActiveModel(), 1)
+        expected_q = np.linalg.lstsq(models[1].phi[~fixed], (u - models[1].u0)[~fixed], rcond=None)[0]
+        self.assertLess(np.linalg.norm(q - expected_q), 1.0e-10 * np.linalg.norm(expected_q))
+        self.assertTrue(np.array_equal(decoder.Decode(q)[fixed], u[fixed]))
+
+    def _RunTotalLagrangian(self, rom_folder=None, time_step=None):
+        # The cantilever of testStructuralStaticTotalLagrangianRom2D: the FOM (rom_folder None) or the Future ROM of the given folder.
+        # Returns the displacements of each step (one column per step, rows node by node) and the model of each step
+        from KratosMultiphysics.RomApplication.future.future_rom_analysis import CreateFutureRomAnalysisInstance
+        from KratosMultiphysics.StructuralMechanicsApplication.structural_mechanics_analysis import StructuralMechanicsAnalysis
+
+        def Parameters():
+            with open("ProjectParameters.json",'r') as parameter_file:
+                parameters = KratosMultiphysics.Parameters(parameter_file.read())
+            if time_step is not None:
+                parameters["solver_settings"]["time_stepping"]["time_step"].SetDouble(time_step)
+            return parameters
+
+        def Recording(base_class):
+            class RecordingAnalysis(base_class):
+                def Initialize(self):
+                    super().Initialize()
+                    self.snapshots, self.models = [], []
+                def FinalizeSolutionStep(self):
+                    super().FinalizeSolutionStep()
+                    self.snapshots.append(np.array(rom_testing_utilities.GetVectorNodalResults(self._GetSolver().GetComputingModelPart(), KratosMultiphysics.DISPLACEMENT)).ravel())
+                    decoder = self.future_rom_solver.decoder if hasattr(self, "future_rom_solver") else None
+                    self.models.append(decoder.GetActiveModel() if hasattr(decoder, "GetActiveModel") else 0)
+            return RecordingAnalysis
+
+        if rom_folder is None:
+            simulation = Recording(StructuralMechanicsAnalysis)(KratosMultiphysics.Model(), Parameters())
+        else:
+            future_rom_settings = KratosMultiphysics.Parameters('{"max_iterations" : 20}')
+            future_rom_class = type(CreateFutureRomAnalysisInstance(StructuralMechanicsAnalysis, KratosMultiphysics.Model(), Parameters(), future_rom_settings, rom_basis_output_folder=str(rom_folder)))
+            simulation = Recording(future_rom_class)(KratosMultiphysics.Model(), Parameters())
+        simulation.Run()
+        return np.array(simulation.snapshots).T, simulation.models
+
+    @KratosUnittest.skipIfApplicationsNotAvailable("StructuralMechanicsApplication")
+    def testStructuralStaticTotalLagrangianOneLocalRom(self):
+        # A LocalRomDecoder with one model gives the solution of that model alone: the local ROMs reduce to the single decoder
+        with KratosUnittest.WorkFolderScope("future_rom_test_files/TotalLagrangianROM/", __file__), tempfile.TemporaryDirectory() as temp_dir:
+            single, _ = self._RunTotalLagrangian(Path("rom_data"))
+            local_folder = Path(temp_dir)
+            shutil.copytree("rom_data", local_folder / "local_0")
+            shutil.copy(Path("rom_data") / "NodeIds.npy", local_folder)
+            with open(Path("rom_data") / "RomParameters.json", 'r') as parameter_file:
+                rom_parameters = json.load(parameter_file)
+            rom_parameters["local_roms"] = {"models": ["local_0"], "selector": {"type": "process_info", "variable": "TIME", "thresholds": []}}
+            with open(local_folder / "RomParameters.json", 'w') as parameter_file:
+                json.dump(rom_parameters, parameter_file)
+            local, models = self._RunTotalLagrangian(local_folder)
+            self.assertEqual(models, [0] * len(models))
+            self._CheckResults(local, single, 1.0e-14)
+
+    @KratosUnittest.skipIfApplicationsNotAvailable("StructuralMechanicsApplication")
+    def testStructuralStaticTotalLagrangianLocalRoms(self):
+        # Two local affine models (origin = mean of their snapshots, 2 modes each), fitted to the first and second half of the load
+        # steps (2 overlapping steps), switched by TIME or by the nearest centre, against the global basis of the same size (2 modes)
+        with KratosUnittest.WorkFolderScope("future_rom_test_files/TotalLagrangianROM/", __file__), tempfile.TemporaryDirectory() as temp_dir:
+            time_step, number_of_steps, number_of_modes = 0.1, 30, 2
+            fom, _ = self._RunTotalLagrangian(time_step=time_step)
+            self.assertEqual(fom.shape[1], number_of_steps)
+            folder = Path(temp_dir)
+            node_ids = np.array([node.Id for node in self._ModelPartNodes()])
+
+            def WriteRomParameters(path, local_roms=None):
+                rom_parameters = {"rom_settings": {"nodal_unknowns": ["DISPLACEMENT_X", "DISPLACEMENT_Y"], "number_of_rom_dofs": number_of_modes}}
+                if local_roms is not None:
+                    rom_parameters["local_roms"] = local_roms
+                path.mkdir(parents=True, exist_ok=True)
+                np.save(path / "NodeIds.npy", node_ids)
+                with open(path / "RomParameters.json", 'w') as parameter_file:
+                    json.dump(rom_parameters, parameter_file)
+
+            WriteRomParameters(folder / "global")
+            np.save(folder / "global" / "RightBasisMatrix.npy", np.linalg.svd(fom, full_matrices=False)[0][:, :number_of_modes])
+            global_rom, _ = self._RunTotalLagrangian(folder / "global", time_step)
+
+            half = number_of_steps // 2
+            centres = []
+            for k, steps in enumerate([np.arange(0, half + 2), np.arange(half - 2, number_of_steps)]):
+                local_folder = folder / "local" / f"local_{k}"
+                local_folder.mkdir(parents=True)
+                centre = fom[:, steps].mean(axis=1)
+                np.save(local_folder / "ReferenceSnapshot.npy", centre)
+                np.save(local_folder / "RightBasisMatrix.npy", np.linalg.svd(fom[:, steps] - centre[:, None], full_matrices=False)[0][:, :number_of_modes])
+                centres.append(centre)
+            np.save(folder / "local" / "Centres.npy", np.array(centres).T)
+
+            error = lambda solution: np.linalg.norm(solution - fom) / np.linalg.norm(fom)
+            selectors = {
+                "process_info": {"type": "process_info", "variable": "TIME", "thresholds": [(half + 0.5) * time_step]},
+                "nearest_centre": {"type": "nearest_centre", "centres": "Centres.npy", "margin": 0.0}}
+            for name, selector in selectors.items():
+                with self.subTest(selector=name):
+                    WriteRomParameters(folder / "local", {"models": ["local_0", "local_1"], "selector": selector})
+                    local_rom, models = self._RunTotalLagrangian(folder / "local", time_step)
+                    # One switch, from the first model to the second, at the half of the load (the nearest centre within 2 steps)
+                    switch_steps = list(np.flatnonzero(np.diff(models)) + 1)
+                    self.assertEqual(len(switch_steps), 1)
+                    self.assertEqual(models[0], 0)
+                    self.assertEqual(models[-1], 1)
+                    self.assertLessEqual(abs(switch_steps[0] - half), 2)
+                    self.assertLess(error(local_rom), 0.25 * error(global_rom))
+                    self.assertLess(error(local_rom), 1.0e-4)
+
+    def _ModelPartNodes(self):
+        model = KratosMultiphysics.Model()
+        model_part = model.CreateModelPart("Structure")
+        model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
+        KratosMultiphysics.ModelPartIO("cantilever").ReadModelPart(model_part)
+        return list(model_part.Nodes)
+
+
 ##########################################################################################
 
 if __name__ == '__main__':
