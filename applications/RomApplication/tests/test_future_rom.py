@@ -85,10 +85,10 @@ class TestFutureRom(KratosUnittest.TestCase):
         # The linear decoder written as a PyTorch function: its Jacobian, obtained by automatic differentiation in every
         # iteration, must give the solution of the LinearDecoder
         with KratosUnittest.WorkFolderScope("future_rom_test_files/TotalLagrangianROM/", __file__):
-            def TorchLinearDecoderFactory(rows, u0):
-                from KratosMultiphysics.RomApplication.future.rom_decoders import TorchDecoder
-                phi = torch.as_tensor(np.load("rom_data/RightBasisMatrix.npy")[rows, :])
-                u0 = torch.as_tensor(u0)
+            def TorchLinearDecoderFactory(rom_data_folder, dof_set):
+                from KratosMultiphysics.RomApplication.future.rom_decoders import LinearDecoder, TorchDecoder
+                linear_decoder = LinearDecoder.FromRomData(rom_data_folder, dof_set)
+                phi, u0 = torch.as_tensor(linear_decoder.phi), torch.as_tensor(linear_decoder.u0)
                 return TorchDecoder(lambda q: u0 + phi @ q, phi.shape[1])
             for projection_backend in ["numpy", "cpp"]:
                 with self.subTest(projection_backend=projection_backend):
@@ -203,6 +203,55 @@ class TestFutureRom(KratosUnittest.TestCase):
             obtained_output = rom_testing_utilities.GetScalarNodalResults(model_part, KratosMultiphysics.TEMPERATURE)
             expected_output = rom_testing_utilities.GetScalarNodalResults(default_model_part, KratosMultiphysics.TEMPERATURE)
             self._CheckResults(obtained_output, expected_output, 1.0e-12)
+
+    def testCreateDecoder(self):
+        # The decoder is built from the ROM folder alone (no analysis stage, no solver): its rows follow the given DOFs,
+        # whatever their order, and its type is the one of the RomParameters.json
+        import json
+        import tempfile
+        from KratosMultiphysics.RomApplication.future.rom_decoders import CreateDecoder, GetTypeOfDecoder, LinearDecoder
+
+        class Dof:
+            def __init__(self, node_id, variable_name):
+                self.node_id, self.variable_name = node_id, variable_name
+            def Id(self):
+                return self.node_id
+            def GetVariable(self):
+                return type("Variable", (), {"Name": lambda _: self.variable_name})()
+
+        class DofSet(list):
+            def GetValues(self):
+                return [10.0 * dof.Id() + (dof.variable_name == "TEMPERATURE") for dof in self]
+
+        node_ids = [3, 7, 11]
+        nodal_unknowns = ["DISPLACEMENT_X", "TEMPERATURE"]
+        basis = np.random.default_rng(0).standard_normal((len(node_ids) * len(nodal_unknowns), 3))
+        dof_set = DofSet([Dof(11, "TEMPERATURE"), Dof(3, "DISPLACEMENT_X"), Dof(7, "TEMPERATURE"), Dof(3, "TEMPERATURE")])
+        rows = [5, 0, 3, 1]
+        with tempfile.TemporaryDirectory() as rom_data_folder:
+            np.save(f"{rom_data_folder}/NodeIds.npy", np.array(node_ids))
+            np.save(f"{rom_data_folder}/RightBasisMatrix.npy", basis)
+            rom_parameters = {"rom_settings": {"nodal_unknowns": nodal_unknowns, "number_of_rom_dofs": 2}}
+            with open(f"{rom_data_folder}/RomParameters.json", "w") as parameter_file:
+                json.dump(rom_parameters, parameter_file)
+            decoder = CreateDecoder(rom_data_folder, dof_set)
+            self.assertIsInstance(decoder, LinearDecoder)
+            self.assertTrue(np.array_equal(decoder.Jacobian(None), basis[rows, :2]))
+            q = np.array([0.5, -2.0])
+            self.assertTrue(np.allclose(decoder.Decode(q), np.array(dof_set.GetValues()) + basis[rows, :2] @ q, rtol=0.0, atol=1.0e-14))
+
+            rom_parameters["type_of_decoder"] = "unknown"
+            with open(f"{rom_data_folder}/RomParameters.json", "w") as parameter_file:
+                json.dump(rom_parameters, parameter_file)
+            with self.assertRaisesRegex(Exception, "Unknown 'type_of_decoder' 'unknown'"):
+                CreateDecoder(rom_data_folder, dof_set)
+
+        # The type of the RomParameters.json, else the one of the legacy projection strategy, else linear
+        self.assertEqual(GetTypeOfDecoder({}), "linear")
+        self.assertEqual(GetTypeOfDecoder({"projection_strategy": "galerkin"}), "linear")
+        self.assertEqual(GetTypeOfDecoder({"projection_strategy": "galerkin_ann"}), "ann_enhanced")
+        self.assertEqual(GetTypeOfDecoder({"projection_strategy": "lspg_rbf"}), "rbf_enhanced")
+        self.assertEqual(GetTypeOfDecoder({"projection_strategy": "galerkin_ann", "type_of_decoder": "linear"}), "linear")
 
 
 ##########################################################################################

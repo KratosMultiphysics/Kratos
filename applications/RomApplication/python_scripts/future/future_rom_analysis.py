@@ -1,10 +1,5 @@
-import json
-from pathlib import Path
-
-import numpy
-
 import KratosMultiphysics
-from KratosMultiphysics.RomApplication.future.rom_decoders import FixedDofsDecoder, LinearDecoder
+from KratosMultiphysics.RomApplication.future.rom_decoders import CreateDecoder
 from KratosMultiphysics.RomApplication.future.rom_future_solver import FutureRomSolver
 
 
@@ -15,10 +10,9 @@ def CreateFutureRomAnalysisInstance(cls, global_model, parameters, future_rom_se
         The parent analysis stage sets up the model part, the DOFs and the processes. Its solver
         is not called in the solution steps.
 
-        The decoder is the linear one of the basis saved by the RomManager, unless a 'decoder_factory' is given: a function
-        decoder_factory(rows, u0) returning a RomDecoder (e.g. a TorchDecoder), with 'rows' the rows of the saved bases (one per
-        node and nodal unknown, see NodeIds.npy and RomParameters.json) in the order of the effective DOF set and 'u0' the
-        initial values of the effective DOFs.
+        The decoder is the one saved in the ROM folder (see CreateDecoder in rom_decoders.py), unless a 'decoder_factory' is given:
+        a function decoder_factory(rom_data_folder, dof_set) returning a RomDecoder with its rows in the order of dof_set (the effective
+        DOF set), e.g. a TorchDecoder, which is given by a function and not saved in the ROM folder (see GetBasisRows in rom_decoders.py).
         """
 
         def Initialize(self):
@@ -59,34 +53,10 @@ def CreateFutureRomAnalysisInstance(cls, global_model, parameters, future_rom_se
             return settings
 
         def _CreateDecoder(self):
-            """Linear decoder from the basis saved by the RomManager, taking the initial state as origin (or the one of the decoder_factory).
-            With "fixed_dofs_decoding": "prescribed", wrapped in a FixedDofsDecoder."""
-            folder = Path(rom_basis_output_folder)
-            with open(folder / "RomParameters.json", 'r') as parameter_file:
-                rom_settings = json.load(parameter_file)["rom_settings"]
-            rows = self._GetBasisRows(folder, rom_settings["nodal_unknowns"])
-            dof_set = self.future_rom_solver.GetEffectiveDofSet()
-            u0 = numpy.array(dof_set.GetValues())
-            if decoder_factory is not None:
-                decoder = decoder_factory(rows, u0)
-            else:
-                right_modes = numpy.load(folder / "RightBasisMatrix.npy")
-                if right_modes.ndim == 1:
-                    right_modes = right_modes.reshape(-1, 1)
-                right_modes = right_modes[:, :rom_settings["number_of_rom_dofs"]]
-                decoder = LinearDecoder(right_modes[rows, :], u0)
-
-            if self.future_rom_solver.fixed_dofs_decoding == "prescribed":
-                # The fixed DOFs take their prescribed values instead of the ones of the decoder
-                decoder = FixedDofsDecoder(decoder, dof_set)
-            return decoder
-
-        def _GetBasisRows(self, folder, nodal_unknowns):
-            """The saved bases have one row per node and nodal unknown. Their rows in the order of the effective DOF set"""
-            node_id_to_index = {node_id: index for index, node_id in enumerate(numpy.load(folder / "NodeIds.npy"))}
-            unknown_to_index = {name: index for index, name in enumerate(nodal_unknowns)}
-            dof_set = self.future_rom_solver.GetEffectiveDofSet()
-            return [node_id_to_index[dof.Id()] * len(nodal_unknowns) + unknown_to_index[dof.GetVariable().Name()] for dof in dof_set]
+            """The decoder of the 'decoder_factory', else the one saved in the ROM folder (see CreateDecoder in rom_decoders.py), with
+            its rows in the order of the effective DOF set."""
+            create_decoder = decoder_factory if decoder_factory is not None else CreateDecoder
+            return create_decoder(rom_basis_output_folder, self.future_rom_solver.GetEffectiveDofSet())
 
         def InitializeSolutionStep(self):
             self.PrintAnalysisStageProgressInformation()
