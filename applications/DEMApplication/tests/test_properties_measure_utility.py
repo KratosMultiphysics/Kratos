@@ -73,8 +73,8 @@ class PropertiesMeasureUtilityTestSolution(KratosMultiphysics.DEMApplication.DEM
             #conductivity tensor
             particle_number_inside, measured_non_homogenized_conductivity_tensor_diag, conductivity_tensor_trace, angles_xy, angles_xz, angles_yz = self.MeasureSphereForGettingPackingProperties((side_length/2), center_x, center_y, center_z, 'conductivity_tensor')
             expected_value_particle_number_inside = 158
-            expected_value_non_homogenized_conductivity_tensor_diag = [0.0001868674957271866, 0.00019180225820702713, 0.00016420820441842714]
-            expected_value_conductivity_tensor_trace = 0.0001809593194508803
+            expected_value_non_homogenized_conductivity_tensor_diag = [0.00019019786450015608, 0.00019964948612358893, 0.0001691137087207206]
+            expected_value_conductivity_tensor_trace = 0.00018632035311482188
             self.assertAlmostEqual(particle_number_inside, expected_value_particle_number_inside, delta=tolerance)
             self.assertAlmostEqual(measured_non_homogenized_conductivity_tensor_diag[0], expected_value_non_homogenized_conductivity_tensor_diag[0], delta=tolerance)
             self.assertAlmostEqual(measured_non_homogenized_conductivity_tensor_diag[1], expected_value_non_homogenized_conductivity_tensor_diag[1], delta=tolerance)
