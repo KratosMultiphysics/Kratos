@@ -8,7 +8,7 @@ from KratosMultiphysics.RomApplication.future.rom_decoders import CreateDecoder
 from KratosMultiphysics.RomApplication.future.rom_future_solver import FutureRomSolver
 
 
-def CreateFutureRomAnalysisInstance(cls, global_model, parameters, future_rom_settings=None, rom_basis_output_folder="rom_data"):
+def CreateFutureRomAnalysisInstance(cls, global_model, parameters, future_rom_settings=None, rom_basis_output_folder="rom_data", decoder_factory=None):
     class FutureRomAnalysis(cls):
         """Makes a standard Kratos analysis stage solve its steps with the FutureRomSolver.
 
@@ -17,6 +17,10 @@ def CreateFutureRomAnalysisInstance(cls, global_model, parameters, future_rom_se
 
         With "train_hrom" the residual of each entity is projected onto the Jacobian of the decoder at the end of each step, and the
         HROM weights are computed from these snapshots when the simulation finishes (see _TrainHRom).
+
+        The decoder is the one saved in the ROM folder (see CreateDecoder in rom_decoders.py), unless a 'decoder_factory' is given:
+        a function decoder_factory(rom_data_folder, dof_set) returning a RomDecoder with its rows in the order of dof_set (the effective
+        DOF set), e.g. a TorchDecoder, which is given by a function and not saved in the ROM folder (see GetBasisRows in rom_decoders.py).
         """
 
         def Initialize(self):
@@ -89,8 +93,10 @@ def CreateFutureRomAnalysisInstance(cls, global_model, parameters, future_rom_se
             return settings
 
         def _CreateDecoder(self):
-            """The decoder saved in the ROM folder (see CreateDecoder in rom_decoders.py), with its rows in the order of the effective DOF set."""
-            return CreateDecoder(rom_basis_output_folder, self.future_rom_solver.GetEffectiveDofSet())
+            """The decoder of the 'decoder_factory', else the one saved in the ROM folder (see CreateDecoder in rom_decoders.py), with
+            its rows in the order of the effective DOF set."""
+            create_decoder = decoder_factory if decoder_factory is not None else CreateDecoder
+            return create_decoder(rom_basis_output_folder, self.future_rom_solver.GetEffectiveDofSet())
 
         def InitializeSolutionStep(self):
             self.PrintAnalysisStageProgressInformation()

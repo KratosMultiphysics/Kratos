@@ -13,6 +13,14 @@ if kratos_utilities.CheckIfApplicationsAvailable("StructuralMechanicsApplication
     import KratosMultiphysics.StructuralMechanicsApplication
 if kratos_utilities.CheckIfApplicationsAvailable("ConvectionDiffusionApplication"):
     import KratosMultiphysics.ConvectionDiffusionApplication
+if kratos_utilities.CheckIfApplicationsAvailable("ConstitutiveLawsApplication"):
+    import KratosMultiphysics.ConstitutiveLawsApplication
+
+try:
+    import torch
+    have_torch = True
+except ImportError:
+    have_torch = False
 
 
 @KratosUnittest.skipUnless(hasattr(KratosMultiphysics, "Future"), "Kratos is not compiled with KRATOS_USE_FUTURE")
@@ -27,12 +35,12 @@ class TestFutureRom(KratosUnittest.TestCase):
         simulation.Run()
         return simulation._GetSolver().GetComputingModelPart()
 
-    def _RunFutureRom(self, parameters_filename, projection_backend, max_iterations=None, run_hrom=False, parameters=None):
-        simulation = self._CreateFutureRomSimulation(parameters_filename, projection_backend, max_iterations, run_hrom, parameters)
+    def _RunFutureRom(self, parameters_filename, projection_backend, max_iterations=None, run_hrom=False, parameters=None, decoder_factory=None):
+        simulation = self._CreateFutureRomSimulation(parameters_filename, projection_backend, max_iterations, run_hrom, parameters, decoder_factory=decoder_factory)
         simulation.Run()
         return simulation._GetSolver().GetComputingModelPart()
 
-    def _CreateFutureRomSimulation(self, parameters_filename, projection_backend, max_iterations=None, run_hrom=False, parameters=None, train_hrom=False):
+    def _CreateFutureRomSimulation(self, parameters_filename, projection_backend, max_iterations=None, run_hrom=False, parameters=None, train_hrom=False, decoder_factory=None):
         from KratosMultiphysics.RomApplication.future.future_rom_analysis import CreateFutureRomAnalysisInstance
 
         if parameters is None:
@@ -48,7 +56,7 @@ class TestFutureRom(KratosUnittest.TestCase):
             future_rom_settings.AddInt("max_iterations", max_iterations)
         future_rom_settings.AddBool("run_hrom", run_hrom)
         future_rom_settings.AddBool("train_hrom", train_hrom)
-        return CreateFutureRomAnalysisInstance(analysis_stage_class, KratosMultiphysics.Model(), parameters, future_rom_settings)
+        return CreateFutureRomAnalysisInstance(analysis_stage_class, KratosMultiphysics.Model(), parameters, future_rom_settings, decoder_factory=decoder_factory)
 
     def _CheckResults(self, obtained_output, expected_output, relative_tolerance):
         obtained_output = np.array(obtained_output)
@@ -204,6 +212,37 @@ class TestFutureRom(KratosUnittest.TestCase):
                         hrom_model_part = self._RunFutureRom("ProjectParameters.json", projection_backend, max_iterations=20, run_hrom=True)
                         obtained_output = rom_testing_utilities.GetVectorNodalResults(hrom_model_part, KratosMultiphysics.DISPLACEMENT)
                         self._CheckResults(obtained_output, expected_output, 1.0e-6)
+
+    @KratosUnittest.skipUnless(have_torch, "Missing required python module: PyTorch.")
+    def testStructuralStaticTotalLagrangianTorchDecoder2D(self):
+        # The linear decoder written as a PyTorch function: its Jacobian, obtained by automatic differentiation in every
+        # iteration, must give the solution of the LinearDecoder
+        with KratosUnittest.WorkFolderScope("future_rom_test_files/TotalLagrangianROM/", __file__):
+            def TorchLinearDecoderFactory(rom_data_folder, dof_set):
+                from KratosMultiphysics.RomApplication.future.rom_decoders import LinearDecoder, TorchDecoder
+                linear_decoder = LinearDecoder.FromRomData(rom_data_folder, dof_set)
+                phi, u0 = torch.as_tensor(linear_decoder.phi), torch.as_tensor(linear_decoder.u0)
+                return TorchDecoder(lambda q: u0 + phi @ q, phi.shape[1])
+            for projection_backend in ["numpy", "cpp"]:
+                with self.subTest(projection_backend=projection_backend):
+                    linear_model_part = self._RunFutureRom("ProjectParameters.json", projection_backend)
+                    expected_output = rom_testing_utilities.GetVectorNodalResults(linear_model_part, KratosMultiphysics.DISPLACEMENT)
+                    torch_model_part = self._RunFutureRom("ProjectParameters.json", projection_backend, decoder_factory=TorchLinearDecoderFactory)
+                    obtained_output = rom_testing_utilities.GetVectorNodalResults(torch_model_part, KratosMultiphysics.DISPLACEMENT)
+                    self._CheckResults(obtained_output, expected_output, 1.0e-12)
+
+    @KratosUnittest.skipIfApplicationsNotAvailable("StructuralMechanicsApplication", "ConstitutiveLawsApplication")
+    def testStructuralStaticJ2PlasticityRom2D(self):
+        # Material nonlinearity: J2 plasticity with linear hardening, half of the elements yield. The internal variables of the
+        # constitutive law are updated at the end of each step by the Future scheme, as by the legacy one
+        with KratosUnittest.WorkFolderScope("future_rom_test_files/J2PlasticityROM/", __file__):
+            legacy_model_part = self._RunLegacyRom("ProjectParameters.json")
+            expected_output = rom_testing_utilities.GetVectorNodalResults(legacy_model_part, KratosMultiphysics.DISPLACEMENT)
+            for projection_backend in ["numpy", "cpp"]:
+                with self.subTest(projection_backend=projection_backend):
+                    future_model_part = self._RunFutureRom("ProjectParameters.json", projection_backend)
+                    obtained_output = rom_testing_utilities.GetVectorNodalResults(future_model_part, KratosMultiphysics.DISPLACEMENT)
+                    self._CheckResults(obtained_output, expected_output, 1.0e-8)
 
     @KratosUnittest.skipIfApplicationsNotAvailable("ConvectionDiffusionApplication")
     def testConvDiffStationaryRom2D(self):
