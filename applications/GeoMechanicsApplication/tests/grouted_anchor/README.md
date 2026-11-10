@@ -4,14 +4,16 @@ This test models a 2D plane-strain soil body with a sheetpile wall that is held 
 
 ## Setup
 
-The test consists of a single stage (`1_Initial_stage`) with a static, drained analysis (`U_Pw`, Newton-Raphson, one time step of 1.0 s).
+The test consists of a single stage (`1_Initial_stage`) with a static, drained analysis (`U_Pw`, Newton-Raphson, one time step of 1.0 s). A schematic depiction of the model is shown below.
+
+![Mesh.svg](Mesh.svg)
 
 - Geometry and elements (see `Sheetpile_with_anchor.mdpa`):
-    - `Soil`: `SmallStrainUPwDiffOrderElement2D6N`.
-    - `Sheetpile`: `LinearTimoshenkoCurvedBeamElement2D3N`.
-    - `Anchor_grouted`: `LinearTrussElement2D3N`.
-    - `Anchor_free`: `LinearTrussElement2D2N`.
-    - `Grout_soil_interface`: `Geo_UPwLineInterfacePlaneStrainDiffOrderElement3Plus3N`.
+    - `Soil` (yellow in schematic): `SmallStrainUPwDiffOrderElement2D6N`.
+    - `Sheetpile` (blue in the schematic): `LinearTimoshenkoCurvedBeamElement2D3N`.
+    - `Anchor_grouted` (brown in the schematic): `LinearTrussElement2D3N`.
+    - `Anchor_free` (green in the schematic): `LinearTrussElement2D2N`.
+    - `Grout_soil_interface` (between the grouted anchor and the edges of the soil elements): `Geo_UPwLineInterfacePlaneStrainDiffOrderElement3Plus3N`.
 
 - Constraints:
     - Displacements in the X- and Y-direction of the bottom boundary (`Bottom_Fixed`) are fixed.
