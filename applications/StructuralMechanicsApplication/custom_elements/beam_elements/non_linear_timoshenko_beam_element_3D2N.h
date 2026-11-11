@@ -43,6 +43,8 @@ namespace Kratos
  * and its use in the formulation of an energy-momentum conservative scheme in dynamics", IJNME, 2002.
  * DOI: 10.1002/nme.486 
 * The description of the formulation can be found in: https://www.researchgate.net/publication/416879839_Large_displacement_2D_and_3D_Timoshenko_beams (DOI: 10.13140/RG.2.2.14877.47846)
+ * 
+ * Note: It has been identified that for obtaining non-dissipative results, the residual tolerance must be tightened lower than the default value of relative 1.0e-4. This ensures lower errors in the rotation field.
  * @author Alejandro Cornejo
  */
 class NonLinearTimoshenkoBeamElement3D2N : public Element
