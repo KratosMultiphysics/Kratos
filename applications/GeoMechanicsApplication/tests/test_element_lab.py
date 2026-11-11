@@ -94,7 +94,6 @@ class KratosGeoMechanicsLabElementTests(KratosGeoUnittest.TestCase):
             ["element_id", "ip_index"],
             ["strain_xx", "strain_yy", "strain_zz", "strain_xy", "strain_yz", "strain_xz"])
 
-        node_ids = list(expected_displacement.keys())
         self.assert_nodal_values_at_time(result,"DISPLACEMENT", list(expected_displacement.keys()), list(expected_displacement.values()), time, precision_places)
         self.assert_integration_point_tensors(result, "CAUCHY_STRESS_TENSOR", expected_stress, time, precision_places)
         self.assert_integration_point_tensors(result, "ENGINEERING_STRAIN_TENSOR", expected_strain, time, precision_places)
