@@ -129,6 +129,7 @@ class FutureRomStrategy:
         self.initialized = False
         self.decoder = None
         self.iterations = []  # Newton iterations of each step
+        self.local_model_steps = []  # model of each step, for a decoder made of local models
         self.rom_solutions = []
 
     # --- interface the solvers call on their strategy -------------------------------------------------------------------------------
@@ -156,6 +157,17 @@ class FutureRomStrategy:
         self.scheme.InitializeSolutionStep(self.strategy_data)
         self.criterion.InitializeSolutionStep(self.model_part, self.dof_set, self.criterion_A, self.criterion_dx, self._CriterionResidual())
         self.decoder.InitializeSolutionStep()
+        # A single decoder keeps the reduced coordinates; one made of local models (LocalRomDecoder) may switch model here and encode
+        # the current state in the new one
+        if hasattr(self.decoder, "UpdateReducedCoordinates"):
+            model = self.decoder.GetActiveModel() if self.local_model_steps else None
+            self.q = numpy.array(self.decoder.UpdateReducedCoordinates(self.q, self.strategy_data.GetEffectiveDofSet(), self.model_part.ProcessInfo), dtype=numpy.float64)
+            if hasattr(self.decoder, "GetActiveModel"):
+                # With "increment" the state is put on the new model at a switch (and at the first step): the increments that follow
+                # are the ones of that model, and what the old model left out of it would stay in the state otherwise
+                if self.update == "increment" and self.decoder.GetActiveModel() != model:
+                    self._SetState(self.q)
+                self.local_model_steps.append(self.decoder.GetActiveModel())
 
     def Predict(self):
         self.Initialize()
