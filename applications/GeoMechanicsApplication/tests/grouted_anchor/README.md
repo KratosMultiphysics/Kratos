@@ -26,9 +26,10 @@ The test consists of a single stage (`1_Initial_stage`) with a static, drained a
 - Materials (see `MaterialParameters.json`):
     - Soil: `GeoLinearElasticPlaneStrain2DLaw` (Young's modulus 2.0e7 Pa, Poisson's ratio 0.3) with a constant pore-water pressure field.
     - Sheetpile: `TimoshenkoBeamElasticConstitutiveLaw` (Young's modulus 2.1e11 Pa, cross area 1.5e-2 m², I33 3.0e-4 m⁴).
-    - Grouted anchor part: `TrussConstitutiveLaw` (Young's modulus 2.1e11 Pa, cross area 4.938e-2 m²).
+    - Grouted anchor part: `TrussConstitutiveLaw` (Young's modulus 4.6e+10 Pa, cross area 1.77e-02 m²). The cross area is consistent with the perimeter of the grouted anchor given in the interface. The Young's modulus is calculated from the free anchor Young's modulus, the assumed Young's modulus of 30 GPa for concrete and it's cross area and the cross area of the grout body (consisting of the steel anchor and the surrounding concrete). 
     - Free anchor part: `TrussConstitutiveLaw` (Young's modulus 2.1e11 Pa, cross area 4.938e-3 m²).
-    - Grout-soil interface: `GeoIncrementalLinearElasticInterfaceLaw` (normal stiffness 7.69e8 Pa/m, shear stiffness 7.69e7 Pa/m).
+    - Grout-soil interface: `GeoIncrementalLinearElasticInterfaceLaw` (normal stiffness 7.69e8 Pa/m, shear stiffness 7.69e7 Pa/m). The perimeter of the grouted anchor is given using the `GEO_CONTACT_SURFACE_PERIMETER` and is consistent with the cross area of the grouted anchor part.
+
 
 ## Assertions
 
