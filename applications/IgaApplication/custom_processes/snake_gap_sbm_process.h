@@ -1565,6 +1565,7 @@ IndexType FindClosestNodeInLayerWithDirection(
  * @param rDirection 
  * @param pClosestIntersectionCandidateIds Endpoints of conditions tied at the selected intersection.
  * @param pConsideredNodeIds Nodes already used, to prefer an intersection with new candidates.
+ * @param ReverseNormalFilter Reverse the skin-normal test for vertex projection corrections.
  * @return std::pair<SnakeGapSbmProcess::IndexType, SnakeGapSbmProcess::IndexType> 
  */
 template <bool TIsInnerLoop>
@@ -1576,7 +1577,8 @@ std::pair<SnakeGapSbmProcess::IndexType, SnakeGapSbmProcess::IndexType> FindClos
     const KnotSpanSkinBinsCSR& rSkinBinsPerSpan,
     const Vector& rDirection,
     std::vector<IndexType>* pClosestIntersectionCandidateIds = nullptr,
-    const std::vector<IndexType>* pConsideredNodeIds = nullptr) const;
+    const std::vector<IndexType>* pConsideredNodeIds = nullptr,
+    const bool ReverseNormalFilter = false) const;
     
 /**
 * @brief Attaches the surrogate middle geometry to skin nodes.

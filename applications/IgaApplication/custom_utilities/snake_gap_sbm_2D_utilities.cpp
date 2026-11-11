@@ -1249,8 +1249,8 @@ void SnakeGapSbmProcess::CreateSbmExtendedGeometries2D(
             array_1d<double, 3> v_proj_2_base = rSkinSubModelPart.GetNode(proj_id_second_base).Coordinates() - p_second_for_fallback->Coordinates();
 
             // Check whether the current skin projections lie on the expected side.
-            double dot1_base = 1;//v_proj_1_base[0]*normal_cond[0] + v_proj_1_base[1]*normal_cond[1];
-            double dot2_base = 1;//v_proj_2_base[0]*normal_cond[0] + v_proj_2_base[1]*normal_cond[1];
+            double dot1_base = v_proj_1_base[0]*normal_cond[0] + v_proj_1_base[1]*normal_cond[1];
+            double dot2_base = v_proj_2_base[0]*normal_cond[0] + v_proj_2_base[1]*normal_cond[1];
 
             std::vector<Node::Pointer> surrogate_segment_nodes{p_first_for_fallback};
 
@@ -1274,7 +1274,7 @@ void SnakeGapSbmProcess::CreateSbmExtendedGeometries2D(
                     rSkinSubModelPart,
                     integration_parameters.rKnotSpanSizes,
                     skin_bins_per_knot_span,
-                    direction);
+                    direction, nullptr, nullptr, TIsInnerLoop);
 
                 // Only one should satisfy the inner product condition
                 array_1d<double, 3> v_pair_1 = rSkinSubModelPart.GetNode(split_pair.first).Coordinates() - p_first_for_fallback->Coordinates();
@@ -1328,7 +1328,7 @@ void SnakeGapSbmProcess::CreateSbmExtendedGeometries2D(
                     rSkinSubModelPart,
                     integration_parameters.rKnotSpanSizes,
                     skin_bins_per_knot_span,
-                    direction);
+                    direction, nullptr, nullptr, TIsInnerLoop);
 
                 // Only one satisfy inner product condition
                 array_1d<double, 3> v_pair_1 = rSkinSubModelPart.GetNode(split_pair.first).Coordinates() - p_first_for_fallback->Coordinates();
@@ -3593,7 +3593,8 @@ std::pair<SnakeGapSbmProcess::IndexType, SnakeGapSbmProcess::IndexType> SnakeGap
     const KnotSpanSkinBinsCSR& rSkinBinsPerSpan,
     const Vector& rDirection,
     std::vector<IndexType>* pClosestIntersectionCandidateIds,
-    const std::vector<IndexType>* pConsideredNodeIds) const
+    const std::vector<IndexType>* pConsideredNodeIds,
+    const bool ReverseNormalFilter) const
 {
 
     KRATOS_ERROR_IF(rSkinBinsPerSpan.NumberOfSpansX == 0 ||
@@ -3806,7 +3807,9 @@ std::pair<SnakeGapSbmProcess::IndexType, SnakeGapSbmProcess::IndexType> SnakeGap
 
                 const auto& normal_a = node_a->GetValue(NORMAL);
                 const auto& normal_b = node_b->GetValue(NORMAL);
-                if (inner_prod(normal_a, rSearchDirection) < 0.0 && inner_prod(normal_b, rSearchDirection) < 0.0) {
+                const double normal_sign = ReverseNormalFilter ? -1.0 : 1.0;
+                if (normal_sign * inner_prod(normal_a, rSearchDirection) < 0.0 &&
+                    normal_sign * inner_prod(normal_b, rSearchDirection) < 0.0) {
                     continue;
                 }
 
