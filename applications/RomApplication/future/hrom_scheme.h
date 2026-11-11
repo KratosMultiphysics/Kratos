@@ -83,6 +83,16 @@ public:
     {
     }
 
+    /// @brief Constructor for base schemes with further arguments (e.g. LegacySchemeAdapter, which takes the legacy scheme)
+    template<class... TArguments>
+    explicit HRomScheme(
+        ModelPart& rModelPart,
+        Parameters ThisParameters,
+        TArguments&&... rArguments)
+        : BaseType(rModelPart, ThisParameters, std::forward<TArguments>(rArguments)...)
+    {
+    }
+
     virtual ~HRomScheme() = default;
 
     ///@}

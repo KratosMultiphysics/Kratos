@@ -26,6 +26,8 @@
 #include "custom_python/add_future_utilities_to_python.h"
 #include "future/rom_projector.h"
 #include "future/hrom_scheme.h"
+#include "future/legacy_scheme_adapter.h"
+#include "future/entity_residuals_scheme.h"
 #include "future/solving_strategies/schemes/static_scheme.h"
 
 namespace Kratos::Python {
@@ -64,6 +66,41 @@ void AddFutureUtilitiesToPython(pybind11::module& m)
             "Sets the HROM elements and conditions and their weights (the ones with a null weight are skipped).")
         .def("NumberOfHRomElements", &HRomStaticSchemeType::NumberOfHRomElements)
         .def("NumberOfHRomConditions", &HRomStaticSchemeType::NumberOfHRomConditions)
+        ;
+
+    // Prototype of the ROM as the solution strategy of the solvers (see python_scripts/future/future_rom_strategy.py)
+    using LegacySchemeAdapterType = Future::LegacySchemeAdapter<Future::SerialLinearAlgebraTraits>;
+    py::class_<LegacySchemeAdapterType, typename LegacySchemeAdapterType::Pointer, StaticSchemeType>(m, "LegacySchemeAdapter")
+        .def(py::init<ModelPart&, Parameters, typename LegacySchemeAdapterType::LegacySchemeType::Pointer>(),
+            py::arg("model_part"), py::arg("settings"), py::arg("legacy_scheme"),
+            "Future scheme (DOFs, system and assembly) whose time integration is the one of the given legacy scheme.")
+        ;
+
+    // Schemes of the ROM (not HROM) runs: the base scheme plus the projection of the entity residuals of the HROM training
+    using StrategyDataType = Future::ImplicitStrategyData<Future::SerialLinearAlgebraTraits>;
+    using RomStaticSchemeType = Future::EntityResidualsScheme<StaticSchemeType>;
+    py::class_<RomStaticSchemeType, typename RomStaticSchemeType::Pointer, StaticSchemeType>(m, "RomStaticScheme")
+        .def(py::init<ModelPart&, Parameters>(), py::arg("model_part"), py::arg("settings"))
+        .def("ProjectEntityResiduals", [](RomStaticSchemeType& rSelf, const Eigen::Ref<const RomStaticSchemeType::EigenDynamicMatrix>& rPhi, StrategyDataType& rData){
+            return rSelf.ProjectEntityResiduals(rPhi, rData);}, py::arg("phi"), py::arg("strategy_data"))
+        ;
+    using RomLegacySchemeAdapterType = Future::EntityResidualsScheme<LegacySchemeAdapterType>;
+    py::class_<RomLegacySchemeAdapterType, typename RomLegacySchemeAdapterType::Pointer, LegacySchemeAdapterType>(m, "RomLegacySchemeAdapter")
+        .def(py::init<ModelPart&, Parameters, typename LegacySchemeAdapterType::LegacySchemeType::Pointer>(),
+            py::arg("model_part"), py::arg("settings"), py::arg("legacy_scheme"))
+        .def("ProjectEntityResiduals", [](RomLegacySchemeAdapterType& rSelf, const Eigen::Ref<const RomLegacySchemeAdapterType::EigenDynamicMatrix>& rPhi, StrategyDataType& rData){
+            return rSelf.ProjectEntityResiduals(rPhi, rData);}, py::arg("phi"), py::arg("strategy_data"))
+        ;
+
+    using HRomLegacySchemeAdapterType = Future::HRomScheme<LegacySchemeAdapterType>;
+    py::class_<HRomLegacySchemeAdapterType, typename HRomLegacySchemeAdapterType::Pointer, LegacySchemeAdapterType>(m, "HRomLegacySchemeAdapter")
+        .def(py::init<ModelPart&, Parameters, typename LegacySchemeAdapterType::LegacySchemeType::Pointer>(),
+            py::arg("model_part"), py::arg("settings"), py::arg("legacy_scheme"),
+            "LegacySchemeAdapter that only assembles the HROM entities, scaled by their weights.")
+        .def("SetHRomEntities", &HRomLegacySchemeAdapterType::SetHRomEntities,
+            py::arg("element_ids"), py::arg("element_weights"), py::arg("condition_ids"), py::arg("condition_weights"))
+        .def("NumberOfHRomElements", &HRomLegacySchemeAdapterType::NumberOfHRomElements)
+        .def("NumberOfHRomConditions", &HRomLegacySchemeAdapterType::NumberOfHRomConditions)
         ;
 }
 
