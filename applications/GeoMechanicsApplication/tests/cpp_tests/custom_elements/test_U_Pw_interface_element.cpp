@@ -18,6 +18,7 @@
 #include "custom_constitutive/plane_strain.h"
 #include "custom_constitutive/three_dimensional.h"
 #include "custom_elements/U_Pw_interface_element.h"
+#include "custom_elements/integration_coefficient_modifier_for_interface_element.h"
 #include "custom_elements/interface_stress_state.h"
 #include "custom_geometries/interface_geometry.hpp"
 #include "custom_utilities/ublas_utilities.h"
@@ -107,11 +108,12 @@ template <typename TInterfaceDimension>
 UPwInterfaceElement CreateInterfaceElementWithUPwDofs(const Properties::Pointer&     rpProperties,
                                                       const Geometry<Node>::Pointer& rpGeometry,
                                                       IsDiffOrderElement             IsDiffOrder,
-                                                      const std::vector<CalculationContribution>& rContributions)
+                                                      const std::vector<CalculationContribution>& rContributions,
+                                                      std::unique_ptr<IntegrationCoefficientModifier> pModifier = nullptr)
 {
     auto result = UPwInterfaceElement{
-        1,           rpGeometry,    rpProperties, std::make_unique<TInterfaceDimension>(),
-        IsDiffOrder, rContributions};
+        1,           rpGeometry,     rpProperties,        std::make_unique<TInterfaceDimension>(),
+        IsDiffOrder, rContributions, std::move(pModifier)};
     const auto solution_step_variables =
         Geo::ConstVariableDataRefs{std::cref(WATER_PRESSURE), std::cref(DISPLACEMENT),
                                    std::cref(VELOCITY), std::cref(VOLUME_ACCELERATION)};
@@ -729,6 +731,46 @@ KRATOS_TEST_CASE_IN_SUITE(UPwLineInterfaceElement_LeftHandSideContainsMaterialCo
     AssertLHSMatrixBlocksAreNear(actual_left_hand_side, expected_uu_block_matrix,
                                  expected_up_block_matrix, expected_pu_block_matrix,
                                  expected_pp_block_matrix, number_of_u_dofs, number_of_pw_dofs);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(UPwLineInterfaceElement_LeftHandSideIsScaledByContactSurfacePerimeter,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    constexpr auto perimeter                = 3.0;
+    const auto     calculate_left_hand_side = [perimeter](bool UsePerimeter) {
+        auto p_properties = CreateElasticMaterialProperties<InterfacePlaneStrain>(20.0, 10.0);
+        p_properties->SetValue(TRANSVERSAL_PERMEABILITY, 5.0E-3);
+        p_properties->SetValue(DYNAMIC_VISCOSITY, 2.0E-1);
+        p_properties->SetValue(RETENTION_LAW, "SaturatedLaw");
+        if (UsePerimeter) p_properties->SetValue(GEO_CONTACT_SURFACE_PERIMETER, perimeter);
+
+        Model               model;
+        auto&               r_model_part = CreateModelPartWithUPwVariables(model);
+        PointerVector<Node> nodes;
+        nodes.push_back(r_model_part.CreateNewNode(0, 0.0, 0.0, 0.0));
+        nodes.push_back(r_model_part.CreateNewNode(1, 1.0, 0.0, 0.0));
+        nodes.push_back(r_model_part.CreateNewNode(2, 0.0, 0.0, 0.0));
+        nodes.push_back(r_model_part.CreateNewNode(3, 1.0, 0.0, 0.0));
+        auto element = CreateInterfaceElementWithUPwDofs<Interface2D>(
+            p_properties, std::make_shared<LineInterfaceGeometry2D2Plus2Noded>(nodes), IsDiffOrderElement::No,
+            {CalculationContribution::Stiffness, CalculationContribution::Permeability},
+            std::make_unique<IntegrationCoefficientModifierForInterfaceElement>());
+        element.Initialize(ProcessInfo{});
+
+        Matrix result;
+        element.CalculateLeftHandSide(result, ProcessInfo{});
+        return result;
+    };
+
+    // Act
+    const auto reference_left_hand_side = calculate_left_hand_side(false);
+    const auto scaled_left_hand_side    = calculate_left_hand_side(true);
+
+    // Assert
+    const Matrix expected_left_hand_side = perimeter * reference_left_hand_side;
+    KRATOS_EXPECT_EQ(scaled_left_hand_side.size1(), reference_left_hand_side.size1());
+    KRATOS_EXPECT_MATRIX_NEAR(scaled_left_hand_side, expected_left_hand_side, Defaults::absolute_tolerance);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(UPwLineInterfaceElement_LeftHandSideContainsMaterialStiffnessContributions_Rotated,

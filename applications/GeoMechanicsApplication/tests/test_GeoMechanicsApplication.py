@@ -76,6 +76,7 @@ from test_piecewise_linear_moment_capacity import KratosGeoMechanicsPiecewiseLin
 from test_udsm_serialization import KratosGeoMechanicsUDSMSerializationTest
 from test_Muskat import KratosGeoMechanicsMuskatTests
 from test_seepage import KratosGeoMechanicsSeepageTests
+from test_grouted_anchor import KratosGeoMechanicsGroutedAnchorTests
 
 def AssembleTestSuites():
     ''' Populates the test suites to run.
@@ -138,6 +139,7 @@ def AssembleTestSuites():
                         KratosGeoMechanicsUDSMSerializationTest,
                         KratosGeoMechanicsMuskatTests,
                         KratosGeoMechanicsSeepageTests,
+                        KratosGeoMechanicsGroutedAnchorTests,
                         ]
 
     night_test_cases = [

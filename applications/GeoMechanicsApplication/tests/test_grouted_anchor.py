@@ -7,7 +7,7 @@ import os
 import KratosMultiphysics as Kratos
 
 
-class KratosGeoMechanicsInterfaceTests(KratosUnittest.TestCase):
+class KratosGeoMechanicsGroutedAnchorTests(KratosUnittest.TestCase):
     def test_run(self):
         file_path = test_helper.get_file_path("grouted_anchor")
 
