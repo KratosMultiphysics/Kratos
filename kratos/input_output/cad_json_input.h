@@ -329,8 +329,8 @@ private:
         }
 
         p_surface->SetGeometryParent(p_brep_surface.get());
-        rModelPart.AddGeometry(p_brep_surface);
         SetIdOrName(rParameters, p_brep_surface);
+        rModelPart.AddGeometry(p_brep_surface);
         if (!is_local_refinement)
             ReadAndAddEmbeddedEdges(
                 std::dynamic_pointer_cast<BrepSurfaceType>(p_brep_surface),
