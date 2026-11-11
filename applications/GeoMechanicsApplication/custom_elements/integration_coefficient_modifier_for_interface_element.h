@@ -20,9 +20,7 @@ namespace Kratos
 class KRATOS_API(GEO_MECHANICS_APPLICATION) IntegrationCoefficientModifierForInterfaceElement : public IntegrationCoefficientModifier
 {
 public:
-    double operator()(double                           IntegrationCoefficient,
-                      const Geo::IntegrationPointType& rIntegrationPoint,
-                      const Element&                   rElement) const override;
+    double operator()(double IntegrationCoefficient, const Geo::IntegrationPointType&, const Element& rElement) const override;
 
     [[nodiscard]] std::unique_ptr<IntegrationCoefficientModifier> Clone() const override;
 };

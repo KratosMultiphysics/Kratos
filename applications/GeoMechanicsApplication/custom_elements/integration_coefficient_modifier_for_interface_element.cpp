@@ -18,7 +18,7 @@ namespace Kratos
 {
 
 double IntegrationCoefficientModifierForInterfaceElement::operator()(double IntegrationCoefficient,
-                                                                     const Geo::IntegrationPointType& rIntegrationPoint,
+                                                                     const Geo::IntegrationPointType&,
                                                                      const Element& rElement) const
 {
     auto& r_properties = rElement.GetProperties();
