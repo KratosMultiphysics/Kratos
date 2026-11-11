@@ -747,4 +747,61 @@ KRATOS_TEST_CASE_IN_SUITE(VolumeFractionGsbmProcessBinaryWeights, KratosIgaFastS
     );
 }
 
+// GLOBAL_GHOST_PENALTY: the ellipse of VolumeFractionGsbmProcessBinaryWeights,
+// whose binary weights give facets between two full knot spans, between a full
+// and an empty one, and between two empty ones. Without properties, and with
+// GLOBAL_GHOST_PENALTY false, only the ghost penalty conditions of the last are
+// ACTIVE, and with it true all of them
+KRATOS_TEST_CASE_IN_SUITE(VolumeFractionGsbmProcessGlobalGhostPenalty, KratosIgaFastSuite)
+{
+    const array_1d<double, 3> center{0.5, 0.5, 0.0};
+    const std::array<double, 2> axes{0.25, 0.1875};
+    Model model;
+    CreateEllipseModel(model, center, axes);
+    VolumeFractionGsbmProcess gsbm_process(model, Parameters(R"({
+        "model_part_name"                   : "IgaModelPart",
+        "geometry_name"                     : "background",
+        "elements_model_part_name"          : "IgaModelPart.Domain",
+        "skeleton_model_part_name"          : "IgaModelPart.Facets",
+        "ghost_penalty_model_part_name"     : "IgaModelPart.GhostPenalty",
+        "skin_model_part_outer_initial_name": "Skin",
+        "weight_approach"                   : "binary",
+        "update_each_step"                  : true
+    })"));
+    ModelPart& r_ghost_penalty = model.GetModelPart("IgaModelPart.GhostPenalty");
+
+    // Ghost penalty conditions, and the ACTIVE ones, on the facets between two
+    // full knot spans (0), a full and an empty one (1) and two empty ones (2)
+    const auto check_active = [&](const bool IsGlobal) {
+        std::array<IndexType, 3> number_of_conditions{0, 0, 0};
+        std::array<IndexType, 3> number_of_active{0, 0, 0};
+        for (const auto& r_condition : r_ghost_penalty.Conditions()) {
+            const auto& r_geometry = r_condition.GetGeometry();
+            const double alpha_sum = r_geometry.GetGeometryPart(0).GetValue(VOLUME_FRACTION)
+                + r_geometry.GetGeometryPart(1).GetValue(VOLUME_FRACTION);
+            const IndexType kind = static_cast<IndexType>(2.0 - alpha_sum);
+            ++number_of_conditions[kind];
+            number_of_active[kind] += r_condition.IsActive();
+        }
+        for (IndexType kind = 0; kind < 3; ++kind) {
+            KRATOS_EXPECT_GT(number_of_conditions[kind], 0);
+            const bool is_penalized = IsGlobal || kind == 2;
+            KRATOS_EXPECT_EQ(number_of_active[kind], is_penalized ? number_of_conditions[kind] : 0);
+        }
+    };
+
+    gsbm_process.ExecuteInitialize();
+    check_active(false);
+
+    auto p_properties = model.GetModelPart("IgaModelPart").CreateNewProperties(1);
+    for (auto& r_condition : r_ghost_penalty.Conditions()) {
+        r_condition.SetProperties(p_properties);
+    }
+    for (const bool is_global : {false, true}) {
+        p_properties->SetValue(GLOBAL_GHOST_PENALTY, is_global);
+        gsbm_process.ExecuteInitializeSolutionStep();
+        check_active(is_global);
+    }
+}
+
 } // namespace Kratos::Testing

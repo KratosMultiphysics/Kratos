@@ -773,6 +773,67 @@ KRATOS_TEST_CASE_IN_SUITE(GsbmStokesConditionGhostPenaltyCheck, KratosIgaFastSui
     );
 }
 
+// GLOBAL_GHOST_PENALTY on the facets of GsbmStokesConditionGhostPenaltyJumps:
+// alpha = 1 on both sides and a full jump of alpha assemble nothing without
+// it, and with it the local systems of alpha = 0.5 on both sides, whose
+// energies that test checks, since the terms do not depend on alpha
+KRATOS_TEST_CASE_IN_SUITE(GsbmStokesConditionGhostPenaltyGlobal, KratosIgaFastSuite)
+{
+    Model model;
+    ModelPart& r_iga_model_part = CreateStokesGhostPenaltyModelPart(
+        model, {{{3, 2}, {2, 3}, {2, 2}}}
+    );
+    ModelPart& r_facets = model.GetModelPart("IgaModelPart.GhostPenalty");
+    const ProcessInfo& r_process_info = r_iga_model_part.GetProcessInfo();
+
+    auto p_properties = r_iga_model_part.CreateNewProperties(1);
+    p_properties->SetValue(GHOST_PENALTY_FACTOR, 0.7);
+    p_properties->SetValue(PRESSURE_GHOST_PENALTY_FACTOR, 0.3);
+    p_properties->SetValue(DYNAMIC_VISCOSITY, 0.02);
+    for (auto& r_facet : r_facets.Conditions()) {
+        r_facet.SetProperties(p_properties);
+    }
+
+    SetProductCoefficients(r_iga_model_part, "VelocityX", VELOCITY_X, 1.0, {0.5, 0.3}, true);
+    SetProductCoefficients(r_iga_model_part, "VelocityY", VELOCITY_Y, 2.0, {0.5, 0.3}, true);
+    SetProductCoefficients(r_iga_model_part, "Pressure", PRESSURE, 3.0, {0.5, 0.3}, true);
+
+    // Local systems with alpha = 0.5 on both sides, penalized without it
+    SetFacetVolumeFractions(r_facets, 0.5, 0.5);
+    std::vector<Matrix> cut_left_hand_sides;
+    std::vector<Vector> cut_right_hand_sides;
+    for (auto& r_facet : r_facets.Conditions()) {
+        Matrix left_hand_side;
+        Vector right_hand_side;
+        r_facet.CalculateLocalSystem(left_hand_side, right_hand_side, r_process_info);
+        KRATOS_EXPECT_GT(norm_frobenius(left_hand_side), 0.0);
+        cut_left_hand_sides.push_back(left_hand_side);
+        cut_right_hand_sides.push_back(right_hand_side);
+    }
+
+    const std::array<std::pair<double, double>, 2> unpenalized{{{1.0, 1.0}, {0.0, 1.0}}};
+    for (const auto& [alpha_minus, alpha_plus] : unpenalized) {
+        SetFacetVolumeFractions(r_facets, alpha_minus, alpha_plus);
+        for (const bool is_global : {false, true}) {
+            p_properties->SetValue(GLOBAL_GHOST_PENALTY, is_global);
+            IndexType i = 0;
+            for (auto& r_facet : r_facets.Conditions()) {
+                Matrix left_hand_side;
+                Vector right_hand_side;
+                r_facet.CalculateLocalSystem(left_hand_side, right_hand_side, r_process_info);
+                if (is_global) {
+                    KRATOS_EXPECT_MATRIX_EQ(left_hand_side, cut_left_hand_sides[i]);
+                    KRATOS_EXPECT_VECTOR_EQ(right_hand_side, cut_right_hand_sides[i]);
+                } else {
+                    KRATOS_EXPECT_DOUBLE_EQ(norm_frobenius(left_hand_side), 0.0);
+                    KRATOS_EXPECT_DOUBLE_EQ(norm_2(right_hand_side), 0.0);
+                }
+                ++i;
+            }
+        }
+    }
+}
+
 // Shifted traction on each cut facet of CreateStokesCutModelPart, with
 // the data PRESSURE = p and NORMAL_STRESS = 2 \mu \varepsilon n + \delta at
 // the closest point. The full Taylor series is exact for the exact fields, so

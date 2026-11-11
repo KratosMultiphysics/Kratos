@@ -297,6 +297,70 @@ KRATOS_TEST_CASE_IN_SUITE(GsbmLaplacianCutPatchTest, KratosIgaFastSuite)
     }
 }
 
+// GLOBAL_GHOST_PENALTY on the ghost penalty conditions of the cut patch of
+// GsbmLaplacianCutPatchTest: alpha = 1 on both sides and a full jump of alpha
+// assemble nothing without it, and with it the local systems of alpha = 0.5
+// on both sides, since the terms do not depend on alpha
+KRATOS_TEST_CASE_IN_SUITE(GsbmLaplacianConditionGhostPenaltyGlobal, KratosIgaFastSuite)
+{
+    Model model;
+    ModelPart& r_iga_model_part = CreateCutPatchModelPart(model);
+    ModelPart& r_ghost_penalty = r_iga_model_part.GetSubModelPart("GhostPenalty");
+    const ProcessInfo& r_process_info = r_iga_model_part.GetProcessInfo();
+
+    auto p_properties = r_iga_model_part.CreateNewProperties(1);
+    p_properties->SetValue(GHOST_PENALTY_FACTOR, 0.5);
+    for (auto& r_condition : r_ghost_penalty.Conditions()) {
+        r_condition.SetProperties(p_properties);
+    }
+    for (auto& r_node : r_iga_model_part.Nodes()) {
+        r_node.FastGetSolutionStepValue(TEMPERATURE) = std::cos(1.0 + r_node.Id());
+    }
+
+    // Volume fractions of the - and + sides of every facet
+    const auto set_volume_fractions = [&](const double AlphaMinus, const double AlphaPlus) {
+        for (auto& r_condition : r_ghost_penalty.Conditions()) {
+            r_condition.GetGeometry().GetGeometryPart(0).SetValue(VOLUME_FRACTION, AlphaMinus);
+            r_condition.GetGeometry().GetGeometryPart(1).SetValue(VOLUME_FRACTION, AlphaPlus);
+        }
+    };
+
+    // Local systems with alpha = 0.5 on both sides, penalized without it
+    set_volume_fractions(0.5, 0.5);
+    std::vector<Matrix> cut_left_hand_sides;
+    std::vector<Vector> cut_right_hand_sides;
+    for (auto& r_condition : r_ghost_penalty.Conditions()) {
+        Matrix left_hand_side;
+        Vector right_hand_side;
+        r_condition.CalculateLocalSystem(left_hand_side, right_hand_side, r_process_info);
+        KRATOS_EXPECT_GT(norm_frobenius(left_hand_side), 0.0);
+        cut_left_hand_sides.push_back(left_hand_side);
+        cut_right_hand_sides.push_back(right_hand_side);
+    }
+
+    const std::array<std::array<double, 2>, 2> unpenalized{{{1.0, 1.0}, {0.0, 1.0}}};
+    for (const auto& [alpha_minus, alpha_plus] : unpenalized) {
+        set_volume_fractions(alpha_minus, alpha_plus);
+        for (const bool is_global : {false, true}) {
+            p_properties->SetValue(GLOBAL_GHOST_PENALTY, is_global);
+            IndexType i = 0;
+            for (auto& r_condition : r_ghost_penalty.Conditions()) {
+                Matrix left_hand_side;
+                Vector right_hand_side;
+                r_condition.CalculateLocalSystem(left_hand_side, right_hand_side, r_process_info);
+                if (is_global) {
+                    KRATOS_EXPECT_MATRIX_EQ(left_hand_side, cut_left_hand_sides[i]);
+                    KRATOS_EXPECT_VECTOR_EQ(right_hand_side, cut_right_hand_sides[i]);
+                } else {
+                    KRATOS_EXPECT_DOUBLE_EQ(norm_frobenius(left_hand_side), 0.0);
+                    KRATOS_EXPECT_DOUBLE_EQ(norm_2(right_hand_side), 0.0);
+                }
+                ++i;
+            }
+        }
+    }
+}
+
 // Transient patch test: the cut patch of GsbmLaplacianCutPatchTest with
 // rho c = 1 and u = q + t r, with q the quadratic of that test, r = x - y and
 // f = d_t u - Lap(u) = r + 2. After a stationary solve at t = 0 (f = 2), which

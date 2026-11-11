@@ -25,6 +25,20 @@
 namespace Kratos
 {
 
+bool GsbmLaplacianConditionGhostPenalty::IsPenalized(const Condition& rCondition)
+{
+    if (rCondition.HasProperties() && rCondition.GetProperties().Has(GLOBAL_GHOST_PENALTY)
+        && rCondition.GetProperties()[GLOBAL_GHOST_PENALTY]) {
+        return true;
+    }
+
+    // Volume fractions \alpha_h on each side
+    const GeometryType& r_geometry = rCondition.GetGeometry();
+    const double alpha_minus = r_geometry.GetGeometryPart(0).GetValue(VOLUME_FRACTION);
+    const double alpha_plus = r_geometry.GetGeometryPart(1).GetValue(VOLUME_FRACTION);
+    return 0.5 * (alpha_minus + alpha_plus) < 1.0 && std::abs(alpha_minus - alpha_plus) < 1.0;
+}
+
 void GsbmLaplacianConditionGhostPenalty::CalculateLocalSystem(
     MatrixType& rLeftHandSideMatrix,
     VectorType& rRightHandSideVector,
@@ -52,11 +66,7 @@ void GsbmLaplacianConditionGhostPenalty::CalculateLocalSystem(
     }
     noalias(rRightHandSideVector) = ZeroVector(number_of_dofs);
 
-    // Volume fractions \alpha_h on each side
-    const double alpha_minus = r_minus.GetValue(VOLUME_FRACTION);
-    const double alpha_plus = r_plus.GetValue(VOLUME_FRACTION);
-
-    if (!IsPenalized(alpha_minus, alpha_plus)) {
+    if (!IsPenalized(*this)) {
         return;  // skip early if \beta_2 = 0 (zero contribution)
     }
 

@@ -348,11 +348,7 @@ void VolumeFractionGsbmProcess::ExecuteInitialize()
         mParameters["ghost_penalty_model_part_name"].GetString();
     if (!r_ghost_penalty_name.empty()) {
         for (auto& r_condition : mpModel->GetModelPart(r_ghost_penalty_name).Conditions()) {
-            const auto& r_geometry = r_condition.GetGeometry();
-            r_condition.Set(ACTIVE, GsbmLaplacianConditionGhostPenalty::IsPenalized(
-                r_geometry.GetGeometryPart(0).GetValue(VOLUME_FRACTION),
-                r_geometry.GetGeometryPart(1).GetValue(VOLUME_FRACTION)
-            ));
+            r_condition.Set(ACTIVE, GsbmLaplacianConditionGhostPenalty::IsPenalized(r_condition));
         }
     }
 

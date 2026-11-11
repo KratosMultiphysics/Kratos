@@ -98,7 +98,8 @@ public:
     /// of each velocity component, and of the pressure s(q, p), or the mixed
     /// +s(q, div u) and -s(div v, p) with PRESSURE_GHOST_PENALTY_ON_DIVERGENCE.
     /// Each term penalizes the jump of D_n^k, with k the degree of the space
-    /// across the facet, and is normalized by (k!)^2 (2k + 1)
+    /// across the facet, and is normalized by (k!)^2 (2k + 1). Zero unless
+    /// GsbmLaplacianConditionGhostPenalty::IsPenalized
     void CalculateLocalSystem(
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,

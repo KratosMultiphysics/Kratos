@@ -75,11 +75,7 @@ void GsbmStokesConditionGhostPenalty::CalculateLocalSystem(
     }
     noalias(rRightHandSideVector) = ZeroVector(number_of_dofs);
 
-    // Volume fractions \alpha_h on each side
-    const double alpha_minus = r_minus.GetValue(VOLUME_FRACTION);
-    const double alpha_plus = r_plus.GetValue(VOLUME_FRACTION);
-
-    if (!GsbmLaplacianConditionGhostPenalty::IsPenalized(alpha_minus, alpha_plus)) {
+    if (!GsbmLaplacianConditionGhostPenalty::IsPenalized(*this)) {
         return;  // skip early if \beta_2 = 0 (zero contribution)
     }
 

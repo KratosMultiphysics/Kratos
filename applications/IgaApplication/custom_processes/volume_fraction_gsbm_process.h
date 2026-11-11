@@ -78,8 +78,10 @@ public:
     /// spans (unless their properties, set before this, have GRAD_DIV_FACTOR),
     /// the facets without a jump in VOLUME_FRACTION and, with
     /// ghost_penalty_model_part_name, the ghost penalty conditions with
-    /// \beta_2 = 0. So skeleton_model_part_name must hold the conditions of the
-    /// shifted boundary terms, as elements must be scaled by VOLUME_FRACTION.
+    /// \beta_2 = 0 (none if their properties, set before this, have
+    /// GLOBAL_GHOST_PENALTY). So skeleton_model_part_name must hold the
+    /// conditions of the shifted boundary terms, as elements must be scaled by
+    /// VOLUME_FRACTION.
     /// Assumes uv = xy
     void ExecuteInitialize() override;
 

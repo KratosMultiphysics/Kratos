@@ -13,7 +13,6 @@
 #pragma once
 
 // System includes
-#include <cmath>
 
 // External includes
 
@@ -95,16 +94,13 @@ public:
     ///@name Operations
     ///@{
 
-    /// Whether a facet is penalized: \beta_2 = \kappa if {{\alpha_h}} < 1 and
-    /// |[[\alpha_h]]| < 1, else 0
-    static bool IsPenalized(
-        const double AlphaMinus,
-        const double AlphaPlus)
-    {
-        return 0.5 * (AlphaMinus + AlphaPlus) < 1.0 && std::abs(AlphaMinus - AlphaPlus) < 1.0;
-    }
+    /// Whether a ghost penalty condition is penalized: \beta_2 = \kappa on
+    /// every facet if GLOBAL_GHOST_PENALTY is true in its properties, else if
+    /// {{\alpha_h}} < 1 and |[[\alpha_h]]| < 1, and 0 otherwise
+    static bool IsPenalized(const Condition& rCondition);
 
-    /// Ghost penalty of the GSBM Poisson problem on a facet
+    /// Ghost penalty of the GSBM Poisson problem on a facet, zero unless
+    /// IsPenalized
     void CalculateLocalSystem(
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
