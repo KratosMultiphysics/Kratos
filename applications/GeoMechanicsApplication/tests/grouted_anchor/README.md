@@ -4,7 +4,7 @@ This test models a 2D plane-strain soil body with a sheetpile wall that is held 
 
 ## Setup
 
-The test consists of a single stage (`1_Initial_stage`) with a static, drained analysis (`U_Pw`, Newton-Raphson, one time step of 1.0 s). A schematic depiction of the model is shown below.
+The test consists of a single stage (`1_Initial_stage`) with a static, drained analysis (pore pressure fixed at 0.0). A schematic depiction of the model is shown below.
 
 ![Mesh.svg](Mesh.svg)
 
