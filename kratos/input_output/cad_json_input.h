@@ -330,7 +330,7 @@ private:
 
         p_surface->SetGeometryParent(p_brep_surface.get());
         SetIdOrName(rParameters, p_brep_surface);
-        rModelPart.AddGeometry(p_brep_surface);
+        rModelPart.AddGeometry(p_brep_surface);
         if (!is_local_refinement)
             ReadAndAddEmbeddedEdges(
                 std::dynamic_pointer_cast<BrepSurfaceType>(p_brep_surface),
@@ -705,11 +705,15 @@ private:
                 << " has " << p_local_surface->NumberOfLevels() << " levels and "
                 << p_local_surface->Points().size() << " active control points." << std::endl;
 
+            const bool is_trimmed = (rFaceParameters["surface"].Has("is_trimmed"))
+                ? rFaceParameters["surface"]["is_trimmed"].GetBool()
+                : true;
+
             auto p_local_refined_brep_surface = Kratos::make_shared<THBLocalRefinedBrepSurfaceType>(
                 p_local_surface,
                 OuterLoops,
                 InnerLoops,
-                false);
+                is_trimmed);
             p_local_refined_brep_surface->SetId(brep_id);
 
             return p_local_refined_brep_surface;
