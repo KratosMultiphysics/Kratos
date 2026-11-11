@@ -28,6 +28,51 @@
 
 namespace Kratos {
 
+namespace {
+
+/**
+ * @brief Copies id, coordinates, initial position, solution step data, data and flags, but no dofs.
+ * @details Node::operator= and the copy ctor copy dofs, and Dof::SetNodalData then calls VariablesList::AddDof,
+ *          which writes the VariablesList shared by all nodes (a data race under parallel assembly).
+ */
+void CopyNodeWithoutDofs(const Node& rSource, Node& rDestination)
+{
+    rDestination.SetId(rSource.Id());
+    rDestination.Coordinates() = rSource.Coordinates();
+    rDestination.GetInitialPosition() = rSource.GetInitialPosition();
+    rDestination.SolutionStepData() = rSource.SolutionStepData();
+    rDestination.GetData() = rSource.GetData();
+    rDestination.Flags::operator=(rSource);
+}
+
+/**
+ * @brief RAII guard which swaps a geometry's node slot with a replacement pointer and swaps back on destruction.
+ * @details Restores the geometry also when an exception is thrown. While alive, rpReplacement holds the original node.
+ */
+class ScopedNodeSwap
+{
+public:
+    ScopedNodeSwap(Node::Pointer& rpSlot, Node::Pointer& rpReplacement)
+        : mrpSlot(rpSlot), mrpReplacement(rpReplacement)
+    {
+        std::swap(mrpSlot, mrpReplacement);
+    }
+
+    ~ScopedNodeSwap()
+    {
+        std::swap(mrpSlot, mrpReplacement);
+    }
+
+    ScopedNodeSwap(const ScopedNodeSwap&) = delete;
+    ScopedNodeSwap& operator=(const ScopedNodeSwap&) = delete;
+
+private:
+    Node::Pointer& mrpSlot;
+    Node::Pointer& mrpReplacement;
+};
+
+} // namespace
+
 /// Constructor.
 StrainSensor::StrainSensor(
     const std::string& rName,
@@ -223,8 +268,8 @@ void StrainSensor::CalculateGradient(
     rResponseGradient.clear();
 
     if (rAdjointElement.Id() == mElementId) {
-        // FD swaps a dof-free node copy into the element's geometry, which must not be shared with any other entity
-        // assembled at the same time (only with the wrapped primal element); see the CalculateGradient docs.
+        // FD swaps a dof-free node copy into the element's geometry (restored by ScopedNodeSwap); the geometry must
+        // not be shared with any other concurrently assembled entity (only with the wrapped primal); see the docs.
         auto& r_element = const_cast<Element&>(rAdjointElement);
 
         std::vector<Matrix> perturbed_strains, ref_strains;
@@ -241,20 +286,17 @@ void StrainSensor::CalculateGradient(
         const IndexType block_size = elemental_dofs.size() / r_geometry.size();
         elemental_dofs.erase(elemental_dofs.begin() + block_size, elemental_dofs.end());
 
+        // one dof-free node copy, reused for all nodes of the element
+        auto p_node_copy = Kratos::make_intrusive<Node>(0, 0.0, 0.0, 0.0);
+
         IndexType local_index = 0;
         for (IndexType i_node = 0; i_node < r_geometry.size(); ++i_node) {
-            // copy without dofs: Node::operator= and the copy ctor write the shared VariablesList
-            const auto& r_original_node = r_geometry[i_node];
-            auto p_node_copy = Kratos::make_intrusive<Node>(r_original_node.Id(), r_original_node.Coordinates());
-            p_node_copy->GetInitialPosition() = r_original_node.GetInitialPosition();
-            p_node_copy->SolutionStepData() = r_original_node.SolutionStepData();
-            p_node_copy->GetData() = r_original_node.GetData();
-            p_node_copy->Flags::operator=(r_original_node);
+            CopyNodeWithoutDofs(r_geometry[i_node], *p_node_copy);
 
-            auto& r_node = *p_node_copy; // the copy (taken before the swap exchanges the pointers)
+            auto& r_node = *p_node_copy; // taken before the guard exchanges the pointers
 
-            // put the copy into the geometry; p_node_copy now holds the original node
-            std::swap(r_geometry(i_node), p_node_copy);
+            // the copy sits in the geometry until the guard is destroyed at the end of this iteration
+            ScopedNodeSwap swap_guard(r_geometry(i_node), p_node_copy);
 
             for (const auto& p_dof : elemental_dofs) {
                 if (p_dof->GetVariable() == ADJOINT_DISPLACEMENT_X) {
@@ -285,9 +327,6 @@ void StrainSensor::CalculateGradient(
                     KRATOS_ERROR << "Unsupported dof " << p_dof->GetVariable().Name();
                 }
             }
-
-            // put the original node back into the geometry
-            std::swap(r_geometry(i_node), p_node_copy);
         }
     }
 
