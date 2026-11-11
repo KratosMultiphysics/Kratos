@@ -11,10 +11,77 @@
 
 // Project includes
 #include "iga_modeler.h"
+#include "iga_application_variables.h"
+
+#include <algorithm>
 
 
 namespace Kratos
 {
+    namespace
+    {
+        // Determine the local span sizes after refinement, also for imported CAD.
+        void AssignKnotSpanSizes(
+            const Geometry<Node>& rGeometry,
+            Geometry<Node>::GeometriesArrayType& rQuadratureGeometries)
+        {
+            using GeometryType = Geometry<Node>;
+            using GeometryTypeId = GeometryData::KratosGeometryType;
+            const GeometryType* p_nurbs_geometry = &rGeometry;
+            while (p_nurbs_geometry->GetGeometryFamily() == GeometryData::KratosGeometryFamily::Kratos_Brep
+                || p_nurbs_geometry->GetGeometryType() == GeometryTypeId::Kratos_Nurbs_Curve_On_Surface) {
+                if (!p_nurbs_geometry->HasGeometryPart(GeometryType::BACKGROUND_GEOMETRY_INDEX)) {
+                    return;
+                }
+                p_nurbs_geometry = &p_nurbs_geometry->GetGeometryPart(GeometryType::BACKGROUND_GEOMETRY_INDEX);
+            }
+
+            const auto nurbs_type = p_nurbs_geometry->GetGeometryType();
+            if (nurbs_type != GeometryTypeId::Kratos_Nurbs_Curve
+                && nurbs_type != GeometryTypeId::Kratos_Nurbs_Surface
+                && nurbs_type != GeometryTypeId::Kratos_Nurbs_Volume) {
+                return;
+            }
+
+            const auto source_type = rGeometry.GetGeometryType();
+            const bool is_curve_on_surface = source_type == GeometryTypeId::Kratos_Brep_Curve_On_Surface
+                || source_type == GeometryTypeId::Kratos_Nurbs_Curve_On_Surface;
+            const auto dimension = p_nurbs_geometry->LocalSpaceDimension();
+            if (rGeometry.LocalSpaceDimension() != dimension && !is_curve_on_surface) {
+                return;
+            }
+
+            std::vector<std::vector<double>> spans(dimension);
+            for (std::size_t direction = 0; direction < dimension; ++direction) {
+                p_nurbs_geometry->SpansLocalSpace(spans[direction], direction);
+                KRATOS_ERROR_IF(spans[direction].size() < 2)
+                    << "IgaModeler: no nonzero knot span in direction " << direction
+                    << " of geometry " << rGeometry.Id() << std::endl;
+            }
+
+            for (auto& r_quadrature_geometry : rQuadratureGeometries) {
+                auto local_coordinates = r_quadrature_geometry.IntegrationPoints()[0].Coordinates();
+                if (is_curve_on_surface) {
+                    // Boundary integration points store curve parameter t, not surface (u,v).
+                    rGeometry.Calculate(PARAMETER_2D_COORDINATES, local_coordinates);
+                }
+                Vector knot_span_sizes(dimension);
+                for (std::size_t direction = 0; direction < dimension; ++direction) {
+                    const auto& r_spans = spans[direction];
+                    // Match the tolerance and left span used by the NURBS basis at internal knots.
+                    constexpr double knot_tolerance = 1e-12;
+                    auto upper = std::lower_bound(r_spans.begin() + 1, r_spans.end(),
+                        local_coordinates[direction] - knot_tolerance);
+                    if (upper == r_spans.end()) {
+                        --upper;
+                    }
+                    knot_span_sizes[direction] = *upper - *(upper - 1);
+                }
+                r_quadrature_geometry.SetValue(KNOT_SPAN_SIZES, knot_span_sizes);
+            }
+        }
+    } // namespace
+
     ///@name Stages
     ///@{
 
@@ -185,6 +252,11 @@ namespace Kratos
                     geometries, shape_function_derivatives_order, integration_info);
             }
 
+            const auto& r_source_geometry = GeometryType == "SurfaceEdge"
+                && rGeometryList[i].GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Coupling_Geometry
+                ? rGeometryList[i].GetGeometryPart(0) : rGeometryList[i];
+            AssignKnotSpanSizes(r_source_geometry, geometries);
+
             KRATOS_INFO_IF("CreateQuadraturePointGeometries", mEchoLevel > 1)
                 << geometries.size() << " quadrature point geometries have been created." << std::endl;
 
@@ -270,6 +342,9 @@ namespace Kratos
         {
             new_element_list.push_back(
                 rReferenceElement.Create(rIdCounter, (*it), pProperties));
+            if ((*it)->Has(KNOT_SPAN_SIZES)) {
+                new_element_list.back().SetValue(KNOT_SPAN_SIZES, (*it)->GetValue(KNOT_SPAN_SIZES));
+            }
             for (SizeType i = 0; i < (*it)->size(); ++i) {
                 rModelPart.AddNode((*it)->pGetPoint(i));
             }
@@ -299,6 +374,9 @@ namespace Kratos
         {
             new_condition_list.push_back(
                 rReferenceCondition.Create(rIdCounter, (*it), pProperties));
+            if ((*it)->Has(KNOT_SPAN_SIZES)) {
+                new_condition_list.back().SetValue(KNOT_SPAN_SIZES, (*it)->GetValue(KNOT_SPAN_SIZES));
+            }
             for (SizeType i = 0; i < (*it)->size(); ++i) {
                 rModelPart.AddNode((*it)->pGetPoint(i));
             }

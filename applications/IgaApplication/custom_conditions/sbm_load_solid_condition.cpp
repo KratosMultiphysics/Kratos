@@ -78,9 +78,12 @@ void SbmLoadSolidCondition::InitializeMemberVariables()
     // Compute basis function order (Note: it is not allow to use different orders in different directions)
     if (mDim == 3) {
         mBasisFunctionsOrder = std::cbrt(r_DN_De[0].size1()) - 1;
+        // mBasisFunctionsOrder*=3; //use complete Taylor expansion
     } else {
         mBasisFunctionsOrder = std::sqrt(r_DN_De[0].size1()) - 1;
+        // mBasisFunctionsOrder*=2; //use complete Taylor expansion
     }
+    // mBasisFunctionsOrder = 2;
 
     // Compute the normals
     mNormalParameterSpace = - r_geometry.Normal(0, GetIntegrationMethod());
@@ -141,6 +144,8 @@ void SbmLoadSolidCondition::InitializeSbmMemberVariables()
 
         // The modeler already applies the inner/outer orientation.
         mTrueNormal = mpProjectionNode->GetValue(NORMAL);
+
+        this->SetValue(PROJECTION_NODE_COORDINATES, mpProjectionNode->Coordinates());
             
         mDistanceVector.resize(3);
         noalias(mDistanceVector) = mpProjectionNode->Coordinates() - r_geometry.Center().Coordinates();
@@ -169,6 +174,7 @@ void SbmLoadSolidCondition::InitializeSbmMemberVariables()
     mpProjectionNode = &candidate_closest_skin_segment_1.GetGeometry()[closestNodeId] ;
     mDistanceVector.resize(3);
     noalias(mDistanceVector) = mpProjectionNode->Coordinates() - r_geometry.Center().Coordinates();
+    this->SetValue(PROJECTION_NODE_COORDINATES, mpProjectionNode->Coordinates());
 
     // calculate the integration weight
     // loopIdentifier is inner or outer
@@ -734,10 +740,9 @@ void SbmLoadSolidCondition::InitializeSolutionStep(const ProcessInfo& rCurrentPr
     GetSolutionCoefficientVector(displacement);
     Vector strain = prod(B, displacement);
     ConstitutiveLaw::Parameters values(r_geometry, GetProperties(), rCurrentProcessInfo);
-    ConstitutiveVariables variables(strain_size);
-    ApplyConstitutiveLaw(mat_size, strain, values, variables);
+    values.SetStrainVector(strain);
     mpConstitutiveLaw->InitializeMaterialResponse(values, ConstitutiveLaw::StressMeasure_Cauchy);
-    UpdateMaterialResponseAtProjectionPoint(rCurrentProcessInfo, false);
+    InitializeMaterialResponseAtProjectionPoint(rCurrentProcessInfo);
     KRATOS_CATCH("")
 }
 
@@ -760,12 +765,32 @@ void SbmLoadSolidCondition::UpdateMaterialResponseAtProjectionPoint(
     ConstitutiveLaw::Parameters values(r_geometry, GetProperties(), rCurrentProcessInfo);
     ConstitutiveVariables variables(strain_size);
     ApplyConstitutiveLaw(mat_size, strain, values, variables, true);
-    // Trial evaluations keep the last converged history; commit only at step finalization.
     if (Finalize) {
         mpConstitutiveLawAtProjectionPoint->FinalizeMaterialResponse(values, ConstitutiveLaw::StressMeasure_Cauchy);
-    } else {
-        mpConstitutiveLawAtProjectionPoint->InitializeMaterialResponse(values, ConstitutiveLaw::StressMeasure_Cauchy);
     }
+    KRATOS_CATCH("")
+#endif
+}
+
+void SbmLoadSolidCondition::InitializeMaterialResponseAtProjectionPoint(
+    const ProcessInfo& rCurrentProcessInfo)
+{
+#ifdef SBM_USE_PROJECTION_POINT_CONSTITUTIVE_LAW
+    KRATOS_TRY
+    const auto& r_geometry = GetGeometry();
+    const SizeType mat_size = r_geometry.size() * mDim;
+    const SizeType strain_size = mpConstitutiveLawAtProjectionPoint->GetStrainSize();
+    Matrix gradient_taylor = ZeroMatrix(3, r_geometry.size());
+    ComputeGradientTaylorExpansionContribution(mDistanceVector, gradient_taylor);
+    Matrix gradients = trans(gradient_taylor);
+    Matrix B_extended = ZeroMatrix(strain_size, mat_size);
+    CalculateB(B_extended, gradients);
+    Vector displacement(mat_size);
+    GetSolutionCoefficientVector(displacement);
+    Vector strain = prod(B_extended, displacement);
+    ConstitutiveLaw::Parameters values(r_geometry, GetProperties(), rCurrentProcessInfo);
+    values.SetStrainVector(strain);
+    mpConstitutiveLawAtProjectionPoint->InitializeMaterialResponse(values, ConstitutiveLaw::StressMeasure_Cauchy);
     KRATOS_CATCH("")
 #endif
 }

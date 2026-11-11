@@ -88,11 +88,13 @@ public:
             "skin_model_part_outer_initial_name" : "SkinModelPartOuterInitial",
             "skin_model_part_name" : "SkinModelPart",
             "create_surr_outer_from_surr_inner": false,
+            "create_surr_inner_from_surr_outer": false,
             "echo_level" : 0,
             "lambda_inner" : 0.5,
             "lambda_outer" : 0.5,
             "number_of_inner_loops": 0,
-            "number_initial_points_if_importing_nurbs": 5000
+            "number_initial_points_if_importing_nurbs": 5000,
+            "offset_for_refinement_in_physical_coord": 0.0
         })" );
 
         return default_parameters;
@@ -126,7 +128,10 @@ protected:
         ModelPart& rIgaModelPart,
         ModelPart& rSkinModelPart,
         const int NumberInitialPointsIfImportingNurbs,
-        bool RemoveIslands = false
+        const double OffsetForRefinementInPhysicalCoord,
+        bool RemoveIslands = false,
+        bool CreateOuterFromInner = false,
+        bool CreateInnerFromOuter = false
         );
 
 
@@ -135,9 +140,11 @@ protected:
     IndexType mEchoLevel;
     double mLambdaInner;
     double mLambdaOuter;
+    double mOffsetForRefinementInPhysicalCoord;
     std::size_t mNumberOfInnerLoops;
     int mNumberInitialPointsIfImportingNurbs;
     bool mCreateSurrOuterFromSurrInner;
+    bool mCreateSurrInnerFromSurrOuter;
     ModelPart* mpIgaModelPart = nullptr;
     ModelPart* mpSkinModelPartInnerInitial = nullptr;
     ModelPart* mpSkinModelPartOuterInitial = nullptr;
@@ -393,6 +400,32 @@ private:
         std::vector<std::vector<std::vector<int>>>& rKnotSpansAvailable,
         ModelPart& rSurrogateModelPartOuter
         );
+
+    static std::vector<std::vector<int>> GenerateOuterSurrogateFromInnerKnotSpansAvailable(
+        const std::vector<std::vector<std::vector<int>>>& rInnerKnotSpansAvailable,
+        const int RefinementPatchSizeU,
+        const int RefinementPatchSizeV);
+
+    static std::vector<std::vector<int>> GenerateInnerSurrogateFromOuterKnotSpansAvailable(
+        const std::vector<std::vector<std::vector<int>>>& rOuterKnotSpansAvailable,
+        const int RefinementPatchSizeU,
+        const int RefinementPatchSizeV);
+
+    static void CreateSurrogateBuondaryFromSnakeOuterWithoutBoundaryCheck(
+        const std::vector<int>& rNumberKnotSpans,
+        const Vector& rKnotVectorU,
+        const Vector& rKnotVectorV,
+        const Vector& rStartingPositionUV,
+        const std::vector<std::vector<int>>& rKnotSpansAvailable,
+        ModelPart& rSurrogateModelPartOuter);
+
+    static void CreateSurrogateBuondaryFromSnakeInnerWithoutBoundaryCheck(
+        const std::vector<int>& rNumberKnotSpans,
+        const Vector& rKnotVectorU,
+        const Vector& rKnotVectorV,
+        const Vector& rStartingPositionUV,
+        const std::vector<std::vector<int>>& rKnotSpansAvailable,
+        ModelPart& rSurrogateModelPartInner);
 
     /**
      * @brief Checks if the knot span is at the border of the parameter sapce

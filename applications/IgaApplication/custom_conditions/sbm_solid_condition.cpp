@@ -90,7 +90,12 @@ void SbmSolidCondition::InitializeMemberVariables()
     else
     {
         // Modify the penalty factor: p^2 * penalty / h (NITSCHE APPROACH)
-        mPenalty = mBasisFunctionsOrder * mBasisFunctionsOrder * penalty / h;
+        if (mDim == 2) {
+            mPenalty = mBasisFunctionsOrder * mBasisFunctionsOrder * penalty / h / 4;
+        }
+        else if (mDim == 3) {
+            mPenalty = mBasisFunctionsOrder * mBasisFunctionsOrder * penalty / h / 9;
+        }
     }
 
     // Compute the normals
@@ -487,6 +492,12 @@ void SbmSolidCondition::CalculateRightHandSide(
         //--------------------------------------------------------------------------------------------
 
         Vector u_D = mpProjectionNode->GetValue(DISPLACEMENT);
+
+        // // DEBUG FIXME:
+        // const double x = r_geometry.Center()[0];
+        // const double y = r_geometry.Center()[1];
+        // u_D[0] = -cos(x)*sinh(y);
+        // u_D[1] = sin(x)*cosh(y);
 
         for (IndexType i = 0; i < number_of_control_points; i++) {
 

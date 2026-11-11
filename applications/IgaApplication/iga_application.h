@@ -27,6 +27,7 @@
 #include "custom_elements/shell_5p_element.h"
 #include "custom_elements/shell_6p_element.h"
 #include "custom_elements/laplacian_element.h"
+#include "custom_elements/gap_sbm_laplacian_element.h"
 #include "custom_elements/solid_element.h"
 #include "custom_elements/stokes_element.h"
 #include "custom_elements/navier_stokes_element.h"
@@ -43,6 +44,7 @@
 #include "custom_conditions/coupling_penalty_6p_condition.h"
 #include "custom_conditions/coupling_lagrange_condition.h"
 #include "custom_conditions/coupling_nitsche_condition.h"
+#include "custom_conditions/laplacian_coupling_condition.h"
 #include "custom_conditions/support_penalty_condition.h"
 #include "custom_conditions/support_penalty_6p_condition.h"
 #include "custom_conditions/support_lagrange_condition.h"
@@ -69,6 +71,7 @@
 #include "custom_conditions/gap_sbm_load_solid_condition.h"
 // Gap-SBM solid interface condition
 #include "custom_conditions/gap_sbm_solid_interface_condition.h"
+#include "custom_conditions/gap_sbm_laplacian_interface_condition.h"
 
 
 //modelers
@@ -79,6 +82,9 @@
 #include "custom_modelers/nurbs_geometry_modeler_sbm.h"
 #include "custom_modelers/nurbs_geometry_modeler_gap_sbm.h"
 #include "custom_modelers/import_nurbs_sbm_modeler.h"
+#include "custom_modelers/patch_subdivision_modeler.h"
+#include "custom_modelers/multipatch_modeler.h"
+#include "custom_modelers/local_refinement_modeler.h"
 
 namespace Kratos {
 
@@ -162,6 +168,7 @@ private:
     const Shell5pElement mShell5pElement;
     const Shell6pElement mShell6pElement;
     const LaplacianElement mLaplacianElement;
+    const GapSbmLaplacianElement mGapSbmLaplacianElement;
     const SolidElement mSolidElement;
     const StokesElement mStokesElement;
     const NavierStokesElement mNavierStokesElement;
@@ -176,6 +183,7 @@ private:
     const CouplingPenalty6pCondition mCouplingPenalty6pCondition;
     const CouplingLagrangeCondition mCouplingLagrangeCondition;
     const CouplingNitscheCondition mCouplingNitscheCondition;
+    const LaplacianCouplingCondition mLaplacianCouplingCondition;
     const SupportPenaltyCondition mSupportPenaltyCondition;
     const SupportPenalty6pCondition mSupportPenalty6pCondition;
     const SupportLagrangeCondition mSupportLagrangeCondition;
@@ -201,6 +209,7 @@ private:
     const GapSbmEnhancedLoadSolidConditionBatched
         mGapSbmEnhancedLoadSolidConditionBatched;
     const GapSbmSolidInterfaceCondition mGapSbmSolidInterfaceCondition;
+    const GapSbmLaplacianInterfaceCondition mGapSbmLaplacianInterfaceCondition;
     const GapSbmSolidInterfaceConditionBatched
         mGapSbmSolidInterfaceConditionBatched;
 
@@ -213,6 +222,9 @@ private:
     const NurbsGeometryModelerSbm mNurbsGeometryModelerSbm;
     const NurbsGeometryModelerGapSbm mNurbsGeometryModelerGapSbm;
     const ImportNurbsSbmModeler mImportNurbsSbmModeler;
+    const PatchSubdivisionModeler mPatchSubdivisionModeler;
+    const MultipatchModeler mMultipatchModeler;
+    const LocalRefinementModeler mLocalRefinementModeler;
 
     ///@}
     ///@name Private methods

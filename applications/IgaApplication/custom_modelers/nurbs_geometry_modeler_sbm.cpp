@@ -168,6 +168,12 @@ void NurbsGeometryModelerSbm::CreateAndAddRegularGrid2D(
         snake_parameters.AddDouble("number_of_inner_loops", mParameters["number_of_inner_loops"].GetInt());
     if (mParameters.Has("number_initial_points_if_importing_nurbs"))
         snake_parameters.AddInt("number_initial_points_if_importing_nurbs", mParameters["number_initial_points_if_importing_nurbs"].GetInt());
+    if (mParameters.Has("offset_for_refinement_in_physical_coord"))
+        snake_parameters.AddDouble("offset_for_refinement_in_physical_coord", mParameters["offset_for_refinement_in_physical_coord"].GetDouble());
+    if (mParameters.Has("create_surr_outer_from_surr_inner"))
+        snake_parameters.AddBool("create_surr_outer_from_surr_inner", mParameters["create_surr_outer_from_surr_inner"].GetBool());
+    if (mParameters.Has("create_surr_inner_from_surr_outer"))
+        snake_parameters.AddBool("create_surr_inner_from_surr_outer", mParameters["create_surr_inner_from_surr_outer"].GetBool());
 
     // Create the surrogate_sub_model_part for inner and outer
     SnakeSbmProcess snake_sbm_process(*mpModel, snake_parameters);
@@ -326,7 +332,10 @@ const Parameters NurbsGeometryModelerSbm::GetDefaultParameters() const
         "number_of_knot_spans" : [10, 10],
         "lambda_inner": 0.5,
         "lambda_outer": 0.5,
-        "number_of_inner_loops": 0
+        "number_of_inner_loops": 0,
+        "create_surr_outer_from_surr_inner": false,
+        "create_surr_inner_from_surr_outer": false,
+        "offset_for_refinement_in_physical_coord": 0.0
     })");
 }
 
@@ -344,6 +353,9 @@ const Parameters NurbsGeometryModelerSbm::GetValidParameters() const
         "lambda_outer": 0.5,
         "number_of_inner_loops": 0,
         "number_initial_points_if_importing_nurbs": 5000,
+        "create_surr_outer_from_surr_inner": false,
+        "create_surr_inner_from_surr_outer": false,
+        "offset_for_refinement_in_physical_coord": 0.0,
         "skin_model_part_inner_initial_name": "skin_model_part_inner_initial",
         "skin_model_part_outer_initial_name": "skin_model_part_outer_initial",
         "skin_model_part_name": "skin_model_part"

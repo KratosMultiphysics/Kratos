@@ -13,6 +13,7 @@
 // Project includes
 #include "includes/define.h"
 #include "nurbs_geometry_modeler.h"
+#include "iga_application_variables.h"
 #include "geometries/nurbs_shape_function_utilities/nurbs_volume_refinement_utilities.h"
 
 namespace Kratos
@@ -259,6 +260,11 @@ namespace Kratos
             p_surface_geometry->PolynomialDegreeU(), p_surface_geometry->PolynomialDegreeV(),
             p_surface_geometry->KnotsU(), p_surface_geometry->KnotsV(), WeightsRefined);
 
+        Vector knot_span_sizes(2);
+        knot_span_sizes[0] = (B_uvw.X() - A_uvw.X()) / NumKnotSpansU;
+        knot_span_sizes[1] = (B_uvw.Y() - A_uvw.Y()) / NumKnotSpansV;
+        r_model_part.SetValue(KNOT_SPAN_SIZES, knot_span_sizes);
+
         // assign the value p_surface_geometry to the class member mpSurface for derived classes
         mpSurface = p_surface_geometry;
         mInsertKnotsU = insert_knots_u;
@@ -428,6 +434,12 @@ namespace Kratos
         p_volume_geometry->SetInternals(PointsRefined,
             p_volume_geometry->PolynomialDegreeU(), p_volume_geometry->PolynomialDegreeV(), p_volume_geometry->PolynomialDegreeW(),
             p_volume_geometry->KnotsU(), p_volume_geometry->KnotsV(), p_volume_geometry->KnotsW());
+
+        Vector knot_span_sizes(3);
+        knot_span_sizes[0] = (B_uvw.X() - A_uvw.X()) / NumKnotSpansU;
+        knot_span_sizes[1] = (B_uvw.Y() - A_uvw.Y()) / NumKnotSpansV;
+        knot_span_sizes[2] = (B_uvw.Z() - A_uvw.Z()) / NumKnotSpansW;
+        r_model_part.SetValue(KNOT_SPAN_SIZES, knot_span_sizes);
 
         // assign the value p_volume_geometry to the class member mpVolume for derived classes
         mpVolume = p_volume_geometry;

@@ -21,6 +21,79 @@
 namespace Kratos::Testing
 {
 
+KRATOS_TEST_CASE_IN_SUITE(SnakeSbmProcessOuterFromInnerSingleCellLayer, KratosIgaFastSuite)
+{
+    // An L-shaped hole must retain its concave corner after adding one cell layer.
+    for (const double scale_v : {1.0, 1.5}) {
+        Model model;
+        auto& r_iga = model.CreateModelPart("iga");
+        auto& r_inner = r_iga.CreateSubModelPart("surrogate_inner");
+        auto& r_outer = r_iga.CreateSubModelPart("surrogate_outer");
+        auto& r_initial = model.CreateModelPart("initial_inner");
+        model.CreateModelPart("initial_outer");
+        auto p_properties = r_initial.CreateNewProperties(0);
+        auto& r_skin = model.CreateModelPart("skin");
+        r_skin.CreateSubModelPart("inner");
+        r_skin.CreateSubModelPart("outer");
+
+        const std::vector<std::array<double, 2>> vertices = {
+            {0.82, 0.82}, {2.18, 0.82}, {2.18, 1.38},
+            {1.38, 1.38}, {1.38, 2.18}, {0.82, 2.18}};
+        for (std::size_t i = 0; i < vertices.size(); ++i) {
+            r_initial.CreateNewNode(i + 1, vertices[i][0], scale_v * vertices[i][1], 0.0);
+        }
+        for (std::size_t i = 0; i < vertices.size(); ++i) {
+            r_initial.CreateNewCondition("LineCondition2D2N", i + 1,
+                {{i + 1, (i + 1) % vertices.size() + 1}}, p_properties);
+        }
+
+        Vector knots_u(31);
+        Vector knots_v(31);
+        for (std::size_t i = 0; i < knots_u.size(); ++i) {
+            knots_u[i] = 0.1 * i;
+            knots_v[i] = scale_v * knots_u[i];
+        }
+        r_iga.SetValue(KNOT_VECTOR_U, knots_u);
+        r_iga.SetValue(KNOT_VECTOR_V, knots_v);
+        Parameters parameters(R"({
+            "model_part_name": "iga",
+            "skin_model_part_name": "skin",
+            "skin_model_part_inner_initial_name": "initial_inner",
+            "skin_model_part_outer_initial_name": "initial_outer",
+            "number_of_inner_loops": 1,
+            "create_surr_outer_from_surr_inner": true
+        })");
+        SnakeSbmProcess(model, parameters).Execute();
+
+        const auto is_inside = [](const ModelPart& rBoundary, const double X, const double Y) {
+            bool inside = false;
+            for (const auto& r_condition : rBoundary.Conditions()) {
+                const auto& r_geometry = r_condition.GetGeometry();
+                if ((r_geometry[0].Y() > Y) != (r_geometry[1].Y() > Y) &&
+                    r_geometry[0].X() > X) {
+                    inside = !inside;
+                }
+            }
+            return inside;
+        };
+
+        KRATOS_EXPECT_EQ(r_inner.NumberOfConditions(), 56);
+        KRATOS_EXPECT_EQ(r_outer.NumberOfConditions(), 64);
+        for (int j = 0; j < 30; ++j) {
+            for (int i = 0; i < 30; ++i) {
+                const double x = (i + 0.5) * 0.1;
+                const double y = (j + 0.5) * 0.1 * scale_v;
+                const bool expected_inner = i >= 8 && i <= 21 && j >= 8 && j <= 21 &&
+                    (i < 14 || j < 14);
+                const bool expected_outer = i >= 7 && i <= 22 && j >= 7 && j <= 22 &&
+                    (i < 15 || j < 15);
+                KRATOS_EXPECT_EQ(is_inside(r_inner, x, y), expected_inner);
+                KRATOS_EXPECT_EQ(is_inside(r_outer, x, y), expected_outer);
+            }
+        }
+    }
+}
+
 // Tests the SnakeSbmUProcess with a square outer geometry
 KRATOS_TEST_CASE_IN_SUITE(SnakeSbmProcessSquareOuter, KratosIgaFastSuite)
 {

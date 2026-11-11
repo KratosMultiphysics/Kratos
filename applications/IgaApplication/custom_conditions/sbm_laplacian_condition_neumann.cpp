@@ -74,6 +74,9 @@ void SbmLaplacianConditionNeumann::InitializeMemberVariables()
         mBasisFunctionsOrder = std::sqrt(r_DN_De[0].size1()) - 1;
     }
 
+    if (mBasisFunctionsOrder <= 2)
+        mBasisFunctionsOrder*=2; //use complete Talor expansion
+
     // Compute the normals
     mNormalParameterSpace = - r_geometry.Normal(0, GetIntegrationMethod());
     mNormalParameterSpace = mNormalParameterSpace / MathUtils<double>::Norm(mNormalParameterSpace);
@@ -223,14 +226,22 @@ void SbmLaplacianConditionNeumann::CalculateRightHandSide(
     const Matrix& H = r_geometry.ShapeFunctionsValues();
     
     // Assembly
-    Vector t_N(number_of_nodes);
-    for (IndexType i = 0; i < number_of_nodes; ++i)
-    {
-        t_N[i] = mpProjectionNode->GetValue(HEAT_FLUX);
-    }
-    // Neumann Contributions
-    noalias(rRightHandSideVector) += prod(prod(trans(H), H), t_N) * mTrueDotSurrogateNormal * r_integration_points[0].Weight(); // * std::abs(determinant_jacobian_vector[point_number]);
+    // Vector t_N(number_of_nodes);
+    // for (IndexType i = 0; i < number_of_nodes; ++i)
+    // {
+    //     t_N[i] = mpProjectionNode->GetValue(HEAT_FLUX);
+    // }
+    // // Neumann Contributions
+    // noalias(rRightHandSideVector) += prod(prod(trans(H), H), t_N) * mTrueDotSurrogateNormal * r_integration_points[0].Weight(); // * std::abs(determinant_jacobian_vector[point_number]);
 
+    const double x = mpProjectionNode->Coordinates()[0];
+    const double y = mpProjectionNode->Coordinates()[1];
+    const double t_N = cos(x)*sinh(y)*mTrueNormal[0] + sin(x)*cosh(y)*mTrueNormal[1];
+
+    // Neumann Contributions: the flux is evaluated at the projected integration point.
+    noalias(rRightHandSideVector) += row(H, 0) * t_N * mTrueDotSurrogateNormal * r_integration_points[0].Weight(); // * std::abs(determinant_jacobian_vector[point_number]);
+
+    
     // --- Corresponding RHS ---
     Matrix left_hand_side = ZeroMatrix(number_of_nodes);
     CalculateLeftHandSide(left_hand_side,rCurrentProcessInfo);

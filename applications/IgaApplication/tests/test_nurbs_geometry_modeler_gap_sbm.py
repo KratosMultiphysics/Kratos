@@ -19,6 +19,64 @@ def run_modelers(current_model, modelers_list):
 
 
 class TestNurbsGeometryModelerGapSbm(KratosUnittest.TestCase):
+    def test_inner_circle_projection_with_empty_probe_spans(self):
+        current_model = KM.Model()
+        iga_model_part = current_model.CreateModelPart("IgaModelPart")
+        iga_model_part.ProcessInfo.SetValue(KM.DOMAIN_SIZE, 2)
+
+        modelers = KM.Parameters("""[
+            {
+                "modeler_name": "ImportNurbsSbmModeler",
+                "Parameters": {
+                    "input_filename": "import_nurbs_test/circle_00_22.json",
+                    "model_part_name": "initial_skin_model_part_in",
+                    "link_layer_to_condition_name": [{
+                        "layer_name": "Layer0",
+                        "condition_name": "SupportLaplacianCondition"
+                    }]
+                }
+            },
+            {
+                "modeler_name": "NurbsGeometryModelerGapSbm",
+                "Parameters": {
+                    "echo_level": 0,
+                    "lower_point_xyz": [0.0, 0.0, 0.0],
+                    "upper_point_xyz": [2.0, 2.0, 0.0],
+                    "polynomial_order": [2, 2],
+                    "number_of_knot_spans": [50, 50],
+                    "number_of_inner_loops": 1,
+                    "number_initial_points_if_importing_nurbs": 200,
+                    "number_internal_divisions": 0,
+                    "gap_approximation_order": 2,
+                    "gap_sbm_type": "interpolation",
+                    "skin_model_part_inner_initial_name": "initial_skin_model_part_in",
+                    "skin_model_part_name": "skin_model_part",
+                    "gap_element_name": "LaplacianElement",
+                    "gap_interface_condition_name": "SupportLaplacianCondition"
+                }
+            }
+        ]""")
+        run_modelers(current_model, modelers)
+
+        skin_model_part = current_model["skin_model_part.inner"]
+        surrogate_model_part = current_model["IgaModelPart.surrogate_inner"]
+        self.assertGreater(surrogate_model_part.NumberOfConditions(), 0)
+        for condition in surrogate_model_part.Conditions:
+            for node in condition.GetGeometry():
+                self.assertTrue(node.Has(IGA.PROJECTION_NODE_ID))
+                projection_id = node.GetValue(IGA.PROJECTION_NODE_ID)
+                self.assertTrue(skin_model_part.HasNode(projection_id))
+                projection = skin_model_part.GetNode(projection_id)
+                distance_sq = (projection.X - node.X)**2 + (projection.Y - node.Y)**2
+                self.assertLess(distance_sq, (1.5 * 2.0 / 50)**2)
+
+        boundary_model_part = current_model["IgaModelPart.Layer0"]
+        self.assertGreater(boundary_model_part.NumberOfConditions(), 0)
+        for condition in boundary_model_part.Conditions:
+            point = condition.GetGeometry().Center()
+            radius = ((point.X - 1.0)**2 + (point.Y - 1.0)**2)**0.5
+            self.assertAlmostEqual(radius, 0.2, delta=1.0e-3)
+
     # Checks Gap-SBM quadrature results for a circular NURBS boundary.
     def test_quadrature_points_gap_sbm_on_circle(self):
         current_model = KM.Model()

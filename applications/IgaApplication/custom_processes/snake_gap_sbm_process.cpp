@@ -36,6 +36,8 @@ SnakeGapSbmProcess::SnakeGapSbmProcess(
     mGapConditionName = "GapSbmSolidCondition"; //FIXME:
     mGapInterfaceConditionName = ThisParameters["gap_interface_condition_name"].GetString();
     mGapSbmType = ThisParameters["gap_sbm_type"].GetString();
+    mBackgroundSurfaceGeometryName =
+        ThisParameters["background_surface_geometry_name"].GetString();
 
     KRATOS_ERROR_IF_NOT(KratosComponents<Condition>::Has(mGapConditionName))
         << "::[SnakeGapSbmProcess]:: Gap condition \"" << mGapConditionName
@@ -60,8 +62,8 @@ SnakeGapSbmProcess::SnakeGapSbmProcess(
     if (ThisParameters.Has("polynomial_order"))
         mGapInterpolationOrder = ThisParameters["polynomial_order"].GetVector()[0];
 
-    mLambdaInner = 0.0;
-    mLambdaOuter = 1.0;
+    mLambdaInner = 0.001;
+    mLambdaOuter = 0.999;
     mInternalDivisions = ThisParameters["number_internal_divisions"].GetInt();
 
     // if (mUseForMultipatch || mUseForLocalRefinement)
@@ -89,6 +91,7 @@ const Parameters SnakeGapSbmProcess::GetDefaultParameters() const
     {
         "echo_level": 1,
         "model_part_name" : "IgaModelPart",
+        "background_surface_geometry_name": "IgaModelPart_snake_background_surface",
         "lower_point_xyz": [0.0, 0.0, 0.0],
         "upper_point_xyz": [1.0, 1.0, 0.0],
         "lower_point_uvw": [0.0, 0.0, 0.0],
@@ -143,6 +146,7 @@ const Parameters SnakeGapSbmProcess::GetValidParameters() const
         "gap_relative_tolerance_for_subdivisions": 0.1,
         "number_of_interpolation_levels": 3,
         "gap_sbm_type": "default",
+        "background_surface_geometry_name": "IgaModelPart_snake_background_surface",
         "use_for_local_refinement": false,
         "store_gap_debug_geometries": false,
         "use_pyramid_quadrature_for_type1": true,

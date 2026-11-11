@@ -536,6 +536,7 @@ private:
     std::string mGapElementName;
     std::string mGapConditionName;
     std::string mGapInterfaceConditionName;
+    std::string mBackgroundSurfaceGeometryName = "IgaModelPart_snake_background_surface";
     std::size_t mInternalDivisions;
     double mGapRelativeToleranceForSubdivisions = 0.1;
     std::size_t mNumberOfInterpolationLevels = 3; // number of additional levels of interpolation for the gap elements (in addition to the corner nodes)
@@ -808,6 +809,7 @@ private:
      * @param rNormalCond 
      * @param rIntegrationParameters 
      * @param rSkinConditionsPerKnotSpan 
+     * @param rConsideredNodeIds Skin nodes already used by the current subdivision.
      * @return ProjectionResult 
      */
     template <bool TIsInnerLoop>
@@ -820,7 +822,8 @@ private:
         const std::string& rCommonConditionName,
         const array_1d<double,3>& rNormalCond,
         const IntegrationParameters& rIntegrationParameters,
-        const KnotSpanSkinBinsCSR& rSkinBinsPerKnotSpan) const;
+        const KnotSpanSkinBinsCSR& rSkinBinsPerKnotSpan,
+        const std::vector<IndexType>& rConsideredNodeIds) const;
     
     /**
      * @brief Creates a Brep curve for the active knot range.
@@ -1536,6 +1539,7 @@ typename NurbsCurveGeometryType::Pointer FitUV_BetweenSkinNodes_Generic(
  * @param rKnotSpanSizes Reference to the knot span sizes guiding the search.
  * @param rSkinBinsPerSpan CSR matrix storing skin nodes and conditions per knot span.
  * @param rDirection Direction vector used for ray casting.
+ * @param pConsideredNodeIds Nodes already used in the reconstruction, to prefer other candidates.
  * @return Identifier of the closest node fulfilling the criteria.
  */
 template <bool TIsInnerLoop>
@@ -1545,7 +1549,8 @@ IndexType FindClosestNodeInLayerWithDirection(
     const ModelPart& rSkinSubModelPart,
     const Vector& rKnotSpanSizes,
     const KnotSpanSkinBinsCSR& rSkinBinsPerSpan,
-    const Vector& rDirection) const;
+    const Vector& rDirection,
+    const std::vector<IndexType>* pConsideredNodeIds = nullptr) const;
 
 
 /**
@@ -1558,6 +1563,8 @@ IndexType FindClosestNodeInLayerWithDirection(
  * @param rKnotSpanSizes 
  * @param rSkinBinsPerSpan
  * @param rDirection 
+ * @param pClosestIntersectionCandidateIds Endpoints of conditions tied at the selected intersection.
+ * @param pConsideredNodeIds Nodes already used, to prefer an intersection with new candidates.
  * @return std::pair<SnakeGapSbmProcess::IndexType, SnakeGapSbmProcess::IndexType> 
  */
 template <bool TIsInnerLoop>
@@ -1567,7 +1574,9 @@ std::pair<SnakeGapSbmProcess::IndexType, SnakeGapSbmProcess::IndexType> FindClos
     const ModelPart& rSkinSubModelPart,
     const Vector& rKnotSpanSizes,
     const KnotSpanSkinBinsCSR& rSkinBinsPerSpan,
-    const Vector& rDirection) const;
+    const Vector& rDirection,
+    std::vector<IndexType>* pClosestIntersectionCandidateIds = nullptr,
+    const std::vector<IndexType>* pConsideredNodeIds = nullptr) const;
     
 /**
 * @brief Attaches the surrogate middle geometry to skin nodes.

@@ -36,6 +36,8 @@ KratosIgaApplication::KratosIgaApplication()
         new Geometry<Node>(Element::GeometryType::PointsArrayType(1))))
     , mLaplacianElement(0, Element::GeometryType::Pointer(
         new Geometry<Node>(Element::GeometryType::PointsArrayType(1))))
+    , mGapSbmLaplacianElement(0, Element::GeometryType::Pointer(
+        new Geometry<Node>(Element::GeometryType::PointsArrayType(1))))
     , mSolidElement(0, Element::GeometryType::Pointer(
         new Geometry<Node>(Element::GeometryType::PointsArrayType(1))))
     , mStokesElement(0, Element::GeometryType::Pointer(
@@ -59,6 +61,8 @@ KratosIgaApplication::KratosIgaApplication()
     , mCouplingLagrangeCondition(0, Condition::GeometryType::Pointer(
         new Geometry<Node>(Condition::GeometryType::PointsArrayType(1))))
     , mCouplingNitscheCondition(0, Condition::GeometryType::Pointer(
+        new Geometry<Node>(Condition::GeometryType::PointsArrayType(1))))
+    , mLaplacianCouplingCondition(0, Condition::GeometryType::Pointer(
         new Geometry<Node>(Condition::GeometryType::PointsArrayType(1))))
     , mSupportPenaltyCondition(0, Condition::GeometryType::Pointer(
         new Geometry<Node>(Condition::GeometryType::PointsArrayType(1))))
@@ -110,6 +114,8 @@ KratosIgaApplication::KratosIgaApplication()
             new Geometry<Node>(Condition::GeometryType::PointsArrayType(1))))
     , mGapSbmSolidInterfaceCondition(0, Condition::GeometryType::Pointer(
         new Geometry<Node>(Condition::GeometryType::PointsArrayType(1))))
+    , mGapSbmLaplacianInterfaceCondition(0, Condition::GeometryType::Pointer(
+        new Geometry<Node>(Condition::GeometryType::PointsArrayType(1))))
     , mGapSbmSolidInterfaceConditionBatched(
         0,
         Condition::GeometryType::Pointer(
@@ -139,6 +145,7 @@ KRATOS_INFO("") << "    KRATOS  _____ _____\n"
     KRATOS_REGISTER_ELEMENT("Shell5pElement", mShell5pElement)
     KRATOS_REGISTER_ELEMENT("Shell6pElement", mShell6pElement)
     KRATOS_REGISTER_ELEMENT("LaplacianElement", mLaplacianElement)
+    KRATOS_REGISTER_ELEMENT("GapSbmLaplacianElement", mGapSbmLaplacianElement)
     KRATOS_REGISTER_ELEMENT("SolidElement", mSolidElement)
     KRATOS_REGISTER_ELEMENT("StokesElement", mStokesElement)
     KRATOS_REGISTER_ELEMENT("GapSbmSolidElement", mGapSbmSolidElement)
@@ -154,6 +161,7 @@ KRATOS_INFO("") << "    KRATOS  _____ _____\n"
     KRATOS_REGISTER_CONDITION("CouplingPenaltyCondition", mCouplingPenaltyCondition)
     KRATOS_REGISTER_CONDITION("CouplingLagrangeCondition", mCouplingLagrangeCondition)
     KRATOS_REGISTER_CONDITION("CouplingNitscheCondition", mCouplingNitscheCondition)
+    KRATOS_REGISTER_CONDITION("LaplacianCouplingCondition", mLaplacianCouplingCondition)
     KRATOS_REGISTER_CONDITION("SupportPenaltyCondition", mSupportPenaltyCondition)
     KRATOS_REGISTER_CONDITION("SupportLagrangeCondition", mSupportLagrangeCondition)
     KRATOS_REGISTER_CONDITION("SupportNitscheCondition", mSupportNitscheCondition)
@@ -181,6 +189,7 @@ KRATOS_INFO("") << "    KRATOS  _____ _____\n"
         "GapSbmEnhancedLoadSolidConditionBatched",
         mGapSbmEnhancedLoadSolidConditionBatched)
     KRATOS_REGISTER_CONDITION("GapSbmSolidInterfaceCondition", mGapSbmSolidInterfaceCondition)
+    KRATOS_REGISTER_CONDITION("GapSbmLaplacianInterfaceCondition", mGapSbmLaplacianInterfaceCondition)
     KRATOS_REGISTER_CONDITION(
         "GapSbmSolidInterfaceConditionBatched",
         mGapSbmSolidInterfaceConditionBatched)
@@ -193,6 +202,9 @@ KRATOS_INFO("") << "    KRATOS  _____ _____\n"
     KRATOS_REGISTER_MODELER("NurbsGeometryModelerSbm", mNurbsGeometryModelerSbm);
     KRATOS_REGISTER_MODELER("NurbsGeometryModelerGapSbm", mNurbsGeometryModelerGapSbm);
     KRATOS_REGISTER_MODELER("ImportNurbsSbmModeler", mImportNurbsSbmModeler);
+    KRATOS_REGISTER_MODELER("PatchSubdivisionModeler", mPatchSubdivisionModeler);
+    KRATOS_REGISTER_MODELER("MultipatchModeler", mMultipatchModeler);
+    KRATOS_REGISTER_MODELER("LocalRefinementModeler", mLocalRefinementModeler);
 
     // VARIABLES      
     KRATOS_REGISTER_VARIABLE(TRUSS_PRESTRESS_CAUCHY)
@@ -293,6 +305,7 @@ KRATOS_INFO("") << "    KRATOS  _____ _____\n"
     KRATOS_REGISTER_VARIABLE(INTEGRATION_WEIGHTS)
     KRATOS_REGISTER_VARIABLE(BREP_ID)
     KRATOS_REGISTER_VARIABLE(BREP_MODEL_PART_FULL_NAME)
+    KRATOS_REGISTER_VARIABLE(ORIGINAL_SKIN_MODEL_PART_FULL_NAME)
 
     KRATOS_REGISTER_VARIABLE(RESULTS_ON_TRUE_BOUNDARY)
     KRATOS_REGISTER_VARIABLE(PROJECTION_NODE_COORDINATES)

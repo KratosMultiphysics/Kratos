@@ -287,6 +287,9 @@ void ApplyConstitutiveLaw(
 void UpdateMaterialResponseAtProjectionPoint(
     const ProcessInfo& rCurrentProcessInfo, const bool Finalize);
 
+void InitializeMaterialResponseAtProjectionPoint(
+    const ProcessInfo& rCurrentProcessInfo);
+
 
 /**
  * @brief 

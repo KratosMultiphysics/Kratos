@@ -280,6 +280,7 @@ private:
         const std::size_t EchoLevel = 0) {
         // OUTER 
         std::size_t id_brep_curve_on_surface = 2; // because id 1 is the brep surface
+        const std::string brep_model_part_full_name = rModelPart.FullName();
 
         if (rSurrogateModelPartOuter.NumberOfConditions() > 0)
         {
@@ -325,6 +326,17 @@ private:
                     pSurface, p_trimming_curve, brep_active_range, curve_direction);
 
                 p_brep_curve_on_surface->SetId(id_brep_curve_on_surface);
+                p_brep_curve_on_surface->SetValue(BREP_ID, static_cast<int>(id_brep_curve_on_surface));
+                p_brep_curve_on_surface->SetValue(BREP_MODEL_PART_FULL_NAME, brep_model_part_full_name);
+                i_cond.SetValue(BREP_ID, static_cast<int>(id_brep_curve_on_surface));
+                i_cond.SetValue(BREP_MODEL_PART_FULL_NAME, brep_model_part_full_name);
+                auto& r_geom_cond = i_cond.GetGeometry();
+                if (r_geom_cond.size() >= 2) {
+                    r_geom_cond[0].SetValue(BREP_ID, static_cast<int>(id_brep_curve_on_surface));
+                    r_geom_cond[1].SetValue(BREP_ID, static_cast<int>(id_brep_curve_on_surface));
+                    r_geom_cond[0].SetValue(BREP_MODEL_PART_FULL_NAME, brep_model_part_full_name);
+                    r_geom_cond[1].SetValue(BREP_MODEL_PART_FULL_NAME, brep_model_part_full_name);
+                }
 
                 rModelPart.AddGeometry(p_brep_curve_on_surface);
                 id_brep_curve_on_surface++;
@@ -384,7 +396,19 @@ private:
                 auto p_brep_curve_on_surface = Kratos::make_shared<BrepCurveOnSurfaceType>(
                     pSurface, p_trimming_curve, brep_active_range, curve_direction);
 
+                p_cond->SetValue(BREP_ID, static_cast<int>(id_brep_curve_on_surface));
+                p_cond->SetValue(BREP_MODEL_PART_FULL_NAME, brep_model_part_full_name);
+                auto& r_geom_cond = p_cond->GetGeometry();
+                if (r_geom_cond.size() >= 2) {
+                    r_geom_cond[0].SetValue(BREP_ID, static_cast<int>(id_brep_curve_on_surface));
+                    r_geom_cond[1].SetValue(BREP_ID, static_cast<int>(id_brep_curve_on_surface));
+                    r_geom_cond[0].SetValue(BREP_MODEL_PART_FULL_NAME, brep_model_part_full_name);
+                    r_geom_cond[1].SetValue(BREP_MODEL_PART_FULL_NAME, brep_model_part_full_name);
+                }
+
                 p_brep_curve_on_surface->SetId(id_brep_curve_on_surface);
+                p_brep_curve_on_surface->SetValue(BREP_ID, static_cast<int>(id_brep_curve_on_surface));
+                p_brep_curve_on_surface->SetValue(BREP_MODEL_PART_FULL_NAME, brep_model_part_full_name);
                 rModelPart.AddGeometry(p_brep_curve_on_surface);
                 id_brep_curve_on_surface++;
             }
@@ -466,21 +490,29 @@ private:
         auto brep_curve_on_surface = BrepCurveOnSurface< PointerVector<TNodeType>, true, PointerVector<Point>>(pSurfaceGeometry, p_curve_1);
         auto p_brep_curve_on_surface = Kratos::make_shared<BrepCurveOnSurfaceType>(pSurfaceGeometry, p_curve_1);
         p_brep_curve_on_surface->SetId(rLastGeometryId);
+        p_brep_curve_on_surface->SetValue(BREP_ID, static_cast<int>(rLastGeometryId));
+        p_brep_curve_on_surface->SetValue(BREP_MODEL_PART_FULL_NAME, rModelPart.FullName());
         rModelPart.AddGeometry(p_brep_curve_on_surface);
         
         brep_curve_on_surface = BrepCurveOnSurface< PointerVector<TNodeType>, true, PointerVector<Point>>(pSurfaceGeometry, p_curve_2);
         p_brep_curve_on_surface = Kratos::make_shared<BrepCurveOnSurfaceType>(pSurfaceGeometry, p_curve_2);
         p_brep_curve_on_surface->SetId(++rLastGeometryId);
+        p_brep_curve_on_surface->SetValue(BREP_ID, static_cast<int>(rLastGeometryId));
+        p_brep_curve_on_surface->SetValue(BREP_MODEL_PART_FULL_NAME, rModelPart.FullName());
         rModelPart.AddGeometry(p_brep_curve_on_surface);
 
         brep_curve_on_surface = BrepCurveOnSurface< PointerVector<TNodeType>, true, PointerVector<Point>>(pSurfaceGeometry, p_curve_3);
         p_brep_curve_on_surface = Kratos::make_shared<BrepCurveOnSurfaceType>(pSurfaceGeometry, p_curve_3);
         p_brep_curve_on_surface->SetId(++rLastGeometryId);
+        p_brep_curve_on_surface->SetValue(BREP_ID, static_cast<int>(rLastGeometryId));
+        p_brep_curve_on_surface->SetValue(BREP_MODEL_PART_FULL_NAME, rModelPart.FullName());
         rModelPart.AddGeometry(p_brep_curve_on_surface);
         
         brep_curve_on_surface = BrepCurveOnSurface< PointerVector<TNodeType>, true, PointerVector<Point>>(pSurfaceGeometry, p_curve_4);
         p_brep_curve_on_surface = Kratos::make_shared<BrepCurveOnSurfaceType>(pSurfaceGeometry, p_curve_4);
         p_brep_curve_on_surface->SetId(++rLastGeometryId);
+        p_brep_curve_on_surface->SetValue(BREP_ID, static_cast<int>(rLastGeometryId));
+        p_brep_curve_on_surface->SetValue(BREP_MODEL_PART_FULL_NAME, rModelPart.FullName());
         rModelPart.AddGeometry(p_brep_curve_on_surface);
 
         rLastGeometryId++;

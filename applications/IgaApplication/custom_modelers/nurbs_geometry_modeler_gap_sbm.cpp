@@ -99,6 +99,12 @@ void NurbsGeometryModelerGapSbm::CreateAndAddRegularGrid2D(
                                 ? mpModel->GetModelPart(iga_model_part_name)
                                 : mpModel->CreateModelPart(iga_model_part_name);
 
+    // Keep the current patch surface available to Snake independently of root geometry IDs.
+    const std::string patch_surface_geometry_name =
+        iga_model_part_name + "_snake_background_surface";
+    mpSurface->SetId(patch_surface_geometry_name);
+    r_iga_model_part.AddGeometry(mpSurface);
+
     // compute unique_knot_vector_u
     Vector unique_knot_vector_u(2+(NumKnotSpansU-1));
     unique_knot_vector_u[0] = mKnotVectorU[0]; 
@@ -177,6 +183,9 @@ void NurbsGeometryModelerGapSbm::CreateAndAddRegularGrid2D(
     // Create the parameters for the SnakeSbmProcess
     Kratos::Parameters snake_parameters;
     snake_parameters.AddString("model_part_name", iga_model_part_name);
+    snake_parameters.AddString(
+        "background_surface_geometry_name",
+        patch_surface_geometry_name);
     snake_parameters.AddString("skin_model_part_name", skin_model_part_name);
     snake_parameters.AddDouble("echo_level", mEchoLevel);
     snake_parameters.AddString("skin_model_part_inner_initial_name", skin_model_part_inner_initial_name);
@@ -196,6 +205,10 @@ void NurbsGeometryModelerGapSbm::CreateAndAddRegularGrid2D(
         snake_parameters.AddDouble("gap_relative_tolerance_for_subdivisions", mParameters["gap_relative_tolerance_for_subdivisions"].GetDouble());
     if (mParameters.Has("number_of_interpolation_levels"))
         snake_parameters.AddInt("number_of_interpolation_levels", mParameters["number_of_interpolation_levels"].GetInt());
+    if (mParameters.Has("use_for_multipatch"))
+        snake_parameters.AddBool("use_for_multipatch", mParameters["use_for_multipatch"].GetBool());
+    if (mParameters.Has("use_for_local_refinement"))
+        snake_parameters.AddBool("use_for_local_refinement", mParameters["use_for_local_refinement"].GetBool());
     if (mParameters.Has("polynomial_order"))
         snake_parameters.AddVector("polynomial_order", mParameters["polynomial_order"].GetVector());
 
@@ -355,6 +368,10 @@ void NurbsGeometryModelerGapSbm::CreateAndAddRegularGrid3D(
         snake_parameters.AddDouble("gap_relative_tolerance_for_subdivisions", mParameters["gap_relative_tolerance_for_subdivisions"].GetDouble());
     if (mParameters.Has("number_of_interpolation_levels"))
         snake_parameters.AddInt("number_of_interpolation_levels", mParameters["number_of_interpolation_levels"].GetInt());
+    if (mParameters.Has("use_for_multipatch"))
+        snake_parameters.AddBool("use_for_multipatch", mParameters["use_for_multipatch"].GetBool());
+    if (mParameters.Has("use_for_local_refinement"))
+        snake_parameters.AddBool("use_for_local_refinement", mParameters["use_for_local_refinement"].GetBool());
     if (mParameters.Has("polynomial_order"))
         snake_parameters.AddVector("polynomial_order", mParameters["polynomial_order"].GetVector());
     
@@ -459,6 +476,8 @@ const Parameters NurbsGeometryModelerGapSbm::GetDefaultParameters() const
         "number_internal_divisions": 1,
         "gap_relative_tolerance_for_subdivisions": 0.1,
         "number_of_interpolation_levels": 3,
+        "use_for_multipatch": false,
+        "use_for_local_refinement": false,
         "gap_approximation_order": 0,
         "gap_element_name": "",
         "gap_interface_condition_name": "",
@@ -503,6 +522,8 @@ const Parameters NurbsGeometryModelerGapSbm::GetValidParameters() const
         "number_internal_divisions": 1,
         "gap_relative_tolerance_for_subdivisions": 0.1,
         "number_of_interpolation_levels": 3,
+        "use_for_multipatch": false,
+        "use_for_local_refinement": false,
         "gap_approximation_order": 0,
         "skin_model_part_inner_initial_name": "r_skin_model_part_inner_initial",
         "skin_model_part_outer_initial_name": "r_skin_model_part_outer_initial",

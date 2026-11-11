@@ -74,7 +74,13 @@ void SupportSolidCondition::InitializeMemberVariables()
     array_1d<double, 3> normal_parameter_space;
 
     r_geometry.Calculate(LOCAL_TANGENT, tangent_parameter_space); // Gives the result in the parameter space
-    Vector mesh_size_uv = this->GetValue(KNOT_SPAN_SIZES);
+    KRATOS_ERROR_IF_NOT(this->Has(KNOT_SPAN_SIZES))
+        << "SupportSolidCondition " << Id() << ": KNOT_SPAN_SIZES is not defined." << std::endl;
+    const Vector& mesh_size_uv = this->GetValue(KNOT_SPAN_SIZES);
+    KRATOS_ERROR_IF(mesh_size_uv.size() != 2)
+        << "SupportSolidCondition " << Id() << ": KNOT_SPAN_SIZES must contain two entries." << std::endl;
+    KRATOS_ERROR_IF(mesh_size_uv[0] <= 0.0 || mesh_size_uv[1] <= 0.0)
+        << "SupportSolidCondition " << Id() << ": KNOT_SPAN_SIZES must be positive." << std::endl;
 
     const double abs_tangent_u = std::abs(tangent_parameter_space[0]);
     const double abs_tangent_v = std::abs(tangent_parameter_space[1]);
