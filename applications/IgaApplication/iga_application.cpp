@@ -84,6 +84,10 @@ KratosIgaApplication::KratosIgaApplication()
         new Geometry<Node>(Condition::GeometryType::PointsArrayType(1))))
     , mGsbmStokesConditionDirichlet(0, Condition::GeometryType::Pointer(
         new Geometry<Node>(Condition::GeometryType::PointsArrayType(1))))
+    , mGsbmStokesConditionSideNeumann(0, Condition::GeometryType::Pointer(
+        new Geometry<Node>(Condition::GeometryType::PointsArrayType(1))))
+    , mGsbmStokesConditionSideDirichlet(0, Condition::GeometryType::Pointer(
+        new Geometry<Node>(Condition::GeometryType::PointsArrayType(1))))
     , mSupportFluidCondition(0, Element::GeometryType::Pointer(
         new Geometry<Node>(Element::GeometryType::PointsArrayType(1))))
     , mSupportPressureCondition(0, Condition::GeometryType::Pointer(
@@ -148,6 +152,10 @@ KRATOS_INFO("") << "    KRATOS  _____ _____\n"
     )
     KRATOS_REGISTER_CONDITION("GsbmStokesConditionNeumann", mGsbmStokesConditionNeumann)
     KRATOS_REGISTER_CONDITION("GsbmStokesConditionDirichlet", mGsbmStokesConditionDirichlet)
+    KRATOS_REGISTER_CONDITION("GsbmStokesConditionSideNeumann", mGsbmStokesConditionSideNeumann)
+    KRATOS_REGISTER_CONDITION(
+        "GsbmStokesConditionSideDirichlet", mGsbmStokesConditionSideDirichlet
+    )
     KRATOS_REGISTER_CONDITION("SupportFluidCondition", mSupportFluidCondition)
     KRATOS_REGISTER_CONDITION("SupportPressureCondition", mSupportPressureCondition)
     KRATOS_REGISTER_CONDITION("SbmFluidConditionDirichlet", mSbmFluidConditionDirichlet)
