@@ -540,34 +540,21 @@ private:
         UPwInterfaceElementContributions,
         std::make_unique<IntegrationCoefficientModifierForInterfaceElement>()};
     const UPwInterfaceElement mUPwSurfaceInterfaceElement3Plus3N{
-        0,
-        Kratos::make_shared<InterfaceGeometry<Triangle3D3<NodeType>>>(Element::GeometryType::PointsArrayType(6)),
-        std::make_unique<SurfaceInterfaceStressState>(),
-        IsDiffOrderElement::No,
-        UPwInterfaceElementContributions,
-        std::make_unique<IntegrationCoefficientModifierForInterfaceElement>()};
+        0, Kratos::make_shared<InterfaceGeometry<Triangle3D3<NodeType>>>(Element::GeometryType::PointsArrayType(6)),
+        std::make_unique<SurfaceInterfaceStressState>(), IsDiffOrderElement::No,
+        UPwInterfaceElementContributions};
     const UPwInterfaceElement mUPwSurfaceInterfaceElement4Plus4N{
-        0,
-        Kratos::make_shared<InterfaceGeometry<Quadrilateral3D4<NodeType>>>(Element::GeometryType::PointsArrayType(8)),
-        std::make_unique<SurfaceInterfaceStressState>(),
-        IsDiffOrderElement::No,
-        UPwInterfaceElementContributions,
-        std::make_unique<IntegrationCoefficientModifierForInterfaceElement>()};
+        0, Kratos::make_shared<InterfaceGeometry<Quadrilateral3D4<NodeType>>>(Element::GeometryType::PointsArrayType(8)),
+        std::make_unique<SurfaceInterfaceStressState>(), IsDiffOrderElement::No,
+        UPwInterfaceElementContributions};
     const UPwInterfaceElement mUPwSurfaceInterfaceElement6Plus6N{
-        0,
-        Kratos::make_shared<InterfaceGeometry<Triangle3D6<NodeType>>>(Element::GeometryType::PointsArrayType(12)),
-        std::make_unique<SurfaceInterfaceStressState>(),
-        IsDiffOrderElement::No,
-        UPwInterfaceElementContributions,
-        std::make_unique<IntegrationCoefficientModifierForInterfaceElement>()};
+        0, Kratos::make_shared<InterfaceGeometry<Triangle3D6<NodeType>>>(Element::GeometryType::PointsArrayType(12)),
+        std::make_unique<SurfaceInterfaceStressState>(), IsDiffOrderElement::No,
+        UPwInterfaceElementContributions};
     const UPwInterfaceElement mUPwSurfaceInterfaceElement8Plus8N{
-        0,
-        Kratos::make_shared<InterfaceGeometry<Quadrilateral3D8<NodeType>>>(
-            Element::GeometryType::PointsArrayType(16)),
-        std::make_unique<SurfaceInterfaceStressState>(),
-        IsDiffOrderElement::No,
-        UPwInterfaceElementContributions,
-        std::make_unique<IntegrationCoefficientModifierForInterfaceElement>()};
+        0, Kratos::make_shared<InterfaceGeometry<Quadrilateral3D8<NodeType>>>(Element::GeometryType::PointsArrayType(16)),
+        std::make_unique<SurfaceInterfaceStressState>(), IsDiffOrderElement::No,
+        UPwInterfaceElementContributions};
     const UPwInterfaceElement mUPwLineInterfacePlaneStrainDiffOrderElement3Plus3N{
         0,
         Kratos::make_shared<InterfaceGeometry<Line2D3<NodeType>>>(Element::GeometryType::PointsArrayType(6)),
