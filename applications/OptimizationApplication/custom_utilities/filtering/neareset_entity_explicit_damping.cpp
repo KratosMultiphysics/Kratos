@@ -111,7 +111,7 @@ void NearestEntityExplicitDamping<TContainerType>::Update()
     auto& r_container = *(std::get<typename TContainerType::Pointer>(mpDampingRadius->GetContainer()));
     const auto radius_view = mpDampingRadius->ViewData();
 
-    mDampingCoefficients.resize(radius_view.size(), stride, true);
+    mDampingCoefficients.resize(radius_view.size(), stride, false);
     // Raw pointer into the matrix's own storage: mDampingCoefficients.data()
     // yields a lightweight (temporary) view under the Eigen backend and a
     // persistent array reference under uBLAS, so it cannot be bound to

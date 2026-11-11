@@ -23,7 +23,7 @@ namespace Kratos {
 
         array_1d<double, 3> point_local_coordinates;
         mCondition->GetGeometry().PointLocalCoordinates(point_local_coordinates, inner_point);
-        mShapeFunctionsValues.resize(3, true);
+        mShapeFunctionsValues.resize(3, false);
         mCondition->GetGeometry().ShapeFunctionsValues(mShapeFunctionsValues, point_local_coordinates);
     }
 

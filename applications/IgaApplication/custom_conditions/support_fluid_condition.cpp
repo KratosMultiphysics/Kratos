@@ -251,7 +251,7 @@ void SupportFluidCondition::CalculateB(
 
     // Resize B matrix to Voigt strain size and appropriate number of columns.
     if (rB.size1() != strain_size || rB.size2() != mat_size)
-        rB.resize(strain_size, mat_size, true);
+        rB.resize(strain_size, mat_size, false);
 
     noalias(rB) = ZeroMatrix(strain_size, mat_size);
 

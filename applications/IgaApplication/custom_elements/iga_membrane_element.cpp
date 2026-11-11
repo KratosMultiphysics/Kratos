@@ -287,7 +287,7 @@ namespace Kratos
 
         //Transformation matrix T
         if (rT.size1() != 3 && rT.size2() != 3)
-            rT.resize(3, 3, true);
+            rT.resize(3, 3, false);
         noalias(rT) = ZeroMatrix(3, 3);
 
         rT(0, 0) = pow(G(0, 0), 2);
@@ -311,7 +311,7 @@ namespace Kratos
 
         //Transformation matrix T_hat
         if (rT_hat.size1() != 3 && rT_hat.size2() != 3)
-            rT_hat.resize(3, 3, true);
+            rT_hat.resize(3, 3, false);
         noalias(rT_hat) = ZeroMatrix(3, 3);
 
         rT_hat(0, 0) = pow(G_hat(0, 0), 2);
@@ -427,7 +427,7 @@ namespace Kratos
         const Matrix& r_DN_De = GetGeometry().ShapeFunctionLocalGradient(IntegrationPointIndex);
 
         if (rB.size1() != 3 || rB.size2() != mat_size)
-            rB.resize(3, mat_size, true);
+            rB.resize(3, mat_size, false);
         noalias(rB) = ZeroMatrix(3, mat_size);
 
         for (IndexType r = 0; r < mat_size; r++)

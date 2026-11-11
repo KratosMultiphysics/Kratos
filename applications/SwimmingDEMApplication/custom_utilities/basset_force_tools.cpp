@@ -473,7 +473,7 @@ void BassetForceTools::FillHinsbergVectors(ModelPart& r_model_part, const int m,
 
     for (NodeIterator inode = r_model_part.NodesBegin(); inode != r_model_part.NodesEnd(); inode++){
         DenseVector<double>& hinsberg_tail_contributions = inode->GetValue(HINSBERG_TAIL_CONTRIBUTIONS);
-        hinsberg_tail_contributions.resize(3 * m + 3, true); //  the extra contribution will contain the oldest integrand that has been discarded from the integrands vector
+        hinsberg_tail_contributions.resize(3 * m + 3, false); //  the extra contribution will contain the oldest integrand that has been discarded from the integrands vector
         for (int i = 0; i < 3 * m + 3; i++){
             hinsberg_tail_contributions[i] = 0.0;
         }

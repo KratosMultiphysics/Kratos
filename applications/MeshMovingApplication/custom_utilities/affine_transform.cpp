@@ -121,7 +121,7 @@ void AffineTransform::SetRotation(const Quaternion<double>& rQuaternion,
 {
     KRATOS_TRY
 
-    mRotationMatrix.resize(3, 3, true);
+    mRotationMatrix.resize(3, 3, false);
     mReferencePoint = rReferencePoint;
 
     rQuaternion.ToRotationMatrix(mRotationMatrix);

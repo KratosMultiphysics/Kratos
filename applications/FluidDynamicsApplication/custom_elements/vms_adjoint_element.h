@@ -521,7 +521,7 @@ public:
     {
         BoundedMatrix<double, TFluidLocalSize, TFluidLocalSize> LHS;
         this->CalculateFirstDerivativesLHS(LHS, rCurrentProcessInfo);
-        rLeftHandSideMatrix.resize(LHS.size1(), LHS.size2(), true);
+        rLeftHandSideMatrix.resize(LHS.size1(), LHS.size2(), false);
         noalias(rLeftHandSideMatrix) = LHS;
     }
 

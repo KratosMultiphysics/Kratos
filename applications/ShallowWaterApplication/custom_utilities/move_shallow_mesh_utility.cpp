@@ -73,7 +73,7 @@ void MoveShallowMeshUtility::MoveMesh()
         ResultContainerType results;
     };
     TLS tls;
-    tls.N.resize(num_nodes, true);
+    tls.N.resize(num_nodes, false);
     tls.results.resize(mMaxResults);
 
     block_for_each(mrLagrangianModelPart.Nodes(), tls, [&](NodeType& rNode, TLS& rTLS){
@@ -98,7 +98,7 @@ void MoveShallowMeshUtility::MapResults()
         ResultContainerType results;
     };
     TLS tls;
-    tls.N.resize(num_nodes, true);
+    tls.N.resize(num_nodes, false);
     tls.results.resize(mMaxResults);
 
     block_for_each(mrEulerianModelPart.Nodes(), tls, [&](NodeType& rNode, TLS& rTLS){

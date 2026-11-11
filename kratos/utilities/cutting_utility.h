@@ -329,7 +329,7 @@ public:
     void CSR_Row_Matrix_Mod(ModelPart& this_model_part, boost::numeric::ublas::compressed_matrix<int>& Coord)
     {
         NodesArrayType& pNodes = this_model_part.Nodes();
-        Coord.resize(pNodes.size(), pNodes.size(), true);
+        Coord.resize(pNodes.size(), pNodes.size(), false);
         NodesArrayType::iterator i_begin = pNodes.ptr_begin();
         NodesArrayType::iterator i_end = pNodes.ptr_end();
 

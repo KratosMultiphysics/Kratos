@@ -587,7 +587,7 @@ namespace Kratos
 
         //Transformation matrix T
         if (rT.size1() != 3 && rT.size2() != 3)
-            rT.resize(3, 3, true);
+            rT.resize(3, 3, false);
         noalias(rT) = ZeroMatrix(3, 3);
 
         rT(0, 0) = pow(G(0, 0), 2);
@@ -691,7 +691,7 @@ namespace Kratos
         const Matrix& r_DN_De = GetGeometry().ShapeFunctionLocalGradient(IntegrationPointIndex);
 
         if (rB.size1() != 3 || rB.size2() != mat_size)
-            rB.resize(3, mat_size, true);
+            rB.resize(3, mat_size, false);
         noalias(rB) = ZeroMatrix(3, mat_size);
 
         for (IndexType r = 0; r < mat_size; r++)
@@ -1058,7 +1058,7 @@ namespace Kratos
         const Matrix& rDDN_DDe = GetGeometry().ShapeFunctionDerivatives(2, IntegrationPointIndex, GetGeometry().GetDefaultIntegrationMethod());
         
         Matrix H_initial;
-        H_initial.resize(working_space_dimension, working_space_dimension, true);
+        H_initial.resize(working_space_dimension, working_space_dimension, false);
         H_initial = ZeroMatrix(working_space_dimension, working_space_dimension);
 
         for (IndexType k = 0; k < number_of_points; k++)
@@ -1080,7 +1080,7 @@ namespace Kratos
 
         // Calculate Hessian Matrix at actual configuration
         Matrix H_actual;
-        H_actual.resize(working_space_dimension, working_space_dimension, true);
+        H_actual.resize(working_space_dimension, working_space_dimension, false);
         H_actual = ZeroMatrix(working_space_dimension, working_space_dimension);
         CalculateHessian(H_actual, rDDN_DDe);
 
@@ -1585,7 +1585,7 @@ namespace Kratos
     {
         const SizeType number_of_points = GetGeometry().size();
         const SizeType working_space_dimension = 3;
-        Hessian.resize(working_space_dimension, working_space_dimension, true);
+        Hessian.resize(working_space_dimension, working_space_dimension, false);
         Hessian = ZeroMatrix(working_space_dimension, working_space_dimension);
 
         for (IndexType k = 0; k < number_of_points; k++)

@@ -1029,7 +1029,7 @@ void DamageDPlusDMinusMasonry2DLaw::CalculateTangentTensor(
 	// prepare constitutive matrix
 	Matrix& constitutive_matrix = rValues.GetConstitutiveMatrix();
 	if(constitutive_matrix.size1() != VoigtSize || constitutive_matrix.size2() != VoigtSize)
-		constitutive_matrix.resize(VoigtSize, VoigtSize, true);
+		constitutive_matrix.resize(VoigtSize, VoigtSize, false);
 
 	// save internal variables
 	double save_threshold_tension			= ThresholdTension;
@@ -1075,7 +1075,7 @@ void DamageDPlusDMinusMasonry2DLaw::CalculateSecantTensor(
 {
 	Matrix& constitutive_matrix = rValues.GetConstitutiveMatrix();
 	if(constitutive_matrix.size1() != VoigtSize || constitutive_matrix.size2() != VoigtSize)
-		constitutive_matrix.resize(VoigtSize, VoigtSize, true);
+		constitutive_matrix.resize(VoigtSize, VoigtSize, false);
 
 	Matrix DamageMatrix( IdentityMatrix(3,3) );
 	noalias(DamageMatrix) -= DamageParameterTension     * data.ProjectionTensorTension;

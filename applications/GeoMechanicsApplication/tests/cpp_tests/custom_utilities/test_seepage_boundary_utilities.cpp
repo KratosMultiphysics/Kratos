@@ -93,7 +93,7 @@ void MockPwElementForSeepageTests::CalculateRightHandSide(VectorType& rRightHand
     auto dofs = DofsVectorType{};
     this->GetDofList(dofs, ProcessInfo{});
 
-    rRightHandSideVector.resize(dofs.size(), true);
+    rRightHandSideVector.resize(dofs.size(), false);
     // For each water pressure DoF, use the node ID as the right hand side value. For every other
     // DoF, use twice the node ID.
     auto calculate_dof_value = [](const auto* pDof) {

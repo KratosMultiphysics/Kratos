@@ -105,7 +105,7 @@ int PerturbGeometrySparseUtility::CreateRandomFieldVectors(){
 
     // Construct and initialize perturbation matrix
     DenseMatrixType& rPerturbationMatrix = *mpPerturbationMatrix;
-    rPerturbationMatrix.resize(number_of_nodes,number_of_random_variables, true);
+    rPerturbationMatrix.resize(number_of_nodes,number_of_random_variables, false);
 
     // Assemble perturbation matrix
     BuiltinTimer assemble_random_field_time;

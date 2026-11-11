@@ -610,7 +610,7 @@ void SlidingCableElement3D::CalculateLumpedMassVector(
 
     // Clear matrix
     if (rLumpedMassVector.size() != local_size) {
-      rLumpedMassVector.resize(local_size, true);
+      rLumpedMassVector.resize(local_size, false);
     }
 
     const double A = this->GetProperties()[CROSS_AREA];

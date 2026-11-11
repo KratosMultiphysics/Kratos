@@ -490,7 +490,7 @@ TetrahedralMeshOrientationCheck::SizeType TetrahedralMeshOrientationCheck::Numbe
 void TetrahedralMeshOrientationCheck::NodesOfBoundaries(const GeometryType& rGeometry, DenseMatrix<int>& rNodesIds){
     IndexType n_boundaries = BoundariesEntitiesNumber(rGeometry);
     IndexType nodes_in_boundary = NumberOfNodesInEachBoundary(rGeometry);
-    rNodesIds.resize(n_boundaries,nodes_in_boundary, true);
+    rNodesIds.resize(n_boundaries,nodes_in_boundary, false);
     if(LinearElement(rGeometry)){
         for(IndexType outer_node_index=0; outer_node_index< BoundariesEntitiesNumber(rGeometry); outer_node_index++) {
             // We put in rNodesIds the indices of all of the nodes which do not

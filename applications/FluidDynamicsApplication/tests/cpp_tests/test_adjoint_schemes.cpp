@@ -424,7 +424,7 @@ void ResizeOutput(
     Matrix& rOutput,
     const unsigned int Size)
 {
-    rOutput.resize(Size, 9, true);
+    rOutput.resize(Size, 9, false);
 }
 
 void ResizeOutput(

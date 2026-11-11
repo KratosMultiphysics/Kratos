@@ -78,7 +78,7 @@ void DepthIntegrationProcess<TDim>::Execute()
         Vector N;
         typename BinBasedFastPointLocator<TDim>::ResultContainerType results;
         locator_tls(const int max_results = 10000) {
-            N.resize(TDim+1, true);
+            N.resize(TDim+1, false);
             results.resize(max_results);
         }
     };

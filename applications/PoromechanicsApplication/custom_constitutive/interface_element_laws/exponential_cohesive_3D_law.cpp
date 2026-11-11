@@ -107,13 +107,13 @@ void ExponentialCohesive3DLaw::InitializeConstitutiveLawVariables(ConstitutiveLa
     rVariables.PenaltyStiffness = std::exp(1.0)*rVariables.YieldStress/rVariables.CriticalDisplacement;
 
     const double MinusNormalStrain = -1.0*StrainVector[2];
-    rVariables.CompressionMatrix.resize(3,3, true);
+    rVariables.CompressionMatrix.resize(3,3, false);
     noalias(rVariables.CompressionMatrix) = ZeroMatrix(3,3);
     if(std::abs(MinusNormalStrain) > 1.0e-15)
         rVariables.CompressionMatrix(2,2) = this->MacaulayBrackets(MinusNormalStrain)/MinusNormalStrain;
     
     const double WeightingParameter = MaterialProperties[TAU]/rVariables.YieldStress;
-    rVariables.WeightMatrix.resize(3,3, true);
+    rVariables.WeightMatrix.resize(3,3, false);
     noalias(rVariables.WeightMatrix) = ZeroMatrix(3,3);
     rVariables.WeightMatrix(0,0) = WeightingParameter*WeightingParameter;
     rVariables.WeightMatrix(1,1) = WeightingParameter*WeightingParameter;

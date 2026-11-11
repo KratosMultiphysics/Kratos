@@ -85,7 +85,7 @@ public:
             rNode.SetValue(rVar, 0.0);
         });
 
-        mLimiter.resize(nparticles, true);
+        mLimiter.resize(nparticles, false);
         if (mActivateLimiter){
             CalculateLimiter(rModelPart, rVar);
         } else{
@@ -296,8 +296,8 @@ public:
         const int nparticles = rModelPart.Nodes().size();
 
         if(static_cast<int>(mSigmaPlus.size()) != nparticles){
-            mSigmaPlus.resize(nparticles, true);
-            mSigmaMinus.resize(nparticles, true);
+            mSigmaPlus.resize(nparticles, false);
+            mSigmaMinus.resize(nparticles, false);
         }
 
         auto& r_default_comm = rModelPart.GetCommunicator().GetDataCommunicator();

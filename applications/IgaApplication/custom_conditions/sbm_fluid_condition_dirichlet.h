@@ -239,7 +239,7 @@ namespace Kratos
                     StressVector.resize(StrainSize, false);
 
                 if (D.size1() != StrainSize || D.size2() != StrainSize)
-                    D.resize(StrainSize, StrainSize, true);
+                    D.resize(StrainSize, StrainSize, false);
 
                 noalias(StrainVector) = ZeroVector(StrainSize);
                 noalias(StressVector) = ZeroVector(StrainSize);

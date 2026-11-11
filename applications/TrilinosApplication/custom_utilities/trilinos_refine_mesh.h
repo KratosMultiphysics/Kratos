@@ -501,9 +501,9 @@ public:
 
 
         ///* New Id de los Nodos
-        List_New_Nodes.resize(n_new_nonzeros, true);
-        partition_new_nodes.resize(n_new_nonzeros, true);
-        father_node_ids.resize(n_new_nonzeros, true);
+        List_New_Nodes.resize(n_new_nonzeros, false);
+        partition_new_nodes.resize(n_new_nonzeros, false);
+        father_node_ids.resize(n_new_nonzeros, false);
 
 
 
@@ -567,7 +567,7 @@ public:
         array_1d<double, 3 > Coord_Node_1;
         array_1d<double, 3 > Coord_Node_2;
         vector< array_1d<double, 3 > > Coordinate_New_Node;
-        Coordinate_New_Node.resize(father_node_ids.size(), true);
+        Coordinate_New_Node.resize(father_node_ids.size(), false);
         unsigned int step_data_size = this_model_part.GetNodalSolutionStepDataSize();
         Node ::DofsContainerType& reference_dofs = (this_model_part.NodesBegin())->GetDofs();
 

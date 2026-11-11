@@ -234,7 +234,7 @@ public:
             const SizeType LocalSize = TDim * TNumNodes;
 
             if (rLeftHandSideMatrix.size1() != LocalSize)
-                rLeftHandSideMatrix.resize(LocalSize,LocalSize, true);
+                rLeftHandSideMatrix.resize(LocalSize,LocalSize, false);
             if (rRightHandSideVector.size() != LocalSize)
                 rRightHandSideVector.resize(LocalSize, false);
 
@@ -251,7 +251,7 @@ public:
             const SizeType LocalSize = TNumNodes;
 
             if (rLeftHandSideMatrix.size1() != LocalSize)
-                rLeftHandSideMatrix.resize(LocalSize,LocalSize, true);
+                rLeftHandSideMatrix.resize(LocalSize,LocalSize, false);
             if (rRightHandSideVector.size() != LocalSize)
                 rRightHandSideVector.resize(LocalSize, false);
 

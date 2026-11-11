@@ -219,7 +219,7 @@ public:
         VectorType right_hand_side_vector;
 
         if (rLeftHandSideMatrix.size1() != mat_size)
-            rLeftHandSideMatrix.resize(mat_size, mat_size, true);
+            rLeftHandSideMatrix.resize(mat_size, mat_size, false);
         noalias(rLeftHandSideMatrix) = ZeroMatrix(mat_size, mat_size);
 
         CalculateAll(rLeftHandSideMatrix, right_hand_side_vector,
@@ -247,7 +247,7 @@ public:
         noalias(rRightHandSideVector) = ZeroVector(mat_size);
 
         if (rLeftHandSideMatrix.size1() != mat_size)
-            rLeftHandSideMatrix.resize(mat_size, mat_size, true);
+            rLeftHandSideMatrix.resize(mat_size, mat_size, false);
         noalias(rLeftHandSideMatrix) = ZeroMatrix(mat_size, mat_size);
 
         CalculateAll(rLeftHandSideMatrix, rRightHandSideVector,

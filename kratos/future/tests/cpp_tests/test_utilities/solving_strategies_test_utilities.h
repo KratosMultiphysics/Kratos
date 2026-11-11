@@ -76,7 +76,7 @@ public:
         const auto& r_geom = GetGeometry();
         const SizeType n_nodes = r_geom.PointsNumber();
         if (rRightHandSideVector.size() != n_nodes) {
-            rRightHandSideVector.resize(n_nodes, true);
+            rRightHandSideVector.resize(n_nodes, false);
         }
         const double f = 1.0;
         const double h = r_geom.Length();
@@ -210,7 +210,7 @@ public:
         const auto &r_geom = GetGeometry();
         const std::size_t local_size = 2 * r_geom.PointsNumber();
         if (rRightHandSideVector.size() != local_size) {
-            rRightHandSideVector.resize(local_size, true);
+            rRightHandSideVector.resize(local_size, false);
         }
         const double f_x = 0.0;
         const double f_y = -1.0;

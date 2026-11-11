@@ -260,7 +260,7 @@ void OptimizationUtilities::AssembleMatrix(ModelPart& rModelPart,
 )
 {
     if ((rMatrix.size1() != rModelPart.NumberOfNodes()*3 || rMatrix.size2() !=  rVariables.size())){
-        rMatrix.resize(rModelPart.NumberOfNodes()*3, rVariables.size(), true);
+        rMatrix.resize(rModelPart.NumberOfNodes()*3, rVariables.size(), false);
     }
 
     int i=0;
