@@ -29,6 +29,7 @@
 #include "future/containers/define_linear_algebra_serial.h"
 #include "future/containers/linear_system_tags.h"
 #include "future/solving_strategies/schemes/implicit_scheme.h"
+#include "future/solving_strategies/schemes/static_scheme.h"
 #include "future/solving_strategies/strategies/implicit_strategy_data.h"
 
 namespace Kratos::Future
@@ -227,16 +228,20 @@ public:
 
     /**
      * @brief Projects the residual of each element and condition onto the provided basis
-     * Row k is Phi_k^T r_k, with r_k the local RHS of the k-th entity of the model part of the scheme (the elements first, then
-     * the conditions) and Phi_k the rows of the basis of its DOFs, taken as zero for the fixed DOFs as in Project. The rows of the
-     * inactive entities are zero. These are the residual snapshots of the HROM training (see HRomTrainingUtility).
-     * Note that the master-slave constraints are not supported.
+     * Row k is Phi_k^T r_k, with r_k the local residual (from the local system) of the k-th entity of the model part of the scheme
+     * (the elements first, then the conditions) and Phi_k the rows of the basis of its DOFs, taken as zero for the fixed DOFs as in
+     * Project. The rows of the inactive entities are zero. These are the residual snapshots of the HROM training (see HRomTrainingUtility).
+     * Note that the master-slave constraints are not supported, and that the scheme must be a static one (it adds nothing to the
+     * local system of the entities).
      * @param rPhi Basis (Jacobian of the decoder), with one row per effective DOF and one column per ROM DOF
      * @return EigenDynamicMatrix The projected residuals, with one row per entity and one column per ROM DOF
      */
     EigenDynamicMatrix ProjectEntityResiduals(const Eigen::Ref<const EigenDynamicMatrix>& rPhi) const
     {
         KRATOS_TRY
+
+        KRATOS_ERROR_IF(dynamic_cast<const StaticScheme<TLinearAlgebra>*>(mpScheme.get()) == nullptr) << "The entity residuals are taken "
+            << "from the local system of the entities, which is the scheme contribution only for a static scheme." << std::endl;
 
         auto& r_model_part = mpScheme->GetModelPart();
         const auto& r_dof_set = *(mpStrategyData->pGetDofSet());
@@ -262,12 +267,15 @@ public:
 
         struct TLS
         {
+            Matrix LocalMatrix;
             Vector LocalVector;
             Element::EquationIdVectorType LocalEqIds;
         };
         const auto project_entity_residual = [&](auto& rEntity, const IndexType Row, TLS& rTLS){
             if (rEntity.IsActive()) {
-                rEntity.CalculateRightHandSide(rTLS.LocalVector, r_process_info);
+                // Through the local system, as the legacy RomResidualsUtility: some entities do not compute the RHS alone (e.g. the
+                // fluid elements that manage their time integration)
+                rEntity.CalculateLocalSystem(rTLS.LocalMatrix, rTLS.LocalVector, r_process_info);
                 rEntity.EquationIdVector(rTLS.LocalEqIds, r_process_info);
                 auto projected_residual = projected_residuals.row(Row);
                 for (IndexType i = 0; i < rTLS.LocalEqIds.size(); ++i) {

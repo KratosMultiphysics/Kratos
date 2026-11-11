@@ -4,11 +4,16 @@ import numpy
 
 import KratosMultiphysics
 from KratosMultiphysics.RomApplication.hrom_training_utility import HRomTrainingUtility
-from KratosMultiphysics.RomApplication.future.rom_decoders import CreateDecoder
+from KratosMultiphysics.RomApplication.future.rom_decoders import CreateDecoder, GetBasisRows
 from KratosMultiphysics.RomApplication.future.rom_future_solver import FutureRomSolver
 
 
 def CreateFutureRomAnalysisInstance(cls, global_model, parameters, future_rom_settings=None, rom_basis_output_folder="rom_data", decoder_factory=None):
+    return CreateFutureRomAnalysisClass(cls, future_rom_settings, rom_basis_output_folder, decoder_factory)(global_model, parameters)
+
+
+def CreateFutureRomAnalysisClass(cls, future_rom_settings=None, rom_basis_output_folder="rom_data", decoder_factory=None):
+    """The FutureRomAnalysis class on top of the analysis stage cls (see CreateFutureRomAnalysisInstance), e.g. to derive from it."""
     class FutureRomAnalysis(cls):
         """Makes a standard Kratos analysis stage solve its steps with the FutureRomSolver.
 
@@ -40,7 +45,12 @@ def CreateFutureRomAnalysisInstance(cls, global_model, parameters, future_rom_se
             folder = Path(rom_basis_output_folder)
             weights_set = self.future_rom_solver.hrom_weights_set
             def Weights(name, number_of_entities):
-                weights = numpy.load(folder / f"HROM_{name}Weights.npy").reshape(number_of_entities, -1)
+                weights = numpy.load(folder / f"HROM_{name}Weights.npy")
+                if weights.size == 0:
+                    # No entity of this kind selected (reshape cannot infer the number of sets)
+                    weights = weights.reshape(0, weights.shape[1] if weights.ndim > 1 else 1)
+                else:
+                    weights = weights.reshape(number_of_entities, -1)
                 return weights[:, weights_set]
             element_ids = numpy.load(folder / "HROM_ElementIds.npy")
             condition_ids = numpy.load(folder / "HROM_ConditionIds.npy")
@@ -124,4 +134,36 @@ def CreateFutureRomAnalysisInstance(cls, global_model, parameters, future_rom_se
             if self.future_rom_solver.train_hrom:
                 self._TrainHRom()
 
-    return FutureRomAnalysis(global_model, parameters)
+    return FutureRomAnalysis
+
+
+def TrainHRomFromSnapshots(cls, global_model, parameters, snapshots, future_rom_settings=None, rom_basis_output_folder="rom_data"):
+    """HROM training of the Future ROM without solving it: the solution of each step is the one of the given full order snapshots (e.g.
+    of the FOM), encoded by the decoder (see FutureRomSolver.SetStepFromFullSolution), and the residuals are projected at it as with
+    "train_hrom". The HROM weights are saved in the ROM folder when the simulation finishes.
+    snapshots: matrix (or .npy file, read memory mapped) with one column per step and the rows of the bases of the ROM folder (nodes of
+    NodeIds.npy times 'nodal_unknowns', as the snapshots of the RomManager). Returns the simulation, already run."""
+    settings = future_rom_settings.Clone() if future_rom_settings is not None else KratosMultiphysics.Parameters("{}")
+    if settings.Has("train_hrom"):
+        settings["train_hrom"].SetBool(True)
+    else:
+        settings.AddBool("train_hrom", True)
+    if not isinstance(snapshots, numpy.ndarray):
+        snapshots = numpy.load(snapshots, mmap_mode="r")
+
+    class FutureRomAnalysisFromSnapshots(CreateFutureRomAnalysisClass(cls, settings, rom_basis_output_folder)):
+        def Initialize(self):
+            super().Initialize()
+            self.snapshot_rows = GetBasisRows(rom_basis_output_folder, self.future_rom_solver.GetEffectiveDofSet())
+
+        def SolveSolutionStep(self):
+            step = len(self.rom_solutions)
+            if step >= snapshots.shape[1]:
+                raise Exception("The snapshots have {} steps, the simulation asks for step {}.".format(snapshots.shape[1], step + 1))
+            self.future_rom_solver.SetStepFromFullSolution(numpy.asarray(snapshots[self.snapshot_rows, step], dtype=numpy.float64))
+            self.rom_solutions.append(self.future_rom_solver.GetRomSolution().copy())
+            return True
+
+    simulation = FutureRomAnalysisFromSnapshots(global_model, parameters)
+    simulation.Run()
+    return simulation

@@ -7,6 +7,10 @@ import numpy
 # Decoders that CreateDecoder builds from a ROM folder, by their 'type_of_decoder' (see RegisterDecoder)
 _DECODERS = {}
 
+# Gauss-Newton iterations of RomDecoder.Encode: stop when |dq| <= tolerance |q|
+_ENCODE_MAX_ITERATIONS = 50
+_ENCODE_RELATIVE_TOLERANCE = 1.0e-12
+
 
 def RegisterDecoder(type_of_decoder, decoder_class):
     """Makes CreateDecoder build the ROM folders of the given 'type_of_decoder' with decoder_class.FromRomData."""
@@ -83,22 +87,21 @@ class RomDecoder:
         """Returns the dense matrix dD/dq evaluated at q."""
         raise NotImplementedError("Calling base class 'Jacobian'.")
 
+    def Encode(self, u, q=None):
+        """Returns the reduced coordinates whose decoding is closest to u (least squares, min |D(q) - u|): q itself for u = D(q).
+        Gauss-Newton iterations with Decode and Jacobian from q (e.g. the reduced coordinates of the previous step, else zero).
+        Decoders with a cheaper or exact inverse override it."""
+        q = numpy.zeros(self.NumberOfRomDofs()) if q is None else numpy.array(q, dtype=numpy.float64)
+        for _ in range(_ENCODE_MAX_ITERATIONS):
+            dq = numpy.linalg.lstsq(self.Jacobian(q), u - self.Decode(q), rcond=None)[0]
+            q += dq
+            if numpy.linalg.norm(dq) <= _ENCODE_RELATIVE_TOLERANCE * numpy.linalg.norm(q):
+                return q
+        raise Exception("Encode did not converge in {} Gauss-Newton iterations.".format(_ENCODE_MAX_ITERATIONS))
+
     def InitializeSolutionStep(self):
         """Called once the conditions of the step are applied (fixed DOFs and their values)."""
         pass
-
-    def Encode(self, u, max_iterations=20, tolerance=1.0e-12):
-        """Returns the reduced coordinates q whose decoded vector D(q) is closest to u (least squares), the inverse of Decode on its
-        manifold. The base class solves it by Gauss-Newton with the Jacobian, starting from q = 0; decoders with an explicit inverse
-        (e.g. LinearDecoder) override it."""
-        u = numpy.asarray(u, dtype=numpy.float64)
-        q = numpy.zeros(self.NumberOfRomDofs())
-        for _ in range(max_iterations):
-            dq = numpy.linalg.lstsq(self.Jacobian(q), u - self.Decode(q), rcond=None)[0]
-            q = q + dq
-            if numpy.linalg.norm(dq) <= tolerance * max(numpy.linalg.norm(q), 1.0):
-                break
-        return q
 
     def UpdateReducedCoordinates(self, q, dof_set, process_info):
         """Called by the solver at the start of each step, after InitializeSolutionStep, with the reduced coordinates of the last step,
@@ -145,11 +148,12 @@ class LinearDecoder(RomDecoder):
     def Jacobian(self, q):
         return self.phi
 
-    def Encode(self, u, **kwargs):
-        """Least squares reduced coordinates of u: (Phi^T Phi)^-1 Phi^T (u - u0), which is Phi^T (u - u0) for an orthonormal basis"""
-        if not hasattr(self, "_gram"):
-            self._gram = self.phi.T @ self.phi
-        return numpy.linalg.solve(self._gram, self.phi.T @ (numpy.asarray(u, dtype=numpy.float64) - self.u0))
+    def Encode(self, u, q=None):
+        """Least squares on the basis, q = Phi^+ (u - u0), through its thin QR factorization (computed once)."""
+        if not hasattr(self, "_phi_qr"):
+            self._phi_qr = numpy.linalg.qr(self.phi)
+        phi_q, phi_r = self._phi_qr
+        return numpy.linalg.solve(phi_r, phi_q.T @ (u - self.u0))
 
 
 RegisterDecoder("linear", LinearDecoder)
@@ -340,6 +344,7 @@ class FixedDofsDecoder(RomDecoder):
 
     The fixed DOFs (e.g. Dirichlet conditions) are not approximated: their values are the ones imposed in the model, read in
     InitializeSolutionStep. Their rows of the Jacobian are zero. Any decoder can be wrapped (linear or nonlinear).
+    Encode is the Gauss-Newton one of the base class: as the Jacobian is zero on the fixed DOFs, it fits the free DOFs only.
     """
 
     def __init__(self, decoder, dof_set):
