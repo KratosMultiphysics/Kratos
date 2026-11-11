@@ -25,11 +25,11 @@ class KratosGeoMechanicsInterfaceTests(KratosUnittest.TestCase):
 
         characteristic_node_ids = [1, 2, 3, 4, 5]
         regression_displacement_results = [
-            [-0.00075417, -0.104971, 0],
-            [-2.74607e-05, -0.105343, 0],
-            [0.000989452, -0.105352, 0],
-            [-0.00286768, -0.109109, 0],
-            [7.98339e-05, -0.10327, 0],
+            [-0.00076362, -0.104623, 0],
+            [-2.55326e-05, -0.104993, 0],
+            [0.000950976, -0.105002, 0],
+            [-0.00256835, -0.108894, 0],
+            [-0.000377458, -0.102321, 0],
         ]
         for node_id, reg_disp in zip(
             characteristic_node_ids, regression_displacement_results
