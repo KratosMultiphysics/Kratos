@@ -68,7 +68,7 @@ def CreateFutureScheme(model_part, settings, legacy_scheme, run_hrom=False, sche
 class FutureRomStrategy:
     def __init__(self, solver, rom_data_folder="rom_data", criterion_residual="zero", run_hrom=False, hrom_weights_set=0, train_hrom=False,
                  use_native_schemes=True, convergence_criterion="solver", residual_relative_tolerance=1.0e-9, residual_absolute_tolerance=1.0e-9,
-                 update="increment", scheme="auto", decoder_factory=None, name=None, snapshots=None):
+                 update="increment", scheme="auto", decoder_factory=None, name=None, snapshots=None, initial_reduced_coordinates=None):
         """criterion_residual: the residual vector given to the convergence criterion. "zero" as the legacy ROM (its builder never
         builds the full residual, so a residual criterion converges at once); "full" the assembled FOM residual.
         run_hrom: only the HROM entities of the ROM folder are assembled, scaled by the column hrom_weights_set of their weights (one
@@ -88,7 +88,11 @@ class FutureRomStrategy:
         of the step (residual_relative_tolerance) or absolute, divided by the square root of the number of ROM DOFs.
         update: how the new reduced coordinates reach the DOFs. "increment": D(q + dq) - D(q) added by the scheme on top of the current
         state (the legacy ROM with a linear decoder; keeps the predictor of the scheme and any part of the state outside the decoder).
-        "absolute": the state is set to D(q) before each build (the FutureRomSolver of #14850; the predictor is overwritten)."""
+        "absolute": the state is set to D(q) before each build (the FutureRomSolver of #14850; the predictor is overwritten).
+        initial_reduced_coordinates: None (q = 0 and the initial state as it is, enough for a linear decoder, whose Jacobian does not
+        depend on q), "encode" (the q whose decoding is closest to the initial state on the free DOFs, by Gauss-Newton) or a function
+        (decoder, dof_set) -> q. With the last two the free DOFs are set to D(q) before the first step, as the legacy ANN and RBF
+        enhanced ROMs do: a nonlinear decoder needs the reduced coordinates of the state it starts from."""
         self.solver = solver
         self.model_part = solver.GetComputingModelPart()
         self.rom_data_folder = rom_data_folder
@@ -118,6 +122,7 @@ class FutureRomStrategy:
         self.train_hrom, self.hrom_residual_snapshots = train_hrom, []
         self.name, self.decoder_factory = name, decoder_factory
         self.snapshots = snapshots
+        self.initial_reduced_coordinates, self.initial_state_encoded = initial_reduced_coordinates, False
         self.scheme, self.scheme_origin = CreateFutureScheme(self.model_part, scheme_settings, self.legacy_scheme, run_hrom,
                                                              scheme if use_native_schemes else "adapter")
         self.strategy_data = KratosMultiphysics.Future.ImplicitStrategyData()
@@ -152,8 +157,32 @@ class FutureRomStrategy:
                 self.snapshot_rows = GetBasisRows(self.rom_data_folder, self.strategy_data.GetEffectiveDofSet())
             self.initialized = True
 
+    def _EncodeInitialState(self):
+        """Reduced coordinates of the initial state and free DOFs on the decoder, once, before the first step"""
+        if self.initial_state_encoded or self.initial_reduced_coordinates is None:
+            return
+        self.initial_state_encoded = True
+        dof_set = self.strategy_data.GetEffectiveDofSet()
+        state = numpy.array(dof_set.GetValues())
+        free = numpy.array([not dof.IsFixed() for dof in dof_set])
+        if callable(self.initial_reduced_coordinates):
+            q = numpy.array(self.initial_reduced_coordinates(self.decoder, dof_set), dtype=numpy.float64)
+        elif self.initial_reduced_coordinates == "encode":
+            q = numpy.zeros(self.decoder.NumberOfRomDofs())
+            for _ in range(20):
+                dq = numpy.linalg.lstsq(self.decoder.Jacobian(q)[free], (state - self.decoder.Decode(q))[free], rcond=None)[0]
+                q = q + dq
+                if numpy.linalg.norm(dq) <= 1.0e-12 * max(numpy.linalg.norm(q), 1.0e-300):
+                    break
+        else:
+            raise Exception("Unknown 'initial_reduced_coordinates'. Options: None, 'encode' or a function (decoder, dof_set) -> q.")
+        self.q = q
+        state[free] = self.decoder.Decode(q)[free]
+        dof_set.SetValues(state)
+
     def InitializeSolutionStep(self):
         self.Initialize()
+        self._EncodeInitialState()
         self.scheme.InitializeSolutionStep(self.strategy_data)
         self.criterion.InitializeSolutionStep(self.model_part, self.dof_set, self.criterion_A, self.criterion_dx, self._CriterionResidual())
         self.decoder.InitializeSolutionStep()
@@ -171,6 +200,7 @@ class FutureRomStrategy:
 
     def Predict(self):
         self.Initialize()
+        self._EncodeInitialState()
         self.scheme.Predict(self.strategy_data)
 
     def _SetState(self, q):
@@ -344,6 +374,16 @@ def UseFutureRomStrategies(analysis, rom_data_folder="rom_data", per_solver=None
         arguments.update((per_solver or {}).get(name, {}))
         solver._CreateSolutionStrategy = lambda solver=solver, arguments=arguments: FutureRomStrategy(solver, rom_data_folder, **arguments)
         solvers.append(solver)
+    # The initial state is encoded once the analysis is initialized (initial conditions applied), as the legacy enhanced ROMs do
+    initialize = analysis.Initialize
+    def InitializeAndEncodeInitialState():
+        initialize()
+        for solver in solvers:
+            strategy = solver._GetSolutionStrategy()
+            if strategy.initial_reduced_coordinates is not None:
+                strategy.Initialize()
+                strategy._EncodeInitialState()
+    analysis.Initialize = InitializeAndEncodeInitialState
     return solvers
 
 
