@@ -35,6 +35,12 @@
 #include "custom_constitutive/thermal_linear_elastic_3D_law.hpp"
 #include "custom_constitutive/thermal_linear_elastic_2D_plane_strain.hpp"
 #include "custom_constitutive/thermal_linear_elastic_2D_plane_stress.hpp"
+#include "custom_utilities/nodal_young_modulus_utilities.h"
+
+// StructuralMechanicsApplication mechanical reference laws (zero thermal strain)
+#include "custom_constitutive/flexible_elastic_isotropic_3d.h"
+#include "custom_constitutive/linear_plane_strain.h"
+#include "custom_constitutive/linear_plane_stress.h"
 
 namespace Kratos
 {
@@ -107,6 +113,8 @@ ModelPart& CreateFamilyModelPart(
     r_model_part.AddNodalSolutionStepVariable(VOLUME_ACCELERATION);
     r_model_part.AddNodalSolutionStepVariable(TEMPERATURE);
     r_model_part.AddNodalSolutionStepVariable(NODAL_REFERENCE_TEMPERATURE);
+    // Optional nodal Young's modulus field for the accessor configuration.
+    r_model_part.AddNodalSolutionStepVariable(YOUNG_MODULUS);
     r_model_part.AddNodalSolutionStepVariable(NODAL_CAUCHY_STRESS_TENSOR);
     r_model_part.AddNodalSolutionStepVariable(NODAL_AREA);
 
@@ -395,6 +403,80 @@ struct FamilyLawParametersBundle
     }
 };
 
+/// The three Dam thermal linear-elastic families covered by these tests.
+const std::vector<std::string>& TleFamilyLawNames()
+{
+    static const std::vector<std::string> law_names = {
+        "ThermalLinearElastic3DLaw",
+        "ThermalLinearElastic2DPlaneStrain",
+        "ThermalLinearElastic2DPlaneStress"};
+    return law_names;
+}
+
+bool TleIs3D(const std::string& rLawName)
+{
+    return rLawName == "ThermalLinearElastic3DLaw";
+}
+
+std::size_t TleFamilyStrainSize(const std::string& rLawName)
+{
+    return TleIs3D(rLawName) ? 6 : 3;
+}
+
+std::string TleFamilyElementName(const std::string& rLawName)
+{
+    return TleIs3D(rLawName) ? "SmallDisplacementElement3D4N"
+                             : "SmallDisplacementElement2D3N";
+}
+
+/// Deterministic, fully populated non-trivial total strain state.
+Vector TleFamilyTestStrain(const std::string& rLawName)
+{
+    const std::size_t strain_size = TleFamilyStrainSize(rLawName);
+    Vector strain(strain_size);
+    strain[0] = 1.0e-3;
+    strain[1] = -5.0e-4;
+    strain[2] = 2.0e-4;
+    if (strain_size > 3) {
+        strain[3] = 3.0e-4;
+        strain[4] = -2.0e-4;
+        strain[5] = 1.0e-4;
+    }
+    return strain;
+}
+
+/// The mechanical (zero thermal strain) reference law of a Dam thermal family:
+/// same Young's modulus, Poisson ratio and strain state, no thermal strain.
+ConstitutiveLaw::Pointer tle_CreateMechanicalReferenceLaw(const std::string& rLawName)
+{
+    if (rLawName == "ThermalLinearElastic2DPlaneStrain") {
+        return ConstitutiveLaw::Pointer(new LinearPlaneStrain());
+    } else if (rLawName == "ThermalLinearElastic2DPlaneStress") {
+        return ConstitutiveLaw::Pointer(new LinearPlaneStress());
+    }
+    return ConstitutiveLaw::Pointer(new FlexibleElasticIsotropic3D());
+}
+
+/// Evaluates the PK2 response (stress vector + constitutive matrix) of a law
+/// for the given total strain on the family geometry/properties/process info.
+void tle_EvaluatePK2Response(
+    ConstitutiveLaw::Pointer pLaw,
+    const Geometry<Node>& rGeometry,
+    const Properties& rProperties,
+    const ProcessInfo& rProcessInfo,
+    const Vector& rStrain,
+    Vector& rStress,
+    Matrix& rConstitutiveMatrix)
+{
+    FamilyLawParametersBundle values(rGeometry, rProperties, rProcessInfo, rStrain);
+    Vector shape_function_values(rGeometry.PointsNumber());
+    noalias(shape_function_values) = row(rGeometry.ShapeFunctionsValues(), 0);
+    pLaw->InitializeMaterial(rProperties, rGeometry, shape_function_values);
+    pLaw->CalculateMaterialResponse(values.values, ConstitutiveLaw::StressMeasure_PK2);
+    rStress = values.values.GetStressVector();
+    rConstitutiveMatrix = values.values.GetConstitutiveMatrix();
+}
+
 } // namespace
 
 //************************************************************************************
@@ -483,6 +565,45 @@ KRATOS_TEST_CASE_IN_SUITE(ThermalFamily_Analytical_PlaneStressRestrained, Kratos
 }
 
 
+KRATOS_TEST_CASE_IN_SUITE(ThermalFamily_Analytical_3DRestrained, KratosDamFastSuite)
+{
+    // Restrained uniform thermal expansion (T1): zero total strain, uniform
+    // delta_T = 25. The 3D law applies epsilon_th = alpha*delta_T*[1,1,1,0,0,0],
+    // so epsilon_mech = -epsilon_th and the isotropic confined stress is
+    //   sigma_xx = sigma_yy = sigma_zz = -E*alpha*delta_T/(1 - 2*nu),
+    // sigma_xy = sigma_yz = sigma_xz = 0  (since 3*lambda + 2*mu = E/(1-2*nu)).
+    const double expected_normal_stress =
+        -tle_test_young_modulus * tle_test_thermal_expansion * test_delta_temperature /
+        (1.0 - 2.0 * tle_test_poisson_ratio);
+    Vector expected(6);
+    expected[0] = expected_normal_stress;
+    expected[1] = expected_normal_stress;
+    expected[2] = expected_normal_stress;
+    expected[3] = 0.0;
+    expected[4] = 0.0;
+    expected[5] = 0.0;
+
+    Model model;
+    ModelPart& r_model_part = CreateFamilyModelPart(
+        model, "Analytical3D", "SmallDisplacementElement3D4N",
+        "ThermalLinearElastic3DLaw", 3, 0);
+    PrescribeFamilyScenario(r_model_part, 1, 3);
+    auto p_element = r_model_part.pGetElement(1);
+    const ProcessInfo& r_pi = r_model_part.GetProcessInfo();
+    KRATOS_EXPECT_EQ(p_element->Check(r_pi), 0);
+    p_element->Initialize(r_pi);
+    p_element->InitializeSolutionStep(r_pi);
+    p_element->InitializeNonLinearIteration(r_pi);
+
+    std::vector<Vector> cauchy;
+    p_element->CalculateOnIntegrationPoints(CAUCHY_STRESS_VECTOR, cauchy, r_pi);
+    KRATOS_EXPECT_FALSE(cauchy.empty());
+    for (std::size_t gp = 0; gp < cauchy.size(); ++gp) {
+        ExpectVectorComponentsNear(cauchy[gp], expected, "3D analytical restrained stress");
+    }
+}
+
+
 //************************************************************************************
 // 2D lifecycle (inherited behavior)
 //************************************************************************************
@@ -541,6 +662,160 @@ KRATOS_TEST_CASE_IN_SUITE(ThermalFamily_Serialization_2DLaws, KratosDamFastSuite
         ExpectMatrixComponentsNear(
             values_before.values.GetConstitutiveMatrix(), values_after.values.GetConstitutiveMatrix(),
             r_law_name + " serialization constitutive matrix");
+    }
+}
+
+
+//************************************************************************************
+// Zero temperature increment: thermal adapter == underlying mechanical behavior
+//************************************************************************************
+
+KRATOS_TEST_CASE_IN_SUITE(ThermalFamily_ZeroDeltaTemperatureEquivalence, KratosDamFastSuite)
+{
+    // With Delta_T = T - T_ref = 0 (nodal temperature == nodal reference
+    // temperature, as set by CreateFamilyModelPart) the thermal strain vanishes
+    // identically. Each Dam thermal adapter must then reproduce the underlying
+    // mechanical law exactly for the same Young's modulus, Poisson ratio and
+    // strain state, and report null thermal outputs. The comparison is repeated
+    // with the standard nodal Young's-modulus accessor configuration (uniform
+    // nodal field equal to the property value), where applicable.
+    for (const std::string& r_law_name : TleFamilyLawNames()) {
+        Model model;
+        ModelPart& r_model_part = CreateFamilyModelPart(
+            model, "ZeroDeltaT" + r_law_name, TleFamilyElementName(r_law_name),
+            r_law_name, TleIs3D(r_law_name) ? 3 : 2, 0);
+        auto p_element = r_model_part.pGetElement(1);
+        const auto& r_geometry = p_element->GetGeometry();
+        Properties& r_properties = p_element->GetProperties();
+        const ProcessInfo& r_pi = r_model_part.GetProcessInfo();
+        const Vector strain = TleFamilyTestStrain(r_law_name);
+
+        ConstitutiveLaw::Pointer p_thermal_law = r_properties.GetValue(CONSTITUTIVE_LAW);
+        ConstitutiveLaw::Pointer p_reference_law = tle_CreateMechanicalReferenceLaw(r_law_name);
+
+        for (const bool use_accessor : {false, true}) {
+            if (use_accessor) {
+                for (auto& r_node : r_model_part.Nodes()) {
+                    r_node.FastGetSolutionStepValue(YOUNG_MODULUS) = tle_test_young_modulus;
+                }
+                NodalYoungModulusUtilities::InstallDatabaseAccessor(r_properties);
+            }
+            const std::string label = r_law_name + " zero-dT" +
+                                      (use_accessor ? " [nodal-Y accessor]" : "");
+
+            Vector thermal_stress, reference_stress;
+            Matrix thermal_matrix, reference_matrix;
+            tle_EvaluatePK2Response(p_thermal_law, r_geometry, r_properties, r_pi,
+                                    strain, thermal_stress, thermal_matrix);
+            tle_EvaluatePK2Response(p_reference_law, r_geometry, r_properties, r_pi,
+                                    strain, reference_stress, reference_matrix);
+            ExpectVectorComponentsNear(
+                thermal_stress, reference_stress, label + " stress vs mechanical reference");
+            ExpectMatrixComponentsNear(
+                thermal_matrix, reference_matrix,
+                label + " constitutive matrix vs mechanical reference");
+
+            // Specialized Dam outputs must show no thermal contribution.
+            FamilyLawParametersBundle values(r_geometry, r_properties, r_pi, strain);
+            p_thermal_law->CalculateMaterialResponse(values.values, ConstitutiveLaw::StressMeasure_PK2);
+            Vector thermal_strain_out, thermal_stress_out, mechanical_stress_out;
+            p_thermal_law->CalculateValue(values.values, THERMAL_STRAIN_VECTOR, thermal_strain_out);
+            p_thermal_law->CalculateValue(values.values, THERMAL_STRESS_VECTOR, thermal_stress_out);
+            p_thermal_law->CalculateValue(values.values, MECHANICAL_STRESS_VECTOR, mechanical_stress_out);
+
+            Vector zero(strain.size());
+            noalias(zero) = ZeroVector(strain.size());
+            ExpectVectorComponentsNear(thermal_strain_out, zero,
+                                       label + " THERMAL_STRAIN_VECTOR");
+            ExpectVectorComponentsNear(thermal_stress_out, zero,
+                                       label + " THERMAL_STRESS_VECTOR");
+            ExpectVectorComponentsNear(mechanical_stress_out, thermal_stress,
+                                       label + " MECHANICAL_STRESS_VECTOR == total stress");
+        }
+    }
+}
+
+
+//************************************************************************************
+// CalculateValue: non-Dam variables must reach the CLA/SMA base implementation
+//************************************************************************************
+
+KRATOS_TEST_CASE_IN_SUITE(ThermalFamily_CalculateValueBaseFallback, KratosDamFastSuite)
+{
+    // Variables that are not Dam-specific outputs are served by the CLA/SMA
+    // base-class CalculateValue implementations (ElasticIsotropic3D): the
+    // adapters must delegate to ElasticIsotropic3D::CalculateValue instead of
+    // returning the caller's rValue untouched. Sentinels detect the shadowing
+    // for both the Vector and the Matrix overload independently.
+    //
+    // The state is a genuinely thermal one (scenario 1: uniform nodal
+    // T = T_ref + 25 = 45 with T_ref = 20, so Delta_T = +25 for every law).
+    // CAUCHY_STRESS_VECTOR therefore only matches the expected value if the
+    // delegation reaches the Dam thermal response through the virtual chain
+    // CalculateMaterialResponsePK2 -> SubstractThermalStrain; a purely
+    // mechanical C*epsilon answer would omit that term.
+    for (const std::string& r_law_name : TleFamilyLawNames()) {
+        Model model;
+        ModelPart& r_model_part = CreateFamilyModelPart(
+            model, "BaseFallback" + r_law_name, TleFamilyElementName(r_law_name),
+            r_law_name, TleIs3D(r_law_name) ? 3 : 2, 0);
+        PrescribeFamilyScenario(r_model_part, 1, TleIs3D(r_law_name) ? 3 : 2);
+        auto p_element = r_model_part.pGetElement(1);
+        const auto& r_geometry = p_element->GetGeometry();
+        const Properties& r_properties = p_element->GetProperties();
+        const ProcessInfo& r_pi = r_model_part.GetProcessInfo();
+        const Vector strain = TleFamilyTestStrain(r_law_name);
+        ConstitutiveLaw::Pointer p_law = r_properties.GetValue(CONSTITUTIVE_LAW);
+
+        // Reference thermal response: element-provided strain plus exactly one
+        // in-place thermal subtraction (CalculateMaterialResponsePK2 subtracts
+        // the thermal strain on the Parameters strain vector on every call, so
+        // every assertion below runs on its own pristine Parameters).
+        FamilyLawParametersBundle expected_values(r_geometry, r_properties, r_pi, strain);
+        p_law->CalculateMaterialResponse(expected_values.values, ConstitutiveLaw::StressMeasure_PK2);
+        const Vector expected_stress = expected_values.values.GetStressVector();
+        const Matrix expected_matrix = expected_values.values.GetConstitutiveMatrix();
+
+        // Guard: the expected stress must carry a genuine thermal contribution,
+        // otherwise the CAUCHY_STRESS_VECTOR comparison below would be
+        // satisfied by a purely mechanical law and prove nothing about the
+        // dispatch chain.
+        const Vector mechanical_reference = prod(expected_matrix, strain);
+        KRATOS_EXPECT_GT(
+            norm_2(expected_stress - mechanical_reference),
+            0.1 * norm_2(mechanical_reference));
+
+        // Fresh Parameters for the fallback assertions: the base recomputes the
+        // response itself, so the element-provided strain is still intact.
+        FamilyLawParametersBundle values(r_geometry, r_properties, r_pi, strain);
+
+        // Vector overload, strain variable: base law returns the strain state.
+        Vector strain_out(1);
+        strain_out[0] = 1.0e30;
+        p_law->CalculateValue(values.values, STRAIN, strain_out);
+        ExpectVectorComponentsNear(
+            strain_out, strain,
+            r_law_name + " CalculateValue(STRAIN) base fallback");
+
+        // Matrix overload: base law assembles the constitutive matrix.
+        Matrix constitutive_out(1, 1);
+        constitutive_out(0, 0) = 1.0e30;
+        p_law->CalculateValue(values.values, CONSTITUTIVE_MATRIX, constitutive_out);
+        ExpectMatrixComponentsNear(
+            constitutive_out, expected_matrix,
+            r_law_name + " CalculateValue(CONSTITUTIVE_MATRIX) base fallback");
+
+        // Vector overload, stress variable: base law recomputes the thermal
+        // response through the virtual chain. Evaluated last because it
+        // subtracts the thermal strain in place on this Parameters strain
+        // vector, and compared against the independently obtained reference
+        // instead of the Parameters stress buffer it just wrote.
+        Vector stress_out(1);
+        stress_out[0] = 1.0e30;
+        p_law->CalculateValue(values.values, CAUCHY_STRESS_VECTOR, stress_out);
+        ExpectVectorComponentsNear(
+            stress_out, expected_stress,
+            r_law_name + " CalculateValue(CAUCHY_STRESS_VECTOR) base fallback");
     }
 }
 

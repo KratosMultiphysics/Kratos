@@ -348,8 +348,8 @@ void SnakeSbmProcess::CreateTheSnakeCoordinates(
     starting_pos_uv[1] = knot_vector_v[0];
 
     std::vector<Vector> parameter_external_coordinates(2);
-    parameter_external_coordinates[0].resize(2);
-    parameter_external_coordinates[1].resize(2);
+    parameter_external_coordinates[0].resize(2, false);
+    parameter_external_coordinates[1].resize(2, false);
 
     parameter_external_coordinates[0][0] = knot_vector_u[0];
     parameter_external_coordinates[1][0] = knot_vector_v[0];
@@ -392,6 +392,7 @@ void SnakeSbmProcess::CreateTheSnakeCoordinates(
         KRATOS_INFO_IF("::[SnakeSbmProcess]::", !is_inner) << "Outer :: Starting SnakeStep" << std::endl;
     }
             
+    r_skin_sub_model_part.SetValue(NEIGHBOUR_GEOMETRIES, std::vector<Geometry<Node>::Pointer>());
     if (rSkinModelPartInitial.NumberOfConditions() > 0) {
 
         auto p_skin_sub_model_part_loop = &(r_skin_sub_model_part.GetSubModelPart("0"));
@@ -457,6 +458,13 @@ void SnakeSbmProcess::CreateTheSnakeCoordinates(
     else if (rSkinModelPartInitial.Geometries().size()>0) // if the skin model part is defined by nurbs geometries
     {
         is_skin_nurbs = true;
+        // Store pointers to the input NURBS curves in the skin submodel part.
+        std::vector<Geometry<Node>::Pointer> nurbs_curves;
+        nurbs_curves.reserve(rSkinModelPartInitial.NumberOfGeometries());
+        for (const auto& r_geometry : rSkinModelPartInitial.Geometries()) {
+            nurbs_curves.push_back(rSkinModelPartInitial.pGetGeometry(r_geometry.Id()));
+        }
+        r_skin_sub_model_part.SetValue(NEIGHBOUR_GEOMETRIES, nurbs_curves);
         // number of sampling points per curve side
         const int number_initial_points_if_importing_nurbs = NumberInitialPointsIfImportingNurbs; 
         int first_node_id = r_skin_sub_model_part.GetRootModelPart().NumberOfNodes()+1;
@@ -1898,9 +1906,9 @@ void SnakeSbmProcess::CreateTheSnakeCoordinates3D(
 
     // Set PARAMETER_SPACE_CORNERS
     std::vector<Vector> parameter_external_coordinates(3);
-    parameter_external_coordinates[0].resize(2); // U
-    parameter_external_coordinates[1].resize(2); // V
-    parameter_external_coordinates[2].resize(2); // W
+    parameter_external_coordinates[0].resize(2, false); // U
+    parameter_external_coordinates[1].resize(2, false); // V
+    parameter_external_coordinates[2].resize(2, false); // W
 
     parameter_external_coordinates[0][0] = knot_vector_u[0];
     parameter_external_coordinates[1][0] = knot_vector_v[0];

@@ -39,7 +39,7 @@
 #include "trilinos_application.h"
 #include "custom_utilities/trilinos_matrix_market_io.h"
 #include "custom_utilities/trilinos_dof_updater_experimental.h"
-#include "includes/ublas_interface.h"
+#include "includes/default_interface.h"
 #include "spaces/ublas_space.h"
 #include "includes/data_communicator.h"
 #include "mpi/includes/mpi_data_communicator.h"

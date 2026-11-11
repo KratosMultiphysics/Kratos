@@ -18,7 +18,7 @@
 
 // Project includes
 
-#include "includes/ublas_interface.h"
+#include "includes/default_interface.h"
 #include "includes/node.h"
 #include "geometries/geometry.h"
 #include "includes/constitutive_law.h"

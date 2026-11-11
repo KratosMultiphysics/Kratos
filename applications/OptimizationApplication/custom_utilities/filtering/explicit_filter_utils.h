@@ -21,9 +21,8 @@
 #include "nanoflann/include/nanoflann.hpp"
 
 // Project includes
-#include "includes/define.h"
 #include "includes/model_part.h"
-#include "includes/ublas_interface.h"
+#include "includes/default_interface.h"
 #include "tensor_adaptors/tensor_adaptor.h"
 
 // Application includes

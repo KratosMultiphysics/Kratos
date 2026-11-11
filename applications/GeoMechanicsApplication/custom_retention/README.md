@@ -136,22 +136,22 @@ $$m = \frac{n - 1}{n}, \qquad \frac{1-n}{n} = -m$$
 
 The constraint $m = 1 - 1/n$ (Mualem–Van Genuchten closure) is **hardcoded**; there is no independent $m$ parameter.
 
-#### Degree of Saturation
-
-$$S = \begin{cases}
-S_s & \text{if } p \le 0 \\
-S_r + (S_s - S_r)\bigl(1 + (p/p_b)^n\bigr)^{-m} & \text{if } p > 0
-\end{cases}$$
-
 #### Effective (Normalised) Saturation
 
-$$S_e = \frac{S - S_r}{S_s - S_r} \in [0,\,1]$$
+$$S_e = \begin{cases}
+1 & \text{if } p \le 0 \\
+\bigl(1 + (p/p_b)^n\bigr)^{-m} & \text{if } p > 0
+\end{cases}$$
+
+#### Degree of Saturation
+
+$$S = S_r + (S_s - S_r) \cdot S_e$$
 
 #### Derivative of Saturation with Respect to Fluid Pressure
 
 $$\frac{\partial S}{\partial p} = \begin{cases}
 0 & \text{if } p \le 0 \\
-(S_s - S_r)\,(-m)\bigl(1+(p/p_b)^n\bigr)^{-m-1} \cdot n\,p_b^{-n}\,p^{n-1} & \text{if } p > 0
+(S_s - S_r) \cdot (-m) \cdot n \cdot p_b^{-n} \cdot \bigl(1+(p/p_b)^n\bigr)^{-m-1} \cdot p^{n-1} & \text{if } p > 0
 \end{cases}$$
 
 > Note: The derivative is **negative** for $p > 0$ since saturation decreases as suction increases.

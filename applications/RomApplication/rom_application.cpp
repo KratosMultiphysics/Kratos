@@ -31,7 +31,12 @@ KratosRomApplication::KratosRomApplication():
 
 void KratosRomApplication::Register()
 {
-    KRATOS_INFO("") << "Initializing KratosRomApplication..." << std::endl;
+    KRATOS_INFO("") << "    KRATOS   ____    ___   __  __\n"
+                    << "            |  _ \\  / _ \\ |  \\/  |\n"
+                    << "            | |_) || | | || |\\/| |\n"
+                    << "            |  _ < | |_| || |  | |\n"
+                    << "            |_| \\_\\ \\___/ |_|  |_| APPLICATION\n"
+                    << "Initializing KratosRomApplication..." << std::endl;
 
     KRATOS_REGISTER_MODELER("HRomVisualizationMeshModeler", mHRomVisualizationMeshModeler);
 
@@ -44,6 +49,10 @@ void KratosRomApplication::Register()
     KRATOS_REGISTER_VARIABLE ( SOLUTION_BASE )
     KRATOS_REGISTER_VARIABLE ( SVD_PHI_MATRICES )
     KRATOS_REGISTER_VARIABLE ( NN_LAYERS )
+    KRATOS_REGISTER_VARIABLE ( W_MAT )
+    KRATOS_REGISTER_VARIABLE ( CENTERS_MAT )
+    KRATOS_REGISTER_VARIABLE ( KERNEL_TYPE )
+    KRATOS_REGISTER_VARIABLE ( KERNEL_EPS )
     KRATOS_REGISTER_VARIABLE ( SOLUTION_REFERENCE )
     KRATOS_REGISTER_VARIABLE ( UPDATE_PHI_EFFECTIVE_BOOL )
 }

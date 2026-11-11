@@ -11,7 +11,8 @@
 //
 
 // System includes
-
+#include <algorithm>
+#include <set>
 
 // External includes
 
@@ -654,27 +655,50 @@ void RomAuxiliaryUtilities::RecursiveVisualizationSubModelPartCreation(
     }
     r_vis_sub_mp.AddNodes(nodes_to_add);
 
+    // Note that the visualization conditions are new entities (their ids are not the origin ones)
+    // Hence these are matched by their sorted node ids with the conditions and geometries of the origin sub model part
+    const auto sorted_node_ids = [](const GeometryType& rGeometry){
+        std::vector<IndexType> node_ids;
+        node_ids.reserve(rGeometry.PointsNumber());
+        for (const auto& r_node : rGeometry) {
+            node_ids.push_back(r_node.Id());
+        }
+        std::sort(node_ids.begin(), node_ids.end());
+        return node_ids;
+    };
+    std::set<std::vector<IndexType>> origin_faces;
+    for (const auto& r_condition : rOriginSubModelPart.Conditions()) {
+        origin_faces.insert(sorted_node_ids(r_condition.GetGeometry()));
+    }
+    for (const auto& r_geometry : rOriginSubModelPart.Geometries()) {
+        origin_faces.insert(sorted_node_ids(r_geometry));
+    }
+
     std::vector<IndexType> conditions_to_add;
     conditions_to_add.reserve(rDestinationModelPart.NumberOfConditions());
     for (const auto& r_condition : rDestinationModelPart.Conditions()) {
-        if (rOriginSubModelPart.HasCondition(r_condition.Id())) {
+        if (origin_faces.find(sorted_node_ids(r_condition.GetGeometry())) != origin_faces.end()) {
             conditions_to_add.push_back(r_condition.Id());
         }
     }
     r_vis_sub_mp.AddConditions(conditions_to_add);
 
-    std::vector<IndexType> elements_to_add;
-    elements_to_add.reserve(rDestinationModelPart.NumberOfElements());
-    for (const auto& r_element : rDestinationModelPart.Elements()) {
-        if (rOriginSubModelPart.HasElement(r_element.Id())) {
-            elements_to_add.push_back(r_element.Id());
-        }
-    }
-    r_vis_sub_mp.AddElements(elements_to_add);
-
     // Recursively check sub model parts
     for (const auto& r_sub_mp : rOriginSubModelPart.SubModelParts()) {
         RecursiveVisualizationSubModelPartCreation(r_sub_mp, r_vis_sub_mp);
+    }
+}
+
+void RomAuxiliaryUtilities::RecursiveVisualizationGeometriesAddition(ModelPart& rModelPart)
+{
+    for (auto& r_sub_mp : rModelPart.SubModelParts()) {
+        std::vector<IndexType> geometries_to_add;
+        geometries_to_add.reserve(r_sub_mp.NumberOfConditions());
+        for (const auto& r_condition : r_sub_mp.Conditions()) {
+            geometries_to_add.push_back(r_condition.GetGeometry().Id());
+        }
+        r_sub_mp.AddGeometries(geometries_to_add);
+        RecursiveVisualizationGeometriesAddition(r_sub_mp);
     }
 }
 
@@ -700,6 +724,51 @@ std::vector<IndexType> RomAuxiliaryUtilities::GetHRomConditionParentsIds(
     }
 
     return parent_ids;
+}
+
+std::vector<IndexType> RomAuxiliaryUtilities::GetHRomElementChildrenIds(
+    const ModelPart& rModelPart,
+    const std::map<std::string, std::map<IndexType, double>>& rHRomWeights)
+{
+    const auto& r_elem_weights = rHRomWeights.at("Elements");
+    const auto& r_cond_weights = rHRomWeights.at("Conditions");
+
+    // Elements of the HROM attached to each of their nodes
+    std::unordered_map<IndexType, std::vector<IndexType>> node_hrom_elements;
+    for (const auto& r_elem_weight : r_elem_weights) {
+        for (const auto& r_node : rModelPart.GetElement(r_elem_weight.first).GetGeometry()) {
+            node_hrom_elements[r_node.Id()].push_back(r_elem_weight.first);
+        }
+    }
+
+    // A condition is a child of an HROM element if all its nodes belong to that element
+    std::vector<IndexType> children_ids;
+    for (const auto& r_cond : rModelPart.Conditions()) {
+        if (r_cond_weights.find(r_cond.Id()) != r_cond_weights.end()) {
+            continue;
+        }
+        const auto& r_geom = r_cond.GetGeometry();
+        const auto it_first_node = node_hrom_elements.find(r_geom[0].Id());
+        if (it_first_node == node_hrom_elements.end()) {
+            continue;
+        }
+        for (const IndexType elem_id : it_first_node->second) {
+            bool is_child = true;
+            for (const auto& r_node : r_geom) {
+                const auto it_node = node_hrom_elements.find(r_node.Id());
+                if (it_node == node_hrom_elements.end() || std::find(it_node->second.begin(), it_node->second.end(), elem_id) == it_node->second.end()) {
+                    is_child = false;
+                    break;
+                }
+            }
+            if (is_child) {
+                children_ids.push_back(r_cond.Id());
+                break;
+            }
+        }
+    }
+
+    return children_ids;
 }
 
 std::vector<IndexType> RomAuxiliaryUtilities::GetHRomConditionParentsIds(
@@ -1005,7 +1074,7 @@ void RomAuxiliaryUtilities::ProjectRomSolutionIncrementToNodes(
             // would be accumulated to that one performed in the ROM B&S (see ProjectToFineBasis)
             //FIXME: WE WOULD BE UPDATING THE VALUES TWICE....
             if (!rNode.IsFixed(*p_var)) {
-                rNode.FastGetSolutionStepValue(*p_var) += inner_prod(row(r_rom_basis, i_var++), r_rom_sol_incr);
+                rNode.FastGetSolutionStepValue(*p_var) += inner_prod(subrange(row(r_rom_basis, i_var++), 0, r_rom_sol_incr.size()), r_rom_sol_incr);
             }
 
         }
@@ -1039,7 +1108,8 @@ void RomAuxiliaryUtilities::GetPhiElemental(
                 const auto variable_key = r_dof.GetVariable().Key();
                 const Matrix::size_type row_id = rVarToRowMapping.at(variable_key);
 
-                noalias(row(rPhiElemental, i)) = row(nodal_rom_basis, row_id);
+                // The nodal basis might have more columns than the modes of this solver (zero-padded bases of coupled solvers)
+                noalias(row(rPhiElemental, i)) = subrange(row(nodal_rom_basis, row_id), 0, rPhiElemental.size2());
             }
         }
     }
@@ -1087,5 +1157,100 @@ void RomAuxiliaryUtilities::GetJPhiElemental(
             noalias(row(rJPhiElemental, i)) = row(rJPhi, r_dof.EquationId());
         }
     }
+
+void RomAuxiliaryUtilities::AddGeometries(
+    const ModelPart& rOriginModelPart,
+    ModelPart& rDestinationModelPart)
+{
+    KRATOS_TRY
+
+    // Root level
+    // Elements
+    for (const auto& r_elem : rDestinationModelPart.Elements()) {
+        auto p_geom = rOriginModelPart.GetElement(r_elem.Id()).pGetGeometry();
+        rDestinationModelPart.AddGeometry(p_geom);
+    }
+    // Conditions
+    for (const auto& r_cond : rDestinationModelPart.Conditions()) {
+        auto p_geom = rOriginModelPart.GetCondition(r_cond.Id()).pGetGeometry();
+        rDestinationModelPart.AddGeometry(p_geom);
+    }
+
+    // SubModelParts
+    std::unordered_map<std::string, std::vector<IndexType>> smp_geoms;
+    for (const auto& r_dest_smp : rDestinationModelPart.SubModelParts()) {
+        auto& r_orig_smp = rOriginModelPart.GetSubModelPart(r_dest_smp.Name());
+        // Elements
+        for (const auto& r_elem : r_dest_smp.Elements()) {
+            auto p_geom = r_orig_smp.GetElement(r_elem.Id()).pGetGeometry();
+            smp_geoms[r_dest_smp.Name()].push_back(p_geom->Id());
+        }
+        // Conditions
+        for (const auto& r_cond : r_dest_smp.Conditions()) {
+            auto p_geom = r_orig_smp.GetCondition(r_cond.Id()).pGetGeometry();
+            smp_geoms[r_dest_smp.Name()].push_back(p_geom->Id());
+        }
+    }
+
+    for (const auto& r_map : smp_geoms) {
+        rDestinationModelPart.GetSubModelPart(r_map.first).AddGeometries(r_map.second);
+    }
+
+    KRATOS_CATCH("")
+}
+
+void RomAuxiliaryUtilities::AddHRomVisualizationGeometries(ModelPart& rHRomVisualizationModelPart)
+{
+    KRATOS_TRY
+
+    // The skin geometries are created with the visualization model part (these are not in the origin one), so these can be renumbered
+    for (auto& r_condition : rHRomVisualizationModelPart.Conditions()) {
+        auto p_geometry = r_condition.pGetGeometry();
+        p_geometry->SetId(r_condition.Id());
+        rHRomVisualizationModelPart.AddGeometry(p_geometry);
+    }
+    RecursiveVisualizationGeometriesAddition(rHRomVisualizationModelPart);
+
+    KRATOS_CATCH("")
+}
+
+namespace {
+
+void AssignPropertiesToEntitiesInModelPart(ModelPart& rModelPart, const Properties::Pointer pProperties)
+{
+    for (auto& r_element : rModelPart.Elements()) {
+        if (r_element.pGetProperties() == nullptr) {
+            r_element.SetProperties(pProperties);
+        }
+    }
+    for (auto& r_condition : rModelPart.Conditions()) {
+        if (r_condition.pGetProperties() == nullptr) {
+            r_condition.SetProperties(pProperties);
+        }
+    }
+    for (auto& r_sub_model_part : rModelPart.SubModelParts()) {
+        AssignPropertiesToEntitiesInModelPart(r_sub_model_part, pProperties);
+    }
+}
+
+} // anonymous namespace
+
+void RomAuxiliaryUtilities::AssignPropertiesToEntitiesIfMissing(ModelPart& rModelPart)
+{
+    KRATOS_TRY
+
+    // Look for existing properties in the root model part, creating a default one if there is none
+    ModelPart& r_root_model_part = rModelPart.GetRootModelPart();
+    Properties::Pointer p_properties;
+    if (r_root_model_part.NumberOfProperties() > 0) {
+        p_properties = r_root_model_part.pGetProperties(r_root_model_part.PropertiesBegin()->Id());
+    } else {
+        p_properties = r_root_model_part.CreateNewProperties(0);
+    }
+
+    AssignPropertiesToEntitiesInModelPart(rModelPart, p_properties);
+
+    KRATOS_CATCH("")
+}
 
 } // namespace Kratos

@@ -219,6 +219,8 @@ void BrepSbmUtilities<TNodeType>::CreateBrepVolumeSbmIntegrationPoints(
             IndexType perpendicular_condition_index = 1;
 
             if (is_outer_loop_defined){
+                KRATOS_DEBUG_ERROR_IF(perpendicular_conditions_per_u_direction[j][k].size() % 2 != 0)
+                    << "Expected an even number of perpendicular conditions per u direction." << std::endl;
                 if (perpendicular_conditions_per_u_direction[j][k].empty()) {continue;}
                 starting_u_index = FindKnotSpans1D(rSpansU, perpendicular_conditions_per_u_direction[j][k][0]+tolerance);
                 next_switch_knot_span = FindKnotSpans1D(rSpansU, perpendicular_conditions_per_u_direction[j][k][1]+tolerance);

@@ -138,7 +138,18 @@ public:
             mStressVector(rOther.mStressVector),
             mMaxDetected(rOther.mMaxDetected),
             mMinDetected(rOther.mMinDetected),
-            mWohlerStress(rOther.mWohlerStress)
+            mWohlerStress(rOther.mWohlerStress),
+            mThresholdStress(rOther.mThresholdStress),
+            mReversionFactorRelativeError(rOther.mReversionFactorRelativeError),
+            mMaxStressRelativeError(rOther.mMaxStressRelativeError),
+            mNewCycleIndicator(rOther.mNewCycleIndicator),
+            mCyclesToFailure(rOther.mCyclesToFailure),
+            mPreviousCycleTime(rOther.mPreviousCycleTime),
+            mPeriod(rOther.mPeriod),
+            mReferenceDamage(rOther.mReferenceDamage),
+            mPreviousCycleDamage(rOther.mPreviousCycleDamage),
+            mFirstCycleOfANewLoad(rOther.mFirstCycleOfANewLoad),
+            mCFactor(rOther.mCFactor)
     {
     }
 

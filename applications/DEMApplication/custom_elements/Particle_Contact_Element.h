@@ -5,21 +5,15 @@
 #if !defined(KRATOS_PARTICLE_CONTACT_ELEMENT_H_INCLUDED )
 #define  KRATOS_PARTICLE_CONTACT_ELEMENT_H_INCLUDED
 
-
-
 // System includes
-
 
 // External includes
 
-
 // Project includes
-#include "includes/define.h"
 #include "includes/serializer.h"
 #include "includes/element.h"
-#include "includes/ublas_interface.h"
+#include "includes/default_interface.h"
 #include "includes/variables.h"
-//#include "includes/constitutive_law.h"
 
 namespace Kratos
 {

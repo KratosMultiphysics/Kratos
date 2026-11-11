@@ -118,6 +118,20 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombLaw_Check, KratosGeoMechanicsFastSuiteWitho
     properties.SetValue(GEO_MAX_NUMBER_OF_SUB_STEPS, 100);
 
     KRATOS_EXPECT_EQ(law.Check(properties, element_geometry, process_info), 0);
+
+    properties.SetValue(GEO_YOUNGS_MODULUS_FORMULATION, "SCHANZ_VERMEER"s);
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        [[maybe_unused]] const auto unused = law.Check(properties, element_geometry, process_info),
+        "GEO_PRESSURE_REFERENCE does not exist in the parameters of material with Id 3.");
+    properties.SetValue(GEO_PRESSURE_REFERENCE, 100.0);
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        [[maybe_unused]] const auto unused = law.Check(properties, element_geometry, process_info),
+        "GEO_STRESS_DEPENDENCY_EXPONENT does not exist in the parameters of material with Id 3.");
+    properties.SetValue(GEO_STRESS_DEPENDENCY_EXPONENT, 0.5);
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        [[maybe_unused]] const auto unused = law.Check(properties, element_geometry, process_info), "GEO_MAXIMUM_MINOR_PRINCIPAL_STRESS does not exist in the parameters of material with Id 3.");
+    properties.SetValue(GEO_MAXIMUM_MINOR_PRINCIPAL_STRESS, -1.0);
+    KRATOS_EXPECT_EQ(law.Check(properties, element_geometry, process_info), 0);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateMaterialResponseCauchyAtElasticZone,
@@ -497,6 +511,90 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateConstitutiveMatr
                                                                       {5.77E7, 5.77E7, 1.35E8, 0.},
                                                                       {0., 0., 0., 3.85E7}});
     KRATOS_EXPECT_MATRIX_NEAR(constitutive_matrix, expected_constitutive_matrix, 1.E6);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_SchanzVermeerElasticResponseAndState,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    KRATOS_REGISTER_VARIABLE(YOUNG_MODULUS)
+    KRATOS_REGISTER_VARIABLE(POISSON_RATIO)
+    KRATOS_REGISTER_VARIABLE(GEO_YOUNGS_MODULUS_FORMULATION)
+    KRATOS_REGISTER_VARIABLE(GEO_PRESSURE_REFERENCE)
+    KRATOS_REGISTER_VARIABLE(GEO_STRESS_DEPENDENCY_EXPONENT)
+
+    const auto scoped_registration =
+        ScopedSerializerRegistration{std::make_pair("PlaneStrain"s, PlaneStrain{}),
+                                     std::make_pair("ThreeDimensional"s, ThreeDimensional{}),
+                                     std::make_pair("MohrCoulombLaw"s, MohrCoulombLaw{})};
+
+    for (const auto strain_size : {std::size_t{4}, std::size_t{6}}) {
+        std::unique_ptr<ConstitutiveLawDimension> p_dimension = std::make_unique<PlaneStrain>();
+        if (strain_size == 6) p_dimension = std::make_unique<ThreeDimensional>();
+        auto law = MohrCoulombLaw(std::move(p_dimension));
+
+        Properties properties;
+        properties.SetValue(GEO_DRAINAGE_TYPE, "FULLY_COUPLED"s);
+        properties.SetValue(YOUNG_MODULUS, 1000.0);
+        properties.SetValue(POISSON_RATIO, 0.0);
+        properties.SetValue(GEO_FRICTION_ANGLE, 45.0);
+        properties.SetValue(GEO_COHESION, 100.0);
+        properties.SetValue(GEO_DILATANCY_ANGLE, 0.0);
+        properties.SetValue(GEO_YOUNGS_MODULUS_FORMULATION, "SCHANZ_VERMEER"s);
+        properties.SetValue(GEO_PRESSURE_REFERENCE, 100.0);
+        properties.SetValue(GEO_STRESS_DEPENDENCY_EXPONENT, 1.0);
+
+        Vector strain_vector = ZeroVector(strain_size);
+        Vector stress_vector = ZeroVector(strain_size);
+        std::fill_n(stress_vector.begin(), 3, -300.0);
+        Matrix                      constitutive_matrix;
+        ConstitutiveLaw::Parameters parameters;
+        parameters.SetMaterialProperties(properties);
+        parameters.SetStrainVector(strain_vector);
+        parameters.SetStressVector(stress_vector);
+        parameters.SetConstitutiveMatrix(constitutive_matrix);
+        parameters.Set(ConstitutiveLaw::COMPUTE_STRESS);
+        parameters.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
+        law.InitializeMaterial(properties, Geometry<Node>{}, Vector{});
+        law.InitializeMaterialResponseCauchy(parameters);
+
+        Vector expected_stress = ZeroVector(strain_size);
+        Matrix expected_matrix = ZeroMatrix(strain_size, strain_size);
+        for (std::size_t component = 0; component < strain_size; ++component) {
+            expected_matrix(component, component) = component < 3 ? 2000.0 : 1000.0;
+            if (component < 3) {
+                strain_vector[component]   = -0.001;
+                expected_stress[component] = -302.0;
+            }
+        }
+
+        law.CalculateMaterialResponseCauchy(parameters);
+        KRATOS_EXPECT_VECTOR_NEAR(stress_vector, expected_stress, Defaults::absolute_tolerance);
+        KRATOS_EXPECT_MATRIX_NEAR(constitutive_matrix, expected_matrix, Defaults::absolute_tolerance);
+        law.CalculateMaterialResponseCauchy(parameters);
+        KRATOS_EXPECT_VECTOR_NEAR(stress_vector, expected_stress, Defaults::absolute_tolerance);
+        law.FinalizeMaterialResponseCauchy(parameters);
+
+        auto p_cloned_law = law.Clone();
+        auto serializer   = StreamSerializer{};
+        serializer.save("law"s, p_cloned_law);
+        ConstitutiveLaw::Pointer p_loaded_law;
+        serializer.load("law"s, p_loaded_law);
+
+        for (std::size_t component = 0; component < strain_size; ++component) {
+            expected_matrix(component, component) = component < 3 ? 2010.0 : 1005.0;
+            if (component < 3) {
+                strain_vector[component]   = -0.002;
+                expected_stress[component] = -304.01;
+            }
+        }
+        for (auto* p_law : {static_cast<ConstitutiveLaw*>(&law), p_cloned_law.get(), p_loaded_law.get()}) {
+            stress_vector = ZeroVector(strain_size);
+            p_law->InitializeMaterialResponseCauchy(parameters);
+            p_law->CalculateMaterialResponseCauchy(parameters);
+            KRATOS_EXPECT_VECTOR_NEAR(stress_vector, expected_stress, Defaults::absolute_tolerance);
+            KRATOS_EXPECT_MATRIX_NEAR(constitutive_matrix, expected_matrix, Defaults::absolute_tolerance);
+        }
+    }
 }
 
 KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_WorkingSpaceDimensionDependsOnConstitutiveLawDimension,
@@ -1113,6 +1211,76 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_SubStepping, KratosGeoMec
     // Check that the error without sub-stepping is much larger than the error with sub-stepping, both errors are checked to show the added value
     KRATOS_EXPECT_NEAR(error_no_sub_step, 6.848975256, 1e-8);
     KRATOS_EXPECT_NEAR(error_with_sub_step, 0.18363803, 1e-8);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(MohrCoulombLaw_SchanzVermeerStiffnessIsDefinedAfterTensionApexReturn,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    constexpr auto cohesion                   = 10.0;
+    constexpr auto friction_angle             = 35.0;
+    constexpr auto youngs_modulus             = 1.0e6;
+    constexpr auto poisson_ratio              = 0.25;
+    constexpr auto p_ref                      = 100.0;
+    constexpr auto exponent                   = 0.5;
+    constexpr auto max_minor_principal_stress = -1.0;
+
+    Properties properties;
+    properties.SetValue(GEO_DRAINAGE_TYPE, "FULLY_COUPLED");
+    properties.SetValue(GEO_COHESION, cohesion);
+    properties.SetValue(GEO_FRICTION_ANGLE, friction_angle);
+    properties.SetValue(GEO_DILATANCY_ANGLE, 20.0);
+    properties.SetValue(GEO_ENABLE_TENSION_CUT_OFF, false);
+    properties.SetValue(YOUNG_MODULUS, youngs_modulus);
+    properties.SetValue(POISSON_RATIO, poisson_ratio);
+    properties.SetValue(GEO_YOUNGS_MODULUS_FORMULATION, "SCHANZ_VERMEER"s);
+    properties.SetValue(GEO_PRESSURE_REFERENCE, p_ref);
+    properties.SetValue(GEO_STRESS_DEPENDENCY_EXPONENT, exponent);
+    properties.SetValue(GEO_MAXIMUM_MINOR_PRINCIPAL_STRESS, max_minor_principal_stress);
+
+    auto       law                         = MohrCoulombLaw(std::make_unique<PlaneStrain>());
+    const auto dummy_element_geometry      = Geometry<Node>{};
+    const auto dummy_shape_function_values = Vector{};
+    law.InitializeMaterial(properties, dummy_element_geometry, dummy_shape_function_values);
+
+    ConstitutiveLaw::Parameters parameters;
+    parameters.Set(ConstitutiveLaw::COMPUTE_STRESS);
+    parameters.SetMaterialProperties(properties);
+    Vector strain_vector = ZeroVector(4);
+    Vector stress_vector = ZeroVector(4);
+    parameters.SetStrainVector(strain_vector);
+    parameters.SetStressVector(stress_vector);
+    law.InitializeMaterialResponseCauchy(parameters);
+
+    // Act: a large tensile strain increment is returned to the tensile apex and finalized
+    strain_vector = UblasUtilities::CreateVector({1.0e-3, 1.0e-3, 0.0, 0.0});
+    parameters.SetStrainVector(strain_vector);
+    law.CalculateMaterialResponseCauchy(parameters);
+    law.FinalizeMaterialResponseCauchy(parameters);
+
+    // Assert: all principal stresses are at the apex
+    const auto apex = cohesion / std::tan(MathUtils<>::DegreesToRadians(friction_angle));
+    Vector     finalized_stress;
+    law.GetValue(CAUCHY_STRESS_VECTOR, finalized_stress);
+    KRATOS_EXPECT_VECTOR_NEAR(finalized_stress, UblasUtilities::CreateVector({apex, apex, apex, 0.0}),
+                              Defaults::absolute_tolerance * 1.0e3);
+
+    // Act: unload towards compression, which must not throw
+    strain_vector = ZeroVector(4);
+    parameters.SetStrainVector(strain_vector);
+    EXPECT_NO_THROW(law.CalculateMaterialResponseCauchy(parameters));
+
+    // Assert: the stiffness is evaluated with the regularized minor principal stress
+    const auto stiffness =
+        youngs_modulus * std::pow((apex - max_minor_principal_stress) / (apex + p_ref), exponent);
+    constexpr auto strain_increment = -1.0e-3;
+    // lambda = 0.4 E and G = 0.4 E for a Poisson's ratio of 0.25
+    const auto expected_stress = UblasUtilities::CreateVector(
+        {apex + 1.6 * stiffness * strain_increment, apex + 1.6 * stiffness * strain_increment,
+         apex + 0.8 * stiffness * strain_increment, 0.0});
+    Vector unloaded_stress;
+    law.GetValue(CAUCHY_STRESS_VECTOR, unloaded_stress);
+    KRATOS_EXPECT_VECTOR_NEAR(unloaded_stress, expected_stress, Defaults::absolute_tolerance * 1.0e3);
 }
 
 } // namespace Kratos::Testing

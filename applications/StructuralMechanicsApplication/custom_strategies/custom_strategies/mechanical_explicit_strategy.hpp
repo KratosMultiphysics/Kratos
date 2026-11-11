@@ -22,7 +22,7 @@
 #include "utilities/variable_utils.h"
 #include "utilities/constraint_utilities.h"
 #include "utilities/parallel_utilities.h"
-#include "includes/ublas_interface.h"
+#include "includes/default_interface.h"
 #include "includes/variables.h"
 
 namespace Kratos {

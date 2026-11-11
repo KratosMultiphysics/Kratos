@@ -63,14 +63,24 @@ void ImportNurbsSbmModeler::SetupGeometryModel(){
         for (IndexType i_layer = 0; i_layer < layer_condition_name.size(); i_layer++){
             if (layer_condition_name[i_layer]["layer_name"].GetString() == layer_name)
             {
+                KRATOS_ERROR_IF_NOT(layer_condition_name[i_layer].Has("condition_name"))
+                    << "::[ImportNurbsSbmModeler]:: NURBS geometry layer \"" << layer_name
+                    << "\" has no \"condition_name\" in \"link_layer_to_condition_name\"." << std::endl;
+                KRATOS_ERROR_IF_NOT(layer_condition_name[i_layer]["condition_name"].IsString())
+                    << "::[ImportNurbsSbmModeler]:: \"condition_name\" for NURBS geometry layer \""
+                    << layer_name << "\" must be a string." << std::endl;
                 condition_name = layer_condition_name[i_layer]["condition_name"].GetString();
+                KRATOS_ERROR_IF(condition_name.empty())
+                    << "::[ImportNurbsSbmModeler]:: Empty \"condition_name\" for NURBS geometry layer \""
+                    << layer_name << "\"." << std::endl;
                 layer_exits = true;
                 break;
             }
         }
         KRATOS_ERROR_IF_NOT(layer_exits)
-            << "::[ImportNurbsSbmModeler]:: geometry layer \"" << layer_name << "\" does not match any layer_condition_name" << std::endl
-            << "layer_condition_name availables are: " << std::endl << layer_condition_name << std::endl;
+            << "::[ImportNurbsSbmModeler]:: NURBS geometry layer \"" << layer_name
+            << "\" has no entry in \"link_layer_to_condition_name\"." << std::endl
+            << "Available layer mappings: " << std::endl << layer_condition_name << std::endl;
         
         // store the control points
         PointerVector<Node> control_points;

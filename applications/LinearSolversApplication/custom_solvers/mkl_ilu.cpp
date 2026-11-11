@@ -16,7 +16,7 @@
 
 // Project includes
 #include "custom_solvers/mkl_ilu.hpp" // MKLILUSmootherBase
-#include "spaces/ublas_space.h" // TUblasSparseSpace, TUblasDenseSpace
+#include "spaces/default_spaces.h" // TDefaultSparseSpace, TDefaultDenseSpace
 
 // STL includes
 #include <vector> // std::vector
@@ -391,13 +391,14 @@ void MKLILUTSmoother<TSparse,TDense>::Factorize(std::vector<int>& rRowExtents,
 }
 
 
-template class MKLILUSmootherBase<TUblasSparseSpace<double>,TUblasDenseSpace<double>>;
+// Instantiated on the configure-time selected linear-algebra backend only.
+template class MKLILUSmootherBase<TDefaultSparseSpace<double>,TDefaultDenseSpace<double>>;
 
 
-template class MKLILU0Smoother<TUblasSparseSpace<double>,TUblasDenseSpace<double>>;
+template class MKLILU0Smoother<TDefaultSparseSpace<double>,TDefaultDenseSpace<double>>;
 
 
-template class MKLILUTSmoother<TUblasSparseSpace<double>,TUblasDenseSpace<double>>;
+template class MKLILUTSmoother<TDefaultSparseSpace<double>,TDefaultDenseSpace<double>>;
 
 
 } // namespace Kratos

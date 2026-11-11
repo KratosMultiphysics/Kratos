@@ -452,7 +452,7 @@ void QSVMSDEMCoupled<TElementData>::AlgebraicMomentumResidual(
     Vector sigma_U, grad_div_u, div_sym_grad_u;
 
     for (unsigned int i = 0; i < NumNodes; i++) {
-        const array_1d<double,Dim>& r_acceleration = rGeom[i].FastGetSolutionStepValue(ACCELERATION);
+        const array_1d<double,3>& r_acceleration = rGeom[i].FastGetSolutionStepValue(ACCELERATION);
         array_1d<double,Dim> sigma_U = ZeroVector(Dim);
         grad_div_u = ZeroVector(Dim);
         div_sym_grad_u = ZeroVector(Dim);
