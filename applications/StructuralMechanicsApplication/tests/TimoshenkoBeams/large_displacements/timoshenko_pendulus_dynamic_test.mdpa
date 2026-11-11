@@ -1172,3 +1172,12 @@ Begin SubModelPart 3dbeam // Group truss
           500
     End SubModelPartGeometries
 End SubModelPart
+
+Begin SubModelPart test
+    Begin SubModelPartNodes
+           24
+           22
+           1
+           128
+    End SubModelPartNodes
+End SubModelPart

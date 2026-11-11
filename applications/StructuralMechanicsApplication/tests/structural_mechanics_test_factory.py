@@ -116,7 +116,7 @@ class TimoshenkoCurvedBeam3D3NTest(StructuralMechanicsTestFactory):
     file_name = "TimoshenkoBeams/3D3N_curved/timoshenko_curved_beam_3d3N_test"
     
 class NonLinearTimoshenkoTest(StructuralMechanicsTestFactory):
-    file_name = "TimoshenkoBeams/large_displacements/timoshenko_beam_3d2N_nonlinear_test"
+    file_name = "TimoshenkoBeams/large_displacements/timoshenko_pendulus_dynamic_test"
 
 class AutomatedInitialVariableProcessTest(StructuralMechanicsTestFactory):
     file_name = "automated_initial_variable_process_test/automated_initial_variable_process_test"

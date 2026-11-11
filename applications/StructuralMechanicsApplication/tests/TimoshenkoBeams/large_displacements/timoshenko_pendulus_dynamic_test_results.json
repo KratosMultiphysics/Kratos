@@ -1,0 +1,85 @@
+{
+  "TIME": [
+    0.09999999999999999
+  ],
+  "NODE_1": {
+    "DISPLACEMENT_X": [
+      -0.00022258450030765553
+    ],
+    "DISPLACEMENT_Y": [
+      -0.06679327731113217
+    ],
+    "DISPLACEMENT_Z": [
+      0.0
+    ],
+    "ROTATION_X": [
+      0.0
+    ],
+    "ROTATION_Y": [
+      0.0
+    ],
+    "ROTATION_Z": [
+      -0.006667449324883886
+    ]
+  },
+  "NODE_22": {
+    "DISPLACEMENT_X": [
+      -0.00022288641452259495
+    ],
+    "DISPLACEMENT_Y": [
+      -0.06683856391112626
+    ],
+    "DISPLACEMENT_Z": [
+      0.0
+    ],
+    "ROTATION_X": [
+      0.0
+    ],
+    "ROTATION_Y": [
+      0.0
+    ],
+    "ROTATION_Z": [
+      0.0
+    ]
+  },
+  "NODE_24": {
+    "DISPLACEMENT_X": [
+      -0.0002181063384947675
+    ],
+    "DISPLACEMENT_Y": [
+      -0.06613556381245819
+    ],
+    "DISPLACEMENT_Z": [
+      0.0
+    ],
+    "ROTATION_X": [
+      0.0
+    ],
+    "ROTATION_Y": [
+      0.0
+    ],
+    "ROTATION_Z": [
+      0.0
+    ]
+  },
+  "NODE_128": {
+    "DISPLACEMENT_X": [
+      -0.00022288641394254918
+    ],
+    "DISPLACEMENT_Y": [
+      -0.06683856382636517
+    ],
+    "DISPLACEMENT_Z": [
+      0.0
+    ],
+    "ROTATION_X": [
+      0.0
+    ],
+    "ROTATION_Y": [
+      0.0
+    ],
+    "ROTATION_Z": [
+      -0.0066839058246319916
+    ]
+  }
+}
