@@ -14,7 +14,7 @@ The test is performed with the following conditions:
 - Constraints:
     - The bottom nodes (5, 8, 9) are fixed in the Y direction.
     - The symmetry axis (i.e. the left nodes 1, 3, 5) is fixed in the X direction.
-    - A displacement of -0.2 is prescribed for the top nodes (1, 2, 6). The nodes move linearly from y = 1 at t = 0 to y = 0.8 at t = 1.
+    - A displacement of -0.2 $m$ is prescribed for the top nodes (1, 2, 6). The nodes move linearly from y = 1 $m$ at t = 0 to y = 0.8 $m$ at t = 1 $s$. As it is a quasi-static test, the time is not relevant, but it is used to define the displacement increment.
 - Material:
     - A linear elastic constitutive law with the following parameters:
         - Poisson's ratio = 0.25,
