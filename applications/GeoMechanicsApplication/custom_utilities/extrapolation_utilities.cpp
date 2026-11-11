@@ -38,7 +38,7 @@ Matrix ExtrapolationUtilities::CalculateExtrapolationMatrix(const Element& rElem
         // The extrapolation matrix has been calculated for the mid-geometry. Since both sides of
         // the interface element need to use that matrix, we have to expand the resultant matrix.
         const auto number_of_rows_per_side = result.size1();
-        result.resize(2 * number_of_rows_per_side, result.size2());
+        result.resize(2 * number_of_rows_per_side, result.size2(), true);
         subrange(result, number_of_rows_per_side, result.size1(), 0, result.size2()) =
             subrange(result, 0, number_of_rows_per_side, 0, result.size2());
     }

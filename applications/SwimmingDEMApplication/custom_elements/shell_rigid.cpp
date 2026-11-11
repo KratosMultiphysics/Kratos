@@ -1783,7 +1783,7 @@ void ShellRigid::InvertMatrix(const BoundedMatrix<double,3,3>& InputMatrix,
 {
     KRATOS_TRY
     if(InvertedMatrix.size1() != 3 || InvertedMatrix.size2() != 3)
-        InvertedMatrix.resize(3,3);
+        InvertedMatrix.resize(3,3, true);
 
     //filling the inverted matrix with the algebraic complements
     //first column

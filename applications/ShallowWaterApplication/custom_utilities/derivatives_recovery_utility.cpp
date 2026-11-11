@@ -373,9 +373,9 @@ bool DerivativesRecoveryUtility<TDim>::CalculateNodalPolynomialWeights(NodeType&
     }
 
     Vector& first_derivative_weights = rNode.FastGetSolutionStepValue(FIRST_DERIVATIVE_WEIGHTS);
-    first_derivative_weights.resize(n_first_order_terms*(n_neigh + 1));
+    first_derivative_weights.resize(n_first_order_terms*(n_neigh + 1), true);
     Vector& second_derivative_weights = rNode.FastGetSolutionStepValue(SECOND_DERIVATIVE_WEIGHTS);
-    second_derivative_weights.resize(n_second_order_terms*(n_neigh + 1));
+    second_derivative_weights.resize(n_second_order_terms*(n_neigh + 1), true);
 
     // Assembly of the partial derivatives contribution for every node (included the current node)
     for (std::size_t n = 0; n < n_neigh + 1; ++n)

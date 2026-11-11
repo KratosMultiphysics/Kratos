@@ -251,7 +251,7 @@ public:
             double rho = dt_old / Dt;
             double coeff = 1.0 / (Dt * rho * rho + Dt * rho);
 
-            rCurrentProcessInfo[BDF_COEFFICIENTS].resize(3);
+            rCurrentProcessInfo[BDF_COEFFICIENTS].resize(3, true);
             Vector& BDFcoeffs = rCurrentProcessInfo[BDF_COEFFICIENTS];
             BDFcoeffs[0] = coeff * (rho * rho + 2.0 * rho); //coefficient for step n+1
             BDFcoeffs[1] = -coeff * (rho * rho + 2.0 * rho + 1.0); //coefficient for step n
@@ -259,7 +259,7 @@ public:
 	  }
         else
 	  {
-            rCurrentProcessInfo[BDF_COEFFICIENTS].resize(2);
+            rCurrentProcessInfo[BDF_COEFFICIENTS].resize(2, true);
             Vector& BDFcoeffs = rCurrentProcessInfo[BDF_COEFFICIENTS];
             BDFcoeffs[0] = 1.0 / Dt; //coefficient for step n+1
             BDFcoeffs[1] = -1.0 / Dt; //coefficient for step n

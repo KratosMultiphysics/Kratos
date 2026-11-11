@@ -94,7 +94,7 @@ void BoussinesqCondition<TNumNodes>::CalculateShapeFunctionDerivatives(
     const Point& rPoint)
 {
     const std::size_t num_nodes = rParentGeometry.size();
-    rDN_DX.resize(num_nodes, 2);
+    rDN_DX.resize(num_nodes, 2, true);
     if (num_nodes == 3) {
         BoundedMatrix<double, 3, 2> gradients;
         array_1d<double,3> shape_functions;

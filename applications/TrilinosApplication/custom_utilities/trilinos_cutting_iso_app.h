@@ -766,9 +766,9 @@ public:
         //            paux.swap(p_edge_ids);
 
         ///* New Id  of the nodes
-        List_New_Nodes.resize(n_new_nonzeros);
-        partition_new_nodes.resize(n_new_nonzeros);
-        father_node_ids.resize(n_new_nonzeros);
+        List_New_Nodes.resize(n_new_nonzeros, true);
+        partition_new_nodes.resize(n_new_nonzeros, true);
+        father_node_ids.resize(n_new_nonzeros, true);
 
         int k = 0;
         for (Row = 0; Row < NumMyRows; ++Row)
@@ -849,7 +849,7 @@ public:
         //double dist_node_intersect;
         double weight;
         vector< array_1d<double, 3 > > Coordinate_New_Node;
-        Coordinate_New_Node.resize(father_node_ids.size());
+        Coordinate_New_Node.resize(father_node_ids.size(), true);
 
         new_model_part.GetNodalSolutionStepVariablesList() = this_model_part.GetNodalSolutionStepVariablesList();
         new_model_part.AddNodalSolutionStepVariable(FATHER_NODES);

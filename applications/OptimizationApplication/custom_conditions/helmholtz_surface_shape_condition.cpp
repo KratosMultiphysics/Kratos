@@ -504,7 +504,7 @@ void HelmholtzSurfaceShapeCondition::CalculateNormal(VectorType & r_n) const
     v2[1] = r_cond_geom[2].Y0() - r_cond_geom[0].Y0();
     v2[2] = r_cond_geom[2].Z0() - r_cond_geom[0].Z0();
 
-    r_n.resize(3);
+    r_n.resize(3, true);
     MathUtils<double>::CrossProduct(r_n,v1,v2);
     double norm = MathUtils<double>::Norm3(r_n);
     r_n /= norm;

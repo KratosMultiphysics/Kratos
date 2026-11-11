@@ -194,15 +194,15 @@ namespace Kratos
 			mparticles_vector.resize(mnelems*mmaximum_number_of_particles);
 
 			//and this vector contains the current number of particles that are in each element (currently zero)
-			mnumber_of_particles_in_elems.resize(mnelems);
+			mnumber_of_particles_in_elems.resize(mnelems, true);
 			mnumber_of_particles_in_elems=ZeroVector(mnelems);
 
 			//when moving the particles, an auxiliary vector is necessary (to store the previous number)
-			mnumber_of_particles_in_elems_aux.resize(mnelems);
+			mnumber_of_particles_in_elems_aux.resize(mnelems, true);
 
 			//each element will have a list of pointers to all the particles that are inside.
 			//this vector contains the pointers to the vector of (particle) pointers of each element.
-			mvector_of_particle_pointers_vectors.resize(mnelems);
+			mvector_of_particle_pointers_vectors.resize(mnelems, true);
             //int artz;
             //std::cin >> artz;
 			std::cout << "about to create particles" << std::endl;
@@ -1031,7 +1031,7 @@ namespace Kratos
 			unsigned int number_of_threads = ParallelUtilities::GetNumThreads();
 			vector<unsigned int> elem_partition;
 			int number_of_rows=mr_model_part.Elements().size();
-			elem_partition.resize(number_of_threads + 1);
+			elem_partition.resize(number_of_threads + 1, true);
 			int elem_partition_size = number_of_rows / number_of_threads;
 			elem_partition[0] = 0;
 			elem_partition[number_of_threads] = number_of_rows;
@@ -1153,7 +1153,7 @@ namespace Kratos
 			int number_of_rows=mr_model_part.Elements().size();
 			//KRATOS_WATCH(number_of_threads);
 			//KRATOS_THROW_ERROR(std::logic_error, "Add  ----NODAL_H---- variable!!!!!! ERROR", "");
-			elem_partition.resize(number_of_threads + 1);
+			elem_partition.resize(number_of_threads + 1, true);
 			int elem_partition_size = number_of_rows / number_of_threads;
 			elem_partition[0] = 0;
 			elem_partition[number_of_threads] = number_of_rows;

@@ -323,7 +323,7 @@ void EmbeddedMLSConstraintProcess::SetNegativeNodeSupportCloud(
     std::sort(rCloudNodes.ptr_begin(), rCloudNodes.ptr_end(), [](NodeType::Pointer& pNode1, NodeType::Pointer rNode2){return (pNode1->Id() < rNode2->Id());});
 
     // Fill the coordinates matrix
-    rCloudCoordinates.resize(n_cloud_nodes, 3);
+    rCloudCoordinates.resize(n_cloud_nodes, 3, true);
     IndexPartition<std::size_t>(n_cloud_nodes).for_each(array_1d<double,3>(), [&rCloudNodes, &rCloudCoordinates](std::size_t iNode, array_1d<double,3>& rAuxCoordTLS){
         noalias(rAuxCoordTLS) = rCloudNodes[iNode].Coordinates();
         rCloudCoordinates(iNode, 0) = rAuxCoordTLS[0];

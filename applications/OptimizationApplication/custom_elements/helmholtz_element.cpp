@@ -183,7 +183,7 @@ void HelmholtzElement<TDataContainer>::GetValuesVector(
     int Step) const
 {
     if (rValues.size() != LocalSize) {
-         rValues.resize(LocalSize);
+         rValues.resize(LocalSize, true);
     }
 
     constexpr auto& r_variables_list = TDataContainer::TargetVariablesList;

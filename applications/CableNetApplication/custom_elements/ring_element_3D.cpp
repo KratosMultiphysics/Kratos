@@ -476,7 +476,7 @@ void RingElement3D::CalculateLumpedMassVector(
 
     // Clear matrix
     if (rLumpedMassVector.size() != local_size) {
-      rLumpedMassVector.resize(local_size);
+      rLumpedMassVector.resize(local_size, true);
     }
 
     const double A = this->GetProperties()[CROSS_AREA];

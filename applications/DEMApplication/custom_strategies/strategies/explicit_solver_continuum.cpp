@@ -29,7 +29,7 @@ namespace Kratos {
         RebuildListOfSphericParticles <SphericParticle> (r_model_part.GetCommunicator().LocalMesh().Elements(), mListOfSphericParticles);
         RebuildListOfSphericParticles <SphericParticle> (r_model_part.GetCommunicator().GhostMesh().Elements(), mListOfGhostSphericParticles);
 
-        mSearchControlVector.resize(mNumberOfThreads);
+        mSearchControlVector.resize(mNumberOfThreads, true);
         for (int i = 0; i < mNumberOfThreads; i++) mSearchControlVector[i] = 0;
 
         PropertiesProxiesManager().CreatePropertiesProxies(r_model_part, *mpInlet_model_part, *mpCluster_model_part);

@@ -36,7 +36,7 @@ void ExponentialCohesive2DLaw::InitializeConstitutiveLawVariables(ConstitutiveLa
     // }
 
     const double MinusNormalStrain = -1.0*StrainVector[1];
-    rVariables.CompressionMatrix.resize(2,2);
+    rVariables.CompressionMatrix.resize(2,2, true);
     noalias(rVariables.CompressionMatrix) = ZeroMatrix(2,2);
     if(std::abs(MinusNormalStrain) > 1.0e-15)
         rVariables.CompressionMatrix(1,1) = this->MacaulayBrackets(MinusNormalStrain)/MinusNormalStrain;
@@ -70,7 +70,7 @@ void ExponentialCohesive2DLaw::InitializeConstitutiveLawVariables(ConstitutiveLa
     // }
 
     const double WeightingParameter = MaterialProperties[TAU]/rVariables.YieldStress;
-    rVariables.WeightMatrix.resize(2,2);
+    rVariables.WeightMatrix.resize(2,2, true);
     noalias(rVariables.WeightMatrix) = ZeroMatrix(2,2);
     rVariables.WeightMatrix(0,0) = WeightingParameter*WeightingParameter;
     if(std::abs(StrainVector[1]) > 1.0e-15)

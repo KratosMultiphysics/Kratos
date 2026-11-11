@@ -224,7 +224,7 @@ KRATOS_TEST_CASE_IN_SUITE(BarycentricLocalSystem_simple_line_interpolation, Krat
     local_sys.AddInterfaceInfo(p_interface_info);
 
     MatrixType exp_matrix;
-    exp_matrix.resize(1,2);
+    exp_matrix.resize(1,2, true);
     exp_matrix(0,0) = 0.6;
     exp_matrix(0,1) = 0.4;
 

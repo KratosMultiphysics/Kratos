@@ -512,7 +512,7 @@ private:
         const SizeType n_dofs = BaseType::GetProblemSize();
         KRATOS_ERROR_IF(TDenseSpace::Size1(rRightMatrix) != n_dofs) << "Obtained right multiplication matrix size " << TDenseSpace::Size1(rRightMatrix) << " does not match the problem size " << n_dofs << " expected one." << std::endl;
         if (TDenseSpace::Size1(rSolution) != n_dofs || TDenseSpace::Size2(rSolution) != mCurrentNumberOfModes) {
-            rSolution.resize(n_dofs, mCurrentNumberOfModes);
+            rSolution.resize(n_dofs, mCurrentNumberOfModes, true);
         }
 
         // Get observation matrices from base MVQN convergence accelerator
@@ -563,7 +563,7 @@ private:
         const SizeType n_dofs = BaseType::GetProblemSize();
         KRATOS_ERROR_IF(TDenseSpace::Size1(rLeftMatrix) != n_dofs) << "Obtained left multiplication matrix size " << TDenseSpace::Size1(rLeftMatrix) << " does not match the problem size " << n_dofs << " expected one." << std::endl;
         if (TDenseSpace::Size1(rSolution) != mCurrentNumberOfModes|| TDenseSpace::Size2(rSolution) != n_dofs) {
-            rSolution.resize(mCurrentNumberOfModes, n_dofs);
+            rSolution.resize(mCurrentNumberOfModes, n_dofs, true);
         }
 
         // Get observation matrices from base MVQN convergence accelerator

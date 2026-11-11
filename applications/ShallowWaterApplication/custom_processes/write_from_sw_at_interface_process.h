@@ -106,7 +106,7 @@ public:
         Vector N;
         typename BinBasedFastPointLocator<TDim>::ResultContainerType results;
         locator_tls(const int max_results = 10000) {
-            N.resize(TDim+1);
+            N.resize(TDim+1, true);
             results.resize(max_results);
         }
     };

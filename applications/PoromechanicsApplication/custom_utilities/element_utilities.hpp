@@ -127,7 +127,7 @@ class ElementUtilities
     const SizeType dimension        = rGeometry.WorkingSpaceDimension();
 
     if( rVelocityGradient.size1() != dimension || rVelocityGradient.size2() != dimension )
-      rVelocityGradient.resize(dimension,dimension);
+      rVelocityGradient.resize(dimension,dimension, true);
 
     noalias(rVelocityGradient) = ZeroMatrix(dimension,dimension);
 
