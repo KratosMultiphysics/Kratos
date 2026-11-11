@@ -136,7 +136,7 @@ def set_material_parameters(project_parameters, new_material_parameters_fn):
         stage["stage_settings"]["solver_settings"]["material_import_settings"][
             "materials_filename"].SetString(new_material_parameters_fn)
 
-def set_quasi_newton_method(project_parameters, quasi_newton_method):
+def set_quasi_newton_method(project_parameters, quasi_newton_method, use_scaling=False):
     # Add/set quasi-Newton method settings that apply to all stages
     for stage in project_parameters["stages"].values():
         solver_settings = stage["stage_settings"]["solver_settings"]
@@ -144,6 +144,7 @@ def set_quasi_newton_method(project_parameters, quasi_newton_method):
         solver_settings.AddString("quasi_newton_type", quasi_newton_method)
         solver_settings.AddInt("quasi_newton_restart_interval", 100)
         solver_settings.AddInt("quasi_newton_max_rank", 10)
+        solver_settings.AddBool("quasi_newton_scaling", use_scaling)
 
 
 
@@ -638,6 +639,34 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
             modify_project_parameters=(
                 lambda project_parameters: set_quasi_newton_method(
                     project_parameters, "lbfgs"
+                )
+            ),
+        )
+        self.run_simulation_and_checks()
+
+    def test_staged_construction_with_mohr_coulomb_clay_sand_using_broydens_method_with_scaling(
+        self,
+    ):
+        self.prepare_test_run(
+            material_model_dir_name=mohr_coulomb_clay_sand_dir_name,
+            analysis_type=staged_construction,
+            variant="broyden_with_scaling",
+            modify_project_parameters=(
+                lambda project_parameters: set_quasi_newton_method(
+                    project_parameters, "broyden", use_scaling=True
+                )
+            ),
+        )
+        self.run_simulation_and_checks()
+
+    def test_staged_construction_with_mohr_coulomb_clay_sand_using_lbfgs_with_scaling(self):
+        self.prepare_test_run(
+            material_model_dir_name=mohr_coulomb_clay_sand_dir_name,
+            analysis_type=staged_construction,
+            variant="lbfgs_with_scaling",
+            modify_project_parameters=(
+                lambda project_parameters: set_quasi_newton_method(
+                    project_parameters, "lbfgs", use_scaling=True
                 )
             ),
         )

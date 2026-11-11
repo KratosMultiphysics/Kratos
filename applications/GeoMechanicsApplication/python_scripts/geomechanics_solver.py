@@ -88,7 +88,8 @@ class GeoMechanicalSolver(PythonSolver):
             "strategy_type": "newton_raphson",
             "quasi_newton_type": "lbfgs",
             "quasi_newton_restart_interval": 100,
-            "quasi_newton_max_rank": 10,  
+            "quasi_newton_max_rank": 10,
+            "quasi_newton_scaling": false,
             "max_piping_iterations": 50,
             "convergence_criterion": "Displacement_criterion",
             "water_pressure_relative_tolerance": 1.0e-4,
@@ -497,6 +498,7 @@ class GeoMechanicalSolver(PythonSolver):
             self.strategy_params.AddValue("quasi_newton_type", self.settings["quasi_newton_type"])
             self.strategy_params.AddValue("quasi_newton_restart_interval", self.settings["quasi_newton_restart_interval"])
             self.strategy_params.AddValue("quasi_newton_max_rank", self.settings["quasi_newton_max_rank"])
+            self.strategy_params.AddValue("quasi_newton_scaling", self.settings["quasi_newton_scaling"])
             solving_strategy = GeoMechanicsApplication.GeoMechanicsQuasiNewtonStrategy(self.computing_model_part,
                                                                                        self.scheme,
                                                                                        self.convergence_criterion,
