@@ -1776,6 +1776,25 @@ KRATOS_TEST_CASE_IN_SUITE(UPwInterfaceElement_CheckThrowsWhenContactSurfacePerim
     KRATOS_EXPECT_EQ(element.Check(dummy_process_info), 0);
 }
 
+KRATOS_TEST_CASE_IN_SUITE(UPwSurfaceInterfaceElement_CheckThrowsWhenContactSurfacePerimeterIsDefined,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    constexpr auto normal_stiffness = 20.0;
+    constexpr auto shear_stiffness  = 10.0;
+    const auto     p_properties = CreateElasticMaterialProperties<InterfaceThreeDimensionalSurface>(
+        normal_stiffness, shear_stiffness);
+    p_properties->SetValue(GEO_CONTACT_SURFACE_PERIMETER, 0.5);
+
+    Model model;
+    auto  element = CreateHorizontal3Plus3NodedTriangleInterfaceElementWithUPwDofs(
+        model, p_properties, IsDiffOrderElement::No, {CalculationContribution::Stiffness});
+    const auto dummy_process_info = ProcessInfo{};
+    element.Initialize(dummy_process_info);
+
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(element.Check(dummy_process_info),
+                                      "GEO_CONTACT_SURFACE_PERIMETER")
+}
+
 KRATOS_TEST_CASE_IN_SUITE(UPwInterfaceElement_CheckDoesNotThrowWhenElementIsNotActive, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     constexpr auto normal_stiffness = 20.0;

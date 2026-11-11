@@ -524,6 +524,13 @@ int UPwInterfaceElement::Check(const ProcessInfo& rCurrentProcessInfo) const
         const auto expected_size = mpStressStatePolicy->GetVoigtSize();
         ConstitutiveLawUtilities::CheckStrainSize(r_properties, expected_size, Id());
 
+        const auto is_surface_interface = GetDisplacementGeometry().GetGeometryFamily() !=
+                                          GeometryData::KratosGeometryFamily::Kratos_Linear;
+        KRATOS_ERROR_IF(is_surface_interface && r_properties.Has(GEO_CONTACT_SURFACE_PERIMETER))
+            << "GEO_CONTACT_SURFACE_PERIMETER is not supported for surface interface elements, "
+               "but it is defined for element "
+            << Id() << ".\n";
+
         if (r_properties.Has(GEO_CONTACT_SURFACE_PERIMETER)) {
             const CheckProperties check_properties(r_properties, "properties", Id(),
                                                    CheckProperties::Bounds::AllExclusive);
