@@ -151,6 +151,20 @@ std::string GeometryMetricsTensorAdaptor::Info() const
     return info.str();
 }
 
+void GeometryMetricsTensorAdaptor::save(Serializer& rSerializer) const
+{
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, BaseType);
+    rSerializer.save("Metric", static_cast<int>(mMetric));
+}
+
+void GeometryMetricsTensorAdaptor::load(Serializer& rSerializer)
+{
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, BaseType);
+    int metric;
+    rSerializer.load("Metric", metric);
+    mMetric = static_cast<Metric>(metric);
+}
+
 template KRATOS_API(KRATOS_CORE) GeometryMetricsTensorAdaptor::GeometryMetricsTensorAdaptor(ModelPart::GeometryContainerType::Pointer, GeometryMetricsTensorAdaptor::Metric);
 template KRATOS_API(KRATOS_CORE) GeometryMetricsTensorAdaptor::GeometryMetricsTensorAdaptor(ModelPart::ConditionsContainerType::Pointer, GeometryMetricsTensorAdaptor::Metric);
 template KRATOS_API(KRATOS_CORE) GeometryMetricsTensorAdaptor::GeometryMetricsTensorAdaptor(ModelPart::ElementsContainerType::Pointer, GeometryMetricsTensorAdaptor::Metric);

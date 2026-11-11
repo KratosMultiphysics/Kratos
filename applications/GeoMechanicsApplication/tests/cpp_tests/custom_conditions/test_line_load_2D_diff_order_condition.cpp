@@ -41,7 +41,8 @@ KRATOS_TEST_CASE_IN_SUITE(LineLoad2DDiffOrderCondition_CanBeSavedAndLoaded, Krat
         Geo::ConstVariableRefs{std::cref(WATER_PRESSURE), std::cref(DISPLACEMENT_X),
                                std::cref(DISPLACEMENT_Y), std::cref(DISPLACEMENT_Z)};
     auto p_condition = ElementSetupUtilities::Create2D3NLineCondition();
-    ElementSetupUtilities::AddVariablesToEntity(p_condition, solution_step_variables, degrees_of_freedom);
+    ElementSetupUtilities::AddVariablesToNodes(p_condition->GetGeometry(), solution_step_variables,
+                                               degrees_of_freedom);
 
     const auto dummy_process_info = ProcessInfo{};
     p_condition->Initialize(dummy_process_info);

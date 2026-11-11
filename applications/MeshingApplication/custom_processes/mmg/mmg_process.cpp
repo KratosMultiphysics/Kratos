@@ -33,6 +33,7 @@
 #include "spaces/ublas_space.h"
 #include "mappers/mapper_flags.h"
 #include "factories/mapper_factory.h"
+#include "mappers/mapper_define.h"
 
 // NOTE: The following contains the license of the MMG library
 /* =============================================================================
@@ -60,8 +61,8 @@ namespace Kratos
 {
 
 #define DEFINE_MAPPER_FACTORY_SERIAL                                                                                             \
-using SparseSpace = UblasSpace<double, boost::numeric::ublas::compressed_matrix<double>, boost::numeric::ublas::vector<double>>; \
-using DenseSpace = UblasSpace<double, DenseMatrix<double>, DenseVector<double>>;                                                 \
+using SparseSpace = MapperDefinitions::SparseSpaceType;                                                                          \
+using DenseSpace = MapperDefinitions::DenseSpaceType;                                                                            \
 using MapperFactoryType = MapperFactory<SparseSpace, DenseSpace>;
 
 /************************************* CONSTRUCTOR *********************************/

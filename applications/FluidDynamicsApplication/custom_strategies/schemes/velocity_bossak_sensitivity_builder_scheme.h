@@ -19,8 +19,7 @@
 // External includes
 
 // Project includes
-#include "includes/define.h"
-#include "includes/ublas_interface.h"
+#include "includes/default_interface.h"
 #include "utilities/openmp_utils.h"
 
 // Application includes

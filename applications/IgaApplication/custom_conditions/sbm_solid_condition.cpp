@@ -18,6 +18,7 @@
 
 // Project includes
 #include "custom_conditions/sbm_solid_condition.h"
+#include "includes/global_pointer_variables.h"
 
 namespace Kratos
 {
@@ -134,6 +135,18 @@ void SbmSolidCondition::InitializeMemberVariables()
 void SbmSolidCondition::InitializeSbmMemberVariables()
 {
     const auto& r_geometry = this->GetGeometry();
+    if (this->Has(NEIGHBOUR_NODES) && !this->Has(NEIGHBOUR_CONDITIONS)) {
+        // Use the explicitly assigned projection node when available; older setups only provide
+        // the neighbouring skin condition, so retain that lookup as a fallback below.
+        auto& r_projection_nodes = this->GetValue(NEIGHBOUR_NODES);
+        KRATOS_ERROR_IF(r_projection_nodes.size() != 1)
+            << "Expected one projection node in condition #" << Id() << std::endl;
+        mpProjectionNode = &r_projection_nodes[0];
+        mDistanceVector.resize(3, false);
+        noalias(mDistanceVector) = mpProjectionNode->Coordinates() - r_geometry.Center().Coordinates();
+        return;
+    }
+
     // Retrieve projection
     Condition candidate_closest_skin_segment_1 = this->GetValue(NEIGHBOUR_CONDITIONS)[0] ;
     // Find the closest node in condition
@@ -152,7 +165,7 @@ void SbmSolidCondition::InitializeSbmMemberVariables()
     }
     mpProjectionNode = &candidate_closest_skin_segment_1.GetGeometry()[closestNodeId] ;
 
-    mDistanceVector.resize(3);
+    mDistanceVector.resize(3, false);
     noalias(mDistanceVector) = mpProjectionNode->Coordinates() - r_geometry.Center().Coordinates();
 }
 
@@ -166,7 +179,7 @@ void SbmSolidCondition::CalculateLocalSystem(
     const SizeType mat_size = GetGeometry().size() * 2;
 
     if (rRightHandSideVector.size() != mat_size)
-        rRightHandSideVector.resize(mat_size);
+        rRightHandSideVector.resize(mat_size, false);
     noalias(rRightHandSideVector) = ZeroVector(mat_size);
 
     if (rLeftHandSideMatrix.size1() != mat_size)

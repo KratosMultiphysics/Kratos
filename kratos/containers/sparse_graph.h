@@ -23,9 +23,8 @@
 #include <span/span.hpp>
 
 // Project includes
-#include "includes/define.h"
 #include "utilities/parallel_utilities.h"
-#include "includes/ublas_interface.h"
+#include "includes/default_interface.h"
 #include "includes/serializer.h"
 #include "includes/parallel_environment.h"
 

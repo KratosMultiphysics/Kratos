@@ -85,7 +85,7 @@ if(!(std::abs(b) <= std::numeric_limits<double>::epsilon())) {                  
 
 // TODO: I don't know how to represent the relative error test in terms of Gtest
 #define KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(a,b,tolerance) {                     \
-    EXPECT_TRUE(a.size() == b.size())                                           \
+    EXPECT_TRUE(static_cast<std::size_t>(a.size()) == static_cast<std::size_t>(b.size()))  \
     << "Check failed because vector arguments do not have the same size:"       \
     << std::endl                                                                \
     << "First argument has size " << a.size() << ", "                           \

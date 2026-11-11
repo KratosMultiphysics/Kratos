@@ -6254,7 +6254,7 @@ void ModelPartIO::WriteCommunicatorData(
     std::vector<PartitionIndicesContainerType> local_nodes_indices(NumberOfPartitions, PartitionIndicesContainerType(number_of_colors));
     std::vector<PartitionIndicesContainerType> ghost_nodes_indices(NumberOfPartitions, PartitionIndicesContainerType(number_of_colors));
 
-    DenseMatrix<int> interface_indices = boost::numeric::ublas::scalar_matrix<int>(NumberOfPartitions, NumberOfPartitions, -1);
+    DenseMatrix<int> interface_indices = scalar_matrix<int>(NumberOfPartitions, NumberOfPartitions, -1);
 
     for(SizeType i_partition = 0 ; i_partition < NumberOfPartitions ; i_partition++)
     {
@@ -6568,7 +6568,7 @@ void ModelPartIO::SwapStreamSource(Kratos::shared_ptr<std::iostream> newStream)
 
 inline void ModelPartIO::CreatePartition(unsigned int NumberOfThreads,const int number_of_rows, DenseVector<unsigned int>& partitions)
 {
-    partitions.resize(NumberOfThreads+1);
+    partitions.resize(NumberOfThreads+1, false);
     int partition_size = number_of_rows / NumberOfThreads;
     partitions[0] = 0;
     partitions[NumberOfThreads] = number_of_rows;

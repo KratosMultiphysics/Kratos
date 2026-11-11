@@ -118,7 +118,7 @@ namespace Kratos
         //Some auxiliary definitions
         BoundedMatrix<double,TNumNodes, TNumNodes> aux1 = ZeroMatrix(TNumNodes, TNumNodes); //terms multiplying dphi/dt
         BoundedMatrix<double,TNumNodes, TNumNodes> aux2 = ZeroMatrix(TNumNodes, TNumNodes); //terms multiplying phi
-        bounded_matrix<double,TNumNodes, TDim> tmp;
+        BoundedMatrix<double,TNumNodes, TDim> tmp;
         // CrossWind variables
         // Projected velocity
         array_1d<double,TDim> u_proj;

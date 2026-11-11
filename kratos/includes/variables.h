@@ -18,7 +18,7 @@
 
 // Project includes
 #include "includes/kratos_components.h"
-#include "includes/ublas_interface.h"
+#include "includes/default_interface.h"
 #include "containers/array_1d.h"
 #include "containers/global_pointers_vector.h"
 #include "containers/periodic_variables_container.h"

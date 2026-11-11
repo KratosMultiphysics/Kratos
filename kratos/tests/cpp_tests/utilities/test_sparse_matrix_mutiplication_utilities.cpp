@@ -13,14 +13,14 @@
 
 // Project includes
 #include "testing/testing.h"
-#include "spaces/ublas_space.h"
+#include "spaces/default_spaces.h"
 #include "utilities/sparse_matrix_multiplication_utility.h"
 
 namespace Kratos {
 namespace Testing {
 
 /// The sparse matrix type
-typedef typename UblasSpace<double, CompressedMatrix, Vector>::MatrixType SparseMatrixType;
+typedef typename TDefaultSparseSpace<double>::MatrixType SparseMatrixType;
 
 KRATOS_TEST_CASE_IN_SUITE(AssembleSparseMatrixByBlocks, KratosCoreFastSuite)
 {
@@ -71,8 +71,8 @@ KRATOS_TEST_CASE_IN_SUITE(HeterogeneousProduct, KratosCoreFastSuite)
     constexpr float single_tolerance = 1e-7;
 
     // Make diagonal matrices as operands.
-    TUblasSparseSpace<double>::MatrixType double_precision(system_size, system_size, system_size);
-    TUblasSparseSpace<float>::MatrixType single_precision(system_size, system_size, system_size);
+    TDefaultSparseSpace<double>::MatrixType double_precision(system_size, system_size, system_size);
+    TDefaultSparseSpace<float>::MatrixType single_precision(system_size, system_size, system_size);
 
     double_precision.index1_data()[0] = 0;
     single_precision.index1_data()[0] = 0;
@@ -91,7 +91,7 @@ KRATOS_TEST_CASE_IN_SUITE(HeterogeneousProduct, KratosCoreFastSuite)
 
     // Output matrix has identical type as the left operand.
     {
-        TUblasSparseSpace<double>::MatrixType product;
+        TDefaultSparseSpace<double>::MatrixType product;
         SparseUtils::MatrixMultiplication(double_precision, single_precision, product);
         for (int i_row=0; i_row<system_size; ++i_row) {
             KRATOS_EXPECT_EQ(product.index1_data()[i_row], i_row);
@@ -103,7 +103,7 @@ KRATOS_TEST_CASE_IN_SUITE(HeterogeneousProduct, KratosCoreFastSuite)
 
     // Output matrix has identical type as the right operand.
     {
-        TUblasSparseSpace<float>::MatrixType product;
+        TDefaultSparseSpace<float>::MatrixType product;
         SparseUtils::MatrixMultiplication(double_precision, single_precision, product);
         for (int i_row=0; i_row<system_size; ++i_row) {
             KRATOS_EXPECT_EQ(product.index1_data()[i_row], i_row);
@@ -115,7 +115,7 @@ KRATOS_TEST_CASE_IN_SUITE(HeterogeneousProduct, KratosCoreFastSuite)
 
     // Both operands as well as the result have different types.
     {
-        TUblasSparseSpace<int>::MatrixType product;
+        TDefaultSparseSpace<int>::MatrixType product;
         SparseUtils::MatrixMultiplication(double_precision, single_precision, product);
         for (int i_row=0; i_row<system_size; ++i_row) {
             KRATOS_EXPECT_EQ(product.index1_data()[i_row], i_row);

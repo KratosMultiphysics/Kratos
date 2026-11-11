@@ -145,6 +145,19 @@ void CableElement3D2N::UpdateInternalForces(
     KRATOS_CATCH("");
 }
 
+void CableElement3D2N::CalculateInternalForces(
+    VectorType& rInternalForces, const ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_TRY
+    TrussElement3D2N::CalculateInternalForces(rInternalForces, rCurrentProcessInfo);
+
+    // a compressed cable does not carry any load
+    if (mIsCompressed) {
+        rInternalForces.clear();
+    }
+    KRATOS_CATCH("")
+}
+
 void CableElement3D2N::CalculateOnIntegrationPoints(
     const Variable<array_1d<double, 3>>& rVariable,
     std::vector<array_1d<double, 3>>& rOutput,

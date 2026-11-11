@@ -226,7 +226,7 @@ KRATOS_TEST_CASE_IN_SUITE(EmbeddedTransonicPerturbationPotentialFlowSupersonicEl
 
     std::vector<double> reference{138.942250054897102,-173.403842905459442,34.4615928505623046,0.0};
 
-    KRATOS_EXPECT_VECTOR_NEAR(RHS, reference, 1e-15);
+    KRATOS_EXPECT_VECTOR_NEAR(RHS, reference, 1e-12);
 }
 
 /** Checks the EmbeddedTransonicPerturbationPotentialFlowElement

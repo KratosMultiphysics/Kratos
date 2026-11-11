@@ -119,6 +119,15 @@ namespace Testing {
         auto p_nurbs_surface_on_volume_1 = p_brep_surface_on_volume_1->pGetSurfaceOnVolume();
         auto p_nurbs_surface_on_volume_4 = p_brep_surface_on_volume_4->pGetSurfaceOnVolume();
 
+        KRATOS_EXPECT_TRUE(p_brep_surface_on_volume_1->HasGeometryPart(
+            Geometry<NodeType>::BACKGROUND_GEOMETRY_INDEX));
+        KRATOS_EXPECT_TRUE(p_brep_surface_on_volume_1->HasGeometryPart(
+            p_brep_surface_on_volume_1->SURFACE_ON_VOLUME_INDEX));
+        KRATOS_EXPECT_EQ(p_brep_surface_on_volume_1->pGetGeometryPart(
+            Geometry<NodeType>::BACKGROUND_GEOMETRY_INDEX), p_volume);
+        KRATOS_EXPECT_EQ(p_brep_surface_on_volume_1->pGetGeometryPart(
+            p_brep_surface_on_volume_1->SURFACE_ON_VOLUME_INDEX), p_nurbs_surface_on_volume_1);
+
         // Check general information, input to ouput
         KRATOS_EXPECT_EQ(p_brep_surface_on_volume_1->WorkingSpaceDimension(), 3);
         KRATOS_EXPECT_EQ(p_brep_surface_on_volume_1->LocalSpaceDimension(), 1);

@@ -117,7 +117,7 @@ void SetParameterFieldProcess::SetParameterFieldUsingParametersClass(const Varia
     IndexType       i           = 0;
     for (Element& r_element : mrModelPart.Elements()) {
         Vector sub_vector;
-        sub_vector.resize(vector_size);
+        sub_vector.resize(vector_size, false);
         for (IndexType j = 0; j < vector_size; j++) {
             sub_vector[j] = r_data_matrix(i, j);
         }

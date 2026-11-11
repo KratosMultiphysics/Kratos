@@ -578,7 +578,7 @@ namespace Kratos
           break;
         }
       }
-      if (found == false)
+      if (!found)
         std::cout << "ATTENTION! NO PROPERTIES HAVE BEEN FOUNDED FOR THIS ELEMENT! X,Y " << rGeom[1].X() << "," << rGeom[1].Y() << std::endl;
     }
 

@@ -8,8 +8,8 @@
 /* Project includes */
 #include "custom_constitutive/thermal_linear_elastic_3D_law.hpp"
 #include "includes/checks.h"
-#include "utilities/math_utils.h"
 #include "custom_utilities/advanced_constitutive_law_utilities.h"
+#include "custom_utilities/thermal_output_utilities.hpp"
 
 namespace Kratos
 {
@@ -121,32 +121,39 @@ Vector& ThermalLinearElastic3DLaw::CalculateValue(
         Vector thermal_strain_vector(strain_size);
         this->CalculateDamThermalStrain(thermal_strain_vector, rParameterValues);
 
-        if (rThisVariable == MECHANICAL_STRESS_VECTOR) {
-            // MECHANICAL_STRESS_VECTOR = C * epsilon
-            const Vector& r_strain = rParameterValues.GetStrainVector();
-            if (rValue.size() != strain_size)
-                rValue.resize(strain_size, false);
-            noalias(rValue) = prod(constitutive_matrix, r_strain);
-            return rValue;
-        }
+        // Undamaged thermoelastic assembly (damage factor 1.0), shared with the
+        // thermal damage families.
+        Vector thermal_strain_out, thermal_stress_out, mechanical_stress_out;
+        ThermalOutputUtilities::AssembleOutputs(
+            thermal_strain_out, thermal_stress_out, mechanical_stress_out,
+            rParameterValues.GetStrainVector(), thermal_strain_vector,
+            constitutive_matrix, 1.0);
 
         if (rThisVariable == THERMAL_STRAIN_VECTOR) {
             // THERMAL_STRAIN_VECTOR = epsilon_th
             if (rValue.size() != strain_size)
                 rValue.resize(strain_size, false);
-            noalias(rValue) = thermal_strain_vector;
+            noalias(rValue) = thermal_strain_out;
             return rValue;
         }
-
-        // THERMAL_STRESS_VECTOR = C * epsilon_th
+        if (rThisVariable == THERMAL_STRESS_VECTOR) {
+            // THERMAL_STRESS_VECTOR = C * epsilon_th
+            if (rValue.size() != strain_size)
+                rValue.resize(strain_size, false);
+            noalias(rValue) = thermal_stress_out;
+            return rValue;
+        }
+        // MECHANICAL_STRESS_VECTOR = C * epsilon
         if (rValue.size() != strain_size)
             rValue.resize(strain_size, false);
-        noalias(rValue) = prod(constitutive_matrix, thermal_strain_vector);
+        noalias(rValue) = mechanical_stress_out;
         return rValue;
     }
 
-    // Not one of the specialized outputs: keep the base behaviour.
-    return rValue;
+    // Not one of the specialized outputs: delegate to the base-class behaviour.
+    // Qualified through ElasticIsotropic3D, which owns these overloads: the CLA
+    // thermal base only declares the Variable<double> overload.
+    return ElasticIsotropic3D::CalculateValue(rParameterValues, rThisVariable, rValue);
 
     KRATOS_CATCH( "" )
 }
@@ -161,37 +168,32 @@ Matrix& ThermalLinearElastic3DLaw::CalculateValue(
     KRATOS_TRY
 
     const SizeType strain_size = this->GetStrainSize();
-    const std::size_t dimension = (strain_size == 6) ? 3 : 2;
 
     if (rThisVariable == THERMAL_STRAIN_TENSOR) {
         Vector strain_vector = ZeroVector(strain_size);
         this->CalculateValue(rParameterValues, THERMAL_STRAIN_VECTOR, strain_vector);
-        if (rValue.size1() != dimension || rValue.size2() != dimension)
-            rValue.resize(dimension, dimension, false);
-        noalias(rValue) = MathUtils<double>::StrainVectorToTensor(strain_vector);
+        ThermalOutputUtilities::AssignStrainTensor(rValue, strain_vector);
         return rValue;
     }
 
     if (rThisVariable == THERMAL_STRESS_TENSOR) {
         Vector stress_vector = ZeroVector(strain_size);
         this->CalculateValue(rParameterValues, THERMAL_STRESS_VECTOR, stress_vector);
-        if (rValue.size1() != dimension || rValue.size2() != dimension)
-            rValue.resize(dimension, dimension, false);
-        noalias(rValue) = MathUtils<double>::StressVectorToTensor(stress_vector);
+        ThermalOutputUtilities::AssignStressTensor(rValue, stress_vector);
         return rValue;
     }
 
     if (rThisVariable == MECHANICAL_STRESS_TENSOR) {
         Vector stress_vector = ZeroVector(strain_size);
         this->CalculateValue(rParameterValues, MECHANICAL_STRESS_VECTOR, stress_vector);
-        if (rValue.size1() != dimension || rValue.size2() != dimension)
-            rValue.resize(dimension, dimension, false);
-        noalias(rValue) = MathUtils<double>::StressVectorToTensor(stress_vector);
+        ThermalOutputUtilities::AssignStressTensor(rValue, stress_vector);
         return rValue;
     }
 
-    // Not one of the specialized outputs: keep the base behaviour.
-    return rValue;
+    // Not one of the specialized outputs: delegate to the base-class behaviour.
+    // Qualified through ElasticIsotropic3D, which owns these overloads: the CLA
+    // thermal base only declares the Variable<double> overload.
+    return ElasticIsotropic3D::CalculateValue(rParameterValues, rThisVariable, rValue);
 
     KRATOS_CATCH( "" )
 }

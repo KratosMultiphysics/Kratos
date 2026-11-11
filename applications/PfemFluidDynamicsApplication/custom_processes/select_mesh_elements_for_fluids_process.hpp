@@ -121,7 +121,7 @@ namespace Kratos
             bool refiningBox = false;
             for (SizeType index = 0; index < mrRemesh.UseRefiningBox.size(); index++)
             {
-                if (mrRemesh.UseRefiningBox[index] == true && currentTime > mrRemesh.RefiningBoxInitialTime[index] && currentTime < mrRemesh.RefiningBoxFinalTime[index])
+                if (mrRemesh.UseRefiningBox[index] && currentTime > mrRemesh.RefiningBoxInitialTime[index] && currentTime < mrRemesh.RefiningBoxFinalTime[index])
                 {
                     refiningBox = true;
                 }
@@ -239,7 +239,7 @@ namespace Kratos
                             ++numInletNodes;
                         }
 
-                        if (refiningBox == true && rNode.IsNot(RIGID))
+                        if (refiningBox && rNode.IsNot(RIGID))
                         {
                             if (dimension == 2)
                             {

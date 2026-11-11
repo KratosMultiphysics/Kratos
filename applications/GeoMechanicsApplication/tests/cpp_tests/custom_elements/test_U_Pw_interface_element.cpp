@@ -121,8 +121,8 @@ UPwInterfaceElement CreateInterfaceElementWithUPwDofs(const Properties::Pointer&
     auto p_interface_element = &result;
     // Note that we're a bit sloppy here, since we add the degrees of freedom to _all_ nodes (even for diff-order elements).
     // However, you'll find the same sloppiness in the fully integrated workflow. That needs to be improved later.
-    Testing::ElementSetupUtilities::AddVariablesToEntity(
-        p_interface_element, solution_step_variables, degrees_of_freedom);
+    Testing::ElementSetupUtilities::AddVariablesToNodes(
+        p_interface_element->GetGeometry(), solution_step_variables, degrees_of_freedom);
 
     return result;
 }

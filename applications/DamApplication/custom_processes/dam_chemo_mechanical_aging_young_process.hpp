@@ -23,6 +23,8 @@
 
 // Application include
 #include "dam_application_variables.h"
+#include "custom_utilities/dam_nodal_field_utilities.h"
+#include "custom_utilities/nodal_young_modulus_utilities.h"
 
 namespace Kratos
 {
@@ -99,29 +101,7 @@ class DamChemoMechanicalAgingYoungProcess : public Process
     {
         KRATOS_TRY;
 
-        const Variable<double>& var = KratosComponents<Variable<double>>::Get(mVariableName);
-        const int nnodes = mrModelPart.GetMesh(0).Nodes().size();
-
-        // This model works in years so it is necessary to convert time in this unit
-        double time = mrModelPart.GetProcessInfo()[TIME] / 31536000.0;
-
-        // Computing young modulus
-        double sound_concrete = mInitialElasticModulus * sqrt(1.0 + 0.0805 * log(time));
-        double chemical_porosity = mMaxChemicalPorosity * (1.0 - exp(-time / mChemicalTime));
-        double damage_mechanical = mMaxMechaDamage * (1.0 - exp(-time / mDamageTime));
-        double young = ((1.0 - mInitialPorosity - chemical_porosity) * (1.0 - damage_mechanical) * sound_concrete) / (1.0 - mInitialPorosity);
-
-        if (nnodes != 0)
-        {
-            ModelPart::NodesContainerType::iterator it_begin = mrModelPart.GetMesh(0).NodesBegin();
-
-#pragma omp parallel for
-            for (int i = 0; i < nnodes; i++)
-            {
-                ModelPart::NodesContainerType::iterator it = it_begin + i;
-                it->FastGetSolutionStepValue(var) = young;
-            }
-        }
+        AssignYoungModulus();
 
         KRATOS_CATCH("");
     }
@@ -132,29 +112,7 @@ class DamChemoMechanicalAgingYoungProcess : public Process
     {
         KRATOS_TRY;
 
-        const Variable<double>& var = KratosComponents<Variable<double>>::Get(mVariableName);
-        const int nnodes = mrModelPart.GetMesh(0).Nodes().size();
-
-        // This model works in years so it is necessary to convert time in this unit
-        double time = mrModelPart.GetProcessInfo()[TIME] / 31536000.0;
-
-        // Computing young modulus
-        double sound_concrete = mInitialElasticModulus * sqrt(1.0 + 0.0805 * log(time));
-        double chemical_porosity = mMaxChemicalPorosity * (1.0 - exp(-time / mChemicalTime));
-        double damage_mechanical = mMaxMechaDamage * (1.0 - exp(-time / mDamageTime));
-        double young = ((1.0 - mInitialPorosity - chemical_porosity) * (1.0 - damage_mechanical) * sound_concrete) / (1.0 - mInitialPorosity);
-
-        if (nnodes != 0)
-        {
-            ModelPart::NodesContainerType::iterator it_begin = mrModelPart.GetMesh(0).NodesBegin();
-
-#pragma omp parallel for
-            for (int i = 0; i < nnodes; i++)
-            {
-                ModelPart::NodesContainerType::iterator it = it_begin + i;
-                it->FastGetSolutionStepValue(var) = young;
-            }
-        }
+        AssignYoungModulus();
 
         KRATOS_CATCH("");
     }
@@ -194,6 +152,31 @@ class DamChemoMechanicalAgingYoungProcess : public Process
     //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
   private:
+    void AssignYoungModulus()
+    {
+        // The historical NODAL_YOUNG_MODULUS name is resolved to the standard
+        // nodal YOUNG_MODULUS field (any other variable keeps its generic behavior).
+        const Variable<double>& var =
+            NodalYoungModulusUtilities::ResolveYoungModulusVariable(mVariableName);
+
+        // This model works in years so it is necessary to convert time in this unit
+        const double time = mrModelPart.GetProcessInfo()[TIME] / 31536000.0;
+
+        // Computing young modulus
+        const double sound_concrete = mInitialElasticModulus * std::sqrt(1.0 + 0.0805 * std::log(time));
+        const double chemical_porosity = mMaxChemicalPorosity * (1.0 - std::exp(-time / mChemicalTime));
+        const double damage_mechanical = mMaxMechaDamage * (1.0 - std::exp(-time / mDamageTime));
+        const double young = ((1.0 - mInitialPorosity - chemical_porosity) * (1.0 - damage_mechanical) * sound_concrete) / (1.0 - mInitialPorosity);
+
+        DamNodalFieldUtilities::SetUniformHistoricalValue(mrModelPart, var, young);
+
+        // Expose the field through the standard DatabaseAccessor when it is
+        // Young's modulus (idempotent).
+        if (var == YOUNG_MODULUS) {
+            NodalYoungModulusUtilities::InstallDatabaseAccessor(mrModelPart);
+        }
+    }
+
     /// Assignment operator.
     DamChemoMechanicalAgingYoungProcess &operator=(DamChemoMechanicalAgingYoungProcess const &rOther);
 

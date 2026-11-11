@@ -23,13 +23,12 @@
 #include "mpm_application_variables.h"
 
 // Project includes
-#include "includes/define.h"
 #include "includes/serializer.h"
 #include "includes/constitutive_law.h"
 #include "includes/kratos_application.h"
 
 #include "includes/condition.h"
-#include "includes/ublas_interface.h"
+#include "includes/default_interface.h"
 
 #include "containers/flags.h"
 

@@ -111,7 +111,7 @@ class DamMechanicalSolver(object):
         self.main_model_part.AddNodalSolutionStepVariable(KratosDam.Viii_POSITIVE)
         self.main_model_part.AddNodalSolutionStepVariable(KratosPoro.NODAL_JOINT_WIDTH)
         self.main_model_part.AddNodalSolutionStepVariable(KratosPoro.NODAL_JOINT_AREA)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosDam.NODAL_YOUNG_MODULUS)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.YOUNG_MODULUS)
         self.main_model_part.AddNodalSolutionStepVariable(KratosPoro.INITIAL_STRESS_TENSOR)
 
         print("Variables correctly added")
@@ -310,6 +310,12 @@ class DamMechanicalSolver(object):
             else:
                 damp_factor_m = -0.01
             scheme = KratosDam.BossakDisplacementSmoothingScheme(damp_factor_m,rayleigh_m,rayleigh_k)
+
+        self._recomputes_nodal_cauchy_stress = isinstance(
+            scheme,
+            (KratosDam.IncrementalUpdateStaticSmoothingScheme,
+             KratosDam.IncrementalUpdateStaticDampedSmoothingScheme,
+             KratosDam.BossakDisplacementSmoothingScheme))
 
         return scheme
 

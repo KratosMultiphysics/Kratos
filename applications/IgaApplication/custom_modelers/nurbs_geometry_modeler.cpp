@@ -70,6 +70,23 @@ namespace Kratos
         KRATOS_ERROR_IF( local_space_dimension != size_number_of_knot_spans )
             << "Size of given Vectors: \"polynomial_order\" and \"number_of_knot_spans\" do not match." << std::endl;
 
+        for (SizeType i = 0; i < local_space_dimension; ++i) {
+            const auto polynomial_order = mParameters["polynomial_order"].GetArrayItem(i);
+            const auto number_of_knot_spans = mParameters["number_of_knot_spans"].GetArrayItem(i);
+
+            KRATOS_ERROR_IF_NOT(polynomial_order.IsInt() && number_of_knot_spans.IsInt())
+                << "NurbsGeometryModeler: \"polynomial_order\" and "
+                << "\"number_of_knot_spans\" must contain integers. "
+                << "Invalid entry at index " << i << "." << std::endl;
+
+            KRATOS_ERROR_IF(
+                polynomial_order.GetInt() < 1 ||
+                number_of_knot_spans.GetInt() < 1)
+                << "NurbsGeometryModeler: \"polynomial_order\" and "
+                << "\"number_of_knot_spans\" must be positive. "
+                << "Invalid entry at index " << i << "." << std::endl;
+        }
+
         // Create model part in case it does not exist.
         KRATOS_ERROR_IF_NOT(mParameters.Has("model_part_name"))
             << "NurbsGeometryModeler: Missing \"model_part_name\" section" << std::endl;
