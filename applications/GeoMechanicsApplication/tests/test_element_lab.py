@@ -61,12 +61,12 @@ class KratosGeoMechanicsLabElementTests(KratosGeoUnittest.TestCase):
         self.assert_integration_point_tensors(result, "ENGINEERING_STRAIN_TENSOR", expected_strain, time, precision_places)
 
     def test_biaxial_drained_linear_elastic(self):
-        """Regression test for the biaxial experiment on a model with a constant pore water pressure."""
+        """Regression test for the biaxial experiment on a model with linear elastic material and a constant pore water pressure."""
         file_path = test_helper.get_file_path(os.path.join('test_element_lab', 'test_biaxial', 'drained', 'linear_elastic'))
         self._run_biaxial_regression_test(file_path, 'biaxial_test_output.post.res', 4)
 
     def test_biaxial_drained_mohr_coulomb(self):
-        """Regression test for the biaxial experiment on a model with a constant pore water pressure."""
+        """Regression test for the biaxial experiment on a model with Mohr Coulomb material and a constant pore water pressure."""
         file_path = test_helper.get_file_path(os.path.join('test_element_lab', 'test_biaxial', 'drained', 'mohr_coulomb'))
         self._run_biaxial_regression_test(file_path, 'biaxial_test_output.post.res', 4)
 
