@@ -1,0 +1,80 @@
+{
+    "materials" : [{
+        "material_name" : "DEM-J0",
+        "material_id"   : 1,
+        "Variables"     : {
+            "PARTICLE_DENSITY"    : 2200.0,
+            "YOUNG_MODULUS"       : 1.0e9,
+            "POISSON_RATIO"       : 0.25,
+            "PARTICLE_SPHERICITY" : 1.0
+        }
+    },{
+        "material_name" : "DEM-JD",
+        "material_id"   : 2,
+        "Variables"     : {
+            "PARTICLE_DENSITY"    : 2200.0,
+            "YOUNG_MODULUS"       : 1.0e9,
+            "POISSON_RATIO"       : 0.25,
+            "PARTICLE_SPHERICITY" : 1.0
+        }
+    }],
+    "material_relations" : [{
+        "material_names_list" : ["DEM-J0", "DEM-J0"],
+        "material_ids_list"   : [1, 1],
+        "Variables"           : {
+            "PARTICLE_MATERIAL"                    : 1,
+            "DEM_DISCONTINUUM_CONSTITUTIVE_LAW_NAME" : "DEM_D_void",
+            "DEM_CONTINUUM_CONSTITUTIVE_LAW_NAME"  : "DEM_smooth_joint",
+            "STATIC_FRICTION"                      : 0.0,
+            "DYNAMIC_FRICTION"                     : 0.0,
+            "DEM_ROLLING_FRICTION_MODEL_NAME"      : "DEMRollingFrictionModelConstantTorque",
+            "ROLLING_FRICTION"                     : 0.0,
+            "ROLLING_FRICTION_WITH_WALLS"          : 0.0,
+            "JOINT_NORMAL_STIFFNESS"               : 1.0e9,
+            "JOINT_TANGENTIAL_STIFFNESS"           : 1.0e9,
+            "BOND_SIGMA_MAX"                       : 1.0e3,
+            "BOND_SIGMA_MAX_DEVIATION"             : 0.0,
+            "BOND_TAU_ZERO"                        : 0.0,
+            "BOND_TAU_ZERO_DEVIATION"              : 0.0,
+            "BOND_INTERNAL_FRICC"                  : 0.0,
+            "BOND_RADIUS_FACTOR"                   : 1.0,
+            "JOINT_NORMAL_DIRECTION_X"             : 0.0,
+            "JOINT_NORMAL_DIRECTION_Y"             : 1.0,
+            "JOINT_NORMAL_DIRECTION_Z"             : 0.0,
+            "JOINT_FRICTION_COEFF"                 : 0.0,
+            "JOINT_DILATION_ANGLE"                 : 0.0,
+            "IS_UNBREAKABLE"                       : false
+        }
+    },{
+        "material_names_list" : ["DEM-JD", "DEM-JD"],
+        "material_ids_list"   : [2, 2],
+        "Variables"           : {
+            "PARTICLE_MATERIAL"                    : 2,
+            "DEM_DISCONTINUUM_CONSTITUTIVE_LAW_NAME" : "DEM_D_void",
+            "DEM_CONTINUUM_CONSTITUTIVE_LAW_NAME"  : "DEM_smooth_joint",
+            "STATIC_FRICTION"                      : 0.0,
+            "DYNAMIC_FRICTION"                     : 0.0,
+            "DEM_ROLLING_FRICTION_MODEL_NAME"      : "DEMRollingFrictionModelConstantTorque",
+            "ROLLING_FRICTION"                     : 0.0,
+            "ROLLING_FRICTION_WITH_WALLS"          : 0.0,
+            "JOINT_NORMAL_STIFFNESS"               : 1.0e9,
+            "JOINT_TANGENTIAL_STIFFNESS"           : 1.0e9,
+            "BOND_SIGMA_MAX"                       : 1.0e3,
+            "BOND_SIGMA_MAX_DEVIATION"             : 0.0,
+            "BOND_TAU_ZERO"                        : 0.0,
+            "BOND_TAU_ZERO_DEVIATION"              : 0.0,
+            "BOND_INTERNAL_FRICC"                  : 0.0,
+            "BOND_RADIUS_FACTOR"                   : 1.0,
+            "JOINT_NORMAL_DIRECTION_X"             : 0.0,
+            "JOINT_NORMAL_DIRECTION_Y"             : 1.0,
+            "JOINT_NORMAL_DIRECTION_Z"             : 0.0,
+            "JOINT_FRICTION_COEFF"                 : 0.0,
+            "JOINT_DILATION_ANGLE"                 : 30.0,
+            "IS_UNBREAKABLE"                       : false
+        }
+    }],
+    "material_assignation_table" : [
+        ["SpheresPart.DEMParts_NoDilation", "DEM-J0"],
+        ["SpheresPart.DEMParts_Dilation", "DEM-JD"]
+    ]
+}

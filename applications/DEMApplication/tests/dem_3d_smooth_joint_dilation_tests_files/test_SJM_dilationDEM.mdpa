@@ -1,0 +1,110 @@
+Begin ModelPartData
+End ModelPartData
+
+Begin Properties 0
+End Properties
+
+Begin Nodes
+1 -0.5  0.075 0.0
+2 -0.5 -0.075 0.0
+3  0.5 -0.075 0.0
+4  0.5  0.075 0.0
+End Nodes
+
+Begin Elements SphericContinuumParticle3D
+1 0 1
+2 0 2
+3 0 3
+4 0 4
+End Elements
+
+Begin NodalData RADIUS
+1 0 0.1
+2 0 0.1
+3 0 0.1
+4 0 0.1
+End NodalData
+
+Begin NodalData COHESIVE_GROUP
+1 0 1
+2 0 1
+3 0 2
+4 0 2
+End NodalData
+
+Begin NodalData SKIN_SPHERE
+End NodalData
+
+Begin SubModelPart DEMParts_NoDilation
+    Begin SubModelPartNodes
+        1
+        2
+    End SubModelPartNodes
+    Begin SubModelPartElements
+        1
+        2
+    End SubModelPartElements
+    Begin SubModelPartConditions
+    End SubModelPartConditions
+End SubModelPart
+
+Begin SubModelPart DEMParts_Dilation
+    Begin SubModelPartNodes
+        3
+        4
+    End SubModelPartNodes
+    Begin SubModelPartElements
+        3
+        4
+    End SubModelPartElements
+    Begin SubModelPartConditions
+    End SubModelPartConditions
+End SubModelPart
+
+Begin SubModelPart MovingDown
+    Begin SubModelPartData
+        IMPOSED_VELOCITY_X_VALUE -0.005
+        IMPOSED_VELOCITY_Y_VALUE -0.01
+        IMPOSED_VELOCITY_Z_VALUE 0.0
+        IMPOSED_ANGULAR_VELOCITY_X_VALUE 0.0
+        IMPOSED_ANGULAR_VELOCITY_Y_VALUE 0.0
+        IMPOSED_ANGULAR_VELOCITY_Z_VALUE 0.0
+        VELOCITY_START_TIME 0.0
+        VELOCITY_STOP_TIME 1.0
+        RIGID_BODY_MOTION 0
+        FORCE_INTEGRATION_GROUP 0
+        IDENTIFIER MovingDown
+    End SubModelPartData
+    Begin SubModelPartNodes
+        1
+        4
+    End SubModelPartNodes
+    Begin SubModelPartElements
+        1
+        4
+    End SubModelPartElements
+End SubModelPart
+
+Begin SubModelPart MovingUp
+    Begin SubModelPartData
+        IMPOSED_VELOCITY_X_VALUE 0.005
+        IMPOSED_VELOCITY_Y_VALUE 0.01
+        IMPOSED_VELOCITY_Z_VALUE 0.0
+        IMPOSED_ANGULAR_VELOCITY_X_VALUE 0.0
+        IMPOSED_ANGULAR_VELOCITY_Y_VALUE 0.0
+        IMPOSED_ANGULAR_VELOCITY_Z_VALUE 0.0
+        VELOCITY_START_TIME 0.0
+        VELOCITY_STOP_TIME 1.0
+        RIGID_BODY_MOTION 0
+        FORCE_INTEGRATION_GROUP 0
+        IDENTIFIER MovingUp
+    End SubModelPartData
+    Begin SubModelPartNodes
+        2
+        3
+    End SubModelPartNodes
+    Begin SubModelPartElements
+        2
+        3
+    End SubModelPartElements
+End SubModelPart

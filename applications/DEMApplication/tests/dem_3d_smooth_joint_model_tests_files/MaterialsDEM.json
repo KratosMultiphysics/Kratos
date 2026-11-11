@@ -142,6 +142,7 @@
             "JOINT_NORMAL_DIRECTION_Y"               : 0.70710678118,
             "JOINT_NORMAL_DIRECTION_Z"               : 0.0,
             "JOINT_FRICTION_COEFF"                   : 0.5,
+            "JOINT_DILATION_ANGLE"                   : 0.0,
             "IS_UNBREAKABLE"                         : false
         }
     }],

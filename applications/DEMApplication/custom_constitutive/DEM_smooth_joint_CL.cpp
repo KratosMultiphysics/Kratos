@@ -175,6 +175,17 @@ void DEM_smooth_joint::Check(Properties::Pointer pProp) const {
         pProp->GetValue(JOINT_FRICTION_COEFF) = 0.0;
     }
 
+    if(!pProp->Has(JOINT_DILATION_ANGLE)) {
+        KRATOS_WARNING("DEM")<<std::endl;
+        KRATOS_WARNING("DEM")<<"WARNING: Variable JOINT_DILATION_ANGLE should be present in the properties when using DEM_smooth_joint_CL. 0.0 degrees assigned by default."<<std::endl;
+        KRATOS_WARNING("DEM")<<std::endl;
+        pProp->GetValue(JOINT_DILATION_ANGLE) = 0.0;
+    }
+
+    KRATOS_ERROR_IF(pProp->GetValue(JOINT_DILATION_ANGLE) < 0.0
+                    || pProp->GetValue(JOINT_DILATION_ANGLE) >= 90.0)
+        << "JOINT_DILATION_ANGLE must be in the range [0, 90) degrees." << std::endl;
+
     const double joint_normal_norm = std::sqrt(
         pProp->GetValue(JOINT_NORMAL_DIRECTION_X) * pProp->GetValue(JOINT_NORMAL_DIRECTION_X)
         + pProp->GetValue(JOINT_NORMAL_DIRECTION_Y) * pProp->GetValue(JOINT_NORMAL_DIRECTION_Y)
@@ -363,8 +374,10 @@ void DEM_smooth_joint::CalculateForces(const ProcessInfo& r_process_info,
                             LocalCoordSystem,
                             LocalDeltDisp,
                             LocalRelVel,
+                            kn_el,
                             kt_el,
                             equiv_shear,
+                            contact_sigma,
                             contact_tau,
                             indentation,
                             calculation_area,
@@ -401,6 +414,12 @@ void DEM_smooth_joint::CalculateNormalForces(double LocalElasticContactForce[3],
 
     if (!failure_type){
         JointLocalElasticContactForce2 = kn_el * indentation;
+    } else {
+        // An unbonded smooth joint cannot carry tension, but it keeps its
+        // compressive spring. Accumulated dilation acts as an additional
+        // closure, as in the PFC and YADE smooth-joint formulations.
+        const double effective_indentation = indentation + mAccumulatedJointDilation;
+        JointLocalElasticContactForce2 = kn_el * std::max(0.0, effective_indentation);
     }
 
     if(calculation_area){
@@ -420,8 +439,10 @@ void DEM_smooth_joint::CalculateTangentialForces(double OldLocalElasticContactFo
                         double LocalCoordSystem[3][3],
                         double LocalDeltDisp[3],
                         double LocalRelVel[3],
+                        const double kn_el,
                         const double kt_el,
                         const double equiv_shear,
+                        double& contact_sigma,
                         double& contact_tau,
                         double indentation,
                         double calculation_area,
@@ -440,6 +461,7 @@ void DEM_smooth_joint::CalculateTangentialForces(double OldLocalElasticContactFo
     //const double& internal_friction = (*mpProperties)[BOND_INTERNAL_FRICC];
     int& failure_type = element1->mIniNeighbourFailureId[i_neighbour_count];
     double current_tangential_force_module = 0.0;
+    sliding = false;
 
     // The [mBondedScalingFactor] is divided into two direction [0] and [1]. June, 2022
     double JointLocalElasticContactForce[2] = {0.0};
@@ -460,6 +482,11 @@ void DEM_smooth_joint::CalculateTangentialForces(double OldLocalElasticContactFo
         const double friction_force = std::max(0.0, (*mpProperties)[JOINT_FRICTION_COEFF] * LocalElasticContactForce[2]);
         if (current_tangential_force_module > friction_force){
             if (current_tangential_force_module > 0.0){
+                double plastic_slip_increment = 0.0;
+                if (kt_el > 0.0) {
+                    plastic_slip_increment = (current_tangential_force_module - friction_force) / kt_el;
+                }
+
                 const double fraction = friction_force / current_tangential_force_module;
                 JointLocalElasticContactForce[0] *= fraction;
                 JointLocalElasticContactForce[1] *= fraction;
@@ -467,6 +494,20 @@ void DEM_smooth_joint::CalculateTangentialForces(double OldLocalElasticContactFo
                 if (kt_el > 0.0) {
                     mAccumulatedJointTangentialLocalDisplacement[0] = -JointLocalElasticContactForce[0] / kt_el;
                     mAccumulatedJointTangentialLocalDisplacement[1] = -JointLocalElasticContactForce[1] / kt_el;
+                }
+
+                // Dilation is generated only by frictional sliding while the
+                // unbonded joint is closed. With zero normal force the two
+                // surfaces are separated and no dilation is accumulated.
+                if (LocalElasticContactForce[2] > 0.0 && plastic_slip_increment > 0.0) {
+                    const double dilation_angle = (*mpProperties)[JOINT_DILATION_ANGLE] * Globals::Pi / 180.0;
+                    const double dilation_increment = plastic_slip_increment * std::tan(dilation_angle);
+                    mAccumulatedJointDilation += dilation_increment;
+                    LocalElasticContactForce[2] += kn_el * dilation_increment;
+                    if (calculation_area > 0.0) {
+                        contact_sigma = LocalElasticContactForce[2] / calculation_area;
+                    }
+                    sliding = true;
                 }
             }
         }

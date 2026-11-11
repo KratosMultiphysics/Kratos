@@ -105,8 +105,10 @@ namespace Kratos{
                                             double LocalCoordSystem[3][3],
                                             double LocalDeltDisp[3],
                                             double LocalRelVel[3],
+                                            const double kn_el,
                                             const double kt_el,
                                             const double equiv_shear,
+                                            double& contact_sigma,
                                             double& contact_tau,
                                             double indentation,
                                             double calculation_area,
@@ -145,6 +147,7 @@ namespace Kratos{
 
 
         double mAccumulatedJointTangentialLocalDisplacement[2] = {0.0};
+        double mAccumulatedJointDilation = 0.0;
         double mKn;
         double mKt;
         double mLocalJointNormal[3] = {0.0};

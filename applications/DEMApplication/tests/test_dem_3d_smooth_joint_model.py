@@ -114,6 +114,56 @@ class SmoothJointMirroredContactsTestSolution(KratosMultiphysics.DEMApplication.
         self.assertTrue(self.mirrored_contacts_checked)
         super().Finalize()
 
+class SmoothJointDilationTestSolution(KratosMultiphysics.DEMApplication.DEM_analysis_stage.DEMAnalysisStage, KratosUnittest.TestCase):
+
+    def __init__(self, model, parameters):
+        super().__init__(model, parameters)
+        self.dilation_checked = False
+
+    @classmethod
+    def GetMainPath(cls):
+        return os.path.join(os.path.dirname(os.path.realpath(__file__)), "dem_3d_smooth_joint_dilation_tests_files")
+
+    def GetProblemNameWithPath(self):
+        return os.path.join(self.main_path, self.DEM_parameters["problem_name"].GetString())
+
+    def FinalizeSolutionStep(self):
+        super().FinalizeSolutionStep()
+
+        if self.time <= 8.0 * self.DEM_parameters["MaxTimeStep"].GetDouble():
+            return
+
+        contact_elements = list(self.contact_model_part.Elements)
+        if len(contact_elements) != 2:
+            return
+
+        self._GetSolver().PrepareContactElementsForPrinting()
+        contacts_by_nodes = {
+            tuple(sorted(node.Id for node in element.GetGeometry())): element
+            for element in contact_elements
+        }
+        self.assertTrue(set(contacts_by_nodes) == {(1, 2), (3, 4)})
+
+        contact_without_dilation = contacts_by_nodes[(1, 2)]
+        contact_with_dilation = contacts_by_nodes[(3, 4)]
+
+        sigma_without_dilation = contact_without_dilation.GetValue(DEM.CONTACT_SIGMA)
+        sigma_with_dilation = contact_with_dilation.GetValue(DEM.CONTACT_SIGMA)
+        tau_without_dilation = contact_without_dilation.GetValue(DEM.CONTACT_TAU)
+        tau_with_dilation = contact_with_dilation.GetValue(DEM.CONTACT_TAU)
+
+        self.assertTrue(contact_without_dilation.GetValue(DEM.CONTACT_FAILURE) == 2.0)
+        self.assertTrue(contact_with_dilation.GetValue(DEM.CONTACT_FAILURE) == 2.0)
+        self.assertAlmostEqual(tau_without_dilation, 0.0, delta=1.0e-8)
+        self.assertAlmostEqual(tau_with_dilation, 0.0, delta=1.0e-8)
+        self.assertGreater(sigma_without_dilation, 0.0)
+        self.assertGreater(sigma_with_dilation, sigma_without_dilation)
+        self.dilation_checked = True
+
+    def Finalize(self):
+        self.assertTrue(self.dilation_checked)
+        super().Finalize()
+
 class TestSmoothJointModel(KratosUnittest.TestCase):
 
     def setUp(self):
@@ -124,6 +174,10 @@ class TestSmoothJointModel(KratosUnittest.TestCase):
         kratos_utils.DeleteDirectoryIfExisting(os.path.join(path, "test_SJM_mirrored_Post_Files"))
         kratos_utils.DeleteDirectoryIfExisting(os.path.join(path, "test_SJM_mirrored_Graphs"))
         kratos_utils.DeleteFileIfExisting(os.path.join(path, "test_SJM_mirrored.post.lst"))
+        path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "dem_3d_smooth_joint_dilation_tests_files")
+        kratos_utils.DeleteDirectoryIfExisting(os.path.join(path, "test_SJM_dilation_Post_Files"))
+        kratos_utils.DeleteDirectoryIfExisting(os.path.join(path, "test_SJM_dilation_Graphs"))
+        kratos_utils.DeleteFileIfExisting(os.path.join(path, "test_SJM_dilation.post.lst"))
 
     @classmethod
     def test_SmoothJointModel_1(self):
@@ -137,6 +191,12 @@ class TestSmoothJointModel(KratosUnittest.TestCase):
         parameters_file_name = os.path.join(path, "ProjectParametersDEM.json")
         model = Kratos.Model()
         auxiliary_functions_for_tests.CreateAndRunStageInSelectedNumberOfOpenMPThreads(SmoothJointMirroredContactsTestSolution, model, parameters_file_name, 1)
+
+    def test_SmoothJointModel_Dilation(self):
+        path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "dem_3d_smooth_joint_dilation_tests_files")
+        parameters_file_name = os.path.join(path, "ProjectParametersDEM.json")
+        model = Kratos.Model()
+        auxiliary_functions_for_tests.CreateAndRunStageInSelectedNumberOfOpenMPThreads(SmoothJointDilationTestSolution, model, parameters_file_name, 1)
 
 if __name__ == "__main__":
     Kratos.Logger.GetDefaultOutput().SetSeverity(Logger.Severity.WARNING)
