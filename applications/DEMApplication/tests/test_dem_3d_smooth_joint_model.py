@@ -87,16 +87,27 @@ class SmoothJointMirroredContactsTestSolution(KratosMultiphysics.DEMApplication.
         self.assertTrue(set(contacts_by_nodes) == {(1, 2), (3, 4)})
 
         contact_sigmas = []
+        contact_taus = []
         for node_pair in ((1, 2), (3, 4)):
             contact = contacts_by_nodes[node_pair]
             contact_sigma = contact.GetValue(DEM.CONTACT_SIGMA)
+            contact_tau = contact.GetValue(DEM.CONTACT_TAU)
             contact_failure = contact.GetValue(DEM.CONTACT_FAILURE)
 
             self.assertGreater(contact_sigma, 0.0)
+            self.assertGreater(contact_tau, 0.0)
             self.assertTrue(contact_failure == 0.0)
             contact_sigmas.append(contact_sigma)
+            contact_taus.append(contact_tau)
 
-        self.assertAlmostEqual(contact_sigmas[0], contact_sigmas[1], delta=1.0e-8)
+        # The two contacts have the same normal closure but their particle
+        # radii (and hence their joint areas) differ by a factor of four.
+        # Stiffness properties are specified per unit area [Pa/m], so both
+        # contacts must develop the same stress. This also guards against
+        # accidentally treating JOINT_NORMAL_STIFFNESS as a contact stiffness
+        # in N/m, which would make stress inversely proportional to area.
+        self.assertAlmostEqual(contact_sigmas[0], contact_sigmas[1], delta=1.0e-6)
+        self.assertAlmostEqual(contact_taus[0], contact_taus[1], delta=1.0e-6)
         self.mirrored_contacts_checked = True
 
     def Finalize(self):

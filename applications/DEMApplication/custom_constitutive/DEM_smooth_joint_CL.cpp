@@ -10,6 +10,7 @@
 #include <cmath>
 #include <cstdio>
 #include <algorithm>
+#include <limits>
 
 // Project includes
 #include "DEM_smooth_joint_CL.h"
@@ -90,17 +91,22 @@ void DEM_smooth_joint::Check(Properties::Pointer pProp) const {
 
     if(!pProp->Has(JOINT_NORMAL_STIFFNESS)) {
         KRATOS_WARNING("DEM")<<std::endl;
-        KRATOS_WARNING("DEM")<<"WARNING: Variable JOINT_NORMAL_STIFFNESS should be present in the properties when using DEM_smooth_joint_CL. 0.0 value assigned by default."<<std::endl;
+        KRATOS_WARNING("DEM")<<"WARNING: Variable JOINT_NORMAL_STIFFNESS should be present in the properties when using DEM_smooth_joint_CL. 1.0e9 Pa/m assigned by default."<<std::endl;
         KRATOS_WARNING("DEM")<<std::endl;
         pProp->GetValue(JOINT_NORMAL_STIFFNESS) = 1e9;
     }
 
     if(!pProp->Has(JOINT_TANGENTIAL_STIFFNESS)) {
         KRATOS_WARNING("DEM")<<std::endl;
-        KRATOS_WARNING("DEM")<<"WARNING: Variable JOINT_TANGENTIAL_STIFFNESS should be present in the properties when using DEM_smooth_joint_CL. 0.0 value assigned by default."<<std::endl;
+        KRATOS_WARNING("DEM")<<"WARNING: Variable JOINT_TANGENTIAL_STIFFNESS should be present in the properties when using DEM_smooth_joint_CL. 1.0e9 Pa/m assigned by default."<<std::endl;
         KRATOS_WARNING("DEM")<<std::endl;
         pProp->GetValue(JOINT_TANGENTIAL_STIFFNESS) = 1e9;
     }
+
+    KRATOS_ERROR_IF(pProp->GetValue(JOINT_NORMAL_STIFFNESS) < 0.0)
+        << "JOINT_NORMAL_STIFFNESS must be non-negative and expressed in Pa/m." << std::endl;
+    KRATOS_ERROR_IF(pProp->GetValue(JOINT_TANGENTIAL_STIFFNESS) < 0.0)
+        << "JOINT_TANGENTIAL_STIFFNESS must be non-negative and expressed in Pa/m." << std::endl;
     
     if(!pProp->Has(BOND_SIGMA_MAX)) {
 
@@ -225,18 +231,17 @@ void DEM_smooth_joint::GetContactArea(const double radius, const double other_ra
 }
 
 
-// TODO: In this function, it is better to replace 'kn_el' with 'kn_bond' and 'kt_el' with 'kt_bond'.
+// JOINT_NORMAL_STIFFNESS and JOINT_TANGENTIAL_STIFFNESS are stiffnesses per
+// unit area [Pa/m], consistently with the PFC smooth-joint model and YADE's
+// JCFpm joint properties. Convert them here to contact spring stiffnesses
+// [N/m] by multiplying by the smooth-joint cross-sectional area.
 void DEM_smooth_joint::CalculateElasticConstants(double& kn_el, double& kt_el, double initial_dist, double equiv_young,
                                 double equiv_poisson, double calculation_area, SphericContinuumParticle* element1, SphericContinuumParticle* element2, double indentation) {
 
     KRATOS_TRY
 
-    //for bonded part
-    //const double bond_equiv_young = (*mpProperties)[BOND_YOUNG_MODULUS];
-    //kn_el = bond_equiv_young * calculation_area / mInitialDistanceJoint;
-    //kt_el = kn_el / (*mpProperties)[BOND_KNKS_RATIO];
-    kn_el = (*mpProperties)[JOINT_NORMAL_STIFFNESS];
-    kt_el = (*mpProperties)[JOINT_TANGENTIAL_STIFFNESS];
+    kn_el = (*mpProperties)[JOINT_NORMAL_STIFFNESS] * calculation_area;
+    kt_el = (*mpProperties)[JOINT_TANGENTIAL_STIFFNESS] * calculation_area;
 
     mGlobalJointNormal[0] = (*mpProperties)[JOINT_NORMAL_DIRECTION_X]; // X = -1 * sin(alpha) 
     mGlobalJointNormal[1] = (*mpProperties)[JOINT_NORMAL_DIRECTION_Y]; // Y = cos(alpha)
@@ -284,20 +289,18 @@ double DEM_smooth_joint::LocalMaxSearchDistance(const int i,
     //double initial_delta = element1->GetInitialDelta(i);
     //double initial_dist = radius_sum - initial_delta;
 
-    // calculation of elastic constants
-    //double kn_el = equiv_young * calculation_area / mInitialDistanceJoint;
-    double kn_el = (*mpProperties)[JOINT_NORMAL_STIFFNESS]; 
+    // Convert the normal stiffness per unit area [Pa/m] into the contact
+    // stiffness [N/m], using the same definition as in CalculateElasticConstants.
+    const double kn_el = (*mpProperties)[JOINT_NORMAL_STIFFNESS] * calculation_area;
 
     //tension_limit = GetContactSigmaMax();
     tension_limit = (*mpProperties)[BOND_SIGMA_MAX]; //TODO: add BOND_SIGMA_MAX_DEVIATION
 
     const double max_normal_bond_force = tension_limit * calculation_area;
-    double u_max = max_normal_bond_force / kn_el;
-
-    //TODO: need to choose whether the [if] below is necessary
-    if (u_max > 2.0 * radius_sum) {
-        u_max = 2.0 * radius_sum;
-    } // avoid error in special cases with too high tensile
+    double u_max = 2.0 * radius_sum;
+    if (kn_el > std::numeric_limits<double>::epsilon()) {
+        u_max = std::min(max_normal_bond_force / kn_el, u_max);
+    }
     
 
     return u_max;
