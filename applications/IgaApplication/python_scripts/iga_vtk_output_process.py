@@ -35,6 +35,13 @@ class IgaVTKOutputProcess(KM.OutputProcess):
             "interval"               : [0.0, "End"]
         }""")
 
+        if params.Has("output_refinement_surface"):
+            if params.Has("output_refinement"):
+                raise RuntimeError(
+                    'Specify only one of "output_refinement_surface" and "output_refinement".'
+                )
+            params.AddValue("output_refinement", params["output_refinement_surface"])
+            params.RemoveValue("output_refinement_surface")
         params.ValidateAndAssignDefaults(default_parameters)
         self.interval_utility = KM.IntervalUtility(params)
 
