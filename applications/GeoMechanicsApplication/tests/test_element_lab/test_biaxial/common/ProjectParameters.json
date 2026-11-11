@@ -27,7 +27,7 @@
         },
         "buffer_size": 2,
         "clear_storage": false,
-        "compute_reactions": true,
+        "compute_reactions": false,
         "move_mesh_flag": false,
         "reform_dofs_at_each_step": false,
         "block_builder": true,
