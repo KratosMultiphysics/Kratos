@@ -2983,6 +2983,8 @@ void ModelPartIO::ReadElementalDataBlock(ElementsContainerType& rThisElements)
         ReadElementalScalarVariableData(rThisElements, static_cast<Variable<double> const& >(KratosComponents<Variable<double> >::Get(variable_name)));
     } else if(KratosComponents<Variable<array_1d<double, 3> > >::Has(variable_name)) {
         ReadElementalVectorialVariableData(rThisElements, static_cast<Variable<array_1d<double, 3> > const& >(KratosComponents<Variable<array_1d<double, 3> > >::Get(variable_name)), Vector(3));
+    } else if(KratosComponents<Variable<array_1d<double, 6> > >::Has(variable_name)) {
+        ReadElementalVectorialVariableData(rThisElements, static_cast<Variable<array_1d<double, 6> > const& >(KratosComponents<Variable<array_1d<double, 6> > >::Get(variable_name)), Vector(6));
     } else if(KratosComponents<Variable<Quaternion<double> > >::Has(variable_name)) {
         ReadElementalVectorialVariableData(rThisElements, static_cast<Variable<Quaternion<double> > const& >(KratosComponents<Variable<Quaternion<double> > >::Get(variable_name)), Vector(4));
     } else if(KratosComponents<Variable<Matrix> >::Has(variable_name)) {
@@ -5418,6 +5420,8 @@ void ModelPartIO::DivideElementalDataBlock(OutputFilesContainerType& OutputFiles
     } else if(KratosComponents<Variable<int> >::Has(variable_name)) {
         DivideScalarVariableData(OutputFiles, ElementsAllPartitions, "ElementalData");
     } else if(KratosComponents<Variable<array_1d<double, 3> > >::Has(variable_name)) {
+        DivideVectorialVariableData<Vector>(OutputFiles, ElementsAllPartitions, "ElementalData");
+    } else if(KratosComponents<Variable<array_1d<double, 6> > >::Has(variable_name)) {
         DivideVectorialVariableData<Vector>(OutputFiles, ElementsAllPartitions, "ElementalData");
     } else if(KratosComponents<Variable<Quaternion<double> > >::Has(variable_name)) {
         DivideVectorialVariableData<Vector>(OutputFiles, ElementsAllPartitions, "ElementalData");
