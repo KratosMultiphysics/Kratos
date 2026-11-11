@@ -36,19 +36,19 @@ and compares results at every supplied reference coordinate:
 
 - **Phreatic line:** interpolate the water-pressure profile along the actual
   mesh at each reference x and find its p = 0 crossing. Compare 
-  with reference y using an absolute tolerance of
+  with the reference y using an absolute tolerance of
   **0.15 m**. A missing or non-unique crossing fails explicitly. Use reference
   x coordinates where the phreatic elevation is uniquely defined.
 - **Flux magnitude at x = 20 m:** interpolate the three components of the nodal
    `FLUID_FLUX_VECTOR` at each y from the reference data, then calculate the magnitude
-  and convert from m/s to m/day. Compare using a relative tolerance of **0.085**
-  (8.5%) of the flux magnitude, or an absolute tolerance of **0.01 m/day** for small fluxes.
+  and convert from m/s to m/day. Compare using a relative tolerance of
+  **8.5%** of the flux magnitude, or an absolute tolerance of **0.01 m/day** for small fluxes.
 - **Effective saturation at x = 4 m:** interpolate the nodal
   `EFFECTIVE_SATURATION` at each y from the reference data and compare using an
   absolute tolerance of **0.075** in fractional units.
 
 Flux and saturation are integration-point results extrapolated to nodes by the configured auxiliary process. 
-In this extrapolation process values may show inphysical behaviour such as effective saturation slightly exceeding 1, especially where the mesh is coarse or the saturation gradient is steep. This does not indicate a failure of the simulation.
+In this extrapolation process values may show unphysical behaviour such as effective saturation slightly exceeding 1, especially where the mesh is coarse or the saturation gradient is steep. This does not indicate a failure of the simulation.
 
 ## Plots and running the test
 

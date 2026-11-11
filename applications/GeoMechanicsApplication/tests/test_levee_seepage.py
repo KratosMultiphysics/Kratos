@@ -19,7 +19,7 @@ class KratosGeoMechanicsLeveeSeepageTests(KratosUnittest.TestCase):
     """Compare steady-state levee seepage with commercial FE reference profiles."""
 
     PHREATIC_LINE_TOLERANCE = 0.15  # m
-    FLUX_RELATIVE_TOLERANCE = 0.085 # percentage
+    FLUX_RELATIVE_TOLERANCE = 0.085 # fraction
     FLUX_ABSOLUTE_TOLERANCE = 0.01  # m/day
     SATURATION_TOLERANCE = 0.075
 
