@@ -25,6 +25,8 @@ namespace Kratos
  * Reference: Nonlinear Finite Element Methods, Peter Wriggers, Chapter 9.2.
  * The description of the formulation can be found in: https://www.researchgate.net/publication/416879839_Large_displacement_2D_and_3D_Timoshenko_beams (DOI: 10.13140/RG.2.2.14877.47846)
  * @author Alejandro Cornejo
+ * 
+ * Note: It has been identified that for obtaining non-dissipative results, the residual tolerance must be tightened lower than the default value of relative 1.0e-4. This ensures lower errors in the rotation field.
  */
 class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) NonLinearTimoshenkoBeamElement2D2N
     : public LinearTimoshenkoBeamElement2D2N
