@@ -1,10 +1,10 @@
-import json
 from pathlib import Path
 
 import numpy
 
 import KratosMultiphysics
-from KratosMultiphysics.RomApplication.future.rom_decoders import FixedDofsDecoder, LinearDecoder
+from KratosMultiphysics.RomApplication.hrom_training_utility import HRomTrainingUtility
+from KratosMultiphysics.RomApplication.future.rom_decoders import CreateDecoder
 from KratosMultiphysics.RomApplication.future.rom_future_solver import FutureRomSolver
 
 
@@ -15,10 +15,12 @@ def CreateFutureRomAnalysisInstance(cls, global_model, parameters, future_rom_se
         The parent analysis stage sets up the model part, the DOFs and the processes. Its solver
         is not called in the solution steps.
 
-        The decoder is the linear one of the basis saved by the RomManager, unless a 'decoder_factory' is given: a function
-        decoder_factory(rows, u0) returning a RomDecoder (e.g. a TorchDecoder), with 'rows' the rows of the saved bases (one per
-        node and nodal unknown, see NodeIds.npy and RomParameters.json) in the order of the effective DOF set and 'u0' the
-        initial values of the effective DOFs.
+        With "train_hrom" the residual of each entity is projected onto the Jacobian of the decoder at the end of each step, and the
+        HROM weights are computed from these snapshots when the simulation finishes (see _TrainHRom).
+
+        The decoder is the one saved in the ROM folder (see CreateDecoder in rom_decoders.py), unless a 'decoder_factory' is given:
+        a function decoder_factory(rom_data_folder, dof_set) returning a RomDecoder with its rows in the order of dof_set (the effective
+        DOF set), e.g. a TorchDecoder, which is given by a function and not saved in the ROM folder (see GetBasisRows in rom_decoders.py).
         """
 
         def Initialize(self):
@@ -30,6 +32,8 @@ def CreateFutureRomAnalysisInstance(cls, global_model, parameters, future_rom_se
             if self.future_rom_solver.run_hrom:
                 self._SetHRomEntities()
             self.rom_solutions = []
+            self.hrom_residual_snapshots = []
+            self.convergence_histories = []
 
         def _SetHRomEntities(self):
             """HROM entities and weights from the files saved by the HROM training (one column of weights per set, e.g. per physics)."""
@@ -41,6 +45,23 @@ def CreateFutureRomAnalysisInstance(cls, global_model, parameters, future_rom_se
             element_ids = numpy.load(folder / "HROM_ElementIds.npy")
             condition_ids = numpy.load(folder / "HROM_ConditionIds.npy")
             self.future_rom_solver.SetHRomEntities(element_ids, Weights("Element", len(element_ids)), condition_ids, Weights("Condition", len(condition_ids)))
+
+        def _TrainHRom(self):
+            """HROM weights from the residual snapshots (ECM) and HROM model part, by the HRomTrainingUtility with the "hrom_settings"
+            of the RomParameters.json. The weights are saved in the ROM folder as numpy files, the ones read by _SetHRomEntities."""
+            folder = Path(rom_basis_output_folder)
+            with open(folder / "RomParameters.json", 'r') as parameter_file:
+                rom_parameters = KratosMultiphysics.Parameters(parameter_file.read())
+            rom_parameters.AddString("rom_basis_output_name", "RomParameters")
+            rom_parameters.AddString("rom_basis_output_folder", str(folder))
+            if rom_parameters["hrom_settings"].Has("hrom_format") and rom_parameters["hrom_settings"]["hrom_format"].GetString() != "numpy":
+                raise Exception("The HROM training of the Future ROM requires 'hrom_format' set to 'numpy'.")
+            if self.project_parameters.Has("modelers"):
+                rom_parameters["hrom_settings"].AddValue("modelers", self.project_parameters["modelers"])
+            hrom_training_utility = HRomTrainingUtility(self._GetSolver(), rom_parameters)
+            hrom_training_utility.time_step_residual_matrix_container = self.hrom_residual_snapshots
+            hrom_training_utility.CalculateAndSaveHRomWeights()
+            hrom_training_utility.CreateHRomModelParts()
 
         def _GetFutureRomSettings(self):
             """Settings of the FutureRomSolver. The nonlinear iterations not given take the values of the solver of the analysis
@@ -72,34 +93,10 @@ def CreateFutureRomAnalysisInstance(cls, global_model, parameters, future_rom_se
             return settings
 
         def _CreateDecoder(self):
-            """Linear decoder from the basis saved by the RomManager, taking the initial state as origin (or the one of the decoder_factory).
-            With "fixed_dofs_decoding": "prescribed", wrapped in a FixedDofsDecoder."""
-            folder = Path(rom_basis_output_folder)
-            with open(folder / "RomParameters.json", 'r') as parameter_file:
-                rom_settings = json.load(parameter_file)["rom_settings"]
-            rows = self._GetBasisRows(folder, rom_settings["nodal_unknowns"])
-            dof_set = self.future_rom_solver.GetEffectiveDofSet()
-            u0 = numpy.array(dof_set.GetValues())
-            if decoder_factory is not None:
-                decoder = decoder_factory(rows, u0)
-            else:
-                right_modes = numpy.load(folder / "RightBasisMatrix.npy")
-                if right_modes.ndim == 1:
-                    right_modes = right_modes.reshape(-1, 1)
-                right_modes = right_modes[:, :rom_settings["number_of_rom_dofs"]]
-                decoder = LinearDecoder(right_modes[rows, :], u0)
-
-            if self.future_rom_solver.fixed_dofs_decoding == "prescribed":
-                # The fixed DOFs take their prescribed values instead of the ones of the decoder
-                decoder = FixedDofsDecoder(decoder, dof_set)
-            return decoder
-
-        def _GetBasisRows(self, folder, nodal_unknowns):
-            """The saved bases have one row per node and nodal unknown. Their rows in the order of the effective DOF set"""
-            node_id_to_index = {node_id: index for index, node_id in enumerate(numpy.load(folder / "NodeIds.npy"))}
-            unknown_to_index = {name: index for index, name in enumerate(nodal_unknowns)}
-            dof_set = self.future_rom_solver.GetEffectiveDofSet()
-            return [node_id_to_index[dof.Id()] * len(nodal_unknowns) + unknown_to_index[dof.GetVariable().Name()] for dof in dof_set]
+            """The decoder of the 'decoder_factory', else the one saved in the ROM folder (see CreateDecoder in rom_decoders.py), with
+            its rows in the order of the effective DOF set."""
+            create_decoder = decoder_factory if decoder_factory is not None else CreateDecoder
+            return create_decoder(rom_basis_output_folder, self.future_rom_solver.GetEffectiveDofSet())
 
         def InitializeSolutionStep(self):
             self.PrintAnalysisStageProgressInformation()
@@ -111,12 +108,20 @@ def CreateFutureRomAnalysisInstance(cls, global_model, parameters, future_rom_se
         def SolveSolutionStep(self):
             is_converged = self.future_rom_solver.SolveSolutionStep()
             self.rom_solutions.append(self.future_rom_solver.GetRomSolution().copy())
+            self.convergence_histories.append(self.future_rom_solver.GetConvergenceHistory())
             return is_converged
 
         def FinalizeSolutionStep(self):
             self.future_rom_solver.FinalizeSolutionStep()
+            if self.future_rom_solver.train_hrom:
+                self.hrom_residual_snapshots.append(self.future_rom_solver.GetProjectedEntityResiduals())
 
             for process in self._GetListOfProcesses():
                 process.ExecuteFinalizeSolutionStep()
+
+        def Finalize(self):
+            super().Finalize()
+            if self.future_rom_solver.train_hrom:
+                self._TrainHRom()
 
     return FutureRomAnalysis(global_model, parameters)
