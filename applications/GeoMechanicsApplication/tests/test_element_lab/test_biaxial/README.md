@@ -30,4 +30,4 @@ The test is performed with the following conditions:
   - A lateral load is applied with a value of 100 $kN/m^2$ to the right side, mimicking the constant cell pressure.
 
 ## Assertions
-For this regression test, the outcomes of the simulation for the displacement, the normal stresses and the engineering strain at t = 1 are asserted.
+For this test, the outcomes of the simulation for the displacement, the normal stresses and the engineering strain at t = 1 $s$ are asserted. Linear elastic results were verified analytically, the Mohr-Coulomb results are regression values.
