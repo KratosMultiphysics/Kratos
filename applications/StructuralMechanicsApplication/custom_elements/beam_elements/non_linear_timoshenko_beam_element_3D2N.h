@@ -298,6 +298,14 @@ public:
     void GetSecondDerivativesVector(Vector &values, int Step = 0) const override;
 
     /**
+     * this is called during the assembling process in order
+     * to calculate the elemental mass matrix
+     * @param rMassMatrix the elemental mass matrix
+     * @param rCurrentProcessInfo the current process info instance
+     */
+    void CalculateMassMatrix(Matrix& rMassMatrix, const ProcessInfo& rCurrentProcessInfo) override;
+
+    /**
      * @brief Calculates a double Variable on the Element (e.g., strain components)
      * @param rVariable The variable we want to get
      * @param rOutput The values obtained in the integration points

@@ -828,4 +828,64 @@ void NonLinearTimoshenkoBeamElement3D2N::CalculateOnIntegrationPoints(
 /***********************************************************************************/
 /***********************************************************************************/
 
+void NonLinearTimoshenkoBeamElement3D2N::CalculateMassMatrix(
+    MatrixType& rMassMatrix,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_TRY
+
+    const SizeType block_size = GetDoFsPerNode();
+    const SizeType matrix_size = block_size * GetGeometry().size();
+
+    if (rMassMatrix.size1() != matrix_size || rMassMatrix.size2() != matrix_size) {
+        rMassMatrix.resize(matrix_size, matrix_size, false);
+    }
+    rMassMatrix.clear();
+
+    const auto& r_properties = GetProperties();
+    const double rho = r_properties[DENSITY];
+    const double area = r_properties[CROSS_AREA];
+    const double iy = r_properties[I22];
+    const double iz = r_properties[I33];
+    const double it = r_properties.Has(IT) ? r_properties[IT] : iy + iz;
+    const double length = CalculateReferenceLength();
+
+    const double rho_A = rho * area;
+
+    const std::array<double, 6> diagonal = {
+        rho_A,
+        rho_A,
+        rho_A,
+        rho * it,
+        rho * iy,
+        rho * iz
+    };
+
+    for (SizeType i = 0; i < block_size; ++i) {
+        const double value = length * diagonal[i] / 6.0;
+        rMassMatrix(i, i) = 2.0 * value;
+        rMassMatrix(i, i + block_size) = value;
+        rMassMatrix(i + block_size, i) = value;
+        rMassMatrix(i + block_size, i + block_size) = rMassMatrix(i, i);
+    }
+
+    BoundedMatrix<double, 3, 3> T;
+    noalias(T) = StructuralMechanicsElementUtilities::GetFrenetSerretMatrix3D(GetGeometry(), false);
+
+    BoundedMatrix<double, 12, 12> rotation_matrix;
+    rotation_matrix.clear();
+
+    for (IndexType block = 0; block < 4; ++block) {
+        const IndexType start = 3 * block;
+        noalias(project(rotation_matrix, range(start, start + 3), range(start, start + 3))) = T;
+    }
+
+    BoundedMatrix<double, 12, 12> local_mass_matrix, aux_matrix;
+    noalias(local_mass_matrix) = rMassMatrix;
+    noalias(aux_matrix) = prod(trans(rotation_matrix), local_mass_matrix);
+    noalias(rMassMatrix) = prod(aux_matrix, rotation_matrix);
+
+    KRATOS_CATCH("CalculateMassMatrix")
+}
+
 } // namespace Kratos
