@@ -14,6 +14,7 @@
 
 #include "custom_geometries/interface_geometry.hpp"
 #include "custom_retention/retention_law_factory.h"
+#include "custom_utilities/check_utilities.hpp"
 #include "custom_utilities/constitutive_law_utilities.h"
 #include "custom_utilities/dof_utilities.hpp"
 #include "custom_utilities/element_utilities.hpp"
@@ -522,6 +523,12 @@ int UPwInterfaceElement::Check(const ProcessInfo& rCurrentProcessInfo) const
         const auto r_properties  = GetProperties();
         const auto expected_size = mpStressStatePolicy->GetVoigtSize();
         ConstitutiveLawUtilities::CheckStrainSize(r_properties, expected_size, Id());
+
+        if (r_properties.Has(GEO_CONTACT_SURFACE_PERIMETER)) {
+            const CheckProperties check_properties(r_properties, "properties", Id(),
+                                                   CheckProperties::Bounds::AllExclusive);
+            check_properties.Check(GEO_CONTACT_SURFACE_PERIMETER);
+        }
 
         error = r_properties[CONSTITUTIVE_LAW]->Check(r_properties, GetDisplacementGeometry(), rCurrentProcessInfo);
         return error;
