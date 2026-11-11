@@ -10,7 +10,7 @@
 
 // Select the multipatch outer-surrogate generation path:
 // 0: use the implementation from GECKO/KratosPR, branch_ssh_con_multipatch
-// 1: always generate an outer initial skin from the inner surrogate
+// 1: generate an outer initial skin from the inner surrogate when requested
 #define KRATOS_SNAKE_SBM_MULTIPATCH_METHOD 0
 #if KRATOS_SNAKE_SBM_MULTIPATCH_METHOD != 0 && KRATOS_SNAKE_SBM_MULTIPATCH_METHOD != 1
 #error "KRATOS_SNAKE_SBM_MULTIPATCH_METHOD must be 0 or 1"
@@ -235,12 +235,12 @@ void SnakeSbmProcess::CreateTheSnakeCoordinates2D(bool RemoveIslands)
         if (!mpSkinModelPart->HasProperties(0)) {
             mpSkinModelPart->CreateNewProperties(0);
         }
-        // Generate the outer surrogate directly on the inner grid, adding one cell layer.
+        const bool create_outer_from_inner_grid =
+            KRATOS_SNAKE_SBM_MULTIPATCH_METHOD == 0 && mCreateSurrOuterFromSurrInner;
         CreateTheSnakeCoordinates<true>(*mpSkinModelPartInnerInitial, mNumberOfInnerLoops, mLambdaInner, mEchoLevel, *mpIgaModelPart, *mpSkinModelPart, mNumberInitialPointsIfImportingNurbs,
-                                         mOffsetForRefinementInPhysicalCoord, RemoveIslands, mCreateSurrOuterFromSurrInner, false);
+                                         mOffsetForRefinementInPhysicalCoord, RemoveIslands, create_outer_from_inner_grid, false);
     }
 
-#if KRATOS_SNAKE_SBM_MULTIPATCH_METHOD == 0
     if (!mCreateSurrOuterFromSurrInner) {
         // Normal case SBM from imported skin, matching branch_ssh_con_multipatch.
         if (mpSkinModelPartOuterInitial->NumberOfNodes() > 0 || mpSkinModelPartOuterInitial->NumberOfGeometries() > 0) {
@@ -254,8 +254,8 @@ void SnakeSbmProcess::CreateTheSnakeCoordinates2D(bool RemoveIslands)
                                              mNumberInitialPointsIfImportingNurbs, mOffsetForRefinementInPhysicalCoord, false);
         }
     }
-#elif KRATOS_SNAKE_SBM_MULTIPATCH_METHOD == 1
-    if (has_inner_initial && !mCreateSurrOuterFromSurrInner) {
+#if KRATOS_SNAKE_SBM_MULTIPATCH_METHOD == 1
+    if (has_inner_initial && mCreateSurrOuterFromSurrInner) {
         GenerateOuterInitialFromSurrogateInner();
     }
 #endif
@@ -1001,15 +1001,21 @@ void SnakeSbmProcess::CreateTheSnakeCoordinates(
     }
 
     if (CreateOuterFromInner) {
-        const auto outer_knot_spans_available = GenerateOuterSurrogateFromInnerKnotSpansAvailable(
+        auto outer_knot_spans_available = GenerateOuterSurrogateFromInnerKnotSpansAvailable(
             knot_spans_available, refinement_patch_size_u, refinement_patch_size_v);
+        KeepLargestOneIsland(outer_knot_spans_available);
+        do {
+            RemoveDiagonalContacts(outer_knot_spans_available, true);
+        } while (FillEnclosedZeroIslands(outer_knot_spans_available));
         CreateSurrogateBuondaryFromSnakeOuterWithoutBoundaryCheck(
             n_knot_spans_uv, knot_vector_u, knot_vector_v, starting_pos_uv,
             outer_knot_spans_available, r_surrogate_sub_model_part_outer);
     }
     if (CreateInnerFromOuter) {
-        const auto inner_knot_spans_available = GenerateInnerSurrogateFromOuterKnotSpansAvailable(
+        auto inner_knot_spans_available = GenerateInnerSurrogateFromOuterKnotSpansAvailable(
             knot_spans_available, refinement_patch_size_u, refinement_patch_size_v);
+        KeepLargestOneIsland(inner_knot_spans_available);
+        RemoveDiagonalContacts(inner_knot_spans_available, false);
         CreateSurrogateBuondaryFromSnakeInnerWithoutBoundaryCheck(
             n_knot_spans_uv, knot_vector_u, knot_vector_v, starting_pos_uv,
             inner_knot_spans_available, r_surrogate_sub_model_part_inner);
@@ -2092,8 +2098,8 @@ std::vector<std::vector<int>> SnakeSbmProcess::GenerateOuterSurrogateFromInnerKn
         }
     }
 
-    const int refinement_patch_size_u = 5;//RefinementPatchSizeU;
-    const int refinement_patch_size_v = 5;//RefinementPatchSizeV;
+    const int refinement_patch_size_u = 3;//RefinementPatchSizeU;
+    const int refinement_patch_size_v = 3;//RefinementPatchSizeV;
     std::vector<std::vector<int>> outer_knot_spans(row_count, std::vector<int>(column_count, 0));
 
     auto set_one = [&outer_knot_spans, row_count, column_count](const int row, const int column) {
@@ -2726,8 +2732,127 @@ bool SnakeSbmProcess::IsInside(
             rKnotSpanUV[1][1] < 0 || rKnotSpanUV[1][1] >= rNumberKnotSpansUV[1]); 
 }
 
+void SnakeSbmProcess::KeepLargestOneIsland(std::vector<std::vector<int>>& rGrid)
+{
+    // The derived surrogate grids are binary: invert them to reuse the
+    // four-neighbour zero-component search for their occupied cells.
+    for (auto& r_row : rGrid) {
+        for (auto& r_value : r_row) {
+            r_value = r_value == 1 ? 0 : 1;
+        }
+    }
+
+    KeepLargestZeroIsland<true>(rGrid, false);
+
+    for (auto& r_row : rGrid) {
+        for (auto& r_value : r_row) {
+            r_value = r_value == 0 ? 1 : 0;
+        }
+    }
+}
+
+bool SnakeSbmProcess::FillEnclosedZeroIslands(std::vector<std::vector<int>>& rGrid)
+{
+    if (rGrid.empty() || rGrid.front().empty()) {
+        return false;
+    }
+
+    const std::size_t rows = rGrid.size();
+    const std::size_t columns = rGrid.front().size();
+    std::vector<std::vector<bool>> exterior(rows, std::vector<bool>(columns, false));
+    std::queue<std::pair<std::size_t, std::size_t>> pending;
+    auto visit = [&](const std::size_t Row, const std::size_t Column) {
+        if (rGrid[Row][Column] == 0 && !exterior[Row][Column]) {
+            exterior[Row][Column] = true;
+            pending.emplace(Row, Column);
+        }
+    };
+
+    for (std::size_t row = 0; row < rows; ++row) {
+        visit(row, 0);
+        visit(row, columns - 1);
+    }
+    for (std::size_t column = 0; column < columns; ++column) {
+        visit(0, column);
+        visit(rows - 1, column);
+    }
+    while (!pending.empty()) {
+        const auto [row, column] = pending.front();
+        pending.pop();
+        if (row > 0) visit(row - 1, column);
+        if (row + 1 < rows) visit(row + 1, column);
+        if (column > 0) visit(row, column - 1);
+        if (column + 1 < columns) visit(row, column + 1);
+    }
+
+    bool changed = false;
+    for (std::size_t row = 0; row < rows; ++row) {
+        for (std::size_t column = 0; column < columns; ++column) {
+            if (rGrid[row][column] == 0 && !exterior[row][column]) {
+                rGrid[row][column] = 1;
+                changed = true;
+            }
+        }
+    }
+    return changed;
+}
+
+void SnakeSbmProcess::RemoveDiagonalContacts(
+    std::vector<std::vector<int>>& rGrid,
+    const bool FillCells)
+{
+    if (rGrid.size() < 2 || rGrid.front().size() < 2) {
+        return;
+    }
+
+    const std::size_t rows = rGrid.size();
+    const std::size_t columns = rGrid.front().size();
+    auto occupied_neighbours = [&](const std::size_t Row, const std::size_t Column) {
+        int count = 0;
+        if (Row > 0) count += rGrid[Row - 1][Column];
+        if (Row + 1 < rows) count += rGrid[Row + 1][Column];
+        if (Column > 0) count += rGrid[Row][Column - 1];
+        if (Column + 1 < columns) count += rGrid[Row][Column + 1];
+        return count;
+    };
+
+    bool changed = true;
+    while (changed) {
+        changed = false;
+        for (std::size_t row = 0; row + 1 < rows; ++row) {
+            for (std::size_t column = 0; column + 1 < columns; ++column) {
+                const int a = rGrid[row][column];
+                const int b = rGrid[row][column + 1];
+                const int c = rGrid[row + 1][column];
+                const int d = rGrid[row + 1][column + 1];
+                if (a != d || b != c || a == b) {
+                    continue;
+                }
+
+                const int target = FillCells ? 0 : 1;
+                const std::size_t first_row = row;
+                const std::size_t first_column = a == target ? column : column + 1;
+                const std::size_t second_row = row + 1;
+                const std::size_t second_column = a == target ? column + 1 : column;
+                const int first_count = occupied_neighbours(first_row, first_column);
+                const int second_count = occupied_neighbours(second_row, second_column);
+                const bool choose_first = FillCells
+                    ? first_count >= second_count : first_count <= second_count;
+                rGrid[choose_first ? first_row : second_row]
+                     [choose_first ? first_column : second_column] = FillCells ? 1 : 0;
+                changed = true;
+            }
+        }
+        if (changed && !FillCells) {
+            KeepLargestOneIsland(rGrid);
+        }
+    }
+}
+
 template <bool TIsInnerLoop>
-void SnakeSbmProcess::KeepLargestZeroIsland(std::vector<std::vector<int>>& rGrid) 
+void SnakeSbmProcess::KeepLargestZeroIsland(
+    std::vector<std::vector<int>>& rGrid,
+    const bool RemoveIsolatedCells)
 {
     const int row_count = static_cast<int>(rGrid.size());
     if (row_count == 0) {
@@ -2748,7 +2873,7 @@ void SnakeSbmProcess::KeepLargestZeroIsland(std::vector<std::vector<int>>& rGrid
     // Use a snapshot to avoid chain reactions during this pass
     const auto original_grid = rGrid;
 
-    if constexpr (TIsInnerLoop)
+    if (TIsInnerLoop && RemoveIsolatedCells)
     {
         for (int row = 0; row < row_count; ++row) {
             for (int column = 0; column < column_count; ++column) {

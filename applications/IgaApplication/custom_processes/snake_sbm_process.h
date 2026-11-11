@@ -448,7 +448,17 @@ private:
      * @param grid
      */
     template <bool TIsInnerLoop>
-    static void KeepLargestZeroIsland(std::vector<std::vector<int>>& rGrid);
+    static void KeepLargestZeroIsland(
+        std::vector<std::vector<int>>& rGrid,
+        const bool RemoveIsolatedCells = true);
+
+    static void KeepLargestOneIsland(std::vector<std::vector<int>>& rGrid);
+
+    static void RemoveDiagonalContacts(
+        std::vector<std::vector<int>>& rGrid,
+        const bool FillCells);
+
+    static bool FillEnclosedZeroIslands(std::vector<std::vector<int>>& rGrid);
 
     static void RetrieveOrCreateNodeInModelPart(
         ModelPart& rModelPart,
