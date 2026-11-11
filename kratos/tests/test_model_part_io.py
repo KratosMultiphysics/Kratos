@@ -405,6 +405,15 @@ class TestModelPartIOMPI(KratosUnittest.TestCase):
         CheckEntities(model_part.Elements, elem_ids_to_check)
         CheckEntities(model_part.Conditions, cond_ids_to_check)
 
+        for element in model_part.Elements:
+            if element.Id in elem_ids_to_check:
+                entity_id = element.Id
+                expected_strain = [entity_id+1, entity_id-23, entity_id*2,
+                                   entity_id*1.5, entity_id**2, entity_id/2.5]
+                self.assertTrue(element.Has(KratosMultiphysics.STRAIN_VECTOR))
+                self.assertVectorAlmostEqual(
+                    element.GetValue(KratosMultiphysics.STRAIN_VECTOR), expected_strain)
+
 
 if __name__ == '__main__':
     KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING)
