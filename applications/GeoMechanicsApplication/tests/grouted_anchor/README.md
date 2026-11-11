@@ -36,10 +36,10 @@ The test (`test_grouted_anchor.py`) runs the stage with the sequential orchestra
 
 | Node | Displacement X [m] | Displacement Y [m] |
 |------|--------------------|--------------------|
-| 1    | -0.00075417        | -0.104971          |
-| 2    | -2.74607e-05       | -0.105343          |
-| 3    | 0.000989452        | -0.105352          |
-| 4    | -0.00286768        | -0.109109          |
-| 5    | 7.98339e-05        | -0.10327           |
+| 1    | -0.00076362        | -0.104623          |
+| 2    | -2.55326e-05       | -0.104993          |
+| 3    | 0.000950976        | -0.105002          |
+| 4    | -0.00256835        | -0.108894          |
+| 5    | -0.000377458       | -0.102321          |
 
 These five nodes are also displayed in the schematic. The Z-displacement is 0 for all nodes. These values are regression results rather than analytical solutions.
