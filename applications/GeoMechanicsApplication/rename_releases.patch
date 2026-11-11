@@ -1,0 +1,88 @@
+diff --git a/applications/GeoMechanicsApplication/GeoMechanicsApplication.json b/applications/GeoMechanicsApplication/GeoMechanicsApplication.json
+index 5c07657e1a7..2aa1779fb67 100644
+--- a/applications/GeoMechanicsApplication/GeoMechanicsApplication.json
++++ b/applications/GeoMechanicsApplication/GeoMechanicsApplication.json
+@@ -1,9 +1,9 @@
+ {
+-	"wheel_name": "KratosGeoMechanicsApplication",
++	"wheel_name": "DeltaresReleaseGeoMechanicsApplication",
+ 	"included_modules": ["GeoMechanicsApplication"],
+ 	"included_binaries": ["KratosGeoMechanicsApplication.*", "KratosGeoMechanicsCore.*", "libKratosGeoMechanicsCore.*"],
+     "excluded_binaries": [],
+-	"dependencies": ["KratosMultiphysics==${KRATOS_VERSION}", "KratosStructuralMechanicsApplication==${KRATOS_VERSION}", "KratosLinearSolversApplication==${KRATOS_VERSION}"],
++	"dependencies": ["DeltaresReleaseMultiphysics==${KRATOS_VERSION}", "DeltaresReleaseStructuralMechanicsApplication==${KRATOS_VERSION}", "DeltaresReleaseLinearSolversApplication==${KRATOS_VERSION}"],
+ 	"author": "Kratos Team",
+ 	"author_email": "kratos@deltares.nl",
+ 	"description": "KRATOS Multiphysics (\"Kratos\") is a framework for building parallel, multi-disciplinary simulation software, aiming at modularity, extensibility, and high performance. Kratos is written in C++, and counts with an extensive Python interface.",
+diff --git a/applications/LinearSolversApplication/LinearSolversApplication.json b/applications/LinearSolversApplication/LinearSolversApplication.json
+index b3a9290d488..74b82eb5992 100644
+--- a/applications/LinearSolversApplication/LinearSolversApplication.json
++++ b/applications/LinearSolversApplication/LinearSolversApplication.json
+@@ -1,8 +1,8 @@
+ {
+-	"wheel_name": "KratosLinearSolversApplication",
++	"wheel_name": "DeltaresReleaseLinearSolversApplication",
+ 	"included_modules": ["LinearSolversApplication"],
+ 	"included_binaries": ["KratosLinearSolversApplication.*", "KratosLinearSolversCore.*", "libKratosLinearSolversCore.*"],
+-	"dependencies": ["KratosMultiphysics==${KRATOS_VERSION}"],
++	"dependencies": ["DeltaresReleaseMultiphysics==${KRATOS_VERSION}"],
+ 	"author": "Kratos Team",
+ 	"author_email": "kratos@listas.cimne.upc.edu",
+ 	"description": "KRATOS Multiphysics (\"Kratos\") is a framework for building parallel, multi-disciplinary simulation software, aiming at modularity, extensibility, and high performance. Kratos is written in C++, and counts with an extensive Python interface.",
+diff --git a/applications/StructuralMechanicsApplication/StructuralMechanicsApplication.json b/applications/StructuralMechanicsApplication/StructuralMechanicsApplication.json
+index f74df57f1aa..f7c8f9446f6 100644
+--- a/applications/StructuralMechanicsApplication/StructuralMechanicsApplication.json
++++ b/applications/StructuralMechanicsApplication/StructuralMechanicsApplication.json
+@@ -1,8 +1,8 @@
+ {
+-	"wheel_name": "KratosStructuralMechanicsApplication",
++	"wheel_name": "DeltaresReleaseStructuralMechanicsApplication",
+ 	"included_modules": ["StructuralMechanicsApplication"],
+ 	"included_binaries": ["KratosStructuralMechanicsApplication.*", "KratosStructuralMechanicsCore.*", "libKratosStructuralMechanicsCore.*"],
+-	"dependencies": ["KratosMultiphysics==${KRATOS_VERSION}"],
++	"dependencies": ["DeltaresReleaseMultiphysics==${KRATOS_VERSION}"],
+ 	"author": "Kratos Team",
+ 	"author_email": "kratos@listas.cimne.upc.edu",
+ 	"description": "KRATOS Multiphysics (\"Kratos\") is a framework for building parallel, multi-disciplinary simulation software, aiming at modularity, extensibility, and high performance. Kratos is written in C++, and counts with an extensive Python interface.",
+diff --git a/kratos/KratosMultiphysics-all.json b/kratos/KratosMultiphysics-all.json
+index 4452382cec6..2d1a9a16821 100644
+--- a/kratos/KratosMultiphysics-all.json
++++ b/kratos/KratosMultiphysics-all.json
+@@ -3,7 +3,7 @@
+ 	"included_modules": [],
+ 	"included_binaries": [],
+ 	"dependencies": [
+-        "KratosMultiphysics==${KRATOS_VERSION}",
++        "DeltaresReleaseMultiphysics==${KRATOS_VERSION}",
+         "KratosContactStructuralMechanicsApplication==${KRATOS_VERSION}",
+         "KratosConvectionDiffusionApplication==${KRATOS_VERSION}",
+         "KratosConstitutiveLawsApplication==${KRATOS_VERSION}",
+@@ -12,14 +12,14 @@
+         "KratosDamApplication==${KRATOS_VERSION}",
+         "KratosFluidDynamicsApplication==${KRATOS_VERSION}",
+         "KratosFSIApplication==${KRATOS_VERSION}",
+-        "KratosLinearSolversApplication==${KRATOS_VERSION}",
++        "DeltaresReleaseLinearSolversApplication==${KRATOS_VERSION}",
+         "KratosMappingApplication==${KRATOS_VERSION}",
+         "KratosMeshingApplication==${KRATOS_VERSION}",
+         "KratosMPMApplication==${KRATOS_VERSION}",
+         "KratosPoroMechanicsApplication==${KRATOS_VERSION}",
+         "KratosShallowWaterApplication==${KRATOS_VERSION}",
+-        "KratosStructuralMechanicsApplication==${KRATOS_VERSION}",
+-        "KratosGeoMechanicsApplication==${KRATOS_VERSION}"
++        "DeltaresReleaseStructuralMechanicsApplication==${KRATOS_VERSION}",
++        "DeltaresReleaseGeoMechanicsApplication==${KRATOS_VERSION}"
+     ],
+ 	"author": "Kratos Team",
+ 	"author_email": "kratos@listas.cimne.upc.edu",
+diff --git a/kratos/KratosMultiphysics.json b/kratos/KratosMultiphysics.json
+index 17408d50754..cee52ea0390 100644
+--- a/kratos/KratosMultiphysics.json
++++ b/kratos/KratosMultiphysics.json
+@@ -1,5 +1,5 @@
+ {
+-	"wheel_name": "KratosMultiphysics",
++	"wheel_name": "DeltaresReleaseMultiphysics",
+     "included_modules":  ["response_functions", "mpi", "modelers", "orchestrators"],
+ 	"included_binaries": ["Kratos.*", "KratosCore.*", "KratosCore.*", "KratosMPICore.*", "KratosMPI.*", "z.*", "zlib.*", "libz.*"],
+ 	"dependencies": ["numpy"],
