@@ -331,7 +331,7 @@ public:
     void CSR_Row_Matrix_Mod(ModelPart& this_model_part, compressed_matrix<int>& Coord)
     {
         NodesArrayType& pNodes = this_model_part.Nodes();
-        Coord.resize(pNodes.size(), pNodes.size(), false);
+        Coord.resize(pNodes.size(), pNodes.size());
         NodesArrayType::iterator i_begin = pNodes.ptr_begin();
         NodesArrayType::iterator i_end = pNodes.ptr_end();
 
