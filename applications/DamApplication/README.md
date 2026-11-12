@@ -97,15 +97,115 @@ after solver initialization and before the first solve.
         "import_stresses": true,
         "import_temperature": true,
         "import_reference_temperature": true,
-        "reference_temperature_policy": "preserve"
+        "reference_temperature_policy": "preserve",
+        "transfer_method": "matching_mesh"
     }
 }
 ```
+
+`transfer_method` defaults to `matching_mesh`. Set it to `spatial_mapping`
+whenever the destination mesh differs from the source (different node or element
+IDs, connectivity, element type or integration rule). `matching_mesh` remains
+the correct choice only for identically matching meshes.
 
 The three import flags are independent. Imported stresses are assigned at every
 Gauss point through the constitutive `InitialState`. Nodal temperatures are
 assigned to all solution-step buffer entries. Displacements, reactions,
 velocities, accelerations, time and step counters are never transferred.
+
+### Nonmatching 2D and 3D meshes ###
+
+`transfer_method` selects how the source fields are transferred:
+
+- `matching_mesh` (default): the original exact transfer. Source and destination
+  must have the same nodes, elements, connectivity and integration rules.
+- `spatial_mapping`: transfer between different discretizations of the same
+  physical domain, in 2D or in 3D. Source and destination may have different
+  node and element IDs, counts, connectivity, element types and integration
+  rules. Source and destination dimensions must match.
+
+`spatial_mapping` rebuilds the source geometry from the JSON version 2 metadata
+and locates every destination point with the Kratos Core point locator using the
+Dam bounding-box search configuration. The same algorithm and utilities are used
+in 2D and 3D; only the geometry tables, the polynomial basis and the locator
+dimension differ. Gauss-point stresses are reconstructed element-locally from the
+source Gauss-point values, without global nodal smoothing, so material interfaces
+are preserved. `TEMPERATURE` and `NODAL_REFERENCE_TEMPERATURE` are interpolated
+independently with the containing source element shape functions.
+
+The supported source element types are:
+
+| Dimension | Geometries | Elements |
+|---|---|---|
+| 2D | `Triangle2D3`, `Triangle2D6` | `SmallDisplacementElement2D3N`, `2D6N` |
+| 2D | `Quadrilateral2D4`, `Quadrilateral2D8`, `Quadrilateral2D9` | `SmallDisplacementElement2D4N`, `2D8N`, `2D9N` |
+| 3D | `Tetrahedra3D4`, `Tetrahedra3D10` | `SmallDisplacementElement3D4N`, `3D10N` |
+| 3D | `Prism3D6`, `Prism3D15` | `SmallDisplacementElement3D6N`, `3D15N` |
+| 3D | `Hexahedra3D8`, `Hexahedra3D20`, `Hexahedra3D27` | `SmallDisplacementElement3D8N`, `3D20N`, `3D27N` |
+
+Mixed source/destination element types and Gauss rules from `GI_GAUSS_1` to
+`GI_GAUSS_5` are supported when the destination points lie inside the source
+domain. It requires:
+
+- the same physical domain, coordinate system and units;
+- compatible materials and constitutive laws (identical properties in this
+  version);
+- zero destination displacement;
+- destination points inside the source domain. Points outside the source domain
+  are rejected; no extrapolation or zero default is used.
+
+Stress reconstruction is limited by the information stored at the source Gauss
+points. A `Tetrahedra3D4` or `Triangle2D3` with one point is reconstructed as a
+constant field. Higher-order and over-integrated source rules support larger
+local polynomial spaces: the trilinear space for `Hexahedra3D8`, the
+tri-quadratic space for `Hexahedra3D20`/`Hexahedra3D27` with their 27-point rule,
+and the corresponding quadratic spaces for the higher-order tetrahedra and
+prisms. A curved or distorted element is reconstructed in its local coordinates;
+fields that are affine in physical coordinates are reproduced only when the
+selected local space contains the element mapping. Use a richer rule such as
+`GI_GAUSS_4`/`GI_GAUSS_5` when the default rule is insufficient for the required
+accuracy.
+
+Each source file and import process covers one structural part. A locator is
+built per source material, so stresses are never interpolated between different
+materials. Shared-node temperature consistency and disjoint stress-element
+checks use the existing multi-part validation. Structural-part separation relies
+on using separate source files/processes per part; material records that are
+identical within one file are treated as the same material.
+
+A multi-part source must represent the intended mechanical connection. When the
+physical model has a connected material interface, build the source as one model
+part with shared interface nodes and export each structural part from it. Two
+independent source blocks describe a different boundary-value problem at the
+interface and can produce large apparent interface stress differences even when
+the source mesh is fine; those differences are not a mapping defect. A
+connected coarse source transferred to a finer destination can also differ from
+the finer reference where the coarse source under-resolves a stress
+concentration. Re-equilibration closes the destination residual but does not
+recreate stress information that the source discretization never contained, so
+the final stress need not equal the finer reference. For a fine source
+transferred to a coarser destination, differences that remain after
+re-equilibration are coarse-discretization limitations, not interpolation
+errors.
+
+Mapping between different discretizations does not preserve the discrete
+equilibrium of the source mesh exactly. The helper
+`dam_initial_state_mapping.EvaluateMechanicalResidual` provides a read-only
+diagnostic of the destination free-DOF residual and reaction sums after loads
+and supports have been initialized. It traverses the model-part tree and
+assembles mechanical elements and conditions into one residual by shared node
+ID. Only entities whose local DOF list contains displacement `X`/`Y` (and `Z`
+in 3D) DOFs are included; temperature-only entities are skipped. Nodal loads
+that are not represented by a condition and master-slave constraints are not
+included. The import process does not modify mapped stresses or solve for a
+correction automatically. The same diagnostic handles 2D and 3D model parts.
+
+Three different error sources must not be conflated: the analytic interpolation
+error of the reconstruction (small, and exact for representable fields), the
+initial mechanical residual after a nonmatching transfer (not required to be
+zero), and the difference between coarse and fine discretizations (which can
+remain after re-equilibration whenever the source and destination resolve the
+stress field differently).
 
 ### Multi-part models ###
 
@@ -202,7 +302,8 @@ final total Cauchy stresses together with the final nodal temperature fields:
             "import_stresses": true,
             "import_temperature": false,
             "import_reference_temperature": false,
-            "reference_temperature_policy": "preserve"
+            "reference_temperature_policy": "preserve",
+            "transfer_method": "spatial_mapping"
         }
     },
     {
@@ -234,14 +335,18 @@ increment:
         "import_stresses": true,
         "import_temperature": true,
         "import_reference_temperature": true,
-        "reference_temperature_policy": "preserve"
+        "reference_temperature_policy": "preserve",
+        "transfer_method": "spatial_mapping"
     }
 }
 ```
 
-The imported total stresses are reproduced at zero displacement, the final
-temperature fields are preserved, and the initial residual matches the source
-equilibrium state.
+The imported total stresses are reproduced at zero displacement and the final
+temperature fields are preserved. For `matching_mesh`, the initial residual
+matches the source equilibrium state. For `spatial_mapping` between different
+discretizations, the initial residual generally does not match the source
+equilibrium state; it is a mapped, generally non-equilibrium state and is
+reduced by the subsequent solution.
 
 ### Compatibility ###
 
@@ -251,6 +356,12 @@ equilibrium state.
   renamed. Compatibility aliases are not provided.
 - The legacy `.mdpa` nodal mapping and standard Kratos restart remain separate
   and unchanged.
-- The file validates element type, geometry, connectivity, integration rule,
-  material/law metadata and reference coordinates before modifying the
-  destination.
+- `matching_mesh` requires exact matching of the source and destination mesh
+  metadata: element type, geometry type, connectivity and order, integration
+  rule, material/law metadata, and reference coordinates. It validates all of
+  them before modifying the destination.
+- `spatial_mapping` permits different node and element IDs, connectivity,
+  supported geometry types, element types and integration rules. It validates
+  source/destination dimension compatibility, supported geometries and laws,
+  material compatibility, zero destination displacement, source-domain coverage
+  and shared-node/material consistency before modifying the destination.
