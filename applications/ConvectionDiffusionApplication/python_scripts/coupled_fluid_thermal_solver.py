@@ -55,6 +55,10 @@ class CoupledFluidThermalSolver(PythonSolver):
         self.fluid_solver = python_solvers_wrapper_fluid.CreateSolverByParameters(self.model, self.settings["fluid_solver_settings"],"OpenMP")
         self.thermal_solver = python_solvers_wrapper_convection_diffusion.CreateSolverByParameters(self.model,self.settings["thermal_solver_settings"],"OpenMP")
 
+        ## The thermal conditions share the geometries (and so the NEIGHBOUR_ELEMENTS) of the fluid ones, hence a unique parents behavior is expected
+        if self.fluid_solver.settings["assign_neighbour_elements_to_conditions"].GetBool() != self.thermal_solver.settings["assign_neighbour_elements_to_conditions"].GetBool():
+            raise Exception("'assign_neighbour_elements_to_conditions' must be the same in the fluid and thermal solver settings, as the conditions geometries are shared.")
+
     def AddVariables(self):
         # Import the fluid and thermal solver variables. Then merge them to have them in both fluid and thermal solvers.
         self.fluid_solver.AddVariables()
@@ -81,8 +85,9 @@ class CoupledFluidThermalSolver(PythonSolver):
         self.thermal_solver.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.CONVECTION_DIFFUSION_SETTINGS, convection_diffusion_settings)
 
     def PrepareModelPart(self):
-        self.fluid_solver.PrepareModelPart()
+        # The fluid solver goes last so that the conditions keep the fluid elements as parents
         self.thermal_solver.PrepareModelPart()
+        self.fluid_solver.PrepareModelPart()
 
     def AddDofs(self):
         self.fluid_solver.AddDofs()

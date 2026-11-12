@@ -12,6 +12,7 @@ from test_feast_eigensystem_solver import TestFeastEigensystemSolver as TTestFea
 from test_eigen_dense_eigenvalue_solver import TestDenseEigenvalueSolver as TTestDenseEigenvalueSolver
 from test_eigen_dense_decompositions import TestEigenDenseDecompositions as TTestEigenDenseDecompositions
 from test_mkl import TestMKLSmoothers
+from test_mkl_threading import TestMKLUtilities, TestPardisoMKLThreading
 
 
 def AssembleTestSuites():
@@ -38,6 +39,8 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestDenseEigenvalueSolver]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestEigenDenseDecompositions]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestMKLSmoothers]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestMKLUtilities]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestPardisoMKLThreading]))
 
     # Create a test suit with the selected tests
     nightSuite = suites['nightly']
