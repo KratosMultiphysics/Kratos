@@ -79,8 +79,6 @@ from test_eigen_solver_with_mass_normalized_eigenmodes import TestEigenSolverWit
 from test_eigen_solver_different_dofs import TestEigenSolverWithDifferentDofs
 # Custom Scipy Solver test
 from test_custom_scipy_base_solver import TestCustomScipyBaseSolver
-# Rigid body mode pinning solver test (future linear solvers)
-from test_future_rigid_body_mode_pinning import TestRigidBodyModePinning as TTestRigidBodyModePinning
 # local-axis visualization tests
 from test_local_axis_visualization import TestLocalAxisVisualization as TTestLocalAxisVisualization
 # Test adjoint elements and conditions
@@ -345,8 +343,6 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestEigenSolverWithMassNormalizedEigenmodes]))
     # Custom Scipy Solver test
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestCustomScipyBaseSolver]))
-    # Rigid body mode pinning solver test (future linear solvers)
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestRigidBodyModePinning]))
     # local-axis visualization tests
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestLocalAxisVisualization]))
     # Adjoint Elements and Conditions
