@@ -676,11 +676,7 @@ public:
         }
         if (TransposeBlocks.size1() == 0 && TransposeBlocks.size2() == 0) {
             TransposeBlocks.resize(number_of_rows_blocks, number_of_columns_blocks, false);
-            for (IndexType i = 0; i < number_of_rows_blocks; ++i) {
-                for (IndexType j = 0; j < number_of_rows_blocks; ++j) {
-                    TransposeBlocks(i, j) = false;
-                }
-            }
+            TransposeBlocks.clear();
         } else {
             KRATOS_ERROR_IF(TransposeBlocks.size1() != number_of_rows_blocks || TransposeBlocks.size2() != number_of_columns_blocks) << "The TransposeBlocks dimensions" << TransposeBlocks.size1() << " and " << TransposeBlocks.size2() << "do not coincide with the dimensions of rMatricespBlocks" << number_of_rows_blocks << "and " << number_of_columns_blocks << std::endl;
         }
