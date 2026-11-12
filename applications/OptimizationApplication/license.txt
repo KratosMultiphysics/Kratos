@@ -4,10 +4,9 @@ A library based on: Kratos Multi-Physics
 Copyright (c) 2024
 	Reza Najian Asl *
 	Suneth Warnakulasuriya *
-	Ihar Antonau **
+	Ihar Antonau *
 	Roland Wüchner *
 	* Chair of Structural Analysis (Technical University of Munich)
-	** Institute of Structural Analysis (Technical University of Braunschweig)
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:

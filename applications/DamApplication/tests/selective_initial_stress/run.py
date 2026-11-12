@@ -1,4 +1,4 @@
-"""Child harness for the selective initial-stress regression tests.
+"""Child harness for the Dam initial-state workflow tests.
 
 The child process isolates serializer failures and uses the DamApplication
 scripts from the source tree under test.
@@ -13,7 +13,7 @@ import KratosMultiphysics as KM
 import KratosMultiphysics.DamApplication as Dam
 Dam.__path__.insert(0, sys.argv[1])
 from KratosMultiphysics.DamApplication.dam_analysis import DamAnalysis
-from test_dam_selective_initialization import snapshot
+from test_dam_initial_state_workflow import snapshot
 
 with open("parameters.json") as stream:
     parameters = KM.Parameters(stream.read())
@@ -27,10 +27,6 @@ solve = simulation.solver.Solve
 
 def recording_solve():
     solve()
-    # Distinct checkpoint metadata proves that destination STEP is not imported.
-    # This branch's Dam loop does not advance STEP itself.
-    if parameters.Has("output_processes"):
-        part.ProcessInfo[KM.STEP] = 41 + len(steps)
     steps.append(snapshot(part))
 
 
