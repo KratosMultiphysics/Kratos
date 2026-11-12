@@ -6,7 +6,7 @@ import KratosMultiphysics as Kratos
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import test_helper
 import helper_utilities
-from KratosMultiphysics.GeoMechanicsApplication.unit_conversions import days_to_seconds
+from KratosMultiphysics.GeoMechanicsApplication.unit_conversions import per_second_to_per_day
 
 if test_helper.want_test_plots():
     import KratosMultiphysics.GeoMechanicsApplication.geo_plot_utilities as plot_utils
@@ -71,7 +71,11 @@ class KratosGeoMechanicsLeveeSeepageTests(KratosUnittest.TestCase):
         for (lower_y, lower), (upper_y, upper) in zip(profile, profile[1:]):
             if lower_y <= y <= upper_y:
                 fraction = (y - lower_y) / (upper_y - lower_y)
-                return tuple(a + fraction * (b - a) for a, b in zip(lower, upper))
+                if isinstance(lower, tuple):
+                    return tuple(
+                        a + fraction * (b - a) for a, b in zip(lower, upper)
+                    )
+                return lower + fraction * (upper - lower)
         self.fail(f"Cannot interpolate the reference elevation y = {y}")
 
     def _phreatic_elevation(self, profile, x):
@@ -108,7 +112,7 @@ class KratosGeoMechanicsLeveeSeepageTests(KratosUnittest.TestCase):
         )
 
     def _flux_magnitude_per_day(self, values):
-        return days_to_seconds(math.hypot(*values[1:4]))
+        return per_second_to_per_day(math.hypot(*values))
 
     def test_levee_seepage(self):
         file_path = test_helper.get_file_path('test_levee_seepage')
@@ -152,14 +156,20 @@ class KratosGeoMechanicsLeveeSeepageTests(KratosUnittest.TestCase):
             ))
             for x, _ in reference_phreatic
         ]
-        flux_profile = self._section_profile(model_part, nodal_values, 20.0)
-        saturation_profile = self._section_profile(model_part, nodal_values, 4.0)
+        flux_profile = [
+            (y, values[1:4])
+            for y, values in self._section_profile(model_part, nodal_values, 20.0)
+        ]
+        saturation_profile = [
+            (y, values[4])
+            for y, values in self._section_profile(model_part, nodal_values, 4.0)
+        ]
         actual_flux = [
             (y, self._flux_magnitude_per_day(self._interpolate_at_y(flux_profile, y)))
             for y, _ in reference_flux
         ]
         actual_saturation = [
-            (y, self._interpolate_at_y(saturation_profile, y)[4])
+            (y, self._interpolate_at_y(saturation_profile, y))
             for y, _ in reference_saturation
         ]
 
@@ -169,12 +179,15 @@ class KratosGeoMechanicsLeveeSeepageTests(KratosUnittest.TestCase):
             )
             self._create_profile_plot(
                 file_path, "fluxes_for_x_20.svg",
-                [(actual, y) for y, actual in actual_flux],
+                [
+                    (self._flux_magnitude_per_day(values), y)
+                    for y, values in flux_profile
+                ],
                 [(flux, y) for y, flux in reference_flux], "|Flux| [m/d]", "Y [m]",
             )
             self._create_profile_plot(
                 file_path, "saturation_for_x_4.svg",
-                [(actual, y) for y, actual in actual_saturation],
+                [(values, y) for y, values in saturation_profile],
                 [(saturation, y) for y, saturation in reference_saturation],
                 "Effective saturation [-]", "Y [m]",
             )
