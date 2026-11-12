@@ -1743,8 +1743,15 @@ void SnakeGapSbmProcess::CreateGapAndSkinQuadraturePoints(
         }
     }
     Vector cut_span_sizes = rIntegrationParameters.rKnotSpanSizes;
-    if ((mUseForMultipatch|| mUseForLocalRefinement) && mpSkinModelPart->Has(KNOT_SPAN_SIZES) ) {
-        cut_span_sizes = mpSkinModelPart->GetValue(KNOT_SPAN_SIZES);
+    if (mUseForMultipatch || mUseForLocalRefinement) {
+        const auto& r_initial_skin_model_part = TIsInnerLoop
+            ? *mpSkinModelPartInnerInitial : *mpSkinModelPartOuterInitial;
+        if (mpSkinModelPart->Has(KNOT_SPAN_SIZES)) {
+            cut_span_sizes = mpSkinModelPart->GetValue(KNOT_SPAN_SIZES);
+        } else if (r_initial_skin_model_part.Has(KNOT_SPAN_SIZES)) {
+            // Multipatch stores the other patch's span sizes on its initial skin.
+            cut_span_sizes = r_initial_skin_model_part.GetValue(KNOT_SPAN_SIZES);
+        }
     }
     const double cut_span_x = cut_span_sizes.size() > 0 ? cut_span_sizes[0] : 1.0;
     const double cut_span_y = cut_span_sizes.size() > 1 ? cut_span_sizes[1] : cut_span_x;
