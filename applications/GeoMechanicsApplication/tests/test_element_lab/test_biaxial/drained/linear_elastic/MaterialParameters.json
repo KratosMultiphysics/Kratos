@@ -13,7 +13,7 @@
                     "DENSITY_WATER": 1.0,
                     "POROSITY": 0.3,
                     "BULK_MODULUS_SOLID": 1.0e+07,
-                    "YOUNG_MODULUS": 1.0e+04,
+                    "YOUNG_MODULUS": 2.0e+04,
                     "POISSON_RATIO": 0.25
                 }
             }
