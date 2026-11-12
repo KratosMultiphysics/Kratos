@@ -4,9 +4,6 @@
             "model_part_name": "PorousDomain.Sand_layer",
             "properties_id": 1,
             "Material": {
-                "constitutive_law": {
-                    "name": "GeoLinearElasticPlaneStrain2DLaw"
-                },
                 "Variables": {
                     "GEO_DRAINAGE_TYPE": "FULLY_COUPLED",
                     "DENSITY_WATER": 1.01937e+03,
@@ -29,9 +26,6 @@
             "model_part_name": "PorousDomain.Clay_layer",
             "properties_id": 2,
             "Material": {
-                "constitutive_law": {
-                    "name": "GeoLinearElasticPlaneStrain2DLaw"
-                },
                 "Variables": {
                     "GEO_DRAINAGE_TYPE": "FULLY_COUPLED",
                     "DENSITY_WATER": 1.01937e+03,
@@ -54,9 +48,6 @@
             "model_part_name": "PorousDomain.Core_levee",
             "properties_id": 3,
             "Material": {
-                "constitutive_law": {
-                    "name": "GeoLinearElasticPlaneStrain2DLaw"
-                },
                 "Variables": {
                     "GEO_DRAINAGE_TYPE": "FULLY_COUPLED",
                     "DENSITY_WATER": 1.01937e+03,
@@ -79,9 +70,6 @@
             "model_part_name": "PorousDomain.Cap_levee",
             "properties_id": 4,
             "Material": {
-                "constitutive_law": {
-                    "name": "GeoLinearElasticPlaneStrain2DLaw"
-                },
                 "Variables": {
                     "GEO_DRAINAGE_TYPE": "FULLY_COUPLED",
                     "DENSITY_WATER": 1.01937e+03,

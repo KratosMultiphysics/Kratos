@@ -6,6 +6,7 @@ import KratosMultiphysics as Kratos
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import test_helper
 import helper_utilities
+from KratosMultiphysics.GeoMechanicsApplication.unit_conversions import days_to_seconds
 
 if test_helper.want_test_plots():
     import KratosMultiphysics.GeoMechanicsApplication.geo_plot_utilities as plot_utils
@@ -106,27 +107,30 @@ class KratosGeoMechanicsLeveeSeepageTests(KratosUnittest.TestCase):
             yaxis_inverted=False,
         )
 
+    def _flux_magnitude_per_day(self, values):
+        return days_to_seconds(math.hypot(*values[1:4]))
+
     def test_levee_seepage(self):
         file_path = test_helper.get_file_path('test_levee_seepage')
         with KratosUnittest.WorkFolderScope(file_path, __file__):
-            expected_phreatic = self._read_reference(
-                "expected_phreatic_line.csv", ("X", "Y")
+            reference_phreatic = self._read_reference(
+                "reference_phreatic_line.csv", ("X", "Y")
             )
-            expected_flux = self._read_reference(
-                "expected_flux_at_x_20.csv", ("Y", "Flux")
+            reference_flux = self._read_reference(
+                "reference_flux_at_x_20.csv", ("Y", "Flux")
             )
-            expected_saturation = self._read_reference(
-                "expected_saturation_at_x_4.csv", ("Y", "Effective Saturation")
+            reference_saturation = self._read_reference(
+                "reference_saturation_at_x_4.csv", ("Y", "Effective Saturation")
             )
             with open("ProjectParameters.json", "r") as f:
                 project_parameters = Kratos.Parameters(f.read())
             project = helper_utilities.run_orchestrator(project_parameters)
             output_data = GiDOutputFileReader().read_output_from(
-                "levee_seepage_find_equilibrium.post.res"
+                "levee_seepage_find_phreatic_surface_and_outflow_region.post.res"
             )
 
-        self.assertTrue(all(flux >= 0.0 for _, flux in expected_flux))
-        self.assertTrue(all(0.0 <= value <= 1.0 for _, value in expected_saturation))
+        self.assertTrue(all(flux >= 0.0 for _, flux in reference_flux))
+        self.assertTrue(all(0.0 <= value <= 1.0 for _, value in reference_saturation))
 
         model_part = project.GetModel().GetModelPart(
             "PorousDomain.porous_computational_model_part"
@@ -146,51 +150,46 @@ class KratosGeoMechanicsLeveeSeepageTests(KratosUnittest.TestCase):
             (x, self._phreatic_elevation(
                 self._section_profile(model_part, nodal_values, x), x
             ))
-            for x, _ in expected_phreatic
+            for x, _ in reference_phreatic
         ]
         flux_profile = self._section_profile(model_part, nodal_values, 20.0)
         saturation_profile = self._section_profile(model_part, nodal_values, 4.0)
         actual_flux = [
-            (y, math.sqrt(sum(
-                v * v for v in self._interpolate_at_y(flux_profile, y)[1:4]
-            )) * 86400)
-            for y, _ in expected_flux
+            (y, self._flux_magnitude_per_day(self._interpolate_at_y(flux_profile, y)))
+            for y, _ in reference_flux
         ]
         actual_saturation = [
             (y, self._interpolate_at_y(saturation_profile, y)[4])
-            for y, _ in expected_saturation
+            for y, _ in reference_saturation
         ]
 
         if test_helper.want_test_plots():
             self._create_profile_plot(
-                file_path, "phreatic_line.svg", phreatic, expected_phreatic, "X [m]", "Y [m]"
+                file_path, "phreatic_line.svg", phreatic, reference_phreatic, "X [m]", "Y [m]"
             )
             self._create_profile_plot(
                 file_path, "fluxes_for_x_20.svg",
-                [
-                    (math.sqrt(sum(v * v for v in values[1:4])) * 86400, y)
-                    for y, values in flux_profile
-                ],
-                [(flux, y) for y, flux in expected_flux], "|Flux| [m/d]", "Y [m]",
+                [(actual, y) for y, actual in actual_flux],
+                [(flux, y) for y, flux in reference_flux], "|Flux| [m/d]", "Y [m]",
             )
             self._create_profile_plot(
                 file_path, "saturation_for_x_4.svg",
-                [(values[4], y) for y, values in saturation_profile],
-                [(saturation, y) for y, saturation in expected_saturation],
+                [(actual, y) for y, actual in actual_saturation],
+                [(saturation, y) for y, saturation in reference_saturation],
                 "Effective saturation [-]", "Y [m]",
             )
 
-        for (x, actual), (_, expected) in zip(phreatic, expected_phreatic):
+        for (x, actual), (_, expected) in zip(phreatic, reference_phreatic):
             with self.subTest(profile="phreatic line", x=x):
                 self.assertAlmostEqual(actual, expected, delta=self.PHREATIC_LINE_TOLERANCE)
-        for (y, actual), (_, expected) in zip(actual_flux, expected_flux):
+        for (y, actual), (_, expected) in zip(actual_flux, reference_flux):
             tolerance = max(
                 self.FLUX_ABSOLUTE_TOLERANCE,
                 self.FLUX_RELATIVE_TOLERANCE * abs(expected)
             )
             with self.subTest(profile="flux magnitude", x=20.0, y=y):
                 self.assertAlmostEqual(actual, expected, delta=tolerance)
-        for (y, actual), (_, expected) in zip(actual_saturation, expected_saturation):
+        for (y, actual), (_, expected) in zip(actual_saturation, reference_saturation):
             with self.subTest(profile="effective saturation", x=4.0, y=y):
                 self.assertAlmostEqual(actual, expected, delta=self.SATURATION_TOLERANCE)
 

@@ -3,13 +3,13 @@
         "name": "Orchestrators.KratosMultiphysics.SequentialOrchestrator",
         "settings": {
             "echo_level": 0,
-            "execution_list": ["find_equilibrium"],
+            "execution_list": ["find_phreatic_surface_and_outflow_region"],
             "load_from_checkpoint": null,
             "stage_checkpoints": false
         }
     },
     "stages": {
-        "find_equilibrium": {
+        "find_phreatic_surface_and_outflow_region": {
             "stage_preprocess": {
                 "modelers": [
                     {
@@ -24,7 +24,7 @@
             "stage_settings": {
                 "analysis_stage": "Stages.KratosMultiphysics.GeoMechanicsApplication.GeoMechanicsAnalysis",
                 "problem_data": {
-                    "problem_name": "levee_seepage_find_equilibrium",
+                    "problem_name": "levee_seepage_find_phreatic_surface_and_outflow_region",
                     "start_time": 0.0,
                     "end_time": 1.0,
                     "echo_level": 1,
@@ -97,7 +97,8 @@
                                 "x_coordinates": [-36.0, -2.0, 15.0, 54.0],
                                 "y_coordinates": [5.0, 5.0, -0.5, -0.5],
                                 "z_coordinates": [0.0, 0.0, 0.0, 0.0],
-                                "specific_weight": 1.0e+04
+                                "specific_weight": 1.0e+04,
+                                "pressure_tension_cut_off": 1.0e+05
                             }
                         },
                         {
@@ -180,7 +181,7 @@
                             "process_name": "GiDOutputProcess",
                             "Parameters": {
                                 "model_part_name": "PorousDomain.porous_computational_model_part",
-                                "output_name": "levee_seepage_find_equilibrium",
+                                "output_name": "levee_seepage_find_phreatic_surface_and_outflow_region",
                                 "postprocess_parameters": {
                                     "result_file_configuration": {
                                         "gidpost_flags": {
