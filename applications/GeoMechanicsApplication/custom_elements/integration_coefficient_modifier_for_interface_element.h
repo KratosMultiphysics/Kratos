@@ -1,0 +1,28 @@
+// KRATOS___
+//     //   ) )
+//    //         ___      ___
+//   //  ____  //___) ) //   ) )
+//  //    / / //       //   / /
+// ((____/ / ((____   ((___/ /  MECHANICS
+//
+//  License:         geo_mechanics_application/license.txt
+//
+//  Main authors:    Richard Faasse
+//
+
+#pragma once
+
+#include "integration_coefficients_calculator.hpp"
+
+namespace Kratos
+{
+
+class KRATOS_API(GEO_MECHANICS_APPLICATION) IntegrationCoefficientModifierForInterfaceElement : public IntegrationCoefficientModifier
+{
+public:
+    double operator()(double IntegrationCoefficient, const Geo::IntegrationPointType&, const Element& rElement) const override;
+
+    [[nodiscard]] std::unique_ptr<IntegrationCoefficientModifier> Clone() const override;
+};
+
+} // namespace Kratos

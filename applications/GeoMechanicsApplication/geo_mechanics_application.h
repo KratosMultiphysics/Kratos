@@ -101,6 +101,7 @@
 // Element policies
 #include "custom_elements/axisymmetric_stress_state.h"
 #include "custom_elements/integration_coefficient_modifier_for_axisymmetric_element.h"
+#include "custom_elements/integration_coefficient_modifier_for_interface_element.h"
 #include "custom_elements/integration_coefficient_modifier_for_line_element.h"
 #include "custom_elements/plane_strain_stress_state.h"
 #include "custom_elements/three_dimensional_stress_state.h"
@@ -525,11 +526,19 @@ private:
         std::make_unique<ThreeDimensionalStressState>()};
 
     const UPwInterfaceElement mUPwLineInterfacePlaneStrainElement2Plus2N{
-        0, Kratos::make_shared<InterfaceGeometry<Line2D2<NodeType>>>(Element::GeometryType::PointsArrayType(4)),
-        std::make_unique<Line2DInterfaceStressState>(), IsDiffOrderElement::No, UPwInterfaceElementContributions};
+        0,
+        Kratos::make_shared<InterfaceGeometry<Line2D2<NodeType>>>(Element::GeometryType::PointsArrayType(4)),
+        std::make_unique<Line2DInterfaceStressState>(),
+        IsDiffOrderElement::No,
+        UPwInterfaceElementContributions,
+        std::make_unique<IntegrationCoefficientModifierForInterfaceElement>()};
     const UPwInterfaceElement mUPwLineInterfacePlaneStrainElement3Plus3N{
-        0, Kratos::make_shared<InterfaceGeometry<Line2D3<NodeType>>>(Element::GeometryType::PointsArrayType(6)),
-        std::make_unique<Line2DInterfaceStressState>(), IsDiffOrderElement::No, UPwInterfaceElementContributions};
+        0,
+        Kratos::make_shared<InterfaceGeometry<Line2D3<NodeType>>>(Element::GeometryType::PointsArrayType(6)),
+        std::make_unique<Line2DInterfaceStressState>(),
+        IsDiffOrderElement::No,
+        UPwInterfaceElementContributions,
+        std::make_unique<IntegrationCoefficientModifierForInterfaceElement>()};
     const UPwInterfaceElement mUPwSurfaceInterfaceElement3Plus3N{
         0, Kratos::make_shared<InterfaceGeometry<Triangle3D3<NodeType>>>(Element::GeometryType::PointsArrayType(6)),
         std::make_unique<SurfaceInterfaceStressState>(), IsDiffOrderElement::No,
@@ -547,9 +556,12 @@ private:
         std::make_unique<SurfaceInterfaceStressState>(), IsDiffOrderElement::No,
         UPwInterfaceElementContributions};
     const UPwInterfaceElement mUPwLineInterfacePlaneStrainDiffOrderElement3Plus3N{
-        0, Kratos::make_shared<InterfaceGeometry<Line2D3<NodeType>>>(Element::GeometryType::PointsArrayType(6)),
-        std::make_unique<Line2DInterfaceStressState>(), IsDiffOrderElement::Yes,
-        UPwInterfaceElementContributions};
+        0,
+        Kratos::make_shared<InterfaceGeometry<Line2D3<NodeType>>>(Element::GeometryType::PointsArrayType(6)),
+        std::make_unique<Line2DInterfaceStressState>(),
+        IsDiffOrderElement::Yes,
+        UPwInterfaceElementContributions,
+        std::make_unique<IntegrationCoefficientModifierForInterfaceElement>()};
 
     // Updated-Lagrangian elements:
     const UPwUpdatedLagrangianElement<2, 3> mUPwUpdatedLagrangianElement2D3N{

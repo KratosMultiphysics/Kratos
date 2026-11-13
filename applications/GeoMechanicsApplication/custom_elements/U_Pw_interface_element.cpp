@@ -14,6 +14,7 @@
 
 #include "custom_geometries/interface_geometry.hpp"
 #include "custom_retention/retention_law_factory.h"
+#include "custom_utilities/check_utilities.hpp"
 #include "custom_utilities/constitutive_law_utilities.h"
 #include "custom_utilities/dof_utilities.hpp"
 #include "custom_utilities/element_utilities.hpp"
@@ -102,10 +103,12 @@ UPwInterfaceElement::UPwInterfaceElement(IndexType                          NewI
                                          const Properties::Pointer&         rpProperties,
                                          std::unique_ptr<StressStatePolicy> pStressStatePolicy,
                                          IsDiffOrderElement                 IsDiffOrder,
-                                         const std::vector<CalculationContribution>& rContributions)
+                                         const std::vector<CalculationContribution>& rContributions,
+                                         std::unique_ptr<IntegrationCoefficientModifier> pIntegrationCoefficientModifier)
     : Element(NewId, rpGeometry, rpProperties),
       mpStressStatePolicy(std::move(pStressStatePolicy)),
-      mContributions(rContributions)
+      mContributions(rContributions),
+      mIntegrationCoefficientsCalculator(std::move(pIntegrationCoefficientModifier))
 {
     MakeIntegrationScheme();
     InitializeRotationMatrixCalculator();
@@ -116,9 +119,15 @@ UPwInterfaceElement::UPwInterfaceElement(IndexType                          NewI
                                          const GeometryType::Pointer&       rpGeometry,
                                          std::unique_ptr<StressStatePolicy> pStressStatePolicy,
                                          IsDiffOrderElement                 IsDiffOrder,
-                                         const std::vector<CalculationContribution>& rContributions)
-    : UPwInterfaceElement(
-          NewId, rpGeometry, nullptr /* no properties */, std::move(pStressStatePolicy), IsDiffOrder, rContributions)
+                                         const std::vector<CalculationContribution>& rContributions,
+                                         std::unique_ptr<IntegrationCoefficientModifier> pIntegrationCoefficientModifier)
+    : UPwInterfaceElement(NewId,
+                          rpGeometry,
+                          nullptr /* no properties */,
+                          std::move(pStressStatePolicy),
+                          IsDiffOrder,
+                          rContributions,
+                          std::move(pIntegrationCoefficientModifier))
 {
 }
 
@@ -146,8 +155,9 @@ Element::Pointer UPwInterfaceElement::Create(IndexType               NewId,
                                              PropertiesType::Pointer pProperties) const
 {
     const auto is_diff_order = mpOptionalPressureGeometry ? IsDiffOrderElement::Yes : IsDiffOrderElement::No;
-    return make_intrusive<UPwInterfaceElement>(
-        NewId, pGeometry, pProperties, mpStressStatePolicy->Clone(), is_diff_order, mContributions);
+    return make_intrusive<UPwInterfaceElement>(NewId, pGeometry, pProperties,
+                                               mpStressStatePolicy->Clone(), is_diff_order, mContributions,
+                                               mIntegrationCoefficientsCalculator.CloneModifier());
 }
 
 void UPwInterfaceElement::EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo&) const
@@ -513,6 +523,19 @@ int UPwInterfaceElement::Check(const ProcessInfo& rCurrentProcessInfo) const
         const auto r_properties  = GetProperties();
         const auto expected_size = mpStressStatePolicy->GetVoigtSize();
         ConstitutiveLawUtilities::CheckStrainSize(r_properties, expected_size, Id());
+
+        const auto is_surface_interface = GetDisplacementGeometry().GetGeometryFamily() !=
+                                          GeometryData::KratosGeometryFamily::Kratos_Linear;
+        KRATOS_ERROR_IF(is_surface_interface && r_properties.Has(GEO_CONTACT_SURFACE_PERIMETER))
+            << "GEO_CONTACT_SURFACE_PERIMETER is not supported for surface interface elements, "
+               "but it is defined for element "
+            << Id() << ".\n";
+
+        if (r_properties.Has(GEO_CONTACT_SURFACE_PERIMETER)) {
+            const CheckProperties check_properties(r_properties, "properties", Id(),
+                                                   CheckProperties::Bounds::AllExclusive);
+            check_properties.Check(GEO_CONTACT_SURFACE_PERIMETER);
+        }
 
         error = r_properties[CONSTITUTIVE_LAW]->Check(r_properties, GetDisplacementGeometry(), rCurrentProcessInfo);
         return error;

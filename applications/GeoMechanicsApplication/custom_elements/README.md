@@ -13,11 +13,11 @@ For simulating soil behavior, the geomechanics application offers continuum elem
 
 Depending on your needs, you may opt for either so-called "diff order" elements or "non-diff order" elements. The former implies that the order of the interpolation polynomials that will be used for the pore water pressure field is one less than the order of the interpolation polynomials of the displacement field. The latter, on the other hand, assumes one and the same order for the interpolation polynomials of both fields.
 
-Regardless of the above distinction, the application orders the degrees of freedom (DOFs) in the same way. The first part relates to the displacement DOFs (grouped per node), followed by a second part that contains the pore water pressure DOFs. For instance, assuming a 6-noded triangular diff order element, the DOFs are ordered as follows:
+Regardless of the above distinction, the application orders the degrees of freedom (DOF) in the same way. The first part relates to the displacement DOF (grouped per node), followed by a second part that contains the pore water pressure DOF. For instance, assuming a 6-noded triangular diff order element, the DOF are ordered as follows:
 
 $$ u_{x,1}, u_{y,1}, u_{x,2}, u_{y,2}, \dots, u_{x,6}, u_{y,6}, p_1, p_2, p_3 $$
 
-where the directions of the displacements are denoted by a suffix (here either $x$ or $y$), and the node number is also added as a suffix. Note that in this case, there are only three pore water pressure DOFs (due to the diff order nature of the element). For a non-diff order quadratic element the above list of DOFs is appended by $p_4$, $p_5$, and $p_6$.
+where the directions of the displacements are denoted by a suffix (here either $x$ or $y$), and the node number is also added as a suffix. Note that in this case, there are only three pore water pressure DOF (due to the diff order nature of the element). For a non-diff order quadratic element the above list of DOF is appended by $p_4$, $p_5$, and $p_6$.
 
 The governing equations for the U-Pw continuum elements in matrix form are:
 
@@ -36,6 +36,45 @@ f_p \end{bmatrix} $$
 where the degrees of freedom are displacement $u$ and water pressure $p_w$, their time derivatives velocity $\dot{u}$ and time gradient of pressure $\dot{p}$ and double time derivatives acceleration $\ddot{u}$ and $\ddot{p}$.
 $M$ is the mass matrix, $D$ the damping matrix, $Q$ the coupling matrix, $C$ the compressibility matrix, $K$ the stiffness matrix
 and $H$ the permeability matrix. $f_u$ are forces on boundary and body and $f_p$ are fluxes on boundary and body.
+
+# U-Pw Interface Elements
+
+The `UPwInterfaceElement` models a interface between two domains, for instance a soil-structure contact or a discontinuity in the soil. Like the continuum elements, it takes into account the displacement field ($u$) and the pore water pressure field ($p_w$).
+
+## Geometry
+The element is defined on an interface geometry, which consists of two sides (lines in 2D, planes in 3D) that connect to the adjacent model parts. Most calculations are performed on the so-called mid-geometry, which is located halfway between the two sides. See the [interface geometry documentation](../custom_geometries/README.md#interface-geometry) for the supported geometries, their node numbering and the definition of the mid-geometry.
+
+## Degrees of freedom
+The displacement DOF are defined on all nodes of the interface geometry (both sides). The pore water pressure DOF follow the same ordering convention as the continuum elements: first all displacement DOF (grouped per node), followed by the pore water pressure DOF. As for the continuum elements, a "diff order" variant is available, which uses a linear pressure field combined with a quadratic displacement field.
+
+## Element contributions
+The element is assembled from separate calculation contributions (see `CalculationContribution`), each of which adds to the left- and/or right-hand side:
+
+- stiffness (`StiffnessCalculator`)
+- coupling between displacement and water pressure (`UPCouplingCalculator` and `PUCouplingCalculator`)
+- permeability (`PermeabilityCalculator`)
+- fluid body flow (`FluidBodyFlowCalculator`)
+
+Which contributions are active can be defined at registration time. Furthermore, the `GEO_DRAINAGE_TYPE` of the element, can also switch contributions off (for example, the `CONSTANT_PW_FIELD` drainage type will switch off the `PUCouplingCalculator`, the `PermeabilityCalculator` and the `FluidBodyFlowCalculator`). Stress-state specific behavior is delegated to a `StressStatePolicy`, and the integration points follow an integration scheme (Lobatto by default for the interface elements) rather than the scheme of the underlying geometry.
+
+## Contact surface perimeter
+Line interface elements are integrated per unit length (plane strain) and surface interface elements per unit area. To model an interface that is wrapped around a body with a certain circumference, e.g. the grout-soil interface around a grouted anchor represented by a truss, the integration coefficients can be scaled by the perimeter of the contact surface. This is done with the optional material property `GEO_CONTACT_SURFACE_PERIMETER`:
+
+$$ w_{i}^{*} = w_{i} \cdot P $$
+
+where $w_i$ is the integration coefficient at integration point $i$ (integration weight times the determinant of the Jacobian of the mid-geometry) and $P$ is the contact surface perimeter. The scaling is performed by the `IntegrationCoefficientModifierForInterfaceElement`, which is passed to the element on construction. Since it modifies the integration coefficients themselves, it applies to all contributions of the element (stiffness, coupling, permeability and fluid body flow).
+
+If `GEO_CONTACT_SURFACE_PERIMETER` is not specified in the properties, the integration coefficients are left unchanged (i.e. $P = 1$). The property is specified in the `Variables` of the material, for example:
+
+```json
+"Variables": {
+    "INTERFACE_NORMAL_STIFFNESS": 7.69230769230769e+08,
+    "INTERFACE_SHEAR_STIFFNESS": 7.69230769230769e+07,
+    "GEO_CONTACT_SURFACE_PERIMETER": 0.471,
+}
+```
+
+An example can be found in the [grouted anchor test](../tests/grouted_anchor/README.md).
 
 # Pw Elements
 Conservation of mass for saturated soil
