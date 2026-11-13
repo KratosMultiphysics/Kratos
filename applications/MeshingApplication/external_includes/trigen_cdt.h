@@ -197,7 +197,7 @@ public:
             temp.push_back( *((ModelNodes).find( out.trianglelist[base+1]).base()	) );
             temp.push_back( *((ModelNodes).find( out.trianglelist[base+2]).base()	) );
 
-            Element::Pointer p_element = rReferenceElement.Create(id, temp, properties);
+            Element::Pointer p_element = rReferenceElement.Create(id, temp.Points(), properties);
             ThisModelPart.Elements().push_back(p_element);
         }
 

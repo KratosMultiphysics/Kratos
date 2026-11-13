@@ -50,7 +50,7 @@ namespace Kratos
             element_nodes_0[4] = p_node_5;
             element_nodes_0[5] = p_node_6;
             Prism3D6 <NodeType> prism_0( PointerVector<NodeType>{element_nodes_0} );
-            ThisModelPart.CreateNewElement("Element3D6N", 1, prism_0, p_elem_prop);
+            ThisModelPart.CreateNewElement("Element3D6N", 1, prism_0.Points(), p_elem_prop);
         }
 
         /**
