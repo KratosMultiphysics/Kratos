@@ -13,6 +13,7 @@ from pyevtk import vtk
 import numpy as np
 import weakref
 import shutil
+import xml.etree.ElementTree as ET
 from KratosMultiphysics import *
 from KratosMultiphysics.DEMApplication import *
 
@@ -271,9 +272,6 @@ class VtkOutput():
             if element_length < 3 * max_radius:
                 number_of_elements += 1
         
-        if number_of_elements == 0:
-            return False
-        
         #number_of_elements = self.contact_model_part.NumberOfElements(0)
         number_of_nodes = number_of_elements * 2
 
@@ -373,6 +371,73 @@ class VtkOutput():
                 i_contact += 1
 
         return True
+
+    def WriteEmptyContactsFile(self, path):
+        vtk_file = ET.Element("VTKFile", {
+            "type": "UnstructuredGrid",
+            "version": "0.1",
+            "byte_order": "LittleEndian"
+        })
+        grid = ET.SubElement(vtk_file, "UnstructuredGrid")
+        piece = ET.SubElement(grid, "Piece", {
+            "NumberOfPoints": "0",
+            "NumberOfCells": "0"
+        })
+
+        point_data = ET.SubElement(piece, "PointData")
+        cell_data = ET.SubElement(piece, "CellData")
+
+        def AddEmptyDataArray(parent, name, number_of_components=1):
+            ET.SubElement(parent, "DataArray", {
+                "type": "Float64",
+                "Name": name,
+                "NumberOfComponents": str(number_of_components),
+                "format": "ascii"
+            })
+
+        if self.PostLocalContactForce:
+            AddEmptyDataArray(point_data, "local_contact_force", 3)
+            AddEmptyDataArray(cell_data, "local_contact_force", 3)
+            AddEmptyDataArray(point_data, "local_contact_force_mag")
+            AddEmptyDataArray(cell_data, "local_contact_force_mag")
+
+        if self.PostFailureCriterionState:
+            AddEmptyDataArray(cell_data, "failure_criterion_state")
+
+        if self.PostContactFailureId:
+            AddEmptyDataArray(cell_data, "contact_failure_id")
+
+        if self.PostContactTau:
+            AddEmptyDataArray(point_data, "contact_tau")
+            AddEmptyDataArray(cell_data, "contact_tau")
+
+        if self.PostContactSigma:
+            AddEmptyDataArray(point_data, "contact_sigma")
+            AddEmptyDataArray(cell_data, "contact_sigma")
+
+        if self.PostContactRadius:
+            AddEmptyDataArray(point_data, "contact_radius")
+            AddEmptyDataArray(cell_data, "contact_radius")
+
+        points = ET.SubElement(piece, "Points")
+        ET.SubElement(points, "DataArray", {
+            "type": "Float64",
+            "NumberOfComponents": "3",
+            "format": "ascii"
+        })
+
+        cells = ET.SubElement(piece, "Cells")
+        for name, data_type in (("connectivity", "Int32"),
+                                ("offsets", "Int32"),
+                                ("types", "UInt8")):
+            ET.SubElement(cells, "DataArray", {
+                "type": data_type,
+                "Name": name,
+                "format": "ascii"
+            })
+
+        ET.ElementTree(vtk_file).write(
+            path + ".vtu", encoding="utf-8", xml_declaration=True)
 
     def ConvertWallsToNumpyArrays(self):
         number_of_nodes = self.rigid_face_model_part.NumberOfNodes(0)
@@ -514,7 +579,10 @@ class VtkOutput():
                 contacts_output_dict_cell['contact_radius'] = self.contact_radius
                 contacts_output_dict_point['contact_radius'] = self.contact_radius_point
 
+        if self.start_and_end_points_X.size:
             hl.linesToVTK(path, self.start_and_end_points_X, self.start_and_end_points_Y, self.start_and_end_points_Z, contacts_output_dict_cell, contacts_output_dict_point)
+        else:
+            self.WriteEmptyContactsFile(path)
         
         #-------------------------------Walls part------------------------------
         if self.ConvertWallsToNumpyArrays():
