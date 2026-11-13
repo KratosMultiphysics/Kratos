@@ -76,7 +76,7 @@ KRATOS_TEST_CASE_IN_SUITE(GetModelPartsFromSettings_ThrowsForComputingModelPart,
             "computing_model_part_name": "Main"
         })");
 
-    /// Act and Assert
+    // Act and Assert
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         ProcessUtilities::GetModelPartsFromSettings(model, settings, "TestProcess"),
         "Please specify 'model_part_name' or 'model_part_name_list' for TestProcess")
