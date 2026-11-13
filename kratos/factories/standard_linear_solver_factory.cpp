@@ -27,6 +27,7 @@
 #include "linear_solvers/fallback_linear_solver.h"
 #include "linear_solvers/monotonicity_preserving_solver.h"
 #include "linear_solvers/skyline_lu_custom_scalar_solver.h"
+#include "linear_solvers/rigid_body_mode_pinning_solver.h"
 #include "spaces/default_spaces.h"
 
 namespace Kratos {
@@ -75,10 +76,14 @@ void RegisterLinearSolversForSpace()
     KratosComponents<LinearSolverFactory<SpaceType,LocalSpaceType>>::Add("monotonicity_preserving",MonotonicityPreservingSolverFactory );
 
 #ifndef KRATOS_USE_EIGEN_BACKEND
-    // DeflatedCGSolver's utilities are not templated on the space type (they are
-    // bound to the uBLAS CSR matrix and to double precision floats), so it can
-    // only be registered for the uBLAS double space.
+    // DeflatedCGSolver's utilities and the RigidBodyModePinningSolver's kernel are not
+    // templated on the space type (they are bound to the uBLAS CSR matrix and to double
+    // precision floats), so these solvers can only be registered for the uBLAS double space.
     if constexpr (std::is_same_v<SpaceType, TUblasSparseSpace<double>>) {
+        using RigidBodyModePinningSolverType = RigidBodyModePinningSolver<SpaceType,  LocalSpaceType>;
+        static auto RigidBodyModePinningSolverFactory= StandardLinearSolverFactory<SpaceType,LocalSpaceType,RigidBodyModePinningSolverType>();
+        KratosComponents<LinearSolverFactory<SpaceType,LocalSpaceType>>::Add("rigid_body_mode_pinning",RigidBodyModePinningSolverFactory );
+
         using DeflatedCGSolverType = DeflatedCGSolver<SpaceType,  LocalSpaceType>;
         static auto DeflatedCGSolverFactory= StandardLinearSolverFactory<SpaceType,LocalSpaceType,DeflatedCGSolverType>();
         KratosComponents<LinearSolverFactory<SpaceType,LocalSpaceType>>::Add("deflated_cg", DeflatedCGSolverFactory);
