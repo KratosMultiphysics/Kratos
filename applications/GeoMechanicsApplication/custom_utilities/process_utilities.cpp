@@ -59,7 +59,7 @@ std::set<std::string, std::less<>> ExtractModelPartNames(const auto&      rProce
         auto has_name_key = [&r_process](const std::string& rKey) {
             return r_process["Parameters"].Has(rKey);
         };
-        if ((std::ranges::count_if(rModelPartNameKeys, has_name_key) < 1) &&
+        if (std::ranges::none_of(rModelPartNameKeys, has_name_key) &&
             std::ranges::any_of(process_to_ignore_name_keys, [&r_process](const auto& rKey) {
             return r_process["process_name"].GetString() == rKey;
         }))
