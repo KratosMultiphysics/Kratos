@@ -58,7 +58,7 @@ class SearchBaseProcess(KM.Process):
                 "dynamic_search"                      : false,
                 "static_check_movement"               : false,
                 "database_step_update"                : 1,
-                "normal_orientation_threshold"        : 1.0e-1,
+                "normal_orientation_threshold"        : 1.0e-8,
                 "consider_gap_threshold"              : false,
                 "debug_mode"                          : false,
                 "predict_correct_lagrange_multiplier" : false,
@@ -376,7 +376,7 @@ class SearchBaseProcess(KM.Process):
         self.interface_preprocess = CSMA.InterfacePreprocessCondition(self.main_model_part)
 
         # It should create the conditions automatically
-        interface_parameters = KM.Parameters("""{"simplify_geometry": false, "contact_property_id": 0}""")
+        interface_parameters = KM.Parameters("""{"simplify_geometry": true, "contact_property_id": 0}""")
         interface_parameters["contact_property_id"].SetInt(self.settings["search_property_ids"][key].GetInt())
         self.interface_preprocess.GenerateInterfacePart(partial_model_part, interface_parameters)
 

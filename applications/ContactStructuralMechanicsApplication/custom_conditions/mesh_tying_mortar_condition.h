@@ -572,7 +572,8 @@ protected:
         const PointType& rLocalPointDecomp,
         const PointType& rLocalPointParent,
         const GeometryPointType& rGeometryDecomp,
-        const bool DualLM = false
+        const bool DualLM = false,
+        const ProcessInfo& rCurrentProcessInfo = ProcessInfo()
         );
 
     /********************************************************************************/
