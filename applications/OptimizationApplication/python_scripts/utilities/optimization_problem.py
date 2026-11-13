@@ -45,6 +45,10 @@ class OptimizationProblem:
         # initialize the step
         self.__problem_data["step"] = 0
 
+        # restart state, set by OptimizationAnalysis
+        self.__is_restarted = False
+        self.__restart_output = None
+
     def GetComponentType(self, component: Union[ExecutionPolicy, ResponseFunction, Control, MasterControl, ResponseRoutine]) -> Any:
         for k in self.__components.keys():
             if isinstance(component, k):
@@ -194,6 +198,10 @@ class OptimizationProblem:
         """
         return self.__problem_data["step"]
 
+    def SetStep(self, step: int) -> None:
+        """Sets the step counter without advancing the buffers (used to restore a checkpoint)."""
+        self.__problem_data.SetValue("step", step, overwrite=True)
+
     def AdvanceStep(self) -> None:
         """Advances the problem data by one step.
 
@@ -212,6 +220,22 @@ class OptimizationProblem:
             BufferedDict: Global problem data container.
         """
         return self.__problem_data
+
+    def IsRestarted(self) -> bool:
+        """Whether this run resumed from a restart checkpoint (set by _LoadRestartModel())."""
+        return self.__is_restarted
+
+    def SetRestarted(self, is_restarted: bool) -> None:
+        """Marks this run as resumed from a restart checkpoint (called by OptimizationAnalysis)."""
+        self.__is_restarted = is_restarted
+
+    def GetRestartOutput(self) -> 'Any | None':
+        """The restart writer driven by Algorithm.SaveRestartFile(), or None if save_restart is off."""
+        return self.__restart_output
+
+    def SetRestartOutput(self, restart_output: 'Any | None') -> None:
+        """Installs the restart writer that Algorithm.SaveRestartFile() calls (None disables saving)."""
+        self.__restart_output = restart_output
 
     def GetComponentContainer(self) -> 'dict[Any, dict[str, Any]]':
         return self.__components
