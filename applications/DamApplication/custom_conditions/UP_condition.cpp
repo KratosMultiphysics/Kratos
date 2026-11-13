@@ -340,8 +340,14 @@ void UPCondition<2,2>::CalculateNormalVector(VectorType& rNormalVector,  const M
 {
 	rNormalVector.resize(2,false);
 
-	rNormalVector[0] = Jacobian(0,0);
-    rNormalVector[1] = Jacobian(1,0);
+    // For a line, the Jacobian column is the tangent t = (t_x, t_y).
+    // The consistent 2D restriction of the 3D surface normal
+    // n = t_xi x t_eta (with the out-of-plane direction as second tangent)
+    // is the right-hand normal n = (t_y, -t_x). It points to the right of the
+    // directed line and reverses when the line node ordering is reversed.
+    // Existing models must order the line so this right side is the solid.
+    rNormalVector[0] = Jacobian(1,0);
+    rNormalVector[1] = -Jacobian(0,0);
 
     //Norm of the normal vector
     double norm = norm_2(rNormalVector);

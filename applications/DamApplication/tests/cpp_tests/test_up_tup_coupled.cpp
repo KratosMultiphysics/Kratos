@@ -17,6 +17,7 @@
 #include <cmath>
 #include <cstddef>
 #include <iostream>
+#include <limits>
 #include <string>
 #include <vector>
 
@@ -39,6 +40,7 @@
 #include "custom_strategies/schemes/dam_UP_scheme.hpp"
 #include "custom_strategies/schemes/dam_P_scheme.hpp"
 #include "custom_conditions/UP_condition.hpp"
+#include "custom_conditions/added_mass_condition.hpp"
 #include "custom_elements/wave_equation_element.hpp"
 
 namespace Kratos
@@ -151,6 +153,50 @@ ModelPart& CreateUPModel(
     KRATOS_CATCH("");
 }
 
+/// Builds an isolated 2D U-P condition on a two-node segment. The pressure is
+/// uniform, the acceleration is zero and the pressure-acceleration coefficient
+/// is set explicitly, so the RHS U-block is the pure pressure coupling force.
+ModelPart& CreateUPConditionSegment(
+    Model& rModel,
+    const std::string& rModelPartName,
+    const double X0, const double Y0,
+    const double X1, const double Y1,
+    ModelPart*& rOutModelPart)
+{
+    ModelPart& r_model_part = rModel.CreateModelPart(rModelPartName, 2);
+    ProcessInfo& r_pi = r_model_part.GetProcessInfo();
+    r_pi[DOMAIN_SIZE] = 2;
+    r_pi[SPACE_DIMENSION] = 2;
+    r_pi[DELTA_TIME] = 0.1;
+    r_pi[ACCELERATION_PRESSURE_COEFFICIENT] = 400.0;
+
+    for (auto& v : std::vector<const VariableData*>{&DISPLACEMENT, &VELOCITY,
+                    &ACCELERATION, &PRESSURE, &REACTION}) {
+        r_model_part.AddNodalSolutionStepVariable(*v);
+    }
+    r_model_part.AddNodalSolutionStepVariable(Dt_PRESSURE);
+    r_model_part.AddNodalSolutionStepVariable(Dt2_PRESSURE);
+
+    const double coords[2][2] = {{X0, Y0}, {X1, Y1}};
+    for (std::size_t i = 0; i < 2; ++i) {
+        Node::Pointer p_node = r_model_part.CreateNewNode(
+            i + 1, coords[i][0], coords[i][1], 0.0);
+        p_node->AddDof(DISPLACEMENT_X, REACTION_X);
+        p_node->AddDof(DISPLACEMENT_Y, REACTION_Y);
+        p_node->AddDof(PRESSURE);
+        p_node->FastGetSolutionStepValue(PRESSURE) = 1.0e3;
+        noalias(p_node->FastGetSolutionStepValue(ACCELERATION)) = ZeroVector(3);
+        noalias(p_node->FastGetSolutionStepValue(VELOCITY)) = ZeroVector(3);
+    }
+
+    auto p_props = r_model_part.CreateNewProperties(1);
+    r_model_part.CreateNewCondition(
+        "UPCondition2D2N", 1, std::vector<ModelPart::IndexType>{1, 2}, p_props);
+    r_model_part.pGetCondition(1)->Initialize(r_pi);
+    rOutModelPart = &r_model_part;
+    return r_model_part;
+}
+
 /// Applies a uniform temperature increment (T-U-P thermal input).
 void ApplyTemperature(ModelPart& rModelPart, const double rDeltaTemperature)
 {
@@ -162,18 +208,23 @@ void ApplyTemperature(ModelPart& rModelPart, const double rDeltaTemperature)
 } // namespace
 
 //************************************************************************************
-// Coupling sign/energy sanity: positive pressure -> solid force in +normal.
+// Coupling sign/energy sanity: positive pressure -> solid force along +normal.
 //************************************************************************************
 
 KRATOS_TEST_CASE_IN_SUITE(UPCouplingPreservesExpectedSign, KratosDamFastSuite)
 {
     // With a positive uniform pressure, the UPCondition must produce a solid
-    // traction in the +normal direction, identical for the historical alias and the direct SMA solid.
-    // Bottom edge of the Q4 spans (0,0)-(2,0); the element interior is above, so
-    // the outward edge normal is (0,-1). The condition computes
+    // traction in the +normal direction, identical for the historical alias and
+    // the direct SMA solid.
+    //
+    // Bottom edge of the Q4 spans (0,0)-(2,0); the element interior is above.
+    // The line tangent is t=(1,0). The Dam 2D normal follows the 3D surface
+    // convention n = t x e_z = (t_y, -t_x), so n=(0,-1) for this edge.
+    // The condition computes
     //   UPMatrix = -Nu^T (n outer Np),  UVector = -UPMatrix * P
-    // so UVector = Nu^T n * P * (edge length). With n=(0,-1), P>0 the solid
-    // traction is along -n = (0,+1) on the U block.
+    // so UVector = Nu^T n * P * (edge length). With n=(0,-1), P>0 the U-block
+    // traction is (0,-P*L/2) per node. The pressure-acceleration term is
+    // PVector = -Density * Np * (n . a); with a=(0.5,0.5) it is +500 per node.
     Model model;
     ModelPart* p_hist_alias_mp = nullptr;
     ModelPart* p_direct_sma_mp = nullptr;
@@ -195,13 +246,6 @@ KRATOS_TEST_CASE_IN_SUITE(UPCouplingPreservesExpectedSign, KratosDamFastSuite)
     scheme.CalculateSystemContributions(*p_hist_alias_mp->pGetCondition(1), lhs_hist_alias, rhs_hist_alias, eq_hist_alias, p_hist_alias_mp->GetProcessInfo());
     scheme.CalculateSystemContributions(*p_direct_sma_mp->pGetCondition(1), lhs_direct_sma, rhs_direct_sma, eq_direct_sma, p_direct_sma_mp->GetProcessInfo());
 
-    // Condition DOF order per node: [Ux, Uy, P]. The Dam 2D UPCondition
-    // (CalculateNormalVector<2,2>) uses the edge Jacobian as the coupling
-    // direction, i.e. for the bottom edge it is the edge tangent (1,0). Positive
-    // P therefore produces a solid traction along +tangent with magnitude
-    // P*L/2 = 1000. The Uy entry stays uninitialized when the coupling direction
-    // has no y component (a pre-existing UPCondition quirk, identical for both
-    // implementations).
     std::cout << "[coupled] alias condition RHS = [" << rhs_hist_alias[0] << ", " << rhs_hist_alias[1] << ", " << rhs_hist_alias[2]
               << ", " << rhs_hist_alias[3] << ", " << rhs_hist_alias[4] << ", " << rhs_hist_alias[5] << "]" << std::endl;
 
@@ -210,20 +254,170 @@ KRATOS_TEST_CASE_IN_SUITE(UPCouplingPreservesExpectedSign, KratosDamFastSuite)
     KRATOS_EXPECT_NEAR(uptc_MaxAbsDiff(rhs_hist_alias, rhs_direct_sma), 0.0, 1.0e-12);
     KRATOS_EXPECT_NEAR(uptc_MaxAbsDiff(lhs_hist_alias, lhs_direct_sma), 0.0, 1.0e-12);
 
-    // Sign convention preserved: positive P -> solid traction +P*L/2 along the
-    // coupling (tangent) direction; P-block RHS = -P*L/2 (per node).
-    KRATOS_EXPECT_NEAR(rhs_hist_alias[0], 1000.0, 1.0e-9);    // node0 Ux traction
-    KRATOS_EXPECT_NEAR(rhs_hist_alias[3], 1000.0, 1.0e-9);    // node1 Ux traction
-    KRATOS_EXPECT_NEAR(rhs_hist_alias[2], -500.0, 1.0e-9);    // node0 P block
-    KRATOS_EXPECT_NEAR(rhs_hist_alias[5], -500.0, 1.0e-9);    // node1 P block
+    // Condition DOF order per node: [Ux, Uy, P].
+    // U-block: positive P -> +P*L/2 along n=(0,-1).
+    KRATOS_EXPECT_NEAR(rhs_hist_alias[0], 0.0, 1.0e-9);       // node0 Ux
+    KRATOS_EXPECT_NEAR(rhs_hist_alias[1], -1000.0, 1.0e-9);   // node0 Uy
+    KRATOS_EXPECT_NEAR(rhs_hist_alias[3], 0.0, 1.0e-9);       // node1 Ux
+    KRATOS_EXPECT_NEAR(rhs_hist_alias[4], -1000.0, 1.0e-9);   // node1 Uy
+    // P-block: -Density * Np * (n . a) integrated over the edge.
+    KRATOS_EXPECT_NEAR(rhs_hist_alias[2], 500.0, 1.0e-9);     // node0 P block
+    KRATOS_EXPECT_NEAR(rhs_hist_alias[5], 500.0, 1.0e-9);     // node1 P block
 
-    std::cout << "[coupled] coupling sign/energy: positive P gives the same +tangent "
-              << "traction and same P-block RHS for the alias and direct SMA; no "
-              << "reversal or rescaling. (Uy entry is uninitialized in the 2D "
-              << "UPCondition when the coupling direction is purely x - pre-existing "
-              << "quirk.)" << std::endl;
+    std::cout << "[coupled] positive P gives traction along the corrected "
+              << "normal n=(0,-1); alias and direct SMA are identical."
+              << std::endl;
 }
 
+
+//************************************************************************************
+// 2D Nu matrix: every entry must be explicitly initialized.
+//************************************************************************************
+
+KRATOS_TEST_CASE_IN_SUITE(UPCondition2DNuMatrixIsFullyInitialized, KratosDamFastSuite)
+{
+    Matrix N = ZeroMatrix(1, 2);
+    N(0, 0) = 0.25;
+    N(0, 1) = 0.75;
+
+    BoundedMatrix<double, 2, 4> nu;
+    const double nan = std::numeric_limits<double>::quiet_NaN();
+    for (std::size_t i = 0; i < nu.size1(); ++i) {
+        for (std::size_t j = 0; j < nu.size2(); ++j) {
+            nu(i, j) = nan;
+        }
+    }
+
+    PoroConditionUtilities::CalculateNuMatrix(nu, N, 0);
+
+    KRATOS_EXPECT_NEAR(nu(0, 0), 0.25, 0.0);
+    KRATOS_EXPECT_NEAR(nu(0, 1), 0.0, 0.0);
+    KRATOS_EXPECT_NEAR(nu(0, 2), 0.75, 0.0);
+    KRATOS_EXPECT_NEAR(nu(0, 3), 0.0, 0.0);
+    KRATOS_EXPECT_NEAR(nu(1, 0), 0.0, 0.0);
+    KRATOS_EXPECT_NEAR(nu(1, 1), 0.25, 0.0);
+    KRATOS_EXPECT_NEAR(nu(1, 2), 0.0, 0.0);
+    KRATOS_EXPECT_NEAR(nu(1, 3), 0.75, 0.0);
+}
+
+//************************************************************************************
+// 2D normal: horizontal, vertical and inclined boundaries.
+//************************************************************************************
+
+KRATOS_TEST_CASE_IN_SUITE(UPCoupling2DNormalDirection, KratosDamFastSuite)
+{
+    struct Segment2D
+    {
+        double x0, y0, x1, y1, nx, ny;
+    };
+
+    const double inv_sqrt_two = 1.0 / std::sqrt(2.0);
+    const std::vector<Segment2D> segments = {
+        {0.0, 0.0, 2.0, 0.0, 0.0, -1.0},                  // horizontal
+        {0.0, 0.0, 0.0, 2.0, 1.0, 0.0},                   // vertical
+        {0.0, 0.0, 1.0, 1.0, inv_sqrt_two, -inv_sqrt_two} // inclined
+    };
+
+    for (std::size_t i = 0; i < segments.size(); ++i) {
+        const auto& segment = segments[i];
+        Model model;
+        ModelPart* p_mp = nullptr;
+        CreateUPConditionSegment(
+            model, "NormalSegment" + std::to_string(i),
+            segment.x0, segment.y0, segment.x1, segment.y1, p_mp);
+
+        Matrix lhs;
+        Vector rhs;
+        p_mp->pGetCondition(1)->CalculateLocalSystem(
+            lhs, rhs, p_mp->GetProcessInfo());
+
+        const double length = std::hypot(
+            segment.x1 - segment.x0, segment.y1 - segment.y0);
+        const double expected_force = 1.0e3 * length / 2.0;
+        const double tx = (segment.x1 - segment.x0) / length;
+        const double ty = (segment.y1 - segment.y0) / length;
+
+        KRATOS_EXPECT_NEAR(rhs[0], expected_force * segment.nx, 1.0e-9);
+        KRATOS_EXPECT_NEAR(rhs[1], expected_force * segment.ny, 1.0e-9);
+        KRATOS_EXPECT_NEAR(rhs[3], expected_force * segment.nx, 1.0e-9);
+        KRATOS_EXPECT_NEAR(rhs[4], expected_force * segment.ny, 1.0e-9);
+
+        // The coupling force must be perpendicular to the boundary tangent.
+        KRATOS_EXPECT_NEAR(rhs[0] * tx + rhs[1] * ty, 0.0, 1.0e-9);
+
+        // With zero acceleration the pressure-acceleration block is zero.
+        KRATOS_EXPECT_NEAR(rhs[2], 0.0, 1.0e-12);
+        KRATOS_EXPECT_NEAR(rhs[5], 0.0, 1.0e-12);
+    }
+
+    // Reversing the line node ordering must reverse the normal and the force.
+    Model reversed_model;
+    ModelPart* p_reversed_mp = nullptr;
+    CreateUPConditionSegment(
+        reversed_model, "ReversedNormalSegment", 2.0, 0.0, 0.0, 0.0,
+        p_reversed_mp);
+    Matrix reversed_lhs;
+    Vector reversed_rhs;
+    p_reversed_mp->pGetCondition(1)->CalculateLocalSystem(
+        reversed_lhs, reversed_rhs, p_reversed_mp->GetProcessInfo());
+    KRATOS_EXPECT_NEAR(reversed_rhs[0], 0.0, 1.0e-9);
+    KRATOS_EXPECT_NEAR(reversed_rhs[1], 1000.0, 1.0e-9);
+    KRATOS_EXPECT_NEAR(reversed_rhs[3], 0.0, 1.0e-9);
+    KRATOS_EXPECT_NEAR(reversed_rhs[4], 1000.0, 1.0e-9);
+}
+
+//************************************************************************************
+// Added mass 2D: uses the same fully initialized Nu matrix deterministically.
+//************************************************************************************
+
+KRATOS_TEST_CASE_IN_SUITE(AddedMassCondition2DUsesFullyInitializedNuMatrix, KratosDamFastSuite)
+{
+    Model model;
+    ModelPart& r_model_part = model.CreateModelPart("AddedMass2D", 2);
+    ProcessInfo& r_pi = r_model_part.GetProcessInfo();
+    r_pi[ACCELERATION_PRESSURE_COEFFICIENT] = 4.0;
+
+    for (auto& v : std::vector<const VariableData*>{&DISPLACEMENT, &ACCELERATION, &ADDED_MASS}) {
+        r_model_part.AddNodalSolutionStepVariable(*v);
+    }
+
+    for (std::size_t i = 0; i < 2; ++i) {
+        Node::Pointer p_node = r_model_part.CreateNewNode(
+            i + 1, 2.0 * static_cast<double>(i), 0.0, 0.0);
+        p_node->AddDof(DISPLACEMENT_X);
+        p_node->AddDof(DISPLACEMENT_Y);
+        p_node->FastGetSolutionStepValue(ADDED_MASS) = 2.0;
+        noalias(p_node->FastGetSolutionStepValue(ACCELERATION)) = ZeroVector(3);
+    }
+
+    auto p_props = r_model_part.CreateNewProperties(1);
+    r_model_part.CreateNewCondition(
+        "AddedMassCondition2D2N", 1,
+        std::vector<ModelPart::IndexType>{1, 2}, p_props);
+
+    Matrix lhs_first, lhs_second;
+    Vector rhs_first, rhs_second;
+    auto p_condition = r_model_part.pGetCondition(1);
+    p_condition->CalculateLocalSystem(lhs_first, rhs_first, r_pi);
+    p_condition->CalculateLocalSystem(lhs_second, rhs_second, r_pi);
+
+    KRATOS_EXPECT_NEAR(uptc_MaxAbsDiff(lhs_first, lhs_second), 0.0, 0.0);
+    KRATOS_EXPECT_NEAR(uptc_MaxAbsDiff(rhs_first, rhs_second), 0.0, 0.0);
+
+    // LHS = coefficient * added_mass * integral(Nu^T Nu) over the edge.
+    // Line2D2 uses its default single Gauss point at the centre (N0=N1=0.5)
+    // and the edge length is 2, so integral(N0*N0)=integral(N0*N1)=0.5.
+    const double diagonal = 4.0 * 2.0 * 0.5;
+    const double off_diagonal = 4.0 * 2.0 * 0.5;
+    KRATOS_EXPECT_NEAR(lhs_first(0, 0), diagonal, 1.0e-12);
+    KRATOS_EXPECT_NEAR(lhs_first(1, 1), diagonal, 1.0e-12);
+    KRATOS_EXPECT_NEAR(lhs_first(2, 2), diagonal, 1.0e-12);
+    KRATOS_EXPECT_NEAR(lhs_first(3, 3), diagonal, 1.0e-12);
+    KRATOS_EXPECT_NEAR(lhs_first(0, 2), off_diagonal, 1.0e-12);
+    KRATOS_EXPECT_NEAR(lhs_first(1, 3), off_diagonal, 1.0e-12);
+
+    KRATOS_EXPECT_NEAR(uptc_MaxAbsDiff(rhs_first, ZeroVector(rhs_first.size())), 0.0, 1.0e-12);
+}
 
 //************************************************************************************
 // T-U-P: thermal solid + coupling.
