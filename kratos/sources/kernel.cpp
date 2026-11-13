@@ -220,7 +220,30 @@ void Kernel::PrintParallelismSupportInfo() const
     constexpr bool threading_support = true;
     std::string scheduling_str;
     #if defined(KRATOS_SMP_OPENMP)
-        const auto smp = "OpenMP";
+        // Check if the environment variable is defined
+        const char* var_name = "OMP_SCHEDULE";
+        const char* scheduling = getenv(var_name);
+
+        if (scheduling != nullptr) { // Correct variable name and nullptr comparison
+            scheduling_str = scheduling;
+        } else {
+        #ifdef KRATOS_OMP_SCHEDULE
+            scheduling_str = KRATOS_OMP_SCHEDULE; // Use the preprocessor-defined value
+        #else
+            scheduling_str = "dynamic"; // NOTE: This should not happen as defined in compiling time
+        #endif
+        #ifdef KRATOS_COMPILED_IN_WINDOWS
+            const int output_setenv = _putenv_s(var_name, scheduling_str.c_str());
+        #else
+            const int overwrite = 1; // Overwrite if it exists, a priori not, that's why we are setting it
+            const int output_setenv = setenv(var_name, scheduling_str.c_str(), overwrite);
+        #endif
+            KRATOS_ERROR_IF_NOT(output_setenv == 0) << "Error setting environment variable " << var_name << std::endl;
+            scheduling_str = "\"" + scheduling_str + "\"";
+            scheduling_str += " (retrieving from KRATOS_OMP_SCHEDULE)";
+        }
+
+        const auto smp = "OpenMP, scheduling type is " + scheduling_str; // Use `std::string` for concatenation
     #elif defined(KRATOS_SMP_CXX11)
         constexpr auto smp = "C++11";
     #else
