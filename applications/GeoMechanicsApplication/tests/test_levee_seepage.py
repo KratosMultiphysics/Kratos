@@ -6,6 +6,7 @@ import KratosMultiphysics as Kratos
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import test_helper
 import helper_utilities
+import numpy as np
 from KratosMultiphysics.GeoMechanicsApplication.unit_conversions import per_second_to_per_day
 
 if test_helper.want_test_plots():
@@ -25,21 +26,10 @@ class KratosGeoMechanicsLeveeSeepageTests(KratosUnittest.TestCase):
     SATURATION_TOLERANCE = 0.075
 
     def _read_reference(self, filename, columns):
-        self.assertTrue(
-            os.path.isfile(filename), f"Missing commercial FE reference: {filename}"
-        )
         with open(filename, newline="") as csv_file:
             reader = csv.DictReader(csv_file, skipinitialspace=True)
-            self.assertTrue(
-                set(columns).issubset(reader.fieldnames or []),
-                f"{filename} must contain columns {columns}",
-            )
             points = [tuple(float(row[column]) for column in columns) for row in reader]
         self.assertTrue(points, f"{filename} must contain reference values")
-        self.assertTrue(
-            all(math.isfinite(value) for point in points for value in point),
-            f"{filename} must contain finite values",
-        )
         return sorted(points)
 
     def _section_profile(self, model_part, nodal_values, x):
@@ -70,12 +60,13 @@ class KratosGeoMechanicsLeveeSeepageTests(KratosUnittest.TestCase):
         self.assertLessEqual(y, profile[-1][0], f"Reference y = {y} is above the mesh")
         for (lower_y, lower), (upper_y, upper) in zip(profile, profile[1:]):
             if lower_y <= y <= upper_y:
-                fraction = (y - lower_y) / (upper_y - lower_y)
-                if isinstance(lower, tuple):
-                    return tuple(
-                        a + fraction * (b - a) for a, b in zip(lower, upper)
-                    )
-                return lower + fraction * (upper - lower)
+                if np.isscalar(lower):
+                    return np.interp(y, [lower_y, upper_y], [lower, upper])
+
+                return tuple(
+                    np.interp(y, [lower_y, upper_y], [a, b])
+                    for a, b in zip(lower, upper)
+                )
         self.fail(f"Cannot interpolate the reference elevation y = {y}")
 
     def _phreatic_elevation(self, profile, x):
@@ -87,9 +78,11 @@ class KratosGeoMechanicsLeveeSeepageTests(KratosUnittest.TestCase):
                 f"The p = 0 elevation is ambiguous at x = {x}: a whole interval is zero",
             )
             if lower_pressure * upper_pressure < 0.0:
+                if lower_pressure > upper_pressure:
+                    lower_pressure, upper_pressure = upper_pressure, lower_pressure
+                    lower_y, upper_y = upper_y, lower_y
                 elevations.add(
-                    lower_y - lower_pressure * (upper_y - lower_y)
-                    / (upper_pressure - lower_pressure)
+                    np.interp(0.0, [lower_pressure, upper_pressure], [lower_y, upper_y])
                 )
         self.assertEqual(
             len(elevations), 1,
@@ -145,7 +138,7 @@ class KratosGeoMechanicsLeveeSeepageTests(KratosUnittest.TestCase):
             for variable in ("WATER_PRESSURE", "FLUID_FLUX_VECTOR", "EFFECTIVE_SATURATION")
         )
         nodal_values = {
-            node_id: (pressure, *flux[:3], saturation)
+            node_id: (pressure, *flux, saturation)
             for node_id, pressure, flux, saturation in zip(
                 node_ids, pressures, fluxes, saturations
             )

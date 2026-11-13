@@ -5,7 +5,7 @@ from the same model in a different comparable finite-element software package. T
 
 ## Setup
 
-The `find_equilibrium` stage solves steady-state groundwater flow with
+The `find_phreatic_surface_and_outflow_region` stage solves steady-state groundwater flow with
 `SteadyStatePwElement2D3N` elements and a Van Genuchten retention law.
 The sand layer, clay layer, levee core and levee cap currently share the same
 hydraulic material parameters.
@@ -25,18 +25,18 @@ The commercial FE reference data is extracted and put in 3 csv files:
 
 | File | Columns | Units |
 | --- | --- | --- |
-| `expected_phreatic_line.csv` | `X,Y` | Both coordinates in m |
-| `expected_flux_at_x_20.csv` | `Y,Flux` | Elevation in m; flux magnitude in m/day |
-| `expected_saturation_at_x_4.csv` | `Y,Effective Saturation` | Elevation in m; effective saturation as a fraction from 0 to 1 |
+| `reference_phreatic_line.csv` | `X,Y` | Both coordinates in m |
+| `reference_flux_at_x_20.csv` | `Y,Flux` | Elevation in m; flux magnitude in m/day |
+| `reference_saturation_at_x_4.csv` | `Y,Effective Saturation` | Elevation in m; effective saturation as a fraction from 0 to 1 |
+
+The commercial FE results are supplied at selected coordinates. These locations do not necessarily coincide with Kratos mesh nodes.
 
 ## Assertions
 
-The test runs the orchestrator and reads the GiD output file `levee_seepage_find_equilibrium.post.res`
+The test runs the orchestrator and reads the nodal output at time = 1.0 from the GiD output file `levee_seepage_find_phreatic_surface_and_outflow_region.post.res`
 and compares results at every supplied reference coordinate:
 
-- **Phreatic line:** interpolate the water-pressure profile along the actual
-  mesh at each reference x and find its p = 0 crossing. Compare 
-  with the reference y using an absolute tolerance of
+- **Phreatic line:** the water-pressure profile at each reference x is interpolated to find its p = 0 crossing. The resulting y-coordinate is compared with the reference y using an absolute tolerance of
   **0.15 m**. A missing or non-unique crossing fails explicitly. Use the x-coordinates
   from the reference data where the phreatic elevation is uniquely defined.
 - **Flux magnitude at x = 20 m:** interpolate the three components of the nodal
