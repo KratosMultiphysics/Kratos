@@ -14,6 +14,7 @@ file(GLOB_RECURSE KRATOS_IGA_APPLICATION_CORE
     ${CMAKE_CURRENT_SOURCE_DIR}/iga_application.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/iga_application_variables.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/*.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/*.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/*.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_modelers/*.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/*.cpp
