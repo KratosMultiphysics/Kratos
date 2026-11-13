@@ -1,0 +1,159 @@
+// KRATOS  ___|  |                   |                   |
+//       \___ \  __|  __| |   |  __| __| |   |  __| _` | |
+//             | |   |    |   | (    |   |   | |   (   | |
+//       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
+//
+//  License:         BSD License
+//                   license: StructuralMechanicsApplication/license.txt
+//
+//  Main authors:  Alejandro Cornejo
+//
+
+#pragma once
+
+// Project includes
+#include "timoshenko_beam_element_2D2N.h"
+
+namespace Kratos
+{
+
+/**
+ * @class NonLinearTimoshenkoBeamElement2D2N
+ * @ingroup StructuralMechanicsApplication
+ * @brief This is the Timoshenko beam element of 2 nodes. It is formulated in a Total Lagrangian fashion.
+ * This is not a corotational approach. The non-linearity is introduced by the use of the exact beam kinematics, which results in a non-linear strain-displacement relationship.
+ * Reference: Nonlinear Finite Element Methods, Peter Wriggers, Chapter 9.2.
+ * The description of the formulation can be found in: https://www.researchgate.net/publication/416879839_Large_displacement_2D_and_3D_Timoshenko_beams (DOI: 10.13140/RG.2.2.14877.47846)
+ * @author Alejandro Cornejo
+ * 
+ * Note: It has been identified that for obtaining non-dissipative results, the residual tolerance must be tightened lower than the default value of relative 1.0e-4. This ensures lower errors in the rotation field.
+ */
+class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) NonLinearTimoshenkoBeamElement2D2N
+    : public LinearTimoshenkoBeamElement2D2N
+{
+public:
+    ///@name Type Definitions
+    ///@{
+    using BaseType = LinearTimoshenkoBeamElement2D2N;
+
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(NonLinearTimoshenkoBeamElement2D2N);
+
+    ///@}
+    ///@name Life Cycle
+    ///@{
+
+    NonLinearTimoshenkoBeamElement2D2N() {}
+
+    NonLinearTimoshenkoBeamElement2D2N(IndexType NewId, GeometryType::Pointer pGeometry)
+        : BaseType(NewId, pGeometry)
+    {}
+
+    NonLinearTimoshenkoBeamElement2D2N(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
+        : BaseType(NewId, pGeometry, pProperties)
+    {}
+
+    NonLinearTimoshenkoBeamElement2D2N(NonLinearTimoshenkoBeamElement2D2N const& rOther)
+        : BaseType(rOther)
+    {}
+
+    Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const override
+    {
+        return Kratos::make_intrusive<NonLinearTimoshenkoBeamElement2D2N>(NewId, GetGeometry().Create(ThisNodes), pProperties);
+    }
+
+    Element::Pointer Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const override
+    {
+        return Kratos::make_intrusive<NonLinearTimoshenkoBeamElement2D2N>(NewId, pGeom, pProperties);
+    }
+
+    Element::Pointer Clone(IndexType NewId, NodesArrayType const& rThisNodes) const override;
+
+    /**
+     * @brief Called to initialize the element.
+     * @warning Must be called before any calculation is done
+     */
+    void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
+
+    /**
+     * @brief Override shape function methods to return global-sized vectors automatically
+     */
+    void GetShapeFunctionsValues(VectorType& rN, const double Length, const double Phi, const double xi) const override;
+    void GetFirstDerivativesShapeFunctionsValues(VectorType& rN, const double Length, const double Phi, const double xi) const override;
+
+    void GetNThetaShapeFunctionsValues(VectorType& rN, const double Length, const double Phi, const double xi) const override;
+    void GetFirstDerivativesNThetaShapeFunctionsValues(VectorType& rN, const double Length, const double Phi, const double xi) const override;
+
+    void GetNu0ShapeFunctionsValues(VectorType& rN, const double Length, const double Phi, const double xi) const override;
+    void GetFirstDerivativesNu0ShapeFunctionsValues(VectorType& rN, const double Length, const double Phi, const double xi) const override;
+
+    /**
+     * @brief Calculate local system
+     */
+    void CalculateLocalSystem(
+        MatrixType& rLeftHandSideMatrix,
+        VectorType& rRightHandSideVector,
+        const ProcessInfo& rCurrentProcessInfo
+        ) override;
+
+    /**
+     * @brief Calculate left hand side
+     */
+    void CalculateLeftHandSide(
+        MatrixType& rLeftHandSideMatrix,
+        const ProcessInfo& rCurrentProcessInfo
+        ) override;
+
+    /**
+     * @brief Calculate right hand side
+     */
+    void CalculateRightHandSide(
+        VectorType& rRightHandSideVector,
+        const ProcessInfo& rCurrentProcessInfo
+        ) override;
+
+    ///@}
+    ///@name Protected Operations
+    ///@{
+
+    /**
+     * @brief General calculation method with flags
+     */
+    void CalculateAll(
+        MatrixType& rLeftHandSideMatrix,
+        VectorType& rRightHandSideVector,
+        const ProcessInfo& rCurrentProcessInfo,
+        const bool ComputeLHS,
+        const bool ComputeRHS
+        );
+
+    /**
+     * this is called during the assembling process in order
+     * to calculate the elemental mass matrix
+     * @param rMassMatrix the elemental mass matrix
+     * @param rCurrentProcessInfo the current process info instance
+     */
+    void CalculateMassMatrix(Matrix& rMassMatrix, const ProcessInfo& rCurrentProcessInfo) override;
+
+    void CalculateOnIntegrationPoints(
+        const Variable<double> &rVariable,
+        std::vector<double> &rOutput,
+        const ProcessInfo &rProcessInfo) override;
+
+    /**
+     * @brief Returns the used integration method
+     * @return default integration method of the used Geometry
+     */
+    IntegrationMethod GetMassMatrixIntegrationMethod() const override
+    {
+        return GeometryData::IntegrationMethod::GI_GAUSS_2;
+    }
+
+    ///@}
+    ///@name Serialization
+    ///@{
+
+private:
+
+};
+
+} // namespace Kratos

@@ -1,0 +1,370 @@
+// KRATOS  ___|  |                   |                   |                   
+//       \___ \  __|  __| |   |  __| __| |   |  __| _` | |             
+//             | |   |    |   | (    |   |   | |   (   | |             
+//       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
+//
+//  License:         BSD License
+//                   license: StructuralMechanicsApplication/license.txt
+//
+//  Main authors:  Alejandro Cornejo
+//
+#pragma once
+
+#include "includes/element.h"
+
+#include "custom_utilities/constitutive_law_utilities.h"
+
+namespace Kratos
+{
+///@name Kratos Globals
+///@{
+
+///@}
+///@name Type Definitions
+///@{
+
+///@}
+///@name  Enum's
+///@{
+
+///@}
+///@name  Functions
+///@{
+
+///@}
+///@name Kratos Classes
+///@{
+
+/**
+ * @class NonLinearTimoshenkoBeamElement3D2N
+ * @ingroup StructuralMechanicsApplication
+ * @brief This is the 3D Timoshenko beam element of 2 nodes. 
+ * Reference:  I. Romero and F. Armero, "An objective finite element approximation o the kinetics of geometrically exact rods
+ * and its use in the formulation of an energy-momentum conservative scheme in dynamics", IJNME, 2002.
+ * DOI: 10.1002/nme.486 
+* The description of the formulation can be found in: https://www.researchgate.net/publication/416879839_Large_displacement_2D_and_3D_Timoshenko_beams (DOI: 10.13140/RG.2.2.14877.47846)
+ * 
+ * Note: It has been identified that for obtaining non-dissipative results, the residual tolerance must be tightened lower than the default value of relative 1.0e-4. This ensures lower errors in the rotation field.
+ * @author Alejandro Cornejo
+ */
+class NonLinearTimoshenkoBeamElement3D2N : public Element
+{
+public:
+
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(NonLinearTimoshenkoBeamElement3D2N);
+
+    ///@name Type Definitions
+    ///@{
+    using BaseType = Element;
+
+    using array3 = array_1d<double, 3>;
+
+    using CL_utils = ConstitutiveLawUtilities<6>;
+
+    NonLinearTimoshenkoBeamElement3D2N() {}
+
+    NonLinearTimoshenkoBeamElement3D2N(IndexType NewId, GeometryType::Pointer pGeometry)
+        : BaseType(NewId, pGeometry)
+    {}
+
+    NonLinearTimoshenkoBeamElement3D2N(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
+        : BaseType(NewId, pGeometry, pProperties)
+    {}
+
+    NonLinearTimoshenkoBeamElement3D2N(NonLinearTimoshenkoBeamElement3D2N const& rOther)
+        : BaseType(rOther)
+    {}
+
+    Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const override
+    {
+        return Kratos::make_intrusive<NonLinearTimoshenkoBeamElement3D2N>(NewId, GetGeometry().Create(ThisNodes), pProperties);
+    }
+
+    Element::Pointer Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const override
+    {
+        return Kratos::make_intrusive<NonLinearTimoshenkoBeamElement3D2N>(NewId, pGeom, pProperties);
+    }
+
+    Element::Pointer Clone(IndexType NewId, NodesArrayType const& rThisNodes) const override;
+
+    /**
+     * @brief Sets on rResult the ID's of the element degrees of freedom
+     * @param rResult The vector containing the equation id
+     * @param rCurrentProcessInfo The current process info instance
+     */
+    void EquationIdVector(
+        EquationIdVectorType& rResult,
+        const ProcessInfo& rCurrentProcessInfo
+        ) const override;
+
+    /**
+     * @brief Sets on rElementalDofList the degrees of freedom of the considered element geometry
+     * @param rElementalDofList The vector containing the dof of the element
+     * @param rCurrentProcessInfo The current process info instance
+     */
+    void GetDofList(
+        DofsVectorType& rElementalDofList,
+        const ProcessInfo& rCurrentProcessInfo
+        ) const override;
+
+    /**
+     * @brief Calculate local system
+     */
+    void CalculateLocalSystem(
+        MatrixType& rLeftHandSideMatrix,
+        VectorType& rRightHandSideVector,
+        const ProcessInfo& rCurrentProcessInfo
+        ) override;
+
+    /**
+     * @brief Calculate left hand side
+     */
+    void CalculateLeftHandSide(
+        MatrixType& rLeftHandSideMatrix,
+        const ProcessInfo& rCurrentProcessInfo
+        ) override;
+
+    /**
+     * @brief Calculate right hand side
+     */
+    void CalculateRightHandSide(
+        VectorType& rRightHandSideVector,
+        const ProcessInfo& rCurrentProcessInfo
+        ) override;
+
+    /**
+     * @brief General calculation method with flags
+     */
+    void CalculateAll(
+        MatrixType& rLeftHandSideMatrix,
+        VectorType& rRightHandSideVector,
+        const ProcessInfo& rCurrentProcessInfo,
+        const bool ComputeLHS,
+        const bool ComputeRHS
+        );
+
+    /**
+     * @brief Called to initialize the element.
+     * @warning Must be called before any calculation is done
+     */
+    void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
+
+    /**
+     * @brief It initializes the material
+     */
+    void InitializeMaterial();
+
+    /**
+     * @brief Indicates the amount of DoFs per node (u, v, w, theta_x, theta_y, theta_z)
+     */
+    IndexType GetDoFsPerNode() const
+    {
+        return 6; // 3 displacements and 3 rotations
+    }
+
+    /**
+     * @brief This function provides the place to perform checks on the completeness of the input.
+     * @details It is designed to be called only once (or anyway, not often) typically at the beginning
+     * of the calculations, so to verify that nothing is missing from the input
+     * or that no common error is found.
+     * @param rCurrentProcessInfo the current process info instance
+     */
+    int Check(const ProcessInfo &rCurrentProcessInfo) const override;
+
+    /**
+     * @brief Sets the used integration method
+     * @param ThisIntegrationMethod Integration method used
+     */
+    void SetIntegrationMethod(const IntegrationMethod& rThisIntegrationMethod)
+    {
+        mThisIntegrationMethod = rThisIntegrationMethod;
+    }
+
+    /**
+     * @brief Sets the used constitutive laws
+     * @param ThisConstitutiveLawVector Constitutive laws used
+     */
+    void SetConstitutiveLawVector(const std::vector<ConstitutiveLaw::Pointer>& rThisConstitutiveLawVector)
+    {
+        mConstitutiveLawVector = rThisConstitutiveLawVector;
+    }
+
+    /**
+     * @brief Sets the used constitutive laws
+     * @param ThisConstitutiveLawVector Constitutive laws used
+     */
+    void SetRotationOperators(const std::vector<BoundedMatrix<double, 3, 3>>& rThisRotationOperators)
+    {
+        mRotationOperators = rThisRotationOperators;
+    }
+
+    /**
+     * @brief Sets the used constitutive laws
+     * @param ThisConstitutiveLawVector Constitutive laws used
+     */
+    void SetOldRotationOperators(const std::vector<BoundedMatrix<double, 3, 3>>& rThisRotationOperators)
+    {
+        mOldRotationOperators = rThisRotationOperators;
+    }
+
+    /**
+     * @brief This method computes the DoF mapping operator defined in Eq. (37) from the ref.
+     * NOTE the ref is incorrect. It has been corrected in here.
+     * This matrix maps the (du, dd1, dd2, dd3) -> (du, dtheta), being "d" the variation
+     */
+    BoundedMatrix<double, 12, 6> CalculateDoFMappingMatrix(
+        const Vector &rD1,
+        const Vector &rD2,
+        const Vector &rD3);
+
+    /**
+     * @brief This method computes the B matrix that relates the variation of the DoFs and the variation of the
+     * strains, its size is a 6 by 12.
+     */
+    BoundedMatrix<double, 6, 12> CalculateB(
+        const double N1,
+        const double N2,
+        const double dN1,
+        const double dN2);
+
+    /**
+     * @brief This method computes the element length in the reference configuration
+     */
+    double CalculateReferenceLength() const;
+
+    /**
+     * @brief This method computes the generalized strain vector (6 components)
+     * The ordering is of the components is the Kratos one:
+     * generalized_strain = [Gamma, Omega], see Timoshenko beam constitutive law.
+     */
+    Vector CalculateStrainVector(
+        const double N1,
+        const double N2,
+        const double dN1,
+        const double dN2);
+
+    /**
+     * @brief This method computes the generalized stress vector (6 components) and/or the generalized constitutive matrix (6x6)
+     * The ordering of the strain is supposed to be the Kratos one, however the stress and constitutive are returned as
+     * Romero and Armero for coherence
+     */
+    void CalculateGeneralizedResponse(
+        const IndexType IntegrationPoint,
+        ConstitutiveLaw::Parameters rValues);
+
+    /**
+     * @brief This method computes the contribution to the LHs of the geometrical part for 
+     * one integration point.
+     */
+    void CalculateAndAddKg(
+        Matrix& rLHS,
+        const double J, // jacobian for integration
+        const double N1,
+        const double N2,
+        const double dN1,
+        const double dN2,
+        const Vector& rGeneralizedStressVector);
+
+    /**
+     * @brief This method builds the rotation operator in the reference configuration
+     * This corresponds to the "Lambda" operator in Romero and Armero, Eq. (3)
+     * Operator = [d1, d2, d3] as column vectors
+     */
+    BoundedMatrix<double, 3, 3> CalculateInitialRotationOperator(const bool UseCurrentConfiguration = false);
+
+    /**
+     * @brief this is called for non-linear analysis at the end of the iteration process
+     * @param rCurrentProcessInfo the current process info instance
+     */
+    void FinalizeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo) override;
+
+    /**
+     * this is called at the end of each solution step
+     * In here we update the old rotation triad
+     */
+    void FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
+
+    /**
+     * Getting method to obtain the variable which defines the degrees of freedom
+     */
+    void GetValuesVector(Vector &values, int Step = 0) const override;
+
+    /**
+     * Getting method to obtain the time derivative of variable which defines the degrees of freedom
+     */
+    void GetFirstDerivativesVector(Vector &values, int Step = 0) const override;
+
+    /**
+     * Getting method to obtain the second time derivative of variable which defines the degrees of freedom
+     */
+    void GetSecondDerivativesVector(Vector &values, int Step = 0) const override;
+
+    /**
+     * this is called during the assembling process in order
+     * to calculate the elemental mass matrix
+     * @param rMassMatrix the elemental mass matrix
+     * @param rCurrentProcessInfo the current process info instance
+     */
+    void CalculateMassMatrix(Matrix& rMassMatrix, const ProcessInfo& rCurrentProcessInfo) override;
+
+    /**
+     * @brief Calculates a double Variable on the Element (e.g., strain components)
+     * @param rVariable The variable we want to get
+     * @param rOutput The values obtained in the integration points
+     * @param rCurrentProcessInfo the current process info instance
+     */
+    void CalculateOnIntegrationPoints(
+        const Variable<double>& rVariable,
+        std::vector<double>& rOutput,
+        const ProcessInfo& rCurrentProcessInfo) override;
+
+    /**
+     * @brief Calculates a vector Variable on the Element (e.g., LOCAL_AXIS_1, LOCAL_AXIS_2)
+     * @param rVariable The variable we want to get
+     * @param rOutput The values obtained in the integration points
+     * @param rCurrentProcessInfo the current process info instance
+     */
+    void CalculateOnIntegrationPoints(
+        const Variable<array_1d<double, 3>>& rVariable,
+        std::vector<array_1d<double, 3>>& rOutput,
+        const ProcessInfo& rCurrentProcessInfo) override;
+
+    /**
+     * Returns the value of the Levi-Civita symbol epsilon_ijk.
+     * Indices i, j, k are 0-based: {0, 1, 2}.
+     */
+    inline int epsilon(int i, int j, int k) {
+        // Check for repeated indices first (accounts for 21 out of 27 cases)
+        if (i == j || j == k || k == i) {
+            return 0;
+        }
+
+        // Check for even permutations (+1): (0,1,2), (1,2,0), (2,0,1)
+        if ((i == 0 && j == 1 && k == 2) ||
+            (i == 1 && j == 2 && k == 0) ||
+            (i == 2 && j == 0 && k == 1)) {
+            return 1;
+        }
+
+        // Otherwise, it's an odd permutation (-1): (0,2,1), (2,1,0), (1,0,2)
+        return -1;
+    }
+
+    /**
+     * Returns the Kronecker delta value for indices i and j.
+     */
+    inline double delta(int i, int j) {
+        return (i == j) ? 1.0 : 0.0;
+    }
+
+private:
+
+    /* The rotation operators are built with [d1, d2, d3] as col vectors */
+    std::vector<BoundedMatrix<double, 3, 3>> mRotationOperators; // The two rotation matrices, one per each IP.
+    std::vector<BoundedMatrix<double, 3, 3>> mOldRotationOperators; // The two rotation matrices, one per each IP.
+
+    std::vector<ConstitutiveLaw::Pointer> mConstitutiveLawVector; // The vector containing the beam constitutive laws, one per each IP
+    IntegrationMethod mThisIntegrationMethod;
+};
+
+} // namespace Kratos

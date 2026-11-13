@@ -118,6 +118,7 @@ from structural_mechanics_test_factory import TimoshenkoBeam2D2NTest as TTimoshe
 from structural_mechanics_test_factory import TimoshenkoBeam2D3NTest as TTimoshenkoBeam2D3NTest
 from structural_mechanics_test_factory import TimoshenkoCurvedBeam2D3NTest as TTimoshenkoCurvedBeam2D3NTest
 from structural_mechanics_test_factory import TimoshenkoCurvedBeam3D3NTest as TTimoshenkoCurvedBeam3D3NTest
+from structural_mechanics_test_factory import NonLinearTimoshenkoTest as TNonLinearTimoshenkoTest
 from structural_mechanics_test_factory import AutomatedInitialVariableProcessTest as TAutomatedInitialVariableProcessTest
 from structural_mechanics_test_factory import SDTwoDShearQuaPatchTest as TSDTwoDShearQuaPatchTest
 from structural_mechanics_test_factory import SDTwoDShearTriPatchTest as TSDTwoDShearTriPatchTest
@@ -384,6 +385,7 @@ def AssembleTestSuites():
     smallSuite.addTest(TTimoshenkoBeam2D3NTest('test_execution'))
     smallSuite.addTest(TTimoshenkoCurvedBeam2D3NTest('test_execution'))
     smallSuite.addTest(TTimoshenkoCurvedBeam3D3NTest('test_execution'))
+    smallSuite.addTest(TNonLinearTimoshenkoTest('test_execution'))
     smallSuite.addTest(TAutomatedInitialVariableProcessTest('test_execution'))
     smallSuite.addTest(T3D2NBeamCrDynamicPseudoStepTest('test_execution'))
     nightSuite.addTest(TSDTwoDShearQuaPatchTest('test_execution'))

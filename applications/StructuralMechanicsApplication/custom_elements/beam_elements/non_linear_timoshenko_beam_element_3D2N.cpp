@@ -1,0 +1,891 @@
+// KRATOS  ___|  |                   |                   |                   
+//       \___ \  __|  __| |   |  __| __| |   |  __| _` | |             
+//             | |   |    |   | (    |   |   | |   (   | |             
+//       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
+//
+//  License:         BSD License
+//                   license: StructuralMechanicsApplication/license.txt
+//
+//  Main authors:  Alejandro Cornejo
+//
+
+#include "non_linear_timoshenko_beam_element_3D2N.h"
+#include "structural_mechanics_application_variables.h"
+#include "custom_utilities/structural_mechanics_element_utilities.h"
+
+namespace Kratos
+{
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void NonLinearTimoshenkoBeamElement3D2N::EquationIdVector(
+    EquationIdVectorType& rResult,
+    const ProcessInfo& rCurrentProcessInfo
+    ) const
+{
+    KRATOS_TRY
+    const auto& r_geometry = GetGeometry();
+    const SizeType number_of_nodes = r_geometry.size();
+    const SizeType dofs_per_node = GetDoFsPerNode(); // u, v, theta
+    const SizeType dimension = r_geometry.WorkingSpaceDimension();
+
+    IndexType local_index = 0;
+
+    if (rResult.size() != dofs_per_node * number_of_nodes)
+        rResult.resize(dofs_per_node * number_of_nodes, false);
+
+    const IndexType xpos    = r_geometry[0].GetDofPosition(DISPLACEMENT_X);
+    const IndexType rot_pos = r_geometry[0].GetDofPosition(ROTATION_X);
+
+    for (IndexType i = 0; i < number_of_nodes; ++i) {
+        rResult[local_index++] = r_geometry[i].GetDof(DISPLACEMENT_X, xpos).EquationId();
+        rResult[local_index++] = r_geometry[i].GetDof(DISPLACEMENT_Y, xpos + 1).EquationId();
+        rResult[local_index++] = r_geometry[i].GetDof(DISPLACEMENT_Z, xpos + 2).EquationId();
+        rResult[local_index++] = r_geometry[i].GetDof(ROTATION_X, rot_pos).EquationId();
+        rResult[local_index++] = r_geometry[i].GetDof(ROTATION_Y, rot_pos + 1).EquationId();
+        rResult[local_index++] = r_geometry[i].GetDof(ROTATION_Z, rot_pos + 2).EquationId();
+    }
+
+    KRATOS_CATCH("EquationIdVector")
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void NonLinearTimoshenkoBeamElement3D2N::GetDofList(
+    DofsVectorType& rElementalDofList,
+    const ProcessInfo& rCurrentProcessInfo
+    ) const
+{
+    KRATOS_TRY;
+
+    const auto& r_geom = GetGeometry();
+    const SizeType number_of_nodes = r_geom.size();
+    const SizeType dofs_per_node = GetDoFsPerNode(); // u, v, theta
+    const SizeType dimension = r_geom.WorkingSpaceDimension();
+    rElementalDofList.resize(dofs_per_node * number_of_nodes);
+    SizeType index = 0;
+
+    for (IndexType i = 0; i < number_of_nodes; ++i) {
+        rElementalDofList[index++]   = r_geom[i].pGetDof(DISPLACEMENT_X);
+        rElementalDofList[index++] = r_geom[i].pGetDof(DISPLACEMENT_Y);
+        rElementalDofList[index++] = r_geom[i].pGetDof(DISPLACEMENT_Z);
+        rElementalDofList[index++] = r_geom[i].pGetDof(ROTATION_X);
+        rElementalDofList[index++] = r_geom[i].pGetDof(ROTATION_Y);
+        rElementalDofList[index++] = r_geom[i].pGetDof(ROTATION_Z);
+    }
+
+    KRATOS_CATCH("GetDofList")
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+Element::Pointer NonLinearTimoshenkoBeamElement3D2N::Clone(
+    IndexType NewId,
+    NodesArrayType const& rThisNodes
+    ) const
+{
+    KRATOS_TRY
+
+    NonLinearTimoshenkoBeamElement3D2N::Pointer p_new_elem = Kratos::make_intrusive<NonLinearTimoshenkoBeamElement3D2N>
+        (NewId, GetGeometry().Create(rThisNodes), pGetProperties());
+    p_new_elem->SetData(this->GetData());
+    p_new_elem->Set(Flags(*this));
+
+    // Currently selected integration methods
+    p_new_elem->SetIntegrationMethod(mThisIntegrationMethod);
+
+    // The vector containing the constitutive laws
+    p_new_elem->SetConstitutiveLawVector(mConstitutiveLawVector);
+
+    // The rotation operators
+    p_new_elem->SetRotationOperators(mRotationOperators);
+    p_new_elem->SetOldRotationOperators(mOldRotationOperators);
+    return p_new_elem;
+
+    KRATOS_CATCH("Clone");
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void NonLinearTimoshenkoBeamElement3D2N::Initialize(
+    const ProcessInfo& rCurrentProcessInfo
+)
+{
+    KRATOS_TRY
+
+    // Initialization should not be done again in a restart!
+    if (!rCurrentProcessInfo[IS_RESTARTED]) {
+        const auto &r_geom = GetGeometry();
+        mThisIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_1;
+        const auto& r_integration_points = r_geom.IntegrationPoints(mThisIntegrationMethod);
+
+        // Constitutive Law initialisation
+        if (mConstitutiveLawVector.size() != r_integration_points.size())
+            mConstitutiveLawVector.resize(r_integration_points.size());
+        InitializeMaterial();
+
+        BoundedMatrix<double, 3, 3> T;
+        noalias(T) = CalculateInitialRotationOperator();
+
+        mRotationOperators.resize(2);
+        mOldRotationOperators.resize(2);
+        noalias(mRotationOperators[0]) = T;
+        noalias(mRotationOperators[1]) = T;
+        noalias(mOldRotationOperators[0]) = T;
+        noalias(mOldRotationOperators[1]) = T;
+    }
+
+    KRATOS_CATCH("Initialize")
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+BoundedMatrix<double, 3, 3> NonLinearTimoshenkoBeamElement3D2N::CalculateInitialRotationOperator(
+    const bool UseCurrentConfiguration
+)
+{
+    BoundedMatrix<double, 3, 3> T, rot_operator;
+    noalias(T) = StructuralMechanicsElementUtilities::GetFrenetSerretMatrix3D(GetGeometry(), UseCurrentConfiguration); // ref conf
+    // We initialize the rotation operator with the reference local system
+    for (IndexType i_node = 0; i_node < 2; ++i_node) {
+        // In Romero and Armero, the directors convention is different from Kratos
+        noalias(column(rot_operator, 0)) = row(T, 1);
+        noalias(column(rot_operator, 1)) = row(T, 2);
+        noalias(column(rot_operator, 2)) = row(T, 0);
+    }
+    return rot_operator;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void NonLinearTimoshenkoBeamElement3D2N::InitializeMaterial()
+{
+    KRATOS_TRY
+
+    if (GetProperties()[CONSTITUTIVE_LAW] != nullptr) {
+        const auto& r_geometry   = GetGeometry();
+        const auto& r_properties = GetProperties();
+        auto N_values            = Vector();
+        for (IndexType point_number = 0; point_number < mConstitutiveLawVector.size(); ++point_number) {
+            mConstitutiveLawVector[point_number] = r_properties[CONSTITUTIVE_LAW]->Clone();
+            mConstitutiveLawVector[point_number]->InitializeMaterial(r_properties, r_geometry, N_values);
+        }
+    } else
+        KRATOS_ERROR << "A constitutive law needs to be specified for the element with ID " << this->Id() << std::endl;
+
+    KRATOS_CATCH("InitializeMaterial")
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+int NonLinearTimoshenkoBeamElement3D2N::Check(
+    const ProcessInfo& rCurrentProcessInfo
+) const
+{
+    KRATOS_TRY
+
+    KRATOS_ERROR_IF_NOT(mConstitutiveLawVector[0]->GetStrainSize() == 6) << "The strain size of the CL is not 6, hence is not compatible with this 3D beam element" << std::endl;
+
+    KRATOS_ERROR_IF_NOT(CalculateReferenceLength() > 0.0) << "The element has null length..." << std::endl;
+
+    return mConstitutiveLawVector[0]->Check(GetProperties(), GetGeometry(), rCurrentProcessInfo);
+
+    KRATOS_CATCH("Check")
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+Vector NonLinearTimoshenkoBeamElement3D2N::CalculateStrainVector(        
+    const double N1,
+    const double N2,
+    const double dN1,
+    const double dN2
+)
+{
+    const auto &r_geom = GetGeometry();
+    Vector generalized_strain(6);
+
+    // The current tangent vector to the beam axis r'
+    array3 dr = r_geom[1].Coordinates() - r_geom[0].Coordinates();
+    dr /= CalculateReferenceLength();
+
+    BoundedMatrix<double, 3, 3> current_rot, d_current_rot; // current rotation and its derivative w.r.t "s"
+    // We interpolate the rotation operators and its derivative
+    noalias(current_rot) = N1 * mRotationOperators[0] + N2 * mRotationOperators[1];
+    noalias(d_current_rot) = dN1 * mRotationOperators[0] + dN2 * mRotationOperators[1];
+
+    array3 d1, d2, d3, d1_s, d2_s, d3_s;
+    noalias(d1) = column(current_rot, 0);
+    noalias(d2) = column(current_rot, 1);
+    noalias(d3) = column(current_rot, 2);
+
+    noalias(d1_s) = column(d_current_rot, 0);
+    noalias(d2_s) = column(d_current_rot, 1);
+    noalias(d3_s) = column(d_current_rot, 2);
+
+    generalized_strain[0] = inner_prod(d3, dr) - 1.0; // axial
+    generalized_strain[4] = inner_prod(d1, dr); // shear y
+    generalized_strain[5] = inner_prod(d2, dr); // shear z
+
+    generalized_strain[1] = 0.5 * (inner_prod(d2, d1_s) - inner_prod(d1, d2_s)); // torsion
+    generalized_strain[2] = 0.5 * (inner_prod(d3, d2_s) - inner_prod(d2, d3_s)); // bending y
+    generalized_strain[3] = 0.5 * (inner_prod(d1, d3_s) - inner_prod(d3, d1_s)); // bending z
+
+    return generalized_strain;
+}
+/***********************************************************************************/
+/***********************************************************************************/
+
+void NonLinearTimoshenkoBeamElement3D2N::CalculateGeneralizedResponse(
+    const IndexType IntegrationPoint,
+    ConstitutiveLaw::Parameters rValues
+)
+{
+    // Here the stress and constitutive matrix are filled according to Kratos convention
+    mConstitutiveLawVector[IntegrationPoint]->CalculateMaterialResponseCauchy(rValues);
+
+    // We swap order to be compatible with Romero and Armero
+    if (rValues.GetOptions().Is(ConstitutiveLaw::COMPUTE_STRESS)) {
+        auto &r_stress = rValues.GetStressVector();
+        Vector temp_stress = r_stress; // we make a copy
+        r_stress[0] = temp_stress[4];
+        r_stress[1] = temp_stress[5];
+        r_stress[2] = temp_stress[0];
+        r_stress[3] = temp_stress[2];
+        r_stress[4] = temp_stress[3];
+        r_stress[5] = temp_stress[1];
+    }
+
+    if (rValues.GetOptions().Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
+        auto &r_D = rValues.GetConstitutiveMatrix();
+        Matrix temp_D = r_D; // we make a copy
+        r_D(0, 0) = temp_D(4, 4);
+        r_D(1, 1) = temp_D(5, 5);
+        r_D(2, 2) = temp_D(0, 0);
+        r_D(3, 3) = temp_D(2, 2);
+        r_D(4, 4) = temp_D(3, 3);
+        r_D(5, 5) = temp_D(1, 1);
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+BoundedMatrix<double, 12, 6> NonLinearTimoshenkoBeamElement3D2N::CalculateDoFMappingMatrix(
+        const Vector &rD1,
+        const Vector &rD2,
+        const Vector &rD3
+)
+{
+    BoundedMatrix<double, 12, 6> matrix;
+    matrix.clear();
+
+    noalias(project(matrix, range(0, 3), range(0, 3)))  = IdentityMatrix(3);
+    noalias(project(matrix, range(3, 6), range(3, 6)))  = -CL_utils::CalculateSpinMatrix(rD1);
+    noalias(project(matrix, range(6, 9), range(3, 6)))  = -CL_utils::CalculateSpinMatrix(rD2);
+    noalias(project(matrix, range(9, 12), range(3, 6))) = -CL_utils::CalculateSpinMatrix(rD3);
+
+    return matrix;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+double NonLinearTimoshenkoBeamElement3D2N::CalculateReferenceLength() const
+{
+    return StructuralMechanicsElementUtilities::CalculateReferenceLength3D2N(*this);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+BoundedMatrix<double, 6, 12> NonLinearTimoshenkoBeamElement3D2N::CalculateB(
+    const double N1, // 0.5 * (1.0 - xi)
+    const double N2, // 0.5 * (1.0 + xi)
+    const double dN1, // -1.0 / L0
+    const double dN2 // 1 / L0
+)
+{
+    const auto &r_geom = GetGeometry();
+
+    BoundedMatrix<double, 6, 12> b_matrix;
+
+    BoundedMatrix<double, 6, 12> B1, B2; // B = [B1, B2]
+    B1.clear();
+    B2.clear();
+
+    // The current tangent vector to the beam axis r'
+    array3 dr = r_geom[1].Coordinates() - r_geom[0].Coordinates();
+    dr /= CalculateReferenceLength();
+
+    // We interpolate the directors
+    const array3 d1 = N1 * column(mRotationOperators[0], 0) + N2 * column(mRotationOperators[1], 0);
+    const array3 d2 = N1 * column(mRotationOperators[0], 1) + N2 * column(mRotationOperators[1], 1);
+    const array3 d3 = N1 * column(mRotationOperators[0], 2) + N2 * column(mRotationOperators[1], 2);
+    // We interpolate the derivative of the directors (d/ds)
+    const array3 d1_s = dN1 * column(mRotationOperators[0], 0) + dN2 * column(mRotationOperators[1], 0);
+    const array3 d2_s = dN1 * column(mRotationOperators[0], 1) + dN2 * column(mRotationOperators[1], 1);
+    const array3 d3_s = dN1 * column(mRotationOperators[0], 2) + dN2 * column(mRotationOperators[1], 2);
+
+    BoundedMatrix<double, 12, 6> dof_mapper_1, dof_mapper_2; // map from (u, d1, d2, d3) -> (u, rotation)
+    noalias(dof_mapper_1) = CalculateDoFMappingMatrix(column(mRotationOperators[0], 0), column(mRotationOperators[0], 1), column(mRotationOperators[0], 2));
+    noalias(dof_mapper_2) = CalculateDoFMappingMatrix(column(mRotationOperators[1], 0), column(mRotationOperators[1], 1), column(mRotationOperators[1], 2));
+
+    // Let's start assigning components...
+    for (IndexType i = 0; i < 3; ++i) {
+        // Gamma components (shear and axial virtual strains)
+        // node 1
+        B1(0, i)     = dN1 * d1[i];
+        B1(0, i + 3) = N1 * dr[i];
+
+        B1(1, i)     = dN1 * d2[i];
+        B1(1, i + 6) = N1 * dr[i];
+
+        B1(2, i)     = dN1 * d3[i];
+        B1(2, i + 9) = N1 * dr[i];
+        // node 2
+        B2(0, i)     = dN2 * d1[i];
+        B2(0, i + 3) = N2 * dr[i];
+
+        B2(1, i)     = dN2 * d2[i];
+        B2(1, i + 6) = N2 * dr[i];
+
+        B2(2, i)     = dN2 * d3[i];
+        B2(2, i + 9) = N2 * dr[i];
+
+        // Omega components (torsion and bending virtual components)
+        // node 1
+        B1(3, i + 6) = 0.5 * (dN1 * d3[i] - N1 * d3_s[i]);
+        B1(3, i + 9) = 0.5 * (N1 * d2_s[i] - dN1 * d2[i]);
+
+        B1(4, i + 3) = 0.5 * (N1 * d3_s[i] - dN1 * d3[i]);
+        B1(4, i + 9) = 0.5 * (dN1 * d1[i] - N1 * d1_s[i]);
+
+        B1(5, i + 3) = 0.5 * (dN1 * d2[i] - N1 * d2_s[i]);
+        B1(5, i + 6) = 0.5 * (N1 * d1_s[i] - dN1 * d1[i]);
+
+        // node 2
+        B2(3, i + 6) = 0.5 * (dN2 * d3[i] - N2 * d3_s[i]);
+        B2(3, i + 9) = 0.5 * (N2 * d2_s[i] - dN2 * d2[i]);
+
+        B2(4, i + 3) = 0.5 * (N2 * d3_s[i] - dN2 * d3[i]);
+        B2(4, i + 9) = 0.5 * (dN2 * d1[i] - N2 * d1_s[i]);
+
+        B2(5, i + 3) = 0.5 * (dN2 * d2[i] - N2 * d2_s[i]);
+        B2(5, i + 6) = 0.5 * (N2 * d1_s[i] - dN2 * d1[i]);
+    }
+    // In here we map from the virtual (u, d1, d2, d3) to the virtual (u, theta), being di the triad directors
+    noalias(project(b_matrix, range(0, 6), range(0, 6)))  = prod(B1, dof_mapper_1);
+    noalias(project(b_matrix, range(0, 6), range(6, 12))) = prod(B2, dof_mapper_2);
+
+    return b_matrix; // 6x12 matrix
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void NonLinearTimoshenkoBeamElement3D2N::CalculateLocalSystem(
+    MatrixType& rLeftHandSideMatrix,
+    VectorType& rRightHandSideVector,
+    const ProcessInfo& rCurrentProcessInfo
+)
+{
+    CalculateAll(rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo, true, true);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void NonLinearTimoshenkoBeamElement3D2N::CalculateLeftHandSide(
+    MatrixType& rLeftHandSideMatrix,
+    const ProcessInfo& rCurrentProcessInfo
+)
+{
+    VectorType dummy_rhs;
+    CalculateAll(rLeftHandSideMatrix, dummy_rhs, rCurrentProcessInfo, true, false);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void NonLinearTimoshenkoBeamElement3D2N::CalculateRightHandSide(
+    VectorType& rRightHandSideVector,
+    const ProcessInfo& rCurrentProcessInfo
+)
+{
+    MatrixType dummy_lhs;
+    CalculateAll(dummy_lhs, rRightHandSideVector, rCurrentProcessInfo, false, true);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void NonLinearTimoshenkoBeamElement3D2N::CalculateAll(
+    MatrixType& rLHS,
+    VectorType& rRHS,
+    const ProcessInfo& rProcessInfo,
+    const bool ComputeLHS,
+    const bool ComputeRHS
+)
+{
+    const auto &r_props = GetProperties();
+    const auto &r_geometry = GetGeometry();
+    const SizeType number_of_nodes = r_geometry.size();
+    const SizeType mat_size = GetDoFsPerNode() * number_of_nodes;
+    const SizeType strain_size = mConstitutiveLawVector[0]->GetStrainSize(); // 6
+
+    if (ComputeLHS) {
+        if (rLHS.size1() != mat_size || rLHS.size2() != mat_size) {
+            rLHS.resize(mat_size, mat_size, false);
+        }
+        rLHS.clear();
+    }
+
+    if (ComputeRHS) {
+        if (rRHS.size() != mat_size) {
+            rRHS.resize(mat_size, false);
+        }
+        rRHS.clear();
+    }
+
+    ConstitutiveLaw::Parameters cl_values(r_geometry, r_props, rProcessInfo);
+    auto &r_cl_options = cl_values.GetOptions();
+    r_cl_options.Set(ConstitutiveLaw::COMPUTE_STRESS, ComputeRHS);
+    r_cl_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, ComputeLHS);
+
+    const double L0 = CalculateReferenceLength(); // Reference length
+
+    // Let's initialize the cl values
+    Vector gen_strain_vector(strain_size), gen_stress_vector(strain_size);
+    Matrix gen_constitutive_matrix(strain_size, strain_size);
+    cl_values.SetStrainVector(gen_strain_vector);
+    cl_values.SetStressVector(gen_stress_vector);
+    cl_values.SetConstitutiveMatrix(gen_constitutive_matrix);
+
+    const double J = 0.5 * L0;
+
+    Vector nodal_values(12);
+    GetValuesVector(nodal_values);
+
+    double N1, N2;
+    const double dN1 = -1.0 / L0;
+    const double dN2 = -dN1; // NOTE: hardcoding linear shape functions
+    BoundedMatrix<double, 6, 12> b_matrix;
+    const auto &r_integration_points = r_geometry.IntegrationPoints(mThisIntegrationMethod); // GAUSS_1 avoids shear locking
+
+    // Loop over the integration points
+    for (IndexType IP = 0; IP < r_integration_points.size(); ++IP) {
+        const double xi = r_integration_points[IP].X();
+        const double weight = r_integration_points[IP].Weight() * J;
+        N1 = 0.5 * (1.0 - xi); // NOTE: again hardcoding linear shape functions
+        N2 = 0.5 * (1.0 + xi);
+
+        noalias(gen_strain_vector) = CalculateStrainVector(N1, N2, dN1, dN2);
+        CalculateGeneralizedResponse(IP, cl_values); // Here we compute stress and constitutive matrix
+
+        noalias(b_matrix) = CalculateB(N1, N2, dN1, dN2);
+
+        if (ComputeRHS) {
+            noalias(rRHS) -= prod(trans(b_matrix), gen_stress_vector) * weight;
+
+            // Let's add the body forces
+            auto body_forces = StructuralMechanicsElementUtilities::GetBodyForce(*this, r_integration_points, IP);
+            const double area = GetProperties()[CROSS_AREA];
+            const double weight_area = weight * area;
+            rRHS[0] += N1 * body_forces[0] * weight_area;
+            rRHS[1] += N1 * body_forces[1] * weight_area;
+            rRHS[2] += N1 * body_forces[2] * weight_area;
+            rRHS[6] += N2 * body_forces[0] * weight_area;
+            rRHS[7] += N2 * body_forces[1] * weight_area;
+            rRHS[8] += N2 * body_forces[2] * weight_area;
+        }
+
+        if (ComputeLHS) {
+            // Material stiffness
+            BoundedMatrix<double, 12, 6> temp;
+            noalias(temp) = prod(trans(b_matrix), gen_constitutive_matrix);
+            noalias(rLHS) += prod(temp, b_matrix) * weight;
+
+            // Geometric
+            CalculateAndAddKg(rLHS, weight, N1, N2, dN1, dN2, gen_stress_vector);
+        }
+
+    } // IP loop
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void NonLinearTimoshenkoBeamElement3D2N::CalculateAndAddKg(
+    Matrix& rLHS,
+    const double J, // jacobian for integration
+    const double N1,
+    const double N2,
+    const double dN1,
+    const double dN2,
+    const Vector& rGeneralizedStressVector
+)
+{
+    const auto &r_geom = GetGeometry();
+
+    // The current tangent vector to the beam axis r'
+    array3 dr = r_geom[1].Coordinates() - r_geom[0].Coordinates();
+    dr /= CalculateReferenceLength();
+
+    Vector N(2), dN(2);
+    N[0] = N1;
+    N[1] = N2;
+    dN[0] = dN1;
+    dN[1] = dN2;
+
+    Vector Q(3), M(3);
+    for (IndexType i = 0; i < 3; ++i) {
+        Q[i] = rGeneralizedStressVector[i];
+        M[i] = rGeneralizedStressVector[i + 3];
+    }
+
+    BoundedMatrix<double, 12, 12> Kn, Km;
+    Kn.clear();
+    Km.clear();
+    BoundedMatrix<double, 6, 6> Kn_ab, Km_ab; // submatrices
+    BoundedMatrix<double, 3, 3> Gi_ab;
+    array3 di_a, di_b, dk_s, dk, di, di_s;
+
+    const IndexType block_size = 6; // 3 displ + 3 rot
+
+    for (IndexType a = 0; a < 2; ++a) {
+        for (IndexType b = 0; b < 2; ++b) {
+            Kn_ab.clear();
+            Km_ab.clear();
+
+            for (IndexType i = 0; i < 3; ++i) { // Loop over the vector directors
+                noalias(di_s) = dN[0] * column(mRotationOperators[0], i) + dN[1] * column(mRotationOperators[1], i);
+                noalias(di) = N[0] * column(mRotationOperators[0], i) + N[1] * column(mRotationOperators[1], i);
+                noalias(di_a) = column(mRotationOperators[a], i);
+                noalias(di_b) = column(mRotationOperators[b], i);
+
+                // Shear and axial submatrix
+                noalias(project(Kn_ab, range(0, 3), range(3, 6))) += -dN[a] * N[b] * Q[i] * CL_utils::CalculateSpinMatrix(di_b); // i director vector
+                noalias(project(Kn_ab, range(3, 6), range(0, 3))) += N[a] * dN[b] * Q[i] * CL_utils::CalculateSpinMatrix(di);
+                noalias(project(Kn_ab, range(3, 6), range(3, 6))) += delta(a, b) * N[a] * Q[i] * (outer_prod(di_a, dr) - (inner_prod(di_a, dr) * IdentityMatrix(3)));
+
+                // Bending submatrix
+                Gi_ab.clear();
+                for (IndexType j = 0; j < 3; ++j) {
+                    for (IndexType k = 0; k < 3; ++k) {
+
+                        noalias(dk_s) = dN[0] * column(mRotationOperators[0], k) + dN[1] * column(mRotationOperators[1], k);
+                        noalias(dk) = N[0] * column(mRotationOperators[0], k) + N[1] * column(mRotationOperators[1], k);
+
+                        noalias(Gi_ab) += epsilon(j, i, k) *
+                                          ((dN[a] * N[b] - N[a] * dN[b]) * CL_utils::CalculateSpinMatrix(column(mRotationOperators[a], k)) +
+                                           delta(a, b) * (dN[a] * CL_utils::CalculateSpinMatrix(dk) - N[a] * CL_utils::CalculateSpinMatrix(dk_s)));
+                    } // k loop
+                } // j loop
+                Gi_ab *= 0.5 * M[i];
+                noalias(project(Km_ab, range(3, 6), range(3, 6))) -= prod(Gi_ab, CL_utils::CalculateSpinMatrix(di_b));
+            } // i loop
+
+            noalias(project(Kn, range(a * block_size, a * block_size + block_size), range(range(b * block_size, b * block_size + block_size)))) = Kn_ab;
+            noalias(project(Km, range(a * block_size, a * block_size + block_size), range(range(b * block_size, b * block_size + block_size)))) = Km_ab;
+        } // b
+    } // a
+    // We add the geometric stiffness
+    noalias(rLHS) += J * (Kn + Km);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void NonLinearTimoshenkoBeamElement3D2N::GetValuesVector(
+    Vector &values,
+    int Step
+) const
+{
+    if (values.size() != 12)
+        values.resize(12, false);
+    const auto& r_geom = GetGeometry();
+
+    const auto& r_displ_0    = r_geom[0].FastGetSolutionStepValue(DISPLACEMENT, Step);
+    const auto& r_rotation_0 = r_geom[0].FastGetSolutionStepValue(ROTATION, Step);
+    const auto& r_displ_1    = r_geom[1].FastGetSolutionStepValue(DISPLACEMENT, Step);
+    const auto& r_rotation_1 = r_geom[1].FastGetSolutionStepValue(ROTATION, Step);
+
+    for (IndexType i = 0; i < 3; ++i) {
+        values[i]     = r_displ_0[i];
+        values[i + 3] = r_rotation_0[i];
+        values[i + 6] = r_displ_1[i];
+        values[i + 9] = r_rotation_1[i];
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void NonLinearTimoshenkoBeamElement3D2N::GetFirstDerivativesVector(
+    Vector &values,
+    int Step
+) const
+{
+    if (values.size() != 12)
+        values.resize(12, false);
+    const auto& r_geom = GetGeometry();
+
+    const auto& r_displ_0    = r_geom[0].FastGetSolutionStepValue(VELOCITY, Step);
+    const auto& r_rotation_0 = r_geom[0].FastGetSolutionStepValue(ANGULAR_VELOCITY, Step);
+    const auto& r_displ_1    = r_geom[1].FastGetSolutionStepValue(VELOCITY, Step);
+    const auto& r_rotation_1 = r_geom[1].FastGetSolutionStepValue(ANGULAR_VELOCITY, Step);
+
+    for (IndexType i = 0; i < 3; ++i) {
+        values[i]     = r_displ_0[i];
+        values[i + 3] = r_rotation_0[i];
+        values[i + 6] = r_displ_1[i];
+        values[i + 9] = r_rotation_1[i];
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void NonLinearTimoshenkoBeamElement3D2N::GetSecondDerivativesVector(
+    Vector &values,
+    int Step
+) const
+{
+    if (values.size() != 12)
+        values.resize(12, false);
+    const auto& r_geom = GetGeometry();
+
+    const auto& r_displ_0    = r_geom[0].FastGetSolutionStepValue(ACCELERATION, Step);
+    const auto& r_rotation_0 = r_geom[0].FastGetSolutionStepValue(ANGULAR_ACCELERATION, Step);
+    const auto& r_displ_1    = r_geom[1].FastGetSolutionStepValue(ACCELERATION, Step);
+    const auto& r_rotation_1 = r_geom[1].FastGetSolutionStepValue(ANGULAR_ACCELERATION, Step);
+
+    for (IndexType i = 0; i < 3; ++i) {
+        values[i]     = r_displ_0[i];
+        values[i + 3] = r_rotation_0[i];
+        values[i + 6] = r_displ_1[i];
+        values[i + 9] = r_rotation_1[i];
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void NonLinearTimoshenkoBeamElement3D2N::FinalizeNonLinearIteration(
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_TRY
+
+    const auto &r_geom = GetGeometry();
+
+    array3 curr_rot_1, curr_rot_2, old_rot_1, old_rot_2, delta_rot_1, delta_rot_2;
+
+    noalias(curr_rot_1) = r_geom[0].FastGetSolutionStepValue(ROTATION);
+    noalias(old_rot_1) = r_geom[0].FastGetSolutionStepValue(ROTATION, 1);
+    noalias(curr_rot_2) = r_geom[1].FastGetSolutionStepValue(ROTATION);
+    noalias(old_rot_2) = r_geom[1].FastGetSolutionStepValue(ROTATION, 1);
+
+    noalias(delta_rot_1) = curr_rot_1 - old_rot_1;
+    noalias(delta_rot_2) = curr_rot_2 - old_rot_2;
+
+    BoundedMatrix<double, 3, 3> exp_delta_rot_1, exp_delta_rot_2;
+    noalias(exp_delta_rot_1) = ConstitutiveLawUtilities<6>::CalculateRotationMatrixFromRotationVectorRodrigues(delta_rot_1);
+    noalias(exp_delta_rot_2) = ConstitutiveLawUtilities<6>::CalculateRotationMatrixFromRotationVectorRodrigues(delta_rot_2);
+
+    // Let's update the nodal triads
+    noalias(mRotationOperators[0]) = prod(exp_delta_rot_1, mOldRotationOperators[0]);
+    noalias(mRotationOperators[1]) = prod(exp_delta_rot_2, mOldRotationOperators[1]);
+
+    KRATOS_CATCH("FinalizeNonLinearIteration")
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void NonLinearTimoshenkoBeamElement3D2N::FinalizeSolutionStep(
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    noalias(mOldRotationOperators[0]) = mRotationOperators[0];
+    noalias(mOldRotationOperators[1]) = mRotationOperators[1];
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void NonLinearTimoshenkoBeamElement3D2N::CalculateOnIntegrationPoints(
+    const Variable<double>& rVariable,
+    std::vector<double>& rOutput,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    const auto& r_integration_points = GetGeometry().IntegrationPoints(mThisIntegrationMethod);
+    rOutput.resize(r_integration_points.size());
+
+    if (rVariable == AXIAL_STRAIN ||
+        rVariable == BENDING_STRAIN_X ||
+        rVariable == BENDING_STRAIN_Y ||
+        rVariable == BENDING_STRAIN_Z ||
+        rVariable == SHEAR_STRAIN_Y ||
+        rVariable == SHEAR_STRAIN_Z)
+    {
+        const auto& r_props = GetProperties();
+        const SizeType strain_size = mConstitutiveLawVector[0]->GetStrainSize();
+        const SizeType mat_size = GetDoFsPerNode() * GetGeometry().size();
+
+        IndexType component = 0;
+        if (rVariable == AXIAL_STRAIN) {
+            component = 0;
+        } else if (rVariable == BENDING_STRAIN_X) {
+            component = 1;
+        } else if (rVariable == BENDING_STRAIN_Y) {
+            component = 2;
+        } else if (rVariable == BENDING_STRAIN_Z) {
+            component = 3;
+        } else if (rVariable == SHEAR_STRAIN_Y) {
+            component = 4;
+        } else if (rVariable == SHEAR_STRAIN_Z) {
+            component = 5;
+        }
+
+        Vector gen_strain_vector(strain_size);
+
+        const double L0 = CalculateReferenceLength();
+        const double dN1 = -1.0 / L0;
+        const double dN2 = -dN1;
+
+        Vector nodal_values(12);
+        GetValuesVector(nodal_values);
+
+        double N1, N2;
+
+        for (SizeType IP = 0; IP < r_integration_points.size(); ++IP) {
+            const double xi = r_integration_points[IP].X();
+            N1 = 0.5 * (1.0 - xi);
+            N2 = 0.5 * (1.0 + xi);
+
+            noalias(gen_strain_vector) = CalculateStrainVector(N1, N2, dN1, dN2);
+            rOutput[IP] = gen_strain_vector[component];
+        }
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void NonLinearTimoshenkoBeamElement3D2N::CalculateOnIntegrationPoints(
+    const Variable<array_1d<double, 3>>& rVariable,
+    std::vector<array_1d<double, 3>>& rOutput,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    const auto& r_integration_points = GetGeometry().IntegrationPoints(mThisIntegrationMethod);
+    rOutput.resize(r_integration_points.size());
+
+    if (rVariable == LOCAL_AXIS_1 || rVariable == LOCAL_AXIS_2 || rVariable == LOCAL_AXIS_3)
+    {
+        const double L0 = CalculateReferenceLength();
+        const double dN1 = -1.0 / L0;
+        const double dN2 = -dN1;
+
+        array_1d<double, 3> local_axis_1, local_axis_2, local_axis_3;
+
+        double N1, N2;
+
+        for (SizeType IP = 0; IP < r_integration_points.size(); ++IP) {
+            const double xi = r_integration_points[IP].X();
+            N1 = 0.5 * (1.0 - xi);
+            N2 = 0.5 * (1.0 + xi);
+
+            // Interpolate the rotation operator at this integration point
+            BoundedMatrix<double, 3, 3> current_rot;
+            noalias(current_rot) = N1 * mRotationOperators[0] + N2 * mRotationOperators[1];
+
+            // Extract the directors (columns of the rotation matrix) in Kratos convention
+            // The rotation matrices are defined in Romero and Armero convention,
+            // hence we need to swap components
+            noalias(local_axis_3) = column(current_rot, 1);
+            noalias(local_axis_2) = column(current_rot, 0);
+            noalias(local_axis_1) = column(current_rot, 2);
+
+            if (rVariable == LOCAL_AXIS_1) {
+                noalias(rOutput[IP]) = local_axis_1;
+            } else if (rVariable == LOCAL_AXIS_2) {
+                noalias(rOutput[IP]) = local_axis_2;
+            } else {
+                noalias(rOutput[IP]) = local_axis_3;
+            }
+        }
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void NonLinearTimoshenkoBeamElement3D2N::CalculateMassMatrix(
+    MatrixType& rMassMatrix,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_TRY
+
+    const SizeType block_size = GetDoFsPerNode();
+    const SizeType matrix_size = block_size * GetGeometry().size();
+
+    if (rMassMatrix.size1() != matrix_size || rMassMatrix.size2() != matrix_size) {
+        rMassMatrix.resize(matrix_size, matrix_size, false);
+    }
+    rMassMatrix.clear();
+
+    const auto& r_properties = GetProperties();
+    const double rho = r_properties[DENSITY];
+    const double area = r_properties[CROSS_AREA];
+    const double iy = r_properties[I22];
+    const double iz = r_properties[I33];
+    const double it = r_properties.Has(IT) ? r_properties[IT] : iy + iz;
+    const double length = CalculateReferenceLength();
+
+    const double rho_A = rho * area;
+
+    const std::array<double, 6> diagonal = {
+        rho_A,
+        rho_A,
+        rho_A,
+        rho * it,
+        rho * iy,
+        rho * iz
+    };
+
+    for (SizeType i = 0; i < block_size; ++i) {
+        const double value = length * diagonal[i] / 6.0;
+        rMassMatrix(i, i) = 2.0 * value;
+        rMassMatrix(i, i + block_size) = value;
+        rMassMatrix(i + block_size, i) = value;
+        rMassMatrix(i + block_size, i + block_size) = rMassMatrix(i, i);
+    }
+
+    BoundedMatrix<double, 3, 3> T;
+    noalias(T) = StructuralMechanicsElementUtilities::GetFrenetSerretMatrix3D(GetGeometry(), false);
+
+    BoundedMatrix<double, 12, 12> rotation_matrix;
+    rotation_matrix.clear();
+
+    for (IndexType block = 0; block < 4; ++block) {
+        const IndexType start = 3 * block;
+        noalias(project(rotation_matrix, range(start, start + 3), range(start, start + 3))) = T;
+    }
+
+    BoundedMatrix<double, 12, 12> local_mass_matrix, aux_matrix;
+    noalias(local_mass_matrix) = rMassMatrix;
+    noalias(aux_matrix) = prod(trans(rotation_matrix), local_mass_matrix);
+    noalias(rMassMatrix) = prod(aux_matrix, rotation_matrix);
+
+    KRATOS_CATCH("CalculateMassMatrix")
+}
+
+} // namespace Kratos
