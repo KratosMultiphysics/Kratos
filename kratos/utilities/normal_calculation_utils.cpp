@@ -372,8 +372,14 @@ void NormalCalculationUtils::ComputeUnitNormalsFromAreaNormals(
     auto unit_normal_func = [&rNormalVariable, this](NodeType& rNode){
         auto& r_normal = GetNormalValue<TIsHistorical>(rNode, rNormalVariable);
         const double norm_normal = norm_2(r_normal);
+        
         KRATOS_ERROR_IF(rNode.Is(INTERFACE) && norm_normal <= std::numeric_limits<double>::epsilon())
             << "Zero norm normal in INTERFACE flagged node: " << rNode.Id() << std::endl;
+        
+        // Even if the node is not in the interface, dividing by norm_normal being 0 would create a NaN
+        KRATOS_ERROR_IF(norm_normal <= std::numeric_limits<double>::epsilon())
+            << "Zero norm normal in NON-INTERFACE flagged node: " << rNode.Id() << std::endl;
+        
         r_normal /= norm_normal;
     };
 
