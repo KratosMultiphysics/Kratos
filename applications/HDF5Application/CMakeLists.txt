@@ -144,6 +144,7 @@ file(TO_CMAKE_PATH "${HDF5_ROOT}/bin" HDF5_ROOT_DEP_BIN)
 # Install targets
 install(TARGETS KratosHDF5Core DESTINATION libs)
 install(TARGETS KratosHDF5Application DESTINATION libs)
+install(IMPORTED_RUNTIME_ARTIFACTS ${HDF5_C_LIBRARIES} RUNTIME DESTINATION libs)
 
 # Install dependent libraries
 # Note: Please be carefull to enable this option if MED or HDF5 are system wide dependencies as it will
