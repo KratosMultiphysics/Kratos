@@ -620,7 +620,6 @@ void DerivativeRecovery<TDim>::SetNeighboursAndWeights(ModelPart& r_model_part)
     FindNodalNeighboursProcess neighbour_finder(r_model_part);
     neighbour_finder.Execute();
     const unsigned int n_max_iterations = 100;
-    unsigned int i = 0;
     for (NodeIteratorType inode = r_model_part.NodesBegin(); inode != r_model_part.NodesEnd(); ++inode){
         bool the_cloud_of_neighbours_is_successful = SetInitialNeighboursAndWeights(r_model_part, *(inode.base()));
         GlobalPointersVector<Node >& neigh_nodes = inode->GetValue(NEIGHBOUR_NODES);
@@ -636,7 +635,6 @@ void DerivativeRecovery<TDim>::SetNeighboursAndWeights(ModelPart& r_model_part)
             KRATOS_WARNING("SwimmingDEM") << "Warning!, for the node with id " << inode->Id() << " it has not been possible to form an adequate cloud of neighbours" << std::endl;
             KRATOS_WARNING("SwimmingDEM") << "for the gradient recovery. A lower accuracy method has been employed for this node." << std::endl;
         }
-        ++i;
     }
 }
 //**************************************************************************************************************************************************
@@ -648,7 +646,6 @@ void DerivativeRecovery<TDim>::SetNeighboursAndWeightsForTheLaplacian(ModelPart&
     FindNodalNeighboursProcess neighbour_finder(r_model_part);
     neighbour_finder.Execute();
     const unsigned int n_max_iterations = 100;
-    unsigned int i = 0;
     for (NodeIteratorType inode = r_model_part.NodesBegin(); inode != r_model_part.NodesEnd(); ++inode){
         bool the_cloud_of_neighbours_is_successful = SetInitialNeighboursAndWeights(r_model_part, *(inode.base()));
         GlobalPointersVector<Node >& neigh_nodes = inode->GetValue(NEIGHBOUR_NODES);
@@ -664,7 +661,6 @@ void DerivativeRecovery<TDim>::SetNeighboursAndWeightsForTheLaplacian(ModelPart&
             KRATOS_WARNING("SwimmingDEM") << "Warning!, for the node with id " << inode->Id() << " it has not been possible to form an adequate cloud of neighbours" << std::endl;
             KRATOS_WARNING("SwimmingDEM") << "for the gradient recovery. A lower accuracy method has been employed for this node." << std::endl;
         }
-        ++i;
     }
 }
 //**************************************************************************************************************************************************
