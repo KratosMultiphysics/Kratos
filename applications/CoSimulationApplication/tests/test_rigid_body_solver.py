@@ -1918,10 +1918,7 @@ class TestRigidBodySolver(KratosUnittest.TestCase):
                 ],
                 "auxiliar_process_list": [
                     {
-                        "python_module"   : "json_output_process",
-                        "kratos_module" : "KratosMultiphysics",
-                        "help"                  : "",
-                        "process_name"          : "JsonOutputProcess",
+                        "name" : "Processes.KratosMultiphysics.JsonOutputProcess",
                         "Parameters"            : {
                             "output_variables" : [
                                 "DISPLACEMENT_X",
@@ -2050,10 +2047,7 @@ class TestRigidBodySolver(KratosUnittest.TestCase):
                 ],
                 "auxiliar_process_list": [
                     {
-                        "python_module"   : "json_output_process",
-                        "kratos_module" : "KratosMultiphysics",
-                        "help"                  : "",
-                        "process_name"          : "JsonOutputProcess",
+                        "name" : "Processes.KratosMultiphysics.JsonOutputProcess",
                         "Parameters"            : {
                             "output_variables" : [
                                 "DISPLACEMENT_X",

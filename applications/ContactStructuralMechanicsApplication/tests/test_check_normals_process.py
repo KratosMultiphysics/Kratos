@@ -4,7 +4,6 @@ import KratosMultiphysics.ContactStructuralMechanicsApplication as CSMA
 
 # Some imports
 from KratosMultiphysics import from_json_check_result_process
-#from KratosMultiphysics import json_output_process
 from KratosMultiphysics.gid_output_process import GiDOutputProcess
 from KratosMultiphysics.vtk_output_process import VtkOutputProcess
 
@@ -76,7 +75,7 @@ class TestCheckNormals(KratosUnittest.TestCase):
 
         #out_parameters["output_file_name"].SetString(input_filename + "_check_normal.json")
 
-        #out = json_output_process.JsonOutputProcess(self.model, out_parameters)
+        #out = KM.JsonOutputProcess(self.model, out_parameters)
         #out.ExecuteInitialize()
         #out.ExecuteBeforeSolutionLoop()
         #out.ExecuteFinalizeSolutionStep()
