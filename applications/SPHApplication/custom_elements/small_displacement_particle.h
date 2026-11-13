@@ -28,6 +28,7 @@ using SizeType = std::size_t;
 template<class TKernelType, std::size_t TDim>
 class KRATOS_API(SPH_APPLICATION) SmallDisplacementParticle : public Element
 {
+    
 protected:
     /**
      * Internal variables used in the kinematic calculations
@@ -56,7 +57,7 @@ protected:
             W = ZeroVector(NumberOfNeighbours);
             DW_DX = ZeroMatrix(NumberOfNeighbours, DomainSize);
             B = ZeroMatrix(StrainSize, DomainSize * NumberOfNeighbours);
-            double detF = 1.0;
+            detF = 1.0;
             F = IdentityMatrix(DomainSize);
             Displacement = ZeroVector(DomainSize * NumberOfNeighbours);
         }
@@ -200,6 +201,11 @@ public:
     ) override;
 
     /**
+     * @brief This method returns if the element provides the strain
+     */
+    virtual bool UseElementProvidedStrain() const;
+
+    /**
      * @brief This functions calculates both the RHS and the LHS
      * @param rLeftHandSideMatrix The LHS matrix
      * @param rRightHandSideVector The RHS vector
@@ -225,22 +231,6 @@ public:
     );
 
     /**
-     * @brief This function computes the deformation matrix B for 2D simulations 
-     */
-    virtual void Calculate2DB(
-        MatrixType& rB,
-        const MatrixType& rDW_DX
-    );
-
-    /**
-     * @brief This function computes the deformation matrix B for 3D simulations 
-     */
-    virtual void Calculate3DB(
-        MatrixType& rB,
-        const MatrixType& rDW_DX
-    );
-
-    /**
      * @brief This function calculates the external forces contribution
      * @param rBodyForce The Body force vector 
      */
@@ -261,6 +251,15 @@ public:
         KinematicVariables& rThisKinematicVariables,
         ConstitutiveLaw::Parameters& rValues,
         const ConstitutiveLaw::StressMeasure ThisStressMeasure
+    );
+
+    /**
+     * @brief This function is called to set the constitutive variables
+     */
+    virtual void SetConstitutiveVariables(
+        KinematicVariables& rThisKinematicVariables,
+        ConstitutiveVariables& rThisConstitutiveVariables,
+        ConstitutiveLaw::Parameters& rValues
     );
 
     /**
@@ -334,9 +333,50 @@ private:
 
     template<class TType>
     void GetValueOnConstituitiveLaw(const Variable<TType>& rVariable, std::vector<TType>& rOutput){
-        mThisConstitutiveLaw->GetValue(rVariable, rOutput[0]);   ////
+        mThisConstitutiveLaw->GetValue(rVariable, rOutput[0]); 
     }
 
+    /**
+     * @brief This method computes directly in the CL
+     * @details Avoids code repetition
+     * @param rVariable The variable we want to get
+     * @param rOutput The values obtained in the integration points
+     * @tparam TType The type considered
+     */
+    template<class TType>
+    void CalculateOnConstitutiveLaw(
+        const Variable<TType>& rVariable,
+        std::vector<TType>& rOutput,
+        const ProcessInfo& rCurrentProcessInfo
+        )
+        {
+
+            const auto& r_geom = GetGeometry();
+            const auto& r_props = GetProperties();
+            const SizeType dimension = r_geom.WorkingSpaceDimension();
+            const auto& r_neighbours = this->GetValue(NEIGHBOURS);
+
+            rOutput.resize(1);
+            const SizeType strain_size = mThisConstitutiveLaw->GetStrainSize();
+            
+            KinematicVariables this_kinematic_variables(strain_size, dimension, r_neighbours.size());
+            ConstitutiveVariables this_constitutive_variables(strain_size);
+
+            ConstitutiveLaw::Parameters cl_values(r_geom, r_props, rCurrentProcessInfo);
+
+            // Set constitutive law flags:
+            Flags& r_cl_options = cl_values.GetOptions();
+            r_cl_options.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, UseElementProvidedStrain());
+            r_cl_options.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
+            r_cl_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
+
+            cl_values.SetStrainVector(this_constitutive_variables.StrainVector);
+            
+            CalculateKinematicVariables(this_kinematic_variables, rCurrentProcessInfo);
+            SetConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, cl_values);
+
+            rOutput[0] = mThisConstitutiveLaw->CalculateValue(cl_values, rVariable, rOutput[0]);
+        }
 };
 
 }
