@@ -69,7 +69,7 @@ namespace Kratos
    }
 
 
-   //*******************************ASSIGMENT OPERATOR***********************************
+   //******************************ASSIGNMENT OPERATOR***********************************
    //************************************************************************************
 
    UpdatedLagrangianUJPElement&  UpdatedLagrangianUJPElement::operator=(UpdatedLagrangianUJPElement const& rOther)
@@ -893,7 +893,7 @@ namespace Kratos
          for (unsigned int l = 0; l < dimension; l++) {
             for (unsigned int p = 0; p < dimension ; p++) {
                for (unsigned int q = 0; q < dimension; q++) {
-                  // THIS IS NOT THE WAY TO PERFORM A 4Or mutliplication and compression, but,....
+                  // THIS IS NOT THE WAY TO PERFORM A 4Or multiplication and compression, but,....
                   unsigned int auxk, auxl;
                   if ( k < l) { auxk = k; auxl = l;  } 
                   else  { auxk = l; auxl = k; }
@@ -1001,7 +1001,7 @@ namespace Kratos
          }
       }
       if ( this->Id() == 0 ) {
-         std::cout << " PREVIOS MULTIPLICATION " << std::endl;
+         std::cout << " PREVIOUS MULTIPLICATION " << std::endl;
          std::cout << " CONST MATRIX " << ConstMatrixBig << std::endl;
          std::cout << " DEVIATORIC BETA " << DeviatoricBeta << std::endl;
       }
@@ -1079,7 +1079,7 @@ namespace Kratos
 
    {
 
-      // Matrix from the paper, it is not the appropiate way to do it, but.....
+      // Matrix from the paper, it is not the appropriate way to do it, but.....
       KRATOS_TRY
 
       const unsigned int number_of_nodes = GetGeometry().size();
@@ -1105,7 +1105,7 @@ namespace Kratos
          for (unsigned int l = 0; l < dimension; l++) {
             for (unsigned int p = 0; p < dimension ; p++) {
                for (unsigned int q = 0; q < dimension; q++) {
-                  // THIS IS NOT THE WAY TO PERFORM A 4Or mutliplication and compression, but,....
+                  // THIS IS NOT THE WAY TO PERFORM A 4Or multiplication and compression, but,....
                   unsigned int auxk, auxl;
                   if ( k < l) { 
                      auxk = k; auxl = l;
@@ -1615,7 +1615,7 @@ namespace Kratos
       }
 
 
-      // EVERTHING HERE.
+      // EVERYTHING HERE.
       ConstMatrix = prod( Identity, ConstMatrix);
       ConstMatrix = prod( ConstMatrix, AlphaDeviatoricMatrix);
 
@@ -1657,7 +1657,7 @@ namespace Kratos
       ConstMatrix *= rElementVariables.Beta; 
       ConstMatrix = prod( ConstMatrix, rVariables.B);
 
-      // Multiply and everithing
+      // Multiply and everything
 
       if ( this->Id() == 0 )
       {
