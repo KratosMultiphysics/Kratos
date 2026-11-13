@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1100" height="360" viewBox="0 0 1100 360" font-family="Helvetica, Arial, sans-serif">
+  <title>The ROM row-order contract</title>
+  <desc>u equals Phi times q: the basis rows are node-major and unknown-minor in the alphabetically sorted order of the nodal unknowns, matching the Kratos vector of solution-step values.</desc>
+  <defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#555"/></marker></defs>
+  <rect width="1100" height="360" fill="#ffffff"/>
+  <text x="550" y="34" text-anchor="middle" font-size="16" font-weight="bold" fill="#333">u  =  Phi  q      -  a full field from a few modal coefficients, in RomApplication's own row order</text>
+  <!-- u vector -->
+  <g font-size="11.5" fill="#333">
+    <rect x="60" y="60" width="70" height="240" fill="#eaf2fb" stroke="#1f4e79"/>
+    <text x="95" y="80" text-anchor="middle" font-weight="bold" fill="#1f4e79">u  (n,)</text>
+    <g font-family="monospace" font-size="10.5" text-anchor="middle">
+      <text x="95" y="102">node 1 PRESSURE</text><text x="95" y="116">node 1 VELOCITY_X</text><text x="95" y="130">node 1 VELOCITY_Y</text><text x="95" y="144">node 1 VELOCITY_Z</text>
+      <text x="95" y="166">node 2 PRESSURE</text><text x="95" y="180">node 2 VELOCITY_X</text><text x="95" y="194">node 2 VELOCITY_Y</text><text x="95" y="208">node 2 VELOCITY_Z</text>
+      <text x="95" y="232">...</text><text x="95" y="270">node N ...</text>
+    </g>
+    <text x="150" y="180" font-size="18">=</text>
+    <rect x="180" y="60" width="300" height="240" fill="#eef7ee" stroke="#2e6b2e"/>
+    <text x="330" y="80" text-anchor="middle" font-weight="bold" fill="#2e6b2e">Phi  (n, r)   RightBasisMatrix.npy</text>
+    <text x="330" y="180" text-anchor="middle" fill="#666">n rows in the same order as u,</text>
+    <text x="330" y="196" text-anchor="middle" fill="#666">r columns = POD modes</text>
+    <rect x="510" y="60" width="50" height="120" fill="#fff4e0" stroke="#c27c0e"/>
+    <text x="535" y="80" text-anchor="middle" font-weight="bold" fill="#7a4d00">q (r,)</text>
+    <text x="535" y="120" text-anchor="middle" font-size="10.5">modal</text><text x="535" y="134" text-anchor="middle" font-size="10.5">coeffs</text>
+  </g>
+  <g font-size="12.5" fill="#333">
+    <rect x="600" y="60" width="480" height="240" rx="10" fill="#f6f6f6" stroke="#666" stroke-width="1.5"/>
+    <text x="612" y="84" font-weight="bold">The contract, read from CalculateRomBasisOutputProcess</text>
+    <text x="612" y="108">node-major: rows follow NodeIds.npy</text>
+    <text x="612" y="126">unknown-minor: within a node, the nodal_unknowns in</text>
+    <text x="612" y="142" font-weight="bold">alphabetically sorted order, components expanded</text>
+    <text x="612" y="168">rom_bridge reads the basis (no compiled RomApplication needed),</text>
+    <text x="612" y="184">gathers u with VariableUtils in exactly that order and</text>
+    <text x="612" y="200">projects: q = Phi^T u, u = Phi q</text>
+    <text x="612" y="226" fill="#7a4d00">RomSurrogateProcess: case parameters -&gt; a small net -&gt; q -&gt; Phi q</text>
+    <text x="612" y="242" fill="#7a4d00">written to the basis's own unknowns (output_fields is derived)</text>
+    <text x="612" y="268" fill="#666" font-size="11.5">rom_temporal: physicsnemo's Sequence_Model learns the dynamics of q;</text>
+    <text x="612" y="284" fill="#666" font-size="11.5">always feed a context token or the first prediction is dropped</text>
+  </g>
+  <text x="550" y="335" text-anchor="middle" font-size="12" fill="#444">The node permutation from Kratos order to basis order is computed once and cached per node count; a strided numpy view must be made contiguous before it becomes a Kratos.Vector.</text>
+</svg>

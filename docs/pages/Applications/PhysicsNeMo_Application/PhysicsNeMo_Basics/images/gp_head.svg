@@ -1,0 +1,64 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1100" height="440" viewBox="0 0 1100 440" font-family="Helvetica, Arial, sans-serif">
+  <title>Where predictive uncertainty comes from</title>
+  <desc>Three routes to an error bar - MC dropout, ensembles, a GP head on the backbone features - feeding the same variance decomposition into total, epistemic and noise terms, and the calibration questions asked of the result.</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#555"/>
+    </marker>
+  </defs>
+  <rect width="1100" height="440" fill="#ffffff"/>
+  <g font-size="12.5" fill="#333">
+    <rect x="20" y="20" width="320" height="120" rx="10" fill="#eef7ee" stroke="#2e6b2e" stroke-width="1.5"/>
+    <text x="180" y="45" text-anchor="middle" font-size="15" font-weight="bold" fill="#2e6b2e">MC dropout  (sampling)</text>
+    <text x="180" y="68" text-anchor="middle">keep dropout active at inference, run M passes</text>
+    <text x="180" y="86" text-anchor="middle">ConcreteDropout learns the rate, so the spread</text>
+    <text x="180" y="102" text-anchor="middle">is calibrated rather than arbitrary</text>
+    <text x="180" y="126" text-anchor="middle" fill="#a03060">trap: a dropout layer in eval mode is a silent no-op</text>
+    <rect x="390" y="20" width="320" height="120" rx="10" fill="#eef7ee" stroke="#2e6b2e" stroke-width="1.5"/>
+    <text x="550" y="45" text-anchor="middle" font-size="15" font-weight="bold" fill="#2e6b2e">Ensembles  (sampling)</text>
+    <text x="550" y="68" text-anchor="middle">K checkpoints: deep (K trainings), snapshot (cyclic</text>
+    <text x="550" y="86" text-anchor="middle">learning rate), checkpoint (last K epochs), input</text>
+    <text x="550" y="102" text-anchor="middle">(remeshed variants); mean and std of the K outputs</text>
+    <text x="550" y="126" text-anchor="middle" fill="#a03060" font-size="11.5">trap: members can all be wrong together off-range</text>
+    <rect x="760" y="20" width="320" height="120" rx="10" fill="#eef7ee" stroke="#2e6b2e" stroke-width="1.5"/>
+    <text x="920" y="45" text-anchor="middle" font-size="15" font-weight="bold" fill="#2e6b2e">GP head  (closed form, one pass)</text>
+    <text x="920" y="68" text-anchor="middle">backbone features -&gt; DKL MLP -&gt; variational GP</text>
+    <text x="920" y="86" text-anchor="middle">FieldVariationalGPHead per point, VariationalGPHead</text>
+    <text x="920" y="102" text-anchor="middle">per case; inducing points seeded from real features</text>
+    <text x="920" y="126" text-anchor="middle" fill="#a03060" font-size="11.5">trap: skip the seed / MSE / KL-ramp recipe and variance collapses</text>
+  </g>
+  <g stroke="#555" stroke-width="1.8">
+    <line x1="180" y1="140" x2="440" y2="185" marker-end="url(#arrow)"/>
+    <line x1="550" y1="140" x2="550" y2="185" marker-end="url(#arrow)"/>
+    <line x1="920" y1="140" x2="660" y2="185" marker-end="url(#arrow)"/>
+  </g>
+  <rect x="250" y="190" width="600" height="80" rx="10" fill="#fff4e0" stroke="#c27c0e" stroke-width="1.5"/>
+  <text x="550" y="218" text-anchor="middle" font-size="16" font-weight="bold" fill="#7a4d00">total variance(x)  =  epistemic variance(x)  +  noise variance(x)</text>
+  <text x="550" y="242" text-anchor="middle" font-size="12.5" fill="#333">epistemic: what more training data would remove - rises where the surrogate extrapolates (the OOD signal)</text>
+  <text x="550" y="260" text-anchor="middle" font-size="12.5" fill="#333">noise: input-dependent scatter the data itself carries.  Dropout and ensembles give only the first; GP heads give both.</text>
+  <g stroke="#555" stroke-width="1.8">
+    <line x1="400" y1="270" x2="200" y2="305" marker-end="url(#arrow)"/>
+    <line x1="550" y1="270" x2="550" y2="305" marker-end="url(#arrow)"/>
+    <line x1="700" y1="270" x2="900" y2="305" marker-end="url(#arrow)"/>
+  </g>
+  <g font-size="12.5" fill="#333">
+    <rect x="20" y="310" width="340" height="110" rx="10" fill="#eaf2fb" stroke="#1f4e79" stroke-width="1.5"/>
+    <text x="190" y="334" text-anchor="middle" font-size="14" font-weight="bold" fill="#1f4e79">Is it the right size?  (calibration)</text>
+    <text x="190" y="356" text-anchor="middle">z = (y - mean) / std should be standard normal:</text>
+    <text x="190" y="373" text-anchor="middle">z-RMS near 1, 95 % coverage near 0.95,</text>
+    <text x="190" y="390" text-anchor="middle">low NLPD, sharpness as small as calibration allows</text>
+    <text x="190" y="410" text-anchor="middle" font-family="monospace" font-size="11">uncertainty_utils.ComputeCalibrationMetricValues</text>
+    <rect x="380" y="310" width="340" height="110" rx="10" fill="#eaf2fb" stroke="#1f4e79" stroke-width="1.5"/>
+    <text x="550" y="334" text-anchor="middle" font-size="14" font-weight="bold" fill="#1f4e79">Does it rank the errors?  (discrimination)</text>
+    <text x="550" y="356" text-anchor="middle">rank correlation between std and actual error,</text>
+    <text x="550" y="373" text-anchor="middle">sparsification curve and its area (AUSE):</text>
+    <text x="550" y="390" text-anchor="middle">dropping the most uncertain points should drop the error</text>
+    <text x="550" y="410" text-anchor="middle" font-family="monospace" font-size="11">ensemble crps / kcrps in ValidationMetricsProcess</text>
+    <rect x="740" y="310" width="340" height="110" rx="10" fill="#eaf2fb" stroke="#1f4e79" stroke-width="1.5"/>
+    <text x="910" y="334" text-anchor="middle" font-size="14" font-weight="bold" fill="#1f4e79">Does it grow off-distribution?  (OOD)</text>
+    <text x="910" y="356" text-anchor="middle">growth ratio (std_ood / std_id) / (rmse_ood / rmse_id)</text>
+    <text x="910" y="373" text-anchor="middle">near 1; below it the model is over-confident outside</text>
+    <text x="910" y="390" text-anchor="middle">its training family - which is what the OOD guard is for</text>
+    <text x="910" y="410" text-anchor="middle" font-family="monospace" font-size="11">ood_guard_utils, "ood_guard" block on every process</text>
+  </g>
+</svg>
