@@ -37,6 +37,7 @@
 #include "custom_utilities/input_output/universal_file_io.h"
 #include "custom_utilities/search_based_functions.h"
 #include "custom_utilities/response_functions/face_angle_response_function_utility.h"
+#include "custom_utilities/response_functions/water_drain_response_function_utility.h"
 
 // ==============================================================================
 
@@ -292,6 +293,14 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         .def("Initialize", &FaceAngleResponseFunctionUtility::Initialize)
         .def("CalculateValue", &FaceAngleResponseFunctionUtility::CalculateValue)
         .def("CalculateGradient", &FaceAngleResponseFunctionUtility::CalculateGradient)
+        ;
+
+    py::class_<WaterDrainResponseFunctionUtility >(m, "WaterDrainResponseFunctionUtility")
+        .def(py::init<ModelPart&, Parameters>())
+        .def("Initialize", &WaterDrainResponseFunctionUtility::Initialize)
+        .def("InitializeSolutionStep", &WaterDrainResponseFunctionUtility::InitializeSolutionStep)
+        .def("CalculateValue", &WaterDrainResponseFunctionUtility::CalculateValue)
+        .def("CalculateGradient", &WaterDrainResponseFunctionUtility::CalculateGradient)
         ;
 
     // ========================================================================
