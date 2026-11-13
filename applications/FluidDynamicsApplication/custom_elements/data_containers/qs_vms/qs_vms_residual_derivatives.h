@@ -10,7 +10,8 @@
 //  Main authors:    Suneth Warnakulasuriya
 //
 
-#pragma once
+#if !defined(KRATOS_QS_VMS_RESIDUAL_FIRST_DERIVATIVES_H)
+#define KRATOS_QS_VMS_RESIDUAL_FIRST_DERIVATIVES_H
 
 // System includes
 
@@ -36,15 +37,6 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/**
- * @brief Computes the QSVMS residual derivatives
- *
- * This class holds sub-classes which are required to compute QSVMS residual derivatives
- * with respect to given variables.
- *
- * @tparam TDim
- * @tparam TNumNodes
- */
 template <unsigned int TDim, unsigned int TNumNodes>
 class QSVMSResidualDerivatives
 {
@@ -93,26 +85,12 @@ public:
     ///@name Class Declarations
     ///@{
 
-    /**
-     * @brief The data container for the QSVMS residuals
-     *
-     * This data container is used for all the derivative computations. So, this
-     * is used to store common data which are required for derivative computations
-     * between different variables.
-     *
-     */
-    class QSVMSResidualData;
+    class Data;
 
     ///@}
     ///@name Classes
     ///@{
 
-    /**
-     * @brief Computes residual contributions
-     *
-     * This class is used to compute the gauss point residuals.
-     *
-     */
     class ResidualsContributions
     {
     public:
@@ -129,7 +107,7 @@ public:
 
         void AddGaussPointResidualsContributions(
             VectorF& rResidual,
-            QSVMSResidualData& rData,
+            Data& rData,
             const double W,
             const Vector& rN,
             const Matrix& rdNdX) const;
@@ -141,21 +119,13 @@ public:
         ///@{
 
         void static AddViscousTerms(
-            QSVMSResidualData& rData,
+            Data& rData,
             VectorF& rResidual,
             const double W);
 
         ///@}
     };
 
-    /**
-     * @brief Computes QS VMS residual derivative residuals for given variable
-     *
-     * This class is capable of computing QS VMS redisual derivative with respect to
-     * given derivative variable (information is provided via TDerivativesType)
-     *
-     * @tparam TDerivativesType     Derivative computation class which holds information on how to compute coefficient derivatives
-     */
     template<class TDerivativesType>
     class VariableDerivatives
     {
@@ -175,26 +145,9 @@ public:
         ///@name Operations
         ///@{
 
-        /**
-         * @brief Computes gauss point residual derivatives for given NodeIndex
-         *
-         * This method computes gauss point QS VMS residual derivatives w.r.t. the variable information in TDerivativesType
-         * for the NodeIndex.
-         *
-         * @param rResidualDerivative           Output derivatives vector of the Residual
-         * @param rData                         Data holder, which holds all the intermediate values computed from the primal solution which are common to all the derivatives
-         * @param NodeIndex                     Index of the node in the geometry for which the derivatives are computed for.
-         * @param W                             Gauss point weight
-         * @param rN                            Gauss point shape function values vector
-         * @param rdNdX                         Gauss point shape gradient matrix. (rows -> nodes, columns -> coordinates index)
-         * @param WDerivative                   Gauss point weight derivative w.r.t. chosen variable from TDerivativesType
-         * @param DetJDerivative                Jacobian determinant derivative w.r.t. chosen variable from TDerivativesType
-         * @param rdNdXDerivative               Gauss point shape gradient's derivatives w.r.t. chosen variable from TDerivativesType
-         * @param MassTermsDerivativesWeight    This decides whether Mass term derivatives needs to be computed or not (either 1.0 or 0.0)
-         */
         void CalculateGaussPointResidualsDerivativeContributions(
             VectorF& rResidualDerivative,
-            QSVMSResidualData& rData,
+            Data& rData,
             const int NodeIndex,
             const double W,
             const Vector& rN,
@@ -224,7 +177,7 @@ public:
 
             // calculate derivative contributions w.r.t. current derivative variable. Derivative variables are
             // assumed be independent of each other, so no cross derivative terms are there. Hence
-            // it is only sufficient to derive w.r.t. current derivative variable.
+            // it is only sufficient to derrive w.r.t. current derivative variable.
             rData.mpConstitutiveLaw->CalculateDerivative(rData.mConstitutiveLawValues, EFFECTIVE_VISCOSITY, derivatives_type.GetDerivativeVariable(), effective_viscosity_derivative);
             effective_viscosity_derivative *= rN[NodeIndex];
 
@@ -409,21 +362,8 @@ public:
         ///@name Private Operations
         ///@{
 
-        /**
-         * @brief Adds the viscous term derivative of the residual
-         *
-         * @param rData                         Data holder, which holds all the intermediate values computed from the primal solution which are common to all the derivatives
-         * @param rResidualDerivative           Output derivatives vector of the Residual
-         * @param NodeIndex                     Index of the node in the geometry for which the derivatives are computed for.
-         * @param W                             Gauss point weight
-         * @param rN                            Gauss point shape function values vector
-         * @param rdNdX                         Gauss point shape gradient matrix. (rows -> nodes, columns -> coordinates index)
-         * @param WDerivative                   Gauss point weight derivative w.r.t. chosen variable from TDerivativesType
-         * @param DetJDerivative                Jacobian determinant derivative w.r.t. chosen variable from TDerivativesType
-         * @param rdNdXDerivative               auss point shape gradient's derivatives w.r.t. chosen variable from TDerivativesType
-         */
         void static AddViscousDerivative(
-            QSVMSResidualData& rData,
+            Data& rData,
             VectorF& rResidualDerivative,
             const int NodeIndex,
             const double W,
@@ -446,13 +386,6 @@ public:
         ///@}
     };
 
-    /**
-     * @brief Computes second derivatives of the QS VMS residual
-     *
-     * This class computes second derivatives with respect to given state variables
-     *
-     * @tparam TComponentIndex
-     */
     template<unsigned int TComponentIndex>
     class SecondDerivatives
     {
@@ -470,7 +403,7 @@ public:
 
         void CalculateGaussPointResidualsDerivativeContributions(
             VectorF& rResidualDerivative,
-            QSVMSResidualData& rData,
+            Data& rData,
             const int NodeIndex,
             const double W,
             const Vector& rN,
@@ -479,7 +412,7 @@ public:
         ///@}
     };
 
-    class QSVMSResidualData
+    class Data
     {
     public:
         ///@name Type definitions
@@ -514,7 +447,7 @@ public:
         ConstitutiveLaw* mpConstitutiveLaw;
 
         // Primal data
-        int mOSSSwitch;
+        int mOSS_SWITCH;
         double mDensity;
         double mConvectiveVelocityNorm;
         double mEffectiveViscosity;
@@ -558,7 +491,7 @@ public:
         Vector mShearStress;
         Matrix mC;
 
-        // Sorting this derivatives also in primal data container
+        // Sotring this derivatives also in primal data container
         // since all the matrices and vectors needs to be initialized
         // in the heap, therefore to avoid re-reserving memory for each derivative
         Vector mStrainRateDerivative;
@@ -625,3 +558,5 @@ public:
 };
 
 } // namespace Kratos
+
+#endif // KRATOS_QS_VMS_RESIDUAL_ADJOINT_DERIVATIVES_H
